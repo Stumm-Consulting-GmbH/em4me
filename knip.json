@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main/preload.js",
+    "src/renderer/renderer.js",
+    "src/renderer/mermaid-entry.js",
+    "scripts/*.js",
+    "test/**/*.spec.js",
+    "test/**/*.test.js"
+  ],
+  "project": ["src/**/*.js", "scripts/**/*.js", "test/**/*.js"],
+  "ignore": ["test/fixtures/extensions/**"],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": ["katex"]
+}

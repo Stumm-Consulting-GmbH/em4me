@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`P-02-Sanitizer (Portable-Pfad, DOMParser aktiv) > Event-Handler-Attribute und iframe fallen weg 1`] = `
+"<!-- perspective-portable -->
+<div><span style="color:red">ok</span></div>
+"
+`;
+
+exports[`P-02-Sanitizer (Portable-Pfad, DOMParser aktiv) > Script-Block wird nicht ausgefuehrt/uebernommen 1`] = `
+"<!-- perspective-portable -->
+
+"
+`;
+
+exports[`P-02-Sanitizer (Portable-Pfad, DOMParser aktiv) > erlaubte Export-Tabelle bleibt erhalten 1`] = `
+"<!-- perspective-portable -->
+<table class="perspective-table"><tbody><tr><td colspan="2" style="text-align:right">Zelle</td></tr></tbody></table>
+"
+`;

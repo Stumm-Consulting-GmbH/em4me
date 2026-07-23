@@ -1,0 +1,574 @@
+<!doctype html>
+<!--
+  4T-0412 (Epic 3E-0078): Sandbox-Trägerdokument der perspective-script-Blöcke.
+
+  Sicherheits-Modell (Epic-Festlegung „eingehegt statt Voll-Zugriff"):
+  - Geladen als <iframe sandbox="allow-scripts"> OHNE allow-same-origin —
+    das Dokument läuft mit opaker Origin: kein Zugriff auf Parent-DOM,
+    Preload-Brücke, Cookies oder Storage des Renderers.
+  - Eigene Datei statt srcdoc: srcdoc-Dokumente erben die CSP des
+    Eltern-Dokuments (script-src 'self' würde die Inline-Laufzeit blocken);
+    ein eigenständiges Dokument trägt seine eigene, strikte CSP.
+  - CSP dieses Dokuments: default-src 'none' blockt jede Subresource
+    (fetch/XHR/WebSocket/Bilder/Frames/Formulare — kein Netz, kein
+    Datei-Nachladen); script-src erlaubt genau die Inline-Laufzeit unten
+    plus 'unsafe-eval' für die Ausführung des Nutzer-Skripts über
+    new Function; worker-src blob: erlaubt den Ausführungs-Worker (er erbt
+    diese CSP — auch im Worker kein Netz, keine externen Skripte). Externe
+    Skript-URLs bleiben blockiert (keine Host-/Scheme-Quelle in script-src).
+  - Das Nutzer-Skript läuft in einem WORKER-Thread (4T-0416-Befund der
+    PO-Test-Iteration): Sandbox-iframes eines Fensters teilen sich einen
+    Renderer-Prozess; liefe das Skript im iframe-Haupt-Thread, würde ein
+    Endlos-Skript den gemeinsamen Event-Loop blockieren, Geschwister-Blöcke
+    verhungern lassen und sich beim Timeout nicht zuverlässig abräumen
+    lassen (der blockierte Prozess überlebt das iframe-Entfernen). Im
+    Worker dreht ein Endlos-Skript nur seinen eigenen Thread; der
+    Haupt-Thread bleibt frei, und das Entsorgen des iframes durch den
+    Renderer terminiert den Worker deterministisch mit.
+  - Kommunikation ausschließlich über postMessage/MessageChannel: der
+    Renderer sendet genau einen Run-Auftrag mit übertragenem MessagePort;
+    alle Antworten laufen über diesen Port (die Port-Identität ersetzt
+    eine explizite Block-ID-Korrelation). Nachrichten werden vor der
+    Verarbeitung Schema-geprüft; nach dem ersten gültigen Auftrag werden
+    weitere Nachrichten ignoriert (eine Sandbox-Instanz = ein Lauf).
+
+  Die pq-API (Daten-Zugriff und Ausgabe-Beschreibung) lebt vollständig im
+  Worker (workerMain, als Quelltext über toString() in den Blob-Worker
+  gegeben — selbst-enthalten, keine freien Bezüge nach außen); die Ausgabe
+  ist eine serialisierte Knoten-Beschreibung, die der Renderer über eine
+  Element-Whitelist in DOM übersetzt — Skripte schreiben nie direkt in das
+  Dokument-DOM.
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; worker-src blob:"
+    />
+    <title>perspective-script sandbox</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        'use strict';
+
+        // --- Ausführungs-Worker -----------------------------------------------
+        // Selbst-enthaltene Laufzeit: Normalisierung, pq-API, Fehler-Bild und
+        // die Ausführung des Nutzer-Skripts. Läuft als Blob-Worker (eigener
+        // Thread); jede Hilfsfunktion muss INNERHALB von workerMain stehen.
+        function workerMain() {
+          'use strict';
+
+          // --- Ausgabe-Knoten (serialisierbare Beschreibung) -------------------
+          // Bau-Funktionen erzeugen reine Daten-Objekte { kind, ... }; die
+          // Whitelist-Übersetzung in echtes DOM liegt beim Renderer. Inhalte
+          // (Strings, Zahlen, Knoten, Arrays) werden hier normalisiert, damit
+          // über den Kanal nur die erwartete Struktur läuft.
+          function normalizeContent(value) {
+            if (value === null || value === undefined) return [];
+            if (Array.isArray(value)) {
+              var out = [];
+              for (var i = 0; i < value.length; i++) {
+                out = out.concat(normalizeContent(value[i]));
+              }
+              return out;
+            }
+            if (typeof value === 'object') {
+              if (typeof value.kind === 'string') return [value];
+              // Unbekannte Objekte lesbar machen statt "[object Object]".
+              try {
+                return [{ kind: 'text', text: JSON.stringify(value) }];
+              } catch (err) {
+                return [{ kind: 'text', text: String(value) }];
+              }
+            }
+            return [{ kind: 'text', text: String(value) }];
+          }
+
+          // Listen-Einträge: Inhalt oder { content, children } für Baum-Strukturen.
+          function normalizeListItems(items) {
+            var out = [];
+            if (!Array.isArray(items)) return out;
+            for (var i = 0; i < items.length; i++) {
+              var item = items[i];
+              if (
+                item &&
+                typeof item === 'object' &&
+                !Array.isArray(item) &&
+                typeof item.kind !== 'string' &&
+                ('children' in item || 'content' in item)
+              ) {
+                out.push({
+                  content: normalizeContent(item.content),
+                  children: normalizeListItems(item.children),
+                });
+              } else {
+                out.push({ content: normalizeContent(item), children: [] });
+              }
+            }
+            return out;
+          }
+
+          // --- Daten-Helfer (4T-0413) -------------------------------------------
+          // Namens-Normalisierung wie die Wiki-Auflösung (NFC + lowercase).
+          function norm(s) {
+            return String(s === undefined || s === null ? '' : s)
+              .normalize('NFC')
+              .toLowerCase();
+          }
+
+          // Quellen-Filter der Daten-API (vereinfachtes FROM-Modell der
+          // Abfrage-Sprache): '#tag' filtert über file.tags (inkl. Hierarchie-
+          // Präfix), '[[Name]]' über ausgehende Links auf das Ziel, alles
+          // andere gilt als Ordner-Präfix relativ zur Suchraum-Wurzel.
+          function sourceMatcher(quelle) {
+            if (quelle === undefined || quelle === null || quelle === '') {
+              return function () {
+                return true;
+              };
+            }
+            var q = String(quelle).trim();
+            if (q.charAt(0) === '#') {
+              var tag = norm(q.slice(1));
+              return function (page) {
+                var tags = page && page.file && Array.isArray(page.file.tags) ? page.file.tags : [];
+                for (var i = 0; i < tags.length; i++) {
+                  var t = norm(tags[i]);
+                  if (t === tag || t.indexOf(tag + '/') === 0) return true;
+                }
+                return false;
+              };
+            }
+            var linkMatch = /^\[\[(.*)\]\]$/.exec(q);
+            if (linkMatch) {
+              var target = norm(linkMatch[1].trim());
+              return function (page) {
+                var out =
+                  page && page.file && Array.isArray(page.file.outlinks) ? page.file.outlinks : [];
+                for (var i = 0; i < out.length; i++) {
+                  if (out[i] && norm(out[i].name) === target) return true;
+                }
+                return false;
+              };
+            }
+            var folder = norm(q.replace(/\\/g, '/').replace(/^\/+|\/+$/g, ''));
+            return function (page) {
+              var f = norm(page && page.file ? page.file.folder : '');
+              return f === folder || f.indexOf(folder + '/') === 0;
+            };
+          }
+
+          // Datums-Parsing kompatibel zum Typ-System der Abfrage-Sprache:
+          // ISO-artige Strings (JJJJ-MM-TT, optional Uhrzeit mit T oder
+          // Leerzeichen) werden LOKAL interpretiert, wie in der Abfrage.
+          var ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?$/;
+          function parseDate(value) {
+            if (value === undefined || value === null || value === '') return null;
+            if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+            if (typeof value === 'number') {
+              return isFinite(value) ? new Date(value) : null;
+            }
+            var m = ISO_DATE_RE.exec(String(value).trim());
+            if (!m) return null;
+            var d = new Date(
+              parseInt(m[1], 10),
+              parseInt(m[2], 10) - 1,
+              parseInt(m[3], 10),
+              m[4] ? parseInt(m[4], 10) : 0,
+              m[5] ? parseInt(m[5], 10) : 0,
+              m[6] ? parseInt(m[6], 10) : 0,
+            );
+            return isNaN(d.getTime()) ? null : d;
+          }
+
+          // Dauer-Einheiten identisch zur Abfrage-Sprache (dur-Literal):
+          // Monate/Jahre als fixe Näherungen 30/365 Tage.
+          var DUR_UNITS = {
+            s: 1000,
+            sec: 1000,
+            secs: 1000,
+            second: 1000,
+            seconds: 1000,
+            m: 60000,
+            min: 60000,
+            mins: 60000,
+            minute: 60000,
+            minutes: 60000,
+            h: 3600000,
+            hr: 3600000,
+            hrs: 3600000,
+            hour: 3600000,
+            hours: 3600000,
+            d: 86400000,
+            day: 86400000,
+            days: 86400000,
+            w: 604800000,
+            wk: 604800000,
+            wks: 604800000,
+            week: 604800000,
+            weeks: 604800000,
+            mo: 2592000000,
+            month: 2592000000,
+            months: 2592000000,
+            y: 31536000000,
+            yr: 31536000000,
+            yrs: 31536000000,
+            year: 31536000000,
+            years: 31536000000,
+          };
+          function parseDur(value) {
+            if (typeof value === 'number') return isFinite(value) ? value : null;
+            if (typeof value !== 'string') return null;
+            var content = value.trim();
+            var groupRe = /(\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
+            var ms = 0;
+            var matched = 0;
+            var m;
+            while ((m = groupRe.exec(content)) !== null) {
+              var unit = DUR_UNITS[m[2].toLowerCase()];
+              if (unit === undefined) return null;
+              ms += parseFloat(m[1]) * unit;
+              matched += m[0].length;
+            }
+            var residue = content.replace(groupRe, '').replace(/[\s,]/g, '');
+            if (ms === 0 || matched === 0 || residue.length > 0) return null;
+            return ms;
+          }
+
+          // Typ-gerechter Vergleich für pq.sort: Datum chronologisch, Zahl
+          // numerisch (auch Zahl-Strings), sonst String case-insensitiv.
+          function compareValues(a, b) {
+            if (a === undefined || a === null) return b === undefined || b === null ? 0 : -1;
+            if (b === undefined || b === null) return 1;
+            var ad = a instanceof Date ? a.getTime() : null;
+            var bd = b instanceof Date ? b.getTime() : null;
+            if (ad !== null || bd !== null) {
+              var apd = ad !== null ? ad : parseDate(a) && parseDate(a).getTime();
+              var bpd = bd !== null ? bd : parseDate(b) && parseDate(b).getTime();
+              if (typeof apd === 'number' && typeof bpd === 'number') {
+                return apd - bpd;
+              }
+            }
+            var an =
+              typeof a === 'number' ? a : /^-?\d+(\.\d+)?$/.test(String(a)) ? parseFloat(a) : null;
+            var bn =
+              typeof b === 'number' ? b : /^-?\d+(\.\d+)?$/.test(String(b)) ? parseFloat(b) : null;
+            if (an !== null && bn !== null) return an - bn;
+            var as = norm(a);
+            var bs = norm(b);
+            return as < bs ? -1 : as > bs ? 1 : 0;
+          }
+
+          // --- pq-API -----------------------------------------------------------
+          // 4T-0412: Ausgabe-Gerüst (out/el/list/table/md/link).
+          // 4T-0413: Daten-Seite (pages/current/file/blocks plus Helfer) aus dem
+          // Daten-Snapshot des Run-Auftrags (rein lesend, kein Live-Kanal).
+          function buildPq(data, output) {
+            var snapshot = data && typeof data === 'object' ? data : null;
+            var pages =
+              snapshot && Array.isArray(snapshot.pages)
+                ? snapshot.pages.map(function (entry) {
+                    var page = {};
+                    var props =
+                      entry && entry.props && typeof entry.props === 'object' ? entry.props : {};
+                    for (var key in props) {
+                      if (Object.prototype.hasOwnProperty.call(props, key)) page[key] = props[key];
+                    }
+                    page.file =
+                      entry && entry.file && typeof entry.file === 'object' ? entry.file : {};
+                    return page;
+                  })
+                : [];
+            var blocks = snapshot && Array.isArray(snapshot.blocks) ? snapshot.blocks : [];
+            var currentPath =
+              snapshot && typeof snapshot.current === 'string' ? snapshot.current : '';
+
+            // Seiten-Auflösung für pq.file und die Link-Zielauflösung: absoluter
+            // Pfad, Wurzel-relativer Pfad oder logischer Name (case-insensitiv).
+            function findPage(ref) {
+              var wanted = norm(ref);
+              if (!wanted) return null;
+              var wantedMd = wanted.slice(-3) === '.md' ? wanted : wanted + '.md';
+              for (var i = 0; i < pages.length; i++) {
+                var f = pages[i].file || {};
+                if (norm(f.absPath) === wanted) return pages[i];
+                var rel = norm(f.path);
+                if (rel === wanted || rel === wantedMd) return pages[i];
+                if (norm(f.name) === wanted) return pages[i];
+              }
+              return null;
+            }
+
+            // Link-Ziel zu absolutem Index-Pfad auflösen (der Klick-Pfad des
+            // Renderers öffnet über den absoluten Pfad). Akzeptiert Seiten-/
+            // file-/Link-Objekte und Strings (Pfad oder Name).
+            function resolvePath(ziel) {
+              if (ziel && typeof ziel === 'object') {
+                if (ziel.file && typeof ziel.file === 'object') {
+                  if (typeof ziel.file.absPath === 'string' && ziel.file.absPath) {
+                    return ziel.file.absPath;
+                  }
+                  if (typeof ziel.file.path === 'string') return ziel.file.path;
+                }
+                if (typeof ziel.absPath === 'string' && ziel.absPath) return ziel.absPath;
+                if (typeof ziel.path === 'string' && ziel.path) {
+                  var viaPath = findPage(ziel.path);
+                  return viaPath ? viaPath.file.absPath : ziel.path;
+                }
+                return '';
+              }
+              var page = findPage(ziel);
+              return page
+                ? page.file.absPath
+                : String(ziel === undefined || ziel === null ? '' : ziel);
+            }
+
+            var pq = {};
+            pq.version = 1;
+            pq.indexStatus = snapshot ? String(snapshot.status || '') : 'none';
+
+            // --- Daten (lesend) ---
+            pq.pages = function (quelle) {
+              return pages.filter(sourceMatcher(quelle));
+            };
+            pq.current = function () {
+              if (!currentPath) return null;
+              for (var i = 0; i < pages.length; i++) {
+                var f = pages[i].file || {};
+                if (f.absPath === currentPath) return pages[i];
+              }
+              return findPage(currentPath);
+            };
+            pq.file = function (ref) {
+              return findPage(ref);
+            };
+            pq.blocks = function (quelle) {
+              var match = sourceMatcher(quelle);
+              return blocks.filter(function (block) {
+                if (!block || !block.file) return false;
+                var page = findPage(block.file.absPath);
+                return page ? match(page) : false;
+              });
+            };
+
+            // --- Helfer ---
+            pq.date = parseDate;
+            pq.dur = parseDur;
+            pq.sort = function (arr, sel, desc) {
+              var list = Array.isArray(arr) ? arr.slice() : [];
+              var select =
+                typeof sel === 'function'
+                  ? sel
+                  : typeof sel === 'string'
+                    ? function (item) {
+                        var value = item;
+                        var parts = sel.split('.');
+                        for (
+                          var i = 0;
+                          i < parts.length && value !== undefined && value !== null;
+                          i++
+                        ) {
+                          value = value[parts[i]];
+                        }
+                        return value;
+                      }
+                    : function (item) {
+                        return item;
+                      };
+              list.sort(function (a, b) {
+                var res = compareValues(select(a), select(b));
+                return desc ? -res : res;
+              });
+              return list;
+            };
+
+            // Bau-Funktionen (kein Emit): verwendbar als Inhalt in out/list/table.
+            pq.el = function (tag, content, attrs) {
+              var node = {
+                kind: 'el',
+                tag: String(tag || ''),
+                children: normalizeContent(content),
+                attrs: {},
+              };
+              if (attrs && typeof attrs === 'object') {
+                for (var key in attrs) {
+                  if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+                    node.attrs[String(key)] = String(attrs[key]);
+                  }
+                }
+              }
+              return node;
+            };
+            // 4T-0413: akzeptiert Seiten-/file-/Block-Objekte oder Strings;
+            // Block-Ziele tragen ihren Anker automatisch (Sprung-Mechanik der
+            // Abfrage-Treffer). Ohne Label wird der logische Name verwendet.
+            pq.link = function (ziel, label, anchor) {
+              var a = anchor;
+              if (
+                (a === undefined || a === null) &&
+                ziel &&
+                typeof ziel === 'object' &&
+                typeof ziel.anchor === 'string'
+              ) {
+                a = ziel.anchor;
+              }
+              var text = '';
+              if (label !== undefined && label !== null) {
+                text = String(label);
+              } else if (ziel && typeof ziel === 'object' && ziel.file && ziel.file.name) {
+                text = String(ziel.file.name) + (a ? '#^' + String(a) : '');
+              }
+              var node = { kind: 'link', path: resolvePath(ziel), label: text };
+              if (a !== undefined && a !== null && String(a) !== '') node.anchor = String(a);
+              return node;
+            };
+            pq.md = function (text) {
+              return { kind: 'md', text: String(text === undefined || text === null ? '' : text) };
+            };
+
+            // Ausgabe-Funktionen (Emit an den Block).
+            pq.out = function () {
+              for (var i = 0; i < arguments.length; i++) {
+                var nodes = normalizeContent(arguments[i]);
+                for (var j = 0; j < nodes.length; j++) output.push(nodes[j]);
+              }
+            };
+            pq.list = function (items) {
+              var node = { kind: 'list', items: normalizeListItems(items) };
+              output.push(node);
+              return node;
+            };
+            pq.table = function (headers, rows) {
+              var normRows = [];
+              if (Array.isArray(rows)) {
+                for (var i = 0; i < rows.length; i++) {
+                  var row = Array.isArray(rows[i]) ? rows[i] : [rows[i]];
+                  var cells = [];
+                  for (var j = 0; j < row.length; j++) cells.push(normalizeContent(row[j]));
+                  normRows.push(cells);
+                }
+              }
+              var headerCells = [];
+              if (Array.isArray(headers)) {
+                for (var k = 0; k < headers.length; k++) {
+                  headerCells.push(normalizeContent(headers[k]));
+                }
+              }
+              var node = { kind: 'table', headers: headerCells, rows: normRows };
+              output.push(node);
+              return node;
+            };
+
+            return pq;
+          }
+
+          // --- Fehler-Aufbereitung ----------------------------------------------
+          // Message plus Zeilennummer, soweit der Stack sie hergibt. Die
+          // Nutzer-Skript-Funktion läuft über new Function; V8 meldet Zeilen
+          // als <anonymous>:Zeile:Spalte gegen den generierten Wrapper
+          // 'function anonymous(pq\n) {\n"use strict";\n<skript>' — die erste
+          // Skript-Zeile ist dort Zeile 4, daher Offset 3 (durch den
+          // Laufzeit-Unit-Test abgesichert).
+          var USER_LINE_OFFSET = 3;
+          function describeError(err) {
+            var message = err && err.message !== undefined ? String(err.message) : String(err);
+            var line = null;
+            var stack = err && typeof err.stack === 'string' ? err.stack : '';
+            var m = /<anonymous>:(\d+):\d+/.exec(stack);
+            if (m) {
+              var raw = parseInt(m[1], 10) - USER_LINE_OFFSET;
+              if (raw >= 1) line = raw;
+            }
+            return { message: message, line: line };
+          }
+
+          // --- Ausführung ---------------------------------------------------------
+          self.onmessage = function (event) {
+            var data = event.data;
+            // Schema-Prüfung: exakter Typ, Skript als String.
+            if (!data || data.type !== 'pm-script-exec') return;
+            if (typeof data.script !== 'string') return;
+            var output = [];
+            var pq = buildPq(data.data || null, output);
+            var fn;
+            try {
+              // "use strict" im Prolog: Nutzer-Skripte laufen strikt (keine
+              // impliziten Globals); Zeilen-Offset siehe describeError.
+              fn = new Function('pq', '"use strict";\n' + data.script);
+            } catch (err) {
+              var parseInfo = describeError(err);
+              self.postMessage({ type: 'error', message: parseInfo.message, line: parseInfo.line });
+              return;
+            }
+            // Promise-tolerant: gibt das Skript ein Promise zurück, wartet der
+            // Lauf darauf (Zeit-Limit überwacht der Renderer von außen).
+            Promise.resolve()
+              .then(function () {
+                return fn(pq);
+              })
+              .then(function () {
+                try {
+                  self.postMessage({ type: 'result', output: output });
+                } catch (err) {
+                  // Nicht serialisierbare Ausgabe (sollte durch die
+                  // Normalisierung nicht vorkommen): als Fehler melden.
+                  self.postMessage({
+                    type: 'error',
+                    message: String(err && err.message ? err.message : err),
+                    line: null,
+                  });
+                }
+              })
+              .catch(function (err) {
+                var info = describeError(err);
+                self.postMessage({ type: 'error', message: info.message, line: info.line });
+              });
+          };
+        }
+
+        // --- Boot: Run-Protokoll ------------------------------------------------
+        var started = false;
+        window.addEventListener('message', function (event) {
+          if (started) return;
+          var data = event.data;
+          // Schema-Prüfung: exakter Typ, Skript als String, genau ein Port.
+          if (!data || data.type !== 'pm-script-run') return;
+          if (typeof data.script !== 'string') return;
+          if (!event.ports || event.ports.length !== 1) return;
+          started = true;
+          var port = event.ports[0];
+          var worker;
+          try {
+            var blob = new Blob(['(', workerMain.toString(), ')();'], {
+              type: 'text/javascript',
+            });
+            worker = new Worker(URL.createObjectURL(blob));
+          } catch (err) {
+            port.postMessage({
+              type: 'error',
+              message: String((err && err.message) || err),
+              line: null,
+            });
+            return;
+          }
+          worker.onmessage = function (e) {
+            port.postMessage(e.data);
+          };
+          worker.onerror = function (e) {
+            port.postMessage({
+              type: 'error',
+              message: String((e && e.message) || 'Worker-Fehler'),
+              line: null,
+            });
+          };
+          worker.postMessage({
+            type: 'pm-script-exec',
+            script: data.script,
+            data: data.data || null,
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

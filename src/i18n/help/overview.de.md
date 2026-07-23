@@ -1,0 +1,58 @@
+# Handbuch
+
+![EM4me](../assets/em4me-logo.svg)
+
+_extended memory for me_
+
+Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder Bereich öffnet als eigener Tab und lässt sich wie jeder andere Tab verschieben, in die zweite Spalte legen oder neben der eigenen Arbeit offen halten.
+
+## Nachschlagen
+
+- [Funktionen](functions.md) — alle Funktionen der App als Tabelle: was sie tun und wie sie erreichbar sind.
+- [Tastenkürzel](shortcuts.md) — die aktuell wirksamen Tastenkürzel, inklusive eigener Umbelegungen.
+
+## Markdown schreiben
+
+- [Markdown-Basis](markdown-basics.md) — der Markdown-Kern: Überschriften, Betonung, Listen, Tabellen, Links, plus CommonMark-Besonderheiten.
+- [Editor-Kontextmenü](context-menu.md) — Formatieren per Rechtsklick: Menü-Aufbau, Selektions-Semantik, Umschalter mit Häkchen, Read-only und Live-Modus.
+- [Format-Toolbar](toolbar.md) — Formatieren per Schaltfläche: Sichtbarkeit im Edit-Modus, Zustands-Anzeige, Überschrift-Menü, Tabellen-Raster, eigene Belegung.
+- [Block-Konstrukte](blocks.md) — Callouts, Custom Containers, Definitionslisten, Line Blocks, Fußnoten.
+- [Inline-Konstrukte](inline.md) — Highlight, Tief-/Hochstellen, Unterstreichen, Spoiler, Critic Markup, Spans und Abkürzungen.
+- [Aufgaben-Listen](tasks.md) — Task-Listen mit Standard- und erweiterten Status.
+- [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
+- [Bilder](images.md) — Bild-Syntax, Größenangaben, Implicit Figures.
+- [Mathematik und Diagramme](math-diagrams.md) — KaTeX-Formeln, Mermaid-Diagramme, Code-Blöcke mit Syntax-Highlighting.
+- [Emoji](emoji.md) — Shortcode-Funktionsweise und kuratierte Code-Auswahl.
+
+## Vernetzen und verwalten
+
+- [Vernetzung](linking.md) — Wiki-Links, Anker, Embeds, Tags und Autocomplete.
+- [Unterseiten](subpages.md) — Seiten-Hierarchie über den Dateinamen: Trennzeichen ∕ (U+2215), relative Links, Breadcrumb und Umbenennen mit Kaskade.
+- [Graphenansicht](graph.md) — Link-Beziehungen als interaktiver Graph: Bereichs-Graph als Tab, Datei-Graph als Panel mit Tiefe und Richtung.
+- [Frontmatter und Properties](frontmatter.md) — YAML-Metadaten und die Properties-Sidebar.
+- [Eigenschafts-Profile](property-profiles.md) — zentrale Feld-Definitionen mit Typ, Wertebereich und Vorgabe-Wert: Profil-Dateien, Zuordnung und Standard-Profil, Wirkung in beiden Eigenschafts-Editoren.
+- [Perspective-Abfrage](frontmatter-query.md) — dynamische Datei-Listen und -Tabellen: Klausel-Sprache, Quellen, Datei-Felder, Funktionen, Sortierung, Mehrspaltigkeit, Export.
+- [Skript-Blöcke](scripts.md) — JavaScript im Dokument: isolierte Sandbox, Vertrauensmodell mit Standard aus, lesende pq-API mit Daten-, Ausgabe- und Helfer-Funktionen, Beispiele.
+- [Vorlagen](templates.md) — Markdown-Vorlagen anwenden: Vorlagen-Ordner mit Bereichs-Übersteuerung, Platzhalter mit Dialogen, Cursor-Ziel, Ordner-Regeln.
+- [Journale](journals.md) — periodische Dokumente je Bereich: Regale und Granularitäten, Ordner- und Namens-Schemata, Kalender-Panel, Navigations-Block, automatische Datums-Eigenschaften.
+- [Sidebar](sidebar.md) — Panels anordnen: Seitenwahl, Reihenfolge, Reiter-Gruppen, Breiten.
+- [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
+- [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
+- [Dokument-Historie](history.md) — Änderungen protokollieren: Markdown-Data-Begleitdatei, Schalter auf drei Ebenen, Revisionen vergleichen und wiederherstellen.
+- [Dokument-Notizen](notes.md) — eine Notiz je Dokument: Sidebar-Panel mit umschaltbarer Vorschau, automatisches Speichern in der Begleitdatei, Abgrenzung zur Historie.
+- [Block-Eigenschaften](block-properties.md) — typisierte Eigenschaften pro Block-Anker: Panel mit Cursor-Folge, verwaiste Daten, Anker umbenennen, Indikator am Block.
+- [Werkzeuge](tools.md) — Markdown-Linter, Suche mit Regex, Suchen und Ersetzen, Tabellen-Editor.
+- [Kommando-Platzierung](command-placement.md) — Kommandos als dauerhafte eigene Zugänge: Statusbar-Buttons, Ausblende-Liste, Kontextmenü-Einträge, Makros.
+- [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Abhängigkeiten, Wirkung des Aus-Zustands.
+- [Erweiterungen erstellen](extensions-dev.md) — eigene externe Erweiterungen entwickeln: Manifest, Erweiterungs-API, Referenz-Beispiel, Sicherheits-Hinweise.
+- [Perspective Table](perspective-table.md) — Tabellen mit mehrzeiligen Block-Zellen: Syntax, Beispiele, Sortierung, Export.
+- [Perspective Datatable](datatable.md) — typisierte Datentabelle mit Rechenfunktionen: Spalten-Typen, Aggregate, berechnete Spalten, Grid-Bearbeitung, Sortieren und Filtern.
+- [Ereignisse](events.md) — Termine, Geburtstage und Jahrestage im Dokument: Ereignis-Block mit Zeitdifferenz-Staffelung, Meilensteinen, Filtern und vier Ansichten, Aggregation über Frontmatter, Verknüpfungen.
+- [Kalender-Systeme](custom-calendars.md) — frei definierbare Zeitrechnungen je Bereich: Blöcke mit parallelen Kalendern, Ebenen mit fünf Beziehungs-Typen, Epochen, Umrechnung, Wert-Syntax im Dokument und Picker.
+
+## Tipps zur Nutzung
+
+- Alle Handbuch-Seiten sind schreibgeschützt; die vier Ansichten (Gerendert, Geteilt, Quellcode, Live) stehen frei zur Wahl.
+- In der **geteilten Ansicht** stehen Markdown-Quelltext und gerendertes Ergebnis nebeneinander — ideal, um die Syntax-Beispiele der Themen-Seiten direkt mit ihrem Ergebnis zu vergleichen.
+- Das **Inhaltsverzeichnis** in der Sidebar navigiert innerhalb einer Seite, die **Volltextsuche** (Standard `Strg+F`) durchsucht sie.
+- Beim Sprachwechsel über die Statusbar wechseln offene Handbuch-Seiten direkt mit.

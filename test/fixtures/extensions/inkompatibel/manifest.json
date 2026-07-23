@@ -1,0 +1,8 @@
+{
+  "id": "inkompatibel",
+  "name": "Inkompatible Erweiterung",
+  "version": "1.0.0",
+  "apiVersion": "2.0",
+  "description": "Deklariert API 2.0 — Test der Kompatibilitätsprüfung (4T-0298).",
+  "entry": "main.js"
+}

@@ -1,0 +1,906 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Portable-Export-Snapshots > brennt Inline-Berechnungen als Ergebnis-Spans ein (4T-0596) 1`] = `
+"<!-- perspective-portable -->
+
+Summe <span class="inline-calc" style="background:rgba(0,0,0,0.06);border-radius:3px;padding:0 0.2em;" title="2+3*4">14</span> und Datum <span class="inline-calc" style="background:rgba(0,0,0,0.06);border-radius:3px;padding:0 0.2em;" title="date(2026-01-01) + dur(30d)">2026-01-31</span>.
+
+Fehler bleibt roh: {= 2+ =}, Code bleibt roh: \`{= 1+1 =}\`.
+"
+`;
+
+exports[`Portable-Export-Snapshots > konvertiert Ereignis-Blöcke zu statischen Tabellen (4T-0512) 1`] = `
+"<!-- perspective-portable -->
+
+# Ereignis-Fence
+
+Eingebettete Verwaltung (Art 1) mit Direktiven, Kategorien, Notizen und Wiederkehr:
+
+<table><thead><tr><th scope="col" style="text-align: left;">Zeitpunkt</th><th scope="col" style="text-align: left;">Ende</th><th scope="col" style="text-align: left;">Kategorie</th><th scope="col" style="text-align: left;">Ereignis</th><th scope="col" style="text-align: left;">Zeitdifferenz</th></tr></thead><tbody><tr><td>2020-01-01</td><td></td><td><span style="background-color: #fff3e0; color: #e65100; border-radius: 0.7em; padding: 0.1em 0.6em; font-size: 0.85em; white-space: nowrap;">Projekt</span></td><td>Projektstart Alpha<br><span style="opacity: 0.7; font-size: 0.85em;">Kickoff-Notiz</span></td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>2387 Tage<br>341 Wochen, 0 Tage<br>78 Monate, 2 Wochen, 0 Tage<br>6 Jahre, 6 Monate, 2 Wochen, 0 Tage</span></td></tr><tr><td>1990-03-10</td><td></td><td><span style="background-color: #e8f5e9; color: #1b5e20; border-radius: 0.7em; padding: 0.1em 0.6em; font-size: 0.85em; white-space: nowrap;">Geburtstag</span></td><td>Geburtstag Anna</td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>13276 Tage<br>1896 Wochen, 4 Tage<br>436 Monate, 0 Wochen, 5 Tage<br>36 Jahre, 4 Monate, 0 Wochen, 5 Tage<br><span style="opacity: 0.7;">Wiederkehr: 2027-03-10 · in 238 Tagen · 37. Jahr</span></span></td></tr><tr><td>2024-02-29</td><td>2024-06-30<br><span style="opacity: 0.7; font-size: 0.85em;">Dauer: 4 Monate, 1 Tag</span></td><td><span style="background-color: #e0f2f1; color: #00695c; border-radius: 0.7em; padding: 0.1em 0.6em; font-size: 0.85em; white-space: nowrap;">Termin</span></td><td>Schaltjahres-Spanne<br><span style="opacity: 0.7; font-size: 0.85em;">Zeile1<br>Zeile2</span></td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>867 Tage<br>123 Wochen, 6 Tage<br>28 Monate, 2 Wochen, 2 Tage<br>2 Jahre, 4 Monate, 2 Wochen, 2 Tage</span></td></tr><tr><td>2026-03-01</td><td>2026-02-01</td><td>fantasie</td><td>Ende vor Beginn</td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>136 Tage<br>19 Wochen, 3 Tage<br>4 Monate, 2 Wochen, 0 Tage</span></td></tr></tbody></table>
+Struktur-Fehler bleiben Fehler-Liste:
+
+\`\`\`perspective-events
+spalten: kaputt
+\`\`\`
+
+Aggregation (Art 2) rendert als Platzhalter:
+
+\`\`\`perspective-events
+query: FROM "Personen" WHERE event-category = 'geburtstag'
+\`\`\`
+"
+`;
+
+exports[`Portable-Export-Snapshots > konvertiert Perspective-Datatables zu statischen Tabellen (4T-0418) 1`] = `
+"<!-- perspective-portable -->
+
+# Perspective Datatable
+
+Voll ausgebaute Tabelle mit allen Typen, Format, berechneter Spalte und Aggregaten:
+
+<table><thead><tr><th scope="col">Name</th><th scope="col">Datum</th><th scope="col">Start</th><th scope="col" style="text-align: right;">Betrag</th><th scope="col" style="text-align: center;">Erledigt</th><th scope="col" style="text-align: right;">Doppelt</th></tr></thead><tbody><tr><td>Anna</td><td>2026-07-08</td><td>09:30</td><td style="text-align: right;">12.50</td><td style="text-align: center;">x</td><td style="text-align: right;">25</td></tr><tr><td>Bert</td><td>2025-12-31</td><td>23:10</td><td style="text-align: right;">-3.00</td><td style="text-align: center;"></td><td style="text-align: right;">-6</td></tr><tr><td>P|pe</td><td></td><td></td><td style="text-align: right;"></td><td style="text-align: center;">x</td><td style="text-align: right;"></td></tr></tbody><tfoot><tr><td style="font-style: italic;"></td><td style="font-style: italic;"><span style="opacity: 0.7;">min</span> 2025-12-31<br><span style="opacity: 0.7;">max</span> 2026-07-08</td><td style="font-style: italic;"></td><td style="font-style: italic; text-align: right;"><span style="opacity: 0.7;">sum</span> 9.50<br><span style="opacity: 0.7;">avg</span> 4.75</td><td style="font-style: italic; text-align: center;"><span style="opacity: 0.7;">count</span> 2</td><td style="font-style: italic; text-align: right;"></td></tr></tfoot></table>
+Zweite Tabelle im selben Dokument (Fence-Index 1) mit Fehler-Zellen:
+
+<table><thead><tr><th scope="col" style="text-align: right;">N</th><th scope="col">D</th></tr></thead><tbody><tr><td style="text-align: right; background-color: #ffebee; color: #b71c1c;">kaputt</td><td style="background-color: #ffebee; color: #b71c1c;">2026-02-30</td></tr></tbody></table>
+Struktur-Fehler (unbekannter Typ, doppelte Spalte):
+
+\`\`\`perspective-datatable
+columns: A:zahl, B:number, b:text
+| 1 |
+\`\`\`
+"
+`;
+
+exports[`Portable-Export-Snapshots > konvertiert Perspective-Tabellen und erhaelt Frontmatter (K-01) 1`] = `
+"---
+titel: Export
+---
+<!-- perspective-portable -->
+
+<table><caption>Beschriftung</caption><thead><tr><th scope="col">Kopf 1 !! Kopf 2 !! Kopf 3</th></tr></thead><tbody><tr><td>a1 || a2 || a3</td></tr><tr><td colspan="2">breit || c3</td></tr></tbody></table>
+<table><thead><tr><th scope="col">Name !! Wert</th></tr></thead><tbody><tr><td style="text-align: right">rechts || {status:ok} gut</td></tr><tr><td><strong>Markdown</strong> in Zelle || <a href="Ziel.md" class="wikilink">Ziel</a> und $x^2$</td></tr></tbody></table>
+<table><tbody><tr><td><p>Aussen ||
+{| class=“perspective-table”</p>
+</td></tr><tr><td>Innen</td></tr></tbody></table>"
+`;
+
+exports[`Portable-Export-Snapshots > konvertiert Task-Marker zu Badges mit Inline-Styles (4T-0498) 1`] = `
+"&lt;!-- perspective-portable --&gt;
+<h1 id="task-marker">Task-Marker</h1>
+<p>Fixture der Erweiterung „Aufgaben&quot; (4T-0498, Epic 3E-0090). Alle Datums-Werte
+sind bewusst stabil: 2020-01-01 ist immer ueberfaellig, 2099-12-31 nie. Keine
+Daten nahe heute, damit der Snapshot maschinen- und zeitunabhaengig bleibt.</p>
+<h2 id="termine">Termine</h2>
+<ul class="contains-task-list">
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Faelliger Termin, ueberfaellig&lt;span class=&quot;task-marker task-marker-date task-marker-due task-marker-overdue&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;border-color:#dc3545;color:#b02a37;&quot;&gt;📅 2020-01-01&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Faelliger Termin, Zukunft&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Faellig mit Uhrzeit&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31 09:30&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Geplanter Termin&lt;span class=&quot;task-marker task-marker-date task-marker-scheduled&quot; title=&quot;Geplant&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏳ 2099-06-15&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Start-Termin&lt;span class=&quot;task-marker task-marker-date task-marker-start&quot; title=&quot;Start&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🛫 2099-03-01&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Erstellt-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-created&quot; title=&quot;Erstellt&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;➕ 2020-01-01&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; checked=&quot;&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Erledigt-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-done&quot; title=&quot;Erledigt&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;✅ 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Abgebrochen-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-cancelled&quot; title=&quot;Abgebrochen&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;❌ 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Ungueltiges Datum&lt;span class=&quot;task-marker task-marker-date task-marker-due task-marker-invalid&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;border-color:#dc3545;color:#b02a37;text-decoration:line-through;&quot;&gt;📅 2099-02-30&lt;/span&gt;&lt;/label&gt;</li>
+</ul>
+<h2 id="prioritaet">Prioritaet</h2>
+<ul class="contains-task-list">
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Hoechste Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Höchste Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔺&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Hohe Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Hohe Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏫&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Mittlere Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Mittlere Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔼&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Niedrige Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Niedrige Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔽&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Niedrigste Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Niedrigste Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏬&lt;/span&gt;&lt;/label&gt;</li>
+</ul>
+<h2 id="wiederholung-id-und-abhaengigkeit">Wiederholung, ID und Abhaengigkeit</h2>
+<ul class="contains-task-list">
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Woechentliche Wiederholung&lt;span class=&quot;task-marker task-marker-recurrence&quot; title=&quot;Wiederholung&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔁 every week&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Aufgabe mit Kennung&lt;span class=&quot;task-marker task-marker-other&quot; title=&quot;ID&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🆔 abc123&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Abhaengige Aufgabe&lt;span class=&quot;task-marker task-marker-other&quot; title=&quot;Abhängig von&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⛔ abc123&lt;/span&gt;&lt;/label&gt;</li>
+</ul>
+<h2 id="toleranz-marker">Toleranz-Marker</h2>
+<ul class="contains-task-list">
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Aufgabe mit Abschluss-Aktion&lt;span class=&quot;task-marker task-marker-other&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🏁 delete&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Aufgabe mit Erinnerung&lt;span class=&quot;task-marker task-marker-reminder&quot; title=&quot;Erinnerung&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏰ 2099-12-31 08:00&lt;/span&gt;&lt;/label&gt;</li>
+</ul>
+<h2 id="sonderfaelle">Sonderfaelle</h2>
+<ul class="contains-task-list">
+<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Zeile mit <strong>Fett</strong> und Termin&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
+<li>Bullet ohne Checkbox mit 📅 2099-12-31 (kein Badge)</li>
+<li class="task-list-item task-state-item" data-task-state="/">&lt;span class=&quot;task-state-box&quot; title=&quot;In Arbeit&quot; style=&quot;display:inline-flex;align-items:center;justify-content:center;width:1.1em;height:1.1em;border:1.5px solid #0d6efd;border-radius:3px;color:#0d6efd;font-weight:700;font-size:0.85em;line-height:1;margin-right:0.4em;vertical-align:text-bottom;&quot;&gt;/&lt;/span&gt;Erweiterter Status mit Termin&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;</li>
+</ul>
+"
+`;
+
+exports[`Portable-Export-Snapshots > mark- und Footnote-Rendering des Portable-Renderers (Inline-Styles) 1`] = `
+"&lt;!-- perspective-portable --&gt;
+<p>Text <mark style="background:#fff3a3;padding:0 0.15em;border-radius:2px;">markiert</mark> mit Fussnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>.</p>
+<section class="footnotes" style="margin-top:2em;padding-top:0.6em;border-top:1px solid #ccc;font-size:0.9em;color:#555;"><ol style="padding-left:1.5em;"><li id="fn1" class="footnote-item"><p>Definition. <a href="#fnref1" style="text-decoration:none;">↩</a></p>
+</li>
+</ol></section>"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert abbreviations.md stabil 1`] = `
+"<p data-source-line="4">Das <abbr title="Hyper Text Markup Language">HTML</abbr> wurde vom <abbr title="World Wide Web Consortium">W3C</abbr> standardisiert. <abbr title="Hyper Text Markup Language">HTML</abbr> bleibt die Grundlage des Webs.</p>
+<h2 id="html-in-der-uberschrift" data-source-line="6"><abbr title="Hyper Text Markup Language">HTML</abbr> in der Überschrift</h2>
+<p data-source-line="8">Kein Treffer in Wortteilen: XHTML5 und HTMLArtig bleiben unangetastet.</p>
+<p data-source-line="10">Im Code-Kontext bleibt <code>HTML</code> roh.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert attributes-spans.md stabil 1`] = `
+"<h1 id="eigene-id" data-source-line="1">Überschrift mit eigener ID</h1>
+<h2 class="gross" id="uberschrift-mit-klasse" data-source-line="3">Überschrift mit Klasse</h2>
+<h1 id="setext-id" data-source-line="5">Setext-Variante mit ID</h1>
+<p data-source-line="8"><span class="mark-rot" id="fn-ziel">Hinweis</span> als Span mit Klasse und ID.</p>
+<p data-source-line="10">Verbotene Attribute werden gestrippt: <span class="ok">X</span></p>
+<p data-source-line="12">Gegenproben:</p>
+<p data-source-line="14">Wiki-Link <a href="Ziel.md" class="wikilink">Ziel</a> und Wiki-Embed <img class="wiki-embed wiki-embed-image" src="bild.png" alt=""> bleiben unverändert.</p>
+<p data-source-line="16">Fußnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> bleibt Fußnote.</p>
+<p data-source-line="20">Markdown-Link <a href="ziel.md">Text</a> bleibt Link; [Text] ohne Block bleibt Klartext.</p>
+<p data-source-line="22">Fließtext mit { geschweiften Klammern } bleibt unangetastet.</p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p data-source-line="18">Definition. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert callouts.md stabil 1`] = `
+"<div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title">Notiz-Titel</span></div><div class="callout-body"><p data-source-line="1">Inhalt der Notiz.</p>
+</div></div><div class="callout callout-info"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg></span><span class="callout-title" data-i18n="callout.info.title"></span></div><div class="callout-body"><p data-source-line="4">Info ohne Titel.</p>
+</div></div><div class="callout callout-tip"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" x2="15" y1="18" y2="18"/><line x1="10" x2="14" y1="22" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></span><span class="callout-title">Tipp</span></div><div class="callout-body"><p data-source-line="7">[!warning] (kein neuer Callout, nur Text)</p>
+</div></div><details class="callout callout-danger"><summary class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="callout-title">Eingeklappt</span></summary><div class="callout-body"><p data-source-line="10">Versteckter Inhalt.</p>
+</div></details><details class="callout callout-success" open><summary class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span><span class="callout-title">Ausgeklappt</span></summary><div class="callout-body"><p data-source-line="13">Sichtbarer Inhalt.</p>
+</div></details><blockquote data-source-line="16">
+<p data-source-line="16">[!important] Ohne Leerzeichen nach der spitzen Klammer
+Body.</p>
+</blockquote>
+<blockquote data-source-line="19">
+<p data-source-line="19">[!quatsch] Unbekannter Typ
+Bleibt normale Blockquote.</p>
+</blockquote>
+<div class="callout callout-question"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span><span class="callout-title">Aussen</span></div><div class="callout-body"><blockquote data-source-line="23">
+<p data-source-line="23">Innen normale Blockquote.</p>
+</blockquote>
+</div></div><blockquote data-source-line="25">
+<p data-source-line="25">[!caution] Vorsicht
+Inhalt.</p>
+</blockquote>
+<div class="callout callout-example"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></span><span class="callout-title">Beispiel</span></div><div class="callout-body"><p data-source-line="28">Inhalt.</p>
+</div></div><div class="callout callout-quote"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg></span><span class="callout-title">Zitat</span></div><div class="callout-body"><p data-source-line="31">Inhalt.</p>
+</div></div><div class="callout callout-failure"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></span><span class="callout-title">Fehlschlag</span></div><div class="callout-body"><p data-source-line="34">Inhalt.</p>
+</div></div>"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert columns.md stabil 1`] = `
+"<div class="md-columns md-columns-2"><p data-source-line="2">Erste Spalte: der Text fließt automatisch über die Spalten. <strong>Markdown</strong> bleibt aktiv.</p>
+<ul data-source-line="4">
+<li data-source-line="4">Punkt eins</li>
+<li data-source-line="5">Punkt zwei</li>
+</ul>
+<div class="md-column-break"></div>
+<p data-source-line="9">Zweite Spalte: hier durch den Umbruch-Marker begonnen.</p>
+</div><div class="md-columns md-columns-5"><p data-source-line="13">Fünf Spalten sind das Maximum.</p>
+</div><div class="custom-container container-columns"><p data-source-line="17">Eine Spalte ist ungültig und fällt auf die neutrale Box zurück.</p>
+</div><div class="custom-container container-columns"><p data-source-line="21">Sechs Spalten sind ungültig (Rückfall).</p>
+</div><div class="custom-container container-columns"><p data-source-line="25">Fehlende Zahl fällt zurück.</p>
+</div><div class="custom-container container-columns"><p data-source-line="29">Nicht-numerische Angabe fällt zurück.</p>
+</div><p data-source-line="32">Ein Umbruch-Marker außerhalb eines Spalten-Blocks:</p>
+<div class="md-column-break"></div>
+<p data-source-line="36">ist wirkungslos, erzeugt aber ein neutrales Marker-Element.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert columns-portable.md stabil 1`] = `
+"&lt;!-- perspective-portable --&gt;
+<div class="md-columns md-columns-3" style="column-count:3;column-gap:2.5em;"><p>Portable-Mehrspalten mit Inline-Styles (column-count direkt am div).</p>
+<div class="md-column-break" style="break-before:column;"></div>
+<p>Zweite Spalte im Export.</p>
+</div>"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert commonmark-basis.md stabil 1`] = `
+"<h1 id="atx-ebene-1" data-source-line="1">ATX Ebene 1</h1>
+<h2 id="atx-ebene-2" data-source-line="3">ATX Ebene 2</h2>
+<h1 id="setext-ebene-1" data-source-line="5">Setext Ebene 1</h1>
+<h2 id="setext-ebene-2" data-source-line="8">Setext Ebene 2</h2>
+<p data-source-line="11">Absatz mit <strong>fett</strong>, <em>kursiv</em>, <code>inline code</code> und einem <a href="ziel.md" title="Titel">Link</a>.</p>
+<p data-source-line="13">Referenz-Link: <a href="andere.md">Referenz</a></p>
+<figure data-source-line="17"><img src="bild.png" alt="Alt-Text" title="Bild-Titel"><figcaption>Alt-Text</figcaption></figure>
+<ul data-source-line="19">
+<li data-source-line="19">Punkt eins</li>
+<li data-source-line="20">Punkt zwei
+<ul data-source-line="21">
+<li data-source-line="21">verschachtelt</li>
+</ul>
+</li>
+</ul>
+<ol data-source-line="22">
+<li data-source-line="22">Nummer eins</li>
+<li data-source-line="23">Nummer zwei</li>
+</ol>
+<blockquote data-source-line="25">
+<p data-source-line="25">Blockquote Zeile eins
+Zeile zwei</p>
+</blockquote>
+<pre><code class="hljs">fenced ohne Sprache
+</code></pre>
+<pre><code>indented code block
+</code></pre>
+<hr>
+<p data-source-line="36">Zeile mit hartem Umbruch<br>
+und Fortsetzung.</p>
+<p data-source-line="39">“Typographer-Anfuehrung” – und Gedankenstrich…</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert critic-markup.md stabil 1`] = `
+"<p data-source-line="1">Addition: A <ins class="critic">eingefügt</ins> B.</p>
+<p data-source-line="3">Deletion: A <del class="critic">gelöscht</del> B.</p>
+<p data-source-line="5">Substitution: A <del class="critic">alt</del><ins class="critic">neu</ins> B.</p>
+<p data-source-line="7">Highlight: A <mark class="critic">hervorgehoben</mark> B.</p>
+<p data-source-line="9">Kommentar: A <span class="critic-comment">Anmerkung des Reviewers</span> B.</p>
+<p data-source-line="11">Koexistenz: <mark class="critic">Critic-Highlight</mark> neben <mark>normalem Highlight</mark>.</p>
+<p data-source-line="13">Strikethrough-Koexistenz: <del class="critic">a</del><ins class="critic">b</ins> neben <s>durchgestrichen</s>.</p>
+<p data-source-line="15">Substitution ohne Pfeil bleibt roh: {<s>nur alt</s>} im Satz.</p>
+<p data-source-line="17">Mehrzeilig bleibt unkonsumiert (die Plus-Plus-Spanne selbst greift als Insertion):</p>
+<p data-source-line="19">{<ins>zeile eins
+zeile zwei</ins>}</p>
+<p data-source-line="22">Escape: {<ins>kein Critic</ins>} bleibt mit Klammer-Rest.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert custom-containers.md stabil 1`] = `
+"<div class="callout callout-warning"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span><span class="callout-title" data-i18n="callout.warning.title"></span></div><div class="callout-body"><p data-source-line="2">Inhalt mit <strong>Markdown</strong> im bekannten Typ.</p>
+</div></div><div class="callout callout-tip"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" x2="15" y1="18" y2="18"/><line x1="10" x2="14" y1="22" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></span><span class="callout-title">Eigener Titel</span></div><div class="callout-body"><p data-source-line="6">Container mit Override-Titel.</p>
+</div></div><div class="custom-container container-meine-box"><p data-source-line="10">Unbekannter Name ergibt eine neutrale Box.</p>
+</div><div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title" data-i18n="callout.note.title"></span></div><div class="callout-body"><p data-source-line="14">Äußerer Container (vier Doppelpunkte).</p>
+<div class="callout callout-tip"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" x2="15" y1="18" y2="18"/><line x1="10" x2="14" y1="22" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></span><span class="callout-title" data-i18n="callout.tip.title"></span></div><div class="callout-body"><p data-source-line="17">Innerer Container.</p>
+</div></div></div></div><p data-source-line="21">::: GROSS
+Großbuchstaben sind kein gültiger Name, der Block bleibt Roh-Text.
+:::</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert custom-containers-portable.md stabil 1`] = `
+"&lt;!-- perspective-portable --&gt;
+<div class="callout callout-warning" style="border-left:4px solid #fd7e14;background:rgba(253,126,20,0.12);border-radius:6px;margin:1em 0;"><div class="callout-header" style="display:flex;align-items:center;gap:0.5em;padding:0.4em 0.8em;font-weight:600;color:#fd7e14;"><span class="callout-icon" style="display:inline-flex;align-items:center;color:#fd7e14;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span><span class="callout-title">Warnung</span></div><div class="callout-body" style="padding:0.4em 0.8em 0.6em 0.8em;"><p>Portable-Container im bekannten Typ (Inline-Styles, env.lang-Titel).</p>
+</div></div><div class="callout callout-danger" style="border-left:4px solid #b02a37;background:rgba(176,42,55,0.12);border-radius:6px;margin:1em 0;"><div class="callout-header" style="display:flex;align-items:center;gap:0.5em;padding:0.4em 0.8em;font-weight:600;color:#b02a37;"><span class="callout-icon" style="display:inline-flex;align-items:center;color:#b02a37;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="callout-title">Eigene Überschrift</span></div><div class="callout-body" style="padding:0.4em 0.8em 0.6em 0.8em;"><p>Mit Override-Titel.</p>
+</div></div><div class="custom-container container-neutrale-box" style="border:1px solid #ccc;border-radius:6px;padding:0.4em 0.8em;margin:1em 0;"><p>Unbekannter Name als neutrale Box mit Inline-Style.</p>
+</div>"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert datentabelle.md stabil 1`] = `
+"<h1 id="perspective-datatable" data-source-line="1">Perspective Datatable</h1>
+<p data-source-line="3">Voll ausgebaute Tabelle mit allen Typen, Format, berechneter Spalte und Aggregaten:</p>
+<div class="perspective-datatable" data-dt-index="0" data-dt-line-start="5" data-dt-line-end="11" data-source-line="5" data-dt-source="columns: Name:text, Datum:date, Start:time, Betrag:number(2), Erledigt:boolean, Doppelt:number = Betrag * 2
+aggregate: Betrag:sum+avg, Datum:min+max, Erledigt:count
+| Anna | 2026-07-08 | 09:30 | 12.50 | x |
+| Bert | 2025-12-31 | 23:10 | -3 |  |
+| P\\|pe |  |  |  | x |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Name</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-date" data-dt-col="1" scope="col"><span class="pdt-name">Datum</span><span class="pdt-type">date</span></th><th class="pdt-col pdt-type-time" data-dt-col="2" scope="col"><span class="pdt-name">Start</span><span class="pdt-type">time</span></th><th class="pdt-col pdt-type-number" data-dt-col="3" scope="col"><span class="pdt-name">Betrag</span><span class="pdt-type">number</span></th><th class="pdt-col pdt-type-boolean" data-dt-col="4" scope="col"><span class="pdt-name">Erledigt</span><span class="pdt-type">boolean</span></th><th class="pdt-col pdt-type-number pdt-computed" data-dt-col="5" scope="col" title="= Betrag * 2"><span class="pdt-name">Doppelt</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Anna</td><td class="pdt-cell pdt-type-date" data-dt-col="1" tabindex="0">2026-07-08</td><td class="pdt-cell pdt-type-time" data-dt-col="2" tabindex="0">09:30</td><td class="pdt-cell pdt-type-number" data-dt-col="3" tabindex="0">12.50</td><td class="pdt-cell pdt-type-boolean" data-dt-col="4" tabindex="0"><input type="checkbox" disabled checked></td><td class="pdt-cell pdt-computed pdt-type-number" data-dt-col="5">25</td></tr><tr data-dt-row="1"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Bert</td><td class="pdt-cell pdt-type-date" data-dt-col="1" tabindex="0">2025-12-31</td><td class="pdt-cell pdt-type-time" data-dt-col="2" tabindex="0">23:10</td><td class="pdt-cell pdt-type-number" data-dt-col="3" tabindex="0">-3.00</td><td class="pdt-cell pdt-type-boolean" data-dt-col="4" tabindex="0"><input type="checkbox" disabled></td><td class="pdt-cell pdt-computed pdt-type-number" data-dt-col="5">-6</td></tr><tr data-dt-row="2"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">P|pe</td><td class="pdt-cell pdt-type-date" data-dt-col="1" tabindex="0"></td><td class="pdt-cell pdt-type-time" data-dt-col="2" tabindex="0"></td><td class="pdt-cell pdt-type-number" data-dt-col="3" tabindex="0"></td><td class="pdt-cell pdt-type-boolean" data-dt-col="4" tabindex="0"><input type="checkbox" disabled checked></td><td class="pdt-cell pdt-computed pdt-type-number" data-dt-col="5"></td></tr></tbody><tfoot><tr class="pdt-agg-row"><td class="pdt-row-del"></td><td class="pdt-cell pdt-type-text" data-dt-col="0"></td><td class="pdt-cell pdt-type-date" data-dt-col="1"><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.min">min</span><span class="pdt-agg-value">2025-12-31</span></span><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.max">max</span><span class="pdt-agg-value">2026-07-08</span></span></td><td class="pdt-cell pdt-type-time" data-dt-col="2"></td><td class="pdt-cell pdt-type-number" data-dt-col="3"><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.sum">sum</span><span class="pdt-agg-value">9.50</span></span><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.avg">avg</span><span class="pdt-agg-value">4.75</span></span></td><td class="pdt-cell pdt-type-boolean" data-dt-col="4"><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.count">count</span><span class="pdt-agg-value">2</span></span></td><td class="pdt-cell pdt-type-number" data-dt-col="5"></td></tr></tfoot></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
+<p data-source-line="13">Zweite Tabelle im selben Dokument (Fence-Index 1) mit Fehler-Zellen:</p>
+<div class="perspective-datatable" data-dt-index="1" data-dt-line-start="15" data-dt-line-end="18" data-source-line="15" data-dt-source="columns: N:number, D:date
+| kaputt | 2026-02-30 |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-number" data-dt-col="0" scope="col"><span class="pdt-name">N</span><span class="pdt-type">number</span></th><th class="pdt-col pdt-type-date" data-dt-col="1" scope="col"><span class="pdt-name">D</span><span class="pdt-type">date</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-number pdt-cell-error" data-dt-col="0" tabindex="0" data-i18n-title="datatable.cellError.invalidNumber">kaputt</td><td class="pdt-cell pdt-type-date pdt-cell-error" data-dt-col="1" tabindex="0" data-i18n-title="datatable.cellError.invalidDate">2026-02-30</td></tr></tbody></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
+<p data-source-line="20">Struktur-Fehler (unbekannter Typ, doppelte Spalte):</p>
+<div class="perspective-datatable" data-dt-index="2" data-dt-line-start="22" data-dt-line-end="25" data-source-line="22" data-dt-source="columns: A:zahl, B:number, b:text
+| 1 |
+"><div class="pdt-errors"><span class="pdt-errors-title" data-i18n="datatable.errors.title">perspective-datatable</span><div class="pdt-error-item" data-dt-code="unknownType" data-dt-line="1" data-dt-detail="zahl">unknownType [1]</div><div class="pdt-error-item" data-dt-code="duplicateColumn" data-dt-line="1" data-dt-detail="b">duplicateColumn [1]</div></div><table class="pdt-grid"><thead><tr><th class="pdt-col pdt-type-number" data-dt-col="0" scope="col"><span class="pdt-name">B</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-cell pdt-type-number" data-dt-col="0">1</td></tr></tbody></table></div>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert definition-lists.md stabil 1`] = `
+"<dl data-source-line="1">
+<dt data-source-line="1">Begriff</dt>
+<dd data-source-line="2">Definition des Begriffs.</dd>
+<dt data-source-line="4">Apfelbaum</dt>
+<dd data-source-line="4">Ein Obstbaum,
+auch mehrzeilig definiert.</dd>
+<dd data-source-line="7">Zweite Definition zum selben Begriff.</dd>
+<dt data-source-line="9"><strong>Fetter Begriff</strong> mit Inline-Markup</dt>
+<dd data-source-line="9">Definition mit <code>Code</code> und <em>kursiv</em>.</dd>
+<dt data-source-line="12">Tilde-Marker</dt>
+<dd data-source-line="12">Auch die Tilde ist ein Definitions-Marker.</dd>
+<dt data-source-line="15">Term nach Leerzeile</dt>
+<dd data-source-line="15">Definition trotz Leerzeile zwischen Term und Marker.</dd>
+</dl>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert emoji.md stabil 1`] = `
+"<p data-source-line="1">Ein Lächeln 😄 und ein Herz ❤️ im Fließtext.</p>
+<p data-source-line="3">Alias-Formen: 👍 und 👎 sowie 👍.</p>
+<p data-source-line="5">Unbekannter Shortcode bleibt Text: :keinemoji: und :so_etwas_gibt_es_nicht:.</p>
+<p data-source-line="7">Uhrzeit 10:30:45 bleibt unverändert, ebenso die URL <a href="https://example.org/pfad">https://example.org/pfad</a>.</p>
+<p data-source-line="9">Emoticons werden nicht umgewandelt: :) und 8-) bleiben Klartext.</p>
+<p data-source-line="11">Im Code-Kontext bleibt <code>:smile:</code> roh.</p>
+<p data-source-line="13">Direkt hintereinander: 😄👍 ohne Trenner.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert ereignis-ansichten.md stabil 1`] = `
+"<h1 id="ereignis-zusatz-ansichten" data-source-line="1">Ereignis-Zusatz-Ansichten</h1>
+<p data-source-line="3">Dashboard (Anstehende, Meilensteine, Kategorie-Statistik):</p>
+<div class="perspective-events" data-ev-index="0" data-ev-line-start="5" data-ev-line-end="10" data-source-line="5" data-ev-source="view: dashboard
+| 2026-07-20 | | Workshop | termin | | | | | |
+| 1990-03-10 | | Geburtstag Anna | geburtstag | | x | | | |
+| 2023-10-19 | | Tausend Tage | projekt | | | | | |
+" data-ev-today="2026-07-15"><div class="pev-switcher" role="group"><button type="button" class="pev-viewbtn" data-ev-viewbtn="table" data-i18n="events.view.table">table</button><button type="button" class="pev-viewbtn active" data-ev-viewbtn="dashboard" data-i18n="events.view.dashboard">dashboard</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="month" data-i18n="events.view.month">month</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="week" data-i18n="events.view.week">week</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="timeline" data-i18n="events.view.timeline">timeline</button></div><div class="pev-display" data-ev-display="dashboard"><div class="pev-dashboard"><div class="pev-dash-section"><div class="pev-dash-title">Anstehende Ereignisse</div><div class="pev-dash-item"><span class="pev-dash-date">2026-07-20</span><button type="button" class="pev-event-chip" data-ev-cat="termin" data-ev-jump="0" title="Workshop">Workshop</button><span class="pev-dash-in">in 5 Tagen</span></div><div class="pev-dash-item"><span class="pev-dash-date">2027-03-10</span><button type="button" class="pev-event-chip" data-ev-cat="geburtstag" data-ev-jump="1" title="Geburtstag Anna">Geburtstag Anna</button><span class="pev-dash-in">in 238 Tagen</span></div></div><div class="pev-dash-section"><div class="pev-dash-title">Meilensteine</div><div class="pev-dash-item"><span class="pev-milestone-badge">★ 1000 Tage</span><button type="button" class="pev-event-chip" data-ev-cat="projekt" data-ev-jump="2" title="Tausend Tage">Tausend Tage</button><span class="pev-dash-in">heute erreicht</span></div><div class="pev-dash-item"><span class="pev-milestone-badge">★ 1900 Wochen</span><button type="button" class="pev-event-chip" data-ev-cat="geburtstag" data-ev-jump="1" title="Geburtstag Anna">Geburtstag Anna</button><span class="pev-dash-in">in 24 Tagen</span></div></div><div class="pev-dash-section"><div class="pev-dash-title">Kategorien</div><div class="pev-dash-cats"><span class="pev-dash-cat"><span class="pev-badge" data-ev-cat="geburtstag">Geburtstag</span><span class="pev-dash-count">1</span></span><span class="pev-dash-cat"><span class="pev-badge" data-ev-cat="projekt">Projekt</span><span class="pev-dash-count">1</span></span><span class="pev-dash-cat"><span class="pev-badge" data-ev-cat="termin">Termin</span><span class="pev-dash-count">1</span></span></div></div></div></div></div>
+<p data-source-line="12">Monats-Kalender mit Zeitspanne über die Tage:</p>
+<div class="perspective-events" data-ev-index="1" data-ev-line-start="14" data-ev-line-end="18" data-source-line="14" data-ev-source="view: month
+| 2026-07-20 | | Workshop | termin | | | | | |
+| 2026-07-08 | 2026-07-11 | Projekt-Phase | projekt | | | | | |
+" data-ev-today="2026-07-15"><div class="pev-switcher" role="group"><button type="button" class="pev-viewbtn" data-ev-viewbtn="table" data-i18n="events.view.table">table</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="dashboard" data-i18n="events.view.dashboard">dashboard</button><button type="button" class="pev-viewbtn active" data-ev-viewbtn="month" data-i18n="events.view.month">month</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="week" data-i18n="events.view.week">week</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="timeline" data-i18n="events.view.timeline">timeline</button></div><div class="pev-display" data-ev-display="month"><div class="pev-calendar pev-cal-month" data-ev-cal-anchor="2026-07-15"><div class="pev-cal-head"><button type="button" class="pev-cal-nav pev-cal-prev" title="Voriger Monat">‹</button><span class="pev-cal-title">Juli 2026</span><button type="button" class="pev-cal-nav pev-cal-next" title="Nächster Monat">›</button><button type="button" class="pev-cal-nav pev-cal-today-btn">Heute</button></div><div class="pev-cal-grid"><div class="pev-cal-weekday">Mo</div><div class="pev-cal-weekday">Di</div><div class="pev-cal-weekday">Mi</div><div class="pev-cal-weekday">Do</div><div class="pev-cal-weekday">Fr</div><div class="pev-cal-weekday">Sa</div><div class="pev-cal-weekday">So</div><div class="pev-cal-day pev-cal-out" data-ev-day="2026-06-29"><div class="pev-cal-num">29</div></div><div class="pev-cal-day pev-cal-out" data-ev-day="2026-06-30"><div class="pev-cal-num">30</div></div><div class="pev-cal-day" data-ev-day="2026-07-01"><div class="pev-cal-num">1</div></div><div class="pev-cal-day" data-ev-day="2026-07-02"><div class="pev-cal-num">2</div></div><div class="pev-cal-day" data-ev-day="2026-07-03"><div class="pev-cal-num">3</div></div><div class="pev-cal-day" data-ev-day="2026-07-04"><div class="pev-cal-num">4</div></div><div class="pev-cal-day" data-ev-day="2026-07-05"><div class="pev-cal-num">5</div></div><div class="pev-cal-day" data-ev-day="2026-07-06"><div class="pev-cal-num">6</div></div><div class="pev-cal-day" data-ev-day="2026-07-07"><div class="pev-cal-num">7</div></div><div class="pev-cal-day" data-ev-day="2026-07-08"><div class="pev-cal-num">8</div><button type="button" class="pev-event-chip pev-chip-start" data-ev-cat="projekt" data-ev-jump="1" title="Projekt-Phase">Projekt-Phase</button></div><div class="pev-cal-day" data-ev-day="2026-07-09"><div class="pev-cal-num">9</div><button type="button" class="pev-event-chip pev-chip-mid" data-ev-cat="projekt" data-ev-jump="1" title="Projekt-Phase"> </button></div><div class="pev-cal-day" data-ev-day="2026-07-10"><div class="pev-cal-num">10</div><button type="button" class="pev-event-chip pev-chip-mid" data-ev-cat="projekt" data-ev-jump="1" title="Projekt-Phase"> </button></div><div class="pev-cal-day" data-ev-day="2026-07-11"><div class="pev-cal-num">11</div><button type="button" class="pev-event-chip pev-chip-end" data-ev-cat="projekt" data-ev-jump="1" title="Projekt-Phase"> </button></div><div class="pev-cal-day" data-ev-day="2026-07-12"><div class="pev-cal-num">12</div></div><div class="pev-cal-day" data-ev-day="2026-07-13"><div class="pev-cal-num">13</div></div><div class="pev-cal-day" data-ev-day="2026-07-14"><div class="pev-cal-num">14</div></div><div class="pev-cal-day pev-cal-today" data-ev-day="2026-07-15"><div class="pev-cal-num">15</div></div><div class="pev-cal-day" data-ev-day="2026-07-16"><div class="pev-cal-num">16</div></div><div class="pev-cal-day" data-ev-day="2026-07-17"><div class="pev-cal-num">17</div></div><div class="pev-cal-day" data-ev-day="2026-07-18"><div class="pev-cal-num">18</div></div><div class="pev-cal-day" data-ev-day="2026-07-19"><div class="pev-cal-num">19</div></div><div class="pev-cal-day" data-ev-day="2026-07-20"><div class="pev-cal-num">20</div><button type="button" class="pev-event-chip pev-chip-single" data-ev-cat="termin" data-ev-jump="0" title="Workshop">Workshop</button></div><div class="pev-cal-day" data-ev-day="2026-07-21"><div class="pev-cal-num">21</div></div><div class="pev-cal-day" data-ev-day="2026-07-22"><div class="pev-cal-num">22</div></div><div class="pev-cal-day" data-ev-day="2026-07-23"><div class="pev-cal-num">23</div></div><div class="pev-cal-day" data-ev-day="2026-07-24"><div class="pev-cal-num">24</div></div><div class="pev-cal-day" data-ev-day="2026-07-25"><div class="pev-cal-num">25</div></div><div class="pev-cal-day" data-ev-day="2026-07-26"><div class="pev-cal-num">26</div></div><div class="pev-cal-day" data-ev-day="2026-07-27"><div class="pev-cal-num">27</div></div><div class="pev-cal-day" data-ev-day="2026-07-28"><div class="pev-cal-num">28</div></div><div class="pev-cal-day" data-ev-day="2026-07-29"><div class="pev-cal-num">29</div></div><div class="pev-cal-day" data-ev-day="2026-07-30"><div class="pev-cal-num">30</div></div><div class="pev-cal-day" data-ev-day="2026-07-31"><div class="pev-cal-num">31</div></div><div class="pev-cal-day pev-cal-out" data-ev-day="2026-08-01"><div class="pev-cal-num">1</div></div><div class="pev-cal-day pev-cal-out" data-ev-day="2026-08-02"><div class="pev-cal-num">2</div></div></div></div></div></div>
+<p data-source-line="20">Wochen-Kalender:</p>
+<div class="perspective-events" data-ev-index="2" data-ev-line-start="22" data-ev-line-end="26" data-source-line="22" data-ev-source="view: week
+| 2026-07-15 | | Heutiger Termin | termin | | | | | |
+| 2026-07-13 | 2026-07-17 | Wochen-Spanne | projekt | | | | | |
+" data-ev-today="2026-07-15"><div class="pev-switcher" role="group"><button type="button" class="pev-viewbtn" data-ev-viewbtn="table" data-i18n="events.view.table">table</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="dashboard" data-i18n="events.view.dashboard">dashboard</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="month" data-i18n="events.view.month">month</button><button type="button" class="pev-viewbtn active" data-ev-viewbtn="week" data-i18n="events.view.week">week</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="timeline" data-i18n="events.view.timeline">timeline</button></div><div class="pev-display" data-ev-display="week"><div class="pev-calendar pev-cal-week" data-ev-cal-anchor="2026-07-15"><div class="pev-cal-head"><button type="button" class="pev-cal-nav pev-cal-prev" title="Vorige Woche">‹</button><span class="pev-cal-title">2026-07-13 – 2026-07-19</span><button type="button" class="pev-cal-nav pev-cal-next" title="Nächste Woche">›</button><button type="button" class="pev-cal-nav pev-cal-today-btn">Heute</button></div><div class="pev-cal-grid"><div class="pev-cal-weekday">Mo</div><div class="pev-cal-weekday">Di</div><div class="pev-cal-weekday">Mi</div><div class="pev-cal-weekday">Do</div><div class="pev-cal-weekday">Fr</div><div class="pev-cal-weekday">Sa</div><div class="pev-cal-weekday">So</div><div class="pev-cal-day" data-ev-day="2026-07-13"><div class="pev-cal-num">13</div><button type="button" class="pev-event-chip pev-chip-start" data-ev-cat="projekt" data-ev-jump="1" title="Wochen-Spanne">Wochen-Spanne</button></div><div class="pev-cal-day" data-ev-day="2026-07-14"><div class="pev-cal-num">14</div><button type="button" class="pev-event-chip pev-chip-mid" data-ev-cat="projekt" data-ev-jump="1" title="Wochen-Spanne"> </button></div><div class="pev-cal-day pev-cal-today" data-ev-day="2026-07-15"><div class="pev-cal-num">15</div><button type="button" class="pev-event-chip pev-chip-single" data-ev-cat="termin" data-ev-jump="0" title="Heutiger Termin">Heutiger Termin</button><button type="button" class="pev-event-chip pev-chip-mid" data-ev-cat="projekt" data-ev-jump="1" title="Wochen-Spanne"> </button></div><div class="pev-cal-day" data-ev-day="2026-07-16"><div class="pev-cal-num">16</div><button type="button" class="pev-event-chip pev-chip-mid" data-ev-cat="projekt" data-ev-jump="1" title="Wochen-Spanne"> </button></div><div class="pev-cal-day" data-ev-day="2026-07-17"><div class="pev-cal-num">17</div><button type="button" class="pev-event-chip pev-chip-end" data-ev-cat="projekt" data-ev-jump="1" title="Wochen-Spanne"> </button></div><div class="pev-cal-day" data-ev-day="2026-07-18"><div class="pev-cal-num">18</div></div><div class="pev-cal-day" data-ev-day="2026-07-19"><div class="pev-cal-num">19</div></div></div></div></div></div>
+<p data-source-line="28">Timeline mit Jahres- und Monats-Gruppierung:</p>
+<div class="perspective-events" data-ev-index="3" data-ev-line-start="30" data-ev-line-end="35" data-source-line="30" data-ev-source="view: timeline
+| 1990-03-10 | | Geburtstag Anna | geburtstag | | x | | | |
+| 2020-01-01 | | Projektstart Alpha | projekt | | | | | |
+| 2026-07-20 | | Workshop | termin | | | | | |
+" data-ev-today="2026-07-15"><div class="pev-switcher" role="group"><button type="button" class="pev-viewbtn" data-ev-viewbtn="table" data-i18n="events.view.table">table</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="dashboard" data-i18n="events.view.dashboard">dashboard</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="month" data-i18n="events.view.month">month</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="week" data-i18n="events.view.week">week</button><button type="button" class="pev-viewbtn active" data-ev-viewbtn="timeline" data-i18n="events.view.timeline">timeline</button></div><div class="pev-display" data-ev-display="timeline"><div class="pev-timeline"><div class="pev-tl-year">1990</div><div class="pev-tl-month">März 1990</div><div class="pev-tl-item"><span class="pev-tl-date">1990-03-10</span><button type="button" class="pev-event-chip" data-ev-cat="geburtstag" data-ev-jump="0" title="Geburtstag Anna">Geburtstag Anna</button></div><div class="pev-tl-year">2020</div><div class="pev-tl-month">Januar 2020</div><div class="pev-tl-item"><span class="pev-tl-date">2020-01-01</span><button type="button" class="pev-event-chip" data-ev-cat="projekt" data-ev-jump="1" title="Projektstart Alpha">Projektstart Alpha</button></div><div class="pev-tl-year">2026</div><div class="pev-tl-month">Juli 2026</div><div class="pev-tl-item"><span class="pev-tl-date">2026-07-20</span><button type="button" class="pev-event-chip" data-ev-cat="termin" data-ev-jump="2" title="Workshop">Workshop</button></div></div></div></div>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert ereignisse.md stabil 1`] = `
+"<h1 id="ereignis-fence" data-source-line="1">Ereignis-Fence</h1>
+<p data-source-line="3">Eingebettete Verwaltung (Art 1) mit Direktiven, Kategorien, Notizen und Wiederkehr:</p>
+<div class="perspective-events" data-ev-index="0" data-ev-line-start="5" data-ev-line-end="12" data-source-line="5" data-ev-source="view: table
+filter: Runde := categories=geburtstag; recurring=x
+| 2020-01-01 | | Projektstart Alpha | projekt | Kickoff-Notiz | | | | |
+| 1990-03-10 | | Geburtstag Anna | geburtstag | | x | | | |
+| 2024-02-29 | 2024-06-30 | Schaltjahres-Spanne | termin | Zeile1\\nZeile2 | | | | |
+| 2026-03-01 | 2026-02-01 | Ende vor Beginn | fantasie | | | | | |
+" data-ev-today="2026-07-15"><div class="pev-switcher" role="group"><button type="button" class="pev-viewbtn active" data-ev-viewbtn="table" data-i18n="events.view.table">table</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="dashboard" data-i18n="events.view.dashboard">dashboard</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="month" data-i18n="events.view.month">month</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="week" data-i18n="events.view.week">week</button><button type="button" class="pev-viewbtn" data-ev-viewbtn="timeline" data-i18n="events.view.timeline">timeline</button></div><div class="pev-display" data-ev-display="table"><table class="pev-table"><thead><tr><th class="pev-col-date" data-ev-sort="date" data-i18n="events.column.date">date</th><th class="pev-col-end" data-ev-sort="end" data-i18n="events.column.end">end</th><th class="pev-col-category" data-ev-sort="category" data-i18n="events.column.category">category</th><th class="pev-col-text" data-ev-sort="text" data-i18n="events.column.text">text</th><th class="pev-col-diff" data-i18n="events.column.diff">diff</th><th class="pev-col-actions" data-i18n="events.column.actions">actions</th></tr></thead><tbody><tr class="pev-row" data-ev-row="0"><td class="pev-cell pev-date">2020-01-01</td><td class="pev-cell pev-end"></td><td class="pev-cell pev-category"><span class="pev-badge" data-ev-cat="projekt" data-i18n="events.category.projekt">projekt</span></td><td class="pev-cell pev-text"><div class="pev-text-main">Projektstart Alpha</div><div class="pev-notes">Kickoff-Notiz</div></td><td class="pev-cell pev-diff" data-ev-date="2020-01-01" data-ev-end=""></td><td class="pev-cell pev-actions"><button type="button" class="pev-edit-btn" data-i18n-title="events.action.edit" tabindex="-1">✎</button><button type="button" class="pev-link-btn" data-i18n-title="events.link.action" tabindex="-1">🔗</button><button type="button" class="pev-dup-btn" data-i18n-title="events.action.duplicate" tabindex="-1">⧉</button><button type="button" class="pev-del-btn" data-i18n-title="events.action.delete" tabindex="-1">×</button></td></tr><tr class="pev-row" data-ev-row="1"><td class="pev-cell pev-date">1990-03-10</td><td class="pev-cell pev-end"></td><td class="pev-cell pev-category"><span class="pev-badge" data-ev-cat="geburtstag" data-i18n="events.category.geburtstag">geburtstag</span></td><td class="pev-cell pev-text"><div class="pev-text-main">Geburtstag Anna</div></td><td class="pev-cell pev-diff" data-ev-date="1990-03-10" data-ev-end="" data-ev-recurring="x"></td><td class="pev-cell pev-actions"><button type="button" class="pev-edit-btn" data-i18n-title="events.action.edit" tabindex="-1">✎</button><button type="button" class="pev-link-btn" data-i18n-title="events.link.action" tabindex="-1">🔗</button><button type="button" class="pev-dup-btn" data-i18n-title="events.action.duplicate" tabindex="-1">⧉</button><button type="button" class="pev-del-btn" data-i18n-title="events.action.delete" tabindex="-1">×</button></td></tr><tr class="pev-row" data-ev-row="2"><td class="pev-cell pev-date">2024-02-29</td><td class="pev-cell pev-end">2024-06-30</td><td class="pev-cell pev-category"><span class="pev-badge" data-ev-cat="termin" data-i18n="events.category.termin">termin</span></td><td class="pev-cell pev-text"><div class="pev-text-main">Schaltjahres-Spanne</div><div class="pev-notes">Zeile1<br>Zeile2</div></td><td class="pev-cell pev-diff" data-ev-date="2024-02-29" data-ev-end="2024-06-30"></td><td class="pev-cell pev-actions"><button type="button" class="pev-edit-btn" data-i18n-title="events.action.edit" tabindex="-1">✎</button><button type="button" class="pev-link-btn" data-i18n-title="events.link.action" tabindex="-1">🔗</button><button type="button" class="pev-dup-btn" data-i18n-title="events.action.duplicate" tabindex="-1">⧉</button><button type="button" class="pev-del-btn" data-i18n-title="events.action.delete" tabindex="-1">×</button></td></tr><tr class="pev-row" data-ev-row="3"><td class="pev-cell pev-date">2026-03-01</td><td class="pev-cell pev-end">2026-02-01<span class="pev-hint" data-ev-hint="endBeforeDate">⚠</span></td><td class="pev-cell pev-category"><span class="pev-badge" data-ev-cat="fantasie">fantasie</span><span class="pev-hint" data-ev-hint="unknownCategory">⚠</span></td><td class="pev-cell pev-text"><div class="pev-text-main">Ende vor Beginn</div></td><td class="pev-cell pev-diff" data-ev-date="2026-03-01" data-ev-end="2026-02-01"></td><td class="pev-cell pev-actions"><button type="button" class="pev-edit-btn" data-i18n-title="events.action.edit" tabindex="-1">✎</button><button type="button" class="pev-link-btn" data-i18n-title="events.link.action" tabindex="-1">🔗</button><button type="button" class="pev-dup-btn" data-i18n-title="events.action.duplicate" tabindex="-1">⧉</button><button type="button" class="pev-del-btn" data-i18n-title="events.action.delete" tabindex="-1">×</button></td></tr></tbody></table><div class="pev-add-form"><span class="pev-form-date"><input type="text" class="pev-form-input pev-form-date" data-i18n-placeholder="events.form.datePlaceholder" autocomplete="off" spellcheck="false"><button type="button" class="pev-form-pick" data-ev-pick="date" data-i18n-title="events.form.pickDate" tabindex="-1" hidden>📅</button></span><span class="pev-form-date"><input type="text" class="pev-form-input pev-form-end" data-i18n-placeholder="events.form.datePlaceholder" autocomplete="off" spellcheck="false"><button type="button" class="pev-form-pick" data-ev-pick="end" data-i18n-title="events.form.pickDate" tabindex="-1" hidden>📅</button></span><select class="pev-form-input pev-form-category"><option value="" data-i18n="events.category.none"></option><option value="geburtstag" data-i18n="events.category.geburtstag">geburtstag</option><option value="todestag" data-i18n="events.category.todestag">todestag</option><option value="jahrestag" data-i18n="events.category.jahrestag">jahrestag</option><option value="jubilaeum" data-i18n="events.category.jubilaeum">jubilaeum</option><option value="projekt" data-i18n="events.category.projekt">projekt</option><option value="termin" data-i18n="events.category.termin">termin</option><option value="erinnerung" data-i18n="events.category.erinnerung">erinnerung</option><option value="sonstiges" data-i18n="events.category.sonstiges">sonstiges</option></select><input type="text" class="pev-form-input pev-form-text" data-i18n-placeholder="events.form.textPlaceholder" autocomplete="off"><input type="text" class="pev-form-input pev-form-notes" data-i18n-placeholder="events.form.notesPlaceholder" autocomplete="off"><label class="pev-form-recurring"><input type="checkbox" class="pev-form-recurring-box"><span data-i18n="events.form.recurring">recurring</span></label><button type="button" class="pev-add-btn"><span aria-hidden="true">+</span> <span data-i18n="events.form.add">add</span></button></div></div></div>
+<p data-source-line="14">Struktur-Fehler bleiben Fehler-Liste:</p>
+<div class="perspective-events" data-ev-index="1" data-ev-line-start="16" data-ev-line-end="18" data-source-line="16" data-ev-source="spalten: kaputt
+" data-ev-today="2026-07-15"><div class="pev-errors"><div class="pev-errors-title" data-i18n="events.errors.title">events</div><div class="pev-error-item" data-ev-code="unknownDirective" data-ev-line="1" data-ev-detail="spalten">unknownDirective [1]</div></div></div>
+<p data-source-line="20">Aggregation (Art 2) rendert als Platzhalter:</p>
+<div class="perspective-events" data-ev-index="2" data-ev-line-start="22" data-ev-line-end="24" data-source-line="22" data-ev-source="query: FROM &quot;Personen&quot; WHERE event-category = 'geburtstag'
+" data-ev-today="2026-07-15"><div class="pev-aggregation" data-ev-query="FROM &quot;Personen&quot; WHERE event-category = 'geburtstag'"><span class="pev-agg-pending" data-i18n="events.aggregationPending">events</span></div></div>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert frontmatter-anzeige.md stabil 1`] = `
+"<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="4"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">titel:</span> <span class="hljs-string">Test-Dokument</span>
+<span class="hljs-comment"># Kommentar bleibt im Klartext-YAML erhalten</span>
+<span class="hljs-attr">tags:</span> [<span class="hljs-string">alpha</span>, <span class="hljs-string">beta</span>]
+<span class="hljs-attr">aliases:</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-string">Zweitname</span>
+<span class="hljs-attr">beschreibung:</span> <span class="hljs-string">&gt;
+  Mehrzeiliger
+  Wert</span></code></pre></div>
+<h1 id="sichtbarer-inhalt" data-source-line="12">Sichtbarer Inhalt</h1>
+<p data-source-line="14">Der Frontmatter-Block oben erscheint als zusammengeklappte Zeile mit aufklappbarem Klartext-YAML; die Body-Elemente tragen Gesamt-Dokument-Zeilen.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert gfm.md stabil 1`] = `
+"<table data-source-line="1">
+<thead data-source-line="1">
+<tr data-source-line="1">
+<th>Kopf A</th>
+<th>Kopf B</th>
+</tr>
+</thead>
+<tbody data-source-line="3">
+<tr data-source-line="3">
+<td>a1</td>
+<td>b1</td>
+</tr>
+</tbody>
+</table>
+<table data-source-line="5">
+<thead data-source-line="5">
+<tr data-source-line="5">
+<th>Kopf X</th>
+<th>Kopf Y</th>
+</tr>
+</thead>
+<tbody data-source-line="7">
+<tr data-source-line="7">
+<td>x1</td>
+<td>y1</td>
+</tr>
+</tbody>
+</table>
+<ul class="contains-task-list" data-source-line="9">
+<li class="task-list-item" data-source-line="9"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> offene Aufgabe</label></li>
+<li class="task-list-item" data-source-line="10"><label><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox"> erledigte Aufgabe</label></li>
+</ul>
+<p data-source-line="12">Durchgestrichen: <s>weg damit</s></p>
+<p data-source-line="14">Autolink: <a href="https://example.org/pfad">https://example.org/pfad</a></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert gliederungs-nummerierung.md stabil 1`] = `
+"<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="1"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">numbered-headings:</span> <span class="hljs-literal">true</span></code></pre></div>
+<h1 id="einleitung" data-source-line="5"><span class="heading-number">1</span> Einleitung</h1>
+<h2 id="grundlagen" data-source-line="7"><span class="heading-number">1.1</span> Grundlagen</h2>
+<h3 id="details" data-source-line="9"><span class="heading-number">1.1.1</span> Details</h3>
+<h2 id="ausblick" data-source-line="11">Ausblick</h2>
+<h3 id="trotzdem-gezaehlt" data-source-line="13"><span class="heading-number">1.1.2</span> Trotzdem gezaehlt</h3>
+<h1 id="anhang" data-source-line="15"><span class="heading-number">2</span> Anhang</h1>
+<h2 id="sprung-zur-ebene-drei" data-source-line="17"><span class="heading-number">2.1</span> Sprung zur Ebene drei</h2>
+<h4 id="tiefe-vier" data-source-line="19"><span class="heading-number">2.1.1.1</span> Tiefe vier</h4>
+<h1 id="literal--" data-source-line="21"><span class="heading-number">3</span> Literal {-}</h1>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert grenzfaelle.md stabil 1`] = `
+"<p data-source-line="1">Ungeschlossener Fence:</p>
+<pre><code class="hljs language-js"><span class="hljs-keyword">const</span> offen = <span class="hljs-literal">true</span>;
+
+<span class="hljs-title class_">Ungeschlossene</span> <span class="hljs-title class_">Tabelle</span>:
+
+| nur <span class="hljs-title class_">Kopf</span> |
+|---|
+
+&gt; [!note] <span class="hljs-title class_">Callout</span> ohne <span class="hljs-title class_">Body</span>
+</code></pre>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert highlight-footnotes-anker.md stabil 1`] = `
+"<p data-source-line="1">Markiert: <mark>wichtig</mark> und escaped: ==kein Highlight==</p>
+<p data-source-line="3">Fussnote im Text<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> und inline<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>.</p>
+<p data-source-line="7" id="anker-42">Absatz mit Block-Anker.</p>
+<h2 id="uberschrift-mit-anker-kapitel-1" data-source-line="9">Überschrift mit Anker</h2>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p data-source-line="5">Definition der ersten Fussnote. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>Direkt definiert <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert image-size.md stabil 1`] = `
+"<figure data-source-line="1"><img src="bild.png" alt="Beide Maße" width="100" height="200"><figcaption>Beide Maße</figcaption></figure>
+<figure data-source-line="3"><img src="bild.png" alt="Nur Breite" width="100"><figcaption>Nur Breite</figcaption></figure>
+<figure data-source-line="5"><img src="bild.png" alt="Nur Höhe" height="200"><figcaption>Nur Höhe</figcaption></figure>
+<p data-source-line="7">Ungültiges Suffix bleibt Roh-Text: ![alt](bild.png =abc)</p>
+<p data-source-line="9">Im Fließtext: <img src="icon.png" alt="klein" width="16" height="16"> mitten im Satz.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert implicit-figures.md stabil 1`] = `
+"<figure data-source-line="1"><img src="bild.png" alt="Eine Bildunterschrift"><figcaption>Eine Bildunterschrift</figcaption></figure>
+<figure data-source-line="3"><img src="ohne-alt.png" alt=""></figure>
+<p data-source-line="5">Im Fließtext bleibt <img src="inline.png" alt="Inline-Bild"> ein einfaches img-Element.</p>
+<p data-source-line="7"><img class="wiki-embed wiki-embed-image" src="embed.png" alt=""></p>
+<p data-source-line="9">Text nach dem Wiki-Embed als Absatz-Abschluss.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert inline-calc.md stabil 1`] = `
+"<h1 id="inline-berechnungen" data-source-line="1">Inline-Berechnungen</h1>
+<p data-source-line="3">Einfache Arithmetik: <span class="inline-calc" title="2+3*4">14</span> und mit Klammern <span class="inline-calc" title="(2+3) * (4 - 1)">15</span>.</p>
+<p data-source-line="5">Zwei pro Zeile: <span class="inline-calc" title="1+1">2</span> und <span class="inline-calc" title="10/4">2.5</span>.</p>
+<p data-source-line="7">Vergleich im Ausdruck: <span class="inline-calc" title="1 = 1">true</span> sowie <span class="inline-calc" title="2 &gt;= 3">false</span> und logisch <span class="inline-calc" title="1 = 1 AND 2 = 2">true</span>.</p>
+<p data-source-line="9">Text: <span class="inline-calc" title="&quot;Mark&quot; + &quot;down&quot;">Markdown</span> und <span class="inline-calc" title="upper('abc')">ABC</span> und <span class="inline-calc" title="length('Wort')">4</span>.</p>
+<p data-source-line="11">Datum und Dauer: <span class="inline-calc" title="date(2026-01-01) + dur(30d)">2026-01-31</span> und <span class="inline-calc" title="date(2026-01-31) - date(2026-01-01)">30d</span> und <span class="inline-calc" title="dur(1d) + dur(2h)">1d 2h</span>.</p>
+<p data-source-line="13">Relativ: <span class="inline-calc" title="date(today)">2026-07-15</span>.</p>
+<p data-source-line="15">Funktionen: <span class="inline-calc" title="sum(5)">5</span>, <span class="inline-calc" title="number('42')">42</span>, <span class="inline-calc" title="choice(1 = 2, 'ja', 'nein')">nein</span>, <span class="inline-calc" title="dateformat(date(2026-01-01), 'dd.MM.yyyy')">01.01.2026</span>, <span class="inline-calc" title="default(1/0, 99)">99</span>.</p>
+<p data-source-line="17">Fehler: Syntax <span class="inline-calc inline-calc-error" title="2+" data-i18n-title="inlineCalc.error.syntax">⚠︎</span>, Funktion <span class="inline-calc inline-calc-error" title="foo(1)" data-i18n-title="inlineCalc.error.function">⚠︎</span>, Wert <span class="inline-calc inline-calc-error" title="1/0" data-i18n-title="inlineCalc.error.value">⚠︎</span>, Feld <span class="inline-calc inline-calc-error" title="file.size" data-i18n-title="inlineCalc.error.field">⚠︎</span>.</p>
+<p data-source-line="19">Escape bleibt Literal: {= 2+2 =}.</p>
+<p data-source-line="21">Direkt nach Element: <em>kursiv</em><span class="inline-calc" title="2+2">4</span>.</p>
+<table data-source-line="23">
+<thead data-source-line="23">
+<tr data-source-line="23">
+<th>Spalte</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody data-source-line="25">
+<tr data-source-line="25">
+<td>Rechnung</td>
+<td><span class="inline-calc" title="6*7">42</span></td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title" data-i18n="callout.note.title"></span></div><div class="callout-body"><p data-source-line="27">Im Callout: <span class="inline-calc" title="3*3">9</span></p>
+</div></div><ul data-source-line="30">
+<li data-source-line="30">In der Liste: <span class="inline-calc" title="6/2">3</span></li>
+</ul>
+<p data-source-line="32">Critic bleibt Critic: <mark class="critic"> markiert </mark> und <span class="critic-comment">Anmerkung</span> und <del class="critic">alt</del><ins class="critic">neu</ins>.</p>
+<p data-source-line="34">Leer bleibt Literal: {= =} mittig im Satz, unvollständig auch: {= 2+3 offen.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert journal-nav.md stabil 1`] = `
+"<h1 id="journal-navigations-block-4t-0435" data-source-line="1">Journal-Navigations-Block (4T-0435)</h1>
+<p data-source-line="3">Der Fence rendert als leerer Platzhalter-Container; die Navigation baut der
+Renderer aus dem Datei-Kontext.</p>
+<div class="perspective-journal-nav"></div>
+<p data-source-line="9">Text nach dem Block.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert kalender-werte.md stabil 1`] = `
+"<h1 id="kalender-werte" data-source-line="1">Kalender-Werte</h1>
+<p data-source-line="3">Ein gültiger Wert <span class="calendar-value" title="Dreimond: 500-2-09 ZZ" data-calendar-name="Dreimond" data-calendar-value="500-2-09 ZZ">500-Mittmond-09 ZZ</span> im Fließtext.</p>
+<p data-source-line="5">Namens-Anzeige mitten im Satz: <span class="calendar-value" title="Dreimond: 1-2-13" data-calendar-name="Dreimond" data-calendar-value="1-2-13">1-Mittmond-13</span> und danach geht es weiter.</p>
+<p data-source-line="7">Unbekannter Kalender: <span class="calendar-value calendar-value-unknown" title="Nirgendwo" data-calendar-name="Nirgendwo" data-calendar-value="1-1-1">@{Nirgendwo: 1-1-1}</span> bleibt sichtbar markiert.</p>
+<p data-source-line="9">Ungültiger Wert: <span class="calendar-value calendar-value-invalid" title="Dreimond" data-calendar-name="Dreimond" data-calendar-value="500-9-99">@{Dreimond: 500-9-99}</span> bleibt unverändert erhalten.</p>
+<p data-source-line="11">Code bleibt literal: <code>@{Dreimond: 1-1-1}</code> und im Block:</p>
+<pre><code>@{Dreimond: 2-2-2}
+</code></pre>
+<p data-source-line="15">Keine Werte (Form passt nicht): @{ohne Doppelpunkt} und @{} und @{Dreimond: }.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert katex.md stabil 1`] = `
+"<p data-source-line="1">Inline: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mi>m</mi><msup><mi>c</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">E = mc^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord mathnormal">m</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> im Satz.</p>
+<p data-source-line="3">Block:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mo>∫</mo><mn>0</mn><mn>1</mn></msubsup><msup><mi>x</mi><mn>2</mn></msup><mtext> </mtext><mi>d</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\\int_0^1 x^2 \\, dx
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.476em;vertical-align:-0.9119em;"></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.4445em;position:relative;top:-0.0011em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.564em;"><span style="top:-1.7881em;margin-left:-0.4445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span><span style="top:-3.8129em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9119em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">x</span></span></span></span></span></p>
+<p data-source-line="9">Einzeilig:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup><mo>=</mo><msup><mi>c</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">a^2 + b^2 = c^2
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p data-source-line="13">Kein Math: Preis $5 bis $10.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert kommentare.md stabil 1`] = `
+"<h1 id="prozent-kommentare" data-source-line="1">Prozent-Kommentare</h1>
+<h2 id="inline-kommentar-mitten-im-satz" data-source-line="3">Inline-Kommentar mitten im Satz</h2>
+<p data-source-line="5">Dieser Satz bleibt sichtbar  und geht hier weiter.</p>
+<h2 id="inline-kommentar-mit-markdown-im-inneren" data-source-line="7">Inline-Kommentar mit Markdown im Inneren</h2>
+<p data-source-line="9">Sichtbarer Text  Ende der Zeile.</p>
+<h2 id="mehrzeiliger-kommentar-block" data-source-line="11">Mehrzeiliger Kommentar-Block</h2>
+<p data-source-line="13">Absatz vor dem Kommentar bleibt sichtbar.</p>
+<p data-source-line="20">Absatz nach dem Kommentar bleibt sichtbar.</p>
+<h2 id="mehrzeiliger-kommentar-verschluckt-eine-tabelle" data-source-line="22">Mehrzeiliger Kommentar verschluckt eine Tabelle</h2>
+<p data-source-line="24">Vor der verschluckten Tabelle steht sichtbarer Text.</p>
+<p data-source-line="33">Nach der verschluckten Tabelle steht wieder sichtbarer Text.</p>
+<h2 id="escape-im-fließtext" data-source-line="35">Escape im Fließtext</h2>
+<p data-source-line="37">Ein wörtliches %% bleibt als Zeichenfolge sichtbar und startet keinen Kommentar.</p>
+<h2 id="code-fence-mit-backticks-bleibt-literal" data-source-line="39">Code-Fence mit Backticks bleibt Literal</h2>
+<pre><code class="hljs language-text">Hier steht %% literal %% und wird nicht als Kommentar entfernt.
+</code></pre>
+<h2 id="code-fence-mit-tilden-bleibt-literal" data-source-line="45">Code-Fence mit Tilden bleibt Literal</h2>
+<pre><code class="hljs language-text">Auch hier bleibt %% literal %% als Zeichenfolge erhalten.
+</code></pre>
+<h2 id="inline-code-span-bleibt-literal" data-source-line="51">Inline-Code-Span bleibt Literal</h2>
+<p data-source-line="53">Der Ausdruck <code>%%literal%%</code> in einem Code-Span bleibt vollständig sichtbar.</p>
+<h2 id="unpaariges-kommentar-ende" data-source-line="55">Unpaariges Kommentar-Ende</h2>
+<p data-source-line="57">Sichtbarer Text vor dem offenen Marker.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert kommentare-portable.md stabil 1`] = `
+"&lt;!-- perspective-portable --&gt;
+<h1 id="prozent-kommentare-im-portable-export">Prozent-Kommentare im Portable-Export</h1>
+<p>Sichtbarer Absatz mit einem Inline-Kommentar  und weiterem Text.</p>
+<p>Nach dem Block bleibt der Text sichtbar.</p>
+<pre><code class="hljs language-text">Im Code-Fence bleibt %% literal %% erhalten.
+</code></pre>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert line-blocks.md stabil 1`] = `
+"<div class="line-block" data-source-line="1">
+<div class="line-block-line" data-source-line="1">Erste Zeile des Gedichts</div>
+<div class="line-block-line" data-source-line="2">  eingerückt weiter mit zwei Leerzeichen</div>
+<div class="line-block-line" data-source-line="3">Dritte Zeile mit <strong>Fett</strong> und <em>kursiv</em></div>
+</div>
+<p data-source-line="5">Normaler Absatz zwischen den Blöcken.</p>
+<div class="line-block" data-source-line="7">
+<div class="line-block-line" data-source-line="7">Stumm-Consulting GmbH</div>
+<div class="line-block-line" data-source-line="8">Musterstraße 1</div>
+<div class="line-block-line" data-source-line="9">4410 Liestal</div>
+</div>
+<p data-source-line="11">Gegenproben:</p>
+<table data-source-line="13">
+<thead data-source-line="13">
+<tr data-source-line="13">
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody data-source-line="15">
+<tr data-source-line="15">
+<td>c</td>
+<td>d</td>
+</tr>
+</tbody>
+</table>
+<p data-source-line="17">|ohne Leerzeichen ist kein Line Block</p>
+<p data-source-line="19">Text mit | Pipe im Zeileninneren bleibt Text.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert link-blanks.md stabil 1`] = `
+"<p data-source-line="1">Kodiertes Ziel: <a href="Meine%20Notiz.md">Text</a></p>
+<p data-source-line="3">Ziel in spitzen Klammern mit Leerzeichen: <a href="Meine%20Notiz.md">Text</a></p>
+<p data-source-line="5">Bild in spitzen Klammern mit Leerzeichen: <img src="Bild%2001.png" alt="Alt"></p>
+<p data-source-line="7">Wiki-Link: <a href="Meine Notiz.md" class="wikilink">Meine Notiz</a></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert mermaid-container.md stabil 1`] = `
+"<pre><code class="hljs language-mermaid">graph TD
+  A[Start] --&gt; B[Ende]
+</code></pre>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert perspective-query.md stabil 1`] = `
+"<h1 id="frontmatter-abfrage-perspective-query" data-source-line="1">Frontmatter-Abfrage (perspective-query)</h1>
+<p data-source-line="3">Einfache Wert-Abfrage:</p>
+<div class="perspective-query" data-fm-query="bereich = &quot;Privat&quot;"></div>
+<p data-source-line="9">Boolescher Ausdruck mit Klammern, IN, NOT IN und NOT:</p>
+<div class="perspective-query" data-fm-query="(bereich = &quot;Privat&quot; AND tags IN (&quot;rot&quot;, &quot;rund&quot;)) OR NOT status = &quot;erledigt&quot;"></div>
+<p data-source-line="15">Mehrzeiliger Body mit Ungleichheit und NOT IN:</p>
+<div class="perspective-query" data-fm-query="bereich != &quot;Archiv&quot;
+AND tags NOT IN (&quot;intern&quot;, &quot;entwurf&quot;)"></div>
+<p data-source-line="22">Ein Syntaxfehler bleibt ebenfalls ein Platzhalter (die Auswertung erfolgt erst im Renderer):</p>
+<div class="perspective-query" data-fm-query="bereich ="></div>
+<p data-source-line="28">Klausel-Form mit Tabellen-Ausgabe, Quellen, Sortierung und Limit:</p>
+<div class="perspective-query" data-fm-query="TABLE status AS &quot;Status&quot;, file.mtime
+FROM &quot;Projekte&quot; AND #aktiv
+WHERE file.mtime &gt;= date(today) - dur(30 days)
+SORT file.mtime DESC, file.name
+LIMIT 20"></div>
+<p data-source-line="38">Mehrspaltige Ergebnis-Liste:</p>
+<div class="perspective-query" data-fm-query="LIST FROM #lesezeichen COLUMNS 3"></div>
+<p data-source-line="44">Block-Ebene (Scope-Zusatz BLOCKS, 3E-0077):</p>
+<div class="perspective-query" data-fm-query="LIST BLOCKS WHERE status = &quot;offen&quot; SORT updated DESC"></div>
+<div class="perspective-query" data-fm-query="TABLE BLOCKS status AS &quot;Status&quot;, updated
+FROM &quot;Projekte&quot;
+WHERE prio &gt; 2"></div>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert perspective-script.md stabil 1`] = `
+"<h1 id="skript-block-perspective-script" data-source-line="1">Skript-Block (perspective-script)</h1>
+<p data-source-line="3">Fence rendert als Platzhalter-Container mit dem Quelltext im data-Attribut;
+Escaping-kritische Zeichen (<code>&lt;</code>, <code>&amp;</code>, <code>&quot;</code>) müssen maskiert sein.</p>
+<div class="perspective-script" data-script-source="const x = 1 &lt; 2 &amp;&amp; &quot;text&quot;;
+pq.out('Wert: ' + x);
+"></div>
+<p data-source-line="11">Danach normaler Fließtext.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert perspective-tabellen.md stabil 1`] = `
+"<table class="perspective-table"><caption>Beschriftung</caption><thead><tr><th scope="col">Kopf 1 !! Kopf 2 !! Kopf 3</th></tr></thead><tbody><tr><td>a1 || a2 || a3</td></tr><tr><td colspan="2">breit || c3</td></tr></tbody></table><table class="perspective-table sortable"><thead><tr><th scope="col">Name !! Wert</th></tr></thead><tbody><tr><td class="align-right">rechts || {status:ok} gut</td></tr><tr><td><strong>Markdown</strong> in Zelle || <a href="Ziel.md" class="wikilink">Ziel</a> und <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">x^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></td></tr></tbody></table><table class="perspective-table"><tbody><tr><td><p data-source-line="1">Aussen ||
+{| class=“perspective-table”</p>
+</td></tr><tr><td>Innen</td></tr></tbody></table>"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert sicherheit-html.md stabil 1`] = `
+"<p data-source-line="1">Script-Versuch: &lt;script&gt;alert(1)&lt;/script&gt;</p>
+<p data-source-line="3">Inline-Event: &lt;img src=x onerror=alert(1)&gt;</p>
+<p data-source-line="5">Iframe: &lt;iframe src=“<a href="https://example.org">https://example.org</a>”&gt;&lt;/iframe&gt;</p>
+<p data-source-line="7">Wiki mit Schema: [[javascript:alert(1)]]</p>
+<p data-source-line="9">Traversal-Bild: <img src="../../geheim.png" alt="weg"></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert spoiler.md stabil 1`] = `
+"<p data-source-line="1">Achtung <span class="spoiler" tabindex="0">geheimer Text</span> im Satz.</p>
+<p data-source-line="3">Mit Markup: <span class="spoiler" tabindex="0">hier <strong>fett</strong> und <em>kursiv</em> verborgen</span>.</p>
+<p data-source-line="5">Escape bleibt Text: ||kein Spoiler|| im Satz.</p>
+<p data-source-line="7">Spoiler-Versuch in einer Pipe-Tabellen-Zelle (unescapte Pipes trennen
+Zellen, GFM verwirft die überzähligen):</p>
+<table data-source-line="10">
+<thead data-source-line="10">
+<tr data-source-line="10">
+<th>Spalte A</th>
+<th>Spalte B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody data-source-line="12">
+<tr data-source-line="12">
+<td>a</td>
+<td></td>
+<td>sp</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p data-source-line="14">Mit escapten Pipes bleibt die Zeile vierzellig und der Spoiler
+funktioniert in der Zelle:</p>
+<table data-source-line="17">
+<thead data-source-line="17">
+<tr data-source-line="17">
+<th>Spalte A</th>
+<th>Spalte B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody data-source-line="19">
+<tr data-source-line="19">
+<td>a <span class="spoiler" tabindex="0">sp</span> b</td>
+<td>x</td>
+<td>y</td>
+<td>z</td>
+</tr>
+</tbody>
+</table>
+<p data-source-line="21">Einzelne Pipe | bleibt Text; <a href="Ziel.md" class="wikilink">Label</a> bleibt Wiki-Link.</p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert sub-sup-ins.md stabil 1`] = `
+"<p data-source-line="1">Chemie: H<sub>2</sub>O und CO<sub>2</sub> im Fließtext.</p>
+<p data-source-line="3">Mathematik: x<sup>2</sup> und e<sup>iπ</sup> hochgestellt.</p>
+<p data-source-line="5">Unterstrichen: <ins>wichtiger Hinweis</ins> im Satz.</p>
+<p data-source-line="7">Kombination: <strong>fett mit H<sub>2</sub>O</strong> und <sup><strong>fettes</strong> hoch</sup> gemischt.</p>
+<p data-source-line="9">Gegenproben:</p>
+<p data-source-line="11"><s>durchgestrichen</s> bleibt Strikethrough, H<sub>2</sub>O bleibt tiefgestellt.</p>
+<p data-source-line="13">Fußnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> und Inline-Fußnote<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup> bleiben Fußnoten.</p>
+<p data-source-line="17" id="anker1">Absatz mit Block-Anker bleibt Anker.</p>
+<p data-source-line="19">C++ und D++ lösen kein Underline aus; C+±Code und C+±Stil ebenfalls nicht.</p>
+<p data-source-line="21">Einzelzeichen bleiben Text: 2^10 und a~b im Fließtext.</p>
+<p data-source-line="23">Kein Whitespace-Inhalt: ~x y~ bleibt Text, ++ x ++ ebenfalls.</p>
+<p data-source-line="25">Escapes: ^^kein Sup^^ und ++kein Ins++ und ~kein Sub~ bleiben Text.</p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p data-source-line="15">Definition der Fußnote. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>Direkt definiert <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert syntax-highlighting.md stabil 1`] = `
+"<pre><code class="hljs language-js"><span class="hljs-keyword">const</span> x = <span class="hljs-number">42</span>;
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">f</span>(<span class="hljs-params">a</span>) { <span class="hljs-keyword">return</span> a * x; }
+</code></pre>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert tags.md stabil 1`] = `
+"<p data-source-line="1">Fliesstext mit <a href="#tag:einfach" class="tag-link">#einfach</a> und <a href="#tag:projekt/unterprojekt" class="tag-link">#projekt/unterprojekt</a> sowie <a href="#tag:tag_mit_unterstrich" class="tag-link">#tag_mit_unterstrich</a>.</p>
+<p data-source-line="3">Kein Tag in Hex-Farbe: #ff0044 und #ABC</p>
+<p data-source-line="5">Kein Tag im Code: <code>#code-tag</code></p>
+<pre><code class="hljs">#fence-tag
+</code></pre>
+<p data-source-line="11">Kein Tag im Wiki-Anker: <a href="#abschnitt" class="wikilink">#Abschnitt</a></p>
+<p data-source-line="13">Tag am Zeilenanfang:
+<a href="#tag:zeilenstart" class="tag-link">#zeilenstart</a></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert task-marker.md stabil 1`] = `
+"<h1 id="task-marker" data-source-line="1">Task-Marker</h1>
+<p data-source-line="3">Fixture der Erweiterung „Aufgaben&quot; (4T-0498, Epic 3E-0090). Alle Datums-Werte
+sind bewusst stabil: 2020-01-01 ist immer ueberfaellig, 2099-12-31 nie. Keine
+Daten nahe heute, damit der Snapshot maschinen- und zeitunabhaengig bleibt.</p>
+<h2 id="termine" data-source-line="7">Termine</h2>
+<ul class="contains-task-list" data-source-line="9">
+<li class="task-list-item" data-source-line="9"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Faelliger Termin, ueberfaellig<span class="task-marker task-marker-date task-marker-due task-marker-overdue" title="Fällig">📅 2020-01-01</span></label></li>
+<li class="task-list-item" data-source-line="10"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Faelliger Termin, Zukunft<span class="task-marker task-marker-date task-marker-due" title="Fällig">📅 2099-12-31</span></label></li>
+<li class="task-list-item" data-source-line="11"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Faellig mit Uhrzeit<span class="task-marker task-marker-date task-marker-due" title="Fällig">📅 2099-12-31 09:30</span></label></li>
+<li class="task-list-item" data-source-line="12"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Geplanter Termin<span class="task-marker task-marker-date task-marker-scheduled" title="Geplant">⏳ 2099-06-15</span></label></li>
+<li class="task-list-item" data-source-line="13"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Start-Termin<span class="task-marker task-marker-date task-marker-start" title="Start">🛫 2099-03-01</span></label></li>
+<li class="task-list-item" data-source-line="14"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Erstellt-Datum<span class="task-marker task-marker-date task-marker-created" title="Erstellt">➕ 2020-01-01</span></label></li>
+<li class="task-list-item" data-source-line="15"><label><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox"> Erledigt-Datum<span class="task-marker task-marker-date task-marker-done" title="Erledigt">✅ 2099-12-31</span></label></li>
+<li class="task-list-item" data-source-line="16"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Abgebrochen-Datum<span class="task-marker task-marker-date task-marker-cancelled" title="Abgebrochen">❌ 2099-12-31</span></label></li>
+<li class="task-list-item" data-source-line="17"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Ungueltiges Datum<span class="task-marker task-marker-date task-marker-due task-marker-invalid" title="Fällig">📅 2099-02-30</span></label></li>
+</ul>
+<h2 id="prioritaet" data-source-line="19">Prioritaet</h2>
+<ul class="contains-task-list" data-source-line="21">
+<li class="task-list-item" data-source-line="21"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Hoechste Prioritaet<span class="task-marker task-marker-priority" title="Höchste Priorität">🔺</span></label></li>
+<li class="task-list-item" data-source-line="22"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Hohe Prioritaet<span class="task-marker task-marker-priority" title="Hohe Priorität">⏫</span></label></li>
+<li class="task-list-item" data-source-line="23"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Mittlere Prioritaet<span class="task-marker task-marker-priority" title="Mittlere Priorität">🔼</span></label></li>
+<li class="task-list-item" data-source-line="24"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Niedrige Prioritaet<span class="task-marker task-marker-priority" title="Niedrige Priorität">🔽</span></label></li>
+<li class="task-list-item" data-source-line="25"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Niedrigste Prioritaet<span class="task-marker task-marker-priority" title="Niedrigste Priorität">⏬</span></label></li>
+</ul>
+<h2 id="wiederholung-id-und-abhaengigkeit" data-source-line="27">Wiederholung, ID und Abhaengigkeit</h2>
+<ul class="contains-task-list" data-source-line="29">
+<li class="task-list-item" data-source-line="29"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Woechentliche Wiederholung<span class="task-marker task-marker-recurrence" title="Wiederholung">🔁 every week</span></label></li>
+<li class="task-list-item" data-source-line="30"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Aufgabe mit Kennung<span class="task-marker task-marker-other" title="ID">🆔 abc123</span></label></li>
+<li class="task-list-item" data-source-line="31"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Abhaengige Aufgabe<span class="task-marker task-marker-other" title="Abhängig von">⛔ abc123</span></label></li>
+</ul>
+<h2 id="toleranz-marker" data-source-line="33">Toleranz-Marker</h2>
+<ul class="contains-task-list" data-source-line="35">
+<li class="task-list-item" data-source-line="35"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Aufgabe mit Abschluss-Aktion<span class="task-marker task-marker-other">🏁 delete</span></label></li>
+<li class="task-list-item" data-source-line="36"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Aufgabe mit Erinnerung<span class="task-marker task-marker-reminder" title="Erinnerung">⏰ 2099-12-31 08:00</span></label></li>
+</ul>
+<h2 id="sonderfaelle" data-source-line="38">Sonderfaelle</h2>
+<ul class="contains-task-list" data-source-line="40">
+<li class="task-list-item" data-source-line="40"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Zeile mit <strong>Fett</strong> und Termin<span class="task-marker task-marker-date task-marker-due" title="Fällig">📅 2099-12-31</span></label></li>
+<li data-source-line="41">Bullet ohne Checkbox mit 📅 2099-12-31 (kein Badge)</li>
+<li class="task-list-item task-state-item" data-task-state="/" data-source-line="42"><span class="task-state-box" data-task-state="/" title="In Arbeit" style="--task-state-color:#0d6efd">/</span>Erweiterter Status mit Termin<span class="task-marker task-marker-date task-marker-due" title="Fällig">📅 2099-12-31</span></li>
+</ul>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert task-states.md stabil 1`] = `
+"<ul class="contains-task-list" data-source-line="1">
+<li class="task-list-item" data-source-line="1"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Offene Aufgabe (Bestand)</label></li>
+<li class="task-list-item" data-source-line="2"><label><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox"> Erledigte Aufgabe (Bestand)</label></li>
+<li class="task-list-item task-state-item" data-task-state="/" data-source-line="3"><span class="task-state-box" data-task-state="/" title="In Arbeit" style="--task-state-color:#0d6efd">/</span>In Arbeit</li>
+<li class="task-list-item task-state-item" data-task-state="-" data-source-line="4"><span class="task-state-box" data-task-state="-" title="Abgebrochen" style="--task-state-color:#6c757d">-</span>Abgebrochen</li>
+<li class="task-list-item task-state-item" data-task-state="&gt;" data-source-line="5"><span class="task-state-box" data-task-state="&gt;" title="Delegiert" style="--task-state-color:#6f42c1">&gt;</span>Delegiert</li>
+<li class="task-list-item task-state-item" data-task-state="?" data-source-line="6"><span class="task-state-box" data-task-state="?" title="Frage" style="--task-state-color:#fd7e14">?</span>Frage</li>
+<li class="task-list-item task-state-item" data-task-state="!" data-source-line="7"><span class="task-state-box" data-task-state="!" title="Wichtig" style="--task-state-color:#dc3545">!</span>Wichtig</li>
+<li class="task-list-item task-state-item" data-task-state="*" data-source-line="8"><span class="task-state-box" data-task-state="*" title="Markiert" style="--task-state-color:#d4a900">*</span>Markiert</li>
+<li data-source-line="9">[z] Nicht aktiviertes Zeichen bleibt Roh-Text</li>
+</ul>
+<p data-source-line="11">Verschachtelt:</p>
+<ul data-source-line="13">
+<li class="task-list-item task-state-item" data-task-state="/" data-source-line="13"><span class="task-state-box" data-task-state="/" title="In Arbeit" style="--task-state-color:#0d6efd">/</span>Eltern-Aufgabe in Arbeit
+<ul class="contains-task-list" data-source-line="14">
+<li class="task-list-item" data-source-line="14"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Unteraufgabe offen</label></li>
+<li class="task-list-item task-state-item" data-task-state="!" data-source-line="15"><span class="task-state-box" data-task-state="!" title="Wichtig" style="--task-state-color:#dc3545">!</span>Unteraufgabe wichtig</li>
+</ul>
+</li>
+</ul>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-embeds.md stabil 1`] = `
+"<h1 id="unterseiten-embeds-4t-0337" data-source-line="1">Unterseiten-Embeds (4T-0337)</h1>
+<p data-source-line="3">Embed in Slash-Schreibweise: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md"></span></p>
+<p data-source-line="5">Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md" data-embed-anchor="Abschnitt"></span></p>
+<p data-source-line="7">Relatives Kind-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="/Entwurf.md"></span></p>
+<p data-source-line="9">Eltern-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path=".."></span></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-links.md stabil 1`] = `
+"<h1 id="unterseiten-links-4t-0336" data-source-line="1">Unterseiten-Links (4T-0336)</h1>
+<p data-source-line="3">Unterseite in Slash-Schreibweise: <a href="Prozess-A/Entwurf.md" class="wikilink">Prozess-A/Entwurf</a></p>
+<p data-source-line="5">Mit Alias: <a href="Prozess-A/Entwurf.md" class="wikilink">Der Entwurf</a></p>
+<p data-source-line="7">Mit Heading-Anker: <a href="Prozess-A/Entwurf.md#abschnitt" class="wikilink">Prozess-A/Entwurf#Abschnitt</a></p>
+<p data-source-line="9">Tiefere Ebene: <a href="Prozess-A/Umsetzung/Detail.md" class="wikilink">Prozess-A/Umsetzung/Detail</a></p>
+<p data-source-line="11">Relative Unterseite: <a href="/Entwurf.md" class="wikilink">/Entwurf</a></p>
+<p data-source-line="13">Relative Unterseite mit Alias: <a href="/Entwurf.md" class="wikilink">Zum Entwurf</a></p>
+<p data-source-line="15">Elternseite: <a href=".." class="wikilink">…</a></p>
+<p data-source-line="17">Elternseite mit Alias: <a href=".." class="wikilink">Nach oben</a></p>
+<p data-source-line="19">Elternseite mit Anker: <a href="..#uberblick" class="wikilink">…#Überblick</a></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-embeds.md stabil 1`] = `
+"<p data-source-line="1">Bild-Embed: <img class="wiki-embed wiki-embed-image" src="bild.png" alt=""></p>
+<p data-source-line="3">Bild mit Breite: <img class="wiki-embed wiki-embed-image" src="bild.png" alt="" style="max-width: 300px"></p>
+<p data-source-line="5">Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md"></span></p>
+<p data-source-line="7">Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt"></span></p>
+<p data-source-line="9">PDF-Embed: <span class="wiki-embed wiki-embed-pdf" data-embed-kind="pdf" data-embed-path="dokument.pdf"></span></p>
+<p data-source-line="11">Sonstiges Embed: <span class="wiki-embed wiki-embed-other" data-embed-kind="other" data-embed-path="archiv.zip"></span></p>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-links.md stabil 1`] = `
+"<p data-source-line="1">Einfach: <a href="Ziel.md" class="wikilink">Ziel</a></p>
+<p data-source-line="3">Mit Alias: <a href="Ziel.md" class="wikilink">Anzeigename</a></p>
+<p data-source-line="5">Mit Heading-Anker: <a href="Ziel.md#mein-abschnitt" class="wikilink">Ziel#Mein Abschnitt</a></p>
+<p data-source-line="7">Mit Block-Anker: <a href="Ziel.md#block-id" class="wikilink">Ziel#^block-id</a></p>
+<p data-source-line="9">Nur Anker: <a href="#lokaler-abschnitt" class="wikilink">#Lokaler Abschnitt</a></p>
+<p data-source-line="11">Mit Extension: <a href="Notiz.md" class="wikilink">Notiz.md</a></p>
+<p data-source-line="13">Escapte Pipe in Tabelle:</p>
+<table data-source-line="15">
+<thead data-source-line="15">
+<tr data-source-line="15">
+<th>Spalte</th>
+</tr>
+</thead>
+<tbody data-source-line="17">
+<tr data-source-line="17">
+<td><a href="Ziel.md" class="wikilink">Alias-in-Zelle</a></td>
+</tr>
+</tbody>
+</table>
+"
+`;

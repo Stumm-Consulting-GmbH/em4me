@@ -1,0 +1,2306 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+    />
+    <title>EM4me</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- 4T-0023: highlight.js GitHub Light/Dark, prefixed mit data-theme.
+         Generiert von scripts/build-hljs-themes.js. -->
+    <link rel="stylesheet" href="hljs-themes.css" />
+    <!-- 4T-0022: KaTeX-CSS plus woff2-Fonts. Generiert von
+         scripts/build-katex-assets.js aus node_modules/katex. -->
+    <link rel="stylesheet" href="katex/katex.css" />
+  </head>
+  <body>
+    <main id="panes-container" class="panes-container">
+      <section class="pane-group active-pane" data-pane="0">
+        <div class="tabbar"></div>
+        <div class="content view-split">
+          <!-- 4T-0288 (Epic 3E-0051): dynamische Sidebar — je Pane ein linker
+               und ein rechter Container. Die Panel-Sektionen starten im linken
+               Container (Default-Layout); das Slot-Mounting (panels.js) hängt
+               sie gemäß Layout-Modell per DOM-Umhängen um. -->
+          <aside class="pane-sidebar pane-sidebar-left" hidden>
+            <section class="sidebar-section sidebar-outline" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="outline.title">Inhaltsverzeichnis</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <ul class="outline-tree"></ul>
+                <div class="outline-empty" hidden data-i18n="outline.empty">
+                  Keine Überschriften in diesem Dokument
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0051 (Epic 3E-0010): Properties-Sektion mit live-editierbaren
+                 Frontmatter-Feldern. Pro Spalte eine Instanz, persistent
+                 ein-/ausblendbar wie Outline und Backlinks. -->
+            <section class="sidebar-section sidebar-properties" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="properties.title">Properties</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="properties-empty" hidden data-i18n="properties.empty">
+                  Keine Properties in diesem Dokument
+                </div>
+                <div class="properties-parse-error" hidden></div>
+                <div class="properties-fields"></div>
+                <button type="button" class="properties-add-btn" data-i18n="properties.addField">
+                  + Eigenschaft hinzufügen
+                </button>
+              </div>
+            </section>
+            <!-- 4T-0056 (Epic 3E-0011): Tag-Sektion. Hierarchische Tag-Liste
+                 mit Haeufigkeits-Counts, Filter-Eingabe, Klick filtert auf
+                 Dateien mit diesem Tag. Pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-tags" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="tags.title">Tags</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <input
+                  type="text"
+                  class="tags-filter"
+                  data-i18n-placeholder="tags.filterPlaceholder"
+                  placeholder="Filter…"
+                />
+                <div class="tags-status" hidden></div>
+                <div class="tags-tree"></div>
+                <div class="tags-files" hidden></div>
+              </div>
+            </section>
+            <!-- 4T-0073 (Epic 3E-0013): Outgoing-Links-Sektion. Listet alle
+                 Wiki-Links, Markdown-Links und Embeds der aktiven Datei. Pro
+                 Spalte eine Instanz, persistent ein-/ausblendbar. -->
+            <section class="sidebar-section sidebar-outgoing" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="outgoing.title">Outgoing-Links</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="outgoing-status" hidden></div>
+                <div class="outgoing-results"></div>
+              </div>
+            </section>
+            <section class="sidebar-section sidebar-backlinks" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="backlinks.title">Backlinks</h2>
+                <span class="sidebar-section-info" data-i18n-title="backlinks.scopeTooltip" title=""
+                  >i</span
+                >
+              </header>
+              <div class="sidebar-section-body">
+                <div class="backlinks-status" hidden></div>
+                <div class="backlinks-results"></div>
+              </div>
+            </section>
+            <!-- 4T-0359 (Epic 3E-0066): Notizen-Sektion. Editierbare Dokument-Notiz
+                 aus der .mdd, mit umschaltbarer gerenderter Vorschau. Pro Spalte
+                 eine Instanz. -->
+            <section class="sidebar-section sidebar-notes" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="notes.title">Notizen</h2>
+                <button
+                  type="button"
+                  class="notes-preview-toggle"
+                  data-i18n="notes.previewToggle"
+                  data-i18n-title="notes.previewToggleTitle"
+                  title=""
+                  aria-pressed="false"
+                >
+                  Vorschau
+                </button>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="notes-empty" hidden data-i18n="notes.untitledHint">
+                  Notizen sind erst nach dem ersten Speichern der Datei verfügbar.
+                </div>
+                <div class="notes-suspended" hidden data-i18n="notes.suspendedHint">
+                  Die Notiz ist ausgesetzt, weil die Begleitdatei defekt ist.
+                </div>
+                <div class="notes-conflict" hidden data-i18n="notes.conflictHint">
+                  In einem anderen Fenster geändert.
+                </div>
+                <div class="notes-editor"></div>
+                <div class="notes-preview markdown-body" hidden></div>
+                <div class="notes-hint" data-i18n="notes.markdownHint">Unterstützt Markdown.</div>
+              </div>
+            </section>
+            <!-- 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sektion. Pflegt die
+                 Block-Metadaten (.mdd blockData) des Ankers unter dem Cursor;
+                 pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-blockprops" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="blockProps.title">
+                  Block-Eigenschaften
+                </h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="block-props-empty" hidden data-i18n="blockProps.untitledHint">
+                  Block-Eigenschaften sind erst nach dem ersten Speichern der Datei verfügbar.
+                </div>
+                <div class="block-props-suspended" hidden data-i18n="blockProps.suspendedHint">
+                  Die Block-Eigenschaften sind ausgesetzt, weil die Begleitdatei defekt ist.
+                </div>
+                <div class="block-props-anchorbar">
+                  <select class="block-props-anchor-select"></select>
+                  <button
+                    type="button"
+                    class="block-props-rename-btn"
+                    data-i18n-title="blockProps.rename"
+                    data-i18n-aria-label="blockProps.rename"
+                    title=""
+                    aria-label=""
+                  >
+                    ✎
+                  </button>
+                </div>
+                <div class="block-props-no-anchor" hidden>
+                  <span data-i18n="blockProps.noAnchor">Dieser Block hat noch keinen Anker.</span>
+                  <button
+                    type="button"
+                    class="block-props-create-btn"
+                    data-i18n="blockProps.createAnchor"
+                  >
+                    Anker anlegen
+                  </button>
+                </div>
+                <div class="block-props-duplicate" hidden data-i18n="blockProps.duplicateHint">
+                  Mehrfach vergebener Anker: nur das erste Vorkommen zählt.
+                </div>
+                <div class="block-props-fields"></div>
+                <button type="button" class="block-props-add-btn" data-i18n="blockProps.addField">
+                  + Eigenschaft hinzufügen
+                </button>
+                <div class="block-props-orphans" hidden>
+                  <div class="block-props-orphans-title" data-i18n="blockProps.orphansTitle">
+                    Verwaiste Daten
+                  </div>
+                  <div class="block-props-orphans-list"></div>
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Sektion. Listet die
+                 direkten Unterseiten der aktiven Datei (U+2215-Namens-
+                 Konvention); Klick oeffnet. Pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-subpages" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="subpages.title">Unterseiten</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="subpages-status" hidden></div>
+                <div class="subpages-list"></div>
+              </div>
+            </section>
+            <!-- 4T-0075 (Epic 3E-0013): Bookmarks-Sektion. Persistente
+                 Datei-Lesezeichen mit Tree-Render (Folder + File). In 4T-0075
+                 Basis flach im Root; Ordner-Operationen kommen in 4T-0078,
+                 Drag-and-Drop in 4T-0079. -->
+            <section class="sidebar-section sidebar-bookmarks" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="bookmarks.title">Lesezeichen</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="bookmarks-empty" data-i18n="bookmarks.empty">
+                  Keine Lesezeichen. Lege eines mit Strg+D an.
+                </div>
+                <ul class="bookmarks-tree"></ul>
+              </div>
+            </section>
+            <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum des
+                 Bereichs oben, Markdown-Dateiliste des gewaehlten Ordners
+                 darunter; ohne aktiven Bereich zeigt der Body den
+                 Empty-State. Pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-area" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="areaPanel.title">Bereich</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="area-empty" hidden data-i18n="areaPanel.empty">
+                  Kein Bereich geöffnet
+                </div>
+                <div class="area-split" hidden>
+                  <div class="area-tree"></div>
+                  <div class="area-files-header">
+                    <span class="area-files-title"></span>
+                    <button
+                      type="button"
+                      class="area-new-file-btn"
+                      data-i18n-title="areaPanel.newFileTitle"
+                      data-i18n-aria-label="areaPanel.newFileTitle"
+                      title=""
+                      aria-label="Neue Datei"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div class="area-files"></div>
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0434 (Epic 3E-0081): Kalender-Sektion. Monatsansicht mit
+                 ISO-KW-Spalte; Punkte an Tagen mit Journal-Eintrag; Klick
+                 öffnet bzw. legt über den Journal-Anlage-Pfad an. -->
+            <section class="sidebar-section sidebar-calendar" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="calendar.title">Kalender</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="calendar-empty" hidden data-i18n="journal.noArea">
+                  Journale gibt es nur in einem Bereich.
+                </div>
+                <div class="calendar-none" hidden data-i18n="journal.noJournals">
+                  In diesem Bereich sind keine Journale definiert.
+                </div>
+                <div class="calendar-main" hidden>
+                  <select
+                    class="calendar-filter"
+                    data-i18n-title="calendar.filterTitle"
+                    title=""
+                  ></select>
+                  <div class="calendar-nav">
+                    <button
+                      type="button"
+                      class="calendar-prev"
+                      data-i18n-title="calendar.prevMonth"
+                      title=""
+                    >
+                      ‹
+                    </button>
+                    <span class="calendar-month-label"></span>
+                    <button
+                      type="button"
+                      class="calendar-next"
+                      data-i18n-title="calendar.nextMonth"
+                      title=""
+                    >
+                      ›
+                    </button>
+                    <button type="button" class="calendar-today-btn" data-i18n="calendar.today">
+                      Heute
+                    </button>
+                  </div>
+                  <div class="calendar-grid"></div>
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0527 (Epic 3E-0095): Erinnerungs-Sektion. Fälligkeits-Gruppen
+                 (überfällig, heute, morgen, später) mit Direkt-Aktionen und
+                 Wiederauslösung gemuteter Einträge; Inhalt rendert
+                 reminders-panel.js aus den Daten des Main-Prüfers. -->
+            <section class="sidebar-section sidebar-reminders" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="reminders.panel.title">
+                  Erinnerungen
+                </h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="reminders-status" hidden></div>
+                <div class="reminders-groups"></div>
+              </div>
+            </section>
+            <!-- 4T-0372 (Epic 3E-0069): Uhr-Sektion. Analoge Uhr (SVG),
+                 digitale Zeit, Datum und optional die Kalenderwoche; den
+                 Inhalt baut clock-panel.js aus den Anzeige-Optionen auf.
+                 4T-0636: Die Modus-Leiste steht bewusst zwischen Header und
+                 Body — der Header ist in einer Reiter-Gruppe ausgeblendet
+                 (.in-tab-group), und der Body scrollt. -->
+            <section class="sidebar-section sidebar-clock" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="clock.panel.title">Uhr</h2>
+              </header>
+              <div class="clock-modes"></div>
+              <div class="sidebar-section-body">
+                <div class="clock-body"></div>
+              </div>
+            </section>
+            <!-- 4T-0456 (Epic 3E-0084): Datei-Graph-Sektion. Umfeld der aktiven
+                 Datei mit Tiefe 1–5 und Richtungs-Filter; Klick öffnet die
+                 Nachbar-Datei. Hinweise: keine aktive Datei, Datei ohne Links,
+                 Best-Effort-Suchraum außerhalb eines Bereichs. -->
+            <section class="sidebar-section sidebar-filegraph" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="graph.panelTitle">Datei-Graph</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="filegraph-empty" hidden data-i18n="graph.panel.noFile">
+                  Keine Markdown-Datei aktiv.
+                </div>
+                <div class="filegraph-main" hidden>
+                  <div class="filegraph-controls">
+                    <label class="filegraph-control">
+                      <span data-i18n="graph.depthLabel">Tiefe</span>
+                      <select class="filegraph-depth"></select>
+                    </label>
+                    <label class="filegraph-control">
+                      <span data-i18n="graph.directionLabel">Richtung</span>
+                      <select class="filegraph-direction"></select>
+                    </label>
+                  </div>
+                  <div class="filegraph-status" hidden></div>
+                  <div class="filegraph-note" hidden data-i18n="graph.panel.noLinks">
+                    Diese Datei hat keine Link-Beziehungen.
+                  </div>
+                  <div class="filegraph-scope-hint" hidden data-i18n="graph.scopeHint">
+                    Ohne Bereich zeigt der Graph nur den Ordner-Suchraum der Datei.
+                  </div>
+                  <div class="filegraph-canvas"></div>
+                </div>
+              </div>
+            </section>
+          </aside>
+          <div
+            class="splitter sidebar-splitter sidebar-splitter-left"
+            aria-hidden="true"
+            hidden
+          ></div>
+          <section class="pane pane-source">
+            <!-- 4T-0607 (Epic 3E-0114): Format-Toolbar. Sichtbar nur im
+                 Edit-Modus (format-toolbar.js schaltet hidden); Buttons
+                 werden zur Laufzeit aus der Belegung gerendert, der
+                 Mehr-Button fängt Überlauf bei schmalen Panes ab. -->
+            <div
+              class="format-toolbar"
+              id="format-toolbar-0"
+              role="toolbar"
+              data-i18n-aria-label="formatToolbar.ariaLabel"
+              aria-label="Formatting"
+              hidden
+            >
+              <button
+                id="btn-format-toolbar-more-0"
+                class="btn-toggle btn-icon format-toolbar-more"
+                data-i18n-title="formatToolbar.overflowTitle"
+                data-i18n-aria-label="formatToolbar.overflowTitle"
+                title=""
+                aria-label="More"
+                hidden
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="5" cy="12" r="1" />
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="19" cy="12" r="1" />
+                </svg>
+              </button>
+            </div>
+            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Live-Modus). -->
+            <div class="subpage-breadcrumb" data-host="source" hidden></div>
+            <!-- 4T-0585 (Epic 3E-0108): Titelzeile („Zeile 0") — Dateiname in
+                 Überschrift-Optik, scroll-fest über dem Editor. Sichtbarkeit
+                 schaltet title-line.js über das hidden-Attribut; data-host
+                 steuert wie beim Breadcrumb, in welchem Ansichts-Modus
+                 welche Instanz sichtbar ist. -->
+            <div class="title-line" data-host="source" hidden>
+              <h1 class="title-line-text" spellcheck="false" tabindex="0"></h1>
+              <div class="title-line-hint" role="status" hidden></div>
+            </div>
+            <div class="pane-source-editor"></div>
+          </section>
+          <div class="splitter inner-splitter" aria-hidden="true"></div>
+          <section class="pane pane-rendered">
+            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Reading/Geteilt). -->
+            <div class="subpage-breadcrumb" data-host="rendered" hidden></div>
+            <!-- 4T-0585 (Epic 3E-0108): Titelzeile der Render-Spalte
+                 (sticky im Scroll-Container, nur Reading-Ansicht). -->
+            <div class="title-line" data-host="rendered" hidden>
+              <h1 class="title-line-text" spellcheck="false" tabindex="0"></h1>
+              <div class="title-line-hint" role="status" hidden></div>
+            </div>
+            <article class="markdown-body"></article>
+          </section>
+          <!-- 4T-0277 (Epic 3E-0049): Container der System-Seiten
+               (Einstellungen). Sichtbar nur bei .content.view-system;
+               das Seiten-DOM montiert renderSystemPane zur Laufzeit. -->
+          <section class="pane pane-system"></section>
+          <div
+            class="splitter sidebar-splitter sidebar-splitter-right"
+            aria-hidden="true"
+            hidden
+          ></div>
+          <aside class="pane-sidebar pane-sidebar-right" hidden></aside>
+        </div>
+      </section>
+      <div class="splitter outer-splitter" aria-hidden="true" hidden></div>
+      <section class="pane-group" data-pane="1" hidden>
+        <div class="tabbar"></div>
+        <div class="content view-split">
+          <!-- 4T-0288: Container-Aufbau identisch zu Pane 0, siehe dort. -->
+          <aside class="pane-sidebar pane-sidebar-left" hidden>
+            <section class="sidebar-section sidebar-outline" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="outline.title">Inhaltsverzeichnis</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <ul class="outline-tree"></ul>
+                <div class="outline-empty" hidden data-i18n="outline.empty">
+                  Keine Überschriften in diesem Dokument
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0051 (Epic 3E-0010): Properties-Sektion mit live-editierbaren
+                 Frontmatter-Feldern. Pro Spalte eine Instanz, persistent
+                 ein-/ausblendbar wie Outline und Backlinks. -->
+            <section class="sidebar-section sidebar-properties" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="properties.title">Properties</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="properties-empty" hidden data-i18n="properties.empty">
+                  Keine Properties in diesem Dokument
+                </div>
+                <div class="properties-parse-error" hidden></div>
+                <div class="properties-fields"></div>
+                <button type="button" class="properties-add-btn" data-i18n="properties.addField">
+                  + Eigenschaft hinzufügen
+                </button>
+              </div>
+            </section>
+            <!-- 4T-0056 (Epic 3E-0011): Tag-Sektion. Hierarchische Tag-Liste
+                 mit Haeufigkeits-Counts, Filter-Eingabe, Klick filtert auf
+                 Dateien mit diesem Tag. Pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-tags" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="tags.title">Tags</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <input
+                  type="text"
+                  class="tags-filter"
+                  data-i18n-placeholder="tags.filterPlaceholder"
+                  placeholder="Filter…"
+                />
+                <div class="tags-status" hidden></div>
+                <div class="tags-tree"></div>
+                <div class="tags-files" hidden></div>
+              </div>
+            </section>
+            <!-- 4T-0073 (Epic 3E-0013): Outgoing-Links-Sektion. Listet alle
+                 Wiki-Links, Markdown-Links und Embeds der aktiven Datei. Pro
+                 Spalte eine Instanz, persistent ein-/ausblendbar. -->
+            <section class="sidebar-section sidebar-outgoing" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="outgoing.title">Outgoing-Links</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="outgoing-status" hidden></div>
+                <div class="outgoing-results"></div>
+              </div>
+            </section>
+            <section class="sidebar-section sidebar-backlinks" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="backlinks.title">Backlinks</h2>
+                <span class="sidebar-section-info" data-i18n-title="backlinks.scopeTooltip" title=""
+                  >i</span
+                >
+              </header>
+              <div class="sidebar-section-body">
+                <div class="backlinks-status" hidden></div>
+                <div class="backlinks-results"></div>
+              </div>
+            </section>
+            <!-- 4T-0359 (Epic 3E-0066): Notizen-Sektion. Editierbare Dokument-Notiz
+                 aus der .mdd, mit umschaltbarer gerenderter Vorschau. Pro Spalte
+                 eine Instanz. -->
+            <section class="sidebar-section sidebar-notes" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="notes.title">Notizen</h2>
+                <button
+                  type="button"
+                  class="notes-preview-toggle"
+                  data-i18n="notes.previewToggle"
+                  data-i18n-title="notes.previewToggleTitle"
+                  title=""
+                  aria-pressed="false"
+                >
+                  Vorschau
+                </button>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="notes-empty" hidden data-i18n="notes.untitledHint">
+                  Notizen sind erst nach dem ersten Speichern der Datei verfügbar.
+                </div>
+                <div class="notes-suspended" hidden data-i18n="notes.suspendedHint">
+                  Die Notiz ist ausgesetzt, weil die Begleitdatei defekt ist.
+                </div>
+                <div class="notes-conflict" hidden data-i18n="notes.conflictHint">
+                  In einem anderen Fenster geändert.
+                </div>
+                <div class="notes-editor"></div>
+                <div class="notes-preview markdown-body" hidden></div>
+                <div class="notes-hint" data-i18n="notes.markdownHint">Unterstützt Markdown.</div>
+              </div>
+            </section>
+            <!-- 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sektion. Pflegt die
+                 Block-Metadaten (.mdd blockData) des Ankers unter dem Cursor;
+                 pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-blockprops" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="blockProps.title">
+                  Block-Eigenschaften
+                </h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="block-props-empty" hidden data-i18n="blockProps.untitledHint">
+                  Block-Eigenschaften sind erst nach dem ersten Speichern der Datei verfügbar.
+                </div>
+                <div class="block-props-suspended" hidden data-i18n="blockProps.suspendedHint">
+                  Die Block-Eigenschaften sind ausgesetzt, weil die Begleitdatei defekt ist.
+                </div>
+                <div class="block-props-anchorbar">
+                  <select class="block-props-anchor-select"></select>
+                  <button
+                    type="button"
+                    class="block-props-rename-btn"
+                    data-i18n-title="blockProps.rename"
+                    data-i18n-aria-label="blockProps.rename"
+                    title=""
+                    aria-label=""
+                  >
+                    ✎
+                  </button>
+                </div>
+                <div class="block-props-no-anchor" hidden>
+                  <span data-i18n="blockProps.noAnchor">Dieser Block hat noch keinen Anker.</span>
+                  <button
+                    type="button"
+                    class="block-props-create-btn"
+                    data-i18n="blockProps.createAnchor"
+                  >
+                    Anker anlegen
+                  </button>
+                </div>
+                <div class="block-props-duplicate" hidden data-i18n="blockProps.duplicateHint">
+                  Mehrfach vergebener Anker: nur das erste Vorkommen zählt.
+                </div>
+                <div class="block-props-fields"></div>
+                <button type="button" class="block-props-add-btn" data-i18n="blockProps.addField">
+                  + Eigenschaft hinzufügen
+                </button>
+                <div class="block-props-orphans" hidden>
+                  <div class="block-props-orphans-title" data-i18n="blockProps.orphansTitle">
+                    Verwaiste Daten
+                  </div>
+                  <div class="block-props-orphans-list"></div>
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Sektion. Listet die
+                 direkten Unterseiten der aktiven Datei (U+2215-Namens-
+                 Konvention); Klick oeffnet. Pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-subpages" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="subpages.title">Unterseiten</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="subpages-status" hidden></div>
+                <div class="subpages-list"></div>
+              </div>
+            </section>
+            <!-- 4T-0075 (Epic 3E-0013): Bookmarks-Sektion. Persistente
+                 Datei-Lesezeichen mit Tree-Render (Folder + File). In 4T-0075
+                 Basis flach im Root; Ordner-Operationen kommen in 4T-0078,
+                 Drag-and-Drop in 4T-0079. -->
+            <section class="sidebar-section sidebar-bookmarks" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="bookmarks.title">Lesezeichen</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="bookmarks-empty" data-i18n="bookmarks.empty">
+                  Keine Lesezeichen. Lege eines mit Strg+D an.
+                </div>
+                <ul class="bookmarks-tree"></ul>
+              </div>
+            </section>
+            <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum des
+                 Bereichs oben, Markdown-Dateiliste des gewaehlten Ordners
+                 darunter; ohne aktiven Bereich zeigt der Body den
+                 Empty-State. Pro Spalte eine Instanz. -->
+            <section class="sidebar-section sidebar-area" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="areaPanel.title">Bereich</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="area-empty" hidden data-i18n="areaPanel.empty">
+                  Kein Bereich geöffnet
+                </div>
+                <div class="area-split" hidden>
+                  <div class="area-tree"></div>
+                  <div class="area-files-header">
+                    <span class="area-files-title"></span>
+                    <button
+                      type="button"
+                      class="area-new-file-btn"
+                      data-i18n-title="areaPanel.newFileTitle"
+                      data-i18n-aria-label="areaPanel.newFileTitle"
+                      title=""
+                      aria-label="Neue Datei"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div class="area-files"></div>
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0434 (Epic 3E-0081): Kalender-Sektion. Monatsansicht mit
+                 ISO-KW-Spalte; Punkte an Tagen mit Journal-Eintrag; Klick
+                 öffnet bzw. legt über den Journal-Anlage-Pfad an. -->
+            <section class="sidebar-section sidebar-calendar" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="calendar.title">Kalender</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="calendar-empty" hidden data-i18n="journal.noArea">
+                  Journale gibt es nur in einem Bereich.
+                </div>
+                <div class="calendar-none" hidden data-i18n="journal.noJournals">
+                  In diesem Bereich sind keine Journale definiert.
+                </div>
+                <div class="calendar-main" hidden>
+                  <select
+                    class="calendar-filter"
+                    data-i18n-title="calendar.filterTitle"
+                    title=""
+                  ></select>
+                  <div class="calendar-nav">
+                    <button
+                      type="button"
+                      class="calendar-prev"
+                      data-i18n-title="calendar.prevMonth"
+                      title=""
+                    >
+                      ‹
+                    </button>
+                    <span class="calendar-month-label"></span>
+                    <button
+                      type="button"
+                      class="calendar-next"
+                      data-i18n-title="calendar.nextMonth"
+                      title=""
+                    >
+                      ›
+                    </button>
+                    <button type="button" class="calendar-today-btn" data-i18n="calendar.today">
+                      Heute
+                    </button>
+                  </div>
+                  <div class="calendar-grid"></div>
+                </div>
+              </div>
+            </section>
+            <!-- 4T-0527 (Epic 3E-0095): Erinnerungs-Sektion. Fälligkeits-Gruppen
+                 (überfällig, heute, morgen, später) mit Direkt-Aktionen und
+                 Wiederauslösung gemuteter Einträge; Inhalt rendert
+                 reminders-panel.js aus den Daten des Main-Prüfers. -->
+            <section class="sidebar-section sidebar-reminders" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="reminders.panel.title">
+                  Erinnerungen
+                </h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="reminders-status" hidden></div>
+                <div class="reminders-groups"></div>
+              </div>
+            </section>
+            <!-- 4T-0372 (Epic 3E-0069): Uhr-Sektion. Analoge Uhr (SVG),
+                 digitale Zeit, Datum und optional die Kalenderwoche; den
+                 Inhalt baut clock-panel.js aus den Anzeige-Optionen auf.
+                 4T-0636: Die Modus-Leiste steht bewusst zwischen Header und
+                 Body — der Header ist in einer Reiter-Gruppe ausgeblendet
+                 (.in-tab-group), und der Body scrollt. -->
+            <section class="sidebar-section sidebar-clock" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="clock.panel.title">Uhr</h2>
+              </header>
+              <div class="clock-modes"></div>
+              <div class="sidebar-section-body">
+                <div class="clock-body"></div>
+              </div>
+            </section>
+            <!-- 4T-0456 (Epic 3E-0084): Datei-Graph-Sektion. Umfeld der aktiven
+                 Datei mit Tiefe 1–5 und Richtungs-Filter; Klick öffnet die
+                 Nachbar-Datei. Hinweise: keine aktive Datei, Datei ohne Links,
+                 Best-Effort-Suchraum außerhalb eines Bereichs. -->
+            <section class="sidebar-section sidebar-filegraph" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="graph.panelTitle">Datei-Graph</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="filegraph-empty" hidden data-i18n="graph.panel.noFile">
+                  Keine Markdown-Datei aktiv.
+                </div>
+                <div class="filegraph-main" hidden>
+                  <div class="filegraph-controls">
+                    <label class="filegraph-control">
+                      <span data-i18n="graph.depthLabel">Tiefe</span>
+                      <select class="filegraph-depth"></select>
+                    </label>
+                    <label class="filegraph-control">
+                      <span data-i18n="graph.directionLabel">Richtung</span>
+                      <select class="filegraph-direction"></select>
+                    </label>
+                  </div>
+                  <div class="filegraph-status" hidden></div>
+                  <div class="filegraph-note" hidden data-i18n="graph.panel.noLinks">
+                    Diese Datei hat keine Link-Beziehungen.
+                  </div>
+                  <div class="filegraph-scope-hint" hidden data-i18n="graph.scopeHint">
+                    Ohne Bereich zeigt der Graph nur den Ordner-Suchraum der Datei.
+                  </div>
+                  <div class="filegraph-canvas"></div>
+                </div>
+              </div>
+            </section>
+          </aside>
+          <div
+            class="splitter sidebar-splitter sidebar-splitter-left"
+            aria-hidden="true"
+            hidden
+          ></div>
+          <section class="pane pane-source">
+            <!-- 4T-0607 (Epic 3E-0114): Format-Toolbar. Sichtbar nur im
+                 Edit-Modus (format-toolbar.js schaltet hidden); Buttons
+                 werden zur Laufzeit aus der Belegung gerendert, der
+                 Mehr-Button fängt Überlauf bei schmalen Panes ab. -->
+            <div
+              class="format-toolbar"
+              id="format-toolbar-1"
+              role="toolbar"
+              data-i18n-aria-label="formatToolbar.ariaLabel"
+              aria-label="Formatting"
+              hidden
+            >
+              <button
+                id="btn-format-toolbar-more-1"
+                class="btn-toggle btn-icon format-toolbar-more"
+                data-i18n-title="formatToolbar.overflowTitle"
+                data-i18n-aria-label="formatToolbar.overflowTitle"
+                title=""
+                aria-label="More"
+                hidden
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="5" cy="12" r="1" />
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="19" cy="12" r="1" />
+                </svg>
+              </button>
+            </div>
+            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Live-Modus). -->
+            <div class="subpage-breadcrumb" data-host="source" hidden></div>
+            <!-- 4T-0585 (Epic 3E-0108): Titelzeile (siehe Pane 0). -->
+            <div class="title-line" data-host="source" hidden>
+              <h1 class="title-line-text" spellcheck="false" tabindex="0"></h1>
+              <div class="title-line-hint" role="status" hidden></div>
+            </div>
+            <div class="pane-source-editor"></div>
+          </section>
+          <div class="splitter inner-splitter" aria-hidden="true"></div>
+          <section class="pane pane-rendered">
+            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Reading/Geteilt). -->
+            <div class="subpage-breadcrumb" data-host="rendered" hidden></div>
+            <!-- 4T-0585 (Epic 3E-0108): Titelzeile der Render-Spalte (siehe Pane 0). -->
+            <div class="title-line" data-host="rendered" hidden>
+              <h1 class="title-line-text" spellcheck="false" tabindex="0"></h1>
+              <div class="title-line-hint" role="status" hidden></div>
+            </div>
+            <article class="markdown-body"></article>
+          </section>
+          <!-- 4T-0277 (Epic 3E-0049): Container der System-Seiten
+               (Einstellungen). Sichtbar nur bei .content.view-system;
+               das Seiten-DOM montiert renderSystemPane zur Laufzeit. -->
+          <section class="pane pane-system"></section>
+          <div
+            class="splitter sidebar-splitter sidebar-splitter-right"
+            aria-hidden="true"
+            hidden
+          ></div>
+          <aside class="pane-sidebar pane-sidebar-right" hidden></aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="statusbar">
+      <div class="statusbar-left">
+        <!-- 4T-0031: Statusbar-Buttons als Icons. Acht Lucide-SVGs
+             (ISC-lizenziert), inline eingebettet ohne Library-Dependency.
+             Texte werden zu Tooltips (data-i18n-title) und Screen-Reader-
+             Labels (data-i18n-aria-label) lokalisiert in allen fuenf Sprachen. -->
+        <div class="source-toggles" role="group">
+          <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel-Toggle. Lucide-Icon 'folder'. -->
+          <button
+            id="btn-area"
+            class="btn-toggle btn-icon"
+            data-i18n-title="areaPanel.toggleTitle"
+            data-i18n-aria-label="areaPanel.toggle"
+            title=""
+            aria-label="Area"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+              />
+            </svg>
+          </button>
+          <button
+            id="btn-outline"
+            class="btn-toggle btn-icon"
+            data-i18n-title="outline.toggleTitle"
+            data-i18n-aria-label="outline.toggle"
+            title=""
+            aria-label="Outline"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 5h13" />
+              <path d="M13 12h8" />
+              <path d="M13 19h8" />
+              <path d="M3 10a2 2 0 0 0 2 2h3" />
+              <path d="M3 5v12a2 2 0 0 0 2 2h3" />
+            </svg>
+          </button>
+          <!-- 4T-0567 (Epic 3E-0104): Unterseiten-Toggle. Lucide-Icon 'network'. -->
+          <button
+            id="btn-subpages"
+            class="btn-toggle btn-icon"
+            data-i18n-title="subpages.toggleTitle"
+            data-i18n-aria-label="subpages.toggle"
+            title=""
+            aria-label="Subpages"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="16" y="16" width="6" height="6" rx="1" />
+              <rect x="2" y="16" width="6" height="6" rx="1" />
+              <rect x="9" y="2" width="6" height="6" rx="1" />
+              <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+              <path d="M12 12V8" />
+            </svg>
+          </button>
+          <!-- 4T-0567 (Epic 3E-0104): Datei-Graph-Toggle. Lucide-Icon 'waypoints'. -->
+          <button
+            id="btn-filegraph"
+            class="btn-toggle btn-icon"
+            data-i18n-title="graph.panelToggleTitle"
+            data-i18n-aria-label="graph.panelToggle"
+            title=""
+            aria-label="File graph"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="4.5" r="2.5" />
+              <path d="m10.2 6.3-3.9 3.9" />
+              <circle cx="4.5" cy="12" r="2.5" />
+              <path d="M7 12h10" />
+              <circle cx="19.5" cy="12" r="2.5" />
+              <path d="m13.8 17.7 3.9-3.9" />
+              <circle cx="12" cy="19.5" r="2.5" />
+            </svg>
+          </button>
+          <!-- 4T-0051: Properties-Sidebar-Toggle. Lucide-Icon 'tags'. -->
+          <button
+            id="btn-properties"
+            class="btn-toggle btn-icon"
+            data-i18n-title="properties.toggleTitle"
+            data-i18n-aria-label="properties.toggle"
+            title=""
+            aria-label="Properties"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 5H4.5A2.5 2.5 0 0 0 2 7.5v9A2.5 2.5 0 0 0 4.5 19H9" />
+              <path d="M15 5h4.5A2.5 2.5 0 0 1 22 7.5v9a2.5 2.5 0 0 1-2.5 2.5H15" />
+              <path d="M9 5v14" />
+              <path d="M15 5v14" />
+            </svg>
+          </button>
+          <!-- 4T-0056: Tags-Sidebar-Toggle. Lucide-Icon 'tag' (Schleifchen-Form). -->
+          <button
+            id="btn-tags"
+            class="btn-toggle btn-icon"
+            data-i18n-title="tags.toggleTitle"
+            data-i18n-aria-label="tags.toggle"
+            title=""
+            aria-label="Tags"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+              />
+              <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+            </svg>
+          </button>
+          <!-- 4T-0073 (Epic 3E-0013): Outgoing-Links-Statusbar-Toggle.
+               Lucide-Icon 'external-link' (Pfeil aus Box). -->
+          <button
+            id="btn-outgoing-links"
+            class="btn-toggle btn-icon"
+            data-i18n-title="outgoing.toggleTitle"
+            data-i18n-aria-label="outgoing.toggle"
+            title=""
+            aria-label="Outgoing links"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M15 3h6v6" />
+              <path d="M10 14 21 3" />
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            </svg>
+          </button>
+          <button
+            id="btn-backlinks"
+            class="btn-toggle btn-icon"
+            data-i18n-title="backlinks.toggleTitle"
+            data-i18n-aria-label="backlinks.toggle"
+            title=""
+            aria-label="Backlinks"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 17H7A5 5 0 0 1 7 7h2" />
+              <path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+              <line x1="8" x2="16" y1="12" y2="12" />
+            </svg>
+          </button>
+          <!-- 4T-0359 (Epic 3E-0066): Notizen-Sidebar-Toggle. Lucide-Icon 'sticky-note'. -->
+          <button
+            id="btn-notes"
+            class="btn-toggle btn-icon"
+            data-i18n-title="notes.toggleTitle"
+            data-i18n-aria-label="notes.toggle"
+            title=""
+            aria-label="Notizen"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2Z" />
+              <path d="M15 21v-4a2 2 0 0 1 2-2h4" />
+            </svg>
+          </button>
+          <!-- 4T-0434 (Epic 3E-0081): Kalender-Sidebar-Toggle. Lucide-Icon 'calendar'. -->
+          <button
+            id="btn-calendar"
+            class="btn-toggle btn-icon"
+            data-i18n-title="calendar.toggleTitle"
+            data-i18n-aria-label="calendar.toggle"
+            title=""
+            aria-label="Kalender"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 2v4" />
+              <path d="M16 2v4" />
+              <rect width="18" height="18" x="3" y="4" rx="2" />
+              <path d="M3 10h18" />
+            </svg>
+          </button>
+          <!-- 4T-0527 (Epic 3E-0095): Erinnerungs-Sidebar-Toggle. Lucide-Icon 'alarm-clock'. -->
+          <button
+            id="btn-reminders"
+            class="btn-toggle btn-icon"
+            data-i18n-title="reminders.panel.toggleTitle"
+            data-i18n-aria-label="reminders.panel.toggle"
+            title=""
+            aria-label="Erinnerungen"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="13" r="8" />
+              <path d="M12 9v4l2 2" />
+              <path d="M5 3 2 6" />
+              <path d="m22 6-3-3" />
+              <path d="M6.38 18.7 4 21" />
+              <path d="M17.64 18.67 20 21" />
+            </svg>
+          </button>
+          <!-- 4T-0372 (Epic 3E-0069): Uhr-Sidebar-Toggle. Lucide-Icon 'clock'. -->
+          <button
+            id="btn-clock"
+            class="btn-toggle btn-icon"
+            data-i18n-title="clock.panel.toggleTitle"
+            data-i18n-aria-label="clock.panel.toggle"
+            title=""
+            aria-label="Uhr"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </button>
+          <!-- 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sidebar-Toggle. Lucide-Icon 'braces'. -->
+          <button
+            id="btn-blockprops"
+            class="btn-toggle btn-icon"
+            data-i18n-title="blockProps.toggleTitle"
+            data-i18n-aria-label="blockProps.toggle"
+            title=""
+            aria-label="Block-Eigenschaften"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" />
+              <path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1" />
+            </svg>
+          </button>
+          <!-- 4T-0075 (Epic 3E-0013): Bookmarks-Statusbar-Toggle.
+               Lucide-Icon 'star'. Klick toggelt die Sidebar-Sektion;
+               wird ausgefuellt dargestellt, wenn die aktive Datei
+               als Bookmark vorkommt (via .is-marked-Klasse). -->
+          <button
+            id="btn-bookmarks"
+            class="btn-toggle btn-icon"
+            data-i18n-title="bookmarks.toggleTitle"
+            data-i18n-aria-label="bookmarks.toggle"
+            title=""
+            aria-label="Bookmarks"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              />
+            </svg>
+          </button>
+        </div>
+        <!-- 4T-0520 (Epic 3E-0094): eigenes Segment der nutzerdefinierten
+             Kommando-Buttons (Erweiterung Kommando-Platzierung). Inhalt wird
+             zur Laufzeit aus der Konfiguration gerendert
+             (command-placement.js); bewusst als eigener Container neben
+             .source-toggles, damit die Reihenfolge-Logik der Panel-Toggles
+             unberührt bleibt. Der Mehr-Button fängt Überlauf bei schmalen
+             Fenstern ab (Menü mit den eingelagerten Buttons). -->
+        <div class="command-buttons" id="command-buttons" role="group" aria-label="Commands">
+          <button
+            id="btn-command-overflow"
+            class="btn-toggle btn-icon command-overflow-button"
+            data-i18n-title="commandPlacement.overflowTitle"
+            data-i18n-aria-label="commandPlacement.overflowTitle"
+            title=""
+            aria-label="More commands"
+            hidden
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="5" cy="12" r="1" />
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="19" cy="12" r="1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- 4T-0576 (Epic 3E-0106): mittlere Statusbar-Zone. Die drei
+           Editor-Ansicht-Schalter und die vier Ansichts-Schalter stehen hier
+           als gemeinsame Gruppe und sitzen dank des Drei-Spalten-Rasters in
+           der Fenster-Mitte, unabhaengig von der Breite der Seiten-Zonen. -->
+      <div class="statusbar-center">
+        <div class="editor-toggles" role="group">
+          <button
+            id="btn-fold-gutter"
+            class="btn-toggle btn-icon"
+            data-i18n-title="source.foldGutterTitle"
+            data-i18n-aria-label="source.foldGutter"
+            title=""
+            aria-label="Folding"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m7 20 5-5 5 5" />
+              <path d="m7 4 5 5 5-5" />
+            </svg>
+          </button>
+          <button
+            id="btn-numbers"
+            class="btn-toggle btn-icon"
+            data-i18n-title="source.numbersTitle"
+            data-i18n-aria-label="source.numbers"
+            title=""
+            aria-label="Numbers"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M11 5h10" />
+              <path d="M11 12h10" />
+              <path d="M11 19h10" />
+              <path d="M4 4h1v5" />
+              <path d="M4 9h2" />
+              <path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02" />
+            </svg>
+          </button>
+          <button
+            id="btn-wrap"
+            class="btn-toggle btn-icon"
+            data-i18n-title="source.wrapTitle"
+            data-i18n-aria-label="source.wrap"
+            title=""
+            aria-label="Wrap"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m16 16-3 3 3 3" />
+              <path d="M3 12h14.5a1 1 0 0 1 0 7H13" />
+              <path d="M3 19h6" />
+              <path d="M3 5h18" />
+            </svg>
+          </button>
+        </div>
+        <div class="view-toggle" role="group" aria-label="Ansicht">
+          <!-- 4T-0085 (Epic 3E-0014): Live-Modus-Button. Lucide wand-2-Icon
+               symbolisiert "Markdown wird magisch gerendert beim Tippen".
+               Links vom Quellcode-Button platziert, damit das Render-
+               Spektrum von links nach rechts geordnet bleibt: Live (Inline-
+               Render im Source) > Quellcode (rohe Quelle) > Split (geteilt)
+               > Gerendert (reine Vorschau). -->
+          <button
+            data-view="live"
+            class="view-btn btn-icon"
+            data-i18n-title="view.live"
+            data-i18n-aria-label="view.live"
+            title=""
+            aria-label="Live"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M15 4V2" />
+              <path d="M15 16v-2" />
+              <path d="M8 9h2" />
+              <path d="M20 9h2" />
+              <path d="M17.8 11.8 19 13" />
+              <path d="M15 9h.01" />
+              <path d="M17.8 6.2 19 5" />
+              <path d="m3 21 9-9" />
+              <path d="M12.2 6.2 11 5" />
+            </svg>
+          </button>
+          <button
+            data-view="source"
+            class="view-btn btn-icon"
+            data-i18n-title="view.source"
+            data-i18n-aria-label="view.source"
+            title=""
+            aria-label="Source"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m16 18 6-6-6-6" />
+              <path d="m8 6-6 6 6 6" />
+            </svg>
+          </button>
+          <button
+            data-view="split"
+            class="view-btn btn-icon"
+            data-i18n-title="view.split"
+            data-i18n-aria-label="view.split"
+            title=""
+            aria-label="Split"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="2" />
+              <path d="M12 3v18" />
+            </svg>
+          </button>
+          <button
+            data-view="rendered"
+            class="view-btn btn-icon active"
+            data-i18n-title="view.rendered"
+            data-i18n-aria-label="view.rendered"
+            title=""
+            aria-label="Rendered"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+              />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="statusbar-right">
+        <!-- 4T-0072: Word Count in Statusbar. Default zeigt die aktive Datei
+             (Woerter, Zeichen, Lesezeit). Bei Editor-Selektion wechselt die
+             Anzeige auf die Auswahl. Klick oeffnet den Detail-Dialog. -->
+        <button
+          id="statusbar-wordcount"
+          class="statusbar-wordcount"
+          type="button"
+          data-i18n-title="statusbar.wordCount.title"
+          title=""
+          aria-label="Word count"
+          hidden
+        >
+          <span class="statusbar-wordcount-label"></span>
+        </button>
+        <span id="statusbar-hint" class="statusbar-hint" aria-live="polite"></span>
+        <button id="zoom-indicator" class="zoom-indicator" type="button" hidden></button>
+        <button
+          id="btn-edit"
+          class="btn-toggle btn-edit"
+          data-i18n-title="statusbar.edit"
+          title=""
+          aria-label="Edit"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        </button>
+        <!-- 4T-0070: Scroll-Synchronisation in der geteilten Ansicht. Pro
+             aktivem Tab; tooltip wird zur Laufzeit auf on/off umgestellt. -->
+        <button
+          id="btn-scroll-sync"
+          class="btn-toggle btn-scroll-sync"
+          data-i18n-title="statusbar.scrollSync.off"
+          title=""
+          aria-label="Scroll-Sync"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m21 16-4 4-4-4" />
+            <path d="M17 20V4" />
+            <path d="m3 8 4-4 4 4" />
+            <path d="M7 4v16" />
+          </svg>
+        </button>
+        <!-- 4T-0332 (Epic 3E-0060): Dokument-Historie. Drei Zustände
+             (aktiv/pausiert/inaktiv, Klassen active/paused), Tooltip nennt
+             die Herkunft der wirksamen Einstellung; Klick öffnet das Menü
+             für den Datei-Schalter (YAML-Eigenschaft history). -->
+        <button id="btn-history" class="btn-toggle btn-history" title="" aria-label="History">
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M12 7v5l4 2" />
+          </svg>
+        </button>
+        <!-- 4T-0030: Theme-Toggle. Icon und Tooltip werden zur Laufzeit
+             aus state.themePref gesetzt (Sonne/Mond/Monitor). Klick
+             schaltet zyklisch Hell -> Dunkel -> System -> Hell. -->
+        <button
+          id="btn-theme"
+          class="btn-toggle btn-theme"
+          data-i18n-title="statusbar.theme.tooltipSystem"
+          title=""
+          aria-label="Theme"
+        ></button>
+        <select id="lang-select" data-i18n-title="settings.language" title="">
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="it">Italiano</option>
+        </select>
+      </div>
+    </footer>
+
+    <div id="empty-state" class="empty-state">
+      <div class="empty-state-inner">
+        <h1 data-i18n="empty.title">EM4me</h1>
+        <!-- 4T-0643 (Epic 3E-0126): Marken-Claim, die Auflösung des Namens.
+             Bleibt in allen Sprachen englisch, er ist Bestandteil der Marke. -->
+        <p class="app-claim" data-i18n="app.claim">extended memory for me</p>
+        <p data-i18n="empty.hint">Datei öffnen oder per Drag &amp; Drop hier ablegen.</p>
+        <button id="btn-open-empty" class="btn btn-primary" data-i18n="toolbar.open">Öffnen</button>
+      </div>
+    </div>
+
+    <div id="drop-overlay" class="drop-overlay" hidden>
+      <div class="drop-overlay-inner" data-i18n="drop.hint">Markdown-Datei hier ablegen</div>
+    </div>
+
+    <div id="context-menu" class="context-menu" hidden></div>
+
+    <div id="search-bar" class="search-bar" hidden>
+      <div class="search-row search-row-find">
+        <div
+          class="search-scope"
+          id="search-scope"
+          data-i18n-title="search.scopeTitle"
+          title=""
+        ></div>
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          spellcheck="false"
+          autocomplete="off"
+          data-i18n-placeholder="search.placeholder"
+        />
+        <span id="search-count" class="search-count"></span>
+        <button
+          id="btn-search-case"
+          class="btn-toggle search-toggle"
+          data-i18n-title="search.caseSensitiveTitle"
+          title=""
+        >
+          Aa
+        </button>
+        <button
+          id="btn-search-regex"
+          class="btn-toggle search-toggle"
+          data-i18n-title="search.regexTitle"
+          title=""
+        >
+          .*
+        </button>
+        <button
+          id="btn-search-help"
+          class="btn search-help"
+          data-i18n-title="search.helpTitle"
+          title=""
+          aria-label="Regex help"
+        >
+          ?
+        </button>
+        <button
+          id="btn-search-prev"
+          class="btn search-nav"
+          data-i18n-title="search.prevTitle"
+          title=""
+          aria-label="Previous"
+        >
+          &#x2191;
+        </button>
+        <button
+          id="btn-search-next"
+          class="btn search-nav"
+          data-i18n-title="search.nextTitle"
+          title=""
+          aria-label="Next"
+        >
+          &#x2193;
+        </button>
+        <button
+          id="btn-search-close"
+          class="btn search-close"
+          data-i18n-title="search.closeTitle"
+          title=""
+          aria-label="Close"
+        >
+          &#x2715;
+        </button>
+      </div>
+      <div class="search-row search-row-replace">
+        <input
+          type="text"
+          id="search-replace"
+          class="search-input"
+          spellcheck="false"
+          autocomplete="off"
+          data-i18n-placeholder="search.replacePlaceholder"
+        />
+        <button
+          id="btn-search-replace"
+          class="btn search-nav"
+          data-i18n-title="search.btnReplaceTitle"
+          title=""
+          aria-label="Replace"
+        >
+          &#x21AA;
+        </button>
+        <button
+          id="btn-search-replace-all"
+          class="btn search-nav"
+          data-i18n-title="search.btnReplaceAllTitle"
+          title=""
+          aria-label="Replace All"
+        >
+          &#x21AA;&#x21AA;
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="regex-help-popover"
+      class="regex-help-popover"
+      hidden
+      role="dialog"
+      aria-labelledby="regex-help-title"
+    >
+      <h3 id="regex-help-title" class="regex-help-title" data-i18n="search.regexHelpTitle">
+        Regulärer Ausdruck
+      </h3>
+      <dl class="regex-help-list" id="regex-help-list"></dl>
+    </div>
+
+    <!-- 4T-0078 (Epic 3E-0013): Bestaetigungs-Dialog beim Entfernen eines
+         nicht-leeren Bookmark-Ordners. Zeigt Anzahl enthaltener Bookmarks
+         und Unterordner; Aktion ist destruktiv. -->
+    <div id="bookmark-confirm-remove-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bookmark-confirm-remove-title"
+      >
+        <h2 id="bookmark-confirm-remove-title" data-i18n="bookmarks.remove.confirmFolder.title">
+          Ordner entfernen?
+        </h2>
+        <p id="bookmark-confirm-remove-message"></p>
+        <div class="bookmark-modal-buttons">
+          <button
+            id="btn-bookmark-confirm-remove-cancel"
+            class="btn"
+            data-i18n="bookmarks.remove.confirmFolder.cancel"
+          >
+            Abbrechen
+          </button>
+          <button
+            id="btn-bookmark-confirm-remove-ok"
+            class="btn btn-danger"
+            data-i18n="bookmarks.remove.confirmFolder.ok"
+          >
+            Entfernen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0078 (Epic 3E-0013): Modal-Picker fuer "In Ordner verschieben...".
+         Zeigt einen Tree aller Folder-Knoten plus virtuellem Root; der zu
+         verschiebende Knoten und alle seine Nachfahren sind als Ziel gesperrt
+         (Zyklus-Schutz). -->
+    <div id="bookmark-move-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bookmark-move-title"
+      >
+        <h2 id="bookmark-move-title" data-i18n="bookmarks.moveTo.title">In Ordner verschieben</h2>
+        <p id="bookmark-move-source" class="bookmark-move-source"></p>
+        <div id="bookmark-move-tree" class="bookmark-move-tree"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-bookmark-move-cancel" class="btn" data-i18n="bookmarks.moveTo.cancel">
+            Abbrechen
+          </button>
+          <button
+            id="btn-bookmark-move-confirm"
+            class="btn btn-primary"
+            data-i18n="bookmarks.moveTo.confirm"
+          >
+            Verschieben
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0072: Detail-Dialog mit erweiterten Statistiken (Woerter, Zeichen
+         mit/ohne Leerzeichen, Lesezeit, Absaetze, Saetze, Headings nach Ebene). -->
+    <div id="wordcount-modal" class="wordcount-modal" hidden>
+      <div class="wordcount-modal-backdrop"></div>
+      <div
+        class="wordcount-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="wordcount-title"
+      >
+        <h2 id="wordcount-title" data-i18n="wordCount.dialog.title">Wort-Statistik</h2>
+        <table class="wordcount-table">
+          <tbody id="wordcount-table-body"></tbody>
+        </table>
+        <button id="btn-wordcount-close" class="btn btn-primary" data-i18n="about.ok">OK</button>
+      </div>
+    </div>
+
+    <div id="about-modal" class="about-modal" hidden>
+      <div class="about-modal-backdrop"></div>
+      <div
+        class="about-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="about-title"
+      >
+        <!-- 4T-0649 (Epic 3E-0126): Bildmarke als eingebettetes SVG statt als
+             Datei-Verweis. Ein Pfad muesste im gepackten Zustand aus dem
+             asar-Archiv aufgeloest werden; eingebettet ist die Darstellung
+             davon unabhaengig und skaliert verlustfrei mit der Anzeige.
+             Dekorativ (der Produktname steht direkt darunter), daher
+             aria-hidden. Die Verlaufs-Kennung traegt bewusst ein eigenes
+             Praefix, damit sie nicht mit fremden Dokument-Kennungen
+             kollidiert. Quelle: src/assets/em4me-logo.svg. -->
+        <svg
+          class="about-logo"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 600 600"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <defs>
+            <linearGradient
+              id="em4me-gold"
+              x1="0"
+              y1="16"
+              x2="0"
+              y2="583"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#FFD964" />
+              <stop offset="25%" stop-color="#FFCE38" />
+              <stop offset="50%" stop-color="#FFC30C" />
+              <stop offset="75%" stop-color="#D8A404" />
+              <stop offset="100%" stop-color="#AD8300" />
+            </linearGradient>
+          </defs>
+          <path
+            fill="#7F6000"
+            d="M101 6H499C551 6 593 48 593 100V499C593 551 551 593 499 593H101C49 593 7 551 7 499V100C7 48 49 6 101 6Z"
+          />
+          <path
+            fill="url(#em4me-gold)"
+            d="M101 16H499C545 16 583 54 583 100V499C583 545 545 583 499 583H101C55 583 17 545 17 499V100C17 54 55 16 101 16Z"
+          />
+          <g fill="#7F6000">
+            <path
+              d="M428 1282V746H726Q842 746 881 781Q933 827 939 943H976V471H939Q925 570 911 598Q893 633 852.0 653.0Q811 673 726 673H428V226Q428 136 436.0 116.5Q444 97 464.0 85.5Q484 74 540 74H770Q885 74 937.0 90.0Q989 106 1037 153Q1099 215 1164 340H1204L1087 0H42V37H90Q138 37 181 60Q213 76 224.5 108.0Q236 140 236 239V1120Q236 1249 210 1279Q174 1319 90 1319H42V1356H1087L1102 1059H1063Q1042 1166 1016.5 1206.0Q991 1246 941 1267Q901 1282 800 1282Z"
+              transform="translate(65 216) scale(.107421875 -.107421875)"
+            />
+            <path
+              d="M838 0 314 1141V235Q314 110 341 79Q378 37 458 37H506V0H34V37H82Q168 37 204 89Q226 121 226 235V1121Q226 1211 206 1251Q192 1280 154.5 1299.5Q117 1319 34 1319V1356H418L910 295L1394 1356H1778V1319H1731Q1644 1319 1608 1267Q1586 1235 1586 1121V235Q1586 110 1614 79Q1651 37 1731 37H1778V0H1202V37H1250Q1337 37 1372 89Q1394 121 1394 235V1141L871 0Z"
+              transform="translate(363 216) scale(.107421875 -.107421875)"
+            />
+            <path
+              d="M1079 526H809V150Q809 69 826.5 41.5Q844 14 909 14H936V0H512V14H539Q594 14 614.5 25.5Q635 37 643.0 66.0Q651 95 651 147V526H25L745 1499H811V610H983Q1028 610 1043.5 617.0Q1059 624 1061 655H1079ZM133 608H651V1298L647 1303Z"
+              transform="translate(88 533) scale(.30859375 -.30859375)"
+            />
+            <path
+              d="M336 748Q436 848 454 863Q499 901 551.0 922.0Q603 943 654 943Q740 943 802.0 893.0Q864 843 885 748Q988 868 1059.0 905.5Q1130 943 1205 943Q1278 943 1334.5 905.5Q1391 868 1424 783Q1446 725 1446 601V207Q1446 121 1459 89Q1469 67 1496.0 51.5Q1523 36 1584 36V0H1132V36H1151Q1210 36 1243 59Q1266 75 1276 110Q1280 127 1280 207V601Q1280 713 1253 759Q1214 823 1128 823Q1075 823 1021.5 796.5Q968 770 892 698L890 687L892 644V207Q892 113 902.5 90.0Q913 67 942.0 51.5Q971 36 1041 36V0H578V36Q654 36 682.5 54.0Q711 72 722 108Q727 125 727 207V601Q727 713 694 762Q650 826 571 826Q517 826 464 797Q381 753 336 698V207Q336 117 348.5 90.0Q361 63 385.5 49.5Q410 36 485 36V0H32V36Q95 36 120.0 49.5Q145 63 158.0 92.5Q171 122 171 207V557Q171 708 162 752Q155 785 140.0 797.5Q125 810 99 810Q71 810 32 795L17 831L293 943H336Z"
+              transform="translate(66 534) scale(.107421875 -.107421875)"
+            />
+            <path
+              d="M218 571Q217 367 317 251Q417 135 552 135Q642 135 708.5 184.5Q775 234 820 354L851 334Q830 197 729.0 84.5Q628 -28 476 -28Q311 -28 193.5 100.5Q76 229 76 446Q76 681 196.5 812.5Q317 944 499 944Q653 944 752.0 842.5Q851 741 851 571ZM218 629H642Q637 717 621 753Q596 809 546.5 841.0Q497 873 443 873Q360 873 294.5 808.5Q229 744 218 629Z"
+              transform="translate(402 532) scale(.109375 -.109375)"
+            />
+          </g>
+        </svg>
+        <h2 id="about-title">EM4me</h2>
+        <p class="app-claim" data-i18n="app.claim">extended memory for me</p>
+        <p class="about-version">
+          <span data-i18n="about.versionLabel">Version</span>
+          <span id="about-version">&mdash;</span>
+        </p>
+        <p class="about-credits" data-i18n="about.lucide">
+          Statusbar-Icons: Lucide (ISC) &mdash; lucide.dev
+        </p>
+        <button id="btn-about-close" class="btn btn-primary" data-i18n="about.ok">OK</button>
+      </div>
+    </div>
+
+    <!-- 4T-0279 (Epic 3E-0049): Der fruehere modale Einstellungs-Dialog
+         (#settings-modal) ist ersatzlos abgeloest; die Einstellungen leben
+         als System-Seite im Tab-System (settings-page.js baut das
+         Seiten-DOM zur Laufzeit in .pane-system). -->
+
+    <!-- 4T-0050 (Epic 3E-0010): Alias-Disambiguation-Dialog. Wird gezeigt,
+         wenn ein Wiki-Link auf einen Alias zeigt, den mehrere Dateien im
+         Suchraum fuehren. Inhalt (Titel-Alias und Kandidaten-Liste) wird
+         zur Laufzeit pro Aufruf befuellt. -->
+    <div id="alias-modal" class="alias-modal" hidden>
+      <div class="alias-modal-backdrop"></div>
+      <div
+        class="alias-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="alias-title"
+      >
+        <h2 id="alias-title" data-i18n="alias.dialogTitle">Welche Datei meinst du?</h2>
+        <p id="alias-description" class="alias-description"></p>
+        <ul id="alias-candidates" class="alias-candidates"></ul>
+        <div class="alias-buttons">
+          <button id="btn-alias-cancel" class="btn" data-i18n="alias.cancel">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0338 (Epic 3E-0061): generischer Namens-Eingabe-Dialog
+         (Unterseite anlegen, Datei umbenennen). Titel, Beschreibung,
+         Vorbelegung und Validierung werden pro Aufruf gesetzt
+         (showNameInputDialog in dialogs.js). -->
+    <div id="name-input-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="name-input-title"
+      >
+        <h2 id="name-input-title"></h2>
+        <p id="name-input-description"></p>
+        <input id="name-input-field" class="name-input-field" type="text" />
+        <p id="name-input-error" class="name-input-error" hidden></p>
+        <!-- 4T-0346 (Epic 3E-0062): optionale Checkboxen (Link-Update, Vorschau);
+             leer/versteckt bei Dialogen ohne checkboxes-Option. -->
+        <div id="name-input-checkboxes" class="name-input-checkboxes" hidden></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-name-input-cancel" class="btn"></button>
+          <button id="btn-name-input-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog — Formular-Gegenpol
+         zur Marker-Syntax (Beschreibung, Status, Priorität, Wiederholung,
+         Termine über den Datums-Picker). Befüllung und Verhalten in
+         task-dialog.js; Texte via i18n beim Öffnen. -->
+    <div id="task-dialog-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content task-dialog-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-dialog-title"
+      >
+        <h2 id="task-dialog-title"></h2>
+        <div class="task-dialog-grid">
+          <label id="task-dialog-description-label" for="task-dialog-description"></label>
+          <textarea
+            id="task-dialog-description"
+            class="settings-input"
+            rows="2"
+            spellcheck="false"
+          ></textarea>
+          <label id="task-dialog-status-label" for="task-dialog-status"></label>
+          <select id="task-dialog-status" class="settings-input"></select>
+          <label id="task-dialog-priority-label" for="task-dialog-priority"></label>
+          <select id="task-dialog-priority" class="settings-input"></select>
+          <label id="task-dialog-recurrence-label" for="task-dialog-recurrence"></label>
+          <input
+            id="task-dialog-recurrence"
+            class="settings-input"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <p id="task-dialog-recurrence-hint" class="name-input-error" hidden></p>
+        <div id="task-dialog-dates" class="task-dialog-dates"></div>
+        <p id="task-dialog-auto-dates" class="task-dialog-auto-dates" hidden></p>
+        <!-- 4T-0508 (Epic 3E-0096): Abhängigkeiten — ID, Vorgänger und
+             Nachfolger mit Task-Suche über den Bereich (task-dialog.js). -->
+        <div id="task-dialog-deps" class="task-dialog-deps"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-task-dialog-cancel" class="btn"></button>
+          <button id="btn-task-dialog-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0526 (Epic 3E-0095): Erinnerungs-Dialog — Einzel-, Sammel- und
+         Nachhol-Fall in einem Gerüst; Einträge mit Erledigt/Später-Aktionen
+         rendert reminders.js, Texte via i18n beim Öffnen. Escape, Backdrop
+         und Schließen muten die verbliebenen Einträge bis zum Neustart. -->
+    <div id="reminders-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content reminders-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reminders-modal-title"
+      >
+        <h2 id="reminders-modal-title"></h2>
+        <ul id="reminders-modal-list" class="reminders-list"></ul>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-reminders-close" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0461 (Epic 3E-0085): Tab-Gruppen-Dialog — Name plus feste
+         Acht-Farben-Auswahl (Swatches werden pro Aufruf aus der Palette
+         aufgebaut; showTabGroupDialog in dialogs.js). -->
+    <div id="tab-group-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tab-group-title"
+      >
+        <h2 id="tab-group-title" data-i18n="tabGroup.dialog.title">
+          Gruppe umbenennen und Farbe wählen
+        </h2>
+        <input id="tab-group-name" class="name-input-field" type="text" />
+        <div id="tab-group-colors" class="tab-group-colors"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-tab-group-cancel" class="btn"></button>
+          <button id="btn-tab-group-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0637 (Epic 3E-0069): Wecker anlegen und bearbeiten. Uhrzeit über
+         den vorhandenen Picker (Ziffern-Segmente, kein Freitext), dazu
+         Bezeichnung, Wiederhol-Muster und die Wochentage; die Wochentags-
+         Zeile erscheint nur beim Muster „an Wochentagen"
+         (showAlarmDialog in clock-alarms-panel.js). -->
+    <div id="alarm-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="alarm-modal-title"
+      >
+        <h2 id="alarm-modal-title" data-i18n="clock.alarm.dialog.titleNew">Wecker stellen</h2>
+        <div class="alarm-field">
+          <span class="alarm-field-label" data-i18n="clock.alarm.field.time">Uhrzeit</span>
+          <button id="alarm-time" type="button" class="btn alarm-time-btn">07:00</button>
+        </div>
+        <div class="alarm-field">
+          <span class="alarm-field-label" data-i18n="clock.alarm.field.label">Bezeichnung</span>
+          <input id="alarm-label" class="name-input-field" type="text" maxlength="80" />
+        </div>
+        <div class="alarm-field">
+          <span class="alarm-field-label" data-i18n="clock.alarm.field.repeat">Wiederholung</span>
+          <select id="alarm-repeat" class="alarm-repeat-select"></select>
+        </div>
+        <div id="alarm-days" class="alarm-days" hidden></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-alarm-cancel" class="btn"></button>
+          <button id="btn-alarm-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0637 (Epic 3E-0069): Meldung eines fälligen Weckers. Bewusst
+         schlank (Uhrzeit, Bezeichnung, zwei Aktionen) und ohne Datei-Bezug —
+         anders als der Erinnerungs-Dialog, der an einem Marker in einer
+         Datei hängt. -->
+    <div id="alarm-due-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="alarm-due-title"
+      >
+        <h2 id="alarm-due-title" data-i18n="clock.alarm.due.title">Wecker</h2>
+        <div id="alarm-due-list" class="alarm-due-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-alarm-snooze" class="btn"></button>
+          <button id="btn-alarm-confirm" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0638 (Epic 3E-0069): Timer anlegen und bearbeiten. Die Dauer
+         kommt über eine eigene Segment-Steuerung (Stunden, Minuten,
+         Sekunden) — der Uhrzeit-Picker bildet nur HH:mm mit Uhrzeit-Semantik
+         ab und taugt für eine Dauer nicht (showTimerDialog in
+         clock-timers-panel.js). -->
+    <div id="timer-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="timer-modal-title"
+      >
+        <h2 id="timer-modal-title" data-i18n="clock.timer.dialog.titleNew">Timer</h2>
+        <div class="alarm-field">
+          <span class="alarm-field-label" data-i18n="clock.timer.field.duration">Dauer</span>
+          <div id="timer-duration" class="timer-duration"></div>
+        </div>
+        <div class="alarm-field">
+          <span class="alarm-field-label" data-i18n="clock.alarm.field.label">Bezeichnung</span>
+          <input id="timer-label" class="name-input-field" type="text" maxlength="80" />
+        </div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-timer-cancel" class="btn"></button>
+          <button id="btn-timer-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0638 (Epic 3E-0069): Meldung abgelaufener Timer. Aktionen sind
+         Bestätigen und erneut starten; Schlummern wie beim Wecker ergibt
+         bei einer abgelaufenen Dauer keinen Sinn. -->
+    <div id="timer-due-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="timer-due-title"
+      >
+        <h2 id="timer-due-title" data-i18n="clock.timer.due.title">Timer abgelaufen</h2>
+        <div id="timer-due-list" class="alarm-due-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-timer-restart" class="btn"></button>
+          <button id="btn-timer-confirm" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Dialog — Titel pro
+         Anwendungsfall (speichern als / neu / umbenennen), Name plus feste
+         Acht-Farben-Auswahl (showWorkspaceDialog in workspaces.js). -->
+    <div id="workspace-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workspace-modal-title"
+      >
+        <h2 id="workspace-modal-title"></h2>
+        <input id="workspace-name" class="name-input-field" type="text" />
+        <div id="workspace-colors" class="tab-group-colors"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-workspace-cancel" class="btn"></button>
+          <button id="btn-workspace-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0538 (Epic 3E-0098): Verwaltungs-Dialog der Arbeitsbereiche —
+         Liste mit Farbpunkt/Offen-Status und den Aktionen Oeffnen,
+         Umbenennen und Farbe, Loeschen (showWorkspaceManager in
+         workspaces.js). -->
+    <div id="workspace-manager-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content workspace-manager-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workspace-manager-title"
+      >
+        <h2 id="workspace-manager-title" data-i18n="workspace.manager.title">
+          Arbeitsbereiche verwalten
+        </h2>
+        <div id="workspace-manager-list" class="workspace-manager-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-workspace-manager-close" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0426 (Epic 3E-0080): Vorlagen-Auswahl-Popup — filterbare Liste
+         mit Unterordnern als Gruppen und Pfeiltasten-Navigation. Inhalt wird
+         pro Aufruf befuellt (showTemplatePickerDialog in templates.js). -->
+    <!-- 4T-0624 (Epic 3E-0119): Auswahl-Popup der Sidebar-Varianten
+         (Markup-Muster template-picker-modal). -->
+    <div id="sidebar-variant-picker-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sidebar-variant-picker-title"
+      >
+        <h2 id="sidebar-variant-picker-title" data-i18n="sidebarVariants.picker.title">
+          Sidebar-Variante anwenden
+        </h2>
+        <input id="sidebar-variant-picker-filter" class="name-input-field" type="text" />
+        <ul id="sidebar-variant-picker-list" class="template-picker-list"></ul>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-sidebar-variant-picker-cancel" class="btn" data-i18n="dialog.cancel">
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="template-picker-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="template-picker-title"
+      >
+        <h2 id="template-picker-title" data-i18n="templates.picker.title">Vorlage auswählen</h2>
+        <input id="template-picker-filter" class="name-input-field" type="text" />
+        <ul id="template-picker-list" class="template-picker-list"></ul>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-template-picker-cancel" class="btn" data-i18n="dialog.cancel">
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0426 (Epic 3E-0080): Auswahl-Dialog der {{select:…}}-Platzhalter
+         (Frage als Titel, Optionen als Liste). -->
+    <div id="template-select-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="template-select-title"
+      >
+        <h2 id="template-select-title"></h2>
+        <ul id="template-select-list" class="template-picker-list"></ul>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-template-select-cancel" class="btn" data-i18n="dialog.cancel">
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0480 (Epic 3E-0089): Kommando-Palette — filterbare Liste aller
+         Registry-Kommandos mit Kürzel-Anzeige und Pfeiltasten-Navigation.
+         Inhalt wird pro Aufruf befüllt (showCommandPalette in
+         command-palette.js). -->
+    <div id="command-palette-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="command-palette-title"
+      >
+        <h2 id="command-palette-title" data-i18n="commandPalette.title">Kommando-Palette</h2>
+        <input id="command-palette-filter" class="name-input-field" type="text" />
+        <ul id="command-palette-list" class="template-picker-list command-palette-list"></ul>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-command-palette-cancel" class="btn" data-i18n="dialog.cancel">
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0520 (Epic 3E-0094): Anlage- und Bearbeitungs-Dialog der
+         Kommando-Platzierung — Drei-Schritt-Flow als ein Dialog (Kommando
+         per Filter-Suche wählen, Icon aus dem kuratierten Raster, optionaler
+         Anzeigename). Inhalt wird pro Aufruf befüllt
+         (command-placement-settings.js); die Schritt-Container werden je
+         nach Verwendung ein- oder ausgeblendet (Makro-Kopf braucht z.B.
+         kein Kommando). -->
+    <div id="command-placement-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="command-placement-modal-title"
+      >
+        <h2 id="command-placement-modal-title"></h2>
+        <div id="command-placement-step-command">
+          <input id="command-placement-filter" class="name-input-field" type="text" />
+          <ul
+            id="command-placement-command-list"
+            class="template-picker-list command-palette-list"
+          ></ul>
+        </div>
+        <div id="command-placement-step-icon">
+          <p class="command-placement-step-label" data-i18n="commandPlacement.dialog.iconLabel">
+            Icon
+          </p>
+          <div id="command-placement-icon-grid" class="command-placement-icon-grid"></div>
+        </div>
+        <div id="command-placement-step-name">
+          <!-- Label wird pro Aufruf gesetzt (Anzeigename optional bzw.
+               Makro-Name als Pflichtfeld) — bewusst ohne data-i18n. -->
+          <p id="command-placement-name-label" class="command-placement-step-label"></p>
+          <input id="command-placement-name" class="name-input-field" type="text" />
+        </div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-command-placement-cancel" class="btn" data-i18n="dialog.cancel">
+            Abbrechen
+          </button>
+          <button id="btn-command-placement-ok" class="btn btn-primary" data-i18n="dialog.ok">
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0346 (Epic 3E-0062): Vorschau vor dem Link-Update. -->
+    <div id="link-preview-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content link-update-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="link-preview-title"
+      >
+        <h2 id="link-preview-title"></h2>
+        <p id="link-preview-summary"></p>
+        <div id="link-preview-list" class="link-update-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-link-preview-cancel" class="btn"></button>
+          <button id="btn-link-preview-continue" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-0346 (Epic 3E-0062): Ergebnis-Bericht nach dem Link-Update. -->
+    <div id="link-report-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content link-update-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="link-report-title"
+      >
+        <h2 id="link-report-title"></h2>
+        <div id="link-report-body" class="link-update-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-link-report-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="renderer.bundle.js"></script>
+  </body>
+</html>

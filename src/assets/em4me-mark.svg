@@ -1,0 +1,53 @@
+<!--
+  EM4me-Kompaktmarke fuer die kleinen Icon-Stufen (16/24/32 px).
+  4T-0649 (Epic 3E-0126): Das vollstaendige Logo (em4me-logo.svg) traegt vier
+  Buchstaben und eine Ziffer; bei 16 px zerfallen die Buchstaben zu Grau. Diese
+  Fassung fuehrt allein die Vier und reduziert E, M, m und e auf Punkte an ihren
+  angestammten Ecken-Positionen. Drei Anpassungen gegenueber dem Original halten
+  die Ziffer auch bei 16 px lesbar:
+    1. Die Striche sind verstaerkt (Kontur in Fuellfarbe auf demselben Pfad),
+       damit der duenne Querbalken der Antiqua-Ziffer nicht wegbricht.
+    2. Ziffer, Punkte und Rahmen stehen dunkler (#5A4200 statt #7F6000).
+    3. Der Gold-Verlauf ist abgeflacht; im Original wird er unten so dunkel,
+       dass der Kontrast zur Ziffer genau dort verloren geht.
+  Der Ziffern-Pfad stammt unveraendert aus dem Original-Logo; nur Groesse,
+  Lage und Strichstaerke sind angepasst. Vom Paket ausgeschlossen: reine
+  Quelldatei fuer `npm run build:icon`.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="600"
+  height="600"
+  viewBox="0 0 600 600"
+  role="img"
+  aria-labelledby="em4me-mark-title"
+>
+  <title id="em4me-mark-title">EM4me</title>
+  <defs>
+    <linearGradient id="em4me-mark-gold" x1="0" y1="16" x2="0" y2="583" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD964" />
+      <stop offset="50%" stop-color="#FFC93C" />
+      <stop offset="100%" stop-color="#E8B300" />
+    </linearGradient>
+  </defs>
+  <path
+    fill="#5A4200"
+    d="M101 6H499C551 6 593 48 593 100V499C593 551 551 593 499 593H101C49 593 7 551 7 499V100C7 48 49 6 101 6Z"
+  />
+  <path
+    fill="url(#em4me-mark-gold)"
+    d="M101 16H499C545 16 583 54 583 100V499C583 545 545 583 499 583H101C55 583 17 545 17 499V100C17 54 55 16 101 16Z"
+  />
+  <circle cx="108" cy="108" r="32" fill="#5A4200" />
+  <circle cx="492" cy="108" r="32" fill="#5A4200" />
+  <circle cx="108" cy="492" r="32" fill="#5A4200" />
+  <circle cx="492" cy="492" r="32" fill="#5A4200" />
+  <path
+    fill="#5A4200"
+    stroke="#5A4200"
+    stroke-width="131.6"
+    stroke-linejoin="round"
+    d="M1079 526H809V150Q809 69 826.5 41.5Q844 14 909 14H936V0H512V14H539Q594 14 614.5 25.5Q635 37 643.0 66.0Q651 95 651 147V526H25L745 1499H811V610H983Q1028 610 1043.5 617.0Q1059 624 1061 655H1079ZM133 608H651V1298L647 1303Z"
+    transform="translate(149.02 505.00) scale(0.273516 -0.273516)"
+  />
+</svg>

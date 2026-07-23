@@ -1,0 +1,56 @@
+<!--
+  EM4me-Logo, vollstaendige Bildmarke. Eigengestaltung des Product Owners.
+  4T-0649 (Epic 3E-0126): Quelle fuer die grossen Icon-Stufen (ab 48 px),
+  fuer den Ueber-Dialog und fuer die Handbuch-Ueberblicksseite. Die kleinen
+  Icon-Stufen nutzen stattdessen em4me-mark.svg, weil die Buchstaben dort
+  nicht mehr lesbar waeren.
+  Gegenueber der Vorlage aus der PowerPoint-Ableitung nur eine Aenderung:
+  die Verlaufs-Kennung heisst em4me-gold statt gold, damit das Logo inline
+  in eine HTML-Seite eingebettet werden kann, ohne mit fremden Kennungen zu
+  kollidieren.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="600"
+  height="600"
+  viewBox="0 0 600 600"
+  role="img"
+  aria-labelledby="em4me-logo-title em4me-logo-desc"
+>
+  <title id="em4me-logo-title">EM4me</title>
+  <desc id="em4me-logo-desc">Goldfarbenes EM4me-Logo mit großer Vier.</desc>
+  <defs>
+    <linearGradient id="em4me-gold" x1="0" y1="16" x2="0" y2="583" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD964"/>
+      <stop offset="5%" stop-color="#FFD65B"/>
+      <stop offset="10%" stop-color="#FFD453"/>
+      <stop offset="15%" stop-color="#FFD24A"/>
+      <stop offset="20%" stop-color="#FFD041"/>
+      <stop offset="25%" stop-color="#FFCE38"/>
+      <stop offset="30%" stop-color="#FFCC2F"/>
+      <stop offset="35%" stop-color="#FFC927"/>
+      <stop offset="40%" stop-color="#FFC71E"/>
+      <stop offset="45%" stop-color="#FFC515"/>
+      <stop offset="50%" stop-color="#FFC30C"/>
+      <stop offset="55%" stop-color="#FABE08"/>
+      <stop offset="60%" stop-color="#F2B807"/>
+      <stop offset="65%" stop-color="#E9B106"/>
+      <stop offset="70%" stop-color="#E1AA05"/>
+      <stop offset="75%" stop-color="#D8A404"/>
+      <stop offset="80%" stop-color="#CF9D03"/>
+      <stop offset="85%" stop-color="#C79703"/>
+      <stop offset="90%" stop-color="#BE9002"/>
+      <stop offset="95%" stop-color="#B68901"/>
+      <stop offset="100%" stop-color="#AD8300"/>
+    </linearGradient>
+  </defs>
+  <path fill="#7F6000" d="M101 6H499C551 6 593 48 593 100V499C593 551 551 593 499 593H101C49 593 7 551 7 499V100C7 48 49 6 101 6Z"/>
+  <path fill="url(#em4me-gold)" d="M101 16H499C545 16 583 54 583 100V499C583 545 545 583 499 583H101C55 583 17 545 17 499V100C17 54 55 16 101 16Z"/>
+  <g fill="#7F6000">
+    <path d="M428 1282V746H726Q842 746 881 781Q933 827 939 943H976V471H939Q925 570 911 598Q893 633 852.0 653.0Q811 673 726 673H428V226Q428 136 436.0 116.5Q444 97 464.0 85.5Q484 74 540 74H770Q885 74 937.0 90.0Q989 106 1037 153Q1099 215 1164 340H1204L1087 0H42V37H90Q138 37 181 60Q213 76 224.5 108.0Q236 140 236 239V1120Q236 1249 210 1279Q174 1319 90 1319H42V1356H1087L1102 1059H1063Q1042 1166 1016.5 1206.0Q991 1246 941 1267Q901 1282 800 1282Z" transform="translate(65 216) scale(.107421875 -.107421875)"/>
+    <path d="M838 0 314 1141V235Q314 110 341 79Q378 37 458 37H506V0H34V37H82Q168 37 204 89Q226 121 226 235V1121Q226 1211 206 1251Q192 1280 154.5 1299.5Q117 1319 34 1319V1356H418L910 295L1394 1356H1778V1319H1731Q1644 1319 1608 1267Q1586 1235 1586 1121V235Q1586 110 1614 79Q1651 37 1731 37H1778V0H1202V37H1250Q1337 37 1372 89Q1394 121 1394 235V1141L871 0Z" transform="translate(363 216) scale(.107421875 -.107421875)"/>
+    <path d="M1079 526H809V150Q809 69 826.5 41.5Q844 14 909 14H936V0H512V14H539Q594 14 614.5 25.5Q635 37 643.0 66.0Q651 95 651 147V526H25L745 1499H811V610H983Q1028 610 1043.5 617.0Q1059 624 1061 655H1079ZM133 608H651V1298L647 1303Z" transform="translate(88 533) scale(.30859375 -.30859375)"/>
+    <path d="M336 748Q436 848 454 863Q499 901 551.0 922.0Q603 943 654 943Q740 943 802.0 893.0Q864 843 885 748Q988 868 1059.0 905.5Q1130 943 1205 943Q1278 943 1334.5 905.5Q1391 868 1424 783Q1446 725 1446 601V207Q1446 121 1459 89Q1469 67 1496.0 51.5Q1523 36 1584 36V0H1132V36H1151Q1210 36 1243 59Q1266 75 1276 110Q1280 127 1280 207V601Q1280 713 1253 759Q1214 823 1128 823Q1075 823 1021.5 796.5Q968 770 892 698L890 687L892 644V207Q892 113 902.5 90.0Q913 67 942.0 51.5Q971 36 1041 36V0H578V36Q654 36 682.5 54.0Q711 72 722 108Q727 125 727 207V601Q727 713 694 762Q650 826 571 826Q517 826 464 797Q381 753 336 698V207Q336 117 348.5 90.0Q361 63 385.5 49.5Q410 36 485 36V0H32V36Q95 36 120.0 49.5Q145 63 158.0 92.5Q171 122 171 207V557Q171 708 162 752Q155 785 140.0 797.5Q125 810 99 810Q71 810 32 795L17 831L293 943H336Z" transform="translate(66 534) scale(.107421875 -.107421875)"/>
+    <path d="M218 571Q217 367 317 251Q417 135 552 135Q642 135 708.5 184.5Q775 234 820 354L851 334Q830 197 729.0 84.5Q628 -28 476 -28Q311 -28 193.5 100.5Q76 229 76 446Q76 681 196.5 812.5Q317 944 499 944Q653 944 752.0 842.5Q851 741 851 571ZM218 629H642Q637 717 621 753Q596 809 546.5 841.0Q497 873 443 873Q360 873 294.5 808.5Q229 744 218 629Z" transform="translate(402 532) scale(.109375 -.109375)"/>
+  </g>
+</svg>

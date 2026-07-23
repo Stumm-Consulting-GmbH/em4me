@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Generated renderer assets (created by the build scripts from node_modules;
+# see scripts/build-renderer.js and its helpers)
+src/renderer/renderer.bundle.js
+src/renderer/hljs-themes.css
+src/renderer/katex/
+src/renderer/mermaid.bundle.js
+
+# Build output
+dist/
+out/
+*.exe
+*.msi
+*.appx
+
+# Version archive (filled by the postbuild hook, see scripts/archive-build.js)
+releases/
+
+# Playwright artifacts
+test-results/
+playwright-report/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local configuration
+.env
+.env.local
+
+# Electron user data (when testing via a local symlink)
+userData/

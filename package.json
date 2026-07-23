@@ -1,0 +1,144 @@
+{
+  "name": "em4me",
+  "version": "0.89.0",
+  "description": "Schlanker Markdown-Editor für Windows 11 mit Tabs, Quellcode-/Render-Ansicht, Auto-Reload und Mehrsprachigkeit.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "npm run build:renderer && electron .",
+    "dev": "npm run build:renderer && electron . --enable-logging",
+    "build:icon": "node scripts/build-icon.js",
+    "build:renderer": "node scripts/build-renderer.js",
+    "build": "npm run build:renderer && node scripts/build-app.js --win",
+    "build:installer": "npm run build:renderer && node scripts/build-app.js --win nsis",
+    "build:portable": "npm run build:renderer && node scripts/build-app.js --win portable",
+    "postbuild": "node scripts/archive-build.js",
+    "postbuild:installer": "node scripts/archive-build.js",
+    "postbuild:portable": "node scripts/archive-build.js",
+    "test": "vitest run",
+    "test:watch": "vitest --allowOnly",
+    "pretest:e2e": "npm run build:renderer",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "knip"
+  },
+  "author": "Matthias Stumm <matthias@stumm-net.de>",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@codemirror/autocomplete": "^6.20.2",
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.0",
+    "@eslint/js": "^10.0.1",
+    "@lezer/highlight": "^1.2.3",
+    "@lezer/markdown": "^1.6.4",
+    "@playwright/test": "^1.60.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "jsdom": "^29.1.1",
+    "knip": "^6.16.1",
+    "mermaid": "^11.15.0",
+    "prettier": "^3.9.4",
+    "sharp": "^0.33.5",
+    "to-ico": "^1.1.5",
+    "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "@vscode/markdown-it-katex": "^1.1.2",
+    "chokidar": "^4.0.1",
+    "electron-store": "^10.0.0",
+    "highlight.js": "^11.11.1",
+    "js-yaml": "^4.1.1",
+    "katex": "^0.16.47",
+    "koffi": "^3.1.1",
+    "markdown-it": "^14.1.0",
+    "markdown-it-abbr": "^2.0.0",
+    "markdown-it-anchor": "^9.2.0",
+    "markdown-it-attrs": "^5.0.0",
+    "markdown-it-bracketed-spans": "^1.0.1",
+    "markdown-it-container": "^4.0.0",
+    "markdown-it-deflist": "^3.0.1",
+    "markdown-it-emoji": "^3.0.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-implicit-figures": "^0.12.0",
+    "markdown-it-imsize": "^2.0.1",
+    "markdown-it-ins": "^4.0.0",
+    "markdown-it-mark": "^4.0.0",
+    "markdown-it-sub": "^2.0.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "yaml": "^2.9.0"
+  },
+  "build": {
+    "appId": "net.stumm.perspective-markdown",
+    "productName": "EM4me",
+    "copyright": "Copyright (c) 2026 Stumm-Consulting GmbH",
+    "publish": null,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!src/assets/em4me-mark.svg",
+      "!src/assets/icon.png",
+      "!src/renderer/renderer.js",
+      "!src/renderer/i18n.js",
+      "!src/renderer/mermaid-entry.js",
+      "!src/renderer/modules/**",
+      "!**/*.map",
+      "!node_modules/koffi/doc/**",
+      "!node_modules/koffi/lib/**",
+      "!node_modules/koffi/vendor/**",
+      "!node_modules/koffi/**/*.{cc,hh,asm,S,inc}",
+      "!node_modules/koffi/**/CMakeLists.txt"
+    ],
+    "asarUnpack": [
+      "src/i18n/**/*",
+      "node_modules/@koromix/**/*"
+    ],
+    "win": {
+      "icon": "src/assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "EM4me",
+      "deleteAppDataOnUninstall": false,
+      "uninstallDisplayName": "EM4me",
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "include": "build/installer.nsh"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.${ext}",
+      "unpackDirName": true
+    }
+  }
+}

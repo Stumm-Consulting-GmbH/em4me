@@ -1,0 +1,21 @@
+# Build output and local folders (in addition to .gitignore, which
+# Prettier 3 respects as well — listed here for robustness)
+node_modules/
+dist/
+releases/
+test-results/
+playwright-report/
+
+# Generated artifacts (not hand-maintained)
+src/renderer/renderer.bundle.js
+src/renderer/mermaid.bundle.js
+src/renderer/hljs-themes.css
+src/renderer/katex/
+package-lock.json
+
+# Snapshots managed by Vitest
+test/unit/**/__snapshots__/
+
+# Markdown deliberately excluded: manual pages and render fixtures are
+# snapshot- and linter-bound and exactly as intended
+*.md

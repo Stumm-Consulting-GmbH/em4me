@@ -1,0 +1,10 @@
+# Einheitliche Zeilenenden (LF) erzwingen
+* text=auto eol=lf
+
+# Binaerdateien explizit markieren
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.exe binary
