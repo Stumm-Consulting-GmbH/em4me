@@ -4029,9 +4029,23 @@ body.panel-dragging .pane-sidebar[hidden] {
   font-weight: 600;
 }
 .about-modal-content .about-version {
-  margin: 0 0 18px;
+  margin: 0 0 6px;
   color: var(--fg-muted);
   font-size: 0.95em;
+}
+/* 4T-0674 (Epic 3E-0135): Rückverweis-Zeile. Sitzt dicht unter der Version
+   (deren Abstand deshalb verkleinert ist) und trägt den Abstand zu den
+   Credits. Der Link folgt der Akzent-Farbe wie andere Verweise. */
+.about-modal-content .about-website {
+  margin: 0 0 18px;
+  font-size: 0.95em;
+}
+.about-modal-content .about-website a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.about-modal-content .about-website a:hover {
+  text-decoration: underline;
 }
 .about-modal-content .about-credits {
   margin: 0;

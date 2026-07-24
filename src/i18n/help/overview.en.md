@@ -56,3 +56,4 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - The **split view** shows Markdown source and rendered result side by side — ideal for comparing the syntax examples on the topic pages with their output.
 - The **table of contents** in the sidebar navigates within a page; **full-text search** (default `Ctrl+F`) searches it.
 - When you switch the language in the status bar, open manual pages switch along immediately.
+- News, roadmap and the current version are on the product website [em4me.ch](https://em4me.ch/). The link opens in the default browser.

@@ -64,6 +64,8 @@
   "drop.hint": "Drop Markdown file here",
   "about.versionLabel": "Version",
   "about.lucide": "Status bar icons: Lucide (ISC) — lucide.dev",
+  "about.website": "em4me.ch",
+  "about.websiteUrl": "https://em4me.ch/",
   "about.ok": "OK",
   "search.placeholder": "Search…",
   "search.regexTitle": "Regular expression",

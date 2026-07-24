@@ -9,6 +9,22 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.90.0.914] - 2026-07-24 — Das Handbuch im Web
+
+Epic 3E-0137 (Handbuch im Web): Das vollständige App-Handbuch erscheint zusätzlich als statische Web-Fassung auf der Produkt-Webseite unter `/manual/` (Englisch an der Wurzel, DE/FR/ES/IT als Sprach-Ordner), in allen fünf Sprachen und über dieselbe Markdown-Pipeline gerendert wie in der Anwendung. Die App-Seite bleibt unverändert; der Web-Bau erzeugt die Fassung bei jedem `npm run web:build` mit.
+
+### Neu
+
+- **Web-Fassung des Handbuchs** (4T-0714, 4T-0715): Der Web-Generator (`scripts/build-web.js`) rendert jede gebündelte Handbuch-Seite in fünf Sprachen über dieselbe Pipeline wie die Anwendung (`renderMarkdown` aus `src/shared/markdown/markdown.js`) und legt sie unter dem einheitlichen Segment `manual` ab: Englisch als `/manual/<id>/`, die übrigen Sprachen als `/de|fr|es|it/manual/<id>/`, die Überblicksseite als `/manual/`. Der Viewer-Stil wird bauzeitlich aus `src/renderer/styles.css` gewonnen (ein Quellbestand, keine gepflegte Kopie), sodass die Seiten aussehen wie in der App, inklusive KaTeX-Formeln als statisches HTML. Interne `<id>.md`-Verweise werden registry-validiert auf die Web-Adresse der Zielseite umgeschrieben; ein unbekanntes Ziel bricht den Bau ab. Die Handbuch-Vorlage trägt eine Seitenleiste mit allen Seiten in Registry-Reihenfolge, ein Inhaltsverzeichnis je Seite aus den H2/H3-Überschriften und ein Vor-/Zurück-Blättern; Menü und Fußbereich der Webseite führen den Zugang „Handbuch". `hreflang`-Block, Sprachwechsler und Seitenkarte tragen die Handbuch-Adressen vollständig.
+- **Generierte Seiten im Web-Bau** (4T-0716): Die zwei generierten Handbuch-Seiten (Funktions-Tabelle und Tastenkürzel) entstehen beim Web-Bau aus denselben Datenquellen wie in der App über das neue geteilte Modul `src/shared/manual-generated.js`. Der Web-Bau ruft es mit den Default-Bindings aus `src/shared/commands.js` und allen Erweiterungen aktiv auf; illustrative Wiki-Link-Beispiele der Funktions-Seite werden im statischen Web zu nicht verweisendem Text neutralisiert. Die Seitenkarte trägt jetzt alle Handbuch-Adressen (gebündelte und generierte Seiten je Sprache).
+- **Mermaid-Diagramme als vorab gerendertes SVG** (4T-0717): `scripts/web-mermaid.js` rendert jeden `language-mermaid`-Block des Handbuchs bauzeitlich über einen einmaligen Playwright/Chromium-Lauf zu Inline-SVG, je Diagramm in einer hellen und einer dunklen Fassung; die Sichtbarkeit steuert CSS über die vorhandenen Theme-Variablen `--shot-light`/`--shot-dark`. Auf den ausgelieferten Seiten läuft kein Mermaid-Client-Skript. Der Diagramm-Quelltext bleibt in einem Aufklapper erhalten. Fehlt der Browser, bricht der Bau mit Installations-Hinweis ab.
+- **Volltext-Suche im Web-Handbuch** (4T-0718): Der Bau erzeugt je Sprache einen Suchindex (`<lang>/manual/manual-suchindex.json`) aus dem gerenderten HTML, mit Seiten-Titel, Abschnitts-Ankern und Klartext. Ein eigenes Client-Skript (`web/statisch/manual-search.js`, keine fremde Bibliothek) blendet ein Suchfeld in die Seitenleiste, lädt den Index erst bei Nutzung und sucht tokenbasiert und akzent-normalisiert (NFD, kombinierende Zeichen entfernt); die Trefferliste zeigt Seite, Abschnitt und Text-Schnipsel und führt per Klick auf die Fundstelle. Ohne Skript bleibt das Handbuch über die Seitenleiste voll navigierbar.
+
+### Geändert
+
+- **Erzeugung der Funktions- und Tastenkürzel-Seite in ein geteiltes Modul ausgelagert** (4T-0716): `src/renderer/modules/manual.js` und `autocomplete-help.js` beziehen die beiden Seiten jetzt aus dem prozess-neutralen `src/shared/manual-generated.js` und reichen die Laufzeit-Werte (Nutzer-Hotkeys, deaktivierte Erweiterungen) hinein. Für die Anwendung ist das ein reines Refactoring ohne Verhaltensänderung; das erzeugte Markdown ist Zeichen für Zeichen dasselbe.
+- **Web-Generator: Leerung des Ausgabe-Ordners gehärtet** (4T-0716): `baueWebseite` leert jetzt den Inhalt von `web/ergebnis`, statt den Ordner selbst zu entfernen und neu anzulegen. Ein offenes Handle auf dem Ordner (Explorer, Vorschau-Server) ließ das bisherige Vorgehen unter Windows mit `EBUSY` scheitern.
+
 ## [0.89.0.885] - 2026-07-23 — Die Sidebar am Rand einklappen
 
 Epic 3E-0141 (Sidebar-Spalten am Rand ein- und ausklappen): Die linke und die rechte Sidebar-Spalte lassen sich als Ganzes einklappen, über ein Symbol am inneren Rand jeder Spalte; das Ausklappen stellt die vorherige Panel-Sichtbarkeit verlustfrei wieder her. Dazu wird die Umstellung der Projektlizenz von MIT auf Apache 2.0 nachgetragen, die seit ihrer Einführung noch in keinem Versions-Block vermerkt war.
@@ -19,6 +35,7 @@ Epic 3E-0141 (Sidebar-Spalten am Rand ein- und ausklappen): Die linke und die re
 
 ### Geändert
 
+- **Quellcode erstmals öffentlich** (4T-0562, Epic 3E-0101): Der Quellcode-Stand dieses Release ist seit dem 2026-07-23 öffentlich auf [github.com/Stumm-Consulting-GmbH/em4me](https://github.com/Stumm-Consulting-GmbH/em4me) verfügbar — je Release ein Commit samt Tag, dazu der Release-Eintrag mit den Prüfsummen der ausgelieferten Programme als zweiter Anker des Herkunfts-Nachweises. Veröffentlicht wird ausschließlich der kuratierte Export über die Positivliste; das interne Repositorium bleibt privat. Nachgetragen am Tag der Public-Umstellung.
 - **Projektlizenz auf Apache 2.0** (4T-0558): Das Repositorium steht jetzt unter der Apache-Lizenz 2.0 statt unter der MIT-Lizenz, mit der Stumm-Consulting GmbH als Rechteinhaberin. Eine neue `NOTICE`-Datei liegt im Repo-Root, und die gebauten Programm-Dateien tragen den entsprechenden Copyright-Vermerk. Nutzung, Modifikation, Verbreitung und kommerzielle Weiterverwendung bleiben erlaubt; die Apache-Lizenz ergänzt eine ausdrückliche Patentlizenz und verlangt bei Weitergabe den Erhalt von Lizenztext, `NOTICE` und Änderungsvermerken. Markenrechte am Produktnamen bleiben ausgenommen. Die Umstellung war seit ihrer Einführung in keinem Versions-Block vermerkt und wird hier nachgetragen.
 
 ### Dokumentation

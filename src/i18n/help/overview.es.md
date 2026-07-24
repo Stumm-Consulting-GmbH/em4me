@@ -56,3 +56,4 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - La **vista dividida** muestra el código Markdown y el resultado renderizado uno junto al otro — ideal para comparar los ejemplos de sintaxis de las páginas temáticas con su resultado.
 - El **índice** de la barra lateral navega dentro de una página; la **búsqueda de texto completo** (predeterminado `Ctrl+F`) la recorre.
 - Al cambiar el idioma en la barra de estado, las páginas del manual abiertas cambian inmediatamente.
+- Las novedades, la hoja de ruta y la versión actual están en el sitio web del producto [em4me.ch](https://em4me.ch/es/). El enlace se abre en el navegador predeterminado.

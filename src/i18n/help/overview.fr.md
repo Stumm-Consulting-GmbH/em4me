@@ -56,3 +56,4 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 - La **vue scindée** montre la source Markdown et le rendu côte à côte — idéal pour comparer les exemples de syntaxe des pages thématiques avec leur résultat.
 - La **table des matières** dans la barre latérale permet de naviguer dans une page ; la **recherche plein texte** (défaut `Ctrl+F`) la parcourt.
 - Lors d'un changement de langue dans la barre d'état, les pages du manuel ouvertes changent immédiatement.
+- Les nouveautés, la feuille de route et la version actuelle se trouvent sur le site du produit [em4me.ch](https://em4me.ch/fr/). Le lien s'ouvre dans le navigateur par défaut.

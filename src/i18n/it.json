@@ -64,6 +64,8 @@
   "drop.hint": "Rilascia qui il file Markdown",
   "about.versionLabel": "Versione",
   "about.lucide": "Icone della barra di stato: Lucide (ISC) — lucide.dev",
+  "about.website": "em4me.ch",
+  "about.websiteUrl": "https://em4me.ch/it/",
   "about.ok": "OK",
   "search.placeholder": "Cerca…",
   "search.regexTitle": "Espressione regolare",

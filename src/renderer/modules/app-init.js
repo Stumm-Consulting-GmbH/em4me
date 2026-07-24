@@ -1923,6 +1923,18 @@ export function bindUi() {
   $('#btn-about-close').addEventListener('click', hideAbout);
   aboutModal.querySelector('.about-modal-backdrop').addEventListener('click', hideAbout);
 
+  // 4T-0674 (Epic 3E-0135): Rückverweis auf die Produkt-Webseite. Der Klick
+  // öffnet die sprachabhängige Adresse (about.websiteUrl) im Standard-Browser
+  // über die bestehende externe-Link-Brücke; der http/https-Guard sitzt im
+  // Main-Handler. Von sich aus nimmt die App keine Verbindung auf.
+  const aboutWebsiteLink = $('#about-website-link');
+  if (aboutWebsiteLink) {
+    aboutWebsiteLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      api.openExternal(t('about.websiteUrl'));
+    });
+  }
+
   // 4T-0072: Word-Count-Statusbar-Button und Detail-Dialog.
   const wordcountBtn = document.getElementById('statusbar-wordcount');
   if (wordcountBtn) {

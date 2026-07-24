@@ -25,14 +25,27 @@ const MD_FIXTURE = path.resolve(
   'erweiterungen-extern.md',
 );
 
+// 4T-0703 (Epic 3E-0101): Nicht fs.cpSync(..., { recursive: true }) verwenden —
+// Node v22.18.0 stürzt unter Windows bei einem Nicht-ASCII-QUELLpfad hart und
+// unfangbar im Prozess ab. Der öffentliche Klon liegt im Umlaut-Verzeichnis
+// 0012_EM4me_Veröffentlichung, wodurch EXT_FIXTURES den Umlaut trägt. Die eigene
+// Rekursion aus mkdirSync + copyFileSync trifft Umlaut-Pfade korrekt.
+function kopiereRekursiv(quelle, ziel) {
+  if (fs.lstatSync(quelle).isDirectory()) {
+    fs.mkdirSync(ziel, { recursive: true });
+    for (const kind of fs.readdirSync(quelle))
+      kopiereRekursiv(path.join(quelle, kind), path.join(ziel, kind));
+  } else {
+    fs.copyFileSync(quelle, ziel);
+  }
+}
+
 // Temp-Profil mit installierten Erweiterungs-Paketen und optionalem
 // Store-Seed vorbereiten (launchApp übernimmt es via opts.userData).
 function prepareUserData({ packages = [], storeSeed = null } = {}) {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-ext-'));
   for (const name of packages) {
-    fs.cpSync(path.join(EXT_FIXTURES, name), path.join(userData, 'extensions', name), {
-      recursive: true,
-    });
+    kopiereRekursiv(path.join(EXT_FIXTURES, name), path.join(userData, 'extensions', name));
   }
   if (storeSeed) {
     fs.writeFileSync(path.join(userData, 'config.json'), JSON.stringify(storeSeed, null, 2));

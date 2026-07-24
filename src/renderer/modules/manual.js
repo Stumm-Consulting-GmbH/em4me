@@ -19,85 +19,41 @@ import { t } from '../i18n.js';
 import { api } from './api.js';
 import { MANUAL_PAGES, manualPageById } from '../../shared/manual-pages.js';
 import { createTab, state } from './app-state.js';
-// 4T-0212: Quellen der generierten Seiten — Funktions-Gruppen und
-// Registry-Shortcut-Zeilen samt Tasten-Lokalisierung. Der Modul-Zyklus
-// (autocomplete-help -> tabs -> manual) ist unkritisch, weil alle
-// Zugriffe erst zur Laufzeit in den Generator-Funktionen erfolgen.
+// 4T-0716 (Epic 3E-0137): Die prozessneutrale Erzeugungs-Logik der beiden
+// generierten Seiten liegt im geteilten Modul (gemeinsam mit dem Web-Bau).
+// Hier werden nur die Laufzeit-Anteile eingereicht: die effektiven Bindings
+// (inkl. Nutzer-Overrides) und die aus den Erweiterungen deaktivierten
+// Kommandos.
 import {
-  HELP_FEATURE_GROUPS,
-  buildHelpShortcutRows,
-  localizeKey,
-  splitShortcutKeys,
-} from './autocomplete-help.js';
+  generateFunctionsPage as buildFunctionsPage,
+  generateShortcutsPage as buildShortcutsPage,
+} from '../../shared/manual-generated.js';
+import { mergeBindings } from '../../shared/commands.js';
+import { disabledCommandIdSet } from '../../shared/extensions.js';
+import { getDisabledExtensionIds } from './extension-lifecycle.js';
 import { activatePane, activateTab } from './tabs.js';
 import { applyAllLayouts, invalidatePaneRenderCache, persistState } from './views.js';
 
-// --- Generatoren der 'generated'-Seiten (4T-0212) ---------------------------
-// Beide Seiten entstehen zur Laufzeit als Markdown, damit alle vier
-// View-Modi inklusive Quellcode-Ansicht sauber funktionieren und keine
-// Doppelpflege zu den kanonischen Quellen (help.feature.*-Keys bzw.
-// Kommando-Registry) entsteht.
-
-// Pipe-Zeichen fuer Tabellen-Zellen escapen: vorhandene `\|`-Escapes der
-// Quell-Strings zuerst neutralisieren, dann einheitlich neu escapen —
-// sonst wuerde ein bereits escaptes Pipe doppelt maskiert.
-export function escapeTableCell(value) {
-  return String(value == null ? '' : value)
-    .replace(/\\\|/g, '|')
-    .replace(/\|/g, '\\|')
-    .replace(/\r?\n/g, ' ');
-}
-
-// Funktions-Seite: H2 pro Gruppe aus HELP_FEATURE_GROUPS, darunter eine
-// dreispaltige Pipe-Tabelle (Funktion, Beschreibung, Zugang). Kurzname-
-// und Zugang-Keys leiten sich aus dem Feature-Key ab
-// (help.feature.<name> -> help.featureName.<name> / help.featureAccess.<name>).
+// --- Generatoren der 'generated'-Seiten (4T-0212, 4T-0716) ------------------
+// Beide Seiten entstehen zur Laufzeit als Markdown, damit alle vier View-Modi
+// inklusive Quellcode-Ansicht sauber funktionieren und keine Doppelpflege zu
+// den kanonischen Quellen (help.feature.*-Keys bzw. Kommando-Registry)
+// entsteht. Die Erzeugung selbst liegt seit 4T-0716 im geteilten Modul
+// src/shared/manual-generated.js (gemeinsam mit dem Web-Bau); hier werden nur
+// die Renderer-Uebersetzung t und die Laufzeit-Anteile eingereicht: die
+// effektiven Bindings inklusive Nutzer-Overrides und die aus den Erweiterungen
+// deaktivierten Kommandos. Das erzeugte Markdown bleibt Zeichen fuer Zeichen
+// dasselbe wie zuvor (verhaltensneutral).
 export function generateFunctionsPage() {
-  const lines = [];
-  lines.push(`# ${t('manual.page.functions.title')}`);
-  lines.push('');
-  lines.push(t('manual.functions.intro'));
-  lines.push('');
-  for (const group of HELP_FEATURE_GROUPS) {
-    lines.push(`## ${t(group.groupKey)}`);
-    lines.push('');
-    lines.push(
-      `| ${t('manual.functions.colFunction')} | ${t('manual.functions.colDescription')} | ${t('manual.functions.colAccess')} |`,
-    );
-    lines.push('|---|---|---|');
-    for (const featureKey of group.features) {
-      const name = featureKey.replace('help.feature.', '');
-      const nameCell = escapeTableCell(t(`help.featureName.${name}`));
-      const descCell = escapeTableCell(t(featureKey));
-      const accessCell = escapeTableCell(t(`help.featureAccess.${name}`));
-      lines.push(`| **${nameCell}** | ${descCell} | ${accessCell} |`);
-    }
-    lines.push('');
-  }
-  return lines.join('\n');
+  return buildFunctionsPage(t);
 }
 
-// Tastenkuerzel-Seite: Registry-Zeilen mit den effektiven Bindings
-// (inklusive Nutzer-Overrides) plus statische Rest-Liste, identische
-// Quelle wie der bisherige Popup-Reiter (buildHelpShortcutRows). Tasten
-// erscheinen als Inline-Code (rendert klar und bleibt im Quellcode-Modus
-// lesbar; Entscheidungspunkt aus dem Lösungsansatz, am gerenderten
-// Ergebnis gewaehlt), lokalisiert ueber die bestehende localizeKey-Logik.
 export function generateShortcutsPage() {
-  const lines = [];
-  lines.push(`# ${t('manual.page.shortcuts.title')}`);
-  lines.push('');
-  lines.push(t('help.shortcutsConfigurableNote'));
-  lines.push('');
-  lines.push(`| ${t('manual.shortcuts.colKeys')} | ${t('manual.shortcuts.colDescription')} |`);
-  lines.push('|---|---|');
-  for (const row of buildHelpShortcutRows()) {
-    const keys = row.keys
-      .map((k) => '`' + splitShortcutKeys(k).map(localizeKey).join('+') + '`')
-      .join(' / ');
-    lines.push(`| ${keys} | ${escapeTableCell(t(row.descKey))} |`);
-  }
-  return lines.join('\n');
+  return buildShortcutsPage({
+    t,
+    effectiveBindings: mergeBindings(state.hotkeyOverrides),
+    disabledCommandIds: disabledCommandIdSet(getDisabledExtensionIds()),
+  });
 }
 
 const MANUAL_GENERATORS = {

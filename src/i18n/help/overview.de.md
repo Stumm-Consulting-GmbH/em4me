@@ -56,3 +56,4 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - In der **geteilten Ansicht** stehen Markdown-Quelltext und gerendertes Ergebnis nebeneinander — ideal, um die Syntax-Beispiele der Themen-Seiten direkt mit ihrem Ergebnis zu vergleichen.
 - Das **Inhaltsverzeichnis** in der Sidebar navigiert innerhalb einer Seite, die **Volltextsuche** (Standard `Strg+F`) durchsucht sie.
 - Beim Sprachwechsel über die Statusbar wechseln offene Handbuch-Seiten direkt mit.
+- Neuigkeiten, Roadmap und aktuelle Version stehen auf der Produkt-Webseite [em4me.ch](https://em4me.ch/de/). Der Link öffnet im Standard-Browser.

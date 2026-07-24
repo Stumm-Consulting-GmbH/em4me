@@ -56,3 +56,4 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - La **vista divisa** mostra la sorgente Markdown e il risultato renderizzato fianco a fianco — ideale per confrontare gli esempi di sintassi delle pagine tematiche con il loro risultato.
 - Il **sommario** nella barra laterale naviga all'interno di una pagina; la **ricerca testuale** (predefinito `Ctrl+F`) la attraversa.
 - Cambiando lingua nella barra di stato, le pagine del manuale aperte cambiano immediatamente.
+- Novità, roadmap e versione attuale si trovano sul sito web del prodotto [em4me.ch](https://em4me.ch/it/). Il collegamento si apre nel browser predefinito.

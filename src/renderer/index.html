@@ -1836,6 +1836,14 @@
           <span data-i18n="about.versionLabel">Version</span>
           <span id="about-version">&mdash;</span>
         </p>
+        <!-- 4T-0674 (Epic 3E-0135): Rückverweis auf die Produkt-Webseite. Statischer
+             Anker mit i18n-Text (applyTranslations setzt textContent, kein HTML); der
+             Klick öffnet die sprachabhängige Adresse über die bestehende
+             externe-Link-Brücke (api.openExternal). Von sich aus nimmt die App
+             keine Verbindung auf. -->
+        <p class="about-website">
+          <a id="about-website-link" href="#" data-i18n="about.website">em4me.ch</a>
+        </p>
         <p class="about-credits" data-i18n="about.lucide">
           Statusbar-Icons: Lucide (ISC) &mdash; lucide.dev
         </p>
