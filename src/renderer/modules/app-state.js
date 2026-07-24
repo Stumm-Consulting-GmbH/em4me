@@ -260,16 +260,28 @@ export const state = {
   // Folder fuer den "In Ordner verschieben"-Picker.
   bookmarks: {
     tree: [],
+    // 4T-0612 (Epic 3E-0115): Bereichs-Lesezeichen — zweiter, paralleler Baum.
+    // Ziele sind WURZEL-RELATIV zur Bereichs-Wurzel (state.areaPath) und werden
+    // in der bookmarks-Sektion der Bereichsdatei Area_Settings.mdda persistiert
+    // (IPC-Bruecken aus 4T-0611). Ohne geoeffneten Bereich leer und im Panel
+    // ausgeblendet. areaFirst steuert die Abschnitts-Reihenfolge im Panel
+    // (globale Einstellung, Default an: Bereichs-Lesezeichen oben).
+    areaTree: [],
+    areaFirst: true,
     selectedId: null,
     visibleByPane: [false, false],
     editingId: null,
     editingIsNew: false,
-    moveDialog: { sourceId: null, targetFolderId: null, blockedIds: null },
+    // 4T-0612: In welchem Abschnitt der Inline-Edit laeuft ('general'|'area'),
+    // damit commit/cancel den richtigen Baum und dessen Persistenz-Ziel treffen.
+    editingSectionKind: 'general',
+    moveDialog: { sourceId: null, targetFolderId: null, blockedIds: null, sectionKind: 'general' },
     // 4T-0079: HTML5-Drag-and-Drop. sourceId ist der gerade gezogene Knoten,
     // blockedIds enthaelt source plus alle Nachfahren (Zyklus-Schutz fuer
     // Folder-Drags). targetId / zone halten den aktuellen Drop-Indikator-
-    // Stand (vor/nach Knoten oder in einen Folder hinein).
-    dragging: { sourceId: null, blockedIds: null, targetId: null, zone: null },
+    // Stand (vor/nach Knoten oder in einen Folder hinein). 4T-0612: sectionKind
+    // bindet den Drag an seinen Abschnitt (kein Cross-Drop ueber die Grenze).
+    dragging: { sourceId: null, blockedIds: null, targetId: null, zone: null, sectionKind: null },
   },
   // 4T-0051: Properties-Sidebar-Sektion pro Spalte. visibleByPane wie
   // Outline und Backlinks. saveTimers haelt pro Pane den Debounce-Timer,
@@ -561,9 +573,19 @@ function buildPaneEls(paneIdx) {
     outgoingResults: root.querySelector('.outgoing-results'),
     // 4T-0075 (Epic 3E-0013): Bookmarks-Sektion. Tree-Container und
     // Leer-Hinweis pro Pane.
+    // 4T-0612 (Epic 3E-0115): zwei Abschnitte im selben Panel — ein Bereichs-
+    // Abschnitt (nur bei geoeffnetem Bereich) und der allgemeine Abschnitt.
+    // Der allgemeine Tree-/Empty-Selektor ist bewusst auf die allgemeine
+    // Gruppe qualifiziert, weil der Bereichs-Tree eigene Klassen traegt.
     bookmarksSection: root.querySelector('.sidebar-bookmarks'),
-    bookmarksTree: root.querySelector('.bookmarks-tree'),
-    bookmarksEmpty: root.querySelector('.bookmarks-empty'),
+    bookmarksAreaGroup: root.querySelector('.bookmarks-group-area'),
+    bookmarksAreaHead: root.querySelector('.bookmarks-group-area .bookmarks-group-head'),
+    bookmarksAreaTree: root.querySelector('.bookmarks-area-tree'),
+    bookmarksAreaEmpty: root.querySelector('.bookmarks-area-empty'),
+    bookmarksGeneralGroup: root.querySelector('.bookmarks-group-general'),
+    bookmarksGeneralHead: root.querySelector('.bookmarks-group-general .bookmarks-group-head'),
+    bookmarksTree: root.querySelector('.bookmarks-group-general .bookmarks-tree'),
+    bookmarksEmpty: root.querySelector('.bookmarks-group-general .bookmarks-empty'),
     // 4T-0051: Properties-Sektion in der Sidebar. Pro Spalte eine Instanz.
     propertiesSection: root.querySelector('.sidebar-properties'),
     propertiesFields: root.querySelector('.sidebar-properties .properties-fields'),

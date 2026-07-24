@@ -1,6 +1,13 @@
 // Lesezeichen-Baum: Persistenz, Rendering, Drag-and-Drop, Inline-Edit und Kontextmenue.
 // 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
+// 4T-0612 (Epic 3E-0115): zweigeteiltes Panel — allgemeine Lesezeichen (globaler
+// Baum, absolute Pfade, electron-store) und Bereichs-Lesezeichen (bereichs-
+// gebundener Baum, wurzel-relative Pfade, Area_Settings.mdda ueber die
+// 4T-0611-Bruecken). Rendering, Drag-and-Drop, Inline-Edit, Kontextmenue und
+// Existenz-Pruefung teilen sich beide Abschnitte ueber eine Abschnitts-
+// Abstraktion (bookmarkSection); Drag-and-Drop bleibt strikt innerhalb des
+// eigenen Abschnitts, der Wechsel laeuft ueber "umwandeln" im Kontextmenue.
 'use strict';
 
 import { EditorView } from '@codemirror/view';
@@ -29,10 +36,13 @@ import {
   showStatusbarHint,
   updateEmptyState,
 } from './views.js';
-import { hideContextMenu, placeContextMenuAt } from './dialogs.js';
+import { appendContextMenuItem, hideContextMenu, placeContextMenuAt } from './dialogs.js';
 // 4T-0287/4T-0288 (Epic 3E-0051): Panel-Registry — Bookmarks registriert
 // sich am Modul-Ende; Einblenden aktiviert den Gruppen-Reiter.
 import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js';
+// 4T-0611/4T-0612 (Epic 3E-0115): prozess-neutrale Pfad-Helfer der Bereichs-
+// Lesezeichen (esbuild bundelt das CJS-Modul transparent).
+import { toAbsolute, toRootRelative, mapBookmarkFilePaths } from '../../shared/bookmark-tree.js';
 
 // === 4T-0075 (Epic 3E-0013): Bookmarks-Basis ================================
 // Persistente Lesezeichen mit Tree-Datenmodell (Folder + File-Knoten).
@@ -55,10 +65,50 @@ export function newBookmarkId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-// Tiefe Kopie des Baums fuer Update-Operationen. Da der Baum ueberschaubar
-// klein ist (typisch < 100 Knoten), reicht JSON-Roundtrip.
+// === 4T-0612 (Epic 3E-0115): Abschnitts-Abstraktion =========================
+// Ein Abschnitt buendelt Baum, Persistenz-Ziel und DOM-Container. 'general'
+// ist der bestehende globale Baum (absolute Pfade), 'area' der bereichs-
+// gebundene Baum (wurzel-relative Pfade). Die Objekt-Methoden lesen den State
+// LIVE, damit ein einmal in einem Event-Listener gebundenes Abschnitts-Objekt
+// ueber spaetere Renders hinweg gueltig bleibt.
+export const SECTION_GENERAL = 'general';
+export const SECTION_AREA = 'area';
+
+export function bookmarkSection(kind) {
+  const isArea = kind === SECTION_AREA;
+  return {
+    kind: isArea ? SECTION_AREA : SECTION_GENERAL,
+    isArea,
+    getTree: () => (isArea ? state.bookmarks.areaTree : state.bookmarks.tree),
+    setTree: (tree) => {
+      if (isArea) state.bookmarks.areaTree = tree;
+      else state.bookmarks.tree = tree;
+    },
+    treeElOf: (els) => (isArea ? els.bookmarksAreaTree : els.bookmarksTree),
+    emptyElOf: (els) => (isArea ? els.bookmarksAreaEmpty : els.bookmarksEmpty),
+    groupElOf: (els) => (isArea ? els.bookmarksAreaGroup : els.bookmarksGeneralGroup),
+  };
+}
+
+// Tiefe Kopie des allgemeinen Baums fuer Update-Operationen. Da der Baum
+// ueberschaubar klein ist (typisch < 100 Knoten), reicht JSON-Roundtrip.
 export function cloneBookmarksTree() {
   return JSON.parse(JSON.stringify(state.bookmarks.tree || []));
+}
+
+// 4T-0612: Tiefe Kopie des Baums EINES Abschnitts (allgemein oder Bereich).
+export function cloneSectionTree(section) {
+  return JSON.parse(JSON.stringify(section.getTree() || []));
+}
+
+// 4T-0612: Absoluter Ziel-Pfad eines Knotens. Allgemein direkt, Bereich gegen
+// die aktuelle Bereichs-Wurzel aufgeloest. null, wenn kein Bereich offen ist
+// oder das Ziel unaufloesbar bleibt.
+export function resolveBookmarkPath(section, node) {
+  if (!node) return null;
+  if (!section.isArea) return node.filePath || null;
+  if (!state.areaPath) return null;
+  return toAbsolute(state.areaPath, node.filePath);
 }
 
 export function findBookmarkByPath(nodes, filePath) {
@@ -195,6 +245,26 @@ export async function persistBookmarksTree() {
   await persistSetting('bookmarksTree', state.bookmarks.tree);
 }
 
+// 4T-0612 (Epic 3E-0115): Bereichs-Baum in die bookmarks-Sektion der
+// Bereichsdatei schreiben (IPC-Bruecke aus 4T-0611). Der Handler validiert die
+// Grenze, entfernt die Sektion bei leerer Liste und broadcastet 'bookmarks:
+// changed'. Liefert { ok } zurueck; bei Erfolg wird der normalisierte Stand
+// uebernommen, damit In-Memory und Datei deckungsgleich sind. Bei Fehler (IO,
+// oder als Sicherheitsnetz 'outside-area') bleibt der zuletzt geladene Stand
+// massgeblich — der Aufrufer meldet und laedt neu.
+export async function persistAreaBookmarksTree() {
+  try {
+    const res = await api.bookmarksSetAreaConfig(state.bookmarks.areaTree);
+    if (res && res.ok) {
+      if (Array.isArray(res.config)) state.bookmarks.areaTree = res.config;
+      return { ok: true };
+    }
+    return { ok: false, error: res ? res.error : 'unknown' };
+  } catch {
+    return { ok: false, error: 'ipc' };
+  }
+}
+
 export async function loadBookmarksTree() {
   let stored = await api.getSetting('bookmarksTree');
   if (!Array.isArray(stored)) {
@@ -226,6 +296,37 @@ export async function loadBookmarksTree() {
   }
 }
 
+// 4T-0612 (Epic 3E-0115): Bereichs-Lesezeichen aus der Bereichsdatei laden
+// (leer ohne Bereich). Wird beim App-Start, beim Bereichs-Wechsel (app-init)
+// und beim Aenderungs-Broadcast eines anderen Fensters aufgerufen.
+export async function loadAreaBookmarks() {
+  try {
+    const res = await api.bookmarksGetConfig();
+    state.bookmarks.areaTree = res && res.ok && Array.isArray(res.config) ? res.config : [];
+  } catch {
+    state.bookmarks.areaTree = [];
+  }
+  // Der Existenz-Cache haelt aufgeloeste absolute Pfade; nach einem Bereichs-
+  // Wechsel koennen dieselben relativen Ziele auf andere Dateien zeigen.
+  bookmarkExistsCache.clear();
+  for (let p = 0; p < state.panes.length; p++) applyBookmarksVisibility(p);
+}
+
+// 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Mehr-Fenster-Konsistenz
+// der ALLGEMEINEN Lesezeichen. Der globale Baum liegt im electron-store
+// (settings-Key bookmarksTree); ein Schreibvorgang in einem Fenster meldet
+// 'bookmarksTree:changed' an die uebrigen Fenster (Main als Verteiler, ohne das
+// ausloesende Fenster). Der Empfaenger uebernimmt den frischen Baum und rendert
+// den allgemeinen Abschnitt neu. Der Existenz-Cache wird verworfen, weil neue
+// Ziele hinzugekommen sein koennen; updateEmptyState blendet in einer leeren
+// App die Sidebar ein, sobald ein Lesezeichen vorhanden ist.
+export function reloadGeneralBookmarksTree(tree) {
+  state.bookmarks.tree = Array.isArray(tree) ? tree : [];
+  bookmarkExistsCache.clear();
+  for (let p = 0; p < state.panes.length; p++) applyBookmarksVisibility(p);
+  updateEmptyState();
+}
+
 // 4T-0079: In-place rekursive Folder-First-Sortierung. Wird einmalig bei
 // der Migration aufgerufen; danach respektiert das Rendering die Daten-
 // Reihenfolge 1:1, damit DnD frei sortieren kann.
@@ -246,6 +347,11 @@ export function applyFolderFirstSortInPlace(nodes) {
 // 4T-0339 (Epic 3E-0061): Datei-Umbenennen — gespeicherte Lesezeichen-Pfade
 // nachziehen. Der Anzeigename wird nur mitgezogen, wenn er dem alten
 // Dateinamen entspricht (vom Nutzer umbenannte Lesezeichen bleiben).
+// 4T-0612 (Epic 3E-0115): zusaetzlich der Bereichs-Baum. Dessen Ziele sind
+// wurzel-relativ; ein Umbenennen von Dateien UND Ordnern innerhalb des
+// Bereichs zieht die relativen Pfade nach (Datei: exakter Match, Ordner:
+// Praefix-Ersatz fuer alle darunter liegenden Ziele). Das globale Modell
+// bleibt unveraendert (weiterhin nur exakter absoluter Match).
 export async function updateBookmarkPathsForRename(oldPath, newPath) {
   let changed = false;
   const oldName = api.basename(oldPath);
@@ -262,11 +368,42 @@ export async function updateBookmarkPathsForRename(oldPath, newPath) {
     }
   };
   walk(state.bookmarks.tree);
-  if (changed) {
-    await persistBookmarksTree();
+  if (changed) await persistBookmarksTree();
+
+  // Bereichs-Baum: wurzel-relative Ziele. Nur nachziehen, wenn ein Bereich
+  // offen ist und beide Pfade innerhalb liegen (sonst betrifft das Umbenennen
+  // den Bereichs-Baum nicht).
+  let areaChanged = false;
+  if (state.areaPath && Array.isArray(state.bookmarks.areaTree)) {
+    const oldRel = toRootRelative(state.areaPath, oldPath);
+    const newRel = toRootRelative(state.areaPath, newPath);
+    if (oldRel !== null && newRel !== null) {
+      const walkArea = (nodes) => {
+        for (const n of nodes || []) {
+          if (n && n.type === 'file' && typeof n.filePath === 'string') {
+            if (n.filePath === oldRel) {
+              if (n.displayName === oldName) n.displayName = newName;
+              n.filePath = newRel;
+              areaChanged = true;
+            } else if (n.filePath.startsWith(oldRel + '/')) {
+              // Datei unterhalb eines umbenannten Ordners: Praefix ersetzen.
+              n.filePath = newRel + n.filePath.slice(oldRel.length);
+              areaChanged = true;
+            }
+          } else if (n && n.type === 'folder') {
+            walkArea(n.children);
+          }
+        }
+      };
+      walkArea(state.bookmarks.areaTree);
+      if (areaChanged) await persistAreaBookmarksTree();
+    }
+  }
+
+  if (changed || areaChanged) {
     for (let p = 0; p < state.panes.length; p++) renderBookmarks(p);
   }
-  return changed;
+  return changed || areaChanged;
 }
 
 export async function persistBookmarksSettings() {
@@ -279,6 +416,46 @@ export async function loadBookmarksSettings() {
   const v1 = await api.getSetting('bookmarks.visibleColumn1');
   state.bookmarks.visibleByPane[0] = !!v0;
   state.bookmarks.visibleByPane[1] = !!v1;
+  // 4T-0612 (Epic 3E-0115): Abschnitts-Reihenfolge (global, Default an).
+  const areaFirst = await api.getSetting('bookmarks.areaFirst');
+  state.bookmarks.areaFirst = areaFirst !== false;
+}
+
+// 4T-0612 (Epic 3E-0115): Reihenfolge-Schalter aus den Einstellungen. Wirkt
+// sofort (Panel neu rendern) und persistiert global.
+export async function setBookmarksAreaFirst(value) {
+  const next = value !== false;
+  state.bookmarks.areaFirst = next;
+  await persistSetting('bookmarks.areaFirst', next);
+  for (let p = 0; p < state.panes.length; p++) renderBookmarks(p);
+}
+
+// === 4T-0612 (Epic 3E-0115): Anlage-Fluss mit Ziel-Wahl =====================
+
+// Ziel-Wahl-Menue: bei geoeffnetem Bereich und Datei innerhalb des Bereichs
+// wird gefragt, ob das Lesezeichen allgemein oder bereichsgebunden angelegt
+// wird (Muster showCommandOverflowMenu). 4T-0612 (Epic 3E-0115, PO-Testbefund
+// EXE 0.91.0.919): Das Menue erscheint oben links im Fenster, unterhalb der
+// Menueleiste (dort sitzt das Datei-Menue, zu dem die Lesezeichen-Anlage
+// gehoert), nicht mehr unten am Statusbar-Stern.
+const BOOKMARK_TARGET_MENU_LEFT = 8;
+const BOOKMARK_TARGET_MENU_TOP = 8;
+
+function showBookmarkTargetMenu(absPath) {
+  const menu = document.getElementById('context-menu');
+  if (!menu) return;
+  menu.innerHTML = '';
+  appendContextMenuItem(menu, {
+    key: 'bookmarks.target.general',
+    dataId: 'bookmark-target-general',
+    action: () => addGeneralBookmarkForPath(absPath),
+  });
+  appendContextMenuItem(menu, {
+    key: 'bookmarks.target.area',
+    dataId: 'bookmark-target-area',
+    action: () => addAreaBookmarkForPath(absPath),
+  });
+  placeContextMenuAt(menu, BOOKMARK_TARGET_MENU_LEFT, BOOKMARK_TARGET_MENU_TOP);
 }
 
 export async function addBookmarkForActiveFile() {
@@ -287,25 +464,66 @@ export async function addBookmarkForActiveFile() {
     showStatusbarHint(null, { text: t('bookmarks.add.untitled'), duration: 2000 });
     return;
   }
-  const existing = findBookmarkByPath(state.bookmarks.tree, tab.path);
+  // Ziel-Wahl nur, wenn ein Bereich offen ist UND die Datei innerhalb liegt.
+  const insideArea = !!state.areaPath && toRootRelative(state.areaPath, tab.path) !== null;
+  if (insideArea) {
+    showBookmarkTargetMenu(tab.path);
+    return;
+  }
+  // Kein Bereich oder Datei ausserhalb: ohne Nachfrage allgemein anlegen
+  // (heutiges Verhalten).
+  await addGeneralBookmarkForPath(tab.path);
+}
+
+// 4T-0612: Lesezeichen fuer einen absoluten Pfad im allgemeinen Abschnitt
+// anlegen. Genutzt vom Ziel-Wahl-Menue, vom Tab-Kontextmenue und vom
+// bisherigen Strg+D-/Menue-Fluss.
+export async function addGeneralBookmarkForPath(absPath) {
+  return addBookmarkToSection(bookmarkSection(SECTION_GENERAL), absPath);
+}
+
+// 4T-0612: Lesezeichen fuer einen absoluten Pfad im Bereichs-Abschnitt anlegen.
+// Genutzt vom Ziel-Wahl-Menue, vom Tab-Kontextmenue und vom Kontextmenue der
+// Datei-Zeilen im Bereichs-Panel. Datei ausserhalb -> Ablehnung mit Hinweis.
+export async function addAreaBookmarkForPath(absPath) {
+  return addBookmarkToSection(bookmarkSection(SECTION_AREA), absPath);
+}
+
+// Gemeinsamer Anlage-Fluss fuer beide Abschnitte. absPath ist immer absolut;
+// fuer den Bereichs-Abschnitt wird er gegen die Wurzel relativiert (Datei
+// ausserhalb -> Ablehnung). Ablage-Logik (Selektion) und Auto-Sichtbarkeit
+// wie im bisherigen allgemeinen Fluss.
+async function addBookmarkToSection(section, absPath) {
+  if (!absPath) return;
+  let storedPath = absPath;
+  if (section.isArea) {
+    const rel = state.areaPath ? toRootRelative(state.areaPath, absPath) : null;
+    if (rel === null) {
+      showStatusbarHint(null, { text: t('bookmarks.outsideArea'), error: true, duration: 2500 });
+      return;
+    }
+    storedPath = rel;
+  }
+  const existing = findBookmarkByPath(section.getTree(), storedPath);
   if (existing) {
     showStatusbarHint(null, { text: t('bookmarks.add.alreadyExists'), duration: 2000 });
     return;
   }
-  const isFirstBookmark = !Array.isArray(state.bookmarks.tree) || state.bookmarks.tree.length === 0;
-  const tree = cloneBookmarksTree();
-  const displayName = api.basename(tab.path);
+  const treeBefore = section.getTree();
+  const wasEmpty = !Array.isArray(treeBefore) || treeBefore.length === 0;
+  const tree = cloneSectionTree(section);
+  const displayName = api.basename(absPath);
   const node = {
     type: 'file',
     id: newBookmarkId('b'),
-    filePath: tab.path,
+    filePath: storedPath,
     displayName,
     addedAt: new Date().toISOString(),
   };
 
-  // 4T-0078: Ablage-Logik. Wenn die Sidebar-Sektion sichtbar ist und ein
-  // Folder selektiert ist -> in diesen Folder; wenn ein Bookmark selektiert
-  // ist -> auf gleicher Ebene wie dieser (Geschwister); sonst -> im Root.
+  // 4T-0078/4T-0612: Ablage-Logik. Ein selektierter Knoten DESSELBEN
+  // Abschnitts steuert die Position (in dessen Ordner bzw. als Geschwister);
+  // sonst ans Ende der File-Gruppe im Root.
   let parentFolderName = '';
   let placed = false;
   const sel = state.bookmarks.selectedId;
@@ -316,15 +534,11 @@ export async function addBookmarkForActiveFile() {
       const selNode = loc.container[loc.index];
       if (selNode.type === 'folder') {
         if (!Array.isArray(selNode.children)) selNode.children = [];
-        // 4T-0078: ans Ende der File-Gruppe in diesem Ordner.
         insertAtEndOfGroup(selNode.children, node);
         selNode.expanded = true;
         parentFolderName = selNode.name || '';
         placed = true;
       } else {
-        // Bookmark selektiert -> auf gleicher Ebene direkt dahinter. Da
-        // der selektierte Bookmark in der File-Gruppe liegt, bleibt der
-        // neue Knoten in derselben Gruppe (Folder-First-Ordnung erhalten).
         loc.container.splice(loc.index + 1, 0, node);
         parentFolderName = loc.parent ? loc.parent.name || '' : '';
         placed = true;
@@ -332,17 +546,26 @@ export async function addBookmarkForActiveFile() {
     }
   }
   if (!placed) insertAtEndOfGroup(tree, node);
-  state.bookmarks.tree = tree;
-  await persistBookmarksTree();
-  // 4T-0075: Beim ersten Bookmark die Sektion automatisch sichtbar machen
-  // und persistieren - sonst muesste der Nutzer den Statusbar-Stern oder
-  // das Menue zusaetzlich nutzen, um zu sehen, dass etwas passiert ist.
-  if (isFirstBookmark) {
+  section.setTree(tree);
+
+  if (section.isArea) {
+    const res = await persistAreaBookmarksTree();
+    if (!res.ok) {
+      await loadAreaBookmarks();
+      showStatusbarHint(null, { text: t('bookmarks.outsideArea'), error: true, duration: 2500 });
+      return;
+    }
+  } else {
+    await persistBookmarksTree();
+  }
+
+  // 4T-0075/4T-0612: Beim ersten Lesezeichen eines Abschnitts die Sektion
+  // automatisch sichtbar machen, wenn sie noch nicht sichtbar ist.
+  if (wasEmpty && !state.bookmarks.visibleByPane[state.activePaneIndex]) {
     state.bookmarks.visibleByPane[state.activePaneIndex] = true;
     await persistBookmarksSettings();
     applyBookmarksVisibility(state.activePaneIndex);
-    // R3-11 (4T-0187): auch die andere Pane rendern — eine dort bereits
-    // sichtbare (leere) Bookmarks-Sektion zeigte den neuen Eintrag nicht.
+    // R3-11 (4T-0187): auch die andere Pane rendern.
     for (let i = 0; i < state.panes.length; i++) {
       if (i !== state.activePaneIndex) renderBookmarks(i);
     }
@@ -359,17 +582,92 @@ export async function addBookmarkForActiveFile() {
   showStatusbarHint(null, { text: toastText, duration: 2000 });
 }
 
-export async function removeBookmark(id) {
-  const tree = cloneBookmarksTree();
-  if (!removeNodeById(tree, id)) return;
-  state.bookmarks.tree = tree;
-  if (state.bookmarks.selectedId === id) state.bookmarks.selectedId = null;
+// === 4T-0612 (Epic 3E-0115): Umwandeln zwischen den Abschnitten =============
+
+// Einen Knoten (Datei oder Ordner mit Unterbaum) aus den allgemeinen in die
+// Bereichs-Lesezeichen umwandeln. Alle Datei-Ziele des Unterbaums muessen
+// innerhalb des Bereichs liegen; liegt eines ausserhalb, wird der GANZE
+// Vorgang abgelehnt (outside-area-Semantik). Zuerst wird der Bereichs-Baum
+// geschrieben (kann als Sicherheitsnetz scheitern); erst bei Erfolg wird der
+// Knoten aus dem allgemeinen Baum entfernt, damit nichts verloren geht.
+export async function convertBookmarkToArea(nodeId) {
+  if (!state.areaPath) return;
+  const loc = findNodeLocation(state.bookmarks.tree, nodeId);
+  if (!loc) return;
+  const source = loc.container[loc.index];
+  const converted = mapBookmarkFilePaths(source, (abs) => toRootRelative(state.areaPath, abs));
+  if (converted === null) {
+    showStatusbarHint(null, {
+      text: t('bookmarks.convert.outsideArea'),
+      error: true,
+      duration: 2500,
+    });
+    return;
+  }
+  const nextArea = cloneSectionTree(bookmarkSection(SECTION_AREA));
+  insertAtEndOfGroup(nextArea, converted);
+  state.bookmarks.areaTree = nextArea;
+  const res = await persistAreaBookmarksTree();
+  if (!res.ok) {
+    await loadAreaBookmarks();
+    showStatusbarHint(null, {
+      text: t('bookmarks.convert.outsideArea'),
+      error: true,
+      duration: 2500,
+    });
+    return;
+  }
+  const nextGeneral = cloneBookmarksTree();
+  removeNodeById(nextGeneral, nodeId);
+  state.bookmarks.tree = nextGeneral;
+  if (state.bookmarks.selectedId === nodeId) state.bookmarks.selectedId = null;
   await persistBookmarksTree();
+  for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
+  updateBookmarksToggleButton();
+}
+
+// Einen Knoten aus den Bereichs- in die allgemeinen Lesezeichen umwandeln.
+// Die relativen Ziele werden gegen die aktuelle Wurzel absolut gemacht. Zuerst
+// wird der allgemeine Baum geschrieben, dann der Knoten aus dem Bereichs-Baum
+// entfernt.
+export async function convertBookmarkToGeneral(nodeId) {
+  if (!state.areaPath) return;
+  const loc = findNodeLocation(state.bookmarks.areaTree, nodeId);
+  if (!loc) return;
+  const source = loc.container[loc.index];
+  const converted = mapBookmarkFilePaths(source, (rel) => toAbsolute(state.areaPath, rel));
+  if (converted === null) return;
+  const nextGeneral = cloneBookmarksTree();
+  insertAtEndOfGroup(nextGeneral, converted);
+  state.bookmarks.tree = nextGeneral;
+  await persistBookmarksTree();
+  const nextArea = cloneSectionTree(bookmarkSection(SECTION_AREA));
+  removeNodeById(nextArea, nodeId);
+  state.bookmarks.areaTree = nextArea;
+  if (state.bookmarks.selectedId === nodeId) state.bookmarks.selectedId = null;
+  const res = await persistAreaBookmarksTree();
+  if (!res.ok) await loadAreaBookmarks();
+  for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
+  updateBookmarksToggleButton();
+}
+
+export async function removeBookmark(id, section) {
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  const tree = cloneSectionTree(sec);
+  if (!removeNodeById(tree, id)) return;
+  sec.setTree(tree);
+  if (state.bookmarks.selectedId === id) state.bookmarks.selectedId = null;
+  if (sec.isArea) {
+    const res = await persistAreaBookmarksTree();
+    if (!res.ok) await loadAreaBookmarks();
+  } else {
+    await persistBookmarksTree();
+  }
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   updateBookmarksToggleButton();
   // 4T-0075: Wenn jetzt kein Bookmark mehr da ist und kein Tab offen, soll
   // der Empty-State-Pane wieder ausgeblendet werden (Sidebar verschwindet).
-  if (state.bookmarks.tree.length === 0) updateEmptyState();
+  if (!hasAnyBookmarks()) updateEmptyState();
 }
 
 // 4T-0079: Wenn der Nutzer in der Lesezeichen-Sidebar aktiv mit einem Knoten
@@ -385,13 +683,19 @@ export async function ensureBookmarksSectionPersistedVisible() {
   if (typeof reportMenuStateNow === 'function') reportMenuStateNow();
 }
 
-export async function toggleBookmarkFolder(id) {
-  const tree = cloneBookmarksTree();
+export async function toggleBookmarkFolder(id, section) {
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  const tree = cloneSectionTree(sec);
   const node = findNodeById(tree, id);
   if (!node || node.type !== 'folder') return;
   node.expanded = !node.expanded;
-  state.bookmarks.tree = tree;
-  await persistBookmarksTree();
+  sec.setTree(tree);
+  if (sec.isArea) {
+    const res = await persistAreaBookmarksTree();
+    if (!res.ok) await loadAreaBookmarks();
+  } else {
+    await persistBookmarksTree();
+  }
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
 }
 
@@ -411,83 +715,150 @@ export async function openBookmarkFile(filePath) {
   await openOrJumpToPath(filePath, 1);
 }
 
+// 4T-0612: Einen Knoten oeffnen (Abschnitts-aufloesend). Bereichs-Ziele werden
+// gegen die aktuelle Wurzel absolut gemacht.
+export async function openBookmarkNode(section, node) {
+  const abs = resolveBookmarkPath(section, node);
+  if (!abs) {
+    showStatusbarHint(null, { text: t('bookmarks.notFound'), error: true, duration: 2500 });
+    return;
+  }
+  await openBookmarkFile(abs);
+}
+
+// 4T-0612: Gibt es in irgendeinem Abschnitt Lesezeichen? Steuert Empty-State
+// und Panel-Sichtbarkeit.
+export function hasAnyBookmarks() {
+  const general = Array.isArray(state.bookmarks.tree) && state.bookmarks.tree.length > 0;
+  const area =
+    !!state.areaPath &&
+    Array.isArray(state.bookmarks.areaTree) &&
+    state.bookmarks.areaTree.length > 0;
+  return general || area;
+}
+
+// 4T-0612: Welche Lesezeichen-Ziele kommen fuer einen absoluten Pfad in Frage?
+// Genutzt von den Kontextmenue-Eintraegen am Tab und im Bereichs-Panel.
+// general/area sind true, wenn dort noch KEIN Lesezeichen auf die Datei
+// existiert; insideArea ist true, wenn ein Bereich offen ist und die Datei
+// innerhalb liegt.
+export function bookmarkTargetsForPath(absPath) {
+  const general = !!absPath && !findBookmarkByPath(state.bookmarks.tree, absPath);
+  let insideArea = false;
+  let area = false;
+  if (absPath && state.areaPath) {
+    const rel = toRootRelative(state.areaPath, absPath);
+    if (rel !== null) {
+      insideArea = true;
+      area = !findBookmarkByPath(state.bookmarks.areaTree, rel);
+    }
+  }
+  return { general, area, insideArea };
+}
+
+// 4T-0612: Ist die aktive Datei in irgendeinem Abschnitt als Lesezeichen
+// gemerkt? (Statusbar-Stern-Zustand).
+function isActiveFileBookmarked() {
+  const tab = activeTab();
+  const p = tab && tab.path;
+  if (!p) return false;
+  if (findBookmarkByPath(state.bookmarks.tree, p)) return true;
+  if (state.areaPath) {
+    const rel = toRootRelative(state.areaPath, p);
+    if (rel !== null && findBookmarkByPath(state.bookmarks.areaTree, rel)) return true;
+  }
+  return false;
+}
+
+// 4T-0612: Rendert beide Abschnitte in das Panel. Der Bereichs-Abschnitt und
+// die Abschnitts-Koepfe erscheinen nur bei geoeffnetem Bereich; die
+// Reihenfolge steuert state.bookmarks.areaFirst.
 export function renderBookmarks(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.bookmarksTree || !els.bookmarksEmpty) return;
-  const tree = state.bookmarks.tree;
-  els.bookmarksTree.innerHTML = '';
+  const areaActive = isExtensionActive('bookmarks') && !!state.areaPath;
+  if (els.bookmarksAreaGroup) els.bookmarksAreaGroup.hidden = !areaActive;
+  // Abschnitts-Koepfe nur bei geoeffnetem Bereich (sonst gewohntes Ein-
+  // Abschnitts-Bild). Der Bereichs-Kopf sitzt in der Bereichs-Gruppe und ist
+  // ueber deren hidden schon mit abgedeckt.
+  if (els.bookmarksGeneralHead) els.bookmarksGeneralHead.hidden = !areaActive;
+  // Reihenfolge der beiden Gruppen im Body.
+  if (
+    els.bookmarksAreaGroup &&
+    els.bookmarksGeneralGroup &&
+    els.bookmarksGeneralGroup.parentElement
+  ) {
+    const body = els.bookmarksGeneralGroup.parentElement;
+    if (state.bookmarks.areaFirst)
+      body.insertBefore(els.bookmarksAreaGroup, els.bookmarksGeneralGroup);
+    else body.insertBefore(els.bookmarksGeneralGroup, els.bookmarksAreaGroup);
+  }
+  if (areaActive) renderSectionInto(els, paneIdx, bookmarkSection(SECTION_AREA));
+  else if (els.bookmarksAreaTree) els.bookmarksAreaTree.innerHTML = '';
+  renderSectionInto(els, paneIdx, bookmarkSection(SECTION_GENERAL));
+}
+
+// 4T-0612: Rendert den Baum EINES Abschnitts in dessen Tree-Container. Bindet
+// Kontextmenue und Root-Drag-and-Drop einmal pro Gruppe (die Abschnitts-
+// Objekt-Methoden lesen den State live, ein einmal gebundenes Objekt bleibt
+// gueltig). Existenz-Pruefung mit dem aufgeloesten absoluten Pfad als
+// Cache-Schluessel.
+function renderSectionInto(els, paneIdx, section) {
+  const treeEl = section.treeElOf(els);
+  const emptyEl = section.emptyElOf(els);
+  const groupEl = section.groupElOf(els);
+  if (!treeEl) return;
+  const tree = section.getTree();
+  treeEl.innerHTML = '';
   const isEmpty = !tree || tree.length === 0;
-  els.bookmarksEmpty.hidden = !isEmpty;
-  // 4T-0078: Rechtsklick auf den ganzen Sektions-Bereich (Header, leerer
-  // Bereich unter der Liste, ul selbst) zeigt "Neuer Ordner". Klicks auf
-  // einen Knoten werden vom Knoten-Listener mit stopPropagation abgefangen,
-  // bevor dieser hier feuert. Listener wird nur einmal pro Sektion gebunden;
-  // die Section selbst wird zwischen Renders nicht ersetzt.
-  if (els.bookmarksSection && !els.bookmarksSection.dataset.contextBound) {
-    els.bookmarksSection.addEventListener('contextmenu', (ev) => {
-      // Knoten-Listener stoppen die Propagation eigentlich; defensiv
-      // pruefen, ob der Klick tatsaechlich nicht auf einem Knoten landet.
+  if (emptyEl) emptyEl.hidden = !isEmpty;
+  // 4T-0078: Rechtsklick auf den leeren Gruppen-Bereich zeigt "Neuer Ordner".
+  if (groupEl && !groupEl.dataset.contextBound) {
+    groupEl.addEventListener('contextmenu', (ev) => {
       if (ev.target.closest && ev.target.closest('.bookmark-node')) return;
       ev.preventDefault();
-      showBookmarkContextMenu(ev, null);
+      ev.stopPropagation();
+      showBookmarkContextMenu(ev, null, section);
     });
-    els.bookmarksSection.dataset.contextBound = '1';
+    groupEl.dataset.contextBound = '1';
   }
-  // 4T-0079: Drop auf den leeren Sektions-Bereich (oder Empty-Hinweis)
-  // legt am Ende des Roots ab. Listener auf die ganze Sektion; Knoten-
-  // Handler greifen via stopPropagation davor.
-  if (els.bookmarksSection && !els.bookmarksSection.dataset.dndBound) {
-    els.bookmarksSection.addEventListener('dragover', (ev) => {
-      handleBookmarkDragOverRoot(ev, els.bookmarksSection);
-    });
-    els.bookmarksSection.addEventListener('drop', (ev) => {
+  // 4T-0079: Drop auf den leeren Gruppen-Bereich legt am Ende des Roots ab.
+  if (groupEl && !groupEl.dataset.dndBound) {
+    groupEl.addEventListener('dragover', (ev) => handleBookmarkDragOverRoot(ev, groupEl, section));
+    groupEl.addEventListener('drop', (ev) => {
       if (ev.target.closest && ev.target.closest('.bookmark-row')) return;
-      handleBookmarkDrop(ev);
+      handleBookmarkDrop(ev, section);
     });
-    els.bookmarksSection.addEventListener('dragleave', (ev) => {
-      // Indikator wegnehmen, sobald die Maus die Sektion verlaesst (nicht
-      // bei jedem Hover-Wechsel zwischen Kindern).
-      if (!els.bookmarksSection.contains(ev.relatedTarget)) {
-        clearAllBookmarkDropIndicators();
-      }
+    groupEl.addEventListener('dragleave', (ev) => {
+      if (!groupEl.contains(ev.relatedTarget)) clearAllBookmarkDropIndicators();
     });
-    els.bookmarksSection.dataset.dndBound = '1';
+    groupEl.dataset.dndBound = '1';
   }
   if (isEmpty) return;
-  // 4T-0079: Render iteriert in Daten-Reihenfolge (kein Render-Sort mehr,
-  // damit DnD die Reihenfolge frei bestimmen kann). Folder-First wird ueber
-  // die Insert-Logik (insertAtEndOfGroup) und die einmalige Migration in
-  // loadBookmarksTree gesichert.
+  // 4T-0079: Render iteriert in Daten-Reihenfolge (kein Render-Sort mehr).
   for (const node of tree) {
-    const li = renderBookmarkNode(node, 0);
-    if (li) els.bookmarksTree.appendChild(li);
+    const li = renderBookmarkNode(node, 0, section);
+    if (li) treeEl.appendChild(li);
   }
-  // Datei-Existenz-Check pro Bookmark.
-  // R3-08 (4T-0180): Ergebnis gecacht — renderBookmarks laeuft ueber die
-  // applyAllLayouts-Kaskade bei jedem Tab-Klick und feuerte zuvor pro
-  // Bookmark einen fileExists-IPC. Cache-Pflege: reloadFile/
-  // markFileMissing fuehren bekannte Wechsel nach, das Einblenden der
-  // Sektion (toggleBookmarksPanel) verwirft den Cache komplett.
+  // Datei-Existenz-Check pro Bookmark (R3-08: Ergebnis gecacht).
   const fileNodes = [];
   collectFileNodes(tree, fileNodes);
   const markMissing = (nodeId) => {
-    const li = els.bookmarksTree.querySelector(`li[data-id="${cssEscape(nodeId)}"]`);
+    const li = treeEl.querySelector(`li[data-id="${cssEscape(nodeId)}"]`);
     if (li) li.classList.add('is-missing');
   };
   for (const node of fileNodes) {
-    const cached = bookmarkExistsCache.get(node.filePath);
+    const resolved = resolveBookmarkPath(section, node);
+    if (!resolved) continue;
+    const cached = bookmarkExistsCache.get(resolved);
     if (cached === false) {
       markMissing(node.id);
-      // Missing-Eintraege (seltener Fall) weiter pruefen — eine ausserhalb
-      // der App wiederhergestellte Datei soll nicht bis zum Sichtbarkeits-
-      // Toggle rot bleiben. Der IPC-Spareffekt liegt bei den existierenden
-      // Eintraegen (Normalfall).
       api
-        .fileExists(node.filePath)
+        .fileExists(resolved)
         .then((exists) => {
-          bookmarkExistsCache.set(node.filePath, !!exists);
+          bookmarkExistsCache.set(resolved, !!exists);
           if (exists) {
-            const li = els.bookmarksTree.querySelector(`li[data-id="${cssEscape(node.id)}"]`);
+            const li = treeEl.querySelector(`li[data-id="${cssEscape(node.id)}"]`);
             if (li) li.classList.remove('is-missing');
           }
         })
@@ -496,9 +867,9 @@ export function renderBookmarks(paneIdx) {
         });
     } else if (cached === undefined) {
       api
-        .fileExists(node.filePath)
+        .fileExists(resolved)
         .then((exists) => {
-          bookmarkExistsCache.set(node.filePath, !!exists);
+          bookmarkExistsCache.set(resolved, !!exists);
           if (!exists) markMissing(node.id);
         })
         .catch(() => {
@@ -511,6 +882,9 @@ export function renderBookmarks(paneIdx) {
 // R3-08 (4T-0180): Existenz-Cache fuer Bookmark-Ziele samt Pflege-Hook
 // fuer bekannte Datei-Ereignisse (reloadFile -> true, markFileMissing ->
 // false). Unbekannte Pfade werden beim naechsten Render frisch geprueft.
+// Schluessel ist der aufgeloeste ABSOLUTE Pfad (allgemein direkt, Bereich
+// gegen die Wurzel aufgeloest), damit relative Bereichs-Ziele nicht mit
+// absoluten kollidieren.
 export const bookmarkExistsCache = new Map();
 
 export function noteBookmarkFileExistence(filePath, exists) {
@@ -530,8 +904,9 @@ export function cssEscape(s) {
   return String(s).replace(/(["\\])/g, '\\$1');
 }
 
-export function renderBookmarkNode(node, depth) {
+export function renderBookmarkNode(node, depth, section) {
   if (!node) return null;
+  const sec = section || bookmarkSection(SECTION_GENERAL);
   const li = document.createElement('li');
   li.className = 'bookmark-node bookmark-' + node.type;
   li.dataset.id = node.id;
@@ -549,9 +924,9 @@ export function renderBookmarkNode(node, depth) {
   // im Inline-Edit-Modus (sonst stoert Drag das Tippen).
   if (!isEditing) {
     row.draggable = true;
-    row.addEventListener('dragstart', (ev) => handleBookmarkDragStart(ev, node));
-    row.addEventListener('dragover', (ev) => handleBookmarkDragOverNode(ev, node, row));
-    row.addEventListener('drop', (ev) => handleBookmarkDrop(ev));
+    row.addEventListener('dragstart', (ev) => handleBookmarkDragStart(ev, node, sec));
+    row.addEventListener('dragover', (ev) => handleBookmarkDragOverNode(ev, node, row, sec));
+    row.addEventListener('drop', (ev) => handleBookmarkDrop(ev, sec));
     row.addEventListener('dragend', handleBookmarkDragEnd);
   }
 
@@ -562,7 +937,7 @@ export function renderBookmarkNode(node, depth) {
     chevron.innerHTML = BOOKMARK_ICON_CHEVRON;
     chevron.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      toggleBookmarkFolder(node.id);
+      toggleBookmarkFolder(node.id, sec);
     });
     row.appendChild(chevron);
 
@@ -590,12 +965,12 @@ export function renderBookmarkNode(node, depth) {
         for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
       });
       row.addEventListener('dblclick', () => {
-        toggleBookmarkFolder(node.id);
+        toggleBookmarkFolder(node.id, sec);
       });
       row.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
-        showBookmarkContextMenu(ev, node);
+        showBookmarkContextMenu(ev, node, sec);
       });
     }
 
@@ -604,7 +979,7 @@ export function renderBookmarkNode(node, depth) {
       childUl.className = 'bookmark-children';
       // 4T-0079: Daten-Reihenfolge respektieren (kein Render-Sort).
       for (const child of node.children) {
-        const childLi = renderBookmarkNode(child, depth + 1);
+        const childLi = renderBookmarkNode(child, depth + 1, sec);
         if (childLi) childUl.appendChild(childLi);
       }
       li.appendChild(childUl);
@@ -631,19 +1006,21 @@ export function renderBookmarkNode(node, depth) {
       const label = document.createElement('span');
       label.className = 'bookmark-label';
       label.textContent = node.displayName || (node.filePath ? api.basename(node.filePath) : '');
-      label.title = node.filePath || '';
+      // 4T-0612: Tooltip zeigt den aufgeloesten absoluten Pfad (Bereichs-Ziele
+      // eingeschlossen); ohne Bereich der Rohpfad.
+      label.title = resolveBookmarkPath(sec, node) || node.filePath || '';
       row.appendChild(label);
 
       row.addEventListener('click', async () => {
         state.bookmarks.selectedId = node.id;
         await ensureBookmarksSectionPersistedVisible();
         for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-        openBookmarkFile(node.filePath);
+        openBookmarkNode(sec, node);
       });
       row.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
-        showBookmarkContextMenu(ev, node);
+        showBookmarkContextMenu(ev, node, sec);
       });
     }
   }
@@ -659,11 +1036,16 @@ export function renderBookmarkNode(node, depth) {
 // Zyklus-Schutz: ein Folder kann nicht in sich selbst oder einen seiner
 // Nachfahren gezogen werden. Drop auf den leeren Sektions-Bereich legt am
 // Ende des Roots ab.
+// 4T-0612: Drag-and-Drop bleibt strikt innerhalb des eigenen Abschnitts —
+// der Drag traegt seinen Abschnitt (sectionKind), fremde Abschnitte lehnen
+// den Drop ab (Cross-Drag ueber die Grenze ist bewusst nicht im Umfang;
+// der Wechsel laeuft ueber "umwandeln").
 
 export const BOOKMARK_DND_MIME = 'application/x-bookmark-id';
 
-export function handleBookmarkDragStart(ev, node) {
+export function handleBookmarkDragStart(ev, node, section) {
   if (!node || !node.id) return;
+  const sec = section || bookmarkSection(SECTION_GENERAL);
   if (ev.dataTransfer) {
     ev.dataTransfer.setData(BOOKMARK_DND_MIME, node.id);
     ev.dataTransfer.effectAllowed = 'move';
@@ -673,6 +1055,7 @@ export function handleBookmarkDragStart(ev, node) {
     blockedIds: node.type === 'folder' ? collectSubtreeIds(node) : new Set([node.id]),
     targetId: null,
     zone: null,
+    sectionKind: sec.kind,
   };
   ev.stopPropagation();
 }
@@ -695,16 +1078,22 @@ export function computeDropZone(ev, rowEl, isFolder) {
 export function clearAllBookmarkDropIndicators() {
   document
     .querySelectorAll(
-      '.bookmark-row.is-drop-before, .bookmark-row.is-drop-after, .bookmark-row.is-drop-into, .bookmarks-tree.is-drop-root, .sidebar-bookmarks.is-drop-root',
+      '.bookmark-row.is-drop-before, .bookmark-row.is-drop-after, .bookmark-row.is-drop-into, .bookmarks-group.is-drop-root',
     )
     .forEach((el) => {
       el.classList.remove('is-drop-before', 'is-drop-after', 'is-drop-into', 'is-drop-root');
     });
 }
 
-export function handleBookmarkDragOverNode(ev, node, rowEl) {
+export function handleBookmarkDragOverNode(ev, node, rowEl, section) {
   const drag = state.bookmarks.dragging;
   if (!drag || !drag.sourceId) return;
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  // 4T-0612: kein Drop ueber die Abschnitts-Grenze.
+  if (drag.sectionKind !== sec.kind) {
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
+    return;
+  }
   // Zyklus-Schutz: gegen sich selbst oder Nachfahren.
   if (drag.blockedIds && drag.blockedIds.has(node.id)) {
     if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
@@ -722,9 +1111,15 @@ export function handleBookmarkDragOverNode(ev, node, rowEl) {
   drag.zone = zone;
 }
 
-export function handleBookmarkDragOverRoot(ev, containerEl) {
+export function handleBookmarkDragOverRoot(ev, containerEl, section) {
   const drag = state.bookmarks.dragging;
   if (!drag || !drag.sourceId) return;
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  // 4T-0612: kein Drop ueber die Abschnitts-Grenze.
+  if (drag.sectionKind !== sec.kind) {
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
+    return;
+  }
   // Verhindern, dass das Event auch von Knoten-Handlern bearbeitet wird:
   // dragover am Knoten ruft stopPropagation, der Container-Handler greift
   // nur, wenn nicht auf einem Knoten gehovert wird.
@@ -738,7 +1133,7 @@ export function handleBookmarkDragOverRoot(ev, containerEl) {
   drag.zone = 'append';
 }
 
-export async function handleBookmarkDrop(ev) {
+export async function handleBookmarkDrop(ev, section) {
   const drag = state.bookmarks.dragging;
   if (!drag || !drag.sourceId) {
     // Kein interner Bookmark-Drag -> Event durchreichen, damit der App-
@@ -747,46 +1142,77 @@ export async function handleBookmarkDrop(ev) {
     // stopPropagation den Datei-Open-Flow.
     return;
   }
+  const sec = section || bookmarkSection(SECTION_GENERAL);
   ev.preventDefault();
   ev.stopPropagation();
+  // 4T-0612: Drop im fremden Abschnitt wird abgewiesen (kein Cross-Drag).
+  if (drag.sectionKind !== sec.kind) {
+    state.bookmarks.dragging = {
+      sourceId: null,
+      blockedIds: null,
+      targetId: null,
+      zone: null,
+      sectionKind: null,
+    };
+    clearAllBookmarkDropIndicators();
+    return;
+  }
   const sourceId = drag.sourceId;
   const targetId = drag.targetId;
   const zone = drag.zone;
-  state.bookmarks.dragging = { sourceId: null, blockedIds: null, targetId: null, zone: null };
+  state.bookmarks.dragging = {
+    sourceId: null,
+    blockedIds: null,
+    targetId: null,
+    zone: null,
+    sectionKind: null,
+  };
   clearAllBookmarkDropIndicators();
   if (!targetId || !zone) return;
-  await moveBookmarkNodeByDrop(sourceId, targetId, zone);
+  await moveBookmarkNodeByDrop(sourceId, targetId, zone, sec);
 }
 
 export function handleBookmarkDragEnd() {
-  state.bookmarks.dragging = { sourceId: null, blockedIds: null, targetId: null, zone: null };
+  state.bookmarks.dragging = {
+    sourceId: null,
+    blockedIds: null,
+    targetId: null,
+    zone: null,
+    sectionKind: null,
+  };
   clearAllBookmarkDropIndicators();
 }
 
-export async function moveBookmarkNodeByDrop(sourceId, targetId, zone) {
+export async function moveBookmarkNodeByDrop(sourceId, targetId, zone, section) {
   if (!sourceId || !targetId || !zone) return;
-  const tree = cloneBookmarksTree();
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  const tree = cloneSectionTree(sec);
   const sourceLoc = findNodeLocation(tree, sourceId);
   if (!sourceLoc) return;
   // Source aus dem alten Container entfernen.
   const node = sourceLoc.container.splice(sourceLoc.index, 1)[0];
+  const commit = async () => {
+    sec.setTree(tree);
+    if (sec.isArea) {
+      const res = await persistAreaBookmarksTree();
+      if (!res.ok) await loadAreaBookmarks();
+    } else {
+      await persistBookmarksTree();
+    }
+    for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
+    updateBookmarksToggleButton();
+  };
   if (targetId === '__root__') {
     // Drop auf den leeren Sektions-Bereich -> ans Ende des Roots.
     tree.push(node);
-    state.bookmarks.tree = tree;
-    await persistBookmarksTree();
-    for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-    updateBookmarksToggleButton();
+    await commit();
     return;
   }
   const targetLoc = findNodeLocation(tree, targetId);
   if (!targetLoc) {
     // Ziel nicht mehr da (sollte nicht passieren): an Root anhaengen.
     tree.push(node);
-    state.bookmarks.tree = tree;
-    await persistBookmarksTree();
-    for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-    updateBookmarksToggleButton();
+    await commit();
     return;
   }
   const targetNode = targetLoc.container[targetLoc.index];
@@ -800,10 +1226,7 @@ export async function moveBookmarkNodeByDrop(sourceId, targetId, zone) {
     // after
     targetLoc.container.splice(targetLoc.index + 1, 0, node);
   }
-  state.bookmarks.tree = tree;
-  await persistBookmarksTree();
-  for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-  updateBookmarksToggleButton();
+  await commit();
 }
 
 // 4T-0078: Inline-Edit-Input fuer Bookmark-/Folder-Namen. Enter committet,
@@ -848,11 +1271,14 @@ export function appendBookmarkInlineEditInput(row, id, initialValue) {
 }
 
 // 4T-0078: Kontext-Menue fuer Bookmarks. Je nach Knotentyp:
-//  - Bookmark (file): Umbenennen, In Ordner verschieben..., Entfernen.
+//  - Bookmark (file): Umbenennen, In Ordner verschieben..., Umwandeln, Entfernen.
 //  - Folder:           Neuer Unterordner, Umbenennen, In Ordner verschieben...,
-//                      Entfernen (mit Bestaetigung bei nicht-leerem Inhalt).
+//                      Umwandeln, Entfernen (mit Bestaetigung bei Inhalt).
 //  - Leerer Sektions-Bereich: Neuer Ordner (im Root).
-export function showBookmarkContextMenu(ev, node) {
+// 4T-0612: der "umwandeln"-Eintrag richtet sich nach dem Abschnitt (allgemein
+// -> Bereich nur bei geoeffnetem Bereich; Bereich -> allgemein immer).
+export function showBookmarkContextMenu(ev, node, section) {
+  const sec = section || bookmarkSection(SECTION_GENERAL);
   const menu = document.getElementById('context-menu');
   if (!menu) return;
   menu.innerHTML = '';
@@ -865,6 +1291,7 @@ export function showBookmarkContextMenu(ev, node) {
     const item = document.createElement('div');
     item.className = 'context-menu-item';
     if (opts && opts.danger) item.classList.add('context-menu-item-danger');
+    if (opts && opts.dataId) item.dataset.menuId = opts.dataId;
     item.textContent = t(labelKey);
     item.addEventListener('click', () => {
       hideContextMenu();
@@ -877,25 +1304,39 @@ export function showBookmarkContextMenu(ev, node) {
     sep.className = 'context-menu-separator';
     menu.appendChild(sep);
   };
+  // 4T-0612: Umwandeln-Eintrag passend zum Abschnitt.
+  const addConvertItem = () => {
+    if (!sec.isArea && state.areaPath) {
+      addItem('bookmarks.convertToArea', () => convertBookmarkToArea(node.id), {
+        dataId: 'bookmark-convert-to-area',
+      });
+    } else if (sec.isArea) {
+      addItem('bookmarks.convertToGeneral', () => convertBookmarkToGeneral(node.id), {
+        dataId: 'bookmark-convert-to-general',
+      });
+    }
+  };
 
   if (!node) {
     // Klick auf leeren Sektions-Bereich oder Sektions-Header.
-    addItem('bookmarks.newFolder', () => createNewFolderUI(null, menuPaneIdx));
+    addItem('bookmarks.newFolder', () => createNewFolderUI(null, menuPaneIdx, sec));
   } else if (node.type === 'folder') {
-    addItem('bookmarks.newSubfolder', () => createNewFolderUI(node.id, menuPaneIdx));
+    addItem('bookmarks.newSubfolder', () => createNewFolderUI(node.id, menuPaneIdx, sec));
     addItem('bookmarks.rename', () =>
-      startInlineEdit(node.id, { isNew: false, paneIdx: menuPaneIdx }),
+      startInlineEdit(node.id, { isNew: false, paneIdx: menuPaneIdx, section: sec }),
     );
-    addItem('bookmarks.moveTo', () => openBookmarkMoveDialog(node.id));
+    addItem('bookmarks.moveTo', () => openBookmarkMoveDialog(node.id, sec));
+    addConvertItem();
     addSeparator();
-    addItem('bookmarks.remove', () => removeNodeWithConfirm(node.id), { danger: true });
+    addItem('bookmarks.remove', () => removeNodeWithConfirm(node.id, sec), { danger: true });
   } else {
     addItem('bookmarks.rename', () =>
-      startInlineEdit(node.id, { isNew: false, paneIdx: menuPaneIdx }),
+      startInlineEdit(node.id, { isNew: false, paneIdx: menuPaneIdx, section: sec }),
     );
-    addItem('bookmarks.moveTo', () => openBookmarkMoveDialog(node.id));
+    addItem('bookmarks.moveTo', () => openBookmarkMoveDialog(node.id, sec));
+    addConvertItem();
     addSeparator();
-    addItem('bookmarks.remove', () => removeBookmark(node.id), { danger: true });
+    addItem('bookmarks.remove', () => removeBookmark(node.id, sec), { danger: true });
   }
 
   // R3-10 (4T-0187): an den Viewport klemmen (gemeinsamer Helper).
@@ -906,8 +1347,9 @@ export function showBookmarkContextMenu(ev, node) {
 // bedeutet "im Root". Der Knoten wird mit einem Default-Namen angelegt und
 // sofort in den Inline-Edit-Modus gesetzt; bei Esc wird der Knoten wieder
 // entfernt (editingIsNew = true).
-export async function createNewFolderUI(parentFolderId, paneIdx) {
-  const tree = cloneBookmarksTree();
+export async function createNewFolderUI(parentFolderId, paneIdx, section) {
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  const tree = cloneSectionTree(sec);
   const folder = {
     type: 'folder',
     id: newBookmarkId('f'),
@@ -929,10 +1371,19 @@ export async function createNewFolderUI(parentFolderId, paneIdx) {
   } else {
     insertAtEndOfGroup(tree, folder);
   }
-  state.bookmarks.tree = tree;
+  sec.setTree(tree);
   state.bookmarks.editingId = folder.id;
   state.bookmarks.editingIsNew = true;
-  await persistBookmarksTree();
+  state.bookmarks.editingSectionKind = sec.kind;
+  if (sec.isArea) {
+    const res = await persistAreaBookmarksTree();
+    if (!res.ok) {
+      await loadAreaBookmarks();
+      return;
+    }
+  } else {
+    await persistBookmarksTree();
+  }
   // Sicherstellen, dass die Sektion sichtbar ist (sonst sieht der Nutzer
   // nichts vom neuen Inline-Edit).
   if (!state.bookmarks.visibleByPane[state.activePaneIndex]) {
@@ -950,6 +1401,8 @@ export async function createNewFolderUI(parentFolderId, paneIdx) {
 export function startInlineEdit(id, options) {
   state.bookmarks.editingId = id;
   state.bookmarks.editingIsNew = !!(options && options.isNew);
+  state.bookmarks.editingSectionKind =
+    options && options.section ? options.section.kind : SECTION_GENERAL;
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   // R3-15 (4T-0187): Input der ausloesenden Pane fokussieren.
   focusInlineEditInput(options && options.paneIdx);
@@ -975,6 +1428,7 @@ export function focusInlineEditInput(paneIdx) {
 }
 
 export async function commitInlineEdit(id, newName) {
+  const sec = bookmarkSection(state.bookmarks.editingSectionKind);
   const trimmed = (newName || '').trim();
   if (!trimmed) {
     // Leerer Name: bei "Neuer Ordner" entfernen, sonst Aenderung verwerfen.
@@ -987,32 +1441,43 @@ export async function commitInlineEdit(id, newName) {
     for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
     return;
   }
-  const tree = cloneBookmarksTree();
+  const tree = cloneSectionTree(sec);
   const loc = findNodeLocation(tree, id);
   if (loc) {
     const node = loc.container[loc.index];
     if (node.type === 'folder') node.name = trimmed;
     else node.displayName = trimmed;
   }
-  state.bookmarks.tree = tree;
+  sec.setTree(tree);
   state.bookmarks.editingId = null;
   state.bookmarks.editingIsNew = false;
-  await persistBookmarksTree();
+  if (sec.isArea) {
+    const res = await persistAreaBookmarksTree();
+    if (!res.ok) await loadAreaBookmarks();
+  } else {
+    await persistBookmarksTree();
+  }
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   updateBookmarksToggleButton();
 }
 
 export async function cancelInlineEdit() {
+  const sec = bookmarkSection(state.bookmarks.editingSectionKind);
   const id = state.bookmarks.editingId;
   const wasNew = state.bookmarks.editingIsNew;
   state.bookmarks.editingId = null;
   state.bookmarks.editingIsNew = false;
   if (wasNew && id) {
     // "Neuer Ordner" abgebrochen -> Knoten wieder loeschen.
-    const tree = cloneBookmarksTree();
+    const tree = cloneSectionTree(sec);
     if (removeNodeById(tree, id)) {
-      state.bookmarks.tree = tree;
-      await persistBookmarksTree();
+      sec.setTree(tree);
+      if (sec.isArea) {
+        const res = await persistAreaBookmarksTree();
+        if (!res.ok) await loadAreaBookmarks();
+      } else {
+        await persistBookmarksTree();
+      }
     }
   }
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
@@ -1020,23 +1485,24 @@ export async function cancelInlineEdit() {
 }
 
 // 4T-0078: "Entfernen" mit Bestaetigung bei nicht-leerem Folder.
-export async function removeNodeWithConfirm(id) {
-  const loc = findNodeLocation(state.bookmarks.tree, id);
+export async function removeNodeWithConfirm(id, section) {
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  const loc = findNodeLocation(sec.getTree(), id);
   if (!loc) return;
   const node = loc.container[loc.index];
   if (node.type === 'folder') {
     const counts = countFolderContents(node);
     if (counts.files > 0 || counts.folders > 0) {
-      openBookmarkConfirmRemoveDialog(node, counts);
+      openBookmarkConfirmRemoveDialog(node, counts, sec);
       return;
     }
   }
   // Leerer Folder oder File: direkt entfernen.
-  await removeBookmark(id);
+  await removeBookmark(id, sec);
 }
 
 // === Bestaetigungs-Dialog beim Folder-Entfernen ============================
-export function openBookmarkConfirmRemoveDialog(node, counts) {
+export function openBookmarkConfirmRemoveDialog(node, counts, section) {
   const modal = document.getElementById('bookmark-confirm-remove-modal');
   if (!modal) return;
   const msg = document.getElementById('bookmark-confirm-remove-message');
@@ -1047,6 +1513,8 @@ export function openBookmarkConfirmRemoveDialog(node, counts) {
       .replace('{subcount}', String(counts.folders));
   }
   modal.dataset.targetId = node.id;
+  // 4T-0612: Abschnitt merken, damit die Bestaetigung im richtigen Baum loescht.
+  modal.dataset.section = (section || bookmarkSection(SECTION_GENERAL)).kind;
   modal.hidden = false;
   const okBtn = document.getElementById('btn-bookmark-confirm-remove-ok');
   if (okBtn) okBtn.focus();
@@ -1057,6 +1525,7 @@ export function closeBookmarkConfirmRemoveDialog() {
   if (modal) {
     modal.hidden = true;
     delete modal.dataset.targetId;
+    delete modal.dataset.section;
   }
 }
 
@@ -1064,20 +1533,30 @@ export async function confirmBookmarkConfirmRemove() {
   const modal = document.getElementById('bookmark-confirm-remove-modal');
   if (!modal) return;
   const id = modal.dataset.targetId;
+  const sec = bookmarkSection(modal.dataset.section || SECTION_GENERAL);
   closeBookmarkConfirmRemoveDialog();
-  if (id) await removeBookmark(id);
+  if (id) await removeBookmark(id, sec);
 }
 
 // === Modal-Picker "In Ordner verschieben..." ===============================
-export function openBookmarkMoveDialog(sourceId) {
-  const loc = findNodeLocation(state.bookmarks.tree, sourceId);
+// 4T-0612: das Verschieben bleibt innerhalb DESSELBEN Abschnitts (der Picker
+// listet nur Ordner dieses Abschnitts). Ein Wechsel zwischen den Abschnitten
+// laeuft ueber "umwandeln".
+export function openBookmarkMoveDialog(sourceId, section) {
+  const sec = section || bookmarkSection(SECTION_GENERAL);
+  const loc = findNodeLocation(sec.getTree(), sourceId);
   if (!loc) return;
   const node = loc.container[loc.index];
   // Bei Folder: Zyklus-Schutz - Source und alle Nachfahren als Ziel sperren.
   // Bei Bookmark: nur der eigene Parent ist sinnlos (No-Op), aber wir
   // erlauben den Klick und filtern beim Verschieben (No-Op).
   const blockedIds = node.type === 'folder' ? collectSubtreeIds(node) : new Set();
-  state.bookmarks.moveDialog = { sourceId, targetFolderId: null, blockedIds };
+  state.bookmarks.moveDialog = {
+    sourceId,
+    targetFolderId: null,
+    blockedIds,
+    sectionKind: sec.kind,
+  };
   const modal = document.getElementById('bookmark-move-modal');
   if (!modal) return;
   // Source-Anzeige.
@@ -1099,7 +1578,12 @@ export function openBookmarkMoveDialog(sourceId) {
 export function closeBookmarkMoveDialog() {
   const modal = document.getElementById('bookmark-move-modal');
   if (modal) modal.hidden = true;
-  state.bookmarks.moveDialog = { sourceId: null, targetFolderId: null, blockedIds: null };
+  state.bookmarks.moveDialog = {
+    sourceId: null,
+    targetFolderId: null,
+    blockedIds: null,
+    sectionKind: 'general',
+  };
 }
 
 // S-11 (4T-0188): gemeinsame Zielwahl fuer Klick UND Tastatur (Enter/
@@ -1121,6 +1605,7 @@ function selectBookmarkMoveTarget(folderId) {
 export function renderBookmarkMoveTree() {
   const container = document.getElementById('bookmark-move-tree');
   if (!container) return;
+  const sec = bookmarkSection(state.bookmarks.moveDialog.sectionKind || SECTION_GENERAL);
   container.innerHTML = '';
   const bindRowActivation = (row, folderId) => {
     row.tabIndex = 0;
@@ -1140,7 +1625,7 @@ export function renderBookmarkMoveTree() {
   bindRowActivation(rootRow, null);
   if (state.bookmarks.moveDialog.targetFolderId === null) rootRow.classList.add('is-selected');
   container.appendChild(rootRow);
-  // Alle Folder-Knoten rekursiv listen.
+  // Alle Folder-Knoten des Abschnitts rekursiv listen.
   function walk(nodes, depth) {
     for (const n of nodes) {
       if (n.type !== 'folder') continue;
@@ -1165,7 +1650,7 @@ export function renderBookmarkMoveTree() {
       if (Array.isArray(n.children)) walk(n.children, depth + 1);
     }
   }
-  walk(state.bookmarks.tree, 0);
+  walk(sec.getTree(), 0);
 }
 
 export function updateBookmarkMoveConfirmButton() {
@@ -1178,7 +1663,8 @@ export function updateBookmarkMoveConfirmButton() {
     btn.disabled = true;
     return;
   }
-  const loc = findNodeLocation(state.bookmarks.tree, sourceId);
+  const sec = bookmarkSection(state.bookmarks.moveDialog.sectionKind || SECTION_GENERAL);
+  const loc = findNodeLocation(sec.getTree(), sourceId);
   if (!loc) {
     btn.disabled = true;
     return;
@@ -1189,9 +1675,10 @@ export function updateBookmarkMoveConfirmButton() {
 
 export async function confirmBookmarkMove() {
   const { sourceId, targetFolderId } = state.bookmarks.moveDialog;
+  const sec = bookmarkSection(state.bookmarks.moveDialog.sectionKind || SECTION_GENERAL);
   closeBookmarkMoveDialog();
   if (!sourceId) return;
-  const tree = cloneBookmarksTree();
+  const tree = cloneSectionTree(sec);
   const loc = findNodeLocation(tree, sourceId);
   if (!loc) return;
   const node = loc.container.splice(loc.index, 1)[0];
@@ -1211,8 +1698,13 @@ export async function confirmBookmarkMove() {
       target.expanded = true;
     }
   }
-  state.bookmarks.tree = tree;
-  await persistBookmarksTree();
+  sec.setTree(tree);
+  if (sec.isArea) {
+    const res = await persistAreaBookmarksTree();
+    if (!res.ok) await loadAreaBookmarks();
+  } else {
+    await persistBookmarksTree();
+  }
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   updateBookmarksToggleButton();
 }
@@ -1225,12 +1717,12 @@ export function applyBookmarksVisibility(paneIdx) {
   // 4T-0330 (PO-Testbefund): der Statusbar-Schalter gilt dabei auch im
   // Empty-State — eine ausgeschaltete Sektion wird nicht mehr erzwungen
   // eingeblendet (der fruehere Override zeigte sie am Schalter vorbei).
+  // 4T-0612: "hat Lesezeichen" umfasst beide Abschnitte.
   const allEmpty = isAllEmpty();
-  const hasBookmarks = Array.isArray(state.bookmarks.tree) && state.bookmarks.tree.length > 0;
   const visible =
     isExtensionActive('bookmarks') &&
     !!state.bookmarks.visibleByPane[paneIdx] &&
-    (!allEmpty || hasBookmarks);
+    (!allEmpty || hasAnyBookmarks());
   els.bookmarksSection.hidden = !visible;
   applySidebarVisibility(paneIdx);
   if (visible) renderBookmarks(paneIdx);
@@ -1243,10 +1735,9 @@ export function updateBookmarksToggleButton() {
   const visible = !!state.bookmarks.visibleByPane[state.activePaneIndex];
   btn.classList.toggle('active', visible);
   btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
-  // .is-marked = aktive Datei ist als Bookmark gespeichert.
-  const tab = activeTab();
-  const marked = !!(tab && tab.path && findBookmarkByPath(state.bookmarks.tree, tab.path));
-  btn.classList.toggle('is-marked', marked);
+  // .is-marked = aktive Datei ist als Bookmark gespeichert (in irgendeinem
+  // Abschnitt).
+  btn.classList.toggle('is-marked', isActiveFileBookmarked());
 }
 
 export async function toggleBookmarksPanel(paneIdx) {
@@ -1293,7 +1784,7 @@ export async function openOrJumpToPath(targetPath, lineNumber) {
 // === 4T-0287 (Epic 3E-0051): Panel-Registrierung =============================
 // getVisible spiegelt die effektive Sichtbarkeits-Logik aus
 // applyBookmarksVisibility: im Empty-State erzwungen sichtbar, sobald
-// mindestens ein Bookmark existiert (4T-0075).
+// mindestens ein Bookmark existiert (4T-0075). 4T-0612: beide Abschnitte.
 
 registerSidebarPanel({
   id: 'bookmarks',
@@ -1304,12 +1795,23 @@ registerSidebarPanel({
     if (!isExtensionActive('bookmarks')) return false;
     // 4T-0330 (PO-Testbefund): Schalter gilt auch im Empty-State (siehe
     // applyBookmarksVisibility).
-    const hasBookmarks = Array.isArray(state.bookmarks.tree) && state.bookmarks.tree.length > 0;
-    return !!state.bookmarks.visibleByPane[paneIdx] && (!isAllEmpty() || hasBookmarks);
+    return !!state.bookmarks.visibleByPane[paneIdx] && (!isAllEmpty() || hasAnyBookmarks());
   },
   applyVisibility: applyBookmarksVisibility,
   toggle: toggleBookmarksPanel,
 });
+
+// 4T-0612 (Epic 3E-0115): Mehr-Fenster-Konsistenz. Schreibt ein anderes Fenster
+// desselben Bereichs die bookmarks-Sektion, laedt dieses Fenster den Bereichs-
+// Baum neu (Filter auf die eigene Bereichs-Wurzel; der Broadcast geht an alle
+// Fenster). Der eigene Schreibvorgang loest den Broadcast ebenfalls aus; das
+// Neuladen ist dann idempotent.
+if (typeof api.onBookmarksChanged === 'function') {
+  api.onBookmarksChanged((payload) => {
+    if (!payload || payload.rootPath !== state.areaPath) return;
+    void loadAreaBookmarks();
+  });
+}
 
 export function placeCursorAtLine(paneIdx, lineNumber) {
   const view = paneEditors[paneIdx];

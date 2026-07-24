@@ -2303,13 +2303,32 @@ body.panel-dragging .pane-sidebar[hidden] {
   flex: 1 1 auto;
   min-height: 100px;
 }
-.bookmarks-empty {
+.bookmarks-empty,
+.bookmarks-area-empty {
   padding: 12px 14px;
   font-size: 12px;
   color: var(--fg-muted);
   font-style: italic;
 }
-.bookmarks-empty[hidden] {
+.bookmarks-empty[hidden],
+.bookmarks-area-empty[hidden] {
+  display: none;
+}
+/* 4T-0612 (Epic 3E-0115): Abschnitts-Gruppen und ihre Koepfe. Die Koepfe
+   erscheinen nur bei geoeffnetem Bereich (Renderer setzt hidden), damit das
+   Panel ohne Bereich wie bisher als ein einziger Abschnitt wirkt. */
+.bookmarks-group[hidden] {
+  display: none;
+}
+.bookmarks-group-head {
+  padding: 6px 10px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.bookmarks-group-head[hidden] {
   display: none;
 }
 .bookmarks-tree {
@@ -2409,7 +2428,10 @@ body.panel-dragging .pane-sidebar[hidden] {
   outline-offset: -1px;
   background: var(--hover);
 }
-.sidebar-bookmarks.is-drop-root .sidebar-section-body {
+/* 4T-0612 (Epic 3E-0115): Root-Drop-Indikator pro Abschnitt (der Drop legt am
+   Ende der Wurzel des jeweiligen Abschnitts ab; Drag-and-Drop bleibt strikt
+   innerhalb des eigenen Abschnitts). */
+.bookmarks-group.is-drop-root {
   box-shadow: inset 0 -2px 0 0 var(--accent);
 }
 .bookmark-row[draggable='true'] {

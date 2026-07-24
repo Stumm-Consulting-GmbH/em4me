@@ -191,8 +191,10 @@ import {
   confirmBookmarkConfirmRemove,
   confirmBookmarkMove,
   handleBookmarkDragEnd,
+  loadAreaBookmarks,
   loadBookmarksSettings,
   loadBookmarksTree,
+  reloadGeneralBookmarksTree,
   toggleBookmarksPanel,
   updateBookmarksToggleButton,
 } from './bookmarks.js';
@@ -446,6 +448,10 @@ api.onWindowDisplayInfo((info) => {
   // baut die Bereichs-Panels frisch auf.
   if (prevAreaPath !== state.areaPath) {
     refreshAreaPanels();
+    // 4T-0612 (Epic 3E-0115): Bereichs-Lesezeichen sind bereichs-gebunden und
+    // ziehen beim Binding-Wechsel nach (Bereichs-Abschnitt neu laden bzw.
+    // ausblenden).
+    void loadAreaBookmarks();
     // 4T-0434 (Epic 3E-0081): der Kalender haengt an der Journal-
     // Konfiguration des Bereichs und zieht mit.
     refreshCalendarPanels();
@@ -582,6 +588,18 @@ api.onTasksConfigChanged((stored) => {
   if (!initDone) return;
   applyTasksConfig(stored);
 });
+
+// 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Broadcast des globalen
+// (allgemeinen) Lesezeichen-Baums aus einem anderen Fenster — den frischen Baum
+// uebernehmen und den allgemeinen Abschnitt neu rendern. Der Main verteilt ohne
+// das ausloesende Fenster; vor initDone eintreffende Broadcasts ignorieren, weil
+// init() den Baum ohnehin frisch aus dem Store laedt (loadBookmarksTree).
+if (typeof api.onBookmarksTreeChanged === 'function') {
+  api.onBookmarksTreeChanged((tree) => {
+    if (!initDone) return;
+    reloadGeneralBookmarksTree(tree);
+  });
+}
 
 // 4T-0284: Frontmatter-Anzeige-Broadcast (auch das ausloesende Fenster
 // empfaengt ihn — applyFrontmatterDisplay ist idempotent).
@@ -1655,6 +1673,10 @@ export async function init() {
   // 4T-0075: Bookmark-Baum und Sektions-Sichtbarkeit aus den Settings laden.
   await loadBookmarksTree();
   await loadBookmarksSettings();
+  // 4T-0612 (Epic 3E-0115): Bereichs-Lesezeichen aus der Bereichsdatei laden
+  // (leer ohne Bereich; der Bereichs-Wechsel zieht ueber onWindowDisplayInfo
+  // nach).
+  await loadAreaBookmarks();
   // 4T-0051: Properties-Sichtbarkeit pro Spalte aus den Settings laden.
   await loadPropertiesSettings();
   // 4T-0056: Tag-Sichtbarkeit pro Spalte aus den Settings laden.
@@ -1795,6 +1817,15 @@ export async function init() {
   // Init ist durch — gepufferte Datei-Argumente vom kalten Start jetzt oeffnen,
   // und ab jetzt direkt verarbeiten statt zu puffern.
   initDone = true;
+  // 4T-0614 (Epic 3E-0115): ehrliches Bereitschafts-Signal fuer E2E-Tests.
+  // bindUi() bindet die Statusbar-Toggle-Klicks (u.a. #btn-bookmarks) erst hier
+  // im init()-Verlauf, waehrend applyPanelButtonOrder() die Panel-Buttons schon
+  // deutlich frueher umsortiert. Der bisherige E2E-Marker (erster Panel-Button)
+  // ist damit kein verlaesslicher Beleg mehr, dass init() vollstaendig durch ist
+  // und die Buttons klickbar sind. Dieses Attribut steht erst nach initDone und
+  // nach bindUi(); Tests, die unmittelbar nach dem Fenster-Start klicken oder
+  // tippen, warten darauf. Fuer den Produktivbetrieb ohne Wirkung.
+  document.body.setAttribute('data-renderer-ready', '1');
   if (pendingExternalFiles.length > 0) {
     const files = pendingExternalFiles.splice(0);
     await openInPane(state.activePaneIndex, files);

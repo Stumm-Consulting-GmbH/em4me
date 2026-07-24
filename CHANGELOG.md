@@ -9,6 +9,25 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.91.0.926] - 2026-07-24 — Bereichs-Lesezeichen
+
+Epic 3E-0115 (Bereichs-Lesezeichen): Das Lesezeichen-Panel ist zweigeteilt. Neben den allgemeinen Lesezeichen führt es Bereichs-Lesezeichen, die zum gerade geöffneten Bereich gehören, in dessen `Area_Settings.mdda` gespeichert sind und ihre Ziele wurzel-relativ ablegen, sodass ein Verschieben des Bereichs-Ordners sie nicht bricht. Aus den Test-Runden kamen zwei davon unabhängige Bestands-Lücken hinzu, die im selben Epic behoben sind.
+
+### Neu
+
+- **Bereichs-Lesezeichen im geteilten Panel** (4T-0611, 4T-0612): Das Lesezeichen-Panel ist in zwei Abschnitte zerlegt, „Bereichs-Lesezeichen" und „Lesezeichen". Der Bereichs-Abschnitt und die Abschnitts-Köpfe erscheinen nur bei geöffnetem Bereich; ohne Bereich bleibt das gewohnte Ein-Abschnitts-Bild. Bereichs-Lesezeichen liegen in der Bereichs-Datei `Area_Settings.mdda` (Sektion `settings.bookmarks`) und speichern ihre Ziele wurzel-relativ zur Bereichs-Wurzel, sodass ein Verschieben des Bereichs-Ordners die Lesezeichen nicht bricht; Ziele außerhalb des Bereichs werden abgelehnt. Das prozess-neutrale `src/shared/bookmark-tree.js` und die IPC-Brücken (`bookmarks:getConfig`/`bookmarks:setAreaConfig`) tragen die Relativierung und die Grenz-Prüfung.
+- **Anlegen und Umwandeln** (4T-0612): Bei geöffnetem Bereich und einer Datei innerhalb erscheint bei `Strg+D` ein Ziel-Wahl-Menü „Allgemeines Lesezeichen" / „Bereichs-Lesezeichen", oben bei der Menüleiste verankert; außerhalb oder ohne Bereich wird ohne Nachfrage allgemein angelegt. Zusätzlich legen das Kontextmenü der Datei-Zeile im Bereichs-Panel und das Tab-Kontextmenü ein Bereichs-Lesezeichen direkt an. Ein bestehendes Lesezeichen lässt sich über sein Kontextmenü in beide Richtungen umwandeln, auch ein Ordner mit seinem Unterbaum; ein Ziel außerhalb des Bereichs lehnt den ganzen Vorgang ab.
+- **Reihenfolge, Rename-Nachzug und Mehr-Fenster-Abgleich** (4T-0612): Eine Einstellung „Bereichs-Lesezeichen oben" im Bereich „Verhalten" bestimmt, ob der Bereichs-Abschnitt über oder unter den allgemeinen Lesezeichen steht; sie ist standardmäßig an und wirkt sofort. Drag-and-Drop ordnet strikt innerhalb eines Abschnitts, ohne Wechsel über die Grenze. Das Umbenennen von Dateien und Ordnern innerhalb des Bereichs zieht die relativen Ziele nach, und mehrere Fenster gleichen ihre Bereichs-Lesezeichen über den Broadcast `bookmarks:changed` ab.
+
+### Behoben
+
+- **Allgemeine Lesezeichen glichen sich nicht zwischen Fenstern ab** (4T-0612): Der globale Lesezeichen-Baum wird über `settings:set` im Einstellungs-Store abgelegt, dessen Broadcast an andere Fenster den Schlüssel `bookmarksTree` bisher nicht mitführte. Ein in einem Fenster gesetztes allgemeines Lesezeichen erschien deshalb in anderen offenen Fenstern nicht. Der `settings:set`-Handler sendet den neuen Baum jetzt als `bookmarksTree:changed` an die übrigen Fenster, die ihn übernehmen und den allgemeinen Abschnitt neu zeichnen. Bestands-Lücke, durch das zweigeteilte Panel sichtbar geworden.
+- **Bereichs-Panel baute seine Ordner-Liste sporadisch doppelt** (4T-0612): `renderAreaPanel` leerte den Baum-Container früh, hängte die Zeilen aber über mehrere `await`-Punkte hinweg an. Zwei überlappende Läufe derselben Pane beim Fenster-Start, Bereichs-Wechsel-Push und Start-Sequenz, bauten so beide ihre Zeilen an, und die Ordner-Struktur erschien doppelt. Der Aufbau läuft jetzt atomar: Jeder Lauf baut Baum und Dateiliste in ein losgelöstes `DocumentFragment` und setzt es nach einer Token-Prüfung in einem Zug ein, ein überholter Lauf verwirft sein Ergebnis. Latente Renn-Bedingung seit Einführung des Bereichs-Panels.
+
+### Dokumentation
+
+- **Funktions-Katalog und Handbuch** (4T-0613): vier neue i18n-Keys in allen fünf Sprachen (der Katalog-Eintrag „Bereichs-Lesezeichen" mit Beschreibung, Kurzname und Zugang in der Gruppe Navigation sowie der Titel der neuen Handbuch-Seite) und eine neue Handbuch-Seite „Lesezeichen" in fünf Sprachfassungen, die allgemeine und bereichsgebundene Lesezeichen erklärt und in der Überblicksseite verlinkt ist. Die Demo-Umgebung bleibt unverändert, weil Bereichs-Lesezeichen ein reines Bedien-Feature der Oberfläche ohne Dokument-Syntax sind.
+
 ## [0.90.0.914] - 2026-07-24 — Das Handbuch im Web
 
 Epic 3E-0137 (Handbuch im Web): Das vollständige App-Handbuch erscheint zusätzlich als statische Web-Fassung auf der Produkt-Webseite unter `/manual/` (Englisch an der Wurzel, DE/FR/ES/IT als Sprach-Ordner), in allen fünf Sprachen und über dieselbe Markdown-Pipeline gerendert wie in der Anwendung. Die App-Seite bleibt unverändert; der Web-Bau erzeugt die Fassung bei jedem `npm run web:build` mit.

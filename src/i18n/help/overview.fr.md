@@ -36,6 +36,7 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 - [Modèles](templates.md) — appliquer des modèles Markdown : dossier de modèles avec priorité de zone, espaces réservés avec dialogues, cible du curseur, règles de dossier.
 - [Journaux](journals.md) — documents périodiques par zone : étagères et granularités, schémas de dossier et de nom, panneau calendrier, bloc de navigation, propriétés de date automatiques.
 - [Barre latérale](sidebar.md) — organiser les panneaux : côté, ordre, groupes d'onglets, largeurs.
+- [Signets](bookmarks.md) — mémoriser des fichiers en deux sections : signets généraux et de zone avec chemins relatifs, création, conversion, ordre.
 - [Jeux de couleurs](color-schemes.md) — couleurs via des emplacements nommés : affectation par mode, jeux personnels comme copies, aperçu en direct, limites.
 - [Applications, fenêtres et zones](apps-windows.md) — démarrage multiple, gestion des fenêtres et systématique des titres.
 - [Historique du document](history.md) — enregistrer les modifications : fichier compagnon Markdown-Data, réglages sur trois niveaux, comparer et restaurer des révisions.

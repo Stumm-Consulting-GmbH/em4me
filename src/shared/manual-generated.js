@@ -332,6 +332,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0075/4T-0078/4T-0079 (Epic 3E-0013): Lesezeichen-Sidebar mit
       // Tree-Struktur, Ordnern und Drag-and-Drop.
       'help.feature.bookmarks',
+      // 4T-0613 (Epic 3E-0115): Bereichs-Lesezeichen direkt hinter den
+      // allgemeinen Lesezeichen (zweiter Abschnitt desselben Panels).
+      'help.feature.areaBookmarks',
     ],
   },
   {

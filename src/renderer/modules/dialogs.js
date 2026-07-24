@@ -36,6 +36,12 @@ import {
 } from './tab-groups.js';
 // 4T-0461: Gruppen-Menuepunkte entfallen bei deaktivierter Erweiterung.
 import { isExtensionActive } from './extension-lifecycle.js';
+// 4T-0612 (Epic 3E-0115): Lesezeichen direkt aus dem Tab-Kontextmenue anlegen.
+import {
+  addAreaBookmarkForPath,
+  addGeneralBookmarkForPath,
+  bookmarkTargetsForPath,
+} from './bookmarks.js';
 
 // --- Kontextmenü ------------------------------------------------------------
 export async function showTabContextMenu(event, paneIdx, tabIdx) {
@@ -107,6 +113,33 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
   const ctxTab = ctxPane ? ctxPane.tabs[tabIdx] : null;
   if (ctxTab && ctxTab.path && !ctxTab.manualPage && !ctxTab.systemPage) {
     items.push({ key: 'tab.rename', action: () => renameFileForTab(paneIdx, tabIdx) });
+  }
+  // 4T-0612 (Epic 3E-0115): Lesezeichen aus dem Tab-Menue anlegen (nur Datei-
+  // Tabs, nur bei aktiver Lesezeichen-Erweiterung). Der Bereichs-Eintrag
+  // erscheint nur bei geoeffnetem Bereich und Datei innerhalb; bereits
+  // gemerkte Ziele blenden ihren Eintrag aus.
+  if (
+    isExtensionActive('bookmarks') &&
+    ctxTab &&
+    ctxTab.path &&
+    !ctxTab.manualPage &&
+    !ctxTab.systemPage
+  ) {
+    const targets = bookmarkTargetsForPath(ctxTab.path);
+    if (targets.general) {
+      items.push({
+        key: 'bookmarks.addAsGeneral',
+        dataId: 'tab-bookmark-general',
+        action: () => addGeneralBookmarkForPath(ctxTab.path),
+      });
+    }
+    if (targets.insideArea && targets.area) {
+      items.push({
+        key: 'bookmarks.addAsArea',
+        dataId: 'tab-bookmark-area',
+        action: () => addAreaBookmarkForPath(ctxTab.path),
+      });
+    }
   }
   // 4T-0461 (Epic 3E-0085): Gruppen-Verwaltung — neue Gruppe, Beitritt zu
   // bestehenden Gruppen der Leiste (Untermenue), Austritt. Entfaellt bei

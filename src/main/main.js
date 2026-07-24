@@ -150,6 +150,11 @@ const {
 // 4T-0625 (Epic 3E-0119): Bereichs-Varianten der Sidebar — tolerante
 // Normalisierung der sidebarLayouts-Sektion (prozess-neutral, unit-getestet).
 const { normalizeSidebarVariantList } = require('../shared/sidebar-variants');
+// 4T-0611 (Epic 3E-0115): Bereichs-Lesezeichen — tolerante Sanitisierung des
+// Lesezeichen-Baums (wurzel-relative Ziele) und Sammeln der Roh-Ziel-Pfade
+// fuer die Grenz-Pruefung (prozess-neutral, unit-getestet; die harte
+// Bereichs-Grenze zieht der Handler zusaetzlich ueber isInsideArea).
+const { normalizeBookmarksTree, collectBookmarkFilePaths } = require('../shared/bookmark-tree');
 // 4T-0515 (Epic 3E-0092): Ereignis-Aggregation — Profil-Name der
 // Grundmenge und Frontmatter-Rueckschreiben in nicht geoeffnete Dateien.
 const { EVENT_PROFILE_NAME, injectEventProfile } = require('../shared/events-core');
@@ -395,6 +400,25 @@ async function readAreaSidebarVariantsConfig(rootPath) {
   const parsed = mddStore.parseSettingsContainer(raw);
   if (!parsed.ok) return undefined;
   return parsed.container.settings.sidebarLayouts;
+}
+
+// 4T-0611 (Epic 3E-0115): bookmarks-Sektion der Bereichsdatei lesen
+// (Bereichs-Lesezeichen). undefined = keine Sektion oder Bereichsdatei
+// fehlt/ist defekt (wirkt wie keine Bereichs-Lesezeichen); die
+// Sanitisierung uebernimmt normalizeBookmarksTree. Gleicher Migrations-
+// Lese-Pfad wie die uebrigen Sektionen.
+async function readAreaBookmarksConfig(rootPath) {
+  const raw = await readAreaSettingsRaw({
+    mddaPath: path.join(rootPath, mddStore.MDDA_FILENAME),
+    mddbPath: path.join(rootPath, mddStore.LEGACY_MDDB_FILENAME),
+    readFile: (p) => fs.readFile(p, 'utf8'),
+    rename: (from, to) => fs.rename(from, to),
+    markSelfWriting,
+  });
+  if (raw === undefined) return undefined;
+  const parsed = mddStore.parseSettingsContainer(raw);
+  if (!parsed.ok) return undefined;
+  return parsed.container.settings.bookmarks;
 }
 
 // 4T-0424: wirksame Vorlagen-Konfiguration eines Fensters. Bereichs-Sektion
@@ -2504,6 +2528,20 @@ function registerIpc() {
     if (key === 'taskStates') {
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed()) w.webContents.send('taskStates:changed', value);
+      }
+    }
+    // 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Der globale
+    // (allgemeine) Lesezeichen-Baum liegt im Store und erreichte andere Fenster
+    // bisher nicht — nur die BEREICHS-Lesezeichen synchronisierten ueber
+    // 'bookmarks:changed'. Den Wechsel jetzt an die uebrigen Fenster verteilen
+    // (Muster 'language:changed', ohne das ausloesende Fenster — das hat seinen
+    // Baum bereits im Speicher aktualisiert und gerendert). Der Empfangspfad
+    // uebernimmt den Baum und rendert den allgemeinen Abschnitt neu.
+    if (key === 'bookmarksTree') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed() && w.webContents !== event.sender) {
+          w.webContents.send('bookmarksTree:changed', value);
+        }
       }
     }
     // 4T-0498 (Epic 3E-0090): Aufgaben-Konfiguration (Global Filter,
@@ -4651,6 +4689,73 @@ function registerIpc() {
       markSelfWriting(mddaPath, serialized);
       await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
       broadcast('sidebarVariants:changed', { rootPath: area.rootPath });
+      return { ok: true, config: normalized };
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // --- 4T-0611 (Epic 3E-0115): Bereichs-Lesezeichen (bookmarks-Sektion) ------
+
+  // Lesezeichen-Baum des Bereichs, sanitisiert. Ohne Bereich liefert der
+  // Handler hasArea false und eine leere Liste; das Panel zeigt dann nur die
+  // globalen Lesezeichen (Sichtbarkeits-Regel des Epics). Datei-Ziele sind
+  // wurzel-relativ und werden beim Oeffnen gegen die aktuelle Wurzel aufgeloest.
+  ipcMain.handle('bookmarks:getConfig', async (event) => {
+    const area = areaOfWindow(senderWindow(event));
+    const raw = area ? await readAreaBookmarksConfig(area.rootPath) : undefined;
+    return {
+      ok: true,
+      hasArea: !!area,
+      areaName: area ? area.name : null,
+      rootPath: area ? area.rootPath : null,
+      config: normalizeBookmarksTree(raw),
+    };
+  });
+
+  // bookmarks-Sektion der Bereichsdatei schreiben (config = Knoten-Liste) bzw.
+  // bei leerer Liste entfernen. Muster sidebarVariants:setAreaConfig: die
+  // Bereichsdatei entsteht erst beim ersten tatsaechlichen Setzen, eine defekte
+  // Bereichsdatei wird nie ueberschrieben, fremde Sektionen bleiben erhalten.
+  // Grenz-Regel (harte Bereichs-Grenze): jeder Datei-Knoten muss innerhalb der
+  // Bereichs-Wurzel liegen. Die Roh-Ziele werden gegen die Wurzel aufgeloest
+  // und ueber isInsideArea geprueft; ein Ziel ausserhalb (auch ein
+  // ausbrechendes '../x') bricht die Relativitaet des Bereichs-Baums und lehnt
+  // den GANZEN Schreibvorgang ab (Fehler-Kennung 'outside-area', kein stilles
+  // Verwerfen einzelner Knoten). Nach dem Schreiben geht 'bookmarks:changed' an
+  // alle Fenster (Payload rootPath; die Renderer desselben Bereichs ziehen das
+  // Panel nach).
+  ipcMain.handle('bookmarks:setAreaConfig', async (event, config) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    for (const rel of collectBookmarkFilePaths(config)) {
+      const abs = path.resolve(area.rootPath, rel);
+      if (!isInsideArea(area.rootPath, abs)) return { ok: false, error: 'outside-area' };
+    }
+    const mddaPath = path.join(area.rootPath, mddStore.MDDA_FILENAME);
+    try {
+      let container = mddStore.emptySettingsContainer();
+      let raw = null;
+      try {
+        raw = await fs.readFile(mddaPath, 'utf8');
+      } catch (err) {
+        if (err && err.code !== 'ENOENT') throw err;
+      }
+      if (raw !== null) {
+        const parsed = mddStore.parseSettingsContainer(raw);
+        if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
+        container = parsed.container;
+      }
+      const normalized = normalizeBookmarksTree(config);
+      if (normalized.length > 0) container.settings.bookmarks = normalized;
+      else delete container.settings.bookmarks;
+      if (raw === null && normalized.length === 0) {
+        return { ok: true, config: [] }; // nichts gesetzt und keine Datei: nichts anzulegen
+      }
+      const serialized = mddStore.serializeContainer(container);
+      markSelfWriting(mddaPath, serialized);
+      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      broadcast('bookmarks:changed', { rootPath: area.rootPath });
       return { ok: true, config: normalized };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };

@@ -36,6 +36,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Templates](templates.md) — applying Markdown templates: templates folder with area override, placeholders with dialogs, cursor target, folder rules.
 - [Journals](journals.md) — periodic documents per area: shelves and granularities, folder and name patterns, calendar panel, navigation block, automatic date properties.
 - [Sidebar](sidebar.md) — arranging panels: side, order, tab groups, widths.
+- [Bookmarks](bookmarks.md) — keeping files in two sections: general and area-bound bookmarks with relative paths, adding, converting, order.
 - [Color schemes](color-schemes.md) — colors via named slots: mode assignment, own schemes as copies, live preview, limits.
 - [Applications, windows and areas](apps-windows.md) — multiple starts, window management and the title system.
 - [Document history](history.md) — recording changes: Markdown data companion file, switches on three levels, comparing and restoring revisions.

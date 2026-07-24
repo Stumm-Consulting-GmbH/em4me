@@ -204,10 +204,30 @@
                 <h2 class="sidebar-section-title" data-i18n="bookmarks.title">Lesezeichen</h2>
               </header>
               <div class="sidebar-section-body">
-                <div class="bookmarks-empty" data-i18n="bookmarks.empty">
-                  Keine Lesezeichen. Lege eines mit Strg+D an.
+                <!-- 4T-0612 (Epic 3E-0115): zweigeteilter Aufbau — Bereichs-
+                     Abschnitt (nur bei geoeffnetem Bereich sichtbar) und
+                     allgemeiner Abschnitt. Die Abschnitts-Koepfe erscheinen
+                     nur bei geoeffnetem Bereich; ohne Bereich bleibt das
+                     gewohnte Bild eines einzigen Abschnitts. Reihenfolge und
+                     Sichtbarkeit steuert der Renderer (bookmarks.js). -->
+                <div class="bookmarks-group bookmarks-group-area" hidden>
+                  <div class="bookmarks-group-head" data-i18n="bookmarks.section.area">
+                    Bereichs-Lesezeichen
+                  </div>
+                  <div class="bookmarks-area-empty" data-i18n="bookmarks.areaEmpty" hidden>
+                    Noch keine Bereichs-Lesezeichen.
+                  </div>
+                  <ul class="bookmarks-area-tree"></ul>
                 </div>
-                <ul class="bookmarks-tree"></ul>
+                <div class="bookmarks-group bookmarks-group-general">
+                  <div class="bookmarks-group-head" data-i18n="bookmarks.section.general" hidden>
+                    Lesezeichen
+                  </div>
+                  <div class="bookmarks-empty" data-i18n="bookmarks.empty">
+                    Keine Lesezeichen. Lege eines mit Strg+D an.
+                  </div>
+                  <ul class="bookmarks-tree"></ul>
+                </div>
               </div>
             </section>
             <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum des
@@ -618,10 +638,30 @@
                 <h2 class="sidebar-section-title" data-i18n="bookmarks.title">Lesezeichen</h2>
               </header>
               <div class="sidebar-section-body">
-                <div class="bookmarks-empty" data-i18n="bookmarks.empty">
-                  Keine Lesezeichen. Lege eines mit Strg+D an.
+                <!-- 4T-0612 (Epic 3E-0115): zweigeteilter Aufbau — Bereichs-
+                     Abschnitt (nur bei geoeffnetem Bereich sichtbar) und
+                     allgemeiner Abschnitt. Die Abschnitts-Koepfe erscheinen
+                     nur bei geoeffnetem Bereich; ohne Bereich bleibt das
+                     gewohnte Bild eines einzigen Abschnitts. Reihenfolge und
+                     Sichtbarkeit steuert der Renderer (bookmarks.js). -->
+                <div class="bookmarks-group bookmarks-group-area" hidden>
+                  <div class="bookmarks-group-head" data-i18n="bookmarks.section.area">
+                    Bereichs-Lesezeichen
+                  </div>
+                  <div class="bookmarks-area-empty" data-i18n="bookmarks.areaEmpty" hidden>
+                    Noch keine Bereichs-Lesezeichen.
+                  </div>
+                  <ul class="bookmarks-area-tree"></ul>
                 </div>
-                <ul class="bookmarks-tree"></ul>
+                <div class="bookmarks-group bookmarks-group-general">
+                  <div class="bookmarks-group-head" data-i18n="bookmarks.section.general" hidden>
+                    Lesezeichen
+                  </div>
+                  <div class="bookmarks-empty" data-i18n="bookmarks.empty">
+                    Keine Lesezeichen. Lege eines mit Strg+D an.
+                  </div>
+                  <ul class="bookmarks-tree"></ul>
+                </div>
               </div>
             </section>
             <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum des

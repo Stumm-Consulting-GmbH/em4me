@@ -26,6 +26,9 @@ import { openCreatedFileWithRule } from './templates.js';
 import { openAreaGraphTab } from './graph-tab.js';
 import { hideContextMenu, placeContextMenuAt } from './dialogs.js';
 import { isExtensionActive } from './extension-lifecycle.js';
+// 4T-0612 (Epic 3E-0115): "Als Bereichs-Lesezeichen" im Kontextmenue der
+// Datei-Zeilen des Bereichs-Panels (Dateien liegen per Definition im Bereich).
+import { addAreaBookmarkForPath } from './bookmarks.js';
 
 // Listing-Cache pro Ordner-Pfad ({ dirs, files }). Wird beim Bereichs-
 // Wechsel und bei Watcher-Ereignissen (4T-0328) verworfen.
@@ -130,15 +133,19 @@ async function renderDirInto(container, paneIdx, dirPath, name, depth) {
   }
 }
 
-async function renderFilesInto(container, paneIdx, dirPath) {
+// 4T-0612 (Epic 3E-0115, PO-Testbefund): Dateiliste eines Ordners in ein
+// losgeloestes Fragment bauen statt direkt in den Live-Container zu haengen.
+// Der Aufrufer (renderAreaPanel) setzt das Fragment token-geschuetzt ein, damit
+// ueberlappende Render-Laeufe sich nicht ins Gehege kommen.
+async function buildFilesFragment(paneIdx, dirPath) {
   const listing = await ensureListing(dirPath);
-  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
   if (listing.files.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'area-files-empty';
     empty.textContent = t('areaPanel.filesEmpty');
-    container.appendChild(empty);
-    return;
+    frag.appendChild(empty);
+    return frag;
   }
   for (const name of listing.files) {
     const full = joinPath(dirPath, name);
@@ -149,8 +156,74 @@ async function renderFilesInto(container, paneIdx, dirPath) {
     row.addEventListener('click', () => {
       openInPane(paneIdx, [full]);
     });
-    container.appendChild(row);
+    // 4T-0612 (Epic 3E-0115): Rechtsklick auf eine Datei-Zeile bietet "Als
+    // Bereichs-Lesezeichen" an (nur bei aktiver Lesezeichen-Erweiterung).
+    row.addEventListener('contextmenu', (ev) => showAreaFileContextMenu(ev, full));
+    frag.appendChild(row);
   }
+  return frag;
+}
+
+// 4T-0455 (Epic 3E-0084): Panel-weite Kontextmenue-Eintraege des Bereichs-
+// Panels — derzeit der Einstieg zum Bereichs-Graph. Ausgelagert, weil sie
+// sowohl auf freier Panel-Flaeche (showAreaPanelContextMenu) als auch auf
+// Datei-Zeilen (showAreaFileContextMenu) erreichbar bleiben muessen.
+function areaPanelItemsAvailable() {
+  return !!state.areaPath && isExtensionActive('graph-view');
+}
+
+// Haengt die panel-weiten Eintraege an ein Kontextmenue an (No-op, wenn kein
+// Bereich gebunden ist oder die Graph-Erweiterung deaktiviert ist).
+function appendAreaPanelItems(menu) {
+  if (!areaPanelItemsAvailable()) return;
+  const item = document.createElement('div');
+  item.className = 'context-menu-item';
+  item.textContent = t('menu.view.areaGraph');
+  item.addEventListener('click', () => {
+    hideContextMenu();
+    openAreaGraphTab();
+  });
+  menu.appendChild(item);
+}
+
+// 4T-0612 (Epic 3E-0115): Kontextmenue einer Datei-Zeile im Bereichs-Panel.
+// Zeigt EIN kombiniertes Menue: oben der Datei-Eintrag "Als Bereichs-
+// Lesezeichen" (nur bei aktiver Lesezeichen-Erweiterung, die Datei liegt per
+// Definition im Bereich), darunter durch einen Trenner abgesetzt die panel-
+// weiten Eintraege (Bereichs-Graph). So bleiben die Panel-Eintraege auch auf
+// Datei-Zeilen erreichbar (Bestand vor 4T-0612; sonst fing das Datei-Menue
+// den Rechtsklick ab und verdeckte den Graph-Eintrag). Sind beide
+// Erweiterungen aus, uebernimmt kein Eintrag und das Ereignis blubbert zum
+// Sektions-Menue durch (dort greift dieselbe Graph-Pruefung).
+function showAreaFileContextMenu(ev, absPath) {
+  const menu = document.getElementById('context-menu');
+  if (!menu) return;
+  const bookmarksActive = isExtensionActive('bookmarks');
+  const panelAvailable = areaPanelItemsAvailable();
+  if (!bookmarksActive && !panelAvailable) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  menu.innerHTML = '';
+  if (bookmarksActive) {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.dataset.menuId = 'area-file-bookmark';
+    item.textContent = t('bookmarks.addAsArea');
+    item.addEventListener('click', () => {
+      hideContextMenu();
+      addAreaBookmarkForPath(absPath);
+    });
+    menu.appendChild(item);
+  }
+  // Trenner nur zwischen zwei tatsaechlich vorhandenen Gruppen (Muster der
+  // uebrigen Kontextmenues, z.B. bookmarks.js).
+  if (bookmarksActive && panelAvailable) {
+    const sep = document.createElement('div');
+    sep.className = 'context-menu-separator';
+    menu.appendChild(sep);
+  }
+  appendAreaPanelItems(menu);
+  placeContextMenuAt(menu, ev.clientX, ev.clientY);
 }
 
 // 4T-0328: Inline-Eingabe fuer "Neue Datei in diesem Ordner" — erscheint am
@@ -193,6 +266,17 @@ function showNewFileInput(paneIdx) {
   input.focus();
 }
 
+// 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Concurrency-Token pro
+// Pane gegen doppelte Baum-Listen. renderAreaPanel ist async und haengt seine
+// Zeilen ueber mehrere await-Punkte hinweg an; zwei ueberlappende Laeufe
+// derselben Pane (etwa der Bereichs-Wechsel-Push refreshAreaPanels und das
+// Slot-Mounting der Startsequenz applyAllLayouts, die beide renderAreaPanel
+// rufen) leerten den Baum-Container nur je zu Beginn und haengten danach beide
+// an — die Ordner-Struktur erschien doppelt. Jeder Lauf zieht jetzt eine
+// Generation, baut in ein losgeloestes Fragment und setzt es nur ein, wenn ihn
+// kein juengerer Lauf ueberholt hat.
+const areaRenderToken = [0, 0];
+
 // Rendert Baum und Dateiliste einer Pane neu (No-op bei unsichtbarem Panel).
 export async function renderAreaPanel(paneIdx) {
   const els = getPaneEls(paneIdx);
@@ -202,19 +286,29 @@ export async function renderAreaPanel(paneIdx) {
   if (els.areaSplit) els.areaSplit.hidden = !hasArea;
   if (!hasArea || els.areaSection.hidden) return;
 
+  const token = ++areaRenderToken[paneIdx];
   const root = state.areaPath;
   // Wurzel ist immer aufgeklappt sichtbar.
   const dir = selectedDir(paneIdx);
   if (els.areaTree) {
-    els.areaTree.innerHTML = '';
     if (!isExpanded(paneIdx, root)) setExpanded(paneIdx, root, true);
-    await renderDirInto(els.areaTree, paneIdx, root, state.areaName || root, 0);
+    const treeFrag = document.createDocumentFragment();
+    await renderDirInto(treeFrag, paneIdx, root, state.areaName || root, 0);
+    // Ueberholt? Dann verwirft dieser Lauf sein Ergebnis, statt es einzuhaengen.
+    if (token !== areaRenderToken[paneIdx]) return;
+    els.areaTree.innerHTML = '';
+    els.areaTree.appendChild(treeFrag);
   }
   if (els.areaFilesTitle) {
     els.areaFilesTitle.textContent = dir === root ? state.areaName || '' : dir.split('\\').pop();
     els.areaFilesTitle.title = dir;
   }
-  if (els.areaFiles) await renderFilesInto(els.areaFiles, paneIdx, dir);
+  if (els.areaFiles) {
+    const filesFrag = await buildFilesFragment(paneIdx, dir);
+    if (token !== areaRenderToken[paneIdx]) return;
+    els.areaFiles.innerHTML = '';
+    els.areaFiles.appendChild(filesFrag);
+  }
 }
 
 // --- Sichtbarkeit, Toggle, Persistenz (Muster Outline) -------------------------
@@ -304,24 +398,19 @@ if (typeof api.onAreaChanged === 'function') {
   });
 }
 
-// 4T-0455 (Epic 3E-0084): Kontextmenü des Bereichs-Panels — Einstieg zum
-// Bereichs-Graph (Task-Zugang neben dem Ansicht-Menü). Listener auf die
-// ganze Sektion (Muster Bookmarks-Sektion); bei deaktivierter graph-view-
-// Erweiterung erscheint kein Menü (kein toter Eintrag).
+// 4T-0455 (Epic 3E-0084): Kontextmenü des Bereichs-Panels auf freier Fläche —
+// Einstieg zum Bereichs-Graph (Task-Zugang neben dem Ansicht-Menü). Listener
+// auf die ganze Sektion (Muster Bookmarks-Sektion); bei deaktivierter graph-
+// view-Erweiterung erscheint kein Menü (kein toter Eintrag). Rechtsklicks auf
+// Datei-Zeilen fängt showAreaFileContextMenu vorher ab (stopPropagation) und
+// nimmt die Panel-Einträge dort mit auf.
 function showAreaPanelContextMenu(ev) {
-  if (!state.areaPath || !isExtensionActive('graph-view')) return;
+  if (!areaPanelItemsAvailable()) return;
   const menu = document.getElementById('context-menu');
   if (!menu) return;
   ev.preventDefault();
   menu.innerHTML = '';
-  const item = document.createElement('div');
-  item.className = 'context-menu-item';
-  item.textContent = t('menu.view.areaGraph');
-  item.addEventListener('click', () => {
-    hideContextMenu();
-    openAreaGraphTab();
-  });
-  menu.appendChild(item);
+  appendAreaPanelItems(menu);
   placeContextMenuAt(menu, ev.clientX, ev.clientY);
 }
 

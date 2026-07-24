@@ -535,6 +535,16 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('sidebarVariants:setAreaConfig', config),
   onSidebarVariantsChanged: (cb) =>
     ipcRenderer.on('sidebarVariants:changed', (_e, payload) => cb(payload)),
+  // 4T-0611 (Epic 3E-0115): Bereichs-Lesezeichen (bookmarks-Sektion der
+  // Bereichsdatei) lesen/schreiben; onBookmarksChanged meldet den Broadcast
+  // nach dem Schreiben an alle Fenster (Payload { rootPath }).
+  bookmarksGetConfig: () => ipcRenderer.invoke('bookmarks:getConfig'),
+  bookmarksSetAreaConfig: (config) => ipcRenderer.invoke('bookmarks:setAreaConfig', config),
+  onBookmarksChanged: (cb) => ipcRenderer.on('bookmarks:changed', (_e, payload) => cb(payload)),
+  // 4T-0612 (Epic 3E-0115): Mehr-Fenster-Konsistenz der ALLGEMEINEN Lesezeichen.
+  // Der globale Baum liegt im Store; ein Schreibvorgang in einem Fenster meldet
+  // 'bookmarksTree:changed' (Payload = der neue Baum) an die uebrigen Fenster.
+  onBookmarksTreeChanged: (cb) => ipcRenderer.on('bookmarksTree:changed', (_e, value) => cb(value)),
   // 4T-0447 (Epic 3E-0083): aufgeloeste Definitions-Liste fuer eine Datei.
   // assigned = Zuordnungs-Werte aus dem Live-Frontmatter (Vorrang), path =
   // Disk-Fallback ohne assigned.

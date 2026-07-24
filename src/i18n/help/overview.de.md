@@ -36,6 +36,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Vorlagen](templates.md) — Markdown-Vorlagen anwenden: Vorlagen-Ordner mit Bereichs-Übersteuerung, Platzhalter mit Dialogen, Cursor-Ziel, Ordner-Regeln.
 - [Journale](journals.md) — periodische Dokumente je Bereich: Regale und Granularitäten, Ordner- und Namens-Schemata, Kalender-Panel, Navigations-Block, automatische Datums-Eigenschaften.
 - [Sidebar](sidebar.md) — Panels anordnen: Seitenwahl, Reihenfolge, Reiter-Gruppen, Breiten.
+- [Lesezeichen](bookmarks.md) — Dateien in zwei Abschnitten merken: allgemeine und bereichsgebundene Lesezeichen mit relativen Pfaden, Anlage, Umwandeln, Reihenfolge.
 - [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
 - [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
 - [Dokument-Historie](history.md) — Änderungen protokollieren: Markdown-Data-Begleitdatei, Schalter auf drei Ebenen, Revisionen vergleichen und wiederherstellen.

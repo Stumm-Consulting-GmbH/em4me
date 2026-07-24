@@ -103,7 +103,8 @@ import { applyExtensionsState, getDisabledExtensionIds } from './extension-lifec
 // 4T-0450 (Epic 3E-0083): Klick auf einen Profil-Listen-Eintrag öffnet die
 // Profil-Datei als Tab (bestehender Sprung-Helfer der Lesezeichen); die
 // Sektions-Normalisierung liefert die Persistenz- und Vergleichs-Form.
-import { openOrJumpToPath } from './bookmarks.js';
+// 4T-0612 (Epic 3E-0115): Reihenfolge-Schalter der Lesezeichen-Abschnitte.
+import { openOrJumpToPath, setBookmarksAreaFirst } from './bookmarks.js';
 import { normalizeProfilesConfig } from '../../shared/property-profiles.js';
 // 4T-0436 (Epic 3E-0081): Bereich „Journale" — Regal- und Journal-Verwaltung
 // der journals-Sektion der Bereichsdatei; die Pfad-Vorschau läuft über die
@@ -1566,7 +1567,29 @@ function renderBehaviorSection(container, draft) {
   renderKeepDraftsSetting(container, draft);
   renderPasteLinkSetting(container, draft);
   renderTabIndentSetting(container, draft);
+  renderBookmarksAreaFirstSetting(container);
   renderScriptBlocksSetting(container, draft);
+}
+
+// 4T-0612 (Epic 3E-0115): Reihenfolge der Lesezeichen-Abschnitte (global,
+// Default an: Bereichs-Lesezeichen oben). Bewusst kein Entwurf, sondern eine
+// direkte Praeferenz (wie die Panel-Zugangs-Reihenfolge): der Schalter wirkt
+// sofort (das Panel rendert neu) und persistiert unmittelbar, unabhaengig von
+// Anwenden/Abbrechen. Deshalb ohne draft-/apply-/dirty-Hook.
+function renderBookmarksAreaFirstSetting(container) {
+  const input = document.createElement('input');
+  input.id = 'settings-bookmarks-area-first';
+  input.type = 'checkbox';
+  input.checked = state.bookmarks.areaFirst !== false;
+  input.addEventListener('change', () => {
+    void setBookmarksAreaFirst(input.checked);
+  });
+  container.appendChild(buildSettingsRow('settings.bookmarksAreaFirst', input));
+
+  const hint = document.createElement('p');
+  hint.className = 'settings-row-hint';
+  hint.textContent = t('settings.bookmarksAreaFirst.hint');
+  container.appendChild(hint);
 }
 
 // 4T-0656 (Epic 3E-0112): Schalter „Tabulator rückt ein" (Store-Key

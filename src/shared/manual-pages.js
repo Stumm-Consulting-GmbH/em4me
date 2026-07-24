@@ -71,6 +71,9 @@ const MANUAL_PAGES = [
   { id: 'journals', titleKey: 'manual.page.journals.title', source: 'bundled' },
   // 4T-0290 (Epic 3E-0051): Sidebar-Seite (Panels, Anordnung, Reiter-Gruppen).
   { id: 'sidebar', titleKey: 'manual.page.sidebar.title', source: 'bundled' },
+  // 4T-0613 (Epic 3E-0115): Lesezeichen (allgemeine und bereichsgebundene mit
+  // relativen Pfaden, Panel-Zweiteilung, Anlage/Umwandeln, Reihenfolge).
+  { id: 'bookmarks', titleKey: 'manual.page.bookmarks.title', source: 'bundled' },
   // 4T-0467 (Epic 3E-0086): Farbschemas (Slot-Modell, Pflege, Modus-Zuordnung,
   // Kontrast-Grenzen).
   { id: 'color-schemes', titleKey: 'manual.page.colorSchemes.title', source: 'bundled' },

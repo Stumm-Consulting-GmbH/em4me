@@ -476,6 +476,16 @@
       "hinweis": "FN-03 (anlegen, Stern, Sidebar) plus Tree-Helfer-Units; DnD/Ordner-Operationen in der Gesamtabnahme (Maus-Geometrie)."
     },
     {
+      "key": "help.feature.areaBookmarks",
+      "id": "F-239",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/bereichs-lesezeichen.spec.js",
+        "test/unit/bookmark-tree.test.js"
+      ],
+      "hinweis": "BL-01..05 (Sichtbarkeit ohne Bereich, Anlage, Ziel-Wahl-Popup, Reihenfolge-Schalter, Umwandeln) plus mapBookmarkFilePaths-Units."
+    },
+    {
       "key": "help.feature.emoji",
       "id": "F-053",
       "testart": "snapshot",

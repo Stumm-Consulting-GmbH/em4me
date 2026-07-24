@@ -36,6 +36,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Modelli](templates.md) — applicare modelli Markdown: cartella dei modelli con priorità dell'area, segnaposto con dialoghi, destinazione del cursore, regole di cartella.
 - [Diari](journals.md) — documenti periodici per area: scaffali e granularità, schemi di cartella e nome, pannello calendario, blocco di navigazione, proprietà di data automatiche.
 - [Barra laterale](sidebar.md) — organizzare i pannelli: lato, ordine, gruppi di schede, larghezze.
+- [Segnalibri](bookmarks.md) — memorizzare file in due sezioni: segnalibri generali e dell'area con percorsi relativi, creazione, conversione, ordine.
 - [Combinazioni di colori](color-schemes.md) — colori tramite slot denominati: assegnazione per modalità, combinazioni proprie come copia, anteprima dal vivo, limiti.
 - [Applicazioni, finestre e aree](apps-windows.md) — avvio multiplo, gestione delle finestre e sistematica dei titoli.
 - [Cronologia del documento](history.md) — registrare le modifiche: file di accompagnamento Markdown-Data, interruttori su tre livelli, confrontare e ripristinare revisioni.

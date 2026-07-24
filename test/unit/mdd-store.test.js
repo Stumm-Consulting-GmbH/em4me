@@ -218,6 +218,32 @@ describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-0332)', () => {
     expect(parsed.container.settings.journals).toEqual(c.settings.journals);
   });
 
+  // 4T-0611 (Epic 3E-0115): bookmarks-Sektion (Bereichs-Lesezeichen, Baum aus
+  // Datei- und Ordner-Knoten mit wurzel-relativen Zielen) im Settings-Container
+  // — Roundtrip neben bestehenden Sektionen (bestehende bleiben unberührt).
+  it('Settings-Container: bookmarks überlebt den Roundtrip neben anderen Sektionen', () => {
+    const c = emptySettingsContainer();
+    c.settings.history = true;
+    c.settings.journals = { shelves: ['Tagebuch'], journals: [] };
+    c.settings.bookmarks = [
+      {
+        type: 'folder',
+        id: 'f1',
+        name: 'Konzepte',
+        expanded: true,
+        children: [
+          { type: 'file', id: 'b1', filePath: 'Konzepte/Über mich.md', displayName: 'Über mich' },
+        ],
+      },
+      { type: 'file', id: 'b2', filePath: 'Start.md' },
+    ];
+    const parsed = parseSettingsContainer(serializeContainer(c));
+    expect(parsed.ok).toBe(true);
+    expect(parsed.container.settings.bookmarks).toEqual(c.settings.bookmarks);
+    expect(parsed.container.settings.history).toBe(true);
+    expect(parsed.container.settings.journals).toEqual(c.settings.journals);
+  });
+
   it('Datei schlägt Bereich schlägt App, nicht gesetzt heißt erben', () => {
     // Alle acht Kombinationen der drei Ebenen (Datei/Bereich je dreiwertig).
     const r = resolveHistoryEnabled;
