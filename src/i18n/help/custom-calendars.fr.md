@@ -71,3 +71,42 @@ Le sélecteur des calendriers personnalisés fonctionne de façon analogue au s�
 ### Affichage de la conversion
 
 Sous la grille, le sélecteur montre l'instant choisi dans tous les calendriers parallèles du bloc. Un clic sur une correspondance y bascule le calendrier actif. Les calendriers de blocs différents ne sont volontairement pas convertibles.
+
+## Calendriers dérivés
+
+Un calendrier dérivé compte à partir d’un point zéro choisi : combien de temps il reste jusqu’à une date, ou depuis combien de temps un événement a eu lieu. Il n’a pas besoin de définition propre, seulement d’un calendrier de référence et d’un point zéro.
+
+### Création
+
+Dans la section de paramètres « Systèmes de calendrier », le bouton **« Ajouter un calendrier dérivé »** ouvre un formulaire court :
+
+- **Calendrier de référence** — un calendrier du même bloc ou le calendrier standard fourni. Un décompte vers une date ne demande donc aucun calendrier propre.
+- **Point zéro (jour 1)** — la date dans la notation de la référence, au choix via le sélecteur ; il tombe toujours sur un jour entier.
+- **Niveau de détail** — la finesse de la durée, de la plus petite unité seule jusqu’aux années.
+- **Abréviations de direction** — deux mots courts pour le temps avant et après le point zéro.
+
+Les éditeurs de niveaux, cycles, regroupements et époques n’apparaissent pas ici, car rien de tout cela n’est modifiable.
+
+### Ce qui est hérité
+
+Le calendrier dérivé reprend les unités de sa référence et déplace leurs limites sur le point zéro. Si celui-ci tombe un 23, chaque mois dérivé commence le 23 et chaque année dérivée le même jour ; les semaines commencent le jour de la semaine du point zéro. Chaque unité conserve donc la longueur qu’elle a dans la référence, et un jour bissextile tombe de lui-même dans la bonne année. Les noms suivent : si le décompte commence en juillet, le premier mois s’appelle toujours juillet. Si le point zéro tombe un jour que tous les mois n’ont pas, la limite recule au dernier jour disponible.
+
+### Valeurs dans le document
+
+La valeur compte dans les deux sens depuis le point zéro : les unités plus grandes comme nombre complet à partir de 0, la plus petite comme numéro d’ordre à partir de 1. Avant le point zéro, la même forme s’applique avec l’abréviation de direction.
+
+```text
+@{Calendrier : 0-0-1}             le point zéro lui-même
+@{Calendrier : 0-1-18}            un mois et dix-sept jours après
+@{Calendrier : 0-0-15 avant GL}   quinze jours avant
+```
+
+L’affichage en tire la durée au niveau de détail choisi, sans les parties de longueur nulle, par exemple « 1 mois, 2 semaines, 4 jours ». L’infobulle indique en plus la valeur canonique et le moment correspondant du calendrier de référence. Si le calendrier dérivé repose sur le calendrier standard, les unités apparaissent au singulier et au pluriel ; pour les calendriers définis soi-même, les noms restent tels qu’ils y ont été saisis.
+
+### Sélecteur
+
+Le sélecteur d’un calendrier dérivé affiche la grille de sa référence : on choisit une date ordinaire, et c’est le décompte qui est inséré. **« Vers l’ancre »** saute au point zéro.
+
+### Modifications du calendrier de référence
+
+Une valeur est une coordonnée de son calendrier. Si la référence change, les valeurs de ses calendriers dérivés se déplacent avec elle. L’éditeur signale en permanence les calendriers dérivés existants et demande une confirmation lors de l’application ; un calendrier avec des dérivés ne peut pas être supprimé tant que ceux-ci existent.

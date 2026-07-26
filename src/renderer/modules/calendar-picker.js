@@ -28,7 +28,8 @@ import {
   cycleAt,
   formatTuple,
   parseCanonical,
-  convertInBlock,
+  convertBetween,
+  baseCalendarOf,
   findCalendarByName,
   findCalendarValues,
   parseCalendarValueRaw,
@@ -61,7 +62,12 @@ function tuplePos(cal, levelIdx) {
 // --- Popup-Singleton ----------------------------------------------------------------
 
 let popupEl = null;
-// Laufende Sitzung: { resolve, config, block, cal, tuple }.
+// Laufende Sitzung: { resolve, config, block, cal, tuple, target }.
+// 4T-0748 (Epic 3E-0138): Bei einer abgeleiteten Zeitrechnung arbeitet der
+// Picker in der Notation ihres Bezugs (Entscheidung 2a): Gitter und Kopf
+// zeigen den Bezug, `target` haelt die Ableitung, und uebernommen wird ihr
+// Wert. Ein Datum zu waehlen ist die natuerliche Handlung; die Zaehlung ab
+// dem Nullpunkt ist das Ergebnis.
 let session = null;
 
 function ensurePopup() {
@@ -90,9 +96,54 @@ function closeSession(result) {
   resolve(result);
 }
 
+// Aktiven Kalender der Sitzung setzen. Eine Ableitung wird in der Notation
+// ihres Bezugs angezeigt; `tupleInNext` ist der gewuenschte Zeitpunkt in den
+// Koordinaten von `next` (null = Anker).
+function setSessionCalendar(next, tupleInNext) {
+  const base = next && next.derived ? baseCalendarOf(session.block, next) : null;
+  if (base) {
+    session.target = next;
+    session.cal = base;
+    let tuple = null;
+    if (tupleInNext) {
+      const conv = convertBetween(next, tupleInNext, base);
+      if (conv.ok) tuple = conv.tuple;
+    }
+    session.tuple = tuple || zeroTupleInBase(next, base) || base.blockAnchor.slice();
+    return;
+  }
+  session.target = null;
+  session.cal = next;
+  session.tuple = tupleInNext || next.blockAnchor.slice();
+}
+
+// Nullpunkt einer Ableitung, ausgedrueckt im Bezug (Sprungziel und Default).
+function zeroTupleInBase(derived, base) {
+  if (!derived.epochs[1] || !derived.epochs[1].start) return null;
+  const timeCount = timeCountOf(derived);
+  const timeSegs = [];
+  for (let i = timeCount - 1; i >= 0; i--) timeSegs.push(derived.levels[i].start);
+  const conv = convertBetween(derived, derived.epochs[1].start.concat(timeSegs), base);
+  return conv.ok ? conv.tuple : null;
+}
+
 function accept() {
   if (!session) return;
-  const { cal, block, tuple } = session;
+  const { cal, block, tuple, target } = session;
+  if (target) {
+    const converted = convertBetween(cal, tuple, target);
+    if (!converted.ok) return;
+    const epT = epochOf(target, converted.tuple);
+    closeSession({
+      text: formatTuple(target, converted.tuple),
+      calendarName: target.name,
+      calendarId: target.id,
+      blockId: block.id,
+      tuple: converted.tuple,
+      epochIndex: epT ? epT.index : null,
+    });
+    return;
+  }
   const ep = epochOf(cal, tuple);
   closeSession({
     text: formatTuple(cal, tuple),
@@ -397,15 +448,15 @@ function renderTimeRow(container) {
 // Umrechnungs-Anzeige: der gewaehlte Zeitpunkt in allen Parallel-Kalendern
 // des Blocks; Klick wechselt den aktiven Kalender dorthin.
 function renderConversions(container) {
-  const { block, cal, tuple } = session;
-  const others = block.calendars.filter((c) => c.id !== cal.id);
+  const { block, cal, tuple, target } = session;
+  const others = block.calendars.filter((c) => c.id !== cal.id && c.id !== (target && target.id));
   if (others.length === 0) return;
   const head = document.createElement('div');
   head.className = 'calendar-picker-conv-head';
   head.textContent = t('calendarPicker.conversions');
   container.appendChild(head);
   for (const other of others) {
-    const result = convertInBlock(block, cal.id, tuple, other.id);
+    const result = convertBetween(cal, tuple, other);
     const row = document.createElement('button');
     row.type = 'button';
     row.className = 'btn calendar-picker-conv';
@@ -416,8 +467,7 @@ function renderConversions(container) {
     row.disabled = !result.ok;
     row.addEventListener('click', () => {
       if (!result.ok) return;
-      session.cal = other;
-      session.tuple = result.tuple;
+      setSessionCalendar(other, result.tuple);
       renderSession();
     });
     container.appendChild(row);
@@ -456,10 +506,9 @@ function renderSession() {
             const nextBlock = config.blocks.find((b) => b.id === value);
             if (!nextBlock || nextBlock.calendars.length === 0) return;
             session.block = nextBlock;
-            session.cal = nextBlock.calendars[0];
             // Bloecke sind bewusst nicht umrechenbar: Wechsel springt zum
             // Anker des Ziel-Kalenders.
-            session.tuple = session.cal.blockAnchor.slice();
+            setSessionCalendar(nextBlock.calendars[0], null);
             renderSession();
           },
         ),
@@ -473,13 +522,12 @@ function renderSession() {
         buildSelect(
           'calendar-picker-calendar',
           block.calendars.map((c) => ({ value: c.id, label: c.name })),
-          cal.id,
+          (session.target || cal).id,
           (value) => {
             const next = block.calendars.find((c) => c.id === value);
             if (!next) return;
-            const converted = convertInBlock(block, cal.id, tuple, next.id);
-            session.cal = next;
-            session.tuple = converted.ok ? converted.tuple : next.blockAnchor.slice();
+            const converted = convertBetween(cal, tuple, next);
+            setSessionCalendar(next, converted.ok ? converted.tuple : null);
             renderSession();
           },
         ),
@@ -563,7 +611,9 @@ function renderSession() {
   refBtn.id = 'calendar-picker-reference';
   refBtn.textContent = t('calendarPicker.reference');
   refBtn.addEventListener('click', () => {
-    session.tuple = session.cal.blockAnchor.slice();
+    session.tuple = session.target
+      ? zeroTupleInBase(session.target, session.cal) || session.cal.blockAnchor.slice()
+      : session.cal.blockAnchor.slice();
     renderSession();
     focusSelectedDay();
   });
@@ -689,7 +739,7 @@ export function showCalendarPicker(options = {}) {
   }
   if (!cal) return Promise.resolve(null);
 
-  let tuple = cal.blockAnchor.slice();
+  let tuple = null;
   if (typeof options.value === 'string' && options.value.trim() !== '') {
     const parsed = parseCanonical(cal, options.value);
     if (parsed.ok) tuple = parsed.tuple;
@@ -698,7 +748,17 @@ export function showCalendarPicker(options = {}) {
   ensurePopup();
   if (session) closeSession(null);
   return new Promise((resolve) => {
-    session = { resolve, config, block, cal, tuple };
+    // 4T-0748: Bei einer Ableitung zeigt der Picker ihren Bezug; der
+    // uebernommene Wert bleibt der der Ableitung.
+    session = {
+      resolve,
+      config,
+      block,
+      cal,
+      tuple: tuple || cal.blockAnchor.slice(),
+      target: null,
+    };
+    setSessionCalendar(cal, tuple);
     renderSession();
     positionPopup(options.x, options.y);
     document.addEventListener('mousedown', onDocumentMousedown, true);

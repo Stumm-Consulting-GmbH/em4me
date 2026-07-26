@@ -47,6 +47,7 @@ const {
   stripHeadingMarkers,
   // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges @{Kalendername: Wert}.
   calendarValuesPlugin,
+  CALENDAR_SPAN_LABEL_KEYS,
 } = require('./plugins.js');
 const {
   renderPerspectiveTable,
@@ -678,7 +679,7 @@ function buildPipelines(enabled) {
           `${renderPerspectiveEventsViewer(body, {
             todayIso: evToday,
             lang: evLang,
-            labels: portableEventLabels(evLang),
+            labels: portableLabels(evLang),
           })}</div>\n`
         );
       }
@@ -917,6 +918,8 @@ function renderMarkdown(text, lang, opts) {
     headingNumbering: resolveHeadingNumbering(fm.data),
     // 4T-0546 (Epic 3E-0097): Kalender-Konfiguration fuer die Wert-Badges.
     calendarSystems: activeCalendarConfig,
+    // 4T-0748: Einheiten-Namen der Zeitspannen-Badges.
+    calendarLabels: portableLabels(lang || 'de'),
   });
   const showBlock =
     frontmatterDisplayEnabled && fm.raw != null && !(opts && opts.frontmatterBlock === false);
@@ -927,10 +930,10 @@ function renderMarkdown(text, lang, opts) {
 // Dieses Modul laeuft nur in Preload und Node-Tests (nie im Renderer-
 // Bundle) — die Sprachdatei wird deshalb lazy von Platte gelesen (asar-
 // transparent); jeder Fehlschlag faellt weich auf die Key-Namen zurueck.
-const portableEventLabelCache = new Map();
-function portableEventLabels(lang) {
+const portableLabelCache = new Map();
+function portableLabels(lang) {
   const lc = ['de', 'en', 'fr', 'es', 'it'].includes(lang) ? lang : 'de';
-  if (portableEventLabelCache.has(lc)) return portableEventLabelCache.get(lc);
+  if (portableLabelCache.has(lc)) return portableLabelCache.get(lc);
   let dict = {};
   try {
     const fs = require('node:fs');
@@ -942,10 +945,10 @@ function portableEventLabels(lang) {
     // Key-Fallback (Labels bleiben die Key-Namen) — Export funktioniert.
   }
   const labels = {};
-  for (const key of PORTABLE_EVENT_LABEL_KEYS) {
+  for (const key of [...PORTABLE_EVENT_LABEL_KEYS, ...CALENDAR_SPAN_LABEL_KEYS]) {
     if (typeof dict[key] === 'string') labels[key] = dict[key];
   }
-  portableEventLabelCache.set(lc, labels);
+  portableLabelCache.set(lc, labels);
   return labels;
 }
 
@@ -1037,7 +1040,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
     if (eventsEnabled) {
       converted = converted.replace(eventsFenceRegex, (match, fence, content) => {
         const html = convertPerspectiveEventsBlockToHtml(content, {
-          labels: portableEventLabels(lang),
+          labels: portableLabels(lang),
         });
         if (html === null) return match;
         eventsConverted = true;

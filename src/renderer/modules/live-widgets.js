@@ -1753,7 +1753,7 @@ export function buildLivePreviewDecorationsImpl(view) {
         if (line.number <= frontmatterEndLine) continue;
         if (activeLines.has(line.number)) continue;
         if (docPos + v.raw.length > line.to) continue;
-        const spec = calendarValueBadgeSpec(v.name, v.value, getAreaCalendarConfig());
+        const spec = calendarValueBadgeSpec(v.name, v.value, getAreaCalendarConfig(), t);
         ranges.push(
           Decoration.replace({
             widget: new CalendarValueBadgeWidget(spec.cls, spec.title, spec.text, {

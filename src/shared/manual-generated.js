@@ -198,6 +198,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0547 (Epic 3E-0097): Kalender-Systeme direkt hinter dem
       // Ereignis-Cluster (gleiche Termin-/Zeit-Domäne).
       'help.feature.customCalendars',
+      // 4T-0749 (Epic 3E-0138): abgeleitete Zeitrechnungen direkt hinter den
+      // Kalender-Systemen, auf denen sie aufsetzen.
+      'help.feature.derivedCalendars',
       // 4T-0071 (Epic 3E-0013): Code-Block Copy-Button im Render-Pane.
       'help.feature.codeCopyButton',
       // 4T-0380 (Epic 3E-0071): Editor-Kontextmenue als zentraler Editier-

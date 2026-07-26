@@ -71,3 +71,42 @@ The picker for custom calendars works analogously to the standard date picker:
 ### Conversion display
 
 Below the grid the picker shows the chosen point in time in all parallel calendars of the block. A click on an equivalent switches the active calendar there. Calendars of different blocks are deliberately not convertible.
+
+## Derived time reckonings
+
+A derived time reckoning counts from a zero point of your own: how long it is until a date, or how long ago something happened. It needs no definition of its own, only a reference time reckoning and a zero point.
+
+### Creating one
+
+In the settings section «Calendar systems», the button **«Add derived time reckoning»** creates a short form:
+
+- **Reference time reckoning** — a calendar of the same block or the built-in standard time reckoning. Counting down to a date therefore needs no calendar of your own.
+- **Zero point (day 1)** — the date in the notation of the reference, optionally chosen through the picker; it always sits on a whole day.
+- **Breakdown depth** — how finely the span is broken down, from the smallest unit alone up to years.
+- **Direction labels** — two short words for the time before and after the zero point.
+
+Editors for levels, cycles, groupings and epochs do not appear here, because none of them can be overridden.
+
+### What is inherited
+
+The derived reckoning takes over the units of its reference and shifts their boundaries onto the zero point. If that falls on a 23rd, every derived month starts on the 23rd and every derived year on the same day; weeks start on the weekday of the zero point. Each unit therefore keeps the length it has in the reference, and a leap day falls into the right year by itself. The names move along: if counting starts in July, the first month is still called July. If the zero point falls on a day that not every month has, the boundary moves to the last day available.
+
+### Values in the document
+
+The value counts away from the zero point in both directions: coarser units as a complete count from 0, the smallest as an ordinal from 1. Before the zero point the same form applies, with the direction label.
+
+```text
+@{Reckoning: 0-0-1}             the zero point itself
+@{Reckoning: 0-1-18}            one month and seventeen days after it
+@{Reckoning: 0-0-15 before GL}  fifteen days before it
+```
+
+What is displayed is the span in the chosen depth, without parts of length zero, for example «1 month, 2 weeks, 4 days». The tooltip additionally names the canonical value and the corresponding point of the reference time reckoning. If the derived reckoning rests on the standard time reckoning, the units appear in singular and plural; with self-defined calendars the names stand as they were entered there.
+
+### Picker
+
+The picker of a derived time reckoning shows the grid of its reference: you choose an ordinary date, and the count is inserted. **«To anchor»** jumps to the zero point.
+
+### Changes to the reference time reckoning
+
+A value is a coordinate of its time reckoning. If the reference changes, the values of its derived reckonings shift with it. The editor points out existing derived reckonings permanently and asks for confirmation when applying; a time reckoning with derived ones cannot be deleted while they exist.

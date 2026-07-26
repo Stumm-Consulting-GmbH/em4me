@@ -536,6 +536,15 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert kalender-werte.md sta
 <pre><code>@{Dreimond: 2-2-2}
 </code></pre>
 <p data-source-line="15">Keine Werte (Form passt nicht): @{ohne Doppelpunkt} und @{} und @{Dreimond: }.</p>
+<h2 id="abgeleitete-zeitrechnungen" data-source-line="17">Abgeleitete Zeitrechnungen</h2>
+<p data-source-line="19">Zaehlung ab dem Nullpunkt: <span class="calendar-value" title="Projekt: 0-1-18
+Gregorianischer Kalender: 2026-02-18" data-calendar-name="Projekt" data-calendar-value="0-1-18">1 Monat, 2 Wochen, 4 Tage</span> und rueckwaerts
+<span class="calendar-value" title="Projekt: 0-0-15 vor Start
+Gregorianischer Kalender: 2025-12-17" data-calendar-name="Projekt" data-calendar-value="0-0-15 vor Start">2 Wochen, 1 Tag vor Start</span>; der Nullpunkt selbst ist <span class="calendar-value" title="Projekt: 0-0-1
+Gregorianischer Kalender: 2026-01-01" data-calendar-name="Projekt" data-calendar-value="0-0-1">1 Tag</span>.</p>
+<p data-source-line="22">Auf einem Fantasie-Kalender: <span class="calendar-value" title="Mondzählung: 0-1-12
+Dreimond: 1-3-21" data-calendar-name="Mondzählung" data-calendar-value="0-1-12">1 Monat, 12 Tag</span> und <span class="calendar-value" title="Mondzählung: 1-0-3 davor
+Dreimond: 499-2-07 ZZ" data-calendar-name="Mondzählung" data-calendar-value="1-0-3 davor">1 Jahr, 3 Tag davor</span>.</p>
 "
 `;
 

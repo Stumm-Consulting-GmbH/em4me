@@ -127,7 +127,14 @@ import {
   formatTuple,
   parseCanonical,
   cycleAt,
+  // 4T-0747 (Epic 3E-0138): abgeleitete Zeitrechnungen.
+  STANDARD_CALENDAR_ID,
+  standardCalendar,
+  convertInBlock,
+  spanUnits,
+  spanTiers,
 } from '../../shared/calendar-core.js';
+import { showCalendarPicker } from './calendar-picker.js';
 // 4T-0332 (Epic 3E-0060): nach Anwenden der Historien-Einstellungen den
 // Statusbar-Zustand nachziehen.
 import { updateHistoryStatus } from './history-status.js';
@@ -3283,7 +3290,34 @@ function calSysIdFromName(name, fallback, taken) {
 
 // Normalisierten Kalender in die Entwurfs-Form bringen (bearbeitbare Kopien,
 // Zahlen als Eingabe-Strings, 1-basierte Positionen für die UI).
+// Kanonischer Wert des Nullpunkts einer abgeleiteten Zeitrechnung: alle
+// groeberen Einheiten null, die kleinste Datums-Einheit 1 (4T-0747).
+function calSysZeroValue(segCount) {
+  if (!segCount || segCount < 1) return '';
+  return new Array(segCount)
+    .fill('0')
+    .fill('1', segCount - 1)
+    .join('-');
+}
+
 function calendarToDraft(cal) {
+  // 4T-0747: Eine abgeleitete Zeitrechnung trägt im Entwurf nur ihre eigenen
+  // Angaben; Ebenen, Zyklen, Gruppierungen und Epochen entstehen bei der
+  // Auflösung im Kern und sind nicht bearbeitbar.
+  if (cal.derived) {
+    return {
+      id: cal.id,
+      name: cal.name,
+      derived: {
+        fromId: cal.derived.fromId,
+        zeroSegs: (cal.derived.zero || []).map(String),
+        depth: cal.derived.depth == null ? '' : String(cal.derived.depth),
+        labelBefore: cal.epochs[0].abbr || cal.epochs[0].name || '',
+        labelAfter: cal.epochs[1] ? cal.epochs[1].abbr || cal.epochs[1].name || '' : '',
+      },
+      previewInput: calSysZeroValue(calSysDateLevels(cal.levels).length),
+    };
+  }
   const levels = cal.levels.map((level) => {
     const draft = {
       id: level.id,
@@ -3350,6 +3384,20 @@ function calendarToDraft(cal) {
 // Kern-Normalisierung lehnt den Kalender dann ab (weiche/harte Validierung
 // aus einer Quelle).
 function calendarPersistForm(calDraft) {
+  // 4T-0747: Kurze Form der abgeleiteten Zeitrechnung; die vollständige
+  // Definition erzeugt der Kern beim Normalisieren aus Bezug und Nullpunkt.
+  if (calDraft.derived) {
+    const depth = String(calDraft.derived.depth || '').trim();
+    return {
+      id: calDraft.id,
+      name: String(calDraft.name || '').trim(),
+      derivedFrom: calDraft.derived.fromId,
+      zero: calDraft.derived.zeroSegs.map((s) => calSysInt(s)),
+      depth: depth === '' ? null : calSysInt(depth),
+      labelBefore: String(calDraft.derived.labelBefore || '').trim(),
+      labelAfter: String(calDraft.derived.labelAfter || '').trim(),
+    };
+  }
   const levels = calDraft.levels.map((level, i) => {
     const out = {
       id: level.id,
@@ -3445,11 +3493,56 @@ function calendarConfigPersistForm(values) {
 
 // Einzelnen Entwurfs-Kalender über die Kern-Normalisierung prüfen; liefert
 // den normalisierten Kalender oder null (ungültig).
-function calSysNormalizedDraft(calDraft) {
+function calSysNormalizedDraft(calDraft, block) {
+  if (calDraft.derived) {
+    const probe = calSysDerivedProbe(block, calDraft);
+    return probe ? probe.calendars.find((c) => c.id === 'probe-cal') || null : null;
+  }
   const probe = normalizeCalendarConfig({
     blocks: [{ id: 'probe', calendars: [{ ...calendarPersistForm(calDraft), id: 'probe-cal' }] }],
   });
   return probe && probe.blocks[0].calendars.length === 1 ? probe.blocks[0].calendars[0] : null;
+}
+
+// 4T-0747: Probe-Block aus Bezug und Ableitung. Er ist die gemeinsame
+// Grundlage von weicher Validierung, Vorschau und Rückschau auf das
+// Bezugs-Datum; der Bezug auf die Standard-Zeitrechnung löst der Kern selbst
+// auf und braucht deshalb keinen Eintrag im Block.
+function calSysDerivedProbe(block, calDraft) {
+  const fromId = String(calDraft.derived.fromId || '').trim();
+  if (fromId === '') return null;
+  const calendars = [];
+  if (fromId !== STANDARD_CALENDAR_ID) {
+    const base = (block ? block.calendars : []).find((c) => !c.derived && c.id === fromId);
+    if (!base) return null;
+    calendars.push({ ...calendarPersistForm(base), id: 'probe-base' });
+  }
+  calendars.push({
+    ...calendarPersistForm(calDraft),
+    id: 'probe-cal',
+    derivedFrom: fromId === STANDARD_CALENDAR_ID ? STANDARD_CALENDAR_ID : 'probe-base',
+  });
+  const probe = normalizeCalendarConfig({ blocks: [{ id: 'probe', calendars }] });
+  return probe ? probe.blocks[0] : null;
+}
+
+// Datums-Ebenen der Bezugs-Zeitrechnung (Beschriftung der Nullpunkt-Felder).
+function calSysBaseDateLevels(block, fromId) {
+  if (fromId === STANDARD_CALENDAR_ID) {
+    const std = standardCalendar();
+    return std ? calSysDateLevels(std.levels) : [];
+  }
+  const base = (block ? block.calendars : []).find((c) => !c.derived && c.id === fromId);
+  return base ? calSysDateLevels(base.levels) : [];
+}
+
+// Namen der Ableitungen, die auf einem Kalender-Entwurf stehen.
+function calSysDependents(block, calDraft) {
+  const id = String(calDraft.id || '').trim();
+  if (!block || id === '') return [];
+  return block.calendars
+    .filter((c) => c.derived && c.derived.fromId === id)
+    .map((c) => String(c.name || '').trim() || t('settings.calendar.calUntitled'));
 }
 
 async function readCalendarFromConfig() {
@@ -3890,11 +3983,30 @@ function buildCalendarEditor(container, block, calDraft, calIdx) {
   removeBtn.className = 'btn settings-calsys-cal-remove';
   removeBtn.textContent = t('settings.calendar.calRemove');
   removeBtn.addEventListener('click', () => {
+    // 4T-0747: Löschsperre, solange Ableitungen auf diesem Kalender stehen.
+    const dependents = calSysDependents(block, calDraft);
+    if (dependents.length > 0) {
+      api.calendarBlockedDelete(dependents);
+      return;
+    }
     block.calendars.splice(calIdx, 1);
     renderActiveSection();
   });
   head.append(title, removeBtn);
   group.appendChild(head);
+
+  // 4T-0747: Dauerhafter Hinweis auf die Abhängigen, damit vor einer
+  // Änderung sichtbar ist, dass sie mitwandern.
+  const dependents = calSysDependents(block, calDraft);
+  if (dependents.length > 0) {
+    const dep = document.createElement('p');
+    dep.className = 'settings-row-hint';
+    dep.id = `settings-calsys-cal-dependents-${calIdx}`;
+    dep.textContent = t('settings.calendar.derivedHint')
+      .replace('{count}', String(dependents.length))
+      .replace('{names}', dependents.join(', '));
+    group.appendChild(dep);
+  }
 
   // Weiche Validierung: Hinweis-Zeile pro Kalender, gespeist aus der
   // Kern-Normalisierung; die Vorschau nutzt denselben Normalisierungs-Stand.
@@ -3905,7 +4017,7 @@ function buildCalendarEditor(container, block, calDraft, calIdx) {
   previewOut.className = 'settings-row-hint settings-calsys-preview';
   previewOut.id = `settings-calsys-preview-${calIdx}`;
   const refresh = () => {
-    const normalized = calSysNormalizedDraft(calDraft);
+    const normalized = calSysNormalizedDraft(calDraft, block);
     hint.hidden = !!normalized;
     hint.textContent = normalized ? '' : t('settings.calendar.invalidHint');
     if (!normalized) {
@@ -4338,6 +4450,287 @@ function buildCalendarEditor(container, block, calDraft, calIdx) {
 
 // Detailansicht eines Blocks: Kalender-Editoren, „Kalender hinzufügen",
 // Vorlage-Knopf und „Block schließen" (Muster Journal-Regal-Detail).
+// 4T-0747 (Epic 3E-0138): Kurz-Editor einer abgeleiteten Zeitrechnung.
+// Bearbeitbar sind nur Name, Bezug, Nullpunkt, Gliederungs-Tiefe und die
+// beiden Richtungs-Kürzel; alles Übrige erbt sie phasenverschoben vom Bezug.
+function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
+  const group = document.createElement('div');
+  group.className = 'settings-calsys-cal';
+  const head = document.createElement('div');
+  head.className = 'settings-journals-journal-head';
+  const title = document.createElement('h5');
+  title.className = 'settings-journals-journal-title';
+  const titleText = () =>
+    `${String(calDraft.name || '').trim() || t('settings.calendar.calUntitled')} · ${t(
+      'settings.calendar.derivedSuffix',
+    )}`;
+  title.textContent = titleText();
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.id = `settings-calsys-cal-remove-${calIdx}`;
+  removeBtn.className = 'btn settings-calsys-cal-remove';
+  removeBtn.textContent = t('settings.calendar.calRemove');
+  removeBtn.addEventListener('click', () => {
+    block.calendars.splice(calIdx, 1);
+    renderActiveSection();
+  });
+  head.append(title, removeBtn);
+  group.appendChild(head);
+
+  const hint = document.createElement('p');
+  hint.className = 'settings-row-hint settings-calsys-invalid';
+  hint.id = `settings-calsys-cal-invalid-${calIdx}`;
+  const previewOut = document.createElement('p');
+  previewOut.className = 'settings-row-hint settings-calsys-preview';
+  previewOut.id = `settings-calsys-preview-${calIdx}`;
+
+  // Vorschau: kanonischer Wert, Namens-Form, Zeitspanne in der gewählten
+  // Tiefe und der entsprechende Zeitpunkt der Bezugs-Zeitrechnung.
+  const refresh = () => {
+    const probe = calSysDerivedProbe(block, calDraft);
+    const normalized = probe ? probe.calendars.find((c) => c.id === 'probe-cal') || null : null;
+    hint.hidden = !!normalized;
+    hint.textContent = normalized ? '' : t('settings.calendar.derivedInvalidHint');
+    if (!normalized) {
+      previewOut.textContent = t('settings.calendar.previewUnavailable');
+      previewOut.classList.add('settings-calsys-preview-error');
+      return;
+    }
+    const parsed = parseCanonical(normalized, calDraft.previewInput);
+    if (!parsed.ok) {
+      previewOut.textContent = t('settings.calendar.previewInvalidValue');
+      previewOut.classList.add('settings-calsys-preview-error');
+      return;
+    }
+    previewOut.classList.remove('settings-calsys-preview-error');
+    const lines = [
+      t('settings.calendar.derivedPreviewCanonical').replace(
+        '{value}',
+        formatTuple(normalized, parsed.tuple) || '',
+      ),
+    ];
+    const span = calSysSpanText(normalized, parsed.tuple, calDraft.derived.depth);
+    if (span) lines.push(t('settings.calendar.derivedPreviewSpan').replace('{span}', span));
+    const baseCal = probe.calendars.find((c) => c.id === 'probe-base');
+    if (baseCal) {
+      const back = convertInBlock(probe, 'probe-cal', parsed.tuple, 'probe-base');
+      if (back.ok) {
+        lines.push(
+          t('settings.calendar.derivedPreviewBase')
+            .replace('{name}', baseCal.name)
+            .replace('{value}', formatTuple(baseCal, back.tuple) || ''),
+        );
+      }
+    }
+    previewOut.textContent = lines.join(' · ');
+  };
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.id = `settings-calsys-cal-name-${calIdx}`;
+  nameInput.className = 'settings-input';
+  nameInput.value = calDraft.name;
+  nameInput.addEventListener('input', () => {
+    calDraft.name = nameInput.value;
+    title.textContent = titleText();
+  });
+  group.appendChild(buildSettingsRow('settings.calendar.calNameLabel', nameInput));
+  group.appendChild(hint);
+
+  // Bezugs-Auswahl: eigenständige Kalender des Blocks plus die eingebaute
+  // Standard-Zeitrechnung. Ableitungen stehen nicht zur Wahl (keine Ketten).
+  const baseSelect = document.createElement('select');
+  baseSelect.id = `settings-calsys-derived-base-${calIdx}`;
+  baseSelect.className = 'settings-select';
+  const addOption = (value, label) => {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label;
+    baseSelect.appendChild(opt);
+  };
+  addOption('', t('settings.calendar.derivedBaseNone'));
+  addOption(STANDARD_CALENDAR_ID, t('settings.calendar.derivedBaseStandard'));
+  block.calendars.forEach((other) => {
+    if (other.derived || other === calDraft) return;
+    // Ein noch nicht angewendeter Kalender bekommt seine Kennung jetzt,
+    // damit der Verweis stabil bleibt (beim Anwenden bleibt sie stehen).
+    if (!String(other.id || '').trim()) {
+      const taken = new Set(block.calendars.map((c) => c.id).filter(Boolean));
+      other.id = calSysIdFromName(other.name, 'kalender', taken);
+    }
+    addOption(other.id, String(other.name || '').trim() || t('settings.calendar.calUntitled'));
+  });
+  baseSelect.value = calDraft.derived.fromId || '';
+  baseSelect.addEventListener('change', () => {
+    calDraft.derived.fromId = baseSelect.value;
+    const levels = calSysBaseDateLevels(block, baseSelect.value);
+    calDraft.derived.zeroSegs = calSysSyncSegs(calDraft.derived.zeroSegs, levels.length);
+    calDraft.derived.depth = '';
+    // Beispiel-Wert auf den Nullpunkt setzen: die Vorschau startet gueltig
+    // statt mit einer roten Meldung.
+    calDraft.previewInput = calSysZeroValue(levels.length);
+    renderActiveSection();
+  });
+  group.appendChild(buildSettingsRow('settings.calendar.derivedBase', baseSelect));
+
+  // Nullpunkt in der Notation des Bezugs (volle Tages-Grenze).
+  const baseLevels = calSysBaseDateLevels(block, calDraft.derived.fromId);
+  calDraft.derived.zeroSegs = calSysSyncSegs(calDraft.derived.zeroSegs, baseLevels.length);
+  if (baseLevels.length > 0) {
+    buildCalSysSegRow(
+      group,
+      'settings.calendar.derivedZero',
+      `settings-calsys-derived-zero-${calIdx}`,
+      calDraft.derived.zeroSegs,
+      baseLevels,
+      refresh,
+    );
+    const pickBtn = document.createElement('button');
+    pickBtn.type = 'button';
+    pickBtn.id = `settings-calsys-derived-pick-${calIdx}`;
+    pickBtn.className = 'btn settings-calsys-row-add';
+    pickBtn.textContent = t('settings.calendar.derivedZeroPick');
+    pickBtn.addEventListener('click', async () => {
+      const picked = await calSysPickZero(block, calDraft, pickBtn);
+      if (!picked) return;
+      calDraft.derived.zeroSegs = picked;
+      renderActiveSection();
+    });
+    group.appendChild(pickBtn);
+  }
+
+  // Gliederungs-Tiefe: die Tiefen der Bezugs-Zeitrechnung, benannt nach
+  // ihren Einheiten (gröbste zuerst gelesen, wie sie später erscheinen).
+  const probe = calSysDerivedProbe(block, calDraft);
+  const normalized = probe ? probe.calendars.find((c) => c.id === 'probe-cal') || null : null;
+  if (normalized) {
+    const depthSelect = document.createElement('select');
+    depthSelect.id = `settings-calsys-derived-depth-${calIdx}`;
+    depthSelect.className = 'settings-select';
+    const units = spanUnits(normalized) || [];
+    units.forEach((_, i) => {
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = units
+        .slice(0, i + 1)
+        .map((u) => u.name)
+        .reverse()
+        .join(', ');
+      depthSelect.appendChild(opt);
+    });
+    const depthValue = calSysInt(calDraft.derived.depth);
+    depthSelect.value = String(
+      depthValue !== null && depthValue >= 0 && depthValue < units.length
+        ? depthValue
+        : units.length - 1,
+    );
+    depthSelect.addEventListener('change', () => {
+      calDraft.derived.depth = depthSelect.value;
+      refresh();
+    });
+    group.appendChild(buildSettingsRow('settings.calendar.derivedDepth', depthSelect));
+  }
+
+  const beforeInput = document.createElement('input');
+  beforeInput.type = 'text';
+  beforeInput.id = `settings-calsys-derived-before-${calIdx}`;
+  beforeInput.className = 'settings-input';
+  beforeInput.value = calDraft.derived.labelBefore;
+  beforeInput.addEventListener('input', () => {
+    calDraft.derived.labelBefore = beforeInput.value;
+    refresh();
+  });
+  group.appendChild(buildSettingsRow('settings.calendar.derivedLabelBefore', beforeInput));
+
+  const afterInput = document.createElement('input');
+  afterInput.type = 'text';
+  afterInput.id = `settings-calsys-derived-after-${calIdx}`;
+  afterInput.className = 'settings-input';
+  afterInput.value = calDraft.derived.labelAfter;
+  afterInput.addEventListener('input', () => {
+    calDraft.derived.labelAfter = afterInput.value;
+    refresh();
+  });
+  group.appendChild(buildSettingsRow('settings.calendar.derivedLabelAfter', afterInput));
+
+  const previewHeading = document.createElement('h4');
+  previewHeading.className = 'settings-export-group-title';
+  previewHeading.textContent = t('settings.calendar.previewGroup');
+  group.appendChild(previewHeading);
+  const previewInput = document.createElement('input');
+  previewInput.type = 'text';
+  previewInput.id = `settings-calsys-preview-input-${calIdx}`;
+  previewInput.className = 'settings-input';
+  previewInput.value = calDraft.previewInput || '';
+  previewInput.addEventListener('input', () => {
+    calDraft.previewInput = previewInput.value;
+    refresh();
+  });
+  group.appendChild(buildSettingsRow('settings.calendar.previewInput', previewInput));
+  group.appendChild(previewOut);
+
+  refresh();
+  container.appendChild(group);
+}
+
+// Zeitspanne eines Werts als Text in der gewählten Tiefe; Bestandteile der
+// Länge null entfallen, die Richtung trägt das Kürzel der Ableitung.
+function calSysSpanText(cal, tuple, depthRaw) {
+  const result = spanTiers(cal, tuple);
+  if (!result || result.tiers.length === 0) return '';
+  const depth = calSysInt(String(depthRaw || '').trim());
+  const idx =
+    depth !== null && depth >= 0 && depth < result.tiers.length ? depth : result.tiers.length - 1;
+  const items = result.tiers[idx];
+  const shown = items.filter((u) => u.count > 0);
+  const text = (shown.length > 0 ? shown : items.slice(-1))
+    .map((u) => `${u.count} ${u.name}`)
+    .join(', ');
+  if (result.direction !== 'before') return text;
+  const label = cal.epochs[0].abbr || cal.epochs[0].name || '';
+  return label === '' ? text : `${text} ${label}`;
+}
+
+// Nullpunkt über den vorhandenen Picker wählen: Er läuft auf einer Probe-
+// Konfiguration, die nur die Bezugs-Zeitrechnung enthält, und liefert die
+// Datums-Segmente des gewählten Zeitpunkts.
+async function calSysPickZero(block, calDraft, anchorEl) {
+  const fromId = String(calDraft.derived.fromId || '').trim();
+  if (fromId === '') return null;
+  let raw;
+  if (fromId === STANDARD_CALENDAR_ID) {
+    raw = standardCalendar();
+  } else {
+    const base = block.calendars.find((c) => !c.derived && c.id === fromId);
+    raw = base ? calendarPersistForm(base) : null;
+  }
+  if (!raw) return null;
+  const config = normalizeCalendarConfig({ blocks: [{ id: 'probe', calendars: [raw] }] });
+  if (!config) return null;
+  const cal = config.blocks[0].calendars[0];
+  const rect = anchorEl.getBoundingClientRect();
+  const segs = calDraft.derived.zeroSegs.map((s) => calSysInt(s));
+  // Zeit-Segmente in Minimal-Stellung ergänzen (Tupel: größte Ebene zuerst).
+  const timeStarts = cal.levels
+    .slice(0, cal.levels.length - segs.length)
+    .map((l) => l.start)
+    .reverse();
+  const value =
+    segs.length > 0 && segs.every((s) => s !== null)
+      ? formatTuple(cal, segs.concat(timeStarts)) || ''
+      : '';
+  const picked = await showCalendarPicker({
+    config,
+    calendarName: cal.name,
+    value,
+    x: rect.left,
+    y: rect.bottom,
+  });
+  if (!picked || !Array.isArray(picked.tuple)) return null;
+  const dateCount = calSysDateLevels(cal.levels).length;
+  return picked.tuple.slice(0, dateCount).map(String);
+}
+
 function renderCalendarBlockDetail(container, values) {
   const block = values.blocks[values.openBlock];
   if (!block) {
@@ -4372,7 +4765,8 @@ function renderCalendarBlockDetail(container, values) {
     container.appendChild(empty);
   }
   block.calendars.forEach((calDraft, calIdx) => {
-    buildCalendarEditor(container, block, calDraft, calIdx);
+    if (calDraft.derived) buildDerivedCalendarEditor(container, block, calDraft, calIdx);
+    else buildCalendarEditor(container, block, calDraft, calIdx);
   });
 
   const addBtn = document.createElement('button');
@@ -4461,9 +4855,30 @@ function renderCalendarBlockDetail(container, values) {
     block.calendars.push(draft);
     renderActiveSection();
   });
+  // 4T-0747: Anlage einer abgeleiteten Zeitrechnung (kurze Form).
+  const derivedBtn = document.createElement('button');
+  derivedBtn.type = 'button';
+  derivedBtn.id = 'settings-calsys-derived-add';
+  derivedBtn.className = 'btn settings-calsys-derived-add';
+  derivedBtn.textContent = t('settings.calendar.derivedAdd');
+  derivedBtn.addEventListener('click', () => {
+    block.calendars.push({
+      id: '',
+      name: '',
+      derived: {
+        fromId: '',
+        zeroSegs: [],
+        depth: '',
+        labelBefore: t('settings.calendar.derivedDefaultBefore'),
+        labelAfter: t('settings.calendar.derivedDefaultAfter'),
+      },
+      previewInput: '',
+    });
+    renderActiveSection();
+  });
   const btnRow = document.createElement('div');
   btnRow.className = 'settings-calsys-detail-buttons';
-  btnRow.append(addBtn, templateBtn);
+  btnRow.append(addBtn, derivedBtn, templateBtn);
   container.appendChild(btnRow);
 }
 
@@ -4515,7 +4930,10 @@ function validateCalendarSection(draft) {
         return t('settings.calendar.error.duplicateName').replace('{name}', calName);
       }
       seenNames.add(lower);
-      if (!calSysNormalizedDraft(calDraft)) {
+      if (calDraft.derived && String(calDraft.derived.fromId || '').trim() === '') {
+        return t('settings.calendar.error.derivedBase').replace('{name}', calName);
+      }
+      if (!calSysNormalizedDraft(calDraft, block)) {
         return t('settings.calendar.error.calInvalid')
           .replace('{name}', calName)
           .replace('{block}', blockName);
@@ -4523,6 +4941,40 @@ function validateCalendarSection(draft) {
     }
   }
   return null;
+}
+
+// 4T-0747: Vergleichs-Form einer Bezugs-Zeitrechnung ohne die Bestandteile,
+// die in einer Ableitung nicht durchschlagen (Anzeige-Name und Epochen).
+function calSysEffectiveForm(entry) {
+  if (!entry) return null;
+  const rest = { ...entry };
+  delete rest.name;
+  delete rest.epochs;
+  return JSON.stringify(rest);
+}
+
+// Namen der Ableitungen, deren Werte sich durch eine wirksame Änderung an
+// ihrer Bezugs-Zeitrechnung verschieben würden.
+function calSysAffectedDependents(values, snapshot) {
+  const snapBlocks = (snapshot && snapshot.blocks) || [];
+  const out = [];
+  for (const block of values.blocks) {
+    const snapBlock = snapBlocks.find((b) => b.id === block.id) || null;
+    for (const calDraft of block.calendars) {
+      if (calDraft.derived) continue;
+      const dependents = calSysDependents(block, calDraft);
+      if (dependents.length === 0) continue;
+      const before = snapBlock
+        ? snapBlock.calendars.find((c) => c.id === calDraft.id) || null
+        : null;
+      // Ein neu angelegter Bezug hat noch keine Werte in Dokumenten.
+      if (!before) continue;
+      if (calSysEffectiveForm(before) !== calSysEffectiveForm(calendarPersistForm(calDraft))) {
+        out.push(...dependents);
+      }
+    }
+  }
+  return [...new Set(out)];
 }
 
 async function applyCalendarSection(draft) {
@@ -4546,6 +4998,18 @@ async function applyCalendarSection(draft) {
   }
   const out = calendarConfigPersistForm(values);
   if (JSON.stringify(out) === JSON.stringify(draft.calendarSnapshot)) return;
+  // 4T-0747: Bestätigung, wenn eine wirksame Änderung an einer Bezugs-
+  // Zeitrechnung auch die Werte ihrer Ableitungen verschiebt.
+  const affected = calSysAffectedDependents(values, draft.calendarSnapshot);
+  if (affected.length > 0) {
+    let confirmed;
+    try {
+      confirmed = await api.calendarConfirmDependents(affected);
+    } catch {
+      confirmed = false;
+    }
+    if (!confirmed) return;
+  }
   let result;
   try {
     result = await api.calendarSetAreaConfig(out);

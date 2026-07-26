@@ -14,6 +14,24 @@ const { computeHeadingNumbers, parseHeadingMarker } = require('../heading-number
 // 4T-0546 (Epic 3E-0097): Kalender-Kern fuer die Wert-Syntax @{Name: Wert}
 // (Erkennung, Aufloesung, Namens-Formatierung der Badge-Darstellung).
 const calendarCore = require('../calendar-core.js');
+const { STANDARD_CALENDAR_ID } = calendarCore;
+
+// 4T-0748 (Epic 3E-0138): Einheiten-Namen der Zeitspanne. Steht eine
+// Ableitung auf der eingebauten Standard-Zeitrechnung, kommen Ein- und
+// Mehrzahl aus den vorhandenen i18n-Schluesseln (Entscheidung des Product
+// Owners vom 2026-07-26, Variante 1c); bei selbst definierten Kalendern
+// bleibt der Name der Definition stehen, weil das Modell dort keine
+// Mehrzahl kennt.
+const CALENDAR_SPAN_UNIT_KEYS = {
+  day: ['events.unit.day', 'events.unit.days'],
+  week: ['events.unit.week', 'events.unit.weeks'],
+  month: ['events.unit.month', 'events.unit.months'],
+  year: ['events.unit.year', 'events.unit.years'],
+  quarter: ['calendar.span.quarter', 'calendar.span.quarters'],
+  'half-year': ['calendar.span.halfYear', 'calendar.span.halfYears'],
+};
+
+const CALENDAR_SPAN_LABEL_KEYS = [...new Set(Object.values(CALENDAR_SPAN_UNIT_KEYS).flat())];
 
 function sourceLineMapperPlugin(mdInstance) {
   mdInstance.core.ruler.push('source_line_mapper', (state) => {
@@ -1975,6 +1993,8 @@ module.exports = {
   // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges (Funktions-Deklarationen
   // unten im Datei-Anhang, Hoisting).
   calendarValueBadgeSpec,
+  calendarSpanText,
+  CALENDAR_SPAN_LABEL_KEYS,
   calendarValuesPlugin,
 };
 
@@ -1985,7 +2005,35 @@ module.exports = {
 // (env.calendarSystems bzw. Modul-Zustand in markdown.js): unbekannter
 // Kalender oder ungueltiger Wert wird sichtbar markiert, der Roh-Text
 // bleibt unveraendert erhalten (Workshop-Punkt 6, Teilpunkt 5).
-function calendarValueBadgeSpec(name, value, config) {
+function calendarSpanUnitName(cal, unit, count, L) {
+  if (typeof L === 'function' && cal.derived && cal.derived.fromId === STANDARD_CALENDAR_ID) {
+    const keys = CALENDAR_SPAN_UNIT_KEYS[unit.id];
+    if (keys) {
+      const text = L(keys[count === 1 ? 0 : 1]);
+      if (typeof text === 'string' && text !== '' && !text.startsWith('events.')) return text;
+    }
+  }
+  return unit.name;
+}
+
+// Zeitspanne eines Werts in der konfigurierten Gliederungs-Tiefe; Anteile
+// der Laenge null entfallen, die Richtung traegt das Kuerzel der Ableitung.
+function calendarSpanText(cal, tuple, L) {
+  const result = calendarCore.spanTiers(cal, tuple);
+  if (!result || result.tiers.length === 0) return null;
+  const wish =
+    cal.derived && cal.derived.depth != null ? cal.derived.depth : result.tiers.length - 1;
+  const items = result.tiers[Math.min(Math.max(wish, 0), result.tiers.length - 1)];
+  const shown = items.filter((u) => u.count > 0);
+  const text = (shown.length > 0 ? shown : items.slice(-1))
+    .map((u) => `${u.count} ${calendarSpanUnitName(cal, u, u.count, L)}`)
+    .join(', ');
+  if (result.direction !== 'before') return text;
+  const label = cal.epochs[0].abbr || cal.epochs[0].name || '';
+  return label === '' ? text : `${text} ${label}`;
+}
+
+function calendarValueBadgeSpec(name, value, config, L) {
   const raw = `@{${name}: ${value}}`;
   const found = config ? calendarCore.findCalendarByName(config, name) : null;
   if (!found) {
@@ -2001,6 +2049,22 @@ function calendarValueBadgeSpec(name, value, config) {
     };
   }
   const canonical = calendarCore.formatTuple(found.calendar, parsed.tuple) || value;
+  // Ableitung: der Badge zeigt die Zeitspanne, der Kurzhinweis den
+  // kanonischen Wert und den Zeitpunkt der Bezugs-Zeitrechnung.
+  if (found.calendar.derived) {
+    let title = `${found.calendar.name}: ${canonical}`;
+    const base = calendarCore.baseCalendarOf(found.block, found.calendar);
+    if (base) {
+      const back = calendarCore.convertBetween(found.calendar, parsed.tuple, base);
+      if (back.ok) title += `\n${base.name}: ${calendarCore.formatTuple(base, back.tuple) || ''}`;
+    }
+    return {
+      cls: 'calendar-value',
+      title,
+      text: calendarSpanText(found.calendar, parsed.tuple, L) || canonical,
+      ok: true,
+    };
+  }
   const named = calendarCore.formatTuple(found.calendar, parsed.tuple, { named: true }) || value;
   return {
     cls: 'calendar-value',
@@ -2046,7 +2110,9 @@ function calendarValuesPlugin(mdInstance, opts) {
   mdInstance.inline.ruler.before('link', 'calendar_value', tokenize);
   mdInstance.renderer.rules.calendar_value = (tokens, idx, _opts, env) => {
     const meta = tokens[idx].meta;
-    const spec = calendarValueBadgeSpec(meta.name, meta.value, env && env.calendarSystems);
+    const labels = (env && env.calendarLabels) || null;
+    const L = labels ? (key) => labels[key] : null;
+    const spec = calendarValueBadgeSpec(meta.name, meta.value, env && env.calendarSystems, L);
     if (isPortable) {
       const style = spec.ok ? CALENDAR_BADGE_PORTABLE_STYLE : CALENDAR_BADGE_PORTABLE_STYLE_BAD;
       return `<span style="${style}" title="${escapeHtml(spec.title)}">${escapeHtml(spec.text)}</span>`;

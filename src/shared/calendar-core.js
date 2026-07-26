@@ -750,6 +750,9 @@ function formatTuple(cal, tuple, opts = {}) {
   const c = compileSafe(cal);
   if (!c || !Array.isArray(cal.epochs) || cal.epochs.length === 0) return null;
   if (!validateTuple(cal, tuple).ok) return null;
+  // 4T-0747: Abgeleitete Zeitrechnungen zählen vom Nullpunkt weg statt in
+  // Kalender-Koordinaten; Positions-Namen gibt es dort nicht.
+  if (cal.derived) return formatDerived(cal, c, tuple);
   const ep = epochOfUnchecked(cal, c, tuple);
   const parts = [];
   for (let k = 0; k < c.dateCount; k++) {
@@ -782,6 +785,7 @@ function parseCanonical(cal, text) {
   if (!c || !Array.isArray(cal.epochs) || cal.epochs.length === 0) {
     return { ok: false, code: 'calendar' };
   }
+  if (cal.derived) return parseDerived(cal, c, text);
   const s = cleanString(text);
   if (s === '') return { ok: false, code: 'malformed' };
   const firstSpace = s.indexOf(' ');
@@ -845,16 +849,36 @@ function convertInBlock(block, fromId, tuple, toId) {
   const from = block.calendars.find((x) => x && x.id === fromId);
   const to = block.calendars.find((x) => x && x.id === toId);
   if (!from || !to) return { ok: false, code: 'unknownCalendar' };
+  return convertBetween(from, tuple, to);
+}
+
+// Dieselbe Umrechnung zwischen zwei Kalender-Objekten. Sie trägt auch dann,
+// wenn der Ziel-Kalender nicht im Block steht — der Fall einer Ableitung auf
+// die eingebaute Standard-Zeitrechnung (4T-0748). Die Block-Zugehörigkeit
+// prüft der Aufrufer; die Rechnung selbst braucht nur Anker und Skala.
+function convertBetween(from, tuple, to) {
+  if (!from || !to) return { ok: false, code: 'unknownCalendar' };
   const v = validateTuple(from, tuple);
   if (!v.ok) return v;
   const cf = compileSafe(from);
   const ct = compileSafe(to);
+  if (!cf || !ct) return { ok: false, code: 'calendar' };
   const diff = tupleToAxisUnchecked(cf, tuple) - tupleToAxisUnchecked(cf, from.blockAnchor);
   const num = diff * BigInt(from.blockScale.num) * BigInt(to.blockScale.den);
   const den = BigInt(from.blockScale.den) * BigInt(to.blockScale.num);
   const axisTo = floorDiv(num, den) + tupleToAxisUnchecked(ct, to.blockAnchor);
   const out = axisToTuple(to, axisTo);
   return out ? { ok: true, tuple: out } : { ok: false, code: 'outOfRange' };
+}
+
+// Bezugs-Zeitrechnung einer Ableitung: der Kalender des Blocks oder die
+// eingebaute Standard-Zeitrechnung; null, wenn der Kalender keine Ableitung
+// ist oder der Bezug fehlt.
+function baseCalendarOf(block, cal) {
+  if (!cal || !cal.derived) return null;
+  if (cal.derived.fromId === STANDARD_CALENDAR_ID) return standardCalendar();
+  if (!block || !Array.isArray(block.calendars)) return null;
+  return block.calendars.find((c) => c && c.id === cal.derived.fromId && !c.derived) || null;
 }
 
 // --- Wert-Syntax im Dokument (4T-0546) -------------------------------------------------
@@ -1067,12 +1091,28 @@ function normalizeCalendar(value) {
   cal.epochs = normalizeEpochs(cal, c, value.epochs);
   cal.cycles = normalizeCycles(cal, c, value.cycles);
   cal.groups = normalizeGroups(c, value.groups);
+  // 4T-0746: Herkunfts-Angaben einer abgeleiteten Zeitrechnung; sie sind
+  // Anzeige- und Pflege-Information und werden von der Arithmetik nicht
+  // gebraucht (die Ableitung ist eine vollwertige Definition).
+  if (value.derived && typeof value.derived === 'object') {
+    const fromId = cleanString(value.derived.fromId);
+    if (fromId !== '') {
+      cal.derived = {
+        fromId,
+        fromName: cleanString(value.derived.fromName) || fromId,
+        zero: Array.isArray(value.derived.zero) ? value.derived.zero.slice() : null,
+        depth: isInt(value.derived.depth) && value.derived.depth >= 0 ? value.derived.depth : null,
+      };
+    }
+  }
   return cal;
 }
 
 // Normalisiert die calendarSystems-Sektion auf { blocks } oder null (keine
 // Konfiguration). Defekte Blöcke und Kalender entfallen einzeln; doppelte
-// ids behalten den ersten Eintrag.
+// ids behalten den ersten Eintrag. Abgeleitete Zeitrechnungen (4T-0746)
+// werden in einem ZWEITEN Durchgang je Block aufgelöst, damit die
+// Reihenfolge der Definitionen keine Rolle spielt.
 function normalizeCalendarConfig(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const blocks = [];
@@ -1085,10 +1125,34 @@ function normalizeCalendarConfig(value) {
       seenBlocks.add(id);
       const calendars = [];
       const seenCals = new Set();
+      const derivedRaw = [];
       if (Array.isArray(rawBlock.calendars)) {
+        // Durchgang 1: eigenständige Definitionen.
         for (const rawCal of rawBlock.calendars) {
+          if (rawCal && typeof rawCal === 'object' && rawCal.derivedFrom != null) {
+            derivedRaw.push(rawCal);
+            continue;
+          }
           const cal = normalizeCalendar(rawCal);
           if (!cal || seenCals.has(cal.id)) continue;
+          seenCals.add(cal.id);
+          calendars.push(cal);
+        }
+        // Durchgang 2: Ableitungen gegen die Bezugs-Zeitrechnung auflösen.
+        // Bezug ist ein eigenständiger Kalender desselben Blocks oder die
+        // eingebaute Standard-Zeitrechnung; eine Ableitung ist kein
+        // zulässiger Bezug (keine Ketten).
+        for (const rawCal of derivedRaw) {
+          const derivedId = cleanString(rawCal.id);
+          if (derivedId === '' || seenCals.has(derivedId)) continue;
+          const baseId = cleanString(rawCal.derivedFrom);
+          const base =
+            baseId === STANDARD_CALENDAR_ID
+              ? standardCalendar()
+              : calendars.find((c) => c.id === baseId && !c.derived);
+          if (!base) continue;
+          const cal = normalizeCalendar(deriveCalendar(base, rawCal));
+          if (!cal) continue;
           seenCals.add(cal.id);
           calendars.push(cal);
         }
@@ -1217,9 +1281,471 @@ function createGregorianTemplate(opts = {}) {
   };
 }
 
+// --- Abgeleitete Zeitrechnungen (4T-0746, Epic 3E-0138) --------------------------------
+//
+// Eine abgeleitete Zeitrechnung ist eine PHASENVERSCHIEBUNG ihres Bezugs:
+// dieselben Einheiten, aber ihre Grenzen liegen auf dem Nullpunkt und dessen
+// Wiederkehr-Punkten, und die Namens-Listen wandern mit (der erste Monat
+// behält den Namen des Bezugs-Monats, in dem der Nullpunkt liegt). Der
+// Nullpunkt ist Tag 1; davor zählt die offene Vergangenheits-Epoche rückwärts
+// ab 1, eine Null-Stelle gibt es nicht. Das Ergebnis ist eine VOLLWERTIGE
+// Definition im selben Modell, deshalb tragen Wert-Syntax, Anzeige, Picker
+// und Umrechnung unverändert (Konzept-Runde 4T-0745, Punkte 1 bis 5).
+//
+// Die naheliegende Alternative, Längen-Tabelle und Schaltregel auf den
+// eigenen Jahres-Index anzuwenden, driftet: Drei Jahre ab dem 17.09.2005
+// ergeben dort 1095 statt 1096 Tage.
+
+// Reservierte Kennung des Bezugs auf die eingebaute Standard-Zeitrechnung.
+const STANDARD_CALENDAR_ID = '@standard';
+
+let standardCal = null;
+
+// Eingebaute Standard-Zeitrechnung als Bezug: die gregorianische Vorlage
+// unter reservierter Kennung, damit eine Ableitung ohne selbst definierten
+// Kalender möglich ist.
+function standardCalendar() {
+  if (!standardCal) {
+    standardCal = normalizeCalendar(createGregorianTemplate({ id: STANDARD_CALENDAR_ID }));
+  }
+  return standardCal;
+}
+
+// Dreht eine Liste so, dass Position n an den Anfang rückt.
+function rotateList(list, n) {
+  const len = list.length;
+  const k = ((n % len) + len) % len;
+  return list.map((_, i) => list[(i + k) % len]);
+}
+
+// Anzahl der Kind-Instanzen je Instanz der Ebene levelIdx (nur für Ebenen
+// mit fester Kind-Zahl, also Faktor- und Schalt-Ebenen).
+function childCountOf(c, levelIdx) {
+  const rel = c.levels[levelIdx].rel;
+  return rel.type === 'lengths' ? rel.table.length : rel.count;
+}
+
+// Tupel-Kopie mit allen Segmenten unterhalb von levelIdx in Start-Stellung
+// (der Beginn der Einheit, in welcher der Wert liegt).
+function floorAtLevel(c, tuple, levelIdx) {
+  const out = tuple.slice();
+  for (let i = 0; i < levelIdx; i++) out[c.top - i] = c.levels[i].start;
+  return out;
+}
+
+// Beginn der NÄCHSTEN Instanz der Ebene levelIdx nach der des Tupels.
+function nextAtLevel(c, tuple, levelIdx) {
+  const out = floorAtLevel(c, tuple, levelIdx);
+  for (let li = levelIdx; li < c.top; li++) {
+    const k = c.top - li;
+    out[k] += 1;
+    if (out[k] - c.levels[li].start < childCountOf(c, li + 1)) return out;
+    out[k] = c.levels[li].start;
+  }
+  out[0] += 1;
+  return out;
+}
+
+// Erzeugt aus einer normalisierten Bezugs-Definition und einer Roh-Angabe
+// { id, name, derivedFrom, zero, depth, labelBefore, labelAfter } die
+// vollständige Definition der abgeleiteten Zeitrechnung; null, wenn der
+// Nullpunkt im Bezug ungültig ist. Der Nullpunkt trägt nur Datums-Segmente,
+// liegt also immer auf einer vollen Tages-Grenze.
+function deriveCalendar(base, raw) {
+  const c = compileSafe(base);
+  if (!c || !raw || typeof raw !== 'object') return null;
+  const id = cleanString(raw.id);
+  if (id === '') return null;
+  const zero = normalizeDateSegs(base, c, raw.zero);
+  if (!zero) return null;
+  const zeroFull = zero.concat(timeStartSegs(c));
+  const posAt = (levelIdx) => zeroFull[c.top - levelIdx] - c.levels[levelIdx].start;
+
+  // Ebenen kopieren, Namens-Listen auf die Position des Nullpunkts drehen.
+  // Zeit-Ebenen bleiben dabei unverändert, weil ihre Position null ist.
+  const levels = c.levels.map((lv, i) => {
+    const out = { id: lv.id, name: lv.name, section: lv.section, start: lv.start };
+    if (lv.names) out.names = i < c.top ? rotateList(lv.names, posAt(i)) : lv.names.slice();
+    if (lv.rel) out.rel = { ...lv.rel };
+    return out;
+  });
+
+  // Längen-Tabelle: Die abgeleitete Einheit k beginnt am Tag min(D, Länge)
+  // ihrer Bezugs-Einheit (Klemmung auf den letzten vorhandenen Tag), ihre
+  // Länge ist der Abstand bis zum Beginn der nächsten.
+  let dayInUnit = 1;
+  if (c.iLen >= 0) {
+    const table = c.levels[c.iLen].rel.table;
+    const len = table.length;
+    const unitIdx = posAt(c.iLen);
+    dayInUnit = c.iLen >= 1 ? posAt(c.iLen - 1) + 1 : 1;
+    const startDay = (k) => Math.min(dayInUnit, table[(unitIdx + k) % len]);
+    const derivedTable = [];
+    for (let k = 0; k < len; k++) {
+      derivedTable.push(table[(unitIdx + k) % len] - startDay(k) + startDay(k + 1));
+    }
+    levels[c.iLen].rel = { type: 'lengths', table: derivedTable };
+  }
+
+  // Schalt-Ebene: Das Ziel der Verlängerung wandert mit der Drehung. Liegt
+  // der Nullpunkt hinter der kürzesten Länge der Ziel-Einheit, trägt die
+  // Einheit DAVOR die variable Länge, weil dann deren Ende wandert.
+  if (c.iLeap >= 0) {
+    const rel = { ...c.levels[c.iLeap].rel };
+    const childIdx = c.iLeap - 1;
+    const cnt = rel.count;
+    let target = (rel.targetIndex - posAt(childIdx) + cnt) % cnt;
+    if (c.iLen === childIdx && dayInUnit > c.levels[c.iLen].rel.table[rel.targetIndex]) {
+      target = (target - 1 + cnt) % cnt;
+    }
+    rel.targetIndex = target;
+    levels[c.iLeap].rel = rel;
+  }
+
+  // Interner Jahres-Index so wählen, dass die Schaltregel dieselbe Instanz
+  // trifft wie im Bezug: Liegt der Nullpunkt hinter der Ziel-Einheit, fällt
+  // deren nächstes Vorkommen ins Folgejahr des Bezugs.
+  let yearShift = 0;
+  if (c.iLeap >= 0) {
+    yearShift = posAt(c.iLeap - 1) <= c.levels[c.iLeap].rel.targetIndex ? 0 : 1;
+  }
+  const zeroDate = [zero[0] + yearShift];
+  for (let k = 1; k < c.dateCount; k++) zeroDate.push(c.levels[c.top - k].start);
+
+  // Zyklen: Länge übernehmen, Anker auf den eigenen Tag 1 mit Position 0,
+  // Namen um die Zyklus-Position des Nullpunkts drehen. Ein unverändert
+  // geerbter Anker zeigte in eigenen Koordinaten auf einen anderen
+  // Zeitpunkt. Die Nummerierungs-Regel entfällt, weil die Zyklen ab dem
+  // Nullpunkt durchgezählt werden.
+  const cycles = (base.cycles || []).map((cy) => {
+    const at = cycleAt(base, zeroFull, cy.id);
+    return {
+      id: cy.id,
+      name: cy.name,
+      of: cy.of,
+      length: cy.length,
+      names: cy.names ? rotateList(cy.names, at ? at.position : 0) : null,
+      anchor: { tuple: zeroDate.slice(), position: 0 },
+      numbering: null,
+    };
+  });
+
+  // Gruppierungen: Größe übernehmen, Namen um die Gruppe drehen, in welcher
+  // der Nullpunkt liegt.
+  const groups = (base.groups || []).map((g) => {
+    const idx = c.levels.findIndex((lv) => lv.id === g.of);
+    return {
+      id: g.id,
+      name: g.name,
+      of: g.of,
+      size: g.size,
+      names: g.names ? rotateList(g.names, idx >= 0 ? Math.floor(posAt(idx) / g.size) : 0) : null,
+    };
+  });
+
+  const labelBefore = cleanString(raw.labelBefore) || 'vor';
+  const labelAfter = cleanString(raw.labelAfter) || 'nach';
+  const draft = {
+    id,
+    name: cleanString(raw.name) || id,
+    levels,
+    cycles,
+    groups,
+    // Zwei Richtungen statt Epochen: Grenze auf dem Nullpunkt, davor
+    // rückwärts ab 1, danach vorwärts ab 1.
+    epochs: [
+      { name: labelBefore, abbr: labelBefore, start: null },
+      { name: labelAfter, abbr: labelAfter, start: zeroDate.slice() },
+    ],
+    blockScale: base.blockScale ? { ...base.blockScale } : { num: 1, den: 1 },
+  };
+
+  // Block-Anker so setzen, dass der eigene Tag 1 auf dem Nullpunkt des
+  // Bezugs liegt (gleiche Skala, also reine Verschiebung der Achse).
+  const dc = compileSafe(draft);
+  if (!dc) return null;
+  const shift =
+    tupleToAxisUnchecked(dc, zeroDate.concat(timeStartSegs(dc))) -
+    (tupleToAxisUnchecked(c, zeroFull) - tupleToAxisUnchecked(c, base.blockAnchor));
+  const anchor = axisToTuple(draft, shift);
+  if (!anchor) return null;
+  draft.blockAnchor = anchor;
+  draft.derived = {
+    fromId: base.id,
+    fromName: base.name,
+    zero: zero.slice(),
+    depth: isInt(raw.depth) && raw.depth >= 0 ? raw.depth : null,
+  };
+  return draft;
+}
+
+// Persistenz-Form einer Konfiguration: wie die normalisierte, aber jede
+// abgeleitete Zeitrechnung behält ihre KURZE Roh-Form (Bezug und Nullpunkt).
+// Ohne das würde die aufgelöste Abschrift abgelegt, und eine spätere
+// Änderung am Bezug erreichte die Ableitung nie mehr — genau die Kopie, die
+// das Modell vermeidet. Eigenständige Kalender werden unverändert in ihrer
+// normalisierten Form abgelegt (Bestandsverhalten aus 4T-0543).
+function configForPersist(raw, normalized) {
+  if (!normalized) return null;
+  const rawBlocks = raw && Array.isArray(raw.blocks) ? raw.blocks : [];
+  return {
+    blocks: normalized.blocks.map((block) => {
+      const rawBlock = rawBlocks.find((b) => b && cleanString(b.id) === block.id) || null;
+      const rawCals = rawBlock && Array.isArray(rawBlock.calendars) ? rawBlock.calendars : [];
+      return {
+        ...block,
+        calendars: block.calendars.map((cal) => {
+          if (!cal.derived) return cal;
+          return rawCals.find((c) => c && cleanString(c.id) === cal.id) || cal;
+        }),
+      };
+    }),
+  };
+}
+
+// --- Zeitspannen-Staffelung (4T-0746) --------------------------------------------------
+
+// Einheiten-Leiter einer Zeitrechnung, von der kleinsten zur größten:
+// die Datums-Ebenen, dazu Zyklen und Gruppierungen als reine Rechen-
+// Einheiten über ihrer Bezugs-Ebene. Im gregorianischen Fall ergibt das
+// Tag, Woche, Monat, Quartal, Halbjahr, Jahr.
+function spanUnits(cal) {
+  const c = compileSafe(cal);
+  if (!c) return null;
+  const units = [];
+  for (let i = c.timeCount; i <= c.top; i++) {
+    units.push({ id: c.levels[i].id, name: c.levels[i].name, levelIdx: i, mult: 1, kind: 'level' });
+  }
+  const add = (entry, mult, kind) => {
+    const idx = c.levels.findIndex((lv) => lv.id === entry.of);
+    if (idx < c.timeCount || idx > c.top || !isPosInt(mult) || mult < 2) return;
+    units.push({ id: entry.id, name: entry.name, levelIdx: idx, mult, kind });
+  };
+  for (const cy of cal.cycles || []) add(cy, cy.length, 'cycle');
+  for (const g of cal.groups || []) add(g, g.size, 'group');
+  units.sort((a, b) => a.levelIdx - b.levelIdx || a.mult - b.mult);
+  return units;
+}
+
+// Zerlegung eines Werts gegenüber dem Nullpunkt: Richtung, Anzahl
+// vollständiger Einheiten je Ebene oberhalb der kleinsten Datums-Ebene,
+// Ordnungszahl in dieser Ebene (innerhalb der letzten gezählten Einheit)
+// und die Gesamt-Ordnungszahl ab dem Nullpunkt. Vorwärts ist der Nullpunkt
+// selbst die Nummer 1, rückwärts trägt die Einheit davor die Nummer 1.
+function spanParts(cal, tuple) {
+  const c = compileSafe(cal);
+  if (!c || !cal.derived || !Array.isArray(cal.epochs) || cal.epochs.length < 2) return null;
+  if (!cal.epochs[1].start || !validateTuple(cal, tuple).ok) return null;
+  const zeroFull = cal.epochs[1].start.concat(timeStartSegs(c));
+  const axisZero = tupleToAxisUnchecked(c, zeroFull);
+  // Der Zeit-Anteil bleibt außen vor (4T-0745, Punkt 4b): gezählt wird der
+  // Datums-Anteil, der Zeit-Anteil wandert unverändert durch die Anzeige.
+  const dateOnly = floorAtLevel(c, tuple, c.timeCount);
+  const axisVal = tupleToAxisUnchecked(c, dateOnly);
+  const forward = axisVal >= axisZero;
+  const d0 = c.timeCount;
+  const counts = new Map();
+  let anchor = zeroFull;
+  for (let L = c.top; L > d0 && L >= c.iIrrFirst; L--) {
+    const floor = floorAtLevel(c, dateOnly, L);
+    const onBoundary = tupleToAxisUnchecked(c, floor) === axisVal;
+    let n;
+    if (forward) {
+      n = Number(absAt(c, L, dateOnly) - absAt(c, L, anchor));
+      anchor = floor;
+    } else {
+      const stop = onBoundary ? floor : nextAtLevel(c, dateOnly, L);
+      n = Number(absAt(c, L, anchor) - absAt(c, L, stop));
+      anchor = stop;
+    }
+    counts.set(L, n);
+  }
+  // Ebenen mit fester Einheiten-Länge unterhalb der ersten unregelmäßigen
+  // (z.B. ein Wochen-Ebene-Modell ohne Längen-Tabelle): rein rechnerisch.
+  let rest = forward
+    ? (axisVal - tupleToAxisUnchecked(c, anchor)) / c.unitLen[d0]
+    : (tupleToAxisUnchecked(c, anchor) - axisVal) / c.unitLen[d0];
+  for (let L = Math.min(c.iIrrFirst, c.top + 1) - 1; L > d0; L--) {
+    const per = BigInt(Number(c.unitLen[L] / c.unitLen[d0]));
+    const n = rest / per;
+    counts.set(L, Number(n));
+    rest -= n * per;
+  }
+  const total = forward
+    ? (axisVal - axisZero) / c.unitLen[d0]
+    : (axisZero - axisVal) / c.unitLen[d0];
+  return {
+    direction: forward ? 'after' : 'before',
+    counts,
+    ord: Number(rest) + (forward ? 1 : 0),
+    totalOrd: Number(total) + (forward ? 1 : 0),
+  };
+}
+
+// Tupel aus einem absoluten Instanz-Index der Ebene levelIdx (untere
+// Segmente in Start-Stellung); Gegenstück zu absAt.
+function tupleFromAbs(c, levelIdx, abs) {
+  const segs = new Array(c.levels.length);
+  for (let i = 0; i < levelIdx; i++) segs[c.top - i] = c.levels[i].start;
+  let above = abs;
+  for (let li = levelIdx; li < c.top; li++) {
+    const cnt = BigInt(childCountOf(c, li + 1));
+    segs[c.top - li] = Number(floorMod(above, cnt)) + c.levels[li].start;
+    above = floorDiv(above, cnt);
+  }
+  const topSeg = toSafeNumber(above);
+  if (topSeg === null) return null;
+  segs[0] = topSeg;
+  return segs;
+}
+
+// Achse um n Instanzen der Ebene levelIdx verschieben (n darf negativ sein).
+// Unterhalb der ersten unregelmäßigen Ebene ist das reine Achsen-Arithmetik,
+// darüber läuft es über den absoluten Instanz-Index.
+function stepAxisAtLevel(cal, c, axis, levelIdx, n) {
+  if (n === 0) return axis;
+  if (levelIdx < c.iIrrFirst) return axis + BigInt(n) * c.unitLen[levelIdx];
+  const at = axisToTuple(cal, axis);
+  if (!at) return null;
+  const next = tupleFromAbs(c, levelIdx, absAt(c, levelIdx, at) + BigInt(n));
+  return next ? tupleToAxisUnchecked(c, next) : null;
+}
+
+// --- Kanonische Form abgeleiteter Zeitrechnungen (4T-0747, Variante B) -----------------
+//
+// Sie zählt in BEIDE Richtungen vom Nullpunkt weg: gröbere Einheiten als
+// vollständige Anzahl ab 0, die kleinste Datums-Einheit als Ordnungszahl ab
+// 1. Der Nullpunkt selbst ist damit 0-0-1, der Tag davor 0-0-1 mit dem
+// Richtungs-Kürzel. Der Zeit-Anteil hängt unverändert hinten an.
+
+function formatDerived(cal, c, tuple) {
+  const parts = spanParts(cal, tuple);
+  if (!parts) return null;
+  const segs = [];
+  for (let L = c.top; L > c.timeCount; L--) segs.push(parts.counts.get(L) || 0);
+  segs.push(parts.ord);
+  let out = segs.join('-');
+  if (parts.direction === 'before') out += ` ${epochLabel(cal, 0)}`;
+  if (c.timeCount > 0) {
+    const timeSegs = tuple.slice(c.dateCount);
+    const starts = timeStartSegs(c);
+    if (!timeSegs.every((s, j) => s === starts[j])) {
+      out += ' ' + timeSegs.map((s, j) => padSeg(s, c.widths[c.top - (c.dateCount + j)])).join(':');
+    }
+  }
+  return out;
+}
+
+function parseDerived(cal, c, text) {
+  const s = cleanString(text);
+  if (s === '') return { ok: false, code: 'malformed' };
+  const firstSpace = s.indexOf(' ');
+  const dateTok = firstSpace < 0 ? s : s.slice(0, firstSpace);
+  let rest = firstSpace < 0 ? '' : s.slice(firstSpace + 1).trim();
+  const dateParts = dateTok.split('-');
+  if (dateParts.length !== c.dateCount) return { ok: false, code: 'malformed' };
+  const nums = [];
+  for (const p of dateParts) {
+    if (!/^\d{1,15}$/.test(p)) return { ok: false, code: 'malformed' };
+    nums.push(Number(p));
+  }
+  // Richtungs-Kürzel: nur das der Vergangenheits-Richtung ist zulässig;
+  // ohne Kürzel zählt vorwärts.
+  let before = false;
+  for (const cand of [
+    { label: cal.epochs[0].abbr, before: true },
+    { label: cal.epochs[0].name, before: true },
+    { label: '#1', before: true },
+    // Das Kürzel der Vorwärts-Richtung schreibt die kanonische Form nicht,
+    // wird beim Lesen aber angenommen (Eingabe-Toleranz).
+    { label: cal.epochs[1].abbr, before: false },
+    { label: cal.epochs[1].name, before: false },
+  ]) {
+    if (!cand.label) continue;
+    if (rest === cand.label || rest.startsWith(`${cand.label} `)) {
+      before = cand.before;
+      rest = rest.slice(cand.label.length).trim();
+      break;
+    }
+  }
+  const timeSegs = timeStartSegs(c);
+  if (rest !== '') {
+    if (c.timeCount === 0) return { ok: false, code: 'malformed' };
+    const timeParts = rest.split(':');
+    if (timeParts.length > c.timeCount) return { ok: false, code: 'malformed' };
+    for (let j = 0; j < timeParts.length; j++) {
+      if (!/^\d{1,15}$/.test(timeParts[j])) return { ok: false, code: 'malformed' };
+      timeSegs[j] = Number(timeParts[j]);
+    }
+  }
+  const ord = nums[nums.length - 1];
+  if (ord < 1) return { ok: false, code: 'segmentRange', levelId: c.levels[c.timeCount].id };
+  let axis = tupleToAxisUnchecked(c, cal.epochs[1].start.concat(timeStartSegs(c)));
+  for (let k = 0; k < nums.length - 1; k++) {
+    const level = c.top - k;
+    axis = stepAxisAtLevel(cal, c, axis, level, before ? -nums[k] : nums[k]);
+    if (axis === null) return { ok: false, code: 'segmentRange' };
+  }
+  axis += BigInt(before ? -ord : ord - 1) * c.unitLen[c.timeCount];
+  const dateTuple = axisToTuple(cal, axis);
+  if (!dateTuple) return { ok: false, code: 'segmentRange' };
+  const tuple = dateTuple.slice(0, c.dateCount).concat(timeSegs);
+  const v = validateTuple(cal, tuple);
+  if (!v.ok) return v;
+  return { ok: true, tuple, epochIndex: before ? 0 : 1 };
+}
+
+// Betrag der Ebene levelIdx in ihren eigenen Einheiten, also die Anzahl
+// vollständiger Einheiten dieser Ebene samt der aufgelösten gröberen.
+function totalAtLevel(c, counts, levelIdx) {
+  let total = 0;
+  for (let L = c.top; L > levelIdx; L--) {
+    total = (total + (counts.get(L) || 0)) * childCountOf(c, L);
+  }
+  return total + (counts.get(levelIdx) || 0);
+}
+
+// Gestaffelte Zeitspanne eines Werts: je Gliederungs-Tiefe eine Liste von
+// Einheiten mit ihrer Anzahl, von der gröbsten zur feinsten. Tiefe 0 nennt
+// allein die kleinste Einheit, jede weitere nimmt die nächst-gröbere hinzu.
+// Bestandteile der Länge null bleiben enthalten; das Weglassen ist Sache
+// der Anzeige.
+function spanTiers(cal, tuple) {
+  const c = compileSafe(cal);
+  const parts = spanParts(cal, tuple);
+  const units = spanUnits(cal);
+  if (!c || !parts || !units || units.length === 0) return null;
+  const d0 = c.timeCount;
+  const tiers = [];
+  for (let i = 0; i < units.length; i++) {
+    const used = units.slice(0, i + 1);
+    const top = used[used.length - 1];
+    let amount = top.levelIdx === d0 ? parts.totalOrd : totalAtLevel(c, parts.counts, top.levelIdx);
+    const items = [];
+    for (let j = used.length - 1; j >= 0; j--) {
+      const u = used[j];
+      if (j < used.length - 1 && u.levelIdx !== used[j + 1].levelIdx) {
+        amount = u.levelIdx === d0 ? parts.ord : parts.counts.get(u.levelIdx) || 0;
+      }
+      const n = Math.floor(amount / u.mult);
+      amount -= n * u.mult;
+      items.push({ id: u.id, name: u.name, kind: u.kind, mult: u.mult, count: n });
+    }
+    tiers.push(items);
+  }
+  return { direction: parts.direction, tiers };
+}
+
 module.exports = {
   normalizeCalendarConfig,
   createGregorianTemplate,
+  // 4T-0746 (Epic 3E-0138): abgeleitete Zeitrechnungen und Zeitspannen.
+  STANDARD_CALENDAR_ID,
+  standardCalendar,
+  deriveCalendar,
+  configForPersist,
+  spanUnits,
+  spanTiers,
   tupleToAxis,
   axisToTuple,
   validateTuple,
@@ -1230,6 +1756,8 @@ module.exports = {
   formatTuple,
   parseCanonical,
   convertInBlock,
+  convertBetween,
+  baseCalendarOf,
   findCalendarByName,
   // 4T-0546: Wert-Syntax im Dokument (gemeinsame Erkennungs-Quelle).
   parseCalendarValueRaw,

@@ -136,7 +136,7 @@ const {
 const { normalizeJournalsConfig } = require('../shared/journal-core');
 // 4T-0543 (Epic 3E-0097): Kalender-Systeme — Normalisierung der
 // calendarSystems-Sektion liegt vollstaendig im Kalender-Kern.
-const { normalizeCalendarConfig } = require('../shared/calendar-core');
+const { normalizeCalendarConfig, configForPersist } = require('../shared/calendar-core');
 // 4T-0446 (Epic 3E-0083): Eigenschafts-Profile — tolerante Normalisierung der
 // propertyProfiles-Sektion der Bereichsdatei (prozess-neutral, unit-getestet).
 // 4T-0447: Definitions-Auflösung (Konflikt-Regeln) und Zuordnungs-Feld-
@@ -3193,6 +3193,48 @@ function registerIpc() {
     return result.response === 0;
   });
 
+  // 4T-0747 (Epic 3E-0138): Schutz der abgeleiteten Zeitrechnungen. Eine
+  // wirksame Änderung an einer Bezugs-Zeitrechnung verschiebt auch deren
+  // Werte, deshalb Bestätigung vor dem Anwenden; das Löschen einer
+  // Zeitrechnung mit Abhängigen ist gesperrt und meldet nur (Muster
+  // events:confirmDelete).
+  ipcMain.handle('calendar:confirmDependents', async (event, names) => {
+    const owner = senderWindow(event);
+    const t = (k) => tForWindow(owner, k);
+    const list = Array.isArray(names) ? names.join(', ') : '';
+    const count = Array.isArray(names) ? names.length : 0;
+    const result = await dialog.showMessageBox(owner || undefined, {
+      type: 'warning',
+      title: t('settings.calendar.derivedConfirm.title'),
+      message: t('settings.calendar.derivedConfirm.message')
+        .replace('{count}', String(count))
+        .replace('{names}', list),
+      buttons: [
+        t('settings.calendar.derivedConfirm.apply'),
+        t('settings.calendar.derivedConfirm.cancel'),
+      ],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    });
+    return result.response === 0;
+  });
+
+  ipcMain.handle('calendar:blockedDelete', async (event, names) => {
+    const owner = senderWindow(event);
+    const t = (k) => tForWindow(owner, k);
+    await dialog.showMessageBox(owner || undefined, {
+      type: 'info',
+      title: t('settings.calendar.derivedBlocked.title'),
+      message: t('settings.calendar.derivedBlocked.message')
+        .replace('{count}', String(Array.isArray(names) ? names.length : 0))
+        .replace('{names}', Array.isArray(names) ? names.join(', ') : ''),
+      buttons: [t('settings.calendar.derivedBlocked.ok')],
+      noLink: true,
+    });
+    return true;
+  });
+
   // Schreibfehler-Dialog (Datei nicht schreibbar etc.).
   ipcMain.handle('dialog:showSaveError', async (event, detail) => {
     const owner = senderWindow(event);
@@ -4565,7 +4607,11 @@ function registerIpc() {
         container = parsed.container;
       }
       const normalized = normalizeCalendarConfig(config);
-      if (normalized) container.settings.calendarSystems = normalized;
+      // 4T-0747: Abgeleitete Zeitrechnungen bleiben in ihrer kurzen Form
+      // erhalten; die aufgeloeste Abschrift wuerde die Verbindung zum Bezug
+      // kappen. Eigenstaendige Kalender werden weiter normalisiert abgelegt.
+      const persistable = configForPersist(config, normalized);
+      if (persistable) container.settings.calendarSystems = persistable;
       else delete container.settings.calendarSystems;
       if (raw === null && !normalized) {
         return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen

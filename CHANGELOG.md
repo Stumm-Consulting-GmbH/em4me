@@ -9,6 +9,26 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.92.0.969] - 2026-07-26 — Zeitrechnungen mit eigenem Nullpunkt
+
+Epic 3E-0138 (Zeitrechnung mit Bezugs-Kalender und Zeitspannen): Eine Zeitrechnung kann sich jetzt auf eine bestehende stützen und nur noch ihren eigenen Nullpunkt angeben. Ihre Werte erscheinen als gestaffelte Zeitspanne ab diesem Punkt, in beide Richtungen und in wählbarer Tiefe. Als Bezug dient ein Kalender desselben Blocks oder die eingebaute Standard-Zeitrechnung, sodass ein Countdown auf einen Termin ohne eigenen Kalender auskommt.
+
+### Neu
+
+- **Abgeleitete Zeitrechnungen im Kern** (4T-0746): Eine Ableitung speichert Bezug, Nullpunkt und Gliederungs-Tiefe statt einer Abschrift und wird beim Laden aufgelöst, unabhängig von der Reihenfolge der Definitionen. Sie entsteht als **Phasenverschiebung** ihres Bezugs: Die Grenzen der Einheiten liegen auf dem Nullpunkt und seinen Wiederkehr-Punkten, die Namens-Listen wandern mit, und ein Nullpunkt jenseits des kürzesten Monats wird auf dessen letzten Tag geklemmt. Damit erbt jede Einheit die Länge ihres Vorbilds, und der Schalttag fällt von selbst in das richtige Jahr; die naive Neu-Verankerung driftet dagegen messbar um einen Tag je Schaltjahr. Neu sind außerdem die Staffelungs-Funktion über Ebenen, Zyklen und Gruppierungen sowie `convertBetween` und `baseCalendarOf` für die Umrechnung zu einem Bezug, der nicht im Block steht.
+- **Anlage über die Einstellungen** (4T-0747): Der Bereich „Kalender-Systeme" hat den Knopf „Abgeleitete Zeitrechnung hinzufügen" und ein kurzes Formular mit Bezugs-Auswahl, Nullpunkt (wahlweise über den Picker), Gliederungs-Tiefe und den beiden Richtungs-Kürzeln; Ebenen-, Zyklus-, Gruppen- und Epochen-Editoren entfallen, weil nichts davon überschreibbar ist. Die Live-Vorschau zeigt kanonischen Wert, Zeitspanne und den entsprechenden Zeitpunkt der Bezugs-Zeitrechnung.
+- **Zeitspanne im Dokument** (4T-0748): Werte einer abgeleiteten Zeitrechnung erscheinen in Render-Pane, Live-Modus und Portable-Export als gestaffelte Zeitspanne ohne Bestandteile der Länge null; der Kurzhinweis nennt zusätzlich den kanonischen Wert und das Bezugs-Datum. Steht die Ableitung auf der Standard-Zeitrechnung, erscheinen die Einheiten in Ein- und Mehrzahl.
+- **Picker in Bezugs-Notation** (4T-0748): Für eine Ableitung zeigt der Picker das Gitter ihres Bezugs; gewählt wird ein gewöhnliches Datum, eingefügt die Zählung. „Zum Anker" springt dabei auf den Nullpunkt.
+- **Schutz bestehender Zählungen** (4T-0747): Der Editor einer Zeitrechnung mit Ableitungen weist dauerhaft auf sie hin und verlangt beim Anwenden einer wirksamen Änderung eine Bestätigung; das Löschen ist gesperrt, solange Ableitungen bestehen. Anzeige-Name und Epochen des Bezugs lösen keine Meldung aus, weil sie in einer Ableitung nicht durchschlagen.
+
+### Geändert
+
+- **Ablage der Kalender-Sektion behält die kurze Form** (4T-0747): Der Schreibweg der Bereichsdatei legte bisher ausschließlich die normalisierte Konfiguration ab. Für eine Ableitung wäre das die aufgelöste Abschrift ihres Bezugs gewesen, womit die Verbindung beim nächsten Laden verloren wäre. Eigenständige Kalender werden weiterhin normalisiert abgelegt, Ableitungen in ihrer kurzen Form aus Bezug und Nullpunkt.
+
+### Dokumentation
+
+- **Funktions-Katalog und Handbuch** (4T-0749): ein neuer Katalog-Eintrag „Abgeleitete Zeitrechnungen" mit Beschreibung, Kurzname und Zugang sowie ein neuer Abschnitt auf der Handbuch-Seite „Kalender-Systeme", beides in allen fünf Sprachen; insgesamt 31 neue i18n-Schlüssel aus diesem Epic. Die Demo-Umgebung bleibt unverändert, weil eine abgeleitete Zeitrechnung wie die Kalender-Systeme selbst eine Bereichs-Konfiguration braucht, die eine mitgelieferte Datei nicht mitbringen kann.
+
 ## [0.91.0.926] - 2026-07-24 — Bereichs-Lesezeichen
 
 Epic 3E-0115 (Bereichs-Lesezeichen): Das Lesezeichen-Panel ist zweigeteilt. Neben den allgemeinen Lesezeichen führt es Bereichs-Lesezeichen, die zum gerade geöffneten Bereich gehören, in dessen `Area_Settings.mdda` gespeichert sind und ihre Ziele wurzel-relativ ablegen, sodass ein Verschieben des Bereichs-Ordners sie nicht bricht. Aus den Test-Runden kamen zwei davon unabhängige Bestands-Lücken hinzu, die im selben Epic behoben sind.

@@ -103,6 +103,41 @@ function makeUserData() {
   return dir;
 }
 
+// 4T-0748 (Epic 3E-0138): Bereich mit einer abgeleiteten Zeitrechnung auf
+// der eingebauten Standard-Zeitrechnung plus Dokument mit zwei Werten.
+function makeDerivedArea() {
+  const areaRoot = makeArea();
+  const config = {
+    blocks: [
+      {
+        id: 'projekte',
+        name: 'Projekte',
+        calendars: [
+          {
+            id: 'hausbau',
+            name: 'Hausbau',
+            derivedFrom: '@standard',
+            zero: [2023, 2, 28],
+            labelBefore: 'vor Haus',
+            labelAfter: 'nach Haus',
+          },
+        ],
+      },
+    ],
+  };
+  fs.writeFileSync(
+    path.join(areaRoot, 'Area_Settings.mdda'),
+    JSON.stringify({ schemaVersion: 1, settings: { calendarSystems: config } }, null, 2) + '\n',
+    'utf8',
+  );
+  fs.writeFileSync(
+    path.join(areaRoot, 'spanne.md'),
+    '# Spanne\n\nBaubeginn @{Hausbau: 0-1-18} und davor @{Hausbau: 0-0-15 vor Haus}.\n',
+    'utf8',
+  );
+  return { areaRoot };
+}
+
 async function sendMenuChannel(app, channel, ...args) {
   await app.evaluate(
     ({ BrowserWindow }, payload) => {
@@ -328,6 +363,125 @@ test.describe('KS-04: Einfüge-Kommando schreibt den kanonischen Wert (S-090)', 
       await expect(editor.locator('.cm-line').last()).toHaveText('@{Dreimond: 1-1-01 EZ}');
     } finally {
       // Dirty Buffer (Einfuegen ohne Speichern) — force-Exit ohne Dialog.
+      await closeApp(app, userData, { force: true });
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+// 4T-0747 (Epic 3E-0138): Abgeleitete Zeitrechnung über die Einstellungen
+// anlegen. Sie erbt ihre Struktur phasenverschoben vom Bezug; im Entwurf
+// sind nur Name, Bezug, Nullpunkt, Tiefe und die Richtungs-Kürzel sichtbar.
+// Geprüft werden zusätzlich der Hinweis am Bezug und die Löschsperre.
+test.describe('KS-05: Abgeleitete Zeitrechnung anlegen und schützen', () => {
+  test('Anlage persistiert, Bezug zeigt Hinweis, Löschen des Bezugs ist gesperrt', async () => {
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      // Sperr-Meldung stubben (OS-Dialog ist in Playwright nicht bedienbar).
+      await app.evaluate(({ ipcMain }) => {
+        ipcMain.removeHandler('calendar:blockedDelete');
+        ipcMain.handle('calendar:blockedDelete', () => true);
+      });
+      await openCalendarSection(page);
+
+      await page.locator('#settings-calsys-block-add').click();
+      await page.locator('#settings-calsys-block-name-0').fill('Projekte');
+      await page.locator('#settings-calsys-block-open-0').click();
+      await page.locator('#settings-calsys-cal-template').click();
+
+      // Ableitung anlegen: Name, Bezug, Nullpunkt (Jahr, Monat, Tag).
+      await page.locator('#settings-calsys-derived-add').click();
+      await page.locator('#settings-calsys-cal-name-1').fill('Go-Live');
+      await page
+        .locator('#settings-calsys-derived-base-1')
+        .selectOption({ label: 'Gregorianischer Kalender' });
+      await page.locator('#settings-calsys-derived-zero-1-0').fill('2028');
+      await page.locator('#settings-calsys-derived-zero-1-1').fill('7');
+      await page.locator('#settings-calsys-derived-zero-1-2').fill('1');
+      await page.locator('#settings-calsys-derived-before-1').fill('vor GL');
+
+      // Vorschau: Der Nullpunkt ist 0-0-1 (Zählung vom Nullpunkt weg), die
+      // Rückschau nennt das Bezugs-Datum. Der Beispiel-Wert steht nach der
+      // Bezugs-Wahl bereits auf dem Nullpunkt.
+      const preview = page.locator('#settings-calsys-preview-1');
+      await expect(page.locator('#settings-calsys-preview-input-1')).toHaveValue('0-0-1');
+      await expect(preview).toContainText('Kanonisch: 0-0-1');
+      await expect(preview).toContainText('Spanne: 1 Tag');
+      await expect(preview).toContainText('Gregorianischer Kalender: 2028-07-01');
+      // Rückwärts zählt spiegelbildlich: 15 Tage vor dem Nullpunkt.
+      await page.locator('#settings-calsys-preview-input-1').fill('0-0-15 vor GL');
+      await expect(preview).toContainText('Gregorianischer Kalender: 2028-06-16');
+      await expect(page.locator('#settings-calsys-cal-invalid-1')).toBeHidden();
+
+      // Der Bezug weist auf seine Abhängige hin.
+      await expect(page.locator('#settings-calsys-cal-dependents-0')).toContainText('Go-Live');
+
+      // Anwenden persistiert die kurze Form (Bezug und Nullpunkt, keine
+      // Abschrift der Ebenen).
+      await page.locator('#btn-settings-apply').click();
+      const mddaPath = path.join(areaRoot, 'Area_Settings.mdda');
+      await expect
+        .poll(() => {
+          try {
+            const parsed = JSON.parse(fs.readFileSync(mddaPath, 'utf8'));
+            const cal = parsed.settings.calendarSystems.blocks[0].calendars[1];
+            return cal ? `${cal.derivedFrom}/${cal.zero.join('-')}/${cal.levels ? 'x' : '-'}` : '?';
+          } catch {
+            return 'keine Datei';
+          }
+        })
+        .toBe('gregorianischer-kalender/2028-7-1/-');
+
+      // Löschsperre: Der Bezug bleibt trotz Klick auf Entfernen bestehen.
+      await page.locator('#settings-calsys-cal-remove-0').click();
+      await expect(page.locator('#settings-calsys-cal-name-0')).toHaveValue(
+        'Gregorianischer Kalender',
+      );
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+// 4T-0748 (Epic 3E-0138): Der Wert einer abgeleiteten Zeitrechnung erscheint
+// als Zeitspanne; der Kurzhinweis nennt kanonischen Wert und Bezugs-Datum.
+// Der Picker arbeitet in der Notation des Bezugs (Entscheidung 2a): sein
+// Gitter zeigt den gregorianischen Monat, uebernommen wird die Zaehlung.
+test.describe('KS-06: Zeitspanne im Dokument und Picker in Bezugs-Notation', () => {
+  test('Badge zeigt die Spanne, Kurzhinweis den Bezug, Picker liefert die Zaehlung', async () => {
+    const { areaRoot } = makeDerivedArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      await openDocFromAreaPanel(page, 'spanne.md');
+      await enterEdit(app, page, 'live');
+
+      const badges = page.locator('.cm-live-calendar-badge');
+      await expect(badges.first()).toHaveText('1 Monat, 2 Wochen, 4 Tage');
+      await expect(badges.nth(1)).toHaveText('2 Wochen, 1 Tag vor Haus');
+      await expect(badges.first()).toHaveAttribute(
+        'title',
+        'Hausbau: 0-1-18\nGregorianischer Kalender: 2023-04-14',
+      );
+
+      // Klick oeffnet den Picker; sein Gitter steht im Bezug, also auf dem
+      // 14. April 2023, nicht auf einer Zaehlung.
+      await badges.first().click();
+      await expect(page.locator(PICKER)).toBeVisible();
+      await expect(page.locator(`${PICKER} .calendar-picker-day.selected`)).toHaveText('14');
+      await expect(page.locator('#calendar-picker-unit-label')).toHaveText('April 2023');
+
+      // Ein anderer Tag desselben Monats ersetzt den Wert in der Zaehlung.
+      await page
+        .locator(`${PICKER} .calendar-picker-day:not(.other-month)`, { hasText: /^15$/ })
+        .click();
+      await page.locator('#calendar-picker-ok').click();
+      await expect(page.locator(PICKER)).toBeHidden();
+      await expect(page.locator(SEL.editorContent0)).toContainText('@{Hausbau: 0-1-19}');
+    } finally {
       await closeApp(app, userData, { force: true });
       cleanupDir(areaRoot);
     }

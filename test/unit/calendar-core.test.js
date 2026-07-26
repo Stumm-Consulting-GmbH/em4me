@@ -18,6 +18,9 @@ import {
   parseCanonical,
   convertInBlock,
   findCalendarByName,
+  spanUnits,
+  spanTiers,
+  configForPersist,
 } from '../../src/shared/calendar-core.js';
 import { formatDateMs, isoWeekOf } from '../../src/shared/perspective-query-eval.js';
 
@@ -701,5 +704,282 @@ describe('findCalendarByName — Bezugsname der Wert-Syntax', () => {
     expect(findCalendarByName(WORLD, 'drittel').calendar.id).toBe('drittel');
     expect(findCalendarByName(WORLD, 'Nixda')).toBeNull();
     expect(findCalendarByName(null, 'Takt')).toBeNull();
+  });
+});
+
+// --- Abgeleitete Zeitrechnungen (4T-0746, Epic 3E-0138) ---------------------
+// Die Zahlen der Erwartungen stammen aus den Messungen der Konzept-Runde
+// 4T-0745 (Protokoll-Zeilen 3b und 5).
+
+// Block mit dem gregorianischen Kalender und einer Ableitung; `roh`
+// ergänzt oder überschreibt die Angaben der Ableitung.
+function abgeleitet(roh) {
+  const config = normalizeCalendarConfig({
+    blocks: [
+      {
+        id: 'real',
+        calendars: [
+          createGregorianTemplate(),
+          {
+            id: 'abl',
+            name: 'Ableitung',
+            derivedFrom: 'gregorian',
+            labelBefore: 'davor',
+            labelAfter: 'danach',
+            ...roh,
+          },
+        ],
+      },
+    ],
+  });
+  const block = config.blocks[0];
+  return { block, cal: block.calendars[1] };
+}
+
+// Bezugs-Datum eines abgeleiteten Tupels als kanonische Zeichenkette.
+function imBezug(block, tuple) {
+  const res = convertInBlock(block, 'abl', tuple, 'gregorian');
+  return res.ok ? formatTuple(block.calendars[0], res.tuple) : null;
+}
+
+function tageZwischen(block, von, bis) {
+  const cal = block.calendars[1];
+  return Number((tupleToAxis(cal, bis) - tupleToAxis(cal, von)) / 86400n);
+}
+
+describe('deriveCalendar — Phasenverschiebung', () => {
+  it('legt die Einheiten-Grenzen auf den Nullpunkt und behält die Namen', () => {
+    const { block, cal } = abgeleitet({ zero: [2026, 7, 23] });
+    expect(imBezug(block, [2027, 1, 1, 0, 0, 0])).toBe('2026-07-23');
+    for (let m = 1; m <= 12; m++) {
+      expect(imBezug(block, [2027, m, 1, 0, 0, 0]).slice(8)).toBe('23');
+    }
+    expect(imBezug(block, [2028, 1, 1, 0, 0, 0])).toBe('2027-07-23');
+    // Namen bleiben erhalten: der erste Monat heißt Juli, der erste
+    // Wochentag Donnerstag (der 23.07.2026 ist ein Donnerstag).
+    expect(cal.levels[4].names[0]).toBe('Juli');
+    expect(cycleAt(cal, [2027, 1, 1, 0, 0, 0], 'week').positionName).toBe('Donnerstag');
+    expect(cycleAt(cal, [2027, 1, 8, 0, 0, 0], 'week').positionName).toBe('Donnerstag');
+  });
+
+  it('erbt die Jahres-Längen des Bezugs ohne Drift', () => {
+    const { block } = abgeleitet({ zero: [2026, 7, 23] });
+    const laenge = (y) => tageZwischen(block, [y, 1, 1, 0, 0, 0], [y + 1, 1, 1, 0, 0, 0]);
+    expect([2027, 2028, 2029, 2030].map(laenge)).toEqual([365, 366, 365, 365]);
+    // Das 366-Tage-Jahr ist genau das, welches den 29.02.2028 enthält.
+    expect(imBezug(block, [2028, 1, 1, 0, 0, 0])).toBe('2027-07-23');
+  });
+
+  it('hält den Jahrestag über Schaltjahre hinweg (Gegenprobe zur Drift)', () => {
+    const { block } = abgeleitet({ zero: [2005, 9, 17] });
+    // Drei Jahre ab dem 17.09.2005 sind 1096 Tage, nicht 1095.
+    expect(tageZwischen(block, [2006, 1, 1, 0, 0, 0], [2009, 1, 1, 0, 0, 0])).toBe(1096);
+    expect(imBezug(block, [2009, 1, 1, 0, 0, 0])).toBe('2008-09-17');
+  });
+
+  it('klemmt einen Nullpunkt über dem 28. auf den letzten Tag der Einheit', () => {
+    const { block } = abgeleitet({ zero: [2027, 1, 31] });
+    const anfaenge = (y) => [1, 2, 3, 4].map((m) => imBezug(block, [y, m, 1, 0, 0, 0]).slice(5));
+    expect(anfaenge(2027)).toEqual(['01-31', '02-28', '03-31', '04-30']);
+    expect(anfaenge(2028)).toEqual(['01-31', '02-29', '03-31', '04-30']);
+    expect(tageZwischen(block, [2027, 1, 1, 0, 0, 0], [2028, 1, 1, 0, 0, 0])).toBe(365);
+    expect(tageZwischen(block, [2028, 1, 1, 0, 0, 0], [2029, 1, 1, 0, 0, 0])).toBe(366);
+  });
+
+  it('trägt eine Fantasie-Zeitrechnung als Bezug', () => {
+    const config = normalizeCalendarConfig({
+      blocks: [
+        {
+          id: 'welt',
+          calendars: [
+            DREIMOND,
+            { id: 'abl', name: 'Ableitung', derivedFrom: 'dreimond', zero: [500, 2, 12] },
+          ],
+        },
+      ],
+    });
+    const block = config.blocks[0];
+    expect(block.calendars[1].levels[1].names[0]).toBe('Mittmond');
+    const res = convertInBlock(block, 'abl', [500, 1, 1], 'dreimond');
+    expect(res.ok).toBe(true);
+    expect(res.tuple).toEqual([500, 2, 12]);
+  });
+});
+
+describe('deriveCalendar — Auflösung in der Konfiguration', () => {
+  it('löst unabhängig von der Reihenfolge der Definitionen auf', () => {
+    const config = normalizeCalendarConfig({
+      blocks: [
+        {
+          id: 'real',
+          calendars: [
+            { id: 'abl', name: 'Ableitung', derivedFrom: 'gregorian', zero: [2026, 7, 23] },
+            createGregorianTemplate(),
+          ],
+        },
+      ],
+    });
+    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual(['gregorian', 'abl']);
+  });
+
+  it('lässt eine Ableitung mit unbekanntem, abgeleitetem oder ungültigem Bezug entfallen', () => {
+    const config = normalizeCalendarConfig({
+      blocks: [
+        {
+          id: 'real',
+          calendars: [
+            createGregorianTemplate(),
+            { id: 'a', name: 'A', derivedFrom: 'gregorian', zero: [2026, 7, 23] },
+            { id: 'b', name: 'B', derivedFrom: 'nixda', zero: [2026, 7, 23] },
+            { id: 'c', name: 'C', derivedFrom: 'a', zero: [2026, 7, 23] },
+            { id: 'd', name: 'D', derivedFrom: 'gregorian', zero: [2026, 13, 1] },
+          ],
+        },
+      ],
+    });
+    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual(['gregorian', 'a']);
+  });
+
+  it('nimmt die eingebaute Standard-Zeitrechnung als Bezug', () => {
+    const config = normalizeCalendarConfig({
+      blocks: [
+        {
+          id: 'real',
+          calendars: [
+            { id: 'golive', name: 'Go-Live', derivedFrom: '@standard', zero: [2028, 7, 1] },
+          ],
+        },
+      ],
+    });
+    const cal = config.blocks[0].calendars[0];
+    expect(cal.id).toBe('golive');
+    expect(cal.derived.fromId).toBe('@standard');
+    expect(cal.levels.length).toBe(6);
+  });
+});
+
+describe('spanTiers — gestaffelte Zeitspanne', () => {
+  const zaehl = (tiers, i) => tiers[i].map((u) => `${u.count} ${u.name}`).join(', ');
+
+  it('zerlegt das Beispiel der Konzept-Runde', () => {
+    const { block, cal } = abgeleitet({ zero: [2005, 9, 17] });
+    const wert = convertInBlock(block, 'gregorian', [2005, 9, 27, 0, 0, 0], 'abl').tuple;
+    expect(wert.slice(0, 3)).toEqual([2006, 1, 11]);
+    const { direction, tiers } = spanTiers(cal, wert);
+    expect(direction).toBe('after');
+    expect(zaehl(tiers, 0)).toBe('11 Tag');
+    expect(zaehl(tiers, 1)).toBe('1 Woche, 4 Tag');
+    expect(zaehl(tiers, 2)).toBe('0 Monat, 1 Woche, 4 Tag');
+  });
+
+  it('zerlegt über Jahre, Halbjahre und Quartale', () => {
+    const { block, cal } = abgeleitet({ zero: [2005, 9, 17] });
+    const wert = convertInBlock(block, 'gregorian', [2026, 9, 15, 0, 0, 0], 'abl').tuple;
+    expect(wert.slice(0, 3)).toEqual([2026, 12, 30]);
+    const { tiers } = spanTiers(cal, wert);
+    expect(zaehl(tiers, 0)).toBe('7669 Tag');
+    expect(zaehl(tiers, 1)).toBe('1095 Woche, 4 Tag');
+    expect(zaehl(tiers, 2)).toBe('251 Monat, 4 Woche, 2 Tag');
+    expect(zaehl(tiers, 5)).toBe('20 Jahr, 1 Halbjahr, 1 Quartal, 2 Monat, 4 Woche, 2 Tag');
+  });
+
+  it('zählt vor dem Nullpunkt rückwärts ab 1', () => {
+    const { block, cal } = abgeleitet({ zero: [2028, 7, 1] });
+    const davor = convertInBlock(block, 'gregorian', [2028, 6, 30, 0, 0, 0], 'abl').tuple;
+    const eins = spanTiers(cal, davor);
+    expect(eins.direction).toBe('before');
+    expect(zaehl(eins.tiers, 0)).toBe('1 Tag');
+    expect(zaehl(eins.tiers, 2)).toBe('0 Monat, 0 Woche, 1 Tag');
+    const jahrDavor = convertInBlock(block, 'gregorian', [2027, 6, 30, 0, 0, 0], 'abl').tuple;
+    expect(zaehl(spanTiers(cal, jahrDavor).tiers, 5)).toBe(
+      '1 Jahr, 0 Halbjahr, 0 Quartal, 0 Monat, 0 Woche, 1 Tag',
+    );
+    // Der Nullpunkt selbst ist Tag 1 in Vorwärts-Richtung.
+    const nullpunkt = convertInBlock(block, 'gregorian', [2028, 7, 1, 0, 0, 0], 'abl').tuple;
+    expect(spanTiers(cal, nullpunkt).direction).toBe('after');
+    expect(zaehl(spanTiers(cal, nullpunkt).tiers, 0)).toBe('1 Tag');
+  });
+
+  it('legt die Ableitung in kurzer Form ab, nicht als Abschrift (4T-0747)', () => {
+    // Regressionstest: Die Ablage schrieb zunächst die aufgelöste Form. Damit
+    // verlor die Ableitung ihren Bezug, und eine spätere Änderung am Bezug
+    // hätte sie nie mehr erreicht.
+    const roh = {
+      blocks: [
+        {
+          id: 'real',
+          name: 'Real',
+          calendars: [
+            createGregorianTemplate(),
+            { id: 'golive', name: 'Go-Live', derivedFrom: 'gregorian', zero: [2028, 7, 1] },
+          ],
+        },
+      ],
+    };
+    const normalisiert = normalizeCalendarConfig(roh);
+    const ablage = configForPersist(roh, normalisiert);
+    const [basis, abgeleitet2] = ablage.blocks[0].calendars;
+    expect(basis.levels.length).toBe(6);
+    expect(abgeleitet2.derivedFrom).toBe('gregorian');
+    expect(abgeleitet2.zero).toEqual([2028, 7, 1]);
+    expect(abgeleitet2.levels).toBeUndefined();
+    // Rundreise: der abgelegte Stand löst wieder zur vollen Definition auf.
+    const zurueck = normalizeCalendarConfig(ablage);
+    expect(zurueck.blocks[0].calendars[1].derived.fromId).toBe('gregorian');
+    expect(zurueck.blocks[0].calendars[1].levels.length).toBe(6);
+    expect(configForPersist(roh, null)).toBeNull();
+  });
+
+  it('zählt in der kanonischen Form vom Nullpunkt weg (4T-0747, Variante B)', () => {
+    // Der Nullpunkt ist 0-0-1: gröbere Einheiten als vollständige Anzahl
+    // ab 0, die kleinste Datums-Einheit als Ordnungszahl ab 1. Vor dem
+    // Nullpunkt zählt dieselbe Form spiegelbildlich.
+    const { block, cal } = abgeleitet({
+      zero: [2023, 2, 28],
+      labelBefore: 'vor Haus',
+      labelAfter: 'nach Haus',
+    });
+    const nullAchse = tupleToAxis(cal, parseCanonical(cal, '0-0-1').tuple);
+    const kanonisch = (versatz) =>
+      formatTuple(cal, axisToTuple(cal, nullAchse + BigInt(versatz) * 86400n));
+    expect(kanonisch(0)).toBe('0-0-1');
+    expect(kanonisch(14)).toBe('0-0-15');
+    expect(kanonisch(45)).toBe('0-1-18');
+    expect(kanonisch(400)).toBe('1-1-7');
+    expect(kanonisch(-1)).toBe('0-0-1 vor Haus');
+    expect(kanonisch(-15)).toBe('0-0-15 vor Haus');
+    expect(kanonisch(-45)).toBe('0-1-14 vor Haus');
+    // Rundreise in beide Richtungen.
+    for (const versatz of [0, 14, 45, 400, -1, -15, -45, -400]) {
+      const tuple = axisToTuple(cal, nullAchse + BigInt(versatz) * 86400n);
+      const zurueck = parseCanonical(cal, formatTuple(cal, tuple));
+      expect(zurueck.ok).toBe(true);
+      expect(zurueck.tuple).toEqual(tuple);
+    }
+    // Der Nullpunkt liegt auf dem Bezugs-Datum, 15 Tage davor entsprechend.
+    const bezug = (wert) =>
+      formatTuple(
+        block.calendars[0],
+        convertInBlock(block, 'abl', parseCanonical(cal, wert).tuple, 'gregorian').tuple,
+      );
+    expect(bezug('0-0-1')).toBe('2023-02-28');
+    expect(bezug('0-0-15 vor Haus')).toBe('2023-02-13');
+    // Eingabe-Toleranz und Fehlerfälle.
+    expect(parseCanonical(cal, '0-0-1 nach Haus').ok).toBe(true);
+    expect(parseCanonical(cal, '0-0-0').code).toBe('segmentRange');
+    expect(parseCanonical(cal, '1-15').code).toBe('malformed');
+    expect(formatTuple(cal, parseCanonical(cal, '0-0-15 12:30').tuple)).toBe('0-0-15 12:30:00');
+  });
+
+  it('führt die Einheiten-Leiter von der kleinsten zur größten', () => {
+    const { cal } = abgeleitet({ zero: [2026, 7, 23] });
+    expect(spanUnits(cal).map((u) => u.name)).toEqual([
+      'Tag',
+      'Woche',
+      'Monat',
+      'Quartal',
+      'Halbjahr',
+      'Jahr',
+    ]);
   });
 });

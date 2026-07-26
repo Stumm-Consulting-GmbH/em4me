@@ -71,3 +71,42 @@ Der Picker für benutzerdefinierte Kalender arbeitet analog zum Standard-Datums-
 ### Umrechnungs-Anzeige
 
 Unterhalb des Gitters zeigt der Picker den gewählten Zeitpunkt in allen Parallel-Kalendern des Blocks. Ein Klick auf eine Entsprechung wechselt den aktiven Kalender dorthin. Kalender verschiedener Blöcke sind bewusst nicht umrechenbar.
+
+## Abgeleitete Zeitrechnungen
+
+Eine abgeleitete Zeitrechnung zählt ab einem selbst gesetzten Nullpunkt: wie lange es noch bis zu einem Termin dauert oder wie lange ein Ereignis her ist. Sie braucht keine eigene Definition, sondern nur eine Bezugs-Zeitrechnung und einen Nullpunkt.
+
+### Anlegen
+
+Im Einstellungs-Bereich «Kalender-Systeme» legt der Knopf **«Abgeleitete Zeitrechnung hinzufügen»** ein kurzes Formular an:
+
+- **Bezugs-Zeitrechnung** — ein Kalender desselben Blocks oder die mitgelieferte Standard-Zeitrechnung. Wer nur einen Termin herunterzählen will, braucht damit keinen eigenen Kalender.
+- **Nullpunkt (Tag 1)** — das Datum in der Notation des Bezugs, wahlweise über den Picker gewählt; es liegt immer auf einem vollen Tag.
+- **Gliederungs-Tiefe** — wie fein die Zeitspanne gegliedert wird, von der kleinsten Einheit allein bis hinauf zu den Jahren.
+- **Richtungs-Kürzel** — zwei kurze Wörter für die Zeit vor und nach dem Nullpunkt.
+
+Editoren für Ebenen, Zyklen, Gruppierungen und Epochen gibt es hier nicht, weil nichts davon überschreibbar ist.
+
+### Was geerbt wird
+
+Die Ableitung übernimmt die Einheiten ihres Bezugs und verschiebt deren Grenzen auf den Nullpunkt. Liegt dieser auf einem 23., beginnt jeder abgeleitete Monat am 23. und jedes abgeleitete Jahr am selben Tag; die Wochen beginnen am Wochentag des Nullpunkts. Jede Einheit behält damit die Länge, die sie im Bezug hat, und ein Schalttag fällt von selbst in das richtige Jahr. Die Namen wandern mit: Beginnt die Zählung im Juli, heißt der erste Monat weiterhin Juli. Liegt der Nullpunkt auf einem Tag, den nicht jeder Monat hat, rückt die Grenze auf den letzten vorhandenen Tag.
+
+### Werte im Dokument
+
+Der Wert zählt in beide Richtungen vom Nullpunkt weg: gröbere Einheiten als vollständige Anzahl ab 0, die kleinste als Ordnungszahl ab 1. Vor dem Nullpunkt gilt dieselbe Form mit dem Richtungs-Kürzel.
+
+```text
+@{Zeitrechnung: 0-0-1}            der Nullpunkt selbst
+@{Zeitrechnung: 0-1-18}           ein Monat und siebzehn Tage danach
+@{Zeitrechnung: 0-0-15 vor GL}    fünfzehn Tage davor
+```
+
+Angezeigt wird daraus die Zeitspanne in der gewählten Tiefe, ohne Bestandteile der Länge null, etwa «1 Monat, 2 Wochen, 4 Tage». Der Kurzhinweis nennt zusätzlich den kanonischen Wert und den entsprechenden Zeitpunkt der Bezugs-Zeitrechnung. Steht die Ableitung auf der Standard-Zeitrechnung, erscheinen die Einheiten in Ein- und Mehrzahl; bei selbst definierten Kalendern stehen die Namen so, wie sie dort eingetragen sind.
+
+### Picker
+
+Der Picker einer abgeleiteten Zeitrechnung zeigt das Gitter ihres Bezugs: Gewählt wird ein gewöhnliches Datum, eingefügt die Zählung. **«Zum Anker»** springt auf den Nullpunkt.
+
+### Änderungen an der Bezugs-Zeitrechnung
+
+Ein Wert ist eine Koordinate seiner Zeitrechnung. Ändert sich die Bezugs-Zeitrechnung, verschieben sich deshalb auch die Werte ihrer Ableitungen. Der Editor weist dauerhaft auf bestehende Ableitungen hin und verlangt beim Anwenden eine Bestätigung; eine Zeitrechnung mit Ableitungen lässt sich nicht löschen, solange diese bestehen.

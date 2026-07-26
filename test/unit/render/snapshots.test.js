@@ -68,6 +68,26 @@ beforeAll(() => {
                 { name: 'Dritte Zeit', abbr: 'DZ', start: [500, 2, 10] },
               ],
             },
+            // 4T-0748 (Epic 3E-0138): abgeleitete Zeitrechnungen — einmal auf
+            // die eingebaute Standard-Zeitrechnung (Einheiten-Namen aus der
+            // i18n samt Mehrzahl) und einmal auf den Fantasie-Kalender
+            // (Namen der Definition, weil dort keine Mehrzahl bekannt ist).
+            {
+              id: 'projekt',
+              name: 'Projekt',
+              derivedFrom: '@standard',
+              zero: [2026, 1, 1],
+              labelBefore: 'vor Start',
+              labelAfter: 'nach Start',
+            },
+            {
+              id: 'mondzaehlung',
+              name: 'Mondzählung',
+              derivedFrom: 'dreimond',
+              zero: [500, 2, 10],
+              labelBefore: 'davor',
+              labelAfter: 'danach',
+            },
           ],
         },
       ],

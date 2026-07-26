@@ -518,6 +518,9 @@ contextBridge.exposeInMainWorld('api', {
   // Fenster (Payload { rootPath }).
   calendarGetConfig: () => ipcRenderer.invoke('calendar:getConfig'),
   calendarSetAreaConfig: (config) => ipcRenderer.invoke('calendar:setAreaConfig', config),
+  // 4T-0747: Schutz der abgeleiteten Zeitrechnungen (Bestätigung bzw. Sperre).
+  calendarConfirmDependents: (names) => ipcRenderer.invoke('calendar:confirmDependents', names),
+  calendarBlockedDelete: (names) => ipcRenderer.invoke('calendar:blockedDelete', names),
   onCalendarChanged: (cb) => ipcRenderer.on('calendar:changed', (_e, payload) => cb(payload)),
   // 4T-0446 (Epic 3E-0083): Profil-Konfiguration des Bereichs
   // (propertyProfiles-Sektion der Bereichsdatei) lesen/schreiben;

@@ -71,3 +71,42 @@ Il selettore dei calendari personalizzati funziona in modo analogo al selettore 
 ### Visualizzazione della conversione
 
 Sotto la griglia, il selettore mostra l'istante scelto in tutti i calendari paralleli del blocco. Un clic su una corrispondenza sposta lì il calendario attivo. I calendari di blocchi diversi non sono volutamente convertibili.
+
+## Cronologie derivate
+
+Una cronologia derivata conta da un punto zero scelto: quanto manca a una data o quanto tempo è passato da un evento. Non richiede una definizione propria, ma solo una cronologia di riferimento e un punto zero.
+
+### Creazione
+
+Nella sezione delle impostazioni «Sistemi di calendario» il pulsante **«Aggiungi cronologia derivata»** apre un modulo breve:
+
+- **Cronologia di riferimento** — un calendario dello stesso blocco oppure la cronologia standard inclusa. Per un conto alla rovescia non serve quindi un calendario proprio.
+- **Punto zero (giorno 1)** — la data nella notazione del riferimento, a scelta tramite il selettore; cade sempre su un giorno intero.
+- **Livello di dettaglio** — quanto finemente viene suddivisa la durata, dalla sola unità più piccola fino agli anni.
+- **Sigle di direzione** — due parole brevi per il tempo prima e dopo il punto zero.
+
+Qui non compaiono editor di livelli, cicli, raggruppamenti ed epoche, perché nulla di ciò è sovrascrivibile.
+
+### Che cosa viene ereditato
+
+La cronologia derivata assume le unità del suo riferimento e sposta i loro confini sul punto zero. Se questo cade in un giorno 23, ogni mese derivato inizia il 23 e ogni anno derivato lo stesso giorno; le settimane iniziano nel giorno della settimana del punto zero. Ogni unità mantiene così la lunghezza che ha nel riferimento e un giorno bisestile cade da sé nell’anno giusto. I nomi seguono: se il conteggio inizia a luglio, il primo mese si chiama ancora luglio. Se il punto zero cade in un giorno che non tutti i mesi hanno, il confine arretra all’ultimo giorno disponibile.
+
+### Valori nel documento
+
+Il valore conta in entrambe le direzioni dal punto zero: le unità maggiori come numero completo da 0, la più piccola come numero ordinale da 1. Prima del punto zero vale la stessa forma con la sigla di direzione.
+
+```text
+@{Cronologia: 0-0-1}              il punto zero stesso
+@{Cronologia: 0-1-18}             un mese e diciassette giorni dopo
+@{Cronologia: 0-0-15 prima GL}    quindici giorni prima
+```
+
+Ne viene mostrata la durata nel livello scelto, senza le parti di lunghezza zero, per esempio «1 mese, 2 settimane, 4 giorni». Il suggerimento indica inoltre il valore canonico e il momento corrispondente della cronologia di riferimento. Se la cronologia derivata si basa sulla cronologia standard, le unità appaiono al singolare e al plurale; nei calendari definiti dall’utente i nomi restano come sono stati inseriti.
+
+### Selettore
+
+Il selettore di una cronologia derivata mostra la griglia del suo riferimento: si sceglie una data normale e viene inserito il conteggio. **«All’ancora»** salta al punto zero.
+
+### Modifiche alla cronologia di riferimento
+
+Un valore è una coordinata della sua cronologia. Se il riferimento cambia, i valori delle sue cronologie derivate si spostano con esso. L’editor segnala in modo permanente le cronologie derivate esistenti e chiede conferma al momento dell’applicazione; una cronologia con derivate non può essere eliminata finché queste esistono.
