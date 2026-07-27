@@ -74,6 +74,9 @@ export const DEFAULT_PANEL_ORDER = [
   // aufgenommen (fehlte zuvor und hing nur über den extras-Zweig von
   // knownPanelIds hinten an), thematisch neben dem Inhaltsverzeichnis.
   'subpages',
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel, thematisch bei den
+  // Finde- und Navigations-Panels.
+  'searchresults',
   // 4T-0327 (Epic 3E-0059): Bereichs-Panel (Ordnerbaum plus Dateiliste).
   'area',
   // 4T-0434 (Epic 3E-0081): Kalender-Panel (Journal-Einstieg, Monatsansicht).
@@ -97,7 +100,10 @@ export const DEFAULT_PANEL_ORDER = [
 const DEFAULT_SIDEBAR_STRUCTURE = {
   left: [
     ['bookmarks', 'area'],
-    ['outline', 'subpages', 'filegraph'],
+    // 4T-0759 (Epic 3E-0142): Die Suchergebnisse schliessen die Finde-Gruppe
+    // ab. Als vierter Reiter derselben Gruppe kosten sie keinen zusaetzlichen
+    // vertikalen Platz (Muster der Uhr in der Zeit-Gruppe).
+    ['outline', 'subpages', 'filegraph', 'searchresults'],
     // 4T-0372 (Epic 3E-0069): die Uhr schliesst die Zeit-Gruppe ab. Als
     // dritter Reiter derselben Gruppe kostet sie keinen zusaetzlichen
     // vertikalen Platz in der Sidebar.

@@ -9,6 +9,65 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.95.0.998] - 2026-07-27 — Suche in Handbuch und Einstellungen
+
+Epic 3E-0142: Die Suche greift jetzt auch dort, wo nachgeschlagen wird. Der
+Suchbereich folgt dem aktiven Reiter und schließt die drei Bereiche gegeneinander
+aus: im Dokument wie bisher, in einer Handbuch-Seite über alle Handbuch-Seiten,
+in den Einstellungen über alle Bereiche.
+
+### Neu
+
+- **Suchraum-Kern** (`src/shared/such-raum.js`, 4T-0758): prozess-neutrale
+  Trefferstruktur mit Gruppe, Sprung-Angabe, Kontext-Ausschnitt und den Offsets
+  des Fundes innerhalb dieses Ausschnitts, dazu zwei Obergrenzen (gesamt und je
+  Gruppe) mit Meldung, wenn eine davon greift.
+- **Handbuch als Such-Quelle** (4T-0758): neuer Sammel-IPC
+  `help:getAllManualPages` liefert alle gebündelten Seiten einer Sprache in einem
+  Zug; die beiden generierten Seiten entstehen bei jedem Lauf frisch und brauchen
+  deshalb keine Invalidierung.
+- **Sidebar-Panel «Suchergebnisse»** (4T-0759): gruppierte Trefferliste mit
+  Trefferzahl je Gruppe, Auswahl per Maus und Pfeiltasten, vollständige
+  Paritäts-Zugänge (Statusbar-Schalter, Ansichtsmenü, Toggle-Kommando).
+- **Suchraum nach Reiter-Typ samt Sprung und Grenz-Durchlauf** (4T-0760):
+  Zähler über den ganzen Raum, eigenes Scope-Label, Sprung öffnet die Zielseite
+  ohne Duplikat, F3 läuft über Seiten- und Bereichsgrenzen.
+- **Einstellungen als zweite Such-Quelle** (4T-0761): die durchsuchbaren Texte
+  entstehen, indem jeder Bereich einmal in einen abgekoppelten Container
+  gerendert wird — dieselbe Funktion wie die Anzeige, deshalb ohne Möglichkeit
+  zu divergieren. Der Sprung aktiviert den Bereich und hebt die Zeile hervor,
+  ein laufender Entwurf bleibt unberührt.
+
+### Geändert
+
+- Die Dokument-Suche bleibt im Verhalten unverändert; ein Handbuch-Reiter in der
+  Quelltext-Ansicht durchsucht weiterhin genau diese eine Seite.
+- Ersetzen bleibt in beiden neuen Räumen abgeschaltet (Handbuch und
+  Einstellungen sind schreibgeschützt); der vorhandene Weg trug das ohne
+  Erweiterung.
+- Der Entwurfs-Aufbau der Einstellungs-Seite ist als eigene Funktion aus
+  `resetPageState` herausgelöst (verhaltensneutral), damit die Such-Ernte einen
+  Wegwerf-Entwurf bauen kann, ohne einen offenen Entwurf anzutasten.
+
+### Dokumentation
+
+- Funktions-Katalog um `help.feature.searchScopes` samt Kurzname und Zugang
+  erweitert (drei Schlüssel in fünf Sprachen), Handbuch-Seite «Werkzeuge» um den
+  Abschnitt «Suche in Handbuch und Einstellungen» in fünf Sprachfassungen,
+  einschließlich der Abgrenzung zur Kommando-Palette (4T-0762).
+- i18n: zwölf neue Schlüssel in fünf Sprachen (Panel-Titel, Schalter, Trefferzahl
+  mit Platzhaltern, drei Leerzustände, Kürzungs-Hinweis, Menü-Label,
+  Kommando-Beschreibung, zwei Scope-Label).
+
+### Tests
+
+- Neue Unit-Suiten zum Suchraum-Kern (zwölf Fälle) und zum Handbuch-Lieferanten
+  (sieben Fälle mit gestelltem IPC).
+- Neue E2E-Specs: SH-01 bis SH-05 (Handbuch-Suche), SE-01 bis SE-03
+  (Einstellungs-Suche), SP-01 und SP-02 (Panel), dazu HB-12 für den Sammel-IPC.
+- Bestands-Wächter nachgezogen: Paritäts-Wächter (15 Panels), SL-01, ES-10 und
+  der Default-Layout-Unit-Test.
+
 ## [0.94.0.987] - 2026-07-27 — Gantt-Ansicht für Ereignisse
 
 Epic 3E-0150 (Ereignisse als Gantt-Diagramm): Der Ereignis-Block bekommt als sechste Ansicht ein Gantt-Diagramm. Ereignisse mit Ende erscheinen als Balken auf einer gemeinsamen Zeitachse, Ereignisse ohne Ende als Raute, und die Vorgänger-/Nachfolger-Verknüpfungen werden als Linien sichtbar. Das Datenmodell bleibt unverändert: Die Ansicht zeigt, was das interne Ereignis-Profil ohnehin trägt.

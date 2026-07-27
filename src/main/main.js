@@ -72,7 +72,7 @@ const { createTimerChecker } = require('./timer-check.js');
 const { CLOCK_TIMERS_KEY } = require('../shared/clock-timers.js');
 // 4T-0213 (Epic 3E-0042): Seiten-Registry des Handbuchs — Whitelist fuer
 // den generischen Seiten-Loader help:getManualPage.
-const { manualPageById } = require('../shared/manual-pages');
+const { MANUAL_PAGES, manualPageById } = require('../shared/manual-pages');
 // 4T-0303 (Epic 3E-0054): PDF-Export — Abbildung der Export-Einstellungen
 // (export.pdf.*) auf printToPDF-Optionen (electron-frei, unit-testbar).
 const { printToPdfOptions } = require('../shared/pdf-options');
@@ -3649,8 +3649,11 @@ function registerIpc() {
   // src/i18n/**/* in package.json existiert fuer den RENDERER, der seine
   // Sprachdateien per fetch('../i18n/<lang>.json') laedt (i18n.js) —
   // fetch kann nicht in die asar greifen.
-  ipcMain.handle('help:getManualPage', async (_event, pageId, locale) => {
-    const page = manualPageById(pageId);
+  // 4T-0758 (Epic 3E-0142): Die Datei-Aufloesung liegt in einem Helfer,
+  // weil sie seither zwei Aufrufer hat (Einzel-Seite und Sammel-Abruf der
+  // Suche). Zwei Fassungen wuerden beim naechsten Eingriff auseinander
+  // laufen, etwa beim Fallback-Verhalten.
+  const ladeGebuendelteSeite = async (page, locale) => {
     if (!page || page.source !== 'bundled') return '';
     const safe = typeof locale === 'string' ? locale.toLowerCase().replace(/[^a-z-]/g, '') : '';
     const candidates = [];
@@ -3665,6 +3668,21 @@ function registerIpc() {
       }
     }
     return '';
+  };
+
+  ipcMain.handle('help:getManualPage', async (_event, pageId, locale) =>
+    ladeGebuendelteSeite(manualPageById(pageId), locale),
+  );
+
+  // 4T-0758 (Epic 3E-0142): Alle gebuendelten Seiten einer Sprache in einem
+  // Zug, fuer die Suche ueber das ganze Handbuch. Die generierten Seiten
+  // entstehen im Renderer und sind hier bewusst nicht enthalten; der
+  // Sicherheits-Kontrakt bleibt unveraendert, weil ueber die Registry
+  // iteriert wird und kein Renderer-Input in einen Pfad geht.
+  ipcMain.handle('help:getAllManualPages', async (_event, locale) => {
+    const gebuendelt = MANUAL_PAGES.filter((p) => p.source === 'bundled');
+    const inhalte = await Promise.all(gebuendelt.map((p) => ladeGebuendelteSeite(p, locale)));
+    return gebuendelt.map((p, i) => ({ id: p.id, text: inhalte[i] }));
   });
 
   // --- 4T-0298 (Epic 3E-0053): externe Erweiterungen ---------------------------

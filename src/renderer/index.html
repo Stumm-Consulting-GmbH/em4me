@@ -341,6 +341,20 @@
                  Datei mit Tiefe 1–5 und Richtungs-Filter; Klick öffnet die
                  Nachbar-Datei. Hinweise: keine aktive Datei, Datei ohne Links,
                  Best-Effort-Suchraum außerhalb eines Bereichs. -->
+            <!-- 4T-0759 (Epic 3E-0142): Suchergebnis-Panel. Trefferliste der
+                 Suche über alle Handbuch-Seiten bzw. über alle Einstellungs-
+                 Bereiche, gruppiert nach Seite bzw. Bereich. -->
+            <section class="sidebar-section sidebar-searchresults" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="searchResults.title">
+                  Suchergebnisse
+                </h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="search-results-status"></div>
+                <div class="search-results-list"></div>
+              </div>
+            </section>
             <section class="sidebar-section sidebar-filegraph" hidden>
               <header class="sidebar-section-header">
                 <h2 class="sidebar-section-title" data-i18n="graph.panelTitle">Datei-Graph</h2>
@@ -775,6 +789,20 @@
                  Datei mit Tiefe 1–5 und Richtungs-Filter; Klick öffnet die
                  Nachbar-Datei. Hinweise: keine aktive Datei, Datei ohne Links,
                  Best-Effort-Suchraum außerhalb eines Bereichs. -->
+            <!-- 4T-0759 (Epic 3E-0142): Suchergebnis-Panel. Trefferliste der
+                 Suche über alle Handbuch-Seiten bzw. über alle Einstellungs-
+                 Bereiche, gruppiert nach Seite bzw. Bereich. -->
+            <section class="sidebar-section sidebar-searchresults" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="searchResults.title">
+                  Suchergebnisse
+                </h2>
+              </header>
+              <div class="sidebar-section-body">
+                <div class="search-results-status"></div>
+                <div class="search-results-list"></div>
+              </div>
+            </section>
             <section class="sidebar-section sidebar-filegraph" hidden>
               <header class="sidebar-section-header">
                 <h2 class="sidebar-section-title" data-i18n="graph.panelTitle">Datei-Graph</h2>
@@ -996,6 +1024,34 @@
               <circle cx="19.5" cy="12" r="2.5" />
               <path d="m13.8 17.7 3.9-3.9" />
               <circle cx="12" cy="19.5" r="2.5" />
+            </svg>
+          </button>
+          <!-- 4T-0759 (Epic 3E-0142): Suchergebnis-Sidebar-Toggle. Lucide-Icon
+               'list-search' (Lupe über Listenzeilen). -->
+          <button
+            id="btn-search-results"
+            class="btn-toggle btn-icon"
+            data-i18n-title="searchResults.toggleTitle"
+            data-i18n-aria-label="searchResults.toggle"
+            title=""
+            aria-label="Search results"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 5h12" />
+              <path d="M3 10h8" />
+              <path d="M3 15h5" />
+              <circle cx="16.5" cy="15.5" r="4" />
+              <path d="m22 21-2.6-2.6" />
             </svg>
           </button>
           <!-- 4T-0051: Properties-Sidebar-Toggle. Lucide-Icon 'tags'. -->

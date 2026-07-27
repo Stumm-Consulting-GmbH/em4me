@@ -377,3 +377,31 @@ test.describe('HB-11: Bildmarke auf der Überblicksseite', () => {
     }
   });
 });
+
+// 4T-0758 (Epic 3E-0142): Sammel-Abruf aller gebuendelten Seiten. Grundlage
+// der Suche ueber das ganze Handbuch; im Unit-Test ist der IPC gestellt,
+// hier laeuft er real ueber Preload und Main.
+test.describe('HB-12: Sammel-Abruf aller Handbuch-Seiten', () => {
+  test('liefert jede gebündelte Seite mit Inhalt, mit Englisch-Fallback', async () => {
+    test.setTimeout(120000);
+    const { app, page, userData } = await launchApp();
+    try {
+      const seiten = await page.evaluate(() => window.api.getAllManualPages('de'));
+      expect(Array.isArray(seiten)).toBe(true);
+      expect(seiten.map((s) => s.id).sort()).toEqual([...BUNDLED_PAGES].sort());
+      for (const s of seiten) {
+        expect(s.text.length, `Seite ohne Inhalt: ${s.id}`).toBeGreaterThan(0);
+      }
+
+      // Unbekannte Sprache faellt auf Englisch zurueck (Verhalten des
+      // Einzel-Loaders, das der Sammel-Abruf teilt).
+      const fallback = await page.evaluate(() => window.api.getAllManualPages('xx'));
+      const uebersichtDe = seiten.find((s) => s.id === 'overview').text;
+      const uebersichtFallback = fallback.find((s) => s.id === 'overview').text;
+      expect(uebersichtFallback.length).toBeGreaterThan(0);
+      expect(uebersichtFallback).not.toBe(uebersichtDe);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});

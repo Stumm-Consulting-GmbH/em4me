@@ -107,6 +107,9 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.datePicker',
       'help.feature.search',
       'help.feature.searchReplace',
+      // 4T-0762 (Epic 3E-0142): Suchraum nach Reiter-Typ (Handbuch und
+      // Einstellungen), direkt hinter dem Such-Bestand.
+      'help.feature.searchScopes',
       'help.feature.linter',
       // 4T-0035 (Epic 3E-0006): perspective-table mit Querverweis auf den eigenen Tab.
       'help.feature.perspectiveTable',

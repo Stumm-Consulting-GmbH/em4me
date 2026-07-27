@@ -330,6 +330,13 @@ export const state = {
     previewByPane: [false, false],
     baselineByPane: ['', ''],
   },
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel. Der Trefferbestand liegt
+  // bewusst NICHT hier, sondern im Panel-Modul: Er gehoert zum laufenden
+  // Suchlauf, nicht zum persistierten Fenster-Zustand, und ueberlebt weder
+  // Reiter-Wechsel noch Neustart.
+  searchResults: {
+    visibleByPane: [false, false],
+  },
   // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Panel. dataByPane haelt die
   // geladene Anker->{values,updated}-Map der .mdd; activeAnchorByPane den Anker
   // unter dem Cursor bzw. den per Dropdown gewaehlten. loadTokens gegen Lade-
@@ -657,6 +664,11 @@ function buildPaneEls(paneIdx) {
     notesSuspended: root.querySelector('.sidebar-notes .notes-suspended'),
     notesConflict: root.querySelector('.sidebar-notes .notes-conflict'),
     notesPreviewToggle: root.querySelector('.sidebar-notes .notes-preview-toggle'),
+    // 4T-0759 (Epic 3E-0142): Suchergebnis-Sektion. Status-Zeile (Anzahl,
+    // Leerzustaende) plus gruppierte Trefferliste.
+    searchResultsSection: root.querySelector('.sidebar-searchresults'),
+    searchResultsStatus: root.querySelector('.sidebar-searchresults .search-results-status'),
+    searchResultsList: root.querySelector('.sidebar-searchresults .search-results-list'),
     // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sektion. Anker-Leiste mit
     // Dropdown und Umbenennen, Eigenschafts-Felder, Verwaisten-Abschnitt.
     blockPropsSection: root.querySelector('.sidebar-blockprops'),

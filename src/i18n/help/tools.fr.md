@@ -41,6 +41,22 @@ Remplacer :  $3-$2-$1
 Effet :      12.06.2026 → 2026-06-12
 ```
 
+## Recherche dans le manuel et les paramètres
+
+La portée de la recherche suit l'onglet dans lequel elle est ouverte ; les trois portées s'excluent mutuellement :
+
+| Onglet actif | Ce qui est parcouru |
+|---|---|
+| Document | le document lui-même, source ou aperçu |
+| Page du manuel | **toutes** les pages du manuel, même non ouvertes |
+| Paramètres | **toutes** les sections de paramètres, même jamais visitées |
+
+Dans le manuel et dans les paramètres, les occurrences apparaissent dans le panneau latéral **Résultats de recherche**, groupées par page ou section et avec leur nombre par groupe. Un clic ouvre la page ou change de section et met l'occurrence en évidence ; `F3` franchit les limites de page et de section. Changer de section dans les paramètres n'enregistre rien : une saisie en cours est conservée.
+
+Le remplacement reste désactivé dans les deux portées, car le manuel et les paramètres sont en lecture seule. Avec la source Markdown d'une page du manuel sous les yeux, c'est-à-dire en vue source, la recherche porte de nouveau sur cette seule page.
+
+**Différence avec la palette de commandes :** la palette trouve des **commandes** par leur nom et les exécute. Cette recherche trouve du **texte**, à savoir les explications du manuel et les libellés des paramètres. Si vous savez ce que vous voulez faire, prenez la palette ; si vous voulez savoir où une chose est décrite ou comment elle s'appelle, prenez la recherche.
+
 ## Éditeur de tableaux
 
 Dans les tableaux pipe, `Tab` saute à la cellule suivante et `Maj+Tab` à la précédente. À la fin de la dernière ligne, `Tab` ou `Entrée` créent une nouvelle ligne de tableau avec le même nombre de colonnes ; deux `Entrée` sur une ligne vide quittent le tableau. Les tableaux sans bordure (sans pipes extérieurs) sont aussi reconnus. Les opérations de structure (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition) sont proposées par le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md).

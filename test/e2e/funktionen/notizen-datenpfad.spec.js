@@ -12,6 +12,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { warteAufJson } = require('../helpers/dateien');
 
 function makeWorkFile(prefix) {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -43,8 +44,7 @@ test.describe('NT-01: Notiz schreiben, lesen und leeren über die IPC-Bridge', (
       expect(written.ok).toBe(true);
       expect(written.note.text).toBe('Meine **Notiz** mit Markdown.');
       expect(typeof written.note.updated).toBe('string');
-      await expect.poll(() => fs.existsSync(mddPathOf(workFile))).toBe(true);
-      const mdd = JSON.parse(fs.readFileSync(mddPathOf(workFile), 'utf8'));
+      const mdd = await warteAufJson(mddPathOf(workFile));
       expect(mdd.notes.text).toBe('Meine **Notiz** mit Markdown.');
       // Historie bleibt unberührt (nur die Notiz wurde geschrieben).
       expect(mdd.history.packets).toHaveLength(0);

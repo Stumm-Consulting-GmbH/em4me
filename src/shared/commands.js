@@ -622,6 +622,17 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel toggeln. Ohne Default-Binding
+  // (Menue-Weg; Kuerzel ueber die Einstellungen belegbar, Muster Notizen).
+  {
+    id: 'view.toggleSearchResults',
+    defaultBindings: [],
+    labelKey: 'menu.view.searchResults',
+    descKey: 'help.shortcut.toggleSearchResults',
+    categoryKey: 'help.group.navigation',
+    menu: true,
+    editorScoped: false,
+  },
   // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sidebar-Sektion toggeln. Ohne
   // Default-Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
   {

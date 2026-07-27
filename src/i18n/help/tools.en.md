@@ -41,6 +41,22 @@ Replace:  $3-$2-$1
 Effect:   12.06.2026 → 2026-06-12
 ```
 
+## Searching the manual and the settings
+
+The search scope follows the tab the search is opened in; the three scopes are mutually exclusive:
+
+| Active tab | What is searched |
+|---|---|
+| Document | the document itself, source or preview |
+| Manual page | **all** manual pages, including those not open |
+| Settings | **all** settings areas, including those never visited |
+
+In the manual and in the settings, matches appear in the **Search results** sidebar panel, grouped by page or area and with a count per group. A click opens the page or switches the area and highlights the match; `F3` continues across page and area boundaries. Switching areas in the settings saves nothing, so a draft in progress is preserved.
+
+Replacing stays disabled in both scopes because the manual and the settings are read-only. Looking at the Markdown source of a manual page, that is the source view, searches that single page again.
+
+**How this differs from the command palette:** the palette finds **commands** by name and runs them. This search finds **text**, that is explanations in the manual and labels in the settings. If you know what you want to do, use the palette; if you want to know where something is described or what it is called, use the search.
+
 ## Table editor
 
 In pipe tables `Tab` jumps to the next and `Shift+Tab` to the previous cell. At the end of the last row, `Tab` or `Enter` create a new table row with the same column count; pressing `Enter` twice on an empty row leaves the table. Borderless tables (without outer pipes) are recognised as well. Structural operations (moving, inserting and deleting rows and columns, alignment, transposing) are offered by the **Table** submenu in the [Editor context menu](context-menu.md).

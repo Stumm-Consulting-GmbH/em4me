@@ -69,7 +69,9 @@ describe('Default-Layout (4T-0287, 4T-0563)', () => {
     expect(layout).toEqual({
       left: [
         { panels: ['bookmarks', 'area'], active: 'bookmarks' },
-        { panels: ['outline', 'subpages', 'filegraph'], active: 'outline' },
+        // 4T-0759 (Epic 3E-0142): das Suchergebnis-Panel schliesst die
+        // Finde-Gruppe ab.
+        { panels: ['outline', 'subpages', 'filegraph', 'searchresults'], active: 'outline' },
         // 4T-0372 (Epic 3E-0069): die Uhr schliesst die Zeit-Gruppe ab.
         { panels: ['calendar', 'reminders', 'clock'], active: 'calendar' },
       ],

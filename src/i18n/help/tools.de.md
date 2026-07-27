@@ -41,6 +41,22 @@ Ersetzen:  $3-$2-$1
 Wirkung:   12.06.2026 → 2026-06-12
 ```
 
+## Suche in Handbuch und Einstellungen
+
+Der Suchbereich folgt dem Reiter, in dem die Suche geöffnet wird; die drei Bereiche schließen einander aus:
+
+| Aktiver Reiter | Gesucht wird |
+|---|---|
+| Dokument | im Dokument selbst, in Quelltext oder Vorschau |
+| Handbuch-Seite | in **allen** Handbuch-Seiten, auch den nicht geöffneten |
+| Einstellungen | in **allen** Einstellungs-Bereichen, auch den nie besuchten |
+
+Im Handbuch und in den Einstellungen erscheinen die Treffer im Sidebar-Panel **Suchergebnisse**, gruppiert nach Seite beziehungsweise Bereich und mit der Trefferzahl je Gruppe. Ein Klick öffnet die Seite oder wechselt den Bereich und hebt die Fundstelle hervor; `F3` läuft über die Seiten- und Bereichsgrenze hinweg weiter. Ein Bereichswechsel in den Einstellungen speichert nichts, ein begonnener Entwurf bleibt erhalten.
+
+Ersetzen ist in beiden Bereichen abgeschaltet, weil Handbuch und Einstellungen schreibgeschützt sind. Wer die Markdown-Quelle einer Handbuch-Seite vor sich hat, also die Quelltext-Ansicht, sucht wieder in dieser einen Seite.
+
+**Abgrenzung zur Kommando-Palette:** Die Palette findet **Kommandos** über ihren Namen und führt sie aus. Diese Suche findet **Text**, also Erklärungen im Handbuch und Beschriftungen in den Einstellungen. Wer weiß, was er tun will, nimmt die Palette; wer wissen will, wo etwas steht oder wie es heißt, nimmt die Suche.
+
 ## Tabellen-Editor
 
 In Pipe-Tabellen springt `Tab` zur nächsten und `Umschalt+Tab` zur vorherigen Zelle. Am Ende der letzten Zeile erzeugen `Tab` oder `Enter` eine neue Tabellenzeile mit derselben Spalten-Anzahl; zweimal `Enter` in einer leeren Zeile verlässt die Tabelle. Auch randlose Tabellen (ohne äußere Pipes) werden erkannt. Struktur-Operationen (Zeilen und Spalten verschieben, einfügen und löschen, Ausrichtung, Transponieren) bietet das Untermenü **Tabelle** im [Editor-Kontextmenü](context-menu.md).

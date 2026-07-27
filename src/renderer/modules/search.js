@@ -14,6 +14,15 @@ import { api, $, getDocText } from './api.js';
 import { activeTab, getPaneEls, state } from './app-state.js';
 import { paneEditors } from './editor.js';
 import { persistSetting, showStatusbarHint } from './views.js';
+// 4T-0760 (Epic 3E-0142): Suchlauf ueber Handbuch und Einstellungen.
+import {
+  leereRaumBestand,
+  naechsterRaumTreffer,
+  raumIndex,
+  raumTrefferAnzahl,
+  sucheImRaum,
+  vorherigerRaumTreffer,
+} from './such-lauf.js';
 
 // === Suche ==================================================================
 // Globale Suchleiste am unteren Fensterrand, gilt fuer den aktiven Pane.
@@ -138,11 +147,28 @@ export function toggleRegexHelp() {
 export function determineSearchScope() {
   const tab = activeTab();
   if (!tab) return 'rendered';
+  // 4T-0760 (Epic 3E-0142): Der Suchraum folgt dem aktiven Reiter, und zwar
+  // exklusiv (PO-Entscheidung 2026-07-27). Die Einstellungs-Seite hat kein
+  // Dokument-Verhalten, deshalb steht sie vor der Modus-Abfrage.
+  if (tab.systemPage === 'settings') return 'settings';
+  // Ein Handbuch-Reiter durchsucht das GANZE Handbuch — aber nur in der
+  // Lese-Ansicht. Wer die Quelle vor sich hat, sucht plausibel nach
+  // Markdown-Syntax in genau dieser Seite; das kann der Handbuch-Raum
+  // nicht bedienen, und diese Absicht wiegt schwerer.
+  if (tab.manualPage && tab.viewMode === 'rendered') return 'manual';
   // Im Split-Modus den Quelltext durchsuchen: dort steht die Markdown-Syntax
   // (z.B. `###`), die in der gerenderten Vorschau gar nicht mehr vorkommt.
   if (tab.viewMode === 'source' || tab.viewMode === 'split' || tab.viewMode === 'live')
     return 'source';
   return 'rendered';
+}
+
+// 4T-0760: Die beiden Raum-Scopes verhalten sich grundlegend anders als die
+// zwei Dokument-Scopes (Trefferliste statt Inline-Markierung, asynchrone
+// Lieferanten, Sprung über Seiten-/Bereichsgrenzen). Diese Abfrage macht die
+// Verzweigungen unten lesbar.
+export function isRaumScope(scope) {
+  return scope === 'manual' || scope === 'settings';
 }
 
 // R5-16 (4T-0183): Die Helpers werden ausschliesslich vom Render-Pane-
@@ -158,6 +184,28 @@ export function getSearchContainer(_scope) {
 export function getSearchScrollContainer(_scope) {
   const els = getPaneEls(state.activePaneIndex);
   return els.renderedEl;
+}
+
+// 4T-0760: Der Sprung zu einem Raum-Treffer (Seite oeffnen bzw. Bereich
+// wechseln, Fundstelle hervorheben) lebt in such-sprung.js und wird beim
+// Start registriert. Ueber den Registrierungs-Punkt statt eines Imports,
+// weil die Sprung-Logik ihrerseits highlightInContainer aus diesem Modul
+// braucht und ein Modul-Zyklus hier vermeidbar ist.
+let raumSprungHandler = null;
+// Stellt nach einem Raum-Suchlauf die Inline-Markierung der offenen Seite
+// wieder her (clearSearchHighlights zu Beginn jedes Laufs raeumt sie weg).
+let raumMarkierHandler = null;
+
+export function setzeRaumSprungHandler(fn) {
+  raumSprungHandler = typeof fn === 'function' ? fn : null;
+}
+
+export function setzeRaumMarkierHandler(fn) {
+  raumMarkierHandler = typeof fn === 'function' ? fn : null;
+}
+
+export function springeZuRaumTreffer(treffer) {
+  if (raumSprungHandler && treffer) void raumSprungHandler(treffer);
 }
 
 export function escapeRegex(s) {
@@ -310,7 +358,10 @@ export function setCurrentMatch(idx, scroll = true) {
 
 export function updateSearchCounter() {
   const els = getSearchEls();
-  const total = search.matches.length;
+  // 4T-0760: Im Raum-Scope zaehlt der Bestand des Suchlaufs ueber alle
+  // Seiten bzw. Bereiche, nicht die (leere) Treffer-Liste der Pane.
+  const total = isRaumScope(search.scope) ? raumTrefferAnzahl() : search.matches.length;
+  const current = isRaumScope(search.scope) ? raumIndex() : search.currentIndex;
   if (!search.query) {
     els.count.textContent = '';
     els.count.classList.remove('empty');
@@ -322,13 +373,20 @@ export function updateSearchCounter() {
     return;
   }
   els.count.classList.remove('empty');
-  els.count.textContent = `${search.currentIndex + 1} / ${total}`;
+  els.count.textContent = `${current + 1} / ${total}`;
 }
+
+const SCOPE_LABEL_KEYS = {
+  source: 'search.scopeSource',
+  rendered: 'search.scopeRendered',
+  // 4T-0760 (Epic 3E-0142)
+  manual: 'search.scopeManual',
+  settings: 'search.scopeSettings',
+};
 
 export function updateSearchScopeLabel() {
   const els = getSearchEls();
-  const key = search.scope === 'source' ? 'search.scopeSource' : 'search.scopeRendered';
-  els.scope.textContent = t(key);
+  els.scope.textContent = t(SCOPE_LABEL_KEYS[search.scope] || 'search.scopeRendered');
 }
 
 export function setInvalidRegex(invalid) {
@@ -347,13 +405,21 @@ export function performSearch(opts = {}) {
   const { keepCurrent = false } = opts;
   const prevIdx = keepCurrent ? search.currentIndex : -1;
   clearSearchHighlights();
+  const vorherigerScope = search.scope;
   search.scope = determineSearchScope();
   updateSearchScopeLabel();
   // R5-09 (4T-0171): Replace-Bedienbarkeit an Scope/Edit-Modus koppeln.
   updateReplaceUiState();
+  // 4T-0760: Beim Verlassen eines Raums seinen Trefferbestand verwerfen —
+  // die Treffer gehoerten zu einem anderen Suchraum und waeren im neuen
+  // schlicht falsch (die Raeume schliessen einander aus).
+  if (isRaumScope(vorherigerScope) && vorherigerScope !== search.scope) {
+    leereRaumBestand(isRaumScope(search.scope) ? search.scope : 'document');
+  }
 
   if (!search.query) {
     setInvalidRegex(false);
+    if (isRaumScope(search.scope)) leereRaumBestand(search.scope);
     updateSearchCounter();
     return;
   }
@@ -366,6 +432,18 @@ export function performSearch(opts = {}) {
     return;
   }
   setInvalidRegex(false);
+
+  // 4T-0760: Raum-Suche. Der Lieferant arbeitet asynchron (Handbuch-Seiten
+  // kommen per IPC), deshalb laeuft der Zaehler dem Tastendruck hinterher;
+  // ueberholte Laeufe verwirft sucheImRaum selbst ueber seine Generation.
+  if (isRaumScope(search.scope)) {
+    void sucheImRaum(search.scope, regex, { behalteIndex: keepCurrent }).then((angezeigt) => {
+      if (!angezeigt) return;
+      updateSearchCounter();
+      if (raumMarkierHandler) raumMarkierHandler();
+    });
+    return;
+  }
 
   if (search.scope === 'source') {
     performSourceSearch(regex, prevIdx);
@@ -464,12 +542,26 @@ export function scheduleSearchRefresh() {
 }
 
 export function nextMatch() {
+  // 4T-0760: Im Raum-Scope laeuft F3 ueber die Seiten- bzw. Bereichsgrenze
+  // hinweg; der Sprung selbst haengt am Sprung-Handler des Panels.
+  if (isRaumScope(search.scope)) {
+    const treffer = naechsterRaumTreffer();
+    if (treffer) springeZuRaumTreffer(treffer);
+    updateSearchCounter();
+    return;
+  }
   if (search.matches.length === 0) return;
   const n = (search.currentIndex + 1) % search.matches.length;
   setCurrentMatch(n);
 }
 
 export function prevMatch() {
+  if (isRaumScope(search.scope)) {
+    const treffer = vorherigerRaumTreffer();
+    if (treffer) springeZuRaumTreffer(treffer);
+    updateSearchCounter();
+    return;
+  }
   if (search.matches.length === 0) return;
   const n = (search.currentIndex - 1 + search.matches.length) % search.matches.length;
   setCurrentMatch(n);
@@ -514,6 +606,9 @@ export function closeSearchBar() {
   els.bar.hidden = true;
   closeRegexHelp();
   clearSearchHighlights();
+  // 4T-0760: Auch den Raum-Bestand samt Trefferliste raeumen; das Panel
+  // bleibt offen, zeigt aber seinen Leerzustand statt veralteter Treffer.
+  leereRaumBestand(null);
   setInvalidRegex(false);
   updateSearchCounter();
 }
@@ -624,6 +719,10 @@ export function refreshSearchIfVisible() {
 // R5-09 (4T-0171): Ersetzen ist nur im Quellcode-Scope mit aktivem
 // Edit-Modus wirksam (replaceCurrentMatch/replaceAllMatches returnen sonst).
 // Statt still funktionsloser Buttons: deaktivieren und Grund als Tooltip.
+// 4T-0760: In den Raum-Scopes bleibt Ersetzen abgeschaltet — Handbuch und
+// Einstellungen sind schreibgeschuetzt (Abgrenzung des Epics 3E-0142). Der
+// vorhandene Weg traegt das ohne Erweiterung: Er verlangt bereits den
+// Quellcode-Scope, den kein Raum-Scope erfuellt.
 export function updateReplaceUiState() {
   const els = getSearchEls();
   const tab = activeTab();

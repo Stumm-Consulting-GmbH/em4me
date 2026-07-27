@@ -68,6 +68,16 @@ const PANEL_ACCESS = [
     commandId: 'view.toggleGraphPanel',
     extensionId: 'graph-view',
   },
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel, Abschluss der Finde-Gruppe
+  // der linken Seite (Gliederung, Unterseiten, Graph). Kern-Panel ohne
+  // Erweiterungs-Gate: Die Suche gehoert zur Grundausstattung.
+  {
+    id: 'searchresults',
+    titleKey: 'searchResults.title',
+    buttonId: 'btn-search-results',
+    commandId: 'view.toggleSearchResults',
+    extensionId: null,
+  },
   {
     id: 'calendar',
     titleKey: 'calendar.title',

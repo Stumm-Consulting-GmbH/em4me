@@ -41,6 +41,22 @@ Sostituisci: $3-$2-$1
 Effetto:     12.06.2026 → 2026-06-12
 ```
 
+## Ricerca nel manuale e nelle impostazioni
+
+L'ambito della ricerca segue la scheda in cui viene aperta; i tre ambiti si escludono a vicenda:
+
+| Scheda attiva | Dove si cerca |
+|---|---|
+| Documento | nel documento stesso, in sorgente o anteprima |
+| Pagina del manuale | in **tutte** le pagine del manuale, anche non aperte |
+| Impostazioni | in **tutte** le sezioni delle impostazioni, anche mai visitate |
+
+Nel manuale e nelle impostazioni le corrispondenze compaiono nel pannello laterale **Risultati della ricerca**, raggruppate per pagina o sezione e con il numero per gruppo. Un clic apre la pagina o cambia sezione ed evidenzia la corrispondenza; `F3` prosegue oltre i confini di pagina e di sezione. Cambiare sezione nelle impostazioni non salva nulla: una bozza in corso resta intatta.
+
+La sostituzione resta disattivata in entrambi gli ambiti, perché manuale e impostazioni sono in sola lettura. Con il sorgente Markdown di una pagina del manuale davanti, cioè nella vista sorgente, la ricerca torna a riguardare quella singola pagina.
+
+**Differenza rispetto alla palette dei comandi:** la palette trova **comandi** per nome e li esegue. Questa ricerca trova **testo**, cioè le spiegazioni del manuale e le etichette delle impostazioni. Se sai cosa vuoi fare, usa la palette; se vuoi sapere dove qualcosa è descritto o come si chiama, usa la ricerca.
+
 ## Editor di tabelle
 
 Nelle tabelle pipe, `Tab` salta alla cella successiva e `Maiusc+Tab` alla precedente. Alla fine dell'ultima riga, `Tab` o `Invio` creano una nuova riga di tabella con lo stesso numero di colonne; due `Invio` su una riga vuota escono dalla tabella. Vengono riconosciute anche le tabelle senza bordi (senza pipe esterni). Le operazioni di struttura (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione) sono offerte dal sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md).

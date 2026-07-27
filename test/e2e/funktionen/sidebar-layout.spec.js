@@ -90,6 +90,9 @@ test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () 
         'outline',
         'subpages',
         'filegraph',
+        // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel als vierter Reiter der
+        // Finde-Gruppe.
+        'searchresults',
         'calendar',
         'reminders',
         // 4T-0372 (Epic 3E-0069): Uhr-Panel als dritter Reiter der Zeit-Gruppe.
@@ -103,7 +106,7 @@ test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () 
         'outgoing',
         'backlinks',
       ]);
-      // Links sind alle acht Panels Reiter-Gruppen-Mitglieder (drei Gruppen).
+      // Links sind alle neun Panels Reiter-Gruppen-Mitglieder (drei Gruppen).
       expect(dom.left.every((e) => e.group)).toBe(true);
       // Rechts ist notes ein Einzel-Slot, die übrigen fünf bilden zwei Gruppen.
       expect(dom.right.find((e) => e.id === 'notes').group).toBe(false);

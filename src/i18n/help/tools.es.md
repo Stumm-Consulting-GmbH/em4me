@@ -41,6 +41,22 @@ Reemplazar: $3-$2-$1
 Efecto:     12.06.2026 → 2026-06-12
 ```
 
+## Búsqueda en el manual y en los ajustes
+
+El ámbito de búsqueda sigue a la pestaña en la que se abre; los tres ámbitos se excluyen entre sí:
+
+| Pestaña activa | Dónde se busca |
+|---|---|
+| Documento | en el propio documento, en código fuente o vista previa |
+| Página del manual | en **todas** las páginas del manual, también en las no abiertas |
+| Ajustes | en **todas** las secciones de ajustes, también en las nunca visitadas |
+
+En el manual y en los ajustes, las coincidencias aparecen en el panel lateral **Resultados de búsqueda**, agrupadas por página o sección y con su número por grupo. Un clic abre la página o cambia de sección y resalta la coincidencia; `F3` continúa más allá de los límites de página y sección. Cambiar de sección en los ajustes no guarda nada: un borrador en curso se conserva.
+
+La sustitución permanece desactivada en ambos ámbitos, porque el manual y los ajustes son de solo lectura. Con el código Markdown de una página del manual a la vista, es decir en la vista de código, la búsqueda vuelve a limitarse a esa única página.
+
+**Diferencia con la paleta de comandos:** la paleta encuentra **comandos** por su nombre y los ejecuta. Esta búsqueda encuentra **texto**, es decir explicaciones del manual y rótulos de los ajustes. Si sabe qué quiere hacer, use la paleta; si quiere saber dónde se describe algo o cómo se llama, use la búsqueda.
+
 ## Editor de tablas
 
 En tablas pipe, `Tab` salta a la celda siguiente y `Mayús+Tab` a la anterior. Al final de la última fila, `Tab` o `Intro` crean una nueva fila con el mismo número de columnas; dos `Intro` en una fila vacía salen de la tabla. También se reconocen tablas sin bordes (sin pipes exteriores). Las operaciones de estructura (mover, insertar y eliminar filas y columnas, alineación, transposición) las ofrece el submenú **Tabla** en el [Menú contextual del editor](context-menu.md).

@@ -14,6 +14,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { leseTextOderNull, warteAufJson } = require('../helpers/dateien');
 // 4T-0434: erwartete Wochen-Schlüssel/-Pfade aus demselben Perioden-Kern,
 // den die App nutzt (keine zweite KW-Rechnung im Test).
 const { periodOf, resolveEntryPath } = require('../../../src/shared/journal-core.js');
@@ -395,8 +396,7 @@ test.describe('JR-07: Einstellungen — Journal anlegen, Vorschau, sofort wirksa
 
       // Die Bereichsdatei trägt die journals-Sektion (Regal plus Journal).
       const mdda = path.join(areaRoot, 'Area_Settings.mdda');
-      await expect.poll(() => fs.existsSync(mdda)).toBe(true);
-      const parsed = JSON.parse(fs.readFileSync(mdda, 'utf8'));
+      const parsed = await warteAufJson(mdda);
       expect(parsed.settings.journals.shelves).toEqual(['Tagebuch']);
       expect(parsed.settings.journals.journals).toHaveLength(1);
       expect(parsed.settings.journals.journals[0]).toMatchObject({
@@ -410,13 +410,15 @@ test.describe('JR-07: Einstellungen — Journal anlegen, Vorschau, sofort wirksa
 
       // Wirkt ohne Neustart: das Heute-Kommando legt den Eintrag an.
       const target = path.join(areaRoot, 'Journal', today.slice(0, 4), `${today}.md`);
+      // 4T-0757: auf den Inhalt warten, nicht auf die blosse Existenz — die
+      // Datei entsteht vor ihrem Inhalt, und unter Voll-Last fiel das Lesen
+      // in diese Luecke (leerer String, Fehlschlag im Release-Lauf 0.94.0).
       await expect
         .poll(async () => {
           if (!fs.existsSync(target)) await page.keyboard.press('Control+Alt+7');
-          return fs.existsSync(target);
+          return leseTextOderNull(target);
         })
-        .toBe(true);
-      expect(fs.readFileSync(target, 'utf8')).toContain(`journal-date: ${today}`);
+        .toContain(`journal-date: ${today}`);
     } finally {
       await closeApp(app, userData);
       cleanupDir(areaRoot);

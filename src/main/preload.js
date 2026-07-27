@@ -319,6 +319,12 @@ contextBridge.exposeInMainWorld('api', {
   getManualPageContent: (pageId, locale) =>
     ipcRenderer.invoke('help:getManualPage', pageId, locale),
 
+  // 4T-0758 (Epic 3E-0142): alle gebuendelten Handbuch-Seiten einer Sprache
+  // in einem Zug, fuer die Suche ueber das ganze Handbuch. Ein Einzel-Abruf
+  // je Seite waere hier sinnlos, weil die Suche immer alle Seiten braucht,
+  // und kostete rund drei Dutzend Prozess-Grenzen je Suchlauf.
+  getAllManualPages: (locale) => ipcRenderer.invoke('help:getAllManualPages', locale),
+
   // 4T-0015: Backlinks. requestBacklinks registriert den Owner (Fenster +
   // Pane) auf der Wurzel, releaseBacklinks gibt ihn frei (B-01, 4T-0175).
   // onBacklinksInvalidated meldet Watcher-Updates aus dem Main.

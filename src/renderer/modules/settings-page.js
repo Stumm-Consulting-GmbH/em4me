@@ -336,7 +336,16 @@ function resetPageState() {
   pageState.generation += 1;
   cancelHotkeyCapture();
   hotkeysResetAllArmed = false;
-  pageState.draft = {
+  pageState.draft = buildDraft();
+  void ladeAppearanceInDraft();
+}
+
+// 4T-0761 (Epic 3E-0142): Der Entwurfs-Aufbau ist aus resetPageState
+// herausgeloest, damit die Such-Ernte einen Wegwerf-Entwurf bauen kann,
+// ohne einen offenen Entwurf der Seite anzutasten. Rein mechanischer,
+// verhaltensneutraler Schnitt.
+function buildDraft() {
+  return {
     // null = noch nicht aus dem Store geladen; die Darstellung rendert bis
     // dahin mit Defaults und zieht nach dem Laden nach.
     appearance: null,
@@ -399,6 +408,13 @@ function resetPageState() {
     calendar: null,
     calendarSnapshot: null,
   };
+}
+
+// 4T-0761 (Epic 3E-0142): Nachlade-Strecke des Entwurfs (asynchrone Store-
+// und Bereichsdatei-Werte, die den aktiven Bereich nachrendern). Sie
+// gehoert zum GEOEFFNETEN Entwurf und laeuft deshalb nicht fuer den
+// Wegwerf-Entwurf der Such-Ernte.
+function ladeAppearanceInDraft() {
   const generation = pageState.generation;
   readAppearanceFromStore().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
@@ -763,6 +779,73 @@ export function unregisterSettingsSection(id) {
   const idx = dynamicSections.findIndex((s) => s.id === id);
   if (idx >= 0) dynamicSections.splice(idx, 1);
   return idx >= 0;
+}
+
+// 4T-0761 (Epic 3E-0142): Erntbarer Text aller Einstellungs-Bereiche fuer
+// die Suche.
+//
+// Der Text entsteht, indem jeder Bereich einmal in einen ABGEKOPPELTEN
+// Container gerendert und sein sichtbarer Text gelesen wird. Der Weg ist
+// bewusst gewaehlt: Die Such-Quelle ist damit dieselbe Funktion wie die
+// Anzeige und kann nicht divergieren. Eine parallel gepflegte Liste
+// "diese Schluessel gehoeren zu Bereich X" veraltete beim ersten neuen
+// Schalter, und die Bereiche registrieren sich zudem aus mehreren Modulen.
+//
+// Der Entwurf ist ein Wegwerf-Exemplar, sofern die Seite nicht offen ist;
+// ein offener Entwurf des Nutzers wird nie angetastet. Die asynchrone
+// Nachlade-Strecke laeuft dafuer NICHT: Beschriftungen haengen nicht an
+// den geladenen Werten, und ein Nachladen haette Nebenwirkungen auf die
+// geoeffnete Seite.
+//
+// Rueckgabe je Bereich: { id, titel, gruppe, zeilen: [Text, ...] }. Die
+// Zeilen-Reihenfolge ist zugleich die Sprung-Adresse (Zeile 0 = Titel).
+export function erntbareBereiche() {
+  const draft = pageState.draft || buildDraft();
+  const ergebnis = [];
+  for (const section of settingsSections()) {
+    const body = document.createElement('div');
+    try {
+      section.render(body, draft);
+    } catch {
+      // Ein Bereich, der ohne montierte Seite nicht rendert, faellt aus der
+      // Suche heraus statt sie scheitern zu lassen.
+      continue;
+    }
+    const zeilen = [];
+    for (const el of body.querySelectorAll('.settings-row, .settings-hint, .settings-subheading')) {
+      const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      if (text) zeilen.push(text);
+    }
+    // Bereiche ohne erfasste Zeile (reine Editor-Flaechen) bleiben ueber
+    // ihren Titel auffindbar.
+    ergebnis.push({
+      id: section.id,
+      titel: t(section.titleKey),
+      gruppe: section.group === 'area' ? 'area' : 'general',
+      zeilen,
+    });
+  }
+  return ergebnis;
+}
+
+// 4T-0761: Bereich aktivieren und eine Zeile hervorheben (Sprung-Ziel der
+// Suche). Der Entwurf bleibt unberuehrt; ein Bereichswechsel speichert
+// nichts.
+export function springeZuBereich(sectionId, zeilenIndex) {
+  if (!sectionById(sectionId)) return false;
+  activateSection(sectionId);
+  if (!pageEls || !pageEls.content) return true;
+  const zeilen = pageEls.content.querySelectorAll(
+    '.settings-row, .settings-hint, .settings-subheading',
+  );
+  // Zeile 0 ist der Bereichs-Titel; die erfassten Zeilen beginnen bei 1.
+  const ziel = zeilenIndex > 0 ? zeilen[zeilenIndex - 1] : null;
+  const el = ziel || pageEls.content.querySelector('.settings-section-heading');
+  if (!el) return true;
+  el.scrollIntoView({ block: 'center', behavior: 'auto' });
+  el.classList.add('settings-row-hervorgehoben');
+  setTimeout(() => el.classList.remove('settings-row-hervorgehoben'), 1600);
+  return true;
 }
 
 export function settingsSections() {

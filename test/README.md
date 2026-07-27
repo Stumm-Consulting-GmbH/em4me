@@ -13,7 +13,7 @@ dieses Dokument.
 test/
 ├── unit/        Vitest: Unit- und Snapshot-Tests (Node, Electron-frei)
 ├── e2e/         Playwright: End-to-End-Tests gegen die echte App
-│   ├── helpers/   gemeinsame Helpers (App-Start, Selektoren)
+│   ├── helpers/   gemeinsame Helpers (App-Start, Selektoren, Datei-Warten)
 │   └── smoke/     Smoke-Suite über die Kernabläufe
 └── fixtures/    statisches Test-Material (Markdown-Dateien)
 ```
@@ -110,6 +110,18 @@ case-insensitivem NTFS wäre `tests/` mit `Tests/` kollidiert.
     obwohl das Auto-Verhalten fehlt. Die Lücke findet dann erst der
     manuelle Test. Interne Trigger kommen nur dazu, wenn sie selbst
     Teil des geprüften Pfads sind, und dann in einem eigenen Schritt.
+12. **Wer nach dem Warten liest, wartet auf den Inhalt.** Eine Datei
+    entsteht vor ihrem Inhalt. Eine Warte-Bedingung auf `fs.existsSync`
+    endet im Moment der Anlage; das folgende Lesen fällt unter Last in
+    die Lücke und liefert einen leeren oder halben Stand. Bei Text ist
+    das ein Vergleichs-Fehler, bei JSON ein Parse-Abbruch, und beides
+    tritt nur lastabhängig auf, also als Flake im Voll-Lauf. Die
+    Warte-Bedingung liefert deshalb den Inhalt selbst; die Helfer
+    `warteAufText` und `warteAufJson` in
+    [e2e/helpers/dateien.js](e2e/helpers/dateien.js) kapseln das
+    einschließlich der null-Rückgabe für die Poll-Bedingung. Eine
+    Existenz-Prüfung allein bleibt richtig, wenn der Test die Datei
+    danach nicht liest oder gerade ihre Unverändertheit prüft.
 
 ## E2E-Praxis
 

@@ -166,6 +166,16 @@
       "hinweis": "R5-01 (Ersetzen inkl. Invalidierung), R5-09 (Disable-Zustand)."
     },
     {
+      "key": "help.feature.searchScopes",
+      "id": "F-242",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/suche-handbuch.spec.js",
+        "test/e2e/funktionen/suche-einstellungen.spec.js"
+      ],
+      "hinweis": "SH-01 bis SH-05 (Trefferraum ueber alle Handbuch-Seiten, Sprung, F3 ueber die Seitengrenze, Ersetzen aus, Rueckkehr zum Dokument) und SE-01 bis SE-03 (Bereiche ohne vorherigen Besuch, Bereichs-Sprung, Entwurf bleibt erhalten)."
+    },
+    {
       "key": "help.feature.menuBar",
       "id": "F-023",
       "testart": "manuell",
@@ -896,6 +906,13 @@
       "hinweis": "NP-01 (Menue Ansicht -> Notizen)."
     },
     {
+      "key": "help.shortcut.toggleSearchResults",
+      "id": "S-116",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/such-panel.spec.js"],
+      "hinweis": "SP-01 (Statusbar-Schalter blendet ein und aus), SP-02 (Leerzustand ohne Suchbegriff); der Paritaets-Waechter test/unit/panel-access.test.js deckt den Menue-Zugang."
+    },
+    {
       "key": "help.shortcut.toggleBlockProps",
       "id": "S-071",
       "testart": "e2e",
@@ -1026,7 +1043,7 @@
       "id": "F-068",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/handbuch.spec.js", "test/e2e/smoke/smoke.spec.js"],
-      "hinweis": "HB-01 bis HB-11 (4T-0213 bis 4T-0216, 4T-0649): Read-only-Tabs, Einfach-Instanz, View-Modi, interne Navigation, generierte Seiten, fuenf Sprachen, Bildmarke der Ueberblicksseite; SM-07 deckt den F1-/Menue-Einstieg."
+      "hinweis": "HB-01 bis HB-12 (4T-0213 bis 4T-0216, 4T-0649, 4T-0758): Read-only-Tabs, Einfach-Instanz, View-Modi, interne Navigation, generierte Seiten, fuenf Sprachen, Bildmarke der Ueberblicksseite, Sammel-Abruf aller Seiten samt Englisch-Fallback; SM-07 deckt den F1-/Menue-Einstieg."
     },
     {
       "key": "help.feature.frontmatterDisplay",

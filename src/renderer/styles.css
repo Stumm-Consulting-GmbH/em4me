@@ -9198,3 +9198,108 @@ button.pev-link-jump:hover {
 .settings-subhead:first-child {
   margin-top: 0;
 }
+
+/* === Suchergebnis-Sektion (4T-0759, Epic 3E-0142) ========================= */
+/* Gruppierte Trefferliste der Suche über Handbuch bzw. Einstellungen.
+   Muster der Backlinks-Sektion: Status-Zeile, darunter Gruppen-Kopfzeilen
+   mit eingerückten Treffern. Anders als dort ist der Treffer ein Button
+   (Tastatur-Bedienung: Pfeiltasten wählen, Enter springt). */
+.search-results-status {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.search-results-status.empty {
+  color: #c0392b;
+  font-style: normal;
+}
+[data-theme='dark'] .search-results-status.empty {
+  color: #ff7b72;
+}
+.search-results-list {
+  display: flex;
+  flex-direction: column;
+}
+.search-results-group {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px 4px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+.search-results-group:hover {
+  background: var(--hover);
+  color: var(--accent);
+}
+.search-results-caret {
+  color: var(--fg-muted);
+  font-size: 10px;
+}
+.search-results-group-title {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-results-group-count {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.search-results-item {
+  display: block;
+  width: 100%;
+  padding: 2px 10px 2px 22px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-results-item:hover {
+  background: var(--hover);
+}
+/* Der aktive Treffer ist zugleich der, auf dem die Leiste steht (F3 bewegt
+   beide); deshalb dieselbe Akzent-Fläche wie bei einer Listen-Auswahl. */
+.search-results-item.selected {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.search-results-match {
+  background: rgba(255, 235, 59, 0.55);
+  color: inherit;
+  border-radius: 2px;
+}
+[data-theme='dark'] .search-results-match {
+  background: rgba(255, 235, 59, 0.3);
+}
+.search-results-item.selected .search-results-match {
+  background: rgba(255, 235, 59, 0.85);
+  color: #222;
+}
+
+/* 4T-0761 (Epic 3E-0142): Ziel-Hervorhebung eines Such-Sprungs in den
+   Einstellungen. Kurz sichtbar, damit die gefundene Zeile im Formular
+   auffindbar ist; Muster der Zeilen-Hervorhebung der Ereignis-Tabelle. */
+.settings-row-hervorgehoben {
+  background: rgba(255, 235, 59, 0.35);
+  border-radius: 4px;
+  transition: background 0.4s ease-out;
+}
+[data-theme='dark'] .settings-row-hervorgehoben {
+  background: rgba(255, 235, 59, 0.2);
+}

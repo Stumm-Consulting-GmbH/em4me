@@ -13,6 +13,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { warteAufJson } = require('../helpers/dateien');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -55,6 +56,12 @@ function readMdd(workFile) {
   return JSON.parse(fs.readFileSync(mddPathOf(workFile), 'utf8'));
 }
 
+// 4T-0757: Die Historien-Datei entsteht vor ihrem Inhalt; gewartet wird
+// deshalb auf einen parsebaren Stand (Begruendung im Helfer).
+async function waitForMdd(workFile) {
+  return warteAufJson(mddPathOf(workFile));
+}
+
 async function typeAndSave(app, page, text) {
   const editor = page.locator(SEL.editorContent0);
   await editor.click();
@@ -79,8 +86,7 @@ test.describe('DH-01: Speichern erzeugt .mdd mit Anker und Paket, Folge-Speicher
       await expect(page.locator(SEL.editorContent0)).toHaveAttribute('contenteditable', 'true');
 
       await typeAndSave(app, page, 'Erste Historien-Zeile.');
-      await expect.poll(() => fs.existsSync(mddPathOf(workFile))).toBe(true);
-      let mdd = readMdd(workFile);
+      let mdd = await waitForMdd(workFile);
       expect(mdd.schemaVersion).toBe(1);
       expect(mdd.history.anchors).toHaveLength(1);
       expect(mdd.history.anchors[0].baseSeq).toBe(0);
@@ -217,8 +223,7 @@ test.describe('DH-06: Bereichs-Default aus Area_Settings.mdda (Migration von .md
         workFile,
       );
       expect(saved.ok).toBe(true);
-      await expect.poll(() => fs.existsSync(mddPathOf(workFile))).toBe(true);
-      const mdd = readMdd(workFile);
+      const mdd = await waitForMdd(workFile);
       expect(mdd.history.packets.length).toBeGreaterThan(0);
       // 4T-0352: die Alt-Datei wurde beim Bereichs-Oeffnen still auf .mdda
       // migriert (Datei heisst jetzt .mdda, die .mddb ist verschwunden).

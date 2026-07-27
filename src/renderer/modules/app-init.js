@@ -323,6 +323,21 @@ import {
   loadNotesSettings,
   toggleNotesPanel,
 } from './notes-panel.js';
+// 4T-0759 (Epic 3E-0142): Suchergebnis-Panel (Init-Wiring, Toggle, Settings).
+// Der Import registriert zugleich das Panel in der Sidebar-Registry.
+import {
+  initSearchResultsPanel,
+  loadSearchResultsSettings,
+  setzeSprungHandler,
+  toggleSearchResultsPanel,
+} from './such-panel.js';
+// 4T-0760 (Epic 3E-0142): Sprung zu einem Treffer der Raum-Suche. Der Import
+// registriert zugleich den Sprung-Weg des Handbuchs.
+import { markiereOffeneRaumSeite, springeZuTreffer } from './such-sprung.js';
+// 4T-0761 (Epic 3E-0142): Einstellungen als zweiter Lieferant. Der Import
+// registriert Lieferant und Sprung-Weg.
+import './such-einstellungen.js';
+import { setzeRaumIndex } from './such-lauf.js';
 // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Panel (Init-Wiring, Toggle, Settings).
 import {
   initBlockPropsPanel,
@@ -398,6 +413,8 @@ import {
   prevMatch,
   renderRegexHelp,
   search,
+  setzeRaumMarkierHandler,
+  setzeRaumSprungHandler,
   updateSearchCounter,
   updateSearchScopeLabel,
 } from './search.js';
@@ -1226,6 +1243,10 @@ export const commandHandlers = {
   'view.toggleNotes': () => {
     toggleNotesPanel(state.activePaneIndex);
   },
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Sektion toggeln.
+  'view.toggleSearchResults': () => {
+    toggleSearchResultsPanel(state.activePaneIndex);
+  },
   'view.toggleTags': () => {
     toggleTagsPanel(state.activePaneIndex);
   },
@@ -1683,6 +1704,8 @@ export async function init() {
   await loadTagsSettings();
   // 4T-0359 (Epic 3E-0066): Notizen-Panel-Sichtbarkeit pro Spalte laden.
   await loadNotesSettings();
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel-Sichtbarkeit pro Spalte laden.
+  await loadSearchResultsSettings();
   // 4T-0434 (Epic 3E-0081): Kalender-Panel-Sichtbarkeit pro Spalte laden.
   await loadCalendarSettings();
   // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel-Sichtbarkeit pro Spalte laden.
@@ -2103,6 +2126,27 @@ export function bindUi() {
     api.onMenuToggleNotes(() => toggleNotesPanel(state.activePaneIndex));
   }
   initNotesPanel();
+  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel — Statusbar-Toggle und
+  // Tastatur-Wiring. Der Menue-Weg laeuft ueber den generischen
+  // Panel-Trigger (onMenuTogglePanel), ein eigener Kanal entfaellt.
+  const btnSearchResults = $('#btn-search-results');
+  if (btnSearchResults) {
+    btnSearchResults.addEventListener('click', () =>
+      toggleSearchResultsPanel(state.activePaneIndex),
+    );
+  }
+  initSearchResultsPanel();
+  // 4T-0760 (Epic 3E-0142): Beide Sprung-Wege der Raum-Suche verdrahten —
+  // aus der Trefferliste (Klick, Enter) und aus der Suchleiste (F3). Beide
+  // fuehren durch dieselbe Funktion, damit Liste und Zaehler nicht
+  // auseinanderlaufen.
+  setzeRaumSprungHandler(springeZuTreffer);
+  setzeRaumMarkierHandler(markiereOffeneRaumSeite);
+  setzeSprungHandler((treffer, index) => {
+    setzeRaumIndex(index);
+    void springeZuTreffer(treffer);
+    updateSearchCounter();
+  });
   // 4T-0434 (Epic 3E-0081): Kalender-Panel — Statusbar-Toggle und
   // einmaliges Event-Wiring beider Spalten.
   const btnCalendar = $('#btn-calendar');
