@@ -9,6 +9,18 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.94.0.987] - 2026-07-27 — Gantt-Ansicht für Ereignisse
+
+Epic 3E-0150 (Ereignisse als Gantt-Diagramm): Der Ereignis-Block bekommt als sechste Ansicht ein Gantt-Diagramm. Ereignisse mit Ende erscheinen als Balken auf einer gemeinsamen Zeitachse, Ereignisse ohne Ende als Raute, und die Vorgänger-/Nachfolger-Verknüpfungen werden als Linien sichtbar. Das Datenmodell bleibt unverändert: Die Ansicht zeigt, was das interne Ereignis-Profil ohnehin trägt.
+
+### Neu
+
+- **Gantt als sechste Ansicht des Ereignis-Blocks** (4T-0722): Der Ansichts-Umschalter und die gespeicherte `view:`-Direktive kennen den Wert `gantt`. Je Ereignis entsteht eine Zeile aus Label-Spalte und Zeit-Fläche, sortiert nach Zeitpunkt; ein Eintrag mit gültigem Ende wird zum Balken über seine Dauer, jeder andere zur Raute an seinem Zeitpunkt, beide in der Farbe ihrer Kategorie. Eine senkrechte Linie markiert den heutigen Tag, gestrichelte Linien verbinden Vorgänger und Nachfolger vom Balken-Ende zum nächsten Balken-Anfang. Die Gliederung der Achse ergibt sich aus der Spanne der angezeigten Ereignisse: bis 62 Tage in Tagen, bis 730 Tage in Wochen, darüber in Monaten, mit Grenzen auf Wochen- beziehungsweise Monats-Raster. Wiederkehrende Ereignisse stehen an ihrem nächsten Vorkommen und tragen das Zeichen ↻, damit ein Geburtstag aus den Sechzigern die Achse nicht über Jahrzehnte aufzieht; ein vorhandenes Ende wandert um dieselbe Jahres-Zahl mit, sodass die Dauer erhalten bleibt. Neben dem Namen zeigen ★ einen erreichten Zeit-Meilenstein und ⛓ die Zahl der Verknüpfungen. Gespeicherte Filter wirken wie in den übrigen Ansichten, und ein Klick auf Balken oder Raute springt zur Tabellen-Zeile mit ihren Bearbeiten-Aktionen. Balken lassen sich bewusst nicht ziehen; Zeitpunkte ändert weiterhin die Tabelle.
+
+### Dokumentation
+
+- **Handbuch, Funktions-Katalog und Demo-Umgebung** (4T-0723): Die Handbuch-Seite „Ereignisse" hat in allen fünf Sprachen einen Abschnitt „Gantt" mit selbst-demonstrierendem Block; die Ansichts-Aufzählung und die Einleitung derselben Seite sind mitgezogen. Der Funktions-Katalog nennt das Gantt-Diagramm in der bestehenden Ereignis-Beschreibung statt in einem zweiten Eintrag, weil er die Ansichten dort bündelt. Die Demo-Umgebung zeigt die Ansicht in „Events and Journals" mit zwei verketteten Balken und einer Raute. Zwei neue i18n-Schlüssel je Sprache aus diesem Epic.
+
 ## [0.93.0.978] - 2026-07-27 — Auslieferungs-Voreinstellungen und Monatskalender
 
 Epic 3E-0146 (Voreinstellungs- und Uhr-Bündel): Die Anwendung startet im Auslieferungszustand englisch und in Bernstein, und die Uhr kann zusätzlich als Monatskalender dienen. Beide Voreinstellungen treffen ausschließlich frisch eingerichtete Installationen; ein bestehender Stand behält Sprache und Farbschema.

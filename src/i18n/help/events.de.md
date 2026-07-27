@@ -1,6 +1,6 @@
 # Ereignisse
 
-Die Ereignis-Verwaltung hält **Termine, Geburtstage, Jahrestage und Projekt-Daten** direkt im Dokument: als eingebetteter Ereignis-Block mit eigenen Datenzeilen oder als Aggregation über Frontmatter-Eigenschaften aus den Dateien des Bereichs. Jeder Eintrag zeigt die **Zeitdifferenz zum heutigen Tag** in vier Staffelungen, dazu Meilensteine, Jahres-Wiederkehr, Filter, vier Ansichten und Verknüpfungen zwischen Ereignissen.
+Die Ereignis-Verwaltung hält **Termine, Geburtstage, Jahrestage und Projekt-Daten** direkt im Dokument: als eingebetteter Ereignis-Block mit eigenen Datenzeilen oder als Aggregation über Frontmatter-Eigenschaften aus den Dateien des Bereichs. Jeder Eintrag zeigt die **Zeitdifferenz zum heutigen Tag** in vier Staffelungen, dazu Meilensteine, Jahres-Wiederkehr, Filter, fünf Zusatz-Ansichten und Verknüpfungen zwischen Ereignissen.
 
 Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Ereignisse") und setzt die [Eigenschafts-Profile](property-profiles.md) voraus — wird deren Erweiterung deaktiviert, schaltet sich die Ereignis-Verwaltung mit ab. Deaktiviert bleibt der Block ein regulärer Code-Block.
 
@@ -92,7 +92,7 @@ Die Direktive trägt `Name := Schlüssel=Wert`-Paare, mit `;` getrennt: `text`, 
 
 ## Ansichten
 
-Der Umschalter über dem Block wechselt zwischen **Tabelle, Dashboard, Monats-Kalender, Wochen-Kalender und Timeline**; die Wahl wird als `view:`-Direktive in den Block geschrieben (`table`, `dashboard`, `month`, `week`, `timeline`). Ein Klick auf ein Ereignis in einer Zusatz-Ansicht springt zur Tabellen-Zeile.
+Der Umschalter über dem Block wechselt zwischen **Tabelle, Dashboard, Monats-Kalender, Wochen-Kalender, Timeline und Gantt**; die Wahl wird als `view:`-Direktive in den Block geschrieben (`table`, `dashboard`, `month`, `week`, `timeline`, `gantt`). Ein Klick auf ein Ereignis in einer Zusatz-Ansicht springt zur Tabellen-Zeile.
 
 ```perspective-events
 view: dashboard
@@ -102,6 +102,19 @@ view: dashboard
 ```
 
 Das Dashboard bündelt anstehende Ereignisse, erreichte und nahende Meilensteine und die Kategorie-Verteilung; die Kalender legen die Einträge auf ein Monats- bzw. Wochen-Raster mit Heute-Markierung; die Timeline gruppiert chronologisch.
+
+### Gantt
+
+Die Gantt-Ansicht legt die Ereignisse als Balken auf eine gemeinsame Zeitachse, eine Zeile je Eintrag, sortiert nach Zeitpunkt. Ein Eintrag mit Ende wird zum Balken über seine Dauer, ein Eintrag ohne Ende zur Raute an seinem Zeitpunkt; die Farbe kommt aus der Kategorie. Gestrichelte Linien verbinden Vorgänger und Nachfolger, eine senkrechte Linie markiert den heutigen Tag.
+
+```perspective-events
+view: gantt
+| 2026-07-06 | 2026-07-31 | Konzeptphase | projekt | | | e1 | | e2 |
+| 2026-08-03 | 2026-09-11 | Umsetzung | projekt | | | e2 | e1 | |
+| 2026-08-01 | | Freigabe | termin | | | | | |
+```
+
+Die Gliederung der Achse ergibt sich aus der Spanne: kurze Spannen zeigen Tage, mittlere Wochen, lange Monate. Wer eine feinere Auflösung braucht, engt den Zeitraum über den Filter ein. Wiederkehrende Ereignisse stehen an ihrem **nächsten Vorkommen** und tragen das Zeichen ↻, damit die Achse nicht bis ins Ursprungsjahr zurückreicht. Neben dem Namen zeigen ★ einen erreichten Meilenstein und ⛓ die Zahl der Verknüpfungen. Einträge ohne gültigen Zeitpunkt erscheinen nur in der Tabelle. Balken lassen sich nicht ziehen; Zeitpunkte ändert die Tabellen-Ansicht.
 
 ## Aggregation über Frontmatter
 

@@ -60,6 +60,7 @@ import {
   buildEventsDashboardHtml,
   buildEventsCalendarHtml,
   buildEventsTimelineHtml,
+  buildEventsGanttHtml,
 } from '../../shared/markdown/perspective-events.js';
 // 4T-0514: Nachfüll-Pass (Differenz-Spalte, Hinweise) für client-seitig
 // neu gebaute Tabellen (kein Zyklus: events-view importiert diesen Editor
@@ -1312,6 +1313,8 @@ function renderClientView(ctx, display, model, visibleSet, effective, st) {
       mode: effective,
       anchorIso: (st && st.calAnchor) || todayIso,
     });
+  } else if (effective === 'gantt') {
+    html = buildEventsGanttHtml(model, indices, opts);
   } else {
     html = buildEventsTimelineHtml(model, indices, opts);
   }

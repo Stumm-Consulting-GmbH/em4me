@@ -610,7 +610,7 @@
       "id": "F-127",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/ereignisse.spec.js"],
-      "hinweis": "4T-0518 (Epic 3E-0092): Fence-Tabelle mit CRUD, Sortierung/Filter, gespeicherte Filter, Ansichten und Live-Modus (EV-01 bis EV-10); Rechen-Kern und Fence-Format Unit test/unit/events-core.test.js, Markup test/unit/perspective-events.test.js, Snapshot-Fixture ereignisse.md. 4T-0653: EV-14 sichert, dass eine offene Zeilen-Bearbeitung den nachlaufenden Vorschau-Aufbau ueberlebt."
+      "hinweis": "4T-0518 (Epic 3E-0092): Fence-Tabelle mit CRUD, Sortierung/Filter, gespeicherte Filter, Ansichten und Live-Modus (EV-01 bis EV-10); Rechen-Kern und Fence-Format Unit test/unit/events-core.test.js, Markup test/unit/perspective-events.test.js, Snapshot-Fixture ereignisse.md. 4T-0653: EV-14 sichert, dass eine offene Zeilen-Bearbeitung den nachlaufenden Vorschau-Aufbau ueberlebt. 4T-0722: Gantt als sechste Ansicht (EV-15 samt Live-Modus, Fixture ereignisse-gantt.md); Zeilen-Modell, Achse und Prozent-Rechnung Unit events-core.test.js, Markup und Overlay perspective-events.test.js, Snapshot-Fixture ereignis-ansichten.md."
     },
     {
       "key": "help.feature.eventsAggregation",

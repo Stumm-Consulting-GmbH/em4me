@@ -689,10 +689,168 @@ function calendarDayMap(entries, indices, fromIso, toIso_) {
   return map;
 }
 
+// --- Gantt-Ansicht (4T-0722) -----------------------------------------------------------
+// Zeilen-Modell, Zeitachse und Positions-Rechnung der Gantt-Ansicht als
+// reine Funktionen über der gefilterten Index-Menge. Die Darstellung
+// (perspective-events.js) rechnet selbst nichts, sie setzt nur die hier
+// gelieferten Prozent-Werte; damit bleibt die Mathematik ohne DOM testbar
+// (die Pipeline läuft im Preload-Kontext und kann nichts messen).
+
+// Gliederungs-Schwellen der Zeitachse in Tagen (PO-Entscheidung
+// 2026-07-27: automatische Wahl aus der Spanne, keine Zoom-Bedienung).
+const GANTT_DAY_LIMIT = 62;
+const GANTT_WEEK_LIMIT = 730;
+
+// Ober-Grenze der Gitter-Marken: längere Achsen werden ausgedünnt, statt
+// eine Marke je Einheit zu setzen (sonst trüge eine Jahrzehnt-Spanne
+// hunderte Beschriftungen). Die Zahl ist an der Beschriftung bemessen und
+// nicht am Gitter: bei mehr Marken schrumpft die Spalte unter die Breite
+// eines Datums wie «Okt. 23», und die Achse zeigt nur noch Bruchstücke.
+// Die Balken-Rechnung hängt nicht am Gitter.
+const GANTT_MAX_TICKS = 16;
+
+// Montag der Woche, in der parts liegt (Wochenstart wie im Journal- und
+// Ereignis-Kalender).
+function mondayOfParts(parts) {
+  const weekday = (new Date(utcMs(parts)).getUTCDay() + 6) % 7;
+  return parseIsoDate(addDaysIso(toIso(parts), -weekday));
+}
+
+// Zeilen der Gantt-Ansicht in Achsen-Reihenfolge (Start aufsteigend, dann
+// Modell-Index). Einträge ohne gültigen Zeitpunkt entfallen wie in der
+// Timeline — sie leben in der Tabelle.
+//
+// kind 'bar' bei gültigem Endzeitpunkt ab dem Start, sonst 'point'
+// (Raute): ein Ein-Tages-Balken wäre bei Wochen- und Monats-Gliederung
+// unsichtbar (PO-Entscheidung 2026-07-27). Ein wiederkehrender Eintrag mit
+// zurückliegendem Zeitpunkt wandert auf sein nächstes Vorkommen
+// (Dashboard-Semantik, PO-Entscheidung 2026-07-27); ein vorhandener
+// Endzeitpunkt wandert um dieselbe Jahres-Zahl mit, damit die Dauer
+// erhalten bleibt. shifted meldet die Verschiebung für die Markierung.
+function ganttRows(entries, indices, todayIso) {
+  const today = parseIsoDate(todayIso);
+  const rows = [];
+  for (const index of indices || []) {
+    const e = entries[index];
+    const date = e ? parseIsoDate(e.date) : null;
+    if (!date) continue;
+    let start = date;
+    let end = e.end ? parseIsoDate(e.end) : null;
+    // Ende vor Beginn ist ein weicher Wert-Hinweis der Tabelle; hier wird
+    // der Eintrag zum Punkt, statt einen Balken rückwärts zu zeichnen.
+    if (end && daysBetweenParts(start, end) < 0) end = null;
+    let shifted = false;
+    let years = 0;
+    if (e.recurring && today && daysBetweenParts(start, today) > 0) {
+      const occ = nextOccurrence(e.date, todayIso);
+      const occParts = occ ? parseIsoDate(occ.dateIso) : null;
+      if (occParts) {
+        years = occ.years;
+        start = occParts;
+        if (end && years > 0) end = addMonthsClamped(end, years * 12);
+        shifted = years > 0;
+      }
+    }
+    rows.push({
+      index,
+      startIso: toIso(start),
+      endIso: end ? toIso(end) : null,
+      kind: end ? 'bar' : 'point',
+      shifted,
+      years,
+    });
+  }
+  rows.sort((a, b) => {
+    if (a.startIso !== b.startIso) return a.startIso < b.startIso ? -1 : 1;
+    return a.index - b.index;
+  });
+  return rows;
+}
+
+// Gitter-Marken der Achse: lückenlose Abschnitte von fromParts bis
+// toParts, ausgedünnt auf höchstens GANTT_MAX_TICKS Stück. Jede Marke
+// trägt ihren ersten und letzten Tag, die Beschriftung setzt die
+// Darstellung (Intl).
+function ganttTicks(unit, fromParts, toParts) {
+  const starts = [];
+  let cur = fromParts;
+  let guard = 0;
+  while (cur && utcMs(cur) <= utcMs(toParts) && guard++ < 5000) {
+    starts.push(cur);
+    cur =
+      unit === 'month'
+        ? addMonthsClamped(cur, 1)
+        : parseIsoDate(addDaysIso(toIso(cur), unit === 'week' ? 7 : 1));
+  }
+  const step = starts.length <= GANTT_MAX_TICKS ? 1 : Math.ceil(starts.length / GANTT_MAX_TICKS);
+  const out = [];
+  for (let i = 0; i < starts.length; i += step) {
+    const next = i + step;
+    const end = next < starts.length ? parseIsoDate(addDaysIso(toIso(starts[next]), -1)) : toParts;
+    out.push({ iso: toIso(starts[i]), endIso: toIso(end || toParts) });
+  }
+  return out;
+}
+
+// Zeitachse über die Zeilen: Spanne vom frühesten Start bis zum spätesten
+// Ende (Endtag eingeschlossen), Einheit aus der Spannen-Länge, Grenzen auf
+// Wochen- bzw. Monats-Raster gerundet. Leere Zeilen-Menge -> null.
+function ganttAxis(rows) {
+  let min = null;
+  let max = null;
+  for (const row of rows || []) {
+    const start = parseIsoDate(row.startIso);
+    if (!start) continue;
+    const end = row.endIso ? parseIsoDate(row.endIso) : start;
+    if (!min || utcMs(start) < utcMs(min)) min = start;
+    const last = end && utcMs(end) > utcMs(start) ? end : start;
+    if (!max || utcMs(last) > utcMs(max)) max = last;
+  }
+  if (!min || !max) return null;
+  const rawDays = daysBetweenParts(min, max) + 1;
+  const unit = rawDays <= GANTT_DAY_LIMIT ? 'day' : rawDays <= GANTT_WEEK_LIMIT ? 'week' : 'month';
+  let from = min;
+  let to = max;
+  if (unit === 'week') {
+    from = mondayOfParts(min) || min;
+    const monday = mondayOfParts(max) || max;
+    to = parseIsoDate(addDaysIso(toIso(monday), 6)) || max;
+  } else if (unit === 'month') {
+    from = { y: min.y, m: min.m, d: 1 };
+    to = { y: max.y, m: max.m, d: daysInMonth(max.y, max.m) };
+  }
+  return {
+    unit,
+    fromIso: toIso(from),
+    toIso: toIso(to),
+    totalDays: daysBetweenParts(from, to) + 1,
+    ticks: ganttTicks(unit, from, to),
+  };
+}
+
+// Prozent-Position und -Breite eines Abschnitts auf der Achse; der Endtag
+// zählt mit (Kalender-Semantik: ein Ereignis belegt seinen Endtag ganz).
+// Ohne Endzeitpunkt ist der Abschnitt der Starttag selbst. Werte auf vier
+// Nachkommastellen gerundet, damit das erzeugte HTML stabil bleibt.
+function ganttOffsets(axis, startIso, endIso) {
+  const from = axis ? parseIsoDate(axis.fromIso) : null;
+  const start = parseIsoDate(startIso);
+  if (!from || !start || !axis || !(axis.totalDays > 0)) return null;
+  const end = endIso ? parseIsoDate(endIso) : start;
+  const total = axis.totalDays;
+  const rawStart = daysBetweenParts(from, start);
+  const rawEnd = daysBetweenParts(from, end && utcMs(end) >= utcMs(start) ? end : start) + 1;
+  const left = Math.max(0, Math.min(total, rawStart));
+  const right = Math.max(left, Math.min(total, rawEnd));
+  const round = (v) => Math.round(v * 10000) / 10000;
+  return { leftPct: round((left / total) * 100), widthPct: round(((right - left) / total) * 100) };
+}
+
 // --- Fence-Datenformat ---------------------------------------------------------------
 
-// Ansichts-Werte des `view:`-Parameters (Workshop-Punkt 7).
-const EVENT_VIEWS = ['table', 'dashboard', 'month', 'week', 'timeline'];
+// Ansichts-Werte des `view:`-Parameters (Workshop-Punkt 7; Gantt als
+// sechster Wert aus 4T-0722).
+const EVENT_VIEWS = ['table', 'dashboard', 'month', 'week', 'timeline', 'gantt'];
 
 // Spalten-Folge der Datenzeilen (Format-Konkretisierung PO 2026-07-15).
 // Kennung/Vorgänger/Nachfolger bleiben leer, bis 4T-0516 die erste
@@ -1084,6 +1242,13 @@ module.exports = {
   categoryCounts,
   timelineGroups,
   calendarDayMap,
+  // Gantt-Ansicht (4T-0722)
+  GANTT_DAY_LIMIT,
+  GANTT_WEEK_LIMIT,
+  GANTT_MAX_TICKS,
+  ganttRows,
+  ganttAxis,
+  ganttOffsets,
   // Verknüpfungen (4T-0516)
   nextEventId,
   eventIndexById,

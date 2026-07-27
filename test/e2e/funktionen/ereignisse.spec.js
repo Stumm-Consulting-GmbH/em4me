@@ -14,6 +14,17 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'ereignisse.md');
+// 4T-0722: eigene Fixture für die Gantt-Ansicht (zwei verkettete Spannen
+// und ein Zeitpunkt ohne Ende; Spanne 2020 bis 2099, damit der Stichtag
+// des Laufs immer innerhalb der Achse liegt).
+const GANTT_FIXTURE = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'ereignisse-gantt.md',
+);
 
 async function waitForTab(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
@@ -322,6 +333,62 @@ test.describe('EV-10: Monats-Kalender mit Navigation', () => {
       await expect(freshCal.locator('.pev-cal-title')).not.toHaveText(title);
       await freshCal.locator('.pev-cal-today-btn').click();
       await expect(freshFence.locator('.pev-calendar .pev-cal-title')).toHaveText(title);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-0722 (Epic 3E-0150): Gantt-Ansicht — Umschalter persistiert die
+// Direktive, Balken und Raute sitzen auf der Achse, Abhängigkeits- und
+// Heute-Linie liegen als Overlay darüber, der Klick auf einen Balken
+// springt transient zur Tabellen-Zeile (kein Dokument-Write).
+test.describe('EV-15: Gantt-Ansicht mit Balken, Raute und Abhängigkeits-Linie', () => {
+  test('Umschalter schreibt view: gantt; Achse, Balken und Overlay stehen; Balken-Klick springt zur Tabelle', async () => {
+    const { app, page, userData } = await launchApp({ args: [GANTT_FIXTURE] });
+    try {
+      await waitForTab(page);
+      const { fence, editor } = await openSplit(page);
+      await fence.locator('.pev-viewbtn[data-ev-viewbtn="gantt"]').click();
+      await expect(editor).toContainText('view: gantt');
+      const freshFence = page
+        .locator(SEL.markdownBody0)
+        .locator('.perspective-events[data-ev-index="0"]');
+      const gantt = freshFence.locator('.pev-gantt');
+      await expect(gantt).toBeVisible();
+      // Eine Zeile je Ereignis, zwei Spannen als Balken, ein Zeitpunkt als Raute.
+      await expect(gantt.locator('.pev-gantt-row')).toHaveCount(3);
+      await expect(gantt.locator('.pev-chip-gantt-bar')).toHaveCount(2);
+      await expect(gantt.locator('.pev-chip-gantt-point')).toHaveCount(1);
+      // Achse mit Gitter-Marken, dazu Heute- und Abhängigkeits-Linie.
+      await expect(gantt.locator('.pev-gantt-tick').first()).toBeVisible();
+      await expect(gantt.locator('.pev-gantt-overlay .pev-gantt-today')).toHaveCount(1);
+      await expect(gantt.locator('.pev-gantt-overlay .pev-gantt-link')).toHaveCount(1);
+      // Verknüpfungs-Zähler in der Label-Spalte beider verketteter Zeilen.
+      await expect(gantt.locator('.pev-gantt-link-count')).toHaveCount(2);
+      // Balken-Klick wechselt transient zur Tabelle; die Direktive bleibt.
+      await gantt.locator('.pev-chip-gantt-bar').first().click();
+      await expect(freshFence.locator('.pev-table')).toBeVisible();
+      await expect(editor).toContainText('view: gantt');
+      await expect(freshFence.locator('.pev-viewbtn[data-ev-viewbtn="table"]')).toHaveClass(
+        /active/,
+      );
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  test('Live-Modus zeigt dieselbe Gantt-Ansicht', async () => {
+    const { app, page, userData } = await launchApp({ args: [GANTT_FIXTURE] });
+    try {
+      await waitForTab(page);
+      const { fence } = await openSplit(page);
+      await fence.locator('.pev-viewbtn[data-ev-viewbtn="gantt"]').click();
+      await page.locator(SEL.viewBtn('live')).click();
+      const liveFence = page.locator(`${SEL.editorContent0} .perspective-events`).first();
+      await expect(liveFence.locator('.pev-gantt')).toBeVisible({ timeout: 15000 });
+      await expect(liveFence.locator('.pev-chip-gantt-bar')).toHaveCount(2);
+      await expect(liveFence.locator('.pev-gantt-overlay .pev-gantt-link')).toHaveCount(1);
     } finally {
       await closeApp(app, userData, { force: true });
     }

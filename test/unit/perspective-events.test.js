@@ -18,6 +18,7 @@ import {
   buildEventsDashboardHtml,
   buildEventsCalendarHtml,
   buildEventsTimelineHtml,
+  buildEventsGanttHtml,
   buildEventsTableHtml,
 } from '../../src/shared/markdown/perspective-events.js';
 import { eventDiff, spanDiff, parsePerspectiveEvents } from '../../src/shared/events-core.js';
@@ -304,6 +305,108 @@ describe('perspective-events — Zusatz-Ansichten (4T-0514)', () => {
     const table = renderPerspectiveEventsViewer(BODY, { todayIso: '2026-07-15' });
     expect(table).toContain('data-ev-display="table"');
     expect(table).toContain('pev-add-form');
+  });
+});
+
+// --- 4T-0722: Gantt-Ansicht -------------------------------------------------------------
+
+describe('perspective-events — Gantt-Ansicht (4T-0722)', () => {
+  const GANTT_LABELS = {
+    ...LABELS,
+    'events.view.empty': 'Keine Ereignisse in dieser Ansicht',
+    'events.gantt.recurring': 'Wiederkehr: nächstes Vorkommen',
+    'events.link.indicator': 'Verknüpfungen anzeigen',
+    'events.milestone.days': '{n} Tage',
+    'calendar.today': 'Heute',
+  };
+  const LG = (key) => GANTT_LABELS[key] ?? key;
+  // Vorgänger/Nachfolger sind bidirektional gepflegt (e1 -> e2), dazu ein
+  // Ereignis ohne Ende, ein wiederkehrendes und ein Meilenstein-Träger.
+  const BODY = [
+    '| 2026-08-01 | 2026-09-15 | Konzeptphase | projekt | | | e1 | | e2 |',
+    '| 2026-09-16 | 2026-12-20 | Umsetzung | projekt | | | e2 | e1 | |',
+    '| 2026-09-20 | | Freigabe | termin | | | | | |',
+    '| 1990-03-10 | | Geburtstag Anna | geburtstag | | x | | | |',
+    '| 2023-10-19 | | Tausend Tage | projekt | | | | | |',
+  ].join('\n');
+  const model = parsePerspectiveEvents(BODY);
+  const all = model.entries.map((_, i) => i);
+  const html = buildEventsGanttHtml(model, all, {
+    todayIso: '2026-07-15',
+    L: LG,
+    lang: 'de',
+  });
+
+  it('setzt Achse, Gitter-Marken und die gewählte Einheit', () => {
+    // Die Wiederkehr zieht die Spanne bis 2027-03-10, das ergibt Monate;
+    // die Achse beginnt beim frühesten Eintrag (2023-10-19), auf den
+    // Monats-Ersten gerundet.
+    expect(html).toContain('data-ev-gantt-unit="month"');
+    expect(html).toContain('class="pev-gantt-tick"');
+    expect(html).toContain('>Okt. 23<');
+    // Ausgedünnt auf die Ober-Grenze, nicht eine Marke je Monat.
+    expect((html.match(/pev-gantt-tick/g) || []).length).toBeLessThanOrEqual(16);
+  });
+
+  it('zeichnet Balken mit Breite und Rauten ohne Breite', () => {
+    expect(html).toMatch(
+      /class="pev-event-chip pev-chip-gantt-bar" data-ev-cat="projekt" style="left: [\d.]+%; width: [\d.]+%"/,
+    );
+    expect(html).toMatch(/pev-chip-gantt-point" data-ev-cat="termin" style="left: [\d.]+%"/);
+    // Sprung-Ziel und sprechender Titel je Chip.
+    expect(html).toContain('data-ev-jump="0"');
+    expect(html).toContain('title="Konzeptphase · 2026-08-01 – 2026-09-15"');
+    expect(html).toContain('title="Freigabe · 2026-09-20"');
+  });
+
+  it('markiert Wiederkehr, Meilenstein und Verknüpfungs-Zahl in der Label-Spalte', () => {
+    expect(html).toContain('title="Wiederkehr: nächstes Vorkommen">↻');
+    // Verschobenes Vorkommen statt Ursprungs-Datum.
+    expect(html).toContain('title="Geburtstag Anna · 2027-03-10"');
+    expect(html).toContain('title="1000 Tage">★');
+    expect(html).toContain('title="Verknüpfungen anzeigen">⛓1');
+  });
+
+  it('legt Heute-Linie und Abhängigkeits-Linie als Overlay darüber', () => {
+    expect(html).toContain('<svg class="pev-gantt-overlay"');
+    expect(html).toMatch(/<line class="pev-gantt-today" x1="[\d.]+%"/);
+    expect(html).toContain('<title>Heute</title>');
+    expect(html).toMatch(/<line class="pev-gantt-link" x1="[\d.]+%" y1="[\d.]+%"/);
+  });
+
+  it('lässt die Heute-Linie weg, wenn der Stichtag außerhalb der Spanne liegt', () => {
+    // Ohne Wiederkehr endet die Spanne mit dem letzten Ereignis; ein
+    // Stichtag dahinter liegt außerhalb der Achse.
+    const eng = parsePerspectiveEvents('| 2026-08-01 | 2026-09-15 | Konzeptphase | projekt |');
+    const spaeter = buildEventsGanttHtml(eng, [0], {
+      todayIso: '2030-01-01',
+      L: LG,
+      lang: 'de',
+    });
+    expect(spaeter).toContain('pev-chip-gantt-bar');
+    expect(spaeter).not.toContain('pev-gantt-today');
+  });
+
+  it('meldet die leere Menge statt einer Achse', () => {
+    const leer = buildEventsGanttHtml(model, [], { todayIso: '2026-07-15', L: LG, lang: 'de' });
+    expect(leer).toContain('Keine Ereignisse in dieser Ansicht');
+    expect(leer).not.toContain('pev-gantt-tick');
+  });
+
+  it('Viewer rendert die Gantt-Direktive in den Anzeige-Wrapper', () => {
+    const viewer = renderPerspectiveEventsViewer(`view: gantt\n${BODY}`, {
+      todayIso: '2026-07-15',
+      lang: 'de',
+      labels: GANTT_LABELS,
+    });
+    expect(viewer).toContain('data-ev-display="gantt"');
+    expect(viewer).toContain('class="pev-viewbtn active" data-ev-viewbtn="gantt"');
+    expect(viewer).toContain('pev-gantt-body');
+  });
+
+  it('führt die Gantt-Label-Keys in der Portable-Label-Liste', () => {
+    expect(PORTABLE_EVENT_LABEL_KEYS).toContain('events.gantt.recurring');
+    expect(PORTABLE_EVENT_LABEL_KEYS).toContain('events.link.indicator');
   });
 });
 

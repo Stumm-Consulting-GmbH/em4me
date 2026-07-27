@@ -8337,6 +8337,122 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   font-size: 0.9em;
   white-space: nowrap;
 }
+/* 4T-0722 (Epic 3E-0150): Gantt-Ansicht. Label-Spalte und Zeit-Fläche
+   liegen in einem Zwei-Spalten-Raster ohne Spalten-Abstand, damit das
+   Linien-Overlay mit derselben Spaltenbreite ansetzen kann. Zeilen haben
+   feste Höhe: die Abhängigkeits-Linien rechnen ihre Y-Position aus dem
+   Zeilen-Anteil und setzen gleich hohe Zeilen voraus. */
+.markdown-body .pev-gantt {
+  --pev-gantt-label-w: 12em;
+  --pev-gantt-row-h: 1.9em;
+  font-size: 0.92em;
+  overflow-x: auto;
+}
+.markdown-body .pev-gantt-head,
+.markdown-body .pev-gantt-row {
+  display: grid;
+  grid-template-columns: var(--pev-gantt-label-w) 1fr;
+  align-items: center;
+  min-width: 24em;
+}
+.markdown-body .pev-gantt-head {
+  border-bottom: 1px solid var(--border);
+  height: var(--pev-gantt-row-h);
+}
+.markdown-body .pev-gantt-axis {
+  position: relative;
+  height: 100%;
+}
+.markdown-body .pev-gantt-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 0.2em;
+  border-left: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 0.8em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.markdown-body .pev-gantt-body {
+  position: relative;
+}
+.markdown-body .pev-gantt-row {
+  height: var(--pev-gantt-row-h);
+}
+.markdown-body .pev-gantt-row + .pev-gantt-row {
+  border-top: 1px solid var(--border);
+}
+.markdown-body .pev-gantt-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  padding-right: 0.5em;
+  overflow: hidden;
+}
+.markdown-body .pev-gantt-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.markdown-body .pev-gantt-mark,
+.markdown-body .pev-gantt-link-count {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.markdown-body .pev-gantt-track {
+  position: relative;
+  height: 100%;
+}
+/* Balken und Raute sind Ereignis-Chips (Kategorie-Farbe, Titel und
+   Sprung-Ziel kommen von dort) mit prozentualer Position auf der Achse. */
+.markdown-body .pev-event-chip.pev-chip-gantt-bar,
+.markdown-body .pev-event-chip.pev-chip-gantt-point {
+  position: absolute;
+  top: 50%;
+  padding: 0;
+  min-width: 0;
+  border: 1px solid var(--border);
+}
+.markdown-body .pev-event-chip.pev-chip-gantt-bar {
+  height: 1.05em;
+  min-width: 2px;
+  transform: translateY(-50%);
+  border-radius: 0.25em;
+}
+.markdown-body .pev-event-chip.pev-chip-gantt-point {
+  width: 0.75em;
+  height: 0.75em;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 0.1em;
+}
+/* Das Overlay deckt genau die Zeit-Fläche ab (Prozent-Koordinaten der
+   Linien rechnen gegen diese Fläche). Breite und Höhe stehen ausdrücklich
+   da: ein SVG ist ein ersetztes Element und würde von left/right/bottom
+   allein nicht aufgezogen, sondern auf seine Vorgabe-Größe 300×150
+   fallen. */
+.markdown-body .pev-gantt-overlay {
+  position: absolute;
+  left: var(--pev-gantt-label-w);
+  top: 0;
+  width: calc(100% - var(--pev-gantt-label-w));
+  height: 100%;
+  pointer-events: none;
+}
+.markdown-body .pev-gantt-link {
+  stroke: var(--fg-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+  opacity: 0.8;
+}
+.markdown-body .pev-gantt-today {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.7;
+}
 /* 4T-0515 (Epic 3E-0092): Aggregation — Status-Anzeige, Quell-Zeile,
    Titel-Fallback und Zeilen-Klick-Affordanz. */
 .markdown-body .pev-agg-status {

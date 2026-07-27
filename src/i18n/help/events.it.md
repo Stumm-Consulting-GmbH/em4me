@@ -1,6 +1,6 @@
 # Eventi
 
-La gestione degli eventi tiene **appuntamenti, compleanni, anniversari e date di progetto** direttamente nel documento: come blocco eventi incorporato con proprie righe di dati o come aggregazione tramite le proprietà del frontmatter dai file dell'area. Ogni voce mostra la **differenza di tempo rispetto a oggi** in quattro scaglioni, oltre a traguardi, ricorrenza annuale, filtri, quattro viste e collegamenti tra eventi.
+La gestione degli eventi tiene **appuntamenti, compleanni, anniversari e date di progetto** direttamente nel documento: come blocco eventi incorporato con proprie righe di dati o come aggregazione tramite le proprietà del frontmatter dai file dell'area. Ogni voce mostra la **differenza di tempo rispetto a oggi** in quattro scaglioni, oltre a traguardi, ricorrenza annuale, filtri, cinque viste aggiuntive e collegamenti tra eventi.
 
 La funzione fa parte delle [estensioni interne](extensions.md) («Eventi») e richiede i [Profili di proprietà](property-profiles.md): se tale estensione viene disattivata, anche la gestione degli eventi si disattiva. Disattivato, il blocco resta un normale blocco di codice.
 
@@ -92,7 +92,7 @@ La direttiva porta coppie `Nome := Chiave=Valore`, separate da `;`: `text`, `cat
 
 ## Viste
 
-Il commutatore sopra il blocco alterna tra **Tabella, Dashboard, calendario mensile, calendario settimanale e Cronologia**; la scelta viene scritta nel blocco come direttiva `view:` (`table`, `dashboard`, `month`, `week`, `timeline`). Un clic su un evento in una vista aggiuntiva salta alla riga della tabella.
+Il commutatore sopra il blocco alterna tra **Tabella, Dashboard, calendario mensile, calendario settimanale, Cronologia e Gantt**; la scelta viene scritta nel blocco come direttiva `view:` (`table`, `dashboard`, `month`, `week`, `timeline`, `gantt`). Un clic su un evento in una vista aggiuntiva salta alla riga della tabella.
 
 ```perspective-events
 view: dashboard
@@ -102,6 +102,19 @@ view: dashboard
 ```
 
 La dashboard raggruppa gli eventi in arrivo, i traguardi raggiunti e prossimi e la distribuzione per categoria; i calendari collocano le voci su una griglia mensile o settimanale con un contrassegno di oggi; la cronologia raggruppa cronologicamente.
+
+### Gantt
+
+La vista Gantt dispone gli eventi come barre su un asse temporale comune, una riga per voce, ordinate per data. Una voce con fine diventa una barra estesa sulla sua durata, una voce senza fine un rombo alla sua data; il colore proviene dalla categoria. Linee tratteggiate collegano predecessori e successori, una linea verticale segna il giorno corrente.
+
+```perspective-events
+view: gantt
+| 2026-07-06 | 2026-07-31 | Fase di concetto | projekt | | | e1 | | e2 |
+| 2026-08-03 | 2026-09-11 | Realizzazione | projekt | | | e2 | e1 | |
+| 2026-08-01 | | Approvazione | termin | | | | | |
+```
+
+La suddivisione dell'asse deriva dall'estensione: le estensioni brevi mostrano giorni, quelle medie settimane, quelle lunghe mesi. Per una risoluzione più fine, si restringe il periodo con il filtro. Gli eventi ricorrenti stanno alla loro **prossima occorrenza** e portano il segno ↻, così l'asse non risale all'anno di origine. Accanto al nome, ★ indica un traguardo raggiunto e ⛓ il numero di collegamenti. Le voci senza data valida compaiono solo nella tabella. Le barre non si trascinano; le date si modificano nella vista tabella.
 
 ## Aggregazione tramite frontmatter
 

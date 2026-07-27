@@ -19,7 +19,18 @@ A `perspective-events` block turns rows into a table with category badges and a 
 | 2099-08-30 | | Summer party | jahrestag | Every year since 2020 | x | | | |
 ```
 
-Use the toggle above the block to switch between table, dashboard, month, week and timeline. Add and edit rows straight in the grid (Split or Live view).
+Use the toggle above the block to switch between table, dashboard, month, week, timeline and Gantt. Add and edit rows straight in the grid (Split or Live view).
+
+## Gantt view
+
+Rows with a start and an end become bars on a shared time axis, rows without an end become diamonds. The last two cells chain the entries as predecessor and successor, drawn as a dashed line.
+
+```perspective-events
+view: gantt
+| 2099-03-02 | 2099-04-17 | Concept phase | projekt | | | e1 | | e2 |
+| 2099-04-20 | 2099-06-12 | Implementation | projekt | | | e2 | e1 | |
+| 2099-06-19 | | Handover | termin | | | | | |
+```
 
 ## Journals
 

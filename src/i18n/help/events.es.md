@@ -1,6 +1,6 @@
 # Eventos
 
-La gestión de eventos mantiene **las citas, los cumpleaños, los aniversarios y las fechas de proyecto** directamente en el documento: como bloque de eventos integrado con sus propias filas de datos o como agregación mediante las propiedades del frontmatter a partir de los archivos del área. Cada entrada muestra la **diferencia de tiempo respecto a hoy** en cuatro escalones, además de hitos, recurrencia anual, filtros, cuatro vistas y vínculos entre eventos.
+La gestión de eventos mantiene **las citas, los cumpleaños, los aniversarios y las fechas de proyecto** directamente en el documento: como bloque de eventos integrado con sus propias filas de datos o como agregación mediante las propiedades del frontmatter a partir de los archivos del área. Cada entrada muestra la **diferencia de tiempo respecto a hoy** en cuatro escalones, además de hitos, recurrencia anual, filtros, cinco vistas adicionales y vínculos entre eventos.
 
 La función pertenece a las [extensiones internas](extensions.md) («Eventos») y requiere los [Perfiles de propiedades](property-profiles.md): si esa extensión se desactiva, la gestión de eventos también se desactiva. Desactivado, el bloque sigue siendo un bloque de código normal.
 
@@ -92,7 +92,7 @@ La directiva lleva pares `Nombre := Clave=Valor`, separados por `;`: `text`, `ca
 
 ## Vistas
 
-El conmutador sobre el bloque alterna entre **Tabla, Panel, calendario mensual, calendario semanal y Cronología**; la elección se escribe en el bloque como directiva `view:` (`table`, `dashboard`, `month`, `week`, `timeline`). Un clic en un evento en una vista adicional salta a la fila de la tabla.
+El conmutador sobre el bloque alterna entre **Tabla, Panel, calendario mensual, calendario semanal, Cronología y Gantt**; la elección se escribe en el bloque como directiva `view:` (`table`, `dashboard`, `month`, `week`, `timeline`, `gantt`). Un clic en un evento en una vista adicional salta a la fila de la tabla.
 
 ```perspective-events
 view: dashboard
@@ -102,6 +102,19 @@ view: dashboard
 ```
 
 El panel reúne los eventos próximos, los hitos alcanzados y cercanos y la distribución por categoría; los calendarios colocan las entradas en una cuadrícula mensual o semanal con una marca de hoy; la cronología agrupa cronológicamente.
+
+### Gantt
+
+La vista Gantt coloca los eventos como barras sobre un eje temporal común, una fila por entrada, ordenadas por fecha. Una entrada con fin se convierte en una barra a lo largo de su duración, una entrada sin fin en un rombo en su fecha; el color procede de la categoría. Líneas discontinuas unen predecesores y sucesores, y una línea vertical marca el día de hoy.
+
+```perspective-events
+view: gantt
+| 2026-07-06 | 2026-07-31 | Fase de concepto | projekt | | | e1 | | e2 |
+| 2026-08-03 | 2026-09-11 | Ejecución | projekt | | | e2 | e1 | |
+| 2026-08-01 | | Aprobación | termin | | | | | |
+```
+
+La granularidad del eje resulta del intervalo: los intervalos cortos muestran días, los medios semanas y los largos meses. Para una resolución más fina, acote el periodo con el filtro. Los eventos recurrentes se sitúan en su **próxima aparición** y llevan el signo ↻, de modo que el eje no retroceda hasta el año de origen. Junto al nombre, ★ indica un hito alcanzado y ⛓ el número de vínculos. Las entradas sin fecha válida aparecen solo en la tabla. Las barras no se arrastran; las fechas se cambian en la vista de tabla.
 
 ## Agregación mediante frontmatter
 

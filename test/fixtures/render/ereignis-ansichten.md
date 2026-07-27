@@ -33,3 +33,20 @@ view: timeline
 | 2020-01-01 | | Projektstart Alpha | projekt | | | | | |
 | 2026-07-20 | | Workshop | termin | | | | | |
 ```
+
+Gantt mit Balken, Raute, Abhängigkeit und Heute-Linie:
+
+```perspective-events
+view: gantt
+| 2026-07-06 | 2026-07-24 | Konzeptphase | projekt | | | e1 | | e2 |
+| 2026-07-27 | 2026-08-21 | Umsetzung | projekt | | | e2 | e1 | |
+| 2026-08-24 | | Freigabe | termin | | | | | |
+```
+
+Gantt mit verschobener Jahres-Wiederkehr:
+
+```perspective-events
+view: gantt
+| 2026-07-20 | | Workshop | termin | | | | | |
+| 1990-03-10 | | Geburtstag Anna | geburtstag | | x | | | |
+```

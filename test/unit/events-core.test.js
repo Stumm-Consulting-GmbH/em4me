@@ -41,6 +41,10 @@ import {
   toggleEventLink,
   cleanupEventLinks,
   eventLinksOf,
+  GANTT_MAX_TICKS,
+  ganttRows,
+  ganttAxis,
+  ganttOffsets,
 } from '../../src/shared/events-core.js';
 import { resolveProfileFields } from '../../src/shared/property-profiles.js';
 
@@ -741,5 +745,131 @@ describe('events-core — Verknüpfungen (4T-0516)', () => {
     expect(re.entries[0].id).toBe('e1');
     expect(re.entries[0].successors).toEqual(['e2']);
     expect(re.entries[1].predecessors).toEqual(['e1']);
+  });
+});
+
+// 4T-0722 (Epic 3E-0150): Zeilen-Modell, Zeitachse und Positions-Rechnung
+// der Gantt-Ansicht. Alle Fälle mit festem Stichtag, damit die
+// Wiederkehr-Verschiebung deterministisch bleibt.
+describe('events-core — Gantt-Ansicht (4T-0722)', () => {
+  const TODAY = '2026-07-15';
+
+  it('führt Gantt als sechste Ansicht', () => {
+    expect(EVENT_VIEWS).toEqual(['table', 'dashboard', 'month', 'week', 'timeline', 'gantt']);
+    expect(effectiveEventsView({ view: 'gantt' })).toBe('gantt');
+  });
+
+  it('baut Zeilen nach Start sortiert und trennt Balken von Rauten', () => {
+    const entries = [
+      mkEntry({ date: '2026-08-01', end: '2026-08-10', text: 'Balken' }),
+      mkEntry({ date: '2026-07-20', text: 'Punkt' }),
+      mkEntry({ date: '', text: 'Ohne Zeitpunkt' }),
+      // Ende vor Beginn wird zum Punkt, statt rückwärts zu zeichnen.
+      mkEntry({ date: '2026-09-01', end: '2026-08-01', text: 'Ende zu früh' }),
+    ];
+    expect(ganttRows(entries, [0, 1, 2, 3], TODAY)).toEqual([
+      { index: 1, startIso: '2026-07-20', endIso: null, kind: 'point', shifted: false, years: 0 },
+      {
+        index: 0,
+        startIso: '2026-08-01',
+        endIso: '2026-08-10',
+        kind: 'bar',
+        shifted: false,
+        years: 0,
+      },
+      { index: 3, startIso: '2026-09-01', endIso: null, kind: 'point', shifted: false, years: 0 },
+    ]);
+  });
+
+  it('achtet die gefilterte Index-Menge und die Modell-Reihenfolge bei gleichem Start', () => {
+    const entries = [
+      mkEntry({ date: '2026-08-01', text: 'Zweiter im Modell' }),
+      mkEntry({ date: '2026-08-01', text: 'Erster im Modell' }),
+      mkEntry({ date: '2026-08-05', text: 'Ausgefiltert' }),
+    ];
+    expect(ganttRows(entries, [1, 0], TODAY).map((r) => r.index)).toEqual([0, 1]);
+    expect(ganttRows(entries, [0, 1], TODAY).map((r) => r.index)).toEqual([0, 1]);
+  });
+
+  it('verschiebt Wiederkehr auf das nächste Vorkommen und nimmt das Ende mit', () => {
+    const entries = [
+      mkEntry({ date: '1990-03-10', text: 'Geburtstag', recurring: true }),
+      // Zurückliegende Spanne mit Wiederkehr: die Dauer bleibt erhalten.
+      mkEntry({ date: '2024-09-01', end: '2024-09-10', text: 'Jahres-Woche', recurring: true }),
+      // Zukünftiger Zeitpunkt bleibt, wo er ist.
+      mkEntry({ date: '2026-12-24', text: 'Weihnachten', recurring: true }),
+    ];
+    const rows = ganttRows(entries, [0, 1, 2], TODAY);
+    expect(rows.find((r) => r.index === 0)).toEqual({
+      index: 0,
+      startIso: '2027-03-10',
+      endIso: null,
+      kind: 'point',
+      shifted: true,
+      years: 37,
+    });
+    expect(rows.find((r) => r.index === 1)).toMatchObject({
+      startIso: '2026-09-01',
+      endIso: '2026-09-10',
+      kind: 'bar',
+      shifted: true,
+      years: 2,
+    });
+    expect(rows.find((r) => r.index === 2)).toMatchObject({
+      startIso: '2026-12-24',
+      shifted: false,
+      years: 0,
+    });
+  });
+
+  it('wählt die Achsen-Einheit aus der Spanne und rundet die Grenzen', () => {
+    const tage = ganttAxis([{ index: 0, startIso: '2026-07-01', endIso: '2026-07-20' }]);
+    expect(tage).toMatchObject({
+      unit: 'day',
+      fromIso: '2026-07-01',
+      toIso: '2026-07-20',
+      totalDays: 20,
+    });
+    // 63 Tage überschreiten die Tages-Schwelle; die Grenzen wandern auf
+    // Montag und Sonntag.
+    const wochen = ganttAxis([{ index: 0, startIso: '2026-07-01', endIso: '2026-09-01' }]);
+    expect(wochen).toMatchObject({ unit: 'week', fromIso: '2026-06-29', toIso: '2026-09-06' });
+    const monate = ganttAxis([{ index: 0, startIso: '2026-07-15', endIso: '2029-02-10' }]);
+    expect(monate).toMatchObject({ unit: 'month', fromIso: '2026-07-01', toIso: '2029-02-28' });
+    expect(ganttAxis([])).toBeNull();
+    expect(ganttAxis([{ index: 0, startIso: 'defekt', endIso: null }])).toBeNull();
+  });
+
+  it('dünnt die Gitter-Marken auf die Ober-Grenze aus', () => {
+    // Zehn Tage bleiben ungedünnt, eine Marke je Tag.
+    const zehn = ganttAxis([{ index: 0, startIso: '2026-07-01', endIso: '2026-07-10' }]);
+    expect(zehn.ticks).toHaveLength(10);
+    expect(zehn.ticks[0]).toEqual({ iso: '2026-07-01', endIso: '2026-07-01' });
+    // Zwanzig Tage überschreiten die Grenze: jede zweite Marke, die
+    // Abschnitte bleiben lückenlos.
+    const kurz = ganttAxis([{ index: 0, startIso: '2026-07-01', endIso: '2026-07-20' }]);
+    expect(kurz.ticks).toHaveLength(10);
+    expect(kurz.ticks[0]).toEqual({ iso: '2026-07-01', endIso: '2026-07-02' });
+    expect(kurz.ticks[kurz.ticks.length - 1].endIso).toBe(kurz.toIso);
+    const lang = ganttAxis([{ index: 0, startIso: '1990-01-01', endIso: '2030-12-31' }]);
+    expect(lang.unit).toBe('month');
+    expect(lang.ticks.length).toBeLessThanOrEqual(GANTT_MAX_TICKS);
+    // Lückenlos: die letzte Marke endet am Achsen-Ende.
+    expect(lang.ticks[lang.ticks.length - 1].endIso).toBe(lang.toIso);
+  });
+
+  it('rechnet Position und Breite in Prozent, Endtag eingeschlossen', () => {
+    const axis = ganttAxis([{ index: 0, startIso: '2026-07-01', endIso: '2026-07-10' }]);
+    expect(axis.totalDays).toBe(10);
+    expect(ganttOffsets(axis, '2026-07-01', '2026-07-10')).toEqual({
+      leftPct: 0,
+      widthPct: 100,
+    });
+    expect(ganttOffsets(axis, '2026-07-06', null)).toEqual({ leftPct: 50, widthPct: 10 });
+    // Ausserhalb der Achse wird geklemmt, nichts läuft über den Rand.
+    expect(ganttOffsets(axis, '2026-06-01', '2026-07-03')).toEqual({ leftPct: 0, widthPct: 30 });
+    expect(ganttOffsets(axis, '2026-08-01', null)).toEqual({ leftPct: 100, widthPct: 0 });
+    expect(ganttOffsets(null, '2026-07-01', null)).toBeNull();
+    expect(ganttOffsets(axis, 'defekt', null)).toBeNull();
   });
 });

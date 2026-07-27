@@ -37,6 +37,10 @@ const {
   categoryCounts,
   timelineGroups,
   calendarDayMap,
+  ganttRows,
+  ganttAxis,
+  ganttOffsets,
+  eventIndexById,
 } = require('../events-core.js');
 // 4T-0514: Monats-Gitter des Journal-Kalenders (Wochenstart Montag) als
 // gemeinsame Kalender-Mathematik.
@@ -367,6 +371,10 @@ function buildEventsViewBarHtml(effective) {
 }
 
 // Kompakter Ereignis-Chip (Sprung-Ziel data-ev-jump = Modell-Index).
+// opts.style trägt Inline-Positionen (4T-0722: Gantt-Balken und -Rauten
+// sitzen prozentual auf der Zeitachse), opts.title einen abweichenden
+// Titel — der Chip bleibt sonst in allen Ansichten derselbe, damit die
+// Kategorie-Farben und der Klick-Weg nur einmal existieren.
 function eventChipHtml(model, index, opts = {}) {
   const e = model.entries[index];
   if (!e) return '';
@@ -374,9 +382,11 @@ function eventChipHtml(model, index, opts = {}) {
   const catAttr = EVENT_CATEGORIES.includes(cat) ? ` data-ev-cat="${cat}"` : '';
   const kindCls = opts.kind ? ` pev-chip-${opts.kind}` : '';
   const label = opts.label != null ? opts.label : e.text || e.date;
+  const styleAttr = opts.style ? ` style="${escapeHtml(opts.style)}"` : '';
+  const title = opts.title != null ? opts.title : e.text || e.date;
   return (
-    `<button type="button" class="pev-event-chip${kindCls}"${catAttr} ` +
-    `data-ev-jump="${index}" title="${escapeHtml(e.text || e.date)}">${escapeHtml(label)}</button>`
+    `<button type="button" class="pev-event-chip${kindCls}"${catAttr}${styleAttr} ` +
+    `data-ev-jump="${index}" title="${escapeHtml(title)}">${escapeHtml(label)}</button>`
   );
 }
 
@@ -561,6 +571,172 @@ function buildEventsTimelineHtml(model, indices, { L, lang }) {
   return out.join('');
 }
 
+// Gantt (4T-0722): Balken-Diagramm über einer gemeinsamen Zeitachse.
+// Zeilen-Modell, Achse und Prozent-Positionen kommen aus events-core.js;
+// dieses Modul setzt nur Struktur, Beschriftung und Inline-Positionen.
+// Balken und Rauten sind Ereignis-Chips wie in den übrigen Zusatz-
+// Ansichten, tragen also Kategorie-Farbe, Titel und data-ev-jump aus
+// derselben Quelle.
+
+// Beschriftung einer Gitter-Marke je Achsen-Einheit (Muster der übrigen
+// Intl-Helfer; Fallback ist der ISO-Tag).
+const GANTT_TICK_FORMATS = {
+  day: { day: 'numeric' },
+  week: { day: '2-digit', month: '2-digit' },
+  month: { month: 'short', year: '2-digit' },
+};
+
+function intlTickLabel(lang, iso, unit) {
+  const parts = parseIsoDate(iso);
+  if (!parts) return iso;
+  try {
+    return new Intl.DateTimeFormat(lang || 'de', {
+      ...(GANTT_TICK_FORMATS[unit] || GANTT_TICK_FORMATS.month),
+      timeZone: 'UTC',
+    }).format(new Date(Date.UTC(parts.y, parts.m - 1, parts.d)));
+  } catch {
+    return iso;
+  }
+}
+
+function pct(value) {
+  return Math.round(value * 10000) / 10000;
+}
+
+// Verknüpfungs-Ziel auflösen: Art 1 über die kurze Kennung, Art 2 über
+// den logischen Datei-Namen (aggLinksOf in events-editor.js nutzt
+// dieselbe Zuordnung). Unauflösbare Bezüge liefern keine Linie.
+function ganttResolveRef(entries, ref) {
+  const byId = eventIndexById(entries, ref);
+  if (byId >= 0) return byId;
+  const name = String(ref == null ? '' : ref)
+    .trim()
+    .toLowerCase();
+  if (name === '') return -1;
+  return (entries || []).findIndex((e) => e.source && String(e.source.name).toLowerCase() === name);
+}
+
+// Label-Spalte einer Zeile: Text, Wiederkehr-Markierung, Meilenstein-Stern
+// (Texte im Titel, damit die Spalte schmal bleibt) und Verknüpfungs-Zähler.
+function ganttLabelHtml(model, row, todayIso, L) {
+  const e = model.entries[row.index];
+  const textCls = e.textFallback ? 'pev-gantt-name pev-text-fallback' : 'pev-gantt-name';
+  const name = e.text || e.date;
+  // Titel auch am Namen: die Spalte kürzt lange Texte mit Auslassung.
+  const bits = [`<span class="${textCls}" title="${escapeHtml(name)}">${escapeHtml(name)}</span>`];
+  if (row.shifted) {
+    bits.push(
+      `<span class="pev-gantt-mark" title="${escapeHtml(L('events.gantt.recurring'))}">↻</span>`,
+    );
+  }
+  const milestones = eventMilestones(e.date, todayIso);
+  if (milestones.length > 0) {
+    const text = milestones.map((m) => composeMilestoneText(m, L)).join(' · ');
+    bits.push(`<span class="pev-milestone-badge" title="${escapeHtml(text)}">★</span>`);
+  }
+  const linkCount = (e.predecessors || []).length + (e.successors || []).length;
+  if (linkCount > 0) {
+    bits.push(
+      `<span class="pev-gantt-link-count" title="${escapeHtml(L('events.link.indicator'))}">` +
+        `⛓${linkCount}</span>`,
+    );
+  }
+  return `<div class="pev-gantt-label">${bits.join('')}</div>`;
+}
+
+// Overlay über der Zeit-Fläche: Heute-Linie und Abhängigkeits-Linien vom
+// Balken-Ende des Vorgängers zum Balken-Anfang des Nachfolgers. Prozent-
+// Koordinaten brauchen keine Messung im DOM; die erste Fassung verzichtet
+// bewusst auf Pfeilspitzen und Kollisions-Optimierung.
+function ganttOverlayHtml(model, rows, axis, todayIso, L) {
+  const parts = [];
+  if (todayIso >= axis.fromIso && todayIso <= axis.toIso) {
+    const off = ganttOffsets(axis, todayIso, null);
+    if (off) {
+      const x = pct(off.leftPct + off.widthPct / 2);
+      parts.push(
+        `<line class="pev-gantt-today" x1="${x}%" y1="0" x2="${x}%" y2="100%">` +
+          `<title>${escapeHtml(L('calendar.today'))}</title></line>`,
+      );
+    }
+  }
+  const rowByIndex = new Map();
+  rows.forEach((row, i) => rowByIndex.set(row.index, i));
+  const yOf = (i) => pct(((i + 0.5) / rows.length) * 100);
+  rows.forEach((row, i) => {
+    const e = model.entries[row.index];
+    for (const ref of e.predecessors || []) {
+      const predIndex = ganttResolveRef(model.entries, ref);
+      const predRow = rowByIndex.get(predIndex);
+      if (predRow === undefined) continue;
+      const from = ganttOffsets(axis, rows[predRow].startIso, rows[predRow].endIso);
+      const to = ganttOffsets(axis, row.startIso, row.endIso);
+      if (!from || !to) continue;
+      parts.push(
+        `<line class="pev-gantt-link" x1="${pct(from.leftPct + from.widthPct)}%" ` +
+          `y1="${yOf(predRow)}%" x2="${pct(to.leftPct)}%" y2="${yOf(i)}%"></line>`,
+      );
+    }
+  });
+  if (parts.length === 0) return '';
+  return `<svg class="pev-gantt-overlay" aria-hidden="true">${parts.join('')}</svg>`;
+}
+
+function buildEventsGanttHtml(model, indices, { todayIso, L, lang }) {
+  const today = todayIso || localTodayIso();
+  const rows = ganttRows(model.entries, indices, today);
+  if (rows.length > MAX_EVENT_RENDER_ROWS) {
+    return (
+      `<div class="pev-gantt"><div class="pev-limit" data-ev-total="${rows.length}">` +
+      `${rows.length} &gt; ${MAX_EVENT_RENDER_ROWS}</div></div>`
+    );
+  }
+  const axis = ganttAxis(rows);
+  if (!axis) {
+    return `<div class="pev-gantt"><div class="pev-dash-empty">${escapeHtml(
+      L('events.view.empty'),
+    )}</div></div>`;
+  }
+  const out = [`<div class="pev-gantt" data-ev-gantt-unit="${axis.unit}">`];
+  out.push('<div class="pev-gantt-head"><div class="pev-gantt-corner"></div>');
+  out.push('<div class="pev-gantt-axis">');
+  for (const tick of axis.ticks) {
+    const off = ganttOffsets(axis, tick.iso, tick.endIso);
+    if (!off) continue;
+    out.push(
+      `<span class="pev-gantt-tick" style="left: ${off.leftPct}%; width: ${off.widthPct}%">` +
+        `${escapeHtml(intlTickLabel(lang, tick.iso, axis.unit))}</span>`,
+    );
+  }
+  out.push('</div></div>');
+  out.push('<div class="pev-gantt-body">');
+  for (const row of rows) {
+    const e = model.entries[row.index];
+    const off = ganttOffsets(axis, row.startIso, row.endIso);
+    if (!off) continue;
+    const range = row.endIso ? `${row.startIso} – ${row.endIso}` : row.startIso;
+    const style =
+      row.kind === 'bar'
+        ? `left: ${off.leftPct}%; width: ${off.widthPct}%`
+        : `left: ${pct(off.leftPct + off.widthPct / 2)}%`;
+    out.push('<div class="pev-gantt-row">');
+    out.push(ganttLabelHtml(model, row, today, L));
+    out.push('<div class="pev-gantt-track">');
+    out.push(
+      eventChipHtml(model, row.index, {
+        kind: row.kind === 'bar' ? 'gantt-bar' : 'gantt-point',
+        label: ' ',
+        title: `${e.text || e.date} · ${range}`,
+        style,
+      }),
+    );
+    out.push('</div></div>');
+  }
+  out.push(ganttOverlayHtml(model, rows, axis, today, L));
+  out.push('</div></div>');
+  return out.join('');
+}
+
 // Innen-HTML des Platzhalter-Containers (der Container selbst mit den
 // data-ev-Attributen entsteht im Fence-Override von markdown.js).
 // opts: todayIso (Stichtag), lang (Intl-Namen), labels (aufgeloeste
@@ -593,6 +769,8 @@ function renderPerspectiveEventsViewer(content, opts = {}) {
     out.push(buildEventsCalendarHtml(model, allIndices, { ...viewOpts, mode: effective }));
   } else if (effective === 'timeline') {
     out.push(buildEventsTimelineHtml(model, allIndices, viewOpts));
+  } else if (effective === 'gantt') {
+    out.push(buildEventsGanttHtml(model, allIndices, viewOpts));
   } else {
     out.push(buildEventsTableHtml(model));
   }
@@ -743,6 +921,10 @@ const PORTABLE_EVENT_LABEL_KEYS = [
   'calendar.today',
   'calendar.prevMonth',
   'calendar.nextMonth',
+  // 4T-0722: Gantt-Ansicht (Wiederkehr-Markierung und Verknüpfungs-Zähler;
+  // Heute-Linie und Meilenstein-Texte nutzen die Keys darüber).
+  'events.gantt.recurring',
+  'events.link.indicator',
 ];
 
 module.exports = {
@@ -761,5 +943,7 @@ module.exports = {
   buildEventsDashboardHtml,
   buildEventsCalendarHtml,
   buildEventsTimelineHtml,
+  // 4T-0722 (Epic 3E-0150): Gantt-Ansicht.
+  buildEventsGanttHtml,
   DASHBOARD_MILESTONE_HORIZON,
 };

@@ -1,6 +1,6 @@
 # Événements
 
-La gestion des événements conserve **les rendez-vous, anniversaires, dates anniversaires et dates de projet** directement dans le document : sous forme de bloc d'événements intégré avec ses propres lignes de données ou d'agrégation via les propriétés du frontmatter à partir des fichiers de la zone. Chaque entrée affiche l'**écart de temps par rapport à aujourd'hui** en quatre échelons, ainsi que des jalons, la récurrence annuelle, des filtres, quatre vues et des liens entre événements.
+La gestion des événements conserve **les rendez-vous, anniversaires, dates anniversaires et dates de projet** directement dans le document : sous forme de bloc d'événements intégré avec ses propres lignes de données ou d'agrégation via les propriétés du frontmatter à partir des fichiers de la zone. Chaque entrée affiche l'**écart de temps par rapport à aujourd'hui** en quatre échelons, ainsi que des jalons, la récurrence annuelle, des filtres, cinq vues supplémentaires et des liens entre événements.
 
 La fonction fait partie des [extensions internes](extensions.md) (« Événements ») et requiert les [Profils de propriétés](property-profiles.md) — si cette extension est désactivée, la gestion des événements se désactive également. Désactivé, le bloc reste un bloc de code ordinaire.
 
@@ -92,7 +92,7 @@ La directive porte des paires `Nom := Clé=Valeur`, séparées par `;` : `text`,
 
 ## Vues
 
-Le commutateur au-dessus du bloc bascule entre **Tableau, Tableau de bord, calendrier mensuel, calendrier hebdomadaire et Chronologie** ; le choix est écrit dans le bloc comme directive `view:` (`table`, `dashboard`, `month`, `week`, `timeline`). Un clic sur un événement dans une vue supplémentaire saute à la ligne du tableau.
+Le commutateur au-dessus du bloc bascule entre **Tableau, Tableau de bord, calendrier mensuel, calendrier hebdomadaire, Chronologie et Gantt** ; le choix est écrit dans le bloc comme directive `view:` (`table`, `dashboard`, `month`, `week`, `timeline`, `gantt`). Un clic sur un événement dans une vue supplémentaire saute à la ligne du tableau.
 
 ```perspective-events
 view: dashboard
@@ -102,6 +102,19 @@ view: dashboard
 ```
 
 Le tableau de bord regroupe les événements à venir, les jalons atteints et proches ainsi que la répartition par catégorie ; les calendriers placent les entrées sur une grille mensuelle ou hebdomadaire avec un repère du jour ; la chronologie regroupe chronologiquement.
+
+### Gantt
+
+La vue Gantt place les événements sous forme de barres sur un axe temporel commun, une ligne par entrée, triées par date. Une entrée avec une fin devient une barre couvrant sa durée, une entrée sans fin un losange à sa date ; la couleur provient de la catégorie. Des lignes pointillées relient prédécesseurs et successeurs, une ligne verticale marque le jour même.
+
+```perspective-events
+view: gantt
+| 2026-07-06 | 2026-07-31 | Phase de conception | projekt | | | e1 | | e2 |
+| 2026-08-03 | 2026-09-11 | Réalisation | projekt | | | e2 | e1 | |
+| 2026-08-01 | | Validation | termin | | | | | |
+```
+
+La granularité de l'axe découle de l'étendue : les étendues courtes affichent des jours, les moyennes des semaines, les longues des mois. Pour une résolution plus fine, restreignez la période avec le filtre. Les événements récurrents se placent à leur **prochaine occurrence** et portent le signe ↻, afin que l'axe ne remonte pas à l'année d'origine. À côté du nom, ★ signale un jalon atteint et ⛓ le nombre de liens. Les entrées sans date valide n'apparaissent que dans le tableau. Les barres ne se déplacent pas par glissement ; les dates se modifient dans la vue tableau.
 
 ## Agrégation via le frontmatter
 

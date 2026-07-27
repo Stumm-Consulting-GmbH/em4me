@@ -1,6 +1,6 @@
 # Events
 
-Event management keeps **appointments, birthdays, anniversaries and project dates** right in the document: as an embedded event block with its own data rows or as an aggregation over frontmatter properties from the files of the area. Each entry shows the **time difference to today** in four tiers, plus milestones, yearly recurrence, filters, four views and links between events.
+Event management keeps **appointments, birthdays, anniversaries and project dates** right in the document: as an embedded event block with its own data rows or as an aggregation over frontmatter properties from the files of the area. Each entry shows the **time difference to today** in four tiers, plus milestones, yearly recurrence, filters, five additional views and links between events.
 
 The feature belongs to the [internal extensions](extensions.md) ("Events") and requires the [Property Profiles](property-profiles.md) — if that extension is disabled, event management switches off as well. Disabled, the block remains a regular code block.
 
@@ -92,7 +92,7 @@ The directive carries `Name := Key=Value` pairs, separated by `;`: `text`, `cate
 
 ## Views
 
-The toggle above the block switches between **Table, Dashboard, month calendar, week calendar and Timeline**; the choice is written into the block as a `view:` directive (`table`, `dashboard`, `month`, `week`, `timeline`). A click on an event in an additional view jumps to the table row.
+The toggle above the block switches between **Table, Dashboard, month calendar, week calendar, Timeline and Gantt**; the choice is written into the block as a `view:` directive (`table`, `dashboard`, `month`, `week`, `timeline`, `gantt`). A click on an event in an additional view jumps to the table row.
 
 ```perspective-events
 view: dashboard
@@ -102,6 +102,19 @@ view: dashboard
 ```
 
 The Dashboard bundles upcoming events, reached and approaching milestones and the category distribution; the calendars place the entries on a month or week grid with a today marker; the Timeline groups chronologically.
+
+### Gantt
+
+The Gantt view places the events as bars on a shared time axis, one row per entry, sorted by date. An entry with an end becomes a bar across its duration, an entry without an end a diamond at its date; the colour comes from the category. Dashed lines connect predecessors and successors, a vertical line marks today.
+
+```perspective-events
+view: gantt
+| 2026-07-06 | 2026-07-31 | Concept phase | projekt | | | e1 | | e2 |
+| 2026-08-03 | 2026-09-11 | Implementation | projekt | | | e2 | e1 | |
+| 2026-08-01 | | Approval | termin | | | | | |
+```
+
+The axis granularity follows the span: short spans show days, medium ones weeks, long ones months. For a finer resolution, narrow the period with the filter. Recurring events sit at their **next occurrence** and carry the sign ↻, so the axis does not reach back to the year of origin. Next to the name, ★ shows a reached milestone and ⛓ the number of links. Entries without a valid date appear in the table only. Bars cannot be dragged; dates are changed in the table view.
 
 ## Aggregation via frontmatter
 
