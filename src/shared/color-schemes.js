@@ -370,11 +370,56 @@ const BUILTIN_SCHEMES = [
 
 // Store-Schlüssel des gesamten Farbschema-Zustands (ein Objekt, ein Broadcast).
 const COLOR_SCHEMES_KEY = 'colorSchemes';
-const STANDARD_LIGHT_ID = 'standard-light';
-const STANDARD_DARK_ID = 'standard-dark';
+
+// 4T-0751 (Epic 3E-0146): Bernstein ist der Auslieferungszustand. Dasselbe
+// Paar dient als Rückfall bei unbekanntem oder Basis-fremdem Verweis
+// (Entscheidung des Product Owners vom 2026-07-27: der Rückfall wandert mit,
+// Voreinstellung und Reparatur-Zustand bleiben derselbe Wert). Zuvor zeigten
+// beide Rollen auf standard-light/standard-dark.
+const DEFAULT_LIGHT_ID = 'amber-light';
+const DEFAULT_DARK_ID = 'amber-dark';
+
+// Schemas, auf die bestehende Installationen festgeschrieben werden, damit die
+// Umstellung sie nicht mitzieht (siehe startupSchemeState).
+const PREVIOUS_DEFAULT_LIGHT_ID = 'standard-light';
+const PREVIOUS_DEFAULT_DARK_ID = 'standard-dark';
 
 function defaultState() {
-  return { custom: [], activeLight: STANDARD_LIGHT_ID, activeDark: STANDARD_DARK_ID };
+  return { custom: [], activeLight: DEFAULT_LIGHT_ID, activeDark: DEFAULT_DARK_ID };
+}
+
+// 4T-0751 (Epic 3E-0146): Einmal-Entscheidung beim App-Start, welcher
+// Schema-Zustand zu persistieren ist. Hintergrund der Entscheidung des
+// Product Owners vom 2026-07-27: Die Umstellung auf Bernstein soll nur
+// frische Installationen treffen. Der Store-Key `colorSchemes` steht NICHT
+// in den Store-Defaults und entsteht sonst erst, wenn der Schema-Abschnitt
+// der Einstellungen wirklich geaendert wird; ohne diesen Schritt wuerde der
+// neue Vorgabewert auch bestehende Installationen mitziehen.
+//
+// Fehlt der Key, wird er DESHALB IN JEDEM FALL geschrieben, nicht nur im
+// Bestandsfall: Eine frische Installation ist beim ersten Start spurenlos
+// (also richtig auf Bernstein), traegt beim zweiten Start aber bereits eine
+// gefuellte recentFiles-Liste und wuerde dann faelschlich als Bestand
+// erkannt und auf Standard festgeschrieben. Weil der Key nach dem ersten
+// Start immer existiert, laeuft der Zweig genau einmal, und es braucht
+// keinen zusaetzlichen Marker im Store.
+//
+// hasStoredState: der Store traegt bereits einen colorSchemes-Stand.
+// hasUsageTraces: der Store traegt Spuren frueherer Nutzung (Dateien,
+// Bereiche, Sitzungen). Rueckgabe: der zu schreibende Zustand oder null,
+// wenn nichts zu tun ist.
+//
+// Bewusst in Kauf genommen: Eine bestehende Installation ohne jede Spur gilt
+// als frisch und bekommt Bernstein. Ohne Marker im Store ist der Fall nicht
+// aufloesbar, und wer nichts benutzt hat, hat auch keine Gewohnheit.
+function startupSchemeState({ hasStoredState, hasUsageTraces }) {
+  if (hasStoredState) return null;
+  if (!hasUsageTraces) return defaultState();
+  return {
+    custom: [],
+    activeLight: PREVIOUS_DEFAULT_LIGHT_ID,
+    activeDark: PREVIOUS_DEFAULT_DARK_ID,
+  };
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
@@ -395,8 +440,8 @@ function builtinById(id) {
   return BUILTIN_SCHEMES.find((s) => s.id === id) || null;
 }
 
-function standardIdForMode(mode) {
-  return mode === 'dark' ? STANDARD_DARK_ID : STANDARD_LIGHT_ID;
+function defaultIdForMode(mode) {
+  return mode === 'dark' ? DEFAULT_DARK_ID : DEFAULT_LIGHT_ID;
 }
 
 function allSchemes(state) {
@@ -449,8 +494,8 @@ function normalizeState(raw) {
   const known = new Map(allSchemes(state).map((s) => [s.id, s]));
   const al = raw && typeof raw.activeLight === 'string' ? raw.activeLight : '';
   const ad = raw && typeof raw.activeDark === 'string' ? raw.activeDark : '';
-  state.activeLight = known.has(al) && known.get(al).base === 'light' ? al : STANDARD_LIGHT_ID;
-  state.activeDark = known.has(ad) && known.get(ad).base === 'dark' ? ad : STANDARD_DARK_ID;
+  state.activeLight = known.has(al) && known.get(al).base === 'light' ? al : DEFAULT_LIGHT_ID;
+  state.activeDark = known.has(ad) && known.get(ad).base === 'dark' ? ad : DEFAULT_DARK_ID;
   return state;
 }
 
@@ -516,20 +561,20 @@ function computeSchemeVars(scheme) {
 }
 
 // Aktives Schema für einen Modus ('light'|'dark'); fällt bei fehlendem oder
-// Basis-fremdem Verweis auf das Standard-Schema des Modus zurück.
+// Basis-fremdem Verweis auf das Vorgabe-Schema des Modus zurück.
 function getActiveScheme(state, mode) {
   const m = mode === 'dark' ? 'dark' : 'light';
   const id = m === 'dark' ? state && state.activeDark : state && state.activeLight;
   const scheme = schemeById(state, id);
   if (scheme && scheme.base === m) return scheme;
-  return builtinById(standardIdForMode(m));
+  return builtinById(defaultIdForMode(m));
 }
 
 // --- Verwaltungs-Funktionen (rein: Zustand rein, neuer Zustand raus) --------
 
 // Neues eigenes Schema aus einer Vorlage (Basis und Abweichungen kopiert).
 function addCustomScheme(state, { id, name, templateId }) {
-  const src = schemeById(state, templateId) || builtinById(STANDARD_LIGHT_ID);
+  const src = schemeById(state, templateId) || builtinById(DEFAULT_LIGHT_ID);
   const scheme = sanitizeScheme({ id, name, base: src.base, colors: schemeDeviations(src) });
   if (!scheme) return state;
   if (schemeById(state, scheme.id)) return state;
@@ -554,8 +599,8 @@ function duplicateScheme(state, sourceId, newId, newName) {
 function deleteCustomScheme(state, id) {
   if (isBuiltinId(id)) return state;
   const custom = state.custom.filter((s) => s.id !== id);
-  const activeLight = state.activeLight === id ? STANDARD_LIGHT_ID : state.activeLight;
-  const activeDark = state.activeDark === id ? STANDARD_DARK_ID : state.activeDark;
+  const activeLight = state.activeLight === id ? DEFAULT_LIGHT_ID : state.activeLight;
+  const activeDark = state.activeDark === id ? DEFAULT_DARK_ID : state.activeDark;
   return { ...state, custom, activeLight, activeDark };
 }
 
@@ -596,10 +641,13 @@ module.exports = {
   COLOR_SLOTS,
   SLOT_IDS,
   BUILTIN_SCHEMES,
-  STANDARD_LIGHT_ID,
-  STANDARD_DARK_ID,
+  DEFAULT_LIGHT_ID,
+  DEFAULT_DARK_ID,
+  PREVIOUS_DEFAULT_LIGHT_ID,
+  PREVIOUS_DEFAULT_DARK_ID,
   ACCENT_SOFT_VAR,
   defaultState,
+  startupSchemeState,
   normalizeState,
   isValidColor,
   isBuiltinId,

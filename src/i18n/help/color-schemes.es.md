@@ -12,7 +12,7 @@ La gestión de esquemas se abre en Configuración → Esquemas de color.
 
 - **Asignación por modo:** arriba se elige un esquema activo para cada modo (Esquema para claro, Esquema para oscuro).
 - **Esquemas incluidos** son de solo lectura y sirven de plantilla: Estándar claro y oscuro, Alto contraste claro y oscuro, Sepia, además de otros cuatro pares con una versión clara y otra oscura cada uno: Azul acero (frío), Verde bosque (verde apagado), Ámbar (cálido) y Grafito (gris neutro).
-- **Esquema propio:** «Nuevo desde plantilla» o «Duplicar» crea una copia editable. Un esquema propio se puede renombrar y eliminar; al eliminar el esquema activo, el modo vuelve al esquema Estándar.
+- **Esquema propio:** «Nuevo desde plantilla» o «Duplicar» crea una copia editable. Un esquema propio se puede renombrar y eliminar; al eliminar el esquema activo, el modo vuelve al esquema predeterminado.
 - **Editor de ranuras:** un selector de color por ranura; «Restablecer» restaura el valor de la plantilla. Los cambios surten efecto de inmediato en toda la aplicación (vista previa en vivo) y en las demás ventanas tras aplicar.
 
 El editor siempre edita el esquema activo del modo en el que la aplicación se está ejecutando: en modo claro el esquema claro, en modo oscuro el esquema oscuro. Para ajustar el esquema del otro modo, primero se cambia la aplicación a ese modo mediante el icono de tema en la barra de estado (o Ver → Tema). Así, cada cambio de color surte efecto de inmediato en el modo exacto al que se aplica (vista previa en vivo).

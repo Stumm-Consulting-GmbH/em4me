@@ -240,6 +240,19 @@ function buildInto(body, draft, rerender) {
   // 4T-0637 (Epic 3E-0069): Wecker-Block. Anders als die vier Blöcke darüber
   // hängt er nicht an einem Anzeige-Bestandteil, sondern am Wecker-Modus des
   // Panels und steht deshalb immer.
+  // 4T-0752 (Epic 3E-0146): Kalender-Modus. Eigener Block, weil die Option
+  // den Monatskalender betrifft und nicht die Uhr-Anzeige; showWeek im Block
+  // "Anzeige" steuert weiterhin die Textzeile unter der Uhrzeit.
+  body.appendChild(subhead('settings.clock.group.calendar'));
+  body.appendChild(
+    checkboxRow(
+      'settings-clock-calendar-week',
+      'settings.clock.showCalendarWeek',
+      values.showCalendarWeek,
+      (v) => set({ showCalendarWeek: v }),
+    ),
+  );
+
   body.appendChild(subhead('settings.clock.group.alarm'));
   const snooze = document.createElement('input');
   snooze.id = 'settings-clock-snooze';

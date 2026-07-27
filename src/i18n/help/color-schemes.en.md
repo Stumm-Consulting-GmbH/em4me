@@ -12,7 +12,7 @@ The scheme management opens under Settings → Color schemes.
 
 - **Mode assignment:** at the top you choose an active scheme for each mode (Scheme for light, Scheme for dark).
 - **Built-in schemes** are read-only and serve as templates: Standard Light and Dark, High Contrast Light and Dark, Sepia, plus four further pairs with a light and a dark version each — Steel Blue (cool), Forest Green (muted green), Amber (warm) and Graphite (neutral grey).
-- **Your own scheme:** "New from template" or "Duplicate" creates an editable copy. Your own scheme can be renamed and deleted; when the active scheme is deleted, the mode falls back to the Standard scheme.
+- **Your own scheme:** "New from template" or "Duplicate" creates an editable copy. Your own scheme can be renamed and deleted; when the active scheme is deleted, the mode falls back to the preset scheme.
 - **Slot editor:** one color picker per slot; "Reset" restores the template value. Changes take effect immediately across the app (live preview), and in other windows after applying.
 
 The editor always edits the active scheme of the mode the app is currently running in: in light mode the light scheme, in dark mode the dark scheme. To adjust the other mode's scheme, first switch the app to that mode via the theme icon in the status bar (or View → Theme). This way every color change takes effect immediately in exactly the mode it applies to (live preview).

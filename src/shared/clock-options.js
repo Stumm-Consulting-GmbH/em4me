@@ -27,7 +27,10 @@ const CLOCK_OPTIONS_KEY = 'clock.options';
 // Konfigurations-Zustand, deshalb bewusst NEBEN dem Optionen-Objekt und
 // pro Sidebar-Spalte persistiert (PO-Festlegung 2026-07-20) — Muster der
 // Sichtbarkeits-Keys clockPanel.visibleColumn0/1.
-const CLOCK_MODES = ['clock', 'alarm', 'timer', 'stopwatch'];
+// 4T-0752 (Epic 3E-0146): 'calendar' als fuenfter Modus (Monatskalender zum
+// Nachschlagen). Er haengt hinten an, damit die Reihenfolge der vier
+// bestehenden Modus-Tasten unveraendert bleibt.
+const CLOCK_MODES = ['clock', 'alarm', 'timer', 'stopwatch', 'calendar'];
 const CLOCK_MODE_KEYS = ['clockPanel.modeColumn0', 'clockPanel.modeColumn1'];
 
 // Erlaubte Werte der Auswahl-Optionen; erste Position ist zugleich der
@@ -75,6 +78,10 @@ const DEFAULT_CLOCK_OPTIONS = {
   // 4T-0637: Schlummer-Dauer des Weckers in Minuten. Konfiguration und
   // damit hier statt im Bedien-Zustand.
   snoozeMinutes: DEFAULT_SNOOZE_MINUTES,
+  // 4T-0752 (Epic 3E-0146): Kalenderwochen-Spalte des Monatskalenders.
+  // Bewusst eine EIGENE Option neben showWeek: showWeek steuert die
+  // Textzeile unter der Uhrzeit, und beides ist getrennt gewollt.
+  showCalendarWeek: true,
 };
 
 function pickBool(raw, fallback) {
@@ -108,6 +115,7 @@ function normalizeClockOptions(raw) {
     showSeconds: pickBool(src.showSeconds, DEFAULT_CLOCK_OPTIONS.showSeconds),
     dateFormat: pickFrom(src.dateFormat, DATE_FORMATS),
     snoozeMinutes: normalizeSnoozeMinutes(src.snoozeMinutes),
+    showCalendarWeek: pickBool(src.showCalendarWeek, DEFAULT_CLOCK_OPTIONS.showCalendarWeek),
   };
 }
 
@@ -219,8 +227,66 @@ function formatClockDate(date, options, lang = 'de') {
   }
 }
 
+// --- Monatskalender: Ansichts-Zustand und Navigation (4T-0752) -------------
+//
+// Der angezeigte Monat ist Bedien- und nicht Konfigurations-Zustand; hier
+// steht nur seine Arithmetik, damit sie ohne DOM pruefbar bleibt.
+//
+// Die Jahres-Untergrenze ist bewusst 100 und nicht 1: `new Date(y, m, d)`
+// bildet zweistellige Jahre auf 1900+y ab (Jahr 50 wuerde zu 1950), und der
+// Gitter-Kern baut seine Tage genau so. Unterhalb von 100 waere die Anzeige
+// also stillschweigend falsch statt bloss begrenzt.
+const MIN_CALENDAR_YEAR = 100;
+const MAX_CALENDAR_YEAR = 9999;
+
+function clampCalendarYear(year) {
+  const y = Math.trunc(Number(year));
+  if (!Number.isFinite(y)) return new Date().getFullYear();
+  return Math.min(MAX_CALENDAR_YEAR, Math.max(MIN_CALENDAR_YEAR, y));
+}
+
+// Sicht auf den laufenden Monat.
+function currentMonthView(now = new Date()) {
+  return { year: now.getFullYear(), monthIndex: now.getMonth() };
+}
+
+// Bereinigt eine (auch fehlende oder defekte) Sicht auf ein gueltiges Paar
+// aus Jahr und Monat; Muster normalizeClockOptions.
+function normalizeMonthView(raw, now = new Date()) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const monthIndex = Math.trunc(Number(src.monthIndex));
+  return {
+    year: clampCalendarYear(src.year),
+    monthIndex:
+      Number.isFinite(monthIndex) && monthIndex >= 0 && monthIndex <= 11
+        ? monthIndex
+        : currentMonthView(now).monthIndex,
+  };
+}
+
+// Verschiebt die Sicht um Monate und/oder Jahre. Ein Monats-Ueberlauf traegt
+// ins Jahr weiter (Dezember + 1 = Januar des Folgejahres); die Klemmung der
+// Jahres-Grenzen greift danach, sodass an den Raendern der Monat stehen
+// bleibt statt in ein ungueltiges Jahr zu laufen.
+function shiftMonthView(view, { months = 0, years = 0 } = {}) {
+  const base = normalizeMonthView(view);
+  const total = base.monthIndex + months;
+  const yearCarry = Math.floor(total / 12);
+  const monthIndex = ((total % 12) + 12) % 12;
+  const year = base.year + years + yearCarry;
+  if (year < MIN_CALENDAR_YEAR) return { year: MIN_CALENDAR_YEAR, monthIndex: 0 };
+  if (year > MAX_CALENDAR_YEAR) return { year: MAX_CALENDAR_YEAR, monthIndex: 11 };
+  return { year, monthIndex };
+}
+
 module.exports = {
   CLOCK_OPTIONS_KEY,
+  MIN_CALENDAR_YEAR,
+  MAX_CALENDAR_YEAR,
+  clampCalendarYear,
+  currentMonthView,
+  normalizeMonthView,
+  shiftMonthView,
   CLOCK_MODES,
   CLOCK_MODE_KEYS,
   normalizeClockMode,

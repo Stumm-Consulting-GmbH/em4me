@@ -342,10 +342,18 @@ describe('Uhr-Panel: Modus-Umschaltung (4T-0636)', () => {
     await clock.setClockOptions(null, { persist: false });
   });
 
-  it('die Leiste traegt vier Tasten mit Icon, Beschriftung und Druck-Zustand', async () => {
+  // 4T-0752 (Epic 3E-0146): Der Kalender ist als fuenfte Taste hinten
+  // angehaengt; die Reihenfolge der vier bestehenden bleibt unveraendert.
+  it('die Leiste traegt fuenf Tasten mit Icon, Beschriftung und Druck-Zustand', async () => {
     await show(0);
     const btns = [...modeBar(0).querySelectorAll('.clock-mode-btn')];
-    expect(btns.map((b) => b.dataset.clockMode)).toEqual(['clock', 'alarm', 'timer', 'stopwatch']);
+    expect(btns.map((b) => b.dataset.clockMode)).toEqual([
+      'clock',
+      'alarm',
+      'timer',
+      'stopwatch',
+      'calendar',
+    ]);
     // Ohne Text-Label sind Icon, Tooltip und Screenreader-Label Pflicht.
     for (const b of btns) {
       expect(b.querySelector('svg')).toBeTruthy();
@@ -355,6 +363,7 @@ describe('Uhr-Panel: Modus-Umschaltung (4T-0636)', () => {
     }
     expect(btns.map((b) => b.getAttribute('aria-pressed'))).toEqual([
       'true',
+      'false',
       'false',
       'false',
       'false',

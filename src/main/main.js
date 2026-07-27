@@ -54,6 +54,9 @@ const { createDemoAreaAt } = require('./demo-area.js');
 // 4T-0643 (Epic 3E-0126): Uebernahme der Nutzerdaten nach einem Rebranding
 // (config.json, Entwuerfe, externe Erweiterungen aus dem Vorgaenger-Profil).
 const { migrateUserData } = require('./user-data-migration.js');
+// 4T-0751 (Epic 3E-0146): Einmal-Entscheidung des Schema-Zustands beim Start,
+// damit die Umstellung auf Bernstein nur frische Installationen trifft.
+const { COLOR_SCHEMES_KEY, startupSchemeState } = require('../shared/color-schemes.js');
 
 // 4T-0525 (Epic 3E-0095): Erinnerungs-Pruefer (30-Sekunden-Takt auf dem
 // Bereichs-Index) und Konfigurations-Normalisierung des Erinnerungs-Kerns.
@@ -795,7 +798,13 @@ async function loadStore() {
       windows: [], // Legacy: flache Multi-Window-Sitzung (Lese-Fallback)
       recentFiles: [],
       recentAreas: [], // zuletzt geoeffnete Bereiche (4T-0325)
-      language: null, // null = aus Windows-Locale ableiten
+      // 4T-0751 (Epic 3E-0146): Englisch ist der Auslieferungszustand.
+      // conf materialisiert die Defaults schon bei der Store-Konstruktion,
+      // deshalb wirkt dieser Wert ausschliesslich fuer frische Staende;
+      // bestehende Installationen tragen ihr persistiertes null weiter und
+      // leiten unveraendert aus der Windows-Locale ab (Entscheidung des
+      // Product Owners vom 2026-07-27: nur frische Installationen).
+      language: 'en',
       // 4T-0030: Theme-Vorzug. 'system' folgt der OS-Einstellung
       // (bisheriges Verhalten), 'light'/'dark' erzwingt das jeweilige Theme.
       themePref: 'system',
@@ -831,6 +840,34 @@ async function loadStore() {
   if (migratedApps) store.set('apps', migratedApps);
   // 4T-0537: Arbeitsbereichs-Ablage normalisiert in den In-Memory-Stand laden.
   workspacesState = normalizeSavedWorkspaces(store.get('workspaces'));
+  applyStartupSchemeState();
+}
+
+// 4T-0751 (Epic 3E-0146): Steht noch kein Schema-Zustand im Store, wird er
+// hier einmalig geschrieben — bestehende Installationen auf die bisherigen
+// Standard-Schemas, frische auf die neue Bernstein-Voreinstellung. Die
+// Begruendung samt der Falle, die das unbedingte Schreiben abfaengt, steht
+// bei startupSchemeState in shared/color-schemes.js.
+//
+// Laeuft NACH den beiden Migrationen oben: Ein Bestand mit Alt-Schluesseln
+// traegt seine Spuren dann bereits im aktuellen Format.
+function applyStartupSchemeState() {
+  if (!store) return;
+  const next = startupSchemeState({
+    hasStoredState: store.get(COLOR_SCHEMES_KEY) != null,
+    hasUsageTraces: hasStoreUsageTraces(),
+  });
+  if (next) store.set(COLOR_SCHEMES_KEY, next);
+}
+
+// Spuren frueherer Nutzung im Store: geoeffnete Dateien, Bereiche, Sitzungen
+// und benannte Arbeitsbereiche. Eine frische Installation hat beim ersten
+// Start keine davon.
+function hasStoreUsageTraces() {
+  return ['recentFiles', 'recentAreas', 'apps', 'workspaces', 'windows'].some((key) => {
+    const value = store.get(key);
+    return Array.isArray(value) && value.length > 0;
+  });
 }
 
 // Migration alter Single-Window-Settings auf die neue Multi-Window-Struktur.

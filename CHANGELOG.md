@@ -9,6 +9,24 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.93.0.978] - 2026-07-27 — Auslieferungs-Voreinstellungen und Monatskalender
+
+Epic 3E-0146 (Voreinstellungs- und Uhr-Bündel): Die Anwendung startet im Auslieferungszustand englisch und in Bernstein, und die Uhr kann zusätzlich als Monatskalender dienen. Beide Voreinstellungen treffen ausschließlich frisch eingerichtete Installationen; ein bestehender Stand behält Sprache und Farbschema.
+
+### Neu
+
+- **Monatskalender in der Uhr** (4T-0752): Das Uhr-Panel hat einen fünften Modus. Er zeigt einen Monat als Gitter mit Wochentags-Kopf, hervorgehobenem heutigem Tag und abschaltbarer Kalenderwochen-Spalte (Einstellungen → Uhr → Kalender). Einfache Pfeile blättern einen Monat, doppelte ein Jahr, „Heute" kehrt zum laufenden Monat zurück, und ein Klick auf die Monats-Bezeichnung öffnet die Jahres-Eingabe als vier Ziffern-Stellen mit Pfeiltasten, Stellen-Wechsel und Direkteingabe; ein ungültiges Jahr ist dabei nicht eingebbar. Die Untergrenze liegt bei Jahr 100, weil zweistellige Jahre in der Datums-Rechnung auf 1900 + Jahr abgebildet würden. Die Tage sind reine Anzeige: Der Kalender dient dem Nachschlagen und führt nicht in Journale oder Termine. Der angezeigte Monat gilt je Sidebar-Spalte; der Modus taktet minütlich mit und zeichnet allein beim Tages-Wechsel neu, damit ein über Mitternacht offenes Panel nicht den falschen Tag als heute zeigt.
+
+### Geändert
+
+- **Englisch als Auslieferungs-Sprache** (4T-0751): Eine frisch eingerichtete Installation startet mit englischer Oberfläche, statt die Sprache aus dem Betriebssystem abzuleiten. Ein bestehender Stand behält seine bisherige Ableitung, weil sein gespeicherter Wert den neuen Vorgabewert überstimmt.
+- **Bernstein als Auslieferungs-Farbschema** (4T-0751): Voreingestellt sind Bernstein Hell und Bernstein Dunkel; derselbe Wert dient als Rückfall, wenn ein gespeicherter Schema-Verweis unbekannt ist oder nicht zur Hell-Dunkel-Lage passt. Damit eine bestehende Installation nicht mitwandert, schreibt die Anwendung beim ersten Start ohne gespeicherten Schema-Stand die bisherigen Standard-Schemas fest, sobald sie Spuren früherer Nutzung findet; geschrieben wird in jedem Fall, sodass der Schritt genau einmal läuft und eine frische Installation beim zweiten Start nicht nachträglich als Bestand gilt.
+- **Ein Monatsgitter für drei Stellen** (4T-0752): Kalender-Panel der Journale, Datums-Eingabe und der neue Uhr-Kalender bauen ihr Gitter über ein gemeinsames Modul statt über drei eigene Schleifen. Die Darstellung der beiden bestehenden Stellen bleibt unverändert.
+
+### Dokumentation
+
+- **Funktions-Katalog und Handbuch** (4T-0753): ein neuer Katalog-Eintrag „Monatskalender" mit Beschreibung, Kurzname und Zugang sowie ein neuer Abschnitt auf der Handbuch-Seite „Werkzeuge", beides in allen fünf Sprachen; insgesamt 14 neue i18n-Schlüssel je Sprache aus diesem Epic. Berichtigt ist außerdem die Handbuch-Aussage zum Rückfall beim Löschen eines eigenen Farbschemas: Er zeigt auf das voreingestellte Schema. Die Demo-Umgebung bleibt unverändert, weil sie Dokument-Inhalte zeigt und kein Sidebar-Panel ohne Dokument-Bezug.
+
 ## [0.92.0.969] - 2026-07-26 — Zeitrechnungen mit eigenem Nullpunkt
 
 Epic 3E-0138 (Zeitrechnung mit Bezugs-Kalender und Zeitspannen): Eine Zeitrechnung kann sich jetzt auf eine bestehende stützen und nur noch ihren eigenen Nullpunkt angeben. Ihre Werte erscheinen als gestaffelte Zeitspanne ab diesem Punkt, in beide Richtungen und in wählbarer Tiefe. Als Bezug dient ein Kalender desselben Blocks oder die eingebaute Standard-Zeitrechnung, sodass ein Countdown auf einen Termin ohne eigenen Kalender auskommt.

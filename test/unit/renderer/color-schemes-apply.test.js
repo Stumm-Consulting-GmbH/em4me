@@ -82,12 +82,26 @@ describe('color-schemes (Renderer): applyActiveColorScheme folgt data-theme', ()
 
 describe('color-schemes (Renderer): pdfColorOverrides (Export-Option 2)', () => {
   it('Standard-Hell aktiv: Overrides entsprechen der Basis-Hell-Palette', () => {
-    setColorSchemeState(defaultState());
+    // 4T-0751 (Epic 3E-0146): Das Standard-Schema ist seit der Umstellung auf
+    // Bernstein nicht mehr die Voreinstellung und wird hier ausdrücklich
+    // gesetzt; geprüft ist weiterhin die Gleichheit mit der Basis-Palette.
+    setColorSchemeState({ custom: [], activeLight: 'standard-light', activeDark: 'standard-dark' });
     const ov = pdfColorOverrides();
     expect(ov['--bg']).toBe(BASE_DEFAULTS.light.bg);
     expect(ov['--fg']).toBe(BASE_DEFAULTS.light.text);
     expect(ov['--accent']).toBe(BASE_DEFAULTS.light.accent);
     expect(ov['--shadow']).toBe('0 2px 8px rgba(0, 0, 0, 0.08)');
+  });
+
+  // 4T-0751: Der Auslieferungszustand weicht von der Basis-Palette ab, der
+  // Druck muss ihm trotzdem folgen.
+  it('Voreinstellung aktiv: Overrides tragen die Bernstein-Hell-Werte', () => {
+    setColorSchemeState(defaultState());
+    const amberLight = byId('amber-light');
+    const ov = pdfColorOverrides();
+    expect(ov['--bg']).toBe(amberLight.colors.bg);
+    expect(ov['--accent']).toBe(amberLight.colors.accent);
+    expect(ov['--bg']).not.toBe(BASE_DEFAULTS.light.bg);
   });
 
   it('folgt dem aktiven HELL-Schema, auch wenn der aktuelle Modus dunkel ist', () => {

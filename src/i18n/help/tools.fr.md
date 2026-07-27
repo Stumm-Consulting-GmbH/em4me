@@ -1,6 +1,6 @@
 # Outils
 
-Neuf assistants pour le travail quotidien sur le texte : linter, recherche, rechercher et remplacer, éditeur de tableaux, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur et chronomètre, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
+Neuf assistants pour le travail quotidien sur le texte : linter, recherche, rechercher et remplacer, éditeur de tableaux, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
 
 ## Linter Markdown
 
@@ -89,9 +89,9 @@ La reconnaissance capte volontairement aussi les valeurs saisies à la main : to
 
 Cette fonctionnalité appartient à l'extension commutable « Saisie de date et d'heure » (Paramètres → Extensions). Une fois désactivée, les commandes, le déclencheur de saisie et la décoration au clic disparaissent ; les valeurs restent du texte normal. Les formats correspondent aux marqueurs de date des listes de tâches, si bien que les deux fonctionnalités partagent la même notation.
 
-## Horloge, réveils, minuteur et chronomètre
+## Horloge, réveils, minuteur, chronomètre et calendrier
 
-Un panneau latéral affiche l'heure sous forme d'horloge analogique, d'affichage numérique et avec une ligne de date ; taille, type de cadran, trotteuse, format horaire et de date ainsi que la semaine calendaire se choisissent dans les réglages. Une barre en haut du panneau bascule entre quatre vues : horloge, réveil, minuteur et chronomètre. Le choix vaut par colonne de la barre latérale et survit à un redémarrage.
+Un panneau latéral affiche l'heure sous forme d'horloge analogique, d'affichage numérique et avec une ligne de date ; taille, type de cadran, trotteuse, format horaire et de date ainsi que la semaine calendaire se choisissent dans les réglages. Une barre en haut du panneau bascule entre cinq vues : horloge, réveil, minuteur, chronomètre et calendrier. Le choix vaut par colonne de la barre latérale et survit à un redémarrage.
 
 ### Taille
 
@@ -110,6 +110,14 @@ Un réveil échu affiche un avis que l'on confirme ou reporte d'une durée régl
 Le mode minuteur liste les minuteurs avec temps restant et barre de progression. Trois boutons lancent des durées courantes aussitôt, les durées libres passent par une commande heures, minutes et secondes. Démarrage, pause et remise à zéro agissent par minuteur. Le temps restant se calcule à partir d'horodatages plutôt que par décompte : un minuteur continue donc correctement même si la fenêtre était en arrière-plan ou si l'application a été fermée entre-temps. Un minuteur écoulé affiche un avis et se confirme ou se relance.
 
 Le chronomètre compte à l'endroit, avec centièmes. Outre démarrage, pause et remise à zéro, il enregistre des temps de tour ; le tour le plus récent est en haut.
+
+### Calendrier mensuel
+
+Le mode calendrier affiche un mois sous forme de grille : les jours de la semaine en en-tête, lundi en premier, le jour courant mis en évidence, les jours des mois voisins atténués. La colonne des semaines à gauche se désactive et se réactive dans les réglages, sous « Calendrier ».
+
+La navigation se trouve au-dessus du tableau. Les flèches simples feuillettent un mois, les doubles une année ; « Aujourd'hui » ramène au mois courant. Un clic sur le libellé du mois ouvre la saisie de l'année : quatre positions de chiffres qui se règlent avec les touches fléchées, se changent avec gauche et droite et se fixent directement en tapant un chiffre. Une année invalide ne peut pas être saisie, et la touche Entrée ou la coche l'applique.
+
+Les jours sont en simple affichage. Le calendrier sert à la consultation, par exemple pour savoir sur quel jour de la semaine tombe une date lointaine ; il ne mène ni aux journaux ni aux rendez-vous. Le panneau Calendrier des journaux est là pour cela.
 
 ### Limite
 

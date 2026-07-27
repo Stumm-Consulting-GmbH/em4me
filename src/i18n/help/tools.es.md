@@ -1,6 +1,6 @@
 # Herramientas
 
-Nueve ayudantes para el trabajo diario con el texto: linter, búsqueda, buscar y reemplazar, editor de tablas, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador y cronómetro, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
+Nueve ayudantes para el trabajo diario con el texto: linter, búsqueda, buscar y reemplazar, editor de tablas, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
 
 ## Linter Markdown
 
@@ -89,9 +89,9 @@ El reconocimiento capta a propósito también los valores escritos a mano: así 
 
 Esta función pertenece a la extensión conmutable «Entrada de fecha y hora» (Configuración → Extensiones). Si se desactiva, desaparecen los comandos, el disparador de escritura y la decoración al hacer clic; los valores siguen siendo texto normal. Los formatos coinciden con los marcadores de fecha de las listas de tareas, de modo que ambas funciones comparten la misma notación.
 
-## Reloj, alarmas, temporizador y cronómetro
+## Reloj, alarmas, temporizador, cronómetro y calendario
 
-Un panel lateral muestra la hora como reloj analógico, como indicación digital y con una línea de fecha; tamaño, tipo de esfera, segundero, formato horario y de fecha así como la semana natural se eligen en los ajustes. Una barra en la parte superior del panel alterna entre cuatro vistas: reloj, alarma, temporizador y cronómetro. La elección vale por columna de la barra lateral y sobrevive a un reinicio.
+Un panel lateral muestra la hora como reloj analógico, como indicación digital y con una línea de fecha; tamaño, tipo de esfera, segundero, formato horario y de fecha así como la semana natural se eligen en los ajustes. Una barra en la parte superior del panel alterna entre cinco vistas: reloj, alarma, temporizador, cronómetro y calendario. La elección vale por columna de la barra lateral y sobrevive a un reinicio.
 
 ### Tamaño
 
@@ -110,6 +110,14 @@ Una alarma vencida muestra un aviso que se puede confirmar o posponer una duraci
 El modo temporizador lista los temporizadores con tiempo restante y barra de progreso. Tres botones inician duraciones habituales de inmediato, las duraciones propias pasan por un control de horas, minutos y segundos. Iniciar, pausar y reiniciar actúan por temporizador. El tiempo restante se calcula a partir de marcas de tiempo en lugar de descontarse: un temporizador sigue por tanto correctamente aunque la ventana estuviera en segundo plano o la aplicación se cerrara entretanto. Un temporizador finalizado muestra un aviso y se puede confirmar o iniciar de nuevo.
 
 El cronómetro cuenta hacia delante, con centésimas. Además de iniciar, pausar y reiniciar registra tiempos de vuelta; la vuelta más reciente está arriba.
+
+### Calendario mensual
+
+El modo calendario muestra un mes como una cuadrícula: los días de la semana en el encabezado, el lunes primero, el día actual resaltado y los días de los meses vecinos atenuados. La columna de semanas de la izquierda se puede desactivar y volver a activar en los ajustes, en «Calendario».
+
+La navegación está sobre la tabla. Las flechas simples pasan un mes, las dobles un año; «Hoy» vuelve al mes actual. Un clic en el nombre del mes abre la entrada del año: cuatro posiciones de dígitos que se ajustan con las teclas de flecha, se cambian con izquierda y derecha y se fijan escribiendo un dígito. Un año no válido no se puede introducir, y la tecla Intro o la marca de verificación lo aplica.
+
+Los días son solo visualización. El calendario sirve para consultar, por ejemplo para saber en qué día de la semana cae una fecha lejana; no lleva a los diarios ni a las citas. Para eso está el panel de calendario de los diarios.
 
 ### Límite
 

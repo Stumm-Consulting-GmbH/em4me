@@ -12,7 +12,7 @@ La gestion des jeux s'ouvre dans Paramètres → Jeux de couleurs.
 
 - **Attribution par mode :** en haut, on choisit un jeu actif pour chaque mode (Jeu pour le mode clair, Jeu pour le mode sombre).
 - **Jeux fournis** sont non modifiables et servent de modèle : Standard clair et sombre, Contraste élevé clair et sombre, Sépia, ainsi que quatre autres paires comportant chacune une version claire et une version sombre — Bleu acier (froid), Vert forêt (vert atténué), Ambre (chaud) et Graphite (gris neutre).
-- **Jeu personnel :** « Nouveau depuis un modèle » ou « Dupliquer » crée une copie modifiable. Un jeu personnel peut être renommé et supprimé ; à la suppression du jeu actif, le mode revient au jeu Standard.
+- **Jeu personnel :** « Nouveau depuis un modèle » ou « Dupliquer » crée une copie modifiable. Un jeu personnel peut être renommé et supprimé ; à la suppression du jeu actif, le mode revient au jeu prédéfini.
 - **Éditeur d'emplacements :** un sélecteur de couleur par emplacement ; « Réinitialiser » rétablit la valeur du modèle. Les modifications prennent effet immédiatement dans toute l'application (aperçu en direct), et dans les autres fenêtres après application.
 
 L'éditeur modifie toujours le jeu actif du mode dans lequel l'application s'exécute : en mode clair le jeu clair, en mode sombre le jeu sombre. Pour ajuster le jeu de l'autre mode, on bascule d'abord l'application vers ce mode via l'icône de thème dans la barre d'état (ou Affichage → Thème). Ainsi, chaque changement de couleur prend effet immédiatement dans le mode exact auquel il s'applique (aperçu en direct).

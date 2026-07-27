@@ -29,8 +29,10 @@ import {
   CLOCK_MODES,
   CLOCK_OPTIONS_KEY,
   analogSizePx,
+  clampCalendarYear,
   clockModeKey,
   clockScale,
+  currentMonthView,
   formatClockDate,
   formatClockTime,
   handAngles,
@@ -38,7 +40,13 @@ import {
   needsSecondTick,
   normalizeClockMode,
   normalizeClockOptions,
+  normalizeMonthView,
+  shiftMonthView,
 } from '../../shared/clock-options.js';
+// 4T-0752 (Epic 3E-0146): gemeinsamer Gitter-Aufbau, geteilt mit dem
+// Kalender-Panel der Journale und der Datums-Eingabe.
+import { createDayCell, monthLabel, renderMonthGrid } from './month-grid-view.js';
+import { msToIsoDate } from '../../shared/journal-core.js';
 import { COMMAND_ICONS } from '../../shared/command-icons.js';
 // 4T-0637 (Epic 3E-0069): Wecker-Modus. Einseitiger Import — das Wecker-
 // Modul kennt clock-panel.js nicht (Options-Zugriff wird angehaengt).
@@ -63,6 +71,9 @@ const MODE_ICONS = {
   alarm: 'bell',
   timer: 'hourglass',
   stopwatch: 'stopwatch',
+  // 4T-0752 (Epic 3E-0146): Monatskalender. Das Kalender-Symbol ist im
+  // kuratierten Satz vorhanden und wird sonst nirgends im Panel benutzt.
+  calendar: 'calendar',
 };
 
 // --- Optionen-Zustand ------------------------------------------------------------
@@ -258,6 +269,14 @@ function buildClock(paneIdx) {
     rendered[paneIdx] = refs;
     return refs;
   }
+  if (mode === 'calendar') {
+    // 4T-0752: Monatskalender zum Nachschlagen. Der angezeigte Tag wird beim
+    // Takt gegen den heutigen geprueft (siehe paintCalendar), deshalb haelt
+    // refs den gezeichneten Stand.
+    refs.calendar = buildCalendarView(body, paneIdx);
+    rendered[paneIdx] = refs;
+    return refs;
+  }
 
   if (options.showAnalog) {
     const size = analogSizePx(options);
@@ -327,11 +346,238 @@ function buildClock(paneIdx) {
   return refs;
 }
 
+// --- Kalender-Modus (4T-0752) -----------------------------------------------------
+//
+// Angezeigter Monat je Sidebar-Spalte als Bedien-Zustand ohne Persistenz
+// (Muster state.calendar.monthByPane des Journal-Kalenders): Beim Oeffnen
+// steht der laufende Monat. Das Gitter selbst kommt aus dem gemeinsamen
+// Modul month-grid-view.js; hier stehen Navigation und Jahres-Eingabe.
+
+function shownMonthView(paneIdx) {
+  const stored = state.clock && state.clock.monthByPane[paneIdx];
+  return stored ? normalizeMonthView(stored) : currentMonthView();
+}
+
+function navButton(text, titleKey, onClick) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'clock-cal-nav-btn';
+  btn.textContent = text;
+  btn.title = t(titleKey);
+  btn.setAttribute('aria-label', t(titleKey));
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
+// Jahres-Eingabe als vier Ziffern-Stellen (Muster der Uhrzeit-Steuerung im
+// Datums-Picker): Pfeiltasten stellen die aktive Stelle, Links/Rechts
+// wechseln sie, Ziffern setzen direkt und ruecken weiter. Nach jeder
+// Aenderung wird das Ergebnis auf den gueltigen Bereich geklemmt, sodass ein
+// ungueltiges Jahr gar nicht erst darstellbar ist (Oberflaechen-Leitlinie:
+// Fehleingaben konstruktiv unmoeglich statt abgewiesen).
+function buildYearEditor(getYear, onCommit, onCancel) {
+  const wrap = document.createElement('div');
+  wrap.className = 'clock-cal-year';
+  wrap.hidden = true;
+  wrap.setAttribute('role', 'group');
+  wrap.setAttribute('aria-label', t('clock.calendar.yearGroup'));
+
+  let digits = [0, 0, 0, 0];
+  let active = 0;
+  const cells = [];
+
+  const paint = () => {
+    cells.forEach((cell, idx) => {
+      cell.textContent = String(digits[idx]);
+      cell.classList.toggle('active', idx === active);
+    });
+  };
+
+  const yearFromDigits = () => digits[0] * 1000 + digits[1] * 100 + digits[2] * 10 + digits[3];
+
+  // Klemmung nach jeder Aenderung: das angezeigte Jahr ist damit immer
+  // gueltig, und die Stellen zeigen genau den geklemmten Wert.
+  const clampDigits = () => {
+    const clamped = clampCalendarYear(yearFromDigits());
+    digits = String(clamped).padStart(4, '0').split('').map(Number);
+  };
+
+  const setActive = (idx) => {
+    active = Math.max(0, Math.min(3, idx));
+    paint();
+    cells[active].focus();
+  };
+
+  for (let i = 0; i < 4; i++) {
+    const cell = document.createElement('span');
+    cell.className = 'clock-cal-year-digit';
+    cell.tabIndex = 0;
+    cell.addEventListener('click', () => setActive(i));
+    cell.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        digits[i] = (digits[i] + (e.key === 'ArrowUp' ? 1 : -1) + 10) % 10;
+        clampDigits();
+        paint();
+        return;
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        setActive(i + (e.key === 'ArrowRight' ? 1 : -1));
+        return;
+      }
+      if (/^\d$/.test(e.key)) {
+        e.preventDefault();
+        digits[i] = Number(e.key);
+        clampDigits();
+        paint();
+        if (i < 3) setActive(i + 1);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onCommit(yearFromDigits());
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    });
+    cells.push(cell);
+    wrap.appendChild(cell);
+  }
+
+  const ok = document.createElement('button');
+  ok.type = 'button';
+  ok.className = 'clock-cal-year-ok';
+  ok.textContent = '✓';
+  ok.title = t('clock.calendar.yearApply');
+  ok.setAttribute('aria-label', t('clock.calendar.yearApply'));
+  ok.addEventListener('click', () => onCommit(yearFromDigits()));
+  wrap.appendChild(ok);
+
+  return {
+    el: wrap,
+    open() {
+      digits = String(clampCalendarYear(getYear())).padStart(4, '0').split('').map(Number);
+      wrap.hidden = false;
+      setActive(0);
+    },
+    close() {
+      wrap.hidden = true;
+    },
+    isOpen() {
+      return !wrap.hidden;
+    },
+  };
+}
+
+function buildCalendarView(body, paneIdx) {
+  const options = clockOptions;
+  const wrap = document.createElement('div');
+  wrap.className = 'clock-calendar';
+
+  const nav = document.createElement('div');
+  nav.className = 'clock-calendar-nav';
+
+  const shift = (delta) => {
+    state.clock.monthByPane[paneIdx] = shiftMonthView(shownMonthView(paneIdx), delta);
+    view.render();
+  };
+
+  const label = document.createElement('button');
+  label.type = 'button';
+  label.className = 'clock-cal-label';
+  label.title = t('clock.calendar.editYear');
+  label.addEventListener('click', () => {
+    if (yearEditor.isOpen()) {
+      yearEditor.close();
+      return;
+    }
+    yearEditor.open();
+  });
+
+  nav.appendChild(navButton('«', 'clock.calendar.prevYear', () => shift({ years: -1 })));
+  nav.appendChild(navButton('‹', 'clock.calendar.prevMonth', () => shift({ months: -1 })));
+  nav.appendChild(label);
+  nav.appendChild(navButton('›', 'clock.calendar.nextMonth', () => shift({ months: 1 })));
+  nav.appendChild(navButton('»', 'clock.calendar.nextYear', () => shift({ years: 1 })));
+  wrap.appendChild(nav);
+
+  const yearEditor = buildYearEditor(
+    () => shownMonthView(paneIdx).year,
+    (year) => {
+      const current = shownMonthView(paneIdx);
+      state.clock.monthByPane[paneIdx] = {
+        year: clampCalendarYear(year),
+        monthIndex: current.monthIndex,
+      };
+      yearEditor.close();
+      view.render();
+    },
+    () => yearEditor.close(),
+  );
+  wrap.appendChild(yearEditor.el);
+
+  const grid = document.createElement('div');
+  grid.className = 'calendar-grid clock-calendar-grid';
+  if (!options.showCalendarWeek) grid.classList.add('no-week-col');
+  wrap.appendChild(grid);
+
+  const today = document.createElement('button');
+  today.type = 'button';
+  today.className = 'clock-cal-today';
+  today.textContent = t('clock.calendar.today');
+  today.addEventListener('click', () => {
+    state.clock.monthByPane[paneIdx] = null;
+    yearEditor.close();
+    view.render();
+  });
+  wrap.appendChild(today);
+
+  body.appendChild(wrap);
+
+  const view = {
+    todayIso: msToIsoDate(Date.now()),
+    render() {
+      const shown = shownMonthView(paneIdx);
+      label.textContent = monthLabel(shown.year, shown.monthIndex);
+      renderMonthGrid(grid, {
+        year: shown.year,
+        monthIndex: shown.monthIndex,
+        weekColumnLabel: t('calendar.weekColumn'),
+        showWeekColumn: options.showCalendarWeek,
+        // Tage sind bewusst reine Anzeige: Der Uhr-Kalender ist ein
+        // Nachschlage-Mittel, Journale und Termine liegen ausserhalb.
+        dayCell: (day) =>
+          createDayCell(day, { todayIso: view.todayIso, as: 'span', className: 'clock-cal-day' }),
+      });
+    },
+    // Ein ueber Mitternacht offenes Panel zeigte sonst den falschen Tag als
+    // heute; neu gezeichnet wird nur beim Tages-Wechsel.
+    refreshToday(now) {
+      const iso = msToIsoDate(now.getTime());
+      if (iso === view.todayIso) return;
+      view.todayIso = iso;
+      view.render();
+    },
+  };
+  view.render();
+  return view;
+}
+
 // Ein Tick: nur Zeiger-Transformationen und Textinhalte. In den uebrigen
-// Modi gibt es nichts zu zeichnen (4T-0636).
+// Modi gibt es nichts zu zeichnen (4T-0636), ausser dem Tages-Wechsel des
+// Kalenders (4T-0752).
 function paintClock(paneIdx, now) {
   const refs = rendered[paneIdx];
-  if (!refs || refs.mode !== 'clock') return;
+  if (!refs) return;
+  if (refs.mode === 'calendar') {
+    if (refs.calendar) refs.calendar.refreshToday(now);
+    return;
+  }
+  if (refs.mode !== 'clock') return;
   const options = refs.options;
   if (refs.hour || refs.minute || refs.second) {
     const angles = handAngles(now, options);
@@ -387,7 +633,19 @@ let timerMode = null; // 'second' | 'minute'
 
 // 4T-0636: Getaktet wird nur fuer sichtbare Panels im Uhr-Modus. Steht die
 // einzige sichtbare Spalte auf Wecker, Timer oder Stoppuhr, laeuft kein Timer.
+// 4T-0752: Der Kalender-Modus taktet mit, aber nur minuetlich — er braucht den
+// Takt allein fuer den Tages-Wechsel um Mitternacht.
 function anyClockTicking() {
+  for (let i = 0; i < state.panes.length; i++) {
+    if (!getClockVisible(i)) continue;
+    const mode = getClockMode(i);
+    if (mode === 'clock' || mode === 'calendar') return true;
+  }
+  return false;
+}
+
+// Sekunden-Takt lohnt nur, wenn eine sichtbare Spalte wirklich die Uhr zeigt.
+function anyClockModeVisible() {
   for (let i = 0; i < state.panes.length; i++) {
     if (getClockVisible(i) && getClockMode(i) === 'clock') return true;
   }
@@ -430,7 +688,7 @@ export function ensureClockTimer() {
     stopClockTimer();
     return;
   }
-  const mode = needsSecondTick(clockOptions) ? 'second' : 'minute';
+  const mode = anyClockModeVisible() && needsSecondTick(clockOptions) ? 'second' : 'minute';
   if (timerMode === mode && timerId != null) return;
   stopClockTimer();
   timerMode = mode;

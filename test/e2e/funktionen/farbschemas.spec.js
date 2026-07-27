@@ -8,6 +8,23 @@
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const {
+  BUILTIN_SCHEMES,
+  DEFAULT_LIGHT_ID,
+  DEFAULT_DARK_ID,
+} = require('../../../src/shared/color-schemes.js');
+
+// 4T-0751 (Epic 3E-0146): Voreingestellt ist seither Bernstein, und dessen
+// Akzent weicht von der Basis-Palette ab. Der erwartete Wert haengt am
+// Anzeige-Modus, der dem Betriebssystem folgt (Vorzug 'system'); er wird
+// deshalb zur Laufzeit aus dem Modell geholt statt als Literal gesetzt.
+async function defaultAccent(page) {
+  const dunkel = await page.evaluate(
+    () => document.documentElement.getAttribute('data-theme') === 'dark',
+  );
+  const id = dunkel ? DEFAULT_DARK_ID : DEFAULT_LIGHT_ID;
+  return BUILTIN_SCHEMES.find((s) => s.id === id).colors.accent;
+}
 
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
@@ -41,8 +58,8 @@ test.describe('FS-01: Farbschema-Bereich', () => {
       await openColorSchemesSection(page);
       await expect(page.locator('#settings-color-scheme-light')).toBeVisible();
       await expect(page.locator('#settings-color-scheme-dark')).toBeVisible();
-      // Aktiv ist zunächst das mitgelieferte Standard-Schema: Farbwähler
-      // nur-lesend, kein Löschen-Knopf.
+      // Aktiv ist zunächst ein mitgeliefertes Schema (die Voreinstellung):
+      // Farbwähler nur-lesend, kein Löschen-Knopf.
       await expect(page.locator('#settings-color-slot-accent')).toBeDisabled();
       await expect(page.locator('#settings-color-scheme-delete')).toHaveCount(0);
     } finally {
@@ -56,8 +73,10 @@ test.describe('FS-02: eigenes Schema — anlegen, Slot ändern, anwenden, lösch
     const { app, page, userData } = await launchApp();
     try {
       await openColorSchemesSection(page);
-      // Ohne eigenes Schema ist --accent nicht inline gesetzt (Stylesheet gilt).
-      await expect.poll(() => rootVar(page, '--accent')).toBe('');
+      // Ohne eigenes Schema gilt die Voreinstellung; ihr Akzent weicht von der
+      // Basis-Palette ab und steht deshalb inline am Wurzel-Element.
+      const akzent = await defaultAccent(page);
+      await expect.poll(() => rootVar(page, '--accent')).toBe(akzent);
 
       // Neu aus Vorlage: eigenes Schema wird aktiv und bearbeitbar.
       await page.locator('#settings-color-scheme-new').click();
@@ -76,11 +95,11 @@ test.describe('FS-02: eigenes Schema — anlegen, Slot ändern, anwenden, lösch
       await page.locator('#btn-settings-apply').click();
       await expect.poll(() => rootVar(page, '--accent')).toBe('#ff0000');
 
-      // Löschen des eigenen Schemas: Rückfall auf Standard, --accent geräumt.
+      // Löschen des eigenen Schemas: Rückfall auf die Voreinstellung.
       await page.locator('#settings-color-scheme-delete').click();
-      await expect.poll(() => rootVar(page, '--accent')).toBe('');
+      await expect.poll(() => rootVar(page, '--accent')).toBe(akzent);
       await page.locator('#btn-settings-apply').click();
-      await expect.poll(() => rootVar(page, '--accent')).toBe('');
+      await expect.poll(() => rootVar(page, '--accent')).toBe(akzent);
     } finally {
       await closeApp(app, userData);
     }

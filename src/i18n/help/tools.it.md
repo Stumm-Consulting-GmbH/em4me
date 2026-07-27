@@ -1,6 +1,6 @@
 # Strumenti
 
-Nove aiutanti per il lavoro quotidiano sul testo: linter, ricerca, trova e sostituisci, editor di tabelle, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer e cronometro, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
+Nove aiutanti per il lavoro quotidiano sul testo: linter, ricerca, trova e sostituisci, editor di tabelle, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
 
 ## Linter Markdown
 
@@ -89,9 +89,9 @@ Il riconoscimento cattura di proposito anche i valori digitati a mano: ogni data
 
 Questa funzionalità appartiene all'estensione commutabile «Inserimento di data e ora» (Impostazioni → Estensioni). Una volta disattivata, i comandi, il trigger di scrittura e la decorazione al clic scompaiono; i valori restano testo normale. I formati corrispondono ai marcatori di data delle liste di attività, cosicché entrambe le funzionalità condividono la stessa notazione.
 
-## Orologio, sveglie, timer e cronometro
+## Orologio, sveglie, timer, cronometro e calendario
 
-Un pannello laterale mostra l'ora come orologio analogico, come indicazione digitale e con una riga di data; dimensione, tipo di quadrante, lancetta dei secondi, formato orario e di data nonché la settimana di calendario si scelgono nelle impostazioni. Una barra in alto nel pannello passa tra quattro viste: orologio, sveglia, timer e cronometro. La scelta vale per colonna della barra laterale e sopravvive a un riavvio.
+Un pannello laterale mostra l'ora come orologio analogico, come indicazione digitale e con una riga di data; dimensione, tipo di quadrante, lancetta dei secondi, formato orario e di data nonché la settimana di calendario si scelgono nelle impostazioni. Una barra in alto nel pannello passa tra cinque viste: orologio, sveglia, timer, cronometro e calendario. La scelta vale per colonna della barra laterale e sopravvive a un riavvio.
 
 ### Dimensione
 
@@ -110,6 +110,14 @@ Una sveglia scaduta mostra un avviso che si può confermare o posticipare di una
 La modalità timer elenca i timer con tempo restante e barra di avanzamento. Tre pulsanti avviano subito durate consuete, le durate proprie passano da un controllo per ore, minuti e secondi. Avvio, pausa e azzeramento agiscono per timer. Il tempo restante si calcola da marche temporali anziché con un conto alla rovescia: un timer prosegue quindi correttamente anche se la finestra era in secondo piano o l'applicazione è stata chiusa nel frattempo. Un timer scaduto mostra un avviso e si può confermare o riavviare.
 
 Il cronometro conta in avanti, con centesimi. Oltre ad avvio, pausa e azzeramento registra i tempi sul giro; il giro più recente è in alto.
+
+### Calendario mensile
+
+La modalità calendario mostra un mese come griglia: i giorni della settimana nell'intestazione, lunedì per primo, il giorno corrente evidenziato e i giorni dei mesi vicini attenuati. La colonna delle settimane a sinistra si disattiva e si riattiva nelle impostazioni, alla voce «Calendario».
+
+La navigazione si trova sopra la tabella. Le frecce singole sfogliano un mese, quelle doppie un anno; «Oggi» riporta al mese corrente. Un clic sulla denominazione del mese apre l'immissione dell'anno: quattro posizioni di cifre che si regolano con i tasti freccia, si cambiano con sinistra e destra e si impostano direttamente digitando una cifra. Un anno non valido non è immettibile, e il tasto Invio o il segno di spunta lo applica.
+
+I giorni sono di sola visualizzazione. Il calendario serve per la consultazione, per esempio per sapere in che giorno della settimana cade una data lontana; non porta ai diari né agli appuntamenti. Per questo c'è il pannello Calendario dei diari.
 
 ### Limite
 

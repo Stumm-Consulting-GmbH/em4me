@@ -58,18 +58,49 @@ async function waitForRendererInit(page) {
   }
 }
 
+// 4T-0751 (Epic 3E-0146): Vorbelegung des frischen Profils. Die Anwendung
+// liefert seither Englisch als Voreinstellung aus; die Specs pruefen aber
+// gegen deutsche Oberflaechen-Texte. Ohne diese Vorbelegung haetten sie die
+// Sprache des Pruef-Rechners geerbt (auf einem englischsprachigen System
+// waren sie schon vor der Umstellung rot). Deutsch statt Englisch, weil ein
+// Umschreiben von rund zwanzig Spec-Dateien Aufwand ohne Gewinn waere; den
+// ausgelieferten Zustand deckt die eigene Spec voreinstellungen.spec.js ab,
+// die ohne Vorbelegung startet.
+const DEFAULT_TEST_SETTINGS = { language: 'de' };
+
+// Schreibt die Vorbelegung in die config.json des Profils, bevor Electron
+// startet. conf legt fehlende Defaults beim Start selbst nach, hier stehen
+// deshalb nur die abweichenden Werte.
+function seedSettings(userData, settings) {
+  if (!settings) return;
+  fs.mkdirSync(userData, { recursive: true });
+  const datei = path.join(userData, 'config.json');
+  let bestand;
+  try {
+    bestand = JSON.parse(fs.readFileSync(datei, 'utf8'));
+  } catch {
+    bestand = {};
+  }
+  fs.writeFileSync(datei, JSON.stringify({ ...bestand, ...settings }, null, 2), 'utf8');
+}
+
 /**
  * Startet die App mit frischem Temp-Profil.
  * @param {object} [opts]
  * @param {string[]} [opts.args]      Zusaetzliche CLI-Argumente (z.B. Dateipfad).
  * @param {string}   [opts.userData]  Bestehendes Profil-Verzeichnis wiederverwenden
  *                                    (Session-Restore-Tests); Default: frisches Temp-Verzeichnis.
+ * @param {object|null} [opts.settings] Vorbelegung der config.json; Default
+ *                                    DEFAULT_TEST_SETTINGS (Sprache Deutsch).
+ *                                    null startet ohne jede Vorbelegung und
+ *                                    zeigt damit den Auslieferungszustand.
  * @returns {Promise<{ app: import('@playwright/test').ElectronApplication,
  *                     page: import('@playwright/test').Page,
  *                     userData: string }>}
  */
 async function launchApp(opts = {}) {
   const userData = opts.userData || fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-'));
+  seedSettings(userData, 'settings' in opts ? opts.settings : DEFAULT_TEST_SETTINGS);
   const app = await electron.launch({
     args: ['.', ...(opts.args || [])],
     cwd: APP_ROOT,

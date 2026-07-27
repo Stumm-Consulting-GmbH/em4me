@@ -1,6 +1,6 @@
 # Werkzeuge
 
-Neun Helfer für die tägliche Arbeit am Text: Linter, Suche, Suchen und Ersetzen, Tabellen-Editor, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer und Stoppuhr, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
+Neun Helfer für die tägliche Arbeit am Text: Linter, Suche, Suchen und Ersetzen, Tabellen-Editor, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
 
 ## Markdown-Linter
 
@@ -89,9 +89,9 @@ Die Erkennung greift bewusst auch bei von Hand getippten Werten: jedes Datum und
 
 Die Funktion gehört zur schaltbaren Erweiterung „Datums- und Uhrzeit-Eingabe" (Einstellungen → Erweiterungen). Ist sie ausgeschaltet, entfallen Kommandos, Schreib-Trigger und Klick-Dekoration; die Werte bleiben normaler Text. Die Formate entsprechen den Termin-Markern der Aufgaben-Listen, sodass beide Funktionen dieselbe Schreibweise teilen.
 
-## Uhr, Wecker, Timer und Stoppuhr
+## Uhr, Wecker, Timer, Stoppuhr und Kalender
 
-Ein Sidebar-Panel zeigt die Zeit als analoge Uhr, als digitale Anzeige und mit Datumszeile; Größe, Zifferblatt-Art, Sekundenzeiger, Stunden- und Datumsformat sowie die Kalenderwoche sind in den Einstellungen wählbar. Eine Leiste am oberen Rand des Panels schaltet zwischen vier Ansichten um: Uhr, Wecker, Timer und Stoppuhr. Die Wahl gilt je Sidebar-Spalte und bleibt über den Neustart erhalten.
+Ein Sidebar-Panel zeigt die Zeit als analoge Uhr, als digitale Anzeige und mit Datumszeile; Größe, Zifferblatt-Art, Sekundenzeiger, Stunden- und Datumsformat sowie die Kalenderwoche sind in den Einstellungen wählbar. Eine Leiste am oberen Rand des Panels schaltet zwischen fünf Ansichten um: Uhr, Wecker, Timer, Stoppuhr und Kalender. Die Wahl gilt je Sidebar-Spalte und bleibt über den Neustart erhalten.
 
 ### Größe
 
@@ -110,6 +110,14 @@ Ein fälliger Wecker meldet sich mit einem Hinweis, der bestätigt oder um eine 
 Der Timer-Modus zeigt die angelegten Timer mit Restzeit und Fortschrittsbalken. Drei Knöpfe starten geläufige Dauern sofort, eigene Dauern kommen über eine Steuerung für Stunden, Minuten und Sekunden. Start, Pause und Zurücksetzen wirken je Timer. Die Restzeit wird aus Zeitstempeln gerechnet, nicht heruntergezählt: Ein Timer läuft deshalb auch dann richtig weiter, wenn das Fenster im Hintergrund war oder die App zwischenzeitlich beendet wurde. Ein abgelaufener Timer meldet sich und lässt sich bestätigen oder erneut starten.
 
 Die Stoppuhr misst vorwärts, mit Hundertsteln. Neben Start, Pause und Zurücksetzen nimmt sie Rundenzeiten auf; die jüngste Runde steht oben.
+
+### Monatskalender
+
+Der Kalender-Modus zeigt einen Monat als Gitter: Wochentage im Kopf, Montag zuerst, der heutige Tag hervorgehoben, Tage der Nachbarmonate gedämpft. Die Kalenderwochen-Spalte links lässt sich in den Einstellungen unter „Kalender" ab- und wieder anschalten.
+
+Über der Tabelle steht die Navigation. Die einfachen Pfeile blättern einen Monat, die doppelten ein Jahr; „Heute" kehrt zum laufenden Monat zurück. Ein Klick auf die Monats-Bezeichnung klappt die Jahres-Eingabe auf: vier Ziffern-Stellen, die sich mit den Pfeiltasten stellen, mit Links und Rechts wechseln und mit Ziffern direkt setzen lassen. Ein ungültiges Jahr ist dabei nicht eingebbar, und Eingabetaste oder Häkchen übernehmen es.
+
+Die Tage sind reine Anzeige. Der Kalender dient dem Nachschlagen, etwa der Frage, auf welchen Wochentag ein weit entferntes Datum fällt; er führt nicht in Journale oder Termine. Dafür gibt es das Kalender-Panel der Journale.
 
 ### Grenze
 

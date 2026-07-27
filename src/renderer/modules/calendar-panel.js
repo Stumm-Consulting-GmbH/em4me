@@ -15,7 +15,7 @@
 // Journale zeigt der Body den lokalisierten Hinweis statt des Kalenders.
 'use strict';
 
-import { getLanguage, t } from '../i18n.js';
+import { t } from '../i18n.js';
 import { api } from './api.js';
 import { getPaneEls, state } from './app-state.js';
 import { applySidebarVisibility } from './panels.js';
@@ -26,6 +26,9 @@ import { openJournalEntry, pickJournal } from './journals.js';
 // (Muster panels.js).
 import { reportMenuStateNow } from './tabs.js';
 import { monthGrid, msToIsoDate, periodOf, resolveEntryPath } from '../../shared/journal-core.js';
+// 4T-0752 (Epic 3E-0146): gemeinsamer Gitter-Aufbau (Kopfzeile, Zeilen,
+// Basis-Zelle eines Tages) — geteilt mit Datums-Eingabe und Uhr-Kalender.
+import { createDayCell, monthLabel, renderMonthGrid } from './month-grid-view.js';
 
 // --- Filter -----------------------------------------------------------------
 
@@ -159,18 +162,6 @@ async function loadEntryDots(journals, rows) {
   return dots;
 }
 
-// Wochentags-Kopf und Monats-Label lokalisiert über Intl in der App-Sprache;
-// als Referenz-Woche dient eine bekannte Montag-Woche.
-function weekdayLabels() {
-  const format = new Intl.DateTimeFormat(getLanguage(), { weekday: 'short' });
-  const labels = [];
-  for (let i = 0; i < 7; i++) {
-    // 2024-01-01 war ein Montag.
-    labels.push(format.format(new Date(2024, 0, 1 + i)));
-  }
-  return labels;
-}
-
 export async function renderCalendarPanel(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.calendarSection || els.calendarSection.hidden) return;
@@ -193,56 +184,44 @@ export async function renderCalendarPanel(paneIdx) {
   const journals = filteredJournals(config, state.calendar.filterByPane[paneIdx]);
   const monthMs = shownMonthMs(paneIdx);
   const month = new Date(monthMs);
-  els.calendarMonthLabel.textContent = new Intl.DateTimeFormat(getLanguage(), {
-    month: 'long',
-    year: 'numeric',
-  }).format(month);
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  els.calendarMonthLabel.textContent = monthLabel(year, monthIndex);
 
-  const rows = monthGrid(month.getFullYear(), month.getMonth());
+  const rows = monthGrid(year, monthIndex);
   const dots = await loadEntryDots(journals, rows);
   if (token !== state.calendar.loadTokens[paneIdx]) return;
 
   const todayIso = msToIsoDate(Date.now());
-  const grid = els.calendarGrid;
-  grid.innerHTML = '';
 
-  // Kopfzeile: KW-Ecke plus Wochentage (Montag zuerst).
-  const corner = document.createElement('span');
-  corner.className = 'calendar-cell calendar-head calendar-week-col';
-  corner.textContent = t('calendar.weekColumn');
-  grid.appendChild(corner);
-  for (const label of weekdayLabels()) {
-    const cell = document.createElement('span');
-    cell.className = 'calendar-cell calendar-head';
-    cell.textContent = label;
-    grid.appendChild(cell);
-  }
-
-  for (const row of rows) {
-    const weekBtn = document.createElement('button');
-    weekBtn.type = 'button';
-    weekBtn.className = 'calendar-cell calendar-week-col calendar-week-btn';
-    weekBtn.textContent = String(row.week.week);
-    weekBtn.title = row.week.key;
-    weekBtn.addEventListener('click', () =>
-      openForGranularity(paneIdx, 'week', row.week.startMs, 'journal.noWeekJournalInFilter'),
-    );
-    grid.appendChild(weekBtn);
-    for (const day of row.days) {
-      const dayBtn = document.createElement('button');
-      dayBtn.type = 'button';
-      dayBtn.className = 'calendar-cell calendar-day-btn';
-      dayBtn.textContent = String(day.day);
+  // 4T-0752 (Epic 3E-0146): Kopfzeile und Zeilen-Durchlauf kommen aus dem
+  // gemeinsamen Gitter-Modul; journal-spezifisch bleiben die Zell-Inhalte,
+  // also die klickbare Kalenderwoche und der Eintrags-Punkt am Tag.
+  renderMonthGrid(els.calendarGrid, {
+    year,
+    monthIndex,
+    weekColumnLabel: t('calendar.weekColumn'),
+    weekCell: (row) => {
+      const weekBtn = document.createElement('button');
+      weekBtn.type = 'button';
+      weekBtn.className = 'calendar-cell calendar-week-col calendar-week-btn';
+      weekBtn.textContent = String(row.week.week);
+      weekBtn.title = row.week.key;
+      weekBtn.addEventListener('click', () =>
+        openForGranularity(paneIdx, 'week', row.week.startMs, 'journal.noWeekJournalInFilter'),
+      );
+      return weekBtn;
+    },
+    dayCell: (day) => {
+      const dayBtn = createDayCell(day, { todayIso });
       dayBtn.title = day.iso;
-      if (!day.inMonth) dayBtn.classList.add('other-month');
-      if (day.iso === todayIso) dayBtn.classList.add('today');
       if (dots.has(day.iso)) dayBtn.classList.add('has-entry');
       dayBtn.addEventListener('click', () =>
         openForGranularity(paneIdx, 'day', day.ms, 'journal.noDayJournalInFilter'),
       );
-      grid.appendChild(dayBtn);
-    }
-  }
+      return dayBtn;
+    },
+  });
 }
 
 // --- Sichtbarkeit, Toggle, Persistenz (Muster Notizen-Panel) ---------------------

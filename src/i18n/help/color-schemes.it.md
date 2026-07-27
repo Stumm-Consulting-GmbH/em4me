@@ -12,7 +12,7 @@ La gestione delle combinazioni si apre in Impostazioni → Combinazioni di color
 
 - **Assegnazione per modalità:** in alto si sceglie una combinazione attiva per ogni modalità (Combinazione per chiaro, Combinazione per scuro).
 - **Combinazioni incluse** sono non modificabili e fungono da modello: Standard chiaro e scuro, Alto contrasto chiaro e scuro, Seppia, oltre ad altre quattro coppie con una versione chiara e una scura ciascuna — Azzurro acciaio (freddo), Verde bosco (verde attenuato), Ambra (caldo) e Grafite (grigio neutro).
-- **Combinazione personale:** «Nuova da modello» o «Duplica» crea una copia modificabile. Una combinazione personale può essere rinominata ed eliminata; eliminando la combinazione attiva, la modalità torna alla combinazione Standard.
+- **Combinazione personale:** «Nuova da modello» o «Duplica» crea una copia modificabile. Una combinazione personale può essere rinominata ed eliminata; eliminando la combinazione attiva, la modalità torna alla combinazione predefinita.
 - **Editor degli slot:** un selettore di colore per slot; «Ripristina» riporta al valore del modello. Le modifiche hanno effetto subito in tutta l'applicazione (anteprima dal vivo) e nelle altre finestre dopo l'applicazione.
 
 L'editor modifica sempre la combinazione attiva della modalità in cui l'applicazione è in esecuzione: in modalità chiara la combinazione chiara, in modalità scura la combinazione scura. Per regolare la combinazione dell'altra modalità, si passa prima l'app a quella modalità tramite l'icona del tema nella barra di stato (o Visualizza → Tema). Così ogni modifica di colore ha effetto immediato nella modalità esatta a cui si applica (anteprima dal vivo).

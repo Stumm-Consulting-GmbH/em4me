@@ -432,9 +432,10 @@
       "tests": [
         "test/unit/clock-options.test.js",
         "test/unit/renderer/clock-panel.test.js",
-        "test/e2e/funktionen/uhr-größen.spec.js"
+        "test/e2e/funktionen/uhr-größen.spec.js",
+        "test/e2e/funktionen/uhr-kalender.spec.js"
       ],
-      "hinweis": "4T-0372 (Epic 3E-0069): Rechen-Kern (Normalisierung, Zeiger-Winkel, Zeit-/Datums-Format, Timer-Takt) als reine Unit-Tests, Panel-Aufbau und Aus-Zustand der Erweiterung als jsdom-Unit; die Zugangs-Paritaet deckt PZ-01/PZ-02 ueber panel-access.test.js und die Panel-Zugaenge-Spec ab. 4T-0636 ergaenzt die Modus-Umschaltleiste (Modell, Leisten-Aufbau, Persistenz je Spalte, Takt nur im Uhr-Modus). 4T-0679 (Epic 3E-0139) ergaenzt die Groessen-Stufe der digitalen Anzeige: Faktor-Tabelle und Setzen der CSS-Variable als Unit, wirksame Schriftgroesse und das beidseitige Beschneiden in der schmalsten Spalte als E2E (UG-01 bis UG-03)."
+      "hinweis": "4T-0372 (Epic 3E-0069): Rechen-Kern (Normalisierung, Zeiger-Winkel, Zeit-/Datums-Format, Timer-Takt) als reine Unit-Tests, Panel-Aufbau und Aus-Zustand der Erweiterung als jsdom-Unit; die Zugangs-Paritaet deckt PZ-01/PZ-02 ueber panel-access.test.js und die Panel-Zugaenge-Spec ab. 4T-0636 ergaenzt die Modus-Umschaltleiste (Modell, Leisten-Aufbau, Persistenz je Spalte, Takt nur im Uhr-Modus). 4T-0679 (Epic 3E-0139) ergaenzt die Groessen-Stufe der digitalen Anzeige: Faktor-Tabelle und Setzen der CSS-Variable als Unit, wirksame Schriftgroesse und das beidseitige Beschneiden in der schmalsten Spalte als E2E (UG-01 bis UG-03). 4T-0752 (Epic 3E-0146) ergaenzt den Monatskalender als fuenften Modus: Ansichts-Zustand und Navigations-Rechnung als Unit (clock-options.test.js), der gemeinsame Gitter-Aufbau als jsdom-Unit (renderer/month-grid-view.test.js), Modus-Taste, Blaettern, Jahres-Eingabe und Kalenderwochen-Spalte als E2E (UK-01 bis UK-04)."
     },
     {
       "key": "help.feature.clockAlarms",
@@ -457,6 +458,17 @@
         "test/e2e/funktionen/timer-stoppuhr.spec.js"
       ],
       "hinweis": "4T-0638 (Epic 3E-0069): Restzeit-Rechnung aus Zeitstempeln (inkl. Hintergrund-Sprung) und Zustands-Uebergaenge als Unit-Tests, der Weckruf-Pruefer ohne Polling ebenfalls; TS-01 bis TS-06 decken Schnellwahl, Zeilen-Aktionen, eigene Dauer, Ablauf, Stoppuhr mit Runden und den Neustart mit laufendem Timer ab."
+    },
+    {
+      "key": "help.feature.clockCalendar",
+      "id": "F-241",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/clock-options.test.js",
+        "test/unit/renderer/month-grid-view.test.js",
+        "test/e2e/funktionen/uhr-kalender.spec.js"
+      ],
+      "hinweis": "4T-0752 (Epic 3E-0146): Ansichts-Zustand und Navigations-Rechnung (Jahres-Uebertrag, Mehr-Monats-Spruenge, Klemmung an beiden Jahres-Grenzen) als reine Unit-Tests, der gemeinsame Gitter-Aufbau als jsdom-Unit; UK-01 bis UK-04 decken die fuenfte Modus-Taste, das Blaettern um Monat und Jahr samt Rueckkehr, die direkte Jahres-Eingabe ueber die Ziffern-Steuerung und die abschaltbare Kalenderwochen-Spalte ab."
     },
     {
       "key": "help.feature.outgoingLinks",
@@ -591,7 +603,7 @@
         "test/unit/color-schemes.test.js",
         "test/unit/renderer/color-schemes-apply.test.js"
       ],
-      "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-0466)."
+      "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-0466). Auslieferungs-Voreinstellung und der Einmal-Schritt beim Start: test/e2e/funktionen/voreinstellungen.spec.js (VE-01/VE-02, 4T-0751)."
     },
     {
       "key": "help.feature.events",

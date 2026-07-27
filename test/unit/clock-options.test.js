@@ -22,12 +22,20 @@ import {
   needsSecondTick,
   normalizeClockMode,
   normalizeClockOptions,
+  MIN_CALENDAR_YEAR,
+  MAX_CALENDAR_YEAR,
+  clampCalendarYear,
+  currentMonthView,
+  normalizeMonthView,
+  shiftMonthView,
 } from '../../src/shared/clock-options.js';
 
 // 4T-0636 (Epic 3E-0069): Modus-Modell der Umschaltleiste.
 describe('normalizeClockMode und clockModeKey (4T-0636)', () => {
-  it('kennt genau die vier Modi in der Leisten-Reihenfolge', () => {
-    expect(CLOCK_MODES).toEqual(['clock', 'alarm', 'timer', 'stopwatch']);
+  // 4T-0752 (Epic 3E-0146): Der Kalender haengt hinten an, die Reihenfolge
+  // der vier bestehenden Tasten bleibt unveraendert.
+  it('kennt genau die fuenf Modi in der Leisten-Reihenfolge', () => {
+    expect(CLOCK_MODES).toEqual(['clock', 'alarm', 'timer', 'stopwatch', 'calendar']);
   });
 
   it('uebernimmt gueltige Modi unveraendert', () => {
@@ -74,6 +82,8 @@ describe('normalizeClockOptions (4T-0372)', () => {
       // 4T-0637: Schlummer-Dauer des Weckers gehoert seither zum Optionen-
       // Objekt (Konfiguration, nicht Bedien-Zustand).
       snoozeMinutes: 12,
+      // 4T-0752: Kalenderwochen-Spalte des Monatskalenders.
+      showCalendarWeek: false,
     };
     expect(normalizeClockOptions(raw)).toEqual(raw);
   });
@@ -280,5 +290,80 @@ describe('formatClockDate (4T-0372)', () => {
 
   it('ein unbekanntes Sprach-Tag faellt auf die Standard-Locale zurueck', () => {
     expect(() => formatClockDate(d, { dateFormat: 'long' }, 'nicht-existent!!')).not.toThrow();
+  });
+});
+
+// 4T-0752 (Epic 3E-0146): Ansichts-Zustand und Navigation des Monatskalenders.
+// Rein rechnend, deshalb hier und nicht in einer E2E-Spec.
+describe('Monatskalender: Sicht und Navigation (4T-0752)', () => {
+  it('normalisiert eine fehlende oder defekte Sicht auf gueltige Werte', () => {
+    const jetzt = new Date(2026, 6, 27);
+    expect(normalizeMonthView(null, jetzt)).toEqual(currentMonthView(jetzt));
+    expect(normalizeMonthView({ year: 'x', monthIndex: 99 }, jetzt)).toEqual({
+      year: new Date().getFullYear(),
+      monthIndex: 6,
+    });
+    expect(normalizeMonthView({ year: 1960, monthIndex: 8 }, jetzt)).toEqual({
+      year: 1960,
+      monthIndex: 8,
+    });
+  });
+
+  it('blaettert ueber die Jahres-Grenze in beide Richtungen', () => {
+    expect(shiftMonthView({ year: 2026, monthIndex: 11 }, { months: 1 })).toEqual({
+      year: 2027,
+      monthIndex: 0,
+    });
+    expect(shiftMonthView({ year: 2026, monthIndex: 0 }, { months: -1 })).toEqual({
+      year: 2025,
+      monthIndex: 11,
+    });
+  });
+
+  it('blaettert Jahre ohne den Monat zu verschieben', () => {
+    expect(shiftMonthView({ year: 2026, monthIndex: 6 }, { years: -1 })).toEqual({
+      year: 2025,
+      monthIndex: 6,
+    });
+    expect(shiftMonthView({ year: 2026, monthIndex: 6 }, { years: 1 })).toEqual({
+      year: 2027,
+      monthIndex: 6,
+    });
+  });
+
+  it('mehrere Monate auf einmal tragen korrekt ins Jahr weiter', () => {
+    expect(shiftMonthView({ year: 2026, monthIndex: 6 }, { months: 30 })).toEqual({
+      year: 2029,
+      monthIndex: 0,
+    });
+    expect(shiftMonthView({ year: 2026, monthIndex: 6 }, { months: -30 })).toEqual({
+      year: 2024,
+      monthIndex: 0,
+    });
+  });
+
+  // Die Untergrenze liegt bei 100 und nicht bei 1, weil `new Date(y, m, d)`
+  // zweistellige Jahre auf 1900+y abbildet; unterhalb waere die Anzeige
+  // stillschweigend falsch statt bloss begrenzt.
+  it('klemmt an den Jahres-Grenzen statt in ungueltige Jahre zu laufen', () => {
+    expect(clampCalendarYear(5)).toBe(MIN_CALENDAR_YEAR);
+    expect(clampCalendarYear(100000)).toBe(MAX_CALENDAR_YEAR);
+    expect(clampCalendarYear('1960')).toBe(1960);
+    expect(shiftMonthView({ year: MIN_CALENDAR_YEAR, monthIndex: 0 }, { months: -1 })).toEqual({
+      year: MIN_CALENDAR_YEAR,
+      monthIndex: 0,
+    });
+    expect(shiftMonthView({ year: MAX_CALENDAR_YEAR, monthIndex: 11 }, { months: 1 })).toEqual({
+      year: MAX_CALENDAR_YEAR,
+      monthIndex: 11,
+    });
+  });
+
+  it('das Beispiel aus der Anforderung ist erreichbar', () => {
+    // Ein weit zurueckliegendes Jahr ueber die direkte Eingabe.
+    expect(normalizeMonthView({ year: clampCalendarYear(1960), monthIndex: 8 })).toEqual({
+      year: 1960,
+      monthIndex: 8,
+    });
   });
 });

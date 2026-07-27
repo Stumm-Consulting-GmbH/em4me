@@ -1,6 +1,6 @@
 # Tools
 
-Nine helpers for daily text work: linter, search, search and replace, table editor, PDF export, command palette, date and time entry, clock with alarms, timer and stopwatch, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
+Nine helpers for daily text work: linter, search, search and replace, table editor, PDF export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
 
 ## Markdown linter
 
@@ -89,9 +89,9 @@ Recognition deliberately also catches hand-typed values: every date and time in 
 
 This function belongs to the switchable extension "Date and time entry" (Settings → Extensions). When it is switched off, the commands, typing trigger and click decoration are gone; the values stay plain text. The formats match the date markers of the task lists, so both functions share the same notation.
 
-## Clock, alarms, timer and stopwatch
+## Clock, alarms, timer, stopwatch and calendar
 
-A sidebar panel shows the time as an analog clock, as a digital readout and with a date line; size, dial style, second hand, hour and date format as well as the calendar week can be chosen in the settings. A bar at the top of the panel switches between four views: clock, alarm, timer and stopwatch. The choice applies per sidebar column and survives a restart.
+A sidebar panel shows the time as an analog clock, as a digital readout and with a date line; size, dial style, second hand, hour and date format as well as the calendar week can be chosen in the settings. A bar at the top of the panel switches between five views: clock, alarm, timer, stopwatch and calendar. The choice applies per sidebar column and survives a restart.
 
 ### Size
 
@@ -110,6 +110,14 @@ A due alarm shows a notice that can be confirmed or snoozed by a configurable du
 The timer mode lists the timers with remaining time and a progress bar. Three buttons start common durations right away, custom durations come from a control for hours, minutes and seconds. Start, pause and reset act per timer. The remaining time is computed from timestamps rather than counted down: a timer therefore keeps running correctly even if the window was in the background or the app was closed in between. An elapsed timer shows a notice and can be confirmed or started again.
 
 The stopwatch counts up, with hundredths. Besides start, pause and reset it records lap times; the most recent lap is on top.
+
+### Month calendar
+
+The calendar mode shows a month as a grid: weekdays in the header, Monday first, the current day highlighted, days of the neighbouring months dimmed. The calendar-week column on the left can be switched off and on again in the settings under "Calendar".
+
+The navigation sits above the table. The single arrows page one month, the double ones one year; "Today" returns to the current month. Clicking the month label opens the year entry: four digit positions that can be stepped with the arrow keys, switched with left and right and set directly by typing digits. An invalid year cannot be entered, and Enter or the check mark applies it.
+
+The days are display only. The calendar is for looking things up, such as the question which weekday a distant date falls on; it does not lead into journals or appointments. The journals' calendar panel is there for that.
 
 ### Limit
 

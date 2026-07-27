@@ -210,6 +210,10 @@ export const state = {
   clock: {
     visibleByPane: [false, false],
     modeByPane: ['clock', 'clock'],
+    // 4T-0752 (Epic 3E-0146): angezeigter Monat des Kalender-Modus je Spalte
+    // als { year, monthIndex }. Bedien-Zustand ohne Persistenz (Muster
+    // state.calendar.monthByPane); null bedeutet "laufender Monat".
+    monthByPane: [null, null],
   },
   // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel pro Spalte. Tiefe (1..5) und
   // Richtung ('both'|'in'|'out') sind Sitzungs-Zustand ohne Persistenz

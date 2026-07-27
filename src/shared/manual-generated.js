@@ -273,6 +273,9 @@ const HELP_FEATURE_GROUPS = [
       // schließen direkt an die Uhr an.
       'help.feature.clockAlarms',
       'help.feature.clockTimers',
+      // 4T-0752 (Epic 3E-0146): Monatskalender als fuenfter Modus, direkt
+      // hinter den uebrigen Zeit-Werkzeugen des Panels.
+      'help.feature.clockCalendar',
       // 4T-0028 (Render-Lift 0.10.0): drei neue Features im Render-Pane.
       'help.feature.codeHighlight',
       'help.feature.katex',

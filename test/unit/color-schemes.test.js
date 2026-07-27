@@ -12,10 +12,13 @@ import {
   COLOR_SLOTS,
   SLOT_IDS,
   BUILTIN_SCHEMES,
-  STANDARD_LIGHT_ID,
-  STANDARD_DARK_ID,
+  DEFAULT_LIGHT_ID,
+  DEFAULT_DARK_ID,
+  PREVIOUS_DEFAULT_LIGHT_ID,
+  PREVIOUS_DEFAULT_DARK_ID,
   ACCENT_SOFT_VAR,
   defaultState,
+  startupSchemeState,
   normalizeState,
   isValidColor,
   isBuiltinId,
@@ -56,8 +59,11 @@ function extractCssBlock(css, startMarker) {
   return out;
 }
 
-const standardLight = BUILTIN_SCHEMES.find((s) => s.id === STANDARD_LIGHT_ID);
-const standardDark = BUILTIN_SCHEMES.find((s) => s.id === STANDARD_DARK_ID);
+// Bewusst über die literalen IDs: Diese beiden Prüfungen gelten dem
+// Standard-Schema als solchem (Gleichheit mit der Basis-Palette) und nicht
+// dem jeweils voreingestellten Schema.
+const standardLight = BUILTIN_SCHEMES.find((s) => s.id === 'standard-light');
+const standardDark = BUILTIN_SCHEMES.find((s) => s.id === 'standard-dark');
 const contrastLight = BUILTIN_SCHEMES.find((s) => s.id === 'contrast-light');
 
 describe('color-schemes: Slot-Integrität', () => {
@@ -263,7 +269,7 @@ describe('color-schemes: Verwaltungs-Funktionen', () => {
     expect(s.activeLight).toBe('c1');
     s = deleteCustomScheme(s, 'c1');
     expect(s.custom).toHaveLength(0);
-    expect(s.activeLight).toBe(STANDARD_LIGHT_ID);
+    expect(s.activeLight).toBe(DEFAULT_LIGHT_ID);
   });
 
   it('duplicate erzeugt eine unabhängige Custom-Kopie', () => {
@@ -289,17 +295,17 @@ describe('color-schemes: Verwaltungs-Funktionen', () => {
   it('setActiveScheme prüft den Basis-Modus', () => {
     let s = addCustomScheme(defaultState(), { id: 'cd', name: 'D', templateId: 'standard-dark' });
     s = setActiveScheme(s, 'light', 'cd');
-    expect(s.activeLight).toBe(STANDARD_LIGHT_ID);
+    expect(s.activeLight).toBe(DEFAULT_LIGHT_ID);
     s = setActiveScheme(s, 'dark', 'cd');
     expect(s.activeDark).toBe('cd');
   });
 
-  it('getActiveScheme mit Fallback auf Standard', () => {
+  it('getActiveScheme mit Fallback auf die Voreinstellung', () => {
     const s = defaultState();
-    expect(getActiveScheme(s, 'light').id).toBe(STANDARD_LIGHT_ID);
-    expect(getActiveScheme(s, 'dark').id).toBe(STANDARD_DARK_ID);
+    expect(getActiveScheme(s, 'light').id).toBe(DEFAULT_LIGHT_ID);
+    expect(getActiveScheme(s, 'dark').id).toBe(DEFAULT_DARK_ID);
     const broken = { custom: [], activeLight: 'ghost', activeDark: 'ghost' };
-    expect(getActiveScheme(broken, 'light').id).toBe(STANDARD_LIGHT_ID);
+    expect(getActiveScheme(broken, 'light').id).toBe(DEFAULT_LIGHT_ID);
   });
 });
 
@@ -322,12 +328,64 @@ describe('color-schemes: normalizeState', () => {
     });
     expect(s.custom).toHaveLength(1);
     expect(s.custom[0].colors).toEqual({ accent: '#123456' });
-    expect(s.activeLight).toBe(STANDARD_LIGHT_ID);
+    expect(s.activeLight).toBe(DEFAULT_LIGHT_ID);
     expect(s.activeDark).toBe('ok');
   });
 
   it('leerer oder kaputter Input ergibt den Default-Zustand', () => {
     expect(normalizeState(undefined)).toEqual(defaultState());
     expect(normalizeState({})).toEqual(defaultState());
+  });
+});
+
+// 4T-0751 (Epic 3E-0146): Auslieferungs-Voreinstellung und der Einmal-Schritt
+// beim Start. Die IDs stehen hier bewusst als Literale und nicht nur über die
+// Konstanten: Sonst prüfte der Test die Konstante gegen sich selbst und ein
+// stiller Wert-Drift bliebe unbemerkt.
+describe('color-schemes: Auslieferungs-Voreinstellung (4T-0751)', () => {
+  it('Voreinstellung und Rückfall zeigen auf Bernstein', () => {
+    expect(DEFAULT_LIGHT_ID).toBe('amber-light');
+    expect(DEFAULT_DARK_ID).toBe('amber-dark');
+    expect(defaultState()).toEqual({
+      custom: [],
+      activeLight: 'amber-light',
+      activeDark: 'amber-dark',
+    });
+    // Der Rückfall bei unbekanntem Verweis wandert mit (Entscheidung des
+    // Product Owners vom 2026-07-27).
+    const broken = { custom: [], activeLight: 'ghost', activeDark: 'ghost' };
+    expect(getActiveScheme(broken, 'light').id).toBe('amber-light');
+    expect(getActiveScheme(broken, 'dark').id).toBe('amber-dark');
+    expect(normalizeState({ activeLight: 'ghost', activeDark: 'ghost' })).toEqual(defaultState());
+  });
+
+  it('die abgelösten Standard-Schemas bleiben als Vorlagen erhalten', () => {
+    expect(PREVIOUS_DEFAULT_LIGHT_ID).toBe('standard-light');
+    expect(PREVIOUS_DEFAULT_DARK_ID).toBe('standard-dark');
+    expect(BUILTIN_SCHEMES.some((s) => s.id === 'standard-light')).toBe(true);
+    expect(BUILTIN_SCHEMES.some((s) => s.id === 'standard-dark')).toBe(true);
+  });
+
+  it('startupSchemeState: bestehende Installation wird auf Standard festgeschrieben', () => {
+    expect(startupSchemeState({ hasStoredState: false, hasUsageTraces: true })).toEqual({
+      custom: [],
+      activeLight: 'standard-light',
+      activeDark: 'standard-dark',
+    });
+  });
+
+  it('startupSchemeState: frische Installation bekommt Bernstein', () => {
+    expect(startupSchemeState({ hasStoredState: false, hasUsageTraces: false })).toEqual(
+      defaultState(),
+    );
+  });
+
+  // Der Kern der Falle: Weil auch die frische Installation schreibt, existiert
+  // der Key ab dem ersten Start. Ein zweiter Start mit inzwischen gefüllter
+  // Datei-Liste darf die frische Installation nicht nachträglich auf Standard
+  // festschreiben.
+  it('startupSchemeState: vorhandener Stand wird nie überschrieben', () => {
+    expect(startupSchemeState({ hasStoredState: true, hasUsageTraces: true })).toBeNull();
+    expect(startupSchemeState({ hasStoredState: true, hasUsageTraces: false })).toBeNull();
   });
 });

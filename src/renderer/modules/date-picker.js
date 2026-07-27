@@ -21,8 +21,11 @@ import { Decoration, EditorView, ViewPlugin } from '@codemirror/view';
 // 4T-0641 (Epic 3E-0069): Fence-Sprache am Cursor bestimmen (Ausnahme der
 // Perspective-Tabellen vom Code-Ausschluss).
 import { syntaxTree } from '@codemirror/language';
-import { getLanguage, t } from '../i18n.js';
-import { monthGrid, msToIsoDate } from '../../shared/journal-core.js';
+import { t } from '../i18n.js';
+import { msToIsoDate } from '../../shared/journal-core.js';
+// 4T-0752 (Epic 3E-0146): gemeinsamer Gitter-Aufbau, geteilt mit dem
+// Kalender-Panel der Journale und dem Kalender-Modus der Uhr.
+import { createDayCell, monthLabel, renderMonthGrid } from './month-grid-view.js';
 import {
   isValidIsoDate,
   isValidTime,
@@ -487,57 +490,34 @@ function shiftView(delta) {
   renderCalendar();
 }
 
-// Wochentags-Kopf lokalisiert ueber Intl in der App-Sprache; Referenz ist
-// eine bekannte Montag-Woche (Muster calendar-panel.js).
-function weekdayLabels() {
-  const format = new Intl.DateTimeFormat(getLanguage(), { weekday: 'short' });
-  const labels = [];
-  for (let i = 0; i < 7; i++) {
-    labels.push(format.format(new Date(2024, 0, 1 + i)));
-  }
-  return labels;
-}
-
 function renderCalendar() {
-  els.monthLabel.textContent = new Intl.DateTimeFormat(getLanguage(), {
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(session.viewYear, session.viewMonthIndex, 1, 12));
+  els.monthLabel.textContent = monthLabel(session.viewYear, session.viewMonthIndex);
 
-  const grid = els.grid;
-  grid.innerHTML = '';
-  const corner = document.createElement('span');
-  corner.className = 'calendar-cell calendar-head calendar-week-col';
-  corner.textContent = t('calendar.weekColumn');
-  grid.appendChild(corner);
-  for (const label of weekdayLabels()) {
-    const cell = document.createElement('span');
-    cell.className = 'calendar-cell calendar-head';
-    cell.textContent = label;
-    grid.appendChild(cell);
-  }
-  for (const row of monthGrid(session.viewYear, session.viewMonthIndex)) {
-    const weekCell = document.createElement('span');
-    weekCell.className = 'calendar-cell calendar-week-col date-picker-week';
-    weekCell.textContent = String(row.week.week);
-    grid.appendChild(weekCell);
-    for (const day of row.days) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'calendar-cell calendar-day-btn date-picker-day';
-      btn.textContent = String(day.day);
+  // 4T-0752 (Epic 3E-0146): Kopfzeile und Zeilen-Durchlauf kommen aus dem
+  // gemeinsamen Gitter-Modul; picker-spezifisch bleiben Auswahl-Zustand,
+  // Sperre und der Klick auf einen Tag.
+  renderMonthGrid(els.grid, {
+    year: session.viewYear,
+    monthIndex: session.viewMonthIndex,
+    weekColumnLabel: t('calendar.weekColumn'),
+    weekCell: (row) => {
+      const weekCell = document.createElement('span');
+      weekCell.className = 'calendar-cell calendar-week-col date-picker-week';
+      weekCell.textContent = String(row.week.week);
+      return weekCell;
+    },
+    dayCell: (day) => {
+      const btn = createDayCell(day, { todayIso: session.todayIso, className: 'date-picker-day' });
       btn.dataset.iso = day.iso;
-      if (!day.inMonth) btn.classList.add('other-month');
-      if (day.iso === session.todayIso) btn.classList.add('today');
       if (day.iso === session.selectedIso) btn.classList.add('selected');
       btn.disabled = !session.dateEnabled;
       btn.addEventListener('click', () => {
         if (!session || !session.dateEnabled) return;
         selectDate(day.iso);
       });
-      grid.appendChild(btn);
-    }
-  }
+      return btn;
+    },
+  });
 }
 
 function focusSelectedDay() {

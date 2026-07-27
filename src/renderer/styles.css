@@ -8559,7 +8559,9 @@ button.pev-link-jump:hover {
    Sektions-Header und Body, weil der Header in einer Reiter-Gruppe
    ausgeblendet ist und der Body scrollt; so bleibt sie in jeder Anordnung
    sichtbar und fest. Zentriert wie der uebrige Uhr-Inhalt (PO-Festlegung
-   2026-07-20); vier Tasten a 28 px passen auch in die schmalste Sidebar. */
+   2026-07-20). 4T-0752: mit dem Kalender sind es fuenf Tasten a 28 px, also
+   5*28 + 4*4 Abstand + 12 Innenabstand = 168 px; die schmalste Sidebar misst
+   180 px, die Leiste passt damit weiterhin ohne Umbruch. */
 .clock-modes {
   display: flex;
   justify-content: center;
@@ -8601,6 +8603,103 @@ button.pev-link-jump:hover {
   color: var(--fg-muted);
   font-style: italic;
   text-align: center;
+}
+
+/* 4T-0752 (Epic 3E-0146): Kalender-Modus der Uhr. Das Gitter selbst nutzt die
+   Klassen des Journal-Kalenders (.calendar-grid, .calendar-cell), damit beide
+   Darstellungen nicht auseinanderlaufen; hier stehen nur Navigation,
+   Jahres-Eingabe und die abschaltbare Kalenderwochen-Spalte.
+   Anders als die Uhr-Anzeige folgt der Kalender NICHT dem Schrift-Faktor der
+   Groessen-Stufe: Ein Gitter aus acht Spalten wuerde in Stufe "Gross" seitlich
+   beschnitten, und ein beschnittenes Gitter ist unbrauchbar statt nur klein
+   (Grundsatz aus 3E-0139 gilt fuer einzeilige Anzeigen). */
+.clock-calendar {
+  width: 100%;
+  padding: 4px 4px 8px;
+}
+.clock-calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.clock-cal-nav-btn,
+.clock-cal-label,
+.clock-cal-today,
+.clock-cal-year-ok {
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.clock-cal-label {
+  color: var(--fg);
+  font-weight: 600;
+  flex: 1 1 auto;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.clock-cal-nav-btn:hover,
+.clock-cal-label:hover,
+.clock-cal-today:hover,
+.clock-cal-year-ok:hover {
+  color: var(--fg);
+  background: var(--hover);
+}
+.clock-cal-year {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+/* Die Jahres-Eingabe wird per hidden-Attribut zugeklappt; das display: flex
+   oben schlaegt sonst die [hidden]-UA-Regel (Muster der Statusbar-Buttons
+   aus 4T-0295). Ohne diesen Guard blieb sie nach dem Uebernehmen stehen. */
+.clock-cal-year[hidden] {
+  display: none;
+}
+.clock-cal-year-digit {
+  min-width: 15px;
+  padding: 2px 3px;
+  text-align: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.clock-cal-year-digit.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+/* Ohne Kalenderwochen-Spalte traegt das Gitter sieben statt acht Spalten. */
+.clock-calendar-grid.no-week-col {
+  grid-template-columns: repeat(7, 1fr);
+}
+/* Tage sind reine Anzeige (kein Klick-Ziel), deshalb ohne Zeiger-Cursor und
+   ohne Hover-Flaeche. Die Zustands-Klassen .other-month und .today kommen
+   bewusst unveraendert vom Journal-Kalender: Der heutige Tag soll in beiden
+   Kalendern gleich aussehen. Der Platz fuer den Eintrags-Punkt entfaellt, den
+   gibt es hier nicht. */
+.clock-cal-day {
+  cursor: default;
+  padding-bottom: 4px;
+}
+.clock-cal-day:hover {
+  background: transparent;
+}
+.clock-cal-today {
+  display: block;
+  margin: 6px auto 0;
 }
 
 /* 4T-0637 (Epic 3E-0069): Wecker-Liste im Panel. Die Zeile bleibt bis zur

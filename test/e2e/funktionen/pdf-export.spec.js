@@ -96,9 +96,23 @@ function pdfMediaBox(buffer) {
   return m ? [parseFloat(m[1]), parseFloat(m[2])] : null;
 }
 
+// 4T-0751 (Epic 3E-0146): Die Auslieferungs-Voreinstellung ist seither
+// Bernstein, und der Druck folgt dem aktiven HELL-Schema. Die Positiv-
+// Kontrolle unten haengt an der Textfarbe des Standard-Schemas (#1f1f1f),
+// deshalb setzt dieser Fall das Schema ausdruecklich. Geprueft wird hier der
+// Dark-Rest, nicht die Voreinstellung; dass der Druck der Voreinstellung
+// folgt, deckt test/unit/renderer/color-schemes-apply.test.js ab.
+const STANDARD_SCHEMES = {
+  language: 'de',
+  colorSchemes: { custom: [], activeLight: 'standard-light', activeDark: 'standard-dark' },
+};
+
 test.describe('PD-01: Export aus dem Dark-Theme (mehrseitig, ohne Dark-Reste)', () => {
   test('PDF entsteht, hat mehrere Seiten und keine Dark-Fuellfarben', async () => {
-    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    const { app, page, userData } = await launchApp({
+      args: [FIXTURE],
+      settings: STANDARD_SCHEMES,
+    });
     const target = tmpPdfPath('dark');
     try {
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
