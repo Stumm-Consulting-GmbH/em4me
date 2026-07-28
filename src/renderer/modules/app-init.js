@@ -284,6 +284,9 @@ import { initHistoryPage, openHistoryPageForActiveTab } from './history-page.js'
 // 4T-0455 (Epic 3E-0084): Bereichs-Graph-Tab — Registrierung explizit über
 // initGraphTab (kein Modul-Seiteneffekt, Muster history-page.js).
 import { initGraphTab, openAreaGraphTab } from './graph-tab.js';
+// 4T-0620 (Epic 3E-0117): Bereichs-Statistik als System-Seite; Registrierung
+// ueber initAreaStatsPage (kein Modul-Seiteneffekt, Muster graph-tab.js).
+import { initAreaStatsPage, openAreaStatsPage } from './area-stats-page.js';
 // 4T-0480 (Epic 3E-0089): Kommando-Palette; initCommandPalette injiziert den
 // Ausfuehrungs-Pfad ueber die commandHandlers-Map (Zyklus-Vermeidung).
 import { initCommandPalette, showCommandPalette } from './command-palette.js';
@@ -1400,6 +1403,12 @@ export const commandHandlers = {
   'help.open': () => {
     openManualPage('overview');
   },
+  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik. Der Eintrag hier ist der
+  // Ausfuehrungs-Pfad fuer Kommando-Palette, belegtes Kuerzel und
+  // Statusbar-Platzierung; der Menue-Weg laeuft ueber seinen eigenen Kanal.
+  'stats.openArea': () => {
+    openAreaStatsPage();
+  },
 };
 
 // Map normalisiertes Binding -> Kommando-ID. Wird beim Start aus Registry
@@ -1814,6 +1823,8 @@ export async function init() {
   initHistoryPage();
   // 4T-0455 (Epic 3E-0084): Bereichs-Graph-Seite registrieren.
   initGraphTab();
+  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik-Seite registrieren.
+  initAreaStatsPage();
   // 4T-0480 (Epic 3E-0089): Kommando-Palette — Ausfuehrungs-Pfad injizieren
   // (global dispatchte Kommandos laufen ueber die commandHandlers-Map).
   initCommandPalette({
@@ -2498,6 +2509,11 @@ export function bindUi() {
   // Historien-Ansicht des aktiven Dokuments.
   if (typeof api.onMenuOpenHistory === 'function') {
     api.onMenuOpenHistory(() => openHistoryPageForActiveTab());
+  }
+  // 4T-0620 (Epic 3E-0117): Ansicht -> Bereichs-Statistik oeffnet die
+  // Kennzahlen-Seite (und erhebt bei bereits offener Seite neu).
+  if (typeof api.onMenuOpenAreaStats === 'function') {
+    api.onMenuOpenAreaStats(() => openAreaStatsPage());
   }
   // 4T-0455 (Epic 3E-0084): Ansicht -> Bereichs-Graph oeffnet den Graph-Tab.
   if (typeof api.onMenuOpenAreaGraph === 'function') {

@@ -96,6 +96,14 @@ Dans une application de zone, l'espace de recherche des rétroliens, des tags, d
 
 Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre latérale (ancrable à gauche ou à droite comme tout panneau ; le commutateur est l'icône de dossier dans la barre d'état ou Affichage → Panneaux → Zone) : l'arborescence en haut, en dessous les fichiers Markdown du dossier sélectionné ; les autres types de fichiers n'apparaissent pas. Un clic sur un fichier l'ouvre comme onglet, toutes les entrées affichent le chemin complet en info-bulle, et les modifications externes (fichier créé, supprimé, renommé) apparaissent automatiquement. Le bouton « + » en tête de la liste crée un nouveau fichier Markdown dans le dossier sélectionné et l'ouvre. Dans une application de zone fraîchement ouverte et encore vide, le panneau est visible automatiquement.
 
+### Statistiques de la zone
+
+« Affichage → Statistiques de la zone » ouvre une page d'indicateurs de la zone ouverte dans un onglet dédié ; le même point d'entrée se trouve dans le menu contextuel du panneau de zone. La page est en lecture seule et présente six sections : **Fichiers et espace occupé** (fichiers Markdown et non Markdown répartis en images, PDF et autres, nombre de dossiers, espace occupé avec ses parts), **Propriétés** et **Tags** (le nombre de fichiers par entrée, triable par nom ou par nombre), **Fichiers d'accompagnement** (le `.mdd` de chaque document et les fichiers de zone `.mdda`), **Contenu** (tâches par état, liens wiki et Markdown, alias, fichiers sans lien entrant) et **Fichiers remarquables** (les plus volumineux, les plus récemment modifiés et les plus liés). Un clic sur un nom de fichier dans ces trois dernières listes ouvre le fichier.
+
+Ce sont les **fichiers qui sont comptés, non les occurrences** : si le tag `#projet` affiche 180, cela signifie que 180 fichiers portent ce tag ; sa fréquence dans le texte n'est pas indiquée. Les listes longues commencent par 25 lignes et se déplient entièrement.
+
+Les chiffres portent en haut un horodatage et sont calculés **à la demande**, non en continu : le bouton « Actualiser » les recalcule, tout comme un nouvel appel de l'entrée de menu. Sans zone ouverte, il n'y a pas d'ensemble de fichiers délimité ; l'entrée est alors grisée. La fonction peut être désactivée en tant qu'extension « Statistiques de la zone ».
+
 ### Zones récentes
 
 « Fichier → Zones récentes » liste les zones récemment ouvertes par leur nom de dossier. Un clic ouvre la zone selon les règles habituelles. Les zones sont restaurées avec la session ; si un dossier de zone manque au démarrage, l'application correspondante n'est pas restaurée et un avis s'affiche.

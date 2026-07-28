@@ -7380,6 +7380,147 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   border-bottom: 1px dashed var(--border);
 }
 
+/* === Bereichs-Statistik (4T-0620, Epic 3E-0117) =========================== */
+/* Read-only System-Seite: Kopfzeile mit Stand und Aktualisieren-Knopf,
+   darunter sechs Abschnitte. Optik und Variablen wie die Historien-Seite. */
+.area-stats-page {
+  padding: 16px 20px;
+  max-width: 920px;
+  font-size: 13px;
+}
+.area-stats-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.area-stats-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.area-stats-head-right {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.area-stats-stand {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.area-stats-refresh,
+.area-stats-more {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.area-stats-refresh:hover:not(:disabled),
+.area-stats-more:hover {
+  background: var(--hover);
+}
+.area-stats-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.area-stats-note {
+  color: var(--fg-muted);
+  margin: 8px 0;
+}
+.area-stats-error {
+  color: #c0392b;
+}
+[data-theme='dark'] .area-stats-error {
+  color: #ff7b72;
+}
+.area-stats-section {
+  margin: 18px 0 0;
+}
+.area-stats-section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.area-stats-count {
+  margin: 0 0 6px;
+  color: var(--fg-muted);
+}
+.area-stats-empty {
+  color: var(--fg-muted);
+  margin: 4px 0;
+}
+.area-stats-figures,
+.area-stats-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.area-stats-figures td,
+.area-stats-table th,
+.area-stats-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 3px 8px;
+  text-align: left;
+}
+.area-stats-table th {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.area-stats-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.area-stats-sortable:hover {
+  background: var(--hover);
+}
+.area-stats-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.area-stats-sub {
+  padding-left: 24px;
+  color: var(--fg-muted);
+}
+.area-stats-more {
+  margin-top: 8px;
+}
+/* Die drei Top-Listen stehen nebeneinander, solange die Spalte breit genug
+   ist, und brechen darunter untereinander um. */
+.area-stats-tops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.area-stats-top {
+  flex: 1 1 240px;
+  min-width: 220px;
+}
+.area-stats-top-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.area-stats-file {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+.area-stats-file:hover {
+  text-decoration: underline;
+}
+
 /* 4T-0404 (Epic 3E-0076): Tabellen-Ausgabe der Perspective-Abfrage. Die
    Tabelle erbt die Standard-Tabellen-Optik der gerenderten Ansicht
    (.markdown-body table); hier nur Abstaende. Das LIST-Zusatzfeld haengt

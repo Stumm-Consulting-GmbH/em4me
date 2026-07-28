@@ -9,6 +9,57 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.98.0.1032] - 2026-07-28 — Bereichs-Statistik
+
+Epic 3E-0117: Für den geöffneten Bereich lässt sich eine Kennzahlen-Seite als
+eigener, nicht änderbarer Reiter öffnen. Sie beantwortet Fragen, die bisher nur
+über den Datei-Explorer und Handarbeit zu beantworten waren: Wie viel liegt in
+diesem Bereich, wie oft sind Eigenschaften und Tags in Gebrauch, wie viele
+Aufgaben stehen offen, und welche Dateien fallen aus dem Rahmen.
+
+### Neu
+
+- **Bereichs-Statistik als eigener Reiter** (4T-0620): Zugang über Ansicht →
+  Bereichs-Statistik, das Kontextmenü des Bereichs-Panels und das Kommando
+  `stats.openArea` (ohne Standard-Kürzel, über die Einstellungen belegbar).
+  Sechs Abschnitte: Dateien und Speicher, Eigenschaften, Tags, Begleitdateien,
+  Inhalte und Auffälligkeiten. Die Häufigkeits-Tabellen sind nach Name oder
+  Anzahl sortierbar und zeigen zunächst 25 Zeilen; die Dateinamen der drei
+  Top-Listen öffnen die Datei per Klick. Eine Instanz pro Fenster, erneutes
+  Öffnen aktiviert den bestehenden Reiter und erhebt neu.
+- **Kennzahlen-Erhebung im Hauptprozess** (4T-0619): `statsFor` im Bereichs-
+  Index liefert alles, was der Index ohnehin führt (Markdown-Zahlen, Tags,
+  Eigenschaften, Aufgaben nach Zustand, Verweise, Aliase, Datei-Zeiten); das
+  neue Modul `src/main/area-stats.js` ergänzt per Ordner-Scan, was der Index
+  nicht kennt (Ordner-Anzahl, Nicht-Markdown-Dateien nach Bildern, PDF und
+  Sonstigem, `.mdd`- und `.mdda`-Begleitdateien) und führt beides zusammen.
+  Der Scan läuft asynchron in Häppchen und nur auf Anforderung; die Zahlen
+  tragen einen Stand-Zeitstempel.
+- **Erweiterung „Bereichs-Statistik"** (4T-0620): abschaltbar in den
+  Einstellungen unter „Werkzeuge"; im Aus-Zustand entfallen Kommando,
+  Menü-Eintrag und Kontextmenü-Eintrag.
+
+### Geändert
+
+- **Kontextmenü des Bereichs-Panels trägt zwei unabhängige Einträge**
+  (4T-0620): Bereichs-Graph und Bereichs-Statistik erscheinen je nach Zustand
+  ihrer eigenen Erweiterung; bisher hing das Menü an genau einer.
+
+### Dokumentation
+
+- **Hilfe-Inhalte erweitert** (4T-0620, 4T-0621): 54 neue Übersetzungs-Schlüssel
+  in je fünf Sprachen (50 für die Seite selbst, dazu Menü-Eintrag,
+  Kommando-Beschreibung, Katalog-Name und Zugang), ein neuer Eintrag im
+  Funktions-Katalog in der Navigations-Gruppe und der neue Abschnitt
+  „Bereichs-Statistik" auf der Handbuch-Seite „Applikationen, Fenster und
+  Bereiche" in fünf Fassungen.
+
+### Tests
+
+- Neun Unit-Fälle für die Erhebung gegen ein nachgerechnetes Fixture-Verzeichnis
+  und drei für die Erweiterungs-Registrierung, sechs neue E2E-Fälle (BS-01 bis
+  BS-06), dazu zwei Einträge in der Abdeckungs-Matrix (S-118, F-245).
+
 ## [0.97.0.1021] - 2026-07-28 — Unterseiten umbenennen und lösen
 
 Epic 3E-0128: Beim Umbenennen einer Unterseite ist nur noch ihr eigener

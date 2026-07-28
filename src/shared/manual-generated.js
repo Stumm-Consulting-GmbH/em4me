@@ -324,6 +324,10 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0437 (Epic 3E-0081): Kalender-Panel der Journale, direkt hinter
       // dem Bereichs-Panel (beide bereichsgebundene Einstiegs-Panels).
       'help.feature.journalCalendar',
+      // 4T-0621 (Epic 3E-0117): Bereichs-Statistik schliesst den Block der
+      // bereichsgebundenen Eintraege ab — sie wertet genau den Datei-Raum
+      // aus, den die Eintraege davor eroeffnen und anzeigen.
+      'help.feature.areaStats',
       'help.feature.outline',
       'help.feature.backlinks',
       // 4T-0073 (Epic 3E-0013): Outgoing-Links-Sidebar.

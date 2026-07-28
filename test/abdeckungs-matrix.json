@@ -2199,6 +2199,24 @@
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-einklappen.spec.js"],
       "hinweis": "4T-0697 (Epic 3E-0141): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Rechte Sidebar einklappen' (Menue-/Paletten-Weg, belegbar) — SC-01 deckt das rechte, gespiegelte Kopf-Icon ab, SC-05 den gleichartigen Menue-Kommando-Weg der linken Spalte; Setter/Toggle-Zustand und globale Speicherung zusaetzlich unit-getestet (sidebar-collapse.test.js)."
+    },
+    {
+      "key": "help.shortcut.areaStats",
+      "id": "S-118",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/bereichs-statistik.spec.js"],
+      "hinweis": "4T-0620 (Epic 3E-0117): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Bereichs-Statistik' (Menue-/Paletten-Weg, belegbar) — BS-01 oeffnet die Seite ueber den Menue-Kanal, BS-02 prueft die Tab-Wiederverwendung, BS-04 den Hinweis ohne Bereich."
+    },
+    {
+      "key": "help.feature.areaStats",
+      "id": "F-245",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/bereichs-statistik.spec.js",
+        "test/unit/area-stats.test.js",
+        "test/unit/area-stats-extension.test.js"
+      ],
+      "hinweis": "4T-0619/4T-0620 (Epic 3E-0117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet."
     }
   ]
 }

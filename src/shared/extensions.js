@@ -306,6 +306,19 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.linter',
     descKey: 'help.feature.linter',
   },
+  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als schaltbares Zusatz-
+  // Werkzeug (Erweiterungs-Pruefschritt des Epics). Ein Katalog-Eintrag
+  // steht ihr gegenueber, deshalb die help.*-Keys statt eigener
+  // extension.*-Keys (Muster linter, bookmarks). Im Aus-Zustand entfallen
+  // Kommando, Menue-Eintrag, Kontextmenue-Eintrag des Bereichs-Panels und
+  // der Eintrag der generierten Tastenkuerzel-Seite.
+  {
+    id: 'area-stats',
+    category: 'tools',
+    nameKey: 'help.featureName.areaStats',
+    descKey: 'help.feature.areaStats',
+    commands: ['stats.openArea'],
+  },
   {
     id: 'bookmarks',
     category: 'tools',

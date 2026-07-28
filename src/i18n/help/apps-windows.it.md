@@ -96,6 +96,14 @@ In un'applicazione di area, lo spazio di ricerca per backlink, tag, completament
 
 Il pannello «Area» mostra l'area come struttura di cartelle nella barra laterale (agganciabile a sinistra o a destra come ogni pannello; l'interruttore è l'icona della cartella nella barra di stato o Visualizza → Pannelli → Area): l'albero delle cartelle in alto e sotto i file Markdown della cartella selezionata; gli altri tipi di file non compaiono. Un clic su un file lo apre come scheda, tutte le voci mostrano il percorso completo come suggerimento e le modifiche esterne (file creato, eliminato, rinominato) compaiono automaticamente. Il pulsante «+» in testa all'elenco crea un nuovo file Markdown nella cartella selezionata e lo apre. In un'applicazione di area appena aperta e ancora vuota il pannello è visibile automaticamente.
 
+### Statistiche dell'area
+
+«Visualizza → Statistiche dell'area» apre una pagina di indicatori dell'area aperta come scheda dedicata; lo stesso punto di accesso si trova nel menu contestuale del pannello dell'area. La pagina è di sola lettura e mostra sei sezioni: **File e spazio occupato** (file Markdown e non Markdown suddivisi in immagini, PDF e altri, numero di cartelle, spazio occupato con le sue quote), **Proprietà** e **Tag** (il numero di file per voce, ordinabile per nome o per numero), **File di accompagnamento** (il `.mdd` di ogni documento e i file dell'area `.mdda`), **Contenuto** (attività per stato, collegamenti wiki e Markdown, alias, file senza collegamenti in entrata) e **File notevoli** (i più grandi, i modificati più di recente e i più collegati). Un clic su un nome di file in queste ultime tre liste apre il file.
+
+Si contano **file, non occorrenze**: se il tag `#progetto` mostra 180, allora 180 file portano quel tag; quante volte compaia nel loro testo non viene indicato. Gli elenchi lunghi iniziano con 25 righe e si possono espandere per intero.
+
+I numeri portano in alto un riferimento temporale e vengono calcolati **su richiesta**, non di continuo: il pulsante «Aggiorna» li ricalcola, così come una nuova chiamata della voce di menu. Senza un'area aperta non esiste un insieme di file delimitato; la voce è allora disattivata. La funzione si può disattivare come estensione «Statistiche dell'area».
+
 ### Aree recenti
 
 «File → Aree recenti» elenca le aree aperte di recente con il nome della cartella. Un clic apre l'area con le consuete regole. Le aree vengono ripristinate con la sessione; se all'avvio manca una cartella di area, l'applicazione corrispondente non viene ripristinata e viene mostrato un avviso.

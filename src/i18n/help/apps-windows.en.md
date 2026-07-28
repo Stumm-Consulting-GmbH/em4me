@@ -96,6 +96,14 @@ In an area application the search scope for backlinks, tags, autocomplete and th
 
 The "Area" panel shows the area as a folder structure in the sidebar (dockable left or right like any panel; the switch is the folder icon in the status bar or View → Panels → Area): the folder tree on top, below it the Markdown files of the selected folder; other file types do not appear. Clicking a file opens it as a tab, all entries show the full path as a tooltip, and external changes (file created, deleted, renamed) appear automatically. The "+" button at the head of the file list creates a new Markdown file in the selected folder and opens it. In a freshly opened, still empty area application the panel is visible automatically.
 
+### Area statistics
+
+"View → Area statistics" opens a figures page for the open area as its own tab; the same entry point sits in the context menu of the area panel. The page is read-only and shows six sections: **Files and storage** (Markdown and non-Markdown files split into images, PDF and other, folder count, storage used with its shares), **Properties** and **Tags** (the number of files per entry, sortable by name or count), **Companion files** (the `.mdd` per document and the area files `.mdda`), **Content** (tasks by state, wiki and Markdown links, aliases, files without an incoming link) and **Notable files** (the largest, the most recently changed and the most linked ones). Clicking a file name in the last three lists opens that file.
+
+What is counted are **files, not occurrences**: if the tag `#project` shows 180, then 180 files carry that tag; how often it appears in their text is not stated. Long lists start with 25 rows and can be expanded in full.
+
+The figures carry a timestamp at the top and are collected **on request**, not continuously: the "Refresh" button collects them again, as does invoking the menu entry once more. Without an open area there is no bounded set of files, so the entry is greyed out. The feature can be switched off as the "Area statistics" extension.
+
 ### Recent areas
 
 "File → Recent Areas" lists the recently opened areas by their folder name. A click opens the area with the usual rules. Areas are restored with the session; if an area folder is missing at startup, the corresponding application is not restored and a notice is shown.

@@ -58,6 +58,9 @@ const AREA_COMMANDS = new Set([
   'journal.openForDate',
   'area.close',
   'graph.openArea',
+  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik braucht den abgegrenzten
+  // Datei-Raum eines Bereichs.
+  'stats.openArea',
 ]);
 // Kommandos auf einer echten Datei (Menue: hasActiveTab && !manualTab &&
 // !systemTab).

@@ -122,6 +122,23 @@ case-insensitivem NTFS wäre `tests/` mit `Tests/` kollidiert.
     einschließlich der null-Rückgabe für die Poll-Bedingung. Eine
     Existenz-Prüfung allein bleibt richtig, wenn der Test die Datei
     danach nicht liest oder gerade ihre Unverändertheit prüft.
+13. **Ein Tastendruck wird wiederholt, bis seine Wirkung eintritt.** Ein
+    einzelner `keyboard.press` kann ins Leere gehen, weil das Fenster
+    den Fokus noch nicht hat oder der Renderer seinen Listener erst
+    anhängt. Wer danach nur auf die Wirkung wartet, läuft in die
+    Zeitgrenze und meldet einen roten Fall, der isoliert verlässlich
+    grün ist — die teuerste Sorte Flake, weil sie erst im Voll-Lauf vor
+    einem Release auffällt und dort einen isolierten Nachlauf samt
+    Einzelfall-Bewertung erzwingt. Die Helfer `pressUntil` und
+    `pressUntilVisible` in [e2e/helpers/eingabe.js](e2e/helpers/eingabe.js)
+    drücken, bis die Bedingung erfüllt ist. Zeigt sich die Wirkung als
+    Klasse statt als neues Element, wird sie in den Locator gezogen
+    (`page.locator('#btn.is-marked')`). **Voraussetzung ist ein
+    idempotentes Kommando**: Ein zweiter Druck darf den ersten nicht
+    zurücknehmen und nichts doppeln; das ist am Kommando zu prüfen,
+    bevor der Helfer dort eingesetzt wird. Für einen Umschalter gilt die
+    Regel nicht — dort bleibt der einzelne Druck richtig, und die
+    Stabilität muss anders hergestellt werden.
 
 ## E2E-Praxis
 
@@ -451,6 +468,19 @@ Handbuch- und Katalog-Texten (Gliederungs-Nummerierung, Listen-Tiefe)
 bleiben deshalb **zweistufig** (`1`, `1.1`, `1.2`); tiefere Strukturen
 werden verbal beschrieben. Ein Beispiel wie `(1, 1.1, 2.3.1)` lässt die
 Suite fehlschlagen, auch innerhalb eines Code-Blocks.
+
+**Der Eintrag gehört in den Commit seines Schlüssels.** Der Meta-Test
+misst den **gesamten** Bestand, und der pre-commit-Hook prüft **jeden
+Commit einzeln** gegen den Index. Ein Commit, der einen neuen
+`help.feature.*`- oder `help.shortcut.*`-Schlüssel einführt, ohne den
+Matrix-Eintrag mitzubringen, ist deshalb für sich rot — auch wenn der
+Bestand zwei Commits später wieder stimmt. Das trifft besonders den
+üblichen Zuschnitt, bei dem das Kommando in einem Umsetzungs-Task
+entsteht und der Funktions-Katalog erst im Hilfe- und Handbuch-Task
+folgt: Der Schlüssel bringt seinen Matrix-Eintrag mit, unabhängig
+davon, welcher Task ihn fachlich verantwortet. Aufgefallen ist das an
+einem Kommando-Schlüssel, dessen Eintrag für den nachfolgenden
+Hilfe-Task vorgemerkt war.
 
 **Pflege bei neuen Funktionen**:
 

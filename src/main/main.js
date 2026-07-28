@@ -117,6 +117,9 @@ const {
 // (Container-Format, Delta-Pakete, Anker, Hash-Abgleich). Electron- und
 // IO-frei; Datei-Zugriff und Fenster-Hinweise bleiben hier in main.js.
 const mddStore = require('./mdd-store');
+// 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
+// plus ergaenzender Ordner-Scan).
+const { collectAreaStats } = require('./area-stats');
 // 4T-0363 (Epic 3E-0067): strenge Anker-ID-Validierung fuer die Block-
 // Metadaten-IPC (gemeinsame, prozess-neutrale Quelle).
 const { isValidBlockAnchorId } = require('../shared/block-anchors');
@@ -4126,6 +4129,19 @@ function registerIpc() {
       backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     }
     return backlinks.graphFor(filePath, areaRoot);
+  });
+
+  // 4T-0619 (Epic 3E-0117): Kennzahlen des geoeffneten Bereichs fuer die
+  // Statistik-Seite. Read-only-View wie graph:edges, aber mit ergaenzendem
+  // Ordner-Scan; ohne Bereich gibt es keinen abgegrenzten Datei-Raum und
+  // damit den Status 'unavailable'. Der Status-Typ-Aufloeser wird pro Lauf
+  // frisch gebaut (Muster frontmatterQuery:run), damit geaenderte
+  // Aufgaben-Zustaende sofort wirken.
+  ipcMain.handle('areaStats:collect', async (event) => {
+    const areaRoot = areaRootForEvent(event);
+    return collectAreaStats(areaRoot, {
+      statusTypeOf: createTaskStatusTypeResolver(store ? store.get('taskStates') : null),
+    });
   });
 
   // 4T-0413 (Epic 3E-0078): Daten-Snapshot fuer Skript-Bloecke

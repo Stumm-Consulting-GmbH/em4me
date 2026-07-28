@@ -24,6 +24,8 @@ import { persistSetting, showStatusbarHint, updateEmptyState } from './views.js'
 import { openCreatedFileWithRule } from './templates.js';
 // 4T-0455 (Epic 3E-0084): Kontextmenü-Eintrag "Bereichs-Graph" am Panel.
 import { openAreaGraphTab } from './graph-tab.js';
+// 4T-0620 (Epic 3E-0117): zweiter panel-weiter Einstieg — Bereichs-Statistik.
+import { openAreaStatsPage } from './area-stats-page.js';
 import { hideContextMenu, placeContextMenuAt } from './dialogs.js';
 import { isExtensionActive } from './extension-lifecycle.js';
 // 4T-0612 (Epic 3E-0115): "Als Bereichs-Lesezeichen" im Kontextmenue der
@@ -168,22 +170,49 @@ async function buildFilesFragment(paneIdx, dirPath) {
 // Panels — derzeit der Einstieg zum Bereichs-Graph. Ausgelagert, weil sie
 // sowohl auf freier Panel-Flaeche (showAreaPanelContextMenu) als auch auf
 // Datei-Zeilen (showAreaFileContextMenu) erreichbar bleiben muessen.
-function areaPanelItemsAvailable() {
-  return !!state.areaPath && isExtensionActive('graph-view');
+// 4T-0620 (Epic 3E-0117): Die panel-weiten Eintraege sind seither zwei
+// unabhaengige Einstiege — Bereichs-Graph und Bereichs-Statistik — mit je
+// eigener Erweiterung. Das Menue erscheint, sobald MINDESTENS EINE der
+// beiden aktiv ist, und zeigt genau die aktiven Eintraege.
+function areaPanelEntries() {
+  if (!state.areaPath) return [];
+  const entries = [];
+  if (isExtensionActive('graph-view')) {
+    entries.push({
+      id: 'area-panel-graph',
+      labelKey: 'menu.view.areaGraph',
+      run: openAreaGraphTab,
+    });
+  }
+  if (isExtensionActive('area-stats')) {
+    entries.push({
+      id: 'area-panel-stats',
+      labelKey: 'menu.view.areaStats',
+      run: openAreaStatsPage,
+    });
+  }
+  return entries;
 }
 
-// Haengt die panel-weiten Eintraege an ein Kontextmenue an (No-op, wenn kein
-// Bereich gebunden ist oder die Graph-Erweiterung deaktiviert ist).
+function areaPanelItemsAvailable() {
+  return areaPanelEntries().length > 0;
+}
+
+// Haengt die panel-weiten Eintraege an ein Kontextmenue an (No-op ohne
+// Bereich oder mit beiden Erweiterungen im Aus-Zustand).
 function appendAreaPanelItems(menu) {
-  if (!areaPanelItemsAvailable()) return;
-  const item = document.createElement('div');
-  item.className = 'context-menu-item';
-  item.textContent = t('menu.view.areaGraph');
-  item.addEventListener('click', () => {
-    hideContextMenu();
-    openAreaGraphTab();
-  });
-  menu.appendChild(item);
+  for (const entry of areaPanelEntries()) {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    // Stabiler Anker fuer die E2E-Pruefung (Muster area-file-bookmark).
+    item.dataset.menuId = entry.id;
+    item.textContent = t(entry.labelKey);
+    item.addEventListener('click', () => {
+      hideContextMenu();
+      entry.run();
+    });
+    menu.appendChild(item);
+  }
 }
 
 // 4T-0612 (Epic 3E-0115): Kontextmenue einer Datei-Zeile im Bereichs-Panel.

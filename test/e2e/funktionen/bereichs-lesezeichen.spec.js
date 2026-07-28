@@ -13,6 +13,10 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
+// 4T-0777 (Epic 3E-0156): Strg+D ging im Voll-Lauf sporadisch ins Leere (BL-03).
+// Der Druck wird wiederholt, bis seine Wirkung sichtbar ist; er ist dafuer
+// idempotent — eine bereits gemerkte Datei meldet nur, dass es sie schon gibt.
+const { pressUntilVisible } = require('../helpers/eingabe');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -68,7 +72,7 @@ test.describe('BL-01: Ohne Bereich nur der allgemeine Abschnitt', () => {
     try {
       await expect(page.locator(`${PANE} .tab`).first()).toBeVisible();
       const star = page.locator('#btn-bookmarks');
-      await page.keyboard.press('Control+d');
+      await pressUntilVisible(page, 'Control+d', page.locator('#btn-bookmarks.is-marked'));
       await expect(star).toHaveClass(/is-marked/);
       await expect(page.locator(`${PANE} .sidebar-bookmarks`)).toBeVisible();
       // Bereichs-Abschnitt ausgeblendet, Abschnitts-Koepfe unsichtbar (gewohntes
@@ -124,8 +128,8 @@ test.describe('BL-03: Bereich — Ziel-Wahl beim Anlegen', () => {
       await row.click();
       await expect.poll(() => page.title()).toContain('notiz');
       // Strg+D -> Ziel-Wahl-Popup mit beiden Optionen.
-      await page.keyboard.press('Control+d');
       const general = page.locator('#context-menu [data-menu-id="bookmark-target-general"]');
+      await pressUntilVisible(page, 'Control+d', general);
       const area = page.locator('#context-menu [data-menu-id="bookmark-target-area"]');
       await expect(general).toBeVisible();
       await expect(area).toBeVisible();
@@ -188,8 +192,9 @@ test.describe('BL-05: Umwandeln zwischen den Abschnitten', () => {
       await row.click();
       await expect.poll(() => page.title()).toContain('notiz');
       // Als allgemeines Lesezeichen anlegen (Ziel-Wahl -> allgemein).
-      await page.keyboard.press('Control+d');
-      await page.locator('#context-menu [data-menu-id="bookmark-target-general"]').click();
+      const zielAllgemein = page.locator('#context-menu [data-menu-id="bookmark-target-general"]');
+      await pressUntilVisible(page, 'Control+d', zielAllgemein);
+      await zielAllgemein.click();
       const genNode = page.locator(`${PANE} .bookmarks-group-general .bookmark-node`);
       await expect(genNode).toHaveCount(1);
       // Umwandeln in Bereichs-Lesezeichen.
@@ -257,7 +262,7 @@ test.describe('BL-06: Allgemeine Lesezeichen synchronisieren zwischen Fenstern',
       await expect(page2.locator('#btn-bookmarks')).toHaveAttribute('aria-pressed', 'true');
       // In Fenster A per Strg+D ein allgemeines Lesezeichen anlegen (kein Bereich
       // -> ohne Nachfrage allgemein).
-      await page.keyboard.press('Control+d');
+      await pressUntilVisible(page, 'Control+d', page.locator('#btn-bookmarks.is-marked'));
       await expect(page.locator('#btn-bookmarks')).toHaveClass(/is-marked/);
       // Fenster B zieht ueber den Broadcast nach: der allgemeine Abschnitt zeigt
       // den Eintrag (ohne den Fix blieb er dauerhaft leer).

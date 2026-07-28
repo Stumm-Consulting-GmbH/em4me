@@ -1,6 +1,6 @@
 {
   "name": "em4me",
-  "version": "0.97.0",
+  "version": "0.98.0",
   "description": "Schlanker Markdown-Editor für Windows 11 mit Tabs, Quellcode-/Render-Ansicht, Auto-Reload und Mehrsprachigkeit.",
   "main": "src/main/main.js",
   "scripts": {

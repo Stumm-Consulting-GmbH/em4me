@@ -327,6 +327,18 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
+    // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only System-Seite;
+    // bewusst ohne Default-Binding (Menue-Weg; Kuerzel belegbar). Nur bei
+    // aktivem Bereich aktiv (Menue-Guard hasArea plus Renderer-Guard).
+    id: 'stats.openArea',
+    defaultBindings: [],
+    labelKey: 'menu.view.areaStats',
+    descKey: 'help.shortcut.areaStats',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+  },
+  {
     id: 'view.toggleEdit',
     defaultBindings: ['CmdOrCtrl+E'],
     labelKey: 'menu.view.edit',

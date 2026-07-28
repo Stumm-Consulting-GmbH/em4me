@@ -15,6 +15,8 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { leseTextOderNull, warteAufJson } = require('../helpers/dateien');
+// 4T-0777 (Epic 3E-0156): Wiederhol-Helfer, hier entstanden und seither geteilt.
+const { pressUntilVisible } = require('../helpers/eingabe');
 // 4T-0434: erwartete Wochen-Schlüssel/-Pfade aus demselben Perioden-Kern,
 // den die App nutzt (keine zweite KW-Rechnung im Test).
 const { periodOf, resolveEntryPath } = require('../../../src/shared/journal-core.js');
@@ -119,15 +121,6 @@ async function bindArea(page, areaRoot) {
 
 // Kürzel drücken, bis der erwartete Dialog offen ist (Poll, weil der
 // Kommando-Dispatcher erst am Ende des asynchronen init() steht).
-async function pressUntilVisible(page, key, locator) {
-  await expect
-    .poll(async () => {
-      if (!(await locator.isVisible())) await page.keyboard.press(key);
-      return locator.isVisible();
-    })
-    .toBe(true);
-}
-
 test.describe('JR-01/JR-02/JR-04: Heute-Kommando — Anlage, Wiederöffnen, Grenze (F-103/S-074)', () => {
   test('legt mit Vorlage und Properties an, öffnet nur bei Existenz, kappt an der Grenze', async () => {
     const areaRoot = makeArea();

@@ -613,6 +613,15 @@ function buildMenu(win, state, actions) {
           enabled: !!(state && state.hasArea),
           click: send('menu:openAreaGraph'),
         }),
+        unless('stats.openArea', {
+          // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only Tab,
+          // direkt hinter dem Bereichs-Graph (beide bereichsweite
+          // Auswertungen); nur bei aktivem Bereich aktiv.
+          label: t('menu.view.areaStats'),
+          accelerator: acc('stats.openArea'),
+          enabled: !!(state && state.hasArea),
+          click: send('menu:openAreaStats'),
+        }),
         {
           // 4T-0480 (Epic 3E-0089): Kommando-Palette — filterbares Popup
           // aller Registry-Kommandos; immer verfuegbar (Kern-Bedienung).

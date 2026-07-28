@@ -96,6 +96,14 @@ En una aplicación de área, el espacio de búsqueda de los retroenlaces, las et
 
 El panel «Área» muestra el área como estructura de carpetas en la barra lateral (acoplable a la izquierda o a la derecha como cualquier panel; el conmutador es el icono de carpeta de la barra de estado o Ver → Paneles → Área): el árbol de carpetas arriba y debajo los archivos Markdown de la carpeta seleccionada; otros tipos de archivo no aparecen. Un clic en un archivo lo abre como pestaña, todas las entradas muestran la ruta completa como información sobre herramientas, y los cambios externos (archivo creado, borrado, renombrado) aparecen automáticamente. El botón «+» en la cabecera de la lista crea un nuevo archivo Markdown en la carpeta seleccionada y lo abre. En una aplicación de área recién abierta y todavía vacía, el panel es visible automáticamente.
 
+### Estadísticas del área
+
+«Ver → Estadísticas del área» abre una página de indicadores del área abierta como pestaña propia; el mismo punto de entrada está en el menú contextual del panel del área. La página es de solo lectura y muestra seis secciones: **Archivos y almacenamiento** (archivos Markdown y no Markdown repartidos en imágenes, PDF y otros, número de carpetas, almacenamiento ocupado con sus partes), **Propiedades** y **Etiquetas** (el número de archivos por entrada, ordenable por nombre o por número), **Archivos complementarios** (el `.mdd` de cada documento y los archivos del área `.mdda`), **Contenido** (tareas por estado, enlaces wiki y Markdown, alias, archivos sin enlace entrante) y **Archivos destacados** (los más grandes, los modificados más recientemente y los más enlazados). Un clic en un nombre de archivo de estas tres últimas listas abre el archivo.
+
+Se cuentan **archivos, no apariciones**: si la etiqueta `#proyecto` muestra 180, entonces 180 archivos llevan esa etiqueta; con qué frecuencia aparece en su texto no se indica. Las listas largas empiezan con 25 filas y se pueden desplegar por completo.
+
+Las cifras llevan arriba una marca de tiempo y se calculan **a petición**, no de forma continua: el botón «Actualizar» las vuelve a calcular, igual que una nueva llamada de la entrada de menú. Sin un área abierta no hay un conjunto de archivos delimitado; la entrada aparece entonces atenuada. La función se puede desactivar como extensión «Estadísticas del área».
+
 ### Áreas recientes
 
 «Archivo → Áreas recientes» lista las áreas abiertas recientemente por su nombre de carpeta. Un clic abre el área con las reglas habituales. Las áreas se restauran con la sesión; si falta una carpeta de área al iniciar, la aplicación correspondiente no se restaura y se muestra un aviso.

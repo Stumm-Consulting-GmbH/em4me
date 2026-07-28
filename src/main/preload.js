@@ -368,6 +368,9 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-0453 (Epic 3E-0084): Graph-Daten (Knoten plus Link-Kanten) fuer die
   // Graphenansicht; filePath null = Bereichs-Graph des Fenster-Bereichs.
   getGraphEdges: (filePath) => ipcRenderer.invoke('graph:edges', { filePath: filePath || null }),
+  // 4T-0619 (Epic 3E-0117): Kennzahlen des Fenster-Bereichs fuer die
+  // Statistik-Seite (Index-Anteil plus ergaenzender Ordner-Scan).
+  collectAreaStats: () => ipcRenderer.invoke('areaStats:collect'),
   // 4T-0057: Autocomplete-Suggestions fuer Wiki-Link- und Tag-Trigger.
   autocompleteWikiTargets: (filePath) =>
     ipcRenderer.invoke('autocomplete:wikiTargets', { filePath }),
@@ -628,6 +631,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuOpenHistory: (cb) => ipcRenderer.on('menu:openHistory', () => cb()),
   // 4T-0455 (Epic 3E-0084): Bereichs-Graph als read-only Tab.
   onMenuOpenAreaGraph: (cb) => ipcRenderer.on('menu:openAreaGraph', () => cb()),
+  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only Tab.
+  onMenuOpenAreaStats: (cb) => ipcRenderer.on('menu:openAreaStats', () => cb()),
   // 4T-0480 (Epic 3E-0089): Kommando-Palette ueber Menue-Eintrag Ansicht.
   onMenuOpenCommandPalette: (cb) => ipcRenderer.on('menu:openCommandPalette', () => cb()),
   // 4T-0456 (Epic 3E-0084): Datei-Graph-Sidebar-Sektion toggeln.

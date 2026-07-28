@@ -96,6 +96,14 @@ In einer Bereichs-Applikation umfasst der Suchraum für Backlinks, Tags, Autocom
 
 Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links oder rechts andockbar wie jedes Panel; Schalter ist das Ordner-Icon in der Statusbar oder Ansicht → Panels → Bereich): oben der Ordnerbaum, darunter die Markdown-Dateien des ausgewählten Ordners; andere Datei-Typen erscheinen nicht. Ein Klick auf eine Datei öffnet sie als Tab, alle Einträge zeigen den vollen Pfad als Tooltip, und externe Änderungen (Datei angelegt, gelöscht, umbenannt) erscheinen automatisch. Der Knopf „+" am Kopf der Dateiliste legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, noch leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
 
+### Bereichs-Statistik
+
+„Ansicht → Bereichs-Statistik" öffnet eine Kennzahlen-Seite des geöffneten Bereichs als eigenen Reiter; derselbe Einstieg liegt im Kontextmenü des Bereichs-Panels. Die Seite ist nicht änderbar und zeigt sechs Abschnitte: **Dateien und Speicher** (Markdown- und Nicht-Markdown-Dateien nach Bildern, PDF und Sonstigem, Ordner-Anzahl, belegter Speicher mit seinen Anteilen), **Eigenschaften** und **Tags** (je Eintrag die Zahl der Dateien, sortierbar nach Name oder Anzahl), **Begleitdateien** (die `.mdd` je Dokument und die Bereichs-Dateien `.mdda`), **Inhalte** (Aufgaben nach Zustand, Wiki- und Markdown-Verweise, Aliase, Dateien ohne eingehenden Verweis) und **Auffälligkeiten** (die größten, die zuletzt geänderten und die meistverlinkten Dateien). Ein Klick auf einen Dateinamen der letzten drei Listen öffnet die Datei.
+
+Gezählt werden **Dateien, nicht Fundstellen**: Steht beim Tag `#projekt` die Zahl 180, tragen 180 Dateien diesen Tag; wie oft er in ihrem Text vorkommt, bleibt offen. Lange Listen zeigen zunächst 25 Zeilen und lassen sich vollständig aufklappen.
+
+Die Zahlen tragen oben einen Stand-Zeitstempel und werden **auf Anforderung** erhoben, nicht laufend: Der Knopf „Aktualisieren" erhebt neu, ebenso der erneute Aufruf des Menü-Eintrags. Ohne geöffneten Bereich gibt es keinen abgegrenzten Datei-Raum; der Eintrag ist dann ausgegraut. Die Funktion ist als Erweiterung „Bereichs-Statistik" abschaltbar.
+
 ### Zuletzt geöffnete Bereiche
 
 „Datei → Zuletzt geöffnete Bereiche" listet die zuletzt geöffneten Bereiche mit ihrem Ordnernamen. Ein Klick öffnet den Bereich nach den üblichen Regeln. Bereiche werden mit der Sitzung wiederhergestellt; fehlt ein Bereichs-Ordner beim Start, wird die zugehörige Applikation nicht wiederhergestellt und ein Hinweis gezeigt.
