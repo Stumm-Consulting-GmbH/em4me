@@ -30,6 +30,18 @@
 // Tabs editierbar, der Dirty-Zustand bleibt unberührt (dirty Tabs werden
 // wie im Dialog-Fluss zuerst gespeichert).
 //
+// 4T-0646 (Epic 3E-0128): Bei einer Unterseite ist nur noch das eigene
+// Namens-Segment editierbar. Die Zeile besteht dafür aus zwei Teilen: dem
+// Eltern-Anteil (`.title-line-prefix`, dauerhaft gedämpft, nie editierbar)
+// und dem eigenen Segment (`.title-line-segment`, contenteditable während
+// der Bearbeitung). Die Zerlegung liefert splitDisplayTitle aus dem
+// geteilten subpages-Modul, damit Titelzeile und Umbenennen-Dialog dieselbe
+// Grenze ziehen. Folge: Eine Unterseite kann über die Titelzeile ihren Ast
+// nicht mehr verlassen — der Schrägstrich ist im Segment abgelehnt, während
+// er an einer Top-Level-Seite weiter erlaubt bleibt und sie wie bisher zur
+// Unterseite macht. Wer den vollständigen Namen einer Unterseite ändern
+// will, nimmt den Umbenennen-Dialog mit seinem Vollname-Schalter.
+//
 // Modul-Zyklus: die Imports aus views.js (saveTab/saveTabAs) und tabs.js
 // (activatePane) werden ausschließlich zur Laufzeit genutzt — der Zyklus
 // über views.js ist damit unkritisch (Muster format-toolbar.js).
@@ -41,7 +53,8 @@ import { state, getPaneEls } from './app-state.js';
 import { isExtensionActive } from './extension-lifecycle.js';
 import {
   basenameValidationError,
-  displayTitleFromBasename,
+  segmentValidationError,
+  splitDisplayTitle,
   toFileBasename,
 } from '../../shared/subpages.js';
 import { activatePane } from './tabs.js';
@@ -56,16 +69,31 @@ let editState = null;
 // Auto-Hide-Timer der Hinweis-Flächen pro Titelzeilen-Element.
 const hintTimers = new WeakMap();
 
-// Anzeige-Text der Titelzeile für einen Tab: Dateiname ohne Endung in der
-// logischen Schreibweise (Unterseiten mit Slash), Unbenannt-Platzhalter für
-// pfadlose Tabs; null für Handbuch-/System-Seiten und leere Panes (dort
-// erscheint keine Titelzeile).
-export function titleLineTextForTab(tab) {
+// 4T-0646: Anzeige-Teile der Titelzeile für einen Tab. `prefix` ist der
+// Eltern-Anteil einer Unterseite samt abschließendem Schrägstrich (bei
+// Top-Level-Seiten und Unbenannt-Tabs leer), `segment` der editierbare
+// Rest. Unbenannt-Tabs zeigen den Platzhalter; null für Handbuch-/System-
+// Seiten und leere Panes (dort erscheint keine Titelzeile).
+export function titleLinePartsForTab(tab) {
   if (!tab || tab.manualPage || tab.systemPage) return null;
   if (!tab.path) {
-    return `${t('save.untitled')}${tab.untitledIndex ? ' ' + tab.untitledIndex : ''}`;
+    const label = `${t('save.untitled')}${tab.untitledIndex ? ' ' + tab.untitledIndex : ''}`;
+    return { prefix: '', segment: label };
   }
-  return displayTitleFromBasename(api.basename(tab.path));
+  return splitDisplayTitle(api.basename(tab.path));
+}
+
+// Die beiden Teil-Elemente einer Titelzeilen-Instanz. Fremde Text-Knoten
+// direkt im h1 (Einrückung des HTML) werden entfernt, damit der angezeigte
+// Titel exakt aus Präfix und Segment besteht.
+function titleLineParts(textEl) {
+  for (const node of Array.from(textEl.childNodes)) {
+    if (node.nodeType === Node.TEXT_NODE) node.remove();
+  }
+  return {
+    prefixEl: textEl.querySelector('.title-line-prefix'),
+    segmentEl: textEl.querySelector('.title-line-segment'),
+  };
 }
 
 // Sichtbarkeit und Text beider Titelzeilen-Instanzen einer Pane nachziehen.
@@ -76,7 +104,7 @@ export function updateTitleLineForPane(paneIdx) {
   if (!els || !Array.isArray(els.titleLines) || els.titleLines.length === 0) return;
   const pane = state.panes[paneIdx];
   const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
-  const text = titleLineTextForTab(tab);
+  const parts = titleLinePartsForTab(tab);
   const active = isExtensionActive(TITLE_LINE_EXTENSION_ID);
   const mode = tab ? tab.viewMode || 'rendered' : 'rendered';
   for (const el of els.titleLines) {
@@ -85,7 +113,7 @@ export function updateTitleLineForPane(paneIdx) {
       el.dataset.host === 'rendered'
         ? mode === 'rendered'
         : mode === 'source' || mode === 'split' || mode === 'live';
-    const visible = active && text !== null && modeOk;
+    const visible = active && parts !== null && modeOk;
     el.hidden = !visible;
     if (!visible) {
       hideTitleLineHint(el);
@@ -94,10 +122,15 @@ export function updateTitleLineForPane(paneIdx) {
     const textEl = el.querySelector('.title-line-text');
     if (!textEl) continue;
     textEl.title = t(tab.path ? 'titleLine.tooltip' : 'titleLine.tooltipUntitled');
+    const { prefixEl, segmentEl } = titleLineParts(textEl);
+    if (!prefixEl || !segmentEl) continue;
     // Während einer laufenden Titel-Bearbeitung (4T-0586) den Editier-Stand
     // nicht überschreiben.
-    if (!textEl.isContentEditable && textEl.textContent !== text) {
-      textEl.textContent = text;
+    if (segmentEl.isContentEditable) continue;
+    if (prefixEl.textContent !== parts.prefix) prefixEl.textContent = parts.prefix;
+    prefixEl.hidden = parts.prefix === '';
+    if (segmentEl.textContent !== parts.segment) {
+      segmentEl.textContent = parts.segment;
       hideTitleLineHint(el);
     }
   }
@@ -145,15 +178,20 @@ function wireTitleLine(el) {
   el.dataset.editWired = '1';
   const textEl = el.querySelector('.title-line-text');
   if (!textEl) return;
+  // 4T-0646: Editiert wird ausschließlich das Segment-Element; Klick und
+  // Tastatur-Zugang liegen weiterhin auf der ganzen Zeile, damit auch ein
+  // Klick auf den Eltern-Anteil die Bearbeitung des Segments startet.
+  const { segmentEl } = titleLineParts(textEl);
+  if (!segmentEl) return;
   textEl.addEventListener('click', () => {
-    if (!textEl.isContentEditable) startEdit(el, textEl);
+    if (!segmentEl.isContentEditable) startEdit(el, textEl, segmentEl);
   });
   textEl.addEventListener('keydown', (ev) => {
-    if (!textEl.isContentEditable) {
+    if (!segmentEl.isContentEditable) {
       // Tastatur-Zugang auf der fokussierten (tabindex-)Zeile.
       if (ev.key === 'Enter' || ev.key === 'F2') {
         ev.preventDefault();
-        startEdit(el, textEl);
+        startEdit(el, textEl, segmentEl);
       }
       return;
     }
@@ -167,12 +205,12 @@ function wireTitleLine(el) {
       cancelEdit();
     }
   });
-  textEl.addEventListener('blur', () => {
-    if (editState && editState.textEl === textEl) commitEdit();
+  segmentEl.addEventListener('blur', () => {
+    if (editState && editState.segmentEl === segmentEl) commitEdit();
   });
 }
 
-function startEdit(el, textEl) {
+function startEdit(el, textEl, segmentEl) {
   const paneIdx = paneIndexFor(el);
   // Klick in die Titelzeile einer nicht-aktiven Pane aktiviert diese zuerst
   // (Muster Format-Toolbar) — das Umbenennen betrifft den aktiven Tab
@@ -185,26 +223,37 @@ function startEdit(el, textEl) {
   editState = {
     el,
     textEl,
+    segmentEl,
     paneIdx,
     tabIdx: pane.activeIndex,
-    original: textEl.textContent,
+    original: segmentEl.textContent,
   };
   el.classList.add('editing');
-  textEl.contentEditable = 'plaintext-only';
-  textEl.focus();
+  segmentEl.contentEditable = 'plaintext-only';
+  segmentEl.focus();
   const range = document.createRange();
-  range.selectNodeContents(textEl);
+  range.selectNodeContents(segmentEl);
   const sel = window.getSelection();
   sel.removeAllRanges();
   sel.addRange(range);
 }
 
-// Bearbeitung optisch beenden und den angezeigten Text setzen.
-function finishEdit(s, text) {
+// Bearbeitung optisch beenden und die angezeigten Teile setzen. `prefix`
+// bleibt unverändert, solange nichts übergeben wird — er ändert sich nur,
+// wenn eine Top-Level-Seite über die Schrägstrich-Eingabe zur Unterseite
+// geworden ist.
+function finishEdit(s, segmentText, prefix) {
   s.el.classList.remove('editing');
-  s.textEl.contentEditable = 'false';
-  s.textEl.textContent = text;
-  s.textEl.blur();
+  s.segmentEl.contentEditable = 'false';
+  s.segmentEl.textContent = segmentText;
+  if (typeof prefix === 'string') {
+    const { prefixEl } = titleLineParts(s.textEl);
+    if (prefixEl) {
+      prefixEl.textContent = prefix;
+      prefixEl.hidden = prefix === '';
+    }
+  }
+  s.segmentEl.blur();
 }
 
 function cancelEdit() {
@@ -221,7 +270,7 @@ async function commitEdit() {
   const s = editState;
   if (!s) return;
   editState = null;
-  const raw = String(s.textEl.textContent || '')
+  const raw = String(s.segmentEl.textContent || '')
     .replace(/[\r\n]+/g, ' ')
     .trim();
   const pane = state.panes[s.paneIdx];
@@ -235,15 +284,34 @@ async function commitEdit() {
     finishEdit(s, s.original);
     return;
   }
-  // Validierung vor dem Aufruf: Slash-Eingaben werden als logische
-  // Unterseiten-Schreibweise gelesen (U+2215-Übersetzung), danach gelten
-  // die Segment-Regeln des Umbenennen-Dialogs.
-  const fileBase = toFileBasename(raw);
-  const vErr = basenameValidationError(fileBase);
-  if (vErr) {
-    showTitleLineHint(s.el, t(`rename.error.${vErr}`), true);
-    finishEdit(s, s.original);
-    return;
+  // 4T-0646: Validierung nach Lage der Seite. Bei einer Unterseite trägt die
+  // Eingabe nur das eigene Segment; der Schrägstrich ist dort abgelehnt, weil
+  // die Seite sonst still ihren Ast verlassen würde. Bei einer Top-Level-Seite
+  // (und bei Unbenannt-Tabs) bleibt es beim bisherigen Verhalten: Die Eingabe
+  // wird als logische Unterseiten-Schreibweise gelesen (U+2215-Übersetzung),
+  // ein Schrägstrich macht die Seite damit zur Unterseite.
+  const parts = titleLinePartsForTab(tab) || { prefix: '', segment: '' };
+  const isSub = !!tab.path && parts.prefix !== '';
+  let fileBase;
+  if (isSub) {
+    const vErr = segmentValidationError(raw);
+    if (vErr) {
+      // Das Trennzeichen ist im Segment nicht erlaubt — der Fehlertext der
+      // Unterseiten-Anlage passt dort exakt (Muster Umbenennen-Dialog).
+      const key = vErr === 'separator' ? 'subpage.create.error.separator' : `rename.error.${vErr}`;
+      showTitleLineHint(s.el, t(key), true);
+      finishEdit(s, s.original);
+      return;
+    }
+    fileBase = toFileBasename(parts.prefix + raw);
+  } else {
+    fileBase = toFileBasename(raw);
+    const vErr = basenameValidationError(fileBase);
+    if (vErr) {
+      showTitleLineHint(s.el, t(`rename.error.${vErr}`), true);
+      finishEdit(s, s.original);
+      return;
+    }
   }
   if (!tab.path) {
     // Unbenannt-Tab: „Speichern unter" mit vorbelegtem Dateinamen; der
@@ -287,6 +355,9 @@ async function commitEdit() {
     return;
   }
   // Erfolg: Anzeige sofort auf den neuen Namen; Tab-/Fenster-Titel,
-  // Lesezeichen und Index zieht der file:renamed-Broadcast nach.
-  finishEdit(s, displayTitleFromBasename(api.basename(result.path)));
+  // Lesezeichen und Index zieht der file:renamed-Broadcast nach. Der Präfix
+  // wird mitgesetzt, weil eine Top-Level-Seite über die Schrägstrich-Eingabe
+  // zur Unterseite geworden sein kann.
+  const newParts = splitDisplayTitle(api.basename(result.path));
+  finishEdit(s, newParts.segment, newParts.prefix);
 }

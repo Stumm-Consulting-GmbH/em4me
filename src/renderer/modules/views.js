@@ -1161,39 +1161,90 @@ export async function renameFileForTab(paneIdx, tabIdx) {
   if (descendantCount > 0) {
     description += ' ' + t('rename.cascadeHint').replace('{n}', String(descendantCount));
   }
+  // 4T-0646 (Epic 3E-0128): Bei einer Unterseite nennt die Beschreibung die
+  // Wirkung des Vollname-Schalters, bevor er betaetigt wird.
+  if (isSub) description += ' ' + t('rename.fullNameHint');
   // 4T-0346 (Epic 3E-0062): Checkbox-Vorbelegung aus den App-Einstellungen
   // (beide Standard an). Die Vorschau-Checkbox haengt an der Update-Checkbox.
   const defaultUpdate = (await api.getSetting('renameUpdateLinks')) !== false;
   const defaultPreview = (await api.getSetting('renameLinkPreview')) !== false;
+  // 4T-0646: Vollname-Schalter. Er wechselt Vorbelegung und Pruefung zwischen
+  // Segment- und Vollname-Modus; im Vollname-Modus wird die logische
+  // Slash-Schreibweise angezeigt und akzeptiert (U+2215-Uebersetzung wie in
+  // der Titelzeile), sonst waere der Eltern-Anteil gar nicht eingebbar — das
+  // Trennzeichen liegt auf keiner Tastatur.
+  const logicalPrefix = isSub ? toLogicalName(parentBasename(currentBase)) + '/' : '';
+  const checkboxes = [
+    { id: 'updateLinks', label: t('rename.updateLinks'), checked: defaultUpdate },
+    {
+      id: 'showPreview',
+      label: t('rename.showPreview'),
+      checked: defaultPreview,
+      requires: 'updateLinks',
+    },
+  ];
+  if (isSub) {
+    checkboxes.push({
+      id: 'fullName',
+      label: t('rename.fullName'),
+      checked: false,
+      onChange: (checked, field) => {
+        const v = String(field.value || '').trim();
+        if (checked) {
+          field.value = v.startsWith(logicalPrefix) ? v : logicalPrefix + v;
+        } else {
+          field.value = v.startsWith(logicalPrefix)
+            ? v.slice(logicalPrefix.length)
+            : v.split('/').pop();
+        }
+        field.focus();
+      },
+    });
+  }
   const input = await showNameInputDialog({
     title: t('rename.title'),
     description,
     initialValue: isSub ? lastSegment(currentBase) : currentBase,
     okLabel: t('rename.ok'),
-    validate: (value) => {
-      const err = isSub ? segmentValidationError(value) : basenameValidationError(value);
-      if (!err) return null;
-      // Segment-Modus: das Trennzeichen ist im Segment nicht erlaubt —
-      // der Fehlertext der Unterseiten-Anlage passt dort exakt.
-      if (isSub && err === 'separator') return 'subpage.create.error.separator';
-      return `rename.error.${err}`;
+    validate: (value, cbs) => {
+      const fullName = !!(cbs && cbs.fullName);
+      if (isSub && !fullName) {
+        const err = segmentValidationError(value);
+        if (!err) return null;
+        // Segment-Modus: das Trennzeichen ist im Segment nicht erlaubt —
+        // der Fehlertext der Unterseiten-Anlage passt dort exakt.
+        if (err === 'separator') return 'subpage.create.error.separator';
+        return `rename.error.${err}`;
+      }
+      // Vollname-Modus einer Unterseite: Slash-Form pruefen. Top-Level-Seiten
+      // bleiben unveraendert beim bisherigen Verhalten.
+      const err = basenameValidationError(isSub ? toFileBasename(value) : value);
+      return err ? `rename.error.${err}` : null;
     },
-    checkboxes: [
-      { id: 'updateLinks', label: t('rename.updateLinks'), checked: defaultUpdate },
-      {
-        id: 'showPreview',
-        label: t('rename.showPreview'),
-        checked: defaultPreview,
-        requires: 'updateLinks',
-      },
-    ],
+    checkboxes,
   });
   if (!input) return;
-  const newBase = isSub ? parentBasename(currentBase) + SUBPAGE_SEP + input.value : input.value;
+  const fullName = !!(input.checkboxes && input.checkboxes.fullName);
+  let newBase;
+  if (!isSub) {
+    newBase = input.value;
+  } else if (fullName) {
+    newBase = toFileBasename(input.value);
+  } else {
+    newBase = parentBasename(currentBase) + SUBPAGE_SEP + input.value;
+  }
   if (newBase === currentBase) return;
   const updateLinks = !!(input.checkboxes && input.checkboxes.updateLinks);
   const showPreview = updateLinks && !!(input.checkboxes && input.checkboxes.showPreview);
 
+  await applyRename(tab, newBase, updateLinks, showPreview);
+}
+
+// 4T-0774 (Epic 3E-0128): gemeinsamer Ausfuehrungs-Teil von Umbenennen und
+// Loesen — optionale Vorschau, der Aufruf selbst, Fehler- und Ergebnis-
+// Bericht. Beide Bedienwege unterscheiden sich nur im Dialog davor und im
+// gebildeten Ziel-Basename.
+async function applyRename(tab, newBase, updateLinks, showPreview) {
   // 4T-0346: optionale Vorschau vor der Umbenennung. Abbrechen bricht den
   // gesamten Vorgang ab (es ist noch nichts passiert).
   if (showPreview) {
@@ -1228,6 +1279,87 @@ export async function renameFileForTab(paneIdx, tabIdx) {
   if (updateLinks && result.linkUpdate) {
     await withDialog(() => showLinkUpdateReport(result));
   }
+}
+
+// --- Unterseite loesen (4T-0774, Epic 3E-0128) -------------------------------
+// Kommando 'file.detachSubpage' bzw. Menue/Tab-Kontextmenue: macht aus einer
+// Unterseite eine eigenstaendige Seite. Technisch ist das die Umbenennung auf
+// das eigene letzte Namens-Segment — der Main bildet die Ziel-Paare ueber
+// Praefix-Ersetzung, weshalb eigene Unterseiten mitwandern, die Kollisions-
+// pruefung ueber alle Ziele vorab laeuft und die Verweis-Nachfuehrung
+// unveraendert greift. Der Ziel-Name ist im Dialog aenderbar, damit eine
+// Kollision auf der Zielebene an Ort und Stelle aufloesbar ist.
+export async function detachSubpageForTab(paneIdx, tabIdx) {
+  const pane = state.panes[paneIdx];
+  const tab = pane ? pane.tabs[tabIdx] : null;
+  if (!tab || !tab.path || tab.manualPage || tab.systemPage) {
+    showStatusbarHint('rename.noFile', { duration: 2500, error: true });
+    return;
+  }
+  const currentBase = api.basename(tab.path).replace(/\.(md|markdown|mdown|mkd)$/i, '');
+  if (!isSubpageBasename(currentBase)) {
+    showStatusbarHint('detach.notSubpage', { duration: 3000, error: true });
+    return;
+  }
+  // Ungespeicherte Aenderungen zuerst sichern (Semantik des Umbenennens).
+  if (tab.dirty) {
+    const saved = await saveTab(paneIdx, tabIdx);
+    if (!saved) return;
+  }
+  let descendantCount = 0;
+  try {
+    const scan = await api.subpageDescendants(tab.path);
+    if (scan && scan.ok && Array.isArray(scan.files)) descendantCount = scan.files.length;
+  } catch {
+    /* Scan-Fehler: das Loesen laeuft trotzdem, nur der Hinweis entfaellt */
+  }
+  const target = lastSegment(currentBase);
+  let description = t('detach.description')
+    .replace('{name}', toLogicalName(currentBase))
+    .replace('{target}', target);
+  if (descendantCount > 0) {
+    description += ' ' + t('rename.cascadeHint').replace('{n}', String(descendantCount));
+  }
+  const defaultUpdate = (await api.getSetting('renameUpdateLinks')) !== false;
+  const defaultPreview = (await api.getSetting('renameLinkPreview')) !== false;
+  const input = await showNameInputDialog({
+    title: t('detach.title'),
+    description,
+    initialValue: target,
+    okLabel: t('detach.ok'),
+    validate: (value) => {
+      // Das Ergebnis ist eine eigenstaendige Seite: ein Schraegstrich waere
+      // das Umhaengen unter eine andere Seite und liegt ausserhalb des Umfangs.
+      const err = segmentValidationError(value);
+      if (!err) return null;
+      if (err === 'separator') return 'subpage.create.error.separator';
+      return `rename.error.${err}`;
+    },
+    checkboxes: [
+      { id: 'updateLinks', label: t('rename.updateLinks'), checked: defaultUpdate },
+      {
+        id: 'showPreview',
+        label: t('rename.showPreview'),
+        checked: defaultPreview,
+        requires: 'updateLinks',
+      },
+    ],
+  });
+  if (!input) return;
+  const newBase = input.value;
+  if (newBase === currentBase) return;
+  const updateLinks = !!(input.checkboxes && input.checkboxes.updateLinks);
+  const showPreview = updateLinks && !!(input.checkboxes && input.checkboxes.showPreview);
+  await applyRename(tab, newBase, updateLinks, showPreview);
+}
+
+export function detachActiveSubpage() {
+  const pane = state.panes[state.activePaneIndex];
+  if (!pane || pane.activeIndex < 0) {
+    showStatusbarHint('rename.noFile', { duration: 2500, error: true });
+    return;
+  }
+  return detachSubpageForTab(state.activePaneIndex, pane.activeIndex);
 }
 
 // 4T-0346 (Epic 3E-0062): Anzeigename einer Datei im Vorschau-/Bericht-Dialog

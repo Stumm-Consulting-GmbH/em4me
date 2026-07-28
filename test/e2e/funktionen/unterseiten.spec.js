@@ -320,3 +320,158 @@ test.describe('US-02: Unterseiten-Embeds (Slash-Schreibweise und relativ)', () =
     }
   });
 });
+
+// 4T-0646 (Epic 3E-0128): Der Vollname-Schalter des Umbenennen-Dialogs gibt
+// bei einer Unterseite den Eltern-Anteil frei; ohne ihn bleibt es beim
+// eigenen Segment, und der Schraegstrich ist dort abgelehnt.
+test.describe('US-07: Vollname-Schalter im Umbenennen-Dialog', () => {
+  const openRenameDialog = async (app, page) => {
+    await app.evaluate(({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send('menu:renameFile');
+    });
+    await expect(page.locator('#name-input-modal')).toBeVisible();
+  };
+
+  test('Schalter gibt den Eltern-Anteil frei; ohne ihn wird der Schraegstrich abgelehnt', async () => {
+    const dir = makeFixtureDir();
+    const sub = path.join(dir, `Prozess-A${SEP}Entwurf.md`);
+    const { app, page, userData } = await launchApp({ args: [sub] });
+    try {
+      await waitForTab(page);
+      await page.evaluate(() => window.api.setSetting('renameUpdateLinks', false));
+      await openRenameDialog(app, page);
+      // Segment-Modus: nur das eigene Segment, Schraegstrich abgelehnt.
+      await expect(page.locator('#name-input-field')).toHaveValue('Entwurf');
+      const cb = page.locator('#name-input-cb-fullName');
+      await expect(cb).not.toBeChecked();
+      await page.locator('#name-input-field').fill('Fremd/Entwurf');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-error')).toBeVisible();
+      await expect(page.locator('#name-input-modal')).toBeVisible();
+      // Schalter an: das Feld traegt den vollstaendigen logischen Namen.
+      await cb.check();
+      await expect(page.locator('#name-input-field')).toHaveValue('Prozess-A/Fremd/Entwurf');
+      await page.locator('#name-input-field').fill('Prozess-B/Entwurf');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Prozess-B${SEP}Entwurf.md`)), { timeout: 5000 })
+        .toBe(true);
+      expect(fs.existsSync(sub)).toBe(false);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+
+  test('Top-Level-Seite bekommt den Schalter nicht', async () => {
+    const dir = makeFixtureDir();
+    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'Prozess-A.md')] });
+    try {
+      await waitForTab(page);
+      await openRenameDialog(app, page);
+      await expect(page.locator('#name-input-field')).toHaveValue('Prozess-A');
+      await expect(page.locator('#name-input-cb-fullName')).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+// 4T-0774 (Epic 3E-0128): Loesen einer Unterseite — eigene Unterseiten wandern
+// mit, eingehende Verweise werden nachgefuehrt, eine Kollision auf der
+// Zielebene laesst den Bestand unveraendert.
+test.describe('US-08: Unterseite von der uebergeordneten Seite loesen', () => {
+  const openDetachDialog = async (app) => {
+    await app.evaluate(({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send('menu:detachSubpage');
+    });
+  };
+
+  test('Loesen macht die Unterseite eigenstaendig; Nachfahren und Verweise ziehen mit', async () => {
+    const dir = makeFixtureDir();
+    const sub = path.join(dir, `Prozess-A${SEP}Entwurf.md`);
+    fs.writeFileSync(path.join(dir, `Prozess-A${SEP}Entwurf${SEP}Tief.md`), '# Tief\n', 'utf8');
+    const { app, page, userData } = await launchApp({ args: [sub] });
+    try {
+      await waitForTab(page);
+      // Vorschau aus, Link-Update an: der Ergebnis-Bericht wird quittiert.
+      await page.evaluate(() => window.api.setSetting('renameLinkPreview', false));
+      await openDetachDialog(app);
+      await expect(page.locator('#name-input-modal')).toBeVisible();
+      // Vorbelegung ist das eigene Segment; die Beschreibung nennt das Ziel
+      // und die Zahl der mitwandernden Unterseiten.
+      await expect(page.locator('#name-input-field')).toHaveValue('Entwurf');
+      await expect(page.locator('#name-input-description')).toContainText('Prozess-A/Entwurf');
+      await expect(page.locator('#name-input-description')).toContainText('1');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      await expect(page.locator('#link-report-modal')).toBeVisible();
+      await page.locator('#btn-link-report-ok').click();
+      // Platte: eigenstaendige Seite plus mitgewanderte eigene Unterseite.
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, 'Entwurf.md')), { timeout: 5000 })
+        .toBe(true);
+      expect(fs.existsSync(path.join(dir, `Entwurf${SEP}Tief.md`))).toBe(true);
+      expect(fs.existsSync(sub)).toBe(false);
+      // Die fruehere Elternseite bleibt, ihr Verweis zeigt auf das neue Ziel.
+      expect(fs.existsSync(path.join(dir, 'Prozess-A.md'))).toBe(true);
+      const parentText = fs.readFileSync(path.join(dir, 'Prozess-A.md'), 'utf8');
+      expect(parentText).toContain('[[Entwurf]]');
+      expect(parentText).not.toContain('[[Prozess-A/Entwurf]]');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+
+  test('Kollision auf der Zielebene laesst alles unveraendert; ein anderer Name geht durch', async () => {
+    const dir = makeFixtureDir();
+    const sub = path.join(dir, `Prozess-A${SEP}Entwurf.md`);
+    fs.writeFileSync(path.join(dir, 'Entwurf.md'), '# Fremder Entwurf\n', 'utf8');
+    const { app, page, userData } = await launchApp({ args: [sub] });
+    try {
+      await waitForTab(page);
+      await page.evaluate(() => window.api.setSetting('renameUpdateLinks', false));
+      await openDetachDialog(app);
+      await expect(page.locator('#name-input-modal')).toBeVisible();
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      // Nichts umbenannt: beide Dateien liegen unveraendert (der Main lehnt
+      // die Kollision ab, bevor er die erste Datei anfasst).
+      await expect.poll(() => fs.existsSync(sub), { timeout: 5000 }).toBe(true);
+      expect(fs.readFileSync(path.join(dir, 'Entwurf.md'), 'utf8')).toContain('Fremder Entwurf');
+      // Zweiter Anlauf mit abweichendem Namen.
+      await openDetachDialog(app);
+      await expect(page.locator('#name-input-modal')).toBeVisible();
+      await page.locator('#name-input-field').fill('Entwurf-2');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, 'Entwurf-2.md')), { timeout: 5000 })
+        .toBe(true);
+      expect(fs.existsSync(sub)).toBe(false);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+
+  test('An einer Top-Level-Seite meldet der Weg, dass es keine Unterseite ist', async () => {
+    const dir = makeFixtureDir();
+    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'Prozess-A.md')] });
+    try {
+      await waitForTab(page);
+      await openDetachDialog(app);
+      await expect(page.locator('#statusbar-hint')).toHaveClass(/visible/);
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      expect(fs.existsSync(path.join(dir, 'Prozess-A.md'))).toBe(true);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});

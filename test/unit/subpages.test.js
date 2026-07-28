@@ -17,6 +17,7 @@ import {
   expandRelativeTarget,
   segmentValidationError,
   displayTitleFromBasename,
+  splitDisplayTitle,
 } from '../../src/shared/subpages.js';
 
 const SEP = SUBPAGE_SEP;
@@ -74,6 +75,41 @@ describe('subpages.js — displayTitleFromBasename', () => {
   it('bleibt bei leeren Eingaben leer', () => {
     expect(displayTitleFromBasename('')).toBe('');
     expect(displayTitleFromBasename(null)).toBe('');
+  });
+});
+
+// 4T-0646 (Epic 3E-0128): Zerlegung in unveraenderlichen Eltern-Anteil und
+// editierbares Segment — gemeinsame Quelle fuer Titelzeile und Dialog.
+describe('subpages.js — Anzeige-Zerlegung (splitDisplayTitle)', () => {
+  it('liefert bei Top-Level-Seiten einen leeren Praefix', () => {
+    expect(splitDisplayTitle('Seite.md')).toEqual({ prefix: '', segment: 'Seite' });
+    expect(splitDisplayTitle('Seite')).toEqual({ prefix: '', segment: 'Seite' });
+  });
+
+  it('trennt bei einer Unterseite den Eltern-Anteil samt Schraegstrich ab', () => {
+    expect(splitDisplayTitle(`Eltern${SEP}Kind.md`)).toEqual({
+      prefix: 'Eltern/',
+      segment: 'Kind',
+    });
+  });
+
+  it('trennt auch auf tieferen Ebenen nur das letzte Segment ab', () => {
+    expect(splitDisplayTitle(`A${SEP}B${SEP}C.md`)).toEqual({ prefix: 'A/B/', segment: 'C' });
+  });
+
+  it('setzt Praefix und Segment wieder zum Anzeige-Titel zusammen', () => {
+    const parts = splitDisplayTitle(`A${SEP}B${SEP}C.md`);
+    expect(parts.prefix + parts.segment).toBe(displayTitleFromBasename(`A${SEP}B${SEP}C.md`));
+  });
+
+  it('ergibt aus Praefix plus Segment wieder den Datei-Basename', () => {
+    const parts = splitDisplayTitle(`A${SEP}B.md`);
+    expect(toFileBasename(parts.prefix + 'Neu')).toBe(`A${SEP}Neu`);
+  });
+
+  it('bleibt bei leeren Eingaben leer', () => {
+    expect(splitDisplayTitle('')).toEqual({ prefix: '', segment: '' });
+    expect(splitDisplayTitle(null)).toEqual({ prefix: '', segment: '' });
   });
 });
 

@@ -40,6 +40,8 @@ Pages can nest without moving files around. The separator in the file name is a 
 [[..]]                               the parent page
 ```
 
+Renaming a subpage changes only its own name segment — in the dialog as well as in the title line above the document, where the parent part stays dimmed and unchangeable. **File → Detach from parent page…** turns a subpage back into a standalone page and takes its own subpages along.
+
 ## The graph
 
 **View → Area graph** draws every file as a node and every link as an arrow — a live map of this whole area. The **File graph** panel does the same for the neighbourhood of the active file.

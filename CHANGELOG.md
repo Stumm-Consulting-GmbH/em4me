@@ -9,6 +9,56 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.97.0.1021] - 2026-07-28 — Unterseiten umbenennen und lösen
+
+Epic 3E-0128: Beim Umbenennen einer Unterseite ist nur noch ihr eigener
+Namensteil im Zugriff, und eine Unterseite lässt sich als benannte Handlung von
+ihrer übergeordneten Seite lösen. Beides schließt die Fuge zwischen den Epics
+3E-0061 (Unterseiten samt Umbenennungs-Kaskade) und 3E-0108 (Titelzeile).
+
+### Neu
+
+- **Unterseite von der übergeordneten Seite lösen** (4T-0774): Neues Kommando
+  `file.detachSubpage` im Datei-Menü, in der Kommando-Palette und im
+  Tab-Kontextmenü einer Unterseite. Ein Dialog nennt vorab das Ziel und die
+  Anzahl der eigenen Unterseiten, die mitwandern; der Ziel-Name ist änderbar,
+  falls auf der Zielebene bereits eine Datei so heißt. Verweise werden über den
+  bestehenden Weg des Umbenennens nachgeführt, samt Vorschau und Bericht. Das
+  Kommando hat kein Standard-Kürzel und ist über die Einstellungen belegbar.
+- **Schalter „Vollständigen Namen ändern"** im Umbenennen-Dialog (4T-0646): Er
+  erscheint nur bei einer Unterseite, ist standardmäßig aus und gibt die
+  übergeordneten Namensteile frei. Im eingeschalteten Zustand zeigt und
+  akzeptiert das Feld die logische Schrägstrich-Schreibweise.
+
+### Geändert
+
+- **Titelzeile beschränkt sich bei Unterseiten auf das eigene Segment**
+  (4T-0646): Der übergeordnete Anteil steht gedämpft und unveränderlich vor dem
+  editierbaren Segment; ein Schrägstrich wird dort abgelehnt. Bisher war der
+  ganze Name editierbar, und eine Änderung am Eltern-Anteil ließ die Unterseite
+  samt eigenen Nachfahren still ihren Ast verlassen. An einer Seite ohne
+  übergeordnete Seite macht ein Schrägstrich sie unverändert zur Unterseite.
+- **Namens-Zerlegung an einer Stelle** (4T-0646): `splitDisplayTitle` in
+  `src/shared/subpages.js` trennt Eltern-Anteil und eigenes Segment; Titelzeile
+  und Umbenennen-Dialog ziehen ihre Grenze aus derselben Funktion. Der
+  Namens-Eingabe-Dialog kennt dafür zwei neue, generische Möglichkeiten: einen
+  Umschalt-Haken je Kontrollkästchen und die Checkbox-Werte in der Prüfung.
+
+### Dokumentation
+
+- **Hilfe-Inhalte erweitert** (4T-0775): Vier neue Übersetzungs-Schlüssel für
+  den Funktions-Katalog und die Kommando-Beschreibung in je fünf Sprachen, zwei
+  überarbeitete Katalog-Einträge (Titelzeile, Datei umbenennen), das neue
+  Handbuch-Kapitel „Lösen" auf der Seite „Unterseiten" und ein nachgezogener
+  Titelzeilen-Abschnitt auf der Seite „Werkzeuge", jeweils in fünf Fassungen.
+  Die Demo-Area nennt im Kapitel „Subpages" beide Änderungen.
+
+### Tests
+
+- Sechs Unit-Fälle für die Namens-Zerlegung, drei neue E2E-Fälle zur Titelzeile
+  (TZ-09, TZ-10), zwei zum Vollname-Schalter (US-07) und drei zum Lösen (US-08),
+  dazu zwei Einträge in der Abdeckungs-Matrix.
+
 ## [0.96.0.1011] - 2026-07-28 — Reiter-Gruppen erweitern
 
 Epic 3E-0158: Reiter lassen sich in Mengen bewegen statt nur einzeln, und eine

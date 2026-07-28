@@ -66,6 +66,7 @@ const FILE_TAB_COMMANDS = new Set([
   'file.save',
   'file.saveAs',
   'file.rename',
+  'file.detachSubpage',
   'history.open',
   'view.toggleEdit',
 ]);

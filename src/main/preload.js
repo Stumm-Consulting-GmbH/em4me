@@ -565,6 +565,9 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-0339 (Epic 3E-0061): Datei umbenennen plus Nachzug-Broadcast an alle
   // Fenster (Tabs, Lesezeichen, Sitzungs-Pfade).
   onMenuRenameFile: (cb) => ipcRenderer.on('menu:renameFile', () => cb()),
+  // 4T-0774 (Epic 3E-0128): Unterseite loesen — nutzt denselben Umbenennungs-
+  // Pfad (renameFile) und braucht deshalb keinen eigenen Kanal zum Main.
+  onMenuDetachSubpage: (cb) => ipcRenderer.on('menu:detachSubpage', () => cb()),
   // 4T-0345 (Epic 3E-0062): updateLinks steuert das automatische Link-Update
   // (Standard aktiv; false schaltet es ab, gesetzt vom Dialog aus 4T-0346).
   renameFile: (oldPath, newBasename, updateLinks) =>

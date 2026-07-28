@@ -36,8 +36,18 @@ Quand une sous-page est active, un **fil d'Ariane** au-dessus du document (vues 
 **Fichier → Renommer…** (aussi dans le menu contextuel de l'onglet) renomme le fichier actif. Les onglets ouverts, les signets, la liste des fichiers récents et le [fichier compagnon d'historique](history.md) suivent.
 
 - Renommer une page **avec des sous-pages** emporte tout son arbre de sous-pages ; la boîte de dialogue en indique le nombre au préalable.
-- Renommer une **sous-page** ne change que son propre segment de nom ; la chaîne parente est conservée.
+- Renommer une **sous-page** ne change que son propre segment de nom ; la chaîne parente est conservée. Cela vaut aux deux endroits, y compris dans la [ligne de titre](tools.md) au-dessus du document : la partie parente y précède le segment modifiable, atténuée et non modifiable.
+- **Modifier le nom complet :** L'option du même nom dans la boîte de dialogue de renommage libère aussi les parties parentes du nom d'une sous-page. Elle est délibérément désactivée par défaut, car une modification à cet endroit place la page sous une autre page parente et agit sur toutes ses propres sous-pages.
 - **Mettre à jour les liens :** La case « Mettre à jour les liens dans les autres fichiers » récrit les liens wiki, incorporations et liens Markdown relatifs entrants vers le nouveau nom ; dans la cascade, aussi les références vers chaque sous-page renommée. Une seconde case affiche au préalable un **aperçu** des fichiers concernés ; après l'exécution, un **rapport** récapitule les fichiers renommés, mis à jour et non modifiables. Les valeurs par défaut se trouvent sous Paramètres → Comportement → « Liens lors du renommage ».
 - Les documents ouverts suivent ; un document avec des **modifications non enregistrées** reçoit la mise à jour dans l'éditeur comme une étape d'annulation propre, tandis que sur le disque seul le dernier état enregistré est mis à jour.
 - Avec l'[historique du document](history.md) activé, chaque mise à jour est traçable comme révision et peut être annulée ; sans historique, aucun retour en arrière.
 - Dans une application de zone, la mise à jour couvre toute la zone ; sans zone, l'espace de recherche connu, et le linter reste le filet pour le reste.
+
+## Détacher
+
+**Fichier → Détacher de la page parente…** (aussi dans le menu contextuel de l'onglet d'une sous-page) fait d'une sous-page une page autonome : `Prozess-A/Entwurf` devient `Entwurf`.
+
+- La boîte de dialogue indique au préalable la cible et le nombre de **sous-pages propres** qui suivent. `Prozess-A/Entwurf/Tief` devient `Entwurf/Tief` : la hiérarchie en dessous est donc conservée.
+- **Les liens restent valides :** la mise à jour des liens entrants emprunte le même chemin que le renommage, avec les mêmes cases pour l'aperçu et le rapport.
+- Le **nom cible est modifiable dans la boîte de dialogue**. C'est utile lorsqu'un fichier porte déjà ce nom au niveau visé : rien n'est renommé dans ce cas, et un nom différent aboutit au second essai.
+- Une barre oblique n'est pas autorisée dans le nom cible, car le résultat est une page autonome. Déplacer une page sous une **autre** page parente n'en fait pas partie ; qui en a besoin modifie le nom complet dans la boîte de dialogue de renommage.

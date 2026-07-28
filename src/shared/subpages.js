@@ -115,6 +115,20 @@ function displayTitleFromBasename(basenameWithExt) {
   return toLogicalName(String(basenameWithExt || '').replace(MD_EXTENSION_RE, ''));
 }
 
+// 4T-0646 (Epic 3E-0128): Anzeige-Zerlegung eines Datei-Basenames (mit oder
+// ohne Endung) in den Eltern-Anteil und das eigene Namens-Segment. Beide in
+// logischer Slash-Schreibweise; der Praefix traegt den abschliessenden
+// Schraegstrich, damit Praefix + Segment wieder den Anzeige-Titel ergeben.
+// Top-Level-Seiten liefern einen leeren Praefix. Gemeinsame Quelle fuer die
+// Titelzeile und den Umbenennen-Dialog, damit beide Bedienorte dieselbe
+// Grenze zwischen unveraenderlichem und aenderbarem Namensteil ziehen.
+function splitDisplayTitle(basenameWithExt) {
+  const base = String(basenameWithExt || '').replace(MD_EXTENSION_RE, '');
+  const parent = parentBasename(base);
+  if (parent === null) return { prefix: '', segment: toLogicalName(base) };
+  return { prefix: toLogicalName(parent) + '/', segment: lastSegment(base) };
+}
+
 // 4T-0339 (Epic 3E-0061): Validierung eines vollstaendigen Datei-Basenames
 // (Umbenennen-Dialog). Das Unterseiten-Trennzeichen ist hier erlaubt;
 // jedes Segment folgt den Segment-Regeln. Liefert null oder den
@@ -144,4 +158,5 @@ module.exports = {
   segmentValidationError,
   basenameValidationError,
   displayTitleFromBasename,
+  splitDisplayTitle,
 };

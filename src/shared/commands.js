@@ -270,6 +270,18 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-0774 (Epic 3E-0128): Unterseite von der uebergeordneten Seite loesen.
+  // Technisch die Umbenennung auf das eigene letzte Segment, deshalb ohne
+  // eigenen Nachfuehrungs-Pfad. Ohne Default-Binding (Menue-/Kontextmenue-Weg).
+  {
+    id: 'file.detachSubpage',
+    defaultBindings: [],
+    labelKey: 'menu.file.detachSubpage',
+    descKey: 'help.shortcut.detachSubpage',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
   // 4T-0303 (Epic 3E-0054): PDF-Export des gerenderten Inhalts. Umschalt-
   // Modifier, weil Strg+P im Edit-Modus von CodeMirror gegrabbt wird
   // (Begruendung aus 4T-0024 uebernommen).

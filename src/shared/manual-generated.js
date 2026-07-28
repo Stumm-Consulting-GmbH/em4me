@@ -36,6 +36,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0349 (Epic 3E-0062): Link-Update beim Umbenennen, direkt hinter der
       // Umbenennen-Grundfunktion.
       'help.feature.renameLinkUpdate',
+      // 4T-0775 (Epic 3E-0128): Unterseite loesen — technisch und fuer den
+      // Anwender eine Umbenennung, deshalb im Umbenennen-Cluster.
+      'help.feature.subpageDetach',
       // 4T-0585 (Epic 3E-0108): Titelzeile mit Direkt-Umbenennen, direkt
       // hinter dem Umbenennen-Cluster (gleiche Datei-Operation über einen
       // neuen Bedien-Zugang).

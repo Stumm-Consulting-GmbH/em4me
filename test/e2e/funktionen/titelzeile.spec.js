@@ -139,12 +139,14 @@ function cleanupDir(dir) {
   }
 }
 
-// Titel in der sichtbaren Render-Instanz editieren: Klick macht editierbar
-// (Auswahl ist danach komplett markiert), Tippen ersetzt.
+// Titel in der sichtbaren Render-Instanz editieren: Klick auf die Zeile macht
+// das eigene Namens-Segment editierbar (4T-0646; Auswahl ist danach komplett
+// markiert), Tippen ersetzt es.
 async function editTitleTo(page, newName) {
   const textEl = page.locator(SEL.titleLineRenderedText0);
+  const segmentEl = page.locator(SEL.titleLineRenderedSegment0);
   await textEl.click();
-  await expect(textEl).toHaveAttribute('contenteditable', 'plaintext-only');
+  await expect(segmentEl).toHaveAttribute('contenteditable', 'plaintext-only');
   await page.keyboard.type(newName);
 }
 
@@ -225,12 +227,12 @@ test.describe('TZ-06: Escape und Fokusverlust ohne Änderung', () => {
       expect(fs.existsSync(path.join(dir, 'Verworfen.md'))).toBe(false);
       // Fokusverlust ohne Änderung: stilles Ende, kein Hinweis.
       await page.locator(SEL.titleLineRenderedText0).click();
-      await expect(page.locator(SEL.titleLineRenderedText0)).toHaveAttribute(
+      await expect(page.locator(SEL.titleLineRenderedSegment0)).toHaveAttribute(
         'contenteditable',
         'plaintext-only',
       );
       await page.locator(SEL.markdownBody0).click();
-      await expect(page.locator(SEL.titleLineRenderedText0)).not.toHaveAttribute(
+      await expect(page.locator(SEL.titleLineRenderedSegment0)).not.toHaveAttribute(
         'contenteditable',
         'plaintext-only',
       );
@@ -284,6 +286,97 @@ test.describe('TZ-08: Unbenannt-Platzhalter', () => {
       await expect(visibleTitleLines(page).locator('.title-line-text')).toHaveText(tabTitle);
     } finally {
       await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-0646 (Epic 3E-0128): Bei einer Unterseite ist nur das eigene Segment
+// editierbar; der Eltern-Anteil bleibt sichtbar und unangetastet.
+test.describe('TZ-09: Unterseite — nur das eigene Namens-Segment', () => {
+  test('Praefix bleibt stehen, die Umbenennung wirkt nur auf das Segment', async () => {
+    const dir = makeDir();
+    const subFile = path.join(dir, `Projekt${SEP}Konzept.md`);
+    fs.writeFileSync(path.join(dir, 'Projekt.md'), '# Projekt\n\n[[Projekt/Konzept]]\n', 'utf8');
+    fs.writeFileSync(subFile, '# Konzept\n', 'utf8');
+    fs.writeFileSync(path.join(dir, `Projekt${SEP}Konzept${SEP}Detail.md`), '# Detail\n', 'utf8');
+    const { app, page, userData } = await launchApp({ args: [subFile] });
+    try {
+      await waitForTab(page);
+      // Anzeige: Praefix und Segment getrennt, Praefix nicht editierbar.
+      await expect(page.locator(SEL.titleLineRenderedPrefix0)).toHaveText('Projekt/');
+      await expect(page.locator(SEL.titleLineRenderedSegment0)).toHaveText('Konzept');
+      await editTitleTo(page, 'Entwurf');
+      await expect(page.locator(SEL.titleLineRenderedPrefix0)).not.toHaveAttribute(
+        'contenteditable',
+        'plaintext-only',
+      );
+      await page.keyboard.press('Enter');
+      // Der Eltern-Anteil ueberlebt, das Segment ist neu.
+      await expect(page.locator(SEL.titleLineRenderedPrefix0)).toHaveText('Projekt/');
+      await expect(page.locator(SEL.titleLineRenderedSegment0)).toHaveText('Entwurf');
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Projekt${SEP}Entwurf.md`)), { timeout: 5000 })
+        .toBe(true);
+      expect(fs.existsSync(subFile)).toBe(false);
+      // Eigene Unterseite wandert mit, die Elternseite bleibt unberuehrt.
+      expect(fs.existsSync(path.join(dir, `Projekt${SEP}Entwurf${SEP}Detail.md`))).toBe(true);
+      expect(fs.existsSync(path.join(dir, 'Projekt.md'))).toBe(true);
+      await expect
+        .poll(() => fs.readFileSync(path.join(dir, 'Projekt.md'), 'utf8'), { timeout: 5000 })
+        .toContain('[[Projekt/Entwurf]]');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+// 4T-0646: Der Schraegstrich ist im Segment abgelehnt (die Seite koennte
+// sonst still ihren Ast verlassen), an einer Top-Level-Seite bleibt er
+// erlaubt und macht sie zur Unterseite.
+test.describe('TZ-10: Schraegstrich nach Lage der Seite', () => {
+  test('Unterseite lehnt ab, Top-Level-Seite wird zur Unterseite', async () => {
+    const dir = makeDir();
+    const subFile = path.join(dir, `Projekt${SEP}Konzept.md`);
+    fs.writeFileSync(subFile, '# Konzept\n', 'utf8');
+    const { app, page, userData } = await launchApp({ args: [subFile] });
+    try {
+      await waitForTab(page);
+      await editTitleTo(page, 'Fremd/Konzept');
+      await page.keyboard.press('Enter');
+      const hint = page.locator(`${SEL.titleLineRendered0} .title-line-hint`);
+      await expect(hint).toBeVisible();
+      await expect(hint).toHaveClass(/is-error/);
+      await expect(page.locator(SEL.titleLineRenderedPrefix0)).toHaveText('Projekt/');
+      await expect(page.locator(SEL.titleLineRenderedSegment0)).toHaveText('Konzept');
+      expect(fs.existsSync(subFile)).toBe(true);
+      expect(fs.existsSync(path.join(dir, `Fremd${SEP}Konzept.md`))).toBe(false);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+
+  test('Top-Level-Seite haengt sich per Schraegstrich unter eine andere', async () => {
+    const dir = makeDir();
+    const topFile = path.join(dir, 'Solo.md');
+    fs.writeFileSync(topFile, '# Solo\n', 'utf8');
+    const { app, page, userData } = await launchApp({ args: [topFile] });
+    try {
+      await waitForTab(page);
+      await expect(page.locator(SEL.titleLineRenderedPrefix0)).toBeHidden();
+      await editTitleTo(page, 'Projekt/Solo');
+      await page.keyboard.press('Enter');
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Projekt${SEP}Solo.md`)), { timeout: 5000 })
+        .toBe(true);
+      expect(fs.existsSync(topFile)).toBe(false);
+      // Die Zeile zeigt danach die neue Einordnung.
+      await expect(page.locator(SEL.titleLineRenderedPrefix0)).toHaveText('Projekt/');
+      await expect(page.locator(SEL.titleLineRenderedSegment0)).toHaveText('Solo');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
     }
   });
 });

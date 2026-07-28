@@ -29,7 +29,9 @@ import {
 // Zyklus dialogs <-> views, Muster wie panels.js).
 // 4T-0461 (Epic 3E-0085): applyAllLayouts/persistState fuer die
 // Gruppen-Menue-Aktionen (Render und Sitzungs-Persistenz nach Modell-Edit).
-import { applyAllLayouts, persistState, renameFileForTab } from './views.js';
+import { applyAllLayouts, detachSubpageForTab, persistState, renameFileForTab } from './views.js';
+// 4T-0774 (Epic 3E-0128): Loesen-Eintrag nur an einer Unterseite.
+import { isSubpageBasename } from '../../shared/subpages.js';
 // 4T-0461: Gruppen-Modell-Helfer fuer Kontextmenue und Dialog.
 import {
   TAB_GROUP_COLOR_KEYS,
@@ -122,6 +124,11 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
   const ctxTab = ctxPane ? ctxPane.tabs[tabIdx] : null;
   if (ctxTab && ctxTab.path && !ctxTab.manualPage && !ctxTab.systemPage) {
     items.push({ key: 'tab.rename', action: () => renameFileForTab(paneIdx, tabIdx) });
+    // 4T-0774 (Epic 3E-0128): Loesen nur an einer Unterseite anbieten — im
+    // Kontextmenue steht die gemeinte Datei fest, anders als im Datei-Menue.
+    if (isSubpageBasename(api.basename(ctxTab.path).replace(/\.(md|markdown|mdown|mkd)$/i, ''))) {
+      items.push({ key: 'tab.detachSubpage', action: () => detachSubpageForTab(paneIdx, tabIdx) });
+    }
   }
   // 4T-0612 (Epic 3E-0115): Lesezeichen aus dem Tab-Menue anlegen (nur Datei-
   // Tabs, nur bei aktiver Lesezeichen-Erweiterung). Der Bereichs-Eintrag
@@ -741,12 +748,17 @@ export function cancelAliasDialog() {
 //   initialValue Vorbelegung des Eingabefelds
 //   placeholder  Platzhalter-Text
 //   okLabel      Beschriftung des Bestaetigen-Buttons (bereits lokalisiert)
-//   validate     (value) => i18n-Key des Fehlers oder null (gueltig)
+//   validate     (value, checkboxes) => i18n-Key des Fehlers oder null
 // 4T-0346 (Epic 3E-0062): opts.checkboxes ist eine optionale Liste
-//   [{ id, label, checked, requires? }]. Ohne die Option verhaelt sich der
-//   Dialog wie bisher (Rueckgabe: String bzw. null). Mit der Option zeigt er die
-//   Checkboxen und liefert bei OK ein Objekt { value, checkboxes: { id: bool } };
-//   `requires` deaktiviert eine Checkbox, solange die referenzierte aus ist.
+//   [{ id, label, checked, requires?, onChange? }]. Ohne die Option verhaelt
+//   sich der Dialog wie bisher (Rueckgabe: String bzw. null). Mit der Option
+//   zeigt er die Checkboxen und liefert bei OK ein Objekt
+//   { value, checkboxes: { id: bool } }; `requires` deaktiviert eine Checkbox,
+//   solange die referenzierte aus ist.
+// 4T-0646 (Epic 3E-0128): `onChange(checked, input)` laesst eine Checkbox das
+//   Eingabefeld umschalten (Vollname-Schalter des Umbenennen-Dialogs), und
+//   `validate` bekommt die Checkbox-Werte als zweiten Parameter, damit die
+//   Pruefung dem umgeschalteten Modus folgen kann.
 export function showNameInputDialog(opts) {
   const modal = $('#name-input-modal');
   const titleEl = $('#name-input-title');
@@ -800,6 +812,15 @@ export function showNameInputDialog(opts) {
         if (def.requires && checkboxInputs[def.requires]) {
           checkboxInputs[def.requires].addEventListener('change', applyDeps);
         }
+        // 4T-0646 (Epic 3E-0128): Eine Checkbox darf das Eingabefeld
+        // umschalten (Vollname-Schalter des Umbenennen-Dialogs). Der Aufrufer
+        // bekommt den Zustand und das Feld; die Validierung liest die
+        // Checkbox-Werte ueber den zweiten validate-Parameter.
+        if (typeof def.onChange === 'function') {
+          checkboxInputs[def.id].addEventListener('change', (ev) =>
+            def.onChange(!!ev.target.checked, input),
+          );
+        }
       }
       applyDeps();
     }
@@ -822,7 +843,8 @@ export function showNameInputDialog(opts) {
     };
     const onOk = () => {
       const value = input.value.trim();
-      const errKey = opts && typeof opts.validate === 'function' ? opts.validate(value) : null;
+      const errKey =
+        opts && typeof opts.validate === 'function' ? opts.validate(value, readCheckboxes()) : null;
       if (errKey) {
         errorEl.textContent = t(errKey);
         errorEl.hidden = false;

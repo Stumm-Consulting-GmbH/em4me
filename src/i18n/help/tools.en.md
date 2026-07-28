@@ -145,11 +145,11 @@ The clock belongs to the switchable extension “Clock” (Settings → Extensio
 
 ## Title line
 
-Above the document, the file name without extension sits as a compact title line in heading style — without a line number, fixed while scrolling and in all four views (in the split view once, above the source column). Subpages show their full logical name in slash notation, unnamed documents the "Untitled" placeholder. Manual and system pages have no title line.
+Above the document, the file name without extension sits as a compact title line in heading style — without a line number, fixed while scrolling and in all four views (in the split view once, above the source column). Subpages show their full logical name in slash notation, with the parent part dimmed; unnamed documents show the "Untitled" placeholder. Manual and system pages have no title line.
 
 ### Rename directly
 
-A click on the title (or `Enter` or `F2` on the focused line) makes it editable; `Enter` or a click outside confirms, `Esc` discards, unchanged text ends silently. Confirming renames the file through the normal rename mechanism: links to the file are updated according to the "Update links in other files" setting, the companion file moves along, a page with subpages takes its entire subpage tree with it. Unsaved changes are saved beforehand. The rename dialog (File → Rename…) remains available as a route with preview and result report.
+A click on the title (or `Enter` or `F2` on the focused line) makes it editable; `Enter` or a click outside confirms, `Esc` discards, unchanged text ends silently. Confirming renames the file through the normal rename mechanism: links to the file are updated according to the "Update links in other files" setting, the companion file moves along, a page with subpages takes its entire subpage tree with it. Unsaved changes are saved beforehand. On a **subpage** only its own name segment is editable; the parent part sits unchangeable in front of it, and a slash is rejected there. On a page without a parent page a slash turns it into a subpage instead. The rename dialog (File → Rename…) remains available as a route with preview and result report, and it is also the place where the full name of a subpage can be changed.
 
 Invalid names (empty, disallowed characters) and name collisions are shown by a hint directly below the title; the file then stays unchanged. For unnamed documents, confirming a name triggers "Save As" with that name pre-filled.
 

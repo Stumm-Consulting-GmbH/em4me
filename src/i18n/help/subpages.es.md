@@ -36,8 +36,18 @@ Cuando una subpágina está activa, una **ruta de navegación** sobre el documen
 **Archivo → Cambiar nombre…** (también en el menú contextual de la pestaña) renombra el archivo activo. Las pestañas abiertas, los marcadores, la lista de archivos recientes y el [archivo acompañante del historial](history.md) se actualizan.
 
 - Renombrar una página **con subpáginas** arrastra todo su árbol de subpáginas; el diálogo indica antes la cantidad.
-- Renombrar una **subpágina** cambia solo su propio segmento de nombre; la cadena padre se conserva.
+- Renombrar una **subpágina** cambia solo su propio segmento de nombre; la cadena padre se conserva. Vale en ambos lugares, también en la [línea de título](tools.md) sobre el documento: allí la parte superior aparece atenuada e inalterable delante del segmento editable.
+- **Cambiar el nombre completo:** La opción del mismo nombre en el diálogo de cambio de nombre libera también las partes superiores del nombre de una subpágina. Está desactivada de forma predeterminada a propósito, porque un cambio ahí coloca la página bajo otra página superior y afecta a todas sus propias subpáginas.
 - **Actualizar los enlaces:** La casilla «Actualizar los enlaces en otros archivos» reescribe los enlaces wiki, las incrustaciones y los enlaces Markdown relativos entrantes al nuevo nombre; en la cascada, también las referencias a cada subpágina renombrada. Una segunda casilla muestra de antemano una **vista previa** de los archivos afectados; tras la ejecución, un **informe** resume los archivos renombrados, actualizados y no actualizables. Los valores predeterminados están en Ajustes → Comportamiento → «Enlaces al cambiar el nombre».
 - Los documentos abiertos se actualizan; un documento con **cambios sin guardar** recibe la actualización en el editor como un paso de deshacer propio, mientras que en el disco solo se actualiza el último estado guardado.
 - Con el [historial del documento](history.md) activado, cada actualización es rastreable como revisión y se puede deshacer; sin historial no hay vuelta atrás.
 - En una aplicación de área, la actualización abarca toda el área; sin área, el espacio de búsqueda conocido, y el linter sigue siendo la red para el resto.
+
+## Desvincular
+
+**Archivo → Desvincular de la página superior…** (también en el menú contextual de la pestaña de una subpágina) convierte una subpágina en una página independiente: `Prozess-A/Entwurf` pasa a ser `Entwurf`.
+
+- El diálogo indica antes el destino y el número de **subpáginas propias** que la acompañan. `Prozess-A/Entwurf/Tief` pasa a ser `Entwurf/Tief`, de modo que la jerarquía inferior se conserva.
+- **Los enlaces siguen siendo válidos:** los enlaces entrantes se actualizan por el mismo camino que al cambiar el nombre, con las mismas casillas para vista previa e informe.
+- El **nombre de destino puede cambiarse en el diálogo**. Ayuda cuando ya existe un archivo con ese nombre en ese nivel: entonces no se renombra nada y un nombre distinto llega al objetivo en el segundo intento.
+- No se permite una barra en el nombre de destino, porque el resultado es una página independiente. Colocar una página bajo **otra** página superior no forma parte de esto; quien lo necesite cambia el nombre completo en el diálogo de cambio de nombre.

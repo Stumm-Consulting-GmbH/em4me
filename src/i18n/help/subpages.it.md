@@ -36,8 +36,18 @@ Quando una sottopagina è attiva, un **breadcrumb** sopra il documento (viste le
 **File → Rinomina…** (anche nel menu contestuale della scheda) rinomina il file attivo. Le schede aperte, i segnalibri, l'elenco dei file recenti e il [file di cronologia](history.md) seguono il nuovo nome.
 
 - Rinominare una pagina **con sottopagine** porta con sé l'intero albero delle sottopagine; la finestra ne indica prima il numero.
-- Rinominare una **sottopagina** cambia solo il proprio segmento di nome; la catena padre resta invariata.
+- Rinominare una **sottopagina** cambia solo il proprio segmento di nome; la catena padre resta invariata. Vale in entrambi i punti, anche nella [riga del titolo](tools.md) sopra il documento: lì la parte superiore precede il segmento modificabile, attenuata e non modificabile.
+- **Cambia il nome completo:** L'opzione omonima nella finestra di rinomina libera anche le parti superiori del nome di una sottopagina. È disattivata per impostazione predefinita di proposito, perché una modifica lì colloca la pagina sotto un'altra pagina superiore e agisce su tutte le sue sottopagine.
 - **Aggiornare i link:** La casella «Aggiorna i link negli altri file» riscrive i link wiki, gli incorporamenti e i link Markdown relativi in entrata al nuovo nome; nella cascata anche i riferimenti a ogni sottopagina rinominata. Una seconda casella mostra prima un'**anteprima** dei file interessati; dopo l'esecuzione, un **resoconto** riepiloga i file rinominati, aggiornati e non aggiornabili. I valori predefiniti si trovano in Impostazioni → Comportamento → «Link durante la rinomina».
 - I documenti aperti seguono; un documento con **modifiche non salvate** riceve l'aggiornamento nell'editor come un proprio passo di annullamento, mentre sul disco viene aggiornato solo l'ultimo stato salvato.
 - Con la [cronologia del documento](history.md) attiva, ogni aggiornamento è tracciabile come revisione e può essere annullato; senza cronologia non c'è ripristino.
 - In un'applicazione di area, l'aggiornamento copre l'intera area; senza area, lo spazio di ricerca noto, e il linter resta la rete per il resto.
+
+## Scollegare
+
+**File → Scollega dalla pagina superiore…** (anche nel menu contestuale della scheda di una sottopagina) trasforma una sottopagina in una pagina autonoma: `Prozess-A/Entwurf` diventa `Entwurf`.
+
+- La finestra indica prima la destinazione e il numero di **sottopagine proprie** che la seguono. `Prozess-A/Entwurf/Tief` diventa `Entwurf/Tief`: la gerarchia sottostante resta quindi invariata.
+- **I link restano validi:** i link in entrata vengono aggiornati per la stessa via della rinomina, con le stesse caselle per anteprima e resoconto.
+- Il **nome di destinazione è modificabile nella finestra**. Serve quando a quel livello esiste già un file con lo stesso nome: in quel caso non viene rinominato nulla, e un nome diverso va a segno al secondo tentativo.
+- Una barra non è ammessa nel nome di destinazione, perché il risultato è una pagina autonoma. Spostare una pagina sotto un'**altra** pagina superiore non ne fa parte; chi ne ha bisogno cambia il nome completo nella finestra di rinomina.

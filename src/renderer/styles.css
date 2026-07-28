@@ -2651,6 +2651,19 @@ body.panel-dragging .pane-sidebar[hidden] {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
 }
+/* 4T-0646 (Epic 3E-0128): Der Eltern-Anteil einer Unterseite ist dauerhaft
+   gedaempft und nie editierbar; das eigene Segment traegt die normale
+   Vordergrund-Farbe. Die Grenze ist damit sichtbar, bevor jemand klickt. */
+.title-line-prefix {
+  color: var(--fg-muted);
+}
+.title-line-prefix[hidden] {
+  display: none;
+}
+.title-line-segment:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
 /* Während der Bearbeitung keine Ellipsis (die Einfügemarke muss am
    Zeilenende sichtbar bleiben). */
 .title-line.editing .title-line-text {

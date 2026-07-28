@@ -1198,7 +1198,14 @@
       "id": "S-042",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
-      "hinweis": "US-04 (4T-0339): Umbenennen ueber den Menue-IPC-Pfad mit Tab-, Lesezeichen- und Recent-Nachzug; Kollisions-Ablehnung."
+      "hinweis": "US-04 (4T-0339): Umbenennen ueber den Menue-IPC-Pfad mit Tab-, Lesezeichen- und Recent-Nachzug; Kollisions-Ablehnung. US-07 (4T-0646) deckt zusaetzlich den Vollname-Schalter des Dialogs ab."
+    },
+    {
+      "key": "help.shortcut.detachSubpage",
+      "id": "S-117",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
+      "hinweis": "US-08 (4T-0774): Loesen ueber den Menue-IPC-Pfad — mitwandernde Nachfahren, Verweis-Nachfuehrung, Kollision auf der Zielebene und der Hinweis an einer Top-Level-Seite."
     },
     {
       "key": "help.shortcut.toggleSubpages",
@@ -1228,6 +1235,13 @@
         "test/unit/backlinks.test.js"
       ],
       "hinweis": "US-03 (4T-0338): Dialog-Anlage, Validierung, Kollisionsfall."
+    },
+    {
+      "key": "help.feature.subpageDetach",
+      "id": "F-244",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
+      "hinweis": "US-08 (4T-0774): Loesen macht die Unterseite eigenstaendig, eigene Nachfahren wandern mit, eingehende Verweise werden nachgefuehrt; Kollision auf der Zielebene und Hinweis an einer Top-Level-Seite."
     },
     {
       "key": "help.feature.renameFile",

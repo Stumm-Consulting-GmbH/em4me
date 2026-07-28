@@ -51,6 +51,14 @@ const SEL = {
   titleLineRendered0: '.pane-group[data-pane="0"] .pane-rendered .title-line',
   titleLineSourceText0: '.pane-group[data-pane="0"] .pane-source .title-line .title-line-text',
   titleLineRenderedText0: '.pane-group[data-pane="0"] .pane-rendered .title-line .title-line-text',
+  // 4T-0646 (Epic 3E-0128): Die Zeile besteht aus dem nie editierbaren
+  // Eltern-Anteil und dem editierbaren eigenen Segment.
+  titleLineRenderedPrefix0:
+    '.pane-group[data-pane="0"] .pane-rendered .title-line .title-line-prefix',
+  titleLineRenderedSegment0:
+    '.pane-group[data-pane="0"] .pane-rendered .title-line .title-line-segment',
+  titleLineSourceSegment0:
+    '.pane-group[data-pane="0"] .pane-source .title-line .title-line-segment',
 };
 
 module.exports = { SEL };

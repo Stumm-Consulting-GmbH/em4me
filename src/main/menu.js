@@ -489,6 +489,16 @@ function buildMenu(win, state, actions) {
           click: send('menu:renameFile'),
         },
         {
+          // 4T-0774 (Epic 3E-0128): Unterseite von der uebergeordneten Seite
+          // loesen. Ob die aktive Datei ueberhaupt eine Unterseite ist, prueft
+          // der Renderer und meldet es als Hinweis — wie beim Umbenennen, damit
+          // der Eintrag nicht ohne erkennbaren Grund verschwindet.
+          label: t('menu.file.detachSubpage'),
+          accelerator: acc('file.detachSubpage'),
+          enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+          click: send('menu:detachSubpage'),
+        },
+        {
           // 4T-0303 (Epic 3E-0054): PDF-Export des gerenderten Inhalts.
           // Direkt nach "Speichern unter..." (Epic-Festlegung). Handbuch-Tabs
           // sind exportierbar (gerenderter Inhalt vorhanden), nur der

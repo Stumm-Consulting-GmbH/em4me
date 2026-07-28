@@ -36,8 +36,18 @@ Ist eine Unterseite aktiv, zeigt ein **Breadcrumb** über dem Dokument (Lese-, G
 **Datei → Umbenennen…** (auch im Tab-Kontextmenü) benennt die aktive Datei um. Offene Tabs, Lesezeichen, die Liste der zuletzt geöffneten Dateien und die [Historien-Begleitdatei](history.md) ziehen mit.
 
 - Eine Seite **mit Unterseiten** nimmt beim Umbenennen ihren gesamten Unterseiten-Baum mit; der Dialog nennt die Anzahl vorab.
-- Eine **Unterseite** ändert nur ihr eigenes Namens-Segment; die Eltern-Kette bleibt erhalten.
+- Eine **Unterseite** ändert nur ihr eigenes Namens-Segment; die Eltern-Kette bleibt erhalten. Das gilt an beiden Bedienorten, auch in der [Titelzeile](tools.md) über dem Dokument: Dort steht der übergeordnete Anteil gedämpft und unveränderlich vor dem editierbaren Segment.
+- **Vollständigen Namen ändern:** Der gleichnamige Schalter im Umbenennen-Dialog gibt bei einer Unterseite auch die übergeordneten Namensteile frei. Er ist bewusst standardmäßig aus, weil eine Änderung dort die Seite unter eine andere übergeordnete Seite hängt und auf alle ihre untergeordneten Seiten wirkt.
 - **Links anpassen:** Das Kontrollkästchen „Links in anderen Dateien anpassen" schreibt eingehende Wiki-Links, Embeds und relative Markdown-Links auf den neuen Namen um, bei der Kaskade auch die Verweise auf jede mit-umbenannte Unterseite. Ein zweites Kontrollkästchen zeigt vorab eine **Vorschau** der betroffenen Dateien, nach dem Durchlauf fasst ein **Bericht** die umbenannten, angepassten und nicht anpassbaren Dateien zusammen. Die Vorbelegungen stehen unter Einstellungen → Verhalten → „Links beim Umbenennen".
 - Offene Dokumente ziehen nach; ein Dokument mit **ungespeicherten Änderungen** erhält die Anpassung im Editor als eigenen Rückgängig-Schritt, während auf der Festplatte nur der zuletzt gespeicherte Stand angepasst wird.
 - Bei aktivierter [Dokument-Historie](history.md) ist jede Anpassung als Revision nachvollziehbar und lässt sich zurücknehmen; ohne Historie gibt es kein Zurückdrehen.
 - In einer Bereichs-Applikation deckt die Anpassung den gesamten Bereich ab, ohne Bereich den bekannten Suchraum; für den Rest bleibt der Linter das Netz.
+
+## Lösen
+
+**Datei → Von der übergeordneten Seite lösen…** (auch im Tab-Kontextmenü einer Unterseite) macht aus einer Unterseite eine eigenständige Seite: Aus `Prozess-A/Entwurf` wird `Entwurf`.
+
+- Der Dialog nennt vorab das Ziel und die Anzahl der **eigenen Unterseiten**, die mitwandern. Aus `Prozess-A/Entwurf/Tief` wird dabei `Entwurf/Tief`, die Hierarchie unterhalb bleibt also erhalten.
+- **Verweise bleiben gültig:** Die Anpassung eingehender Links läuft über denselben Weg wie beim Umbenennen, mit denselben Kontrollkästchen für Vorschau und Bericht.
+- Der **Ziel-Name ist im Dialog änderbar**. Das hilft, wenn auf der Zielebene bereits eine Datei so heißt: Die Umbenennung wird dann gar nicht erst begonnen, und ein abweichender Name führt im zweiten Anlauf zum Ziel.
+- Ein Schrägstrich ist im Ziel-Namen nicht erlaubt: Das Ergebnis ist eine eigenständige Seite. Das gezielte Umhängen unter eine **andere** übergeordnete Seite gehört nicht dazu; wer es braucht, ändert im Umbenennen-Dialog den vollständigen Namen.

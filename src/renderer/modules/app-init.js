@@ -225,6 +225,7 @@ import {
   handleLinkUpdateApplied,
   handleRenderedClick,
   invalidatePaneRenderCache,
+  detachActiveSubpage,
   markFileMissing,
   newUntitledTab,
   openDraftsAsUntitled,
@@ -1179,6 +1180,11 @@ export const commandHandlers = {
   // 4T-0339 (Epic 3E-0061): aktive Datei umbenennen.
   'file.rename': () => {
     renameActiveFile();
+  },
+  // 4T-0774 (Epic 3E-0128): aktive Unterseite von ihrer uebergeordneten Seite
+  // loesen (Hinweis, wenn die aktive Datei keine Unterseite ist).
+  'file.detachSubpage': () => {
+    detachActiveSubpage();
   },
   'file.save': () => {
     saveCurrentTab();
@@ -2453,6 +2459,8 @@ export function bindUi() {
   // 4T-0339 (Epic 3E-0061): 'Datei -> Umbenennen...' plus zentraler
   // Nachzug nach einem Umbenennen (Broadcast aus dem Main).
   api.onMenuRenameFile(() => renameActiveFile());
+  // 4T-0774 (Epic 3E-0128): 'Datei -> Von der uebergeordneten Seite loesen...'.
+  api.onMenuDetachSubpage(() => detachActiveSubpage());
   api.onFileRenamed((payload) => {
     if (payload) handleFileRenamed(payload.oldPath, payload.newPath);
   });
