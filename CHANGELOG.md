@@ -9,6 +9,61 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.96.0.1011] - 2026-07-28 — Reiter-Gruppen erweitern
+
+Epic 3E-0158: Reiter lassen sich in Mengen bewegen statt nur einzeln, und eine
+zugeklappte Gruppe bleibt bedienbar, auch wenn der aktive Reiter in ihr liegt.
+Beides sind Reibungspunkte im täglichen Gebrauch der vorhandenen Gruppen-
+Funktion, keine neuen Bausteine.
+
+### Neu
+
+- **Mehrfach-Auswahl in der Reiterleiste** (4T-0765): Strg und Klick nimmt
+  einzelne Reiter auf und wieder heraus, Umschalt und Klick wählt die Spanne ab
+  dem aktiven Reiter. Ausgewählte Reiter sind farbig hinterlegt, sobald die
+  Auswahl mindestens zwei Mitglieder hat. Das Modell liegt als reines Modul in
+  `src/renderer/modules/tab-selection.js`; die Auswahl gehört zur einzelnen
+  Leiste und wird nicht persistiert.
+- **Mengen-Operationen auf Gruppen** (4T-0766): Die Auswahl tritt in einem
+  Schritt einer Gruppe bei, wechselt die Gruppe oder verlässt sie, über das
+  Kontextmenü und über das Ziehen auf den Gruppen-Kopf. Sie hängt sich in
+  Streifen-Reihenfolge ans Ende des Gruppen-Blocks; beim Austritt steht sie
+  unmittelbar dahinter. Drei neue Mengen-Helfer im Gruppen-Modell halten dabei
+  die Zusammenhangs-Invariante.
+- **Aufklapp-Menü beim Überfahren einer zugeklappten Gruppe** (4T-0768): Zeigen
+  auf den Kopf listet nach kurzer Verzögerung die Reiter der Gruppe, ein Klick
+  wechselt zur Datei, ohne aufzuklappen. Der aktive Reiter ist markiert,
+  ungespeicherte Dateien tragen ihren Änderungs-Punkt.
+
+### Geändert
+
+- **Zuklappen mit aktivem Reiter darin** (4T-0767): Die Sichtbarkeits-Garantie
+  des aktiven Reiters aus 0.58.0 ist entfallen. Eine zugeklappte Gruppe darf den
+  aktiven Reiter enthalten; er bleibt aktiv, sein Inhalt bleibt im Fenster, und
+  der Gruppen-Kopf trägt die Aktiv-Kennzeichnung. Eine Aktivierung von außen
+  (Wiki-Link, Kommando-Palette, Reiter-Wechsel per Tastatur) klappt die Gruppe
+  nicht mehr auf; der Zustand der Leiste ändert sich damit nie von selbst. Die
+  drei Helfer der alten Regel sind entfernt statt stillgelegt.
+- **Kontextmenü des Reiters** (4T-0766): Die drei Gruppen-Einträge tragen bei
+  einer Mehrfach-Auswahl die Mehrzahl-Beschriftung und wirken auf die Menge.
+  Einträge, die genau eine Datei meinen (Umbenennen, Lesezeichen, Fenster-
+  Transfer), und der Mittelklick zum Schließen bleiben beim angeklickten Reiter.
+
+### Dokumentation
+
+- **Hilfe und Handbuch** (4T-0769): drei neue Funktions-Katalog-Schlüssel für
+  die Mehrfach-Auswahl in fünf Sprachen, überarbeiteter Katalog-Eintrag zu den
+  Tab-Gruppen und die Handbuch-Seite „Applikationen, Fenster, Reiter" in allen
+  fünf Fassungen (neuer Abschnitt zur Mehrfach-Auswahl, umgeschriebener
+  Klapp-Absatz, Absatz zum Aufklapp-Menü).
+
+### Tests
+
+- Sieben neue E2E-Fälle TG-16 bis TG-22 in `test/e2e/funktionen/tab-gruppen.spec.js`,
+  ein neues Unit-Modul `test/unit/renderer/tab-selection.test.js` mit 14 Fällen
+  und acht neue Fälle zu den Mengen-Operationen im Gruppen-Modell. TG-03 und die
+  Modell-Tests der alten Klapp-Regel sind auf das neue Verhalten umgeschrieben.
+
 ## [0.95.0.998] - 2026-07-27 — Suche in Handbuch und Einstellungen
 
 Epic 3E-0142: Die Suche greift jetzt auch dort, wo nachgeschlagen wird. Der

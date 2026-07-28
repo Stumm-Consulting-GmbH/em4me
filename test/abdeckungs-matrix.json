@@ -1754,7 +1754,14 @@
       "id": "F-109",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/tab-gruppen.spec.js"],
-      "hinweis": "4T-0460/4T-0461 (Epic 3E-0085): Tab-Gruppen — TG-01 bis TG-08 (Menue-Fluesse, Klappen mit Aktivierungs-Wechsel, Drop auf den Kopf, Sitzungs-Wiederherstellung, Aus-Zustand der Erweiterung); Modell-Invarianten zusaetzlich in test/unit/renderer/tab-groups.test.js."
+      "hinweis": "4T-0460/4T-0461 (Epic 3E-0085): Tab-Gruppen — TG-01 bis TG-08 (Menue-Fluesse, Klappen, Drop auf den Kopf, Sitzungs-Wiederherstellung, Aus-Zustand der Erweiterung); 4T-0767/4T-0768 (Epic 3E-0158): TG-20 bis TG-22 (Zuklappen mit aktivem Reiter darin, Aufklapp-Menue beim Ueberfahren samt Negativ-Fall). Modell-Invarianten zusaetzlich in test/unit/renderer/tab-groups.test.js."
+    },
+    {
+      "key": "help.feature.tabSelection",
+      "id": "F-243",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/tab-gruppen.spec.js"],
+      "hinweis": "4T-0765/4T-0766 (Epic 3E-0158): Mehrfach-Auswahl — TG-16 und TG-17 (Strg- und Umschalt-Geste, Markierung ab zwei Mitgliedern, Ziehen der Menge als Block), TG-18 und TG-19 (Mengen-Operationen auf Gruppen ueber das Kontextmenue). Auswahl-Modell zusaetzlich in test/unit/renderer/tab-selection.test.js."
     },
     {
       "key": "help.feature.tabPlacement",

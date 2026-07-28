@@ -4,12 +4,12 @@ import { describe, it, expect } from 'vitest';
 import {
   TAB_GROUP_COLOR_KEYS,
   addTabToGroup,
+  addTabsToGroup,
   buildGroupsSnapshot,
   createTabGroup,
+  createTabGroupFromTabs,
   dissolveGroup,
-  ensureActiveTabVisible,
   ensurePaneGroups,
-  expandGroupOfTab,
   groupById,
   groupIdForInsertion,
   groupRange,
@@ -20,10 +20,10 @@ import {
   moveTabNextTo,
   nextFreeColor,
   nextGroupId,
-  nextVisibleTabIndex,
   normalizePaneGroups,
   pruneEmptyGroups,
   removeTabFromGroup,
+  removeTabsFromGroup,
   restoreGroupsIntoPane,
 } from '../../../src/renderer/modules/tab-groups.js';
 // 4T-0461: Registrierung der Erweiterung tab-groups (Aus-Zustand wird in
@@ -183,6 +183,86 @@ describe('Tab-Gruppen: Einfuege-Semantik (4T-0459)', () => {
   });
 });
 
+// 4T-0766 (Epic 3E-0158): Mengen-Fassungen der drei Einzel-Operationen. Die
+// Menge tritt am Block-ENDE bei (PO-Entscheidung vom 2026-07-28), verlaesst
+// die Gruppe hinter ihrem Block und bildet eine neue Gruppe an der Stelle des
+// ersten Ausgewaehlten.
+describe('Tab-Gruppen: Mengen-Operationen (4T-0766)', () => {
+  it('addTabsToGroup haengt die Menge in Streifen-Reihenfolge ans Block-Ende', () => {
+    const p = pane([tab('x'), tab('a'), tab('y'), tab('z')], 0);
+    const g = createTabGroup(p, 1, {});
+    addTabsToGroup(p, [3, 0], g.id);
+    expect(names(p)).toEqual(['a', 'x', 'z', 'y']);
+    expect(memberIndices(p, g.id)).toEqual([0, 1, 2]);
+    expect(p.tabs[p.activeIndex].path).toBe('x');
+  });
+
+  it('addTabsToGroup laesst bereits zugehoerige Reiter an ihrem Platz', () => {
+    const p = pane([tab('a'), tab('b'), tab('c')], 0);
+    const g = createTabGroup(p, 0, {});
+    addTabsToGroup(p, [0, 2], g.id);
+    expect(names(p)).toEqual(['a', 'c', 'b']);
+    expect(memberIndices(p, g.id)).toEqual([0, 1]);
+  });
+
+  it('addTabsToGroup meldet false ohne unbekannte Gruppe und ohne Wirkung', () => {
+    const p = pane([tab('a'), tab('b')], 0);
+    const g = createTabGroup(p, 0, {});
+    expect(addTabsToGroup(p, [1], 'tg-fremd')).toBe(false);
+    expect(addTabsToGroup(p, [0], g.id)).toBe(false); // schon Mitglied
+  });
+
+  it('removeTabsFromGroup stellt die Menge hinter ihren Block', () => {
+    const p = pane([tab('a'), tab('b'), tab('c'), tab('d')], 3);
+    const g = createTabGroup(p, 0, {});
+    addTabsToGroup(p, [1, 2], g.id);
+    // Block: a b c | d — 'a' und 'b' austreten lassen.
+    removeTabsFromGroup(p, [0, 1]);
+    expect(names(p)).toEqual(['c', 'a', 'b', 'd']);
+    expect(memberIndices(p, g.id)).toEqual([0]);
+    expect(p.tabs[p.activeIndex].path).toBe('d');
+  });
+
+  it('removeTabsFromGroup bedient mehrere Gruppen je fuer sich', () => {
+    const p = pane([tab('a'), tab('b'), tab('c'), tab('d')], 0);
+    const g1 = createTabGroup(p, 0, {});
+    addTabsToGroup(p, [1], g1.id);
+    const g2 = createTabGroup(p, 2, {});
+    addTabsToGroup(p, [3], g2.id);
+    removeTabsFromGroup(p, [0, 2]);
+    expect(names(p)).toEqual(['b', 'a', 'd', 'c']);
+    expect(memberIndices(p, g1.id)).toEqual([0]);
+    expect(memberIndices(p, g2.id)).toEqual([2]);
+  });
+
+  it('removeTabsFromGroup der letzten Mitglieder entfernt die Gruppe, ohne zu verschieben', () => {
+    const p = pane([tab('a'), tab('b'), tab('c')], 0);
+    const g = createTabGroup(p, 0, {});
+    addTabsToGroup(p, [1], g.id);
+    removeTabsFromGroup(p, [0, 1]);
+    expect(names(p)).toEqual(['a', 'b', 'c']);
+    expect(groupById(p, g.id)).toBeNull();
+  });
+
+  it('createTabGroupFromTabs schiebt die Menge an der Stelle des ersten zusammen', () => {
+    const p = pane([tab('a'), tab('b'), tab('c'), tab('d')], 3);
+    const g = createTabGroupFromTabs(p, [1, 3], { name: 'Menge' });
+    expect(names(p)).toEqual(['a', 'b', 'd', 'c']);
+    expect(memberIndices(p, g.id)).toEqual([1, 2]);
+    expect(g.name).toBe('Menge');
+    expect(p.tabs[p.activeIndex].path).toBe('d');
+  });
+
+  it('createTabGroupFromTabs beendet bestehende Mitgliedschaften', () => {
+    const p = pane([tab('a'), tab('b'), tab('c')], 0);
+    const alt = createTabGroup(p, 0, {});
+    addTabsToGroup(p, [1], alt.id);
+    const neu = createTabGroupFromTabs(p, [0, 2], {});
+    expect(memberIndices(p, neu.id)).toEqual([0, 1]);
+    expect(memberIndices(p, alt.id)).toEqual([2]);
+  });
+});
+
 // 4T-0648 (Epic 3E-0130): Ein Reiter, der aus einem anderen heraus entsteht,
 // liegt unmittelbar rechts neben diesem Herkunfts-Reiter. Loest die
 // Einfuegung am Gruppen-Ende aus 4T-0631 ab. 'h' steht fuer den Folge-Reiter.
@@ -302,7 +382,7 @@ describe('Tab-Gruppen: Platzierung neben dem Herkunfts-Reiter (4T-0648)', () => 
 });
 
 describe('Tab-Gruppen: Klapp-Zustand (4T-0459)', () => {
-  it('isTabVisible/nextVisibleTabIndex respektieren collapsed', () => {
+  it('isTabVisible respektiert collapsed', () => {
     const p = pane([tab('a'), tab('b'), tab('c'), tab('d')]);
     const g = createTabGroup(p, 1, {});
     addTabToGroup(p, 2, g.id);
@@ -311,44 +391,23 @@ describe('Tab-Gruppen: Klapp-Zustand (4T-0459)', () => {
     expect(isTabVisible(p, 1)).toBe(false);
     expect(isTabVisible(p, 2)).toBe(false);
     expect(isTabVisible(p, 3)).toBe(true);
-    // Vom ersten Mitglied aus: rechts zuerst ('d'), sonst links.
-    expect(nextVisibleTabIndex(p, 1)).toBe(3);
-    expect(nextVisibleTabIndex(p, 3)).toBe(0);
-    // excludeGroupId klammert die eigene Gruppe aus (Zuklappen-Wechsel).
-    expect(nextVisibleTabIndex(p, 2, g.id)).toBe(3);
   });
 
-  it('expandGroupOfTab klappt nur zugeklappte Gruppen auf', () => {
-    const p = pane([tab('a'), tab('b')]);
+  // 4T-0767 (Epic 3E-0158): Die Sichtbarkeits-Garantie des aktiven Reiters ist
+  // entfallen; eine zugeklappte Gruppe darf ihn enthalten. Die frueheren
+  // Faelle zu expandGroupOfTab, nextVisibleTabIndex und ensureActiveTabVisible
+  // (4T-0460) sind mit diesen Helfern entfallen.
+  it('ein verborgener Reiter darf der aktive sein', () => {
+    const p = pane([tab('a'), tab('b')], 0);
     const g = createTabGroup(p, 0, {});
-    expect(expandGroupOfTab(p, 0)).toBe(false);
     g.collapsed = true;
-    expect(expandGroupOfTab(p, 0)).toBe(true);
-    expect(g.collapsed).toBe(false);
-    expect(expandGroupOfTab(p, 1)).toBe(false); // ungruppiert
+    expect(isTabVisible(p, p.activeIndex)).toBe(false);
+    expect(p.activeIndex).toBe(0);
+    expect(g.collapsed).toBe(true);
   });
 });
 
-describe('Tab-Gruppen: Aktivierungs-Regel und Block-Verschiebung (4T-0460)', () => {
-  it('ensureActiveTabVisible bevorzugt den naechsten sichtbaren Tab', () => {
-    const p = pane([tab('a'), tab('b'), tab('c')], 1);
-    const g = createTabGroup(p, 1, {});
-    g.collapsed = true;
-    ensureActiveTabVisible(p);
-    expect(p.tabs[p.activeIndex].path).toBe('c');
-    expect(g.collapsed).toBe(true);
-  });
-
-  it('ensureActiveTabVisible klappt auf, wenn kein sichtbarer Tab existiert', () => {
-    const p = pane([tab('a'), tab('b')], 0);
-    const g = createTabGroup(p, 0, {});
-    addTabToGroup(p, 1, g.id);
-    g.collapsed = true;
-    ensureActiveTabVisible(p);
-    expect(g.collapsed).toBe(false);
-    expect(p.activeIndex).toBe(0);
-  });
-
+describe('Tab-Gruppen: Block-Verschiebung (4T-0460)', () => {
   it('moveGroupWithinPane verschiebt den Block und haelt den aktiven Tab', () => {
     // Streifen: [a b] c d, aktiv 'c'; Gruppe ans Ende ziehen.
     const p = pane([tab('a'), tab('b'), tab('c'), tab('d')], 2);

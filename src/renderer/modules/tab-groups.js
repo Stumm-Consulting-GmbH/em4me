@@ -92,11 +92,28 @@ function moveTabKeepActive(pane, fromIdx, toIdx) {
   if (activeObj) pane.activeIndex = pane.tabs.indexOf(activeObj);
 }
 
+// 4T-0766 (Epic 3E-0158): Index-Liste einer Mehrfach-Auswahl normieren —
+// doppelte und ungueltige Eintraege fallen weg, der Rest steht in
+// Streifen-Reihenfolge. Alle Mengen-Helfer unten beginnen damit, weil ihre
+// Ergebnisse sonst von der Klick-Reihenfolge des Anwenders abhingen.
+function normierteIndizes(pane, tabIdxList) {
+  return [...new Set(Array.isArray(tabIdxList) ? tabIdxList : [])]
+    .filter((i) => Number.isInteger(i) && pane.tabs[i])
+    .sort((a, b) => a - b);
+}
+
 // Neue Gruppe mit genau diesem Tab anlegen. Ein bestehende Mitgliedschaft
 // des Tabs endet dabei (die alte Gruppe wird ggf. bereinigt).
-export function createTabGroup(pane, tabIdx, { name = '', color } = {}) {
-  const tab = pane.tabs[tabIdx];
-  if (!tab) return null;
+export function createTabGroup(pane, tabIdx, opts = {}) {
+  return createTabGroupFromTabs(pane, [tabIdx], opts);
+}
+
+// 4T-0766: Neue Gruppe aus einer Menge. Die Mitglieder ruecken an der Stelle
+// des ERSTEN Ausgewaehlten zu einem zusammenhaengenden Block zusammen
+// (Invariante 1); bestehende Mitgliedschaften enden dabei.
+export function createTabGroupFromTabs(pane, tabIdxList, { name = '', color } = {}) {
+  const idxs = normierteIndizes(pane, tabIdxList);
+  if (idxs.length === 0) return null;
   ensurePaneGroups(pane);
   const group = {
     id: nextGroupId(pane),
@@ -104,8 +121,14 @@ export function createTabGroup(pane, tabIdx, { name = '', color } = {}) {
     color: TAB_GROUP_COLOR_KEYS.includes(color) ? color : nextFreeColor(pane),
     collapsed: false,
   };
-  tab.groupId = group.id;
   pane.groups.push(group);
+  const activeObj = pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  const block = idxs.map((i) => pane.tabs[i]);
+  for (const tab of block) tab.groupId = group.id;
+  const rest = pane.tabs.filter((tab) => !block.includes(tab));
+  const at = Math.max(0, Math.min(idxs[0], rest.length));
+  pane.tabs = [...rest.slice(0, at), ...block, ...rest.slice(at)];
+  if (activeObj) pane.activeIndex = pane.tabs.indexOf(activeObj);
   pruneEmptyGroups(pane);
   return group;
 }
@@ -125,6 +148,54 @@ export function addTabToGroup(pane, tabIdx, groupId) {
     const target = tabIdx < last ? last : last + 1;
     moveTabKeepActive(pane, tabIdx, target);
   }
+  pruneEmptyGroups(pane);
+  return true;
+}
+
+// 4T-0766 (Epic 3E-0158): Menge in eine Gruppe aufnehmen. Sie haengt sich in
+// Streifen-Reihenfolge ans ENDE des Gruppen-Blocks (Entscheidung des Product
+// Owners vom 2026-07-28, gleiches Ergebnis fuer Menue-Aufruf und Ziehen).
+// Bereits zugehoerige Reiter bleiben, wo sie sind.
+export function addTabsToGroup(pane, tabIdxList, groupId) {
+  const group = groupById(pane, groupId);
+  if (!group) return false;
+  const idxs = normierteIndizes(pane, tabIdxList);
+  const block = idxs.map((i) => pane.tabs[i]).filter((tab) => tab.groupId !== groupId);
+  if (block.length === 0) return false;
+  const activeObj = pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  // Bestand VOR dem Umhaengen festhalten: danach gehoerte die Menge dazu.
+  const bestand = pane.tabs.filter((tab) => tab.groupId === groupId);
+  for (const tab of block) tab.groupId = groupId;
+  const rest = pane.tabs.filter((tab) => !block.includes(tab));
+  const letztes = bestand.length > 0 ? rest.indexOf(bestand[bestand.length - 1]) : -1;
+  const at = letztes >= 0 ? letztes + 1 : rest.length;
+  pane.tabs = [...rest.slice(0, at), ...block, ...rest.slice(at)];
+  if (activeObj) pane.activeIndex = pane.tabs.indexOf(activeObj);
+  pruneEmptyGroups(pane);
+  return true;
+}
+
+// 4T-0766: Menge aus ihrer Gruppe entlassen. Die Reiter stehen danach
+// unmittelbar hinter dem Block ihrer bisherigen Gruppe (Muster
+// removeTabFromGroup); stammt die Menge aus mehreren Gruppen, gilt das je
+// Gruppe. Verlaesst die letzte Gruppe ihre Mitglieder vollstaendig, bleiben
+// die Reiter an Ort und Stelle und die Gruppe entfaellt.
+export function removeTabsFromGroup(pane, tabIdxList) {
+  const idxs = normierteIndizes(pane, tabIdxList);
+  const betroffen = idxs.map((i) => pane.tabs[i]).filter((tab) => tab.groupId);
+  if (betroffen.length === 0) return false;
+  const activeObj = pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  const gruppen = [...new Set(betroffen.map((tab) => tab.groupId))];
+  for (const gid of gruppen) {
+    const block = betroffen.filter((tab) => tab.groupId === gid);
+    for (const tab of block) tab.groupId = null;
+    const rest = pane.tabs.filter((tab) => !block.includes(tab));
+    const mitglieder = rest.filter((tab) => tab.groupId === gid);
+    if (mitglieder.length === 0) continue;
+    const at = rest.indexOf(mitglieder[mitglieder.length - 1]) + 1;
+    pane.tabs = [...rest.slice(0, at), ...block, ...rest.slice(at)];
+  }
+  if (activeObj) pane.activeIndex = pane.tabs.indexOf(activeObj);
   pruneEmptyGroups(pane);
   return true;
 }
@@ -243,41 +314,13 @@ export function isTabVisible(pane, tabIdx) {
   return !group || !group.collapsed;
 }
 
-// Gruppe des Tabs aufklappen (z.B. Datei-Oeffnen in eine zugeklappte
-// Gruppe). Liefert true, wenn sich der Zustand geaendert hat.
-export function expandGroupOfTab(pane, tabIdx) {
-  const tab = pane.tabs[tabIdx];
-  const group = tab ? groupById(pane, tab.groupId) : null;
-  if (!group || !group.collapsed) return false;
-  group.collapsed = false;
-  return true;
-}
-
-// Naechster sichtbarer Tab ausgehend von fromIdx: erst rechts suchen,
-// dann links (Aktivierungs-Wechsel beim Zuklappen, 4T-0460).
-export function nextVisibleTabIndex(pane, fromIdx, excludeGroupId = null) {
-  const visible = (i) =>
-    isTabVisible(pane, i) && (!excludeGroupId || pane.tabs[i].groupId !== excludeGroupId);
-  for (let i = fromIdx + 1; i < pane.tabs.length; i++) {
-    if (visible(i)) return i;
-  }
-  for (let i = fromIdx - 1; i >= 0; i--) {
-    if (visible(i)) return i;
-  }
-  return -1;
-}
-
-// 4T-0460: Aktivierungs-Regel nach Tab-Operationen — zeigt der aktive
-// Index auf einen durch eine zugeklappte Gruppe verborgenen Tab, wird der
-// naechste sichtbare bevorzugt; gibt es keinen, klappt die Gruppe des
-// aktiven Tabs auf (Kanten-Fall „Schliessen des letzten sichtbaren Tabs").
-export function ensureActiveTabVisible(pane) {
-  if (pane.activeIndex < 0) return;
-  if (isTabVisible(pane, pane.activeIndex)) return;
-  const alt = nextVisibleTabIndex(pane, pane.activeIndex);
-  if (alt >= 0) pane.activeIndex = alt;
-  else expandGroupOfTab(pane, pane.activeIndex);
-}
+// 4T-0767 (Epic 3E-0158): Die Sichtbarkeits-Garantie des aktiven Reiters ist
+// entfallen. Eine zugeklappte Gruppe darf ihn enthalten; sein Inhalt bleibt im
+// Pane sichtbar, in der Leiste zeigt sich nur der Kopf mit seiner
+// Aktiv-Kennzeichnung. Damit fielen expandGroupOfTab, nextVisibleTabIndex und
+// ensureActiveTabVisible (alle 4T-0460) ohne Aufrufer aus; sie sind entfernt
+// statt als toter Code stehen zu bleiben. isTabVisible bleibt: Es steuert das
+// Rendern der Leiste und die Spanne der Mehrfach-Auswahl.
 
 // 4T-0460: Kopf-Ziehen verschiebt die ganze Gruppe. insertIdx ist der
 // Einfuege-Index in Tab-Koordinaten VOR dem Entfernen des Blocks (wie bei

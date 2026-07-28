@@ -6,10 +6,18 @@
 import { t } from '../i18n.js';
 
 import { api, $ } from './api.js';
-import { aboutModal, aboutVersionEl, aliasModal, contextMenu, state } from './app-state.js';
+import {
+  aboutModal,
+  aboutVersionEl,
+  aliasModal,
+  contextMenu,
+  state,
+  tabDisplayName,
+} from './app-state.js';
 // 4T-0318 (Epic 3E-0057): Ziel-Labels mit App-Kontext.
 import { buildWindowTargetLabel } from './window-title.js';
 import {
+  activateTab,
   closeTab,
   copyTabToNewWindow,
   copyTabToWindow,
@@ -25,15 +33,16 @@ import { applyAllLayouts, persistState, renameFileForTab } from './views.js';
 // 4T-0461: Gruppen-Modell-Helfer fuer Kontextmenue und Dialog.
 import {
   TAB_GROUP_COLOR_KEYS,
-  addTabToGroup,
-  createTabGroup,
+  addTabsToGroup,
+  createTabGroupFromTabs,
   dissolveGroup,
-  expandGroupOfTab,
   groupById,
-  isTabVisible,
   nextFreeColor,
-  removeTabFromGroup,
+  removeTabsFromGroup,
 } from './tab-groups.js';
+// 4T-0766 (Epic 3E-0158): Die drei Gruppen-Eintraege beziehen sich auf die
+// Mehrfach-Auswahl, sobald der angeklickte Reiter Teil von ihr ist.
+import { hasMultiSelection, isTabSelected, selectedIndices } from './tab-selection.js';
 // 4T-0461: Gruppen-Menuepunkte entfallen bei deaktivierter Erweiterung.
 import { isExtensionActive } from './extension-lifecycle.js';
 // 4T-0612 (Epic 3E-0115): Lesezeichen direkt aus dem Tab-Kontextmenue anlegen.
@@ -145,28 +154,40 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
   // bestehenden Gruppen der Leiste (Untermenue), Austritt. Entfaellt bei
   // deaktivierter Erweiterung tab-groups.
   if (isExtensionActive('tab-groups') && ctxPane && ctxTab) {
+    // 4T-0766 (Epic 3E-0158): Menge statt Einzel-Reiter, sobald der
+    // angeklickte Reiter Teil einer Mehrfach-Auswahl ist. Die uebrigen
+    // Eintraege des Menues meinen genau eine Datei und bleiben beim
+    // angeklickten Reiter (Umbenennen, Lesezeichen, Fenster-Transfer).
+    const menge =
+      hasMultiSelection(ctxPane) && isTabSelected(ctxPane, tabIdx)
+        ? selectedIndices(ctxPane)
+        : [tabIdx];
+    const mehrere = menge.length > 1;
+    const mengenTabs = menge.map((i) => ctxPane.tabs[i]).filter(Boolean);
     items.push({ separator: true });
     items.push({
-      key: 'tabGroup.menu.newGroup',
+      key: mehrere ? 'tabGroup.menu.newGroupSelection' : 'tabGroup.menu.newGroup',
       dataId: 'tabgroup-new',
-      action: () => newGroupWithTab(paneIdx, tabIdx),
+      action: () => newGroupWithTabs(paneIdx, menge),
     });
-    const otherGroups = (ctxPane.groups || []).filter((g) => g.id !== ctxTab.groupId);
+    // Bei einer Menge bleiben alle Gruppen der Leiste waehlbar: Sie kann aus
+    // mehreren Gruppen stammen, und „schon drin" gilt dann nur fuer einen Teil.
+    const otherGroups = (ctxPane.groups || []).filter((g) => mehrere || g.id !== ctxTab.groupId);
     if (otherGroups.length > 0) {
       items.push({
-        key: 'tabGroup.menu.addTo',
+        key: mehrere ? 'tabGroup.menu.addToSelection' : 'tabGroup.menu.addTo',
         dataId: 'tabgroup-add',
         submenu: otherGroups.map((g) => ({
           label: g.name || t('tabGroup.unnamed'),
-          action: () => addTabToGroupAction(paneIdx, tabIdx, g.id),
+          action: () => addTabsToGroupAction(paneIdx, menge, g.id),
         })),
       });
     }
-    if (ctxTab.groupId) {
+    if (mengenTabs.some((tb) => tb.groupId)) {
       items.push({
-        key: 'tabGroup.menu.removeFrom',
+        key: mehrere ? 'tabGroup.menu.removeFromSelection' : 'tabGroup.menu.removeFrom',
         dataId: 'tabgroup-remove',
-        action: () => removeTabFromGroupAction(paneIdx, tabIdx),
+        action: () => removeTabsFromGroupAction(paneIdx, menge),
       });
     }
     items.push({ separator: true });
@@ -183,14 +204,19 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
 // Neue-Gruppe-Fluss: Gruppe mit Standard-Name ("Gruppe n") und naechster
 // freier Palette-Farbe anlegen, dann direkt den Umbenennen-Dialog oeffnen.
 // Abbruch im Dialog behaelt Standard-Name und -Farbe (Gruppe bleibt).
-async function newGroupWithTab(paneIdx, tabIdx) {
+// 4T-0766 (Epic 3E-0158): auf eine Index-Liste erweitert — bei einer Menge
+// ruecken die Mitglieder an der Stelle des ersten Ausgewaehlten zusammen.
+async function newGroupWithTabs(paneIdx, tabIdxList) {
   const pane = state.panes[paneIdx];
-  if (!pane || !pane.tabs[tabIdx]) return;
+  if (!pane) return;
   const defaultName = t('tabGroup.defaultName').replace(
     '{n}',
     String((pane.groups || []).length + 1),
   );
-  const group = createTabGroup(pane, tabIdx, { name: defaultName, color: nextFreeColor(pane) });
+  const group = createTabGroupFromTabs(pane, tabIdxList, {
+    name: defaultName,
+    color: nextFreeColor(pane),
+  });
   if (!group) return;
   applyAllLayouts();
   persistState();
@@ -202,21 +228,18 @@ async function newGroupWithTab(paneIdx, tabIdx) {
   persistState();
 }
 
-function addTabToGroupAction(paneIdx, tabIdx, groupId) {
+function addTabsToGroupAction(paneIdx, tabIdxList, groupId) {
   const pane = state.panes[paneIdx];
-  if (!pane || !addTabToGroup(pane, tabIdx, groupId)) return;
-  // Tritt der aktive Tab einer zugeklappten Gruppe bei, klappt sie auf
-  // (der aktive Tab darf nie unsichtbar werden).
-  if (pane.activeIndex >= 0 && !isTabVisible(pane, pane.activeIndex)) {
-    expandGroupOfTab(pane, pane.activeIndex);
-  }
+  if (!pane || !addTabsToGroup(pane, tabIdxList, groupId)) return;
+  // 4T-0767 (Epic 3E-0158): Tritt der aktive Reiter einer zugeklappten Gruppe
+  // bei, bleibt sie zu — die Sichtbarkeits-Garantie ist entfallen.
   applyAllLayouts();
   persistState();
 }
 
-function removeTabFromGroupAction(paneIdx, tabIdx) {
+function removeTabsFromGroupAction(paneIdx, tabIdxList) {
   const pane = state.panes[paneIdx];
-  if (!pane || !removeTabFromGroup(pane, tabIdx)) return;
+  if (!pane || !removeTabsFromGroup(pane, tabIdxList)) return;
   applyAllLayouts();
   persistState();
 }
@@ -248,6 +271,107 @@ export function showGroupContextMenu(event, paneIdx, groupId) {
   ];
   for (const it of items) appendContextMenuItem(contextMenu, it);
   placeContextMenuAt(contextMenu, event.clientX, event.clientY);
+}
+
+// --- Aufklapp-Menue einer zugeklappten Gruppe (4T-0768, Epic 3E-0158) --------
+//
+// Eine zugeklappte Gruppe verbirgt ihre Mitglieder vollstaendig; das Menue
+// macht den Wechsel zu einem Zeigen und einem Klick. Mechanik und Zeiten sind
+// die der Submenues in appendContextMenuItem: Oeffnen beim Zeigen, Schliessen
+// mit Verzoegerung, Abbruch des Schliess-Timers beim Wiedereintritt in
+// Ausloeser ODER Menue. Nur so ueberquert der Zeiger die Luecke zwischen Kopf
+// und Menue, ohne dass es flackert. Platziert wird unter dem Kopf (Muster
+// showHeadingMenu der Format-Toolbar).
+//
+// Das Menue nutzt bewusst das gemeinsame #context-menu: Damit gelten die
+// vorhandenen Schliess-Wege (Klick ausserhalb, Escape) ohne eigenen Code.
+const GRUPPEN_MENUE_OEFFNEN_MS = 300;
+const GRUPPEN_MENUE_SCHLIESSEN_MS = 250;
+let gruppenMenueOeffnenTimer = null;
+let gruppenMenueSchliessenTimer = null;
+let gruppenMenueGroupId = null;
+
+function gruppenMenueOffen(groupId) {
+  return gruppenMenueGroupId === groupId && !contextMenu.hidden;
+}
+
+export function planeGruppenMitgliederMenue(paneIdx, groupId, anchorEl) {
+  if (gruppenMenueSchliessenTimer) {
+    clearTimeout(gruppenMenueSchliessenTimer);
+    gruppenMenueSchliessenTimer = null;
+  }
+  if (gruppenMenueOffen(groupId)) return;
+  if (gruppenMenueOeffnenTimer) clearTimeout(gruppenMenueOeffnenTimer);
+  gruppenMenueOeffnenTimer = setTimeout(() => {
+    gruppenMenueOeffnenTimer = null;
+    zeigeGruppenMitgliederMenue(paneIdx, groupId, anchorEl);
+  }, GRUPPEN_MENUE_OEFFNEN_MS);
+}
+
+export function planeGruppenMenueSchliessen() {
+  if (gruppenMenueOeffnenTimer) {
+    clearTimeout(gruppenMenueOeffnenTimer);
+    gruppenMenueOeffnenTimer = null;
+  }
+  if (!gruppenMenueGroupId) return;
+  if (gruppenMenueSchliessenTimer) clearTimeout(gruppenMenueSchliessenTimer);
+  gruppenMenueSchliessenTimer = setTimeout(() => {
+    gruppenMenueSchliessenTimer = null;
+    schliesseGruppenMenueSofort();
+  }, GRUPPEN_MENUE_SCHLIESSEN_MS);
+}
+
+// Sofort schliessen: Kopf-Klick (Aufklappen), Beginn eines Ziehens.
+export function schliesseGruppenMenueSofort() {
+  if (gruppenMenueOeffnenTimer) {
+    clearTimeout(gruppenMenueOeffnenTimer);
+    gruppenMenueOeffnenTimer = null;
+  }
+  if (gruppenMenueSchliessenTimer) {
+    clearTimeout(gruppenMenueSchliessenTimer);
+    gruppenMenueSchliessenTimer = null;
+  }
+  if (gruppenMenueGroupId) hideContextMenu();
+}
+
+function zeigeGruppenMitgliederMenue(paneIdx, groupId, anchorEl) {
+  const pane = state.panes[paneIdx];
+  const group = pane ? groupById(pane, groupId) : null;
+  // Zwischen Zeigen und Ablauf der Verzoegerung kann sich alles geaendert
+  // haben: Gruppe aufgeklappt, aufgeloest, Reiter geschlossen.
+  if (!group || !group.collapsed || !anchorEl.isConnected) return;
+  const mitglieder = [];
+  pane.tabs.forEach((tab, i) => {
+    if (tab.groupId === groupId) mitglieder.push({ tab, i });
+  });
+  if (mitglieder.length === 0) return;
+  contextMenu.innerHTML = '';
+  for (const { tab, i } of mitglieder) {
+    appendContextMenuItem(contextMenu, {
+      label: (tab.dirty ? '• ' : '') + tabDisplayName(tab),
+      dataId: 'tabgroup-member',
+      // Haekchen-Spalte fuer alle Eintraege: sie markiert den aktiven Reiter
+      // und haelt die uebrigen buendig (Muster Absatz-Submenue).
+      checked: i === pane.activeIndex,
+      action: () => activateTab(paneIdx, i),
+    });
+  }
+  const rect = anchorEl.getBoundingClientRect();
+  placeContextMenuAt(contextMenu, rect.left, rect.bottom + 2);
+  gruppenMenueGroupId = groupId;
+  contextMenu.addEventListener('mouseenter', beiMenueEintritt);
+  contextMenu.addEventListener('mouseleave', beiMenueAustritt);
+}
+
+function beiMenueEintritt() {
+  if (gruppenMenueSchliessenTimer) {
+    clearTimeout(gruppenMenueSchliessenTimer);
+    gruppenMenueSchliessenTimer = null;
+  }
+}
+
+function beiMenueAustritt() {
+  planeGruppenMenueSchliessen();
 }
 
 async function renameGroup(paneIdx, groupId) {
@@ -513,6 +637,11 @@ export function placeSubmenu(wrapper, sub) {
 export function hideContextMenu() {
   contextMenu.hidden = true;
   contextMenu.innerHTML = '';
+  // 4T-0768 (Epic 3E-0158): Das Aufklapp-Menue der Gruppen teilt sich dieses
+  // Element. Wer es schliesst (Klick auf einen Eintrag, Klick ausserhalb,
+  // Escape), beendet damit auch dessen Besitz — sonst zoege eine spaetere
+  // Schliess-Verzoegerung ein inzwischen fremdes Menue weg.
+  gruppenMenueGroupId = null;
 }
 
 // --- About-Modal ------------------------------------------------------------

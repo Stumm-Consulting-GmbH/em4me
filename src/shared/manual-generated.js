@@ -301,6 +301,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0462 (Epic 3E-0085): Tab-Gruppen direkt hinter dem Tab-Eintrag
       // (Struktur desselben Tab-Streifens).
       'help.feature.tabGroups',
+      // 4T-0769 (Epic 3E-0158): Mehrfach-Auswahl unmittelbar hinter den
+      // Gruppen — sie ist die Geste, mit der Mengen in Gruppen bewegt werden.
+      'help.feature.tabSelection',
       // 4T-0579 (Epic 3E-0106): Ecken-Form der Reiter, direkt hinter den
       // Tab-Eintraegen (dieselbe Leiste, reine Darstellungs-Option).
       'help.feature.roundedTabs',

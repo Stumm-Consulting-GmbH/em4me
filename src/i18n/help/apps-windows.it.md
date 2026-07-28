@@ -34,11 +34,22 @@ Le schede possono essere riunite in gruppi denominati e colorati: i membri stann
 
 - **Creare:** menu contestuale di una scheda → «Nuovo gruppo con questa scheda». Il gruppo riceve un nome predefinito e il successivo colore libero; la finestra di rinomina con scelta del colore (tavolozza fissa di otto colori, adattata ai temi chiaro e scuro) si apre subito.
 - **Riempire:** «Aggiungi al gruppo» nel menu contestuale della scheda, oppure trascinare una scheda sull'intestazione del gruppo o tra due membri. «Rimuovi dal gruppo» o trascinare una scheda fuori dal blocco termina l'appartenenza; i gruppi restano sempre contigui.
+- **Spostare in blocco:** se sono selezionate più schede (vedi «Selezione multipla di schede»), le tre voci di gruppo del menu contestuale agiscono sull'intera selezione, e trascinare una scheda selezionata sull'intestazione fa entrare tutto il blocco. Esso si aggiunge alla fine del blocco del gruppo nel suo ordine nella barra; all'uscita si colloca subito dietro di esso.
 - **File derivati:** quando un clic nel contenuto di un documento raggruppato apre un altro file (link wiki, risultato di query, riga di evento, navigazione del giornale), la nuova scheda si aggiunge allo stesso gruppo, nella sua posizione accanto all'origine (vedi «Posizione delle nuove schede»). Il blocco resta compatto. Le aperture al di fuori del contenuto del documento — elenco dei file, pannelli, segnalibri, palette dei comandi, finestre di dialogo — restano non raggruppate; i file di destinazione già aperti vengono solo attivati.
-- **Comprimere:** un clic sull'intestazione comprime il gruppo — resta visibile solo l'intestazione con il numero dei membri; una scheda attiva coinvolta passa alla successiva visibile. Un altro clic, o l'attivazione di un membro (ad esempio aprendo il suo file), espande di nuovo il gruppo.
+- **Comprimere:** un clic sull'intestazione comprime il gruppo — resta visibile solo l'intestazione con il numero dei membri. Vale anche quando la scheda attiva si trova nel gruppo: resta attiva, il suo contenuto resta nella finestra e l'intestazione porta lo stesso contrassegno di una scheda attiva. Il gruppo si espande solo con un clic; un'attivazione dall'esterno (link wiki, palette dei comandi, cambio scheda da tastiera) lo lascia compresso.
+- **Passare il mouse invece di espandere:** passando il mouse sull'intestazione di un gruppo compresso compare, dopo una breve pausa, l'elenco delle sue schede; un clic al suo interno passa a quel file senza espandere il gruppo. La scheda attiva è contrassegnata nell'elenco e i file non salvati portano il loro punto di modifica.
 - **Gestire:** menu contestuale dell'intestazione — «Rinomina e colore…», «Separa il gruppo» (le schede restano aperte) e «Chiudi il gruppo» (tutti i membri con le consuete richieste di salvataggio). Trascinare l'intestazione sposta l'intero gruppo lungo la barra.
 
 I gruppi appartengono alla loro barra delle schede (una per lato nella vista divisa); una scheda che cambia barra lascia il suo gruppo. Nome, colore, membri e stato compresso sopravvivono al ripristino della sessione. La funzione può essere disattivata come estensione «Gruppi di schede»; i gruppi vengono conservati e ricompaiono invariati alla riattivazione.
+
+## Selezione multipla di schede
+
+È possibile selezionare più schede contemporaneamente e spostarle poi in un solo passaggio.
+
+- **Selezionare:** **Ctrl** e clic aggiunge una scheda alla selezione e la rimuove di nuovo, **Maiusc** e clic seleziona l'intervallo dalla scheda attiva a quella su cui si è fatto clic. Le schede selezionate sono evidenziate; la selezione diventa visibile a partire da due membri.
+- **Spostare:** trascinare una scheda selezionata sposta l'intero blocco, sia nella barra sia su un'intestazione di gruppo. Oltre il confine della colonna, invece, viaggia solo la scheda trascinata.
+- **Menu contestuale:** le voci di gruppo agiscono sulla selezione non appena la scheda su cui si è fatto clic ne fa parte. Le voci che indicano esattamente un file — rinomina, segnalibro, sposta o copia in una finestra — restano legate alla scheda su cui si è fatto clic, così come il clic centrale per chiudere.
+- **Fine della selezione:** un clic senza tasto modificatore, il cambio di colonna o la chiusura della sessione. La selezione appartiene a una singola barra delle schede e non viene salvata.
 
 ## Forma delle schede
 

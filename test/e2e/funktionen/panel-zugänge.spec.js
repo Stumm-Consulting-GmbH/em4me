@@ -1,6 +1,6 @@
 // 4T-0568 (Epic 3E-0104): E2E-Funktions-Suite — vereinheitlichte
 // Panel-Zugänge (PZ-01 bis PZ-04). Deckt das Panel-Untermenü des
-// Ansichtsmenüs (alle 14 Panels in Modell-Reihenfolge, keine Einzel-
+// Ansichtsmenüs (alle 15 Panels in Modell-Reihenfolge, keine Einzel-
 // Panel-Einträge mehr auf Hauptmenü-Ebene), die identische Reihenfolge
 // der Statusbar-Buttons, den zentralen Toggle-Kanal menu:togglePanel und
 // das Erweiterungs-Gate (deaktivierte Erweiterungs-Panels verschwinden an
@@ -92,7 +92,7 @@ async function nudgeMenuRebuild(app) {
     .toBeGreaterThan(0);
 }
 
-test.describe('PZ-01: Panel-Untermenü bündelt alle 14 Panels in Modell-Reihenfolge', () => {
+test.describe('PZ-01: Panel-Untermenü bündelt alle 15 Panels in Modell-Reihenfolge', () => {
   test('Untermenü vollständig und geordnet, keine Einzel-Panel-Einträge im Hauptmenü', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
@@ -101,7 +101,7 @@ test.describe('PZ-01: Panel-Untermenü bündelt alle 14 Panels in Modell-Reihenf
       await nudgeMenuRebuild(app);
 
       const { submenu, viewLabels } = await capturedPanelMenu(app);
-      expect(submenu).toHaveLength(14);
+      expect(submenu).toHaveLength(15);
       // Reihenfolge und Vollständigkeit: Labels auf Panel-IDs abgebildet.
       const ids = submenu.map((e) => LABEL_TO_ID.get(e.label));
       expect(ids).toEqual(DEFAULT_PANEL_TOGGLE_ORDER);
@@ -122,7 +122,7 @@ test.describe('PZ-01: Panel-Untermenü bündelt alle 14 Panels in Modell-Reihenf
 });
 
 test.describe('PZ-02: Statusbar-Leiste folgt derselben Reihenfolge', () => {
-  test('die 14 Panel-Buttons stehen in Modell-Reihenfolge im eigenen Segment', async () => {
+  test('die 15 Panel-Buttons stehen in Modell-Reihenfolge im eigenen Segment', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
@@ -199,7 +199,7 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await armPanelMenuCapture(app);
       await nudgeMenuRebuild(app);
-      expect((await capturedPanelMenu(app)).submenu).toHaveLength(14);
+      expect((await capturedPanelMenu(app)).submenu).toHaveLength(15);
 
       // Deaktivierung über den Broadcast-Pfad (Muster erweiterungen.spec.js).
       await page.evaluate(() =>
@@ -216,7 +216,7 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
       ]) {
         await expect(page.locator(`#${btnId}`)).toBeHidden();
       }
-      // Untermenü: dieselben fünf Panels entfallen (14 - 5 = 9).
+      // Untermenü: dieselben fünf Panels entfallen (15 - 5 = 10).
       // 4T-0372 (Epic 3E-0069): das Uhr-Panel bleibt, seine Erweiterung ist
       // in diesem Fall nicht deaktiviert.
       await expect
@@ -224,7 +224,7 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
           const { submenu } = await capturedPanelMenu(app);
           return submenu ? submenu.length : 0;
         })
-        .toBe(9);
+        .toBe(10);
       const ids = (await capturedPanelMenu(app)).submenu.map((e) => LABEL_TO_ID.get(e.label));
       for (const gone of ['subpages', 'filegraph', 'outgoing', 'backlinks', 'reminders']) {
         expect(ids).not.toContain(gone);
@@ -266,7 +266,7 @@ test.describe('PZ-05: Einstellungs-Bereich Panel-Reihenfolge', () => {
 
       await openPanelOrderSection(page);
       const rows = page.locator(`${SETTINGS_PAGE} .panel-order-list .sidebar-settings-row`);
-      await expect(rows).toHaveCount(14);
+      await expect(rows).toHaveCount(15);
       await expect(rows.nth(0)).toHaveAttribute('data-panel-id', 'bookmarks');
       // Erste Zeile: „Nach oben" deaktiviert, „Nach unten" aktiv.
       await expect(rows.nth(0).locator('.panel-order-up')).toBeDisabled();

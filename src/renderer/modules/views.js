@@ -108,6 +108,7 @@ import {
   moveTabBetweenPanes,
   openInPane,
   parseTabDrag,
+  reorderTabsWithinPane,
   reportMenuStateNow,
   syncToolbarToActiveTab,
   toggleGroupCollapsed,
@@ -123,6 +124,9 @@ import { findManualTabAcrossPanes, openManualPage, resolveManualHref } from './m
 // statt Editor/Render-Pane; Zyklus laufzeit-unkritisch (Muster manual.js).
 import { renderSystemPane } from './system-pages.js';
 import {
+  planeGruppenMenueSchliessen,
+  planeGruppenMitgliederMenue,
+  schliesseGruppenMenueSofort,
   showAliasDialog,
   showGroupContextMenu,
   showLinkPreviewDialog,
@@ -143,6 +147,15 @@ import { openCreatedFileWithRule } from './templates.js';
 // 4T-0459 (Epic 3E-0085): Gruppen-Anteil des Panes-Snapshots (reiner Helfer).
 // 4T-0460: groupById fuer den Tabbar-Aufbau (Koepfe, Kennungen, Verbergen).
 import { buildGroupsSnapshot, groupById } from './tab-groups.js';
+// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl der Reiterleiste — Markierung,
+// Auswahl-Gesten und die Menge, die beim Ziehen mitwandert.
+import {
+  extendSelection,
+  hasMultiSelection,
+  isTabSelected,
+  selectedIndices,
+  toggleSelection,
+} from './tab-selection.js';
 
 // --- Rendering --------------------------------------------------------------
 // 4T-0179: Diese drei Laufzeit-Flags werden ausschliesslich in diesem
@@ -165,6 +178,10 @@ export function renderTabbar(paneIdx) {
   // die Gruppen unveraendert zurueck).
   const groupsActive = isExtensionActive('tab-groups');
   const seenGroups = new Set();
+  // 4T-0765 (Epic 3E-0158): Die Markierung erscheint erst ab zwei Mitgliedern
+  // — eine Auswahl aus einem Reiter ist der Normalfall und sieht aus wie
+  // bisher.
+  const mehrfachAuswahl = hasMultiSelection(pane);
 
   pane.tabs.forEach((tab, idx) => {
     const group = groupsActive && tab.groupId ? groupById(pane, tab.groupId) : null;
@@ -180,7 +197,12 @@ export function renderTabbar(paneIdx) {
       (idx === pane.activeIndex ? ' active' : '') +
       (tab.missing ? ' tab-missing' : '') +
       (tab.dirty ? ' dirty' : '') +
-      (group ? ' tab-grouped' : '');
+      (group ? ' tab-grouped' : '') +
+      (mehrfachAuswahl && isTabSelected(pane, idx) ? ' tab-selected' : '');
+    // 4T-0765: Der Streifen rendert nur sichtbare Reiter, der Index bleibt
+    // aber der Modell-Index — das Ziehen einer Menge markiert darueber ihre
+    // Elemente.
+    el.dataset.tabIndex = String(idx);
     if (group) {
       el.style.setProperty('--tab-group-color', `var(--tab-group-${group.color})`);
     }
@@ -214,6 +236,21 @@ export function renderTabbar(paneIdx) {
     });
     el.addEventListener('click', (e) => {
       if (e.target === close) return;
+      // 4T-0765 (Epic 3E-0158): Auswahl-Gesten. Umschalt bildet die Spanne ab
+      // dem aktiven Reiter, Strg nimmt einzeln auf und heraus; beide lassen
+      // die Aktivierung unangetastet bzw. fuehren sie ohne Ruecksetzen der
+      // Auswahl aus. Ein Klick ohne Zusatztaste setzt sie auf diesen Reiter.
+      if (e.shiftKey) {
+        extendSelection(pane, idx, groupsActive);
+        renderTabbar(paneIdx);
+        return;
+      }
+      if (e.ctrlKey || e.metaKey) {
+        const aufgenommen = toggleSelection(pane, idx);
+        if (aufgenommen) activateTab(paneIdx, idx, { keepSelection: true });
+        else renderTabbar(paneIdx);
+        return;
+      }
       activateTab(paneIdx, idx);
     });
 
@@ -224,13 +261,28 @@ export function renderTabbar(paneIdx) {
 
     el.addEventListener('dragstart', (e) => {
       e.dataTransfer.effectAllowed = 'move';
+      // 4T-0765 (Epic 3E-0158): Ist der gezogene Reiter Teil einer
+      // Mehrfach-Auswahl, wandert die ganze Menge. tabIndex bleibt als
+      // Einzel-Feld erhalten, damit fremde Panes und Fenster den Payload
+      // unveraendert lesen (dort zaehlt weiterhin der gezogene Reiter).
+      const menge = mehrfachAuswahl && isTabSelected(pane, idx) ? selectedIndices(pane) : [idx];
       e.dataTransfer.setData(
         MIME_TAB,
-        JSON.stringify({ fromPane: paneIdx, tabIndex: idx, windowToken: WINDOW_DRAG_TOKEN }),
+        JSON.stringify({
+          fromPane: paneIdx,
+          tabIndex: idx,
+          tabIndices: menge,
+          windowToken: WINDOW_DRAG_TOKEN,
+        }),
       );
-      el.classList.add('dragging');
+      for (const i of menge) {
+        const ziel = els.tabbar.querySelector(`.tab[data-tab-index="${i}"]`);
+        if (ziel) ziel.classList.add('dragging');
+      }
     });
-    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    el.addEventListener('dragend', () => {
+      els.tabbar.querySelectorAll('.tab.dragging').forEach((t) => t.classList.remove('dragging'));
+    });
     el.addEventListener('dragover', (e) => {
       if (!Array.from(e.dataTransfer.types).includes(MIME_TAB)) return;
       e.preventDefault();
@@ -260,6 +312,13 @@ export function renderTabbar(paneIdx) {
         if (data.fromPane === paneIdx) moveGroupInPane(paneIdx, data.groupId, insertIdx);
         return;
       }
+      // 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl als Block bewegen, solange
+      // sie in ihrer eigenen Leiste bleibt.
+      const menge = Array.isArray(data.tabIndices) ? data.tabIndices : [];
+      if (menge.length > 1 && data.fromPane === paneIdx) {
+        reorderTabsWithinPane(paneIdx, menge, insertIdx);
+        return;
+      }
       moveTabBetweenPanes(data.fromPane, data.tabIndex, paneIdx, insertIdx);
     });
 
@@ -274,7 +333,12 @@ export function renderTabbar(paneIdx) {
 function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
   const pane = state.panes[paneIdx];
   const head = document.createElement('div');
-  head.className = 'tab-group-head' + (group.collapsed ? ' collapsed' : '');
+  // 4T-0767 (Epic 3E-0158): Liegt der aktive Reiter in dieser Gruppe, traegt
+  // der Kopf die Aktiv-Kennzeichnung. Bei einer zugeklappten Gruppe ist das
+  // die einzige Stelle, an der die Leiste den aktiven Reiter noch zeigt.
+  const traegtAktiven = pane.activeIndex >= 0 && pane.tabs[pane.activeIndex]?.groupId === group.id;
+  head.className =
+    'tab-group-head' + (group.collapsed ? ' collapsed' : '') + (traegtAktiven ? ' active' : '');
   head.dataset.groupId = group.id;
   head.style.setProperty('--tab-group-color', `var(--tab-group-${group.color})`);
   head.style.setProperty('--tab-group-fg', `var(--tab-group-${group.color}-fg)`);
@@ -296,7 +360,17 @@ function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
   }
 
   head.addEventListener('mousedown', () => activatePane(paneIdx));
-  head.addEventListener('click', () => toggleGroupCollapsed(paneIdx, group.id));
+  head.addEventListener('click', () => {
+    // 4T-0768 (Epic 3E-0158): Das Aufklappen macht das Menue gegenstandslos.
+    schliesseGruppenMenueSofort();
+    toggleGroupCollapsed(paneIdx, group.id);
+  });
+  // 4T-0768: Aufklapp-Menue beim Ueberfahren — nur bei zugeklappten Gruppen,
+  // eine aufgeklappte zeigt ihre Mitglieder ohnehin.
+  if (group.collapsed) {
+    head.addEventListener('mouseenter', () => planeGruppenMitgliederMenue(paneIdx, group.id, head));
+    head.addEventListener('mouseleave', () => planeGruppenMenueSchliessen());
+  }
   // 4T-0461: Verwaltung ueber das Kopf-Kontextmenue (Umbenennen/Farbe,
   // Aufloesen, Schliessen).
   head.addEventListener('contextmenu', (e) => {
@@ -305,6 +379,8 @@ function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
   });
 
   head.addEventListener('dragstart', (e) => {
+    // 4T-0768: Ein beginnendes Ziehen schliesst das Aufklapp-Menue.
+    schliesseGruppenMenueSofort();
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData(
       MIME_TAB,
@@ -340,7 +416,8 @@ function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
       }
       return;
     }
-    dropTabIntoGroup(data.fromPane, data.tabIndex, paneIdx, group.id);
+    // 4T-0766 (Epic 3E-0158): Eine Mehrfach-Auswahl tritt als Ganzes bei.
+    dropTabIntoGroup(data.fromPane, data.tabIndex, paneIdx, group.id, data.tabIndices);
   });
 
   return head;

@@ -232,7 +232,9 @@ test.describe('SV-03: Normalisierung und Neustart', () => {
           };
         })
         // 4T-0372 (Epic 3E-0069): 13 -> 14 durch das Uhr-Panel.
-        .toEqual({ count: 14, unique: 14, ghost: false });
+        // 4T-0771 (Epic 3E-0156): 14 -> 15 durch das Panel „Suchergebnisse"
+        // aus Release 0.95.0.
+        .toEqual({ count: 15, unique: 15, ghost: false });
     } finally {
       // Profil behalten (kein userData-Cleanup) für den Neustart.
       await closeApp(first.app, null);

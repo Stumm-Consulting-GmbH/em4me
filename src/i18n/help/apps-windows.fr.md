@@ -34,11 +34,22 @@ Les onglets peuvent être réunis en groupes nommés et colorés : les membres s
 
 - **Créer :** menu contextuel d'un onglet → « Nouveau groupe avec cet onglet ». Le groupe reçoit un nom par défaut et la prochaine couleur libre ; la boîte de dialogue de renommage avec choix de couleur (palette fixe de huit couleurs, adaptée aux thèmes clair et sombre) s'ouvre aussitôt.
 - **Remplir :** « Ajouter au groupe » dans le menu contextuel de l'onglet, ou glisser un onglet sur l'en-tête du groupe ou entre deux membres. « Retirer du groupe » ou tirer un onglet hors du bloc met fin à l'appartenance ; les groupes restent toujours contigus.
+- **Déplacer par lots :** lorsque plusieurs onglets sont sélectionnés (voir « Sélection multiple d'onglets »), les trois entrées de groupe du menu contextuel agissent sur toute la sélection, et glisser un onglet sélectionné sur l'en-tête fait rejoindre le lot entier. Il se place à la fin du bloc du groupe dans son ordre de la barre ; à la sortie, il se tient juste derrière le bloc.
 - **Fichiers dérivés :** lorsqu'un clic dans le contenu d'un document groupé ouvre un autre fichier (lien wiki, résultat de requête, ligne d'événement, navigation de journal), le nouvel onglet rejoint le même groupe, à sa position à côté de l'origine (voir « Position des nouveaux onglets »). Le bloc reste d'un seul tenant. Les ouvertures en dehors du contenu du document — liste des fichiers, panneaux, signets, palette de commandes, boîtes de dialogue — restent non groupées ; les fichiers cibles déjà ouverts sont seulement activés.
-- **Replier :** un clic sur l'en-tête replie le groupe — seul l'en-tête avec le nombre de membres reste visible ; un onglet actif concerné passe au prochain onglet visible. Un nouveau clic, ou l'activation d'un membre (par exemple à l'ouverture de son fichier), déplie à nouveau le groupe.
+- **Replier :** un clic sur l'en-tête replie le groupe — seul l'en-tête avec le nombre de membres reste visible. Cela vaut aussi lorsque l'onglet actif se trouve dans le groupe : il reste actif, son contenu reste dans la fenêtre, et l'en-tête porte le même marquage qu'un onglet actif. Le groupe ne se déplie que sur un clic ; une activation venue d'ailleurs (lien wiki, palette de commandes, changement d'onglet au clavier) le laisse replié.
+- **Survoler au lieu de déplier :** survoler l'en-tête d'un groupe replié fait apparaître, après un court délai, la liste de ses onglets ; un clic dedans passe à ce fichier sans déplier le groupe. L'onglet actif est marqué dans la liste et les fichiers non enregistrés portent leur point de modification.
 - **Gérer :** menu contextuel de l'en-tête — « Renommer et couleur… », « Dissocier le groupe » (les onglets restent ouverts) et « Fermer le groupe » (tous les membres avec les demandes d'enregistrement habituelles). Glisser l'en-tête déplace le groupe entier dans la barre.
 
 Les groupes appartiennent à leur barre d'onglets (une par côté en vue partagée) ; un onglet qui change de barre quitte son groupe. Le nom, la couleur, les membres et l'état replié survivent à la restauration de session. La fonction peut être désactivée en tant qu'extension « Groupes d'onglets » ; les groupes sont conservés et réapparaissent inchangés à la réactivation.
+
+## Sélection multiple d'onglets
+
+Plusieurs onglets peuvent être sélectionnés à la fois, puis déplacés en une seule fois.
+
+- **Sélectionner :** **Ctrl** et clic ajoute un onglet à la sélection et l'en retire, **Maj** et clic sélectionne la plage allant de l'onglet actif à l'onglet cliqué. Les onglets sélectionnés sont mis en évidence ; la sélection devient visible à partir de deux membres.
+- **Déplacer :** glisser un onglet sélectionné déplace tout le lot, dans la barre comme sur un en-tête de groupe. Au-delà de la limite de colonne, en revanche, seul l'onglet glissé se déplace.
+- **Menu contextuel :** les entrées de groupe agissent sur la sélection dès que l'onglet cliqué en fait partie. Les entrées qui désignent exactement un fichier — renommer, signet, déplacer ou copier vers une fenêtre — restent liées à l'onglet cliqué, tout comme le clic milieu pour fermer.
+- **Fin de la sélection :** un clic sans touche de modification, le changement de colonne ou la fermeture de la session. La sélection appartient à une seule barre d'onglets et n'est pas enregistrée.
 
 ## Forme des onglets
 

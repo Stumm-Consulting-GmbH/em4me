@@ -34,11 +34,22 @@ Tabs lassen sich zu benannten, farbigen Gruppen zusammenfassen: Die Mitglieder s
 
 - **Anlegen:** Kontextmenü eines Tabs → „Neue Gruppe mit diesem Tab". Die Gruppe erhält einen Standard-Namen und die nächste freie Farbe; der Dialog zum Umbenennen mit Farbwahl (feste Acht-Farben-Palette, auf helles und dunkles Theme abgestimmt) öffnet sich direkt.
 - **Befüllen:** „Zu Gruppe hinzufügen" im Tab-Kontextmenü, oder einen Tab auf den Gruppen-Kopf beziehungsweise zwischen zwei Mitglieder ziehen. „Aus Gruppe entfernen" oder das Herausziehen aus dem Block beendet die Mitgliedschaft; Gruppen bleiben immer zusammenhängend.
+- **In Mengen bewegen:** Sind mehrere Reiter ausgewählt (siehe „Mehrfach-Auswahl von Reitern"), beziehen sich die drei Gruppen-Einträge des Kontextmenüs auf die ganze Auswahl, und das Ziehen eines ausgewählten Reiters auf den Kopf lässt die ganze Menge beitreten. Sie hängt sich in ihrer Reihenfolge aus der Leiste ans Ende des Gruppen-Blocks; beim Austritt steht sie unmittelbar hinter ihm.
 - **Folge-Dateien:** Öffnet ein Klick im Inhalt eines gruppierten Dokuments eine weitere Datei (Wiki-Link, Abfrage-Treffer, Ereignis-Zeile, Journal-Navigation), tritt der neue Tab derselben Gruppe bei, und zwar an seiner Position neben der Herkunft (siehe „Position neuer Tabs"). Der Block bleibt dabei zusammenhängend. Öffnungen außerhalb des Dokument-Inhalts — Datei-Liste, Panels, Lesezeichen, Kommando-Palette, Dialoge — bleiben ungruppiert; bereits offene Ziel-Dateien werden nur aktiviert.
-- **Klappen:** Ein Klick auf den Kopf klappt die Gruppe zu — sichtbar bleibt nur der Kopf mit der Mitglieder-Zahl; ein betroffener aktiver Tab wechselt zum nächsten sichtbaren. Ein weiterer Klick oder das Aktivieren eines Mitglieds (etwa beim Datei-Öffnen) klappt wieder auf.
+- **Klappen:** Ein Klick auf den Kopf klappt die Gruppe zu — sichtbar bleibt nur der Kopf mit der Mitglieder-Zahl. Das gilt auch, wenn der aktive Reiter in der Gruppe liegt: Er bleibt aktiv, sein Inhalt bleibt im Fenster, und der Kopf trägt dieselbe Kennzeichnung wie ein aktiver Reiter. Die Gruppe klappt nur auf Klick wieder auf; eine Aktivierung von außen (Wiki-Link, Kommando-Palette, Reiter-Wechsel per Tastatur) lässt sie zu.
+- **Zeigen statt Aufklappen:** Wer auf den Kopf einer zugeklappten Gruppe zeigt, bekommt nach kurzer Verzögerung eine Liste ihrer Reiter; ein Klick darin wechselt zu der Datei, ohne die Gruppe aufzuklappen. Der aktive Reiter ist in der Liste markiert, ungespeicherte Dateien tragen ihren Änderungs-Punkt.
 - **Verwalten:** Kontextmenü des Kopfs — „Umbenennen und Farbe…", „Gruppe auflösen" (die Tabs bleiben offen) und „Gruppe schließen" (alle Mitglieder mit den üblichen Speichern-Nachfragen). Das Ziehen des Kopfs verschiebt die ganze Gruppe im Streifen.
 
 Gruppen gehören zur jeweiligen Tab-Leiste (bei geteilter Ansicht je Seite); ein Tab, der die Leiste wechselt, verlässt seine Gruppe. Name, Farbe, Mitglieder und Klapp-Zustand überleben die Sitzungs-Wiederherstellung. Die Funktion ist als Erweiterung „Tab-Gruppen" abschaltbar; die Gruppen bleiben dabei erhalten und erscheinen beim Wieder-Einschalten unverändert.
+
+## Mehrfach-Auswahl von Reitern
+
+Mehrere Reiter lassen sich zugleich auswählen und dann in einem Schritt bewegen.
+
+- **Auswählen:** **Strg** und Klick nimmt einen Reiter in die Auswahl auf und wieder heraus, **Umschalt** und Klick wählt die Spanne vom aktiven Reiter bis zum angeklickten. Ausgewählte Reiter sind farbig hinterlegt; ab zwei Mitgliedern ist die Auswahl sichtbar.
+- **Bewegen:** Das Ziehen eines ausgewählten Reiters bewegt die ganze Menge, innerhalb der Leiste und auf einen Gruppen-Kopf. Über die Spaltengrenze wandert dagegen nur der gezogene Reiter.
+- **Kontextmenü:** Die Gruppen-Einträge wirken auf die Auswahl, sobald der angeklickte Reiter zu ihr gehört. Einträge, die genau eine Datei meinen — Umbenennen, Lesezeichen, Verschieben oder Kopieren in ein Fenster —, bleiben beim angeklickten Reiter, ebenso der Mittelklick zum Schließen.
+- **Ende der Auswahl:** ein Klick ohne Zusatztaste, der Wechsel der Spalte oder das Schließen der Sitzung. Die Auswahl gehört zur einzelnen Reiterleiste und wird nicht gespeichert.
 
 ## Form der Reiter
 

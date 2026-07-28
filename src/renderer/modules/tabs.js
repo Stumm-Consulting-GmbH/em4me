@@ -73,21 +73,25 @@ import { refreshSearchIfVisible } from './search.js';
 // Tabs) und Gruppen-Block-Verschiebung per Kopf-Ziehen.
 import {
   addTabToGroup,
-  ensureActiveTabVisible,
-  expandGroupOfTab,
+  addTabsToGroup,
   groupById,
   groupIdForInsertion,
   groupRange,
   insertTabNextTo,
-  isTabVisible,
   moveGroupWithinPane,
-  nextVisibleTabIndex,
   pruneEmptyGroups,
 } from './tab-groups.js';
 // 4T-0461 (Epic 3E-0085): bei deaktivierter Erweiterung tab-groups sind
 // alle Tabs sichtbar — die Klapp-bezogene Aktivierungs-Logik entfaellt,
 // damit gespeicherte Klapp-Zustaende nicht veraendert werden.
 import { isExtensionActive } from './extension-lifecycle.js';
+// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl der Reiterleiste (reine Helfer).
+import {
+  clearSelection,
+  moveTabsWithinPane,
+  pruneSelection,
+  setSelection,
+} from './tab-selection.js';
 
 // K-04 (4T-0310): Tab-Drag-Payload parsen — gehoert fachlich zum Tab-System
 // (zuvor Fremdkoerper in settings-search.js). Verwirft Payloads mit fremdem
@@ -232,6 +236,11 @@ export function activatePane(paneIdx) {
     renderZoomIndicator();
     return;
   }
+  // 4T-0765 (Epic 3E-0158): Die Auswahl gehoert zur einzelnen Leiste und
+  // verfaellt beim Wechsel der Spalte — sonst bezoege sich eine unsichtbar
+  // gewordene Menge spaeter auf Reiter, die der Anwender laengst vergessen hat.
+  const vorherigePane = state.panes[state.activePaneIndex];
+  if (vorherigePane) clearSelection(vorherigePane);
   state.activePaneIndex = paneIdx;
   updateActivePaneClasses();
   syncToolbarToActiveTab();
@@ -418,15 +427,22 @@ export function reportMenuStateNow() {
 }
 
 // --- Tab-Verwaltung ---------------------------------------------------------
-export function activateTab(paneIdx, tabIdx) {
+// 4T-0765 (Epic 3E-0158): opts.keepSelection haelt die Mehrfach-Auswahl. Ohne
+// das Flag setzt jede Aktivierung die Auswahl auf den aktivierten Reiter
+// zurueck — das haelt die Invariante „der aktive Reiter ist Mitglied" ohne
+// Sonderfaelle und verhindert, dass eine Menge eine Oeffnung aus einem
+// Dokument heraus (Wiki-Link, Palette) stillschweigend ueberdauert. Gesetzt
+// wird das Flag allein vom Strg-Klick-Pfad der Reiterleiste.
+export function activateTab(paneIdx, tabIdx, opts = {}) {
   const pane = state.panes[paneIdx];
   if (!pane || tabIdx < 0 || tabIdx >= pane.tabs.length) return;
   pane.activeIndex = tabIdx;
-  // 4T-0460 (Epic 3E-0085): der aktive Tab muss sichtbar sein — eine
-  // Aktivierung in eine zugeklappte Gruppe (Datei-Oeffnen, Cross-Pane-
-  // Lookup, Fenster-Transfer) klappt die Gruppe auf. Bei deaktivierter
-  // Erweiterung sind alle Tabs sichtbar (Klapp-Zustand bleibt unberuehrt).
-  if (isExtensionActive('tab-groups')) expandGroupOfTab(pane, tabIdx);
+  if (!opts.keepSelection) setSelection(pane, tabIdx);
+  // 4T-0767 (Epic 3E-0158): Eine Aktivierung von aussen (Datei-Oeffnen,
+  // Wiki-Link, Kommando-Palette, Cross-Pane-Lookup, Fenster-Transfer,
+  // Strg+Tab) klappt die Gruppe NICHT mehr auf (Entscheidung des Product
+  // Owners vom 2026-07-28). Der Zustand der Leiste aendert sich nie von
+  // selbst; die aktive Datei nennen Fenstertitel und Aufklapp-Menue.
   activatePane(paneIdx);
   // K-04 (4T-0310): kein direktes renderTabbar/renderPaneContent hier — das
   // folgende applyAllLayouts() rendert ueber renderAllPanes ohnehin alle Panes
@@ -504,11 +520,12 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
   }
   // 4T-0459 (Epic 3E-0085): letzte Mitglieder hinterlassen keine leere Gruppe.
   pruneEmptyGroups(pane);
-  // 4T-0460: faellt die Aktivierung auf einen verborgenen Tab (zugeklappte
-  // Gruppe), wechselt sie zum naechsten sichtbaren; gibt es keinen, klappt
-  // die Gruppe auf (Kanten-Fall „letzter sichtbarer Tab geschlossen").
-  // Bei deaktivierter Erweiterung sind alle Tabs sichtbar (kein Eingriff).
-  if (isExtensionActive('tab-groups')) ensureActiveTabVisible(pane);
+  // 4T-0765 (Epic 3E-0158): der geschlossene Reiter faellt aus der Auswahl.
+  pruneSelection(pane);
+  // 4T-0767 (Epic 3E-0158): Der Aktivierungs-Index bleibt gueltig (Korrektur
+  // oben), wird aber nicht mehr auf Sichtbarkeit gezogen. Der Kanten-Fall
+  // „letzter sichtbarer Reiter geschlossen" endet damit in einer Leiste, die
+  // nur Koepfe zeigt; aufloesbar ueber Kopf-Klick oder Aufklapp-Menue.
   collapseEmptyPanes();
   applyAllLayouts();
   // 4T-0072: Word-Count an die neue aktive Datei anpassen, ggf. ausblenden.
@@ -558,6 +575,9 @@ export function moveTabBetweenPanes(fromPane, fromIdx, toPane, toIdx) {
     if (pane.activeIndex >= pane.tabs.length) pane.activeIndex = pane.tabs.length - 1;
     // 4T-0459 (Epic 3E-0085): Gruppen-Invariante der Quell-Pane erhalten.
     pruneEmptyGroups(pane);
+    // 4T-0765 (Epic 3E-0158): ein Reiter, der die Leiste verlaesst, verlaesst
+    // auch ihre Auswahl.
+    pruneSelection(pane);
     activatePane(toPane);
     activateTab(toPane, targetExisting);
     collapseEmptyPanes();
@@ -573,6 +593,8 @@ export function moveTabBetweenPanes(fromPane, fromIdx, toPane, toIdx) {
   // eines Gruppen-Blocks, tritt er dieser Gruppe bei (Zusammenhangs-
   // Invariante). Leere Quell-Gruppen werden bereinigt.
   pruneEmptyGroups(pane);
+  // 4T-0765 (Epic 3E-0158): dito fuer die Auswahl der Quell-Leiste.
+  pruneSelection(pane);
 
   const insertAt = Math.max(0, Math.min(toIdx, state.panes[toPane].tabs.length));
   tab.groupId = groupIdForInsertion(state.panes[toPane].tabs, insertAt);
@@ -605,31 +627,33 @@ export function reorderTabWithinPane(paneIdx, fromIdx, toIdx) {
   persistState();
 }
 
+// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl als Block verschieben — das
+// Gegenstueck zu reorderTabWithinPane fuer mehr als einen Reiter. Nur
+// innerhalb der eigenen Leiste; ueber die Spaltengrenze wandert weiterhin der
+// einzelne gezogene Reiter (die Auswahl gehoert zur Leiste).
+export function reorderTabsWithinPane(paneIdx, tabIdxList, insertIdx) {
+  const pane = state.panes[paneIdx];
+  if (!pane) return;
+  if (!moveTabsWithinPane(pane, tabIdxList, insertIdx)) return;
+  pruneEmptyGroups(pane);
+  renderTabbar(paneIdx);
+  persistState();
+}
+
 // --- Tab-Gruppen-Aktionen (4T-0460, Epic 3E-0085) -----------------------------
 
-// Kopf-Klick: Gruppe zu- oder aufklappen. Beim Zuklappen wechselt ein
-// betroffener aktiver Tab zum naechsten sichtbaren Tab ausserhalb der
-// Gruppe; gibt es keinen (alle Tabs der Leiste waeren verborgen), bleibt
-// die Gruppe offen — der aktive Tab darf nie unsichtbar werden.
+// Kopf-Klick: Gruppe zu- oder aufklappen.
+// 4T-0767 (Epic 3E-0158): Das Zuklappen gelingt jetzt auch dann, wenn der
+// aktive Reiter in der Gruppe liegt — genau der Fall, in dem es am
+// nuetzlichsten ist. Er bleibt aktiv, sein Inhalt bleibt im Pane, und der
+// Kopf traegt die Aktiv-Kennzeichnung. Der fruehere Aktivierungs-Wechsel
+// (4T-0460) entfaellt samt seinem Abbruch fuer den Fall, dass kein anderer
+// sichtbarer Reiter existiert.
 export function toggleGroupCollapsed(paneIdx, groupId) {
   const pane = state.panes[paneIdx];
   const group = pane ? groupById(pane, groupId) : null;
   if (!group) return;
-  if (!group.collapsed) {
-    const activeTabObj = pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
-    if (activeTabObj && activeTabObj.groupId === groupId) {
-      const next = nextVisibleTabIndex(pane, pane.activeIndex, groupId);
-      if (next < 0) return;
-      group.collapsed = true;
-      activatePane(paneIdx);
-      // activateTab rendert (applyAllLayouts) und persistiert selbst.
-      activateTab(paneIdx, next);
-      return;
-    }
-    group.collapsed = true;
-  } else {
-    group.collapsed = false;
-  }
+  group.collapsed = !group.collapsed;
   applyAllLayouts();
   persistState();
 }
@@ -638,17 +662,19 @@ export function toggleGroupCollapsed(paneIdx, groupId) {
 // Cross-Pane laeuft ueber den regulaeren Verschiebe-Pfad (Duplikat-Check,
 // Aktivierung, Pane-Kollabierung); die Gruppe wird danach ueber ihr Objekt
 // wiedergefunden, weil sich Pane-Indizes durch collapseEmptyPanes
-// verschieben koennen. Ein aktiver Tab, der in eine zugeklappte Gruppe
-// eintritt, klappt sie auf (Sichtbarkeits-Garantie).
-export function dropTabIntoGroup(fromPane, fromIdx, toPane, groupId) {
+// verschieben koennen.
+// 4T-0767 (Epic 3E-0158): Tritt der aktive Reiter einer zugeklappten Gruppe
+// bei, bleibt sie zu — die Sichtbarkeits-Garantie ist entfallen.
+// 4T-0766 (Epic 3E-0158): tabIdxList traegt eine Mehrfach-Auswahl; sie tritt
+// als Ganzes bei (nur innerhalb der eigenen Leiste, die Auswahl gehoert zur
+// Leiste). Ohne Liste bleibt es beim gezogenen Reiter.
+export function dropTabIntoGroup(fromPane, fromIdx, toPane, groupId, tabIdxList = null) {
   const targetPane = state.panes[toPane];
   const group = targetPane ? groupById(targetPane, groupId) : null;
   if (!group) return;
   if (fromPane === toPane) {
-    if (!addTabToGroup(targetPane, fromIdx, groupId)) return;
-    if (targetPane.activeIndex >= 0 && !isTabVisible(targetPane, targetPane.activeIndex)) {
-      expandGroupOfTab(targetPane, targetPane.activeIndex);
-    }
+    const menge = Array.isArray(tabIdxList) && tabIdxList.length > 1 ? tabIdxList : [fromIdx];
+    if (!addTabsToGroup(targetPane, menge, groupId)) return;
     applyAllLayouts();
     persistState();
     return;
@@ -662,9 +688,6 @@ export function dropTabIntoGroup(fromPane, fromIdx, toPane, groupId) {
   const landedPane = state.panes[landedPaneIdx];
   if (landedPane.activeIndex < 0) return;
   addTabToGroup(landedPane, landedPane.activeIndex, groupId);
-  if (!isTabVisible(landedPane, landedPane.activeIndex)) {
-    expandGroupOfTab(landedPane, landedPane.activeIndex);
-  }
   applyAllLayouts();
   persistState();
 }

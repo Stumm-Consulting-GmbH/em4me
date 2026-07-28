@@ -34,11 +34,22 @@ Tabs can be combined into named, colored groups: the members sit together behind
 
 - **Create:** context menu of a tab → "New group with this tab". The group gets a default name and the next free color; the rename dialog with color choice (fixed eight-color palette, tuned for the light and dark theme) opens right away.
 - **Fill:** "Add to group" in the tab context menu, or drag a tab onto the group header or between two members. "Remove from group" or dragging a tab out of the block ends the membership; groups always stay contiguous.
+- **Move in sets:** when several tabs are selected (see "Multiple tab selection"), the three group entries of the context menu act on the whole selection, and dragging one selected tab onto the header makes the whole set join. It attaches to the end of the group block in its bar order; when leaving, it sits directly behind the block.
 - **Follow-up files:** when a click within the content of a grouped document opens another file (wiki link, query result, event row, journal navigation), the new tab joins the same group, at its position next to the origin (see "Position of new tabs"). The block stays contiguous. Openings outside the document content — file list, panels, bookmarks, command palette, dialogs — stay ungrouped; target files that are already open are only activated.
-- **Collapse:** a click on the header collapses the group — only the header with the member count remains visible; an affected active tab switches to the next visible one. Another click, or activating a member (for example by opening its file), expands the group again.
+- **Collapse:** a click on the header collapses the group — only the header with the member count remains visible. That also holds when the active tab is inside the group: it stays active, its content stays in the window, and the header carries the same marking as an active tab. The group only expands on a click; an activation from elsewhere (wiki link, command palette, keyboard tab switch) leaves it collapsed.
+- **Hover instead of expanding:** hovering the header of a collapsed group brings up a list of its tabs after a short delay; a click in it switches to that file without expanding the group. The active tab is marked in the list, and unsaved files carry their change dot.
 - **Manage:** context menu of the header — "Rename and color…", "Ungroup" (the tabs stay open), and "Close group" (all members with the usual save prompts). Dragging the header moves the whole group along the bar.
 
 Groups belong to their tab bar (one per side in split view); a tab that moves to the other bar leaves its group. Name, color, members, and collapsed state survive session restore. The feature can be turned off as the "Tab groups" extension; the groups are preserved and reappear unchanged when it is turned back on.
+
+## Multiple tab selection
+
+Several tabs can be selected at once and then moved in a single step.
+
+- **Select:** **Ctrl** and click adds a tab to the selection and removes it again, **Shift** and click selects the span from the active tab to the clicked one. Selected tabs are highlighted; the selection becomes visible from two members on.
+- **Move:** dragging a selected tab moves the whole set, within the bar and onto a group header. Across the column boundary, however, only the dragged tab travels.
+- **Context menu:** the group entries act on the selection as soon as the clicked tab belongs to it. Entries that mean exactly one file — rename, bookmark, move or copy to a window — stay with the clicked tab, as does middle-click to close.
+- **End of the selection:** a click without a modifier key, switching the column, or closing the session. The selection belongs to a single tab bar and is not saved.
 
 ## Tab shape
 

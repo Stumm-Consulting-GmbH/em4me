@@ -675,6 +675,13 @@ select {
 .tab-group-head.dragging {
   opacity: 0.5;
 }
+/* 4T-0767 (Epic 3E-0158): Liegt der aktive Reiter in der Gruppe, traegt der
+   Kopf dieselbe Aktiv-Unterstreichung wie ein aktiver Reiter. Bei einer
+   zugeklappten Gruppe ist das die einzige Kennzeichnung in der Leiste. */
+.tab-group-head.active {
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px;
+}
 .tab-group-head.drag-over-join {
   outline: 2px solid var(--fg);
   outline-offset: -2px;
@@ -688,6 +695,22 @@ select {
   box-shadow: none;
   border-bottom-color: var(--tab-group-color);
 }
+/* === Mehrfach-Auswahl der Reiter (4T-0765, Epic 3E-0158) ================== */
+/* Ausgewaehlte Reiter tragen eine flaechige Hinterlegung mit Rahmen. Sie
+   erscheint erst ab zwei Mitgliedern (hasMultiSelection); eine Auswahl aus
+   einem Reiter sieht aus wie bisher. Die Regeln stehen NACH den Gruppen-
+   Regeln, damit die Auswahl-Kennung auch an gruppierten und aktiven Reitern
+   sichtbar bleibt. */
+.tab.tab-selected {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.tab.tab-selected.tab-grouped {
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    inset 0 -3px 0 0 var(--tab-group-color);
+}
+
 /* 4T-0461: Farb-Auswahl im Gruppen-Dialog (acht Swatches der Palette). */
 .tab-group-colors {
   display: flex;

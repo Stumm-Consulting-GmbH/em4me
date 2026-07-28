@@ -209,6 +209,7 @@ import {
   openDialog,
   openInPane,
   parseTabDrag,
+  reorderTabsWithinPane,
   reportMenuStateNow,
 } from './tabs.js';
 // 4T-0355 (Epic 3E-0065): Neubefüllung sichtbarer Abfrage-Listen bei Index-
@@ -2662,6 +2663,13 @@ export function bindPaneEvents() {
         if (data.fromPane === idx) {
           moveGroupInPane(idx, data.groupId, state.panes[idx].tabs.length);
         }
+        return;
+      }
+      // 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl auf die freie Flaeche — die
+      // ganze Menge ans Leisten-Ende (nur eigene Leiste).
+      const menge = Array.isArray(data.tabIndices) ? data.tabIndices : [];
+      if (menge.length > 1 && data.fromPane === idx) {
+        reorderTabsWithinPane(idx, menge, state.panes[idx].tabs.length);
         return;
       }
       moveTabBetweenPanes(data.fromPane, data.tabIndex, idx, state.panes[idx].tabs.length);

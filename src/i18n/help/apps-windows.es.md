@@ -34,11 +34,22 @@ Las pestañas pueden reunirse en grupos con nombre y color: los miembros permane
 
 - **Crear:** menú contextual de una pestaña → «Nuevo grupo con esta pestaña». El grupo recibe un nombre predeterminado y el siguiente color libre; el diálogo de renombrado con selección de color (paleta fija de ocho colores, ajustada a los temas claro y oscuro) se abre directamente.
 - **Rellenar:** «Añadir al grupo» en el menú contextual de la pestaña, o arrastrar una pestaña sobre la cabecera del grupo o entre dos miembros. «Quitar del grupo» o arrastrar una pestaña fuera del bloque termina la pertenencia; los grupos permanecen siempre contiguos.
+- **Mover en conjunto:** si hay varias pestañas seleccionadas (véase «Selección múltiple de pestañas»), las tres entradas de grupo del menú contextual actúan sobre toda la selección, y arrastrar una pestaña seleccionada sobre la cabecera hace que se una el conjunto entero. Se añade al final del bloque del grupo en su orden de la barra; al salir, queda justo detrás del bloque.
 - **Archivos derivados:** cuando un clic en el contenido de un documento agrupado abre otro archivo (enlace wiki, resultado de consulta, fila de evento, navegación de diario), la nueva pestaña se une al mismo grupo, en su posición junto al origen (véase «Posición de las pestañas nuevas»). El bloque permanece contiguo. Las aperturas fuera del contenido del documento —lista de archivos, paneles, marcadores, paleta de comandos, diálogos— permanecen sin agrupar; los archivos de destino ya abiertos solo se activan.
-- **Contraer:** un clic en la cabecera contrae el grupo — solo queda visible la cabecera con el número de miembros; una pestaña activa afectada cambia a la siguiente visible. Otro clic, o la activación de un miembro (por ejemplo al abrir su archivo), vuelve a expandir el grupo.
+- **Contraer:** un clic en la cabecera contrae el grupo — solo queda visible la cabecera con el número de miembros. Esto vale también cuando la pestaña activa está dentro del grupo: sigue activa, su contenido permanece en la ventana y la cabecera lleva la misma marca que una pestaña activa. El grupo solo se expande con un clic; una activación desde fuera (enlace wiki, paleta de comandos, cambio de pestaña con el teclado) lo deja contraído.
+- **Pasar el ratón en lugar de expandir:** al pasar el ratón por la cabecera de un grupo contraído aparece, tras una breve pausa, la lista de sus pestañas; un clic en ella cambia a ese archivo sin expandir el grupo. La pestaña activa está marcada en la lista y los archivos sin guardar llevan su punto de modificación.
 - **Gestionar:** menú contextual de la cabecera — «Renombrar y color…», «Desagrupar» (las pestañas quedan abiertas) y «Cerrar el grupo» (todos los miembros con las preguntas de guardado habituales). Arrastrar la cabecera mueve el grupo entero por la barra.
 
 Los grupos pertenecen a su barra de pestañas (una por lado en la vista dividida); una pestaña que cambia de barra abandona su grupo. El nombre, el color, los miembros y el estado contraído sobreviven a la restauración de la sesión. La función puede desactivarse como extensión «Grupos de pestañas»; los grupos se conservan y reaparecen sin cambios al reactivarla.
+
+## Selección múltiple de pestañas
+
+Se pueden seleccionar varias pestañas a la vez y moverlas después en un solo paso.
+
+- **Seleccionar:** **Ctrl** y clic añade una pestaña a la selección y la vuelve a quitar, **Mayús** y clic selecciona el tramo desde la pestaña activa hasta la pulsada. Las pestañas seleccionadas quedan resaltadas; la selección se hace visible a partir de dos miembros.
+- **Mover:** arrastrar una pestaña seleccionada mueve todo el conjunto, dentro de la barra y sobre una cabecera de grupo. En cambio, a través del límite de columna solo viaja la pestaña arrastrada.
+- **Menú contextual:** las entradas de grupo actúan sobre la selección en cuanto la pestaña pulsada forma parte de ella. Las entradas que se refieren exactamente a un archivo —renombrar, marcador, mover o copiar a una ventana— siguen ligadas a la pestaña pulsada, igual que el clic central para cerrar.
+- **Fin de la selección:** un clic sin tecla modificadora, el cambio de columna o el cierre de la sesión. La selección pertenece a una sola barra de pestañas y no se guarda.
 
 ## Forma de las pestañas
 

@@ -6,6 +6,9 @@
 // beim Gruppen-Schliessen bleibt manueller PO-Pruefpunkt (nativer Dialog).
 // 4T-0648 (Epic 3E-0130): TG-13 bis TG-15 pruefen die Einfuege-Position der
 // per Dokument-Klick geoeffneten Reiter (neben der Herkunft).
+// 4T-0765 (Epic 3E-0158): TG-16 und TG-17 pruefen die Mehrfach-Auswahl
+// (Strg- und Umschalt-Geste, Markierung ab zwei Mitgliedern) und das Ziehen
+// einer Menge als Block.
 'use strict';
 
 const path = require('node:path');
@@ -128,8 +131,11 @@ test.describe('TG-02: Zu Gruppe hinzufuegen und aus Gruppe entfernen', () => {
   });
 });
 
+// 4T-0767 (Epic 3E-0158): Der Fall prueft nicht mehr den Aktivierungs-Wechsel
+// beim Zuklappen (Sichtbarkeits-Garantie entfallen), sondern das Zuklappen aus
+// einer Lage heraus, in der der aktive Reiter AUSSERHALB der Gruppe liegt.
 test.describe('TG-03: Klappen ueber den Gruppen-Kopf', () => {
-  test('Zuklappen verbirgt Mitglieder, zeigt die Zahl und wechselt den aktiven Tab', async () => {
+  test('Zuklappen verbirgt Mitglieder und zeigt die Zahl, Aufklappen stellt sie her', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {
       await waitForTabs(page, 3);
@@ -142,9 +148,10 @@ test.describe('TG-03: Klappen ueber den Gruppen-Kopf', () => {
         })
         .click();
 
-      // Mitglied aktivieren, dann zuklappen: Aktivierung wechselt nach 'c'.
-      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-a' }).click();
-      await expect(page.locator(SEL.activeTab0)).toContainText('tab-gruppen-a');
+      // Aktiver Reiter ausserhalb der Gruppe: Zuklappen verbirgt die beiden
+      // Mitglieder, die Aktivierung bleibt unberuehrt.
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-c' }).click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('tab-gruppen-c');
       await page.locator(SEL.groupHeads0).click();
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
       await expect(page.locator(SEL.groupHeadCount0)).toHaveText('2');
@@ -564,6 +571,244 @@ test.describe('TG-15: Positions-Regel gilt bei abgeschalteter Erweiterung (4T-06
       await expect(page.locator(SEL.tabs0)).toHaveCount(4);
       await expect(page.locator(SEL.tabs0).nth(1)).toContainText('tab-gruppen-link-a');
       await expect(page.locator(SEL.tabs0).nth(2)).toContainText('tab-gruppen-link-b');
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+// --- Mehrfach-Auswahl (4T-0765, Epic 3E-0158) --------------------------------
+
+// Synthetischer HTML5-Drag von Reiter auf Reiter. clientX entscheidet ueber
+// die Drop-Haelfte und damit ueber den Einfuege-Index (Muster TG-06, dort
+// ohne Koordinate, weil der Gruppen-Kopf keine Haelften kennt).
+async function ziehe(page, vonText, aufText, { rechteHaelfte = false } = {}) {
+  await page.evaluate(
+    ({ vonText, aufText, rechteHaelfte }) => {
+      const tabs = [...document.querySelectorAll('.pane-group[data-pane="0"] .tabbar .tab')];
+      const quelle = tabs.find((el) => el.textContent.includes(vonText));
+      const ziel = tabs.find((el) => el.textContent.includes(aufText));
+      const r = ziel.getBoundingClientRect();
+      const clientX = Math.round(rechteHaelfte ? r.right - 2 : r.left + 2);
+      const dataTransfer = new DataTransfer();
+      quelle.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer }));
+      ziel.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer, clientX }));
+      ziel.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer, clientX }));
+      quelle.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+    },
+    { vonText, aufText, rechteHaelfte },
+  );
+}
+
+const SELECTED = '.pane-group[data-pane="0"] .tabbar .tab.tab-selected';
+
+test.describe('TG-16: Mehrfach-Auswahl per Strg und Umschalt (4T-0765)', () => {
+  test('Strg nimmt einzeln auf, Umschalt bildet die Spanne, Markierung erscheint ab zwei', async () => {
+    const { app, page, userData } = await launchApp({ args: THREE_FILES });
+    try {
+      await waitForTabs(page, 3);
+      // Ein einzelner Reiter ist der Normalfall und bleibt unmarkiert.
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-a' }).click();
+      await expect(page.locator(SELECTED)).toHaveCount(0);
+
+      // Strg+Klick nimmt auf UND aktiviert den aufgenommenen Reiter.
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-c' }).click({ modifiers: ['Control'] });
+      await expect(page.locator(SELECTED)).toHaveCount(2);
+      await expect(page.locator(SEL.activeTab0)).toContainText('tab-gruppen-c');
+
+      // Erneutes Strg+Klick nimmt wieder heraus (der aktive bleibt Mitglied).
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-a' }).click({ modifiers: ['Control'] });
+      await expect(page.locator(SELECTED)).toHaveCount(0);
+
+      // Umschalt+Klick bildet die Spanne ab dem aktiven Reiter (c -> a).
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-a' }).click({ modifiers: ['Shift'] });
+      await expect(page.locator(SELECTED)).toHaveCount(3);
+      // Die Spanne aendert die Aktivierung nicht.
+      await expect(page.locator(SEL.activeTab0)).toContainText('tab-gruppen-c');
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+test.describe('TG-17: Ziehen bewegt die ganze Auswahl (4T-0765)', () => {
+  test('Zwei ausgewaehlte Reiter wandern als Block ans Leisten-Ende', async () => {
+    const { app, page, userData } = await launchApp({ args: THREE_FILES });
+    try {
+      await waitForTabs(page, 3);
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-a' }).click();
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click({ modifiers: ['Control'] });
+      await expect(page.locator(SELECTED)).toHaveCount(2);
+
+      await ziehe(page, 'tab-gruppen-a', 'tab-gruppen-c', { rechteHaelfte: true });
+
+      await expect(page.locator(SEL.tabs0).nth(0)).toContainText('tab-gruppen-c');
+      await expect(page.locator(SEL.tabs0).nth(1)).toContainText('tab-gruppen-a');
+      await expect(page.locator(SEL.tabs0).nth(2)).toContainText('tab-gruppen-b');
+      // Die Auswahl ueberlebt das Verschieben.
+      await expect(page.locator(SELECTED)).toHaveCount(2);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+test.describe('TG-18: Menge tritt einer Gruppe bei (4T-0766)', () => {
+  test('Zwei ausgewaehlte Reiter haengen sich ueber das Kontextmenue ans Block-Ende', async () => {
+    const { app, page, userData } = await launchApp({ args: THREE_FILES });
+    try {
+      await waitForTabs(page, 3);
+      await createGroupWithTab(page, 'tab-gruppen-a', { name: 'Recherche' });
+
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click();
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-c' }).click({ modifiers: ['Control'] });
+      await expect(page.locator(SELECTED)).toHaveCount(2);
+
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click({ button: 'right' });
+      // Die Beschriftung wechselt bei einer Menge in die Mehrzahl-Fassung.
+      await expect(page.locator(MENU_ITEM('tabgroup-add'))).toContainText('Auswahl');
+      await page.locator(MENU_ITEM('tabgroup-add')).hover();
+      await page
+        .locator(`${MENU_ITEM('tabgroup-add')} .context-menu-submenu .context-menu-item`, {
+          hasText: 'Recherche',
+        })
+        .click();
+
+      await expect(page.locator(SEL.groupedTabs0)).toHaveCount(3);
+      expect(await readStrip(page)).toEqual(['head', 'grouped', 'grouped', 'grouped']);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+test.describe('TG-19: Menge verlaesst die Gruppe (4T-0766)', () => {
+  test('Die ausgewaehlten Mitglieder stehen danach hinter ihrem Block', async () => {
+    const { app, page, userData } = await launchApp({ args: THREE_FILES });
+    try {
+      await waitForTabs(page, 3);
+      await createGroupWithTab(page, 'tab-gruppen-a', { name: 'Recherche' });
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click();
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-c' }).click({ modifiers: ['Control'] });
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click({ button: 'right' });
+      await page.locator(MENU_ITEM('tabgroup-add')).hover();
+      await page
+        .locator(`${MENU_ITEM('tabgroup-add')} .context-menu-submenu .context-menu-item`, {
+          hasText: 'Recherche',
+        })
+        .click();
+      await expect(page.locator(SEL.groupedTabs0)).toHaveCount(3);
+
+      // Dieselbe Auswahl wieder austreten lassen.
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click({ button: 'right' });
+      await expect(page.locator(MENU_ITEM('tabgroup-remove'))).toContainText('Auswahl');
+      await page.locator(MENU_ITEM('tabgroup-remove')).click();
+
+      await expect(page.locator(SEL.groupedTabs0)).toHaveCount(1);
+      expect(await readStrip(page)).toEqual(['head', 'grouped', 'tab', 'tab']);
+      await expect(page.locator(SEL.tabs0)).toHaveCount(3);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+test.describe('TG-20: Zuklappen mit aktivem Reiter darin (4T-0767)', () => {
+  test('Der aktive Reiter bleibt aktiv, sein Inhalt sichtbar, der Kopf zeigt es an', async () => {
+    const first = await launchApp({ args: THREE_FILES });
+    const userData = first.userData;
+    try {
+      const { page } = first;
+      await waitForTabs(page, 3);
+      await createGroupWithTab(page, 'tab-gruppen-a', { name: 'Recherche' });
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click({ button: 'right' });
+      await page.locator(MENU_ITEM('tabgroup-add')).hover();
+      await page
+        .locator(`${MENU_ITEM('tabgroup-add')} .context-menu-submenu .context-menu-item`, {
+          hasText: 'Recherche',
+        })
+        .click();
+
+      // Mitglied aktivieren, dann zuklappen — frueher wechselte die
+      // Aktivierung nach aussen, jetzt bleibt sie in der zugeklappten Gruppe.
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-a' }).click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('tab-gruppen-a');
+      await page.locator(SEL.groupHeads0).click();
+
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      await expect(page.locator(SEL.groupHeadCount0)).toHaveText('2');
+      // Kein sichtbarer Reiter ist aktiv; der Kopf traegt die Kennzeichnung.
+      await expect(page.locator(SEL.activeTab0)).toHaveCount(0);
+      await expect(page.locator(`${SEL.groupHeads0}.active`)).toHaveCount(1);
+      // Der Inhalt der aktiven Datei bleibt im Pane.
+      await expect(page.locator(SEL.markdownBody0)).toContainText('Datei A');
+      await closeApp(first.app, null);
+    } catch (err) {
+      await closeApp(first.app, userData);
+      throw err;
+    }
+
+    const second = await launchApp({ userData });
+    try {
+      const { page } = second;
+      // Der Neustart klappt nicht auf, obwohl der aktive Reiter verborgen ist.
+      await expect(page.locator(SEL.groupHeadCount0)).toHaveText('2');
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      await expect(page.locator(`${SEL.groupHeads0}.active`)).toHaveCount(1);
+      await expect(page.locator(SEL.markdownBody0)).toContainText('Datei A');
+    } finally {
+      await closeApp(second.app, userData);
+    }
+  });
+});
+
+test.describe('TG-21: Aufklapp-Menue beim Ueberfahren (4T-0768)', () => {
+  test('Zeigen listet die Mitglieder, ein Klick wechselt, die Gruppe bleibt zu', async () => {
+    const { app, page, userData } = await launchApp({ args: THREE_FILES });
+    try {
+      await waitForTabs(page, 3);
+      await createGroupWithTab(page, 'tab-gruppen-a', { name: 'Recherche' });
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-b' }).click({ button: 'right' });
+      await page.locator(MENU_ITEM('tabgroup-add')).hover();
+      await page
+        .locator(`${MENU_ITEM('tabgroup-add')} .context-menu-submenu .context-menu-item`, {
+          hasText: 'Recherche',
+        })
+        .click();
+      // Aktiv ist 'c' ausserhalb der Gruppe; danach zuklappen.
+      await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-c' }).click();
+      await page.locator(SEL.groupHeads0).click();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+
+      // Zeigen oeffnet nach kurzer Verzoegerung die Mitglieder-Liste.
+      await page.locator(SEL.groupHeads0).hover();
+      await expect(page.locator(MENU_ITEM('tabgroup-member'))).toHaveCount(2);
+      await expect(page.locator(MENU_ITEM('tabgroup-member')).first()).toContainText(
+        'tab-gruppen-a',
+      );
+
+      // Klick auf einen Eintrag wechselt zur Datei; die Gruppe bleibt zu.
+      await page.locator(MENU_ITEM('tabgroup-member')).first().click();
+      await expect(page.locator('#context-menu')).toBeHidden();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      await expect(page.locator(SEL.groupHeadCount0)).toHaveText('2');
+      await expect(page.locator(`${SEL.groupHeads0}.active`)).toHaveCount(1);
+      await expect(page.locator(SEL.markdownBody0)).toContainText('Datei A');
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+test.describe('TG-22: Kein Aufklapp-Menue an offener Gruppe (4T-0768)', () => {
+  test('Zeigen auf einen aufgeklappten Kopf oeffnet nichts', async () => {
+    const { app, page, userData } = await launchApp({ args: THREE_FILES });
+    try {
+      await waitForTabs(page, 3);
+      await createGroupWithTab(page, 'tab-gruppen-a', { name: 'Recherche' });
+      await page.locator(SEL.groupHeads0).hover();
+      await page.waitForTimeout(600);
+      await expect(page.locator('#context-menu')).toBeHidden();
     } finally {
       await closeApp(app, userData);
     }

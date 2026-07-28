@@ -398,7 +398,10 @@ export async function withDialog(fn) {
 export function createEmptyPane() {
   // 4T-0459 (Epic 3E-0085): groups traegt die Tab-Gruppen der Leiste
   // ([{ id, name, color, collapsed }]; Helfer in modules/tab-groups.js).
-  return { tabs: [], activeIndex: -1, groups: [] };
+  // 4T-0765 (Epic 3E-0158): selection traegt die Mehrfach-Auswahl der Leiste
+  // (Tab-Objekte; Helfer in modules/tab-selection.js). Sie ist Bedien-Zustand
+  // und geht bewusst NICHT in den Panes-Snapshot ein.
+  return { tabs: [], activeIndex: -1, groups: [], selection: [] };
 }
 
 export function createTab(path, content, settings = {}) {
