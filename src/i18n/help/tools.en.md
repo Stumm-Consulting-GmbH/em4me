@@ -41,22 +41,38 @@ Replace:  $3-$2-$1
 Effect:   12.06.2026 → 2026-06-12
 ```
 
-## Searching the manual and the settings
+## Where the search looks
 
-The search scope follows the tab the search is opened in; the three scopes are mutually exclusive:
+The search scope follows the tab the search is opened in; the scopes exclude one another:
 
-| Active tab | What is searched |
+| Active tab | The search covers |
 |---|---|
-| Document | the document itself, source or preview |
+| Single file | that file, in source or preview |
+| File in an open area | **every** Markdown file of the area |
 | Manual page | **all** manual pages, including those not open |
-| Settings | **all** settings areas, including those never visited |
+| Settings | **all** settings sections, including those never visited |
 
-In the manual and in the settings, matches appear in the **Search results** sidebar panel, grouped by page or area and with a count per group. A click opens the page or switches the area and highlights the match; `F3` continues across page and area boundaries. Switching areas in the settings saves nothing, so a draft in progress is preserved.
+The scope in effect is shown at the left of the search bar.
 
-Replacing stays disabled in both scopes because the manual and the settings are read-only. Looking at the Markdown source of a manual page, that is the source view, searches that single page again.
+Beyond the single file, matches appear in the sidebar panel **Search results**, grouped by file, page or settings section and with a count per group. A click opens the target and highlights the location; `F3` continues across the group boundary.
 
-**How this differs from the command palette:** the palette finds **commands** by name and runs them. This search finds **text**, that is explanations in the manual and labels in the settings. If you know what you want to do, use the palette; if you want to know where something is described or what it is called, use the search.
+### Within an area
 
+The **open file comes first** in the list, and with its unsaved state: whatever is in the editor right now is found, even before it is saved. Its matches are highlighted in the text as usual, the list comes in addition. For all other files the saved state on disk applies.
+
+The search covers the Markdown files of the area. Other files and the application's companion files stay out.
+
+**Replacing** stays bound to the single file: opening the replace row returns the search to the current document.
+
+In a very large area the panel's status line notes that every search re-reads the files; the search then responds more slowly.
+
+### In the manual and the settings
+
+Switching sections in the settings saves nothing, a started draft is preserved. Replacing is off here because both are read-only. With the Markdown source of a manual page in front of you, that is the source view, the search covers that one page again.
+
+**Compared with the command palette:** the palette finds **commands** by name and runs them. This search finds **text**. If you know what you want to do, use the palette; if you want to know where something is or what it is called, use the search.
+
+**Compared with the Perspective query:** it filters files by their properties and lists them inside the document. The search finds running text, regardless of any property.
 ## Table editor
 
 In pipe tables `Tab` jumps to the next and `Shift+Tab` to the previous cell. At the end of the last row, `Tab` or `Enter` create a new table row with the same column count; pressing `Enter` twice on an empty row leaves the table. Borderless tables (without outer pipes) are recognised as well. Structural operations (moving, inserting and deleting rows and columns, alignment, transposing) are offered by the **Table** submenu in the [Editor context menu](context-menu.md).

@@ -1,0 +1,6 @@
+{
+  "_hinweis": "4T-0782: Zahl der tatsaechlich ausgefuehrten Testfaelle des letzten Voll-Laufs. Erzeugt von scripts/test-kennzahlen.js aus den Maschinen-Berichten beider Suiten; gelesen vom Zahlenband der Produkt-Webseite. Nicht von Hand pflegen.",
+  "unit": 2645,
+  "e2e": 530,
+  "summe": 3175
+}

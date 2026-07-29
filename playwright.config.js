@@ -16,7 +16,17 @@ module.exports = defineConfig({
   forbidOnly: true,
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  reporter: [['list'], ['html', { open: 'never' }]],
+  // 4T-0782 (Epic 3E-0156): Der json-Reporter liefert scripts/test-kennzahlen.js
+  // die Zahl der tatsaechlich ausgefuehrten Faelle (siehe vitest.config.mjs).
+  // Ziel ist test-berichte/, weil outputDir (test-results/) zu Beginn jedes
+  // Laufs geleert wird. ACHTUNG: Ein --reporter-Schalter auf der Kommando-
+  // zeile ERSETZT diese Liste; ein Lauf mit --reporter=line schreibt keinen
+  // Bericht. Der Voll-Lauf vor einem Release laeuft deshalb ohne Schalter.
+  reporter: [
+    ['list'],
+    ['html', { open: 'never' }],
+    ['json', { outputFile: 'test-berichte/e2e.json' }],
+  ],
   outputDir: 'test-results',
   use: {
     screenshot: 'only-on-failure',

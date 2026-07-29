@@ -176,6 +176,13 @@
       "hinweis": "SH-01 bis SH-05 (Trefferraum ueber alle Handbuch-Seiten, Sprung, F3 ueber die Seitengrenze, Ersetzen aus, Rueckkehr zum Dokument) und SE-01 bis SE-03 (Bereiche ohne vorherigen Besuch, Bereichs-Sprung, Entwurf bleibt erhalten)."
     },
     {
+      "key": "help.feature.areaSearch",
+      "id": "F-246",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/bereichs-suche.spec.js"],
+      "hinweis": "BS-01 bis BS-06 (Trefferraum ueber alle Bereichs-Dateien, offene Datei zuerst mit ihrem Editor-Stand, Markierung im Text ohne Klick, Sprung in eine andere Datei, F3 ueber die Datei-Grenze, keine Bereichs-Suche ohne Bereich)."
+    },
+    {
       "key": "help.feature.menuBar",
       "id": "F-023",
       "testart": "manuell",
@@ -916,8 +923,11 @@
       "key": "help.shortcut.toggleBlockProps",
       "id": "S-071",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/block-eigenschaften.spec.js"],
-      "hinweis": "BP-01 (Menue Ansicht -> Block-Eigenschaften)."
+      "tests": [
+        "test/e2e/funktionen/block-eigenschaften.spec.js",
+        "test/e2e/funktionen/kommando-palette.spec.js"
+      ],
+      "hinweis": "BP-01 (Menue Ansicht -> Block-Eigenschaften). 4T-0781: KP-06 deckt zusaetzlich den Palette-Weg ab, der bis dahin wirkungslos war."
     },
     {
       "key": "help.shortcut.foldRegion",
@@ -1733,7 +1743,7 @@
       "id": "S-078",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kommando-palette.spec.js"],
-      "hinweis": "4T-0480 (Epic 3E-0089): Kommando-Palette — KP-01 bis KP-05 (Oeffnen per Kuerzel und Menue-Kanal, Teilstring-Filter, Pfeil-Navigation mit Enter-Ausfuehrung, Esc, gedimmte nicht verfuegbare Kommandos) plus Unit-Suite des Filter-Moduls (test/unit/command-palette-filter.test.js)."
+      "hinweis": "4T-0480 (Epic 3E-0089): Kommando-Palette — KP-01 bis KP-05 (Oeffnen per Kuerzel und Menue-Kanal, Teilstring-Filter, Pfeil-Navigation mit Enter-Ausfuehrung, Esc, gedimmte nicht verfuegbare Kommandos) plus Unit-Suite des Filter-Moduls (test/unit/command-palette-filter.test.js). KP-06 (4T-0781): ein Kommando ohne Standard-Kuerzel wirkt ueber die Palette; die Vollstaendigkeit der Dispatcher-Map haelt test/unit/renderer/kommando-dispatcher.test.js."
     },
     {
       "key": "help.feature.areaGraph",

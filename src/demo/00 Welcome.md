@@ -32,4 +32,6 @@ Read in order, or jump straight to what you need:
 
 The folder is open as an **area**: the file list sits on the left, tabs run across the top, and sidebar panels cover backlinks, tags, the outline and more (all under the View menu). Most extras — callouts, tables, tasks, events and the rest — are switchable under **Settings → Extensions** and are all on by default.
 
+Because these pages form an area, the search covers all of them at once: press `Ctrl+F` anywhere and try `callout` or `query`. Results appear grouped by file in the sidebar, the page you are on comes first, and `F3` walks on into the next file.
+
 Start with [[01 Markdown Basics]] whenever you are ready. :rocket:

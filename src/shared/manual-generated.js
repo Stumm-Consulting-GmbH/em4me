@@ -113,6 +113,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0762 (Epic 3E-0142): Suchraum nach Reiter-Typ (Handbuch und
       // Einstellungen), direkt hinter dem Such-Bestand.
       'help.feature.searchScopes',
+      // 4T-0617 (Epic 3E-0116): bereichsweite Volltext-Suche, unmittelbar
+      // hinter dem Suchraum-Eintrag, weil sie dessen dritter Fall ist.
+      'help.feature.areaSearch',
       'help.feature.linter',
       // 4T-0035 (Epic 3E-0006): perspective-table mit Querverweis auf den eigenen Tab.
       'help.feature.perspectiveTable',

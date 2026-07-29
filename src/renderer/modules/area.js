@@ -16,7 +16,11 @@ import { t } from '../i18n.js';
 
 import { state } from './app-state.js';
 
-function normalizeForCompare(p) {
+// 4T-0616 (Epic 3E-0116): exportiert, weil die Bereichs-Suche Pfade aus dem
+// Hauptprozess mit denen offener Reiter vergleicht. Zwei Normalisierungen
+// nebeneinander liefen bei Trenner- oder Schreibweisen-Unterschieden
+// auseinander, und der Fehler waere ein still ausbleibender Treffer.
+export function normalizeForCompare(p) {
   return String(p)
     .replace(/\//g, '\\')
     .replace(/[\\]+$/, '')

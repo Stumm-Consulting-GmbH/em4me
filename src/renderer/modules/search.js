@@ -12,6 +12,9 @@ import { t } from '../i18n.js';
 import { clearSearchDecorations, setSearchDecorations } from './live-deco.js';
 import { api, $, getDocText } from './api.js';
 import { activeTab, getPaneEls, state } from './app-state.js';
+// 4T-0616 (Epic 3E-0116): Bereichs-Zugehoerigkeit der aktiven Datei; dieselbe
+// Pruefung, die auch das Oeffnen gegen die Bereichs-Grenze absichert.
+import { isOutsideActiveArea } from './area.js';
 import { paneEditors } from './editor.js';
 import { persistSetting, showStatusbarHint } from './views.js';
 // 4T-0760 (Epic 3E-0142): Suchlauf ueber Handbuch und Einstellungen.
@@ -156,6 +159,33 @@ export function determineSearchScope() {
   // Markdown-Syntax in genau dieser Seite; das kann der Handbuch-Raum
   // nicht bedienen, und diese Absicht wiegt schwerer.
   if (tab.manualPage && tab.viewMode === 'rendered') return 'manual';
+  // 4T-0616 (Epic 3E-0116): Eine Datei in einem geoeffneten Bereich durchsucht
+  // den GANZEN Bereich (PO-Entscheidung 2026-07-29). Damit setzt sich die
+  // Regel fort, nach der der Raum der Behaelter ist, in dem der Anwender
+  // steht: Handbuch-Seite -> Handbuch, Einstellungen -> alle Bereiche, Datei
+  // im Bereich -> Bereich, lose Datei -> sie selbst.
+  //
+  // Anders als beim Handbuch gilt das UNABHAENGIG vom Ansichts-Modus. Beim
+  // Handbuch ist die Quelltext-Ansicht eine Ausnahme auf eine read-only
+  // Seite, beim Dokument ist der Bearbeiten-Modus der Normalfall; den Raum
+  // vom Ansichts-Schalter abhaengig zu machen hiesse, dass derselbe Reiter je
+  // nach Schalterstellung anders sucht. Dass sich das im Editor dennoch nicht
+  // wie ein Verhaltenswechsel anfuehlt, liegt am Markier-Weg in
+  // such-bereich.js: Die Treffer der offenen Datei stehen weiterhin sofort im
+  // Text, die Liste kommt hinzu.
+  //
+  // ersetzenGebunden ist die eine Ausnahme: Solange die Ersetzen-Zeile offen
+  // ist, bleibt der Raum das Dokument, sonst waere Ersetzen bei geoeffnetem
+  // Bereich dauerhaft gesperrt (updateReplaceUiState verlangt 'source').
+  if (
+    !search.replaceMode &&
+    state.areaPath &&
+    tab.path &&
+    !tab.systemPage &&
+    !isOutsideActiveArea(tab.path)
+  ) {
+    return 'area';
+  }
   // Im Split-Modus den Quelltext durchsuchen: dort steht die Markdown-Syntax
   // (z.B. `###`), die in der gerenderten Vorschau gar nicht mehr vorkommt.
   if (tab.viewMode === 'source' || tab.viewMode === 'split' || tab.viewMode === 'live')
@@ -163,12 +193,12 @@ export function determineSearchScope() {
   return 'rendered';
 }
 
-// 4T-0760: Die beiden Raum-Scopes verhalten sich grundlegend anders als die
-// zwei Dokument-Scopes (Trefferliste statt Inline-Markierung, asynchrone
-// Lieferanten, Sprung über Seiten-/Bereichsgrenzen). Diese Abfrage macht die
-// Verzweigungen unten lesbar.
+// 4T-0760: Die Raum-Scopes verhalten sich grundlegend anders als die zwei
+// Dokument-Scopes (Trefferliste statt reiner Inline-Markierung, asynchrone
+// Lieferanten, Sprung über Seiten-, Bereichs- und Datei-Grenzen). Diese
+// Abfrage macht die Verzweigungen unten lesbar.
 export function isRaumScope(scope) {
-  return scope === 'manual' || scope === 'settings';
+  return scope === 'manual' || scope === 'settings' || scope === 'area';
 }
 
 // R5-16 (4T-0183): Die Helpers werden ausschliesslich vom Render-Pane-
@@ -382,6 +412,8 @@ const SCOPE_LABEL_KEYS = {
   // 4T-0760 (Epic 3E-0142)
   manual: 'search.scopeManual',
   settings: 'search.scopeSettings',
+  // 4T-0616 (Epic 3E-0116)
+  area: 'search.scopeArea',
 };
 
 export function updateSearchScopeLabel() {
@@ -609,6 +641,21 @@ export function closeSearchBar() {
   // 4T-0760: Auch den Raum-Bestand samt Trefferliste raeumen; das Panel
   // bleibt offen, zeigt aber seinen Leerzustand statt veralteter Treffer.
   leereRaumBestand(null);
+  // 4T-0616 (Epic 3E-0116): Den Speicher-Vorrat des Bereichs im Hauptprozess
+  // freigeben. Er haengt bewusst an der geoeffneten Suchleiste und nicht am
+  // geoeffneten Bereich; wer nicht sucht, soll die Texte nicht im Speicher
+  // halten. Der Cache auf Platte bleibt und traegt den naechsten Suchlauf.
+  // Direkt ueber api statt ueber such-bereich.js: Jenes Modul importiert aus
+  // diesem, ein Rueckimport ergaebe einen Modul-Zyklus.
+  try {
+    void api.releaseAreaSearch();
+  } catch {
+    /* Freigeben ist bestes Bemuehen; ein Fehlschlag kostet nur Speicher */
+  }
+  // 4T-0616: Ende der Such-Sitzung. Die naechste bestimmt ihre Anker-Datei
+  // neu, also die Datei, welche die Trefferliste anfuehrt. Ueber ein
+  // Dokument-Ereignis aus demselben Zyklus-Grund wie oben.
+  document.dispatchEvent(new CustomEvent('scg:search-closed'));
   setInvalidRegex(false);
   updateSearchCounter();
 }

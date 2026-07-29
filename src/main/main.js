@@ -120,6 +120,14 @@ const mddStore = require('./mdd-store');
 // 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
 // plus ergaenzender Ordner-Scan).
 const { collectAreaStats } = require('./area-stats');
+// 4T-0615 (Epic 3E-0116): Bereichs-Suchraum — Volltext-Suche ueber alle
+// Markdown-Dateien des Bereichs, mit Speicher-Vorrat und Cache im
+// Nutzerdaten-Verzeichnis.
+const {
+  konfiguriereBereichsSuche,
+  sucheImBereich,
+  gibBereichsVorratFrei,
+} = require('./area-search');
 // 4T-0363 (Epic 3E-0067): strenge Anker-ID-Validierung fuer die Block-
 // Metadaten-IPC (gemeinsame, prozess-neutrale Quelle).
 const { isValidBlockAnchorId } = require('../shared/block-anchors');
@@ -4144,6 +4152,41 @@ function registerIpc() {
     });
   });
 
+  // 4T-0615 (Epic 3E-0116): Bereichs-Suchlauf. Der Renderer schickt den
+  // fertigen Regex-Quelltext samt Flags (eine Auslegung von Gross-/
+  // Kleinschreibung und Regex-Modus, nicht zwei) und den wurzel-relativen
+  // Pfad der aktiven Datei, deren Treffer er selbst aus dem Editor-Stand
+  // beisteuert. Ohne geoeffneten Bereich liefert der Kanal ein leeres
+  // Ergebnis, statt auf einen Ordner-Scan auszuweichen.
+  ipcMain.handle('areaSearch:run', async (event, params) => {
+    const areaRoot = areaRootForEvent(event);
+    if (!areaRoot) {
+      return {
+        treffer: [],
+        gruppen: [],
+        abgeschnitten: false,
+        generation: (params && params.generation) || 0,
+        vorratModus: 'leer',
+      };
+    }
+    return sucheImBereich(areaRoot, {
+      muster: params && params.muster,
+      flags: params && params.flags,
+      aktiv: params && params.aktiv,
+      anker: params && params.anker,
+      generation: params && params.generation,
+    });
+  });
+
+  // Gibt den Speicher-Vorrat frei (Suchleiste geschlossen, Bereich
+  // gewechselt). Der Cache bleibt bestehen; er ist der Zweck des naechsten
+  // Starts.
+  ipcMain.handle('areaSearch:release', (event) => {
+    const areaRoot = areaRootForEvent(event);
+    gibBereichsVorratFrei(areaRoot || null);
+    return true;
+  });
+
   // 4T-0413 (Epic 3E-0078): Daten-Snapshot fuer Skript-Bloecke
   // (perspective-script). Read-only-View wie frontmatterQuery:run; die
   // Auswertung uebernimmt das Skript in der Renderer-Sandbox, der Main
@@ -5113,6 +5156,14 @@ app.whenReady().then(async () => {
   }
 
   registerIpc();
+
+  // 4T-0615 (Epic 3E-0116): Ablage-Ort des Bereichs-Suchraum-Caches. Bewusst
+  // im Nutzerdaten-Verzeichnis und nicht im Bereich des Anwenders (Muster
+  // drafts/, extensions/): Der Cache verdoppelte dort dessen Text-Bestand und
+  // liefe durch jede Ordner-Synchronisierung mit.
+  konfiguriereBereichsSuche({
+    cacheVerzeichnis: path.join(app.getPath('userData'), 'bereichs-suche'),
+  });
 
   // 4T-0525 (Epic 3E-0095): Erinnerungs-Takt starten (Gates pro Lauf:
   // Erweiterungs-Zustand, Index-Bereitschaft; zusaetzlicher Anstoss ueber

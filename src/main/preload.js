@@ -371,6 +371,12 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-0619 (Epic 3E-0117): Kennzahlen des Fenster-Bereichs fuer die
   // Statistik-Seite (Index-Anteil plus ergaenzender Ordner-Scan).
   collectAreaStats: () => ipcRenderer.invoke('areaStats:collect'),
+  // 4T-0615 (Epic 3E-0116): Bereichs-Suchlauf ueber alle Markdown-Dateien des
+  // Fenster-Bereichs. `aktiv` traegt Pfad und Editor-Stand der offenen Datei;
+  // ihre Treffer stehen als erste Gruppe, und der Platten-Stand derselben
+  // Datei wird dafuer ausgespart.
+  searchArea: (params) => ipcRenderer.invoke('areaSearch:run', params),
+  releaseAreaSearch: () => ipcRenderer.invoke('areaSearch:release'),
   // 4T-0057: Autocomplete-Suggestions fuer Wiki-Link- und Tag-Trigger.
   autocompleteWikiTargets: (filePath) =>
     ipcRenderer.invoke('autocomplete:wikiTargets', { filePath }),

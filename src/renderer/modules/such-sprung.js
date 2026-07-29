@@ -85,6 +85,18 @@ async function springeZuHandbuchSeite(treffer) {
 
 registriereSprungWeg('manual', springeZuHandbuchSeite);
 
+// Markier-Weg je Raum. Wie bei den Sprung-Wegen trägt sich jede Quelle selbst
+// ein; der Bereich tut das in such-bereich.js (4T-0616). Registrierung statt
+// fester Verzweigung, weil die Bereichs-Markierung den Editor-Pfad braucht
+// und dieses Modul sonst dessen Module kennen müsste.
+const MARKIER_WEGE = new Map();
+
+export function registriereMarkierWeg(raum, fn) {
+  if (typeof raum === 'string' && raum !== '' && typeof fn === 'function') {
+    MARKIER_WEGE.set(raum, fn);
+  }
+}
+
 // Stellt die Inline-Hervorhebung der gerade offenen Handbuch-Seite her.
 //
 // Notwendig, weil jeder Suchlauf mit clearSearchHighlights beginnt und ein
@@ -92,7 +104,16 @@ registriereSprungWeg('manual', springeZuHandbuchSeite);
 // Ziel-Reiters löst refreshSearchIfVisible aus. Ohne diese Wiederherstellung
 // verschwände die eben gesetzte Markierung unmittelbar wieder — der Sprung
 // landete sichtbar im Nichts.
+//
+// 4T-0616: Für andere Räume übernimmt ein registrierter Markier-Weg. Die
+// Aufgabe ist dieselbe, der Weg zum Text nicht: Eine Bereichs-Datei kann im
+// Bearbeiten-Modus stehen, wo nicht der DOM markiert wird, sondern der Editor.
 export function markiereOffeneRaumSeite() {
+  const weg = MARKIER_WEGE.get(search.scope);
+  if (weg) {
+    weg();
+    return;
+  }
   const tab = activeTab();
   if (!tab || !tab.manualPage) return;
   let regex;

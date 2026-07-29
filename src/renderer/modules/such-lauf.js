@@ -17,10 +17,16 @@ import { handbuchEintraege } from './such-handbuch.js';
 import { zeigeTreffer, leereTreffer, setzeAuswahl, zeigeSuchPanel } from './such-panel.js';
 import { state } from './app-state.js';
 
-// Lieferanten je Raum. Ein Lieferant gibt die Eintrags-Liste des Kerns
-// zurück (Gruppe, Titel, Volltext). Die Einstellungen tragen sich in
-// 4T-0761 hier ein; bis dahin liefert der Raum nichts, ohne dass die
-// Suchleiste davon wissen müsste.
+// Lieferanten je Raum. Ein Lieferant gibt entweder die Eintrags-Liste des
+// Kerns zurück (Gruppe, Titel, Volltext) — dann sucht dieses Modul darin —
+// oder ein fertiges Ergebnis `{ treffer, gruppen, abgeschnitten }`.
+//
+// Die zweite Form ist mit 4T-0616 (Epic 3E-0116) dazugekommen: Ein Bereich
+// kann seine Volltexte nicht in den Renderer reichen, weil ihre Zahl
+// unbegrenzt ist und der Dateizugriff in den Hauptprozess gehört. Er sucht
+// deshalb dort und liefert Treffer. Damit ein solcher Lieferant überhaupt
+// suchen KANN, bekommt jeder Lieferant den regulären Ausdruck herein; die
+// beiden älteren ignorieren ihn.
 const LIEFERANTEN = new Map([['manual', handbuchEintraege]]);
 
 export function registriereLieferant(raum, fn) {
@@ -78,15 +84,27 @@ export async function sucheImRaum(raum, regex, { behalteIndex = false } = {}) {
     return true;
   }
 
-  let eintraege;
+  let geliefert;
   try {
-    eintraege = await lieferant();
+    geliefert = await lieferant(regex);
   } catch {
-    eintraege = [];
+    geliefert = [];
   }
   if (meine !== generation) return false;
 
-  const ergebnis = sucheInTexten(eintraege, regex);
+  // Eintrags-Liste: hier suchen. Fertiges Ergebnis: übernehmen, aber die
+  // erwarteten Felder absichern — ein Lieferant, der über eine Prozess-Grenze
+  // antwortet, ist keine vertrauenswürdige Struktur-Quelle.
+  const ergebnis = Array.isArray(geliefert)
+    ? sucheInTexten(geliefert, regex)
+    : {
+        treffer: Array.isArray(geliefert && geliefert.treffer) ? geliefert.treffer : [],
+        gruppen: Array.isArray(geliefert && geliefert.gruppen) ? geliefert.gruppen : [],
+        abgeschnitten: !!(geliefert && geliefert.abgeschnitten),
+        // Nur der Bereichs-Lieferant setzt ihn: 'direkt' meldet, dass der
+        // Bereich über dem Vorrats-Deckel liegt und je Lauf gelesen wird.
+        vorratModus: (geliefert && geliefert.vorratModus) || null,
+      };
   const index =
     vorherigerIndex >= 0 && vorherigerIndex < ergebnis.treffer.length
       ? vorherigerIndex

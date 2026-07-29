@@ -9,6 +9,67 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.99.0.1041] - 2026-07-29 — Bereichs-Suche
+
+Epic 3E-0116: Ein geöffneter Bereich wird zum Suchraum. `Strg+F` in einer
+seiner Dateien durchsucht nicht mehr nur diese Datei, sondern alle
+Markdown-Dateien des Bereichs; die Treffer erscheinen nach Dateien gruppiert
+im vorhandenen Suchergebnis-Panel. Damit ist die zweite Hälfte des
+Roadmap-Eintrags „Arbeitsbereiche durchsuchen" eingelöst, dessen erste Hälfte
+die Bereichs-Statistik in 0.98.0 gebracht hat.
+
+### Neu
+
+- **Bereichsweite Volltext-Suche** (4T-0616): Der Suchbereich folgt weiter dem
+  Reiter, in dem gesucht wird — neu kommt der Fall „Datei in einem geöffneten
+  Bereich" hinzu, der den ganzen Bereich umfasst. Welcher Bereich gilt, steht
+  links in der Suchleiste. Die Trefferliste ist nach Dateien gruppiert, `F3`
+  läuft über die Datei-Grenze weiter, ein Klick öffnet die Zieldatei an der
+  Fundstelle. Kein eigenes Panel und kein zweites Kommando: Die Funktion nutzt
+  die Trefferliste, die mit 0.95.0 für Handbuch und Einstellungen entstanden
+  ist, als dritten Lieferanten.
+- **Die offene Datei führt die Liste an, mit ihrem ungespeicherten Stand**
+  (4T-0616): Was gerade im Editor steht, wird gefunden, auch vor dem Speichern;
+  für die übrigen Dateien gilt der Stand auf der Festplatte. Die Datei, in der
+  die Suche geöffnet wurde, bleibt für die Dauer der Such-Sitzung an erster
+  Stelle, damit die Liste über Sprünge hinweg stehen bleibt und der Zähler über
+  alle Treffer des Bereichs läuft.
+- **Suchraum im Hauptprozess** (4T-0615): neues Modul `area-search.js` mit
+  Verzeichnis-Scan nach den Regeln des Bereichs-Index, Speicher-Vorrat für die
+  Dauer der geöffneten Suchleiste und einem Cache je Bereich im
+  Nutzerdaten-Verzeichnis. Der Cache liegt bewusst nicht im Bereich des
+  Anwenders: Er verdoppelte dort den Text-Bestand und liefe durch jede
+  Ordner-Synchronisierung mit. Ein Byte-Deckel schaltet sehr große Bereiche auf
+  gedrosseltes Direkt-Lesen um, was die Statuszeile ausweist.
+
+### Geändert
+
+- **Die Markierung im Dokument bleibt** (4T-0616): Der Bereichs-Raum ersetzt
+  die gewohnten Marken im Text nicht, er ergänzt sie um die Liste. Im
+  Bearbeiten-Modus setzt der Decorations-Weg die Treffer, in der Lese-Ansicht
+  der bekannte Marken-Weg.
+- **Ersetzen bleibt an das Dokument gebunden** (4T-0616): `Strg+H` schaltet den
+  Suchbereich auf die aktive Datei zurück. Ohne das wäre Suchen und Ersetzen
+  gesperrt, solange ein Bereich offen ist.
+
+### i18n
+
+- Vier neue Schlüssel je Sprache für Suchbereichs-Anzeige, Datei-Zähler und den
+  Hinweis bei sehr großen Bereichen, dazu der Funktions-Katalog-Eintrag zur
+  Bereichs-Suche (drei Schlüssel je Sprache). Berichtigt wurden die vier
+  Bestands-Schlüssel, die die Suchräume abschließend aufzählten und durch den
+  neuen Fall unvollständig geworden wären. Alles in fünf Sprachen.
+
+### Dokumentation
+
+- **Handbuch-Seite Werkzeuge** (4T-0617): Der Abschnitt „Suche in Handbuch und
+  Einstellungen" ist zu „Wo gesucht wird" umgebaut, mit einer vierzeiligen
+  Tabelle der Suchräume und zwei Unterabschnitten zum Bereich und zu Handbuch
+  und Einstellungen. Neu ist die Abgrenzung gegenüber der Perspective-Abfrage:
+  Sie filtert Eigenschaften, die Suche findet Text. Fünf Sprachfassungen.
+- **Demo-Area** (4T-0617): Die Willkommensseite weist auf die Bereichs-Suche
+  hin, mit zwei Suchbegriffen, die in der Demo-Area mehrfach vorkommen.
+
 ## [0.98.0.1032] - 2026-07-28 — Bereichs-Statistik
 
 Epic 3E-0117: Für den geöffneten Bereich lässt sich eine Kennzahlen-Seite als

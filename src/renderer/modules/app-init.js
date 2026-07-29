@@ -342,6 +342,9 @@ import { markiereOffeneRaumSeite, springeZuTreffer } from './such-sprung.js';
 // 4T-0761 (Epic 3E-0142): Einstellungen als zweiter Lieferant. Der Import
 // registriert Lieferant und Sprung-Weg.
 import './such-einstellungen.js';
+// 4T-0616 (Epic 3E-0116): Bereich als dritter Lieferant. Der Import
+// registriert Lieferant, Sprung-Weg und Markier-Weg.
+import './such-bereich.js';
 import { setzeRaumIndex } from './such-lauf.js';
 // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Panel (Init-Wiring, Toggle, Settings).
 import {
@@ -1408,6 +1411,21 @@ export const commandHandlers = {
   // Statusbar-Platzierung; der Menue-Weg laeuft ueber seinen eigenen Kanal.
   'stats.openArea': () => {
     openAreaStatsPage();
+  },
+  // 4T-0781 (Epic 3E-0161): drei Kommandos hatten bis hierher nur ihren
+  // Menue- bzw. Statusbar-Weg und fielen aus Palette und Kuerzel-Dispatch
+  // heraus, weil beide ausschliesslich ueber diese Map laufen. Sie rufen
+  // dieselben Funktionen wie die zugehoerigen Menue-Kanaele; der Waechter
+  // test/unit/renderer/kommando-dispatcher.test.js haelt die Map seither
+  // gegen die Registry.
+  'graph.openArea': () => {
+    openAreaGraphTab();
+  },
+  'history.open': () => {
+    openHistoryPageForActiveTab();
+  },
+  'view.toggleBlockProps': () => {
+    void toggleBlockPropsPanel(state.activePaneIndex);
   },
 };
 

@@ -49,19 +49,28 @@ export function setzeSprungHandler(fn) {
   sprungHandler = typeof fn === 'function' ? fn : null;
 }
 
-export function zeigeTreffer({ treffer, gruppen, abgeschnitten, raum }) {
+export function zeigeTreffer({ treffer, gruppen, abgeschnitten, raum, vorratModus }) {
   bestand = {
     treffer: Array.isArray(treffer) ? treffer : [],
     gruppen: Array.isArray(gruppen) ? gruppen : [],
     abgeschnitten: !!abgeschnitten,
     raum: raum || null,
+    // 4T-0616: 'direkt' meldet einen Bereich oberhalb des Vorrats-Deckels.
+    vorratModus: vorratModus || null,
     auswahl: Array.isArray(treffer) && treffer.length > 0 ? 0 : -1,
   };
   zeichneAllePanes();
 }
 
 export function leereTreffer(raum = null) {
-  bestand = { treffer: [], gruppen: [], abgeschnitten: false, raum, auswahl: -1 };
+  bestand = {
+    treffer: [],
+    gruppen: [],
+    abgeschnitten: false,
+    raum,
+    vorratModus: null,
+    auswahl: -1,
+  };
   zeichneAllePanes();
 }
 
@@ -89,8 +98,17 @@ function statusText() {
   if (bestand.treffer.length === 0) return t('searchResults.empty');
   const anzahl = String(bestand.treffer.length);
   const gruppen = String(bestand.gruppen.length);
-  const text = t('searchResults.count').replace('{n}', anzahl).replace('{g}', gruppen);
-  return bestand.abgeschnitten ? `${text} ${t('searchResults.truncated')}` : text;
+  // 4T-0616: Im Bereichs-Raum sind die Gruppen Dateien, in den uebrigen
+  // Raeumen Seiten bzw. Bereiche. Ein eigener Schluessel statt eines
+  // zusammengesetzten Satzes, damit jede Sprache ihre eigene Wendung waehlen
+  // kann.
+  const schluessel = bestand.raum === 'area' ? 'searchResults.countFiles' : 'searchResults.count';
+  let text = t(schluessel).replace('{n}', anzahl).replace('{g}', gruppen);
+  if (bestand.abgeschnitten) text += ` ${t('searchResults.truncated')}`;
+  // Der Rueckfall-Modus des Vorrats ist kein Fehler, aber er erklaert, warum
+  // die Suche in einem sehr grossen Bereich traeger reagiert.
+  if (bestand.vorratModus === 'direkt') text += ` ${t('searchResults.directMode')}`;
+  return text;
 }
 
 function baueGruppenKopf(gruppe, offen) {

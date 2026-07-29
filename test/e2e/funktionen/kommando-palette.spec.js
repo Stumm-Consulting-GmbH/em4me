@@ -28,6 +28,8 @@ const MODAL = '#command-palette-modal';
 const FILTER = '#command-palette-filter';
 const ITEM = '.command-palette-item';
 const OUTLINE = '.pane-group[data-pane="0"] .outline-tree';
+// 4T-0781 (Epic 3E-0161): Sektion des Block-Eigenschaften-Panels.
+const BLOCKPROPS = '.pane-group[data-pane="0"] .sidebar-blockprops';
 
 // Menue-Klicks simulieren (Muster smoke.spec.js / graphenansicht.spec.js).
 async function sendMenuChannel(app, channel, ...args) {
@@ -142,6 +144,32 @@ test.describe('KP-04: Enter fuehrt das gefilterte Kommando aus und schliesst (S-
       // Popup ist zu und die Outline-Sektion erscheint.
       await expect(page.locator(MODAL)).toBeHidden();
       await expect(page.locator(OUTLINE)).toBeVisible();
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-0781 (Epic 3E-0161): Regressionstest zum Befund, dass drei Registry-
+// Kommandos keinen Eintrag in der Dispatcher-Map hatten und deshalb ueber
+// Palette und belegtes Kuerzel wirkungslos blieben. Geprueft wird die
+// Wirkung am realen Bedienweg; die Vollstaendigkeit der Map selbst haelt der
+// Waechter test/unit/renderer/kommando-dispatcher.test.js.
+test.describe('KP-06: Kommandos ohne Standard-Kuerzel wirken ueber die Palette (S-078)', () => {
+  test('view.toggleBlockProps oeffnet die Block-Eigenschaften-Sektion', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    void app;
+    try {
+      await waitForTab(page);
+      await expect(page.locator(BLOCKPROPS)).toBeHidden();
+
+      await openPaletteByKey(page);
+      await page.locator(FILTER).fill('Block-Eigenschaften');
+      await expect(page.locator(ITEM)).toHaveCount(1);
+      await page.keyboard.press('Enter');
+
+      await expect(page.locator(MODAL)).toBeHidden();
+      await expect(page.locator(BLOCKPROPS)).toBeVisible();
     } finally {
       await closeApp(app, userData);
     }

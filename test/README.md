@@ -43,6 +43,9 @@ case-insensitivem NTFS wäre `tests/` mit `Tests/` kollidiert.
 | `npm run test:watch` | Vitest-Watch-Modus; `.only` ist hier erlaubt (`--allowOnly`). |
 | `npm run test:e2e` | Playwright-E2E-Lauf; baut vorher das Renderer-Bundle (`pretest:e2e`). Umfang pro Task nach Änderungsklasse (Abschnitt „Änderungsklassen und Prüf-Ausschnitt"), Voll-Suite im Release-Sammeltask. |
 | `npm run build:renderer` | Baut das Renderer-Bundle. Vorbedingung jedes direkten Playwright-Aufrufs und eigenes Gate für Renderer-Importe (Abschnitt „E2E-Praxis"). |
+| `node scripts/test-kennzahlen.js` | Schreibt die Zahl der ausgeführten Fälle aus den Berichten beider Suiten nach `test/lauf-kennzahlen.json`. Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand nur nötig, wenn dort übersprungen. |
+
+**Der Voll-Lauf vor einem Release fährt ohne eigenen `--reporter`-Schalter.** Beide Konfigurationen tragen neben dem Konsolen-Bericht einen JSON-Reporter, der nach `test-berichte/` schreibt; aus diesen Berichten liest `scripts/test-kennzahlen.js` die Zahl der tatsächlich ausgeführten Fälle für das Zahlenband der Produkt-Webseite. Ein Schalter auf der Kommandozeile **ersetzt** die Reporter-Liste der Konfiguration, statt sie zu ergänzen: `npx playwright test --reporter=line` erzeugt keinen Bericht, und die Kennzahl bliebe auf dem Stand des vorigen Releases. Für Teilläufe während der Arbeit ist der Schalter unbedenklich — dort ist der Bericht ohnehin unbrauchbar, und `test-kennzahlen.js` weist einen Teillauf zurück, statt ihn zu übernehmen.
 
 ## Stabilitätsregeln
 

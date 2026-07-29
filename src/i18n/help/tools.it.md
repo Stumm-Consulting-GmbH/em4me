@@ -41,22 +41,38 @@ Sostituisci: $3-$2-$1
 Effetto:     12.06.2026 → 2026-06-12
 ```
 
-## Ricerca nel manuale e nelle impostazioni
+## Dove cerca la ricerca
 
-L'ambito della ricerca segue la scheda in cui viene aperta; i tre ambiti si escludono a vicenda:
+L'ambito segue la scheda in cui la ricerca viene aperta; gli ambiti si escludono a vicenda:
 
-| Scheda attiva | Dove si cerca |
+| Scheda attiva | La ricerca copre |
 |---|---|
-| Documento | nel documento stesso, in sorgente o anteprima |
-| Pagina del manuale | in **tutte** le pagine del manuale, anche non aperte |
-| Impostazioni | in **tutte** le sezioni delle impostazioni, anche mai visitate |
+| Singolo file | quel file, nel sorgente o nell'anteprima |
+| File di un'area aperta | **tutti** i file Markdown dell'area |
+| Pagina del manuale | **tutte** le pagine del manuale, anche quelle non aperte |
+| Impostazioni | **tutte** le sezioni delle impostazioni, anche quelle mai visitate |
 
-Nel manuale e nelle impostazioni le corrispondenze compaiono nel pannello laterale **Risultati della ricerca**, raggruppate per pagina o sezione e con il numero per gruppo. Un clic apre la pagina o cambia sezione ed evidenzia la corrispondenza; `F3` prosegue oltre i confini di pagina e di sezione. Cambiare sezione nelle impostazioni non salva nulla: una bozza in corso resta intatta.
+L'ambito in vigore è mostrato a sinistra nella barra di ricerca.
 
-La sostituzione resta disattivata in entrambi gli ambiti, perché manuale e impostazioni sono in sola lettura. Con il sorgente Markdown di una pagina del manuale davanti, cioè nella vista sorgente, la ricerca torna a riguardare quella singola pagina.
+Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati della ricerca**, raggruppate per file, pagina o sezione e con un conteggio per gruppo. Un clic apre la destinazione ed evidenzia il punto; `F3` supera il confine del gruppo.
 
-**Differenza rispetto alla palette dei comandi:** la palette trova **comandi** per nome e li esegue. Questa ricerca trova **testo**, cioè le spiegazioni del manuale e le etichette delle impostazioni. Se sai cosa vuoi fare, usa la palette; se vuoi sapere dove qualcosa è descritto o come si chiama, usa la ricerca.
+### In un'area
 
+Il **file aperto viene per primo**, e con il suo stato non salvato: ciò che si trova nell'editor viene trovato, anche prima del salvataggio. Le sue corrispondenze restano evidenziate nel testo come sempre, l'elenco si aggiunge. Per gli altri file vale lo stato salvato su disco.
+
+La ricerca copre i file Markdown dell'area. Gli altri file e i file di accompagnamento dell'applicazione restano fuori.
+
+**La sostituzione** resta legata al singolo file: aprire la riga di sostituzione riporta la ricerca al documento corrente.
+
+In un'area molto grande la riga di stato del pannello segnala che ogni ricerca rilegge i file; la ricerca risponde allora più lentamente.
+
+### Nel manuale e nelle impostazioni
+
+Cambiare sezione nelle impostazioni non salva nulla, una bozza iniziata si conserva. La sostituzione è disattivata qui perché entrambi sono in sola lettura. Con il sorgente Markdown di una pagina del manuale davanti, cioè la vista sorgente, la ricerca torna a quella singola pagina.
+
+**Differenza con la palette dei comandi:** la palette trova **comandi** per nome e li esegue. Questa ricerca trova **testo**. Chi sa cosa vuole fare usa la palette; chi vuole sapere dove si trova qualcosa o come si chiama usa la ricerca.
+
+**Differenza con la query Perspective:** filtra i file in base alle loro proprietà e li elenca nel documento. La ricerca trova testo corrente, indipendentemente da qualsiasi proprietà.
 ## Editor di tabelle
 
 Nelle tabelle pipe, `Tab` salta alla cella successiva e `Maiusc+Tab` alla precedente. Alla fine dell'ultima riga, `Tab` o `Invio` creano una nuova riga di tabella con lo stesso numero di colonne; due `Invio` su una riga vuota escono dalla tabella. Vengono riconosciute anche le tabelle senza bordi (senza pipe esterni). Le operazioni di struttura (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione) sono offerte dal sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md).

@@ -41,22 +41,38 @@ Remplacer :  $3-$2-$1
 Effet :      12.06.2026 → 2026-06-12
 ```
 
-## Recherche dans le manuel et les paramètres
+## Où la recherche porte
 
-La portée de la recherche suit l'onglet dans lequel elle est ouverte ; les trois portées s'excluent mutuellement :
+La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s’excluent mutuellement :
 
-| Onglet actif | Ce qui est parcouru |
+| Onglet actif | La recherche couvre |
 |---|---|
-| Document | le document lui-même, source ou aperçu |
+| Fichier isolé | ce fichier, en source ou en aperçu |
+| Fichier d’une zone ouverte | **tous** les fichiers Markdown de la zone |
 | Page du manuel | **toutes** les pages du manuel, même non ouvertes |
-| Paramètres | **toutes** les sections de paramètres, même jamais visitées |
+| Paramètres | **toutes** les sections des paramètres, même jamais visitées |
 
-Dans le manuel et dans les paramètres, les occurrences apparaissent dans le panneau latéral **Résultats de recherche**, groupées par page ou section et avec leur nombre par groupe. Un clic ouvre la page ou change de section et met l'occurrence en évidence ; `F3` franchit les limites de page et de section. Changer de section dans les paramètres n'enregistre rien : une saisie en cours est conservée.
+La portée en vigueur s’affiche à gauche dans la barre de recherche.
 
-Le remplacement reste désactivé dans les deux portées, car le manuel et les paramètres sont en lecture seule. Avec la source Markdown d'une page du manuel sous les yeux, c'est-à-dire en vue source, la recherche porte de nouveau sur cette seule page.
+Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résultats de recherche**, groupées par fichier, page ou section, avec un décompte par groupe. Un clic ouvre la cible et met l’endroit en évidence ; `F3` franchit la limite du groupe.
 
-**Différence avec la palette de commandes :** la palette trouve des **commandes** par leur nom et les exécute. Cette recherche trouve du **texte**, à savoir les explications du manuel et les libellés des paramètres. Si vous savez ce que vous voulez faire, prenez la palette ; si vous voulez savoir où une chose est décrite ou comment elle s'appelle, prenez la recherche.
+### Dans une zone
 
+Le **fichier ouvert vient en premier**, et avec son état non enregistré : ce qui se trouve dans l’éditeur est trouvé, même avant l’enregistrement. Ses occurrences restent mises en évidence dans le texte comme d’habitude, la liste s’y ajoute. Pour les autres fichiers, c’est l’état enregistré sur le disque qui compte.
+
+La recherche porte sur les fichiers Markdown de la zone. Les autres fichiers et les fichiers d’accompagnement de l’application restent à l’écart.
+
+**Le remplacement** reste lié au fichier isolé : ouvrir la ligne de remplacement ramène la recherche au document courant.
+
+Dans une zone très vaste, la ligne d’état du panneau signale que chaque recherche relit les fichiers ; la recherche répond alors plus lentement.
+
+### Dans le manuel et les paramètres
+
+Changer de section dans les paramètres n’enregistre rien, un brouillon commencé est conservé. Le remplacement y est désactivé, les deux étant en lecture seule. Avec la source Markdown d’une page du manuel sous les yeux, c’est-à-dire la vue source, la recherche revient à cette seule page.
+
+**Différence avec la palette de commandes :** la palette trouve des **commandes** par leur nom et les exécute. Cette recherche trouve du **texte**. Qui sait ce qu’il veut faire prend la palette ; qui veut savoir où se trouve une chose ou comment elle s’appelle prend la recherche.
+
+**Différence avec la requête Perspective :** elle filtre les fichiers selon leurs propriétés et les liste dans le document. La recherche trouve du texte courant, indépendamment de toute propriété.
 ## Éditeur de tableaux
 
 Dans les tableaux pipe, `Tab` saute à la cellule suivante et `Maj+Tab` à la précédente. À la fin de la dernière ligne, `Tab` ou `Entrée` créent une nouvelle ligne de tableau avec le même nombre de colonnes ; deux `Entrée` sur une ligne vide quittent le tableau. Les tableaux sans bordure (sans pipes extérieurs) sont aussi reconnus. Les opérations de structure (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition) sont proposées par le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md).

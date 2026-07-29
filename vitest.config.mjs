@@ -11,6 +11,17 @@ export default defineConfig({
   test: {
     include: ['test/unit/**/*.test.js'],
     environment: 'node',
+    // 4T-0782 (Epic 3E-0156): Zusaetzlich zum Konsolen-Bericht ein
+    // Maschinen-Bericht, aus dem scripts/test-kennzahlen.js die Zahl der
+    // tatsaechlich ausgefuehrten Faelle liest. Die statische Quelltext-
+    // Zaehlung der Webseiten-Kennzahl konnte das nicht leisten, weil
+    // schleifen- und .each-erzeugte Faelle einmal im Quelltext stehen und
+    // vielfach laufen.
+    //
+    // Ziel ist test-berichte/ und ausdruecklich NICHT test-results/: Diesen
+    // Ordner leert Playwright zu Beginn jedes Laufs, der Unit-Bericht waere
+    // nach dem naechsten E2E-Lauf verschwunden.
+    reporters: ['default', ['json', { outputFile: 'test-berichte/unit.json' }]],
     // .only-Schutz: vergessene Fokus-Marker lassen `npm test` fehlschlagen.
     // Fokussiertes Entwickeln laeuft ueber `npm run test:watch` (--allowOnly).
     allowOnly: false,
