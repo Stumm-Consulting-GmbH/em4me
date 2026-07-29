@@ -21,6 +21,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Task lists](tasks.md) — task lists with standard and extended states.
 - [Reminders](reminders.md) — notification times on tasks with ⏰: notification and catch-up dialog, reminder list; the announcement runs only while the app is running.
 - [Images](images.md) — image syntax, size hints, implicit figures.
+- [Attachments](attachments.md) — pasting and dragging files in: storage location and setting, naming, opening in the default program.
 - [Math and diagrams](math-diagrams.md) — KaTeX formulas, Mermaid diagrams, code blocks with syntax highlighting.
 - [Emoji](emoji.md) — how shortcodes work, plus a curated code selection.
 

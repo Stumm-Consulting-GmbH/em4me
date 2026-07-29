@@ -10,7 +10,7 @@ Le texte alternatif entre crochets décrit l'image (important pour l'accessibili
 ![Diagramme d'architecture](images/architecture.png)
 ```
 
-Les chemins relatifs se résolvent par rapport au dossier du fichier Markdown ; par sécurité, seules les images situées sous ce dossier se résolvent (pas d'échappée `../`). Formats pris en charge : PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Les chemins relatifs se résolvent par rapport au dossier du fichier Markdown. Par sécurité, seules les images situées à l'intérieur d'une limite fixe se résolvent : la racine de la zone lorsqu'une zone est ouverte, sinon le dossier du fichier Markdown. Aucun `../` ne mène au-delà. Formats pris en charge : PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
 
 ## Tailles d'image
 

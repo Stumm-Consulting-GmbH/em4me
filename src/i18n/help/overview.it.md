@@ -21,6 +21,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Liste di attività](tasks.md) — liste di attività con stati standard ed estesi.
 - [Promemoria](reminders.md) — momenti di avviso sulle attività con ⏰: dialogo di notifica e di recupero, elenco promemoria; l'avviso funziona solo con l'applicazione in esecuzione.
 - [Immagini](images.md) — sintassi delle immagini, dimensioni, figure implicite.
+- [Allegati](attachments.md) — incollare e trascinare file: posizione e impostazione, nomi, apertura nel programma predefinito.
 - [Matematica e diagrammi](math-diagrams.md) — formule KaTeX, diagrammi Mermaid, blocchi di codice con evidenziazione della sintassi.
 - [Emoji](emoji.md) — funzionamento degli shortcode e selezione curata.
 

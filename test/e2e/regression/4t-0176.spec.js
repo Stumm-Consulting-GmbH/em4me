@@ -59,8 +59,14 @@ test.describe('P-02: Portable-Marker rendert nur die Tabellen-Whitelist', () => 
   });
 });
 
-test.describe('P-03: Bild-Resolver respektiert das Dokument-Verzeichnis', () => {
-  test('../-Traversal wird nicht als data-URI eingebettet', async () => {
+// 4T-0788 (Epic 3E-0125): Die Grenze des Bild-Resolvers hat ihre Wurzel
+// gewechselt, nicht ihre Härte. OHNE gebundenen Bereich gilt unverändert der
+// Ordner des Dokuments — das ist der Fall unmittelbar unten und der
+// ursprüngliche P-03-Regressionsfall. MIT gebundenem Bereich ist die Wurzel
+// dessen Wurzelordner; die beiden Fälle darunter sichern beide Seiten davon:
+// innerhalb des Bereichs wird aufgelöst, darüber hinaus weiterhin nicht.
+test.describe('P-03: Bild-Resolver respektiert seine Wurzel', () => {
+  test('ohne Bereich wird ../-Traversal nicht als data-URI eingebettet', async () => {
     const workDir = makeWorkDir('scg-md-p03-');
     fs.mkdirSync(path.join(workDir, 'doc'));
     // "Geheime" Datei ausserhalb des Dokument-Ordners.
@@ -86,6 +92,62 @@ test.describe('P-03: Bild-Resolver respektiert das Dokument-Verzeichnis', () => 
         .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')));
       expect(srcs.some((s) => s.includes('geheim'))).toBe(true); // unaufgeloest geblieben
       expect(srcs.filter((s) => s.startsWith('data:')).length).toBe(1);
+    } finally {
+      await closeApp(app, userData);
+      try {
+        fs.rmSync(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      } catch {}
+    }
+  });
+
+  // 4T-0788 (Epic 3E-0125): Beide Seiten der aufgeweiteten Wurzel in EINEM
+  // Lauf, damit die Grenze als Paar geprueft ist. Aufbau: Bereich mit einem
+  // zentralen Anlagen-Ordner, das Dokument liegt in einem Unterordner und
+  // verweist mit '../' hinein — genau die Konstellation, die unter der reinen
+  // Dokument-Ordner-Grenze nie ein Bild zeigte. Das zweite Bild liegt
+  // ausserhalb des Bereichs und muss unaufgeloest bleiben.
+  test('mit Bereich loest der zentrale Anlagen-Ordner auf, ausserhalb des Bereichs nicht', async () => {
+    const workDir = makeWorkDir('scg-md-4t0788-');
+    const areaDir = path.join(workDir, 'bereich');
+    fs.mkdirSync(path.join(areaDir, 'Anlagen'), { recursive: true });
+    fs.mkdirSync(path.join(areaDir, 'unterordner'), { recursive: true });
+    const pngBytes = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    // Innerhalb des Bereichs, aber ausserhalb des Dokument-Ordners.
+    fs.writeFileSync(path.join(areaDir, 'Anlagen', 'anlage.png'), pngBytes);
+    // Ausserhalb des Bereichs.
+    fs.writeFileSync(path.join(workDir, 'fremd.png'), pngBytes);
+    const file = path.join(areaDir, 'unterordner', 'doc.md');
+    fs.writeFileSync(
+      file,
+      '# Anlagen\n\n![anlage](../Anlagen/anlage.png)\n\n![fremd](../../fremd.png)\n',
+      'utf8',
+    );
+
+    const { app, page, userData } = await launchApp();
+    try {
+      // Bereich binden (Pfad-Einstieg wie in bereiche.spec.js), dann die Datei
+      // im Bereichs-Fenster oeffnen.
+      await page.evaluate((p) => window.api.openAreaPath(p), areaDir);
+      await expect.poll(() => page.title()).toContain('(Bereich bereich)');
+      // Datei über den Main-Kanal in das Bereichs-Fenster öffnen (Muster aus
+      // bereiche.spec.js; einen Renderer-Kanal dafür gibt es nicht).
+      await app.evaluate(({ BrowserWindow }, p) => {
+        BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+      }, file);
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+
+      const body = page.locator(SEL.markdownBody0);
+      await expect(body.locator('img')).toHaveCount(2);
+      // Genau EINS ist eingebettet: das im Bereich. Das Ziel ausserhalb des
+      // Bereichs bleibt unaufgeloest, die Grenze wirkt also weiterhin.
+      await expect(body.locator('img[src^="data:image/png"]')).toHaveCount(1);
+      const srcs = await body
+        .locator('img')
+        .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')));
+      expect(srcs.some((s) => s.includes('fremd'))).toBe(true);
     } finally {
       await closeApp(app, userData);
       try {

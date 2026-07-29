@@ -21,6 +21,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Listas de tareas](tasks.md) — listas de tareas con estados estándar y ampliados.
 - [Recordatorios](reminders.md) — momentos de aviso en tareas con ⏰: diálogo de notificación y de recuperación, lista de recordatorios; el aviso solo funciona con la aplicación en ejecución.
 - [Imágenes](images.md) — sintaxis de imágenes, tamaños, figuras implícitas.
+- [Adjuntos](attachments.md) — pegar y arrastrar archivos: ubicación y configuración, nombres, apertura en el programa predeterminado.
 - [Matemáticas y diagramas](math-diagrams.md) — fórmulas KaTeX, diagramas Mermaid, bloques de código con resaltado de sintaxis.
 - [Emoji](emoji.md) — funcionamiento de los códigos y selección curada.
 

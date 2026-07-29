@@ -134,8 +134,10 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       // journals, calendarSystems, propertyProfiles) fehlen vollständig
       // (ES-13 prüft den Fall mit Bereich). „Zeitstempel" (4T-0604, Epic
       // 3E-0113) haengt an der Erweiterung frontmatter-timestamps, die
-      // im frischen Profil aktiv ist.
-      await expect(nav).toHaveCount(18);
+      // im frischen Profil aktiv ist. „Anlagen" (4T-0791, Epic 3E-0125) ist
+      // Kern und immer sichtbar; seine Bereichs-Uebersteuerung
+      // (attachmentsArea) fehlt hier wie die uebrigen bereichsgebundenen.
+      await expect(nav).toHaveCount(19);
       const groups = page.locator(`${SETTINGS_PAGE} .settings-nav-group`);
       await expect(groups).toHaveCount(1);
       await expect(groups.first()).toHaveAttribute('data-nav-group', 'general');
@@ -526,7 +528,7 @@ test.describe('ES-12: Speicher-Status von Anwenden/OK', () => {
 // (Historie-Bereichs-Default und Vorlagen-Bereichsteil abgespalten,
 // PO-Entscheidung E3) hinter der Gruppe „Allgemein".
 test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', () => {
-  test('zweite Gruppe mit sechs Bereichs-Sektionen; Historie-Default und Vorlagen-Bereichsteil erreichbar', async () => {
+  test('zweite Gruppe mit sieben Bereichs-Sektionen; Historie-Default und Vorlagen-Bereichsteil erreichbar', async () => {
     const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-settings-area-'));
     const { app, page, userData } = await launchApp();
     try {
@@ -546,13 +548,15 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       // Beide Gruppen tragen sichtbare Überschriften.
       await expect(groups.nth(0).locator('.settings-nav-group-title')).toBeVisible();
       await expect(groups.nth(1).locator('.settings-nav-group-title')).toBeVisible();
-      // Bereichs-Gruppe: die sechs bereichsgebundenen Sektionen in
-      // Registry-Reihenfolge (fünf feste plus die dynamisch registrierten
-      // Sidebar-Varianten aus 4T-0625, Epic 3E-0119).
+      // Bereichs-Gruppe: die sieben bereichsgebundenen Sektionen in
+      // Registry-Reihenfolge (sechs feste plus die dynamisch registrierten
+      // Sidebar-Varianten aus 4T-0625, Epic 3E-0119). „attachmentsArea"
+      // kam mit 4T-0791 (Epic 3E-0125) hinzu.
       const areaEntries = groups.nth(1).locator('.settings-nav-entry');
-      await expect(areaEntries).toHaveCount(6);
+      await expect(areaEntries).toHaveCount(7);
       for (const [idx, id] of [
         'historyArea',
+        'attachmentsArea',
         'templatesArea',
         'journals',
         'calendarSystems',

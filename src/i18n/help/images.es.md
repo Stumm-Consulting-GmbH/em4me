@@ -10,7 +10,7 @@ El texto alternativo entre corchetes describe la imagen (importante para la acce
 ![Diagrama de arquitectura](imagenes/arquitectura.png)
 ```
 
-Las rutas relativas se resuelven contra la carpeta del archivo Markdown; por seguridad solo se resuelven imágenes por debajo de esa carpeta (sin escape `../`). Formatos admitidos: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Las rutas relativas se resuelven contra la carpeta del archivo Markdown. Por seguridad solo se resuelven imágenes dentro de un límite fijo: la raíz del área mientras haya una abierta y, si no, la carpeta del archivo Markdown. Ningún `../` lleva más allá. Formatos admitidos: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
 
 ## Tamaños de imagen
 

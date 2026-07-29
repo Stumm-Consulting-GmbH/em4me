@@ -10,7 +10,7 @@ Il testo alternativo tra parentesi quadre descrive l'immagine (importante per l'
 ![Diagramma dell'architettura](immagini/architettura.png)
 ```
 
-I percorsi relativi si risolvono rispetto alla cartella del file Markdown; per sicurezza si risolvono solo immagini sotto quella cartella (nessuna fuga `../`). Formati supportati: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+I percorsi relativi si risolvono rispetto alla cartella del file Markdown. Per sicurezza si risolvono solo immagini entro un confine fisso: la radice dell'area quando ne è aperta una, altrimenti la cartella del file Markdown. Nessun `../` porta oltre. Formati supportati: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
 
 ## Dimensioni delle immagini
 

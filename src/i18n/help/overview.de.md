@@ -21,6 +21,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Aufgaben-Listen](tasks.md) — Task-Listen mit Standard- und erweiterten Status.
 - [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
 - [Bilder](images.md) — Bild-Syntax, Größenangaben, Implicit Figures.
+- [Anlagen](attachments.md) — Dateien einfügen und hineinziehen: Ablage-Ort samt Einstellung, Namensvergabe, Öffnen in der Standardanwendung.
 - [Mathematik und Diagramme](math-diagrams.md) — KaTeX-Formeln, Mermaid-Diagramme, Code-Blöcke mit Syntax-Highlighting.
 - [Emoji](emoji.md) — Shortcode-Funktionsweise und kuratierte Code-Auswahl.
 

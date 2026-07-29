@@ -17,6 +17,9 @@ import { activeTab, state } from './app-state.js';
 // der Render-Nachverarbeitung.
 import { markOutsideAreaLinks } from './area.js';
 import { paneEditors } from './editor.js';
+// 4T-0790 (Epic 3E-0125): Anlagen-Embeds oeffnen ueber denselben Kanal wie
+// verlinkte Anlagen und Bilder.
+import { oeffneAnlage } from './views.js';
 import { openInPane } from './tabs.js';
 // 4T-0355 (Epic 3E-0065): Befüllung der perspective-query-Platzhalter mit der
 // dynamischen Datei-Liste (Render-Pane und Reading über diese Pipeline).
@@ -754,7 +757,15 @@ export async function renderOtherEmbed(span, basePath, embedPath) {
       // R2-16 (4T-0183): Doppel-Verarbeitung durch den delegierten
       // Klick-Pfad unterbinden (s.o.).
       e.stopPropagation();
-      api.openExternal(fileUrlFor(resolved));
+      // 4T-0790 (Epic 3E-0125): Umgestellt von openExternal auf den Anlagen-
+      // Kanal. Der bisherige Aufruf war WIRKUNGSLOS: openExternal laesst
+      // ausschliesslich http/https durch und verwirft eine file://-URL still,
+      // der Klick tat also nichts. Der neue Kanal oeffnet ueber shell.openPath
+      // und unterliegt denselben zwei Grenzen wie jede andere Anlage (Wurzel,
+      // Rueckfrage bei ausfuehrbaren Endungen).
+      const paneEl = span.closest('.pane-group');
+      const paneIdx = paneEl ? Number(paneEl.dataset.pane) || 0 : state.activePaneIndex;
+      void oeffneAnlage(paneIdx, resolved);
     });
   }
   span.appendChild(link);

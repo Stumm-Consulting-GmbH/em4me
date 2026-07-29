@@ -28,6 +28,19 @@ The classic Markdown form works too, with a relative path and alt text:
 ![A sample diagram](attachments/demo-image.png)
 ```
 
+## Add your own attachment
+
+The references above point to files that already exist. You can also let the app
+create them: copy an image to the clipboard and press `Ctrl+V`, or drag a file
+from the file manager onto the editor or the rendered pane. The file is stored
+and the matching reference appears right where you are writing.
+
+Try it below this line:
+
+Where the file lands is up to you (Settings → Attachments). By default each
+document gets its own folder named after it. Clicking a reference opens the
+attachment in the program your system assigns to it.
+
 ## Embed a PDF
 
 ```markdown

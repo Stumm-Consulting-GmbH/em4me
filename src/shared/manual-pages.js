@@ -40,6 +40,11 @@ const MANUAL_PAGES = [
   // Ueberwachung laeuft nur bei laufender App mit geoeffnetem Bereich).
   { id: 'reminders', titleKey: 'manual.page.reminders.title', source: 'bundled' },
   { id: 'images', titleKey: 'manual.page.images.title', source: 'bundled' },
+  // 4T-0792 (Epic 3E-0125): Anlagen (Einfuegen und Ziehen, Ablage-Ort samt
+  // Einstellung, Oeffnen in der Standardanwendung). Direkt hinter „Bilder",
+  // weil der haeufigste Fall ein eingefuegtes Bild ist und beide Seiten
+  // aufeinander verweisen.
+  { id: 'attachments', titleKey: 'manual.page.attachments.title', source: 'bundled' },
   { id: 'math-diagrams', titleKey: 'manual.page.mathDiagrams.title', source: 'bundled' },
   { id: 'linking', titleKey: 'manual.page.linking.title', source: 'bundled' },
   // 4T-0342 (Epic 3E-0061): Unterseiten (U+2215-Namens-Konvention,

@@ -9,6 +9,69 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.100.0.1061] - 2026-07-29 — Anlagen einfügen
+
+Epic 3E-0125: Eine Datei, die zu einem Dokument gehört, muss nicht mehr von
+Hand gespeichert und verlinkt werden. Wer sie einfügt oder in das Dokument
+zieht, bekommt beides in einem Schritt: Die Datei wird an einem einstellbaren
+Ort abgelegt, und im Text entsteht der passende Verweis. Damit ist der
+Roadmap-Eintrag „Anlagen einfügen" eingelöst, der bisher nur das Ziehen
+versprochen hatte.
+
+### Neu
+
+- **Anlagen ablegen und verlinken** (4T-0787, 4T-0642, 4T-0789): `Strg+V` fügt
+  eine Datei oder ein Bild aus der Zwischenablage ein; alternativ lässt sich
+  eine Datei aus dem Dateimanager auf die Editor-Fläche oder die Render-Ansicht
+  ziehen. Bilder erhalten einen Bild-Verweis, andere Dateien einen Link, jeweils
+  in Standard-Markdown-Syntax und damit unabhängig von abschaltbaren
+  Erweiterungen. Der Ablegeort entscheidet über das Ergebnis: Auf den beiden
+  Dokument-Flächen entsteht eine Anlage, auf Reiterleiste und Seitenbereich wird
+  die Datei wie bisher geöffnet. Ein Einfügen oder Ziehen ist ein einzelner
+  Rückgängig-Schritt.
+- **Vier Ablage-Formen, einstellbar** (4T-0791): neben dem Dokument, fester
+  Unterordner, Ordner mit dem Namen des Dokuments (Voreinstellung) und, bei
+  geöffnetem Arbeitsbereich, ein zentraler Ordner des Bereichs. Die Einstellung
+  gibt es global und je Bereich; die Bereichs-Einstellung übersteuert die
+  globale und lässt sich mit „Wie allgemein" wieder abgeben. Ein vorhandener
+  Dateiname wird nie überschrieben, sondern um einen Zähler ergänzt; Anlagen
+  ohne eigenen Namen werden nach Dokument und Zeitpunkt benannt.
+- **Anlagen aus dem Dokument heraus öffnen** (4T-0790): Ein Klick auf den
+  Verweis öffnet die Anlage im zuständigen Programm des Betriebssystems, bei
+  eingebetteten Bildern in der Render-Ansicht per einfachem Klick und im Editor
+  per Doppelklick, damit der einfache Klick dort weiter die Schreibmarke setzt.
+  Geöffnet werden nur Ziele innerhalb des Arbeitsbereichs beziehungsweise des
+  Dokument-Ordners; bei Dateien, die beim Öffnen Programmcode ausführen können,
+  erscheint zuvor eine Rückfrage mit Namen und vollständigem Pfad.
+
+### Geändert
+
+- **Bilder eines Arbeitsbereichs sind bereichsweit sichtbar** (4T-0788): Die
+  Auflösung relativer Bild-Pfade endet bei geöffnetem Bereich an dessen Wurzel
+  statt am Ordner der Datei. Erst dadurch ist ein zentraler Anlagen-Ordner
+  nutzbar, denn ein Dokument in einem Unterordner verweist mit `../` in ihn
+  hinein. Die Prüfung bleibt in ihrer Härte unverändert, sie bekommt nur eine
+  andere Wurzel, und zwar dieselbe, die die Anwendung überall sonst als
+  Arbeitsraum-Grenze durchsetzt. Ohne geöffneten Bereich gilt weiterhin der
+  Ordner der Datei.
+
+### Behoben
+
+- **Klick auf einen eingebetteten Wiki-Embed einer sonstigen Datei** (4T-0790):
+  Der Klick war wirkungslos, weil der zugrunde liegende Kanal ausschließlich
+  Netz-Adressen durchließ und eine lokale Datei still verwarf. Er nutzt jetzt
+  denselben Weg wie die übrigen Anlagen und unterliegt denselben beiden
+  Grenzen.
+
+### Dokumentation
+
+- **Neue Handbuch-Seite „Anlagen"** in fünf Sprachen (4T-0792), verlinkt von der
+  Überblicksseite, dazu zwei neue Einträge im Funktions-Katalog (30 neue
+  Übersetzungs-Schlüssel). Die Seite „Bilder" ist in allen fünf Fassungen
+  berichtigt: Ihre Aussage zur Auflösungs-Grenze galt nach der Änderung oben
+  nicht mehr. Die Demo-Area lädt auf ihrer Anlagen-Seite dazu ein, das Ablegen
+  selbst auszuprobieren.
+
 ## [0.99.0.1041] - 2026-07-29 — Bereichs-Suche
 
 Epic 3E-0116: Ein geöffneter Bereich wird zum Suchraum. `Strg+F` in einer

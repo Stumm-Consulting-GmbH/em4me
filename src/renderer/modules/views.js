@@ -795,10 +795,66 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
     return;
   }
   const isMd = await api.isMarkdownPath(resolved);
-  if (!isMd) return;
+  if (!isMd) {
+    // 4T-0790 (Epic 3E-0125): Ein Verweis auf eine Nicht-Markdown-Datei blieb
+    // hier bisher wirkungslos — eine eingefuegte Anlage waere damit sichtbar,
+    // aber unerreichbar gewesen. Jetzt oeffnet sie die Standardanwendung. Die
+    // beiden Grenzen (Wurzel, Rueckfrage bei ausfuehrbaren Endungen) liegen im
+    // Hauptprozess, damit sie fuer jeden Aufrufer identisch gelten.
+    await oeffneAnlage(paneIdx, resolved);
+    return;
+  }
   // R4-09 (4T-0186): tatsaechliche Ziel-Pane verwenden.
   const realPane = await openInPane(paneIdx, [resolved], { inheritGroup: true });
   if (anchorPart) scrollToAnchorAfterOpen(realPane, anchorPart);
+}
+
+// 4T-0790 (Epic 3E-0125): Bild-Quelle aus dem Dokument (relativer Pfad) gegen
+// die aktive Datei aufloesen und oeffnen. Gemeinsame Strecke von Render-Klick
+// und Editor-Doppelklick.
+export async function oeffneBildAusQuelle(paneIdx, quelle) {
+  const pane = state.panes[paneIdx];
+  const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  if (!tab || !tab.path) return false;
+  let dekodiert = quelle;
+  try {
+    dekodiert = decodeURI(quelle);
+  } catch {
+    /* literales '%' im Namen: unkodiert weiterverwenden */
+  }
+  const absolut = await api.resolveLink(tab.path, dekodiert);
+  if (!absolut) return false;
+  return oeffneAnlage(paneIdx, absolut);
+}
+
+// 4T-0790 (Epic 3E-0125): Anlage oeffnen und einen Misserfolg sichtbar machen.
+// Gemeinsame Strecke von Link-Klick, Bild-Klick und Wiki-Embed, damit die
+// Meldungen und die Grenzen nicht dreimal ausgelegt werden.
+export async function oeffneAnlage(paneIdx, absolutePfad) {
+  const pane = state.panes[paneIdx];
+  const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  let ergebnis;
+  try {
+    ergebnis = await api.openAttachment({
+      pfad: absolutePfad,
+      dokumentPfad: (tab && tab.path) || '',
+    });
+  } catch (err) {
+    ergebnis = { ok: false, error: (err && err.message) || String(err) };
+  }
+  if (ergebnis && ergebnis.ok) return true;
+  // Ein vom Anwender abgebrochener Bestaetigungs-Dialog ist kein Fehler und
+  // bekommt deshalb keine Meldung.
+  const grund = ergebnis && ergebnis.error;
+  if (grund === 'abgebrochen') return false;
+  const key =
+    grund === 'ausserhalb-der-wurzel'
+      ? 'attachments.open.outsideRoot'
+      : grund === 'nicht-gefunden' || grund === 'kein-file'
+        ? 'attachments.open.notFound'
+        : 'attachments.open.failed';
+  showStatusbarHint(key, { error: true, duration: 4000 });
+  return false;
 }
 
 // --- Render-Klick (Markdown-Links) ------------------------------------------
@@ -853,6 +909,23 @@ export async function handleRenderedClick(e, paneIdx) {
     e.preventDefault();
     openBlockPropsForAnchor(paneIdx, metaInd.dataset.anchorId);
     return;
+  }
+  // 4T-0790 (Epic 3E-0125): Klick auf ein eingebettetes Bild oeffnet es in der
+  // Standardanwendung. Ein Bild ist kein Link und faellt sonst durch den
+  // closest('a')-Zweig unten hindurch, ohne dass etwas geschieht. In der
+  // Render-Ansicht genuegt der einfache Klick, weil es hier keine Schreibmarke
+  // gibt (PO-Festlegung 2026-07-29; im Editor gilt der Doppelklick).
+  //
+  // Der Pfad wird aus dem Quelltext-Attribut geholt, nicht aus `src`: Dort
+  // steht nach der Aufloesung ein data:-URI, aus dem sich kein Pfad mehr
+  // ableiten laesst.
+  if (e.target instanceof HTMLImageElement) {
+    const quelle = e.target.getAttribute('data-src-original') || '';
+    if (quelle && !/^(https?:|data:)/i.test(quelle)) {
+      e.preventDefault();
+      await oeffneBildAusQuelle(paneIdx, quelle);
+      return;
+    }
   }
   const a = e.target.closest('a');
   if (!a) return;

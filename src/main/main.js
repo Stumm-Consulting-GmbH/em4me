@@ -22,6 +22,8 @@ const { normalizeMenuState } = require('./menu-state');
 const backlinks = require('./backlinks');
 // B-02 (4T-0307): Containment-/Whitelist-Pruefung fuer embed:read.
 const { resolveContainedEmbedPath } = require('./embed-path');
+// 4T-0787 (Epic 3E-0125): Ablage-Kern der Anlagen (rein, ohne fs).
+const attachmentPath = require('./attachment-path');
 // 4T-0337 (Epic 3E-0061): Unterseiten-Namens-Logik fuer Embeds und
 // Anlage-/Umbenennen-Kommandos.
 const subpages = require('../shared/subpages');
@@ -206,6 +208,40 @@ if (process.env.SCG_TEST_USER_DATA) {
   app.setPath('userData', process.env.SCG_TEST_USER_DATA);
 }
 
+// 4T-0784 (Epic 3E-0156): Im E2E-Lauf nehmen die Fenster keinen Fokus.
+//
+// Ein Lauf oeffnet ueber eine halbe Stunde hinweg laufend Fenster. Jedes davon
+// riss unter Windows den Fokus an sich, und zwar mit zwei Folgen: Am Rechner
+// liess sich waehrend eines Laufs kaum arbeiten, und — schwerwiegender — die
+// Tastatureingaben des Anwenders landeten im Testfenster und verfaelschten den
+// Lauf. Ein Testergebnis, das davon abhaengt, ob jemand nebenher tippt, ist als
+// Nachweis nur begrenzt brauchbar.
+//
+// Zwei Wege standen zur Wahl. Das Fenster GAR NICHT zu zeigen, ist am
+// Probe-Lauf gescheitert: Ein nie gezeigtes Fenster rendert unter Chromium
+// nicht, `requestAnimationFrame` feuert dann nicht oder stark verzoegert, und
+// die Warte-Schleifen der Suite haengen genau daran. Der Lauf brauchte nach
+// 80 Minuten noch kein Ende und trug zwoelf Fehlschlaege; `backgroundThrottling`
+// hilft dagegen nicht, es betrifft Timer und nicht das Compositing.
+//
+// Umgesetzt ist deshalb der zweite Weg: Das Fenster erscheint, aber ohne
+// Fokus (`showInactive`), und keine Stelle holt es spaeter in den Vordergrund.
+// Damit rendert es normal, die Suite laeuft wie gewohnt, und weder Fokus noch
+// Tastatureingaben wandern in den Testlauf.
+//
+// Erkannt wird der Testlauf an derselben Variablen, die schon die
+// Profil-Isolation steuert; eine zweite Kennung waere eine zweite Wahrheit.
+const IM_TESTLAUF = !!process.env.SCG_TEST_USER_DATA;
+
+// Holt ein Fenster in den Vordergrund. Im Testlauf ein No-op (siehe oben):
+// Genau dieser Sprung nach vorn ist es, der die Eingaben des Anwenders
+// abfaengt.
+function inDenVordergrund(win) {
+  if (!win || win.isDestroyed() || IM_TESTLAUF) return;
+  if (win.isMinimized()) win.restore();
+  win.focus();
+}
+
 // Single-Instance-Lock: zweite Instanz reicht ihre Datei an die laufende weiter.
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -339,6 +375,60 @@ async function readAreaTemplatesConfig(rootPath) {
   const parsed = mddStore.parseSettingsContainer(raw);
   if (!parsed.ok) return undefined;
   return parsed.container.settings.templates;
+}
+
+// 4T-0787 (Epic 3E-0125): attachments-Sektion der Bereichsdatei lesen.
+// undefined = keine Sektion oder Bereichsdatei fehlt/ist defekt; das wirkt wie
+// "Wie allgemein" und faellt damit auf die globale Einstellung zurueck.
+// Gleicher Migrations-Lese-Pfad wie templates-Sektion und Historien-Default.
+async function readAreaAttachmentsConfig(rootPath) {
+  const raw = await readAreaSettingsRaw({
+    mddaPath: path.join(rootPath, mddStore.MDDA_FILENAME),
+    mddbPath: path.join(rootPath, mddStore.LEGACY_MDDB_FILENAME),
+    readFile: (p) => fs.readFile(p, 'utf8'),
+    rename: (from, to) => fs.rename(from, to),
+    markSelfWriting,
+  });
+  if (raw === undefined) return undefined;
+  const parsed = mddStore.parseSettingsContainer(raw);
+  if (!parsed.ok) return undefined;
+  return parsed.container.settings.attachments;
+}
+
+// 4T-0787: wirksame Anlagen-Konfiguration eines Fensters. Die Bereichs-Sektion
+// uebersteuert die globale; fehlt sie oder traegt sie keine Form, gilt die
+// globale ("Wie allgemein"). Der zentrale Bereichs-Ordner ist nur mit
+// gebundenem Bereich sinnvoll und wird ohne ihn verworfen, damit eine aus einem
+// anderen Fenster stammende Einstellung hier nicht ins Leere laeuft.
+async function resolveAttachmentsConfig(area) {
+  const global = {
+    form: store ? store.get('attachments.form') : null,
+    ordnername: store ? store.get('attachments.folder') : null,
+  };
+  let wirksam = global;
+  if (area) {
+    const bereich = await readAreaAttachmentsConfig(area.rootPath);
+    if (bereich && typeof bereich.form === 'string' && bereich.form !== '') {
+      wirksam = { form: bereich.form, ordnername: bereich.ordnername || global.ordnername };
+    }
+  }
+  const normalisiert = attachmentPath.normalisiereAnlagenKonfig(wirksam);
+  if (!area && normalisiert.form === 'bereich') {
+    return { form: attachmentPath.STANDARD_FORM, ordnername: normalisiert.ordnername };
+  }
+  return normalisiert;
+}
+
+// 4T-0787 (Epic 3E-0125): Dateiname einer mitgebrachten Anlage. Der Renderer
+// darf den Namen vorgeben (File.name der Zwischenablage bzw. des Ziehens);
+// faellt er aus, dient der Basisname des Quell-Pfads als Rueckfall. Liefert
+// null, wenn beides unbrauchbar ist — dann erzeugt der Aufrufer einen Namen.
+function bereinigterQuellName(vorschlag, quellPfad) {
+  return (
+    attachmentPath.bereinigeDateinamen(vorschlag) ||
+    attachmentPath.bereinigeDateinamen(quellPfad) ||
+    null
+  );
 }
 
 // 4T-0431 (Epic 3E-0081): journals-Sektion der Bereichsdatei lesen.
@@ -1583,10 +1673,7 @@ function appHasOpenFiles(appId) {
 function focusFirstAppWindow(appId) {
   const [firstId] = appRegistry.windowsOf(appId);
   const win = firstId != null ? windows.get(firstId) : null;
-  if (win && !win.isDestroyed()) {
-    if (win.isMinimized()) win.restore();
-    win.focus();
-  }
+  inDenVordergrund(win);
 }
 
 // 4T-0537: "erneutes Oeffnen fokussiert" zielt aufs zuletzt aktive Fenster
@@ -1596,10 +1683,7 @@ function focusLastActiveAppWindow(appId) {
   const lastId = appLastFocused.get(appId);
   const targetId = lastId != null && winIds.includes(lastId) ? lastId : winIds[0];
   const win = targetId != null ? windows.get(targetId) : null;
-  if (win && !win.isDestroyed()) {
-    if (win.isMinimized()) win.restore();
-    win.focus();
-  }
+  inDenVordergrund(win);
 }
 
 // 4T-0538 (Epic 3E-0098): jede Arbeitsbereichs-Aenderung zieht die
@@ -1865,7 +1949,7 @@ async function openRecentFile(filePath, sourceWindow) {
   }
   const target = sourceWindow && !sourceWindow.isDestroyed() ? sourceWindow : getActiveWindow();
   if (target && !target.isDestroyed()) {
-    target.focus();
+    inDenVordergrund(target);
     target.webContents.send('file:openExternal', [filePath]);
   }
 }
@@ -1962,6 +2046,12 @@ function createWindow(opts = {}) {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      // 4T-0784 (Epic 3E-0156): Ein Fenster ohne Fokus gilt Chromium als im
+      // Hintergrund und bekaeme gedrosselte Timer. Das aenderte das
+      // Zeitverhalten und damit Testergebnisse. Nur im Testlauf abgeschaltet;
+      // im Auslieferungs-Zustand bleibt die Drosselung, weil sie bei
+      // Fenstern im Hintergrund Rechenzeit spart.
+      ...(IM_TESTLAUF ? { backgroundThrottling: false } : {}),
     },
   };
   // Workaround fuer Electron-Multi-Monitor-DPI-Bug (electron/electron Issues
@@ -2014,7 +2104,10 @@ function createWindow(opts = {}) {
 
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
-  win.once('ready-to-show', () => win.show());
+  // 4T-0784 (Epic 3E-0156): Im E2E-Lauf ohne Fokus zeigen. showInactive()
+  // bringt das Fenster auf den Bildschirm, ohne es zu aktivieren; es rendert
+  // damit normal, nimmt aber keine Tastatureingaben entgegen.
+  win.once('ready-to-show', () => (IM_TESTLAUF ? win.showInactive() : win.show()));
 
   // Initialen Zustand IMMER schicken — auch leer. So kann der Renderer
   // deterministisch darauf warten und entscheidet nicht selbst per Timeout,
@@ -3621,6 +3714,212 @@ function registerIpc() {
     }
   });
 
+  // 4T-0787 (Epic 3E-0125): Anlage ablegen und den Verweis-Pfad liefern. Der
+  // eine Kanal beider Eingabewege (Einfuegen, Ziehen). Die Pfad-Rechnung liegt
+  // vollstaendig im reinen Modul attachment-path; hier bleiben nur die
+  // Datei-Operationen und die Parameter-Pruefung.
+  //
+  // Quelle ist ENTWEDER `daten` (Bytes einer Anlage ohne Datei-Herkunft, etwa
+  // ein Bildschirmfoto) ODER `quellPfad` (bestehende Datei). Eine bestehende
+  // Datei wird KOPIERT, nie verschoben: Der Anwender hat sie zum Einfuegen
+  // gewaehlt, nicht zur Uebergabe, und sein Quell-Ordner bleibt unangetastet.
+  ipcMain.handle('attachment:store', async (event, params) => {
+    if (!params || typeof params !== 'object') return { ok: false, error: 'invalid-params' };
+    const dokumentPfad = typeof params.dokumentPfad === 'string' ? params.dokumentPfad : '';
+    const quellPfad = typeof params.quellPfad === 'string' ? params.quellPfad : '';
+    const daten = params.daten;
+    const vorschlagsName = typeof params.name === 'string' ? params.name : '';
+    if (!quellPfad && !(daten instanceof Uint8Array) && !Buffer.isBuffer(daten)) {
+      return { ok: false, error: 'invalid-source' };
+    }
+
+    const area = areaOfWindow(senderWindow(event));
+    const konfig = await resolveAttachmentsConfig(area);
+    const ort = attachmentPath.loeseAblageOrt({
+      dokumentPfad,
+      bereichsWurzel: area ? area.rootPath : null,
+      konfig,
+    });
+    if (!ort.ok) return { ok: false, error: ort.grund };
+
+    // Der Dateiname stammt entweder aus der mitgebrachten Datei oder wird aus
+    // Dokumentname und Zeitstempel erzeugt.
+    const ausQuelle = bereinigterQuellName(vorschlagsName, quellPfad);
+    const basisName =
+      ausQuelle ||
+      attachmentPath.erzeugeAnlagenNamen({
+        dokumentPfad,
+        endung: typeof params.endung === 'string' ? params.endung : 'png',
+      });
+
+    try {
+      await fs.mkdir(ort.verzeichnis, { recursive: true });
+      // Belegte Namen EINMAL lesen statt je Kandidat zu statten; der Vergleich
+      // laeuft case-insensitiv, weil das Windows-Dateisystem das auch tut und
+      // ein nur in der Schreibweise abweichender Name sonst ueberschriebe.
+      const vorhanden = new Set();
+      try {
+        for (const eintrag of await fs.readdir(ort.verzeichnis)) {
+          vorhanden.add(eintrag.toLowerCase());
+        }
+      } catch {
+        /* frisch angelegtes oder unlesbares Verzeichnis: nichts ist belegt */
+      }
+      const name = attachmentPath.freierDateiname({
+        verzeichnis: ort.verzeichnis,
+        name: basisName,
+        existiert: (p) => vorhanden.has(path.basename(p).toLowerCase()),
+      });
+      if (!name) return { ok: false, error: 'kein-freier-name' };
+      const ziel = path.join(ort.verzeichnis, name);
+      // Doppelte Absicherung der Grenze: die Pfad-Rechnung hat sie bereits
+      // geprueft, der Schreibvorgang prueft das Ergebnis erneut.
+      if (!isInsideArea(ort.wurzel, ziel)) return { ok: false, error: 'ausserhalb-der-wurzel' };
+      if (quellPfad) {
+        // COPYFILE_EXCL: eine bestehende Datei bleibt unangetastet, falls
+        // zwischen Namenssuche und Kopie jemand anders geschrieben hat.
+        await fs.copyFile(quellPfad, ziel, fs.constants.COPYFILE_EXCL);
+      } else {
+        await fs.writeFile(ziel, Buffer.from(daten), { flag: 'wx' });
+      }
+      return {
+        ok: true,
+        pfad: ziel,
+        name,
+        verweis: attachmentPath.verweisPfad({ dokumentPfad, zielPfad: ziel }),
+      };
+    } catch (err) {
+      if (err && err.code === 'EEXIST') return { ok: false, error: 'exists' };
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // 4T-0791 (Epic 3E-0125): Konfigurations-Stand fuer den Einstellungs-Bereich
+  // „Anlagen": globale Werte (Store) und Bereichs-Sektion (Bereichsdatei).
+  // hasArea/areaName steuern die Bereichs-Gruppe der UI (Muster
+  // templates:getConfig).
+  ipcMain.handle('attachments:getConfig', async (event) => {
+    const area = areaOfWindow(senderWindow(event));
+    const areaConfig = area ? await readAreaAttachmentsConfig(area.rootPath) : undefined;
+    return {
+      ok: true,
+      hasArea: !!area,
+      areaName: area ? area.name : null,
+      global: attachmentPath.normalisiereAnlagenKonfig({
+        form: store ? store.get('attachments.form') : null,
+        ordnername: store ? store.get('attachments.folder') : null,
+      }),
+      // Die Bereichs-Sektion bleibt ABSICHTLICH un-normalisiert: Ihr Fehlen ist
+      // der Wert „Wie allgemein" und darf nicht zur Voreinstellung normalisiert
+      // werden, sonst waere die Uebersteuerung nicht mehr abwaehlbar.
+      area: areaConfig || null,
+    };
+  });
+
+  // 4T-0791: globale Anlagen-Einstellung schreiben.
+  ipcMain.handle('attachments:setGlobalConfig', async (_event, config) => {
+    if (!store) return { ok: false, error: 'no store' };
+    const normalisiert = attachmentPath.normalisiereAnlagenKonfig(config);
+    store.set('attachments.form', normalisiert.form);
+    store.set('attachments.folder', normalisiert.ordnername);
+    return { ok: true };
+  });
+
+  // 4T-0791: attachments-Sektion der Bereichsdatei schreiben (config = Objekt)
+  // bzw. entfernen (config = null, also „Wie allgemein"). Muster
+  // templates:setAreaConfig: die Bereichsdatei entsteht erst beim ersten
+  // tatsaechlichen Setzen, eine defekte Bereichsdatei wird nie ueberschrieben.
+  ipcMain.handle('attachments:setAreaConfig', async (event, config) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    const mddaPath = path.join(area.rootPath, mddStore.MDDA_FILENAME);
+    try {
+      let container = mddStore.emptySettingsContainer();
+      let raw = null;
+      try {
+        raw = await fs.readFile(mddaPath, 'utf8');
+      } catch (err) {
+        if (err && err.code !== 'ENOENT') throw err;
+      }
+      if (raw !== null) {
+        const parsed = mddStore.parseSettingsContainer(raw);
+        if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
+        container = parsed.container;
+      }
+      const normalisiert = config ? attachmentPath.normalisiereAnlagenKonfig(config) : null;
+      if (normalisiert) container.settings.attachments = normalisiert;
+      else delete container.settings.attachments;
+      if (raw === null && !normalisiert) return { ok: true };
+      const serialized = mddStore.serializeContainer(container);
+      markSelfWriting(mddaPath, serialized);
+      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // 4T-0790 (Epic 3E-0125): Eine Anlage in der Standardanwendung oeffnen.
+  //
+  // Bewusst ein EIGENER Kanal mit shell.openPath statt einer Lockerung von
+  // 'shell:openExternal'. Dessen Beschraenkung auf http/https schuetzt einen
+  // anderen Weg (Links aus Dokument-Inhalt ins Netz), und dort bleibt eine
+  // file://-URL unerwuenscht. Zwei Grenzen (PO-Festlegung 2026-07-29):
+  //
+  //   1. Nur innerhalb der geltenden Wurzel — Bereich, sonst Ordner des
+  //      Dokuments. Fremder Markdown-Inhalt gilt als nicht vertrauenswuerdig
+  //      (Entwicklungsrichtlinien); ohne diese Grenze koennte ein zugespieltes
+  //      Dokument auf jede lesbare Datei des Rechners zeigen.
+  //   2. Ausfuehrbare Endungen erst nach Rueckfrage mit Name und vollem Pfad,
+  //      weil sichtbarer Linktext und tatsaechliches Ziel auseinanderfallen
+  //      koennen.
+  ipcMain.handle('attachment:open', async (event, params) => {
+    if (!params || typeof params !== 'object') return { ok: false, error: 'invalid-params' };
+    const zielPfad = typeof params.pfad === 'string' ? params.pfad : '';
+    const dokumentPfad = typeof params.dokumentPfad === 'string' ? params.dokumentPfad : '';
+    if (!zielPfad) return { ok: false, error: 'invalid-params' };
+
+    const owner = senderWindow(event);
+    const area = areaOfWindow(owner);
+    const wurzel = area ? area.rootPath : dokumentPfad ? path.dirname(dokumentPfad) : '';
+    if (!wurzel || !isInsideArea(wurzel, zielPfad)) {
+      return { ok: false, error: 'ausserhalb-der-wurzel' };
+    }
+
+    try {
+      const stat = await fs.stat(zielPfad);
+      if (!stat.isFile()) return { ok: false, error: 'kein-file' };
+    } catch {
+      return { ok: false, error: 'nicht-gefunden' };
+    }
+
+    if (attachmentPath.istAusfuehrbareEndung(zielPfad)) {
+      const t = (k) => tForWindow(owner, k);
+      const antwort = await dialog.showMessageBox(owner || undefined, {
+        type: 'warning',
+        title: t('attachments.confirmExecutable.title'),
+        message: t('attachments.confirmExecutable.message').replace(
+          '{name}',
+          path.basename(zielPfad),
+        ),
+        detail: zielPfad,
+        buttons: [
+          t('attachments.confirmExecutable.confirm'),
+          t('attachments.confirmExecutable.cancel'),
+        ],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+      });
+      if (antwort.response !== 0) return { ok: false, error: 'abgebrochen' };
+    }
+
+    // shell.openPath liefert bei Misserfolg eine nicht-leere Fehlermeldung.
+    const fehler = await shell.openPath(zielPfad);
+    if (fehler) return { ok: false, error: fehler };
+    return { ok: true };
+  });
+
   // "Bereich schliessen": alle Fenster der Bereichs-App des Absenders.
   ipcMain.handle('area:close', async (event) => {
     const owner = senderWindow(event);
@@ -3862,8 +4161,7 @@ function registerIpc() {
       return { ok: false, reason: 'outside-area' };
     }
     target.webContents.send('tab:appendFromOtherWindow', payload || {});
-    if (target.isMinimized()) target.restore();
-    target.focus();
+    inDenVordergrund(target);
     return { ok: true };
   });
 
@@ -4102,10 +4400,7 @@ function registerIpc() {
       body: payload && typeof payload.body === 'string' ? payload.body : '',
     });
     notification.on('click', () => {
-      if (owner && !owner.isDestroyed()) {
-        if (owner.isMinimized()) owner.restore();
-        owner.focus();
-      }
+      inDenVordergrund(owner);
     });
     notification.show();
     return true;
@@ -5125,8 +5420,7 @@ app.on('second-instance', (_event, argv, workingDirectory) => {
   // Bereichs-Apps, wird eine neue bereichslose Applikation angelegt.
   const target = getActiveNonAreaWindow();
   if (target) {
-    if (target.isMinimized()) target.restore();
-    target.focus();
+    inDenVordergrund(target);
     if (target.webContents.isLoading()) {
       pendingSecondInstanceFiles.push(...files);
     } else {

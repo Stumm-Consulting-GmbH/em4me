@@ -10,7 +10,7 @@ The alt text in the square brackets describes the image (important for accessibi
 ![Architecture diagram](images/architecture.png)
 ```
 
-Relative paths resolve against the folder of the Markdown file; for security, only images below that folder resolve (no `../` escape). Supported formats: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Relative paths resolve against the folder of the Markdown file. For security, only images within a fixed boundary resolve: the root of the area while one is open, otherwise the folder of the Markdown file. No `../` leads beyond it. Supported formats: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
 
 ## Image sizes
 

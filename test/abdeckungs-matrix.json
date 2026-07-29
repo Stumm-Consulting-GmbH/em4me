@@ -152,6 +152,20 @@
       "hinweis": "FD-03 (Platten-Roundtrip)."
     },
     {
+      "key": "help.feature.attachments",
+      "id": "F-247",
+      "testart": "e2e",
+      "tests": ["test/unit/attachment-path.test.js", "test/e2e/funktionen/anlagen.spec.js"],
+      "hinweis": "Pfad-Rechnung, Ablage-Formen und Namensvergabe unit-getestet; Einfuegen, Ziehen auf beide Dokument-Flaechen, Abgrenzung gegen das Oeffnen und die Einstellung ueber E2E am realen Bedienweg."
+    },
+    {
+      "key": "help.feature.attachmentOpen",
+      "id": "F-248",
+      "testart": "e2e",
+      "tests": ["test/unit/attachment-path.test.js", "test/e2e/funktionen/anlagen.spec.js"],
+      "hinweis": "Sperrliste der ausfuehrbaren Endungen unit-getestet; Klick auf verlinkte Anlage und auf ein eingebettetes Bild sowie die Wurzel-Grenze ueber E2E, wobei der Betriebssystem-Aufruf abgefangen statt real ausgefuehrt wird. Die Rueckfrage vor ausfuehrbaren Dateien ist ein OS-Dialog (Gesamtabnahme)."
+    },
+    {
       "key": "help.feature.exportPortable",
       "id": "F-021",
       "testart": "unit",

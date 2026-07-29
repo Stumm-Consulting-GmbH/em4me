@@ -39,13 +39,17 @@ describe('Bereichs-Registry (settings-page.js, 4T-0278)', () => {
     // hinter "Verhalten" und "templatesArea" hinter "Vorlagen".
     // 4T-0604 (Epic 3E-0113): Bereich „Zeitstempel" hinter „Verhalten"
     // (erweiterungs-eigener Bereich der Erweiterung frontmatter-timestamps).
+    // 4T-0791 (Epic 3E-0125): Bereiche „Anlagen" und „attachmentsArea" hinter
+    // „historyArea", also im Block der dokument-nahen Einstellungen.
     const ids = settingsPage.settingsSections().map((s) => s.id);
-    expect(ids.slice(0, 16)).toEqual([
+    expect(ids.slice(0, 18)).toEqual([
       'appearance',
       'colorSchemes',
       'behavior',
       'frontmatterTimestamps',
       'historyArea',
+      'attachments',
+      'attachmentsArea',
       'export',
       'templates',
       'templatesArea',
@@ -291,6 +295,8 @@ describe('Hervorhebung der aktiven Zeile (4T-0577, Epic 3E-0106)', () => {
 describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
   const AREA_SECTION_IDS = [
     'historyArea',
+    // 4T-0791 (Epic 3E-0125): Bereichs-Uebersteuerung der Anlagen-Ablage.
+    'attachmentsArea',
     'templatesArea',
     'journals',
     'calendarSystems',

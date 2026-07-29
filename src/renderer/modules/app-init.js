@@ -48,12 +48,15 @@ import {
 import {
   buildEditorCommandKeymap,
   editorCompartments,
+  fuegeAnlagenEin,
   paneEditors,
   scheduleLint,
   syncEditorForPane,
   typewriterScrollExtension,
   updateWindowTitle,
 } from './editor.js';
+// 4T-0789 (Epic 3E-0125): Anlagen aus einem Zieh-Vorgang einsammeln.
+import { anlagenAusDataTransfer } from './attachments.js';
 import {
   activateBacklinksFor,
   applyBacklinksVisibility,
@@ -466,6 +469,13 @@ api.onWindowDisplayInfo((info) => {
   state.appCount = info.appCount || 1;
   state.areaName = info.areaName || null;
   state.areaPath = info.areaPath || null;
+  // 4T-0788 (Epic 3E-0125): Wurzel der Bild-Aufloesung fensterlokal nachziehen.
+  // Bewusst bei JEDER Meldung und nicht nur im Wechsel-Zweig unten: Der Aufruf
+  // ist idempotent und billig, und beim Start ist er der einzige Weg, mit dem
+  // die Preload-Pipeline von einem gebundenen Bereich erfaehrt.
+  if (typeof api.configureAttachmentArea === 'function') {
+    api.configureAttachmentArea(state.areaPath);
+  }
   // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Name der eigenen App.
   state.workspaceName = info.workspaceName || null;
   updateWindowTitle();
@@ -490,6 +500,10 @@ api.onWindowDisplayInfo((info) => {
     // 4T-0625 (Epic 3E-0119): Bereichs-Varianten der Sidebar sind
     // bereichs-gebunden und ziehen beim Binding-Wechsel nach.
     void refreshAreaVariants();
+    // 4T-0788 (Epic 3E-0125): Mit der Wurzel aendert sich, welche Bilder
+    // aufgeloest werden. Ein bereits offenes Dokument zeigte seine Anlagen
+    // sonst erst nach einem manuellen Neu-Rendern.
+    renderAllPanes();
   }
 });
 
@@ -2348,16 +2362,84 @@ export function bindUi() {
     if (!e.dataTransfer) return;
     if (Array.from(e.dataTransfer.types).includes(MIME_TAB)) return;
     dragCounter = Math.max(0, dragCounter - 1);
-    if (dragCounter === 0) dropOverlay.hidden = true;
+    // 4T-0789: Hervorhebung mit zuruecksetzen, sonst traegt das Overlay sie
+    // beim naechsten Ziehen ueber eine Nicht-Ablege-Zone noch.
+    if (dragCounter === 0) schliesseDropUeberlagerung();
   });
+  // 4T-0789 (Epic 3E-0125): Ablege-Zone der Anlagen. Massgeblich ist der ORT,
+  // nicht der Dateityp (Architekturentscheidung des Epics): Die beiden Flaechen
+  // des geoeffneten Dokuments nehmen Anlagen entgegen, alles uebrige oeffnet
+  // weiter wie bisher. Der Ort ist vor dem Loslassen sichtbar, und eine
+  // Markdown-Datei laesst sich so bewusst als Anlage anhaengen.
+  //
+  // Im leeren Zustand blendet updateEmptyState beide Flaechen aus; closest
+  // findet dann nichts, und das Ziehen faellt von selbst auf das Oeffnen
+  // zurueck. Der Fall braucht keine Sonderregel.
+  //
+  // Das Overlay traegt pointer-events: none und verdeckt die Erkennung nicht.
+  function ablegeZone(e) {
+    const el = e.target instanceof Element ? e.target : null;
+    return el ? el.closest('.pane-source, .pane-rendered') : null;
+  }
+  const dropOverlayInner = dropOverlay ? dropOverlay.querySelector('.drop-overlay-inner') : null;
   window.addEventListener('dragover', (e) => {
-    if (isFileDrag(e)) e.preventDefault();
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    // Rueckmeldung, welches der beiden Ergebnisse eintritt, samt Hervorhebung
+    // der Flaeche; ohne sie waere das Ergebnis erst nach dem Loslassen sichtbar.
+    const zone = ablegeZone(e);
+    if (dropOverlayInner) {
+      dropOverlayInner.textContent = t(zone ? 'drop.hintAttachment' : 'drop.hint');
+    }
+    dropOverlay.classList.toggle('is-attachment', !!zone);
   });
+
+  // 4T-0789 (Epic 3E-0125), zweiter Befund des Product Owners: Das Aufraeumen
+  // der Ueberlagerung laeuft in der CAPTURE-Phase und damit unabhaengig davon,
+  // ob ein Handler weiter unten die Weitergabe stoppt.
+  //
+  // Anlass: Der drop-Handler der Editor-Flaeche muss stopPropagation rufen
+  // (sonst legt der Fenster-Handler dieselbe Anlage ein zweites Mal ab). Das
+  // Ereignis erreichte den Bubble-Handler unten daraufhin nicht mehr, und die
+  // Ueberlagerung „Als Anlage ablegen" blieb nach dem Ablegen stehen. Die
+  // Capture-Phase laeuft VOR dem Ziel-Element und ist von stopPropagation im
+  // Bubble-Weg nicht betroffen.
+  //
+  // 'dragend' faengt zusaetzlich den Fall ab, dass der Zieh-Vorgang ohne Drop
+  // endet (Abbruch mit Esc, Loslassen ausserhalb des Fensters).
+  function schliesseDropUeberlagerung() {
+    dragCounter = 0;
+    dropOverlay.hidden = true;
+    dropOverlay.classList.remove('is-attachment');
+  }
+  window.addEventListener('drop', schliesseDropUeberlagerung, true);
+  window.addEventListener('dragend', schliesseDropUeberlagerung, true);
+
   window.addEventListener('drop', async (e) => {
     if (!isFileDrag(e)) return;
     e.preventDefault();
-    dragCounter = 0;
-    dropOverlay.hidden = true;
+    schliesseDropUeberlagerung();
+
+    // 4T-0789: Ablegen in der RENDER-Ansicht. Die Editor-Flaeche behandelt
+    // ihren Drop selbst (drop-Handler in editor.js) und stoppt die Weitergabe,
+    // weil das eingesetzte Editor-Modul sonst zusaetzlich den Datei-Inhalt als
+    // Text einliest; hier kommen deshalb nur noch die uebrigen Flaechen an.
+    const zone = ablegeZone(e);
+    if (zone) {
+      const paneEl = zone.closest('.pane-group');
+      const paneIdx = paneEl ? Number(paneEl.dataset.pane) || 0 : state.activePaneIndex;
+      const view = paneEditors[paneIdx];
+      if (view && !view.state.readOnly) {
+        const anlagen = anlagenAusDataTransfer(e.dataTransfer);
+        if (anlagen.length > 0) {
+          // In der Render-Ansicht gibt es keine Schreibmarke; der Verweis
+          // landet am Dokument-Ende.
+          await fuegeAnlagenEin(view, anlagen, view.state.doc.length);
+          return;
+        }
+      }
+    }
+
     const files = [];
     for (const f of e.dataTransfer.files) {
       const p = api.getPathForFile(f);

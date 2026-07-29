@@ -4035,6 +4035,13 @@ body.panel-dragging .pane-sidebar[hidden] {
 .drop-overlay[hidden] {
   display: none;
 }
+/* 4T-0789 (Epic 3E-0125): Ziehen ueber eine Dokument-Flaeche legt die Datei als
+   Anlage ab, statt sie zu oeffnen. Die kraeftigere Rahmung macht den
+   Unterschied sichtbar, bevor losgelassen wird; der Text im Inneren nennt ihn. */
+.drop-overlay.is-attachment {
+  border-style: solid;
+  border-width: 4px;
+}
 .drop-overlay-inner {
   background: var(--bg);
   color: var(--fg);

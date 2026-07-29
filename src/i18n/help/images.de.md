@@ -10,7 +10,7 @@ Der Alt-Text in den eckigen Klammern beschreibt das Bild (wichtig für Barrieref
 ![Diagramm der Architektur](bilder/architektur.png)
 ```
 
-Relative Pfade lösen gegen den Ordner der Markdown-Datei auf; aus Sicherheitsgründen bleiben nur Bilder unterhalb dieses Ordners auflösbar (kein `../`-Ausbruch). Unterstützte Formate: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Relative Pfade lösen gegen den Ordner der Markdown-Datei auf. Aus Sicherheitsgründen bleiben nur Bilder innerhalb einer festen Grenze auflösbar: bei geöffnetem Arbeitsbereich ist das dessen Wurzel, sonst der Ordner der Markdown-Datei. Darüber hinaus führt kein `../` hinaus. Unterstützte Formate: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
 
 ## Bild-Größen
 

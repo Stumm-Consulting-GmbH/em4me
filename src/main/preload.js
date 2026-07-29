@@ -56,12 +56,50 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// 4T-0788 (Epic 3E-0125): Wurzel der Bild-Auflösung, fensterlokal gesetzt.
+// Bei gebundenem Bereich ist das dessen Wurzelordner, sonst null. Der Wert
+// kommt über configureAttachmentArea vom Renderer (Muster
+// configureFrontmatterDisplay); als Parameter der Render-Signatur wäre er an
+// jedem Aufrufer einzeln nachzuziehen, und eine vergessene Stelle fiele still
+// auf die enge Grenze zurück, ohne dass ein Test das bemerkt.
+let bildAufloesungsWurzel = null;
+
+function configureAttachmentArea(rootPath) {
+  bildAufloesungsWurzel = typeof rootPath === 'string' && rootPath !== '' ? rootPath : null;
+}
+
+// Liegt ziel innerhalb von wurzel? Case-insensitiv wie das Windows-Dateisystem,
+// Semantik identisch zu area-path.isInsideArea (die Wurzel selbst zählt als
+// innerhalb, Präfix-Nachbarn matchen nicht). Hier nachgebildet statt importiert,
+// weil das Preload-Bündel ohne Main-Module auskommt.
+function liegtInWurzel(wurzel, ziel) {
+  const w = path
+    .resolve(wurzel)
+    .replace(/[\\/]+$/, '')
+    .toLowerCase();
+  const z = path.resolve(ziel).toLowerCase();
+  return z === w || z.startsWith(w + path.sep);
+}
+
 // Bilder mit relativen Pfaden zum data:-URI auflösen, damit sie im
 // file://-Kontext zuverlässig laden. Alternativ könnten wir auf file:// URLs
 // umstellen, aber data: ist robuster und vermeidet Caching-Probleme.
 function resolveImagesForBase(html, basePath) {
   if (!basePath) return html;
   const baseDir = path.dirname(basePath);
+  // 4T-0788 (Epic 3E-0125): Die Containment-Wurzel ist bei gebundenem Bereich
+  // dessen Wurzel, sonst der Ordner des Dokuments. Damit wird ein zentraler
+  // Anlagen-Ordner des Bereichs auch aus einem Unterordner heraus sichtbar,
+  // was er unter der reinen Dokument-Ordner-Grenze nie war. Die Prüfung bleibt
+  // in ihrer Härte unverändert: eine harte Grenze gegen genau eine Wurzel, und
+  // zwar dieselbe, die die App überall sonst als Arbeitsraum-Grenze durchsetzt.
+  // Der Bereich muss den Dokument-Ordner tatsächlich enthalten; ein
+  // fensterlokal stehengebliebener Fremd-Bereich weitet sonst die Grenze für
+  // ein Dokument, das gar nicht in ihm liegt.
+  const wurzel =
+    bildAufloesungsWurzel && liegtInWurzel(bildAufloesungsWurzel, baseDir)
+      ? path.resolve(bildAufloesungsWurzel)
+      : baseDir;
   // P-03 (4T-0176): nur echte Bild-Formate mit bekanntem MIME-Typ einbetten.
   const IMAGE_EXT_WHITELIST = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp']);
   const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20 MB
@@ -74,17 +112,23 @@ function resolveImagesForBase(html, basePath) {
       const abs = path.resolve(baseDir, decodeURI(src));
       // P-03 (4T-0176): Containment — der Resolver folgt sonst '../' und
       // absoluten Pfaden und liest beliebige lokale Dateien ins DOM.
-      // Bilder ausserhalb des Dokument-Ordners bleiben unaufgeloest
-      // (Browser zeigt das Bild nicht; bewusster Trade-off, im Task
-      // dokumentiert).
-      if (!abs.startsWith(baseDir + path.sep)) return match;
+      // Bilder ausserhalb der Wurzel bleiben unaufgeloest (Browser zeigt das
+      // Bild nicht; bewusster Trade-off, im Task dokumentiert). 4T-0788: Die
+      // Wurzel ist bei gebundenem Bereich dessen Wurzelordner, sonst wie bisher
+      // der Ordner des Dokuments.
+      if (!liegtInWurzel(wurzel, abs)) return match;
       const ext = path.extname(abs).slice(1).toLowerCase();
       if (!IMAGE_EXT_WHITELIST.has(ext)) return match;
       // Groessenlimit VOR dem Lesen (Memory-Schutz).
       if (fs.statSync(abs).size > MAX_IMAGE_BYTES) return match;
       const mime = mimeForImage(ext);
       const data = fs.readFileSync(abs).toString('base64');
-      return `<img ${pre}src="data:${mime};base64,${data}"${post}>`;
+      // 4T-0790 (Epic 3E-0125): Original-Quelle als Attribut erhalten. Nach der
+      // Ersetzung steht in `src` ein data:-URI, aus dem sich kein Pfad mehr
+      // ableiten laesst; der Klick-Pfad braucht ihn aber, um die Anlage in der
+      // Standardanwendung zu oeffnen. Der Wert stammt aus dem src-Attribut des
+      // gerenderten HTML und ist dort bereits attribut-sicher.
+      return `<img ${pre}data-src-original="${src}" src="data:${mime};base64,${data}"${post}>`;
     } catch {
       return match;
     }
@@ -158,6 +202,30 @@ contextBridge.exposeInMainWorld('api', {
 
   // Drag-&-Drop: seit Electron 32 ist File.path weg, daher webUtils.
   getPathForFile: (file) => webUtils.getPathForFile(file),
+
+  // 4T-0787 (Epic 3E-0125): Anlage ablegen und Verweis-Pfad erhalten. Der eine
+  // Kanal beider Eingabewege. Das Parameter-Objekt wird als GANZES gereicht und
+  // nicht feldweise kopiert; ein feldweises Nachbauen an dieser Naht hat sich
+  // als stille Falle erwiesen, sobald der Vertrag um ein Feld waechst
+  // (Entwicklungsrichtlinien, Abschnitt „Prozess- und Modul-Schnitt").
+  storeAttachment: (params) => ipcRenderer.invoke('attachment:store', params),
+
+  // 4T-0790 (Epic 3E-0125): Anlage in der Standardanwendung öffnen. Eigener
+  // Kanal mit shell.openPath; die Beschränkung von openExternal auf http/https
+  // bleibt unangetastet, weil sie einen anderen Weg schützt.
+  openAttachment: (params) => ipcRenderer.invoke('attachment:open', params),
+
+  // 4T-0791 (Epic 3E-0125): Anlagen-Einstellung lesen und schreiben (global
+  // und je Bereich, Muster templates:getConfig/setAreaConfig).
+  attachmentsGetConfig: () => ipcRenderer.invoke('attachments:getConfig'),
+  attachmentsSetGlobalConfig: (config) => ipcRenderer.invoke('attachments:setGlobalConfig', config),
+  attachmentsSetAreaConfig: (config) => ipcRenderer.invoke('attachments:setAreaConfig', config),
+
+  // 4T-0788 (Epic 3E-0125): Wurzel der Bild-Auflösung setzen (Muster
+  // configureFrontmatterDisplay). Fensterlokal, weil jedes Fenster einen
+  // eigenen Bereich tragen kann; beim App-Start und bei jedem Bereichs-Wechsel
+  // aufzurufen, mit null beim Schließen des Bereichs.
+  configureAttachmentArea: (rootPath) => configureAttachmentArea(rootPath),
 
   // Settings
   getSetting: (key) => ipcRenderer.invoke('settings:get', key),

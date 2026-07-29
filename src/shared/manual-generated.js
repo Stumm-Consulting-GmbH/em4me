@@ -66,6 +66,12 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0366 (Epic 3E-0067): Block-Metadaten — blockgebundene .mdd-Daten,
       // direkt hinter den uebrigen Begleitdatei-Funktionen.
       'help.feature.blockMetadata',
+      // 4T-0792 (Epic 3E-0125): Anlagen — Dateien, die beim Einfuegen oder
+      // Ziehen entstehen, samt ihrem Oeffnen. Vor dem Export-Cluster, weil sie
+      // wie Vorlagen und Journale Dateien ANLEGEN, waehrend Export und
+      // Speichern bestehende Dokumente hinausschreiben.
+      'help.feature.attachments',
+      'help.feature.attachmentOpen',
       // 4T-0042 (Epic 3E-0008): Export 'Portables Markdown...' fuer Perspective-Tabellen.
       'help.feature.exportPortable',
       // 4T-0305 (Epic 3E-0054): PDF-Export direkt neben dem Portable-Export.
