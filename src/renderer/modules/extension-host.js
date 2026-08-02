@@ -22,6 +22,13 @@
 // Einstellungs-Bereiche. Die Fassade reicht keine internen Objekte durch
 // (keine CodeMirror-Views, kein State-Objekt, keine Modul-Referenzen).
 //
+// API v1.1 (4T-0825, Epic 3E-0103): dazu der Render-Andockpunkt
+// getRenderRoot(paneIdx)/onRenderUpdated(cb). Er schliesst die Luecke, die
+// der erste ernsthafte Bau einer Erweiterung offengelegt hat — ohne ihn
+// kommt ein Panel nicht an das angezeigte Dokument und muesste App-internes
+// DOM raten. Der Schritt ist abwaertskompatibel: Pakete mit apiVersion 1.0
+// laufen unveraendert.
+//
 // Vertrauensmodell (Product-Owner-Entscheidung, 4T-0225/Epic): keine
 // Sandbox im Renderer — aktivierter Code hat vollen DOM- und App-Zugriff.
 // Deshalb starten neu erkannte Erweiterungen deaktiviert, die Aktivierung
@@ -334,6 +341,137 @@ function registerSettingsContribution(id, def, tracker) {
   return sectionId;
 }
 
+// --- Render-Andockpunkt (API v1.1) --------------------------------------------------------
+// 4T-0825 (Epic 3E-0103): Eine Erweiterung braucht zwei Dinge, um ein Panel
+// an das angezeigte Dokument zu koppeln — den Container der gerenderten
+// Ansicht ihrer Spalte und ein Ereignis nach dessen Neuaufbau. Ohne beides
+// bliebe ihr nur, App-internes DOM zu raten; genau das schliesst die
+// Handbuch-Seite aus.
+//
+// Die Verteilung liegt bewusst HIER und nicht bei den acht Stellen im
+// Renderer, die heute `renderedHtml.innerHTML` setzen (editor, views,
+// history-page, history-status, properties-tags). Ein zentraler Setz-Helfer
+// waere die architektonisch sauberere Form, aber ein kuenftiger neunter
+// Aufrufer, der ihn umgeht, braeche die Zusage still. Der Observer
+// beobachtet das Ergebnis statt der Absicht und deckt jeden Schreibweg ab.
+const renderCallbacks = new Set();
+let renderObservers = [];
+let pendingRenderPanes = null;
+const renderVisibleState = new Map(); // paneIdx -> boolean
+
+function paneGroups() {
+  return [...document.querySelectorAll('.pane-group')];
+}
+
+// Render-Ziel einer Spalte im DOM. Spezifisch auf `.pane-rendered`, weil
+// die Notizen-Vorschau ebenfalls `.markdown-body` traegt und im DOM davor
+// steht (dieselbe Falle wie in app-state.js).
+function renderTargetOf(paneIdx) {
+  const group = paneGroups()[paneIdx];
+  return group ? group.querySelector('.pane-rendered .markdown-body') : null;
+}
+
+// Zeigt die Spalte gerade eine gerenderte Ansicht? Nur in der gerenderten
+// und der geteilten Ansicht; in Editor-, Live- und System-Ansicht existiert
+// der Container zwar, zeigt aber nichts an.
+function renderVisibleIn(group) {
+  const content = group ? group.querySelector('.content') : null;
+  if (!content) return false;
+  return content.classList.contains('view-rendered') || content.classList.contains('view-split');
+}
+
+// Oeffentliche Sicht: das Ziel nur, wenn dort auch wirklich etwas steht —
+// sonst ist null die ehrliche Antwort.
+function renderRootOf(paneIdx) {
+  const group = paneGroups()[paneIdx];
+  if (!group || !renderVisibleIn(group)) return null;
+  return group.querySelector('.pane-rendered .markdown-body');
+}
+
+// Meldungen eines Aufbaus zu EINEM Ereignis buendeln: ein innerHTML-Aufruf
+// erzeugt je nach Inhalt mehrere Mutations-Records.
+function queueRenderUpdate(paneIdx) {
+  if (!pendingRenderPanes) {
+    pendingRenderPanes = new Set();
+    Promise.resolve().then(flushRenderUpdates);
+  }
+  pendingRenderPanes.add(paneIdx);
+}
+
+function flushRenderUpdates() {
+  const panes = pendingRenderPanes ? [...pendingRenderPanes] : [];
+  pendingRenderPanes = null;
+  for (const paneIdx of panes) {
+    for (const cb of [...renderCallbacks]) {
+      // Fehler-Isolation wie an den uebrigen Laufzeit-Hooks: ein werfender
+      // Callback loggt, stoppt aber weder die uebrigen noch die App.
+      try {
+        cb(paneIdx);
+      } catch (err) {
+        console.warn('onRenderUpdated-Callback fehlgeschlagen:', err);
+      }
+    }
+  }
+}
+
+function stopRenderObservers() {
+  for (const observer of renderObservers) observer.disconnect();
+  renderObservers = [];
+  renderVisibleState.clear();
+  pendingRenderPanes = null;
+}
+
+// Beim Registrieren immer neu aufsetzen: idempotent, und ein Pane-Container,
+// den es beim ersten Callback noch nicht gab, kommt so dazu.
+//
+// ZWEI Beobachtungen je Spalte, und die zweite ist nicht optional: Der
+// Ansichts-Wechsel baut das Render-DOM oft gar nicht neu (renderPaneContent
+// ueberspringt den Voll-Render per Skip-Cache, wenn Inhalt, Pfad, Sprache
+// und Theme gleich blieben). Ohne die Klassen-Beobachtung bekaeme eine
+// Erweiterung beim Rueckweg aus der Quelltext-Ansicht kein Ereignis,
+// obwohl getRenderRoot dort von null wieder auf das Ziel wechselt.
+function startRenderObservers() {
+  stopRenderObservers();
+  if (typeof MutationObserver !== 'function') return;
+  paneGroups().forEach((group, paneIdx) => {
+    const target = renderTargetOf(paneIdx);
+    if (target) {
+      const inhalt = new MutationObserver(() => queueRenderUpdate(paneIdx));
+      inhalt.observe(target, { childList: true });
+      renderObservers.push(inhalt);
+    }
+    const content = group.querySelector('.content');
+    if (content) {
+      renderVisibleState.set(paneIdx, renderVisibleIn(group));
+      const sichtbarkeit = new MutationObserver(() => {
+        const jetzt = renderVisibleIn(group);
+        // Nur der Wechsel zaehlt: Quelltext auf Live etwa laesst die
+        // gerenderte Ansicht unsichtbar und ist kein Ereignis.
+        if (jetzt === renderVisibleState.get(paneIdx)) return;
+        renderVisibleState.set(paneIdx, jetzt);
+        queueRenderUpdate(paneIdx);
+      });
+      sichtbarkeit.observe(content, { attributes: true, attributeFilter: ['class'] });
+      renderObservers.push(sichtbarkeit);
+    }
+  });
+}
+
+function registerRenderCallback(cb, tracker) {
+  if (typeof cb !== 'function') {
+    throw new Error('onRenderUpdated: Callback fehlt');
+  }
+  renderCallbacks.add(cb);
+  startRenderObservers();
+  const off = () => {
+    if (!renderCallbacks.delete(cb)) return;
+    // Ohne Zuhoerer keine Beobachtungs-Last.
+    if (renderCallbacks.size === 0) stopRenderObservers();
+  };
+  tracker.add(off);
+  return off;
+}
+
 // --- ctx-Fassade (API v1) ---------------------------------------------------------------
 function buildContext(entry, tracker) {
   const m = entry.manifest;
@@ -371,6 +509,10 @@ function buildContext(entry, tracker) {
     registerSidebarPanel: (def) => registerPanelContribution(id, def, tracker),
     registerCommand: (def) => registerCommandContribution(id, def, tracker),
     registerSettingsSection: (def) => registerSettingsContribution(id, def, tracker),
+    // 4T-0825: Andockpunkt an die gerenderte Ansicht. Der Spalten-Index ist
+    // derselbe wie im zweiten Argument von registerSidebarPanel().render.
+    getRenderRoot: (paneIdx) => renderRootOf(Number.isInteger(paneIdx) ? paneIdx : 0),
+    onRenderUpdated: (cb) => registerRenderCallback(cb, tracker),
     // Persistenz-Namensraum der Erweiterung (electron-store, ein Objekt
     // pro Erweiterung unter extensionData.<id>).
     storage: Object.freeze({
@@ -634,6 +776,8 @@ export function resetExternalHostForTests(testEntries = []) {
     unregisterExternalExtension(id);
   }
   translationState.clear();
+  renderCallbacks.clear();
+  stopRenderObservers();
   entries = testEntries;
   enabledIds = [];
   trustedMap = {};

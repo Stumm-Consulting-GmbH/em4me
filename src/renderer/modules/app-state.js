@@ -132,6 +132,10 @@ export const state = {
     format: 'datetime',
     autoCreate: false,
   },
+  // 4T-0581 (Epic 3E-0107): Schalter der Rechtschreibprüfung (Store-Key
+  // editor.spellcheck). Ab Werk aus; beim App-Start aus dem Store geladen.
+  // Das spellcheck-Compartment der Editor-Flächen liest ihn synchron.
+  spellcheck: false,
   // 4T-0030: Theme-Vorzug ('light' | 'dark' | 'system'). Initial 'system';
   // tatsaechlicher Wert wird beim Init aus electron-store geladen.
   themePref: 'system',

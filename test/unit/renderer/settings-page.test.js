@@ -41,12 +41,15 @@ describe('Bereichs-Registry (settings-page.js, 4T-0278)', () => {
     // (erweiterungs-eigener Bereich der Erweiterung frontmatter-timestamps).
     // 4T-0791 (Epic 3E-0125): Bereiche „Anlagen" und „attachmentsArea" hinter
     // „historyArea", also im Block der dokument-nahen Einstellungen.
+    // 4T-0581 (Epic 3E-0107): Bereich „Rechtschreibprüfung" hinter
+    // „Zeitstempel" (erweiterungs-eigener Bereich der Erweiterung spellcheck).
     const ids = settingsPage.settingsSections().map((s) => s.id);
-    expect(ids.slice(0, 18)).toEqual([
+    expect(ids.slice(0, 19)).toEqual([
       'appearance',
       'colorSchemes',
       'behavior',
       'frontmatterTimestamps',
+      'spellcheck',
       'historyArea',
       'attachments',
       'attachmentsArea',

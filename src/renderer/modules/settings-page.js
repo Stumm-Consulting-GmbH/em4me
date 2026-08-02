@@ -106,6 +106,13 @@ import { applyExtensionsState, getDisabledExtensionIds } from './extension-lifec
 // 4T-0612 (Epic 3E-0115): Reihenfolge-Schalter der Lesezeichen-Abschnitte.
 import { openOrJumpToPath, setBookmarksAreaFirst } from './bookmarks.js';
 import { normalizeProfilesConfig } from '../../shared/property-profiles.js';
+// 4T-0581/4T-0582 (Epic 3E-0107): Schalter und Wörterbuch-Liste der
+// Rechtschreibprüfung.
+import {
+  SPELLCHECK_KEY,
+  normalizeDictionaryWords,
+  normalizeSpellcheckSetting,
+} from '../../shared/spellcheck.js';
 // 4T-0436 (Epic 3E-0081): Bereich „Journale" — Regal- und Journal-Verwaltung
 // der journals-Sektion der Bereichsdatei; die Pfad-Vorschau läuft über die
 // Schema-Auflösung des Perioden-Kerns.
@@ -498,6 +505,19 @@ function ladeAppearanceInDraft() {
     pageState.draft.pasteUrlAsLinkSnapshot = value !== false;
     if (pageState.activeSectionId === 'behavior') renderActiveSection();
   });
+  // 4T-0581/4T-0582 (Epic 3E-0107): Schalter und Wörterbuch-Liste der
+  // Rechtschreibprüfung.
+  api.getSetting(SPELLCHECK_KEY).then((value) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.spellcheck = normalizeSpellcheckSetting(value);
+    pageState.draft.spellcheckSnapshot = pageState.draft.spellcheck;
+    if (pageState.activeSectionId === 'spellcheck') renderActiveSection();
+  });
+  api.spellcheckListWords().then((words) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.spellcheckWords = normalizeDictionaryWords(words);
+    if (pageState.activeSectionId === 'spellcheck') renderActiveSection();
+  });
   // 4T-0604 (Epic 3E-0113): Zeitstempel-Automatik (eigener Bereich).
   Promise.all([
     api.getSetting('frontmatter.createdEnabled'),
@@ -610,6 +630,17 @@ const FIXED_SECTIONS = [
     render: renderFrontmatterTimestampsSection,
     apply: applyFrontmatterTimestampsSection,
     dirty: dirtyFrontmatterTimestampsSection,
+  },
+  // 4T-0581 (Epic 3E-0107): Rechtschreibprüfung (Schalter und Liste der
+  // eigenen Wörterbuch-Einträge). Erweiterungs-eigener Bereich der
+  // Erweiterung 'spellcheck' (settingsSections-Eintrag in
+  // src/shared/extensions.js) — erscheint nur bei aktiver Erweiterung.
+  {
+    id: 'spellcheck',
+    titleKey: 'settings.spellcheck.title',
+    render: renderSpellcheckSection,
+    apply: applySpellcheckSection,
+    dirty: dirtySpellcheckSection,
   },
   // 4T-0555 (Epic 3E-0100): Bereichs-Default der Dokument-Historie als
   // eigene Sektion der Gruppe „Aktueller Bereich" (PO-Entscheidung E3:
@@ -2068,6 +2099,92 @@ async function applyPasteLinkSetting(draft) {
     state.pasteUrlAsLink = draft.pasteUrlAsLink;
     draft.pasteUrlAsLinkSnapshot = draft.pasteUrlAsLink;
   }
+}
+
+// --- 4T-0581/4T-0582 (Epic 3E-0107): Bereich „Rechtschreibprüfung" -----------
+// Ein Schalter und die Liste der eigenen Wörterbuch-Einträge. Eine Sprach-
+// Auswahl gibt es bewusst nicht: geprüft wird mit dem Prüfer des
+// Betriebssystems gegen dessen Sprache (Architekturentscheidung 6 des Epics).
+// Der Schalter wirkt sofort auf alle Fenster (Broadcast im Main); die
+// Wörterbuch-Liste wirkt unmittelbar und kennt deshalb keinen Entwurf.
+
+function renderSpellcheckSection(container, draft) {
+  const box = document.createElement('input');
+  box.id = 'settings-spellcheck-enabled';
+  box.type = 'checkbox';
+  box.checked = draft.spellcheck === true;
+  box.addEventListener('change', () => {
+    draft.spellcheck = box.checked;
+  });
+  container.appendChild(buildSettingsRow('settings.spellcheck.enabled', box));
+
+  const hint = document.createElement('p');
+  hint.className = 'settings-row-hint';
+  hint.textContent = t('settings.spellcheck.hint');
+  container.appendChild(hint);
+
+  const dictTitle = document.createElement('h4');
+  dictTitle.className = 'settings-export-group-title';
+  dictTitle.textContent = t('settings.spellcheck.dictionaryTitle');
+  container.appendChild(dictTitle);
+
+  const liste = document.createElement('div');
+  liste.id = 'settings-spellcheck-words';
+  liste.className = 'settings-spellcheck-words';
+  container.appendChild(liste);
+  renderSpellcheckWords(liste, draft);
+}
+
+// Zeichnet die Wortliste neu. Entfernen wirkt sofort auf das Wörterbuch des
+// Betriebssystems; ein Entwurfs-Zwischenschritt wäre irreführend, weil das
+// Wörterbuch nicht der Anwendung gehört und auch von außen verändert werden
+// kann.
+function renderSpellcheckWords(liste, draft) {
+  liste.innerHTML = '';
+  const woerter = normalizeDictionaryWords(draft.spellcheckWords);
+  if (woerter.length === 0) {
+    const leer = document.createElement('p');
+    leer.className = 'settings-row-hint';
+    leer.textContent = t('settings.spellcheck.dictionaryEmpty');
+    liste.appendChild(leer);
+    return;
+  }
+  for (const wort of woerter) {
+    const zeile = document.createElement('div');
+    zeile.className = 'settings-spellcheck-word';
+    const label = document.createElement('span');
+    label.textContent = wort;
+    zeile.appendChild(label);
+    const entfernen = document.createElement('button');
+    entfernen.type = 'button';
+    entfernen.className = 'btn';
+    entfernen.dataset.word = wort;
+    entfernen.textContent = t('settings.spellcheck.dictionaryRemove');
+    entfernen.addEventListener('click', () => {
+      void api.spellcheckRemoveWord(wort).then(() => {
+        draft.spellcheckWords = normalizeDictionaryWords(draft.spellcheckWords).filter(
+          (w) => w !== wort,
+        );
+        renderSpellcheckWords(liste, draft);
+      });
+    });
+    zeile.appendChild(entfernen);
+    liste.appendChild(zeile);
+  }
+}
+
+async function applySpellcheckSection(draft) {
+  if (typeof draft.spellcheck !== 'boolean') return;
+  if (draft.spellcheck === draft.spellcheckSnapshot) return;
+  // Der Broadcast des Main-Prozesses zieht state.spellcheck und die
+  // Editor-Compartments in ALLEN Fenstern nach, dieses eingeschlossen.
+  await persistSetting(SPELLCHECK_KEY, draft.spellcheck);
+  draft.spellcheckSnapshot = draft.spellcheck;
+}
+
+function dirtySpellcheckSection(draft) {
+  if (typeof draft.spellcheck !== 'boolean') return false;
+  return draft.spellcheck !== draft.spellcheckSnapshot;
 }
 
 // --- 4T-0604 (Epic 3E-0113): Bereich „Zeitstempel" ---------------------------

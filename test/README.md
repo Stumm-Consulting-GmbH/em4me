@@ -99,7 +99,12 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
      (`test/e2e/funktionen/sidebar-layout.spec.js`, Default-Reihenfolge;
      neue Panels landen als eigener Slot am Ende) und ES-10 (Anzahl der
      Panel-Zeilen im Einstellungs-Bereich Sidebar), zusätzlich zum
-     Paritäts-Wächter `test/unit/panel-access.test.js`.
+     Paritäts-Wächter `test/unit/panel-access.test.js`. Zwei
+     Anlage-Fallen dazu: Die Section-Klasse des Panels muss exakt
+     `sidebar-<Panel-ID>` heißen, weil SL-01 die Panel-ID aus ihr
+     ableitet; und ein Panel ohne Dokument-Bezug darf nicht an
+     `isAllEmpty()` hängen, sonst ist es im Empty-State nicht
+     einblendbar.
 9. **Datums-Bezug injizieren.** Tests und Fixtures, die „heute" berühren
    (Überfälligkeit, Score, Datum-Komfort-Filter), arbeiten mit
    injiziertem Referenz-Datum bzw. stabilen Fixture-Daten (weit
@@ -154,6 +159,16 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     bevor der Helfer dort eingesetzt wird. Für einen Umschalter gilt die
     Regel nicht — dort bleibt der einzelne Druck richtig, und die
     Stabilität muss anders hergestellt werden.
+14. **Neue Werkzeug-Tests brauchen zwei Zuordnungen.** Ein neuer Test
+    eines privaten Werkzeugs unter `scripts/` gehört erstens in die
+    `testAusnahmen` von `scripts/quellcode-export-liste.json`, weil
+    `test/` als ganzer Ordner veröffentlicht wird und der Import eines
+    nicht exportierten Skripts die öffentliche Suite erst beim nächsten
+    Quellcode-Export rot machte (maschinell gewächtert in
+    `quellcode-export.test.js`); zweitens in die Werkzeug-Ausnahme-Liste
+    von `scripts/aenderungsklassen.json`, deren
+    Vollständigkeits-Meta-Test sonst im Queue-Gate abbricht. Beide
+    Einträge gehören in den Commit, der die Testdatei anlegt.
 
 ## E2E-Praxis
 
@@ -206,6 +221,16 @@ eine Debug-Runde gekostet.
   platzierte Kommando-Buttons oder Makros), beenden mit
   `closeApp(app, userData, { force: true })`, sonst hängt der Lauf am
   Speichern-Dialog.
+- **Neuer Reiter startet im Bearbeiten-Modus.** Eine geöffnete Datei
+  steht im Lese-Modus, ein frisch angelegter Reiter dagegen bereits im
+  Bearbeiten-Modus. Ein reflexhafter Klick auf den Modus-Umschalter
+  macht den neuen Reiter read-only, und die folgenden Tipp-Schritte
+  laufen ins Leere.
+- **`expect.poll` braucht einen async-Callback, sobald er liest.** Wer
+  im Callback eine Eigenschaft des Ergebnisses einer async-Funktion
+  liest, muss `await`en: `(f()).length` auf einem Promise ist
+  `undefined`, die Bedingung wird nie wahr, und der Fall läuft
+  kommentarlos in den Timeout.
 
 ## Rote Läufe einordnen
 

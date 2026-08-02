@@ -9,6 +9,51 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.101.0.1103] - 2026-08-02 — Rechtschreibprüfung
+
+Epic 3E-0107: Der Editor markiert falsch geschriebene Wörter und bietet im
+Kontextmenü die Korrektur an. Geprüft wird ausschließlich mit dem Prüfer des
+Betriebssystems; die Anwendung bringt kein eigenes Wörterbuch mit, lädt keines
+nach und setzt keine Prüfsprache. Die Prüfung ist ab Werk aus und als
+Erweiterung schaltbar.
+
+### Neu
+
+- **Rechtschreibprüfung im Editor** (4T-0581): Tippfehler erscheinen in der
+  Quelltext- und der Live-Ansicht unterringelt, das Notizfeld folgt demselben
+  Schalter. Neuer Einstellungs-Bereich „Rechtschreibprüfung" mit dem Schalter
+  (ab Werk aus) und neue schaltbare Erweiterung `spellcheck` in der Kategorie
+  Werkzeuge. Neues geteiltes Modul `src/shared/spellcheck.js` mit Store-
+  Schlüssel und den reinen Helfern.
+- **Korrektur-Vorschläge und Wörterbuch** (4T-0582): Rechtsklick auf ein
+  markiertes Wort zeigt bis zu fünf Vorschläge ganz oben im Editor-Kontextmenü,
+  darunter „Zum Wörterbuch hinzufügen". Die eigenen Wörterbuch-Einträge stehen
+  im Einstellungs-Bereich als Liste und lassen sich einzeln entfernen.
+
+### Geändert
+
+- **Kein `preventDefault` mehr am Editor-Kontextmenü** (4T-0582): Der Abbruch
+  des DOM-Ereignisses unterdrückte das `context-menu`-Ereignis des
+  Main-Prozesses und damit die einzige Quelle der Korrektur-Vorschläge. Er war
+  ohnehin wirkungslos, weil Electron von sich aus kein Kontextmenü anbietet.
+  Das eigene Menü verhält sich unverändert.
+- **Roadmap-Eintrag „Rechtschreibprüfung"** von „geplant" auf „laufend".
+
+### Doku
+
+- **Handbuch-Seite „Werkzeuge"** um einen Abschnitt zur Rechtschreibprüfung
+  erweitert, in allen fünf Sprachen (4T-0583): Einschalten, Herkunft der
+  Prüfsprache, Korrigieren, Grenzen, Erweiterung. Dazu ein neuer
+  Funktions-Katalog-Eintrag und zehn neue i18n-Schlüssel je Sprache.
+
+### Intern
+
+- **Drei Festlegungen maschinell abgesichert** (`test/unit/spellcheck.test.js`):
+  kein `setSpellCheckerLanguages`-Aufruf unter `src/` (er stieße den Download
+  eines Wörterbuchs aus dem Netz an), `webPreferences.spellcheck` fest auf
+  `true` (ein mit `false` erzeugtes Fenster prüft nie wieder) und kein
+  `preventDefault` in `showEditorContextMenu`.
+
 ## [0.100.0.1061] - 2026-07-29 — Anlagen einfügen
 
 Epic 3E-0125: Eine Datei, die zu einem Dokument gehört, muss nicht mehr von

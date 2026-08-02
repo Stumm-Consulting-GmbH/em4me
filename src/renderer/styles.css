@@ -6669,6 +6669,24 @@ body.focus-mode .title-line {
   font-size: 12.5px;
   color: var(--fg-muted);
 }
+/* 4T-0582 (Epic 3E-0107): Einstellungs-Bereich Rechtschreibprüfung — Liste
+   der eigenen Wörterbuch-Einträge (Wort links, Entfernen-Button rechts). */
+.settings-spellcheck-words {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 10px;
+}
+.settings-spellcheck-word {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.settings-spellcheck-word span {
+  overflow-wrap: anywhere;
+}
+
 /* 4T-0428 (Epic 3E-0080): Einstellungs-Bereich Vorlagen — Ordner-Zeile
    (Eingabe plus Auswahl-Button) und Regel-Tabelle (Ordner → Vorlage). */
 .settings-templates-folder-row {

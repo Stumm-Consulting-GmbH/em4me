@@ -1,6 +1,6 @@
 # Strumenti
 
-Nove aiutanti per il lavoro quotidiano sul testo: linter, ricerca, trova e sostituisci, editor di tabelle, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
+Dieci aiutanti per il lavoro quotidiano sul testo: linter, correzione ortografica, ricerca, trova e sostituisci, editor di tabelle, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
 
 ## Linter Markdown
 
@@ -15,6 +15,32 @@ Il linter segnala con discrezione sette difetti tipici nell'editor (viste Sorgen
 | Ancora wiki rotta | `[[Piano di progetto#Manca]]` | `[[Piano di progetto#Milestone]]` (ancora esistente) |
 | Tipo di callout sconosciuto | `> [!importante] Titolo` | `> [!warning] Titolo` (tipo dalla lista bianca) |
 | Marcatore di commento spaiato | `Testo %% senza chiusura` | `Testo %%privato%% continua` oppure `\%%` per un `%%` letterale |
+
+## Correzione ortografica
+
+La correzione ortografica segnala le parole errate nell'editor (vista sorgente e vista dal vivo). È disattivata di fabbrica e si attiva in Impostazioni → Correzione ortografica.
+
+Il controllo usa il correttore del sistema operativo. L'applicazione non porta con sé alcun dizionario proprio e non ne scarica nessuno; senza connessione di rete il controllo funziona allo stesso modo.
+
+### Quale lingua viene controllata
+
+Vale la lingua del sistema operativo, indipendentemente dalla lingua dell'interfaccia. Impostare l'interfaccia in italiano mentre il sistema operativo è in portoghese dà un controllo portoghese. Per questo un testo in una lingua diversa da quella del sistema operativo viene segnalato per intero; non è un difetto, ma la conseguenza di questa scelta. La lingua di controllo si cambia nelle impostazioni di lingua del sistema operativo.
+
+Volutamente non esiste alcuna selezione della lingua all'interno dell'applicazione. Comporterebbe lo scaricamento di dizionari dalla rete, ed è proprio ciò che si vuole evitare.
+
+### Correggere
+
+Un clic destro su una parola segnalata apre il menu contestuale dell'editor con fino a cinque suggerimenti in cima. Un clic su un suggerimento sostituisce la parola. Sotto si trova «Aggiungi al dizionario»: la parola vale da quel momento come corretta in modo permanente, anche dopo un riavvio. Se sotto il puntatore non c'è alcuna parola segnalata, questa parte del menu non compare.
+
+Le parole aggiunte in questo modo figurano in Impostazioni → Correzione ortografica e possono essere rimosse lì una per una.
+
+### Limite
+
+La sintassi Markdown, i percorsi e il codice vengono controllati anch'essi, perché il correttore vede il testo parola per parola e non conosce la marcatura. È la ragione per cui il controllo è disattivato di fabbrica.
+
+### Estensione
+
+La correzione ortografica è un'estensione commutabile (Impostazioni → Estensioni). Nello stato disattivato spariscono le segnalazioni, i suggerimenti e l'area delle impostazioni; lo stato dell'interruttore resta conservato.
 
 ## Ricerca testuale
 

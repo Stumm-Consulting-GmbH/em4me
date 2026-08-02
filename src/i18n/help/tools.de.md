@@ -1,6 +1,6 @@
 # Werkzeuge
 
-Neun Helfer für die tägliche Arbeit am Text: Linter, Suche, Suchen und Ersetzen, Tabellen-Editor, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
+Zehn Helfer für die tägliche Arbeit am Text: Linter, Rechtschreibprüfung, Suche, Suchen und Ersetzen, Tabellen-Editor, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
 
 ## Markdown-Linter
 
@@ -15,6 +15,32 @@ Der Linter markiert sieben typische Mängel dezent im Editor (Quellcode-, Geteil
 | Defekter Wiki-Anker | `[[Projektplan#Fehlt]]` | `[[Projektplan#Meilensteine]]` (existierender Anker) |
 | Unbekannter Callout-Typ | `> [!wichtig] Titel` | `> [!warning] Titel` (Typ aus der Whitelist) |
 | Unpaariger Kommentar-Marker | `Text %% ohne Schließung` | `Text %%privat%% weiter` oder `\%%` für ein wörtliches `%%` |
+
+## Rechtschreibprüfung
+
+Die Rechtschreibprüfung markiert falsch geschriebene Wörter im Editor (Quelltext- und Live-Ansicht). Sie ist ab Werk aus und wird unter Einstellungen → Rechtschreibprüfung eingeschaltet.
+
+Geprüft wird mit dem Prüfer des Betriebssystems. Die Anwendung bringt kein eigenes Wörterbuch mit und lädt keines nach; ohne Netzverbindung arbeitet die Prüfung genauso.
+
+### Welche Sprache geprüft wird
+
+Es gilt die Sprache des Betriebssystems, und zwar unabhängig von der Sprache der Oberfläche. Wer die Oberfläche auf Italienisch stellt, während das Betriebssystem auf Portugiesisch steht, bekommt eine portugiesische Prüfung. Ein Text in einer anderen Sprache als der des Betriebssystems wird deshalb durchgehend markiert; das ist kein Fehler, sondern die Folge dieser Festlegung. Gewechselt wird die Prüfsprache in den Spracheinstellungen des Betriebssystems.
+
+Eine Sprach-Auswahl in der Anwendung gibt es bewusst nicht. Sie würde bedeuten, Wörterbücher aus dem Netz nachzuladen, und genau das soll unterbleiben.
+
+### Korrigieren
+
+Ein Rechtsklick auf ein markiertes Wort öffnet das Editor-Kontextmenü mit bis zu fünf Vorschlägen ganz oben. Ein Klick auf einen Vorschlag ersetzt das Wort. Darunter steht „Zum Wörterbuch hinzufügen": das Wort gilt danach dauerhaft als richtig, auch nach einem Neustart. Steht kein markiertes Wort unter dem Zeiger, fehlt dieser Abschnitt des Menüs.
+
+Die selbst aufgenommenen Wörter stehen unter Einstellungen → Rechtschreibprüfung und lassen sich dort einzeln wieder entfernen.
+
+### Grenze
+
+Markdown-Syntax, Pfade und Code werden mitgeprüft, weil der Prüfer den Text Wort für Wort sieht und die Auszeichnung nicht kennt. Das ist der Grund, aus dem die Prüfung ab Werk aus ist.
+
+### Erweiterung
+
+Die Rechtschreibprüfung ist eine schaltbare Erweiterung (Einstellungen → Erweiterungen). Im Aus-Zustand entfallen Markierungen, Vorschläge und der Einstellungs-Bereich; der Schalter-Stand bleibt erhalten.
 
 ## Volltextsuche
 

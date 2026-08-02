@@ -1,6 +1,6 @@
 # Herramientas
 
-Nueve ayudantes para el trabajo diario con el texto: linter, búsqueda, buscar y reemplazar, editor de tablas, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
+Diez ayudantes para el trabajo diario con el texto: linter, corrección ortográfica, búsqueda, buscar y reemplazar, editor de tablas, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
 
 ## Linter Markdown
 
@@ -15,6 +15,32 @@ El linter marca discretamente siete defectos típicos en el editor (vistas Códi
 | Ancla wiki rota | `[[Plan de proyecto#Falta]]` | `[[Plan de proyecto#Hitos]]` (ancla existente) |
 | Tipo de callout desconocido | `> [!importante] Título` | `> [!warning] Título` (tipo de la lista blanca) |
 | Marcador de comentario sin pareja | `Texto %% sin cierre` | `Texto %%privado%% sigue` o `\%%` para un `%%` literal |
+
+## Corrección ortográfica
+
+La corrección ortográfica marca las palabras mal escritas en el editor (vista de código fuente y vista en vivo). Está desactivada de fábrica y se activa en Configuración → Corrección ortográfica.
+
+La comprobación usa el corrector del sistema operativo. La aplicación no incluye ningún diccionario propio ni descarga ninguno; sin conexión de red la comprobación funciona igual.
+
+### Qué idioma se comprueba
+
+Rige el idioma del sistema operativo, con independencia del idioma de la interfaz. Poner la interfaz en italiano mientras el sistema operativo está en portugués da una comprobación portuguesa. Por eso un texto en un idioma distinto al del sistema operativo queda marcado por completo; no es un fallo, sino la consecuencia de esta decisión. El idioma de comprobación se cambia en la configuración de idioma del sistema operativo.
+
+Deliberadamente no hay selección de idioma dentro de la aplicación. Supondría descargar diccionarios de la red, y eso es justamente lo que debe evitarse.
+
+### Corregir
+
+Un clic derecho sobre una palabra marcada abre el menú contextual del editor con hasta cinco sugerencias en la parte superior. Un clic en una sugerencia sustituye la palabra. Debajo está «Añadir al diccionario»: la palabra pasa a considerarse correcta de forma permanente, también tras un reinicio. Si bajo el puntero no hay ninguna palabra marcada, esta parte del menú no aparece.
+
+Las palabras añadidas así figuran en Configuración → Corrección ortográfica y pueden quitarse allí una a una.
+
+### Límite
+
+La sintaxis Markdown, las rutas y el código se comprueban también, porque el corrector ve el texto palabra por palabra y desconoce el marcado. Esa es la razón por la que la comprobación está desactivada de fábrica.
+
+### Extensión
+
+La corrección ortográfica es una extensión conmutable (Configuración → Extensiones). En estado desactivado desaparecen las marcas, las sugerencias y el área de configuración; el estado del interruptor se conserva.
 
 ## Búsqueda de texto completo
 

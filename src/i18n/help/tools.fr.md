@@ -1,6 +1,6 @@
 # Outils
 
-Neuf assistants pour le travail quotidien sur le texte : linter, recherche, rechercher et remplacer, éditeur de tableaux, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
+Dix assistants pour le travail quotidien sur le texte : linter, correcteur orthographique, recherche, rechercher et remplacer, éditeur de tableaux, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
 
 ## Linter Markdown
 
@@ -15,6 +15,32 @@ Le linter marque discrètement sept défauts typiques dans l'éditeur (vues Sour
 | Ancre wiki cassée | `[[Plan projet#Absent]]` | `[[Plan projet#Jalons]]` (ancre existante) |
 | Type de callout inconnu | `> [!important] Titre` | `> [!warning] Titre` (type de la liste blanche) |
 | Marqueur de commentaire non apparié | `Texte %% sans fermeture` | `Texte %%privé%% suite` ou `\%%` pour un `%%` littéral |
+
+## Correcteur orthographique
+
+Le correcteur orthographique signale les mots mal orthographiés dans l'éditeur (vue source et vue directe). Il est désactivé par défaut et s'active sous Paramètres → Correcteur orthographique.
+
+La vérification utilise le correcteur du système d'exploitation. L'application n'apporte aucun dictionnaire propre et n'en télécharge aucun ; sans connexion réseau, la vérification fonctionne à l'identique.
+
+### Quelle langue est vérifiée
+
+C'est la langue du système d'exploitation qui s'applique, indépendamment de la langue de l'interface. Régler l'interface sur l'italien alors que le système d'exploitation est en portugais donne une vérification portugaise. Un texte rédigé dans une autre langue que celle du système d'exploitation est donc signalé d'un bout à l'autre ; ce n'est pas un défaut, mais la conséquence de ce choix. La langue de vérification se change dans les paramètres de langue du système d'exploitation.
+
+Il n'existe volontairement aucune sélection de langue dans l'application. Elle impliquerait de télécharger des dictionnaires depuis le réseau, et c'est précisément ce qui doit être évité.
+
+### Corriger
+
+Un clic droit sur un mot signalé ouvre le menu contextuel de l'éditeur avec jusqu'à cinq suggestions tout en haut. Un clic sur une suggestion remplace le mot. En dessous figure « Ajouter au dictionnaire » : le mot est alors considéré comme correct durablement, y compris après un redémarrage. Sans mot signalé sous le pointeur, cette partie du menu est absente.
+
+Les mots ainsi ajoutés figurent sous Paramètres → Correcteur orthographique et peuvent y être supprimés individuellement.
+
+### Limite
+
+La syntaxe Markdown, les chemins et le code sont vérifiés eux aussi, car le correcteur voit le texte mot à mot et ignore le balisage. C'est la raison pour laquelle la vérification est désactivée par défaut.
+
+### Extension
+
+Le correcteur orthographique est une extension activable (Paramètres → Extensions). À l'état désactivé, les marques, les suggestions et la zone de paramètres disparaissent ; l'état de l'interrupteur est conservé.
 
 ## Recherche plein texte
 

@@ -54,6 +54,16 @@ describe('extensions-external: Versionierung (4T-0299)', () => {
     expect(parseVersion(EXTENSION_API_VERSION)).not.toBeNull();
     expect(isApiVersionCompatible(EXTENSION_API_VERSION)).toBe(true);
   });
+
+  // 4T-0825 (Epic 3E-0103): Der Schritt auf 1.1 ist reiner Zugewinn und
+  // darf kein bestehendes Paket aussperren.
+  it('Pakete gegen die Vorgänger-Minor bleiben auf der aktuellen App gültig', () => {
+    const { major } = parseVersion(EXTENSION_API_VERSION);
+    expect(isApiVersionCompatible(`${major}.0`)).toBe(true);
+    // Umgekehrt: ein Paket gegen eine neuere Minor läuft auf einer älteren
+    // App nie, weil es Funktionen erwartet, die es dort nicht gibt.
+    expect(isApiVersionCompatible(`${major}.1`, `${major}.0.0`)).toBe(false);
+  });
 });
 
 describe('extensions-external: Manifest-Validierung (4T-0299)', () => {

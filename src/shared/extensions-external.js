@@ -40,7 +40,12 @@
 // der Handbuch-Seite dokumentierten API-Oberfläche bleiben innerhalb
 // derselben Major-Version stabil; alles nicht Dokumentierte ist
 // ausdrücklich nicht-öffentlich und kann sich jederzeit ändern.
-const EXTENSION_API_VERSION = '1.0.0';
+//
+// 1.1.0 (4T-0825, Epic 3E-0103): Render-Andockpunkt getRenderRoot und
+// onRenderUpdated. Reiner Zugewinn, deshalb ein Minor-Schritt — Pakete mit
+// apiVersion "1.0" bleiben gültig, ein Paket mit "1.1" wird von einer
+// älteren App nie geladen (siehe isApiVersionCompatible).
+const EXTENSION_API_VERSION = '1.1.0';
 
 // Store-Schlüssel (electron-store, Punkt-Pfade nesten):
 //   enabled  Liste der vom Nutzer aktivierten externen IDs. Bewusst

@@ -137,7 +137,12 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       // im frischen Profil aktiv ist. „Anlagen" (4T-0791, Epic 3E-0125) ist
       // Kern und immer sichtbar; seine Bereichs-Uebersteuerung
       // (attachmentsArea) fehlt hier wie die uebrigen bereichsgebundenen.
-      await expect(nav).toHaveCount(19);
+      // „Rechtschreibung" (4T-0581, Epic 3E-0107) kommt als eigener Bereich
+      // der Erweiterung spellcheck hinzu; sie ist im frischen Profil aktiv,
+      // weil der Default die leere Deaktivierungs-Liste ist. Ausgeschaltet
+      // startet allein der Funktions-Schalter innerhalb des Bereichs, der
+      // Bereich selbst ist sichtbar.
+      await expect(nav).toHaveCount(20);
       const groups = page.locator(`${SETTINGS_PAGE} .settings-nav-group`);
       await expect(groups).toHaveCount(1);
       await expect(groups.first()).toHaveAttribute('data-nav-group', 'general');

@@ -9,10 +9,17 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
 
 // Sidebar-Container je Pane ergänzen (api-stub baut nur die Pane-Gruppen).
+// 4T-0825: dazu das Render-Gerüst, das der Andockpunkt abfragt — Ansicht-
+// Klasse am .content, Render-Ziel spezifisch unter .pane-rendered.
 for (const group of document.querySelectorAll('.pane-group')) {
   const aside = document.createElement('aside');
   aside.className = 'pane-sidebar pane-sidebar-left';
   group.appendChild(aside);
+  const content = document.createElement('div');
+  content.className = 'content view-rendered';
+  content.innerHTML =
+    '<section class="pane pane-rendered"><article class="markdown-body"></article></section>';
+  group.appendChild(content);
 }
 
 window.api.scanExternalExtensions = async () => [];
@@ -271,5 +278,148 @@ describe('extension-host: Vertrauens-Ablauf (4T-0298)', () => {
     const entry = host.externalExtensionEntries()[0];
     expect(entry.status).toBe('error');
     expect(entry.lastError).toContain('Plugin kaputt');
+  });
+});
+
+// 4T-0825 (Epic 3E-0103): Render-Andockpunkt der API v1.1.
+describe('extension-host: Render-Andockpunkt (4T-0825)', () => {
+  // Eigener Zugriffs-Helfer: die Indizierung direkt am querySelectorAll-
+  // Ergebnis bricht der Formatierer so um, dass ESLint sie als mehrzeiligen
+  // Property-Zugriff anmahnt (no-unexpected-multiline).
+  const groupOf = (paneIdx) => document.querySelectorAll('.pane-group')[paneIdx];
+  const contentOf = (paneIdx) => groupOf(paneIdx).querySelector('.content');
+  const targetOf = (paneIdx) => groupOf(paneIdx).querySelector('.pane-rendered .markdown-body');
+
+  // Der Observer meldet als Microtask, die Buendelung haengt einen weiteren
+  // an — ein Makrotask wartet beide sicher ab.
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  async function aktiviereUndHoleCtx() {
+    host.resetExternalHostForTests([makeEntry('test-ext', ENTRY_SRC)]);
+    await host.applyExternalStateForTests({
+      enabled: ['test-ext'],
+      trusted: { 'test-ext': '1.0.0' },
+      errors: {},
+    });
+    return globalThis.__extHostCtx;
+  }
+
+  beforeEach(() => {
+    for (const paneIdx of [0, 1]) {
+      contentOf(paneIdx).className = 'content view-rendered';
+      targetOf(paneIdx).innerHTML = '';
+    }
+  });
+
+  it('getRenderRoot liefert das Render-Ziel der genannten Spalte', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    expect(ctx.getRenderRoot(0)).toBe(targetOf(0));
+    expect(ctx.getRenderRoot(1)).toBe(targetOf(1));
+    expect(ctx.getRenderRoot(0)).not.toBe(targetOf(1));
+  });
+
+  it('getRenderRoot liefert null ohne gerenderte Ansicht und bei unbekannter Spalte', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    // Geteilte Ansicht zeigt das Render-Ziel ebenfalls.
+    contentOf(0).className = 'content view-split';
+    expect(ctx.getRenderRoot(0)).toBe(targetOf(0));
+    for (const mode of ['view-source', 'view-live', 'view-system']) {
+      contentOf(0).className = `content ${mode}`;
+      expect(ctx.getRenderRoot(0)).toBeNull();
+    }
+    expect(ctx.getRenderRoot(7)).toBeNull();
+  });
+
+  it('onRenderUpdated feuert je Neuaufbau einmal, mit der richtigen Spalte', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    const gesehen = [];
+    ctx.onRenderUpdated((paneIdx) => gesehen.push(paneIdx));
+
+    // Mehrere Kind-Knoten in einem Zug: ein Ereignis, nicht drei.
+    targetOf(0).innerHTML = '<p>a</p><p>b</p><p>c</p>';
+    await tick();
+    expect(gesehen).toEqual([0]);
+
+    targetOf(1).innerHTML = '<p>x</p>';
+    await tick();
+    expect(gesehen).toEqual([0, 1]);
+  });
+
+  it('der Ansichts-Wechsel meldet auch ohne Neuaufbau des Render-DOM', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    const gesehen = [];
+    ctx.onRenderUpdated((paneIdx) => gesehen.push(paneIdx));
+
+    // Weg in die Quelltext-Ansicht: die gerenderte Ansicht verschwindet.
+    contentOf(0).className = 'content view-source';
+    await tick();
+    expect(gesehen).toEqual([0]);
+    expect(ctx.getRenderRoot(0)).toBeNull();
+
+    // Wechsel zwischen zwei Ansichten ohne Render-Pane ist kein Ereignis.
+    contentOf(0).className = 'content view-live';
+    await tick();
+    expect(gesehen).toEqual([0]);
+
+    // Rückweg: das Render-DOM bleibt unberührt (Skip-Cache), trotzdem muss
+    // die Erweiterung erfahren, dass ihr Ziel wieder da ist.
+    contentOf(0).className = 'content view-rendered';
+    await tick();
+    expect(gesehen).toEqual([0, 0]);
+    expect(ctx.getRenderRoot(0)).toBe(targetOf(0));
+  });
+
+  it('werfender Callback bricht weder Host noch die übrigen Callbacks ab', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    const gesehen = [];
+    ctx.onRenderUpdated(() => {
+      throw new Error('Absichtlich defekt');
+    });
+    ctx.onRenderUpdated(() => gesehen.push('zweiter'));
+    targetOf(0).innerHTML = '<p>a</p>';
+    await tick();
+    expect(gesehen).toEqual(['zweiter']);
+    expect(host.isExternalExtensionActive('test-ext')).toBe(true);
+  });
+
+  it('die zurückgegebene Abmelde-Funktion stoppt weitere Meldungen', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    const gesehen = [];
+    const off = ctx.onRenderUpdated((paneIdx) => gesehen.push(paneIdx));
+    targetOf(0).innerHTML = '<p>a</p>';
+    await tick();
+    off();
+    targetOf(0).innerHTML = '<p>b</p>';
+    await tick();
+    expect(gesehen).toEqual([0]);
+  });
+
+  it('Deaktivieren meldet ohne Zutun der Erweiterung ab', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    const gesehen = [];
+    ctx.onRenderUpdated((paneIdx) => gesehen.push(paneIdx));
+    await host.applyExternalStateForTests({
+      enabled: [],
+      trusted: { 'test-ext': '1.0.0' },
+      errors: {},
+    });
+    targetOf(0).innerHTML = '<p>nach dem Deaktivieren</p>';
+    await tick();
+    expect(gesehen).toEqual([]);
+  });
+
+  it('ohne registrierten Callback entsteht keine Meldung', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    expect(typeof ctx.onRenderUpdated).toBe('function');
+    targetOf(0).innerHTML = '<p>a</p>';
+    await tick();
+    // Kein Zuhoerer, kein Fehler — der Fall ist der Normalzustand jeder
+    // Erweiterung, die den Andockpunkt nicht nutzt.
+    expect(host.isExternalExtensionActive('test-ext')).toBe(true);
+  });
+
+  it('onRenderUpdated ohne Callback ist ein Fehler', async () => {
+    const ctx = await aktiviereUndHoleCtx();
+    expect(() => ctx.onRenderUpdated()).toThrow(/Callback/);
   });
 });

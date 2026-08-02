@@ -306,6 +306,22 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.linter',
     descKey: 'help.feature.linter',
   },
+  // 4T-0581 (Epic 3E-0107): Rechtschreibpruefung des Betriebssystems
+  // (Erweiterungs-Pruefschritt des Epics: abgrenzbare Zusatz-Funktion,
+  // Leitlinie "im Zweifel schaltbar"). Direkt hinter dem Linter, weil beide
+  // Maengel im Editor markieren. Ohne commands-Liste: die Funktion wirkt
+  // ueber ein Content-Attribut und das Kontextmenue, eigene Registry-
+  // Kommandos hat sie nicht. Im Aus-Zustand entfaellt der Einstellungs-
+  // Bereich, das Content-Attribut faellt auf den CodeMirror-Standard
+  // zurueck (keine Pruefung) und das Kontextmenue zeigt keine Vorschlags-
+  // Sektion; der Schalter-Stand bleibt gespeichert.
+  {
+    id: 'spellcheck',
+    category: 'tools',
+    nameKey: 'help.featureName.spellcheck',
+    descKey: 'help.feature.spellcheck',
+    settingsSections: ['spellcheck'],
+  },
   // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als schaltbares Zusatz-
   // Werkzeug (Erweiterungs-Pruefschritt des Epics). Ein Katalog-Eintrag
   // steht ihr gegenueber, deshalb die help.*-Keys statt eigener

@@ -1,6 +1,6 @@
 # Tools
 
-Nine helpers for daily text work: linter, search, search and replace, table editor, PDF export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
+Ten helpers for daily text work: linter, spell checking, search, search and replace, table editor, PDF export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
 
 ## Markdown linter
 
@@ -15,6 +15,32 @@ The linter subtly marks seven typical issues in the editor (Source, Split and Li
 | Broken wiki anchor | `[[Project plan#Missing]]` | `[[Project plan#Milestones]]` (existing anchor) |
 | Unknown callout type | `> [!importantly] Title` | `> [!warning] Title` (type from the whitelist) |
 | Unpaired comment marker | `Text %% without closing` | `Text %%private%% more` or `\%%` for a literal `%%` |
+
+## Spell checking
+
+Spell checking marks misspelled words in the editor (source and live view). It is off by default and is switched on under Settings → Spell checking.
+
+Checking uses the spell checker of the operating system. The application brings no dictionary of its own and downloads none; without a network connection the check works exactly the same.
+
+### Which language is checked
+
+The language of the operating system applies, independently of the interface language. Setting the interface to Italian while the operating system runs in Portuguese gives a Portuguese check. A text in a language other than that of the operating system is therefore marked throughout; that is not a fault but the consequence of this decision. The checking language is changed in the language settings of the operating system.
+
+There is deliberately no language selection inside the application. It would mean downloading dictionaries from the network, and that is precisely what should not happen.
+
+### Correcting
+
+A right-click on a marked word opens the editor context menu with up to five suggestions at the top. Clicking a suggestion replaces the word. Below them sits "Add to dictionary": the word then counts as correct permanently, across restarts as well. With no marked word under the pointer this part of the menu is absent.
+
+The words added this way are listed under Settings → Spell checking and can be removed there individually.
+
+### Limit
+
+Markdown syntax, paths and code are checked along with the rest, because the checker sees the text word by word and knows nothing about the markup. That is the reason the check is off by default.
+
+### Extension
+
+Spell checking is a switchable extension (Settings → Extensions). When off, marks, suggestions and the settings area are gone; the switch state is kept.
 
 ## Full-text search
 

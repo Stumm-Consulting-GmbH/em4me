@@ -29,7 +29,7 @@ import { reportMenuStateNow } from './tabs.js';
 import { isAllEmpty, persistSetting } from './views.js';
 import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js';
 import { decideNoteSync } from './notes-sync.js';
-import { createNotesEditorState } from './editor.js';
+import { applySpellcheckToView, createNotesEditorState } from './editor.js';
 import { showEditorContextMenu } from './editor-context-menu.js';
 
 // Vorschau-Default (Setting notes.previewByDefault, Default an). Beim Panel-
@@ -51,6 +51,14 @@ export function setNotesPreviewByDefault(value) {
 
 // Eine CodeMirror-Instanz pro Spalte (Muster paneEditors).
 const notesEditors = [];
+
+// 4T-0581 (Epic 3E-0107): Schalter der Rechtschreibpruefung auch in den
+// Notiz-Feldern nachziehen. Der Anstoss kommt als Dokument-Ereignis aus
+// editor.js (Muster scg:taskstates-changed); ein direkter Aufruf von dort
+// waere ein Modul-Zyklus, weil dieses Modul aus editor.js liest.
+document.addEventListener('scg:spellcheck-changed', () => {
+  for (const view of notesEditors) applySpellcheckToView(view);
+});
 
 function activeTabForPane(paneIdx) {
   const pane = state.panes[paneIdx];

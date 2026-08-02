@@ -50,11 +50,16 @@ import {
   editorCompartments,
   fuegeAnlagenEin,
   paneEditors,
+  refreshSpellcheckInEditors,
   scheduleLint,
   syncEditorForPane,
   typewriterScrollExtension,
   updateWindowTitle,
 } from './editor.js';
+// 4T-0581 (Epic 3E-0107): Store-Schluessel und Normalisierung des Schalters.
+import { SPELLCHECK_KEY, normalizeSpellcheckSetting } from '../../shared/spellcheck.js';
+// 4T-0582 (Epic 3E-0107): Empfangspfad der Rechtschreib-Vorschlaege.
+import { handleSpellcheckContext } from './editor-context-menu.js';
 // 4T-0789 (Epic 3E-0125): Anlagen aus einem Zieh-Vorgang einsammeln.
 import { anlagenAusDataTransfer } from './attachments.js';
 import {
@@ -704,6 +709,25 @@ if (typeof api.onExtensionsChanged === 'function') {
   });
 }
 
+// 4T-0582 (Epic 3E-0107): Vorschlags-Daten des Main-Prozesses an das
+// Editor-Kontextmenue reichen. Die Meldung folgt jedem Rechtsklick, der das
+// DOM-Ereignis nicht abbricht; ohne Tippfehler unter dem Zeiger ist sie leer
+// und das Menue bleibt unveraendert.
+if (typeof api.onSpellcheckContext === 'function') {
+  api.onSpellcheckContext((payload) => handleSpellcheckContext(payload));
+}
+
+// 4T-0581 (Epic 3E-0107): Broadcast des Rechtschreib-Schalters (auch an das
+// ausloesende Fenster — die Rekonfiguration der Compartments ist idempotent).
+// Vor dem Ende von init() genuegt das Setzen des Zustands: die Editor-Flaechen
+// entstehen erst danach und lesen ihn beim Aufbau.
+if (typeof api.onSpellcheckChanged === 'function') {
+  api.onSpellcheckChanged((value) => {
+    state.spellcheck = normalizeSpellcheckSetting(value);
+    if (initDone) refreshSpellcheckInEditors();
+  });
+}
+
 // 4T-0298 (Epic 3E-0053): Broadcast der EXTERNEN Erweiterungen (auch das
 // ausloesende Fenster empfaengt ihn — der Host laedt Store und Scan neu
 // und gleicht idempotent an; ein unveraenderter Zustand ist ein No-op).
@@ -1044,6 +1068,14 @@ function registerExtensionRuntimeHooks() {
   attachExtensionRuntime('toolbar', {
     deactivate: applyFormatToolbarUi,
     activate: applyFormatToolbarUi,
+  });
+  // 4T-0581 (Epic 3E-0107): Aus-Zustand nimmt das spellcheck-Attribut von den
+  // Editor-Flaechen zurueck (CodeMirror-Standard, also keine Pruefung); der
+  // An-Zustand stellt es her, sofern der Schalter des Einstellungs-Bereichs
+  // gesetzt ist. Der Schalter-Stand bleibt in beiden Richtungen gespeichert.
+  attachExtensionRuntime('spellcheck', {
+    deactivate: refreshSpellcheckInEditors,
+    activate: refreshSpellcheckInEditors,
   });
 }
 
@@ -1624,6 +1656,10 @@ export async function init() {
   // Tabellen ein (Default an); die Editor-Belegung liest state.tabIndents
   // synchron, damit der Schalter ohne Rekonfiguration wirkt.
   state.tabIndents = (await api.getSetting('input.tabIndents')) !== false;
+  // 4T-0581 (Epic 3E-0107): Schalter der Rechtschreibpruefung (Default aus).
+  // Muss vor dem ersten createEditorState stehen, damit das
+  // spellcheck-Compartment gleich mit dem richtigen Wert entsteht.
+  state.spellcheck = normalizeSpellcheckSetting(await api.getSetting(SPELLCHECK_KEY));
   // 4T-0604 (Epic 3E-0113): Zeitstempel-Automatik laden. Gebündelt über
   // Promise.all, damit der Start nicht um sechs einzelne IPC-Runden verzögert
   // wird; der Speicher-Hook liest state.frontmatterTimestamps synchron.

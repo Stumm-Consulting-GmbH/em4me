@@ -123,6 +123,9 @@ const HELP_FEATURE_GROUPS = [
       // hinter dem Suchraum-Eintrag, weil sie dessen dritter Fall ist.
       'help.feature.areaSearch',
       'help.feature.linter',
+      // 4T-0583 (Epic 3E-0107): Rechtschreibpruefung direkt hinter dem
+      // Linter, weil beide Maengel im Editor markieren.
+      'help.feature.spellcheck',
       // 4T-0035 (Epic 3E-0006): perspective-table mit Querverweis auf den eigenen Tab.
       'help.feature.perspectiveTable',
       // 4T-0047 (Epic 3E-0009): Sortierung, Status-Hervorhebung, Spalten-Default.

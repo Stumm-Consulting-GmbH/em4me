@@ -231,6 +231,18 @@ contextBridge.exposeInMainWorld('api', {
   getSetting: (key) => ipcRenderer.invoke('settings:get', key),
   setSetting: (key, value) => ipcRenderer.invoke('settings:set', key, value),
 
+  // 4T-0581/4T-0582 (Epic 3E-0107): Rechtschreibpruefung. Das falsch
+  // geschriebene Wort samt Vorschlaegen meldet ausschliesslich der
+  // Main-Prozess (webContents 'context-menu'); Ersetzen und Woerterbuch
+  // brauchen ebenfalls Main-Zugriff. Der Schalter-Broadcast erreicht alle
+  // Fenster einschliesslich des ausloesenden.
+  onSpellcheckContext: (cb) => ipcRenderer.on('spellcheck:context', (_e, payload) => cb(payload)),
+  onSpellcheckChanged: (cb) => ipcRenderer.on('spellcheck:changed', (_e, value) => cb(value)),
+  spellcheckReplace: (word) => ipcRenderer.invoke('spellcheck:replace', word),
+  spellcheckAddWord: (word) => ipcRenderer.invoke('spellcheck:addWord', word),
+  spellcheckRemoveWord: (word) => ipcRenderer.invoke('spellcheck:removeWord', word),
+  spellcheckListWords: () => ipcRenderer.invoke('spellcheck:listWords'),
+
   // 4T-0204: aktives Task-Status-Set der Render-Pipeline setzen (Aufruf
   // beim App-Start und bei jedem taskStates-Broadcast; Labels kommen
   // bereits lokalisiert aus dem Renderer).

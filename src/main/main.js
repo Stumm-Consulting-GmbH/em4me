@@ -14,6 +14,8 @@ const {
   nativeTheme,
   screen,
   Notification,
+  // 4T-0582 (Epic 3E-0107): Woerterbuch-Pflege der Rechtschreibpruefung.
+  session,
 } = require('electron');
 const chokidar = require('chokidar');
 const { buildMenu, tForLocale } = require('./menu');
@@ -27,6 +29,8 @@ const attachmentPath = require('./attachment-path');
 // 4T-0337 (Epic 3E-0061): Unterseiten-Namens-Logik fuer Embeds und
 // Anlage-/Umbenennen-Kommandos.
 const subpages = require('../shared/subpages');
+// 4T-0581 (Epic 3E-0107): Store-Schluessel der Rechtschreibpruefung.
+const { SPELLCHECK_KEY } = require('../shared/spellcheck');
 // 4T-0345 (Epic 3E-0062): Rewrite-Kern (4T-0344) fuer das automatische Link-
 // Update beim Umbenennen — rein string-basiert, EOL-/BOM-erhaltend.
 const { computeLinkRewrites } = require('../shared/link-rewrite');
@@ -2052,6 +2056,21 @@ function createWindow(opts = {}) {
       // im Auslieferungs-Zustand bleibt die Drosselung, weil sie bei
       // Fenstern im Hintergrund Rechenzeit spart.
       ...(IM_TESTLAUF ? { backgroundThrottling: false } : {}),
+      // 4T-0581 (Epic 3E-0107): Rechtschreibpruefung des Betriebssystems.
+      // Der Wert steht bewusst FEST auf true und folgt NICHT dem Schalter:
+      // Messung vom 2026-08-02 an Electron 33 — ein mit spellcheck:false
+      // erzeugtes WebContents laesst sich spaeter durch nichts mehr zum
+      // Pruefen bewegen, auch nicht durch setSpellCheckerEnabled(true).
+      // Der eigentliche Schalter sitzt deshalb im Renderer am Content-
+      // Attribut der Editor-Flaeche (editor.js, spellcheck-Compartment);
+      // CodeMirror setzt dort von Haus aus spellcheck="false", der
+      // Aus-Zustand ist damit exakt das Verhalten ohne diese Erweiterung.
+      // Bewusst NICHT gesetzt wird die Pruefsprache: Electron uebernimmt
+      // sie von selbst aus dem Betriebssystem, und jeder eigene
+      // setSpellCheckerLanguages-Aufruf stoesst den Download eines
+      // Woerterbuchs aus dem Netz an (Architekturentscheidung 6 des Epics,
+      // Waechter in test/unit/spellcheck.test.js).
+      spellcheck: true,
     },
   };
   // Workaround fuer Electron-Multi-Monitor-DPI-Bug (electron/electron Issues
@@ -2242,6 +2261,29 @@ function createWindow(opts = {}) {
   // Erst-Load laeuft ueber loadFile, ein Renderer-Reload (Strg+R/DevTools)
   // loest kein will-navigate aus; pauschales preventDefault ist daher safe.
   win.webContents.on('will-navigate', (e) => e.preventDefault());
+
+  // 4T-0582 (Epic 3E-0107): Vorschlags-Daten der Rechtschreibpruefung an den
+  // Renderer weiterreichen. Chromium meldet das falsch geschriebene Wort und
+  // seine Korrektur-Vorschlaege ausschliesslich hier im Main-Prozess; das
+  // eigene HTML-Kontextmenue im Renderer kaeme sonst nicht an sie heran.
+  //
+  // Zeitliche Ordnung (gemessen am 2026-08-02): Das DOM-Ereignis contextmenu
+  // laeuft zuerst im Renderer, dieses Ereignis danach; die Daten treffen
+  // 0,3 bis 2,2 ms nach dem Menue-Aufbau im Renderer ein und damit im selben
+  // Bild. Der Renderer baut das Menue deshalb sofort und ergaenzt die
+  // Vorschlags-Sektion beim Eintreffen (editor-context-menu.js).
+  //
+  // Voraussetzung dafuer ist, dass der Renderer das DOM-Ereignis NICHT mit
+  // preventDefault abbricht: ein Abbruch unterdrueckt dieses Ereignis
+  // vollstaendig (ebenfalls gemessen). Ein natives Menue entsteht dadurch
+  // nicht, weil Electron von sich aus keines anbietet.
+  win.webContents.on('context-menu', (_e, params) => {
+    if (win.isDestroyed()) return;
+    win.webContents.send('spellcheck:context', {
+      word: typeof params.misspelledWord === 'string' ? params.misspelledWord : '',
+      suggestions: Array.isArray(params.dictionarySuggestions) ? params.dictionarySuggestions : [],
+    });
+  });
 
   return win;
 }
@@ -2646,9 +2688,46 @@ function registerIpc() {
     }
   });
 
+  // --- 4T-0582 (Epic 3E-0107): Rechtschreibpruefung ---------------------------
+  // Ersetzen und Woerterbuch laufen ueber das WebContents bzw. die Session; im
+  // Renderer sind beide nicht erreichbar. Die Pruefsprache wird bewusst
+  // nirgends gesetzt (Architekturentscheidung 6 des Epics).
+  ipcMain.handle('spellcheck:replace', (event, word) => {
+    if (typeof word !== 'string' || word === '') return false;
+    event.sender.replaceMisspelling(word);
+    return true;
+  });
+  ipcMain.handle('spellcheck:addWord', (_event, word) => {
+    if (typeof word !== 'string' || word.trim() === '') return false;
+    return session.defaultSession.addWordToSpellCheckerDictionary(word);
+  });
+  ipcMain.handle('spellcheck:removeWord', (_event, word) => {
+    if (typeof word !== 'string' || word === '') return false;
+    return session.defaultSession.removeWordFromSpellCheckerDictionary(word);
+  });
+  ipcMain.handle('spellcheck:listWords', async () => {
+    try {
+      const words = await session.defaultSession.listWordsInSpellCheckerDictionary();
+      return Array.isArray(words) ? words : [];
+    } catch (err) {
+      // Das Woerterbuch liegt beim Betriebssystem; ein Lesefehler darf die
+      // Einstellungs-Seite nicht zerreissen, sie zeigt dann die leere Liste.
+      console.warn('listWordsInSpellCheckerDictionary fehlgeschlagen:', err);
+      return [];
+    }
+  });
+
   ipcMain.handle('settings:get', (_event, key) => store?.get(key));
   ipcMain.handle('settings:set', (event, key, value) => {
     store?.set(key, value);
+    // 4T-0581 (Epic 3E-0107): Schalter der Rechtschreibpruefung an alle
+    // Fenster verteilen (Muster 'taskStates', einschliesslich des Senders —
+    // der Empfangspfad rekonfiguriert die Editor-Compartments idempotent).
+    if (key === SPELLCHECK_KEY) {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('spellcheck:changed', value === true);
+      }
+    }
     // Menue-relevante Settings spiegeln sich in den Haekchen wider. Bei einem
     // Wechsel in einem Fenster muessen alle Fenster-Menues angepasst werden.
     if (key === 'restoreSession' || key === 'autoSave') applyMenuToAllWindows();

@@ -40,6 +40,8 @@ import { COMMANDS, mergeBindings, acceleratorToCmKey } from '../../shared/comman
 // 4T-0294: Linter und Typewriter-Scroll sind schaltbare Erweiterungen.
 import { disabledCommandIdSet } from '../../shared/extensions.js';
 import { getDisabledExtensionIds, isExtensionActive } from './extension-lifecycle.js';
+// 4T-0581 (Epic 3E-0107): Schalter-Aufloesung der Rechtschreibpruefung.
+import { SPELLCHECK_EXTENSION_ID, spellcheckAttributeValue } from '../../shared/spellcheck.js';
 // 4T-0589 (Epic 3E-0109): Die reinen Pipe-Tabellen-Text-Helfer leben im
 // Shared-Modul table-edit.js (gemeinsamer Kern mit den Tabellen-Operationen
 // des Kontextmenüs); editor.js re-exportiert sie für Bestands-Konsumenten.
@@ -190,7 +192,58 @@ export const editorCompartments = {
   // Kommandos (Fold). Compartment, damit 4T-0208 bei hotkeys:changed zur
   // Laufzeit rekonfigurieren kann, ohne den Editor neu aufzubauen.
   commandKeymap: new Compartment(),
+  // 4T-0581 (Epic 3E-0107): spellcheck-Attribut der Editor-Flaeche. Das ist
+  // der eigentliche Schalter der Rechtschreibpruefung — im Main steht
+  // webPreferences.spellcheck fest auf true, weil ein damit erzeugtes
+  // WebContents sich sonst nie mehr zum Pruefen bewegen laesst. Compartment,
+  // damit der Schalter ohne Neustart und ohne Editor-Neuaufbau wirkt.
+  spellcheck: new Compartment(),
 };
+
+// 4T-0581 (Epic 3E-0107): Ist die Pruefung gerade wirksam? Schalter aus den
+// Einstellungen UND aktive Erweiterung.
+export function isSpellcheckActive() {
+  return (
+    spellcheckAttributeValue(
+      state.spellcheck === true,
+      isExtensionActive(SPELLCHECK_EXTENSION_ID),
+    ) === 'true'
+  );
+}
+
+// Die Extension fuer das spellcheck-Compartment im aktuellen Zustand.
+// CodeMirror setzt am Inhalts-Element von Haus aus spellcheck="false"; ein
+// ausdrueckliches 'false' ist damit genau der Bestand ohne diese Erweiterung.
+function spellcheckContentAttributes() {
+  return EditorView.contentAttributes.of({
+    spellcheck: spellcheckAttributeValue(
+      state.spellcheck === true,
+      isExtensionActive(SPELLCHECK_EXTENSION_ID),
+    ),
+  });
+}
+
+// Zieht den Schalter in allen offenen Editor-Flaechen nach: die Haupt-Editoren
+// der Spalten direkt, die Notiz-Felder ueber ein Dokument-Ereignis (sie liegen
+// in notes-panel.js, das seinerseits aus diesem Modul liest — der Umweg
+// vermeidet den Modul-Zyklus, Muster scg:taskstates-changed).
+export function refreshSpellcheckInEditors() {
+  for (const view of paneEditors) {
+    if (!view) continue;
+    view.dispatch({
+      effects: editorCompartments.spellcheck.reconfigure(spellcheckContentAttributes()),
+    });
+  }
+  document.dispatchEvent(new CustomEvent('scg:spellcheck-changed'));
+}
+
+// Fuer das Notiz-Feld: dieselbe Rekonfiguration auf einer fremden View.
+export function applySpellcheckToView(view) {
+  if (!view) return;
+  view.dispatch({
+    effects: editorCompartments.spellcheck.reconfigure(spellcheckContentAttributes()),
+  });
+}
 
 // 4T-0590 (Epic 3E-0109): Tabellen-Kommandos (editorScoped) als dünne
 // Wrapper auf das Laufzeit-Backend in editor-table-tools.js. Das Objekt
@@ -284,6 +337,9 @@ export function createNotesEditorState({ content = '', placeholderText = '', onD
       pasteLinkHandler,
       // 4T-0790 (Epic 3E-0125): Doppelklick auf ein Bild oeffnet die Anlage.
       imageOpenHandler,
+      // 4T-0581 (Epic 3E-0107): Das Notiz-Feld folgt demselben Schalter wie
+      // der Haupt-Editor (einheitliches Verhalten beider Schreibflaechen).
+      editorCompartments.spellcheck.of(spellcheckContentAttributes()),
       placeholderText ? placeholder(placeholderText) : [],
       buildEditorCommandKeymap(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
@@ -1266,6 +1322,9 @@ export function createEditorState(opts = {}) {
       // 4T-0088: basePath-Compartment, initial leer. syncEditorForPane
       // rekonfiguriert pro Tab-Wechsel.
       editorCompartments.basePath.of(liveBasePathFacet.of(opts.basePath || '')),
+      // 4T-0581 (Epic 3E-0107): spellcheck-Attribut aus dem aktuellen
+      // Schalter-Zustand; refreshSpellcheckInEditors rekonfiguriert es.
+      editorCompartments.spellcheck.of(spellcheckContentAttributes()),
       // 4T-0603 (Epic 3E-0113): eingebauten lang-markdown-Paste-Handler
       // abschalten, damit der eigene pasteLinkHandler mit unseren Regeln
       // (Spitze-Klammern, Schalter, Code-Schutz) allein greift.

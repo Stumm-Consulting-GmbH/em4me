@@ -274,6 +274,13 @@
       "hinweis": "FB-04 (bare URL); broken-wiki-link-Lookup unit in test/unit/backlinks.test.js."
     },
     {
+      "key": "help.feature.spellcheck",
+      "id": "F-249",
+      "testart": "unit",
+      "tests": ["test/unit/spellcheck.test.js"],
+      "hinweis": "Schalter-Aufloesung, Woerterbuch-Normalisierung und der Waechter gegen setSpellCheckerLanguages. Der Pruefer selbst gehoert dem Betriebssystem und ist im Testlauf nicht nachstellbar; die Kette Rechtsklick bis Vorschlag ist am 2026-08-02 an Electron 33 gemessen (Belege im Epic 3E-0107)."
+    },
+    {
       "key": "help.feature.perspectiveTable",
       "id": "F-034",
       "testart": "snapshot",

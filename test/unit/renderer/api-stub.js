@@ -30,6 +30,12 @@ window.api = {
   // (readAppearanceFromStore) und persistiert bei Anwenden.
   getSetting: async () => undefined,
   setSetting: async () => {},
+  // 4T-0582 (Epic 3E-0107): Der Einstellungs-Bereich Rechtschreibprüfung liest
+  // beim Aufbau die Wortliste des Betriebssystem-Wörterbuchs.
+  spellcheckListWords: async () => [],
+  spellcheckRemoveWord: async () => true,
+  spellcheckAddWord: async () => true,
+  spellcheckReplace: async () => true,
 };
 
 // Minimales DOM-Geruest fuer Module, die beim Laden Container abfragen
