@@ -16,6 +16,15 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 const EXT_FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'extensions');
+// 4T-0826 (Epic 3E-0103): Das Referenz-Paket ist das real ausgelieferte
+// Beispiel aus addon_examples/, keine Attrappe im Test-Ordner. Bricht die
+// API, bricht sichtbar das veroeffentlichte Beispiel. Die Fehlerfall-Pakete
+// bleiben Fixtures — sie sollen absichtlich kaputt sein.
+const BEISPIEL_PAKET = path.resolve(__dirname, '..', '..', '..', 'addon_examples', 'notiz-merker');
+
+function paketQuelle(name) {
+  return name === 'notiz-merker' ? BEISPIEL_PAKET : path.join(EXT_FIXTURES, name);
+}
 const MD_FIXTURE = path.resolve(
   __dirname,
   '..',
@@ -45,7 +54,7 @@ function kopiereRekursiv(quelle, ziel) {
 function prepareUserData({ packages = [], storeSeed = null } = {}) {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-ext-'));
   for (const name of packages) {
-    kopiereRekursiv(path.join(EXT_FIXTURES, name), path.join(userData, 'extensions', name));
+    kopiereRekursiv(paketQuelle(name), path.join(userData, 'extensions', name));
   }
   if (storeSeed) {
     fs.writeFileSync(path.join(userData, 'config.json'), JSON.stringify(storeSeed, null, 2));
@@ -53,29 +62,64 @@ function prepareUserData({ packages = [], storeSeed = null } = {}) {
   return userData;
 }
 
+const MERKER_SEED = {
+  extensionsExternal: { enabled: ['notiz-merker'], trusted: { 'notiz-merker': '1.0.0' } },
+};
+const MERKER_PANEL = '.pane-group[data-pane="0"] .sidebar-section-ext-notiz-merker-merker';
+
 test.describe('EX-01: aktivierte, bestätigte Erweiterung wird geladen und wirkt', () => {
   test('Referenz-Erweiterung: Markdown-Plugin, Panel und Kommando', async () => {
-    const userData = prepareUserData({
-      packages: ['beispiel'],
-      storeSeed: {
-        extensionsExternal: { enabled: ['beispiel'], trusted: { beispiel: '1.0.0' } },
-      },
-    });
+    const userData = prepareUserData({ packages: ['notiz-merker'], storeSeed: MERKER_SEED });
     const { app, page } = await launchApp({ args: [MD_FIXTURE], userData });
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
-      // Render-Beitrag: ':-)' wird zum Smiley-Span (vm-evaluiertes Plugin
-      // in der Preload-Pipeline).
-      await expect(page.locator(`${SEL.markdownBody0} .ext-beispiel-smiley`).first()).toBeVisible();
-      // Sidebar-Panel: Sektion der Erweiterung ist in Pane 0 sichtbar.
-      const panel = page.locator('.pane-group[data-pane="0"] .sidebar-section-ext-beispiel-demo');
+      // Render-Beitrag: '>>Text<<' wird zur Marke (vm-evaluiertes Plugin
+      // in der Preload-Pipeline). Die Fixture trägt drei Merker.
+      const marken = page.locator(`${SEL.markdownBody0} .ext-notiz-merker-marke`);
+      await expect(marken).toHaveCount(3);
+      await expect(marken.first()).toHaveText('mit dem Fachbereich abstimmen');
+      // Sidebar-Panel: Sektion der Erweiterung ist in Pane 0 sichtbar und
+      // listet die Merker in Dokument-Reihenfolge.
+      const panel = page.locator(MERKER_PANEL);
       await expect(panel).toBeVisible();
-      await expect(panel.locator('.ext-beispiel-info')).toContainText('Beispiel-Erweiterung');
-      // Kommando mit Standard-Kürzel: der Panel-Zähler zählt hoch.
-      const counter = panel.locator('.ext-beispiel-counter');
-      await expect(counter).toHaveText('0');
-      await page.keyboard.press('Control+Alt+9');
-      await expect(counter).toHaveText('1');
+      const eintraege = panel.locator('.ext-notiz-merker-eintrag');
+      await expect(eintraege).toHaveCount(3);
+      await expect(eintraege.nth(2)).toHaveText('Anhang ergaenzen');
+      // Kommando mit Standard-Kürzel: springt zyklisch von Marke zu Marke.
+      await page.keyboard.press('Control+Alt+M');
+      await expect(marken.first()).toHaveClass(/ext-notiz-merker-aktiv/);
+      await page.keyboard.press('Control+Alt+M');
+      await expect(marken.nth(1)).toHaveClass(/ext-notiz-merker-aktiv/);
+      await expect(marken.first()).not.toHaveClass(/ext-notiz-merker-aktiv/);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+
+  // 4T-0826: Das Panel koppelt über den Render-Andockpunkt der API v1.1 an
+  // das Dokument. Der Klick-Weg und das Nachziehen der Liste sind der Kern
+  // des Beispiels und damit der eigentliche Härtetest des Andockpunkts.
+  test('Panel-Klick springt zur Stelle; die Liste zieht beim Ansichts-Wechsel nach', async () => {
+    const userData = prepareUserData({ packages: ['notiz-merker'], storeSeed: MERKER_SEED });
+    const { app, page } = await launchApp({ args: [MD_FIXTURE], userData });
+    try {
+      const panel = page.locator(MERKER_PANEL);
+      await expect(panel.locator('.ext-notiz-merker-eintrag')).toHaveCount(3);
+      await panel.locator('.ext-notiz-merker-eintrag').nth(1).click();
+      await expect(page.locator(`${SEL.markdownBody0} .ext-notiz-merker-marke`).nth(1)).toHaveClass(
+        /ext-notiz-merker-aktiv/,
+      );
+
+      // In der Quelltext-Ansicht gibt es keine gerenderte Ansicht; die
+      // Liste ist leer und zeigt den Leerzustand.
+      await page.locator(SEL.viewBtn('source')).click();
+      await expect(panel.locator('.ext-notiz-merker-leer')).toBeVisible();
+      await expect(panel.locator('.ext-notiz-merker-eintrag')).toHaveCount(0);
+
+      // Zurück in die gerenderte Ansicht: Die Liste kommt wieder, obwohl
+      // das Render-DOM dabei nicht neu gebaut wird (Skip-Cache).
+      await page.locator(SEL.viewBtn('rendered')).click();
+      await expect(panel.locator('.ext-notiz-merker-eintrag')).toHaveCount(3);
     } finally {
       await closeApp(app, userData);
     }
@@ -84,16 +128,16 @@ test.describe('EX-01: aktivierte, bestätigte Erweiterung wird geladen und wirkt
 
 test.describe('EX-02: ohne Aktivierung wird nichts ausgeführt', () => {
   test('installiertes, aber nicht aktiviertes Paket bleibt wirkungslos', async () => {
-    const userData = prepareUserData({ packages: ['beispiel'] });
+    const userData = prepareUserData({ packages: ['notiz-merker'] });
     const { app, page } = await launchApp({ args: [MD_FIXTURE], userData });
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await expect(page.locator(`${SEL.markdownBody0} h1`)).toBeVisible();
-      // Kein Render-Beitrag: ':-)' bleibt Klartext.
-      await expect(page.locator(`${SEL.markdownBody0} .ext-beispiel-smiley`)).toHaveCount(0);
-      await expect(page.locator(SEL.markdownBody0)).toContainText(':-)');
+      // Kein Render-Beitrag: '>>Text<<' bleibt Klartext.
+      await expect(page.locator(`${SEL.markdownBody0} .ext-notiz-merker-marke`)).toHaveCount(0);
+      await expect(page.locator(SEL.markdownBody0)).toContainText('>>Quelle pruefen<<');
       // Kein Panel, kein Kommando.
-      await expect(page.locator('.sidebar-section-ext-beispiel-demo')).toHaveCount(0);
+      await expect(page.locator('.sidebar-section-ext-notiz-merker-merker')).toHaveCount(0);
     } finally {
       await closeApp(app, userData);
     }
@@ -158,29 +202,28 @@ async function openExternalSection(page) {
 
 test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => {
   test('aktive Erweiterung wird gelistet; Deaktivieren wirkt ohne Anwenden/OK', async () => {
-    const userData = prepareUserData({
-      packages: ['beispiel'],
-      storeSeed: {
-        extensionsExternal: { enabled: ['beispiel'], trusted: { beispiel: '1.0.0' } },
-      },
-    });
+    const userData = prepareUserData({ packages: ['notiz-merker'], storeSeed: MERKER_SEED });
     const { app, page } = await launchApp({ args: [MD_FIXTURE], userData });
     try {
-      await expect(page.locator(`${SEL.markdownBody0} .ext-beispiel-smiley`).first()).toBeVisible();
+      await expect(
+        page.locator(`${SEL.markdownBody0} .ext-notiz-merker-marke`).first(),
+      ).toBeVisible();
       await openExternalSection(page);
-      const row = page.locator('#settings-extensions-external-list [data-extension-id="beispiel"]');
+      const row = page.locator(
+        '#settings-extensions-external-list [data-extension-id="notiz-merker"]',
+      );
       await expect(row).toHaveAttribute('data-status', 'active');
-      await expect(row).toContainText('Beispiel-Erweiterung');
+      await expect(row).toContainText('Notiz-Merker');
       await expect(row).toContainText('1.0.0');
       // Deaktivieren wirkt sofort: Panel verschwindet, Status wechselt.
-      await page.locator('#btn-ext-external-disable-beispiel').click();
+      await page.locator('#btn-ext-external-disable-notiz-merker').click();
       await expect(row).toHaveAttribute('data-status', 'inactive');
-      await expect(page.locator('.sidebar-section-ext-beispiel-demo')).toHaveCount(0);
+      await expect(page.locator('.sidebar-section-ext-notiz-merker-merker')).toHaveCount(0);
       // Render-Beitrag ist mit dem Pipeline-Neuaufbau verschwunden
       // (Settings-Tab schließen, Markdown-Tab zeigt Klartext).
       await page.locator('#btn-settings-cancel').click();
-      await expect(page.locator(`${SEL.markdownBody0} .ext-beispiel-smiley`)).toHaveCount(0);
-      await expect(page.locator(SEL.markdownBody0)).toContainText(':-)');
+      await expect(page.locator(`${SEL.markdownBody0} .ext-notiz-merker-marke`)).toHaveCount(0);
+      await expect(page.locator(SEL.markdownBody0)).toContainText('>>Quelle pruefen<<');
     } finally {
       await closeApp(app, userData);
     }

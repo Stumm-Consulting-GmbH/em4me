@@ -77,6 +77,12 @@ module.exports = function monPlugin(md) {
 
 Le fichier s'exécute dans un environnement propre et vide : `module` et `exports` existent, mais il n'y a **pas** de `require`, pas de `process` et pas de DOM. Le plugin est appliqué aux deux instances de rendu (affichage et export portable), après tous les enregistrements intégrés. Si le plugin lève une erreur à l'enregistrement, l'extension est désactivée automatiquement et le texte d'erreur s'affiche dans la section de paramètres.
 
+Trois points à trancher d'abord lorsqu'on définit sa propre syntaxe :
+
+- **Le caractère de départ doit être un caractère terminateur.** Les règles en ligne ne sont invoquées qu'à certains caractères ; tout ce qui se trouve entre eux est consommé d'un seul tenant par la règle de texte intégrée. Une règle placée sur un autre caractère ne se déclenche qu'en début de paragraphe et jamais en milieu de phrase. La liste comprend entre autres `!`, `#`, `$`, `%`, `&`, `*`, `+`, `-`, `:`, `<`, `=`, `>`, `@`, `[`, `]`, `^`, `_`, `` ` ``, `{`, `}` et `~` ; une parenthèse, par exemple, n'en fait pas partie.
+- **Le contenu venant du document appartient à un jeton propre.** L'exemple ci-dessus pousse du balisage tout prêt sous forme de `html_inline` ; c'est sans danger tant que le contenu est constant, comme le smiley ici. Dès que du texte du document entre dans le balisage, il doit être échappé : mieux vaut alors définir son propre jeton avec une règle sous `md.renderer.rules` et laisser l'échappement au moteur de rendu, plutôt que de l'écrire soi-même et de l'oublier quelque part.
+- **La contribution de rendu n'agit pas en mode direct.** Elle s'applique à la vue rendue et à l'export portable ; en mode direct, l'application utilise des décorations d'éditeur, pour lesquelles l'API ne prévoit aucune contribution. Votre syntaxe reste donc non marquée dans l'éditeur.
+
 ## Point d'entrée UI
 
 Le fichier nommé dans `entry` est un module ES. Son export par défaut fournit `activate(ctx)` et, en option, `deactivate()` :
@@ -109,6 +115,8 @@ export default {
 | `ctx.getLanguage()` | Langue active de l'interface (`de`, `en`, `fr`, `es`, `it`). |
 | `ctx.getTheme()` | Thème actif (`light` ou `dark`). |
 | `ctx.getThemeVariable(name)` | Valeur d'une variable CSS du thème, p. ex. `--render-font-size`. |
+| `ctx.getRenderRoot(colonne)` | Conteneur de la vue rendue d'une colonne, ou `null`. |
+| `ctx.onRenderUpdated(cb)` | Événement après chaque reconstruction de la vue rendue. |
 | `ctx.storage.get(key)` / `ctx.storage.set(key, value)` | Espace de persistance de l'extension (asynchrone). |
 
 Tout ce qui n'est pas listé ici ne fait pas partie de l'API publique — même si c'est techniquement accessible — et peut changer à tout moment.
@@ -175,9 +183,34 @@ ctx.addTranslations(
 
 `ctx.t('panel.title')` résout dans la langue active et retombe sur la langue par défaut de l'extension (deuxième argument), puis sur la clé elle-même. Les clés des champs `titleKey` sont résolues par le même mécanisme et suivent le changement de langue de l'application.
 
+### Point d'ancrage du rendu
+
+Un panneau qui veut dire quelque chose sur le document affiché a besoin de deux choses : le conteneur de la vue rendue et l'information qu'elle a changé.
+
+```js
+ctx.registerSidebarPanel({
+  id: 'demo',
+  titleKey: 'panel.title',
+  render(body, colonne) {
+    dessine(body, colonne);
+  },
+});
+
+ctx.onRenderUpdated((colonne) => {
+  // Document reconstruit ou vue changée dans cette colonne
+  const racine = ctx.getRenderRoot(colonne);
+  const trouves = racine ? racine.querySelectorAll('.ma-marque') : [];
+  // … remplir à nouveau le panneau de cette colonne
+});
+```
+
+Le numéro de colonne est le même que dans le deuxième argument de `render`. `ctx.getRenderRoot` renvoie `null` tant que la colonne n'affiche pas de vue rendue, c'est-à-dire dans les vues source, direct et système ; ce n'est pas un cas d'erreur mais l'état normal. L'événement se déclenche aussi bien après une reconstruction du document qu'au passage vers une vue avec contenu rendu et retour.
+
+Deux remarques : dans le conteneur, ne cherchez que **vos propres** éléments, ceux que votre contribution de rendu a produits, et non des éléments de l'application, dont la structure n'est pas garantie. Le désabonnement est assuré par l'application à la désactivation ; la fonction renvoyée ne sert que si vous voulez arrêter plus tôt.
+
 ## Versionnage et compatibilité
 
-L'API d'extension porte son propre numéro de version sémantique. Un paquet déclare dans `apiVersion` la version d'API contre laquelle il est construit. Il est compatible si la version majeure correspond à celle de l'application et si la version mineure déclarée n'est pas plus récente que celle de l'application. Les paquets incompatibles ne sont jamais chargés et sont listés dans la section de paramètres avec un message clair.
+L'API d'extension porte son propre numéro de version sémantique ; l'application est actuellement en **1.1**. Un paquet déclare dans `apiVersion` la version d'API contre laquelle il est construit. Il est compatible si la version majeure correspond à celle de l'application et si la version mineure déclarée n'est pas plus récente que celle de l'application. Un paquet déclarant `"1.0"` continue donc de fonctionner tel quel ; qui utilise le point d'ancrage du rendu déclare `"1.1"` et exige ainsi une application qui le connaît. Les paquets incompatibles ne sont jamais chargés et sont listés dans la section de paramètres avec un message clair.
 
 Promesse de stabilité : les signatures documentées sur cette page restent stables au sein de la même version majeure.
 
@@ -196,4 +229,4 @@ L'isolation des erreurs intercepte les plantages, pas la mauvaise qualité. Rel�
 - **Sortie propre :** le HTML généré doit s'accorder au style du document et ne pas charger de ressources distantes (liens de démonstration vers `example.org`).
 - **Nettoyage :** vos propres minuteurs, écouteurs hors des contributions enregistrées et états globaux vont dans `deactivate()`.
 
-L'extension de référence `beispiel` sert de modèle exécutable avec tous les types de contribution de cette page ; sa structure correspond exactement aux exemples ci-dessus.
+L'extension de référence **Notiz-Merker** (marqueurs de notes) sert de modèle exécutable. Elle utilise tous les types de contribution de cette page d'un seul tenant : une syntaxe propre marque des passages, un panneau les rassemble en une liste où l'on peut sauter, une commande les parcourt, et une section de paramètres règle la couleur et le tri. Elle se trouve dans le code source publié du programme, dans le dossier `addon_examples/notiz-merker/`, et vient avec son propre README, qui nomme aussi les limites que rencontrera toute extension de votre cru.

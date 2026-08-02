@@ -43,21 +43,17 @@ case-insensitivem NTFS wäre `tests/` mit `Tests/` kollidiert.
 | `npm run test:watch` | Vitest-Watch-Modus; `.only` ist hier erlaubt (`--allowOnly`). |
 | `npm run test:e2e` | Playwright-E2E-Lauf; baut vorher das Renderer-Bundle (`pretest:e2e`). Umfang pro Task nach Änderungsklasse (Abschnitt „Änderungsklassen und Prüf-Ausschnitt"), Voll-Suite im Release-Sammeltask. |
 | `npm run build:renderer` | Baut das Renderer-Bundle. Vorbedingung jedes direkten Playwright-Aufrufs und eigenes Gate für Renderer-Importe (Abschnitt „E2E-Praxis"). |
-| `node scripts/test-kennzahlen.js` | Schreibt die Zahl der ausgeführten Fälle aus den Berichten beider Suiten nach `test/lauf-kennzahlen.json`. Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand nur nötig, wenn dort übersprungen. |
+| `node scripts/test-kennzahlen.js` | Schreibt die Zahl der Prüffälle beider Suiten nach `test/lauf-kennzahlen.json`, ermittelt aus deren Auflistung ohne Ausführung (rund eine Minute). Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand jederzeit möglich, weil kein Test-Lauf vorausgehen muss. |
 
-**Der Voll-Lauf vor einem Release fährt ohne eigenen `--reporter`-Schalter.** Beide Konfigurationen tragen neben dem Konsolen-Bericht einen JSON-Reporter, der nach `test-berichte/` schreibt; aus diesen Berichten liest `scripts/test-kennzahlen.js` die Zahl der tatsächlich ausgeführten Fälle für das Zahlenband der Produkt-Webseite. Ein Schalter auf der Kommandozeile **ersetzt** die Reporter-Liste der Konfiguration, statt sie zu ergänzen: `npx playwright test --reporter=line` erzeugt keinen Bericht, und die Kennzahl bliebe auf dem Stand des vorigen Releases.
+**Die Kennzahl hängt an keinem Lauf.** Sie entsteht seit 4T-0831 aus der Auflistung beider Werkzeuge (`vitest list`, `playwright test --list`) und nicht mehr aus den Maschinen-Berichten eines Voll-Laufs. Damit ist gleichgültig, welcher Lauf zuletzt gefahren ist und mit welchem Reporter; die JSON-Berichte unter `test-berichte/` dürfen von jedem Teillauf überschrieben werden. Zuvor galt das Gegenteil, und daraus entstand ein Zielkonflikt mit der Wiederhol-Regel: Der isolierte Nachweis eines Flakes zerstörte den Bericht, aus dem die Kennzahl entstehen sollte.
 
-### Vier Regeln zum Umgang mit Läufen in der Release-Strecke
+### Drei Regeln zum Umgang mit Läufen in der Release-Strecke
 
 Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll-Suite in einer Release-Strecke zweimal lief, ohne dass der zweite Lauf einen zusätzlichen Nachweis brachte.
 
-1. **Die E2E-Voll-Suite läuft pro Release genau einmal**, als Pflicht-Gate vor Build und Tag (Festlegung des Product Owners vom 2026-07-29). Sie kostet rund eine halbe Stunde; ein zweiter Lauf ohne Erkenntnisgewinn verstößt gegen den Effizienz-Maßstab des Projekts. Fehlt am Ende der Bericht, **entfällt die Kennzahl für dieses Release** und zieht beim nächsten nach — die Suite wird dafür nicht wiederholt. Genau darauf ist `release-vorbereitung.js` ausgelegt: Der Schritt überspringt, statt abzubrechen.
-2. **Ein Lauf, der einen fertigen Voll-Lauf-Bericht vorfindet, fährt mit `--reporter=line`.** Das ist das Gegenstück zur Regel darüber und kein Widerspruch zu ihr: Was beim Voll-Lauf schadet, ist hier erwünscht. Ohne den Schalter überschreibt schon ein Vier-Sekunden-Lauf den Bericht, der danach einen einzigen Fall enthält. Der Schutz in `test-kennzahlen.js` greift zwar und weist den Teillauf zurück, aber der ursprüngliche Bericht ist dann verloren. Betroffen ist besonders der häufigste Fall: die isolierte Nachprüfung eines roten Falls, die der Abschnitt „Rote Läufe einordnen" ausdrücklich verlangt.
-
-   **Maßgeblich ist der schützenswerte Bericht, nicht die Größe des Laufs.** Steht kein Bericht zum Schutz an — weil die Kennzahl des Releases bereits gezogen ist oder außerhalb einer Release-Strecke gearbeitet wird —, entfällt der Schalter.
-
-3. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert.
-4. **Ein laufender Suite-Lauf wird nicht per Prozess-Abbruch gestoppt.** Er läuft durch, oder der Abbruch wird verifiziert, bevor er als erledigt gemeldet wird. Ein halber Abbruch ist der schlechteste Zustand: Die volle Laufzeit fällt trotzdem an, und das Beenden der Prozesse mitten im Lauf erzeugt rote Fälle, die es ohne den Eingriff nicht gäbe. Sie sind von echten Befunden nicht zu unterscheiden und kosten die nächste Diagnose-Runde.
+1. **Die E2E-Voll-Suite läuft pro Release genau einmal**, als Pflicht-Gate vor Build und Tag (Festlegung des Product Owners vom 2026-07-29). Sie kostet rund eine halbe Stunde; ein zweiter Lauf ohne Erkenntnisgewinn verstößt gegen den Effizienz-Maßstab des Projekts. Ein Lauf allein für die Kennzahl kommt nicht in Betracht und ist seit 4T-0831 auch nicht mehr denkbar: Die Kennzahl entsteht ohne Lauf.
+2. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert.
+3. **Ein laufender Suite-Lauf wird nicht per Prozess-Abbruch gestoppt.** Er läuft durch, oder der Abbruch wird verifiziert, bevor er als erledigt gemeldet wird. Ein halber Abbruch ist der schlechteste Zustand: Die volle Laufzeit fällt trotzdem an, und das Beenden der Prozesse mitten im Lauf erzeugt rote Fälle, die es ohne den Eingriff nicht gäbe. Sie sind von echten Befunden nicht zu unterscheiden und kosten die nächste Diagnose-Runde.
 
 ## Stabilitätsregeln
 
@@ -401,6 +397,14 @@ Eine Änderung ausschließlich unter `test/` trifft auf kein Muster und
 fällt damit ebenfalls zurück; das ist teuer, aber selten, weil eine
 Test-Änderung in der Praxis eine Code-Änderung begleitet und dann deren
 Klasse gilt.
+
+Ebenso zurück fällt eine Änderung unter `addon_examples/`. Die
+Beispiel-Erweiterung geht nicht in die Anwendung ein, ist aber zugleich
+Eingabe des Paket-Scan-Tests, des Render-Plugin-Tests und der E2E-Spec der
+externen Erweiterungen sowie Gegenstand der Export-Positivliste. Eine
+eigene Klasse hätte für einen selten geänderten Pfad drei Ausschnitte zu
+pflegen; der benannte Rückfall ist hier das günstigere Mittel und macht
+sichtbar, was sonst still geschähe.
 
 **Mehrere Klassen: die Vereinigung der Ausschnitte** (Entscheidung des
 Product Owners vom 2026-07-25). Berührt ein Änderungs-Umfang mehrere

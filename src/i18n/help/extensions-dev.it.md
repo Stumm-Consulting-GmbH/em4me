@@ -77,6 +77,12 @@ module.exports = function mioPlugin(md) {
 
 Il file viene eseguito in un ambiente proprio e vuoto: esistono `module` ed `exports`, ma **non** ci sono `require`, `process` né DOM. Il plugin viene applicato a entrambe le istanze di rendering (visualizzazione ed esportazione portabile), dopo tutte le registrazioni integrate. Se il plugin genera un errore alla registrazione, l'estensione viene disattivata automaticamente e il testo dell'errore appare nella sezione impostazioni.
 
+Tre punti da chiarire per primi quando si definisce una sintassi propria:
+
+- **Il carattere iniziale deve essere un carattere terminatore.** Le regole inline vengono invocate solo in corrispondenza di determinati caratteri; tutto ciò che sta in mezzo viene consumato in un solo blocco dalla regola di testo integrata. Una regola posta su un altro carattere scatta solo a inizio paragrafo e mai a metà frase. L'elenco comprende tra gli altri `!`, `#`, `$`, `%`, `&`, `*`, `+`, `-`, `:`, `<`, `=`, `>`, `@`, `[`, `]`, `^`, `_`, `` ` ``, `{`, `}` e `~`; una parentesi tonda, ad esempio, non ne fa parte.
+- **Il contenuto che proviene dal documento va in un token proprio.** L'esempio sopra inserisce markup già pronto come `html_inline`; è innocuo finché il contenuto è costante, come qui lo smiley. Non appena del testo del documento finisce nel markup, va sottoposto a escaping: meglio allora definire un token proprio con una regola in `md.renderer.rules` e lasciare l'escaping al motore di rendering, invece di scriverlo a mano e dimenticarlo da qualche parte.
+- **Il contributo di rendering non agisce nella modalità diretta.** Ha effetto nella vista renderizzata e nell'esportazione portabile; nella modalità diretta l'applicazione usa decorazioni dell'editor, per le quali l'API non prevede alcun contributo. La tua sintassi resta quindi non marcata nell'editor.
+
 ## Punto d'ingresso UI
 
 Il file indicato in `entry` è un modulo ES. Il suo export predefinito fornisce `activate(ctx)` e, facoltativamente, `deactivate()`:
@@ -109,6 +115,8 @@ export default {
 | `ctx.getLanguage()` | Lingua attiva dell'interfaccia (`de`, `en`, `fr`, `es`, `it`). |
 | `ctx.getTheme()` | Tema attivo (`light` o `dark`). |
 | `ctx.getThemeVariable(name)` | Valore di una variabile CSS del tema, ad es. `--render-font-size`. |
+| `ctx.getRenderRoot(colonna)` | Contenitore della vista renderizzata di una colonna, oppure `null`. |
+| `ctx.onRenderUpdated(cb)` | Evento dopo ogni ricostruzione della vista renderizzata. |
 | `ctx.storage.get(key)` / `ctx.storage.set(key, value)` | Spazio di persistenza dell'estensione (asincrono). |
 
 Tutto ciò che non è elencato qui non fa parte dell'API pubblica — anche se tecnicamente raggiungibile — e può cambiare in qualsiasi momento.
@@ -175,9 +183,34 @@ ctx.addTranslations(
 
 `ctx.t('panel.title')` risolve nella lingua attiva e ricade sulla lingua predefinita dell'estensione (secondo argomento), infine sulla chiave stessa. Le chiavi dei campi `titleKey` sono risolte con lo stesso meccanismo e seguono il cambio di lingua dell'app.
 
+### Punto di aggancio del rendering
+
+Un pannello che voglia dire qualcosa sul documento visualizzato ha bisogno di due cose: il contenitore della vista renderizzata e la notizia che è cambiata.
+
+```js
+ctx.registerSidebarPanel({
+  id: 'demo',
+  titleKey: 'panel.title',
+  render(body, colonna) {
+    disegna(body, colonna);
+  },
+});
+
+ctx.onRenderUpdated((colonna) => {
+  // Documento ricostruito o vista cambiata in questa colonna
+  const radice = ctx.getRenderRoot(colonna);
+  const trovati = radice ? radice.querySelectorAll('.mio-segno') : [];
+  // … riempire di nuovo il pannello di questa colonna
+});
+```
+
+Il numero di colonna è lo stesso del secondo argomento di `render`. `ctx.getRenderRoot` restituisce `null` finché la colonna non mostra una vista renderizzata, cioè nelle viste sorgente, diretta e di sistema; non è un caso di errore, ma lo stato normale. L'evento scatta sia dopo una ricostruzione del documento sia al passaggio verso una vista con contenuto renderizzato e ritorno.
+
+Due indicazioni: nel contenitore cerca solo i **tuoi** elementi, quelli prodotti dal tuo contributo di rendering, e non elementi dell'applicazione, la cui struttura non è garantita. La cancellazione la esegue l'applicazione alla disattivazione; la funzione restituita serve solo se vuoi smettere prima.
+
 ## Versionamento e compatibilità
 
-L'API delle estensioni porta un proprio numero di versione semantico. Un pacchetto dichiara in `apiVersion` la versione dell'API per cui è costruito. È compatibile se la versione maggiore corrisponde a quella dell'app e la versione minore dichiarata non è più recente di quella dell'app. I pacchetti incompatibili non vengono mai caricati e sono elencati nella sezione impostazioni con un messaggio chiaro.
+L'API delle estensioni porta un proprio numero di versione semantico; l'applicazione è attualmente alla **1.1**. Un pacchetto dichiara in `apiVersion` la versione dell'API per cui è costruito. È compatibile se la versione maggiore corrisponde a quella dell'app e la versione minore dichiarata non è più recente di quella dell'app. Un pacchetto che dichiara `"1.0"` continua quindi a funzionare invariato; chi usa il punto di aggancio del rendering dichiara `"1.1"` e richiede così un'app che lo conosca. I pacchetti incompatibili non vengono mai caricati e sono elencati nella sezione impostazioni con un messaggio chiaro.
 
 Promessa di stabilità: le firme documentate in questa pagina restano stabili all'interno della stessa versione maggiore.
 
@@ -196,4 +229,4 @@ L'isolamento degli errori intercetta i crash, non la scarsa qualità. È tua res
 - **Output pulito:** l'HTML generato deve adattarsi allo stile del documento e non caricare risorse remote (link dimostrativi verso `example.org`).
 - **Pulizia:** timer propri, listener al di fuori dei contributi registrati e stati globali vanno in `deactivate()`.
 
-L'estensione di riferimento `beispiel` funge da modello eseguibile con tutti i tipi di contributo di questa pagina; la sua struttura corrisponde esattamente agli esempi sopra.
+L'estensione di riferimento **Notiz-Merker** (segnaposto per note) funge da modello eseguibile. Usa tutti i tipi di contributo di questa pagina in un unico insieme: una sintassi propria marca dei passaggi, un pannello li raccoglie in un elenco su cui si può saltare, un comando li percorre e una sezione impostazioni regola colore e ordinamento. Si trova nel codice sorgente pubblicato del programma, nella cartella `addon_examples/notiz-merker/`, e porta con sé un proprio README, che nomina anche i limiti in cui si imbatterà ogni estensione di propria mano.

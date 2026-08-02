@@ -9,6 +9,64 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.102.0.1111] - 2026-08-02 — Erweiterungs-API v1.1 und Referenz-Beispiel
+
+Epic 3E-0103: Wer eine eigene Erweiterung schreibt, kann ihr Panel jetzt an das
+angezeigte Dokument koppeln, und es gibt ein vollständiges Beispiel zum
+Nachbauen. Der Anlass war ein Befund aus dem Bau des Beispiels selbst: Die
+öffentliche Erweiterungs-API bot keinen Zugriff auf die gerenderte Ansicht,
+weshalb bis dahin **keine** externe Erweiterung ein Panel sinnvoll an ein
+Dokument binden konnte.
+
+### Neu
+
+- **Render-Andockpunkt der Erweiterungs-API** (4T-0825): `ctx.getRenderRoot`
+  liefert den Container der gerenderten Ansicht einer Spalte,
+  `ctx.onRenderUpdated` meldet jeden Neuaufbau und jeden Wechsel der Ansicht.
+  Die API-Version steht damit auf 1.1; Pakete mit `apiVersion: "1.0"` laufen
+  unverändert weiter. Die Verteilung übernimmt ein Beobachter im Erweiterungs-
+  Host, nicht ein Aufruf in den acht Stellen, die die gerenderte Ansicht
+  schreiben — ein künftiger neunter Schreibweg bräche die Zusage sonst still.
+- **Referenz-Erweiterung „Notiz-Merker"** (4T-0826) unter
+  `addon_examples/notiz-merker/`: `>>Text<<` markiert eine Stelle als Merker,
+  ein Sidebar-Panel sammelt die Merker des Dokuments als anspringbare Liste und
+  bietet darunter eine dauerhafte Notizfläche, `Strg`+`Alt`+`M` geht die Merker
+  durch, ein eigener Einstellungs-Bereich regelt Farbe und Sortierung. Das Paket
+  übt alle Beitrags-Arten der API in einem fachlichen Zusammenhang und wird über
+  den Quellcode-Export veröffentlicht.
+
+### Geändert
+
+- **Die Test-Abdeckung der externen Erweiterungen läuft gegen das reale Paket**
+  (4T-0826): Die bisherige Attrappe `test/fixtures/extensions/beispiel` entfällt;
+  Paket-Scan, Render-Plugin-Test und die E2E-Spec laden `addon_examples/`. Bricht
+  die API, bricht damit sichtbar das veröffentlichte Beispiel. Die Fehlerfall-
+  Pakete `defekt` und `inkompatibel` bleiben Fixtures.
+- **Positivliste des Quellcode-Exports**: Der Eintrag `addon_examples/` ist von
+  optional auf Pflicht gewechselt, wie im Konzept für den Fall vorgesehen, dass
+  der Ordner entsteht.
+
+### Doku
+
+- **Handbuch-Seite „Erweiterungen erstellen"** in allen fünf Sprachen erweitert
+  (4T-0827): die beiden neuen `ctx`-Mitglieder in der Referenz-Tabelle, ein
+  eigener Abschnitt „Render-Andockpunkt" mit lauffähigem Beispiel, die
+  API-Version 1.1 samt Bedeutung des Minor-Schritts und drei Punkte zur eigenen
+  Syntax. Der wichtigste davon war bisher nirgends dokumentiert: **Das
+  Start-Zeichen einer eigenen Inline-Syntax muss ein Terminator-Zeichen sein**,
+  sonst greift die Regel nur am Absatz-Anfang. Der Schluss-Verweis zeigt auf das
+  neue Paket statt auf die entfallene Fixture.
+
+### Intern
+
+- **`addon_examples/` in der Karte der Änderungsklassen** als benannter
+  Rückfall auf die vollen Gates, mit Nachzug in `test/README.md`. Der Meta-Test
+  verlangt für jeden versionierten Pfad eine Zuordnung, damit keiner still
+  zurückfällt.
+- **Expliziter Timeout am PM-Linter-Bestandstest**: Der Fall liest den gesamten
+  PM-Bestand und riss unter der Parallel-Last der Voll-Suite den Standard von
+  fünf Sekunden, nachdem der Bestand auf über tausend Dateien gewachsen war.
+
 ## [0.101.0.1103] - 2026-08-02 — Rechtschreibprüfung
 
 Epic 3E-0107: Der Editor markiert falsch geschriebene Wörter und bietet im

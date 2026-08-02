@@ -1,0 +1,9 @@
+{
+  "id": "notiz-merker",
+  "name": "Notiz-Merker",
+  "version": "1.0.0",
+  "apiVersion": "1.1",
+  "description": "Referenz-Erweiterung der API v1.1: Merker-Syntax >>Text<<, Panel mit anspringbarer Liste und Notizfläche, Kommando mit Kürzel, Einstellungs-Bereich, Übersetzungen.",
+  "entry": "main.js",
+  "markdownPlugin": "markdown.js"
+}

@@ -77,6 +77,12 @@ module.exports = function miPlugin(md) {
 
 El archivo se ejecuta en un entorno propio y vacío: existen `module` y `exports`, pero **no** hay `require`, ni `process`, ni DOM. El plugin se aplica a las dos instancias de renderizado (visualización y exportación portable), después de todos los registros integrados. Si el plugin lanza un error al registrarse, la extensión se desactiva automáticamente y el texto del error se muestra en la sección de configuración.
 
+Tres puntos que conviene resolver primero al definir una sintaxis propia:
+
+- **El carácter inicial debe ser un carácter terminador.** Las reglas en línea solo se invocan en determinados caracteres; todo lo que queda entre ellos lo consume de una pieza la regla de texto integrada. Una regla situada en otro carácter solo se activa al principio del párrafo y nunca en mitad de la frase. La lista incluye, entre otros, `!`, `#`, `$`, `%`, `&`, `*`, `+`, `-`, `:`, `<`, `=`, `>`, `@`, `[`, `]`, `^`, `_`, `` ` ``, `{`, `}` y `~`; un paréntesis, por ejemplo, no está entre ellos.
+- **El contenido procedente del documento va en un token propio.** El ejemplo anterior inserta marcado ya terminado como `html_inline`; eso es inofensivo mientras el contenido sea constante, como aquí el smiley. En cuanto texto del documento entra en el marcado, hay que escaparlo: conviene entonces definir un token propio con una regla en `md.renderer.rules` y dejar el escapado al motor de renderizado, en lugar de escribirlo uno mismo y olvidarlo en algún sitio.
+- **La contribución de renderizado no actúa en el modo directo.** Surte efecto en la vista renderizada y en la exportación portable; en el modo directo la aplicación usa decoraciones del editor, para las que la API no prevé ninguna contribución. Tu sintaxis queda sin marcar en el editor.
+
 ## Punto de entrada de UI
 
 El archivo indicado en `entry` es un módulo ES. Su export por defecto proporciona `activate(ctx)` y, opcionalmente, `deactivate()`:
@@ -109,6 +115,8 @@ export default {
 | `ctx.getLanguage()` | Idioma activo de la interfaz (`de`, `en`, `fr`, `es`, `it`). |
 | `ctx.getTheme()` | Tema activo (`light` o `dark`). |
 | `ctx.getThemeVariable(name)` | Valor de una variable CSS del tema, p. ej. `--render-font-size`. |
+| `ctx.getRenderRoot(columna)` | Contenedor de la vista renderizada de una columna, o `null`. |
+| `ctx.onRenderUpdated(cb)` | Evento tras cada reconstrucción de la vista renderizada. |
 | `ctx.storage.get(key)` / `ctx.storage.set(key, value)` | Espacio de persistencia de la extensión (asíncrono). |
 
 Todo lo que no figura aquí no forma parte de la API pública — aunque sea técnicamente accesible — y puede cambiar en cualquier momento.
@@ -175,9 +183,34 @@ ctx.addTranslations(
 
 `ctx.t('panel.title')` resuelve en el idioma activo y recurre al idioma predeterminado de la extensión (segundo argumento) y, por último, a la propia clave. Las claves de los campos `titleKey` se resuelven por el mismo mecanismo y siguen el cambio de idioma de la aplicación.
 
+### Punto de anclaje del renderizado
+
+Un panel que quiera decir algo sobre el documento mostrado necesita dos cosas: el contenedor de la vista renderizada y el aviso de que ha cambiado.
+
+```js
+ctx.registerSidebarPanel({
+  id: 'demo',
+  titleKey: 'panel.title',
+  render(body, columna) {
+    dibuja(body, columna);
+  },
+});
+
+ctx.onRenderUpdated((columna) => {
+  // Documento reconstruido o vista cambiada en esta columna
+  const raiz = ctx.getRenderRoot(columna);
+  const hallazgos = raiz ? raiz.querySelectorAll('.mi-marca') : [];
+  // … volver a llenar el panel de esta columna
+});
+```
+
+El número de columna es el mismo que en el segundo argumento de `render`. `ctx.getRenderRoot` devuelve `null` mientras la columna no muestre vista renderizada, es decir, en las vistas de código, directa y de sistema; no es un caso de error, sino el estado normal. El evento se dispara tanto tras una reconstrucción del documento como al pasar a una vista con contenido renderizado y al salir de ella.
+
+Dos indicaciones: dentro del contenedor busca solo **tus propios** elementos, los que ha producido tu contribución de renderizado, y no elementos de la aplicación, cuya estructura no está garantizada. De la baja se encarga la aplicación al desactivar; la función devuelta solo hace falta si quieres detenerte antes.
+
 ## Versionado y compatibilidad
 
-La API de extensiones lleva su propio número de versión semántico. Un paquete declara en `apiVersion` la versión de API contra la que está construido. Es compatible si la versión mayor coincide con la de la aplicación y la versión menor declarada no es más reciente que la de la aplicación. Los paquetes incompatibles nunca se cargan y se listan en la sección de configuración con un mensaje claro.
+La API de extensiones lleva su propio número de versión semántico; la aplicación está actualmente en la **1.1**. Un paquete declara en `apiVersion` la versión de API contra la que está construido. Es compatible si la versión mayor coincide con la de la aplicación y la versión menor declarada no es más reciente que la de la aplicación. Un paquete que declare `"1.0"` sigue funcionando sin cambios; quien use el punto de anclaje del renderizado declara `"1.1"` y exige así una aplicación que lo conozca. Los paquetes incompatibles nunca se cargan y se listan en la sección de configuración con un mensaje claro.
 
 Promesa de estabilidad: las firmas documentadas en esta página permanecen estables dentro de la misma versión mayor.
 
@@ -196,4 +229,4 @@ El aislamiento de errores intercepta los fallos, no la mala calidad. Es responsa
 - **Salida limpia:** el HTML generado debe encajar con el estilo del documento y no cargar recursos remotos (enlaces de demostración a `example.org`).
 - **Limpieza:** tus propios temporizadores, escuchadores fuera de las contribuciones registradas y estados globales van en `deactivate()`.
 
-La extensión de referencia `beispiel` sirve como plantilla ejecutable con todos los tipos de contribución de esta página; su estructura coincide exactamente con los ejemplos anteriores.
+La extensión de referencia **Notiz-Merker** (marcadores de nota) sirve como plantilla ejecutable. Usa todos los tipos de contribución de esta página en una sola pieza: una sintaxis propia marca pasajes, un panel los reúne en una lista a la que se puede saltar, un comando los recorre y una sección de configuración regula el color y el orden. Se encuentra en el código fuente publicado del programa, en la carpeta `addon_examples/notiz-merker/`, y trae su propio README, que nombra también los límites con los que se encontrará cualquier extensión propia.

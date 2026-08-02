@@ -39,7 +39,7 @@ function zaehleStatisch(ordner) {
   return summe;
 }
 
-describe('Lauf-Kennzahlen der Testsuiten (4T-0782)', () => {
+describe('Lauf-Kennzahlen der Testsuiten (4T-0782, 4T-0831)', () => {
   it('die Datei existiert und trägt die drei Zahlen', () => {
     expect(fs.existsSync(DATEI), `${path.relative(WURZEL, DATEI)} fehlt`).toBe(true);
     const daten = JSON.parse(fs.readFileSync(DATEI, 'utf8'));
@@ -57,7 +57,8 @@ describe('Lauf-Kennzahlen der Testsuiten (4T-0782)', () => {
     // Nach unten großzügig (übersprungene Fälle, Abstand der Zählweisen),
     // nach oben ebenfalls: Schleifen-erzeugte Fälle dürfen die statische Zahl
     // deutlich übersteigen. Was die Schranke fängt, ist der grobe Verfall —
-    // eine Datei, die zwei Releases alt ist, oder ein Teillauf.
+    // eine Datei, die zwei Releases alt ist. Den Teillauf gibt es seit 4T-0831
+    // nicht mehr: Die Zahlen stammen aus der Auflistung, nicht aus Lauf-Berichten.
     expect(daten.unit).toBeGreaterThan(statischUnit * 0.8);
     expect(daten.unit).toBeLessThan(statischUnit * 2);
     expect(daten.e2e).toBeGreaterThan(statischE2E * 0.8);

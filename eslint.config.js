@@ -93,12 +93,15 @@ module.exports = [
     },
   },
 
-  // Externe Erweiterungs-Fixtures (4T-0299, Epic 3E-0053): eigenständige
-  // Beispiel-Pakete außerhalb des App-Bundles. Einstiegs-Module (main.js)
-  // sind ES-Module im Renderer-Kontext; markdownPlugin-Dateien laufen als
+  // Externe Erweiterungs-Pakete (4T-0299, Epic 3E-0053): eigenständige
+  // Pakete außerhalb des App-Bundles. Einstiegs-Module (main.js) sind
+  // ES-Module im Renderer-Kontext; markdownPlugin-Dateien laufen als
   // CommonJS-artiger Quelltext im vm-Sandbox-Kontext des Preload-Loaders.
+  // Zwei Orte, weil das Referenz-Beispiel seit 4T-0826 (Epic 3E-0103) real
+  // in addon_examples/ ausgeliefert wird und nur die Fehlerfall-Pakete
+  // Fixtures bleiben.
   {
-    files: ['test/fixtures/extensions/**/main.js'],
+    files: ['test/fixtures/extensions/**/main.js', 'addon_examples/**/main.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
@@ -106,7 +109,7 @@ module.exports = [
     },
   },
   {
-    files: ['test/fixtures/extensions/**/markdown.js'],
+    files: ['test/fixtures/extensions/**/markdown.js', 'addon_examples/**/markdown.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'commonjs',

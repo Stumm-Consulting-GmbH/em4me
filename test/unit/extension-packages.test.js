@@ -16,6 +16,12 @@ import {
 } from '../../src/main/extension-packages.js';
 
 const FIXTURES = path.join(__dirname, '..', 'fixtures', 'extensions');
+// 4T-0826 (Epic 3E-0103): Das Referenz-Paket liegt nicht als Attrappe im
+// Test-Ordner, sondern ist das real ausgelieferte Beispiel. So faellt ein
+// Bruch der API am veroeffentlichten Paket auf und nicht nur an einer
+// Nachbildung, die niemand benutzt. Die Fehlerfall-Pakete (defekt,
+// inkompatibel) bleiben Fixtures — sie sollen absichtlich kaputt sein.
+const BEISPIEL_PAKET = path.join(__dirname, '..', '..', 'addon_examples', 'notiz-merker');
 
 let root;
 
@@ -35,8 +41,12 @@ function kopiereRekursiv(quelle, ziel) {
   }
 }
 
+function quelleVon(name) {
+  return name === 'notiz-merker' ? BEISPIEL_PAKET : path.join(FIXTURES, name);
+}
+
 function copyFixture(name) {
-  kopiereRekursiv(path.join(FIXTURES, name), path.join(root, name));
+  kopiereRekursiv(quelleVon(name), path.join(root, name));
 }
 
 beforeEach(() => {
@@ -55,28 +65,28 @@ describe('extension-packages: Scan (4T-0298)', () => {
   });
 
   it('erkennt die Referenz-Erweiterung mit entryUrl und Kompatibilität', async () => {
-    copyFixture('beispiel');
+    copyFixture('notiz-merker');
     const entries = await scanExtensionsRoot(root);
     expect(entries).toHaveLength(1);
     const e = entries[0];
     expect(e.ok).toBe(true);
-    expect(e.manifest.id).toBe('beispiel');
+    expect(e.manifest.id).toBe('notiz-merker');
     expect(e.apiCompatible).toBe(true);
     expect(e.entryUrl.startsWith('file:///')).toBe(true);
     expect(e.entryUrl.endsWith('/main.js')).toBe(true);
   });
 
   it('listet defektes JSON und ID-Verzeichnis-Abweichung als Fehler-Einträge', async () => {
-    copyFixture('beispiel');
+    copyFixture('notiz-merker');
     // Defektes JSON zur Laufzeit erzeugen.
     fs.mkdirSync(path.join(root, 'kaputt'));
     fs.writeFileSync(path.join(root, 'kaputt', 'manifest.json'), '{ "id": "kaputt", ');
     // Manifest-ID passt nicht zum Verzeichnisnamen.
-    kopiereRekursiv(path.join(FIXTURES, 'beispiel'), path.join(root, 'anderer-name'));
+    kopiereRekursiv(quelleVon('notiz-merker'), path.join(root, 'anderer-name'));
     const entries = await scanExtensionsRoot(root);
     expect(entries).toHaveLength(3);
     const byDir = Object.fromEntries(entries.map((e) => [e.dirName, e]));
-    expect(byDir['beispiel'].ok).toBe(true);
+    expect(byDir['notiz-merker'].ok).toBe(true);
     expect(byDir['kaputt'].ok).toBe(false);
     expect(byDir['kaputt'].error).toContain('manifest.json');
     expect(byDir['anderer-name'].ok).toBe(false);
@@ -84,8 +94,8 @@ describe('extension-packages: Scan (4T-0298)', () => {
   });
 
   it('fehlende Einstiegs-Dateien fallen beim Scan auf', async () => {
-    copyFixture('beispiel');
-    fs.rmSync(path.join(root, 'beispiel', 'markdown.js'));
+    copyFixture('notiz-merker');
+    fs.rmSync(path.join(root, 'notiz-merker', 'markdown.js'));
     const entries = await scanExtensionsRoot(root);
     expect(entries[0].ok).toBe(false);
     expect(entries[0].error).toContain('markdownPlugin');
@@ -101,12 +111,12 @@ describe('extension-packages: Scan (4T-0298)', () => {
 
 describe('extension-packages: ID-Whitelist und Entfernen (4T-0298)', () => {
   it('Quelltext-Zugriff nur für gescannte IDs mit markdownPlugin', async () => {
-    copyFixture('beispiel');
+    copyFixture('notiz-merker');
     copyFixture('defekt');
     await scanExtensionsRoot(root);
-    const ok = await readMarkdownPluginSource(root, 'beispiel');
+    const ok = await readMarkdownPluginSource(root, 'notiz-merker');
     expect(ok.ok).toBe(true);
-    expect(ok.source).toContain('beispiel-smiley');
+    expect(ok.source).toContain('notiz_merker');
     expect(ok.version).toBe('1.0.0');
     // 'defekt' hat kein markdownPlugin, fremde IDs sind unbekannt.
     expect((await readMarkdownPluginSource(root, 'defekt')).ok).toBe(false);
@@ -115,22 +125,22 @@ describe('extension-packages: ID-Whitelist und Entfernen (4T-0298)', () => {
   });
 
   it('externalExtensionInfo liefert Anzeige-Daten nur für gescannte IDs', async () => {
-    copyFixture('beispiel');
+    copyFixture('notiz-merker');
     await scanExtensionsRoot(root);
-    expect(externalExtensionInfo(root, 'beispiel')).toEqual({
-      name: 'Beispiel-Erweiterung',
+    expect(externalExtensionInfo(root, 'notiz-merker')).toEqual({
+      name: 'Notiz-Merker',
       version: '1.0.0',
     });
     expect(externalExtensionInfo(root, 'fremd')).toBeNull();
   });
 
   it('removeExtensionDirectory löscht nur gescannte Verzeichnisse', async () => {
-    copyFixture('beispiel');
+    copyFixture('notiz-merker');
     await scanExtensionsRoot(root);
     expect(await removeExtensionDirectory(root, 'nie-gescannt')).toBe(false);
-    expect(await removeExtensionDirectory(root, 'beispiel')).toBe(true);
-    expect(fs.existsSync(path.join(root, 'beispiel'))).toBe(false);
+    expect(await removeExtensionDirectory(root, 'notiz-merker')).toBe(true);
+    expect(fs.existsSync(path.join(root, 'notiz-merker'))).toBe(false);
     // Nach dem Entfernen ist die ID aus der Whitelist verschwunden.
-    expect(await removeExtensionDirectory(root, 'beispiel')).toBe(false);
+    expect(await removeExtensionDirectory(root, 'notiz-merker')).toBe(false);
   });
 });

@@ -13,13 +13,15 @@ import {
   configureExternalMarkdownPlugins,
 } from '../../../src/shared/markdown/markdown.js';
 
-const FIXTURE = path.join(
+// 4T-0826 (Epic 3E-0103): Quelle ist das real ausgelieferte Referenz-Paket
+// aus addon_examples/, nicht mehr eine Attrappe unter test/fixtures.
+const BEISPIEL_PLUGIN = path.join(
   __dirname,
   '..',
   '..',
-  'fixtures',
-  'extensions',
-  'beispiel',
+  '..',
+  'addon_examples',
+  'notiz-merker',
   'markdown.js',
 );
 
@@ -36,14 +38,16 @@ afterEach(() => {
 
 describe('externe Markdown-Plugins (4T-0299)', () => {
   it('vm-evaluiertes Referenz-Plugin wirkt in Viewer- und Portable-Instanz', () => {
-    const plugin = evalPluginSource(fs.readFileSync(FIXTURE, 'utf8'));
+    const plugin = evalPluginSource(fs.readFileSync(BEISPIEL_PLUGIN, 'utf8'));
     expect(typeof plugin).toBe('function');
-    const errors = configureExternalMarkdownPlugins([{ id: 'beispiel', version: '1.0.0', plugin }]);
+    const errors = configureExternalMarkdownPlugins([
+      { id: 'notiz-merker', version: '1.0.0', plugin },
+    ]);
     expect(errors).toEqual({});
-    expect(renderMarkdown('Hallo :-) Welt', 'de')).toContain('ext-beispiel-smiley');
+    expect(renderMarkdown('Hallo >>Merker<< Welt', 'de')).toContain('ext-notiz-merker-marke');
     // Portable-Instanz: Marker in Zeile 1 schaltet auf mdPortable um.
-    const portable = renderMarkdown('<!-- perspective-portable -->\n\nHallo :-) Welt', 'de');
-    expect(portable).toContain('ext-beispiel-smiley');
+    const portable = renderMarkdown('<!-- perspective-portable -->\n\nHallo >>Merker<< Welt', 'de');
+    expect(portable).toContain('ext-notiz-merker-marke');
   });
 
   it('vm-Sandbox reicht kein require und kein process durch', () => {
@@ -54,33 +58,35 @@ describe('externe Markdown-Plugins (4T-0299)', () => {
   });
 
   it('leerer Satz stellt den Ausgangszustand wieder her', () => {
-    const plugin = evalPluginSource(fs.readFileSync(FIXTURE, 'utf8'));
-    configureExternalMarkdownPlugins([{ id: 'beispiel', version: '1.0.0', plugin }]);
+    const plugin = evalPluginSource(fs.readFileSync(BEISPIEL_PLUGIN, 'utf8'));
+    configureExternalMarkdownPlugins([{ id: 'notiz-merker', version: '1.0.0', plugin }]);
     configureExternalMarkdownPlugins([]);
-    expect(renderMarkdown('Hallo :-) Welt', 'de')).not.toContain('ext-beispiel-smiley');
-    expect(renderMarkdown('Hallo :-) Welt', 'de')).toContain(':-)');
+    expect(renderMarkdown('Hallo >>Merker<< Welt', 'de')).not.toContain('ext-notiz-merker-marke');
+    // Ohne das Plugin bleibt die Syntax Klartext — und Klartext mit spitzen
+    // Klammern erscheint im HTML maskiert.
+    expect(renderMarkdown('Hallo >>Merker<< Welt', 'de')).toContain('&gt;&gt;Merker&lt;&lt;');
   });
 
   it('unveränderter Satz (IDs und Versionen) ist ein No-op ohne Fehler', () => {
-    const plugin = evalPluginSource(fs.readFileSync(FIXTURE, 'utf8'));
-    const list = [{ id: 'beispiel', version: '1.0.0', plugin }];
+    const plugin = evalPluginSource(fs.readFileSync(BEISPIEL_PLUGIN, 'utf8'));
+    const list = [{ id: 'notiz-merker', version: '1.0.0', plugin }];
     expect(configureExternalMarkdownPlugins(list)).toEqual({});
     expect(configureExternalMarkdownPlugins(list)).toEqual({});
   });
 
   it('werfendes Plugin wird isoliert: Fehler gemeldet, Pipeline läuft weiter', () => {
-    const gut = evalPluginSource(fs.readFileSync(FIXTURE, 'utf8'));
+    const gut = evalPluginSource(fs.readFileSync(BEISPIEL_PLUGIN, 'utf8'));
     const kaputt = () => {
       throw new Error('Absichtlich defekt');
     };
     const errors = configureExternalMarkdownPlugins([
       { id: 'kaputt', version: '1.0.0', plugin: kaputt },
-      { id: 'beispiel', version: '1.0.0', plugin: gut },
+      { id: 'notiz-merker', version: '1.0.0', plugin: gut },
     ]);
     expect(errors.kaputt).toContain('Absichtlich defekt');
-    expect(errors.beispiel).toBeUndefined();
+    expect(errors['notiz-merker']).toBeUndefined();
     // Das intakte Plugin und der Kern rendern normal weiter.
-    expect(renderMarkdown('Hallo :-) **fett**', 'de')).toContain('ext-beispiel-smiley');
+    expect(renderMarkdown('Hallo >>Merker<< **fett**', 'de')).toContain('ext-notiz-merker-marke');
     expect(renderMarkdown('**fett**', 'de')).toContain('<strong>');
     expect(convertMarkdownPortable('Text')).toContain('Text');
   });

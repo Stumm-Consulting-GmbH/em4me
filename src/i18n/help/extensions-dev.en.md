@@ -77,6 +77,12 @@ module.exports = function myPlugin(md) {
 
 The file runs in its own, empty environment: `module` and `exports` exist, but there is **no** `require`, no `process`, and no DOM. The plugin is applied to both render instances (display and portable export), after all built-in registrations. If the plugin throws during registration, the extension is disabled automatically and the error text is shown in the settings section.
 
+Three points to settle first when defining your own syntax:
+
+- **The starting character must be a terminator character.** Inline rules are only invoked at certain characters; everything in between is consumed in one piece by the built-in text rule. A rule on any other character only fires at the start of a paragraph and never mid-sentence. The list includes `!`, `#`, `$`, `%`, `&`, `*`, `+`, `-`, `:`, `<`, `=`, `>`, `@`, `[`, `]`, `^`, `_`, `` ` ``, `{`, `}` and `~` — a round bracket, for example, is not among them.
+- **Content taken from the document belongs in your own token.** The example above pushes finished markup as `html_inline`; that is harmless as long as the content is constant, like the smiley here. As soon as text from the document ends up in the markup it must be escaped — then define your own token with a rule under `md.renderer.rules` and leave the escaping to the render engine instead of writing it yourself and forgetting it somewhere.
+- **The render contribution does not apply in live mode.** It takes effect in the rendered view and in the portable export; in live mode the application uses editor decorations, for which the API offers no contribution. Your own syntax stays unmarked in the editor.
+
 ## UI entry point
 
 The file named in `entry` is an ES module. Its default export provides `activate(ctx)` and optionally `deactivate()`:
@@ -109,6 +115,8 @@ export default {
 | `ctx.getLanguage()` | Active interface language (`de`, `en`, `fr`, `es`, `it`). |
 | `ctx.getTheme()` | Active theme (`light` or `dark`). |
 | `ctx.getThemeVariable(name)` | Value of a theme CSS variable, e.g. `--render-font-size`. |
+| `ctx.getRenderRoot(column)` | Container of a column's rendered view, or `null`. |
+| `ctx.onRenderUpdated(cb)` | Event after every rebuild of the rendered view. |
 | `ctx.storage.get(key)` / `ctx.storage.set(key, value)` | Persistence namespace of the extension (asynchronous). |
 
 Anything not listed here is not part of the public API — even if technically reachable — and may change at any time.
@@ -175,9 +183,34 @@ ctx.addTranslations(
 
 `ctx.t('panel.title')` resolves in the active language and falls back to the extension's default language (second argument), finally to the key itself. Keys used in `titleKey` fields are resolved through the same mechanism and follow the app's language switch.
 
+### Render anchor
+
+A panel that says something about the displayed document needs two things: the container of the rendered view, and word that it has changed.
+
+```js
+ctx.registerSidebarPanel({
+  id: 'demo',
+  titleKey: 'panel.title',
+  render(body, column) {
+    draw(body, column);
+  },
+});
+
+ctx.onRenderUpdated((column) => {
+  // Document rebuilt, or view switched, in this column
+  const root = ctx.getRenderRoot(column);
+  const hits = root ? root.querySelectorAll('.my-mark') : [];
+  // … refill this column's panel
+});
+```
+
+The column number is the same as in the second argument of `render`. `ctx.getRenderRoot` returns `null` while the column shows no rendered view, that is in source, live and system views; this is not an error case but the normal state. The event fires both after the document has been rebuilt and when switching into a view with rendered content and back out.
+
+Two notes: inside the container, look only for **your own** elements produced by your render contribution, not for elements of the application — their structure is not promised. And unsubscribing is handled by the application on deactivation; you only need the returned function if you want to stop earlier.
+
 ## Versioning and compatibility
 
-The extension API carries its own semantic version number. A package declares in `apiVersion` which API version it is built against. It is compatible if the major version matches the app and the declared minor version is not newer than the app's. Incompatible packages are never loaded and are listed in the settings section with a clear message.
+The extension API carries its own semantic version number; the application currently runs **1.1**. A package declares in `apiVersion` which API version it is built against. It is compatible if the major version matches the app and the declared minor version is not newer than the app's. A package declaring `"1.0"` therefore keeps working unchanged; anyone using the render anchor declares `"1.1"` and thereby requires an app that knows it. Incompatible packages are never loaded and are listed in the settings section with a clear message.
 
 Stability promise: the signatures documented on this page stay stable within the same major version.
 
@@ -196,4 +229,4 @@ Error isolation catches crashes, not poor quality. In particular, the following 
 - **Clean output:** generated HTML should match the document style and must not load remote resources (demo links to `example.org`).
 - **Cleanup:** your own timers, listeners outside the registered contributions, and global state belong in `deactivate()`.
 
-The reference extension `beispiel` serves as a runnable template with all contribution types on this page; its structure matches the examples above exactly.
+The reference extension **Note markers** serves as a runnable template. It uses every contribution type on this page in one piece: a custom syntax marks passages as markers, a panel collects them into a list you can jump into, a command steps through them, and a settings section controls colour and sorting. It lives in the published source code of the program under `addon_examples/notiz-merker/` and comes with its own README, which also names the limits every extension of your own will run into.

@@ -1,9 +1,0 @@
-{
-  "id": "beispiel",
-  "name": "Beispiel-Erweiterung",
-  "version": "1.0.0",
-  "apiVersion": "1.0",
-  "description": "Referenz-Erweiterung der API v1: Smiley-Syntax, Sidebar-Panel, Kommando, Einstellungs-Bereich, Übersetzungen.",
-  "entry": "main.js",
-  "markdownPlugin": "markdown.js"
-}
