@@ -341,6 +341,14 @@ export const state = {
   searchResults: {
     visibleByPane: [false, false],
   },
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel des Buches. Nur die
+  // Sichtbarkeit je Spalte liegt hier; der Buch-Zustand selbst (Kapitel-Baum,
+  // Lese-Ordnung, nicht eingehaengte und fehlende Kapitel) gehoert dem
+  // Main-Prozess und lebt im Panel-Modul, das ihn ueber den books-Namensraum
+  // gemeldet bekommt (Muster des Trefferbestands im Suchergebnis-Panel).
+  bookPanel: {
+    visibleByPane: [false, false],
+  },
   // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Panel. dataByPane haelt die
   // geladene Anker->{values,updated}-Map der .mdd; activeAnchorByPane den Anker
   // unter dem Cursor bzw. den per Dropdown gewaehlten. loadTokens gegen Lade-
@@ -676,6 +684,17 @@ function buildPaneEls(paneIdx) {
     searchResultsSection: root.querySelector('.sidebar-searchresults'),
     searchResultsStatus: root.querySelector('.sidebar-searchresults .search-results-status'),
     searchResultsList: root.querySelector('.sidebar-searchresults .search-results-list'),
+    // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Sektion des Buches.
+    // Leseführungs-Knöpfe im Kopf, Leer-Hinweis, Kapitel-Baum und der
+    // Abschnitt „nicht eingehängt".
+    bookSection: root.querySelector('.sidebar-book'),
+    bookPrevBtn: root.querySelector('.sidebar-book .book-prev'),
+    bookNextBtn: root.querySelector('.sidebar-book .book-next'),
+    bookEmpty: root.querySelector('.sidebar-book .book-empty'),
+    bookMain: root.querySelector('.sidebar-book .book-main'),
+    bookTree: root.querySelector('.sidebar-book .book-tree'),
+    bookUnlinked: root.querySelector('.sidebar-book .book-unlinked'),
+    bookUnlinkedList: root.querySelector('.sidebar-book .book-unlinked-list'),
     // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sektion. Anker-Leiste mit
     // Dropdown und Umbenennen, Eigenschafts-Felder, Verwaisten-Abschnitt.
     blockPropsSection: root.querySelector('.sidebar-blockprops'),

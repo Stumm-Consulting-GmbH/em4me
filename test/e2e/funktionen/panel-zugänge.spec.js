@@ -1,10 +1,11 @@
 // 4T-0568 (Epic 3E-0104): E2E-Funktions-Suite — vereinheitlichte
 // Panel-Zugänge (PZ-01 bis PZ-04). Deckt das Panel-Untermenü des
-// Ansichtsmenüs (alle 15 Panels in Modell-Reihenfolge, keine Einzel-
-// Panel-Einträge mehr auf Hauptmenü-Ebene), die identische Reihenfolge
-// der Statusbar-Buttons, den zentralen Toggle-Kanal menu:togglePanel und
-// das Erweiterungs-Gate (deaktivierte Erweiterungs-Panels verschwinden an
-// beiden Orten) ab. Menü-Inspektion über den setMenu-Interceptor (Muster
+// Ansichtsmenüs (alle Panels des Zugangs-Modells in Modell-Reihenfolge,
+// keine Einzel-Panel-Einträge mehr auf Hauptmenü-Ebene), die identische
+// Reihenfolge der Statusbar-Buttons, den zentralen Toggle-Kanal
+// menu:togglePanel und das Erweiterungs-Gate (deaktivierte Erweiterungs-Panels
+// verschwinden an beiden Orten) ab. Menü-Inspektion über den
+// setMenu-Interceptor (Muster
 // armMenuCapture in arbeitsbereiche.spec.js — Menu.getApplicationMenu()
 // ist leer, die App setzt Fenster-Menüs über win.setMenu).
 'use strict';
@@ -32,6 +33,19 @@ const FOLD_GUTTER_LABELS = new Set(DICTS.map((d) => d['menu.view.foldGutter']));
 const BUTTON_ORDER = DEFAULT_PANEL_TOGGLE_ORDER.map(
   (id) => PANEL_ACCESS.find((p) => p.id === id).buttonId,
 );
+
+// 4T-0844 (Epic 3E-0147): Panel-Menge aus dem Zugangs-Modell abgeleitet statt
+// hart gezählt. Jedes neue Panel (zuletzt das Inhaltsverzeichnis des Buches)
+// hätte sonst drei Zahlen in dieser Datei still veralten lassen; die
+// Prüf-Aussage bleibt dieselbe, weil die Reihenfolge-Zusicherung darunter
+// weiterhin gegen das Modell steht.
+const PANEL_COUNT = DEFAULT_PANEL_TOGGLE_ORDER.length;
+
+// Wie viele Panel-Zugänge bleiben, wenn diese Erweiterungen abgeschaltet sind?
+function panelCountWithoutExtensions(disabledIds) {
+  const off = new Set(disabledIds);
+  return PANEL_ACCESS.filter((p) => !off.has(p.extensionId)).length;
+}
 
 // Interceptor: fängt jeden Menü-Neubau des ersten Fensters ab und legt das
 // Panel-Untermenü ({label, type, checked} je Eintrag) plus die direkten
@@ -92,7 +106,7 @@ async function nudgeMenuRebuild(app) {
     .toBeGreaterThan(0);
 }
 
-test.describe('PZ-01: Panel-Untermenü bündelt alle 15 Panels in Modell-Reihenfolge', () => {
+test.describe('PZ-01: Panel-Untermenü bündelt alle Panels in Modell-Reihenfolge', () => {
   test('Untermenü vollständig und geordnet, keine Einzel-Panel-Einträge im Hauptmenü', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
@@ -101,7 +115,7 @@ test.describe('PZ-01: Panel-Untermenü bündelt alle 15 Panels in Modell-Reihenf
       await nudgeMenuRebuild(app);
 
       const { submenu, viewLabels } = await capturedPanelMenu(app);
-      expect(submenu).toHaveLength(15);
+      expect(submenu).toHaveLength(PANEL_COUNT);
       // Reihenfolge und Vollständigkeit: Labels auf Panel-IDs abgebildet.
       const ids = submenu.map((e) => LABEL_TO_ID.get(e.label));
       expect(ids).toEqual(DEFAULT_PANEL_TOGGLE_ORDER);
@@ -122,7 +136,7 @@ test.describe('PZ-01: Panel-Untermenü bündelt alle 15 Panels in Modell-Reihenf
 });
 
 test.describe('PZ-02: Statusbar-Leiste folgt derselben Reihenfolge', () => {
-  test('die 15 Panel-Buttons stehen in Modell-Reihenfolge im eigenen Segment', async () => {
+  test('die Panel-Buttons stehen in Modell-Reihenfolge im eigenen Segment', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
@@ -192,6 +206,10 @@ test.describe('PZ-03: zentraler Toggle-Kanal menu:togglePanel', () => {
   });
 });
 
+// Die drei Erweiterungen, deren fünf Panels PZ-04 abschaltet; dieselbe Liste
+// speist die Deaktivierung und die erwartete Rest-Menge.
+const DISABLED_EXTENSIONS = ['wiki-links', 'graph-view', 'reminders'];
+
 test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Orten', () => {
   test('wiki-links, graph-view und reminders aus: fünf Panels ohne Button und ohne Untermenü-Eintrag', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
@@ -199,11 +217,12 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await armPanelMenuCapture(app);
       await nudgeMenuRebuild(app);
-      expect((await capturedPanelMenu(app)).submenu).toHaveLength(15);
+      expect((await capturedPanelMenu(app)).submenu).toHaveLength(PANEL_COUNT);
 
       // Deaktivierung über den Broadcast-Pfad (Muster erweiterungen.spec.js).
-      await page.evaluate(() =>
-        window.api.setSetting('extensions.disabled', ['wiki-links', 'graph-view', 'reminders']),
+      await page.evaluate(
+        (ids) => window.api.setSetting('extensions.disabled', ids),
+        DISABLED_EXTENSIONS,
       );
 
       // Statusbar: die fünf gebundenen Buttons sind ausgeblendet.
@@ -216,19 +235,24 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
       ]) {
         await expect(page.locator(`#${btnId}`)).toBeHidden();
       }
-      // Untermenü: dieselben fünf Panels entfallen (15 - 5 = 10).
+      // Untermenü: dieselben fünf Panels entfallen; die Rest-Menge kommt aus
+      // dem Zugangs-Modell und nicht aus einer gepflegten Zahl.
       // 4T-0372 (Epic 3E-0069): das Uhr-Panel bleibt, seine Erweiterung ist
-      // in diesem Fall nicht deaktiviert.
+      // in diesem Fall nicht deaktiviert. 4T-0844 (Epic 3E-0147): ebenso das
+      // Inhaltsverzeichnis des Buches, dessen Erweiterung hier an bleibt.
       await expect
         .poll(async () => {
           const { submenu } = await capturedPanelMenu(app);
           return submenu ? submenu.length : 0;
         })
-        .toBe(10);
+        .toBe(panelCountWithoutExtensions(DISABLED_EXTENSIONS));
       const ids = (await capturedPanelMenu(app)).submenu.map((e) => LABEL_TO_ID.get(e.label));
       for (const gone of ['subpages', 'filegraph', 'outgoing', 'backlinks', 'reminders']) {
         expect(ids).not.toContain(gone);
       }
+      // Gegenprobe: erweiterungs-gebundene Panels anderer Erweiterungen bleiben.
+      expect(ids).toContain('book');
+      expect(ids).toContain('clock');
     } finally {
       await closeApp(app, userData, { force: true });
     }
@@ -266,7 +290,7 @@ test.describe('PZ-05: Einstellungs-Bereich Panel-Reihenfolge', () => {
 
       await openPanelOrderSection(page);
       const rows = page.locator(`${SETTINGS_PAGE} .panel-order-list .sidebar-settings-row`);
-      await expect(rows).toHaveCount(15);
+      await expect(rows).toHaveCount(PANEL_COUNT);
       await expect(rows.nth(0)).toHaveAttribute('data-panel-id', 'bookmarks');
       // Erste Zeile: „Nach oben" deaktiviert, „Nach unten" aktiv.
       await expect(rows.nth(0).locator('.panel-order-up')).toBeDisabled();

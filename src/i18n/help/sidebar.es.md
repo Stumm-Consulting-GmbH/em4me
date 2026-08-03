@@ -53,6 +53,18 @@ Cuando varios paneles están apilados en un lado de la barra lateral, un tirador
 
 El panel inferior de un lado no tiene tirador, porque detrás de él no sigue ningún otro. Por eso sigue siempre la altura de su contenido y ocupa el espacio que le dejan los paneles de encima. Allí solo aparece una barra de desplazamiento cuando ese espacio no basta para el contenido.
 
+Si las alturas definidas requieren en conjunto más espacio del que tiene el lado, toda la columna se puede desplazar verticalmente. Con ello no desaparece ningún panel: cada uno conserva al menos su cabecera y los inferiores son accesibles desplazándose. Para recuperar el estado anterior, reducir el panel agrandado en exceso o devolverle la altura automática con un doble clic en su tirador.
+
+## Altura por panel o por grupo
+
+De qué depende la altura de un bloque se puede elegir (Ajustes → Barra lateral).
+
+Con **Altura por panel**, cada panel conserva su propia altura. En un grupo de pestañas rige la altura del panel mostrado; al recorrerlo cambia por tanto la altura del bloque y los paneles inferiores se desplazan con él. Es la opción predeterminada.
+
+Con **Altura fija por grupo**, un grupo de pestañas conserva su altura al cambiar de pestaña. Todos los paneles del grupo aparecen con la misma altura y lo que hay debajo permanece en su sitio. El tirador situado bajo el grupo ajusta entonces su altura común; un doble clic restablece la altura automática de todo el grupo.
+
+Los paneles aislados se comportan igual en ambos casos. Las alturas de ambos ajustes se recuerdan por separado: al volver atrás se encuentran sin cambios las alturas de panel anteriores.
+
 ## Títulos como símbolo
 
 Los títulos de los paneles pueden cambiarse de texto al símbolo del panel correspondiente (Ajustes → Barra lateral). El cambio afecta por igual a las cabeceras de sección y a las pestañas de paneles agrupados; el nombre del panel sigue disponible como indicación breve y para lectores de pantalla. Como la disposición, el conmutador surte efecto con Aplicar u OK.

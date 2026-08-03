@@ -36,9 +36,10 @@ const DE_JSON = JSON.parse(
 describe('Paritäts-Wächter Panel-Zugänge (4T-0567)', () => {
   // 4T-0372 (Epic 3E-0069): 13 -> 14 durch das Uhr-Panel.
   // 4T-0759 (Epic 3E-0142): 14 -> 15 durch das Suchergebnis-Panel.
-  it('Modell und Renderer-Registry führen dieselbe 15er-ID-Menge', () => {
+  // 4T-0844 (Epic 3E-0147): 15 -> 16 durch das Inhaltsverzeichnis des Buches.
+  it('Modell und Renderer-Registry führen dieselbe 16er-ID-Menge', () => {
     const modelIds = PANEL_ACCESS.map((p) => p.id);
-    expect(modelIds.length).toBe(15);
+    expect(modelIds.length).toBe(16);
     expect(new Set(modelIds).size).toBe(modelIds.length);
     expect([...modelIds].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
   });

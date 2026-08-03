@@ -79,6 +79,10 @@ export const DEFAULT_PANEL_ORDER = [
   'searchresults',
   // 4T-0327 (Epic 3E-0059): Bereichs-Panel (Ordnerbaum plus Dateiliste).
   'area',
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches — Kapitel-Baum,
+  // Lese-Markierung und Abschnitt "nicht eingehaengt". Thematisch bei den
+  // ortsgebenden Panels (Lesezeichen, Bereich).
+  'book',
   // 4T-0434 (Epic 3E-0081): Kalender-Panel (Journal-Einstieg, Monatsansicht).
   'calendar',
   // 4T-0527 (Epic 3E-0095): Erinnerungs-Panel (Fälligkeits-Gruppen mit
@@ -99,7 +103,10 @@ export const DEFAULT_PANEL_ORDER = [
 // normalizeSidebarLayout robust als Einzel-Slots links an.
 const DEFAULT_SIDEBAR_STRUCTURE = {
   left: [
-    ['bookmarks', 'area'],
+    // 4T-0844 (Epic 3E-0147): Das Inhaltsverzeichnis schliesst die
+    // Ort-Gruppe ab. Als dritter Reiter derselben Gruppe kostet es keinen
+    // zusaetzlichen vertikalen Platz (Muster der Uhr in der Zeit-Gruppe).
+    ['bookmarks', 'area', 'book'],
     // 4T-0759 (Epic 3E-0142): Die Suchergebnisse schliessen die Finde-Gruppe
     // ab. Als vierter Reiter derselben Gruppe kosten sie keinen zusaetzlichen
     // vertikalen Platz (Muster der Uhr in der Zeit-Gruppe).
@@ -417,6 +424,88 @@ export const MIN_PANEL_HEIGHT = 60;
 const MAX_PANEL_HEIGHT = 2000;
 const sidebarPanelHeights = {};
 
+// 4T-0855 (Epic 3E-0164): Höhen-Modell der Blöcke. Zwei Werte:
+//   'panel' (Vorgabe) die Höhe hängt am einzelnen Panel — Bestandsverhalten,
+//           in einer Reiter-Gruppe gilt die Höhe des aktiven Reiters, und die
+//           Blockhöhe wechselt beim Durchblättern mit.
+//   'group' die Höhe hängt an der Reiter-Gruppe — beim Durchblättern bleibt
+//           der Block gleich hoch, und was darunter liegt, bleibt an seinem
+//           Platz.
+// Die Gruppen-Höhen liegen in einer EIGENEN Ablage (`sidebar.groupHeights`)
+// und nicht in `sidebar.panelHeights`. Grund: Ein Wechsel des Modells darf
+// keine Höhen des jeweils anderen überschreiben, sonst verlöre das
+// Zurückschalten die zuvor eingestellten Panel-Höhen.
+export const HEIGHT_MODE_PANEL = 'panel';
+export const HEIGHT_MODE_GROUP = 'group';
+const HEIGHT_MODE_KEY = 'sidebar.heightMode';
+let panelHeightMode = HEIGHT_MODE_PANEL;
+const sidebarGroupHeights = {};
+
+export function getPanelHeightMode() {
+  return panelHeightMode;
+}
+
+// Setzen — benachrichtigt Konsumenten (Sidebar-Rendering, offene
+// Einstellungs-Entwürfe) und persistiert. persist:false für den Empfang des
+// Fenster-Broadcasts (Muster setIconHeadings).
+export async function setPanelHeightMode(value, { persist = true } = {}) {
+  const next = value === HEIGHT_MODE_GROUP ? HEIGHT_MODE_GROUP : HEIGHT_MODE_PANEL;
+  if (next === panelHeightMode) return panelHeightMode;
+  panelHeightMode = next;
+  document.dispatchEvent(new CustomEvent('scg:sidebar-height-mode-changed'));
+  if (persist) await persistFn(HEIGHT_MODE_KEY, next);
+  return panelHeightMode;
+}
+
+// Schlüssel einer Reiter-Gruppe: die ID ihres ersten Panels.
+//
+// Ein Slot trägt keine eigene Kennung, und die Wahl fiel bewusst auf das
+// erste Panel statt auf die Panel-Menge: Innerhalb einer Gruppe gibt es kein
+// Umsortieren (ein gruppiertes Panel kann die Gruppe nur verlassen), und
+// `groupPanelWith` hängt neue Mitglieder hinten an — das erste Panel bleibt
+// also stabil, während sich die Menge bei jedem Zu- und Abgang änderte. Der
+// Bestand nutzt `slot.panels[0]` bereits an mehreren Stellen als
+// Slot-Identifikator (Einstellungs-Bereich: Gruppieren, Auflösen, Verschieben).
+export function groupHeightKey(slot) {
+  if (!slot || !Array.isArray(slot.panels) || slot.panels.length === 0) return null;
+  return slot.panels[0];
+}
+
+export function getGroupHeight(key) {
+  return typeof key === 'string' ? (sidebarGroupHeights[key] ?? null) : null;
+}
+
+// value null (oder ungültig) löscht den Eintrag → die Gruppe fällt auf die
+// automatische Höhe zurück (Muster setPanelHeight).
+export async function setGroupHeight(key, value, { persist = true } = {}) {
+  if (typeof key !== 'string' || key === '') return;
+  const clamped = clampPanelHeight(value);
+  if (clamped == null) {
+    delete sidebarGroupHeights[key];
+  } else {
+    sidebarGroupHeights[key] = clamped;
+  }
+  if (persist) await persistFn('sidebar.groupHeights', { ...sidebarGroupHeights });
+}
+
+// App-Start: persistierte Gruppen-Höhen laden (Muster
+// loadSidebarPanelHeights). Robust gegen defekte Stände.
+export async function loadSidebarGroupHeights() {
+  let stored;
+  try {
+    stored = await api.getSetting('sidebar.groupHeights');
+  } catch (err) {
+    console.warn('Sidebar-Gruppen-Höhen laden fehlgeschlagen:', err);
+  }
+  for (const key of Object.keys(sidebarGroupHeights)) delete sidebarGroupHeights[key];
+  if (stored && typeof stored === 'object') {
+    for (const [id, value] of Object.entries(stored)) {
+      const clamped = clampPanelHeight(value);
+      if (clamped != null) sidebarGroupHeights[id] = clamped;
+    }
+  }
+}
+
 export function getSidebarLayout() {
   if (!currentLayout) currentLayout = defaultSidebarLayout(knownPanelIds());
   return currentLayout;
@@ -565,6 +654,12 @@ export async function initSidebarLayoutFromStore() {
     legacyWidth = await api.getSetting('outline.width');
     // 4T-0639: Icon-Zustand der Panel-Überschriften.
     iconHeadings = (await api.getSetting(SIDEBAR_ICON_HEADINGS_KEY)) === true;
+    // 4T-0855 (Epic 3E-0164): Höhen-Modell. Jeder Wert außer dem
+    // Gruppen-Modus fällt auf die Vorgabe zurück, auch ein defekter Stand.
+    panelHeightMode =
+      (await api.getSetting(HEIGHT_MODE_KEY)) === HEIGHT_MODE_GROUP
+        ? HEIGHT_MODE_GROUP
+        : HEIGHT_MODE_PANEL;
   } catch (err) {
     console.warn('Sidebar-Layout laden fehlgeschlagen:', err);
   }
@@ -586,5 +681,8 @@ export function resetSidebarLayoutStateForTests() {
   iconHeadings = false;
   // 4T-0475 (Epic 3E-0088): Panel-Höhen ebenfalls zurücksetzen.
   for (const key of Object.keys(sidebarPanelHeights)) delete sidebarPanelHeights[key];
+  // 4T-0855 (Epic 3E-0164): Höhen-Modell und Gruppen-Höhen ebenfalls.
+  panelHeightMode = HEIGHT_MODE_PANEL;
+  for (const key of Object.keys(sidebarGroupHeights)) delete sidebarGroupHeights[key];
   panelRegistry.clear();
 }

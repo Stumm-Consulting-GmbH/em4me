@@ -320,9 +320,11 @@ test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
       // tags, blockprops, outgoing, backlinks; die rechte Seite ist belegt, der
       // Leer-Hinweis entfällt.
       // 4T-0759 (Epic 3E-0142): links kommt das Suchergebnis-Panel hinzu (9).
+      // 4T-0844 (Epic 3E-0147): links kommt das Inhaltsverzeichnis des Buches
+      // hinzu (10), als dritter Reiter der Ort-Gruppe.
       const leftList = section.locator('.sidebar-settings-list[data-side="left"]');
       const rightList = section.locator('.sidebar-settings-list[data-side="right"]');
-      await expect(leftList.locator('.sidebar-settings-row')).toHaveCount(9);
+      await expect(leftList.locator('.sidebar-settings-row')).toHaveCount(10);
       await expect(rightList.locator('.sidebar-settings-row')).toHaveCount(6);
       await expect(rightList.locator('.sidebar-settings-empty')).toHaveCount(0);
 

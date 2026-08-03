@@ -9,6 +9,69 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.103.0.1141] - 2026-08-03 — Bücher
+
+Epic 3E-0147: Mehrere Markdown-Dateien lassen sich zu einem **Buch** mit
+erklärter Lese-Ordnung bündeln — ein Kontext auf derselben Ebene wie Bereich
+und Arbeitsbereich. Die Kapitel bleiben gewöhnliche, einzeln lesbare Dateien;
+die Struktur liegt in einer Begleitdatei je Buch-Ordner, nicht im Dateinamen
+und nicht in der Ordner-Lage.
+
+### Neu
+
+- **Buch-Modell und Erkennung** (4T-0842, 4T-0843): Ein Buch ist ein Ordner
+  mit Buch-Datei und Begleitdatei `Book_Settings.mdda` (Kapitel-Baum als
+  Sektion, Verweise relativ zum Buch-Ordner; Vorbild ist der Lesezeichen-Baum
+  der Bereichsdatei). Datei → Buch öffnen…/Neues Buch…/Buch schließen; das
+  Öffnen der Buch-Datei selbst erkennt das Buch über die Begleitdatei, ohne
+  Rückverweis in der Markdown-Datei. Je Applikation ist ein Buch aktiv, die
+  Sitzungs-Wiederherstellung bringt es zurück; Kapitel-Dateien öffnen wie
+  gewöhnliche Dateien.
+- **Inhaltsverzeichnis-Panel** (4T-0844): Kapitel-Baum in Lese-Reihenfolge mit
+  Lese-Markierung, Sprung per Klick, Anfasser-Markern, Abschnitt „nicht
+  eingehängt" und Vor/Zurück-Knöpfen; verankert an beiden Bedienorten
+  (Statusbar-Button, Ansichtsmenü).
+- **Struktur-Pflege** (4T-0845): Ziehen am Anfasser verschiebt ein Kapitel
+  samt Unterkapiteln in der Ebene und über Ebenen; gleichwertig Alt+Pfeile am
+  fokussierten Eintrag; Kontextmenü mit „Neues Kapitel" (legt die Datei an und
+  hängt sie ein), „Einhängen" und „Aushängen". Jede Operation schreibt nur die
+  Begleitdatei, nie das Dateisystem.
+- **Leseführung** (4T-0846): `book.nextChapter`/`book.previousChapter`
+  (Standard `Strg+Alt+Bild ab`/`Bild auf`, umbelegbar) folgen der Lese-Ordnung
+  über Datei-Grenzen; an Anfang und Ende meldet die Statusbar die Grenze statt
+  umzulaufen.
+- **Kapitel-Datei verschieben mit Nachführung** (4T-0847): eigenes Kommando
+  samt Kontextmenü-Eintrag, Ziel nur innerhalb des Buch-Ordners; Wiki-Links,
+  relative Markdown-Links und der Kapitel-Baum-Eintrag ziehen nach. Das
+  Umbenennen führt die Begleitdatei ebenfalls nach, unabhängig davon, ob das
+  Buch geöffnet ist.
+- **Reparatur fehlender Kapitel** (4T-0848): Baum-Einträge ohne Datei sind
+  markiert; ein namensgleicher Fund im Buch-Ordner wird sichtbar vorgeschlagen,
+  „Neu zuordnen…" (vorbelegt, Liste oder Datei-Wahl) und „Aushängen" heilen den
+  Baum per Klick, nie automatisch.
+- **Bücher als interne Erweiterung** (4T-0849): der gesamte Block ist
+  schaltbar (ab Werk an); im Aus-Zustand verschwinden Menüpunkte, Kommandos,
+  Panel und Erkennung, alle Dateien bleiben unangetastet.
+- **Demo-Buch** in der Demo-Area (4T-0850): vollständiges Beispiel-Buch mit
+  Unterordner-Kapitel und bewusst nicht eingehängter Datei.
+
+### Geändert
+
+- **Verweis-Nachführung bei Verzeichniswechsel** (4T-0847): relative
+  Markdown-Links werden jetzt auch dann korrekt nachgeführt, wenn die
+  Zieldatei das Verzeichnis wechselt (der Bestand kannte nur das Umbenennen am
+  Ort und ersetzte allein den Datei-Namen). Textgleiche Nachführungen werden
+  nicht mehr unnötig geschrieben und historisiert.
+
+### i18n und Doku
+
+- 83 neue Übersetzungs-Schlüssel in allen fünf Sprachen (Menü, Panel, Dialoge,
+  Fehlermeldungen, sechs Funktions-Katalog-Einträge, Tasten-Beschriftungen
+  „Bild auf"/„Bild ab").
+- Neue Handbuch-Themen-Seite „Bücher" in fünf Sprachfassungen samt
+  Überblicks-Links; die generierten Katalog- und Kürzel-Seiten ziehen
+  automatisch nach.
+
 ## [0.102.0.1111] - 2026-08-02 — Erweiterungs-API v1.1 und Referenz-Beispiel
 
 Epic 3E-0103: Wer eine eigene Erweiterung schreibt, kann ihr Panel jetzt an das

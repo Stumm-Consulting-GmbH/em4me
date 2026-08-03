@@ -1,7 +1,16 @@
 // 4T-0344 (Epic 3E-0062): Rewrite-Kern fuer Umbenennungen. Schreibt eingehende
 // Links auf den neuen Ziel-Namen um: Wiki-Links (inkl. Embeds, Anker, Pipe-
-// Label, Slash-Unterseiten) und relative Markdown-Links. Rein string-basiert und
-// Electron-frei; die einzigen Abhaengigkeiten sind src/shared/subpages.js
+// Label, Slash-Unterseiten) und relative Markdown-Links.
+//
+// 4T-0847 (Epic 3E-0147): Ein Rename-Paar darf zugleich das Verzeichnis
+// wechseln (physisches Verschieben einer Kapitel-Datei). Wiki-Links lösen über
+// den Namen auf und bleiben davon unberührt; ein relatives Markdown-Ziel wird
+// dann als GANZER Pfad neu geschrieben, weil sein Verzeichnis-Anteil sonst ins
+// Leere zeigte. Bleibt das Verzeichnis gleich (reines Umbenennen), entscheidet
+// unverändert der bisherige Weg über den Basename.
+//
+// Rein string-basiert und Electron-frei;
+// die einzigen Abhaengigkeiten sind src/shared/subpages.js
 // (Namens-Logik) und die gemeinsame Erkennungs-Quelle link-scan.js. Die Pfad-
 // Aufloesung relativer Markdown-Ziele ist als reine '/'-String-Operation
 // gekapselt (kein node:path), damit der Kern in Main und Renderer gleichermassen
@@ -73,6 +82,44 @@ function posixResolve(baseDir, relTarget) {
     segs.push(part);
   }
   return (leadingSlash ? '/' : '') + segs.join('/');
+}
+
+// 4T-0847 (Epic 3E-0147): Relativer '/'-Pfad von einem Verzeichnis zu einer
+// Datei; beide Eingaben sind absolute Pfade in beliebiger Trenner-Schreibweise.
+// Reine String-Operation wie die übrigen Helfer hier (kein node:path); die
+// gemeinsame Wurzel wird case-insensitiv und NFC-normalisiert bestimmt, weil
+// das Dateisystem der App ebenso vergleicht. Ohne gemeinsame Wurzel (etwa ein
+// anderes Laufwerk) gibt es keinen relativen Pfad; dann liefert die Funktion
+// null und der Aufrufer bleibt beim bisherigen Weg.
+function posixRelative(fromDir, toPath) {
+  const from = toPosix(fromDir)
+    .split('/')
+    .filter((seg) => seg !== '' && seg !== '.');
+  const to = toPosix(toPath)
+    .split('/')
+    .filter((seg) => seg !== '' && seg !== '.');
+  if (to.length === 0) return null;
+  const name = to[to.length - 1];
+  const toDir = to.slice(0, -1);
+  let shared = 0;
+  while (
+    shared < from.length &&
+    shared < toDir.length &&
+    normalizeNameKey(from[shared]) === normalizeNameKey(toDir[shared])
+  ) {
+    shared++;
+  }
+  if (shared === 0) return null;
+  const up = new Array(from.length - shared).fill('..');
+  return [...up, ...toDir.slice(shared), name].join('/');
+}
+
+// 4T-0847: Hat die Operation die Datei in ein anderes Verzeichnis bewegt? Nur
+// dann greift die Pfad-Nachführung; beim reinen Umbenennen bleibt das
+// Verzeichnis gleich und der Bestands-Weg (Basename ersetzen) entscheidet
+// unverändert.
+function movedToOtherDir(r) {
+  return normalizeNameKey(posixDirname(r.oldAbs)) !== normalizeNameKey(posixDirname(r.newAbs));
 }
 
 // URI-Dekodierung mit Fallback (wie der Klick-/Index-Pfad): ungueltige Kodierung
@@ -202,6 +249,60 @@ function collectMdRewrites(line, masked, ctx) {
     const encodedOldBasename = linkTarget.slice(baseOffsetInTarget);
     const newBasenameRaw = posixBasename(r.newAbs);
     const fullText = line.slice(m.index, m.index + m[0].length);
+    // 4T-0847 (Epic 3E-0147): Wechselt die Ziel-Datei das Verzeichnis (das
+    // physische Verschieben einer Kapitel-Datei), genügt das Ersetzen des
+    // Basenames nicht: der Verzeichnis-Anteil des relativen Ziels zeigte
+    // danach ins Leere. Dann wird das GANZE Ziel durch den neuen relativen
+    // Pfad von der verweisenden Datei zur neuen Lage ersetzt — die
+    // verweisende Datei ist `contextPath` in ihrer NEUEN Lage, sodass eine
+    // gemeinsame Bewegung beider Seiten richtig herauskommt.
+    //
+    // Ausgenommen bleiben wurzel-verankerte Ziele ('/…'): sie sind keine
+    // relative Angabe, und aus einer absoluten Form eine relative zu machen
+    // wäre eine Umdeutung statt einer Nachführung.
+    const moved =
+      !linkTarget.startsWith('/') && movedToOtherDir(r)
+        ? posixRelative(ctx.contextDir, r.newAbs)
+        : null;
+    if (moved !== null) {
+      // Kodierungs- und Klammer-Form des Originals beibehalten, dieselben
+      // Regeln wie unten — nur über das ganze Ziel statt über den Basename.
+      const wasEncodedTarget = linkTarget !== safeDecode(linkTarget);
+      if (angle) {
+        // <…>-Form: Leerzeichen sind nativ erlaubt, Klammern und Anker
+        // bleiben stehen.
+        out.push({
+          spanStart: targetPos,
+          spanLen: linkTarget.length,
+          replacement: moved,
+          typ: 'md',
+          fullText,
+          fullStart: m.index,
+        });
+      } else if (!wasEncodedTarget && /\s/.test(moved)) {
+        // Bringt die neue Lage ein Leerzeichen in ein bisher klammerloses,
+        // unkodiertes Ziel (Ordnername mit Leerzeichen), wandert die ganze
+        // Destination in spitze Klammern und der Anker mit (Regel 4T-0476).
+        out.push({
+          spanStart: targetPos,
+          spanLen: linkTarget.length + (anchor ? anchor.length + 1 : 0),
+          replacement: `<${moved}${anchor ? '#' + anchor : ''}>`,
+          typ: 'md',
+          fullText,
+          fullStart: m.index,
+        });
+      } else {
+        out.push({
+          spanStart: targetPos,
+          spanLen: linkTarget.length,
+          replacement: wasEncodedTarget ? encodeURI(moved) : moved,
+          typ: 'md',
+          fullText,
+          fullStart: m.index,
+        });
+      }
+      continue;
+    }
     // 4T-0476 (Epic 3E-0088): <…>-Form — Leerzeichen sind nativ erlaubt,
     // Basename roh ersetzen, Klammern und Anker bleiben stehen.
     if (angle) {

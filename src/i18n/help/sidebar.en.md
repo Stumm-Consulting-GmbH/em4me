@@ -53,6 +53,18 @@ When several panels are stacked on one sidebar side, a drag handle sits between 
 
 The bottom panel of a side has no handle, because no further panel follows it. It therefore always follows the height of its content and takes the space the panels above leave it. A scrollbar appears there only when that space is not enough for the content.
 
+If the set heights together require more room than the side has, the whole column becomes vertically scrollable. No panel disappears in the process: each keeps at least its header, and the lower ones are reachable by scrolling. To get the previous state back, shrink the panel that was dragged too large, or set it to the automatic height with a double-click on its handle.
+
+## Height per panel or per group
+
+What the height of a block depends on can be chosen (Settings → Sidebar).
+
+With **Height per panel** each panel keeps its own height. In a tab group the height of the displayed panel applies; paging through it therefore changes the height of the block, and the panels below move along. This is the default.
+
+With **Fixed height per group** a tab group keeps its height across tab changes. All panels of the group appear equally tall, and whatever lies below stays in place. The drag handle below the group then sets its shared height; a double-click restores the automatic height of the whole group.
+
+Panels standing on their own behave the same in both cases. The heights of both settings are remembered separately: switching back reveals the earlier panel heights unchanged.
+
 ## Headings as icon
 
 The panel headings can be switched from text to the icon of the respective panel (Settings → Sidebar). The switch affects section heads and the tabs of grouped panels alike; the panel name remains available as a tooltip and for screen readers. Like the arrangement, the switch takes effect on Apply or OK.

@@ -28,6 +28,8 @@ Read in order, or jump straight to what you need:
 10. [[10 Attachments]] — embedded images and PDFs
 11. [[11 Templates]] — reusable building blocks with placeholders
 
+Beside the tour, the folder `Demo Book` holds a small **book**: a handful of chapters tied into one declared reading path. Open it with **File → Open Book…** and pick that folder; [[Demo Book]] explains what to try. :books:
+
 ## How this window is laid out
 
 The folder is open as an **area**: the file list sits on the left, tabs run across the top, and sidebar panels cover backlinks, tags, the outline and more (all under the View menu). Most extras — callouts, tables, tasks, events and the rest — are switchable under **Settings → Extensions** and are all on by default.

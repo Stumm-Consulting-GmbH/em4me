@@ -439,6 +439,36 @@ function buildMenu(win, state, actions) {
           accelerator: acc('area.createDemo'),
           click: send('menu:createDemoArea'),
         }),
+        // 4T-0843 (Epic 3E-0147): Buecher stehen bei den Bereichs-Eintraegen
+        // (PO-Klaerung zum Umsetzungs-Start), weil ein geoeffnetes Buch ein
+        // eigener Kontext auf derselben Ebene wie Bereich und Arbeitsbereich
+        // ist. Alle drei Aktionen fuehrt der Main direkt aus (Ordner-Dialog,
+        // Anlage, aktives Buch der Applikation). Anders als beim Bereich
+        // gibt es keinen Renderer-Umweg, weil im Fenster nichts zu
+        // entscheiden ist.
+        unless('book.open', {
+          label: t('menu.file.openBook'),
+          accelerator: acc('book.open'),
+          click: () => {
+            if (actions && actions.openBook) actions.openBook();
+          },
+        }),
+        unless('book.create', {
+          label: t('menu.file.newBook'),
+          accelerator: acc('book.create'),
+          click: () => {
+            if (actions && actions.createBook) actions.createBook();
+          },
+        }),
+        unless('book.close', {
+          // Nur bei aktivem Buch aktiv (Muster "Bereich schliessen").
+          label: t('menu.file.closeBook'),
+          accelerator: acc('book.close'),
+          enabled: !!(state && state.hasBook),
+          click: () => {
+            if (actions && actions.closeBook) actions.closeBook();
+          },
+        }),
         { type: 'separator' },
         {
           // 4T-0319 (Epic 3E-0057): neue logische Applikation (eigener

@@ -12,10 +12,16 @@ dieses Dokument.
 ```
 test/
 ├── unit/        Vitest: Unit- und Snapshot-Tests (Node, Electron-frei)
+│   ├── markdown/  Tests der Markdown-Verarbeitung
+│   ├── render/    Tests und Snapshots der Render-Pipeline
+│   └── renderer/  Tests der Renderer-Module
 ├── e2e/         Playwright: End-to-End-Tests gegen die echte App
-│   ├── helpers/   gemeinsame Helpers (App-Start, Selektoren, Datei-Warten)
-│   └── smoke/     Smoke-Suite über die Kernabläufe
-└── fixtures/    statisches Test-Material (Markdown-Dateien)
+│   ├── helpers/     gemeinsame Helpers (App-Start, Selektoren, Datei-Warten)
+│   ├── smoke/       Smoke-Suite über die Kernabläufe
+│   ├── funktionen/  Funktions-Specs je Bereich
+│   ├── regression/  Regressions-Specs zu behobenen Fehlern
+│   └── perf/        Laufzeit-Messungen
+└── fixtures/    statisches Test-Material (Unterordner siehe fixtures/README.md)
 ```
 
 Bewusst `test/` (Singular, klein): der gitignorierte Top-Level-Ordner

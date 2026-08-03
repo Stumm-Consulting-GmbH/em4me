@@ -53,6 +53,18 @@ Quando più pannelli sono impilati su un lato della barra laterale, una maniglia
 
 Il pannello più in basso di un lato non ha maniglia, perché dietro di esso non ne segue nessun altro. Segue quindi sempre l'altezza del proprio contenuto e occupa lo spazio che i pannelli soprastanti gli lasciano. Una barra di scorrimento vi compare solo se quello spazio non basta al contenuto.
 
+Se le altezze impostate richiedono complessivamente più spazio di quello disponibile sul lato, l'intera colonna diventa scorrevole in verticale. Nessun pannello scompare: ognuno mantiene almeno la propria intestazione e quelli in basso restano raggiungibili scorrendo. Per tornare allo stato precedente basta rimpicciolire il pannello ingrandito troppo oppure ridargli l'altezza automatica con un doppio clic sulla sua maniglia.
+
+## Altezza per pannello o per gruppo
+
+Da che cosa dipende l'altezza di un blocco è impostabile (Impostazioni → Barra laterale).
+
+Con **Altezza per pannello** ogni pannello mantiene la propria altezza. In un gruppo di schede vale l'altezza del pannello mostrato; scorrendolo cambia quindi l'altezza del blocco e i pannelli sottostanti si spostano con esso. È l'impostazione predefinita.
+
+Con **Altezza fissa per gruppo** un gruppo di schede mantiene la sua altezza al cambio di scheda. Tutti i pannelli del gruppo appaiono della stessa altezza e ciò che sta sotto resta al suo posto. La maniglia sotto il gruppo regola allora la loro altezza comune; un doppio clic ripristina l'altezza automatica dell'intero gruppo.
+
+I pannelli singoli si comportano allo stesso modo in entrambi i casi. Le altezze delle due impostazioni sono memorizzate separatamente: tornando indietro si ritrovano invariate le altezze di pannello precedenti.
+
 ## Intestazioni come simbolo
 
 Le intestazioni dei pannelli possono passare dal testo al simbolo del rispettivo pannello (Impostazioni → Barra laterale). Il cambio vale allo stesso modo per le intestazioni di sezione e per le schede dei pannelli raggruppati; il nome del pannello resta disponibile come suggerimento e per gli screen reader. Come la disposizione, l'interruttore ha effetto con Applica o OK.

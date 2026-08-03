@@ -40,6 +40,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Lesezeichen](bookmarks.md) — Dateien in zwei Abschnitten merken: allgemeine und bereichsgebundene Lesezeichen mit relativen Pfaden, Anlage, Umwandeln, Reihenfolge.
 - [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
 - [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
+- [Bücher](books.md) — mehrere Dateien als Buch mit erklärter Lese-Ordnung: Buch-Ordner mit Begleitdatei, Inhaltsverzeichnis mit Struktur-Pflege, Leseführung über Kapitel-Grenzen, Verschieben mit Nachführung, Reparatur fehlender Kapitel.
 - [Dokument-Historie](history.md) — Änderungen protokollieren: Markdown-Data-Begleitdatei, Schalter auf drei Ebenen, Revisionen vergleichen und wiederherstellen.
 - [Dokument-Notizen](notes.md) — eine Notiz je Dokument: Sidebar-Panel mit umschaltbarer Vorschau, automatisches Speichern in der Begleitdatei, Abgrenzung zur Historie.
 - [Block-Eigenschaften](block-properties.md) — typisierte Eigenschaften pro Block-Anker: Panel mit Cursor-Folge, verwaiste Daten, Anker umbenennen, Indikator am Block.

@@ -13,17 +13,21 @@
 import { t } from '../i18n.js';
 import { refreshSettingsButtons, registerSettingsSection } from './settings-page.js';
 import {
+  HEIGHT_MODE_GROUP,
+  HEIGHT_MODE_PANEL,
   SIDEBAR_SIDES,
   applySidebarLayout,
   defaultSidebarLayout,
   dissolveGroup,
   getIconHeadings,
+  getPanelHeightMode,
   getSidebarLayout,
   groupPanelWith,
   knownPanelIds,
   movePanelRelativeTo,
   movePanelToNewSlot,
   setIconHeadings,
+  setPanelHeightMode,
   sidebarPanelById,
 } from './sidebar-layout.js';
 // 4T-0624 (Epic 3E-0119): benannte Sidebar-Varianten — die Verwaltung
@@ -63,6 +67,11 @@ function ensureDraft(draft) {
   if (typeof draft.sidebarIconHeadings !== 'boolean') {
     draft.sidebarIconHeadings = getIconHeadings();
   }
+  // 4T-0855 (Epic 3E-0164): Das Höhen-Modell folgt demselben Entwurfs-Muster
+  // wie der Icon-Schalter.
+  if (typeof draft.sidebarHeightMode !== 'string') {
+    draft.sidebarHeightMode = getPanelHeightMode();
+  }
   return draft.sidebarLayout;
 }
 
@@ -91,6 +100,15 @@ document.addEventListener('scg:sidebar-layout-changed', () => {
 document.addEventListener('scg:sidebar-icon-headings-changed', () => {
   if (!lastDraft || typeof lastDraft.sidebarIconHeadings !== 'boolean') return;
   lastDraft.sidebarIconHeadings = getIconHeadings();
+  if (lastBody && lastBody.isConnected && typeof lastRerender === 'function') lastRerender();
+  refreshSettingsButtons();
+});
+
+// 4T-0855 (Epic 3E-0164): Dasselbe für das Höhen-Modell, wenn es aus einem
+// anderen Fenster kommt.
+document.addEventListener('scg:sidebar-height-mode-changed', () => {
+  if (!lastDraft || typeof lastDraft.sidebarHeightMode !== 'string') return;
+  lastDraft.sidebarHeightMode = getPanelHeightMode();
   if (lastBody && lastBody.isConnected && typeof lastRerender === 'function') lastRerender();
   refreshSettingsButtons();
 });
@@ -215,6 +233,36 @@ function buildInto(body, draft, rerender) {
   iconLabel.textContent = t('settings.sidebar.iconHeadings');
   iconRow.append(iconInput, iconLabel);
   body.appendChild(iconRow);
+
+  // 4T-0855 (Epic 3E-0164): Höhen-Modell der Blöcke. Läuft wie der
+  // Icon-Schalter über den Entwurf und wirkt erst bei Anwenden oder OK.
+  const modeRow = document.createElement('label');
+  modeRow.className = 'settings-row';
+  const modeLabel = document.createElement('span');
+  modeLabel.textContent = t('settings.sidebar.heightMode');
+  const modeSelect = document.createElement('select');
+  modeSelect.id = 'settings-sidebar-height-mode';
+  for (const [wert, key] of [
+    [HEIGHT_MODE_PANEL, 'settings.sidebar.heightMode.panel'],
+    [HEIGHT_MODE_GROUP, 'settings.sidebar.heightMode.group'],
+  ]) {
+    const opt = document.createElement('option');
+    opt.value = wert;
+    opt.textContent = t(key);
+    modeSelect.appendChild(opt);
+  }
+  modeSelect.value =
+    draft.sidebarHeightMode === HEIGHT_MODE_GROUP ? HEIGHT_MODE_GROUP : HEIGHT_MODE_PANEL;
+  modeSelect.addEventListener('change', () => {
+    draft.sidebarHeightMode = modeSelect.value;
+    refreshSettingsButtons();
+  });
+  modeRow.append(modeLabel, modeSelect);
+  body.appendChild(modeRow);
+  const modeHint = document.createElement('p');
+  modeHint.className = 'sidebar-settings-hint';
+  modeHint.textContent = t('settings.sidebar.heightMode.hint');
+  body.appendChild(modeHint);
 
   for (const side of SIDEBAR_SIDES) {
     const heading = document.createElement('h4');
@@ -431,6 +479,12 @@ async function applySidebarSection(draft) {
     await setIconHeadings(draft.sidebarIconHeadings);
     draft.sidebarIconHeadings = getIconHeadings();
   }
+  // 4T-0855: Höhen-Modell; setPanelHeightMode ist bei unverändertem Wert ein
+  // No-op und zieht sonst Rendering und Broadcast nach.
+  if (typeof draft.sidebarHeightMode === 'string') {
+    await setPanelHeightMode(draft.sidebarHeightMode);
+    draft.sidebarHeightMode = getPanelHeightMode();
+  }
 }
 
 // Spiegelt applySidebarSection (4T-0554): Entwurfs-Layout gegen das
@@ -442,6 +496,13 @@ function dirtySidebarSection(draft) {
   if (
     typeof draft.sidebarIconHeadings === 'boolean' &&
     draft.sidebarIconHeadings !== getIconHeadings()
+  ) {
+    return true;
+  }
+  // 4T-0855: auch das Höhen-Modell zählt als offene Änderung.
+  if (
+    typeof draft.sidebarHeightMode === 'string' &&
+    draft.sidebarHeightMode !== getPanelHeightMode()
   ) {
     return true;
   }

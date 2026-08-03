@@ -10,6 +10,17 @@ import {
   convertMarkdownPortable,
   configureExtensions,
 } from '../../../src/shared/markdown/markdown.js';
+// 4T-0849 (Epic 3E-0147): deklarative Seite des Aus-Zustands (Kommandos,
+// Panel-Zugang) fuer Erweiterungen ohne Render-Konstrukt.
+import {
+  disabledCommandIdSet,
+  effectiveDisabledSet,
+  extensionById,
+  internalExtensions,
+  isExtensionEnabled,
+} from '../../../src/shared/extensions.js';
+import { COMMANDS } from '../../../src/shared/commands.js';
+import { panelAccessById } from '../../../src/shared/panel-access.js';
 
 afterEach(() => {
   configureExtensions([]);
@@ -299,5 +310,96 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     // Default-Renderers.
     expect(off).toContain('language-js');
     expect(off).toContain('const x = 1;');
+  });
+});
+
+// 4T-0849 (Epic 3E-0147, Story S-0758): Aus-Zustand der Bücher-Erweiterung.
+// Bücher bringen kein Markdown-Konstrukt mit, deshalb kein renderMarkdown-Fall
+// wie oben: ihre Wirkung liegt auf den Kommandos, dem Panel-Zugang und der
+// Buch-Erkennung im Main. Geprüft wird hier die deklarative Quelle, aus der
+// sich alle drei speisen (Muster area-stats-extension.test.js); die
+// Sichtbarkeits-Wirkung an der Oberfläche prüft die Test-Iteration an der EXE.
+describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
+  const BUCH_KOMMANDOS = [
+    'book.open',
+    'book.create',
+    'book.close',
+    'book.nextChapter',
+    'book.previousChapter',
+    'book.moveChapterFile',
+    'view.toggleBookPanel',
+  ];
+
+  it('ist als Werkzeug-Erweiterung mit den Katalog-Keys registriert', () => {
+    const manifest = extensionById('books');
+    expect(manifest).not.toBeNull();
+    expect(manifest.category).toBe('tools');
+    expect(manifest.nameKey).toBe('help.featureName.books');
+    expect(manifest.descKey).toBe('help.feature.books');
+    // Keine Abhängigkeit und kein eigener Einstellungs-Bereich.
+    expect(manifest.dependencies).toBeUndefined();
+    expect(manifest.settingsSections).toBeUndefined();
+    // Ab Werk eingeschaltet (PO-Klärung zum Umsetzungs-Start): der Default
+    // der Disabled-Liste ist leer, die Erweiterung damit aktiv.
+    expect(isExtensionEnabled('books', [])).toBe(true);
+    // Intern registriert und damit im Einstellungs-Bereich „Erweiterungen“
+    // schaltbar (Story S-0758, AK1).
+    expect(internalExtensions().some((m) => m.id === 'books')).toBe(true);
+  });
+
+  it('führt alle sieben Buch-Kommandos, und keines bleibt außen vor', () => {
+    const manifest = extensionById('books');
+    expect(manifest.commands).toEqual(BUCH_KOMMANDOS);
+    const registrierte = new Set(COMMANDS.map((c) => c.id));
+    for (const id of BUCH_KOMMANDOS) {
+      expect(registrierte.has(id), `Kommando ${id} fehlt in commands.js`).toBe(true);
+    }
+    // Vollständigkeit gegen den Bestand: ein künftiges book.*-Kommando ohne
+    // Eintrag in der Liste bliebe im Aus-Zustand bedienbar, während Panel und
+    // Erkennung verschwänden — genau die Divergenz, die dieser Wächter
+    // ausschließt.
+    for (const id of COMMANDS.map((c) => c.id).filter((i) => i.startsWith('book.'))) {
+      expect(
+        manifest.commands.includes(id),
+        `Kommando ${id} fehlt in der commands-Liste der Erweiterung books`,
+      ).toBe(true);
+    }
+  });
+
+  it('Aus-Zustand filtert genau diese Kommandos, An-Zustand keines', () => {
+    const aus = disabledCommandIdSet(['books']);
+    for (const id of BUCH_KOMMANDOS) expect(aus.has(id)).toBe(true);
+    // Nachbarn in denselben Menüs bleiben unberührt: Bereich und Gliederung
+    // sind Kern, die Lesezeichen eine eigene Erweiterung.
+    expect(aus.has('area.open')).toBe(false);
+    expect(aus.has('view.toggleOutline')).toBe(false);
+    expect(aus.has('view.toggleBookmarks')).toBe(false);
+    const an = disabledCommandIdSet([]);
+    for (const id of BUCH_KOMMANDOS) expect(an.has(id)).toBe(false);
+  });
+
+  it('Panel-Zugang des Inhaltsverzeichnisses hängt an der Erweiterung', () => {
+    const panel = panelAccessById('book');
+    expect(panel).not.toBeNull();
+    expect(panel.extensionId).toBe('books');
+    // Deckungsgleich zur commands-Liste, damit Statusbar-Button,
+    // Untermenü-Eintrag und Panel-Sichtbarkeit gemeinsam verschwinden.
+    expect(extensionById('books').commands).toContain(panel.commandId);
+  });
+
+  it('Schalten wirkt nur auf den Zustand: keine Kaskade, sauberer Round-Trip', () => {
+    // Soweit auf dieser Ebene prüfbar (Story S-0758, AK3): Die Registry-
+    // Funktionen sind rein und fassen keine Datei an, das Manifest zieht keine
+    // andere Erweiterung mit und wird von keiner gezogen, und Aus-und-wieder-An
+    // liefert exakt die Ausgangs-Menge. Dass Buch-Datei, Begleitdatei und
+    // Kapitel unangetastet bleiben, folgt daraus, dass an der Erweiterung kein
+    // schreibender Migrations- oder Aufräum-Schritt hängt.
+    expect([...effectiveDisabledSet(['books'])]).toEqual(['books']);
+    for (const m of internalExtensions()) {
+      expect((m.dependencies || []).includes('books'), `${m.id} hängt an books`).toBe(false);
+    }
+    const vorher = [...disabledCommandIdSet([])].sort();
+    disabledCommandIdSet(['books']);
+    expect([...disabledCommandIdSet([])].sort()).toEqual(vorher);
   });
 });

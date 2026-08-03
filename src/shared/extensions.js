@@ -342,6 +342,42 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.bookmarks',
     commands: ['file.bookmarkAdd', 'view.toggleBookmarks'],
   },
+  // 4T-0849 (Epic 3E-0147): Bücher als schaltbare Werkzeug-Erweiterung
+  // (Entscheidung 7 des Konzept-Protokolls vom 2026-08-03, Story S-0758).
+  // Ab Werk eingeschaltet wie jede interne Erweiterung (Default ist die leere
+  // Disabled-Liste). Direkt hinter den Lesezeichen, weil beide eine Ordnung
+  // über bestehenden Dateien führen und ihr Panel zur selben Gruppe der
+  // Sidebar gehört. Ein Buch bündelt Öffnen, Anlegen, Inhaltsverzeichnis,
+  // Struktur-Pflege, Leseführung und Verschieben in EINER Erweiterung: die
+  // Teile sind einzeln sinnlos, ein Buch ohne Inhaltsverzeichnis gäbe es
+  // nicht. Katalog-Keys der Funktion statt eigener extension.*-Keys (Muster
+  // bookmarks, area-stats).
+  //
+  // Im Aus-Zustand entfallen die sieben Kommandos (Datei-Menü, Palette,
+  // Dispatcher, Editor-Keymap, generierte Tastenkürzel-Seite), über das
+  // Erweiterungs-Gate des Panel-Zugangs-Modells (extensionId 'books' in
+  // panel-access.js) zusätzlich Statusbar-Button und Untermenü-Eintrag des
+  // Inhaltsverzeichnisses, und im Main die Buch-Erkennung beim Öffnen —
+  // Buch-Dateien öffnen dann wie gewöhnliche Markdown-Dateien (Story S-0758,
+  // AK2). Ohne settingsSections: einen eigenen Einstellungs-Bereich hat die
+  // Erweiterung nicht. Daten-neutral: Buch-Datei, Begleitdatei und Kapitel
+  // bleiben unangetastet, das Wieder-Einschalten bringt den Stand unverändert
+  // zurück (AK3).
+  {
+    id: 'books',
+    category: 'tools',
+    nameKey: 'help.featureName.books',
+    descKey: 'help.feature.books',
+    commands: [
+      'book.open',
+      'book.create',
+      'book.close',
+      'book.nextChapter',
+      'book.previousChapter',
+      'book.moveChapterFile',
+      'view.toggleBookPanel',
+    ],
+  },
   {
     id: 'focus-mode',
     category: 'tools',

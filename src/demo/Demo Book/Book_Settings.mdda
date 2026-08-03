@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "book": { "file": "Demo Book.md" },
+  "chapters": [
+    {
+      "path": "01 Setting Out.md",
+      "children": [{ "path": "Parts/02 The Harbour.md", "children": [] }]
+    },
+    { "path": "Parts/03 Storms and Detours.md", "children": [] },
+    { "path": "04 Homecoming.md", "children": [] }
+  ]
+}

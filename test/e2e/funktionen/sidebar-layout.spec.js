@@ -87,6 +87,9 @@ test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () 
       expect(dom.left.map((e) => e.id)).toEqual([
         'bookmarks',
         'area',
+        // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches als dritter
+        // Reiter der Ort-Gruppe.
+        'book',
         'outline',
         'subpages',
         'filegraph',
@@ -106,7 +109,7 @@ test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () 
         'outgoing',
         'backlinks',
       ]);
-      // Links sind alle neun Panels Reiter-Gruppen-Mitglieder (drei Gruppen).
+      // Links sind alle zehn Panels Reiter-Gruppen-Mitglieder (drei Gruppen).
       expect(dom.left.every((e) => e.group)).toBe(true);
       // Rechts ist notes ein Einzel-Slot, die übrigen fünf bilden zwei Gruppen.
       expect(dom.right.find((e) => e.id === 'notes').group).toBe(false);

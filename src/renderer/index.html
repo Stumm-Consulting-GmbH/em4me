@@ -261,6 +261,56 @@
                 </div>
               </div>
             </section>
+            <!-- 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Sektion des Buches.
+                 Kapitel-Baum des aktiven Buches in erklärter Reihenfolge, das
+                 gelesene Kapitel hervorgehoben, darunter der Abschnitt
+                 „nicht eingehängt". Die Leseführungs-Leiste steht bewusst
+                 zwischen Header und Body — der Header ist in einer
+                 Reiter-Gruppe ausgeblendet (.in-tab-group), und der Body
+                 scrollt (Muster der Uhr-Modusleiste). -->
+            <section class="sidebar-section sidebar-book" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="bookPanel.title">
+                  Inhaltsverzeichnis
+                </h2>
+              </header>
+              <div class="book-nav">
+                <button
+                  type="button"
+                  class="book-nav-btn book-prev"
+                  data-i18n-title="bookPanel.previous"
+                  data-i18n-aria-label="bookPanel.previous"
+                  title=""
+                  aria-label="Vorheriges Kapitel"
+                  disabled
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  class="book-nav-btn book-next"
+                  data-i18n-title="bookPanel.next"
+                  data-i18n-aria-label="bookPanel.next"
+                  title=""
+                  aria-label="Nächstes Kapitel"
+                  disabled
+                >
+                  ›
+                </button>
+              </div>
+              <div class="sidebar-section-body">
+                <div class="book-empty" data-i18n="bookPanel.empty">Kein Buch geöffnet</div>
+                <div class="book-main" hidden>
+                  <div class="book-tree"></div>
+                  <div class="book-unlinked" hidden>
+                    <div class="book-unlinked-title" data-i18n="bookPanel.unlinked">
+                      Nicht eingehängt
+                    </div>
+                    <div class="book-unlinked-list"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
             <!-- 4T-0434 (Epic 3E-0081): Kalender-Sektion. Monatsansicht mit
                  ISO-KW-Spalte; Punkte an Tagen mit Journal-Eintrag; Klick
                  öffnet bzw. legt über den Journal-Anlage-Pfad an. -->
@@ -715,6 +765,56 @@
                 </div>
               </div>
             </section>
+            <!-- 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Sektion des Buches.
+                 Kapitel-Baum des aktiven Buches in erklärter Reihenfolge, das
+                 gelesene Kapitel hervorgehoben, darunter der Abschnitt
+                 „nicht eingehängt". Die Leseführungs-Leiste steht bewusst
+                 zwischen Header und Body — der Header ist in einer
+                 Reiter-Gruppe ausgeblendet (.in-tab-group), und der Body
+                 scrollt (Muster der Uhr-Modusleiste). -->
+            <section class="sidebar-section sidebar-book" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="bookPanel.title">
+                  Inhaltsverzeichnis
+                </h2>
+              </header>
+              <div class="book-nav">
+                <button
+                  type="button"
+                  class="book-nav-btn book-prev"
+                  data-i18n-title="bookPanel.previous"
+                  data-i18n-aria-label="bookPanel.previous"
+                  title=""
+                  aria-label="Vorheriges Kapitel"
+                  disabled
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  class="book-nav-btn book-next"
+                  data-i18n-title="bookPanel.next"
+                  data-i18n-aria-label="bookPanel.next"
+                  title=""
+                  aria-label="Nächstes Kapitel"
+                  disabled
+                >
+                  ›
+                </button>
+              </div>
+              <div class="sidebar-section-body">
+                <div class="book-empty" data-i18n="bookPanel.empty">Kein Buch geöffnet</div>
+                <div class="book-main" hidden>
+                  <div class="book-tree"></div>
+                  <div class="book-unlinked" hidden>
+                    <div class="book-unlinked-title" data-i18n="bookPanel.unlinked">
+                      Nicht eingehängt
+                    </div>
+                    <div class="book-unlinked-list"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
             <!-- 4T-0434 (Epic 3E-0081): Kalender-Sektion. Monatsansicht mit
                  ISO-KW-Spalte; Punkte an Tagen mit Journal-Eintrag; Klick
                  öffnet bzw. legt über den Journal-Anlage-Pfad an. -->
@@ -953,6 +1053,33 @@
             >
               <path
                 d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+              />
+            </svg>
+          </button>
+          <!-- 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Toggle des Buches.
+               Lucide-Icon 'book-open'. -->
+          <button
+            id="btn-book"
+            class="btn-toggle btn-icon"
+            data-i18n-title="bookPanel.toggleTitle"
+            data-i18n-aria-label="bookPanel.toggle"
+            title=""
+            aria-label="Book"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 7v14" />
+              <path
+                d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
               />
             </svg>
           </button>

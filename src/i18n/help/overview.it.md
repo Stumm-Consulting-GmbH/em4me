@@ -40,6 +40,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Segnalibri](bookmarks.md) — memorizzare file in due sezioni: segnalibri generali e dell'area con percorsi relativi, creazione, conversione, ordine.
 - [Combinazioni di colori](color-schemes.md) — colori tramite slot denominati: assegnazione per modalità, combinazioni proprie come copia, anteprima dal vivo, limiti.
 - [Applicazioni, finestre e aree](apps-windows.md) — avvio multiplo, gestione delle finestre e sistematica dei titoli.
+- [Libri](books.md) — più file come libro con ordine di lettura dichiarato: cartella del libro con file di accompagnamento, indice con cura della struttura, lettura oltre i confini dei capitoli, spostamento con aggiornamento, riparazione dei capitoli mancanti.
 - [Cronologia del documento](history.md) — registrare le modifiche: file di accompagnamento Markdown-Data, interruttori su tre livelli, confrontare e ripristinare revisioni.
 - [Note del documento](notes.md) — una nota per documento: pannello della barra laterale con anteprima commutabile, salvataggio automatico nel file di accompagnamento, distinzione dalla cronologia.
 - [Proprietà del blocco](block-properties.md) — proprietà tipizzate per ancora di blocco: pannello che segue il cursore, dati orfani, ridenominazione delle ancore, indicatore sul blocco.

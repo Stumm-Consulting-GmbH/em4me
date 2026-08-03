@@ -62,6 +62,9 @@ function normalizeMenuState(base, stored) {
     // ([{ id, name, color, open }], main-seitig aus Ablage und Registry).
     hasWorkspace: !!s.hasWorkspace,
     workspaces: Array.isArray(s.workspaces) ? s.workspaces : [],
+    // 4T-0843 (Epic 3E-0147): aktives Buch der App dieses Fensters
+    // (main-seitig aus der Buch-Bindung, aktiviert "Buch schliessen").
+    hasBook: !!s.hasBook,
     recentFiles: Array.isArray(s.recentFiles) ? s.recentFiles : [],
     // 4T-0325 (Epic 3E-0058): zuletzt geoeffnete Bereiche.
     recentAreas: Array.isArray(s.recentAreas) ? s.recentAreas : [],

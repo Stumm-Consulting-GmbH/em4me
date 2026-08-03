@@ -53,6 +53,18 @@ Lorsque plusieurs panneaux sont empilés d'un côté de la barre latérale, une 
 
 Le panneau du bas n'a pas de poignée, car aucun autre ne le suit. Il suit donc toujours la hauteur de son contenu et occupe la place que les panneaux au-dessus lui laissent. Une barre de défilement n'y apparaît que si cette place ne suffit pas au contenu.
 
+Si les hauteurs définies exigent ensemble plus de place que le côté n'en offre, toute la colonne devient défilable verticalement. Aucun panneau ne disparaît pour autant : chacun conserve au moins son en-tête, et ceux du bas restent accessibles par défilement. Pour retrouver l'état précédent, réduire le panneau agrandi à l'excès ou lui rendre la hauteur automatique par un double-clic sur sa poignée.
+
+## Hauteur par panneau ou par groupe
+
+Ce dont dépend la hauteur d'un bloc est réglable (Réglages → Barre latérale).
+
+Avec **Hauteur par panneau**, chaque panneau conserve sa propre hauteur. Dans un groupe d'onglets, c'est la hauteur du panneau affiché qui s'applique ; parcourir le groupe modifie donc la hauteur du bloc, et les panneaux situés en dessous se déplacent avec lui. C'est le réglage par défaut.
+
+Avec **Hauteur fixe par groupe**, un groupe d'onglets conserve sa hauteur au fil des changements d'onglet. Tous les panneaux du groupe apparaissent à la même hauteur et ce qui se trouve en dessous reste en place. La poignée sous le groupe règle alors leur hauteur commune ; un double-clic rétablit la hauteur automatique de tout le groupe.
+
+Les panneaux isolés se comportent de la même façon dans les deux cas. Les hauteurs des deux réglages sont mémorisées séparément : en revenant en arrière, on retrouve ses anciennes hauteurs de panneaux inchangées.
+
 ## Titres en symbole
 
 Les titres des panneaux peuvent passer du texte au symbole du panneau concerné (Réglages → Barre latérale). Le changement vaut aussi bien pour les en-têtes de section que pour les onglets des panneaux groupés ; le nom du panneau reste disponible en infobulle et pour les lecteurs d'écran. Comme la disposition, le commutateur prend effet avec Appliquer ou OK.

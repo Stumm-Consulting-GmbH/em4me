@@ -114,9 +114,11 @@ import {
   getPanelToggleOrder,
   initPanelToggleOrderFromStore,
   initSidebarLayoutFromStore,
+  loadSidebarGroupHeights,
   loadSidebarPanelHeights,
   resetSidebarLayout,
   setIconHeadings,
+  setPanelHeightMode,
   setPanelToggleOrder,
   sidebarPanelById,
 } from './sidebar-layout.js';
@@ -344,6 +346,18 @@ import {
   setzeSprungHandler,
   toggleSearchResultsPanel,
 } from './such-panel.js';
+// 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel des Buches (Init-Wiring,
+// Toggle, Settings). Der Import registriert zugleich das Panel in der
+// Sidebar-Registry. 4T-0846/4T-0847: dazu die Leseführung über
+// Kapitel-Grenzen und das Verschieben der aktiven Kapitel-Datei.
+import {
+  applyBookPanelVisibility,
+  initBookPanel,
+  loadBookPanelSettings,
+  moveActiveChapterFile,
+  stepReading,
+  toggleBookPanel,
+} from './book-panel.js';
 // 4T-0760 (Epic 3E-0142): Sprung zu einem Treffer der Raum-Suche. Der Import
 // registriert zugleich den Sprung-Weg des Handbuchs.
 import { markiereOffeneRaumSeite, springeZuTreffer } from './such-sprung.js';
@@ -757,6 +771,15 @@ if (typeof api.onSidebarIconHeadingsChanged === 'function') {
   });
 }
 
+// 4T-0855 (Epic 3E-0164): Broadcast des Hoehen-Modells der Sidebar-Bloecke.
+// Wie oben persistiert der Empfangspfad nicht.
+if (typeof api.onSidebarHeightModeChanged === 'function') {
+  api.onSidebarHeightModeChanged((value) => {
+    if (!initDone) return;
+    void setPanelHeightMode(value, { persist: false });
+  });
+}
+
 // 4T-0624 (Epic 3E-0119): Varianten-Broadcast (auch das ausloesende Fenster
 // empfaengt ihn — der Empfangspfad normalisiert und persistiert nicht).
 if (typeof api.onSidebarLayoutVariantsChanged === 'function') {
@@ -933,6 +956,9 @@ const EXTENSION_STATUSBAR_BUTTONS = [
   // 4T-0567 (Epic 3E-0104): die neuen Buttons der bisher button-losen
   // Panels folgen demselben Gate wie ihre Panel-Sichtbarkeit.
   ['wiki-links', 'btn-subpages'],
+  // 4T-0849 (Epic 3E-0147): Buch-Button folgt dem Schalt-Zustand der
+  // Buecher-Erweiterung.
+  ['books', 'btn-book'],
   ['graph-view', 'btn-filegraph'],
   ['tags', 'btn-tags'],
   ['bookmarks', 'btn-bookmarks'],
@@ -996,6 +1022,16 @@ function registerExtensionRuntimeHooks() {
   attachExtensionRuntime('wiki-links', {
     deactivate: refreshWikiPanels,
     activate: refreshWikiPanels,
+  });
+  // 4T-0849 (Epic 3E-0147): Buch-Panel und Statusbar-Button folgen dem
+  // Schalt-Zustand der Buecher-Erweiterung.
+  const refreshBookPanel = () => {
+    for (let i = 0; i < state.panes.length; i++) applyBookPanelVisibility(i);
+    applyExtensionButtonVisibility();
+  };
+  attachExtensionRuntime('books', {
+    deactivate: refreshBookPanel,
+    activate: refreshBookPanel,
   });
   const refreshTagsPanel = () => {
     for (let i = 0; i < state.panes.length; i++) applyTagsVisibility(i);
@@ -1096,6 +1132,14 @@ document.addEventListener('scg:sidebar-icon-headings-changed', () => {
   for (let i = 0; i < state.panes.length; i++) applySidebarVisibility(i);
 });
 
+// 4T-0855 (Epic 3E-0164): Ein Wechsel des Höhen-Modells zieht dasselbe
+// Slot-Mounting nach — die Herkunft der Block-Höhen ändert sich, und die
+// Griffe schreiben danach in den anderen Speicher.
+document.addEventListener('scg:sidebar-height-mode-changed', () => {
+  if (!initDone) return;
+  for (let i = 0; i < state.panes.length; i++) applySidebarVisibility(i);
+});
+
 // --- Kommando-Dispatcher (4T-0207, Epic 3E-0015) ------------------------------
 // Handler pro Kommando-ID der Registry. Die Bindings selbst leben in
 // src/shared/commands.js (Defaults) plus state.hotkeyOverrides (Store-Key
@@ -1170,6 +1214,30 @@ export const commandHandlers = {
     api.closeArea();
   },
   // 4T-0632 (Epic 3E-0102): Demo-Area erstellen (Main fuehrt aus).
+  // 4T-0843 (Epic 3E-0147): Buch oeffnen/anlegen/schliessen (Main fuehrt aus).
+  'book.open': () => {
+    void api.books.openDialog();
+  },
+  'book.create': () => {
+    void api.books.createDialog();
+  },
+  'book.close': () => {
+    void api.books.close();
+  },
+  // 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen — der
+  // Lese-Ordnung des aktiven Buches vor und zurück folgen. An Anfang und Ende
+  // meldet das Panel die Grenze, statt umzulaufen.
+  'book.nextChapter': () => {
+    stepReading(state.activePaneIndex, 1);
+  },
+  'book.previousChapter': () => {
+    stepReading(state.activePaneIndex, -1);
+  },
+  // 4T-0847 (Story S-0756): Datei des gerade gelesenen Kapitels physisch
+  // innerhalb des Buch-Ordners verschieben (Ordner-Dialog im Main).
+  'book.moveChapterFile': () => {
+    moveActiveChapterFile(state.activePaneIndex);
+  },
   'area.createDemo': () => {
     api.createDemoArea();
   },
@@ -1305,6 +1373,10 @@ export const commandHandlers = {
   // 4T-0759 (Epic 3E-0142): Suchergebnis-Sektion toggeln.
   'view.toggleSearchResults': () => {
     toggleSearchResultsPanel(state.activePaneIndex);
+  },
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Sektion des Buches toggeln.
+  'view.toggleBookPanel': () => {
+    toggleBookPanel(state.activePaneIndex);
   },
   'view.toggleTags': () => {
     toggleTagsPanel(state.activePaneIndex);
@@ -1765,6 +1837,9 @@ export async function init() {
   // 4T-0475 (Epic 3E-0088): manuell eingestellte Panel-Höhen laden — vor
   // applyAllLayouts, damit das erste Slot-Mounting die Höhen bereits kennt.
   await loadSidebarPanelHeights();
+  // 4T-0855 (Epic 3E-0164): Gruppen-Höhen des zweiten Höhen-Modells laden,
+  // im selben Init-Schritt und aus demselben Grund wie die Panel-Höhen.
+  await loadSidebarGroupHeights();
   // 4T-0624 (Epic 3E-0119): benannte Sidebar-Varianten laden; 4T-0625:
   // dazu die Bereichs-Varianten des Fenster-Bereichs.
   await initSidebarVariantsFromStore();
@@ -1790,6 +1865,8 @@ export async function init() {
   await loadNotesSettings();
   // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel-Sichtbarkeit pro Spalte laden.
   await loadSearchResultsSettings();
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel-Sichtbarkeit pro Spalte laden.
+  await loadBookPanelSettings();
   // 4T-0434 (Epic 3E-0081): Kalender-Panel-Sichtbarkeit pro Spalte laden.
   await loadCalendarSettings();
   // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel-Sichtbarkeit pro Spalte laden.
@@ -2222,6 +2299,15 @@ export function bindUi() {
     );
   }
   initSearchResultsPanel();
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel des Buches —
+  // Statusbar-Toggle, Leseführungs-Knöpfe beider Spalten und das Abholen des
+  // ersten Buch-Zustands. Der Menü-Weg läuft über den generischen
+  // Panel-Trigger (onMenuTogglePanel), ein eigener Kanal entfällt.
+  const btnBook = $('#btn-book');
+  if (btnBook) {
+    btnBook.addEventListener('click', () => toggleBookPanel(state.activePaneIndex));
+  }
+  initBookPanel();
   // 4T-0760 (Epic 3E-0142): Beide Sprung-Wege der Raum-Suche verdrahten —
   // aus der Trefferliste (Klick, Enter) und aus der Suchleiste (F3). Beide
   // fuehren durch dieselbe Funktion, damit Liste und Zaehler nicht

@@ -40,6 +40,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Bookmarks](bookmarks.md) — keeping files in two sections: general and area-bound bookmarks with relative paths, adding, converting, order.
 - [Color schemes](color-schemes.md) — colors via named slots: mode assignment, own schemes as copies, live preview, limits.
 - [Applications, windows and areas](apps-windows.md) — multiple starts, window management and the title system.
+- [Books](books.md) — several files as a book with a declared reading order: book folder with companion file, table of contents with structure maintenance, reading across chapter boundaries, moving with follow-up, repairing missing chapters.
 - [Document history](history.md) — recording changes: Markdown data companion file, switches on three levels, comparing and restoring revisions.
 - [Document notes](notes.md) — one note per document: sidebar panel with toggleable preview, automatic saving in the companion file, distinction from the history.
 - [Block properties](block-properties.md) — typed properties per block anchor: panel following the cursor, orphaned data, anchor renaming, indicator on the block.

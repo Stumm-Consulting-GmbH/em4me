@@ -85,6 +85,12 @@ const MANUAL_PAGES = [
   // 4T-0321 (Epic 3E-0057): Applikationen und Fenster (Mehrfachstart,
   // Titel-Systematik); die Bereichs-Abschnitte ergaenzt 3E-0058.
   { id: 'apps-windows', titleKey: 'manual.page.appsWindows.title', source: 'bundled' },
+  // 4T-0850 (Epic 3E-0147): Bücher (Buch-Ordner mit Buch-Datei und
+  // Begleitdatei, Inhaltsverzeichnis, Struktur-Pflege, Leseführung,
+  // Verschieben mit Nachführung, Reparatur). Direkt hinter „Applikationen,
+  // Fenster und Bereiche“, weil ein geöffnetes Buch ein Kontext auf
+  // derselben Ebene wie Bereich und Arbeitsbereich ist.
+  { id: 'books', titleKey: 'manual.page.books.title', source: 'bundled' },
   // 4T-0334 (Epic 3E-0060): Dokument-Historie (Markdown-Data-Begleitdatei,
   // Drei-Ebenen-Schaltung, Historien-Ansicht mit Vergleich/Wiederherstellen).
   { id: 'history', titleKey: 'manual.page.history.title', source: 'bundled' },

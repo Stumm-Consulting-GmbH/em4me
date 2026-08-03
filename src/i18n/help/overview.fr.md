@@ -40,6 +40,7 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 - [Signets](bookmarks.md) — mémoriser des fichiers en deux sections : signets généraux et de zone avec chemins relatifs, création, conversion, ordre.
 - [Jeux de couleurs](color-schemes.md) — couleurs via des emplacements nommés : affectation par mode, jeux personnels comme copies, aperçu en direct, limites.
 - [Applications, fenêtres et zones](apps-windows.md) — démarrage multiple, gestion des fenêtres et systématique des titres.
+- [Livres](books.md) — plusieurs fichiers comme un livre à l'ordre de lecture déclaré : dossier du livre avec fichier compagnon, table des matières et entretien de la structure, lecture au-delà des limites de chapitre, déplacement avec mise à jour, réparation des chapitres manquants.
 - [Historique du document](history.md) — enregistrer les modifications : fichier compagnon Markdown-Data, réglages sur trois niveaux, comparer et restaurer des révisions.
 - [Notes du document](notes.md) — une note par document : panneau de barre latérale avec aperçu commutable, enregistrement automatique dans le fichier compagnon, distinction avec l'historique.
 - [Propriétés de bloc](block-properties.md) — propriétés typées par ancre de bloc : panneau qui suit le curseur, données orphelines, renommage d'ancres, indicateur sur le bloc.

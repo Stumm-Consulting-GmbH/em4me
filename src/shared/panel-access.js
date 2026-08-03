@@ -1,6 +1,6 @@
 // 4T-0567 (Epic 3E-0104): Prozess-neutrales Panel-Zugangs-Modell.
 //
-// Single Source of Truth fuer die Zugangs-Metadaten der 14 eingebauten
+// Single Source of Truth fuer die Zugangs-Metadaten der eingebauten
 // Sidebar-Panels: Statusbar-Button, Toggle-Kommando (Accelerator, Palette,
 // belegbares Kuerzel) und Erweiterungs-Gate. Main (Ansichtsmenue-Untermenue)
 // und Renderer (Statusbar-Leiste, Registry-Abgleich) lesen dieselbe Quelle
@@ -46,6 +46,20 @@ const PANEL_ACCESS = [
     buttonId: 'btn-area',
     commandId: 'view.toggleAreaPanel',
     extensionId: null,
+  },
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches, thematisch bei den
+  // ortsgebenden Panels (Lesezeichen, Bereich).
+  // 4T-0849 (Story S-0758): Erweiterungs-Gate auf 'books' gesetzt — im
+  // Aus-Zustand entfaellt der Panel-Zugang an beiden Bedienorten
+  // (Statusbar-Button ueber das Renderer-Gate, Untermenue-Eintrag ueber
+  // unless() am Toggle-Kommando). Das commandId steht dafuer in der
+  // commands-Liste der Erweiterung; der Paritaets-Waechter erzwingt das.
+  {
+    id: 'book',
+    titleKey: 'bookPanel.title',
+    buttonId: 'btn-book',
+    commandId: 'view.toggleBookPanel',
+    extensionId: 'books',
   },
   {
     id: 'outline',

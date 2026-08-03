@@ -1109,8 +1109,22 @@
       "key": "help.feature.panelHeights",
       "id": "F-110",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/sidebar-layout.spec.js"],
-      "hinweis": "SL-10 (4T-0475, Epic 3E-0088): Zieh-Griff zieht die Höhe des Panels darüber, persistiert über Neustart, Doppelklick setzt auf Automatik zurück. SL-11 (4T-0634, Epic 3E-0119): Drag folgt der Maus 1:1, Nachbarn stabil. SL-13 (4T-0682, Epic 3E-0139): Der letzte Block einer Seite hat keinen Griff und laeuft deshalb immer auf Automatik — er nimmt seine Inhaltshoehe statt einer fixierten, und Ziehen legt fuer ihn keinen Store-Eintrag mehr an."
+      "tests": [
+        "test/e2e/funktionen/sidebar-layout.spec.js",
+        "test/e2e/funktionen/sidebar-überlauf.spec.js",
+        "test/unit/renderer/sidebar-mindesthoehe.test.js"
+      ],
+      "hinweis": "SL-10 (4T-0475, Epic 3E-0088): Zieh-Griff zieht die Höhe des Panels darüber, persistiert über Neustart, Doppelklick setzt auf Automatik zurück. SL-11 (4T-0634, Epic 3E-0119): Drag folgt der Maus 1:1, Nachbarn stabil. SL-13 (4T-0682, Epic 3E-0139): Der letzte Block einer Seite hat keinen Griff und laeuft deshalb immer auf Automatik — er nimmt seine Inhaltshoehe statt einer fixierten, und Ziehen legt fuer ihn keinen Store-Eintrag mehr an. SU-01 bis SU-03 (4T-0854, Epic 3E-0164): Uebersteigen die eingestellten Hoehen den Platz, rollt die Spalte senkrecht statt die unteren Bloecke zu kappen; das verdraengte Panel behaelt seine Mindesthoehe und ist durch Rollen erreichbar, die Spaltenbreite bleibt unveraendert, ohne Ueberlauf rollt nichts, und die eingeklappte Spalte rollt nicht. Der Unit-Waechter haelt die CSS-Mindesthoehe und MIN_PANEL_HEIGHT zusammen."
+    },
+    {
+      "key": "help.feature.panelHeightMode",
+      "id": "F-251",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/sidebar-höhen-modell.spec.js",
+        "test/unit/renderer/sidebar-höhen-modell.test.js"
+      ],
+      "hinweis": "HM-01 bis HM-03 (4T-0855, Epic 3E-0164): Im Vorgabe-Modus «Hoehe je Panel» wechselt die Blockhoehe mit dem Reiter, im Modus «feste Hoehe je Gruppe» bleibt sie gleich; einzeln stehende Panels verhalten sich in beiden Modi gleich. Beide Modus-Faelle unterscheiden sich allein im Profil-Wert und belegen damit die Wirkung des Schalters. Die Unit-Faelle decken Zustand, Persistenz, Rueckfall bei defektem Wert, den Gruppen-Schluessel und vor allem die Trennung beider Hoehen-Speicher ab (ein Moduswechsel hin und zurueck verliert keine Hoehe)."
     },
     {
       "key": "help.feature.extensions",
@@ -1676,6 +1690,84 @@
         "test/unit/renderer/settings-page.test.js"
       ],
       "hinweis": "4T-0383/4T-0384 (Epic 3E-0072): Inhalts-Breite in Prozent; abgedeckt durch ES-11 (Default 80, Klemmen auf den Bereich, reale Breiten-Wirkung, Persistenz ueber den Neustart) plus Clamp-/Variablen-Unit-Suite."
+    },
+    {
+      "key": "help.feature.books",
+      "id": "F-252",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/book-core.test.js",
+        "test/unit/books-main.test.js",
+        "test/unit/renderer/book-panel.test.js",
+        "test/unit/render/extensions-aus.test.js",
+        "test/unit/panel-access.test.js"
+      ],
+      "hinweis": "4T-0842 bis 4T-0849 (Epic 3E-0147, Stories S-0751 bis S-0758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE."
+    },
+    {
+      "key": "help.feature.bookToc",
+      "id": "F-253",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/renderer/book-panel.test.js",
+        "test/unit/book-core.test.js",
+        "test/unit/panel-access.test.js"
+      ],
+      "hinweis": "4T-0844 (Epic 3E-0147, Story S-0753): Inhaltsverzeichnis-Panel — BU-02 (Baum in Lese-Reihenfolge samt Einrückung, Abschnitt 'nicht eingehängt') und BU-03 (Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert mit). Der Aufbau der Zeilen ist zusätzlich gegen einen gemockten Buch-Zustand unit-getestet (Markierung eines fehlenden Kapitels, Leer-Zustände), der Abgleich Deklaration gegen Datei-Bestand im Kern-Modul (diffChapterFiles: die Buch-Datei erscheint nie als nicht eingehängt); die beiden Panel-Zugänge deckt der Paritäts-Wächter."
+    },
+    {
+      "key": "help.feature.bookStructure",
+      "id": "F-254",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/renderer/book-panel.test.js",
+        "test/unit/book-core.test.js",
+        "test/unit/books-main.test.js"
+      ],
+      "hinweis": "4T-0845 (Epic 3E-0147, Story S-0754): Struktur-Pflege im Inhaltsverzeichnis — BU-05 (Baum-Operation und Tastatur-Geste, Panel und Begleitdatei ziehen nach, keine Datei bewegt sich). Zusätzlich unit-getestet: die Ziel-Berechnung der Ablage (Drittelung der Zeile, Index nach dem Aushängen, gesperrter eigener Unterbaum), die Alt-Pfeil-Gesten am fokussierten Eintrag und das Kontextmenü (Neues Kapitel, Einhängen, Aushängen) sind gegen die gemockte Brücke unit-getestet, die Baum-Operationen selbst im Kern-Modul (einhängen, aushängen, umsortieren, ein- und ausrücken samt Zyklus-Abwehr) und die Schreib-Strecke am Temp-Ordner (applyTreeOp, createChapter)."
+    },
+    {
+      "key": "help.feature.bookReading",
+      "id": "F-255",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/renderer/book-panel.test.js",
+        "test/unit/book-core.test.js"
+      ],
+      "hinweis": "4T-0846 (Epic 3E-0147, Story S-0755): Leseführung über Kapitel-Grenzen — BU-04 (die Führung folgt der Baum-Ordnung über Ordner-Grenzen, am Ende Rückmeldung statt Umlauf). Die Lese-Ordnung ist zusätzlich im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel in beide Richtungen, kein Umlauf an den Enden, Hinweis-Zeile an der Grenze, abgeschaltete Kopf-Schaltflächen, nicht eingehängte Dateien außerhalb der Führung."
+    },
+    {
+      "key": "help.feature.bookMoveFile",
+      "id": "F-256",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/books-main.test.js",
+        "test/unit/renderer/book-panel.test.js"
+      ],
+      "hinweis": "4T-0847 (Epic 3E-0147, Story S-0756): Kapitel-Datei verschieben mit Nachführung — BU-06 (Baum-Eintrag und eingehende Links einer dritten Datei ziehen nach). Zusätzlich unit-getestet: Planung samt Grenz- und Kollisions-Prüfung (Ziel im Buch-Ordner, belegter Name, Buch-Datei selbst) und die Nachführung der Deklaration (Aufwärts-Suche nach dem Buch, Baum-Position und Unterbaum bleiben) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog und die Verweis-Nachführung im Verbund sind manueller Test."
+    },
+    {
+      "key": "help.feature.bookRepair",
+      "id": "F-257",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/books-main.test.js",
+        "test/unit/renderer/book-panel.test.js"
+      ],
+      "hinweis": "4T-0848 (Epic 3E-0147, Story S-0757): Reparatur fehlender Kapitel — BU-07 (ein am Dateisystem umbenanntes Kapitel wird als fehlend markiert, die Neu-Zuordnung heilt den Baum). Zusätzlich unit-getestet: die Wiederfinde-Vorschläge (namensgleiche Dateien im Buch-Ordner, Beilage am Zustands-Paket) und die Zuordnung samt Grenzen (außerhalb des Buch-Ordners, unbekannte Datei, bereits eingehängt, Buch-Datei) sind am Temp-Ordner unit-getestet, die Auswahl unter der Zeile und das Kontextmenü gegen die gemockte Brücke: Vorschlag nur vorbelegt und nie von selbst ausgeführt, Datei-Wahl als zweiter Weg, Aushängen als Ausweg."
+    },
+    {
+      "key": "help.feature.fonts",
+      "id": "F-250",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
+      "hinweis": "4T-0837 (Epic 3E-0161): Schriftart und -groesse getrennt fuer Bearbeiten-Flaeche und gerenderte Ansicht; abgedeckt durch ES-06 (Groessen-Aenderung wirkt sofort als CSS-Variable, Abbrechen setzt zurueck) und ES-07 (Anwenden persistiert). Die Funktion war ausgeliefert und getestet, nur der Katalog-Eintrag fehlte; er ist mit diesem Vorgang nachgetragen."
     },
     {
       "key": "help.feature.templates",
@@ -2248,6 +2340,67 @@
         "test/unit/area-stats-extension.test.js"
       ],
       "hinweis": "4T-0619/4T-0620 (Epic 3E-0117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet."
+    },
+    {
+      "key": "help.shortcut.openBook",
+      "id": "S-119",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/books-main.test.js"],
+      "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch oeffnen' (Menue-/Paletten-Weg, belegbar) — der native Ordner-Dialog ist manueller Test, die Wirkung dahinter ist am Temp-Ordner unit-getestet: Erkennung des Buch-Ordners ueber die Begleitdatei, Zustands-Aufbau mit Baum, Lese-Ordnung und Datei-Abgleich, Abweisung eines Ordners ohne benannte Buch-Datei."
+    },
+    {
+      "key": "help.shortcut.newBook",
+      "id": "S-120",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/books-main.test.js"],
+      "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Neues Buch' (Menue-/Paletten-Weg, belegbar) — die Anlage selbst ist am Temp-Ordner unit-getestet (Buch-Ordner, leere Buch-Datei, Begleitdatei; Namens-Pruefung; bestehender Ordner bleibt unangetastet), der native Dialog ist manueller Test."
+    },
+    {
+      "key": "help.shortcut.closeBook",
+      "id": "S-121",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/books-main.test.js"],
+      "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Buch-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildBookState unit-getestet, die Bindung selbst prueft die Test-Iteration an der EXE."
+    },
+    {
+      "key": "help.shortcut.toggleBookPanel",
+      "id": "S-122",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/panel-access.test.js"],
+      "hinweis": "4T-0844 (Epic 3E-0147): Kommando ohne Default-Kuerzel (Untermenue-, Statusbar- und Paletten-Weg) — der Paritaets-Waechter prueft beide Zugaenge des Panels (Statusbar-Button in index.html, Toggle-Kommando in der Registry) und den Gleichlauf mit der Renderer-Panel-Registry; die Sichtbarkeits-Wirkung selbst prueft die Test-Iteration an der EXE."
+    },
+    {
+      "key": "help.shortcut.nextChapter",
+      "id": "S-123",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/renderer/book-panel.test.js",
+        "test/unit/book-core.test.js"
+      ],
+      "hinweis": "4T-0846 (Epic 3E-0147, Story S-0755): Leseführung vorwärts über Kapitel-Grenzen — die Lese-Ordnung selbst ist im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel, kein Umlauf am Ende, Hinweis-Zeile an der Grenze, nicht eingehängte Dateien außerhalb der Führung."
+    },
+    {
+      "key": "help.shortcut.previousChapter",
+      "id": "S-124",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/renderer/book-panel.test.js",
+        "test/unit/book-core.test.js"
+      ],
+      "hinweis": "4T-0846 (Epic 3E-0147, Story S-0755): Gegenrichtung derselben Leseführung — geprüft werden dieselben Wege rückwärts, insbesondere die Grenze am Anfang des Buches (Hinweis statt Sprung ans Ende) und der Fall ohne gelesenes Kapitel."
+    },
+    {
+      "key": "help.shortcut.moveChapterFile",
+      "id": "S-125",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/buch.spec.js",
+        "test/unit/books-main.test.js",
+        "test/unit/renderer/book-panel.test.js"
+      ],
+      "hinweis": "4T-0847 (Epic 3E-0147, Story S-0756): physisches Verschieben einer Kapitel-Datei — die Planung samt Grenz- und Kollisions-Prüfung und die Nachführung der Begleitdatei (Aufwärts-Suche, Baum-Position bleibt) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog ist manueller Test."
     }
   ]
 }

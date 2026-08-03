@@ -287,6 +287,9 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-0639 (Epic 3E-0069): Multi-Window-Broadcast der Panel-Ueberschriften.
   onSidebarIconHeadingsChanged: (cb) =>
     ipcRenderer.on('sidebarIconHeadings:changed', (_e, value) => cb(value)),
+  // 4T-0855 (Epic 3E-0164): Multi-Window-Broadcast des Hoehen-Modells.
+  onSidebarHeightModeChanged: (cb) =>
+    ipcRenderer.on('sidebarHeightMode:changed', (_e, value) => cb(value)),
 
   onTimerDue: (cb) => ipcRenderer.on('timer:due', (_e, payload) => cb(payload)),
   onClockTimersChanged: (cb) => ipcRenderer.on('clockTimers:changed', (_e, list) => cb(list)),
@@ -482,6 +485,71 @@ contextBridge.exposeInMainWorld('api', {
   createDemoArea: () => ipcRenderer.invoke('demoArea:create'),
   createDemoAreaAt: (targetDir) => ipcRenderer.invoke('demoArea:createAt', targetDir),
   closeArea: () => ipcRenderer.invoke('area:close'),
+  // 4T-0843 (Epic 3E-0147): Buecher. Eigener Namensraum statt flacher
+  // book*-Namen, weil der Block als Ganzes zu einer schaltbaren Erweiterung
+  // gehoert und der Renderer ihn an EINER Stelle greift.
+  //
+  // getState liefert { active: null | { bookDir, bookFileName, tree,
+  // readingOrder, unlinked, missing, missingSuggestions } } fuer die
+  // Applikation des Fensters; `missingSuggestions` bildet einen fehlenden
+  // Kapitel-Pfad auf seine namensgleichen Funde ab (4T-0848, nur Eintraege
+  // mit Fund). `tree` ist der Kapitel-Baum aus { path, children }-Knoten mit
+  // buch-relativen Pfaden. onStateChanged meldet jedes Oeffnen, Schliessen,
+  // Anlegen und die Sitzungs-Wiederherstellung an alle Fenster der App.
+  books: {
+    getState: () => ipcRenderer.invoke('books:getState'),
+    openDialog: () => ipcRenderer.invoke('books:openDialog'),
+    createDialog: () => ipcRenderer.invoke('books:createDialog'),
+    close: () => ipcRenderer.invoke('books:close'),
+    openChapter: (relPath) => ipcRenderer.invoke('books:openChapter', relPath),
+    onStateChanged: (cb) => ipcRenderer.on('books:stateChanged', (_e, state) => cb(state)),
+    // Dialog-freie Pfad-Einstiege beider Wege (Muster openAreaPath und
+    // createDemoAreaAt): identische Strecke ab der Ordner-Wahl, damit
+    // Oeffnen und Anlegen ohne den nativen Dialog automatisiert pruefbar
+    // sind.
+    openPath: (bookDir) => ipcRenderer.invoke('books:openPath', bookDir),
+    createAt: (parentDir, name) => ipcRenderer.invoke('books:createAt', { parentDir, name }),
+    // 4T-0845 (Story S-0754): Struktur-Pflege. EINE Baum-Operation je Aufruf;
+    // waehrend eines Zuges wird nichts geschrieben, erst die Ablage loest
+    // genau einen applyTreeOp aus. Op-Formen (`parentPath: null` = oberste
+    // Ebene, `index: null` = ans Ende der Ziel-Ebene):
+    //   { type: 'insert', path, parentPath, index }
+    //   { type: 'remove', path }
+    //   { type: 'moveWithinLevel', path, direction: 'up'|'down' }
+    //   { type: 'move', path, parentPath, index }
+    //   { type: 'indent', path }
+    //   { type: 'outdent', path }
+    // Ergebnis { ok } bzw. { ok: false, error }; eine abgelehnte Operation
+    // schreibt nichts. createChapter legt genau eine leere Markdown-Datei an
+    // (im Ordner der Eltern-Kapitel-Datei, auf oberster Ebene im Buch-Ordner)
+    // und haengt sie unmittelbar ein.
+    applyTreeOp: (op) => ipcRenderer.invoke('books:applyTreeOp', op),
+    createChapter: (parentPath, name) =>
+      ipcRenderer.invoke('books:createChapter', { parentPath, name }),
+    // 4T-0847 (Story S-0756): Kapitel-Datei physisch innerhalb des
+    // Buch-Ordners verschieben. Der Ordner-Dialog läuft im Main, das Ziel
+    // MUSS im Buch-Ordner liegen; die Links des Bestands und der
+    // Kapitel-Baum-Eintrag der Begleitdatei ziehen im selben Zug nach.
+    // Ergebnis { ok: true, relPath, path, linkUpdate }, { ok: false,
+    // canceled: true } beim Abbruch des Dialogs oder { ok: false, error }.
+    // moveChapterFileTo ist der dialogfreie Pfad-Einstieg (Muster openPath).
+    moveChapterFile: (relPath) => ipcRenderer.invoke('books:moveChapterFile', relPath),
+    moveChapterFileTo: (relPath, targetDir) =>
+      ipcRenderer.invoke('books:moveChapterFileTo', { relPath, targetDir }),
+    // 4T-0848 (Story S-0757): Reparatur fehlender Kapitel. suggestMissing
+    // liefert { ok: true, suggestions: [buch-relative Pfade] } — namensgleiche
+    // Dateien an anderer Stelle des Buch-Ordners, nie automatisch uebernommen.
+    // reassignChapter ordnet dem Baum-Eintrag eine andere Datei zu (`newPath`
+    // buch-relativ oder absolut, immer im Buch-Ordner); die Baum-Position
+    // bleibt. reassignChapterDialog ist derselbe Weg mit vorgeschaltetem
+    // Datei-Dialog des Main-Prozesses (Muster moveChapterFile) und meldet den
+    // Abbruch als { ok: false, canceled: true }.
+    suggestMissing: (missingPath) => ipcRenderer.invoke('books:suggestMissing', missingPath),
+    reassignChapter: (missingPath, newPath) =>
+      ipcRenderer.invoke('books:reassignChapter', { missingPath, newPath }),
+    reassignChapterDialog: (missingPath) =>
+      ipcRenderer.invoke('books:reassignChapterDialog', missingPath),
+  },
   // 4T-0327 (Epic 3E-0059): Verzeichnis-Listing fuer das Bereichs-Panel.
   areaListDir: (dirPath) => ipcRenderer.invoke('area:listDir', dirPath),
   // 4T-0328: neue Markdown-Datei im Bereichs-Ordner anlegen; Struktur-

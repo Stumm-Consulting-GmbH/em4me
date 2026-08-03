@@ -85,6 +85,20 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0538 (Epic 3E-0098): Arbeitsbereiche — benannte Fenster- und
       // Tab-Sammlungen, direkt hinter dem Sitzungs-/Fenster-Cluster.
       'help.feature.workspaces',
+      // 4T-0849 (Epic 3E-0147): Bücher — ein Kontext auf derselben Ebene wie
+      // Bereich und Arbeitsbereich (Entscheidung 11), deshalb direkt hinter
+      // den Arbeitsbereichen im Datei-Cluster.
+      'help.feature.books',
+      // 4T-0850 (Epic 3E-0147): die fünf Buch-Funktionen unmittelbar hinter
+      // dem Modell-Überblick, in der Reihenfolge, in der ein Anwender sie
+      // antrifft — Inhaltsverzeichnis, Struktur-Pflege, Leseführung,
+      // Verschieben, Reparatur. Sie bleiben im Datei-Cluster beim Überblick
+      // stehen, weil sie ohne ihn nicht verständlich sind.
+      'help.feature.bookToc',
+      'help.feature.bookStructure',
+      'help.feature.bookReading',
+      'help.feature.bookMoveFile',
+      'help.feature.bookRepair',
       // 4T-0604 (Epic 3E-0113): Erstellungs- und Änderungszeitpunkt — die
       // Automatik wirkt beim Speichern, deshalb im Datei-Cluster hinter den
       // Sitzungs- und Fenster-Funktionen.
@@ -253,6 +267,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0475 (Epic 3E-0088): manuell einstellbare Panel-Höhen, direkt hinter
       // der Sidebar-Anordnung (beide steuern das Layout der Seitenleiste).
       'help.feature.panelHeights',
+      // 4T-0856 (Epic 3E-0164): Bezugsgröße dieser Höhen (einzelnes Panel oder
+      // Reiter-Gruppe), unmittelbar hinter den Höhen selbst.
+      'help.feature.panelHeightMode',
       // 4T-0570 (Epic 3E-0104): Reihenfolge der Panel-Zugänge (Untermenü und
       // Statusbar-Leiste) — Anordnungs-Eigenschaft wie sidebarLayout/
       // panelHeights, die Panels selbst bleiben in der Navigations-Gruppe.
@@ -279,6 +296,10 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0384 (Epic 3E-0072): Inhalts-Breite der gerenderten Ansicht
       // direkt hinter dem Zoom (beides Größen-Steuerung der Ansicht).
       'help.feature.contentWidth',
+      // 4T-0837 (Epic 3E-0161): Schriftart und -größe direkt hinter der
+      // Inhalts-Breite — dieselbe Einstellungs-Gruppe „Darstellung", und
+      // fachlich die dritte Größen-Steuerung neben Zoom und Breite.
+      'help.feature.fonts',
       'help.feature.settings',
       'help.feature.focusMode',
       'help.feature.typewriterScroll',
@@ -423,6 +444,11 @@ const KEY_LABEL_KEY = {
   'Mittlere Maustaste': 'help.key.middleClick',
   // 4T-0027: Mausrad als eigene "Taste" fuer den Zoom-per-Mausrad-Shortcut.
   Mausrad: 'help.key.mouseWheel',
+  // 4T-0850 (Epic 3E-0147): Bild-Tasten der Leseführung. Die deutschen
+  // Anzeige-Tokens liefert DISPLAY_KEY_MAP in src/shared/commands.js; ohne
+  // Eintrag hier blieben sie in allen Sprachen deutsch stehen.
+  'Bild auf': 'help.key.pageUp',
+  'Bild ab': 'help.key.pageDown',
 };
 
 function localizeKey(token, t) {

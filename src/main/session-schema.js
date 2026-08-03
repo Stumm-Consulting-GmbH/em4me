@@ -12,9 +12,25 @@
 //   [{ id, name, color, open, lastOpenedAt, app: { area, windows } }]
 // mit exakt dem App-Snapshot-Format des 'apps'-Keys im app-Feld. Additiv
 // neben 'apps', keine Migration (Workshop-Punkt 6 in 4T-0536).
+//
+// 4T-0843 (Epic 3E-0147): der App-Snapshot trägt zusätzlich das aktive Buch
+// als `book: { dir }`. Das Feld fehlt, solange kein Buch geöffnet ist, statt
+// als `null` dazustehen: ein Bestands-Snapshot bleibt so unverändert, und
+// die Ablage wächst nur, wo tatsächlich ein Buch offen war.
 'use strict';
 
 const { TAB_GROUP_COLOR_KEYS } = require('../shared/tab-group-colors');
+
+// 4T-0843: Buch-Bindung eines persistierten App-Snapshots. Liefert das
+// normalisierte Zusatz-Feld ({ book: { dir } }) oder ein leeres Objekt, das
+// beim Spread nichts hinzufügt.
+function bookField(entry) {
+  const dir =
+    entry && entry.book && typeof entry.book.dir === 'string' && entry.book.dir
+      ? entry.book.dir
+      : null;
+  return dir ? { book: { dir } } : {};
+}
 
 // Einmalige Migration des flachen Bestands-Formats: alle Bestands-Fenster
 // als EINE App ohne Bereich. Liefert null, wenn nichts zu migrieren ist
@@ -41,7 +57,11 @@ function normalizeSavedApps(saved) {
       entry.area && typeof entry.area.rootPath === 'string' && entry.area.rootPath
         ? entry.area.rootPath
         : null;
-    result.push({ area: rootPath ? { rootPath } : null, windows: windowsList });
+    result.push({
+      area: rootPath ? { rootPath } : null,
+      ...bookField(entry),
+      windows: windowsList,
+    });
   }
   return result;
 }
@@ -77,7 +97,11 @@ function normalizeSavedWorkspaces(saved) {
       color: TAB_GROUP_COLOR_KEYS.includes(entry.color) ? entry.color : TAB_GROUP_COLOR_KEYS[0],
       open: entry.open === true,
       lastOpenedAt: typeof entry.lastOpenedAt === 'string' ? entry.lastOpenedAt : null,
-      app: { area: rootPath ? { rootPath } : null, windows: windowsList },
+      app: {
+        area: rootPath ? { rootPath } : null,
+        ...bookField(appEntry),
+        windows: windowsList,
+      },
     });
   }
   return result;

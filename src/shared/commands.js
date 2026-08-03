@@ -192,6 +192,81 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-0843 (Epic 3E-0147): Buch oeffnen, neu anlegen und schliessen. Der
+  // Menue-Klick fuehrt im Main aus (Ordner-Dialog, Anlage, aktives Buch der
+  // Applikation); Kommando-IDs bleiben fuer Palette und Kuerzel-Belegung.
+  // Ohne Default-Bindings wie die benachbarten Bereichs- und
+  // Arbeitsbereichs-Kommandos: der Menue-Weg genuegt, ein Kuerzel ist ueber
+  // die Einstellungen belegbar.
+  {
+    id: 'book.open',
+    defaultBindings: [],
+    labelKey: 'menu.file.openBook',
+    descKey: 'help.shortcut.openBook',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
+  {
+    id: 'book.create',
+    defaultBindings: [],
+    labelKey: 'menu.file.newBook',
+    descKey: 'help.shortcut.newBook',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
+  {
+    id: 'book.close',
+    defaultBindings: [],
+    labelKey: 'menu.file.closeBook',
+    descKey: 'help.shortcut.closeBook',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
+  // 4T-0847 (Story S-0756): Kapitel-Datei physisch innerhalb des Buch-Ordners
+  // verschieben (Ordner-Wahl im Main, Ziel muss im Buch-Ordner liegen). Ohne
+  // Default-Kürzel wie die übrigen Buch-Kommandos: Bedienorte sind das
+  // Kontextmenü des Inhaltsverzeichnisses und die Kommando-Palette, ein
+  // Kürzel ist über die Einstellungen belegbar.
+  {
+    id: 'book.moveChapterFile',
+    defaultBindings: [],
+    labelKey: 'bookPanel.moveFile',
+    descKey: 'help.shortcut.moveChapterFile',
+    categoryKey: 'help.group.file',
+    menu: false,
+    editorScoped: false,
+  },
+  // 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen. Beide
+  // Kommandos folgen der Lese-Ordnung des aktiven Buches (ein Kapitel vor
+  // seinen Unterkapiteln, dann die Geschwister); an Anfang und Ende gibt es
+  // keinen Umlauf, sondern eine Rückmeldung in der Hinweis-Zeile.
+  // Standard-Kürzel Strg+Alt+BildAb / Strg+Alt+BildAuf, gegen Registry-
+  // Defaults und FIXED_BINDINGS als frei verifiziert (BildAuf/BildAb sind
+  // dort nirgends belegt). Ohne Menüleisten-Eintrag nach dem Muster
+  // tab.next/tab.prev: die Bedienorte sind die Vor-/Zurück-Knöpfe im
+  // Panel-Kopf, die Kommando-Palette und das Kürzel; ein Menü mit
+  // Navigations-Charakter gibt es in der Menüleiste nicht.
+  {
+    id: 'book.nextChapter',
+    defaultBindings: ['CmdOrCtrl+Alt+PageDown'],
+    labelKey: 'bookPanel.next',
+    descKey: 'help.shortcut.nextChapter',
+    categoryKey: 'help.group.navigation',
+    menu: false,
+    editorScoped: false,
+  },
+  {
+    id: 'book.previousChapter',
+    defaultBindings: ['CmdOrCtrl+Alt+PageUp'],
+    labelKey: 'bookPanel.previous',
+    descKey: 'help.shortcut.previousChapter',
+    categoryKey: 'help.group.navigation',
+    menu: false,
+    editorScoped: false,
+  },
   // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Lebenszyklus. Alle vier ohne
   // Default-Bindings (Menue-Weg; Kuerzel per Einstellungen belegbar);
   // Verfuegbarkeits-Dimmung in der Palette (saveAs nur ohne bestehende
@@ -558,6 +633,20 @@ const COMMANDS = [
     defaultBindings: [],
     labelKey: 'areaPanel.title',
     descKey: 'help.shortcut.toggleAreaPanel',
+    categoryKey: 'help.group.navigation',
+    menu: true,
+    editorScoped: false,
+  },
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches toggeln (Muster
+  // view.toggleAreaPanel, ohne Default-Binding). Die ID folgt dem
+  // Bestandsmuster aller Panel-Toggles: ein Bindestrich im Namensraum waere
+  // gegen die ID-Invariante der Registry (siehe Kopf-Kommentar und
+  // test/unit/commands.test.js).
+  {
+    id: 'view.toggleBookPanel',
+    defaultBindings: [],
+    labelKey: 'bookPanel.title',
+    descKey: 'help.shortcut.toggleBookPanel',
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
@@ -1523,6 +1612,12 @@ const DISPLAY_KEY_MAP = new Map([
   ['Up', '↑'],
   ['Down', '↓'],
   ['Escape', 'Esc'],
+  // 4T-0850 (Epic 3E-0147): Bild-Tasten der Buch-Leseführung. Ohne Eintrag
+  // erschienen sie in der Tastenkürzel-Seite als 'PageUp'/'PageDown' und
+  // ließen sich nicht übersetzen (KEY_LABEL_KEY in manual-generated.js
+  // schlüsselt über genau diese deutschen Anzeige-Tokens).
+  ['PageUp', 'Bild auf'],
+  ['PageDown', 'Bild ab'],
 ]);
 
 function bindingToDisplayString(binding) {

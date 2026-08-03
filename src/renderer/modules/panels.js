@@ -54,15 +54,20 @@ import {
   clampSidebarWidth,
   ensurePanelTabActive,
   findPanelInLayout,
+  getGroupHeight,
   getIconHeadings,
   getPanelHeight,
+  getPanelHeightMode,
   getSidebarLayout,
   getSidebarWidth,
+  groupHeightKey,
   groupPanelWith,
+  HEIGHT_MODE_GROUP,
   movePanelRelativeTo,
   movePanelToNewSlot,
   registerSidebarPanel,
   setActivePanel,
+  setGroupHeight,
   setPanelHeight,
   setSidebarWidth,
   sidebarPanelById,
@@ -506,6 +511,33 @@ function applyPanelHeading(el, def, useIcon) {
   else el.textContent = label;
 }
 
+// 4T-0855 (Epic 3E-0164): Bezugsgröße der Höhe eines Blocks. Im Panel-Modus
+// (Vorgabe) ist es das governing Panel, also der aktive Reiter einer Gruppe
+// beziehungsweise das Einzel-Panel; im Gruppen-Modus ist es bei einer
+// Reiter-Gruppe die Gruppe selbst. Ein Slot mit nur einem Panel verhält sich
+// in beiden Modi gleich — ohne Reiter-Wechsel gibt es kein Springen, also
+// auch nichts festzuhalten.
+//
+// Die Höhe wird in beiden Fällen auf die Sektion des governing Panels
+// angewendet (nur sie ist sichtbar); verschieden ist allein, woher der Wert
+// kommt und wohin er geschrieben wird.
+function heightRefForSlot(slot, governingId) {
+  if (getPanelHeightMode() === HEIGHT_MODE_GROUP && slot && slot.panels.length > 1) {
+    return { group: true, key: groupHeightKey(slot) };
+  }
+  return { group: false, key: governingId };
+}
+
+function readHeightRef(ref) {
+  if (!ref || ref.key == null) return null;
+  return ref.group ? getGroupHeight(ref.key) : getPanelHeight(ref.key);
+}
+
+function writeHeightRef(ref, value, opts) {
+  if (!ref || ref.key == null) return undefined;
+  return ref.group ? setGroupHeight(ref.key, value, opts) : setPanelHeight(ref.key, value, opts);
+}
+
 function renderSidebarSide(paneIdx, els, layout, side) {
   const container = side === 'left' ? els.sidebarLeft : els.sidebarRight;
   const splitter = side === 'left' ? els.sidebarSplitterLeft : els.sidebarSplitterRight;
@@ -531,6 +563,10 @@ function renderSidebarSide(paneIdx, els, layout, side) {
   // der die Höhe des Blocks DARÜBER (= prevGoverningId) steuert. Der letzte
   // sichtbare Block der Seite bleibt ohne Griff (kein Folge-Block).
   let prevGoverningId = null;
+  // 4T-0855 (Epic 3E-0164): Bezugsgröße des zuletzt gerenderten sichtbaren
+  // Blocks. Der Griff darunter schreibt in diesen Speicher — im Gruppen-Modus
+  // also in die Gruppen-Höhe statt in die des aktiven Reiters.
+  let prevRef = null;
   // 4T-0682 (Epic 3E-0139): Sektion des zuletzt gerenderten sichtbaren
   // Blocks. Nach der Schleife ist das der letzte Block der Seite — der
   // einzige ohne Höhen-Griff (siehe Nachbehandlung unten).
@@ -552,10 +588,12 @@ function renderSidebarSide(paneIdx, els, layout, side) {
     // 4T-0475: governing Panel dieses Blocks — bei einer Reiter-Gruppe der
     // aktive Reiter, sonst die Einzel-Sektion. Dessen Höhe steuert der Griff.
     const governingId = effectiveActive;
+    // 4T-0855: Bezugsgröße dieses Blocks (Panel oder Gruppe, je nach Modell).
+    const heightRef = heightRefForSlot(slot, governingId);
     // 4T-0475: Vor jedem sichtbaren Block außer dem ersten einen Höhen-Griff
     // einschieben, der die Höhe des vorherigen sichtbaren Blocks steuert.
     if (slotVisible && prevGoverningId) {
-      container.appendChild(buildPanelResizer(paneIdx, prevGoverningId));
+      container.appendChild(buildPanelResizer(paneIdx, prevGoverningId, prevRef));
     }
     // 4T-0698: Referenz auf die Reiterleiste dieses Slots (Kopf einer Gruppe),
     // damit sie unten als oberster sichtbarer Kopf verfügbar ist.
@@ -587,7 +625,10 @@ function renderSidebarSide(paneIdx, els, layout, side) {
       // 4T-0475: fixierte Höhe nur auf die governing-Sektion des sichtbaren
       // Blocks anwenden; alle übrigen Sektionen auf Automatik zurücksetzen
       // (idempotent bei jedem Render).
-      const fixedH = slotVisible && e.id === governingId ? getPanelHeight(e.id) : null;
+      // 4T-0855: Der Wert kommt aus der Bezugsgröße des Blocks; im
+      // Gruppen-Modus ist das die Gruppen-Höhe, sodass der Reiter-Wechsel die
+      // Blockhöhe nicht mehr verändert.
+      const fixedH = slotVisible && e.id === governingId ? readHeightRef(heightRef) : null;
       if (fixedH != null) {
         e.sectionEl.style.height = fixedH + 'px';
         e.sectionEl.classList.add('has-fixed-height');
@@ -609,6 +650,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
       }
       anyVisible = true;
       prevGoverningId = governingId;
+      prevRef = heightRef;
       lastGoverningSection = entries.find((e) => e.id === governingId)?.sectionEl ?? null;
     }
   }
@@ -762,39 +804,44 @@ function freezeSidePanelHeights(paneIdx, dragPanelId) {
   const layout = getSidebarLayout();
   const pos = findPanelInLayout(layout, dragPanelId);
   if (!pos) return;
-  const governingIds = [];
+  // 4T-0855 (Epic 3E-0164): Eingefroren wird je Block seine Bezugsgröße —
+  // im Gruppen-Modus also die Gruppen-Höhe und nicht die des aktiven Reiters.
+  // Gemessen wird unverändert an der Sektion des governing Panels, weil nur
+  // sie sichtbar ist.
+  const bloecke = [];
   for (const slot of layout[pos.side] || []) {
     const visible = slot.panels.filter((id) => {
       const def = sidebarPanelById(id);
       return def && def.getVisible(paneIdx);
     });
     if (visible.length === 0) continue;
-    governingIds.push(visible.includes(slot.active) ? slot.active : visible[0]);
+    const governingId = visible.includes(slot.active) ? slot.active : visible[0];
+    bloecke.push({ governingId, ref: heightRefForSlot(slot, governingId) });
   }
   // 4T-0682 (Epic 3E-0139): Den letzten sichtbaren Block nicht einfrieren.
   // Er hat keinen eigenen Griff (der Griff steuert immer den Block darüber),
   // und ein Store-Eintrag für ihn liesse sich danach nie wieder ändern.
   // renderSidebarSide nimmt ihm die fixierte Höhe ohnehin wieder ab; ihn
   // hier auszulassen verhindert, dass der Eintrag überhaupt erst entsteht.
-  governingIds.pop();
+  bloecke.pop();
   const measured = [];
-  for (const id of governingIds) {
-    if (getPanelHeight(id) != null) continue;
-    const sec = panelSectionEl(paneIdx, id);
+  for (const { governingId, ref } of bloecke) {
+    if (readHeightRef(ref) != null) continue;
+    const sec = panelSectionEl(paneIdx, governingId);
     if (!sec) continue;
-    measured.push({ id, height: sec.getBoundingClientRect().height });
+    measured.push({ governingId, ref, height: sec.getBoundingClientRect().height });
   }
-  for (const { id, height } of measured) {
+  for (const { governingId, ref, height } of measured) {
     const next = clampPanelHeight(height);
     if (next == null) continue;
     for (let i = 0; i < state.panes.length; i++) {
-      const sec = panelSectionEl(i, id);
+      const sec = panelSectionEl(i, governingId);
       if (sec) {
         sec.style.height = next + 'px';
         sec.classList.add('has-fixed-height');
       }
     }
-    setPanelHeight(id, next, { persist: false });
+    writeHeightRef(ref, next, { persist: false });
   }
 }
 
@@ -810,10 +857,14 @@ function freezeSidePanelHeights(paneIdx, dragPanelId) {
 // Seite ein (ein reiner Klick ohne Bewegung ändert nichts); der eine
 // Persist-Aufruf am mouseup schreibt das gesamte Höhen-Objekt inklusive
 // der eingefrorenen Werte.
-function buildPanelResizer(paneIdx, panelId) {
+// 4T-0855 (Epic 3E-0164): `ref` bestimmt, WOHIN die gezogene Höhe geschrieben
+// wird (Panel oder Gruppe); `panelId` bleibt das governing Panel und damit die
+// Sektion, an der gemessen und auf die angewendet wird.
+function buildPanelResizer(paneIdx, panelId, ref) {
   const handle = document.createElement('div');
   handle.className = 'sidebar-panel-resizer';
   handle.dataset.panelId = panelId;
+  if (ref && ref.group) handle.dataset.groupKey = ref.key;
   handle.setAttribute('aria-hidden', 'true');
   handle.addEventListener('mousedown', (ev) => {
     ev.preventDefault();
@@ -838,13 +889,13 @@ function buildPanelResizer(paneIdx, panelId) {
           sec.classList.add('has-fixed-height');
         }
       }
-      setPanelHeight(panelId, next, { persist: false });
+      writeHeightRef(ref, next, { persist: false });
     }
     function onUp() {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
       // Erst am Drag-Ende persistieren (ein Store-Schreibzugriff).
-      setPanelHeight(panelId, getPanelHeight(panelId));
+      writeHeightRef(ref, readHeightRef(ref));
     }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
@@ -859,7 +910,10 @@ function buildPanelResizer(paneIdx, panelId) {
         sec.classList.remove('has-fixed-height');
       }
     }
-    setPanelHeight(panelId, null);
+    // 4T-0855: Im Gruppen-Modus setzt der Doppelklick die ganze Gruppe auf
+    // Automatik zurück, weil der Eintrag der Gruppe gilt und nicht dem
+    // gerade sichtbaren Reiter.
+    writeHeightRef(ref, null);
   });
   return handle;
 }

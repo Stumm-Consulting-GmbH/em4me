@@ -40,6 +40,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Marcadores](bookmarks.md) — guardar archivos en dos secciones: marcadores generales y del área con rutas relativas, creación, conversión, orden.
 - [Esquemas de color](color-schemes.md) — colores mediante ranuras con nombre: asignación por modo, esquemas propios como copia, vista previa en vivo, límites.
 - [Aplicaciones, ventanas y áreas](apps-windows.md) — inicio múltiple, gestión de ventanas y sistemática de títulos.
+- [Libros](books.md) — varios archivos como un libro con orden de lectura declarado: carpeta del libro con archivo complementario, índice con mantenimiento de la estructura, lectura más allá de los límites de capítulo, mover con actualización, reparar capítulos faltantes.
 - [Historial del documento](history.md) — registrar cambios: archivo acompañante Markdown-Data, interruptores en tres niveles, comparar y restaurar revisiones.
 - [Notas del documento](notes.md) — una nota por documento: panel de barra lateral con vista previa conmutable, guardado automático en el archivo acompañante, distinción del historial.
 - [Propiedades de bloque](block-properties.md) — propiedades tipadas por ancla de bloque: panel que sigue al cursor, datos huérfanos, renombrado de anclas, indicador en el bloque.

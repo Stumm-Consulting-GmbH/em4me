@@ -53,6 +53,18 @@ Stehen mehrere Panels gestapelt auf einer Sidebar-Seite, sitzt zwischen je zwei 
 
 Das unterste Panel einer Seite hat keinen Griff, weil hinter ihm kein weiteres folgt. Es folgt deshalb immer der Höhe seines Inhalts und nimmt den Platz, den die Panels darüber ihm lassen. Ein Rollbalken erscheint dort nur, wenn dieser Platz für den Inhalt nicht ausreicht.
 
+Verlangen die eingestellten Höhen zusammen mehr Platz, als die Seite hat, wird die ganze Spalte senkrecht rollbar. Es verschwindet dabei kein Panel: Jedes behält mindestens seine Kopfzeile, und die unteren sind durch Rollen erreichbar. Wer den vorherigen Zustand zurück will, verkleinert das zu groß gezogene Panel oder stellt es per Doppelklick auf seinem Griff auf die automatische Höhe.
+
+## Höhe je Panel oder je Gruppe
+
+Wovon die Höhe eines Blocks abhängt, ist einstellbar (Einstellungen → Sidebar).
+
+Bei **Höhe je Panel** behält jedes Panel seine eigene Höhe. In einer Reiter-Gruppe gilt jeweils die Höhe des angezeigten Panels; beim Durchblättern ändert sich deshalb die Höhe des Blocks, und die Panels darunter wandern mit. Das ist die Vorgabe.
+
+Bei **feste Höhe je Gruppe** behält eine Reiter-Gruppe ihre Höhe über den Reiter-Wechsel hinweg. Alle Panels der Gruppe erscheinen gleich hoch, und was darunter liegt, bleibt an seinem Platz. Der Zieh-Griff unter der Gruppe stellt dann deren gemeinsame Höhe ein; ein Doppelklick stellt die automatische Höhe der ganzen Gruppe wieder her.
+
+Einzeln stehende Panels verhalten sich in beiden Fällen gleich. Die Höhen beider Einstellungen werden getrennt gemerkt: Wer zurückschaltet, findet seine früheren Panel-Höhen unverändert vor.
+
 ## Überschriften als Symbol
 
 Die Panel-Überschriften lassen sich von Text auf das Symbol des jeweiligen Panels umstellen (Einstellungen → Sidebar). Die Umstellung wirkt auf die Sektions-Köpfe und auf die Reiter gruppierter Panels gleichermaßen; der Panel-Name bleibt als Kurzhinweis am Zeiger und für Screenreader erhalten. Wie die Anordnung wirkt der Schalter erst mit Anwenden oder OK.

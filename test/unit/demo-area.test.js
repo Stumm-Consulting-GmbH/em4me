@@ -32,6 +32,18 @@ const EXPECTED_FILES = [
   '09 Diagrams and Formulas.md',
   '10 Attachments.md',
   '11 Templates.md',
+  // 4T-0850 (Epic 3E-0147): das Demo-Buch (Buch-Ordner mit Begleitdatei,
+  // Buch-Datei, vier Kapiteln über zwei Ordner und einer bewusst nicht
+  // eingehängten Datei). Bewusst OHNE eigene Seite im Wurzelverzeichnis: die
+  // E2E-Demo-Spec zählt dort die Markdown-Seiten und die #demo-Treffer der
+  // ersten Abfrage; der Einstieg steht deshalb als Absatz in „00 Welcome".
+  'Demo Book/01 Setting Out.md',
+  'Demo Book/04 Homecoming.md',
+  'Demo Book/Book_Settings.mdda',
+  'Demo Book/Demo Book.md',
+  'Demo Book/Notes to Self.md',
+  'Demo Book/Parts/02 The Harbour.md',
+  'Demo Book/Parts/03 Storms and Detours.md',
   'Templates/Meeting Note.md',
   'attachments/demo-document.pdf',
   'attachments/demo-image.png',
@@ -52,7 +64,7 @@ function listFilesRecursive(root) {
 }
 
 describe('Demo-Area: Manifest-Wächter über src/demo (4T-0632)', () => {
-  it('src/demo trägt exakt die fünfzehn erwarteten Dateien (beide Richtungen)', () => {
+  it('src/demo trägt exakt die zweiundzwanzig erwarteten Dateien (beide Richtungen)', () => {
     const actual = listFilesRecursive(DEMO_DIR);
     const expected = [...EXPECTED_FILES].sort();
     const fehlend = expected.filter((f) => !actual.includes(f));

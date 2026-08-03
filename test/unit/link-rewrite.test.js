@@ -249,6 +249,127 @@ describe('link-rewrite — Kaskade, Idempotenz, EOL/BOM', () => {
   });
 });
 
+// 4T-0847 (Epic 3E-0147): Ein Rename-Paar darf zugleich das Verzeichnis
+// wechseln — das physische Verschieben einer Kapitel-Datei innerhalb ihres
+// Buch-Ordners. Ein relatives Markdown-Ziel wird dann als ganzer Pfad neu
+// geschrieben (neue relative Lage von der verweisenden Datei aus), weil das
+// Ersetzen des Basenames allein den Verzeichnis-Anteil stehen ließe und der
+// Link danach ins Leere zeigte.
+describe('link-rewrite — Verzeichnis-Wechsel des Ziels (4T-0847)', () => {
+  // Verschiebe-Eintrag: derselbe Basename, anderes Verzeichnis.
+  function move(base, vonOrdner, nachOrdner) {
+    return {
+      oldBase: base,
+      newBase: base,
+      oldAbs: `${vonOrdner}/${base}.md`,
+      newAbs: `${nachOrdner}/${base}.md`,
+    };
+  }
+
+  it('führt ein Ziel nach, das in einen Unterordner wandert', () => {
+    const r = [move('Kapitel', '/root', '/root/Teil1')];
+    expect(rewrite('[Text](Kapitel.md)', r).newContent).toBe('[Text](Teil1/Kapitel.md)');
+  });
+
+  it('führt ein Ziel nach, das aus einem Unterordner herauswandert', () => {
+    const r = [move('Kapitel', '/root/Teil1', '/root')];
+    expect(rewrite('[Text](Teil1/Kapitel.md)', r).newContent).toBe('[Text](Kapitel.md)');
+  });
+
+  it('führt ein Ziel nach, das zwischen zwei Unterordnern wandert', () => {
+    const r = [move('Kapitel', '/root/Teil1', '/root/Teil2')];
+    expect(rewrite('[Text](Teil1/Kapitel.md)', r).newContent).toBe('[Text](Teil2/Kapitel.md)');
+  });
+
+  it('rechnet den neuen Pfad von der verweisenden Datei aus, nicht von der Wurzel', () => {
+    // Die dritte Datei liegt selbst in Teil1 und verweist ohne Ordner-Anteil;
+    // nach der Bewegung braucht sie den Weg über die Ebene darüber.
+    const r = [move('Kapitel', '/root/Teil1', '/root/Teil2')];
+    const res = computeLinkRewrites('[Text](Kapitel.md)', {
+      renames: r,
+      contextPath: '/root/Teil1/Quelle.md',
+    });
+    expect(res.newContent).toBe('[Text](../Teil2/Kapitel.md)');
+  });
+
+  it('führt auch eine bestehende ../-Form auf die neue Lage nach', () => {
+    const r = [move('Kapitel', '/root', '/root/Teil2')];
+    const res = computeLinkRewrites('[Text](../Kapitel.md)', {
+      renames: r,
+      contextPath: '/root/Teil1/Quelle.md',
+    });
+    expect(res.newContent).toBe('[Text](../Teil2/Kapitel.md)');
+  });
+
+  it('erhält den Anker über den Verzeichnis-Wechsel', () => {
+    const r = [move('Kapitel', '/root/Teil1', '/root/Teil2')];
+    expect(rewrite('[Text](Teil1/Kapitel.md#kap)', r).newContent).toBe(
+      '[Text](Teil2/Kapitel.md#kap)',
+    );
+  });
+
+  it('erhält die %-Kodierung des Ziels', () => {
+    const r = [move('Mein Kapitel', '/root', '/root/Teil1')];
+    expect(rewrite('[Text](Mein%20Kapitel.md)', r).newContent).toBe(
+      '[Text](Teil1/Mein%20Kapitel.md)',
+    );
+  });
+
+  it('stellt auf die <…>-Form um, wenn der neue Ordner ein Leerzeichen einbringt', () => {
+    const r = [move('Kapitel', '/root', '/root/Teil 1')];
+    expect(rewrite('[Text](Kapitel.md)', r).newContent).toBe('[Text](<Teil 1/Kapitel.md>)');
+    // Der Anker wandert dabei mit in die Klammern (Regel 4T-0476).
+    expect(rewrite('[Text](Kapitel.md#kap)', r).newContent).toBe('[Text](<Teil 1/Kapitel.md#kap>)');
+  });
+
+  it('ersetzt ein <…>-Ziel roh und behält die Klammern', () => {
+    const r = [move('Mein Kapitel', '/root', '/root/Teil 1')];
+    expect(rewrite('[Text](<Mein Kapitel.md>)', r).newContent).toBe(
+      '[Text](<Teil 1/Mein Kapitel.md>)',
+    );
+  });
+
+  it('trägt Umbenennen und Verschieben in einem Schritt', () => {
+    const r = [
+      { oldBase: 'Alt', newBase: 'Neu', oldAbs: '/root/Alt.md', newAbs: '/root/T1/Neu.md' },
+    ];
+    expect(rewrite('[Text](Alt.md)', r).newContent).toBe('[Text](T1/Neu.md)');
+  });
+
+  it('lässt Wiki-Links vom Verschieben unberührt (sie lösen über den Namen auf)', () => {
+    const r = [move('Kapitel', '/root', '/root/Teil1')];
+    // Der Wiki-Zweig trifft den unveränderten Basename und setzt ihn erneut:
+    // der Text bleibt Zeichen für Zeichen derselbe. Genau deshalb hält der
+    // Main-Prozess Dateien ohne echte Text-Änderung vom Schreiben fern.
+    expect(rewrite('[[Kapitel]]', r).newContent).toBe('[[Kapitel]]');
+  });
+
+  it('lässt ein wurzel-verankertes Ziel in seiner Form', () => {
+    // '/…' ist keine relative Angabe; aus ihr eine relative zu machen wäre
+    // eine Umdeutung. Der Basename bleibt gleich, der Text also unverändert.
+    const r = [move('Kapitel', '/root', '/root/Teil1')];
+    expect(rewrite('[Text](/root/Kapitel.md)', r).newContent).toBe('[Text](/root/Kapitel.md)');
+  });
+
+  it('reines Umbenennen bleibt unverändert: nur der Basename wird ersetzt', () => {
+    // Nachweis, dass der Bestands-Weg unangetastet ist — dieselben Fälle wie
+    // in der Markdown-Gruppe oben, hier gegen die neue Weiche gehalten.
+    expect(rewrite('[Text](Alt.md)', [rename('Alt', 'Neu')]).newContent).toBe('[Text](Neu.md)');
+    expect(rewrite('[Text](./Alt.md)', [rename('Alt', 'Neu')]).newContent).toBe('[Text](./Neu.md)');
+    expect(rewrite('[Text](sub/Alt.md)', [rename('Alt', 'Neu', '/root/sub')]).newContent).toBe(
+      '[Text](sub/Neu.md)',
+    );
+    const res = computeLinkRewrites('[Text](../Alt.md)', {
+      renames: [rename('Alt', 'Neu', '/root')],
+      contextPath: '/root/sub/Quelle.md',
+    });
+    expect(res.newContent).toBe('[Text](../Neu.md)');
+    expect(rewrite('[Text](Alt.md)', [rename('Alt', 'Neu Datei')]).newContent).toBe(
+      '[Text](<Neu Datei.md>)',
+    );
+  });
+});
+
 describe('link-rewrite — hits und Randfaelle', () => {
   it('liefert pro Ersetzung zeile/alt/neu/typ', () => {
     const r = [rename('Alt', 'Neu')];

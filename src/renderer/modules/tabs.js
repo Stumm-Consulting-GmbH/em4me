@@ -326,6 +326,8 @@ export function syncToolbarToActiveTab() {
 const PANEL_RAW_VISIBLE = {
   bookmarks: (paneIdx) => !!(state.bookmarks && state.bookmarks.visibleByPane[paneIdx]),
   area: (paneIdx) => !!areaPanelVisiblePref(paneIdx),
+  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches.
+  book: (paneIdx) => !!(state.bookPanel && state.bookPanel.visibleByPane[paneIdx]),
   outline: (paneIdx) => !!state.outline.visibleByPane[paneIdx],
   subpages: (paneIdx) => !!(state.subpages && state.subpages.visibleByPane[paneIdx]),
   filegraph: (paneIdx) => !!(state.fileGraph && state.fileGraph.visibleByPane[paneIdx]),

@@ -68,7 +68,9 @@ describe('Default-Layout (4T-0287, 4T-0563)', () => {
     const layout = defaultSidebarLayout(KNOWN);
     expect(layout).toEqual({
       left: [
-        { panels: ['bookmarks', 'area'], active: 'bookmarks' },
+        // 4T-0844 (Epic 3E-0147): das Inhaltsverzeichnis des Buches schliesst
+        // die Ort-Gruppe ab.
+        { panels: ['bookmarks', 'area', 'book'], active: 'bookmarks' },
         // 4T-0759 (Epic 3E-0142): das Suchergebnis-Panel schliesst die
         // Finde-Gruppe ab.
         { panels: ['outline', 'subpages', 'filegraph', 'searchresults'], active: 'outline' },

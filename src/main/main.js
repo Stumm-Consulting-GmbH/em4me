@@ -123,6 +123,10 @@ const {
 // (Container-Format, Delta-Pakete, Anker, Hash-Abgleich). Electron- und
 // IO-frei; Datei-Zugriff und Fenster-Hinweise bleiben hier in main.js.
 const mddStore = require('./mdd-store');
+// 4T-0843 (Epic 3E-0147): Datei-Ebene des Buches — Erkennung eines
+// Buch-Ordners, Zustands-Aufbau fuer den Renderer und Neuanlage
+// (electron-frei, unit-getestet); Dialoge, App-Bindung und IPC bleiben hier.
+const books = require('./books');
 // 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
 // plus ergaenzender Ordner-Scan).
 const { collectAreaStats } = require('./area-stats');
@@ -651,14 +655,22 @@ async function applyLinkUpdatesForRename(owner, pairs, anchorNew) {
   const failed = [];
   for (const filePath of candidates) {
     let result;
+    let raw;
     try {
-      const raw = await fs.readFile(filePath, 'utf8');
+      raw = await fs.readFile(filePath, 'utf8');
       result = computeLinkRewrites(raw, { renames, contextPath: filePath });
     } catch (err) {
       failed.push({ path: filePath, error: err && err.message ? err.message : String(err) });
       continue;
     }
     if (!result.changed) continue;
+    // 4T-0847 (Epic 3E-0147): Ein Rewrite, der denselben Text ergibt, ist
+    // keine Änderung. Beim reinen Umbenennen kam der Fall nicht vor (der
+    // Basename ändert sich immer); das physische Verschieben einer
+    // Kapitel-Datei lässt ihn genau eintreten, weil der Basename bleibt.
+    // Ohne diesen Halt würde jede Datei mit einem Wiki-Link auf die bewegte
+    // Datei unverändert neu geschrieben und historisiert.
+    if (result.newContent === raw) continue;
     try {
       const recordHistory = (await resolveHistoryFor(owner, filePath, result.newContent)).effective;
       const previousText = recordHistory ? await readPreviousTextFor(filePath) : null;
@@ -1326,8 +1338,14 @@ function liveAppSnapshot(appId) {
   }
   if (winEntries.length === 0) return null;
   const area = appRegistry.getArea(appId);
+  // 4T-0843 (Epic 3E-0147): aktives Buch der App mitfuehren, damit die
+  // Sitzungs-Wiederherstellung es zurueckbringt (Story S-0752, AK4). Das
+  // Feld entsteht nur bei geoeffnetem Buch (Schema-Kommentar in
+  // session-schema.js).
+  const bookDir = activeBooks.get(appId);
   return {
     area: area && area.rootPath ? { rootPath: area.rootPath } : null,
+    ...(bookDir ? { book: { dir: bookDir } } : {}),
     windows: winEntries,
   };
 }
@@ -1586,6 +1604,9 @@ function getMenuState(id) {
     // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Zuordnung der Fenster-App
     // plus Untermenue-Liste (open = Laufzeit-Zustand aus der Registry).
     hasWorkspace: menuAppId != null && !!appRegistry.getWorkspace(menuAppId),
+    // 4T-0843 (Epic 3E-0147): aktives Buch der App dieses Fensters
+    // (aktiviert "Buch schliessen").
+    hasBook: menuAppId != null && activeBooks.has(menuAppId),
     workspaces: workspacesState.map((w) => ({
       id: w.id,
       name: w.name,
@@ -1622,6 +1643,18 @@ function applyMenuToWindow(win) {
     // den Arbeitsbereich bzw. fokussiert ihn (Main fuehrt direkt aus).
     openWorkspace: (wsId) => {
       void openWorkspaceById(wsId, win);
+    },
+    // 4T-0843 (Epic 3E-0147): Buch oeffnen, anlegen und schliessen fuehrt der
+    // Main direkt aus (Ordner-Dialog bzw. Bindung); im Fenster ist nichts zu
+    // entscheiden, deshalb kein Renderer-Umweg wie beim Bereich.
+    openBook: () => {
+      void openBookDialog(win);
+    },
+    createBook: () => {
+      void createBookDialog(win);
+    },
+    closeBook: () => {
+      void closeActiveBook(appRegistry.appOf(win.webContents.id));
     },
     save: () => {
       if (!win.isDestroyed()) win.webContents.send('menu:save');
@@ -1763,6 +1796,9 @@ async function openWorkspaceById(id, ownerWin) {
   const appId = appRegistry.createApp(area);
   appRegistry.setWorkspace(appId, { id: entry.id, name: entry.name });
   if (area) startAreaWatcher(appId);
+  // 4T-0843 (Epic 3E-0147): aktives Buch des eingefrorenen Arbeitsbereichs
+  // zurueckbringen (Muster der Sitzungs-Wiederherstellung).
+  if (entry.app.book?.dir) void restoreBookForApp(appId, entry.app.book.dir);
   // 4T-0539 (Epic 3E-0098): liegende Entwuerfe dieses Arbeitsbereichs
   // mitnehmen (erstes Fenster, window:initialState-Weg) und danach selektiv
   // aus dem Speicher raeumen. Vorher die Schreib-Kette abwarten, damit ein
@@ -1888,6 +1924,246 @@ function stopAreaWatcher(appId) {
   // den Cache ein letztes Mal.
   if (entry.rootPath) backlinks.releaseRoot(entry.rootPath, `area:${appId}`);
   areaWatchers.delete(appId);
+}
+
+// --- Buecher (4T-0843, Epic 3E-0147) -----------------------------------------
+//
+// Ein geoeffnetes Buch ist ein eigener Kontext auf derselben Ebene wie
+// Bereich und Arbeitsbereich (Epic-Entscheidung 11): Das aktive Buch haengt
+// an der logischen APPLIKATION, nicht am Fenster, und alle Fenster derselben
+// App teilen es (Muster der Bereichs-Bindung in der App-Registry). Die
+// Bindung liegt bewusst hier statt in der Registry, weil sie nichts mit
+// Fenster-Nummerierung und Titel zu tun hat und die Registry electron-frei
+// und schmal bleiben soll.
+//
+// Die Datei-Ebene (Erkennung, Zustands-Aufbau, Anlage) liegt in books.js,
+// der Struktur-Kern in shared/book-core.js.
+const activeBooks = new Map(); // appId -> bookDir (absolut)
+
+function appIdOfWindow(win) {
+  if (!win || win.isDestroyed()) return null;
+  return appRegistry.appOf(win.webContents.id);
+}
+
+// Zustands-Paket fuer den Renderer: { active: null | { bookDir,
+// bookFileName, tree, readingOrder, unlinked, missing, missingSuggestions } }.
+// `missingSuggestions` nennt je fehlendem Kapitel die namensgleichen Funde des
+// Buch-Ordners (4T-0848, nur Eintraege mit Fund). Der Zustand wird
+// bei jedem Abruf frisch von der Platte gelesen, weil Kapitel-Dateien und
+// Begleitdatei jederzeit von aussen wandern koennen (offene Flanke jeder
+// deklarierten Struktur, Epic-Risiko). Ist die Begleitdatei gerade nicht
+// lesbar, meldet das Paket `active: null`, ohne die Bindung zu loesen: ein
+// voruebergehender Lesefehler soll das Buch nicht schliessen.
+async function bookPayloadFor(appId) {
+  const bookDir = appId != null ? activeBooks.get(appId) : null;
+  if (!bookDir) return { active: null };
+  const result = await books.buildBookState(bookDir);
+  return result.ok ? { active: result.state } : { active: null };
+}
+
+// Meldet den Buch-Zustand an alle Fenster der Applikation (Oeffnen,
+// Schliessen, Anlegen, Wiederherstellung).
+async function sendBookState(appId) {
+  if (appId == null) return;
+  const payload = await bookPayloadFor(appId);
+  for (const windowId of appRegistry.windowsOf(appId)) {
+    const win = windows.get(windowId);
+    if (win && !win.isDestroyed()) win.webContents.send('books:stateChanged', payload);
+  }
+}
+
+// 4T-0847 (Story S-0756): Nach einer physischen Bewegung von Kapitel-Dateien
+// den Buch-Zustand aller Applikationen nachziehen, die eines der betroffenen
+// Bücher aktiv haben. Eine Bewegung kann jedes Buch treffen, auch eines, das
+// gerade in keinem Fenster offen ist — dann gibt es schlicht nichts zu melden.
+async function sendBookStateForDirs(bookDirs) {
+  const dirs = (Array.isArray(bookDirs) ? bookDirs : []).filter(
+    (dir) => typeof dir === 'string' && dir !== '',
+  );
+  if (dirs.length === 0) return;
+  for (const [appId, active] of activeBooks) {
+    if (dirs.some((dir) => isSamePath(dir, active))) await sendBookState(appId);
+  }
+}
+
+// Setzt das aktive Buch der Applikation. `openTab` oeffnet zusaetzlich die
+// Buch-Datei als Reiter im ausloesenden Fenster (Weg "Buch oeffnen"); beim
+// Erkennen einer gerade geoeffneten Buch-Datei entfaellt das, weil der Reiter
+// dort schon entsteht. Rueckgabe { ok } bzw. { ok: false, error }.
+async function setActiveBook(appId, bookDir, { openTab = false, ownerWin = null } = {}) {
+  if (appId == null || !appRegistry.hasApp(appId)) return { ok: false, error: 'no-app' };
+  const state = await books.buildBookState(bookDir);
+  if (!state.ok) return state;
+  activeBooks.set(appId, state.state.bookDir);
+  if (openTab) {
+    const exists = await books.bookFileExists(state.state.bookDir, state.state.bookFileName);
+    if (exists) {
+      const target = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
+      const file = path.join(state.state.bookDir, state.state.bookFileName);
+      // Derselbe Kanal wie Explorer-Doppelklick und Zuletzt-Liste; der
+      // Renderer oeffnet die Datei in der aktiven Pane und puffert sie, wenn
+      // das Fenster noch laedt.
+      if (target) target.webContents.send('file:openExternal', [file]);
+    } else if (ownerWin && !ownerWin.isDestroyed()) {
+      await dialog.showMessageBox(ownerWin, {
+        type: 'warning',
+        title: tForWindow(ownerWin, 'book.fileMissingTitle'),
+        message: tForWindow(ownerWin, 'book.fileMissingMessage'),
+        detail: state.state.bookFileName || state.state.bookDir,
+        buttons: ['OK'],
+      });
+    }
+  }
+  applyMenuToAllWindows();
+  persistAllWindows();
+  await sendBookState(appId);
+  return { ok: true };
+}
+
+// "Buch schliessen": loest allein die Bindung. Geoeffnete Reiter bleiben
+// offen, denn sie sind gewoehnliche Markdown-Dateien und gehoeren dem
+// Fenster, nicht dem Buch (anders als beim Bereich, dessen Schliessen die
+// ganze Applikation beendet).
+async function closeActiveBook(appId) {
+  if (appId == null || !activeBooks.has(appId)) return { ok: false, error: 'no-book' };
+  activeBooks.delete(appId);
+  applyMenuToAllWindows();
+  persistAllWindows();
+  await sendBookState(appId);
+  return { ok: true };
+}
+
+// Liegt der Buch-Ordner im Bereich der Applikation? Bereichs-Apps oeffnen
+// nichts ausserhalb ihres Bereichs (4T-0323); fuer Buecher gilt dieselbe
+// Grenze unveraendert, hier nur vorgezogen auf den Ordner, damit die
+// Ablehnung eine verstaendliche Meldung traegt statt spaeter still an der
+// Datei-Grenze zu scheitern.
+async function rejectBookOutsideArea(ownerWin, bookDir) {
+  const area = areaOfWindow(ownerWin);
+  if (!area || isInsideArea(area.rootPath, bookDir)) return false;
+  await dialog.showMessageBox(ownerWin || undefined, {
+    type: 'warning',
+    title: tForWindow(ownerWin, 'area.outsideTitle'),
+    message: tForWindow(ownerWin, 'area.outsideOpenMessage'),
+    detail: bookDir,
+    buttons: ['OK'],
+  });
+  return true;
+}
+
+// Meldung zu einem abgewiesenen Ordner (kein Buch bzw. defekte Begleitdatei).
+async function reportNotABook(ownerWin, bookDir, error) {
+  await dialog.showMessageBox(ownerWin || undefined, {
+    type: 'warning',
+    title: tForWindow(ownerWin, 'book.notABookTitle'),
+    message: tForWindow(
+      ownerWin,
+      error === 'invalid' ? 'book.invalidSettingsMessage' : 'book.notABookMessage',
+    ),
+    detail: bookDir,
+    buttons: ['OK'],
+  });
+}
+
+// Weg 2 des Oeffnens (Story S-0752, AK2): Der Renderer meldet ein aktives
+// Datei-Oeffnen (recent:push, sowohl Datei-Dialog als auch Doppelklick und
+// Zuletzt-Liste). Ist die Datei die Buch-Datei ihres Ordners, wird das Buch
+// zusaetzlich zum gewoehnlichen Oeffnen aktiv. Kapitel-Dateien treffen die
+// Erkennung nicht und oeffnen unveraendert (Epic-Entscheidung 9).
+async function bindBookIfBookFile(win, filePath) {
+  const appId = appIdOfWindow(win);
+  if (appId == null) return;
+  // 4T-0849 (Story S-0758): Im Aus-Zustand der Buecher-Erweiterung entfaellt
+  // die Erkennung — eine Buch-Datei oeffnet wie jede andere Markdown-Datei.
+  if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
+  const bookDir = await books.detectBookDirFor(filePath);
+  if (!bookDir) return;
+  if (activeBooks.get(appId) === bookDir) return; // schon aktiv
+  const area = appRegistry.getArea(appId);
+  if (area && !isInsideArea(area.rootPath, bookDir)) return;
+  await setActiveBook(appId, bookDir);
+}
+
+// Sitzungs-Wiederherstellung des aktiven Buches. Ein inzwischen entfernter
+// oder beschaedigter Buch-Ordner wird still uebergangen (Muster der
+// Bereichs-Wiederherstellung, dort mit Sammel-Meldung; hier genuegt das
+// stille Auslassen, weil ohne Buch nur ein Panel leer bleibt).
+async function restoreBookForApp(appId, bookDir) {
+  if (appId == null || typeof bookDir !== 'string' || bookDir === '') return;
+  // 4T-0849 (Story S-0758): keine Buch-Wiederherstellung bei abgeschalteter
+  // Erweiterung; der Sitzungs-Eintrag bleibt fuer das Wiedereinschalten erhalten.
+  if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
+  const state = await books.buildBookState(bookDir);
+  if (!state.ok) return;
+  activeBooks.set(appId, state.state.bookDir);
+  applyMenuToAllWindows();
+  await sendBookState(appId);
+}
+
+// Weg 1 des Oeffnens (Story S-0752, AK1): "Buch oeffnen…" mit Ordner-Wahl
+// (Muster area:open). Ein Ordner ohne Begleitdatei, die eine Buch-Datei
+// benennt, wird mit Meldung abgewiesen.
+async function openBookDialog(ownerWin) {
+  const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
+  const appId = appIdOfWindow(owner);
+  if (appId == null) return { ok: false, error: 'no-app' };
+  const result = await dialog.showOpenDialog(owner || undefined, {
+    title: tForWindow(owner, 'book.openDialogTitle'),
+    defaultPath: areaOfWindow(owner)?.rootPath,
+    properties: ['openDirectory'],
+  });
+  if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+    return { ok: false, canceled: true };
+  }
+  const bookDir = result.filePaths[0];
+  if (await rejectBookOutsideArea(owner, bookDir)) return { ok: false, error: 'outside-area' };
+  const bound = await setActiveBook(appId, bookDir, { openTab: true, ownerWin: owner });
+  if (!bound.ok && (bound.error === 'no-book' || bound.error === 'invalid')) {
+    await reportNotABook(owner, bookDir, bound.error);
+  }
+  return bound;
+}
+
+// Story S-0752, AK3: "Neues Buch…" legt Buch-Ordner, Buch-Datei und
+// Begleitdatei an und oeffnet das Buch. Eltern-Ordner und Name kommen aus
+// EINEM nativen Dialog: der Speichern-Dialog liefert beides in einem Schritt
+// und laesst den Anwender zugleich einen neuen Eltern-Ordner anlegen. Ein
+// Text-Eingabe-Dialog gibt es im Main-Prozess nicht, und ein Renderer-Dialog
+// haette den Ablauf ohne Gewinn ueber zwei Prozesse gezogen.
+async function createBookDialog(ownerWin) {
+  const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
+  const appId = appIdOfWindow(owner);
+  if (appId == null) return { ok: false, error: 'no-app' };
+  const result = await dialog.showSaveDialog(owner || undefined, {
+    title: tForWindow(owner, 'book.createDialogTitle'),
+    buttonLabel: tForWindow(owner, 'book.createDialogButton'),
+    defaultPath: areaOfWindow(owner)?.rootPath,
+    properties: ['createDirectory', 'showOverwriteConfirmation'],
+  });
+  if (result.canceled || !result.filePath) return { ok: false, canceled: true };
+  const parentDir = path.dirname(result.filePath);
+  const name = path.basename(result.filePath);
+  if (await rejectBookOutsideArea(owner, path.join(parentDir, name))) {
+    return { ok: false, error: 'outside-area' };
+  }
+  const created = await books.createBook(parentDir, name);
+  if (!created.ok) {
+    const messageKey =
+      created.error === 'invalid-name'
+        ? 'book.createInvalidNameMessage'
+        : created.error === 'exists'
+          ? 'book.createExistsMessage'
+          : 'book.createFailedMessage';
+    await dialog.showMessageBox(owner || undefined, {
+      type: 'warning',
+      title: tForWindow(owner, 'book.createFailedTitle'),
+      message: tForWindow(owner, messageKey),
+      detail: created.detail || path.join(parentDir, name),
+      buttons: ['OK'],
+    });
+    return created;
+  }
+  return setActiveBook(appId, created.bookDir, { openTab: true, ownerWin: owner });
 }
 
 // "Bereich schliessen" schliesst alle Fenster der Bereichs-App ueber den
@@ -2208,6 +2484,9 @@ function createWindow(opts = {}) {
     if (removedAppId != null && !appRegistry.hasApp(removedAppId)) {
       stopAreaWatcher(removedAppId);
       appLastFocused.delete(removedAppId);
+      // 4T-0843 (Epic 3E-0147): Buch-Bindung der verschwundenen App loesen
+      // (der persistierte Stand ist im 'close'-Handler bereits geschrieben).
+      activeBooks.delete(removedAppId);
       // 4T-0537: letztes Fenster eines Arbeitsbereichs ausserhalb des Quits
       // friert den Stand ein (Offen-Merker false; der 'close'-Handler hat den
       // Endstand bereits persistiert). Beim Quit bleibt der Merker true —
@@ -2919,6 +3198,15 @@ function registerIpc() {
         }
       }
     }
+    // 4T-0855 (Epic 3E-0164): Hoehen-Modell der Sidebar-Bloecke — an alle
+    // Fenster ausser dem Ausloeser (Muster iconHeadings oben).
+    if (key === 'sidebar.heightMode') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed() && w.webContents !== event.sender) {
+          w.webContents.send('sidebarHeightMode:changed', value);
+        }
+      }
+    }
     // 4T-0208: Hotkey-Overrides an alle Fenster broadcasten (auch an den
     // Sender — Empfang baut Dispatcher-Map und Editor-Keymap idempotent
     // neu) und die Menue-Accelerators aller Fenster aktualisieren.
@@ -2965,10 +3253,18 @@ function registerIpc() {
 
   // Renderer meldet ein aktives Datei-Oeffnen, damit der Pfad in die Recent-
   // Liste rutscht. Wird in openInPane aufgerufen, nicht beim Restore/Reload.
-  ipcMain.handle('recent:push', (_event, filePath) => {
+  ipcMain.handle('recent:push', (event, filePath) => {
     // W-21 (4T-0309): Typ-Guard — path.resolve(nichtString) wirft TypeError.
     if (typeof filePath !== 'string' || !filePath) return;
-    pushRecent(path.resolve(filePath));
+    const absolute = path.resolve(filePath);
+    pushRecent(absolute);
+    // 4T-0843 (Epic 3E-0147): Genau hier meldet der Renderer JEDES aktive
+    // Datei-Oeffnen (Datei-Dialog, Explorer-Doppelklick, Zuletzt-Liste,
+    // Klick im Panel), und nur das aktive, nicht Restore und Reload. Ist
+    // die Datei die Buch-Datei ihres Ordners, wird das Buch zusaetzlich
+    // aktiv (Story S-0752, AK2). Fire-and-forget: das Oeffnen wartet nicht
+    // auf die Erkennung.
+    void bindBookIfBookFile(senderWindow(event), absolute);
   });
 
   // Datei speichern (Inhalt nach UTF-8/LF, kein BOM). Markiert den Pfad als
@@ -3129,7 +3425,28 @@ function registerIpc() {
       }
     }
     broadcast('file:renamed', { oldPath: absolute, newPath });
-    return { ok: true };
+    // 4T-0847 (Epic 3E-0147, Story S-0756): Ist die bewegte Datei Kapitel
+    // eines Buches, fährt ihr Eintrag im Kapitel-Baum mit — beim Umbenennen
+    // wie beim Verschieben, und unabhängig davon, ob das Buch gerade
+    // geöffnet ist (die Zugehörigkeit hängt an der Begleitdatei, nicht am
+    // Sitzungs-Zustand). Best-Effort nach vollzogener Bewegung: ein Fehler
+    // hier lässt die Umbenennung nicht scheitern, sie ist bereits geschehen.
+    // Den Zustands-Broadcast setzt der Aufrufer über sendBookStateForDirs,
+    // damit eine Kaskade ihn einmal statt je Datei auslöst.
+    let bookDir = null;
+    try {
+      const followed = await books.followChapterFileMove(absolute, newPath);
+      if (followed.ok && followed.changed) bookDir = followed.bookDir;
+      else if (!followed.ok) {
+        console.error('[book-chapter] Nachtrag im Kapitel-Baum abgelehnt:', followed.error);
+      }
+    } catch (err) {
+      console.error(
+        '[book-chapter] Nachtrag im Kapitel-Baum fehlgeschlagen:',
+        err && err.message ? err.message : err,
+      );
+    }
+    return { ok: true, bookDir };
   }
 
   // 4T-0340: Nachfahren einer Seite im Suchraum finden — alle Markdown-
@@ -3210,11 +3527,15 @@ function registerIpc() {
       }
     }
     let renamedCount = 0;
+    // 4T-0847: Buch-Ordner, deren Begleitdatei mitgezogen wurde; ihr
+    // Zustands-Broadcast läuft einmal am Ende statt je Datei der Kaskade.
+    const bookDirs = [];
     for (const pair of pairs) {
       const res = await renameSingleFile(pair.from, pair.to);
       if (!res.ok) {
         // Teilfehler: Kaskade stoppt; bereits umbenannte Dateien sind per
         // Broadcast konsistent nachgezogen, der Renderer meldet den Stand.
+        await sendBookStateForDirs(bookDirs);
         return {
           ok: false,
           error: res.error,
@@ -3224,8 +3545,10 @@ function registerIpc() {
           failedPath: pair.from,
         };
       }
+      if (res.bookDir) bookDirs.push(res.bookDir);
       renamedCount++;
     }
+    await sendBookStateForDirs(bookDirs);
     // 4T-0345 (Epic 3E-0062): eingehende Links auf die umbenannten Dateien
     // anpassen (Standard aktiv; der Dialog aus 4T-0346 schaltet updateLinks um).
     // Best-Effort nach vollzogener Umbenennung: ein Fehler hier laesst das
@@ -3997,6 +4320,244 @@ function registerIpc() {
     const fehler = await shell.openPath(zielPfad);
     if (fehler) return { ok: false, error: fehler };
     return { ok: true };
+  });
+
+  // --- 4T-0843 (Epic 3E-0147): Buecher ----------------------------------------
+  // Ein Namensraum `books` in der Preload-API; alle Handler beziehen sich auf
+  // das aktive Buch der APPLIKATION des aufrufenden Fensters.
+
+  // Zustand des aktiven Buches (Inhaltsverzeichnis-Panel, Lesefuehrung).
+  ipcMain.handle('books:getState', (event) => bookPayloadFor(appIdOfWindow(senderWindow(event))));
+
+  // "Buch oeffnen…" mit Ordner-Dialog (identische Strecke wie der
+  // Menue-Eintrag; der Menue-Klick ruft dieselbe Funktion).
+  ipcMain.handle('books:openDialog', (event) => openBookDialog(senderWindow(event)));
+
+  // "Neues Buch…": Eltern-Ordner und Name in einem Dialog, danach Anlage und
+  // Oeffnen.
+  ipcMain.handle('books:createDialog', (event) => createBookDialog(senderWindow(event)));
+
+  // "Buch schliessen": loest die Bindung, die Reiter bleiben offen.
+  ipcMain.handle('books:close', (event) => closeActiveBook(appIdOfWindow(senderWindow(event))));
+
+  // Direkter Pfad-Einstieg ohne Dialog (Muster area:openPath und
+  // demoArea:createAt): identische Strecke ab der Ordner-Wahl, damit beide
+  // Wege ohne den nativen Dialog automatisiert pruefbar sind.
+  ipcMain.handle('books:openPath', async (event, bookDir) => {
+    if (typeof bookDir !== 'string' || !bookDir) return { ok: false, error: 'invalid path' };
+    const owner = senderWindow(event);
+    const appId = appIdOfWindow(owner);
+    if (appId == null) return { ok: false, error: 'no-app' };
+    if (await rejectBookOutsideArea(owner, bookDir)) return { ok: false, error: 'outside-area' };
+    const bound = await setActiveBook(appId, bookDir, { openTab: true, ownerWin: owner });
+    if (!bound.ok && (bound.error === 'no-book' || bound.error === 'invalid')) {
+      await reportNotABook(owner, bookDir, bound.error);
+    }
+    return bound;
+  });
+
+  ipcMain.handle('books:createAt', async (event, params) => {
+    const owner = senderWindow(event);
+    const appId = appIdOfWindow(owner);
+    if (appId == null) return { ok: false, error: 'no-app' };
+    const parentDir = params && typeof params.parentDir === 'string' ? params.parentDir : '';
+    const name = params && typeof params.name === 'string' ? params.name : '';
+    if (!parentDir) return { ok: false, error: 'invalid path' };
+    if (await rejectBookOutsideArea(owner, parentDir)) return { ok: false, error: 'outside-area' };
+    const created = await books.createBook(parentDir, name);
+    if (!created.ok) return created;
+    return setActiveBook(appId, created.bookDir, { openTab: true, ownerWin: owner });
+  });
+
+  // Kapitel als Reiter oeffnen (Klick im Inhaltsverzeichnis). Der Pfad ist
+  // buch-relativ; die Aufloesung bleibt im Main, damit der Renderer den
+  // Buch-Ordner nicht selbst zusammensetzt und kein Pfad-Ausbruch entsteht.
+  ipcMain.handle('books:openChapter', async (event, relPath) => {
+    const owner = senderWindow(event);
+    const appId = appIdOfWindow(owner);
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    if (typeof relPath !== 'string' || relPath === '') return { ok: false, error: 'invalid-path' };
+    const target = path.resolve(bookDir, relPath);
+    // Zweite Linie gegen Ausbrueche ('../'): die Kapitel-Datei liegt immer
+    // im Buch-Ordner. isInsideArea ist die eine Innerhalb-Pruefung der App
+    // und entscheidet hier ueber denselben Vergleich.
+    if (!isInsideArea(bookDir, target)) return { ok: false, error: 'outside-book' };
+    if (!owner || owner.isDestroyed()) return { ok: false, error: 'no-window' };
+    // Derselbe Kanal wie Explorer-Doppelklick: der Renderer oeffnet in der
+    // aktiven Pane und zieht seine Bereichs-Grenze wie bei jeder Datei.
+    owner.webContents.send('file:openExternal', [target]);
+    return { ok: true, path: target };
+  });
+
+  // --- 4T-0845 (Story S-0754): Struktur-Pflege des Kapitel-Baums -------------
+  // Beide Handler aendern ausschliesslich die Deklaration in der Begleitdatei;
+  // keine Kapitel-Datei wird bewegt oder umbenannt. Nach einer erfolgreichen
+  // Aenderung meldet sendBookState den frisch von der Platte gelesenen Zustand
+  // an alle Fenster der Applikation — der Renderer haelt keinen eigenen Baum.
+
+  // EINE Baum-Operation je Aufruf (Drag-and-Drop-Ablage, Tastatur-Geste,
+  // Ein- und Aushaengen). Eine abgelehnte Operation schreibt nichts und
+  // liefert die Fehler-Kennung des Kern-Moduls zur Uebersetzung im Renderer.
+  ipcMain.handle('books:applyTreeOp', async (event, op) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    const result = await books.applyTreeOp(bookDir, op);
+    if (!result.ok) return { ok: false, error: result.error };
+    await sendBookState(appId);
+    return { ok: true };
+  });
+
+  // --- 4T-0847 (Story S-0756): Kapitel-Datei physisch verschieben -----------
+  //
+  // Die Bewegung läuft über DIESELBE Strecke wie das Umbenennen: für die
+  // bestehende Kaskade ist ein Verschieben ein Pfadwechsel. renameSingleFile
+  // bewegt die Datei samt Watcher, Begleit-.mdd, offenen Historien-Paketen und
+  // Zuletzt-Liste und führt dabei den Kapitel-Baum-Eintrag nach;
+  // applyLinkUpdatesForRename schreibt anschließend die eingehenden Links um
+  // (4T-0345). Ein zweiter Rewrite-Weg entsteht dadurch nicht.
+  //
+  // Ergebnis { ok: true, relPath, path, linkUpdate } bzw.
+  // { ok: false, error } mit den Kennungen aus books.planChapterFileMove plus
+  // 'no-book', 'canceled' und 'failed'; übersetzt wird erst im Renderer.
+  async function moveBookChapterFile(event, relPath, targetDir) {
+    const owner = senderWindow(event);
+    const appId = appIdOfWindow(owner);
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    const plan = await books.planChapterFileMove(bookDir, relPath, targetDir);
+    if (!plan.ok) return { ok: false, error: plan.error };
+    const moved = await renameSingleFile(plan.sourcePath, plan.targetPath);
+    if (!moved.ok) return { ok: false, error: 'failed', detail: moved.error };
+    // Eingehende Links nachführen (Best-Effort wie beim Umbenennen: ein
+    // Fehler hier lässt die vollzogene Bewegung nicht scheitern).
+    const pairs = [{ from: plan.sourcePath, to: plan.targetPath }];
+    let linkUpdate = null;
+    try {
+      linkUpdate = await applyLinkUpdatesForRename(owner, pairs, plan.targetPath);
+      broadcast('linkUpdate:applied', {
+        renames: renamesFromPairs(pairs),
+        updated: linkUpdate.updated,
+        failed: linkUpdate.failed,
+      });
+    } catch (err) {
+      console.error('[link-update] fehlgeschlagen:', err && err.message ? err.message : err);
+    }
+    // Der Baum-Nachzug hängt an renameSingleFile; eine nicht eingehängte
+    // Datei bleibt nicht eingehängt und meldet dort keinen Buch-Ordner. Der
+    // Zustand geht trotzdem raus, weil sich ihr Pfad im Abschnitt „nicht
+    // eingehängt" geändert hat.
+    await sendBookState(appId);
+    return { ok: true, relPath: plan.newRelPath, path: plan.targetPath, linkUpdate };
+  }
+
+  // Ziel-Ordner über den nativen Ordner-Dialog wählen. Der Dialog startet im
+  // Buch-Ordner; ein Ziel außerhalb weist planChapterFileMove ab (AK4).
+  ipcMain.handle('books:moveChapterFile', async (event, relPath) => {
+    const owner = senderWindow(event);
+    const appId = appIdOfWindow(owner);
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    const result = await dialog.showOpenDialog(owner || undefined, {
+      title: tForWindow(owner, 'book.moveDialogTitle'),
+      defaultPath: bookDir,
+      properties: ['openDirectory'],
+    });
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+      return { ok: false, canceled: true };
+    }
+    return moveBookChapterFile(event, relPath, result.filePaths[0]);
+  });
+
+  // Dialogfreier Pfad-Einstieg (Muster books:openPath und demoArea:createAt):
+  // identische Strecke ab der Ordner-Wahl, damit das Verschieben ohne den
+  // nativen Dialog automatisiert prüfbar ist.
+  ipcMain.handle('books:moveChapterFileTo', (event, params) =>
+    moveBookChapterFile(
+      event,
+      params && typeof params.relPath === 'string' ? params.relPath : '',
+      params && typeof params.targetDir === 'string' ? params.targetDir : '',
+    ),
+  );
+
+  // --- 4T-0848 (Story S-0757): Reparatur fehlender Kapitel -------------------
+  //
+  // Beide Handler aendern hoechstens die Deklaration; keine Datei wird bewegt,
+  // angelegt oder geloescht. Der Suchraum und die Grenze des Ziels sind der
+  // Buch-Ordner (wie beim Verschiebe-Weg), und ein Vorschlag wird nie von
+  // selbst ausgefuehrt: books.suggestMissingChapters liefert nur Funde, die
+  // Zuordnung ist ein eigener Aufruf aus dem Panel (Epic-Entscheidung 6).
+
+  // Namensgleiche Dateien an anderer Stelle des Buch-Ordners (Vorschlags-Liste
+  // des Panels). Rein lesend, deshalb ohne Zustands-Meldung.
+  ipcMain.handle('books:suggestMissing', async (event, missingPath) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    return books.suggestMissingChapters(bookDir, missingPath);
+  });
+
+  // Eine Zuordnung; `newPath` kommt buch-relativ (angenommener Vorschlag) oder
+  // absolut (Datei-Dialog). Nach Erfolg meldet sendBookState den frisch
+  // gelesenen Zustand, womit die Zeile ihre Fehl-Markierung verliert.
+  async function reassignBookChapter(event, missingPath, newPath) {
+    const appId = appIdOfWindow(senderWindow(event));
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    const result = await books.reassignChapter(bookDir, missingPath, newPath);
+    if (!result.ok) return { ok: false, error: result.error };
+    await sendBookState(appId);
+    return { ok: true, relPath: result.relPath };
+  }
+
+  ipcMain.handle('books:reassignChapter', (event, params) =>
+    reassignBookChapter(
+      event,
+      params && typeof params.missingPath === 'string' ? params.missingPath : '',
+      params && typeof params.newPath === 'string' ? params.newPath : '',
+    ),
+  );
+
+  // Datei-Wahl ueber den nativen Dialog, wenn es keinen namensgleichen Fund
+  // gibt. Der Dialog startet im Buch-Ordner und filtert auf Markdown; die
+  // Grenze zieht books.reassignChapter unabhaengig davon nach (der Dialog
+  // liesse ein Ziel ausserhalb zu).
+  ipcMain.handle('books:reassignChapterDialog', async (event, missingPath) => {
+    const owner = senderWindow(event);
+    const appId = appIdOfWindow(owner);
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    const result = await dialog.showOpenDialog(owner || undefined, {
+      title: tForWindow(owner, 'book.reassignDialogTitle'),
+      defaultPath: bookDir,
+      properties: ['openFile'],
+      filters: [
+        {
+          name: tForWindow(owner, 'dialog.filterMarkdown'),
+          extensions: ['md', 'markdown', 'mdown', 'mkd'],
+        },
+      ],
+    });
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+      return { ok: false, canceled: true };
+    }
+    return reassignBookChapter(event, missingPath, result.filePaths[0]);
+  });
+
+  // "Neues Kapitel": legt die leere Markdown-Datei an und haengt sie ein.
+  // `parentPath` ist buch-relativ (null = oberste Ebene) und bestimmt zugleich
+  // den Ordner der neuen Datei.
+  ipcMain.handle('books:createChapter', async (event, params) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    const parentPath = params && typeof params.parentPath === 'string' ? params.parentPath : null;
+    const name = params && typeof params.name === 'string' ? params.name : '';
+    const result = await books.createChapter(bookDir, parentPath, name);
+    if (!result.ok) return { ok: false, error: result.error };
+    await sendBookState(appId);
+    return { ok: true, relPath: result.relPath, path: result.path };
   });
 
   // "Bereich schliessen": alle Fenster der Bereichs-App des Absenders.
@@ -5576,7 +6137,8 @@ app.whenReady().then(async () => {
           continue;
         }
       }
-      targetApps.push({ area, windows: appEntry.windows });
+      // 4T-0843 (Epic 3E-0147): aktives Buch der App mitfuehren.
+      targetApps.push({ area, windows: appEntry.windows, bookDir: appEntry.book?.dir || null });
     }
   } else if (savedApps.length > 0 && !restore) {
     // restoreSession aus: nur EIN Fenster, Bounds des ersten persistierten
@@ -5609,7 +6171,12 @@ app.whenReady().then(async () => {
       const winList =
         w.app.windows.length > 0 ? w.app.windows : [{ bounds: null, maximized: false, panes: [] }];
       w.lastOpenedAt = utcNowSeconds();
-      targetApps.push({ area, windows: winList, workspace: { id: w.id, name: w.name } });
+      targetApps.push({
+        area,
+        windows: winList,
+        workspace: { id: w.id, name: w.name },
+        bookDir: w.app.book?.dir || null,
+      });
     }
   }
   // Kaltstart oder alle Bereichs-Apps uebersprungen: ein leeres bereichsloses
@@ -5647,6 +6214,11 @@ app.whenReady().then(async () => {
     // 4T-0537: wiederhergestellte Arbeitsbereiche behalten ihre Zuordnung.
     if (t.workspace) appRegistry.setWorkspace(appId, t.workspace);
     if (t.area) startAreaWatcher(appId);
+    // 4T-0843 (Epic 3E-0147): aktives Buch wiederherstellen (Story S-0752,
+    // AK4). Fire-and-forget nach dem Muster der uebrigen Nachzuegler: die
+    // Fenster entstehen synchron weiter, das Zustands-Paket erreicht sie
+    // ueber books:stateChanged, sobald der Buch-Ordner gelesen ist.
+    if (t.bookDir) void restoreBookForApp(appId, t.bookDir);
     const draftPayload = draftsToPayload(byApp[ai] || []);
     for (let wi = 0; wi < t.windows.length; wi++) {
       const entry = t.windows[wi];
