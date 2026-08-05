@@ -51,9 +51,9 @@ Les deux voies se trouvent dans le menu **Fichier**, auprès des entrées de zon
 
 - **Ouvrir un livre…** demande le dossier du livre. S'il ne contient pas de fichier compagnon nommant un fichier de livre, l'application signale que le dossier n'est pas un livre et ne change rien.
 - **Nouveau livre…** demande un dossier parent et un nom. L'application y crée le dossier du livre, avec le fichier du livre de même nom et le fichier compagnon, puis ouvre le livre.
-- **Fermer le livre** défait le rattachement. Les onglets ouverts le restent ; ce que l'on ferme, c'est le livre, pas le document.
+- **Fermer le livre** ferme le livre avec sa fenêtre et ses onglets ; en cas de modifications non enregistrées, l'application demande comme à la fermeture d'une fenêtre.
 
-À l'ouverture, le fichier du livre apparaît comme onglet et la table des matières s'affiche. Il y a **un livre actif par application** : toutes les fenêtres de la même application le partagent, et il est restauré au démarrage suivant. Un chapitre s'ouvre par ailleurs tout à fait normalement, sans contexte de livre ; il reste un fichier Markdown ordinaire.
+Un livre ouvert se comporte **comme une zone** : il s'ouvre comme application à part avec sa propre fenêtre, le titre de la fenêtre porte le nom du livre, et le dossier du livre avec ses sous-dossiers est l'espace de travail de cette fenêtre. Ce qui se trouve hors du dossier du livre n'y est ni visible ni utilisable ; les images et pièces jointes d'un livre appartiennent donc au dossier du livre. Deux livres ne sont jamais dans la même fenêtre : si le livre est déjà ouvert, l'application saute vers sa fenêtre, et un deuxième livre ouvre la sienne. À l'ouverture, le fichier du livre apparaît comme onglet, la table des matières s'affiche, et un livre ouvert est restauré au démarrage suivant. Un chapitre s'ouvre par ailleurs tout à fait normalement, sans contexte de livre ; il reste un fichier Markdown ordinaire.
 
 ## La table des matières
 
@@ -120,6 +120,34 @@ S'il existe ailleurs dans le dossier du livre un fichier du même nom, la ligne 
 
 Dès que l'attribution est faite, la ligne perd sa marque.
 
+## Bibliothèques
+
+Une bibliothèque regroupe des livres. Elle vit dans son propre dossier, qui contient le **fichier de bibliothèque** (un fichier Markdown ordinaire avec le texte descriptif ; les propriétés et la référence d'image `cover` se trouvent comme partout dans le [frontmatter](frontmatter.md)), le **fichier compagnon** `Shelf_Settings.mdda` et les **livres** comme dossiers de livre directement en dessous. La hiérarchie s'arrête à la bibliothèque ; il n'y a pas de bibliothèque dans une bibliothèque.
+
+```json
+{
+  "schemaVersion": 1,
+  "shelf": { "file": "Ma bibliothèque.md" },
+  "books": ["Voyage à Ithaque", "Livre de cuisine"]
+}
+```
+
+Le fichier compagnon désigne le fichier de bibliothèque et recense les livres classés dans leur ordre. Comme pour les livres, l'application reconnaît une bibliothèque **au seul fichier compagnon** ; le fichier de bibliothèque ne porte aucun renvoi.
+
+### Ouvrir et créer une bibliothèque
+
+Les entrées se trouvent dans le menu **Fichier**, à côté des entrées de livre : **Ouvrir une bibliothèque…** demande le dossier de bibliothèque (un dossier sans fichier de bibliothèque désigné est refusé avec un message), **Nouvelle bibliothèque…** crée le dossier, le fichier de bibliothèque et le fichier compagnon, **Fermer la bibliothèque** ferme la bibliothèque avec sa fenêtre. Ouvrir le fichier de bibliothèque lui-même ouvre aussi la bibliothèque.
+
+Une bibliothèque ouverte se comporte **comme une zone**, exactement comme un livre : elle s'ouvre comme application à part avec sa propre fenêtre, le titre de la fenêtre porte le nom de la bibliothèque, et le dossier de la bibliothèque est l'espace de travail de cette fenêtre. Si la bibliothèque est déjà ouverte, l'application saute vers sa fenêtre. Une bibliothèque ouverte est restaurée au démarrage suivant.
+
+La fenêtre de bibliothèque ne tient que le **niveau bibliothèque** : chaque accès à un livre, fichier du livre ou fichier de chapitre, mène à la fenêtre de ce livre, et le fichier s'y ouvre. Dans la fenêtre de bibliothèque elle-même n'ouvrent que les fichiers situés directement dans le dossier de la bibliothèque, comme le fichier de bibliothèque avec son texte de description. Ainsi des chapitres de livres différents ne partagent jamais une fenêtre.
+
+### La vue de la bibliothèque
+
+Une bibliothèque ouverte apparaît comme page à part dans le système d'onglets. Deux présentations sont disponibles, commutables dans la vue et mémorisées par bibliothèque : les **vignettes** montrent les images des livres en grille ; un livre sans référence d'image reçoit une vignette de substitution avec son titre. Les **lignes** montrent image, nom, nombre de chapitres, auteur et description. Un clic ouvre le livre dans sa propre fenêtre ; la bibliothèque reste en place comme vue d'ensemble.
+
+Sous le fonds se trouve la section **Non classés** avec les dossiers de livre du dossier de bibliothèque qui ne sont pas encore classés ; **Ajouter** les classe, **Retirer** enlève un classement sans toucher au dossier du livre. Un livre classé dont le dossier manque reste visible et est marqué comme manquant.
+
 ## Activer et désactiver
 
-Les livres sont une extension commutable (Paramètres → [Extensions](extensions.md), groupe Outils), active d'origine. À l'état désactivé, les entrées de menu, les commandes et le panneau disparaissent ; un fichier de livre s'ouvre alors comme tout autre fichier Markdown. Le fichier du livre, le fichier compagnon et les chapitres restent intacts, et la réactivation rétablit l'état sans changement.
+Les livres et les bibliothèques forment ensemble une extension commutable (Paramètres → [Extensions](extensions.md), groupe Outils), active d'origine. À l'état désactivé, les entrées de menu, les commandes, le panneau et la vue de la bibliothèque disparaissent ; les fichiers de livre et de bibliothèque s'ouvrent alors comme tout autre fichier Markdown. Fichier du livre, fichier de bibliothèque, fichiers compagnons et chapitres restent intacts, et la réactivation rétablit l'état sans changement.

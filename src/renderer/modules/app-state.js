@@ -166,6 +166,10 @@ export const state = {
   numberedAppCount: 1,
   appCount: 1,
   areaName: null,
+  // 4T-0871 (Buch = Bereich): Buchname der eigenen App (null ohne Buch).
+  bookName: null,
+  // 4T-0873 (Regal = Bereich): Regal-Name der eigenen App (null ohne Regal).
+  shelfName: null,
   areaPath: null,
   // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Name der eigenen App (null
   // ausserhalb eines Arbeitsbereichs; Fenster-Titel und Palette-Dimmung).

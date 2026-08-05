@@ -99,6 +99,11 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.bookReading',
       'help.feature.bookMoveFile',
       'help.feature.bookRepair',
+      // 4T-0869 (Epic 3E-0162): Buecherregale unmittelbar hinter den
+      // Buch-Funktionen — erst das Regal (Modell, Oeffnen, Anlegen,
+      // Zuordnen), dann seine Ansicht (Kacheln, Zeilen, Umschalter).
+      'help.feature.bookshelf',
+      'help.feature.shelfView',
       // 4T-0604 (Epic 3E-0113): Erstellungs- und Änderungszeitpunkt — die
       // Automatik wirkt beim Speichern, deshalb im Datei-Cluster hinter den
       // Sitzungs- und Fenster-Funktionen.

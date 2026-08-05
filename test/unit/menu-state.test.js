@@ -132,6 +132,20 @@ describe('normalizeMenuState (4T-0277)', () => {
     });
   });
 
+  // 4T-0881 (Epic 3E-0162): Regression zur Regal-Bindung — hasShelf wurde
+  // nicht durchgereicht, «Bücherregal schließen» blieb dadurch immer
+  // deaktiviert. Gleicher Vertrag wie hasArea/hasBook (Muster 4T-0277).
+  it('4T-0881: hasBook und hasShelf werden durchgereicht und normalisieren auf false', () => {
+    const state = normalizeMenuState({}, { hasArea: true, hasBook: true, hasShelf: true });
+    expect(state.hasArea).toBe(true);
+    expect(state.hasBook).toBe(true);
+    expect(state.hasShelf).toBe(true);
+    const leer = normalizeMenuState(null, null);
+    expect(leer.hasArea).toBe(false);
+    expect(leer.hasBook).toBe(false);
+    expect(leer.hasShelf).toBe(false);
+  });
+
   it('4T-0626: liefert ohne Meldung die leere Varianten-Form', () => {
     expect(normalizeMenuState(null, null).sidebarVariants).toEqual({
       global: [],

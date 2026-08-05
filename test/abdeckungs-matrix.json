@@ -2363,6 +2363,45 @@
       "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Buch-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildBookState unit-getestet, die Bindung selbst prueft die Test-Iteration an der EXE."
     },
     {
+      "key": "help.feature.bookshelf",
+      "id": "S-129",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/regal.spec.js",
+        "test/unit/shelves-main.test.js",
+        "test/unit/shelf-core.test.js"
+      ],
+      "hinweis": "4T-0866/4T-0867 (Epic 3E-0162): Regal-Modell (Begleitdatei, Erkennung ohne Rueckverweis, Zuordnung) unit-getestet am Temp-Ordner; beide Oeffnungswege, Neuanlage, Zuordnen/Loesen und Sitzungs-Wiederherstellung als RG-01 bis RG-04. Die nativen Dialoge sind manueller Test."
+    },
+    {
+      "key": "help.feature.shelfView",
+      "id": "S-130",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
+      "hinweis": "4T-0868 (Epic 3E-0162): Regal-Seite im Reiter-System — Platzhalter-Kachel, Zeilen-Angaben (Kapitel-Anzahl, Autor, Beschreibung), Modus-Persistenz je Regal, Buch-Oeffnen per Klick und Aufnahme aus «nicht zugeordnet» als RG-05 bis RG-07; die Ansichts-Daten (Titel/Autor/Beschreibung/Bild/Kapitel-Anzahl) sind am Temp-Ordner unit-getestet. Sichtbarkeit eines echten Buch-Bildes prueft die Test-Iteration an der EXE."
+    },
+    {
+      "key": "help.shortcut.openShelf",
+      "id": "S-126",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
+      "hinweis": "4T-0867 (Epic 3E-0162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buecherregal oeffnen' (Menue-/Paletten-Weg, belegbar) — der native Ordner-Dialog ist manueller Test, die Wirkung dahinter ist am Temp-Ordner unit-getestet: Erkennung des Regal-Ordners ueber die Begleitdatei, Zustands-Aufbau mit Buch-Liste und Bestands-Abgleich, Abweisung eines Ordners ohne benannte Regal-Datei."
+    },
+    {
+      "key": "help.shortcut.newShelf",
+      "id": "S-127",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
+      "hinweis": "4T-0867 (Epic 3E-0162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Neues Buecherregal' (Menue-/Paletten-Weg, belegbar) — die Anlage selbst ist am Temp-Ordner unit-getestet (Regal-Ordner, leere Regal-Datei, Begleitdatei; Namens-Pruefung; bestehender Ordner bleibt unangetastet), der native Dialog ist manueller Test."
+    },
+    {
+      "key": "help.shortcut.closeShelf",
+      "id": "S-128",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
+      "hinweis": "4T-0867 (Epic 3E-0162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buecherregal schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Regal-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildShelfState unit-getestet."
+    },
+    {
       "key": "help.shortcut.toggleBookPanel",
       "id": "S-122",
       "testart": "e2e",

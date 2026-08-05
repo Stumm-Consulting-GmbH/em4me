@@ -225,6 +225,36 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-0867 (Epic 3E-0162): Buecherregal oeffnen, neu anlegen und schliessen —
+  // dieselbe Aufteilung wie die Buch-Kommandos (Main fuehrt aus, keine
+  // Default-Bindings, Kuerzel ueber die Einstellungen belegbar).
+  {
+    id: 'shelf.open',
+    defaultBindings: [],
+    labelKey: 'menu.file.openShelf',
+    descKey: 'help.shortcut.openShelf',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
+  {
+    id: 'shelf.create',
+    defaultBindings: [],
+    labelKey: 'menu.file.newShelf',
+    descKey: 'help.shortcut.newShelf',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
+  {
+    id: 'shelf.close',
+    defaultBindings: [],
+    labelKey: 'menu.file.closeShelf',
+    descKey: 'help.shortcut.closeShelf',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
   // 4T-0847 (Story S-0756): Kapitel-Datei physisch innerhalb des Buch-Ordners
   // verschieben (Ordner-Wahl im Main, Ziel muss im Buch-Ordner liegen). Ohne
   // Default-Kürzel wie die übrigen Buch-Kommandos: Bedienorte sind das

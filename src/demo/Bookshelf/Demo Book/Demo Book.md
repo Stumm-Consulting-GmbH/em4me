@@ -2,7 +2,7 @@
 title: Demo Book
 author: The Demo-Area
 status: draft
-cover: ../attachments/demo-image.png
+cover: cover.png
 tags: [book]
 ---
 

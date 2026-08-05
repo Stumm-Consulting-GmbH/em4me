@@ -213,8 +213,18 @@ test.describe('US-05: Umbenennen-Kaskade fuer Unterseiten-Baeume', () => {
       await page.locator('#btn-name-input-ok').click();
       await expect(page.locator('#name-input-modal')).toBeHidden();
       await expect(page.locator(SEL.activeTab0)).toContainText('Prozess-Z.md');
-      expect(fs.existsSync(path.join(dir, `Prozess-Z${SEP}Entwurf.md`))).toBe(true);
-      expect(fs.existsSync(path.join(dir, `Prozess-Z${SEP}Umsetzung${SEP}Detail.md`))).toBe(true);
+      // 4T-0874: Der Reiter-Titel steht bereits, wenn die ERSTE Datei der
+      // Kaskade umbenannt ist (der Main meldet jede Umbenennung einzeln per
+      // 'file:renamed'); die Nachfahren folgen danach. Auf die Dateien wird
+      // deshalb gewartet statt sofort gelesen (Stabilitätsregel 12).
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Prozess-Z${SEP}Entwurf.md`)), { timeout: 5000 })
+        .toBe(true);
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Prozess-Z${SEP}Umsetzung${SEP}Detail.md`)), {
+          timeout: 5000,
+        })
+        .toBe(true);
       expect(fs.existsSync(parent)).toBe(false);
       expect(fs.existsSync(path.join(dir, `Prozess-A${SEP}Entwurf.md`))).toBe(false);
 
@@ -415,7 +425,11 @@ test.describe('US-08: Unterseite von der uebergeordneten Seite loesen', () => {
       await expect
         .poll(() => fs.existsSync(path.join(dir, 'Entwurf.md')), { timeout: 5000 })
         .toBe(true);
-      expect(fs.existsSync(path.join(dir, `Entwurf${SEP}Tief.md`))).toBe(true);
+      // 4T-0874: zweite Datei der Kaskade — ebenfalls wartend prüfen, sonst
+      // liest der Fall einen Zwischenstand (Stabilitätsregel 12).
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Entwurf${SEP}Tief.md`)), { timeout: 5000 })
+        .toBe(true);
       expect(fs.existsSync(sub)).toBe(false);
       // Die fruehere Elternseite bleibt, ihr Verweis zeigt auf das neue Ziel.
       expect(fs.existsSync(path.join(dir, 'Prozess-A.md'))).toBe(true);

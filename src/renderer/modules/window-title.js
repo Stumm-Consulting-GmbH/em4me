@@ -9,21 +9,30 @@
 //     "(Bereich Notizen, Fenster 2)"; ohne Teile kein Suffix.
 'use strict';
 
-// info: { workspaceName, areaName, appNumber, numberedAppCount, displayNumber,
-//         totalWindowCount }
+// info: { workspaceName, bookName, shelfName, areaName, appNumber,
+//         numberedAppCount, displayNumber, totalWindowCount }
 // t: Uebersetzungsfunktion (key) -> string mit {n}/{name}-Platzhaltern.
 // 4T-0538 (Epic 3E-0098): der Arbeitsbereichs-Name tritt an die Stelle der
 // App-Nummer; bei gebundenem Bereich kombiniert mit dem Bereichsnamen,
 // z.B. "(Arbeitsbereich Alpha, Bereich Notizen, Fenster 2)".
+// 4T-0871/4T-0873 (Buch und Regal = Bereich): Buch- und Regal-Apps tragen
+// ihren Namen an der Stelle des Bereichsnamens ("Buch {name}",
+// "Buecherregal {name}"); die Bereichs-Bindung einer solchen App ist der
+// Buch- bzw. Regal-Ordner selbst und erscheint nicht doppelt.
 export function buildTitleSuffixParts(info, t) {
   const parts = [];
+  const kontext = info.bookName
+    ? t('window.title.book').replace('{name}', String(info.bookName))
+    : info.shelfName
+      ? t('window.title.shelf').replace('{name}', String(info.shelfName))
+      : info.areaName
+        ? t('window.title.area').replace('{name}', String(info.areaName))
+        : null;
   if (info.workspaceName) {
     parts.push(t('window.title.workspace').replace('{name}', String(info.workspaceName)));
-    if (info.areaName) {
-      parts.push(t('window.title.area').replace('{name}', String(info.areaName)));
-    }
-  } else if (info.areaName) {
-    parts.push(t('window.title.area').replace('{name}', String(info.areaName)));
+    if (kontext) parts.push(kontext);
+  } else if (kontext) {
+    parts.push(kontext);
   } else if ((info.numberedAppCount || 1) > 1) {
     parts.push(t('window.title.app').replace('{n}', String(info.appNumber || 1)));
   }
@@ -53,6 +62,13 @@ export function buildWindowTargetLabel(w, t) {
   // eindeutig adressiert (analog Bereichs-Apps).
   if (w.workspaceName) {
     return `${t('window.title.workspace').replace('{name}', String(w.workspaceName))}, ${windowPart}`;
+  }
+  // 4T-0871/4T-0873: Buch- und Regal-Apps adressieren ueber ihren Namen.
+  if (w.bookName) {
+    return `${t('window.title.book').replace('{name}', String(w.bookName))}, ${windowPart}`;
+  }
+  if (w.shelfName) {
+    return `${t('window.title.shelf').replace('{name}', String(w.shelfName))}, ${windowPart}`;
   }
   if (w.areaName) {
     return `${t('window.title.area').replace('{name}', String(w.areaName))}, ${windowPart}`;

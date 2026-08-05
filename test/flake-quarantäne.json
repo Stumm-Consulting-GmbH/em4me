@@ -1,0 +1,46 @@
+{
+  "_kommentar": [
+    "4T-0878: Flake-Quarantäne der Testsuite. Kanonische Regeln im Konzept",
+    "'Test-Strategie und Qualitätssicherung', Kapitel 6; Kurzfassung in",
+    "test/README.md, Abschnitt 'Rote Läufe einordnen'. Ein Eintrag entsteht,",
+    "wenn ein roter Fall der breiten Suite isoliert grün nachgeprüft ist",
+    "(Flake); er blockiert keine Abnahme und löst keinen Voll-Lauf aus.",
+    "Sichtung je Release: wiederholt Auffälliges wird zum Testfehler-Vorgang",
+    "befördert (status: befoerdert), lange Unauffälliges gestrichen.",
+    "Datums-Angaben UTC nach ISO 8601 (JJJJ-MM-TT)."
+  ],
+  "eintraege": [
+    {
+      "spec": "test/e2e/funktionen/kalender-systeme.spec.js",
+      "fall": "KS-01",
+      "datum": "2026-08-04",
+      "fehlerbild": "Timeout beim Öffnen des Einstellungs-Bereichs unter Voll-Suite-Last; isoliert mehrfach grün (u. a. 40/40 und 12 Wiederholungen)",
+      "vermutung": "lastbedingte Renderer-Latenz beim Navigations-Klick",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/pdf-export.spec.js",
+      "fall": "PD-06",
+      "datum": "2026-08-04",
+      "fehlerbild": "Einzel-Fehlschlag im Voll-Lauf, isoliert grün",
+      "vermutung": "lastbedingt",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/unit/nummern-reservierung.test.js",
+      "fall": "Parallelfall (acht gleichzeitige Vergaben)",
+      "datum": "2026-08-05",
+      "fehlerbild": "Im Testsuite-Gate der Queue 14 statt 16 disjunkte Nummern (Duplikate), isoliert sofort grün (19/19); zweite Auffälligkeit dieses Falls (erste am 2026-08-03 als lastbedingter Einzel-Flake)",
+      "vermutung": "lastbedingt; das Fehlerbild (Duplikat statt Timeout) verdient bei erneutem Auftreten einen eigenen Prüf-Vorgang im Test-Pflege-Gefäß",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/regression/4t-0177.spec.js",
+      "fall": "4t-0177",
+      "datum": "2026-08-04",
+      "fehlerbild": "Einzel-Fehlschlag im dritten Voll-Lauf der Release-Vorbereitung 0.104.0, isoliert 12-mal grün",
+      "vermutung": "lastbedingt",
+      "status": "beobachtet"
+    }
+  ]
+}

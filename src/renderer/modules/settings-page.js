@@ -862,6 +862,29 @@ export function unregisterSettingsSection(id) {
 //
 // Rueckgabe je Bereich: { id, titel, gruppe, zeilen: [Text, ...] }. Die
 // Zeilen-Reihenfolge ist zugleich die Sprung-Adresse (Zeile 0 = Titel).
+//
+// 4T-0872 (PO-Befund vom 2026-08-04, Story S-0457 AK2): Ernte und Sprung
+// teilen sich EINEN Selektor, damit Zeilen-Index und Sprung-Ziel nie
+// auseinanderlaufen. Neben den drei Standard-Klassen erfasst er die
+// Bereiche mit eigenem Markup: die Erweiterungs-Zeilen (interne und
+// externe Liste — vorher fehlten ALLE Erweiterungs-Namen und
+// -Beschreibungen im Suchraum), ihre Gruppen-Titel und Intro-Texte sowie
+// die verbreiteten Gruppen-Ueberschriften (settings-export-group-title).
+// Bewusst draussen bleiben dynamische Nutzer-Inhalte (Journal-Listen,
+// Kalender-System-Editor, Woerterbuch-Woerter, Vorlagen-Regeln) und
+// situative Leer-Hinweise: Sie sind keine Oberflaechen-Beschriftung, und
+// der Vorrat-Cache der Suche wuerde sie veralten lassen.
+const SUCH_ZEILEN_SELEKTOR = [
+  '.settings-row',
+  '.settings-hint',
+  '.settings-subheading',
+  '.settings-export-group-title',
+  '.settings-extensions-intro',
+  '.settings-extensions-group-title',
+  '.settings-extension-row',
+  '.settings-extension-external-row',
+].join(', ');
+
 export function erntbareBereiche() {
   const draft = pageState.draft || buildDraft();
   const ergebnis = [];
@@ -875,7 +898,7 @@ export function erntbareBereiche() {
       continue;
     }
     const zeilen = [];
-    for (const el of body.querySelectorAll('.settings-row, .settings-hint, .settings-subheading')) {
+    for (const el of body.querySelectorAll(SUCH_ZEILEN_SELEKTOR)) {
       const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
       if (text) zeilen.push(text);
     }
@@ -898,9 +921,7 @@ export function springeZuBereich(sectionId, zeilenIndex) {
   if (!sectionById(sectionId)) return false;
   activateSection(sectionId);
   if (!pageEls || !pageEls.content) return true;
-  const zeilen = pageEls.content.querySelectorAll(
-    '.settings-row, .settings-hint, .settings-subheading',
-  );
+  const zeilen = pageEls.content.querySelectorAll(SUCH_ZEILEN_SELEKTOR);
   // Zeile 0 ist der Bereichs-Titel; die erfassten Zeilen beginnen bei 1.
   const ziel = zeilenIndex > 0 ? zeilen[zeilenIndex - 1] : null;
   const el = ziel || pageEls.content.querySelector('.settings-section-heading');

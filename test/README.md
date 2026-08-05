@@ -144,6 +144,18 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     einschließlich der null-Rückgabe für die Poll-Bedingung. Eine
     Existenz-Prüfung allein bleibt richtig, wenn der Test die Datei
     danach nicht liest oder gerade ihre Unverändertheit prüft.
+
+    **Eine Rückmeldung der Oberfläche belegt nicht den Abschluss einer
+    Kaskade** (4T-0874). Wirkt eine Aktion auf mehrere Dateien, meldet
+    der Main jede einzeln (`file:renamed`), und die Oberfläche zieht
+    schon beim ersten Ereignis nach: Der Reiter-Titel steht, während die
+    Nachfahren noch wandern. Wer danach mit `expect(fs.existsSync(…))`
+    liest statt mit `expect.poll`, prüft einen Zwischenstand. Das
+    Zeitfenster ist klein und der Fehler damit latent — er kippte erst,
+    als 4T-0847 die Umbenennen-Strecke um den Kapitel-Baum-Nachzug
+    erweiterte und jede Einzel-Umbenennung dadurch länger brauchte.
+    **Merkregel:** Warte auf das, was die Aktion bewirken soll, nicht
+    auf das erste Zeichen, dass sie begonnen hat.
 13. **Ein Tastendruck wird wiederholt, bis seine Wirkung eintritt.** Ein
     einzelner `keyboard.press` kann ins Leere gehen, weil das Fenster
     den Fokus noch nicht hat oder der Renderer seinen Listener erst
@@ -171,6 +183,16 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     von `scripts/aenderungsklassen.json`, deren
     Vollständigkeits-Meta-Test sonst im Queue-Gate abbricht. Beide
     Einträge gehören in den Commit, der die Testdatei anlegt.
+15. **Ab zwei Fenstern wird das Ziel-Fenster benannt, nicht abgezählt.**
+    `BrowserWindow.getAllWindows()` liefert **nicht** die
+    Erzeugungsreihenfolge, sondern die Z-Order: Im Diagnose-Lauf zu
+    4T-0873 stand das zuletzt geöffnete Fenster an Position 0. Der
+    verbreitete Helfer `getAllWindows()[0]` trifft damit ab zwei
+    Fenstern das falsche Ziel (dort unkritisch, solange eine Spec nur
+    ein Fenster öffnet). Wer in einer Mehr-Fenster-Spec etwas an ein
+    bestimmtes Fenster schickt, wählt es über ein Merkmal aus — etwa
+    `getAllWindows().find((w) => w.getTitle().includes(teil))`, siehe
+    `sendeAnFenster` in `funktionen/regal.spec.js`.
 
 ## E2E-Praxis
 
@@ -235,6 +257,8 @@ eine Debug-Runde gekostet.
   kommentarlos in den Timeout.
 
 ## Rote Läufe einordnen
+
+**Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). Die Quarantäne-Liste wird je Release gesichtet: wiederholt Auffälliges wird zum Testfehler-Vorgang befördert, lange Unauffälliges gestrichen.
 
 - **Erst isoliert nachprüfen, dann bewerten.** Einzelne Fehlschläge der
   E2E-Voll-Suite sind häufig Last-Flakiness der parallelen Ausführung.
@@ -323,6 +347,22 @@ lokaler Lauf vor dem Abliefern eines Branches bleibt gute Praxis, das
 Pflicht-Gate ist der Queue-Lauf. Bewusst ist die Suite nicht mehr Teil
 des Hooks: Sie kostet pro Commit zu viel Zeit, und am Integrationsstand
 ist ihre Aussage stärker als am Arbeitsbaum einer einzelnen Sitzung.
+
+**Produkt-Code-Wächter der Queue** (4T-0860, Release-Isolation): Vor der
+Gate-Strecke, unmittelbar nach dem Rebase, weist die Queue jeden Branch
+ab, dessen Diff gegen den Integrationsstand `src/**`, `package.json` oder
+`package-lock.json` berührt und der nicht mit `--release` integriert;
+ein nicht ermittelbarer Diff wird abgewiesen statt durchgelassen (fail
+closed). Produkt-Code erreicht `main` damit ausschließlich über die
+Release-Strecke (Epic-Zweig, Konzept „Verteiltes Arbeitsmodell"). Das
+zweite Netz ist der **Vollständigkeits-Abgleich** der Release-Vorbereitung
+(4T-0861): Vor ihrem ersten Schritt müssen die Vorgangs-Kennungen jedes
+Commits mit Produkt-Code-Anteil seit dem letzten Release-Tag im
+Änderungsprotokoll-Block der Ziel-Version stehen (Ausnahmen: der
+Release-Commit selbst und Commits, deren Produkt-Anteil allein
+`src/shared/build-info.json` ist). Beide Wächter sind unit-getestet
+(`test/unit/merge-queue.test.js`, `test/unit/release-vorbereitung.test.js`),
+jeweils samt nachgestelltem 0.103.0-Fall.
 
 Die E2E-Suite bleibt außerhalb beider Gates (Laufzeit); welche Specs pro
 Task laufen, bestimmt ebenfalls die Änderungsklasse, im Release-Sammeltask

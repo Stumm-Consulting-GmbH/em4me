@@ -127,6 +127,7 @@ const mddStore = require('./mdd-store');
 // Buch-Ordners, Zustands-Aufbau fuer den Renderer und Neuanlage
 // (electron-frei, unit-getestet); Dialoge, App-Bindung und IPC bleiben hier.
 const books = require('./books');
+const shelves = require('./shelves');
 // 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
 // plus ergaenzender Ordner-Scan).
 const { collectAreaStats } = require('./area-stats');
@@ -1343,9 +1344,13 @@ function liveAppSnapshot(appId) {
   // Feld entsteht nur bei geoeffnetem Buch (Schema-Kommentar in
   // session-schema.js).
   const bookDir = activeBooks.get(appId);
+  // 4T-0867 (Epic 3E-0162): aktives Regal ebenso mitfuehren (Story S-0760,
+  // AK5); das Feld entsteht nur bei geoeffnetem Regal.
+  const shelfDir = activeShelves.get(appId);
   return {
     area: area && area.rootPath ? { rootPath: area.rootPath } : null,
     ...(bookDir ? { book: { dir: bookDir } } : {}),
+    ...(shelfDir ? { shelf: { dir: shelfDir } } : {}),
     windows: winEntries,
   };
 }
@@ -1582,6 +1587,17 @@ function broadcastDisplayInfo() {
       // 4T-0537: Arbeitsbereichs-Name der App (Fenster-Titel-Grundlage,
       // Anzeige-Logik folgt in 4T-0538).
       workspaceName: info.workspaceName || null,
+      // 4T-0871 (Buch = Bereich): Buch-Apps tragen den Buchnamen an der
+      // Stelle des Bereichsnamens im Fenstertitel; 4T-0873 ebenso die
+      // Regal-Apps mit dem Regal-Namen.
+      bookName:
+        info.appId != null && activeBooks.has(info.appId)
+          ? path.basename(activeBooks.get(info.appId))
+          : null,
+      shelfName:
+        info.appId != null && activeShelves.has(info.appId)
+          ? path.basename(activeShelves.get(info.appId))
+          : null,
     });
   }
 }
@@ -1607,6 +1623,8 @@ function getMenuState(id) {
     // 4T-0843 (Epic 3E-0147): aktives Buch der App dieses Fensters
     // (aktiviert "Buch schliessen").
     hasBook: menuAppId != null && activeBooks.has(menuAppId),
+    // 4T-0867 (Epic 3E-0162): aktives Regal (aktiviert "Bücherregal schließen").
+    hasShelf: menuAppId != null && activeShelves.has(menuAppId),
     workspaces: workspacesState.map((w) => ({
       id: w.id,
       name: w.name,
@@ -1655,6 +1673,17 @@ function applyMenuToWindow(win) {
     },
     closeBook: () => {
       void closeActiveBook(appRegistry.appOf(win.webContents.id));
+    },
+    // 4T-0867 (Epic 3E-0162): Bücherregal öffnen, anlegen und schließen —
+    // dieselbe Aufteilung wie bei den Büchern, der Main führt direkt aus.
+    openShelf: () => {
+      void openShelfDialog(win);
+    },
+    createShelf: () => {
+      void createShelfDialog(win);
+    },
+    closeShelf: () => {
+      void closeActiveShelf(appRegistry.appOf(win.webContents.id));
     },
     save: () => {
       if (!win.isDestroyed()) win.webContents.send('menu:save');
@@ -1799,6 +1828,9 @@ async function openWorkspaceById(id, ownerWin) {
   // 4T-0843 (Epic 3E-0147): aktives Buch des eingefrorenen Arbeitsbereichs
   // zurueckbringen (Muster der Sitzungs-Wiederherstellung).
   if (entry.app.book?.dir) void restoreBookForApp(appId, entry.app.book.dir);
+  // 4T-0867 (Epic 3E-0162): aktives Regal des eingefrorenen Arbeitsbereichs
+  // zurueckbringen (Muster der Buch-Wiederherstellung).
+  if (entry.app.shelf?.dir) void restoreShelfForApp(appId, entry.app.shelf.dir);
   // 4T-0539 (Epic 3E-0098): liegende Entwuerfe dieses Arbeitsbereichs
   // mitnehmen (erstes Fenster, window:initialState-Weg) und danach selektiv
   // aus dem Speicher raeumen. Vorher die Schreib-Kette abwarten, damit ein
@@ -1986,69 +2018,153 @@ async function sendBookStateForDirs(bookDirs) {
   }
 }
 
-// Setzt das aktive Buch der Applikation. `openTab` oeffnet zusaetzlich die
-// Buch-Datei als Reiter im ausloesenden Fenster (Weg "Buch oeffnen"); beim
-// Erkennen einer gerade geoeffneten Buch-Datei entfaellt das, weil der Reiter
-// dort schon entsteht. Rueckgabe { ok } bzw. { ok: false, error }.
-async function setActiveBook(appId, bookDir, { openTab = false, ownerWin = null } = {}) {
-  if (appId == null || !appRegistry.hasApp(appId)) return { ok: false, error: 'no-app' };
-  const state = await books.buildBookState(bookDir);
-  if (!state.ok) return state;
-  activeBooks.set(appId, state.state.bookDir);
-  if (openTab) {
-    const exists = await books.bookFileExists(state.state.bookDir, state.state.bookFileName);
-    if (exists) {
-      const target = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
-      const file = path.join(state.state.bookDir, state.state.bookFileName);
-      // Derselbe Kanal wie Explorer-Doppelklick und Zuletzt-Liste; der
-      // Renderer oeffnet die Datei in der aktiven Pane und puffert sie, wenn
-      // das Fenster noch laedt.
-      if (target) target.webContents.send('file:openExternal', [file]);
-    } else if (ownerWin && !ownerWin.isDestroyed()) {
-      await dialog.showMessageBox(ownerWin, {
-        type: 'warning',
-        title: tForWindow(ownerWin, 'book.fileMissingTitle'),
-        message: tForWindow(ownerWin, 'book.fileMissingMessage'),
-        detail: state.state.bookFileName || state.state.bookDir,
-        buttons: ['OK'],
-      });
+// --- 4T-0871 (Epic 3E-0162): Buch als Bereich --------------------------------
+// Grundsatz-Entscheidung des Product Owners vom 2026-08-04: Ein Buch wird
+// vollstaendig wie ein Bereich behandelt (Epic-Entscheidung 11 konsequent zu
+// Ende gefuehrt). Eine Buch-Applikation traegt die Bereichs-Bindung auf den
+// Buch-Ordner (harte Grenze, Fenstertitel, Sitzung ueber die bestehende
+// Bereichs-Mechanik) PLUS die Buch-Bindung fuer Panel und Lesefuehrung.
+// Zwei Buecher sind nie in derselben Applikation.
+
+// Die Applikation, die dieses Buch traegt (Pfad-Gleichheit wie beim Bereich).
+function findAppByBook(bookDir) {
+  for (const [appId, dir] of activeBooks) {
+    if (isSamePath(dir, bookDir)) return appId;
+  }
+  return null;
+}
+
+// Hat die App eine geoeffnete Datei AUSSERHALB des Ordners dir? Grundlage
+// der Frei-Pruefung beim Binden: Reiter innerhalb des Buch-Ordners vertragen
+// die kommende Bereichs-Grenze, fremde nicht. Bewusst weicher als die
+// Bereichs-Regel "keine geoeffnete Datei", weil Kapitel desselben Buches als
+// gewoehnliche Reiter offen sein duerfen, ohne die Bindung zu verhindern.
+function appHasOpenFilesOutside(appId, dir) {
+  for (const windowId of appRegistry.windowsOf(appId)) {
+    const panes = lastReportedPanes.get(windowId) || [];
+    for (const pane of panes) {
+      const paths = pane && Array.isArray(pane.paths) ? pane.paths : [];
+      for (const p of paths) {
+        if (!isInsideArea(dir, p)) return true;
+      }
     }
   }
+  return false;
+}
+
+// Bindet eine Applikation an ein Buch: Bereichs-Bindung auf den Buch-Ordner
+// (sofern die App noch keinen Bereich traegt) plus Buch-Bindung. Der
+// Aufrufer stellt sicher, dass die App dafuer frei ist (openBookApp) bzw.
+// der Alt-Zustand es erlaubt (restoreBookForApp).
+async function bindBookToApp(appId, bookDir) {
+  if (!appRegistry.getArea(appId)) {
+    appRegistry.setArea(appId, areaFromRootPath(bookDir));
+    startAreaWatcher(appId);
+  }
+  activeBooks.set(appId, bookDir);
+  // Nach dem Setzen der Buch-Bindung, damit der Fenstertitel den Buchnamen
+  // traegt (bookName kommt aus activeBooks).
+  broadcastDisplayInfo();
   applyMenuToAllWindows();
   persistAllWindows();
   await sendBookState(appId);
-  return { ok: true };
 }
 
-// "Buch schliessen": loest allein die Bindung. Geoeffnete Reiter bleiben
-// offen, denn sie sind gewoehnliche Markdown-Dateien und gehoeren dem
-// Fenster, nicht dem Buch (anders als beim Bereich, dessen Schliessen die
-// ganze Applikation beendet).
+// 4T-0871: Meldung an ein moeglicherweise noch ladendes Fenster. Electron-IPC
+// puffert nicht; ein frisch erzeugtes Fenster bekommt sie deshalb erst nach
+// did-finish-load (Muster der Start-Dateien).
+function sendWhenLoaded(targetWin, channel, ...args) {
+  const target = targetWin && !targetWin.isDestroyed() ? targetWin : null;
+  if (!target) return;
+  if (target.webContents.isLoading()) {
+    target.webContents.once('did-finish-load', () => {
+      if (!target.isDestroyed()) target.webContents.send(channel, ...args);
+    });
+  } else {
+    target.webContents.send(channel, ...args);
+  }
+}
+
+// Buch-Datei als Reiter im Ziel-Fenster oeffnen (Weg "Buch oeffnen").
+// `alsoOpen` kommt vom Regal-Routing (4T-0873): die dort angeklickte Datei
+// (etwa ein Kapitel) oeffnet in der Buch-Applikation gleich mit.
+async function openBookFileTab(bookDir, bookFileName, targetWin, alsoOpen = null) {
+  const target = targetWin && !targetWin.isDestroyed() ? targetWin : null;
+  if (!target) return;
+  const dateien = [];
+  const exists = await books.bookFileExists(bookDir, bookFileName);
+  if (exists) dateien.push(path.join(bookDir, bookFileName));
+  else {
+    await dialog.showMessageBox(target, {
+      type: 'warning',
+      title: tForWindow(target, 'book.fileMissingTitle'),
+      message: tForWindow(target, 'book.fileMissingMessage'),
+      detail: bookFileName || bookDir,
+      buttons: ['OK'],
+    });
+  }
+  if (alsoOpen && !dateien.some((f) => isSamePath(f, alsoOpen)))
+    dateien.push(path.resolve(alsoOpen));
+  if (dateien.length > 0) sendWhenLoaded(target, 'file:openExternal', dateien);
+}
+
+// Kern von "Buch oeffnen" (Dialog-, Pfad-, Erkennungs- und Regal-Einstieg)
+// nach dem Drei-Stufen-Muster des Bereichs-Oeffnens (openAreaPath):
+// - Buch laeuft schon -> Sprung in ein Fenster seiner Applikation.
+// - ausloesende App ist frei (kein Bereich, kein Buch, kein Regal, keine
+//   Datei ausserhalb des Buch-Ordners) -> Bindung samt Buch-Datei-Reiter.
+// - sonst -> neue Applikation mit dem Buch-Ordner als Bereich.
+async function openBookApp(bookDir, senderWin, { alsoOpen = null } = {}) {
+  const state = await books.buildBookState(bookDir);
+  if (!state.ok) return state;
+  const dir = state.state.bookDir;
+  const running = findAppByBook(dir);
+  if (running != null) {
+    focusFirstAppWindow(running);
+    // Erneutes Oeffnen liest den Zustand frisch von der Platte: ein von
+    // aussen geaenderter Buch-Ordner (umbenannte Kapitel-Datei) kommt so im
+    // Panel an, wie es der Wechsel-Weg vor 4T-0871 tat.
+    await sendBookState(running);
+    // 4T-0873: Ein aus dem Regal angeklicktes Kapitel oeffnet auch dann in
+    // der laufenden Buch-Applikation, wenn sie schon offen ist.
+    if (alsoOpen) {
+      const [firstId] = appRegistry.windowsOf(running);
+      const win = firstId != null ? windows.get(firstId) : null;
+      if (win && !win.isDestroyed()) sendWhenLoaded(win, 'file:openExternal', [alsoOpen]);
+    }
+    return { ok: true, focusedExisting: true };
+  }
+  const senderAppId = appIdOfWindow(senderWin);
+  const frei =
+    senderAppId != null &&
+    !appRegistry.getArea(senderAppId) &&
+    !activeBooks.has(senderAppId) &&
+    !activeShelves.has(senderAppId) &&
+    !appHasOpenFilesOutside(senderAppId, dir);
+  if (frei) {
+    await bindBookToApp(senderAppId, dir);
+    await openBookFileTab(dir, state.state.bookFileName, senderWin, alsoOpen);
+    return { ok: true, boundExisting: true };
+  }
+  const win = createWindow({ area: areaFromRootPath(dir) });
+  const newAppId = appRegistry.appOf(win.webContents.id);
+  startAreaWatcher(newAppId);
+  activeBooks.set(newAppId, dir);
+  applyMenuToAllWindows();
+  persistAllWindows();
+  // Kein sendBookState noetig: das frische Fenster zieht den Zustand beim
+  // Init selbst ueber books:getState.
+  await openBookFileTab(dir, state.state.bookFileName, win, alsoOpen);
+  return { ok: true, createdNew: true };
+}
+
+// "Buch schliessen" schliesst die Buch-Applikation samt Fenstern ueber den
+// regulaeren Close-Pfad (4T-0871, Buch = Bereich; vorher loeste es allein
+// die Bindung). Nutzer-Abbruch stoppt die Kaskade, App und Bindung bleiben
+// dann bestehen; die Bindung raeumt der closed-Pfad des letzten Fensters.
 async function closeActiveBook(appId) {
   if (appId == null || !activeBooks.has(appId)) return { ok: false, error: 'no-book' };
-  activeBooks.delete(appId);
-  applyMenuToAllWindows();
-  persistAllWindows();
-  await sendBookState(appId);
-  return { ok: true };
-}
-
-// Liegt der Buch-Ordner im Bereich der Applikation? Bereichs-Apps oeffnen
-// nichts ausserhalb ihres Bereichs (4T-0323); fuer Buecher gilt dieselbe
-// Grenze unveraendert, hier nur vorgezogen auf den Ordner, damit die
-// Ablehnung eine verstaendliche Meldung traegt statt spaeter still an der
-// Datei-Grenze zu scheitern.
-async function rejectBookOutsideArea(ownerWin, bookDir) {
-  const area = areaOfWindow(ownerWin);
-  if (!area || isInsideArea(area.rootPath, bookDir)) return false;
-  await dialog.showMessageBox(ownerWin || undefined, {
-    type: 'warning',
-    title: tForWindow(ownerWin, 'area.outsideTitle'),
-    message: tForWindow(ownerWin, 'area.outsideOpenMessage'),
-    detail: bookDir,
-    buttons: ['OK'],
-  });
-  return true;
+  return closeAppWindows(appId);
 }
 
 // Meldung zu einem abgewiesenen Ordner (kein Buch bzw. defekte Begleitdatei).
@@ -2067,9 +2183,12 @@ async function reportNotABook(ownerWin, bookDir, error) {
 
 // Weg 2 des Oeffnens (Story S-0752, AK2): Der Renderer meldet ein aktives
 // Datei-Oeffnen (recent:push, sowohl Datei-Dialog als auch Doppelklick und
-// Zuletzt-Liste). Ist die Datei die Buch-Datei ihres Ordners, wird das Buch
-// zusaetzlich zum gewoehnlichen Oeffnen aktiv. Kapitel-Dateien treffen die
-// Erkennung nicht und oeffnen unveraendert (Epic-Entscheidung 9).
+// Zuletzt-Liste). Ist die Datei die Buch-Datei ihres Ordners, IST das
+// Oeffnen ein "Buch oeffnen" (4T-0871, Buch = Bereich): Eine freie App wird
+// gebunden (ihr Reiter ist schon da); sonst wandert der frisch geoeffnete
+// Reiter — hier schliessen, Buch-Applikation oeffnen bzw. fokussieren, die
+// die Buch-Datei selbst oeffnet. Kapitel-Dateien treffen die Erkennung
+// nicht und oeffnen unveraendert (Epic-Entscheidung 9).
 async function bindBookIfBookFile(win, filePath) {
   const appId = appIdOfWindow(win);
   if (appId == null) return;
@@ -2078,35 +2197,60 @@ async function bindBookIfBookFile(win, filePath) {
   if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
   const bookDir = await books.detectBookDirFor(filePath);
   if (!bookDir) return;
-  if (activeBooks.get(appId) === bookDir) return; // schon aktiv
-  const area = appRegistry.getArea(appId);
-  if (area && !isInsideArea(area.rootPath, bookDir)) return;
-  await setActiveBook(appId, bookDir);
+  const bound = activeBooks.get(appId);
+  if (bound && isSamePath(bound, bookDir)) return; // richtige Applikation
+  const frei =
+    !appRegistry.getArea(appId) &&
+    !activeBooks.has(appId) &&
+    !activeShelves.has(appId) &&
+    !appHasOpenFilesOutside(appId, bookDir);
+  if (frei) {
+    await bindBookToApp(appId, bookDir);
+    return;
+  }
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('file:closeExternal', [path.resolve(filePath)]);
+  }
+  await openBookApp(bookDir, win);
 }
 
 // Sitzungs-Wiederherstellung des aktiven Buches. Ein inzwischen entfernter
 // oder beschaedigter Buch-Ordner wird still uebergangen (Muster der
 // Bereichs-Wiederherstellung, dort mit Sammel-Meldung; hier genuegt das
 // stille Auslassen, weil ohne Buch nur ein Panel leer bleibt).
+// 4T-0871 (Buch = Bereich): Alt-Sitzungen ohne Bereichs-Bindung erhalten sie
+// hier nach; eine App mit FREMDEM Bereich (Alt-Zustand "Buch im Bereich")
+// behaelt den Bereich und verliert die Buch-Bindung, weil beides zusammen
+// dem Applikations-Modell widerspricht.
 async function restoreBookForApp(appId, bookDir) {
   if (appId == null || typeof bookDir !== 'string' || bookDir === '') return;
   // 4T-0849 (Story S-0758): keine Buch-Wiederherstellung bei abgeschalteter
-  // Erweiterung; der Sitzungs-Eintrag bleibt fuer das Wiedereinschalten erhalten.
+  // Erweiterung; der Sitzungs-Eintrag bleibt fuer das Wiedereinschalten
+  // erhalten (die Bereichs-Bindung einer Buch-App aus dem Snapshot bleibt —
+  // die App restauriert dann als gewoehnliche Bereichs-App).
   if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
   const state = await books.buildBookState(bookDir);
   if (!state.ok) return;
+  const area = appRegistry.getArea(appId);
+  if (area && !isSamePath(area.rootPath, state.state.bookDir)) return;
+  if (!area) {
+    appRegistry.setArea(appId, areaFromRootPath(state.state.bookDir));
+    startAreaWatcher(appId);
+  }
   activeBooks.set(appId, state.state.bookDir);
+  broadcastDisplayInfo();
   applyMenuToAllWindows();
   await sendBookState(appId);
 }
 
 // Weg 1 des Oeffnens (Story S-0752, AK1): "Buch oeffnen…" mit Ordner-Wahl
 // (Muster area:open). Ein Ordner ohne Begleitdatei, die eine Buch-Datei
-// benennt, wird mit Meldung abgewiesen.
+// benennt, wird mit Meldung abgewiesen; sonst Drei-Stufen-Muster
+// (openBookApp). Eine Bereichs-Grenzpruefung entfaellt seit 4T-0871: Das
+// Buch oeffnet als eigene Applikation und ist vom Bereich des Aufrufers
+// unabhaengig (Anforderungs-Briefing: Buecher sind bereichs-unabhaengig).
 async function openBookDialog(ownerWin) {
   const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
-  const appId = appIdOfWindow(owner);
-  if (appId == null) return { ok: false, error: 'no-app' };
   const result = await dialog.showOpenDialog(owner || undefined, {
     title: tForWindow(owner, 'book.openDialogTitle'),
     defaultPath: areaOfWindow(owner)?.rootPath,
@@ -2116,12 +2260,11 @@ async function openBookDialog(ownerWin) {
     return { ok: false, canceled: true };
   }
   const bookDir = result.filePaths[0];
-  if (await rejectBookOutsideArea(owner, bookDir)) return { ok: false, error: 'outside-area' };
-  const bound = await setActiveBook(appId, bookDir, { openTab: true, ownerWin: owner });
-  if (!bound.ok && (bound.error === 'no-book' || bound.error === 'invalid')) {
-    await reportNotABook(owner, bookDir, bound.error);
+  const opened = await openBookApp(bookDir, owner);
+  if (!opened.ok && (opened.error === 'no-book' || opened.error === 'invalid')) {
+    await reportNotABook(owner, bookDir, opened.error);
   }
-  return bound;
+  return opened;
 }
 
 // Story S-0752, AK3: "Neues Buch…" legt Buch-Ordner, Buch-Datei und
@@ -2132,8 +2275,6 @@ async function openBookDialog(ownerWin) {
 // haette den Ablauf ohne Gewinn ueber zwei Prozesse gezogen.
 async function createBookDialog(ownerWin) {
   const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
-  const appId = appIdOfWindow(owner);
-  if (appId == null) return { ok: false, error: 'no-app' };
   const result = await dialog.showSaveDialog(owner || undefined, {
     title: tForWindow(owner, 'book.createDialogTitle'),
     buttonLabel: tForWindow(owner, 'book.createDialogButton'),
@@ -2143,9 +2284,6 @@ async function createBookDialog(ownerWin) {
   if (result.canceled || !result.filePath) return { ok: false, canceled: true };
   const parentDir = path.dirname(result.filePath);
   const name = path.basename(result.filePath);
-  if (await rejectBookOutsideArea(owner, path.join(parentDir, name))) {
-    return { ok: false, error: 'outside-area' };
-  }
   const created = await books.createBook(parentDir, name);
   if (!created.ok) {
     const messageKey =
@@ -2163,7 +2301,288 @@ async function createBookDialog(ownerWin) {
     });
     return created;
   }
-  return setActiveBook(appId, created.bookDir, { openTab: true, ownerWin: owner });
+  return openBookApp(created.bookDir, owner);
+}
+
+// --- 4T-0867 (Epic 3E-0162): Buecherregale -----------------------------------
+// Ein Regal je Applikation, dieselbe Bindungs-Mechanik wie beim aktiven Buch
+// (Registry-frei, Map hier). Regal und Buch sind unabhaengige Kontexte: ein
+// Buch aus dem Regal darf gleichzeitig aktiv sein. Die Datei-Ebene liegt in
+// shelves.js, der Kern in shared/shelf-core.js.
+const activeShelves = new Map(); // appId -> shelfDir (absolut)
+
+// Zustands-Paket fuer den Renderer: { active: null | { shelfDir,
+// shelfFileName, books, unassigned, missing } }. Bei jedem Abruf frisch von
+// der Platte (Begleitdatei und Buch-Ordner koennen jederzeit von aussen
+// wandern); ein voruebergehender Lesefehler meldet active: null, ohne die
+// Bindung zu loesen (Muster bookPayloadFor).
+async function shelfPayloadFor(appId) {
+  const shelfDir = appId != null ? activeShelves.get(appId) : null;
+  if (!shelfDir) return { active: null };
+  const result = await shelves.buildShelfState(shelfDir);
+  return result.ok ? { active: result.state } : { active: null };
+}
+
+// Meldet den Regal-Zustand an alle Fenster der Applikation.
+async function sendShelfState(appId) {
+  if (appId == null) return;
+  const payload = await shelfPayloadFor(appId);
+  for (const windowId of appRegistry.windowsOf(appId)) {
+    const win = windows.get(windowId);
+    if (win && !win.isDestroyed()) win.webContents.send('shelves:stateChanged', payload);
+  }
+}
+
+// --- 4T-0873 (Epic 3E-0162): Regal als Bereich -------------------------------
+// Fortsetzung der Grundsatz-Entscheidung aus 4T-0871 fuer die Regal-Ebene
+// (PO-Entscheidung vom 2026-08-04, Variante R1): Eine Regal-Applikation ist
+// eine Bereichs-Applikation mit dem Regal-Ordner als Wurzel; ihr Inhalt ist
+// die Regal-Ansicht. Das Regal-Fenster haelt ausschliesslich die
+// Regal-Ebene — jeder Griff in ein Buch fuehrt in die Buch-Applikation.
+
+// Die Applikation, die dieses Regal traegt (Pfad-Gleichheit wie beim Bereich).
+function findAppByShelf(shelfDir) {
+  for (const [appId, dir] of activeShelves) {
+    if (isSamePath(dir, shelfDir)) return appId;
+  }
+  return null;
+}
+
+// Bindet eine Applikation an ein Regal: Bereichs-Bindung auf den Regal-Ordner
+// (sofern die App noch keinen Bereich traegt) plus Regal-Bindung.
+async function bindShelfToApp(appId, shelfDir) {
+  if (!appRegistry.getArea(appId)) {
+    appRegistry.setArea(appId, areaFromRootPath(shelfDir));
+    startAreaWatcher(appId);
+  }
+  activeShelves.set(appId, shelfDir);
+  // Nach dem Setzen der Bindung, damit der Fenstertitel den Regal-Namen
+  // traegt (shelfName kommt aus activeShelves).
+  broadcastDisplayInfo();
+  applyMenuToAllWindows();
+  persistAllWindows();
+  await sendShelfState(appId);
+}
+
+// Kern von "Buecherregal oeffnen" (Dialog-, Pfad- und Erkennungs-Einstieg)
+// nach demselben Drei-Stufen-Muster wie openBookApp:
+// - Regal laeuft schon -> Sprung in ein Fenster seiner Applikation.
+// - ausloesende App ist frei -> Bindung.
+// - sonst -> neue Applikation mit dem Regal-Ordner als Bereich.
+//
+// Die Regal-Ansicht oeffnet in beiden Faellen als eigene Seite im
+// Reiter-System (Story S-0761, AK1); die Regal-Datei selbst bleibt eine
+// gewoehnliche Markdown-Datei und oeffnet nur auf ausdruecklichen Wunsch.
+async function openShelfApp(shelfDir, senderWin) {
+  const state = await shelves.buildShelfState(shelfDir);
+  if (!state.ok) return state;
+  const dir = state.state.shelfDir;
+  const running = findAppByShelf(dir);
+  if (running != null) {
+    focusFirstAppWindow(running);
+    await sendShelfState(running);
+    const [firstId] = appRegistry.windowsOf(running);
+    const win = firstId != null ? windows.get(firstId) : null;
+    if (win && !win.isDestroyed()) sendWhenLoaded(win, 'shelves:openPage');
+    return { ok: true, focusedExisting: true };
+  }
+  const senderAppId = appIdOfWindow(senderWin);
+  const frei =
+    senderAppId != null &&
+    !appRegistry.getArea(senderAppId) &&
+    !activeBooks.has(senderAppId) &&
+    !activeShelves.has(senderAppId) &&
+    !appHasOpenFilesOutside(senderAppId, dir);
+  if (frei) {
+    await bindShelfToApp(senderAppId, dir);
+    sendWhenLoaded(senderWin, 'shelves:openPage');
+    return { ok: true, boundExisting: true };
+  }
+  const win = createWindow({ area: areaFromRootPath(dir) });
+  const newAppId = appRegistry.appOf(win.webContents.id);
+  startAreaWatcher(newAppId);
+  activeShelves.set(newAppId, dir);
+  applyMenuToAllWindows();
+  persistAllWindows();
+  sendWhenLoaded(win, 'shelves:openPage');
+  return { ok: true, createdNew: true };
+}
+
+// "Buecherregal schliessen" schliesst die Regal-Applikation samt Fenstern
+// ueber den regulaeren Close-Pfad (4T-0873, Regal = Bereich; Muster
+// closeActiveBook).
+async function closeActiveShelf(appId) {
+  if (appId == null || !activeShelves.has(appId)) return { ok: false, error: 'no-shelf' };
+  return closeAppWindows(appId);
+}
+
+// Meldung zu einem abgewiesenen Ordner (kein Regal bzw. defekte Begleitdatei).
+async function reportNotAShelf(ownerWin, shelfDir, error) {
+  await dialog.showMessageBox(ownerWin || undefined, {
+    type: 'warning',
+    title: tForWindow(ownerWin, 'shelf.notAShelfTitle'),
+    message: tForWindow(
+      ownerWin,
+      error === 'invalid' ? 'shelf.invalidSettingsMessage' : 'shelf.notAShelfMessage',
+    ),
+    detail: shelfDir,
+    buttons: ['OK'],
+  });
+}
+
+// (Die frühere Ordner-Grenzprüfung der Buch- und Regal-Wege ist mit 4T-0871
+// und 4T-0873 entfallen: Buch und Regal öffnen als eigene Applikation mit
+// eigener Bereichs-Bindung und sind vom Bereich des Aufrufers unabhängig.)
+
+// Weg 2 des Oeffnens (Story S-0760, AK2): Ist die aktiv geoeffnete Datei die
+// Regal-Datei ihres Ordners, IST das Oeffnen ein "Buecherregal oeffnen"
+// (4T-0873, Regal = Bereich, Muster bindBookIfBookFile): Eine freie App wird
+// gebunden, sonst wandert der frisch geoeffnete Reiter in die
+// Regal-Applikation. Der Reiter der Regal-Datei bleibt dort neben der
+// Regal-Seite bestehen, damit ihr Beschreibungstext editierbar bleibt.
+async function bindShelfIfShelfFile(win, filePath) {
+  const appId = appIdOfWindow(win);
+  if (appId == null) return;
+  if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
+  const shelfDir = await shelves.detectShelfDirFor(filePath);
+  if (!shelfDir) return;
+  const bound = activeShelves.get(appId);
+  if (bound && isSamePath(bound, shelfDir)) {
+    if (win && !win.isDestroyed()) win.webContents.send('shelves:openPage');
+    return;
+  }
+  const frei =
+    !appRegistry.getArea(appId) &&
+    !activeBooks.has(appId) &&
+    !activeShelves.has(appId) &&
+    !appHasOpenFilesOutside(appId, shelfDir);
+  if (frei) {
+    await bindShelfToApp(appId, shelfDir);
+    if (win && !win.isDestroyed()) win.webContents.send('shelves:openPage');
+    return;
+  }
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('file:closeExternal', [path.resolve(filePath)]);
+  }
+  const geoeffnet = await openShelfApp(shelfDir, win);
+  if (!geoeffnet.ok) return;
+  // Die Regal-Datei selbst reist mit: Sie war der Anlass des Oeffnens.
+  const zielApp = findAppByShelf(shelfDir);
+  const [firstId] = zielApp != null ? appRegistry.windowsOf(zielApp) : [];
+  const ziel = firstId != null ? windows.get(firstId) : null;
+  if (ziel && !ziel.isDestroyed()) {
+    sendWhenLoaded(ziel, 'file:openExternal', [path.resolve(filePath)]);
+  }
+}
+
+// 4T-0873 (Story S-0760, AK7): Striktes Routing der Regal-Applikation
+// (Variante R1). Eine im Regal-Fenster geoeffnete Datei, die in einem seiner
+// Buch-Ordner liegt — Buch-Datei wie Kapitel-Datei —, gehoert nicht ins
+// Regal-Fenster: Der frisch entstandene Reiter wird zurueckgezogen, die
+// Buch-Applikation oeffnet bzw. wird fokussiert und oeffnet die Datei.
+// Dateien unmittelbar im Regal-Ordner (Regal-Datei, lose Notizen) bleiben.
+// Rueckgabe: true, wenn die Datei umgeleitet wurde.
+async function routeShelfFileToBookApp(win, filePath) {
+  const appId = appIdOfWindow(win);
+  if (appId == null) return false;
+  if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return false;
+  const shelfDir = activeShelves.get(appId);
+  if (!shelfDir) return false;
+  const bookDir = await shelves.bookDirContaining(shelfDir, filePath);
+  if (!bookDir) return false;
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('file:closeExternal', [path.resolve(filePath)]);
+  }
+  await openBookApp(bookDir, win, { alsoOpen: path.resolve(filePath) });
+  return true;
+}
+
+// Sitzungs-Wiederherstellung des aktiven Regals (Story S-0760, AK5). Ein
+// entfernter oder beschaedigter Regal-Ordner wird still uebergangen; der
+// Sitzungs-Eintrag bleibt bei abgeschalteter Erweiterung erhalten.
+// 4T-0873 (Regal = Bereich): Alt-Sitzungen ohne Bereichs-Bindung erhalten sie
+// hier nach; eine App mit FREMDEM Bereich behaelt ihn und verliert die
+// Regal-Bindung (Muster restoreBookForApp).
+async function restoreShelfForApp(appId, shelfDir) {
+  if (appId == null || typeof shelfDir !== 'string' || shelfDir === '') return;
+  if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
+  const state = await shelves.buildShelfState(shelfDir);
+  if (!state.ok) return;
+  const area = appRegistry.getArea(appId);
+  if (area && !isSamePath(area.rootPath, state.state.shelfDir)) return;
+  if (!area) {
+    appRegistry.setArea(appId, areaFromRootPath(state.state.shelfDir));
+    startAreaWatcher(appId);
+  }
+  activeShelves.set(appId, state.state.shelfDir);
+  broadcastDisplayInfo();
+  applyMenuToAllWindows();
+  await sendShelfState(appId);
+  // 4T-0882 (Befund c der Test-Iteration 0.104.0): Die Wiederherstellung
+  // stellte nur die Bindung her; ohne 'shelves:openPage' blieb das
+  // Regal-Fenster leer. Die Seite oeffnet wie beim regulaeren Oeffnen
+  // (openShelfApp, sendWhenLoaded-Muster) im Fenster der App.
+  for (const windowId of appRegistry.windowsOf(appId)) {
+    const win = windows.get(windowId);
+    if (win && !win.isDestroyed()) {
+      sendWhenLoaded(win, 'shelves:openPage');
+      break;
+    }
+  }
+}
+
+// Weg 1 des Oeffnens (Story S-0760, AK1): "Buecherregal oeffnen…" mit
+// Ordner-Wahl. Ein Ordner ohne Begleitdatei, die eine Regal-Datei benennt,
+// wird mit Meldung abgewiesen.
+async function openShelfDialog(ownerWin) {
+  const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
+  const result = await dialog.showOpenDialog(owner || undefined, {
+    title: tForWindow(owner, 'shelf.openDialogTitle'),
+    defaultPath: areaOfWindow(owner)?.rootPath,
+    properties: ['openDirectory'],
+  });
+  if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+    return { ok: false, canceled: true };
+  }
+  const shelfDir = result.filePaths[0];
+  const opened = await openShelfApp(shelfDir, owner);
+  if (!opened.ok && (opened.error === 'no-shelf' || opened.error === 'invalid')) {
+    await reportNotAShelf(owner, shelfDir, opened.error);
+  }
+  return opened;
+}
+
+// Story S-0760, AK3: "Neues Buecherregal…" legt Regal-Ordner, Regal-Datei und
+// Begleitdatei an und oeffnet das Regal (Dialog-Muster createBookDialog).
+async function createShelfDialog(ownerWin) {
+  const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;
+  const result = await dialog.showSaveDialog(owner || undefined, {
+    title: tForWindow(owner, 'shelf.createDialogTitle'),
+    buttonLabel: tForWindow(owner, 'shelf.createDialogButton'),
+    defaultPath: areaOfWindow(owner)?.rootPath,
+    properties: ['createDirectory', 'showOverwriteConfirmation'],
+  });
+  if (result.canceled || !result.filePath) return { ok: false, canceled: true };
+  const parentDir = path.dirname(result.filePath);
+  const name = path.basename(result.filePath);
+  const created = await shelves.createShelf(parentDir, name);
+  if (!created.ok) {
+    const messageKey =
+      created.error === 'invalid-name'
+        ? 'shelf.createInvalidNameMessage'
+        : created.error === 'exists'
+          ? 'shelf.createExistsMessage'
+          : 'shelf.createFailedMessage';
+    await dialog.showMessageBox(owner || undefined, {
+      type: 'warning',
+      title: tForWindow(owner, 'shelf.createFailedTitle'),
+      message: tForWindow(owner, messageKey),
+      detail: created.detail || path.join(parentDir, name),
+      buttons: ['OK'],
+    });
+    return created;
+  }
+  return openShelfApp(created.shelfDir, owner);
 }
 
 // "Bereich schliessen" schliesst alle Fenster der Bereichs-App ueber den
@@ -3264,7 +3683,19 @@ function registerIpc() {
     // die Datei die Buch-Datei ihres Ordners, wird das Buch zusaetzlich
     // aktiv (Story S-0752, AK2). Fire-and-forget: das Oeffnen wartet nicht
     // auf die Erkennung.
-    void bindBookIfBookFile(senderWindow(event), absolute);
+    //
+    // 4T-0873 (Story S-0760, AK7): Zuerst das strikte Regal-Routing. Greift
+    // es (Datei liegt in einem Buch des offenen Regals), ist die Datei damit
+    // in der Buch-Applikation gelandet und die beiden Erkennungen unten
+    // haetten im Regal-Fenster nichts mehr zu tun.
+    const win = senderWindow(event);
+    void routeShelfFileToBookApp(win, absolute).then((umgeleitet) => {
+      if (umgeleitet) return;
+      void bindBookIfBookFile(win, absolute);
+      // 4T-0867 (Epic 3E-0162): dieselbe Erkennung fuer die Regal-Datei
+      // (Story S-0760, AK2).
+      void bindShelfIfShelfFile(win, absolute);
+    });
   });
 
   // Datei speichern (Inhalt nach UTF-8/LF, kein BOM). Markiert den Pfad als
@@ -4346,27 +4777,21 @@ function registerIpc() {
   ipcMain.handle('books:openPath', async (event, bookDir) => {
     if (typeof bookDir !== 'string' || !bookDir) return { ok: false, error: 'invalid path' };
     const owner = senderWindow(event);
-    const appId = appIdOfWindow(owner);
-    if (appId == null) return { ok: false, error: 'no-app' };
-    if (await rejectBookOutsideArea(owner, bookDir)) return { ok: false, error: 'outside-area' };
-    const bound = await setActiveBook(appId, bookDir, { openTab: true, ownerWin: owner });
-    if (!bound.ok && (bound.error === 'no-book' || bound.error === 'invalid')) {
-      await reportNotABook(owner, bookDir, bound.error);
+    const opened = await openBookApp(bookDir, owner);
+    if (!opened.ok && (opened.error === 'no-book' || opened.error === 'invalid')) {
+      await reportNotABook(owner, bookDir, opened.error);
     }
-    return bound;
+    return opened;
   });
 
   ipcMain.handle('books:createAt', async (event, params) => {
     const owner = senderWindow(event);
-    const appId = appIdOfWindow(owner);
-    if (appId == null) return { ok: false, error: 'no-app' };
     const parentDir = params && typeof params.parentDir === 'string' ? params.parentDir : '';
     const name = params && typeof params.name === 'string' ? params.name : '';
     if (!parentDir) return { ok: false, error: 'invalid path' };
-    if (await rejectBookOutsideArea(owner, parentDir)) return { ok: false, error: 'outside-area' };
     const created = await books.createBook(parentDir, name);
     if (!created.ok) return created;
-    return setActiveBook(appId, created.bookDir, { openTab: true, ownerWin: owner });
+    return openBookApp(created.bookDir, owner);
   });
 
   // Kapitel als Reiter oeffnen (Klick im Inhaltsverzeichnis). Der Pfad ist
@@ -4558,6 +4983,80 @@ function registerIpc() {
     if (!result.ok) return { ok: false, error: result.error };
     await sendBookState(appId);
     return { ok: true, relPath: result.relPath, path: result.path };
+  });
+
+  // --- 4T-0867 (Epic 3E-0162): Buecherregale ---------------------------------
+  // Namensraum `shelves` in der Preload-API; alle Handler beziehen sich auf
+  // das aktive Regal der Applikation des aufrufenden Fensters (Muster des
+  // books-Namensraums).
+
+  // Zustand des aktiven Regals (Regal-Ansicht, Story S-0761).
+  ipcMain.handle('shelves:getState', (event) =>
+    shelfPayloadFor(appIdOfWindow(senderWindow(event))),
+  );
+
+  // 4T-0868: Anzeige-Daten der Regal-Ansicht (Kachel- und Zeilen-Darstellung):
+  // je Buch Titel, Autor, Beschreibung, aufgeloestes Bild und Kapitel-Anzahl.
+  // Bei jedem Abruf frisch von der Platte (Muster shelves:getState).
+  ipcMain.handle('shelves:getViewData', async (event) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const shelfDir = appId != null ? activeShelves.get(appId) : null;
+    if (!shelfDir) return { ok: false, error: 'no-shelf' };
+    return shelves.buildShelfViewData(shelfDir);
+  });
+
+  // "Buecherregal oeffnen…" mit Ordner-Dialog.
+  ipcMain.handle('shelves:openDialog', (event) => openShelfDialog(senderWindow(event)));
+
+  // "Neues Buecherregal…": Eltern-Ordner und Name in einem Dialog.
+  ipcMain.handle('shelves:createDialog', (event) => createShelfDialog(senderWindow(event)));
+
+  // "Buecherregal schliessen" schliesst die Regal-Applikation (4T-0873).
+  ipcMain.handle('shelves:close', (event) => closeActiveShelf(appIdOfWindow(senderWindow(event))));
+
+  // Dialog-freie Pfad-Einstiege (Muster books:openPath/createAt): identische
+  // Strecke ab der Ordner-Wahl, damit beide Wege automatisiert pruefbar sind.
+  ipcMain.handle('shelves:openPath', async (event, shelfDir) => {
+    if (typeof shelfDir !== 'string' || !shelfDir) return { ok: false, error: 'invalid path' };
+    const owner = senderWindow(event);
+    const opened = await openShelfApp(shelfDir, owner);
+    if (!opened.ok && (opened.error === 'no-shelf' || opened.error === 'invalid')) {
+      await reportNotAShelf(owner, shelfDir, opened.error);
+    }
+    return opened;
+  });
+
+  ipcMain.handle('shelves:createAt', async (event, params) => {
+    const owner = senderWindow(event);
+    const parentDir = params && typeof params.parentDir === 'string' ? params.parentDir : '';
+    const name = params && typeof params.name === 'string' ? params.name : '';
+    if (!parentDir) return { ok: false, error: 'invalid path' };
+    const created = await shelves.createShelf(parentDir, name);
+    if (!created.ok) return created;
+    return openShelfApp(created.shelfDir, owner);
+  });
+
+  // Zuordnung (Story S-0760, AK4): beide Handler schreiben ausschliesslich die
+  // Begleitdatei des aktiven Regals; nach einer erfolgreichen Aenderung meldet
+  // sendShelfState den frisch gelesenen Zustand an alle Fenster der App.
+  ipcMain.handle('shelves:assignBook', async (event, dirName) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const shelfDir = appId != null ? activeShelves.get(appId) : null;
+    if (!shelfDir) return { ok: false, error: 'no-shelf' };
+    const result = await shelves.assignBookDir(shelfDir, dirName);
+    if (!result.ok) return { ok: false, error: result.error };
+    await sendShelfState(appId);
+    return { ok: true };
+  });
+
+  ipcMain.handle('shelves:unassignBook', async (event, dirName) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const shelfDir = appId != null ? activeShelves.get(appId) : null;
+    if (!shelfDir) return { ok: false, error: 'no-shelf' };
+    const result = await shelves.unassignBookDir(shelfDir, dirName);
+    if (!result.ok) return { ok: false, error: result.error };
+    await sendShelfState(appId);
+    return { ok: true };
   });
 
   // "Bereich schliessen": alle Fenster der Bereichs-App des Absenders.
@@ -4774,6 +5273,15 @@ function registerIpc() {
         // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Name fuer eindeutige
         // Ziel-Labels im Tab-Kontextmenue.
         workspaceName: info.workspaceName || null,
+        // 4T-0871/4T-0873: Buch- bzw. Regal-Name fuer die Ziel-Labels.
+        bookName:
+          info.appId != null && activeBooks.has(info.appId)
+            ? path.basename(activeBooks.get(info.appId))
+            : null,
+        shelfName:
+          info.appId != null && activeShelves.has(info.appId)
+            ? path.basename(activeShelves.get(info.appId))
+            : null,
         activeTabName: meta.activeTabName || '',
         tabCount: meta.tabCount || 0,
       });
@@ -6040,24 +6548,38 @@ function registerIpc() {
 // der Send waehrend der Startphase der ersten Instanz.
 const pendingSecondInstanceFiles = [];
 
-app.on('second-instance', (_event, argv, workingDirectory) => {
-  // M-03 (4T-0173): relative Pfade gegen das CWD der zweiten Instanz aufloesen.
-  const files = extractFileArgs(argv, workingDirectory || undefined);
-
-  // 4T-0319 (Epic 3E-0057): EXE-Zweitstart OHNE Datei-Argument ist der
-  // "Mehrfachstart" aus Nutzersicht — er legt eine neue logische Applikation
-  // mit leerem Fenster an (statt wie vorher nur das bestehende zu fokussieren).
-  if (files.length === 0) {
-    if (windows.size > 0) {
-      createWindow({});
+// 4T-0871/4T-0873 (Buch und Regal = Bereich): Buch- und Regal-Dateien aus
+// Explorer-/CLI-Argumenten herausloesen und als eigene Applikationen oeffnen
+// (Drei-Stufen-Muster); zurueck bleiben die gewoehnlichen Dateien fuer die
+// bestehende Zustellung. Bei abgeschalteter Buecher-Erweiterung bleibt die
+// Liste unveraendert.
+async function routeBookFileArgs(files) {
+  if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return files;
+  const remaining = [];
+  for (const f of files) {
+    let bookDir;
+    let shelfDir;
+    try {
+      bookDir = await books.detectBookDirFor(f);
+      shelfDir = bookDir ? null : await shelves.detectShelfDirFor(f);
+    } catch {
+      bookDir = null;
+      shelfDir = null;
     }
-    return;
+    if (bookDir) await openBookApp(bookDir, null);
+    else if (shelfDir) await openShelfApp(shelfDir, null);
+    else remaining.push(f);
   }
+  return remaining;
+}
 
-  // Zweitstart MIT Datei-Argument (Explorer-Doppelklick, CLI): Datei in der
-  // zuletzt fokussierten Applikation OHNE Bereich oeffnen (4T-0323 — Bereiche
-  // sind fix, Explorer-Dateien gehen nie in eine Bereichs-App). Laufen nur
-  // Bereichs-Apps, wird eine neue bereichslose Applikation angelegt.
+// Zustellung der gewoehnlichen Zweitstart-Dateien (Explorer-Doppelklick,
+// CLI): in der zuletzt fokussierten Applikation OHNE Bereich oeffnen
+// (4T-0323 — Bereiche sind fix, Explorer-Dateien gehen nie in eine
+// Bereichs-App, seit 4T-0871 damit auch nie in eine Buch-App). Laufen nur
+// Bereichs-Apps, wird eine neue bereichslose Applikation angelegt.
+function deliverExternalFiles(files) {
+  if (files.length === 0) return;
   const target = getActiveNonAreaWindow();
   if (target) {
     inDenVordergrund(target);
@@ -6076,6 +6598,26 @@ app.on('second-instance', (_event, argv, workingDirectory) => {
     // sobald das erste Fenster fertig geladen ist.
     pendingSecondInstanceFiles.push(...files);
   }
+}
+
+app.on('second-instance', (_event, argv, workingDirectory) => {
+  // M-03 (4T-0173): relative Pfade gegen das CWD der zweiten Instanz aufloesen.
+  const files = extractFileArgs(argv, workingDirectory || undefined);
+
+  // 4T-0319 (Epic 3E-0057): EXE-Zweitstart OHNE Datei-Argument ist der
+  // "Mehrfachstart" aus Nutzersicht — er legt eine neue logische Applikation
+  // mit leerem Fenster an (statt wie vorher nur das bestehende zu fokussieren).
+  if (files.length === 0) {
+    if (windows.size > 0) {
+      createWindow({});
+    }
+    return;
+  }
+
+  // Buch-Dateien zuerst (eigene Applikationen), der Rest ueber die
+  // bestehende Zustellung. Fire-and-forget: der second-instance-Handler
+  // selbst ist synchron.
+  void routeBookFileArgs(files).then((rest) => deliverExternalFiles(rest));
 });
 
 app.whenReady().then(async () => {
@@ -6138,7 +6680,12 @@ app.whenReady().then(async () => {
         }
       }
       // 4T-0843 (Epic 3E-0147): aktives Buch der App mitfuehren.
-      targetApps.push({ area, windows: appEntry.windows, bookDir: appEntry.book?.dir || null });
+      targetApps.push({
+        area,
+        windows: appEntry.windows,
+        bookDir: appEntry.book?.dir || null,
+        shelfDir: appEntry.shelf?.dir || null,
+      });
     }
   } else if (savedApps.length > 0 && !restore) {
     // restoreSession aus: nur EIN Fenster, Bounds des ersten persistierten
@@ -6176,6 +6723,7 @@ app.whenReady().then(async () => {
         windows: winList,
         workspace: { id: w.id, name: w.name },
         bookDir: w.app.book?.dir || null,
+        shelfDir: w.app.shelf?.dir || null,
       });
     }
   }
@@ -6219,6 +6767,9 @@ app.whenReady().then(async () => {
     // Fenster entstehen synchron weiter, das Zustands-Paket erreicht sie
     // ueber books:stateChanged, sobald der Buch-Ordner gelesen ist.
     if (t.bookDir) void restoreBookForApp(appId, t.bookDir);
+    // 4T-0867 (Epic 3E-0162): aktives Regal wiederherstellen (Story S-0760,
+    // AK5), gleiches Fire-and-forget-Muster.
+    if (t.shelfDir) void restoreShelfForApp(appId, t.shelfDir);
     const draftPayload = draftsToPayload(byApp[ai] || []);
     for (let wi = 0; wi < t.windows.length; wi++) {
       const entry = t.windows[wi];
@@ -6259,17 +6810,21 @@ app.whenReady().then(async () => {
   // Beim Start uebergebene Dateien (Datei-Assoziation, "Öffnen mit") in das
   // erste Fenster OHNE Bereich reichen (4T-0323); stammen alle
   // wiederhergestellten Apps aus Bereichen, uebernimmt eine neue bereichslose
-  // App die Dateien ueber die Pending-Queue.
+  // App die Dateien ueber die Pending-Queue. Buch-Dateien oeffnen seit
+  // 4T-0871 zuerst als eigene Buch-Applikationen (routeBookFileArgs).
   const initialFiles = extractFileArgs(process.argv);
   if (initialFiles.length > 0) {
-    const target = getActiveNonAreaWindow();
-    if (target) {
-      target.webContents.once('did-finish-load', () => {
-        target.webContents.send('file:openExternal', initialFiles);
-      });
-    } else {
-      pendingSecondInstanceFiles.push(...initialFiles);
-      createWindow({});
+    const restFiles = await routeBookFileArgs(initialFiles);
+    if (restFiles.length > 0) {
+      const target = getActiveNonAreaWindow();
+      if (target) {
+        target.webContents.once('did-finish-load', () => {
+          target.webContents.send('file:openExternal', restFiles);
+        });
+      } else {
+        pendingSecondInstanceFiles.push(...restFiles);
+        createWindow({});
+      }
     }
   }
 });

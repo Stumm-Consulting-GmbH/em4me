@@ -328,6 +328,11 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
     'book.previousChapter',
     'book.moveChapterFile',
     'view.toggleBookPanel',
+    // 4T-0867 (Epic 3E-0162): Buecherregale laufen unter demselben Schalter
+    // (Epic-Entscheidung: eine Stufe desselben Funktionsblocks).
+    'shelf.open',
+    'shelf.create',
+    'shelf.close',
   ];
 
   it('ist als Werkzeug-Erweiterung mit den Katalog-Keys registriert', () => {

@@ -376,6 +376,12 @@ const INTERNAL_EXTENSIONS = [
       'book.previousChapter',
       'book.moveChapterFile',
       'view.toggleBookPanel',
+      // 4T-0867 (Epic 3E-0162): Buecherregale sind eine Stufe desselben
+      // Funktionsblocks und laufen unter demselben Schalter (Epic-Entscheidung;
+      // ein eigener Schalter erzeugte den Zustand "Regal an, Buecher aus").
+      'shelf.open',
+      'shelf.create',
+      'shelf.close',
     ],
   },
   {

@@ -51,9 +51,9 @@ Both ways sit in the **File** menu, next to the area entries:
 
 - **Open Book…** asks for the book folder. If it holds no companion file naming a book file, the app reports that the folder is not a book and changes nothing.
 - **New Book…** asks for a parent folder and a name. The app creates the book folder inside it, together with the book file of the same name and the companion file, and opens the book.
-- **Close Book** releases the binding again. Open tabs stay open; what is closed is the book, not the document.
+- **Close Book** closes the book together with its window and tabs; unsaved changes prompt just as when closing a window.
 
-On opening, the book file appears as a tab and the table of contents is shown. There is **one active book per application**: all windows of the same application share it, and it is restored on the next start. A chapter can also be opened in the ordinary way, without any book context; it stays a normal Markdown file.
+An open book behaves **like an area**: it opens as its own application with its own window, the window title carries the book name, and the book folder with its subfolders is the working space of that window. Whatever lies outside the book folder is neither visible nor usable there; images and attachments of a book therefore belong inside the book folder. Two books are never in the same window: if the book is already running, the app jumps to its window, and a second book opens its own. On opening, the book file appears as a tab, the table of contents is shown, and an open book is restored on the next start. A chapter can also be opened in the ordinary way, without any book context; it stays a normal Markdown file.
 
 ## The table of contents
 
@@ -120,6 +120,34 @@ If a file of the same name exists elsewhere in the book folder, the row addition
 
 As soon as the assignment is in place, the row loses its marking.
 
+## Bookshelves
+
+A bookshelf groups books. It lives in its own folder holding the **shelf file** (an ordinary Markdown file with the shelf's descriptive text; properties and the `cover` image reference sit in the [frontmatter](frontmatter.md) as everywhere), the **companion file** `Shelf_Settings.mdda`, and the **books** as book folders directly below. The hierarchy ends at the shelf; there are no shelves inside shelves.
+
+```json
+{
+  "schemaVersion": 1,
+  "shelf": { "file": "My Library.md" },
+  "books": ["Journey to Ithaca", "Cookbook"]
+}
+```
+
+The companion file names the shelf file and lists the assigned books in their order. As with books, the application recognises a shelf **by the companion file alone**; the shelf file carries no back reference.
+
+### Opening and creating a shelf
+
+The entries sit in the **File** menu, next to the book entries: **Open Bookshelf…** asks for the shelf folder (a folder without a named shelf file is rejected with a message), **New Bookshelf…** creates folder, shelf file and companion file, **Close Bookshelf** closes the shelf together with its window. Opening the shelf file itself also opens the shelf.
+
+An open shelf behaves **like an area**, exactly as a book does: it opens as its own application with its own window, the window title carries the shelf name, and the shelf folder is the working space of that window. If the shelf is already running, the app jumps to its window. An open shelf is restored on the next start.
+
+The shelf window holds the **shelf level** only: every reach into a book, be it the book file or a chapter file, leads to that book's window, and the file opens there. In the shelf window itself, only files directly inside the shelf folder open, such as the shelf file with its description text. That way chapters of different books never share a window.
+
+### The shelf view
+
+An open shelf appears as its own page in the tab system. Two layouts are available, switchable in the view and remembered per shelf: **tiles** show the book images as a grid; a book without an image reference gets a placeholder tile with its title. **Rows** show image, name, chapter count, author and description. A click opens the book in its own window; the shelf stays behind as the overview.
+
+Below the stock sits the section **Not assigned** with the book folders of the shelf folder that are not yet assigned to the shelf; **Add to shelf** assigns them, **Remove** takes an assignment away without touching the book folder. An assigned book whose folder is missing stays visible and is marked as missing.
+
 ## Switching on and off
 
-Books are a switchable extension (Settings → [Extensions](extensions.md), group Tools) and are on out of the box. In the off state the menu entries, the commands and the panel disappear; a book file then opens like any other Markdown file. Book file, companion file and chapters stay untouched, and switching back on brings the state back unchanged.
+Books and bookshelves together are a switchable extension (Settings → [Extensions](extensions.md), group Tools) and are on out of the box. In the off state the menu entries, the commands, the panel and the shelf view disappear; book and shelf files then open like any other Markdown file. Book file, shelf file, companion files and chapters stay untouched, and switching back on brings the state back unchanged.

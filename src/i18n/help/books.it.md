@@ -51,9 +51,9 @@ Entrambe le vie stanno nel menu **File**, accanto alle voci dell'area:
 
 - **Apri libro…** chiede la cartella del libro. Se essa non contiene un file di accompagnamento che nomini un file del libro, l'applicazione segnala che la cartella non è un libro e non cambia nulla.
 - **Nuovo libro…** chiede una cartella padre e un nome. L'applicazione vi crea la cartella del libro, insieme al file del libro con lo stesso nome e al file di accompagnamento, e apre il libro.
-- **Chiudi libro** scioglie il legame. Le schede aperte restano aperte; ciò che si chiude è il libro, non il documento.
+- **Chiudi libro** chiude il libro insieme alla sua finestra e alle sue schede; con modifiche non salvate l'applicazione chiede come alla chiusura di una finestra.
 
-All'apertura il file del libro compare come scheda e l'indice viene mostrato. C'è **un libro attivo per applicazione**: tutte le finestre della stessa applicazione lo condividono e viene ripristinato all'avvio successivo. Un capitolo si apre inoltre in modo del tutto ordinario, senza contesto di libro; resta un normale file Markdown.
+Un libro aperto si comporta **come un'area**: si apre come applicazione propria con la propria finestra, il titolo della finestra porta il nome del libro, e la cartella del libro con le sue sottocartelle è lo spazio di lavoro di quella finestra. Ciò che sta fuori dalla cartella del libro non vi è né visibile né utilizzabile; immagini e allegati di un libro appartengono quindi alla cartella del libro. Due libri non stanno mai nella stessa finestra: se il libro è già aperto, l'applicazione salta alla sua finestra, e un secondo libro apre la propria. All'apertura il file del libro compare come scheda, l'indice viene mostrato e un libro aperto viene ripristinato all'avvio successivo. Un capitolo si apre inoltre in modo del tutto ordinario, senza contesto di libro; resta un normale file Markdown.
 
 ## L'indice
 
@@ -120,6 +120,34 @@ Se altrove nella cartella del libro esiste un file con lo stesso nome, la riga p
 
 Non appena l'assegnazione è fatta, la riga perde il proprio contrassegno.
 
+## Librerie
+
+Una libreria raggruppa libri. Vive in una propria cartella, che contiene il **file della libreria** (un normale file Markdown con il testo descrittivo; le proprietà e il riferimento immagine `cover` stanno, come ovunque, nel [frontmatter](frontmatter.md)), il **file di accompagnamento** `Shelf_Settings.mdda` e i **libri** come cartelle di libro direttamente sotto. La gerarchia termina alla libreria; non esistono librerie dentro librerie.
+
+```json
+{
+  "schemaVersion": 1,
+  "shelf": { "file": "La mia biblioteca.md" },
+  "books": ["Viaggio a Itaca", "Ricettario"]
+}
+```
+
+Il file di accompagnamento indica il file della libreria ed elenca i libri assegnati nel loro ordine. Come per i libri, l'applicazione riconosce una libreria **dal solo file di accompagnamento**; il file della libreria non porta alcun rimando.
+
+### Aprire e creare una libreria
+
+Le voci stanno nel menu **File**, accanto alle voci dei libri: **Apri libreria…** chiede la cartella della libreria (una cartella senza file della libreria indicato viene rifiutata con un messaggio), **Nuova libreria…** crea cartella, file della libreria e file di accompagnamento, **Chiudi libreria** chiude la libreria insieme alla sua finestra. Anche aprire il file della libreria stesso apre la libreria.
+
+Una libreria aperta si comporta **come un'area**, esattamente come un libro: si apre come applicazione propria con la propria finestra, il titolo della finestra porta il nome della libreria, e la cartella della libreria è lo spazio di lavoro di quella finestra. Se la libreria è già aperta, l'applicazione salta alla sua finestra. Una libreria aperta viene ripristinata all'avvio successivo.
+
+La finestra della libreria tiene soltanto il **livello libreria**: ogni accesso a un libro, sia il file del libro sia un file di capitolo, porta alla finestra di quel libro, e il file vi si apre. Nella finestra della libreria stessa aprono solo i file che stanno direttamente nella cartella della libreria, come il file della libreria con il suo testo descrittivo. Così capitoli di libri diversi non condividono mai una finestra.
+
+### La vista della libreria
+
+Una libreria aperta compare come pagina propria nel sistema di schede. Due presentazioni sono disponibili, commutabili nella vista e ricordate per libreria: i **riquadri** mostrano le immagini dei libri in griglia; un libro senza riferimento immagine riceve un riquadro segnaposto con il suo titolo. Le **righe** mostrano immagine, nome, numero di capitoli, autore e descrizione. Un clic apre il libro nella propria finestra; la libreria resta come panoramica.
+
+Sotto il patrimonio sta la sezione **Non assegnati** con le cartelle di libro della cartella della libreria non ancora assegnate; **Aggiungi** le assegna, **Rimuovi** toglie un'assegnazione senza toccare la cartella del libro. Un libro assegnato la cui cartella manca resta visibile ed è contrassegnato come mancante.
+
 ## Attivare e disattivare
 
-I libri sono un'estensione commutabile (Impostazioni → [Estensioni](extensions.md), gruppo Strumenti), attiva di fabbrica. Nello stato disattivato scompaiono le voci di menu, i comandi e il pannello; un file del libro si apre allora come qualunque altro file Markdown. Il file del libro, il file di accompagnamento e i capitoli restano intatti, e riattivando l'estensione lo stato torna invariato.
+I libri e le librerie formano insieme un'estensione commutabile (Impostazioni → [Estensioni](extensions.md), gruppo Strumenti), attiva di fabbrica. Nello stato disattivato scompaiono le voci di menu, i comandi, il pannello e la vista della libreria; i file di libro e di libreria si aprono allora come qualunque altro file Markdown. File del libro, file della libreria, file di accompagnamento e capitoli restano intatti, e riattivando l'estensione lo stato torna invariato.

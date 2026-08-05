@@ -221,6 +221,11 @@ test.describe('BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118)',
       await page.evaluate(() => window.api.setSetting('extensions.disabled', ['area-stats']));
       await expect
         .poll(async () => {
+          // 4T-0874: Vor jedem Versuch das ggf. offene Menue schliessen —
+          // ein zweiter Rechtsklick bei offenem Menue trifft das Menue statt
+          // die Zeile, und der Poll bliebe auf dem alten Stand stehen.
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(300);
           await row.click({ button: 'right' });
           return page.locator('#context-menu [data-menu-id="area-panel-stats"]').count();
         })

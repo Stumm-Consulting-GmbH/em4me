@@ -51,9 +51,9 @@ Ambas vías están en el menú **Archivo**, junto a las entradas de área:
 
 - **Abrir libro…** pide la carpeta del libro. Si no contiene un archivo complementario que nombre un archivo de libro, la aplicación avisa de que la carpeta no es un libro y no cambia nada.
 - **Libro nuevo…** pide una carpeta padre y un nombre. La aplicación crea allí la carpeta del libro, junto con el archivo del libro del mismo nombre y el archivo complementario, y abre el libro.
-- **Cerrar libro** deshace el vínculo. Las pestañas abiertas siguen abiertas; lo que se cierra es el libro, no el documento.
+- **Cerrar libro** cierra el libro junto con su ventana y sus pestañas; con cambios sin guardar, la aplicación pregunta igual que al cerrar una ventana.
 
-Al abrir, el archivo del libro aparece como pestaña y se muestra el índice. Hay **un libro activo por aplicación**: todas las ventanas de la misma aplicación lo comparten y se restaura en el siguiente arranque. Un capítulo también se abre de forma totalmente corriente, sin contexto de libro; sigue siendo un archivo Markdown normal.
+Un libro abierto se comporta **como un área**: se abre como aplicación propia con ventana propia, el título de la ventana lleva el nombre del libro, y la carpeta del libro con sus subcarpetas es el espacio de trabajo de esa ventana. Lo que queda fuera de la carpeta del libro no es visible ni utilizable allí; por eso las imágenes y los adjuntos de un libro pertenecen a la carpeta del libro. Dos libros nunca están en la misma ventana: si el libro ya está abierto, la aplicación salta a su ventana, y un segundo libro abre la suya. Al abrir, el archivo del libro aparece como pestaña, se muestra el índice y un libro abierto se restaura en el siguiente arranque. Un capítulo también se abre de forma totalmente corriente, sin contexto de libro; sigue siendo un archivo Markdown normal.
 
 ## El índice
 
@@ -120,6 +120,34 @@ Si en otro punto de la carpeta del libro existe un archivo con el mismo nombre, 
 
 En cuanto la asignación está hecha, la fila pierde su marca.
 
+## Estanterías
+
+Una estantería agrupa libros. Vive en su propia carpeta, que contiene el **archivo de estantería** (un archivo Markdown normal con el texto descriptivo; las propiedades y la referencia de imagen `cover` están, como en todas partes, en el [frontmatter](frontmatter.md)), el **archivo complementario** `Shelf_Settings.mdda` y los **libros** como carpetas de libro directamente debajo. La jerarquía termina en la estantería; no hay estanterías dentro de estanterías.
+
+```json
+{
+  "schemaVersion": 1,
+  "shelf": { "file": "Mi biblioteca.md" },
+  "books": ["Viaje a Ítaca", "Libro de cocina"]
+}
+```
+
+El archivo complementario nombra el archivo de estantería y lleva los libros asignados en su orden. Como en los libros, la aplicación reconoce una estantería **solo por el archivo complementario**; el archivo de estantería no lleva ninguna remisión.
+
+### Abrir y crear una estantería
+
+Las entradas están en el menú **Archivo**, junto a las entradas de libro: **Abrir estantería…** pide la carpeta de la estantería (una carpeta sin archivo de estantería nombrado se rechaza con un mensaje), **Estantería nueva…** crea la carpeta, el archivo de estantería y el archivo complementario, **Cerrar estantería** cierra la estantería junto con su ventana. Abrir el propio archivo de estantería también abre la estantería.
+
+Una estantería abierta se comporta **como un área**, igual que un libro: se abre como aplicación propia con ventana propia, el título de la ventana lleva el nombre de la estantería, y la carpeta de la estantería es el espacio de trabajo de esa ventana. Si la estantería ya está abierta, la aplicación salta a su ventana. Una estantería abierta se restaura en el siguiente inicio.
+
+La ventana de la estantería sostiene solo el **nivel de estantería**: cada acceso a un libro, sea el archivo del libro o un archivo de capítulo, lleva a la ventana de ese libro, y el archivo se abre allí. En la propia ventana de la estantería solo abren archivos situados directamente en la carpeta de la estantería, como el archivo de estantería con su texto descriptivo. Así, capítulos de libros distintos nunca comparten ventana.
+
+### La vista de estantería
+
+Una estantería abierta aparece como página propia en el sistema de pestañas. Hay dos presentaciones, conmutables en la vista y recordadas por estantería: los **mosaicos** muestran las imágenes de los libros en cuadrícula; un libro sin referencia de imagen recibe un mosaico de relleno con su título. Las **filas** muestran imagen, nombre, número de capítulos, autor y descripción. Un clic abre el libro en su propia ventana; la estantería queda como vista general.
+
+Bajo el fondo está la sección **Sin asignar** con las carpetas de libro de la carpeta de la estantería que aún no están asignadas; **Añadir** las asigna, **Quitar** retira una asignación sin tocar la carpeta del libro. Un libro asignado cuya carpeta falta sigue visible y queda marcado como faltante.
+
 ## Activar y desactivar
 
-Los libros son una extensión conmutable (Configuración → [Extensiones](extensions.md), grupo Herramientas), activada de fábrica. En estado desactivado desaparecen las entradas de menú, los comandos y el panel; un archivo de libro se abre entonces como cualquier otro archivo Markdown. El archivo del libro, el archivo complementario y los capítulos quedan intactos, y al volver a activar la extensión el estado regresa sin cambios.
+Los libros y las estanterías forman juntos una extensión conmutable (Configuración → [Extensiones](extensions.md), grupo Herramientas), activada de fábrica. En estado desactivado desaparecen las entradas de menú, los comandos, el panel y la vista de estantería; los archivos de libro y de estantería se abren entonces como cualquier otro archivo Markdown. El archivo del libro, el archivo de estantería, los archivos complementarios y los capítulos quedan intactos, y al volver a activar la extensión el estado regresa sin cambios.

@@ -197,13 +197,31 @@ async function openCalendarSection(page) {
   const navEntry = page.locator(
     `${SETTINGS_PAGE} .settings-nav-entry[data-section-id="calendarSystems"]`,
   );
+  // 4T-0876: Oeffnen UND Klicken gehoeren in dieselbe Wiederhol-Bedingung.
+  // Zwei Fehlerbilder treffen hier zusammen, und jede Haelfte allein laesst
+  // das andere offen: Ein Tastendruck in JEDEM Durchlauf montiert die Seite
+  // neu, waehrend der Poll ihre Sichtbarkeit gerade bejaht hat (der Klick
+  // danach trifft ins Leere); ein Tastendruck NUR bei Unsichtbarkeit nimmt
+  // dem Poll dagegen die Selbstheilung, wenn die Seite nach der Pruefung
+  // ihren aktiven Reiter verliert und dauerhaft verborgen bleibt. Beides
+  // zeigt sich als «element is not visible» bei aufgeloestem Locator.
+  // Deshalb: oeffnen, solange verborgen — klicken, sobald sichtbar — und bei
+  // einem gescheiterten Klick von vorn. Der Klick selbst ist idempotent
+  // (Sektion aktivieren) und darf wiederholt werden.
   await expect
     .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return navEntry.isVisible();
+      if (!(await navEntry.isVisible())) {
+        await page.keyboard.press('Control+,');
+        return false;
+      }
+      try {
+        await navEntry.click({ timeout: 2000 });
+        return true;
+      } catch {
+        return false;
+      }
     })
     .toBe(true);
-  await navEntry.click();
 }
 
 test.describe('KS-01: Kern-Durchlauf der Einstellungs-Sektion', () => {

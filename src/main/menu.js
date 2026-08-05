@@ -420,10 +420,13 @@ function buildMenu(win, state, actions) {
         },
         {
           // 4T-0322: Bereich schliessen — schliesst alle Fenster der
-          // Bereichs-App; nur bei aktivem Bereich aktiv.
+          // Bereichs-App; nur bei aktivem Bereich aktiv. 4T-0881 (Befund der
+          // Test-Iteration 0.104.0): Buch- und Regal-Fenster binden intern
+          // einen Bereich, sind aber keine Bereichs-Fenster — dort gelten
+          // "Buch schliessen" bzw. "Buecherregal schliessen".
           label: t('menu.file.closeArea'),
           accelerator: acc('area.close'),
-          enabled: !!(state && state.hasArea),
+          enabled: !!(state && state.hasArea && !state.hasBook && !state.hasShelf),
           click: send('menu:closeArea'),
         },
         {
@@ -467,6 +470,31 @@ function buildMenu(win, state, actions) {
           enabled: !!(state && state.hasBook),
           click: () => {
             if (actions && actions.closeBook) actions.closeBook();
+          },
+        }),
+        // 4T-0867 (Epic 3E-0162): Buecherregale neben den Buechern — dieselbe
+        // Aufteilung, der Main fuehrt alle drei Aktionen direkt aus.
+        unless('shelf.open', {
+          label: t('menu.file.openShelf'),
+          accelerator: acc('shelf.open'),
+          click: () => {
+            if (actions && actions.openShelf) actions.openShelf();
+          },
+        }),
+        unless('shelf.create', {
+          label: t('menu.file.newShelf'),
+          accelerator: acc('shelf.create'),
+          click: () => {
+            if (actions && actions.createShelf) actions.createShelf();
+          },
+        }),
+        unless('shelf.close', {
+          // Nur bei aktivem Regal aktiv (Muster "Buch schliessen").
+          label: t('menu.file.closeShelf'),
+          accelerator: acc('shelf.close'),
+          enabled: !!(state && state.hasShelf),
+          click: () => {
+            if (actions && actions.closeShelf) actions.closeShelf();
           },
         }),
         { type: 'separator' },

@@ -9,6 +9,80 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.104.0.1191] - 2026-08-04 — Bücherregale, und Bücher als eigener Arbeitsraum
+
+Epic 3E-0162: Bücher lassen sich zu **Bücherregalen** gruppieren — ein Ordner
+über Buch-Ordnern mit eigener Regal-Datei, Begleitdatei und einer Ansicht aus
+Kacheln oder Zeilen. Aus dem Test des Regal-Standes folgte die
+Grundsatz-Entscheidung des Product Owners vom 2026-08-04, Buch und Regal
+**vollständig wie einen Bereich** zu behandeln: Beide öffnen als eigene
+Applikation mit eigenem Fenster und eigener Ordner-Grenze, und zwei Bücher
+teilen sich nie ein Fenster.
+
+### Neu
+
+- **Regal-Modell und Begleitdatei** (4T-0866): Ein Bücherregal ist ein Ordner
+  mit Regal-Datei und Begleitdatei `Shelf_Settings.mdda`, die die Regal-Datei
+  benennt und die zugeordneten Bücher in ihrer Reihenfolge führt; die Bücher
+  liegen als Buch-Ordner unmittelbar darunter. Die Erkennung läuft wie beim
+  Buch allein über die Begleitdatei, ohne Rückverweis in der Markdown-Datei.
+- **Regal öffnen, anlegen und Bücher zuordnen** (4T-0867): Datei →
+  Bücherregal öffnen…/Neues Bücherregal…/Bücherregal schließen; das Öffnen
+  der Regal-Datei selbst erkennt das Regal. Buch-Ordner unterhalb des Regals,
+  die noch nicht zugeordnet sind, erscheinen als „nicht zugeordnet" und lassen
+  sich von dort aufnehmen; ein geöffnetes Regal übersteht die
+  Sitzungs-Wiederherstellung.
+- **Regal-Ansicht mit Kacheln und Zeilen** (4T-0868): Das Regal erscheint als
+  eigene Seite im Reiter-System. Kacheln zeigen die Buch-Bilder als Raster
+  (ohne Bild-Verweis eine Platzhalter-Kachel mit dem Buch-Titel), Zeilen
+  zeigen Bild, Name, Kapitel-Anzahl, Autor und Beschreibung; der gewählte
+  Modus wird je Regal gemerkt.
+
+### Geändert
+
+- **Ein Buch ist ein eigener Arbeitsraum** (4T-0871): „Buch öffnen" folgt dem
+  Muster des Bereichs — läuft das Buch schon, springt die Anwendung in sein
+  Fenster; eine freie Applikation wird gebunden, sonst entsteht eine neue mit
+  eigenem Fenster. Die Buch-Applikation ist an den Buch-Ordner gebunden
+  (Öffnen-Dialoge, Speichern unter, Drag & Drop und Verweis-Prüfung folgen
+  dieser Grenze), der Fenstertitel trägt den Buchnamen, und „Buch schließen"
+  schließt die Applikation samt Fenstern. Damit zeigt jedes Fenster immer die
+  Kapitel genau eines Buches. Bilder und Anlagen eines Buches gehören in den
+  Buch-Ordner; die mitgelieferte Demo-Ablage ist entsprechend umgestellt.
+- **Ein Regal ebenso** (4T-0873): Regale öffnen nach demselben Muster als
+  eigene Applikation mit dem Regal-Ordner als Grenze und dem Regal-Namen im
+  Fenstertitel; „Bücherregal schließen" schließt die Applikation. Das
+  Regal-Fenster hält ausschließlich die Regal-Ebene: Jeder Griff in ein Buch,
+  Buch-Datei wie Kapitel-Datei, führt in das Fenster dieses Buches, während
+  das Regal als Übersicht stehen bleibt.
+
+### Behoben
+
+- **«Bereich schließen» war in Buch- und Regal-Fenstern aktiv** (4T-0881):
+  Der Menü-Zustand fragte nur die intern vorhandene Bereichs-Bindung; jetzt
+  folgt der Menüpunkt dem Fenster-Kontext und bleibt Buch- und Regal-Fenstern
+  ihren eigenen Schließen-Punkten überlassen. Dabei behoben: «Bücherregal
+  schließen» war im Menü durchgängig deaktiviert, weil der Regal-Zustand
+  nicht an den Menü-Bau durchgereicht wurde.
+- **Wiederhergestelltes Regal-Fenster blieb leer** (4T-0882): Die
+  Sitzungs-Wiederherstellung stellte nur die Regal-Bindung her, ohne die
+  Regal-Seite zu öffnen; jetzt erscheint die Seite wie beim regulären Öffnen.
+- **Einstellungs-Suche fand die Erweiterungen nicht** (4T-0872, Epic 3E-0161):
+  Die Suche in den Einstellungen erntete nur Zeilen mit dem Standard-Markup;
+  Namen und Beschreibungen der Erweiterungen sowie zahlreiche
+  Gruppen-Überschriften fehlten damit vollständig im Suchraum. Ernte und
+  Treffer-Sprung teilen sich jetzt einen gemeinsamen, erweiterten Selektor.
+
+### Dokumentation
+
+- **Handbuch, Funktions-Katalog und Demo-Regal** (4T-0869, mit 4T-0871 und
+  4T-0873 fortgeschrieben): Die Bücher-Seite des Handbuchs trägt in allen fünf
+  Sprachen ein Regal-Kapitel und beschreibt das Fenster-Modell beider Ebenen;
+  der Funktions-Katalog erhielt die Einträge „Bücherregal" und „Regal-Ansicht"
+  (je drei Schlüssel in fünf Sprachen). Die Demo-Ablage gruppiert ihre Bücher
+  jetzt in einem Regal `Bookshelf` mit dem bestehenden Demo-Buch und dem neuen
+  Mini-Buch `Field Notes`.
+
 ## [0.103.0.1141] - 2026-08-03 — Bücher
 
 Epic 3E-0147: Mehrere Markdown-Dateien lassen sich zu einem **Buch** mit
@@ -71,6 +145,50 @@ und nicht in der Ordner-Lage.
 - Neue Handbuch-Themen-Seite „Bücher" in fünf Sprachfassungen samt
   Überblicks-Links; die generierten Katalog- und Kürzel-Seiten ziehen
   automatisch nach.
+
+### Nachdokumentiert am 2026-08-03
+
+Die folgenden Inhalte sind Teil dieser Version, fehlten aber bei der
+Veröffentlichung in diesem Protokoll: Sie waren vor dem Release-Tag nach
+`main` integriert und gingen mit der parallel laufenden Release-Strecke der
+Bücher mit, ohne dass deren Checkliste sie erfasste. Sie stammen aus dem Epic
+3E-0164 (Side-Panel-Verhalten) und zwei Pflege-Tasks; die strukturelle
+Ursache behebt der Umbau des Integrationsmodells auf Feature-Branches.
+
+#### Neu
+
+- **Seitenleiste rollt bei Überlauf** (3E-0164, 4T-0854): Verlangen die per
+  Zieh-Griff eingestellten Panel-Höhen zusammen mehr Platz, als die Spalte
+  hat, wird die Spalte senkrecht rollbar. Verdrängte Panels verschwinden
+  nicht mehr unsichtbar, jedes behält mindestens seine Kopfzeile; ohne
+  Überlauf ändert sich nichts, die eingeklappte Spalte bleibt unberührt.
+- **Höhen-Modell der Panel-Blöcke umschaltbar** (3E-0164, 4T-0855): Neue
+  Einstellung (Einstellungen → Sidebar) mit den Werten „Höhe je Panel"
+  (Vorgabe, Bestandsverhalten) und „feste Höhe je Gruppe" — eine
+  Reiter-Gruppe behält beim Durchblättern ihre Höhe, darunter liegende
+  Panels bleiben an ihrem Platz. Der Zieh-Griff stellt im Gruppen-Modus die
+  Gruppen-Höhe ein, Doppelklick setzt die ganze Gruppe auf Automatik; beide
+  Höhen-Modelle werden getrennt gespeichert, ein Wechsel verliert nichts.
+
+#### Geändert
+
+- **Kommando „Zuletzt geöffnete Sitzung wiederherstellen"** in der
+  Kommando-Palette der Gruppe zugeordnet, die sein Menü-Ort erwarten lässt
+  (4T-0836); dazu ein veralteter Zähler im Kopf-Kommentar des
+  Panel-Zugangs-Modells korrigiert.
+
+#### i18n und Doku
+
+- Sieben neue Übersetzungs-Schlüssel in allen fünf Sprachen (Einstellung
+  samt Werten und Hinweis, Funktions-Katalog-Eintrag des Höhen-Modells);
+  der Katalog-Eintrag der Panel-Höhen um das Überlauf-Verhalten ergänzt
+  (4T-0855, 4T-0856).
+- Handbuch-Seite „Sidebar" in fünf Sprachfassungen um das Rollen bei
+  Überlauf und den Abschnitt „Höhe je Panel oder je Gruppe" erweitert
+  (4T-0856).
+- Schriftart und Schriftgröße von Editor und Lese-Ansicht in Funktions-
+  Katalog und Handbuch aufgenommen; die Funktion war ausgeliefert, aber
+  nicht auffindbar dokumentiert (4T-0837).
 
 ## [0.102.0.1111] - 2026-08-02 — Erweiterungs-API v1.1 und Referenz-Beispiel
 

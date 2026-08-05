@@ -17,6 +17,9 @@
 // als `book: { dir }`. Das Feld fehlt, solange kein Buch geöffnet ist, statt
 // als `null` dazustehen: ein Bestands-Snapshot bleibt so unverändert, und
 // die Ablage wächst nur, wo tatsächlich ein Buch offen war.
+//
+// 4T-0867 (Epic 3E-0162): nach demselben Muster das aktive Bücherregal als
+// `shelf: { dir }` — nur vorhanden, solange ein Regal geöffnet ist.
 'use strict';
 
 const { TAB_GROUP_COLOR_KEYS } = require('../shared/tab-group-colors');
@@ -30,6 +33,15 @@ function bookField(entry) {
       ? entry.book.dir
       : null;
   return dir ? { book: { dir } } : {};
+}
+
+// 4T-0867: Regal-Bindung eines persistierten App-Snapshots (Muster bookField).
+function shelfField(entry) {
+  const dir =
+    entry && entry.shelf && typeof entry.shelf.dir === 'string' && entry.shelf.dir
+      ? entry.shelf.dir
+      : null;
+  return dir ? { shelf: { dir } } : {};
 }
 
 // Einmalige Migration des flachen Bestands-Formats: alle Bestands-Fenster
@@ -60,6 +72,7 @@ function normalizeSavedApps(saved) {
     result.push({
       area: rootPath ? { rootPath } : null,
       ...bookField(entry),
+      ...shelfField(entry),
       windows: windowsList,
     });
   }
@@ -100,6 +113,7 @@ function normalizeSavedWorkspaces(saved) {
       app: {
         area: rootPath ? { rootPath } : null,
         ...bookField(appEntry),
+        ...shelfField(appEntry),
         windows: windowsList,
       },
     });

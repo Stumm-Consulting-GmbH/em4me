@@ -1755,6 +1755,12 @@ export function updateWindowTitle() {
       // 4T-0538 (Epic 3E-0098): bei deaktivierter Erweiterung entfaellt der
       // Arbeitsbereichs-Teil (die App erscheint als normale Applikation).
       workspaceName: isExtensionActive('workspaces') ? state.workspaceName : null,
+      // 4T-0871 (Buch = Bereich): Titel-Stufe "Buch {name}"; bei
+      // abgeschalteter Erweiterung faellt der Titel auf den Bereichs-Teil
+      // zurueck (die Bereichs-Bindung der Buch-App bleibt bestehen).
+      bookName: isExtensionActive('books') ? state.bookName : null,
+      // 4T-0873: Regal-Stufe, dieselbe Erweiterung wie die Bücher.
+      shelfName: isExtensionActive('books') ? state.shelfName : null,
       areaName: state.areaName,
       appNumber: state.appNumber,
       numberedAppCount: state.numberedAppCount,

@@ -22,6 +22,15 @@
 // BU-09 (4T-0849): Erweiterung „Bücher" aus — Menü-Einträge, Statusbar-Button
 //        und Panel entfallen, eine Buch-Datei öffnet gewöhnlich; das
 //        Wiedereinschalten stellt alles her.
+// BU-10 (4T-0871): Buch als Bereich — das zweite Buch öffnet als eigene
+//        Applikation mit eigenem Fenster, jedes Fenster zeigt sein Buch,
+//        erneutes Öffnen fokussiert, „Buch schließen" schließt die
+//        Applikation, der Fenstertitel trägt den Buchnamen.
+//
+// Seit 4T-0871 gilt das Applikations-Modell (Buch = Bereich): «Buch öffnen»
+// bindet eine freie Applikation oder öffnet eine neue; die Fälle BU-01 bis
+// BU-07 starten deshalb ohne Start-Datei, damit die leere Start-Applikation
+// zur Buch-Applikation wird und die Prüfungen im selben Fenster bleiben.
 //
 // Alle Wege laufen über die dialogfreien Pfad-Einstiege des Preload-Namensraums
 // `books` (openPath, createAt, applyTreeOp, moveChapterFileTo, reassignChapter);
@@ -280,11 +289,10 @@ async function openExternally(app, page, filePath) {
 
 test.describe('BU-01: Buch anlegen (4T-0843)', () => {
   test('Ordner, Buch-Datei und Begleitdatei entstehen; Panel und Statusbar folgen', async () => {
-    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
     const bookDir = path.join(parent, 'Chronik');
     try {
-      await waitForTab(page);
       const created = await page.evaluate(
         (payload) => window.api.books.createAt(payload.parentDir, payload.name),
         { parentDir: parent, name: 'Chronik' },
@@ -301,8 +309,11 @@ test.describe('BU-01: Buch anlegen (4T-0843)', () => {
         chapters: [],
       });
 
-      // Die Buch-Datei öffnet als Reiter.
-      await expect(page.locator(`${SEL.tabs0} .tab-title`)).toContainText(['basis', 'Chronik']);
+      // Die Buch-Datei öffnet als Reiter; die freie Start-Applikation wurde
+      // zur Buch-Applikation (4T-0871).
+      await waitForTab(page);
+      await expect(page.locator(`${SEL.tabs0} .tab-title`)).toContainText(['Chronik']);
+      await expect.poll(() => page.title()).toContain('(Buch Chronik)');
 
       // Panel: kein Leer-Hinweis mehr, aber noch kein Kapitel; der Abschnitt
       // „nicht eingehängt" bleibt weg, weil der Ordner nur die Buch-Datei hält.
@@ -327,12 +338,12 @@ test.describe('BU-01: Buch anlegen (4T-0843)', () => {
 
 test.describe('BU-02: Buch öffnen zeigt das Inhaltsverzeichnis (4T-0844)', () => {
   test('Kapitel-Baum in Lese-Reihenfolge samt Einrückung und Abschnitt „nicht eingehängt"', async () => {
-    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
     try {
-      await waitForTab(page);
       await openBook(page, bookDir);
+      await waitForTab(page);
       await showBookPanel(page);
 
       // Lese-Reihenfolge: ein Kapitel steht vor seinen Unterkapiteln, danach
@@ -374,12 +385,12 @@ test.describe('BU-02: Buch öffnen zeigt das Inhaltsverzeichnis (4T-0844)', () =
 
 test.describe('BU-03: Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert (4T-0844)', () => {
   test('Klick öffnet die Kapitel-Datei; die markierte Zeile folgt dem aktiven Reiter', async () => {
-    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
     try {
-      await waitForTab(page);
       await openBook(page, bookDir);
+      await waitForTab(page);
       await showBookPanel(page);
 
       // Der aktive Reiter ist die Buch-Datei; sie ist kein Kapitel, deshalb ist
@@ -412,12 +423,12 @@ test.describe('BU-03: Kapitel-Klick öffnet den Reiter, die Lese-Markierung wand
 
 test.describe('BU-04: Leseführung über Kapitel-Grenzen (4T-0846)', () => {
   test('Vor und zurück folgen der Baum-Ordnung; am Ende gibt es eine Rückmeldung statt Umlauf', async () => {
-    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
     try {
-      await waitForTab(page);
       await openBook(page, bookDir);
+      await waitForTab(page);
       await showBookPanel(page);
       await page.locator(`${ROWS}[data-pfad="Aufbruch.md"]`).click();
       await expect(page.locator(SEL.activeTab0)).toContainText('Aufbruch');
@@ -448,7 +459,7 @@ test.describe('BU-04: Leseführung über Kapitel-Grenzen (4T-0846)', () => {
 
       // Es sind genau die Buch-Datei und die drei Kapitel offen — die
       // Leseführung öffnet keinen Reiter doppelt.
-      await expect(page.locator(SEL.tabs0)).toHaveCount(5);
+      await expect(page.locator(SEL.tabs0)).toHaveCount(4);
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(parent);
@@ -460,13 +471,13 @@ test.describe('BU-04: Leseführung über Kapitel-Grenzen (4T-0846)', () => {
 
 test.describe('BU-05: Struktur-Pflege ändert nur die Deklaration (4T-0845)', () => {
   test('Baum-Operation und Alt+Pfeil wirken auf Panel und Begleitdatei; keine Datei bewegt sich', async () => {
-    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
     const dateienVorher = listFiles(bookDir);
     try {
-      await waitForTab(page);
       await openBook(page, bookDir);
+      await waitForTab(page);
       await showBookPanel(page);
       await expect(page.locator(ROW_NAMES)).toHaveText(['Aufbruch', 'Heimkehr', 'Schluss']);
 
@@ -529,13 +540,11 @@ test.describe('BU-06: Kapitel-Datei verschieben führt Baum und Links nach (4T-0
       'utf8',
     );
     try {
-      // Der Suchraum des Link-Updates ist ohne Bereich nur der Ordner der
-      // Ziel-Datei plus zwei Ebenen; als Bereichs-App ist es der ganze Baum.
-      // Das entspricht zugleich der realen Lage: ein Buch liegt in einem
-      // Bereich.
-      await page.evaluate((dir) => window.api.openAreaPath(dir), parent);
-      await expect.poll(() => page.title()).toContain('(Bereich');
+      // Der Suchraum des Link-Updates ist der Bereich der App. Seit 4T-0871
+      // ist die Buch-Applikation selbst auf den Buch-Ordner gebunden — der
+      // Suchraum ist damit der ganze Buch-Baum samt Quellen.md.
       await openBook(page, bookDir);
+      await expect.poll(() => page.title()).toContain('(Buch Reise)');
       await waitForTab(page);
       await showBookPanel(page);
       await expect(page.locator(ROW_NAMES)).toHaveText(['Aufbruch', 'Heimkehr', 'Schluss']);
@@ -579,12 +588,12 @@ test.describe('BU-06: Kapitel-Datei verschieben führt Baum und Links nach (4T-0
 
 test.describe('BU-07: Reparatur eines fehlenden Kapitels (4T-0848)', () => {
   test('Am Dateisystem umbenanntes Kapitel ist markiert; die Neu-Zuordnung heilt den Baum', async () => {
-    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
     try {
-      await waitForTab(page);
       await openBook(page, bookDir);
+      await waitForTab(page);
       await showBookPanel(page);
       await expect(page.locator(ROW_NAMES)).toHaveText(['Aufbruch', 'Heimkehr', 'Schluss']);
 
@@ -703,17 +712,74 @@ test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
       await expect(page.locator('#btn-book')).toBeVisible();
       await expect.poll(() => capturedMenuLabels(app)).toContain('Buch öffnen…');
 
-      // Derselbe Weg bindet das Buch jetzt wieder, und das Panel zeigt den
-      // unveränderten Kapitel-Baum: die Daten blieben unangetastet.
-      await openExternally(app, page, bookFile);
+      // Das Buch öffnet jetzt wieder als Buch — seit 4T-0871 als eigene
+      // Applikation mit eigenem Fenster, weil diese App fremde Reiter trägt.
+      // Das Panel des neuen Fensters zeigt den unveränderten Kapitel-Baum:
+      // die Daten blieben unangetastet.
+      const fensterVorher = app.windows().length;
+      await openBook(page, bookDir);
+      await expect.poll(() => app.windows().length).toBe(fensterVorher + 1);
+      const page2 = app.windows().find((p) => p !== page);
       await expect
         .poll(async () => {
-          const state = await bookStateOf(page);
+          const state = await bookStateOf(page2);
           return state.active ? state.active.readingOrder : null;
         })
         .toEqual(['Aufbruch.md', 'Teil2/Heimkehr.md', 'Schluss.md']);
-      await showBookPanel(page);
-      await expect(page.locator(ROW_NAMES)).toHaveText(['Aufbruch', 'Heimkehr', 'Schluss']);
+      await showBookPanel(page2);
+      await expect(page2.locator(ROW_NAMES)).toHaveText(['Aufbruch', 'Heimkehr', 'Schluss']);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(parent);
+    }
+  });
+});
+
+// --- BU-10 --------------------------------------------------------------------
+
+test.describe('BU-10: Buch als Bereich — eigene Applikation je Buch (4T-0871)', () => {
+  test('Zweites Buch öffnet eigenes Fenster, jedes zeigt sein Buch; Schließen schließt die Applikation', async () => {
+    // Regressionstest zum PO-Befund vom 2026-08-04 (EXE 0.104.0.1169): Nach
+    // dem Öffnen zweier Bücher zeigte das eine Panel die Kapitel des anderen
+    // Buches. Im Applikations-Modell ist das strukturell ausgeschlossen.
+    const { app, page, userData } = await launchApp();
+    const parent = makeTempDir();
+    const buchA = makeBook(parent, 'Reise');
+    const buchB = makeBook(parent, 'Logbuch');
+    try {
+      // Buch A bindet die freie Start-Applikation; der Titel trägt den
+      // Buchnamen (Detail-Entscheidung 4 des PO).
+      await openBook(page, buchA);
+      await waitForTab(page);
+      await expect.poll(() => page.title()).toContain('(Buch Reise)');
+
+      // Buch B öffnet als EIGENE Applikation mit eigenem Fenster.
+      const fensterVorher = app.windows().length;
+      await openBook(page, buchB);
+      await expect.poll(() => app.windows().length).toBe(fensterVorher + 1);
+      const page2 = app.windows().find((p) => p !== page);
+      await expect.poll(() => page2.title()).toContain('(Buch Logbuch)');
+
+      // Jedes Fenster zeigt sein eigenes Buch — genau der Befund-Fall.
+      await expect
+        .poll(async () => (await bookStateOf(page)).active?.bookFileName)
+        .toBe('Reise.md');
+      await expect
+        .poll(async () => (await bookStateOf(page2)).active?.bookFileName)
+        .toBe('Logbuch.md');
+
+      // Erneutes Öffnen von Buch B fokussiert die laufende Applikation,
+      // statt ein drittes Fenster zu öffnen (Bereichs-Muster).
+      await openBook(page, buchB);
+      expect(app.windows().length).toBe(fensterVorher + 1);
+
+      // «Buch schließen» schließt die Buch-Applikation samt Fenster
+      // (Detail-Entscheidung 1 des PO). Fire-and-forget im Renderer, weil
+      // das eigene Fenster mit dem Aufruf verschwindet.
+      await page2.evaluate(() => {
+        void window.api.books.close();
+      });
+      await expect.poll(() => app.windows().length).toBe(fensterVorher);
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(parent);

@@ -95,6 +95,36 @@ test.describe('SE-02: Sprung in den Bereich', () => {
   });
 });
 
+test.describe('SE-04: Erweiterungs-Zeilen im Suchraum (4T-0872)', () => {
+  test('«Bücher» findet den Bereich Erweiterungen; der Sprung hebt die Zeile hervor', async () => {
+    // Regressionstest 4T-0872 (PO-Befund vom 2026-08-04): Die Erweiterungs-
+    // Zeilen rendern mit eigenen Klassen und fehlten komplett im Suchraum —
+    // die Suche nach «Bücher» fand nichts, obwohl der Bereich Erweiterungen
+    // den Eintrag sichtbar führt.
+    test.setTimeout(120000);
+    const { app, page, userData } = await launchApp({ args: [makeWorkFile()] });
+    try {
+      await oeffneEinstellungen(page);
+      await sucheOeffnen(page, 'Bücher');
+      const panel = page.locator(PANEL);
+      await expect(panel).toBeVisible();
+      const treffer = panel.locator('.search-results-item');
+      await expect.poll(async () => treffer.count()).toBeGreaterThan(0);
+
+      // Der Sprung aktiviert den Bereich Erweiterungen und hebt die
+      // Erweiterungs-Zeile hervor (Ernte und Sprung teilen den Selektor).
+      await treffer.first().click();
+      await expect(
+        page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensions"]`),
+      ).toHaveClass(/active/);
+      await expect(page.locator('#settings-extension-books')).toBeVisible();
+      await expect(page.locator(`${SETTINGS_PAGE} .settings-row-hervorgehoben`)).toBeVisible();
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
 test.describe('SE-03: Entwurf überlebt den Sprung', () => {
   test('eine geänderte Schriftgröße bleibt nach dem Bereichswechsel erhalten', async () => {
     test.setTimeout(120000);

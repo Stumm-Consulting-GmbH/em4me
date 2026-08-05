@@ -37,13 +37,22 @@ const EXPECTED_FILES = [
   // eingehängten Datei). Bewusst OHNE eigene Seite im Wurzelverzeichnis: die
   // E2E-Demo-Spec zählt dort die Markdown-Seiten und die #demo-Treffer der
   // ersten Abfrage; der Einstieg steht deshalb als Absatz in „00 Welcome".
-  'Demo Book/01 Setting Out.md',
-  'Demo Book/04 Homecoming.md',
-  'Demo Book/Book_Settings.mdda',
-  'Demo Book/Demo Book.md',
-  'Demo Book/Notes to Self.md',
-  'Demo Book/Parts/02 The Harbour.md',
-  'Demo Book/Parts/03 Storms and Detours.md',
+  'Bookshelf/Bookshelf.md',
+  'Bookshelf/Shelf_Settings.mdda',
+  'Bookshelf/Demo Book/01 Setting Out.md',
+  'Bookshelf/Demo Book/04 Homecoming.md',
+  'Bookshelf/Demo Book/Book_Settings.mdda',
+  'Bookshelf/Demo Book/Demo Book.md',
+  'Bookshelf/Demo Book/Notes to Self.md',
+  'Bookshelf/Demo Book/Parts/02 The Harbour.md',
+  'Bookshelf/Demo Book/Parts/03 Storms and Detours.md',
+  // 4T-0871 (Buch = Bereich): Das Cover liegt IM Buch-Ordner, weil die
+  // Bereichs-Grenze der Buch-Applikation nichts ausserhalb laedt.
+  'Bookshelf/Demo Book/cover.png',
+  'Bookshelf/Field Notes/01 Observations.md',
+  'Bookshelf/Field Notes/Book_Settings.mdda',
+  'Bookshelf/Field Notes/Field Notes.md',
+  'Bookshelf/Field Notes/cover.png',
   'Templates/Meeting Note.md',
   'attachments/demo-document.pdf',
   'attachments/demo-image.png',
@@ -64,7 +73,7 @@ function listFilesRecursive(root) {
 }
 
 describe('Demo-Area: Manifest-Wächter über src/demo (4T-0632)', () => {
-  it('src/demo trägt exakt die zweiundzwanzig erwarteten Dateien (beide Richtungen)', () => {
+  it('src/demo trägt exakt die erwarteten Dateien (beide Richtungen)', () => {
     const actual = listFilesRecursive(DEMO_DIR);
     const expected = [...EXPECTED_FILES].sort();
     const fehlend = expected.filter((f) => !actual.includes(f));

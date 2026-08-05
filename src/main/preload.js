@@ -550,6 +550,25 @@ contextBridge.exposeInMainWorld('api', {
     reassignChapterDialog: (missingPath) =>
       ipcRenderer.invoke('books:reassignChapterDialog', missingPath),
   },
+  // 4T-0867 (Epic 3E-0162): Buecherregale — Zustand des aktiven Regals,
+  // beide Oeffnungswege, Neuanlage, Schliessen und die Zuordnung. Die
+  // dialog-freien Pfad-Einstiege (openPath, createAt) spiegeln das
+  // books-Muster und tragen die automatisierte Pruefung.
+  shelves: {
+    getState: () => ipcRenderer.invoke('shelves:getState'),
+    // 4T-0868: Anzeige-Daten der Regal-Ansicht und das Oeffnen der Seite
+    // (der Main meldet es bei jedem Regal-Oeffnen-Weg).
+    getViewData: () => ipcRenderer.invoke('shelves:getViewData'),
+    onOpenPage: (cb) => ipcRenderer.on('shelves:openPage', () => cb()),
+    openDialog: () => ipcRenderer.invoke('shelves:openDialog'),
+    createDialog: () => ipcRenderer.invoke('shelves:createDialog'),
+    close: () => ipcRenderer.invoke('shelves:close'),
+    onStateChanged: (cb) => ipcRenderer.on('shelves:stateChanged', (_e, state) => cb(state)),
+    openPath: (shelfDir) => ipcRenderer.invoke('shelves:openPath', shelfDir),
+    createAt: (parentDir, name) => ipcRenderer.invoke('shelves:createAt', { parentDir, name }),
+    assignBook: (dirName) => ipcRenderer.invoke('shelves:assignBook', dirName),
+    unassignBook: (dirName) => ipcRenderer.invoke('shelves:unassignBook', dirName),
+  },
   // 4T-0327 (Epic 3E-0059): Verzeichnis-Listing fuer das Bereichs-Panel.
   areaListDir: (dirPath) => ipcRenderer.invoke('area:listDir', dirPath),
   // 4T-0328: neue Markdown-Datei im Bereichs-Ordner anlegen; Struktur-
@@ -613,6 +632,9 @@ contextBridge.exposeInMainWorld('api', {
   renameBlockAnchor: (p, fromId, toId) => ipcRenderer.invoke('blockData:rename', p, fromId, toId),
   onBlockDataChanged: (cb) => ipcRenderer.on('blockData:changed', (_e, payload) => cb(payload)),
   onOpenExternal: (cb) => ipcRenderer.on('file:openExternal', (_e, files) => cb(files)),
+  // 4T-0871 (Buch = Bereich): Main zieht eine in der falschen Applikation
+  // geoeffnete Buch-Datei zurueck; der Reiter wandert in die Buch-Applikation.
+  onCloseExternal: (cb) => ipcRenderer.on('file:closeExternal', (_e, files) => cb(files)),
   onThemeChanged: (cb) => ipcRenderer.on('theme:changed', (_e, theme) => cb(theme)),
   // 4T-0030: Theme-Pref-Aenderung wird von Main an alle Renderer gebrodcastet,
   // damit Statusbar-Icon und Tooltip auch in anderen Fenstern synchron ziehen.

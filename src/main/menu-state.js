@@ -65,6 +65,10 @@ function normalizeMenuState(base, stored) {
     // 4T-0843 (Epic 3E-0147): aktives Buch der App dieses Fensters
     // (main-seitig aus der Buch-Bindung, aktiviert "Buch schliessen").
     hasBook: !!s.hasBook,
+    // 4T-0867/4T-0881 (Epic 3E-0162): aktives Regal der App dieses Fensters
+    // (aktiviert "Buecherregal schliessen"). 4T-0881: Das Feld wurde bis dahin
+    // nicht durchgereicht; der Menuepunkt blieb dadurch immer deaktiviert.
+    hasShelf: !!s.hasShelf,
     recentFiles: Array.isArray(s.recentFiles) ? s.recentFiles : [],
     // 4T-0325 (Epic 3E-0058): zuletzt geoeffnete Bereiche.
     recentAreas: Array.isArray(s.recentAreas) ? s.recentAreas : [],

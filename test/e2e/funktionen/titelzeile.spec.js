@@ -170,10 +170,16 @@ test.describe('TZ-04: Umbenennen über die Titelzeile', () => {
       await expect(page.locator(SEL.activeTab0)).toContainText('C.md');
       await expect(page.locator(SEL.titleLineRenderedText0)).toHaveText('C');
       // Disk: Datei, .mdd-Begleitdatei und Unterseiten-Kaskade.
+      // 4T-0874: Die Unterseite folgt der Haupt-Datei erst im zweiten Schritt
+      // der Kaskade; auf sie wird gewartet statt sofort gelesen
+      // (Stabilitaetsregel 12). Erst danach steht der Endstand fest, und die
+      // uebrigen Pruefungen duerfen ihn synchron lesen.
       await expect.poll(() => fs.existsSync(path.join(dir, 'C.md')), { timeout: 5000 }).toBe(true);
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `C${SEP}Sub.md`)), { timeout: 5000 })
+        .toBe(true);
       expect(fs.existsSync(bFile)).toBe(false);
       expect(fs.existsSync(path.join(dir, 'C.mdd'))).toBe(true);
-      expect(fs.existsSync(path.join(dir, `C${SEP}Sub.md`))).toBe(true);
       // Link-Update in A (Standard: renameUpdateLinks aktiv).
       await expect.poll(() => fs.readFileSync(aFile, 'utf8'), { timeout: 5000 }).toContain('[[C]]');
       const a = fs.readFileSync(aFile, 'utf8');
@@ -319,7 +325,13 @@ test.describe('TZ-09: Unterseite — nur das eigene Namens-Segment', () => {
         .toBe(true);
       expect(fs.existsSync(subFile)).toBe(false);
       // Eigene Unterseite wandert mit, die Elternseite bleibt unberuehrt.
-      expect(fs.existsSync(path.join(dir, `Projekt${SEP}Entwurf${SEP}Detail.md`))).toBe(true);
+      // 4T-0874: gewartet statt sofort gelesen — die Kaskade laeuft nach der
+      // Reiter- und Titelzeilen-Rueckmeldung noch (Stabilitaetsregel 12).
+      await expect
+        .poll(() => fs.existsSync(path.join(dir, `Projekt${SEP}Entwurf${SEP}Detail.md`)), {
+          timeout: 5000,
+        })
+        .toBe(true);
       expect(fs.existsSync(path.join(dir, 'Projekt.md'))).toBe(true);
       await expect
         .poll(() => fs.readFileSync(path.join(dir, 'Projekt.md'), 'utf8'), { timeout: 5000 })

@@ -28,7 +28,7 @@ Read in order, or jump straight to what you need:
 10. [[10 Attachments]] — embedded images and PDFs
 11. [[11 Templates]] — reusable building blocks with placeholders
 
-Beside the tour, the folder `Demo Book` holds a small **book**: a handful of chapters tied into one declared reading path. Open it with **File → Open Book…** and pick that folder; [[Demo Book]] explains what to try. :books:
+Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two books — among them the `Demo Book`, a handful of chapters tied into one declared reading path. Open the shelf with **File → Open Bookshelf…** (or a single book with **File → Open Book…**); [[Bookshelf]] and [[Demo Book]] explain what to try. :books:
 
 ## How this window is laid out
 

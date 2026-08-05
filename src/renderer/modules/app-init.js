@@ -297,6 +297,9 @@ import { initGraphTab, openAreaGraphTab } from './graph-tab.js';
 // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als System-Seite; Registrierung
 // ueber initAreaStatsPage (kein Modul-Seiteneffekt, Muster graph-tab.js).
 import { initAreaStatsPage, openAreaStatsPage } from './area-stats-page.js';
+// 4T-0868 (Epic 3E-0162): Regal-Ansicht als System-Seite, Registrierung
+// explizit ueber initShelfViewPage (Muster area-stats-page.js).
+import { initShelfViewPage } from './shelf-view.js';
 // 4T-0480 (Epic 3E-0089): Kommando-Palette; initCommandPalette injiziert den
 // Ausfuehrungs-Pfad ueber die commandHandlers-Map (Zyklus-Vermeidung).
 import { initCommandPalette, showCommandPalette } from './command-palette.js';
@@ -497,6 +500,10 @@ api.onWindowDisplayInfo((info) => {
   }
   // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Name der eigenen App.
   state.workspaceName = info.workspaceName || null;
+  // 4T-0871 (Buch = Bereich): Buchname der eigenen App (Titel-Stufe "Buch").
+  state.bookName = info.bookName || null;
+  // 4T-0873 (Regal = Bereich): Regal-Name der eigenen App.
+  state.shelfName = info.shelfName || null;
   updateWindowTitle();
   // 4T-0327 (Epic 3E-0059): Bereichs-Wechsel (Bindung einer leeren App)
   // baut die Bereichs-Panels frisch auf.
@@ -612,6 +619,45 @@ api.onOpenExternal((files) => {
   } else {
     openInPane(state.activePaneIndex, files);
   }
+});
+
+// 4T-0871 (Buch = Bereich): Der Main zieht eine soeben in einer fremden
+// Applikation geoeffnete Buch-Datei zurueck — der Reiter wandert in die
+// Buch-Applikation, die die Datei selbst oeffnet. Synchron registrieren
+// (Electron-IPC puffert nicht); vor initDone genuegt das Streichen aus der
+// Pending-Liste. Ein bereits bearbeiteter Reiter bleibt zur Sicherheit
+// stehen (kein Fern-Schliessen ungespeicherter Aenderungen). Ein zweiter
+// Anlauf nach kurzer Frist faengt das Rennen mit einem noch laufenden
+// openInPane ab.
+function normalisierterPfad(p) {
+  return String(p || '')
+    .replace(/\//g, '\\')
+    .toLowerCase();
+}
+function schliesseZurueckgezogene(ziele) {
+  for (let p = 0; p < state.panes.length; p++) {
+    const pane = state.panes[p];
+    for (let t = pane.tabs.length - 1; t >= 0; t--) {
+      const tab = pane.tabs[t];
+      if (tab && tab.path && !tab.dirty && ziele.includes(normalisierterPfad(tab.path))) {
+        void closeTab(p, t, { skipDirtyCheck: true });
+      }
+    }
+  }
+}
+api.onCloseExternal?.((files) => {
+  const ziele = (Array.isArray(files) ? files : []).map(normalisierterPfad).filter(Boolean);
+  if (ziele.length === 0) return;
+  if (!initDone) {
+    for (let i = pendingExternalFiles.length - 1; i >= 0; i--) {
+      if (ziele.includes(normalisierterPfad(pendingExternalFiles[i]))) {
+        pendingExternalFiles.splice(i, 1);
+      }
+    }
+    return;
+  }
+  schliesseZurueckgezogene(ziele);
+  setTimeout(() => schliesseZurueckgezogene(ziele), 400);
 });
 
 // M-08 (4T-0185): Sprachwechsel-Broadcast aus einem anderen Fenster.
@@ -1223,6 +1269,17 @@ export const commandHandlers = {
   },
   'book.close': () => {
     void api.books.close();
+  },
+  // 4T-0867 (Epic 3E-0162): Buecherregal oeffnen/anlegen/schliessen (Main
+  // fuehrt aus, Muster der Buch-Kommandos).
+  'shelf.open': () => {
+    void api.shelves.openDialog();
+  },
+  'shelf.create': () => {
+    void api.shelves.createDialog();
+  },
+  'shelf.close': () => {
+    void api.shelves.close();
   },
   // 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen — der
   // Lese-Ordnung des aktiven Buches vor und zurück folgen. An Anfang und Ende
@@ -1970,6 +2027,8 @@ export async function init() {
   initGraphTab();
   // 4T-0620 (Epic 3E-0117): Bereichs-Statistik-Seite registrieren.
   initAreaStatsPage();
+  // 4T-0868 (Epic 3E-0162): Regal-Ansichts-Seite registrieren.
+  initShelfViewPage();
   // 4T-0480 (Epic 3E-0089): Kommando-Palette — Ausfuehrungs-Pfad injizieren
   // (global dispatchte Kommandos laufen ueber die commandHandlers-Map).
   initCommandPalette({
