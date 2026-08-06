@@ -416,6 +416,11 @@ const HELP_FEATURE_GROUPS = [
       // Vertrauens-Ablauf, Erweiterungs-API) direkt neben dem internen
       // Erweiterungs-Eintrag.
       'help.feature.extensionsExternal',
+      // 4T-0892 (Epic 3E-0168, Befund L-10): das Erstellen eigener externer
+      // Erweiterungen hatte eine Handbuch-Seite, aber keinen Katalog-Eintrag.
+      // Direkt hinter dem Eintrag zu den externen Erweiterungen, deren
+      // Entwickler-Sicht er bildet.
+      'help.feature.extensionsDev',
       // 4T-0216 (Epic 3E-0042): das Handbuch selbst als Katalog-Eintrag.
       'help.feature.manual',
     ],

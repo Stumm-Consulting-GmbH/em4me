@@ -43,7 +43,7 @@ While an area is open, the app continuously checks the markers of all area files
 
 ## Reminder list
 
-A sidebar panel lists all reminders of the area, grouped into **Overdue**, **Today**, **Tomorrow** and **Later**. The panel opens via the alarm icon in the status bar or via View → Panels → Reminders.
+A sidebar panel lists all reminders of the area, grouped into **Overdue**, **Today**, **Tomorrow** and **Later**. The panel opens via the alarm icon in the status bar or via View → Sidebar → Panels → Reminders.
 
 - Each entry offers the direct actions **Done** and **Later**.
 - A click on an entry opens the source file at the corresponding line.

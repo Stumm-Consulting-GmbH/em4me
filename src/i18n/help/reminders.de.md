@@ -43,7 +43,7 @@ Bei geöffnetem Bereich prüft die App die Marker aller Bereichs-Dateien laufend
 
 ## Erinnerungs-Liste
 
-Ein Sidebar-Panel listet alle Erinnerungen des Bereichs, gruppiert nach **Überfällig**, **Heute**, **Morgen** und **Später**. Das Panel öffnet sich über das Wecker-Symbol in der Statusleiste oder über Ansicht → Panels → Erinnerungen.
+Ein Sidebar-Panel listet alle Erinnerungen des Bereichs, gruppiert nach **Überfällig**, **Heute**, **Morgen** und **Später**. Das Panel öffnet sich über das Wecker-Symbol in der Statusleiste oder über Ansicht → Sidebar → Panels → Erinnerungen.
 
 - Pro Eintrag gibt es die Direkt-Aktionen **Erledigt** und **Später**.
 - Ein Klick auf einen Eintrag öffnet die Quelldatei an der zugehörigen Zeile.

@@ -18,40 +18,50 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Format-Toolbar](toolbar.md) — Formatieren per Schaltfläche: Sichtbarkeit im Edit-Modus, Zustands-Anzeige, Überschrift-Menü, Tabellen-Raster, eigene Belegung.
 - [Block-Konstrukte](blocks.md) — Callouts, Custom Containers, Definitionslisten, Line Blocks, Fußnoten.
 - [Inline-Konstrukte](inline.md) — Highlight, Tief-/Hochstellen, Unterstreichen, Spoiler, Critic Markup, Spans und Abkürzungen.
-- [Aufgaben-Listen](tasks.md) — Task-Listen mit Standard- und erweiterten Status.
-- [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
 - [Bilder](images.md) — Bild-Syntax, Größenangaben, Implicit Figures.
 - [Anlagen](attachments.md) — Dateien einfügen und hineinziehen: Ablage-Ort samt Einstellung, Namensvergabe, Öffnen in der Standardanwendung.
 - [Mathematik und Diagramme](math-diagrams.md) — KaTeX-Formeln, Mermaid-Diagramme, Code-Blöcke mit Syntax-Highlighting.
 - [Emoji](emoji.md) — Shortcode-Funktionsweise und kuratierte Code-Auswahl.
+- [Perspective Table](perspective-table.md) — Tabellen mit mehrzeiligen Block-Zellen: Syntax, Beispiele, Sortierung, Export.
 
-## Vernetzen und verwalten
+## Aufgaben, Termine und Zeit
+
+- [Aufgaben-Listen](tasks.md) — Task-Listen mit Standard- und erweiterten Status.
+- [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
+- [Ereignisse](events.md) — Termine, Geburtstage und Jahrestage im Dokument: Ereignis-Block mit Zeitdifferenz-Staffelung, Meilensteinen, Filtern und vier Ansichten, Aggregation über Frontmatter, Verknüpfungen.
+- [Kalender-Systeme](custom-calendars.md) — frei definierbare Zeitrechnungen je Bereich: Blöcke mit parallelen Kalendern, Ebenen mit fünf Beziehungs-Typen, Epochen, Umrechnung, Wert-Syntax im Dokument und Picker.
+
+## Metadaten, Daten und Abfragen
+
+- [Frontmatter und Properties](frontmatter.md) — YAML-Metadaten und die Properties-Sidebar.
+- [Eigenschafts-Profile](property-profiles.md) — zentrale Feld-Definitionen mit Typ, Wertebereich und Vorgabe-Wert: Profil-Dateien, Zuordnung und Standard-Profil, Wirkung in beiden Eigenschafts-Editoren.
+- [Block-Eigenschaften](block-properties.md) — typisierte Eigenschaften pro Block-Anker: Panel mit Cursor-Folge, verwaiste Daten, Anker umbenennen, Indikator am Block.
+- [Perspective-Abfrage](frontmatter-query.md) — dynamische Datei-Listen und -Tabellen: Klausel-Sprache, Quellen, Datei-Felder, Funktionen, Sortierung, Mehrspaltigkeit, Export.
+- [Perspective Datatable](datatable.md) — typisierte Datentabelle mit Rechenfunktionen: Spalten-Typen, Aggregate, berechnete Spalten, Grid-Bearbeitung, Sortieren und Filtern.
+- [Skript-Blöcke](scripts.md) — JavaScript im Dokument: isolierte Sandbox, Vertrauensmodell mit Standard aus, lesende pq-API mit Daten-, Ausgabe- und Helfer-Funktionen, Beispiele.
+
+## Vernetzen und organisieren
 
 - [Vernetzung](linking.md) — Wiki-Links, Anker, Embeds, Tags und Autocomplete.
 - [Unterseiten](subpages.md) — Seiten-Hierarchie über den Dateinamen: Trennzeichen ∕ (U+2215), relative Links, Breadcrumb und Umbenennen mit Kaskade.
 - [Graphenansicht](graph.md) — Link-Beziehungen als interaktiver Graph: Bereichs-Graph als Tab, Datei-Graph als Panel mit Tiefe und Richtung.
-- [Frontmatter und Properties](frontmatter.md) — YAML-Metadaten und die Properties-Sidebar.
-- [Eigenschafts-Profile](property-profiles.md) — zentrale Feld-Definitionen mit Typ, Wertebereich und Vorgabe-Wert: Profil-Dateien, Zuordnung und Standard-Profil, Wirkung in beiden Eigenschafts-Editoren.
-- [Perspective-Abfrage](frontmatter-query.md) — dynamische Datei-Listen und -Tabellen: Klausel-Sprache, Quellen, Datei-Felder, Funktionen, Sortierung, Mehrspaltigkeit, Export.
-- [Skript-Blöcke](scripts.md) — JavaScript im Dokument: isolierte Sandbox, Vertrauensmodell mit Standard aus, lesende pq-API mit Daten-, Ausgabe- und Helfer-Funktionen, Beispiele.
+- [Lesezeichen](bookmarks.md) — Dateien in zwei Abschnitten merken: allgemeine und bereichsgebundene Lesezeichen mit relativen Pfaden, Anlage, Umwandeln, Reihenfolge.
 - [Vorlagen](templates.md) — Markdown-Vorlagen anwenden: Vorlagen-Ordner mit Bereichs-Übersteuerung, Platzhalter mit Dialogen, Cursor-Ziel, Ordner-Regeln.
 - [Journale](journals.md) — periodische Dokumente je Bereich: Regale und Granularitäten, Ordner- und Namens-Schemata, Kalender-Panel, Navigations-Block, automatische Datums-Eigenschaften.
-- [Sidebar](sidebar.md) — Panels anordnen: Seitenwahl, Reihenfolge, Reiter-Gruppen, Breiten.
-- [Lesezeichen](bookmarks.md) — Dateien in zwei Abschnitten merken: allgemeine und bereichsgebundene Lesezeichen mit relativen Pfaden, Anlage, Umwandeln, Reihenfolge.
-- [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
-- [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
 - [Bücher](books.md) — mehrere Dateien als Buch mit erklärter Lese-Ordnung: Buch-Ordner mit Begleitdatei, Inhaltsverzeichnis mit Struktur-Pflege, Leseführung über Kapitel-Grenzen, Verschieben mit Nachführung, Reparatur fehlender Kapitel.
+- [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
 - [Dokument-Historie](history.md) — Änderungen protokollieren: Markdown-Data-Begleitdatei, Schalter auf drei Ebenen, Revisionen vergleichen und wiederherstellen.
 - [Dokument-Notizen](notes.md) — eine Notiz je Dokument: Sidebar-Panel mit umschaltbarer Vorschau, automatisches Speichern in der Begleitdatei, Abgrenzung zur Historie.
-- [Block-Eigenschaften](block-properties.md) — typisierte Eigenschaften pro Block-Anker: Panel mit Cursor-Folge, verwaiste Daten, Anker umbenennen, Indikator am Block.
+
+## Oberfläche, Werkzeuge und Erweiterungen
+
+- [Ansichten und Darstellung](views-display.md) — Ansichten pro Reiter und Erscheinungsbild der App: die vier Modi samt Live-Modus, Editor-Darstellung, Theme und Fokus-Modus, Zoom, Inhalts-Breite und Schriften, Einstellungen, Sprache und Menüleiste.
+- [Sidebar](sidebar.md) — Panels anordnen: Seitenwahl, Reihenfolge, Reiter-Gruppen, Breiten.
+- [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
 - [Werkzeuge](tools.md) — Markdown-Linter, Suche mit Regex, Suchen und Ersetzen, Tabellen-Editor.
 - [Kommando-Platzierung](command-placement.md) — Kommandos als dauerhafte eigene Zugänge: Statusbar-Buttons, Ausblende-Liste, Kontextmenü-Einträge, Makros.
 - [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Abhängigkeiten, Wirkung des Aus-Zustands.
 - [Erweiterungen erstellen](extensions-dev.md) — eigene externe Erweiterungen entwickeln: Manifest, Erweiterungs-API, Referenz-Beispiel, Sicherheits-Hinweise.
-- [Perspective Table](perspective-table.md) — Tabellen mit mehrzeiligen Block-Zellen: Syntax, Beispiele, Sortierung, Export.
-- [Perspective Datatable](datatable.md) — typisierte Datentabelle mit Rechenfunktionen: Spalten-Typen, Aggregate, berechnete Spalten, Grid-Bearbeitung, Sortieren und Filtern.
-- [Ereignisse](events.md) — Termine, Geburtstage und Jahrestage im Dokument: Ereignis-Block mit Zeitdifferenz-Staffelung, Meilensteinen, Filtern und vier Ansichten, Aggregation über Frontmatter, Verknüpfungen.
-- [Kalender-Systeme](custom-calendars.md) — frei definierbare Zeitrechnungen je Bereich: Blöcke mit parallelen Kalendern, Ebenen mit fünf Beziehungs-Typen, Epochen, Umrechnung, Wert-Syntax im Dokument und Picker.
 
 ## Tipps zur Nutzung
 

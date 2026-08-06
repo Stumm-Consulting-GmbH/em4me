@@ -698,6 +698,11 @@ test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
       const labelsAus = await capturedMenuLabels(app);
       expect(labelsAus).not.toContain('Neues Buch…');
       expect(labelsAus).not.toContain('Buch schließen');
+      // 4T-0888 (Epic 3E-0168): Die beiden Zuletzt-Listen tragen keine eigene
+      // Kommando-ID und hängen im Menü am Öffnen-Kommando — im Aus-Zustand
+      // verschwinden sie deshalb mit den übrigen Einträgen.
+      expect(labelsAus).not.toContain('Zuletzt geöffnete Bücher');
+      expect(labelsAus).not.toContain('Zuletzt geöffnete Bücherregale');
 
       // Die Buch-Datei öffnet wie jede andere Markdown-Datei: ein Reiter, aber
       // kein aktives Buch.
@@ -711,6 +716,10 @@ test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
 
       await expect(page.locator('#btn-book')).toBeVisible();
       await expect.poll(() => capturedMenuLabels(app)).toContain('Buch öffnen…');
+      // 4T-0888: mit dem Einschalten sind auch die beiden Zuletzt-Listen zurück.
+      const labelsEin = await capturedMenuLabels(app);
+      expect(labelsEin).toContain('Zuletzt geöffnete Bücher');
+      expect(labelsEin).toContain('Zuletzt geöffnete Bücherregale');
 
       // Das Buch öffnet jetzt wieder als Buch — seit 4T-0871 als eigene
       // Applikation mit eigenem Fenster, weil diese App fremde Reiter trägt.

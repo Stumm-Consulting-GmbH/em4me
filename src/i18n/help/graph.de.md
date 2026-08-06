@@ -16,7 +16,7 @@ Die Steuerleiste am Tab-Kopf bietet:
 
 ## Datei-Graph (Panel)
 
-Das Panel „Datei-Graph" zeigt das Link-Umfeld der aktiven Datei und folgt beim Tab-Wechsel automatisch. Geschaltet wird es über das Graph-Symbol in der Statusbar, das Menü Ansicht → Panels → Datei-Graph oder ein selbst vergebenes Tastenkürzel; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
+Das Panel „Datei-Graph" zeigt das Link-Umfeld der aktiven Datei und folgt beim Tab-Wechsel automatisch. Geschaltet wird es über das Graph-Symbol in der Statusbar, das Menü Ansicht → Sidebar → Panels → Datei-Graph oder ein selbst vergebenes Tastenkürzel; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
 
 Im Panel-Kopf sitzen zwei Regler:
 

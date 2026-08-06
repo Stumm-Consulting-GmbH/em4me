@@ -119,6 +119,9 @@ const {
   sortedAreaListing,
   sanitizeNewFileName,
 } = require('./area-path');
+// 4T-0888 (Epic 3E-0168): die vier "Zuletzt geoeffnet"-Listen (Dateien,
+// Bereiche, Buecher, Regale) — eine Fachlichkeit, aus main.js herausgeloest.
+const { createRecentLists } = require('./recent-lists');
 // 4T-0331 (Epic 3E-0060): Dokument-Historie — Kern der .mdd-Protokollierung
 // (Container-Format, Delta-Pakete, Anker, Hash-Abgleich). Electron- und
 // IO-frei; Datei-Zugriff und Fenster-Hinweise bleiben hier in main.js.
@@ -916,6 +919,11 @@ async function loadStore() {
       windows: [], // Legacy: flache Multi-Window-Sitzung (Lese-Fallback)
       recentFiles: [],
       recentAreas: [], // zuletzt geoeffnete Bereiche (4T-0325)
+      // 4T-0888 (Epic 3E-0168): zuletzt geoeffnete Buecher und Buecherregale,
+      // nach demselben Muster wie die Bereichs-Liste (juengste zuerst,
+      // dedupliziert, gekappt auf zehn).
+      recentBooks: [],
+      recentShelves: [],
       // 4T-0751 (Epic 3E-0146): Englisch ist der Auslieferungszustand.
       // conf materialisiert die Defaults schon bei der Store-Konstruktion,
       // deshalb wirkt dieser Wert ausschliesslich fuer frische Staende;
@@ -1638,6 +1646,11 @@ function getMenuState(id) {
     // der Datei-Liste — der Wechsel in einen anderen Bereich ist erlaubt
     // und erzeugt ggf. eine neue Applikation).
     recentAreas: (store && store.get('recentAreas')) || [],
+    // 4T-0888 (Epic 3E-0168): zuletzt geoeffnete Buecher und Regale — wie die
+    // Bereichs-Liste ungefiltert, weil ein Buch bzw. Regal als eigene
+    // Applikation oeffnet und vom Bereich des Fensters unabhaengig ist.
+    recentBooks: (store && store.get('recentBooks')) || [],
+    recentShelves: (store && store.get('recentShelves')) || [],
     themePref: store && store.get('themePref'),
     // 4T-0207: effektive Menue-Accelerators (Registry-Defaults plus
     // User-Overrides aus dem Store).
@@ -1652,11 +1665,12 @@ function applyMenuToWindow(win) {
   if (!win || win.isDestroyed()) return;
   const state = getMenuState(win.webContents.id);
   const actions = {
-    openRecent: (p) => openRecentFile(p, win),
-    clearRecent: () => clearRecentList(win),
+    // 4T-0888: die vier Recent-Listen liegen in recent-lists.js.
+    openRecent: (p) => recentLists.openRecentFile(p, win),
+    clearRecent: () => recentLists.clearRecentFiles(win),
     // 4T-0325: Zuletzt geoeffnete Bereiche.
-    openRecentArea: (p) => openRecentArea(p, win),
-    clearRecentAreas: () => clearRecentAreasList(win),
+    openRecentArea: (p) => recentLists.openRecentArea(p, win),
+    clearRecentAreas: () => recentLists.clearRecentAreas(win),
     // 4T-0538 (Epic 3E-0098): Klick auf einen Untermenue-Eintrag oeffnet
     // den Arbeitsbereich bzw. fokussiert ihn (Main fuehrt direkt aus).
     openWorkspace: (wsId) => {
@@ -1668,6 +1682,14 @@ function applyMenuToWindow(win) {
     openBook: () => {
       void openBookDialog(win);
     },
+    // 4T-0888 (Epic 3E-0168): Zuletzt geoeffnete Buecher (Muster der
+    // Bereichs-Liste); der Klick nimmt den regulaeren Oeffnungs-Pfad.
+    openRecentBook: (p) => {
+      void recentLists.openRecentBook(p, win);
+    },
+    clearRecentBooks: () => {
+      void recentLists.clearRecentBooks(win);
+    },
     createBook: () => {
       void createBookDialog(win);
     },
@@ -1678,6 +1700,13 @@ function applyMenuToWindow(win) {
     // dieselbe Aufteilung wie bei den Büchern, der Main führt direkt aus.
     openShelf: () => {
       void openShelfDialog(win);
+    },
+    // 4T-0888: Zuletzt geoeffnete Buecherregale (Muster der Buch-Liste).
+    openRecentShelf: (p) => {
+      void recentLists.openRecentShelf(p, win);
+    },
+    clearRecentShelves: () => {
+      void recentLists.clearRecentShelves(win);
     },
     createShelf: () => {
       void createShelfDialog(win);
@@ -1712,6 +1741,23 @@ function tForWindow(win, key) {
   const state = win && !win.isDestroyed() ? menuStates.get(win.webContents.id) : null;
   return tForLocale(state?.locale || 'en', key);
 }
+
+// 4T-0888 (Epic 3E-0168): Die Recent-Listen bekommen ihren Zustand injiziert
+// (Muster createAlarmChecker). Der Store kommt als Getter, weil er erst mit
+// loadStore entsteht; die Oeffnungs-Pfade sind hochgezogene Funktionen und
+// stehen zur Aufruf-Zeit bereit.
+const recentLists = createRecentLists({
+  getStore: () => store,
+  applyMenuToAllWindows: () => applyMenuToAllWindows(),
+  tForWindow: (win, key) => tForWindow(win, key),
+  getActiveWindow: () => getActiveWindow(),
+  focusWindow: (win) => inDenVordergrund(win),
+  openAreaPath: (rootPath, win) => openAreaPath(rootPath, win),
+  openBookApp: (dir, win) => openBookApp(dir, win),
+  reportNotABook: (win, dir, error) => reportNotABook(win, dir, error),
+  openShelfApp: (dir, win) => openShelfApp(dir, win),
+  reportNotAShelf: (win, dir, error) => reportNotAShelf(win, dir, error),
+});
 
 // --- Bereiche (4T-0322, Epic 3E-0058) -----------------------------------------
 
@@ -2118,6 +2164,11 @@ async function openBookApp(bookDir, senderWin, { alsoOpen = null } = {}) {
   const state = await books.buildBookState(bookDir);
   if (!state.ok) return state;
   const dir = state.state.bookDir;
+  // 4T-0888 (Epic 3E-0168): jedes Buch-Oeffnen pflegt die Zuletzt-Liste — vor
+  // der Fallunterscheidung, weil auch der Sprung in eine laufende
+  // Buch-Applikation als Oeffnen zaehlt (Muster openAreaPath). Der Weg der
+  // Neuanlage laeuft ueber dieselbe Stelle (createBookDialog ruft hierher).
+  recentLists.pushRecentEntry('recentBooks', dir);
   const running = findAppByBook(dir);
   if (running != null) {
     focusFirstAppWindow(running);
@@ -2205,6 +2256,10 @@ async function bindBookIfBookFile(win, filePath) {
     !activeShelves.has(appId) &&
     !appHasOpenFilesOutside(appId, bookDir);
   if (frei) {
+    // 4T-0888: Weg 2 des Oeffnens bindet direkt, ohne openBookApp — die
+    // Zuletzt-Liste wird deshalb hier gepflegt (der Zweig darunter erledigt
+    // sie ueber openBookApp).
+    recentLists.pushRecentEntry('recentBooks', bookDir);
     await bindBookToApp(appId, bookDir);
     return;
   }
@@ -2377,6 +2432,8 @@ async function openShelfApp(shelfDir, senderWin) {
   const state = await shelves.buildShelfState(shelfDir);
   if (!state.ok) return state;
   const dir = state.state.shelfDir;
+  // 4T-0888 (Epic 3E-0168): Zuletzt-Liste der Regale (Muster openBookApp).
+  recentLists.pushRecentEntry('recentShelves', dir);
   const running = findAppByShelf(dir);
   if (running != null) {
     focusFirstAppWindow(running);
@@ -2457,6 +2514,8 @@ async function bindShelfIfShelfFile(win, filePath) {
     !activeShelves.has(appId) &&
     !appHasOpenFilesOutside(appId, shelfDir);
   if (frei) {
+    // 4T-0888: direkte Bindung ohne openShelfApp (Muster bindBookIfBookFile).
+    recentLists.pushRecentEntry('recentShelves', shelfDir);
     await bindShelfToApp(appId, shelfDir);
     if (win && !win.isDestroyed()) win.webContents.send('shelves:openPage');
     return;
@@ -2622,99 +2681,6 @@ async function closeAppWindows(appId) {
 async function closeAreaApp(appId) {
   if (!appRegistry.getArea(appId)) return { ok: false };
   return closeAppWindows(appId);
-}
-
-// Klick auf einen Recent-Eintrag im Datei-Menue. Prueft zunaechst, ob die
-// Datei noch existiert; wenn nicht, raus aus der Liste und Fehlerdialog.
-// Sonst: Datei als neuer Tab im sourceWindow oeffnen (analog zu "Oeffnen mit"
-// im Explorer). Der Renderer aktualisiert die Recent-Liste selbst ueber
-// recent:push, wenn er die Datei in openInPane verarbeitet.
-async function openRecentFile(filePath, sourceWindow) {
-  try {
-    await fs.access(filePath);
-  } catch {
-    const recent = (store && store.get('recentFiles')) || [];
-    const filtered = recent.filter((p) => p !== filePath);
-    if (store) store.set('recentFiles', filtered);
-    applyMenuToAllWindows();
-    await dialog.showMessageBox(sourceWindow || undefined, {
-      type: 'warning',
-      title: tForWindow(sourceWindow, 'recent.missingFileTitle'),
-      message: tForWindow(sourceWindow, 'recent.missingFile'),
-      detail: filePath,
-      buttons: ['OK'],
-    });
-    return;
-  }
-  const target = sourceWindow && !sourceWindow.isDestroyed() ? sourceWindow : getActiveWindow();
-  if (target && !target.isDestroyed()) {
-    inDenVordergrund(target);
-    target.webContents.send('file:openExternal', [filePath]);
-  }
-}
-
-// 4T-0325 (Epic 3E-0058): Klick auf einen Eintrag im Submenue "Zuletzt
-// geoeffnete Bereiche". Fehlt der Ordner, wird der Eintrag ausgetragen und
-// gemeldet; sonst identische Regeln wie "Bereich oeffnen..." (openAreaPath).
-async function openRecentArea(rootPath, sourceWindow) {
-  try {
-    const stat = await fs.stat(rootPath);
-    if (!stat.isDirectory()) throw new Error('kein Ordner');
-  } catch {
-    if (store) {
-      const recent = store.get('recentAreas', []);
-      store.set(
-        'recentAreas',
-        recent.filter((p) => !isSamePath(p, rootPath)),
-      );
-      applyMenuToAllWindows();
-    }
-    await dialog.showMessageBox(sourceWindow || undefined, {
-      type: 'warning',
-      title: tForWindow(sourceWindow, 'area.missingTitle'),
-      message: tForWindow(sourceWindow, 'area.recentMissingMessage'),
-      detail: rootPath,
-      buttons: ['OK'],
-    });
-    return;
-  }
-  openAreaPath(rootPath, sourceWindow);
-}
-
-// 4T-0325: "Liste loeschen" im Bereichs-Submenue (Muster clearRecentList).
-async function clearRecentAreasList(sourceWindow) {
-  const t = (key) => tForWindow(sourceWindow, key);
-  const result = await dialog.showMessageBox(sourceWindow || undefined, {
-    type: 'question',
-    title: t('menu.file.recentClear'),
-    message: t('menu.file.recentAreasClearConfirm'),
-    buttons: [t('menu.file.recentClearBtnYes'), t('menu.file.recentClearBtnNo')],
-    defaultId: 0,
-    cancelId: 1,
-  });
-  if (result.response === 0) {
-    if (store) store.set('recentAreas', []);
-    applyMenuToAllWindows();
-  }
-}
-
-// Klick auf "Liste loeschen" im Recent-Submenue. Bestaetigungsdialog mit
-// "Loeschen" / "Abbrechen"; bei Loeschen wird die Liste geleert und alle
-// Fenster-Menues aktualisiert.
-async function clearRecentList(sourceWindow) {
-  const t = (key) => tForWindow(sourceWindow, key);
-  const result = await dialog.showMessageBox(sourceWindow || undefined, {
-    type: 'question',
-    title: t('menu.file.recentClear'),
-    message: t('menu.file.recentClearConfirm'),
-    buttons: [t('menu.file.recentClearBtnYes'), t('menu.file.recentClearBtnNo')],
-    defaultId: 0,
-    cancelId: 1,
-  });
-  if (result.response === 0) {
-    if (store) store.set('recentFiles', []);
-    applyMenuToAllWindows();
-  }
 }
 
 // Erstellt ein neues Fenster. opts:

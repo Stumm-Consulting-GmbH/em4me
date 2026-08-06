@@ -4,7 +4,7 @@ Zu jedem Dokument lässt sich **eine** Notiz führen, getrennt vom Dokument-Inha
 
 ## Das Notizen-Panel
 
-Das Panel „Notizen" wird wie jedes Sidebar-Panel geschaltet: über das Menü Ansicht → Panels → Notizen, das Notizzettel-Symbol in der Statusbar oder ein selbst vergebenes Tastenkürzel (ab Werk ist keines belegt, die Belegung erfolgt in den Einstellungen). Der Schalter wirkt auf die aktive Spalte; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
+Das Panel „Notizen" wird wie jedes Sidebar-Panel geschaltet: über das Menü Ansicht → Sidebar → Panels → Notizen, das Notizzettel-Symbol in der Statusbar oder ein selbst vergebenes Tastenkürzel (ab Werk ist keines belegt, die Belegung erfolgt in den Einstellungen). Der Schalter wirkt auf die aktive Spalte; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
 
 Eine Notiz gehört immer zum aktiven Dokument. Ein noch **unbenanntes** (nie gespeichertes) Dokument hat keinen Ablageort für die Begleitdatei, deshalb zeigt das Panel dann einen Hinweis statt eines Eingabefelds; nach dem ersten Speichern steht die Notiz bereit.
 

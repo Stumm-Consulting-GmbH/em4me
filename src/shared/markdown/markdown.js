@@ -453,7 +453,7 @@ function buildPipelines(enabled) {
     md.use(wikiLinksPlugin);
     md.use(blockAnchorsPlugin);
   }
-  if (enabled('wiki-embeds')) md.use(wikiEmbedsPlugin);
+  if (enabled('wiki-embeds')) md.use(wikiEmbedsPlugin, { portable: false });
   if (enabled('tags')) md.use(tagsPlugin);
   if (enabled('callouts')) md.use(calloutsPlugin, { portable: false });
   // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges; deaktiviert bleibt
@@ -509,12 +509,12 @@ function buildPipelines(enabled) {
   mdPortable.renderer.rules.html_inline = (tokens, idx) =>
     sanitizePortableHtmlInline(tokens[idx].content);
   // 4T-0055: Wiki-Embeds im portablen Export ebenfalls erkennen. Bilder
-  // werden direkt als <img> ausgegeben; PDF/MD/Other-Embeds bleiben als
-  // Platzhalter (das Renderer-Postprocessing wird im portablen Output
-  // nicht ausgefuehrt, daher zeigen sich solche Embeds extern als leere
-  // Span-Elemente). Akzeptable Einschraenkung in Stufe 1 — Bilder sind
-  // der haeufigste Embed-Typ und funktionieren vollstaendig portable.
-  if (enabled('wiki-embeds')) mdPortable.use(wikiEmbedsPlugin);
+  // werden direkt als <img> ausgegeben; PDF/MD/Other-Embeds bleiben
+  // Platzhalter, weil das Renderer-Postprocessing im portablen Output nicht
+  // laeuft. 4T-0891 (Epic 3E-0168, Befund L-02): Der Platzhalter ist dort
+  // nicht mehr leer, sondern traegt einen sichtbaren Verweis auf das Ziel in
+  // der Optik eines gewoehnlichen Wiki-Links (portable-Option des Plugins).
+  if (enabled('wiki-embeds')) mdPortable.use(wikiEmbedsPlugin, { portable: true });
   // 4T-0056: Tag-Inline-Rule auch im portablen Export — die Anker-href
   // `#tag:<name>` funktioniert im portablen Output zwar nicht als Filter,
   // aber der sichtbare Text `#tag` bleibt erhalten.

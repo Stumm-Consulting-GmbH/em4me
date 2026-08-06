@@ -74,6 +74,13 @@ const MANUAL_PAGES = [
   // 4T-0437 (Epic 3E-0081): Journale (Regale und Granularitaeten, Ordner-/
   // Namens-Schemata, Kalender-Panel, Navigations-Block, Datums-Properties).
   { id: 'journals', titleKey: 'manual.page.journals.title', source: 'bundled' },
+  // 4T-0892 (Epic 3E-0168, Befund L-09): Ansichten und Darstellung — die vier
+  // Ansichts-Modi samt Live-Modus, die Editor-Darstellungs-Schalter, das
+  // Erscheinungsbild (Theme, Fokus-Modus, Zoom, Breite, Schriften), der
+  // Einstellungs-Zugang, Sprachen und Menueleiste. Direkt vor „Sidebar",
+  // weil beide Seiten die Oberflaeche beschreiben und die Sidebar-Seite den
+  // Panel-Teil davon uebernimmt.
+  { id: 'views-display', titleKey: 'manual.page.viewsDisplay.title', source: 'bundled' },
   // 4T-0290 (Epic 3E-0051): Sidebar-Seite (Panels, Anordnung, Reiter-Gruppen).
   { id: 'sidebar', titleKey: 'manual.page.sidebar.title', source: 'bundled' },
   // 4T-0613 (Epic 3E-0115): Lesezeichen (allgemeine und bereichsgebundene mit

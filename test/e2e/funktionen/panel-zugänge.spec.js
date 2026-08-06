@@ -48,8 +48,14 @@ function panelCountWithoutExtensions(disabledIds) {
 }
 
 // Interceptor: fängt jeden Menü-Neubau des ersten Fensters ab und legt das
-// Panel-Untermenü ({label, type, checked} je Eintrag) plus die direkten
-// Kind-Labels des Ansichtsmenüs global ab.
+// Panel-Untermenü ({label, type, checked} je Eintrag) plus alle übrigen Labels
+// des Ansichtsmenüs global ab.
+//
+// 4T-0887 (Epic 3E-0168): Seit der Menü-Neuordnung liegt das Panel-Untermenü
+// nicht mehr direkt im Ansichtsmenü, sondern im Untermenü „Sidebar". Die
+// Prüf-Aussage bleibt dieselbe und wird strukturunabhängig gefasst:
+// viewLabels sammelt den GANZEN Teilbaum des Ansichtsmenüs, ausgenommen die
+// Kinder des Panel-Untermenüs — dort und nur dort gehören Panel-Einträge hin.
 async function armPanelMenuCapture(app) {
   await app.evaluate(({ BrowserWindow }, panelsLabels) => {
     const win = BrowserWindow.getAllWindows()[0];
@@ -58,8 +64,10 @@ async function armPanelMenuCapture(app) {
     const orig = win.setMenu.bind(win);
     win.setMenu = (menu) => {
       const found = { submenu: null, viewLabels: null };
-      const walk = (items) => {
+      const sammle = (items) => {
+        const out = [];
         for (const it of items || []) {
+          out.push(it.label || '--sep--');
           if (!it.submenu) continue;
           const kids = it.submenu.items || [];
           if (panelsLabels.includes(it.label)) {
@@ -68,14 +76,19 @@ async function armPanelMenuCapture(app) {
               type: k.type,
               checked: !!k.checked,
             }));
+            continue;
           }
-          if (kids.some((k) => panelsLabels.includes(k.label))) {
-            found.viewLabels = kids.map((k) => k.label || '--sep--');
-          }
-          walk(kids);
+          out.push(...sammle(kids));
         }
+        return out;
       };
-      walk(menu ? menu.items : []);
+      for (const top of (menu ? menu.items : []) || []) {
+        const labels = sammle(top.submenu ? top.submenu.items : []);
+        if (found.submenu) {
+          found.viewLabels = labels;
+          break;
+        }
+      }
       globalThis.__panelMenu = found;
       return orig(menu);
     };
@@ -122,12 +135,16 @@ test.describe('PZ-01: Panel-Untermenü bündelt alle Panels in Modell-Reihenfolg
       // Alle Einträge sind Checkboxen (Häkchen-Semantik).
       for (const entry of submenu) expect(entry.type).toBe('checkbox');
 
-      // Hauptmenü-Ebene: die Editor-Toggles bleiben (Gliederung), die
-      // Panel-Einzel-Einträge sind verschwunden.
+      // Übriges Ansichtsmenü: die Editor-Toggles bleiben erreichbar
+      // (Gliederung, seit 4T-0887 im Untermenü „Editor-Darstellung"), und
+      // außerhalb des Panel-Untermenüs steht kein einziger Panel-Eintrag.
       expect(viewLabels).not.toBeNull();
       expect(viewLabels.some((l) => FOLD_GUTTER_LABELS.has(l))).toBe(true);
       for (const label of viewLabels) {
-        expect(LABEL_TO_ID.has(label), `Panel-Eintrag '${label}' noch im Hauptmenü`).toBe(false);
+        expect(
+          LABEL_TO_ID.has(label),
+          `Panel-Eintrag '${label}' außerhalb des Panel-Untermenüs`,
+        ).toBe(false);
       }
     } finally {
       await closeApp(app, userData, { force: true });
@@ -340,6 +357,52 @@ test.describe('PZ-05: Einstellungs-Bereich Panel-Reihenfolge', () => {
       await expect.poll(() => statusbarButtonIds(page)).toEqual([...BUTTON_ORDER]);
     } finally {
       await closeApp(second.app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-0887 (PO-Befund der Test-Iteration 0.105.0): Das Suchergebnisse-Panel
+// zeigte nie ein Häkchen, weil sein Getter in der Roh-Sichtbarkeits-Tabelle
+// des Renderers fehlte (unbekannte IDs liefern false). Der Fall prüft die
+// Häkchen-Kopplung systematisch für JEDES Panel des Zugangs-Modells: Toggle
+// über den zentralen Kanal muss den checked-Zustand im Menü kippen. Ein
+// künftig vergessener Getter fällt damit sofort auf.
+test.describe('PZ-06: jedes Panel koppelt sein Menü-Häkchen an den Toggle', () => {
+  test('Toggle kippt checked für alle Panels, auch Suchergebnisse', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await armPanelMenuCapture(app);
+      await nudgeMenuRebuild(app);
+
+      const checkedOf = (submenu, id) => {
+        const eintrag = (submenu || []).find((k) => LABEL_TO_ID.get(k.label) === id);
+        return eintrag ? eintrag.checked : null;
+      };
+
+      for (const id of DEFAULT_PANEL_TOGGLE_ORDER) {
+        const vorher = checkedOf((await capturedPanelMenu(app)).submenu, id);
+        expect(vorher, `Panel ${id} fehlt im Untermenü`).not.toBeNull();
+        await app.evaluate(({ BrowserWindow }, panelId) => {
+          const win = BrowserWindow.getAllWindows()[0];
+          if (win) win.webContents.send('menu:togglePanel', panelId);
+        }, id);
+        await expect
+          .poll(async () => checkedOf((await capturedPanelMenu(app)).submenu, id), {
+            message: `Panel ${id}: Häkchen folgt dem Toggle nicht`,
+          })
+          .toBe(!vorher);
+        // zurück in den Ausgangszustand, damit die Fälle unabhängig bleiben
+        await app.evaluate(({ BrowserWindow }, panelId) => {
+          const win = BrowserWindow.getAllWindows()[0];
+          if (win) win.webContents.send('menu:togglePanel', panelId);
+        }, id);
+        await expect
+          .poll(async () => checkedOf((await capturedPanelMenu(app)).submenu, id))
+          .toBe(vorher);
+      }
+    } finally {
+      await closeApp(app, userData, { force: true });
     }
   });
 });

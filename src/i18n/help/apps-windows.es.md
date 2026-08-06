@@ -72,7 +72,7 @@ Los números se reordenan al cerrar: si se cierra la aplicación 1, la aplicaci�
 
 ## Áreas
 
-Un **área** vincula una aplicación a una carpeta: todo lo que hay en esa carpeta, subcarpetas incluidas, es el espacio de trabajo, nada más. «Archivo → Abrir área…» elige la carpeta; «Archivo → Cerrar área» termina el trabajo en el área y cierra todas las ventanas de la aplicación del área (con las preguntas de guardado habituales). El vínculo es fijo: un área no se puede cambiar, solo cerrar.
+Un **área** vincula una aplicación a una carpeta: todo lo que hay en esa carpeta, subcarpetas incluidas, es el espacio de trabajo, nada más. «Archivo → Área → Abrir área…» elige la carpeta; «Archivo → Área → Cerrar área» termina el trabajo en el área y cierra todas las ventanas de la aplicación del área (con las preguntas de guardado habituales). El vínculo es fijo: un área no se puede cambiar, solo cerrar.
 
 Al abrir se aplican tres reglas:
 
@@ -80,7 +80,7 @@ Al abrir se aplican tres reglas:
 - Si la aplicación ya tiene un archivo abierto, se crea una nueva aplicación para el área.
 - Si el área ya está en ejecución, el foco salta a una ventana de la aplicación del área; la misma área nunca se ejecuta dos veces.
 
-**Demo-Area:** «Archivo → Crear la Demo-Area…» copia una colección de ejemplos incluida en inglés —páginas Markdown junto con adjuntos de imagen y PDF que muestran las funciones más importantes— en una carpeta vacía y la abre directamente como área: un entorno de pruebas para experimentar sin riesgo. Las carpetas de destino no vacías se rechazan, y los archivos existentes nunca se sobrescriben. La función puede desactivarse como extensión «Demo-Area»; las carpetas de demostración ya creadas son áreas ordinarias y permanecen intactas.
+**Demo-Area:** «Archivo → Área → Crear la Demo-Area…» copia una colección de ejemplos incluida en inglés —páginas Markdown junto con adjuntos de imagen y PDF que muestran las funciones más importantes— en una carpeta vacía y la abre directamente como área: un entorno de pruebas para experimentar sin riesgo. Las carpetas de destino no vacías se rechazan, y los archivos existentes nunca se sobrescriben. La función puede desactivarse como extensión «Demo-Area»; las carpetas de demostración ya creadas son áreas ordinarias y permanecen intactas.
 
 ### Límites estrictos
 
@@ -94,7 +94,7 @@ En una aplicación de área, el espacio de búsqueda de los retroenlaces, las et
 
 ### Panel del área
 
-El panel «Área» muestra el área como estructura de carpetas en la barra lateral (acoplable a la izquierda o a la derecha como cualquier panel; el conmutador es el icono de carpeta de la barra de estado o Ver → Paneles → Área): el árbol de carpetas arriba y debajo los archivos Markdown de la carpeta seleccionada; otros tipos de archivo no aparecen. Un clic en un archivo lo abre como pestaña, todas las entradas muestran la ruta completa como información sobre herramientas, y los cambios externos (archivo creado, borrado, renombrado) aparecen automáticamente. El botón «+» en la cabecera de la lista crea un nuevo archivo Markdown en la carpeta seleccionada y lo abre. En una aplicación de área recién abierta y todavía vacía, el panel es visible automáticamente.
+El panel «Área» muestra el área como estructura de carpetas en la barra lateral (acoplable a la izquierda o a la derecha como cualquier panel; el conmutador es el icono de carpeta de la barra de estado o Ver → Barra lateral → Paneles → Área): el árbol de carpetas arriba y debajo los archivos Markdown de la carpeta seleccionada; otros tipos de archivo no aparecen. Un clic en un archivo lo abre como pestaña, todas las entradas muestran la ruta completa como información sobre herramientas, y los cambios externos (archivo creado, borrado, renombrado) aparecen automáticamente. El botón «+» en la cabecera de la lista crea un nuevo archivo Markdown en la carpeta seleccionada y lo abre. En una aplicación de área recién abierta y todavía vacía, el panel es visible automáticamente.
 
 ### Estadísticas del área
 
@@ -106,7 +106,7 @@ Las cifras llevan arriba una marca de tiempo y se calculan **a petición**, no d
 
 ### Áreas recientes
 
-«Archivo → Áreas recientes» lista las áreas abiertas recientemente por su nombre de carpeta. Un clic abre el área con las reglas habituales. Las áreas se restauran con la sesión; si falta una carpeta de área al iniciar, la aplicación correspondiente no se restaura y se muestra un aviso.
+«Archivo → Área → Áreas recientes» lista las áreas abiertas recientemente por su nombre de carpeta. Un clic abre el área con las reglas habituales. Las áreas se restauran con la sesión; si falta una carpeta de área al iniciar, la aplicación correspondiente no se restaura y se muestra un aviso.
 
 ## Espacios de trabajo
 

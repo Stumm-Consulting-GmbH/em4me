@@ -57,7 +57,7 @@ An open book behaves **like an area**: it opens as its own application with its 
 
 ## The table of contents
 
-The **Book** panel shows the chapter tree in its declared order. A click opens a chapter, the one currently being read is highlighted. In front of every name sits a marker, which doubles as the handle for maintenance. The panel is toggled like any other: via the button in the status-bar strip or via View → Panels → Book. Side, order and tab groups follow the rules of the [sidebar](sidebar.md).
+The **Book** panel shows the chapter tree in its declared order. A click opens a chapter, the one currently being read is highlighted. In front of every name sits a marker, which doubles as the handle for maintenance. The panel is toggled like any other: via the button in the status-bar strip or via View → Sidebar → Panels → Book. Side, order and tab groups follow the rules of the [sidebar](sidebar.md).
 
 ### Files that are not linked in
 

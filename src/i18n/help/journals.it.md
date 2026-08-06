@@ -29,8 +29,8 @@ Uno schema modificato non rinomina i file esistenti; i punti del calendario e il
 
 ## Aprire e creare voci
 
-- **Voce di diario di oggi** (menu File): apre o crea la voce di oggi di un diario giornaliero; con selezione se esistono più diari giornalieri.
-- **Voce di diario per una data…** (menu File): chiede una data (AAAA-MM-GG) e il diario; il periodo è quello della data nella granularità del diario.
+- **Voce di diario di oggi** (menu File → Altre funzioni file): apre o crea la voce di oggi di un diario giornaliero; con selezione se esistono più diari giornalieri.
+- **Voce di diario per una data…** (menu File → Altre funzioni file): chiede una data (AAAA-MM-GG) e il diario; il periodo è quello della data nella granularità del diario.
 
 La creazione produce la catena di cartelle, il contenuto del modello compilato (una voce vuota senza modello) e le proprietà di data nel frontmatter: i diari giornalieri ricevono la data (`journal-date`), i periodi di più giorni inizio e fine (`journal-start-date`, `journal-end-date`); i nomi di campo sono configurabili per diario e disponibili per la query Perspective. I segnaposto di data del modello vengono valutati all'inizio del periodo: `{{date}}` restituisce la data del periodo, non il momento della creazione. Annullare un dialogo del modello interrompe la creazione; non viene creato alcun file.
 

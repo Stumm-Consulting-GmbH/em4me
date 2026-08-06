@@ -8,6 +8,8 @@ import {
   isInsideArea,
   areaFromRootPath,
   updatedRecentAreas,
+  updatedRecentPaths,
+  withoutRecentPath,
   sortedAreaListing,
   sanitizeNewFileName,
 } from '../../src/main/area-path.js';
@@ -76,6 +78,54 @@ describe('updatedRecentAreas (4T-0325)', () => {
     expect(result).not.toContain('C:\\Ordner9');
     expect(updatedRecentAreas(null, 'C:\\Neu')).toEqual(['C:\\Neu']);
     expect(updatedRecentAreas([42, null, 'C:\\A'], '')).toEqual(['C:\\A']);
+  });
+});
+
+// 4T-0888 (Epic 3E-0168): Derselbe Listen-Aufbau trägt seit dem
+// Konsistenz-Auftrag auch die Listen „Zuletzt geöffnete Bücher" und „Zuletzt
+// geöffnete Bücherregale" (Store-Schlüssel 'recentBooks'/'recentShelves').
+describe('updatedRecentPaths (4T-0888)', () => {
+  it('setzt den jüngsten Ordner nach vorn und dedupliziert über Pfad-Gleichheit', () => {
+    // 4T-0888
+    expect(updatedRecentPaths(['C:\\Buch1', 'C:\\Buch2'], 'C:\\Buch3')).toEqual([
+      'C:\\Buch3',
+      'C:\\Buch1',
+      'C:\\Buch2',
+    ]);
+    // Erneutes Öffnen desselben Buches (andere Schreibweise, Trenner, Schluss-
+    // Trenner) rückt nach vorn statt eine Dublette anzulegen.
+    expect(updatedRecentPaths(['C:\\Buch1', 'C:\\Buch2'], 'c:/buch2/')).toEqual([
+      'c:\\buch2',
+      'C:\\Buch1',
+    ]);
+  });
+
+  it('kappt auf die Maximal-Länge und toleriert kaputte Eingaben', () => {
+    // 4T-0888
+    const list = Array.from({ length: 10 }, (_, i) => `C:\\Regal${i}`);
+    const result = updatedRecentPaths(list, 'C:\\Neu');
+    expect(result).toHaveLength(10);
+    expect(result[0]).toBe('C:\\Neu');
+    expect(result).not.toContain('C:\\Regal9');
+    // Eigene Kappungs-Grenze und defekte Eingaben.
+    expect(updatedRecentPaths(list, 'C:\\Neu', 3)).toEqual(['C:\\Neu', 'C:\\Regal0', 'C:\\Regal1']);
+    expect(updatedRecentPaths(null, 'C:\\Neu')).toEqual(['C:\\Neu']);
+    expect(updatedRecentPaths([42, null, 'C:\\A'], '')).toEqual(['C:\\A']);
+  });
+});
+
+describe('withoutRecentPath (4T-0888)', () => {
+  it('trägt genau den angegebenen Eintrag aus (Ziel existiert nicht mehr)', () => {
+    // 4T-0888
+    const list = ['C:\\Buch1', 'C:\\Buch2', 'C:\\Buch3'];
+    expect(withoutRecentPath(list, 'C:\\Buch2')).toEqual(['C:\\Buch1', 'C:\\Buch3']);
+    // Pfad-Gleichheit statt String-Gleichheit (Schreibweise, Trenner).
+    expect(withoutRecentPath(list, 'c:/BUCH1/')).toEqual(['C:\\Buch2', 'C:\\Buch3']);
+    // Unbekanntes Ziel und defekte Eingaben lassen die Liste unverändert.
+    expect(withoutRecentPath(list, 'C:\\Fremd')).toEqual(list);
+    expect(withoutRecentPath(list, '')).toEqual(list);
+    expect(withoutRecentPath(null, 'C:\\Buch1')).toEqual([]);
+    expect(withoutRecentPath([42, null, 'C:\\A'], 'C:\\B')).toEqual(['C:\\A']);
   });
 });
 

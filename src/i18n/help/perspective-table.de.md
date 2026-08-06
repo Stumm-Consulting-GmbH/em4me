@@ -250,7 +250,7 @@ Ergebnis:
 
 `.md`-Dateien mit Perspective-Tabellen rendern nur in diesem Viewer als Tabelle. In anderen Markdown-Programmen erscheint der `perspective-table`-Codeblock unverändert als Quelltext.
 
-Mit **Datei → Exportieren → Portables Markdown…** speicherst du eine Variante der Datei, in der die Perspective-Tabellen durch inline HTML-Tabellen ersetzt sind. Diese HTML-Tabellen rendert praktisch jedes Markdown-Programm als echte Tabelle.
+Mit **Datei → Weitere Datei-Funktionen → Exportieren → Portables Markdown…** speicherst du eine Variante der Datei, in der die Perspective-Tabellen durch inline HTML-Tabellen ersetzt sind. Diese HTML-Tabellen rendert praktisch jedes Markdown-Programm als echte Tabelle.
 
 - **Save-As-Dialog** mit Vorbelegung `<basename>-portable.md` im Verzeichnis der Quell-Datei. Pfad und Name lassen sich frei ändern.
 - **Original-Datei** bleibt unverändert; der Export schreibt immer in eine neue Datei.

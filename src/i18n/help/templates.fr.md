@@ -17,7 +17,7 @@ Chaque fichier Markdown du dossier (sous-dossiers compris) est un modèle. Les s
 
 Deux chemins mènent au modèle :
 
-- **Nouveau fichier à partir d'un modèle** (menu Fichier) : choisir le modèle dans le popup filtrable, attribuer un nom de fichier (`/` crée une sous-page), répondre à la chaîne de dialogues. Le fichier naît avec le contenu rempli dans le dossier du fichier actif (sans fichier actif à la racine de la zone ; sans l'un ni l'autre, un dialogue de dossier demande la cible), s'ouvre comme onglet, et le curseur saute à la première cible `{{cursor}}`.
+- **Nouveau fichier à partir d'un modèle** (menu Fichier → Autres fonctions de fichier) : choisir le modèle dans le popup filtrable, attribuer un nom de fichier (`/` crée une sous-page), répondre à la chaîne de dialogues. Le fichier naît avec le contenu rempli dans le dossier du fichier actif (sans fichier actif à la racine de la zone ; sans l'un ni l'autre, un dialogue de dossier demande la cible), s'ouvre comme onglet, et le curseur saute à la première cible `{{cursor}}`.
 - **Insérer un modèle** (menu contextuel de l'éditeur → Insérer) : le résultat rempli est inséré à la position du curseur, en une seule étape d'édition (une annulation supprime tout).
 
 Plusieurs espaces réservés de saisie et de sélection apparaissent **l'un après l'autre** dans l'ordre de leur première occurrence ; les questions identiques ne sont posées qu'une fois. L'annulation d'un dialogue interrompt toute l'application : aucun fichier ni texte inséré n'est créé.

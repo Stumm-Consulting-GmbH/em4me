@@ -250,7 +250,7 @@ Résultat :
 
 Les fichiers `.md` contenant des tableaux Perspective ne s'affichent comme tableaux que dans ce viewer. Dans les autres applications Markdown, le bloc de code `perspective-table` apparaît tel quel comme texte source.
 
-Avec **Fichier → Exporter → Markdown portable…**, tu enregistres une variante du fichier dans laquelle les tableaux Perspective sont remplacés par des tableaux HTML en ligne. Ces tableaux HTML s'affichent comme de vrais tableaux dans pratiquement toute application Markdown.
+Avec **Fichier → Autres fonctions de fichier → Exporter → Markdown portable…**, tu enregistres une variante du fichier dans laquelle les tableaux Perspective sont remplacés par des tableaux HTML en ligne. Ces tableaux HTML s'affichent comme de vrais tableaux dans pratiquement toute application Markdown.
 
 - **Boîte de dialogue Enregistrer sous** avec valeur par défaut `<nomdebase>-portable.md` dans le répertoire du fichier source. Chemin et nom librement modifiables.
 - **Les formules KaTeX** (`$...$`) dans les cellules restent sous forme de code source lors de l'export — du HTML KaTeX rendu apparaîtrait cassé chez un destinataire sans la feuille de style KaTeX.

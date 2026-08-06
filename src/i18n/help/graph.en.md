@@ -16,7 +16,7 @@ The toolbar at the top of the tab offers:
 
 ## File graph (panel)
 
-The “File graph” panel shows the link neighborhood of the active file and follows automatically when you switch tabs. It is toggled via the menu View → Panels → File graph, the graph icon in the status bar, or a custom keyboard shortcut; side, order and tab groups follow the rules of the [sidebar](sidebar.md).
+The “File graph” panel shows the link neighborhood of the active file and follows automatically when you switch tabs. It is toggled via the menu View → Sidebar → Panels → File graph, the graph icon in the status bar, or a custom keyboard shortcut; side, order and tab groups follow the rules of the [sidebar](sidebar.md).
 
 Two controls sit in the panel header:
 

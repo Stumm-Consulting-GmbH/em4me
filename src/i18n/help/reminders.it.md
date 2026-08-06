@@ -43,7 +43,7 @@ Con un'area aperta, l'applicazione controlla di continuo i marcatori di tutti i 
 
 ## Elenco promemoria
 
-Un pannello della barra laterale elenca tutti i promemoria dell'area, raggruppati in **In ritardo**, **Oggi**, **Domani** e **Più tardi**. Il pannello si apre tramite l'icona di sveglia della barra di stato o tramite Visualizza → Pannelli → Promemoria.
+Un pannello della barra laterale elenca tutti i promemoria dell'area, raggruppati in **In ritardo**, **Oggi**, **Domani** e **Più tardi**. Il pannello si apre tramite l'icona di sveglia della barra di stato o tramite Visualizza → Barra laterale → Pannelli → Promemoria.
 
 - Ogni voce offre le azioni dirette **Completato** e **Più tardi**.
 - Un clic su una voce apre il file di origine alla riga corrispondente.

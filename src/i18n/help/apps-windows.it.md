@@ -72,7 +72,7 @@ I numeri scalano alla chiusura: se si chiude l'applicazione 1, l'applicazione 2 
 
 ## Aree
 
-Un'**area** vincola un'applicazione a una cartella: tutto ciò che si trova in questa cartella, sottocartelle comprese, è lo spazio di lavoro, nient'altro. «File → Apri area…» sceglie la cartella; «File → Chiudi area» termina il lavoro nell'area e chiude tutte le finestre dell'applicazione dell'area (con le consuete richieste di salvataggio). Il vincolo è fisso: un'area non può essere cambiata, solo chiusa.
+Un'**area** vincola un'applicazione a una cartella: tutto ciò che si trova in questa cartella, sottocartelle comprese, è lo spazio di lavoro, nient'altro. «File → Area → Apri area…» sceglie la cartella; «File → Area → Chiudi area» termina il lavoro nell'area e chiude tutte le finestre dell'applicazione dell'area (con le consuete richieste di salvataggio). Il vincolo è fisso: un'area non può essere cambiata, solo chiusa.
 
 All'apertura valgono tre regole:
 
@@ -80,7 +80,7 @@ All'apertura valgono tre regole:
 - Se l'applicazione ha già un file aperto, viene creata una nuova applicazione per l'area.
 - Se l'area è già in esecuzione, il focus passa a una finestra dell'applicazione dell'area; la stessa area non gira mai due volte.
 
-**Demo-Area:** «File → Crea la Demo-Area…» copia una raccolta di esempi fornita in inglese — pagine Markdown insieme ad allegati immagine e PDF che mostrano le funzioni più importanti — in una cartella vuota e la apre direttamente come area: un ambiente di prova per sperimentare senza rischi. Le cartelle di destinazione non vuote vengono rifiutate, e i file esistenti non vengono mai sovrascritti. La funzione può essere disattivata come estensione «Demo-Area»; le cartelle demo già create sono aree ordinarie e restano intatte.
+**Demo-Area:** «File → Area → Crea la Demo-Area…» copia una raccolta di esempi fornita in inglese — pagine Markdown insieme ad allegati immagine e PDF che mostrano le funzioni più importanti — in una cartella vuota e la apre direttamente come area: un ambiente di prova per sperimentare senza rischi. Le cartelle di destinazione non vuote vengono rifiutate, e i file esistenti non vengono mai sovrascritti. La funzione può essere disattivata come estensione «Demo-Area»; le cartelle demo già create sono aree ordinarie e restano intatte.
 
 ### Limiti rigidi
 
@@ -94,7 +94,7 @@ In un'applicazione di area, lo spazio di ricerca per backlink, tag, completament
 
 ### Pannello dell'area
 
-Il pannello «Area» mostra l'area come struttura di cartelle nella barra laterale (agganciabile a sinistra o a destra come ogni pannello; l'interruttore è l'icona della cartella nella barra di stato o Visualizza → Pannelli → Area): l'albero delle cartelle in alto e sotto i file Markdown della cartella selezionata; gli altri tipi di file non compaiono. Un clic su un file lo apre come scheda, tutte le voci mostrano il percorso completo come suggerimento e le modifiche esterne (file creato, eliminato, rinominato) compaiono automaticamente. Il pulsante «+» in testa all'elenco crea un nuovo file Markdown nella cartella selezionata e lo apre. In un'applicazione di area appena aperta e ancora vuota il pannello è visibile automaticamente.
+Il pannello «Area» mostra l'area come struttura di cartelle nella barra laterale (agganciabile a sinistra o a destra come ogni pannello; l'interruttore è l'icona della cartella nella barra di stato o Visualizza → Barra laterale → Pannelli → Area): l'albero delle cartelle in alto e sotto i file Markdown della cartella selezionata; gli altri tipi di file non compaiono. Un clic su un file lo apre come scheda, tutte le voci mostrano il percorso completo come suggerimento e le modifiche esterne (file creato, eliminato, rinominato) compaiono automaticamente. Il pulsante «+» in testa all'elenco crea un nuovo file Markdown nella cartella selezionata e lo apre. In un'applicazione di area appena aperta e ancora vuota il pannello è visibile automaticamente.
 
 ### Statistiche dell'area
 
@@ -106,7 +106,7 @@ I numeri portano in alto un riferimento temporale e vengono calcolati **su richi
 
 ### Aree recenti
 
-«File → Aree recenti» elenca le aree aperte di recente con il nome della cartella. Un clic apre l'area con le consuete regole. Le aree vengono ripristinate con la sessione; se all'avvio manca una cartella di area, l'applicazione corrispondente non viene ripristinata e viene mostrato un avviso.
+«File → Area → Aree recenti» elenca le aree aperte di recente con il nome della cartella. Un clic apre l'area con le consuete regole. Le aree vengono ripristinate con la sessione; se all'avvio manca una cartella di area, l'applicazione corrispondente non viene ripristinata e viene mostrato un avviso.
 
 ## Spazi di lavoro
 

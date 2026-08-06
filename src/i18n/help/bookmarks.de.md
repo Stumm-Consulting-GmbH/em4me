@@ -4,7 +4,7 @@ Lesezeichen halten häufig gebrauchte Dateien griffbereit, unabhängig davon, we
 
 ## Das Lesezeichen-Panel
 
-Das Panel „Lesezeichen" wird wie jedes Sidebar-Panel geschaltet: über den Stern in der Statusbar, das Menü Ansicht → Panels → Lesezeichen (Standard `Strg+Umschalt+L`) oder ein selbst vergebenes Kürzel. Der Schalter wirkt auf die aktive Spalte; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md). Der Stern in der Statusbar zeigt zusätzlich an, ob die aktive Datei bereits gemerkt ist.
+Das Panel „Lesezeichen" wird wie jedes Sidebar-Panel geschaltet: über den Stern in der Statusbar, das Menü Ansicht → Sidebar → Panels → Lesezeichen (Standard `Strg+Umschalt+L`) oder ein selbst vergebenes Kürzel. Der Schalter wirkt auf die aktive Spalte; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md). Der Stern in der Statusbar zeigt zusätzlich an, ob die aktive Datei bereits gemerkt ist.
 
 Ein Klick auf einen Eintrag öffnet die Datei. Fehlt eine gemerkte Datei am erwarteten Ort, weist der Eintrag darauf hin, statt still ins Leere zu führen. Auch im leeren App-Zustand ohne offenes Dokument bleibt die Liste bedienbar, sodass gemerkte Dateien direkt geöffnet werden können.
 
@@ -25,7 +25,7 @@ Ein Bereichs-Lesezeichen merkt sich sein Ziel nicht als vollständigen Pfad, son
 
 ### Allgemeine Lesezeichen
 
-Die aktive Datei wird über das Datei-Menü (Standard `Strg+D`) oder den Stern gemerkt. Ist kein Bereich geöffnet oder liegt die Datei außerhalb des geöffneten Bereichs, entsteht ohne Nachfrage ein allgemeines Lesezeichen.
+Die aktive Datei wird über Datei → Weitere Datei-Funktionen → Aktive Datei als Lesezeichen merken (Standard `Strg+D`) oder den Stern gemerkt. Ist kein Bereich geöffnet oder liegt die Datei außerhalb des geöffneten Bereichs, entsteht ohne Nachfrage ein allgemeines Lesezeichen.
 
 Ist dagegen ein Bereich geöffnet und liegt die aktive Datei innerhalb, öffnet `Strg+D` am Stern ein kleines Auswahl-Menü mit den Zielen „Allgemeines Lesezeichen" und „Bereichs-Lesezeichen". So ist bei jeder Anlage klar, in welchen Abschnitt das Lesezeichen wandert.
 

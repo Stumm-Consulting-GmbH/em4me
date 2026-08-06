@@ -14,7 +14,11 @@
 // ohne Anwenden verwirft (onClose-Haken revertiert die Live-Vorschau).
 'use strict';
 
-import { t } from '../i18n.js';
+// 4T-0889 (Epic 3E-0168): getLanguage liefert die Sortier-Sprache des
+// Erweiterungs-Blocks der Bereichsnavigation (alphabetisch nach dem
+// lokalisierten Titel — ohne Sprach-Angabe sortierte localeCompare nach der
+// Laufzeit-Sprache des Systems und damit an der Anzeige vorbei).
+import { getLanguage, t } from '../i18n.js';
 import { api } from './api.js';
 import {
   DEFAULT_VIEW_MODE,
@@ -91,6 +95,10 @@ import {
 // 4T-0295: Bereich „Erweiterungen" (Schalter je interner Erweiterung mit
 // Abhaengigkeits-Hinweis) plus dynamische erweiterungs-eigene Bereiche
 // (settingsSections im Manifest erscheinen nur bei aktiver Erweiterung).
+// 4T-0889 (Epic 3E-0168): internalExtensions ist zugleich die Herkunfts-
+// Quelle der Navigations-Bloecke — welche Einstellungs-Sektion zu einer
+// internen Erweiterung gehoert, steht ausschliesslich im Feld
+// settingsSections der Registry.
 import {
   EXTENSION_CATEGORIES,
   allExtensions,
@@ -98,6 +106,7 @@ import {
   disabledSettingsSectionIdSet,
   effectiveDisabledSet,
   extensionById,
+  internalExtensions,
 } from '../../shared/extensions.js';
 import { applyExtensionsState, getDisabledExtensionIds } from './extension-lifecycle.js';
 // 4T-0450 (Epic 3E-0083): Klick auf einen Profil-Listen-Eintrag öffnet die
@@ -595,6 +604,14 @@ function handleSettingsPageClose() {
 //             (state.areaPath). Ohne Angabe gilt 'general' (Gruppe
 //             „Allgemein", immer sichtbar); das ist auch der Default für
 //             dynamisch registrierte Sektionen.
+//   origin    optional (4T-0889, Epic 3E-0168); 'external' kennzeichnet den
+//             Beitrag einer EXTERNEN Erweiterung. Gesetzt wird die Marke
+//             allein vom Erweiterungs-Host beim Durchreichen des Beitrags
+//             (extension-host.js); die Navigation sammelt diese Sektionen
+//             im eigenen Block „Erweiterungen (extern)". Bewusst eine Marke
+//             am Beitrag statt einer Ableitung aus dem ID-Präfix: das
+//             Präfix ist eine Formatierungs-Entscheidung des Hosts, die
+//             Herkunft eine Zusicherung.
 const FIXED_SECTIONS = [
   {
     id: 'appearance',
@@ -6809,34 +6826,98 @@ function renderExternalExtensionsSection(container) {
 // Referenzen auf das zuletzt montierte DOM (pro Fenster genau eine Seite).
 let pageEls = null;
 
+// 4T-0889 (Epic 3E-0168): Vier-Block-Gliederung der Bereichsnavigation
+// (PO-Entscheidung, Reihenfolge fest). Die Blöcke in Anzeige-Reihenfolge:
+//   general             Kern-Sektionen, also alles ohne Erweiterungs-
+//                       Bindung. Die beiden Verwaltungs-Sektionen
+//                       „Erweiterungen" und „Erweiterungen (extern)" stehen
+//                       darin ganz am Ende (GENERAL_TRAILING_SECTION_IDS).
+//   area                die bereichsgebundenen Sektionen (4T-0555), nur bei
+//                       gebundenem Bereich; Inhalt und Reihenfolge
+//                       unverändert.
+//   extensionsInternal  Sektionen aktiver INTERNER Erweiterungen.
+//   extensionsExternal  Sektionen installierter EXTERNER Erweiterungen; der
+//                       Block erscheint nur, wenn es solche gibt.
+const NAV_GROUP_DEFS = [
+  { id: 'general', titleKey: 'settings.navGroup.general' },
+  { id: 'area', titleKey: 'settings.navGroup.area' },
+  { id: 'extensionsInternal', titleKey: 'settings.navGroup.extensionsInternal' },
+  { id: 'extensionsExternal', titleKey: 'settings.navGroup.extensionsExternal' },
+];
+
+// Verwaltungs-Sektionen der Erweiterungen: sie bleiben im Block
+// „Allgemein" (sie konfigurieren keine Erweiterung, sondern verwalten den
+// Bestand), rutschen dort aber ans Ende — direkt vor die thematischen
+// Blöcke, auf die sie wirken.
+const GENERAL_TRAILING_SECTION_IDS = ['extensions', 'extensionsExternal'];
+
+// Sektions-IDs, die zu einer internen Erweiterung gehören. Einzige Quelle
+// ist das Feld settingsSections der Erweiterungs-Registry: dieselbe Liste,
+// die die Sektion bei abgeschalteter Erweiterung ausblendet
+// (disabledSettingsSectionIdSet). Eine zweite, hier gepflegte Zuordnung
+// wäre beim ersten neuen Erweiterungs-Bereich auseinandergelaufen.
+function internalExtensionSectionIdSet() {
+  const ids = new Set();
+  for (const m of internalExtensions()) {
+    for (const sectionId of m.settingsSections || []) ids.add(sectionId);
+  }
+  return ids;
+}
+
+// Block einer Sektion. Die Prüf-Reihenfolge ist bedeutungstragend: eine
+// bereichsgebundene Sektion bleibt im Bereichs-Block, auch wenn sie zu
+// einer Erweiterung gehört (z.B. journals, templatesArea) — der Bezug zum
+// geöffneten Bereich ist für die Bedienung die stärkere Klammer.
+function navGroupOfSection(section, extensionSectionIds) {
+  if (section.group === 'area') return 'area';
+  if (section.origin === 'external') return 'extensionsExternal';
+  if (extensionSectionIds.has(section.id)) return 'extensionsInternal';
+  return 'general';
+}
+
 // Baut die Navigations-Einträge aus der (gefilterten) Bereichs-Liste —
 // beim Mount, beim Erweiterungs-Umschalten (4T-0295: erweiterungs-eigene
 // Bereiche erscheinen und verschwinden mit ihrer Erweiterung) und beim
-// Bereichs-Wechsel (4T-0555). Seit 4T-0555 in zwei Gruppen mit
-// Zwischenüberschriften: „Allgemein" (group 'general', Default) und
-// „Aktueller Bereich" (group 'area', nur bei gebundenem Bereich —
-// einheitliche Quelle ist state.areaPath). Die Reihenfolge innerhalb
-// jeder Gruppe folgt der Registry-Reihenfolge.
+// Bereichs-Wechsel (4T-0555). Die Reihenfolge innerhalb eines Blocks folgt
+// der Registry-Reihenfolge; Ausnahmen sind die ans Ende gezogenen
+// Verwaltungs-Sektionen und der interne Erweiterungs-Block, der
+// alphabetisch nach dem lokalisierten Titel sortiert (die Registry-
+// Reihenfolge ist dort ohne Aussage, weil Erweiterungen unabhängig
+// voneinander dazukommen).
 function buildSettingsNavEntries(nav) {
   nav.innerHTML = '';
-  const groups = [
-    { id: 'general', titleKey: 'settings.navGroup.general', sections: [] },
-    { id: 'area', titleKey: 'settings.navGroup.area', sections: [] },
-  ];
+  const extensionSectionIds = internalExtensionSectionIdSet();
+  const byGroup = new Map(NAV_GROUP_DEFS.map((def) => [def.id, []]));
   for (const section of settingsSections()) {
-    (section.group === 'area' ? groups[1] : groups[0]).sections.push(section);
+    byGroup.get(navGroupOfSection(section, extensionSectionIds)).push(section);
   }
-  for (const group of groups) {
-    if (group.id === 'area' && !state.areaPath) continue;
-    if (group.sections.length === 0) continue;
+
+  const general = byGroup.get('general');
+  const trailing = GENERAL_TRAILING_SECTION_IDS.map((id) =>
+    general.find((s) => s.id === id),
+  ).filter(Boolean);
+  byGroup.set('general', [
+    ...general.filter((s) => !GENERAL_TRAILING_SECTION_IDS.includes(s.id)),
+    ...trailing,
+  ]);
+
+  const sprache = getLanguage();
+  byGroup
+    .get('extensionsInternal')
+    .sort((a, b) => t(a.titleKey).localeCompare(t(b.titleKey), sprache));
+
+  for (const def of NAV_GROUP_DEFS) {
+    const sections = byGroup.get(def.id);
+    if (def.id === 'area' && !state.areaPath) continue;
+    if (sections.length === 0) continue;
     const wrap = document.createElement('div');
     wrap.className = 'settings-nav-group';
-    wrap.dataset.navGroup = group.id;
+    wrap.dataset.navGroup = def.id;
     const title = document.createElement('div');
     title.className = 'settings-nav-group-title';
-    title.textContent = t(group.titleKey);
+    title.textContent = t(def.titleKey);
     wrap.appendChild(title);
-    for (const section of group.sections) {
+    for (const section of sections) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'settings-nav-entry';

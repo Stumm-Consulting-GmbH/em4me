@@ -14,7 +14,7 @@ Dans la vue rendue, l'ancre est invisible ; elle rend le bloc adressable. Les le
 
 ## Le panneau Propriétés de bloc
 
-Le panneau « Propriétés de bloc » se commute comme tout panneau latéral : via le menu Affichage → Panneaux → Propriétés de bloc, l'icône accolades de la barre d'état ou un raccourci clavier personnalisé (aucun n'est attribué par défaut). Côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
+Le panneau « Propriétés de bloc » se commute comme tout panneau latéral : via le menu Affichage → Barre latérale → Panneaux → Propriétés de bloc, l'icône accolades de la barre d'état ou un raccourci clavier personnalisé (aucun n'est attribué par défaut). Côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
 
 Le panneau **suit le curseur** : il montre les propriétés du bloc dans lequel se trouve le curseur. L'en-tête nomme l'ancre active et offre un sélecteur de toutes les ancres du fichier pour y sauter ; les ancres porteuses de propriétés y sont marquées. Si le curseur est dans un bloc **sans** ancre, le panneau propose « Créer une ancre » et écrit en fin de bloc un identifiant aléatoire court, unique dans le fichier.
 

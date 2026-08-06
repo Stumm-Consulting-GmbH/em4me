@@ -57,7 +57,7 @@ Un livre ouvert se comporte **comme une zone** : il s'ouvre comme application à
 
 ## La table des matières
 
-Le panneau **Livre** affiche l'arbre des chapitres dans l'ordre déclaré. Un clic ouvre un chapitre, celui qui est en cours de lecture est mis en évidence. Devant chaque nom se trouve un marqueur, qui sert aussi de poignée pour l'entretien. Le panneau se bascule comme tous les autres : par le bouton de la barre d'état ou par Affichage → Panneaux → Livre. Côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
+Le panneau **Livre** affiche l'arbre des chapitres dans l'ordre déclaré. Un clic ouvre un chapitre, celui qui est en cours de lecture est mis en évidence. Devant chaque nom se trouve un marqueur, qui sert aussi de poignée pour l'entretien. Le panneau se bascule comme tous les autres : par le bouton de la barre d'état ou par Affichage → Barre latérale → Panneaux → Livre. Côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
 
 ### Les fichiers non rattachés
 

@@ -1,6 +1,6 @@
 # Esquemas de color
 
-Un esquema de color define los colores de la aplicación: la interfaz (fondos, texto, acento, barras, pestañas) y el contenido renderizado (encabezados, enlaces, citas, código, tablas). Los colores pasan por una lista seleccionada de ranuras de color con nombre que alimentan los colores del tema. Un esquema está activo por modo; el conmutador claro/oscuro (icono de la barra de estado, Ver → Tema) alterna entre el esquema claro y el oscuro.
+Un esquema de color define los colores de la aplicación: la interfaz (fondos, texto, acento, barras, pestañas) y el contenido renderizado (encabezados, enlaces, citas, código, tablas). Los colores pasan por una lista seleccionada de ranuras de color con nombre que alimentan los colores del tema. Un esquema está activo por modo; el conmutador claro/oscuro (icono de la barra de estado, Ver → Apariencia → Claro/Oscuro/Sistema) alterna entre el esquema claro y el oscuro.
 
 ## Ranuras y grupos
 
@@ -15,7 +15,7 @@ La gestión de esquemas se abre en Configuración → Esquemas de color.
 - **Esquema propio:** «Nuevo desde plantilla» o «Duplicar» crea una copia editable. Un esquema propio se puede renombrar y eliminar; al eliminar el esquema activo, el modo vuelve al esquema predeterminado.
 - **Editor de ranuras:** un selector de color por ranura; «Restablecer» restaura el valor de la plantilla. Los cambios surten efecto de inmediato en toda la aplicación (vista previa en vivo) y en las demás ventanas tras aplicar.
 
-El editor siempre edita el esquema activo del modo en el que la aplicación se está ejecutando: en modo claro el esquema claro, en modo oscuro el esquema oscuro. Para ajustar el esquema del otro modo, primero se cambia la aplicación a ese modo mediante el icono de tema en la barra de estado (o Ver → Tema). Así, cada cambio de color surte efecto de inmediato en el modo exacto al que se aplica (vista previa en vivo).
+El editor siempre edita el esquema activo del modo en el que la aplicación se está ejecutando: en modo claro el esquema claro, en modo oscuro el esquema oscuro. Para ajustar el esquema del otro modo, primero se cambia la aplicación a ese modo mediante el icono de tema en la barra de estado (o Ver → Apariencia → Claro/Oscuro/Sistema). Así, cada cambio de color surte efecto de inmediato en el modo exacto al que se aplica (vista previa en vivo).
 
 ## Contraste y límites
 

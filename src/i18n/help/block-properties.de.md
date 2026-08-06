@@ -14,7 +14,7 @@ In der gerenderten Ansicht ist der Anker unsichtbar; er macht den Block ansprech
 
 ## Das Panel Block-Eigenschaften
 
-Das Panel „Block-Eigenschaften" wird wie jedes Sidebar-Panel geschaltet: über das Menü Ansicht → Panels → Block-Eigenschaften, das Klammern-Symbol in der Statusbar oder ein selbst vergebenes Tastenkürzel (ab Werk ist keines belegt). Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
+Das Panel „Block-Eigenschaften" wird wie jedes Sidebar-Panel geschaltet: über das Menü Ansicht → Sidebar → Panels → Block-Eigenschaften, das Klammern-Symbol in der Statusbar oder ein selbst vergebenes Tastenkürzel (ab Werk ist keines belegt). Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
 
 Das Panel **folgt dem Cursor**: Es zeigt die Eigenschaften des Blocks, in dem der Cursor steht. Die Kopfzeile nennt den aktiven Anker und bietet ein Auswahlfeld aller Anker der Datei zum Springen; Anker mit Eigenschaften sind darin markiert. Steht der Cursor in einem Block **ohne** Anker, bietet das Panel „Anker anlegen" an und schreibt eine kurze, in der Datei eindeutige Zufalls-Kennung an das Blockende.
 

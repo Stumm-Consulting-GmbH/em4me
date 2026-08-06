@@ -47,16 +47,33 @@ function areaFromRootPath(rootPath) {
   return { rootPath: resolved, name: path.basename(resolved) };
 }
 
-// 4T-0325: Pflege der Liste "Zuletzt geoeffnete Bereiche" (juengste zuerst,
-// dedupliziert ueber Pfad-Gleichheit, gekappt). Rein, damit unit-testbar;
-// main.js persistiert das Ergebnis im Store-Key 'recentAreas'.
-function updatedRecentAreas(list, rootPath, max = 10) {
+// 4T-0888 (Epic 3E-0168): Pflege einer "Zuletzt geoeffnet"-Liste von
+// Ordner-Pfaden (juengste zuerst, dedupliziert ueber Pfad-Gleichheit, auf max
+// gekappt). Kern der Bereichs-Liste aus 4T-0325 und seit 4T-0888 zugleich der
+// Buch- und der Regal-Liste: die drei Listen unterscheiden sich allein im
+// Store-Schluessel, deshalb EIN Aufbau statt dreier gleichlautender.
+function updatedRecentPaths(list, dirPath, max = 10) {
   const base = Array.isArray(list) ? list.filter((p) => typeof p === 'string' && p) : [];
-  const area = areaFromRootPath(rootPath);
-  if (!area) return base;
-  const filtered = base.filter((p) => !isSamePath(p, area.rootPath));
-  filtered.unshift(area.rootPath);
+  if (typeof dirPath !== 'string' || dirPath === '') return base;
+  const resolved = path.resolve(dirPath);
+  const filtered = base.filter((p) => !isSamePath(p, resolved));
+  filtered.unshift(resolved);
   return filtered.slice(0, max);
+}
+
+// 4T-0888: Einzelnen Eintrag austragen — der Weg fuer ein Ziel, das es nicht
+// mehr gibt (Klick auf einen Eintrag, dessen Ordner verschwunden ist).
+function withoutRecentPath(list, dirPath) {
+  const base = Array.isArray(list) ? list.filter((p) => typeof p === 'string' && p) : [];
+  if (typeof dirPath !== 'string' || dirPath === '') return base;
+  return base.filter((p) => !isSamePath(p, dirPath));
+}
+
+// 4T-0325: Liste "Zuletzt geoeffnete Bereiche"; main.js persistiert das
+// Ergebnis im Store-Key 'recentAreas'. Seit 4T-0888 nur noch die
+// bereichs-benannte Sicht auf updatedRecentPaths (Verhalten unveraendert).
+function updatedRecentAreas(list, rootPath, max = 10) {
+  return updatedRecentPaths(list, rootPath, max);
 }
 
 // 4T-0327: sortiert ein Verzeichnis-Listing fuer das Bereichs-Panel —
@@ -95,6 +112,8 @@ module.exports = {
   isSamePath,
   isInsideArea,
   areaFromRootPath,
+  updatedRecentPaths,
+  withoutRecentPath,
   updatedRecentAreas,
   sortedAreaListing,
   sanitizeNewFileName,

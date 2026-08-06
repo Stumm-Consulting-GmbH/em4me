@@ -57,7 +57,7 @@ Ein geöffnetes Buch verhält sich **wie ein Bereich**: Es öffnet als eigene Ap
 
 ## Das Inhaltsverzeichnis
 
-Das Panel **Buch** zeigt den Kapitel-Baum in der erklärten Reihenfolge. Ein Klick öffnet ein Kapitel, das gerade gelesene ist hervorgehoben. Vor jedem Namen steht ein Marker, der zugleich der Anfasser für die Pflege ist. Geschaltet wird das Panel wie jedes andere: über die Schaltfläche in der Statusbar-Leiste oder über Ansicht → Panels → Buch. Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
+Das Panel **Buch** zeigt den Kapitel-Baum in der erklärten Reihenfolge. Ein Klick öffnet ein Kapitel, das gerade gelesene ist hervorgehoben. Vor jedem Namen steht ein Marker, der zugleich der Anfasser für die Pflege ist. Geschaltet wird das Panel wie jedes andere: über die Schaltfläche in der Statusbar-Leiste oder über Ansicht → Sidebar → Panels → Buch. Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
 
 ### Nicht eingehängte Dateien
 

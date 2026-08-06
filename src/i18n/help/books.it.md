@@ -57,7 +57,7 @@ Un libro aperto si comporta **come un'area**: si apre come applicazione propria 
 
 ## L'indice
 
-Il pannello **Libro** mostra l'albero dei capitoli nell'ordine dichiarato. Un clic apre un capitolo, quello in lettura è evidenziato. Davanti a ogni nome sta un marcatore, che funge anche da maniglia per la cura della struttura. Il pannello si commuta come ogni altro: con il pulsante nella barra di stato oppure con Visualizza → Pannelli → Libro. Lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
+Il pannello **Libro** mostra l'albero dei capitoli nell'ordine dichiarato. Un clic apre un capitolo, quello in lettura è evidenziato. Davanti a ogni nome sta un marcatore, che funge anche da maniglia per la cura della struttura. Il pannello si commuta come ogni altro: con il pulsante nella barra di stato oppure con Visualizza → Barra laterale → Pannelli → Libro. Lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
 
 ### File non agganciati
 

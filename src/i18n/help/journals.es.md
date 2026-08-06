@@ -29,8 +29,8 @@ Un esquema modificado no renombra los archivos existentes; los puntos del calend
 
 ## Abrir y crear entradas
 
-- **Entrada de diario de hoy** (menú Archivo): abre o crea la entrada de hoy de un diario de día; con selección si hay varios diarios de día.
-- **Entrada de diario para una fecha…** (menú Archivo): pide una fecha (AAAA-MM-DD) y el diario; el periodo es el de la fecha en la granularidad del diario.
+- **Entrada de diario de hoy** (menú Archivo → Más funciones de archivo): abre o crea la entrada de hoy de un diario de día; con selección si hay varios diarios de día.
+- **Entrada de diario para una fecha…** (menú Archivo → Más funciones de archivo): pide una fecha (AAAA-MM-DD) y el diario; el periodo es el de la fecha en la granularidad del diario.
 
 La creación produce la cadena de carpetas, el contenido de plantilla rellenado (una entrada vacía sin plantilla) y las propiedades de fecha en el frontmatter: los diarios de día reciben la fecha (`journal-date`), los periodos de varios días el inicio y el fin (`journal-start-date`, `journal-end-date`); los nombres de campo son configurables por diario y están disponibles para la consulta Perspective. Los marcadores de fecha de la plantilla se evalúan al inicio del periodo: `{{date}}` da la fecha del periodo, no el momento de creación. Cancelar cualquier diálogo de plantilla interrumpe la creación; no se crea ningún archivo.
 

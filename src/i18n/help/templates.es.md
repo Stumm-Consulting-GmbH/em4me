@@ -17,7 +17,7 @@ Cada archivo Markdown de la carpeta (incluidas las subcarpetas) es una plantilla
 
 Dos caminos llevan a la plantilla:
 
-- **Nuevo archivo desde plantilla** (menú Archivo): elegir la plantilla en el popup filtrable, asignar un nombre de archivo (`/` crea una subpágina), responder la cadena de diálogos. El archivo nace con el contenido rellenado en la carpeta del archivo activo (sin archivo activo en la raíz del área; sin ninguno de los dos, un diálogo de carpeta pregunta por el destino), se abre como pestaña y el cursor salta al primer destino `{{cursor}}`.
+- **Nuevo archivo desde plantilla** (menú Archivo → Más funciones de archivo): elegir la plantilla en el popup filtrable, asignar un nombre de archivo (`/` crea una subpágina), responder la cadena de diálogos. El archivo nace con el contenido rellenado en la carpeta del archivo activo (sin archivo activo en la raíz del área; sin ninguno de los dos, un diálogo de carpeta pregunta por el destino), se abre como pestaña y el cursor salta al primer destino `{{cursor}}`.
 - **Insertar plantilla** (menú contextual del editor → Insertar): el resultado rellenado se inserta en la posición del cursor como un único paso de edición (un deshacer lo elimina todo).
 
 Varios marcadores de entrada y selección aparecen **uno tras otro** en el orden de su primera aparición; las preguntas idénticas se plantean una sola vez. Cancelar cualquier diálogo interrumpe toda la aplicación: no se crea archivo ni texto insertado.

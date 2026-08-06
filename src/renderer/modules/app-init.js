@@ -1374,6 +1374,13 @@ export const commandHandlers = {
   'file.exportPdf': () => {
     exportActiveTabAsPdf();
   },
+  // 4T-0890 (Epic 3E-0168, Befund L-05): portabler Markdown-Export, jetzt
+  // über dieselbe Registry-Strecke wie der PDF-Export daneben (Palette und
+  // belegbares Kürzel). Der Menü-Eintrag ruft weiterhin über den IPC-Kanal
+  // dieselbe Funktion auf; ihr eigener Guard prüft den aktiven Tab.
+  'file.exportPortable': () => {
+    exportCurrentTabAsPortable();
+  },
   // 4T-0075: legt die aktive Datei als Bookmark im Root ab.
   'file.bookmarkAdd': () => {
     addBookmarkForActiveFile();
@@ -2485,7 +2492,13 @@ export function bindUi() {
   if (typeof api.onMenuTogglePanel === 'function') {
     api.onMenuTogglePanel((id) => {
       const def = sidebarPanelById(id);
-      if (def && typeof def.toggle === 'function') void def.toggle(state.activePaneIndex);
+      if (def && typeof def.toggle === 'function') {
+        // 4T-0887 (PO-Befund der Test-Iteration 0.105.0): Die Menue-Meldung
+        // gehoert an den zentralen Kanal statt in die einzelnen Panel-Pfade —
+        // ob ein Toggle selbst meldete, hing zuvor vom Panel ab, und das
+        // Haekchen konnte bis zum naechsten fremden Ereignis veralten.
+        void Promise.resolve(def.toggle(state.activePaneIndex)).finally(() => reportMenuStateNow());
+      }
     });
   }
   // 4T-0568 (Epic 3E-0104): Panel-Buttons einmalig in die effektive
@@ -2727,6 +2740,12 @@ export function bindUi() {
     api.onMenuCreateDemoArea(() => api.createDemoArea());
   }
   api.onMenuCloseArea(() => api.closeArea());
+  // 4T-0887 (Befund L-04): 'Buch und Buecherregal -> Kapitel-Datei
+  // verschieben...' — derselbe Pfad wie Kommando-Palette und Kontextmenue des
+  // Inhaltsverzeichnisses (Ordner-Dialog im Main, Hinweis ohne Kapitel).
+  if (typeof api.onMenuMoveChapterFile === 'function') {
+    api.onMenuMoveChapterFile(() => moveActiveChapterFile(state.activePaneIndex));
+  }
   // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Aktionen aus dem Datei-Menue
   // (Dialoge im Renderer, Lebenszyklus im Main).
   api.onMenuWorkspaceSaveAs(() => {

@@ -902,6 +902,19 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-embeds.md stabil
 "
 `;
 
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-embeds-portable.md stabil 1`] = `
+"&lt;!-- perspective-portable --&gt;
+<p>Bild-Embed: <img class="wiki-embed wiki-embed-image" src="bild.png" alt=""></p>
+<p>Bild mit Breite: <img class="wiki-embed wiki-embed-image" src="bild.png" alt="" style="max-width: 300px"></p>
+<p>Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md"><a href="Andere Notiz.md" class="wikilink">Andere Notiz.md</a></span></p>
+<p>Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt"><a href="Andere Notiz.md#abschnitt" class="wikilink">Andere Notiz.md#Abschnitt</a></span></p>
+<p>Markdown-Embed mit Block-Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="^block-id"><a href="Andere Notiz.md#block-id" class="wikilink">Andere Notiz.md#^block-id</a></span></p>
+<p>PDF-Embed: <span class="wiki-embed wiki-embed-pdf" data-embed-kind="pdf" data-embed-path="dokument.pdf"><a href="dokument.pdf" class="wikilink">dokument.pdf</a></span></p>
+<p>Sonstiges Embed: <span class="wiki-embed wiki-embed-other" data-embed-kind="other" data-embed-path="archiv.zip"><a href="archiv.zip" class="wikilink">archiv.zip</a></span></p>
+<p>Wiki-Link zum Vergleich: <a href="Andere Notiz.md" class="wikilink">Andere Notiz</a></p>
+"
+`;
+
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-links.md stabil 1`] = `
 "<p data-source-line="1">Einfach: <a href="Ziel.md" class="wikilink">Ziel</a></p>
 <p data-source-line="3">Mit Alias: <a href="Ziel.md" class="wikilink">Anzeigename</a></p>

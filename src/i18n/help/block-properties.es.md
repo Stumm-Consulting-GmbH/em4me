@@ -14,7 +14,7 @@ En la vista renderizada el ancla es invisible; hace que el bloque sea direcciona
 
 ## El panel Propiedades de bloque
 
-El panel «Propiedades de bloque» se conmuta como cualquier panel lateral: mediante el menú Ver → Paneles → Propiedades de bloque, el icono de llaves de la barra de estado o un atajo de teclado personalizado (de fábrica no hay ninguno asignado). Lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
+El panel «Propiedades de bloque» se conmuta como cualquier panel lateral: mediante el menú Ver → Barra lateral → Paneles → Propiedades de bloque, el icono de llaves de la barra de estado o un atajo de teclado personalizado (de fábrica no hay ninguno asignado). Lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
 
 El panel **sigue al cursor**: muestra las propiedades del bloque en el que está el cursor. La cabecera nombra el ancla activa y ofrece un selector de todas las anclas del archivo para saltar; las anclas con propiedades están marcadas. Si el cursor está en un bloque **sin** ancla, el panel ofrece «Crear ancla» y escribe al final del bloque un identificador aleatorio corto, único dentro del archivo.
 

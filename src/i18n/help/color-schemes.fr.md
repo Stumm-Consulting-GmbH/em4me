@@ -1,6 +1,6 @@
 # Jeux de couleurs
 
-Un jeu de couleurs définit les couleurs de l'application : l'interface (arrière-plans, texte, accent, barres, onglets) et le contenu rendu (titres, liens, citations, code, tableaux). Les couleurs passent par une liste choisie d'emplacements de couleur nommés qui alimentent les couleurs du thème. Un jeu est actif par mode ; le commutateur clair/sombre (icône de la barre d'état, Affichage → Thème) bascule entre le jeu clair et le jeu sombre.
+Un jeu de couleurs définit les couleurs de l'application : l'interface (arrière-plans, texte, accent, barres, onglets) et le contenu rendu (titres, liens, citations, code, tableaux). Les couleurs passent par une liste choisie d'emplacements de couleur nommés qui alimentent les couleurs du thème. Un jeu est actif par mode ; le commutateur clair/sombre (icône de la barre d'état, Affichage → Apparence → Clair/Sombre/Système) bascule entre le jeu clair et le jeu sombre.
 
 ## Emplacements et groupes
 
@@ -15,7 +15,7 @@ La gestion des jeux s'ouvre dans Paramètres → Jeux de couleurs.
 - **Jeu personnel :** « Nouveau depuis un modèle » ou « Dupliquer » crée une copie modifiable. Un jeu personnel peut être renommé et supprimé ; à la suppression du jeu actif, le mode revient au jeu prédéfini.
 - **Éditeur d'emplacements :** un sélecteur de couleur par emplacement ; « Réinitialiser » rétablit la valeur du modèle. Les modifications prennent effet immédiatement dans toute l'application (aperçu en direct), et dans les autres fenêtres après application.
 
-L'éditeur modifie toujours le jeu actif du mode dans lequel l'application s'exécute : en mode clair le jeu clair, en mode sombre le jeu sombre. Pour ajuster le jeu de l'autre mode, on bascule d'abord l'application vers ce mode via l'icône de thème dans la barre d'état (ou Affichage → Thème). Ainsi, chaque changement de couleur prend effet immédiatement dans le mode exact auquel il s'applique (aperçu en direct).
+L'éditeur modifie toujours le jeu actif du mode dans lequel l'application s'exécute : en mode clair le jeu clair, en mode sombre le jeu sombre. Pour ajuster le jeu de l'autre mode, on bascule d'abord l'application vers ce mode via l'icône de thème dans la barre d'état (ou Affichage → Apparence → Clair/Sombre/Système). Ainsi, chaque changement de couleur prend effet immédiatement dans le mode exact auquel il s'applique (aperçu en direct).
 
 ## Contraste et limites
 

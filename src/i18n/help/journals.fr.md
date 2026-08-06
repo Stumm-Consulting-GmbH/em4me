@@ -29,8 +29,8 @@ Un schéma modifié ne renomme pas les fichiers existants ; les points du calend
 
 ## Ouvrir et créer des entrées
 
-- **Entrée de journal du jour** (menu Fichier) : ouvre ou crée l'entrée du jour d'un journal quotidien ; avec sélection s'il existe plusieurs journaux quotidiens.
-- **Entrée de journal pour une date…** (menu Fichier) : demande une date (AAAA-MM-JJ) et le journal ; la période est celle de la date dans la granularité du journal.
+- **Entrée de journal du jour** (menu Fichier → Autres fonctions de fichier) : ouvre ou crée l'entrée du jour d'un journal quotidien ; avec sélection s'il existe plusieurs journaux quotidiens.
+- **Entrée de journal pour une date…** (menu Fichier → Autres fonctions de fichier) : demande une date (AAAA-MM-JJ) et le journal ; la période est celle de la date dans la granularité du journal.
 
 La création produit la chaîne de dossiers, le contenu de modèle rempli (une entrée vide sans modèle) et les propriétés de date dans le frontmatter : les journaux quotidiens reçoivent la date (`journal-date`), les périodes de plusieurs jours le début et la fin (`journal-start-date`, `journal-end-date`) ; les noms de champ sont configurables par journal et disponibles pour la requête Perspective. Les espaces réservés de date du modèle sont évalués au début de la période — `{{date}}` donne la date de la période, pas l'instant de création. L'annulation d'un dialogue de modèle interrompt la création ; aucun fichier n'est créé.
 

@@ -654,6 +654,11 @@ contextBridge.exposeInMainWorld('api', {
   onMenuCloseArea: (cb) => ipcRenderer.on('menu:closeArea', () => cb()),
   // 4T-0632 (Epic 3E-0102): Menue-Eintrag 'Datei -> Demo-Area erstellen...'.
   onMenuCreateDemoArea: (cb) => ipcRenderer.on('menu:createDemoArea', () => cb()),
+  // 4T-0887 (Befund L-04): Menue-Eintrag 'Datei -> Buch und Buecherregal ->
+  // Kapitel-Datei verschieben...'. Anders als Oeffnen/Anlegen/Schliessen der
+  // Buecher laeuft er ueber den Renderer, weil dort entschieden wird, welche
+  // Datei gemeint ist (gerade gelesenes Kapitel der aktiven Spalte).
+  onMenuMoveChapterFile: (cb) => ipcRenderer.on('menu:moveChapterFile', () => cb()),
   // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Aktionen des Datei-Menues
   // (Dialoge laufen im Renderer, das Schliessen geht zurueck an den Main).
   onMenuWorkspaceSaveAs: (cb) => ipcRenderer.on('menu:workspaceSaveAs', () => cb()),

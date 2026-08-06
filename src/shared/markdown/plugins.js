@@ -49,6 +49,25 @@ function sourceLineMapperPlugin(mdInstance) {
   });
 }
 
+// 4T-0891 (Epic 3E-0168): Anker-Teil eines Wiki-Ziels als href-Fragment.
+// Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
+// Slug-Validierung \p{L}\p{N}_-), sonst greift der Heading-Slug. Aus
+// wikiLinksPlugin herausgeloest, weil der Portable-Rueckfall der Wiki-Embeds
+// dieselbe Ziel-Adresse bilden muss wie ein gewoehnlicher Wiki-Link.
+function wikiAnchorPart(anchorRaw) {
+  const raw = String(anchorRaw || '');
+  if (!raw) return '';
+  if (raw.startsWith('^')) {
+    const id = raw.slice(1).trim();
+    // Bei ungueltiger Block-ID: Anker faellt weg, Link zeigt nur auf Datei.
+    return /^[\p{L}\p{N}_-]+$/u.test(id) ? '#' + id : '';
+  }
+  // P-05 (4T-0183): beide Zweige der frueheren Verzweigung waren
+  // identisch — auf eine Zuweisung reduziert.
+  const slug = githubLikeSlug(raw);
+  return slug ? '#' + slug : '';
+}
+
 // Wiki-Link-Plugin: [[Ziel]] und [[Ziel|Label]] -> <a href="Ziel.md">Label</a>.
 // Wenn das Ziel bereits eine Endung hat, wird .md nicht doppelt angehängt.
 // Klick-Handling im Renderer ist identisch zu normalen Markdown-Links.
@@ -101,22 +120,8 @@ function wikiLinksPlugin(mdInstance) {
     // sollen sich nicht allein auf die CSP verlassen muessen.
     if (/^\s*(javascript|data|vbscript):/i.test(pathPart)) return false;
 
-    // Anker-Slug bauen. Block-Anker hat '^'-Prefix.
-    let anchorPart = '';
-    if (anchorRaw) {
-      if (anchorRaw.startsWith('^')) {
-        const id = anchorRaw.slice(1).trim();
-        if (/^[\p{L}\p{N}_-]+$/u.test(id)) {
-          anchorPart = '#' + id;
-        }
-        // Bei ungueltiger Block-ID: Anker faellt weg, Link zeigt nur auf Datei.
-      } else {
-        // P-05 (4T-0183): beide Zweige der frueheren Verzweigung waren
-        // identisch — auf eine Zuweisung reduziert.
-        const slug = githubLikeSlug(anchorRaw);
-        if (slug) anchorPart = '#' + slug;
-      }
-    }
+    // Anker-Slug bauen. Block-Anker hat '^'-Prefix (Helfer oben).
+    const anchorPart = wikiAnchorPart(anchorRaw);
 
     // Pfad: bei reinem Anker (kein Pfad-Teil) bleibt es nur beim Anker.
     let href;
@@ -170,7 +175,12 @@ function wikiLinksPlugin(mdInstance) {
 // applyWikiEmbedsIfPresent in renderer.js). Bild-Embeds werden direkt
 // als <img> ausgegeben, damit resolveImagesForBase sie zu data-URIs
 // konvertieren kann.
-function wikiEmbedsPlugin(mdInstance) {
+//
+// 4T-0891 (Epic 3E-0168, Befund L-02): options.portable fuellt die
+// Platzhalter-Spans der Nicht-Bild-Embeds mit einem sichtbaren Verweis auf
+// das Ziel (Details an der Render-Regel unten).
+function wikiEmbedsPlugin(mdInstance, options) {
+  const isPortable = !!(options && options.portable);
   function tokenize(state, silent) {
     const start = state.pos;
     if (state.src.charCodeAt(start) !== 0x21 /* ! */) return false;
@@ -256,6 +266,17 @@ function wikiEmbedsPlugin(mdInstance) {
   // resolveImagesForBase zu data-URI konvertiert). PDF/MD/Other werden
   // als <span class="wiki-embed-*">-Platzhalter ausgegeben; das Renderer-
   // Postprocessing baut das echte DOM.
+  //
+  // 4T-0891 (Epic 3E-0168, Befund L-02): Im Portable-Zweig laeuft dieses
+  // Postprocessing nicht — die Platzhalter blieben dort leere Spans, ein
+  // Nicht-Bild-Embed war im exportierten Dokument also unsichtbar. Der
+  // Platzhalter traegt deshalb einen sichtbaren Verweis auf das Ziel, in
+  // der Darstellung eines gewoehnlichen Wiki-Links (<a class="wikilink">
+  // mit derselben Ziel-Adresse ueber wikiAnchorPart, keine eigene Optik).
+  // Der Verweis steht IM Span statt an seiner Stelle: applyWikiEmbedsIfPresent
+  // leert den Span vor dem Aufbau des echten Embeds (span.innerHTML = ''),
+  // damit bleibt eine exportierte Datei, die wieder in der App geoeffnet
+  // wird, voll aufgeloest. Bild-Embeds bleiben unveraendert.
   mdInstance.renderer.rules.wikiembed = function (tokens, idx) {
     const token = tokens[idx];
     const kind = token.attrGet('data-embed-kind') || 'other';
@@ -273,7 +294,18 @@ function wikiEmbedsPlugin(mdInstance) {
     attrStr += ` data-embed-path="${escapeHtml(embedPath)}"`;
     if (anchor) attrStr += ` data-embed-anchor="${escapeHtml(anchor)}"`;
     if (width) attrStr += ` data-embed-width="${escapeHtml(width)}"`;
-    return `<span ${attrStr}></span>`;
+    // 4T-0891: sichtbarer Rueckfall nur im Portable-Zweig; der Viewer-Zweig
+    // behaelt den leeren Platzhalter, den sein Postprocessing ohnehin fuellt.
+    // Der Linktext nennt das Ziel so, wie der Embed es adressiert (Pfad und
+    // roher Anker), die href folgt der Wiki-Link-Aufloesung (Anker als Slug
+    // bzw. Block-ID).
+    let inner = '';
+    if (isPortable) {
+      const href = escapeHtml(embedPath + wikiAnchorPart(anchor));
+      const label = escapeHtml(anchor ? `${embedPath}#${anchor}` : embedPath);
+      inner = `<a href="${href}" class="wikilink">${label}</a>`;
+    }
+    return `<span ${attrStr}>${inner}</span>`;
   };
 }
 

@@ -101,3 +101,8 @@ function greet(name) {
 ```
 
 The copy button at the top right of the block copies the content to the clipboard — here in the manual too.
+
+## Export
+
+- **PDF export**: diagrams are printed as rendered vector graphics, redrawn in light colors for print; formulas and code highlighting appear as in the preview.
+- **Portable Markdown**: the export leaves the `mermaid` block untouched as source text. Reopened in this program it is drawn again; other Markdown programs show it as a code block unless they draw Mermaid themselves. KaTeX formulas and code blocks with a language tag are ordinary Markdown syntax and remain unaffected.

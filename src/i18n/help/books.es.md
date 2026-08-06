@@ -57,7 +57,7 @@ Un libro abierto se comporta **como un área**: se abre como aplicación propia 
 
 ## El índice
 
-El panel **Libro** muestra el árbol de capítulos en el orden declarado. Un clic abre un capítulo, el que se está leyendo aparece resaltado. Delante de cada nombre hay un marcador que sirve además de tirador para el mantenimiento. El panel se conmuta como cualquier otro: con el botón de la barra de estado o con Ver → Paneles → Libro. Lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
+El panel **Libro** muestra el árbol de capítulos en el orden declarado. Un clic abre un capítulo, el que se está leyendo aparece resaltado. Delante de cada nombre hay un marcador que sirve además de tirador para el mantenimiento. El panel se conmuta como cualquier otro: con el botón de la barra de estado o con Ver → Barra lateral → Paneles → Libro. Lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
 
 ### Archivos sin enganchar
 

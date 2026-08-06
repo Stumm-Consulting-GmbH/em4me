@@ -17,7 +17,7 @@ Jede Markdown-Datei im Ordner (inklusive Unterordnern) ist eine Vorlage. Unteror
 
 Zwei Wege führen zur Vorlage:
 
-- **Neue Datei aus Vorlage** (Menü Datei): Vorlage im filterbaren Auswahl-Popup wählen, Dateinamen vergeben (`/` legt eine Unterseite an), Dialog-Kette beantworten. Die Datei entsteht mit dem gefüllten Inhalt im Ordner der aktiven Datei (ohne aktive Datei in der Bereichs-Wurzel; ohne beides fragt ein Ordner-Dialog nach dem Ziel), öffnet als Tab, und der Cursor springt auf das erste `{{cursor}}`-Ziel.
+- **Neue Datei aus Vorlage** (Menü Datei → Weitere Datei-Funktionen): Vorlage im filterbaren Auswahl-Popup wählen, Dateinamen vergeben (`/` legt eine Unterseite an), Dialog-Kette beantworten. Die Datei entsteht mit dem gefüllten Inhalt im Ordner der aktiven Datei (ohne aktive Datei in der Bereichs-Wurzel; ohne beides fragt ein Ordner-Dialog nach dem Ziel), öffnet als Tab, und der Cursor springt auf das erste `{{cursor}}`-Ziel.
 - **Vorlage einfügen** (Editor-Kontextmenü → Einfügen): Das gefüllte Ergebnis wird an der Cursor-Position eingefügt, als ein einziger Bearbeitungs-Schritt (ein Rückgängig entfernt alles).
 
 Mehrere Eingabe- und Auswahl-Platzhalter erscheinen **nacheinander** in der Reihenfolge ihres ersten Vorkommens; identische Fragen werden nur einmal gestellt. Ein Abbruch irgendeines Dialogs bricht das gesamte Anwenden ab: Es entsteht keine Datei und kein Einfüge-Text.

@@ -12,7 +12,7 @@ Prozess-A∕Entwurf.md            Unterseite von Prozess-A
 Prozess-A∕Umsetzung∕Detail.md   zweite Ebene
 ```
 
-Das Zeichen muss nie getippt werden: Neue Unterseiten entstehen über **Datei → Neue Unterseite…** (Dialog fragt den Namen ab, die Datei entsteht im Ordner der aktiven Datei und öffnet als Tab). Für die manuelle Anlage im Datei-Explorer lässt sich das Zeichen aus dieser Seite kopieren: `∕`
+Das Zeichen muss nie getippt werden: Neue Unterseiten entstehen über **Datei → Weitere Datei-Funktionen → Neue Unterseite…** (Dialog fragt den Namen ab, die Datei entsteht im Ordner der aktiven Datei und öffnet als Tab). Für die manuelle Anlage im Datei-Explorer lässt sich das Zeichen aus dieser Seite kopieren: `∕`
 
 ## Links auf Unterseiten
 
@@ -29,11 +29,11 @@ Die Auflösung sucht zuerst einen realen Ordner-Pfad (`[[unterordner/Datei]]` bl
 
 ## Navigation
 
-Ist eine Unterseite aktiv, zeigt ein **Breadcrumb** über dem Dokument (Lese-, Geteilt- und Live-Ansicht) die Eltern-Kette mit klickbaren Ebenen; nicht existierende Zwischen-Ebenen sind gepunktet unterstrichen und nicht klickbar. Die Sidebar-Sektion **Unterseiten** (Ansicht → Panels → Unterseiten oder das Unterseiten-Symbol in der Statusbar) listet die direkten Unterseiten der aktiven Datei; ein Klick öffnet sie.
+Ist eine Unterseite aktiv, zeigt ein **Breadcrumb** über dem Dokument (Lese-, Geteilt- und Live-Ansicht) die Eltern-Kette mit klickbaren Ebenen; nicht existierende Zwischen-Ebenen sind gepunktet unterstrichen und nicht klickbar. Die Sidebar-Sektion **Unterseiten** (Ansicht → Sidebar → Panels → Unterseiten oder das Unterseiten-Symbol in der Statusbar) listet die direkten Unterseiten der aktiven Datei; ein Klick öffnet sie.
 
 ## Umbenennen
 
-**Datei → Umbenennen…** (auch im Tab-Kontextmenü) benennt die aktive Datei um. Offene Tabs, Lesezeichen, die Liste der zuletzt geöffneten Dateien und die [Historien-Begleitdatei](history.md) ziehen mit.
+**Datei → Weitere Datei-Funktionen → Umbenennen…** (auch im Tab-Kontextmenü) benennt die aktive Datei um. Offene Tabs, Lesezeichen, die Liste der zuletzt geöffneten Dateien und die [Historien-Begleitdatei](history.md) ziehen mit.
 
 - Eine Seite **mit Unterseiten** nimmt beim Umbenennen ihren gesamten Unterseiten-Baum mit; der Dialog nennt die Anzahl vorab.
 - Eine **Unterseite** ändert nur ihr eigenes Namens-Segment; die Eltern-Kette bleibt erhalten. Das gilt an beiden Bedienorten, auch in der [Titelzeile](tools.md) über dem Dokument: Dort steht der übergeordnete Anteil gedämpft und unveränderlich vor dem editierbaren Segment.
@@ -45,7 +45,7 @@ Ist eine Unterseite aktiv, zeigt ein **Breadcrumb** über dem Dokument (Lese-, G
 
 ## Lösen
 
-**Datei → Von der übergeordneten Seite lösen…** (auch im Tab-Kontextmenü einer Unterseite) macht aus einer Unterseite eine eigenständige Seite: Aus `Prozess-A/Entwurf` wird `Entwurf`.
+**Datei → Weitere Datei-Funktionen → Von der übergeordneten Seite lösen…** (auch im Tab-Kontextmenü einer Unterseite) macht aus einer Unterseite eine eigenständige Seite: Aus `Prozess-A/Entwurf` wird `Entwurf`.
 
 - Der Dialog nennt vorab das Ziel und die Anzahl der **eigenen Unterseiten**, die mitwandern. Aus `Prozess-A/Entwurf/Tief` wird dabei `Entwurf/Tief`, die Hierarchie unterhalb bleibt also erhalten.
 - **Verweise bleiben gültig:** Die Anpassung eingehender Links läuft über denselben Weg wie beim Umbenennen, mit denselben Kontrollkästchen für Vorschau und Bericht.

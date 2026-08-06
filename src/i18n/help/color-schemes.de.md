@@ -1,6 +1,6 @@
 # Farbschemas
 
-Ein Farbschema legt die Farben der App fest: die Oberfläche (Hintergründe, Text, Akzent, Leisten, Tabs) und den gerenderten Inhalt (Überschriften, Links, Zitate, Code, Tabellen). Die Farben laufen über eine kuratierte Liste benannter Farb-Slots, die die Theme-Farben speisen. Je Modus ist ein Schema aktiv; der Hell/Dunkel-Umschalter (Statusbar-Icon, Ansicht → Theme) wechselt zwischen dem Hell- und dem Dunkel-Schema.
+Ein Farbschema legt die Farben der App fest: die Oberfläche (Hintergründe, Text, Akzent, Leisten, Tabs) und den gerenderten Inhalt (Überschriften, Links, Zitate, Code, Tabellen). Die Farben laufen über eine kuratierte Liste benannter Farb-Slots, die die Theme-Farben speisen. Je Modus ist ein Schema aktiv; der Hell/Dunkel-Umschalter (Statusbar-Icon, Ansicht → Erscheinungsbild → Hell/Dunkel/System) wechselt zwischen dem Hell- und dem Dunkel-Schema.
 
 ## Slots und Gruppen
 
@@ -15,7 +15,7 @@ Die Schema-Verwaltung öffnet unter Einstellungen → Farbschemas.
 - **Eigenes Schema:** „Neu aus Vorlage" oder „Duplizieren" legt eine bearbeitbare Kopie an. Ein eigenes Schema lässt sich umbenennen und löschen; beim Löschen des aktiven Schemas fällt der Modus auf das voreingestellte Schema zurück.
 - **Slot-Editor:** Je Slot ein Farbwähler; „Zurücksetzen" stellt den Vorlage-Wert wieder her. Änderungen wirken sofort in der ganzen App (Live-Vorschau), nach dem Anwenden auch in weiteren Fenstern.
 
-Der Editor bearbeitet immer das aktive Schema des Modus, in dem die App gerade läuft: im hellen Modus das Hell-Schema, im dunklen Modus das Dunkel-Schema. Um das Schema des jeweils anderen Modus anzupassen, schaltet man die App zuerst über das Theme-Icon in der Statusbar (oder Ansicht → Theme) auf diesen Modus um. So wirkt jede Farbänderung sofort in genau dem Modus, für den sie gilt (Live-Vorschau).
+Der Editor bearbeitet immer das aktive Schema des Modus, in dem die App gerade läuft: im hellen Modus das Hell-Schema, im dunklen Modus das Dunkel-Schema. Um das Schema des jeweils anderen Modus anzupassen, schaltet man die App zuerst über das Theme-Icon in der Statusbar (oder Ansicht → Erscheinungsbild → Hell/Dunkel/System) auf diesen Modus um. So wirkt jede Farbänderung sofort in genau dem Modus, für den sie gilt (Live-Vorschau).
 
 ## Kontrast und Grenzen
 

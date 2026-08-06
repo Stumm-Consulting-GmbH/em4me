@@ -4,7 +4,7 @@ Chaque document peut porter **une** note, distincte du contenu du document. Elle
 
 ## Le panneau Notes
 
-Le panneau « Notes » se commute comme tout panneau de barre latérale : via le menu Affichage → Panneaux → Notes, l'icône de bloc-notes dans la barre d'état, ou un raccourci que vous affectez vous-même (aucun n'est défini au départ ; l'affectation se fait dans les paramètres). Le commutateur agit sur la colonne active ; côté, ordre et groupes d'onglets suivent les règles de la [Barre latérale](sidebar.md).
+Le panneau « Notes » se commute comme tout panneau de barre latérale : via le menu Affichage → Barre latérale → Panneaux → Notes, l'icône de bloc-notes dans la barre d'état, ou un raccourci que vous affectez vous-même (aucun n'est défini au départ ; l'affectation se fait dans les paramètres). Le commutateur agit sur la colonne active ; côté, ordre et groupes d'onglets suivent les règles de la [Barre latérale](sidebar.md).
 
 Une note appartient toujours au document actif. Un document encore **sans nom** (jamais enregistré) n'a pas d'emplacement pour le fichier compagnon ; le panneau affiche alors une indication au lieu d'un champ de saisie ; après le premier enregistrement, la note est disponible.
 

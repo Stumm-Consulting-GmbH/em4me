@@ -43,7 +43,7 @@ Con un área abierta, la aplicación comprueba de forma continua los marcadores 
 
 ## Lista de recordatorios
 
-Un panel de la barra lateral lista todos los recordatorios del área, agrupados en **Atrasados**, **Hoy**, **Mañana** y **Más tarde**. El panel se abre mediante el icono de despertador de la barra de estado o mediante Ver → Paneles → Recordatorios.
+Un panel de la barra lateral lista todos los recordatorios del área, agrupados en **Atrasados**, **Hoy**, **Mañana** y **Más tarde**. El panel se abre mediante el icono de despertador de la barra de estado o mediante Ver → Barra lateral → Paneles → Recordatorios.
 
 - Cada entrada ofrece las acciones directas **Hecho** y **Más tarde**.
 - Un clic en una entrada abre el archivo de origen en la línea correspondiente.

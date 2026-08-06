@@ -72,7 +72,7 @@ Numbers close ranks when something is closed: if application 1 closes, applicati
 
 ## Areas
 
-An **area** binds an application to a folder: everything in this folder including its subfolders is the working space, nothing else. "File → Open Area…" picks the folder; "File → Close Area" ends the work in the area and closes all windows of the area application (with the usual save prompts). The binding is fixed: an area cannot be switched, only closed.
+An **area** binds an application to a folder: everything in this folder including its subfolders is the working space, nothing else. "File → Area → Open Area…" picks the folder; "File → Area → Close Area" ends the work in the area and closes all windows of the area application (with the usual save prompts). The binding is fixed: an area cannot be switched, only closed.
 
 Three rules apply when opening:
 
@@ -80,7 +80,7 @@ Three rules apply when opening:
 - If the application already has an open file, a new application is created for the area.
 - If the area is already running, focus jumps to a window of the running area application; the same area never runs twice.
 
-**Demo-Area:** "File → Create Demo-Area…" copies a bundled English-language example collection — Markdown pages together with image and PDF attachments that demonstrate the most important functions — into an empty folder and opens it directly as an area: a sandbox for risk-free experimentation. Non-empty target folders are rejected, and existing files are never overwritten. The feature can be turned off as the "Demo-Area" extension; demo folders that have already been created are ordinary areas and remain unaffected.
+**Demo-Area:** "File → Area → Create Demo-Area…" copies a bundled English-language example collection — Markdown pages together with image and PDF attachments that demonstrate the most important functions — into an empty folder and opens it directly as an area: a sandbox for risk-free experimentation. Non-empty target folders are rejected, and existing files are never overwritten. The feature can be turned off as the "Demo-Area" extension; demo folders that have already been created are ordinary areas and remain unaffected.
 
 ### Hard boundaries
 
@@ -94,7 +94,7 @@ In an area application the search scope for backlinks, tags, autocomplete and th
 
 ### Area panel
 
-The "Area" panel shows the area as a folder structure in the sidebar (dockable left or right like any panel; the switch is the folder icon in the status bar or View → Panels → Area): the folder tree on top, below it the Markdown files of the selected folder; other file types do not appear. Clicking a file opens it as a tab, all entries show the full path as a tooltip, and external changes (file created, deleted, renamed) appear automatically. The "+" button at the head of the file list creates a new Markdown file in the selected folder and opens it. In a freshly opened, still empty area application the panel is visible automatically.
+The "Area" panel shows the area as a folder structure in the sidebar (dockable left or right like any panel; the switch is the folder icon in the status bar or View → Sidebar → Panels → Area): the folder tree on top, below it the Markdown files of the selected folder; other file types do not appear. Clicking a file opens it as a tab, all entries show the full path as a tooltip, and external changes (file created, deleted, renamed) appear automatically. The "+" button at the head of the file list creates a new Markdown file in the selected folder and opens it. In a freshly opened, still empty area application the panel is visible automatically.
 
 ### Area statistics
 
@@ -106,7 +106,7 @@ The figures carry a timestamp at the top and are collected **on request**, not c
 
 ### Recent areas
 
-"File → Recent Areas" lists the recently opened areas by their folder name. A click opens the area with the usual rules. Areas are restored with the session; if an area folder is missing at startup, the corresponding application is not restored and a notice is shown.
+"File → Area → Recent Areas" lists the recently opened areas by their folder name. A click opens the area with the usual rules. Areas are restored with the session; if an area folder is missing at startup, the corresponding application is not restored and a notice is shown.
 
 ## Workspaces
 

@@ -12,7 +12,7 @@ Processus-A∕Brouillon.md             sous-page de Processus-A
 Processus-A∕Realisation∕Detail.md    deuxième niveau
 ```
 
-Le caractère ne doit jamais être saisi : les nouvelles sous-pages se créent via **Fichier → Nouvelle sous-page…** (une boîte de dialogue demande le nom ; le fichier est créé dans le dossier du fichier actif et s'ouvre comme onglet). Pour créer un fichier manuellement dans l'explorateur, copiez le caractère depuis cette page : `∕`
+Le caractère ne doit jamais être saisi : les nouvelles sous-pages se créent via **Fichier → Autres fonctions de fichier → Nouvelle sous-page…** (une boîte de dialogue demande le nom ; le fichier est créé dans le dossier du fichier actif et s'ouvre comme onglet). Pour créer un fichier manuellement dans l'explorateur, copiez le caractère depuis cette page : `∕`
 
 ## Liens vers des sous-pages
 
@@ -29,11 +29,11 @@ La résolution cherche d'abord un chemin de dossier réel (`[[sousdossier/Fichie
 
 ## Navigation
 
-Quand une sous-page est active, un **fil d'Ariane** au-dessus du document (vues lecture, partagée et live) montre la chaîne parente avec des niveaux cliquables ; les niveaux intermédiaires inexistants sont soulignés en pointillés et non cliquables. La section latérale **Sous-pages** (Affichage → Panneaux → Sous-pages, ou l'icône de sous-pages dans la barre d'état) liste les sous-pages directes du fichier actif ; un clic les ouvre.
+Quand une sous-page est active, un **fil d'Ariane** au-dessus du document (vues lecture, partagée et live) montre la chaîne parente avec des niveaux cliquables ; les niveaux intermédiaires inexistants sont soulignés en pointillés et non cliquables. La section latérale **Sous-pages** (Affichage → Barre latérale → Panneaux → Sous-pages, ou l'icône de sous-pages dans la barre d'état) liste les sous-pages directes du fichier actif ; un clic les ouvre.
 
 ## Renommer
 
-**Fichier → Renommer…** (aussi dans le menu contextuel de l'onglet) renomme le fichier actif. Les onglets ouverts, les signets, la liste des fichiers récents et le [fichier compagnon d'historique](history.md) suivent.
+**Fichier → Autres fonctions de fichier → Renommer…** (aussi dans le menu contextuel de l'onglet) renomme le fichier actif. Les onglets ouverts, les signets, la liste des fichiers récents et le [fichier compagnon d'historique](history.md) suivent.
 
 - Renommer une page **avec des sous-pages** emporte tout son arbre de sous-pages ; la boîte de dialogue en indique le nombre au préalable.
 - Renommer une **sous-page** ne change que son propre segment de nom ; la chaîne parente est conservée. Cela vaut aux deux endroits, y compris dans la [ligne de titre](tools.md) au-dessus du document : la partie parente y précède le segment modifiable, atténuée et non modifiable.
@@ -45,7 +45,7 @@ Quand une sous-page est active, un **fil d'Ariane** au-dessus du document (vues 
 
 ## Détacher
 
-**Fichier → Détacher de la page parente…** (aussi dans le menu contextuel de l'onglet d'une sous-page) fait d'une sous-page une page autonome : `Prozess-A/Entwurf` devient `Entwurf`.
+**Fichier → Autres fonctions de fichier → Détacher de la page parente…** (aussi dans le menu contextuel de l'onglet d'une sous-page) fait d'une sous-page une page autonome : `Prozess-A/Entwurf` devient `Entwurf`.
 
 - La boîte de dialogue indique au préalable la cible et le nombre de **sous-pages propres** qui suivent. `Prozess-A/Entwurf/Tief` devient `Entwurf/Tief` : la hiérarchie en dessous est donc conservée.
 - **Les liens restent valides :** la mise à jour des liens entrants emprunte le même chemin que le renommage, avec les mêmes cases pour l'aperçu et le rapport.

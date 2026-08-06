@@ -4,7 +4,7 @@ Bookmarks keep frequently used files within reach, no matter which folder is cur
 
 ## The bookmarks panel
 
-The “Bookmarks” panel is toggled like any sidebar panel: via the status-bar star, the View → Panels → Bookmarks menu (default `Ctrl+Shift+L`) or a shortcut you assign yourself. The toggle acts on the active column; side, order and tab groups follow the rules of the [sidebar](sidebar.md). The status-bar star also shows whether the active file is already bookmarked.
+The “Bookmarks” panel is toggled like any sidebar panel: via the status-bar star, the View → Sidebar → Panels → Bookmarks menu (default `Ctrl+Shift+L`) or a shortcut you assign yourself. The toggle acts on the active column; side, order and tab groups follow the rules of the [sidebar](sidebar.md). The status-bar star also shows whether the active file is already bookmarked.
 
 A click on an entry opens the file. If a bookmarked file is missing from its expected location, the entry says so instead of leading nowhere. Even in the empty app state with no open document, the list stays usable, so bookmarked files can be opened directly.
 
@@ -25,7 +25,7 @@ An area bookmark does not remember its target as a full path but relative to the
 
 ### General bookmarks
 
-The active file is bookmarked via the File menu (default `Ctrl+D`) or the star. If no area is open, or the file is outside the open area, a general bookmark is created without asking.
+The active file is bookmarked via File → More File Functions → Bookmark active file (default `Ctrl+D`) or the star. If no area is open, or the file is outside the open area, a general bookmark is created without asking.
 
 If, however, an area is open and the active file is inside it, `Ctrl+D` opens a small choice menu at the star with the targets “General bookmark” and “Area bookmark”. That way it is clear on every addition which section the bookmark goes into.
 

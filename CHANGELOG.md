@@ -9,6 +9,94 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [0.105.0.1235] - 2026-08-06 — Feinschliff an Menüs, Einstellungen und Handbuch
+
+Epic 3E-0168: das Feinschliff-Paket aus dem Funktions-Lücken-Review vor 1.0.0 —
+die vier vom Product Owner per Mockup-Iteration beschlossenen Ziel-Strukturen
+(Datei-Menü Variante C, Ansicht-Menü Variante V2, Einstellungs-Navigation in
+vier Blöcken, Handbuch-Überblick in sechs Blöcken) plus die entschiedenen
+Einzel-Maßnahmen des Reviews (Befunde L-01, L-02 und L-04 bis L-10) und die neuen
+Zuletzt-Listen für Bücher und Bücherregale.
+
+### Neu
+
+- **Zuletzt geöffnete Bücher und Bücherregale** (4T-0888): zwei Listen im
+  Untermenü „Buch und Bücherregal" nach dem Muster der Bereichs-Liste (jüngste
+  zuerst, ohne Dubletten, gekappt auf 10, Leer-Eintrag, „Liste löschen" mit
+  Rückfrage), gepflegt an allen Öffnungs- und Anlage-Pfaden und persistent über
+  den Neustart; beide verschwinden mit der abgeschalteten Bücher-Erweiterung.
+  Technisch wanderten dabei alle vier Zuletzt-Listen in das neue Main-Modul
+  `recent-lists.js` (Factory-Muster) und der Untermenü-Aufbau in das
+  Electron-freie, erstmals unit-testbare `menu-recent.js`; die eingefrorenen
+  Größen-Werte von `main.js` und `menu.js` wurden gemäß Ratsche gesenkt.
+- **Portabler Export als Kommando** (4T-0890, Befund L-05): neues
+  Registry-Kommando `file.exportPortable` nach dem Muster des PDF-Exports; der
+  Export ist damit in Kommando-Palette und Kürzel-Belegung verfügbar, der
+  Menü-Eintrag läuft über das Kommando.
+- **Menü-Zugänge für vier Palette-only-Kommandos** (4T-0887, Befund L-04):
+  Kalender-Wert und Ereignis-Block in der Einfügen-Gruppe des
+  Editor-Kontextmenüs, „Teilbaum auswählen" am Ende von dessen Listen-Gruppe,
+  „Kapitel-Datei verschieben…" als Menü-Eintrag im Buch-Untermenü.
+- **Handbuch-Seite „Ansichten und Darstellung"** (4T-0892, Befund L-09) in
+  fünf Sprachen: Ansichts-Modi mit Kürzeln, Editor-Darstellung,
+  Erscheinungsbild, Fenster-Zustand, Wort-Statistik, Einstellungs-Zugang,
+  Sprache und Menüleiste (mit dem dokumentierten F12-Entscheid aus Befund
+  L-07: die Taste bleibt bewusst fest verdrahtet).
+
+### Geändert
+
+- **Datei-Menü in Variante C** (4T-0887): oberste Ebene mit den vier
+  Kern-Einträgen, den Untermenüs „Weitere Datei-Funktionen", „Bereich", „Buch
+  und Bücherregal" und „Arbeitsbereiche" sowie dem Applikations-Block (Neue
+  Applikation, Einstellungen…) über „Beenden" unten; kein Eintrag entfallen,
+  Kontext-Deaktivierungen unverändert.
+- **Ansicht-Menü in Variante V2** (4T-0887): die vier Ansichts-Radios plus
+  „Bearbeiten" oben, darunter die Untermenüs „Editor-Darstellung", „Sidebar"
+  und „Erscheinungsbild" (Fokus-Modus und Theme-Radios direkt), dann
+  Dokument-Historie, Bereichs-Graph, Bereichs-Statistik, Kommando-Palette und
+  Entwickler-Tools. Die Arbeitsbereichs-Farbpunkte liegen jetzt im neuen
+  Main-Modul `menu-icons.js`.
+- **Einstellungs-Navigation in vier Blöcken** (4T-0889): Allgemein (Kern, endet
+  mit den beiden Verwaltungs-Sektionen), Aktueller Bereich (unverändert alles
+  Bereichsgebundene), Erweiterungen (intern) alphabetisch nach lokalisiertem
+  Titel, Erweiterungen (extern) nur bei installierten externen Erweiterungen.
+  Herkunfts-Quelle ist allein die Erweiterungs-Registry; leere Blöcke
+  entfallen.
+- **Handbuch-Überblick in sechs Themen-Blöcken** (4T-0892), bestehende
+  Link-Beschreibungen verlustfrei umsortiert; das Export-Kapitel der Seite
+  „Mathematik und Diagramme" dokumentiert die Export-Grenze (Befund L-01: PDF
+  als Vektorgrafik, portables Markdown lässt den Diagramm-Block als
+  Quelltext); 38 Zugangs-Texte des Funktions-Katalogs und 14 Handbuch-Seiten je
+  Sprache auf die neuen Untermenü-Pfade nachgezogen.
+- **Kürzel-Anzeige der sieben Editor-Umschalter** (4T-0890, Befunde L-06 und
+  L-08): belegte Registry-Kürzel erscheinen jetzt an den Menü-Einträgen (die
+  Kürzel selbst wirkten schon); die Kommandos tragen Beschreibungen auf der
+  generierten Tastenkürzel-Seite. Bei den vier zustands-geführten Einträgen
+  unterliegt das Kürzel jetzt konsistent demselben Guard wie der Menüpunkt.
+
+### Behoben
+
+- **Wiki-Embeds im portablen Export** (4T-0891, Befund L-02): Ein exportiertes Dokument
+  zeigte für eingebettete Dateien eine leere Stelle; jetzt steht dort ein
+  Verweis in Wiki-Link-Optik mit derselben Ziel-Adresse, die auch der
+  Wiki-Link bilden würde. Eine wieder in der App geöffnete portable Datei
+  bleibt voll aufgelöst, weil der Verweis innerhalb des Platzhalter-Spans
+  liegt.
+- **Menü-Häkchen der Sidebar-Panels** (4T-0887, PO-Befund der
+  Test-Iteration): Das Suchergebnisse-Panel trug im Panel-Untermenü nie ein
+  Häkchen (fehlender Eintrag in der Roh-Sichtbarkeits-Tabelle), und die
+  Menü-State-Meldung hing an den einzelnen Panel-Pfaden, von denen nicht alle
+  meldeten; sie liegt jetzt zentral am Panel-Toggle-Kanal. Neuer Wächter
+  PZ-06 prüft das kippende Häkchen für jedes Panel des Zugangs-Modells.
+
+### i18n
+
+- 23 neue Keys je Sprache (sechs Untermenü-Titel, sechs Zuletzt-Listen-Texte,
+  zwei Einstellungs-Block-Titel, fünf Kürzel-Beschreibungen, ein
+  Handbuch-Seiten-Titel, Katalog-Trio `extensionsDev` aus Befund L-10); dazu
+  39 nachgezogene Bestands-Werte (DE) für die neuen Menüpfade, darunter die
+  Katalog-Beschreibung der Einstellungs-Seite auf die Vier-Block-Gliederung.
+
 ## [0.104.0.1191] - 2026-08-04 — Bücherregale, und Bücher als eigener Arbeitsraum
 
 Epic 3E-0162: Bücher lassen sich zu **Bücherregalen** gruppieren — ein Ordner

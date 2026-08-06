@@ -17,7 +17,7 @@ Ogni file Markdown nella cartella (sottocartelle comprese) è un modello. Le sot
 
 Due strade portano al modello:
 
-- **Nuovo file da modello** (menu File): scegliere il modello nel popup filtrabile, assegnare un nome file (`/` crea una sottopagina), rispondere alla catena di dialoghi. Il file nasce con il contenuto compilato nella cartella del file attivo (senza file attivo nella radice dell'area; senza entrambi, un dialogo di cartella chiede la destinazione), si apre come scheda e il cursore salta al primo obiettivo `{{cursor}}`.
+- **Nuovo file da modello** (menu File → Altre funzioni file): scegliere il modello nel popup filtrabile, assegnare un nome file (`/` crea una sottopagina), rispondere alla catena di dialoghi. Il file nasce con il contenuto compilato nella cartella del file attivo (senza file attivo nella radice dell'area; senza entrambi, un dialogo di cartella chiede la destinazione), si apre come scheda e il cursore salta al primo obiettivo `{{cursor}}`.
 - **Inserisci modello** (menu contestuale dell'editor → Inserisci): il risultato compilato viene inserito alla posizione del cursore come singolo passo di modifica (un annulla rimuove tutto).
 
 Più segnaposto di input e selezione appaiono **uno dopo l'altro** nell'ordine della prima occorrenza; le domande identiche vengono poste una sola volta. L'annullamento di un qualsiasi dialogo interrompe l'intera applicazione: non nasce nessun file e nessun testo inserito.

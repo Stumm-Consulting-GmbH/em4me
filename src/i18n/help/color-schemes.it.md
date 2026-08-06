@@ -1,6 +1,6 @@
 # Combinazioni di colori
 
-Una combinazione di colori definisce i colori dell'applicazione: l'interfaccia (sfondi, testo, accento, barre, schede) e il contenuto renderizzato (titoli, link, citazioni, codice, tabelle). I colori passano attraverso un elenco curato di slot di colore denominati che alimentano i colori del tema. Una combinazione è attiva per modalità; il commutatore chiaro/scuro (icona della barra di stato, Visualizza → Tema) passa dalla combinazione chiara a quella scura.
+Una combinazione di colori definisce i colori dell'applicazione: l'interfaccia (sfondi, testo, accento, barre, schede) e il contenuto renderizzato (titoli, link, citazioni, codice, tabelle). I colori passano attraverso un elenco curato di slot di colore denominati che alimentano i colori del tema. Una combinazione è attiva per modalità; il commutatore chiaro/scuro (icona della barra di stato, Visualizza → Aspetto → Chiaro/Scuro/Sistema) passa dalla combinazione chiara a quella scura.
 
 ## Slot e gruppi
 
@@ -15,7 +15,7 @@ La gestione delle combinazioni si apre in Impostazioni → Combinazioni di color
 - **Combinazione personale:** «Nuova da modello» o «Duplica» crea una copia modificabile. Una combinazione personale può essere rinominata ed eliminata; eliminando la combinazione attiva, la modalità torna alla combinazione predefinita.
 - **Editor degli slot:** un selettore di colore per slot; «Ripristina» riporta al valore del modello. Le modifiche hanno effetto subito in tutta l'applicazione (anteprima dal vivo) e nelle altre finestre dopo l'applicazione.
 
-L'editor modifica sempre la combinazione attiva della modalità in cui l'applicazione è in esecuzione: in modalità chiara la combinazione chiara, in modalità scura la combinazione scura. Per regolare la combinazione dell'altra modalità, si passa prima l'app a quella modalità tramite l'icona del tema nella barra di stato (o Visualizza → Tema). Così ogni modifica di colore ha effetto immediato nella modalità esatta a cui si applica (anteprima dal vivo).
+L'editor modifica sempre la combinazione attiva della modalità in cui l'applicazione è in esecuzione: in modalità chiara la combinazione chiara, in modalità scura la combinazione scura. Per regolare la combinazione dell'altra modalità, si passa prima l'app a quella modalità tramite l'icona del tema nella barra di stato (o Visualizza → Aspetto → Chiaro/Scuro/Sistema). Così ogni modifica di colore ha effetto immediato nella modalità esatta a cui si applica (anteprima dal vivo).
 
 ## Contrasto e limiti
 

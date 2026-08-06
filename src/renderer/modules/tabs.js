@@ -331,6 +331,10 @@ const PANEL_RAW_VISIBLE = {
   outline: (paneIdx) => !!state.outline.visibleByPane[paneIdx],
   subpages: (paneIdx) => !!(state.subpages && state.subpages.visibleByPane[paneIdx]),
   filegraph: (paneIdx) => !!(state.fileGraph && state.fileGraph.visibleByPane[paneIdx]),
+  // 4T-0887 (PO-Befund der Test-Iteration 0.105.0): Das Such-Panel fehlte in
+  // dieser Tabelle seit ihrer Einfuehrung; unbekannte IDs liefern false, das
+  // Menue-Haekchen der Suchergebnisse blieb dadurch dauerhaft leer.
+  searchresults: (paneIdx) => !!(state.searchResults && state.searchResults.visibleByPane[paneIdx]),
   calendar: (paneIdx) => !!(state.calendar && state.calendar.visibleByPane[paneIdx]),
   reminders: (paneIdx) => !!(state.reminders && state.reminders.visibleByPane[paneIdx]),
   clock: (paneIdx) => !!(state.clock && state.clock.visibleByPane[paneIdx]),

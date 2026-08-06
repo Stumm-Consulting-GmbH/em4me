@@ -74,7 +74,9 @@ const FILE_TAB_COMMANDS = new Set([
   'view.toggleEdit',
 ]);
 // Kommandos auf einem Inhalts-Tab (Menue: hasActiveTab && !systemTab).
-const CONTENT_TAB_COMMANDS = new Set(['file.exportPdf']);
+// 4T-0890 (Befund L-05): der portable Export teilt die enabled-Regel des
+// Export-Untermenues mit dem PDF-Export und wird deshalb hier gespiegelt.
+const CONTENT_TAB_COMMANDS = new Set(['file.exportPdf', 'file.exportPortable']);
 // Kommandos, die irgendeinen aktiven Tab brauchen (Menue: hasActiveTab).
 const ANY_TAB_COMMANDS = new Set(['file.bookmarkAdd', 'tab.close', 'view.toggleScrollSync']);
 // Ansichtsmodi: auf System-Seiten deaktiviert (Menue: !systemTab).

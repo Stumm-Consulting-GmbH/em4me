@@ -14,7 +14,7 @@ Nella vista renderizzata l'ancora è invisibile; rende il blocco indirizzabile. 
 
 ## Il pannello Proprietà del blocco
 
-Il pannello «Proprietà del blocco» si attiva come ogni pannello laterale: dal menu Visualizza → Pannelli → Proprietà del blocco, dall'icona a graffe nella barra di stato o con una scorciatoia personalizzata (di fabbrica non ne è assegnata nessuna). Lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
+Il pannello «Proprietà del blocco» si attiva come ogni pannello laterale: dal menu Visualizza → Barra laterale → Pannelli → Proprietà del blocco, dall'icona a graffe nella barra di stato o con una scorciatoia personalizzata (di fabbrica non ne è assegnata nessuna). Lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
 
 Il pannello **segue il cursore**: mostra le proprietà del blocco in cui si trova il cursore. L'intestazione indica l'ancora attiva e offre un selettore di tutte le ancore del file per saltare; le ancore con proprietà vi sono contrassegnate. Se il cursore è in un blocco **senza** ancora, il pannello propone «Crea ancora» e scrive alla fine del blocco un identificatore casuale breve, unico nel file.
 

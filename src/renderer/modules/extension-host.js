@@ -325,6 +325,11 @@ function registerSettingsContribution(id, def, tracker) {
   runtime.registerSettingsSection({
     id: sectionId,
     titleKey,
+    // 4T-0889 (Epic 3E-0168): Herkunfts-Marke fuer die Bereichsnavigation —
+    // Beitraege externer Erweiterungen sammeln sich im eigenen Block
+    // „Erweiterungen (extern)". Hier gesetzt, weil der Host die einzige
+    // Stelle ist, die die Herkunft sicher kennt.
+    origin: 'external',
     render: (container) => {
       try {
         def.render(container);

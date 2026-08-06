@@ -17,7 +17,7 @@ Every Markdown file in the folder (including subfolders) is a template. Subfolde
 
 Two paths lead to a template:
 
-- **New File from Template** (File menu): pick a template in the filterable popup, assign a file name (`/` creates a subpage), answer the dialog chain. The file is created with the filled content in the folder of the active file (without an active file in the area root; without either, a folder dialog asks for the target), opens as a tab, and the cursor jumps to the first `{{cursor}}` target.
+- **New File from Template** (File menu → More File Functions): pick a template in the filterable popup, assign a file name (`/` creates a subpage), answer the dialog chain. The file is created with the filled content in the folder of the active file (without an active file in the area root; without either, a folder dialog asks for the target), opens as a tab, and the cursor jumps to the first `{{cursor}}` target.
 - **Insert Template** (editor context menu → Insert): the filled result is inserted at the cursor position as a single editing step (one undo removes everything).
 
 Multiple input and selection placeholders appear **one after the other** in the order of their first occurrence; identical questions are asked only once. Cancelling any dialog aborts the whole application: no file and no inserted text is created.

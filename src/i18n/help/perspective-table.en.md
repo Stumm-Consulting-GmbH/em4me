@@ -250,7 +250,7 @@ Result:
 
 `.md` files with Perspective tables only render as tables in this viewer. In other Markdown applications the `perspective-table` code block appears unchanged as source text.
 
-Use **File → Export → Portable Markdown…** to save a variant of the file in which Perspective tables are replaced with inline HTML tables. These HTML tables render as real tables in practically any Markdown application.
+Use **File → More File Functions → Export → Portable Markdown…** to save a variant of the file in which Perspective tables are replaced with inline HTML tables. These HTML tables render as real tables in practically any Markdown application.
 
 - **Save-As dialog** with default name `<basename>-portable.md` in the source file's directory. Path and name are freely editable.
 - **Original file** stays unchanged; the export always writes to a new file.

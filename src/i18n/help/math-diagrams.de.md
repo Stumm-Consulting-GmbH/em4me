@@ -101,3 +101,8 @@ function greet(name) {
 ```
 
 Der Copy-Button rechts oben am Block kopiert den Inhalt in die Zwischenablage — auch hier im Handbuch.
+
+## Export
+
+- **PDF-Export**: Diagramme werden als gerenderte Vektorgrafik gedruckt und dafür hell neu gezeichnet; Formeln und Code-Hervorhebung erscheinen wie in der Vorschau.
+- **Portables Markdown**: Der Export lässt den `mermaid`-Block unverändert als Quelltext stehen. Beim erneuten Öffnen in diesem Programm wird er wieder gezeichnet; andere Markdown-Programme zeigen ihn als Code-Block, sofern sie Mermaid nicht selbst zeichnen. KaTeX-Formeln und Code-Blöcke mit Sprach-Tag sind gewöhnliche Markdown-Syntax und bleiben davon unberührt.

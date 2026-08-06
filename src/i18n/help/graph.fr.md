@@ -16,7 +16,7 @@ La barre d'outils en tête de l'onglet propose :
 
 ## Graphe du fichier (panneau)
 
-Le panneau « Graphe du fichier » montre le voisinage de liens du fichier actif et suit automatiquement le changement d'onglet. Il se bascule via le menu Affichage → Panneaux → Graphe du fichier, l'icône du graphe dans la barre d'état ou un raccourci clavier personnalisé ; côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
+Le panneau « Graphe du fichier » montre le voisinage de liens du fichier actif et suit automatiquement le changement d'onglet. Il se bascule via le menu Affichage → Barre latérale → Panneaux → Graphe du fichier, l'icône du graphe dans la barre d'état ou un raccourci clavier personnalisé ; côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
 
 Deux réglages se trouvent dans l'en-tête du panneau :
 

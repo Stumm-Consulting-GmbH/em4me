@@ -29,8 +29,8 @@ A changed pattern does not rename existing files; calendar dots and entry detect
 
 ## Opening and creating entries
 
-- **Today's Journal Entry** (File menu): opens or creates today's entry of a daily journal; with a picker if several daily journals exist.
-- **Journal Entry for Date…** (File menu): asks for a date (YYYY-MM-DD) and the journal; the period is that of the date in the journal's granularity.
+- **Today's Journal Entry** (File menu → More File Functions): opens or creates today's entry of a daily journal; with a picker if several daily journals exist.
+- **Journal Entry for Date…** (File menu → More File Functions): asks for a date (YYYY-MM-DD) and the journal; the period is that of the date in the journal's granularity.
 
 Creation produces the folder chain, the filled template content (an empty entry without a template) and the date properties in the frontmatter: daily journals get the date (`journal-date`), multi-day periods start and end (`journal-start-date`, `journal-end-date`); the field names are configurable per journal and are available to the Perspective query. Date placeholders of the template are evaluated at the period start — `{{date}}` yields the period date in the entry, not the creation time. Cancelling any template dialog aborts the creation; no file is created.
 

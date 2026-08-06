@@ -4,7 +4,7 @@ Every document can carry **one** note, kept separate from the document content. 
 
 ## The notes panel
 
-The "Notes" panel is toggled like any sidebar panel: via the View → Panels → Notes menu, the note-sheet icon in the status bar, or a shortcut you assign yourself (none is set out of the box; you assign it in the settings). The toggle affects the active column; side, order, and tab groups follow the rules of the [Sidebar](sidebar.md).
+The "Notes" panel is toggled like any sidebar panel: via the View → Sidebar → Panels → Notes menu, the note-sheet icon in the status bar, or a shortcut you assign yourself (none is set out of the box; you assign it in the settings). The toggle affects the active column; side, order, and tab groups follow the rules of the [Sidebar](sidebar.md).
 
 A note always belongs to the active document. A still **unnamed** (never saved) document has no place for the companion file, so the panel then shows a hint instead of an input field; after the first save the note is available.
 

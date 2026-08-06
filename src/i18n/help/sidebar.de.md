@@ -4,7 +4,7 @@ Die Sidebar bündelt die Panels der App — von Lesezeichen, Inhaltsverzeichnis 
 
 ## Panels ein- und ausblenden
 
-Jedes Panel hat ein Statusbar-Icon und einen Eintrag im Untermenü Ansicht → Panels (Standard-Kürzel in der [Tastenkürzel-Übersicht](shortcuts.md)); der Schalter wirkt auf die aktive Spalte. Beide Orte führen dieselben Panels in derselben Reihenfolge; die Reihenfolge lässt sich unter Einstellungen → Panel-Reihenfolge frei sortieren und wirkt auf Menü und Statusbar gleichzeitig. Die Inhalte der einzelnen Panels beschreiben die [Funktions-Tabelle](functions.md) sowie die Seiten [Vernetzung](linking.md) (Tags, Backlinks, Outgoing-Links), [Frontmatter und Properties](frontmatter.md), [Dokument-Notizen](notes.md) (Notizen-Panel) und [Applikationen, Fenster und Bereiche](apps-windows.md) (Bereichs-Panel).
+Jedes Panel hat ein Statusbar-Icon und einen Eintrag im Untermenü Ansicht → Sidebar → Panels (Standard-Kürzel in der [Tastenkürzel-Übersicht](shortcuts.md)); der Schalter wirkt auf die aktive Spalte. Beide Orte führen dieselben Panels in derselben Reihenfolge; die Reihenfolge lässt sich unter Einstellungen → Panel-Reihenfolge frei sortieren und wirkt auf Menü und Statusbar gleichzeitig. Die Inhalte der einzelnen Panels beschreiben die [Funktions-Tabelle](functions.md) sowie die Seiten [Vernetzung](linking.md) (Tags, Backlinks, Outgoing-Links), [Frontmatter und Properties](frontmatter.md), [Dokument-Notizen](notes.md) (Notizen-Panel) und [Applikationen, Fenster und Bereiche](apps-windows.md) (Bereichs-Panel).
 
 ## Spalten ein- und ausklappen
 
@@ -12,7 +12,7 @@ Jedes Panel hat ein Statusbar-Icon und einen Eintrag im Untermenü Ansicht → P
 
 - **Kopf-Symbol:** In der obersten Kopfzeile jeder Spalte sitzt am inneren Rand, dort wo die Spalte an den Text stößt, ein Sidebar-Symbol. Ein Klick klappt die Spalte ein. Das Symbol steht in der linken Spalte rechtsbündig und in der rechten gespiegelt linksbündig; es erscheint gleichermaßen im Sektions-Kopf und in der Reiterleiste einer Gruppe sowie in der Text- wie in der Symbol-Darstellung der Überschriften.
 - **Eingeklappt:** Eine eingeklappte Spalte bleibt als schmaler Strich am Fensterrand sichtbar. Beim Überfahren mit der Maus erscheint dort das Symbol; ein Klick klappt die Spalte wieder aus. Der Tooltip wechselt dabei zwischen Einklappen und Ausklappen.
-- **Menü und Kommandos:** Ansicht → Linke Sidebar einklappen und Ansicht → Rechte Sidebar einklappen schalten dieselben Zustände. Beide Kommandos stehen auch in der Kommando-Palette und lassen sich unter Einstellungen → Tastenkürzel mit einem Kürzel belegen; eine Vorbelegung gibt es nicht.
+- **Menü und Kommandos:** Ansicht → Sidebar → Linke Sidebar einklappen und Ansicht → Sidebar → Rechte Sidebar einklappen schalten dieselben Zustände. Beide Kommandos stehen auch in der Kommando-Palette und lassen sich unter Einstellungen → Tastenkürzel mit einem Kürzel belegen; eine Vorbelegung gibt es nicht.
 
 In der geteilten Ansicht schaltet jede Editor-Spalte ihre beiden Sidebars eigenständig; ein Einklappen wirkt nur auf die eigene Spalte. Der zuletzt eingestellte Zustand wird global gespeichert und gilt beim nächsten Start weiter.
 
@@ -31,8 +31,8 @@ Die **Standard-Anordnung** verteilt die Panels auf beide Seiten und bündelt sie
 
 Die aktuelle Anordnung lässt sich als **benannte Variante** speichern — samt der Panel-Sichtbarkeit beider Spalten, also dem kompletten Aufbau der Sidebar. Beliebig viele Varianten sind möglich, etwa eine für Konzeptarbeit und eine für Tagesarbeit.
 
-- **Speichern:** Ansicht → Sidebar-Anordnungen → „Aktuelle Anordnung speichern …" oder der gleichnamige Knopf unter Einstellungen → Sidebar, Abschnitt Varianten. Der Name wird im Dialog vergeben; Speichern unter einem vorhandenen Namen aktualisiert diese Variante.
-- **Anwenden:** per Klick im Untermenü Ansicht → Sidebar-Anordnungen, über das Auswahl-Popup des Kommandos „Sidebar-Variante anwenden" oder in den Varianten-Listen der Einstellungen. Anwenden ersetzt die aktuelle Anordnung sofort; spätere Umbauten ändern die Variante nicht — „Überschreiben" übernimmt die aktuelle Anordnung ausdrücklich in eine bestehende Variante.
+- **Speichern:** Ansicht → Sidebar → Sidebar-Anordnungen → „Aktuelle Anordnung speichern …" oder der gleichnamige Knopf unter Einstellungen → Sidebar, Abschnitt Varianten. Der Name wird im Dialog vergeben; Speichern unter einem vorhandenen Namen aktualisiert diese Variante.
+- **Anwenden:** per Klick im Untermenü Ansicht → Sidebar → Sidebar-Anordnungen, über das Auswahl-Popup des Kommandos „Sidebar-Variante anwenden" oder in den Varianten-Listen der Einstellungen. Anwenden ersetzt die aktuelle Anordnung sofort; spätere Umbauten ändern die Variante nicht — „Überschreiben" übernimmt die aktuelle Anordnung ausdrücklich in eine bestehende Variante.
 - **Verwalten:** Einstellungen → Sidebar, Abschnitt Varianten listet die globalen Varianten mit Anwenden, Umbenennen, Überschreiben und Löschen.
 
 **Bereichs-Varianten** gehören zu einem Bereich: sie liegen in dessen Bereichsdatei, wandern mit dem Bereichs-Ordner und erscheinen nur bei geöffnetem Bereich, im Menü getrennt als eigene Gruppe mit dem Bereichs-Namen. Ihre Verwaltung samt eigenem Speichern-Knopf liegt im Einstellungs-Bereich „Sidebar-Varianten" der Gruppe „Aktueller Bereich"; beim Speichern über Menü oder Kommando wählt eine Option im Dialog das Ziel (global oder Bereich). Gleiche Namen in beiden Gruppen sind erlaubt. Der Eintrag „Standard-Anordnung" im Untermenü stellt jederzeit die mitgelieferte Verteilung wieder her.

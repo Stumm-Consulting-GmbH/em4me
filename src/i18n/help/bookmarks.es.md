@@ -4,7 +4,7 @@ Los marcadores mantienen a mano los archivos de uso frecuente, sin importar qué
 
 ## El panel de marcadores
 
-El panel de marcadores se activa como cualquier panel lateral: mediante la estrella de la barra de estado, el menú Ver → Paneles → Favoritos (predeterminado `Ctrl+Mayús+L`) o un atajo que asignes tú mismo. El interruptor actúa sobre la columna activa; lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md). La estrella de la barra de estado indica además si el archivo activo ya está marcado.
+El panel de marcadores se activa como cualquier panel lateral: mediante la estrella de la barra de estado, el menú Ver → Barra lateral → Paneles → Favoritos (predeterminado `Ctrl+Mayús+L`) o un atajo que asignes tú mismo. El interruptor actúa sobre la columna activa; lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md). La estrella de la barra de estado indica además si el archivo activo ya está marcado.
 
 Un clic en una entrada abre el archivo. Si un archivo marcado falta en la ubicación esperada, la entrada lo señala en lugar de no llevar a ninguna parte. Incluso en el estado vacío de la aplicación, sin documento abierto, la lista sigue siendo utilizable, de modo que los archivos marcados pueden abrirse directamente.
 
@@ -25,7 +25,7 @@ Un marcador del área no recuerda su destino como una ruta completa, sino de for
 
 ### Marcadores generales
 
-El archivo activo se marca mediante el menú Archivo (predeterminado `Ctrl+D`) o la estrella. Si no hay un área abierta, o el archivo está fuera del área abierta, se crea un marcador general sin preguntar.
+El archivo activo se marca mediante Archivo → Más funciones de archivo → Marcar el archivo activo como favorito (predeterminado `Ctrl+D`) o la estrella. Si no hay un área abierta, o el archivo está fuera del área abierta, se crea un marcador general sin preguntar.
 
 En cambio, si hay un área abierta y el archivo activo está dentro, `Ctrl+D` abre un pequeño menú de elección junto a la estrella, con los destinos «Marcador general» y «Marcador del área». Así, en cada creación queda claro a qué sección va el marcador.
 

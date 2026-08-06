@@ -29,8 +29,8 @@ Ein geändertes Schema benennt bestehende Dateien nicht um; Kalender-Punkte und 
 
 ## Einträge öffnen und anlegen
 
-- **Heutiger Journal-Eintrag** (Menü Datei): öffnet den heutigen Eintrag eines Tages-Journals bzw. legt ihn an; bei mehreren Tages-Journalen mit Auswahl.
-- **Journal-Eintrag für Datum…** (Menü Datei): fragt ein Datum (JJJJ-MM-TT) und das Journal ab; die Periode ist die des Datums in der Granularität des Journals.
+- **Heutiger Journal-Eintrag** (Menü Datei → Weitere Datei-Funktionen): öffnet den heutigen Eintrag eines Tages-Journals bzw. legt ihn an; bei mehreren Tages-Journalen mit Auswahl.
+- **Journal-Eintrag für Datum…** (Menü Datei → Weitere Datei-Funktionen): fragt ein Datum (JJJJ-MM-TT) und das Journal ab; die Periode ist die des Datums in der Granularität des Journals.
 
 Beim Anlegen entstehen die Ordner-Kette, der gefüllte Vorlagen-Inhalt (ohne Vorlage ein leerer Eintrag) und die Datums-Eigenschaften im Frontmatter: Tages-Journale erhalten das Datum (`journal-date`), mehrtägige Perioden Start und Ende (`journal-start-date`, `journal-end-date`); die Feldnamen sind pro Journal einstellbar und stehen der Perspective-Abfrage zur Verfügung. Datums-Platzhalter der Vorlage werden am Perioden-Start ausgewertet — `{{date}}` liefert im Eintrag das Perioden-Datum, nicht den Anlage-Zeitpunkt. Ein Abbruch eines Vorlagen-Dialogs bricht das Anlegen ab; es entsteht keine Datei.
 

@@ -250,7 +250,7 @@ Risultato:
 
 I file `.md` con tabelle Perspective vengono visualizzati come tabelle solo in questo viewer. In altre applicazioni Markdown il blocco di codice `perspective-table` appare invariato come testo sorgente.
 
-Con **File → Esporta → Markdown portabile…** salvi una variante del file in cui le tabelle Perspective sono sostituite da tabelle HTML inline. Queste tabelle HTML vengono visualizzate come tabelle reali in praticamente qualsiasi applicazione Markdown.
+Con **File → Altre funzioni file → Esporta → Markdown portabile…** salvi una variante del file in cui le tabelle Perspective sono sostituite da tabelle HTML inline. Queste tabelle HTML vengono visualizzate come tabelle reali in praticamente qualsiasi applicazione Markdown.
 
 - **Finestra di dialogo Salva con nome** con preimpostazione `<nomebase>-portable.md` nella directory del file sorgente. Percorso e nome sono liberamente modificabili.
 - **Il file originale** rimane invariato; l'esportazione scrive sempre in un nuovo file.

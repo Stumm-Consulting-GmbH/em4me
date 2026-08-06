@@ -101,3 +101,8 @@ function greet(name) {
 ```
 
 El botón de copia arriba a la derecha del bloque copia el contenido al portapapeles — también aquí en el manual.
+
+## Exportación
+
+- **Exportación a PDF**: los diagramas se imprimen como gráficos vectoriales renderizados, redibujados en claro para la impresión; las fórmulas y el resaltado de código aparecen como en la vista previa.
+- **Markdown portable**: la exportación deja el bloque `mermaid` sin cambios como texto fuente. Al reabrirlo en este programa se dibuja de nuevo; otros programas Markdown lo muestran como bloque de código, salvo que dibujen Mermaid por su cuenta. Las fórmulas KaTeX y los bloques de código con etiqueta de lenguaje son sintaxis Markdown corriente y no se ven afectados.

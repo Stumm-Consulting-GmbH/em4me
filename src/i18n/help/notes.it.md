@@ -4,7 +4,7 @@ Ogni documento può avere **una** nota, separata dal contenuto del documento. Ra
 
 ## Il pannello Note
 
-Il pannello «Note» si commuta come ogni pannello della barra laterale: dal menu Visualizza → Pannelli → Note, dall'icona a blocco note nella barra di stato, o da una scorciatoia che assegni tu stesso (di fabbrica non ne è impostata alcuna; l'assegnazione avviene nelle impostazioni). L'interruttore agisce sulla colonna attiva; lato, ordine e gruppi di schede seguono le regole della [Barra laterale](sidebar.md).
+Il pannello «Note» si commuta come ogni pannello della barra laterale: dal menu Visualizza → Barra laterale → Pannelli → Note, dall'icona a blocco note nella barra di stato, o da una scorciatoia che assegni tu stesso (di fabbrica non ne è impostata alcuna; l'assegnazione avviene nelle impostazioni). L'interruttore agisce sulla colonna attiva; lato, ordine e gruppi di schede seguono le regole della [Barra laterale](sidebar.md).
 
 Una nota appartiene sempre al documento attivo. Un documento ancora **senza nome** (mai salvato) non ha un posto per il file di accompagnamento; il pannello mostra allora un'indicazione invece di un campo di immissione; dopo il primo salvataggio la nota è disponibile.
 

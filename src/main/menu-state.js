@@ -72,6 +72,10 @@ function normalizeMenuState(base, stored) {
     recentFiles: Array.isArray(s.recentFiles) ? s.recentFiles : [],
     // 4T-0325 (Epic 3E-0058): zuletzt geoeffnete Bereiche.
     recentAreas: Array.isArray(s.recentAreas) ? s.recentAreas : [],
+    // 4T-0888 (Epic 3E-0168): zuletzt geöffnete Bücher und Bücherregale —
+    // dieselben Listen-Regeln wie bei den Bereichen, eigener Store-Schlüssel.
+    recentBooks: Array.isArray(s.recentBooks) ? s.recentBooks : [],
+    recentShelves: Array.isArray(s.recentShelves) ? s.recentShelves : [],
     // 4T-0013: Häkchen-Stand für das Gliederungs-Toggle im Ansicht-Menü.
     foldGutter: b.foldGutter !== undefined ? b.foldGutter : true,
     // 4T-0568 (Epic 3E-0104): geordnete Panel-Liste für das Panel-

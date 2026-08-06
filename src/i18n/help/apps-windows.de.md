@@ -72,7 +72,7 @@ Die Nummern rücken beim Schließen lückenlos nach: Schließt Applikation 1, wi
 
 ## Bereiche
 
-Ein **Bereich** bindet eine Applikation an einen Ordner: Alles in diesem Ordner inklusive Unterordner ist der Arbeitsraum, sonst nichts. „Datei → Bereich öffnen…" wählt den Ordner; „Datei → Bereich schließen" beendet die Arbeit im Bereich und schließt alle Fenster der Bereichs-Applikation (mit den üblichen Speichern-Nachfragen). Die Bindung ist fest: Ein Bereich kann nicht gewechselt, nur geschlossen werden.
+Ein **Bereich** bindet eine Applikation an einen Ordner: Alles in diesem Ordner inklusive Unterordner ist der Arbeitsraum, sonst nichts. „Datei → Bereich → Bereich öffnen…" wählt den Ordner; „Datei → Bereich → Bereich schließen" beendet die Arbeit im Bereich und schließt alle Fenster der Bereichs-Applikation (mit den üblichen Speichern-Nachfragen). Die Bindung ist fest: Ein Bereich kann nicht gewechselt, nur geschlossen werden.
 
 Beim Öffnen gelten drei Regeln:
 
@@ -80,7 +80,7 @@ Beim Öffnen gelten drei Regeln:
 - Hat die Applikation bereits eine geöffnete Datei, entsteht eine neue Applikation für den Bereich.
 - Läuft der Bereich bereits, wechselt der Fokus in ein Fenster der laufenden Bereichs-Applikation; derselbe Bereich läuft nie doppelt.
 
-**Demo-Area:** „Datei → Demo-Area erstellen…" kopiert eine mitgelieferte englischsprachige Beispiel-Sammlung — Markdown-Seiten samt Bild- und PDF-Anlagen, die die wichtigsten Funktionen zeigen — in einen leeren Ordner und öffnet ihn direkt als Bereich: eine Sandbox zum gefahrlosen Ausprobieren. Nicht-leere Zielordner werden abgelehnt, vorhandene Dateien werden niemals überschrieben. Die Funktion ist als Erweiterung „Demo-Area" abschaltbar; bereits erstellte Demo-Ordner sind gewöhnliche Bereiche und bleiben davon unberührt.
+**Demo-Area:** „Datei → Bereich → Demo-Area erstellen…" kopiert eine mitgelieferte englischsprachige Beispiel-Sammlung — Markdown-Seiten samt Bild- und PDF-Anlagen, die die wichtigsten Funktionen zeigen — in einen leeren Ordner und öffnet ihn direkt als Bereich: eine Sandbox zum gefahrlosen Ausprobieren. Nicht-leere Zielordner werden abgelehnt, vorhandene Dateien werden niemals überschrieben. Die Funktion ist als Erweiterung „Demo-Area" abschaltbar; bereits erstellte Demo-Ordner sind gewöhnliche Bereiche und bleiben davon unberührt.
 
 ### Harte Grenzen
 
@@ -94,7 +94,7 @@ In einer Bereichs-Applikation umfasst der Suchraum für Backlinks, Tags, Autocom
 
 ### Bereichs-Panel
 
-Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links oder rechts andockbar wie jedes Panel; Schalter ist das Ordner-Icon in der Statusbar oder Ansicht → Panels → Bereich): oben der Ordnerbaum, darunter die Markdown-Dateien des ausgewählten Ordners; andere Datei-Typen erscheinen nicht. Ein Klick auf eine Datei öffnet sie als Tab, alle Einträge zeigen den vollen Pfad als Tooltip, und externe Änderungen (Datei angelegt, gelöscht, umbenannt) erscheinen automatisch. Der Knopf „+" am Kopf der Dateiliste legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, noch leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
+Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links oder rechts andockbar wie jedes Panel; Schalter ist das Ordner-Icon in der Statusbar oder Ansicht → Sidebar → Panels → Bereich): oben der Ordnerbaum, darunter die Markdown-Dateien des ausgewählten Ordners; andere Datei-Typen erscheinen nicht. Ein Klick auf eine Datei öffnet sie als Tab, alle Einträge zeigen den vollen Pfad als Tooltip, und externe Änderungen (Datei angelegt, gelöscht, umbenannt) erscheinen automatisch. Der Knopf „+" am Kopf der Dateiliste legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, noch leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
 
 ### Bereichs-Statistik
 
@@ -106,7 +106,7 @@ Die Zahlen tragen oben einen Stand-Zeitstempel und werden **auf Anforderung** er
 
 ### Zuletzt geöffnete Bereiche
 
-„Datei → Zuletzt geöffnete Bereiche" listet die zuletzt geöffneten Bereiche mit ihrem Ordnernamen. Ein Klick öffnet den Bereich nach den üblichen Regeln. Bereiche werden mit der Sitzung wiederhergestellt; fehlt ein Bereichs-Ordner beim Start, wird die zugehörige Applikation nicht wiederhergestellt und ein Hinweis gezeigt.
+„Datei → Bereich → Zuletzt geöffnete Bereiche" listet die zuletzt geöffneten Bereiche mit ihrem Ordnernamen. Ein Klick öffnet den Bereich nach den üblichen Regeln. Bereiche werden mit der Sitzung wiederhergestellt; fehlt ein Bereichs-Ordner beim Start, wird die zugehörige Applikation nicht wiederhergestellt und ein Hinweis gezeigt.
 
 ## Arbeitsbereiche
 

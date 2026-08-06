@@ -16,7 +16,7 @@ La barra degli strumenti in testa alla scheda offre:
 
 ## Grafo del file (pannello)
 
-Il pannello «Grafo del file» mostra il vicinato di collegamenti del file attivo e lo segue automaticamente al cambio di scheda. Si attiva dal menu Visualizza → Pannelli → Grafo del file, dall'icona del grafo nella barra di stato o con una scorciatoia da tastiera personalizzata; lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
+Il pannello «Grafo del file» mostra il vicinato di collegamenti del file attivo e lo segue automaticamente al cambio di scheda. Si attiva dal menu Visualizza → Barra laterale → Pannelli → Grafo del file, dall'icona del grafo nella barra di stato o con una scorciatoia da tastiera personalizzata; lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
 
 Nell'intestazione del pannello ci sono due controlli:
 

@@ -61,6 +61,27 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(state.hotkeys).toEqual({ x: 'Ctrl+X' });
   });
 
+  // 4T-0888 (Epic 3E-0168): Die Listen „Zuletzt geöffnete Bücher/Bücherregale"
+  // brauchen denselben Durchreich-Weg wie die Bereichs-Liste — fehlt er, baut
+  // die Menü-Factory die beiden Untermenüs dauerhaft leer auf (Regressions-
+  // Muster 4T-0277).
+  it('4T-0888: reicht recentBooks und recentShelves durch', () => {
+    const state = normalizeMenuState(
+      {},
+      { recentBooks: ['C:\\Buch1'], recentShelves: ['C:\\Regal1', 'C:\\Regal2'] },
+    );
+    expect(state.recentBooks).toEqual(['C:\\Buch1']);
+    expect(state.recentShelves).toEqual(['C:\\Regal1', 'C:\\Regal2']);
+  });
+
+  it('4T-0888: normalisiert fehlende und ungültige Buch-/Regal-Listen auf leer', () => {
+    const state = normalizeMenuState({}, { recentBooks: 'kein-array', recentShelves: 42 });
+    expect(state.recentBooks).toEqual([]);
+    expect(state.recentShelves).toEqual([]);
+    expect(normalizeMenuState(null, null).recentBooks).toEqual([]);
+    expect(normalizeMenuState(null, null).recentShelves).toEqual([]);
+  });
+
   it('verwirft ungültige themePref- und recentFiles-Werte', () => {
     const state = normalizeMenuState({}, { themePref: 'neon', recentFiles: 'kein-array' });
     expect(state.themePref).toBe('system');

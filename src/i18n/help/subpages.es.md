@@ -12,7 +12,7 @@ Proceso-A∕Borrador.md              subpágina de Proceso-A
 Proceso-A∕Implementacion∕Detalle.md  segundo nivel
 ```
 
-El carácter nunca hay que teclearlo: las subpáginas nuevas se crean con **Archivo → Nueva subpágina…** (un diálogo pide el nombre; el archivo se crea en la carpeta del archivo activo y se abre como pestaña). Para crear archivos manualmente en el explorador, copie el carácter desde esta página: `∕`
+El carácter nunca hay que teclearlo: las subpáginas nuevas se crean con **Archivo → Más funciones de archivo → Nueva subpágina…** (un diálogo pide el nombre; el archivo se crea en la carpeta del archivo activo y se abre como pestaña). Para crear archivos manualmente en el explorador, copie el carácter desde esta página: `∕`
 
 ## Enlaces a subpáginas
 
@@ -29,11 +29,11 @@ La resolución busca primero una ruta de carpeta real (`[[subcarpeta/Archivo]]` 
 
 ## Navegación
 
-Cuando una subpágina está activa, una **ruta de navegación** sobre el documento (vistas lectura, dividida y live) muestra la cadena de páginas padre con niveles clicables; los niveles intermedios inexistentes aparecen subrayados con puntos y no son clicables. La sección lateral **Subpáginas** (Ver → Paneles → Subpáginas, o el icono de subpáginas en la barra de estado) lista las subpáginas directas del archivo activo; un clic las abre.
+Cuando una subpágina está activa, una **ruta de navegación** sobre el documento (vistas lectura, dividida y live) muestra la cadena de páginas padre con niveles clicables; los niveles intermedios inexistentes aparecen subrayados con puntos y no son clicables. La sección lateral **Subpáginas** (Ver → Barra lateral → Paneles → Subpáginas, o el icono de subpáginas en la barra de estado) lista las subpáginas directas del archivo activo; un clic las abre.
 
 ## Cambiar nombre
 
-**Archivo → Cambiar nombre…** (también en el menú contextual de la pestaña) renombra el archivo activo. Las pestañas abiertas, los marcadores, la lista de archivos recientes y el [archivo acompañante del historial](history.md) se actualizan.
+**Archivo → Más funciones de archivo → Cambiar nombre…** (también en el menú contextual de la pestaña) renombra el archivo activo. Las pestañas abiertas, los marcadores, la lista de archivos recientes y el [archivo acompañante del historial](history.md) se actualizan.
 
 - Renombrar una página **con subpáginas** arrastra todo su árbol de subpáginas; el diálogo indica antes la cantidad.
 - Renombrar una **subpágina** cambia solo su propio segmento de nombre; la cadena padre se conserva. Vale en ambos lugares, también en la [línea de título](tools.md) sobre el documento: allí la parte superior aparece atenuada e inalterable delante del segmento editable.
@@ -45,7 +45,7 @@ Cuando una subpágina está activa, una **ruta de navegación** sobre el documen
 
 ## Desvincular
 
-**Archivo → Desvincular de la página superior…** (también en el menú contextual de la pestaña de una subpágina) convierte una subpágina en una página independiente: `Prozess-A/Entwurf` pasa a ser `Entwurf`.
+**Archivo → Más funciones de archivo → Desvincular de la página superior…** (también en el menú contextual de la pestaña de una subpágina) convierte una subpágina en una página independiente: `Prozess-A/Entwurf` pasa a ser `Entwurf`.
 
 - El diálogo indica antes el destino y el número de **subpáginas propias** que la acompañan. `Prozess-A/Entwurf/Tief` pasa a ser `Entwurf/Tief`, de modo que la jerarquía inferior se conserva.
 - **Los enlaces siguen siendo válidos:** los enlaces entrantes se actualizan por el mismo camino que al cambiar el nombre, con las mismas casillas para vista previa e informe.

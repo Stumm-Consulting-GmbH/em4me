@@ -4,7 +4,7 @@ I segnalibri tengono a portata di mano i file usati di frequente, indipendenteme
 
 ## Il pannello dei segnalibri
 
-Il pannello dei segnalibri si commuta come ogni pannello laterale: tramite la stella della barra di stato, il menu Visualizza → Pannelli → Segnalibri (predefinito `Ctrl+Maiusc+L`) o una scorciatoia assegnata da te. La commutazione agisce sulla colonna attiva; lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md). La stella della barra di stato indica inoltre se il file attivo è già tra i segnalibri.
+Il pannello dei segnalibri si commuta come ogni pannello laterale: tramite la stella della barra di stato, il menu Visualizza → Barra laterale → Pannelli → Segnalibri (predefinito `Ctrl+Maiusc+L`) o una scorciatoia assegnata da te. La commutazione agisce sulla colonna attiva; lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md). La stella della barra di stato indica inoltre se il file attivo è già tra i segnalibri.
 
 Un clic su una voce apre il file. Se un file con segnalibro manca nella posizione attesa, la voce lo segnala invece di non portare da nessuna parte. Anche nello stato vuoto dell'applicazione, senza documento aperto, l'elenco resta utilizzabile, così i file con segnalibro possono essere aperti direttamente.
 
@@ -25,7 +25,7 @@ Un segnalibro dell'area non ricorda la propria destinazione come percorso comple
 
 ### Segnalibri generali
 
-Il file attivo viene messo tra i segnalibri tramite il menu File (predefinito `Ctrl+D`) o la stella. Se nessuna area è aperta, oppure il file è al di fuori dell'area aperta, viene creato un segnalibro generale senza chiedere.
+Il file attivo viene messo tra i segnalibri tramite File → Altre funzioni file → Aggiungi il file attivo ai segnalibri (predefinito `Ctrl+D`) o la stella. Se nessuna area è aperta, oppure il file è al di fuori dell'area aperta, viene creato un segnalibro generale senza chiedere.
 
 Se invece un'area è aperta e il file attivo si trova al suo interno, `Ctrl+D` apre un piccolo menu di scelta presso la stella, con le destinazioni «Segnalibro generale» e «Segnalibro dell'area». Così, a ogni creazione, è chiaro in quale sezione va il segnalibro.
 

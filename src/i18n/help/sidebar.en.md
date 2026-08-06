@@ -4,7 +4,7 @@ The sidebar bundles the app's panels — from bookmarks, table of contents and a
 
 ## Showing and hiding panels
 
-Each panel has a status bar icon and an entry in the View → Panels submenu (default shortcuts in the [shortcut overview](shortcuts.md)); the toggle affects the active column. Both places list the same panels in the same order; the order can be freely sorted under Settings → Panel order and affects the menu and the status bar at the same time. The contents of the individual panels are described in the [function table](functions.md) as well as on the pages [Linking](linking.md) (tags, backlinks, outgoing links), [Frontmatter and properties](frontmatter.md), [Document notes](notes.md) (notes panel), and [Applications, windows and areas](apps-windows.md) (area panel).
+Each panel has a status bar icon and an entry in the View → Sidebar → Panels submenu (default shortcuts in the [shortcut overview](shortcuts.md)); the toggle affects the active column. Both places list the same panels in the same order; the order can be freely sorted under Settings → Panel order and affects the menu and the status bar at the same time. The contents of the individual panels are described in the [function table](functions.md) as well as on the pages [Linking](linking.md) (tags, backlinks, outgoing links), [Frontmatter and properties](frontmatter.md), [Document notes](notes.md) (notes panel), and [Applications, windows and areas](apps-windows.md) (area panel).
 
 ## Collapsing and expanding columns
 
@@ -12,7 +12,7 @@ Beyond the individual panel toggles, an entire sidebar column can be collapsed a
 
 - **Header icon:** In the topmost header of each column, at the inner edge where the column meets the text, sits a sidebar icon. A click collapses the column. The icon is right-aligned in the left column and mirrored, left-aligned, in the right column; it appears in the section head as well as in the tab bar of a group, and in both the text and the icon rendering of the headings.
 - **Collapsed:** A collapsed column stays visible as a narrow strip at the window edge. Hovering over it reveals the icon; a click expands the column again. The tooltip switches between collapse and expand.
-- **Menu and commands:** View → Collapse Left Sidebar and View → Collapse Right Sidebar switch the same states. Both commands are also in the command palette and can be assigned a shortcut under Settings → Keyboard shortcuts; there is no default binding.
+- **Menu and commands:** View → Sidebar → Collapse Left Sidebar and View → Sidebar → Collapse Right Sidebar switch the same states. Both commands are also in the command palette and can be assigned a shortcut under Settings → Keyboard shortcuts; there is no default binding.
 
 In a split view, each editor column switches its two sidebars on its own; collapsing affects only that column. The most recently set state is saved globally and still applies on the next start.
 
@@ -31,8 +31,8 @@ The **default arrangement** distributes the panels across both sides and bundles
 
 The current arrangement can be saved as a **named variant** — including the panel visibility of both columns, that is, the sidebar's entire layout. Any number of variants is possible, for example one for drafting and one for everyday work.
 
-- **Save:** View → Sidebar arrangements → "Save current arrangement…", or the button of the same name under Settings → Sidebar, Variants section. The name is entered in the dialog; saving under an existing name updates that variant.
-- **Apply:** by clicking in the View → Sidebar arrangements submenu, via the selection popup of the "Apply sidebar variant" command, or in the variants lists in the settings. Applying replaces the current arrangement immediately; later rearrangements do not change the variant — "Overwrite" deliberately transfers the current arrangement into an existing variant.
+- **Save:** View → Sidebar → Sidebar arrangements → "Save current arrangement…", or the button of the same name under Settings → Sidebar, Variants section. The name is entered in the dialog; saving under an existing name updates that variant.
+- **Apply:** by clicking in the View → Sidebar → Sidebar arrangements submenu, via the selection popup of the "Apply sidebar variant" command, or in the variants lists in the settings. Applying replaces the current arrangement immediately; later rearrangements do not change the variant — "Overwrite" deliberately transfers the current arrangement into an existing variant.
 - **Manage:** Settings → Sidebar, Variants section lists the global variants with Apply, Rename, Overwrite and Delete.
 
 **Area variants** belong to an area: they live in its area file, travel with the area folder and appear only when that area is open, separated in the menu into their own group labeled with the area name. Their management, including a dedicated Save button, is located in the "Sidebar variants" settings section of the "Current area" group; when saving via menu or command, an option in the dialog chooses the target (global or area). Identical names in both groups are allowed. The "Default arrangement" entry in the submenu restores the built-in distribution at any time.

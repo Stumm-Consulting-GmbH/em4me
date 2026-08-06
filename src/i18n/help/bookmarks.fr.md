@@ -4,7 +4,7 @@ Les signets gardent à portée de main les fichiers souvent utilisés, quel que 
 
 ## Le panneau des signets
 
-Le panneau des signets se bascule comme tout panneau latéral : via l'étoile de la barre d'état, le menu Affichage → Panneaux → Favoris (défaut `Ctrl+Maj+L`) ou un raccourci que vous attribuez vous-même. La bascule agit sur la colonne active ; côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md). L'étoile de la barre d'état indique en outre si le fichier actif est déjà en signet.
+Le panneau des signets se bascule comme tout panneau latéral : via l'étoile de la barre d'état, le menu Affichage → Barre latérale → Panneaux → Favoris (défaut `Ctrl+Maj+L`) ou un raccourci que vous attribuez vous-même. La bascule agit sur la colonne active ; côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md). L'étoile de la barre d'état indique en outre si le fichier actif est déjà en signet.
 
 Un clic sur une entrée ouvre le fichier. Si un fichier en signet manque à l'emplacement attendu, l'entrée le signale au lieu de ne mener nulle part. Même à l'état vide de l'application, sans document ouvert, la liste reste utilisable, de sorte que les fichiers en signet peuvent être ouverts directement.
 
@@ -25,7 +25,7 @@ Un signet de zone ne retient pas sa cible sous forme de chemin complet, mais rel
 
 ### Signets généraux
 
-Le fichier actif est mis en signet via le menu Fichier (défaut `Ctrl+D`) ou l'étoile. Si aucune zone n'est ouverte, ou si le fichier est en dehors de la zone ouverte, un signet général est créé sans question.
+Le fichier actif est mis en signet via Fichier → Autres fonctions de fichier → Ajouter le fichier actif aux favoris (défaut `Ctrl+D`) ou l'étoile. Si aucune zone n'est ouverte, ou si le fichier est en dehors de la zone ouverte, un signet général est créé sans question.
 
 En revanche, si une zone est ouverte et que le fichier actif s'y trouve, `Ctrl+D` ouvre un petit menu de choix près de l'étoile, avec les cibles « Signet général » et « Signet de zone ». Ainsi, à chaque création, la section de destination est claire.
 

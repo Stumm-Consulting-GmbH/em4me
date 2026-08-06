@@ -26,6 +26,11 @@ import { getDisabledExtensionIds } from './extension-lifecycle.js';
 // 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog im Einfuegen-Submenü —
 // derselbe Ausfuehrungs-Pfad wie das Registry-Kommando task.editDialog.
 import { runTaskEditDialogCommand } from './task-dialog.js';
+// 4T-0887 (Befund L-04 des Struktur-Reviews): drei Kommandos ohne Bedienort im
+// Menü bekommen hier einen; Ausführungs-Pfad wie insertTemplateCommand.
+import { openCalendarPickerAtSelection } from './calendar-picker.js';
+import { insertEventsBlock } from './events-editor.js';
+import { runListSelectSubtree } from './editor-list-tools.js';
 // 4T-0521 (Epic 3E-0094): nutzerdefinierte Sektion am Menü-Ende. Die
 // Imports werden ausschließlich zur Laufzeit (Menü-Aufbau beim
 // Rechtsklick) genutzt — der Modul-Zyklus über command-palette/editor ist
@@ -93,6 +98,9 @@ export function selectAllInEditor(view) {
   view.focus();
 }
 
+// 4T-0887: Menü-Eintrag zu einem Registry-Kommando (Label über command.<id>).
+const kmd = (id, dataId, action) => ({ key: `command.${id}`, dataId, action });
+
 // --- Andockpunkte für die Folge-Tasks --------------------------------------
 // Jede Funktion liefert eine (möglicherweise leere) Liste von Menü-Items.
 // Leere Sektionen werden im Menü-Aufbau samt zugehörigem Trenner weggelassen,
@@ -155,14 +163,22 @@ function buildParagraphItems(view) {
   for (let lvl = 1; lvl <= 6; lvl++) {
     headings.push(para(`heading${lvl}`, `paragraph-heading${lvl}`, st.heading === lvl));
   }
+  const listen = [
+    para('bulletList', 'paragraph-bullet', st.list === 'bullet'),
+    para('orderedList', 'paragraph-ordered', st.list === 'ordered'),
+    para('taskList', 'paragraph-task', st.list === 'task'),
+  ];
+  // 4T-0887 (Befund L-04): „Teilbaum auswählen" schließt die Listen-Gruppe ab
+  // (Auswahl statt Umschaltung); entfällt mit der outliner-Erweiterung.
+  if (!disabledCommandIdSet(getDisabledExtensionIds()).has('list.selectSubtree')) {
+    listen.push(kmd('list.selectSubtree', 'list-subtree', () => runListSelectSubtree(view)));
+  }
   return [
     {
       key: 'editor.contextMenu.paragraph',
       dataId: 'paragraph',
       submenu: [
-        para('bulletList', 'paragraph-bullet', st.list === 'bullet'),
-        para('orderedList', 'paragraph-ordered', st.list === 'ordered'),
-        para('taskList', 'paragraph-task', st.list === 'task'),
+        ...listen,
         { separator: true },
         ...headings,
         para('noHeading', 'paragraph-noheading', st.heading === 0),
@@ -176,6 +192,7 @@ function buildParagraphItems(view) {
 // Linie, Quelltext-Block.
 function buildInsertItems(view) {
   if (view.state.readOnly) return [];
+  const aus = disabledCommandIdSet(getDisabledExtensionIds());
   const ins = (id, dataId) => ({
     key: `command.insert.${id}`,
     dataId,
@@ -188,27 +205,29 @@ function buildInsertItems(view) {
     ins('horizontalRule', 'insert-hr'),
     ins('codeBlock', 'insert-codeblock'),
   ];
+  // 4T-0887 (Befund L-04): Ereignis-Block und Kalender-Datum fügen ebenfalls an
+  // der Cursor-Position ein und stehen deshalb in derselben Gruppe. Der
+  // Ereignis-Block schreibt in den Haupt-Editor der aktiven Spalte statt in die
+  // angeklickte View und bleibt vom Notiz-Feld aus weg (Muster buildCustomItems).
+  if (paneEditors.includes(view) && !aus.has('edit.insertEvents')) {
+    submenu.push(kmd('edit.insertEvents', 'insert-events', () => insertEventsBlock()));
+  }
+  if (!aus.has('calendar.insertValue')) {
+    submenu.push(
+      kmd('calendar.insertValue', 'insert-calendar', () => openCalendarPickerAtSelection(view)),
+    );
+  }
   // 4T-0426: Vorlage an der Cursor-Position (nach einem Trenner, weil der
   // Eintrag eine Dialog-Kette startet statt direkt einzufügen).
-  if (!disabledCommandIdSet(getDisabledExtensionIds()).has('edit.insertTemplate')) {
+  if (!aus.has('edit.insertTemplate')) {
     submenu.push({ separator: true });
-    submenu.push({
-      key: 'command.edit.insertTemplate',
-      dataId: 'insert-template',
-      action: () => insertTemplateCommand(view),
-    });
+    submenu.push(kmd('edit.insertTemplate', 'insert-template', () => insertTemplateCommand(view)));
   }
   // 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog (Task-Zeile bearbeiten,
   // leere Zeile anlegen) — entfaellt bei deaktivierter Erweiterung.
-  if (!disabledCommandIdSet(getDisabledExtensionIds()).has('task.editDialog')) {
+  if (!aus.has('task.editDialog')) {
     submenu.push({ separator: true });
-    submenu.push({
-      key: 'command.task.editDialog',
-      dataId: 'task-edit-dialog',
-      action: () => {
-        void runTaskEditDialogCommand();
-      },
-    });
+    submenu.push(kmd('task.editDialog', 'task-edit-dialog', () => runTaskEditDialogCommand()));
   }
   return [
     {

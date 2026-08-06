@@ -4,7 +4,7 @@ Cada documento puede llevar **una** nota, separada del contenido del documento. 
 
 ## El panel Notas
 
-El panel «Notas» se conmuta como cualquier panel de la barra lateral: mediante el menú Ver → Paneles → Notas, el icono de bloc de notas en la barra de estado, o un atajo que asignes tú mismo (de fábrica no hay ninguno; la asignación se hace en los ajustes). El conmutador actúa sobre la columna activa; lado, orden y grupos de pestañas siguen las reglas de la [Barra lateral](sidebar.md).
+El panel «Notas» se conmuta como cualquier panel de la barra lateral: mediante el menú Ver → Barra lateral → Paneles → Notas, el icono de bloc de notas en la barra de estado, o un atajo que asignes tú mismo (de fábrica no hay ninguno; la asignación se hace en los ajustes). El conmutador actúa sobre la columna activa; lado, orden y grupos de pestañas siguen las reglas de la [Barra lateral](sidebar.md).
 
 Una nota pertenece siempre al documento activo. Un documento aún **sin nombre** (nunca guardado) no tiene lugar para el archivo acompañante; por eso el panel muestra entonces un aviso en lugar de un campo de entrada; tras el primer guardado, la nota queda disponible.
 

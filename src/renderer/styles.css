@@ -897,8 +897,10 @@ select {
   border-right: 1px solid var(--border);
   overflow-y: auto;
 }
-/* 4T-0555 (Epic 3E-0100): zweigeteilte Navigation — Gruppen „Allgemein"
-   und „Aktueller Bereich" mit Zwischenüberschriften. */
+/* 4T-0555 (Epic 3E-0100): gegliederte Navigation mit Zwischenüberschriften.
+   4T-0889 (Epic 3E-0168): vier mögliche Blöcke („Allgemein", „Aktueller
+   Bereich", interne und externe Erweiterungen); der Abstand hängt am
+   Geschwister-Selektor und trägt deshalb jede Block-Zahl. */
 .settings-nav-group {
   display: flex;
   flex-direction: column;

@@ -43,7 +43,7 @@ Lorsqu'une zone est ouverte, l'application vérifie en continu les marqueurs de 
 
 ## Liste des rappels
 
-Un panneau de la barre latérale liste tous les rappels de la zone, regroupés en **En retard**, **Aujourd'hui**, **Demain** et **Plus tard**. Le panneau s'ouvre via l'icône de réveil de la barre d'état ou via Affichage → Panneaux → Rappels.
+Un panneau de la barre latérale liste tous les rappels de la zone, regroupés en **En retard**, **Aujourd'hui**, **Demain** et **Plus tard**. Le panneau s'ouvre via l'icône de réveil de la barre d'état ou via Affichage → Barre latérale → Panneaux → Rappels.
 
 - Chaque entrée offre les actions directes **Terminé** et **Plus tard**.
 - Un clic sur une entrée ouvre le fichier source à la ligne correspondante.

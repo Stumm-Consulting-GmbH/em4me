@@ -14,7 +14,7 @@ In the rendered view the anchor is invisible; it makes the block addressable. Le
 
 ## The block properties panel
 
-The "Block properties" panel is toggled like any sidebar panel: via the View → Panels → Block properties menu, the braces icon in the status bar, or a custom keyboard shortcut (none is assigned by default). Side, order and tab groups follow the rules of the [sidebar](sidebar.md).
+The "Block properties" panel is toggled like any sidebar panel: via the View → Sidebar → Panels → Block properties menu, the braces icon in the status bar, or a custom keyboard shortcut (none is assigned by default). Side, order and tab groups follow the rules of the [sidebar](sidebar.md).
 
 The panel **follows the cursor**: it shows the properties of the block the cursor is in. The header names the active anchor and offers a selector of all anchors in the file for jumping; anchors that carry properties are marked. If the cursor is in a block **without** an anchor, the panel offers "Create anchor" and writes a short random identifier, unique within the file, to the end of the block.
 

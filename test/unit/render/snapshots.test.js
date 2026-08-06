@@ -191,6 +191,40 @@ describe('Portable-Export-Snapshots', () => {
     expect(html).toContain('border-color:#dc3545');
   });
 
+  // 4T-0891 (Epic 3E-0168, Befund L-02): Nicht-Bild-Embeds (PDF, Markdown,
+  // Sonstiges) erschienen im Portable-Output als leere Span-Elemente, weil
+  // das Renderer-Postprocessing dort nicht läuft. Sie tragen jetzt einen
+  // sichtbaren Verweis auf das Ziel in der Optik eines gewöhnlichen
+  // Wiki-Links; Bild-Embeds bleiben unverändert. Der Viewer-Pfad behält
+  // seinen leeren Platzhalter (sein Postprocessing füllt ihn).
+  it('zeigt Nicht-Bild-Embeds im Portable-Pfad als sichtbaren Verweis (4T-0891)', () => {
+    const src = fs.readFileSync(path.join(FIXTURE_DIR, 'wiki-embeds-portable.md'), 'utf8');
+    const html = renderMarkdown(src, 'de');
+    // Kein Platzhalter bleibt leer.
+    expect(html).not.toMatch(/<span class="wiki-embed[^>]*><\/span>/);
+    // Markdown-, PDF- und Sonstiges-Embed verweisen sichtbar auf ihr Ziel.
+    expect(html).toContain('<a href="Andere Notiz.md" class="wikilink">Andere Notiz.md</a>');
+    expect(html).toContain('<a href="dokument.pdf" class="wikilink">dokument.pdf</a>');
+    expect(html).toContain('<a href="archiv.zip" class="wikilink">archiv.zip</a>');
+    // Anker: href folgt der Wiki-Link-Auflösung (Heading-Slug bzw. Block-ID),
+    // der Linktext nennt das Ziel so, wie der Embed es adressiert.
+    expect(html).toContain(
+      '<a href="Andere Notiz.md#abschnitt" class="wikilink">Andere Notiz.md#Abschnitt</a>',
+    );
+    expect(html).toContain(
+      '<a href="Andere Notiz.md#block-id" class="wikilink">Andere Notiz.md#^block-id</a>',
+    );
+    // Gleiche Optik wie ein gewöhnlicher Wiki-Link desselben Zweigs.
+    expect(html).toContain('<a href="Andere Notiz.md" class="wikilink">Andere Notiz</a>');
+    // Bild-Embeds unverändert (kein Verweis, weiterhin <img>).
+    expect(html).toContain('<img class="wiki-embed wiki-embed-image" src="bild.png" alt="">');
+    // Viewer-Pfad unberührt: dort bleibt der Platzhalter leer.
+    const viewerSrc = fs.readFileSync(path.join(FIXTURE_DIR, 'wiki-embeds.md'), 'utf8');
+    const viewer = renderMarkdown(viewerSrc, 'de');
+    expect(viewer).toContain('data-embed-path="dokument.pdf"></span>');
+    expect(viewer).not.toContain('class="wikilink"');
+  });
+
   // 4T-0596 (Epic 3E-0111): Inline-Berechnungen werden beim Export als
   // selbsttragende Ergebnis-Spans eingebrannt; Fehler-Konstrukte bleiben
   // roh und rendern in der Portable-Ansicht das Fehlerbild.

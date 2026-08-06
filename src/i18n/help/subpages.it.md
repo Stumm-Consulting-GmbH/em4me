@@ -12,7 +12,7 @@ Processo-A∕Bozza.md                  sottopagina di Processo-A
 Processo-A∕Realizzazione∕Dettaglio.md  secondo livello
 ```
 
-Il carattere non va mai digitato: le nuove sottopagine si creano con **File → Nuova sottopagina…** (una finestra chiede il nome; il file viene creato nella cartella del file attivo e si apre come scheda). Per creare file manualmente nell'esplora risorse, copiare il carattere da questa pagina: `∕`
+Il carattere non va mai digitato: le nuove sottopagine si creano con **File → Altre funzioni file → Nuova sottopagina…** (una finestra chiede il nome; il file viene creato nella cartella del file attivo e si apre come scheda). Per creare file manualmente nell'esplora risorse, copiare il carattere da questa pagina: `∕`
 
 ## Link alle sottopagine
 
@@ -29,11 +29,11 @@ La risoluzione cerca prima un percorso di cartella reale (`[[sottocartella/File]
 
 ## Navigazione
 
-Quando una sottopagina è attiva, un **breadcrumb** sopra il documento (viste lettura, divisa e live) mostra la catena delle pagine padre con livelli cliccabili; i livelli intermedi inesistenti sono sottolineati a punti e non cliccabili. La sezione laterale **Sottopagine** (Visualizza → Pannelli → Sottopagine, oppure l'icona delle sottopagine nella barra di stato) elenca le sottopagine dirette del file attivo; un clic le apre.
+Quando una sottopagina è attiva, un **breadcrumb** sopra il documento (viste lettura, divisa e live) mostra la catena delle pagine padre con livelli cliccabili; i livelli intermedi inesistenti sono sottolineati a punti e non cliccabili. La sezione laterale **Sottopagine** (Visualizza → Barra laterale → Pannelli → Sottopagine, oppure l'icona delle sottopagine nella barra di stato) elenca le sottopagine dirette del file attivo; un clic le apre.
 
 ## Rinominare
 
-**File → Rinomina…** (anche nel menu contestuale della scheda) rinomina il file attivo. Le schede aperte, i segnalibri, l'elenco dei file recenti e il [file di cronologia](history.md) seguono il nuovo nome.
+**File → Altre funzioni file → Rinomina…** (anche nel menu contestuale della scheda) rinomina il file attivo. Le schede aperte, i segnalibri, l'elenco dei file recenti e il [file di cronologia](history.md) seguono il nuovo nome.
 
 - Rinominare una pagina **con sottopagine** porta con sé l'intero albero delle sottopagine; la finestra ne indica prima il numero.
 - Rinominare una **sottopagina** cambia solo il proprio segmento di nome; la catena padre resta invariata. Vale in entrambi i punti, anche nella [riga del titolo](tools.md) sopra il documento: lì la parte superiore precede il segmento modificabile, attenuata e non modificabile.
@@ -45,7 +45,7 @@ Quando una sottopagina è attiva, un **breadcrumb** sopra il documento (viste le
 
 ## Scollegare
 
-**File → Scollega dalla pagina superiore…** (anche nel menu contestuale della scheda di una sottopagina) trasforma una sottopagina in una pagina autonoma: `Prozess-A/Entwurf` diventa `Entwurf`.
+**File → Altre funzioni file → Scollega dalla pagina superiore…** (anche nel menu contestuale della scheda di una sottopagina) trasforma una sottopagina in una pagina autonoma: `Prozess-A/Entwurf` diventa `Entwurf`.
 
 - La finestra indica prima la destinazione e il numero di **sottopagine proprie** che la seguono. `Prozess-A/Entwurf/Tief` diventa `Entwurf/Tief`: la gerarchia sottostante resta quindi invariata.
 - **I link restano validi:** i link in entrata vengono aggiornati per la stessa via della rinomina, con le stesse caselle per anteprima e resoconto.

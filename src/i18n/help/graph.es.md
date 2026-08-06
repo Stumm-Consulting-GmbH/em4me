@@ -16,7 +16,7 @@ La barra de herramientas en la cabecera de la pestaña ofrece:
 
 ## Grafo del archivo (panel)
 
-El panel «Grafo del archivo» muestra el entorno de enlaces del archivo activo y lo sigue automáticamente al cambiar de pestaña. Se conmuta mediante el menú Ver → Paneles → Grafo del archivo, el icono del grafo en la barra de estado o un atajo de teclado propio; lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
+El panel «Grafo del archivo» muestra el entorno de enlaces del archivo activo y lo sigue automáticamente al cambiar de pestaña. Se conmuta mediante el menú Ver → Barra lateral → Paneles → Grafo del archivo, el icono del grafo en la barra de estado o un atajo de teclado propio; lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
 
 En la cabecera del panel hay dos controles:
 

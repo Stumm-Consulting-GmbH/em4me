@@ -12,7 +12,7 @@ Process-A∕Draft.md                  subpage of Process-A
 Process-A∕Implementation∕Detail.md  second level
 ```
 
-You never need to type the character: new subpages are created via **File → New Subpage…** (a dialog asks for the name; the file is created in the folder of the active file and opens as a tab). For creating files manually in the file explorer, copy the character from this page: `∕`
+You never need to type the character: new subpages are created via **File → More File Functions → New Subpage…** (a dialog asks for the name; the file is created in the folder of the active file and opens as a tab). For creating files manually in the file explorer, copy the character from this page: `∕`
 
 ## Links to subpages
 
@@ -29,11 +29,11 @@ Resolution first looks for a real folder path (`[[subfolder/File]]` remains a pa
 
 ## Navigation
 
-When a subpage is active, a **breadcrumb** above the document (reading, split and live view) shows the parent chain with clickable levels; intermediate levels that do not exist are dotted-underlined and not clickable. The **Subpages** sidebar section (View → Panels → Subpages, or the subpages icon in the status bar) lists the direct subpages of the active file; clicking opens them.
+When a subpage is active, a **breadcrumb** above the document (reading, split and live view) shows the parent chain with clickable levels; intermediate levels that do not exist are dotted-underlined and not clickable. The **Subpages** sidebar section (View → Sidebar → Panels → Subpages, or the subpages icon in the status bar) lists the direct subpages of the active file; clicking opens them.
 
 ## Renaming
 
-**File → Rename…** (also in the tab context menu) renames the active file. Open tabs, bookmarks, the recent-files list and the [history companion file](history.md) follow along.
+**File → More File Functions → Rename…** (also in the tab context menu) renames the active file. Open tabs, bookmarks, the recent-files list and the [history companion file](history.md) follow along.
 
 - Renaming a page **with subpages** takes its whole subpage tree along; the dialog states the count beforehand.
 - Renaming a **subpage** changes only its own name segment; the parent chain is preserved. This holds at both places, including the [title line](tools.md) above the document: there the parent part sits dimmed and unchangeable in front of the editable segment.
@@ -45,7 +45,7 @@ When a subpage is active, a **breadcrumb** above the document (reading, split an
 
 ## Detaching
 
-**File → Detach from parent page…** (also in the tab context menu of a subpage) turns a subpage into a standalone page: `Prozess-A/Entwurf` becomes `Entwurf`.
+**File → More File Functions → Detach from parent page…** (also in the tab context menu of a subpage) turns a subpage into a standalone page: `Prozess-A/Entwurf` becomes `Entwurf`.
 
 - The dialog states the target and the number of **own subpages** that move along beforehand. `Prozess-A/Entwurf/Tief` becomes `Entwurf/Tief`, so the hierarchy below is preserved.
 - **Links stay valid:** Incoming links are updated the same way as when renaming, with the same checkboxes for preview and report.

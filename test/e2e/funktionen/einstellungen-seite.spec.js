@@ -115,15 +115,15 @@ test.describe('ES-03: System-Tab-Guards', () => {
 // 4T-0278: Seiten-Layout — Bereichsnavigation, Bereichs-Wechsel,
 // Button-Leiste.
 test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
-  test('ohne Bereich nur Gruppe Allgemein, Wechsel hebt aktiv hervor, Buttons vorhanden', async () => {
+  test('ohne Bereich keine Bereichs-Gruppe, Wechsel hebt aktiv hervor, Buttons vorhanden', async () => {
     const { app, page, userData } = await launchApp();
     try {
       await openSettingsPageViaKeyboard(page);
       await expect(page.locator(SETTINGS_PAGE)).toBeVisible();
       const nav = page.locator(`${SETTINGS_PAGE} .settings-nav-entry`);
-      // 4T-0555 (Epic 3E-0100): zweigeteilte Navigation. Ohne gebundenen
-      // Bereich erscheint nur die Gruppe „Allgemein" mit den dreizehn
-      // app-weiten festen Bereichen (Darstellung, Farbschemas, Verhalten,
+      // 4T-0555 (Epic 3E-0100): gruppierte Navigation. Ohne gebundenen
+      // Bereich erscheinen die dreizehn
+      // app-weiten festen Bereiche (Darstellung, Farbschemas, Verhalten,
       // Zeitstempel, Export, Vorlagen, Task-Status, Aufgaben, Erinnerungen,
       // Überschriften-Nummerierung, Tastenkürzel, Erweiterungen,
       // Erweiterungen extern) plus den dynamisch registrierten Bereichen
@@ -143,9 +143,17 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       // startet allein der Funktions-Schalter innerhalb des Bereichs, der
       // Bereich selbst ist sichtbar.
       await expect(nav).toHaveCount(20);
+      // 4T-0889 (Epic 3E-0168): Die Einträge verteilen sich seither auf vier
+      // mögliche Blöcke. Ohne gebundenen Bereich und ohne installierte
+      // externe Erweiterung erscheinen zwei davon: „Allgemein" mit den
+      // Kern-Bereichen (die beiden Verwaltungs-Bereiche „Erweiterungen" und
+      // „Erweiterungen (extern)" am Ende) und „Erweiterungen (intern)" mit
+      // den Bereichen der erweiterungs-gebundenen Funktionen. Die Gesamtzahl
+      // der Einträge bleibt unverändert, nur ihr Anzeige-Ort ändert sich.
       const groups = page.locator(`${SETTINGS_PAGE} .settings-nav-group`);
-      await expect(groups).toHaveCount(1);
-      await expect(groups.first()).toHaveAttribute('data-nav-group', 'general');
+      await expect(groups).toHaveCount(2);
+      await expect(groups.nth(0)).toHaveAttribute('data-nav-group', 'general');
+      await expect(groups.nth(1)).toHaveAttribute('data-nav-group', 'extensionsInternal');
       await expect(
         page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="journals"]`),
       ).toHaveCount(0);
@@ -549,12 +557,17 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       await openSettingsPageViaKeyboard(page);
       await expect(page.locator(SETTINGS_PAGE)).toBeVisible();
       const groups = page.locator(`${SETTINGS_PAGE} .settings-nav-group`);
-      await expect(groups).toHaveCount(2);
+      // 4T-0889 (Epic 3E-0168): mit gebundenem Bereich stehen drei Blöcke —
+      // „Allgemein", „Bereich" und „Erweiterungen (intern)"; der vierte
+      // Block erscheint erst mit einer installierten externen Erweiterung.
+      await expect(groups).toHaveCount(3);
       await expect(groups.nth(0)).toHaveAttribute('data-nav-group', 'general');
       await expect(groups.nth(1)).toHaveAttribute('data-nav-group', 'area');
-      // Beide Gruppen tragen sichtbare Überschriften.
+      await expect(groups.nth(2)).toHaveAttribute('data-nav-group', 'extensionsInternal');
+      // Alle Gruppen tragen sichtbare Überschriften.
       await expect(groups.nth(0).locator('.settings-nav-group-title')).toBeVisible();
       await expect(groups.nth(1).locator('.settings-nav-group-title')).toBeVisible();
+      await expect(groups.nth(2).locator('.settings-nav-group-title')).toBeVisible();
       // Bereichs-Gruppe: die sieben bereichsgebundenen Sektionen in
       // Registry-Reihenfolge (sechs feste plus die dynamisch registrierten
       // Sidebar-Varianten aus 4T-0625, Epic 3E-0119). „attachmentsArea"

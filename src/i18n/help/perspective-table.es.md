@@ -250,7 +250,7 @@ Resultado:
 
 Los archivos `.md` con tablas Perspective solo se muestran como tablas en este visor. En otras aplicaciones Markdown el bloque de código `perspective-table` aparece sin cambios como texto fuente.
 
-Con **Archivo → Exportar → Markdown portable…** guardas una variante del archivo en la que las tablas Perspective se reemplazan por tablas HTML en línea. Estas tablas HTML se muestran como tablas reales en prácticamente cualquier aplicación Markdown.
+Con **Archivo → Más funciones de archivo → Exportar → Markdown portable…** guardas una variante del archivo en la que las tablas Perspective se reemplazan por tablas HTML en línea. Estas tablas HTML se muestran como tablas reales en prácticamente cualquier aplicación Markdown.
 
 - **Diálogo Guardar como** con valor por defecto `<nombrebase>-portable.md` en el directorio del archivo fuente. La ruta y el nombre son libremente editables.
 - **El archivo original** permanece sin cambios; la exportación siempre escribe en un nuevo archivo.

@@ -72,7 +72,7 @@ Les numéros se resserrent à la fermeture : si l'application 1 se ferme, l'appl
 
 ## Zones
 
-Une **zone** lie une application à un dossier : tout ce qui se trouve dans ce dossier, sous-dossiers compris, constitue l'espace de travail, rien d'autre. « Fichier → Ouvrir une zone… » choisit le dossier ; « Fichier → Fermer la zone » termine le travail dans la zone et ferme toutes les fenêtres de l'application de zone (avec les demandes d'enregistrement habituelles). Le lien est fixe : une zone ne peut pas être changée, seulement fermée.
+Une **zone** lie une application à un dossier : tout ce qui se trouve dans ce dossier, sous-dossiers compris, constitue l'espace de travail, rien d'autre. « Fichier → Zone → Ouvrir une zone… » choisit le dossier ; « Fichier → Zone → Fermer la zone » termine le travail dans la zone et ferme toutes les fenêtres de l'application de zone (avec les demandes d'enregistrement habituelles). Le lien est fixe : une zone ne peut pas être changée, seulement fermée.
 
 Trois règles s'appliquent à l'ouverture :
 
@@ -80,7 +80,7 @@ Trois règles s'appliquent à l'ouverture :
 - Si l'application a déjà un fichier ouvert, une nouvelle application est créée pour la zone.
 - Si la zone est déjà en cours, le focus passe à une fenêtre de l'application de zone existante ; la même zone ne s'exécute jamais deux fois.
 
-**Demo-Area :** « Fichier → Créer la Demo-Area… » copie une collection d'exemples fournie en anglais — des pages Markdown accompagnées de pièces jointes image et PDF qui montrent les fonctions les plus importantes — dans un dossier vide et l'ouvre directement comme zone : un bac à sable pour expérimenter sans risque. Les dossiers cibles non vides sont refusés, et les fichiers existants ne sont jamais écrasés. La fonction peut être désactivée en tant qu'extension « Demo-Area » ; les dossiers de démo déjà créés sont des zones ordinaires et restent intacts.
+**Demo-Area :** « Fichier → Zone → Créer la Demo-Area… » copie une collection d'exemples fournie en anglais — des pages Markdown accompagnées de pièces jointes image et PDF qui montrent les fonctions les plus importantes — dans un dossier vide et l'ouvre directement comme zone : un bac à sable pour expérimenter sans risque. Les dossiers cibles non vides sont refusés, et les fichiers existants ne sont jamais écrasés. La fonction peut être désactivée en tant qu'extension « Demo-Area » ; les dossiers de démo déjà créés sont des zones ordinaires et restent intacts.
 
 ### Limites strictes
 
@@ -94,7 +94,7 @@ Dans une application de zone, l'espace de recherche des rétroliens, des tags, d
 
 ### Panneau de zone
 
-Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre latérale (ancrable à gauche ou à droite comme tout panneau ; le commutateur est l'icône de dossier dans la barre d'état ou Affichage → Panneaux → Zone) : l'arborescence en haut, en dessous les fichiers Markdown du dossier sélectionné ; les autres types de fichiers n'apparaissent pas. Un clic sur un fichier l'ouvre comme onglet, toutes les entrées affichent le chemin complet en info-bulle, et les modifications externes (fichier créé, supprimé, renommé) apparaissent automatiquement. Le bouton « + » en tête de la liste crée un nouveau fichier Markdown dans le dossier sélectionné et l'ouvre. Dans une application de zone fraîchement ouverte et encore vide, le panneau est visible automatiquement.
+Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre latérale (ancrable à gauche ou à droite comme tout panneau ; le commutateur est l'icône de dossier dans la barre d'état ou Affichage → Barre latérale → Panneaux → Zone) : l'arborescence en haut, en dessous les fichiers Markdown du dossier sélectionné ; les autres types de fichiers n'apparaissent pas. Un clic sur un fichier l'ouvre comme onglet, toutes les entrées affichent le chemin complet en info-bulle, et les modifications externes (fichier créé, supprimé, renommé) apparaissent automatiquement. Le bouton « + » en tête de la liste crée un nouveau fichier Markdown dans le dossier sélectionné et l'ouvre. Dans une application de zone fraîchement ouverte et encore vide, le panneau est visible automatiquement.
 
 ### Statistiques de la zone
 
@@ -106,7 +106,7 @@ Les chiffres portent en haut un horodatage et sont calculés **à la demande**, 
 
 ### Zones récentes
 
-« Fichier → Zones récentes » liste les zones récemment ouvertes par leur nom de dossier. Un clic ouvre la zone selon les règles habituelles. Les zones sont restaurées avec la session ; si un dossier de zone manque au démarrage, l'application correspondante n'est pas restaurée et un avis s'affiche.
+« Fichier → Zone → Zones récentes » liste les zones récemment ouvertes par leur nom de dossier. Un clic ouvre la zone selon les règles habituelles. Les zones sont restaurées avec la session ; si un dossier de zone manque au démarrage, l'application correspondante n'est pas restaurée et un avis s'affiche.
 
 ## Espaces de travail
 

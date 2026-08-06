@@ -257,16 +257,17 @@ const COMMANDS = [
   },
   // 4T-0847 (Story S-0756): Kapitel-Datei physisch innerhalb des Buch-Ordners
   // verschieben (Ordner-Wahl im Main, Ziel muss im Buch-Ordner liegen). Ohne
-  // Default-Kürzel wie die übrigen Buch-Kommandos: Bedienorte sind das
-  // Kontextmenü des Inhaltsverzeichnisses und die Kommando-Palette, ein
-  // Kürzel ist über die Einstellungen belegbar.
+  // Default-Kürzel wie die übrigen Buch-Kommandos; ein Kürzel ist über die
+  // Einstellungen belegbar. 4T-0887 (Befund L-04 des Struktur-Reviews): seither
+  // zusätzlich im Untermenü „Buch und Bücherregal" der Menüleiste, deshalb
+  // menu: true (nur so trägt der Eintrag ein belegtes Kürzel an).
   {
     id: 'book.moveChapterFile',
     defaultBindings: [],
     labelKey: 'bookPanel.moveFile',
     descKey: 'help.shortcut.moveChapterFile',
     categoryKey: 'help.group.file',
-    menu: false,
+    menu: true,
     editorScoped: false,
   },
   // 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen. Beide
@@ -395,6 +396,21 @@ const COMMANDS = [
     defaultBindings: ['CmdOrCtrl+Shift+P'],
     labelKey: 'menu.file.exportPdf',
     descKey: 'help.shortcut.exportPdf',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
+  // 4T-0890 (Epic 3E-0168, Befund L-05): portabler Markdown-Export als
+  // regulaeres Registry-Kommando. Der Menue-Eintrag war bis dahin hart auf
+  // den IPC-Kanal 'menu:exportPortable' verdrahtet — das Kommando erschien
+  // weder in der Kommando-Palette noch in der Kuerzel-Belegung, anders als
+  // der PDF-Export direkt daneben. Ohne Default-Kuerzel (Menue-Weg genuegt;
+  // Kuerzel ueber die Einstellungen belegbar).
+  {
+    id: 'file.exportPortable',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportPortable',
+    descKey: 'help.shortcut.exportPortable',
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
@@ -1339,13 +1355,16 @@ const COMMANDS = [
     editorScoped: false,
   },
   // Menue-Kommandos ohne Default-Binding (Entscheidungspunkt 4 aus
-  // 4T-0207): in der Settings-UI bindbar, ohne Hilfe-Zeile (descKey null,
-  // Kommandos ohne Binding erscheinen dort ohnehin nicht).
+  // 4T-0207): in der Settings-UI bindbar. 4T-0890 (Epic 3E-0168, Befund
+  // L-08): die vier bis dahin beschreibungslosen Eintraege tragen jetzt
+  // ebenfalls einen descKey — sonst blieben sie auf der generierten
+  // Handbuch-Seite auch dann unsichtbar, wenn der Nutzer ihnen ein Kuerzel
+  // zuweist (die Seite listet nur Kommandos mit descKey UND Binding).
   {
     id: 'file.toggleAutoSave',
     defaultBindings: [],
     labelKey: 'menu.file.autoSave',
-    descKey: null,
+    descKey: 'help.shortcut.toggleAutoSave',
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
@@ -1354,7 +1373,7 @@ const COMMANDS = [
     id: 'app.toggleRestoreSession',
     defaultBindings: [],
     labelKey: 'menu.help.restoreSession',
-    descKey: null,
+    descKey: 'help.shortcut.toggleRestoreSession',
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
@@ -1363,7 +1382,7 @@ const COMMANDS = [
     id: 'view.toggleScrollSync',
     defaultBindings: [],
     labelKey: 'menu.view.scrollSync',
-    descKey: null,
+    descKey: 'help.shortcut.toggleScrollSync',
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
@@ -1399,7 +1418,7 @@ const COMMANDS = [
     id: 'view.toggleTypewriterScroll',
     defaultBindings: [],
     labelKey: 'menu.view.typewriterScroll',
-    descKey: null,
+    descKey: 'help.shortcut.toggleTypewriterScroll',
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,

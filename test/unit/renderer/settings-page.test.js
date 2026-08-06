@@ -306,13 +306,14 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
     'propertyProfiles',
   ];
 
-  it('ohne Bereich: nur die Gruppe „Allgemein", bereichsgebundene Sektionen fehlen', () => {
+  it('ohne Bereich: keine Bereichs-Gruppe, bereichsgebundene Sektionen fehlen', () => {
     document.body.innerHTML = '';
     state.areaPath = null;
     const container = mountPage();
-    const groups = container.querySelectorAll('.settings-nav-group');
-    expect(groups).toHaveLength(1);
-    expect(groups[0].dataset.navGroup).toBe('general');
+    const groups = [...container.querySelectorAll('.settings-nav-group')];
+    // 4T-0889 (Epic 3E-0168): ohne Bereich bleiben „Allgemein" und der
+    // interne Erweiterungs-Block; die Bereichs-Gruppe entfällt.
+    expect(groups.map((g) => g.dataset.navGroup)).toEqual(['general', 'extensionsInternal']);
     expect(groups[0].querySelector('.settings-nav-group-title').textContent).not.toBe('');
     const ids = [...container.querySelectorAll('.settings-nav-entry')].map(
       (b) => b.dataset.sectionId,
@@ -321,15 +322,19 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
     for (const areaId of AREA_SECTION_IDS) expect(ids).not.toContain(areaId);
   });
 
-  it('mit Bereich: zweite Gruppe „Aktueller Bereich" mit den Bereichs-Sektionen in Registry-Reihenfolge', () => {
+  it('mit Bereich: Gruppe „Aktueller Bereich" mit den Bereichs-Sektionen in Registry-Reihenfolge', () => {
     document.body.innerHTML = '';
     state.areaPath = 'C:/tmp/testbereich';
     try {
       const container = mountPage();
       const groups = container.querySelectorAll('.settings-nav-group');
-      expect(groups).toHaveLength(2);
-      expect(groups[0].dataset.navGroup).toBe('general');
-      expect(groups[1].dataset.navGroup).toBe('area');
+      // 4T-0889: die Bereichs-Gruppe steht zwischen „Allgemein" und dem
+      // internen Erweiterungs-Block.
+      expect([...groups].map((g) => g.dataset.navGroup)).toEqual([
+        'general',
+        'area',
+        'extensionsInternal',
+      ]);
       const areaIds = [...groups[1].querySelectorAll('.settings-nav-entry')].map(
         (b) => b.dataset.sectionId,
       );
@@ -368,6 +373,113 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
     } finally {
       state.areaPath = null;
       settingsPage.unregisterSettingsSection('test-area-dyn');
+    }
+  });
+});
+
+// 4T-0889 (Epic 3E-0168): Vier-Block-Gliederung der Navigation. Die
+// Herkunft einer Sektion entscheidet über ihren Block: Kern-Sektionen
+// stehen unter „Allgemein" (die beiden Verwaltungs-Sektionen dort am
+// Ende), Sektionen interner Erweiterungen im eigenen Block (alphabetisch
+// nach lokalisiertem Titel), Sektionen externer Erweiterungen in einem
+// vierten Block, der ohne solche Erweiterungen gar nicht erscheint.
+// Bereichsgebundene Sektionen bleiben unabhängig von ihrer Herkunft in der
+// Bereichs-Gruppe.
+describe('Vier-Block-Gliederung der Navigation (4T-0889, Epic 3E-0168)', () => {
+  // Erweiterungs-gebundene Sektionen ohne Bereichs-Bindung, wie sie die
+  // Registry (src/shared/extensions.js, Feld settingsSections) ausweist.
+  const INTERNAL_EXTENSION_SECTION_IDS = [
+    'frontmatterTimestamps',
+    'spellcheck',
+    'templates',
+    'taskStates',
+    'tasks',
+    'reminders',
+    'headingNumbering',
+  ];
+
+  function navIds(container, groupId) {
+    return [...container.querySelectorAll(`[data-nav-group="${groupId}"] .settings-nav-entry`)].map(
+      (b) => b.dataset.sectionId,
+    );
+  }
+
+  it('Kern-Sektionen unter „Allgemein", Erweiterungs-Sektionen im eigenen Block', () => {
+    document.body.innerHTML = '';
+    state.areaPath = null;
+    const container = mountPage();
+    const generalIds = navIds(container, 'general');
+    const internalIds = navIds(container, 'extensionsInternal');
+    // Kern bleibt Kern (keine settingsSections-Kopplung in der Registry).
+    for (const kernId of ['appearance', 'colorSchemes', 'behavior', 'export', 'hotkeys']) {
+      expect(generalIds).toContain(kernId);
+      expect(internalIds).not.toContain(kernId);
+    }
+    // Erweiterungs-gebundene Sektionen wechseln vollständig den Block.
+    for (const extId of INTERNAL_EXTENSION_SECTION_IDS) {
+      expect(internalIds).toContain(extId);
+      expect(generalIds).not.toContain(extId);
+    }
+    expect(internalIds).toHaveLength(INTERNAL_EXTENSION_SECTION_IDS.length);
+  });
+
+  it('die beiden Verwaltungs-Sektionen stehen am Ende von „Allgemein"', () => {
+    document.body.innerHTML = '';
+    state.areaPath = null;
+    const container = mountPage();
+    const generalIds = navIds(container, 'general');
+    expect(generalIds.slice(-2)).toEqual(['extensions', 'extensionsExternal']);
+  });
+
+  it('der interne Erweiterungs-Block ist alphabetisch nach lokalisiertem Titel sortiert', () => {
+    document.body.innerHTML = '';
+    state.areaPath = null;
+    const container = mountPage();
+    const titel = [
+      ...container.querySelectorAll('[data-nav-group="extensionsInternal"] .settings-nav-entry'),
+    ].map((b) => b.textContent);
+    expect(titel).toEqual([...titel].sort((a, b) => a.localeCompare(b, 'en')));
+  });
+
+  it('Sektionen externer Erweiterungen bilden den vierten Block, sonst fehlt er', () => {
+    document.body.innerHTML = '';
+    state.areaPath = null;
+    // Ohne externen Beitrag existiert der Block nicht.
+    expect(mountPage().querySelectorAll('[data-nav-group="extensionsExternal"]')).toHaveLength(0);
+    settingsPage.registerSettingsSection({
+      id: 'ext-test-erweiterung-settings',
+      titleKey: 'settings.title',
+      // Herkunfts-Marke, die der Erweiterungs-Host beim Durchreichen setzt.
+      origin: 'external',
+      render: () => {},
+    });
+    try {
+      document.body.innerHTML = '';
+      const container = mountPage();
+      expect(navIds(container, 'extensionsExternal')).toEqual(['ext-test-erweiterung-settings']);
+      expect(navIds(container, 'general')).not.toContain('ext-test-erweiterung-settings');
+      // Der Block steht hinter dem internen Erweiterungs-Block.
+      const gruppen = [...container.querySelectorAll('.settings-nav-group')].map(
+        (g) => g.dataset.navGroup,
+      );
+      expect(gruppen).toEqual(['general', 'extensionsInternal', 'extensionsExternal']);
+    } finally {
+      settingsPage.unregisterSettingsSection('ext-test-erweiterung-settings');
+    }
+  });
+
+  it('bereichsgebundene Sektionen bleiben trotz Erweiterungs-Herkunft im Bereichs-Block', () => {
+    document.body.innerHTML = '';
+    state.areaPath = 'C:/tmp/testbereich';
+    try {
+      const container = mountPage();
+      const areaIds = navIds(container, 'area');
+      // „journals" gehört laut Registry zur Erweiterung journals, trägt aber
+      // group 'area' — der Bereichs-Bezug ist die stärkere Klammer.
+      expect(areaIds).toContain('journals');
+      expect(navIds(container, 'extensionsInternal')).not.toContain('journals');
+    } finally {
+      state.areaPath = null;
     }
   });
 });
