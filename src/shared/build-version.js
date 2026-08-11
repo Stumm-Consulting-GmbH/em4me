@@ -18,13 +18,89 @@ function hasBuildNumberFor(version, buildInfo) {
   );
 }
 
-// Volle Anzeige-Version: X.Y.Z.N, wenn die Build-Info zur App-Version passt,
-// sonst die dreiteilige App-Version (Fallback).
+// 4T-0921: Technische Form eines temporären Baus. Die Basis-Version steht
+// vorne, weil das Bau-Werkzeug daraus das numerische Windows-Vierertupel
+// bildet und ein führender Buchstabe den Bau abbricht; am 2026-08-07 an der
+// Bibliothek gemessen ("Invalid major number") und am Ressourcen-Werkzeug
+// ("Unable to parse version string"). Der Zeitstempel ist zwölfstellig:
+// Jahr, Monat, Tag, Stunde, Minute.
+const TEMP_MUSTER = /^(\d+\.\d+\.\d+)-T\.(\d{12})$/;
+
+// Anzeige- und Datei-Form derselben Angabe, mit der Marke T an erster Stelle
+// (Entscheidung des Product Owners vom 2026-08-07). Liefert null, wenn die
+// Versions-Angabe kein temporärer Bau ist.
+function temporaereKennzeichnung(version) {
+  const treffer = TEMP_MUSTER.exec(String(version ?? ''));
+  return treffer ? `T-${treffer[1]}-${treffer[2]}` : null;
+}
+
+// Volle Anzeige-Version: die temporäre Kennzeichnung, sonst X.Y.Z.N, wenn die
+// Build-Info zur App-Version passt, sonst die dreiteilige App-Version
+// (Fallback). Der temporäre Bau geht vor, weil seine Build-Info stets zu einer
+// anderen Version gehört und die Nummer dort nichts aussagt.
 function computeFullVersion(appVersion, buildInfo) {
+  const temporaer = temporaereKennzeichnung(appVersion);
+  if (temporaer) return temporaer;
   if (hasBuildNumberFor(appVersion, buildInfo)) {
     return `${appVersion}.${buildInfo.buildNumber}`;
   }
   return appVersion;
+}
+
+// Zwölfstelliger Zeitstempel in **lokaler** Zeit (Entscheidung des Product
+// Owners vom 2026-08-07, bewusste Abweichung von der UTC-Konvention für
+// persistierte Zeitstempel): Die Angabe ist ein Etikett, das neben dem
+// lokalen Änderungs-Zeitstempel der Datei gelesen wird, und ein Versatz von
+// ein bis zwei Stunden zwischen beiden kostet jedes Mal eine Rückfrage.
+function zeitstempelFuerBau(datum) {
+  const zwei = (wert) => String(wert).padStart(2, '0');
+  return (
+    String(datum.getFullYear()) +
+    zwei(datum.getMonth() + 1) +
+    zwei(datum.getDate()) +
+    zwei(datum.getHours()) +
+    zwei(datum.getMinutes())
+  );
+}
+
+/**
+ * 4T-0921: Entscheidet, mit welchen Angaben gebaut wird. Reine Funktion ohne
+ * Git- und Datei-Zugriff; der Aufrufer reicht die Tatsachen herein.
+ *
+ * Trägt die Versions-Angabe bereits eine Release-Marke, ist das Release
+ * ausgeliefert und die Nummer verbraucht: Der Bau bekommt eine temporäre
+ * Kennzeichnung, damit nie wieder eine Programmdatei mit einer bereits
+ * veröffentlichten Nummer entsteht. Trägt sie keine, läuft der Bau wie bisher.
+ *
+ * marken: Liste der vorhandenen Release-Marken (`v0.105.0`), oder null, wenn
+ * die Auskunft nicht zu bekommen war. Dann liefert die Funktion einen Befund
+ * statt einer Entscheidung (fail closed): Ohne die Marken lässt sich die
+ * Zusicherung nicht halten, und ein Bau ist billiger zu wiederholen als eine
+ * falsch benannte Programmdatei zurückzuholen.
+ */
+function bauAngaben(pkgVersion, marken, datum) {
+  if (!Array.isArray(marken)) {
+    return {
+      befund:
+        'Die vorhandenen Release-Marken sind nicht zu ermitteln. Ohne sie ist nicht ' +
+        'entscheidbar, ob die Versions-Angabe bereits veroeffentlicht ist; der Bau bricht ' +
+        'deshalb ab, statt moeglicherweise eine bereits vergebene Nummer erneut zu vergeben. ' +
+        'Git-Auskunft wiederherstellen und erneut bauen.',
+    };
+  }
+  const veroeffentlicht = marken.includes(`v${pkgVersion}`);
+  if (!veroeffentlicht) return { temporaer: false, version: pkgVersion };
+
+  const version = `${pkgVersion}-T.${zeitstempelFuerBau(datum)}`;
+  const kennzeichnung = temporaereKennzeichnung(version);
+  if (!kennzeichnung || version === pkgVersion) {
+    return {
+      befund:
+        `Die temporaere Kennzeichnung fuer ${pkgVersion} ist nicht bildbar (Ergebnis: ` +
+        `"${version}"). Der Bau bricht ab, statt die bereits veroeffentlichte Nummer erneut zu vergeben.`,
+    };
+  }
+  return { temporaer: true, version, kennzeichnung, basis: pkgVersion };
 }
 
 // Build-Nummer aus der Commit-Anzahl: der Release-Commit trägt seine eigene
@@ -70,4 +146,8 @@ module.exports = {
   nextBuildNumber,
   buildNumberEnvValue,
   buildNumberGuardError,
+  // 4T-0921: temporäre Kennzeichnung eines Baus zwischen zwei Releases.
+  temporaereKennzeichnung,
+  zeitstempelFuerBau,
+  bauAngaben,
 };

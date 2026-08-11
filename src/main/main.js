@@ -126,6 +126,14 @@ const { createRecentLists } = require('./recent-lists');
 // (Container-Format, Delta-Pakete, Anker, Hash-Abgleich). Electron- und
 // IO-frei; Datei-Zugriff und Fenster-Hinweise bleiben hier in main.js.
 const mddStore = require('./mdd-store');
+// 4T-0945 (Story S-0786): Stand-Pruefung vor dem Ueberschreiben.
+const saveGuard = require('./save-guard');
+// 4T-0946 (Story S-0005): Erkennung von Pfaden auf Netz-Freigaben.
+const netzPfade = require('./netz-pfade');
+// 4T-0947 (Story S-0005, AK6): eigene Schreibvorgaenge von fremden trennen.
+const selbstSchreib = require('./selbst-schreib');
+// 4T-0948 (Story S-0787): Inhalt einer Wiki-Einbettung, Puffer vor Platte.
+const embedInhalt = require('./embed-inhalt');
 // 4T-0843 (Epic 3E-0147): Datei-Ebene des Buches — Erkennung eines
 // Buch-Ordners, Zustands-Aufbau fuer den Renderer und Neuanlage
 // (electron-frei, unit-getestet); Dialoge, App-Bindung und IPC bleiben hier.
@@ -295,33 +303,13 @@ const watchers = new Map();
 // Datei-Stand dem Eigen-Schreiben entspricht; eine echte externe Aenderung
 // im Zeitfenster (z.B. direkt nach Blur-Auto-Save) laeuft durch und erreicht
 // den Konflikt-Dialog-Pfad.
-//   filePath -> { timer, hash }
-const selfWritingPaths = new Map();
-
-function hashContent(s) {
-  return crypto.createHash('sha256').update(String(s), 'utf8').digest('hex');
-}
-
-function markSelfWriting(filePath, content, durationMs = 1500) {
-  const existing = selfWritingPaths.get(filePath);
-  if (existing) clearTimeout(existing.timer);
-  const timer = setTimeout(() => selfWritingPaths.delete(filePath), durationMs);
-  selfWritingPaths.set(filePath, { timer, hash: hashContent(content) });
-}
-
-// Liefert true, wenn der aktuelle Datei-Stand dem zuletzt selbst
-// geschriebenen entspricht (Event unterdruecken); false bei abweichendem
-// Inhalt oder Lesefehler (Event durchlassen bzw. unlink-Pfad greift).
-async function isOwnWriteState(filePath) {
-  const entry = selfWritingPaths.get(filePath);
-  if (!entry) return false;
-  try {
-    const current = await fs.readFile(filePath, 'utf8');
-    return hashContent(current) === entry.hash;
-  } catch {
-    return false;
-  }
-}
+//
+// 4T-0947: Die Mechanik liegt in src/main/selbst-schreib.js, weil sie ohne
+// Electron pruefbar sein muss. Dort ist auch der Rest der Zeitsperre gefallen:
+// Ein Eintrag verfaellt nicht mehr nach 1500 ms, sondern erst mit dem naechsten
+// eigenen Schreibvorgang oder dem Ende der Beobachtung.
+const markSelfWriting = selbstSchreib.merke;
+const isOwnWriteState = selbstSchreib.istEigenerStand;
 
 // --- 4T-0331 (Epic 3E-0060): Dokument-Historie (.mdd) -------------------------
 
@@ -584,13 +572,12 @@ function historyTimingMs() {
 // Datei-Stand vor dem Ueberschreiben (Basis des Deltas und Eingang des
 // Hash-Abgleichs), BOM-/LF-normalisiert symmetrisch zu file:read.
 // null = Datei existiert noch nicht (neues Dokument).
+// 4T-0945 (Story S-0786): Der Lesevorgang liegt jetzt im save-guard-Modul,
+// weil Stand lesen und Stand vergleichen dieselbe Sache sind. Hier bleibt der
+// Rueckfall auf null fuer die Historien-Aufrufer, die keinen Fehler brauchen.
 async function readPreviousTextFor(absolute) {
-  try {
-    const raw = await fs.readFile(absolute, 'utf8');
-    return raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
-  } catch {
-    return null;
-  }
+  const stand = await saveGuard.readDiskState(absolute);
+  return stand.ok ? stand.text : null;
 }
 
 // 4T-0345 (Epic 3E-0062): Suchraum fuer das Link-Update beim Umbenennen. In
@@ -1210,11 +1197,15 @@ const timerChecker = createTimerChecker({
 function watchFile(filePath, ownerId) {
   let entry = watchers.get(filePath);
   if (!entry) {
+    // 4T-0946 (Story S-0005): Auf Netz-Freigaben kommen die nativen
+    // Datei-Ereignisse unzuverlaessig; dort laeuft die Beobachtung im
+    // Abfrage-Betrieb. Lokale Pfade behalten die nativen Ereignisse.
     const watcher = chokidar.watch(filePath, {
       awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 },
       ignoreInitial: true,
+      ...netzPfade.watchOptionenFuer(filePath),
     });
-    entry = { watcher, owners: new Set() };
+    entry = { watcher, owners: new Set(), polling: !!netzPfade.istNetzPfad(filePath) };
     watchers.set(filePath, entry);
 
     watcher.on('change', async () => {
@@ -1248,6 +1239,31 @@ function watchFile(filePath, ownerId) {
     });
   }
   entry.owners.add(ownerId);
+  // Die Laufwerks-Liste kommt aus einem fremden Prozess und liegt beim ersten
+  // Oeffnen womoeglich noch nicht vor. Wer auf einem gemappten Netzlaufwerk
+  // liegt, wird deshalb nachtraeglich umgestellt, sobald sie da ist — sonst
+  // haette die Zusage von der Startreihenfolge abgehangen.
+  netzPfade.beiErmittlung(() => stelleAufAbfrageUmFallsNoetig(filePath));
+}
+
+// Setzt einen bereits laufenden Beobachter neu auf, wenn sich herausstellt,
+// dass sein Pfad auf einer Netz-Freigabe liegt. Die Besitzer bleiben erhalten.
+function stelleAufAbfrageUmFallsNoetig(filePath) {
+  const entry = watchers.get(filePath);
+  if (!entry || entry.polling) return;
+  if (!netzPfade.istNetzPfad(filePath)) return;
+  const owners = entry.owners;
+  try {
+    entry.watcher.close();
+  } catch {
+    /* ein nicht schliessbarer Beobachter darf die Umstellung nicht verhindern */
+  }
+  watchers.delete(filePath);
+  const ersterOwner = owners.values().next().value;
+  if (ersterOwner === undefined) return;
+  watchFile(filePath, ersterOwner);
+  const neu = watchers.get(filePath);
+  if (neu) for (const id of owners) neu.owners.add(id);
 }
 
 async function unwatchFile(filePath, ownerId) {
@@ -1257,6 +1273,9 @@ async function unwatchFile(filePath, ownerId) {
   if (entry.owners.size === 0) {
     await entry.watcher.close();
     watchers.delete(filePath);
+    // 4T-0947: Mit dem Ende der Beobachtung wird der gemerkte Eigen-Stand
+    // gegenstandslos — es kommt keine Meldung mehr, die er einordnen koennte.
+    selbstSchreib.vergiss(filePath);
   }
 }
 
@@ -1273,13 +1292,15 @@ async function unwatchAllForOwner(ownerId) {
     if (entry) {
       await entry.watcher.close();
       watchers.delete(p);
+      selbstSchreib.vergiss(p);
     }
   }
 }
 
 async function unwatchAll() {
-  for (const entry of watchers.values()) {
+  for (const [p, entry] of watchers.entries()) {
     await entry.watcher.close();
+    selbstSchreib.vergiss(p);
   }
   watchers.clear();
 }
@@ -3666,7 +3687,18 @@ function registerIpc() {
 
   // Datei speichern (Inhalt nach UTF-8/LF, kein BOM). Markiert den Pfad als
   // Eigen-Schreibvorgang, damit der Watcher nicht meldet.
-  ipcMain.handle('file:save', async (event, filePath, content) => {
+  // 4T-0945 (Story S-0786): opts = { expected, force }. Die beiden Angaben
+  // sind unabhaengig und lassen sich kombinieren:
+  //   `expected` — Stand, den der Aufrufer zuletzt gelesen oder geschrieben
+  //     hat. Weicht die Datei davon ab, wird NICHT geschrieben, sondern der
+  //     Konflikt gemeldet. Fehlt die Angabe, bleibt das Verhalten unveraendert;
+  //     das haelt Aufrufer entkoppelt, die keinen Stand fuehren.
+  //   `force` — beim Schreiben die ueberschriebene Fassung sichern, auch bei
+  //     abgeschalteter Historie.
+  // Beides zusammen ist der vorentschiedene Fall: Der Anwender hat im
+  // Nachlade-Dialog «eigene behalten» gewaehlt; dann wird gegen genau den
+  // Stand geprueft, gegen den er entschieden hat, und dabei gesichert.
+  ipcMain.handle('file:save', async (event, filePath, content, opts) => {
     // W-02 (4T-0309): Typ-Guard und {ok,error}-Rueckgabe statt throw ueber die
     // IPC-Grenze (Entwicklungsrichtlinien §3).
     if (typeof filePath !== 'string' || !filePath) {
@@ -3675,18 +3707,46 @@ function registerIpc() {
     try {
       const absolute = path.resolve(filePath);
       const normalized = String(content || '').replace(/\r\n/g, '\n');
+      const expected = opts && typeof opts.expected === 'string' ? opts.expected : null;
+      const force = !!(opts && opts.force);
       // 4T-0331 (Epic 3E-0060): Basis fuer das Aenderungsprotokoll VOR dem
       // Ueberschreiben lesen (nur bei aktiver Historisierung; Aufloesung
       // Datei > Bereich > App aus 4T-0332).
       const owner = senderWindow(event);
       const recordHistory = (await resolveHistoryFor(owner, absolute, normalized)).effective;
-      const previousText = recordHistory ? await readPreviousTextFor(absolute) : null;
+      // Ein Lesevorgang deckt alle drei Zwecke ab: Aenderungsprotokoll,
+      // Konflikt-Pruefung und Sicherung der ueberschriebenen Fassung.
+      let previousText = null;
+      if (recordHistory || expected !== null || force) {
+        const stand = await saveGuard.readDiskState(absolute);
+        // Laesst sich der Stand nicht lesen, obwohl er geprueft werden soll,
+        // wird nicht blind geschrieben (eine fehlende Datei ist Neuanlage).
+        if (!stand.ok && expected !== null && stand.code !== 'ENOENT') {
+          return { ok: false, error: stand.error };
+        }
+        previousText = stand.ok ? stand.text : null;
+      }
+      // Ohne `expected` meldet istKonflikt nie einen Konflikt; der reine
+      // force-Aufruf nach dem Dialog laeuft deshalb ungeprueft durch.
+      if (saveGuard.istKonflikt(previousText, expected)) {
+        return { ok: false, reason: 'conflict' };
+      }
       markSelfWriting(absolute, normalized);
       await fs.writeFile(absolute, normalized, { encoding: 'utf8' });
-      if (recordHistory) {
+      // Beim erzwungenen Schreiben wird die ueberschriebene fremde Fassung
+      // auch dann in die Historie gelegt, wenn diese abgeschaltet ist (ab Werk
+      // ist sie das). Ohne .mdd legt recordSave einen Anker mit genau diesem
+      // Stand an; die Fassung ist damit ueber die Historien-Ansicht abrufbar,
+      // und aus einer Entscheidung unter Druck wird eine umkehrbare.
+      if (recordHistory || force) {
         await recordMddOnSave(owner, absolute, previousText, normalized);
       }
-      return { ok: true, path: absolute };
+      // `gesichert` sagt dem Aufrufer, ob wirklich eine fremde Fassung
+      // ueberschrieben und dabei weggelegt wurde. Nur dann ist der Hinweis
+      // auf die Historie wahr; bei unveraenderter Datei waere er eine
+      // Behauptung ohne Gegenstand.
+      const gesichert = force && previousText !== null && previousText !== normalized;
+      return { ok: true, path: absolute, gesichert };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }
@@ -5183,6 +5243,19 @@ function registerIpc() {
     }
   });
 
+  // 4T-0927: Entwickler-Werkzeuge umschalten — seit dem Entfall des
+  // Menueeintrags samt F12 nur noch aus dem Einstellungs-Bereich heraus.
+  // `event.sender` trifft genau das Fenster, aus dem der Aufruf kam.
+  ipcMain.handle('window:toggleDevTools', (event) => {
+    try {
+      event.sender.toggleDevTools();
+      return true;
+    } catch (err) {
+      console.warn('Entwickler-Werkzeuge umschalten fehlgeschlagen:', err);
+      return false;
+    }
+  });
+
   // Renderer meldet seine aktuelle Pane-Struktur, damit Bounds-Saves auch immer
   // die passenden Tabs persistieren koennen.
   // M-16 (4T-0173): zusaetzlich debounced in den Store flushen (bestehender
@@ -5596,6 +5669,16 @@ function registerIpc() {
     return true;
   });
 
+  // 4T-0935 (Befund B-08): Puffer-Overlay des Index — ein Kanal fuer Setzen
+  // und Zuruecknehmen (content === null loescht). Begruendung der Schicht am
+  // Overlay in backlinks.js.
+  ipcMain.handle('index:overlay', (event, params) => {
+    const filePath = params && params.filePath;
+    const content = params && params.content;
+    if (content === null) return backlinks.clearBufferOverlay(filePath);
+    return backlinks.setBufferOverlay(filePath, content);
+  });
+
   // 4T-0413 (Epic 3E-0078): Daten-Snapshot fuer Skript-Bloecke
   // (perspective-script). Read-only-View wie frontmatterQuery:run; die
   // Auswertung uebernimmt das Skript in der Renderer-Sandbox, der Main
@@ -5730,18 +5813,16 @@ function registerIpc() {
       }
     }
     try {
-      // Groessen-Limit VOR dem Lesen (Memory-Schutz, Muster Bild-Resolver).
-      const stat = await fs.stat(abs);
-      if (stat.size > MAX_EMBED_BYTES) {
-        return { ok: false, error: 'file too large' };
-      }
-      const content = await fs.readFile(abs, 'utf8');
-      let snippet = content;
+      // 4T-0948 (Befund E-01): geschriebener Stand vor Platten-Stand (Wahl und
+      // Groessen-Limit in embed-inhalt.js). Erst hier, weil der Ziel-Pfad nach
+      // Containment-Pruefung und Unterseiten-Rueckfall feststeht.
+      const puffer = backlinks.bufferTextFor(abs);
+      const gelesen = await embedInhalt.liesEmbedInhalt(abs, puffer, MAX_EMBED_BYTES);
+      if (!gelesen.ok) return { ok: false, error: gelesen.error };
+      let snippet = gelesen.content;
       if (anchor) {
-        snippet = backlinks.extractEmbedSnippet(content, anchor);
-        if (snippet == null) {
-          return { ok: false, error: 'anchor not found', path: abs };
-        }
+        snippet = backlinks.extractEmbedSnippet(gelesen.content, anchor);
+        if (snippet == null) return { ok: false, error: 'anchor not found', path: abs };
       }
       return {
         ok: true,
@@ -6588,6 +6669,13 @@ app.on('second-instance', (_event, argv, workingDirectory) => {
 
 app.whenReady().then(async () => {
   await loadStore();
+
+  // 4T-0946 (Story S-0005): Die gemappten Netzlaufwerke frueh und nebenher
+  // ermitteln. Bewusst ohne await: Die Abfrage startet einen fremden Prozess
+  // und darf den Programmstart nicht bremsen; bis eine Datei geoeffnet ist,
+  // liegt das Ergebnis in aller Regel vor, und andernfalls zieht die
+  // Beobachtung selbst nach.
+  netzPfade.ermittleNetzLaufwerke();
 
   // 4T-0030: Persistierten Theme-Pref VOR dem Erzeugen des ersten Fensters
   // anwenden, damit der Background-Color-Init in createWindow direkt korrekt

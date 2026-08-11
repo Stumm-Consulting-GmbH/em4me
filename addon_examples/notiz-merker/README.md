@@ -22,7 +22,7 @@ Die Zahlen im zweiten Absatz stammen aus >>Quelle prüfen<<.
 | Datei | Läuft wo | Inhalt |
 |---|---|---|
 | `manifest.json` | — | Kennung, Version, API-Version, Einstiegspunkte |
-| `markdown.js` | Render-Umgebung, ohne DOM | Inline-Regel für `((Text))` |
+| `markdown.js` | Render-Umgebung, ohne DOM | Inline-Regel für `>>Text<<` |
 | `main.js` | Oberfläche | Panel, Kommando, Einstellungen, Übersetzungen |
 
 ## Was das Beispiel an der API vorführt

@@ -1046,7 +1046,7 @@ export async function toggleBookPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !getBookPanelVisible(paneIdx);
   state.bookPanel.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('book');
+  if (next) await ensurePanelTabActive('book', paneIdx);
   applyBookPanelVisibility(paneIdx);
   await persistBookPanelSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {

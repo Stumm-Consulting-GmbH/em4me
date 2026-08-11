@@ -1,6 +1,6 @@
 # Sidebar
 
-The sidebar bundles the app's panels — from bookmarks, table of contents and area, through properties, tags and backlinks, to calendar, reminders and file graph (the full list is in the [function table](functions.md)). Each column has a sidebar area to the left and right of the content. Which panels are visible is switched per column; the arrangement of the panels (side, order, groups) applies to the whole app.
+The sidebar bundles the app's panels — from bookmarks, table of contents and area, through properties, tags and backlinks, to calendar, reminders and file graph (the full list is in the [function table](functions.md)). Each column has a sidebar area to the left and right of the content. Which panels are visible is switched per column; the arrangement of the panels (side, order, groups) applies to the whole app. Which tab of a group is currently in front, by contrast, belongs to the individual column: two columns side by side can show different panels within the same group, and other windows remain unaffected.
 
 ## Showing and hiding panels
 

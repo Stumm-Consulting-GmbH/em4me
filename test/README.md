@@ -51,7 +51,7 @@ case-insensitivem NTFS wäre `tests/` mit `Tests/` kollidiert.
 | `npm run build:renderer` | Baut das Renderer-Bundle. Vorbedingung jedes direkten Playwright-Aufrufs und eigenes Gate für Renderer-Importe (Abschnitt „E2E-Praxis"). |
 | `node scripts/test-kennzahlen.js` | Schreibt die Zahl der Prüffälle beider Suiten nach `test/lauf-kennzahlen.json`, ermittelt aus deren Auflistung ohne Ausführung (rund eine Minute). Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand jederzeit möglich, weil kein Test-Lauf vorausgehen muss. |
 
-**Die Kennzahl hängt an keinem Lauf.** Sie entsteht seit 4T-0831 aus der Auflistung beider Werkzeuge (`vitest list`, `playwright test --list`) und nicht mehr aus den Maschinen-Berichten eines Voll-Laufs. Damit ist gleichgültig, welcher Lauf zuletzt gefahren ist und mit welchem Reporter; die JSON-Berichte unter `test-berichte/` dürfen von jedem Teillauf überschrieben werden. Zuvor galt das Gegenteil, und daraus entstand ein Zielkonflikt mit der Wiederhol-Regel: Der isolierte Nachweis eines Flakes zerstörte den Bericht, aus dem die Kennzahl entstehen sollte.
+**Die Kennzahl hängt an keinem Lauf.** Sie entsteht seit 4T-0831 aus der Auflistung beider Werkzeuge (`vitest list`, `playwright test --list`) und nicht mehr aus den Maschinen-Berichten eines Voll-Laufs. Damit ist gleichgültig, welcher Lauf zuletzt gefahren ist und mit welchem Reporter; die JSON-Berichte unter `test-berichte/` dürfen von jedem Teillauf überschrieben werden. Zuvor galt das Gegenteil, und daraus entstand ein Zielkonflikt mit der Wiederhol-Regel: Der isolierte Nachweis eines Flakes zerstörte den Bericht, aus dem die Kennzahl entstehen sollte. **Davon unberührt ist der Beleg eines roten Laufs** (4T-0934): Er hat einen anderen Zweck als die Kennzahl, nämlich die Diagnose eines Fehlschlags, und liegt deshalb als eigene Kopie unter `test-berichte/rot/` statt die Überschreib-Freiheit des Normalfalls einzuschränken (siehe „Belege roter Gate-Läufe" im Abschnitt „Rote Läufe einordnen").
 
 ### Drei Regeln zum Umgang mit Läufen in der Release-Strecke
 
@@ -173,16 +173,29 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     bevor der Helfer dort eingesetzt wird. Für einen Umschalter gilt die
     Regel nicht — dort bleibt der einzelne Druck richtig, und die
     Stabilität muss anders hergestellt werden.
-14. **Neue Werkzeug-Tests brauchen zwei Zuordnungen.** Ein neuer Test
-    eines privaten Werkzeugs unter `scripts/` gehört erstens in die
-    `testAusnahmen` von `scripts/quellcode-export-liste.json`, weil
-    `test/` als ganzer Ordner veröffentlicht wird und der Import eines
-    nicht exportierten Skripts die öffentliche Suite erst beim nächsten
-    Quellcode-Export rot machte (maschinell gewächtert in
-    `quellcode-export.test.js`); zweitens in die Werkzeug-Ausnahme-Liste
-    von `scripts/aenderungsklassen.json`, deren
-    Vollständigkeits-Meta-Test sonst im Queue-Gate abbricht. Beide
+14. **Der Prüffall eines privaten Werkzeugs braucht zwei Zuordnungen.**
+    Maßgeblich ist nicht, wo das Werkzeug liegt, sondern ob seine
+    Dateien veröffentlicht werden: Sobald ein Test eine Datei **lädt
+    oder liest**, die die Positivliste des Exports nicht freigibt,
+    gehört er erstens in die `testAusnahmen` von
+    `scripts/quellcode-export-liste.json`, weil `test/` als ganzer
+    Ordner veröffentlicht wird und der Prüffall im Ziel ohne seine
+    Datei ankäme — die öffentliche Suite würde erst beim nächsten
+    Quellcode-Export rot. Zweitens gehört er in den Prüf-Ausschnitt
+    seiner Änderungsklasse in `scripts/aenderungsklassen.json` oder,
+    wenn ihm keine zuzuordnen ist, in deren Ausnahme-Liste; der
+    Vollständigkeits-Meta-Test bricht sonst im Queue-Gate ab. Beide
     Einträge gehören in den Commit, der die Testdatei anlegt.
+
+    Zwei belegte Fälle: ein Werkzeug unter `scripts/`, das der Test
+    als Modul lädt (der Regelfall, aus dem die Regel entstand), und der
+    Wächter über die Dashboard-Sicht, der `Projektmanagement/dashboard.html`
+    liest — ein privates Werkzeug außerhalb von `scripts/`, dauerhaft
+    über die Sperrliste von der Veröffentlichung ausgenommen. Beide
+    findet die Prüfung in `quellcode-export.test.js`; sie erkennt
+    geladene Module und genannte Pfade des Bestands, nicht aber einen
+    Pfad, der erst zur Laufzeit entsteht. Wer so einen baut, trägt die
+    Zuordnung selbst nach.
 15. **Ab zwei Fenstern wird das Ziel-Fenster benannt, nicht abgezählt.**
     `BrowserWindow.getAllWindows()` liefert **nicht** die
     Erzeugungsreihenfolge, sondern die Z-Order: Im Diagnose-Lauf zu
@@ -193,6 +206,75 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     bestimmtes Fenster schickt, wählt es über ein Merkmal aus — etwa
     `getAllWindows().find((w) => w.getTitle().includes(teil))`, siehe
     `sendeAnFenster` in `funktionen/regal.spec.js`.
+16. **Der Ansichts-Modus ist Teil des Szenarios, nicht seine Kulisse.**
+    Betrifft ein gemeldeter Befund eine Funktion, die es in mehreren
+    Ansichts-Modi gibt (Quelltext, Geteilt, Live, Gerendert), fährt der
+    Regressionstest **alle** einschlägigen Modi und nicht den einen, den
+    die Session zufällig gewählt hat. Anlass ist B-10 (4T-0904): Ein
+    Fix schloss den Weg über den verzögerten Such-Neuaufbau, während
+    dieselbe Doc-Änderung im geteilten Modus zusätzlich über die
+    Render-Pipeline der Vorschau lief. Der Test prüfte nur den
+    Quelltext-Modus, war grün, und der Product Owner sah den Fehler in
+    der Test-Iteration unverändert. Nennt die Meldung den Modus nicht,
+    ist das kein Freibrief für eine stille Wahl: dann gilt die
+    Vollständigkeit, oder der Modus wird erfragt.
+
+17. **Ein Selektor ohne Spalten-Qualifizierung misst die erste Spalte.**
+    In Zwei-Spalten-Szenarien immer über `SEL.pane(idx)` qualifizieren;
+    ein unqualifizierter Treffer sieht die zweite Spalte nie und misst
+    still die falsche. Im Probelauf zu 4T-0899 kostete das beinahe eine
+    PO-Entscheidungsrunde über ein Verhalten, das es nicht gibt: Der
+    vermeintliche Befund war ein Spalten-Verwechsler des Tests. Gilt
+    auch für Panel-Sichtbarkeit, die an Schlüsseln **je Spalte** hängt
+    (`visibleColumn0`/`visibleColumn1`).
+
+18. **Eine eigene `settings`-Vorbelegung in `launchApp` ersetzt die
+    Standard-Vorbelegung vollständig.** Die Sprach-Festlegung aus
+    4T-0751 gehört dann mit hinein, sonst startet die App englisch und
+    sprachabhängige Erwartungen brechen (Fund aus 4T-0899, Stufe A).
+
+19. **Brückenfunktionen am Modulkopf brauchen die gemeinsame
+    Attrappe.** Wer einen Preload-Zugriff aus einer Funktion an den
+    Modulkopf zieht, ergänzt `test/unit/renderer/api-stub.js`; sonst
+    brechen Unit-Dateien schon am Import statt an einer Erwartung
+    (Fund aus 4T-0635: drei Test-Dateien auf einmal).
+
+20. **Positions-Regeln von Tab-Gruppen an Gruppen mit mindestens zwei
+    Mitgliedern prüfen.** `insertTabNextTo`/`moveTabNextTo`
+    (`tab-groups.js`) setzen `tab.groupId` immer aus dem
+    Herkunfts-Reiter; wer eine Positions-Regel testet, stellt die
+    Herkunft bewusst **vor** ein weiteres Gruppen-Mitglied (Muster
+    TG-13), weil Ein-Element-Gruppen Positions-Fehler maskieren
+    (aus 3E-0130/v0.87.0).
+
+21. **Was eine Zusicherung abschaltet, um ihren Fall herzustellen, gehört
+    als eigener Fall wieder herein.** Schaltet ein Test eine
+    Umgebungs-Eigenschaft ab, damit die geprüfte Lage überhaupt
+    entsteht, deckt er genau den Zustand nicht ab, in dem diese
+    Eigenschaft wirkt — und das ist im Alltag oft der häufigere. Anlass
+    ist 4T-0945: Alle Fälle des Konflikt-Schutzes schalteten die
+    Datei-Beobachtung stumm, weil sie sonst den Nachlade-Dialog
+    ausgelöst hätte und der Speicher-Weg nie erreicht worden wäre. Der
+    Product Owner testete den lokalen Fall mit meldender Beobachtung,
+    also den Weg, über den die Zusage der Story im Alltag meistens
+    läuft, und traf dort auf eine Lücke, die keine Zusicherung berührte.
+    Die Regel gilt für jeden Schalter dieser Art: Beobachtung,
+    Netzwerk-Erreichbarkeit, Erweiterungs-Zustand, Berechtigungen.
+
+18. **Eine Zusicherung geht den Weg des Anwenders, nicht den der
+    Schicht.** Wo eine Funktion über mehrere Stationen läuft (Datenquelle
+    → Auslöser → Anzeige), prüft ein Fall, der eine Station unmittelbar
+    aufruft, genau die Strecken nicht, auf denen der Fehler meistens
+    sitzt. Zweimal am 2026-08-10 belegt: Bei 4T-0945 wies ein Fall nach,
+    dass die Sicherung **entsteht**, nicht dass der Anwender an sie
+    **herankommt**; bei 4T-0950 rief ein Fall die Tag-Schicht unmittelbar
+    auf und war grün, während das Panel beim Product Owner leer blieb,
+    weil niemand es neu zeichnen ließ. In beiden Fällen war die
+    Datenquelle bereits richtig und die Zusicherung trotzdem wertlos.
+    Praktisch heißt das: Panel-Inhalt statt Rückgabewert, sichtbarer
+    Dialog statt Handler-Aufruf, geöffnete Seite statt erzeugtem Text.
+    Ein Fall auf Schicht-Ebene ist als **Ergänzung** nützlich, nie als
+    Ersatz.
 
 ## E2E-Praxis
 
@@ -256,9 +338,71 @@ eine Debug-Runde gekostet.
   `undefined`, die Bedingung wird nie wahr, und der Fall läuft
   kommentarlos in den Timeout.
 
+## Konsolen-Fehler scheitern lassen
+
+Jeder Konsolen-Eintrag vom Typ `error` und jede unbehandelte Ausnahme des Renderers (`pageerror`) lässt den betroffenen End-zu-End-Fall scheitern. Die Beobachtung sitzt zentral in [helpers/app.js](e2e/helpers/app.js) und braucht in der einzelnen Spec **kein Zutun**: `launchApp` hängt den Zuhörer an das `window`-Ereignis der Anwendung, `closeApp` wertet aus.
+
+Drei Eigenschaften, die beim Ändern zu erhalten sind:
+
+- **Der Zuhörer steht vor `firstWindow()`.** Wird er erst danach registriert, entgehen ihm sämtliche Meldungen der Start-Phase — also der Phase, in der Initialisierungs-Fehler entstehen. Genau das war der Zustand bis 4T-0901: Ein während des Starts gemeldeter Fehler ließ den damaligen Smoke-Fall grün.
+- **Warnungen bleiben außen vor.** Nur `error`. Das Rauschen der Warnungen würde den Wächter entwerten.
+- **Die Auswertung verdeckt keinen echten Fehlschlag.** Ist der Fall bereits aus eigenem Grund rot, wird die Konsolen-Meldung nur als Anmerkung angehängt statt geworfen; ein Wurf aus dem `finally`-Block hätte sonst die ursprüngliche Diagnose überschrieben.
+
+**Geduldete Meldungen** stehen in [konsolen-ausnahmen.json](konsolen-ausnahmen.json), je Eintrag mit Teilstring, Grund und Datum. Ein Eintrag entsteht nur, wenn der Fall die Meldung **absichtlich** erzeugt (etwa ein Sicherheits-Fall, der einen Pfad bewusst nicht auflöst) oder sie von außen kommt; ein echter Fehler der Anwendung wird behoben, nicht geduldet. Das Feld `spec` bindet den Eintrag an eine Datei und ist der Regelfall: Ohne diese Bindung gölte eine Ausnahme wie `ERR_FILE_NOT_FOUND` projektweit und verdeckte gleichartige Meldungen anderswo.
+
 ## Rote Läufe einordnen
 
 **Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). Die Quarantäne-Liste wird je Release gesichtet: wiederholt Auffälliges wird zum Testfehler-Vorgang befördert, lange Unauffälliges gestrichen.
+
+- **Den Beleg sichern, bevor wiederholt wird** (4T-0934, Vorfall vom
+  2026-08-08). Die Ausgabe eines Gate-Laufs wird **ungefiltert** gelesen; wo
+  eine Filterung bequem ist, wird die volle Ausgabe zusätzlich in eine Datei
+  geleitet (`… > lauf.log 2>&1`, danach hineinsehen). Nach einem roten Lauf
+  wird der Beleg gesichert, **bevor** ein Wiederholungslauf startet: Jeder
+  Folgelauf überschreibt den Maschinen-Bericht unter `test-berichte/`, und
+  danach ist weder der betroffene Fall noch sein Fehlerbild feststellbar. Ein
+  roter Lauf ohne Beleg ist **kein Flake**, sondern ein verlorener Befund; er
+  wird als solcher benannt statt stillschweigend als Flake behandelt, denn ein
+  Quarantäne-Eintrag ohne benennbaren Fall ist wertlos. Anlass war genau
+  dieser Ablauf: gefilterte Ausgabe, blinder Wiederholungslauf, überschriebener
+  Bericht, Ursache endgültig weg. Für die Merge-Queue nimmt
+  `scripts/gate-lauf.js` diese Sorgfalt ab (siehe „Belege roter Gate-Läufe"
+  unten); außerhalb der Queue trägt sie die Sitzung.
+
+- **Belege roter Gate-Läufe** (4T-0934). Bricht ein Gate der Merge-Queue ab,
+  legt `scripts/gate-lauf.js` den Beleg selbsttätig unter
+  `test-berichte/rot/<Zeitstempel>-<branch>-<gate>.*` ab und die
+  Fehlermeldung nennt den Pfad: die **volle** Konsolen-Ausgabe als `.log`
+  (die Meldung selbst bleibt auf die letzten 25 Zeilen gekürzt) und beim
+  Testsuite-Gate zusätzlich die Kopie von `test-berichte/unit.json`. Ein
+  grüner Lauf sichert nichts, die jüngsten zehn Belege bleiben liegen, und
+  ein Fehlschlag der Sicherung verdrängt nie die Meldung des eigentlichen
+  Fehlschlags. Die Queue fährt keine E2E-Gates, deshalb gibt es dort keinen
+  E2E-Bericht zu sichern.
+
+- **Null fehlgeschlagene Tests, trotzdem rot: zuerst den Rechner ansehen.**
+  Meldet ein Lauf eine rote Suite, während der Bericht `numFailedTests: 0`
+  ausweist, ist kein Test gefallen, sondern ein Hook ins Zeitlimit gelaufen,
+  fast immer ein `afterAll`, das Wegwerf-Verzeichnisse löscht. Dafür gibt es
+  genau zwei Ursachen, und sie sehen gleich aus:
+  1. **Fremdlast auf dem Rechner.** Ein zweiter Suite- oder Bau-Lauf, auch aus
+     einem anderen Clone. Prüfen mit
+     `Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'vitest|playwright' }`;
+     die Ausgabe nennt über `CommandLine` auch den Clone. Ist ein fremder Lauf
+     aktiv: **warten, nicht wiederholen.** Ein zweiter Lauf unter derselben Last
+     scheitert genauso und kostet die Zeit ein zweites Mal. Die Regel dazu steht
+     in den Entwicklungsrichtlinien,
+     Abschnitt 11.
+  2. **Gewachsene eigene Aufräum-Last.** Die Test-Datei hat Fälle bekommen, die
+     je eine eigene Wegwerf-Umgebung bauen; dann reicht das voreingestellte
+     Zeitlimit nicht mehr, und der Hook braucht ein eigenes (Muster
+     `AUFRAEUM_ZEITLIMIT` in `merge-queue.test.js`, `BAU_ZEITLIMIT` in
+     `web-inhalte.test.js`). Erkennbar daran, dass der Fehlschlag auch ohne
+     Fremdlast auftritt.
+
+  In **keinem** der beiden Fälle gehört der Lauf in die Flake-Quarantäne: Kein
+  Test flackert, sondern eine Rahmenbedingung fehlt. Belegt am 2026-08-07 mit
+  beiden Ursachen am selben Tag.
 
 - **Erst isoliert nachprüfen, dann bewerten.** Einzelne Fehlschläge der
   E2E-Voll-Suite sind häufig Last-Flakiness der parallelen Ausführung.
@@ -393,7 +537,7 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 
 | Klasse | Datei-Muster | Ausschnitt der Unit-Suite | E2E |
 |---|---|---|---|
-| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`); kein Format, kein Lint | keine |
+| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`); kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `quellcode-export`, `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `color-schemes`, `web-handbuch`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
 | **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
@@ -434,7 +578,8 @@ eigenem Grund:
 **Rückfall auf die vollen Gates**, sobald eines davon zutrifft: Der
 Änderungs-Umfang lässt sich nicht ermitteln; mindestens eine geänderte
 Datei passt auf kein Muster; die Klassen-Karte selbst,
-`scripts/merge-queue.js`, die Auswahl-Funktion `scripts/gate-auswahl.js`,
+`scripts/merge-queue.js`, die Gate-Definition `scripts/gate-lauf.js`, die
+Auswahl-Funktion `scripts/gate-auswahl.js`,
 eine Test-Konfiguration oder eine Ignore-Datei ist geändert; der Lauf ist
 eine Release-Integration (`--release`). Ergänzend gilt fail-closed: eine
 Ausnahme in der Auswahl, eine unlesbare Karte und ein leeres

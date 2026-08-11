@@ -66,7 +66,8 @@ import {
   movePanelRelativeTo,
   movePanelToNewSlot,
   registerSidebarPanel,
-  setActivePanel,
+  activePanelInSlot,
+  setActivePanelForColumn,
   setGroupHeight,
   setPanelHeight,
   setSidebarWidth,
@@ -584,7 +585,10 @@ function renderSidebarSide(paneIdx, els, layout, side) {
     if (entries.length === 0) continue;
     const visibleIds = entries.filter((e) => e.def.getVisible(paneIdx)).map((e) => e.id);
     const slotVisible = visibleIds.length > 0;
-    const effectiveActive = visibleIds.includes(slot.active) ? slot.active : visibleIds[0] || null;
+    // 4T-0942 (Befund B-07): der aktive Reiter gilt je Spalte; der
+    // Layout-Wert ist nur noch die Vorgabe (activePanelInSlot).
+    const slotActive = activePanelInSlot(slot, paneIdx);
+    const effectiveActive = visibleIds.includes(slotActive) ? slotActive : visibleIds[0] || null;
     // 4T-0475: governing Panel dieses Blocks — bei einer Reiter-Gruppe der
     // aktive Reiter, sonst die Einzel-Sektion. Dessen Höhe steuert der Griff.
     const governingId = effectiveActive;
@@ -599,7 +603,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
     // damit sie unten als oberster sichtbarer Kopf verfügbar ist.
     let slotTabbar = null;
     if (isGroup && slotVisible) {
-      slotTabbar = buildSlotTabbar(entries, visibleIds, effectiveActive);
+      slotTabbar = buildSlotTabbar(entries, visibleIds, effectiveActive, paneIdx);
       // Trenner vor jedem sichtbaren Block außer dem ersten (ersetzt die
       // frühere panel-gebundene border-top von Outgoing/Backlinks/Bookmarks,
       // die bei freier Reihenfolge an falscher Stelle säße).
@@ -815,7 +819,9 @@ function freezeSidePanelHeights(paneIdx, dragPanelId) {
       return def && def.getVisible(paneIdx);
     });
     if (visible.length === 0) continue;
-    const governingId = visible.includes(slot.active) ? slot.active : visible[0];
+    // 4T-0942: dieselbe spaltenweise Wahl wie beim Rendern.
+    const slotActive = activePanelInSlot(slot, paneIdx);
+    const governingId = visible.includes(slotActive) ? slotActive : visible[0];
     bloecke.push({ governingId, ref: heightRefForSlot(slot, governingId) });
   }
   // 4T-0682 (Epic 3E-0139): Den letzten sichtbaren Block nicht einfrieren.
@@ -919,9 +925,10 @@ function buildPanelResizer(paneIdx, panelId, ref) {
 }
 
 // Reiterleiste eines Gruppen-Slots: ein Reiter je sichtbarem Panel,
-// lokalisierter Panel-Titel, Klick aktiviert den Reiter im globalen
-// Layout-Modell (alle Panes ziehen über das Änderungs-Event nach).
-function buildSlotTabbar(entries, visibleIds, effectiveActive) {
+// lokalisierter Panel-Titel, Klick aktiviert den Reiter in DIESER Spalte
+// (4T-0942; zuvor im fensterweiten Layout, wodurch die andere Spalte
+// mitsprang).
+function buildSlotTabbar(entries, visibleIds, effectiveActive, paneIdx) {
   const bar = document.createElement('div');
   bar.className = 'sidebar-slot-tabs';
   bar.setAttribute('role', 'tablist');
@@ -940,7 +947,8 @@ function buildSlotTabbar(entries, visibleIds, effectiveActive) {
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-selected', active ? 'true' : 'false');
     btn.addEventListener('click', () => {
-      applySidebarLayout(setActivePanel(getSidebarLayout(), e.id));
+      // 4T-0942: Der Klick wirkt in der Spalte, in der die Leiste steht.
+      void setActivePanelForColumn(e.id, paneIdx);
     });
     // 4T-0289: Reiter sind Drag-Quelle fuer gruppierte Panels (die
     // Sektions-Header sind in Gruppen ausgeblendet).
@@ -1115,7 +1123,7 @@ export async function toggleOutlinePanel(paneIdx) {
   const next = !state.outline.visibleByPane[paneIdx];
   state.outline.visibleByPane[paneIdx] = next;
   // 4T-0288: das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
-  if (next) await ensurePanelTabActive('outline');
+  if (next) await ensurePanelTabActive('outline', paneIdx);
   applyOutlineVisibility(paneIdx);
   await persistOutlineSettings();
   // Menue-Haken synchron halten (gilt fuer aktive Spalte).
@@ -1455,7 +1463,7 @@ export async function toggleBacklinksPanel(paneIdx) {
   const next = !state.backlinks.visibleByPane[paneIdx];
   state.backlinks.visibleByPane[paneIdx] = next;
   // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
-  if (next) await ensurePanelTabActive('backlinks');
+  if (next) await ensurePanelTabActive('backlinks', paneIdx);
   applyBacklinksVisibility(paneIdx);
   await persistBacklinksSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
@@ -1778,7 +1786,7 @@ export async function toggleOutgoingPanel(paneIdx) {
   const next = !state.outgoing.visibleByPane[paneIdx];
   state.outgoing.visibleByPane[paneIdx] = next;
   // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
-  if (next) await ensurePanelTabActive('outgoing');
+  if (next) await ensurePanelTabActive('outgoing', paneIdx);
   applyOutgoingVisibility(paneIdx);
   await persistOutgoingSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
@@ -1903,7 +1911,7 @@ export async function toggleSubpagesPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.subpages.visibleByPane[paneIdx];
   state.subpages.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('subpages');
+  if (next) await ensurePanelTabActive('subpages', paneIdx);
   applySubpagesVisibility(paneIdx);
   await persistSubpagesSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {

@@ -74,11 +74,13 @@ test.describe('P-01: Tab-Wechsel-Dauer auf grosser Fixture', () => {
 
 test.describe('P-02: Render-Skip bei unveraendertem Stand (R4-12)', () => {
   test('Erneutes Aktivieren laesst Render-DOM identisch, echter Wechsel rendert frisch', async () => {
+    // 4T-0901: Die frühere lokale Konsolen-Prüfung dieses Falls ist entfallen.
+    // Sie wäre doppelt und zugleich schwächer als der zentrale Wächter in
+    // helpers/app.js: Der hängt vor dem ersten Fenster, erfasst damit auch die
+    // Start-Phase, sieht weitere Fenster mit und fängt zusätzlich unbehandelte
+    // Ausnahmen. Ein zweiter Zuhörer hier würde nur vortäuschen, dass die
+    // Absicherung an dieser Stelle hängt.
     const { app, page, userData } = await launchApp({ args: [ANKER, KLEIN_A] });
-    const consoleErrors = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') consoleErrors.push(msg.text());
-    });
     try {
       await waitForTab(page);
       const tabs = page.locator(SEL.tabs0);
@@ -109,7 +111,6 @@ test.describe('P-02: Render-Skip bei unveraendertem Stand (R4-12)', () => {
       await tabs.nth(0).click();
       await expect(page.locator(`${SEL.markdownBody0} h1`)).toHaveText('Mermaid-Anker');
       await expect(page.locator(`${SEL.markdownBody0} .mermaid-block svg`)).toBeVisible();
-      expect(consoleErrors).toEqual([]);
     } finally {
       await closeApp(app, userData);
     }
@@ -118,11 +119,8 @@ test.describe('P-02: Render-Skip bei unveraendertem Stand (R4-12)', () => {
 
 test.describe('P-03: Tippen im Live-Modus auf grosser Fixture', () => {
   test('15 Zeichen am Dokument-Anfang, Dauer geloggt, Inhalt kommt an', async () => {
+    // 4T-0901: lokale Konsolen-Pruefung entfallen, siehe Begruendung an P-02.
     const { app, page, userData } = await launchApp({ args: [GROSS] });
-    const consoleErrors = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') consoleErrors.push(msg.text());
-    });
     try {
       await waitForTab(page);
       await sendMenuChannel(app, 'menu:viewChange', 'live');
@@ -141,7 +139,6 @@ test.describe('P-03: Tippen im Live-Modus auf grosser Fixture', () => {
       expect(ms).toBeLessThan(20000);
       // Funktionsnachweis: Text steht im Editor (erste Zeile).
       await expect(editor).toContainText('Perf-Messlauf x');
-      expect(consoleErrors).toEqual([]);
     } finally {
       // Dirty Buffer absichtlich — Force-Exit verhindert den nativen
       // Speichern-Dialog im Teardown.
@@ -164,6 +161,35 @@ test.describe('P-04: Fold-Gutter auf grosser Fixture (R1-07/R1-08)', () => {
       const count = await marker.count();
       console.log(`[4T-0180/P-04] Sichtbare Fold-Marker: ${count}`);
       expect(count).toBeGreaterThan(0);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-0903 (Epic 3E-0016): Start-Dauer der Anwendung als wiederholbare Messung.
+//
+// Der abschliessende Leistungs-Vergleich vor dem Hauptrelease nennt die
+// App-Start-Zeit als einen der Hotspots, fuer den es bis hierher keine
+// wiederholbare Messung gab — anders als beim Reiter-Wechsel (P-01), beim
+// Live-Tippen (P-03) und beim Index-Aufbau (Zusicherung unter 50 ms im
+// Unit-Test der Verweis-Indizierung).
+//
+// Gemessen wird bis zum Ende der asynchronen Renderer-Initialisierung, also
+// bis zu dem Zeitpunkt, ab dem die Oberflaeche bedienbar ist; launchApp
+// wartet darauf ohnehin. Bewusst ohne Schwellwert-Assertion: Die Dauer haengt
+// stark von der Maschine ab, und ein gerissener Grenzwert auf fremder Hardware
+// waere ein Fehlalarm. Der Wert wird geloggt und beim Leistungs-Vergleich
+// gelesen.
+test.describe('P-05: Start-Dauer bis zur bedienbaren Oberflaeche', () => {
+  test('Start ohne Datei, Dauer geloggt', async () => {
+    const t0 = Date.now();
+    const { app, page, userData } = await launchApp();
+    const ms = Date.now() - t0;
+    try {
+      await expect(page.locator(SEL.statusbar)).toBeVisible();
+      console.log(`[4T-0903/P-05] Start bis bedienbare Oberflaeche: ${ms} ms`);
+      expect(ms).toBeGreaterThan(0);
     } finally {
       await closeApp(app, userData);
     }

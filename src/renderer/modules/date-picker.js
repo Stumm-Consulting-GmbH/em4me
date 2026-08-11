@@ -30,7 +30,7 @@ import {
   isValidIsoDate,
   isValidTime,
   parseTaskLine,
-  REMINDER_SYMBOL,
+  markerValueRangesInLine,
 } from '../../shared/task-markers.js';
 import { isExtensionActive } from './extension-lifecycle.js';
 import {
@@ -735,20 +735,6 @@ export const datePickerTriggerExtension = EditorView.inputHandler.of((view, from
 // ⏰-Wert bleibt als gezielte Ausnahme klickbar (Popup vorbelegt, Ersetzen
 // an Ort und Stelle — Workshop-Punkt 1). Das rechteste Vorkommen ist das
 // wirksame Segment (Parse-Richtung des Marker-Kerns).
-const REMINDER_VALUE_IN_LINE_RE = new RegExp(
-  `${REMINDER_SYMBOL}\\uFE0F?[ \\t]*(\\d{4}-\\d{2}-\\d{2}(?:[ \\t]+\\d{2}:\\d{2})?)`,
-  'gu',
-);
-
-function reminderValueRangeInLine(lineText) {
-  let last = null;
-  for (const m of lineText.matchAll(REMINDER_VALUE_IN_LINE_RE)) {
-    const valueStart = m.index + m[0].length - m[1].length;
-    last = { from: valueStart, to: valueStart + m[1].length };
-  }
-  return last;
-}
-
 function buildDateValueDecorations(view) {
   const { state } = view;
   if (state.readOnly || !isExtensionActive('date-picker')) return Decoration.none;
@@ -764,7 +750,7 @@ function buildDateValueDecorations(view) {
   for (const { from, to } of view.visibleRanges) {
     const text = state.doc.sliceString(from, to);
     const descEndByLine = new Map();
-    const reminderRangeByLine = new Map();
+    const markerRangesByLine = new Map();
     for (const r of findDateValueRanges(text)) {
       const docFrom = from + r.from;
       const docTo = from + r.to;
@@ -798,16 +784,19 @@ function buildDateValueDecorations(view) {
           descEndByLine.set(line.number, descEnd);
         }
         if (descEnd !== null && docTo - line.from > descEnd) {
-          // 4T-0528 (Epic 3E-0095): der ⏰-Wert im Marker-Schwanz bleibt
-          // klick-dekoriert (Cursor auf der Zeile zeigt Roh-Text; der
-          // generische openDatePickerForRange-Pfad ersetzt exakt den Wert).
-          if (!remindersActive) continue;
-          let rv = reminderRangeByLine.get(line.number);
+          // 4T-0937 (Befund B-09): Im Marker-Schwanz bleibt jeder Wert eines
+          // Datums-Markers klick-dekoriert (Cursor auf der Zeile zeigt
+          // Roh-Text; der generische openDatePickerForRange-Pfad ersetzt
+          // exakt den Wert und liest Datum wie Uhrzeit aus ihm). Alles
+          // uebrige des Schwanzes bleibt ausgenommen, weil es Badges sind.
+          let rv = markerRangesByLine.get(line.number);
           if (rv === undefined) {
-            rv = reminderValueRangeInLine(line.text);
-            reminderRangeByLine.set(line.number, rv);
+            rv = markerValueRangesInLine(line.text, { withReminder: remindersActive });
+            markerRangesByLine.set(line.number, rv);
           }
-          if (!rv || docFrom - line.from !== rv.from || docTo - line.from !== rv.to) continue;
+          const lineFrom = docFrom - line.from;
+          const lineTo = docTo - line.from;
+          if (!rv.some((r) => r.from === lineFrom && r.to === lineTo)) continue;
         }
       }
       ranges.push(liveDateValueMarkDeco(docFrom, docTo).range(docFrom, docTo));

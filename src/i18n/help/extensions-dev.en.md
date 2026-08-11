@@ -39,7 +39,7 @@ The `manifest.json` describes the package:
 |---|---|---|
 | `id` | yes | Stable identifier in lowercase with hyphens (kebab-case); must match the folder name. |
 | `name` | yes | Display name in the settings section and the warning dialog. |
-| `version` | yes | Package version (`major.minor.patch`). The trust confirmation applies per version; after a version change a new confirmation is required. |
+| `version` | yes | Package version: one to three numbers separated by dots, that is `major`, `major.minor` or `major.minor.patch`. The trust confirmation applies per version; after a version change a new confirmation is required. |
 | `apiVersion` | yes | API version the package is built against (see versioning). |
 | `entry` | one of the two | UI entry point: ES module with `activate(ctx)`. |
 | `markdownPlugin` | one of the two | Render contribution: file exporting a markdown-it plugin. |
@@ -55,6 +55,14 @@ The `manifest.json` describes the package:
 4. The extension takes effect immediately and in all windows; the state survives a restart.
 
 "Deactivate" withdraws all contributions immediately (the confirmation stays stored; re-activating the same version does not ask again). "Remove…" permanently deletes the package folder after its own confirmation.
+
+## Changing an installed package
+
+Changed code of an already installed package only runs **after restarting the application**. This applies equally to both contribution paths, the UI entry point as well as the render contribution.
+
+Neither "Refresh" nor "Deactivate" followed by "Activate" picks up the new state: "Refresh" looks for new and removed packages, and both handles work with the code that was loaded at startup. Until the restart the previous version keeps running, even though the new one is already on disk.
+
+For working on an extension this means: change, restart the application, check. Only adding and removing package folders and switching between active and inactive take effect without a restart.
 
 ## Render contribution: markdown-it plugin
 
@@ -218,7 +226,7 @@ Stability promise: the signatures documented on this page stay stable within the
 
 - If an extension throws while loading (manifest error, import error, `activate`, plugin registration), it is disabled automatically; the settings section shows the status "Error" with the error text — also after a restart.
 - Invalid manifests are listed with diagnostic details and never loaded.
-- Runtime errors in commands or while drawing a panel do not crash the app; details appear in the console log.
+- Runtime errors in commands or while drawing a panel do not crash the app; details appear in the console log. You reach it in the Extensions (external) settings section: the "Developer tools" button at the very bottom opens the tools for the current window, and the same button closes them again. The messages appear there in the "Console" tab.
 - "Activate…" after an error retries loading (the error text is reset).
 
 ## Quality notes
@@ -227,6 +235,7 @@ Error isolation catches crashes, not poor quality. In particular, the following 
 
 - **Rendering performance:** markdown-it rules run on every render; expensive rules slow down typing and preview.
 - **Clean output:** generated HTML should match the document style and must not load remote resources (demo links to `example.org`).
+- **The written state, not the saved one:** If your construct embeds data from elsewhere, it shows the state of the open editor and not that of the last saved file. Data you request from the program includes the unsaved changes of open documents; reading from disk yourself bypasses that and shows a stale state.
 - **Cleanup:** your own timers, listeners outside the registered contributions, and global state belong in `deactivate()`.
 
 The reference extension **Note markers** serves as a runnable template. It uses every contribution type on this page in one piece: a custom syntax marks passages as markers, a panel collects them into a list you can jump into, a command steps through them, and a settings section controls colour and sorting. It lives in the published source code of the program under `addon_examples/notiz-merker/` and comes with its own README, which also names the limits every extension of your own will run into.

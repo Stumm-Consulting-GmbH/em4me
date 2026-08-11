@@ -70,6 +70,22 @@ export function findSystemTabAcrossPanes(pageId) {
 const mountState = new Map(); // pageId -> { container, lang, generation }
 const pageGenerations = new Map(); // pageId -> number
 
+// 4T-0701 (Epic 3E-0161): Zaehler der Oeffnungs-Anforderungen je Seite.
+// Anders als pageGenerations, das nur echte Neu-Anlagen zaehlt, zaehlt er
+// JEDE Anforderung — auch das Aktivieren einer bereits offenen Instanz.
+// Genau diese Unterscheidung traegt: Waehrend eines laufenden, asynchronen
+// Schliess-Vorgangs existiert die Seite noch, eine Anforderung landet also
+// im Aktivierungs-Zweig und laesst Generation und Reiter-Identitaet
+// unberuehrt. Ein Schliess-Pfad, der ueber ein await laeuft, haelt den Stand
+// vor dem Warten fest und prueft ihn danach: Ist er gestiegen, hat jemand
+// die Seite zwischenzeitlich angefordert, und sie gehoert offen.
+const openRequests = new Map(); // pageId -> number
+
+export function systemPageOpenCount(pageId) {
+  if (typeof pageId !== 'string' || pageId === '') return 0;
+  return openRequests.get(pageId) || 0;
+}
+
 // 4T-0648 (Epic 3E-0130): Index des Bezugs-Reiters einer Folge-Ansicht in
 // einer bestimmten Spalte. -1, wenn kein Bezug angegeben ist oder das
 // Dokument dort nicht offen ist. Bewusst spalten-lokal: liegt das Dokument
@@ -94,6 +110,9 @@ function refTabIndexInPane(paneIdx, refPath) {
 export function openSystemPage(pageId, { nextToPath = null } = {}) {
   const page = systemPageById(pageId);
   if (!page) return;
+  // 4T-0701: vor beiden Zweigen, damit die Anforderung auch dann zaehlt,
+  // wenn sie nur eine bestehende Instanz aktiviert.
+  openRequests.set(page.id, (openRequests.get(page.id) || 0) + 1);
   const existing = findSystemTabAcrossPanes(pageId);
   if (existing) {
     let tabIdx = existing.tabIdx;

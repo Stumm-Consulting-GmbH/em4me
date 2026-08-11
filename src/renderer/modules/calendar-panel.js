@@ -248,7 +248,7 @@ export async function toggleCalendarPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.calendar.visibleByPane[paneIdx];
   state.calendar.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('calendar');
+  if (next) await ensurePanelTabActive('calendar', paneIdx);
   applyCalendarVisibility(paneIdx);
   await persistCalendarSettings();
   // 4T-0568 (Epic 3E-0104): Menue-Haekchen nachziehen (Muster panels.js).

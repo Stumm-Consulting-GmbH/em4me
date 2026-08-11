@@ -209,15 +209,24 @@ test.describe('SL-04: Reiter-Gruppe mit Reiterwechsel', () => {
       await tabs.nth(1).click();
       await expect(page.locator(`${LEFT} .sidebar-bookmarks`)).not.toHaveClass(/tab-hidden/);
       await expect(page.locator(`${LEFT} .sidebar-outline`)).toHaveClass(/tab-hidden/);
-      // Der aktive Reiter ist im globalen Layout persistiert.
+      // 4T-0942 (Befund B-07): Der aktive Reiter gehoert seit der Modell-
+      // Entscheidung vom 2026-08-10 zur Spalte und wird deshalb spaltenweise
+      // persistiert; der Layout-Wert bleibt die Vorgabe und aendert sich
+      // nicht mehr mit. Zuvor pruefte dieser Fall genau das Gegenteil.
       await expect
         .poll(() =>
           page.evaluate(async () => {
-            const layout = await window.api.getSetting('sidebar.layout');
-            return layout.left[0].active;
+            const wahl = await window.api.getSetting('sidebar.activeByColumn');
+            return wahl && Array.isArray(wahl['0']) ? wahl['0'] : [];
           }),
         )
-        .toBe('bookmarks');
+        .toContain('bookmarks');
+      await expect(
+        await page.evaluate(async () => {
+          const layout = await window.api.getSetting('sidebar.layout');
+          return layout.left[0].active;
+        }),
+      ).toBe('outline');
     } finally {
       await closeApp(app, userData);
     }

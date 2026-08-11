@@ -36,6 +36,19 @@ window.api = {
   spellcheckRemoveWord: async () => true,
   spellcheckAddWord: async () => true,
   spellcheckReplace: async () => true,
+  // 4T-0635: Der Erinnerungs-Zuhoerer meldet sich seit der Behebung am
+  // Modulkopf an, nicht mehr in initReminders(). Ohne diesen Eintrag bricht
+  // schon der Modul-Import. Der Handler wird festgehalten, damit ein Test die
+  // Meldung des Pruefers nachstellen kann, ohne den Hauptprozess zu brauchen.
+  onRemindersDue: (handler) => {
+    window.__remindersDueHandler = handler;
+  },
+  // Die Eintrags-Liste des Erinnerungs-Dialogs zeigt den Dateinamen ueber die
+  // Pfad-Bruecke des Preloads; ohne sie bricht das Rendern der Liste ab.
+  basename: (p) =>
+    String(p || '')
+      .split(/[\\/]/)
+      .pop(),
 };
 
 // Minimales DOM-Geruest fuer Module, die beim Laden Container abfragen

@@ -39,7 +39,7 @@ Il file `manifest.json` descrive il pacchetto:
 |---|---|---|
 | `id` | sì | Identificatore stabile in minuscolo con trattini (kebab-case); deve corrispondere al nome della cartella. |
 | `name` | sì | Nome visualizzato nella sezione impostazioni e nella finestra di avviso. |
-| `version` | sì | Versione del pacchetto (`major.minor.patch`). La conferma di fiducia vale per versione; dopo un cambio di versione serve una nuova conferma. |
+| `version` | sì | Versione del pacchetto: da uno a tre numeri separati da punti, cioè `major`, `major.minor` o `major.minor.patch`. La conferma di fiducia vale per versione; dopo un cambio di versione serve una nuova conferma. |
 | `apiVersion` | sì | Versione dell'API per cui il pacchetto è costruito (vedi versionamento). |
 | `entry` | uno dei due | Punto d'ingresso UI: modulo ES con `activate(ctx)`. |
 | `markdownPlugin` | uno dei due | Contributo di rendering: file che esporta un plugin markdown-it. |
@@ -55,6 +55,14 @@ Il file `manifest.json` descrive il pacchetto:
 4. L'estensione ha effetto immediato e in tutte le finestre; lo stato sopravvive al riavvio.
 
 «Disattiva» ritira subito tutti i contributi (la conferma resta salvata; riattivare la stessa versione non chiede di nuovo). «Rimuovi…» elimina definitivamente la cartella del pacchetto dopo una propria conferma.
+
+## Modifica di un pacchetto installato
+
+Il codice modificato di un pacchetto già installato viene eseguito solo **dopo un riavvio dell'applicazione**. Vale allo stesso modo per entrambe le vie di contributo, sia il punto di ingresso dell'interfaccia sia il contributo al rendering.
+
+Né «Aggiorna» né «Disattiva» seguito da «Attiva» recepisce il nuovo stato: «Aggiorna» cerca pacchetti nuovi e rimossi, ed entrambe le azioni lavorano con il codice caricato all'avvio. Fino al riavvio continua a funzionare la versione precedente, anche se quella nuova è già sul disco.
+
+Per il lavoro su un'estensione questo significa: modificare, riavviare l'applicazione, verificare. Solo l'aggiunta e la rimozione di cartelle di pacchetti e il passaggio tra attivo e inattivo hanno effetto senza riavvio.
 
 ## Contributo di rendering: plugin markdown-it
 
@@ -218,7 +226,7 @@ Promessa di stabilità: le firme documentate in questa pagina restano stabili al
 
 - Se un'estensione genera un errore al caricamento (errore di manifest, errore di import, `activate`, registrazione del plugin), viene disattivata automaticamente; la sezione impostazioni mostra lo stato «Errore» con il testo dell'errore, anche dopo un riavvio.
 - I manifest non validi sono elencati con dettagli diagnostici e non vengono mai caricati.
-- Gli errori a runtime nei comandi o nel disegno di un pannello non bloccano l'app; i dettagli compaiono nel log della console.
+- Gli errori a runtime nei comandi o nel disegno di un pannello non bloccano l'app; i dettagli compaiono nel log della console. Vi si accede nella sezione delle impostazioni Estensioni (esterne): il pulsante «Strumenti di sviluppo» in fondo apre gli strumenti per la finestra corrente, e lo stesso pulsante li richiude. I messaggi compaiono lì nella scheda «Console».
 - «Attiva…» dopo un errore ritenta il caricamento (il testo dell'errore viene azzerato).
 
 ## Note sulla qualità
@@ -227,6 +235,7 @@ L'isolamento degli errori intercetta i crash, non la scarsa qualità. È tua res
 
 - **Prestazioni di rendering:** le regole markdown-it vengono eseguite a ogni rendering; regole costose rallentano digitazione e anteprima.
 - **Output pulito:** l'HTML generato deve adattarsi allo stile del documento e non caricare risorse remote (link dimostrativi verso `example.org`).
+- **Lo stato scritto, non quello salvato:** se il tuo costrutto incorpora dati di altre posizioni, mostra lo stato dell'editor aperto e non quello dell'ultimo salvataggio. I dati richiesti al programma includono le modifiche non salvate dei documenti aperti; leggere direttamente dal disco aggira tutto ciò e mostra uno stato superato.
 - **Pulizia:** timer propri, listener al di fuori dei contributi registrati e stati globali vanno in `deactivate()`.
 
 L'estensione di riferimento **Notiz-Merker** (segnaposto per note) funge da modello eseguibile. Usa tutti i tipi di contributo di questa pagina in un unico insieme: una sintassi propria marca dei passaggi, un pannello li raccoglie in un elenco su cui si può saltare, un comando li percorre e una sezione impostazioni regola colore e ordinamento. Si trova nel codice sorgente pubblicato del programma, nella cartella `addon_examples/notiz-merker/`, e porta con sé un proprio README, che nomina anche i limiti in cui si imbatterà ogni estensione di propria mano.

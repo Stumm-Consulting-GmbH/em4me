@@ -14,6 +14,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 
 const EXT_FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'extensions');
 // 4T-0826 (Epic 3E-0103): Das Referenz-Paket ist das real ausgelieferte
@@ -224,6 +225,59 @@ test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => 
       await page.locator('#btn-settings-cancel').click();
       await expect(page.locator(`${SEL.markdownBody0} .ext-notiz-merker-marke`)).toHaveCount(0);
       await expect(page.locator(SEL.markdownBody0)).toContainText('>>Quelle pruefen<<');
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+
+  // 4T-0927 (Epic 3E-0016): Der Diagnose-Zugang ist seit dem Entfall des
+  // Menueeintrags samt F12 der einzige Weg zu den Entwickler-Werkzeugen.
+  // Geprueft wird beides zusammen, weil erst die Kombination die Zusicherung
+  // traegt: Menue frei von Debug-Werkzeug, Zugang am neuen Ort wirksam.
+  test('Diagnose-Zugang oeffnet die Werkzeuge; das Ansichtsmenue fuehrt sie nicht mehr', async () => {
+    const userData = prepareUserData({ packages: ['notiz-merker'], storeSeed: MERKER_SEED });
+    const { app, page } = await launchApp({ args: [MD_FIXTURE], userData });
+    try {
+      // Das Ansichtsmenue kennt den Eintrag nicht mehr — in keiner Schreibweise.
+      // Leerer Titel-Teil: Ein-Fenster-Lage, jeder Titel enthaelt ihn (Muster
+      // zweite-spalte.spec.js).
+      const menu = await menuZustand(app, '');
+      expect(menuEintrag(menu, 'Entwickler-Tools')).toBeNull();
+      expect(menuEintrag(menu, 'Entwickler-Werkzeuge')).toBeNull();
+      // Gegenprobe, dass die Erhebung ueberhaupt getragen hat: Der Nachbar im
+      // selben Menue steht noch. Ohne sie prueften die zwei Zeilen daruber
+      // auch dann gruen, wenn gar kein Menue erfasst wurde.
+      expect(menuEintrag(menu, 'Kommando-Palette')).not.toBeNull();
+      // Der Zugang steht am Ende des Bereichs und traegt seinen Hinweis.
+      await openExternalSection(page);
+      const knopf = page.locator('#btn-ext-external-devtools');
+      await expect(knopf).toBeVisible();
+      await expect(page.locator('.settings-extension-external-diagnose-hint')).toContainText(
+        'Entwickler-Werkzeuge',
+      );
+
+      // Auslösen oeffnet die Werkzeuge genau dieses Fensters.
+      const offenVorher = await app.evaluate(({ BrowserWindow }) =>
+        BrowserWindow.getAllWindows().some((w) => w.webContents.isDevToolsOpened()),
+      );
+      expect(offenVorher).toBe(false);
+      await knopf.click();
+      await expect
+        .poll(async () =>
+          app.evaluate(({ BrowserWindow }) =>
+            BrowserWindow.getAllWindows().some((w) => w.webContents.isDevToolsOpened()),
+          ),
+        )
+        .toBe(true);
+      // Dieselbe Schaltflaeche schliesst sie wieder — der Hinweis sagt das zu.
+      await knopf.click();
+      await expect
+        .poll(async () =>
+          app.evaluate(({ BrowserWindow }) =>
+            BrowserWindow.getAllWindows().some((w) => w.webContents.isDevToolsOpened()),
+          ),
+        )
+        .toBe(false);
     } finally {
       await closeApp(app, userData);
     }

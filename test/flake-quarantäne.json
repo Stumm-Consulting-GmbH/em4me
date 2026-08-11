@@ -11,14 +11,6 @@
   ],
   "eintraege": [
     {
-      "spec": "test/e2e/funktionen/kalender-systeme.spec.js",
-      "fall": "KS-01",
-      "datum": "2026-08-04",
-      "fehlerbild": "Timeout beim Öffnen des Einstellungs-Bereichs unter Voll-Suite-Last; isoliert mehrfach grün (u. a. 40/40 und 12 Wiederholungen)",
-      "vermutung": "lastbedingte Renderer-Latenz beim Navigations-Klick",
-      "status": "beobachtet"
-    },
-    {
       "spec": "test/e2e/funktionen/pdf-export.spec.js",
       "fall": "PD-06",
       "datum": "2026-08-04",
@@ -35,11 +27,51 @@
       "status": "beobachtet"
     },
     {
+      "spec": "test/unit/quellcode-export.test.js",
+      "fall": "unversionierte Dateien der Quelle können nicht in den Export gelangen",
+      "datum": "2026-08-06",
+      "fehlerbild": "Einzel-Fehlschlag im Testsuite-Gate der Merge-Queue bei der Release-Integration 0.105.0, isoliert sofort grün (19/19)",
+      "vermutung": "lastbedingt; der Fall spawnt reale git- und npm-Läufe mit 60-Sekunden-Timeout",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/unit/quellcode-export.test.js",
+      "fall": "Negativ-Probe: bereits exportierte Version bricht ab (kein Überschreiben)",
+      "datum": "2026-08-07",
+      "fehlerbild": "Einzel-Fehlschlag im Voll-Lauf, gescheitert am Aufbau der Wegwerf-Umgebung ('Command failed: git commit -m Stand'), nicht an der Zusicherung selbst; isoliert sofort grün (20/20)",
+      "vermutung": "lastbedingt wie der Eintrag vom 2026-08-06; ZWEITE Auffälligkeit dieser Datei mit einem anderen Fall, aber demselben Muster (reale git-Läufe im Aufbau). Beim nächsten Auftreten in dieser Datei gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/e2e/regression/4t-0177.spec.js",
       "fall": "4t-0177",
       "datum": "2026-08-04",
       "fehlerbild": "Einzel-Fehlschlag im dritten Voll-Lauf der Release-Vorbereitung 0.104.0, isoliert 12-mal grün",
       "vermutung": "lastbedingt",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/unit/verlauf-erzeugen.test.js",
+      "fall": "nimmt noch nicht abgelegte Stände über die Zusatz-Referenzen auf",
+      "datum": "2026-08-07",
+      "fehlerbild": "Timeout nach 5000 ms im Testsuite-Gate der Merge-Queue, isoliert sofort grün (11/11; der Fall selbst in 1988 ms)",
+      "vermutung": "lastbedingt; der Fall legt ein Wegwerf-Repositorium an und spawnt reale git-Läufe, dasselbe Muster wie beim Eintrag zu quellcode-export.test.js. Bei erneutem Auftreten ist die Enge des 5000-ms-Standard-Timeouts für git-spawnende Fälle zu prüfen Drittes Auftreten am 2026-08-10 (Voll-Lauf waehrend der Umsetzung von 4T-0942, isoliert 13 von 13 gruen); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefaess verortet.",
+      "status": "verortet"
+    },
+    {
+      "spec": "test/unit/verlauf-erzeugen.test.js",
+      "fall": "nimmt die Änderungen offener Zweige auf und kennzeichnet sie",
+      "datum": "2026-08-07",
+      "fehlerbild": "Zweiter Fall derselben Datei, unabhängig beobachtet: Fehlschlag ohne Zusicherungs-Meldung in einem Unit-Voll-Lauf, der 384 statt 148 Sekunden brauchte; isoliert sofort grün (11 von 11). Der Lauf überschnitt sich zeitlich mit dem Queue-Gate, aus dem der Eintrag darüber stammt — die beiden Beobachtungen belegen einander als Fremdlast",
+      "vermutung": "lastbedingt, dasselbe Muster wie der Eintrag darüber (Wegwerf-Repositorium, reale git-Läufe, 5000-ms-Standard-Timeout). Damit sind beide Fälle dieser Datei am selben Tag aufgefallen; beim nächsten Auftreten gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen Drittes Auftreten am 2026-08-10 (Voll-Lauf waehrend der Umsetzung von 4T-0942, isoliert 13 von 13 gruen); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefaess verortet.",
+      "status": "verortet"
+    },
+    {
+      "spec": "test/unit/pm-dokumente.test.js",
+      "fall": "K1: der reale Bestand ist frei von Konflikt-Markern",
+      "datum": "2026-08-07",
+      "fehlerbild": "Einzel-Fehlschlag im selben Unit-Voll-Lauf wie der Eintrag darüber, ebenfalls ohne Zusicherungs-Meldung (Fehlerbild einer gerissenen Zeitgrenze); isoliert sofort grün",
+      "vermutung": "lastbedingt; der Fall liest den vollen PM-Bestand und liegt isoliert bei 0,6 Sekunden",
       "status": "beobachtet"
     }
   ]

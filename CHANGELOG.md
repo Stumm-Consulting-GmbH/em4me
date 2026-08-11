@@ -3,11 +3,116 @@
 Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
-Versionierung an [Semantic Versioning](https://semver.org/lang/de/). Ab Version
+Versionierung an [Semantic Versioning](https://semver.org/lang/de/) mit **einer
+bewussten Abweichung** (Entscheidung des Product Owners vom 2026-08-06): Die
+zweite Stelle zählt die funktionalen Releases über die gesamte
+Produkt-Lebensdauer und wird beim Sprung der Hauptversion **nicht**
+zurückgesetzt, sondern läuft weiter. Die erste Stelle vergibt der Product Owner,
+die dritte zählt Fehlerbehebungen zu einem Release. Ab Version
 0.42.0 trägt die Block-Überschrift eine vierte Stelle (`X.Y.Z.N`): N ist die
 Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
-dreiteilige SemVer-Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
+dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
+
+## [1.106.0.1407] - 2026-08-11 — Hauptrelease 1: Reife und der geschriebene Stand
+
+Epic 3E-0016: die Reife-Klammer vor dem Hauptversions-Sprung. Sie hat den Bestand
+zum ersten Mal **methodisch** geprüft statt punktuell (sechs Kontext-Prüf-Runden
+über 89 Funktionen), die dabei gefundenen Befunde behoben und eine Zusage
+eingelöst, die vorher nur für die gerenderte Ansicht galt: **Jede Funktion
+arbeitet auf dem geschriebenen Stand des offenen Dokuments**, nicht auf seinem
+zuletzt gespeicherten.
+
+Die erste Stelle der Version springt damit auf 1, die zweite läuft fort (Schema
+seit 4T-0898); aus 0.105.0 wird 1.106.0 und nicht 1.0.0.
+
+### Neu
+
+- **Konflikt-Schutz beim Speichern** (4T-0945, Befund B-12): Das Speichern prüft
+  vor dem Schreiben den Stand der Datei. Wurde sie zwischenzeitlich von außen
+  geändert, meldet die Anwendung den Konflikt, statt die fremde Änderung still zu
+  überschreiben; beim erzwungenen Schreiben wird die überschriebene Fassung
+  gesichert. Anlass war eine Messung mit nachgewiesenem Datenverlust auf einer
+  geteilten Ablage.
+- **Dateien auf Netz-Freigaben werden wieder überwacht** (4T-0946, Befund B-12):
+  Das automatische Neuladen greift dort über einen erkennungsabhängigen
+  Abfrage-Betrieb (UNC-Pfad und gemapptes Laufwerk). Zuvor blieb eine fremde
+  Änderung auf einer Freigabe unbemerkt. Der eigene Schreibvorgang wird dabei am
+  Inhalt erkannt und nicht mehr an einer Zeitsperre (4T-0947): Traf die Meldung
+  später ein, erschien zuvor ein Konflikt-Dialog ohne Konflikt.
+- **Die Funktions-Seite kennzeichnet abgeschaltete Erweiterungen** (4T-0941):
+  Der Katalog bleibt vollständig, Einträge abgeschalteter Erweiterungen tragen
+  einen Hinweis, wie sie sich einschalten lassen.
+
+### Geändert
+
+- **Funktionen arbeiten auf dem geschriebenen Stand** (Anordnung des Product
+  Owners vom 2026-08-08, Story S-0787): Eingebettete Abfragen, Skript-Blöcke und
+  Ereignis-Aggregationen (4T-0935), die Tag-Liste samt Panel (4T-0950), der
+  Erinnerungs-Prüfer (4T-0951), die Wiki-Einbettung (4T-0948) und die
+  Bereichs-Suche (4T-0949) verwenden den Stand, der im Editor steht, ohne dass
+  gespeichert werden muss. Eine vollständige Erhebung (4T-0936) hat neun
+  betroffene Stellen vermessen; die restlichen fünf folgen nach diesem Release.
+- **Der aktive Reiter einer Sidebar-Gruppe gilt je Spalte und je Fenster**
+  (4T-0942, Befund B-07): Zuvor wirkte ein Reiter-Wechsel in einer Spalte auf
+  beide. Anordnung und Gruppierung der Panels bleiben gemeinsam, die Panel-Höhen
+  ebenfalls.
+- **Jeder Datums-Wert einer Aufgaben-Zeile ist anklickbar** (4T-0937, Befund
+  B-09): Bisher öffnete allein der Erinnerungs-Wert den Datums-Wähler, die
+  übrigen sechs Marker nicht.
+- **Die Entwickler-Werkzeuge sind aus dem Ansichtsmenü in den
+  Erweiterungs-Bereich der Einstellungen gewandert** (4T-0927), wo sie zur
+  Diagnose eigener Erweiterungen gebraucht werden.
+
+### Behoben
+
+Die folgenden Befunde stammen aus dem Charter-Durchgang und sind im
+Fehler-Durchgang (4T-0904) behoben, jeder mit Regressionstest und
+Befund-Kennung am Test.
+
+- **Die Suche brach still ab**, wenn Treffer-Liste und Geltungsbereich
+  auseinanderliefen (Befund B-01): Bei der Bereichs-Suche auf einer im Editor
+  geöffneten Datei blieb der aktive Treffer unmarkiert und der Zähler stehen.
+- **Bei offener Suche sprang der Cursor beim Tippen auf den Treffer** (Befund
+  B-10): Der weitere Text landete dort statt an der Cursor-Stelle. Der schwerste
+  Befund des Durchgangs, weil er den Inhalt an einer Stelle verfälschte, die
+  beim Schreiben niemand ansieht.
+- **Der Aufgaben-Dialog brach ohne bearbeitbaren Editor still ab** (Befund B-11)
+  und zeigt jetzt einen Hinweis, wie er es auf einer Nicht-Aufgaben-Zeile schon
+  tat.
+- **Der Statusleisten-Hinweis verschob beim Erscheinen die Nachbar-Elemente**
+  (Befund B-13); die Meldung schwebt jetzt über der Leiste.
+- **Urheber- und Lizenz-Angabe brachen im Über-Dialog an beliebiger Stelle um**
+  (Befund B-03) und stehen jetzt in zwei eigenen Zeilen.
+- **Ein Bild-Beispiel der mitgelieferten Demo-Ablage löste sich nicht auf**
+  (Befund B-02); die Demo-Seite nennt jetzt den Ordner und beschreibt zutreffend,
+  wie Bild-Einbettungen aufgelöst werden.
+- **Die Einstellungs-Seite schloss beim Bestätigen eine inzwischen frisch
+  geöffnete Seite** (4T-0701), und **ein früh gebundener Bereich verschluckte den
+  Nachhol-Dialog fälliger Erinnerungen** (4T-0635).
+
+### Dokumentation und Werkzeuge
+
+- **Methodischer Durchgang statt Stichprobe** (4T-0899): sechs Prüf-Runden
+  entlang der Kontext-Lagen (zweite Spalte, zweites Fenster, gerenderte Ansicht,
+  ohne Bereich, mit abgeschalteten Erweiterungen, Wiederherstellung), 89
+  geprüfte Funktionen, sechs Befunde. Ergänzt um das Kopplungs-Audit der
+  UI-Register (4T-0900), den scharfen Konsolen-Wächter in allen
+  End-zu-End-Läufen (4T-0901) und die abschließende Leistungs-Messung (4T-0903).
+- **Zur Code-Signatur bleibt es beim begründeten Verzicht** (4T-0902); der
+  Prüfsummen-Weg samt zweitem, unabhängigem Anker bleibt der Integritäts-Nachweis.
+- **Lizenz-Beigaben und Identitäts-Angaben konsolidiert** (4T-0905), die
+  Produkt-Beschreibung an drei Stellen auf den heutigen Funktionsumfang gebracht
+  (Befund B-04).
+- **Handbuch-Seite zu eigenen Erweiterungen berichtigt und ergänzt**, in allen
+  fünf Sprachfassungen: zwei Angaben stimmten nicht mit der Umsetzung überein
+  (Auszeichnungs-Syntax und Versions-Format, 4T-0924), und neu beschrieben sind
+  der Diagnose-Weg über die Entwickler-Werkzeuge sowie der Änderungs-Zyklus, also
+  welcher Handgriff eine Änderung am eigenen Paket wirksam macht (4T-0925, am
+  laufenden Programm gemessen statt aus dem Code geschlossen).
+- **Bauten zwischen zwei Releases kennzeichnen sich selbst** (4T-0921), und der
+  Bau-Ausgabe-Ordner trägt nur noch den aktuellen Bau: verwaiste Blockmaps
+  (Befund B-06) und Release-Hinweise fremder Versionen (4T-0957) werden entfernt.
 
 ## [0.105.0.1235] - 2026-08-06 — Feinschliff an Menüs, Einstellungen und Handbuch
 

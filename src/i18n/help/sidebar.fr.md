@@ -1,6 +1,6 @@
 # Barre latérale
 
-La barre latérale regroupe les panneaux de l'app — des signets, de la table des matières et de la zone, en passant par les propriétés, les tags et les rétroliens, jusqu'au calendrier, aux rappels et au graphe du fichier (la liste complète figure dans le [tableau des fonctions](functions.md)). Chaque colonne dispose d'une zone de barre latérale à gauche et à droite du contenu. La visibilité des panneaux se règle par colonne ; la disposition des panneaux (côté, ordre, groupes) vaut pour toute l'application.
+La barre latérale regroupe les panneaux de l'app — des signets, de la table des matières et de la zone, en passant par les propriétés, les tags et les rétroliens, jusqu'au calendrier, aux rappels et au graphe du fichier (la liste complète figure dans le [tableau des fonctions](functions.md)). Chaque colonne dispose d'une zone de barre latérale à gauche et à droite du contenu. La visibilité des panneaux se règle par colonne ; la disposition des panneaux (côté, ordre, groupes) vaut pour toute l'application. En revanche, l'onglet d'un groupe actuellement au premier plan appartient à la colonne : deux colonnes côte à côte peuvent afficher des panneaux différents dans le même groupe, et les autres fenêtres restent inchangées.
 
 ## Afficher et masquer les panneaux
 

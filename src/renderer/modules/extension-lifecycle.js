@@ -23,6 +23,7 @@ import { api } from './api.js';
 import {
   EXTENSIONS_DISABLED_KEY,
   effectiveDisabledSet,
+  isExtensionId,
   normalizeDisabledIds,
 } from '../../shared/extensions.js';
 
@@ -66,6 +67,22 @@ const runtimeHooks = new Map(); // id -> { activate?, deactivate? }
 
 export function attachExtensionRuntime(id, hooks) {
   if (typeof id !== 'string' || !hooks || typeof hooks !== 'object') return;
+  // 4T-0900 (Register-Paar 12): Eine unbekannte Kennung fiel bisher still
+  // durch. Der Hook landet in der Map, wird aber nie gerufen, weil das
+  // Umschalten ueber die Registry laeuft — das Feature reagiert dann nicht mehr
+  // auf das Ab- und Anschalten seiner Erweiterung (etwa ein Panel, das sichtbar
+  // bleibt, obwohl die Erweiterung aus ist). Ein Tippfehler in der Kennung
+  // faellt damit weder beim Uebersetzen noch zur Laufzeit auf.
+  //
+  // Gemeldet statt abgewiesen: Das bisherige Verhalten bleibt unveraendert,
+  // der Fehler wird nur sichtbar. Scharf wird die Meldung ueber den
+  // Konsolen-Waechter der Ablauf-Laeufe (4T-0901), der jeden Konsolen-Fehler
+  // den betroffenen Fall scheitern laesst.
+  if (!isExtensionId(id)) {
+    console.error(
+      `Erweiterungs-Hook auf unbekannte Kennung '${id}': Der Hook wird nie ausgeführt.`,
+    );
+  }
   runtimeHooks.set(id, hooks);
   if (effectiveDisabled.has(id) && typeof hooks.deactivate === 'function') {
     runHook(id, 'deactivate');

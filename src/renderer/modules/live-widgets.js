@@ -1223,16 +1223,24 @@ export function buildLivePreviewDecorationsImpl(view) {
                     for (const seg of model.segments) {
                       const segTo = segFrom + seg.raw.length;
                       const spec = taskMarkerBadgeSpec(seg, cfg.labels);
-                      // 4T-0528 (Epic 3E-0095): das ⏰-Badge ist klickbar —
-                      // clickRange traegt den Doc-Bereich des Werts, der
-                      // dateValuePlugin-Handler oeffnet den vorbelegten
-                      // Picker (Ersetzen an Ort und Stelle).
+                      // 4T-0937 (Befund B-09): Jedes Badge mit Datums-Wert ist
+                      // klickbar — clickRange traegt den Doc-Bereich des
+                      // Werts, der dateValuePlugin-Handler oeffnet den
+                      // vorbelegten Picker (Ersetzen an Ort und Stelle).
+                      // Bis dahin galt das allein fuer ⏰ (4T-0528), weil nur
+                      // die Erinnerung Gegenstand jenes Vorgangs war; die
+                      // sechs Termin-Marker sahen gleich aus und reagierten
+                      // nicht. Die Erinnerung braucht zusaetzlich ihre eigene
+                      // Erweiterung, die uebrigen haengen an «Aufgaben», ohne
+                      // die es hier ohnehin keine Badges gaebe.
                       let clickRange = null;
+                      const istDatumsSegment =
+                        seg.kind === 'date' ||
+                        (seg.kind === 'reminder' && isExtensionActive('reminders'));
                       if (
-                        seg.kind === 'reminder' &&
+                        istDatumsSegment &&
                         seg.value &&
                         !seg.value.invalid &&
-                        isExtensionActive('reminders') &&
                         isExtensionActive('date-picker')
                       ) {
                         const vm = seg.raw.match(/(\d{4}-\d{2}-\d{2}(?:[ \t]+\d{2}:\d{2})?)$/);

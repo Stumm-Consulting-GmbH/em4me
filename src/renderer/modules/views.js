@@ -79,7 +79,12 @@ import {
 import { extractFrontmatter, writeFrontmatter } from '../../shared/markdown/frontmatter.js';
 // 4T-0604 (Epic 3E-0113): reiner Kern der Zeitstempel-Automatik (created/updated).
 import { applyTimestampFields } from '../../shared/markdown/frontmatter-timestamps.js';
-import { paneEditors, syncEditorForPane, updateWindowTitle } from './editor.js';
+import {
+  clearIndexOverlayFor,
+  paneEditors,
+  syncEditorForPane,
+  updateWindowTitle,
+} from './editor.js';
 // 4T-0585 (Epic 3E-0108): Titelzeile — nach Umbenennen und Speichern unter
 // den angezeigten Dateinamen nachziehen (Laufzeit-Zyklus über title-line.js
 // ist unkritisch, Muster format-toolbar/editor-context-menu).
@@ -576,19 +581,31 @@ export function saveScroll(paneIdx) {
 }
 
 // --- Auto-Reload ------------------------------------------------------------
-export async function reloadFile(filePath) {
+// opts.alreadyConfirmed (4T-0945): Der Aufrufer hat den Konflikt-Dialog
+// bereits gezeigt und die Antwort 'neu laden' erhalten. Ohne diese Angabe
+// fragte der Speicher-Weg zweimal dasselbe.
+export async function reloadFile(filePath, opts = {}) {
   for (let p = 0; p < state.panes.length; p++) {
     const idx = state.panes[p].tabs.findIndex((t) => t.path === filePath);
     if (idx < 0) continue;
     const tab = state.panes[p].tabs[idx];
 
     // Dirty-Buffer: nicht stillschweigend ueberschreiben, sondern Nutzer fragen.
-    if (tab.dirty) {
+    if (tab.dirty && !opts.alreadyConfirmed) {
       const choice = await withDialog(() => api.confirmConflict({ detail: filePath }));
       if (choice !== 'reload') {
-        // 'keepOurs': Buffer behalten. Beim naechsten Save wird der externe
-        // Stand ueberschrieben — der originalContent bleibt jetzt aus
-        // unserer Sicht "veraltet", aber das ist die bewusste Entscheidung.
+        // 'keepOurs': Buffer behalten. Der externe Stand wird beim naechsten
+        // Speichern ueberschrieben; das ist die bewusste Entscheidung.
+        //
+        // 4T-0945: Sie wird hier festgehalten, und zwar mit dem Stand, GEGEN
+        // den entschieden wurde. Das leistet zweierlei: Das Speichern fragt
+        // nicht ein zweites Mal dasselbe, und die ueberschriebene fremde
+        // Fassung wird dabei trotzdem gesichert. Ohne diesen Merker wuerde
+        // die Zusage «die ueberschriebene Fassung bleibt abrufbar» genau im
+        // haeufigsten Weg ins Leere gehen, weil die Entscheidung dort faellt
+        // und nicht erst beim Speichern.
+        const aktuell = await api.readFile(filePath);
+        if (aktuell && aktuell.ok) tab.foreignOverride = aktuell.content;
         continue;
       }
       // 'reload' faellt durch zum normalen Reload-Pfad
@@ -610,6 +627,11 @@ export async function reloadFile(filePath) {
       tab.originalContent = data.content;
       tab.dirty = false;
       tab.missing = false;
+      // 4T-0945: Mit dem geladenen Stand ist der Speicher-Konflikt erledigt;
+      // das automatische Speichern nimmt diesen Reiter wieder auf, und eine
+      // frueher getroffene Vorentscheidung ist gegenstandslos.
+      tab.saveConflict = false;
+      tab.foreignOverride = null;
       // R4-12 (4T-0180): externer Datei-Wechsel — Render-Skip-Caches
       // verwerfen (auch andere Panes koennten die Datei einbetten).
       invalidatePaneRenderCache();
@@ -2011,9 +2033,40 @@ export async function saveTab(paneIdx, tabIdx) {
     await stampTabTimestamps(paneIdx, tabIdx, tab);
     // W-02 (4T-0309): {ok,error}-Vertrag — Schreibfehler ueber den vorhandenen
     // catch (showSaveError) statt frueherer IPC-Exception.
-    const res = await api.saveFile(tab.path, tab.content);
+    // 4T-0945 (Story S-0786): Der zuletzt gelesene bzw. geschriebene Stand
+    // geht als Erwartung mit; weicht die Datei davon ab, schreibt der Main
+    // nicht, sondern meldet den Konflikt.
+    //
+    // Hat der Anwender im Nachlade-Dialog bereits «eigene behalten» gewaehlt,
+    // ist die Erwartung der Stand, gegen den er entschieden hat: Dann wird
+    // ohne zweite Frage geschrieben und dabei gesichert. Hat sich die Datei
+    // seitdem ERNEUT geaendert, greift die Pruefung und fragt wieder.
+    const vorentschieden = tab.foreignOverride != null;
+    let res = await api.saveFile(tab.path, tab.content, {
+      expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
+      force: vorentschieden,
+    });
+    if (res && res.reason === 'conflict') {
+      const choice = await withDialog(() => api.confirmConflict({ detail: tab.path }));
+      if (choice !== 'keepOurs') {
+        // Neu laden: der eigene Puffer weicht dem fremden Stand. Der Dialog
+        // ist bereits beantwortet, deshalb ohne zweite Rueckfrage.
+        await reloadFile(tab.path, { alreadyConfirmed: true });
+        return false;
+      }
+      // Eigene Fassung behalten: schreiben und die ueberschriebene fremde
+      // Fassung in der Historie sichern.
+      res = await api.saveFile(tab.path, tab.content, { force: true });
+    }
     if (!res || !res.ok) throw new Error((res && res.error) || 'save failed');
+    // Der Hinweis auf die Sicherung gilt fuer beide Wege zur Entscheidung:
+    // den Dialog eben und den im Nachlade-Dialog vorentschiedenen Fall. Er
+    // haengt am Ergebnis des Schreibens, nicht an der Absicht, damit er nicht
+    // erscheint, wenn es gar nichts zu ueberschreiben gab.
+    if (res.gesichert) showStatusbarHint('statusbar.saveConflictKept', { duration: 6000 });
     tab.originalContent = tab.content;
+    tab.saveConflict = false;
+    tab.foreignOverride = null;
     // R4-12 (4T-0180): andere Panes koennten diese Datei als Wiki-Embed
     // zeigen — deren Render-Skip-Cache verwerfen.
     invalidatePaneRenderCache();
@@ -2027,6 +2080,10 @@ export async function saveTab(paneIdx, tabIdx) {
     // 4T-0332 (Epic 3E-0060): erst mit dem Speichern kann eine .mdd
     // entstehen — Statusbar-Zustand der Historie nachziehen.
     void updateHistoryStatus();
+    // 4T-0935 (Befund B-08): Mit dem Speichern gilt wieder der Platten-Stand;
+    // der Puffer-Overlay des Index wird zurueckgenommen. Der Index selbst
+    // zieht ueber den Datei-Beobachter nach.
+    void clearIndexOverlayFor(tab.path);
     return true;
   } catch (err) {
     await api.showSaveError(`${tab.path}\n${(err && err.message) || String(err)}`);
@@ -2432,18 +2489,40 @@ export async function performAutoSave() {
   if (dialogDepth > 0) return;
   let savedAny = false;
   let failed = false;
+  let konflikt = false;
   for (let p = 0; p < state.panes.length; p++) {
     for (let i = 0; i < state.panes[p].tabs.length; i++) {
       const tab = state.panes[p].tabs[i];
-      if (!tab.dirty || !tab.path) continue;
+      // 4T-0945: Ein erkannter Konflikt setzt diesen Reiter aus, bis der
+      // Anwender entscheidet (Speichern von Hand oder Neuladen). Sonst
+      // liefe der Hinweis alle zwei Sekunden erneut auf.
+      if (!tab.dirty || !tab.path || tab.saveConflict) continue;
       try {
         // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder auch im Autosave-Pfad.
         await stampTabTimestamps(p, i, tab);
         // W-02 (4T-0309): {ok,error}-Vertrag — Fehler ueber den catch.
-        const res = await api.saveFile(tab.path, tab.content);
+        // 4T-0945 (Story S-0786): auch im Hintergrund wird der Stand geprueft.
+        // Eine im Nachlade-Dialog getroffene Entscheidung gilt hier ebenso:
+        // Sie ist gefallen, das Hintergrund-Speichern setzt sie um und sichert
+        // die ueberschriebene Fassung, statt den Reiter auszusetzen.
+        const vorentschieden = tab.foreignOverride != null;
+        const res = await api.saveFile(tab.path, tab.content, {
+          expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
+          force: vorentschieden,
+        });
+        if (res && res.reason === 'conflict') {
+          // Bewusst ohne Dialog: Ein Fenster, das ungefragt aufspringt,
+          // waehrend man in einer anderen Datei tippt, waere ein Uebergriff.
+          // Der Schaden ist bereits verhindert, sobald nicht geschrieben wird;
+          // der Reiter bleibt geaendert und nichts geht verloren.
+          tab.saveConflict = true;
+          konflikt = true;
+          continue;
+        }
         if (!res || !res.ok) throw new Error((res && res.error) || 'save failed');
         tab.originalContent = tab.content;
         tab.dirty = false;
+        tab.foreignOverride = null;
         renderTabbar(p);
         savedAny = true;
       } catch (err) {
@@ -2453,7 +2532,11 @@ export async function performAutoSave() {
     }
   }
   if (savedAny) updateWindowTitle();
-  if (failed) {
+  if (konflikt) {
+    // Der Konflikt-Hinweis geht den beiden anderen vor: Er ist der einzige,
+    // der eine Handlung verlangt, und er steht laenger.
+    showStatusbarHint('statusbar.saveConflict', { error: true, duration: 6000 });
+  } else if (failed) {
     showStatusbarHint('statusbar.saveFailed', { error: true, duration: 3000 });
   } else if (savedAny) {
     showStatusbarHint('statusbar.saved', { duration: 1000 });

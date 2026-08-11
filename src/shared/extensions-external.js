@@ -14,7 +14,11 @@
 //   name           Pflicht. Anzeigename (Klartext, kein i18n-Key —
 //                  Uebersetzungen liefert die Erweiterung selbst ueber
 //                  die API, der Name identifiziert das Paket).
-//   version        Pflicht. Paket-Version (major.minor[.patch]); die
+//   version        Pflicht. Paket-Version: ein bis drei durch Punkte
+//                  getrennte Zahlen (major[.minor[.patch]], siehe
+//                  VERSION_RE — 4T-0924: die frueher hier genannte Form
+//                  major.minor[.patch] las sich, als sei die zweite
+//                  Stelle Pflicht); die
 //                  Vertrauens-Bestaetigung gilt je Erweiterung UND
 //                  Version — ein Versions-Wechsel erfordert erneute
 //                  Bestaetigung.

@@ -519,7 +519,15 @@ function buildHelpShortcutRows({ effectiveBindings, disabledCommandIds }) {
 
 // Funktions-Seite: H2 pro Gruppe aus HELP_FEATURE_GROUPS, darunter eine
 // dreispaltige Pipe-Tabelle (Funktion, Beschreibung, Zugang).
-function generateFunctionsPage(t) {
+//
+// 4T-0941: Anders als die Tastenkürzel-Seite LÄSST die Funktions-Seite nichts
+// weg, wenn eine Erweiterung abgeschaltet ist, sondern kennzeichnet die Zeile
+// (Entscheidung des Product Owners vom 2026-08-10). Begründung: Wer eine
+// vermisste Funktion sucht, braucht gerade dann ihre Beschreibung und den Weg
+// zum Wiedereinschalten; ein Weglassen nähme ihm beides. Ohne übergebene Menge
+// erscheint der Katalog unverändert — so nutzt ihn der Web-Bau.
+function generateFunctionsPage(t, opts = {}) {
+  const abgeschaltet = opts.disabledFeatureKeys || new Set();
   const lines = [];
   lines.push(`# ${t('manual.page.functions.title')}`);
   lines.push('');
@@ -535,8 +543,13 @@ function generateFunctionsPage(t) {
     for (const featureKey of group.features) {
       const name = featureKey.replace('help.feature.', '');
       const nameCell = escapeTableCell(t(`help.featureName.${name}`));
-      const descCell = escapeTableCell(t(featureKey));
+      let descCell = escapeTableCell(t(featureKey));
       const accessCell = escapeTableCell(t(`help.featureAccess.${name}`));
+      // Die Marke steht als Text in der Beschreibungs-Spalte, nicht als
+      // Formatierung: Ein Ausgrauen traegt in einer Markdown-Tabelle nicht.
+      if (abgeschaltet.has(featureKey)) {
+        descCell = `**${escapeTableCell(t('manual.functions.disabledMark'))}** ${descCell}`;
+      }
       lines.push(`| **${nameCell}** | ${descCell} | ${accessCell} |`);
     }
     lines.push('');

@@ -373,7 +373,7 @@ export async function toggleAreaPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !getAreaPanelVisible(paneIdx);
   state.areaPanel.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('area');
+  if (next) await ensurePanelTabActive('area', paneIdx);
   applyAreaPanelVisibility(paneIdx);
   // 4T-0330: im Empty-State haengt die Pane-Container-Sichtbarkeit an den
   // Panel-Praeferenzen — nachziehen, damit Aus-Schalten die Sidebar ausblendet.

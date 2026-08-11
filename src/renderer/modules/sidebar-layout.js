@@ -48,6 +48,17 @@ export function attachSidebarLayoutPersistence(fn) {
   if (typeof fn === 'function') persistFn = fn;
 }
 
+// 4T-0942 (Befund B-07): Die spaltenweise Reiter-Wahl braucht die aktive
+// Editor-Spalte. Sie kommt zur Laufzeit herein statt ueber einen Import aus
+// app-state.js — dieses Modul haelt sich aus dem oben begruendeten Grund frei
+// von App-Importen. Ohne angehaengten Geber gilt Spalte 0; das ist der Stand
+// vor der Anwendungs-Initialisierung, in dem es nur eine Spalte gibt.
+let activePaneIndexFn = () => 0;
+
+export function attachActivePaneIndexGetter(fn) {
+  if (typeof fn === 'function') activePaneIndexFn = fn;
+}
+
 // --- Konstanten ---------------------------------------------------------------
 export const SIDEBAR_SIDES = ['left', 'right'];
 // Kanonische Reihenfolge der eingebauten Panels. Seit 4T-0563 (Epic 3E-0102)
@@ -529,14 +540,84 @@ export async function resetSidebarLayout(options) {
   return applySidebarLayout(defaultSidebarLayout(knownPanelIds()), options);
 }
 
+// --- Aktiver Reiter je Editor-Spalte (4T-0942, Befund B-07) ------------------------
+// Der aktive Reiter einer Gruppe gehoert zu der Spalte, in der er steht, und
+// zum Fenster, in dem sie liegt — wie Sichtbarkeit und Einklapp-Zustand. Bis
+// dahin lag er im fensterweiten Layout: Ein Einblenden oder ein Reiter-Klick
+// in der einen Spalte stellte die andere mit um, und zwei verschiedene Panels
+// derselben Gruppe waren nebeneinander unmoeglich — genau der Zweck einer
+// zweiten Spalte (Entscheidung des Product Owners vom 2026-08-10, Weg 2).
+//
+// Der Wert im Layout (slot.active) bleibt als VORGABE erhalten: Startwert
+// einer Spalte ohne eigene Wahl und Bestandteil gespeicherter Sidebar-
+// Varianten. Fehlt die spaltenweise Wahl, gilt er wie bisher — ein
+// gespeicherter Stand kommt deshalb unveraendert zurueck, und die Spalten
+// laufen erst auseinander, sobald der Anwender sie auseinanderlaufen laesst.
+//
+// Abgelegt wird je Spalte eine LISTE aktiver Panel-IDs, nicht eine Zuordnung
+// Slot->ID: Ein Slot hat keine stabile Kennung (er ist eine Position im
+// Layout), waehrend jede Panel-ID laut Layout-Invariante genau einmal
+// vorkommt. Ein Umbau des Layouts laesst die Wahl damit unberuehrt, statt sie
+// an eine Position zu binden, die es danach nicht mehr gibt.
+const ACTIVE_BY_COLUMN_KEY = 'sidebar.activeByColumn';
+const activeByColumn = [[], []];
+
+export function normalizeActiveByColumn(raw) {
+  const spalte = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x) : []);
+  const r = raw && typeof raw === 'object' ? raw : {};
+  return [spalte(r['0']), spalte(r['1'])];
+}
+
+export async function initSidebarActiveByColumn() {
+  let stored;
+  try {
+    stored = await api.getSetting(ACTIVE_BY_COLUMN_KEY);
+  } catch {
+    stored = null;
+  }
+  const norm = normalizeActiveByColumn(stored);
+  activeByColumn[0] = norm[0];
+  activeByColumn[1] = norm[1];
+}
+
+// Der wirksame aktive Reiter eines Slots in einer Spalte: die eigene Wahl,
+// wenn sie zu diesem Slot gehoert, sonst der Layout-Wert.
+export function activePanelInSlot(slot, paneIdx) {
+  const wahl = activeByColumn[paneIdx === 1 ? 1 : 0] || [];
+  for (const id of wahl) {
+    if (slot.panels.includes(id)) return id;
+  }
+  return slot.active;
+}
+
+// Wahl setzen: alle IDs desselben Slots verlassen die Liste, die neue kommt
+// hinzu. Liefert false, wenn sich nichts aendert (kein Persist-Lauf).
+export async function setActivePanelForColumn(panelId, paneIdx, { persist = true } = {}) {
+  const layout = getSidebarLayout();
+  const loc = findPanelInLayout(layout, panelId);
+  if (!loc) return false;
+  const slot = layout[loc.side][loc.slotIndex];
+  const idx = paneIdx === 1 ? 1 : 0;
+  const vorher = activeByColumn[idx] || [];
+  const ohneSlot = vorher.filter((id) => !slot.panels.includes(id));
+  const nachher = [...ohneSlot, panelId];
+  if (vorher.length === nachher.length && vorher.every((id, i) => id === nachher[i])) return false;
+  activeByColumn[idx] = nachher;
+  document.dispatchEvent(new CustomEvent('scg:sidebar-layout-changed'));
+  if (persist) {
+    await persistFn(ACTIVE_BY_COLUMN_KEY, { 0: activeByColumn[0], 1: activeByColumn[1] });
+  }
+  return true;
+}
+
 // 4T-0288: Reiter des Panels in seiner Gruppe aktivieren (No-op außerhalb
 // von Gruppen bzw. wenn bereits aktiv). Wird von den Sichtbarkeits-Toggles
 // gerufen — das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
-export async function ensurePanelTabActive(panelId) {
-  const layout = getSidebarLayout();
-  const next = setActivePanel(layout, panelId);
-  if (next === layout) return false;
-  return applySidebarLayout(next);
+// 4T-0942: Die Aktivierung wirkt in der uebergebenen Spalte; ohne Angabe
+// (Alt-Aufrufer) in der aktiven.
+export async function ensurePanelTabActive(panelId, paneIdx) {
+  const idx = Number.isInteger(paneIdx) ? paneIdx : activePaneIndexFn();
+  return setActivePanelForColumn(panelId, idx);
 }
 
 // 4T-0639 (Epic 3E-0069): Panel-Überschriften als Icon statt Text. Der

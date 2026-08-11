@@ -10,6 +10,7 @@ import { api, $ } from './api.js';
 import {
   closeWordCountDialog,
   openWordCountDialog,
+  refreshEmbedsOfTarget,
   rerenderAllMermaidBlocks,
   resetMermaidConfiguredTheme,
   updateWordCountStatusbar,
@@ -49,6 +50,7 @@ import {
   buildEditorCommandKeymap,
   editorCompartments,
   fuegeAnlagenEin,
+  INDEX_OVERLAY_EVENT,
   paneEditors,
   refreshSpellcheckInEditors,
   scheduleLint,
@@ -110,9 +112,11 @@ import { initReminders, runSetReminderCommand } from './reminders.js';
 // persistierte Layout samt Breiten lädt initSidebarLayoutFromStore.
 import {
   applySidebarLayout,
+  attachActivePaneIndexGetter,
   attachSidebarLayoutPersistence,
   getPanelToggleOrder,
   initPanelToggleOrderFromStore,
+  initSidebarActiveByColumn,
   initSidebarLayoutFromStore,
   loadSidebarGroupHeights,
   loadSidebarPanelHeights,
@@ -444,6 +448,7 @@ import {
   nextMatch,
   openSearchBar,
   prevMatch,
+  refreshSearchIfVisible,
   renderRegexHelp,
   search,
   setzeRaumMarkierHandler,
@@ -996,27 +1001,18 @@ void refreshCalendarSystems();
 // 4T-0294: Statusbar-Buttons erweiterungs-gebundener Panels folgen dem
 // Schalt-Zustand (keine toten UI-Elemente). Die Wort-Statistik verwaltet
 // ihr hidden selbst (updateWordCountStatusbar setzt es pro Update neu).
-const EXTENSION_STATUSBAR_BUTTONS = [
-  ['wiki-links', 'btn-outgoing-links'],
-  ['wiki-links', 'btn-backlinks'],
-  // 4T-0567 (Epic 3E-0104): die neuen Buttons der bisher button-losen
-  // Panels folgen demselben Gate wie ihre Panel-Sichtbarkeit.
-  ['wiki-links', 'btn-subpages'],
-  // 4T-0849 (Epic 3E-0147): Buch-Button folgt dem Schalt-Zustand der
-  // Buecher-Erweiterung.
-  ['books', 'btn-book'],
-  ['graph-view', 'btn-filegraph'],
-  ['tags', 'btn-tags'],
-  ['bookmarks', 'btn-bookmarks'],
-  // 4T-0568 (Epic 3E-0104): Erinnerungen fehlte als einziges erweiterungs-
-  // gebundenes Panel in dieser Liste — der Button blieb bei deaktivierter
-  // Erweiterung als totes Element stehen, waehrend der Menue-Eintrag
-  // korrekt entfiel (Symmetrie-Kriterium des Epics).
-  ['reminders', 'btn-reminders'],
-  // 4T-0372 (Epic 3E-0069): Uhr-Button folgt dem Schalt-Zustand der
-  // Erweiterung (kein totes UI-Element im Aus-Zustand).
-  ['clock', 'btn-clock'],
-];
+//
+// 4T-0900 (Epic 3E-0016): Die frueher hier gepflegte Hand-Liste ist entfallen
+// und wird aus dem Panel-Zugangs-Modell abgeleitet. Sie war exakt redundant
+// (neun Eintraege, in beide Richtungen deckungsgleich mit den Feldern
+// extensionId und buttonId), und ihre doppelte Pflege war eine belegte
+// Fehlerquelle: In 4T-0568 fehlte das Erinnerungen-Panel als einziges, sein
+// Button blieb im Aus-Zustand als totes Element stehen, waehrend der
+// Menue-Eintrag korrekt entfiel. Ein fehlender Eintrag ist jetzt nicht mehr
+// moeglich, weil es keinen zweiten Ort mehr gibt.
+const EXTENSION_STATUSBAR_BUTTONS = PANEL_ACCESS.filter((p) => p.extensionId && p.buttonId).map(
+  (p) => [p.extensionId, p.buttonId],
+);
 
 function applyExtensionButtonVisibility() {
   for (const [extId, elId] of EXTENSION_STATUSBAR_BUTTONS) {
@@ -1882,10 +1878,17 @@ export async function init() {
   // 4T-0287 (Epic 3E-0051): Persist-Helfer des Sidebar-Layout-Modells
   // anhängen (Statusbar-Feedback bei Store-Schreibfehlern, Muster W-20).
   attachSidebarLayoutPersistence(persistSetting);
+  // 4T-0942 (Befund B-07): Geber der aktiven Editor-Spalte fuer die
+  // spaltenweise Reiter-Wahl (das Layout-Modul haelt sich frei von
+  // App-Importen, Muster des Persist-Helfers darueber).
+  attachActivePaneIndexGetter(() => state.activePaneIndex);
   // 4T-0288: Sidebar-Layout und Breiten laden (inklusive Migration der
   // bisherigen gemeinsamen Breite outline.width) — vor applyAllLayouts,
   // damit das erste Slot-Mounting bereits das persistierte Layout sieht.
   await initSidebarLayoutFromStore();
+  // 4T-0942: die spaltenweise Reiter-Wahl gleich danach, damit das erste
+  // Rendern sie bereits sieht (ohne Wahl gilt der Layout-Wert).
+  await initSidebarActiveByColumn();
   // 4T-0569 (Epic 3E-0104): persistierte Panel-Toggle-Reihenfolge laden und
   // die Statusbar-Leiste darauf anordnen (bindUi lief mit dem Default; die
   // Menue-Seite zieht ueber die laufenden reportMenuStateNow-Meldungen nach).
@@ -2928,6 +2931,48 @@ export function bindUi() {
       }
     });
   }
+
+  // 4T-0935 (Befund B-08): Der Puffer-Overlay des Index hat sich geändert
+  // (Tippen im Editor, Speichern, Verwerfen, Schließen). Dieselben
+  // Auffrisch-Wege wie bei einer Index-Invalidierung, und zwar für genau die
+  // Verbraucher, die den Overlay lesen. Wer weiter am Platten-Stand hängt
+  // (Graph, Rückverweise, Linter), wird hier bewusst nicht angestoßen.
+  //
+  // 4T-0950 (Befund E-03): Das Tag-Panel gehört seit seiner Freischaltung
+  // dazu. Ohne diesen Anstoß bliebe die Umstellung der Datenquelle wirkungslos,
+  // weil das Panel sonst nur beim Reiter-Wechsel neu zeichnet — im Test des
+  // Product Owners blieb es leer, obwohl die Quelle bereits richtig war.
+  document.addEventListener(INDEX_OVERLAY_EVENT, (ev) => {
+    refreshVisibleFrontmatterQueries();
+    refreshVisiblePerspectiveScripts();
+    refreshVisibleEventsAggregations();
+    for (let i = 0; i < state.panes.length; i++) {
+      if (state.tags && state.tags.visibleByPane[i]) renderTags(i);
+    }
+    // 4T-0948 (Befund E-01): Wiki-Einbettungen der gemeldeten Datei erneut
+    // aufloesen. Ohne diesen Anstoss bliebe der Kanal-Fix in der Lage
+    // wirkungslos, in der Huelle und Quelle nebeneinander stehen: Text und
+    // Pfad der Huelle aendern sich beim Tippen in der Quelle nicht, also
+    // zeichnet ihre Spalte nicht neu. Die Einbettung der gerade bearbeiteten
+    // Spalte ist mit erfasst, weil der Filter am Ziel haengt und nicht an
+    // der Spalte.
+    // 4T-0949 (Befund E-02): Eine offene Suche laeuft erneut. Die Schicht
+    // meldet verzoegert; wer in den 300 ms danach sucht, bekaeme sonst den
+    // Stand von vorhin und behielte ihn, weil kein weiterer Lauf folgt. Der
+    // Aufruf ist billig, wenn keine Suchleiste offen ist (fruehes return).
+    refreshSearchIfVisible();
+    const gemeldeterPfad = ev && ev.detail && ev.detail.filePath;
+    if (gemeldeterPfad) {
+      for (let i = 0; i < state.panes.length; i++) {
+        const pane = state.panes[i];
+        if (!pane || pane.activeIndex < 0) continue;
+        const tab = pane.tabs[pane.activeIndex];
+        const wurzel = paneRoots[i];
+        if (!tab || !tab.path || !wurzel) continue;
+        void refreshEmbedsOfTarget(wurzel, gemeldeterPfad, tab.path);
+      }
+    }
+  });
 
   // Auto-Save bei Fenster-Fokusverlust (Wechsel in andere App oder Fenster).
   window.addEventListener('blur', () => {

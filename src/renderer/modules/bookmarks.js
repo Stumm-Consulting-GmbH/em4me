@@ -1748,7 +1748,7 @@ export async function toggleBookmarksPanel(paneIdx) {
   // erwartet beim bewussten Oeffnen der Sektion einen frischen Stand.
   if (next) bookmarkExistsCache.clear();
   // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
-  if (next) await ensurePanelTabActive('bookmarks');
+  if (next) await ensurePanelTabActive('bookmarks', paneIdx);
   applyBookmarksVisibility(paneIdx);
   // 4T-0330: im Empty-State haengt die Pane-Container-Sichtbarkeit an den
   // Panel-Praeferenzen — nachziehen, damit der Schalter dort sichtbar wirkt.

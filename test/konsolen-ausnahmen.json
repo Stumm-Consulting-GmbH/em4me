@@ -1,0 +1,39 @@
+{
+  "_kommentar": [
+    "4T-0901: Bewusst geduldete Konsolen-Meldungen der End-zu-End-Laeufe.",
+    "Jeder Konsolen-Fehler und jede unbehandelte Ausnahme des Renderers laesst",
+    "sonst den betroffenen Fall scheitern (test/e2e/helpers/app.js).",
+    "Ein Eintrag entsteht nur, wenn der Fall die Meldung absichtlich erzeugt",
+    "oder sie von aussen kommt; ein echter Fehler der Anwendung wird behoben,",
+    "nicht geduldet. 'enthaelt' ist ein Teilstring der Meldung, 'spec' bindet",
+    "den Eintrag an eine Datei — ohne diese Bindung gaelte er projektweit und",
+    "verdeckte gleichartige Meldungen anderswo.",
+    "Datums-Angaben UTC nach ISO 8601 (JJJJ-MM-TT)."
+  ],
+  "eintraege": [
+    {
+      "enthaelt": "ERR_FILE_NOT_FOUND",
+      "spec": "test/e2e/regression/4t-0174.spec.js",
+      "grund": "Die beiden Faelle laden absichtlich fehlerhafte Bildpfade (mehrzeiliges Bild, Prozentzeichen im Embed-Namen) und pruefen, dass Live-Modus und Voll-Render das aushalten. Die nicht ladbare Ressource ist der Gegenstand des Tests.",
+      "datum": "2026-08-06"
+    },
+    {
+      "enthaelt": "ERR_FILE_NOT_FOUND",
+      "spec": "test/e2e/regression/4t-0176.spec.js",
+      "grund": "Sicherheits-Faelle des Bild-Resolvers: Ein Pfad ausserhalb der zulaessigen Wurzel wird bewusst NICHT eingebettet. Dass die Ressource danach fehlt, ist das gewuenschte Verhalten und nicht der Fehler.",
+      "datum": "2026-08-06"
+    },
+    {
+      "enthaelt": "gibt-es-nicht-4t0187.md",
+      "spec": "test/e2e/regression/4t-0187.spec.js",
+      "grund": "Der Fall oeffnet ueber die Befehlszeile eine nicht existierende Datei und prueft den Hinweis in der Statusleiste. Die Protokoll-Meldung des Lesefehlers gehoert zum geprueften Verhalten.",
+      "datum": "2026-08-06"
+    },
+    {
+      "enthaelt": "devtools://devtools/bundled",
+      "spec": "test/e2e/funktionen/erweiterungen-extern.spec.js",
+      "grund": "4T-0927: Der Fall oeffnet die Entwickler-Werkzeuge ueber den neuen Diagnose-Zugang. Das Werkzeug-Frontend von Chromium meldet dabei aus sich selbst heraus, mit wechselndem Wortlaut (beobachtet: 'Unknown VE context', fehlende Autofill-Protokoll-Methoden). Gebunden wird deshalb an die Herkunft und nicht an den Wortlaut: Alles unterhalb von devtools://devtools/bundled ist fremder Code, den die Anwendung weder erzeugt noch beeinflusst. Meldungen der Anwendung selbst bleiben in diesem Fall unverdeckt, weil sie eine andere Herkunft tragen.",
+      "datum": "2026-08-08"
+    }
+  ]
+}

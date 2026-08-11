@@ -783,22 +783,16 @@ function buildMenu(win, state, actions) {
           accelerator: acc('app.commandPalette'),
           click: send('menu:openCommandPalette'),
         },
-        { type: 'separator' },
-        {
-          // 4T-0084 (Epic 3E-0014): Entwickler-Tools-Toggle. Standard-
-          // Shortcut Strg+Umschalt+I ist in dieser App fuer Outline
-          // belegt (Zeile 220); F12 als alternative Bindung gibt
-          // Zugang zur Konsole fuer Debug-Sessions.
-          // M-10/K-03 (4T-0185): Label lokalisiert (war als einziges
-          // Menue-Label hartkodiert deutsch).
-          // M-10-Folge (4T-0191): F12 bleibt BEWUSST ohne Eintrag im
-          // Hilfe-Dialog und in der README-Tastenkuerzel-Tabelle —
-          // Entwickler-Tools sind ein Debug-Werkzeug, kein beworbenes
-          // Nutzer-Feature; der Menuepunkt selbst zeigt das Kuerzel.
-          label: t('menu.view.devTools'),
-          accelerator: 'F12',
-          role: 'toggleDevTools',
-        },
+        // 4T-0927 (Epic 3E-0016): Der Eintrag «Entwickler-Tools» samt Trenner
+        // und Kuerzel F12 ist hier entfallen (Anordnung des Product Owners vom
+        // 2026-08-07). Er war seit 4T-0191 als Debug-Werkzeug und nicht als
+        // beworbenes Nutzer-Feature gekennzeichnet und gehoert damit nicht in
+        // das Auslieferungs-Menue einer Reife-Version. Ersatzlos entfiel er
+        // nicht: Der Zugang liegt jetzt im Einstellungs-Bereich
+        // «Erweiterungen (extern)», wo ihn die Zielgruppe der externen
+        // Erweiterungen findet. F12 entfaellt bewusst ohne Ersatz-Bindung —
+        // eine unbeworbene Taste, die im Auslieferungsstand eine Konsole
+        // oeffnet, trifft irgendwann jemand versehentlich.
       ],
     },
     {

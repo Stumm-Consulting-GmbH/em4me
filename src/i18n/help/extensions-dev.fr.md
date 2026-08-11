@@ -39,7 +39,7 @@ Le fichier `manifest.json` décrit le paquet :
 |---|---|---|
 | `id` | oui | Identifiant stable en minuscules avec tirets (kebab-case) ; doit correspondre au nom du dossier. |
 | `name` | oui | Nom affiché dans la section de paramètres et la boîte d'avertissement. |
-| `version` | oui | Version du paquet (`major.minor.patch`). La confirmation de confiance vaut par version ; après un changement de version, une nouvelle confirmation est requise. |
+| `version` | oui | Version du paquet : un à trois nombres séparés par des points, soit `major`, `major.minor` ou `major.minor.patch`. La confirmation de confiance vaut par version ; après un changement de version, une nouvelle confirmation est requise. |
 | `apiVersion` | oui | Version de l'API contre laquelle le paquet est construit (voir versionnage). |
 | `entry` | l'un des deux | Point d'entrée UI : module ES avec `activate(ctx)`. |
 | `markdownPlugin` | l'un des deux | Contribution de rendu : fichier exportant un plugin markdown-it. |
@@ -55,6 +55,14 @@ Le fichier `manifest.json` décrit le paquet :
 4. L'extension prend effet immédiatement et dans toutes les fenêtres ; l'état survit au redémarrage.
 
 « Désactiver » retire immédiatement toutes les contributions (la confirmation reste enregistrée ; réactiver la même version ne redemande pas). « Supprimer… » efface définitivement le dossier du paquet après sa propre confirmation.
+
+## Modification d'un paquet installé
+
+Le code modifié d'un paquet déjà installé ne s'exécute qu'**après un redémarrage de l'application**. Cela vaut de la même manière pour les deux voies de contribution, le point d'entrée de l'interface comme la contribution au rendu.
+
+Ni « Actualiser » ni « Désactiver » suivi de « Activer » ne reprend le nouvel état : « Actualiser » recherche les paquets ajoutés et supprimés, et les deux manipulations travaillent avec le code chargé au démarrage. Jusqu'au redémarrage, la version précédente continue de fonctionner, même si la nouvelle est déjà sur le disque.
+
+Pour le travail sur une extension, cela signifie : modifier, redémarrer l'application, vérifier. Seuls l'ajout et la suppression de dossiers de paquets ainsi que le basculement entre actif et inactif prennent effet sans redémarrage.
 
 ## Contribution de rendu : plugin markdown-it
 
@@ -218,7 +226,7 @@ Promesse de stabilité : les signatures documentées sur cette page restent stab
 
 - Si une extension lève une erreur au chargement (erreur de manifeste, erreur d'import, `activate`, enregistrement du plugin), elle est désactivée automatiquement ; la section de paramètres affiche le statut « Erreur » avec le texte d'erreur — même après un redémarrage.
 - Les manifestes invalides sont listés avec des détails de diagnostic et ne sont jamais chargés.
-- Les erreurs d'exécution dans les commandes ou lors du dessin d'un panneau ne font pas planter l'application ; les détails figurent dans le journal de la console.
+- Les erreurs d'exécution dans les commandes ou lors du dessin d'un panneau ne font pas planter l'application ; les détails figurent dans le journal de la console. Il se trouve dans la section de réglages Extensions (externes) : le bouton « Outils de développement » tout en bas ouvre les outils pour la fenêtre actuelle, et le même bouton les referme. Les messages y apparaissent dans l'onglet « Console ».
 - « Activer… » après une erreur retente le chargement (le texte d'erreur est réinitialisé).
 
 ## Notes de qualité
@@ -227,6 +235,7 @@ L'isolation des erreurs intercepte les plantages, pas la mauvaise qualité. Rel�
 
 - **Performance de rendu :** les règles markdown-it s'exécutent à chaque rendu ; des règles coûteuses ralentissent la frappe et l'aperçu.
 - **Sortie propre :** le HTML généré doit s'accorder au style du document et ne pas charger de ressources distantes (liens de démonstration vers `example.org`).
+- **L'état écrit, pas l'état enregistré :** si ton construit intègre des données d'autres endroits, il montre l'état de l'éditeur ouvert et non celui du dernier enregistrement. Les données demandées au programme incluent les modifications non enregistrées des documents ouverts ; lire toi-même sur le disque contourne cela et affiche un état périmé.
 - **Nettoyage :** vos propres minuteurs, écouteurs hors des contributions enregistrées et états globaux vont dans `deactivate()`.
 
 L'extension de référence **Notiz-Merker** (marqueurs de notes) sert de modèle exécutable. Elle utilise tous les types de contribution de cette page d'un seul tenant : une syntaxe propre marque des passages, un panneau les rassemble en une liste où l'on peut sauter, une commande les parcourt, et une section de paramètres règle la couleur et le tri. Elle se trouve dans le code source publié du programme, dans le dossier `addon_examples/notiz-merker/`, et vient avec son propre README, qui nomme aussi les limites que rencontrera toute extension de votre cru.

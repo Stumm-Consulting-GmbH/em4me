@@ -159,7 +159,9 @@ contextBridge.exposeInMainWorld('api', {
   // Datei-Operationen
   openDialog: () => ipcRenderer.invoke('file:openDialog'),
   readFile: (p) => ipcRenderer.invoke('file:read', p),
-  saveFile: (p, content) => ipcRenderer.invoke('file:save', p, content),
+  // 4T-0945 (Story S-0786): opts = { expected, force } — Stand-Pruefung vor
+  // dem Ueberschreiben; ohne opts unveraendertes Verhalten.
+  saveFile: (p, content, opts) => ipcRenderer.invoke('file:save', p, content, opts),
   saveFileAs: (suggested, content) => ipcRenderer.invoke('file:saveAs', suggested, content),
   pushRecent: (p) => ipcRenderer.invoke('recent:push', p),
 
@@ -366,6 +368,11 @@ contextBridge.exposeInMainWorld('api', {
   confirmExternalExtensionTrust: (id) => ipcRenderer.invoke('extensions:confirmTrust', id),
   removeExternalExtension: (id) => ipcRenderer.invoke('extensions:removeExternal', id),
   openExternalExtensionsDir: () => ipcRenderer.invoke('extensions:openDir'),
+  // 4T-0927 (Epic 3E-0016): Zugang zu den Entwickler-Werkzeugen, seit dem
+  // Entfall des Menueeintrags der einzige. Das Umschalten ist eine Faehigkeit
+  // des Hauptprozesses und braucht deshalb den Weg ueber die Prozess-Grenze;
+  // der Handler trifft genau das Fenster, aus dem der Aufruf kommt.
+  toggleDevTools: () => ipcRenderer.invoke('window:toggleDevTools'),
   configureExternalMarkdownPlugins: (descriptors) => configureExternalExtensions(descriptors),
   // Multi-Window-Broadcast bei Aenderung von extensionsExternal.enabled.
   onExternalExtensionsChanged: (cb) => ipcRenderer.on('extensionsExternal:changed', () => cb()),
@@ -440,6 +447,13 @@ contextBridge.exposeInMainWorld('api', {
   // an den Main, Antwort ist die Datei-Liste plus Status (Auswertung im Main).
   runFrontmatterQuery: (filePath, query) =>
     ipcRenderer.invoke('frontmatterQuery:run', { filePath, query: query || '' }),
+  // 4T-0935 (Befund B-08): geschriebenen Stand einer offenen Datei an den
+  // Index-Overlay melden bzw. ihn zuruecknehmen (Speichern, Verwerfen,
+  // Schliessen). Die gerenderte Ansicht zeigt damit auch in eingebetteten
+  // Konstrukten den Stand des Editors und nicht den der Platte.
+  setIndexOverlay: (filePath, content) =>
+    ipcRenderer.invoke('index:overlay', { filePath, content }),
+  clearIndexOverlay: (filePath) => ipcRenderer.invoke('index:overlay', { filePath, content: null }),
   // 4T-0504 (Epic 3E-0096): Rueckschreiben aus der Abfrage-Ansicht — zeilen-
   // genaue Ersetzung in einer nicht im Fenster geoeffneten Quelldatei
   // (Konflikt-Antwort { ok:false, reason } statt Blind-Schreiben).

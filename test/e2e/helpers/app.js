@@ -8,7 +8,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { _electron: electron } = require('@playwright/test');
+const { _electron: electron, test } = require('@playwright/test');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
 
 // Projekt-Wurzel (test/e2e/helpers -> drei Ebenen hoch).
@@ -84,6 +84,61 @@ function seedSettings(userData, settings) {
   fs.writeFileSync(datei, JSON.stringify({ ...bestand, ...settings }, null, 2), 'utf8');
 }
 
+// 4T-0901 (Epic 3E-0016): Zentrale Beobachtung der Konsole. Ein Fehler in der
+// Entwickler-Konsole ist ein Fehler, auch wenn die Oberflaeche ihn nicht zeigt;
+// bis hierher pruefte ihn genau ein Fall der Smoke-Suite, die uebrigen rund 570
+// liefen daran vorbei.
+//
+// Der Zuhoerer haengt am 'window'-Ereignis der Anwendung und damit VOR
+// firstWindow(). Der Befund aus 4T-0900 zeigte, warum das noetig ist: Der
+// bisherige Fall registrierte ihn erst nach dem Hochfahren und blieb deshalb
+// gruen, obwohl waehrend des Starts ein Fehler gemeldet wurde. Ueber dasselbe
+// Ereignis werden auch weitere Fenster erfasst, ohne dass eine Spec etwas tun
+// muss.
+//
+// Erfasst werden Konsolen-Eintraege vom Typ 'error' und unbehandelte Ausnahmen
+// des Renderers ('pageerror'). Warnungen bleiben bewusst aussen vor: Ihr
+// Rauschen wuerde den Waechter entwerten.
+const KONSOLEN_AUSNAHMEN = require('../../konsolen-ausnahmen.json');
+
+// Geduldet wird eine Meldung nur, wenn der Eintrag passt UND — sofern er eine
+// Spec nennt — der Fall aus genau dieser Datei stammt. Ohne diese Bindung
+// haette eine Ausnahme wie 'ERR_FILE_NOT_FOUND' projektweit gegolten und ein
+// real fehlendes Symbol der Auslieferung mitverdeckt.
+//
+// Gefiltert wird erst bei der Auswertung, nicht im Ereignis-Zuhoerer: Dieser
+// feuert auch ausserhalb eines laufenden Falls, wo die Spec-Zuordnung fehlt.
+function istGeduldet(text, specDatei) {
+  return KONSOLEN_AUSNAHMEN.eintraege.some(
+    (e) => text.includes(e.enthaelt) && (!e.spec || specDatei.endsWith(e.spec)),
+  );
+}
+
+function beobachteKonsole(app) {
+  const funde = [];
+  app.__konsolenFunde = funde;
+  app.on('window', (page) => {
+    page.on('console', (msg) => {
+      if (msg.type() !== 'error') return;
+      // Die Herkunft gehoert dazu: Eine Meldung wie 'Failed to load resource'
+      // nennt die betroffene Adresse nicht im Text, und ohne sie ist nicht
+      // entscheidbar, ob eine ausgelieferte Datei fehlt oder ein Testfall
+      // absichtlich ins Leere greift.
+      const ort = msg.location && msg.location() ? msg.location().url : '';
+      funde.push(`${msg.text()}${ort ? ` [${ort}]` : ''}`);
+    });
+    page.on('pageerror', (err) => {
+      // Die Meldung allein taugt zur Diagnose oft nicht: Bei einem
+      // 'Cannot read properties of undefined' gibt es dutzende Kandidaten im
+      // Renderer. Die erste Stapel-Zeile nennt die Stelle und macht aus dem
+      // Raten ein Nachschlagen; der Rest des Stapels bliebe Rauschen.
+      const stelle = (err && err.stack ? String(err.stack).split('\n')[1] : '') || '';
+      const text = err && err.message ? err.message : String(err);
+      funde.push(`pageerror: ${text}${stelle ? ` [${stelle.trim()}]` : ''}`);
+    });
+  });
+}
+
 /**
  * Startet die App mit frischem Temp-Profil.
  * @param {object} [opts]
@@ -109,6 +164,7 @@ async function launchApp(opts = {}) {
       SCG_TEST_USER_DATA: userData,
     },
   });
+  beobachteKonsole(app);
   const page = await app.firstWindow();
   // firstWindow() resolved, bevor das Renderer-Bundle geladen ist. Die
   // Modulkopf-IPC-Listener (z.B. tab:appendFromOtherWindow) existieren erst
@@ -131,6 +187,42 @@ async function launchApp(opts = {}) {
  * normale Close-Pfad wuerde sonst im nativen Speichern-Dialog haengen
  * und den Worker-Teardown blockieren.
  */
+// 4T-0901: Auswertung am Ende eines Falls. Sie laeuft in closeApp, weil jede
+// Spec ihn ohnehin im finally aufruft — so greift der Waechter, ohne dass eine
+// Spec etwas dafuer tun muss.
+//
+// Ist der Fall bereits aus eigenem Grund rot, wird nur angehaengt statt
+// geworfen: Ein Wurf aus dem finally-Block wuerde den urspruenglichen Fehler
+// verdecken und die Diagnose verschlechtern.
+function pruefeKonsolenFunde(app) {
+  const roh = (app && app.__konsolenFunde) || [];
+  if (roh.length === 0) return;
+  let specDatei = '';
+  try {
+    specDatei = (test.info().file || '').replace(/\\/g, '/');
+  } catch {
+    // Ausserhalb eines laufenden Falls: keine Spec-Bindung, nichts geduldet.
+  }
+  const funde = roh.filter((f) => !istGeduldet(f, specDatei));
+  if (funde.length === 0) return;
+  const liste = funde.map((f, i) => `  ${i + 1}. ${f}`).join('\n');
+  const meldung =
+    `Konsolen-Fehler waehrend des Laufs (${funde.length}):\n${liste}\n` +
+    'Beheben, oder bei einer Meldung von aussen einen begruendeten Eintrag in ' +
+    'test/konsolen-ausnahmen.json aufnehmen.';
+  let schonRot = false;
+  try {
+    schonRot = test.info().errors.length > 0;
+  } catch {
+    // Ausserhalb eines laufenden Falls (z.B. globaler Teardown): dann werfen.
+  }
+  if (schonRot) {
+    test.info().annotations.push({ type: 'konsolen-fehler', description: meldung });
+    return;
+  }
+  throw new Error(meldung);
+}
+
 async function closeApp(app, userData, opts = {}) {
   if (app) {
     try {
@@ -153,6 +245,8 @@ async function closeApp(app, userData, opts = {}) {
       // Temp-Verzeichnis bleibt im OS-Temp liegen; unkritisch.
     }
   }
+  // Zuletzt, damit Beenden und Aufraeumen in jedem Fall gelaufen sind.
+  pruefeKonsolenFunde(app);
 }
 
 module.exports = { launchApp, closeApp, APP_ROOT };

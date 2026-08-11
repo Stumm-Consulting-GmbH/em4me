@@ -163,7 +163,7 @@ export async function toggleFileGraphPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.fileGraph.visibleByPane[paneIdx];
   state.fileGraph.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('filegraph');
+  if (next) await ensurePanelTabActive('filegraph', paneIdx);
   applyFileGraphVisibility(paneIdx);
   await persistFileGraphSettings();
   // 4T-0568 (Epic 3E-0104): Menue-Haekchen nachziehen (Muster panels.js).

@@ -218,7 +218,7 @@ Le périmètre de recherche est le même que pour l'index de fichiers :
 - **Avec une zone active**, il couvre toute la zone ; les relations de liens (`FROM [[…]]`, `file.inlinks`) y sont complètes.
 - **Sans zone**, il couvre le dossier du fichier plus deux sous-niveaux.
 
-Les fichiers hors du périmètre n'apparaissent pas dans le résultat. Un fichier non encore enregistré n'a pas de périmètre de recherche ; la requête affiche alors un avis indiquant qu'elle sera disponible après l'enregistrement.
+Les fichiers hors du périmètre n'apparaissent pas dans le résultat. Un fichier non encore enregistré n'a pas de périmètre de recherche ; la requête affiche alors un avis indiquant qu'elle sera disponible après l'enregistrement. En revanche, les modifications non enregistrées d'un fichier ouvert sont prises en compte immédiatement dans le résultat ; rien n'a besoin d'être enregistré pour cela.
 
 ## Export
 

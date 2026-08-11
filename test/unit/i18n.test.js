@@ -23,12 +23,14 @@ describe('i18n-Synchronitaet (S-09)', () => {
 });
 
 describe('Main-seitige Lokalisierung (M-09, M-10 / 4T-0185)', () => {
-  it('tForLocale liefert Open-Dialog- und DevTools-Strings lokalisiert', () => {
+  it('tForLocale liefert Dialog- und Menue-Strings lokalisiert', () => {
     expect(tForLocale('en', 'open.dialogTitle')).toBe('Open Markdown file');
     expect(tForLocale('en', 'dialog.filterAll')).toBe('All files');
-    expect(tForLocale('en', 'menu.view.devTools')).toBe('Developer tools');
+    // 4T-0927: Stand des Menue-Labels statt der frueheren DevTools-Probe —
+    // deren Schluessel ist mit dem Menueeintrag entfallen.
+    expect(tForLocale('en', 'menu.view.commandPalette')).toBe('Command palette');
     expect(tForLocale('de', 'open.dialogTitle')).toBe('Markdown-Datei öffnen');
-    expect(tForLocale('de', 'menu.view.devTools')).toBe('Entwickler-Tools');
+    expect(tForLocale('de', 'menu.view.commandPalette')).toBe('Kommando-Palette');
     // Fallback: unbekannte Locale faellt auf Englisch zurueck.
     expect(tForLocale('xx', 'dialog.filterAll')).toBe('All files');
   });

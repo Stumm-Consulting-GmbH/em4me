@@ -736,6 +736,79 @@ export const tableEditKeymap = Prec.high(
 
 export const LINT_DEBOUNCE_MS = 300;
 
+// 4T-0935 (Befund B-08): Der geschriebene Stand einer offenen Datei wandert
+// verzoegert in den Index-Overlay des Hauptprozesses, damit die eingebetteten
+// Konstrukte der gerenderten Ansicht (Abfrage-Listen, Skript-Bloecke,
+// Ereignis-Aggregationen) ihn sehen — ohne Speichern und ohne dass der
+// Platten-Stand angetastet wird.
+//
+// Verzoegert aus demselben Grund wie Lint und automatisches Speichern: Der
+// Text geht als Ganzes hinueber, das lohnt nicht je Tastendruck. Das
+// anschliessende Ereignis loest die Neubefuellung aus; app-init.js hoert
+// darauf und ruft dieselben drei Auffrisch-Wege wie bei einer
+// Index-Invalidierung (bewusst ueber ein Dokument-Ereignis statt ueber einen
+// Import, der einen Modul-Zyklus ergaebe).
+export const INDEX_OVERLAY_DEBOUNCE_MS = 300;
+export const INDEX_OVERLAY_EVENT = 'scg:index-overlay-changed';
+// 4T-0948: Der Melde-Plan haengt an der DATEI und nicht am Modul. Vorher gab
+// es genau einen Timer fuer alle Dateien, und ein neuer Plan raeumte den
+// ausstehenden einer anderen Datei mit ab. Getroffen hat das jeden Reiter-
+// Wechsel innerhalb der Debounce-Zeit: syncEditorForPane tauscht dabei das
+// Editor-Dokument aus, das zaehlt als Doc-Aenderung und plant den Overlay des
+// NEUEN Reiters — der geschriebene Stand des eben verlassenen wurde nie
+// gemeldet. Der Fehler lag im Bestand von 4T-0935 und traf alle Verbraucher
+// der Schicht, nicht nur die Wiki-Einbettung, ueber die er auffiel.
+const indexOverlayTimers = new Map(); // Datei-Pfad -> Timer
+
+export function scheduleIndexOverlay(tab) {
+  // Ohne Pfad gibt es keinen Index-Eintrag, den man ueberlagern koennte
+  // (Unbenannt-Reiter, Handbuch- und System-Seiten).
+  if (!tab || !tab.path || tab.manualPage || tab.systemPage) return;
+  const filePath = tab.path;
+  const content = tab.content;
+  const laufend = indexOverlayTimers.get(filePath);
+  if (laufend) clearTimeout(laufend);
+  const timer = setTimeout(async () => {
+    indexOverlayTimers.delete(filePath);
+    try {
+      await api.setIndexOverlay(filePath, content);
+      // 4T-0948 (Befund E-01): Der gemeldete Pfad reist mit. Nur so kann der
+      // Nachzug die Spalten finden, die genau diese Datei einbetten, statt
+      // pauschal alle neu zu zeichnen.
+      document.dispatchEvent(new CustomEvent(INDEX_OVERLAY_EVENT, { detail: { filePath } }));
+    } catch (err) {
+      console.warn('Index-Overlay konnte nicht gesetzt werden:', err);
+    }
+  }, INDEX_OVERLAY_DEBOUNCE_MS);
+  indexOverlayTimers.set(filePath, timer);
+}
+
+// Gegenstueck: Speichern, Verwerfen und Schliessen nehmen den Overlay
+// zurueck, damit wieder der Platten-Stand gilt. Ein noch laufender
+// Melde-Timer wird dabei abgeraeumt, sonst schriebe er den verworfenen Stand
+// unmittelbar danach zurueck.
+//
+// 4T-0948: Abgeraeumt wird nur der Plan DIESER Datei. Vorher traf es den
+// einen Modul-Timer und damit gegebenenfalls den ausstehenden Plan einer
+// ganz anderen Datei.
+export async function clearIndexOverlayFor(filePath) {
+  if (!filePath) return;
+  const laufend = indexOverlayTimers.get(filePath);
+  if (laufend) {
+    clearTimeout(laufend);
+    indexOverlayTimers.delete(filePath);
+  }
+  try {
+    await api.clearIndexOverlay(filePath);
+    // 4T-0948: auch die Ruecknahme meldet ihren Pfad — nach Verwerfen oder
+    // Schliessen soll eine Einbettung dieser Datei wieder den Platten-Stand
+    // zeigen.
+    document.dispatchEvent(new CustomEvent(INDEX_OVERLAY_EVENT, { detail: { filePath } }));
+  } catch (err) {
+    console.warn('Index-Overlay konnte nicht zurueckgenommen werden:', err);
+  }
+}
+
 // Regel 1: bare URL (http(s):// oder mailto:). Endet nicht in typischen
 // trailing-Zeichen, die in Fliesstext angrenzen koennen. Schluss-Komma/
 // -Klammer werden ebenfalls nicht zur URL gezaehlt, sonst werden Saetze
@@ -1426,6 +1499,10 @@ export function createEditorState(opts = {}) {
           }
           if (tab.viewMode === 'split') schedulePreviewUpdate(pIdx);
           scheduleAutoSave();
+          // 4T-0935 (Befund B-08): geschriebenen Stand an den Index-Overlay
+          // melden, damit eingebettete Konstrukte der gerenderten Ansicht ihn
+          // sehen, ohne dass gespeichert wurde.
+          scheduleIndexOverlay(tab);
           // R5-01 (4T-0171): Doc-Aenderung macht die Source-Such-Offsets
           // ungueltig. Sofort invalidieren (Replace darf nie mit alten
           // from/to dispatchen) und die sichtbare Suche debounced neu

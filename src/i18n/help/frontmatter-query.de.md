@@ -218,7 +218,7 @@ Der Suchraum ist derselbe wie beim Datei-Index:
 - **Mit aktivem Bereich** umfasst er den gesamten Bereich; Link-Bezüge (`FROM [[…]]`, `file.inlinks`) sind dort vollständig.
 - **Ohne Bereich** umfasst er den Ordner der Datei plus zwei Unterebenen.
 
-Dateien außerhalb des Suchraums erscheinen nicht im Ergebnis. Eine noch nicht gespeicherte Datei hat keinen Suchraum; die Abfrage zeigt dann einen Hinweis, dass sie erst nach dem Speichern verfügbar ist.
+Dateien außerhalb des Suchraums erscheinen nicht im Ergebnis. Eine noch nicht gespeicherte Datei hat keinen Suchraum; die Abfrage zeigt dann einen Hinweis, dass sie erst nach dem Speichern verfügbar ist. Ungespeicherte Änderungen an einer geöffneten Datei gehen dagegen sofort in das Ergebnis ein; dafür muss nichts gespeichert werden.
 
 ## Export
 

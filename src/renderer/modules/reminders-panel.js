@@ -184,7 +184,7 @@ export async function toggleRemindersPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.reminders.visibleByPane[paneIdx];
   state.reminders.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('reminders');
+  if (next) await ensurePanelTabActive('reminders', paneIdx);
   applyRemindersVisibility(paneIdx);
   // Im Empty-State eines Bereichs haengt die Pane-Container-Sichtbarkeit an
   // den Panel-Praeferenzen — nachziehen, damit das Panel auch ohne offene

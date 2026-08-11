@@ -346,8 +346,24 @@ export function findFirstVisibleMatchIndex() {
   return 0;
 }
 
+// B-01 (4T-0904): Sind die Treffer Editor-Positionen ({ from, to }) statt
+// DOM-Elemente? Geprueft wird am ersten Eintrag, weil die Liste immer aus
+// einer Quelle stammt und deshalb homogen ist.
+function sindEditorTreffer(matches) {
+  const erster = matches && matches[0];
+  return !!erster && typeof erster.from === 'number';
+}
+
 export function setCurrentMatch(idx, scroll = true) {
-  if (search.scope === 'source') {
+  // B-01 (4T-0904): Die Verzweigung folgt der Art der Treffer, nicht allein
+  // dem Geltungsbereich. Beide gehoeren zusammen, werden aber getrennt
+  // gesetzt und koennen auseinanderlaufen: Bei geoeffnetem Bereich ist der
+  // Geltungsbereich 'area', waehrend der Markier-Weg der offenen Datei
+  // (such-bereich.js) die Treffer ueber performSourceSearch aus dem Editor
+  // fuellt. Der Pfad fuer die gerenderte Ansicht traf dann auf eine
+  // Editor-Position ohne classList und brach mitten im Ablauf ab — still,
+  // ohne Markierung und ohne die nachfolgende Zaehler-Aktualisierung.
+  if (search.scope === 'source' || sindEditorTreffer(search.matches)) {
     // Source-Pane: Decoration-Set aktualisieren, der aktive Treffer bekommt
     // die zusaetzliche cm-search-match-current-Klasse.
     search.currentIndex = idx;
@@ -434,7 +450,18 @@ export function performSearch(opts = {}) {
   // R5-04 (4T-0171): nie nach geschlossener Leiste suchen (nachlaufende
   // Timer, programmatische Aufrufe).
   if (!search.visible) return;
-  const { keepCurrent = false } = opts;
+  // B-10 (4T-0904): Eine Neu-Ermittlung bewegt den Cursor NICHT. Selektion
+  // und Bildlauf gehoeren allein zum Sprung, und alle Sprung-Wege (F3,
+  // Shift+F3, Klick auf einen Treffer, Raum-Sprung) rufen setCurrentMatch
+  // ohnehin direkt mit dessen Vorgabe scroll=true.
+  //
+  // Die Vorgabe ist bewusst herum: Der erste Anlauf schaltete die Bewegung
+  // nur im Neuaufbau nach einer Doc-Aenderung ab und uebersah damit den
+  // zweiten Weg, ueber den dieselbe Doc-Aenderung laeuft — die Vorschau der
+  // geteilten Ansicht refresht am Ende ihrer Render-Pipeline ebenfalls. Wer
+  // eine Bewegung braucht, fordert sie jetzt an, statt dass jeder neue
+  // Aufrufer sie stillschweigend erbt.
+  const { keepCurrent = false, moveCursor = false } = opts;
   const prevIdx = keepCurrent ? search.currentIndex : -1;
   clearSearchHighlights();
   const vorherigerScope = search.scope;
@@ -478,7 +505,7 @@ export function performSearch(opts = {}) {
   }
 
   if (search.scope === 'source') {
-    performSourceSearch(regex, prevIdx);
+    performSourceSearch(regex, prevIdx, moveCursor);
     return;
   }
 
@@ -498,13 +525,13 @@ export function performSearch(opts = {}) {
 
   const startIdx =
     prevIdx >= 0 && prevIdx < search.matches.length ? prevIdx : findFirstVisibleMatchIndex();
-  setCurrentMatch(startIdx);
+  setCurrentMatch(startIdx, moveCursor);
 }
 
 // Source-Pane-Suche ueber CodeMirror-State. Treffer werden als Decorations
 // in der EditorView gerendert, ueberleben CM-Re-Renders. Aktiver Treffer
 // bekommt eine zusaetzliche orange Klasse.
-export function performSourceSearch(regex, prevIdx) {
+export function performSourceSearch(regex, prevIdx, moveCursor = false) {
   const view = paneEditors[state.activePaneIndex];
   if (!view) {
     search.matches = [];
@@ -550,7 +577,7 @@ export function performSourceSearch(regex, prevIdx) {
       }
     }
   }
-  setCurrentMatch(startIdx);
+  setCurrentMatch(startIdx, moveCursor);
 }
 
 export function debouncedSearch() {
@@ -755,12 +782,18 @@ export function computeReplacement(matchText) {
   }
 }
 
-export function refreshSearchIfVisible() {
+export function refreshSearchIfVisible(opts = {}) {
   if (!search.visible) return;
   // Nach DOM-Wechsel (Tab-/View-Wechsel, Reload) sind alte Mark-Refs detached.
   // currentIndex bleibt erhalten und wird in performSearch als prevIdx genutzt;
   // matches wird per clearSearchHighlights zurueckgesetzt.
-  performSearch({ keepCurrent: true });
+  //
+  // B-10 (4T-0904): Keiner der Aufrufer (Doc-Aenderung, Tab-Wechsel,
+  // Ansichts-Wechsel, Render-Pipeline der Vorschau, Sprung ueber
+  // Reiter-Grenzen) bewegt dabei den Cursor; die Markierung stellen die
+  // Sprung-Wege selbst her (markiereOffeneRaumSeite, markiereOffeneDatei).
+  // Wer es doch braucht, uebergibt moveCursor:true ausdruecklich.
+  performSearch({ keepCurrent: true, ...opts });
 }
 
 // R5-09 (4T-0171): Ersetzen ist nur im Quellcode-Scope mit aktivem

@@ -452,7 +452,11 @@ async function applyFolderRuleToCreatedFile(filePath) {
   }
   let write;
   try {
-    write = await api.saveFile(filePath, filled.text);
+    // 4T-0945 (Story S-0786): Die Datei wurde gerade angelegt und ist leer.
+    // Die Erwartung schuetzt zusaetzlich: Hat sie wider Erwarten Inhalt,
+    // ueberschreibt die Ordner-Regel ihn nicht, sondern meldet den Konflikt
+    // ueber den vorhandenen Fehler-Zweig.
+    write = await api.saveFile(filePath, filled.text, { expected: '' });
   } catch {
     write = null;
   }

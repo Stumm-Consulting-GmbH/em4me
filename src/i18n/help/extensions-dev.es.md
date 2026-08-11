@@ -39,7 +39,7 @@ El archivo `manifest.json` describe el paquete:
 |---|---|---|
 | `id` | sí | Identificador estable en minúsculas con guiones (kebab-case); debe coincidir con el nombre de la carpeta. |
 | `name` | sí | Nombre mostrado en la sección de configuración y en el diálogo de advertencia. |
-| `version` | sí | Versión del paquete (`major.minor.patch`). La confirmación de confianza vale por versión; tras un cambio de versión se requiere una nueva confirmación. |
+| `version` | sí | Versión del paquete: de uno a tres números separados por puntos, es decir `major`, `major.minor` o `major.minor.patch`. La confirmación de confianza vale por versión; tras un cambio de versión se requiere una nueva confirmación. |
 | `apiVersion` | sí | Versión de la API contra la que está construido el paquete (véase versionado). |
 | `entry` | uno de los dos | Punto de entrada de UI: módulo ES con `activate(ctx)`. |
 | `markdownPlugin` | uno de los dos | Contribución de renderizado: archivo que exporta un plugin markdown-it. |
@@ -55,6 +55,14 @@ El archivo `manifest.json` describe el paquete:
 4. La extensión surte efecto de inmediato y en todas las ventanas; el estado sobrevive al reinicio.
 
 «Desactivar» retira todas las contribuciones de inmediato (la confirmación queda guardada; reactivar la misma versión no vuelve a preguntar). «Eliminar…» borra definitivamente la carpeta del paquete tras su propia confirmación.
+
+## Modificar un paquete instalado
+
+El código modificado de un paquete ya instalado solo se ejecuta **tras reiniciar la aplicación**. Esto vale por igual para ambas vías de contribución, tanto el punto de entrada de la interfaz como la contribución al renderizado.
+
+Ni «Actualizar» ni «Desactivar» seguido de «Activar» recoge el nuevo estado: «Actualizar» busca paquetes nuevos y eliminados, y ambas acciones trabajan con el código cargado al iniciar. Hasta el reinicio sigue funcionando la versión anterior, aunque la nueva ya esté en el disco.
+
+Para el trabajo en una extensión esto significa: modificar, reiniciar la aplicación, comprobar. Solo añadir y quitar carpetas de paquetes y alternar entre activo e inactivo surten efecto sin reinicio.
 
 ## Contribución de renderizado: plugin markdown-it
 
@@ -218,7 +226,7 @@ Promesa de estabilidad: las firmas documentadas en esta página permanecen estab
 
 - Si una extensión lanza un error al cargar (error de manifiesto, error de importación, `activate`, registro del plugin), se desactiva automáticamente; la sección de configuración muestra el estado «Error» con el texto del error, también tras un reinicio.
 - Los manifiestos no válidos se listan con detalles de diagnóstico y nunca se cargan.
-- Los errores de ejecución en comandos o al dibujar un panel no bloquean la aplicación; los detalles aparecen en el registro de la consola.
+- Los errores de ejecución en comandos o al dibujar un panel no bloquean la aplicación; los detalles aparecen en el registro de la consola. Se llega a él en la sección de ajustes Extensiones (externas): el botón «Herramientas de desarrollo» del final abre las herramientas para la ventana actual, y el mismo botón vuelve a cerrarlas. Los mensajes aparecen allí en la pestaña «Console».
 - «Activar…» tras un error reintenta la carga (el texto del error se restablece).
 
 ## Notas de calidad
@@ -227,6 +235,7 @@ El aislamiento de errores intercepta los fallos, no la mala calidad. Es responsa
 
 - **Rendimiento de renderizado:** las reglas markdown-it se ejecutan en cada renderizado; las reglas costosas frenan la escritura y la vista previa.
 - **Salida limpia:** el HTML generado debe encajar con el estilo del documento y no cargar recursos remotos (enlaces de demostración a `example.org`).
+- **El estado escrito, no el guardado:** si tu constructo incorpora datos de otros lugares, muestra el estado del editor abierto y no el del último guardado. Los datos que pidas al programa incluyen los cambios sin guardar de los documentos abiertos; leer tú mismo del disco lo evita y muestra un estado desactualizado.
 - **Limpieza:** tus propios temporizadores, escuchadores fuera de las contribuciones registradas y estados globales van en `deactivate()`.
 
 La extensión de referencia **Notiz-Merker** (marcadores de nota) sirve como plantilla ejecutable. Usa todos los tipos de contribución de esta página en una sola pieza: una sintaxis propia marca pasajes, un panel los reúne en una lista a la que se puede saltar, un comando los recorre y una sección de configuración regula el color y el orden. Se encuentra en el código fuente publicado del programa, en la carpeta `addon_examples/notiz-merker/`, y trae su propio README, que nombra también los límites con los que se encontrará cualquier extensión propia.

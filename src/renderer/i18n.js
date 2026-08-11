@@ -76,8 +76,35 @@ export function getLanguage() {
   return current;
 }
 
+// 4T-0900 (Epic 3E-0016): Ein unbekannter Schluessel fiel bisher nicht auf.
+// Der Rueckfall gibt ihn als Text zurueck, und was der Anwender sieht, ist je
+// nach Stelle der rohe Bezeichner, ein leeres Auswahlfeld oder ein deutsches
+// Wort in der fremdsprachigen Oberflaeche — kein Gate wurde davon rot. Der
+// vorhandene i18n-Waechter kann das prinzipiell nicht sehen: Er vergleicht nur
+// die fuenf Sprachdateien untereinander, nie den Code gegen sie.
+//
+// Diese eine Stelle traegt die ganze Fehlerklasse, auch die zusammengesetzten
+// Schluessel (t(`events.category.${cat}`)), die eine statische Pruefung des
+// Quelltexts nicht erfasst. Scharf wird die Meldung ueber den
+// Konsolen-Fehler-Waechter der End-zu-End-Laeufe (4T-0901).
+const gemeldeteLuecken = new Set();
+
+function meldeFehlendenSchluessel(key) {
+  // Vor dem Laden des Woerterbuchs ist jeder Schluessel unbekannt; das ist der
+  // normale Startzustand und kein Befund.
+  if (Object.keys(dict).length === 0) return;
+  // Je Schluessel nur einmal: t() laeuft pro Neuaufbau der Oberflaeche erneut,
+  // eine Dauer-Meldung wuerde die Konsole fluten und den Waechter entwerten.
+  if (gemeldeteLuecken.has(key)) return;
+  gemeldeteLuecken.add(key);
+  console.error(`i18n: unbekannter Uebersetzungs-Schluessel '${key}'`);
+}
+
 export function t(key) {
-  return dict[key] ?? extensionExtras[key] ?? key;
+  const wert = dict[key] ?? extensionExtras[key];
+  if (wert !== undefined) return wert;
+  meldeFehlendenSchluessel(key);
+  return key;
 }
 
 // 4T-0299: Nachschlag inklusive der Erweiterungs-Zusätze — DOM-Elemente

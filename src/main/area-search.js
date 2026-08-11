@@ -323,6 +323,18 @@ function dateiReihenfolge(bekannt, ankerRel, aktivRel) {
   return ankerRel ? [ankerRel, ...rest] : rest;
 }
 
+// 4T-0949 (Befund E-02, Story S-0787): Der geschriebene Stand eines offenen
+// Dokuments, das nicht das aktive ist. Bis hierher kannte die Suche allein den
+// mitgeschickten Stand der aktiven Datei, waehrend jeder weitere Reiter, die
+// zweite Spalte und jedes andere Fenster im Stand ihrer letzten Speicherung
+// durchsucht wurden; die Schicht im Hauptprozess fuehrt diese Staende bereits
+// und gilt fensteruebergreifend. Vorrat und Sitzungs-Cache bleiben unberuehrt:
+// Laege der Puffer in ihnen, schriebe der Cache ihn als Platten-Stand fort und
+// er ueberdauerte die Sitzung.
+function geschriebenerStand(wurzel, rel) {
+  return backlinks.bufferTextFor(absoluterPfad(wurzel, rel));
+}
+
 // Eintrags-Liste fuer den Suchraum-Kern aus dem Vorrat.
 //
 // Die Gruppen-Kennung ist der wurzel-relative Pfad (Anzeige und Gruppierung),
@@ -340,8 +352,11 @@ function eintraegeAusVorrat(vorrat, wurzel, { ankerRel, aktivRel, aktivText }) {
   )) {
     // Die offene Datei steuert ihren Editor-Stand bei; der Platten-Stand
     // derselben Datei bleibt damit aussen vor.
+    // '??' statt '||': Ein geleerter Puffer ist ein gueltiger Stand.
     const text =
-      hatEditorStand && rel === aktivRel ? aktivText : (vorrat.texte.get(rel) || {}).text;
+      hatEditorStand && rel === aktivRel
+        ? aktivText
+        : (geschriebenerStand(wurzel, rel) ?? (vorrat.texte.get(rel) || {}).text);
     if (!text) continue;
     eintraege.push(eintrag(wurzel, rel, text));
   }
@@ -364,9 +379,14 @@ async function sucheDirekt(zustand, regex, wurzel, generation, { ankerRel, aktiv
   for (let i = 0; i < reihenfolge.length; i += LESE_BREITE) {
     const welle = reihenfolge.slice(i, i + LESE_BREITE);
     // Die offene Datei wird nicht gelesen; ihr Editor-Stand liegt bereits vor.
+    // 4T-0949: Dasselbe gilt fuer jedes andere offene Dokument ueber seinen
+    // Puffer-Stand — auch hier oberhalb des Deckels, sonst haengt die Zusage
+    // an der Groesse des Bereichs.
     const inhalte = await Promise.all(
       welle.map((rel) => {
         if (hatEditorStand && rel === aktivRel) return Promise.resolve(aktivText);
+        const puffer = geschriebenerStand(wurzel, rel);
+        if (puffer !== null) return Promise.resolve(puffer);
         const d = nachPfad.get(rel);
         return d ? fs.promises.readFile(d.abs, 'utf8').catch(() => null) : Promise.resolve(null);
       }),

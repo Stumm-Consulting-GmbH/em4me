@@ -606,6 +606,53 @@ export async function applyWikiEmbedsIfPresent(container, basePath, depth = 0) {
   }
 }
 
+// 4T-0948 (Befund E-01): Einbettungen einer bestimmten Ziel-Datei erneut
+// aufloesen, ohne das ganze Dokument neu zu zeichnen. Gebraucht wird das,
+// wenn sich der GESCHRIEBENE Stand der eingebetteten Datei geaendert hat:
+// Text und Pfad der Huelle bleiben dabei gleich, also greift weder der
+// Render-Zwischenspeicher der Spalte noch die eq()-Pruefung des
+// Live-Widgets, und beide behielten ihr altes DOM.
+//
+// Der gezielte Weg ist bewusst derselbe fuer beide Anzeige-Modi: Gerenderte
+// Ansicht und Live-Modus bauen dieselben Embed-Knoten, nur an verschiedenen
+// Stellen im DOM. Ein Voll-Render der Spalte traefe den Live-Modus gar nicht
+// und kostete in der gerenderten Ansicht bei jedem Tipp-Takt den vollen
+// Aufbau samt Scroll-Wiederherstellung.
+//
+// Erkennungs-Merkmal ist 'data-embed-base' am Embed-Koerper; es traegt den
+// aufgeloesten Ziel-Pfad. Ueber die uebergeordneten Embed-Koerper ergeben
+// sich Basis-Pfad und Tiefe der Verschachtelung, die renderMarkdownEmbed
+// braucht.
+export async function refreshEmbedsOfTarget(wurzel, zielPfad, dokumentPfad) {
+  if (!wurzel || !zielPfad) return 0;
+  const ziel = String(zielPfad).toLowerCase();
+  const treffer = [];
+  for (const body of wurzel.querySelectorAll('.wiki-embed-md-body[data-embed-base]')) {
+    if (String(body.dataset.embedBase || '').toLowerCase() !== ziel) continue;
+    const span = body.closest('.wiki-embed');
+    if (span) treffer.push(span);
+  }
+  for (const span of treffer) {
+    // Umschliessende Embed-Koerper von innen nach aussen: ihre Zahl ist die
+    // Tiefe, der aeusserste von ihnen liefert den Basis-Pfad. Ohne solchen
+    // Vorfahren sitzt die Einbettung unmittelbar im Dokument.
+    const eltern = [];
+    for (let p = span.parentElement; p; p = p.parentElement) {
+      if (p.classList && p.classList.contains('wiki-embed-md-body')) eltern.push(p);
+    }
+    const basis = eltern.length > 0 ? eltern[0].dataset.embedBase || '' : dokumentPfad || '';
+    if (!basis) continue;
+    await renderMarkdownEmbed(
+      span,
+      basis,
+      span.dataset.embedPath || '',
+      span.dataset.embedAnchor || '',
+      eltern.length,
+    );
+  }
+  return treffer.length;
+}
+
 // R2-07 (4T-0174): file:///-URL aus einem Windows-Pfad bauen. '#', '?', '%'
 // und Leerzeichen im Dateinamen wuerden die URL sonst zerlegen; das
 // Laufwerks-':' und die Slashes bleiben unangetastet.

@@ -5,6 +5,9 @@
 // Menü-Factory durch — Speichern/Speichern unter/Bearbeiten blieben bei
 // Handbuch-Tabs fälschlich aktiv. Gleicher Vertrag gilt für das neue
 // systemTab der Einstellungs-Seite.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { normalizeMenuState } from '../../src/main/menu-state.js';
 
@@ -178,5 +181,84 @@ describe('normalizeMenuState (4T-0277)', () => {
       area: [],
       areaName: null,
     });
+  });
+});
+
+// 4T-0900 (Epic 3E-0016): Durchlauf-Waechter der Menue-Zustands-Durchreichung.
+//
+// Die Einzelfaelle oben sind je aus einem Vorfall entstanden, in dem ein Feld
+// still unter den Tisch fiel: 4T-0277 (manualTab), 4T-0568 (vier Panel-Flags)
+// und 4T-0881 (hasShelf, der Menuepunkt blieb dauerhaft deaktiviert). Sie
+// sichern genau die damals gefundenen Felder — das naechste neue Feld faellt
+// genauso still aus. Dieser Waechter prueft stattdessen die ganze Menge.
+//
+// normalizeMenuState speist sich aus zwei Quellen, daraus zwei Richtungen:
+//   base   (b.*) meldet der Renderer in tabs.js
+//   stored (s.*) stellt der Hauptprozess in main.js bereit
+// Beide Bereitsteller sind je ein einziges Objekt-Literal, deshalb genuegt ein
+// Quelltext-Vergleich (Muster: kommando-dispatcher.test.js).
+describe('Menü-Zustands-Durchreichung: Feldmengen (4T-0900)', () => {
+  const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const lies = (p) => fs.readFileSync(path.join(WURZEL, p), 'utf8');
+
+  // Top-Level-Schluessel des Objekt-Literals, das auf `marker` folgt.
+  //
+  // Die Kurzschreibweise wird mitgelesen (`viewMode,` statt `viewMode: …`):
+  // Beide Literale nutzen sie real, ein Ausdruck nur fuer `name: wert` meldete
+  // `viewMode` und `recentFiles` faelschlich als fehlend.
+  function literalSchluessel(text, marker) {
+    const i = text.indexOf(marker);
+    if (i < 0) throw new Error(`Marker nicht gefunden: ${marker}`);
+    const start = text.indexOf('{', i);
+    let tiefe = 0;
+    let ende = start;
+    for (; ende < text.length; ende++) {
+      if (text[ende] === '{') tiefe++;
+      else if (text[ende] === '}' && --tiefe === 0) break;
+    }
+    const schlüssel = [];
+    let verschachtelt = 0;
+    for (const zeile of text.slice(start + 1, ende).split('\n')) {
+      if (verschachtelt === 0) {
+        const treffer = zeile.trim().match(/^([A-Za-z_]\w*)\s*[,:]/);
+        if (treffer) schlüssel.push(treffer[1]);
+      }
+      verschachtelt += (zeile.match(/[{[(]/g) || []).length - (zeile.match(/[}\])]/g) || []).length;
+    }
+    return schlüssel;
+  }
+
+  // Felder, die normalizeMenuState aus einer Quelle liest. Das Muster kommt als
+  // Regex-Literal herein, nicht als zusammengebaute Zeichenkette: Deren
+  // Maskierung ueberlebt den Schreibweg durch Werkzeuge nicht zuverlaessig, und
+  // ein still entwerteter Ausdruck faende nichts mehr — der Waechter waere dann
+  // gruen, ohne zu pruefen. Dagegen steht zusaetzlich die untere Schranke unten.
+  const gelesene = (text, muster) => [...new Set([...text.matchAll(muster)].map((m) => m[1]))];
+
+  const menuState = lies('src/main/menu-state.js');
+
+  it('jedes vom Renderer gemeldete Feld wird gelesen, und umgekehrt', () => {
+    const gemeldet = literalSchluessel(
+      lies('src/renderer/modules/tabs.js'),
+      'api.reportMenuState(',
+    );
+    const gelesen = gelesene(menuState, /\bb\.(\w+)/g);
+    // Untere Schranke gegen ein stilles Leerlaufen beider Auswertungen.
+    expect(gemeldet.length).toBeGreaterThan(10);
+    expect(gelesen.length).toBeGreaterThan(10);
+    expect(gemeldet.filter((k) => !gelesen.includes(k))).toEqual([]);
+    expect(gelesen.filter((k) => !gemeldet.includes(k))).toEqual([]);
+  });
+
+  it('jedes vom Hauptprozess bereitgestellte Feld wird gelesen, und umgekehrt', () => {
+    const bereitgestellt = literalSchluessel(
+      lies('src/main/main.js'),
+      'return normalizeMenuState(menuStates.get(id), {',
+    );
+    const gelesen = gelesene(menuState, /\bs\.(\w+)/g);
+    expect(bereitgestellt.length).toBeGreaterThan(8);
+    expect(gelesen.length).toBeGreaterThan(8);
+    expect(bereitgestellt.filter((k) => !gelesen.includes(k))).toEqual([]);
+    expect(gelesen.filter((k) => !bereitgestellt.includes(k))).toEqual([]);
   });
 });

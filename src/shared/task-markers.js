@@ -188,6 +188,50 @@ function escapeRegExp(s) {
 
 const MARKER_MATCHERS = buildMatchers();
 
+// --- Wert-Bereiche der Datums-Marker (4T-0937, Befund B-09) -------------------------
+// Aus einer Ausnahme wird die Regel: Bis dahin war allein der ⏰-Wert einer
+// Aufgaben-Zeile klick-dekoriert, weil nur er Gegenstand von 4T-0528 war; in
+// derselben Zeile blieben sechs weitere Datums-Werte stumm, obwohl sie gleich
+// aussehen. Anordnung des Product Owners vom 2026-08-08: jeder Datums-Wert im
+// Dokument ist anklickbar, ueberall gleich.
+//
+// Die Erkennung leitet sich aus DATE_MARKER_READ_VARIANTS ab (samt der beim
+// Lesen tolerierten Varianten-Symbole), damit keine zweite Liste entsteht.
+// Zwei Alternativen, weil nur die Erinnerung eine Uhrzeit fuehrt: Die
+// uebrigen Marker tragen ein reines Datum, und ein nachfolgender Zeit-Anteil
+// gehoert nicht zu ihnen. Bewusst hier und nicht im Renderer: reine
+// Text-Logik ueber die Tabellen dieses Moduls, ohne Oberflaeche pruefbar.
+const TASK_DATE_MARKER_ALT = TASK_DATE_FIELDS.flatMap((f) => DATE_MARKER_READ_VARIANTS[f] || [])
+  .map(escapeRegExp)
+  .join('|');
+const DATE_ONLY_SRC = '\\d{4}-\\d{2}-\\d{2}';
+// Waere die Symbol-Liste leer, ergaebe `(?:)` einen leeren Alternativ-Zweig,
+// und der Ausdruck erfasste JEDEN Datums-Wert einer Zeile statt nur die
+// Marker-Werte — still und ohne Fehler. Aufgefallen bei der Wirksamkeits-
+// Probe des Waechters; die Schranke kostet nichts und schliesst den Fall aus.
+const MARKER_VALUE_IN_LINE_RE = new RegExp(
+  `(?:${escapeRegExp(REMINDER_SYMBOL)})\\uFE0F?[ \\t]*(${DATE_ONLY_SRC}(?:[ \\t]+\\d{2}:\\d{2})?)` +
+    (TASK_DATE_MARKER_ALT ? `|(?:${TASK_DATE_MARKER_ALT})\\uFE0F?[ \\t]*(${DATE_ONLY_SRC})` : ''),
+  'gu',
+);
+
+// Wert-Bereiche aller Datums-Marker einer Zeile (Offsets in der Zeile), in
+// Lese-Reihenfolge. `withReminder` bildet die Erweiterungs-Lage ab: Ist
+// «Erinnerungen» abgeschaltet, ist der ⏰-Wert kein Marker-Wert und bleibt
+// stumm wie zuvor; die uebrigen sechs haengen allein an «Aufgaben».
+function markerValueRangesInLine(lineText, options) {
+  const withReminder = !options || options.withReminder !== false;
+  const ranges = [];
+  for (const m of String(lineText || '').matchAll(MARKER_VALUE_IN_LINE_RE)) {
+    const istErinnerung = m[1] !== undefined;
+    if (istErinnerung && !withReminder) continue;
+    const wert = istErinnerung ? m[1] : m[2];
+    const valueStart = m.index + m[0].length - wert.length;
+    ranges.push({ from: valueStart, to: valueStart + wert.length });
+  }
+  return ranges;
+}
+
 // --- Datums-Gueltigkeit ------------------------------------------------------------
 // Kalender-Pruefung ohne Date-Objekt (keine Zeitzonen-Fallen): Monats-
 // laengen-Tabelle plus Schaltjahr-Regel.
@@ -954,12 +998,16 @@ function buildRecurrenceInstance(model, opts) {
 module.exports = {
   TASK_DATE_FIELDS,
   DATE_MARKER_SYMBOLS,
+  // 4T-0937 (Befund B-09): Die Klick-Dekoration der Datums-Werte leitet ihre
+  // Marker-Erkennung aus dieser Tabelle ab, statt eine zweite zu fuehren.
+  DATE_MARKER_READ_VARIANTS,
   PRIORITY_ORDER,
   PRIORITY_MARKER_SYMBOLS,
   RECURRENCE_SYMBOL,
   ID_SYMBOL,
   DEPENDS_SYMBOL,
   REMINDER_SYMBOL,
+  markerValueRangesInLine,
   parseMarkerSegments,
   parseTaskLine,
   serializeTaskLine,

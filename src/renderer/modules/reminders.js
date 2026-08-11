@@ -331,6 +331,37 @@ function scheduleShow() {
   );
 }
 
+// --- Entgegennahme ------------------------------------------------------------------
+
+// 4T-0635: Die Anmeldung steht am **Modulkopf** und nicht in initReminders().
+//
+// Der Melde-Weg des Pruefers ist fire-and-forget: Der Hauptprozess sendet
+// `reminders:due`, und `ipcRenderer.on` puffert nichts. War der Zuhoerer noch
+// nicht angemeldet, ist die Meldung ersatzlos weg — ohne Fehler, ohne Spur.
+// Angemeldet wurde er bislang tief in der asynchronen `init()`, nach dutzenden
+// `await`-Schritten. Der reale Ausloeser ist die Sitzungs-Wiederherstellung mit
+// gebundenem Bereich: Dort laeuft das Binden parallel zur Initialisierung, und
+// der Anwender sah seine ueberfaelligen Erinnerungen nicht. Das Rennen wird mit
+// wachsendem Renderer-Bundle schlechter (Messung in 4T-0372: von 10/10 grün auf
+// 4/5 nach nur drei zusaetzlichen Modulen).
+//
+// Entgegennahme und Anzeige sind deshalb getrennt: Der frühe Zuhoerer fuellt
+// nur die Sammlung; angezeigt wird erst, wenn die Dialog-Elemente gebunden
+// sind. `initReminders()` holt das am Ende einmal nach.
+let dialogBereit = false;
+
+api.onRemindersDue((payload) => {
+  if (!isExtensionActive('reminders') || !isExtensionActive('tasks')) return;
+  if (!payload || !Array.isArray(payload.items)) return;
+  for (const item of payload.items) {
+    if (item && typeof item.key === 'string') pending.set(item.key, item);
+  }
+  if (payload.catchUp) pendingCatchUp = true;
+  // Vor der Bindung bleibt es beim Puffern: showDialog() greift auf modal,
+  // titleEl, listEl und closeBtn zu, die es dann noch nicht gibt.
+  if (dialogBereit) scheduleShow();
+});
+
 // --- Init ---------------------------------------------------------------------------
 
 export function initReminders() {
@@ -364,15 +395,11 @@ export function initReminders() {
     });
   }
 
-  api.onRemindersDue((payload) => {
-    if (!isExtensionActive('reminders') || !isExtensionActive('tasks')) return;
-    if (!payload || !Array.isArray(payload.items)) return;
-    for (const item of payload.items) {
-      if (item && typeof item.key === 'string') pending.set(item.key, item);
-    }
-    if (payload.catchUp) pendingCatchUp = true;
-    scheduleShow();
-  });
+  // 4T-0635: Ab hier sind die Dialog-Elemente gebunden. Was der Zuhoerer am
+  // Modulkopf waehrend der Initialisierung gepuffert hat, wird jetzt einmal
+  // nachgezogen; ohne wartende Eintraege ist der Aufruf folgenlos.
+  dialogBereit = true;
+  scheduleShow();
 
   void refreshConfig();
 }

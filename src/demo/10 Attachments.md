@@ -11,14 +11,16 @@ Images and PDFs embed straight into the page. The binary files live in the `atta
 
 ## Embed an image
 
-`![[file]]` embeds by name; add a width after a pipe.
+`![[file]]` embeds a file; add a width after a pipe. Image embeds are resolved
+relative to the note, so name the folder when the image sits elsewhere — as it
+does here, in `attachments`.
 
 ```markdown
-![[demo-image.png]]
-![[demo-image.png|320]]
+![[attachments/demo-image.png]]
+![[attachments/demo-image.png|320]]
 ```
 
-![[demo-image.png]]
+![[attachments/demo-image.png]]
 
 ## Standard image link
 

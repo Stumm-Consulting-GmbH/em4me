@@ -5,8 +5,12 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   archiveBuild,
   writeChecksumFiles,
+  meldeTemporaere,
+  raeumeTemporaere,
+  raeumeWaisenBlockmaps,
   EXE_PATTERN,
   NOTES_PATTERN,
+  TEMP_EXE_PATTERN,
 } from '../../scripts/archive-build.js';
 
 describe('archive-build — Pattern', () => {
@@ -23,6 +27,278 @@ describe('archive-build — Pattern', () => {
     expect(EXE_PATTERN.test('Perspective Markdown++-0.30.0-Setup.exe.blockmap')).toBe(false);
     expect(NOTES_PATTERN.test('release-notes-0.24.0.md')).toBe(true);
     expect(NOTES_PATTERN.test('release-notes.md')).toBe(false);
+  });
+});
+
+// 4T-0921: Ein temporaerer Bau bleibt in dist/ und wird gemeldet statt
+// archiviert. Die Meldung ist die Zusicherung an den Product Owner, den
+// Ablage-Ort nach jedem solchen Bau genannt zu bekommen.
+describe('4T-0921: temporaerer Bau', () => {
+  const TEMP = 'EM4me-T-0.105.0-202608071130-Portable.exe';
+
+  it('erkennt den Dateinamen und grenzt ihn gegen Release-EXEs ab', () => {
+    expect(TEMP_EXE_PATTERN.test(TEMP)).toBe(true);
+    expect(TEMP_EXE_PATTERN.test('EM4me-T-0.105.0-202608071130-Setup.exe')).toBe(true);
+    expect(TEMP_EXE_PATTERN.test('EM4me-0.105.0-Portable.exe')).toBe(false);
+    expect(TEMP_EXE_PATTERN.test('EM4me-T-0.105.0-2026-Portable.exe')).toBe(false);
+    // Gegenprobe: das Muster der Release-EXEs greift beim temporaeren Bau
+    // nicht, sonst wanderte er ins Versions-Archiv.
+    expect(EXE_PATTERN.test(TEMP)).toBe(false);
+  });
+
+  // Befund beim zweiten echten Bau am 2026-08-07: dist/ sammelt die temporaeren
+  // Staende, weil keiner archiviert wird. Eine blosse Aufzaehlung liess offen,
+  // welche Datei die eben gebaute ist — damit verfehlte die Erinnerung ihren
+  // Zweck. Sie nennt den frischen Stand jetzt ausdruecklich.
+  it('nennt den frischen Stand und trennt ihn von aelteren temporaeren Staenden', () => {
+    const zeilen = [];
+    meldeTemporaere(
+      [
+        'EM4me-T-0.105.0-202608071325-Portable.exe',
+        'EM4me-T-0.105.0-202608071358-Setup.exe',
+        'EM4me-T-0.105.0-202608071325-Setup.exe',
+        'EM4me-T-0.105.0-202608071358-Portable.exe',
+      ],
+      (zeile) => zeilen.push(zeile),
+    );
+    const text = zeilen.join('\n');
+    const stelleFrisch = text.indexOf('202608071358-Portable.exe');
+    const stelleAlt = text.indexOf('202608071325');
+    expect(stelleFrisch).toBeGreaterThan(-1);
+    // Der frische Stand steht vor dem Hinweis auf die aelteren.
+    expect(stelleFrisch).toBeLessThan(stelleAlt);
+    expect(text).toContain('Zuletzt gebaut');
+    expect(text).toContain('202608071358-Setup.exe');
+    // Die aelteren werden gezaehlt, nicht einzeln als Ziel angeboten.
+    expect(text).toContain('2 Datei(en) aelterer temporaerer Staende');
+    expect(text).not.toContain('dist\\EM4me-T-0.105.0-202608071325-Portable.exe');
+  });
+
+  // Anordnung des Product Owners vom 2026-08-07: dist/ traegt nur den
+  // aktuellen Bau, ueberholte temporaere Staende verschwinden von selbst.
+  describe('Aufraeumen ueberholter Staende', () => {
+    const BESTAND = [
+      'EM4me-T-0.105.0-202608071325-Portable.exe',
+      'EM4me-T-0.105.0-202608071325-Setup.exe',
+      'EM4me-T-0.105.0-202608071325-Setup.exe.blockmap',
+      'EM4me-T-0.105.0-202608071358-Portable.exe',
+      'EM4me-T-0.105.0-202608071358-Setup.exe',
+      'EM4me-T-0.105.0-202608071358-Setup.exe.blockmap',
+    ];
+
+    it('entfernt die aelteren Staende samt Blockmap und laesst den frischen stehen', () => {
+      const entfernt = [];
+      const ergebnis = raeumeTemporaere(BESTAND, {
+        entfernen: (name) => entfernt.push(name),
+        log: () => {},
+      });
+      expect(entfernt.sort()).toEqual([
+        'EM4me-T-0.105.0-202608071325-Portable.exe',
+        'EM4me-T-0.105.0-202608071325-Setup.exe',
+        'EM4me-T-0.105.0-202608071325-Setup.exe.blockmap',
+      ]);
+      expect(ergebnis.gescheitert).toEqual([]);
+    });
+
+    it('laesst Releases und Zwischenprodukte unangetastet', () => {
+      const entfernt = [];
+      raeumeTemporaere(
+        [
+          ...BESTAND,
+          'EM4me-0.105.0-Portable.exe',
+          'EM4me-0.104.0-Setup.exe.blockmap',
+          'release-notes-0.105.0.md',
+          'builder-debug.yml',
+        ],
+        { entfernen: (name) => entfernt.push(name), log: () => {} },
+      );
+      expect(entfernt.every((name) => name.includes('-T-0.105.0-202608071325-'))).toBe(true);
+      expect(entfernt).toHaveLength(3);
+    });
+
+    it('entfernt nichts, wenn nur ein Stand vorliegt', () => {
+      const entfernt = [];
+      raeumeTemporaere(BESTAND.slice(3), {
+        entfernen: (name) => entfernt.push(name),
+        log: () => {},
+      });
+      expect(entfernt).toEqual([]);
+    });
+
+    it('macht aus einer gesperrten Datei einen Hinweis, keinen Fehlschlag', () => {
+      const zeilen = [];
+      const ergebnis = raeumeTemporaere(BESTAND, {
+        entfernen: (name) => {
+          if (name.endsWith('Portable.exe')) throw new Error('EBUSY');
+        },
+        log: (zeile) => zeilen.push(zeile),
+      });
+      expect(ergebnis.gescheitert).toEqual(['EM4me-T-0.105.0-202608071325-Portable.exe']);
+      expect(ergebnis.entfernt).toHaveLength(2);
+      expect(zeilen.join('\n')).toContain('laeuft er noch?');
+    });
+
+    it('meldet nach dem Aufraeumen nur noch den frischen Stand', () => {
+      const zeilen = [];
+      const code = archiveBuild(BESTAND, {
+        tagExists: () => false,
+        guardBuildNumber: () => null,
+        move: vi.fn(() => true),
+        copyNotes: vi.fn(() => true),
+        writeChecksums: vi.fn(() => true),
+        raeumeTemporaere: () => ({
+          entfernt: BESTAND.filter((n) => n.includes('202608071325')),
+          gescheitert: [],
+        }),
+        meldeTemporaere: (namen) => zeilen.push(...namen),
+      });
+      expect(code).toBe(0);
+      expect(zeilen).toEqual([
+        'EM4me-T-0.105.0-202608071358-Portable.exe',
+        'EM4me-T-0.105.0-202608071358-Setup.exe',
+      ]);
+    });
+  });
+
+  // Anordnung des Product Owners vom 2026-08-07: dist/ traegt nur den aktuellen
+  // Bau, also auch keine Blockmaps frueherer Bauten. Das Aufraeumen gab es
+  // schon einmal (Aenderungsprotokoll 0.11.0) und ging mit dem Rueckbau des
+  // Auto-Update-Apparats verloren.
+  describe('Aufraeumen verwaister Blockmaps', () => {
+    it('entfernt Blockmaps ohne zugehoerige Programmdatei, ueber alle Produktnamen hinweg', () => {
+      const entfernt = [];
+      raeumeWaisenBlockmaps(
+        [
+          'EM4me-T-0.105.0-202608071358-Setup.exe',
+          'EM4me-T-0.105.0-202608071358-Setup.exe.blockmap',
+          'EM4me-0.104.0-Setup.exe.blockmap',
+          'Perspective Markdown++-0.30.0-Setup.exe.blockmap',
+          'SCG Markdown-0.24.0-Setup.exe.blockmap',
+          'builder-debug.yml',
+          'win-unpacked',
+        ],
+        { entfernen: (name) => entfernt.push(name), log: () => {} },
+      );
+      expect(entfernt).toEqual([
+        'EM4me-0.104.0-Setup.exe.blockmap',
+        'Perspective Markdown++-0.30.0-Setup.exe.blockmap',
+        'SCG Markdown-0.24.0-Setup.exe.blockmap',
+      ]);
+    });
+
+    it('laesst die Blockmap des aktuellen Baus stehen', () => {
+      const entfernt = [];
+      raeumeWaisenBlockmaps(['EM4me-0.106.0-Setup.exe', 'EM4me-0.106.0-Setup.exe.blockmap'], {
+        entfernen: (name) => entfernt.push(name),
+        log: () => {},
+      });
+      expect(entfernt).toEqual([]);
+    });
+
+    it('macht aus einer gesperrten Blockmap einen Hinweis, keinen Fehlschlag', () => {
+      const zeilen = [];
+      const ergebnis = raeumeWaisenBlockmaps(['EM4me-0.104.0-Setup.exe.blockmap'], {
+        entfernen: () => {
+          throw new Error('EBUSY');
+        },
+        log: (zeile) => zeilen.push(zeile),
+      });
+      expect(ergebnis.entfernt).toEqual([]);
+      expect(ergebnis.gescheitert).toEqual(['EM4me-0.104.0-Setup.exe.blockmap']);
+      expect(zeilen.join('\n')).toContain('verwaiste Beigabe');
+    });
+
+    // 4T-0957 (Nebenpunkt zu Befund B-06, Entscheidung des Product Owners vom
+    // 2026-08-11): Dieselbe Regel gilt fuer die Release-Hinweise. Sie sammelten
+    // sich ueber alle Versionen an und waren am 2026-07-22 die Voraussetzung
+    // eines echten Schadens, als ein pauschales Kopieren eine Archiv-Fassung
+    // mit einer aelteren Probe-Fassung ueberschrieb.
+    it('entfernt Release-Hinweise fremder Versionen und behaelt die des Baus', () => {
+      const entfernt = [];
+      raeumeWaisenBlockmaps(
+        [
+          'EM4me-0.106.0-Setup.exe',
+          'EM4me-0.106.0-Portable.exe',
+          'release-notes-0.106.0.md',
+          'release-notes-0.105.0.md',
+          'release-notes-0.88.0.md',
+          'builder-debug.yml',
+        ],
+        { entfernen: (name) => entfernt.push(name), log: () => {} },
+      );
+      expect(entfernt).toEqual(['release-notes-0.105.0.md', 'release-notes-0.88.0.md']);
+    });
+
+    // Ein temporaerer Bau fuehrt seine Basis-Version im Namen; die Hinweise
+    // dieser Version gehoeren zu ihm und bleiben.
+    it('behaelt die Hinweise der Basis-Version eines temporaeren Baus', () => {
+      const entfernt = [];
+      raeumeWaisenBlockmaps(
+        [
+          'EM4me-T-0.105.0-202608111521-Portable.exe',
+          'release-notes-0.105.0.md',
+          'release-notes-0.104.0.md',
+        ],
+        { entfernen: (name) => entfernt.push(name), log: () => {} },
+      );
+      expect(entfernt).toEqual(['release-notes-0.104.0.md']);
+    });
+
+    it('greift auch nach dem Archivieren, weil die Blockmap nicht mitwandert', () => {
+      const uebergeben = [];
+      archiveBuild(['EM4me-0.106.0-Setup.exe', 'EM4me-0.106.0-Setup.exe.blockmap'], {
+        tagExists: () => false,
+        guardBuildNumber: () => null,
+        move: vi.fn(() => true),
+        copyNotes: vi.fn(() => true),
+        writeChecksums: vi.fn(() => true),
+        raeumeWaisenBlockmaps: (verbleibend) => {
+          uebergeben.push(...verbleibend);
+          return { entfernt: [], gescheitert: [] };
+        },
+      });
+      // Die archivierte EXE ist raus, ihre Blockmap steht allein da.
+      expect(uebergeben).toEqual(['EM4me-0.106.0-Setup.exe.blockmap']);
+    });
+  });
+
+  it('archiviert ihn nicht und nennt stattdessen den Ordner', () => {
+    const move = vi.fn(() => true);
+    const melde = vi.fn();
+    const code = archiveBuild([TEMP], {
+      tagExists: () => false,
+      guardBuildNumber: () => null,
+      move,
+      copyNotes: vi.fn(() => true),
+      writeChecksums: vi.fn(() => true),
+      meldeTemporaere: melde,
+    });
+    expect(code).toBe(0);
+    expect(move).not.toHaveBeenCalled();
+    expect(melde).toHaveBeenCalledWith([TEMP]);
+  });
+
+  // Befund des ersten echten Laufs am 2026-08-07: Die EXEs blieben liegen, die
+  // Notes-Kopie lief aber weiter und schrieb erneut ins Versions-Archiv, weil
+  // ihr Filter allein an der package.json-Version haengt. Seither ruehrt ein
+  // temporaerer Bau das Archiv ueberhaupt nicht an.
+  it('ruehrt das Versions-Archiv auch dann nicht an, wenn Reste eines Releases in dist/ liegen', () => {
+    const move = vi.fn(() => true);
+    const copyNotes = vi.fn(() => true);
+    const writeChecksums = vi.fn(() => true);
+    const code = archiveBuild([TEMP, 'release-notes-0.105.0.md', 'EM4me-0.105.0-Portable.exe'], {
+      tagExists: () => false,
+      guardBuildNumber: () => null,
+      pkgVersion: '0.105.0',
+      move,
+      copyNotes,
+      writeChecksums,
+      meldeTemporaere: vi.fn(),
+    });
+    expect(code).toBe(0);
+    expect(move).not.toHaveBeenCalled();
+    expect(copyNotes).not.toHaveBeenCalled();
+    expect(writeChecksums).not.toHaveBeenCalled();
   });
 });
 

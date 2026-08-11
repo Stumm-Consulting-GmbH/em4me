@@ -481,3 +481,82 @@ test.describe('DP-10: Klick-Reaktivierung im Quelltext-Modus (F-114)', () => {
     }
   });
 });
+
+// B-09 (4T-0937, erhoben im Charter-Durchgang 4T-0899, Pruef-Runde 4): Der
+// Wert hinter dem Faelligkeits-Marker war nicht klickbar, der hinter dem
+// Erinnerungs-Marker in derselben Zeile schon. Anordnung des Product Owners
+// vom 2026-08-08: jeder Datums-Wert im Dokument ist anklickbar, ueberall
+// gleich. Die Abdeckung ueber ALLE Marker-Arten traegt der Waechter
+// test/unit/date-picker-marker-werte.test.js; hier steht der reale
+// Bedien-Weg am Beispiel des gemeldeten Markers.
+test.describe('DP-11: Datums-Wert eines Aufgaben-Markers ist klickbar (B-09)', () => {
+  test('Faelligkeits-Wert oeffnet den vorbelegten Waehler und wird ersetzt', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      await enterEditSource(app, page);
+      const editor = page.locator(SEL.editorContent0);
+
+      const taskLine = editor.locator('.cm-line', { hasText: 'Aufgabe mit Termin' });
+      const dateValue = taskLine.locator('.cm-live-date-value');
+      await expect(dateValue).toBeVisible({ timeout: 15000 });
+      await dateValue.click();
+
+      await expect(page.locator(POPUP)).toBeVisible();
+      // Vorbelegt auf den Wert der Zeile, ohne Uhrzeit (der Marker traegt
+      // ein reines Datum).
+      await expect(page.locator('#date-picker-toggle-date')).toBeChecked();
+      await expect(page.locator('#date-picker-toggle-time')).not.toBeChecked();
+      await expect(
+        page.locator(`${POPUP} button.date-picker-day[data-iso="2026-03-07"]`),
+      ).toHaveClass(/selected/);
+
+      await page.locator(`${POPUP} button.date-picker-day[data-iso="2026-03-14"]`).click();
+      await page.locator('#date-picker-ok').click();
+      await expect(page.locator(POPUP)).toBeHidden();
+
+      // An Ort und Stelle ersetzt, der Rest der Zeile unveraendert.
+      await expect(taskLine).toContainText('2026-03-14');
+      await expect(taskLine).not.toContainText('2026-03-07');
+      await expect(taskLine).toContainText('Aufgabe mit Termin');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// B-09, Live-Modus (AK4 in 4T-0937): Dort ersetzt ein Badge den Rohtext, die
+// Klick-Faehigkeit haengt also am Badge und nicht an der Text-Dekoration.
+// Bis 4T-0937 trug allein das ⏰-Badge einen Klick-Bereich.
+test.describe('DP-12: Marker-Badge im Live-Modus ist klickbar (B-09)', () => {
+  test('Klick auf das Faelligkeits-Badge oeffnet den vorbelegten Waehler', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      await enterEditLive(app, page);
+
+      const badge = page
+        .locator('.pane-group[data-pane="0"] .cm-live-task-marker-badge')
+        .filter({ hasText: '2026-03-07' })
+        .first();
+      await expect(badge).toBeVisible({ timeout: 15000 });
+      await badge.click();
+
+      await expect(page.locator(POPUP)).toBeVisible();
+      await expect(
+        page.locator(`${POPUP} button.date-picker-day[data-iso="2026-03-07"]`),
+      ).toHaveClass(/selected/);
+
+      await page.locator(`${POPUP} button.date-picker-day[data-iso="2026-03-21"]`).click();
+      await page.locator('#date-picker-ok').click();
+      await expect(page.locator(POPUP)).toBeHidden();
+
+      const taskLine = page
+        .locator(`${SEL.editorContent0} .cm-line`)
+        .filter({ hasText: 'Aufgabe mit Termin' });
+      await expect(taskLine).toContainText('2026-03-21');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

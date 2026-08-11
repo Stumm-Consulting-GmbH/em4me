@@ -207,10 +207,18 @@ describe('Uhr-Panel: Toggle und Persistenz (4T-0372)', () => {
     await clock.toggleClockPanel(0);
     expect(state.clock.visibleByPane[0]).toBe(true);
     expect(document.querySelector('.pane-group .sidebar-clock').hidden).toBe(false);
-    expect(writes).toEqual([
-      ['clockPanel.visibleColumn0', true],
-      ['clockPanel.visibleColumn1', false],
+    // 4T-0942 (Befund B-07): Das Einblenden aktiviert zusaetzlich den
+    // Gruppen-Reiter in DIESER Spalte; die Wahl liegt seither spaltenweise
+    // neben dem Layout. Geprueft wird deshalb die Menge der Schluessel und
+    // nicht mehr eine feste Reihenfolge.
+    expect(writes.map(([key]) => key).sort()).toEqual([
+      'clockPanel.visibleColumn0',
+      'clockPanel.visibleColumn1',
+      'sidebar.activeByColumn',
     ]);
+    expect(writes.find(([key]) => key === 'clockPanel.visibleColumn0')[1]).toBe(true);
+    expect(writes.find(([key]) => key === 'clockPanel.visibleColumn1')[1]).toBe(false);
+    expect(writes.find(([key]) => key === 'sidebar.activeByColumn')[1]['0']).toContain('clock');
     await clock.toggleClockPanel(0);
     expect(state.clock.visibleByPane[0]).toBe(false);
     expect(document.querySelector('.pane-group .sidebar-clock').hidden).toBe(true);

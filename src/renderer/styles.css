@@ -380,6 +380,8 @@ body {
    vor dem Umbau); die Ueberlauf-Mechanik der Kommando-Buttons greift dann
    ueber den gewachsenen Leisten-Inhalt. */
 .statusbar {
+  /* B-13 (4T-0904): Bezugsrahmen der Meldung, die ueber der Leiste schwebt. */
+  position: relative;
   display: grid;
   grid-template-columns: minmax(max-content, 1fr) max-content minmax(max-content, 1fr);
   align-items: center;
@@ -456,13 +458,40 @@ body {
 /* Statusbar-Hinweis fuer Auto-Save ("Gespeichert" / "Speichern fehlgeschlagen").
    Wird vom Renderer mit Klasse .visible eingeblendet, faden nach Ablauf
    automatisch wieder aus. */
+/* B-13 (4T-0904, Entscheidung des Product Owners vom 2026-08-10): Die
+   fluechtige Meldung schwebt UEBER der Statusleiste statt in ihr. Im Fluss der
+   rechten Zone verbreiterte sie diese und schob Wort-Zaehler, Zoom-Anzeige und
+   Knoepfe; innerhalb der Leiste schwebend verdeckte sie deren Knoepfe. Die
+   Leiste hat schlicht keinen freien Platz fuer einen Satz dieser Laenge —
+   deshalb liegt die Meldung darueber, mit eigener Flaeche, und verdeckt fuer
+   ihre Anzeige-Dauer einen schmalen Streifen des Dokuments. */
 .statusbar-hint {
+  position: absolute;
+  bottom: 100%;
+  /* Mittig ueber der Leiste (PO-Entscheidung vom 2026-08-10): linksbuendig
+     ging die Meldung im Rand unter, mittig faellt sie auf, ohne etwas zu
+     verdecken. */
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 20px);
+  margin-bottom: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-toolbar);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
   font-size: 12px;
   color: var(--fg-muted);
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
   pointer-events: none;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Ohne Text keine Flaeche: der leere Zustand zeigt keinen Kasten. */
+.statusbar-hint:empty {
+  display: none;
 }
 
 /* 4T-0072: Word-Count-Statusbar-Element. Klickbar, oeffnet den Detail-Dialog. */
@@ -6680,6 +6709,19 @@ body.focus-mode .title-line {
 }
 .settings-extensions-external-empty {
   margin: 8px 0;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+/* 4T-0927 (Epic 3E-0016): Diagnose-Zugang am Ende des Bereichs. Die Trennlinie
+   setzt ihn von den Paket-Aktionen darueber ab — er betrifft kein Paket,
+   sondern die Diagnose aller. */
+.settings-extension-external-diagnose {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.settings-extension-external-diagnose-hint {
+  margin: 0 0 6px;
   font-size: 12.5px;
   color: var(--fg-muted);
 }

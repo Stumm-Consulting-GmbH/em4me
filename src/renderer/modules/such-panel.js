@@ -252,7 +252,7 @@ export async function toggleSearchResultsPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.searchResults.visibleByPane[paneIdx];
   state.searchResults.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('searchresults');
+  if (next) await ensurePanelTabActive('searchresults', paneIdx);
   applySearchResultsVisibility(paneIdx);
   await persistSearchResultsSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {

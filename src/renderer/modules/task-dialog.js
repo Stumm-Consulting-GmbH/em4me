@@ -584,7 +584,18 @@ function resolveEditorView() {
 export async function runTaskEditDialogCommand() {
   if (!isExtensionActive('tasks')) return false;
   const view = resolveEditorView();
-  if (!view || view.state.readOnly) return false;
+  // B-11 (4T-0904, Nebenbefund): Ohne bearbeitbaren Editor brach die Funktion
+  // still ab, waehrend sie auf einer Nicht-Task-Zeile einen Hinweis zeigt —
+  // dieselbe Funktion schwieg also im einen Fall und erklaerte sich im
+  // anderen. Die Leitfrage der Pruef-Runde 4 verlangt das Erklaeren: Wer den
+  // Dialog in einer Lese-Ansicht ruft, bekommt jetzt den Grund zu sehen.
+  // Der Fall der abgeschalteten Erweiterung darueber bleibt bewusst still:
+  // Dort ist das Kommando aus Menue, Palette und Kuerzel-Tabelle gefiltert
+  // und damit gar nicht erreichbar.
+  if (!view || view.state.readOnly) {
+    showStatusbarHint(null, { text: t('taskDialog.needsEditor'), duration: 2500 });
+    return false;
+  }
   const lineObj = view.state.doc.lineAt(view.state.selection.main.head);
   const lineText = view.state.doc.sliceString(lineObj.from, lineObj.to);
   let model;

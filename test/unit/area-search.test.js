@@ -12,6 +12,16 @@ import {
   gibBereichsVorratFrei,
   CACHE_SCHEMA_VERSION,
 } from '../../src/main/area-search.js';
+import { createRequire } from 'node:module';
+
+// 4T-0949: Die Puffer-Schicht wird ueber DIESELBE Modul-Instanz gesetzt, die
+// area-search.js benutzt. Vitest fuehrt fuer 'import' und 'require' getrennte
+// Instanzen desselben Moduls; ein Overlay, das ueber den ESM-Import gesetzt
+// wird, saehe das Modul unter Test nicht. Im Hauptprozess gibt es nur den
+// CommonJS-Cache und damit eine Instanz — diese Naht ist reine Testumgebung.
+const { setBufferOverlay, clearAllBufferOverlays } = createRequire(import.meta.url)(
+  '../../src/main/backlinks.js',
+);
 
 let tmpDirs = [];
 
@@ -53,6 +63,7 @@ async function suche(root, optionen = {}) {
 }
 
 afterEach(() => {
+  clearAllBufferOverlays();
   gibBereichsVorratFrei();
   konfiguriereBereichsSuche({});
   for (const dir of tmpDirs) {
@@ -272,5 +283,43 @@ describe('Bereichs-Suchraum, Cache', () => {
     const res = await suche(root);
     expect(res.treffer).toHaveLength(4);
     expect(res.vorratModus).toBe('vorrat');
+  });
+});
+
+// 4T-0949 (Befund E-02, Story S-0787): Der geschriebene Stand eines offenen
+// Dokuments, das nicht das aktive ist. Der Renderer schickt nur den Stand der
+// aktiven Datei mit; jedes andere offene Dokument kam bis hierher von der
+// Platte. Gemessen wird gegen die Puffer-Overlay-Schicht des Hauptprozesses.
+describe('Bereichs-Suche: geschriebener Stand nicht-aktiver Dokumente', () => {
+  it('findet Puffer-Text und findet Platten-Text derselben Datei nicht mehr', async () => {
+    const root = makeRoot();
+    write(root, 'start.md', 'Ohne Fundstelle');
+    write(root, 'zweite.md', 'Hier steht Quittenbrot');
+
+    // Anker: Der Platten-Stand ist auffindbar, solange kein Puffer vorliegt.
+    const vorher = await sucheImBereich(root, {
+      muster: 'Quittenbrot',
+      flags: 'gm',
+      generation: 1,
+    });
+    expect(vorher.gruppen.map((g) => g.gruppe)).toEqual(['zweite.md']);
+
+    // Geschriebener, nicht gespeicherter Stand — ohne 'aktiv', denn genau das
+    // ist der Fall: Die geaenderte Datei ist nicht die aktive.
+    setBufferOverlay(path.join(root, 'zweite.md'), 'Jetzt steht hier Holunderblues');
+
+    gibBereichsVorratFrei(root);
+    const neu = await sucheImBereich(root, {
+      muster: 'Holunderblues',
+      flags: 'gm',
+      generation: 2,
+    });
+    expect(neu.gruppen.map((g) => g.gruppe)).toEqual(['zweite.md']);
+
+    gibBereichsVorratFrei(root);
+    const alt = await sucheImBereich(root, { muster: 'Quittenbrot', flags: 'gm', generation: 3 });
+    expect(alt.gruppen).toEqual([]);
+    // Die Platte ist unberuehrt geblieben.
+    expect(fs.readFileSync(path.join(root, 'zweite.md'), 'utf8')).toContain('Quittenbrot');
   });
 });

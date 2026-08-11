@@ -1,4 +1,4 @@
-// 4T-0881: Menü-Zustand eines Fensters erfassen ({ label, enabled } je
+// 4T-0881: Menü-Zustand eines Fensters erfassen ({ label, enabled, checked } je
 // Eintrag, flach über alle Untermenüs). Electron bietet keinen Getter für
 // win.setMenu-Menüs; deshalb wird setMenu am Ziel-Fenster abgefangen und der
 // nächste Neubau angestoßen (doppeltes Panel-Toggle lässt den Zustand
@@ -21,7 +21,16 @@ async function menuZustand(app, titelTeil) {
       const collect = (items) => {
         const out = [];
         for (const it of items || []) {
-          if (it.label) out.push({ label: it.label, enabled: it.enabled !== false });
+          // 4T-0899: `checked` kommt hinzu, weil der Haken-Zustand die
+          // eigentliche Kopplung traegt (Panel sichtbar <-> Haken gesetzt).
+          // Rein additiv: Bestands-Aufrufer lesen nur `enabled`. Nicht-
+          // ankreuzbare Eintraege liefern hier durchgaengig false.
+          if (it.label)
+            out.push({
+              label: it.label,
+              enabled: it.enabled !== false,
+              checked: it.checked === true,
+            });
           if (it.submenu) out.push(...collect(it.submenu.items));
         }
         return out;

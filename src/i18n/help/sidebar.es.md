@@ -1,6 +1,6 @@
 # Barra lateral
 
-La barra lateral agrupa los paneles de la app: desde marcadores, índice y área, pasando por propiedades, etiquetas y retroenlaces, hasta calendario, recordatorios y grafo del archivo (la lista completa está en la [tabla de funciones](functions.md)). Cada columna tiene un área de barra lateral a la izquierda y a la derecha del contenido. Qué paneles son visibles se conmuta por columna; la disposición de los paneles (lado, orden, grupos) se aplica a toda la aplicación.
+La barra lateral agrupa los paneles de la app: desde marcadores, índice y área, pasando por propiedades, etiquetas y retroenlaces, hasta calendario, recordatorios y grafo del archivo (la lista completa está en la [tabla de funciones](functions.md)). Cada columna tiene un área de barra lateral a la izquierda y a la derecha del contenido. Qué paneles son visibles se conmuta por columna; la disposición de los paneles (lado, orden, grupos) se aplica a toda la aplicación. En cambio, qué pestaña de un grupo está delante pertenece a cada columna: dos columnas contiguas pueden mostrar paneles distintos del mismo grupo, y las demás ventanas no se ven afectadas.
 
 ## Mostrar y ocultar paneles
 

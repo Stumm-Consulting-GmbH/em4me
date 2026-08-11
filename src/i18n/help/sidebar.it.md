@@ -1,6 +1,6 @@
 # Barra laterale
 
-La barra laterale raggruppa i pannelli dell'app: da segnalibri, indice e area, passando per proprietà, tag e backlink, fino a calendario, promemoria e grafo del file (l'elenco completo è nella [tabella delle funzioni](functions.md)). Ogni colonna dispone di un'area della barra laterale a sinistra e a destra del contenuto. Quali pannelli sono visibili si imposta per colonna; la disposizione dei pannelli (lato, ordine, gruppi) vale per l'intera applicazione.
+La barra laterale raggruppa i pannelli dell'app: da segnalibri, indice e area, passando per proprietà, tag e backlink, fino a calendario, promemoria e grafo del file (l'elenco completo è nella [tabella delle funzioni](functions.md)). Ogni colonna dispone di un'area della barra laterale a sinistra e a destra del contenuto. Quali pannelli sono visibili si imposta per colonna; la disposizione dei pannelli (lato, ordine, gruppi) vale per l'intera applicazione. Quale scheda di un gruppo è in primo piano appartiene invece alla singola colonna: due colonne affiancate possono mostrare pannelli diversi dello stesso gruppo, e le altre finestre restano invariate.
 
 ## Mostrare e nascondere i pannelli
 

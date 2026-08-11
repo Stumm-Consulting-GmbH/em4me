@@ -218,7 +218,7 @@ El ámbito de búsqueda es el mismo que el del índice de archivos:
 - **Con un área activa** abarca toda el área; las relaciones de enlaces (`FROM [[…]]`, `file.inlinks`) están completas allí.
 - **Sin área** abarca la carpeta del archivo más dos subniveles.
 
-Los archivos fuera del ámbito de búsqueda no aparecen en el resultado. Un archivo aún no guardado no tiene ámbito de búsqueda; la consulta muestra entonces una nota de que estará disponible tras guardar.
+Los archivos fuera del ámbito de búsqueda no aparecen en el resultado. Un archivo aún no guardado no tiene ámbito de búsqueda; la consulta muestra entonces una nota de que estará disponible tras guardar. En cambio, los cambios sin guardar de un archivo abierto se incluyen de inmediato en el resultado; no hace falta guardar nada para ello.
 
 ## Exportación
 

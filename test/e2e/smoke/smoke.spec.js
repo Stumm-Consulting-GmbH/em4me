@@ -39,17 +39,18 @@ async function waitForTab(page) {
 
 test.describe('SM-01: Start und Fenster', () => {
   test('App startet, Titel und Statusbar da, keine Konsolen-Errors', async () => {
+    // 4T-0901: Die frueher hier aufgebaute Konsolen-Pruefung ist entfallen.
+    // Sie registrierte ihren Zuhoerer erst NACH dem Hochfahren und sah damit
+    // keine Meldung der Start-Phase — ein waehrend des Starts ausgeloester
+    // Fehler liess diesen Fall gruen. Der zentrale Waechter in helpers/app.js
+    // haengt vor dem ersten Fenster und traegt die Zusicherung des Fall-Titels
+    // seither fuer jeden Fall der Suite.
     const { app, page, userData } = await launchApp();
-    const consoleErrors = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') consoleErrors.push(msg.text());
-    });
     try {
       await expect(page).toHaveTitle(/EM4me/);
       await expect(page.locator(SEL.statusbar)).toBeVisible();
       // Ohne Datei zeigt die App den Empty-State.
       await expect(page.locator(SEL.emptyState)).toBeVisible();
-      expect(consoleErrors).toEqual([]);
     } finally {
       await closeApp(app, userData);
     }

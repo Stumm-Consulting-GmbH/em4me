@@ -218,7 +218,7 @@ The search scope is the same as for the file index:
 - **With an active area** it covers the whole area; link relations (`FROM [[…]]`, `file.inlinks`) are complete there.
 - **Without an area** it covers the file's folder plus two sublevels.
 
-Files outside the search scope do not appear in the result. A file that has not been saved yet has no search scope; the query then shows a notice that it becomes available after saving.
+Files outside the search scope do not appear in the result. A file that has not been saved yet has no search scope; the query then shows a notice that it becomes available after saving. Unsaved changes in an open file, by contrast, are included in the result right away; nothing needs to be saved for that.
 
 ## Export
 

@@ -62,6 +62,12 @@ const EXTERNAL_CATEGORY = 'external';
 //   commands      optionale Liste von Kommando-IDs (src/shared/commands.js),
 //                 die bei deaktivierter Erweiterung aus Dispatcher, Menü,
 //                 Editor-Keymap und Handbuch-Generatoren gefiltert werden.
+//   featureKeys   optionale Liste von Funktions-Katalog-Schlüsseln
+//                 (help.feature.*), die diese Erweiterung trägt. Nötig nur
+//                 bei gebündelten Erweiterungen mit eigenen extension.*-Texten;
+//                 wo der descKey selbst ein Katalog-Schlüssel ist, ergibt sich
+//                 die Zuordnung daraus (4T-0941, Grundlage der Kennzeichnung
+//                 auf der generierten Funktions-Seite).
 //   settingsSections  optionale Liste von Bereichs-IDs der Einstellungs-
 //                 Seite (settings-page.js), die zu dieser Erweiterung
 //                 gehören: sie erscheinen nur bei aktiver Erweiterung in
@@ -131,6 +137,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'render',
     nameKey: 'extension.figures.name',
     descKey: 'extension.figures.description',
+    featureKeys: ['help.feature.imageSize', 'help.feature.implicitFigures'],
   },
   {
     id: 'definition-lists',
@@ -149,12 +156,14 @@ const INTERNAL_EXTENSIONS = [
     category: 'render',
     nameKey: 'extension.typography.name',
     descKey: 'extension.typography.description',
+    featureKeys: ['help.feature.subSup', 'help.feature.insertion'],
   },
   {
     id: 'attributes',
     category: 'render',
     nameKey: 'extension.attributes.name',
     descKey: 'extension.attributes.description',
+    featureKeys: ['help.feature.headingAttributes'],
   },
   {
     id: 'spoiler',
@@ -256,6 +265,12 @@ const INTERNAL_EXTENSIONS = [
     category: 'linking',
     nameKey: 'extension.wiki-links.name',
     descKey: 'extension.wiki-links.description',
+    featureKeys: [
+      'help.feature.wikiLinkAnchors',
+      'help.feature.blockAnchors',
+      'help.feature.outgoingLinks',
+      'help.feature.backlinks',
+    ],
     // 4T-0567 (Epic 3E-0104): view.toggleSubpages gehoert zur Wiki-Link-
     // Auswertung (Panel-getVisible prueft wiki-links seit 4T-0341) — vorher
     // lief das unless()-Gate des Menue-Eintrags ins Leere und Menue/Palette
@@ -296,6 +311,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'linking',
     nameKey: 'extension.graph-view.name',
     descKey: 'extension.graph-view.description',
+    featureKeys: ['help.feature.areaGraph', 'help.feature.fileGraph'],
     commands: ['graph.openArea', 'view.toggleGraphPanel'],
   },
   // Werkzeug-Erweiterungen (4T-0294). 'focus-mode' buendelt Fokus-Modus
@@ -389,6 +405,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.focus-mode.name',
     descKey: 'extension.focus-mode.description',
+    featureKeys: ['help.feature.focusMode', 'help.feature.typewriterScroll'],
     commands: ['view.toggleFocusMode', 'view.toggleTypewriterScroll'],
   },
   // 4T-0697 (Epic 3E-0141): Sidebar-Spalten ein-/ausklappen als schaltbare
@@ -404,6 +421,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.sidebar-collapse.name',
     descKey: 'extension.sidebar-collapse.description',
+    featureKeys: ['help.feature.sidebarCollapse'],
     commands: ['view.toggleSidebarLeft', 'view.toggleSidebarRight'],
   },
   // 4T-0599 (Epic 3E-0112): Struktur-Bearbeitung von Listen als schaltbare
@@ -418,6 +436,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.outliner.name',
     descKey: 'extension.outliner.description',
+    featureKeys: ['help.feature.listOutline'],
     commands: ['list.moveUp', 'list.moveDown', 'list.selectSubtree'],
   },
   // 4T-0426 (Epic 3E-0080): Vorlagen als schaltbare Werkzeug-Erweiterung
@@ -482,6 +501,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.custom-calendars.name',
     descKey: 'extension.custom-calendars.description',
+    featureKeys: ['help.feature.customCalendars', 'help.feature.derivedCalendars'],
     commands: ['calendar.insertValue'],
     settingsSections: ['calendarSystems'],
   },
@@ -527,6 +547,11 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.tasks.name',
     descKey: 'extension.tasks.description',
+    featureKeys: [
+      'help.feature.taskMarkers',
+      'help.feature.taskGlobalFilter',
+      'help.feature.taskDialog',
+    ],
     settingsSections: ['tasks'],
     // 4T-0506 (Epic 3E-0096): der Task-Bearbeitungs-Dialog entfaellt im
     // Aus-Zustand (Dispatcher, Palette, Kontextmenue, Hilfe-Seiten).
@@ -546,6 +571,11 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.reminders.name',
     descKey: 'extension.reminders.description',
+    featureKeys: [
+      'help.feature.reminders',
+      'help.feature.reminderNotifications',
+      'help.feature.reminderList',
+    ],
     dependencies: ['tasks'],
     commands: ['task.setReminder', 'view.toggleReminders'],
     settingsSections: ['reminders'],
@@ -566,6 +596,11 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.events.name',
     descKey: 'extension.events.description',
+    featureKeys: [
+      'help.feature.events',
+      'help.feature.eventsAggregation',
+      'help.feature.eventsLinks',
+    ],
     dependencies: ['property-profiles'],
     commands: ['edit.insertEvents'],
   },
@@ -650,6 +685,12 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'extension.command-placement.name',
     descKey: 'extension.command-placement.description',
+    featureKeys: [
+      'help.feature.statusbarCommandButtons',
+      'help.feature.statusbarHideList',
+      'help.feature.contextMenuCommands',
+      'help.feature.macros',
+    ],
     settingsSections: ['commandPlacement'],
   },
   // 4T-0607 (Epic 3E-0114): Format-Toolbar als schaltbare Werkzeug-
@@ -898,6 +939,24 @@ function isExtensionEnabled(id, rawDisabled, list = allExtensions()) {
   return !effectiveDisabledSet(rawDisabled, list).has(id);
 }
 
+// 4T-0941: Katalog-Schlüssel aller effektiv deaktivierten Erweiterungen —
+// Grundlage der Kennzeichnung auf der generierten Funktions-Seite.
+//
+// Zwei Quellen, beide am Manifest: Bei den meisten Erweiterungen IST der
+// `descKey` der Katalog-Schlüssel ihrer Zeile; gebündelte Erweiterungen mit
+// eigenen `extension.*`-Texten nennen ihre Zeilen in `featureKeys`. Die
+// Zuordnung wird damit an einer Stelle gepflegt und nicht doppelt geführt.
+function disabledFeatureKeySet(rawDisabled, list = allExtensions()) {
+  const disabled = effectiveDisabledSet(rawDisabled, list);
+  const keys = new Set();
+  for (const m of list) {
+    if (!disabled.has(m.id)) continue;
+    if (typeof m.descKey === 'string' && m.descKey.startsWith('help.feature.')) keys.add(m.descKey);
+    for (const k of m.featureKeys || []) keys.add(k);
+  }
+  return keys;
+}
+
 // Kommando-IDs aller effektiv deaktivierten Erweiterungen — Grundlage der
 // Filterung in Dispatcher, Editor-Keymap, Menü und Handbuch-Generatoren.
 function disabledCommandIdSet(rawDisabled, list = allExtensions()) {
@@ -937,5 +996,6 @@ module.exports = {
   effectiveDisabledSet,
   isExtensionEnabled,
   disabledCommandIdSet,
+  disabledFeatureKeySet,
   disabledSettingsSectionIdSet,
 };

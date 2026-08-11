@@ -1154,7 +1154,7 @@ export async function togglePropertiesPanel(paneIdx) {
   const next = !state.properties.visibleByPane[paneIdx];
   state.properties.visibleByPane[paneIdx] = next;
   // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
-  if (next) await ensurePanelTabActive('properties');
+  if (next) await ensurePanelTabActive('properties', paneIdx);
   applyPropertiesVisibility(paneIdx);
   await persistPropertiesSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
@@ -1206,7 +1206,7 @@ export async function toggleTagsPanel(paneIdx) {
   const next = !state.tags.visibleByPane[paneIdx];
   state.tags.visibleByPane[paneIdx] = next;
   // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
-  if (next) await ensurePanelTabActive('tags');
+  if (next) await ensurePanelTabActive('tags', paneIdx);
   applyTagsVisibility(paneIdx);
   await persistTagsSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {

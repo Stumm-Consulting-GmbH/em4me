@@ -39,7 +39,7 @@ Die `manifest.json` beschreibt das Paket:
 |---|---|---|
 | `id` | ja | Stabile Kennung in Kleinbuchstaben mit Bindestrichen (kebab-case); muss dem Ordnernamen entsprechen. |
 | `name` | ja | Anzeigename im Einstellungs-Bereich und im Warn-Dialog. |
-| `version` | ja | Paket-Version (`major.minor.patch`). Die Vertrauens-Bestätigung gilt je Version; nach einem Versions-Wechsel ist eine erneute Bestätigung nötig. |
+| `version` | ja | Paket-Version: ein bis drei durch Punkte getrennte Zahlen, also `major`, `major.minor` oder `major.minor.patch`. Die Vertrauens-Bestätigung gilt je Version; nach einem Versions-Wechsel ist eine erneute Bestätigung nötig. |
 | `apiVersion` | ja | API-Version, gegen die das Paket gebaut ist (siehe Versionierung). |
 | `entry` | eines von beiden | UI-Einstiegspunkt: ES-Modul mit `activate(ctx)`. |
 | `markdownPlugin` | eines von beiden | Render-Beitrag: Datei, die ein markdown-it-Plugin exportiert. |
@@ -55,6 +55,14 @@ Die `manifest.json` beschreibt das Paket:
 4. Die Erweiterung wirkt sofort und in allen Fenstern; der Zustand übersteht den Neustart.
 
 „Deaktivieren" nimmt alle Beiträge sofort zurück (die Bestätigung bleibt gespeichert, erneutes Aktivieren derselben Version fragt nicht erneut). „Entfernen…" löscht den Paket-Ordner nach einer eigenen Bestätigung endgültig.
+
+## Änderung eines installierten Pakets
+
+Geänderter Code eines bereits installierten Pakets wird **erst nach einem Neustart der Anwendung** ausgeführt. Das gilt für beide Beitrags-Wege gleichermaßen, also für den UI-Einstiegspunkt wie für den Render-Beitrag.
+
+Weder „Aktualisieren" noch „Deaktivieren" mit anschließendem „Aktivieren" nimmt den neuen Stand auf: „Aktualisieren" sucht nach neuen und entfernten Paketen, und beide Handgriffe arbeiten mit dem Code, der beim Start geladen wurde. Bis zum Neustart läuft weiter die vorherige Fassung, auch wenn auf der Platte bereits die neue steht.
+
+Für die Arbeit an einer Erweiterung heißt das: ändern, Anwendung neu starten, prüfen. Nur das Anlegen und Entfernen von Paket-Ordnern und das Umschalten zwischen aktiv und inaktiv wirken ohne Neustart.
 
 ## Render-Beitrag: markdown-it-Plugin
 
@@ -218,7 +226,7 @@ Stabilitäts-Zusage: die auf dieser Seite dokumentierten Signaturen bleiben inne
 
 - Wirft eine Erweiterung beim Laden (Manifest-Fehler, Import-Fehler, `activate`, Plugin-Registrierung), wird sie automatisch deaktiviert; der Einstellungs-Bereich zeigt den Status „Fehler" mit dem Fehlertext — auch nach einem Neustart.
 - Ungültige Manifeste werden mit Diagnose-Details gelistet und nie geladen.
-- Fehler in Kommandos oder beim Panel-Zeichnen zur Laufzeit brechen die App nicht ab; Details stehen im Konsolen-Log.
+- Fehler in Kommandos oder beim Panel-Zeichnen zur Laufzeit brechen die App nicht ab; Details stehen im Konsolen-Log. Es steht im Einstellungs-Bereich Erweiterungen (extern): Die Schaltfläche „Entwickler-Werkzeuge" ganz unten öffnet die Werkzeuge für das aktuelle Fenster, und dieselbe Schaltfläche schließt sie wieder. Die Meldungen erscheinen dort im Reiter „Console".
 - „Aktivieren…" nach einem Fehler versucht das Laden erneut (der Fehlertext wird dabei zurückgesetzt).
 
 ## Qualitäts-Hinweise
@@ -227,6 +235,7 @@ Die Fehler-Isolation fängt Abstürze ab, nicht schlechte Qualität. In deiner V
 
 - **Rendering-Performance:** markdown-it-Regeln laufen bei jedem Rendern; teure Regeln bremsen Tippen und Vorschau.
 - **Saubere Ausgabe:** erzeugtes HTML sollte zum Dokument-Stil passen und keine fremden Ressourcen nachladen (Demo-Links auf `example.org`).
+- **Geschriebener Stand statt gespeichertem:** Bindet dein Konstrukt Daten anderer Stellen ein, zeigt es den Stand des offenen Editors und nicht den der zuletzt gespeicherten Datei. Wer Daten des Programms abfragt, bekommt sie samt der ungespeicherten Änderungen offener Dokumente; wer selbst von der Platte liest, umgeht das und zeigt einen veralteten Stand.
 - **Aufräumen:** eigene Timer, Listener außerhalb der registrierten Beiträge und globale Zustände gehören in `deactivate()`.
 
 Als lauffähige Vorlage dient die Referenz-Erweiterung **Notiz-Merker**. Sie nutzt alle Beitrags-Arten dieser Seite in einem Stück: Eine eigene Syntax markiert Textstellen als Merker, ein Panel sammelt sie als anspringbare Liste, ein Kommando geht sie durch, ein Einstellungs-Bereich steuert Farbe und Sortierung. Sie liegt im veröffentlichten Quellcode des Programms im Ordner `addon_examples/notiz-merker/` und bringt ein eigenes README mit, das auch die Grenzen benennt, auf die jede eigene Erweiterung trifft.

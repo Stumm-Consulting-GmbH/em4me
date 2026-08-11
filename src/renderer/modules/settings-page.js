@@ -28,7 +28,12 @@ import {
 } from './app-state.js';
 import { closeTab } from './tabs.js';
 import { persistSetting, showStatusbarHint } from './views.js';
-import { findSystemTabAcrossPanes, openSystemPage, registerSystemPage } from './system-pages.js';
+import {
+  findSystemTabAcrossPanes,
+  openSystemPage,
+  registerSystemPage,
+  systemPageOpenCount,
+} from './system-pages.js';
 // 4T-0204: Task-Status-Verwaltung (Aufloesung, Persistenz-Form, Anwenden).
 import {
   TASK_STATE_FORBIDDEN_CHARS,
@@ -1187,8 +1192,26 @@ export async function applySettingsPage() {
   return true;
 }
 
+// 4T-0701 (Epic 3E-0161): OK ist ein asynchroner Zyklus — der Klick kehrt
+// zurueck, waehrend applySettingsPage noch auf den apply-Hooks steht. In
+// diesem Fenster kann eine neue Oeffnungs-Anforderung eintreffen (Kuerzel,
+// Menue, Kommando-Palette), und weil die Seite bis zum Schluss offen ist,
+// aktiviert sie den bestehenden Reiter. Ohne Absicherung nahm die
+// verspaetete Fortsetzung dem Nutzer genau die Seite weg, die er soeben
+// angefordert hatte: Spalte 0 wurde leer, die view-system-Ansicht fiel weg,
+// und die Navigations-Eintraege blieben als unsichtbares DOM stehen.
+//
+// Die Absicherung ist der Oeffnungs-Stand der Seite, festgehalten vor dem
+// Warten (Muster der generation-Pruefungen der asynchronen Nachlade-Pfade
+// weiter oben). Ist er gestiegen, gilt die spaetere Absicht: Die Seite
+// bleibt offen, das Anwenden hat trotzdem stattgefunden. Bewusst NICHT
+// geloest ueber eine festgehaltene Reiter-Referenz: Die Anforderung trifft
+// denselben Reiter, eine Identitaets-Pruefung wuerde ihn also genauso
+// schliessen.
 export async function okSettingsPage() {
+  const openCount = systemPageOpenCount(SETTINGS_PAGE_ID);
   if ((await applySettingsPage()) === false) return;
+  if (systemPageOpenCount(SETTINGS_PAGE_ID) !== openCount) return;
   closeSettingsTab();
 }
 
@@ -6820,6 +6843,31 @@ function renderExternalExtensionsSection(container) {
     ),
   );
   container.appendChild(footer);
+
+  // 4T-0927 (Epic 3E-0016): Zugang zu den Entwickler-Werkzeugen, seit dem
+  // Entfall des Menueeintrags samt F12 der einzige. Er steht bewusst am Ende
+  // und abgesetzt in einem eigenen Block: Er betrifft kein einzelnes Paket,
+  // sondern die Diagnose aller, und ist ein Werkzeug und keine Bedien-Funktion
+  // der Anwendung. Der erklaerende Satz daneben sagt, wofuer er da ist —
+  // ohne ihn waere die Schaltflaeche an dieser Stelle ein Raetsel.
+  const diagnose = document.createElement('div');
+  diagnose.className = 'settings-extension-external-diagnose';
+  const hint = document.createElement('p');
+  hint.className = 'settings-extension-external-diagnose-hint';
+  hint.textContent = t('settings.extensionsExternal.diagnose.hint');
+  diagnose.appendChild(hint);
+  diagnose.appendChild(
+    buildExternalActionButton(
+      'settings.extensionsExternal.action.devTools',
+      'devtools',
+      async () => {
+        if (typeof api.toggleDevTools === 'function') {
+          await api.toggleDevTools();
+        }
+      },
+    ),
+  );
+  container.appendChild(diagnose);
 }
 
 // --- Seiten-DOM ----------------------------------------------------------------
@@ -6864,6 +6912,34 @@ function internalExtensionSectionIdSet() {
   return ids;
 }
 
+// 4T-0900 (Register-Paar 12/13-Muster): Beansprucht eine Erweiterung einen
+// Bereich, den es nicht gibt (Tippfehler, umbenannter oder entfernter
+// Bereich), fiel das bisher still durch: Der Anspruch trifft ins Leere, und
+// beim Abschalten der Erweiterung verschwindet nichts. Umgekehrt landet ein
+// real registrierter Bereich ohne Anspruch im Block «Allgemein» statt bei den
+// Erweiterungen — auch das ohne jede Meldung.
+//
+// Geprueft wird gegen die UNGEFILTERTE Bereichs-Menge: settingsSections()
+// blendet die Bereiche abgeschalteter Erweiterungen aus, und gegen diese
+// Liste haette jede abgeschaltete Erweiterung einen Fehlalarm ausgeloest.
+//
+// Je Kennung nur einmal, weil der Navigations-Aufbau bei jedem Mount, jedem
+// Erweiterungs-Umschalten und jedem Bereichs-Wechsel erneut laeuft. Scharf
+// wird die Meldung ueber den Konsolen-Waechter der Ablauf-Laeufe (4T-0901).
+const gemeldeteFehlAnsprueche = new Set();
+
+function meldeUnerfuellteBereichsAnsprueche(beansprucht) {
+  const real = new Set([...FIXED_SECTIONS, ...dynamicSections].map((s) => s.id));
+  for (const id of beansprucht) {
+    if (real.has(id) || gemeldeteFehlAnsprueche.has(id)) continue;
+    gemeldeteFehlAnsprueche.add(id);
+    console.error(
+      `Erweiterung beansprucht den Einstellungs-Bereich '${id}', den es nicht gibt: ` +
+        'Der Bereich verschwindet beim Abschalten der Erweiterung nicht.',
+    );
+  }
+}
+
 // Block einer Sektion. Die Prüf-Reihenfolge ist bedeutungstragend: eine
 // bereichsgebundene Sektion bleibt im Bereichs-Block, auch wenn sie zu
 // einer Erweiterung gehört (z.B. journals, templatesArea) — der Bezug zum
@@ -6887,6 +6963,7 @@ function navGroupOfSection(section, extensionSectionIds) {
 function buildSettingsNavEntries(nav) {
   nav.innerHTML = '';
   const extensionSectionIds = internalExtensionSectionIdSet();
+  meldeUnerfuellteBereichsAnsprueche(extensionSectionIds);
   const byGroup = new Map(NAV_GROUP_DEFS.map((def) => [def.id, []]));
   for (const section of settingsSections()) {
     byGroup.get(navGroupOfSection(section, extensionSectionIds)).push(section);

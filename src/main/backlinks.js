@@ -1296,6 +1296,39 @@ function addToTagMap(entry, filePath, tags) {
   }
 }
 
+// 4T-0950 (Befund E-03): Tag-Zuordnung aus einer Sicht ableiten, statt die im
+// Index gepflegten Umkehr-Abbildungen zu lesen.
+//
+// Hintergrund: tagMap und tagDisplay bilden Tag -> Dateien ab und werden beim
+// Indexieren fortgeschrieben. Die Puffer-Overlay-Schicht kann sie nicht
+// mitpatchen, weil sie je Datei arbeitet und ein Overlay einen Tag auch
+// ENTFERNEN kann — dafür müsste sie den Beitrag der Datei aus einer geteilten
+// Menge herausrechnen. Diese Ableitung baut beide Abbildungen stattdessen aus
+// tagsPerFile neu auf, das die Overlay-Sicht führt.
+//
+// Die Regeln des Index bleiben dabei erhalten: Schlüssel ist die getrimmte
+// Kleinschreibung, und als Anzeige gilt das zuerst gesehene Casing.
+function tagMapsAusSicht(sicht) {
+  const tagMap = new Map();
+  const tagDisplay = new Map();
+  for (const [filePath, tags] of sicht.tagsPerFile) {
+    for (const t of tags || []) {
+      const key = String(t || '')
+        .trim()
+        .toLowerCase();
+      if (!key) continue;
+      let set = tagMap.get(key);
+      if (!set) {
+        set = new Set();
+        tagMap.set(key, set);
+      }
+      set.add(filePath);
+      if (!tagDisplay.has(key)) tagDisplay.set(key, String(t).trim());
+    }
+  }
+  return { tagMap, tagDisplay };
+}
+
 function removeFromTagMap(entry, filePath, tags) {
   for (const t of tags) {
     const key = String(t || '')
@@ -1473,7 +1506,15 @@ function tagsFor(filePath, filterTag, areaRoot) {
   if (entry.status === 'error') {
     return { status: 'error', meta: { wurzel: root } };
   }
-  const tags = getAllTagsWithCounts(entry);
+  // 4T-0950 (Befund E-03): Puffer-Overlay freigeschaltet. Ein gerade
+  // getippter Tag erscheint damit in der Liste, ein gerade gelöschter
+  // verschwindet, ohne dass gespeichert werden muss.
+  const overlays = overlaysUnder(root);
+  // Ohne Overlay bleibt es bei den im Index gepflegten Abbildungen; das ist
+  // der häufige Fall und spart den Neuaufbau. (overlaysUnder liefert null,
+  // wenn es nichts zu überlagern gibt.)
+  const maps = overlays ? tagMapsAusSicht(entryWithOverlay(entry, overlays)) : entry;
+  const tags = getAllTagsWithCounts(maps);
   const result = {
     status: 'ready',
     meta: { wurzel: root, fileCount: entry.fileCount, skippedDirs: entry.skippedDirs || 0 },
@@ -1481,7 +1522,7 @@ function tagsFor(filePath, filterTag, areaRoot) {
   };
   if (filterTag) {
     result.filterTag = filterTag;
-    result.files = filesForTag(entry, filterTag);
+    result.files = filesForTag(maps, filterTag);
   }
   return result;
 }
@@ -1623,6 +1664,123 @@ function relPortable(root, absPath) {
   return path.relative(root, absPath).split(path.sep).join('/');
 }
 
+// --- Puffer-Overlay (4T-0935, Befund B-08) ---------------------------------------
+// Zweite, ausdrueckliche Schicht ueber dem Index: je Datei-Pfad optional der
+// Parse des GESCHRIEBENEN Stands aus dem Editor-Puffer. Die Platten-Schicht
+// bleibt unangetastet daneben liegen; der Datei-Beobachter bleibt damit Herr
+// ueber sie, und ein Overlay verschwindet erst mit Speichern, Verwerfen oder
+// Schliessen.
+//
+// Die Schicht wirkt NICHT von selbst. Nur wer sie ausdruecklich anfordert,
+// sieht sie — freigeschaltet sind in 4T-0935 die drei Verbraucher der
+// gerenderten Ansicht (frontmatterQueryFor, scriptDataFor, eventsForQuery).
+// Die uebrigen neun Index-Verbraucher (Backlinks, Tags, Graph, Autocomplete,
+// Ziel-Aufloesung samt Linter, Embeds) sehen weiter den Platten-Stand; ob sie
+// folgen sollen, erhebt 4T-0936 und entscheidet der Product Owner.
+//
+// Sie liegt bewusst im Hauptprozess und gilt damit fensteruebergreifend: Der
+// gemeldete Fall hatte dieselbe Datei in zwei Fenstern offen. Melden zwei
+// Fenster verschiedene Staende derselben Datei, gilt der zuletzt gemeldete —
+// dieselbe Regel, die beim Speichern ohnehin greift.
+// 4T-0948 (Befund E-01): Der Eintrag fuehrt neben dem Parse den ROH-TEXT, weil
+// die Wiki-Einbettung ihren Anker am Text schneidet (extractEmbedSnippet). Die
+// uebrigen Verbraucher sehen davon nichts: overlaysUnder reicht wie bisher
+// allein den Parse weiter.
+const bufferOverlays = new Map(); // absPath -> { parsed, text }
+
+function setBufferOverlay(filePath, content) {
+  if (typeof filePath !== 'string' || !filePath) return false;
+  if (typeof content !== 'string') return false;
+  bufferOverlays.set(filePath, { parsed: parseContent(filePath, content), text: content });
+  return true;
+}
+
+function clearBufferOverlay(filePath) {
+  return bufferOverlays.delete(filePath);
+}
+
+function clearAllBufferOverlays() {
+  bufferOverlays.clear();
+}
+
+// Overlays unterhalb einer Wurzel. Leere Map = nichts zu ueberlagern; die
+// Aufrufer geben dann den Original-Eintrag weiter und zahlen nichts.
+function overlaysUnder(root) {
+  if (bufferOverlays.size === 0) return null;
+  const treffer = new Map();
+  for (const [absPath, eintrag] of bufferOverlays) {
+    if (isInsideArea(root, absPath)) treffer.set(absPath, eintrag.parsed);
+  }
+  return treffer.size > 0 ? treffer : null;
+}
+
+// 4T-0948 (Befund E-01): Roh-Text-Auskunft fuer Verbraucher, die den
+// geschriebenen Stand als Text brauchen (Wiki-Einbettung). Ohne Bereichs-
+// Filter, weil der Aufrufer den Ziel-Pfad bereits geprueft hat. Der zweite
+// Anlauf ohne Ruecksicht auf Gross- und Kleinschreibung gilt nur unter
+// Windows und faengt '![[quelle]]' gegen 'Quelle.md'; wo das Dateisystem die
+// Schreibweise unterscheidet, waeren das zwei Dateien.
+function bufferTextFor(absPath) {
+  if (typeof absPath !== 'string' || !absPath) return null;
+  const genau = bufferOverlays.get(absPath);
+  if (genau) return genau.text;
+  if (process.platform !== 'win32') return null;
+  const gesucht = absPath.toLowerCase();
+  for (const [pfad, e] of bufferOverlays) if (pfad.toLowerCase() === gesucht) return e.text;
+  return null;
+}
+
+// Map-artige Sicht: Werte des Patches gewinnen, Schluessel beider Seiten sind
+// sichtbar. Bewusst kein Kopieren der Basis-Map — die Auswertungen laufen bei
+// jedem Tastendruck (debounced) und ein Bereich kann tausende Dateien fuehren.
+function overlayView(base, patch) {
+  return {
+    get: (k) => (patch.has(k) ? patch.get(k) : base.get(k)),
+    has: (k) => patch.has(k) || base.has(k),
+    get size() {
+      let n = base.size;
+      for (const k of patch.keys()) if (!base.has(k)) n++;
+      return n;
+    },
+    *keys() {
+      for (const k of base.keys()) yield k;
+      for (const k of patch.keys()) if (!base.has(k)) yield k;
+    },
+    *[Symbol.iterator]() {
+      for (const k of base.keys()) yield [k, patch.has(k) ? patch.get(k) : base.get(k)];
+      for (const [k, v] of patch) if (!base.has(k)) yield [k, v];
+    },
+  };
+}
+
+// Eintrags-Sicht mit ueberlagerten Datei-Daten. Ueberlagert werden die
+// Bestaende, die aus dem Datei-Text stammen; Datei-Groesse und Zeitstempel
+// bleiben die der Platte, weil ein ungespeicherter Puffer keine hat (eine
+// Abfrage ueber file.mtimeMs sieht also weiter den Speicher-Zeitpunkt).
+// Ebenso bleibt der Link-Graph der der Platte: Er wird ueber alle Dateien
+// gebaut und gecacht; ein FROM-Link-Bezug auf einen erst geschriebenen Link
+// wirkt deshalb erst nach dem Speichern.
+function entryWithOverlay(entry, overlays) {
+  if (!overlays || overlays.size === 0) return entry;
+  const patchOf = (feld, wandeln) => {
+    const m = new Map();
+    for (const [absPath, parsed] of overlays) m.set(absPath, wandeln(parsed));
+    return overlayView(entry[feld], m);
+  };
+  return {
+    ...entry,
+    files: patchOf('files', (p) => p.hits),
+    propertiesPerFile: patchOf('propertiesPerFile', (p) => p.properties || {}),
+    tasksPerFile: patchOf('tasksPerFile', (p) => (Array.isArray(p.tasks) ? p.tasks : [])),
+    tagsPerFile: patchOf('tagsPerFile', (p) => p.tags || []),
+    aliasesPerFile: patchOf('aliasesPerFile', (p) => p.aliases || []),
+    anchorsPerFile: patchOf('anchorsPerFile', (p) => ({
+      headings: new Set(p.headings || []),
+      blockIds: new Set(p.blockIds || []),
+    })),
+  };
+}
+
 // 4T-0402 (Epic 3E-0076): Kontext-Struktur einer Datei fuer den Evaluator
 // (Werte-Vertrag siehe perspective-query-eval.js). linkGraph darf null sein
 // (Abfrage ohne Link-Bezug); inlinks/outlinks sind dann leere Listen.
@@ -1703,11 +1861,13 @@ function eventsForQuery(filePath, queryText, areaRoot, opts) {
   const linkGraph = ast && queryUsesLinks(ast) ? entry.linkGraph : null;
   const profileName = String((opts && opts.profileName) || '').toLowerCase();
   const events = [];
-  for (const [absPath, props] of entry.propertiesPerFile) {
+  // 4T-0935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten Ansicht).
+  const sicht = entryWithOverlay(entry, overlaysUnder(root));
+  for (const [absPath, props] of sicht.propertiesPerFile) {
     const assigned = assignedProfileNames(props, opts && opts.assignField);
     if (!assigned.some((n) => n.toLowerCase() === profileName)) continue;
     if (ast) {
-      const ctx = buildQueryContext(entry, root, absPath, linkGraph, now, resolveLinkTarget);
+      const ctx = buildQueryContext(sicht, root, absPath, linkGraph, now, resolveLinkTarget);
       if (!matchesQuery(ast, ctx)) continue;
     }
     const stats = entry.fileStats.get(absPath) || {};
@@ -1855,6 +2015,10 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv) {
     if (!entry.linkGraph) entry.linkGraph = buildLinkGraph(entry);
     linkGraph = entry.linkGraph;
   }
+  // 4T-0935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten
+  // Ansicht). Erst hier, nach dem Link-Graph-Aufbau oben, damit dessen Cache
+  // am Original-Eintrag landet.
+  const sicht = entryWithOverlay(entry, overlaysUnder(root));
   const rows = [];
   // 4T-0502/4T-0508: TASKS-Scope in zwei Phasen — erst ALLE Task-Zeilen des
   // Bereichs zum Modell parsen (Global Filter angewandt), dann die
@@ -1863,8 +2027,8 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv) {
   // danach der Filter-Pass mit vollstaendigem Task-Kontext.
   if (taskScope) {
     const candidates = [];
-    for (const absPath of entry.files.keys()) {
-      const taskLines = entry.tasksPerFile.get(absPath);
+    for (const absPath of sicht.files.keys()) {
+      const taskLines = sicht.tasksPerFile.get(absPath);
       if (!taskLines || taskLines.length === 0) continue;
       for (const tl of taskLines) {
         const model = parseTaskLine(tl.text);
@@ -1890,7 +2054,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv) {
       const c = candidates[i];
       let fileCtx = fileCtxCache.get(c.absPath);
       if (!fileCtx) {
-        fileCtx = buildQueryContext(entry, root, c.absPath, linkGraph, now, resolveLinkTarget);
+        fileCtx = buildQueryContext(sicht, root, c.absPath, linkGraph, now, resolveLinkTarget);
         fileCtxCache.set(c.absPath, fileCtx);
       }
       const ctx = {
@@ -1914,7 +2078,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv) {
       if (matchesQuery(evalAst, ctx)) rows.push(ctx);
     }
   }
-  for (const absPath of taskScope ? [] : entry.files.keys()) {
+  for (const absPath of taskScope ? [] : sicht.files.keys()) {
     if (blockScope) {
       // 4T-0409 (Epic 3E-0077): BLOCKS-Scope — pro Block-Daten-Eintrag ein
       // Kontext aus Datei-Kontext plus Block ({ anchor, values, updatedMs },
@@ -1925,20 +2089,20 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv) {
       // liefern schlicht keine Treffer (kein Fehler-Zustand).
       const blocks = entry.blockDataPerFile.get(absPath);
       if (!blocks || blocks.length === 0) continue;
-      const anchorsMeta = entry.anchorsPerFile.get(absPath);
+      const anchorsMeta = sicht.anchorsPerFile.get(absPath);
       if (!anchorsMeta || anchorsMeta.blockIds.size === 0) continue;
       let fileCtx = null;
       for (const block of blocks) {
         if (!anchorsMeta.blockIds.has(block.anchor)) continue;
         if (!fileCtx) {
-          fileCtx = buildQueryContext(entry, root, absPath, linkGraph, now, resolveLinkTarget);
+          fileCtx = buildQueryContext(sicht, root, absPath, linkGraph, now, resolveLinkTarget);
         }
         const ctx = { ...fileCtx, block };
         if (matchesQuery(evalAst, ctx)) rows.push(ctx);
       }
       continue;
     }
-    const ctx = buildQueryContext(entry, root, absPath, linkGraph, now, resolveLinkTarget);
+    const ctx = buildQueryContext(sicht, root, absPath, linkGraph, now, resolveLinkTarget);
     if (matchesQuery(evalAst, ctx)) rows.push(ctx);
   }
   // Basis-Ordnung: Datei- und Block-Scope alphabetisch (Name, Pfad, Anker)
@@ -2123,12 +2287,16 @@ function scriptDataFor(filePath, areaRoot) {
   const now = Date.now();
   const pages = [];
   const blocks = [];
-  for (const absPath of entry.files.keys()) {
-    const ctx = buildQueryContext(entry, root, absPath, linkGraph, now, null);
+  // 4T-0935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten
+  // Ansicht). Die Sicht wird nach dem Link-Graph-Aufbau gebildet, damit der
+  // Cache am Original-Eintrag landet und nicht an der Sicht.
+  const sicht = entryWithOverlay(entry, overlaysUnder(root));
+  for (const absPath of sicht.files.keys()) {
+    const ctx = buildQueryContext(sicht, root, absPath, linkGraph, now, null);
     pages.push({ props: ctx.props, file: ctx.file });
     const blockEntries = entry.blockDataPerFile.get(absPath);
     if (!blockEntries || blockEntries.length === 0) continue;
-    const anchorsMeta = entry.anchorsPerFile.get(absPath);
+    const anchorsMeta = sicht.anchorsPerFile.get(absPath);
     if (!anchorsMeta || anchorsMeta.blockIds.size === 0) continue;
     for (const block of blockEntries) {
       if (!anchorsMeta.blockIds.has(block.anchor)) continue;
@@ -2977,10 +3145,16 @@ function graphFor(filePath, areaRoot) {
 // Aufrufer unterscheidet "noch nicht bereit" von "keine Treffer".
 function areaTaskLines(rootPath) {
   if (!rootPath) return null;
-  const entry = indexes.get(path.resolve(rootPath));
+  const root = path.resolve(rootPath);
+  const entry = indexes.get(root);
   if (!entry || entry.status !== 'ready') return null;
+  // 4T-0951 (Befund E-06): Puffer-Overlay freigeschaltet. Eine gerade
+  // getippte Erinnerung wird damit fällig, eine gerade gelöschte meldet sich
+  // nicht mehr — ohne dass gespeichert werden muss. Das wiegt schwerer als
+  // seine Häufigkeit, weil eine ausbleibende Erinnerung nicht auffällt.
+  const sicht = entryWithOverlay(entry, overlaysUnder(root));
   const out = [];
-  for (const [absPath, taskLines] of entry.tasksPerFile) {
+  for (const [absPath, taskLines] of sicht.tasksPerFile) {
     for (const tl of taskLines) {
       out.push({ path: absPath, zeile: tl.zeile, text: tl.text });
     }
@@ -3136,6 +3310,12 @@ module.exports = {
   tagsFor,
   // 4T-0354 (Epic 3E-0065): Frontmatter-Abfrage.
   frontmatterQueryFor,
+  // 4T-0935 (Befund B-08): Puffer-Overlay der gerenderten Ansicht.
+  setBufferOverlay,
+  clearBufferOverlay,
+  clearAllBufferOverlays,
+  // 4T-0948 (Befund E-01): Roh-Text der Schicht fuer die Wiki-Einbettung.
+  bufferTextFor,
   // 4T-0515 (Epic 3E-0092): Ereignis-Aggregation ueber das Frontmatter.
   eventsForQuery,
   // 4T-0525 (Epic 3E-0095): Roh-Task-Zeilen fuer den Erinnerungs-Pruefer.

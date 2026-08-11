@@ -727,7 +727,7 @@ export async function toggleClockPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.clock.visibleByPane[paneIdx];
   state.clock.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('clock');
+  if (next) await ensurePanelTabActive('clock', paneIdx);
   applyClockVisibility(paneIdx);
   // Im Empty-State haengt die Pane-Container-Sichtbarkeit an den Panel-
   // Praeferenzen — nachziehen (Muster Erinnerungs-/Bereichs-Panel).

@@ -1,6 +1,6 @@
 # Sidebar
 
-Die Sidebar bündelt die Panels der App — von Lesezeichen, Inhaltsverzeichnis und Bereich über Properties, Tags und Backlinks bis zu Kalender, Erinnerungen und Datei-Graph (die vollständige Liste zeigt die [Funktions-Tabelle](functions.md)). Jede Spalte hat eine Sidebar-Fläche links und rechts vom Inhalt. Welche Panels sichtbar sind, wird pro Spalte geschaltet; die Anordnung der Panels (Seite, Reihenfolge, Gruppen) gilt für die ganze App.
+Die Sidebar bündelt die Panels der App — von Lesezeichen, Inhaltsverzeichnis und Bereich über Properties, Tags und Backlinks bis zu Kalender, Erinnerungen und Datei-Graph (die vollständige Liste zeigt die [Funktions-Tabelle](functions.md)). Jede Spalte hat eine Sidebar-Fläche links und rechts vom Inhalt. Welche Panels sichtbar sind, wird pro Spalte geschaltet; die Anordnung der Panels (Seite, Reihenfolge, Gruppen) gilt für die ganze App. Welcher Reiter einer Gruppe gerade vorn liegt, gehört dagegen zur einzelnen Spalte: Zwei nebeneinander liegende Spalten können in derselben Gruppe verschiedene Panels zeigen, und andere Fenster bleiben davon unberührt.
 
 ## Panels ein- und ausblenden
 

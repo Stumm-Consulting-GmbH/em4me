@@ -31,7 +31,7 @@ import {
 // Tab-Gruppen-Imports).
 import { PANEL_ACCESS } from '../../shared/panel-access.js';
 import { getPanelToggleOrder } from './sidebar-layout.js';
-import { updateWindowTitle } from './editor.js';
+import { clearIndexOverlayFor, updateWindowTitle } from './editor.js';
 import {
   renderOutgoingLinks,
   updateBacklinksToggleButton,
@@ -507,6 +507,11 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
       )
     : true;
   if (tab.path && !stillElsewhere) await api.unwatchFile(tab.path);
+  // 4T-0935 (Befund B-08): Mit dem letzten Reiter auf diese Datei faellt auch
+  // ihr Puffer-Overlay weg — sonst zeigten Abfragen weiter den Stand eines
+  // Editors, den es nicht mehr gibt. Der Verwerfen-Zweig oben laeuft hier
+  // ebenfalls durch, damit eine verworfene Aenderung nicht ueberlebt.
+  if (tab.path && !stillElsewhere) void clearIndexOverlayFor(tab.path);
 
   pane.tabs.splice(tabIdx, 1);
   // 4T-0279: System-Seiten (Einstellungen) raeumen beim Schliessen auf —

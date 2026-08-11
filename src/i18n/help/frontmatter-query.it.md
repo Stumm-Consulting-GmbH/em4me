@@ -218,7 +218,7 @@ L'ambito di ricerca è lo stesso dell'indice dei file:
 - **Con un'area attiva** copre l'intera area; le relazioni di link (`FROM [[…]]`, `file.inlinks`) vi sono complete.
 - **Senza area** copre la cartella del file più due sottolivelli.
 
-I file fuori dall'ambito di ricerca non compaiono nel risultato. Un file non ancora salvato non ha ambito di ricerca; la query mostra allora una nota che indica che sarà disponibile dopo il salvataggio.
+I file fuori dall'ambito di ricerca non compaiono nel risultato. Un file non ancora salvato non ha ambito di ricerca; la query mostra allora una nota che indica che sarà disponibile dopo il salvataggio. Le modifiche non salvate di un file aperto, invece, entrano subito nel risultato; per questo non occorre salvare nulla.
 
 ## Esportazione
 

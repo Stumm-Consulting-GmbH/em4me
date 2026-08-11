@@ -1,7 +1,7 @@
 {
   "name": "em4me",
-  "version": "0.105.0",
-  "description": "Schlanker Markdown-Editor für Windows 11 mit Tabs, Quellcode-/Render-Ansicht, Auto-Reload und Mehrsprachigkeit.",
+  "version": "1.106.0",
+  "description": "Lokaler Markdown-Editor für Windows 11 mit Bereichen, Verweisen und Volltextsuche.",
   "main": "src/main/main.js",
   "scripts": {
     "start": "npm run build:renderer && electron .",
@@ -24,7 +24,7 @@
     "format:check": "prettier --check .",
     "knip": "knip"
   },
-  "author": "Matthias Stumm <matthias@stumm-net.de>",
+  "author": "Stumm-Consulting GmbH <matthias@stumm-net.de>",
   "license": "Apache-2.0",
   "private": true,
   "engines": {
@@ -80,7 +80,7 @@
     "yaml": "^2.9.0"
   },
   "build": {
-    "appId": "net.stumm.perspective-markdown",
+    "appId": "net.stumm.em4me",
     "productName": "EM4me",
     "copyright": "Copyright (c) 2026 Stumm-Consulting GmbH",
     "publish": null,
@@ -106,6 +106,16 @@
     "asarUnpack": [
       "src/i18n/**/*",
       "node_modules/@koromix/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "NOTICE",
+        "to": "NOTICE.txt"
+      }
     ],
     "win": {
       "icon": "src/assets/icon.ico",

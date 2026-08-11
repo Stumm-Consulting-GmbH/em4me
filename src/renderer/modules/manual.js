@@ -29,7 +29,7 @@ import {
   generateShortcutsPage as buildShortcutsPage,
 } from '../../shared/manual-generated.js';
 import { mergeBindings } from '../../shared/commands.js';
-import { disabledCommandIdSet } from '../../shared/extensions.js';
+import { disabledCommandIdSet, disabledFeatureKeySet } from '../../shared/extensions.js';
 import { getDisabledExtensionIds } from './extension-lifecycle.js';
 import { activatePane, activateTab } from './tabs.js';
 import { applyAllLayouts, invalidatePaneRenderCache, persistState } from './views.js';
@@ -45,7 +45,11 @@ import { applyAllLayouts, invalidatePaneRenderCache, persistState } from './view
 // deaktivierten Kommandos. Das erzeugte Markdown bleibt Zeichen fuer Zeichen
 // dasselbe wie zuvor (verhaltensneutral).
 export function generateFunctionsPage() {
-  return buildFunctionsPage(t);
+  // 4T-0941: Der Zustand der Erweiterungen geht als Laufzeit-Anteil mit; der
+  // Erzeuger kennzeichnet die betroffenen Zeilen, statt sie wegzulassen.
+  return buildFunctionsPage(t, {
+    disabledFeatureKeys: disabledFeatureKeySet(getDisabledExtensionIds()),
+  });
 }
 
 export function generateShortcutsPage() {

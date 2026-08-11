@@ -1094,7 +1094,7 @@ export async function toggleBlockPropsPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.blockProps.visibleByPane[paneIdx];
   state.blockProps.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('blockprops');
+  if (next) await ensurePanelTabActive('blockprops', paneIdx);
   applyBlockPropsVisibility(paneIdx);
   await persistBlockPropsSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
@@ -1111,14 +1111,14 @@ export async function openBlockPropsForAnchor(paneIdx, anchorId) {
   state.blockProps.activeAnchorByPane[paneIdx] = anchorId;
   if (!state.blockProps.visibleByPane[paneIdx]) {
     state.blockProps.visibleByPane[paneIdx] = true;
-    await ensurePanelTabActive('blockprops');
+    await ensurePanelTabActive('blockprops', paneIdx);
     applyBlockPropsVisibility(paneIdx);
     await persistBlockPropsSettings();
     if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
       reportMenuStateNow();
     }
   } else {
-    await ensurePanelTabActive('blockprops');
+    await ensurePanelTabActive('blockprops', paneIdx);
     applyBlockPropsVisibility(paneIdx);
   }
   jumpToAnchor(paneIdx, anchorId);

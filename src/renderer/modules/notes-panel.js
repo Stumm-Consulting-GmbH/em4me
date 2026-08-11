@@ -310,7 +310,7 @@ export async function toggleNotesPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.notes.visibleByPane[paneIdx];
   state.notes.visibleByPane[paneIdx] = next;
-  if (next) await ensurePanelTabActive('notes');
+  if (next) await ensurePanelTabActive('notes', paneIdx);
   applyNotesVisibility(paneIdx);
   await persistNotesSettings();
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
