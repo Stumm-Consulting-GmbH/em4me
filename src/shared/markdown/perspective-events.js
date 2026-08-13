@@ -2,8 +2,8 @@
 // interaktive Ereignis-Tabelle (Viewer-Pfad) und statische Portable-Tabelle.
 //
 // Arbeitsteilung (Muster perspective-datatable.js):
-// - Datenmodell, Rechen-Kern und Fence-Format liegen in events-core.js;
-//   dieses Modul baut ausschließlich HTML daraus.
+// - Datenmodell, Rechen-Kern und Fence-Format liegen im Ordner
+//   src/shared/events/; dieses Modul baut ausschließlich HTML daraus.
 // - Der Viewer-Pfad emittiert Struktur plus data-Attribute; alle
 //   lokalisierten Texte füllt der Renderer (events-view.js) über data-i18n
 //   bzw. die hier exportierten compose*-Helfer mit t(). Die zeitabhängige
@@ -20,18 +20,23 @@
 
 const { escapeHtml } = require('./slug.js');
 const {
-  parsePerspectiveEvents,
-  validateEventEntries,
-  effectiveEventsView,
   eventDiff,
   spanDiff,
   eventMilestones,
   nextOccurrence,
   EVENT_CATEGORIES,
   EVENT_CATEGORY_COLORS,
-  EVENT_VIEWS,
   parseIsoDate,
   addDaysIso,
+  eventIndexById,
+} = require('../events/events-core.js');
+const {
+  parsePerspectiveEvents,
+  validateEventEntries,
+  effectiveEventsView,
+  EVENT_VIEWS,
+} = require('../events/events-fence.js');
+const {
   upcomingEventOccurrences,
   upcomingEventMilestones,
   categoryCounts,
@@ -40,8 +45,7 @@ const {
   ganttRows,
   ganttAxis,
   ganttOffsets,
-  eventIndexById,
-} = require('../events-core.js');
+} = require('../events/events-views.js');
 // 4T-0514: Monats-Gitter des Journal-Kalenders (Wochenstart Montag) als
 // gemeinsame Kalender-Mathematik.
 const { monthGrid } = require('../journal-core.js');
@@ -572,7 +576,7 @@ function buildEventsTimelineHtml(model, indices, { L, lang }) {
 }
 
 // Gantt (4T-0722): Balken-Diagramm über einer gemeinsamen Zeitachse.
-// Zeilen-Modell, Achse und Prozent-Positionen kommen aus events-core.js;
+// Zeilen-Modell, Achse und Prozent-Positionen kommen aus events-views.js;
 // dieses Modul setzt nur Struktur, Beschriftung und Inline-Positionen.
 // Balken und Rauten sind Ereignis-Chips wie in den übrigen Zusatz-
 // Ansichten, tragen also Kategorie-Farbe, Titel und data-ev-jump aus

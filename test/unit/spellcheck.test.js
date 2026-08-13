@@ -26,7 +26,7 @@ import {
   normalizeSpellcheckSetting,
   spellcheckAttributeValue,
 } from '../../src/shared/spellcheck.js';
-import { extensionById } from '../../src/shared/extensions.js';
+import { extensionById } from '../../src/shared/extensions/extensions.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..', '..', 'src');
@@ -121,7 +121,9 @@ describe('Wächter gegen stille Rücknahme (Epic 3E-0107)', () => {
   });
 
   it('erzeugt Fenster fest mit spellcheck: true', () => {
-    const main = lies('main', 'main.js');
+    // 4T-0998: createWindow liegt seit dem Main-Schnitt in window-manager.js;
+    // der geprüfte Options-Block ist unverändert mitgereist.
+    const main = lies('main', 'window-manager.js');
     const start = main.indexOf('webPreferences: {');
     expect(start).toBeGreaterThan(-1);
     // Der Options-Block endet vor dem Konstruktor-Aufruf; er allein zählt,
@@ -142,7 +144,7 @@ describe('Wächter gegen stille Rücknahme (Epic 3E-0107)', () => {
   });
 
   it('bricht das DOM-Kontextmenü-Ereignis des Editors nicht ab', () => {
-    const menu = lies('renderer', 'modules', 'editor-context-menu.js');
+    const menu = lies('renderer', 'modules', 'editor', 'editor-context-menu.js');
     const start = menu.indexOf('export function showEditorContextMenu');
     expect(start).toBeGreaterThan(-1);
     const rumpf = menu.slice(start);

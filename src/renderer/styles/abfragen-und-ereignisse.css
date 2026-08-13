@@ -1,0 +1,740 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 15 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Perspective-Abfragen und Datatable, Ereignis-Fence samt Sortierung und Filter. */
+
+/* 4T-0404 (Epic 3E-0076): Tabellen-Ausgabe der Perspective-Abfrage. Die
+   Tabelle erbt die Standard-Tabellen-Optik der gerenderten Ansicht
+   (.markdown-body table); hier nur Abstaende. Das LIST-Zusatzfeld haengt
+   gedaempft hinter dem Datei-Link. */
+.markdown-body table.perspective-query-table {
+  margin: 0.5em 0;
+}
+.markdown-body .perspective-query-extra {
+  color: var(--fg-muted);
+  margin-left: 0.6em;
+}
+
+/* 4T-0405 (Epic 3E-0076): Mehrspalten-Layout der Abfrage-Ergebnis-Liste
+   (COLUMNS 2-8, data-fm-columns aus der View). Eigene schlanke Regel auf der
+   Query-Liste; Spalten-Abstand wie die Mehrspalten-Bloecke der Render-
+   Darstellung (2.5em). Der Hinweis (COLUMNS bei TABLE ignoriert) ist ein
+   Linter-artiger Text oberhalb des Ergebnisses. */
+.markdown-body .perspective-query-list[data-fm-columns='2'] {
+  column-count: 2;
+}
+.markdown-body .perspective-query-list[data-fm-columns='3'] {
+  column-count: 3;
+}
+.markdown-body .perspective-query-list[data-fm-columns='4'] {
+  column-count: 4;
+}
+.markdown-body .perspective-query-list[data-fm-columns='5'] {
+  column-count: 5;
+}
+.markdown-body .perspective-query-list[data-fm-columns='6'] {
+  column-count: 6;
+}
+.markdown-body .perspective-query-list[data-fm-columns='7'] {
+  column-count: 7;
+}
+.markdown-body .perspective-query-list[data-fm-columns='8'] {
+  column-count: 8;
+}
+.markdown-body .perspective-query-list[data-fm-columns] {
+  column-gap: 2.5em;
+}
+.markdown-body .perspective-query-hint {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+  margin: 0.3em 0;
+}
+
+/* 4T-0418 (Epic 3E-0079): Perspective Datatable — Grid-Anzeige mit
+   Kopfzeile (Name + dezentes Typ-Symbol), typ-gerechter Ausrichtung
+   (Zahlen rechts, Boolean zentriert), Fehler-Zellen und Aggregat-Zeile.
+   Die Tabelle erbt die Standard-Tabellen-Optik (.markdown-body table);
+   hier nur die Datatable-Spezifika. */
+.markdown-body .perspective-datatable {
+  margin: 0.5em 0;
+}
+.markdown-body .pdt-grid th .pdt-type {
+  display: block;
+  color: var(--fg-muted);
+  font-size: 0.7em;
+  font-weight: normal;
+  line-height: 1.2;
+}
+.markdown-body .pdt-grid th.pdt-computed .pdt-type::before {
+  content: '= ';
+}
+.markdown-body .pdt-grid .pdt-type-number {
+  text-align: right;
+}
+.markdown-body .pdt-grid .pdt-type-boolean {
+  text-align: center;
+}
+.markdown-body .pdt-grid td.pdt-computed {
+  color: var(--fg-muted);
+  background: rgba(128, 128, 128, 0.07);
+}
+.markdown-body .pdt-grid .pdt-cell-error {
+  background-color: #ffebee;
+  color: #b71c1c;
+  cursor: help;
+}
+[data-theme='dark'] .markdown-body .pdt-grid .pdt-cell-error {
+  background-color: #4a1f1f;
+  color: #ff8a80;
+}
+.markdown-body .pdt-grid tfoot .pdt-cell {
+  border-top: 2px solid var(--border);
+  font-size: 0.9em;
+}
+.markdown-body .pdt-agg {
+  display: block;
+  white-space: nowrap;
+}
+.markdown-body .pdt-agg-label {
+  color: var(--fg-muted);
+  margin-right: 0.4em;
+}
+.markdown-body .pdt-agg-label::after {
+  content: ':';
+}
+.markdown-body .pdt-errors {
+  color: var(--danger, #c0392b);
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+.markdown-body .pdt-errors-title {
+  display: block;
+  font-weight: bold;
+}
+.markdown-body .pdt-limit {
+  color: var(--fg-muted);
+  font-style: italic;
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+
+/* 4T-0419 (Epic 3E-0079): Grid-Editor-Affordanzen der Perspective
+   Datatable. Sichtbar nur in editierbaren Kontexten: Render-Pane der
+   geteilten Ansicht (view-split) und Live-Block-Widget; Reading und
+   Handbuch-Tabs zeigen das Grid ohne Editier-Affordanzen. */
+.markdown-body .pdt-grid .pdt-row-del,
+.markdown-body .pdt-add-row {
+  display: none;
+}
+.content.view-split .pane-rendered .markdown-body .pdt-grid .pdt-row-del,
+.cm-live-block .pdt-grid .pdt-row-del {
+  display: table-cell;
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  width: 1.6em;
+  text-align: center;
+  vertical-align: middle;
+}
+.content.view-split .pane-rendered .markdown-body .pdt-add-row,
+.cm-live-block .pdt-add-row {
+  display: block;
+  margin: 0.2em 0 0.5em;
+}
+.markdown-body .pdt-del-btn {
+  border: none;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 1em;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+  visibility: hidden;
+}
+.markdown-body .pdt-grid tr:hover .pdt-del-btn {
+  visibility: visible;
+}
+.markdown-body .pdt-del-btn:hover {
+  color: var(--danger, #c0392b);
+}
+.markdown-body .pdt-add-btn {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85em;
+  padding: 1px 8px;
+  cursor: pointer;
+}
+.markdown-body .pdt-add-btn:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+/* Klicks auf die read-only Checkbox landen auf der Zelle (Toggle-Pfad
+   des Grid-Editors); die Checkbox selbst bleibt disabled. */
+.markdown-body .pdt-grid .pdt-type-boolean input[type='checkbox'] {
+  pointer-events: none;
+}
+.content.view-split .pane-rendered .markdown-body .pdt-cell[tabindex],
+.cm-live-block .pdt-cell[tabindex] {
+  cursor: text;
+}
+.content.view-split .pane-rendered .markdown-body .pdt-cell.pdt-type-boolean[tabindex],
+.cm-live-block .pdt-cell.pdt-type-boolean[tabindex] {
+  cursor: pointer;
+}
+.markdown-body td.pdt-editing {
+  padding: 0;
+}
+.markdown-body .pdt-cell-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  padding: 2px 4px;
+  outline: none;
+}
+.markdown-body .pdt-cell-input.pdt-input-invalid {
+  border-color: var(--danger, #c0392b);
+}
+
+/* 4T-0420 (Epic 3E-0079): Ansichts-Sortierung und Filter der Perspective
+   Datatable. Sortier-Indikator am Kopf, Filter-Umschalter am Tabellen-
+   Rand, Filter-Zeile unter dem Kopf, versteckte Zeilen, Treffer-Zähler. */
+.markdown-body .perspective-datatable {
+  position: relative;
+}
+.markdown-body .pdt-grid th.pdt-col {
+  cursor: pointer;
+  user-select: none;
+}
+.markdown-body .pdt-grid th.pdt-sort-asc .pdt-name::after {
+  content: ' ▲';
+  font-size: 0.75em;
+  color: var(--accent);
+}
+.markdown-body .pdt-grid th.pdt-sort-desc .pdt-name::after {
+  content: ' ▼';
+  font-size: 0.75em;
+  color: var(--accent);
+}
+.markdown-body .pdt-filter-toggle {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 0.8em;
+  line-height: 1.3;
+  padding: 0 5px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 1;
+}
+.markdown-body .perspective-datatable:hover .pdt-filter-toggle,
+.markdown-body .pdt-filter-toggle.active {
+  opacity: 1;
+}
+.markdown-body .pdt-filter-toggle.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.markdown-body .pdt-filter-row td {
+  padding: 2px 4px;
+  background: rgba(128, 128, 128, 0.07);
+}
+.markdown-body .pdt-filter-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.85em;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1px 4px;
+}
+.markdown-body .pdt-filter-bool {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.8em;
+  padding: 0 6px;
+  cursor: pointer;
+}
+.markdown-body .pdt-filter-bool.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.markdown-body .pdt-grid tr.pdt-row-hidden {
+  display: none;
+}
+.markdown-body .pdt-filter-count {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+  margin: 0.2em 0;
+}
+
+/* 4T-0512 (Epic 3E-0092): Ereignis-Fence (perspective-events) — Tabelle,
+   Kategorie-Badges, Differenz-Spalte, Anlage-Formular und Editier-
+   Affordanzen. Affordanzen sichtbar nur in editierbaren Kontexten
+   (Render-Pane der geteilten Ansicht, Live-Block-Widget; Muster pdt). */
+.markdown-body .pev-table {
+  font-size: 0.95em;
+}
+.markdown-body .pev-table td {
+  vertical-align: top;
+}
+.markdown-body .pev-notes {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  white-space: pre-line;
+}
+.markdown-body .pev-hint {
+  color: var(--danger, #c0392b);
+  cursor: help;
+  margin-left: 0.3em;
+}
+/* Kategorie-Badges: Werte identisch zur festen Farbzuordnung
+   EVENT_CATEGORY_COLORS in src/shared/events/events-core.js (der Portable-Export
+   schreibt dieselben Werte als Inline-Styles). */
+.markdown-body .pev-badge {
+  display: inline-block;
+  border-radius: 0.7em;
+  padding: 0.1em 0.6em;
+  font-size: 0.85em;
+  white-space: nowrap;
+  background: #f5f5f5;
+  color: #616161;
+}
+.markdown-body .pev-badge[data-ev-cat='geburtstag'] {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.markdown-body .pev-badge[data-ev-cat='todestag'] {
+  background: #eceff1;
+  color: #37474f;
+}
+.markdown-body .pev-badge[data-ev-cat='jahrestag'] {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+.markdown-body .pev-badge[data-ev-cat='jubilaeum'] {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+.markdown-body .pev-badge[data-ev-cat='projekt'] {
+  background: #fff3e0;
+  color: #e65100;
+}
+.markdown-body .pev-badge[data-ev-cat='termin'] {
+  background: #e0f2f1;
+  color: #00695c;
+}
+.markdown-body .pev-badge[data-ev-cat='erinnerung'] {
+  background: #fffde7;
+  color: #8d6e0a;
+}
+[data-theme='dark'] .markdown-body .pev-badge {
+  background: #303030;
+  color: #bdbdbd;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='geburtstag'] {
+  background: #1e3a22;
+  color: #a5d6a7;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='todestag'] {
+  background: #2e3438;
+  color: #b0bec5;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='jahrestag'] {
+  background: #1a2c42;
+  color: #90caf9;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='jubilaeum'] {
+  background: #332038;
+  color: #ce93d8;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='projekt'] {
+  background: #3d2c17;
+  color: #ffcc80;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='termin'] {
+  background: #15332f;
+  color: #80cbc4;
+}
+[data-theme='dark'] .markdown-body .pev-badge[data-ev-cat='erinnerung'] {
+  background: #3a3413;
+  color: #fff59d;
+}
+/* Differenz-Spalte: Richtung, Staffelungs-Zeilen, Meilenstein-Badge,
+   Wiederkehr-Countdown; Dauer-Zusatz in der Ende-Zelle. */
+.markdown-body td.pev-diff {
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.markdown-body .pev-diff-dir {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.markdown-body .pev-milestone-badge {
+  display: inline-block;
+  background: #fff3cd;
+  color: #7a5c00;
+  border-radius: 0.7em;
+  padding: 0 0.5em;
+  margin: 0.1em 0.2em 0.1em 0;
+  white-space: nowrap;
+}
+[data-theme='dark'] .markdown-body .pev-milestone-badge {
+  background: #3a3413;
+  color: #ffe082;
+}
+.markdown-body tr.pev-milestone-row td {
+  background: rgba(255, 200, 0, 0.07);
+}
+.markdown-body .pev-countdown,
+.markdown-body .pev-span {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.markdown-body .pev-errors {
+  color: var(--danger, #c0392b);
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+.markdown-body .pev-errors-title {
+  display: block;
+  font-weight: bold;
+}
+.markdown-body .pev-limit {
+  color: var(--fg-muted);
+  font-style: italic;
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+.markdown-body .pev-agg-pending {
+  color: var(--fg-muted);
+  font-style: italic;
+  font-size: 0.9em;
+}
+/* Editier-Affordanzen: Aktions-Spalte und Anlage-Formular in allen
+   pflegenden Kontexten — geteilte Ansicht, Live-Widget und seit der
+   PO-Entscheidung C1 (2026-07-15) auch die Lese-Ansicht. Die
+   Editierbarkeit setzt das Editor-Modul als Container-Klasse
+   pev-editable (events-editor.js); Handbuch-Tabs und Embeds bleiben
+   damit automatisch ohne Affordanzen. */
+.markdown-body .pev-table .pev-actions,
+.markdown-body .pev-table .pev-col-actions,
+.markdown-body .pev-add-form {
+  display: none;
+}
+.markdown-body .perspective-events.pev-editable .pev-table .pev-actions {
+  display: table-cell;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.markdown-body .perspective-events.pev-editable .pev-table .pev-col-actions {
+  display: table-cell;
+  width: 4.5em;
+}
+.markdown-body .perspective-events.pev-editable .pev-add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  align-items: center;
+  margin: 0.2em 0 0.5em;
+}
+.markdown-body .pev-edit-btn,
+.markdown-body .pev-dup-btn,
+.markdown-body .pev-del-btn,
+.markdown-body .pev-link-btn,
+.markdown-body .pev-save-btn,
+.markdown-body .pev-cancel-btn {
+  border: none;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 1em;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+  visibility: hidden;
+}
+.markdown-body .pev-table tr:hover .pev-edit-btn,
+.markdown-body .pev-table tr:hover .pev-dup-btn,
+.markdown-body .pev-table tr:hover .pev-del-btn,
+.markdown-body .pev-table tr:hover .pev-link-btn,
+.markdown-body .pev-table tr.pev-editing .pev-save-btn,
+.markdown-body .pev-table tr.pev-editing .pev-cancel-btn {
+  visibility: visible;
+}
+.markdown-body .pev-edit-btn:hover,
+.markdown-body .pev-dup-btn:hover,
+.markdown-body .pev-link-btn:hover,
+.markdown-body .pev-save-btn:hover {
+  color: var(--accent);
+}
+.markdown-body .pev-del-btn:hover,
+.markdown-body .pev-cancel-btn:hover {
+  color: var(--danger, #c0392b);
+}
+/* Offene Zeilen-Bearbeitung sperrt die übrigen Zeilen (Laufzeit-Guard
+   zusätzlich im Editor-Modul). */
+.markdown-body .pev-editing-locked .pev-table tr:not(.pev-editing) {
+  opacity: 0.55;
+}
+.markdown-body .pev-editing-locked .pev-table tr:not(.pev-editing) .pev-edit-btn,
+.markdown-body .pev-editing-locked .pev-table tr:not(.pev-editing) .pev-dup-btn,
+.markdown-body .pev-editing-locked .pev-table tr:not(.pev-editing) .pev-del-btn {
+  visibility: hidden;
+  pointer-events: none;
+}
+.markdown-body .pev-editing-locked .pev-add-form {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.markdown-body .pev-form-input,
+.markdown-body .pev-edit-input {
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.9em;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 2px 4px;
+}
+.markdown-body .pev-form-input:focus,
+.markdown-body .pev-edit-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.markdown-body .pev-form-date,
+.markdown-body .pev-form-input.pev-form-date,
+.markdown-body .pev-edit-input.pev-edit-date,
+.markdown-body .pev-form-input.pev-form-end,
+.markdown-body .pev-edit-input.pev-edit-end {
+  width: 8.5em;
+}
+.markdown-body .pev-form-input.pev-form-text {
+  flex: 1 1 10em;
+  min-width: 8em;
+}
+.markdown-body .pev-form-input.pev-form-notes {
+  flex: 1 1 8em;
+  min-width: 6em;
+}
+.markdown-body .pev-edit-input.pev-edit-text,
+.markdown-body .pev-edit-input.pev-edit-notes {
+  width: 100%;
+  margin-bottom: 2px;
+}
+.markdown-body .pev-form-recurring,
+.markdown-body .pev-edit-recurring {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 0.85em;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.markdown-body .pev-form-pick {
+  border: none;
+  background: none;
+  font-size: 0.9em;
+  padding: 0 2px;
+  cursor: pointer;
+}
+.markdown-body .pev-add-btn {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85em;
+  padding: 1px 8px;
+  cursor: pointer;
+}
+.markdown-body .pev-add-btn:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+/* 4T-0513 (Epic 3E-0092): Ansichts-Sortierung und Filter des Ereignis-
+   Fence. Sortier-Indikator am Kopf, Filter-Umschalter mit Zähler-Badge,
+   zuklappbare Filter-Leiste, aktive Filter als entfernbare Chips,
+   Treffer-Zähler (Muster Datatable 4T-0420). */
+.markdown-body .perspective-events {
+  position: relative;
+}
+.markdown-body .pev-table th[data-ev-sort] {
+  cursor: pointer;
+  user-select: none;
+}
+.markdown-body .pev-table th.pev-sort-asc::after {
+  content: ' ▲';
+  font-size: 0.75em;
+  color: var(--accent);
+}
+.markdown-body .pev-table th.pev-sort-desc::after {
+  content: ' ▼';
+  font-size: 0.75em;
+  color: var(--accent);
+}
+.markdown-body .pev-filter-toggle {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 0.8em;
+  line-height: 1.3;
+  padding: 0 5px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 1;
+}
+.markdown-body .perspective-events:hover .pev-filter-toggle,
+.markdown-body .pev-filter-toggle.active {
+  opacity: 1;
+}
+.markdown-body .pev-filter-toggle.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.markdown-body .pev-filter-badge {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0 0.45em;
+  border-radius: 0.7em;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.9em;
+}
+.markdown-body .pev-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  margin: 0.2em 0 0.4em;
+  padding: 0.4em 0.5em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.06);
+  font-size: 0.9em;
+}
+.markdown-body .pev-filter-text {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 2px 6px;
+}
+.markdown-body .pev-filter-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em;
+}
+.markdown-body .pev-filter-cat {
+  border: 1px solid var(--border);
+  border-radius: 0.7em;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85em;
+  padding: 0.05em 0.6em;
+  cursor: pointer;
+}
+.markdown-body .pev-filter-cat.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(128, 128, 128, 0.1);
+}
+.markdown-body .pev-filter-range,
+.markdown-body .pev-filter-flags,
+.markdown-body .pev-filter-saved-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+}
+.markdown-body .pev-filter-input {
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.95em;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1px 4px;
+  width: 8.5em;
+}
+.markdown-body .pev-filter-preset,
+.markdown-body .pev-filter-saved {
+  font: inherit;
+  font-size: 0.95em;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1px 4px;
+}
+.markdown-body .pev-filter-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.markdown-body .pev-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em;
+}
+.markdown-body .pev-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  border: 1px solid var(--accent);
+  border-radius: 0.7em;
+  color: var(--accent);
+  font-size: 0.85em;
+  padding: 0.05em 0.3em 0.05em 0.6em;
+  white-space: nowrap;
+}
+.markdown-body .pev-filter-chip-remove {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1em;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+.markdown-body .pev-filter-count {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+  margin: 0.2em 0;
+}
+.markdown-body .pev-table tr.pev-row-hidden {
+  display: none;
+}

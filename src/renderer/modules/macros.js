@@ -24,17 +24,17 @@ import {
   COMMANDS,
   registerDynamicCommand,
   unregisterDynamicCommand,
-} from '../../shared/commands.js';
+} from '../../shared/commands/commands.js';
 import {
   COMMAND_PLACEMENT_EXTENSION_ID,
   MACRO_COMMAND_PREFIX,
   macroCommandId,
-} from '../../shared/command-placement.js';
+} from '../../shared/commands/command-placement.js';
 import { runMacroSequence } from '../../shared/macro-runner.js';
 import { executeCommandById } from './command-palette.js';
 import { getCommandPlacement, renderCommandButtons } from './command-placement.js';
-import { isExtensionActive } from './extension-lifecycle.js';
-import { showStatusbarHint } from './views.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
+import { showStatusbarHint } from './views/views.js';
 
 // Namensraum der synthetischen Label-Keys (ext.<ns>.<macroId>); bewusst
 // kein realer Erweiterungs-Ordnername.

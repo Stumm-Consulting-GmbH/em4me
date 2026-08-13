@@ -32,10 +32,10 @@ const {
   parseTaskLine,
   modelMatchesGlobalFilter,
   stripGlobalFilter,
-  shiftIsoDateByDays,
   isValidTime,
   REMINDER_SYMBOL,
-} = require('./task-markers');
+} = require('./tasks/task-markers.js');
+const { shiftIsoDateByDays } = require('./tasks/task-recurrence.js');
 
 // Default-Uhrzeit fuer Anker ohne Zeitanteil (Einstellung, Workshop-Punkt 1).
 const DEFAULT_REMINDER_TIME = '09:00';

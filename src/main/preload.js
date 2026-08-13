@@ -33,7 +33,7 @@ const {
 const { configureTaskStates, configureTaskMarkers } = require('../shared/markdown/plugins.js');
 // 4T-0298 (Epic 3E-0053): Loader der externen Markdown-Plugins (vm-
 // Evaluierung im Preload-Kontext, siehe Kopf-Kommentar des Moduls).
-const { configureExternalExtensions } = require('./extension-loader.js');
+const { configureExternalExtensions } = require('./extensions/extension-loader.js');
 
 // 4T-0017: Electron-Standard-Zoom (Strg + +/-/0, Strg + Mausrad) komplett
 // abschalten. Der Renderer implementiert einen eigenen, pro-Tab gehaltenen

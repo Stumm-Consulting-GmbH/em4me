@@ -11,10 +11,10 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MANUAL_PAGES } from '../../src/shared/manual-pages.js';
+import { MANUAL_PAGES } from '../../src/shared/manual/manual-pages.js';
 import { TAB_GROUP_COLOR_KEYS } from '../../src/shared/tab-group-colors.js';
-import { CLOCK_MODES } from '../../src/shared/clock-options.js';
-import { COMMAND_ICONS } from '../../src/shared/command-icons.js';
+import { CLOCK_MODES } from '../../src/shared/clock/clock-options.js';
+import { COMMAND_ICONS } from '../../src/shared/commands/command-icons.js';
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const lies = (p) => fs.readFileSync(path.join(WURZEL, p), 'utf8');
@@ -79,7 +79,7 @@ describe('Paar 10: Reiter-Gruppen-Farben und Stylesheet (4T-0900)', () => {
 // den Text 'undefined'.
 // ---------------------------------------------------------------------------
 describe('Paar 11: Uhr-Modi und ihre Symbole (4T-0900)', () => {
-  const quelle = lies('src/renderer/modules/clock-panel.js');
+  const quelle = lies('src/renderer/modules/clock/clock-panel.js');
   const beginn = quelle.indexOf('MODE_ICONS');
   const block = beginn < 0 ? '' : quelle.slice(beginn, quelle.indexOf('};', beginn));
   const paare = [...block.matchAll(/(\w+):\s*'([\w.-]+)'/g)];

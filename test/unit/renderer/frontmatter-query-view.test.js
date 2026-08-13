@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildQueryListDom } from '../../../src/renderer/modules/frontmatter-query-view.js';
+import { buildQueryListDom } from '../../../src/renderer/modules/query/frontmatter-query-view.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const de = JSON.parse(readFileSync(path.join(dir, '../../../src/i18n/de.json'), 'utf8'));

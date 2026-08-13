@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 // 4T-0900 (Epic 3E-0016), Register-Paar 7: Vollstaendigkeits-Waechter ueber
-// EDITOR_COMMAND_FUNCTIONS in src/renderer/modules/editor.js.
+// EDITOR_COMMAND_FUNCTIONS in src/renderer/modules/editor/editor-keymaps.js
+// (4T-1002, Epic 3E-0196: die Tabelle zog mit dem Keymap-Auszug aus editor.js
+// dorthin um).
 //
 // Die Registry markiert 45 Kommandos als editorScoped; ausgefuehrt werden sie
 // ausschliesslich ueber diese Tabelle. Fehlt dort ein Eintrag, faellt das an
@@ -18,13 +20,14 @@
 // zusammen. Ein Quelltext-Scan sieht davon nur die literalen Schluessel und
 // meldete bei der Erhebung am 2026-08-07 erst 7, dann 33 statt 45 Eintraege —
 // er haette also reihenweise Fehlalarme erzeugt. Anders als bei app-init.js
-// ist editor.js im Unit-Kontext ladbar (Muster: tabellen-und-wordcount.test.js).
+// ist der Editor-Zweig im Unit-Kontext ladbar (Muster:
+// tabellen-und-wordcount.test.js).
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
-import { COMMANDS } from '../../../src/shared/commands.js';
+import { COMMANDS } from '../../../src/shared/commands/commands.js';
 
-const editor = await import('../../../src/renderer/modules/editor.js');
-const { EDITOR_COMMAND_FUNCTIONS } = editor;
+const keymaps = await import('../../../src/renderer/modules/editor/editor-keymaps.js');
+const { EDITOR_COMMAND_FUNCTIONS } = keymaps;
 
 const editorKommandos = COMMANDS.filter((c) => c.editorScoped).map((c) => c.id);
 const hinterlegt = Object.keys(EDITOR_COMMAND_FUNCTIONS);

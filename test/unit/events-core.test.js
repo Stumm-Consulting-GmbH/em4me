@@ -13,39 +13,43 @@ import {
   injectEventProfile,
   parseIsoDate,
   addMonthsClamped,
+  addDaysIso,
   eventDiff,
   spanDiff,
   JUBILEE_YEARS,
   eventMilestones,
   nextOccurrence,
+  nextEventId,
+  toggleEventLink,
+  cleanupEventLinks,
+  eventLinksOf,
+} from '../../src/shared/events/events-core.js';
+import {
   EVENT_VIEWS,
+  emptyFilterSpec,
   parsePerspectiveEvents,
   serializePerspectiveEvents,
   effectiveEventsView,
   validateEventEntries,
   findPerspectiveEventsFences,
+} from '../../src/shared/events/events-fence.js';
+import {
   EVENT_DATE_PRESETS,
-  addDaysIso,
   sortEventIndices,
   datePresetRange,
   matchesEventFilter,
   filterEventIndices,
   eventFilterActiveCount,
-  emptyFilterSpec,
   upcomingEventOccurrences,
   upcomingEventMilestones,
   categoryCounts,
   timelineGroups,
   calendarDayMap,
-  nextEventId,
-  toggleEventLink,
-  cleanupEventLinks,
-  eventLinksOf,
   GANTT_MAX_TICKS,
   ganttRows,
   ganttAxis,
   ganttOffsets,
-} from '../../src/shared/events-core.js';
+} from '../../src/shared/events/events-views.js';
 import { resolveProfileFields } from '../../src/shared/property-profiles.js';
 
 // Kompakter Helfer: parst und erwartet fehlerfreie Struktur.

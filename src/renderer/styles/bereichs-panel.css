@@ -1,0 +1,696 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 4 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Bereichs-Panel. */
+/* === Bereichs-Panel (4T-0327, Epic 3E-0059) ============================= */
+/* Zweigeteilt: Ordnerbaum oben, Markdown-Dateiliste des gewaehlten Ordners
+   darunter. Beide Haelften scrollen unabhaengig; Zeilen-Optik folgt dem
+   Outline-Muster (hover/selected ueber die Theme-Variablen). */
+.sidebar-area .area-empty {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.sidebar-area .area-empty[hidden],
+.sidebar-area .area-split[hidden] {
+  display: none;
+}
+.sidebar-area .area-tree {
+  max-height: 36vh;
+  overflow: auto;
+}
+.area-dir-row,
+.area-file-row {
+  display: flex;
+  align-items: center;
+  padding: 2px 8px 2px 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.area-dir-row:hover,
+.area-file-row:hover {
+  background: var(--hover);
+}
+.area-dir-row.selected {
+  background: var(--hover);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.area-dir-caret {
+  flex: 0 0 14px;
+  width: 14px;
+  display: inline-flex;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--fg-muted);
+  user-select: none;
+}
+.area-dir-name,
+.area-file-row {
+  min-width: 0;
+}
+.area-dir-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.area-files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px 2px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+.area-files-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-area .area-files {
+  max-height: 36vh;
+  overflow: auto;
+}
+.area-files-empty {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+/* 4T-0328: "Neue Datei in diesem Ordner" — Kopf-Button und Inline-Eingabe. */
+.area-new-file-btn {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.area-new-file-btn:hover {
+  color: var(--fg);
+  background: var(--hover);
+}
+.area-new-file-input {
+  width: calc(100% - 16px);
+  margin: 4px 8px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.area-new-file-input:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* 4T-0434 (Epic 3E-0081): Kalender-Panel — Monatsansicht mit KW-Spalte.
+   Gitter aus 8 Spalten (KW plus Mo–So); Tages-Zellen sind Buttons mit
+   Punkt-Indikator (::after) für vorhandene Einträge, Heute über --accent. */
+.calendar-empty,
+.calendar-none {
+  padding: 8px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.calendar-main {
+  padding: 4px 8px 8px;
+}
+.calendar-filter {
+  width: 100%;
+  margin-bottom: 6px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.calendar-month-label {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.calendar-prev,
+.calendar-next,
+.calendar-today-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 1px 7px;
+  cursor: pointer;
+}
+.calendar-prev:hover,
+.calendar-next:hover,
+.calendar-today-btn:hover {
+  color: var(--fg);
+  background: var(--hover);
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: auto repeat(7, 1fr);
+  gap: 1px;
+}
+.calendar-cell {
+  text-align: center;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 0;
+  border-radius: 3px;
+}
+.calendar-head {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.calendar-week-col {
+  color: var(--fg-muted);
+  padding-left: 3px;
+  padding-right: 5px;
+  border-right: 1px solid var(--border);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.calendar-week-btn,
+.calendar-day-btn {
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  /* Platz für den Punkt-Indikator unterhalb der Zahl. */
+  padding-bottom: 9px;
+}
+.calendar-week-btn {
+  color: var(--fg-muted);
+}
+.calendar-week-btn:hover,
+.calendar-day-btn:hover {
+  background: var(--hover);
+}
+.calendar-day-btn.other-month {
+  color: var(--fg-muted);
+  opacity: 0.55;
+}
+.calendar-day-btn.today {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+  font-weight: 700;
+}
+.calendar-day-btn.has-entry::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* 4T-0486 (Epic 3E-0091): Datums-/Uhrzeit-Picker — cursor-verankertes
+   Popup (kein Backdrop, Klick außerhalb bricht ab). Kalender-Gitter nutzt
+   die bestehenden calendar-*-Klassen des Kalender-Panels; Theming rein
+   über die Variablen (hell/dunkel). */
+.date-picker-popup {
+  position: fixed;
+  z-index: 3200;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+}
+.date-picker-popup[hidden] {
+  display: none;
+}
+.date-picker-columns {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+.date-picker-date-section {
+  min-width: 230px;
+}
+.date-picker-time-section {
+  min-width: 110px;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.date-picker-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.date-picker-date-section.inactive .date-picker-cal-head,
+.date-picker-date-section.inactive .date-picker-grid,
+.date-picker-date-section.inactive .date-picker-today,
+.date-picker-time-section.inactive .date-picker-time-input,
+.date-picker-time-section.inactive .date-picker-now {
+  opacity: 0.45;
+}
+.date-picker-cal-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.date-picker-month-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+.date-picker-nav {
+  min-width: 28px;
+  padding: 2px 8px;
+}
+.date-picker-grid .calendar-day-btn {
+  min-width: 26px;
+  padding-bottom: 4px;
+  font-size: 12px;
+}
+.date-picker-grid .calendar-day-btn.selected {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.date-picker-grid .calendar-day-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.date-picker-today {
+  margin-top: 6px;
+  padding: 2px 10px;
+}
+/* Uhrzeit-Segment-Steuerung (PO-Befund Runde 1): vier einzeln einstellbare
+   Stellen, aktive Stelle traegt den Akzent; ungueltige Eingaben sind
+   konstruktionsbedingt unmoeglich. */
+.date-picker-time-control {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.date-picker-time-digit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 4px 2px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  user-select: none;
+}
+.date-picker-time-digit.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.date-picker-time-digit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+.date-picker-time-section.inactive .date-picker-time-digit {
+  cursor: default;
+}
+.date-picker-time-colon {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 2px;
+}
+.date-picker-time-steppers {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 6px;
+}
+.date-picker-step {
+  min-width: 24px;
+  padding: 0 6px;
+  font-size: 9px;
+  line-height: 1.6;
+}
+.date-picker-now {
+  align-self: flex-start;
+  padding: 2px 10px;
+}
+.date-picker-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* 4T-0487 (Epic 3E-0091): klickbare Datums-/Uhrzeit-Werte im Live-Modus —
+   dezente gepunktete Unterstreichung statt Chip-Optik, Hover hebt an;
+   der Quelltext bleibt der reine Text-Wert. */
+.cm-live-date-value {
+  border-bottom: 1px dotted var(--accent);
+  cursor: pointer;
+}
+.cm-live-date-value:hover {
+  background: var(--accent-soft);
+}
+
+/* 4T-0454 (Epic 3E-0084): Graphenansicht — Farben ausschließlich über
+   Theme-Variablen (hell/dunkel); Hover dimmt den Rest der Fläche und hebt
+   die Nachbarschaft an, die aktive Datei trägt den Akzent. */
+.graph-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  background: var(--bg);
+}
+.graph-view.graph-dragging .graph-svg {
+  cursor: grabbing;
+}
+.graph-edge {
+  stroke: var(--border-strong);
+  stroke-width: 1.2;
+}
+.graph-edge-two-way {
+  stroke-width: 1.6;
+}
+.graph-arrow path {
+  fill: var(--border-strong);
+}
+.graph-node circle {
+  fill: var(--fg-muted);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+.graph-node:hover circle {
+  fill: var(--accent);
+}
+.graph-node-active circle {
+  fill: var(--accent);
+  stroke: var(--accent-soft);
+  stroke-width: 4;
+}
+.graph-label {
+  fill: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+}
+/* Hover-Hervorhebung: alles dimmen, Fokus-Knoten samt Nachbarn und deren
+   Kanten wieder anheben. */
+.graph-hovering .graph-node,
+.graph-hovering .graph-edge {
+  opacity: 0.25;
+}
+.graph-hovering .graph-node.graph-focus,
+.graph-hovering .graph-node.graph-neighbor,
+.graph-hovering .graph-edge.graph-edge-active {
+  opacity: 1;
+}
+.graph-hovering .graph-edge.graph-edge-active {
+  stroke: var(--accent);
+}
+.graph-node.graph-focus circle {
+  fill: var(--accent);
+}
+/* 4T-0455 (Epic 3E-0084): Bereichs-Graph-Seite — Steuerleiste oben,
+   Graph-Fläche füllt den Rest der Pane. */
+.graph-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.graph-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-toolbar);
+  font-size: 12px;
+  color: var(--fg);
+}
+.graph-direction-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.graph-toolbar select {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+.graph-node-count {
+  color: var(--fg-muted);
+}
+.graph-reference-hint {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.graph-toolbar .graph-relayout {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.graph-toolbar .graph-relayout:hover {
+  background: var(--hover);
+}
+.graph-canvas {
+  flex: 1;
+  min-height: 0;
+}
+.graph-canvas.graph-canvas-hidden {
+  display: none;
+}
+.graph-status {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+}
+.graph-status[hidden] {
+  display: none;
+}
+
+.graph-hint {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* 4T-0456 (Epic 3E-0084): Datei-Graph-Panel — Steuerung im Kopf, darunter
+   die Graph-Fläche mit fester Höhe (Sidebar scrollt den Rest). */
+.filegraph-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.filegraph-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.filegraph-controls select {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+.filegraph-status,
+.filegraph-note,
+.filegraph-scope-hint,
+.filegraph-empty {
+  color: var(--fg-muted);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.filegraph-canvas {
+  height: 260px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* 4T-0435 (Epic 3E-0081): Journal-Navigations-Block (perspective-journal-nav).
+   Übergeordnete Perioden als Link-Zeile, aktuelle Periode groß mit
+   Pfeilen zu voriger/nächster Periode. */
+.perspective-journal-nav {
+  margin: 1em 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+}
+.journal-nav-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.journal-nav-parents {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.journal-nav-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.journal-nav-link:hover {
+  text-decoration: underline;
+}
+.journal-nav-current {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.journal-nav-arrow {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--fg-muted);
+}
+.journal-nav-arrow:hover {
+  color: var(--fg);
+  text-decoration: none;
+}
+.journal-nav-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.journal-nav-sub {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.outline-tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.outline-tree:empty {
+  display: none;
+}
+.outline-entry {
+  display: flex;
+  align-items: center;
+  padding: 2px 8px 2px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg);
+  position: relative;
+  cursor: default;
+  border-left: 3px solid transparent;
+}
+.outline-entry:hover {
+  background: var(--hover);
+}
+.outline-entry.is-active {
+  background: var(--hover);
+  border-left-color: var(--accent);
+}
+.outline-fold {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  margin-right: 2px;
+  user-select: none;
+}
+.outline-fold:hover {
+  color: var(--fg);
+}
+.outline-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  padding: 1px 2px;
+  border-radius: 2px;
+}
+.outline-label:hover {
+  background: var(--border);
+}

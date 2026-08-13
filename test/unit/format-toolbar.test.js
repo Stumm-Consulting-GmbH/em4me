@@ -14,9 +14,9 @@ import {
   collapseToolbarSeparators,
   visibleFormatToolbarEntries,
 } from '../../src/shared/format-toolbar.js';
-import { COMMANDS } from '../../src/shared/commands.js';
-import { COMMAND_ICON_IDS, DEFAULT_COMMAND_ICON } from '../../src/shared/command-icons.js';
-import { extensionById } from '../../src/shared/extensions.js';
+import { COMMANDS } from '../../src/shared/commands/commands.js';
+import { COMMAND_ICON_IDS, DEFAULT_COMMAND_ICON } from '../../src/shared/commands/command-icons.js';
+import { extensionById } from '../../src/shared/extensions/extensions.js';
 
 describe('format-toolbar: Standard-Belegung', () => {
   it('referenziert nur registrierte Kommandos und bekannte Icons', () => {

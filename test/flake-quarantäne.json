@@ -73,6 +73,22 @@
       "fehlerbild": "Einzel-Fehlschlag im selben Unit-Voll-Lauf wie der Eintrag darüber, ebenfalls ohne Zusicherungs-Meldung (Fehlerbild einer gerissenen Zeitgrenze); isoliert sofort grün",
       "vermutung": "lastbedingt; der Fall liest den vollen PM-Bestand und liegt isoliert bei 0,6 Sekunden",
       "status": "beobachtet"
+    },
+    {
+      "spec": "test/unit/ueberblick-aggregate.test.js",
+      "fall": "F6-Generator-Gleichstand, Idempotenz und Pflege-Gefäß-Sektion (drei Fälle desselben Laufs)",
+      "datum": "2026-08-12",
+      "fehlerbild": "Drei Timeouts nach 5000 ms im Unit-Voll-Lauf während der Umsetzung von 4T-0999, isoliert sofort grün (16/16; die drei Fälle in 1,25 s, 1,23 s und 3,94 s)",
+      "vermutung": "lastbedingt; die Fälle lesen den gesamten Aufgaben-Bestand (über 1250 Dateien), und der langsamste liegt isoliert schon bei knapp 4 s. Bei erneutem Auftreten ist die Enge des 5000-ms-Standard-Timeouts für bestandslesende Fälle zu prüfen, dasselbe Muster wie bei pm-dokumente.test.js",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/regal.spec.js",
+      "fall": "RG-04: Mehr-Fenster-Sitzung, die Regal-Seite ist nach dem Neustart wieder da",
+      "datum": "2026-08-13",
+      "fehlerbild": "Einzel-Fehlschlag im 21-Spec-Parallel-Lauf der 4T-1000-Prüfung (165 von 166 grün), isoliert sofort grün (10/10 in 49 s, den Fall selbst eingeschlossen)",
+      "vermutung": "lastbedingt; das Mehr-Fenster-Restart-Szenario ist zeitfenster-empfindlich und lief unter der Parallel-Last des breitesten Ausschnitts des Epics. Bei erneutem Auftreten außerhalb von Voll-Last gehört der Fall in einen eigenen Prüf-Vorgang, weil Sitzungs-Restore seit dem Main-Schnitt in app/startup.js liegt",
+      "status": "beobachtet"
     }
   ]
 }

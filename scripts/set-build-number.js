@@ -1,7 +1,8 @@
 // 4T-0375 (Epic 3E-0070): Schreibt die Build-Nummer (vierte Versionsstelle)
 // nach src/shared/build-info.json. Aufruf als expliziter Schritt vor dem
-// Release-Commit (Prozess in der CLAUDE.md); der Release-Commit trägt damit
-// seine eigene Nummer. Die Nummer ist die Anzahl der Vorgänger-Commits plus 1
+// Release-Commit (Prozess im Konzept "Release-Strecke"); der Release-Commit
+// trägt damit seine eigene Nummer. Die Nummer ist die Anzahl der
+// Vorgänger-Commits plus 1
 // (git rev-list --count HEAD + 1). Idempotent: mehrfacher Lauf vor demselben
 // Commit schreibt dieselbe Nummer.
 'use strict';

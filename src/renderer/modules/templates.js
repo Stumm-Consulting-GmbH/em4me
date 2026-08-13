@@ -12,19 +12,19 @@
 'use strict';
 
 import { t } from '../i18n.js';
-import { api } from './api.js';
-import { activeTab, state } from './app-state.js';
-import { paneEditors } from './editor.js';
-import { openInPane } from './tabs.js';
-import { showStatusbarHint, toggleEditMode } from './views.js';
-import { showNameInputDialog } from './dialogs.js';
-import { activeNotesEditorView } from './notes-panel.js';
+import { api } from './app/api.js';
+import { activeTab, state } from './app/app-state.js';
+import { paneEditors } from './editor/editor.js';
+import { openInPane } from './tabs/tabs.js';
+import { showStatusbarHint, toggleEditMode } from './views/views.js';
+import { showNameInputDialog } from './dialogs/dialogs.js';
+import { activeNotesEditorView } from './panels/notes-panel.js';
 import { analyzeTemplate, fillTemplate } from '../../shared/template-engine.js';
 import { segmentValidationError, toFileBasename, toLogicalName } from '../../shared/subpages.js';
 // 4T-0427: Erweiterungs-Gate des Ordner-Regel-Triggers (dieselbe Filterung
 // wie Dispatcher und Menü).
-import { disabledCommandIdSet } from '../../shared/extensions.js';
-import { getDisabledExtensionIds } from './extension-lifecycle.js';
+import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
+import { getDisabledExtensionIds } from './extensions/extension-lifecycle.js';
 
 function $(sel) {
   return document.querySelector(sel);

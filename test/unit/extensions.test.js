@@ -10,11 +10,15 @@ import {
   extensionById,
   isExtensionId,
   validateExtensionRegistry,
+} from '../../src/shared/extensions/extensions.js';
+// 4T-0993 (Epic 3E-0196): Die Ableitungen aus der Disabled-Liste liegen seit
+// dem Funktions-Auszug in src/shared/extensions/extensions-core.js.
+import {
   normalizeDisabledIds,
   effectiveDisabledSet,
   isExtensionEnabled,
   disabledCommandIdSet,
-} from '../../src/shared/extensions.js';
+} from '../../src/shared/extensions/extensions-core.js';
 import { renderMarkdown, configureExtensions } from '../../src/shared/markdown/markdown.js';
 
 // Synthetische Registry mit Abhaengigkeits-Kette spitze -> aufbau -> basis.

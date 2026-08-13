@@ -25,11 +25,11 @@
 // aus 4T-0506); ohne Handler oeffnet er die Quelldatei an der Zeile.
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 import { t } from '../i18n.js';
-import { state, contextMenu } from './app-state.js';
-import { paneEditors } from './editor.js';
-import { activatePane, openInPane } from './tabs.js';
+import { state, contextMenu } from './app/app-state.js';
+import { paneEditors } from './editor/editor.js';
+import { activatePane, openInPane } from './tabs/tabs.js';
 import { performStatusToggle, computeStatusToggle } from './task-states.js';
 import { taskToggleAugmenter, todayIsoDate } from './tasks.js';
 import {
@@ -37,12 +37,13 @@ import {
   serializeTaskLine,
   setDateField,
   setStatusChar,
-  shiftIsoDateByDays,
-  primaryDateField,
-} from '../../shared/task-markers.js';
-import { showDateTimePicker } from './date-picker.js';
-import { showStatusbarHint, saveTab, scrollToLineAfterOpen } from './views.js';
-import { appendContextMenuItem, placeContextMenuAt } from './dialogs.js';
+} from '../../shared/tasks/task-markers.js';
+import { shiftIsoDateByDays, primaryDateField } from '../../shared/tasks/task-recurrence.js';
+import { showDateTimePicker } from './calendar/date-picker.js';
+import { scrollToLineAfterOpen } from './views/anchor-navigation.js';
+import { saveTab } from './views/save-export.js';
+import { showStatusbarHint } from './views/views.js';
+import { appendContextMenuItem, placeContextMenuAt } from './dialogs/context-menu-utils.js';
 
 // --- Treffer-Aufloesung -------------------------------------------------------
 

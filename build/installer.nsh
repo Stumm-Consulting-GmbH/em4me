@@ -52,6 +52,15 @@ FunctionEnd
 
 ; --- Nach erfolgreicher Installation: Registry-Einträge anlegen -------------
 !macro customInstall
+  ; 4T-1005: Verwaisten Deinstallations-Eintrag der früheren appId entfernen.
+  ; Bis v0.105.0 lautete die appId net.stumm.perspective-markdown; ihr Eintrag
+  ; (GUID per UUIDv5 aus der appId) blieb beim Wechsel auf net.stumm.em4me
+  ; stehen und zeigte eine zweite, scheinbar parallele Installation. Der
+  ; Installations-Ordner ist derselbe; entfernt werden nur die verwaisten
+  ; Registrierungs-Schlüssel (mit und ohne Klammern, je nach Schreibweise).
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ad498cc2-6de3-53e6-b6c0-7fba67d55371"
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\{ad498cc2-6de3-53e6-b6c0-7fba67d55371}"
+
   ${If} $AssocCheckbox_State == ${BST_CHECKED}
     ; ProgID anlegen
     WriteRegStr HKCU "Software\Classes\MarkdownViewer.md" "" "Markdown-Datei"

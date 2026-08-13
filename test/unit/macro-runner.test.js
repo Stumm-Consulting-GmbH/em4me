@@ -5,7 +5,7 @@
 // injizierte deps (kein DOM, kein Dispatcher).
 import { describe, expect, it } from 'vitest';
 import { runMacroSequence } from '../../src/shared/macro-runner.js';
-import { MACRO_MAX_CALL_DEPTH } from '../../src/shared/command-placement.js';
+import { MACRO_MAX_CALL_DEPTH } from '../../src/shared/commands/command-placement.js';
 
 function makeDeps(overrides = {}) {
   const calls = [];

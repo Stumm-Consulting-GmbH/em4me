@@ -18,7 +18,7 @@
 // frontmatter-display).
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 // 4T-0568 (Epic 3E-0104): Zugangs-Reihenfolge der Panel-Toggles (Statusbar-
 // Leiste und Ansichtsmenü-Untermenü) aus dem prozess-neutralen Modell —
 // reine Daten, zyklusfrei.

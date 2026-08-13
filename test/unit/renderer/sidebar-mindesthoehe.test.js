@@ -22,7 +22,20 @@ const { MIN_PANEL_HEIGHT } = await import('../../../src/renderer/modules/sidebar
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..', '..');
-const css = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'styles.css'), 'utf8');
+const RENDERER = path.join(ROOT, 'src', 'renderer');
+
+// 4T-0992: Das Renderer-Stilblatt liegt in zusammenhängenden Scheiben
+// (styles.css plus src/renderer/styles/*.css). Der Wächter liest den ganzen
+// Bestand in Kaskaden-Reihenfolge, damit er unabhängig davon bleibt, in welcher
+// Scheibe die Sidebar-Regeln gerade stehen. Maßgeblich für die Reihenfolge sind
+// die Link-Tags in index.html, weil dort die Kaskade der Anwendung steht.
+const html = fs.readFileSync(path.join(RENDERER, 'index.html'), 'utf8');
+const scheiben = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)]
+  .map((treffer) => treffer[1])
+  .filter((pfad) => pfad === 'styles.css' || pfad.startsWith('styles/'));
+const css = scheiben
+  .map((pfad) => fs.readFileSync(path.join(RENDERER, ...pfad.split('/')), 'utf8'))
+  .join('\n');
 
 // Liefert den Regel-Körper des ersten Blocks, dessen Selektor exakt passt.
 // Die Sidebar-Regeln sind flach, daher schließt die erste '}' den Block.

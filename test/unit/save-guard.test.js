@@ -5,7 +5,7 @@
 // keine ist, wird der Dialog zur Gewohnheit und schuetzt bald nicht mehr.
 // Beide Richtungen stehen deshalb hier.
 import { describe, it, expect } from 'vitest';
-import { istKonflikt, normalizeForCompare } from '../../src/main/save-guard.js';
+import { istKonflikt, normalizeForCompare } from '../../src/main/documents/save-guard.js';
 
 describe('save-guard: Stand-Pruefung vor dem Ueberschreiben', () => {
   it('meldet keinen Konflikt bei gleichem Stand', () => {

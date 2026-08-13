@@ -21,7 +21,8 @@ import {
   buildEventsGanttHtml,
   buildEventsTableHtml,
 } from '../../src/shared/markdown/perspective-events.js';
-import { eventDiff, spanDiff, parsePerspectiveEvents } from '../../src/shared/events-core.js';
+import { eventDiff, spanDiff } from '../../src/shared/events/events-core.js';
+import { parsePerspectiveEvents } from '../../src/shared/events/events-fence.js';
 
 // Label-Resolver der Tests: deutsches Mini-Wörterbuch, Fallback = Key.
 const LABELS = {

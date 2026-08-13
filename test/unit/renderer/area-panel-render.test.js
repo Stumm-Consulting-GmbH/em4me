@@ -32,7 +32,7 @@ pane0.innerHTML = `
 window.api.areaListDir = async () => ({ ok: true, dirs: [], files: [] });
 
 const { renderAreaPanel } = await import('../../../src/renderer/modules/area-panel.js');
-const { state } = await import('../../../src/renderer/modules/app-state.js');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 beforeEach(() => {
   state.areaPath = 'C:\\Bereich';

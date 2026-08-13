@@ -12,7 +12,7 @@ import {
   monthLabel,
   renderMonthGrid,
   weekdayLabels,
-} from '../../../src/renderer/modules/month-grid-view.js';
+} from '../../../src/renderer/modules/calendar/month-grid-view.js';
 
 let grid;
 

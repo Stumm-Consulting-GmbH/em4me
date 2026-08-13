@@ -25,23 +25,24 @@
 //   (reminders:systemNotify), Klick holt das Fenster nach vorn.
 'use strict';
 
-import { api, $ } from './api.js';
+import { api, $ } from './app/api.js';
 import { t } from '../i18n.js';
-import { state, activeTab, contextMenu, editorActivity } from './app-state.js';
-import { paneEditors } from './editor.js';
-import { activeNotesEditorView } from './notes-panel.js';
-import { activatePane, openInPane } from './tabs.js';
-import { scrollToLineAfterOpen, showStatusbarHint } from './views.js';
+import { state, activeTab, contextMenu, editorActivity } from './app/app-state.js';
+import { paneEditors } from './editor/editor.js';
+import { activeNotesEditorView } from './panels/notes-panel.js';
+import { activatePane, openInPane } from './tabs/tabs.js';
+import { scrollToLineAfterOpen } from './views/anchor-navigation.js';
+import { showStatusbarHint } from './views/views.js';
 import { toggleTaskFromQuery, writeTaskHitLine } from './task-query-actions.js';
-import { parseTaskLine, serializeTaskLine, setReminder } from '../../shared/task-markers.js';
-import { showDateTimePicker } from './date-picker.js';
-import { appendContextMenuItem, placeContextMenuAt } from './dialogs.js';
+import { parseTaskLine, serializeTaskLine, setReminder } from '../../shared/tasks/task-markers.js';
+import { showDateTimePicker } from './calendar/date-picker.js';
+import { appendContextMenuItem, placeContextMenuAt } from './dialogs/context-menu-utils.js';
 import {
   normalizeRemindersConfig,
   snoozedReminderValue,
   localNowString,
 } from '../../shared/reminders.js';
-import { isExtensionActive } from './extension-lifecycle.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
 
 // Tipp-Ruhe vor der Anzeige (Workshop-Punkt 7, fester Wert).
 const TYPING_QUIET_MS = 10000;

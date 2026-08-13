@@ -5,7 +5,7 @@
 // belegbares Kuerzel) und Erweiterungs-Gate. Main (Ansichtsmenue-Untermenue)
 // und Renderer (Statusbar-Leiste, Registry-Abgleich) lesen dieselbe Quelle
 // (reine Daten, CJS ohne DOM-/Electron-Abhaengigkeit — Muster
-// src/shared/commands.js und src/shared/manual-pages.js).
+// src/shared/commands/commands.js und src/shared/manual/manual-pages.js).
 //
 // Der Paritaets-Waechter test/unit/panel-access.test.js erzwingt, dass jedes
 // Panel beide Zugaenge fuehrt (Button in index.html, Kommando in der

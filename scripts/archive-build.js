@@ -346,7 +346,7 @@ function archiveBuild(entries, deps = {}) {
   // 4T-0683: Nur die Notes der gebauten Version. In dist/ sammeln sich die
   // Notes-Dateien aller Releases; pauschales Kopieren hat am 2026-07-22 eine
   // Archiv-Fassung mit einer aelteren Probe-Fassung ueberschrieben. Die
-  // projekt-lokale CLAUDE.md beschreibt seit jeher dieses Soll ("die zur
+  // Release-Strecke beschreibt seit jeher dieses Soll ("die zur
   // package.json-Version passende Notes-Datei").
   const pkgVersion = deps.pkgVersion || pkgVersionAusDatei();
   const notes = entries.filter((name) => {

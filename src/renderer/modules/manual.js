@@ -1,7 +1,7 @@
 // 4T-0213 (Epic 3E-0042): Handbuch im Tab-System.
 //
 // Handbuch-Seiten oeffnen als pfadlose read-only Tabs (tab.manualPage =
-// Seiten-ID). Die Seiten-Registry liegt in src/shared/manual-pages.js
+// Seiten-ID). Die Seiten-Registry liegt in src/shared/manual/manual-pages.js
 // (gemeinsame Quelle mit dem Main-seitigen Loader help:getManualPage).
 // Gebuendelte Seiten kommen per IPC aus src/i18n/help/<id>.<lang>.md
 // (Fallback Englisch im Main); generierte Seiten liefern die Generator-
@@ -16,9 +16,9 @@
 'use strict';
 
 import { t } from '../i18n.js';
-import { api } from './api.js';
-import { MANUAL_PAGES, manualPageById } from '../../shared/manual-pages.js';
-import { createTab, state } from './app-state.js';
+import { api } from './app/api.js';
+import { MANUAL_PAGES, manualPageById } from '../../shared/manual/manual-pages.js';
+import { createTab, state } from './app/app-state.js';
 // 4T-0716 (Epic 3E-0137): Die prozessneutrale Erzeugungs-Logik der beiden
 // generierten Seiten liegt im geteilten Modul (gemeinsam mit dem Web-Bau).
 // Hier werden nur die Laufzeit-Anteile eingereicht: die effektiven Bindings
@@ -27,19 +27,23 @@ import { createTab, state } from './app-state.js';
 import {
   generateFunctionsPage as buildFunctionsPage,
   generateShortcutsPage as buildShortcutsPage,
-} from '../../shared/manual-generated.js';
-import { mergeBindings } from '../../shared/commands.js';
-import { disabledCommandIdSet, disabledFeatureKeySet } from '../../shared/extensions.js';
-import { getDisabledExtensionIds } from './extension-lifecycle.js';
-import { activatePane, activateTab } from './tabs.js';
-import { applyAllLayouts, invalidatePaneRenderCache, persistState } from './views.js';
+} from '../../shared/manual/manual-generated.js';
+import { mergeBindings } from '../../shared/commands/commands.js';
+import {
+  disabledCommandIdSet,
+  disabledFeatureKeySet,
+} from '../../shared/extensions/extensions-core.js';
+import { getDisabledExtensionIds } from './extensions/extension-lifecycle.js';
+import { activatePane, activateTab } from './tabs/tabs.js';
+import { applyAllLayouts, invalidatePaneRenderCache } from './views/pane-render.js';
+import { persistState } from './views/views.js';
 
 // --- Generatoren der 'generated'-Seiten (4T-0212, 4T-0716) ------------------
 // Beide Seiten entstehen zur Laufzeit als Markdown, damit alle vier View-Modi
 // inklusive Quellcode-Ansicht sauber funktionieren und keine Doppelpflege zu
 // den kanonischen Quellen (help.feature.*-Keys bzw. Kommando-Registry)
 // entsteht. Die Erzeugung selbst liegt seit 4T-0716 im geteilten Modul
-// src/shared/manual-generated.js (gemeinsam mit dem Web-Bau); hier werden nur
+// src/shared/manual/manual-generated.js (gemeinsam mit dem Web-Bau); hier werden nur
 // die Renderer-Uebersetzung t und die Laufzeit-Anteile eingereicht: die
 // effektiven Bindings inklusive Nutzer-Overrides und die aus den Erweiterungen
 // deaktivierten Kommandos. Das erzeugte Markdown bleibt Zeichen fuer Zeichen

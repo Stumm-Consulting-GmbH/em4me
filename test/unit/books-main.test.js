@@ -1,5 +1,5 @@
 // 4T-0843 (Epic 3E-0147): Unit-Tests der Datei-Ebene des Buches
-// (src/main/books.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
+// (src/main/books/books.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
 // (Story S-0752, AK2 und AK5), Zustands-Aufbau für die Preload-API,
 // Namens-Prüfung und Neuanlage (AK3). Setup-Muster der benachbarten
 // Main-Tests (test/unit/demo-area.test.js: mkdtemp je Fall, Aufräumen im
@@ -25,7 +25,7 @@ import {
   reassignChapter,
   sanitizeBookName,
   suggestMissingChapters,
-} from '../../src/main/books.js';
+} from '../../src/main/books/books.js';
 
 let tmpDirs = [];
 

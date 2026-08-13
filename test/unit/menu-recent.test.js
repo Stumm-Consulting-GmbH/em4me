@@ -1,11 +1,11 @@
 // 4T-0888 (Epic 3E-0168): Unit-Tests für den Aufbau der „Zuletzt
-// geöffnet"-Untermenüs (src/main/menu-recent.js). Der Aufbau saß bis zum
+// geöffnet"-Untermenüs (src/main/menu/menu-recent.js). Der Aufbau saß bis zum
 // Auszug in menu.js und war dort nicht prüfbar, weil das Modul Electron lädt;
 // als eigenes elektron-freies Modul ist er es. Vier Aufrufer teilen ihn sich
 // (Dateien, Bereiche, Bücher, Bücherregale), deshalb sichert der Test die
 // Eigenschaften ab, auf die sich alle vier verlassen.
 import { describe, it, expect, vi } from 'vitest';
-import { createRecentListBuilder } from '../../src/main/menu-recent.js';
+import { createRecentListBuilder } from '../../src/main/menu/menu-recent.js';
 
 // Übersetzung im Test: der Key selbst, damit die Zuordnung sichtbar bleibt.
 const t = (key) => key;

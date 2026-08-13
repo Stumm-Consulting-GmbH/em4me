@@ -1,6 +1,6 @@
 // 4T-0637 (Epic 3E-0069): Wecker-Modell der Uhr-Erweiterung.
 //
-// Prueft die prozessneutralen Funktionen aus src/shared/clock-alarms.js:
+// Prueft die prozessneutralen Funktionen aus src/shared/clock/clock-alarms.js:
 // Normalisierung defekter Staende, Kennungs-Vergabe, Wochentags-Logik,
 // Faelligkeit im Zeitfenster (inklusive Tageswechsel und verpasster
 // Zeitpunkte) sowie das Abschalten einmaliger Wecker. Bewusst ohne jsdom —
@@ -19,7 +19,7 @@ import {
   normalizeAlarms,
   normalizeSnoozeMinutes,
   snoozeUntil,
-} from '../../src/shared/clock-alarms.js';
+} from '../../src/shared/clock/clock-alarms.js';
 
 // 2099-06-15 ist ein Montag (nie Gegenwart, Muster reminder-check.test.js).
 const MONTAG = new Date(2099, 5, 15, 12, 0, 0, 0);

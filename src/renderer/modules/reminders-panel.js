@@ -17,12 +17,12 @@
 'use strict';
 
 import { t } from '../i18n.js';
-import { api } from './api.js';
-import { getPaneEls, state } from './app-state.js';
-import { applySidebarVisibility } from './panels.js';
+import { api } from './app/api.js';
+import { getPaneEls, state } from './app/app-state.js';
+import { applySidebarVisibility } from './panels/panels.js';
 import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js';
-import { isAllEmpty, persistSetting, updateEmptyState } from './views.js';
-import { isExtensionActive } from './extension-lifecycle.js';
+import { isAllEmpty, persistSetting, updateEmptyState } from './views/views.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { groupForPanel } from '../../shared/reminders.js';
 import { openReminderSource, showSnoozeMenu } from './reminders.js';
 import { toggleTaskFromQuery } from './task-query-actions.js';

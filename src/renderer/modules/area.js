@@ -2,7 +2,7 @@
 //
 // Freundliche erste Linie der harten Bereichs-Grenze (lokalisierte
 // Statusbar-Meldung statt generischem Lesefehler); die autoritative
-// Prüfung sitzt main-seitig in src/main/area-path.js (file:read,
+// Prüfung sitzt main-seitig in src/main/area/area-path.js (file:read,
 // Dialoge, Tab-Transfer). Vergleich normalisiert: Kleinschreibung,
 // Backslashes, ohne Trailing-Separatoren.
 //
@@ -14,7 +14,7 @@
 
 import { t } from '../i18n.js';
 
-import { state } from './app-state.js';
+import { state } from './app/app-state.js';
 
 // 4T-0616 (Epic 3E-0116): exportiert, weil die Bereichs-Suche Pfade aus dem
 // Hauptprozess mit denen offener Reiter vergleicht. Zwei Normalisierungen

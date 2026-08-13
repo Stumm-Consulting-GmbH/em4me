@@ -28,8 +28,11 @@
 //   nie als `{`; findInlineCalcSpans prüft die Backslash-Parität explizit.
 'use strict';
 
-const { parseExpression } = require('../perspective-query.js');
-const { evaluateExpression, validateQuery, formatValue } = require('../perspective-query-eval.js');
+// 4T-0987 (Epic 3E-0196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
+const { parseExpression } = require('../query/perspective-query.js');
+const { evaluateExpression } = require('../query/perspective-query-eval.js');
+const { validateQuery } = require('../query/query-functions.js');
+const { formatValue } = require('../query/query-format.js');
 const { escapeHtml } = require('./slug.js');
 
 // Fehler-Zeichen in Text-Präsentation (U+FE0E verhindert Emoji-Darstellung).

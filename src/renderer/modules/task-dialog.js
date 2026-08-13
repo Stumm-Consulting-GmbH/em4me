@@ -19,16 +19,16 @@
 // Undo-Schritt pro Anwendung (eine Transaktion bzw. ein Main-Schreiben).
 'use strict';
 
-import { $, api } from './api.js';
+import { $, api } from './app/api.js';
 import { t } from '../i18n.js';
-import { state, activeTab } from './app-state.js';
-import { paneEditors } from './editor.js';
-import { activeNotesEditorView } from './notes-panel.js';
+import { state, activeTab } from './app/app-state.js';
+import { paneEditors } from './editor/editor.js';
+import { activeNotesEditorView } from './panels/notes-panel.js';
 import { taskStatesResolved } from './task-states.js';
 import { tasksConfig, todayIsoDate } from './tasks.js';
-import { isExtensionActive } from './extension-lifecycle.js';
-import { showDateTimePicker } from './date-picker.js';
-import { showStatusbarHint } from './views.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
+import { showDateTimePicker } from './calendar/date-picker.js';
+import { showStatusbarHint } from './views/views.js';
 import { setTaskQueryEditHandler, writeTaskHitLine } from './task-query-actions.js';
 import {
   parseTaskLine,
@@ -36,14 +36,11 @@ import {
   setDateField,
   setPriority,
   setStatusChar,
-  setRecurrence,
   setReminder,
-  setTaskId,
-  setDependsOn,
-  generateTaskId,
-  parseRecurrenceRule,
   PRIORITY_ORDER,
-} from '../../shared/task-markers.js';
+} from '../../shared/tasks/task-markers.js';
+import { setRecurrence, parseRecurrenceRule } from '../../shared/tasks/task-recurrence.js';
+import { setTaskId, setDependsOn, generateTaskId } from '../../shared/tasks/task-dependencies.js';
 import { taskStatusType } from '../../shared/markdown/plugins.js';
 
 // Die drei manuellen Termin-Felder des Formulars (Automatik-Daten sind

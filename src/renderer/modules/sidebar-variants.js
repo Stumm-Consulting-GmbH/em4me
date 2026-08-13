@@ -19,18 +19,22 @@
 'use strict';
 
 import { normalizeSidebarVariantList } from '../../shared/sidebar-variants.js';
-import { api } from './api.js';
-import { state } from './app-state.js';
+import { api } from './app/api.js';
+import { state } from './app/app-state.js';
 import { t } from '../i18n.js';
-import { showNameInputDialog } from './dialogs.js';
+import { showNameInputDialog } from './dialogs/dialogs.js';
 import {
   applySidebarLayout,
   getSidebarLayout,
   knownPanelIds,
   sidebarPanelById,
 } from './sidebar-layout.js';
-import { panelRawVisible, reportMenuStateNow, setSidebarVariantsMenuProvider } from './tabs.js';
-import { persistSetting } from './views.js';
+import {
+  panelRawVisible,
+  reportMenuStateNow,
+  setSidebarVariantsMenuProvider,
+} from './tabs/tabs.js';
+import { persistSetting } from './views/views.js';
 
 let globalVariants = [];
 

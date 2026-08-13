@@ -1,0 +1,391 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 12 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Markdown-Erweiterungen (Abkuerzungen bis Aufgaben-Zustaende). */
+
+/* === 3E-0017: Markdown-Erweiterungen (0.27.0) =========================== */
+/* 4T-0197: Abbreviations. Browser-natives title-Tooltip; dotted underline
+   als visueller Hinweis, theme-neutral ueber currentColor. */
+.markdown-body abbr[title] {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+/* 4T-0197: Abbr-Vorkommen im Live-Modus (Mark-Decoration), Tooltip via
+   liveAbbrHoverTooltip. Gleiche Optik wie im Render-Pane. */
+.cm-editor .cm-live-abbr {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+/* 4T-0198: Implicit Figures — allein stehendes Bild als <figure> mit
+   Caption aus dem alt-Text. Zentriert wie bisherige Block-Bilder. */
+.markdown-body figure {
+  margin: 1em auto;
+  text-align: center;
+}
+.markdown-body figcaption {
+  font-size: 0.9em;
+  color: var(--fg-muted);
+  margin-top: 0.4em;
+}
+/* 4T-0198: Image Size setzt width/height als HTML-Attribute. Das pauschale
+   height:auto (responsive Bilder, styles.css:1355) wuerde das height-
+   Attribut aushebeln — bei explizitem Attribut auf den Browser-Default
+   zurueckfallen. */
+.markdown-body img[height] {
+  height: revert;
+}
+/* 4T-0649 (Epic 3E-0126): Bildmarke auf der Handbuch-Ueberblicksseite. Die
+   Groesse steht bewusst hier und nicht als Groessen-Angabe im Markdown: das
+   Suffix `=96x96` haengt an der Erweiterung „Bilder mit Groesse und Figuren".
+   Ist sie ausgeschaltet, wuerde das Suffix Teil der Bild-Adresse und das Logo
+   fiele ganz aus. Ueber CSS erscheint es in beiden Zustaenden richtig, im
+   Render-Pane wie im Live-Modus. */
+.markdown-body img[src$='em4me-logo.svg'],
+.cm-editor .cm-live-image img[src$='em4me-logo.svg'] {
+  width: 96px;
+  height: auto;
+}
+/* 4T-0643: Die Bildunterschrift des Logos bleibt unsichtbar. Die Erweiterung
+   „Figuren" macht aus einem allein stehenden Bild eine Abbildung und setzt
+   den Alt-Text als Unterschrift darunter — hier waere das ein zweites
+   „EM4me" direkt ueber dem ausgeschriebenen Claim. Der Alt-Text selbst
+   bleibt am Bild: Der Markdown-Linter verlangt ihn, und Vorlese-Programme
+   brauchen ihn. Nur seine sichtbare Wiederholung entfaellt. */
+.markdown-body figure:has(img[src$='em4me-logo.svg']) figcaption,
+.cm-editor .cm-live-image figure:has(img[src$='em4me-logo.svg']) figcaption {
+  display: none;
+}
+/* 4T-0643: Der Marken-Claim direkt unter dem Logo laeuft mittig mit, sonst
+   steht er linksbuendig neben einem zentrierten Bild. Bewusst ueber das
+   Logo-Bild adressiert statt ueber eine allgemeine Regel „Absatz nach Bild",
+   damit Dokumente der Nutzer unberuehrt bleiben. Zwei Faelle, weil das Bild
+   ohne die Erweiterung „Figuren" nicht in <figure> steht, sondern in <p>. */
+.markdown-body figure:has(img[src$='em4me-logo.svg']) + p,
+.markdown-body p:has(img[src$='em4me-logo.svg']) + p {
+  text-align: center;
+  color: var(--fg-muted);
+  letter-spacing: 0.02em;
+}
+/* 4T-0198: Live-Modus-Pendants (ImageWidget rendert figure/figcaption im
+   Editor-Kontext; .cm-live-image img traegt ebenfalls height:auto). */
+.cm-editor .cm-live-image img[height] {
+  height: revert;
+}
+.cm-editor .cm-live-image figure {
+  margin: 0.4em auto;
+  text-align: center;
+}
+.cm-editor .cm-live-image figcaption {
+  font-size: 0.9em;
+  color: var(--fg-muted);
+  margin-top: 0.3em;
+  font-family: var(--font-ui);
+}
+/* 4T-0199: Definition Lists (Pandoc) — dt fett, dd eingerueckt. */
+.markdown-body dl {
+  margin: 1em 0;
+}
+.markdown-body dt {
+  font-weight: 600;
+  margin-top: 0.5em;
+}
+.markdown-body dt:first-child {
+  margin-top: 0;
+}
+.markdown-body dd {
+  margin: 0.25em 0 0.8em 1.5em;
+}
+/* 4T-0199: Pandoc Line Blocks — pre-wrap erhaelt fuehrende Leerzeichen
+   und exakte Abstaende (Copy-Paste liefert echte Spaces, kein &nbsp;). */
+.markdown-body .line-block {
+  margin: 1em 0;
+}
+.markdown-body .line-block-line {
+  white-space: pre-wrap;
+}
+/* 4T-0200: Custom Containers — unbekannte Namen als neutrale Box mit
+   dezenter Border/Toenung; der Name-Slug haengt als container-<slug>-
+   Klasse fuer nutzereigenes Styling dran. Bekannte Callout-Typen nutzen
+   die bestehende .callout-Optik (gemeinsame Render-Helper). */
+.markdown-body .custom-container {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4em 0.8em;
+  margin: 1em 0;
+  background: var(--bg-alt);
+}
+/* 4T-0200: Live-Modus-Pendant der neutralen Container-Box. */
+.cm-editor .cm-line.cm-live-container {
+  background: var(--bg-alt);
+  border-left: 2px solid var(--border-strong);
+  padding-left: 0.6em;
+}
+/* 4T-0382 (Epic 3E-0072): Mehrspalten-Block `::: columns <n>`. CSS-
+   Mehrspaltigkeit — der Inhalt fliesst automatisch und ausgeglichen ueber
+   die Spalten; der Umbruch-Marker `+++` erzwingt den Spaltenwechsel. Gilt
+   fuer Render-Pane und Reading (gleicher Render-Pfad) und traegt in den
+   PDF-Export (Druck-Engine beherrscht CSS-Spalten). Bewusst NICHT in der
+   page-break-inside-avoid-Liste des Druck-Blocks: lange Spalten duerfen
+   seitenuebergreifend brechen. */
+.markdown-body .md-columns {
+  column-gap: 2.5em;
+  margin: 1em 0;
+}
+.markdown-body .md-columns-2 {
+  column-count: 2;
+}
+.markdown-body .md-columns-3 {
+  column-count: 3;
+}
+.markdown-body .md-columns-4 {
+  column-count: 4;
+}
+.markdown-body .md-columns-5 {
+  column-count: 5;
+}
+/* Oberkante der ersten Spalte ohne ueberschuessigen Rand des ersten Kindes. */
+.markdown-body .md-columns > :first-child {
+  margin-top: 0;
+}
+/* Umbruch-Marker: leeres, unsichtbares Element, das den Spaltenwechsel
+   erzwingt. Ausserhalb eines Mehrspalten-Blocks ohne Wirkung. */
+.markdown-body .md-column-break {
+  break-before: column;
+}
+/* 4T-0201: Insertion/Underline `++Text++` — reine Unterstreichung ohne
+   Einfuege-Semantik-Faerbung (Zielnutzung ist Underline im Notiz-
+   Kontext); ueberschreibt das Browser-Default-Rendering von <ins>. */
+.markdown-body ins {
+  text-decoration: underline;
+  background: none;
+  color: inherit;
+}
+/* 4T-0201: Live-Marks fuer Sub/Sup/Ins (Marker versteckt, Inhalt
+   gestylt; Werte analog Render-Pane-Browser-Defaults). */
+.cm-editor .cm-live-sub {
+  vertical-align: sub;
+  font-size: 0.8em;
+}
+.cm-editor .cm-live-sup {
+  vertical-align: super;
+  font-size: 0.8em;
+}
+.cm-editor .cm-live-ins {
+  text-decoration: underline;
+}
+/* 4T-0203: Spoiler — verdeckt (Hintergrund = Schriftfarbe), Hover oder
+   Tastatur-Fokus deckt auf; CSS-only, theme-uebergreifend ueber --fg.
+   Verschachtelte Elemente (Links, Tags, mark) werden im verdeckten
+   Zustand mitneutralisiert, sonst blieben Akzentfarben lesbar. */
+.markdown-body .spoiler {
+  background: var(--fg);
+  color: var(--fg);
+  border-radius: 3px;
+  padding: 0 0.15em;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.markdown-body .spoiler:not(:hover):not(:focus-visible) * {
+  color: inherit;
+  background: transparent;
+}
+.markdown-body .spoiler:hover,
+.markdown-body .spoiler:focus-visible {
+  background: var(--bg-alt);
+  color: inherit;
+}
+/* 4T-0203: Critic Markup — Addition gruen/unterstrichen, Deletion rot/
+   durchgestrichen, Highlight in Mark-Optik mit Critic-Akzent, Kommentar
+   als gedaempfte Inline-Box. */
+.markdown-body ins.critic {
+  color: #198754;
+  background: rgba(25, 135, 84, 0.08);
+  text-decoration: underline;
+}
+.markdown-body del.critic {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+  text-decoration: line-through;
+}
+.markdown-body mark.critic {
+  background: #fff3a3;
+  outline: 1px dashed #d4a900;
+}
+.markdown-body .critic-comment {
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  border-radius: 3px;
+  padding: 0 0.3em;
+  font-style: italic;
+}
+[data-theme='dark'] .markdown-body ins.critic {
+  color: #75b798;
+  background: rgba(117, 183, 152, 0.12);
+}
+[data-theme='dark'] .markdown-body del.critic {
+  color: #ea868f;
+  background: rgba(234, 134, 143, 0.12);
+}
+[data-theme='dark'] .markdown-body mark.critic {
+  background: #7d6b00;
+  color: #fff8d6;
+  outline-color: #a08900;
+}
+/* 4T-0203: Live-Modus-Pendants (Marker versteckt der Pass). */
+.cm-editor .cm-live-spoiler {
+  background: var(--fg);
+  color: var(--fg);
+  border-radius: 3px;
+}
+.cm-editor .cm-live-spoiler:hover {
+  background: var(--bg-alt);
+  color: inherit;
+}
+.cm-editor .cm-live-critic-ins {
+  color: #198754;
+  text-decoration: underline;
+}
+.cm-editor .cm-live-critic-del {
+  color: #dc3545;
+  text-decoration: line-through;
+}
+.cm-editor .cm-live-critic-mark {
+  background: #fff3a3;
+  border-radius: 2px;
+}
+.cm-editor .cm-live-critic-comment {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+[data-theme='dark'] .cm-editor .cm-live-critic-ins {
+  color: #75b798;
+}
+[data-theme='dark'] .cm-editor .cm-live-critic-del {
+  color: #ea868f;
+}
+[data-theme='dark'] .cm-editor .cm-live-critic-mark {
+  background: #7d6b00;
+  color: #fff8d6;
+}
+/* 4T-0204: Erweiterte Task-States — Status-Box im Render-Pane. Kaestchen-
+   Optik wie die native Task-Checkbox, das Marker-Zeichen als farbiger
+   Glyph (Farbe via --task-state-color als inline-Style vom Plugin). */
+.markdown-body .task-state-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1em;
+  height: 1.1em;
+  border: 1.5px solid var(--task-state-color, var(--accent));
+  border-radius: 3px;
+  color: var(--task-state-color, var(--accent));
+  font-weight: 700;
+  font-size: 0.85em;
+  line-height: 1;
+  margin-right: 0.4em;
+  vertical-align: text-bottom;
+  cursor: pointer;
+  user-select: none;
+}
+/* 4T-0204: Live-Modus-Pendant — Glyph via ::before content:attr(),
+   gleiche Mechanik wie die Checkbox-Nachbildung darueber. */
+.cm-editor .cm-live-task-marker.cm-live-task-state::before {
+  content: attr(data-live-task-state);
+  color: var(--task-state-color, var(--accent));
+  border-color: var(--task-state-color, var(--accent));
+  background: var(--bg-alt);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1em;
+  text-align: center;
+}
+/* 4T-0498 (Epic 3E-0090): Task-Marker-Badges der Erweiterung „Aufgaben".
+   Dezente Pill am Zeilenende; gilt in Render-Pane UND Live-Editor (deshalb
+   NICHT auf .markdown-body gescopet). Farben ueber die Theme-Variablen,
+   Fehler-/Ueberfaellig-Zustaende in den bekannten Fehlerfarben (hell
+   #dc3545, dunkel #ea868f). Die Live-Badge-Klasse ergaenzt nur die
+   Feinausrichtung; die Pill-Optik kommt aus den gemeinsamen Klassen. */
+.task-marker {
+  display: inline-block;
+  margin-left: 0.45em;
+  padding: 0 0.35em;
+  border: 1px solid var(--border);
+  border-radius: 0.7em;
+  font-size: 0.82em;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.task-marker-overdue {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+[data-theme='dark'] .task-marker-overdue {
+  border-color: #ea868f;
+  color: #ea868f;
+}
+.task-marker-invalid {
+  border-color: #dc3545;
+  color: #dc3545;
+  text-decoration: line-through;
+}
+[data-theme='dark'] .task-marker-invalid {
+  border-color: #ea868f;
+  color: #ea868f;
+}
+.task-marker-other {
+  opacity: 0.75;
+}
+.cm-editor .cm-live-task-marker-badge {
+  vertical-align: baseline;
+}
+/* 4T-0204: Task-Status-Editor im Settings-Dialog. */
+.task-states-head,
+.task-state-row {
+  display: grid;
+  grid-template-columns: 3.2em 4.5em 1fr 4em 9em 4em 2.2em;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0;
+}
+.task-states-head {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.task-state-row .ts-char,
+.task-state-row .ts-next {
+  text-align: center;
+}
+/* 4T-0497 (Epic 3E-0090): Live-Warnung doppelt belegter Zeichen. Dezenter
+   Warnhinweis im Muster von .settings-section-error. */
+.task-states-warning {
+  margin: 6px 0 2px;
+  color: #dc3545;
+  font-size: 12.5px;
+}
+[data-theme='dark'] .task-states-warning {
+  color: #ea868f;
+}
+.task-state-row .ts-char[readonly],
+.task-state-row .ts-label[readonly] {
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+}
+.task-state-row .ts-color {
+  width: 100%;
+  height: 26px;
+  padding: 1px 2px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+}
+.task-state-row .ts-remove {
+  padding: 2px 8px;
+}
+.task-states-actions {
+  margin-top: 8px;
+}

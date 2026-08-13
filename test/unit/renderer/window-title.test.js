@@ -1,12 +1,12 @@
 // 4T-0318 (Epic 3E-0057): Unit-Tests für den gestuften Titel-Suffix und die
-// Fenster-Ziel-Labels (src/renderer/modules/window-title.js). Die gestufte
+// Fenster-Ziel-Labels (src/renderer/modules/app/window-title.js). Die gestufte
 // Systematik ist eine PO-Entscheidung: App-Teil nur bei mehreren nummerierten
 // Apps, Bereichsname immer, Fenster-Teil nur bei mehreren Fenstern der App.
 import { describe, it, expect } from 'vitest';
 import {
   buildTitleSuffix,
   buildWindowTargetLabel,
-} from '../../../src/renderer/modules/window-title.js';
+} from '../../../src/renderer/modules/app/window-title.js';
 
 // Deutsche Werte der echten i18n-Keys als Fixture.
 const DICT = {

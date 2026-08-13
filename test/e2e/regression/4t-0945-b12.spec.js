@@ -198,6 +198,15 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-0945)', () => {
       await page.keyboard.press('Control+s');
       await expect.poll(() => konfliktDialogCalls(app), { timeout: 10000 }).toBe(1);
 
+      // Abnahme-Befund 3E-0196: Der Sicherungs-Schreibvorgang laeuft erst
+      // wenige Millisekunden nach dem Dialog, und die Historien-Seite laedt
+      // ihre Liste genau einmal beim Oeffnen. Deshalb erst auf die .mdd
+      // warten (Muster KS-02/KS-06) — der Fall sichert die ABRUFBARKEIT der
+      // Fassung zu, nicht den Schreib-Zeitpunkt. Das Rennen bestand
+      // unveraendert schon auf v1.106.0 (dort 1 von 15 rot).
+      const mdd = path.join(dir, 'Notiz.mdd');
+      await expect.poll(() => fs.existsSync(mdd), { timeout: 10000 }).toBe(true);
+
       // Der Weg des Anwenders: Ansicht -> Historie.
       await sendMenuChannel(app, 'menu:openHistory');
       const seite = page.locator('.history-page');

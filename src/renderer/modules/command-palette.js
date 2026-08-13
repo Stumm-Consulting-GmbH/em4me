@@ -5,7 +5,7 @@
 // .active-Klasse, Enter/Klick fuehrt aus, Esc/Backdrop/Abbrechen schliesst
 // (Capture-Phase-keydown mit stopPropagation haelt die globale Esc-Kaskade
 // heraus). Quelle ist ausschliesslich die Kommando-Registry
-// (shared/commands.js); die Ausfuehrung laeuft ueber den bestehenden
+// (shared/commands/commands.js); die Ausfuehrung laeuft ueber den bestehenden
 // Dispatch-Pfad: global dispatchte Kommandos ueber die commandHandlers-Map
 // aus app-init.js (via initCommandPalette injiziert, zyklenfrei),
 // editorScoped-Kommandos ueber EDITOR_COMMAND_FUNCTIONS auf der aktiven
@@ -13,29 +13,27 @@
 //
 // Verfuegbarkeit: im aktuellen Kontext nicht ausfuehrbare Kommandos
 // erscheinen gedimmt (.unavailable) und sind nicht ausfuehrbar. Die Regeln
-// spiegeln die enabled-Ausdruecke des Anwendungs-Menues (src/main/menu.js)
+// spiegeln die enabled-Ausdruecke des Anwendungs-Menues (src/main/menu/menu.js)
 // auf Basis derselben Renderer-Flags, die reportMenuStateNow (tabs.js) an
 // den Main-Prozess meldet; Handler-Guards bleiben als zweite Sicherung.
 'use strict';
 
-import {
-  COMMANDS,
-  COMMAND_CATEGORIES,
-  mergeBindings,
-  bindingToDisplayString,
-} from '../../shared/commands.js';
-import { disabledCommandIdSet } from '../../shared/extensions.js';
-import { filterCommandEntries } from '../../shared/command-palette-filter.js';
+import { COMMANDS, COMMAND_CATEGORIES, mergeBindings } from '../../shared/commands/commands.js';
+// 4T-0993: Anzeige-String eines Bindings aus der Binding-Schicht.
+import { bindingToDisplayString } from '../../shared/commands/command-bindings.js';
+import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
+import { filterCommandEntries } from '../../shared/commands/command-palette-filter.js';
 import { t } from '../i18n.js';
-import { state, activeTab } from './app-state.js';
+import { state, activeTab } from './app/app-state.js';
 // 4T-0546 (Epic 3E-0097): Verfuegbarkeits-Regel des Kalender-Kommandos
 // (zyklenfreier Renderer-Zustand der Kalender-Konfiguration).
-import { hasCalendarConfig } from './calendar-config.js';
-import { getDisabledExtensionIds } from './extension-lifecycle.js';
-import { EDITOR_COMMAND_FUNCTIONS, paneEditors } from './editor.js';
+import { hasCalendarConfig } from './calendar/calendar-config.js';
+import { getDisabledExtensionIds } from './extensions/extension-lifecycle.js';
+import { paneEditors } from './editor/editor.js';
+import { EDITOR_COMMAND_FUNCTIONS } from './editor/editor-keymaps.js';
 // 4T-0590 (Epic 3E-0109): Verfuegbarkeits-Regel der table.*-Kommandos —
 // zusaetzlich zum Editor-Kontext muss der Cursor in einer Tabelle stehen.
-import { hasTableContext } from './editor-table-tools.js';
+import { hasTableContext } from './editor/editor-table-tools.js';
 
 function $(sel) {
   return document.querySelector(sel);

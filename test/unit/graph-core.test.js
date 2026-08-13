@@ -12,7 +12,8 @@ import {
   limitToMostConnected,
   layoutGraph,
 } from '../../src/shared/graph-core.js';
-import { disabledCommandIdSet, isExtensionId } from '../../src/shared/extensions.js';
+import { isExtensionId } from '../../src/shared/extensions/extensions.js';
+import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
 
 // Kurzform: Knoten aus IDs, Name = ID.
 function nodes(...ids) {

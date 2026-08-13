@@ -10,14 +10,7 @@ import {
   setDateField,
   setPriority,
   setStatusChar,
-  setRecurrence,
   setReminder,
-  buildRecurrenceInstance,
-  setTaskId,
-  setDependsOn,
-  isValidTaskId,
-  generateTaskId,
-  computeDependencyFlags,
   stripIdAndDependsOn,
   isTaskLine,
   modelMatchesGlobalFilter,
@@ -25,11 +18,22 @@ import {
   priorityRank,
   comparePriority,
   compareDateValue,
+  PRIORITY_ORDER,
+} from '../../src/shared/tasks/task-markers.js';
+import {
+  setRecurrence,
+  buildRecurrenceInstance,
   shiftIsoDateByDays,
   primaryDateField,
   computeUrgency,
-  PRIORITY_ORDER,
-} from '../../src/shared/task-markers.js';
+} from '../../src/shared/tasks/task-recurrence.js';
+import {
+  setTaskId,
+  setDependsOn,
+  isValidTaskId,
+  generateTaskId,
+  computeDependencyFlags,
+} from '../../src/shared/tasks/task-dependencies.js';
 
 // --- 1. Round-Trip (Kern-Pflicht) --------------------------------------------------
 // serializeTaskLine(parseTaskLine(line)) muss byte-identisch die Eingabe liefern.

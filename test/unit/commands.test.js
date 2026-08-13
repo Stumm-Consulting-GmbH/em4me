@@ -1,26 +1,32 @@
 // 4T-0207 (Epic 3E-0015): Unit-Tests der Kommando-Registry
-// (src/shared/commands.js) — Registry-Invarianten, Binding-Normalisierung,
-// Merge-Logik, Anzeige-/CodeMirror-Konvertierung und Timestamp-Format.
+// (src/shared/commands/commands.js) und ihrer Binding-Schicht
+// (src/shared/commands/command-bindings.js) — Registry-Invarianten, Binding-
+// Normalisierung, Merge-Logik, Anzeige-/CodeMirror-Konvertierung und
+// Timestamp-Format.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
   COMMANDS,
   COMMAND_CATEGORIES,
+  mergeBindings,
+  effectiveMenuAccelerators,
+  findBindingConflict,
+  findDuplicateBindings,
+} from '../../src/shared/commands/commands.js';
+// 4T-0993 (Epic 3E-0196): Die registry-freie Binding-Schicht liegt seit dem
+// Funktions-Auszug in src/shared/commands/command-bindings.js.
+import {
   FIXED_BINDINGS,
   normalizeBinding,
   eventToBinding,
   isShiftSymbolEvent,
   stripShiftFromBinding,
-  mergeBindings,
-  effectiveMenuAccelerators,
   bindingToDisplayString,
   acceleratorToCmKey,
   isBindingCapturable,
-  findBindingConflict,
-  findDuplicateBindings,
   formatTimestamp,
-} from '../../src/shared/commands.js';
+} from '../../src/shared/commands/command-bindings.js';
 
 const I18N_DIR = path.resolve(__dirname, '..', '..', 'src', 'i18n');
 const LANGS = ['de', 'en', 'fr', 'es', 'it'];

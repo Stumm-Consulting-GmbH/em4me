@@ -1,0 +1,510 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 16 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Zusatz-Ansichten der Ereignisse (Dashboard, Kalender, Timeline, Gantt),
+   Aggregation, Verknuepfungen. */
+
+/* 4T-0514 (Epic 3E-0092): Zusatz-Ansichten — Umschalter, Dashboard,
+   Monats-/Wochen-Kalender, Timeline und der Ereignis-Sprung zur Tabelle. */
+.markdown-body .pev-switcher {
+  display: flex;
+  gap: 0.25em;
+  margin: 0.2em 0 0.35em;
+}
+.markdown-body .pev-viewbtn {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85em;
+  padding: 1px 8px;
+  cursor: pointer;
+}
+.markdown-body .pev-viewbtn:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+.markdown-body .pev-viewbtn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(128, 128, 128, 0.1);
+}
+.markdown-body .pev-event-chip {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: none;
+  border-radius: 0.5em;
+  background: #f5f5f5;
+  color: #616161;
+  font: inherit;
+  font-size: 0.8em;
+  padding: 0 0.45em;
+  cursor: pointer;
+  text-align: left;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip {
+  background: #303030;
+  color: #bdbdbd;
+}
+.markdown-body .pev-event-chip[data-ev-cat='geburtstag'] {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.markdown-body .pev-event-chip[data-ev-cat='todestag'] {
+  background: #eceff1;
+  color: #37474f;
+}
+.markdown-body .pev-event-chip[data-ev-cat='jahrestag'] {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+.markdown-body .pev-event-chip[data-ev-cat='jubilaeum'] {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+.markdown-body .pev-event-chip[data-ev-cat='projekt'] {
+  background: #fff3e0;
+  color: #e65100;
+}
+.markdown-body .pev-event-chip[data-ev-cat='termin'] {
+  background: #e0f2f1;
+  color: #00695c;
+}
+.markdown-body .pev-event-chip[data-ev-cat='erinnerung'] {
+  background: #fffde7;
+  color: #8d6e0a;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='geburtstag'] {
+  background: #1e3a22;
+  color: #a5d6a7;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='todestag'] {
+  background: #2e3438;
+  color: #b0bec5;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='jahrestag'] {
+  background: #1a2c42;
+  color: #90caf9;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='jubilaeum'] {
+  background: #332038;
+  color: #ce93d8;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='projekt'] {
+  background: #3d2c17;
+  color: #ffcc80;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='termin'] {
+  background: #15332f;
+  color: #80cbc4;
+}
+[data-theme='dark'] .markdown-body .pev-event-chip[data-ev-cat='erinnerung'] {
+  background: #3a3413;
+  color: #fff59d;
+}
+/* Dashboard */
+.markdown-body .pev-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  font-size: 0.92em;
+}
+.markdown-body .pev-dash-title {
+  font-weight: bold;
+  margin-bottom: 0.2em;
+}
+.markdown-body .pev-dash-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  padding: 0.1em 0;
+}
+.markdown-body .pev-dash-date {
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+.markdown-body .pev-dash-in {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.markdown-body .pev-dash-empty {
+  color: var(--fg-muted);
+  font-style: italic;
+  font-size: 0.9em;
+}
+.markdown-body .pev-dash-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.markdown-body .pev-dash-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+.markdown-body .pev-dash-count {
+  color: var(--fg-muted);
+  font-size: 0.9em;
+}
+/* Kalender */
+.markdown-body .pev-cal-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-bottom: 0.3em;
+}
+.markdown-body .pev-cal-title {
+  font-weight: bold;
+}
+.markdown-body .pev-cal-nav {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85em;
+  padding: 0 7px;
+  cursor: pointer;
+}
+.markdown-body .pev-cal-nav:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+.markdown-body .pev-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  font-size: 0.85em;
+}
+.markdown-body .pev-cal-weekday {
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  padding: 0.1em 0;
+}
+.markdown-body .pev-cal-day {
+  min-height: 4.2em;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+.markdown-body .pev-cal-week .pev-cal-day {
+  min-height: 10em;
+}
+.markdown-body .pev-cal-day.pev-cal-out {
+  opacity: 0.45;
+}
+.markdown-body .pev-cal-day.pev-cal-today {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.markdown-body .pev-cal-num {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  text-align: right;
+}
+.markdown-body .pev-cal-more {
+  color: var(--fg-muted);
+  font-size: 0.8em;
+}
+/* Zeitspannen-Balken: Fortsetzungs-Tage ohne Text als durchlaufender Balken. */
+.markdown-body .pev-event-chip.pev-chip-start {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.markdown-body .pev-event-chip.pev-chip-mid {
+  border-radius: 0;
+  min-height: 0.9em;
+}
+.markdown-body .pev-event-chip.pev-chip-end {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  min-height: 0.9em;
+}
+/* Timeline */
+.markdown-body .pev-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  font-size: 0.92em;
+}
+.markdown-body .pev-tl-year {
+  font-weight: bold;
+  font-size: 1.05em;
+  border-bottom: 1px solid var(--border);
+  margin-top: 0.4em;
+}
+.markdown-body .pev-tl-month {
+  color: var(--fg-muted);
+  margin: 0.2em 0 0.1em 0.6em;
+}
+.markdown-body .pev-tl-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  margin-left: 1.4em;
+  padding: 0.05em 0;
+  border-left: 2px solid var(--border);
+  padding-left: 0.6em;
+}
+.markdown-body .pev-tl-date {
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+/* 4T-0722 (Epic 3E-0150): Gantt-Ansicht. Label-Spalte und Zeit-Fläche
+   liegen in einem Zwei-Spalten-Raster ohne Spalten-Abstand, damit das
+   Linien-Overlay mit derselben Spaltenbreite ansetzen kann. Zeilen haben
+   feste Höhe: die Abhängigkeits-Linien rechnen ihre Y-Position aus dem
+   Zeilen-Anteil und setzen gleich hohe Zeilen voraus. */
+.markdown-body .pev-gantt {
+  --pev-gantt-label-w: 12em;
+  --pev-gantt-row-h: 1.9em;
+  font-size: 0.92em;
+  overflow-x: auto;
+}
+.markdown-body .pev-gantt-head,
+.markdown-body .pev-gantt-row {
+  display: grid;
+  grid-template-columns: var(--pev-gantt-label-w) 1fr;
+  align-items: center;
+  min-width: 24em;
+}
+.markdown-body .pev-gantt-head {
+  border-bottom: 1px solid var(--border);
+  height: var(--pev-gantt-row-h);
+}
+.markdown-body .pev-gantt-axis {
+  position: relative;
+  height: 100%;
+}
+.markdown-body .pev-gantt-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 0.2em;
+  border-left: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 0.8em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.markdown-body .pev-gantt-body {
+  position: relative;
+}
+.markdown-body .pev-gantt-row {
+  height: var(--pev-gantt-row-h);
+}
+.markdown-body .pev-gantt-row + .pev-gantt-row {
+  border-top: 1px solid var(--border);
+}
+.markdown-body .pev-gantt-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  padding-right: 0.5em;
+  overflow: hidden;
+}
+.markdown-body .pev-gantt-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.markdown-body .pev-gantt-mark,
+.markdown-body .pev-gantt-link-count {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.markdown-body .pev-gantt-track {
+  position: relative;
+  height: 100%;
+}
+/* Balken und Raute sind Ereignis-Chips (Kategorie-Farbe, Titel und
+   Sprung-Ziel kommen von dort) mit prozentualer Position auf der Achse. */
+.markdown-body .pev-event-chip.pev-chip-gantt-bar,
+.markdown-body .pev-event-chip.pev-chip-gantt-point {
+  position: absolute;
+  top: 50%;
+  padding: 0;
+  min-width: 0;
+  border: 1px solid var(--border);
+}
+.markdown-body .pev-event-chip.pev-chip-gantt-bar {
+  height: 1.05em;
+  min-width: 2px;
+  transform: translateY(-50%);
+  border-radius: 0.25em;
+}
+.markdown-body .pev-event-chip.pev-chip-gantt-point {
+  width: 0.75em;
+  height: 0.75em;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 0.1em;
+}
+/* Das Overlay deckt genau die Zeit-Fläche ab (Prozent-Koordinaten der
+   Linien rechnen gegen diese Fläche). Breite und Höhe stehen ausdrücklich
+   da: ein SVG ist ein ersetztes Element und würde von left/right/bottom
+   allein nicht aufgezogen, sondern auf seine Vorgabe-Größe 300×150
+   fallen. */
+.markdown-body .pev-gantt-overlay {
+  position: absolute;
+  left: var(--pev-gantt-label-w);
+  top: 0;
+  width: calc(100% - var(--pev-gantt-label-w));
+  height: 100%;
+  pointer-events: none;
+}
+.markdown-body .pev-gantt-link {
+  stroke: var(--fg-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+  opacity: 0.8;
+}
+.markdown-body .pev-gantt-today {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+/* 4T-0515 (Epic 3E-0092): Aggregation — Status-Anzeige, Quell-Zeile,
+   Titel-Fallback und Zeilen-Klick-Affordanz. */
+.markdown-body .pev-agg-status {
+  color: var(--fg-muted);
+  font-style: italic;
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+.markdown-body .pev-source {
+  color: var(--fg-muted);
+  font-size: 0.8em;
+}
+.markdown-body .pev-source::before {
+  content: '↗ ';
+}
+.markdown-body .pev-text-fallback {
+  font-style: italic;
+}
+.markdown-body tr.pev-agg-row td {
+  cursor: pointer;
+}
+.markdown-body tr.pev-agg-row.pev-editing td {
+  cursor: default;
+}
+
+/* 4T-0516 (Epic 3E-0092): Verknüpfungen — Indikator in der Zeitpunkt-
+   Spalte (immer sichtbar) und das Verknüpfungs-Popup mit Suche,
+   Vorgänger-/Nachfolger-Toggles und Sprung-Zielen. */
+.markdown-body .pev-link-ind {
+  border: 1px solid var(--border);
+  border-radius: 0.7em;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.75em;
+  padding: 0 0.4em;
+  margin-left: 0.3em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.markdown-body .pev-link-ind:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.pev-link-popup {
+  position: fixed;
+  z-index: 1000;
+  min-width: 22em;
+  max-width: 32em;
+  max-height: 20em;
+  overflow: auto;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  padding: 0.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  font-size: 0.9em;
+}
+.pev-link-popup .pev-link-search {
+  width: 100%;
+}
+.pev-link-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+.pev-link-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+}
+.pev-link-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+button.pev-link-jump {
+  border: none;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  padding: 1px 2px;
+  cursor: pointer;
+}
+button.pev-link-jump:hover {
+  color: var(--accent);
+}
+.pev-link-kind {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85em;
+  padding: 0 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pev-link-kind.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(128, 128, 128, 0.1);
+}
+.pev-link-broken .pev-link-label {
+  color: var(--danger, #c0392b);
+}
+.pev-link-empty {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+
+/* Ereignis-Sprung: kurzes Aufblitzen der Ziel-Zeile. */
+@keyframes pev-jump-flash {
+  0% {
+    background: rgba(255, 200, 0, 0.35);
+  }
+  100% {
+    background: transparent;
+  }
+}
+.markdown-body tr.pev-jump-flash td {
+  animation: pev-jump-flash 1.5s ease-out;
+}

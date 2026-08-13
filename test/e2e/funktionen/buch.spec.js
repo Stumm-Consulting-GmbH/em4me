@@ -44,7 +44,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { leseJsonOderNull, warteAufJson, warteAufText } = require('../helpers/dateien');
 const { SEL } = require('../helpers/selectors');
-const { BOOK_SETTINGS_FILENAME } = require('../../../src/shared/book-core.js');
+const { BOOK_SETTINGS_FILENAME } = require('../../../src/shared/books/book-core.js');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 

@@ -2,7 +2,7 @@
 // (.mddb -> .mdda). IO über gemockte deps; prüft die vier Fälle plus den
 // Leerfall.
 import { describe, it, expect, vi } from 'vitest';
-import { readAreaSettingsRaw } from '../../src/main/area-migration.js';
+import { readAreaSettingsRaw } from '../../src/main/area/area-migration.js';
 
 const MDDA = '/area/Area_Settings.mdda';
 const MDDB = '/area/Area_Settings.mddb';

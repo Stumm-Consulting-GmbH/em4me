@@ -10,7 +10,7 @@ import {
   templateEntryFromRelPath,
   sortedTemplateEntries,
   matchFolderRule,
-} from '../../src/main/templates.js';
+} from '../../src/main/documents/templates.js';
 
 const AREA = 'C:\\Notizen';
 

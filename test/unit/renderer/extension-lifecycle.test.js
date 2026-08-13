@@ -4,9 +4,9 @@
 // und Persistenz-Verhalten (persist:false beim Broadcast-Empfang).
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
-import { EXTENSIONS_DISABLED_KEY } from '../../../src/shared/extensions.js';
+import { EXTENSIONS_DISABLED_KEY } from '../../../src/shared/extensions/extensions.js';
 
-const lifecycle = await import('../../../src/renderer/modules/extension-lifecycle.js');
+const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 
 describe('extension-lifecycle (4T-0292)', () => {
   beforeEach(() => {

@@ -9,28 +9,28 @@
 
 import { t } from '../i18n.js';
 
-import { api } from './api.js';
-import { areaPanelVisiblePref, getPaneEls, state } from './app-state.js';
+import { api } from './app/api.js';
+import { areaPanelVisiblePref, getPaneEls, state } from './app/app-state.js';
 import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js';
 // Sichtbarkeits-Anwendung laeuft ueber das Slot-Mounting der dynamischen
 // Sidebar (Muster der Bestands-Panels in panels.js).
-import { applySidebarVisibility } from './panels.js';
+import { applySidebarVisibility } from './panels/panels.js';
 // 4T-0568 (Epic 3E-0104): reportMenuStateNow — Haekchen im Panel-Untermenue
 // folgt dem Toggle (Muster panels.js).
-import { openInPane, reportMenuStateNow } from './tabs.js';
-import { persistSetting, showStatusbarHint, updateEmptyState } from './views.js';
+import { openInPane, reportMenuStateNow } from './tabs/tabs.js';
+import { persistSetting, showStatusbarHint, updateEmptyState } from './views/views.js';
 // 4T-0427 (Epic 3E-0080): Ordner-Regel-Trigger für "Neue Datei in diesem
 // Ordner" (gemeinsamer Einhak-Punkt der App-Anlagen).
 import { openCreatedFileWithRule } from './templates.js';
 // 4T-0455 (Epic 3E-0084): Kontextmenü-Eintrag "Bereichs-Graph" am Panel.
-import { openAreaGraphTab } from './graph-tab.js';
+import { openAreaGraphTab } from './graph/graph-tab.js';
 // 4T-0620 (Epic 3E-0117): zweiter panel-weiter Einstieg — Bereichs-Statistik.
 import { openAreaStatsPage } from './area-stats-page.js';
-import { hideContextMenu, placeContextMenuAt } from './dialogs.js';
-import { isExtensionActive } from './extension-lifecycle.js';
+import { hideContextMenu, placeContextMenuAt } from './dialogs/context-menu-utils.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
 // 4T-0612 (Epic 3E-0115): "Als Bereichs-Lesezeichen" im Kontextmenue der
 // Datei-Zeilen des Bereichs-Panels (Dateien liegen per Definition im Bereich).
-import { addAreaBookmarkForPath } from './bookmarks.js';
+import { addAreaBookmarkForPath } from './bookmarks/bookmarks-actions.js';
 
 // Listing-Cache pro Ordner-Pfad ({ dirs, files }). Wird beim Bereichs-
 // Wechsel und bei Watcher-Ereignissen (4T-0328) verworfen.

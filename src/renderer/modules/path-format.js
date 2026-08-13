@@ -7,7 +7,7 @@
 // Basename ohne Ordner-Zeile angezeigt.
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 
 // root: absolute Index-Wurzel (payload.meta.wurzel); filePath: absoluter
 // Datei-Pfad. Liefert den Ordner-Teil relativ zur Wurzel im nativen Trenner

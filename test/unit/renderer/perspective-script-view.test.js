@@ -16,7 +16,7 @@ import {
   buildScriptOutputDom,
   renderScriptResult,
   renderSourceFallback,
-} from '../../../src/renderer/modules/perspective-script-view.js';
+} from '../../../src/renderer/modules/query/perspective-script-view.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const de = JSON.parse(readFileSync(path.join(dir, '../../../src/i18n/de.json'), 'utf8'));

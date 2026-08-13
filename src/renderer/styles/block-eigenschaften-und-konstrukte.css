@@ -1,0 +1,538 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 10 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Block-Eigenschaften-Panel, Wiki-Embeds, Callouts, Hervorhebung, private
+   Kommentare. */
+
+/* === Block-Eigenschaften-Panel (4T-0364, Epic 3E-0067) ================== */
+/* Pflegt die Block-Metadaten (.mdd blockData) des Ankers unter dem Cursor. Die
+   Eigenschafts-Zeilen teilen die .properties-field-*-Optik des Dokument-
+   Properties-Editors; hier nur die block-spezifischen Teile: Anker-Leiste,
+   Anker-anlegen-Hinweis, Duplikat-Warnung und Verwaisten-Abschnitt. */
+.block-props-empty,
+.block-props-suspended {
+  padding: 8px 12px;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+.block-props-empty[hidden],
+.block-props-suspended[hidden],
+.block-props-anchorbar[hidden],
+.block-props-no-anchor[hidden],
+.block-props-duplicate[hidden],
+.block-props-fields[hidden],
+.block-props-add-btn[hidden],
+.block-props-rename-btn[hidden],
+.block-props-orphans[hidden] {
+  display: none;
+}
+.block-props-anchorbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 12px 4px;
+}
+.block-props-anchor-select,
+.block-props-rename-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 3px 6px;
+  font-size: 12px;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.block-props-rename-btn {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.block-props-rename-btn:hover {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+}
+.block-props-no-anchor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 12px;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+}
+.block-props-create-btn,
+.block-props-add-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.block-props-create-btn:hover,
+.block-props-add-btn:hover {
+  border-color: var(--accent);
+}
+.block-props-add-btn {
+  display: block;
+  margin: 6px 12px;
+}
+.block-props-fields {
+  padding: 0 6px;
+}
+.block-props-duplicate {
+  margin: 4px 12px;
+  padding: 6px 8px;
+  background: rgba(240, 173, 78, 0.12);
+  border: 1px solid rgba(240, 173, 78, 0.35);
+  border-radius: 3px;
+  color: #8a6d00;
+  font-size: 0.8em;
+}
+[data-theme='dark'] .block-props-duplicate {
+  color: #e6b800;
+}
+.block-props-orphans {
+  margin: 8px 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.block-props-orphans-title {
+  margin-bottom: 4px;
+  color: var(--fg-muted);
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.block-props-orphan {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.block-props-orphan-id {
+  flex: 0 0 auto;
+  font-family: var(--editor-font-family);
+  font-size: 11px;
+  color: var(--fg);
+}
+.block-props-orphan-assign {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 2px 4px;
+  font-size: 11px;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.block-props-orphan-delete {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  font-size: 11px;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.block-props-orphan-delete:hover {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+/* 4T-0365 (Epic 3E-0067): Block-Metadaten-Indikator (Render-Pane, Reading und
+   Live-Modus). Dezenter Marker am Blockende; Hover zeigt die Werte (title),
+   Klick öffnet das Panel. Im PDF-Export ausgeblendet (siehe body.printing). */
+.block-meta-indicator,
+.cm-block-meta-indicator {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 0.7em;
+  line-height: 1;
+  vertical-align: middle;
+  opacity: 0.45;
+  cursor: pointer;
+}
+.block-meta-indicator:hover,
+.block-meta-indicator:focus-visible,
+.cm-block-meta-indicator:hover,
+.cm-block-meta-indicator:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+}
+.tags-tree {
+  padding: 4px 6px 8px;
+}
+.tags-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.tags-tree-item:hover {
+  background: var(--bg-alt);
+}
+.tags-tree-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--fg);
+  font-family: var(--editor-font-family, monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tags-tree-count {
+  color: var(--fg-muted);
+  font-size: 0.9em;
+}
+
+.tags-files {
+  padding: 0 0 8px;
+  border-top: 1px solid var(--border);
+}
+.tags-files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-muted);
+  font-size: 0.85em;
+}
+.tags-files-header-tag {
+  font-weight: 600;
+  font-family: var(--editor-font-family, monospace);
+  color: var(--syntax-link);
+}
+.tags-files-back {
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+.tags-files-back:hover {
+  background: var(--bg-alt);
+  color: var(--fg);
+}
+.tags-files-list {
+  padding: 4px 6px 0;
+}
+.tags-files-item {
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 3px;
+}
+.tags-files-item:hover {
+  background: var(--bg-alt);
+}
+.tags-files-item-name {
+  font-weight: 500;
+}
+.tags-files-item-dir {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+}
+
+/* === Wiki-Embeds (4T-0055, Epic 3E-0011) ================================= */
+/* Bilder: kommen schon als <img> aus dem preload (mit data-URI). Hier nur
+   Basis-Styling fuer Inline-Bilder. */
+.markdown-body .wiki-embed.wiki-embed-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 8px 0;
+}
+/* PDF, Markdown und Other: Span-Platzhalter werden im Renderer per
+   applyWikiEmbedsIfPresent zu echtem DOM expandiert. Bis zur Expansion
+   bleiben sie unsichtbar; nach Expansion display: block. */
+.markdown-body .wiki-embed.wiki-embed-pdf,
+.markdown-body .wiki-embed.wiki-embed-md,
+.markdown-body .wiki-embed.wiki-embed-other,
+.markdown-body .wiki-embed.wiki-embed-broken,
+.markdown-body .wiki-embed.wiki-embed-depth-exceeded {
+  display: block;
+  margin: 12px 0;
+}
+.markdown-body .wiki-embed.wiki-embed-pdf embed {
+  display: block;
+}
+.markdown-body .wiki-embed.wiki-embed-md {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+}
+.markdown-body .wiki-embed-md-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border);
+  border-radius: 4px 4px 0 0;
+  font-size: 0.85em;
+}
+.markdown-body .wiki-embed-md-header-link {
+  font-weight: 600;
+  color: var(--syntax-link);
+  text-decoration: none;
+}
+.markdown-body .wiki-embed-md-header-link:hover {
+  text-decoration: underline;
+}
+.markdown-body .wiki-embed-md-anchor {
+  color: var(--fg-muted);
+  font-family: var(--editor-font-family, monospace);
+  font-size: 0.9em;
+}
+.markdown-body .wiki-embed-md-body {
+  padding: 8px 14px 4px;
+}
+.markdown-body .wiki-embed-md-body > :first-child {
+  margin-top: 0;
+}
+.markdown-body .wiki-embed-md-body > :last-child {
+  margin-bottom: 0;
+}
+.markdown-body .wiki-embed-other-link {
+  display: inline-block;
+  padding: 6px 10px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--fg);
+  text-decoration: none;
+  font-family: var(--editor-font-family, monospace);
+  font-size: 0.9em;
+}
+.markdown-body .wiki-embed-other-link::before {
+  content: '📎 ';
+}
+.markdown-body .wiki-embed-other-link:hover {
+  background: var(--bg-alt);
+}
+.markdown-body .wiki-embed-broken,
+.markdown-body .wiki-embed-depth-exceeded {
+  padding: 6px 12px;
+  background: rgba(220, 53, 69, 0.08);
+  border: 1px solid rgba(220, 53, 69, 0.25);
+  border-radius: 4px;
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  font-style: italic;
+}
+[data-theme='dark'] .markdown-body .wiki-embed-broken,
+[data-theme='dark'] .markdown-body .wiki-embed-depth-exceeded {
+  background: rgba(255, 118, 118, 0.08);
+  border-color: rgba(255, 118, 118, 0.25);
+}
+
+/* === Callouts (4T-0061, Epic 3E-0012) ==================================== */
+/* Obsidian-Style Block-Hinweisboxen. Akzentfarbe pro Typ als CSS-Custom-
+   Property; Light- und Dark-Theme jeweils mit eigenen Werten. Klappbare
+   Varianten ueber <details>/<summary>, statische ueber <div>. */
+.markdown-body .callout {
+  --callout-accent: #6c757d;
+  --callout-bg: rgba(108, 117, 125, 0.1);
+  border-left: 4px solid var(--callout-accent);
+  background: var(--callout-bg);
+  border-radius: 6px;
+  margin: 1em 0;
+  padding: 0;
+}
+.markdown-body .callout-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.4em 0.8em;
+  font-weight: 600;
+  color: var(--callout-accent);
+}
+.markdown-body details.callout > summary.callout-header {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.markdown-body details.callout > summary.callout-header::-webkit-details-marker {
+  display: none;
+}
+.markdown-body details.callout > summary.callout-header::after {
+  content: '';
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+.markdown-body details.callout[open] > summary.callout-header::after {
+  transform: rotate(45deg);
+}
+.markdown-body .callout-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--callout-accent);
+  flex-shrink: 0;
+}
+.markdown-body .callout-icon svg {
+  display: block;
+}
+.markdown-body .callout-title {
+  flex: 1;
+  min-width: 0;
+}
+.markdown-body .callout-body {
+  padding: 0.2em 0.8em 0.6em 0.8em;
+}
+.markdown-body .callout-body > :first-child {
+  margin-top: 0;
+}
+.markdown-body .callout-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* Akzentfarben pro Typ (Light-Theme). */
+.markdown-body .callout-note {
+  --callout-accent: #6c757d;
+  --callout-bg: rgba(108, 117, 125, 0.1);
+}
+.markdown-body .callout-info {
+  --callout-accent: #0d6efd;
+  --callout-bg: rgba(13, 110, 253, 0.1);
+}
+.markdown-body .callout-tip {
+  --callout-accent: #0dcaf0;
+  --callout-bg: rgba(13, 202, 240, 0.14);
+}
+.markdown-body .callout-success {
+  --callout-accent: #198754;
+  --callout-bg: rgba(25, 135, 84, 0.1);
+}
+.markdown-body .callout-question {
+  --callout-accent: #6f42c1;
+  --callout-bg: rgba(111, 66, 193, 0.1);
+}
+.markdown-body .callout-warning {
+  --callout-accent: #fd7e14;
+  --callout-bg: rgba(253, 126, 20, 0.12);
+}
+.markdown-body .callout-failure {
+  --callout-accent: #dc3545;
+  --callout-bg: rgba(220, 53, 69, 0.1);
+}
+.markdown-body .callout-danger {
+  --callout-accent: #b02a37;
+  --callout-bg: rgba(176, 42, 55, 0.12);
+}
+.markdown-body .callout-example {
+  --callout-accent: #d63384;
+  --callout-bg: rgba(214, 51, 132, 0.1);
+}
+.markdown-body .callout-quote {
+  --callout-accent: #6c757d;
+  --callout-bg: rgba(108, 117, 125, 0.1);
+}
+
+/* Dark-Theme: hellere Akzente fuer Kontrast, Hintergrund mit hoeherem Alpha. */
+[data-theme='dark'] .markdown-body .callout-note {
+  --callout-accent: #adb5bd;
+  --callout-bg: rgba(173, 181, 189, 0.12);
+}
+[data-theme='dark'] .markdown-body .callout-info {
+  --callout-accent: #6ea8fe;
+  --callout-bg: rgba(110, 168, 254, 0.12);
+}
+[data-theme='dark'] .markdown-body .callout-tip {
+  --callout-accent: #9eeaf9;
+  --callout-bg: rgba(158, 234, 249, 0.14);
+}
+[data-theme='dark'] .markdown-body .callout-success {
+  --callout-accent: #75b798;
+  --callout-bg: rgba(117, 183, 152, 0.12);
+}
+[data-theme='dark'] .markdown-body .callout-question {
+  --callout-accent: #b69cf0;
+  --callout-bg: rgba(182, 156, 240, 0.12);
+}
+[data-theme='dark'] .markdown-body .callout-warning {
+  --callout-accent: #feb272;
+  --callout-bg: rgba(254, 178, 114, 0.14);
+}
+[data-theme='dark'] .markdown-body .callout-failure {
+  --callout-accent: #ea868f;
+  --callout-bg: rgba(234, 134, 143, 0.12);
+}
+[data-theme='dark'] .markdown-body .callout-danger {
+  --callout-accent: #d99099;
+  --callout-bg: rgba(217, 144, 153, 0.14);
+}
+[data-theme='dark'] .markdown-body .callout-example {
+  --callout-accent: #efadce;
+  --callout-bg: rgba(239, 173, 206, 0.12);
+}
+[data-theme='dark'] .markdown-body .callout-quote {
+  --callout-accent: #adb5bd;
+  --callout-bg: rgba(173, 181, 189, 0.12);
+}
+
+/* Editor-Highlighting fuer den `[!type][+-]?`-Marker im Source-Pane. */
+.cm-editor .cm-callout-marker {
+  color: #0d6efd;
+  font-weight: 600;
+}
+[data-theme='dark'] .cm-editor .cm-callout-marker {
+  color: #6ea8fe;
+}
+
+/* === Highlight (4T-0062, Epic 3E-0012) ==================================== */
+/* `==Text==` rendert als <mark> mit gelbem Hintergrund. Im Dark-Theme
+   gedaempfter Gelbton mit hellem Text fuer ausreichenden Kontrast. */
+.markdown-body mark {
+  background: #fff3a3;
+  color: inherit;
+  padding: 0 0.15em;
+  border-radius: 2px;
+}
+[data-theme='dark'] .markdown-body mark {
+  background: #7d6b00;
+  color: #fff8d6;
+}
+
+/* Editor-Highlighting fuer den `==…==`-Inhalt (ohne Delimiter). */
+.cm-editor .cm-mark-marker {
+  background: rgba(255, 243, 163, 0.55);
+  border-radius: 2px;
+}
+[data-theme='dark'] .cm-editor .cm-mark-marker {
+  background: rgba(125, 107, 0, 0.45);
+}
+
+/* === %%-Kommentare (4T-0479, Epic 3E-0089) ================================ */
+/* Kommentar-Bereiche (inklusive %%-Marker) im Quelltext- und Live-Modus
+   dezent abgesetzt; --syntax-comment folgt dem Light/Dark-Theme. */
+.cm-editor .cm-comment-marker {
+  color: var(--syntax-comment);
+  font-style: italic;
+  opacity: 0.8;
+}

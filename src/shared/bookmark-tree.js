@@ -1,7 +1,7 @@
 // 4T-0611 (Epic 3E-0115): Datenmodell der Bereichs-Lesezeichen.
 //
 // Bereichs-Lesezeichen nutzen dieselbe Knoten-Struktur wie der globale
-// Lesezeichen-Baum (src/renderer/modules/bookmarks.js), aber mit Zielen
+// Lesezeichen-Baum (src/renderer/modules/bookmarks/bookmarks-tree.js), aber mit Zielen
 // RELATIV zur Bereichs-Wurzel. Genau das trägt die Verschiebe-Robustheit:
 // die Sektion liegt in Area_Settings.mdda und wandert mit dem Bereichs-Ordner
 // mit (Architekturentscheidung 1/2 des Epics).
@@ -20,7 +20,7 @@
 // Prozessen identisch läuft: Main (Datenpfad, IPC) und Renderer (Panel,
 // Anlage — 4T-0612) laden es gleichermaßen. Die harte, dateisystem-nahe
 // Bereichs-Grenze (Laufwerke, Groß/Klein, `..`-Auflösung) bleibt dem
-// Main-Handler über isInsideArea (src/main/area-path.js) vorbehalten; dieses
+// Main-Handler über isInsideArea (src/main/area/area-path.js) vorbehalten; dieses
 // Modul liefert die dazu passende reine String-Ebene.
 'use strict';
 

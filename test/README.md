@@ -539,7 +539,7 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 |---|---|---|---|
 | **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`); kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `quellcode-export`, `web-inhalte` | keine |
-| **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `color-schemes`, `web-handbuch`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
+| **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
 | **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
 | **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`; Format und Lint | Smoke plus EXE-Smoke-Test |
 | **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste); Format und Lint | keine |
@@ -618,14 +618,20 @@ benannten Rückfall-Fälle oben und der turnusmäßige Voll-Lauf.
 das ohnehin die strengste Stufe fährt, und beim ersten Integrationslauf
 eines Arbeitstages. Der zweite Punkt kostet höchstens 87 s je Tag und
 fängt die Fälle, in denen die Klassen-Zuordnung still veraltet ist. Das
-Release-Gate selbst bleibt unverändert Pflicht; seine einzige Ausnahme
-(Änderungs-Umfang seit dem letzten Release ohne `src/`-Datei außer
-`build-info.json`) steht in der [CLAUDE.md](../CLAUDE.md).
+Release-Gate selbst bleibt unverändert Pflicht: vor Build und Tag ist die
+vollständige Suite (Unit, Snapshot und E2E-Voll-Suite) grün. **Seine
+einzige Ausnahme:** Berührt der Änderungs-Umfang seit dem vorangegangenen
+Release-Tag keine Datei unter `src/` außer `src/shared/build-info.json`,
+genügen Smoke-Suite und EXE-Smoke-Test, weil die E2E-Voll-Suite gegen
+unveränderte Anwendungs-Dateien läuft und kein anderes Ergebnis liefern
+kann als beim vorangegangenen Release.
 
 **Kein nachträglicher Voll-Lauf nach einem roten Ausschnitt.** Ein roter
 Ausschnitt ist ein Befund und wird behoben; der darauf folgende Lauf ist
 ohnehin fällig. Für den Wiederhol-Umfang nach einem punktuellen Fix gilt
-die Wiederhol-Regel der [CLAUDE.md](../CLAUDE.md).
+die Wiederhol-Regel des Konzepts Test-Strategie und
+Qualitätssicherung,
+Kapitel 2.
 
 **Lokale Läufe.** `npx vitest related <geänderte Dateien>` gibt schnelle
 Rückmeldung (je nach Modul 8 bis 27 s statt rund 73 s), taugt aber **nicht
@@ -694,7 +700,12 @@ zusätzlich `test/unit/manual-pages.test.js` (alle fünf Sprachfassungen
 pro Registry-Seite, Titel-Keys, keine verwaisten Dateien); den Text-Stil
 sichert `test/unit/hilfetext-stil.test.js` (keine Fremdprodukt-Verweise
 und keine Versions-Historie in Handbuch-Seiten und Katalog-Texten,
-Stil-Regeln aus der CLAUDE.md-Konvention).
+Stil-Regeln aus den Entwicklungsrichtlinien,
+Kapitel 13).
+
+**Regressionstest-Pflicht pro Bugfix:** Jeder behobene Fehler erhält einen Regressionstest auf der passenden Ebene (Unit, Snapshot oder E2E), nach Möglichkeit zuerst als fehlschlagender Test, dann der Fix; die Befund- bzw. Task-ID steht als Kommentar am Test. **Szenario-Treue bei gemeldeten Befunden** (Retrospektive vom 2026-08-05): Der Regressionstest eines vom Product Owner oder aus dem Feld gemeldeten Befunds stellt den **gemeldeten Ablauf** nach (Fenster-, Sitzungs- und Daten-Lage der Meldung), nicht das Minimal-Szenario der diagnostizierten Ursache; die Diagnose bestimmt den Fix, die Meldung bestimmt den Test. Gegenüber dem Product Owner heißt ein gemeldeter Befund erst «behoben», wenn sein Ablauf nachgestellt grün ist; davor lautet die Rückmeldung «Fix umgesetzt, Nachweis im nachgestellten Szenario». Anlass: Ein Restore-Fix bestand das Minimal-Szenario (eine App, kleines Profil) und fiel am realen Mehr-Fenster-Profil durch.
+
+**Test-Pflege-Schritt pro Epic:** Jedes Epic mit Code-Änderungen erweitert die Suite um seine neuen Funktionen (Feature-Tests plus Snapshot-Fixtures); ein Feature gilt erst mit Test als fertig. Technisch abgesichert durch den Vollständigkeits-Meta-Test: neue `help.feature.*`-/`help.shortcut.*`-Keys ohne Eintrag in `test/abdeckungs-matrix.json` lassen `npm test` fehlschlagen.
 
 **Falle des Stil-Wächters:** Sein Muster für Versions-Historie trifft
 jede dreistufige Nummer der Form `\d.\d+.\d{1,3}`, und es prüft
@@ -719,8 +730,9 @@ Hilfe-Task vorgemerkt war.
 
 **Pflege bei neuen Funktionen**:
 
-1. Neue `help.*`-Keys anlegen (CLAUDE.md-Konvention „Hilfe und Handbuch
-   bei neuen Funktionen erweitern").
+1. Neue `help.*`-Keys anlegen (Konvention in den
+   Entwicklungsrichtlinien,
+   Kapitel 13).
 2. Tests schreiben (E2E in `test/e2e/funktionen/`, Unit/Snapshot nach
    Lage) und in der Matrix eintragen: `key`, fortlaufende `id`
    (`F-…`/`S-…`), `testart` (`e2e`/`unit`/`snapshot`), `tests`

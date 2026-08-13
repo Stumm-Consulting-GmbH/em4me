@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // 4T-0504 (Epic 3E-0096): Unit-Test der reinen Verschiebe-Wert-Berechnung
 // postponedDateValue aus task-query-actions.js. Das Modul bindet beim Laden
-// api aus modules/api.js und weitere Renderer-Module; der api-Stub stellt
+// api aus modules/app/api.js und weitere Renderer-Module; der api-Stub stellt
 // window.api und das minimale DOM-Geruest bereit (Muster task-states.test.js),
 // bevor das Modul dynamisch importiert wird.
 import { describe, it, expect } from 'vitest';

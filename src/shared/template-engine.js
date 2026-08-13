@@ -34,8 +34,9 @@
 // erhoben (Schlüssel = kanonischer Spec-String) und überall eingesetzt.
 'use strict';
 
-const { parseDurationContent } = require('./perspective-query');
-const { formatDateMs } = require('./perspective-query-eval');
+// 4T-0987 (Epic 3E-0196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
+const { parseDurationContent } = require('./query/perspective-query.js');
+const { formatDateMs } = require('./query/query-format.js');
 
 // Default-Formate der Zeit-Platzhalter (dateformat-Token).
 const DEFAULT_DATE_FORMAT = 'yyyy-MM-dd';

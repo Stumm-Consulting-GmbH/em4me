@@ -9,7 +9,7 @@
 // Aufruf-Kette messbar bleibt (Rekursions-Schutz).
 'use strict';
 
-const { MACRO_COMMAND_PREFIX, MACRO_MAX_CALL_DEPTH } = require('./command-placement.js');
+const { MACRO_COMMAND_PREFIX, MACRO_MAX_CALL_DEPTH } = require('./commands/command-placement.js');
 
 // deps:
 //   executeCommand(commandId) -> boolean|Promise<boolean>; false = Schritt

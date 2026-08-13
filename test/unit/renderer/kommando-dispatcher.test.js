@@ -1,5 +1,6 @@
 // 4T-0781 (Epic 3E-0161): Vollstaendigkeits-Waechter ueber die Dispatcher-Map
-// commandHandlers in src/renderer/modules/app-init.js.
+// commandHandlers in src/renderer/modules/app/app-commands.js (bis 4T-1001 lag
+// sie in app-init.js).
 //
 // Kommando-Palette und Tasten-Dispatcher fuehren ein Kommando ausschliesslich
 // ueber diese Map aus: executeCommandById holt den Handler dort und liefert
@@ -13,7 +14,7 @@
 // brauchen keinen Eintrag; sie sind hier ausgenommen.
 //
 // Geprueft wird gegen den QUELLTEXT, nicht gegen das importierte Modul:
-// app-init.js zieht beim Import den halben Renderer nach sich (CodeMirror,
+// app-commands.js zieht beim Import den halben Renderer nach sich (CodeMirror,
 // DOM-Verdrahtung, Modul-Seiteneffekte) und ist im Unit-Kontext nicht
 // ladbar. Die Map ist ein Objektliteral mit einer Zeile je Schluessel und
 // damit stabil auslesbar; bricht diese Form, faellt der Test durch die
@@ -22,19 +23,29 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { COMMANDS } from '../../../src/shared/commands.js';
+import { COMMANDS } from '../../../src/shared/commands/commands.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const APP_INIT = path.resolve(HERE, '..', '..', '..', 'src', 'renderer', 'modules', 'app-init.js');
+const APP_COMMANDS = path.resolve(
+  HERE,
+  '..',
+  '..',
+  '..',
+  'src',
+  'renderer',
+  'modules',
+  'app',
+  'app-commands.js',
+);
 
 // Schluessel-Menge der Map aus dem Quelltext: ab 'export const
 // commandHandlers = {' bis zur schliessenden Zeile '};' am Zeilenanfang.
 function dispatcherKeys() {
-  const quelle = fs.readFileSync(APP_INIT, 'utf8');
+  const quelle = fs.readFileSync(APP_COMMANDS, 'utf8');
   const start = quelle.indexOf('export const commandHandlers = {');
   expect(
     start,
-    'Dispatcher-Map nicht gefunden — Struktur von app-init.js geändert?',
+    'Dispatcher-Map nicht gefunden — Struktur von app-commands.js geändert?',
   ).toBeGreaterThan(-1);
   const ende = quelle.indexOf('\n};', start);
   expect(ende, 'Ende der Dispatcher-Map nicht gefunden').toBeGreaterThan(start);

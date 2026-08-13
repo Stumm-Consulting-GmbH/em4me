@@ -4,7 +4,10 @@
 // Dateisystem injiziert.
 import { describe, it, expect, vi } from 'vitest';
 import path from 'node:path';
-import { createProfileCatalogCache, loadProfileCatalog } from '../../src/main/profile-catalog.js';
+import {
+  createProfileCatalogCache,
+  loadProfileCatalog,
+} from '../../src/main/documents/profile-catalog.js';
 
 const FOLDER = path.resolve('C:/Bereich/Profile');
 

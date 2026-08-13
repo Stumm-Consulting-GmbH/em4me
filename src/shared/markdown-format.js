@@ -1,6 +1,6 @@
 // 4T-0378 (Epic 3E-0071): Toggle-Kern der Zeichen-Format-Kommandos.
 //
-// Rein und Electron-/DOM-frei (CJS, wie src/shared/commands.js), damit die
+// Rein und Electron-/DOM-frei (CJS, wie src/shared/commands/commands.js), damit die
 // Toggle-Regeln und Randfälle ohne UI unit-testbar sind. Jede Funktion nimmt
 // den Dokument-Text plus einen Selektions-Bereich [from, to) und liefert eine
 // CodeMirror-taugliche Änderung { from, to, insert } samt neuer Selektion

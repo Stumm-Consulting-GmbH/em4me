@@ -18,7 +18,7 @@ import {
 } from '../../../src/shared/markdown/markdown.js';
 import { extractFrontmatter, writeFrontmatter } from '../../../src/shared/markdown/frontmatter.js';
 // 4T-0546 (Epic 3E-0097): Demo-Konfiguration für die Kalender-Wert-Fixture.
-import { normalizeCalendarConfig } from '../../../src/shared/calendar-core.js';
+import { normalizeCalendarConfig } from '../../../src/shared/calendar/calendar-config.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_DIR = path.resolve(HERE, '..', '..', 'fixtures', 'render');

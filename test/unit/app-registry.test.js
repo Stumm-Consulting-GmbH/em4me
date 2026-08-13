@@ -1,9 +1,9 @@
 // 4T-0318 (Epic 3E-0057): Unit-Tests für die App-Registry
-// (src/main/app-registry.js) — logische Applikationen als Fenster-Gruppen.
+// (src/main/app/app-registry.js) — logische Applikationen als Fenster-Gruppen.
 // Kern: lückenloses Nachrücken der App- und Fenster-Nummern beim Schließen
 // und die Sonderrolle der Bereichs-Apps (keine App-Nummer, Bereichsname).
 import { describe, it, expect } from 'vitest';
-import { createAppRegistry } from '../../src/main/app-registry.js';
+import { createAppRegistry } from '../../src/main/app/app-registry.js';
 
 function infosFor(reg) {
   return reg.displayInfos();

@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
 
-const lifecycle = await import('../../../src/renderer/modules/extension-lifecycle.js');
+const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 const renderMermaid = await import('../../../src/renderer/modules/render-mermaid.js');
 
 function mermaidContainer() {

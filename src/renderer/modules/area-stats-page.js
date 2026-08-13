@@ -21,11 +21,15 @@
 'use strict';
 
 import { t } from '../i18n.js';
-import { api } from './api.js';
-import { state } from './app-state.js';
-import { openOrJumpToPath } from './bookmarks.js';
-import { registerSystemPage, openSystemPage, findSystemTabAcrossPanes } from './system-pages.js';
-import { showStatusbarHint } from './views.js';
+import { api } from './app/api.js';
+import { state } from './app/app-state.js';
+import { openOrJumpToPath } from './bookmarks/bookmarks.js';
+import {
+  registerSystemPage,
+  openSystemPage,
+  findSystemTabAcrossPanes,
+} from './app/system-pages.js';
+import { showStatusbarHint } from './views/views.js';
 
 export const AREA_STATS_PAGE_ID = 'area-stats';
 

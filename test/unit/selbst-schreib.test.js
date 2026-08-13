@@ -16,7 +16,7 @@ import {
   _anzahl,
   _hat,
   _leeren,
-} from '../../src/main/selbst-schreib.js';
+} from '../../src/main/documents/self-write.js';
 
 let dir;
 

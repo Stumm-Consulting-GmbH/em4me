@@ -14,7 +14,7 @@ import {
   rootForActiveFile,
   statsFor,
 } from '../../src/main/backlinks.js';
-import { collectAreaStats } from '../../src/main/area-stats.js';
+import { collectAreaStats } from '../../src/main/area/area-stats.js';
 
 const openRoots = new Set();
 let tmpDirs = [];

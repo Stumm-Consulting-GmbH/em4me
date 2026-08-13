@@ -19,8 +19,8 @@ import {
   normalizePanelToggleOrder,
   panelAccessById,
 } from '../../src/shared/panel-access.js';
-import { COMMANDS } from '../../src/shared/commands.js';
-import { extensionById } from '../../src/shared/extensions.js';
+import { COMMANDS } from '../../src/shared/commands/commands.js';
+import { extensionById } from '../../src/shared/extensions/extensions.js';
 
 const { DEFAULT_PANEL_ORDER } = await import('../../src/renderer/modules/sidebar-layout.js');
 
@@ -82,10 +82,18 @@ describe('Paritäts-Wächter Panel-Zugänge (4T-0567)', () => {
     // müssen den buttonId führen (Active-State-Sync und künftige dynamische
     // Anordnung hängen daran).
     const modulesDir = path.resolve(HERE, '..', '..', 'src', 'renderer', 'modules');
-    const src = fs
-      .readdirSync(modulesDir)
-      .filter((f) => f.endsWith('.js'))
-      .map((f) => fs.readFileSync(path.join(modulesDir, f), 'utf8'))
+    // 4T-0980 (Epic 3E-0196): rekursiv statt flach. Die Panel-Module ziehen im
+    // Zuge des Datei-Größen-Epics in Feature-Ordner (books/, tabs/, panels/);
+    // eine flache Lesung übersähe ihre Registrierung und meldete einen
+    // Fehlalarm. Die Prüfung selbst ist unverändert.
+    const jsDateien = (dir) =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) return jsDateien(p);
+        return e.name.endsWith('.js') ? [p] : [];
+      });
+    const src = jsDateien(modulesDir)
+      .map((p) => fs.readFileSync(p, 'utf8'))
       .join('\n');
     for (const p of PANEL_ACCESS) {
       expect(

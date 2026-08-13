@@ -47,7 +47,9 @@
 'use strict';
 
 const { analyzeTemplate, fillTemplate } = require('./template-engine');
-const { formatDateMs, isoWeekOf } = require('./perspective-query-eval');
+// 4T-0987 (Epic 3E-0196): Format-Kern der Abfrage-Sprache, seit dem Schnitt
+// in src/shared/query/query-format.js.
+const { formatDateMs, isoWeekOf } = require('./query/query-format.js');
 const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter');
 
 // Granularitäten in fachlicher Reihenfolge fein -> grob; die Reihenfolge

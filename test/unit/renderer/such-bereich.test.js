@@ -23,8 +23,8 @@ window.api.searchArea = async (params) => {
 };
 window.api.releaseAreaSearch = async () => true;
 
-const { bereichsTreffer } = await import('../../../src/renderer/modules/such-bereich.js');
-const { state } = await import('../../../src/renderer/modules/app-state.js');
+const { bereichsTreffer } = await import('../../../src/renderer/modules/search/search-area.js');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 // Legt einen aktiven Reiter an. Die Suche liest ihn über activeTab().
 function setzeReiter(tab) {

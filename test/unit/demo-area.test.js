@@ -1,5 +1,5 @@
 // 4T-0632 (Epic 3E-0102): Unit-Tests für das Demo-Area-Erstell-Modul
-// (src/main/demo-area.js). Geprüft werden ein Manifest-Wächter über die
+// (src/main/area/demo-area.js). Geprüft werden ein Manifest-Wächter über die
 // mitgelieferten Demo-Inhalte (src/demo — beide Richtungen), die reine
 // Leer-Prüfung isEmptyDirListing und createDemoAreaAt gegen echte Temp-
 // Ordner (Erfolg inklusive Binär-Inhalt, Ablehnung nicht-leerer bzw.
@@ -11,7 +11,11 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEMO_SOURCE_DIR, isEmptyDirListing, createDemoAreaAt } from '../../src/main/demo-area.js';
+import {
+  DEMO_SOURCE_DIR,
+  isEmptyDirListing,
+  createDemoAreaAt,
+} from '../../src/main/area/demo-area.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');

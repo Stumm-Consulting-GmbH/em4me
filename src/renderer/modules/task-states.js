@@ -19,7 +19,7 @@
 //   live-widgets.js (Muster 'i18n-language-changed').
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 import { t } from '../i18n.js';
 import {
   TASK_STATE_DEFAULTS,

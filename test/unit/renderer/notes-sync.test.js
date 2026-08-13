@@ -2,7 +2,7 @@
 // decideNoteSync steuert, wie ein Panel auf einen note:changed-Broadcast
 // reagiert (Eigen-Broadcast ignorieren, fremde Fassung uebernehmen, Konflikt).
 import { describe, it, expect } from 'vitest';
-import { decideNoteSync } from '../../../src/renderer/modules/notes-sync.js';
+import { decideNoteSync } from '../../../src/renderer/modules/panels/notes-sync.js';
 
 describe('decideNoteSync (4T-0359)', () => {
   it('ignoriert einen Broadcast, der der Baseline gleicht (Eigen-Broadcast)', () => {

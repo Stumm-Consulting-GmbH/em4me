@@ -15,7 +15,7 @@
 // reine Slot-/Schema-Logik liegt im prozessneutralen src/shared/color-schemes.js.
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 import {
   COLOR_SCHEMES_KEY,
   COLOR_SLOTS,

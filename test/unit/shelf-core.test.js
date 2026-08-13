@@ -1,5 +1,5 @@
 // 4T-0866 (Epic 3E-0162): Kern-Modell des Bücherregals
-// (src/shared/shelf-core.js) — Format der Begleitdatei, Erkennung ohne
+// (src/shared/books/shelf-core.js) — Format der Begleitdatei, Erkennung ohne
 // Rückverweis, Buch-Zuordnung samt Invariante und Abgleich mit dem
 // Ordner-Bestand. Reine Funktionen, direkter Import (Muster
 // book-core.test.js); ohne Datei-, Netz- und Ablage-Bezug.
@@ -26,7 +26,7 @@ import {
   unassignBook,
   renameBookDir,
   diffBookDirs,
-} from '../../src/shared/shelf-core.js';
+} from '../../src/shared/books/shelf-core.js';
 
 const REGAL = 'Meine Bibliothek.md';
 

@@ -13,7 +13,7 @@ import { buildGraphModel } from '../../../src/shared/graph-core.js';
 import {
   createGraphView,
   GRAPH_MAX_RENDER_NODES,
-} from '../../../src/renderer/modules/graph-view.js';
+} from '../../../src/renderer/modules/graph/graph-view.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const de = JSON.parse(readFileSync(path.join(dir, '../../../src/i18n/de.json'), 'utf8'));

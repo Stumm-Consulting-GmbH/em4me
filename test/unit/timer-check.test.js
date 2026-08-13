@@ -1,5 +1,5 @@
 // 4T-0638 (Epic 3E-0069): Unit-Tests der Scheduler-Factory
-// createTimerChecker (src/main/timer-check.js) mit vollstaendig injizierten
+// createTimerChecker (src/main/checks/timer-check.js) mit vollstaendig injizierten
 // Fake-Abhaengigkeiten (kein Electron): gezielter Weckruf statt Polling,
 // Etappen-Planung bei langen Wartezeiten, Meldung aller faelligen Timer,
 // Zurueckschreiben des Zustands, Aus-Zustand der Erweiterung und die
@@ -8,7 +8,11 @@
 // Die Uhr (deps.now) und der Weckruf (deps.schedule/cancel) sind Fakes: der
 // Test steuert selbst, wann ein Weckruf feuert.
 import { describe, it, expect } from 'vitest';
-import { createTimerChecker, MAX_SLEEP_MS, MIN_SLEEP_MS } from '../../src/main/timer-check.js';
+import {
+  createTimerChecker,
+  MAX_SLEEP_MS,
+  MIN_SLEEP_MS,
+} from '../../src/main/checks/timer-check.js';
 
 const T0 = 1_000_000_000;
 const MIN = 60000;

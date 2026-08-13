@@ -91,22 +91,24 @@ window.api.books = {
   },
 };
 
+// 4T-0980 (Epic 3E-0196): book-panel.js ist in den Feature-Ordner books/
+// geschnitten. Die reinen Helfer liegen in book-helpers.js, das Verschieben der
+// Kapitel-Datei in book-repair.js, Anzeige und Verdrahtung im Kern. Die
+// Testfälle selbst sind unverändert; nur die Bezugsquellen ziehen mit.
 const {
   chapterLabel,
   chapterPathFromFile,
   dropTreeOp,
   dropZone,
-  initBookPanel,
-  moveActiveChapterFile,
-  moveChapterFile,
   pathKey,
   readingTarget,
-  renderBookPanel,
-  setBookState,
-  stepReading,
   subtreeKeys,
-} = await import('../../../src/renderer/modules/book-panel.js');
-const { state } = await import('../../../src/renderer/modules/app-state.js');
+} = await import('../../../src/renderer/modules/books/book-helpers.js');
+const { initBookPanel, renderBookPanel, setBookState, stepReading } =
+  await import('../../../src/renderer/modules/books/book-panel.js');
+const { moveActiveChapterFile, moveChapterFile } =
+  await import('../../../src/renderer/modules/books/book-repair.js');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 const BOOK_DIR = 'C:\\Bücher\\Reise nach Ithaka';
 

@@ -1,0 +1,607 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 13 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Einstellungs-Bereiche (Erweiterungen bis Kalender-Systeme). */
+
+/* 4T-0295 (Epic 3E-0052): Bereich "Erweiterungen" der Einstellungs-Seite. */
+.settings-extensions-intro {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+.settings-extensions-group-title {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.settings-extension-row {
+  display: grid;
+  grid-template-columns: 2em 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.settings-extension-row:last-child {
+  border-bottom: none;
+}
+.settings-extension-row .settings-extension-toggle {
+  margin-top: 2px;
+  justify-self: center;
+}
+.settings-extension-name {
+  font-weight: 600;
+  cursor: pointer;
+}
+.settings-extension-desc {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin-top: 1px;
+}
+.settings-extension-dependency-hint {
+  font-size: 12px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+/* 4T-0300 (Epic 3E-0053): Bereich "Erweiterungen (extern)". */
+.settings-extension-external-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.settings-extension-external-row:last-child {
+  border-bottom: none;
+}
+.settings-extension-external-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.settings-extension-external-version {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.settings-extension-external-status {
+  font-size: 11.5px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+}
+.settings-extension-external-status[data-status='active'] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.settings-extension-external-status[data-status='error'],
+.settings-extension-external-status[data-status='invalid'],
+.settings-extension-external-status[data-status='incompatible'] {
+  color: var(--danger, #c0392b);
+  border-color: var(--danger, #c0392b);
+}
+.settings-extension-external-path {
+  font-family: var(--editor-font-family, monospace);
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-top: 2px;
+  word-break: break-all;
+}
+.settings-extension-external-error {
+  font-size: 12px;
+  color: var(--danger, #c0392b);
+  margin-top: 2px;
+}
+.settings-extension-external-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.settings-extension-external-footer {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.settings-extensions-external-empty {
+  margin: 8px 0;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+/* 4T-0927 (Epic 3E-0016): Diagnose-Zugang am Ende des Bereichs. Die Trennlinie
+   setzt ihn von den Paket-Aktionen darueber ab — er betrifft kein Paket,
+   sondern die Diagnose aller. */
+.settings-extension-external-diagnose {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.settings-extension-external-diagnose-hint {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+
+/* 4T-0208 (Epic 3E-0015): Tastenkuerzel-Editor der Einstellungs-Seite. */
+.hotkeys-hint {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+/* 4T-0369 (Epic 3E-0068): erklaerender Hinweis unter einer Einstellungs-Zeile. */
+.settings-row-hint {
+  margin: 4px 0 10px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+/* 4T-0582 (Epic 3E-0107): Einstellungs-Bereich Rechtschreibprüfung — Liste
+   der eigenen Wörterbuch-Einträge (Wort links, Entfernen-Button rechts). */
+.settings-spellcheck-words {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 10px;
+}
+.settings-spellcheck-word {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.settings-spellcheck-word span {
+  overflow-wrap: anywhere;
+}
+
+/* 4T-0428 (Epic 3E-0080): Einstellungs-Bereich Vorlagen — Ordner-Zeile
+   (Eingabe plus Auswahl-Button) und Regel-Tabelle (Ordner → Vorlage). */
+.settings-templates-folder-row {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+.settings-templates-folder {
+  flex: 1;
+  min-width: 0;
+}
+.settings-templates-rule {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+.settings-templates-rule .settings-input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-templates-rule-add {
+  margin: 4px 0 12px;
+}
+/* 4T-0450 (Epic 3E-0083): Einstellungs-Bereich Eigenschafts-Profile —
+   Profil-Liste mit Öffnen-Link und Definitions-/Hinweis-Meta. */
+.settings-profiles-list {
+  margin: 8px 0 12px;
+}
+.settings-profiles-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+}
+.settings-profiles-item-name {
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 0;
+  text-align: left;
+}
+.settings-profiles-item-name:hover {
+  text-decoration: underline;
+}
+/* 4T-0517: internes Profil — Name ohne Klick-Affordanz. */
+.settings-profiles-item-name-static {
+  font-size: 13px;
+}
+.settings-profiles-item-meta {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+.settings-profiles-item-meta.has-errors {
+  color: #b8860b;
+  cursor: help;
+}
+[data-theme='dark'] .settings-profiles-item-meta.has-errors {
+  color: #e0b341;
+}
+/* 4T-0436 (Epic 3E-0081): Einstellungs-Bereich Journale — Regal-Zeilen und
+   Journal-Formular-Gruppen mit Pfad-Vorschau und Schema-Warnung. */
+.settings-journals-shelf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+.settings-journals-shelf .settings-input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-journals-shelf-count {
+  font-size: 12px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.settings-journals-shelf-none-label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.settings-journals-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.settings-journals-detail-title {
+  margin: 12px 0 8px;
+}
+.settings-journals-shelf-add,
+.settings-journals-add {
+  margin: 4px 0 12px;
+}
+.settings-journals-journal {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0 0 12px;
+}
+.settings-journals-journal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.settings-journals-journal-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.settings-journals-preview {
+  margin-top: -4px;
+}
+.settings-journals-preview-error,
+.settings-journals-schema-warning {
+  color: var(--error, #c0392b);
+}
+/* 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges — Render-Pane
+   (.calendar-value), Live-Badge (.cm-live-calendar-badge) und die
+   Klick-Markierung des Quelltext-Modus (.cm-live-calendar-value).
+   Unbekannte Kalender und ungueltige Werte sind sichtbar markiert,
+   der Roh-Text bleibt erhalten. */
+.calendar-value,
+.cm-live-calendar-badge {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 0.35em;
+  background: var(--hover);
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+.cm-live-calendar-badge {
+  cursor: pointer;
+}
+.calendar-value-unknown,
+.calendar-value-invalid {
+  border-style: dashed;
+  border-color: var(--error, #c0392b);
+  color: var(--error, #c0392b);
+  background: transparent;
+}
+.cm-live-calendar-value {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+/* 4T-0595/4T-0596 (Epic 3E-0111): Inline-Berechnungen — Ergebnis-Span im
+   Render-Pane (.inline-calc), Live-Widget (.cm-inline-calc) und die dezente
+   Konstrukt-Einfaerbung des Quelltext-Modus (.cm-inline-calc-marker).
+   Fehlerhafte Ausdruecke zeigen das Fehler-Zeichen in gedaempfter
+   Fehlerfarbe; der Roh-Text bleibt erhalten. */
+.inline-calc,
+.cm-inline-calc {
+  display: inline-block;
+  border-radius: 3px;
+  padding: 0 0.2em;
+  background: var(--hover);
+  cursor: help;
+}
+.cm-inline-calc {
+  cursor: pointer;
+}
+.inline-calc-error,
+.cm-inline-calc-error {
+  color: var(--error, #c0392b);
+  background: transparent;
+  border: 1px dashed var(--error, #c0392b);
+}
+.cm-inline-calc-marker {
+  color: var(--fg-muted);
+  background: var(--hover);
+  border-radius: 3px;
+}
+/* 4T-0545 (Epic 3E-0097): Picker fuer benutzerdefinierte Kalender — Kopf-
+   Auswahl (Block/Kalender/Epoche), generisches Gitter mit dynamischer
+   Spalten-Zahl, Zeit-Segmente und Umrechnungs-Zeilen. Basis-Look kommt aus
+   den date-picker-/calendar-Klassen. */
+.calendar-picker-popup {
+  max-width: 420px;
+}
+.calendar-picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.calendar-picker-headcell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 90px;
+}
+.calendar-picker-headcell > span {
+  font-size: 11px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.calendar-picker-select {
+  width: 100%;
+}
+.calendar-picker-nav {
+  margin: 2px 0 4px;
+}
+.calendar-picker-grid.calendar-picker-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.calendar-picker-list .calendar-picker-day {
+  min-width: 28px;
+}
+.calendar-picker-day.selected {
+  background: var(--accent);
+  color: var(--accent-fg, #fff);
+}
+.calendar-picker-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 6px 0;
+}
+.calendar-picker-time-label {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-right: 4px;
+}
+.calendar-picker-conv-head {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin: 8px 0 2px;
+}
+.calendar-picker-conv {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0 0 2px;
+}
+/* 4T-0544 (Epic 3E-0097): Einstellungs-Bereich Kalender-Systeme — Block-
+   Zeilen (Muster Journal-Regale), Kalender-Editoren mit Ebenen-/Epochen-/
+   Zyklus-Boxen, Segment-Eingaben und Live-Vorschau. */
+.settings-calsys-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+.settings-calsys-block .settings-input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-calsys-block-count {
+  font-size: 12px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.settings-calsys-block-add {
+  margin: 4px 0 12px;
+}
+.settings-calsys-cal {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0 0 12px;
+}
+.settings-calsys-detail-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+.settings-calsys-level {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 0 0 8px;
+}
+.settings-calsys-level-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.settings-calsys-level-head .settings-input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-calsys-level-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.settings-calsys-level-buttons {
+  display: flex;
+  gap: 4px;
+}
+.settings-calsys-level-grid,
+.settings-calsys-level-rel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+.settings-calsys-numcell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings-calsys-numcell > span {
+  font-size: 11px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.settings-calsys-level-name {
+  flex: 1;
+  min-width: 120px;
+}
+.settings-calsys-abbr {
+  width: 90px;
+}
+.settings-calsys-leap-auto {
+  font-size: 12px;
+  color: var(--fg-muted);
+  align-self: flex-end;
+  padding-bottom: 6px;
+}
+.settings-calsys-table {
+  margin: 0 0 6px;
+}
+.settings-calsys-table-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+.settings-calsys-table-row .settings-input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-calsys-row-add {
+  margin: 2px 0 8px;
+}
+.settings-calsys-segrow {
+  align-items: flex-start;
+}
+.settings-calsys-segcells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.settings-calsys-invalid {
+  color: var(--error, #c0392b);
+}
+.settings-calsys-preview-error {
+  color: var(--error, #c0392b);
+}
+.hotkeys-group-title {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.hotkey-row {
+  display: grid;
+  grid-template-columns: 1fr minmax(11em, auto) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.hotkey-row:nth-child(odd) {
+  background: var(--bg-alt);
+}
+.hotkey-row.capturing {
+  outline: 1px solid var(--accent);
+  background: var(--bg-alt);
+}
+.hotkey-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hotkey-binding {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  white-space: nowrap;
+  text-align: right;
+}
+.hotkey-binding kbd {
+  background: var(--code-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+.hotkey-binding.capturing {
+  color: var(--accent);
+  font-style: italic;
+}
+.hotkey-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.hotkey-actions .btn {
+  padding: 2px 8px;
+}
+.hotkey-reset[disabled] {
+  opacity: 0.4;
+}
+/* Konflikt-/Hinweis-Box unterhalb der Zeile (volle Breite im Grid). */
+.hotkey-conflict {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 12.5px;
+  color: #dc3545;
+  padding: 2px 0 4px;
+}
+[data-theme='dark'] .hotkey-conflict {
+  color: #ea868f;
+}
+.hotkey-conflict .btn {
+  padding: 1px 8px;
+}
+.hotkeys-actions {
+  margin-top: 10px;
+}
+#btn-hotkeys-reset-all.armed {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+[data-theme='dark'] #btn-hotkeys-reset-all.armed {
+  border-color: #ea868f;
+  color: #ea868f;
+}

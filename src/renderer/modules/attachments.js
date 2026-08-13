@@ -4,11 +4,11 @@
 // ueber den Ablage-Kanal ablegen lassen und den Markdown-Verweis erzeugen.
 //
 // Der Ablage-Ort, die Namensvergabe und die Grenz-Pruefung liegen bewusst NICHT
-// hier, sondern im Hauptprozess (src/main/attachment-path.js). Dieses Modul
+// hier, sondern im Hauptprozess (src/main/documents/attachment-path.js). Dieses Modul
 // kennt nur die Frage „was liegt an?" und „wie sieht der Verweis aus?".
-import { api } from './api.js';
+import { api } from './app/api.js';
 import { t } from '../i18n.js';
-import { showStatusbarHint } from './views.js';
+import { showStatusbarHint } from './views/views.js';
 
 // Endungen, die im Markdown als Bild-Verweis erscheinen. Bewusst dieselbe
 // Menge wie die Bild-Erkennung des Wiki-Embed-Plugins, damit ein eingefuegtes

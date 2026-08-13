@@ -1,11 +1,15 @@
 // 4T-0368 (Epic 3E-0068): Unit-Tests für den Entwurfs-Zwischenspeicher
-// (src/main/draft-store.js) — Manifest-Normalisierung, Verwaisten-Erkennung und
+// (src/main/documents/draft-store.js) — Manifest-Normalisierung, Verwaisten-Erkennung und
 // bereichs-treue Zuordnung der Entwürfe zu den beim Start wiederhergestellten
 // Applikationen. Reine Logik, ohne Electron und ohne Datei-Zugriff.
 // 4T-0539 (Epic 3E-0098): dazu die Arbeitsbereichs-Zuordnung (workspaceId
 // im Manifest, Targets statt rootPath-Liste, unassigned-Menge).
 import { describe, it, expect } from 'vitest';
-import { normalizeManifest, findOrphans, assignDraftsToApps } from '../../src/main/draft-store.js';
+import {
+  normalizeManifest,
+  findOrphans,
+  assignDraftsToApps,
+} from '../../src/main/documents/draft-store.js';
 
 // Einfacher Pfad-Vergleich für die Tests (case-insensitiv wie unter Windows).
 const samePath = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();

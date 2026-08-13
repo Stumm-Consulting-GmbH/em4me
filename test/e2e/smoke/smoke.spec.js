@@ -200,7 +200,7 @@ test.describe('SM-07: Hilfe öffnet das Handbuch', () => {
       await waitForTab(page);
       // F1 haengt als Accelerator am nativen Menue; synthetische Tastatur-
       // Events erreichen das Menue nicht zuverlaessig. Der Menue-Eintrag
-      // sendet 'menu:openHelp' (src/main/menu.js) — gleicher Pfad hier.
+      // sendet 'menu:openHelp' (src/main/menu/menu.js) — gleicher Pfad hier.
       await sendMenuChannel(app, 'menu:openHelp');
       await expect(page.locator(SEL.tabs0)).toHaveCount(2);
       await expect(page.locator(SEL.content0)).toHaveClass(/view-rendered/);

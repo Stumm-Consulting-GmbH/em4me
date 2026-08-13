@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
 
-const editor = await import('../../../src/renderer/modules/editor.js');
+const editor = await import('../../../src/renderer/modules/editor/editor.js');
 const rm = await import('../../../src/renderer/modules/render-mermaid.js');
 
 describe('Tabellen-Zell-Logik (editor.js)', () => {

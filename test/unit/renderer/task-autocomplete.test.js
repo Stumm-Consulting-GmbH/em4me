@@ -19,9 +19,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
 import { EditorState } from '@codemirror/state';
 
-const lifecycle = await import('../../../src/renderer/modules/extension-lifecycle.js');
+const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 const tasks = await import('../../../src/renderer/modules/tasks.js');
-const ach = await import('../../../src/renderer/modules/autocomplete-help.js');
+const ach = await import('../../../src/renderer/modules/editor/autocomplete-help.js');
 
 const DUE = '\u{1F4C5}'; // Kalender-Symbol (faelliger Termin)
 

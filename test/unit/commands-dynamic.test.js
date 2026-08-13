@@ -7,7 +7,7 @@ import {
   mergeBindings,
   registerDynamicCommand,
   unregisterDynamicCommand,
-} from '../../src/shared/commands.js';
+} from '../../src/shared/commands/commands.js';
 
 const CMD_ID = 'ext.beispiel.zaehlen';
 

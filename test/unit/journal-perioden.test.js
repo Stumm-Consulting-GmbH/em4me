@@ -19,8 +19,9 @@ import {
   prevPeriod,
   resolveEntryPath,
 } from '../../src/shared/journal-core.js';
-import { isoWeekOf, formatDateMs } from '../../src/shared/perspective-query-eval.js';
-import { disabledCommandIdSet, isExtensionId } from '../../src/shared/extensions.js';
+import { isoWeekOf, formatDateMs } from '../../src/shared/query/query-format.js';
+import { isExtensionId } from '../../src/shared/extensions/extensions.js';
+import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
 
 const ms = (iso) => isoDateToMs(iso);
 const span = (p) => [msToIsoDate(p.startMs), msToIsoDate(p.endMs)];

@@ -1,0 +1,621 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 17 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Uhr-Panel samt Kalender-Modus, Wecker, Timer und Stoppuhr. */
+
+/* 4T-0372 (Epic 3E-0069): Uhr-Panel. Alle Farben kommen aus Theme-
+   Variablen, damit der Hell/Dunkel-Wechsel ohne Neuzeichnen mitgeht. */
+.clock-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 2px;
+}
+.clock-face {
+  display: block;
+}
+.clock-dial {
+  fill: var(--bg-alt);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+.clock-tick {
+  stroke: var(--fg-muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.clock-number {
+  fill: var(--fg-muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+.clock-hand {
+  stroke: var(--fg);
+  stroke-linecap: round;
+}
+.clock-hand-hour {
+  stroke-width: 3.4;
+}
+.clock-hand-minute {
+  stroke-width: 2.4;
+}
+.clock-hand-second {
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+/* Gleitender Sekundenzeiger: die Bewegung uebernimmt eine CSS-Transition,
+   nicht ein Animations-Frame. Der Winkel laeuft dafuer monoton weiter
+   (clock-panel.js), sodass nie rueckwaerts animiert wird. */
+.clock-hand-second.sweep {
+  transition: transform 1s linear;
+}
+.clock-center {
+  fill: var(--accent);
+}
+/* 4T-0679 (Epic 3E-0139): Die drei Textzeilen folgen der Groessen-Stufe
+   ueber den Faktor --clock-scale, den clock-panel.js am Panel-Koerper setzt
+   (Werte in shared/clock/clock-options.js). Die Pixelzahlen hier sind die
+   Basiswerte der kleinen Stufe, also das Schriftbild vor diesem Epic.
+
+   Ueberbreite Zeilen brechen bewusst NICHT um (PO-Festlegung 2026-07-22):
+   Die Zeile nimmt die volle Panel-Breite (align-self), ihr zentrierter
+   Inhalt ragt bei Bedarf ueber beide Raender hinaus und wird dort gekappt.
+   Die grosse Stufe ist fuer die breit gezogene Sidebar gedacht; dass in der
+   Mindestbreite nur ihre Mitte sichtbar bleibt, ist gewollt.
+
+   Bewusst NICHT ueber ein overflow-x am Panel-Koerper geloest: Sobald eine
+   Achse hidden ist, wird die andere zu auto, was im ohnehin scrollenden
+   .sidebar-section-body einen zweiten Scrollbalken erzeugen wuerde. */
+.clock-digital,
+.clock-date,
+.clock-week {
+  align-self: stretch;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.clock-digital {
+  font-family: var(--font-mono);
+  font-size: calc(17px * var(--clock-scale, 1));
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.clock-date {
+  font-size: calc(12px * var(--clock-scale, 1));
+  color: var(--fg-muted);
+}
+.clock-week {
+  font-size: calc(11.5px * var(--clock-scale, 1));
+  color: var(--fg-muted);
+}
+
+/* 4T-0636 (Epic 3E-0069): Leiste der Modus-Tasten. Sie sitzt zwischen
+   Sektions-Header und Body, weil der Header in einer Reiter-Gruppe
+   ausgeblendet ist und der Body scrollt; so bleibt sie in jeder Anordnung
+   sichtbar und fest. Zentriert wie der uebrige Uhr-Inhalt (PO-Festlegung
+   2026-07-20). 4T-0752: mit dem Kalender sind es fuenf Tasten a 28 px, also
+   5*28 + 4*4 Abstand + 12 Innenabstand = 168 px; die schmalste Sidebar misst
+   180 px, die Leiste passt damit weiterhin ohne Umbruch. */
+.clock-modes {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.clock-mode-btn {
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.clock-mode-btn:hover {
+  background: var(--hover);
+}
+.clock-mode-btn.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.clock-mode-btn svg {
+  display: block;
+}
+/* Platzhalter der noch nicht ausgebauten Modi (4T-0638) und leerer
+   Wecker-Liste. */
+.clock-placeholder {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* 4T-0752 (Epic 3E-0146): Kalender-Modus der Uhr. Das Gitter selbst nutzt die
+   Klassen des Journal-Kalenders (.calendar-grid, .calendar-cell), damit beide
+   Darstellungen nicht auseinanderlaufen; hier stehen nur Navigation,
+   Jahres-Eingabe und die abschaltbare Kalenderwochen-Spalte.
+   Anders als die Uhr-Anzeige folgt der Kalender NICHT dem Schrift-Faktor der
+   Groessen-Stufe: Ein Gitter aus acht Spalten wuerde in Stufe "Gross" seitlich
+   beschnitten, und ein beschnittenes Gitter ist unbrauchbar statt nur klein
+   (Grundsatz aus 3E-0139 gilt fuer einzeilige Anzeigen). */
+.clock-calendar {
+  width: 100%;
+  padding: 4px 4px 8px;
+}
+.clock-calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.clock-cal-nav-btn,
+.clock-cal-label,
+.clock-cal-today,
+.clock-cal-year-ok {
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.clock-cal-label {
+  color: var(--fg);
+  font-weight: 600;
+  flex: 1 1 auto;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.clock-cal-nav-btn:hover,
+.clock-cal-label:hover,
+.clock-cal-today:hover,
+.clock-cal-year-ok:hover {
+  color: var(--fg);
+  background: var(--hover);
+}
+.clock-cal-year {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+/* Die Jahres-Eingabe wird per hidden-Attribut zugeklappt; das display: flex
+   oben schlaegt sonst die [hidden]-UA-Regel (Muster der Statusbar-Buttons
+   aus 4T-0295). Ohne diesen Guard blieb sie nach dem Uebernehmen stehen. */
+.clock-cal-year[hidden] {
+  display: none;
+}
+.clock-cal-year-digit {
+  min-width: 15px;
+  padding: 2px 3px;
+  text-align: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.clock-cal-year-digit.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+/* Ohne Kalenderwochen-Spalte traegt das Gitter sieben statt acht Spalten. */
+.clock-calendar-grid.no-week-col {
+  grid-template-columns: repeat(7, 1fr);
+}
+/* Tage sind reine Anzeige (kein Klick-Ziel), deshalb ohne Zeiger-Cursor und
+   ohne Hover-Flaeche. Die Zustands-Klassen .other-month und .today kommen
+   bewusst unveraendert vom Journal-Kalender: Der heutige Tag soll in beiden
+   Kalendern gleich aussehen. Der Platz fuer den Eintrags-Punkt entfaellt, den
+   gibt es hier nicht. */
+.clock-cal-day {
+  cursor: default;
+  padding-bottom: 4px;
+}
+.clock-cal-day:hover {
+  background: transparent;
+}
+.clock-cal-today {
+  display: block;
+  margin: 6px auto 0;
+}
+
+/* 4T-0637 (Epic 3E-0069): Wecker-Liste im Panel. Die Zeile bleibt bis zur
+   Sidebar-Mindestbreite lesbar: Schalter und Menue-Knopf sind fest, die
+   Mitte schrumpft und kuerzt ihre zweite Zeile mit Auslassungspunkten. */
+.alarm-list {
+  display: flex;
+  flex-direction: column;
+}
+.alarm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.alarm-row.disabled {
+  opacity: 0.55;
+}
+.alarm-row-main {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.alarm-row-time {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  line-height: 1.2;
+}
+.alarm-row-sub {
+  font-size: 11px;
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Aktiv-Schalter als Kippschalter (role="switch"); Zustand ueber die
+   Klasse 'on', damit Tastatur- und Maus-Bedienung dieselbe Optik haben. */
+.alarm-toggle {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 15px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-alt);
+  position: relative;
+  cursor: pointer;
+}
+.alarm-toggle::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--fg-muted);
+  transition:
+    left 0.12s,
+    background 0.12s;
+}
+.alarm-toggle.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.alarm-toggle.on::after {
+  left: 12px;
+  background: var(--accent-fg);
+}
+.alarm-row-menu {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+}
+.alarm-row-menu:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+.alarm-add-btn {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 8px;
+  padding: 5px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.alarm-add-btn:hover {
+  background: var(--hover);
+}
+
+/* 4T-0637: Anlege-Dialog. Feld-Zeilen mit fester Label-Spalte, damit
+   Uhrzeit, Bezeichnung und Wiederholung buendig stehen. */
+.alarm-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+.alarm-field-label {
+  flex: 0 0 96px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.alarm-time-btn {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  min-width: 84px;
+}
+.alarm-repeat-select {
+  flex: 1;
+  min-width: 0;
+}
+.alarm-days {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 10px 106px;
+}
+/* Das display oben schlaegt sonst die [hidden]-UA-Regel (gleiche
+   Spezifitaet, spaetere Quellreihenfolge) — dieselbe Falle wie bei
+   .sidebar-section[hidden]. */
+.alarm-days[hidden] {
+  display: none;
+}
+.alarm-day {
+  min-width: 32px;
+  padding: 4px 0;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.alarm-day.selected {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+
+/* 4T-0637: Faelligkeits-Dialog — bewusst schlank, ohne Datei-Bezug. */
+.alarm-due-list {
+  margin: 12px 0;
+}
+.alarm-due-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.alarm-due-row:last-child {
+  border-bottom: none;
+}
+.alarm-due-time {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.alarm-due-label {
+  font-size: 13px;
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+
+/* 4T-0638 (Epic 3E-0069): Timer-Liste. Restzeit, Fortschrittsbalken und
+   drei Aktionen je Zeile; die Zeile bleibt bis zur Sidebar-Mindestbreite
+   bedienbar, weil die beiden Text-Knoepfe sich die Breite teilen. */
+.timer-row {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.timer-row.expired .timer-row-time {
+  color: var(--accent);
+}
+.timer-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.timer-row-time {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.timer-row-label {
+  font-size: 11px;
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.timer-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--bg-alt);
+  margin: 5px 0 6px;
+  overflow: hidden;
+}
+.timer-bar > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+}
+.timer-actions {
+  display: flex;
+  gap: 4px;
+}
+.timer-action {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 11px;
+  /* Wie bei der Schnellwahl: gleich breite Knoepfe duerfen ihren Text
+     nicht umbrechen. */
+  white-space: nowrap;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.timer-action.secondary {
+  border-color: var(--border);
+  color: var(--fg-muted);
+}
+.timer-action:hover:not(:disabled) {
+  background: var(--hover);
+}
+.timer-action:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.timer-quick {
+  display: flex;
+  gap: 4px;
+  padding: 8px 8px 0;
+}
+/* Gleich breite Knoepfe, aber einzeilig: ohne nowrap bricht der laengste
+   („25 Min") in der schmalen Sidebar um, weil flex: 1 allen dieselbe
+   Breite gibt (PO-Testbefund 2026-07-20). Das schmale Padding sorgt
+   dafuer, dass auch der laengste Text bis zur Mindestbreite passt. */
+.timer-quick-btn {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0 2px;
+  font-family: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.timer-quick-btn:hover {
+  background: var(--hover);
+}
+
+/* 4T-0638: Stoppuhr — eine einzige, gross gesetzt, mit Rundenliste. */
+.stopwatch-view {
+  padding: 6px 0 0;
+}
+.stopwatch-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  padding: 12px 8px;
+}
+.stopwatch-main {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.stopwatch-hundredths {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+}
+.stopwatch-actions {
+  display: flex;
+  gap: 4px;
+  padding: 0 10px 10px;
+}
+.stopwatch-laps {
+  border-top: 1px solid var(--border);
+}
+.stopwatch-lap {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+}
+.stopwatch-lap-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+/* 4T-0638: Segment-Steuerung der Dauer (Stunden, Minuten, Sekunden).
+   Optik der vorhandenen Uhrzeit-Steuerung; eine eigene braucht es, weil
+   jene HH:mm mit Uhrzeit-Semantik abbildet und keine Sekunden kennt. */
+.timer-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.timer-duration-seg {
+  min-width: 26px;
+  padding: 3px 4px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: ns-resize;
+}
+.timer-duration-seg:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--hover);
+}
+.timer-duration-colon {
+  color: var(--fg-muted);
+}
+.timer-duration-steppers {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 4px;
+}
+.timer-duration-step {
+  padding: 0 4px;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+/* 4T-0372: Untergruppen-Ueberschrift innerhalb eines Einstellungs-Bereichs
+   (Optik der Sidebar-Gruppen-Koepfe, ohne deren Rahmen). */
+.settings-subhead {
+  margin: 16px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.settings-subhead:first-child {
+  margin-top: 0;
+}

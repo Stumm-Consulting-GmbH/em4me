@@ -1,5 +1,5 @@
 // 4T-0331 (Epic 3E-0060): Unit-Tests für den Kern der Dokument-Historie
-// (src/main/mdd-store.js): Container-Roundtrip mit unbekannten Sektionen,
+// (src/main/documents/mdd-store.js): Container-Roundtrip mit unbekannten Sektionen,
 // Paket-Bildung (Coalescing über injizierte Uhr), Hash-Abgleich mit
 // external-Paketen, Anker-Kadenz und Revisions-Rekonstruktion.
 import { describe, it, expect } from 'vitest';
@@ -26,7 +26,7 @@ import {
   emptySettingsContainer,
   parseSettingsContainer,
   resolveHistoryEnabled,
-} from '../../src/main/mdd-store.js';
+} from '../../src/main/documents/mdd-store.js';
 
 const MIN = 60_000;
 const OPTS = { maxPacketMs: 5 * MIN, inactivityMs: 2 * MIN };

@@ -13,7 +13,7 @@ import {
   readMarkdownPluginSource,
   externalExtensionInfo,
   removeExtensionDirectory,
-} from '../../src/main/extension-packages.js';
+} from '../../src/main/extensions/extension-packages.js';
 
 const FIXTURES = path.join(__dirname, '..', 'fixtures', 'extensions');
 // 4T-0826 (Epic 3E-0103): Das Referenz-Paket liegt nicht als Attrappe im

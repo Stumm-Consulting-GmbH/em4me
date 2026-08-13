@@ -22,13 +22,29 @@ const ANKER = path.join(FIXTURES, 'mermaid-anker.md');
 const KLEIN_A = path.join(FIXTURES, 'klein-a.md');
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
-    ({ BrowserWindow }, payload) => {
-      const win = BrowserWindow.getAllWindows()[0];
-      if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
-    },
-    { channel, args },
-  );
+  // Abnahme-Befund 3E-0196: Der erste app.evaluate unmittelbar nach dem
+  // Sichtbarwerden des Reiters scheitert je nach Anlauf-Stoss des Renderers
+  // sporadisch an einem verworfenen CDP-Promise («Promise was collected»,
+  // von Playwright als «Execution context was destroyed» gemeldet), ohne
+  // dass eine Produkt-Zusicherung verletzt ist; Last und Ereignisschleife
+  // des Haupt-Prozesses sind dabei unauffaellig. Ein einmaliger zweiter
+  // Versuch nach kurzer Wartezeit traegt (0 von 8 rot statt 8 von 8 auf dem
+  // empfindlichsten Stand).
+  for (let versuch = 0; ; versuch++) {
+    try {
+      await app.evaluate(
+        ({ BrowserWindow }, payload) => {
+          const win = BrowserWindow.getAllWindows()[0];
+          if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
+        },
+        { channel, args },
+      );
+      return;
+    } catch (fehler) {
+      if (versuch >= 1) throw fehler;
+      await new Promise((fertig) => setTimeout(fertig, 400));
+    }
+  }
 }
 
 async function waitForTab(page) {

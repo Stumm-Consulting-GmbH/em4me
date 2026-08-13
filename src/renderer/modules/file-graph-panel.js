@@ -15,23 +15,23 @@
 'use strict';
 
 import { t } from '../i18n.js';
-import { api } from './api.js';
-import { getPaneEls, state } from './app-state.js';
-import { applySidebarVisibility } from './panels.js';
+import { api } from './app/api.js';
+import { getPaneEls, state } from './app/app-state.js';
+import { applySidebarVisibility } from './panels/panels.js';
 import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js';
-import { isExtensionActive } from './extension-lifecycle.js';
-import { isAllEmpty, persistSetting } from './views.js';
-import { openOrJumpToPath } from './bookmarks.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
+import { isAllEmpty, persistSetting } from './views/views.js';
+import { openOrJumpToPath } from './bookmarks/bookmarks.js';
 // 4T-0568 (Epic 3E-0104): Haekchen im Panel-Untermenue folgt dem Toggle
 // (Laufzeit-Zyklus tabs <-> file-graph-panel, Muster panels.js).
-import { reportMenuStateNow } from './tabs.js';
+import { reportMenuStateNow } from './tabs/tabs.js';
 import {
   GRAPH_MIN_DEPTH,
   GRAPH_MAX_DEPTH,
   buildGraphModel,
   neighborhood,
 } from '../../shared/graph-core.js';
-import { createGraphView } from './graph-view.js';
+import { createGraphView } from './graph/graph-view.js';
 
 // Graph-Instanz pro Spalte (lazy beim ersten Render; hält die Knoten-
 // Positionen für die Sitzungs-Dauer).

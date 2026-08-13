@@ -11,7 +11,7 @@ import {
   sucheImBereich,
   gibBereichsVorratFrei,
   CACHE_SCHEMA_VERSION,
-} from '../../src/main/area-search.js';
+} from '../../src/main/area/area-search.js';
 import { createRequire } from 'node:module';
 
 // 4T-0949: Die Puffer-Schicht wird ueber DIESELBE Modul-Instanz gesetzt, die

@@ -18,7 +18,7 @@ import {
   MDDA_CACHE_FILENAME,
   MDDA_CACHE_SCHEMA_VERSION,
   MDD_SCHEMA_VERSION,
-} from '../../src/main/mdd-store.js';
+} from '../../src/main/documents/mdd-store.js';
 import { backlinksFor, rootForActiveFile, releaseRoot } from '../../src/main/backlinks.js';
 
 // --- Teil 1: Container (rein) -----------------------------------------------

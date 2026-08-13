@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 4T-0486 (Epic 3E-0091): Unit-Tests des Datums-/Uhrzeit-Pickers
-// (src/renderer/modules/date-picker.js) — Wert-Parsing und -Komposition,
+// (src/renderer/modules/calendar/date-picker.js) — Wert-Parsing und -Komposition,
 // Uhrzeit-Normalisierung, Datums-/Monats-Arithmetik ueber Grenzen, die
 // Trigger-Ausschluss-Kontexte (Code/Formel/Frontmatter) sowie die
 // Registrierung als Erweiterung und die drei Kommandos. Das DOM-Popup
@@ -13,10 +13,10 @@ import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
 import { ensureSyntaxTree } from '@codemirror/language';
-import { extensionById } from '../../../src/shared/extensions.js';
-import { COMMANDS } from '../../../src/shared/commands.js';
+import { extensionById } from '../../../src/shared/extensions/extensions.js';
+import { COMMANDS } from '../../../src/shared/commands/commands.js';
 
-const dp = await import('../../../src/renderer/modules/date-picker.js');
+const dp = await import('../../../src/renderer/modules/calendar/date-picker.js');
 
 // Voll geparster Markdown-State (Muster struktur-und-state.test.js): ohne
 // EditorView parst der Lezer-Kontext nur ueber Zeit-Budgets, deshalb die

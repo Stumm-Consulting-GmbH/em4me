@@ -1,0 +1,708 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 2 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Panes-Container, Tabbar, Tab-Gruppen, Mehrfach-Auswahl der Reiter, abgerundete
+   Reiter-Ecken, Inhalt einer Pane, Splitter. */
+
+/* === Panes-Container (Spalten-Layout) ===================================== */
+.panes-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+.pane-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+.pane-group[hidden] {
+  display: none;
+}
+.pane-group.active-pane .tabbar {
+  box-shadow: inset 0 2px 0 0 var(--accent);
+}
+
+/* === Tabbar =============================================================== */
+.tabbar {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  min-height: 32px;
+  /* 4T-0575 (Epic 3E-0106): zwei Pixel Luft ueber den Reitern, damit die
+     Akzentlinie der aktiven Spalte (inset-Schatten der Regel weiter oben)
+     auf voller Breite sichtbar bleibt. Ohne sie decken die Reiter die Linie
+     ab und sie blitzt nur in den Luecken abgerundeter Ecken durch. */
+  padding-top: 2px;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px 12px;
+  background: var(--tab-bg);
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+  max-width: 240px;
+  user-select: none;
+  position: relative;
+}
+.tab:hover {
+  background: var(--hover);
+}
+.tab.active {
+  background: var(--tab-active-bg);
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px;
+}
+.tab.drag-over-left {
+  box-shadow: inset 3px 0 0 0 var(--accent);
+}
+.tab.drag-over-right {
+  box-shadow: inset -3px 0 0 0 var(--accent);
+}
+/* S-15 (4T-0188): Theme-Variable statt hartem Light-Accent-Blau. */
+.tabbar.drag-target {
+  background: var(--accent-soft);
+}
+.tab-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  pointer-events: none;
+}
+.tab-close {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.tab-close:hover {
+  background: var(--border-strong);
+  color: var(--fg);
+}
+.tab-missing .tab-title {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* === Tab-Gruppen (4T-0460, Epic 3E-0085) ================================== */
+/* Gruppen-Kopf: Name auf Farbflaeche; --tab-group-color/-fg werden pro
+   Kopf inline auf die Palette-Variablen der Gruppen-Farbe gesetzt. */
+.tab-group-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background: var(--tab-group-color);
+  color: var(--tab-group-fg);
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  max-width: 180px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.tab-group-head-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+/* Unbenannte Gruppe: kleiner Farb-Punkt statt leerer Flaeche. */
+.tab-group-head-label:empty::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tab-group-fg);
+}
+.tab-group-head-count {
+  font-weight: 400;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.tab-group-head.dragging {
+  opacity: 0.5;
+}
+/* 4T-0767 (Epic 3E-0158): Liegt der aktive Reiter in der Gruppe, traegt der
+   Kopf dieselbe Aktiv-Unterstreichung wie ein aktiver Reiter. Bei einer
+   zugeklappten Gruppe ist das die einzige Kennzeichnung in der Leiste. */
+.tab-group-head.active {
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px;
+}
+.tab-group-head.drag-over-join {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
+/* Reiter gruppierter Tabs: farbige Unterstreichung in der Gruppen-Farbe;
+   der aktive Reiter uebernimmt die Gruppen-Farbe als Aktiv-Unterstrich. */
+.tab.tab-grouped {
+  box-shadow: inset 0 -3px 0 0 var(--tab-group-color);
+}
+.tab.tab-grouped.active {
+  box-shadow: none;
+  border-bottom-color: var(--tab-group-color);
+}
+/* === Mehrfach-Auswahl der Reiter (4T-0765, Epic 3E-0158) ================== */
+/* Ausgewaehlte Reiter tragen eine flaechige Hinterlegung mit Rahmen. Sie
+   erscheint erst ab zwei Mitgliedern (hasMultiSelection); eine Auswahl aus
+   einem Reiter sieht aus wie bisher. Die Regeln stehen NACH den Gruppen-
+   Regeln, damit die Auswahl-Kennung auch an gruppierten und aktiven Reitern
+   sichtbar bleibt. */
+.tab.tab-selected {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.tab.tab-selected.tab-grouped {
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    inset 0 -3px 0 0 var(--tab-group-color);
+}
+
+/* 4T-0461: Farb-Auswahl im Gruppen-Dialog (acht Swatches der Palette). */
+.tab-group-colors {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+.tab-group-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--tab-group-color);
+  cursor: pointer;
+  padding: 0;
+}
+.tab-group-swatch.selected {
+  border-color: var(--fg);
+}
+.tab-group-swatch:hover {
+  border-color: var(--fg-muted);
+}
+
+/* 4T-0538 (Epic 3E-0098): Verwaltungs-Dialog der Arbeitsbereiche — Liste
+   mit Farbpunkt (gefuellt = offen, Ring = geschlossen), Meta-Zeile und
+   Zeilen-Aktionen. Farbe kommt pro Zeile als --workspace-color aus der
+   Acht-Farben-Palette. */
+.workspace-manager-content {
+  min-width: 480px;
+}
+.workspace-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin: 12px 0 4px;
+}
+.workspace-manager-empty {
+  color: var(--fg-muted);
+  padding: 8px 2px;
+}
+.workspace-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.workspace-dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid var(--workspace-color);
+  background: transparent;
+}
+.workspace-dot.open {
+  background: var(--workspace-color);
+}
+.workspace-row-text {
+  flex: 1;
+  min-width: 0;
+}
+.workspace-row-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-row-meta {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+/* Drop-Indikator und Gruppen-Unterstreichung kombiniert (die spaetere
+   tab-grouped-Regel wuerde den Indikator sonst verdraengen). */
+.tab.tab-grouped.drag-over-left {
+  box-shadow:
+    inset 3px 0 0 0 var(--accent),
+    inset 0 -3px 0 0 var(--tab-group-color);
+}
+.tab.tab-grouped.drag-over-right {
+  box-shadow:
+    inset -3px 0 0 0 var(--accent),
+    inset 0 -3px 0 0 var(--tab-group-color);
+}
+
+/* === Abgerundete Reiter-Ecken (4T-0575, Epic 3E-0106) ===================== */
+/* Schaltbar ueber die Einstellung appearance.roundedTabs; applyAppearanceVars
+   setzt dazu die Root-Klasse rounded-tabs. Ohne die Klasse greift keine der
+   Regeln, das eckige Bild bleibt unveraendert.
+   Zur Form: gerundet werden nur die oberen Ecken, unten schliessen Reiter und
+   Gruppen-Koepfe buendig an den Inhalt an (Aktiv-Unterstrich und Gruppen-
+   Farbstreifen bleiben dadurch gerade). Die vertikale Trennlinie weicht einem
+   schmalen Abstand: mit Trennlinie waere die Rundung im dunklen Theme kaum zu
+   sehen, weil --tab-bg (#2d2d2d) und --bg-toolbar (#2a2a2a) fast gleich hell
+   sind; der Abstand macht die Reiter dagegen in beiden Themes als einzelne
+   Flaechen lesbar (PO-Entscheidung Variante B). */
+.rounded-tabs {
+  --tab-radius: 8px;
+}
+.rounded-tabs .tabbar {
+  gap: 3px;
+  padding-left: 4px;
+}
+.rounded-tabs .tab,
+.rounded-tabs .tab-group-head {
+  border-radius: var(--tab-radius) var(--tab-radius) 0 0;
+  border-right: none;
+}
+
+/* === Inhalt einer Pane ==================================================== */
+.content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+.content.view-source .pane-rendered,
+.content.view-source .inner-splitter {
+  display: none;
+}
+.content.view-rendered .pane-source,
+.content.view-rendered .inner-splitter {
+  display: none;
+}
+.content.view-split .pane {
+  flex: 1;
+}
+/* 4T-0085 (Epic 3E-0014): Live-Modus zeigt nur den Editor (linke Pane);
+   die Render-Pane und der innere Splitter werden versteckt, weil das
+   Live-Plugin das Rendering direkt im Editor uebernimmt. */
+.content.view-live .pane-rendered,
+.content.view-live .inner-splitter {
+  display: none;
+}
+/* 4T-0277 (Epic 3E-0049): System-Seiten (Einstellungen) ersetzen Editor
+   und Render-Pane vollständig durch das Seiten-DOM in .pane-system. */
+.pane-system {
+  display: none;
+}
+.content.view-system .pane-source,
+.content.view-system .pane-rendered,
+.content.view-system .inner-splitter {
+  display: none;
+}
+.content.view-system .pane-system {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 4T-0278 (Epic 3E-0049): Einstellungs-Seite — Bereichsnavigation links,
+   Bereichs-Inhalt rechts, seitenweite Button-Leiste unten. Optik angelehnt
+   an die settings-section-Gestaltung des bisherigen Dialogs. */
+.settings-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 20px 32px 16px;
+  color: var(--fg);
+}
+.settings-page-title {
+  margin: 0 0 14px;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+.settings-page-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 20px;
+}
+.settings-nav {
+  flex: 0 0 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+/* 4T-0555 (Epic 3E-0100): gegliederte Navigation mit Zwischenüberschriften.
+   4T-0889 (Epic 3E-0168): vier mögliche Blöcke („Allgemein", „Aktueller
+   Bereich", interne und externe Erweiterungen); der Abstand hängt am
+   Geschwister-Selektor und trägt deshalb jede Block-Zahl. */
+.settings-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings-nav-group + .settings-nav-group {
+  margin-top: 14px;
+}
+.settings-nav-group-title {
+  padding: 4px 10px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.settings-nav-entry {
+  text-align: left;
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--fg);
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+}
+.settings-nav-entry:hover {
+  background: var(--hover);
+}
+.settings-nav-entry.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+/* Validierungsfehler eines Bereichs markieren den Navigations-Eintrag
+   (Punkt vor dem Titel in der Fehlerfarbe der bisherigen Error-Divs). */
+.settings-nav-entry.has-error::before {
+  content: '● ';
+  color: #dc3545;
+}
+[data-theme='dark'] .settings-nav-entry.has-error::before {
+  color: #ea868f;
+}
+.settings-section-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.settings-section-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.settings-section-heading {
+  margin: 0 0 12px;
+  font-size: 1.05em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+.settings-section-error {
+  margin-top: 8px;
+  color: #dc3545;
+  font-size: 12.5px;
+}
+[data-theme='dark'] .settings-section-error {
+  color: #ea868f;
+}
+.settings-page-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.settings-page-buttons .btn {
+  min-width: 96px;
+}
+
+/* 4T-0289 (Epic 3E-0051): Bereich „Sidebar" der Einstellungs-Seite —
+   zwei Seiten-Listen mit Panel-Zeilen, Gruppen-Bloecken und
+   Symbol-Aktionen. */
+.sidebar-settings-hint {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+.sidebar-settings-side-title {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.sidebar-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-settings-empty {
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--fg-muted);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+.sidebar-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+}
+.sidebar-settings-label {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-settings-actions {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.sidebar-settings-btn {
+  min-width: 28px;
+  padding: 2px 6px;
+}
+.sidebar-settings-group {
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-settings-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.sidebar-settings-reset-row {
+  margin-top: 16px;
+}
+/* 4T-0624/4T-0625 (Epic 3E-0119): Varianten-Verwaltung — globale Liste im
+   Sidebar-Bereich, Bereichs-Liste in der eigenen Sektion unter
+   „Aktueller Bereich". */
+.sidebar-variants-save-row {
+  margin-top: 12px;
+}
+
+.pane {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg);
+  min-width: 0;
+}
+.pane-source {
+  background: var(--code-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.pane-source-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+.pane-source-editor .cm-editor {
+  height: 100%;
+  font-family: var(--editor-font-family);
+  font-size: var(--editor-font-size);
+  background: var(--code-bg);
+  color: var(--fg);
+}
+.pane-source-editor .cm-editor.cm-focused {
+  outline: none;
+}
+.pane-source-editor .cm-scroller {
+  font-family: var(--editor-font-family);
+  line-height: 1.5;
+}
+.pane-source-editor .cm-content {
+  caret-color: var(--fg);
+  padding: 12px 0;
+}
+.pane-source-editor .cm-line {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.pane-source-editor .cm-gutters {
+  background: var(--code-bg);
+  color: var(--fg-muted);
+  border-right: 1px solid var(--border);
+  user-select: none;
+}
+.pane-source-editor .cm-gutterElement {
+  padding: 0 6px 0 8px;
+  min-width: 2.5ch;
+  text-align: right;
+}
+/* 4T-0013: Folding-Gutter mit dynamischen Hierarchie-Spuren. Pro
+   tatsaechlich vorkommender Heading-Ebene UND pro Block-Verschachtelungs-
+   tiefe (ListItem, Blockquote, FencedCode, HTMLBlock, Table) eine 10px-Spur.
+   Spurenanzahl variiert mit dem Inhalt der Datei und wird ueber den Spacer-
+   Marker an CodeMirror gemeldet. Innerhalb einer Region zeigt die zugehoerige
+   Spur eine senkrechte Linie; auf der Start-Zeile wird die Linie durch den
+   klickbaren Pfeil ersetzt (⌄ offen / › zugeklappt). Bleibt auch sichtbar,
+   wenn Zeilennummern deaktiviert sind. */
+.pane-source-editor .cm-headingGutter .cm-gutterElement {
+  padding: 0;
+  min-width: 0;
+  text-align: left;
+}
+.scg-heading-gutter {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  line-height: 1.5;
+  width: calc(var(--scg-tracks, 0) * 10px);
+  min-width: calc(var(--scg-tracks, 0) * 10px);
+}
+.scg-heading-track {
+  position: relative;
+  width: 10px;
+  flex: 0 0 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--fg-muted);
+  user-select: none;
+}
+.scg-heading-track.scg-heading-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--border-strong);
+}
+.scg-heading-track.scg-heading-marker {
+  cursor: pointer;
+  opacity: 0.65;
+  transition:
+    opacity 0.1s ease,
+    color 0.1s ease;
+}
+.scg-heading-track.scg-heading-marker:hover {
+  opacity: 1;
+  color: var(--fg);
+}
+/* Aus-Zustand der Zeilen-Hervorhebung. !important wie bei der Selection-Regel
+   weiter unten: CodeMirror bringt fuer .cm-activeLine eine eigene Theme-Farbe
+   mit, die bei gleicher Spezifitaet gewinnen wuerde (4T-0577). */
+.pane-source-editor .cm-activeLineGutter,
+.pane-source-editor .cm-activeLine {
+  background: transparent !important;
+}
+/* 4T-0577 (Epic 3E-0106): Hervorhebung der Cursor-Zeile, schaltbar ueber die
+   Einstellung appearance.highlightActiveLine (Root-Klasse, Default an). Nur
+   im Edit-Modus: ohne sichtbaren Cursor (read-only) waere eine hinterlegte
+   Zeile orientierungslos (PO-Festlegung 2026-07-19). Die Farbe ist
+   halbtransparent und liegt damit ueber jedem Farbschema; Selektion,
+   Such-Treffer und Linter-Wellen zeichnen darueber. */
+.highlight-active-line .pane-source-editor:not(.read-only) .cm-activeLine,
+.highlight-active-line .pane-source-editor:not(.read-only) .cm-activeLineGutter {
+  background: var(--active-line-bg) !important;
+}
+.pane-source-editor .cm-cursor {
+  border-left-color: var(--fg);
+}
+.pane-source-editor.read-only .cm-cursor {
+  display: none;
+}
+/* Selection-Background. CodeMirror setzt eigene inline-Styles auf
+   .cm-selectionBackground; !important sorgt dafuer, dass unser Theme greift. */
+.pane-source-editor .cm-selectionBackground,
+.pane-source-editor .cm-editor.cm-focused .cm-selectionBackground {
+  background: var(--syntax-selection) !important;
+}
+/* Edit-Toggle: aktiver Zustand (Edit-Modus an) */
+.btn-edit.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+
+/* === Splitter (innen + zwischen Panes) =================================== */
+.splitter {
+  background: var(--border);
+  flex-shrink: 0;
+}
+.inner-splitter {
+  width: 4px;
+  cursor: col-resize;
+}
+.inner-splitter:hover {
+  background: var(--accent);
+}
+.outer-splitter {
+  width: 6px;
+  background: var(--border-strong);
+  cursor: col-resize;
+}
+.outer-splitter:hover {
+  background: var(--accent);
+}
+.outer-splitter[hidden] {
+  display: none;
+}
+.sidebar-splitter {
+  width: 4px;
+  cursor: col-resize;
+}
+.sidebar-splitter:hover {
+  background: var(--accent);
+}
+.sidebar-splitter[hidden] {
+  display: none;
+}

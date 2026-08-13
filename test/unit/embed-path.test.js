@@ -4,7 +4,7 @@
 // ohne Größen-Limit auf.
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
-import { resolveContainedEmbedPath } from '../../src/main/embed-path.js';
+import { resolveContainedEmbedPath } from '../../src/main/documents/embed-path.js';
 
 const base = path.join(path.sep === '\\' ? 'C:\\' : '/', 'docs', 'projekt', 'aktiv.md');
 const dir = path.dirname(base);

@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { liesEmbedInhalt } from '../../src/main/embed-inhalt.js';
+import { liesEmbedInhalt } from '../../src/main/documents/embed-content.js';
 
 let dir;
 let datei;

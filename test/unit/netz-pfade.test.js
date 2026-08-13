@@ -12,7 +12,7 @@ import {
   watchOptionenFuer,
   NETZ_ABFRAGE_MS,
   _setNetzLaufwerkeFuerTest,
-} from '../../src/main/netz-pfade.js';
+} from '../../src/main/documents/network-paths.js';
 
 afterEach(() => _setNetzLaufwerkeFuerTest(null));
 

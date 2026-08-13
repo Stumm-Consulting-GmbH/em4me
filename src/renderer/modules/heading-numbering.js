@@ -14,7 +14,7 @@
 // heading-numbers.js ist dagegen reine Logik und im Bundle nutzbar.
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 
 let enabled = false;
 let startLevel = 1;

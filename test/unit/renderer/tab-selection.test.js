@@ -14,8 +14,8 @@ import {
   selectedIndices,
   setSelection,
   toggleSelection,
-} from '../../../src/renderer/modules/tab-selection.js';
-import { createTabGroup } from '../../../src/renderer/modules/tab-groups.js';
+} from '../../../src/renderer/modules/tabs/tab-selection.js';
+import { createTabGroup } from '../../../src/renderer/modules/tabs/tab-groups.js';
 
 function tab(path, groupId = null) {
   return { path, groupId };

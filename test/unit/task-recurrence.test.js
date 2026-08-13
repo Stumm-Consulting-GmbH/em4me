@@ -9,9 +9,8 @@ import {
   parseRecurrenceRule,
   nextOccurrenceDate,
   buildRecurrenceInstance,
-  parseTaskLine,
-  serializeTaskLine,
-} from '../../src/shared/task-markers.js';
+} from '../../src/shared/tasks/task-recurrence.js';
+import { parseTaskLine, serializeTaskLine } from '../../src/shared/tasks/task-markers.js';
 
 const next = (rule, base) => nextOccurrenceDate(parseRecurrenceRule(rule), base);
 

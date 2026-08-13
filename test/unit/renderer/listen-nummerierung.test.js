@@ -11,7 +11,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { Table as LezerTable } from '@lezer/markdown';
 import { ensureSyntaxTree } from '@codemirror/language';
 
-const listTools = await import('../../../src/renderer/modules/editor-list-tools.js');
+const listTools = await import('../../../src/renderer/modules/editor/editor-list-tools.js');
 
 function stateFor(doc, { readOnly = false } = {}) {
   const state = EditorState.create({

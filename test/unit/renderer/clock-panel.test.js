@@ -24,13 +24,13 @@ for (const pane of document.querySelectorAll('.pane-group')) {
 }
 document.body.insertAdjacentHTML('beforeend', '<button id="btn-clock"></button>');
 
-const clock = await import('../../../src/renderer/modules/clock-panel.js');
+const clock = await import('../../../src/renderer/modules/clock/clock-panel.js');
 const { sidebarPanelById } = await import('../../../src/renderer/modules/sidebar-layout.js');
-const { createEmptyPane, state } = await import('../../../src/renderer/modules/app-state.js');
-const lifecycle = await import('../../../src/renderer/modules/extension-lifecycle.js');
+const { createEmptyPane, state } = await import('../../../src/renderer/modules/app/app-state.js');
+const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 // 4T-0679: Erwartungswert des Schrift-Faktors aus derselben Quelle wie das
 // Panel, damit eine spaetere Wert-Anpassung nicht doppelt zu pflegen ist.
-const { clockScale } = await import('../../../src/shared/clock-options.js');
+const { clockScale } = await import('../../../src/shared/clock/clock-options.js');
 
 function body(paneIdx = 0) {
   return document.querySelectorAll('.pane-group')[paneIdx].querySelector('.clock-body');

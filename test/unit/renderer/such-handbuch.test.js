@@ -7,7 +7,7 @@
 // Absturz, wenn der Sammel-Abruf scheitert.
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
-import { MANUAL_PAGES } from '../../../src/shared/manual-pages.js';
+import { MANUAL_PAGES } from '../../../src/shared/manual/manual-pages.js';
 
 // Der Sammel-Abruf wird pro Test gestellt; api.js bindet dasselbe Objekt,
 // das der Stub an window haengt.
@@ -24,8 +24,8 @@ window.api.getAllManualPages = async (locale) => {
 };
 
 const { handbuchEintraege, verwirfHandbuchVorrat } =
-  await import('../../../src/renderer/modules/such-handbuch.js');
-const { state } = await import('../../../src/renderer/modules/app-state.js');
+  await import('../../../src/renderer/modules/search/search-manual.js');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 describe('such-handbuch (4T-0758)', () => {
   beforeEach(() => {

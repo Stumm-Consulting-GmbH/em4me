@@ -13,8 +13,8 @@ import {
   buildHelpShortcutRows,
   generateFunctionsPage,
   generateShortcutsPage,
-} from '../../src/shared/manual-generated.js';
-import { mergeBindings } from '../../src/shared/commands.js';
+} from '../../src/shared/manual/manual-generated.js';
+import { mergeBindings } from '../../src/shared/commands/commands.js';
 
 // Identitaets-t (Verhalten der Renderer-t bei fehlendem Schluessel): gibt den
 // Schluessel selbst zurueck. localizeKey faellt damit auf das deutsche Token

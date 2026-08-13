@@ -86,8 +86,10 @@ module.exports = [
 
   // Block-Sanitizer nutzt DOMParser direkt (läuft im Preload-/Browser-
   // Kontext; in purem Node fängt das try/catch den Fallback ab).
+  // 4T-0994 (Epic 3E-0196): Der Sanitizer ist aus markdown.js in ein
+  // eigenes Modul gezogen; der Eintrag folgt ihm dorthin.
   {
-    files: ['src/shared/markdown/markdown.js'],
+    files: ['src/shared/markdown/portable-sanitizer.js'],
     languageOptions: {
       globals: { DOMParser: 'readonly' },
     },

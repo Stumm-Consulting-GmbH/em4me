@@ -6,8 +6,12 @@
 // Dazu die Zusage, dass der Aufruf ohne Zustand unverändert bleibt — daran
 // hängt der Web-Bau, der keinen Erweiterungs-Zustand kennt.
 import { describe, it, expect } from 'vitest';
-import { generateFunctionsPage, HELP_FEATURE_GROUPS } from '../../src/shared/manual-generated.js';
-import { allExtensions, disabledFeatureKeySet } from '../../src/shared/extensions.js';
+import {
+  generateFunctionsPage,
+  HELP_FEATURE_GROUPS,
+} from '../../src/shared/manual/manual-generated.js';
+import { allExtensions } from '../../src/shared/extensions/extensions.js';
+import { disabledFeatureKeySet } from '../../src/shared/extensions/extensions-core.js';
 
 // Übersetzung, die den Schlüssel zurückgibt: So bleibt der Fall unabhängig von
 // den Texten und misst allein die Struktur.

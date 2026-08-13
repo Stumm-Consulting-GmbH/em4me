@@ -1,5 +1,5 @@
 // 4T-0630 (Epic 3E-0102): Unit-Tests für die Titelleisten-Färbung
-// (src/main/caption-color.js). Geprüft werden die reinen Umrechnungs- und
+// (src/main/app/caption-color.js). Geprüft werden die reinen Umrechnungs- und
 // Auswahl-Funktionen (hexToColorref, captionColorsFor) sowie der
 // Aufruf-Vertrag von applyCaptionColor gegen einen injizierten Fake-Kanal
 // (setDwmCallForTests), inklusive Reset-Verhalten und dauerhafter
@@ -19,7 +19,7 @@ import {
   captionColorsFor,
   applyCaptionColor,
   setDwmCallForTests,
-} from '../../src/main/caption-color.js';
+} from '../../src/main/app/caption-color.js';
 import {
   TAB_GROUP_COLOR_KEYS,
   TAB_GROUP_COLOR_VALUES,

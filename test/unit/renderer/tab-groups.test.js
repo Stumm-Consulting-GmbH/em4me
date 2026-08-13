@@ -25,14 +25,11 @@ import {
   removeTabFromGroup,
   removeTabsFromGroup,
   restoreGroupsIntoPane,
-} from '../../../src/renderer/modules/tab-groups.js';
+} from '../../../src/renderer/modules/tabs/tab-groups.js';
 // 4T-0461: Registrierung der Erweiterung tab-groups (Aus-Zustand wird in
 // TG-08 der E2E-Spec tab-gruppen.spec.js geprueft; hier die Registry-Seite).
-import {
-  disabledCommandIdSet,
-  extensionById,
-  isExtensionId,
-} from '../../../src/shared/extensions.js';
+import { extensionById, isExtensionId } from '../../../src/shared/extensions/extensions.js';
+import { disabledCommandIdSet } from '../../../src/shared/extensions/extensions-core.js';
 
 // Minimale Tab-/Pane-Fabriken (nur die fuer Gruppen relevanten Felder).
 function tab(path, groupId = null) {

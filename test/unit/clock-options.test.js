@@ -1,6 +1,6 @@
 // 4T-0372 (Epic 3E-0069): Rechen-Kern der Uhr-Erweiterung.
 //
-// Prueft die prozessneutralen Funktionen aus src/shared/clock-options.js:
+// Prueft die prozessneutralen Funktionen aus src/shared/clock/clock-options.js:
 // Normalisierung defekter Store-Staende, Timer-Takt (Energie-Ruecksicht),
 // Zeiger-Winkel, digitale Zeit in beiden Stunden-Formaten, ISO-Kalender-
 // woche und die vier Datums-Formate. Bewusst ohne jsdom — das Modul haengt
@@ -28,7 +28,7 @@ import {
   currentMonthView,
   normalizeMonthView,
   shiftMonthView,
-} from '../../src/shared/clock-options.js';
+} from '../../src/shared/clock/clock-options.js';
 
 // 4T-0636 (Epic 3E-0069): Modus-Modell der Umschaltleiste.
 describe('normalizeClockMode und clockModeKey (4T-0636)', () => {

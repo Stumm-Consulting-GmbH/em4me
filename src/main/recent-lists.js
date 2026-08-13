@@ -26,7 +26,7 @@
 
 const fs = require('node:fs/promises');
 const { dialog } = require('electron');
-const { isSamePath, updatedRecentPaths, withoutRecentPath } = require('./area-path');
+const { isSamePath, updatedRecentPaths, withoutRecentPath } = require('./area/area-path');
 
 function createRecentLists(deps) {
   const store = () => deps.getStore();

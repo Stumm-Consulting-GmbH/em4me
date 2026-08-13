@@ -46,12 +46,12 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
-const { SHELF_SETTINGS_FILENAME } = require('../../../src/shared/shelf-core.js');
+const { SHELF_SETTINGS_FILENAME } = require('../../../src/shared/books/shelf-core.js');
 const {
   BOOK_SETTINGS_FILENAME,
   emptyBookContainer,
   serializeBookContainer,
-} = require('../../../src/shared/book-core.js');
+} = require('../../../src/shared/books/book-core.js');
 
 const PANE = '.pane-group[data-pane="0"]';
 const VIEW = `${PANE} .pane-system .shelf-view-page`;

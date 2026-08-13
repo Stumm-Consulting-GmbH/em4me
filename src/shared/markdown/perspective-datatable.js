@@ -2,6 +2,18 @@
 // Serialisierer der typisierten Datentabelle (Fence `perspective-datatable`).
 // Prozess-neutral (kein Electron, kein DOM), Muster perspective-table.js.
 //
+// 4T-0986 (Epic 3E-0196): Kern der Modul-Familie. Neben Format, Parser,
+// Serialisierer und Aggregat-Rechnung hält er die zwei Render-Einstiege
+// und reicht die Arbeit an die Schwester-Module weiter:
+//   perspective-datatable-computed.js  berechnete Spalten (Validierung,
+//                                      Auswertung) samt geteilter Grund-
+//                                      Helfer; Blatt der Familie
+//   perspective-datatable-view.js      Anzeige-Formatierung, Sortierung,
+//                                      Filter, Fence-Suche
+//   perspective-datatable-html.js      Grid-HTML und Portable-Tabelle
+// Der Import-Graph läuft ausschließlich von hier nach unten (Kern -> html
+// -> view -> computed); kein Schwester-Modul lädt den Kern.
+//
 // Format des Fence-Bodys:
 //   columns: Name:text, Datum:date, Start:time, Betrag:number(2),
 //            Erledigt:boolean, Gesamt:number = Betrag * 2
@@ -37,23 +49,26 @@
 // Rohtext bleibt erhalten und wird unverändert re-serialisiert.
 'use strict';
 
+const {
+  isValidIsoDate,
+  normalizeFloat,
+  dataIndexByColumn,
+  validateComputedColumns,
+  computeComputedCells,
+  makeCellValueResolver,
+} = require('./perspective-datatable-computed.js');
+const {
+  buildErrorsHtml,
+  buildDatatableTableHtml,
+  buildPortableDatatableHtml,
+} = require('./perspective-datatable-html.js');
+
 const COLUMN_TYPES = new Set(['text', 'number', 'date', 'time', 'boolean']);
 const AGGREGATE_FUNCS = new Set(['sum', 'avg', 'min', 'max', 'count']);
 // Anzeige-Format v1: nur Dezimalstellen bei number, begrenzt auf 0..10.
 const MAX_DECIMALS = 10;
 
 // --- Werte-Parsing pro Typ ----------------------------------------------------
-
-// Echte Kalender-Prüfung über den Date-Roundtrip (2026-02-30 fällt durch).
-function isValidIsoDate(s) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-  if (!m) return false;
-  const y = parseInt(m[1], 10);
-  const mo = parseInt(m[2], 10);
-  const d = parseInt(m[3], 10);
-  const dt = new Date(y, mo - 1, d);
-  return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
-}
 
 // Zell-Rohtext (un-escaped, getrimmt) -> { value, error }. Leere Zellen sind
 // bei allen Typen gültig: text -> '', boolean -> false, sonst null.
@@ -246,94 +261,6 @@ function parseAggregateEntry(entryText, columns, aggregates, line, errors) {
   }
 }
 
-// --- Berechnete Spalten: Ausdrucks-Validierung (4T-0421) ----------------------------
-
-// Ausdrucks-Parser und -Evaluator der Perspective-Query-Sprache (3E-0076):
-// Spalten-Formeln nutzen denselben Funktions-Katalog und dasselbe
-// Typ-System wie die Abfrage (Epic-Entscheidung C2).
-const { parseExpression } = require('../perspective-query.js');
-const { evaluateExpression, validateQuery, formatValue } = require('../perspective-query-eval.js');
-
-// Feld-Verweise eines Ausdrucks-AST einsammeln (lowercase).
-function collectFieldRefs(node, out) {
-  if (!node || typeof node !== 'object') return;
-  if (node.type === 'field') {
-    out.push(String(node.name).toLowerCase());
-    return;
-  }
-  for (const key of ['left', 'right', 'operand']) {
-    if (node[key]) collectFieldRefs(node[key], out);
-  }
-  if (Array.isArray(node.args)) for (const a of node.args) collectFieldRefs(a, out);
-  if (Array.isArray(node.values)) for (const v of node.values) collectFieldRefs(v, out);
-}
-
-// Validiert die Spalten-Formeln nach dem Spalten-Aufbau: Syntax und
-// Funktions-Katalog (badExpr), Verweise nur auf existierende Spalten
-// (computedBadRef) sowie Kreis-Freiheit der Formel-Bezüge (computedCycle).
-// Formeln dürfen auf Daten-Spalten UND andere berechnete Spalten in
-// beliebiger Deklarations-Reihenfolge verweisen (PO-Anmerkung aus der
-// Test-Iteration vom 2026-07-09); die Auswertung löst die Reihenfolge
-// über die Abhängigkeiten auf. Gültige, kreis-freie Ausdrücke erhalten
-// ihren AST als col.exprAst (nur in-memory; der Serialisierer nutzt
-// col.expr).
-function validateComputedColumns(columns, line, errors) {
-  const known = new Set(columns.map((c) => c.name.toLowerCase()));
-  const computedNames = new Set(
-    columns.filter((c) => c.expr !== null).map((c) => c.name.toLowerCase()),
-  );
-  // Formel-Bezüge auf berechnete Spalten je gültiger Formel (Name -> Set).
-  const computedRefs = new Map();
-  const astByName = new Map();
-  for (const col of columns) {
-    if (col.expr === null) continue;
-    const parsed = parseExpression(col.expr);
-    const fnError = parsed.ok ? validateQuery(parsed.ast) : null;
-    if (!parsed.ok || fnError) {
-      errors.push({ code: 'badExpr', line, detail: col.name });
-      continue;
-    }
-    const refs = [];
-    collectFieldRefs(parsed.ast, refs);
-    const bad = refs.find((r) => !known.has(r));
-    if (bad !== undefined) {
-      errors.push({ code: 'computedBadRef', line, detail: `${col.name}: ${bad}` });
-      continue;
-    }
-    const name = col.name.toLowerCase();
-    astByName.set(name, { col, ast: parsed.ast });
-    computedRefs.set(name, new Set(refs.filter((r) => computedNames.has(r))));
-  }
-  // Fixpunkt-Auflösung: eine Formel ist auflösbar, wenn alle ihre Bezüge
-  // auf berechnete Spalten bereits auflösbar sind (ungültige Formeln
-  // zählen als auflösbar-mit-null, damit sie keinen falschen Kreis-Fehler
-  // an ihren Konsumenten erzeugen). Was übrig bleibt, hängt in einem
-  // Kreis-Bezug (Selbst-Bezug eingeschlossen).
-  const resolved = new Set();
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const [name, deps] of computedRefs) {
-      if (resolved.has(name)) continue;
-      let ok = true;
-      for (const dep of deps) {
-        if (computedRefs.has(dep) && !resolved.has(dep)) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok) {
-        resolved.add(name);
-        grew = true;
-      }
-    }
-  }
-  for (const [name, entry] of astByName) {
-    if (resolved.has(name)) entry.col.exprAst = entry.ast;
-    else errors.push({ code: 'computedCycle', line, detail: entry.col.name });
-  }
-}
-
 // --- Parser ---------------------------------------------------------------------
 
 // Fence-Body -> Datenmodell (Struktur siehe Kopf-Kommentar). Wirft nie;
@@ -504,27 +431,6 @@ function serializePerspectiveDatatable(model) {
 
 // --- Aggregat-Rechnung (4T-0418) --------------------------------------------------
 
-// Ober-Grenze der gerenderten Datenzeilen: darüber zeigt das Grid nur Kopf
-// und Aggregate mit lokalisiertem Hinweis (bewusste dokumentierte Grenze
-// statt virtuellem Scrolling; PO-Vorschlag 1000 aus 4T-0418). Aggregate
-// rechnen weiterhin über ALLE Zeilen.
-const MAX_RENDER_ROWS = 1000;
-
-// Spalten-Index -> Daten-Zellen-Index (null für berechnete Spalten, deren
-// Werte erst 4T-0421 liefert).
-function dataIndexByColumn(columns) {
-  const map = [];
-  let next = 0;
-  for (const col of columns) map.push(col.expr === null ? next++ : null);
-  return map;
-}
-
-// Float-Rauschen normalisieren (0.1 + 0.2 -> 0.3), ohne echte Präzision zu
-// verlieren; 12 signifikante Stellen reichen für den Anwendungsfall.
-function normalizeFloat(n) {
-  return Number.isFinite(n) ? parseFloat(n.toPrecision(12)) : n;
-}
-
 // Leer-Definition pro Typ (count zählt nicht-leere Zellen): text '' und
 // boolean false sind die kanonischen Leer-Werte, sonst null.
 function isEmptyValue(type, value) {
@@ -591,321 +497,14 @@ function computeAggregates(model, rows, getValue) {
   });
 }
 
-// --- Berechnete Spalten: Auswertung (4T-0421) ---------------------------------------
+// --- Render-Einstiege (4T-0418) -----------------------------------------------------
 
-function pad2(n) {
-  return String(n).padStart(2, '0');
-}
-
-// Abfrage-Wert -> Zell-Wert gemäß deklariertem Spalten-Typ. null bleibt
-// leer (weiche Fehler der Abfrage-Semantik); Typ-Abweichungen werden
-// Fehler-Zellen (computedTypeMismatch).
-function toComputedCell(col, v) {
-  if (v == null) return { value: null, error: null };
-  if (col.type === 'number') {
-    if (typeof v === 'number' && Number.isFinite(v))
-      return { value: normalizeFloat(v), error: null };
-    if (typeof v === 'string' && /^-?\d+(\.\d+)?$/.test(v.trim())) {
-      return { value: parseFloat(v), error: null };
-    }
-    return { value: null, error: 'computedTypeMismatch' };
-  }
-  if (col.type === 'boolean') {
-    if (typeof v === 'boolean') return { value: v, error: null };
-    return { value: null, error: 'computedTypeMismatch' };
-  }
-  if (col.type === 'date') {
-    if (v && typeof v === 'object' && v.kind === 'date') {
-      const d = new Date(v.ms);
-      return {
-        value: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
-        error: null,
-      };
-    }
-    if (typeof v === 'string' && isValidIsoDate(v.slice(0, 10))) {
-      return { value: v.slice(0, 10), error: null };
-    }
-    return { value: null, error: 'computedTypeMismatch' };
-  }
-  if (col.type === 'time') {
-    if (v && typeof v === 'object' && v.kind === 'date') {
-      const d = new Date(v.ms);
-      return { value: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`, error: null };
-    }
-    if (typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v)) {
-      return { value: v, error: null };
-    }
-    return { value: null, error: 'computedTypeMismatch' };
-  }
-  // text: jede Wert-Art über die kanonische Anzeige-Form der Abfrage.
-  return { value: formatValue(v), error: null };
-}
-
-// Auswertungs-Reihenfolge der gültigen Formeln: eine Formel folgt allen
-// berechneten Spalten, auf die sie verweist (Deklarations-Reihenfolge ist
-// frei; Kreise hat validateComputedColumns bereits aussortiert — deren
-// Spalten tragen kein exprAst).
-function computedEvaluationOrder(model) {
-  const entries = [];
-  model.columns.forEach((col, i) => {
-    if (col.expr !== null) entries.push({ col, i });
-  });
-  const evaluable = entries.filter((e) => e.col.exprAst);
-  const byName = new Map(evaluable.map((e) => [e.col.name.toLowerCase(), e]));
-  const order = [];
-  const placed = new Set();
-  let grew = true;
-  while (grew && order.length < evaluable.length) {
-    grew = false;
-    for (const e of evaluable) {
-      const name = e.col.name.toLowerCase();
-      if (placed.has(name)) continue;
-      const refs = [];
-      collectFieldRefs(e.col.exprAst, refs);
-      if (refs.every((r) => !byName.has(r) || placed.has(r))) {
-        order.push(e);
-        placed.add(name);
-        grew = true;
-      }
-    }
-  }
-  return { entries, order };
-}
-
-// Wertet die Spalten-Formeln pro Zeile aus. Rückgabe: Map(row-Objekt ->
-// { [colIdx]: { value, error } }); die Map-Schlüssel sind die Zeilen-
-// Objekte des Modells, damit auch Teilmengen (gefilterte Ansicht,
-// Aggregate) ohne Index-Umrechnung zugreifen können. Feld-Kontext der
-// Auswertung sind die Spalten-Werte der Zeile (lowercase-Schlüssel);
-// berechnete Spalten werden in Abhängigkeits-Reihenfolge gerechnet
-// (computedEvaluationOrder), sodass Formeln unabhängig von der
-// Deklarations-Reihenfolge aufeinander verweisen können. Ergebnisse
-// werden nie persistiert (der Serialisierer kennt nur Daten-Zellen).
-function computeComputedCells(model) {
-  const map = new Map();
-  const { entries, order } = computedEvaluationOrder(model);
-  if (entries.length === 0) return map;
-  const dataIdx = dataIndexByColumn(model.columns);
-  for (const row of model.rows) {
-    const props = {};
-    model.columns.forEach((col, i) => {
-      const di = dataIdx[i];
-      // Berechnete Spalten starten als null (Kreis-/Fehler-Formeln bleiben
-      // es), Daten-Spalten mit ihrem Zell-Wert.
-      props[col.name.toLowerCase()] =
-        di == null ? null : row[di] && !row[di].error ? row[di].value : null;
-    });
-    const perCol = {};
-    for (const e of entries) perCol[e.i] = { value: null, error: null };
-    for (const { col, i } of order) {
-      const result = toComputedCell(col, evaluateExpression(col.exprAst, { props }));
-      perCol[i] = result;
-      props[col.name.toLowerCase()] = result.error ? null : result.value;
-    }
-    map.set(row, perCol);
-  }
-  return map;
-}
-
-// Wert-Resolver über Daten- UND berechnete Spalten (Aggregate, Sortierung,
-// Filter der Ansicht).
-function makeCellValueResolver(model, computed) {
-  const dataIdx = dataIndexByColumn(model.columns);
-  return (row, colIdx) => {
-    const di = dataIdx[colIdx];
-    if (di != null) {
-      const cell = row[di];
-      return cell && !cell.error ? cell.value : null;
-    }
-    const perCol = computed ? computed.get(row) : null;
-    const comp = perCol ? perCol[colIdx] : null;
-    return comp && !comp.error ? comp.value : null;
-  };
-}
-
-// --- Anzeige-Formatierung (4T-0418) ------------------------------------------------
-
-// Wert -> Anzeige-Text. Bewusst ohne Locale-Umformatung (v1): Zahl in
-// Punkt-Dezimal gemäß Spalten-Format, Datum/Uhrzeit kanonisch — Anzeige
-// und Speicherform bleiben identisch lesbar (Task-Entscheidung 4T-0418).
-function formatCellDisplay(col, value) {
-  if (value == null) return '';
-  if (col.type === 'number' && typeof value === 'number') {
-    return col.decimals != null ? value.toFixed(col.decimals) : String(normalizeFloat(value));
-  }
-  return String(value);
-}
-
-function formatAggregateDisplay(col, entry) {
-  if (entry.value == null) return '—';
-  if (entry.func === 'count') return String(entry.value);
-  return formatCellDisplay(col, entry.value);
-}
-
-// --- Viewer-HTML (4T-0418) ----------------------------------------------------------
-
-// escapeHtml lazy aus slug.js (kein Zyklus, aber konsistent zum Muster der
-// Nachbar-Module).
-const { escapeHtml } = require('./slug.js');
-
-// Fehler-Liste als Platzhalter-Knoten: der Renderer lokalisiert die Texte
-// über data-dt-code/-line/-detail (applyPerspectiveDatatablesIfPresent);
-// der eingebettete Fallback-Text bleibt sprachneutral (Code + Zeile).
-function buildErrorsHtml(errors) {
-  const out = ['<div class="pdt-errors">'];
-  out.push(
-    '<span class="pdt-errors-title" data-i18n="datatable.errors.title">perspective-datatable</span>',
-  );
-  for (const err of errors) {
-    const line = Number(err.line) || 0;
-    const detail = escapeHtml(String(err.detail == null ? '' : err.detail));
-    out.push(
-      `<div class="pdt-error-item" data-dt-code="${escapeHtml(err.code)}" ` +
-        `data-dt-line="${line}" data-dt-detail="${detail}">` +
-        `${escapeHtml(err.code)} [${line}]</div>`,
-    );
-  }
-  out.push('</div>');
-  return out.join('');
-}
-
-// Einzelne Daten-Zelle. Fehler-Zellen zeigen den Rohtext mit lokalisiertem
-// Tooltip (data-i18n-title); Boolean als read-only Checkbox (nicht die
-// task-list-Klasse, damit enableTaskCheckboxes sie nicht aktiviert).
-function buildCellHtml(col, colIdx, cell, editable) {
-  const cls = ['pdt-cell', `pdt-type-${col.type}`];
-  const attrs = [`data-dt-col="${colIdx}"`];
-  // 4T-0419: editierbare Zellen sind fokussierbar (F2/Enter öffnet die
-  // Bearbeitung; die Handler prüfen den Modus zur Laufzeit).
-  if (editable) attrs.push('tabindex="0"');
-  let inner;
-  if (cell && cell.error) {
-    cls.push('pdt-cell-error');
-    attrs.push(`data-i18n-title="datatable.cellError.${escapeHtml(cell.error)}"`);
-    inner = escapeHtml(cell.text);
-  } else if (col.type === 'boolean') {
-    inner = `<input type="checkbox" disabled${cell && cell.value ? ' checked' : ''}>`;
-  } else {
-    inner = escapeHtml(formatCellDisplay(col, cell ? cell.value : null));
-  }
-  return `<td class="${cls.join(' ')}" ${attrs.join(' ')}>${inner}</td>`;
-}
-
-// Zelle einer berechneten Spalte: read-only (kein tabindex), visuell
-// abgesetzt; Typ-Abweichungen als Fehler-Zelle mit Tooltip (4T-0421).
-function buildComputedCellHtml(col, colIdx, comp) {
-  const cls = ['pdt-cell', 'pdt-computed', `pdt-type-${col.type}`];
-  const attrs = [`data-dt-col="${colIdx}"`];
-  let inner;
-  if (comp && comp.error) {
-    cls.push('pdt-cell-error');
-    attrs.push(`data-i18n-title="datatable.cellError.${escapeHtml(comp.error)}"`);
-    inner = '—';
-  } else if (col.type === 'boolean') {
-    inner =
-      comp && comp.value != null
-        ? `<input type="checkbox" disabled${comp.value ? ' checked' : ''}>`
-        : '';
-  } else {
-    inner = escapeHtml(formatCellDisplay(col, comp ? comp.value : null));
-  }
-  return `<td class="${cls.join(' ')}" ${attrs.join(' ')}>${inner}</td>`;
-}
-
-function buildDatatableTableHtml(model) {
-  const columns = model.columns;
-  const dataIdx = dataIndexByColumn(columns);
-  // 4T-0421: berechnete Zellen einmal pro Render auswerten; Aggregate
-  // rechnen über Daten- und berechnete Werte.
+// Berechnete Zellen und Aggregate einmal pro Render auswerten; die
+// HTML-Bauer bekommen beides gereicht (Arbeitsteilung 4T-0986).
+function computeRenderData(model) {
   const computed = computeComputedCells(model);
   const aggs = computeAggregates(model, model.rows, makeCellValueResolver(model, computed));
-  const hasAgg = (model.aggregates || []).some((a) => a && a.length > 0);
-  const truncated = model.rows.length > MAX_RENDER_ROWS;
-  // 4T-0419: Editier-Affordanzen (Lösch-Spalte, Zeile-hinzufügen-Knopf,
-  // fokussierbare Zellen) nur bei struktur-fehlerfreier Tabelle — der
-  // Grid-Editor blockiert das Rückschreiben sonst ohnehin. Sichtbar werden
-  // die Affordanzen nur in editierbaren Kontexten (CSS über die View-
-  // Modus-Klassen bzw. das Live-Widget); Reading und Handbuch bleiben ohne.
-  const editable = (model.errors || []).length === 0;
-  const out = ['<table class="pdt-grid">'];
-
-  out.push('<thead><tr>');
-  if (editable && !truncated) out.push('<th class="pdt-row-del" aria-hidden="true"></th>');
-  columns.forEach((col, i) => {
-    const cls = ['pdt-col', `pdt-type-${col.type}`];
-    if (col.expr != null) cls.push('pdt-computed');
-    // Ausdruck als Tooltip am Kopf der berechneten Spalte (Syntax, kein
-    // übersetzbarer Text).
-    const title = col.expr != null ? ` title="= ${escapeHtml(col.expr)}"` : '';
-    out.push(
-      `<th class="${cls.join(' ')}" data-dt-col="${i}" scope="col"${title}>` +
-        `<span class="pdt-name">${escapeHtml(col.name)}</span>` +
-        `<span class="pdt-type">${escapeHtml(col.type)}</span></th>`,
-    );
-  });
-  out.push('</tr></thead>');
-
-  if (!truncated && model.rows.length > 0) {
-    out.push('<tbody>');
-    model.rows.forEach((row, r) => {
-      out.push(`<tr data-dt-row="${r}">`);
-      if (editable) {
-        out.push(
-          '<td class="pdt-row-del"><button type="button" class="pdt-del-btn" ' +
-            'data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td>',
-        );
-      }
-      columns.forEach((col, i) => {
-        const di = dataIdx[i];
-        if (di == null) {
-          const perCol = computed.get(row);
-          out.push(buildComputedCellHtml(col, i, perCol ? perCol[i] : null));
-          return;
-        }
-        out.push(buildCellHtml(col, i, row[di], editable));
-      });
-      out.push('</tr>');
-    });
-    out.push('</tbody>');
-  }
-
-  if (hasAgg) {
-    out.push('<tfoot><tr class="pdt-agg-row">');
-    if (editable && !truncated) out.push('<td class="pdt-row-del"></td>');
-    columns.forEach((col, i) => {
-      const inner = aggs[i]
-        .map(
-          (entry) =>
-            `<span class="pdt-agg">` +
-            `<span class="pdt-agg-label" data-i18n="datatable.aggregate.${entry.func}">${entry.func}</span>` +
-            `<span class="pdt-agg-value">${escapeHtml(formatAggregateDisplay(col, entry))}</span></span>`,
-        )
-        .join('');
-      // data-dt-col: die Ansichts-Funktionen (4T-0420) aktualisieren die
-      // Aggregat-Werte bei gefilterter Ansicht zellgenau im DOM.
-      out.push(`<td class="pdt-cell pdt-type-${col.type}" data-dt-col="${i}">${inner}</td>`);
-    });
-    out.push('</tr></tfoot>');
-  }
-  out.push('</table>');
-
-  if (editable && !truncated) {
-    out.push(
-      '<div class="pdt-add-row"><button type="button" class="pdt-add-btn">' +
-        '<span aria-hidden="true">+</span> ' +
-        '<span data-i18n="datatable.addRow">addRow</span></button></div>',
-    );
-  }
-
-  if (truncated) {
-    // Sprachneutraler Fallback-Text; lokalisiert der Renderer über
-    // data-dt-total (applyPerspectiveDatatablesIfPresent).
-    out.push(
-      `<div class="pdt-limit" data-dt-total="${model.rows.length}">` +
-        `${model.rows.length} &gt; ${MAX_RENDER_ROWS}</div>`,
-    );
-  }
-  return out.join('');
+  return { computed, aggs };
 }
 
 // Innen-HTML des Platzhalter-Containers (der Container selbst mit den
@@ -914,229 +513,20 @@ function renderPerspectiveDatatableViewer(content) {
   const model = parsePerspectiveDatatable(content);
   const out = [];
   if (model.errors.length > 0) out.push(buildErrorsHtml(model.errors));
-  if (model.columns.length > 0) out.push(buildDatatableTableHtml(model));
+  if (model.columns.length > 0) {
+    const { computed, aggs } = computeRenderData(model);
+    out.push(buildDatatableTableHtml(model, computed, aggs));
+  }
   return out.join('');
 }
 
-// --- Portable-HTML (4T-0418) --------------------------------------------------------
-
-// Statische HTML-Tabelle mit Inline-Styles für den Portable-Export.
-// Sprachneutral (Aggregat-Beschriftung = Funktions-Schlüsselwort, wie die
-// Fence-Syntax selbst); alle Zeilen werden exportiert (die Render-Ober-
-// Grenze schützt nur die Live-Pipeline). Bei Struktur-Fehlern null —
+// Statische Tabelle für den Portable-Export. Bei Struktur-Fehlern null —
 // der Fence bleibt dann unverändert im Export (Muster perspective-table).
 function convertPerspectiveDatatableBlockToHtml(content) {
   const model = parsePerspectiveDatatable(content);
   if (model.errors.length > 0 || model.columns.length === 0) return null;
-  const columns = model.columns;
-  const dataIdx = dataIndexByColumn(columns);
-  // 4T-0421: berechnete Werte werden zur Export-Zeit gerechnet (nie
-  // persistiert) und statisch mitgeschrieben.
-  const computed = computeComputedCells(model);
-  const aggs = computeAggregates(model, model.rows, makeCellValueResolver(model, computed));
-  const hasAgg = (model.aggregates || []).some((a) => a && a.length > 0);
-  const alignStyle = (col) => {
-    if (col.type === 'number') return 'text-align: right;';
-    if (col.type === 'boolean') return 'text-align: center;';
-    return '';
-  };
-  const out = ['<table>'];
-  out.push('<thead><tr>');
-  for (const col of columns) {
-    const style = alignStyle(col);
-    out.push(`<th scope="col"${style ? ` style="${style}"` : ''}>${escapeHtml(col.name)}</th>`);
-  }
-  out.push('</tr></thead>');
-  if (model.rows.length > 0) {
-    out.push('<tbody>');
-    for (const row of model.rows) {
-      out.push('<tr>');
-      columns.forEach((col, i) => {
-        const di = dataIdx[i];
-        // 4T-0421: berechnete Spalten liefern ihren gerechneten Wert
-        // (Zellen-Sicht identisch zu Daten-Zellen; error/value/text).
-        let cell = di == null ? null : row[di];
-        if (di == null) {
-          const perCol = computed.get(row);
-          cell = perCol ? perCol[i] : null;
-        }
-        const styles = [];
-        const align = alignStyle(col);
-        if (align) styles.push(align);
-        let inner = '';
-        if (cell && cell.error) {
-          // Fehler-Zelle: Rohtext mit dezenter Markierung (Farben wie die
-          // error-Statusklasse der Perspective Table); berechnete Fehler-
-          // Zellen tragen keinen Rohtext (Gedankenstrich).
-          styles.push('background-color: #ffebee; color: #b71c1c;');
-          inner = escapeHtml(cell.text != null ? cell.text : '—');
-        } else if (cell) {
-          inner =
-            col.type === 'boolean'
-              ? cell.value
-                ? 'x'
-                : ''
-              : escapeHtml(formatCellDisplay(col, cell.value));
-        }
-        out.push(`<td${styles.length ? ` style="${styles.join(' ')}"` : ''}>${inner}</td>`);
-      });
-      out.push('</tr>');
-    }
-    out.push('</tbody>');
-  }
-  if (hasAgg) {
-    out.push('<tfoot><tr>');
-    columns.forEach((col, i) => {
-      const inner = aggs[i]
-        .map(
-          (entry) =>
-            `<span style="opacity: 0.7;">${entry.func}</span> ` +
-            escapeHtml(formatAggregateDisplay(col, entry)),
-        )
-        .join('<br>');
-      const align = alignStyle(col);
-      const style = `font-style: italic;${align ? ' ' + align : ''}`;
-      out.push(`<td style="${style}">${inner}</td>`);
-    });
-    out.push('</tr></tfoot>');
-  }
-  out.push('</table>');
-  return out.join('');
-}
-
-// --- Ansichts-Sortierung und Filter (4T-0420) ---------------------------------------
-
-// Typ-gerechter Vergleich zweier Zell-Werte: Zahl numerisch, Datum/Uhrzeit
-// chronologisch (kanonische Strings sind lexikographisch chronologisch),
-// Text locale-bewusst, Boolean false vor true; fehlende bzw. nicht
-// auswertbare Werte (null, Fehler-Zellen) sortieren ans Ende.
-function compareCellValues(type, a, b) {
-  const aMissing = a == null || (type === 'text' && a === '');
-  const bMissing = b == null || (type === 'text' && b === '');
-  if (aMissing && bMissing) return 0;
-  if (aMissing) return 1;
-  if (bMissing) return -1;
-  if (type === 'number') return a - b;
-  if (type === 'boolean') return (a === true ? 1 : 0) - (b === true ? 1 : 0);
-  if (type === 'text') return String(a).localeCompare(String(b), undefined, { numeric: true });
-  return String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0;
-}
-
-// Stabile Sortier-Reihenfolge der Zeilen-Indizes nach einer Spalte.
-// dir = 1 (aufsteigend) oder -1 (absteigend); fehlende Werte immer am
-// Ende. computed (optional, aus computeComputedCells) liefert die Werte
-// berechneter Spalten (4T-0421).
-function sortDatatableRows(model, colIdx, dir, computed) {
-  const col = model.columns[colIdx];
-  if (!col) return model.rows.map((row, i) => i);
-  const valueOf = makeCellValueResolver(model, computed);
-  return model.rows
-    .map((row, i) => ({ i, v: valueOf(row, colIdx) }))
-    .sort((a, b) => {
-      const cmp = compareCellValues(col.type, a.v, b.v);
-      // Fehlende Werte bleiben auch absteigend am Ende (cmp-Vorzeichen
-      // nur für echte Wert-Paare drehen).
-      if (a.v == null || b.v == null) return cmp !== 0 ? cmp : a.i - b.i;
-      return cmp !== 0 ? cmp * dir : a.i - b.i;
-    })
-    .map((e) => e.i);
-}
-
-// Zeilen-Filter der Ansicht: filters ist ein Array parallel zu columns,
-// je Eintrag null (kein Filter), { text } (Enthaltensuche, case-insensitiv,
-// auf dem Anzeige-Text bzw. dem Rohtext von Fehler-Zellen) oder { bool }
-// (Dreifach-Umschalter: true/false). computed (optional) liefert die Werte
-// berechneter Spalten (4T-0421). Liefert die Indizes der sichtbaren Zeilen.
-function filterDatatableRows(model, filters, computed) {
-  const dataIdx = dataIndexByColumn(model.columns);
-  const active = [];
-  (filters || []).forEach((f, colIdx) => {
-    if (!f) return;
-    if (typeof f.text === 'string' && f.text.trim() !== '') {
-      active.push({ colIdx, text: f.text.trim().toLowerCase() });
-    } else if (typeof f.bool === 'boolean') {
-      active.push({ colIdx, bool: f.bool });
-    }
-  });
-  const indices = [];
-  model.rows.forEach((row, i) => {
-    for (const f of active) {
-      const col = model.columns[f.colIdx];
-      const di = dataIdx[f.colIdx];
-      // Zellen-Sicht vereinheitlichen: Daten-Zelle oder berechneter Wert.
-      let cell = di == null ? null : row[di];
-      if (di == null && computed) {
-        const perCol = computed.get(row);
-        cell = perCol ? perCol[f.colIdx] : null;
-      }
-      if (typeof f.bool === 'boolean') {
-        const v = cell && !cell.error && typeof cell.value === 'boolean' ? cell.value : null;
-        if (v !== f.bool) return;
-        continue;
-      }
-      const display =
-        cell && cell.error
-          ? cell.text || ''
-          : col
-            ? formatCellDisplay(col, cell ? cell.value : null)
-            : '';
-      if (!String(display).toLowerCase().includes(f.text)) return;
-    }
-    indices.push(i);
-  });
-  return indices;
-}
-
-// --- Fence-Suche im Quelltext (4T-0419) ---------------------------------------------
-
-// Findet alle perspective-datatable-Fences auf oberster Ebene eines
-// Markdown-Texts (Zeilen-Scan mit Fence-Zustand: innerhalb eines fremden
-// Fences zählt eine `perspective-datatable`-Zeile nicht). Grundlage des
-// Grid-Editor-Rückschreibens: Zeilennummern 1-basiert; body ohne
-// abschließendes Newline. Eingerückte Fences in Listen/Blockquotes werden
-// bewusst nicht erfasst (dokumentierte Editor-Grenze; der data-dt-source-
-// Abgleich des Editors verhindert Fehl-Zuordnungen).
-function findPerspectiveDatatableFences(text) {
-  const lines = String(text || '').split(/\r?\n/);
-  const result = [];
-  let open = null; // { marker, len, lang, openLine } (openLine 1-basiert)
-  for (let i = 0; i < lines.length; i++) {
-    const m = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(lines[i]);
-    if (!m) continue;
-    const marker = m[1][0];
-    const len = m[1].length;
-    const info = m[2].trim();
-    if (open) {
-      // Schließt nur derselbe Marker mit mindestens gleicher Länge ohne Info.
-      if (marker === open.marker && len >= open.len && info === '') {
-        if (open.lang === 'perspective-datatable') {
-          result.push({
-            openLine: open.openLine,
-            closeLine: i + 1,
-            bodyStartLine: open.openLine + 1,
-            bodyEndLine: i, // 1-basiert inklusiv (Zeile vor der Schließ-Zeile)
-            body: lines.slice(open.openLine, i).join('\n'),
-          });
-        }
-        open = null;
-      }
-      continue;
-    }
-    // Backtick-Fences dürfen kein ` im Info-String tragen (Fence-Regel).
-    if (marker === '`' && info.includes('`')) continue;
-    open = { marker, len, lang: info.split(/\s+/)[0], openLine: i + 1 };
-  }
-  // Ungeschlossener Fence läuft bis zum Datei-Ende (Fence-Semantik).
-  if (open && open.lang === 'perspective-datatable') {
-    result.push({
-      openLine: open.openLine,
-      closeLine: lines.length + 1,
-      bodyStartLine: open.openLine + 1,
-      bodyEndLine: lines.length,
-      body: lines.slice(open.openLine).join('\n'),
-    });
-  }
-  return result;
+  const { computed, aggs } = computeRenderData(model);
+  return buildPortableDatatableHtml(model, computed, aggs);
 }
 
 module.exports = {
@@ -1144,17 +534,8 @@ module.exports = {
   serializePerspectiveDatatable,
   parseCellValue,
   computeAggregates,
-  computeComputedCells,
-  makeCellValueResolver,
-  formatCellDisplay,
-  formatAggregateDisplay,
-  compareCellValues,
-  sortDatatableRows,
-  filterDatatableRows,
   renderPerspectiveDatatableViewer,
   convertPerspectiveDatatableBlockToHtml,
-  findPerspectiveDatatableFences,
   COLUMN_TYPES,
   AGGREGATE_FUNCS,
-  MAX_RENDER_ROWS,
 };

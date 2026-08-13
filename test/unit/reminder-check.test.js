@@ -1,5 +1,5 @@
 // 4T-0525 (Epic 3E-0095): Unit-Tests der Scheduler-Factory
-// createReminderChecker (src/main/reminder-check.js) mit vollstaendig
+// createReminderChecker (src/main/checks/reminder-check.js) mit vollstaendig
 // injizierten Fake-Abhaengigkeiten (kein Electron): Erst-Lauf als
 // Nachhol-Lieferung (catchUp), kein Doppel-Feuern, Neu-Faelligkeit ueber eine
 // verstellbare Uhr, Nicht-bereiter Index, deaktivierte Erweiterung, Mute und
@@ -11,7 +11,7 @@
 // ESM-Syntax wie die uebrigen Unit-Tests (vitest.config.mjs); das CJS-Modul
 // wird ueber die ESM-Interop importiert.
 import { describe, it, expect } from 'vitest';
-import { createReminderChecker, CHECK_INTERVAL_MS } from '../../src/main/reminder-check.js';
+import { createReminderChecker, CHECK_INTERVAL_MS } from '../../src/main/checks/reminder-check.js';
 
 // Status-Typ-Resolver ohne Settings (offen/unbekannt loesen aus).
 const statusTypeOf = (ch) =>

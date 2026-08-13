@@ -18,9 +18,9 @@
 //   haengen zyklenfrei in app-init.js (Muster 'scg:taskstates-changed').
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 import { t } from '../i18n.js';
-import { isExtensionActive } from './extension-lifecycle.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { setStatusToggleAugmenter } from './task-states.js';
 import { configureTaskMarkers } from '../../shared/markdown/plugins.js';
 import {
@@ -29,8 +29,8 @@ import {
   setStatusChar,
   setDateField,
   modelMatchesGlobalFilter,
-  buildRecurrenceInstance,
-} from '../../shared/task-markers.js';
+} from '../../shared/tasks/task-markers.js';
+import { buildRecurrenceInstance } from '../../shared/tasks/task-recurrence.js';
 
 export const TASKS_CONFIG_DEFAULTS = {
   globalFilter: '',

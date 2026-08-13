@@ -1,4 +1,4 @@
-// 4T-0842 (Epic 3E-0147): Kern-Modell des Buches (src/shared/book-core.js) —
+// 4T-0842 (Epic 3E-0147): Kern-Modell des Buches (src/shared/books/book-core.js) —
 // Format der Begleitdatei, Erkennung ohne Rückverweis, Kapitel-Baum samt
 // Invariante, Lese-Ordnung, Abgleich mit dem Datei-Bestand und
 // Pfad-Nachführung. Reine Funktionen, direkter Import (Muster
@@ -33,7 +33,7 @@ import {
   nextChapterPath,
   previousChapterPath,
   diffChapterFiles,
-} from '../../src/shared/book-core.js';
+} from '../../src/shared/books/book-core.js';
 
 const BUCH = 'Reise nach Ithaka.md';
 

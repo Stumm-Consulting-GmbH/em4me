@@ -24,7 +24,8 @@ window.api.runFrontmatterQuery = async () => ({ status: 'ready', files: [] });
 
 const { showTaskDialog } = await import('../../../src/renderer/modules/task-dialog.js');
 const { applyTasksConfig, todayIsoDate } = await import('../../../src/renderer/modules/tasks.js');
-const { parseTaskLine, serializeTaskLine } = await import('../../../src/shared/task-markers.js');
+const { parseTaskLine, serializeTaskLine } =
+  await import('../../../src/shared/tasks/task-markers.js');
 
 // Nur die von showTaskDialog abgefragten IDs (deckungsgleich mit dem
 // Geruest #task-dialog-modal in src/renderer/index.html).

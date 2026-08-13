@@ -18,11 +18,11 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { COMMANDS } from '../../src/shared/commands.js';
+import { COMMANDS } from '../../src/shared/commands/commands.js';
 import { DEFAULT_PANEL_TOGGLE_ORDER, PANEL_ACCESS } from '../../src/shared/panel-access.js';
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const menuQuelle = fs.readFileSync(path.join(WURZEL, 'src/main/menu.js'), 'utf8');
+const menuQuelle = fs.readFileSync(path.join(WURZEL, 'src/main/menu/menu.js'), 'utf8');
 
 const literaleAccZiele = [
   ...new Set([...menuQuelle.matchAll(/acc\('([\w.]+)'\)/g)].map((m) => m[1])),

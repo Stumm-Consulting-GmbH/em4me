@@ -12,7 +12,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 // 4T-0360 (Epic 3E-0066): Seiten-Registry als Quelle der Pruefliste (siehe BUNDLED_PAGES).
-const { MANUAL_PAGES } = require('../../../src/shared/manual-pages');
+const { MANUAL_PAGES } = require('../../../src/shared/manual/manual-pages');
 
 async function openManualPage(page, pageId) {
   await page.evaluate((id) => {

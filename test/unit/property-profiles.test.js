@@ -16,7 +16,7 @@ import {
   buildProfileFillMap,
   profileSuggestGroups,
 } from '../../src/shared/property-profiles.js';
-import { extensionById } from '../../src/shared/extensions.js';
+import { extensionById } from '../../src/shared/extensions/extensions.js';
 
 describe('normalizeProfilesConfig', () => {
   it('liefert null für fehlende, leere oder defekte Sektionen', () => {

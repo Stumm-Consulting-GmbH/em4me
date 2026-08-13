@@ -711,7 +711,7 @@
       "id": "F-115",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): TASKS-Scope mit Feldern, Gruppierung und Live-Aktualisierung — TQ-01 bis TQ-03; Felder/Layout zusaetzlich unit (perspective-query-index.test.js)."
+      "hinweis": "4T-0509 (Epic 3E-0096): TASKS-Scope mit Feldern, Gruppierung und Live-Aktualisierung — TQ-01 bis TQ-03; Felder/Layout zusaetzlich unit (perspective-query-tasks.test.js)."
     },
     {
       "key": "help.feature.taskQueryActions",
@@ -745,7 +745,7 @@
       "key": "help.feature.taskUrgency",
       "id": "F-120",
       "testart": "unit",
-      "tests": ["test/unit/task-markers.test.js", "test/unit/perspective-query-index.test.js"],
+      "tests": ["test/unit/task-markers.test.js", "test/unit/perspective-query-tasks.test.js"],
       "hinweis": "4T-0509 (Epic 3E-0096): Referenz-Formel mit injiziertem Bezugstag plus Default-Sortierung und urgency-Feld der Abfrage."
     },
     {

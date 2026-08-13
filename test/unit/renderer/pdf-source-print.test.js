@@ -7,7 +7,7 @@ import {
   highlightMarkdownSource,
   splitHighlightedLines,
   buildPdfSourcePrintElement,
-} from '../../../src/renderer/modules/pdf-source-print.js';
+} from '../../../src/renderer/modules/views/pdf-source-print.js';
 
 describe('splitHighlightedLines', () => {
   it('zerlegt einfaches HTML an Zeilengrenzen', () => {

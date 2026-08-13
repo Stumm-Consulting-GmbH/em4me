@@ -9,7 +9,7 @@ import { checkI18n, LANGS } from '../../scripts/check-i18n.js';
 // menu.js zieht electron (Menu) im Modul-Kopf — fuer den reinen
 // tForLocale-Dict-Lookup genuegt ein leerer Mock.
 vi.mock('electron', () => ({ Menu: { buildFromTemplate: () => ({}) } }));
-const { tForLocale } = await import('../../src/main/menu.js');
+const { tForLocale } = await import('../../src/main/menu/menu.js');
 
 describe('i18n-Synchronitaet (S-09)', () => {
   it('alle fuenf Sprachdateien sind schluesselgleich, ohne leere Werte, Platzhalter konsistent', () => {

@@ -1,5 +1,5 @@
 // 4T-0277 (Epic 3E-0049): Unit-Tests für die Menü-State-Normalisierung
-// (src/main/menu-state.js). Kern ist der Regressionstest zum
+// (src/main/menu/menu-state.js). Kern ist der Regressionstest zum
 // Durchreich-Fehler aus 4T-0213: der Renderer meldete manualTab, das
 // frühere getMenuState (main.js) reichte das Feld aber nicht an die
 // Menü-Factory durch — Speichern/Speichern unter/Bearbeiten blieben bei
@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import { normalizeMenuState } from '../../src/main/menu-state.js';
+import { normalizeMenuState } from '../../src/main/menu/menu-state.js';
 
 describe('normalizeMenuState (4T-0277)', () => {
   it('Regression 4T-0277: manualTab und systemTab werden durchgereicht', () => {
@@ -235,11 +235,11 @@ describe('Menü-Zustands-Durchreichung: Feldmengen (4T-0900)', () => {
   // gruen, ohne zu pruefen. Dagegen steht zusaetzlich die untere Schranke unten.
   const gelesene = (text, muster) => [...new Set([...text.matchAll(muster)].map((m) => m[1]))];
 
-  const menuState = lies('src/main/menu-state.js');
+  const menuState = lies('src/main/menu/menu-state.js');
 
   it('jedes vom Renderer gemeldete Feld wird gelesen, und umgekehrt', () => {
     const gemeldet = literalSchluessel(
-      lies('src/renderer/modules/tabs.js'),
+      lies('src/renderer/modules/tabs/tabs.js'),
       'api.reportMenuState(',
     );
     const gelesen = gelesene(menuState, /\bb\.(\w+)/g);
@@ -251,8 +251,10 @@ describe('Menü-Zustands-Durchreichung: Feldmengen (4T-0900)', () => {
   });
 
   it('jedes vom Hauptprozess bereitgestellte Feld wird gelesen, und umgekehrt', () => {
+    // 4T-0998: getMenuState liegt seit dem Main-Schnitt in menu/menu-apply.js;
+    // der Anker selbst ist unveraendert mitgereist.
     const bereitgestellt = literalSchluessel(
-      lies('src/main/main.js'),
+      lies('src/main/menu/menu-apply.js'),
       'return normalizeMenuState(menuStates.get(id), {',
     );
     const gelesen = gelesene(menuState, /\bs\.(\w+)/g);

@@ -1,0 +1,347 @@
+// Wert-Editoren des Block-Eigenschaften-Panels: Schluessel-Vorschlagsliste,
+// Eigenschafts-Zeilen und die typisierten Wert-Editoren.
+// 4T-0979 (Epic 3E-0196): Auszug aus block-props-panel.js. Die Zeilen folgen
+// dem Properties-Editor-Muster (gleiche .properties-field-*-Optik), haben aber
+// den Block-Save-Hook.
+'use strict';
+
+import { t } from '../../i18n.js';
+import { state } from '../app/app-state.js';
+import { fieldDefinitionHint } from '../../../shared/property-profiles.js';
+import {
+  applyFieldHint,
+  coerceValue,
+  inferType,
+  profileDefFor,
+  renderTypeFor,
+} from './properties-types.js';
+import { BLOCK_PROP_TYPES, keyDatalistId } from './block-props-context.js';
+import { extractRowValue, scheduleSaveBlockProps } from './block-props-save.js';
+
+export function refreshKeyDatalist(paneIdx, els, data) {
+  let dl = els.blockPropsSection.querySelector(`#${keyDatalistId(paneIdx)}`);
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = keyDatalistId(paneIdx);
+    els.blockPropsSection.appendChild(dl);
+  }
+  const keys = new Set();
+  for (const entry of Object.values(data || {})) {
+    for (const k of Object.keys((entry && entry.values) || {})) keys.add(k);
+  }
+  dl.innerHTML = '';
+  // 4T-0449: Definitions-Felder der Datei-Auflösung zuerst, danach die im
+  // Dokument verwendeten Block-Schlüssel (Task-Vorgabe Rangfolge).
+  const seen = new Set();
+  const addOption = (k) => {
+    const lower = k.toLowerCase();
+    if (seen.has(lower)) return;
+    seen.add(lower);
+    const opt = document.createElement('option');
+    opt.value = k;
+    dl.appendChild(opt);
+  };
+  const resolution = state.properties.profileByPane[paneIdx];
+  for (const def of (resolution && resolution.fields) || []) addOption(def.name);
+  for (const k of [...keys].sort((a, b) => a.localeCompare(b, 'de'))) addOption(k);
+}
+
+// --- Eigenschafts-Felder (Properties-Editor-Muster) --------------------------
+
+export function buildFields(paneIdx, els, values, readOnly) {
+  els.blockPropsFields.innerHTML = '';
+  const data = values && typeof values === 'object' ? values : {};
+  for (const key of Object.keys(data)) {
+    // 4T-0449: definierte Felder (Datei-Auflösung, Blöcke erben sie) nutzen
+    // den Definitions-Typ statt der Inferenz — gleiche Regeln wie im
+    // Properties-Editor (4T-0448).
+    const def = profileDefFor(paneIdx, key);
+    const type = def ? renderTypeFor(def, data[key]) : inferType(data[key]);
+    els.blockPropsFields.appendChild(buildFieldRow(paneIdx, key, data[key], type, readOnly, def));
+  }
+}
+
+// Baut eine Eigenschafts-Zeile (Kopf: Schluessel | Typ | Hinweis | Loeschen;
+// darunter der typisierte Wert-Editor). Gleiche .properties-field-*-Klassen
+// wie der Dokument-Properties-Editor, aber mit dem Block-Save-Hook.
+// 4T-0449: optionaler def-Parameter — Kennzeichnung, Typ-Sperre, Hinweis und
+// Auswahl-Listen wie im Properties-Editor.
+export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null) {
+  const wrap = document.createElement('div');
+  wrap.className = 'properties-field';
+  wrap.dataset.currentType = type;
+  wrap.dataset.paneIdx = String(paneIdx);
+  wrap._profileDef = def || null;
+  const hintCode = def ? fieldDefinitionHint(def, value) : null;
+  if (def) wrap.classList.add('is-profile-defined');
+
+  const head = document.createElement('div');
+  head.className = 'properties-field-head';
+
+  const keyInput = document.createElement('input');
+  keyInput.type = 'text';
+  keyInput.className = 'properties-field-key';
+  keyInput.value = key;
+  keyInput.spellcheck = false;
+  keyInput.disabled = readOnly;
+  if (def) keyInput.title = t('properties.profileDefined').replace('{profile}', def.profile);
+  // Schluessel-Vorschlaege aus dem Dokument-Bestand (Konzept-Entscheidung 1).
+  keyInput.setAttribute('list', keyDatalistId(paneIdx));
+  head.appendChild(keyInput);
+
+  const typeSelect = document.createElement('select');
+  typeSelect.className = 'properties-field-type';
+  for (const tname of BLOCK_PROP_TYPES) {
+    const opt = document.createElement('option');
+    opt.value = tname;
+    opt.textContent = t('properties.type.' + tname) || tname;
+    typeSelect.appendChild(opt);
+  }
+  typeSelect.value = type;
+  typeSelect.disabled = readOnly;
+  // 4T-0449: Typ-Sperre definierter Felder (Regel aus 4T-0448 — frei nur
+  // bei Typ-Abweichung, damit der Wert koerzierbar bleibt).
+  if (def && hintCode !== 'typeMismatch') {
+    typeSelect.value = def.type;
+    typeSelect.disabled = true;
+    typeSelect.title = t('properties.profileTypeLocked').replace('{profile}', def.profile);
+  }
+  typeSelect.addEventListener('change', () => {
+    onTypeChange(wrap, typeSelect.value, paneIdx);
+    scheduleSaveBlockProps(paneIdx);
+  });
+  head.appendChild(typeSelect);
+
+  // 4T-0449: weicher Hinweis (gleiche Darstellung wie im Properties-Editor).
+  const hintEl = document.createElement('span');
+  hintEl.className = 'properties-field-hint';
+  hintEl.textContent = '⚠';
+  applyFieldHint(hintEl, def, hintCode);
+  head.appendChild(hintEl);
+
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'properties-field-delete';
+  delBtn.textContent = '×';
+  delBtn.title = t('properties.deleteField');
+  delBtn.disabled = readOnly;
+  delBtn.addEventListener('click', () => {
+    wrap.remove();
+    scheduleSaveBlockProps(paneIdx);
+  });
+  head.appendChild(delBtn);
+  wrap.appendChild(head);
+
+  const valueWrap = document.createElement('div');
+  valueWrap.className = 'properties-field-value';
+  wrap.appendChild(valueWrap);
+  renderValueEditor(valueWrap, type, value, paneIdx, readOnly, {
+    def: hintCode === 'typeMismatch' ? null : def,
+  });
+
+  if (!readOnly) {
+    wrap.addEventListener('input', () => scheduleSaveBlockProps(paneIdx));
+    wrap.addEventListener('change', () => scheduleSaveBlockProps(paneIdx));
+  }
+  return wrap;
+}
+
+// 4T-0449: laufende Nummer für eindeutige datalist-IDs der Wertebereichs-
+// Eingaben (Mehrfach-Auswahl) im Block-Panel.
+let blockValueListSeq = 0;
+
+// 4T-0449: Einfach-Auswahl eines Wertebereichs-Felds im Block-Panel —
+// gleiche Semantik wie im Properties-Editor (eigene Option für einen Wert
+// außerhalb, „Eigener Wert…" wechselt in den Freitext-Editor); der Save
+// läuft über das bubbelnde change-Event der Zeile.
+function renderBlockValueSelect(container, def, value, paneIdx) {
+  const select = document.createElement('select');
+  select.className = 'properties-field-value-select';
+  const current = value == null ? '' : String(value);
+  const emptyOpt = document.createElement('option');
+  emptyOpt.value = '';
+  emptyOpt.textContent = '—';
+  select.appendChild(emptyOpt);
+  const known = def.values.map((v) => String(v));
+  for (const v of known) {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    select.appendChild(opt);
+  }
+  if (current !== '' && !known.includes(current)) {
+    const opt = document.createElement('option');
+    opt.value = current;
+    opt.textContent = current;
+    opt.className = 'is-outside-values';
+    select.appendChild(opt);
+  }
+  const customOpt = document.createElement('option');
+  customOpt.value = '__custom__';
+  customOpt.textContent = t('properties.profileCustomValue');
+  select.appendChild(customOpt);
+  select.value = current === '' ? '' : current;
+  select.addEventListener('change', () => {
+    if (select.value !== '__custom__') return;
+    renderValueEditor(container, def.type, current, paneIdx, false);
+    const input = container.querySelector('input, textarea');
+    if (input) setTimeout(() => input.focus(), 0);
+  });
+  container.appendChild(select);
+}
+
+export function renderValueEditor(container, type, value, paneIdx, readOnly, opts = {}) {
+  container.innerHTML = '';
+  // 4T-0449: Wertebereichs-Felder (nur editierbar; read-only bleibt der
+  // deaktivierte Freitext-Editor).
+  const def = opts.def || null;
+  if (def && !readOnly && Array.isArray(def.values) && def.values.length > 0 && !def.multiple) {
+    renderBlockValueSelect(container, def, value, paneIdx);
+    return;
+  }
+  if (type === 'string' || type === 'date') {
+    const input = document.createElement('input');
+    input.type = type === 'date' ? 'date' : 'text';
+    input.className = 'properties-field-value-input';
+    input.value = typeof value === 'string' ? value : value == null ? '' : String(value);
+    input.disabled = readOnly;
+    container.appendChild(input);
+    return;
+  }
+  if (type === 'multiline') {
+    const ta = document.createElement('textarea');
+    ta.className = 'properties-field-value-textarea';
+    ta.value = typeof value === 'string' ? value : value == null ? '' : String(value);
+    ta.disabled = readOnly;
+    container.appendChild(ta);
+    return;
+  }
+  if (type === 'number') {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'properties-field-value-input';
+    input.value = typeof value === 'number' ? String(value) : value == null ? '' : String(value);
+    input.disabled = readOnly;
+    container.appendChild(input);
+    return;
+  }
+  if (type === 'boolean') {
+    const bwrap = document.createElement('div');
+    bwrap.className = 'properties-field-bool';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = !!value;
+    cb.disabled = readOnly;
+    bwrap.appendChild(cb);
+    container.appendChild(bwrap);
+    return;
+  }
+  if (type === 'multistring') {
+    const list = document.createElement('div');
+    list.className = 'properties-field-multistring';
+    const arr = Array.isArray(value) ? value : value ? [String(value)] : [];
+    for (const v of arr) appendPill(list, String(v), undefined, paneIdx, readOnly);
+    if (!readOnly) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'properties-field-multistring-input';
+      input.placeholder = t('properties.multistringPlaceholder');
+      // PO-Befund Release 0.56.0: Chip nur anfügen, wenn der Wert noch nicht
+      // gesetzt ist (keine doppelten Listen-Einträge; Regel wie im
+      // Properties-Editor — ein Verhalten, zwei Oberflächen).
+      const addChip = (v) => {
+        const exists = [...list.querySelectorAll('.properties-field-multistring-pill')].some(
+          (p) => p.dataset.value === v,
+        );
+        if (!exists) appendPill(list, v, input, paneIdx, false);
+        input.value = '';
+        return !exists;
+      };
+      // 4T-0449: Mehrfach-Auswahl eines Wertebereichs — definierte Werte als
+      // Eingabe-Vorschläge; freie Eingabe bleibt möglich (weiche Haltung).
+      if (def && def.multiple && Array.isArray(def.values) && def.values.length > 0) {
+        const dl = document.createElement('datalist');
+        dl.id = `blockprops-value-list-${paneIdx}-${blockValueListSeq++}`;
+        for (const v of def.values) {
+          const opt = document.createElement('option');
+          opt.value = String(v);
+          dl.appendChild(opt);
+        }
+        list.appendChild(dl);
+        input.setAttribute('list', dl.id);
+        // PO-Befund Release 0.56.0: Übernahme aus der Vorschlagsliste wird
+        // DIREKT zum Chip (Erkennung wie im Properties-Editor über den
+        // Ersetzungs-inputType; Tipp-Eingaben bleiben unberührt).
+        const allowed = def.values.map((v) => String(v));
+        input.addEventListener('input', (e) => {
+          if (e.inputType && e.inputType !== 'insertReplacementText') return;
+          const v = input.value.trim();
+          if (v && allowed.includes(v) && addChip(v)) scheduleSaveBlockProps(paneIdx);
+        });
+      }
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const v = input.value.trim();
+          if (v && addChip(v)) scheduleSaveBlockProps(paneIdx);
+        } else if (e.key === 'Backspace' && input.value === '') {
+          const pills = list.querySelectorAll('.properties-field-multistring-pill');
+          if (pills.length > 0) {
+            pills[pills.length - 1].remove();
+            scheduleSaveBlockProps(paneIdx);
+          }
+        }
+      });
+      list.appendChild(input);
+    }
+    container.appendChild(list);
+  }
+}
+
+function appendPill(list, value, beforeInputEl, paneIdx, readOnly) {
+  const pill = document.createElement('span');
+  pill.className = 'properties-field-multistring-pill';
+  pill.dataset.value = value;
+  pill.textContent = value;
+  if (!readOnly) {
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'properties-field-multistring-pill-remove';
+    rm.textContent = '×';
+    rm.addEventListener('click', () => {
+      pill.remove();
+      scheduleSaveBlockProps(paneIdx);
+    });
+    pill.appendChild(rm);
+  }
+  if (beforeInputEl) list.insertBefore(pill, beforeInputEl);
+  else list.appendChild(pill);
+}
+
+function onTypeChange(wrap, newType, paneIdx) {
+  const valueWrap = wrap.querySelector('.properties-field-value');
+  if (!valueWrap) return;
+  const oldType = wrap.dataset.currentType || 'string';
+  const current = extractRowValue(wrap, oldType);
+  const coerced = coerceValue(current, oldType, newType);
+  // 4T-0449: Rückkehr zum Definitions-Typ reaktiviert Auswahl-Liste, Sperre
+  // und Hinweis-Abgleich (Regel aus 4T-0448).
+  const def = wrap._profileDef || null;
+  const backToDefined = def && def.type === newType;
+  renderValueEditor(valueWrap, newType, coerced, paneIdx, false, {
+    def: backToDefined ? def : null,
+  });
+  wrap.dataset.currentType = newType;
+  if (backToDefined) {
+    const typeSelect = wrap.querySelector('.properties-field-type');
+    if (typeSelect) {
+      typeSelect.disabled = true;
+      typeSelect.title = t('properties.profileTypeLocked').replace('{profile}', def.profile);
+    }
+    applyFieldHint(
+      wrap.querySelector('.properties-field-hint'),
+      def,
+      fieldDefinitionHint(def, coerced),
+    );
+  }
+}

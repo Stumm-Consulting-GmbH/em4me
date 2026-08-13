@@ -1,10 +1,10 @@
 // 4T-0504 (Epic 3E-0096): Unit-Tests des prozessneutralen Zeilen-Ersetzungs-
-// Kerns (src/main/task-line-edit.js). Geprueft werden Konflikt-Erkennung
+// Kerns (src/main/documents/task-line-edit.js). Geprueft werden Konflikt-Erkennung
 // (exakte Zeile, verrutschte eindeutige Zeile, fehlend, mehrdeutig),
 // Format-Treue (EOL-Stil pro Zeile, BOM der ersten Zeile) sowie die
 // Einfuege-Semantik (above/below, letzte Zeile ohne Umbruch, newText null).
 import { describe, it, expect } from 'vitest';
-import { computeLineReplacement, sliceLines } from '../../src/main/task-line-edit.js';
+import { computeLineReplacement, sliceLines } from '../../src/main/documents/task-line-edit.js';
 
 // --- 1. Exakte Ziel-Zeile ----------------------------------------------------------
 describe('computeLineReplacement — exakte Ziel-Zeile', () => {

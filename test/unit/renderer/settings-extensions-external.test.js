@@ -18,9 +18,9 @@ window.api.scanExternalExtensions = async () => [];
 window.api.configureExternalMarkdownPlugins = async () => ({});
 window.api.confirmExternalExtensionTrust = async () => true;
 
-const settingsPage = await import('../../../src/renderer/modules/settings-page.js');
-const systemPages = await import('../../../src/renderer/modules/system-pages.js');
-const host = await import('../../../src/renderer/modules/extension-host.js');
+const settingsPage = await import('../../../src/renderer/modules/settings/settings-page.js');
+const systemPages = await import('../../../src/renderer/modules/app/system-pages.js');
+const host = await import('../../../src/renderer/modules/extensions/extension-host.js');
 
 function removeStaleContainers() {
   document.querySelectorAll('[data-test-settings]').forEach((el) => el.remove());

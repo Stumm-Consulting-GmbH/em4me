@@ -1,5 +1,5 @@
 // 4T-0322 (Epic 3E-0058): Unit-Tests für die Bereichs-Pfad-Logik
-// (src/main/area-path.js). Die Innerhalb-Prüfung ist die eine Grenze aller
+// (src/main/area/area-path.js). Die Innerhalb-Prüfung ist die eine Grenze aller
 // Bereichs-Pfade; Windows-Fälle (Groß/Klein, gemischte Trenner, `..`,
 // Präfix-Nachbarn) sind hier abgesichert.
 import { describe, it, expect } from 'vitest';
@@ -12,7 +12,7 @@ import {
   withoutRecentPath,
   sortedAreaListing,
   sanitizeNewFileName,
-} from '../../src/main/area-path.js';
+} from '../../src/main/area/area-path.js';
 
 const ROOT = 'C:\\Daten\\Notizen';
 

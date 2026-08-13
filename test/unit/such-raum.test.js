@@ -10,7 +10,7 @@ import {
   sucheInTexten,
   MAX_TREFFER_JE_GRUPPE,
   KONTEXT_ZEICHEN,
-} from '../../src/shared/such-raum.js';
+} from '../../src/shared/search-scope.js';
 
 // Muster der Dokument-Suche (buildRegex erzeugt 'gm' bzw. 'gmi').
 const rx = (muster, flags = 'gm') => new RegExp(muster, flags);

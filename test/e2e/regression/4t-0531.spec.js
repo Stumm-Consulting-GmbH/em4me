@@ -1,5 +1,5 @@
 // 4T-0531 (Epic 3E-0088): Start-Wiederherstellung der Panel-Sichtbarkeit.
-// Die Init-Schleife in applyAllLayouts (views.js) kannte nur die sieben
+// Die Init-Schleife in applyAllLayouts (views/pane-render.js) kannte nur die sieben
 // älteren Panels; ein als sichtbar persistiertes Kalender-, Block-
 // Eigenschaften-, Datei-Graph-, Bereichs- oder Unterseiten-Panel blieb nach
 // dem Start verborgen, bis sein Toggle einmal feuerte. Der Fix wendet die

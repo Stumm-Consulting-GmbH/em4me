@@ -1,5 +1,5 @@
 // 4T-0637 (Epic 3E-0069): Unit-Tests der Scheduler-Factory
-// createAlarmChecker (src/main/alarm-check.js) mit vollstaendig injizierten
+// createAlarmChecker (src/main/checks/alarm-check.js) mit vollstaendig injizierten
 // Fake-Abhaengigkeiten (kein Electron): Faelligkeits-Fenster statt
 // „Zeitpunkt erreicht", kein Doppel-Feuern, verpasste Zeitpunkte nach
 // Standby, Schlummern, Abschalten einmaliger Wecker, Aus-Zustand der
@@ -11,7 +11,7 @@ import {
   createAlarmChecker,
   CHECK_INTERVAL_MS,
   MAX_WINDOW_MS,
-} from '../../src/main/alarm-check.js';
+} from '../../src/main/checks/alarm-check.js';
 
 const START = new Date(2099, 5, 15, 6, 59, 30); // Montag, 06:59:30
 

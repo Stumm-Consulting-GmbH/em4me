@@ -15,7 +15,7 @@
 // kuratierte Standard-Belegung zurück.
 'use strict';
 
-const { normalizePlacementEntry } = require('./command-placement.js');
+const { normalizePlacementEntry } = require('./commands/command-placement.js');
 
 const FORMAT_TOOLBAR_KEY = 'formatToolbar';
 const FORMAT_TOOLBAR_EXTENSION_ID = 'toolbar';

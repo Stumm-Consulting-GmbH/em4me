@@ -6,7 +6,7 @@
 // LIMIT/COLUMNS), Literale und Abwärtskompatibilitäts-Fälle ergänzt; Modul
 // umbenannt (frontmatter-query.js -> perspective-query.js).
 import { describe, it, expect } from 'vitest';
-import { parseQuery, evaluateQuery, tokenize } from '../../src/shared/perspective-query.js';
+import { parseQuery, evaluateQuery, tokenize } from '../../src/shared/query/perspective-query.js';
 
 // Parst und evaluiert; wirft bei Parse-Fehler (die Fehler-Fälle testet der
 // Parser-Block separat).

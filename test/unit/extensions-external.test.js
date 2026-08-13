@@ -1,7 +1,7 @@
 // 4T-0299 (Epic 3E-0053): Manifest-Modell und API-Versionierung der
-// externen Erweiterungen (src/shared/extensions-external.js) plus die
+// externen Erweiterungen (src/shared/extensions/extensions-external.js) plus die
 // dynamische Registrierung an der Erweiterungs-Registry
-// (src/shared/extensions.js, Herkunfts-Kennzeichnung 'external').
+// (src/shared/extensions/extensions.js, Herkunfts-Kennzeichnung 'external').
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   EXTENSION_API_VERSION,
@@ -12,15 +12,16 @@ import {
   normalizeTrustedMap,
   normalizeErrorMap,
   externalExtensionStatus,
-} from '../../src/shared/extensions-external.js';
+} from '../../src/shared/extensions/extensions-external.js';
 import {
   allExtensions,
   extensionById,
   internalExtensions,
-  isExtensionEnabled,
   registerExternalExtension,
   unregisterExternalExtension,
-} from '../../src/shared/extensions.js';
+} from '../../src/shared/extensions/extensions.js';
+// 4T-0993: Aktiv-Zustand aus der Ableitungs-Schicht.
+import { isExtensionEnabled } from '../../src/shared/extensions/extensions-core.js';
 
 const VALID_MANIFEST = {
   id: 'beispiel',

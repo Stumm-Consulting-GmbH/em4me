@@ -1,0 +1,541 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 9 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Farbschema-Bereich, Eigenschaften-Sidebar, Etiketten-System, Notizen-Panel. */
+/* === Farbschema-Bereich (4T-0466, Epic 3E-0086) =========================
+   Modus-Zuordnung, Schema-Verwaltung und gruppierter Slot-Editor mit nativen
+   Farbwaehlern. Nutzt die Theme-Variablen, folgt also selbst dem Schema. */
+.color-scheme-manage {
+  margin: 14px 0;
+  padding: 10px 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.color-scheme-editing-info {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.color-scheme-builtin-note {
+  font-size: 12px;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.color-scheme-mode-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin: 4px 0 2px;
+}
+.color-scheme-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.color-scheme-actions .settings-input {
+  flex: 0 0 auto;
+  min-width: 12em;
+}
+.color-scheme-group-head {
+  margin: 14px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.color-scheme-slot-row {
+  margin: 4px 0;
+}
+.color-scheme-slot-color {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-alt);
+  cursor: pointer;
+}
+.color-scheme-slot-color:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.color-scheme-slot-reset {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  font-size: 14px;
+  line-height: 1.2;
+}
+/* === Properties-Sidebar (4T-0051, Epic 3E-0010) =========================
+   Sidebar-Sektion mit live-editierbaren Frontmatter-Feldern. Kompaktes
+   Layout, eine Property pro Block: Header (Key + Type-Select + Delete)
+   plus Value-Editor darunter. Pillen, Date-Picker und Checkbox folgen
+   dem Theme. Stilfamilie konsistent mit Outline und Backlinks. */
+.properties-fields {
+  margin: 0;
+}
+.properties-empty {
+  padding: 8px 12px;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+.properties-parse-error {
+  margin: 8px 12px;
+  padding: 6px 8px;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 3px;
+  color: #b71c1c;
+  font-size: 0.8em;
+  word-break: break-word;
+}
+[data-theme='dark'] .properties-parse-error {
+  color: #ff7676;
+}
+.properties-field {
+  padding: 6px 12px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.properties-field:last-of-type {
+  border-bottom: none;
+}
+.properties-field.is-readonly {
+  opacity: 0.75;
+}
+.properties-field-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.properties-field-key {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: var(--fg);
+  border: 0;
+  border-radius: 2px;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+.properties-field-key:hover,
+.properties-field-key:focus {
+  background: var(--bg-alt);
+  outline: none;
+}
+/* R5-10 (4T-0172): doppelte Eigenschafts-Namen sichtbar markieren;
+   der Save ist bis zur Aufloesung ausgesetzt (Tooltip nennt den Grund). */
+.properties-field-key.duplicate {
+  outline: 1px solid #c0392b;
+  outline-offset: -1px;
+}
+.properties-field-type {
+  background: transparent;
+  color: var(--fg-muted);
+  border: 0;
+  border-radius: 2px;
+  padding: 1px 2px;
+  font-family: inherit;
+  font-size: 11px;
+}
+.properties-field-type:hover,
+.properties-field-type:focus {
+  background: var(--bg-alt);
+  color: var(--fg);
+  outline: none;
+}
+.properties-field-delete {
+  background: transparent;
+  border: 0;
+  border-radius: 2px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.properties-field:hover .properties-field-delete {
+  opacity: 1;
+}
+.properties-field-delete:hover {
+  background: rgba(220, 53, 69, 0.15);
+  color: #b71c1c;
+}
+[data-theme='dark'] .properties-field-delete:hover {
+  color: #ff7676;
+}
+.properties-field-value {
+  min-width: 0;
+}
+.properties-field-value-input,
+.properties-field-value-textarea {
+  width: 100%;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 6px;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.properties-field-value-textarea {
+  min-height: 50px;
+  resize: vertical;
+}
+.properties-field-value-input:focus,
+.properties-field-value-textarea:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.properties-field-bool {
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+}
+.properties-field-readonly-value {
+  background: var(--bg-muted);
+  color: var(--fg-muted);
+  border: 1px dashed var(--border);
+  border-radius: 2px;
+  padding: 3px 6px;
+  font-family: inherit;
+  font-size: 11px;
+  font-style: italic;
+  word-break: break-word;
+}
+.properties-field-multistring {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px;
+  min-height: 24px;
+}
+.properties-field-multistring-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(33, 150, 243, 0.15);
+  color: var(--fg);
+  border-radius: 2px;
+  padding: 1px 4px 1px 6px;
+  font-size: 11px;
+}
+/* S-14 (4T-0188): Dark-Override analog zu Tag-Pillen/Alias-Badges. */
+[data-theme='dark'] .properties-field-multistring-pill {
+  background: rgba(100, 181, 246, 0.16);
+}
+.properties-field-multistring-pill-remove {
+  margin-left: 3px;
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.properties-field-multistring-pill-remove:hover {
+  color: var(--fg);
+}
+.properties-field-multistring-input {
+  flex: 1;
+  min-width: 60px;
+  border: 0;
+  padding: 1px 3px;
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 11px;
+}
+.properties-field-multistring-input:focus {
+  outline: none;
+}
+/* S-16 (4T-0188): Fokus-Indikator am Container — das Multistring-Feld war
+   der einzige Properties-Input ohne sichtbaren Fokus-Stil (Muster der
+   uebrigen Inputs: Accent-Border). */
+.properties-field-multistring:focus-within {
+  border-color: var(--accent);
+}
+/* 4T-0448 (Epic 3E-0083): Eigenschafts-Profile im Properties-Editor —
+   dezente Kennzeichnung definierter Felder, weicher Hinweis (Icon plus
+   Tooltip), Auswahl-Liste des Wertebereichs und Vorschlags-Menü am
+   Hinzufügen-Button. Gleiche Klassen wirken im Block-Panel (4T-0449). */
+.properties-field.is-profile-defined .properties-field-key {
+  border-left: 2px solid var(--accent);
+  padding-left: 4px;
+}
+.properties-field-hint {
+  flex: none;
+  color: #b8860b;
+  cursor: help;
+  font-size: 11px;
+  line-height: 1;
+}
+[data-theme='dark'] .properties-field-hint {
+  color: #e0b341;
+}
+.properties-field-hint[hidden] {
+  display: none;
+}
+.properties-field-value-select {
+  width: 100%;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 4px;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.properties-field-value-select:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.properties-field-value-select option.is-outside-values {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.properties-suggest-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 180px;
+  max-width: 280px;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  padding: 4px;
+}
+.properties-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  color: var(--fg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  text-align: left;
+}
+.properties-suggest-item:hover,
+.properties-suggest-item:focus {
+  background: var(--bg-alt);
+  outline: none;
+}
+.properties-suggest-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.properties-suggest-badge {
+  flex: none;
+  background: rgba(33, 150, 243, 0.15);
+  border-radius: 2px;
+  color: var(--fg-muted);
+  font-size: 10px;
+  padding: 1px 4px;
+}
+[data-theme='dark'] .properties-suggest-badge {
+  background: rgba(100, 181, 246, 0.16);
+}
+/* 4T-0491 (Epic 3E-0093): profil-gruppiertes Vorschlags-Menü. Der Profil-Kopf
+   ist ein klickbarer, hervorgehobener Eintrag (Komplett-Übernahme des Profils);
+   die Einzel-Felder darunter sind eingerückt; die profillose Gruppe trägt eine
+   dezente, nicht klickbare Überschrift. */
+.properties-suggest-item.is-profile-head .properties-suggest-name {
+  font-weight: 600;
+}
+.properties-suggest-item.is-indent {
+  padding-left: 18px;
+}
+.properties-suggest-group-label {
+  padding: 5px 6px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.properties-add-btn {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 8px 12px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+}
+.properties-add-btn:hover {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+/* === Tag-System (4T-0056, Epic 3E-0011) ================================= */
+/* Inline-Tag-Pillen im Render-Pane (per #tag-Markup erzeugt). */
+.markdown-body .tag-link {
+  display: inline-block;
+  padding: 1px 6px;
+  background: rgba(33, 150, 243, 0.12);
+  color: var(--syntax-link);
+  border-radius: 3px;
+  font-size: 0.92em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.markdown-body .tag-link:hover {
+  background: rgba(33, 150, 243, 0.2);
+  text-decoration: none;
+}
+[data-theme='dark'] .markdown-body .tag-link {
+  background: rgba(100, 181, 246, 0.16);
+}
+[data-theme='dark'] .markdown-body .tag-link:hover {
+  background: rgba(100, 181, 246, 0.28);
+}
+
+/* Tag-Sidebar-Sektion. */
+.tags-filter {
+  width: calc(100% - 24px);
+  margin: 8px 12px 6px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.tags-filter:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.tags-status {
+  padding: 8px 12px;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+
+/* === Notizen-Panel (4T-0359, Epic 3E-0066) ============================== */
+/* Editierbare Dokument-Notiz aus der .mdd. Der Header traegt den Vorschau-
+   Toggle rechts; der Body wechselt zwischen Editier-Textfeld und gerenderter
+   Vorschau. Hinweise (unbenannt/defekt/Konflikt) folgen dem Panel-Muster. */
+.sidebar-notes .notes-preview-toggle {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.sidebar-notes .notes-preview-toggle:hover {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+}
+.sidebar-notes .notes-preview-toggle.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+/* 4T-0398: Das Notiz-Feld ist eine schlanke CodeMirror-Instanz (Kontextmenü und
+   Format-Kürzel wie im Haupt-Editor). Grund-Optik analog .pane-source-editor,
+   aber kompakt und höhenbegrenzt (Sidebar). */
+.notes-editor {
+  margin: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.notes-editor[hidden] {
+  display: none;
+}
+.notes-editor .cm-editor {
+  max-height: 50vh;
+  font-family: var(--editor-font-family);
+  font-size: 12px;
+  background: var(--code-bg);
+  color: var(--fg);
+}
+.notes-editor .cm-editor.cm-focused {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.notes-editor .cm-scroller {
+  font-family: var(--editor-font-family);
+  line-height: 1.5;
+}
+.notes-editor .cm-content {
+  caret-color: var(--fg);
+  padding: 6px 0;
+}
+.notes-editor .cm-line {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.notes-preview {
+  margin: 8px 12px;
+  font-size: 13px;
+}
+.notes-preview[hidden] {
+  display: none;
+}
+.notes-empty,
+.notes-suspended {
+  padding: 8px 12px;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+.notes-empty[hidden],
+.notes-suspended[hidden],
+.notes-conflict[hidden] {
+  display: none;
+}
+.notes-conflict {
+  margin: 8px 12px;
+  padding: 6px 8px;
+  background: rgba(240, 173, 78, 0.12);
+  border: 1px solid rgba(240, 173, 78, 0.35);
+  border-radius: 3px;
+  color: #8a6d00;
+  font-size: 0.8em;
+}
+[data-theme='dark'] .notes-conflict {
+  color: #e6b800;
+}
+.notes-hint {
+  padding: 0 12px 8px;
+  color: var(--fg-muted);
+  font-size: 0.75em;
+  font-style: italic;
+}

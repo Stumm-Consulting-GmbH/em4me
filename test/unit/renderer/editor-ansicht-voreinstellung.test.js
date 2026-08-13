@@ -6,8 +6,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import './api-stub.js';
 
-const appState = await import('../../../src/renderer/modules/app-state.js');
-const views = await import('../../../src/renderer/modules/views.js');
+const appState = await import('../../../src/renderer/modules/app/app-state.js');
+const views = await import('../../../src/renderer/modules/views/views.js');
 
 // Die globale Voreinstellung ist Modul-Zustand — nach jedem Test auf die
 // Konstanten zuruecksetzen, damit die Tests reihenfolge-unabhaengig bleiben.

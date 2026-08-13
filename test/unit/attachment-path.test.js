@@ -1,5 +1,5 @@
 // 4T-0787 (Epic 3E-0125): Unit-Tests für den Ablage-Kern der Anlagen
-// (src/main/attachment-path.js). Geprüft sind die vier Ablage-Formen, die
+// (src/main/documents/attachment-path.js). Geprüft sind die vier Ablage-Formen, die
 // Grenz-Abweisungen, die Namensvergabe samt Kollisions-Zähler und der
 // dokumentrelative Verweis-Pfad.
 import { describe, it, expect } from 'vitest';
@@ -16,7 +16,7 @@ import {
   bereinigeDateinamen,
   freierDateiname,
   verweisPfad,
-} from '../../src/main/attachment-path.js';
+} from '../../src/main/documents/attachment-path.js';
 
 const WURZEL = 'C:\\Daten\\Notizen';
 const DOK = 'C:\\Daten\\Notizen\\Projekte\\Protokoll.md';

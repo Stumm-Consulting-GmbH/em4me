@@ -2,14 +2,14 @@
 // 4T-0697 (Epic 3E-0141): Zustand und Setter-Logik des Sidebar-Spalten-
 // Kollaps. Der Kollaps-Zustand liegt getrennt von den Panel-Sichtbarkeiten
 // im Renderer-State (app-state.js), Setter/Toggle/Clear rendern die
-// betroffene Spalte neu und persistieren global (panels.js). Ohne echtes
+// betroffene Spalte neu und persistieren global (panels/sidebar-collapse.js). Ohne echtes
 // Sidebar-DOM ist renderSidebarForPane ein No-op (getPaneEls findet keine
 // Container); geprüft wird die reine Zustands-, Persistenz- und Guard-Logik.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './api-stub.js';
 
-const appState = await import('../../../src/renderer/modules/app-state.js');
-const panels = await import('../../../src/renderer/modules/panels.js');
+const appState = await import('../../../src/renderer/modules/app/app-state.js');
+const collapse = await import('../../../src/renderer/modules/panels/sidebar-collapse.js');
 
 const { state } = appState;
 
@@ -60,7 +60,7 @@ describe('isSidebarCollapsed (4T-0697)', () => {
 
 describe('setSidebarCollapsed / toggleSidebarCollapse (4T-0697)', () => {
   it('setzt genau die adressierte Spalte und persistiert global', () => {
-    panels.setSidebarCollapsed(0, 'left', true);
+    collapse.setSidebarCollapsed(0, 'left', true);
     expect(state.sidebarCollapsed.left[0]).toBe(true);
     // Andere Pane-Group und andere Seite bleiben unberührt (Unabhängigkeit).
     expect(state.sidebarCollapsed.left[1]).toBe(false);
@@ -69,28 +69,28 @@ describe('setSidebarCollapsed / toggleSidebarCollapse (4T-0697)', () => {
   });
 
   it('geteilte Ansicht: Pane-Group 1 schaltet unabhängig von 0', () => {
-    panels.setSidebarCollapsed(1, 'right', true);
+    collapse.setSidebarCollapsed(1, 'right', true);
     expect(state.sidebarCollapsed.right[1]).toBe(true);
     expect(state.sidebarCollapsed.right[0]).toBe(false);
     expect(state.sidebarCollapsed.left[1]).toBe(false);
   });
 
   it('unveränderter Wert ist ein No-op (kein Store-Write)', () => {
-    panels.setSidebarCollapsed(0, 'left', false);
+    collapse.setSidebarCollapsed(0, 'left', false);
     expect(window.api.setSetting).not.toHaveBeenCalled();
   });
 
   it('ungültige Seite oder Pane-Index bleiben wirkungslos', () => {
-    panels.setSidebarCollapsed(0, 'oben', true);
-    panels.setSidebarCollapsed(5, 'left', true);
+    collapse.setSidebarCollapsed(0, 'oben', true);
+    collapse.setSidebarCollapsed(5, 'left', true);
     expect(state.sidebarCollapsed).toEqual({ left: [false, false], right: [false, false] });
     expect(window.api.setSetting).not.toHaveBeenCalled();
   });
 
   it('toggle invertiert den Zustand der Spalte', () => {
-    panels.toggleSidebarCollapse(0, 'left');
+    collapse.toggleSidebarCollapse(0, 'left');
     expect(state.sidebarCollapsed.left[0]).toBe(true);
-    panels.toggleSidebarCollapse(0, 'left');
+    collapse.toggleSidebarCollapse(0, 'left');
     expect(state.sidebarCollapsed.left[0]).toBe(false);
   });
 });
@@ -98,14 +98,14 @@ describe('setSidebarCollapsed / toggleSidebarCollapse (4T-0697)', () => {
 describe('clearSidebarCollapsed (4T-0697, Aus-Zustand der Erweiterung)', () => {
   it('hebt jeden eingeklappten Zustand auf und persistiert einmalig', () => {
     state.sidebarCollapsed = { left: [true, false], right: [false, true] };
-    panels.clearSidebarCollapsed();
+    collapse.clearSidebarCollapsed();
     expect(state.sidebarCollapsed).toEqual({ left: [false, false], right: [false, false] });
     expect(window.api.setSetting).toHaveBeenCalledTimes(1);
     expect(window.api.setSetting).toHaveBeenCalledWith('sidebarCollapsed', state.sidebarCollapsed);
   });
 
   it('No-op, wenn ohnehin alles ausgeklappt ist (kein Store-Write)', () => {
-    panels.clearSidebarCollapsed();
+    collapse.clearSidebarCollapsed();
     expect(window.api.setSetting).not.toHaveBeenCalled();
   });
 });

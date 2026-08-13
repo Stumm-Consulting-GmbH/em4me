@@ -5,8 +5,6 @@
 // Format/Parsen und die Umrechnung über die Block-Achse.
 import { describe, it, expect } from 'vitest';
 import {
-  normalizeCalendarConfig,
-  createGregorianTemplate,
   tupleToAxis,
   axisToTuple,
   validateTuple,
@@ -20,9 +18,15 @@ import {
   findCalendarByName,
   spanUnits,
   spanTiers,
+} from '../../src/shared/calendar/calendar-core.js';
+// 4T-0995 (Epic 3E-0196): Sektions-Normalisierung und Persistenz-Form liegen
+// im Konfigurations-Rand, die gregorianische Vorlage in ihrem eigenen Modul.
+import {
+  normalizeCalendarConfig,
   configForPersist,
-} from '../../src/shared/calendar-core.js';
-import { formatDateMs, isoWeekOf } from '../../src/shared/perspective-query-eval.js';
+} from '../../src/shared/calendar/calendar-config.js';
+import { createGregorianTemplate } from '../../src/shared/calendar/calendar-template.js';
+import { formatDateMs, isoWeekOf } from '../../src/shared/query/query-format.js';
 
 // --- Fixtures ---------------------------------------------------------------
 

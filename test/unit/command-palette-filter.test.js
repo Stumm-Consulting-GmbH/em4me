@@ -1,5 +1,5 @@
 // 4T-0480 (Epic 3E-0089): Unit-Matrix fuer das DOM-freie Filter-Modul der
-// Kommando-Palette (src/shared/command-palette-filter.js). Deckt die
+// Kommando-Palette (src/shared/commands/command-palette-filter.js). Deckt die
 // Normalisierung der Roh-Eingabe (Trim, Lowercase, null/undefined) und den
 // Teilstring-Filter (leere Query, Case-Insensitivitaet inkl. Umlaute,
 // Treffer mitten im Wort, stabile Reihenfolge, kein Treffer, robuste
@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   normalizeFilterQuery,
   filterCommandEntries,
-} from '../../src/shared/command-palette-filter.js';
+} from '../../src/shared/commands/command-palette-filter.js';
 
 describe('normalizeFilterQuery', () => {
   it('trimmt fuehrende und nachfolgende Leerzeichen', () => {

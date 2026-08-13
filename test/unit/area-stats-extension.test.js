@@ -4,12 +4,9 @@
 // Kontextmenue-Eintrags im Bereichs-Panel deckt der isExtensionActive-Guard
 // des Panels ab, den die E2E-Stichprobe BS-06 prueft.
 import { describe, it, expect } from 'vitest';
-import {
-  disabledCommandIdSet,
-  isExtensionId,
-  internalExtensions,
-} from '../../src/shared/extensions.js';
-import { COMMANDS } from '../../src/shared/commands.js';
+import { isExtensionId, internalExtensions } from '../../src/shared/extensions/extensions.js';
+import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
+import { COMMANDS } from '../../src/shared/commands/commands.js';
 
 describe('Erweiterung area-stats — Kommando-Filterung im Aus-Zustand', () => {
   it('ist registriert und filtert das Statistik-Kommando', () => {

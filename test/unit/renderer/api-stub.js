@@ -1,5 +1,5 @@
 // 4T-0193: window.api-Stub fuer Renderer-Modul-Unit-Tests (jsdom).
-// Die Module binden `api` aus modules/api.js beim Laden; app-init.js
+// Die Module binden `api` aus modules/app/api.js beim Laden; app-init.js
 // registriert ausserdem Top-Level-IPC-Listener. Der Stub muss deshalb VOR
 // dem (dynamischen) Import der Module stehen und alle top-level genutzten
 // Funktionen anbieten; alles Weitere wird in den Tests nicht beruehrt.

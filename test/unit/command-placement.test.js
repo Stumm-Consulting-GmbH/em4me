@@ -1,5 +1,5 @@
 // 4T-0520 (Epic 3E-0094): Datenmodell-Tests der Kommando-Platzierung
-// (src/shared/command-placement.js) plus Wächter über die Hide-Ziele:
+// (src/shared/commands/command-placement.js) plus Wächter über die Hide-Ziele:
 // jedes Ziel existiert real in index.html, führt einen belegten i18n-Key
 // und die Panel-Ziele decken das komplette Zugangs-Modell — die
 // Hinweis-Zeile ist bewusst KEIN Ziel (einziger Warn-Kanal, PO-Festlegung
@@ -16,10 +16,11 @@ import {
   macroCommandId,
   normalizeCommandPlacement,
   visibleContextMenuEntries,
-} from '../../src/shared/command-placement.js';
+} from '../../src/shared/commands/command-placement.js';
 import { PANEL_ACCESS } from '../../src/shared/panel-access.js';
-import { COMMAND_ICON_IDS, DEFAULT_COMMAND_ICON } from '../../src/shared/command-icons.js';
-import { disabledSettingsSectionIdSet, extensionById } from '../../src/shared/extensions.js';
+import { COMMAND_ICON_IDS, DEFAULT_COMMAND_ICON } from '../../src/shared/commands/command-icons.js';
+import { extensionById } from '../../src/shared/extensions/extensions.js';
+import { disabledSettingsSectionIdSet } from '../../src/shared/extensions/extensions-core.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const INDEX_HTML = fs.readFileSync(

@@ -8,11 +8,11 @@
 import { describe, it, expect } from 'vitest';
 import './api-stub.js';
 
-const settingsPage = await import('../../../src/renderer/modules/settings-page.js');
-const systemPages = await import('../../../src/renderer/modules/system-pages.js');
+const settingsPage = await import('../../../src/renderer/modules/settings/settings-page.js');
+const systemPages = await import('../../../src/renderer/modules/app/system-pages.js');
 // 4T-0555 (Epic 3E-0100): state.areaPath steuert die Sichtbarkeit der
 // Navigations-Gruppe „Aktueller Bereich".
-const { state } = await import('../../../src/renderer/modules/app-state.js');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 // Seiten-Lebenszyklus wie beim echten Öffnen: onOpen baut den frischen
 // Entwurf (4T-0279), mount montiert das DOM.
@@ -387,7 +387,7 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
 // Bereichs-Gruppe.
 describe('Vier-Block-Gliederung der Navigation (4T-0889, Epic 3E-0168)', () => {
   // Erweiterungs-gebundene Sektionen ohne Bereichs-Bindung, wie sie die
-  // Registry (src/shared/extensions.js, Feld settingsSections) ausweist.
+  // Registry (src/shared/extensions/extensions.js, Feld settingsSections) ausweist.
   const INTERNAL_EXTENSION_SECTION_IDS = [
     'frontmatterTimestamps',
     'spellcheck',

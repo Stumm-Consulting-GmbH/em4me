@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
 
-const lifecycle = await import('../../../src/renderer/modules/extension-lifecycle.js');
+const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 const tasks = await import('../../../src/renderer/modules/tasks.js');
 
 const today = tasks.todayIsoDate();

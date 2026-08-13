@@ -17,7 +17,7 @@ import {
   markerValueRangesInLine,
   REMINDER_SYMBOL,
   TASK_DATE_FIELDS,
-} from '../../src/shared/task-markers.js';
+} from '../../src/shared/tasks/task-markers.js';
 
 const DATUM = '2026-09-01';
 

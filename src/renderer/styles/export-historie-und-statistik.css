@@ -1,0 +1,604 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 14 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Rollbalken, PDF-Export, Historien-Ansicht, Bereichs-Statistik, Regal-Ansicht. */
+
+/* === Scrollbars (dezent) ================================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
+}
+
+/* === PDF-Export (4T-0303, Epic 3E-0054) ================================== */
+/* Waehrend des Exports tragen <html> UND <body> die Klasse .printing
+   (beide, weil der html-Selektor sonst nicht greift, 4T-0024 Fehlerbild 1).
+   Alle Regeln haengen an dieser Klasse statt an @media print: der Export
+   ist der einzige Print-Pfad der App, und der Klassen-Hook wirkt
+   deterministisch unabhaengig davon, welches Medium printToPDF emuliert.
+   Die Seitenumbruch-Eigenschaften wirken ohnehin nur im Paged-Layout.
+   Der Theme-Anteil (Light-Farben) kommt NICHT aus diesem Block, sondern
+   aus dem JS-Variablen-Override in views.js (Variante B+). */
+
+/* Fehlerbild 2 aus 4T-0024 (nur erste Seite): das Grundlayout kappt den
+   Inhalt per height:100% / overflow:hidden auf den Viewport. */
+html.printing,
+body.printing {
+  height: auto !important;
+  overflow: visible !important;
+  background: #ffffff !important;
+}
+body.printing {
+  display: block;
+}
+
+/* Streuner-Regel: alles auf Body-Ebene ausser dem Pane-Container
+   verschwindet — Statusbar, Empty-State, Drop-Overlay, Kontextmenue,
+   Suchleiste, Modals und von Bibliotheken (CodeMirror, Mermaid) an den
+   <body> gehaengte Layer/Tooltips (Restverdacht aus 4T-0024). */
+body.printing > *:not(main) {
+  display: none !important;
+}
+
+/* Gedruckt wird genau das aktive Pane (deterministisch auch bei geteiltem
+   Fenster, Epic-Risiko "Druck aus dem zweiten Pane"). */
+body.printing .pane-group:not(.active-pane) {
+  display: none !important;
+}
+
+/* UI-Chrome innerhalb des Pane-Containers verstecken. .pane-source und
+   .pane-system BEWUSST als eigene Selektoren und nirgends wieder
+   einblenden — die Selektor-Kollision ".pane" vs. ".pane-source" war
+   Fehlerbild 3 aus 4T-0024. */
+body.printing .tabbar,
+body.printing .pane-sidebar,
+body.printing .splitter,
+body.printing .pane-source,
+body.printing .pane-system {
+  display: none !important;
+}
+
+/* Flex-Ketten aufloesen: Block-Layout mit Auto-Hoehe, damit der Inhalt
+   ueber Seiten fliessen kann statt im Viewport zu clippen. */
+body.printing .panes-container,
+body.printing .pane-group.active-pane,
+body.printing .pane-group.active-pane > .content,
+body.printing .pane-group.active-pane .pane-rendered {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+body.printing .pane-group.active-pane .pane-rendered {
+  border: none !important;
+}
+
+/* Inhalt: volle Druckbreite (Papier-Rand kommt aus printToPDF-margins),
+   Druck-Schriftgroesse 11pt (4T-0024). */
+body.printing .markdown-body {
+  padding: 0;
+  max-width: none;
+  font-size: 11pt;
+}
+body.printing .markdown-body img {
+  max-width: 100%;
+}
+
+/* Bildschirm-Interaktion hat im PDF nichts verloren. */
+body.printing .code-copy-button,
+body.printing .perspective-sort-icon,
+body.printing .block-meta-indicator {
+  display: none !important;
+}
+
+/* Seitenumbruch-Regeln (4T-0024, ergaenzt um die seit 0.10.0
+   hinzugekommenen Block-Typen: Callouts, Custom Containers, Perspective
+   Table faellt unter table, Wiki-Embeds, Frontmatter-Block). */
+body.printing .markdown-body pre,
+body.printing .markdown-body .code-block-wrapper,
+body.printing .markdown-body table,
+body.printing .markdown-body .mermaid-block,
+body.printing .markdown-body .katex-display,
+body.printing .markdown-body .callout,
+body.printing .markdown-body .custom-container,
+body.printing .markdown-body .wiki-embed,
+body.printing .markdown-body .frontmatter-block,
+body.printing .markdown-body blockquote,
+body.printing .markdown-body img {
+  page-break-inside: avoid;
+}
+body.printing .markdown-body h1,
+body.printing .markdown-body h2,
+body.printing .markdown-body h3,
+body.printing .markdown-body h4,
+body.printing .markdown-body h5,
+body.printing .markdown-body h6 {
+  page-break-after: avoid;
+}
+
+/* === Quelltext-Ansicht im PDF-Export (4T-0311, Epic 3E-0055) ============= */
+/* Der Export baut aus dem Dokumenttext einen dedizierten Print-Block
+   (.pdf-source-print in .content des aktiven Panes) und setzt zusaetzlich
+   zur printing-Klasse die Klasse printing-source am <body>. Ausserhalb
+   dieses Zustands bleibt der Block defensiv unsichtbar. */
+.pdf-source-print {
+  display: none;
+}
+body.printing.printing-source .pane-group.active-pane .pane-rendered {
+  display: none !important;
+}
+body.printing.printing-source .pane-group.active-pane .pdf-source-print {
+  display: block;
+  background: #ffffff;
+  font-family: var(--editor-font-family);
+  font-size: 10pt;
+  line-height: 1.5;
+}
+/* Weicher Umbruch langer Zeilen; Leerzeichen und Einrueckung bleiben
+   erhalten (pre-wrap). */
+.pdf-source-print .pdf-source-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Zeilennummern-Spalte gemaess Tab-Toggle: rechtsbuendig in der Breite der
+   groessten Nummer (CSS-Variable vom Builder); bei weichem Umbruch traegt
+   nur die erste Druckzeile die Nummer (Grid haelt die Spalte frei). */
+.pdf-source-print.with-line-numbers .pdf-source-line {
+  display: grid;
+  grid-template-columns: var(--pdf-source-lineno-width, 4ch) 1fr;
+  column-gap: 1.25ch;
+}
+.pdf-source-print .pdf-source-lineno {
+  text-align: right;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* === Frontmatter dauerhaft ausgeklappt (4T-0312, Epic 3E-0055) =========== */
+/* Die Root-Klasse frontmatter-expanded (Setting render.frontmatterExpanded)
+   haelt den Frontmatter-Block dauerhaft offen — im Render-Pane, im
+   Live-Widget (gleiche Klassen) und damit auch im PDF-Export. max-height
+   none statt der 45vh-Hover-Grenze, damit der Druck das komplette YAML
+   zeigt; Hover-/Pin-Mechanik bleibt ohne die Klasse unveraendert. */
+:root.frontmatter-expanded .markdown-body .frontmatter-block pre.frontmatter-yaml {
+  max-height: none;
+  overflow-y: visible;
+  padding: 2px 10px 10px;
+  transition: none;
+}
+:root.frontmatter-expanded .markdown-body .frontmatter-chevron {
+  transform: rotate(45deg);
+  transition: none;
+}
+
+/* === Historien-Ansicht (4T-0333, Epic 3E-0060) ============================ */
+/* Read-only System-Seite: Revisionsliste als Tabelle, darunter der
+   Detail-Bereich (Revision read-only bzw. Zeilen-Diff mit Hunks). */
+.history-page {
+  padding: 16px 20px;
+  max-width: 920px;
+  font-size: 13px;
+}
+.history-heading {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.history-empty {
+  color: var(--fg-muted);
+}
+.history-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.history-table th,
+.history-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+}
+.history-table th {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.history-changes {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.history-actions button,
+.history-compare-btn {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font: inherit;
+}
+.history-actions button {
+  margin-right: 6px;
+}
+.history-actions button:hover,
+.history-compare-btn:hover {
+  background: var(--hover);
+}
+.history-compare-btn {
+  margin: 12px 0;
+  padding: 4px 12px;
+}
+.history-text {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  font-family: var(--font-editor, Consolas, monospace);
+  font-size: 12px;
+}
+.history-diff {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-editor, Consolas, monospace);
+  font-size: 12px;
+  overflow-x: auto;
+}
+.history-diff-line {
+  padding: 1px 8px;
+  white-space: pre-wrap;
+}
+.history-diff-ins {
+  background: var(--diff-ins-bg);
+}
+.history-diff-del {
+  background: var(--diff-del-bg);
+}
+.history-diff-gap {
+  color: var(--fg-muted);
+  text-align: center;
+  padding: 1px 8px;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+}
+
+/* === Bereichs-Statistik (4T-0620, Epic 3E-0117) =========================== */
+/* Read-only System-Seite: Kopfzeile mit Stand und Aktualisieren-Knopf,
+   darunter sechs Abschnitte. Optik und Variablen wie die Historien-Seite. */
+/* 4T-0868 (Epic 3E-0162): Regal-Ansicht — Kachel- und Zeilen-Darstellung. */
+.shelf-view-page {
+  padding: 16px 20px;
+  max-width: 1080px;
+  font-size: 13px;
+}
+.shelf-view-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.shelf-view-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.shelf-view-note {
+  color: var(--fg-muted);
+  margin: 8px 0;
+}
+.shelf-view-toggle {
+  display: flex;
+  gap: 0;
+}
+.shelf-view-toggle-button {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.shelf-view-toggle-button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+.shelf-view-toggle-button:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+.shelf-view-toggle-button:hover {
+  background: var(--hover);
+}
+.shelf-view-toggle-button.active {
+  background: var(--hover);
+  font-weight: 600;
+}
+.shelf-view-section {
+  margin: 22px 0 0;
+}
+.shelf-view-section-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.shelf-view-action {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.shelf-view-action:hover {
+  background: var(--hover);
+}
+.shelf-view-clickable {
+  cursor: pointer;
+}
+.shelf-view-hint {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+/* Kachel-Darstellung: Raster nebeneinander und untereinander (AK2). */
+.shelf-view-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+.shelf-view-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--bg-alt);
+}
+.shelf-view-tile.shelf-view-clickable:hover {
+  background: var(--hover);
+}
+.shelf-view-tile-image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+.shelf-view-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+  background: var(--hover);
+  color: var(--fg);
+  overflow: hidden;
+}
+.shelf-view-placeholder-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.shelf-view-tile-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.shelf-view-tile-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* Zeilen-Darstellung: Miniatur, Name, Kapitel-Anzahl, Autor, Beschreibung. */
+.shelf-view-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shelf-view-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--bg-alt);
+}
+.shelf-view-row.shelf-view-clickable:hover {
+  background: var(--hover);
+}
+.shelf-view-row-image {
+  width: 48px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: block;
+}
+.shelf-view-row-image.shelf-view-placeholder {
+  padding: 4px;
+  font-size: 9px;
+}
+.shelf-view-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shelf-view-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.shelf-view-row-title {
+  font-weight: 600;
+}
+.shelf-view-row-meta {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.shelf-view-row-author {
+  color: var(--fg-muted);
+}
+.shelf-view-row-description {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.shelf-view-row-actions {
+  flex-shrink: 0;
+}
+
+.area-stats-page {
+  padding: 16px 20px;
+  max-width: 920px;
+  font-size: 13px;
+}
+.area-stats-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.area-stats-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.area-stats-head-right {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.area-stats-stand {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.area-stats-refresh,
+.area-stats-more {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.area-stats-refresh:hover:not(:disabled),
+.area-stats-more:hover {
+  background: var(--hover);
+}
+.area-stats-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.area-stats-note {
+  color: var(--fg-muted);
+  margin: 8px 0;
+}
+.area-stats-error {
+  color: #c0392b;
+}
+[data-theme='dark'] .area-stats-error {
+  color: #ff7b72;
+}
+.area-stats-section {
+  margin: 18px 0 0;
+}
+.area-stats-section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.area-stats-count {
+  margin: 0 0 6px;
+  color: var(--fg-muted);
+}
+.area-stats-empty {
+  color: var(--fg-muted);
+  margin: 4px 0;
+}
+.area-stats-figures,
+.area-stats-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.area-stats-figures td,
+.area-stats-table th,
+.area-stats-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 3px 8px;
+  text-align: left;
+}
+.area-stats-table th {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.area-stats-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.area-stats-sortable:hover {
+  background: var(--hover);
+}
+.area-stats-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.area-stats-sub {
+  padding-left: 24px;
+  color: var(--fg-muted);
+}
+.area-stats-more {
+  margin-top: 8px;
+}
+/* Die drei Top-Listen stehen nebeneinander, solange die Spalte breit genug
+   ist, und brechen darunter untereinander um. */
+.area-stats-tops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.area-stats-top {
+  flex: 1 1 240px;
+  min-width: 220px;
+}
+.area-stats-top-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.area-stats-file {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+.area-stats-file:hover {
+  text-decoration: underline;
+}

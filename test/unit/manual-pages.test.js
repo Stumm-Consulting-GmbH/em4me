@@ -1,6 +1,6 @@
 // 4T-0215 (Epic 3E-0042): Vollstaendigkeits-Waechter der Handbuch-Seiten.
 //
-// Jede gebuendelte Seite der Registry (src/shared/manual-pages.js) braucht
+// Jede gebuendelte Seite der Registry (src/shared/manual/manual-pages.js) braucht
 // alle fuenf Sprachfassungen unter src/i18n/help/<id>.<lang>.md, und jeder
 // titleKey existiert in allen fuenf Sprachdateien. Eine neue Seite ohne
 // vollstaendige Uebersetzungen laesst `npm test` fehlschlagen — analog zum
@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MANUAL_PAGES } from '../../src/shared/manual-pages.js';
+import { MANUAL_PAGES } from '../../src/shared/manual/manual-pages.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');

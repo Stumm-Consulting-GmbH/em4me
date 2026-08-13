@@ -28,7 +28,7 @@ document.body.insertAdjacentHTML(
 // Der Import selbst ist bereits der Kern der Pruefung: Die Anmeldung steht am
 // Modulkopf, der Handler existiert also nach dem Laden und vor jeder Init.
 const reminders = await import('../../../src/renderer/modules/reminders.js');
-const { editorActivity } = await import('../../../src/renderer/modules/app-state.js');
+const { editorActivity } = await import('../../../src/renderer/modules/app/app-state.js');
 
 const faellig = (key) => ({
   items: [

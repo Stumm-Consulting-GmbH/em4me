@@ -1,5 +1,5 @@
 // 4T-0320 (Epic 3E-0057): Unit-Tests für das App-Sitzungs-Schema
-// (src/main/session-schema.js) — Migration des flachen Bestands-Formats und
+// (src/main/app/session-schema.js) — Migration des flachen Bestands-Formats und
 // defensive Normalisierung des persistierten Stands.
 // 4T-0537 (Epic 3E-0098): dazu die Normalisierung der Arbeitsbereichs-Ablage
 // (Store-Key 'workspaces').
@@ -8,7 +8,7 @@ import {
   migrateWindowsToApps,
   normalizeSavedApps,
   normalizeSavedWorkspaces,
-} from '../../src/main/session-schema.js';
+} from '../../src/main/app/session-schema.js';
 
 const WIN = { bounds: { x: 0, y: 0, width: 800, height: 600 }, maximized: false, panes: [] };
 

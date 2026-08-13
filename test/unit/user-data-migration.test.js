@@ -16,7 +16,7 @@ import {
   migrateUserData,
   PREVIOUS_PRODUCT_NAMES,
   MIGRATED_USER_DATA,
-} from '../../src/main/user-data-migration.js';
+} from '../../src/main/app/user-data-migration.js';
 
 const temps = [];
 const mkTemp = () => {

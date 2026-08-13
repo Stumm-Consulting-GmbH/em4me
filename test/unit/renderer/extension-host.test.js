@@ -26,13 +26,13 @@ window.api.scanExternalExtensions = async () => [];
 window.api.configureExternalMarkdownPlugins = async () => ({});
 window.api.confirmExternalExtensionTrust = async () => true;
 
-const host = await import('../../../src/renderer/modules/extension-host.js');
+const host = await import('../../../src/renderer/modules/extensions/extension-host.js');
 const { sidebarPanelById } = await import('../../../src/renderer/modules/sidebar-layout.js');
-const { COMMANDS } = await import('../../../src/shared/commands.js');
+const { COMMANDS } = await import('../../../src/shared/commands/commands.js');
 const { tExtension } = await import('../../../src/renderer/i18n.js');
-const { extensionById } = await import('../../../src/shared/extensions.js');
+const { extensionById } = await import('../../../src/shared/extensions/extensions.js');
 const { EXTERNAL_ENABLED_KEY, EXTERNAL_ERRORS_KEY, EXTERNAL_TRUSTED_KEY } =
-  await import('../../../src/shared/extensions-external.js');
+  await import('../../../src/shared/extensions/extensions-external.js');
 
 const ENTRY_SRC = `
 let deactivated = false;

@@ -9,7 +9,7 @@
 // in den Renderer-Bundle).
 'use strict';
 
-import { api } from './api.js';
+import { api } from './app/api.js';
 
 let enabled = true;
 // 4T-0312 (Epic 3E-0055): dauerhaft ausgeklappte Darstellung (Setting

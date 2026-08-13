@@ -22,11 +22,11 @@
 import { StateField, StateEffect } from '@codemirror/state';
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import { t } from '../i18n.js';
-import { api, getDocText } from './api.js';
-import { state, getPaneEls } from './app-state.js';
-import { paneEditors } from './editor.js';
-import { liveBasePathFacet } from './live-widgets.js';
-import { openBlockPropsForAnchor } from './block-props-panel.js';
+import { api, getDocText } from './app/api.js';
+import { state, getPaneEls } from './app/app-state.js';
+import { paneEditors } from './editor/editor.js';
+import { liveBasePathFacet } from './live/live-block-field.js';
+import { openBlockPropsForAnchor } from './properties/block-props-panel.js';
 import { extractBlockAnchors } from '../../shared/block-anchors.js';
 
 // Cache: Datei-Pfad (lowercase) -> Map<ankerId, values>. Nur Anker mit

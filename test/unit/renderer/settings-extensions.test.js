@@ -6,11 +6,11 @@
 // „Erweiterungen", wenn der offene Bereich wegfällt.
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
-import { allExtensions } from '../../../src/shared/extensions.js';
+import { allExtensions } from '../../../src/shared/extensions/extensions.js';
 
-const settingsPage = await import('../../../src/renderer/modules/settings-page.js');
-const systemPages = await import('../../../src/renderer/modules/system-pages.js');
-const lifecycle = await import('../../../src/renderer/modules/extension-lifecycle.js');
+const settingsPage = await import('../../../src/renderer/modules/settings/settings-page.js');
+const systemPages = await import('../../../src/renderer/modules/app/system-pages.js');
+const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 
 // Vorherige Mounts abraeumen: doppelte Element-IDs aus Vor-Tests lassen
 // jsdom ID-Selektoren sonst am falschen (alten) Container aufloesen.

@@ -7,21 +7,28 @@
 // 4T-0420 (Epic 3E-0079): typ-gerechte Vergleicher, Ansichts-Sortierung
 // und Zeilen-Filter (gefilterte Aggregate) ergänzt.
 import { describe, it, expect } from 'vitest';
+// 4T-0986 (Epic 3E-0196): Modul-Familie geschnitten; die Namen kommen
+// direkt aus dem jeweiligen Modul (Kern, berechnete Spalten, Ansicht,
+// HTML). Die geprüften Fälle bleiben unverändert.
 import {
   parsePerspectiveDatatable,
   serializePerspectiveDatatable,
   computeAggregates,
+  renderPerspectiveDatatableViewer,
+  convertPerspectiveDatatableBlockToHtml,
+} from '../../src/shared/markdown/perspective-datatable.js';
+import {
   computeComputedCells,
   makeCellValueResolver,
+} from '../../src/shared/markdown/perspective-datatable-computed.js';
+import {
   formatCellDisplay,
   compareCellValues,
   sortDatatableRows,
   filterDatatableRows,
-  renderPerspectiveDatatableViewer,
-  convertPerspectiveDatatableBlockToHtml,
   findPerspectiveDatatableFences,
-  MAX_RENDER_ROWS,
-} from '../../src/shared/markdown/perspective-datatable.js';
+} from '../../src/shared/markdown/perspective-datatable-view.js';
+import { MAX_RENDER_ROWS } from '../../src/shared/markdown/perspective-datatable-html.js';
 
 // Kompakter Helfer: parst und erwartet fehlerfreie Struktur.
 function parseOk(body) {

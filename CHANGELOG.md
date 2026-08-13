@@ -14,6 +14,102 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.107.0.1503] - 2026-08-13 — Innere Struktur: der Bestand auf das Größen-Budget geschnitten
+
+Epic 3E-0196: ein Release **ohne nutzersichtbare Änderung**. Es schneidet den
+historisch gewachsenen Bestand großer Quelldateien auf das seit dem 2026-08-05
+geltende Größen-Budget zu, in 32 Schnitt- und Umzugs-Tasks entlang einer vorab
+begründeten Reihenfolge. Die Zusage jedes einzelnen Schnitts war
+Verhaltens-Gleichheit; belegt ist sie über unveränderte Prüf-Läufe vor und nach
+dem Schnitt, byte-gleiche Rumpf-Verschiebungen und maschinelle Invarianten wie
+die Kanal- und die Listener-Liste. Die Ausnahmen-Liste der Größen-Ratsche ist
+von 73 auf 52 Einträge gefallen, davon nur noch sieben über 1000 Zeilen, und
+jeder verbliebene Eintrag trägt jetzt eine Begründung statt bloß seiner
+Herkunft.
+
+Umsetzungs-Vorgänge des Epics: 4T-0964, 4T-0972, 4T-0973, 4T-0974, 4T-0975,
+4T-0976, 4T-0977, 4T-0978, 4T-0979, 4T-0980, 4T-0981, 4T-0982, 4T-0983,
+4T-0984, 4T-0985, 4T-0986, 4T-0987, 4T-0988, 4T-0989, 4T-0990, 4T-0991,
+4T-0992, 4T-0993, 4T-0994, 4T-0995, 4T-0996, 4T-0997, 4T-0998, 4T-0999,
+4T-1000, 4T-1001, 4T-1002, 4T-1003, 4T-0965 und 4T-0966.
+
+### Geändert
+
+- **Der Main-Prozess ist zerlegt** (4T-0998 bis 4T-1000): `main.js` fällt von
+  6908 auf 306 Zeilen. Dreizehn Logik- und Fenster-Module entstehen als
+  Factories mit übergebenen Abhängigkeiten, die 156 IPC-Registrierungen wandern
+  in siebzehn Kanal-Gruppen-Module unter `src/main/ipc/`. Grundlage ist die
+  Entscheidung E1 in der Variante B: Ein Modul registriert seine Kanäle selbst,
+  aber ausschließlich über die von `main.js` übergebene Registrier-Funktion. Die
+  bisherige Regel «nur `main.js` registriert» ist damit abgelöst. Nachgewiesen
+  ist der Schnitt über die Kanal-Invariante, 156 Kanäle vor wie nach dem
+  Schnitt.
+- **Renderer-Start, Editor und Ereignis-Bearbeitung** (4T-1001 bis 4T-1003): Die
+  App-Initialisierung fällt von 3123 auf 760 Zeilen (neun Module,
+  Listener-Invariante 94), der Editor-Kern von 1860 auf 761 und die
+  Ereignis-Bearbeitung von 1935 auf 401 Zeilen. Editor und Ereignisse ziehen in
+  eigene Feature-Ordner um und nehmen ihre Bestands-Dateien mit; die
+  Reihenfolge der Editor-Erweiterungen bleibt dabei byte-gleich.
+- **Die großen Renderer-Bausteine** (4T-0985 bis 4T-0997): Die
+  Einstellungs-Seite fällt von 7266 Zeilen auf 24 Module mit einem Kern von 569
+  Zeilen, die Ansichten auf zwölf, die Panels auf neun und die Lesezeichen auf
+  sieben Module; der Live-Modus ist in zwei Stufen auf Pass-Module zerlegt, die
+  Markdown-Plugins liegen als sieben Gruppen-Module hinter einem Barrel mit
+  unveränderter Export-Fläche, und das Stilblatt des Renderers verteilt sich auf
+  18 Scheiben, deren Verkettung byte-gleich zum Original ist. Das Stilblatt war
+  mit 10271 Zeilen der größte Ratschen-Eintrag des Bestands.
+- **Die Kern-Module der ersten Tranche** (4T-0977 bis 4T-0984): Der
+  Backlinks-Index wird zur 88-Zeilen-Fassade über 14 Untermodulen, dazu kommen
+  die Schnitte an Dialogen, Block-Eigenschaften, Buch-Panel, Properties-Tags,
+  Aufgaben-Markern und dem Ereignis-Kern. Diese Tranche hat die Muster gesetzt,
+  denen die späteren Schnitte folgen.
+- **Feature-Ordner statt flacher Modul-Listen** (Entscheidung E3, Sammel-Umzug
+  4T-0997): Der Main-Prozess führt 82 Module in neun Feature-Ordnern plus
+  `ipc/`, der Renderer 185 Module in achtzehn Feature-Ordnern. Der Sammel-Umzug
+  allein hat 83 Module verschoben, neun deutsch benannte Bestands-Dateien
+  englisch umbenannt und 720 Import-Spezifizierer in 224 Dateien nachgezogen.
+  Fassaden bleiben die Ausnahme und stehen nur dort, wo sie eine bewusste
+  Subsystem-API sind.
+
+### Intern
+
+- **Werkzeuge, Tests und Web-Bau vorab geschnitten** (4T-0972 bis 4T-0976): Der
+  PM-Linter liegt als Fassade über fünf Regelgruppen-Modulen bei byte-gleicher
+  Baseline, der Web-Bau als Fassade über fünf Bau-Modulen mit allen 61
+  Export-Namen, das Web-Stilblatt als drei Scheiben in erhaltener
+  Kaskaden-Reihenfolge, und zwei über 1000 Zeilen lange Specs sind bei
+  unveränderter Testfall-Bilanz geteilt. Dieser Strang trägt keinen
+  Produkt-Code-Anteil und ist deshalb fortlaufend integriert worden.
+- **Ausnahmen-Liste der Größen-Ratsche begründet** (4T-0965): 39 der 52
+  Einträge haben eine faktenbasierte Begründung bekommen, 13 trugen sie bereits.
+  Die Verzichts-Gründe sind benannt (geschlossene Fachlichkeit ohne tragfähige
+  Naht, Schablonen- oder Registry-Charakter, Zeilenzahl nah am Budget), und fünf
+  Einträge stehen ausdrücklich als «Naht vorhanden, Schnitt bewusst
+  zurückgestellt». Eine überholte Schnitt-Zusage im Bestand ist aufgelöst.
+- **Pfad-Nachzug nach den Umzügen** (4T-0965): 133 Ersetzungen in 92 Dateien,
+  ausschließlich in Kommentaren, in der Ausnahmen-Liste und in drei
+  Anforderungs-Dateien. Kein ausführbarer Code ist dabei berührt worden; 36
+  bewusst belassene Stellen sind synthetische Fixture-Pfade.
+
+### Dokumentation
+
+- **Bestandsaufnahme vor dem ersten Schnitt** (4T-0964): 31 Dateien über 1000
+  Zeilen sind mit Schnitt-Vorschlag, erwartetem Gewinn und Risiko vermessen
+  worden; daraus entstanden die freigegebene Reihenfolge, die Ziel-Ordner-
+  Landkarte und die Entscheidungen E1 bis E4 samt der übergeordneten Direktive,
+  die Struktur auf Jahre von Zusatzfunktionalität auszulegen.
+- **Drei neue Regeln im Modul-Schnitt-Kapitel der Entwicklungsrichtlinien**
+  (4T-0965): Ein gerissenes Budget führt zum Nachschnitt an der fachlichen Naht
+  und nicht zur neuen Ausnahme; beim Teilen einer Datei bekommt jeder geteilte
+  Zustand genau ein Eigentümer-Modul mit Zugriffs-Funktionen; eine Zerlegung
+  ohne Verhaltens-Änderung wird über byte-gleiche Rumpf-Verschiebung,
+  Abdeckungs-Prüfung und maschinellen Invarianten-Abgleich nachgewiesen.
+- **Architektur fortgeschrieben** (Architektur-Prüfschritt des Epics, 4T-0965):
+  Das Kapitel zur Code-Struktur ist am realen Baum neu geschrieben, neu sind die
+  Sektionen zum Main-Prozess-Schnitt mit der Registrier-Regel nach E1 und zu den
+  Struktur-Invarianten des Modul-Schnitts, dazu Erweiterungen am
+  Renderer-Schnitt, drei Glossar-Einträge und der Stand-Vermerk.
+
 ## [1.106.0.1407] - 2026-08-11 — Hauptrelease 1: Reife und der geschriebene Stand
 
 Epic 3E-0016: die Reife-Klammer vor dem Hauptversions-Sprung. Sie hat den Bestand

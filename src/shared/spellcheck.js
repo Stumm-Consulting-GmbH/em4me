@@ -21,7 +21,7 @@
 // (Architekturentscheidung 5 des Epics).
 const SPELLCHECK_KEY = 'editor.spellcheck';
 
-// ID der schaltbaren Erweiterung (src/shared/extensions.js).
+// ID der schaltbaren Erweiterung (src/shared/extensions/extensions.js).
 const SPELLCHECK_EXTENSION_ID = 'spellcheck';
 
 // Wert des spellcheck-Attributs der Editor-Flaeche. Beide Bedingungen muessen

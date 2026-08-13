@@ -1,6 +1,6 @@
 // 4T-0638 (Epic 3E-0069): Timer- und Stoppuhr-Modell der Uhr-Erweiterung.
 //
-// Prueft die prozessneutralen Funktionen aus src/shared/clock-timers.js:
+// Prueft die prozessneutralen Funktionen aus src/shared/clock/clock-timers.js:
 // Normalisierung defekter Staende, Restzeit-Rechnung aus Zeitstempeln
 // (inklusive Hintergrund-Sprung), Zustands-Uebergaenge, den naechsten
 // Ablauf-Zeitpunkt sowie die Formatierung. Bewusst ohne jsdom.
@@ -32,7 +32,7 @@ import {
   timerIsDue,
   timerProgress,
   timerRemaining,
-} from '../../src/shared/clock-timers.js';
+} from '../../src/shared/clock/clock-timers.js';
 
 const T0 = 1_000_000_000;
 const MIN = 60000;

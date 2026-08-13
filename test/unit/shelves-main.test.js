@@ -1,5 +1,5 @@
 // 4T-0867 (Epic 3E-0162): Unit-Tests der Datei-Ebene des Bücherregals
-// (src/main/shelves.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
+// (src/main/books/shelves.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
 // (Story S-0760, AK2), Zustands-Aufbau für die Preload-API, Neuanlage (AK3)
 // und Zuordnung samt «nicht zugeordnet» (AK4). Setup-Muster
 // test/unit/books-main.test.js (mkdtemp je Fall, Aufräumen im afterEach).
@@ -19,12 +19,12 @@ import {
   sanitizeShelfName,
   shelfFileExists,
   unassignBookDir,
-} from '../../src/main/shelves.js';
+} from '../../src/main/books/shelves.js';
 import {
   BOOK_SETTINGS_FILENAME,
   emptyBookContainer,
   serializeBookContainer,
-} from '../../src/shared/book-core.js';
+} from '../../src/shared/books/book-core.js';
 
 let tmpDirs = [];
 

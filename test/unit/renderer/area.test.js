@@ -6,7 +6,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import './api-stub.js';
 
 const area = await import('../../../src/renderer/modules/area.js');
-const { state } = await import('../../../src/renderer/modules/app-state.js');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 const DOC = 'C:\\Daten\\Notizen\\Sub\\doku.md';
 

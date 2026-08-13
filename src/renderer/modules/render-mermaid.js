@@ -3,49 +3,50 @@
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
 'use strict';
 
-import { refreshSearchIfVisible } from './search.js';
+import { refreshSearchIfVisible } from './search/search.js';
 
 import { applyTranslations, t } from '../i18n.js';
 
-import { enqueueMermaidRun } from './live-widgets.js';
-import { api } from './api.js';
+import { enqueueMermaidRun } from './live/live-mermaid-widget.js';
+import { api } from './app/api.js';
 // 4T-0293 (Epic 3E-0052): Mermaid ist eine schaltbare Render-Erweiterung —
 // deaktiviert bleibt der ```mermaid-Block ein regulaerer Code-Block.
-import { isExtensionActive } from './extension-lifecycle.js';
-import { activeTab, state } from './app-state.js';
+import { isExtensionActive } from './extensions/extension-lifecycle.js';
+import { activeTab, state } from './app/app-state.js';
 // 4T-0324 (Epic 3E-0058): Aussen-Link-Warnung der Bereichs-Apps als Teil
 // der Render-Nachverarbeitung.
 import { markOutsideAreaLinks } from './area.js';
-import { paneEditors } from './editor.js';
+import { paneEditors } from './editor/editor.js';
 // 4T-0790 (Epic 3E-0125): Anlagen-Embeds oeffnen ueber denselben Kanal wie
 // verlinkte Anlagen und Bilder.
-import { oeffneAnlage } from './views.js';
-import { openInPane } from './tabs.js';
+import { oeffneAnlage } from './views/link-navigation.js';
+import { openInPane } from './tabs/tabs.js';
 // 4T-0355 (Epic 3E-0065): Befüllung der perspective-query-Platzhalter mit der
 // dynamischen Datei-Liste (Render-Pane und Reading über diese Pipeline).
-import { applyFrontmatterQueriesIfPresent } from './frontmatter-query-view.js';
+import { applyFrontmatterQueriesIfPresent } from './query/frontmatter-query-view.js';
 // 4T-0435 (Epic 3E-0081): Journal-Navigations-Block (perspective-journal-nav)
 // mit Kontext aus dem Datei-Pfad befüllen, analog zur Abfrage-Befüllung.
-import { applyJournalNavIfPresent } from './journal-nav-view.js';
+import { applyJournalNavIfPresent } from './calendar/journal-nav-view.js';
 // 4T-0412 (Epic 3E-0078): Skript-Blöcke (perspective-script) — Sandbox-
 // Ausführung bzw. Quelltext-Rückfall, analog zur Abfrage-Befüllung.
-import { applyPerspectiveScriptsIfPresent } from './perspective-script-view.js';
+import { applyPerspectiveScriptsIfPresent } from './query/perspective-script-view.js';
 // 4T-0365 (Epic 3E-0067): Block-Metadaten-Indikator als Render-Nachverarbeitung.
 import { applyBlockMetaIndicators } from './block-meta-indicator.js';
 // 4T-0418 (Epic 3E-0079): Lokalisierung der Perspective-Datatable-Texte
 // mit Platzhaltern (Struktur-Fehler, Zeilen-Limit).
-import { applyPerspectiveDatatablesIfPresent } from './perspective-datatable-view.js';
+import { applyPerspectiveDatatablesIfPresent } from './query/perspective-datatable-view.js';
 // 4T-0512 (Epic 3E-0092): Ereignis-Fence — Lokalisierung/Differenz-Spalte
 // und Editor-Bindung (delegierte Listener, idempotent pro Container).
-import { applyPerspectiveEventsIfPresent } from './events-view.js';
-import { bindPerspectiveEventsEditor, applyPerspectiveEventsViewStates } from './events-editor.js';
+import { applyPerspectiveEventsIfPresent } from './events/events-view.js';
+import { bindPerspectiveEventsEditor } from './events/events-editor.js';
+import { applyPerspectiveEventsViewStates } from './events/events-view-state.js';
 // 4T-0419 (Epic 3E-0079): Grid-Editor der Datatable (delegierte Listener,
 // idempotent pro Container). 4T-0420: plus Wiederanwendung des Ansichts-
 // Zustands (Sortierung/Filter) nach jedem Voll-Render.
 import {
   bindPerspectiveDatatableEditor,
   applyPerspectiveDatatableViewStates,
-} from './perspective-datatable-editor.js';
+} from './query/perspective-datatable-editor.js';
 
 // --- Mermaid (4T-0021) ------------------------------------------------------
 // Mermaid wird per dynamischem import() lazy geladen (siehe scripts/

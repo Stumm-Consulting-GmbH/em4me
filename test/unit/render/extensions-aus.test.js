@@ -12,14 +12,13 @@ import {
 } from '../../../src/shared/markdown/markdown.js';
 // 4T-0849 (Epic 3E-0147): deklarative Seite des Aus-Zustands (Kommandos,
 // Panel-Zugang) fuer Erweiterungen ohne Render-Konstrukt.
+import { extensionById, internalExtensions } from '../../../src/shared/extensions/extensions.js';
 import {
   disabledCommandIdSet,
   effectiveDisabledSet,
-  extensionById,
-  internalExtensions,
   isExtensionEnabled,
-} from '../../../src/shared/extensions.js';
-import { COMMANDS } from '../../../src/shared/commands.js';
+} from '../../../src/shared/extensions/extensions-core.js';
+import { COMMANDS } from '../../../src/shared/commands/commands.js';
 import { panelAccessById } from '../../../src/shared/panel-access.js';
 
 afterEach(() => {

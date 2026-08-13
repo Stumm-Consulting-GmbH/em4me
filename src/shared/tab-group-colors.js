@@ -1,6 +1,6 @@
 // 4T-0537 (Epic 3E-0098): Acht-Farben-Palette der Tab-Gruppen als
-// Shared-Konstante (CJS, Muster src/shared/commands.js) — aus
-// src/renderer/modules/tab-groups.js hierher gezogen, damit Renderer
+// Shared-Konstante (CJS, Muster src/shared/commands/commands.js) — aus
+// src/renderer/modules/tabs/tab-groups.js hierher gezogen, damit Renderer
 // (Tab-Gruppen-UI, Arbeitsbereichs-UI) und Main (Schema-Normalisierung
 // der Arbeitsbereichs-Farben) denselben Wahrheitsort lesen.
 //

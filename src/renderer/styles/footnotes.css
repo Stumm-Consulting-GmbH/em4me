@@ -1,0 +1,516 @@
+/* 4T-0992 (Epic 3E-0196): Scheibe 11 von 18 des Renderer-Stilblatts,
+   in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
+   Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
+   nicht verändert werden.
+   Inhalt: Footnotes. */
+
+/* === Footnotes (4T-0063, Epic 3E-0012) ==================================== */
+/* `[^id]` rendert als hochgestellte Verweis-Zahl mit Anchor-Link; die zuge-
+   hoerigen `[^id]: Def`-Definitionen sammelt markdown-it-footnote am Datei-
+   Ende in einer <section class="footnotes">. */
+.markdown-body sup.footnote-ref {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+}
+.markdown-body sup.footnote-ref a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.markdown-body sup.footnote-ref a:hover {
+  text-decoration: underline;
+}
+/* markdown-it-footnote rendert per Default ein <hr class="footnotes-sep">
+   direkt vor der Footnote-Section. Da unser .footnotes-border-top den
+   gleichen visuellen Zweck erfuellt (und theme-konform mit var(--border)
+   arbeitet), wird die zusaetzliche hr unterdrueckt. */
+.markdown-body hr.footnotes-sep {
+  display: none;
+}
+.markdown-body .footnotes {
+  margin-top: 2em;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--border);
+  font-size: 0.9em;
+  color: var(--fg-muted);
+}
+.markdown-body .footnotes ol {
+  padding-left: 1.5em;
+}
+.markdown-body .footnotes li {
+  margin: 0.3em 0;
+}
+.markdown-body .footnotes p {
+  margin: 0.2em 0;
+}
+.markdown-body .footnote-backref {
+  text-decoration: none;
+  color: var(--accent);
+  margin-left: 0.3em;
+}
+.markdown-body .footnote-backref:hover {
+  text-decoration: underline;
+}
+
+/* Editor-Highlighting fuer `[^id]`-Referenzen und `[^id]:`-Definitionen. */
+.cm-editor .cm-footnote-marker {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 4T-0080/4T-0081 (Epic 3E-0014): Inline-Live-Preview-Decorations. Marker-
+   Zeichen werden in nicht-aktiven Zeilen ueber `font-size: 0` ausgeblendet —
+   Caret-freundlicher als `display: none`, weil das Zeichen-Layout im Doc
+   erhalten bleibt und CodeMirror keine Cursor-Positionen verliert. Inhalt
+   zwischen den Markern bekommt typografisches Styling. Theme-konform ueber
+   currentColor und CSS-Custom-Properties; kein Theme-spezifisches Override
+   noetig. */
+.cm-editor .cm-live-marker-hidden {
+  font-size: 0;
+  letter-spacing: 0;
+}
+.cm-editor .cm-live-bold {
+  font-weight: bold;
+}
+.cm-editor .cm-live-italic {
+  font-style: italic;
+}
+/* 4T-0081: Strikethrough analog zum Render-Pane; Style kommt zusaetzlich
+   bereits aus mdHighlightStyle (tags.strikethrough). */
+.cm-editor .cm-live-strikethrough {
+  text-decoration: line-through;
+}
+/* 4T-0081: Inline-Code im Live-Modus. Spike-konformer Stil: monospace und
+   Code-Farbe (var(--syntax-code)), KEIN Box-Hintergrund. Bewusst entschieden,
+   damit der Source-Look beim Live-Toggle nicht durch Pillen-Effekte aus dem
+   Editor-Rahmen bricht. */
+.cm-editor .cm-live-code {
+  font-family: var(--font-mono);
+  color: var(--syntax-code);
+}
+/* 4T-0081: Tag-Pillen, subtiler Stil. Dezenter Hintergrund aus --accent-soft,
+   Akzentfarbe fuer `#` und Tag-Text. Keine Rundung, gleiche Schriftgroesse —
+   passt in den Mono-Font-Editor ohne Zeilenhoehen-Unruhe. */
+.cm-editor .cm-live-tag {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  /* K-09 (4T-0186): Tags sind im Live-Modus jetzt klickbar (Tag-Filter). */
+  cursor: pointer;
+}
+/* 4T-0082: Markdown- und Wiki-Links im Live-Modus. Akzentfarbe, Unterstreichung
+   beim Hover als Klick-Indikator (analog zu Browser-Links). Cursor zeigt
+   Pointer, damit klar wird, dass der Span klickbar ist. */
+.cm-editor .cm-live-link,
+.cm-editor .cm-live-wikilink {
+  color: var(--accent);
+  cursor: pointer;
+}
+.cm-editor .cm-live-link:hover,
+.cm-editor .cm-live-wikilink:hover {
+  text-decoration: underline;
+}
+/* 4T-0082: Footnote-Verweise im Live-Modus als hochgestelltes id-Zeichen.
+   font-size:0.75em und vertical-align:super entsprechen einer typischen
+   sup-Darstellung; line-height bleibt unberuehrt, damit die Zeilenhoehe nicht
+   springt. Akzentfarbe + Pointer-Cursor signalisieren Klickbarkeit. */
+.cm-editor .cm-live-footnote-ref {
+  vertical-align: super;
+  font-size: 0.75em;
+  color: var(--accent);
+  cursor: pointer;
+}
+.cm-editor .cm-live-footnote-ref:hover {
+  text-decoration: underline;
+}
+/* 4T-0082: Tooltip-Container fuer Footnote-Definitionen bei Hover. Nutzt das
+   CodeMirror-tooltip-Wrapping (.cm-tooltip) und stylet nur den Innenbereich.
+   Theme-konform ueber die bekannten Variablen. */
+.cm-editor .cm-tooltip .cm-live-footnote-tooltip {
+  padding: 6px 8px;
+  max-width: 360px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+/* 4T-0083 (Epic 3E-0014): Block-Markup-Decorations im Live-Modus. Headings
+   in Render-Pane-konformen Stufen (H1=1.9em, H2=1.5em, H3=1.25em analog
+   styles.css:1123). H4-H6 etwas dezenter als im Browser-Default, damit der
+   Editor-Look ruhig bleibt. */
+.cm-editor .cm-line.cm-live-h1 {
+  font-size: 1.9em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cm-editor .cm-line.cm-live-h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cm-editor .cm-line.cm-live-h3 {
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cm-editor .cm-line.cm-live-h4 {
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cm-editor .cm-line.cm-live-h5 {
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cm-editor .cm-line.cm-live-h6 {
+  font-size: 0.95em;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fg-muted);
+}
+/* Setext-Unterstreichung in Nicht-Cursor-Zeile per cm-live-marker-hidden
+   ausgeblendet. In Cursor-Zeile bleibt sie sichtbar und wird dezent gestylt,
+   damit der Titel optisch nicht zerfaellt. */
+.cm-editor .cm-line.cm-live-setext-underline {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+}
+/* Blockquote im Live-Modus: linker Akzent-Balken plus Einrueckung und
+   gedaempfte Schrift. Akzent-Farbe ueber --syntax-quote (gleiche Quelle wie
+   die Heading-Highlight-Stufe aus mdHighlightStyle). Padding-Left enthaelt
+   den 4px-Balken, weil border-left in Editor-Zeilen sauberer haelt als
+   Margin. */
+.cm-editor .cm-line.cm-live-blockquote {
+  border-left: 4px solid var(--border-strong);
+  padding-left: 0.6em;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+/* Horizontale Trennlinie: border-bottom auf der Zeile zeichnet die Linie,
+   padding-bottom haelt die Zeile auf einer sichtbaren Mindesthoehe, auch
+   wenn der Markup-Text (`---`/`***`) per cm-live-marker-hidden auf font-
+   size 0 geschrumpft ist. Border-bottom statt ::before-Pattern, weil
+   absolute Positionierung in CodeMirror-managed cm-line-Elementen
+   unzuverlaessig ausfaellt, sobald die Zeile fast keine Hoehe hat. */
+.cm-editor .cm-line.cm-live-hr {
+  border-bottom: 1px solid var(--border-strong);
+  padding-bottom: 0.4em;
+}
+/* Listen-Items: keine Marker-Aenderung (Marker bleibt sichtbar wie im
+   Source-Modus, Entscheidung Punkt 4 vom 2026-05-24). Nur dezente
+   Einrueckung, falls der Layout-Kontext sie nicht ohnehin liefert.
+   Aktuell ist das ein Platzhalter ohne weitere Stylings — laesst sich
+   bei spaeteren Layout-Wuenschen ausbauen, ohne neue Klassen einzu-
+   fuehren. */
+.cm-editor .cm-line.cm-live-list-bullet,
+.cm-editor .cm-line.cm-live-list-number {
+  /* keine spezifischen Eigenschaften — Marker wird sichtbar gelassen. */
+}
+/* Task-Marker: `[ ]`/`[x]` per cm-live-marker-hidden ausgeblendet, davor
+   per ::before ein leeres oder gefuelltes Quadrat als Checkbox-Symbol.
+   Pointer-Cursor markiert Klickbarkeit; mousedown-Handler in
+   livePreviewClickHandler toggelt den Marker im Doc. inline-block sorgt
+   dafuer, dass das ::before-Pseudo-Element neben dem (unsichtbaren)
+   Marker-Text steht und Klickflaeche hat. */
+.cm-editor .cm-live-task-marker {
+  font-size: 0;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.cm-editor .cm-live-task-marker::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 2px;
+  vertical-align: text-bottom;
+  background: var(--bg-alt);
+  font-size: 1rem;
+}
+.cm-editor .cm-live-task-marker.cm-live-task-checked::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  /* Haekchen als inline-SVG-Background. currentColor klappt im SVG nicht
+     direkt — wir verwenden einen weissen Stroke und setzen den
+     Hintergrund auf die Akzentfarbe. Konsistent mit Render-Pane-Checkbox-
+     Optik (markdown-it-task-lists liefert plain `<input>`, hier bauen wir
+     den gleichen Eindruck per CSS nach). */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2'><path d='M3 8 l3 3 l7-7'/></svg>");
+  background-size: 80% 80%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* 4T-0087 (Epic 3E-0014): Callouts im Live-Modus. Box wird ueber
+   Decoration.line auf jeder Block-Zeile gesetzt, Header-Zeile bekommt
+   zusaetzlich cm-live-callout-header. Akzentfarben gespiegelt aus der
+   Render-Pane-Tabelle (styles.css:2511ff), damit Live- und Render-Modus
+   optisch identisch wirken. */
+.cm-editor .cm-line.cm-live-callout {
+  --callout-accent: #6c757d;
+  --callout-bg: rgba(108, 117, 125, 0.1);
+  border-left: 4px solid var(--callout-accent);
+  background: var(--callout-bg);
+  padding-left: 0.6em;
+}
+.cm-editor .cm-line.cm-live-callout-header {
+  font-weight: 600;
+  color: var(--callout-accent);
+}
+.cm-editor .cm-live-callout-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--callout-accent);
+  margin-right: 0.4em;
+  vertical-align: text-bottom;
+}
+.cm-editor .cm-live-callout-icon svg {
+  display: block;
+}
+.cm-editor .cm-live-callout-title {
+  font-weight: 600;
+  color: var(--callout-accent);
+}
+
+/* Akzentfarben pro Typ (Light-Theme). */
+.cm-editor .cm-line.cm-live-callout-note {
+  --callout-accent: #6c757d;
+  --callout-bg: rgba(108, 117, 125, 0.1);
+}
+.cm-editor .cm-line.cm-live-callout-info {
+  --callout-accent: #0d6efd;
+  --callout-bg: rgba(13, 110, 253, 0.1);
+}
+.cm-editor .cm-line.cm-live-callout-tip {
+  --callout-accent: #0dcaf0;
+  --callout-bg: rgba(13, 202, 240, 0.14);
+}
+.cm-editor .cm-line.cm-live-callout-success {
+  --callout-accent: #198754;
+  --callout-bg: rgba(25, 135, 84, 0.1);
+}
+.cm-editor .cm-line.cm-live-callout-question {
+  --callout-accent: #6f42c1;
+  --callout-bg: rgba(111, 66, 193, 0.1);
+}
+.cm-editor .cm-line.cm-live-callout-warning {
+  --callout-accent: #fd7e14;
+  --callout-bg: rgba(253, 126, 20, 0.12);
+}
+.cm-editor .cm-line.cm-live-callout-failure {
+  --callout-accent: #dc3545;
+  --callout-bg: rgba(220, 53, 69, 0.1);
+}
+.cm-editor .cm-line.cm-live-callout-danger {
+  --callout-accent: #b02a37;
+  --callout-bg: rgba(176, 42, 55, 0.12);
+}
+.cm-editor .cm-line.cm-live-callout-example {
+  --callout-accent: #d63384;
+  --callout-bg: rgba(214, 51, 132, 0.1);
+}
+.cm-editor .cm-line.cm-live-callout-quote {
+  --callout-accent: #6c757d;
+  --callout-bg: rgba(108, 117, 125, 0.1);
+}
+
+/* Dark-Theme: hellere Akzente, hoeheres Alpha im Hintergrund. */
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-note {
+  --callout-accent: #adb5bd;
+  --callout-bg: rgba(173, 181, 189, 0.12);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-info {
+  --callout-accent: #6ea8fe;
+  --callout-bg: rgba(110, 168, 254, 0.12);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-tip {
+  --callout-accent: #9eeaf9;
+  --callout-bg: rgba(158, 234, 249, 0.14);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-success {
+  --callout-accent: #75b798;
+  --callout-bg: rgba(117, 183, 152, 0.12);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-question {
+  --callout-accent: #b69cf0;
+  --callout-bg: rgba(182, 156, 240, 0.12);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-warning {
+  --callout-accent: #feb272;
+  --callout-bg: rgba(254, 178, 114, 0.14);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-failure {
+  --callout-accent: #ea868f;
+  --callout-bg: rgba(234, 134, 143, 0.12);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-danger {
+  --callout-accent: #d99099;
+  --callout-bg: rgba(217, 144, 153, 0.14);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-example {
+  --callout-accent: #efadce;
+  --callout-bg: rgba(239, 173, 206, 0.12);
+}
+[data-theme='dark'] .cm-editor .cm-line.cm-live-callout-quote {
+  --callout-accent: #adb5bd;
+  --callout-bg: rgba(173, 181, 189, 0.12);
+}
+
+/* 4T-0084 (Epic 3E-0014): Replace-Decoration-Widgets im Live-Modus.
+   Bilder, Inline-Math, KaTeX-Block, Wiki-Embeds. Visuelles Ziel:
+   Render-Pane-konforme Darstellung im Editor, ohne Layout-Bruch der
+   umgebenden Zeilen-Geometrie. */
+.cm-editor .cm-live-image {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.cm-editor .cm-live-image img {
+  max-width: 100%;
+  height: auto;
+  /* Bei sehr grossen Bildern auf eine sinnvolle Editor-Hoehe
+     einschraenken, damit die Zeile-Geometrie sich nicht radikal aendert. */
+  max-height: 24em;
+}
+.cm-editor .cm-live-math-inline {
+  /* KaTeX bringt eigene Styles ueber katex.css mit (im preload eingebunden);
+     hier nur Wrapper-Eigenschaften. */
+  display: inline-block;
+  vertical-align: middle;
+}
+.cm-editor .cm-live-math-block {
+  display: block;
+  text-align: center;
+  margin: 0.4em 0;
+}
+.cm-editor .cm-live-embed {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.cm-editor .cm-live-embed img {
+  max-width: 100%;
+  height: auto;
+  max-height: 24em;
+}
+/* Markdown-Embed-Wrapper aus applyWikiEmbedsIfPresent: dezenter Rahmen,
+   damit der eingebettete Inhalt vom umgebenden Doc visuell abgesetzt ist.
+   Spiegelt die Render-Pane-Konvention (vgl. .wiki-embed-Stil falls dort
+   gepflegt; hier konservativ). */
+.cm-editor .cm-live-embed .wiki-embed {
+  display: inline-block;
+}
+
+/* 4T-0088 (Epic 3E-0014): Generisches Block-Widget fuer Tabellen, Perspective-
+   Tabellen, Fenced-Code mit Syntax-Highlighting. Wrapper traegt zusaetzlich
+   markdown-body, damit Render-Pane-Styles fuer tables/pre/code/hljs im
+   Editor greifen. Editor-spezifische Anpassungen ueberschreiben hier
+   gezielt: max-width verhindert Overflow, Margin-Reset und Block-
+   Hintergrund passen ins Editor-Layout. */
+.cm-editor .cm-live-block {
+  display: block;
+  margin: 0.4em 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.cm-editor .cm-live-block.markdown-body {
+  background: transparent;
+  padding: 0;
+}
+.cm-editor .cm-live-block table {
+  margin: 0;
+  max-width: 100%;
+}
+.cm-editor .cm-live-block pre {
+  margin: 0;
+}
+
+/* 4T-0283 (Epic 3E-0050): Frontmatter-Block-Widget im Live-Modus. Der
+   Container traegt markdown-body, damit die .frontmatter-block-Regeln
+   des Render-Pane unveraendert greifen (Paritaet); hier nur die
+   Einpassung in den Editor-Kontext. */
+.cm-editor .cm-live-frontmatter {
+  display: block;
+  margin: 0 0 0.4em 0;
+  max-width: 100%;
+}
+.cm-editor .cm-live-frontmatter.markdown-body {
+  background: transparent;
+  padding: 0;
+}
+.cm-editor .cm-live-frontmatter .frontmatter-block {
+  margin: 0;
+}
+/* Die Editor-Zeile, die das Widget traegt, behaelt ihre
+   cm-frontmatter-line-Dekoration (frontmatterField ist selektions-
+   unabhaengig); die Hintergrund-Toenung gehoert aber nur zum
+   demaskierten Quelltext. */
+.cm-editor .cm-frontmatter-line:has(.cm-live-frontmatter) {
+  background: transparent;
+}
+
+/* 4T-0089 (Epic 3E-0014): Mermaid-Block-Widget. Wrapper als Block, der
+   das gerenderte SVG zentriert anzeigt. Platzhalter waehrend des async
+   Render-Vorgangs ist dezent gehalten — bei Cache-Hits oder schnellem
+   Render kaum sichtbar. Fehler-Box mit roter Akzent-Border, plus
+   Quelltext in monospace fuer Debugging. */
+.cm-editor .cm-live-mermaid {
+  display: block;
+  text-align: center;
+  margin: 0.4em 0;
+  overflow-x: auto;
+}
+.cm-editor .cm-live-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+.cm-editor .cm-live-mermaid-loading {
+  display: inline-block;
+  padding: 0.6em 1em;
+  color: var(--fg-muted);
+  font-style: italic;
+  font-family: var(--font-ui);
+}
+.cm-editor .cm-live-mermaid-error {
+  display: inline-block;
+  text-align: left;
+  padding: 0.6em 0.8em;
+  border-left: 4px solid #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+  border-radius: 4px;
+  max-width: 100%;
+}
+.cm-editor .cm-live-mermaid-error-msg {
+  color: #dc3545;
+  font-weight: 600;
+  margin-bottom: 0.4em;
+  font-family: var(--font-ui);
+}
+.cm-editor .cm-live-mermaid-error-source {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+[data-theme='dark'] .cm-editor .cm-live-mermaid-error {
+  border-left-color: #ea868f;
+  background: rgba(234, 134, 143, 0.1);
+}
+[data-theme='dark'] .cm-editor .cm-live-mermaid-error-msg {
+  color: #ea868f;
+}
+
+/* S-13 (4T-0188): CodeMirror-Tooltips (Lint-Hover, Autocomplete-Info)
+   lagen mit dem CM-Default z-index 500 unter der Suchleiste (1500);
+   1700 haelt sie sichtbar und bleibt unter dem Kontextmenue (2000). */
+.cm-editor .cm-tooltip {
+  z-index: 1700;
+}

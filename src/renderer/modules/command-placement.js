@@ -17,22 +17,26 @@
 'use strict';
 
 import { t } from '../i18n.js';
-import { api } from './api.js';
-import { contextMenu } from './app-state.js';
-import { COMMANDS } from '../../shared/commands.js';
-import { disabledCommandIdSet } from '../../shared/extensions.js';
+import { api } from './app/api.js';
+import { contextMenu } from './app/app-state.js';
+import { COMMANDS } from '../../shared/commands/commands.js';
+import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
 import {
   COMMAND_PLACEMENT_EXTENSION_ID,
   COMMAND_PLACEMENT_KEY,
   STATUSBAR_HIDE_TARGETS,
   defaultCommandPlacement,
   normalizeCommandPlacement,
-} from '../../shared/command-placement.js';
-import { COMMAND_ICONS, DEFAULT_COMMAND_ICON } from '../../shared/command-icons.js';
+} from '../../shared/commands/command-placement.js';
+import { COMMAND_ICONS, DEFAULT_COMMAND_ICON } from '../../shared/commands/command-icons.js';
 import { executeCommandById } from './command-palette.js';
-import { getDisabledExtensionIds, isExtensionActive } from './extension-lifecycle.js';
-import { appendContextMenuItem, hideContextMenu, placeContextMenuAt } from './dialogs.js';
-import { persistSetting } from './views.js';
+import { getDisabledExtensionIds, isExtensionActive } from './extensions/extension-lifecycle.js';
+import {
+  appendContextMenuItem,
+  hideContextMenu,
+  placeContextMenuAt,
+} from './dialogs/context-menu-utils.js';
+import { persistSetting } from './views/views.js';
 
 // --- Konfigurations-Zustand ------------------------------------------------------
 

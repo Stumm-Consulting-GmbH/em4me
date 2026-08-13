@@ -4,19 +4,23 @@
 // Prozess-neutral mit synthetischem Kontext (kein Temp-FS); die Integration
 // mit dem echten Index liegt in perspective-query-index.test.js.
 import { describe, it, expect } from 'vitest';
-import { parseQuery } from '../../src/shared/perspective-query.js';
+// 4T-0987 (Epic 3E-0196): Modul-Familie im Feature-Ordner src/shared/query/
+// geschnitten; die Namen kommen direkt aus dem jeweiligen Modul (Kern,
+// Funktions-Katalog, Format). Die geprüften Fälle bleiben unverändert.
+import { parseQuery } from '../../src/shared/query/perspective-query.js';
 import {
   matchesQuery,
   evaluateExpression,
-  validateQuery,
-  queryUsesLinks,
   applyResultPipeline,
+} from '../../src/shared/query/perspective-query-eval.js';
+import { validateQuery, queryUsesLinks } from '../../src/shared/query/query-functions.js';
+import {
   formatValue,
   formatValueSegments,
   formatExprSource,
-} from '../../src/shared/perspective-query-eval.js';
+} from '../../src/shared/query/query-format.js';
 // 4T-0502 (Epic 3E-0096): Task-Modell fuer die Feld-Aufloesung des TASKS-Scopes.
-import { parseTaskLine } from '../../src/shared/task-markers.js';
+import { parseTaskLine } from '../../src/shared/tasks/task-markers.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 // Fester Bezugszeitpunkt (lokal 2026-07-08 12:00), damit date(today)/date(now)
