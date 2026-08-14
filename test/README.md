@@ -25,8 +25,44 @@ test/
 ```
 
 Bewusst `test/` (Singular, klein): der gitignorierte Top-Level-Ordner
-`Tests/` (manuelles Test-Material pro Task) bleibt unberührt; auf
-case-insensitivem NTFS wäre `tests/` mit `Tests/` kollidiert.
+`Tests/` (manuelles Test-Material pro Task, eigener Abschnitt unten)
+bleibt unberührt; auf case-insensitivem NTFS wäre `tests/` mit `Tests/`
+kollidiert.
+
+## Manuelles Test-Material im Ordner `Tests/`
+
+Alle manuell verwendeten Test-Markdown-Dateien liegen im Top-Level-Ordner
+`Tests/`. Er ist per `.gitignore` ausgeschlossen, das Material gehört
+nicht ins Repositorium und ist clone-lokal. Zur Abgrenzung gegen die
+übrigen Top-Level-Ordner ausserhalb der Versionskontrolle: `dist/` und
+`releases/` gehören zum Bau und tragen ihre Regeln in der
+Release-Strecke,
+Kapitel 4; die Regeln der übrigen ignorierten Ordner stehen im
+PM-README.
+Der Ordner für abgelöstes Material ist hier bewusst nicht namentlich genannt:
+Diese Datei geht in den öffentlichen Quellcode-Export, und die Namen der
+privaten Arbeitsablagen gehören nicht hinein (Wächter-Befund der Auslieferung
+1.108.0).
+
+**Namens-Konvention pro Task:**
+
+- **Eine Test-Datei:** `Tests/test-4t-<id>.md`. Beispiel:
+  `Tests/test-4t-0061.md`.
+- **Mehrere Test-Dateien:** Unterordner `Tests/test-4t-<id>/` mit den
+  zusammengehörigen Dateien. Beispiele im Bestand: `Tests/test-4t-0050/`,
+  `Tests/test-4t-0054/`, `Tests/test-4t-0055/`, `Tests/test-4t-0056/`.
+- Pro Code-Task entsteht die Datei oder der Unterordner **vor** der
+  Test-Aufforderung an den Product Owner. Inhalt: Markdown-Beispiele, die
+  die Akzeptanz-Smoke-Tests aus dem Plan abdecken.
+
+**Material für Sicht-Prüfungen muss deutlich sichtbar sein.**
+Test-Material ist Teil der Prüf-Schnittstelle. Ein technisch korrektes,
+aber praktisch unsichtbares Artefakt (etwa ein 1×1-Pixel-Bild) erzeugt
+einen Falsch-Befund und kostet eine Iterationsrunde. Bilder, Farben und
+Layout-Beispiele deshalb kräftig und groß genug anlegen, bei Delegation
+an Subagenten die Sichtbarkeit ausdrücklich vorgeben. Bei einer Meldung
+„wird nicht angezeigt" zuerst automatisiert klären, ob das Produkt oder
+das Material die Ursache ist.
 
 ## Namenskonventionen
 
@@ -281,6 +317,15 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
 Wiederkehrende Stolperstellen der Playwright-Suite. Jede hat mindestens
 eine Debug-Runde gekostet.
 
+- **Ein Aufruf, der sein eigenes Fenster schließt, wird nicht erwartet.**
+  `await page.evaluate(() => window.api.…close())` scheitert mit «Target
+  page, context or browser has been closed», weil die Seite verschwindet,
+  bevor sie antworten kann; der Fehlschlag sieht aus wie ein Produktfehler
+  und ist doch nur die Mechanik. Der Aufruf wird deshalb aus dem evaluate
+  heraus verzögert ausgelöst (`setTimeout(() => …, 0)`), und das Ergebnis
+  wird am Fenster-Bestand gemessen statt am Rückgabewert. Anlass ist der
+  Regressionsfall zum Regal-Zustand (RG-10); dieselbe Stelle trifft jeden
+  Weg, der eine Applikation von innen beendet.
 - **Bundle-Bezug.** Die Specs starten die App gegen das gebaute
   `src/renderer/renderer.bundle.js`, nicht gegen die ESM-Quellmodule.
   `npm run test:e2e` baut es über den `pretest:e2e`-Hook mit; ein
@@ -537,11 +582,11 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 
 | Klasse | Datei-Muster | Ausschnitt der Unit-Suite | E2E |
 |---|---|---|---|
-| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`); kein Format, kein Lint | keine |
-| **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `quellcode-export`, `web-inhalte` | keine |
+| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export`; kein Format, kein Lint | keine |
+| **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
 | **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
-| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`; Format und Lint | Smoke plus EXE-Smoke-Test |
+| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`; Format und Lint | Smoke plus EXE-Smoke-Test |
 | **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste); Format und Lint | keine |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
 
@@ -559,6 +604,26 @@ bis in die Web-Wächter durch, `index.html` ist die Grundlage der
 Paritäts-Wächter und `src/demo/**` die des Manifest-Wächters. Bei Ä3 ist
 die Auslassung auf E2E-Seite bewusst unvollständig: Einzelne Specs prüfen
 auf lokalisierte Texte, deshalb bleibt dort eine E2E-Pflicht.
+
+**Struktur-Schnitte nehmen die Regression- und Perf-Specs des berührten
+Reviers mit** (Erkenntnis der Release-Abnahme vom 2026-08-13). Verschiebt
+ein Vorgang Code, statt ihn zu ändern — Datei-Schnitt, Modul-Umzug,
+Umbenennung —, dann gehören zum Prüf-Ausschnitt seiner Klasse zusätzlich
+die Specs unter `test/e2e/regression/` und `test/e2e/perf/`, die das
+berührte Revier betreffen. Die E2E-Spalte der Tabelle nennt Smoke- und
+Funktions-Specs, weil die den geänderten Fall prüfen; ein Struktur-Schnitt
+ändert aber gerade keinen Fall, sondern dessen Umgebung, und die beiden
+Ordner halten als einzige fest, was in dieser Umgebung schon einmal
+schiefgegangen ist. Anlass: Beim Konsolidierungs-Release umfassten die
+Task-Ausschnitte durchgängig Smoke- und Funktions-Specs, die beiden Ordner
+aber nie; zwei echte Befunde wurden dadurch erst am E2E-Voll-Lauf der
+Abnahme sichtbar, beide in Revieren, die geschnitten worden waren.
+
+Die Regel steht bewusst nur hier und nicht in der Klassen-Karte: Ob ein
+Vorgang ein Struktur-Schnitt ist, ist eine Eigenschaft des Vorgangs und
+nicht seines Datei-Bestands, und die Karte kennt allein Muster. Sie steuert
+damit die Läufe, die eine Sitzung selbst startet, sowie den Zuschnitt, den
+ein Epic seinen Tasks vorgibt.
 
 **Diese Prüfungen laufen unabhängig vom Änderungs-Umfang**, jede aus
 eigenem Grund:

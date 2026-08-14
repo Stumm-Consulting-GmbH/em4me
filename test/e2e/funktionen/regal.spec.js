@@ -570,3 +570,64 @@ test.describe('RG-04: Sitzungs-Wiederherstellung (4T-0867)', () => {
     }
   });
 });
+
+// --- RG-10 --------------------------------------------------------------------
+
+test.describe('RG-10: Erneutes Öffnen nach dem Schließen (4T-1031)', () => {
+  test('Ein geschlossenes Regal lässt sich in derselben Sitzung wieder öffnen', async () => {
+    // Regressionsfall zum Befund vom 2026-08-12: Der closed-Pfad löste die
+    // Buch-Bindung der verschwundenen Applikation, die Regal-Bindung aber
+    // nicht. Der stehen bleibende Eintrag war kein bloßer Speicher-Rest — die
+    // Suche nach der laufenden Regal-Applikation fand die tote App, und das
+    // erneute Öffnen meldete Erfolg, ohne ein Fenster zu bauen. Das Regal war
+    // damit bis zum Neustart der Anwendung unerreichbar.
+    const { app, page, userData } = await launchApp();
+    const parent = makeTempDir();
+    const shelfDir = makeShelfOnDisk(parent, 'Bibliothek', []);
+    const areaDir = path.join(parent, 'Projektordner');
+    fs.mkdirSync(areaDir);
+    try {
+      // Regal in der freien Start-Applikation öffnen.
+      await page.evaluate((dir) => window.api.shelves.openPath(dir), shelfDir);
+      await expect(page.locator(VIEW)).toBeVisible();
+
+      // Ein zweites Fenster, damit der Prozess das Schließen des
+      // Regal-Fensters überlebt: Ohne jedes Fenster beendet sich die
+      // Anwendung, und dann kann der Fall gar nicht auftreten. Genau diese
+      // Bedingung macht ihn im Alltag selten und beim Suchen schwer.
+      const bereichKommt = app.waitForEvent('window');
+      await page.evaluate((p) => window.api.openAreaPath(p), areaDir);
+      const bereichSeite = await bereichKommt;
+      await bereichSeite.waitForLoadState('domcontentloaded');
+      await expect.poll(() => bereichSeite.title()).toContain('(Bereich Projektordner)');
+
+      // Regal über den regulären Weg schließen; das Bereichs-Fenster bleibt.
+      // Der Aufruf schließt das Fenster, das ihn absetzt, deshalb darf auf
+      // seine Rückkehr nicht gewartet werden: Ein `await page.evaluate(…)`
+      // scheitert mit «Target page, context or browser has been closed», weil
+      // die Seite vor der Antwort verschwindet. Der Aufruf wird deshalb erst
+      // nach der Rückkehr des evaluate ausgelöst.
+      await page.evaluate(() => {
+        setTimeout(() => window.api.shelves.close(), 0);
+      });
+      await expect.poll(() => app.windows().length).toBe(1);
+
+      // Dasselbe Regal erneut öffnen: Es bekommt wieder ein Fenster mit der
+      // Regal-Seite. Vor dem Fix blieb es bei dem einen Bereichs-Fenster,
+      // während der Aufruf `ok` meldete.
+      const regalKommt = app.waitForEvent('window');
+      const erneut = await bereichSeite.evaluate(
+        (dir) => window.api.shelves.openPath(dir),
+        shelfDir,
+      );
+      expect(erneut.ok).toBe(true);
+      const regalSeite = await regalKommt;
+      await regalSeite.waitForLoadState('domcontentloaded');
+      await expect.poll(() => regalSeite.title()).toContain('(Bücherregal Bibliothek)');
+      await expect(regalSeite.locator(VIEW)).toBeVisible();
+      expect(app.windows().length).toBe(2);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

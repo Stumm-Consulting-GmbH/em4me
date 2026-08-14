@@ -3,6 +3,11 @@
 // identisch; init() laeuft im app-init-Modul).
 'use strict';
 
+// 4T-0971 (Epic 3E-0207): Die letzte Auffang-Ebene steht bewusst als ERSTER
+// Import. Sie registriert ihre Zuhoerer als Modul-Seiteneffekt, und damit ist
+// sie scharf, bevor die uebrigen Modul-Bodies laufen; ein Fehler waehrend der
+// Modul-Kette ist genau der Fall, der sonst keine Spur hinterliesse.
+import { setzeEntwurfsSicherung } from './modules/app/auffang-ebene.js';
 // 4T-0982 (Epic 3E-0196): die beiden Live-Modus-Module sind in den Feature-
 // Ordner modules/live/ umgezogen. Sie stehen an der Stelle der Vorgänger,
 // damit die Seiteneffekt-Reihenfolge unverändert bleibt; die Listener der
@@ -46,6 +51,23 @@ import './modules/tabs/tab-group-menu.js';
 import './modules/properties/properties-tags.js';
 import './modules/editor/autocomplete-help.js';
 import './modules/search/search.js';
+// 4T-0971: Der Sicherungs-Weg der Auffang-Ebene. Der Import steht am Ende der
+// Kette, weil er nur eine Funktion holt und die Seiteneffekt-Reihenfolge nicht
+// verschieben darf; das Modul ist zu diesem Zeitpunkt ohnehin ueber den
+// Import-Graphen der Ansichten geladen.
+import { collectUnsavedDrafts } from './modules/views/untitled-tabs.js';
+
+// 4T-0971 (Weg R2): Was die Auffang-Ebene im Fehlerfall sichert, ist derselbe
+// Entwurfs-Weg, den auch das Schliessen eines Fensters nimmt. Bewusst ohne die
+// Einstellung `keepUnsavedDrafts`: Sie regelt den Normalfall, in dem der Nutzer
+// die Wahl hat; nach einem unbehandelten Fehler gibt es diese Wahl nicht mehr,
+// und die Zusage «kein Fehlweg verwirft Nutzer-Inhalte» wiegt schwerer.
+setzeEntwurfsSicherung(async () => {
+  const entwuerfe = collectUnsavedDrafts();
+  if (!entwuerfe.length) return 0;
+  await window.api.saveDrafts(entwuerfe);
+  return entwuerfe.length;
+});
 
 // Start erst nach Abschluss aller Modul-Bodies (deterministisch, zyklusfest).
 startRenderer();

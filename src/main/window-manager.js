@@ -22,7 +22,7 @@
 //
 // Fremder Zustand kommt ueber das Deps-Objekt: als Wert, wo das Eigentuemer-
 // Modul frueher konstruiert wird (lastReportedPanes), sonst als GETTER
-// (menuStates(), activeBooks(), workspacesState()). Fenster-Verwaltung,
+// (menuStates(), activeBooks(), activeShelves(), workspacesState()). Fenster-Verwaltung,
 // Persistenz, Bereiche, Buecher und Menue brauchen einander wechselseitig;
 // ein Wert zur Konstruktions-Zeit ergaebe dort einen Reihenfolge-Zyklus.
 'use strict';
@@ -45,6 +45,7 @@ const backlinks = require('./backlinks');
  * @param {Map} deps.lastReportedPanes Zuletzt gemeldete Pane-Struktur je Fenster.
  * @param {() => Map} deps.menuStates Menue-Zustand je Fenster.
  * @param {() => Map} deps.activeBooks Aktives Buch je Applikation.
+ * @param {() => Map} deps.activeShelves Aktives Regal je Applikation.
  * @param {() => Array} deps.workspacesState Arbeitsbereichs-Ablage.
  * @param {(win: object) => object|null} deps.areaOfWindow Bereichs-Bindung eines Fensters.
  * @param {(win: object) => void} deps.updateCaptionColor Titelleisten-Farbe angleichen.
@@ -69,6 +70,7 @@ function createWindowManager(deps) {
     lastReportedPanes,
     menuStates,
     activeBooks,
+    activeShelves,
     workspacesState,
     areaOfWindow,
     updateCaptionColor,
@@ -370,6 +372,15 @@ function createWindowManager(deps) {
         // 4T-0843 (Epic 3E-0147): Buch-Bindung der verschwundenen App loesen
         // (der persistierte Stand ist im 'close'-Handler bereits geschrieben).
         activeBooks().delete(removedAppId);
+        // 4T-1031 (Epic 3E-0207): dasselbe fuer die Regal-Bindung. Sie fehlte
+        // hier, und der Rest war kein blosser Speicher-Rest: `findAppByShelf`
+        // sucht die laufende Regal-Applikation genau in dieser Map, fand die
+        // tote App und liess das erneute Oeffnen den Zweig «Regal laeuft schon»
+        // nehmen, statt ein Fenster zu bauen. Das Regal blieb damit bis zum
+        // Neustart unerreichbar (Befund vom 2026-08-12, gemessen am
+        // 2026-08-13). Von den fuenf App-gebundenen Behaeltern raeumten vier
+        // auf; dieser war der einzige, der es nicht tat.
+        activeShelves().delete(removedAppId);
         // 4T-0537: letztes Fenster eines Arbeitsbereichs ausserhalb des Quits
         // friert den Stand ein (Offen-Merker false; der 'close'-Handler hat den
         // Endstand bereits persistiert). Beim Quit bleibt der Merker true —

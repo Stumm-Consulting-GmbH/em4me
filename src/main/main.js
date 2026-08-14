@@ -48,6 +48,8 @@ const { computeFullVersion } = require('../shared/build-version');
 // Warteschlange der Zweitstart-Dateien gehoert dem Start-Modul und wird der
 // Verdrahtung als Getter gereicht.
 const { createMainWiring } = require('./app/wiring');
+// 4T-0971 (Epic 3E-0207): letzte Auffang-Ebene dieser Prozess-Seite.
+const { erstelleAuffangEbene } = require('./app/auffang-ebene');
 const { createStartup, gibWartendeZweitstartDateien } = require('./app/startup');
 
 // 4T-0999/4T-1000 (Epic 3E-0196): die siebzehn ipc-Module der Kanal-Gruppen.
@@ -121,6 +123,17 @@ const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 }
+
+// 4T-0971 (Epic 3E-0207): Letzte Auffang-Ebene des Haupt-Prozesses, registriert
+// VOR der Verdrahtung. Ein Fehler waehrend des Aufbaus ist genau der Fall, in
+// dem es sonst keine Spur gaebe. `persistAllWindows` entsteht erst weiter unten
+// und kommt deshalb als spaet gebundener Aufruf; faellt der Fehler vor seiner
+// Entstehung an, greift Zusatz 1 der Freigabe und die Sicherung scheitert
+// gekapselt, statt die Behandlung mitzureissen.
+erstelleAuffangEbene({
+  sichereSitzung: () => persistAllWindows(),
+  beende: () => app.quit(),
+}).registriere(process);
 
 // 4T-0318: App-Registry — Zuordnung Fenster -> logische Applikation.
 const appRegistry = createAppRegistry();

@@ -141,7 +141,11 @@ describe('4T-0921: temporaerer Bau', () => {
     it('meldet nach dem Aufraeumen nur noch den frischen Stand', () => {
       const zeilen = [];
       const code = archiveBuild(BESTAND, {
-        tagExists: () => false,
+        // 4T-1028: Ein temporaerer Bau entsteht genau dann, wenn die
+        // Versions-Angabe bereits eine Release-Marke traegt; der Lauf wird
+        // seither daran erkannt und nicht mehr am Datei-Bestand.
+        pkgVersion: '0.105.0',
+        tagExists: (v) => v === '0.105.0',
         guardBuildNumber: () => null,
         move: vi.fn(() => true),
         copyNotes: vi.fn(() => true),
@@ -266,7 +270,8 @@ describe('4T-0921: temporaerer Bau', () => {
     const move = vi.fn(() => true);
     const melde = vi.fn();
     const code = archiveBuild([TEMP], {
-      tagExists: () => false,
+      pkgVersion: '0.105.0',
+      tagExists: (v) => v === '0.105.0',
       guardBuildNumber: () => null,
       move,
       copyNotes: vi.fn(() => true),
@@ -287,7 +292,12 @@ describe('4T-0921: temporaerer Bau', () => {
     const copyNotes = vi.fn(() => true);
     const writeChecksums = vi.fn(() => true);
     const code = archiveBuild([TEMP, 'release-notes-0.105.0.md', 'EM4me-0.105.0-Portable.exe'], {
-      tagExists: () => false,
+      // 4T-1028: Die 0.105.0 traegt ihre Release-Marke — genau deshalb baut
+      // build-app.js hier temporaer, und genau daran erkennt der Archiv-Schritt
+      // den Lauf. Vorher stand hier `tagExists: () => false`; damit beschrieb
+      // die Vorlage einen Bestand, den es so nie gibt (ohne Marke entstuende
+      // gar kein T-Artefakt). Die Zusicherung des Falls ist unveraendert.
+      tagExists: (v) => v === '0.105.0',
       guardBuildNumber: () => null,
       pkgVersion: '0.105.0',
       move,
@@ -299,6 +309,58 @@ describe('4T-0921: temporaerer Bau', () => {
     expect(move).not.toHaveBeenCalled();
     expect(copyNotes).not.toHaveBeenCalled();
     expect(writeChecksums).not.toHaveBeenCalled();
+  });
+
+  // 4T-1028: Die Gegenrichtung desselben Bestands — ein frischer Release-Bau,
+  // waehrend Artefakte frueherer temporaerer Bauten in dist/ liegen geblieben
+  // sind. Befund der Release-Vorbereitung 1.107.0 (2026-08-13): Der Lauf stufte
+  // sich am blossen Vorhandensein der T-Dateien als temporaer ein und
+  // archivierte nichts; Schritt 5 der gefuehrten Strecke wurde rot, und der
+  // Altbestand musste von Hand geraeumt werden.
+  it('archiviert einen frischen Release-Bau, obwohl T-Altbestand in dist/ liegt', () => {
+    const move = vi.fn(() => true);
+    const copyNotes = vi.fn(() => true);
+    const writeChecksums = vi.fn(() => true);
+    const melde = vi.fn();
+    const raeume = vi.fn(() => ({ entfernt: [], gescheitert: [] }));
+    const code = archiveBuild(
+      [
+        TEMP,
+        'EM4me-T-0.105.0-202608071358-Setup.exe',
+        'EM4me-0.106.0-Portable.exe',
+        'EM4me-0.106.0-Setup.exe',
+        'release-notes-0.106.0.md',
+      ],
+      {
+        // Die gebaute 0.106.0 traegt noch keine Marke (die Marke folgt nach dem
+        // Bau), die Basis 0.105.0 des Altbestands sehr wohl.
+        tagExists: (v) => v === '0.105.0',
+        guardBuildNumber: () => null,
+        pkgVersion: '0.106.0',
+        move,
+        copyNotes,
+        writeChecksums,
+        meldeTemporaere: melde,
+        raeumeTemporaere: raeume,
+        raeumeWaisenBlockmaps: () => ({ entfernt: [], gescheitert: [] }),
+      },
+    );
+    expect(code).toBe(0);
+    // Beide Release-EXEs wandern ins Archiv, die Notes-Datei der gebauten
+    // Version geht mit, und die Pruefsummen entstehen ueber die archivierten.
+    expect(move.mock.calls.map(([name]) => name).sort()).toEqual([
+      'EM4me-0.106.0-Portable.exe',
+      'EM4me-0.106.0-Setup.exe',
+    ]);
+    expect(copyNotes).toHaveBeenCalledWith('release-notes-0.106.0.md');
+    expect(writeChecksums).toHaveBeenCalledWith([
+      'EM4me-0.106.0-Portable.exe',
+      'EM4me-0.106.0-Setup.exe',
+    ]);
+    // Der Altbestand bleibt unangetastet: nicht archiviert, nicht als frischer
+    // Bau gemeldet, nicht aufgeraeumt.
+    expect(melde).not.toHaveBeenCalled();
+    expect(raeume).not.toHaveBeenCalled();
   });
 });
 

@@ -169,6 +169,9 @@ function createMainWiring(deps) {
     lastReportedPanes,
     menuStates: () => menuStates,
     activeBooks: () => activeBooks,
+    // 4T-1031: Der closed-Pfad loest auch die Regal-Bindung; wie activeBooks
+    // als Getter, weil das Regal-Modul erst weiter unten entsteht.
+    activeShelves: () => activeShelves,
     workspacesState: () => workspacesState,
     areaOfWindow: (win) => areaOfWindow(win),
     updateCaptionColor: (win) => updateCaptionColor(win),

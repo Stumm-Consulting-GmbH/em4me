@@ -14,6 +14,43 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.108.0.1538] - 2026-08-14 — Regale wieder erreichbar, unerwartete Fehler definiert aufgefangen
+
+Epic 3E-0207: ein kleines Bündel aus zwei Stabilitäts-Vorhaben. Das erste behebt
+einen Fehler der ausgelieferten Fassung, bei dem ein geschlossenes Bücherregal
+bis zum Neustart nicht mehr zu öffnen war. Das zweite löst eine Zusage der
+Entwicklungsrichtlinien ein, die der Bestand bisher nicht trug: Jede
+Prozess-Seite hat jetzt eine letzte Auffang-Ebene für unerwartete Fehler, statt
+das Verhalten der Plattform-Voreinstellung zu überlassen.
+
+Umsetzungs-Vorgänge des Epics: 4T-1031, 4T-0971 und 4T-1035.
+
+### Behoben
+
+- **Ein geschlossenes Bücherregal lässt sich wieder öffnen** (4T-1031): Wer ein
+  Regal öffnete, sein Fenster schloss und dasselbe Regal danach erneut öffnete,
+  bekam nichts, kein Fenster und keine Meldung; erreichbar war es erst nach
+  einem Neustart der Anwendung. Ursache war ein Eintrag in der Verwaltung der
+  offenen Regale, den das Schließen des Fensters stehen ließ: Die Suche nach der
+  laufenden Regal-Applikation fand die bereits beendete und meldete Erfolg, ohne
+  ein Fenster zu bauen. Das Aufräumen ist jetzt symmetrisch zum aktiven Buch,
+  wo es schon immer stattfand. Der Fall trat ein, sobald neben dem Regal-Fenster
+  ein weiteres Fenster offen war.
+
+### Geändert
+
+- **Unerwartete Fehler laufen jetzt in eine definierte Auffang-Ebene**
+  (4T-0971): Haupt-Prozess und Fenster fangen unbehandelte Ausnahmen und
+  unbehandelte Promise-Ablehnungen ab, protokollieren sie mit Kontext und
+  reagieren daten-schonend. Im Fenster werden ungespeicherte Inhalte über den
+  bestehenden Entwurfs-Weg gesichert, und die Sitzung läuft weiter; im
+  Haupt-Prozess wird die Sitzung gesichert und die Anwendung beendet sich
+  definiert, weil ihr Zustand nach einer unbehandelten Ausnahme nicht mehr
+  verlässlich ist (Entscheidung des Product Owners vom 2026-08-14). Beide Ebenen
+  begrenzen sich auf den ersten Vorfall und kapseln jeden ihrer Schritte, damit
+  ein Fehler in der Behandlung keine Kaskade auslöst. Für den Anwender ändert
+  sich im störungsfreien Betrieb nichts.
+
 ## [1.107.0.1503] - 2026-08-13 — Innere Struktur: der Bestand auf das Größen-Budget geschnitten
 
 Epic 3E-0196: ein Release **ohne nutzersichtbare Änderung**. Es schneidet den

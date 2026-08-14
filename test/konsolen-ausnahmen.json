@@ -34,6 +34,24 @@
       "spec": "test/e2e/funktionen/erweiterungen-extern.spec.js",
       "grund": "4T-0927: Der Fall oeffnet die Entwickler-Werkzeuge ueber den neuen Diagnose-Zugang. Das Werkzeug-Frontend von Chromium meldet dabei aus sich selbst heraus, mit wechselndem Wortlaut (beobachtet: 'Unknown VE context', fehlende Autofill-Protokoll-Methoden). Gebunden wird deshalb an die Herkunft und nicht an den Wortlaut: Alles unterhalb von devtools://devtools/bundled ist fremder Code, den die Anwendung weder erzeugt noch beeinflusst. Meldungen der Anwendung selbst bleiben in diesem Fall unverdeckt, weil sie eine andere Herkunft tragen.",
       "datum": "2026-08-08"
+    },
+    {
+      "enthaelt": "AUFFANG-PROBE",
+      "spec": "test/e2e/regression/4t-0971.spec.js",
+      "grund": "4T-0971: Der Fall wirft absichtlich einen unbehandelten Fehler, um die letzte Auffang-Ebene nachzuweisen. Der Marker steht im Text des geworfenen Fehlers und bindet die Duldung an genau diese Probe; ein anderer unbehandelter Fehler traegt ihn nicht und bleibt damit rot.",
+      "datum": "2026-08-14"
+    },
+    {
+      "enthaelt": "[renderer] unbehandelter Fehler",
+      "spec": "test/e2e/regression/4t-0971.spec.js",
+      "grund": "4T-0971: Die Protokoll-Zeile der Auffang-Ebene selbst ist der Gegenstand des Falls. Sie ist ein console.error, weil ein aufgefangener Fehler Funktionalitaet kostet; ohne diesen Eintrag machte der gepruefte Nachweis den eigenen Fall rot.",
+      "datum": "2026-08-14"
+    },
+    {
+      "enthaelt": "[renderer] Auffang-Ebene:",
+      "spec": "test/e2e/regression/4t-0971.spec.js",
+      "grund": "4T-0971: Die Wirkungs-Meldung der Behandlung (wie viele Entwuerfe gesichert wurden) gehoert zum Vorfalls-Protokoll und wird vom Fall ausdruecklich geprueft. Sie erscheint nur nach einem aufgefangenen Fehler, also nie im stoerungsfreien Lauf.",
+      "datum": "2026-08-14"
     }
   ]
 }

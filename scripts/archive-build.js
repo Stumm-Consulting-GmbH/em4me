@@ -361,11 +361,23 @@ function archiveBuild(entries, deps = {}) {
   // haengt. Diesmal war die Datei byte-gleich und nichts ging verloren; die
   // Regel lautet dennoch: In `releases/` steht ausschliesslich, was
   // ausgeliefert wurde.
+  //
+  // 4T-1028: Ob der Lauf ein temporaerer Bau ist, entscheidet seit der
+  // Release-Vorbereitung 1.107.0 (2026-08-13) nicht mehr der Datei-Bestand in
+  // dist/, sondern derselbe Umstand, der auch den Bau selbst dazu macht: eine
+  // bereits ausgelieferte Versions-Angabe (build-app.js ueber bauAngaben, das
+  // die Release-Marken befragt). Aus den Dateinamen allein ist der Fall nicht
+  // entscheidbar, weil beide Richtungen denselben Bestand zeigen — ein
+  // temporaerer Bau mit Release-Resten und ein Release-Bau mit T-Resten. Die
+  // fruehere Namens-Heuristik las jeden Bestand als die erste Richtung: ein
+  // liegen gebliebenes T-Artefakt genuegte, um einen frischen Release-Bau
+  // unarchiviert zu lassen (Sofort-Abhilfe war das Raeumen von Hand).
   const temporaere = entries.filter((name) => TEMP_EXE_PATTERN.test(name));
   const melde = deps.meldeTemporaere || meldeTemporaere;
   const raeume = deps.raeumeTemporaere || raeumeTemporaere;
   const raeumeWaisen = deps.raeumeWaisenBlockmaps || raeumeWaisenBlockmaps;
-  if (temporaere.length > 0) {
+  const temporaererLauf = !!pkgVersion && tagExists(pkgVersion);
+  if (temporaererLauf) {
     // Erst aufraeumen, dann melden: Die Erinnerung soll den Stand nach dem
     // Aufraeumen beschreiben und nicht Dateien nennen, die es nicht mehr gibt.
     const aufgeraeumt = raeume(entries);
@@ -373,6 +385,15 @@ function archiveBuild(entries, deps = {}) {
     raeumeWaisen(uebrig);
     melde(temporaere.filter((name) => uebrig.includes(name)));
     return 0;
+  }
+  // Release-Lauf mit T-Resten: Sie sind kein Grund mehr, den Lauf anzuhalten,
+  // gehoeren aber auch nicht ins Archiv. Ein Hinweis genuegt — dist/ ist
+  // Wegwerf-Ausgabe, und ueber ihren Bestand entscheidet der Product Owner.
+  if (temporaere.length > 0) {
+    console.log(
+      `archive-build: HINWEIS — ${temporaere.length} Programmdatei(en) frueherer temporaerer ` +
+        'Bauten liegen in dist/; sie gehen nicht ins Versions-Archiv.',
+    );
   }
 
   if (exes.length === 0 && notes.length === 0) {
