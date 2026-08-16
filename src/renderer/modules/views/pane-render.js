@@ -35,6 +35,7 @@ import { renderTabbar } from './tabbar.js';
 // reine Funktionsaufrufe zur Laufzeit (Muster der dokumentierten
 // Modularisierungs-Zyklen views <-> editor, history-status, templates).
 import { updateEmptyState } from './views.js';
+import { SYSTEM_VIEW_CLASS, applyContentViewClass } from './view-modes.js';
 
 // 4T-0179: Dieses Laufzeit-Flag wird ausschliesslich hier geschrieben und
 // bleibt deshalb modul-privat; ueber die Modul-Grenze fuehrt kein
@@ -100,8 +101,7 @@ export function renderPaneContent(paneIdx) {
   if (tab.systemPage) {
     els.renderedHtml.innerHTML = '';
     paneRenderCache[paneIdx] = null;
-    els.content.classList.remove('view-source', 'view-split', 'view-rendered', 'view-live');
-    els.content.classList.add('view-system');
+    applyContentViewClass(els.content, SYSTEM_VIEW_CLASS);
     renderSystemPane(paneIdx, tab);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -127,9 +127,8 @@ export function renderPaneContent(paneIdx) {
     notePaneRendered(paneIdx, tab);
   }
 
-  // View-Mode-Klassen auf dem .content-Element setzen.
-  els.content.classList.remove('view-source', 'view-split', 'view-rendered', 'view-live');
-  els.content.classList.add(`view-${tab.viewMode}`);
+  // View-Mode-Klassen auf dem .content-Element setzen (4T-1054: eine Quelle).
+  applyContentViewClass(els.content, `view-${tab.viewMode}`);
 
   // 4T-0017: Zoom des aktiven Tabs auf die Inhalts-Container der Pane
   // anwenden. Tab-Wechsel innerhalb einer Pane wechselt damit den Zoom.

@@ -20,7 +20,7 @@ import {
   highlightActiveLineGutter,
 } from '@codemirror/view';
 import { Table as LezerTable } from '@lezer/markdown';
-import { t } from '../../i18n.js';
+import { t, hatUebersetzungen } from '../../i18n.js';
 import {
   syntaxHighlighting,
   codeFolding,
@@ -100,6 +100,7 @@ import {
   scheduleOutlineRender,
 } from '../panels/panel-outline.js';
 import { scheduleSubpagesRender } from '../panels/panel-subpages.js';
+import { scheduleMindmapRender } from '../mindmap/mindmap-pane.js';
 // 4T-0341 (Epic 3E-0061): Breadcrumb folgt Tab-/Modus-Wechseln (Laufzeit-
 // Zyklus editor <-> views, Muster wie panels.js).
 import { updateSubpageBreadcrumb } from '../views/subpage-breadcrumb.js';
@@ -517,6 +518,8 @@ export function createEditorState(opts = {}) {
           // 4T-0014: Outline rendert bei jeder Doc-Aenderung neu (Debounce
           // 200 ms), damit die Hierarchie immer aktuell ist.
           if (state.outline.visibleByPane[pIdx]) scheduleOutlineRender(pIdx);
+          // 4T-1047: Mindmap folgt mit demselben Debounce (zeichnet nur im Modus).
+          scheduleMindmapRender(pIdx);
           // 4T-0072: Word Count neu berechnen (150 ms Debounce).
           if (pIdx === state.activePaneIndex) scheduleWordCountUpdate();
           // 4T-0073: Outgoing-Links neu berechnen (150 ms Debounce).
@@ -731,25 +734,25 @@ export function updateWindowTitle() {
   const tab = activeTab();
   const name = tab ? tabDisplayName(tab) : '';
   const base = tab ? `${tab.dirty ? '• ' : ''}${name} — EM4me` : 'EM4me';
-  const suffix = buildTitleSuffix(
-    {
-      // 4T-0538 (Epic 3E-0098): bei deaktivierter Erweiterung entfaellt der
-      // Arbeitsbereichs-Teil (die App erscheint als normale Applikation).
-      workspaceName: isExtensionActive('workspaces') ? state.workspaceName : null,
-      // 4T-0871 (Buch = Bereich): Titel-Stufe "Buch {name}"; bei
-      // abgeschalteter Erweiterung faellt der Titel auf den Bereichs-Teil
-      // zurueck (die Bereichs-Bindung der Buch-App bleibt bestehen).
-      bookName: isExtensionActive('books') ? state.bookName : null,
-      // 4T-0873: Regal-Stufe, dieselbe Erweiterung wie die Bücher.
-      shelfName: isExtensionActive('books') ? state.shelfName : null,
-      areaName: state.areaName,
-      appNumber: state.appNumber,
-      numberedAppCount: state.numberedAppCount,
-      displayNumber: state.displayNumber,
-      totalWindowCount: state.totalWindowCount,
-    },
-    t,
-  );
+  const info = {
+    // 4T-0538 (Epic 3E-0098): bei deaktivierter Erweiterung entfaellt der
+    // Arbeitsbereichs-Teil (die App erscheint als normale Applikation).
+    workspaceName: isExtensionActive('workspaces') ? state.workspaceName : null,
+    // 4T-0871 (Buch = Bereich): Titel-Stufe "Buch {name}"; bei
+    // abgeschalteter Erweiterung faellt der Titel auf den Bereichs-Teil
+    // zurueck (die Bereichs-Bindung der Buch-App bleibt bestehen).
+    bookName: isExtensionActive('books') ? state.bookName : null,
+    // 4T-0873: Regal-Stufe, dieselbe Erweiterung wie die Bücher.
+    shelfName: isExtensionActive('books') ? state.shelfName : null,
+    areaName: state.areaName,
+    appNumber: state.appNumber,
+    numberedAppCount: state.numberedAppCount,
+    displayNumber: state.displayNumber,
+    totalWindowCount: state.totalWindowCount,
+  };
+  // 4T-1044 (Weg A): Suffix erst ab geladenem Woerterbuch, sonst stuende der rohe
+  // Schluessel im Titel. Ohne Ruecksprung, damit die Fenster-Meta unten laeuft.
+  const suffix = hatUebersetzungen() ? buildTitleSuffix(info, t) : '';
   document.title = base + suffix;
 
   // Aktive Tab-Anzahl ueber alle Panes hinweg.

@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="styles/abfragen-und-ereignisse.css" />
     <link rel="stylesheet" href="styles/ereignis-ansichten.css" />
     <link rel="stylesheet" href="styles/uhr-panel.css" />
+    <link rel="stylesheet" href="styles/mindmap.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
     <!-- 4T-0023: highlight.js GitHub Light/Dark, prefixed mit data-theme.
          Generiert von scripts/build-hljs-themes.js. -->
@@ -536,6 +537,10 @@
                (Einstellungen). Sichtbar nur bei .content.view-system;
                das Seiten-DOM montiert renderSystemPane zur Laufzeit. -->
           <section class="pane pane-system"></section>
+          <!-- 4T-1047 (Epic 3E-0151): Container der Mindmap-Ansicht.
+               Sichtbar nur bei .content.view-mindmap; die Komponente
+               montiert mindmap-pane.js zur Laufzeit. -->
+          <section class="pane pane-mindmap"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1035,6 +1040,10 @@
                (Einstellungen). Sichtbar nur bei .content.view-system;
                das Seiten-DOM montiert renderSystemPane zur Laufzeit. -->
           <section class="pane pane-system"></section>
+          <!-- 4T-1047 (Epic 3E-0151): Container der Mindmap-Ansicht.
+               Sichtbar nur bei .content.view-mindmap; die Komponente
+               montiert mindmap-pane.js zur Laufzeit. -->
+          <section class="pane pane-mindmap"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1694,6 +1703,38 @@
                 d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
               />
               <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+          <!-- 4T-1055 (Epic 3E-0151): Mindmap-Modus als fuenfte Schaltflaeche.
+               Ganz rechts, weil das Render-Spektrum der Gruppe von der rohen
+               Quelle zur abstraktesten Sicht laeuft und die Karte deren Ende
+               ist. Das Symbol zeigt einen Wurzel-Knoten mit zwei Aesten. Die
+               Schaltflaeche folgt dem Schalt-Zustand der Erweiterung
+               (tabs.js, syncToolbarToActiveTab). -->
+          <button
+            data-view="mindmap"
+            class="view-btn btn-icon"
+            data-i18n-title="menu.view.mindmap"
+            data-i18n-aria-label="menu.view.mindmap"
+            title=""
+            aria-label="Mindmap"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="5" cy="12" r="2.5" />
+              <circle cx="19" cy="6" r="2.5" />
+              <circle cx="19" cy="18" r="2.5" />
+              <path d="M7.5 12h3a2 2 0 0 0 2-2V8.5a2 2 0 0 1 2-2h2" />
+              <path d="M7.5 12h3a2 2 0 0 1 2 2v1.5a2 2 0 0 0 2 2h2" />
             </svg>
           </button>
         </div>

@@ -55,7 +55,8 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 
 ## Interface, outils et extensions
 
-- [Vues et affichage](views-display.md) — vues par onglet et apparence de l'application : les quatre modes dont le mode direct, l'affichage de l'éditeur, thème et mode focus, zoom, largeur du contenu et polices, paramètres, langue et barre de menus.
+- [Vues et affichage](views-display.md) — vues par onglet et apparence de l'application : les cinq modes dont le mode direct, l'affichage de l'éditeur, thème et mode focus, zoom, largeur du contenu et polices, paramètres, langue et barre de menus.
+- [Vue carte mentale](mindmap.md) — les titres et les listes d'un document sous forme de carte : position de la racine dans cinq directions, repli, zoom, notes sur le nœud, saut vers la source, valeur par document.
 - [Barre latérale](sidebar.md) — organiser les panneaux : côté, ordre, groupes d'onglets, largeurs.
 - [Jeux de couleurs](color-schemes.md) — couleurs via des emplacements nommés : affectation par mode, jeux personnels comme copies, aperçu en direct, limites.
 - [Outils](tools.md) — linter Markdown, recherche avec regex, rechercher et remplacer, éditeur de tableaux.
@@ -65,7 +66,7 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 
 ## Conseils d'utilisation
 
-- Toutes les pages du manuel sont en lecture seule ; les quatre vues (Rendu, Scindée, Source, Direct) restent librement sélectionnables.
+- Toutes les pages du manuel sont en lecture seule ; les vues (Rendu, Scindée, Source, Direct et Carte mentale) restent librement sélectionnables.
 - La **vue scindée** montre la source Markdown et le rendu côte à côte — idéal pour comparer les exemples de syntaxe des pages thématiques avec leur résultat.
 - La **table des matières** dans la barre latérale permet de naviguer dans une page ; la **recherche plein texte** (défaut `Ctrl+F`) la parcourt.
 - Lors d'un changement de langue dans la barre d'état, les pages du manuel ouvertes changent immédiatement.

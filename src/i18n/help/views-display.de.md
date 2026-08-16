@@ -2,9 +2,9 @@
 
 Wie ein Dokument erscheint, entscheiden zwei Ebenen. Die **Ansicht** gehört zum einzelnen Reiter: Sie legt fest, ob das Dokument gerendert, als Quelltext, geteilt oder live gezeigt wird. Das **Erscheinungsbild** gilt für die ganze Anwendung: Theme, Zoom, Inhalts-Breite und Schriften. Diese Seite führt beide Ebenen zusammen und nennt zu jeder Einstellung ihren Ort.
 
-## Die vier Ansichten
+## Die fünf Ansichten
 
-Jeder Reiter steht in genau einer von vier Ansichten. Der gewählte Modus gilt pro Reiter, nicht global: Ein Dokument darf gerendert offen sein, während daneben ein zweites im Quelltext bearbeitet wird.
+Jeder Reiter steht in genau einer von fünf Ansichten. Der gewählte Modus gilt pro Reiter, nicht global: Ein Dokument darf gerendert offen sein, während daneben ein zweites im Quelltext bearbeitet wird.
 
 | Ansicht       | Was sie zeigt                                          | Standard-Kürzel |
 | ------------- | ------------------------------------------------------ | --------------- |
@@ -12,12 +12,17 @@ Jeder Reiter steht in genau einer von vier Ansichten. Der gewählte Modus gilt p
 | **Geteilt**   | Quelltext und Ergebnis nebeneinander                   | `Strg+2`        |
 | **Quellcode** | nur den Markdown-Quelltext                             | `Strg+3`        |
 | **Live**      | den Quelltext, formatiert direkt in der Bearbeitung    | `Strg+4`        |
+| **Mindmap**   | die Struktur des Dokuments als Karte statt als Text    | `Strg+5`        |
 
-Umgeschaltet wird über die vier Schaltflächen in der Statusleiste oder über den Kopf des Ansicht-Menüs. Welche Ansicht ein neu geöffneter Reiter bekommt, stellt der Bereich „Verhalten" der Einstellungen ein.
+Umgeschaltet wird über die Schaltflächen in der Statusleiste oder über den Kopf des Ansicht-Menüs; die Mindmap steht im Menü und auf ihrem Kürzel, nicht in der Statusleiste. Welche Ansicht ein neu geöffneter Reiter bekommt, stellt der Bereich „Verhalten" der Einstellungen ein.
 
 ### Live-Modus
 
 Der Live-Modus rendert das Markdown unmittelbar im Editor: Fett und kursiv, Links, Tabellen, Code, Bilder, KaTeX-Formeln und Mermaid-Diagramme erscheinen so, wie sie im gerenderten Ergebnis aussehen. Steht der Cursor in einer Zeile, zeigt genau diese Zeile ihre rohe Quelle und bleibt damit bearbeitbar. So entfällt der Wechsel zwischen Schreiben und Nachsehen.
+
+### Mindmap
+
+Die Mindmap zeigt Überschriften und Listen des Dokuments als Baum, den Fließtext als Notiz am Knoten. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; Aufbau, Bedienung, die fünf Lagen der Wurzel und die Vorgabe je Dokument beschreibt die Seite [Mindmap-Ansicht](mindmap.md).
 
 ### Bearbeiten
 

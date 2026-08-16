@@ -2,9 +2,9 @@
 
 L'apparence d'un document se décide à deux niveaux. La **vue** appartient à l'onglet : elle détermine si le document est montré rendu, en source, scindé ou en direct. L'**apparence** vaut pour toute l'application : thème, zoom, largeur du contenu et polices. Cette page réunit les deux niveaux et nomme l'emplacement de chaque réglage.
 
-## Les quatre vues
+## Les cinq vues
 
-Chaque onglet se trouve dans exactement une des quatre vues. Le mode choisi vaut par onglet et non globalement : un document peut rester ouvert en rendu pendant qu'un deuxième est édité en source à côté.
+Chaque onglet se trouve dans exactement une des cinq vues. Le mode choisi vaut par onglet et non globalement : un document peut rester ouvert en rendu pendant qu'un deuxième est édité en source à côté.
 
 | Vue         | Ce qu'elle montre                                     | Raccourci par défaut |
 | ----------- | ----------------------------------------------------- | -------------------- |
@@ -12,12 +12,17 @@ Chaque onglet se trouve dans exactement une des quatre vues. Le mode choisi vaut
 | **Scindée** | la source et le résultat côte à côte                  | `Ctrl+2`             |
 | **Source**  | uniquement la source Markdown                         | `Ctrl+3`             |
 | **Direct**  | la source, mise en forme là où l'on écrit             | `Ctrl+4`             |
+| **Carte mentale** | la structure du document sous forme de carte    | `Ctrl+5`             |
 
-Le changement se fait par les quatre boutons de la barre d'état ou par le haut du menu Affichage. La vue qu'obtient un onglet nouvellement ouvert se règle dans la section « Comportement » des paramètres.
+Le changement se fait par les boutons de la barre d'état ou par le haut du menu Affichage ; la carte mentale se trouve dans le menu et sur son raccourci, pas dans la barre d'état. La vue qu'obtient un onglet nouvellement ouvert se règle dans la section « Comportement » des paramètres.
 
 ### Mode direct
 
 Le mode direct rend le Markdown directement dans l'éditeur : gras et italique, liens, tableaux, code, images, formules KaTeX et diagrammes Mermaid apparaissent tels qu'ils sont dans le résultat rendu. Lorsque le curseur se trouve dans une ligne, cette ligne précise montre sa source brute et reste modifiable. Le va-et-vient entre écrire et vérifier disparaît ainsi.
+
+### Carte mentale
+
+La carte mentale montre les titres et les listes du document sous forme d'arbre, et le texte courant comme note sur le nœud. Elle appartient à l'extension du même nom et disparaît avec elle ; structure, manipulation, les cinq positions de la racine et la valeur par document sont décrites sur la page [Vue carte mentale](mindmap.md).
 
 ### Modifier
 

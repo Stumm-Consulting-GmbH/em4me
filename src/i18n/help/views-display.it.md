@@ -2,9 +2,9 @@
 
 L'aspetto di un documento si decide su due livelli. La **vista** appartiene alla singola scheda: stabilisce se il documento viene mostrato renderizzato, come sorgente, diviso o live. L'**aspetto** vale per l'intera applicazione: tema, zoom, larghezza del contenuto e caratteri. Questa pagina unisce i due livelli e indica il posto di ogni impostazione.
 
-## Le quattro viste
+## Le cinque viste
 
-Ogni scheda si trova in esattamente una delle quattro viste. La modalità scelta vale per scheda e non globalmente: un documento può restare aperto renderizzato mentre accanto un secondo viene modificato come sorgente.
+Ogni scheda si trova in esattamente una delle cinque viste. La modalità scelta vale per scheda e non globalmente: un documento può restare aperto renderizzato mentre accanto un secondo viene modificato come sorgente.
 
 | Vista             | Che cosa mostra                                    | Scorciatoia predefinita |
 | ----------------- | -------------------------------------------------- | ----------------------- |
@@ -12,12 +12,17 @@ Ogni scheda si trova in esattamente una delle quattro viste. La modalità scelta
 | **Diviso**        | sorgente e risultato affiancati                    | `Ctrl+2`                |
 | **Sorgente**      | solo la sorgente Markdown                          | `Ctrl+3`                |
 | **Live**          | la sorgente, formattata dove si scrive             | `Ctrl+4`                |
+| **Mappa mentale** | la struttura del documento come mappa invece che come testo | `Ctrl+5`   |
 
-Il cambio avviene con i quattro pulsanti della barra di stato o dalla parte alta del menu Visualizza. Quale vista riceve una scheda appena aperta si imposta nella sezione «Comportamento» delle impostazioni.
+Il cambio avviene con i pulsanti della barra di stato o dalla parte alta del menu Visualizza; la mappa mentale sta nel menu e sulla sua scorciatoia, non nella barra di stato. Quale vista riceve una scheda appena aperta si imposta nella sezione «Comportamento» delle impostazioni.
 
 ### Modalità live
 
 La modalità live renderizza il Markdown direttamente nell'editor: grassetto e corsivo, collegamenti, tabelle, codice, immagini, formule KaTeX e diagrammi Mermaid appaiono come nel risultato renderizzato. Quando il cursore si trova in una riga, proprio quella riga mostra la sua sorgente grezza e resta modificabile. Così sparisce l'andirivieni tra scrivere e controllare.
+
+### Mappa mentale
+
+La mappa mentale mostra i titoli e gli elenchi del documento come albero e il testo corrente come nota sul nodo. Appartiene all'estensione omonima e scompare con essa; struttura, uso, le cinque posizioni della radice e il valore per documento sono descritti nella pagina [Vista mappa mentale](mindmap.md).
 
 ### Modifica
 

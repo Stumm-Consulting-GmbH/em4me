@@ -47,6 +47,21 @@ La commutazione tramite la barra di stato o il menu Visualizza scrive il nuovo v
 
 Casi particolari: nelle destinazioni di sola lettura (come le pagine del manuale) e con YAML errato l'interruttore agisce solo in modo temporaneo per la sessione in corso. Nelle schede Senza titolo è anch'esso temporaneo; al primo salvataggio l'app riporta nel frontmatter del nuovo file i valori che differiscono dal valore predefinito.
 
+## Mappa mentale per documento
+
+La chiave `mindmap` stabilisce come la [vista mappa mentale](mindmap.md) disegna proprio questo documento e sostituisce così il valore predefinito in File → Impostazioni… → Mappa mentale:
+
+```markdown
+---
+mindmap:
+  layout: mitte
+  linienfuehrung: gerade
+  anfangsTiefe: 2
+---
+```
+
+`layout` accetta la posizione della radice (`links`, `mitte`, `rechts`, `oben`, `unten`), `linienfuehrung` i valori `geschwungen` e `gerade`; a questi si aggiungono i numeri `farbEinfrierEbene`, `anfangsTiefe` e `hoechstBreite`. Ciò che non viene compreso ricade in silenzio sul valore predefinito.
+
 ## Barra Proprietà
 
 La barra Proprietà mostra i campi del frontmatter modificabili dal vivo. Il tipo di campo si deduce dal valore: testo, lista, data, numero, booleano o multilinea. I nuovi campi si creano con «+ Aggiungi proprietà»; le modifiche seguono l'impostazione di salvataggio automatico.

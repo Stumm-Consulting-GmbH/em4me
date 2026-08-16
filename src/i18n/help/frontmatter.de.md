@@ -47,6 +47,21 @@ Das Umschalten über die Statusbar oder das Ansicht-Menü schreibt den neuen Wer
 
 Sonderfälle: In schreibgeschützten Zielen (etwa Handbuch-Seiten) und bei fehlerhaftem YAML wirkt der Schalter nur flüchtig für die laufende Sitzung. In Unbenannt-Tabs gilt er ebenfalls flüchtig; beim ersten Speichern übernimmt die App die Werte, die von der Voreinstellung abweichen, in das Frontmatter der neuen Datei.
 
+## Mindmap pro Dokument
+
+Der Schlüssel `mindmap` legt fest, wie die [Mindmap-Ansicht](mindmap.md) genau dieses Dokument zeichnet, und übersteuert damit die Voreinstellung unter Datei → Einstellungen… → Mindmap:
+
+```markdown
+---
+mindmap:
+  layout: mitte
+  linienfuehrung: gerade
+  anfangsTiefe: 2
+---
+```
+
+`layout` nimmt die Lage der Wurzel (`links`, `mitte`, `rechts`, `oben`, `unten`), `linienfuehrung` die Werte `geschwungen` und `gerade`; dazu kommen die Zahlen `farbEinfrierEbene`, `anfangsTiefe` und `hoechstBreite`. Was nicht verstanden wird, fällt still auf die Voreinstellung zurück.
+
 ## Properties-Sidebar
 
 Die Properties-Sidebar zeigt die Frontmatter-Felder live editierbar. Der Feld-Typ wird aus dem Wert abgeleitet: Text, Liste, Datum, Zahl, Wahr/Falsch oder Mehrzeilig. Neue Felder entstehen über „+ Eigenschaft hinzufügen"; Änderungen folgen dem Auto-Save-Setting.

@@ -55,7 +55,8 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 
 ## Interfaz, herramientas y extensiones
 
-- [Vistas y presentación](views-display.md) — vistas por pestaña y apariencia de la aplicación: los cuatro modos incluido el modo en vivo, presentación del editor, tema y modo concentración, zoom, ancho del contenido y fuentes, configuración, idioma y barra de menús.
+- [Vistas y presentación](views-display.md) — vistas por pestaña y apariencia de la aplicación: los cinco modos incluido el modo en vivo, presentación del editor, tema y modo concentración, zoom, ancho del contenido y fuentes, configuración, idioma y barra de menús.
+- [Vista de mapa mental](mindmap.md) — los títulos y las listas de un documento como mapa: posición de la raíz en cinco direcciones, plegado, zoom, notas en el nodo, salto al origen, valor por documento.
 - [Barra lateral](sidebar.md) — organizar paneles: lado, orden, grupos de pestañas, anchuras.
 - [Esquemas de color](color-schemes.md) — colores mediante ranuras con nombre: asignación por modo, esquemas propios como copia, vista previa en vivo, límites.
 - [Herramientas](tools.md) — linter Markdown, búsqueda con regex, buscar y reemplazar, editor de tablas.
@@ -65,7 +66,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 
 ## Consejos de uso
 
-- Todas las páginas del manual son de solo lectura; las cuatro vistas (Renderizado, Dividido, Código, En vivo) se pueden elegir libremente.
+- Todas las páginas del manual son de solo lectura; las vistas (Renderizado, Dividido, Código, En vivo y Mapa mental) se pueden elegir libremente.
 - La **vista dividida** muestra el código Markdown y el resultado renderizado uno junto al otro — ideal para comparar los ejemplos de sintaxis de las páginas temáticas con su resultado.
 - El **índice** de la barra lateral navega dentro de una página; la **búsqueda de texto completo** (predeterminado `Ctrl+F`) la recorre.
 - Al cambiar el idioma en la barra de estado, las páginas del manual abiertas cambian inmediatamente.

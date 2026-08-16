@@ -2,9 +2,9 @@
 
 How a document appears is decided on two levels. The **view** belongs to the individual tab: it determines whether the document is shown rendered, as source text, split or live. The **appearance** applies to the whole application: theme, zoom, content width and fonts. This page brings both levels together and names the place of every setting.
 
-## The four views
+## The five views
 
-Every tab is in exactly one of four views. The chosen mode applies per tab, not globally: one document may be open rendered while a second one is edited as source text next to it.
+Every tab is in exactly one of five views. The chosen mode applies per tab, not globally: one document may be open rendered while a second one is edited as source text next to it.
 
 | View       | What it shows                                     | Default shortcut |
 | ---------- | ------------------------------------------------- | ---------------- |
@@ -12,12 +12,17 @@ Every tab is in exactly one of four views. The chosen mode applies per tab, not 
 | **Split**    | source text and result side by side             | `Ctrl+2`         |
 | **Source**   | only the Markdown source text                   | `Ctrl+3`         |
 | **Live**     | the source text, formatted right where you edit | `Ctrl+4`         |
+| **Mind map** | the structure of the document as a map instead of text | `Ctrl+5`  |
 
-Switching happens via the four buttons in the status bar or via the top of the View menu. Which view a newly opened tab receives is set in the “Behaviour” section of the settings.
+Switching happens via the buttons in the status bar or via the top of the View menu; the mind map lives in the menu and on its shortcut, not in the status bar. Which view a newly opened tab receives is set in the “Behaviour” section of the settings.
 
 ### Live mode
 
 Live mode renders the Markdown directly in the editor: bold and italic, links, tables, code, images, KaTeX formulas and Mermaid diagrams appear as they look in the rendered result. When the cursor sits in a line, exactly that line shows its raw source and stays editable. This removes the switch between writing and checking.
+
+### Mind map
+
+The mind map shows the headings and lists of the document as a tree and the body text as a note on the node. It belongs to the extension of the same name and goes with it; structure, handling, the five root positions and the default per document are described on the page [Mind map view](mindmap.md).
 
 ### Editing
 

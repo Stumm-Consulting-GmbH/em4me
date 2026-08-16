@@ -13,6 +13,22 @@ import { manualPageById } from '../../../shared/manual/manual-pages.js';
 // die Tab-Titel. Modul-Zyklus app-state <-> system-pages ist unkritisch:
 // Zugriff erfolgt erst zur Laufzeit in tabDisplayName (Muster 4T-0179).
 import { systemPageById } from './system-pages.js';
+// 4T-1054 (Epic 3E-0151): Ansichts-Modi und Klassen-Helfer liegen in einem
+// importfreien Modul; hier nur re-exportiert, damit Bestands-Importe gelten.
+export {
+  SYSTEM_VIEW_CLASS,
+  VIEW_MODES,
+  VIEW_MODE_CLASSES,
+  applyContentViewClass,
+  isViewMode,
+} from '../views/view-modes.js';
+// 4T-1047 (Epic 3E-0151): Rueckfall des Mindmap-Modus bei ausgeschalteter
+// Erweiterung. Bewusst aus mindmap-modus.js und NICHT aus mindmap-pane.js:
+// Letzteres zoege ueber das Einstellungs-Modul die Settings-Seite mit, deren
+// Registrierung ein Modul-Seiteneffekt ist (Begruendung im Kopf von
+// mindmap-modus.js). Der Zugriff selbst erfolgt erst zur Laufzeit beim
+// Erzeugen eines Tabs.
+import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
 import { editorCompartments, paneEditors, typewriterScrollExtension } from '../editor/editor.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 // 3E-0105: Frontmatter-Parser fuer die dokument-gebundenen Editor-Ansicht-
@@ -433,7 +449,13 @@ export function createTab(path, content, settings = {}) {
     scrollSrc: 0,
     scrollRen: 0,
     missing: false,
-    viewMode: settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE,
+    // 4T-1047 (Epic 3E-0151): Der Mindmap-Modus faellt auf die Lese-Ansicht
+    // zurueck, wenn seine Erweiterung aus ist. Ohne den Rueckfall traege ein
+    // wiederhergestellter Reiter einen Modus, den es nicht mehr gibt, und
+    // seine Pane bliebe leer (Story S-0804, AK7).
+    viewMode: resolveViewModeForTab(
+      settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE,
+    ),
     wrapLines: view.wrapLines,
     showLineNumbers: view.showLineNumbers,
     showFoldGutter: view.showFoldGutter,
@@ -570,6 +592,9 @@ function buildPaneEls(paneIdx) {
     // 4T-0277: Container der System-Seiten (Einstellungen). Sichtbar nur
     // bei .content.view-system; das Seiten-DOM montiert renderSystemPane.
     systemEl: root.querySelector('.pane-system'),
+    // 4T-1047 (Epic 3E-0151): Container der Mindmap-Ansicht, sichtbar nur
+    // bei .content.view-mindmap (Muster der System-Pane).
+    mindmapEl: root.querySelector('.pane-mindmap'),
     innerSplitter: root.querySelector('.splitter.inner-splitter'),
     // 4T-0288 (Epic 3E-0051): je Pane ein linker und ein rechter Sidebar-
     // Container mit eigenem Splitter. Die Sektions-Referenzen darunter sind

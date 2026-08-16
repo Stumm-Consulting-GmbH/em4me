@@ -14,6 +14,92 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.109.0.1571] - 2026-08-16 — Die Mindmap-Ansicht
+
+Epic 3E-0151: Ein Dokument lässt sich als Mindmap lesen. Überschriften und
+Listenpunkte werden zu Knoten eines Baums, der Fließtext darunter wird zur Notiz
+seines Knotens, und die Karte ist ein fünfter Ansichts-Modus je Reiter neben
+Quellcode, Geteilt, Gerendert und Live. Die Lage der Wurzel ist in fünf
+Richtungen wählbar, anwendungsweit als Vorgabe und je Dokument im Kopfbereich.
+Die gesamte Anordnung ist Eigenleistung ohne Fremd-Bibliothek, nach dem Muster
+der Graphenansicht.
+
+Umsetzungs-Vorgänge des Epics: 4T-0725, 4T-1045, 4T-1046, 4T-1047, 4T-1048,
+4T-1049, 4T-1050, 4T-1054 und 4T-1055. Mitgefahren sind das Fehler-Bündel 3E-0208 mit 4T-1044 und der
+Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
+
+### Neu
+
+- **Mindmap-Ansicht als fünfter Ansichts-Modus** (4T-1045 bis 4T-1047): Der
+  Modus zeigt Überschriften-Hierarchie und hierarchische Listen eines Dokuments
+  als Baum; Absätze, Tabellen, Code-Blöcke und Bilder werden Notiz ihres
+  übergeordneten Knotens und öffnen sich auf Klick am Zettel-Symbol. Teilbäume
+  klappen einzeln oder samt Unterbau, die Fläche lässt sich zoomen und
+  verschieben, und ein Klick auf einen Knotentext springt in die geteilte
+  Ansicht auf die zugehörige Zeile. Die Karte folgt dem Dokument beim Tippen.
+  Sehr große Dokumente werden bei 3000 Knoten gekappt und zeigen einen Hinweis.
+  Der Modus ist eine schaltbare interne Erweiterung; ist sie aus, entfällt er
+  in Menü, Statusleiste und Befehlspalette, und ein so gespeicherter Reiter
+  öffnet in der Lese-Ansicht.
+- **Lage der Wurzel in fünf Richtungen** (4T-1049): links, mittig, rechts, oben
+  und unten. Alle fünf sind dieselbe Anordnung, auf eine andere Achse abgebildet;
+  der Knotentext bleibt in jeder Lage waagerecht. Bei mittiger Lage bleiben die
+  Hauptäste in Dokument-Reihenfolge und werden dort geteilt, wo beide Seiten
+  möglichst gleich hoch werden, sodass dasselbe Dokument stets dasselbe Bild
+  ergibt.
+- **Darstellung der Mindmap einstellbar** (4T-1048): Lage der Wurzel,
+  geschwungene oder gerade Linienführung, Ebene des Farb-Einfrierens, anfangs
+  ausgeklappte Tiefe und Höchstbreite eines Knotens. Die Einstellungen sind die
+  Vorgabe für alle Dokumente; jedes Dokument übersteuert sie für sich im
+  YAML-Kopf unter dem Schlüssel `mindmap`, und ein nicht verstandener Wert
+  fällt still auf die Vorgabe zurück.
+
+### Geändert
+
+- **Die mittlere Statusleisten-Gruppe trennt ihre beiden Hälften sichtbar**
+  (4T-1055): Zwischen den drei Editor-Ansicht-Schaltern und den jetzt fünf
+  Ansichts-Umschaltern liegt ein deutlicher Abstand, damit die Reihe nicht als
+  eine einzige Leiste gelesen wird. Die Gruppe bleibt insgesamt mittig.
+
+### Behoben
+
+- **Der Fenstertitel zeigt beim Start keinen rohen Schlüssel mehr** (4T-1044,
+  Epic 3E-0208): Zwischen dem Öffnen des Fensters und dem geladenen Wörterbuch
+  stand im Titel kurz die unübersetzte Kennung des Titel-Zusatzes. Der Zusatz
+  erscheint jetzt erst, sobald seine Übersetzung vorliegt.
+- **Die Mindmap-Schaltfläche fehlte in der Statusleiste** (4T-1055): Der Modus
+  war über Menü und Befehlspalette erreichbar, nicht aber über die
+  Modus-Umschaltung, obwohl die Anforderung alle drei Wege nennt. Ein Wächter
+  hält den Satz der Schaltflächen jetzt gegen die Modus-Liste.
+- **Zwei Befunde der ersten Test-Iteration der Mindmap** (4T-1054): Der Sprung
+  zur Quellzeile blieb unsichtbar, weil er den Cursor in einem ausgeblendeten
+  Editor setzte; er wechselt jetzt in die geteilte Ansicht. Das Notiz-Symbol war
+  zu klein zum Treffen und verdeckte die Unterstreichung; es ist jetzt ein
+  Zettel mit größerer Trefferfläche hinter dem Text.
+
+### Webseite
+
+- **Der Ausgeliefert-Bereich der öffentlichen Roadmap ist begrenzt** (4T-1056,
+  Epic 3E-0209): Er zeigt nur noch die fünf jüngsten Einträge unter der
+  Überschrift „Zuletzt ausgeliefert" und verweist darunter auf das
+  Änderungsprotokoll, das alle Versionen trägt. Gewachsen war er auf 20
+  Einträge und damit auf fast die Hälfte der Seite, ohne Information zu tragen,
+  die das Protokoll nicht hätte; die Anforderung verlangte ihn seit jeher knapp.
+  Mit der Begrenzung entfällt auch die Frage nach einer eigenen Kachel je
+  Release. Der Eintrag „Mindmap-Ansicht" wandert mit diesem Release auf
+  „ausgeliefert". Zugleich entfällt die Stufe „laufend": Die Roadmap zeigt noch
+  „Geplant" und „Zuletzt ausgeliefert"; ein Vorhaben steht unter „geplant", bis
+  es ausgeliefert ist.
+
+### Doku und i18n
+
+- **Handbuch und Funktions-Katalog nachgezogen** (4T-1050): Eine neue Seite
+  „Mindmap-Ansicht" in allen fünf Sprachfassungen, dazu erweitert die Seiten
+  „Ansichten und Darstellung" (fünf statt vier Modi), „Frontmatter und
+  Properties" (der Mindmap-Block je Dokument) und die Überblicksseite. Im
+  Funktions-Katalog kommen zwei Einträge hinzu, die Ansicht selbst und ihre
+  Darstellungs-Optionen. 26 neue Übersetzungs-Schlüssel, je Sprache.
+
 ## [1.108.0.1538] - 2026-08-14 — Regale wieder erreichbar, unerwartete Fehler definiert aufgefangen
 
 Epic 3E-0207: ein kleines Bündel aus zwei Stabilitäts-Vorhaben. Das erste behebt

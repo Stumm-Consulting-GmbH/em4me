@@ -1,0 +1,168 @@
+/* 4T-1046 (Epic 3E-0151): Mindmap-Ansicht — Farben ausschließlich über
+   Theme-Variablen (hell/dunkel). Die Ast-Farben stehen hier und nicht in der
+   Komponente: Sie werden über das Attribut data-mindmap-farbe (1 bis 8)
+   zugeordnet, damit die Farbschemas sie tragen und der Renderer farbfrei
+   bleibt. */
+/* 4T-1047 (Epic 3E-0151): Der Mindmap-Modus ersetzt Editor und Render-Pane
+   vollständig, genau wie die System-Pane. Sichtbar wird der Container erst
+   über die Modus-Klasse am .content-Element. */
+.pane-mindmap {
+  display: none;
+}
+.content.view-mindmap .pane-source,
+.content.view-mindmap .pane-rendered,
+.content.view-mindmap .inner-splitter {
+  display: none;
+}
+.content.view-mindmap .pane-mindmap {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.mindmap-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.mindmap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  background: var(--bg);
+}
+.mindmap-view.mindmap-ziehend .mindmap-svg {
+  cursor: grabbing;
+}
+
+.mindmap-kante {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+}
+.mindmap-unterstrich {
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+}
+
+.mindmap-titel {
+  fill: var(--fg);
+  font-size: 13px;
+  dominant-baseline: middle;
+}
+.mindmap-titel-springbar {
+  cursor: pointer;
+}
+.mindmap-titel-springbar:hover {
+  text-decoration: underline;
+}
+
+.mindmap-anfasser {
+  fill: var(--bg);
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+  cursor: pointer;
+}
+.mindmap-anfasser-zu {
+  fill: var(--border-strong);
+}
+
+/* 4T-1054: Notiz-Symbol als beschriebener Zettel. Das gezeichnete Blatt bleibt
+   klein, die Trefferfläche darüber ist größer und durchsichtig. */
+.mindmap-notiz-marker {
+  cursor: pointer;
+}
+.mindmap-notiz-blatt {
+  fill: var(--bg-alt);
+  stroke: var(--fg-muted);
+  stroke-width: 1.2;
+}
+.mindmap-notiz-strich {
+  stroke: var(--fg-muted);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+.mindmap-notiz-treffer {
+  fill: transparent;
+}
+.mindmap-notiz-marker:hover .mindmap-notiz-blatt {
+  stroke: var(--accent);
+}
+.mindmap-notiz-marker:hover .mindmap-notiz-strich {
+  stroke: var(--accent);
+}
+
+/* Ast-Farben: Die Zuordnung Nummer zu Farbe liegt hier, damit ein Farbschema
+   sie überschreiben kann, ohne den Renderer anzufassen. */
+.mindmap-kante[data-mindmap-farbe='1'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='1'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-1, var(--accent));
+}
+.mindmap-kante[data-mindmap-farbe='2'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='2'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-2, var(--fg-muted));
+}
+.mindmap-kante[data-mindmap-farbe='3'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='3'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-3, var(--border-strong));
+}
+.mindmap-kante[data-mindmap-farbe='4'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='4'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-4, var(--accent));
+}
+.mindmap-kante[data-mindmap-farbe='5'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='5'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-5, var(--fg-muted));
+}
+.mindmap-kante[data-mindmap-farbe='6'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='6'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-6, var(--border-strong));
+}
+.mindmap-kante[data-mindmap-farbe='7'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='7'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-7, var(--accent));
+}
+.mindmap-kante[data-mindmap-farbe='8'],
+.mindmap-knoten-gruppe[data-mindmap-farbe='8'] .mindmap-unterstrich {
+  stroke: var(--mindmap-ast-8, var(--fg-muted));
+}
+
+.mindmap-hinweis {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+.mindmap-popover {
+  position: absolute;
+  max-width: 320px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+  z-index: 5;
+}
+.mindmap-notiz + .mindmap-notiz {
+  margin-top: 6px;
+}
+.mindmap-notiz-code,
+.mindmap-notiz-tabelle {
+  font-family: var(--font-mono, monospace);
+  white-space: pre-wrap;
+  color: var(--fg-muted);
+}

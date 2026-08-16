@@ -55,7 +55,8 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 
 ## Interface, tools and extensions
 
-- [Views and display](views-display.md) — views per tab and the appearance of the app: the four modes including live mode, editor display, theme and focus mode, zoom, content width and fonts, settings, language and menu bar.
+- [Views and display](views-display.md) — views per tab and the appearance of the app: the five modes including live mode, editor display, theme and focus mode, zoom, content width and fonts, settings, language and menu bar.
+- [Mind map view](mindmap.md) — headings and lists of a document as a map: root position in five directions, collapsing, zoom, notes on the node, jump to the source, default per document.
 - [Sidebar](sidebar.md) — arranging panels: side, order, tab groups, widths.
 - [Color schemes](color-schemes.md) — colors via named slots: mode assignment, own schemes as copies, live preview, limits.
 - [Tools](tools.md) — Markdown linter, search with regex, search and replace, table editor.
@@ -65,7 +66,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 
 ## Usage tips
 
-- All manual pages are read-only; the four views (Rendered, Split, Source, Live) are freely selectable.
+- All manual pages are read-only; the views (Rendered, Split, Source, Live and Mind map) are freely selectable.
 - The **split view** shows Markdown source and rendered result side by side — ideal for comparing the syntax examples on the topic pages with their output.
 - The **table of contents** in the sidebar navigates within a page; **full-text search** (default `Ctrl+F`) searches it.
 - When you switch the language in the status bar, open manual pages switch along immediately.

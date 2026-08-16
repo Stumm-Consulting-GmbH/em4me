@@ -593,6 +593,18 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
+    // 4T-1047 (Epic 3E-0151): Fuenfter Ansichts-Modus. Setzt die
+    // 1-2-3-4-Folge mit CmdOrCtrl+5 fort; entfaellt mit der Erweiterung
+    // 'mindmap' aus Menue, Palette und Dispatcher.
+    id: 'view.modeMindmap',
+    defaultBindings: ['CmdOrCtrl+5'],
+    labelKey: 'menu.view.mindmap',
+    descKey: 'help.feature.mindmap',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+  },
+  {
     id: 'zoom.in',
     defaultBindings: ['CmdOrCtrl+Plus'],
     labelKey: 'command.zoom.in',

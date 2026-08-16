@@ -55,7 +55,8 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 
 ## Oberfläche, Werkzeuge und Erweiterungen
 
-- [Ansichten und Darstellung](views-display.md) — Ansichten pro Reiter und Erscheinungsbild der App: die vier Modi samt Live-Modus, Editor-Darstellung, Theme und Fokus-Modus, Zoom, Inhalts-Breite und Schriften, Einstellungen, Sprache und Menüleiste.
+- [Ansichten und Darstellung](views-display.md) — Ansichten pro Reiter und Erscheinungsbild der App: die fünf Modi samt Live-Modus, Editor-Darstellung, Theme und Fokus-Modus, Zoom, Inhalts-Breite und Schriften, Einstellungen, Sprache und Menüleiste.
+- [Mindmap-Ansicht](mindmap.md) — Überschriften und Listen eines Dokuments als Karte: Lage der Wurzel in fünf Richtungen, Klappen, Zoom, Notizen am Knoten, Sprung zur Quelle, Vorgabe je Dokument.
 - [Sidebar](sidebar.md) — Panels anordnen: Seitenwahl, Reihenfolge, Reiter-Gruppen, Breiten.
 - [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
 - [Werkzeuge](tools.md) — Markdown-Linter, Suche mit Regex, Suchen und Ersetzen, Tabellen-Editor.
@@ -65,7 +66,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 
 ## Tipps zur Nutzung
 
-- Alle Handbuch-Seiten sind schreibgeschützt; die vier Ansichten (Gerendert, Geteilt, Quellcode, Live) stehen frei zur Wahl.
+- Alle Handbuch-Seiten sind schreibgeschützt; die Ansichten (Gerendert, Geteilt, Quellcode, Live und Mindmap) stehen frei zur Wahl.
 - In der **geteilten Ansicht** stehen Markdown-Quelltext und gerendertes Ergebnis nebeneinander — ideal, um die Syntax-Beispiele der Themen-Seiten direkt mit ihrem Ergebnis zu vergleichen.
 - Das **Inhaltsverzeichnis** in der Sidebar navigiert innerhalb einer Seite, die **Volltextsuche** (Standard `Strg+F`) durchsucht sie.
 - Beim Sprachwechsel über die Statusbar wechseln offene Handbuch-Seiten direkt mit.

@@ -123,6 +123,7 @@ import { initCommandPlacementFromStore, initCommandPlacementUi } from './command
 import { initFormatToolbarFromStore, initFormatToolbarUi } from './editor/format-toolbar.js';
 import './settings/command-placement-settings.js';
 import './settings/format-toolbar-settings.js';
+import './settings/mindmap-settings.js';
 // 4T-0522 (Epic 3E-0094): Makros — initMacros injiziert Handler-Map und
 // Dispatch-Rebuild (Zyklus-Vermeidung, Muster initCommandPalette).
 import { initMacros } from './macros.js';
@@ -147,6 +148,7 @@ import { initFrontmatterDisplayFromStore } from './frontmatter-display.js';
 // 4T-0471 (Epic 3E-0087): Ueberschriften-Nummerierung — Store-Laden beim
 // Start, Anwenden bei Broadcast (Setting render.headingNumbering).
 import { initHeadingNumberingFromStore } from './heading-numbering.js';
+import { initMindmapOptionenFromStore } from './mindmap/mindmap-einstellungen.js';
 // 4T-0465 (Epic 3E-0086): Farbschemas — Store-Laden und Anwenden beim Start,
 // Anwenden beim Theme-Wechsel und beim Multi-Window-Broadcast.
 import { initColorSchemesFromStore, applyActiveColorScheme } from './color-schemes.js';
@@ -403,6 +405,8 @@ async function init() {
   // 4T-0471 (Epic 3E-0087): Nummerierungs-Setting laden und die Preload-
   // Pipeline konfigurieren, bevor die Panes gerendert werden.
   await initHeadingNumberingFromStore();
+  // 4T-1048: Mindmap-Voreinstellung laden, bevor eine Karte gezeichnet wird.
+  await initMindmapOptionenFromStore();
   // 4T-0412 (Epic 3E-0078): Skript-Block-Schalter laden, bevor die Panes
   // gerendert werden (entscheidet Ausführung vs. Quelltext-Darstellung).
   await initPerspectiveScriptsFromStore();

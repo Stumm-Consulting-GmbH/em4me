@@ -407,3 +407,46 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
     expect([...disabledCommandIdSet([])].sort()).toEqual(vorher);
   });
 });
+
+// 4T-1047 (Epic 3E-0151): Aus-Zustand der Mindmap-Ansicht. Sie bringt kein
+// Render-Konstrukt mit, sondern einen Ansichts-Modus; geprüft wird deshalb
+// die deklarative Seite (Registry, Kommando-Filterung) plus der Rückfall des
+// gespeicherten Modus, der in mindmap-pane.js liegt.
+describe('Erweiterung mindmap: Registry und Aus-Zustand (4T-1047)', () => {
+  it('ist als Render-Erweiterung mit den Katalog-Keys registriert', () => {
+    const manifest = extensionById('mindmap');
+    expect(manifest).not.toBeNull();
+    expect(manifest.category).toBe('render');
+    expect(manifest.nameKey).toBe('help.featureName.mindmap');
+    expect(manifest.descKey).toBe('help.feature.mindmap');
+    expect(manifest.dependencies).toBeUndefined();
+    // Ab Werk eingeschaltet: der Default der Disabled-Liste ist leer.
+    expect(isExtensionEnabled('mindmap', [])).toBe(true);
+    expect(internalExtensions().some((m) => m.id === 'mindmap')).toBe(true);
+  });
+
+  it('führt genau das Modus-Kommando, und es ist registriert', () => {
+    const manifest = extensionById('mindmap');
+    expect(manifest.commands).toEqual(['view.modeMindmap']);
+    const registrierte = new Set(COMMANDS.map((c) => c.id));
+    expect(registrierte.has('view.modeMindmap')).toBe(true);
+  });
+
+  it('Aus-Zustand filtert genau dieses Kommando, An-Zustand keines', () => {
+    const aus = disabledCommandIdSet(['mindmap']);
+    expect(aus.has('view.modeMindmap')).toBe(true);
+    // Die übrigen Modus-Kommandos bleiben unberührt.
+    for (const id of ['view.modeRendered', 'view.modeSplit', 'view.modeSource', 'view.modeLive']) {
+      expect(aus.has(id), `${id} darf nicht mitgefiltert werden`).toBe(false);
+    }
+    const an = disabledCommandIdSet([]);
+    expect(an.has('view.modeMindmap')).toBe(false);
+  });
+
+  it('zieht keine andere Erweiterung mit und wird von keiner gezogen', () => {
+    expect([...effectiveDisabledSet(['mindmap'])]).toEqual(['mindmap']);
+    for (const m of internalExtensions()) {
+      expect((m.dependencies || []).includes('mindmap'), `${m.id} hängt an mindmap`).toBe(false);
+    }
+  });
+});

@@ -23,6 +23,7 @@ import { syncToolbarToActiveTab } from '../tabs/tabs.js';
 
 import { renderPaneContent } from './pane-render.js';
 import { showStatusbarHint } from './views.js';
+import { applyContentViewClass } from './view-modes.js';
 
 // Variante B+: statt einzelne Container-Selektoren im Print-CSS zu
 // ueberschreiben (Spezifitaets-Falle aus 4T-0024), werden die CSS-Custom-
@@ -116,8 +117,7 @@ export async function exportActiveTabAsPdf() {
     } else if (tab.viewMode !== 'rendered') {
       modeChanged = true;
       tab.viewMode = 'rendered';
-      els.content.classList.remove('view-source', 'view-split', 'view-rendered', 'view-live');
-      els.content.classList.add('view-rendered');
+      applyContentViewClass(els.content, 'view-rendered');
       renderPaneContent(paneIdx);
     }
 
@@ -189,8 +189,7 @@ export async function exportActiveTabAsPdf() {
     }
     if (modeChanged) {
       tab.viewMode = savedViewMode;
-      els.content.classList.remove('view-source', 'view-split', 'view-rendered', 'view-live');
-      els.content.classList.add(`view-${savedViewMode}`);
+      applyContentViewClass(els.content, `view-${savedViewMode}`);
       syncEditorForPane(paneIdx);
       syncToolbarToActiveTab();
     }

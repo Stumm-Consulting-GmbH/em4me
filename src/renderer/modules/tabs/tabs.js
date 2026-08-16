@@ -7,6 +7,11 @@ import { t } from '../../i18n.js';
 
 import { api, $ } from '../app/api.js';
 import { updateWordCountStatusbar } from '../render-mermaid.js';
+// 4T-1055: Verfuegbarkeit des Mindmap-Modus fuer die Statusbar-Schaltflaeche.
+// Wie in app-state.js bewusst aus mindmap-modus.js und nicht aus
+// mindmap-pane.js: Jenes zoege ueber die Einstellungs-Kette Module in die
+// Ladereihenfolge, die hier nichts zu suchen haben (Vorfall aus 4T-1048).
+import { isMindmapModeAvailable } from '../mindmap/mindmap-modus.js';
 import {
   DEFAULT_VIEW_MODE,
   DEFAULT_ZOOM,
@@ -273,7 +278,15 @@ export function syncToolbarToActiveTab() {
   // vier View-Buttons sind fuer sie deaktiviert (sichtbar deaktiviert
   // statt still wirkungslos, Entwicklungsrichtlinien §3).
   const systemTab = !!(tab && tab.systemPage);
+  // 4T-1055 (Epic 3E-0151): Die Mindmap-Schaltflaeche folgt dem Schalt-Zustand
+  // ihrer Erweiterung, genau wie der Menue-Eintrag; ein toter Schalter waere
+  // schlimmer als keiner. Die Pruefung sitzt hier und braucht keinen eigenen
+  // Laufzeit-Hook, weil dieser Sync bei jedem Reiter- und Modus-Wechsel laeuft
+  // und der Handler von 'scg:extensions-changed' ihn ueber renderAllPanes
+  // ebenfalls ausloest.
+  const mindmapVerfuegbar = isMindmapModeAvailable();
   document.querySelectorAll('.view-btn').forEach((b) => {
+    if (b.dataset.view === 'mindmap') b.hidden = !mindmapVerfuegbar;
     b.classList.toggle('active', !systemTab && b.dataset.view === viewMode);
     b.disabled = systemTab;
   });

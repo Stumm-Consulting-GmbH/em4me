@@ -390,12 +390,17 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
   });
 });
 
-// 4T-0576 (Epic 3E-0106): Die drei Editor-Ansicht-Schalter und die vier
+// 4T-0576 (Epic 3E-0106): Die drei Editor-Ansicht-Schalter und die
 // Ansichts-Schalter bilden eine gemeinsame Gruppe in der mittleren
 // Statusbar-Zone und sitzen in der Fenster-Mitte, nicht in der Mitte des
 // Restplatzes. Gegenprobe mit breitem Fenster (viel Restplatz rechts).
+//
+// 4T-1055 (Epic 3E-0151): Aus sieben Schaltern sind acht geworden, weil der
+// Mindmap-Modus seine Schaltflaeche bekommen hat; die Zahl steht deshalb nicht
+// mehr im Titel. Die Liste bleibt vollstaendig geprueft, damit eine kuenftige
+// Aenderung hier auffaellt und nicht erst am Abnahme-Gate.
 test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
-  test('die sieben Schalter stehen als Gruppe in der Fenster-Mitte', async () => {
+  test('die Schalter stehen als Gruppe in der Fenster-Mitte', async () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     try {
       await waitForTab(page);
@@ -423,7 +428,7 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
       // Nach dem Resize auf die neue Geometrie warten.
       await expect.poll(async () => (await readGeometry()).offset).toBeLessThanOrEqual(1);
       const geo = await readGeometry();
-      // Genau die sieben Schalter in Anzeige-Reihenfolge.
+      // Genau diese Schalter in Anzeige-Reihenfolge.
       expect(geo.ids).toEqual([
         'btn-fold-gutter',
         'btn-numbers',
@@ -432,6 +437,7 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
         'source',
         'split',
         'rendered',
+        'mindmap',
       ]);
       // Fenster-Mitte, nicht Rest-Platz-Mitte (Toleranz für Rundung).
       expect(geo.offset).toBeLessThanOrEqual(1);

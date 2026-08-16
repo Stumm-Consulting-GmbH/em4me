@@ -263,6 +263,10 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.viewModes',
       // 4T-0085 (Epic 3E-0014): Live-Modus als vierter View-Modus.
       'help.feature.livePreview',
+      // 4T-1050 (Epic 3E-0151): Mindmap als fuenfter View-Modus samt ihren
+      // Darstellungs-Optionen, direkt hinter dem Live-Modus (gleiche Familie).
+      'help.feature.mindmap',
+      'help.feature.mindmapDisplay',
       'help.feature.sourceToggles',
       // 4T-0290 (Epic 3E-0051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

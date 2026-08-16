@@ -319,6 +319,11 @@ export const commandHandlers = {
   'view.modeLive': () => {
     setViewMode('live');
   },
+  // 4T-1047 (Epic 3E-0151): Bei ausgeschalteter Erweiterung filtert der
+  // Dispatcher das Kommando bereits heraus; setViewMode faengt den Rest ab.
+  'view.modeMindmap': () => {
+    setViewMode('mindmap');
+  },
   'view.toggleEdit': () => {
     toggleEditMode();
   },

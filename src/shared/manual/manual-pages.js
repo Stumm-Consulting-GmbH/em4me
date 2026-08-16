@@ -81,6 +81,12 @@ const MANUAL_PAGES = [
   // weil beide Seiten die Oberflaeche beschreiben und die Sidebar-Seite den
   // Panel-Teil davon uebernimmt.
   { id: 'views-display', titleKey: 'manual.page.viewsDisplay.title', source: 'bundled' },
+  // 4T-1050 (Epic 3E-0151): Mindmap-Ansicht (fuenfter Ansichts-Modus, Lage der
+  // Wurzel in fuenf Richtungen, Bedienung, Vorgabe je Dokument, Grenzen).
+  // Direkt hinter „Ansichten und Darstellung", weil die Karte einer der
+  // Ansichts-Modi ist und jene Seite auf diese verweist (Struktur-Pruefschritt
+  // 4T-1050, Entscheidung des Product Owners vom 2026-08-16).
+  { id: 'mindmap', titleKey: 'manual.page.mindmap.title', source: 'bundled' },
   // 4T-0290 (Epic 3E-0051): Sidebar-Seite (Panels, Anordnung, Reiter-Gruppen).
   { id: 'sidebar', titleKey: 'manual.page.sidebar.title', source: 'bundled' },
   // 4T-0613 (Epic 3E-0115): Lesezeichen (allgemeine und bereichsgebundene mit

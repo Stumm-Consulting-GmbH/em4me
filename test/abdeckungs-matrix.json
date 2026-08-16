@@ -1859,6 +1859,31 @@
       "hinweis": "4T-0480 (Epic 3E-0089): Kommando-Palette — KP-01 bis KP-05 (Oeffnen per Kuerzel und Menue-Kanal, Teilstring-Filter, Pfeil-Navigation mit Enter-Ausfuehrung, Esc, gedimmte nicht verfuegbare Kommandos) plus Unit-Suite des Filter-Moduls (test/unit/command-palette-filter.test.js). KP-06 (4T-0781): ein Kommando ohne Standard-Kuerzel wirkt ueber die Palette; die Vollstaendigkeit der Dispatcher-Map haelt test/unit/renderer/kommando-dispatcher.test.js."
     },
     {
+      "key": "help.feature.mindmap",
+      "id": "F-259",
+      "testart": "unit",
+      "tests": [
+        "test/unit/mindmap-core.test.js",
+        "test/unit/mindmap-optionen.test.js",
+        "test/unit/renderer/mindmap-view.test.js",
+        "test/unit/renderer/mindmap-pane.test.js",
+        "test/unit/render/extensions-aus.test.js"
+      ],
+      "hinweis": "4T-1045 bis 4T-1049 (Epic 3E-0151): Mindmap-Ansicht — Baum-Abbildung und Anordnung im Kern samt der fuenf Wurzel-Lagen (44 Faelle: je Lage Wuchsrichtung, Ueberlappungsfreiheit, Determinismus, Klapp-Zustand und Rueckfall bei unbekanntem Wert, dazu die Verteilungs-Regel der mittigen Lage), Options-Aufloesung aus Voreinstellung und Kopfbereich (14), SVG-Ansicht mit Klappen, Zoom, Notiz-Popover, Sprung zur Quellzeile und der richtungs-abhaengigen Zeichnung (34), Rueckfall des Modus bei ausgeschalteter Erweiterung (5) sowie die Registry-Seite des Aus-Zustands. Der Bedienpfad an der gebauten Programmdatei kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
+    },
+    {
+      "key": "help.feature.mindmapDisplay",
+      "id": "F-260",
+      "testart": "unit",
+      "tests": [
+        "test/unit/mindmap-optionen.test.js",
+        "test/unit/mindmap-core.test.js",
+        "test/unit/renderer/mindmap-view.test.js",
+        "test/unit/renderer/mindmap-pane.test.js"
+      ],
+      "hinweis": "4T-1048 und 4T-1049 (Epic 3E-0151): Darstellungs-Optionen der Mindmap — Aufloesung aus anwendungsweiter Voreinstellung und Kopfbereich des Dokuments samt stillem Rueckfall bei unzulaessigen Werten (14 Faelle), Wirkung der Wurzel-Lage in der Anordnung (44) und in der Zeichnung (34), Nachziehen offener Karten beim Aendern der Voreinstellung. Der Einstellungs-Bereich selbst kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
+    },
+    {
       "key": "help.feature.areaGraph",
       "id": "F-107",
       "testart": "e2e",

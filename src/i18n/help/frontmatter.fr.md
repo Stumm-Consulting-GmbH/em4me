@@ -47,6 +47,21 @@ La bascule via la barre d'état ou le menu Affichage écrit la nouvelle valeur d
 
 Cas particuliers : dans les cibles en lecture seule (comme les pages du manuel) et en cas de YAML incorrect, la bascule n'agit que de façon éphémère pour la session en cours. Dans les onglets Sans titre, elle est également éphémère ; au premier enregistrement, l'application reporte les valeurs qui diffèrent de la valeur par défaut dans le frontmatter du nouveau fichier.
 
+## Carte mentale par document
+
+La clé `mindmap` détermine la façon dont la [vue carte mentale](mindmap.md) dessine ce document précis et remplace ainsi la valeur par défaut sous Fichier → Paramètres… → Carte mentale :
+
+```markdown
+---
+mindmap:
+  layout: mitte
+  linienfuehrung: gerade
+  anfangsTiefe: 2
+---
+```
+
+`layout` accepte la position de la racine (`links`, `mitte`, `rechts`, `oben`, `unten`), `linienfuehrung` les valeurs `geschwungen` et `gerade` ; s'y ajoutent les nombres `farbEinfrierEbene`, `anfangsTiefe` et `hoechstBreite`. Ce qui n'est pas compris revient silencieusement à la valeur par défaut.
+
 ## Barre Propriétés
 
 La barre Propriétés affiche les champs du frontmatter en édition directe. Le type de champ se déduit de la valeur : texte, liste, date, nombre, booléen ou multiligne. Les nouveaux champs se créent via « + Ajouter une propriété » ; les modifications suivent le paramètre d'enregistrement automatique.

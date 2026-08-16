@@ -530,8 +530,8 @@ einzelne Commit muss deshalb für sich regelkonform sein.
 
 **Zentral, pro Integration.** Das Testsuite-Gate der Merge-Queue läuft am
 Integrationsstand, zusammen mit Format-Check und Lint; erst bei Grün
-erreicht ein Branch `main`. Sein Umfang folgt der Änderungsklasse, sobald
-die Auswahl scharfgeschaltet ist (Absatz „Stand der Umsetzung"). Ein
+erreicht ein Branch `main`. Sein Umfang folgt seit dem 2026-08-14 der
+Änderungsklasse (Absatz „Stand der Umsetzung"). Ein
 lokaler Lauf vor dem Abliefern eines Branches bleibt gute Praxis, das
 Pflicht-Gate ist der Queue-Lauf. Bewusst ist die Suite nicht mehr Teil
 des Hooks: Sie kostet pro Commit zu viel Zeit, und am Integrationsstand
@@ -582,13 +582,14 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 
 | Klasse | Datei-Muster | Ausschnitt der Unit-Suite | E2E |
 |---|---|---|---|
-| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export`; kein Format, kein Lint | keine |
+| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
-| **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
-| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
-| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`; Format und Lint | Smoke plus EXE-Smoke-Test |
+| **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
+| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
+| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`; Format und Lint | Smoke plus EXE-Smoke-Test |
 | **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste); Format und Lint | keine |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
+| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst; Format und Lint | keine über die geänderte Spec hinaus |
 
 **Warum die Auslassungen tragen.** Für Ä1 folgt es aus den
 Ignore-Dateien: `.prettierignore` schließt `*.md` und
@@ -649,10 +650,13 @@ eine Test-Konfiguration oder eine Ignore-Datei ist geändert; der Lauf ist
 eine Release-Integration (`--release`). Ergänzend gilt fail-closed: eine
 Ausnahme in der Auswahl, eine unlesbare Karte und ein leeres
 Auswahl-Ergebnis führen ebenfalls auf die vollen Gates, nie auf weniger.
-Eine Änderung ausschließlich unter `test/` trifft auf kein Muster und
-fällt damit ebenfalls zurück; das ist teuer, aber selten, weil eine
-Test-Änderung in der Praxis eine Code-Änderung begleitet und dann deren
-Klasse gilt.
+Unter `test/` fallen Konfiguration, Helfer und Fixtures zurück, weil sie
+auf fremde Prüffälle wirken, deren Auswahl daraus nicht ableitbar ist; ein
+geänderter Prüffall selbst ist seit dem 2026-08-14 die Klasse Ä8 und läuft
+als sein eigener Ausschnitt. Die frühere Regel, die jede Änderung unter
+`test/` zurückfallen ließ, traf mit 137 von 248 Rückfällen der Erhebung
+genau den Vorgang, den die Konvention vorschreibt, nämlich Code-Änderung
+samt Regressionstest (Entscheidung des Product Owners vom 2026-08-14).
 
 Ebenso zurück fällt eine Änderung unter `addon_examples/`. Die
 Beispiel-Erweiterung geht nicht in die Anwendung ein, ist aber zugleich
@@ -708,23 +712,39 @@ Dateien lesen. Auch `vitest related src/shared/markdown/markdown.js`
 findet die drei Web-Wächter nicht, die das Modul über `build-web.js`
 laden. Der Nachweis bleibt der Queue-Lauf.
 
-**Stand der Umsetzung: Schattenbetrieb.** Die maschinelle Auswahl ist
-gebaut, aber noch nicht scharf. Die Karte aus Pfad-Mustern liegt als
-`scripts/aenderungsklassen.json` und ist die maschinenlesbare Fassung der
-Tabelle oben; `scripts/gate-auswahl.js` wertet sie als reine Funktion aus,
-ohne Git- und ohne Dateisystem-Zugriff; der Meta-Test
-`test/unit/aenderungsklassen.test.js` hält die Karte in beide Richtungen
-gegen den realen Bestand, also jede Testdatei einem Ausschnitt zugeordnet
-oder mit Begründung ausgenommen und jeder versionierte Pfad auf mindestens
-einem Muster. In der Merge-Queue läuft die Auswahl im **Schattenbetrieb**:
-Sie protokolliert die erkannten Klassen und den Ausschnitt, der gelaufen
-wäre, und die Queue fährt unverändert Format, Lint und die volle Suite.
-Ausstehend ist die Scharfschaltung samt Not-Aus-Schalter; sie folgt erst,
-wenn das Protokoll über eine mit dem Product Owner vereinbarte Zahl von
-Integrationen gegen den realen Änderungs-Umfang trägt. Bis dahin steuern
-die Klassen unverändert die Läufe, die eine Session selbst startet, allen
-voran die E2E-Wahl. Der Modul-Graph darf innerhalb einer Klasse weiter
-eingrenzen, nie aber alleinige Grundlage sein.
+**Stand der Umsetzung: scharf seit dem 2026-08-14.** Die Karte aus
+Pfad-Mustern liegt als `scripts/aenderungsklassen.json` und ist die
+maschinenlesbare Fassung der Tabelle oben; `scripts/gate-auswahl.js` wertet
+sie als reine Funktion aus, ohne Git- und ohne Dateisystem-Zugriff; der
+Meta-Test `test/unit/aenderungsklassen.test.js` hält die Karte in beide
+Richtungen gegen den realen Bestand, also jede Testdatei einem Ausschnitt
+zugeordnet oder mit Begründung ausgenommen und jeder versionierte Pfad auf
+mindestens einem Muster. Die Merge-Queue **wählt** danach ihren
+Gate-Umfang: Format und Lint laufen nur, wenn die Klasse sie verlangt,
+statt der vollen Suite läuft der Ausschnitt, und Klassen mit Modul-Graph
+hängen einen zusätzlichen `vitest related`-Lauf an. Der Modul-Graph grenzt
+dabei innerhalb einer Klasse weiter ein und ist nie alleinige Grundlage.
+Das Protokoll nennt den **tatsächlich ausgeführten** Umfang, damit ein
+grüner Teil-Lauf nicht als grüner Voll-Lauf gelesen werden kann.
+
+Entschieden wurde die Scharfschaltung auf einer Auswertung aller 439
+Integrations-Vorgänge seit Beginn des Schattenbetriebs: kein einziger
+unbekannter Pfad, und die erkannten Klassen entsprachen dem realen
+Änderungs-Umfang (4T-0744).
+
+**Not-Aus.** `node scripts/merge-queue.js <branch> --volle-gates` erzwingt
+Format, Lint und die vollständige Suite ohne Code-Änderung und ohne
+Kenntnis der Karte; dieselbe Wirkung hat die Umgebungsvariable
+`EM4ME_VOLLE_GATES=1`, mit der ein Clone sie dauerhaft setzen kann. Er ist
+die Rückfallebene, falls die Auswahl im Betrieb auffällig wird.
+
+**Turnusmäßiger Voll-Lauf.** Der erste Integrationslauf eines
+Kalendertages fährt unabhängig von der Klasse die vollen Gates; ebenso
+jede Release-Integration (`--release`). Verglichen werden Kalendertage und
+nicht Datei-Zeiten gegen die Uhr, weil ein mtime-Vergleich gegen
+`Date.now()` unter Windows nachweislich brüchig ist (Befund aus 4T-0729).
+Der Vermerk liegt unversioniert im `.git`-Verzeichnis des
+Integrations-Clones; ist er nicht lesbar, gilt der Voll-Lauf als fällig.
 
 ## Snapshots der Render-Pipeline
 

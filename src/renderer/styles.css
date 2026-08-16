@@ -226,6 +226,13 @@ body {
 .view-btn:last-child {
   border-right: none;
 }
+/* 4T-1055 (Epic 3E-0151): Ist die Mindmap-Erweiterung aus, wird ihre
+   Schaltflaeche ausgeblendet, bleibt aber letztes Kind. Ohne diese Regel
+   behielte die Schaltflaeche davor ihre Trennlinie und stuende als doppelter
+   Strich neben dem Rahmen der Gruppe. */
+.view-btn:has(+ .view-btn[hidden]) {
+  border-right: none;
+}
 .view-btn:hover {
   background: var(--hover);
 }
@@ -406,8 +413,15 @@ body {
   align-items: center;
   gap: 8px;
 }
+/* 4T-1055 (Epic 3E-0151): Die mittlere Zone traegt zwei fachlich
+   verschiedene Gruppen, die drei Editor-Ansicht-Schalter und die fuenf
+   Ansichts-Umschalter. Mit dem Zonen-Abstand von 8 px lasen sie sich als eine
+   Leiste aus acht Schaltflaechen; der groessere Abstand trennt sie sichtbar,
+   ohne die Gruppe aus der Fenstermitte zu ruecken. Er steht hier und nicht als
+   Rand an einer der beiden Gruppen, weil er zwischen sie gehoert. */
 .statusbar-center {
   justify-content: center;
+  gap: 22px;
 }
 /* Rechte Zone fuellt ihre Spalte; die Inhalte sitzen am rechten Rand. */
 .statusbar-right {

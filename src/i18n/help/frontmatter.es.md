@@ -47,6 +47,21 @@ Conmutar mediante la barra de estado o el menú Ver escribe el nuevo valor direc
 
 Casos especiales: en destinos de solo lectura (como las páginas del manual) y con YAML defectuoso, el conmutador solo actúa de forma efímera durante la sesión en curso. En las pestañas Sin título también es efímero; al primer guardado la aplicación traslada al frontmatter del nuevo archivo los valores que difieren del valor por defecto.
 
+## Mapa mental por documento
+
+La clave `mindmap` determina cómo dibuja la [vista de mapa mental](mindmap.md) este documento concreto y sustituye así el valor por defecto en Archivo → Configuración… → Mapa mental:
+
+```markdown
+---
+mindmap:
+  layout: mitte
+  linienfuehrung: gerade
+  anfangsTiefe: 2
+---
+```
+
+`layout` admite la posición de la raíz (`links`, `mitte`, `rechts`, `oben`, `unten`) y `linienfuehrung` los valores `geschwungen` y `gerade`; se añaden los números `farbEinfrierEbene`, `anfangsTiefe` y `hoechstBreite`. Lo que no se entiende vuelve en silencio al valor por defecto.
+
 ## Barra Propiedades
 
 La barra Propiedades muestra los campos del frontmatter editables en vivo. El tipo de campo se infiere del valor: texto, lista, fecha, número, booleano o multilínea. Los campos nuevos se crean con «+ Añadir propiedad»; los cambios siguen la configuración de autoguardado.

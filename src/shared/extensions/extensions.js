@@ -330,6 +330,21 @@ const INTERNAL_EXTENSIONS = [
     featureKeys: ['help.feature.areaGraph', 'help.feature.fileGraph'],
     commands: ['graph.openArea', 'view.toggleGraphPanel'],
   },
+  // 4T-1047 (Epic 3E-0151): Mindmap-Ansicht als fuenfter Ansichts-Modus.
+  // Erweiterungs-Pruefschritt des Epics: abgrenzbare Zusatz-Funktion, von
+  // der kein Kern-Teil abhaengt; Leitlinie "im Zweifel schaltbar". Im
+  // Aus-Zustand entfaellt das Kommando (Menue, Palette, Dispatcher), und
+  // ein im Mindmap-Modus gespeicherter Reiter oeffnet in der Lese-Ansicht
+  // (Rueckfall in mindmap-pane.js, damit kein Reiter ohne Inhalt bleibt).
+  // Kategorie 'render', weil die Mindmap eine Darstellungs-Form ist.
+  {
+    id: 'mindmap',
+    category: 'render',
+    nameKey: 'help.featureName.mindmap',
+    descKey: 'help.feature.mindmap',
+    commands: ['view.modeMindmap'],
+    settingsSections: ['mindmap'],
+  },
   // Werkzeug-Erweiterungen (4T-0294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).
   {

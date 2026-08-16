@@ -46,4 +46,8 @@ Renaming a subpage changes only its own name segment — in the dialog as well a
 
 **View → Area graph** draws every file as a node and every link as an arrow — a live map of this whole area. The **File graph** panel does the same for the neighbourhood of the active file.
 
+## The mindmap
+
+While the graph maps files against each other, the **mindmap** maps the inside of one file. Press `Ctrl+5` on this very page (or **View → Mind map**): every heading and list item becomes a node, and the paragraphs turn into notes you can open on the node. The circle at the end of a branch folds it away, a click on a node text jumps back to the line it came from, and **Settings → Mind map** decides where the root sits — left, centre, right, top or bottom.
+
 Metadata comes next: [[05 Properties and Profiles]].

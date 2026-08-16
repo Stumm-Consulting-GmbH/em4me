@@ -47,6 +47,21 @@ Toggling via the status bar or the View menu writes the new value directly into 
 
 Special cases: in read-only targets (such as manual pages) and with malformed YAML the toggle only takes effect transiently for the running session. In Untitled tabs it is likewise transient; on the first save the app carries the values that differ from the default into the frontmatter of the new file.
 
+## Mind map per document
+
+The key `mindmap` decides how the [mind map view](mindmap.md) draws this particular document and thereby overrides the default under File → Settings… → Mind map:
+
+```markdown
+---
+mindmap:
+  layout: mitte
+  linienfuehrung: gerade
+  anfangsTiefe: 2
+---
+```
+
+`layout` takes the root position (`links`, `mitte`, `rechts`, `oben`, `unten`), `linienfuehrung` the values `geschwungen` and `gerade`; added to these are the numbers `farbEinfrierEbene`, `anfangsTiefe` and `hoechstBreite`. Anything not understood falls back to the default silently.
+
 ## Properties sidebar
 
 The properties sidebar shows the frontmatter fields live-editable. The field type is inferred from the value: text, list, date, number, boolean or multiline. New fields are created via "+ Add property"; changes follow the auto-save setting.

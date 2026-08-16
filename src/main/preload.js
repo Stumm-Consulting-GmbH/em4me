@@ -13,6 +13,11 @@ const fs = require('node:fs');
 
 const { githubLikeSlug } = require('../shared/markdown/slug.js');
 const { extractFrontmatter, writeFrontmatter } = require('../shared/markdown/frontmatter.js');
+// 4T-1045 (Epic 3E-0151): Mindmap-Kern; die Markdown-Instanz bekommt er hier
+// gereicht. Modul-Objekt statt destrukturiertem md, weil configureExtensions
+// module.exports.md beim Schalten einer Erweiterung NEU zuweist.
+const { mindmapAusDokument } = require('../shared/mindmap-core.js');
+const markdownModul = require('../shared/markdown/markdown.js');
 const {
   renderMarkdown,
   convertMarkdownPortable,
@@ -329,6 +334,10 @@ contextBridge.exposeInMainWorld('api', {
     const html = renderMarkdown(text, lang, opts);
     return resolveImagesForBase(html, basePath);
   },
+  // 4T-1045 (Epic 3E-0151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
+  // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil
+  // sie eine echte Textmessung braucht.
+  buildMindmap: (text, opts) => mindmapAusDokument(text, markdownModul.md, opts || {}),
   // 4T-0282/4T-0284: Frontmatter-Zeile der Preload-Pipeline schalten
   // (Muster configureTaskStates; Aufruf beim App-Start und bei jedem
   // Settings-Broadcast).

@@ -42,9 +42,20 @@ import { refreshSearchIfVisible } from '../search/search.js';
 // Transformation zurueckruft. Beide Richtungen sind reine Funktionsaufrufe
 // zur Laufzeit (Muster der dokumentierten Modularisierungs-Zyklen
 // views <-> editor, history-status, templates, title-line).
+// 4T-1047 (Epic 3E-0151): Zeichnen und Einpassen kommen aus der Pane-Ebene,
+// die Verfuegbarkeits-Regel aus dem zyklusfreien Modus-Modul (Begruendung im
+// Kopf von mindmap-modus.js).
+import {
+  MINDMAP_JUMP_EVENT,
+  fitMindmap,
+  renderMindmap,
+  setzeCursorAufZeile,
+} from '../mindmap/mindmap-pane.js';
+import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
 import { renderPaneContent } from './pane-render.js';
 import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
+import { applyContentViewClass, isViewMode } from './view-modes.js';
 
 // 4T-0179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
 // geschrieben und bleiben deshalb modul-privat; ueber die Modul-Grenze fuehrt
@@ -54,9 +65,16 @@ let hintTimer = null;
 
 // --- View-Modus + Toggles (alle pro Tab) ------------------------------------
 export function setViewMode(mode) {
-  if (!['source', 'split', 'rendered', 'live'].includes(mode)) return;
+  // 4T-1047 (Epic 3E-0151): 'mindmap' als fuenfter Modus. Ist die
+  // Erweiterung aus, faellt er auf die Lese-Ansicht zurueck, statt eine
+  // leere Pane zu zeigen (Story S-0804, AK7).
+  const gewuenscht = resolveViewModeForTab(mode);
+  // 4T-1054: Die Modus-Liste kommt aus view-modes.js, nicht als sechste
+  // Kopie hierher.
+  if (!isViewMode(gewuenscht)) return;
   const tab = activeTab();
   if (!tab) return;
+  mode = gewuenscht;
   // 4T-0277: System-Seiten (Einstellungen) kennen keine View-Modi — das
   // Seiten-DOM ersetzt Editor und Render-Pane vollstaendig.
   if (tab.systemPage) return;
@@ -73,8 +91,7 @@ export function setViewMode(mode) {
     tab.editMode = false;
   }
   const els = getPaneEls(state.activePaneIndex);
-  els.content.classList.remove('view-source', 'view-split', 'view-rendered', 'view-live');
-  els.content.classList.add(`view-${mode}`);
+  applyContentViewClass(els.content, `view-${mode}`);
   // 4T-0351 (Epic 3E-0063): Beim Wechsel in einen Modus mit sichtbarem
   // Render-Pane (Gerendert/Geteilt) das Render-DOM aus dem aktuellen
   // tab.content aufbauen. syncEditorForPane synchronisiert nur den Editor;
@@ -86,6 +103,12 @@ export function setViewMode(mode) {
   // Skip-Cache, wenn sich content/Pfad/Sprache/Theme nicht geaendert haben.
   if (mode === 'rendered' || mode === 'split') {
     renderPaneContent(state.activePaneIndex);
+  } else if (mode === 'mindmap') {
+    // 4T-1047: Die Karte baut auf tab.content auf, nicht auf dem Editor;
+    // ein Editor-Abgleich ist hier ohne Wirkung. Nach dem Zeichnen einmal
+    // einpassen, damit der Nutzer die ganze Karte sieht.
+    renderMindmap(state.activePaneIndex);
+    fitMindmap(state.activePaneIndex);
   } else {
     syncEditorForPane(state.activePaneIndex);
   }
@@ -94,6 +117,22 @@ export function setViewMode(mode) {
   // Modus-Wechsel kann den Such-Scope aendern (Quelltext <-> Vorschau).
   refreshSearchIfVisible();
 }
+
+// 4T-1054 (Epic 3E-0151): Sprung aus der Mindmap. Die Karte meldet nur den
+// Wunsch; welcher Modus die Stelle zeigt, entscheidet die Ansichts-Ebene.
+// Geteilte Ansicht, weil der Nutzer die Quellzeile und das gerenderte
+// Dokument nebeneinander sehen soll (PO-Entscheidung vom 2026-08-16). Der
+// Cursor wird erst **nach** dem Wechsel gesetzt: Im Mindmap-Modus ist der
+// Editor ausgeblendet, und ein Sprung dorthin bliebe unsichtbar.
+document.addEventListener(MINDMAP_JUMP_EVENT, (ev) => {
+  const detail = ev && ev.detail ? ev.detail : {};
+  if (detail.zeile == null) return;
+  setViewMode('split');
+  setzeCursorAufZeile(
+    detail.paneIdx != null ? detail.paneIdx : state.activePaneIndex,
+    detail.zeile,
+  );
+});
 
 // 4T-0572 (Epic 3E-0105): Frontmatter-Update fuer Editor-Ansicht-Schalter als
 // reine Content-Transformation. updates ist ein Objekt Frontmatter-Key →
@@ -291,8 +330,7 @@ export function toggleEditMode() {
   if (tab.viewMode === 'rendered') {
     tab.viewMode = 'split';
     const els = getPaneEls(state.activePaneIndex);
-    els.content.classList.remove('view-source', 'view-split', 'view-rendered', 'view-live');
-    els.content.classList.add('view-split');
+    applyContentViewClass(els.content, 'view-split');
     tab.editMode = true;
   } else {
     tab.editMode = !tab.editMode;

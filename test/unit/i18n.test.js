@@ -4,6 +4,7 @@
 // Werte, abweichende {placeholder}-Mengen). Laeuft in `npm test` und
 // damit ueber den pre-commit-Hook bei jedem Commit.
 import { describe, it, expect, vi } from 'vitest';
+import fs from 'node:fs';
 import { checkI18n, LANGS } from '../../scripts/check-i18n.js';
 
 // menu.js zieht electron (Menu) im Modul-Kopf — fuer den reinen
@@ -19,6 +20,40 @@ describe('i18n-Synchronitaet (S-09)', () => {
     expect(result.ok).toBe(true);
     expect(LANGS).toHaveLength(5);
     expect(result.keyCount).toBeGreaterThan(300);
+  });
+});
+
+describe('Bereitschaft des Woerterbuchs (4T-1044)', () => {
+  // Anlass: Beim Start des gepackten Baus trifft die Anzeige-Info des Main
+  // ein, bevor loadTranslations durch ist. t() liefert dann den Schluessel
+  // unveraendert zurueck; im Fenstertitel stand dadurch kurz
+  // "EM4me (window.title.workspace)". Der Fix fragt vor dem Bauen des
+  // Titel-Suffix nach, ob das Woerterbuch da ist. Geprueft wird hier die
+  // Aussage, auf der er steht.
+  it('meldet vor dem Laden "nicht bereit" und danach "bereit"', async () => {
+    const i18n = await import('../../src/renderer/i18n.js');
+    expect(i18n.hatUebersetzungen()).toBe(false);
+    // Gegenprobe zum zurueckgezogenen Nebenbefund der Diagnose: t() gibt den
+    // Schluessel zurueck, meldet ihn im Vor-Lade-Zustand aber NICHT als
+    // Konsolen-Fehler — meldeFehlendenSchluessel schweigt bei leerem
+    // Woerterbuch (Guard aus 4T-0900).
+    const fehler = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(i18n.t('window.title.workspace')).toBe('window.title.workspace');
+    expect(fehler).not.toHaveBeenCalled();
+    fehler.mockRestore();
+
+    const dict = JSON.parse(
+      fs.readFileSync(new URL('../../src/i18n/de.json', import.meta.url), 'utf8'),
+    );
+    vi.stubGlobal('fetch', async () => ({ ok: true, json: async () => dict }));
+    // loadTranslations setzt zusaetzlich das lang-Attribut des Dokuments; diese
+    // Datei laeuft in der Node-Umgebung, deshalb ein minimales Stellvertreter-
+    // Objekt statt einer jsdom-Umgebung fuer die ganze Datei.
+    vi.stubGlobal('document', { documentElement: {} });
+    await i18n.loadTranslations('de');
+    vi.unstubAllGlobals();
+    expect(i18n.hatUebersetzungen()).toBe(true);
+    expect(i18n.t('window.title.workspace')).toBe('Arbeitsbereich {name}');
   });
 });
 

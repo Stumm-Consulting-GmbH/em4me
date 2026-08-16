@@ -610,6 +610,18 @@ function buildMenu(win, state, actions) {
           accelerator: acc('view.modeLive'),
           click: send('menu:viewChange', 'live'),
         },
+        // 4T-1047 (Epic 3E-0151): Fuenfter Modus. Bei ausgeschalteter
+        // Erweiterung faellt der Eintrag ueber unless() weg, und der
+        // Renderer schaltet einen gespeicherten Mindmap-Reiter auf die
+        // Lese-Ansicht zurueck.
+        unless('view.modeMindmap', {
+          label: t('menu.view.mindmap'),
+          type: 'radio',
+          checked: viewMode === 'mindmap',
+          enabled: !systemTab,
+          accelerator: acc('view.modeMindmap'),
+          click: send('menu:viewChange', 'mindmap'),
+        }),
         {
           // 4T-0019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist
           // der Toolbar-Button rechts unten ausgeblendet). Pro aktivem Tab.

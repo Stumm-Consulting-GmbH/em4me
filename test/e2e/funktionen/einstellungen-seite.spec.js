@@ -142,7 +142,11 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       // weil der Default die leere Deaktivierungs-Liste ist. Ausgeschaltet
       // startet allein der Funktions-Schalter innerhalb des Bereichs, der
       // Bereich selbst ist sichtbar.
-      await expect(nav).toHaveCount(20);
+      // 4T-1048 (Epic 3E-0151): „Mindmap" kommt als eigener Bereich der
+      // gleichnamigen Erweiterung hinzu; sie ist im frischen Profil aktiv.
+      // Der Fall war seit 4T-1048 rot und fiel erst am Abnahme-Gate auf, weil
+      // die E2E-Suite ausserhalb der Commit- und Integrations-Gates liegt.
+      await expect(nav).toHaveCount(21);
       // 4T-0889 (Epic 3E-0168): Die Einträge verteilen sich seither auf vier
       // mögliche Blöcke. Ohne gebundenen Bereich und ohne installierte
       // externe Erweiterung erscheinen zwei davon: „Allgemein" mit den

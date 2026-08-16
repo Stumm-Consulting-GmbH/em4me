@@ -64,6 +64,16 @@ export async function loadTranslations(lang) {
   rebuildExtensionExtras();
 }
 
+// 4T-1044 (Epic 3E-0208): Ist das Woerterbuch schon da? Vor dem ersten
+// erfolgreichen loadTranslations liefert t() jeden Schluessel unveraendert
+// zurueck UND meldet ihn als Fehler auf der Konsole. Wer vor diesem Zeitpunkt
+// uebersetzten Text in eine dauerhaft sichtbare Flaeche schreibt, zeigt dort
+// den rohen Schluessel; der Fenstertitel war genau so ein Fall. Aufrufer, die
+// frueh laufen koennen, fragen deshalb hier nach, statt t() blind zu rufen.
+export function hatUebersetzungen() {
+  return Object.keys(dict).length > 0;
+}
+
 // S-08 (4T-0183): setLanguage entfernt — loadTranslations setzt `current`
 // bereits selbst; der nachgelagerte Aufruf war redundant und haette bei
 // abweichendem Fallback (nicht unterstuetzte Sprache) den Zustand sogar

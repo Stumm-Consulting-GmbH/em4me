@@ -55,7 +55,8 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 
 ## Interfaccia, strumenti ed estensioni
 
-- [Viste e visualizzazione](views-display.md) — viste per scheda e aspetto dell'app: le quattro modalità inclusa quella live, visualizzazione editor, tema e modalità focus, zoom, larghezza del contenuto e caratteri, impostazioni, lingua e barra dei menu.
+- [Viste e visualizzazione](views-display.md) — viste per scheda e aspetto dell'app: le cinque modalità inclusa quella live, visualizzazione editor, tema e modalità focus, zoom, larghezza del contenuto e caratteri, impostazioni, lingua e barra dei menu.
+- [Vista mappa mentale](mindmap.md) — i titoli e gli elenchi di un documento come mappa: posizione della radice in cinque direzioni, compressione, zoom, note sul nodo, salto alla sorgente, valore per documento.
 - [Barra laterale](sidebar.md) — organizzare i pannelli: lato, ordine, gruppi di schede, larghezze.
 - [Combinazioni di colori](color-schemes.md) — colori tramite slot denominati: assegnazione per modalità, combinazioni proprie come copia, anteprima dal vivo, limiti.
 - [Strumenti](tools.md) — linter Markdown, ricerca con regex, trova e sostituisci, editor di tabelle.
@@ -65,7 +66,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 
 ## Consigli d'uso
 
-- Tutte le pagine del manuale sono di sola lettura; le quattro viste (Renderizzato, Diviso, Sorgente, Live) restano liberamente selezionabili.
+- Tutte le pagine del manuale sono di sola lettura; le viste (Renderizzato, Diviso, Sorgente, Live e Mappa mentale) restano liberamente selezionabili.
 - La **vista divisa** mostra la sorgente Markdown e il risultato renderizzato fianco a fianco — ideale per confrontare gli esempi di sintassi delle pagine tematiche con il loro risultato.
 - Il **sommario** nella barra laterale naviga all'interno di una pagina; la **ricerca testuale** (predefinito `Ctrl+F`) la attraversa.
 - Cambiando lingua nella barra di stato, le pagine del manuale aperte cambiano immediatamente.
