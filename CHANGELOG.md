@@ -14,6 +14,72 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.111.0.1601] - 2026-08-17 — Journal-Zeitleiste
+
+Epic 3E-0212: Ein neuer Block zeigt im Journal-Eintrag die Perioden-Übersicht
+als Kalender, in vier Modi von der Wochen-Zeile bis zum Jahres-Raster. Jedes
+Element führt in seine Periode und legt fehlende Einträge an. Zweite Stufe des
+Standard-Ausbaus aus der EM4me-Vault-Analyse, mit eigenem Nutzwert unabhängig
+von der Übernahme.
+
+Umsetzungs-Vorgänge des Epics: 4T-1063, 4T-1064, 4T-1065, 4T-1066 und 4T-1067;
+Konzept-Stufe 4T-1061, Release-Vorgang 4T-1068.
+
+### Neu
+
+- **Journal-Zeitleiste als Block** (4T-1064): Der Code-Block
+  `perspective-journal-timeline` zeigt im Journal-Eintrag eine Perioden-Übersicht
+  in vier Modi, gesteuert über die Angabe `mode:` — `week` als einzelne
+  Wochen-Zeile, `month` als Monatskalender, `quarter` als drei Monatskalender
+  nebeneinander und `year` als Jahres-Raster aus zwölf Monatskalendern.
+  `calendar` gilt als gleichwertige Altform von `year`, ein fehlender Wert
+  bedeutet `month`. Jeder Modus zeigt die Wochennummern-Spalte, den
+  Wochentags-Kopf ab Montag und in der Kopfzeile die Perioden oberhalb der
+  Kalender-Ebene, wobei die Ebene des Modus hervorgehoben ist. Maßgeblich ist
+  die Periode des Eintrags, in dem der Block steht, nicht der heutige Tag.
+- **Punkte, Klick-Ziele und Anlage** (4T-1065): Tage mit vorhandenem Eintrag
+  tragen einen Punkt, der heutige Tag ist hervorgehoben. Jedes Element führt in
+  seine Perioden-Ebene und legt fehlende Einträge an: der Tag in den
+  Tages-Eintrag, die Kalenderwoche in den Wochen-Eintrag, Monatsname und
+  Kopf-Beschriftungen in ihre jeweilige Periode. Maßgeblich sind die Journale
+  des Regals, zu dem der Eintrag gehört; fehlt dort ein Journal einer Ebene,
+  bleibt die Beschriftung reine Anzeige. Außerhalb der Datums-Grenzen eines
+  Journals entsteht kein Eintrag. Die Punkte ziehen bei Konfigurations- und
+  Struktur-Änderungen nach.
+- **Export-Verhalten der Zeitleiste** (4T-1066): Der PDF-Export druckt den
+  fertigen Kalender statt eines leeren Platzhalters. Der Portable-Export
+  ersetzt den Block durch eine Tabelle je Monat, mit einem Punkt-Zeichen an
+  Tagen mit Eintrag und ohne Anlage-Links; außerhalb eines Journal-Eintrags
+  bleibt der Quelltext-Block unverändert stehen.
+
+### Geändert
+
+- **Gemeinsamer Gitter-Baustein trägt jetzt einzelne Wochen** (4T-1063): Der
+  von Kalender-Panel, Datums-Eingabe und Uhr-Kalender geteilte Monatsgitter-
+  Baustein kann eine einzelne Wochen-Zeile zeichnen; das Monatsgitter ist
+  darauf zurückgeführt. Die Darstellung der drei Bestands-Stellen bleibt
+  unverändert.
+- **Existenz-Prüfung der Journal-Einträge fasst mehr Pfade** (4T-1065): Die
+  Kappung des Sammel-Aufrufs steigt von 500 auf 1000 Pfade. Der Jahres-Modus
+  fragt in einem Aufruf 371 Tage ab und lag damit ohne Reserve unter der alten
+  Grenze; eine greifende Kappung hätte still fehlende Punkte erzeugt.
+
+### i18n
+
+- Vier neue Schlüssel für Hinweis- und Fehlertexte der Zeitleiste sowie drei
+  Katalog-Schlüssel der neuen Funktion, jeweils in allen fünf Sprachfassungen
+  (4T-1064, 4T-1067). Die Perioden-Beschriftungen nutzen die bestehenden
+  Schlüssel des Navigations-Blocks weiter.
+
+### Dokumentation
+
+- **Handbuch-Seite «Journale»** (4T-1067): neuer Abschnitt «Timeline-Block» in
+  allen fünf Sprachfassungen, mit Modus-Tabelle, Aufbau, Klick- und
+  Anlage-Verhalten und Export. Die Demo-Area zeigt den Block als Beispiel.
+- **Drei Datei-Schnitte** (4T-1067): Die Modus-Sprache der Zeitleiste, ihre
+  Datenschicht und die Stilregeln beider Journal-Blöcke liegen in eigenen
+  Modulen, weil das Datei-Größen-Budget sonst gerissen wäre.
+
 ## [1.110.0.1588] - 2026-08-17 — Datums-Formate mit Namen
 
 Epic 3E-0210: Der gemeinsame Datums-Formatierer von Vorlagen, Journalen und

@@ -1,0 +1,170 @@
+/* 4T-1067 (Epic 3E-0212): Journal-Bloecke im Dokument — Navigations-Block
+   (perspective-journal-nav) und Timeline-Block (perspective-journal-timeline).
+
+   Herausgeloest aus bereichs-panel.css: Beide Bloecke leben im Dokument-Fluss
+   und nicht in der Sidebar; die Datei hatte mit dem Timeline-CSS ihr Budget
+   von 800 Zeilen gerissen (4T-0878). Die Gitter-Grundklassen bleiben bewusst
+   in bereichs-panel.css beim Kalender-Panel, weil der Block sie ueberschreibt
+   und nicht ersetzt — Panel und Block sollen nicht auseinanderlaufen. */
+
+/* 4T-0435 (Epic 3E-0081): Journal-Navigations-Block (perspective-journal-nav).
+   Übergeordnete Perioden als Link-Zeile, aktuelle Periode groß mit
+   Pfeilen zu voriger/nächster Periode. */
+.perspective-journal-nav {
+  margin: 1em 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+}
+.journal-nav-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.journal-nav-parents {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.journal-nav-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.journal-nav-link:hover {
+  text-decoration: underline;
+}
+.journal-nav-current {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.journal-nav-arrow {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--fg-muted);
+}
+.journal-nav-arrow:hover {
+  color: var(--fg);
+  text-decoration: none;
+}
+.journal-nav-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.journal-nav-sub {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* 4T-1064 (Epic 3E-0212): Journal-Timeline-Block (perspective-journal-timeline).
+   Das Gitter selbst nutzt die Klassen des Journal-Kalenders weiter oben
+   (.calendar-grid, .calendar-cell, .calendar-day-btn), damit Panel und Block
+   nicht auseinanderlaufen; hier stehen nur die Dokument-Umgebung und die
+   block-eigenen Teile (Kopfzeile, Monats-Ueberschrift, Gitter-Reihe).
+   Muster: der Kalender-Modus der Uhr (uhr-panel.css) verfaehrt ebenso.
+
+   Die Schriftgroesse ist bewusst groesser als im Panel: 11 px sind fuer die
+   Sidebar richtig und im Fliesstext eines Dokuments zu klein. Sie haengt
+   ueber --zell-groesse an einer Stelle, damit Kopfzeile und Zellen
+   gemeinsam wandern. */
+.perspective-journal-timeline {
+  --zell-groesse: 13px;
+  margin: 1em 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.journal-timeline-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+  text-align: center;
+}
+.timeline-kopf {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.timeline-kopf-teil {
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.timeline-kopf-teil:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+/* Ebene des Modus: hervorgehoben (Spezifikation der Bildschirm-Kopien). */
+.timeline-kopf-teil.modus-ebene {
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 15px;
+}
+/* Beschriftung ohne zugehoeriges Journal im Regal: reine Anzeige. */
+.timeline-kopf-teil.ohne-ziel,
+.calendar-day-btn.gesperrt {
+  cursor: default;
+}
+.timeline-kopf-teil.ohne-ziel:hover {
+  background: transparent;
+  color: var(--fg-muted);
+}
+.calendar-day-btn.gesperrt {
+  opacity: 0.35;
+}
+.calendar-day-btn.gesperrt:hover {
+  background: transparent;
+}
+/* Mehr-Gitter-Modi (quarter, calendar): umbrechende Reihe. Anders als die
+   Sidebar ist die Dokument-Breite variabel (Zwei-Spalten-Ansicht,
+   Einrueckung in Listen und Callouts); ein beschnittenes Gitter waere
+   unbrauchbar statt nur schmal. */
+.timeline-gitter-feld {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+}
+.timeline-monat {
+  min-width: 168px;
+}
+.timeline-monat-titel {
+  display: block;
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: var(--zell-groesse);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-bottom: 3px;
+}
+.timeline-monat-titel:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+/* Die geerbten Zell-Regeln stammen aus der Sidebar-Groesse; im Dokument
+   bekommen Zellen etwas mehr Luft. */
+.perspective-journal-timeline .calendar-cell {
+  font-size: var(--zell-groesse);
+  padding: 5px 0;
+}
+.perspective-journal-timeline .calendar-week-btn,
+.perspective-journal-timeline .calendar-day-btn {
+  padding-bottom: 11px;
+}

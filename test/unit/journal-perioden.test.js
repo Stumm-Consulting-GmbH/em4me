@@ -18,7 +18,15 @@ import {
   periodOf,
   prevPeriod,
   resolveEntryPath,
+  weekRow,
 } from '../../src/shared/journal-core.js';
+// 4T-1067 (Epic 3E-0212): Modus-Sprache und Fence-Erkennung des
+// Timeline-Blocks liegen in einem eigenen Kern-Modul (Datei-Größen-Budget).
+import {
+  hasJournalTimelineFence,
+  parseTimelineFence,
+  replaceJournalTimelineFences,
+} from '../../src/shared/journal-timeline-core.js';
 import { isoWeekOf, formatDateMs } from '../../src/shared/query/query-format.js';
 import { isExtensionId } from '../../src/shared/extensions/extensions.js';
 import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
@@ -372,6 +380,135 @@ describe('monthGrid — Wochen-Zeilen der Monatsansicht', () => {
     expect(rows[0].days[0].iso).toBe('2025-12-29');
     expect(rows[0].week.week).toBe(1);
     expect(rows[0].week.year).toBe(2026);
+  });
+});
+
+// --- 4T-1063 (Epic 3E-0212): einzelne Wochen-Zeile ---------------------------------
+
+describe('weekRow — eine Wochen-Zeile im Format des Monats-Gitters', () => {
+  it('liefert Montag bis Sonntag der Woche um den Zeitpunkt', () => {
+    // Donnerstag, 2026-08-20 — die Woche beginnt am Montag, 2026-08-17.
+    const row = weekRow(isoDateToMs('2026-08-20'));
+    expect(row.days).toHaveLength(7);
+    expect(row.days[0].iso).toBe('2026-08-17');
+    expect(row.days[6].iso).toBe('2026-08-23');
+    expect(row.week.week).toBe(34);
+    expect(row.week.year).toBe(2026);
+    expect(row.week.key).toBe('2026-W34');
+    expect(row.week.startMs).toBe(isoDateToMs('2026-08-17'));
+  });
+
+  it('ohne Monats-Bezug ist inMonth durchgängig true (freistehende Zeile)', () => {
+    // Die Woche um den 2026-08-31 läuft über die Monatsgrenze in den September.
+    const row = weekRow(isoDateToMs('2026-08-31'));
+    expect(row.days[0].iso).toBe('2026-08-31');
+    expect(row.days[1].iso).toBe('2026-09-01');
+    expect(row.days.every((d) => d.inMonth)).toBe(true);
+  });
+
+  it('mit Monats-Bezug kennzeichnet es die Fremdmonats-Tage', () => {
+    const row = weekRow(isoDateToMs('2026-08-31'), { year: 2026, monthIndex: 7 });
+    expect(row.days[0].inMonth).toBe(true);
+    expect(row.days.filter((d) => d.inMonth)).toHaveLength(1);
+  });
+
+  it('trägt am Jahreswechsel das KW-Jahr, nicht das Kalenderjahr', () => {
+    // Der 2026-01-01 gehört zur KW 1 des KW-Jahres 2026, die am 2025-12-29 beginnt.
+    const row = weekRow(isoDateToMs('2026-01-01'));
+    expect(row.days[0].iso).toBe('2025-12-29');
+    expect(row.week.week).toBe(1);
+    expect(row.week.year).toBe(2026);
+  });
+
+  it('ist die Basis von monthGrid: jede Gitter-Zeile ist die Zeile ihres Wochen-Starts', () => {
+    for (const row of monthGrid(2026, 6)) {
+      const direkt = weekRow(row.week.startMs, { year: 2026, monthIndex: 6 });
+      expect(direkt).toEqual(row);
+    }
+  });
+});
+
+// --- 4T-1064 (Epic 3E-0212): Modus-Auswertung des Timeline-Fence -------------------
+
+describe('parseTimelineFence — Modus des Journal-Timeline-Blocks', () => {
+  it('liest die vier Bestands-Modi', () => {
+    for (const mode of ['week', 'month', 'quarter', 'calendar']) {
+      expect(parseTimelineFence(`mode: ${mode}`)).toEqual({ ok: true, mode });
+    }
+  });
+
+  it('nimmt year als Alias für calendar', () => {
+    expect(parseTimelineFence('mode: year')).toEqual({ ok: true, mode: 'calendar' });
+  });
+
+  it('ein leerer Körper ergibt die Voreinstellung month', () => {
+    expect(parseTimelineFence('')).toEqual({ ok: true, mode: 'month' });
+    expect(parseTimelineFence('\n\n  \n')).toEqual({ ok: true, mode: 'month' });
+    expect(parseTimelineFence(null)).toEqual({ ok: true, mode: 'month' });
+  });
+
+  it('ist tolerant bei Schreibweise, Abstand und Kommentarzeilen', () => {
+    expect(parseTimelineFence('  MODE :  Quarter  ')).toEqual({ ok: true, mode: 'quarter' });
+    expect(parseTimelineFence('# Kommentar\nmode: week')).toEqual({ ok: true, mode: 'week' });
+  });
+
+  it('meldet einen unbekannten Modus, statt still auf die Voreinstellung zu fallen', () => {
+    const res = parseTimelineFence('mode: dekade');
+    expect(res.ok).toBe(false);
+    expect(res.error).toEqual({ code: 'badMode', value: 'dekade' });
+  });
+
+  it('meldet einen unbekannten Schlüssel', () => {
+    const res = parseTimelineFence('journal: tagebuch');
+    expect(res.ok).toBe(false);
+    expect(res.error).toEqual({ code: 'badKey', value: 'journal' });
+  });
+
+  it('meldet eine Zeile ohne Doppelpunkt', () => {
+    const res = parseTimelineFence('week');
+    expect(res.ok).toBe(false);
+    expect(res.error).toEqual({ code: 'badLine', value: 'week' });
+  });
+});
+
+// --- 4T-1066 (Epic 3E-0212): Fence-Erkennung des Portable-Exports ------------------
+
+describe('replaceJournalTimelineFences — Fence-Erkennung des Timeline-Blocks', () => {
+  it('reicht den Fence-Körper durch und ersetzt den ganzen Block', () => {
+    const src = 'davor\n\n```perspective-journal-timeline\nmode: week\n```\n\ndanach';
+    const koerper = [];
+    const out = replaceJournalTimelineFences(src, (body) => {
+      koerper.push(body);
+      return 'ERSATZ';
+    });
+    expect(koerper).toEqual(['mode: week\n']);
+    expect(out).toBe('davor\n\nERSATZ\n\ndanach');
+  });
+
+  it('greift auch bei leerem Körper und überspannt nicht den nächsten Fence', () => {
+    const src = '```perspective-journal-timeline\n```\n\n```perspective-journal-timeline\n```';
+    const out = replaceJournalTimelineFences(src, () => 'X');
+    expect(out).toBe('X\n\nX');
+  });
+
+  it('lässt den Fence stehen, wenn der Aufrufer null liefert', () => {
+    const src = '```perspective-journal-timeline\nmode: dekade\n```';
+    expect(replaceJournalTimelineFences(src, () => null)).toBe(src);
+  });
+
+  it('rührt fremde Fences nicht an, auch nicht den Navigations-Block', () => {
+    const src = '```perspective-journal-nav\n```\n\n```js\nconst x = 1;\n```';
+    expect(replaceJournalTimelineFences(src, () => 'X')).toBe(src);
+  });
+
+  it('hasJournalTimelineFence erkennt Vorhandensein ohne Ersetzung', () => {
+    expect(hasJournalTimelineFence('```perspective-journal-timeline\n```')).toBe(true);
+    expect(hasJournalTimelineFence('```perspective-journal-nav\n```')).toBe(false);
+    expect(hasJournalTimelineFence('')).toBe(false);
+    // Zwei Aufrufe hintereinander liefern dasselbe (kein lastIndex-Rest).
+    const src = '```perspective-journal-timeline\nmode: month\n```';
+    expect(hasJournalTimelineFence(src)).toBe(true);
+    expect(hasJournalTimelineFence(src)).toBe(true);
   });
 });
 

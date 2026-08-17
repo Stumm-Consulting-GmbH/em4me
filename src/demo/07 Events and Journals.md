@@ -43,4 +43,12 @@ A journal entry usually embeds a navigation block:
 
 Outside a journal it shows a short hint (as it does right above); inside one it links to the previous, next and parent periods.
 
+The second journal block is the timeline: a period overview as a calendar, in four modes (`week`, `month`, `quarter` and `year`).
+
+```perspective-journal-timeline
+mode: month
+```
+
+Inside a journal entry this draws the month around the entry's period, with a week-number column, dots on days that already have an entry and today highlighted. Every cell opens its period and creates the entry if it is missing. Outside a journal it shows the same kind of hint as the navigation block.
+
 Turn all these dates into overviews on [[08 Queries]].

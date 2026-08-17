@@ -1845,6 +1845,18 @@
       "hinweis": "4T-0435 (Epic 3E-0081): Navigations-Block — JR-06 (Periode und Heute-Zeile, Eltern-Sprung mit Anlage, Hinweis ausserhalb) plus Unit-Suite der Kontext-Ermittlung und Snapshot-Fixture journal-nav.md."
     },
     {
+      "key": "help.feature.journalTimeline",
+      "id": "F-261",
+      "testart": "unit",
+      "tests": [
+        "test/unit/renderer/journal-timeline-view.test.js",
+        "test/unit/journal-perioden.test.js",
+        "test/unit/render/extensions-aus.test.js",
+        "test/unit/render/snapshots.test.js"
+      ],
+      "hinweis": "4T-1064 bis 4T-1066 (Epic 3E-0212): Timeline-Block — Aufbau der vier Modi, Kopfzeile samt Hervorhebung, Punkt-Markierung aus dem Existenz-Batch, Klick-Ziele je Perioden-Ebene mit Anlage, Degradations-Faelle und Portable-Ersetzung als jsdom-Unit; Modus-Parser, Wochen-Zeile und Fence-Erkennung als reine Unit im Perioden-Kern; Aus-Zustand der journals-Erweiterung und Snapshot-Fixture journal-timeline.md. Die Zeit-Zusage des Jahres-Modus (unter 150 ms) prueft der Product Owner an der gebauten Programmdatei, weil jsdom die Zeit eines echten Browsers nicht misst."
+    },
+    {
       "key": "help.shortcut.areaGraph",
       "id": "S-076",
       "testart": "e2e",

@@ -49,11 +49,11 @@ const HELP_FEATURE_GROUPS = [
       // Funktionen, direkt hinter dem Anlage-/Verwaltungs-Cluster.
       'help.feature.templates',
       'help.feature.templateRules',
-      // 4T-0433 (Epic 3E-0081): Journale — periodische Dokumente, direkt
-      // hinter dem Vorlagen-Cluster (der Anlage-Pfad koppelt an die
-      // Vorlagen-Infrastruktur). 4T-0437: plus der Navigations-Block.
+      // 4T-0433 (Epic 3E-0081): Journale — periodische Dokumente hinter dem
+      // Vorlagen-Cluster; 4T-0437 und 4T-1067: die beiden Journal-Blöcke.
       'help.feature.journals',
       'help.feature.journalNav',
+      'help.feature.journalTimeline',
       'help.feature.save',
       'help.feature.autoSave',
       // 4T-0334 (Epic 3E-0060): Dokument-Historie — Protokollierung,

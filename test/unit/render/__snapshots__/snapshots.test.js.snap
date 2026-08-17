@@ -537,6 +537,22 @@ Renderer aus dem Datei-Kontext.</p>
 "
 `;
 
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert journal-timeline.md stabil 1`] = `
+"<h1 id="journal-timeline-block-4t-1064" data-source-line="1">Journal-Timeline-Block (4T-1064)</h1>
+<p data-source-line="3">Der Fence rendert als Platzhalter-Container mit dem Fence-Körper als Attribut;
+Modus-Auswertung, Kontext und Gitter baut der Renderer.</p>
+<div class="perspective-journal-timeline" data-jt-source="mode: month
+"></div>
+<p data-source-line="10">Ein leerer Körper ist zulässig und bedeutet den Monats-Modus.</p>
+<div class="perspective-journal-timeline" data-jt-source=""></div>
+<p data-source-line="15">Auch der Alias <code>year</code> reist unverändert als Quelltext mit; ausgewertet wird er
+erst im Renderer.</p>
+<div class="perspective-journal-timeline" data-jt-source="mode: year
+"></div>
+<p data-source-line="22">Text nach den Blöcken.</p>
+"
+`;
+
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert kalender-werte.md stabil 1`] = `
 "<h1 id="kalender-werte" data-source-line="1">Kalender-Werte</h1>
 <p data-source-line="3">Ein gültiger Wert <span class="calendar-value" title="Dreimond: 500-2-09 ZZ" data-calendar-name="Dreimond" data-calendar-value="500-2-09 ZZ">500-Mittmond-09 ZZ</span> im Fließtext.</p>

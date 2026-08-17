@@ -608,6 +608,19 @@ function buildPipelines(enabled) {
       if (lang === 'perspective-journal-nav' && enabled('journals')) {
         return `<div class="perspective-journal-nav"></div>\n`;
       }
+      // 4T-1064 (Epic 3E-0212): perspective-journal-timeline rendert als
+      // Platzhalter-Container mit dem Fence-Body als Attribut; Modus-
+      // Auswertung, Kontext-Ermittlung und Gitter-Aufbau liegen beim
+      // Renderer (journal-timeline-view.js). Der Body reist als
+      // data-jt-source mit, statt hier geparst zu werden — Muster
+      // perspective-datatable/-events, das markdown.js von der
+      // Journal-Logik frei haelt. An dieselbe journals-Erweiterung
+      // gebunden wie der Navigations-Block: deaktiviert faellt der Block
+      // auf den Default-Code-Block zurueck.
+      if (lang === 'perspective-journal-timeline' && enabled('journals')) {
+        const body = String(token.content || '');
+        return `<div class="perspective-journal-timeline" data-jt-source="${escapeHtml(body)}"></div>\n`;
+      }
       if (lang === 'perspective-table' && enabled('perspective-table')) {
         const html = renderPerspectiveTable(token.content);
         if (html) return html;

@@ -156,13 +156,22 @@ function registerAreaFeaturesIpc(handle, deps) {
   // Aufruf pro sichtbarem Monat statt einem stat-IPC pro Tag (begrenzter
   // Scan, Epic-Risiko Performance). Pfad-Sicherung pro Eintrag; unsichere
   // Pfade entfallen still. Kappung als Schutz gegen entartete Aufrufer.
+  //
+  // 4T-1065 (Epic 3E-0212): Kappung von 500 auf 1000 angehoben. Der
+  // Jahres-Modus des Journal-Timeline-Blocks fragt bei einem Tages-Journal
+  // 371 Pfade in einem Aufruf ab (am Kalenderjahr 2026 ausgezaehlt: zwoelf
+  // Gitter mit 441 Zellen, davon 371 verschiedene Tage); mit 500 lag der
+  // Regelbetrieb ohne nennenswerte Reserve unter der Grenze, und eine
+  // greifende Kappung waere STILL — fehlende Punkte statt einer Meldung.
+  // Der Schutz gegen entartete Aufrufer bleibt, er sitzt nur nicht mehr
+  // dicht am realen Bedarf.
   handle('journals:entriesExist', async (event, params) => {
     const area = areaOfWindow(senderWindow(event));
     if (!area) return { ok: false, error: 'no area' };
     const relPaths = Array.isArray(params && params.relPaths) ? params.relPaths : [];
     const exists = {};
     await Promise.all(
-      relPaths.slice(0, 500).map(async (relPath) => {
+      relPaths.slice(0, 1000).map(async (relPath) => {
         if (typeof relPath !== 'string' || !relPath) return;
         const abs = path.resolve(area.rootPath, relPath);
         if (!isInsideArea(area.rootPath, abs)) return;

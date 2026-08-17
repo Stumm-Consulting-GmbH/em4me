@@ -14,6 +14,11 @@
 //
 // Die Kalender-Mathematik kommt unveraendert aus dem Perioden-Kern
 // (journal-core.js: monthGrid), den beide aelteren Stellen bereits nutzen.
+//
+// 4T-1063 (Epic 3E-0212): Vierte Stelle ist der Journal-Timeline-Block, der
+// im Wochen-Modus eine einzelne Zeile zeichnet. Dafuer ist der
+// Zeilen-Durchlauf als renderGridRows herausgeloest; renderMonthGrid ist
+// darauf zurueckgefuehrt und behaelt Signatur und erzeugtes DOM.
 'use strict';
 
 import { getLanguage } from '../../i18n.js';
@@ -52,6 +57,46 @@ export function createDayCell(day, { todayIso, as = 'button', className = '' } =
 }
 
 /**
+ * 4T-1063 (Epic 3E-0212): Zeichnet Kopfzeile und beliebige Wochen-Zeilen in
+ * ein Gitter-Element. Herausgeloest aus renderMonthGrid, weil der
+ * Journal-Timeline-Block im Wochen-Modus genau EINE Zeile zeichnet und ein
+ * Monatsgitter mit ausgeblendeten Zeilen ein Kniff waere, kein Schnitt.
+ * renderMonthGrid ist darauf zurueckgefuehrt; das erzeugte DOM ist
+ * unveraendert (gleiche Element-Arten, Klassen und Reihenfolge), und die
+ * bestehenden Specs der drei Nutzer sind der Nachweis dafuer.
+ *
+ * @param {HTMLElement} grid          Ziel-Element (wird geleert).
+ * @param {Array<object>} rows        Zeilen im Format des Perioden-Kerns
+ *                                    (monthGrid/weekRow).
+ * @param {object} opts               wie renderMonthGrid, ohne year/monthIndex.
+ */
+export function renderGridRows(
+  grid,
+  rows,
+  { weekColumnLabel = '', showWeekColumn = true, weekCell, dayCell } = {},
+) {
+  grid.innerHTML = '';
+  if (showWeekColumn) {
+    const corner = document.createElement('span');
+    corner.className = 'calendar-cell calendar-head calendar-week-col';
+    corner.textContent = weekColumnLabel;
+    grid.appendChild(corner);
+  }
+  for (const label of weekdayLabels()) {
+    const cell = document.createElement('span');
+    cell.className = 'calendar-cell calendar-head';
+    cell.textContent = label;
+    grid.appendChild(cell);
+  }
+  for (const row of rows) {
+    if (showWeekColumn) {
+      grid.appendChild(weekCell ? weekCell(row) : defaultWeekCell(row));
+    }
+    for (const day of row.days) grid.appendChild(dayCell(day, row));
+  }
+}
+
+/**
  * Zeichnet Kopfzeile und Zeilen eines Monats in ein Gitter-Element.
  *
  * @param {HTMLElement} grid          Ziel-Element (wird geleert).
@@ -74,25 +119,12 @@ export function renderMonthGrid(
   grid,
   { year, monthIndex, weekColumnLabel = '', showWeekColumn = true, weekCell, dayCell },
 ) {
-  grid.innerHTML = '';
-  if (showWeekColumn) {
-    const corner = document.createElement('span');
-    corner.className = 'calendar-cell calendar-head calendar-week-col';
-    corner.textContent = weekColumnLabel;
-    grid.appendChild(corner);
-  }
-  for (const label of weekdayLabels()) {
-    const cell = document.createElement('span');
-    cell.className = 'calendar-cell calendar-head';
-    cell.textContent = label;
-    grid.appendChild(cell);
-  }
-  for (const row of monthGrid(year, monthIndex)) {
-    if (showWeekColumn) {
-      grid.appendChild(weekCell ? weekCell(row) : defaultWeekCell(row));
-    }
-    for (const day of row.days) grid.appendChild(dayCell(day, row));
-  }
+  renderGridRows(grid, monthGrid(year, monthIndex), {
+    weekColumnLabel,
+    showWeekColumn,
+    weekCell,
+    dayCell,
+  });
 }
 
 function defaultWeekCell(row) {

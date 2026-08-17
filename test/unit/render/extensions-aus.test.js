@@ -300,6 +300,18 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain('<pre>');
   });
 
+  // 4T-1064 (Epic 3E-0212): journals — der Timeline-Fence haengt an derselben
+  // Erweiterung wie der Navigations-Fence und faellt ebenso zurueck.
+  it('journals: perspective-journal-timeline wird regulärer Code-Block', () => {
+    const src = '```perspective-journal-timeline\nmode: month\n```';
+    const an = renderMarkdown(src, 'de');
+    expect(an).toContain('class="perspective-journal-timeline"');
+    expect(an).toContain('data-jt-source');
+    const off = renderOff('journals', src);
+    expect(off).not.toContain('class="perspective-journal-timeline"');
+    expect(off).toContain('<pre>');
+  });
+
   it('code-highlight: Code-Block ohne hljs, language-Klasse bleibt', () => {
     const src = '```js\nconst x = 1;\n```';
     expect(renderMarkdown(src, 'de')).toContain('hljs');

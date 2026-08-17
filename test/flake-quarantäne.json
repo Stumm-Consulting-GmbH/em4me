@@ -11,6 +11,14 @@
   ],
   "eintraege": [
     {
+      "spec": "test/e2e/regression/4t-0945-b12.spec.js",
+      "fall": "KS-03",
+      "datum": "2026-08-17",
+      "fehlerbild": "Einzel-Fehlschlag im E2E-Voll-Lauf des Release-Gates 1.111.0 (612 von 613 grün, Laufzeit 38,5 min): Beim Speichern ohne fremde Änderung erschien ein Konflikt-Dialog (konfliktDialogCalls 1 statt 0). Isoliert 6/6 grün, der Fall selbst in 3,2 s.",
+      "vermutung": "lastbedingt: Während des Voll-Laufs liefen fünf Programm-Instanzen des Product Owners auf demselben Rechner. Der Konflikt-Schutz vergleicht beim Speichern den Datei-Stand mit dem bekannten; unter Last kann der eigene Schreibvorgang so verzögert beim Watcher ankommen, dass er als fremde Änderung gelesen wird. Kein Bezug zum Änderungs-Umfang des Release (Journal-Timeline-Block); der einzige berührte Export-Pfad (save-export.js) ist ein anderer Weg als das Speichern.",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/e2e/funktionen/erweiterungen-extern.spec.js",
       "fall": "EX-04",
       "datum": "2026-08-14",

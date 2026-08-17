@@ -13,6 +13,8 @@ import { rerenderAllMermaidBlocks, waitForMermaidIdle } from '../render-mermaid.
 import { waitForFrontmatterQueriesIdle } from '../query/frontmatter-query-view.js';
 // 4T-0435 (Epic 3E-0081): Idle-Barriere des Journal-Navigations-Blocks.
 import { waitForJournalNavIdle } from '../calendar/journal-nav-view.js';
+// 4T-1066 (Epic 3E-0212): Idle-Barriere des Journal-Timeline-Blocks.
+import { waitForJournalTimelineIdle } from '../calendar/journal-timeline-view.js';
 // 4T-0412 (Epic 3E-0078): Idle-Barriere der Skript-Bloecke fuer den PDF-Export.
 import { waitForPerspectiveScriptsIdle } from '../query/perspective-script-view.js';
 // 4T-0311 (Epic 3E-0055): Druck-Aufbereitung der Quelltext-Ansicht.
@@ -145,6 +147,9 @@ export async function exportActiveTabAsPdf() {
       // 4T-0435 (Epic 3E-0081): Journal-Navigation fertig befüllen lassen
       // (der Export druckt die Perioden-Beschriftung statt des Platzhalters).
       await waitForJournalNavIdle();
+      // 4T-1066 (Epic 3E-0212): Journal-Timeline fertig aufbauen lassen
+      // (sonst druckt der Export den leeren Platzhalter statt des Gitters).
+      await waitForJournalTimelineIdle();
       // 4T-0412 (Epic 3E-0078): Skript-Blöcke fertig ausführen lassen
       // (Ergebnis, Fehler oder Timeout), bevor der Export druckt.
       await waitForPerspectiveScriptsIdle();

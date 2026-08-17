@@ -34,6 +34,8 @@ import {
   showSaveVariantDialog,
 } from '../sidebar-variants.js';
 import { initCalendarPanel, toggleCalendarPanel } from '../calendar/calendar-panel.js';
+// 4T-1065 (Epic 3E-0212): Broadcast-Anbindung des Journal-Timeline-Blocks.
+import { initJournalTimeline } from '../calendar/journal-timeline-view.js';
 import { initFileGraphPanel, toggleFileGraphPanel } from '../file-graph-panel.js';
 import { initRemindersPanel, toggleRemindersPanel } from '../reminders-panel.js';
 import { initClockPanel, toggleClockPanel } from '../clock/clock-panel.js';
@@ -276,6 +278,9 @@ export function bindAppUi() {
     btnCalendar.addEventListener('click', () => toggleCalendarPanel(state.activePaneIndex));
   }
   initCalendarPanel();
+  // 4T-1065 (Epic 3E-0212): Journal-Timeline-Block — Broadcasts, die die
+  // Punkt-Markierung der eingehaengten Bloecke nachziehen.
+  initJournalTimeline();
   // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel — Steuerungs-Wiring und
   // Index-Invalidierungs-Refresh.
   initFileGraphPanel();

@@ -10,9 +10,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createDayCell,
   monthLabel,
+  renderGridRows,
   renderMonthGrid,
   weekdayLabels,
 } from '../../../src/renderer/modules/calendar/month-grid-view.js';
+import { monthGrid, weekRow } from '../../../src/shared/journal-core.js';
 
 let grid;
 
@@ -88,6 +90,40 @@ describe('month-grid-view: Kopfzeile und Zeilen', () => {
       dayCell: (day) => createDayCell(day, { as: 'span' }),
     });
     expect(grid.querySelectorAll('.calendar-week-btn').length).toBe(5);
+  });
+});
+
+// 4T-1063 (Epic 3E-0212): Zeilen-Durchlauf als eigener Einstieg. Der
+// Waechter-Charakter liegt im Gleichlauf: renderMonthGrid muss exakt das
+// erzeugen, was renderGridRows mit den Zeilen desselben Monats erzeugt.
+describe('month-grid-view: renderGridRows', () => {
+  it('zeichnet eine einzelne Wochen-Zeile mit Kopfzeile und KW-Spalte', () => {
+    renderGridRows(grid, [weekRow(Date.UTC(2026, 7, 20))], {
+      weekColumnLabel: 'KW',
+      dayCell: (day) => createDayCell(day, { as: 'span' }),
+    });
+    const counts = tagCounts();
+    expect(counts.heads).toBe(8);
+    expect(counts.weekCells).toBe(1);
+    expect(counts.days).toBe(7);
+  });
+
+  it('erzeugt fuer einen ganzen Monat dasselbe DOM wie renderMonthGrid', () => {
+    const dayCell = (day) => createDayCell(day, { todayIso: '2026-07-27', as: 'span' });
+    renderMonthGrid(grid, { year: 2026, monthIndex: 6, weekColumnLabel: 'KW', dayCell });
+    const ueberMonat = grid.innerHTML;
+    renderGridRows(grid, monthGrid(2026, 6), { weekColumnLabel: 'KW', dayCell });
+    expect(grid.innerHTML).toBe(ueberMonat);
+  });
+
+  it('ohne Zeilen bleibt die Kopfzeile allein stehen', () => {
+    renderGridRows(grid, [], {
+      weekColumnLabel: 'KW',
+      dayCell: (day) => createDayCell(day, { as: 'span' }),
+    });
+    const counts = tagCounts();
+    expect(counts.heads).toBe(8);
+    expect(counts.days).toBe(0);
   });
 });
 

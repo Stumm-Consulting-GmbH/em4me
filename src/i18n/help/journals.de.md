@@ -59,6 +59,39 @@ Im Journal-Eintrag zeigt er die aktuelle Periode groß (mit Zusatz-Zeile wie «D
 
 Im PDF- und Portable-Export erscheint statt des Blocks die statische Perioden-Beschriftung ohne Anlage-Links.
 
+## Timeline-Block
+
+Der Timeline-Block zeigt die Perioden-Übersicht als Kalender im Eintrag. Er kennt vier Modi:
+
+````markdown
+```perspective-journal-timeline
+mode: month
+```
+````
+
+| Modus | Darstellung |
+|---|---|
+| `week` | die Woche des Eintrags als eine Zeile |
+| `month` | ein Monatskalender |
+| `quarter` | drei Monatskalender nebeneinander |
+| `year` | zwölf Monatskalender als Jahres-Raster |
+
+`calendar` ist die gleichwertige Schreibweise für `year` (sie stammt aus übernommenen Beständen). Fehlt die Angabe `mode`, gilt `month`. Ein unbekannter Wert erscheint als Hinweis im Block, damit ein Tippfehler nicht unbemerkt bleibt.
+
+**Aufbau.** Links steht die Kalenderwochen-Spalte, oben der Wochentags-Kopf ab Montag. Tage mit vorhandenem Eintrag tragen einen Punkt, der heutige Tag ist hervorgehoben. In der Kopfzeile stehen die Perioden oberhalb der Kalender-Ebene, und die Ebene des Modus ist hervorgehoben: der Wochen-Modus hebt die Kalenderwoche hervor, der Monats-Modus den Monat, der Quartals-Modus das Quartal, der Jahres-Modus das Jahr.
+
+**Klicken.** Jedes Element führt in seine Periode: der Tag in den Tages-Eintrag, die Kalenderwoche in den Wochen-Eintrag, der Monatsname und die Kopf-Beschriftungen in ihre jeweilige Periode. Fehlende Einträge werden dabei angelegt. Maßgeblich sind die Journale des Regals, zu dem der Eintrag gehört; gibt es dort kein Journal einer Ebene, ist die Beschriftung reine Anzeige. Außerhalb der Datums-Grenzen eines Journals entsteht kein Eintrag.
+
+Welche Periode der Block zeigt, richtet sich nach dem Eintrag, in dem er steht, nicht nach dem heutigen Tag: In der Wochennotiz einer vergangenen Woche zeigt `month` den Monat dieser Woche.
+
+Wie der Navigations-Block erscheint auch dieser Block außerhalb eines Journal-Eintrags als Hinweis:
+
+```perspective-journal-timeline
+mode: week
+```
+
+Im PDF-Export wird der Kalender gedruckt, wie er auf dem Bildschirm steht. Im Portable-Export wird er zu einer Tabelle je Monat, mit einem Punkt an Tagen mit Eintrag und ohne Anlage-Links.
+
 ## Wochen-Regeln
 
 Wochen folgen fest ISO 8601: Die Woche beginnt am Montag, und die erste Kalenderwoche eines Jahres ist die Woche mit dem ersten Donnerstag. Das KW-Jahr (`kkkk`) kann deshalb am Jahreswechsel vom Kalenderjahr (`yyyy`) abweichen — der 1. Januar 2021 gehört zum Beispiel zur KW 53 des KW-Jahres 2020.

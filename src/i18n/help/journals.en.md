@@ -59,6 +59,39 @@ Inside a journal entry it shows the current period prominently (with an extra li
 
 In the PDF and portable export the block is replaced by the static period label without creation links.
 
+## Timeline block
+
+The timeline block shows the period overview as a calendar inside the entry. It knows four modes:
+
+````markdown
+```perspective-journal-timeline
+mode: month
+```
+````
+
+| Mode | Display |
+|---|---|
+| `week` | the entry's week as a single row |
+| `month` | one month calendar |
+| `quarter` | three month calendars side by side |
+| `year` | twelve month calendars as a year grid |
+
+`calendar` is the equivalent spelling for `year` (it comes from imported material). Without a `mode` setting, `month` applies. An unknown value shows up as a note inside the block, so a typo does not go unnoticed.
+
+**Layout.** The week-number column is on the left, the weekday header on top, starting on Monday. Days with an existing entry carry a dot, today is highlighted. The header line shows the periods above the calendar level, and the mode's own level is highlighted: week mode highlights the calendar week, month mode the month, quarter mode the quarter, year mode the year.
+
+**Clicking.** Every element opens its period: the day opens the daily entry, the calendar week the weekly entry, the month name and the header labels their respective period. Missing entries are created along the way. What counts are the journals of the shelf the entry belongs to; where that shelf has no journal for a level, the label is display only. Outside a journal's date limits no entry is created.
+
+Which period the block shows follows the entry it sits in, not today: inside the weekly note of a past week, `month` shows that week's month.
+
+Like the navigation block, this block appears as a note outside a journal entry:
+
+```perspective-journal-timeline
+mode: week
+```
+
+The PDF export prints the calendar as it appears on screen. The portable export turns it into one table per month, with a dot on days that have an entry and without creation links.
+
 ## Week rules
 
 Weeks strictly follow ISO 8601: the week starts on Monday, and the first calendar week of a year is the week containing the first Thursday. The week-based year (`kkkk`) can therefore differ from the calendar year (`yyyy`) at the turn of the year — 1 January 2021, for example, belongs to week 53 of week-based year 2020.

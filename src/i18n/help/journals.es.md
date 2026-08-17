@@ -59,6 +59,39 @@ Dentro de una entrada de diario muestra el periodo actual en grande (con una lí
 
 En la exportación a PDF y portable, el bloque se sustituye por la etiqueta estática del periodo, sin enlaces de creación.
 
+## Bloque de línea de tiempo
+
+El bloque de línea de tiempo muestra el resumen de periodos como calendario dentro de la entrada. Conoce cuatro modos:
+
+````markdown
+```perspective-journal-timeline
+mode: month
+```
+````
+
+| Modo | Representación |
+|---|---|
+| `week` | la semana de la entrada en una sola fila |
+| `month` | un calendario mensual |
+| `quarter` | tres calendarios mensuales uno junto a otro |
+| `year` | doce calendarios mensuales como cuadrícula anual |
+
+`calendar` es la escritura equivalente de `year` (procede de material importado). Sin indicación `mode` se aplica `month`. Un valor desconocido aparece como aviso dentro del bloque, para que una errata no pase inadvertida.
+
+**Estructura.** La columna de números de semana está a la izquierda y el encabezado de días arriba, empezando por el lunes. Los días con entrada existente llevan un punto y el día de hoy está resaltado. La línea de encabezado muestra los periodos por encima del nivel del calendario, y el nivel del modo aparece resaltado: el modo semana resalta la semana, el modo mes el mes, el modo trimestre el trimestre y el modo año el año.
+
+**Clic.** Cada elemento abre su periodo: el día abre la entrada diaria, la semana la entrada semanal, el nombre del mes y las etiquetas del encabezado su periodo correspondiente. Las entradas que falten se crean en el proceso. Lo que cuenta son los diarios del estante al que pertenece la entrada; donde ese estante no tiene diario para un nivel, la etiqueta es solo informativa. Fuera de los límites de fechas de un diario no se crea ninguna entrada.
+
+El periodo que muestra el bloque sigue a la entrada en la que se encuentra, no al día de hoy: en la nota semanal de una semana pasada, `month` muestra el mes de esa semana.
+
+Igual que el bloque de navegación, este bloque aparece como aviso fuera de una entrada de diario:
+
+```perspective-journal-timeline
+mode: week
+```
+
+La exportación a PDF imprime el calendario tal como aparece en pantalla. La exportación portable lo convierte en una tabla por mes, con un punto en los días que tienen entrada y sin enlaces de creación.
+
 ## Reglas de semana
 
 Las semanas siguen estrictamente ISO 8601: la semana empieza el lunes y la primera semana de un año es la que contiene el primer jueves. El año de la semana (`kkkk`) puede por eso diferir del año natural (`yyyy`) en el cambio de año; el 1 de enero de 2021, por ejemplo, pertenece a la semana 53 del año de semana 2020.

@@ -24,9 +24,9 @@ import { openInPane } from './tabs/tabs.js';
 // 4T-0355 (Epic 3E-0065): Befüllung der perspective-query-Platzhalter mit der
 // dynamischen Datei-Liste (Render-Pane und Reading über diese Pipeline).
 import { applyFrontmatterQueriesIfPresent } from './query/frontmatter-query-view.js';
-// 4T-0435 (Epic 3E-0081): Journal-Navigations-Block (perspective-journal-nav)
-// mit Kontext aus dem Datei-Pfad befüllen, analog zur Abfrage-Befüllung.
+// 4T-0435 / 4T-1064: Journal-Blöcke (Navigation, Zeitleiste) aus dem Datei-Pfad befüllen.
 import { applyJournalNavIfPresent } from './calendar/journal-nav-view.js';
+import { applyJournalTimelineIfPresent } from './calendar/journal-timeline-view.js';
 // 4T-0412 (Epic 3E-0078): Skript-Blöcke (perspective-script) — Sandbox-
 // Ausführung bzw. Quelltext-Rückfall, analog zur Abfrage-Befüllung.
 import { applyPerspectiveScriptsIfPresent } from './query/perspective-script-view.js';
@@ -957,9 +957,9 @@ export function applyRenderPipeline(container, basePath) {
   // Container). basePath auch leer möglich — der Resolver zeigt dann den
   // 'unavailable'-Hinweis (pfadloser Tab).
   applyFrontmatterQueriesIfPresent(container, basePath);
-  // 4T-0435 (Epic 3E-0081): Journal-Navigations-Block befüllen (No-op ohne
-  // solchen Container; ohne basePath erscheint der Hinweis).
+  // 4T-0435 / 4T-1064: Journal-Blöcke befüllen (No-op ohne solchen Container).
   applyJournalNavIfPresent(container, basePath);
+  applyJournalTimelineIfPresent(container, basePath);
   // 4T-0412 (Epic 3E-0078): Skript-Blöcke ausführen bzw. als Quelltext
   // zeigen (No-op ohne solchen Container).
   applyPerspectiveScriptsIfPresent(container, basePath);

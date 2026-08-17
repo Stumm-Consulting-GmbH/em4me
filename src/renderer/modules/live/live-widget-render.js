@@ -20,6 +20,8 @@ import { applyFrontmatterQueriesIfPresent } from '../query/frontmatter-query-vie
 // 4T-0435 (Epic 3E-0081): Journal-Navigation im Live-Block-Widget
 // (Laufzeit-Aufruf in _enhance, zyklenfest — Klick-Ziel per dynamic import).
 import { applyJournalNavIfPresent } from '../calendar/journal-nav-view.js';
+// 4T-1064 (Epic 3E-0212): Journal-Timeline-Block im Live-Widget befüllen.
+import { applyJournalTimelineIfPresent } from '../calendar/journal-timeline-view.js';
 // 4T-0412 (Epic 3E-0078): Skript-Blöcke im Live-Modus (Widget-Nachverarbeitung).
 import { applyPerspectiveScriptsIfPresent } from '../query/perspective-script-view.js';
 // 4T-0418 (Epic 3E-0079): Perspective-Datatable-Lokalisierung im Live-
@@ -334,6 +336,9 @@ export class MarkdownBlockWidget extends WidgetType {
       // 4T-0435 (Epic 3E-0081): Journal-Navigation im Live-Widget befüllen
       // (Listener pro Mount frisch; ignoreEvent hält die CM-Handler fern).
       applyJournalNavIfPresent(container, this.basePath);
+      // 4T-1064 (Epic 3E-0212): Timeline-Block im Live-Widget aufbauen
+      // (No-op bei anderen Block-Widgets; Aufbau pro Mount wie oben).
+      applyJournalTimelineIfPresent(container, this.basePath);
       // 4T-0412 (Epic 3E-0078): Skript-Blöcke im Live-Widget ausführen bzw.
       // als Quelltext zeigen (No-op bei anderen Block-Widgets).
       applyPerspectiveScriptsIfPresent(container, this.basePath);

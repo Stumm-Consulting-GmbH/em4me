@@ -404,6 +404,42 @@ function replaceJournalNavFences(text, replacement) {
 
 // --- 4T-0434: Monats-Gitter der Kalender-Ansicht -----------------------------------
 
+// 4T-1063 (Epic 3E-0212): EINE Wochen-Zeile (Montag-Start) um einen
+// Zeitpunkt, im selben Format, das monthGrid je Zeile liefert:
+// { week: { key, week, year, startMs }, days: [{ ms, iso, day, inMonth } × 7] }.
+// Der Wochen-Modus des Journal-Timeline-Blocks braucht genau eine solche
+// Zeile ohne Monats-Rahmen; monthGrid ist darauf zurueckgefuehrt, damit es
+// nur EINE Stelle gibt, die eine Wochen-Zeile baut.
+//
+// opts.monthIndex/opts.year setzen den Monats-Bezug fuer das inMonth-Flag
+// (so kennzeichnet monthGrid die Randtage der Nachbar-Monate). Ohne Bezug
+// ist inMonth durchgaengig true: Eine freistehende Wochen-Zeile hat keinen
+// Fremdmonat, und der Aufrufer entscheidet ueber jede Kennzeichnung selbst.
+function weekRow(ms, opts) {
+  const week = periodOf(ms, 'week');
+  const start = new Date(week.startMs);
+  const hasMonthRef =
+    !!opts && typeof opts.monthIndex === 'number' && typeof opts.year === 'number';
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const dMs = dayMs(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const d = new Date(dMs);
+    days.push({
+      ms: dMs,
+      iso: msToIsoDate(dMs),
+      day: d.getDate(),
+      inMonth: hasMonthRef
+        ? d.getMonth() === opts.monthIndex && d.getFullYear() === opts.year
+        : true,
+    });
+  }
+  const iso = isoWeekOf(week.startMs);
+  return {
+    week: { key: week.key, week: iso.week, year: iso.year, startMs: week.startMs },
+    days,
+  };
+}
+
 // Wochen-Zeilen (Montag-Start), die einen Monat vollständig überdecken —
 // inklusive der Randtage der Nachbar-Monate. Pro Zeile die ISO-KW der
 // Zeile (KW-Spalte, Klick-Ziel des Wochen-Journals) und sieben Tage.
@@ -414,23 +450,7 @@ function monthGrid(year, monthIndex) {
   let week = periodOf(dayMs(year, monthIndex, 1), 'week');
   const rows = [];
   while (week && week.startMs <= lastOfMonth) {
-    const start = new Date(week.startMs);
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const ms = dayMs(start.getFullYear(), start.getMonth(), start.getDate() + i);
-      const d = new Date(ms);
-      days.push({
-        ms,
-        iso: msToIsoDate(ms),
-        day: d.getDate(),
-        inMonth: d.getMonth() === monthIndex && d.getFullYear() === year,
-      });
-    }
-    const iso = isoWeekOf(week.startMs);
-    rows.push({
-      week: { key: week.key, week: iso.week, year: iso.year, startMs: week.startMs },
-      days,
-    });
+    rows.push(weekRow(week.startMs, { year, monthIndex }));
     week = addPeriods(week, 1);
   }
   return rows;
@@ -524,6 +544,8 @@ module.exports = {
   applyJournalProperties,
   // 4T-0434: Monats-Gitter der Kalender-Ansicht.
   monthGrid,
+  // 4T-1063 (Epic 3E-0212): einzelne Wochen-Zeile, Basis von monthGrid.
+  weekRow,
   // 4T-0435: Kontext-Ermittlung des Navigations-Blocks (Pfad -> Periode)
   // und Fence-Ersetzung des Portable-Exports.
   findPeriodForPath,

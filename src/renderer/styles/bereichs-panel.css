@@ -582,63 +582,6 @@
   overflow: hidden;
 }
 
-/* 4T-0435 (Epic 3E-0081): Journal-Navigations-Block (perspective-journal-nav).
-   Übergeordnete Perioden als Link-Zeile, aktuelle Periode groß mit
-   Pfeilen zu voriger/nächster Periode. */
-.perspective-journal-nav {
-  margin: 1em 0;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  text-align: center;
-}
-.journal-nav-hint {
-  font-size: 12px;
-  color: var(--fg-muted);
-}
-.journal-nav-parents {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-bottom: 6px;
-}
-.journal-nav-link {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--accent);
-  cursor: pointer;
-}
-.journal-nav-link:hover {
-  text-decoration: underline;
-}
-.journal-nav-current {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-}
-.journal-nav-arrow {
-  font-size: 20px;
-  line-height: 1;
-  color: var(--fg-muted);
-}
-.journal-nav-arrow:hover {
-  color: var(--fg);
-  text-decoration: none;
-}
-.journal-nav-label {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--fg);
-}
-.journal-nav-sub {
-  font-size: 12px;
-  color: var(--fg-muted);
-}
-
 .outline-tree {
   margin: 0;
   padding: 0;

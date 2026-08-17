@@ -59,6 +59,39 @@ Dans une entrée de journal, il montre la période actuelle en grand (avec une l
 
 Dans l'export PDF et portable, le bloc est remplacé par l'étiquette statique de la période, sans liens de création.
 
+## Bloc de frise
+
+Le bloc de frise affiche l'aperçu des périodes sous forme de calendrier dans l'entrée. Il connaît quatre modes :
+
+````markdown
+```perspective-journal-timeline
+mode: month
+```
+````
+
+| Mode | Affichage |
+|---|---|
+| `week` | la semaine de l'entrée sur une seule ligne |
+| `month` | un calendrier mensuel |
+| `quarter` | trois calendriers mensuels côte à côte |
+| `year` | douze calendriers mensuels en grille annuelle |
+
+`calendar` est l'écriture équivalente de `year` (elle provient de contenus repris). Sans indication `mode`, c'est `month` qui s'applique. Une valeur inconnue apparaît comme remarque dans le bloc, afin qu'une faute de frappe ne passe pas inaperçue.
+
+**Structure.** La colonne des numéros de semaine est à gauche, l'en-tête des jours en haut, à partir du lundi. Les jours ayant déjà une entrée portent un point, le jour courant est mis en évidence. La ligne d'en-tête indique les périodes au-dessus du niveau du calendrier, et le niveau du mode y est mis en évidence : le mode semaine met en évidence la semaine, le mode mois le mois, le mode trimestre le trimestre, le mode année l'année.
+
+**Clic.** Chaque élément ouvre sa période : le jour ouvre l'entrée quotidienne, la semaine l'entrée hebdomadaire, le nom du mois et les étiquettes d'en-tête leur période respective. Les entrées manquantes sont créées au passage. Ce sont les journaux de l'étagère à laquelle appartient l'entrée qui font foi ; là où cette étagère n'a pas de journal pour un niveau, l'étiquette est purement informative. Hors des limites de dates d'un journal, aucune entrée n'est créée.
+
+La période affichée par le bloc suit l'entrée dans laquelle il se trouve, et non le jour courant : dans la note hebdomadaire d'une semaine passée, `month` affiche le mois de cette semaine.
+
+Comme le bloc de navigation, ce bloc apparaît sous forme de remarque hors d'une entrée de journal :
+
+```perspective-journal-timeline
+mode: week
+```
+
+L'export PDF imprime le calendrier tel qu'il apparaît à l'écran. L'export portable le transforme en un tableau par mois, avec un point sur les jours ayant une entrée et sans liens de création.
+
 ## Règles de semaine
 
 Les semaines suivent strictement ISO 8601 : la semaine commence le lundi et la première semaine d'une année est celle qui contient le premier jeudi. L'année de semaine (`kkkk`) peut donc différer de l'année civile (`yyyy`) au passage de l'année — le 1er janvier 2021, par exemple, appartient à la semaine 53 de l'année de semaine 2020.

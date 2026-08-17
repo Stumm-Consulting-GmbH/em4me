@@ -59,6 +59,39 @@ All'interno di una voce di diario mostra il periodo attuale in grande (con una r
 
 Nell'esportazione PDF e portabile il blocco viene sostituito dall'etichetta statica del periodo, senza collegamenti di creazione.
 
+## Blocco linea temporale
+
+Il blocco linea temporale mostra il quadro dei periodi come calendario dentro la voce. Conosce quattro modi:
+
+````markdown
+```perspective-journal-timeline
+mode: month
+```
+````
+
+| Modo | Rappresentazione |
+|---|---|
+| `week` | la settimana della voce su una sola riga |
+| `month` | un calendario mensile |
+| `quarter` | tre calendari mensili affiancati |
+| `year` | dodici calendari mensili come griglia annuale |
+
+`calendar` è la grafia equivalente di `year` (proviene da materiale importato). Senza l'indicazione `mode` vale `month`. Un valore sconosciuto compare come avviso dentro il blocco, così un errore di battitura non passa inosservato.
+
+**Struttura.** La colonna dei numeri di settimana sta a sinistra, l'intestazione dei giorni in alto, a partire da lunedì. I giorni con una voce già presente portano un punto, il giorno corrente è in evidenza. La riga di intestazione mostra i periodi sopra il livello del calendario, e il livello del modo è in evidenza: il modo settimana evidenzia la settimana, il modo mese il mese, il modo trimestre il trimestre, il modo anno l'anno.
+
+**Clic.** Ogni elemento apre il proprio periodo: il giorno apre la voce giornaliera, la settimana la voce settimanale, il nome del mese e le etichette di intestazione il rispettivo periodo. Le voci mancanti vengono create nel farlo. Contano i diari dello scaffale a cui appartiene la voce; dove quello scaffale non ha un diario per un livello, l'etichetta è di sola lettura. Fuori dai limiti di data di un diario non nasce alcuna voce.
+
+Il periodo mostrato dal blocco segue la voce in cui si trova, non il giorno corrente: nella nota settimanale di una settimana passata, `month` mostra il mese di quella settimana.
+
+Come il blocco di navigazione, anche questo blocco compare come avviso fuori da una voce di diario:
+
+```perspective-journal-timeline
+mode: week
+```
+
+L'esportazione PDF stampa il calendario così come appare sullo schermo. L'esportazione portabile lo trasforma in una tabella per mese, con un punto sui giorni che hanno una voce e senza collegamenti di creazione.
+
 ## Regole di settimana
 
 Le settimane seguono rigorosamente ISO 8601: la settimana inizia il lunedì e la prima settimana di un anno è quella che contiene il primo giovedì. L'anno della settimana (`kkkk`) può quindi differire dall'anno civile (`yyyy`) al cambio d'anno: il 1° gennaio 2021, ad esempio, appartiene alla settimana 53 dell'anno di settimana 2020.

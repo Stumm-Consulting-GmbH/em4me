@@ -11,6 +11,8 @@ import { getLanguage } from '../../i18n.js';
 import { api, getDocText } from '../app/api.js';
 // 4T-0435 (Epic 3E-0081): Export-Ersetzung des Journal-Navigations-Blocks.
 import { replaceJournalNavFencesForExport } from '../calendar/journal-nav-view.js';
+// 4T-1066 (Epic 3E-0212): Timeline-Fences werden zur statischen Pipe-Tabelle.
+import { replaceJournalTimelineFencesForExport } from '../calendar/journal-timeline-view.js';
 import { EDITOR_VIEW_FM_KEYS, getEditorViewDefaults, state, withDialog } from '../app/app-state.js';
 // 4T-0572 (Epic 3E-0105): Frontmatter-Lesen der dokument-gebundenen Editor-
 // Ansicht-Schalter. Direkter Import aus dem Electron-freien Shared-Modul
@@ -329,6 +331,10 @@ export async function exportCurrentTabAsPortable() {
     // statische Perioden-Beschriftung ersetzt (ohne Anlage-Links); außerhalb
     // eines Journal-Eintrags bleibt der Fence unverändert.
     portableText = await replaceJournalNavFencesForExport(portableText, tab.path || '');
+    // 4T-1066 (Epic 3E-0212): Timeline-Fences werden zum statischen Gitter
+    // als Pipe-Tabelle (ohne Anlage-Links); außerhalb eines Journal-Eintrags
+    // bleibt der Fence ebenfalls unverändert.
+    portableText = await replaceJournalTimelineFencesForExport(portableText, tab.path || '');
     let suggestedPath = null;
     if (tab.path) {
       // '.md'-Suffix durch '-portable.md' ersetzen, falls vorhanden;
