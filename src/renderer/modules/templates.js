@@ -11,7 +11,7 @@
 // als Statusbar-Hinweis.
 'use strict';
 
-import { t } from '../i18n.js';
+import { t, getLanguage } from '../i18n.js';
 import { api } from './app/api.js';
 import { activeTab, state } from './app/app-state.js';
 import { paneEditors } from './editor/editor.js';
@@ -312,6 +312,8 @@ async function resolveFilledTemplate(relPath, contextBase) {
   const filled = fillTemplate(analysis, {
     ...contextBase,
     nowMs: Date.now(),
+    // 4T-1057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache.
+    locale: getLanguage(),
     clipboard: typeof api.clipboardReadText === 'function' ? api.clipboardReadText() : '',
     answers,
   });

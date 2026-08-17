@@ -186,18 +186,47 @@ function isoWeekOf(ms) {
 // (ISO-KW-Jahr) und q (Quartals-Nummer 1–4) für die Journal-Schemata — z.B.
 // 'kkkk-KWww' -> '2026-KW28', 'yyyy-Qq' -> '2026-Q3' (Großbuchstaben wie
 // 'KW'/'Q' sind keine Token und bleiben Literal).
-function formatDateMs(ms, fmt) {
+// 4T-1057 (Epic 3E-0210): sprachabhängiger Namens-Teil über die Standard-
+// Schnittstelle der Laufzeit (Muster der Uhr: expliziter Sprach-Tag mit
+// Rückfall auf die Laufzeit-Locale). Bewusst keine zweite Datums-Bibliothek
+// und keine neuen Übersetzungs-Schlüssel.
+function localeDatePart(locale, options, d) {
+  try {
+    return new Intl.DateTimeFormat(locale || undefined, options).format(d);
+  } catch {
+    return new Intl.DateTimeFormat(undefined, options).format(d);
+  }
+}
+
+// 4T-1057 (Epic 3E-0210): Token-Erkennung, längste zuerst — ein Monatsname
+// (MMMM) darf nie in Monatszahlen (MM) zerfallen, mm (Minuten) bleibt von M
+// (Monat ohne führende Null) durch die Groß-Kleinschreibung getrennt.
+const DATE_TOKEN_RE = /kkkk|yyyy|MMMM|MMM|MM|EEEE|EEE|dd|HH|mm|ss|ww|M|d|q/g;
+
+function formatDateTokens(ms, teil, locale) {
   const d = new Date(ms);
-  return String(fmt).replace(/kkkk|yyyy|MM|dd|HH|mm|ss|ww|q/g, (tok) => {
+  return teil.replace(DATE_TOKEN_RE, (tok) => {
     switch (tok) {
       case 'kkkk':
         return String(isoWeekOf(ms).year);
       case 'yyyy':
         return String(d.getFullYear());
+      case 'MMMM':
+        return localeDatePart(locale, { month: 'long' }, d);
+      case 'MMM':
+        return localeDatePart(locale, { month: 'short' }, d);
       case 'MM':
         return pad2(d.getMonth() + 1);
+      case 'M':
+        return String(d.getMonth() + 1);
+      case 'EEEE':
+        return localeDatePart(locale, { weekday: 'long' }, d);
+      case 'EEE':
+        return localeDatePart(locale, { weekday: 'short' }, d);
       case 'dd':
         return pad2(d.getDate());
+      case 'd':
+        return String(d.getDate());
       case 'HH':
         return pad2(d.getHours());
       case 'mm':
@@ -212,6 +241,22 @@ function formatDateMs(ms, fmt) {
         return tok;
     }
   });
+}
+
+// 4T-1057 (Epic 3E-0210): Literal-Schutz per eckiger Klammer — `[der]`
+// bleibt wörtlich «der», ohne dass `d` als Tag ersetzt wird. Der Schutz ist
+// mit den einstelligen Token `d`/`M` zwingend, weil sonst jedes einzelne
+// Vorkommen im Fließtext einer Format-Angabe ersetzt würde. Ein unpaariges
+// `[` bleibt Literal, seine Folge-Zeichen durchlaufen die Token-Erkennung.
+function formatDateMs(ms, fmt, locale) {
+  return String(fmt)
+    .split(/(\[[^\]]*\])/)
+    .map((teil) =>
+      teil.startsWith('[') && teil.endsWith(']') && teil.length >= 2
+        ? teil.slice(1, -1)
+        : formatDateTokens(ms, teil, locale),
+    )
+    .join('');
 }
 
 // Dauer -> kompakte Einheiten-Kette ('7d', '1d 2h', '90s').

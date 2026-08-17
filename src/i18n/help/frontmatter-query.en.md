@@ -183,7 +183,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `default(x, d)` | `default(prio, 0) > 2` | fallback value when the field is missing |
 | `choice(b, a, c)` | `choice(prio > 5, "high", "normal")` | if-then-else |
 | `number(x)`, `string(x)` | `number(value) * 2` | conversion to number or text |
-| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | format a date (tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q`) |
+| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | format a date (tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` plus `MMMM`/`MMM`, `EEEE`/`EEE` for month and weekday names in the system language and `d`, `M` without a leading zero; square brackets keep text literal: `"[week] ww"`) |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(values) = 6` | aggregates over number lists |
 
 An unknown function or a wrong number of arguments shows an error notice at the block.

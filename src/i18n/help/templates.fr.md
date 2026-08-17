@@ -30,7 +30,7 @@ Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{`
 | --- | --- |
 | `{{date}}` / `{{time}}` | date ou heure de l'application (`2026-07-09` ou `14:30`) |
 | `{{date:+7d}}` | date avec décalage ; unités du langage de requête (`s`, `min`, `h`, `d`, `w`, `mo`, `y`, aussi combinées : `1d 12h`), signe facultatif |
-| `{{date::dd.MM.yyyy}}` | date avec format propre ; jetons `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` (comme la fonction de requête `dateformat`) ; décalage et format combinables : `{{date:+7d:dd.MM.yyyy}}` |
+| `{{date::dd.MM.yyyy}}` | date avec format propre ; jetons `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` ainsi que `MMMM`/`MMM` (nom du mois long/court), `EEEE`/`EEE` (nom du jour long/court) et `d`, `M` (sans zéro initial), noms dans la langue de l'interface (comme la fonction de requête `dateformat`) ; les crochets protègent le texte littéral : `{{date::EEEE[, le] d MMMM yyyy}}` → « mercredi, le 12 août 2026 » ; décalage et format combinables : `{{date:+7d:dd.MM.yyyy}}` |
 | `{{time:-30min:HH:mm:ss}}` | l'heure accepte aussi décalage et format |
 | `{{title}}` | titre du fichier cible (pour les sous-pages, la forme logique avec `/`) |
 | `{{folder}}` | dossier du fichier cible (relatif à la racine dans une zone) |

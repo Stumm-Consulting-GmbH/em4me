@@ -30,7 +30,7 @@ Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en
 | --- | --- |
 | `{{date}}` / `{{time}}` | fecha u hora de la aplicación (`2026-07-09` o `14:30`) |
 | `{{date:+7d}}` | fecha con desplazamiento; unidades del lenguaje de consulta (`s`, `min`, `h`, `d`, `w`, `mo`, `y`, también combinadas: `1d 12h`), signo opcional |
-| `{{date::dd.MM.yyyy}}` | fecha con formato propio; tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` (como la función de consulta `dateformat`); desplazamiento y formato combinables: `{{date:+7d:dd.MM.yyyy}}` |
+| `{{date::dd.MM.yyyy}}` | fecha con formato propio; tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` además de `MMMM`/`MMM` (nombre del mes largo/corto), `EEEE`/`EEE` (nombre del día largo/corto) y `d`, `M` (sin cero inicial), nombres en el idioma de la interfaz (como la función de consulta `dateformat`); los corchetes protegen el texto literal: `{{date::EEEE[, el] d [de] MMMM yyyy}}` → «miércoles, el 12 de agosto 2026»; desplazamiento y formato combinables: `{{date:+7d:dd.MM.yyyy}}` |
 | `{{time:-30min:HH:mm:ss}}` | la hora también acepta desplazamiento y formato |
 | `{{title}}` | título del archivo de destino (en subpáginas la forma lógica con `/`) |
 | `{{folder}}` | carpeta del archivo de destino (relativa a la raíz dentro de un área) |

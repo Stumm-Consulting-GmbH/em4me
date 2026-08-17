@@ -30,7 +30,7 @@ Placeholders are written in double curly braces. `\{{` writes a literal `{{` int
 | --- | --- |
 | `{{date}}` / `{{time}}` | date or time of applying (`2026-07-09` or `14:30`) |
 | `{{date:+7d}}` | date with offset; units of the query language (`s`, `min`, `h`, `d`, `w`, `mo`, `y`, also combined: `1d 12h`), sign optional |
-| `{{date::dd.MM.yyyy}}` | date with a custom format; tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` (like the query function `dateformat`); offset and format combine: `{{date:+7d:dd.MM.yyyy}}` |
+| `{{date::dd.MM.yyyy}}` | date with a custom format; tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` plus `MMMM`/`MMM` (month name long/short), `EEEE`/`EEE` (weekday name long/short) and `d`, `M` (no leading zero), names follow the interface language (like the query function `dateformat`); square brackets keep text literal: `{{date::EEEE[, the] d MMMM yyyy}}` → "Wednesday, the 12 August 2026"; offset and format combine: `{{date:+7d:dd.MM.yyyy}}` |
 | `{{time:-30min:HH:mm:ss}}` | time takes offset and format as well |
 | `{{title}}` | title of the target file (for subpages the logical form with `/`) |
 | `{{folder}}` | folder of the target file (root-relative within an area) |

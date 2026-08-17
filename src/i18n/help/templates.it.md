@@ -30,7 +30,7 @@ I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` lette
 | --- | --- |
 | `{{date}}` / `{{time}}` | data oppure ora dell'applicazione (`2026-07-09` oppure `14:30`) |
 | `{{date:+7d}}` | data con offset; unità del linguaggio di query (`s`, `min`, `h`, `d`, `w`, `mo`, `y`, anche combinate: `1d 12h`), segno facoltativo |
-| `{{date::dd.MM.yyyy}}` | data con formato proprio; token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` (come la funzione di query `dateformat`); offset e formato combinabili: `{{date:+7d:dd.MM.yyyy}}` |
+| `{{date::dd.MM.yyyy}}` | data con formato proprio; token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` oltre a `MMMM`/`MMM` (nome del mese lungo/breve), `EEEE`/`EEE` (nome del giorno lungo/breve) e `d`, `M` (senza zero iniziale), nomi nella lingua dell'interfaccia (come la funzione di query `dateformat`); le parentesi quadre proteggono il testo letterale: `{{date::EEEE[,] d MMMM yyyy}}` → «mercoledì, 12 agosto 2026»; offset e formato combinabili: `{{date:+7d:dd.MM.yyyy}}` |
 | `{{time:-30min:HH:mm:ss}}` | anche l'ora accetta offset e formato |
 | `{{title}}` | titolo del file di destinazione (per le sottopagine la forma logica con `/`) |
 | `{{folder}}` | cartella del file di destinazione (relativa alla radice in un'area) |

@@ -183,7 +183,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `default(x, d)` | `default(prio, 0) > 2` | valore di riserva quando il campo manca |
 | `choice(b, a, c)` | `choice(prio > 5, "alto", "normale")` | se-allora-altrimenti |
 | `number(x)`, `string(x)` | `number(valore) * 2` | conversione in numero o testo |
-| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | formattare una data (token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q`) |
+| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | formattare una data (token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` oltre a `MMMM`/`MMM`, `EEEE`/`EEE` per i nomi di mese e giorno nella lingua di sistema e `d`, `M` senza zero iniziale; le parentesi quadre proteggono il testo letterale: `"[settimana] ww"`) |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valori) = 6` | aggregati su elenchi di numeri |
 
 Una funzione sconosciuta o un numero errato di argomenti mostra un avviso di errore sul blocco.

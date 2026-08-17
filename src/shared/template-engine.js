@@ -205,7 +205,10 @@ function fillTemplate(analysis, context) {
         text += seg.text;
         break;
       case 'datetime':
-        text += formatDateMs(nowMs + seg.offsetMs, seg.format);
+        // 4T-1057 (Epic 3E-0210): Sprach-Zufuhr über den Vorlagen-Kontext —
+        // die sprachabhängigen Namens-Token (MMMM, EEEE …) folgen der
+        // Oberflächen-Sprache; ohne ctx.locale bleibt die Laufzeit-Locale.
+        text += formatDateMs(nowMs + seg.offsetMs, seg.format, ctx.locale);
         break;
       case 'context': {
         const value =

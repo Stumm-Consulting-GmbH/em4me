@@ -14,6 +14,38 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.110.0.1588] - 2026-08-17 — Datums-Formate mit Namen
+
+Epic 3E-0210: Der gemeinsame Datums-Formatierer von Vorlagen, Journalen und
+Abfragen kennt jetzt Monats- und Wochentagsnamen, Tag und Monat ohne führende
+Null und einen Literal-Schutz für Fließtext in Format-Angaben. Erste Stufe des
+Standard-Ausbaus aus der EM4me-Vault-Analyse, mit eigenem Nutzwert unabhängig
+von der Übernahme.
+
+Umsetzungs-Vorgänge des Epics: 4T-1057 und 4T-1058; Release-Vorgang 4T-1059.
+
+### Neu
+
+- **Monats- und Wochentagsnamen als Format-Token** (4T-1057): `MMMM`/`MMM`
+  liefern den Monatsnamen lang und kurz, `EEEE`/`EEE` den Wochentagsnamen, dazu
+  `d` und `M` für Tag und Monat ohne führende Null. In Vorlagen und
+  Journal-Einträgen folgen die Namen der Oberflächen-Sprache (alle fünf
+  Sprachen, ohne neue Übersetzungs-Schlüssel über die Standard-Schnittstelle der
+  Laufzeit), in der Abfrage-Funktion `dateformat` der System-Sprache.
+  Journal-Einträge behalten den Perioden-Start als Datums-Anker; rückwirkend
+  angelegte Einträge zeigen das Perioden-Datum.
+- **Literal-Schutz in Format-Angaben** (4T-1057): Eckige Klammern halten Text
+  wörtlich — `{{date::EEEE[, der] d. MMMM yyyy}}` ergibt «Montag, der
+  17. August 2026», ohne dass Buchstaben wie `d` als Token ersetzt werden. Die
+  Erkennung wertet längere Token vor kürzeren aus; ein Monatsname zerfällt nie
+  in Monatszahlen.
+
+### Geändert
+
+- **Handbuch** (4T-1058): Die Seiten «Vorlagen» und «Perspective-Abfrage»
+  dokumentieren die neuen Token und den Literal-Schutz in allen fünf
+  Sprachfassungen mit sprach-eigenen Beispielen.
+
 ## [1.109.0.1571] - 2026-08-16 — Die Mindmap-Ansicht
 
 Epic 3E-0151: Ein Dokument lässt sich als Mindmap lesen. Überschriften und

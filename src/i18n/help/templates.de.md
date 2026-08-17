@@ -30,7 +30,7 @@ Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein litera
 | --- | --- |
 | `{{date}}` / `{{time}}` | Datum bzw. Uhrzeit des Anwendens (`2026-07-09` bzw. `14:30`) |
 | `{{date:+7d}}` | Datum mit Offset; Einheiten der Abfrage-Sprache (`s`, `min`, `h`, `d`, `w`, `mo`, `y`, auch kombiniert: `1d 12h`), Vorzeichen optional |
-| `{{date::dd.MM.yyyy}}` | Datum mit eigenem Format; Token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` (wie die Abfrage-Funktion `dateformat`); Offset und Format kombinierbar: `{{date:+7d:dd.MM.yyyy}}` |
+| `{{date::dd.MM.yyyy}}` | Datum mit eigenem Format; Token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` sowie `MMMM`/`MMM` (Monatsname lang/kurz), `EEEE`/`EEE` (Wochentagsname lang/kurz) und `d`, `M` (ohne führende Null), Namen in der Oberflächen-Sprache (wie die Abfrage-Funktion `dateformat`); eckige Klammern schützen wörtlichen Text: `{{date::EEEE[, der] d. MMMM yyyy}}` → «Mittwoch, der 12. August 2026»; Offset und Format kombinierbar: `{{date:+7d:dd.MM.yyyy}}` |
 | `{{time:-30min:HH:mm:ss}}` | auch die Zeit nimmt Offset und Format |
 | `{{title}}` | Titel der Zieldatei (bei Unterseiten die logische Form mit `/`) |
 | `{{folder}}` | Ordner der Zieldatei (im Bereich wurzel-relativ) |
