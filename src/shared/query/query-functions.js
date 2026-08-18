@@ -13,13 +13,26 @@
 const { normalizeNameKey } = require('../markdown/link-scan.js');
 const {
   isLink,
+  // 4T-1071 (Epic 3E-0211): Typ-Prüfer für days().
+  isDur,
   coerceDateMs,
   coerceNumber,
   truthy,
   equalsValue,
   formatDateMs,
   formatValue,
+  // 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Formatierung.
+  formatNumberMs,
+  formatCurrencyValue,
+  // 4T-1074 (Epic 3E-0211): Hervorhebung als Anzeige-Wert.
+  boldValue,
 } = require('./query-format.js');
+// 4T-1073 (Epic 3E-0211): Die Ordner-Normalisierung der FROM-Quellen-Ebene ist
+// der EINE Ordner-Begriff der Sprache; `infolder` benutzt sie, statt einen
+// zweiten aufzumachen (Konzept-Entscheid E8). Der Bezug ist gerichtet
+// (Katalog -> Quellen-Ebene, die selbst nichts aus dem Ordner lädt) und
+// bleibt damit kreisfrei.
+const { normFolder } = require('./query-sources.js');
 
 // --- Funktions-Katalog ---------------------------------------------------------
 
@@ -61,6 +74,57 @@ function numericList(v) {
   return nums.length ? nums : null;
 }
 
+// 4T-1073 (Epic 3E-0211): Vorbereitung für infolder — Liste -> Link-Werte.
+// Ein einzelner Link zählt als einelementige Liste (Muster von numericList),
+// jede andere Eingabe ergibt null. Anders als numericList bleibt die LEERE
+// Liste hier ein gültiges Ergebnis und wird nicht zu null: `length(...) = 0`
+// ist der belegte Anwendungsfall der Funktion, und length(null) wäre null
+// statt 0 (Konzept-Entscheid E8).
+function linkList(v) {
+  if (Array.isArray(v)) return v.filter(isLink);
+  return isLink(v) ? [v] : null;
+}
+
+// 4T-1073 (Epic 3E-0211): Der Pfad-Bruch des Werte-Modells, an genau einer
+// Stelle überbrückt. Link-Werte tragen den ABSOLUTEN Index-Pfad, die
+// Ordner-Angabe einer Abfrage ist WURZEL-RELATIV wie file.folder. Liefert den
+// wurzel-relativen Ordner eines Link-Ziels oder null, wenn das Ziel gar nicht
+// unter der Wurzel liegt. rootN ist bereits normalisiert.
+function folderOfLink(absPath, rootN) {
+  if (typeof absPath !== 'string' || !absPath) return null;
+  const p = normFolder(absPath);
+  if (p !== rootN && !p.startsWith(rootN + '/')) return null;
+  const rel = p.slice(rootN.length + 1);
+  const cut = rel.lastIndexOf('/');
+  return cut >= 0 ? rel.slice(0, cut) : '';
+}
+
+// 4T-1073 (Epic 3E-0211): infolder(liste, "Ordner") — die Teilliste der
+// Link-Werte, deren Ziel im Ordner oder darunter liegt. Ordner-Vergleich wie
+// die FROM-Ordner-Quelle (normFolder plus Präfix-Treffer auf Ordner-Grenze),
+// leerer Ordner-String heißt Wurzel und damit alles.
+//
+// OHNE Wurzel im Kontext ergibt die Funktion null und NICHT die leere Liste:
+// An den kontextlosen Orten der Sprache (berechnete Datatable-Spalten,
+// Inline-Rechnung) ist eine Ordner-Aussage nicht möglich, und `length(…) = 0`
+// träfe mit einer leeren Liste jede Datei — ein zu großes Ergebnis aus einem
+// unvollständigen Kontext, genau das, was schon der Selbstbezugs-Quelle
+// verboten ist (Konzept-Entscheid E9).
+function inFolderImpl([liste, ordner], ctx) {
+  if (typeof ordner !== 'string') return null;
+  const links = linkList(liste);
+  if (!links) return null;
+  const root = ctx && typeof ctx.root === 'string' ? normFolder(ctx.root) : '';
+  if (!root) return null;
+  const wanted = normFolder(ordner);
+  return links.filter((l) => {
+    const folder = folderOfLink(l.path, root);
+    if (folder === null) return false;
+    if (!wanted) return true;
+    return folder === wanted || folder.startsWith(wanted + '/');
+  });
+}
+
 // Kuratierter Katalog: name -> { arity: [min, max], fn(args, ctx) }. Alle
 // Funktionen sind rein (keine Seiteneffekte); Typ-Fehler ergeben null.
 const FUNCTIONS = new Map([
@@ -73,6 +137,12 @@ const FUNCTIONS = new Map([
       fn: ([v]) => (typeof v === 'string' || Array.isArray(v) ? v.length : null),
     },
   ],
+  // 4T-1073 (Epic 3E-0211): Mengen-Einschränkung einer Link-Liste auf einen
+  // Ordner, zusammen mit length() der belegte Endknoten-Fall des Bestands:
+  // `length(infolder(file.inlinks, "12 Getting Things Done (GTD)")) = 0`.
+  // Genau zwei Argumente, ein Ordner: eine spätere Erweiterung auf mehrere
+  // bliebe abwärtskompatibel, der umgekehrte Weg nicht (Entscheid E8).
+  ['infolder', { arity: [2, 2], fn: inFolderImpl }],
   ['lower', { arity: [1, 1], fn: ([v]) => (typeof v === 'string' ? v.toLowerCase() : null) }],
   ['upper', { arity: [1, 1], fn: ([v]) => (typeof v === 'string' ? v.toUpperCase() : null) }],
   [
@@ -93,16 +163,49 @@ const FUNCTIONS = new Map([
   ['choice', { arity: [3, 3], fn: ([c, a, b]) => (truthy(c) ? a : b) }],
   ['number', { arity: [1, 1], fn: ([v]) => coerceNumber(v) }],
   ['string', { arity: [1, 1], fn: ([v]) => formatValue(v) }],
+  // 4T-1074 (Epic 3E-0211): Hervorhebung eines Werts oder eines Teils eines
+  // zusammengesetzten Ausdrucks. KEINE Markdown-Auswertung in Zellen: Ein
+  // Sternchen im Text bleibt wörtlich, die Auszeichnung entsteht ausschließlich
+  // über diesen ausdrücklichen Aufruf (Konzept-Entscheid E10 samt Zusatz).
+  ['bold', { arity: [1, 1], fn: ([v]) => boldValue(v) }],
+  // 4T-1072 (Epic 3E-0211): Die drei Formatierer folgen der Sprache aus dem
+  // Kontext (ctx.locale, gesetzt aus der Fenster-Sprache); fehlt sie, gilt
+  // weiterhin die Laufzeit-Locale. Vorher war der Aufruf sprachfrei, was bei
+  // Datums-Namen kaum und bei Währungen sofort auffiel (Konzept-Entscheid E7).
   [
     'dateformat',
     {
       arity: [2, 2],
-      fn: ([v, fmt]) => {
+      fn: ([v, fmt], ctx) => {
         const ms = coerceDateMs(v);
         if (ms === null || typeof fmt !== 'string') return null;
-        return formatDateMs(ms, fmt);
+        return formatDateMs(ms, fmt, ctx && ctx.locale);
       },
     },
+  ],
+  [
+    'numberformat',
+    {
+      arity: [1, 2],
+      fn: ([v, digits], ctx) => formatNumberMs(coerceNumber(v), ctx && ctx.locale, digits),
+    },
+  ],
+  [
+    'currencyformat',
+    {
+      arity: [1, 2],
+      fn: ([v, currency], ctx) => formatCurrencyValue(coerceNumber(v), ctx && ctx.locale, currency),
+    },
+  ],
+  // 4T-1071 (Epic 3E-0211): Tages-Zahl einer Dauer, etwa
+  // `days(date(today) - file.day)`. GERUNDET, nicht abgeschnitten: Eine Spanne
+  // über eine Zeitumstellung hinweg ist um eine Stunde kürzer oder länger als
+  // ein Vielfaches von 24 Stunden, ein Abschneiden lieferte dann 47 statt 48.
+  // Dieselbe Begründung trägt die ausdrückliche Rundung in isoWeekOf
+  // (query-format.js). Nicht-Dauern ergeben null (weiche Fehler, Entscheid E4).
+  [
+    'days',
+    { arity: [1, 1], fn: ([v]) => (isDur(v) ? Math.round(v.ms / (24 * 60 * 60 * 1000)) : null) },
   ],
   [
     'sum',
@@ -219,11 +322,17 @@ function queryUsesLinks(queryAst) {
   function walk(node) {
     if (found || !node || typeof node !== 'object') return;
     if (node.type === 'field') {
-      const lower = String(node.name).toLowerCase();
+      // 4T-1070 (Epic 3E-0211): auch der Selbstbezug auf die Link-Listen zählt
+      // (`this.file.inlinks`), sonst bliebe der Graph ungebaut und das Feld
+      // still leer.
+      const lower = String(node.name)
+        .toLowerCase()
+        .replace(/^this\./, '');
       if (lower === 'file.inlinks' || lower === 'file.outlinks') found = true;
       return;
     }
-    if (node.type === 'srcLink') {
+    // 4T-1070: srcSelf braucht den Graphen ebenso wie srcLink.
+    if (node.type === 'srcLink' || node.type === 'srcSelf') {
       found = true;
       return;
     }

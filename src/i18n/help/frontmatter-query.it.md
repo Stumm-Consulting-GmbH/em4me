@@ -119,6 +119,8 @@ LIST TASKS SHOW urgency HIDE backlink, created SHORT
 | `#tag` | file con questo tag; copre anche i sotto-tag come `#tag/sotto` |
 | `[[File]]` | file che puntano a `File` |
 | `outgoing([[File]])` | file a cui `File` punta |
+| `[[]]` | file che puntano al file portante (sezione «Autoriferimento») |
+| `outgoing([[]])` | file a cui punta il file portante |
 
 Le fonti si combinano con `AND`, `OR`, parentesi e il prefisso di negazione `-`:
 
@@ -148,6 +150,7 @@ Oltre alle proprietà del frontmatter (nome nudo, ad es. `stato`), sono disponib
 | Campo | Contenuto |
 |---|---|
 | `file.name` | nome logico del file (senza estensione) |
+| `file.day` | data dal prefisso ISO del nome (`2026-04-18 Riunione`), altrimenti vuoto |
 | `file.folder`, `file.path` | cartella o percorso, relativi alla radice della query |
 | `file.ext` | estensione del file |
 | `file.size` | dimensione in byte |
@@ -156,12 +159,29 @@ Oltre alle proprietà del frontmatter (nome nudo, ad es. `stato`), sono disponib
 | `file.inlinks`, `file.outlinks` | file che puntano qui, e file collegati |
 | `file.link` | il file stesso come link cliccabile (per le colonne di tabella) |
 
+## Autoriferimento (`this.`)
+
+Il prefisso `this.` si riferisce al **file portante** della query, cioè al documento che contiene il blocco, e non al file trovato. Vale allo stesso modo per i campi di file e per le proprietà del frontmatter: `this.X` è ciò che `X` darebbe nel file portante.
+
+````markdown
+```perspective-query
+LIST WHERE ambito = this.ambito AND file.path != this.file.path
+```
+````
+
+- **Stesso significato a ogni livello**: anche nelle query `BLOCKS` e `TASKS`, `this.` indica il file portante del blocco, mai il singolo blocco né la riga di attività.
+- **Precedenza**: la regola `this.` prevale su una proprietà del frontmatter con lo stesso nome, esattamente come lo spazio dei nomi `file.`.
+- **Senza file portante**: se non è risolvibile, ogni accesso `this.` dà un valore vuoto; un `this` nudo senza punto resta vuoto come ogni nome di campo sconosciuto.
+
+Come **fonte**, il link wiki vuoto indica lo stesso file: `FROM [[]]` raccoglie i file che puntano ad esso, `FROM outgoing([[]])` la direzione opposta. Il file portante non è mai risultato di se stesso; senza un file portante risolvibile l'insieme resta vuoto invece di comprendere tutti i file.
+
 ## Letterali e calcolo
 
 - **I numeri** si scrivono senza virgolette (`prio > 2`); **le stringhe** vanno tra virgolette doppie o singole.
 - **Data**: `date(today)` (inizio giornata), `date(now)`, `date(2026-12-31)` o con orario `date(2026-12-31 14:30)`.
 - **Durata**: `dur(7 days)`, `dur(1 day 2 hours)`, in breve `dur(2w)`. Unità: `s`, `min`, `h`, `d`, `w`, `mo`, `y` più le forme lunghe; un mese conta come 30 giorni, un anno come 365 giorni.
 - **Aritmetica**: `+`, `-`, `*`, `/` con la precedenza consueta; data ± durata dà una data, data − data una durata. Gli operatori tra nomi di campo richiedono spazi (`a - 1`, non `a-1` — quest'ultimo è un nome di campo).
+- **Concatenazione di testo**: se `+` non torna numericamente e un lato è una stringa, unisce le forme di visualizzazione di entrambi i lati; così nascono colonne composte come `file.day + " — " + stato`. Le addizioni puramente numeriche restano numeriche (`5 + "3"` dà 8), e un valore mancante resta mancante e lascia la cella vuota.
 
 Uno schema tipico — «modificato negli ultimi 7 giorni»:
 
@@ -183,10 +203,45 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `default(x, d)` | `default(prio, 0) > 2` | valore di riserva quando il campo manca |
 | `choice(b, a, c)` | `choice(prio > 5, "alto", "normale")` | se-allora-altrimenti |
 | `number(x)`, `string(x)` | `number(valore) * 2` | conversione in numero o testo |
-| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | formattare una data (token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` oltre a `MMMM`/`MMM`, `EEEE`/`EEE` per i nomi di mese e giorno nella lingua di sistema e `d`, `M` senza zero iniziale; le parentesi quadre proteggono il testo letterale: `"[settimana] ww"`) |
+| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | formattare una data (token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` oltre a `MMMM`/`MMM`, `EEEE`/`EEE` per i nomi di mese e giorno nella lingua impostata del programma e `d`, `M` senza zero iniziale; le parentesi quadre proteggono il testo letterale: `"[settimana] ww"`) |
+| `days(x)` | `days(date(today) - file.day)` | una durata come numero di giorni interi; arrotondato, perché un cambio d'ora non la sposti di un giorno |
+| `numberformat(x[, n])` | `numberformat(importo, 2)` | presentare un numero localizzato: senza secondo argomento secondo la lingua, altrimenti con esattamente n decimali |
+| `currencyformat(x[, v])` | `currencyformat(importo, "CHF")` | presentare un importo localizzato: in euro senza indicazione, e il numero non formattato per un codice di valuta sconosciuto |
+| `infolder(l, "Cartella")` | `length(infolder(file.inlinks, "Progetti")) = 0` | il sottoelenco dei valori di link la cui destinazione si trova nella cartella o sotto di essa |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valori) = 6` | aggregati su elenchi di numeri |
+| `bold(x)` | `bold(stato)` | presentare un valore evidenziato (sezione «Evidenziazione») |
 
 Una funzione sconosciuta o un numero errato di argomenti mostra un avviso di errore sul blocco.
+
+**Lingua dei formattatori:** `dateformat`, `numberformat` e `currencyformat` seguono la lingua del programma scelta nelle impostazioni, non quella del sistema operativo. Dove non c'è alcun documento dietro, come nelle colonne calcolate delle tabelle di dati e nei calcoli in linea, continua a valere la lingua dell'ambiente.
+
+## Evidenziazione
+
+`bold(valore)` presenta un valore evidenziato, sia nelle celle di tabella sia nel complemento di una voce di elenco e nel titolo di un gruppo. La marcatura sopravvive alla concatenazione: `bold` può racchiudere anche solo una **parte** di un'espressione composta, il resto resta normale.
+
+````markdown
+```perspective-query
+TABLE bold(stato) AS "Stato", file.mtime
+```
+````
+
+Il contenuto delle celle non valuta Markdown: un asterisco nel testo appare letteralmente, e un'evidenziazione nasce soltanto da questa chiamata. Confronto, ordinamento e raggruppamento lavorano sul testo puro e si comportano quindi esattamente come senza marcatura; un valore mancante resta vuoto invece di produrre un'evidenziazione vuota.
+
+## Esempio: l'ultimo contatto
+
+Insieme, gli elementi di questa pagina danno un quadro che mostra, sulla nota di una persona, quando questa è comparsa l'ultima volta in una nota datata e quanto tempo è passato:
+
+````markdown
+```perspective-query
+TABLE WITHOUT ID file.link AS "Nota",
+  file.day + " — " + bold(days(date(today) - file.day) + " giorni") AS "Ultimo contatto"
+FROM [[]]
+SORT file.day DESC
+LIMIT 1
+```
+````
+
+`FROM [[]]` raccoglie le note che puntano a questo file. `file.day` legge la loro data dal nome del file, `date(today) - file.day` dà la durata fino a oggi e `days(…)` il numero di giorni interi. Il segno più compone data, trattino e numero di giorni in una cella, e `bold(…)` evidenzia la distanza: «2026-04-18 — **48 giorni**». Le note senza data nel nome si ordinano in fondo indipendentemente dalla direzione e non scalzano il risultato.
 
 ## Ordinamento e limite
 

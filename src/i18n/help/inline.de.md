@@ -105,7 +105,7 @@ Regeln und Besonderheiten:
 
 - **Operatoren**: `+`, `-`, `*`, `/` mit Punkt-vor-Strich und Klammern; Vergleiche `=`, `!=`, `<`, `<=`, `>`, `>=` sowie `AND`, `OR`, `NOT` ergeben `true`/`false`. Zwischen Zahlen braucht das Minus ein Leerzeichen (`4 - 1`, nicht `4-1` — Letzteres liest die Ausdrucks-Sprache als Feldnamen).
 - **Datum und Dauer**: `date(...)` und `dur(...)` wie in der Abfrage-Sprache; Datum ± Dauer ergibt ein Datum, Datum − Datum eine Dauer.
-- **Funktionen**: der Funktions-Katalog der Abfrage-Sprache (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`).
+- **Funktionen**: der Funktions-Katalog der Abfrage-Sprache (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `days`, `numberformat`, `currencyformat`, `sum`, `min`, `max`, `average`). Funktionen, die einen Datei-Bezug brauchen, wirken hier nicht: Es gibt kein Dokument, auf das sie sich beziehen könnten.
 - **Fehler**: Ein nicht auswertbarer Ausdruck zeigt ein dezentes ⚠︎ mit dem Fehlerhinweis im Tooltip; der Quelltext bleibt unverändert.
 - **Escape**: `\{=` ergibt ein wörtliches `{=` im Fließtext.
 

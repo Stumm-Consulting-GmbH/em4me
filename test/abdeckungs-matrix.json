@@ -1611,6 +1611,36 @@
       "hinweis": "4T-0408 bis 4T-0410 (Epic 3E-0077): BLOCKS-Scope der Perspective-Abfrage; abgedeckt durch BQ-01 (Treffer als Datei#^anker plus Anker-Sprung), BQ-02 (Panel-Aenderung invalidiert die sichtbare Liste) und BQ-03 (Live-Paritaet und Klick) plus Parser-/Eval-/Index-Unit-Suiten."
     },
     {
+      "key": "help.feature.queryContext",
+      "id": "F-262",
+      "testart": "unit",
+      "tests": [
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/perspective-query-index.test.js"
+      ],
+      "hinweis": "4T-1070 (Epic 3E-0211): Bezug auf die Traeger-Datei — this.-Praefix in allen drei Scopes und Selbstbezugs-Quelle FROM [[]] / outgoing([[]]); Evaluator-Faelle mit und ohne ctx.self, Quellen-Faelle gegen den echten Link-Graphen samt Selbstverlinkungs-Ausschluss und weicher Degradation."
+    },
+    {
+      "key": "help.feature.queryValues",
+      "id": "F-263",
+      "testart": "unit",
+      "tests": [
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/perspective-query-index.test.js"
+      ],
+      "hinweis": "4T-1071 bis 4T-1073 (Epic 3E-0211): file.day (ISO-Praefix, unmoegliche Daten), days() mit Zeitumstellungs-Fall, Verkettungs-Rueckfall samt Regressions-Anker des numerischen Zweigs, numberformat/currencyformat mit Sprach-Bindung und beiden Rueckfall-Stufen, infolder gegen absolute Link-Pfade; Referenz-Muster «Letzter Kontakt» integriert gegen einen echten Index."
+    },
+    {
+      "key": "help.feature.queryHighlight",
+      "id": "F-264",
+      "testart": "unit",
+      "tests": [
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/renderer/frontmatter-query-view.test.js"
+      ],
+      "hinweis": "4T-1074 (Epic 3E-0211): bold() als Segment-Liste — Verkettung mischt markierte und unmarkierte Anteile, Sternchen im Text bleiben woertlich, Vergleich/Ordnung/Wahrheitswert verhalten sich wie ohne Marke; jsdom-Faelle fuer Tabellen-Zelle, Listen-Zusatzfeld und Gruppen-Titel. PDF-Ausgabe manuell an der EXE (Test-Iteration des Sammeltasks)."
+    },
+    {
       "key": "help.feature.scriptBlocks",
       "id": "F-100",
       "testart": "e2e",

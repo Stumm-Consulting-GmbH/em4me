@@ -11,12 +11,20 @@
   ],
   "eintraege": [
     {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang",
+      "datum": "2026-08-18",
+      "fehlerbild": "Einziger roter Fall der E2E-Voll-Suite des Release-Gates 1.113.0 (612 von 613 grün, Laufzeit 55,5 min), der Fall selbst nach 16,0 s. Isolierte Nachprüfung unmittelbar danach im selben Clone und gegen dasselbe Renderer-Bundle: grün, 5 von 5 in 16,5 s. Nach dem Abschalten der Erweiterung verschwindet der Menü-Eintrag [data-menu-id=\"area-panel-stats\"] im roten Fall nicht, der Poll läuft ins Zeitlimit.",
+      "vermutung": "lastbedingt. Der Fall pollt ein Kontextmenü nach einem Einstellungs-Broadcast und hängt damit an zwei bekannten Mustern zugleich, dem Menü-Poll und dem asynchronen Settings-Apply. WIDERSPRUCH zur bisherigen Befund-Lage: 4T-1086 stuft ihn nach drei roten Läufen aus Slot B als reproduzierbar rot und ausdrücklich nicht als Flake ein, hier ist er isoliert grün; umgekehrt lief er im Voll-Lauf des Releases 1.112.0 in diesem Clone grün durch (613 von 613, belegt in 4T-1081). Die Auflösung des Widerspruchs gehört zu 4T-1086 und wird hier nicht vorweggenommen. Beleg des roten Laufs unter test-berichte/rot/2026-08-18T13-58-46Z-epic-3E-0211-Sprach-Bausteine-e2e.*",
+      "status": "verortet"
+    },
+    {
       "spec": "test/unit/quellcode-export.test.js",
       "fall": "kein exportierter Bestand trägt einen Marker der privaten Infrastruktur",
       "datum": "2026-08-18",
       "fehlerbild": "Timeout nach 5000 ms im Unit-Voll-Lauf des Release-Gates 1.112.0 (3656 von 3657 grün, Laufzeit 243,6 s), isoliert sofort grün (21 von 21; der Fall selbst in 521 ms). Kein Marker im Bestand, also kein inhaltlicher Befund, sondern eine gerissene Zeitgrenze.",
-      "vermutung": "lastbedingt; der Fall startet einen realen git-Lauf (git ls-files über die Positivliste des Exports) und liest danach über 500 Dateien vollständig ein, trägt also beide bekannten Muster zugleich, das git-spawnende und das bestandslesende. DRITTE Auffälligkeit dieser Datei nach dem 2026-08-06 und dem 2026-08-07, womit die dort festgehaltene Handlungs-Regel greift. Ein eigener Vorgang entsteht dafür nicht: 4T-0944 im Test-Pflege-Gefäß 3E-0156 trägt genau diesen Zuschnitt und benennt quellcode-export.test.js bereits als dasselbe Muster.",
-      "status": "verortet"
+      "vermutung": "lastbedingt; der Fall startet einen realen git-Lauf (git ls-files über die Positivliste des Exports) und liest danach über 500 Dateien vollständig ein, trägt also beide bekannten Muster zugleich, das git-spawnende und das bestandslesende. DRITTE Auffälligkeit dieser Datei nach dem 2026-08-06 und dem 2026-08-07, womit die dort festgehaltene Handlungs-Regel greift. Ein eigener Vorgang entsteht dafür nicht: 4T-0944 im Test-Pflege-Gefäß 3E-0156 trägt genau diesen Zuschnitt und benennt quellcode-export.test.js bereits als dasselbe Muster. Behoben mit 4T-0944: Die Datei traegt ihr Zeitlimit jetzt datei-weit ueber eine benannte Konstante aus test/zeitlimits.js, und der Waechter scripts/lint-test-zeitlimits.js meldet eine prozess-startende Pruefdatei ohne Limit.",
+      "status": "behoben"
     },
     {
       "spec": "test/e2e/regression/4t-0945-b12.spec.js",
@@ -46,7 +54,7 @@
       "spec": "test/unit/nummern-reservierung.test.js",
       "fall": "Parallelfall (acht gleichzeitige Vergaben)",
       "datum": "2026-08-13",
-      "fehlerbild": "Dritte Auffälligkeit. Im Testsuite-Gate der Queue erneut fehlgeschlagen (2026-08-13, Zweig arbeit/4T-1027-Lernpunkt, Änderungs-Umfang war eine einzelne Markdown-Datei), isoliert sofort grün (20/20). Zuvor 2026-08-03 als lastbedingter Einzel-Flake und 2026-08-05 mit 14 statt 16 disjunkten Nummern",
+      "fehlerbild": "Dritte Auffälligkeit. Im Testsuite-Gate der Queue erneut fehlgeschlagen (2026-08-13, Zweig arbeit/4T-1027-Lernpunkt, Änderungs-Umfang war eine einzelne Markdown-Datei), isoliert sofort grün (20/20). Zuvor 2026-08-03 als lastbedingter Einzel-Flake und 2026-08-05 mit 14 statt 16 disjunkten Nummern Vierte Auffaelligkeit am 2026-08-18 im Unit-Voll-Lauf zu 4T-0944 (3673 von 3674 gruen), isoliert erneut sofort gruen (20/20 in 875 ms); das Fehlerbild ist unveraendert die nicht-disjunkte Vergabe und keine gerissene Zeitgrenze, der Fall bleibt also beim beforderten Vorgang.",
       "vermutung": "lastbedingt, aber dreimal derselbe Fall: die im vorigen Eintrag angekündigte Schwelle ist erreicht, deshalb Beförderung statt weiterer Beobachtung",
       "status": "befoerdert"
     },
@@ -55,16 +63,16 @@
       "fall": "unversionierte Dateien der Quelle können nicht in den Export gelangen",
       "datum": "2026-08-06",
       "fehlerbild": "Einzel-Fehlschlag im Testsuite-Gate der Merge-Queue bei der Release-Integration 0.105.0, isoliert sofort grün (19/19)",
-      "vermutung": "lastbedingt; der Fall spawnt reale git- und npm-Läufe mit 60-Sekunden-Timeout Drittes Auftreten am 2026-08-18 (Unit-Voll-Lauf des Release-Gates 1.112.0, anderer Fall derselben Datei, isoliert 21 von 21 grün); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefäß verortet.",
-      "status": "verortet"
+      "vermutung": "lastbedingt; der Fall spawnt reale git- und npm-Läufe mit 60-Sekunden-Timeout Drittes Auftreten am 2026-08-18 (Unit-Voll-Lauf des Release-Gates 1.112.0, anderer Fall derselben Datei, isoliert 21 von 21 grün); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefäß verortet. Behoben mit 4T-0944: Die Datei traegt ihr Zeitlimit jetzt datei-weit ueber eine benannte Konstante aus test/zeitlimits.js, und der Waechter scripts/lint-test-zeitlimits.js meldet eine prozess-startende Pruefdatei ohne Limit.",
+      "status": "behoben"
     },
     {
       "spec": "test/unit/quellcode-export.test.js",
       "fall": "Negativ-Probe: bereits exportierte Version bricht ab (kein Überschreiben)",
       "datum": "2026-08-07",
       "fehlerbild": "Einzel-Fehlschlag im Voll-Lauf, gescheitert am Aufbau der Wegwerf-Umgebung ('Command failed: git commit -m Stand'), nicht an der Zusicherung selbst; isoliert sofort grün (20/20)",
-      "vermutung": "lastbedingt wie der Eintrag vom 2026-08-06; ZWEITE Auffälligkeit dieser Datei mit einem anderen Fall, aber demselben Muster (reale git-Läufe im Aufbau). Beim nächsten Auftreten in dieser Datei gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen Drittes Auftreten am 2026-08-18 (Unit-Voll-Lauf des Release-Gates 1.112.0, anderer Fall derselben Datei, isoliert 21 von 21 grün); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefäß verortet.",
-      "status": "verortet"
+      "vermutung": "lastbedingt wie der Eintrag vom 2026-08-06; ZWEITE Auffälligkeit dieser Datei mit einem anderen Fall, aber demselben Muster (reale git-Läufe im Aufbau). Beim nächsten Auftreten in dieser Datei gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen Drittes Auftreten am 2026-08-18 (Unit-Voll-Lauf des Release-Gates 1.112.0, anderer Fall derselben Datei, isoliert 21 von 21 grün); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefäß verortet. Behoben mit 4T-0944: Die Datei traegt ihr Zeitlimit jetzt datei-weit ueber eine benannte Konstante aus test/zeitlimits.js, und der Waechter scripts/lint-test-zeitlimits.js meldet eine prozess-startende Pruefdatei ohne Limit.",
+      "status": "behoben"
     },
     {
       "spec": "test/e2e/regression/4t-0177.spec.js",
@@ -79,32 +87,32 @@
       "fall": "nimmt noch nicht abgelegte Stände über die Zusatz-Referenzen auf",
       "datum": "2026-08-07",
       "fehlerbild": "Timeout nach 5000 ms im Testsuite-Gate der Merge-Queue, isoliert sofort grün (11/11; der Fall selbst in 1988 ms)",
-      "vermutung": "lastbedingt; der Fall legt ein Wegwerf-Repositorium an und spawnt reale git-Läufe, dasselbe Muster wie beim Eintrag zu quellcode-export.test.js. Bei erneutem Auftreten ist die Enge des 5000-ms-Standard-Timeouts für git-spawnende Fälle zu prüfen Drittes Auftreten am 2026-08-10 (Voll-Lauf waehrend der Umsetzung von 4T-0942, isoliert 13 von 13 gruen); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefaess verortet.",
-      "status": "verortet"
+      "vermutung": "lastbedingt; der Fall legt ein Wegwerf-Repositorium an und spawnt reale git-Läufe, dasselbe Muster wie beim Eintrag zu quellcode-export.test.js. Bei erneutem Auftreten ist die Enge des 5000-ms-Standard-Timeouts für git-spawnende Fälle zu prüfen Drittes Auftreten am 2026-08-10 (Voll-Lauf waehrend der Umsetzung von 4T-0942, isoliert 13 von 13 gruen); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefaess verortet. Behoben mit 4T-0944: Die Datei traegt ihr Zeitlimit jetzt datei-weit ueber eine benannte Konstante aus test/zeitlimits.js, und der Waechter scripts/lint-test-zeitlimits.js meldet eine prozess-startende Pruefdatei ohne Limit.",
+      "status": "behoben"
     },
     {
       "spec": "test/unit/verlauf-erzeugen.test.js",
       "fall": "nimmt die Änderungen offener Zweige auf und kennzeichnet sie",
       "datum": "2026-08-07",
       "fehlerbild": "Zweiter Fall derselben Datei, unabhängig beobachtet: Fehlschlag ohne Zusicherungs-Meldung in einem Unit-Voll-Lauf, der 384 statt 148 Sekunden brauchte; isoliert sofort grün (11 von 11). Der Lauf überschnitt sich zeitlich mit dem Queue-Gate, aus dem der Eintrag darüber stammt — die beiden Beobachtungen belegen einander als Fremdlast",
-      "vermutung": "lastbedingt, dasselbe Muster wie der Eintrag darüber (Wegwerf-Repositorium, reale git-Läufe, 5000-ms-Standard-Timeout). Damit sind beide Fälle dieser Datei am selben Tag aufgefallen; beim nächsten Auftreten gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen Drittes Auftreten am 2026-08-10 (Voll-Lauf waehrend der Umsetzung von 4T-0942, isoliert 13 von 13 gruen); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefaess verortet.",
-      "status": "verortet"
+      "vermutung": "lastbedingt, dasselbe Muster wie der Eintrag darüber (Wegwerf-Repositorium, reale git-Läufe, 5000-ms-Standard-Timeout). Damit sind beide Fälle dieser Datei am selben Tag aufgefallen; beim nächsten Auftreten gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen Drittes Auftreten am 2026-08-10 (Voll-Lauf waehrend der Umsetzung von 4T-0942, isoliert 13 von 13 gruen); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefaess verortet. Behoben mit 4T-0944: Die Datei traegt ihr Zeitlimit jetzt datei-weit ueber eine benannte Konstante aus test/zeitlimits.js, und der Waechter scripts/lint-test-zeitlimits.js meldet eine prozess-startende Pruefdatei ohne Limit.",
+      "status": "behoben"
     },
     {
       "spec": "test/unit/pm-dokumente.test.js",
       "fall": "K1: der reale Bestand ist frei von Konflikt-Markern",
       "datum": "2026-08-07",
       "fehlerbild": "Einzel-Fehlschlag im selben Unit-Voll-Lauf wie der Eintrag darüber, ebenfalls ohne Zusicherungs-Meldung (Fehlerbild einer gerissenen Zeitgrenze); isoliert sofort grün",
-      "vermutung": "lastbedingt; der Fall liest den vollen PM-Bestand und liegt isoliert bei 0,6 Sekunden",
-      "status": "beobachtet"
+      "vermutung": "lastbedingt; der Fall liest den vollen PM-Bestand und liegt isoliert bei 0,6 Sekunden Behoben mit 4T-0944: Das Limit dieses bestandslesenden Falls steht jetzt unter dem sprechenden Namen BESTAND_ZEITLIMIT in test/zeitlimits.js statt als nackte Zahl an der Stelle.",
+      "status": "behoben"
     },
     {
       "spec": "test/unit/ueberblick-aggregate.test.js",
       "fall": "F6-Generator-Gleichstand, Idempotenz und Pflege-Gefäß-Sektion (drei Fälle desselben Laufs)",
       "datum": "2026-08-12",
       "fehlerbild": "Drei Timeouts nach 5000 ms im Unit-Voll-Lauf während der Umsetzung von 4T-0999, isoliert sofort grün (16/16; die drei Fälle in 1,25 s, 1,23 s und 3,94 s)",
-      "vermutung": "lastbedingt; die Fälle lesen den gesamten Aufgaben-Bestand (über 1250 Dateien), und der langsamste liegt isoliert schon bei knapp 4 s. Bei erneutem Auftreten ist die Enge des 5000-ms-Standard-Timeouts für bestandslesende Fälle zu prüfen, dasselbe Muster wie bei pm-dokumente.test.js",
-      "status": "beobachtet"
+      "vermutung": "lastbedingt; die Fälle lesen den gesamten Aufgaben-Bestand (über 1250 Dateien), und der langsamste liegt isoliert schon bei knapp 4 s. Bei erneutem Auftreten ist die Enge des 5000-ms-Standard-Timeouts für bestandslesende Fälle zu prüfen, dasselbe Muster wie bei pm-dokumente.test.js Behoben mit 4T-0944: Das Limit dieses bestandslesenden Falls steht jetzt unter dem sprechenden Namen BESTAND_ZEITLIMIT in test/zeitlimits.js statt als nackte Zahl an der Stelle.",
+      "status": "behoben"
     },
     {
       "spec": "test/e2e/funktionen/regal.spec.js",

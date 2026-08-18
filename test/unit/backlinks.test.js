@@ -29,6 +29,7 @@ import {
   wikiLinkAutocompleteSuggestions,
   anchorAutocompleteSuggestions,
 } from '../../src/main/backlinks.js';
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
 
 // --- Setup/Teardown ---------------------------------------------------------
 
@@ -212,16 +213,20 @@ describe('backlinks.js — Caps-Verhalten', () => {
   // brauchen unter Voll-Suite-Parallellast (alle Worker gleichzeitig auf
   // dem Datenträger) reproduzierbar mehr als die 5-s-Default-Grenze,
   // isoliert läuft der Test in unter 3 s.
-  it('meldet oversized bei Ueberschreiten von MAX_FILES (2000)', { timeout: 30000 }, async () => {
-    const root = makeRoot();
-    // 2001 Dateien: die Cap-Pruefung schlaegt beim Ueberschreiten an.
-    for (let i = 0; i <= 2000; i++) {
-      fs.writeFileSync(path.join(root, `f${i}.md`), `# ${i}\n`, 'utf8');
-    }
-    const res = await indexFor(path.join(root, 'f0.md'));
-    expect(res.status).toBe('oversized');
-    expect(res.meta.fileCount).toBeGreaterThan(2000);
-  });
+  it(
+    'meldet oversized bei Ueberschreiten von MAX_FILES (2000)',
+    { timeout: BESTAND_ZEITLIMIT },
+    async () => {
+      const root = makeRoot();
+      // 2001 Dateien: die Cap-Pruefung schlaegt beim Ueberschreiten an.
+      for (let i = 0; i <= 2000; i++) {
+        fs.writeFileSync(path.join(root, `f${i}.md`), `# ${i}\n`, 'utf8');
+      }
+      const res = await indexFor(path.join(root, 'f0.md'));
+      expect(res.status).toBe('oversized');
+      expect(res.meta.fileCount).toBeGreaterThan(2000);
+    },
+  );
 });
 
 // === Regressionstests 4T-0181 ===============================================
@@ -232,7 +237,7 @@ describe('B-14: Asynchroner Index-Aufbau blockiert den Prozess nicht', () => {
   // gelegentlich die 5-s-Default-Grenze.
   it(
     'backlinksFor liefert sofort indexing und ist danach vollstaendig',
-    { timeout: 30000 },
+    { timeout: BESTAND_ZEITLIMIT },
     async () => {
       const root = makeRoot();
       // 500-Dateien-Fixture; f0 verweist auf das Ziel.

@@ -119,6 +119,8 @@ LIST TASKS SHOW urgency HIDE backlink, created SHORT
 | `#tag` | files with this tag; also matches sub-tags such as `#tag/sub` |
 | `[[File]]` | files linking to `File` |
 | `outgoing([[File]])` | files that `File` links to |
+| `[[]]` | files linking to the host file (section «Self-reference») |
+| `outgoing([[]])` | files that the host file links to |
 
 Sources can be combined with `AND`, `OR`, parentheses and the negation prefix `-`:
 
@@ -148,6 +150,7 @@ Besides frontmatter properties (bare name, e.g. `status`), implicit file fields 
 | Field | Content |
 |---|---|
 | `file.name` | logical file name (without extension) |
+| `file.day` | date from the ISO prefix of the name (`2026-04-18 Meeting`), empty otherwise |
 | `file.folder`, `file.path` | folder or path, relative to the query root |
 | `file.ext` | file extension |
 | `file.size` | size in bytes |
@@ -156,12 +159,29 @@ Besides frontmatter properties (bare name, e.g. `status`), implicit file fields 
 | `file.inlinks`, `file.outlinks` | files linking here, and linked files |
 | `file.link` | the file itself as a clickable link (for table columns) |
 
+## Self-reference (`this.`)
+
+The `this.` prefix refers to the **host file** of the query, that is to the document holding the block, instead of to the individual hit. It covers file fields and frontmatter properties alike: `this.X` is what `X` would yield in the host file.
+
+````markdown
+```perspective-query
+LIST WHERE area = this.area AND file.path != this.file.path
+```
+````
+
+- **Same meaning on every level**: in `BLOCKS` and `TASKS` queries too, `this.` means the host file of the block, never the individual block or task line.
+- **Precedence**: the `this.` rule wins over a frontmatter property of the same name, just as the `file.` namespace does.
+- **Without a host file**: if it cannot be resolved, every `this.` access yields an empty value; a bare `this` without a dot stays empty like any unknown field name.
+
+As a **source**, the empty wiki link means that same file: `FROM [[]]` collects the files linking to it, `FROM outgoing([[]])` the opposite direction. The host file is never a hit of its own; without a resolvable host file the set stays empty instead of growing to every file.
+
 ## Literals and arithmetic
 
 - **Numbers** are written without quotes (`prio > 2`); **strings** go in double or single quotes.
 - **Date**: `date(today)` (start of day), `date(now)`, `date(2026-12-31)` or with a time `date(2026-12-31 14:30)`.
 - **Duration**: `dur(7 days)`, `dur(1 day 2 hours)`, short `dur(2w)`. Units: `s`, `min`, `h`, `d`, `w`, `mo`, `y` plus long forms; a month counts as 30 days, a year as 365 days.
 - **Arithmetic**: `+`, `-`, `*`, `/` with the usual precedence; date ± duration yields a date, date − date a duration. Operators between field names need spaces (`a - 1`, not `a-1` — the latter is a field name).
+- **Text concatenation**: if `+` does not work out numerically and one side is a string, it joins the display forms of both sides; this is how composed columns such as `file.day + " — " + status` come about. Purely numeric additions stay numeric (`5 + "3"` yields 8), and a missing value stays missing and leaves the cell empty.
 
 A typical pattern — "modified within the last 7 days":
 
@@ -183,10 +203,45 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `default(x, d)` | `default(prio, 0) > 2` | fallback value when the field is missing |
 | `choice(b, a, c)` | `choice(prio > 5, "high", "normal")` | if-then-else |
 | `number(x)`, `string(x)` | `number(value) * 2` | conversion to number or text |
-| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | format a date (tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` plus `MMMM`/`MMM`, `EEEE`/`EEE` for month and weekday names in the system language and `d`, `M` without a leading zero; square brackets keep text literal: `"[week] ww"`) |
+| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | format a date (tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` plus `MMMM`/`MMM`, `EEEE`/`EEE` for month and weekday names in the language set for the program and `d`, `M` without a leading zero; square brackets keep text literal: `"[week] ww"`) |
+| `days(x)` | `days(date(today) - file.day)` | a duration as a number of whole days; rounded so that a clock change does not shift it by a day |
+| `numberformat(x[, n])` | `numberformat(amount, 2)` | render a number localised: without a second argument by the language default, otherwise with exactly n decimals |
+| `currencyformat(x[, c])` | `currencyformat(amount, "CHF")` | render an amount localised: in euros without a code, and as the unformatted number for an unknown currency code |
+| `infolder(l, "Folder")` | `length(infolder(file.inlinks, "Projects")) = 0` | the sublist of link values whose target lies in the folder or below it |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(values) = 6` | aggregates over number lists |
+| `bold(x)` | `bold(status)` | render a value highlighted (section «Highlighting») |
 
 An unknown function or a wrong number of arguments shows an error notice at the block.
+
+**Language of the formatters:** `dateformat`, `numberformat` and `currencyformat` follow the program language chosen in the settings, not the language of the operating system. Where no document stands behind them, such as in computed datatable columns and in inline calculations, the language of the environment still applies.
+
+## Highlighting
+
+`bold(value)` renders a value highlighted, alike in table cells, in the extra field of a list entry and in a group title. The marking survives concatenation: `bold` may enclose just a **part** of a composed expression, and the rest stays plain.
+
+````markdown
+```perspective-query
+TABLE bold(status) AS "Status", file.mtime
+```
+````
+
+Cell contents evaluate no Markdown: an asterisk in the text appears literally, and a highlight arises solely from this call. Comparison, sorting and grouping work on the plain text and therefore behave exactly as without the marking; a missing value stays empty instead of producing an empty highlight.
+
+## Example: the last contact
+
+Together, the building blocks of this page yield an overview that shows, on a person's note, when that person last appeared in a dated note and how long ago that was:
+
+````markdown
+```perspective-query
+TABLE WITHOUT ID file.link AS "Note",
+  file.day + " — " + bold(days(date(today) - file.day) + " days") AS "Last contact"
+FROM [[]]
+SORT file.day DESC
+LIMIT 1
+```
+````
+
+`FROM [[]]` collects the notes linking to this file. `file.day` reads their date from the file name, `date(today) - file.day` yields the duration up to today and `days(…)` the number of whole days. The plus sign assembles date, dash and day count into one cell, and `bold(…)` highlights the distance: «2026-04-18 — **48 days**». Notes without a date in the name sort to the end regardless of the direction and do not displace the hit.
 
 ## Sorting and limit
 

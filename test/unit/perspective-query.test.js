@@ -431,9 +431,20 @@ describe('perspective-query — FROM-Quellen', () => {
   it('meldet ungültige Quellen', () => {
     expect(parseQuery('FROM').error.code).toBe('expectedSource');
     expect(parseQuery('FROM 5').error.code).toBe('expectedSource');
-    expect(parseQuery('FROM [[]]').error.code).toBe('expectedSource');
     expect(parseQuery('FROM [[Datei').error.code).toBe('unterminatedLink');
     expect(parseQuery('FROM outgoing(#tag)').error.code).toBe('expectedSource');
+  });
+
+  // 4T-1070 (Epic 3E-0211): Der leere Wiki-Link war bis hierher ein
+  // Syntaxfehler (expectedSource) und trägt jetzt den Selbstbezug.
+  it('leerer Wiki-Link ist die Selbstbezugs-Quelle', () => {
+    expect(parseOk('FROM [[]]').source).toEqual({ type: 'srcSelf', mode: 'in' });
+    expect(parseOk('FROM [[ ]]').source).toEqual({ type: 'srcSelf', mode: 'in' });
+    expect(parseOk('FROM outgoing([[]])').source).toEqual({ type: 'srcSelf', mode: 'out' });
+    // Kombinierbar wie jede andere Quelle.
+    const ast = parseOk('FROM [[]] AND -"Archiv"');
+    expect(ast.source.type).toBe('srcAnd');
+    expect(ast.source.left).toEqual({ type: 'srcSelf', mode: 'in' });
   });
 });
 

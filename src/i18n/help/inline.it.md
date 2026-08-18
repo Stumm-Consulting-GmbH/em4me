@@ -105,7 +105,7 @@ Regole e particolarità:
 
 - **Operatori**: `+`, `-`, `*`, `/` con la precedenza consueta e parentesi; i confronti `=`, `!=`, `<`, `<=`, `>`, `>=` nonché `AND`, `OR`, `NOT` danno `true`/`false`. Tra numeri, il meno richiede uno spazio (`4 - 1`, non `4-1` — quest'ultimo viene letto dal linguaggio di espressioni come un nome di campo).
 - **Data e durata**: `date(...)` e `dur(...)` come nel linguaggio della query; data ± durata dà una data, data − data una durata.
-- **Funzioni**: il catalogo di funzioni del linguaggio della query (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`).
+- **Funzioni**: il catalogo di funzioni del linguaggio della query (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `days`, `numberformat`, `currencyformat`, `sum`, `min`, `max`, `average`). Le funzioni che richiedono un riferimento a un file qui non hanno effetto: non c'è alcun documento a cui riferirsi.
 - **Errore**: un'espressione non valutabile mostra un discreto ⚠︎ con l'avviso di errore nel tooltip; il sorgente resta invariato.
 - **Escape**: `\{=` produce un `{=` letterale nel testo corrente.
 

@@ -119,6 +119,8 @@ LIST TASKS SHOW urgency HIDE backlink, created SHORT
 | `#tag` | Dateien mit diesem Schlagwort; trifft auch Unter-Schlagwörter wie `#tag/unter` |
 | `[[Datei]]` | Dateien, die auf `Datei` verlinken |
 | `outgoing([[Datei]])` | Dateien, auf die `Datei` verlinkt |
+| `[[]]` | Dateien, die auf die Träger-Datei verlinken (Abschnitt «Selbstbezug») |
+| `outgoing([[]])` | Dateien, auf die die Träger-Datei verlinkt |
 
 Quellen sind mit `AND`, `OR`, Klammern und dem Negations-Präfix `-` kombinierbar:
 
@@ -148,6 +150,7 @@ Neben den Frontmatter-Eigenschaften (nackter Name, z.B. `status`) stehen implizi
 | Feld | Inhalt |
 |---|---|
 | `file.name` | logischer Dateiname (ohne Endung) |
+| `file.day` | Datum aus dem ISO-Präfix des Namens (`2026-04-18 Besprechung`), sonst leer |
 | `file.folder`, `file.path` | Ordner bzw. Pfad, relativ zur Abfrage-Wurzel |
 | `file.ext` | Datei-Endung |
 | `file.size` | Größe in Bytes |
@@ -156,12 +159,29 @@ Neben den Frontmatter-Eigenschaften (nackter Name, z.B. `status`) stehen implizi
 | `file.inlinks`, `file.outlinks` | Dateien, die hierher verlinken bzw. verlinkte Dateien |
 | `file.link` | die Datei selbst als klickbarer Link (für Tabellen-Spalten) |
 
+## Selbstbezug (`this.`)
+
+Das Präfix `this.` bezieht sich auf die **Träger-Datei** der Abfrage, also auf das Dokument, in dem der Block steht, statt auf die jeweilige Treffer-Datei. Es gilt für Datei-Felder und Frontmatter-Eigenschaften gleichermaßen: `this.X` ist das, was `X` in der Träger-Datei ergäbe.
+
+````markdown
+```perspective-query
+LIST WHERE bereich = this.bereich AND file.path != this.file.path
+```
+````
+
+- **Gleiche Bedeutung in allen Ebenen**: Auch in `BLOCKS`- und `TASKS`-Abfragen meint `this.` die Träger-Datei des Blocks, nie den einzelnen Block oder die Task-Zeile.
+- **Vorrang**: Die `this.`-Regel greift vor einer gleichnamigen Frontmatter-Eigenschaft, genau wie der Namensraum `file.`.
+- **Ohne Träger-Datei**: Lässt sie sich nicht auflösen, ergibt jeder `this.`-Zugriff einen leeren Wert; ein nacktes `this` ohne Punkt bleibt wie jeder unbekannte Feldname leer.
+
+Als **Quelle** meint der leere Wiki-Link dieselbe Datei: `FROM [[]]` sammelt die Dateien, die auf sie verlinken, `FROM outgoing([[]])` die Gegenrichtung. Die Träger-Datei ist dabei nie ihr eigener Treffer; ohne auflösbare Träger-Datei bleibt die Menge leer, statt zu allen Dateien zu werden.
+
 ## Literale und Rechnen
 
 - **Zahlen** stehen ohne Anführungszeichen (`prio > 2`), **Zeichenketten** in doppelten oder einfachen Anführungszeichen.
 - **Datum**: `date(today)` (Tagesbeginn), `date(now)` (Jetzt), `date(2026-12-31)` oder mit Uhrzeit `date(2026-12-31 14:30)`.
 - **Dauer**: `dur(7 days)`, `dur(1 day 2 hours)`, kurz `dur(2w)`. Einheiten: `s`, `min`, `h`, `d`, `w`, `mo`, `y` samt Langformen; ein Monat zählt als 30, ein Jahr als 365 Tage.
 - **Arithmetik**: `+`, `-`, `*`, `/` mit Punkt-vor-Strich; Datum ± Dauer ergibt ein Datum, Datum − Datum eine Dauer. Zwischen Feldnamen brauchen die Rechenzeichen Leerzeichen (`a - 1`, nicht `a-1` — Letzteres ist ein Feldname).
+- **Text-Verkettung**: Geht `+` nicht numerisch auf und ist eine Seite eine Zeichenkette, verbindet es die Anzeige-Formen beider Seiten; so entstehen zusammengesetzte Spalten wie `file.day + " — " + status`. Rein numerische Additionen bleiben numerisch (`5 + "3"` ergibt 8), ein fehlender Wert bleibt fehlend und lässt die Zelle leer.
 
 Typisches Muster — «in den letzten 7 Tagen geändert»:
 
@@ -183,10 +203,45 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `default(x, d)` | `default(prio, 0) > 2` | Ersatzwert, wenn das Feld fehlt |
 | `choice(b, a, c)` | `choice(prio > 5, "hoch", "normal")` | Wenn-dann-sonst |
 | `number(x)`, `string(x)` | `number(wert) * 2` | Umwandlung in Zahl bzw. Text |
-| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | Datum formatieren (Token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` sowie `MMMM`/`MMM`, `EEEE`/`EEE` für Monats- und Wochentagsnamen in der System-Sprache und `d`, `M` ohne führende Null; eckige Klammern schützen wörtlichen Text: `"[Woche] ww"`) |
+| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | Datum formatieren (Token `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` sowie `MMMM`/`MMM`, `EEEE`/`EEE` für Monats- und Wochentagsnamen in der eingestellten Programmsprache und `d`, `M` ohne führende Null; eckige Klammern schützen wörtlichen Text: `"[Woche] ww"`) |
+| `days(x)` | `days(date(today) - file.day)` | Dauer als Zahl ganzer Tage; gerundet, damit eine Zeitumstellung nicht um einen Tag verschiebt |
+| `numberformat(x[, n])` | `numberformat(betrag, 2)` | Zahl lokalisiert darstellen: ohne zweites Argument nach Sprach-Vorgabe, sonst mit genau n Nachkommastellen |
+| `currencyformat(x[, w])` | `currencyformat(betrag, "CHF")` | Betrag lokalisiert darstellen: ohne Angabe in Euro, bei unbekanntem Währungs-Code die unformatierte Zahl |
+| `infolder(l, "Ordner")` | `length(infolder(file.inlinks, "Projekte")) = 0` | Teilliste der Link-Werte, deren Ziel im Ordner oder darunter liegt |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(werte) = 6` | Aggregate über Zahlen-Listen |
+| `bold(x)` | `bold(status)` | Wert hervorgehoben darstellen (Abschnitt «Hervorhebung») |
 
 Eine unbekannte Funktion oder eine falsche Argument-Anzahl zeigt einen Fehlerhinweis am Block.
+
+**Sprache der Formatierer:** `dateformat`, `numberformat` und `currencyformat` folgen der in den Einstellungen gewählten Programmsprache, nicht der Sprache des Betriebssystems. Wo kein Dokument dahintersteht, etwa in berechneten Datentabellen-Spalten und in Inline-Berechnungen, bleibt es bei der Sprache der Umgebung.
+
+## Hervorhebung
+
+`bold(wert)` stellt einen Wert hervorgehoben dar, in Tabellen-Zellen, im Zusatzfeld der Liste und im Gruppen-Titel gleichermaßen. Die Auszeichnung übersteht die Verkettung: `bold` darf auch nur einen **Teil** eines zusammengesetzten Ausdrucks einfassen, der Rest bleibt normal.
+
+````markdown
+```perspective-query
+TABLE bold(status) AS "Status", file.mtime
+```
+````
+
+Zell-Inhalte werten kein Markdown aus: Ein Sternchen im Text erscheint unverändert wörtlich, und eine Hervorhebung entsteht ausschließlich über diesen Aufruf. Vergleich, Sortierung und Gruppierung arbeiten auf dem reinen Text und verhalten sich damit exakt wie ohne Auszeichnung; ein fehlender Wert bleibt leer, statt eine leere Hervorhebung zu erzeugen.
+
+## Beispiel: der letzte Kontakt
+
+Die Bausteine dieser Seite ergeben zusammen eine Übersicht, die auf einer Personen-Notiz zeigt, wann diese Person zuletzt in einer datierten Notiz vorkam und wie lange das her ist:
+
+````markdown
+```perspective-query
+TABLE WITHOUT ID file.link AS "Notiz",
+  file.day + " — " + bold(days(date(today) - file.day) + " Tage") AS "Letzter Kontakt"
+FROM [[]]
+SORT file.day DESC
+LIMIT 1
+```
+````
+
+`FROM [[]]` sammelt die Notizen, die auf diese Datei verlinken. `file.day` liest deren Datum aus dem Dateinamen, `date(today) - file.day` ergibt die Dauer bis heute und `days(…)` die Zahl ganzer Tage. Das Pluszeichen setzt Datum, Trennstrich und Tages-Zahl zu einer Zelle zusammen, `bold(…)` hebt den Abstand hervor: «2026-04-18 — **48 Tage**». Notizen ohne Datum im Namen sortieren unabhängig von der Richtung ans Ende und verdrängen den Treffer nicht.
 
 ## Sortierung und Limit
 

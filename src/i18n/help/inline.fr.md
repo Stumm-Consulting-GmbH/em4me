@@ -105,7 +105,7 @@ Règles et particularités :
 
 - **Opérateurs** : `+`, `-`, `*`, `/` avec la précédence usuelle et des parenthèses ; les comparaisons `=`, `!=`, `<`, `<=`, `>`, `>=` ainsi que `AND`, `OR`, `NOT` donnent `true`/`false`. Entre des nombres, le moins exige un espace (`4 - 1`, pas `4-1` — ce dernier est lu par le langage d'expressions comme un nom de champ).
 - **Date et durée** : `date(...)` et `dur(...)` comme dans le langage de requête ; date ± durée donne une date, date − date une durée.
-- **Fonctions** : le catalogue de fonctions du langage de requête (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`).
+- **Fonctions** : le catalogue de fonctions du langage de requête (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `days`, `numberformat`, `currencyformat`, `sum`, `min`, `max`, `average`). Les fonctions qui exigent une référence de fichier restent sans effet ici : aucun document ne leur sert de repère.
 - **Erreur** : une expression non évaluable affiche un discret ⚠︎ avec l'avis d'erreur dans l'infobulle ; la source reste inchangée.
 - **Échappement** : `\{=` donne un `{=` littéral dans le texte courant.
 

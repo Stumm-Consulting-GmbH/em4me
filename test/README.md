@@ -148,19 +148,38 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
    injiziertem Referenz-Datum bzw. stabilen Fixture-Daten (weit
    vergangen wie 2020, weit zukünftig wie 2099), nie mit dem
    Kalendertag des Laufs.
-10. **Tests, die einen vollständigen Bau auslösen, tragen ein eigenes,
-    großzügiges Zeitlimit.** Wer die Webseite, das Handbuch oder ein
-    vergleichbares Erzeugnis komplett baut, sprengt das voreingestellte
-    Zeitlimit von 5 Sekunden konstruktionsbedingt, sobald die Maschine
-    unter Last steht; ein grüner Lauf auf einer ruhigen Maschine ist
-    dann Zufall und kein Nachweis. Solche Tests bekommen das Zeitlimit
-    als drittes Argument von `it(...)`, die zugehörigen Aufräum-Hooks
-    als zweites Argument von `afterAll(...)`, gespeist aus einer
-    dateilokalen Konstante mit erklärendem Kommentar. Vorbild ist
-    `BAU_ZEITLIMIT` in `web-inhalte.test.js` und `web-handbuch.test.js`.
-    Das globale Zeitlimit der Suite (`vitest.config.mjs`) bleibt
-    bewusst niedrig, damit ein echter Hänger nicht in einem pauschal
-    hohen Wert untergeht.
+10. **Ein teurer Prüf-Fall trägt ein Zeitlimit, und dessen Wert steht
+    zentral** (4T-0944). Teuer ist ein Fall aus drei belegten Gründen:
+    Er **startet einen realen Prozess** (git, node, npm), er **liest den
+    vollen Repositoriums-Bestand**, oder er **baut ein Erzeugnis**
+    komplett (Webseite, Handbuch). Alle drei sprengen das
+    voreingestellte Limit von 5 Sekunden, sobald die Maschine unter Last
+    steht; ein grüner Lauf auf einer ruhigen Maschine ist dann Zufall
+    und kein Nachweis. Gemessen liegt der teuerste Fall von
+    `quellcode-export` schon **isoliert** bei 6,0 Sekunden, der von
+    `verlauf-erzeugen` bei 4,2.
+
+    Die Werte stehen in [zeitlimits.js](zeitlimits.js), je Auslöser unter
+    einem sprechenden Namen (`PROZESS_ZEITLIMIT`, `BESTAND_ZEITLIMIT`,
+    `BAU_ZEITLIMIT`, `SCHWER_ZEITLIMIT`, `VOLLBAU_ZEITLIMIT`,
+    `AUFRAEUM_ZEITLIMIT`); eine nackte Zahl an einem Fall gibt es nicht
+    mehr. **Eine Prüfdatei, die reale Prozesse startet, setzt ihr Limit
+    datei-weit** über `vi.setConfig({ testTimeout: …, hookTimeout: … })`
+    am Dateikopf, nicht je Fall: Ein neu angelegter Fall erbt es dann,
+    statt es zu vergessen, und genau daran ist die punktuelle Pflege
+    zwischen dem 2026-08-06 und dem 2026-08-18 viermal gescheitert. Wo
+    nur einzelne Fälle teuer sind, etwa in einer Datei mit einem
+    bestandslesenden unter siebzig günstigen, bleibt das Limit am Fall.
+
+    Durchgesetzt wird das von `scripts/lint-test-zeitlimits.js`
+    (eingebunden über `test-zeitlimits.test.js` und damit in `npm test`):
+    Er meldet eine prozess-startende Prüfdatei ohne datei-weites Limit,
+    jede nackte Zahl und jede dateilokal definierte Konstante. Das
+    bestandslesende Muster erkennt er bewusst nicht, weil es kein
+    sicheres Merkmal im Quelltext hat; dort trägt der Name der Konstante
+    die Aussage. Das globale Zeitlimit der Suite (`vitest.config.mjs`)
+    bleibt bewusst niedrig, damit ein echter Hänger nicht in einem
+    pauschal hohen Wert untergeht.
 11. **Automatik-Verhalten am realen minimalen Nutzungspfad prüfen.**
     Soll etwas „automatisch beim X" geschehen, löst der Test genau X
     aus und nichts weiter. Stellt er zusätzlich den internen Auslöser
@@ -410,11 +429,18 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   wird als solcher benannt statt stillschweigend als Flake behandelt, denn ein
   Quarantäne-Eintrag ohne benennbaren Fall ist wertlos. Anlass war genau
   dieser Ablauf: gefilterte Ausgabe, blinder Wiederholungslauf, überschriebener
-  Bericht, Ursache endgültig weg. Für die Merge-Queue nimmt
-  `scripts/gate-lauf.js` diese Sorgfalt ab (siehe „Belege roter Gate-Läufe"
-  unten); außerhalb der Queue trägt sie die Sitzung.
+  Bericht, Ursache endgültig weg. Diese Sorgfalt nimmt `scripts/gate-lauf.js`
+  ab (siehe „Belege roter Gate-Läufe" unten), und zwar nicht mehr nur der
+  Merge-Queue: Ein einzelner Lauf geht seit 4T-1087 über seinen
+  Kommandozeilen-Zugang `node scripts/gate-lauf.js <gate>` (oder `alle` für die
+  volle Liste), der dasselbe Kommando fährt wie das gleichnamige Gate der
+  Integration, dessen Rückgabewert unverändert weiterreicht und den Beleg
+  ebenso ablegt. Bei der Sitzung liegt die Sorgfalt nur noch dort, wo ein Lauf
+  ohne diesen Zugang gefahren wird.
 
-- **Belege roter Gate-Läufe** (4T-0934). Bricht ein Gate der Merge-Queue ab,
+- **Belege roter Gate-Läufe** (4T-0934, seit 4T-1087 auch für den Einzel-Lauf).
+  Bricht ein Gate ab, gleich ob in der Merge-Queue oder über den
+  Kommandozeilen-Zugang,
   legt `scripts/gate-lauf.js` den Beleg selbsttätig unter
   `test-berichte/rot/<Zeitstempel>-<branch>-<gate>.*` ab und die
   Fehlermeldung nennt den Pfad: die **volle** Konsolen-Ausgabe als `.log`

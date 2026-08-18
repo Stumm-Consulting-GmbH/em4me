@@ -677,3 +677,100 @@ describe('frontmatter-query-view — Blockiert und Duplikat (4T-0508)', () => {
     ).toBe(false);
   });
 });
+
+// --- 4T-1074 (Epic 3E-0211): Hervorhebung in Ergebnis-Spalten -----------------
+
+describe('frontmatter-query-view — Hervorhebung (4T-1074)', () => {
+  it('TABLE: markierte Segmente werden ausgezeichnet, unmarkierte bleiben Text', () => {
+    const host = render({
+      status: 'ready',
+      queryType: 'table',
+      files: [{ name: 'Alpha', path: '/raum/Alpha.md' }],
+      table: {
+        withoutId: true,
+        headers: ['Letzter Kontakt'],
+        rows: [
+          {
+            name: 'Alpha',
+            path: '/raum/Alpha.md',
+            cells: [[{ text: '2026-03-01 — ' }, { text: '48 Tage', bold: true }]],
+          },
+        ],
+      },
+    });
+    const zelle = host.querySelector('tbody td');
+    // Der Text der Zelle bleibt vollstaendig und in Reihenfolge.
+    expect(zelle.textContent).toBe('2026-03-01 — 48 Tage');
+    // Nur der markierte Anteil steckt im Auszeichnungs-Element.
+    const stark = zelle.querySelectorAll('strong');
+    expect(stark.length).toBe(1);
+    expect(stark[0].textContent).toBe('48 Tage');
+  });
+
+  it('TABLE: ein markierter Link bleibt ein klickbarer Link', () => {
+    const host = render({
+      status: 'ready',
+      queryType: 'table',
+      files: [{ name: 'Alpha', path: '/raum/Alpha.md' }],
+      table: {
+        withoutId: true,
+        headers: ['Ziel'],
+        rows: [
+          {
+            name: 'Alpha',
+            path: '/raum/Alpha.md',
+            cells: [[{ link: { path: '/raum/Ziel.md', name: 'Ziel' }, bold: true }]],
+          },
+        ],
+      },
+    });
+    const a = host.querySelector('tbody td strong a.perspective-query-item');
+    expect(a).not.toBeNull();
+    expect(a.dataset.fmPath).toBe('/raum/Ziel.md');
+    expect(a.textContent).toBe('Ziel');
+  });
+
+  it('LIST-Zusatzfeld: die Markierung wirkt im Anhang', () => {
+    const host = render({
+      status: 'ready',
+      queryType: 'list',
+      files: [
+        {
+          name: 'Alpha',
+          path: '/raum/Alpha.md',
+          extra: [{ text: 'offen, ' }, { text: 'dringend', bold: true }],
+        },
+      ],
+    });
+    const extra = host.querySelector('.perspective-query-extra');
+    expect(extra.textContent).toBe('offen, dringend');
+    expect(extra.querySelectorAll('strong').length).toBe(1);
+    expect(extra.querySelector('strong').textContent).toBe('dringend');
+  });
+
+  it('Gruppen-Titel: labelSegs tragen die Markierung, ohne sie bleibt der Text', () => {
+    const host = render({
+      status: 'ready',
+      queryScope: 'tasks',
+      totalCount: 2,
+      taskLayout: { hide: [], show: [], short: false },
+      groups: [
+        {
+          label: 'Alpha',
+          labelSegs: [{ text: 'Alpha', bold: true }],
+          items: [{ name: 'A', path: '/r/A.md', line: 3, taskText: '- [ ] Erste' }],
+        },
+        {
+          label: 'Beta',
+          labelSegs: [],
+          items: [{ name: 'B', path: '/r/B.md', line: 4, taskText: '- [ ] Zweite' }],
+        },
+      ],
+    });
+    const titles = [...host.querySelectorAll('.perspective-query-group-title')];
+    expect(titles.map((n) => n.textContent)).toEqual(['Alpha', 'Beta']);
+    // Erste Gruppe ausgezeichnet, zweite unveraendert als reiner Text.
+    expect(titles[0].querySelectorAll('strong').length).toBe(1);
+    expect(titles[1].querySelectorAll('strong').length).toBe(0);
+  });
+});

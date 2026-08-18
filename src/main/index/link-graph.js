@@ -83,12 +83,18 @@ function relPortable(root, absPath) {
 // 4T-0402 (Epic 3E-0076): Kontext-Struktur einer Datei fuer den Evaluator
 // (Werte-Vertrag siehe perspective-query-eval.js). linkGraph darf null sein
 // (Abfrage ohne Link-Bezug); inlinks/outlinks sind dann leere Listen.
+// 4T-1070 (Epic 3E-0211): `root` kommt mit in den Kontext. Grund ist der
+// Pfad-Bruch des Werte-Modells: Link-Werte tragen den ABSOLUTEN Index-Pfad,
+// file.path/file.folder dagegen den wurzel-relativen. Wer beide Seiten
+// vergleicht (infolder, 4T-1073), braucht die Wurzel zum Relativieren;
+// ohne sie liefert eine solche Funktion still die leere Liste.
 function buildQueryContext(entry, root, absPath, linkGraph, now, resolveLinkTarget) {
   const stats = entry.fileStats.get(absPath) || {};
   const relPath = relPortable(root, absPath);
   const lastSlash = relPath.lastIndexOf('/');
   const toLinkRef = (p) => ({ path: p, name: logicalNameFor(p) });
   return {
+    root,
     props: entry.propertiesPerFile.get(absPath) || {},
     file: {
       name: logicalNameFor(absPath),

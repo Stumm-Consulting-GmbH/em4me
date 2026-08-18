@@ -3,6 +3,9 @@
 // implizite file.*-Felder, Funktions-Katalog, FROM-Quellen und Validierung.
 // Prozess-neutral mit synthetischem Kontext (kein Temp-FS); die Integration
 // mit dem echten Index liegt in perspective-query-index.test.js.
+// 4T-1073 (Datei-Größen-Budget): Die Feld-Auflösung außerhalb des Datei-Scopes
+// (BLOCKS und TASKS) liegt seit dem Schnitt in
+// perspective-query-eval-scopes.test.js.
 import { describe, it, expect } from 'vitest';
 // 4T-0987 (Epic 3E-0196): Modul-Familie im Feature-Ordner src/shared/query/
 // geschnitten; die Namen kommen direkt aus dem jeweiligen Modul (Kern,
@@ -19,8 +22,6 @@ import {
   formatValueSegments,
   formatExprSource,
 } from '../../src/shared/query/query-format.js';
-// 4T-0502 (Epic 3E-0096): Task-Modell fuer die Feld-Aufloesung des TASKS-Scopes.
-import { parseTaskLine } from '../../src/shared/tasks/task-markers.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 // Fester Bezugszeitpunkt (lokal 2026-07-08 12:00), damit date(today)/date(now)
@@ -53,12 +54,27 @@ function ctxFor(over = {}) {
       ...(over.file || {}),
     },
     now: NOW,
+    // 4T-1073 (Epic 3E-0211): Wurzel des Suchraums; infolder braucht sie, um
+    // absolute Link-Pfade gegen eine wurzel-relative Ordner-Angabe zu prüfen.
+    // Ausdrücklich auf null setzbar, um den kontextlosen Ort zu prüfen.
+    root: over.root === undefined ? 'C:/Wurzel' : over.root,
     resolveLinkTarget: over.resolveLinkTarget,
+    // 4T-1070 (Epic 3E-0211): Kontext der Träger-Datei (Selbstbezug).
+    self: over.self,
+    // 4T-1072 (Epic 3E-0211): Sprache der Formatierer.
+    locale: over.locale,
   };
 }
 
 function matchWith(query, over) {
   return matchesQuery(parseOk(query), ctxFor(over));
+}
+
+// 4T-1071 (Epic 3E-0211): einzelner Wert-Ausdruck (Ausdrucks-Modus des Parsers).
+function exprOf(source) {
+  const r = parseQuery(source, { expression: true });
+  if (!r.ok) throw new Error(`unerwarteter Parse-Fehler: ${r.error.code}`);
+  return r.ast;
 }
 
 describe('perspective-query-eval — Typ-System', () => {
@@ -134,6 +150,28 @@ describe('perspective-query-eval — implizite file.*-Felder', () => {
     expect(matchWith('WHERE file.unbekannt = "x"')).toBe(false);
     expect(matchesQuery(parseOk('WHERE file.name = "alpha"'), { props: {}, now: NOW })).toBe(false);
   });
+
+  // 4T-1071 (Epic 3E-0211): file.day — Datum aus dem ISO-Präfix des Namens.
+  it('file.day liest das ISO-Präfix des Namens als Datums-Wert', () => {
+    const tag = (name) => evaluateExpression(exprOf('file.day'), ctxFor({ file: { name } }));
+    expect(tag('2026-03-16')).toEqual({ kind: 'date', ms: new Date(2026, 2, 16).getTime() });
+    // Namensrest nach dem Präfix ist erlaubt (Bestands-Form der Journal-Notizen).
+    expect(tag('2026-03-16 GTD Hierarchie')).toEqual({
+      kind: 'date',
+      ms: new Date(2026, 2, 16).getTime(),
+    });
+  });
+
+  it('file.day ist null ohne Präfix, bei unmöglichem Datum und mitten im Namen', () => {
+    const tag = (name) => evaluateExpression(exprOf('file.day'), ctxFor({ file: { name } }));
+    expect(tag('A Maragkopoulou')).toBe(null); // Story AK2
+    expect(tag('2026-02-30 Test')).toBe(null); // Kalender-Gegenprobe
+    expect(tag('20260316')).toBe(null); // Kompaktform bewusst nicht erkannt
+    expect(tag('2026-03-160')).toBe(null); // kein Präfix, sondern längere Zahl
+    expect(tag('Rückblick auf 2020-01-01')).toBe(null); // Datum nicht am Anfang
+    // Bricht Ausdrücke nicht: Vergleich mit null ist falsch, kein Wurf.
+    expect(matchWith('WHERE file.day > date(2020-01-01)', { file: { name: 'Ohne' } })).toBe(false);
+  });
 });
 
 describe('perspective-query-eval — Funktions-Katalog', () => {
@@ -178,6 +216,178 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(matchWith('max(werte) = 3', { props })).toBe(true);
     expect(matchWith('average(werte) = 2', { props })).toBe(true);
     expect(matchWith('sum(titel) = 0', { props })).toBe(false); // nicht numerisch -> null
+  });
+
+  // 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Format, Sprach-Bindung.
+  it('currencyformat: lokalisierter Betrag, EUR als Vorgabe', () => {
+    const wert = (s, locale) => evaluateExpression(exprOf(s), ctxFor({ locale }));
+    // Die deutsche Form trennt Betrag und Zeichen mit einem geschützten
+    // Leerzeichen (U+00A0), nicht mit einem gewöhnlichen — als Escape-Form
+    // geschrieben, damit die Erwartung im Quelltext eindeutig lesbar ist.
+    const eur = '1.234,50 €';
+    expect(wert('currencyformat(1234.5, "EUR")', 'de')).toBe(eur);
+    expect(wert('currencyformat(1234.5, "EUR")', 'en')).toBe('€1,234.50');
+    // Ohne Währungs-Angabe gilt EUR.
+    expect(wert('currencyformat(1234.5)', 'de')).toBe(eur);
+    // Zahl-Zeichenketten aus dem Frontmatter laufen über coerceNumber mit.
+    expect(wert('currencyformat("1234.5", "EUR")', 'de')).toBe(eur);
+  });
+
+  it('numberformat: Locale-Vorgabe und feste Nachkommastellen', () => {
+    const wert = (s, locale) => evaluateExpression(exprOf(s), ctxFor({ locale }));
+    expect(wert('numberformat(1234567.891)', 'de')).toBe('1.234.567,891');
+    expect(wert('numberformat(1234567.891)', 'en')).toBe('1,234,567.891');
+    expect(wert('numberformat(1234.5, 2)', 'de')).toBe('1.234,50');
+    expect(wert('numberformat(1234.5, 0)', 'de')).toBe('1.235');
+  });
+
+  it('Formatierer: Nicht-Zahlen sind null, unbekannte Währung fällt zurück', () => {
+    const wert = (s, locale) => evaluateExpression(exprOf(s), ctxFor({ locale }));
+    expect(wert('numberformat("abc")', 'de')).toBe(null);
+    expect(wert('currencyformat(fehlt)', 'de')).toBe(null);
+    // Unbekannter Code darf die Zelle nicht leeren, sondern zeigt die Zahl.
+    expect(wert('currencyformat(1234.5, "XYZQ")', 'de')).toBe('1234.5');
+    // Unbekannter Sprach-Tag fällt auf die Laufzeit-Locale, nicht auf null.
+    expect(wert('numberformat(1234.5, 2)', 'kein-tag')).not.toBe(null);
+  });
+
+  it('dateformat folgt der Kontext-Sprache, ohne sie der Laufzeit-Locale', () => {
+    const wert = (s, locale) => evaluateExpression(exprOf(s), ctxFor({ locale }));
+    expect(wert('dateformat(date(2026-08-17), "EEEE")', 'de')).toBe('Montag');
+    expect(wert('dateformat(date(2026-08-17), "EEEE")', 'en')).toBe('Monday');
+    expect(wert('dateformat(date(2026-08-17), "MMMM")', 'fr')).toBe('août');
+    // Regressions-Anker: ohne Kontext-Sprache bleibt es beim bisherigen
+    // Verhalten (Laufzeit-Locale), also ein nicht-leerer Name statt null.
+    const ohne = wert('dateformat(date(2026-08-17), "EEEE")');
+    expect(typeof ohne).toBe('string');
+    expect(ohne.length).toBeGreaterThan(0);
+    // Die sprachfreien Token bleiben unabhängig von der Sprache gleich.
+    expect(wert('dateformat(date(2026-08-17), "yyyy-MM-dd")', 'en')).toBe('2026-08-17');
+  });
+
+  // 4T-1071 (Epic 3E-0211): Tages-Zahl einer Dauer.
+  it('days: ganze Tage, gerundet über die Zeitumstellung hinweg', () => {
+    const tage = (s) => evaluateExpression(exprOf(s), ctxFor());
+    expect(tage('days(dur(48 days))')).toBe(48);
+    // Spanne OHNE Zeitumstellung: exakt 48 Tage.
+    expect(tage('days(date(2026-06-18) - date(2026-05-01))')).toBe(48);
+    // Spanne ÜBER die Umstellung (Ende März): lokal 47 Tage und 23 Stunden.
+    // Ein Abschneiden lieferte hier 47 — der eigentliche Grund für die Rundung.
+    // In einer Zone ohne Sommerzeit sind es exakt 48; der Fall bleibt grün,
+    // prüft dort aber nur die Grundrechnung.
+    expect(tage('days(date(2026-04-18) - date(2026-03-01))')).toBe(48);
+    // Rückwärts gerichtete Spanne bleibt negativ.
+    expect(tage('days(date(2026-03-01) - date(2026-04-18))')).toBe(-48);
+  });
+
+  it('days: Nicht-Dauern ergeben null', () => {
+    const tage = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
+    expect(tage('days(5)')).toBe(null);
+    expect(tage('days("7")')).toBe(null);
+    expect(tage('days(date(2026-03-01))')).toBe(null);
+    expect(tage('days(fehlt)', { props: {} })).toBe(null);
+  });
+
+  // 4T-1071 (Epic 3E-0211): Verkettungs-Rückfall (Konzept-Entscheid E5).
+  it('Verkettung mit Nicht-Text-Werten nutzt die Anzeige-Form', () => {
+    const wert = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
+    expect(wert('file.day + " x"', { file: { name: '2026-03-01' } })).toBe('2026-03-01 x');
+    expect(wert('"n=" + 48')).toBe('n=48');
+    expect(wert('"d=" + dur(2 days)')).toBe('d=2d');
+    expect(wert('"L=" + file.link', { file: { name: 'Alpha', absPath: 'C:/W/Alpha.md' } })).toBe(
+      'L=Alpha',
+    );
+    expect(wert('"t=" + file.tags')).toBe('t=projekt/unter, Wichtig');
+    // Das Referenz-Muster «Letzter Kontakt» in seiner Ziel-Formulierung.
+    expect(
+      wert('file.day + " — " + days(date(2026-04-18) - file.day) + " Tage"', {
+        file: { name: '2026-03-01' },
+      }),
+    ).toBe('2026-03-01 — 48 Tage');
+  });
+
+  it('Verkettung: numerischer Zweig unverändert, fehlende Werte bleiben fehlend', () => {
+    const wert = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
+    // Regressions-Anker: Zahl plus Zahl-String bleibt Rechnung, keine Verkettung.
+    expect(wert('5 + "3"')).toBe(8);
+    expect(wert('"5" + "3"')).toBe('53');
+    // Ein fehlender Wert macht die ganze Verkettung leer, statt eine halbe
+    // Zeichenkette zu erzeugen.
+    expect(wert('fehlt + " x"', { props: {} })).toBe(null);
+    expect(wert('file.day + " x"', { file: { name: 'Ohne Datum' } })).toBe(null);
+    // Ohne Zeichenketten-Seite bleibt es beim bisherigen null.
+    expect(wert('file.link + file.link', { file: { absPath: 'C:/W/A.md' } })).toBe(null);
+  });
+
+  // 4T-1073 (Epic 3E-0211): Link-Listen-Filter über Ordner (Entscheid E8).
+  // Die inlinks des Kontexts liegen absolut unter C:/Wurzel, die Ordner-Angabe
+  // ist wurzel-relativ — genau der Pfad-Bruch, den die Funktion überbrückt.
+  const INLINKS = [
+    { path: 'C:/Wurzel/GTD/Sammeln.md', name: 'Sammeln' },
+    { path: 'C:/Wurzel/GTD/Projekte/Umzug.md', name: 'Umzug' },
+    { path: 'C:/Wurzel/Journal/2026-03-01.md', name: '2026-03-01' },
+  ];
+
+  it('infolder: Treffer im Ordner und darunter, gegen absolute Link-Pfade', () => {
+    const namen = (s, over) =>
+      (evaluateExpression(exprOf(s), ctxFor(over)) || []).map((l) => l.name);
+    const over = { file: { inlinks: INLINKS } };
+    expect(namen('infolder(file.inlinks, "GTD")', over)).toEqual(['Sammeln', 'Umzug']);
+    // «darunter» heißt echter Unterordner, nicht der Ordner selbst.
+    expect(namen('infolder(file.inlinks, "GTD/Projekte")', over)).toEqual(['Umzug']);
+    // Groß-/Kleinschreibung und Schrägstrich-Form wie bei der FROM-Quelle.
+    // Der Tokenizer kennt keine Escape-Sequenzen (am Quelltext geprüft): im
+    // Abfrage-Text steht EIN Backslash, hier als JS-Escape geschrieben.
+    expect(namen('infolder(file.inlinks, "gtd\\projekte")', over)).toEqual(['Umzug']);
+    // Leere Ordner-Angabe ist die Wurzel und damit alles.
+    expect(namen('infolder(file.inlinks, "")', over)).toHaveLength(3);
+  });
+
+  it('infolder: Nicht-Treffer ergibt die leere Liste, nicht null', () => {
+    const over = { file: { inlinks: INLINKS } };
+    // Der belegte Endknoten-Fall des Bestands: length(...) = 0 muss greifen.
+    expect(matchWith('length(infolder(file.inlinks, "Archiv")) = 0', over)).toBe(true);
+    expect(matchWith('length(infolder(file.inlinks, "GTD")) = 0', over)).toBe(false);
+    expect(matchWith('length(infolder(file.inlinks, "GTD")) = 2', over)).toBe(true);
+    // Leere Link-Liste ebenso: leer bleibt leer.
+    expect(matchWith('length(infolder(file.inlinks, "GTD")) = 0', { file: { inlinks: [] } })).toBe(
+      true,
+    );
+    // Kein Teilstring-Match auf halbem Ordner-Namen (Ordner-Grenze), wie FROM.
+    expect(matchWith('length(infolder(file.inlinks, "GT")) = 0', over)).toBe(true);
+  });
+
+  it('infolder: einzelner Link zählt als einelementige Liste', () => {
+    const wert = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
+    const over = { file: { name: 'Alpha', absPath: 'C:/Wurzel/GTD/Alpha.md' } };
+    expect(wert('infolder(file.link, "GTD")', over)).toHaveLength(1);
+    expect(wert('infolder(file.link, "Archiv")', over)).toHaveLength(0);
+  });
+
+  it('infolder: Nicht-Listen-Eingaben und Ziele außerhalb der Wurzel', () => {
+    const wert = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
+    expect(wert('infolder("Text", "GTD")')).toBe(null);
+    expect(wert('infolder(5, "GTD")')).toBe(null);
+    expect(wert('infolder(fehlt, "GTD")', { props: {} })).toBe(null);
+    // Zweites Argument muss eine Zeichenkette sein.
+    expect(wert('infolder(file.inlinks, 5)', { file: { inlinks: INLINKS } })).toBe(null);
+    // Eine Liste ohne Link-Werte ist eine Liste: leere Teilliste, nicht null.
+    expect(wert('infolder(file.tags, "GTD")')).toEqual([]);
+    // Ein Ziel außerhalb der Wurzel gehört in keinen Ordner des Suchraums.
+    expect(
+      wert('infolder(file.inlinks, "GTD")', {
+        file: { inlinks: [{ path: 'D:/Fremd/GTD/X.md', name: 'X' }] },
+      }),
+    ).toEqual([]);
+  });
+
+  it('infolder: ohne Wurzel im Kontext null statt leerer Liste', () => {
+    // Die kontextlosen Orte der Sprache (berechnete Spalten, Inline-Rechnung)
+    // führen keine Wurzel. Eine leere Liste träfe dort mit `length(…) = 0`
+    // jede Datei — der Irrtum, den Entscheid E9 ausschließt.
+    const over = { root: null, file: { inlinks: INLINKS } };
+    expect(evaluateExpression(exprOf('infolder(file.inlinks, "GTD")'), ctxFor(over))).toBe(null);
+    expect(matchWith('length(infolder(file.inlinks, "GTD")) = 0', over)).toBe(false);
   });
 
   it('formatValue: Datum ISO, Dauer kompakt, Liste kommagetrennt', () => {
@@ -226,6 +436,94 @@ describe('perspective-query-eval — FROM-Quellen', () => {
     expect(matchWith('FROM #wichtig WHERE file.size > 9999')).toBe(false);
     expect(matchWith('FROM #fehlt WHERE file.size > 1000')).toBe(false);
   });
+
+  // 4T-1070 (Epic 3E-0211): Selbstbezugs-Quelle. Der Kontext der Träger-Datei
+  // steht in ctx.self; die Quelle braucht keinen Ziel-Resolver, weil ihr Ziel
+  // der bekannte Pfad der Träger-Datei ist.
+  it('Selbstbezugs-Quelle über den Kontext der Träger-Datei', () => {
+    // Träger ist 'Ziel' — die Treffer-Datei verlinkt darauf (outlinks).
+    const selfZiel = ctxFor({ file: { name: 'Ziel', absPath: 'C:/Wurzel/Ziel.md' } });
+    expect(matchesQuery(parseOk('FROM [[]]'), ctxFor({ self: selfZiel }))).toBe(true);
+    expect(matchesQuery(parseOk('FROM outgoing([[]])'), ctxFor({ self: selfZiel }))).toBe(false);
+    // Träger ist 'Quelle' — sie verlinkt auf die Treffer-Datei (inlinks).
+    const selfQuelle = ctxFor({ file: { name: 'Quelle', absPath: 'C:/Wurzel/Quelle.md' } });
+    expect(matchesQuery(parseOk('FROM [[]]'), ctxFor({ self: selfQuelle }))).toBe(false);
+    expect(matchesQuery(parseOk('FROM outgoing([[]])'), ctxFor({ self: selfQuelle }))).toBe(true);
+    // Pfad-Vergleich case-insensitiv (Windows-Dateisystem).
+    const selfKlein = ctxFor({ file: { absPath: 'c:/wurzel/ziel.md' } });
+    expect(matchesQuery(parseOk('FROM [[]]'), ctxFor({ self: selfKlein }))).toBe(true);
+    // OHNE Träger-Kontext: leere Menge, nicht 'alles' (Konzept-Entscheid E2).
+    expect(matchWith('FROM [[]]')).toBe(false);
+    expect(matchWith('FROM outgoing([[]])')).toBe(false);
+  });
+});
+
+// --- 4T-1070 (Epic 3E-0211): Selbstbezug als Wert-Zugriff --------------------
+
+describe('perspective-query-eval — Selbstbezug this.', () => {
+  const selfCtx = ctxFor({
+    props: { status: 'aktiv', prio: '1' },
+    file: {
+      name: 'Träger',
+      folder: 'CRM/Personen',
+      path: 'CRM/Personen/Träger.md',
+      absPath: 'C:/Wurzel/CRM/Personen/Träger.md',
+      tags: ['crm'],
+    },
+  });
+
+  it('this.file.* und this.<eigenschaft> lösen gegen die Träger-Datei auf', () => {
+    const ctx = ctxFor({ props: { status: 'ruht' }, self: selfCtx });
+    expect(evaluateExpression(parseQuery('this.file.name', { expression: true }).ast, ctx)).toBe(
+      'Träger',
+    );
+    expect(evaluateExpression(parseQuery('this.file.folder', { expression: true }).ast, ctx)).toBe(
+      'CRM/Personen',
+    );
+    // Frontmatter der Träger-Datei, nicht der Treffer-Zeile.
+    expect(evaluateExpression(parseQuery('this.status', { expression: true }).ast, ctx)).toBe(
+      'aktiv',
+    );
+    expect(evaluateExpression(parseQuery('status', { expression: true }).ast, ctx)).toBe('ruht');
+    // this.file.link ist ein Link-Wert (Referenz-Anwendungsfall der Analyse).
+    expect(evaluateExpression(parseQuery('this.file.link', { expression: true }).ast, ctx)).toEqual(
+      {
+        kind: 'link',
+        path: 'C:/Wurzel/CRM/Personen/Träger.md',
+        name: 'Träger',
+      },
+    );
+  });
+
+  it('ohne Träger-Kontext ergibt jeder Selbstbezug null', () => {
+    const ctx = ctxFor();
+    expect(evaluateExpression(parseQuery('this.file.name', { expression: true }).ast, ctx)).toBe(
+      null,
+    );
+    expect(evaluateExpression(parseQuery('this.status', { expression: true }).ast, ctx)).toBe(null);
+  });
+
+  it('nacktes this und verschachteltes this.this sind null, kein Fehler', () => {
+    const ctx = ctxFor({ self: selfCtx });
+    expect(evaluateExpression(parseQuery('this', { expression: true }).ast, ctx)).toBe(null);
+    expect(
+      evaluateExpression(parseQuery('this.this.file.name', { expression: true }).ast, ctx),
+    ).toBe(null);
+  });
+
+  it('gilt im Block- und im Task-Scope gleich (Träger bleibt Träger)', () => {
+    const ctx = {
+      ...ctxFor({ self: selfCtx }),
+      block: { anchor: 'a1', values: { status: 'block-wert' }, updatedMs: NOW },
+    };
+    // Der Block überschreibt den nackten Namen, nicht den Selbstbezug.
+    expect(evaluateExpression(parseQuery('status', { expression: true }).ast, ctx)).toBe(
+      'block-wert',
+    );
+    expect(evaluateExpression(parseQuery('this.status', { expression: true }).ast, ctx)).toBe(
+      'aktiv',
+    );
+  });
 });
 
 describe('perspective-query-eval — Validierung und Link-Bedarf', () => {
@@ -246,6 +544,13 @@ describe('perspective-query-eval — Validierung und Link-Bedarf', () => {
     expect(queryUsesLinks(parseOk('FROM [[Datei]]'))).toBe(true);
     expect(queryUsesLinks(parseOk('FROM #tag WHERE a = "1"'))).toBe(false);
     expect(queryUsesLinks(parseOk('LIST SORT file.mtime DESC'))).toBe(false);
+    // 4T-1070 (Epic 3E-0211): Selbstbezugs-Quelle und Selbstbezug auf die
+    // Link-Listen brauchen den Graphen ebenso; ohne diese Erkennung bliebe er
+    // ungebaut und beide lieferten still leer.
+    expect(queryUsesLinks(parseOk('FROM [[]]'))).toBe(true);
+    expect(queryUsesLinks(parseOk('FROM outgoing([[]])'))).toBe(true);
+    expect(queryUsesLinks(parseOk('WHERE contains(this.file.outlinks, "x")'))).toBe(true);
+    expect(queryUsesLinks(parseOk('WHERE this.status = "aktiv"'))).toBe(false);
   });
 });
 
@@ -333,6 +638,62 @@ describe('perspective-query-eval — Segmente und Quelltext', () => {
     ]);
   });
 
+  // 4T-1074 (Epic 3E-0211): Hervorhebung als Segment-Liste (Entscheid E10).
+  it('bold: jedes Segment trägt die Marke, Links bleiben Links', () => {
+    const segs = (s, over) => formatValueSegments(evaluateExpression(exprOf(s), ctxFor(over)));
+    expect(segs('bold("48 Tage")')).toEqual([{ text: '48 Tage', bold: true }]);
+    // Link-Segmente werden mit-ausgezeichnet und bleiben Link-Segmente.
+    expect(segs('bold(file.link)', { file: { name: 'Alpha', absPath: 'C:/W/Alpha.md' } })).toEqual([
+      { link: { path: 'C:/W/Alpha.md', name: 'Alpha' }, bold: true },
+    ]);
+    // Ein fehlender Wert bleibt fehlend, statt eine leere Hervorhebung zu geben.
+    expect(evaluateExpression(exprOf('bold(fehlt)'), ctxFor({ props: {} }))).toBe(null);
+    // bold(bold(x)) ist wirkungsgleich mit bold(x).
+    expect(segs('bold(bold("x"))')).toEqual([{ text: 'x', bold: true }]);
+  });
+
+  it('bold: Verkettung mischt markierte und unmarkierte Anteile', () => {
+    const segs = (s, over) => formatValueSegments(evaluateExpression(exprOf(s), ctxFor(over)));
+    // Das Referenz-Muster in seiner Ziel-Formulierung: nur der Tages-Teil fett.
+    expect(
+      segs('file.day + " — " + bold(days(date(2026-04-18) - file.day) + " Tage")', {
+        file: { name: '2026-03-01' },
+      }),
+      // Zwei Segmente, nicht drei: `+` ist linksassoziativ, die beiden
+      // unmarkierten Teile sind schon zu einer Zeichenkette verschmolzen,
+      // bevor der ausgezeichnete Teil dazukommt.
+    ).toEqual([{ text: '2026-03-01 — ' }, { text: '48 Tage', bold: true }]);
+    // Auch andersherum: markiert zuerst, unmarkiert hinten.
+    expect(segs('bold("A") + "B"')).toEqual([{ text: 'A', bold: true }, { text: 'B' }]);
+    // Ein fehlender Operand macht die ganze Verkettung leer (wie in 4T-1071).
+    expect(evaluateExpression(exprOf('bold("A") + fehlt'), ctxFor({ props: {} }))).toBe(null);
+  });
+
+  it('bold: Sternchen im Text bleiben wörtlich, keine Markdown-Auswertung', () => {
+    const segs = (s, over) => formatValueSegments(evaluateExpression(exprOf(s), ctxFor(over)));
+    // Der Kern von Entscheid E10: Marker im Wert werden nicht ausgewertet.
+    expect(segs('titel', { props: { titel: '**48 Tage**' } })).toEqual([{ text: '**48 Tage**' }]);
+    expect(segs('bold(titel)', { props: { titel: '**x**' } })).toEqual([
+      { text: '**x**', bold: true },
+    ]);
+  });
+
+  it('bold: Vergleich, Ordnung und Text-Form verhalten sich wie ohne Marke', () => {
+    const wert = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
+    // string() und die Anzeige-Form tragen keine Marker.
+    expect(wert('string(bold("48 Tage"))')).toBe('48 Tage');
+    expect(formatValue(wert('bold("48 Tage")'))).toBe('48 Tage');
+    // Gleichheit und Ordnung laufen über die Text-Form (Story AK5).
+    expect(matchWith('bold(titel) = "abc"', { props: { titel: 'abc' } })).toBe(true);
+    expect(matchWith('bold(titel) < "b"', { props: { titel: 'abc' } })).toBe(true);
+    expect(matchWith('bold(titel) > "b"', { props: { titel: 'abc' } })).toBe(false);
+    // Wahrheitswert ebenso: leerer Text bleibt falsch.
+    expect(matchWith('bold(titel)', { props: { titel: 'abc' } })).toBe(true);
+    expect(matchWith('bold(titel)', { props: { titel: '' } })).toBe(false);
+    // Rechnen mit einem ausgezeichneten Wert bleibt ohne Ergebnis.
+    expect(wert('bold("2") * 3')).toBe(null);
+  });
+
   it('formatExprSource: Kopfzeilen-Fallback für Felder, Aufrufe und Arithmetik', () => {
     expect(formatExprSource(parseOk('LIST file.mtime').fields[0].expr)).toBe('file.mtime');
     expect(formatExprSource(parseOk('LIST dateformat(file.mtime, "yyyy")').fields[0].expr)).toBe(
@@ -342,62 +703,6 @@ describe('perspective-query-eval — Segmente und Quelltext', () => {
     expect(formatExprSource(parseOk('LIST default(status, "offen")').fields[0].expr)).toBe(
       'default(status, "offen")',
     );
-  });
-});
-
-// --- 4T-0409 (Epic 3E-0077): Feld-Aufloesung im Block-Kontext ------------------
-
-describe('perspective-query-eval — Block-Kontext (BLOCKS-Scope)', () => {
-  const block = (over = {}) => ({
-    anchor: 'abc123',
-    values: { status: 'offen', prio: 3 },
-    updatedMs: NOW - 2 * DAY,
-    ...over,
-  });
-
-  it('nackte Feldnamen loesen zuerst gegen die Block-Eigenschaften auf', () => {
-    const ctx = { ...ctxFor({ props: { status: 'erledigt' } }), block: block() };
-    expect(evaluateExpression({ type: 'field', name: 'status' }, ctx)).toBe('offen');
-    expect(evaluateExpression({ type: 'field', name: 'Prio' }, ctx)).toBe(3);
-  });
-
-  it('faellt auf die Frontmatter-Properties der Traeger-Datei zurueck', () => {
-    const ctx = { ...ctxFor({ props: { bereich: 'Privat' } }), block: block() };
-    expect(evaluateExpression({ type: 'field', name: 'bereich' }, ctx)).toBe('Privat');
-    expect(evaluateExpression({ type: 'field', name: 'fehlt' }, ctx)).toBeNull();
-  });
-
-  it('updated ist ein Datums-Wert aus updatedMs; eigene Block-Eigenschaft geht vor', () => {
-    const ctx = { ...ctxFor(), block: block() };
-    const v = evaluateExpression({ type: 'field', name: 'updated' }, ctx);
-    expect(v).toEqual({ kind: 'date', ms: NOW - 2 * DAY });
-    // Datums-Arithmetik und -Vergleich funktionieren damit direkt.
-    expect(matchesQuery(parseOk('LIST BLOCKS WHERE updated >= date(now) - dur(7 days)'), ctx)).toBe(
-      true,
-    );
-    // Eigene Block-Eigenschaft 'updated' wird nicht verdeckt.
-    const own = { ...ctxFor(), block: block({ values: { updated: 'manuell' } }) };
-    expect(evaluateExpression({ type: 'field', name: 'updated' }, own)).toBe('manuell');
-    // Ohne Zeitstempel bleibt updated null (fehlender Wert).
-    const noTs = { ...ctxFor(), block: block({ updatedMs: null }) };
-    expect(evaluateExpression({ type: 'field', name: 'updated' }, noTs)).toBeNull();
-  });
-
-  it('file.*-Felder bleiben die Traeger-Datei; FROM filtert ueber sie', () => {
-    const ctx = { ...ctxFor(), block: block() };
-    expect(evaluateExpression({ type: 'field', name: 'file.name' }, ctx)).toBe('Alpha');
-    expect(matchesQuery(parseOk('LIST BLOCKS FROM "Projekte" WHERE status = "offen"'), ctx)).toBe(
-      true,
-    );
-    expect(matchesQuery(parseOk('LIST BLOCKS FROM "Anderswo" WHERE status = "offen"'), ctx)).toBe(
-      false,
-    );
-  });
-
-  it('ohne Block-Kontext bleibt die Datei-Semantik unveraendert', () => {
-    const ctx = ctxFor({ props: { status: 'erledigt' } });
-    expect(evaluateExpression({ type: 'field', name: 'status' }, ctx)).toBe('erledigt');
-    expect(evaluateExpression({ type: 'field', name: 'updated' }, ctx)).toBeNull();
   });
 });
 
@@ -444,125 +749,5 @@ describe('perspective-query-eval — relative Datums-Woerter (4T-0502)', () => {
     const next = { props: { due: '2026-07-13' } }; // Montag der Folgewoche
     expect(matchWith('WHERE due <= date(eow)', next)).toBe(false);
     expect(matchWith('WHERE due >= date(sow)', { props: { due: '2026-07-06' } })).toBe(true);
-  });
-});
-
-// --- 4T-0502 (Epic 3E-0096): Task-Feld-Katalog des TASKS-Scopes ----------------
-
-describe('perspective-query-eval — Task-Felder (TASKS-Scope, 4T-0502)', () => {
-  // Baut einen Task-Kontext (ctx.task) wie frontmatterQueryFor: Modell aus dem
-  // Marker-Kern plus die Zusatz-Felder line/heading/statusType/description/tags.
-  function taskCtx(line, over = {}) {
-    const model = parseTaskLine(line);
-    return {
-      ...ctxFor({ props: over.props || {} }),
-      task: {
-        model,
-        line: over.line != null ? over.line : 7,
-        heading: over.heading !== undefined ? over.heading : 'Kapitel',
-        statusType: over.statusType !== undefined ? over.statusType : 'TODO',
-        description: model.description.trim(),
-        tags: over.tags || [],
-        raw: line,
-      },
-    };
-  }
-  const field = (ctx, name) => evaluateExpression({ type: 'field', name }, ctx);
-
-  // Referenz-Zeile mit allen Marker-Arten (stabiles Datum 2099 fuer Termin-Werte).
-  const FULL =
-    '- [ ] Bericht schreiben \u{1F4C5} 2099-01-10 14:00 \u{1F53A} \u{1F501} every week \u{1F194} a1 ⛔ b2, c3';
-
-  it('Termin-Feld liefert einen Datums-Wert; fehlende Felder sind null', () => {
-    const ctx = taskCtx(FULL);
-    expect(field(ctx, 'due')).toEqual({ kind: 'date', ms: new Date(2099, 0, 10, 14, 0).getTime() });
-    expect(field(ctx, 'scheduled')).toBeNull();
-    expect(field(ctx, 'start')).toBeNull();
-  });
-
-  it('<feld>.set (Marker vorhanden) und <feld>.invalid (ungueltiges Datum)', () => {
-    const ctx = taskCtx(FULL);
-    expect(field(ctx, 'due.set')).toBe(true);
-    expect(field(ctx, 'due.invalid')).toBe(false);
-    expect(field(ctx, 'scheduled.set')).toBe(false);
-    expect(field(ctx, 'scheduled.invalid')).toBe(false);
-    // Ungueltiges Datum: Wert null, aber set true und invalid true.
-    const bad = taskCtx('- [ ] X \u{1F4C5} 2099-02-30');
-    expect(field(bad, 'due')).toBeNull();
-    expect(field(bad, 'due.set')).toBe(true);
-    expect(field(bad, 'due.invalid')).toBe(true);
-  });
-
-  it('happens: fruehestes gueltiges aus due/scheduled/start', () => {
-    // scheduled (2099-03-01) liegt vor due (2099-05-01) -> happens = scheduled.
-    const ctx = taskCtx('- [ ] Y \u{1F4C5} 2099-05-01 ⏳ 2099-03-01');
-    expect(field(ctx, 'happens')).toEqual({ kind: 'date', ms: new Date(2099, 2, 1).getTime() });
-    // Ohne jeden Termin bleibt happens null.
-    expect(field(taskCtx('- [ ] Z'), 'happens')).toBeNull();
-  });
-
-  it('priority (String-Level, normal ohne Marker) und priority.rank (0-5)', () => {
-    expect(field(taskCtx(FULL), 'priority')).toBe('highest');
-    expect(field(taskCtx(FULL), 'priority.rank')).toBe(0);
-    // Ohne Prioritaets-Marker: 'normal', Rang zwischen mittel und niedrig.
-    const plain = taskCtx('- [ ] Ohne Prioritaet');
-    expect(field(plain, 'priority')).toBe('normal');
-    expect(field(plain, 'priority.rank')).toBe(3);
-    // Rang-Ordnung: dringlicher = kleinerer Rang.
-    const low = taskCtx('- [ ] Niedrig \u{1F53D}');
-    expect(field(low, 'priority.rank')).toBe(4);
-    expect(field(taskCtx(FULL), 'priority.rank')).toBeLessThan(field(low, 'priority.rank'));
-  });
-
-  it('status (Status-Zeichen) und status.type (aus dem Resolver)', () => {
-    expect(field(taskCtx(FULL), 'status')).toBe(' ');
-    expect(field(taskCtx(FULL, { statusType: 'TODO' }), 'status.type')).toBe('TODO');
-    const inProg = taskCtx('- [/] Laeuft', { statusType: 'IN_PROGRESS' });
-    expect(field(inProg, 'status')).toBe('/');
-    expect(field(inProg, 'status.type')).toBe('IN_PROGRESS');
-    // Ohne aufgeloesten Typ bleibt status.type null.
-    expect(field(taskCtx('- [?] Frage', { statusType: null }), 'status.type')).toBeNull();
-  });
-
-  it('description, heading und tags', () => {
-    const ctx = taskCtx(FULL, { heading: 'Berichte', tags: ['dringend'] });
-    expect(field(ctx, 'description')).toBe('Bericht schreiben');
-    expect(field(ctx, 'heading')).toBe('Berichte');
-    expect(field(ctx, 'tags')).toEqual(['dringend']);
-    // Ohne Ueberschrift ist heading null; ohne Tags eine leere Liste.
-    const bare = taskCtx('- [ ] Ohne', { heading: null });
-    expect(field(bare, 'heading')).toBeNull();
-    expect(field(bare, 'tags')).toEqual([]);
-  });
-
-  it('recurrence, id, dependson (Liste), line', () => {
-    const ctx = taskCtx(FULL, { line: 42 });
-    expect(field(ctx, 'recurrence')).toBe('every week');
-    expect(field(ctx, 'id')).toBe('a1');
-    expect(field(ctx, 'dependson')).toEqual(['b2', 'c3']);
-    expect(field(ctx, 'line')).toBe(42);
-    // dependson als Liste: Mitgliedschaft ueber contains.
-    expect(matchesQuery(parseOk('LIST TASKS WHERE contains(dependson, "b2")'), ctx)).toBe(true);
-    expect(matchesQuery(parseOk('LIST TASKS WHERE contains(dependson, "zz")'), ctx)).toBe(false);
-    // Ohne Wiederholung/ID sind recurrence/id null.
-    const plain = taskCtx('- [ ] Ohne Marker');
-    expect(field(plain, 'recurrence')).toBeNull();
-    expect(field(plain, 'id')).toBeNull();
-    expect(field(plain, 'dependson')).toEqual([]);
-  });
-
-  it('feste Task-Feld-Namen verdecken gleichnamige Frontmatter-Properties', () => {
-    // props tragen 'due' und 'heading' — die Task-Felder gewinnen.
-    const ctx = taskCtx(FULL, { props: { due: '2000-01-01', heading: 'Frontmatter' } });
-    expect(field(ctx, 'due')).toEqual({ kind: 'date', ms: new Date(2099, 0, 10, 14, 0).getTime() });
-    expect(field(ctx, 'heading')).toBe('Kapitel');
-  });
-
-  it('unbekannte Namen fallen auf die Frontmatter-Properties der Traeger-Datei zurueck', () => {
-    const ctx = taskCtx('- [ ] Aufgabe', { props: { bereich: 'Privat' } });
-    expect(field(ctx, 'bereich')).toBe('Privat');
-    expect(field(ctx, 'nichtVorhanden')).toBeNull();
-    // file.* bleibt die Traeger-Datei.
-    expect(field(ctx, 'file.name')).toBe('Alpha');
   });
 });

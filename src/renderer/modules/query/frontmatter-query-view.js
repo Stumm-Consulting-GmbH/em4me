@@ -14,7 +14,7 @@
 // Kontext neu befüllen kann.
 
 import { api } from '../app/api.js';
-import { t } from '../../i18n.js';
+import { t, getLanguage } from '../../i18n.js';
 // 4T-0502 (Epic 3E-0096): Task-Treffer des TASKS-Scopes — die View parst die
 // Roh-Zeile des Payloads mit dem Marker-Kern und baut die Task-Optik aus der
 // gemeinsamen Badge-Spec (Paritaet zu Render-Pane/Live-Modus). Bewusst nur
@@ -263,7 +263,14 @@ function appendTaskGroups(parent, groups, level, layout, translate) {
     wrap.dataset.level = String(level);
     const title = document.createElement('div');
     title.className = 'perspective-query-group-title';
-    title.textContent = group.label === null ? translate('query.group.none') : group.label;
+    // 4T-1074 (Epic 3E-0211): Trägt der Gruppen-Wert Anzeige-Segmente, werden
+    // sie gebaut (nur so überlebt eine Hervorhebung bis in den Titel); ohne
+    // Segmente bleibt es beim reinen Text wie bisher.
+    if (group.label !== null && Array.isArray(group.labelSegs) && group.labelSegs.length > 0) {
+      appendSegments(title, group.labelSegs);
+    } else {
+      title.textContent = group.label === null ? translate('query.group.none') : group.label;
+    }
     wrap.appendChild(title);
     if (Array.isArray(group.groups)) {
       appendTaskGroups(wrap, group.groups, level + 1, layout, translate);
@@ -424,6 +431,11 @@ function taskItemLink(file, text) {
 // Datei-Liste selbst). Defensive Prüfung, weil die Segmente über IPC kommen.
 function appendSegments(el, segments) {
   for (const seg of segments || []) {
+    // 4T-1074 (Epic 3E-0211): Ein ausgezeichnetes Segment kommt in ein
+    // <strong>; alles andere bleibt unverändert. Die Marke sitzt am Segment
+    // und nicht an seiner Art, deshalb gilt sie für Text- und Link-Segmente
+    // gleichermaßen, und der Link bleibt ein klickbarer Link.
+    const ziel = seg && seg.bold ? document.createElement('strong') : el;
     if (seg && seg.link && typeof seg.link.path === 'string') {
       const a = document.createElement('a');
       a.className = 'perspective-query-item';
@@ -431,10 +443,11 @@ function appendSegments(el, segments) {
       a.textContent = seg.link.name || seg.link.path;
       a.title = seg.link.path;
       a.dataset.fmPath = seg.link.path;
-      el.appendChild(a);
+      ziel.appendChild(a);
     } else if (seg && typeof seg.text === 'string') {
-      el.appendChild(document.createTextNode(seg.text));
+      ziel.appendChild(document.createTextNode(seg.text));
     }
+    if (ziel !== el) el.appendChild(ziel);
   }
 }
 
@@ -569,7 +582,9 @@ function fillOneQueryContainer(el, basePath, showLoading) {
   if (showLoading) renderPayload(el, { status: 'loading' });
   fillStarted();
   api
-    .runFrontmatterQuery(basePath, query)
+    // 4T-1072 (Epic 3E-0211): eingestellte Programmsprache mitgeben — die
+    // Formatierer der Abfrage folgen ihr statt der Betriebssystem-Sprache.
+    .runFrontmatterQuery(basePath, query, getLanguage())
     .then((payload) => {
       if (fillTokens.get(el) === token) renderPayload(el, payload || { status: 'error' });
     })

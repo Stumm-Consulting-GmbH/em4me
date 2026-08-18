@@ -14,6 +14,93 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.113.0.1639] - 2026-08-18 — Abfrage-Kontext und Sprach-Bausteine
+
+Epic 3E-0211: Eine Abfrage kann sich auf die Datei beziehen, in der sie steht,
+und ihre Ergebnis-Spalten aus mehreren Werten zusammensetzen. Dazu kommen ein
+Datums-Feld aus dem Dateinamen, die Tages-Rechnung, lokalisierte Zahlen- und
+Währungs-Formate, ein Ordner-Filter für Link-Listen und eine Hervorhebung. Dritte
+Stufe des Standard-Ausbaus aus der EM4me-Vault-Analyse, mit eigenem Nutzwert
+unabhängig von der Übernahme.
+
+Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
+4T-1075; Konzept-Stufe 4T-1060, Release-Vorgang 4T-1076.
+
+### Neu
+
+- **Selbstbezug auf die Träger-Datei** (4T-1070): Das Präfix `this.` löst
+  gegen die Datei auf, in der die Abfrage steht, statt gegen die jeweilige
+  Treffer-Datei — sowohl für Datei-Felder (`this.file.link`) als auch für
+  Frontmatter-Eigenschaften (`this.bereich`), in allen drei Ebenen Datei, Block
+  und Aufgabe gleich. Als Quelle sammelt der leere Wiki-Link `FROM [[]]` die
+  Dateien, die auf die Träger-Datei verlinken, `FROM outgoing([[]])` die
+  Gegenrichtung; die Träger-Datei ist dabei nie ihr eigener Treffer. Ohne
+  auflösbare Träger-Datei ergeben die Zugriffe einen leeren Wert und die Quelle
+  die leere Menge, damit ein unvollständiger Kontext nie zu einem zu großen
+  Ergebnis führt.
+- **Datum aus dem Dateinamen und Tage aus einer Dauer** (4T-1071): Das
+  implizite Feld `file.day` liest das ISO-Präfix eines Dateinamens
+  (`2026-04-18 Besprechung`) als Datums-Wert; ohne Präfix bleibt es leer. Die
+  Funktion `days(dauer)` liefert die Zahl ganzer Tage, kaufmännisch gerundet,
+  damit eine Zeitumstellung die Spanne nicht um einen Tag verkürzt.
+- **Zahlen- und Währungs-Format** (4T-1072): `numberformat(wert[, stellen])`
+  und `currencyformat(wert[, währung])` stellen Zahlen und Beträge lokalisiert
+  dar; ohne Währungs-Angabe gilt Euro. Ein unbekannter Währungs-Code fällt auf
+  die unformatierte Zahl zurück, statt die Spalte leer zu lassen.
+- **Link-Listen-Filter über Ordner** (4T-1073): `infolder(liste, "Ordner")`
+  liefert die Teilliste der Link-Werte, deren Ziel im Ordner oder darunter
+  liegt. Zusammen mit `length()` findet das die Dateien ohne eingehenden Link
+  aus einem bestimmten Ordner. Der Ordner-Vergleich ist derselbe wie in der
+  `FROM`-Ordner-Quelle.
+- **Hervorhebung in Ergebnis-Spalten** (4T-1074): `bold(wert)` stellt einen
+  Wert hervorgehoben dar, in Tabellen-Zellen, im Zusatzfeld der Liste und im
+  Gruppen-Titel. Die Auszeichnung übersteht die Verkettung, kann also einen
+  Teil eines zusammengesetzten Ausdrucks einfassen. Vergleich, Sortierung und
+  Gruppierung arbeiten unverändert auf dem reinen Text; Zell-Inhalte werten
+  weiterhin kein Markdown aus, ein Sternchen im Text bleibt wörtlich.
+
+### Geändert
+
+- **Verkettung von Text mit Nicht-Text-Werten** (4T-1071): Geht das
+  Pluszeichen nicht numerisch auf und ist eine Seite eine Zeichenkette,
+  verbindet es die Anzeige-Formen beider Seiten. Damit lassen sich Datums-,
+  Dauer-, Zahl- und Link-Werte mit Text zu einer Spalte zusammensetzen, wo
+  bisher ein leerer Wert entstand. Rein numerische Additionen bleiben
+  numerisch, und ein fehlender Wert bleibt fehlend.
+- **Datums-, Zahlen- und Währungs-Formate folgen der Programmsprache**
+  (4T-1072): Die drei Formatierer der Abfrage nutzen die in den Einstellungen
+  gewählte Programmsprache statt der Sprache des Betriebssystems. Das ändert
+  das Verhalten von `dateformat` mit Monats- und Wochentagsnamen: In einem
+  englisch eingestellten Programm auf einem deutschen Betriebssystem erscheinen
+  die Namen jetzt englisch. Wo kein Dokument dahintersteht, in berechneten
+  Datentabellen-Spalten und in Inline-Berechnungen, bleibt es bei der Sprache
+  der Umgebung.
+
+### i18n
+
+- Drei Katalog-Einträge der neuen Sprach-Bausteine mit je Beschreibung,
+  Kurzname und Zugang, in allen fünf Sprachfassungen (4T-1075): Selbstbezug,
+  Wert-Bausteine und Hervorhebung. Die Bausteine selbst brauchen keine eigenen
+  Übersetzungen, weil sie über die Standard-Schnittstelle der Laufzeit
+  lokalisieren.
+
+### Dokumentation
+
+- Die Handbuch-Seite «Perspective-Abfrage» beschreibt in allen fünf
+  Sprachfassungen den Selbstbezug, das Feld `file.day`, die Text-Verkettung,
+  die vier neuen Funktionen und die Hervorhebung, dazu ein durchgerechnetes
+  Beispiel «Letzter Kontakt», das die Bausteine zusammenführt (4T-1075). Die
+  Seite «Inline-Konstrukte» nennt die drei dort wirksamen neuen Funktionen. Die
+  mitgelieferte Demo-Area zeigt Selbstbezug und Hervorhebung als lauffähige
+  Abfragen.
+
+### Intern
+
+- Drei Modul-Schnitte, jeder vom Datei-Größen-Budget erzwungen: die
+  Quellen-Ebene der Abfrage und die Task-Helfer des Index (4T-1070) sowie die
+  Registry der Funktions-Gruppen des Handbuchs (4T-1075). Die
+  Ausnahmeliste des Größen-Budgets ist dabei um einen Eintrag geschrumpft.
+
 ## [1.112.0.1619] - 2026-08-18 — Nutzen und Arbeitsweise
 
 Epic 3E-0194: Je eine Seite im Handbuch und auf der Produkt-Webseite zeigt den

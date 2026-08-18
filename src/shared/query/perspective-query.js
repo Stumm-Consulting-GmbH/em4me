@@ -27,8 +27,11 @@
 //   srcUnary   := '-' srcUnary | '(' source ')' | srcAtom
 //   srcAtom    := string             (Ordner, relativ zur Abfrage-Wurzel)
 //              | tag                 (#tag)
-//              | link                ([[Datei]]: Dateien, die auf X verlinken)
-//              | 'outgoing' '(' link ')'  (Dateien, auf die X verlinkt)
+//              | link                ([[Datei]]: Dateien, die auf X verlinken;
+//                                     [[]] leer: auf die Träger-Datei, 4T-1070)
+//              | 'outgoing' '(' link ')'  (Dateien, auf die X verlinkt;
+//                                     outgoing([[]]): auf die die Träger-Datei
+//                                     verlinkt, 4T-1070)
 //
 // Grammatik (Ausdrucks-Ebene, Präzedenz NOT > AND > OR, Vergleich > Arithmetik):
 //   expr       := orExpr
@@ -696,7 +699,11 @@ function parseQuery(input, opts) {
     }
     if (t.type === 'link') {
       next();
-      if (!t.value) return fail('expectedSource', 'Leerer Wiki-Link in FROM', t.pos);
+      // 4T-1070 (Epic 3E-0211): Der LEERE Wiki-Link ist die Selbstbezugs-
+      // Quelle — 'Dateien, die auf die Traeger-Datei verlinken'. Die Form war
+      // bis hierher ein Syntaxfehler und ist damit frei; sie ist zugleich der
+      // Wortlaut des Bestands, aus dem konvertiert wird (Konzept-Entscheid E2).
+      if (!t.value) return { type: 'srcSelf', mode: 'in' };
       return { type: 'srcLink', target: t.value, mode: 'in' };
     }
     if (isWord(t, 'OUTGOING')) {
@@ -709,11 +716,13 @@ function parseQuery(input, opts) {
         return fail('expectedSource', 'Wiki-Link in outgoing(…) erwartet');
       }
       const linkTok = next();
-      if (!linkTok.value) return fail('expectedSource', 'Leerer Wiki-Link in FROM', linkTok.pos);
       if (atEnd() || peek().type !== ')') {
         return fail('expectedParen', 'Fehlende schließende Klammer nach outgoing(…)');
       }
       next();
+      // 4T-1070 (Epic 3E-0211): outgoing([[]]) ist die Gegenrichtung des
+      // Selbstbezugs — 'Dateien, auf die die Traeger-Datei verlinkt'.
+      if (!linkTok.value) return { type: 'srcSelf', mode: 'out' };
       return { type: 'srcLink', target: linkTok.value, mode: 'out' };
     }
     return fail('expectedSource', `Ungültige Quelle '${describeToken(t)}' in FROM`, t.pos);

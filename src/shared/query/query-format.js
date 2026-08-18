@@ -21,6 +21,17 @@
 //   { kind: 'date', ms }  Zeitpunkt (Epoch-Millisekunden, lokale Interpretation)
 //   { kind: 'dur',  ms }  Dauer (Millisekunden; Monat/Jahr fixe Näherung, siehe Parser)
 //   { kind: 'link', path, name }  Datei-Verweis (absoluter Pfad, logischer Name)
+//   { kind: 'rich', segs }  ausgezeichneter Anzeige-Wert als Segment-Liste
+//                         (4T-1074, Epic 3E-0211). Die Werte-Art trägt eine
+//                         Auszeichnung durch die VERKETTUNG hindurch: `+` mit
+//                         einem Rich-Operanden verbindet Segment-Listen statt
+//                         Zeichenketten, sodass ein TEIL eines zusammen-
+//                         gesetzten Ausdrucks hervorgehoben bleiben kann. Nach
+//                         außen ist sie ein reiner Anzeige-Wert: formatValue
+//                         liefert die Text-Form ohne Marker, und Vergleich,
+//                         Ordnung und Wahrheitswert arbeiten auf ebendieser
+//                         Text-Form. Eine Abfrage verhält sich mit bold()
+//                         darum überall gleich wie ohne.
 //   Array                 Liste von Werten
 
 // 4T-0344 (Epic 3E-0062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
@@ -36,6 +47,26 @@ function isDate(v) {
 function isDur(v) {
   return !!v && typeof v === 'object' && v.kind === 'dur';
 }
+// 4T-1074 (Epic 3E-0211): ausgezeichneter Anzeige-Wert (Segment-Liste).
+function isRich(v) {
+  return !!v && typeof v === 'object' && v.kind === 'rich' && Array.isArray(v.segs);
+}
+
+// Text-Form eines Rich-Werts: die Segmente ohne jede Auszeichnung
+// aneinandergehängt. Sie ist der Wert, mit dem Vergleich, Ordnung und
+// Gruppierung rechnen — daher verhält sich bold(x) dort exakt wie x.
+function richText(v) {
+  return v.segs
+    .map((s) => (s && s.link ? s.link.name || s.link.path || '' : (s && s.text) || ''))
+    .join('');
+}
+
+// Entpackt einen Rich-Wert für alles, was nicht Anzeige ist. Jede Stelle, die
+// einen Wert VERGLEICHT statt ihn darzustellen, läuft darüber.
+function plainValue(v) {
+  return isRich(v) ? richText(v) : v;
+}
+
 function isLink(v) {
   return !!v && typeof v === 'object' && v.kind === 'link';
 }
@@ -95,7 +126,10 @@ function coerceBool(v) {
 // Wahrheitswert eines Abfrage-Werts (für AND/OR/NOT, WHERE-Ergebnis, choice).
 // String-Sonderfall: 'false' ist falsch, weil boolesche Frontmatter-Werte als
 // Strings im Index liegen; jeder andere nicht-leere String ist wahr.
-function truthy(v) {
+function truthy(vRaw) {
+  // 4T-1074: Ein Rich-Wert ist ein Anzeige-Wert; sein Wahrheitswert ist der
+  // seiner Text-Form, damit bold(x) in einer Bedingung wie x wirkt.
+  const v = plainValue(vRaw);
   if (v === null || v === undefined) return false;
   if (typeof v === 'boolean') return v;
   if (typeof v === 'number') return v !== 0;
@@ -111,7 +145,10 @@ function truthy(v) {
 // Gleichheit zweier Werte. Listen gegen Skalar = Mitgliedschaft (Alt-Semantik
 // des Listen-Felds); Strings case-insensitiv; Zahl gegen Zahl-String numerisch;
 // Links über den logischen Namen (normalizeNameKey, wie die Wiki-Aufloesung).
-function equalsValue(a, b) {
+function equalsValue(aRaw, bRaw) {
+  // 4T-1074: Rich-Werte vergleichen über ihre Text-Form (siehe plainValue).
+  const a = plainValue(aRaw);
+  const b = plainValue(bRaw);
   const aList = Array.isArray(a);
   const bList = Array.isArray(b);
   if (aList && !bList) return a.some((x) => equalsValue(x, b));
@@ -259,6 +296,46 @@ function formatDateMs(ms, fmt, locale) {
     .join('');
 }
 
+// 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Formatierung über dieselbe
+// Standard-Schnittstelle der Laufzeit, die 4T-1057 für die Monats- und
+// Wochentagsnamen gewählt hat (expliziter Sprach-Tag mit Rückfall auf die
+// Laufzeit-Locale, keine zweite Bibliothek und keine neuen Übersetzungs-
+// Schlüssel). Ein unbekannter Sprach-Tag oder Währungs-Code darf die Zelle
+// nicht leeren: Beide Stufen fallen nach unten durch, zuletzt auf die
+// unformatierte Zahl.
+function formatNumberValue(n, locale, options) {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return null;
+  try {
+    return new Intl.NumberFormat(locale || undefined, options).format(n);
+  } catch {
+    try {
+      return new Intl.NumberFormat(undefined, options).format(n);
+    } catch {
+      return String(n);
+    }
+  }
+}
+
+// Zahl mit optionaler fester Nachkommastellen-Zahl; ohne Angabe gilt die
+// Vorgabe der Locale (Tausender-Trennung, bis zu drei Nachkommastellen).
+function formatNumberMs(n, locale, digits) {
+  const options = {};
+  if (typeof digits === 'number' && Number.isFinite(digits)) {
+    const d = Math.max(0, Math.min(20, Math.trunc(digits)));
+    options.minimumFractionDigits = d;
+    options.maximumFractionDigits = d;
+  }
+  return formatNumberValue(n, locale, options);
+}
+
+// Währungsbetrag; ohne Angabe EUR. Ein unbekannter Code fällt auf die
+// unformatierte Zahl zurück, statt eine leere Zelle zu erzeugen.
+function formatCurrencyValue(n, locale, currency) {
+  const code = typeof currency === 'string' && currency.trim() ? currency.trim() : 'EUR';
+  const out = formatNumberValue(n, locale, { style: 'currency', currency: code });
+  return out === null ? null : out;
+}
+
 // Dauer -> kompakte Einheiten-Kette ('7d', '1d 2h', '90s').
 function durToString(ms) {
   let rest = Math.abs(Math.round(ms / 1000));
@@ -291,6 +368,8 @@ function formatValue(v) {
   if (isDate(v)) return dateToIsoString(v.ms);
   if (isDur(v)) return durToString(v.ms);
   if (isLink(v)) return v.name || '';
+  // 4T-1074: Text-Form ohne Marker — string(bold(x)) ist string(x).
+  if (isRich(v)) return richText(v);
   return String(v);
 }
 
@@ -302,6 +381,9 @@ function formatValue(v) {
 // Text-Knoten bzw. Links mit dem bestehenden data-fm-path-Klick-Pfad.
 function formatValueSegments(v) {
   if (v === null || v === undefined) return [];
+  // 4T-1074: Rich-Werte tragen ihre Segmente bereits; sie werden flach kopiert,
+  // damit kein Aufrufer die Segmente eines Werts nachträglich verändert.
+  if (isRich(v)) return v.segs.map((s) => ({ ...s }));
   if (isLink(v)) return [{ link: { path: v.path, name: v.name } }];
   if (Array.isArray(v)) {
     const segs = [];
@@ -313,6 +395,26 @@ function formatValueSegments(v) {
   }
   const s = formatValue(v);
   return s === '' ? [] : [{ text: s }];
+}
+
+// 4T-1074 (Epic 3E-0211): bold(wert) — jedes Anzeige-Segment des Werts bekommt
+// die Auszeichnung. Ein fehlender Wert bleibt fehlend, statt eine leere
+// Hervorhebung zu erzeugen; Link-Segmente bleiben Link-Segmente und werden
+// mit-ausgezeichnet. bold(bold(x)) ist wirkungsgleich mit bold(x), weil die
+// Marke ein Schalter am Segment ist und keine Verschachtelung.
+function boldValue(v) {
+  if (v === null || v === undefined) return null;
+  return { kind: 'rich', segs: formatValueSegments(v).map((s) => ({ ...s, bold: true })) };
+}
+
+// 4T-1074: Verkettung, sobald eine Seite ausgezeichnet ist. Sie verbindet
+// Segment-Listen statt Zeichenketten — genau der Grund für die eigene
+// Werte-Art: Die unmarkierte Seite wird zu Segmenten ohne Marke, die markierte
+// behält ihre. Ein fehlender Operand macht die ganze Verkettung leer, wie im
+// Zeichenketten-Rückfall aus 4T-1071.
+function concatRich(a, b) {
+  if (a === null || a === undefined || b === null || b === undefined) return null;
+  return { kind: 'rich', segs: [...formatValueSegments(a), ...formatValueSegments(b)] };
 }
 
 const ARITH_SYMBOL = { add: '+', sub: '-', mul: '*', div: '/' };
@@ -362,6 +464,11 @@ module.exports = {
   isDate,
   isDur,
   isLink,
+  // 4T-1074 (Epic 3E-0211): ausgezeichneter Anzeige-Wert (Segment-Liste).
+  isRich,
+  plainValue,
+  boldValue,
+  concatRich,
   parseIsoLocalMs,
   coerceDateMs,
   coerceNumber,
@@ -371,6 +478,9 @@ module.exports = {
   dateToIsoString,
   isoWeekOf,
   formatDateMs,
+  // 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Formatierung.
+  formatNumberMs,
+  formatCurrencyValue,
   durToString,
   formatValue,
   formatValueSegments,

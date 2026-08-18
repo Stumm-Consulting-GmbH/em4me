@@ -180,6 +180,51 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
     expect(frontmatterQueryFor(start, 'FROM [[Unbekannt]]').files).toEqual([]);
   });
 
+  // 4T-1070 (Epic 3E-0211): Selbstbezug gegen den echten Index. Träger-Datei
+  // ist hier Alpha (eingehend von Gamma, ausgehend auf Beta); sie liegt in
+  // einem Unterordner, deshalb läuft die Abfrage über die Bereichs-Wurzel —
+  // ohne sie wäre der Suchraum nur der Ordner der Träger-Datei.
+  it('Selbstbezugs-Quelle: leerer Wiki-Link und outgoing([[]])', async () => {
+    const area = path.dirname(start);
+    expect(names(frontmatterQueryFor(alpha, 'FROM [[]]', area))).toEqual(['Gamma']);
+    expect(names(frontmatterQueryFor(alpha, 'FROM outgoing([[]])', area))).toEqual(['Beta']);
+    // Die Träger-Datei ist nie ihr eigener Treffer (Selbstverlinkung schließt
+    // schon der Graph-Aufbau aus).
+    expect(names(frontmatterQueryFor(alpha, 'FROM [[]]', area))).not.toContain('Alpha');
+    // Träger ohne Links: leere Menge, kein Fehler.
+    expect(frontmatterQueryFor(start, 'FROM [[]]', area).files).toEqual([]);
+  });
+
+  it('Selbstbezug als Wert-Zugriff über den Index', async () => {
+    const area = path.dirname(start);
+    // this.prio ist Alphas 3 — Beta (10) fällt heraus.
+    expect(names(frontmatterQueryFor(alpha, 'WHERE prio = this.prio', area))).toEqual(['Alpha']);
+    // Belegter Anwendungsfall der Referenz-Analyse: wer verlinkt auf mich?
+    // Träger ist Beta, Alpha verlinkt darauf.
+    const beta = path.join(area, 'Projekte', 'Beta.md');
+    expect(
+      names(frontmatterQueryFor(beta, 'WHERE contains(file.outlinks, this.file.link)', area)),
+    ).toEqual(['Alpha']);
+    // Spalten-Ausdruck: derselbe Wert in jeder Zeile.
+    const tabelle = frontmatterQueryFor(alpha, 'TABLE this.file.name', area);
+    expect(tabelle.table.rows.length).toBeGreaterThan(1);
+    expect(tabelle.table.rows.map((r) => r.cells[0])).toEqual(
+      tabelle.table.rows.map(() => [{ text: 'Alpha' }]),
+    );
+  });
+
+  it('ohne Träger-Datei im Index degradiert der Selbstbezug weich', async () => {
+    // Pfad im selben Suchraum, aber keine indexierte Datei: kein Fehler,
+    // Selbstbezüge sind null und die Selbstbezugs-Quelle liefert leer.
+    const area = path.dirname(start);
+    const fehlt = path.join(area, 'Fehlt.md');
+    const res = frontmatterQueryFor(fehlt, 'FROM [[]]', area);
+    expect(res.status).toBe('ready');
+    expect(res.queryError).toBeUndefined();
+    expect(res.files).toEqual([]);
+    expect(frontmatterQueryFor(fehlt, 'WHERE prio = this.prio', area).files).toEqual([]);
+  });
+
   it('Link-Felder in WHERE laufen über denselben Graphen', async () => {
     expect(names(frontmatterQueryFor(start, 'WHERE contains(file.outlinks, "Beta")'))).toEqual([
       'Alpha',
@@ -384,5 +429,164 @@ describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
     // Leerer Stand entfernt die Block-Ebene der Datei.
     updateBlockDataForFile(alpha, {});
     expect(names(frontmatterQueryFor(start, 'LIST BLOCKS'))).toEqual(['Beta#^b1']);
+  });
+});
+
+// --- 4T-1071 (Epic 3E-0211): Referenz-Muster «Letzter Kontakt» ----------------
+
+// Story S-0812 AK1 als Ganzes: eine Personen-Notiz gibt die jüngste auf sie
+// verlinkende datierte Notiz mit Datum und Tages-Differenz aus. Der Fall baut
+// seinen eigenen Suchraum, weil er eine andere Bestands-Form braucht als die
+// Fixture oben (datierte Journal-Notizen plus eine undatierte).
+describe('perspective-query — Referenz-Muster «Letzter Kontakt» (4T-1071)', () => {
+  it('jüngste verlinkende datierte Notiz mit Tages-Differenz', async () => {
+    const root = makeRoot();
+    const einstieg = write(root, 'Start.md', '# Start\n');
+    const person = write(root, 'Personen/Anna Muster.md', '# Anna Muster\n');
+    write(root, 'Journal/2026-03-01.md', '# März\nGespräch mit [[Anna Muster]].\n');
+    write(root, 'Journal/2026-04-18.md', '# April\nRückruf bei [[Anna Muster]].\n');
+    write(root, 'Notizen/Ohne Datum.md', 'Notiz zu [[Anna Muster]].\n');
+    await indexFor(einstieg);
+
+    // Ziel-Formulierung aus der Konzept-Stufe; statt date(today) ein festes
+    // Datum, damit die Erwartung deterministisch ist (2026-04-18 + 48 Tage).
+    const res = frontmatterQueryFor(
+      person,
+      [
+        'TABLE WITHOUT ID',
+        '  file.link AS "Notiz",',
+        '  file.day + " — " + days(date(2026-06-05) - file.day) + " Tage" AS "Letzter Kontakt"',
+        'FROM [[]]',
+        'SORT file.day DESC',
+        'LIMIT 1',
+      ].join('\n'),
+      root,
+    );
+
+    expect(res.status).toBe('ready');
+    expect(res.queryError).toBeUndefined();
+    expect(res.table.withoutId).toBe(true);
+    expect(res.table.headers).toEqual(['Notiz', 'Letzter Kontakt']);
+    expect(res.table.rows).toHaveLength(1);
+    const [zeile] = res.table.rows;
+    expect(zeile.name).toBe('2026-04-18');
+    expect(zeile.cells[0]).toEqual([{ link: { path: zeile.path, name: '2026-04-18' } }]);
+    expect(zeile.cells[1]).toEqual([{ text: '2026-04-18 — 48 Tage' }]);
+  });
+
+  it('die undatierte Notiz sortiert ans Ende und verdrängt den Treffer nicht', async () => {
+    const root = makeRoot();
+    const einstieg = write(root, 'Start.md', '# Start\n');
+    const person = write(root, 'Personen/Bea Beispiel.md', '# Bea Beispiel\n');
+    write(root, 'Notizen/Ohne Datum.md', 'Notiz zu [[Bea Beispiel]].\n');
+    write(root, 'Journal/2026-03-01.md', 'Gespräch mit [[Bea Beispiel]].\n');
+    await indexFor(einstieg);
+
+    // Ohne SORT sind alle drei Verlinker da; mit SORT DESC und LIMIT 1 bleibt
+    // die datierte Notiz übrig, weil fehlende Werte unabhängig von der
+    // Richtung ans Ende sortieren.
+    expect(names(frontmatterQueryFor(person, 'LIST FROM [[]]', root)).sort()).toEqual([
+      '2026-03-01',
+      'Ohne Datum',
+    ]);
+    expect(
+      names(frontmatterQueryFor(person, 'LIST FROM [[]] SORT file.day DESC LIMIT 1', root)),
+    ).toEqual(['2026-03-01']);
+  });
+});
+
+// --- 4T-1072 (Epic 3E-0211): Sprach-Bindung der Formatierer -------------------
+
+describe('perspective-query — Sprache der Formatierer (4T-1072)', () => {
+  it('die Sprache aus der Anfrage erreicht die Formatierer', async () => {
+    const spalte = (lang) =>
+      frontmatterQueryFor(
+        start,
+        'TABLE WITHOUT ID currencyformat(prio, "EUR") WHERE prio >= 1 SORT prio',
+        undefined,
+        null,
+        lang,
+      ).table.rows.map((r) => r.cells[0]);
+    // Geschütztes Leerzeichen vor dem Zeichen (U+00A0), wie Intl es liefert.
+    expect(spalte('de')).toEqual([[{ text: '3,00 €' }], [{ text: '10,00 €' }]]);
+    expect(spalte('en')).toEqual([[{ text: '€3.00' }], [{ text: '€10.00' }]]);
+  });
+
+  it('ohne Sprach-Angabe bleibt es bei der Laufzeit-Locale statt bei null', async () => {
+    const rows = frontmatterQueryFor(
+      start,
+      'TABLE WITHOUT ID dateformat(file.mtime, "yyyy") WHERE prio >= 6',
+    ).table.rows;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].cells[0]).toEqual([{ text: String(new Date().getFullYear()) }]);
+  });
+});
+
+// --- 4T-1073 (Epic 3E-0211): Link-Listen-Filter über Ordner --------------------
+
+// Der Prüfgegenstand ist der Pfad-Bruch aus Entscheid E8: Die Link-Werte des
+// Graphen tragen den absoluten Pfad des Temp-Verzeichnisses, die Ordner-Angabe
+// der Abfrage ist wurzel-relativ. Nur gegen den echten Index ist belegbar, dass
+// infolder beide Seiten zusammenbringt; im synthetischen Kontext wäre die
+// Wurzel gesetzt und der Fall nicht echt.
+describe('perspective-query — infolder gegen den echten Link-Graphen (4T-1073)', () => {
+  const GTD = '12 Getting Things Done (GTD)';
+  let einstieg;
+  let wurzel;
+
+  beforeEach(async () => {
+    wurzel = makeRoot();
+    einstieg = write(wurzel, 'Start.md', '# Start\n');
+    // Sammeln verlinkt Umzug (innerhalb des GTD-Ordners).
+    write(wurzel, `${GTD}/GTD Sammeln.md`, '# Sammeln\nWeiter zu [[GTD Umzug]].\n');
+    // Umzug: Endknoten-Kandidat, hat aber zwei eingehende Links aus GTD.
+    write(wurzel, `${GTD}/GTD Umzug.md`, '# Umzug\n');
+    // Lesen liegt im Unterordner und verlinkt Umzug ebenfalls.
+    write(wurzel, `${GTD}/Projekte/GTD Lesen.md`, '# Lesen\nSiehe [[GTD Umzug]].\n');
+    // Der eine Link von außerhalb: Er macht Lesen zum Endknoten der GTD-Sicht,
+    // obwohl file.inlinks nicht leer ist — der Unterschied, den die Funktion
+    // überhaupt erst herstellt.
+    write(wurzel, 'Notizen/Extern.md', '# Extern\nHinweis auf [[GTD Lesen]].\n');
+    await indexFor(einstieg);
+  });
+
+  const trefferMit = (bedingung) =>
+    names(
+      frontmatterQueryFor(einstieg, `LIST FROM "${GTD}" WHERE ${bedingung} SORT file.name`, wurzel),
+    );
+
+  it('GTD-Endknoten: keine eingehenden Links aus dem Ordner', async () => {
+    // Das belegte Muster des Bestands in seiner Ziel-Formulierung.
+    expect(trefferMit(`length(infolder(file.inlinks, "${GTD}")) = 0`)).toEqual([
+      'GTD Lesen',
+      'GTD Sammeln',
+    ]);
+    // Gegenprobe ohne Ordner-Filter: Lesen fällt heraus, weil es den Link von
+    // außerhalb trägt. Genau dieser Unterschied ist der Zweck von infolder.
+    expect(trefferMit('length(file.inlinks) = 0')).toEqual(['GTD Sammeln']);
+  });
+
+  it('der Unterordner zählt mit, der Ordner selbst ist der weitere Rahmen', async () => {
+    // Umzug hat zwei eingehende Links aus GTD (Sammeln oben, Lesen darunter),
+    // davon einen aus dem Unterordner.
+    expect(trefferMit(`length(infolder(file.inlinks, "${GTD}")) = 2`)).toEqual(['GTD Umzug']);
+    expect(trefferMit(`length(infolder(file.inlinks, "${GTD}/Projekte")) = 1`)).toEqual([
+      'GTD Umzug',
+    ]);
+    // Ein Ordner ohne Dateien liefert die leere Teilliste, keinen Fehler.
+    expect(trefferMit(`length(infolder(file.inlinks, "${GTD}/Fehlt")) = 0`)).toEqual([
+      'GTD Lesen',
+      'GTD Sammeln',
+      'GTD Umzug',
+    ]);
+  });
+
+  it('infolder arbeitet auch auf file.outlinks', async () => {
+    // Dieselbe Funktion, andere Richtung: der Grund für die Listen-Form statt
+    // einer spezialisierten Zähl-Funktion (Entscheid E8, Option A3 verworfen).
+    expect(trefferMit(`length(infolder(file.outlinks, "${GTD}")) = 1`)).toEqual([
+      'GTD Lesen',
+      'GTD Sammeln',
+    ]);
   });
 });

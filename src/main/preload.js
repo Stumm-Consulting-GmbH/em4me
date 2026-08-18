@@ -452,10 +452,10 @@ contextBridge.exposeInMainWorld('api', {
   // Haeufigkeit) und optional Datei-Liste fuer einen Filter-Tag.
   requestTags: (filePath, filterTag) =>
     ipcRenderer.invoke('tags:request', { filePath, filterTag: filterTag || null }),
-  // 4T-0354 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query). Query-Text
-  // an den Main, Antwort ist die Datei-Liste plus Status (Auswertung im Main).
-  runFrontmatterQuery: (filePath, query) =>
-    ipcRenderer.invoke('frontmatterQuery:run', { filePath, query: query || '' }),
+  // 4T-0354 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query). Auswertung
+  // im Main; lang ist die Programmsprache der Formatierer (4T-1072).
+  runFrontmatterQuery: (filePath, query, lang) =>
+    ipcRenderer.invoke('frontmatterQuery:run', { filePath, query: query || '', lang }),
   // 4T-0935 (Befund B-08): geschriebenen Stand einer offenen Datei an den
   // Index-Overlay melden bzw. ihn zuruecknehmen (Speichern, Verwerfen,
   // Schliessen). Die gerenderte Ansicht zeigt damit auch in eingebetteten

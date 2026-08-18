@@ -198,7 +198,8 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
       await expect.poll(() => table.locator('tbody tr').count(), { timeout: 30000 }).toBe(12);
 
       // Kein Abfrage-Syntaxfehler in der gesamten Seite (pinnt die Query-Syntax
-      // aller fünf Demo-Abfragen).
+      // aller sieben Demo-Abfragen; 4T-1075 ergaenzte die Selbstbezugs-Quelle
+      // FROM [[]] mit bold() und den this.-Praefix).
       await expect(page.locator(`${SEL.markdownBody0} .perspective-query-error`)).toHaveCount(0);
     } finally {
       await closeApp(app, userData);

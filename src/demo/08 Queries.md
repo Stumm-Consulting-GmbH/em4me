@@ -47,4 +47,22 @@ LIST TASKS WHERE status.type = "TODO"
 LIST FROM [[00 Welcome]] SORT file.name
 ```
 
+## Pages that link here
+
+An empty wiki link stands for the page the query sits in, so this block carries no file name of its own — copy it anywhere and it reports that page's backlinks. `bold()` highlights a value inside the cell:
+
+```perspective-query
+TABLE bold(title) AS "Page", topic AS "Topic"
+FROM [[]]
+SORT chapter
+```
+
+## Everything after this chapter
+
+The `this.` prefix reads a property of the page holding the query instead of the page being tested:
+
+```perspective-query
+LIST FROM #demo WHERE chapter > this.chapter SORT chapter
+```
+
 Queries keep themselves current: edit a tag or tick a task and watch a result change. Visuals come next in [[09 Diagrams and Formulas]].

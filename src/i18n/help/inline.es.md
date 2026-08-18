@@ -105,7 +105,7 @@ Reglas y particularidades:
 
 - **Operadores**: `+`, `-`, `*`, `/` con la precedencia habitual y paréntesis; las comparaciones `=`, `!=`, `<`, `<=`, `>`, `>=` así como `AND`, `OR`, `NOT` dan `true`/`false`. Entre números, el menos necesita un espacio (`4 - 1`, no `4-1` — esto último lo lee el lenguaje de expresiones como un nombre de campo).
 - **Fecha y duración**: `date(...)` y `dur(...)` como en el lenguaje de consulta; fecha ± duración da una fecha, fecha − fecha una duración.
-- **Funciones**: el catálogo de funciones del lenguaje de consulta (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`).
+- **Funciones**: el catálogo de funciones del lenguaje de consulta (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `days`, `numberformat`, `currencyformat`, `sum`, `min`, `max`, `average`). Las funciones que necesitan una referencia de archivo no surten efecto aquí: no hay ningún documento al que referirse.
 - **Error**: una expresión no evaluable muestra un discreto ⚠︎ con el aviso de error en el tooltip; el código fuente permanece sin cambios.
 - **Escape**: `\{=` produce un `{=` literal en el texto corriente.
 

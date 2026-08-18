@@ -119,6 +119,8 @@ LIST TASKS SHOW urgency HIDE backlink, created SHORT
 | `#etiqueta` | archivos con esta etiqueta; también cubre subetiquetas como `#etiqueta/sub` |
 | `[[Archivo]]` | archivos que enlazan a `Archivo` |
 | `outgoing([[Archivo]])` | archivos a los que `Archivo` enlaza |
+| `[[]]` | archivos que enlazan al archivo portador (sección «Autorreferencia») |
+| `outgoing([[]])` | archivos a los que enlaza el archivo portador |
 
 Las fuentes se combinan con `AND`, `OR`, paréntesis y el prefijo de negación `-`:
 
@@ -148,6 +150,7 @@ Además de las propiedades del frontmatter (nombre solo, p. ej. `estado`), hay c
 | Campo | Contenido |
 |---|---|
 | `file.name` | nombre lógico del archivo (sin extensión) |
+| `file.day` | fecha del prefijo ISO del nombre (`2026-04-18 Reunión`), vacío en otro caso |
 | `file.folder`, `file.path` | carpeta o ruta, relativa a la raíz de la consulta |
 | `file.ext` | extensión del archivo |
 | `file.size` | tamaño en bytes |
@@ -156,12 +159,29 @@ Además de las propiedades del frontmatter (nombre solo, p. ej. `estado`), hay c
 | `file.inlinks`, `file.outlinks` | archivos que enlazan aquí, y archivos enlazados |
 | `file.link` | el propio archivo como enlace cliqueable (para columnas de tabla) |
 
+## Autorreferencia (`this.`)
+
+El prefijo `this.` se refiere al **archivo portador** de la consulta, es decir, al documento que contiene el bloque, y no al archivo encontrado. Vale igual para los campos de archivo y para las propiedades del frontmatter: `this.X` es lo que `X` daría en el archivo portador.
+
+````markdown
+```perspective-query
+LIST WHERE area = this.area AND file.path != this.file.path
+```
+````
+
+- **El mismo sentido en todos los niveles**: también en las consultas `BLOCKS` y `TASKS`, `this.` designa el archivo portador del bloque, nunca el bloque suelto ni la línea de tarea.
+- **Precedencia**: la regla `this.` se impone a una propiedad del frontmatter del mismo nombre, igual que el espacio de nombres `file.`.
+- **Sin archivo portador**: si no puede resolverse, todo acceso `this.` da un valor vacío; un `this` a secas, sin punto, queda vacío como cualquier nombre de campo desconocido.
+
+Como **fuente**, el enlace wiki vacío designa ese mismo archivo: `FROM [[]]` reúne los archivos que enlazan a él, `FROM outgoing([[]])` la dirección contraria. El archivo portador nunca es resultado de sí mismo; sin archivo portador resoluble el conjunto queda vacío en lugar de abarcar todos los archivos.
+
 ## Literales y cálculo
 
 - **Los números** se escriben sin comillas (`prio > 2`); **las cadenas** van entre comillas dobles o simples.
 - **Fecha**: `date(today)` (inicio del día), `date(now)`, `date(2026-12-31)` o con hora `date(2026-12-31 14:30)`.
 - **Duración**: `dur(7 days)`, `dur(1 day 2 hours)`, abreviado `dur(2w)`. Unidades: `s`, `min`, `h`, `d`, `w`, `mo`, `y` más las formas largas; un mes cuenta como 30 días, un año como 365 días.
 - **Aritmética**: `+`, `-`, `*`, `/` con la precedencia habitual; fecha ± duración da una fecha, fecha − fecha una duración. Los operadores entre nombres de campo necesitan espacios (`a - 1`, no `a-1` — esto último es un nombre de campo).
+- **Concatenación de texto**: si `+` no cuadra numéricamente y un lado es una cadena, une las formas de presentación de ambos lados; así surgen columnas compuestas como `file.day + " — " + estado`. Las sumas puramente numéricas siguen siendo numéricas (`5 + "3"` da 8), y un valor ausente sigue ausente y deja la celda vacía.
 
 Un patrón típico — «modificado en los últimos 7 días»:
 
@@ -183,10 +203,45 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `default(x, d)` | `default(prio, 0) > 2` | valor de reserva cuando falta el campo |
 | `choice(b, a, c)` | `choice(prio > 5, "alto", "normal")` | si-entonces-si no |
 | `number(x)`, `string(x)` | `number(valor) * 2` | conversión a número o texto |
-| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | formatear una fecha (tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` además de `MMMM`/`MMM`, `EEEE`/`EEE` para nombres de mes y día en el idioma del sistema y `d`, `M` sin cero inicial; los corchetes protegen el texto literal: `"[semana] ww"`) |
+| `dateformat(d, f)` | `dateformat(file.mtime, "yyyy-MM-dd")` | formatear una fecha (tokens `yyyy`, `MM`, `dd`, `HH`, `mm`, `ss`, `ww`, `kkkk`, `q` además de `MMMM`/`MMM`, `EEEE`/`EEE` para nombres de mes y día en el idioma configurado del programa y `d`, `M` sin cero inicial; los corchetes protegen el texto literal: `"[semana] ww"`) |
+| `days(x)` | `days(date(today) - file.day)` | una duración como número de días enteros; redondeado, para que un cambio de hora no la desplace un día |
+| `numberformat(x[, n])` | `numberformat(importe, 2)` | presentar un número localizado: sin segundo argumento según el idioma, si no con exactamente n decimales |
+| `currencyformat(x[, m])` | `currencyformat(importe, "CHF")` | presentar un importe localizado: en euros sin indicación, y el número sin formato ante un código de moneda desconocido |
+| `infolder(l, "Carpeta")` | `length(infolder(file.inlinks, "Proyectos")) = 0` | la sublista de valores de enlace cuyo destino está en la carpeta o por debajo |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valores) = 6` | agregados sobre listas de números |
+| `bold(x)` | `bold(estado)` | presentar un valor resaltado (sección «Resalte») |
 
 Una función desconocida o un número de argumentos incorrecto muestra un aviso de error en el bloque.
+
+**Idioma de los formateadores:** `dateformat`, `numberformat` y `currencyformat` siguen el idioma del programa elegido en los ajustes, no el del sistema operativo. Donde no hay ningún documento detrás, como en las columnas calculadas de las tablas de datos y en los cálculos en línea, sigue rigiendo el idioma del entorno.
+
+## Resalte
+
+`bold(valor)` presenta un valor resaltado, tanto en celdas de tabla como en el complemento de una entrada de lista y en un título de grupo. La marca sobrevive a la concatenación: `bold` puede envolver solo una **parte** de una expresión compuesta, y el resto queda normal.
+
+````markdown
+```perspective-query
+TABLE bold(estado) AS "Estado", file.mtime
+```
+````
+
+El contenido de las celdas no evalúa Markdown: un asterisco en el texto aparece literalmente, y un resalte solo surge de esta llamada. Comparación, orden y agrupación trabajan sobre el texto puro y se comportan por tanto exactamente como sin la marca; un valor ausente queda vacío en lugar de producir un resalte vacío.
+
+## Ejemplo: el último contacto
+
+Juntas, las piezas de esta página dan una vista que muestra, en la nota de una persona, cuándo apareció por última vez en una nota fechada y cuánto tiempo hace de ello:
+
+````markdown
+```perspective-query
+TABLE WITHOUT ID file.link AS "Nota",
+  file.day + " — " + bold(days(date(today) - file.day) + " días") AS "Último contacto"
+FROM [[]]
+SORT file.day DESC
+LIMIT 1
+```
+````
+
+`FROM [[]]` reúne las notas que enlazan a este archivo. `file.day` lee su fecha del nombre del archivo, `date(today) - file.day` da la duración hasta hoy y `days(…)` el número de días enteros. El signo más compone fecha, guion y número de días en una celda, y `bold(…)` resalta la distancia: «2026-04-18 — **48 días**». Las notas sin fecha en el nombre se ordenan al final con independencia de la dirección y no desplazan el resultado.
 
 ## Ordenación y límite
 

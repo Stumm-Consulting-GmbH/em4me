@@ -105,7 +105,7 @@ Rules and specifics:
 
 - **Operators**: `+`, `-`, `*`, `/` with the usual precedence and parentheses; comparisons `=`, `!=`, `<`, `<=`, `>`, `>=` as well as `AND`, `OR`, `NOT` yield `true`/`false`. Between numbers the minus needs a space (`4 - 1`, not `4-1` — the latter is read by the expression language as a field name).
 - **Date and duration**: `date(...)` and `dur(...)` as in the query language; date ± duration yields a date, date − date a duration.
-- **Functions**: the function catalogue of the query language (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`).
+- **Functions**: the function catalogue of the query language (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `days`, `numberformat`, `currencyformat`, `sum`, `min`, `max`, `average`). Functions that need a file reference have no effect here: there is no document for them to refer to.
 - **Error**: An expression that cannot be evaluated shows a subtle ⚠︎ with the error notice in the tooltip; the source stays unchanged.
 - **Escape**: `\{=` yields a literal `{=` in running text.
 

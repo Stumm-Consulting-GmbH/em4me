@@ -144,7 +144,7 @@ function registerIndexViewsIpc(handle, deps) {
           : '',
       statusTypeOf: createTaskStatusTypeResolver(store ? store.get('taskStates') : null),
     };
-    return backlinks.frontmatterQueryFor(filePath, query, areaRoot, taskEnv);
+    return backlinks.frontmatterQueryFor(filePath, query, areaRoot, taskEnv, params && params.lang);
   });
 
   // 4T-0504 (Epic 3E-0096): Rueckschreiben aus der Abfrage-Ansicht in NICHT
