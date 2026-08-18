@@ -8,6 +8,7 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 
 ## Référence
 
+- [Utilité et façons de travailler](benefits.md) — à quoi sert l'application : les façons de travailler, de l'onglet à l'étagère, et l'étendue du langage Markdown.
 - [Fonctionnalités](functions.md) — toutes les fonctionnalités de l'application sous forme de tableau : ce qu'elles font et comment y accéder.
 - [Raccourcis clavier](shortcuts.md) — les raccourcis actuellement actifs, y compris vos propres réaffectations.
 

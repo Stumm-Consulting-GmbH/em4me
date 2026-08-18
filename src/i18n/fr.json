@@ -1747,6 +1747,7 @@
   "manual.page.perspectiveTable.title": "Perspective Table",
   "manual.editDisabled": "Les pages du manuel sont en lecture seule.",
   "manual.loadError": "La page du manuel n'a pas pu être chargée.",
+  "manual.page.benefits.title": "Utilité et façons de travailler",
   "manual.page.functions.title": "Fonctionnalités",
   "manual.page.shortcuts.title": "Raccourcis clavier",
   "manual.page.markdownBasics.title": "Bases de Markdown",

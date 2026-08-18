@@ -18,6 +18,11 @@
 
 const MANUAL_PAGES = [
   { id: 'overview', titleKey: 'manual.page.overview.title', source: 'bundled' },
+  // 4T-1078 (Epic 3E-0194): Nutzen-Seite — Arbeitsformen und Markdown-Umfang
+  // aus Anwender-Sicht. Steht unmittelbar hinter dem Überblick und vor den
+  // erzeugten Seiten, weil sie die Frage «wozu» beantwortet, die den Fragen
+  // «was tut Funktion X» und «wie schreibe ich Konstrukt Y» vorausgeht.
+  { id: 'benefits', titleKey: 'manual.page.benefits.title', source: 'bundled' },
   // 4T-0212: generierte Seiten — Funktions-Tabelle aus HELP_FEATURE_GROUPS
   // plus Kurzname-/Zugang-Keys, Tastenkuerzel aus der Kommando-Registry
   // (Generatoren in modules/manual.js).

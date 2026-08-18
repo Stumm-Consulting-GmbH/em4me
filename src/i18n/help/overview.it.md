@@ -8,6 +8,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 
 ## Riferimento
 
+- [Utilità e modi di lavorare](benefits.md) — a che cosa serve l'applicazione: i modi di lavorare, dalla scheda allo scaffale, e l'ampiezza del linguaggio Markdown.
 - [Funzionalità](functions.md) — tutte le funzionalità dell'app in una tabella: cosa fanno e come raggiungerle.
 - [Scorciatoie da tastiera](shortcuts.md) — le scorciatoie attualmente attive, incluse le tue riassegnazioni.
 

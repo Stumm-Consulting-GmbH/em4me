@@ -14,6 +14,50 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.112.0.1619] - 2026-08-18 — Nutzen und Arbeitsweise
+
+Epic 3E-0194: Je eine Seite im Handbuch und auf der Produkt-Webseite zeigt den
+Nutzen der Anwendung aus Anwender-Sicht statt als Funktions-Liste, in zehn
+Abschnitten und fünf Sprachfassungen. Dazu ein neuer Prüfschritt, der die
+Darstellung dauerhaft am Funktionsumfang hält.
+
+Umsetzungs-Vorgänge des Epics: 4T-1078, 4T-1079 und 4T-1080; Konzept-Stufe
+4T-1077, Release-Vorgang 4T-1081.
+
+### Neu
+
+- **Handbuch-Seite «Nutzen und Arbeitsweise»** (4T-1078): Neue gebündelte Seite
+  `benefits` mit Registry-Eintrag, Titel-Key in fünf Sprachen und Verlinkung als
+  erster Eintrag des Überblicks-Blocks «Nachschlagen». Zehn Abschnitte in zwei
+  Hälften: die Arbeitsformen von den fünf Ansichten über Reiter, Gruppen und
+  Sidebar-Panels zu Fenstern, Applikationen, Bereichen, Arbeitsbereichen und
+  Büchern; danach der Sprachumfang mit je einem eigenen Abschnitt für Perspective
+  Table, Perspective Datatable, Perspective-Abfrage und Skript-Blöcke sowie einem
+  Abschluss über die übrigen Erweiterungen. Jeder Abschnitt endet mit dem Verweis
+  auf die zuständige Themen-Seite; Syntax und Bedien-Wege bleiben dort.
+- **Web-Seite «Nutzen»** (4T-1079): Neue Seite unter dem Pfad `nutzen` im
+  Webseiten-Bau, in allen fünf Sprachen, mit Navigations-Schlüssel `navNutzen` in
+  Kopfleiste und schmaler Navigation. Gleiche Gliederung wie die Handbuch-Fassung,
+  anderer Ton (ohne die Voraussetzung, dass der Leser die Anwendung hat), mit
+  Bildschirmfotos in den Abschnitten zu Reitern, Bereichen, Büchern,
+  Datentabellen und Erweiterungen.
+
+### Geändert
+
+- **Nutzen-Prüfschritt im Regelwerk verankert** (4T-1080): Vor jedem Release mit
+  nutzersichtbaren Änderungen wird geprüft, ob das Release etwas hervorgebracht
+  hat, das in die Nutzen-Darstellung gehört. Der Prüfschritt ist ausdrücklich eine
+  Frage und keine Ergänzungs-Pflicht; Maßstab ist die Bedeutung für den Anwender
+  (neue Arbeitsform, tragendes Sprach-Konstrukt, sonst gewichtiger Nutzen-Aspekt),
+  während Verfeinerungen, einzelne Bedien-Wege und Fehlerbehebungen ausgegrenzt
+  bleiben. «Nichts zu ergänzen» ist der Regelfall und wird ebenso dokumentiert.
+
+### i18n
+
+- Ein neuer Titel-Key (`manual.page.benefits.title`) und ein neuer
+  Navigations-Schlüssel (`navNutzen`) in allen fünf Sprachdateien; die
+  Handbuch-Seite und die Web-Inhalts-Datei liegen je fünfmal vor.
+
 ## [1.111.0.1601] - 2026-08-17 — Journal-Zeitleiste
 
 Epic 3E-0212: Ein neuer Block zeigt im Journal-Eintrag die Perioden-Übersicht

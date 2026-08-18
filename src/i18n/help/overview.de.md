@@ -8,6 +8,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 
 ## Nachschlagen
 
+- [Nutzen und Arbeitsweise](benefits.md) — wozu die Anwendung taugt: die Arbeitsformen vom Reiter bis zum Bücherregal und der Umfang der Markdown-Sprache.
 - [Funktionen](functions.md) — alle Funktionen der App als Tabelle: was sie tun und wie sie erreichbar sind.
 - [Tastenkürzel](shortcuts.md) — die aktuell wirksamen Tastenkürzel, inklusive eigener Umbelegungen.
 

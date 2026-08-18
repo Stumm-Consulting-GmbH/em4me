@@ -8,6 +8,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 
 ## Referencia
 
+- [Utilidad y formas de trabajar](benefits.md) — para qué sirve la aplicación: las formas de trabajar, de la pestaña a la estantería, y la amplitud del lenguaje Markdown.
 - [Funciones](functions.md) — todas las funciones de la aplicación en una tabla: qué hacen y cómo se accede a ellas.
 - [Atajos de teclado](shortcuts.md) — los atajos actualmente activos, incluidas tus propias reasignaciones.
 

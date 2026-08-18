@@ -11,6 +11,14 @@
   ],
   "eintraege": [
     {
+      "spec": "test/unit/quellcode-export.test.js",
+      "fall": "kein exportierter Bestand trägt einen Marker der privaten Infrastruktur",
+      "datum": "2026-08-18",
+      "fehlerbild": "Timeout nach 5000 ms im Unit-Voll-Lauf des Release-Gates 1.112.0 (3656 von 3657 grün, Laufzeit 243,6 s), isoliert sofort grün (21 von 21; der Fall selbst in 521 ms). Kein Marker im Bestand, also kein inhaltlicher Befund, sondern eine gerissene Zeitgrenze.",
+      "vermutung": "lastbedingt; der Fall startet einen realen git-Lauf (git ls-files über die Positivliste des Exports) und liest danach über 500 Dateien vollständig ein, trägt also beide bekannten Muster zugleich, das git-spawnende und das bestandslesende. DRITTE Auffälligkeit dieser Datei nach dem 2026-08-06 und dem 2026-08-07, womit die dort festgehaltene Handlungs-Regel greift. Ein eigener Vorgang entsteht dafür nicht: 4T-0944 im Test-Pflege-Gefäß 3E-0156 trägt genau diesen Zuschnitt und benennt quellcode-export.test.js bereits als dasselbe Muster.",
+      "status": "verortet"
+    },
+    {
       "spec": "test/e2e/regression/4t-0945-b12.spec.js",
       "fall": "KS-03",
       "datum": "2026-08-17",
@@ -47,16 +55,16 @@
       "fall": "unversionierte Dateien der Quelle können nicht in den Export gelangen",
       "datum": "2026-08-06",
       "fehlerbild": "Einzel-Fehlschlag im Testsuite-Gate der Merge-Queue bei der Release-Integration 0.105.0, isoliert sofort grün (19/19)",
-      "vermutung": "lastbedingt; der Fall spawnt reale git- und npm-Läufe mit 60-Sekunden-Timeout",
-      "status": "beobachtet"
+      "vermutung": "lastbedingt; der Fall spawnt reale git- und npm-Läufe mit 60-Sekunden-Timeout Drittes Auftreten am 2026-08-18 (Unit-Voll-Lauf des Release-Gates 1.112.0, anderer Fall derselben Datei, isoliert 21 von 21 grün); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefäß verortet.",
+      "status": "verortet"
     },
     {
       "spec": "test/unit/quellcode-export.test.js",
       "fall": "Negativ-Probe: bereits exportierte Version bricht ab (kein Überschreiben)",
       "datum": "2026-08-07",
       "fehlerbild": "Einzel-Fehlschlag im Voll-Lauf, gescheitert am Aufbau der Wegwerf-Umgebung ('Command failed: git commit -m Stand'), nicht an der Zusicherung selbst; isoliert sofort grün (20/20)",
-      "vermutung": "lastbedingt wie der Eintrag vom 2026-08-06; ZWEITE Auffälligkeit dieser Datei mit einem anderen Fall, aber demselben Muster (reale git-Läufe im Aufbau). Beim nächsten Auftreten in dieser Datei gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen",
-      "status": "beobachtet"
+      "vermutung": "lastbedingt wie der Eintrag vom 2026-08-06; ZWEITE Auffälligkeit dieser Datei mit einem anderen Fall, aber demselben Muster (reale git-Läufe im Aufbau). Beim nächsten Auftreten in dieser Datei gehört sie als Testfehler-Vorgang ins Test-Pflege-Gefäß, statt einen dritten Beobachtungs-Eintrag zu bekommen Drittes Auftreten am 2026-08-18 (Unit-Voll-Lauf des Release-Gates 1.112.0, anderer Fall derselben Datei, isoliert 21 von 21 grün); damit greift die Handlungs-Regel, und der Fall ist als Vorgang 4T-0944 im Test-Pflege-Gefäß verortet.",
+      "status": "verortet"
     },
     {
       "spec": "test/e2e/regression/4t-0177.spec.js",

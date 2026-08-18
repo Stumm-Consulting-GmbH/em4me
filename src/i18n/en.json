@@ -1747,6 +1747,7 @@
   "manual.page.perspectiveTable.title": "Perspective Table",
   "manual.editDisabled": "Manual pages are read-only.",
   "manual.loadError": "The manual page could not be loaded.",
+  "manual.page.benefits.title": "Benefits and ways of working",
   "manual.page.functions.title": "Features",
   "manual.page.shortcuts.title": "Keyboard shortcuts",
   "manual.page.markdownBasics.title": "Markdown basics",

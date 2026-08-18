@@ -1747,6 +1747,7 @@
   "manual.page.perspectiveTable.title": "Perspective Table",
   "manual.editDisabled": "Handbuch-Seiten sind schreibgeschützt.",
   "manual.loadError": "Handbuch-Seite konnte nicht geladen werden.",
+  "manual.page.benefits.title": "Nutzen und Arbeitsweise",
   "manual.page.functions.title": "Funktionen",
   "manual.page.shortcuts.title": "Tastenkürzel",
   "manual.page.markdownBasics.title": "Markdown-Basis",

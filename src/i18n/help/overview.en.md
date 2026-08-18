@@ -8,6 +8,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 
 ## Reference
 
+- [Benefits and ways of working](benefits.md) — what the app is good for: the ways of working from tabs to bookshelves, and the scope of the Markdown language.
 - [Features](functions.md) — every app feature as a table: what it does and how to reach it.
 - [Keyboard shortcuts](shortcuts.md) — the currently effective shortcuts, including your own rebindings.
 
