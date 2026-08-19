@@ -4,9 +4,9 @@
 // Menü-/Dialog-Weg ab der Ordner-Wahl) in einen leeren Ordner kopiert und als
 // Bereich geöffnet. Native Dialog und Menü sind per Playwright nicht bedienbar.
 //
-// DA-01: Erstellen kopiert alle 15 Dateien und bindet das Fenster als Bereich.
+// DA-01: Erstellen kopiert den mitgelieferten Bestand und bindet das Fenster.
 // DA-02: nicht-leeres Ziel wird abgelehnt, der Ordner bleibt unverändert.
-// DA-03: jede der 12 Demo-Markdown-Seiten öffnet linter-sauber.
+// DA-03: jede Demo-Markdown-Seite des Bestands öffnet linter-sauber.
 // DA-04: die erste Abfrage (TABLE über #demo) liefert zwölf Treffer-Zeilen.
 // DA-05: Erweiterung aus entfernt das Kommando aus der Kommando-Palette.
 // describe-Titel tragen die Matrix-IDs F-132 (Funktion) und S-091 (Kommando).
@@ -21,22 +21,22 @@ const { SEL } = require('../helpers/selectors');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
-// Die zwölf Markdown-Seiten im Wurzelverzeichnis der Demo-Area (Reihenfolge
-// wie im Bestand); dazu die Vorlage und die beiden Binär-Anlagen.
-const MD_PAGES = [
-  '00 Welcome.md',
-  '01 Markdown Basics.md',
-  '02 Extended Syntax.md',
-  '03 Tables.md',
-  '04 Links and Structure.md',
-  '05 Properties and Profiles.md',
-  '06 Tasks and Reminders.md',
-  '07 Events and Journals.md',
-  '08 Queries.md',
-  '09 Diagrams and Formulas.md',
-  '10 Attachments.md',
-  '11 Templates.md',
-];
+// 4T-1091 (Epic 3E-0127): Die Markdown-Seiten im Wurzelverzeichnis der
+// Demo-Area werden aus dem BESTAND gelesen statt hier ein zweites Mal
+// aufgezählt. Grund ist der Befund dieses Vorgangs: Die frühere Kopie der
+// Liste war beim Ausbau der Sammlung (4T-0645) nicht mitgewachsen, und die
+// harte Erwartung «genau zwölf Zeilen» ließ DA-03 abbrechen, bevor die
+// Linter-Prüfung überhaupt lief. Damit blieben gerade die neuen Seiten
+// ungeprüft. Eine zweite Liste desselben Bestands läuft unweigerlich
+// auseinander; die kuratierte Soll-Liste mit ihrem bewussten Nachzug bleibt
+// beim Unit-Wächter test/unit/demo-area.test.js, der sie gegen den realen
+// Bestand hält.
+const DEMO_DIR = path.resolve(__dirname, '..', '..', '..', 'src', 'demo');
+const MD_PAGES = fs
+  .readdirSync(DEMO_DIR, { withFileTypes: true })
+  .filter((e) => e.isFile() && e.name.endsWith('.md'))
+  .map((e) => e.name)
+  .sort();
 const EXPECTED_FILES = [
   ...MD_PAGES,
   'Templates/Meeting Note.md',
@@ -93,14 +93,16 @@ async function paletteHitCount(page, needle) {
 }
 
 test.describe('DA-01: Demo-Area erstellen und öffnen (F-132)', () => {
-  test('kopiert alle 15 Dateien in ein leeres Ziel und bindet das Fenster als Bereich', async () => {
+  test('kopiert den mitgelieferten Bestand in ein leeres Ziel und bindet das Fenster', async () => {
     const { app, page, userData } = await launchApp();
     const target = mkTempDir();
     try {
       const result = await createDemoAreaAt(page, target);
       expect(result.ok).toBe(true);
 
-      // Alle 15 mitgelieferten Dateien liegen im Zielordner (fs-Check).
+      // Jede mitgelieferte Datei liegt im Zielordner (fs-Check). Geprüft wird
+      // die Existenz, nicht die Anzahl; die Vollzähligkeit gegen den Bestand
+      // hält der Unit-Wächter test/unit/demo-area.test.js.
       for (const rel of EXPECTED_FILES) {
         expect(fs.existsSync(path.join(target, ...rel.split('/'))), rel).toBe(true);
       }
@@ -139,8 +141,10 @@ test.describe('DA-02: Nicht-leeres Ziel wird abgelehnt (F-132)', () => {
 });
 
 test.describe('DA-03: Demo-Seiten sind linter-sauber (F-132)', () => {
-  test('jede der 12 Markdown-Seiten öffnet ohne Linter-Marker', async () => {
-    test.setTimeout(120000);
+  test('jede Markdown-Seite des Bestands öffnet ohne Linter-Marker', async () => {
+    // Die Schranke folgt der Zahl der Seiten: Jede wird einzeln geöffnet,
+    // in die Quellcode-Ansicht geschaltet und nach dem Lint-Lauf geprüft.
+    test.setTimeout(240000);
     const { app, page, userData } = await launchApp();
     const target = mkTempDir();
     try {
@@ -150,9 +154,11 @@ test.describe('DA-03: Demo-Seiten sind linter-sauber (F-132)', () => {
 
       const section = page.locator(AREA_SECTION);
       await expect(section).toBeVisible();
-      // Der Wurzelordner listet genau die zwölf Markdown-Seiten (Anlagen und
-      // Vorlage liegen in Unterordnern, die Binär-Dateien sind kein Markdown).
-      await expect(section.locator('.area-file-row')).toHaveCount(12);
+      // Der Wurzelordner listet genau die Markdown-Seiten des Bestands
+      // (Anlagen und Vorlage liegen in Unterordnern, die Binär-Dateien sind
+      // kein Markdown). Die Zahl kommt aus dem Bestand, damit sie mit ihm
+      // wächst; eine feste Zahl hatte den Fall bereits einmal blockiert.
+      await expect(section.locator('.area-file-row')).toHaveCount(MD_PAGES.length);
 
       for (let i = 0; i < MD_PAGES.length; i++) {
         const name = MD_PAGES[i];

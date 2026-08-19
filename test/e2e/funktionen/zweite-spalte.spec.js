@@ -425,6 +425,10 @@ test.describe('ZS-09: aktiver Reiter einer Gruppe gilt je Spalte', () => {
       throw err;
     }
 
+    // 4T-0644 (Epic 3E-0127): Hier ist bewusst KEIN Wegräumen der Produkt-Tour
+    // nötig. `settings: null` hält den beim Beenden geschriebenen Sitzungs-Stand
+    // unverändert — und in diesem Profil steht der Tour-Merker bereits, weil der
+    // erste Start ihn über die Vorbelegung mitbekommen hat.
     const zweite = await launchApp({ userData: profil, settings: null });
     try {
       await expect(zweite.page.locator(P1.tabs)).toHaveCount(1, { timeout: 15000 });

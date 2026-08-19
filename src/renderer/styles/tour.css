@@ -1,0 +1,118 @@
+/* 4T-0644: Theme-Anpassung der geführten Produkt-Tour (driver.js 1.8.0).
+   Das Vendor-Stilblatt driverjs/driver.css kennt die Farb-Token der App nicht
+   und setzt seine Flächen hart auf Weiß-/Grauwerte; hier werden die Popover-
+   Teile auf die Token aus styles.css umgestellt. Die Datei ist versioniert und
+   wird in index.html NACH dem kopierten Vendor-CSS verlinkt, damit sie gewinnt.
+
+   Scope: Die Tour setzt zur Laufzeit popoverClass: 'em4me-tour'. Jede Regel
+   hier hängt daran, damit ein weiteres driver.js-Popover (etwa aus einer
+   späteren Hint-Nutzung) unberührt bleibt und die Selektoren die einklassigen
+   Vendor-Regeln zugleich in der Spezifität schlagen.
+
+   Kein eigener [data-theme='dark']-Block: styles.css belegt dieselben Token im
+   Dunkel-Theme neu, deshalb folgen token-basierte Regeln dem Theme-Wechsel von
+   allein. Auch der Pfeil braucht keinen Sonderweg, weil sein Vendor-Wert (#fff
+   per border-color) hier ebenfalls durch ein Token ersetzt wird. */
+
+/* === Popover-Fläche ======================================================= */
+/* Muster der schwebenden Flächen der App (.about-modal-content): Token-Grund,
+   Token-Rahmen, 8px Radius und der kräftige Modal-Schatten. Der Schatten ist
+   bewusst der des Modals und nicht var(--shadow): Das Popover schwebt über der
+   abgedunkelten Oberfläche und braucht dieselbe Absetzung wie ein Dialog. */
+.driver-popover.em4me-tour {
+  background-color: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-ui);
+  /* Vendor-Maß ist max-width: 300px und für die deutschen Stations-Texte
+     (zwei bis vier Sätze) erkennbar knapp; moderat angehoben. */
+  max-width: 340px;
+}
+
+/* === Titel und Beschreibung =============================================== */
+/* Die Vendor-Größen (19px/14px) stammen aus einem größeren Grundraster als das
+   der App-Oberfläche (13px). Auf App-Maß gezogen, Farben erben vom Popover. */
+.em4me-tour .driver-popover-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.em4me-tour .driver-popover-description {
+  font-size: 13px;
+  color: var(--fg);
+}
+
+/* === Schließen-Knopf ====================================================== */
+.em4me-tour .driver-popover-close-btn {
+  color: var(--fg-muted);
+}
+.em4me-tour .driver-popover-close-btn:hover,
+.em4me-tour .driver-popover-close-btn:focus {
+  color: var(--fg);
+}
+
+/* === Fußzeile ============================================================= */
+.em4me-tour .driver-popover-progress-text {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+/* === Knöpfe =============================================================== */
+/* Übernimmt Grund, Rahmen, Radius, Polsterung und Übergang der .btn-Regeln aus
+   styles.css. Der Vendor setzt auf den Knöpfen all: unset, deshalb steht jede
+   dieser Eigenschaften hier ausdrücklich statt geerbt. */
+.em4me-tour .driver-popover-footer-btn {
+  background-color: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 13px;
+  transition: background-color 0.1s;
+}
+.em4me-tour .driver-popover-footer-btn:hover,
+.em4me-tour .driver-popover-footer-btn:focus {
+  background-color: var(--hover);
+}
+.em4me-tour .driver-popover-footer-btn:active {
+  transform: translateY(1px);
+}
+/* Der Weiter-/Fertig-Knopf trägt den Fortschritt der Tour und ist deshalb der
+   primäre Knopf im Muster von .btn-primary. Steht nach der Grundregel, weil er
+   sie bei gleicher Spezifität überschreibt. */
+.em4me-tour .driver-popover-next-btn {
+  background-color: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.em4me-tour .driver-popover-next-btn:hover,
+.em4me-tour .driver-popover-next-btn:focus {
+  background-color: var(--accent);
+  filter: brightness(1.05);
+}
+/* Deaktiviert (Zurück im ersten Schritt) auf das Maß von .btn:disabled. */
+.em4me-tour .driver-popover-footer .driver-popover-btn-disabled {
+  opacity: 0.4;
+}
+
+/* === Pfeil ================================================================ */
+/* Der Vendor zeichnet den Pfeil als Rahmen-Dreieck: .driver-popover-arrow setzt
+   border: 5px solid #fff, die Seiten-Klasse macht drei der vier Kanten
+   durchsichtig. Nur die verbleibende sichtbare Kante wird hier umgefärbt; eine
+   pauschale border-color würde die Durchsichtigkeit mit überschreiben und aus
+   dem Pfeil ein Quadrat machen. Welche Kante je Seiten-Klasse stehen bleibt,
+   ist unten am Namen abgelesen: -side-left lässt die linke Kante sichtbar,
+   -side-right die rechte, und so fort. */
+.em4me-tour .driver-popover-arrow-side-left {
+  border-left-color: var(--bg);
+}
+.em4me-tour .driver-popover-arrow-side-right {
+  border-right-color: var(--bg);
+}
+.em4me-tour .driver-popover-arrow-side-top {
+  border-top-color: var(--bg);
+}
+.em4me-tour .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--bg);
+}

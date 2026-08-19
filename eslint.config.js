@@ -151,6 +151,41 @@ module.exports = [
     },
   },
 
+  // 4T-1093: Kein stiller Rückfall-Wert hinter einer typeof-Prüfung über eine
+  // fremde Schnittstelle. Anlass ist der Datenverlust vom 2026-08-18: Die
+  // Zeile `typeof workspacesState === 'function' ? workspacesState() : []` lief
+  // immer in den leeren Zweig, weil die Verdrahtung ein Array durchreicht und
+  // keinen Getter. Die Weiche hat den Irrtum nicht abgefangen, sondern
+  // verborgen — aus einem Absturz, der sofort aufgefallen wäre, wurde ein
+  // stiller Verlust des Anwender-Bestands.
+  //
+  // Getroffen wird gezielt die schädliche Form: eine typeof-Prüfung, deren
+  // Alternativ-Zweig ein leerer Behälter ist. Wer eine Schnittstelle kennt,
+  // braucht die Weiche nicht; wer sie nicht kennt, soll ihren Vertrag prüfen
+  // und laut brechen, statt plausibel weiterzulaufen. Bewusst NICHT getroffen
+  // sind typeof-Weichen mit inhaltlich begründeter Degradation, deren
+  // Alternative ein echter Wert ist.
+  {
+    files: ['src/main/**/*.js', 'src/shared/**/*.js'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "ConditionalExpression[test.left.operator='typeof'] > ArrayExpression.alternate[elements.length=0]",
+          message:
+            'Kein stiller Rueckfall auf [] hinter einer typeof-Pruefung: Vertrag der Schnittstelle pruefen und laut brechen (4T-1093).',
+        },
+        {
+          selector:
+            "ConditionalExpression[test.left.operator='typeof'] > ObjectExpression.alternate[properties.length=0]",
+          message:
+            'Kein stiller Rueckfall auf {} hinter einer typeof-Pruefung: Vertrag der Schnittstelle pruefen und laut brechen (4T-1093).',
+        },
+      ],
+    },
+  },
+
   // Playwright-Specs: Konsolen-Ausgabe ist Diagnose-Kanal der Tests
   // (z.B. Performance-Messwerte), leere catch-Blöcke sind dort
   // etabliertes Cleanup-Muster.

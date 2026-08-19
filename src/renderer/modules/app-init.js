@@ -177,6 +177,8 @@ import {
   initExternalExtensions,
 } from './extensions/extension-host.js';
 import { bindSearchUi, initSearchFromSettings } from './search/search.js';
+// 4T-0644 (Epic 3E-0127): Erststart-Anlauf der geführten Produkt-Tour.
+import { maybeStartTourOnFirstRun } from './tour/tour.js';
 // 4T-1001 (Epic 3E-0196): die ausgezogenen Teile dieses Moduls. Sie stehen
 // bewusst am Ende des Import-Blocks, damit die Lade-Reihenfolge der uebrigen
 // Module unveraendert bleibt.
@@ -632,6 +634,14 @@ async function init() {
   // nach bindUi(); Tests, die unmittelbar nach dem Fenster-Start klicken oder
   // tippen, warten darauf. Fuer den Produktivbetrieb ohne Wirkung.
   document.body.setAttribute('data-renderer-ready', '1');
+  // 4T-0644 (Epic 3E-0127): Erststart-Anlauf der geführten Produkt-Tour. Der
+  // Aufruf liegt bewusst NACH dem Bereitschafts-Signal, weil die Tour die
+  // fertig gebundenen Bedienelemente hervorhebt und ihre Anker erst dann
+  // stehen; er wird nicht abgewartet, damit die Start-Sequenz durchläuft.
+  maybeStartTourOnFirstRun().catch(() => {
+    // Merker nicht lesbar oder Tour nicht aufbaubar: Das Fenster startet ohne
+    // Tour weiter, die Tour bleibt von Hand erreichbar.
+  });
   if (pendingExternalFiles.length > 0) {
     const files = pendingExternalFiles.splice(0);
     await openInPane(state.activePaneIndex, files);

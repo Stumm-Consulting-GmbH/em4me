@@ -82,6 +82,8 @@ Al abrir se aplican tres reglas:
 
 **Demo-Area:** «Archivo → Área → Crear la Demo-Area…» copia una colección de ejemplos incluida en inglés —páginas Markdown junto con adjuntos de imagen y PDF que muestran las funciones más importantes— en una carpeta vacía y la abre directamente como área: un entorno de pruebas para experimentar sin riesgo. Las carpetas de destino no vacías se rechazan, y los archivos existentes nunca se sobrescriben. La función puede desactivarse como extensión «Demo-Area»; las carpetas de demostración ya creadas son áreas ordinarias y permanecen intactas.
 
+**Lo que trae la colección:** Dos espacios de trabajo con nombre se crean como entradas en «Archivo → Espacios de trabajo», sin abrirse por sí solos. «Astronomy» contiene dos ventanas con los grupos de pestañas de color «Hierarchy» y «Scales»; «Getting Started», una ventana para empezar. El área temática de astronomía muestra al mismo tiempo una jerarquía de subpáginas de cuatro niveles, de la galaxia a la luna pasando por la estrella y el planeta, además de páginas sobre la velocidad de la luz, las distancias y las edades.
+
 ### Límites estrictos
 
 Dentro de una aplicación de área, el área es el límite: el diálogo de apertura empieza en el área y rechaza una selección externa, «Recientes» solo muestra archivos del área, «Guardar como» solo acepta destinos dentro del área, y tampoco entra ningún archivo ajeno por arrastrar y soltar. Los archivos del explorador se abren siempre en una aplicación sin área.

@@ -55,6 +55,7 @@ import { showCommandPalette } from '../command-palette.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
 import { renderTags } from '../editor/autocomplete-help.js';
 import { openManualPage } from '../manual.js';
+import { startTour } from '../tour/tour.js';
 import { refreshVisiblePerspectiveScripts } from '../query/perspective-script-view.js';
 import {
   applyAppearanceVars,
@@ -142,6 +143,11 @@ export function bindMenuEvents() {
   // 4T-0216: Hilfe-Menue-Eintrag oeffnet die Handbuch-Ueberblicksseite.
   api.onMenuOpenHelp(() => openManualPage('overview'));
   api.onMenuOpenAbout(() => showAbout());
+  // 4T-0644 (Epic 3E-0127): Hilfe -> Produkt-Tour startet die geführte Tour
+  // (parameterloser Aufruf = manueller Start).
+  if (typeof api.onMenuStartTour === 'function') {
+    api.onMenuStartTour(() => startTour());
+  }
   // 4T-0277: Menue-Eintrag Datei -> Einstellungen oeffnet die Seite.
   if (typeof api.onMenuOpenSettings === 'function') {
     api.onMenuOpenSettings(() => openSettingsPage());

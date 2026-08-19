@@ -2558,6 +2558,28 @@
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/handbuch.spec.js", "test/unit/manual-pages.test.js"],
       "hinweis": "4T-0892 (Epic 3E-0168, Befund L-10): Das Erstellen eigener externer Erweiterungen war als Handbuch-Seite vorhanden, aber nicht im Funktions-Katalog. Der Eintrag beschreibt genau diese Seite, deshalb liegt seine Prüfung dort: HB-09 lädt alle gebündelten Seiten in fünf Sprachen linter-sauber, der Registry-Wächter erzwingt Sprachfassungen und Titel-Key. Die beschriebene Erweiterungs-API selbst prüft F-072."
+    },
+    {
+      "key": "help.feature.tour",
+      "id": "F-265",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/produkt-tour.spec.js",
+        "test/unit/tour-stationen.test.js",
+        "test/unit/renderer/tour-erststart.test.js"
+      ],
+      "hinweis": "4T-1090 (Epic 3E-0127): der Katalog-Eintrag der geführten Produkt-Tour, in der Gruppe «Allgemein» direkt hinter dem Handbuch-Eintrag. Geprüft wird die beschriebene Funktion selbst: PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch, Start von Hand und den Durchlauf ab, der Stations-Wächter die Kopplung an die Oberfläche und alle fünf Sprachfassungen der Tour-Schlüssel, die Unit-Fälle die Merker-Mechanik. Der Zugang über das Menü ist derselbe Gegenstand wie bei S-136, deshalb teilen sich beide Einträge die Testdateien."
+    },
+    {
+      "key": "help.shortcut.openTour",
+      "id": "S-136",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/produkt-tour.spec.js",
+        "test/unit/renderer/tour-erststart.test.js",
+        "test/unit/tour-stationen.test.js"
+      ],
+      "hinweis": "4T-0644 (Epic 3E-0127): geführte Produkt-Tour, Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Hilfe → Produkt-Tour». PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch samt Neustart, Start von Hand über den Menü-Kanal, die Stellung im Hilfe-Menü und den Durchlauf bis «Fertig» ab; die Merker-Mechanik dahinter ist am Modul unit-getestet, die Kopplung der Stations-Anker an index.html und an alle fünf Sprachfassungen hält ein eigener Wächter."
     }
   ]
 }

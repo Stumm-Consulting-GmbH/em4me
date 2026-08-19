@@ -211,6 +211,30 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     erweiterte und jede Einzel-Umbenennung dadurch länger brauchte.
     **Merkregel:** Warte auf das, was die Aktion bewirken soll, nicht
     auf das erste Zeichen, dass sie begonnen hat.
+
+    **Eine feste Pause ist nie die Bedingung, auf die man wartet**
+    (4T-1086). Das gilt auch für Zwischenschritte, die nur aufräumen
+    sollen: `keyboard.press('Escape')` gefolgt von
+    `waitForTimeout(300)` sieht harmlos aus, ist aber eine geratene
+    Zahl. Reicht sie unter Last nicht, steht das Kontextmenü beim
+    nächsten Rechtsklick noch offen, der Klick trifft **das Menü statt
+    die Zeile**, und ein Poll, der danach zählt, bekommt dauerhaft den
+    alten Stand — er läuft in sein Zeitlimit, obwohl die geprüfte
+    Wirkung längst eingetreten ist. Richtig ist die Zustands-Bedingung:
+    `await expect(page.locator('#context-menu')).toBeHidden()` (Muster
+    aus `tab-gruppen.spec.js` und `4t-0315.spec.js`).
+
+    Das ist der **dritte** Rennfall an derselben Stelle nach 4T-0875
+    (zweiter Rechtsklick traf das offene Menü) und 4T-0874
+    (Escape-Vorlauf ergänzt), und deshalb steht er hier als Regel statt
+    als Einzelfix. Belegt am 2026-08-19 durch Nachstellen: Unter einer
+    zweiten, parallel laufenden Electron-Instanz war der Fall zwei von
+    drei Läufen rot; mit der Zustands-Bedingung drei von drei grün, bei
+    unverändert anliegender Last (Spec-Laufzeit 45 Prozent über der
+    lastfreien Messung). **Diagnose-Hinweis:** Ein Fall, der isoliert
+    grün und im Voll-Lauf rot ist, muss kein Flake sein — «isoliert»
+    heißt oft nur «diese Spec allein», nicht «ohne Fremdlast». Wer die
+    Last nachstellt, unterscheidet beides.
 13. **Ein Tastendruck wird wiederholt, bis seine Wirkung eintritt.** Ein
     einzelner `keyboard.press` kann ins Leere gehen, weil das Fenster
     den Fokus noch nicht hat oder der Renderer seinen Listener erst
@@ -448,8 +472,18 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Testsuite-Gate zusätzlich die Kopie von `test-berichte/unit.json`. Ein
   grüner Lauf sichert nichts, die jüngsten zehn Belege bleiben liegen, und
   ein Fehlschlag der Sicherung verdrängt nie die Meldung des eigentlichen
-  Fehlschlags. Die Queue fährt keine E2E-Gates, deshalb gibt es dort keinen
-  E2E-Bericht zu sichern.
+  Fehlschlags.
+
+  **Für E2E-Läufe gilt das seit 4T-1099 ebenso, aber nur über den Zugang:**
+  `node scripts/gate-lauf.js e2e` sichert im roten Fall zusätzlich den Bericht
+  `test-berichte/e2e.json` **und die Artefakte** aus `test-results/`, also
+  Traces und Bildschirmfotos, als Ordner `…-artefakte`. Das ist nötig, weil
+  Playwright `test-results/` **zu Beginn jedes Laufs leert**: Ohne die Kopie
+  ist der Trace eines roten Falls beim nächsten Lauf weg, und genau das ist am
+  2026-08-19 passiert, als der Beleg für 4T-1086 gebraucht wurde. Wer E2E
+  direkt über `npm run test:e2e` fährt, bekommt die Sicherung nicht — für die
+  Release-Abnahme ist deshalb der Zugang der vorgesehene Aufruf. Die Queue
+  fährt weiterhin **kein** E2E-Gate, und `alle` schließt es nicht ein.
 
 - **Null fehlgeschlagene Tests, trotzdem rot: zuerst den Rechner ansehen.**
   Meldet ein Lauf eine rote Suite, während der Bericht `numFailedTests: 0`

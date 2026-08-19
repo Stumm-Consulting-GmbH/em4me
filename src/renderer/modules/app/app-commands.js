@@ -78,6 +78,7 @@ import { stepReading, toggleBookPanel } from '../books/book-panel.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
 import { toggleBlockPropsPanel } from '../properties/block-props-panel.js';
 import { openManualPage } from '../manual.js';
+import { startTour } from '../tour/tour.js';
 import { openSettingsPage } from '../settings/settings-page.js';
 import { nextMatch, openSearchBar, prevMatch, search } from '../search/search.js';
 import { COMMANDS, mergeBindings } from '../../../shared/commands/commands.js';
@@ -504,6 +505,12 @@ export const commandHandlers = {
   // Ueberblicksseite (das fruehere Modal ist vollstaendig zurueckgebaut).
   'help.open': () => {
     openManualPage('overview');
+  },
+  // 4T-0644 (Epic 3E-0127): geführte Produkt-Tour. Der Eintrag hier ist der
+  // Ausführungs-Pfad für Kommando-Palette und ein in den Einstellungen
+  // belegtes Kürzel; der Menü-Weg läuft über seinen eigenen Kanal.
+  'help.tour': () => {
+    startTour();
   },
   // 4T-0620 (Epic 3E-0117): Bereichs-Statistik. Der Eintrag hier ist der
   // Ausfuehrungs-Pfad fuer Kommando-Palette, belegtes Kuerzel und

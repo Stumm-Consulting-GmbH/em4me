@@ -82,6 +82,8 @@ Three rules apply when opening:
 
 **Demo-Area:** "File → Area → Create Demo-Area…" copies a bundled English-language example collection — Markdown pages together with image and PDF attachments that demonstrate the most important functions — into an empty folder and opens it directly as an area: a sandbox for risk-free experimentation. Non-empty target folders are rejected, and existing files are never overwritten. The feature can be turned off as the "Demo-Area" extension; demo folders that have already been created are ordinary areas and remain unaffected.
 
+**What the collection brings along:** Two named workspaces are created as entries under "File → Workspaces" without opening by themselves. "Astronomy" holds two windows with the coloured tab groups "Hierarchy" and "Scales", "Getting Started" a single window for getting started. The astronomy topic area also shows a four-level subpage hierarchy from the galaxy through the star and the planet down to the moon, plus pages on light speed, distances and ages.
+
 ### Hard boundaries
 
 Within an area application the area is the boundary: the open dialog starts in the area and rejects selections outside it, "Recent" only shows area files, "Save As" only accepts targets inside the area, and no foreign file gets in via drag and drop either. Files from the file explorer always open in an application without an area.

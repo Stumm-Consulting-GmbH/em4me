@@ -1,0 +1,52 @@
+{
+  "_hinweis": "4T-0645 (Epic 3E-0127): Zustands-Vorlage der Beispiel-Sammlung. Liegt bewusst NEBEN src/demo/ und wird deshalb nicht in den Zielordner kopiert: sie ist Programm-Beigabe, kein Inhalt der Sammlung. Alle Pfade sind relativ zum Bereichs-Wurzelordner und werden bei der Anlage aufgeloest (src/main/area/demo-workspace.js).",
+  "workspaces": [
+    {
+      "name": "Astronomy",
+      "color": "blue",
+      "windows": [
+        {
+          "panes": [
+            {
+              "paths": [
+                "Milky Way.md",
+                "Milky Way∕Sun.md",
+                "Milky Way∕Sun∕Earth.md",
+                "Milky Way∕Sun∕Earth∕Moon.md"
+              ],
+              "activeIndex": 0,
+              "groups": [{ "name": "Hierarchy", "color": "blue", "collapsed": false }],
+              "tabSettings": [{ "group": 0 }, { "group": 0 }, { "group": 0 }, { "group": 0 }]
+            }
+          ]
+        },
+        {
+          "panes": [
+            {
+              "paths": ["Light Speed.md", "Distances.md", "Ages.md"],
+              "activeIndex": 0,
+              "groups": [{ "name": "Scales", "color": "green", "collapsed": false }],
+              "tabSettings": [{ "group": 0 }, { "group": 0 }, { "group": 0 }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Getting Started",
+      "color": "orange",
+      "windows": [
+        {
+          "panes": [
+            {
+              "paths": ["00 Welcome.md", "01 Markdown Basics.md", "02 Extended Syntax.md"],
+              "activeIndex": 0,
+              "groups": [],
+              "tabSettings": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -82,6 +82,8 @@ Trois règles s'appliquent à l'ouverture :
 
 **Demo-Area :** « Fichier → Zone → Créer la Demo-Area… » copie une collection d'exemples fournie en anglais — des pages Markdown accompagnées de pièces jointes image et PDF qui montrent les fonctions les plus importantes — dans un dossier vide et l'ouvre directement comme zone : un bac à sable pour expérimenter sans risque. Les dossiers cibles non vides sont refusés, et les fichiers existants ne sont jamais écrasés. La fonction peut être désactivée en tant qu'extension « Demo-Area » ; les dossiers de démo déjà créés sont des zones ordinaires et restent intacts.
 
+**Ce que la collection apporte :** Deux espaces de travail nommés sont créés comme entrées sous « Fichier → Espaces de travail », sans s'ouvrir d'eux-mêmes. « Astronomy » comprend deux fenêtres avec les groupes d'onglets colorés « Hierarchy » et « Scales », « Getting Started » une fenêtre pour débuter. Le domaine thématique consacré à l'astronomie illustre en même temps une hiérarchie de sous-pages à quatre niveaux, de la galaxie à la lune en passant par l'étoile et la planète, ainsi que des pages sur la vitesse de la lumière, les distances et les âges.
+
 ### Limites strictes
 
 Au sein d'une application de zone, la zone est la limite : le dialogue d'ouverture démarre dans la zone et rejette une sélection extérieure, « Récents » n'affiche que les fichiers de la zone, « Enregistrer sous » n'accepte que des cibles dans la zone, et aucun fichier étranger n'entre par glisser-déposer. Les fichiers ouverts depuis l'explorateur s'ouvrent toujours dans une application sans zone.

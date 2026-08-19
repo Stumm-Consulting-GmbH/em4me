@@ -426,6 +426,10 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.extensionsDev',
       // 4T-0216 (Epic 3E-0042): das Handbuch selbst als Katalog-Eintrag.
       'help.feature.manual',
+      // 4T-1090 (Epic 3E-0127): die Produkt-Tour direkt hinter dem Handbuch-
+      // Eintrag. Beide sind Hilfe-Zugaenge ohne eigene Syntax und ohne
+      // Konfiguration; die Tour fuehrt vor, was das Handbuch erklaert.
+      'help.feature.tour',
     ],
   },
 ];

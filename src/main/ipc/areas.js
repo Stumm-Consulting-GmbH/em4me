@@ -12,7 +12,10 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { createDemoAreaAt } = require('../area/demo-area.js');
+// 4T-0645 (Epic 3E-0127): Zustands-Vorlage der Beispiel-Sammlung.
+const { loadDemoWorkspaces } = require('../area/demo-workspace.js');
 const { isInsideArea, sortedAreaListing, sanitizeNewFileName } = require('../area/area-path');
+const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
 /**
  * Registriert die Bereichs- und Demo-Area-Kanaele.
@@ -27,6 +30,12 @@ const { isInsideArea, sortedAreaListing, sanitizeNewFileName } = require('../are
  * @param {Function} deps.openAreaPath Bereich unter einem Wurzelpfad oeffnen.
  * @param {(appId: number) => Promise<object>} deps.closeAreaApp Bereichs-App schliessen.
  * @param {(p: string) => boolean} deps.isMarkdownPath Markdown-Erkennung am Pfad.
+ * @param {() => object|null} deps.getStore Einstellungs-Speicher (erst nach loadStore da).
+ * @param {Array} deps.workspacesState Ablage der benannten Arbeitsbereiche — das
+ *   ARRAY des In-Memory-Stands, kein Getter (Verdrahtung reicht `...areaApps`
+ *   durch). setWorkspacesState mutiert genau dieses Array in-place.
+ * @param {(list: Array) => void} deps.setWorkspacesState Ablage der Arbeitsbereiche ersetzen.
+ * @param {() => void} deps.workspacesChanged Menue und Fenster ueber die Aenderung melden.
  */
 function registerAreasIpc(handle, deps) {
   const {
@@ -38,7 +47,89 @@ function registerAreasIpc(handle, deps) {
     openAreaPath,
     closeAreaApp,
     isMarkdownPath,
+    // 4T-0645 (Epic 3E-0127): Ablage der Arbeitsbereiche fuer die
+    // Zustands-Vorlage der Beispiel-Sammlung.
+    getStore,
+    workspacesState,
+    setWorkspacesState,
+    workspacesChanged,
   } = deps;
+
+  // 4T-0645 (Epic 3E-0127): Die Beispiel-Sammlung bringt ihren Fenster- und
+  // Gruppen-Zustand als Vorlage mit; hier wird sie nach dem Kopieren zu
+  // benannten Arbeitsbereichen. Die reine Bau-Logik liegt in
+  // area/demo-workspace.js, dieses Stueck traegt sie in die Ablage ein.
+  //
+  // Drei Regeln, alle aus dem Bestand abgeleitet:
+  //   - Erweiterung 'workspaces' aus  -> nichts eintragen (Muster area-apps.js).
+  //     Zustand fuer eine abgeschaltete Funktion anzulegen waere ein stiller
+  //     Nebeneffekt, den der Anwender nicht bestellt hat.
+  //   - Kennungen kollisionsfrei gegen den vorhandenen Stand vergeben; ein
+  //     doppelter Eintrag verliert bei der Normalisierung stillschweigend.
+  //   - In-Memory-Stand UND Store schreiben, danach die Oberflaeche melden
+  //     (Muster startup.js / window-manager.js).
+  //
+  // Ein Fehlschlag bleibt folgenlos fuer die Anlage selbst: Die Dateien sind
+  // dann kopiert, nur der Arbeitsbereich fehlt. Das ist dieselbe Degradation
+  // wie bei einer defekten Vorlage und bewusst kein Grund, dem Anwender den
+  // fertigen Bestand zu verweigern.
+
+  // Vertrag der Ablage, EINMAL geprueft und mit lautem Bruch statt stiller
+  // Weiche. Anlass ist der Datenverlust vom 2026-08-18: Eine defensive
+  // `typeof workspacesState === 'function' ? … : []`-Weiche lief immer in den
+  // leeren Zweig, weil die Verdrahtung das ARRAY durchreicht und keinen
+  // Getter. Der Bestand des Anwenders wurde dadurch ersetzt statt ergaenzt.
+  // Die Weiche hat den Irrtum nicht abgefangen, sondern verborgen: Aus einem
+  // Absturz, der sofort aufgefallen waere, wurde ein stiller Datenverlust.
+  // Deshalb hier keine Rueckfall-Werte ueber eine fremde Schnittstelle.
+  function pruefeAblageVertrag() {
+    if (!Array.isArray(workspacesState)) {
+      throw new TypeError(
+        'deps.workspacesState muss das Array des In-Memory-Stands sein (Verdrahtung: ...areaApps)',
+      );
+    }
+    if (typeof setWorkspacesState !== 'function') {
+      throw new TypeError('deps.setWorkspacesState muss eine Funktion sein');
+    }
+    if (typeof workspacesChanged !== 'function') {
+      throw new TypeError('deps.workspacesChanged muss eine Funktion sein');
+    }
+  }
+
+  async function materialisiereDemoArbeitsbereiche(targetDir) {
+    const store = typeof getStore === 'function' ? getStore() : null;
+    if (!store) return;
+    if (!isExtensionEnabled('workspaces', store.get('extensions.disabled'))) return;
+    try {
+      pruefeAblageVertrag();
+      // Die Kopie ist Pflicht: setWorkspacesState leert dasselbe Array
+      // in-place (`workspacesState.length = 0`), eine Referenz darauf waere
+      // im Moment des Schreibens bereits leer.
+      const vorhanden = [...workspacesState];
+      const belegt = new Set(vorhanden.map((ws) => ws && ws.id));
+      let n = 0;
+      const naechsteId = () => {
+        let id;
+        do {
+          n += 1;
+          id = `demo-${n}`;
+        } while (belegt.has(id));
+        belegt.add(id);
+        return id;
+      };
+      const neue = await loadDemoWorkspaces(targetDir, naechsteId);
+      if (neue.length === 0) return;
+      setWorkspacesState([...vorhanden, ...neue]);
+      // Nach setWorkspacesState traegt dasselbe Array den neuen Gesamtstand.
+      store.set('workspaces', workspacesState);
+      workspacesChanged();
+    } catch (err) {
+      console.warn(
+        '[demo-area] Arbeitsbereiche der Vorlage nicht angelegt:',
+        err && err.message ? err.message : err,
+      );
+    }
+  }
 
   // --- 4T-0322 (Epic 3E-0058): Bereiche ---------------------------------------
   // "Bereich oeffnen..." mit Ordner-Dialog.
@@ -82,6 +173,7 @@ function registerAreasIpc(handle, deps) {
       }
       return created;
     }
+    await materialisiereDemoArbeitsbereiche(targetDir);
     return openAreaPath(targetDir, owner);
   });
 
@@ -90,6 +182,9 @@ function registerAreasIpc(handle, deps) {
     if (typeof targetDir !== 'string' || !targetDir) return { ok: false, error: 'invalid path' };
     const created = await createDemoAreaAt(targetDir);
     if (!created.ok) return created;
+    // Dieselbe Behandlung wie im Dialog-Weg: Sonst pruefen die Tests einen
+    // Ablauf, den der Anwender so nicht erlebt.
+    await materialisiereDemoArbeitsbereiche(targetDir);
     return openAreaPath(targetDir, senderWindow(event));
   });
 

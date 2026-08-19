@@ -1,6 +1,6 @@
 {
   "name": "em4me",
-  "version": "1.113.0",
+  "version": "1.114.0",
   "description": "Lokaler Markdown-Editor für Windows 11 mit Bereichen, Verweisen und Volltextsuche.",
   "main": "src/main/main.js",
   "scripts": {
@@ -41,6 +41,7 @@
     "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.6.4",
     "@playwright/test": "^1.60.0",
+    "driver.js": "^1.8.0",
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
     "esbuild": "^0.28.0",

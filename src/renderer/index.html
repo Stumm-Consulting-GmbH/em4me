@@ -31,6 +31,13 @@
     <link rel="stylesheet" href="styles/uhr-panel.css" />
     <link rel="stylesheet" href="styles/mindmap.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
+    <!-- 4T-0644 (Epic 3E-0127): Overlay- und Popover-Stilblatt von driver.js
+         für die geführte Produkt-Tour. Kopiert von scripts/build-tour-assets.js
+         aus node_modules (nicht versioniert, Muster katex/katex.css). Die
+         Theme-Anpassung an die Farb-Token der App steht bewusst DANACH, damit
+         ihre Regeln bei gleicher Spezifität gewinnen. -->
+    <link rel="stylesheet" href="driverjs/driver.css" />
+    <link rel="stylesheet" href="styles/tour.css" />
     <!-- 4T-0023: highlight.js GitHub Light/Dark, prefixed mit data-theme.
          Generiert von scripts/build-hljs-themes.js. -->
     <link rel="stylesheet" href="hljs-themes.css" />
@@ -41,7 +48,10 @@
   <body>
     <main id="panes-container" class="panes-container">
       <section class="pane-group active-pane" data-pane="0">
-        <div class="tabbar"></div>
+        <!-- 4T-0644: Tour-Anker der Reiterleiste. Bewusst nur an Spalte 0, die
+             Reiterleiste der Spalte 1 ist ihr Spiegelbild und im Regelfall
+             ausgeblendet. -->
+        <div class="tabbar" data-tour="tabs"></div>
         <div class="content view-split">
           <!-- 4T-0288 (Epic 3E-0051): dynamische Sidebar — je Pane ein linker
                und ein rechter Container. Die Panel-Sektionen starten im linken
@@ -1061,11 +1071,13 @@
              (ISC-lizenziert), inline eingebettet ohne Library-Dependency.
              Texte werden zu Tooltips (data-i18n-title) und Screen-Reader-
              Labels (data-i18n-aria-label) lokalisiert in allen fuenf Sprachen. -->
-        <div class="source-toggles" role="group">
+        <!-- 4T-0644: Tour-Anker der Panel-Toggle-Leiste. -->
+        <div class="source-toggles" role="group" data-tour="sidebars">
           <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel-Toggle. Lucide-Icon 'folder'. -->
           <button
             id="btn-area"
             class="btn-toggle btn-icon"
+            data-tour="areas"
             data-i18n-title="areaPanel.toggleTitle"
             data-i18n-aria-label="areaPanel.toggle"
             title=""
@@ -1144,6 +1156,7 @@
           <button
             id="btn-subpages"
             class="btn-toggle btn-icon"
+            data-tour="subpages"
             data-i18n-title="subpages.toggleTitle"
             data-i18n-aria-label="subpages.toggle"
             title=""
@@ -1598,7 +1611,8 @@
             </svg>
           </button>
         </div>
-        <div class="view-toggle" role="group" aria-label="Ansicht">
+        <!-- 4T-0644: Tour-Anker der Ansichts-Umschaltgruppe. -->
+        <div class="view-toggle" role="group" aria-label="Ansicht" data-tour="views">
           <!-- 4T-0085 (Epic 3E-0014): Live-Modus-Button. Lucide wand-2-Icon
                symbolisiert "Markdown wird magisch gerendert beim Tippen".
                Links vom Quellcode-Button platziert, damit das Render-

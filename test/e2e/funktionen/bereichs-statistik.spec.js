@@ -224,8 +224,19 @@ test.describe('BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118)',
           // 4T-0874: Vor jedem Versuch das ggf. offene Menue schliessen —
           // ein zweiter Rechtsklick bei offenem Menue trifft das Menue statt
           // die Zeile, und der Poll bliebe auf dem alten Stand stehen.
+          //
+          // 4T-1086: Gewartet wird auf das **geschlossene Menue**, nicht auf
+          // eine feste Zeitspanne. Die fruehere Pause von 300 ms war unter
+          // Last zu kurz: Das Menue stand noch offen, der Rechtsklick traf es
+          // statt die Zeile, und die Zaehlung fiel deshalb NIE auf 0 — der
+          // Poll lief in sein Zeitlimit, obwohl die Einstellung laengst wirkte.
+          // Belegt am 2026-08-19: unter einer zweiten, parallel laufenden
+          // Electron-Instanz zwei von drei Laeufen rot, ohne sie gruen.
+          // Die Regel dazu steht in test/README.md (Warte-Bedingungen liefern
+          // den Zustand, nicht die Zeit); das Muster stammt aus
+          // tab-gruppen.spec.js und 4t-0315.spec.js.
           await page.keyboard.press('Escape');
-          await page.waitForTimeout(300);
+          await expect(page.locator('#context-menu')).toBeHidden();
           await row.click({ button: 'right' });
           return page.locator('#context-menu [data-menu-id="area-panel-stats"]').count();
         })

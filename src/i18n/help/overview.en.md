@@ -6,6 +6,8 @@ _extended memory for me_
 
 Welcome to the EM4me manual. This overview page is the entry point; each section opens as its own tab and behaves like any other tab — move it, place it in the second column, or keep it open next to your own work.
 
+**First time here?** The product tour covers ten stations in the running program, showing what sets this application apart and pointing at the control in question each time. It starts by itself on the first program launch; afterwards "Help → Product Tour" starts it again, and it can be cancelled at any time. The manual answers the specific questions that follow.
+
 ## Reference
 
 - [Benefits and ways of working](benefits.md) — what the app is good for: the ways of working from tabs to bookshelves, and the scope of the Markdown language.

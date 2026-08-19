@@ -20,6 +20,12 @@ buildHljsThemes();
 const { buildKatexAssets } = require('./build-katex-assets.js');
 buildKatexAssets();
 
+// 4T-0644: Overlay-CSS von driver.js nach src/renderer/driverjs/ kopieren
+// (geführte Produkt-Tour). Die Theme-Anpassung dazu ist versioniert und liegt
+// in src/renderer/styles/tour.css.
+const { buildTourAssets } = require('./build-tour-assets.js');
+buildTourAssets();
+
 // 4T-0021: separater Mermaid-Bundle, der vom Renderer lazy geladen wird.
 // Wird hier synchron gebaut, damit das Ergebnis bereits liegt, bevor das
 // Haupt-Renderer-Bundle gebaut wird.

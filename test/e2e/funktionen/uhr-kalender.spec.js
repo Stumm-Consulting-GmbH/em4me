@@ -16,7 +16,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, schliesseTour } = require('../helpers/app');
 
 const CLOCK_BTN = '#btn-clock';
 const SECTION = '.pane-group .sidebar-clock';
@@ -171,6 +171,12 @@ test.describe('UK-04: Kalenderwochen-Spalte', () => {
     });
     const { app, page } = await launchApp({ userData, settings: null });
     try {
+      // 4T-0644 (Epic 3E-0127): `settings: null` haelt das hier von Hand
+      // geschriebene Profil unveraendert — und damit ohne den Tour-Merker, den
+      // launchApp sonst jeder Vorbelegung unterlegt. Die Produkt-Tour laeuft
+      // deshalb an und wird weggeraeumt, bevor ihr Overlay den Klick auf die
+      // Modus-Taste abfaengt.
+      await schliesseTour(page);
       await openMode(page, 'calendar');
       await expect(page.locator(WEEK_CELLS)).toHaveCount(0);
     } finally {

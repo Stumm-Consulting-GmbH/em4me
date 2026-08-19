@@ -6,6 +6,8 @@ _extended memory for me_
 
 Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; chaque section s'ouvre dans son propre onglet et se comporte comme n'importe quel autre onglet — déplacez-le, placez-le dans la deuxième colonne ou gardez-le ouvert à côté de votre travail.
 
+**Première visite ?** La visite guidée parcourt dix étapes dans le programme en cours d'exécution : elle montre ce qui distingue cette application et désigne à chaque fois l'élément d'interface concerné. Elle démarre d'elle-même au premier lancement ; ensuite, « Aide → Visite guidée » la relance, et elle peut être interrompue à tout moment. Le manuel répond aux questions précises qui viennent ensuite.
+
 ## Référence
 
 - [Utilité et façons de travailler](benefits.md) — à quoi sert l'application : les façons de travailler, de l'onglet à l'étagère, et l'étendue du langage Markdown.

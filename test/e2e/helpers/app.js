@@ -66,7 +66,19 @@ async function waitForRendererInit(page) {
 // Umschreiben von rund zwanzig Spec-Dateien Aufwand ohne Gewinn waere; den
 // ausgelieferten Zustand deckt die eigene Spec voreinstellungen.spec.js ab,
 // die ohne Vorbelegung startet.
-const DEFAULT_TEST_SETTINGS = { language: 'de' };
+// 4T-0644 (Epic 3E-0127): Merker der gefuehrten Produkt-Tour. Ohne ihn liefe
+// die Tour beim ersten Start JEDER Spec automatisch an und legte ihr Overlay
+// ueber die Oberflaeche; die Klicks der Faelle liefen dann ins Leere.
+//
+// Der Merker steht bewusst NICHT nur in DEFAULT_TEST_SETTINGS, sondern wird
+// jeder Vorbelegung beigemischt (siehe launchApp): Ein Fall mit eigener
+// settings-Angabe umgeht die Vorbelegung vollstaendig, und genau diese sechs
+// Faelle (pdf-export, zweite-spalte, 4t-0945-b12) haetten die Tour sonst
+// gesehen. Unberuehrt bleibt allein `settings: null` — das ist die bewusste
+// Aussage 'leerer Speicher, echter Erststart'.
+const TOUR_GESEHEN = { tourSeen: true };
+
+const DEFAULT_TEST_SETTINGS = { language: 'de', ...TOUR_GESEHEN };
 
 // Schreibt die Vorbelegung in die config.json des Profils, bevor Electron
 // startet. conf legt fehlende Defaults beim Start selbst nach, hier stehen
@@ -147,15 +159,23 @@ function beobachteKonsole(app) {
  *                                    (Session-Restore-Tests); Default: frisches Temp-Verzeichnis.
  * @param {object|null} [opts.settings] Vorbelegung der config.json; Default
  *                                    DEFAULT_TEST_SETTINGS (Sprache Deutsch).
+ *                                    Eine eigene Angabe ersetzt die Sprache,
+ *                                    bekommt aber weiterhin den Tour-Merker
+ *                                    untergelegt (4T-0644, siehe TOUR_GESEHEN).
  *                                    null startet ohne jede Vorbelegung und
- *                                    zeigt damit den Auslieferungszustand.
+ *                                    zeigt damit den Auslieferungszustand —
+ *                                    dort laeuft die Produkt-Tour an, und der
+ *                                    Fall raeumt sie per schliesseTour() weg.
  * @returns {Promise<{ app: import('@playwright/test').ElectronApplication,
  *                     page: import('@playwright/test').Page,
  *                     userData: string }>}
  */
 async function launchApp(opts = {}) {
   const userData = opts.userData || fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-'));
-  seedSettings(userData, 'settings' in opts ? opts.settings : DEFAULT_TEST_SETTINGS);
+  // 4T-0644: Tour-Merker als Unterlage jeder Vorbelegung (Begruendung an
+  // TOUR_GESEHEN); eine eigene Angabe des Falls liegt darueber und gewinnt.
+  const vorbelegung = 'settings' in opts ? opts.settings : DEFAULT_TEST_SETTINGS;
+  seedSettings(userData, vorbelegung ? { ...TOUR_GESEHEN, ...vorbelegung } : vorbelegung);
   const app = await electron.launch({
     args: ['.', ...(opts.args || [])],
     cwd: APP_ROOT,
@@ -175,6 +195,40 @@ async function launchApp(opts = {}) {
   // abwarten — Begruendung am Helfer waitForRendererInit.
   await waitForRendererInit(page);
   return { app, page, userData };
+}
+
+/**
+ * 4T-0644 (Epic 3E-0127): Ein angelaufenes Tour-Overlay wegraeumen.
+ *
+ * Gebraucht wird das nur von Faellen, die mit `settings: null` und ohne
+ * gesetzten Merker starten — dort ist der Erststart echt, und die Tour legt
+ * ihr Overlay ueber die Oberflaeche. Ihre eigentlichen Pruefungen bleiben
+ * dadurch unveraendert: Sie laufen wie bisher gegen die freie Oberflaeche.
+ *
+ * Geschlossen wird ueber den Schliessen-Knopf des Popovers und nicht per
+ * Escape, weil Escape zusaetzlich die Escape-Behandlung der Anwendung
+ * ausloesen wuerde (Suchleiste, Menues) und der Fall damit von einem
+ * Nebeneffekt abhinge, den er nicht meint.
+ *
+ * Bewusst geduldig und bewusst weich: Die Tour haengt am Ende der
+ * asynchronen Renderer-Init, deshalb wird auf sie gewartet; bleibt sie aus
+ * (Merker doch gesetzt), ist das kein Fehler, sondern der Normalfall aller
+ * uebrigen Specs.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {number} [timeout] Wartezeit auf das Overlay in Millisekunden.
+ * @returns {Promise<boolean>} true, wenn eine Tour geschlossen wurde.
+ */
+async function schliesseTour(page, timeout = 10000) {
+  const popover = page.locator('.driver-popover.em4me-tour');
+  try {
+    await popover.waitFor({ state: 'visible', timeout });
+  } catch {
+    return false;
+  }
+  await page.locator('.driver-popover-close-btn').click();
+  await popover.waitFor({ state: 'detached', timeout: 10000 });
+  return true;
 }
 
 /**
@@ -249,4 +303,4 @@ async function closeApp(app, userData, opts = {}) {
   pruefeKonsolenFunde(app);
 }
 
-module.exports = { launchApp, closeApp, APP_ROOT };
+module.exports = { launchApp, closeApp, schliesseTour, APP_ROOT };

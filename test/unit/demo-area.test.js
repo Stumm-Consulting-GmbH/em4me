@@ -36,6 +36,20 @@ const EXPECTED_FILES = [
   '09 Diagrams and Formulas.md',
   '10 Attachments.md',
   '11 Templates.md',
+  // 4T-0645 (Epic 3E-0127): astronomischer Themenbereich als vierstufige
+  // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
+  // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit
+  // dem Unterseiten-Trennzeichen U+2215 (Division Slash), NICHT die
+  // Ordner-Lage: alle sechs Seiten liegen im Wurzelverzeichnis.
+  'Ages.md',
+  'Distances.md',
+  'Light Speed.md',
+  'Milky Way.md',
+  'Milky Way∕Proxima Centauri.md',
+  'Milky Way∕Sun.md',
+  'Milky Way∕Sun∕Earth.md',
+  'Milky Way∕Sun∕Earth∕Moon.md',
+  'Milky Way∕Sun∕Mars.md',
   // 4T-0850 (Epic 3E-0147): das Demo-Buch (Buch-Ordner mit Begleitdatei,
   // Buch-Datei, vier Kapiteln über zwei Ordner und einer bewusst nicht
   // eingehängten Datei). Bewusst OHNE eigene Seite im Wurzelverzeichnis: die

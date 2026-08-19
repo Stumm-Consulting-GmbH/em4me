@@ -829,6 +829,9 @@ contextBridge.exposeInMainWorld('api', {
   onMenuToggleScrollSync: (cb) => ipcRenderer.on('menu:toggleScrollSync', () => cb()),
   onMenuOpenHelp: (cb) => ipcRenderer.on('menu:openHelp', () => cb()),
   onMenuOpenAbout: (cb) => ipcRenderer.on('menu:openAbout', () => cb()),
+  // 4T-0644 (Epic 3E-0127): Menü-Eintrag „Hilfe -> Produkt-Tour" startet die
+  // geführte Tour im Renderer (manueller Start, ohne Nutzlast).
+  onMenuStartTour: (cb) => ipcRenderer.on('menu:startTour', () => cb()),
   // 4T-0018: Settings-Dialog ueber Menue-Eintrag Datei -> Einstellungen.
   onMenuOpenSettings: (cb) => ipcRenderer.on('menu:openSettings', () => cb()),
   // 4T-0333 (Epic 3E-0060): Historien-Ansicht des aktiven Dokuments.

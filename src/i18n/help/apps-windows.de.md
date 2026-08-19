@@ -82,6 +82,8 @@ Beim Öffnen gelten drei Regeln:
 
 **Demo-Area:** „Datei → Bereich → Demo-Area erstellen…" kopiert eine mitgelieferte englischsprachige Beispiel-Sammlung — Markdown-Seiten samt Bild- und PDF-Anlagen, die die wichtigsten Funktionen zeigen — in einen leeren Ordner und öffnet ihn direkt als Bereich: eine Sandbox zum gefahrlosen Ausprobieren. Nicht-leere Zielordner werden abgelehnt, vorhandene Dateien werden niemals überschrieben. Die Funktion ist als Erweiterung „Demo-Area" abschaltbar; bereits erstellte Demo-Ordner sind gewöhnliche Bereiche und bleiben davon unberührt.
 
+**Was die Sammlung mitbringt:** Zwei benannte Arbeitsbereiche entstehen beim Anlegen als Einträge unter „Datei → Arbeitsbereiche“, ohne sich von selbst zu öffnen. „Astronomy“ führt zwei Fenster mit den farbigen Reiter-Gruppen „Hierarchy“ und „Scales“, „Getting Started“ ein Fenster für den Einstieg. Der astronomische Themenbereich zeigt zugleich eine vierstufige Unterseiten-Hierarchie von der Galaxie über den Stern und den Planeten bis zum Mond, dazu Seiten zu Lichtgeschwindigkeit, Entfernungen und Alter.
+
 ### Harte Grenzen
 
 Innerhalb einer Bereichs-Applikation ist der Bereich die Grenze: Der Öffnen-Dialog startet im Bereich und weist eine Auswahl außerhalb ab, „Zuletzt geöffnet" zeigt nur Bereichs-Dateien, „Speichern unter" akzeptiert nur Ziele im Bereich, und auch per Drag & Drop kommt keine fremde Datei herein. Dateien aus dem Datei-Explorer öffnen sich immer in einer Applikation ohne Bereich.

@@ -1371,6 +1371,18 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
+    // 4T-0644 (Epic 3E-0127): geführte Produkt-Tour. Bewusst ohne
+    // Default-Kürzel — ein einmalig gelaufener Einführungs-Ablauf rechtfertigt
+    // keine belegte Taste; über die Kürzel-Einstellungen bleibt er bindbar.
+    id: 'help.tour',
+    defaultBindings: [],
+    labelKey: 'menu.help.tour',
+    descKey: 'help.shortcut.openTour',
+    categoryKey: 'help.group.general',
+    menu: true,
+    editorScoped: false,
+  },
+  {
     // 4T-0480 (Epic 3E-0089): Kommando-Palette. CmdOrCtrl+K ist am Bestand
     // konfliktfrei (Registry, FIXED_BINDINGS und CodeMirror-defaultKeymap
     // auf Windows; CmdOrCtrl+Shift+P gehoert dem PDF-Export, CmdOrCtrl+P

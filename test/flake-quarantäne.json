@@ -11,14 +11,6 @@
   ],
   "eintraege": [
     {
-      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
-      "fall": "BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang",
-      "datum": "2026-08-18",
-      "fehlerbild": "Einziger roter Fall der E2E-Voll-Suite des Release-Gates 1.113.0 (612 von 613 grün, Laufzeit 55,5 min), der Fall selbst nach 16,0 s. Isolierte Nachprüfung unmittelbar danach im selben Clone und gegen dasselbe Renderer-Bundle: grün, 5 von 5 in 16,5 s. Nach dem Abschalten der Erweiterung verschwindet der Menü-Eintrag [data-menu-id=\"area-panel-stats\"] im roten Fall nicht, der Poll läuft ins Zeitlimit.",
-      "vermutung": "lastbedingt. Der Fall pollt ein Kontextmenü nach einem Einstellungs-Broadcast und hängt damit an zwei bekannten Mustern zugleich, dem Menü-Poll und dem asynchronen Settings-Apply. WIDERSPRUCH zur bisherigen Befund-Lage: 4T-1086 stuft ihn nach drei roten Läufen aus Slot B als reproduzierbar rot und ausdrücklich nicht als Flake ein, hier ist er isoliert grün; umgekehrt lief er im Voll-Lauf des Releases 1.112.0 in diesem Clone grün durch (613 von 613, belegt in 4T-1081). Die Auflösung des Widerspruchs gehört zu 4T-1086 und wird hier nicht vorweggenommen. Beleg des roten Laufs unter test-berichte/rot/2026-08-18T13-58-46Z-epic-3E-0211-Sprach-Bausteine-e2e.*",
-      "status": "verortet"
-    },
-    {
       "spec": "test/unit/quellcode-export.test.js",
       "fall": "kein exportierter Bestand trägt einen Marker der privaten Infrastruktur",
       "datum": "2026-08-18",
@@ -49,14 +41,6 @@
       "fehlerbild": "Einzel-Fehlschlag im Voll-Lauf, isoliert grün",
       "vermutung": "lastbedingt",
       "status": "beobachtet"
-    },
-    {
-      "spec": "test/unit/nummern-reservierung.test.js",
-      "fall": "Parallelfall (acht gleichzeitige Vergaben)",
-      "datum": "2026-08-13",
-      "fehlerbild": "Dritte Auffälligkeit. Im Testsuite-Gate der Queue erneut fehlgeschlagen (2026-08-13, Zweig arbeit/4T-1027-Lernpunkt, Änderungs-Umfang war eine einzelne Markdown-Datei), isoliert sofort grün (20/20). Zuvor 2026-08-03 als lastbedingter Einzel-Flake und 2026-08-05 mit 14 statt 16 disjunkten Nummern Vierte Auffaelligkeit am 2026-08-18 im Unit-Voll-Lauf zu 4T-0944 (3673 von 3674 gruen), isoliert erneut sofort gruen (20/20 in 875 ms); das Fehlerbild ist unveraendert die nicht-disjunkte Vergabe und keine gerissene Zeitgrenze, der Fall bleibt also beim beforderten Vorgang.",
-      "vermutung": "lastbedingt, aber dreimal derselbe Fall: die im vorigen Eintrag angekündigte Schwelle ist erreicht, deshalb Beförderung statt weiterer Beobachtung",
-      "status": "befoerdert"
     },
     {
       "spec": "test/unit/quellcode-export.test.js",
@@ -120,6 +104,14 @@
       "datum": "2026-08-13",
       "fehlerbild": "Einzel-Fehlschlag im 21-Spec-Parallel-Lauf der 4T-1000-Prüfung (165 von 166 grün), isoliert sofort grün (10/10 in 49 s, den Fall selbst eingeschlossen)",
       "vermutung": "lastbedingt; das Mehr-Fenster-Restart-Szenario ist zeitfenster-empfindlich und lief unter der Parallel-Last des breitesten Ausschnitts des Epics. Bei erneutem Auftreten außerhalb von Voll-Last gehört der Fall in einen eigenen Prüf-Vorgang, weil Sitzungs-Restore seit dem Main-Schnitt in app/startup.js liegt",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06",
+      "datum": "2026-08-19",
+      "fehlerbild": "Einzel-Fehlschlag im E2E-Voll-Lauf vor dem Release 1.114.0 (616 von 618 grün, Laufzeit 39,1 min). Unmittelbar danach isoliert geprüft: 5 von 5 grün in 14,6 s. Der Fehlertext des Voll-Laufs ist nicht gesichert worden, weil der Lauf über eine Ausgabe-Kürzung gestartet war und der isolierte Lauf danach den Bericht überschrieb; belegt sind deshalb der rote und der grüne Ausgang, nicht die Abbruch-Stelle.",
+      "vermutung": "lastbedingt, und zwar dasselbe Muster, das 4T-1086 am 2026-08-19 eingestuft und gehärtet hat: Der Fall wartet nach dem Escape auf das geschlossene Kontextmenü statt auf eine feste Zeitspanne, was der Sache nach richtig ist. Unter der Eigenlast eines vollen Ablauf-Laufs reicht die Härtung offenbar noch nicht. Der Vorgang hatte den Fall nach seiner Behebung aus dieser Liste entfernt; der Wiedereintrag ist die Korrektur dieser Annahme, nicht ihr Widerspruch. Eigener Vorgang: 4T-1100 im Test-Pflege-Gefäß 3E-0156.",
       "status": "beobachtet"
     }
   ]

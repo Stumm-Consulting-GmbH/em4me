@@ -7,13 +7,19 @@
 // Zweiter Prüfgegenstand ist der Einmal-Schritt beim Start: Eine Installation
 // mit Nutzungsspuren gilt als Bestand und wird auf die bisherigen
 // Standard-Schemas festgeschrieben, damit die Umstellung sie nicht mitzieht.
+//
+// 4T-0644 (Epic 3E-0127): Genau weil hier ohne Vorbelegung gestartet wird,
+// erleben diese beiden Fälle als einzige den echten Erststart und damit die
+// automatisch anlaufende Produkt-Tour. Sie wird unmittelbar nach dem Start
+// geschlossen; den Merker mitzugeben verbietet sich, weil er die frische
+// Installation, die hier der Prüfgegenstand ist, gerade verfälschen würde.
 'use strict';
 
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, schliesseTour } = require('../helpers/app');
 const {
   BUILTIN_SCHEMES,
   DEFAULT_LIGHT_ID,
@@ -52,6 +58,9 @@ test.describe('VE-01: frische Installation', () => {
   test('startet englisch und in Bernstein', async () => {
     const { app, page, userData } = await launchApp({ settings: null });
     try {
+      // 4T-0644: echter Erststart, also läuft die Produkt-Tour an; wegräumen,
+      // bevor ihr Overlay die Prüfungen der Oberfläche verdeckt.
+      await schliesseTour(page);
       // Sprache: das Dokument trägt das Sprach-Kürzel der geladenen
       // Übersetzung, die Auswahl in der Fußzeile zeigt denselben Wert.
       await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('en');
@@ -85,6 +94,9 @@ test.describe('VE-02: bestehende Installation', () => {
     );
     const { app, page } = await launchApp({ userData, settings: null });
     try {
+      // 4T-0644: Ein vor der Tour angelegtes Profil kennt den Merker nicht,
+      // die Tour läuft also auch hier an.
+      await schliesseTour(page);
       // Kein inline gesetzter Akzent: Standard entspricht der Basis-Palette.
       await expect.poll(() => rootVar(page, '--accent')).toBe('');
       await expect

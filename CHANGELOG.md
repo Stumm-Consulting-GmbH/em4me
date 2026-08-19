@@ -14,6 +14,87 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.114.0.1663] - 2026-08-19 — Produkt-Tour und Demo-Ausbau
+
+Epic 3E-0127: Der Erstkontakt mit der Anwendung bekommt zwei Stützen. Eine
+geführte Tour zeigt in zehn Stationen am laufenden Programm, was die Anwendung
+von einem gewöhnlichen Editor unterscheidet, und läuft beim ersten Start von
+selbst an. Die mitgelieferte Beispiel-Sammlung wächst dafür zu einem Bestand
+heran, an dem sich die tragenden Konzepte wirklich erleben lassen: zwei
+Applikationen mit mehreren Fenstern und gruppierten Reitern und ein
+astronomischer Themenbereich, der die Unterseiten-Hierarchie über vier Stufen
+führt.
+
+Umsetzungs-Vorgänge des Epics: 4T-0644 und 4T-0645; Konzept-Stufe 4T-1089,
+Hilfe- und Handbuch-Vorgang 4T-1090, Release-Vorgang 4T-1091.
+
+### Neu
+
+- **Geführte Produkt-Tour** (4T-0644): Zehn Stationen führen durch die
+  tragenden Konzepte und zeigen dabei auf das jeweilige Bedienelement in der
+  laufenden Oberfläche, statt es nur zu beschreiben. Behandelt werden die
+  Ansichten, die Reiter samt Gruppen, die Seitenleisten-Bereiche, Fenster und
+  Applikationen, Bereiche, Unterseiten sowie Aufgaben und Abfragen. Eine eigene
+  Station erklärt die automatisch erzeugten Begleitdateien, also die
+  `.mdd`-Datei je Dokument und die `.mdda`-Dateien eines Bereichs, weil diese
+  im Dateisystem auftauchen, ohne dass jemand sie angelegt hat. Beim ersten
+  Programmstart läuft die Tour automatisch an und danach nur noch auf Aufruf;
+  abbrechen lässt sie sich jederzeit, und ein Abbruch zählt wie ein Abschluss.
+  Der Zugang liegt im Hilfe-Menü zwischen Handbuch und Über und ist zusätzlich
+  über die Kommando-Palette erreichbar. Die Tour ist fester Bestandteil des
+  Programms und über keinen Schalter zu entfernen.
+- **Ausgebaute Beispiel-Sammlung** (4T-0645): Die Demo-Area bringt jetzt einen
+  astronomischen Themenbereich mit, dessen Unterseiten über vier Stufen von der
+  Galaxie über den Stern und den Planeten bis zum Mond reichen; die Hierarchie
+  entsteht dabei allein über den Dateinamen und nicht über Ordner. Dazu kommen
+  Themenseiten zu Lichtgeschwindigkeit, Entfernungen und Alter, die
+  untereinander und in den Themenbereich verlinkt sind.
+- **Zwei mitgelieferte Arbeitsbereiche** (4T-0645): Das Anlegen der
+  Beispiel-Sammlung erzeugt zusätzlich zwei benannte Arbeitsbereiche, einen mit
+  zwei Fenstern und zwei farbigen Reiter-Gruppen zum Themenbereich und einen für
+  den Einstieg. Sie entstehen als Einträge unter «Datei → Arbeitsbereiche», ohne
+  sich von selbst zu öffnen; beim Anlegen geht allein der Bereich auf. Damit
+  zeigt die Sammlung auch die Fenster- und Gruppen-Ordnung, die sich in einem
+  einzelnen Ordner nicht darstellen ließe.
+
+### i18n
+
+- 26 neue Schlüssel je Sprachdatei für die Tour, in allen fünf
+  Sprachfassungen (4T-0644): zehn Stationen mit Titel und Text, die
+  Bedien-Beschriftungen, das Menü-Label und die Kommando-Beschreibung. Die
+  Anrede folgt je Sprache dem Bestand.
+- Drei Katalog-Einträge der Tour mit Beschreibung, Kurzname und Zugang, in
+  allen fünf Sprachfassungen (4T-1090), eingeordnet in die Gruppe «Allgemein»
+  direkt hinter dem Handbuch-Eintrag.
+
+### Dokumentation
+
+- Die Handbuch-Überblicksseite nennt die Tour in allen fünf Sprachfassungen
+  gleich hinter der Begrüßung (4T-1090), mit Anlauf beim ersten Start, erneutem
+  Start über das Menü und der Abgrenzung zum Handbuch. Eine eigene Themen-Seite
+  entsteht bewusst nicht, weil ihr Inhalt die Tour nacherzählte und mit ihr
+  altern würde.
+- Die Seite «Applikationen, Fenster und Bereiche» beschreibt in allen fünf
+  Sprachfassungen den Ausbau der Beispiel-Sammlung (4T-1090): die beiden
+  Arbeitsbereiche samt ihrer Reiter-Gruppen, ihr Entstehen ohne Selbst-Öffnen
+  und die vierstufige Unterseiten-Hierarchie. Der Katalog-Eintrag der Demo-Area
+  ist im selben Zug nachgezogen.
+
+### Intern
+
+- **Neue Bundle-Abhängigkeit `driver.js`** (Version 1.8.0, MIT-Lizenz) für die
+  überlagernden Hinweise der Tour (4T-0644). Ihr Stilblatt wird nach dem Muster
+  der KaTeX-Beigabe über einen eigenen Bau-Schritt kopiert statt gebündelt; ein
+  versioniertes Anpassungs-Blatt stellt die Popover auf die Farb-Token der
+  Anwendung um.
+- **Wächter über die Stations-Ziele** (4T-0644): Jede Anker-Kennung der Tour
+  wird in beide Richtungen gegen die Oberfläche geprüft, dazu die
+  Fünf-Sprachen-Vollständigkeit der Tour-Schlüssel. An Bedienelemente gebundene
+  Stationen brächen sonst bei einem Oberflächen-Umbau still. Ergänzend prüft ein
+  Wächter, dass jeder in der Zustands-Vorlage der Beispiel-Sammlung genannte
+  Pfad wirklich existiert (4T-0645), und ein zweiter löst jeden Wiki-Link der
+  Sammlung mit den Bestands-Helfern auf.
+
 ## [1.113.0.1639] - 2026-08-18 — Abfrage-Kontext und Sprach-Bausteine
 
 Epic 3E-0211: Eine Abfrage kann sich auf die Datei beziehen, in der sie steht,

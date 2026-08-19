@@ -816,6 +816,15 @@ function buildMenu(win, state, actions) {
           click: send('menu:openHelp'),
         },
         {
+          // 4T-0644 (Epic 3E-0127): geführte Produkt-Tour, manuell startbar
+          // direkt hinter dem Handbuch (beide Einstiege in die Erklärung der
+          // Anwendung); ohne Default-Kürzel, die Registry liefert ein in den
+          // Einstellungen belegtes Kürzel nach.
+          label: t('menu.help.tour'),
+          accelerator: acc('help.tour'),
+          click: send('menu:startTour'),
+        },
+        {
           label: t('menu.help.about'),
           click: send('menu:openAbout'),
         },

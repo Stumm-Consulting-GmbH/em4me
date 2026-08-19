@@ -6,6 +6,8 @@ _extended memory for me_
 
 Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder Bereich öffnet als eigener Tab und lässt sich wie jeder andere Tab verschieben, in die zweite Spalte legen oder neben der eigenen Arbeit offen halten.
 
+**Zum ersten Mal hier?** Die Produkt-Tour zeigt in zehn Stationen am laufenden Programm, was diese Anwendung ausmacht, und deutet dabei jeweils auf das Bedienelement, um das es geht. Beim ersten Programmstart läuft sie von selbst an, danach startet „Hilfe → Produkt-Tour“ sie erneut; abbrechen lässt sie sich jederzeit. Das Handbuch beantwortet die gezielten Fragen, die danach kommen.
+
 ## Nachschlagen
 
 - [Nutzen und Arbeitsweise](benefits.md) — wozu die Anwendung taugt: die Arbeitsformen vom Reiter bis zum Bücherregal und der Umfang der Markdown-Sprache.
