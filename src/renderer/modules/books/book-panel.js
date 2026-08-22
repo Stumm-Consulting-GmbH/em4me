@@ -1,4 +1,4 @@
-// 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel des Buches (Story S-0753).
+// 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel des Buches (Story 4S-0753).
 //
 // Zeigt den Kapitel-Baum des aktiven Buches in der erklärten Reihenfolge,
 // hebt das gerade gelesene Kapitel hervor und öffnet ein Kapitel per Klick.
@@ -238,7 +238,7 @@ function updateBookNavButtons(paneIdx) {
   if (els.bookNextBtn) els.bookNextBtn.disabled = navTarget(paneIdx, 1) === null;
 }
 
-// 4T-0846 (Story S-0755): Ein Schritt durch die Lese-Ordnung des aktiven
+// 4T-0846 (Story 4S-0755): Ein Schritt durch die Lese-Ordnung des aktiven
 // Buches. Am Anfang und am Ende gibt es KEINEN Umlauf, sondern eine
 // Rückmeldung in der Hinweis-Zeile (AK3) — ein stiller Nicht-Sprung ließe den
 // Anwender im Unklaren, ob das Kommando überhaupt ankam. Die Knöpfe im
@@ -284,7 +284,7 @@ export async function loadBookState() {
 // --- Sichtbarkeit, Toggle, Persistenz (Muster Suchergebnis-Panel) -------------
 
 export function getBookPanelVisible(paneIdx) {
-  // 4T-0849 (Story S-0758): Panel-Sichtbarkeit folgt dem Schalt-Zustand der
+  // 4T-0849 (Story 4S-0758): Panel-Sichtbarkeit folgt dem Schalt-Zustand der
   // Buecher-Erweiterung (Muster Uhr-Panel).
   return (
     isExtensionActive('books') && !!(state.bookPanel && state.bookPanel.visibleByPane[paneIdx])

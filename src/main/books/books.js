@@ -43,7 +43,7 @@ const {
 // verbotene Zeichen, Endung .md ergänzt). Eine zweite Fassung wäre eine
 // zweite Wahrheit über zulässige Dateinamen.
 //
-// 4T-0847 (Story S-0756): `isInsideArea` ist die eine Innerhalb-Prüfung der
+// 4T-0847 (Story 4S-0756): `isInsideArea` ist die eine Innerhalb-Prüfung der
 // Anwendung (der Ordner selbst zählt als innerhalb) und entscheidet hier über
 // die Buch-Ordner-Grenze des Verschiebe-Ziels; `isSamePath` vergleicht zwei
 // Pfade case-insensitiv wie das Windows-Dateisystem.
@@ -143,7 +143,7 @@ async function collectMarkdownPaths(bookDir) {
 // Lese-Ordnung sowie der Abgleich mit dem Datei-Bestand (nicht eingehängt,
 // fehlend). Fehler-Kennungen wie bei readBookSettings.
 //
-// 4T-0848 (Story S-0757): Dazu kommt `missingSuggestions` — je fehlendem
+// 4T-0848 (Story 4S-0757): Dazu kommt `missingSuggestions` — je fehlendem
 // Kapitel die namensgleichen Dateien an anderer Stelle des Buch-Ordners.
 // Bewusst hier und nicht als eigener Abruf je Zeile: der Datei-Bestand ist
 // für den Abgleich ohnehin schon eingelesen, ein zweiter Gang über die
@@ -245,13 +245,13 @@ async function createBook(parentDir, rawName) {
   return { ok: true, bookDir, bookFileName, bookFilePath };
 }
 
-// --- Struktur-Pflege (4T-0845, Story S-0754) ---------------------------------
+// --- Struktur-Pflege (4T-0845, Story 4S-0754) ---------------------------------
 //
 // Alle Struktur-Änderungen schreiben ausschließlich die Deklaration in der
 // Begleitdatei; keine Kapitel-Datei wird bewegt oder umbenannt (AK4, Epic-
 // Entscheidung 4). Die einzige Ausnahme ist createChapter, das genau eine
 // neue, leere Datei anlegt — das physische Verschieben und Umbenennen trägt
-// ein eigenes Kommando (Story S-0756).
+// ein eigenes Kommando (Story 4S-0756).
 
 // Schreibt den Container zurück. Bewusst ohne Zwischendatei: die Begleitdatei
 // ist klein, und ein halb geschriebener Container fiele beim nächsten Lesen
@@ -382,7 +382,7 @@ async function createChapter(bookDir, parentPath, rawName) {
   return { ok: true, relPath, path: target };
 }
 
-// --- Physisches Verschieben und Umbenennen (4T-0847, Story S-0756) -----------
+// --- Physisches Verschieben und Umbenennen (4T-0847, Story 4S-0756) -----------
 //
 // Bewegt wird die Datei NICHT hier: das übernimmt in main.js dieselbe Strecke
 // wie beim Umbenennen (Watcher-Umzug, Begleit-.mdd, offene Historien-Pakete,
@@ -520,7 +520,7 @@ async function planChapterFileMove(bookDir, relPath, targetDir) {
   return { ok: true, sourcePath, targetPath, newRelPath };
 }
 
-// --- Reparatur fehlender Kapitel (4T-0848, Story S-0757) ---------------------
+// --- Reparatur fehlender Kapitel (4T-0848, Story 4S-0757) ---------------------
 //
 // Ein Baum-Eintrag ohne Datei ist der Normalfall nach einer Änderung am
 // Dateisystem vorbei. Repariert wird ausschließlich die Deklaration: die

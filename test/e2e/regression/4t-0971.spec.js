@@ -1,5 +1,5 @@
 // 4T-0971 (Epic 3E-0207): Nachgestellte Fehlerfälle der letzten Auffang-Ebenen,
-// je Prozess-Seite einer (AK4 der Story S-0788).
+// je Prozess-Seite einer (AK4 der Story 4S-0788).
 //
 // AE-01 Renderer (Weg R2): Ein unbehandelter Fehler im Fenster wird
 //       protokolliert, der ungespeicherte Entwurf wandert in den

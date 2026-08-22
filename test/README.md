@@ -459,8 +459,17 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Kommandozeilen-Zugang `node scripts/gate-lauf.js <gate>` (oder `alle` für die
   volle Liste), der dasselbe Kommando fährt wie das gleichnamige Gate der
   Integration, dessen Rückgabewert unverändert weiterreicht und den Beleg
-  ebenso ablegt. Bei der Sitzung liegt die Sorgfalt nur noch dort, wo ein Lauf
-  ohne diesen Zugang gefahren wird.
+  ebenso ablegt. Seit dem 2026-08-20 ist dieser Zugang **Pflicht** für jeden
+  Lauf, dessen Ergebnis ein Befund sein kann — Suite-, Bau- und
+  Abnahme-Läufe, deren Ausgang berichtet wird oder eine Entscheidung trägt;
+  hand-gepipete `npm test`/`vitest`/`playwright`-Aufrufe entfallen dort, weil
+  jede Pipe eine Kürzung und damit einen Beleg-Verlust riskiert (Anlass:
+  BS-06-Beleg-Verlust vom 2026-08-19 durch `tail -40` **trotz** bestehender
+  Beleg-Pflicht — der Weg existierte, die Pflicht fehlte). Eine gekürzte
+  Betrachtung der Ausgabe ist zulässig, **nachdem** der ungekürzte Beleg
+  liegt; genau das garantiert der Zugang. Frei bleibt die schnelle
+  Entwicklungs-Iteration an einzelnen Prüfdateien, solange ihr Ausgang nicht
+  berichtet wird.
 
 - **Belege roter Gate-Läufe** (4T-0934, seit 4T-1087 auch für den Einzel-Lauf).
   Bricht ein Gate ab, gleich ob in der Merge-Queue oder über den
@@ -642,12 +651,12 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 
 | Klasse | Datei-Muster | Ausschnitt der Unit-Suite | E2E |
 |---|---|---|---|
-| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export`; kein Format, kein Lint | keine |
+| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
-| **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
-| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
-| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`; Format und Lint | Smoke plus EXE-Smoke-Test |
-| **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste); Format und Lint | keine |
+| **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`, dazu `doku-pfade`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
+| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
+| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`; Format und Lint | Smoke plus EXE-Smoke-Test |
+| **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste) und `doku-pfade`; Format und Lint | keine |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
 | **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst; Format und Lint | keine über die geänderte Spec hinaus |
 
@@ -905,4 +914,8 @@ direkt gegen den Git-Index. Die Parse-Logik teilt er sich mit
 Altbestand-Funde sind in `scripts/pm-lint-baseline.json` grandfathered; neue
 oder geänderte Dokumente, die eine Regel verletzen, stehen nicht in der Baseline
 und lassen den Lauf fehlschlagen. Je Regelgruppe belegt eine Negativ-Probe im
-Test, dass die Regel anschlägt.
+Test, dass die Regel anschlägt. Die Fälle der Hierarchie-Gruppe (E1/E2,
+E4 sowie das Regel-Paar E5/E6 um den Bearbeitungs-Zustand eines Bündels) liegen
+seit 4T-1104 in `test/unit/pm-hierarchie.test.js`, weil die Sammel-Datei am
+800-Zeilen-Budget stand; der Schnitt folgt der Modul-Naht des Linters aus
+4T-0973.

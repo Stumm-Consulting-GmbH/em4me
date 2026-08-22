@@ -323,7 +323,7 @@ function dateiReihenfolge(bekannt, ankerRel, aktivRel) {
   return ankerRel ? [ankerRel, ...rest] : rest;
 }
 
-// 4T-0949 (Befund E-02, Story S-0787): Der geschriebene Stand eines offenen
+// 4T-0949 (Befund E-02, Story 4S-0787): Der geschriebene Stand eines offenen
 // Dokuments, das nicht das aktive ist. Bis hierher kannte die Suche allein den
 // mitgeschickten Stand der aktiven Datei, waehrend jeder weitere Reiter, die
 // zweite Spalte und jedes andere Fenster im Stand ihrer letzten Speicherung

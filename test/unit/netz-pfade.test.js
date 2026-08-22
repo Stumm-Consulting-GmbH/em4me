@@ -1,4 +1,4 @@
-// 4T-0946 (Story S-0005, Befund B-12): Erkennung von Pfaden auf Netz-Freigaben.
+// 4T-0946 (Story 4S-0005, Befund B-12): Erkennung von Pfaden auf Netz-Freigaben.
 //
 // Beide Zugangswege gehoeren geprueft: Der UNC-Pfad verraet sich am Praefix,
 // das gemappte Laufwerk nur ueber seine Laufwerksart. Eine Erkennung, die

@@ -67,7 +67,7 @@ describe('Ansichts-Klassen: eine Quelle (4T-1054)', () => {
 
 describe('Ansichts-Schaltflächen der Statusleiste (4T-1055)', () => {
   // **Anlass.** Der Mindmap-Modus kam in 4T-1047 in Menü und Befehlspalette
-  // an, nicht aber in die Statusleiste, obwohl Story S-0804 (AK1) alle drei
+  // an, nicht aber in die Statusleiste, obwohl Story 4S-0804 (AK1) alle drei
   // Wege verlangt. Der Befund fiel erst beim Struktur-Prüfschritt des
   // Hilfe-Tasks auf. Dieser Wächter hält Schaltflächen-Satz und Modus-Liste
   // zusammen, damit ein weiterer Modus nicht wieder ohne Schaltfläche bleibt.

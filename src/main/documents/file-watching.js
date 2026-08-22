@@ -36,7 +36,7 @@ function createFileWatching(deps) {
   function watchFile(filePath, ownerId) {
     let entry = watchers.get(filePath);
     if (!entry) {
-      // 4T-0946 (Story S-0005): Auf Netz-Freigaben kommen die nativen
+      // 4T-0946 (Story 4S-0005): Auf Netz-Freigaben kommen die nativen
       // Datei-Ereignisse unzuverlaessig; dort laeuft die Beobachtung im
       // Abfrage-Betrieb. Lokale Pfade behalten die nativen Ereignisse.
       const watcher = chokidar.watch(filePath, {

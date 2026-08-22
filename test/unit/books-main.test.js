@@ -1,6 +1,6 @@
 // 4T-0843 (Epic 3E-0147): Unit-Tests der Datei-Ebene des Buches
 // (src/main/books/books.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
-// (Story S-0752, AK2 und AK5), Zustands-Aufbau für die Preload-API,
+// (Story 4S-0752, AK2 und AK5), Zustands-Aufbau für die Preload-API,
 // Namens-Prüfung und Neuanlage (AK3). Setup-Muster der benachbarten
 // Main-Tests (test/unit/demo-area.test.js: mkdtemp je Fall, Aufräumen im
 // afterEach).
@@ -255,7 +255,7 @@ describe('createBook (4T-0843)', () => {
   });
 });
 
-// --- 4T-0845 (Story S-0754): Struktur-Pflege ---------------------------------
+// --- 4T-0845 (Story 4S-0754): Struktur-Pflege ---------------------------------
 
 // Kapitel-Baum aus der Begleitdatei eines Buch-Ordners lesen.
 function leseBaum(dir) {
@@ -498,7 +498,7 @@ describe('createChapter (4T-0845)', () => {
   });
 });
 
-// --- 4T-0847 (Story S-0756): Verschieben und Umbenennen mit Nachführung ------
+// --- 4T-0847 (Story 4S-0756): Verschieben und Umbenennen mit Nachführung ------
 
 // Buch mit vorhandenen Kapitel-Dateien (der Verschiebe-Weg fasst echte
 // Dateien an, nicht nur die Deklaration).
@@ -723,7 +723,7 @@ describe('planChapterFileMove (4T-0847)', () => {
   });
 });
 
-// --- 4T-0848 (Story S-0757): Reparatur fehlender Kapitel ---------------------
+// --- 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel ---------------------
 
 // Buch, dessen Kapitel „Teil 1/Hafen.md" deklariert, aber nicht vorhanden ist;
 // die namensgleiche Datei liegt an anderer Stelle des Buch-Ordners (der Fall

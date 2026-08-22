@@ -1,4 +1,4 @@
-// 4T-0941 (Story S-0455): Die generierte Funktions-Seite kennzeichnet die
+// 4T-0941 (Story 4S-0455): Die generierte Funktions-Seite kennzeichnet die
 // Einträge abgeschalteter Erweiterungen, statt sie wegzulassen.
 //
 // Beide Richtungen stehen hier, weil eine einseitige Prüfung nichts wert wäre:

@@ -1,5 +1,5 @@
-// Verschieben einer Kapitel-Datei (4T-0847, Story S-0756) und Reparatur eines
-// deklarierten Kapitels ohne Datei (4T-0848, Story S-0757).
+// Verschieben einer Kapitel-Datei (4T-0847, Story 4S-0756) und Reparatur eines
+// deklarierten Kapitels ohne Datei (4T-0848, Story 4S-0757).
 // 4T-0980 (Epic 3E-0196): aus modules/books/book-panel.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert). Beide Wege eint, dass sie
 // am Bestand der Dateien ansetzen und nicht an der Baum-Ordnung; die
@@ -14,7 +14,7 @@ import { showStatusbarHint } from '../views/views.js';
 import { pathKey } from './book-helpers.js';
 import { activeBook, activeChapter, booksApi } from './book-state.js';
 
-// --- Kapitel-Datei verschieben (4T-0847, Story S-0756) ------------------------
+// --- Kapitel-Datei verschieben (4T-0847, Story 4S-0756) ------------------------
 
 // Fehler-Kennungen des Verschiebe-Weges, die eine eigene Erklärung verdienen;
 // alles Übrige fällt auf den allgemeinen Hinweis zurück. Übersetzt wird erst
@@ -65,7 +65,7 @@ export function moveActiveChapterFile(paneIdx) {
   void moveChapterFile(relPath);
 }
 
-// --- Reparatur fehlender Kapitel (4T-0848, Story S-0757) ----------------------
+// --- Reparatur fehlender Kapitel (4T-0848, Story 4S-0757) ----------------------
 //
 // Ein Baum-Eintrag ohne Datei ist markiert (AK1) und trägt am Kontextmenü zwei
 // Wege: „neu zuordnen" und „aushängen" (AK2). Nichts davon geschieht von

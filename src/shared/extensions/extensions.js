@@ -390,7 +390,7 @@ const INTERNAL_EXTENSIONS = [
     commands: ['file.bookmarkAdd', 'view.toggleBookmarks'],
   },
   // 4T-0849 (Epic 3E-0147): Bücher als schaltbare Werkzeug-Erweiterung
-  // (Entscheidung 7 des Konzept-Protokolls vom 2026-08-03, Story S-0758).
+  // (Entscheidung 7 des Konzept-Protokolls vom 2026-08-03, Story 4S-0758).
   // Ab Werk eingeschaltet wie jede interne Erweiterung (Default ist die leere
   // Disabled-Liste). Direkt hinter den Lesezeichen, weil beide eine Ordnung
   // über bestehenden Dateien führen und ihr Panel zur selben Gruppe der
@@ -405,7 +405,7 @@ const INTERNAL_EXTENSIONS = [
   // Erweiterungs-Gate des Panel-Zugangs-Modells (extensionId 'books' in
   // panel-access.js) zusätzlich Statusbar-Button und Untermenü-Eintrag des
   // Inhaltsverzeichnisses, und im Main die Buch-Erkennung beim Öffnen —
-  // Buch-Dateien öffnen dann wie gewöhnliche Markdown-Dateien (Story S-0758,
+  // Buch-Dateien öffnen dann wie gewöhnliche Markdown-Dateien (Story 4S-0758,
   // AK2). Ohne settingsSections: einen eigenen Einstellungs-Bereich hat die
   // Erweiterung nicht. Daten-neutral: Buch-Datei, Begleitdatei und Kapitel
   // bleiben unangetastet, das Wieder-Einschalten bringt den Stand unverändert

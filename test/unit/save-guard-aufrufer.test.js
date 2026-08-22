@@ -1,4 +1,4 @@
-// 4T-0945 (Story S-0786): Waechter ueber die Schreibwege des Renderers.
+// 4T-0945 (Story 4S-0786): Waechter ueber die Schreibwege des Renderers.
 //
 // Der Vertrag von file:save ist rueckwaertsvertraeglich: Ohne `expected`
 // schreibt der Haupt-Prozess wie zuvor. Das haelt Aufrufer entkoppelt, macht

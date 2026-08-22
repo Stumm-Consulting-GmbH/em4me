@@ -27,7 +27,7 @@ export function isMindmapModeAvailable() {
 /**
  * Rückfall-Modus für einen gespeicherten Reiter. Ohne ihn trüge ein
  * wiederhergestellter Reiter einen Modus, den es nicht mehr gibt, und seine
- * Pane bliebe leer (Story S-0804, AK7).
+ * Pane bliebe leer (Story 4S-0804, AK7).
  */
 export function resolveViewModeForTab(mode) {
   if (mode === 'mindmap' && !isMindmapModeAvailable()) return 'rendered';

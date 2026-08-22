@@ -97,7 +97,7 @@ function createMddHistory(deps) {
   // Datei-Stand vor dem Ueberschreiben (Basis des Deltas und Eingang des
   // Hash-Abgleichs), BOM-/LF-normalisiert symmetrisch zu file:read.
   // null = Datei existiert noch nicht (neues Dokument).
-  // 4T-0945 (Story S-0786): Der Lesevorgang liegt jetzt im save-guard-Modul,
+  // 4T-0945 (Story 4S-0786): Der Lesevorgang liegt jetzt im save-guard-Modul,
   // weil Stand lesen und Stand vergleichen dieselbe Sache sind. Hier bleibt der
   // Rueckfall auf null fuer die Historien-Aufrufer, die keinen Fehler brauchen.
   async function readPreviousTextFor(absolute) {

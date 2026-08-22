@@ -67,7 +67,7 @@ let hintTimer = null;
 export function setViewMode(mode) {
   // 4T-1047 (Epic 3E-0151): 'mindmap' als fuenfter Modus. Ist die
   // Erweiterung aus, faellt er auf die Lese-Ansicht zurueck, statt eine
-  // leere Pane zu zeigen (Story S-0804, AK7).
+  // leere Pane zu zeigen (Story 4S-0804, AK7).
   const gewuenscht = resolveViewModeForTab(mode);
   // 4T-1054: Die Modus-Liste kommt aus view-modes.js, nicht als sechste
   // Kopie hierher.
@@ -274,7 +274,7 @@ export async function performAutoSave() {
         // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder auch im Autosave-Pfad.
         await stampTabTimestamps(p, i, tab);
         // W-02 (4T-0309): {ok,error}-Vertrag — Fehler ueber den catch.
-        // 4T-0945 (Story S-0786): auch im Hintergrund wird der Stand geprueft.
+        // 4T-0945 (Story 4S-0786): auch im Hintergrund wird der Stand geprueft.
         // Eine im Nachlade-Dialog getroffene Entscheidung gilt hier ebenso:
         // Sie ist gefallen, das Hintergrund-Speichern setzt sie um und sichert
         // die ueberschriebene Fassung, statt den Reiter auszusetzen.

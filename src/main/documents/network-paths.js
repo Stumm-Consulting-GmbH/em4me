@@ -1,11 +1,11 @@
-// 4T-0946 (Story S-0005, Befund B-12): Erkennung von Pfaden auf Netz-Freigaben.
+// 4T-0946 (Story 4S-0005, Befund B-12): Erkennung von Pfaden auf Netz-Freigaben.
 //
 // Warum das noetig ist: Die Datei-Beobachtung stuetzt sich auf die nativen
 // Ereignisse des Betriebssystems. Auf SMB-Freigaben kommen die unzuverlaessig,
 // und zwar nicht «nie», sondern «mal ja, mal nein» — in Messreihen am
 // 2026-08-08 und 2026-08-10 blieb eine fremde Aenderung teils auch nach zwoelf
 // Sekunden unbemerkt, in anderen Laeufen desselben Aufbaus kam sie nach rund
-// 280 ms. Genau diese Unbestimmtheit macht die Zusage von S-0005 wertlos, denn
+// 280 ms. Genau diese Unbestimmtheit macht die Zusage von 4S-0005 wertlos, denn
 // eine Zusage, die manchmal gilt, ist keine. Der Abfrage-Betrieb macht das
 // Verhalten deterministisch; er kostet dafuer Dauerlast und wird deshalb nur
 // dort eingeschaltet, wo er gebraucht wird.

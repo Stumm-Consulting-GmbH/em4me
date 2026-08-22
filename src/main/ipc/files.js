@@ -191,7 +191,7 @@ function registerFilesIpc(handle, deps) {
 
   // Datei speichern (Inhalt nach UTF-8/LF, kein BOM). Markiert den Pfad als
   // Eigen-Schreibvorgang, damit der Watcher nicht meldet.
-  // 4T-0945 (Story S-0786): opts = { expected, force }. Die beiden Angaben
+  // 4T-0945 (Story 4S-0786): opts = { expected, force }. Die beiden Angaben
   // sind unabhaengig und lassen sich kombinieren:
   //   `expected` — Stand, den der Aufrufer zuletzt gelesen oder geschrieben
   //     hat. Weicht die Datei davon ab, wird NICHT geschrieben, sondern der

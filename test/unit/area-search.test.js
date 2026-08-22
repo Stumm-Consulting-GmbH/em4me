@@ -286,7 +286,7 @@ describe('Bereichs-Suchraum, Cache', () => {
   });
 });
 
-// 4T-0949 (Befund E-02, Story S-0787): Der geschriebene Stand eines offenen
+// 4T-0949 (Befund E-02, Story 4S-0787): Der geschriebene Stand eines offenen
 // Dokuments, das nicht das aktive ist. Der Renderer schickt nur den Stand der
 // aktiven Datei mit; jedes andere offene Dokument kam bis hierher von der
 // Platte. Gemessen wird gegen die Puffer-Overlay-Schicht des Hauptprozesses.

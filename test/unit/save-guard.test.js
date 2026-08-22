@@ -1,4 +1,4 @@
-// 4T-0945 (Story S-0786, Befund B-12): Stand-Pruefung vor dem Ueberschreiben.
+// 4T-0945 (Story 4S-0786, Befund B-12): Stand-Pruefung vor dem Ueberschreiben.
 //
 // Der Vergleich entscheidet ueber Datenverlust in beide Richtungen: Uebersieht
 // er eine Abweichung, geht die fremde Aenderung verloren; meldet er eine, wo

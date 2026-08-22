@@ -149,7 +149,7 @@ export function destroyMindmap(paneIdx) {
 }
 
 // 4T-1048 (Epic 3E-0151): Eine geänderte Voreinstellung wirkt ohne Neustart
-// auf offene Karten (Story S-0805, AK5). Das Ereignis kommt aus
+// auf offene Karten (Story 4S-0805, AK5). Das Ereignis kommt aus
 // mindmap-einstellungen.js, sobald der Nutzer den Bereich anwendet.
 document.addEventListener('scg:mindmap-optionen-changed', () => {
   for (let paneIdx = 0; paneIdx < state.panes.length; paneIdx++) renderMindmap(paneIdx);

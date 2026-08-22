@@ -1733,7 +1733,7 @@
         "test/unit/render/extensions-aus.test.js",
         "test/unit/panel-access.test.js"
       ],
-      "hinweis": "4T-0842 bis 4T-0849 (Epic 3E-0147, Stories S-0751 bis S-0758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE."
+      "hinweis": "4T-0842 bis 4T-0849 (Epic 3E-0147, Stories 4S-0751 bis 4S-0758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE."
     },
     {
       "key": "help.feature.bookToc",
@@ -1745,7 +1745,7 @@
         "test/unit/book-core.test.js",
         "test/unit/panel-access.test.js"
       ],
-      "hinweis": "4T-0844 (Epic 3E-0147, Story S-0753): Inhaltsverzeichnis-Panel — BU-02 (Baum in Lese-Reihenfolge samt Einrückung, Abschnitt 'nicht eingehängt') und BU-03 (Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert mit). Der Aufbau der Zeilen ist zusätzlich gegen einen gemockten Buch-Zustand unit-getestet (Markierung eines fehlenden Kapitels, Leer-Zustände), der Abgleich Deklaration gegen Datei-Bestand im Kern-Modul (diffChapterFiles: die Buch-Datei erscheint nie als nicht eingehängt); die beiden Panel-Zugänge deckt der Paritäts-Wächter."
+      "hinweis": "4T-0844 (Epic 3E-0147, Story 4S-0753): Inhaltsverzeichnis-Panel — BU-02 (Baum in Lese-Reihenfolge samt Einrückung, Abschnitt 'nicht eingehängt') und BU-03 (Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert mit). Der Aufbau der Zeilen ist zusätzlich gegen einen gemockten Buch-Zustand unit-getestet (Markierung eines fehlenden Kapitels, Leer-Zustände), der Abgleich Deklaration gegen Datei-Bestand im Kern-Modul (diffChapterFiles: die Buch-Datei erscheint nie als nicht eingehängt); die beiden Panel-Zugänge deckt der Paritäts-Wächter."
     },
     {
       "key": "help.feature.bookStructure",
@@ -1757,7 +1757,7 @@
         "test/unit/book-core.test.js",
         "test/unit/books-main.test.js"
       ],
-      "hinweis": "4T-0845 (Epic 3E-0147, Story S-0754): Struktur-Pflege im Inhaltsverzeichnis — BU-05 (Baum-Operation und Tastatur-Geste, Panel und Begleitdatei ziehen nach, keine Datei bewegt sich). Zusätzlich unit-getestet: die Ziel-Berechnung der Ablage (Drittelung der Zeile, Index nach dem Aushängen, gesperrter eigener Unterbaum), die Alt-Pfeil-Gesten am fokussierten Eintrag und das Kontextmenü (Neues Kapitel, Einhängen, Aushängen) sind gegen die gemockte Brücke unit-getestet, die Baum-Operationen selbst im Kern-Modul (einhängen, aushängen, umsortieren, ein- und ausrücken samt Zyklus-Abwehr) und die Schreib-Strecke am Temp-Ordner (applyTreeOp, createChapter)."
+      "hinweis": "4T-0845 (Epic 3E-0147, Story 4S-0754): Struktur-Pflege im Inhaltsverzeichnis — BU-05 (Baum-Operation und Tastatur-Geste, Panel und Begleitdatei ziehen nach, keine Datei bewegt sich). Zusätzlich unit-getestet: die Ziel-Berechnung der Ablage (Drittelung der Zeile, Index nach dem Aushängen, gesperrter eigener Unterbaum), die Alt-Pfeil-Gesten am fokussierten Eintrag und das Kontextmenü (Neues Kapitel, Einhängen, Aushängen) sind gegen die gemockte Brücke unit-getestet, die Baum-Operationen selbst im Kern-Modul (einhängen, aushängen, umsortieren, ein- und ausrücken samt Zyklus-Abwehr) und die Schreib-Strecke am Temp-Ordner (applyTreeOp, createChapter)."
     },
     {
       "key": "help.feature.bookReading",
@@ -1768,7 +1768,7 @@
         "test/unit/renderer/book-panel.test.js",
         "test/unit/book-core.test.js"
       ],
-      "hinweis": "4T-0846 (Epic 3E-0147, Story S-0755): Leseführung über Kapitel-Grenzen — BU-04 (die Führung folgt der Baum-Ordnung über Ordner-Grenzen, am Ende Rückmeldung statt Umlauf). Die Lese-Ordnung ist zusätzlich im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel in beide Richtungen, kein Umlauf an den Enden, Hinweis-Zeile an der Grenze, abgeschaltete Kopf-Schaltflächen, nicht eingehängte Dateien außerhalb der Führung."
+      "hinweis": "4T-0846 (Epic 3E-0147, Story 4S-0755): Leseführung über Kapitel-Grenzen — BU-04 (die Führung folgt der Baum-Ordnung über Ordner-Grenzen, am Ende Rückmeldung statt Umlauf). Die Lese-Ordnung ist zusätzlich im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel in beide Richtungen, kein Umlauf an den Enden, Hinweis-Zeile an der Grenze, abgeschaltete Kopf-Schaltflächen, nicht eingehängte Dateien außerhalb der Führung."
     },
     {
       "key": "help.feature.bookMoveFile",
@@ -1779,7 +1779,7 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js"
       ],
-      "hinweis": "4T-0847 (Epic 3E-0147, Story S-0756): Kapitel-Datei verschieben mit Nachführung — BU-06 (Baum-Eintrag und eingehende Links einer dritten Datei ziehen nach). Zusätzlich unit-getestet: Planung samt Grenz- und Kollisions-Prüfung (Ziel im Buch-Ordner, belegter Name, Buch-Datei selbst) und die Nachführung der Deklaration (Aufwärts-Suche nach dem Buch, Baum-Position und Unterbaum bleiben) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog und die Verweis-Nachführung im Verbund sind manueller Test."
+      "hinweis": "4T-0847 (Epic 3E-0147, Story 4S-0756): Kapitel-Datei verschieben mit Nachführung — BU-06 (Baum-Eintrag und eingehende Links einer dritten Datei ziehen nach). Zusätzlich unit-getestet: Planung samt Grenz- und Kollisions-Prüfung (Ziel im Buch-Ordner, belegter Name, Buch-Datei selbst) und die Nachführung der Deklaration (Aufwärts-Suche nach dem Buch, Baum-Position und Unterbaum bleiben) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog und die Verweis-Nachführung im Verbund sind manueller Test."
     },
     {
       "key": "help.feature.bookRepair",
@@ -1790,7 +1790,7 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js"
       ],
-      "hinweis": "4T-0848 (Epic 3E-0147, Story S-0757): Reparatur fehlender Kapitel — BU-07 (ein am Dateisystem umbenanntes Kapitel wird als fehlend markiert, die Neu-Zuordnung heilt den Baum). Zusätzlich unit-getestet: die Wiederfinde-Vorschläge (namensgleiche Dateien im Buch-Ordner, Beilage am Zustands-Paket) und die Zuordnung samt Grenzen (außerhalb des Buch-Ordners, unbekannte Datei, bereits eingehängt, Buch-Datei) sind am Temp-Ordner unit-getestet, die Auswahl unter der Zeile und das Kontextmenü gegen die gemockte Brücke: Vorschlag nur vorbelegt und nie von selbst ausgeführt, Datei-Wahl als zweiter Weg, Aushängen als Ausweg."
+      "hinweis": "4T-0848 (Epic 3E-0147, Story 4S-0757): Reparatur fehlender Kapitel — BU-07 (ein am Dateisystem umbenanntes Kapitel wird als fehlend markiert, die Neu-Zuordnung heilt den Baum). Zusätzlich unit-getestet: die Wiederfinde-Vorschläge (namensgleiche Dateien im Buch-Ordner, Beilage am Zustands-Paket) und die Zuordnung samt Grenzen (außerhalb des Buch-Ordners, unbekannte Datei, bereits eingehängt, Buch-Datei) sind am Temp-Ordner unit-getestet, die Auswahl unter der Zeile und das Kontextmenü gegen die gemockte Brücke: Vorschlag nur vorbelegt und nie von selbst ausgeführt, Datei-Wahl als zweiter Weg, Aushängen als Ausweg."
     },
     {
       "key": "help.feature.fonts",
@@ -2484,7 +2484,7 @@
         "test/unit/renderer/book-panel.test.js",
         "test/unit/book-core.test.js"
       ],
-      "hinweis": "4T-0846 (Epic 3E-0147, Story S-0755): Leseführung vorwärts über Kapitel-Grenzen — die Lese-Ordnung selbst ist im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel, kein Umlauf am Ende, Hinweis-Zeile an der Grenze, nicht eingehängte Dateien außerhalb der Führung."
+      "hinweis": "4T-0846 (Epic 3E-0147, Story 4S-0755): Leseführung vorwärts über Kapitel-Grenzen — die Lese-Ordnung selbst ist im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel, kein Umlauf am Ende, Hinweis-Zeile an der Grenze, nicht eingehängte Dateien außerhalb der Führung."
     },
     {
       "key": "help.shortcut.previousChapter",
@@ -2495,7 +2495,7 @@
         "test/unit/renderer/book-panel.test.js",
         "test/unit/book-core.test.js"
       ],
-      "hinweis": "4T-0846 (Epic 3E-0147, Story S-0755): Gegenrichtung derselben Leseführung — geprüft werden dieselben Wege rückwärts, insbesondere die Grenze am Anfang des Buches (Hinweis statt Sprung ans Ende) und der Fall ohne gelesenes Kapitel."
+      "hinweis": "4T-0846 (Epic 3E-0147, Story 4S-0755): Gegenrichtung derselben Leseführung — geprüft werden dieselben Wege rückwärts, insbesondere die Grenze am Anfang des Buches (Hinweis statt Sprung ans Ende) und der Fall ohne gelesenes Kapitel."
     },
     {
       "key": "help.shortcut.moveChapterFile",
@@ -2506,7 +2506,7 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js"
       ],
-      "hinweis": "4T-0847 (Epic 3E-0147, Story S-0756): physisches Verschieben einer Kapitel-Datei — die Planung samt Grenz- und Kollisions-Prüfung und die Nachführung der Begleitdatei (Aufwärts-Suche, Baum-Position bleibt) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog ist manueller Test."
+      "hinweis": "4T-0847 (Epic 3E-0147, Story 4S-0756): physisches Verschieben einer Kapitel-Datei — die Planung samt Grenz- und Kollisions-Prüfung und die Nachführung der Begleitdatei (Aufwärts-Suche, Baum-Position bleibt) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog ist manueller Test."
     },
     {
       "key": "help.shortcut.exportPortable",

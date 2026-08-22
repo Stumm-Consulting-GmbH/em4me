@@ -18,7 +18,7 @@
 // gerechnet; die Kompaktheit, die ein Kontur-Verfahren zusätzlich kauft, ist
 // bei breiten Text-Knoten gering und kostet eine eigene Fehlerklasse.
 //
-// Wurzel-Lage (4T-1049, Story S-0806): Alle fünf Lagen sind **dieselbe**
+// Wurzel-Lage (4T-1049, Story 4S-0806): Alle fünf Lagen sind **dieselbe**
 // Rechnung. Sie läuft in achsenfreien Koordinaten (Tiefe und Stapel), und erst
 // die Abbildung entscheidet, welche Bildschirm-Achse welche Rolle übernimmt
 // und ob sie gespiegelt wird. Die mittige Lage rechnet dieselbe Anordnung
@@ -70,7 +70,7 @@ function masseSchaetzen(knoten, v) {
 // sitzt, nicht wohin der Baum wächst; die Wuchsrichtung ist die Gegenrichtung
 // (Lage «links» heißt: Wurzel links, Äste nach rechts). Ein unbekannter Wert
 // fällt auf «links» zurück, weil die Ansicht lieber ein anderes als gar kein
-// Bild zeigt (Story S-0806, AK7).
+// Bild zeigt (Story 4S-0806, AK7).
 function istSenkrecht(lage) {
   return lage === 'oben' || lage === 'unten';
 }
@@ -94,7 +94,7 @@ function blattZahl(knoten) {
  * (rechte) Seite, der Rest auf die linke. Die Schnittstelle ist die, bei der
  * sich die Blatt-Zahlen beider Seiten am wenigsten unterscheiden; bei
  * Gleichstand bekommt die vordere Seite den größeren Anteil, und die vordere
- * Gruppe ist nie leer (Story S-0806, AK8).
+ * Gruppe ist nie leer (Story 4S-0806, AK8).
  *
  * Gewogen wird in Blättern und nicht in gemessenen Pixeln: So hängt das Bild
  * nicht an Schriftart und Messumgebung, und dasselbe Dokument ergibt stets
@@ -308,7 +308,7 @@ function layoutMitte(root, v, messen) {
 }
 
 /**
- * Rechnet Positionen für eine der fünf Wurzel-Lagen (Story S-0806).
+ * Rechnet Positionen für eine der fünf Wurzel-Lagen (Story 4S-0806).
  *
  * Blatt-Stapel-Verfahren: Blätter in Dokument-Reihenfolge gestapelt, innere
  * Knoten auf der Mitte ihrer Kinder. Überlappungsfrei per Konstruktion und

@@ -55,7 +55,7 @@ export function missingKeys(book) {
   return new Set(list.map(pathKey));
 }
 
-// 4T-0848 (Story S-0757): Wiederfinde-Vorschläge eines fehlenden Kapitels aus
+// 4T-0848 (Story 4S-0757): Wiederfinde-Vorschläge eines fehlenden Kapitels aus
 // dem gemeldeten Zustand — namensgleiche Dateien an anderer Stelle des
 // Buch-Ordners. Der Main-Prozess legt sie dem Zustands-Paket bei (er hat den
 // Datei-Bestand für den Abgleich ohnehin gelesen); Kapitel ohne Fund fehlen in

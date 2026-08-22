@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // 4T-1047 (Epic 3E-0151): Verfuegbarkeit des Mindmap-Modus — geprueft wird
 // der Rückfall des gespeicherten Ansichts-Modus bei ausgeschalteter
-// Erweiterung (Story S-0804, AK7). Ohne ihn trüge ein wiederhergestellter
+// Erweiterung (Story 4S-0804, AK7). Ohne ihn trüge ein wiederhergestellter
 // Reiter einen Modus, den es nicht mehr gibt, und seine Pane bliebe leer.
 //
 // Die Nachbar-Module sind gemockt, weil die Pane-Einbettung sonst den halben

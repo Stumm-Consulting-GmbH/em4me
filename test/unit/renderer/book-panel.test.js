@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 4T-0844 (Epic 3E-0147): Unit-Tests des Inhaltsverzeichnis-Panels (Story
-// S-0753). Geprüft werden die reinen Helfer (Pfad-Zuordnung des gelesenen
+// 4S-0753). Geprüft werden die reinen Helfer (Pfad-Zuordnung des gelesenen
 // Kapitels, Schrittweite der Leseführung, Beschriftung) und das Rendering
 // gegen einen gemockten Buch-Zustand: Baum in erklärter Reihenfolge,
 // Hervorhebung des gelesenen Kapitels, Anfasser-Marker an jedem Eintrag,
@@ -380,7 +380,7 @@ describe('Lesefuehrung im Panel-Kopf (4T-0844)', () => {
   });
 });
 
-// --- 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen --------------
+// --- 4T-0846 (Story 4S-0755): Leseführung über Kapitel-Grenzen --------------
 
 describe('Leseführung über Kapitel-Grenzen (4T-0846)', () => {
   it('AK1: der Schritt folgt der Lese-Ordnung über Datei- und Ebenen-Grenzen', () => {
@@ -431,7 +431,7 @@ describe('Leseführung über Kapitel-Grenzen (4T-0846)', () => {
   });
 });
 
-// --- 4T-0847 (Story S-0756): Kapitel-Datei verschieben -----------------------
+// --- 4T-0847 (Story 4S-0756): Kapitel-Datei verschieben -----------------------
 
 describe('Kapitel-Datei verschieben (4T-0847)', () => {
   it('das Kontextmenü trägt den Eintrag auf Kapitel- und auf losen Zeilen', () => {
@@ -513,7 +513,7 @@ describe('Kapitel-Datei verschieben (4T-0847)', () => {
   });
 });
 
-// --- 4T-0845 (Story S-0754): Struktur-Pflege ---------------------------------
+// --- 4T-0845 (Story 4S-0754): Struktur-Pflege ---------------------------------
 
 const BAUM = buchStand().active.tree;
 
@@ -750,7 +750,7 @@ describe('Kontextmenü des Inhaltsverzeichnisses (4T-0845)', () => {
   });
 });
 
-// --- 4T-0848 (Story S-0757): Reparatur fehlender Kapitel ---------------------
+// --- 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel ---------------------
 
 const zuordnung = () => pane0.querySelector('.book-reassign');
 const zuordnungsOptionen = () => [...pane0.querySelectorAll('.book-reassign-option')];

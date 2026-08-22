@@ -1,6 +1,6 @@
 // 4T-0867 (Epic 3E-0162): Unit-Tests der Datei-Ebene des Bücherregals
 // (src/main/books/shelves.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
-// (Story S-0760, AK2), Zustands-Aufbau für die Preload-API, Neuanlage (AK3)
+// (Story 4S-0760, AK2), Zustands-Aufbau für die Preload-API, Neuanlage (AK3)
 // und Zuordnung samt «nicht zugeordnet» (AK4). Setup-Muster
 // test/unit/books-main.test.js (mkdtemp je Fall, Aufräumen im afterEach).
 import { afterEach, describe, expect, it } from 'vitest';
@@ -166,7 +166,7 @@ describe('shelves: Neuanlage (AK3)', () => {
   });
 });
 
-// 4T-0868 (Story S-0761): Anzeige-Daten der Regal-Ansicht.
+// 4T-0868 (Story 4S-0761): Anzeige-Daten der Regal-Ansicht.
 describe('shelves: Ansichts-Daten (4T-0868)', () => {
   it('liefert Titel, Autor, Beschreibung, Bild und Kapitel-Anzahl je Buch', async () => {
     const parent = makeTempDir();

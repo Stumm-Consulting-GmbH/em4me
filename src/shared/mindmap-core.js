@@ -96,7 +96,7 @@ function buildMindmapTree(tokens, opts = {}) {
 
   // Überschriften erster Ebene zählen: Genau eine wird selbst zur Wurzel,
   // sonst trägt der Dateiname die Wurzel und alle H1 werden ihre Kinder
-  // (Wurzel-Regel der Story S-0802, AK5).
+  // (Wurzel-Regel der Story 4S-0802, AK5).
   const h1Zahl = liste.filter((t) => t.type === 'heading_open' && t.tag === 'h1').length;
   const h1IstWurzel = h1Zahl === 1;
 
@@ -280,7 +280,7 @@ function mindmapAusMarkdown(text, md, opts = {}) {
  *
  * Trennt den Kopfbereich ab und verrechnet seinen Zeilen-Umfang als Versatz,
  * damit die Quellzeile eines Knotens auf die echte Datei zeigt und nicht auf
- * den Rumpf (Story S-0802, AK6). Die Rechnung liegt hier statt in der
+ * den Rumpf (Story 4S-0802, AK6). Die Rechnung liegt hier statt in der
  * Preload-Brücke, weil sie so unmittelbar geprüft wird statt im Test nur
  * nachgebildet zu werden.
  *

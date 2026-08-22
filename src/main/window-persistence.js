@@ -111,11 +111,11 @@ function createWindowPersistence(deps) {
     if (winEntries.length === 0) return null;
     const area = appRegistry.getArea(appId);
     // 4T-0843 (Epic 3E-0147): aktives Buch der App mitfuehren, damit die
-    // Sitzungs-Wiederherstellung es zurueckbringt (Story S-0752, AK4). Das
+    // Sitzungs-Wiederherstellung es zurueckbringt (Story 4S-0752, AK4). Das
     // Feld entsteht nur bei geoeffnetem Buch (Schema-Kommentar in
     // session-schema.js).
     const bookDir = activeBooks().get(appId);
-    // 4T-0867 (Epic 3E-0162): aktives Regal ebenso mitfuehren (Story S-0760,
+    // 4T-0867 (Epic 3E-0162): aktives Regal ebenso mitfuehren (Story 4S-0760,
     // AK5); das Feld entsteht nur bei geoeffnetem Regal.
     const shelfDir = activeShelves().get(appId);
     return {

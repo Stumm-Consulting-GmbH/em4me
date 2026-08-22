@@ -164,7 +164,7 @@ contextBridge.exposeInMainWorld('api', {
   // Datei-Operationen
   openDialog: () => ipcRenderer.invoke('file:openDialog'),
   readFile: (p) => ipcRenderer.invoke('file:read', p),
-  // 4T-0945 (Story S-0786): opts = { expected, force } — Stand-Pruefung vor
+  // 4T-0945 (Story 4S-0786): opts = { expected, force } — Stand-Pruefung vor
   // dem Ueberschreiben; ohne opts unveraendertes Verhalten.
   saveFile: (p, content, opts) => ipcRenderer.invoke('file:save', p, content, opts),
   saveFileAs: (suggested, content) => ipcRenderer.invoke('file:saveAs', suggested, content),
@@ -532,7 +532,7 @@ contextBridge.exposeInMainWorld('api', {
     // sind.
     openPath: (bookDir) => ipcRenderer.invoke('books:openPath', bookDir),
     createAt: (parentDir, name) => ipcRenderer.invoke('books:createAt', { parentDir, name }),
-    // 4T-0845 (Story S-0754): Struktur-Pflege. EINE Baum-Operation je Aufruf;
+    // 4T-0845 (Story 4S-0754): Struktur-Pflege. EINE Baum-Operation je Aufruf;
     // waehrend eines Zuges wird nichts geschrieben, erst die Ablage loest
     // genau einen applyTreeOp aus. Op-Formen (`parentPath: null` = oberste
     // Ebene, `index: null` = ans Ende der Ziel-Ebene):
@@ -549,7 +549,7 @@ contextBridge.exposeInMainWorld('api', {
     applyTreeOp: (op) => ipcRenderer.invoke('books:applyTreeOp', op),
     createChapter: (parentPath, name) =>
       ipcRenderer.invoke('books:createChapter', { parentPath, name }),
-    // 4T-0847 (Story S-0756): Kapitel-Datei physisch innerhalb des
+    // 4T-0847 (Story 4S-0756): Kapitel-Datei physisch innerhalb des
     // Buch-Ordners verschieben. Der Ordner-Dialog läuft im Main, das Ziel
     // MUSS im Buch-Ordner liegen; die Links des Bestands und der
     // Kapitel-Baum-Eintrag der Begleitdatei ziehen im selben Zug nach.
@@ -559,7 +559,7 @@ contextBridge.exposeInMainWorld('api', {
     moveChapterFile: (relPath) => ipcRenderer.invoke('books:moveChapterFile', relPath),
     moveChapterFileTo: (relPath, targetDir) =>
       ipcRenderer.invoke('books:moveChapterFileTo', { relPath, targetDir }),
-    // 4T-0848 (Story S-0757): Reparatur fehlender Kapitel. suggestMissing
+    // 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel. suggestMissing
     // liefert { ok: true, suggestions: [buch-relative Pfade] } — namensgleiche
     // Dateien an anderer Stelle des Buch-Ordners, nie automatisch uebernommen.
     // reassignChapter ordnet dem Baum-Eintrag eine andere Datei zu (`newPath`

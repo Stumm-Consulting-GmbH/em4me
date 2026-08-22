@@ -43,7 +43,7 @@ function registerShelvesIpc(handle, deps) {
   // das aktive Regal der Applikation des aufrufenden Fensters (Muster des
   // books-Namensraums).
 
-  // Zustand des aktiven Regals (Regal-Ansicht, Story S-0761).
+  // Zustand des aktiven Regals (Regal-Ansicht, Story 4S-0761).
   handle('shelves:getState', (event) => shelfPayloadFor(appIdOfWindow(senderWindow(event))));
 
   // 4T-0868: Anzeige-Daten der Regal-Ansicht (Kachel- und Zeilen-Darstellung):
@@ -87,7 +87,7 @@ function registerShelvesIpc(handle, deps) {
     return openShelfApp(created.shelfDir, owner);
   });
 
-  // Zuordnung (Story S-0760, AK4): beide Handler schreiben ausschliesslich die
+  // Zuordnung (Story 4S-0760, AK4): beide Handler schreiben ausschliesslich die
   // Begleitdatei des aktiven Regals; nach einer erfolgreichen Aenderung meldet
   // sendShelfState den frisch gelesenen Zustand an alle Fenster der App.
   handle('shelves:assignBook', async (event, dirName) => {

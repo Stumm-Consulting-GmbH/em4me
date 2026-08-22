@@ -194,7 +194,7 @@ export const commandHandlers = {
   'shelf.close': () => {
     void api.shelves.close();
   },
-  // 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen — der
+  // 4T-0846 (Story 4S-0755): Leseführung über Kapitel-Grenzen — der
   // Lese-Ordnung des aktiven Buches vor und zurück folgen. An Anfang und Ende
   // meldet das Panel die Grenze, statt umzulaufen.
   'book.nextChapter': () => {
@@ -203,7 +203,7 @@ export const commandHandlers = {
   'book.previousChapter': () => {
     stepReading(state.activePaneIndex, -1);
   },
-  // 4T-0847 (Story S-0756): Datei des gerade gelesenen Kapitels physisch
+  // 4T-0847 (Story 4S-0756): Datei des gerade gelesenen Kapitels physisch
   // innerhalb des Buch-Ordners verschieben (Ordner-Dialog im Main).
   'book.moveChapterFile': () => {
     moveActiveChapterFile(state.activePaneIndex);

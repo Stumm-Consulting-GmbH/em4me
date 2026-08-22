@@ -318,10 +318,10 @@ function registerSettingsIpc(handle, deps) {
     // Datei-Oeffnen (Datei-Dialog, Explorer-Doppelklick, Zuletzt-Liste,
     // Klick im Panel), und nur das aktive, nicht Restore und Reload. Ist
     // die Datei die Buch-Datei ihres Ordners, wird das Buch zusaetzlich
-    // aktiv (Story S-0752, AK2). Fire-and-forget: das Oeffnen wartet nicht
+    // aktiv (Story 4S-0752, AK2). Fire-and-forget: das Oeffnen wartet nicht
     // auf die Erkennung.
     //
-    // 4T-0873 (Story S-0760, AK7): Zuerst das strikte Regal-Routing. Greift
+    // 4T-0873 (Story 4S-0760, AK7): Zuerst das strikte Regal-Routing. Greift
     // es (Datei liegt in einem Buch des offenen Regals), ist die Datei damit
     // in der Buch-Applikation gelandet und die beiden Erkennungen unten
     // haetten im Regal-Fenster nichts mehr zu tun.
@@ -330,7 +330,7 @@ function registerSettingsIpc(handle, deps) {
       if (umgeleitet) return;
       void bindBookIfBookFile(win, absolute);
       // 4T-0867 (Epic 3E-0162): dieselbe Erkennung fuer die Regal-Datei
-      // (Story S-0760, AK2).
+      // (Story 4S-0760, AK2).
       void bindShelfIfShelfFile(win, absolute);
     });
   });

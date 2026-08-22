@@ -1,4 +1,4 @@
-// Struktur-Pflege des Kapitel-Baums (4T-0845, Story S-0754): Melden der einen
+// Struktur-Pflege des Kapitel-Baums (4T-0845, Story 4S-0754): Melden der einen
 // Baum-Operation, Ziehen am Anfasser, Tastatur-Gesten, Kontextmenüs und die
 // Anlage eines Kapitels.
 // 4T-0980 (Epic 3E-0196): aus modules/books/book-panel.js ausgezogen (reiner
@@ -21,7 +21,7 @@ import { moveChapterFile, startReassign } from './book-repair.js';
 
 // 4T-0845: Laufender Zug am Anfasser ({ path, fromUnlinked, blocked }); null,
 // solange nichts gezogen wird. Während des Zuges wird NICHTS geschrieben,
-// erst die Ablage löst genau eine Operation aus (Story S-0754).
+// erst die Ablage löst genau eine Operation aus (Story 4S-0754).
 let dragState = null;
 
 // --- Struktur-Pflege: Meldung der Operation (4T-0845) -------------------------
@@ -232,13 +232,13 @@ function addMenuSeparator(menu) {
 // Abschnitt „nicht eingehängt"). Im Abschnitt „nicht eingehängt": Einhängen
 // ans Ende der obersten Ebene.
 //
-// 4T-0847 (Story S-0756): Beide Seiten tragen zusätzlich das physische
+// 4T-0847 (Story 4S-0756): Beide Seiten tragen zusätzlich das physische
 // Verschieben der Datei — auf Kapitel-Zeilen wie auf nicht eingehängten
 // Zeilen, weil die Ordner-Gliederung von der Deklaration unabhängig ist. Ein
 // deklariertes Kapitel ohne Datei bekommt den Eintrag nicht: es gibt nichts
 // zu bewegen.
 //
-// 4T-0848 (Story S-0757): Genau dieses Kapitel bekommt stattdessen „neu
+// 4T-0848 (Story 4S-0757): Genau dieses Kapitel bekommt stattdessen „neu
 // zuordnen"; „Aushängen" steht ihm wie jeder Kapitel-Zeile ohnehin zur
 // Verfügung (AK2). Die beiden Reparatur-Wege stehen damit unmittelbar am
 // betroffenen Eintrag.

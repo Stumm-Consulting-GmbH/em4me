@@ -31,7 +31,7 @@ import { pageState } from './settings-shared.js';
 // Rueckgabe je Bereich: { id, titel, gruppe, zeilen: [Text, ...] }. Die
 // Zeilen-Reihenfolge ist zugleich die Sprung-Adresse (Zeile 0 = Titel).
 //
-// 4T-0872 (PO-Befund vom 2026-08-04, Story S-0457 AK2): Ernte und Sprung
+// 4T-0872 (PO-Befund vom 2026-08-04, Story 4S-0457 AK2): Ernte und Sprung
 // teilen sich EINEN Selektor, damit Zeilen-Index und Sprung-Ziel nie
 // auseinanderlaufen. Neben den drei Standard-Klassen erfasst er die
 // Bereiche mit eigenem Markup: die Erweiterungs-Zeilen (interne und

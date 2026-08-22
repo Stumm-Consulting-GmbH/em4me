@@ -452,7 +452,7 @@ export function createTab(path, content, settings = {}) {
     // 4T-1047 (Epic 3E-0151): Der Mindmap-Modus faellt auf die Lese-Ansicht
     // zurueck, wenn seine Erweiterung aus ist. Ohne den Rueckfall traege ein
     // wiederhergestellter Reiter einen Modus, den es nicht mehr gibt, und
-    // seine Pane bliebe leer (Story S-0804, AK7).
+    // seine Pane bliebe leer (Story 4S-0804, AK7).
     viewMode: resolveViewModeForTab(
       settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE,
     ),

@@ -28,9 +28,9 @@ const { createAppRegistry } = require('./app/app-registry');
 // (Container-Format, Delta-Pakete, Anker, Hash-Abgleich). Electron- und
 // IO-frei; Datei-Zugriff und Fenster-Hinweise bleiben hier in main.js.
 const mddStore = require('./documents/mdd-store');
-// 4T-0945 (Story S-0786): Stand-Pruefung vor dem Ueberschreiben.
+// 4T-0945 (Story 4S-0786): Stand-Pruefung vor dem Ueberschreiben.
 const saveGuard = require('./documents/save-guard');
-// 4T-0948 (Story S-0787): Inhalt einer Wiki-Einbettung, Puffer vor Platte.
+// 4T-0948 (Story 4S-0787): Inhalt einer Wiki-Einbettung, Puffer vor Platte.
 const embedInhalt = require('./documents/embed-content');
 // 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
 // plus ergaenzender Ordner-Scan).

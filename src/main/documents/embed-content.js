@@ -1,4 +1,4 @@
-// 4T-0948 (Befund E-01, Story S-0787): Woher der Inhalt einer Wiki-Einbettung
+// 4T-0948 (Befund E-01, Story 4S-0787): Woher der Inhalt einer Wiki-Einbettung
 // stammt. Ist die eingebettete Datei offen und ungespeichert geaendert, gilt
 // ihr GESCHRIEBENER Stand aus der Puffer-Overlay-Schicht; sonst der Stand auf
 // der Platte. Das Groessen-Limit gilt in beiden Faellen, beim Puffer als

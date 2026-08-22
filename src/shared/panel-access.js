@@ -49,7 +49,7 @@ const PANEL_ACCESS = [
   },
   // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches, thematisch bei den
   // ortsgebenden Panels (Lesezeichen, Bereich).
-  // 4T-0849 (Story S-0758): Erweiterungs-Gate auf 'books' gesetzt — im
+  // 4T-0849 (Story 4S-0758): Erweiterungs-Gate auf 'books' gesetzt — im
   // Aus-Zustand entfaellt der Panel-Zugang an beiden Bedienorten
   // (Statusbar-Button ueber das Renderer-Gate, Untermenue-Eintrag ueber
   // unless() am Toggle-Kommando). Das commandId steht dafuer in der

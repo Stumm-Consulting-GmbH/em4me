@@ -14,6 +14,46 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.114.1.1730] - 2026-08-22 — Kennungs-Migration der Anforderungsachse
+
+Epic 3E-0222: Internes technisches Release ohne Funktions-Änderung. Die
+Anforderungsachse des Projektmanagements wechselt vom zweistufigen Schema
+`F-NNNN`/`S-NNNN` auf das einheitliche Kennungs-Schema beider Achsen
+(`3F-NNNN` für Features, `4S-NNNN` für Stories; die Ebenen `1G` Gebiet und
+`2B` Themenbereich folgen mit ihrem Anlage-Epic). 697 Anforderungs-Dateien
+wurden umbenannt und rund 2.100 Dateien mit über 17.000 Kennungs-Nennungen
+mechanisch nachgezogen; die Nummern selbst blieben unverändert, Lücken bleiben
+stehen. Der Programm-Anteil beschränkt sich auf Kommentar-Kennungen unter
+`src/**`; das Verhalten der Anwendung ändert sich nicht.
+
+Umsetzungs-Vorgänge des Epics: 4T-1146, 4T-1147, 4T-1148, 4T-1149;
+Release-Vorgang 4T-1150.
+
+### Geändert
+
+- **Migrations-Werkzeug der Kennungs-Welle** (4T-1146):
+  `scripts/kennungs-migration.js` mit striktem Trockenlauf samt
+  Treffer-Bericht, Apply in einem Zug (`git mv` plus Ersetzung mit
+  Vier-Ziffern-Anker), mechanischer Umkehrung und Ledger-Modus für die
+  Nebenbestände am gemeinsamen Ablage-Ort; abgesichert durch neun
+  Wächter-Testfälle gegen ein echtes Wegwerf-Repositorium (Roundtrip,
+  Idempotenz, Ausschluss des dreistelligen Katalog-Namensraums `F-\d{3}`).
+- **Werkzeuge auf die neuen Präfixe angepasst** (4T-1147): die
+  Muster-tragenden Skripte der Anforderungs- und PM-Wächter-Familie samt
+  `PRAEFIXE`-Whitelist der Nummern-Reservierung (`1P/2A/3E/4T/1G/2B/3F/4S`).
+  Dazu der Kollisions-Schutz: Überall, wo `[0-9][A-Z]-\d{4}` bisher
+  «Aufgaben-ID» bedeutete, stehen die Arbeitsachsen-Präfixe seither explizit
+  aufgezählt, weil `3F`/`4S` sonst als Arbeitsebene gelesen würden (auch in
+  der Vorgangs-Erkennung des Änderungs-Verlaufs im PM-Dashboard).
+- **Umbenennungs-Welle am Ruhepunkt gefahren** (4T-1148): Apply nach
+  PO-Sichtung des Trockenlauf-Berichts unter belegter Release-Sperre,
+  Rest-Treffer null, Reservierungs-Ledger am Ablage-Ort migriert, volle Gates
+  grün.
+- **Konzepte fortgeschrieben** (4T-1149): Anforderungs-README samt
+  Historie-Satz (bis 2026-08 lauteten die Kennungen `F-`/`S-`), Template,
+  CLAUDE.md-Auszug, PM-README-Kapitel, Dashboard-Vorspann und Verteiltes
+  Arbeitsmodell auf das vierstufige Modell.
+
 ## [1.114.0.1663] - 2026-08-19 — Produkt-Tour und Demo-Ausbau
 
 Epic 3E-0127: Der Erstkontakt mit der Anwendung bekommt zwei Stützen. Eine
@@ -576,7 +616,7 @@ seit 4T-0898); aus 0.105.0 wird 1.106.0 und nicht 1.0.0.
 ### Geändert
 
 - **Funktionen arbeiten auf dem geschriebenen Stand** (Anordnung des Product
-  Owners vom 2026-08-08, Story S-0787): Eingebettete Abfragen, Skript-Blöcke und
+  Owners vom 2026-08-08, Story 4S-0787): Eingebettete Abfragen, Skript-Blöcke und
   Ereignis-Aggregationen (4T-0935), die Tag-Liste samt Panel (4T-0950), der
   Erinnerungs-Prüfer (4T-0951), die Wiki-Einbettung (4T-0948) und die
   Bereichs-Suche (4T-0949) verwenden den Stand, der im Editor steht, ohne dass

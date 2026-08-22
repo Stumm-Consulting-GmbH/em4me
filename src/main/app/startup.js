@@ -198,7 +198,7 @@ function createStartup(deps) {
     const store = getStore();
     setWorkspacesState(geladen.workspaces);
 
-    // 4T-0946 (Story S-0005): Die gemappten Netzlaufwerke frueh und nebenher
+    // 4T-0946 (Story 4S-0005): Die gemappten Netzlaufwerke frueh und nebenher
     // ermitteln. Bewusst ohne await: Die Abfrage startet einen fremden Prozess
     // und darf den Programmstart nicht bremsen; bis eine Datei geoeffnet ist,
     // liegt das Ergebnis in aller Regel vor, und andernfalls zieht die
@@ -346,12 +346,12 @@ function createStartup(deps) {
       // 4T-0537: wiederhergestellte Arbeitsbereiche behalten ihre Zuordnung.
       if (t.workspace) appRegistry.setWorkspace(appId, t.workspace);
       if (t.area) startAreaWatcher(appId);
-      // 4T-0843 (Epic 3E-0147): aktives Buch wiederherstellen (Story S-0752,
+      // 4T-0843 (Epic 3E-0147): aktives Buch wiederherstellen (Story 4S-0752,
       // AK4). Fire-and-forget nach dem Muster der uebrigen Nachzuegler: die
       // Fenster entstehen synchron weiter, das Zustands-Paket erreicht sie
       // ueber books:stateChanged, sobald der Buch-Ordner gelesen ist.
       if (t.bookDir) void restoreBookForApp(appId, t.bookDir);
-      // 4T-0867 (Epic 3E-0162): aktives Regal wiederherstellen (Story S-0760,
+      // 4T-0867 (Epic 3E-0162): aktives Regal wiederherstellen (Story 4S-0760,
       // AK5), gleiches Fire-and-forget-Muster.
       if (t.shelfDir) void restoreShelfForApp(appId, t.shelfDir);
       const draftPayload = draftsToPayload(byApp[ai] || []);

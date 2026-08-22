@@ -127,7 +127,7 @@ async function collectBookDirs(shelfDir) {
   return out;
 }
 
-// 4T-0873 (Story S-0760, AK7): Der Buch-Ordner des Regals, in dem diese Datei
+// 4T-0873 (Story 4S-0760, AK7): Der Buch-Ordner des Regals, in dem diese Datei
 // liegt — Grundlage des strikten Routings (Variante R1): Jeder Griff in ein
 // Buch verlaesst das Regal-Fenster und landet in der Buch-Applikation.
 // Geprueft wird das ERSTE Pfad-Segment unter dem Regal-Ordner, weil die
@@ -224,7 +224,7 @@ async function createShelf(parentDir, rawName) {
   return { ok: true, shelfDir, shelfFileName, shelfFilePath };
 }
 
-// --- Zuordnung (Story S-0760, AK4) -------------------------------------------
+// --- Zuordnung (Story 4S-0760, AK4) -------------------------------------------
 
 // Schreibt den Container zurück. Bewusst ohne Zwischendatei (Begründung in
 // books.js: eine halb geschriebene Datei fiele beim nächsten Lesen als
@@ -292,7 +292,7 @@ async function unassignBookDir(shelfDir, rawDirName) {
   return { ok: true, books: result.books };
 }
 
-// --- Ansichts-Daten (4T-0868, Story S-0761) ----------------------------------
+// --- Ansichts-Daten (4T-0868, Story 4S-0761) ----------------------------------
 
 // Frontmatter-Auszug einer Markdown-Datei: { title, author, description,
 // cover } — fehlende oder nicht lesbare Werte als null. Nicht lesbare Datei

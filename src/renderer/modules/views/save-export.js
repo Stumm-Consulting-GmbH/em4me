@@ -128,7 +128,7 @@ export async function saveTab(paneIdx, tabIdx) {
     await stampTabTimestamps(paneIdx, tabIdx, tab);
     // W-02 (4T-0309): {ok,error}-Vertrag — Schreibfehler ueber den vorhandenen
     // catch (showSaveError) statt frueherer IPC-Exception.
-    // 4T-0945 (Story S-0786): Der zuletzt gelesene bzw. geschriebene Stand
+    // 4T-0945 (Story 4S-0786): Der zuletzt gelesene bzw. geschriebene Stand
     // geht als Erwartung mit; weicht die Datei davon ab, schreibt der Main
     // nicht, sondern meldet den Konflikt.
     //

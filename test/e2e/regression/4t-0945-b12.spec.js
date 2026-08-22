@@ -1,4 +1,4 @@
-// B-12 / Baustein B (4T-0945, Story S-0786): Das Speichern prueft den
+// B-12 / Baustein B (4T-0945, Story 4S-0786): Das Speichern prueft den
 // Datei-Stand und ueberschreibt keine fremde Aenderung mehr still.
 //
 // Gemeldeter Ablauf (Messung am 2026-08-10 auf einer Netz-Freigabe): Datei

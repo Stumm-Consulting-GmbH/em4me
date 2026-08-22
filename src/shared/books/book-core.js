@@ -4,7 +4,7 @@
 // Ein Buch lebt in einem eigenen Ordner: darin die Buch-Datei (gewöhnliches
 // Markdown mit dem eigenen Text; Eigenschaften und Bild-Verweis im
 // Frontmatter) und die Begleitdatei, die ausschließlich Struktur trägt
-// (Story S-0751). Kapitel sind gewöhnliche Markdown-Dateien im Buch-Ordner
+// (Story 4S-0751). Kapitel sind gewöhnliche Markdown-Dateien im Buch-Ordner
 // oder in beliebig tiefen Unterordnern; die Ordner-Lage trägt keine
 // Struktur-Aussage, die Gliederung steht allein im deklarierten Kapitel-Baum
 // (Epic-Entscheidung 4).

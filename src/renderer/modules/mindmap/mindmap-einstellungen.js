@@ -32,7 +32,7 @@ export function getMindmapVoreinstellung() {
 /**
  * Setzt die Voreinstellung und meldet die Änderung. Das Ereignis zieht die
  * offenen Mindmap-Ansichten nach, damit eine geänderte Einstellung ohne
- * Neustart wirkt (Story S-0805, AK5).
+ * Neustart wirkt (Story 4S-0805, AK5).
  */
 export function applyMindmapVoreinstellung(roh) {
   voreinstellung = { ...MINDMAP_VORGABEN, ...normalisiereMindmapOptionen(roh) };

@@ -151,7 +151,7 @@ test.describe('RG-01: Regal anlegen (4T-0867)', () => {
       expect(settings.shelf.file).toBe('Bibliothek.md');
       expect(settings.books).toEqual([]);
       // Zustand: aktiv und leer; die Regal-Ansicht öffnet als eigene Seite
-      // im Reiter-System (4T-0868, Story S-0761 AK1). Die freie
+      // im Reiter-System (4T-0868, Story 4S-0761 AK1). Die freie
       // Start-Applikation wurde zur Regal-Applikation, ihr Fenstertitel
       // trägt den Regal-Namen (4T-0873).
       await expect

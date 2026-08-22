@@ -434,7 +434,7 @@ describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
 
 // --- 4T-1071 (Epic 3E-0211): Referenz-Muster «Letzter Kontakt» ----------------
 
-// Story S-0812 AK1 als Ganzes: eine Personen-Notiz gibt die jüngste auf sie
+// Story 4S-0812 AK1 als Ganzes: eine Personen-Notiz gibt die jüngste auf sie
 // verlinkende datierte Notiz mit Datum und Tages-Differenz aus. Der Fall baut
 // seinen eigenen Suchraum, weil er eine andere Bestands-Form braucht als die
 // Fixture oben (datierte Journal-Notizen plus eine undatierte).

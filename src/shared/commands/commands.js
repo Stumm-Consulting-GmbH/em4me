@@ -272,7 +272,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0847 (Story S-0756): Kapitel-Datei physisch innerhalb des Buch-Ordners
+  // 4T-0847 (Story 4S-0756): Kapitel-Datei physisch innerhalb des Buch-Ordners
   // verschieben (Ordner-Wahl im Main, Ziel muss im Buch-Ordner liegen). Ohne
   // Default-Kürzel wie die übrigen Buch-Kommandos; ein Kürzel ist über die
   // Einstellungen belegbar. 4T-0887 (Befund L-04 des Struktur-Reviews): seither
@@ -287,7 +287,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0846 (Story S-0755): Leseführung über Kapitel-Grenzen. Beide
+  // 4T-0846 (Story 4S-0755): Leseführung über Kapitel-Grenzen. Beide
   // Kommandos folgen der Lese-Ordnung des aktiven Buches (ein Kapitel vor
   // seinen Unterkapiteln, dann die Geschwister); an Anfang und Ende gibt es
   // keinen Umlauf, sondern eine Rückmeldung in der Hinweis-Zeile.

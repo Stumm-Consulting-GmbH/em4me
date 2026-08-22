@@ -243,7 +243,7 @@ function createLinkUpdate(deps) {
       }
     }
     broadcast('file:renamed', { oldPath: absolute, newPath });
-    // 4T-0847 (Epic 3E-0147, Story S-0756): Ist die bewegte Datei Kapitel
+    // 4T-0847 (Epic 3E-0147, Story 4S-0756): Ist die bewegte Datei Kapitel
     // eines Buches, fährt ihr Eintrag im Kapitel-Baum mit — beim Umbenennen
     // wie beim Verschieben, und unabhängig davon, ob das Buch gerade
     // geöffnet ist (die Zugehörigkeit hängt an der Begleitdatei, nicht am

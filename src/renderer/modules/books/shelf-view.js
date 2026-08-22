@@ -1,4 +1,4 @@
-// 4T-0868 (Epic 3E-0162, Story S-0761): Regal-Ansicht als read-only
+// 4T-0868 (Epic 3E-0162, Story 4S-0761): Regal-Ansicht als read-only
 // System-Seite im Reiter-System (Muster area-stats-page.js).
 //
 // Die Seite zeigt das aktive Bücherregal in zwei umschaltbaren Darstellungen:
@@ -7,7 +7,7 @@
 // (Bild-Miniatur, Name, Kapitel-Anzahl, Autor und Beschreibung aus dem
 // Frontmatter, PO-Entscheidung vom 2026-08-04). Ein Klick öffnet das Buch
 // über den dialog-freien Buch-Weg; der Abschnitt «nicht zugeordnet» trägt
-// die Aufnahme-Aktion, zugeordnete Zeilen die Lösen-Aktion (Story S-0760,
+// die Aufnahme-Aktion, zugeordnete Zeilen die Lösen-Aktion (Story 4S-0760,
 // AK4). Der Umschalter-Zustand wird je Regal persistiert (Store-Schlüssel
 // SHELF_VIEW_MODES_KEY, nur Abweichungen vom Kachel-Default).
 //

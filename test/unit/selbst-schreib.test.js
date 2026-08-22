@@ -1,4 +1,4 @@
-// 4T-0947 (Story S-0005, AK6): Eigene Schreibvorgaenge von fremden trennen.
+// 4T-0947 (Story 4S-0005, AK6): Eigene Schreibvorgaenge von fremden trennen.
 //
 // Die Faelle laufen bewusst OHNE Wartezeit: Die Zusicherung lautet, dass die
 // Zugehoerigkeit am Inhalt haengt und nicht an der Zeit. Ein Test, der eine

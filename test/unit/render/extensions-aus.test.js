@@ -324,7 +324,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
   });
 });
 
-// 4T-0849 (Epic 3E-0147, Story S-0758): Aus-Zustand der Bücher-Erweiterung.
+// 4T-0849 (Epic 3E-0147, Story 4S-0758): Aus-Zustand der Bücher-Erweiterung.
 // Bücher bringen kein Markdown-Konstrukt mit, deshalb kein renderMarkdown-Fall
 // wie oben: ihre Wirkung liegt auf den Kommandos, dem Panel-Zugang und der
 // Buch-Erkennung im Main. Geprüft wird hier die deklarative Quelle, aus der
@@ -359,7 +359,7 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
     // der Disabled-Liste ist leer, die Erweiterung damit aktiv.
     expect(isExtensionEnabled('books', [])).toBe(true);
     // Intern registriert und damit im Einstellungs-Bereich „Erweiterungen“
-    // schaltbar (Story S-0758, AK1).
+    // schaltbar (Story 4S-0758, AK1).
     expect(internalExtensions().some((m) => m.id === 'books')).toBe(true);
   });
 
@@ -404,7 +404,7 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
   });
 
   it('Schalten wirkt nur auf den Zustand: keine Kaskade, sauberer Round-Trip', () => {
-    // Soweit auf dieser Ebene prüfbar (Story S-0758, AK3): Die Registry-
+    // Soweit auf dieser Ebene prüfbar (Story 4S-0758, AK3): Die Registry-
     // Funktionen sind rein und fassen keine Datei an, das Manifest zieht keine
     // andere Erweiterung mit und wird von keiner gezogen, und Aus-und-wieder-An
     // liefert exakt die Ausgangs-Menge. Dass Buch-Datei, Begleitdatei und

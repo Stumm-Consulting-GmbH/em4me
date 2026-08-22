@@ -4,7 +4,7 @@
 // Ein Regal lebt in einem eigenen Ordner: darin die Regal-Datei (gewöhnliches
 // Markdown mit dem Beschreibungstext; Eigenschaften und Bild-Verweis im
 // Frontmatter) und die Begleitdatei, die die Regal-Datei benennt und die
-// zugeordneten Bücher führt (Story S-0759). Die Bücher liegen als Buch-Ordner
+// zugeordneten Bücher führt (Story 4S-0759). Die Bücher liegen als Buch-Ordner
 // unmittelbar unter dem Regal-Ordner; die Hierarchie endet beim Regal
 // (Epic-Abgrenzung: keine Regale in Regalen).
 //

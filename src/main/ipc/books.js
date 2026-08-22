@@ -117,7 +117,7 @@ function registerBooksIpc(handle, deps) {
     return { ok: true, path: target };
   });
 
-  // --- 4T-0845 (Story S-0754): Struktur-Pflege des Kapitel-Baums -------------
+  // --- 4T-0845 (Story 4S-0754): Struktur-Pflege des Kapitel-Baums -------------
   // Beide Handler aendern ausschliesslich die Deklaration in der Begleitdatei;
   // keine Kapitel-Datei wird bewegt oder umbenannt. Nach einer erfolgreichen
   // Aenderung meldet sendBookState den frisch von der Platte gelesenen Zustand
@@ -136,7 +136,7 @@ function registerBooksIpc(handle, deps) {
     return { ok: true };
   });
 
-  // --- 4T-0847 (Story S-0756): Kapitel-Datei physisch verschieben -----------
+  // --- 4T-0847 (Story 4S-0756): Kapitel-Datei physisch verschieben -----------
   //
   // Die Bewegung läuft über DIESELBE Strecke wie das Umbenennen: für die
   // bestehende Kaskade ist ein Verschieben ein Pfadwechsel. renameSingleFile
@@ -208,7 +208,7 @@ function registerBooksIpc(handle, deps) {
     ),
   );
 
-  // --- 4T-0848 (Story S-0757): Reparatur fehlender Kapitel -------------------
+  // --- 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel -------------------
   //
   // Beide Handler aendern hoechstens die Deklaration; keine Datei wird bewegt,
   // angelegt oder geloescht. Der Suchraum und die Grenze des Ziels sind der

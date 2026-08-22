@@ -5,7 +5,7 @@
 //
 // Gemessen wird gegen die **echte** Render-Pipeline (src/shared/markdown/
 // markdown.js), nicht gegen eine eigens gebaute markdown-it-Instanz: Die
-// Story S-0802 verlangt den Token-Strom der bestehenden Pipeline, und ein
+// Story 4S-0802 verlangt den Token-Strom der bestehenden Pipeline, und ein
 // zweiter Parser im Test prüfte etwas anderes als das, was im Betrieb läuft.
 import { describe, it, expect } from 'vitest';
 import {

@@ -1,4 +1,4 @@
-// 4T-0948 (Befund E-01, Story S-0787): Woher der Inhalt einer Wiki-Einbettung
+// 4T-0948 (Befund E-01, Story 4S-0787): Woher der Inhalt einer Wiki-Einbettung
 // stammt. Geprüft wird die Wahl zwischen geschriebenem Stand und Platten-Stand
 // samt Größen-Limit; den Weg des Anwenders geht die E2E-Spec der Erhebung
 // (test/e2e/regression/4t-0936-ungespeicherter-stand.spec.js).
