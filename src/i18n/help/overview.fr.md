@@ -37,7 +37,7 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 ## Métadonnées, données et requêtes
 
 - [Frontmatter et propriétés](frontmatter.md) — métadonnées YAML et barre Propriétés.
-- [Profils de propriétés](property-profiles.md) — définitions de champs centralisées avec type, plage de valeurs et valeur par défaut : fichiers de profil, association et profil standard, effet dans les deux éditeurs de propriétés.
+- [Profils de propriétés](property-profiles.md) — définitions de champs centralisées avec type, plage de valeurs et valeur par défaut : fichiers de profil, association et profil standard, héritage entre profils, effet dans les deux éditeurs de propriétés.
 - [Propriétés de bloc](block-properties.md) — propriétés typées par ancre de bloc : panneau qui suit le curseur, données orphelines, renommage d'ancres, indicateur sur le bloc.
 - [Requête Perspective](frontmatter-query.md) — listes et tableaux de fichiers dynamiques : langage à clauses, sources, champs de fichier, fonctions, tri, multi-colonnes, export.
 - [Perspective Datatable](datatable.md) — table de données typée avec fonctions de calcul : types de colonnes, agrégats, colonnes calculées, édition en grille, tri et filtrage.

@@ -78,6 +78,16 @@ Per i numeri invece del testo c'è il secondo tipo di tabella. La Perspective Da
 
 In dettaglio: [Perspective Datatable](datatable.md).
 
+## Tipi di documenti che si appoggiano l'uno all'altro
+
+Molti documenti di un'area condividono gli stessi campi: uno stato, una data, una categoria. I profili di proprietà descrivono questi campi una sola volta, in modo centralizzato, con tipo, valori ammessi e valore predefinito; gli editor delle proprietà li suggeriscono e offrono gli insiemi di valori come liste di selezione. I profili ereditano l'uno dall'altro: un profilo di base dice ciò che vale per tutti, e un tipo di documento come articolo o riunione aggiunge solo la propria parte, esclude se necessario campi ereditati o li sostituisce. Gli scostamenti producono avvisi invece di blocchi.
+
+- **Descrivere i campi una sola volta** invece che in ogni documento: suggerimenti, liste di selezione e tipi vengono dal profilo.
+- **Ereditarietà con esclusione e sostituzione:** il comune nel profilo genitore, il proprio nel tipo di documento.
+- **Avvisi leggeri invece di blocchi:** gli scostamenti vengono indicati, nulla viene bloccato.
+
+In dettaglio: [Profili di proprietà](property-profiles.md).
+
 ## Elenchi che si mantengono aggiornati
 
 Chi gestisce molti file mantiene altrimenti le panoramiche a mano, e invecchiano il giorno stesso. Una query Perspective descrive invece **che cosa** si cerca, e il risultato compare lì nel documento: un elenco o una tabella cliccabile sull'intero insieme, filtrata per proprietà, etichette e campi del file, fino ai singoli blocchi di testo e alle attività. Se l'insieme cambia, cambia l'output, senza che nessuno aggiorni nulla.

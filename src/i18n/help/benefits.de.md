@@ -78,6 +78,16 @@ Für Zahlen statt Text gibt es die zweite Tabellen-Art. Die Perspective Datatabl
 
 Ausführlich: [Perspective Datatable](datatable.md).
 
+## Dokument-Arten, die sich aufeinander stützen
+
+Viele Dokumente eines Bereichs teilen dieselben Felder: ein Status, ein Datum, eine Kategorie. Eigenschafts-Profile beschreiben diese Felder einmal zentral, mit Typ, zulässigen Werten und Vorgabe; die Eigenschafts-Editoren schlagen sie vor und bedienen die Wertebereiche als Auswahl-Listen. Profile erben voneinander: Ein Basis-Profil sagt, was für alle gilt, und eine Dokument-Art wie Artikel oder Sitzung ergänzt nur noch ihren eigenen Anteil, schließt Geerbtes bei Bedarf aus oder überschreibt es. Abweichungen erzeugen Hinweise statt Sperren.
+
+- **Felder einmal beschreiben** statt in jedem Dokument neu: Vorschläge, Auswahl-Listen und Typen kommen aus dem Profil.
+- **Vererbung mit Ausschluss und Überschreiben:** Gemeinsames im Eltern-Profil, Eigenes in der Dokument-Art.
+- **Weiche Hinweise statt Sperren:** Abweichungen werden benannt, nichts wird blockiert.
+
+Ausführlich: [Eigenschafts-Profile](property-profiles.md).
+
 ## Listen, die sich selbst aktuell halten
 
 Wer viele Dateien führt, pflegt sonst Übersichten von Hand, und sie veralten am Tag ihrer Erstellung. Eine Perspective-Abfrage beschreibt stattdessen, **was** gesucht ist, und das Ergebnis erscheint an Ort und Stelle im Dokument: eine klickbare Liste oder Tabelle über den Bestand, gefiltert nach Eigenschaften, Schlagwörtern, Datei-Feldern, bis hinunter auf einzelne Textblöcke und Aufgaben. Ändert sich der Bestand, ändert sich die Ausgabe, ohne dass jemand nachträgt.

@@ -78,6 +78,16 @@ For numbers rather than text there is the second kind of table. The Perspective 
 
 In detail: [Perspective Datatable](datatable.md).
 
+## Document kinds that build on each other
+
+Many documents of an area share the same fields: a status, a date, a category. Property profiles describe these fields once, centrally, with type, permitted values and default; the property editors suggest them and offer the value ranges as pick lists. Profiles inherit from each other: a base profile states what applies to all, and a document kind such as article or meeting only adds its own share, excludes inherited fields where needed or overrides them. Deviations produce hints instead of locks.
+
+- **Describe fields once** instead of anew in every document: suggestions, pick lists and types come from the profile.
+- **Inheritance with exclusion and overriding:** shared fields in the parent profile, own fields in the document kind.
+- **Soft hints instead of locks:** deviations are named, nothing is blocked.
+
+In detail: [Property Profiles](property-profiles.md).
+
 ## Lists that keep themselves current
 
 Anyone keeping many files otherwise maintains overviews by hand, and they go stale the day they are written. A Perspective Query instead describes **what** is wanted, and the result appears right there in the document: a clickable list or table across the collection, filtered by properties, tags and file fields, down to individual text blocks and tasks. When the collection changes, the output changes, with nobody updating anything.

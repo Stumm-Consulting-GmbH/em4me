@@ -315,9 +315,21 @@
       "tests": [
         "test/e2e/funktionen/eigenschafts-profile.spec.js",
         "test/unit/property-profiles.test.js",
+        "test/unit/profile-catalog.test.js",
+        "test/unit/renderer/settings-profile-hinweise.test.js"
+      ],
+      "hinweis": "4T-0446 bis 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — PP-01 bis PP-04 (Vorschlags-Menue mit Definitions-Feldern, Auswahl-Liste des Wertebereichs mit weichem Hinweis, unveraendertes Verhalten ohne Konfiguration, Aus-Zustand der Erweiterung) plus Unit-Suiten fuer Modell, Aufloesung, Katalog und Editor-Logik. 4T-1141 bis 4T-1143 (Epic 3E-0218): erweitertes Definitions-Format, Vererbung samt Aufloesungs-Folge und die ortsbezogene Diagnose — PP-11 (Hinweise ausgeschrieben unter dem Profil, Beheben ohne Neustart) plus Unit-Suiten fuer Format, Ketten-Bildung und Hinweis-Darstellung."
+    },
+    {
+      "key": "help.feature.profileInheritance",
+      "id": "F-266",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/eigenschafts-profile.spec.js",
+        "test/unit/property-profiles-aufloesung.test.js",
         "test/unit/profile-catalog.test.js"
       ],
-      "hinweis": "4T-0446 bis 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — PP-01 bis PP-04 (Vorschlags-Menue mit Definitions-Feldern, Auswahl-Liste des Wertebereichs mit weichem Hinweis, unveraendertes Verhalten ohne Konfiguration, Aus-Zustand der Erweiterung) plus Unit-Suiten fuer Modell, Aufloesung, Katalog und Editor-Logik."
+      "hinweis": "4T-1142 (Epic 3E-0218): Vererbung zwischen Profilen — extends/exclude auf Profil-Ebene, Aufloesung als eine geordnete Folge (die drei Konstellationen des Konzepts), Zyklus- und Fehlt-Hinweise am Profil; E2E ueber PP-11 (Vererbungs-Hinweis in der Profil-Liste) und die Profil-Saetze der uebrigen PP-Faelle."
     },
     {
       "key": "help.feature.profileBulkFill",

@@ -411,6 +411,79 @@ test.describe('PP-06: Einstellungs-Bereich Eigenschafts-Profile (F-106)', () => 
   });
 });
 
+// 4T-1143 (Epic 3E-0218, E4): Die Hinweise defekter Definitionen stehen
+// ausgeschrieben unter ihrem Profil (ortsbezogen: Definition, Angabe,
+// Erwartung; Vererbungs-Hinweise am Profil), und das Beheben in der
+// Profil-Datei räumt sie über den Aktualisieren-Knopf ohne Neustart ab.
+test.describe('PP-11: Ortsbezogene Diagnose der Profil-Hinweise (4T-1143)', () => {
+  test('Hinweise erscheinen ausgeschrieben; nach dem Beheben verschwinden sie per Aktualisieren', async () => {
+    const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-profile-diagnose-'));
+    fs.mkdirSync(path.join(areaRoot, 'Profile'));
+    const kaputt = path.join(areaRoot, 'Profile', 'Kaputt.md');
+    fs.writeFileSync(
+      kaputt,
+      '---\nextends: Fehlt\nfields:\n  - name: prio\n    type: lookup\n---\n',
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(areaRoot, 'Area_Settings.mdda'),
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          settings: {
+            propertyProfiles: { folder: 'Profile', assignField: 'class', defaultProfile: null },
+          },
+        },
+        null,
+        2,
+      ) + '\n',
+      'utf8',
+    );
+    const SETTINGS_PAGE = `${PANE0} .pane-system .settings-page`;
+    const { app, page, userData } = await launchApp();
+    try {
+      await expect
+        .poll(async () => {
+          const result = await page.evaluate((p) => window.api.openAreaPath(p), areaRoot);
+          return !!(result && result.ok !== false);
+        })
+        .toBe(true);
+      await expect.poll(() => page.title()).toContain('(Bereich');
+      await expect
+        .poll(async () => {
+          if (!(await page.locator(SETTINGS_PAGE).isVisible())) {
+            await page.keyboard.press('Control+,');
+          }
+          return page.locator(SETTINGS_PAGE).isVisible();
+        })
+        .toBe(true);
+      await page.locator('.settings-nav-entry[data-section-id="propertyProfiles"]').click();
+      await expect(page.locator('#settings-profiles-folder')).toBeVisible();
+
+      // Beide Hinweise stehen ausgeschrieben unter dem Profil: der
+      // Definitions-Hinweis nennt Definition und Angabe (mit dem
+      // zulässigen Typ-Satz als Erwartung), der Vererbungs-Hinweis das
+      // fehlende Eltern-Profil. Sprachneutral geprüft über die
+      // eingesetzten Namen und Werte.
+      const hints = page.locator('.settings-profiles-item-hints li');
+      await expect(hints).toHaveCount(2);
+      await expect(hints.nth(0)).toContainText('prio');
+      await expect(hints.nth(0)).toContainText('multistring');
+      await expect(hints.nth(1)).toContainText('Fehlt');
+
+      // AK9: Fehler in der Datei beheben, Aktualisieren — die Hinweise
+      // verschwinden ohne Neustart, die Hervorhebung ebenso.
+      fs.writeFileSync(kaputt, '---\nfields:\n  - name: prio\n    type: number\n---\n', 'utf8');
+      await page.locator('#settings-profiles-refresh').click();
+      await expect(page.locator('.settings-profiles-item-hints')).toHaveCount(0);
+      await expect(page.locator('.settings-profiles-item-meta.has-errors')).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
 // PO-Befunde der Release-Test-Iteration 0.56.0 (2026-07-09): (1) die
 // Übernahme aus der Werte-Vorschlagsliste soll DIREKT zum Chip werden (ohne
 // zusätzliches Enter); (2) doppelte Listen-Einträge sollen nicht entstehen.

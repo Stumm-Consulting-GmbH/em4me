@@ -1,6 +1,6 @@
 # Perfiles de propiedades
 
-Los perfiles de propiedades definen los campos de propiedades de forma centralizada para un área: por campo un nombre, un tipo, opcionalmente un rango de valores fijo (selección simple o múltiple) y un valor predeterminado. El editor de propiedades y el panel de propiedades de bloque sugieren los campos definidos, ofrecen los rangos de valores como listas de selección y toman el tipo de la definición. Los perfiles solo existen en el contexto de un área: la configuración vive en el archivo del área (Ajustes → Perfiles de propiedades), los perfiles en sí son archivos Markdown normales. La funcionalidad puede activarse o desactivarse como extensión «Perfiles de propiedades» (Ajustes → Extensiones); sin configuración o con la extensión desactivada, ambos editores se comportan como de costumbre (inferencia de tipos y sugerencias estándar).
+Los perfiles de propiedades definen los campos de propiedades de forma centralizada para un área: por campo un nombre, un tipo, opcionalmente un rango de valores fijo (selección simple o múltiple) y un valor predeterminado. Los perfiles pueden heredar unos de otros (sección «Herencia»). El editor de propiedades y el panel de propiedades de bloque sugieren los campos definidos, ofrecen los rangos de valores como listas de selección y toman el tipo de la definición. Los perfiles solo existen en el contexto de un área: la configuración vive en el archivo del área (Ajustes → Perfiles de propiedades), los perfiles en sí son archivos Markdown normales. La funcionalidad puede activarse o desactivarse como extensión «Perfiles de propiedades» (Ajustes → Extensiones); sin configuración o con la extensión desactivada, ambos editores se comportan como de costumbre (inferencia de tipos y sugerencias estándar).
 
 ## Archivos de perfil y formato de las definiciones
 
@@ -29,10 +29,13 @@ Atributos por definición:
 | `name` | nombre del campo (obligatorio, único por perfil) |
 | `type` | `string`, `multistring`, `number`, `boolean`, `date` o `multiline`; sin indicación, `string` |
 | `values` | opcional: rango de valores fijo como lista de valores (para `string`, `multistring`, `number` y `date`) |
-| `multiple` | opcional, solo con `values`: selección múltiple — el valor es una lista, el tipo `multistring` |
+| `multiple` | opcional: selección múltiple — el valor es una lista, el tipo `multistring`; ya no se requiere un rango de valores fijo |
 | `default` | opcional: valor inicial al crear el campo mediante el editor |
+| `valuesFrom` | opcional: fuente del repertorio de valores con `note` (ruta de una nota de valores) y/o `query` (consulta); junto con `values` se aplica `values` |
+| `options` | opcional: indicaciones propias del tipo en un subobjeto, previsto para tipos futuros |
+| `fields` | opcional: definiciones hijas anidadas según el mismo esquema, previsto para tipos estructurados |
 
-Un campo `multistring` con `values` es automáticamente una selección múltiple. Las definiciones individuales defectuosas (por ejemplo un tipo desconocido, un nombre de campo duplicado o `multiple` sin `values`) solo se suspenden a sí mismas; las demás definiciones del perfil siguen vigentes. La lista de perfiles de los ajustes muestra esos avisos por perfil y abre el archivo del perfil con un clic.
+Un campo `multistring` con `values` es automáticamente una selección múltiple. **El nombre del campo es la única indicación obligatoria**: cualquier otra indicación es opcional, y los archivos de perfil existentes siguen siendo válidos sin cambios. `valuesFrom`, `options` y los `fields` anidados ya forman parte del formato, pero en esta versión aún no se evalúan (sección «Límites»). Las definiciones individuales defectuosas (por ejemplo un tipo desconocido o un nombre de campo duplicado) solo se suspenden a sí mismas; las demás definiciones del perfil siguen vigentes. La lista de perfiles de los ajustes muestra los avisos escritos bajo el perfil correspondiente — con la definición afectada, la indicación errónea y lo que se esperaba en su lugar, en las definiciones hijas con la ruta hacia el campo padre — y abre el archivo del perfil con un clic.
 
 ## Asignación y perfil estándar
 
@@ -48,16 +51,39 @@ class:
 
 Además se puede elegir un **perfil estándar**: sus definiciones se aplican a todos los archivos del área, incluso sin campo de asignación. Los nombres de perfiles coinciden sin distinguir mayúsculas y minúsculas.
 
+## Herencia
+
+Un perfil puede heredar las definiciones de otro. Para ello, el frontmatter del archivo de perfil nombra, junto a `fields`, como máximo un perfil padre y, opcionalmente, nombres de campos a excluir:
+
+```yaml
+---
+extends: proyecto
+exclude: [estado]
+fields:
+  - name: fase
+  - name: autor
+---
+```
+
+- `extends` nombra el perfil padre; son posibles cadenas de varios niveles, no existe más de un perfil padre.
+- `exclude` excluye campos heredados. La exclusión actúa en la cadena de herencia en la que está, no para todo el documento.
+- Un campo propio con el mismo nombre reemplaza por completo al heredado.
+
+Un ciclo en la relación de padres o un perfil padre inexistente solo termina la cadena afectada y produce un aviso en la lista de perfiles de los ajustes; la resolución continúa.
+
 ## Perfil interno
 
 Junto a los archivos de perfil de la carpeta existe el **perfil interno `Ereignis`** de la extensión [Eventos](events.md). Forma parte automáticamente de la resolución de perfiles y de la lista de perfiles en los ajustes (allí marcado como perfil interno), define los ocho campos `event-*` y no se puede editar ni eliminar; tampoco se ofrece como perfil estándar. Actúa también sin carpeta de perfiles configurada, con el campo de asignación estándar `class`; si un archivo de perfil lleva el mismo nombre, el perfil interno tiene prioridad. Con la extensión Eventos desactivada desaparece de la resolución y de la lista.
 
 ## Reglas de conflicto
 
-Para un archivo se aplica la unión de todas las definiciones de los perfiles asignados más el perfil estándar. Si más de un perfil define el mismo nombre de campo, las reglas son deterministas:
+Para un archivo se aplica la unión de todas las definiciones de los perfiles asignados con sus cadenas de padres más el perfil estándar con su cadena. La resolución es **una** secuencia ordenada: por perfil asignado, en el orden de mención, primero sus propios campos, después los de su cadena de padres de abajo hacia arriba, y luego lo mismo para el perfil estándar; cada perfil se procesa exactamente una vez. Si más de un perfil define el mismo nombre de campo, las reglas son deterministas:
 
 1. Un **perfil asignado** gana frente al **perfil estándar**.
 2. Entre varios perfiles asignados gana el **primero** nombrado en la lista de asignación.
+3. Dentro de una cadena gana el **perfil heredero** frente a sus padres; un campo propio reemplaza así al heredado del mismo nombre.
+
+Un ejemplo con cuatro perfiles: `todos` (campo `tags`), `proyecto` (hereda de `todos`; campos `fase`, `estado`), `artículo` (hereda de `proyecto`, excluye `estado`; campos propios `fase`, `autor`) y `reunión` (campos `estado`, `lugar`). Un documento con `class: [artículo, reunión]` y el perfil estándar `todos` recibe `fase` y `autor` de `artículo`, `tags` a través de la cadena desde `todos`, `estado` y `lugar` de `reunión` — la exclusión en `artículo` solo actúa en su cadena; a través de `reunión`, `estado` llega de todos modos.
 
 ## Efecto en los editores
 
@@ -86,6 +112,7 @@ Las desviaciones nunca bloquean ni cambian el valor: un valor fuera del rango de
 
 ## Límites
 
+- El formato ya prevé opciones propias del tipo (`options`), fuentes del repertorio de valores (`valuesFrom`) y definiciones hijas anidadas; en esta versión aún no se evalúan. Una indicación así no es un error, simplemente queda sin efecto hasta la ampliación.
 - Renombrar un archivo de perfil no cambia los valores de asignación en los documentos; entonces apuntan a un perfil inexistente (los ajustes marcan un perfil estándar que falta).
 - Los perfiles están directamente en la carpeta de perfiles; las subcarpetas no se incluyen.
 - Las definiciones actúan en los dos editores de propiedades; los tipos de campos calculados o derivados de otros archivos no forman parte de los perfiles.

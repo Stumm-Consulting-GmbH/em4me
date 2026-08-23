@@ -14,6 +14,74 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.115.0.1749] - 2026-08-23 — Metadaten-Modell Stufe 1: Format, Vererbung und Diagnose
+
+Epic 3E-0218: Erste der vier Umsetzungs-Stufen des Metadaten-Modells. Das
+Definitions-Format der Eigenschafts-Profile steht vollständig (typ-eigene
+Optionen, Wertevorrats-Quellen, verschachtelte Kind-Definitionen, entkoppelter
+Mehrfach-Modus), Profile erben voneinander, und fehlerhafte Definitionen werden
+genau benannt statt nur gezählt. Tragende Auflage der Stufe ist die
+Rückwärts-Verträglichkeit: Der Feldname bleibt die einzige Pflichtangabe, und
+jede bestehende Profil-Datei bleibt unverändert gültig.
+
+Umsetzungs-Vorgänge des Epics: 4T-1141, 4T-1142, 4T-1143; Hilfe- und
+Handbuch-Vorgang 4T-1144, Release-Vorgang 4T-1145.
+
+### Neu
+
+- **Vererbung zwischen Profilen** (4T-1142): Ein Profil nennt mit `extends`
+  höchstens ein Eltern-Profil und übernimmt dessen Feld-Definitionen; Ketten
+  über mehrere Ebenen sind möglich. `exclude` schließt geerbte Felder aus und
+  wirkt in der Vererbungs-Kette, in der es steht, nicht für das ganze Dokument;
+  ein eigenes Feld gleichen Namens überschreibt das geerbte vollständig. Die
+  Auflösung bleibt eine einzige geordnete Folge neben der Mehrfach-Zuordnung
+  (je zugeordnetem Profil seine Kette von unten nach oben, danach das
+  Standard-Profil mit seiner Kette, jedes Profil genau einmal); die beiden
+  bisherigen Vorrang-Regeln gelten unverändert weiter. Ein Zyklus oder ein
+  nicht vorhandenes Eltern-Profil beendet nur die betroffene Kette und erzeugt
+  einen Hinweis am Profil.
+- **Erweitertes Definitions-Format** (4T-1141): Eine Feld-Definition trägt
+  typ-eigene Angaben im Unterobjekt `options`, die Quelle des Wertevorrats als
+  `valuesFrom` (`note` und/oder `query`) auf der oberen Ebene und
+  verschachtelte Kind-Definitionen unter `fields`, rekursiv nach demselben
+  Schema und mit derselben Fehler-Isolation je Definition. Die neuen Angaben
+  werden in dieser Stufe geführt, aber noch nicht ausgewertet; sie stehen für
+  die folgenden Stufen bereit. Der Mehrfach-Modus ist vom festen Wertebereich
+  entkoppelt: `multiple: true` ohne `values` ist jetzt gültig (der frühere
+  Fehler-Fall entfällt ersatzlos), die Typ-Regel zu `multistring` bleibt bis
+  zum Typ-Ausbau bestehen.
+- **Ortsbezogene Diagnose fehlerhafter Definitionen** (4T-1143): Die
+  Profil-Liste der Einstellungen zeigt die Hinweise ausgeschrieben unter ihrem
+  Profil, in der Reihenfolge der Definitionen. Jede Meldung nennt die
+  betroffene Definition, die fehlerhafte Angabe und was an ihrer Stelle
+  erwartet wurde; Fehler in Kind-Definitionen tragen den Pfad zum Eltern-Feld,
+  die Vererbungs-Fälle (Zyklus, fehlendes und mehrfaches Eltern-Profil) ihre
+  eigenen Meldungen. Die weiche Linie bleibt unangetastet: Kein Hinweis
+  blockiert etwas, kein Wert wird verändert, und ein Fehler setzt nie ein
+  ganzes Profil aus, solange der Metadaten-Block lesbar bleibt.
+
+### i18n
+
+- Der Melde-Satz der Profil-Hinweise ist neu gefasst: je Fehler-Code ein
+  ganzer Satz mit Orts-Platzhalter, dazu zwei Orts-Schlüssel (oberste Ebene
+  und Kind-Definition mit Pfad), vier neue Hinweis-Texte der neuen Angaben und
+  drei Meldungen der Vererbungs-Fälle, in allen fünf Sprachfassungen
+  (4T-1141 bis 4T-1143); der Schlüssel des entfallenen Fehler-Falls
+  `multiple` ohne `values` ist entfernt.
+- Neuer Funktions-Katalog-Eintrag «Profil-Vererbung» mit Beschreibung,
+  Kurzname und Zugang in allen fünf Sprachfassungen, eingeordnet direkt hinter
+  den Eigenschafts-Profilen; deren Katalog-Text ist um das erweiterte Format
+  und die genaue Fehler-Benennung fortgeschrieben (4T-1144).
+
+### Dokumentation
+
+- Die Handbuch-Seite «Eigenschafts-Profile» beschreibt in allen fünf
+  Sprachfassungen das erweiterte Format (Attribut-Tabelle samt der Zusage zur
+  einzigen Pflichtangabe), einen neuen Abschnitt «Vererbung», die Auflösung
+  als eine geordnete Folge mit dem durchgespielten Beispiel und die Grenzen
+  der Stufe (4T-1144). Die Überblicksseite nennt die Vererbung, die Demo-Seite
+  der Profile erklärt sie in einem Satz.
+
 ## [1.114.1.1730] - 2026-08-22 — Kennungs-Migration der Anforderungsachse
 
 Epic 3E-0222: Internes technisches Release ohne Funktions-Änderung. Die

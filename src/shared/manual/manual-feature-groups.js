@@ -146,6 +146,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — zentrale Feld-
       // Definitionen, direkt hinter dem Properties-Editor, auf dem sie wirken.
       'help.feature.propertyProfiles',
+      // 4T-1144 (Epic 3E-0218): Profil-Vererbung, direkt hinter den
+      // Eigenschafts-Profilen, deren Definitions-Bestand sie teilt.
+      'help.feature.profileInheritance',
       // 4T-0491 (Epic 3E-0093): Komplett-Übernahme der Profil-Felder, direkt
       // hinter den Eigenschafts-Profilen, auf denen sie aufsetzt.
       'help.feature.profileBulkFill',

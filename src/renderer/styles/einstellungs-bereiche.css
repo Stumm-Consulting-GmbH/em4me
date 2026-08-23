@@ -211,10 +211,23 @@
 }
 .settings-profiles-item-meta.has-errors {
   color: #b8860b;
-  cursor: help;
 }
 [data-theme='dark'] .settings-profiles-item-meta.has-errors {
   color: #e0b341;
+}
+/* 4T-1143 (Epic 3E-0218): Hinweise stehen ausgeschrieben unter ihrem
+   Profil (E4 — sichtbar statt allein in einer Kurzinfo). */
+.settings-profiles-item-hints {
+  margin: 0 0 6px;
+  padding-left: 22px;
+  font-size: 12px;
+  color: #b8860b;
+}
+[data-theme='dark'] .settings-profiles-item-hints {
+  color: #e0b341;
+}
+.settings-profiles-item-hints li {
+  margin: 1px 0;
 }
 /* 4T-0436 (Epic 3E-0081): Einstellungs-Bereich Journale — Regal-Zeilen und
    Journal-Formular-Gruppen mit Pfad-Vorschau und Schema-Warnung. */

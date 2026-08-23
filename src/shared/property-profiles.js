@@ -1,205 +1,77 @@
-// 4T-0446 (Epic 3E-0083): Eigenschafts-Profile — Profil-Datei-Format,
-// Definitions-Validierung und Bereichs-Konfiguration.
+// 4T-0447/4T-0448 (Epic 3E-0083): Eigenschafts-Profile — Auflösung über
+// mehrere Profile und die gemeinsame Editor-Logik beider Panels.
 //
-// Ein Profil ist eine normale Markdown-Datei im Profil-Ordner des Bereichs;
-// ihr Frontmatter-Schlüssel `fields` trägt die zentralen Feld-Definitionen
-// für die Eigenschafts-Editoren (Dokument-Properties und Block-Panel), der
-// Datei-Inhalt ist freie Beschreibung. Profil-Name = Datei-Titel (Dateiname
-// ohne .md). Dokumente ordnen sich über ein Frontmatter-Feld zu (Default
-// `class`, pro Bereich umbenennbar); zusätzlich kann ein Bereichs-Standard-
-// Profil für alle Dateien gelten (Architekturentscheidung 1 des Epics).
+// Diese Datei ist zugleich die **Fassade** der Eigenschafts-Profile: Alle
+// Verbraucher (Profil-Katalog, IPC, Editoren, Einstellungen, Tests) laden
+// sie und bekommen von hier auch das Datei-Format weitergereicht, das seit
+// dem Definitions-Ausbau der Stufe 1 in `property-profiles-format.js` liegt
+// (Schnitt in 4T-1145, Epic 3E-0218: dort das Lesen EINER Profil-Datei,
+// hier das Zusammenführen MEHRERER und ihre Wirkung in den Editoren).
 //
-// Bereichsdatei-Sektion `propertyProfiles` (Area_Settings.mdda, Sektions-
-// Muster mit Fehler-Isolation; Vorbilder templates-/journals-Sektion):
-//   propertyProfiles: {
-//     folder         Profil-Ordner relativ zur Bereichs-Wurzel
-//     assignField    Zuordnungs-Feldname im Frontmatter (Default 'class')
-//     defaultProfile Profil-Name des Standard-Profils oder null
-//   }
+// Auflösung für eine Datei (4T-0447): Vereinigung der Feld-Definitionen aus
+// den zugeordneten Profilen samt ihren Eltern-Ketten plus dem Standard-
+// Profil mit seiner Kette, als eine einzige geordnete Folge mit
+// deterministischen Konflikt-Regeln. Blöcke einer Datei erben dieselbe
+// Auflösung (PO-Entscheidung 4; keine eigene Block-Zuordnung in v1).
 //
-// Feld-Definition im Profil-Frontmatter (`fields`-Liste):
-//   { name     Feldname (Pflicht, eindeutig pro Profil)
-//     type     'string' | 'multistring' | 'number' | 'boolean' | 'date' |
-//              'multiline' (Default 'string'; 'multistring' bei multiple)
-//     values   optional: fester Wertebereich (Werte-Liste)
-//     multiple optional, nur mit values: Mehrfach-Auswahl (Wert ist Liste,
-//              effektiver Typ 'multistring')
-//     default  optional: Vorbelegung beim Anlegen über den Editor }
-//
-// Validierung ist weich nach dem Fehler-Isolations-Muster der Bereichsdatei
-// und der PO-Entscheidung 3 (Hinweise statt Blockade): defekte Einzel-
-// Definitionen entfallen und werden als Hinweis gesammelt (nie ein Wurf),
-// die übrigen Definitionen des Profils bleiben wirksam. Definitions-Fehler
-// sind u.a. unbekannter Typ, `multiple` ohne `values` und Duplikat-Feldnamen
-// (Task-Vorgabe); ein unpassender Default setzt nur den Default aus.
+// Vererbung (4T-1142/3E-0218, E2): `resolveProfileFields` läuft die
+// Eltern-Ketten ab, `attachHeritageHints` liefert die Zyklus- und
+// Fehlt-Hinweise der Profil-Liste; die Angaben selbst liest das
+// Format-Modul (`parseProfileHeritage`).
 //
 // Prozess-neutral (kein Electron, kein DOM): Main (Datenpfad, Auflösung)
 // und Renderer (Editoren, Einstellungen) laden dasselbe Modul.
 'use strict';
 
-// Die sechs editierbaren Eigenschafts-Typen — bewusst identisch zu
-// PROPERTY_TYPES des Properties-Editors ohne den internen 'readonly'-
-// Fallback (der ist Inferenz-Ergebnis verschachtelter YAML-Strukturen,
-// keine definierbare Vorgabe).
-const PROFILE_FIELD_TYPES = ['string', 'multistring', 'number', 'boolean', 'date', 'multiline'];
+const {
+  PROFILE_FIELD_TYPES,
+  DEFAULT_ASSIGN_FIELD,
+  normalizeProfilesConfig,
+  parseProfileFields,
+  parseProfileHeritage,
+  buildHint,
+  cleanString,
+  scalarToString,
+} = require('./property-profiles-format.js');
 
-// Default des Zuordnungs-Feldnamens (belegtes Nutzungs-Muster des PO,
-// Referenz-Analyse Metadata_Menu.md §4: Alias `Class`).
-const DEFAULT_ASSIGN_FIELD = 'class';
-
-function cleanString(v) {
-  return typeof v === 'string' ? v.trim() : '';
-}
-
-// Normalisiert die propertyProfiles-Sektion auf { folder, assignField,
-// defaultProfile } oder null (keine Konfiguration). Tolerant: defekte oder
-// fehlende Teile fallen auf null bzw. den Default, nie auf einen Wurf.
-function normalizeProfilesConfig(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const folder = cleanString(value.folder) || null;
-  const assignRaw = cleanString(value.assignField);
-  const defaultProfile = cleanString(value.defaultProfile) || null;
-  if (folder === null && assignRaw === '' && defaultProfile === null) return null;
-  return { folder, assignField: assignRaw || DEFAULT_ASSIGN_FIELD, defaultProfile };
-}
-
-// Skalar -> getrimmter String; null bei Nicht-Skalaren (verschachtelte
-// Strukturen sind in Werte-Listen nicht definierbar).
-function scalarToString(v) {
-  if (typeof v === 'string') return v.trim();
-  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
-  if (typeof v === 'boolean') return String(v);
-  return null;
-}
-
-// Werte-Liste passend zum Feld-Typ normalisieren: number-Felder erhalten
-// endliche Zahlen (numerische Strings werden konvertiert), alle übrigen
-// String-Werte; leere und doppelte Einträge entfallen. null = Werte-Liste
-// ist für diesen Typ nicht bildbar (Definitions-Fehler beim Aufrufer).
-function normalizeValuesList(list, type) {
-  const out = [];
-  for (const raw of list) {
-    if (type === 'number') {
-      const n = typeof raw === 'number' ? raw : Number(cleanString(raw) || NaN);
-      if (!Number.isFinite(n) || out.includes(n)) continue;
-      out.push(n);
-    } else {
-      const s = scalarToString(raw);
-      if (s === null || s === '' || out.includes(s)) continue;
-      out.push(s);
-    }
+// 4T-1142: Vererbungs-Hinweise je Profil für die Profil-Liste der
+// Einstellungen — ein Zyklus in der Eltern-Beziehung (extendsCycle, benannt
+// mit dem Profil des ersten Wiedersehens) und ein nicht vorhandenes
+// Eltern-Profil (extendsMissing, benannt mit dem fehlenden Namen), beide
+// weich: Die Auflösung bricht die Kette nur ab. Liefert die Profil-Liste
+// mit den je Profil ergänzten Hinweisen in der Gestalt der
+// Definitions-Hinweise ({ code, index: -1, name }); Profile ohne Befund
+// bleiben dasselbe Objekt. Hinweis-Texte: 4T-1143.
+function attachHeritageHints(profiles) {
+  const list = Array.isArray(profiles) ? profiles : [];
+  const byName = new Map();
+  for (const p of list) {
+    const key = cleanString(p && p.name).toLowerCase();
+    if (key !== '' && !byName.has(key)) byName.set(key, p);
   }
-  return out.length > 0 ? out : null;
-}
-
-// Default-Wert gegen den Feld-Typ prüfen/normalisieren. Liefert
-// { ok: true, value } oder { ok: false } (Default entfällt, Feld bleibt).
-function normalizeDefault(raw, type) {
-  if (type === 'multistring') {
-    const list = Array.isArray(raw) ? raw : [raw];
-    const out = [];
-    for (const item of list) {
-      const s = scalarToString(item);
-      if (s === null) return { ok: false };
-      if (s !== '' && !out.includes(s)) out.push(s);
-    }
-    return { ok: true, value: out };
-  }
-  if (type === 'number') {
-    return typeof raw === 'number' && Number.isFinite(raw)
-      ? { ok: true, value: raw }
-      : { ok: false };
-  }
-  if (type === 'boolean') {
-    return typeof raw === 'boolean' ? { ok: true, value: raw } : { ok: false };
-  }
-  // string, date, multiline: String-Skalar; date zusätzlich im ISO-Format
-  // (ein Nicht-Datum als Datums-Default wäre im Editor nicht darstellbar).
-  const s = scalarToString(raw);
-  if (s === null) return { ok: false };
-  if (type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(s)) return { ok: false };
-  return { ok: true, value: s };
-}
-
-// Parst die Feld-Definitionen aus dem Frontmatter-Objekt einer Profil-Datei.
-// Liefert { fields, errors }: fields sind die gültigen, normalisierten
-// Definitionen { name, type, values, multiple, default }, errors die
-// gesammelten Hinweise { code, index, name } (index = Position in der
-// fields-Liste, name falls bekannt). Fehler-Codes:
-//   fieldsNotList          `fields` ist keine Liste (Profil ohne Wirkung)
-//   entry                  Definition ist kein Objekt
-//   name                   Feldname fehlt oder ist leer
-//   duplicate              Feldname doppelt (case-insensitiv)
-//   type                   unbekannter Typ
-//   multipleWithoutValues  multiple ohne values
-//   multipleType           multiple mit explizitem Nicht-multistring-Typ
-//   values                 Werte-Liste nicht bildbar (kein Array, leer nach
-//                          Normalisierung oder Typ ohne Wertebereich)
-//   default                Default passt nicht zum Typ (nur Default entfällt)
-//   defaultOutsideValues   Default außerhalb des Wertebereichs (bleibt —
-//                          weiche Haltung, Hinweis für die Profil-Pflege)
-function parseProfileFields(data) {
-  const fields = [];
-  const errors = [];
-  if (!data || typeof data !== 'object' || Array.isArray(data)) return { fields, errors };
-  const raw = data.fields;
-  if (raw === undefined || raw === null) return { fields, errors };
-  if (!Array.isArray(raw)) {
-    errors.push({ code: 'fieldsNotList', index: -1, name: null });
-    return { fields, errors };
-  }
-  const seen = new Set();
-  raw.forEach((entry, index) => {
-    const fail = (code, name) => errors.push({ code, index, name: name || null });
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return fail('entry');
-    const name = cleanString(entry.name);
-    if (name === '') return fail('name');
-    if (seen.has(name.toLowerCase())) return fail('duplicate', name);
-
-    const multiple = entry.multiple === true;
-    const declaredType = cleanString(entry.type);
-    let type = declaredType || (multiple ? 'multistring' : 'string');
-    if (!PROFILE_FIELD_TYPES.includes(type)) return fail('type', name);
-
-    const hasValues = entry.values !== undefined && entry.values !== null;
-    if (multiple && !hasValues) return fail('multipleWithoutValues', name);
-    if (multiple && declaredType !== '' && declaredType !== 'multistring') {
-      return fail('multipleType', name);
-    }
-    if (multiple) type = 'multistring';
-
-    let values = null;
-    if (hasValues) {
-      // Wertebereiche gibt es für Auswahl-Typen; boolean hat seine zwei
-      // Werte per Konstruktion, multiline ist Freitext.
-      if (!Array.isArray(entry.values) || type === 'boolean' || type === 'multiline') {
-        return fail('values', name);
+  return list.map((p) => {
+    const hints = [];
+    const visited = new Set();
+    let current = p;
+    while (current) {
+      const key = cleanString(current.name).toLowerCase();
+      if (visited.has(key)) {
+        hints.push(buildHint('extendsCycle', -1, cleanString(current.name)));
+        break;
       }
-      values = normalizeValuesList(entry.values, type === 'multistring' ? 'string' : type);
-      if (values === null) return fail('values', name);
-    }
-    // multistring mit Wertebereich IST die Mehrfach-Auswahl (multiple
-    // implizit; die Task-Vorgabe koppelt multiple an values).
-    const effectiveMultiple = multiple || (type === 'multistring' && values !== null);
-
-    let defaultValue = null;
-    if (entry.default !== undefined && entry.default !== null) {
-      const norm = normalizeDefault(entry.default, type);
-      if (!norm.ok) {
-        fail('default', name);
-      } else {
-        defaultValue = norm.value;
-        if (values !== null) {
-          const items = Array.isArray(defaultValue) ? defaultValue : [defaultValue];
-          if (!items.every((v) => values.includes(v))) fail('defaultOutsideValues', name);
-        }
+      visited.add(key);
+      const parentName = cleanString(current.parent);
+      if (parentName === '') break;
+      const parentProfile = byName.get(parentName.toLowerCase());
+      if (!parentProfile) {
+        hints.push(buildHint('extendsMissing', -1, parentName));
+        break;
       }
+      current = parentProfile;
     }
-
-    seen.add(name.toLowerCase());
-    fields.push({ name, type, values, multiple: effectiveMultiple, default: defaultValue });
+    if (hints.length === 0) return p;
+    return { ...p, errors: [...(Array.isArray(p.errors) ? p.errors : []), ...hints] };
   });
-  return { fields, errors };
 }
 
 // Zuordnungs-Werte eines Dokuments: die Profil-Namen aus dem Zuordnungs-Feld
@@ -238,13 +110,28 @@ function assignedProfileNames(frontmatterData, assignField) {
 // Dateisystem bzw. freie Frontmatter-Schreibweise). Blöcke einer Datei erben
 // dieselbe Auflösung (PO-Entscheidung 4; keine eigene Block-Zuordnung in v1).
 //
-// profiles: Katalog [{ name, fields }] (geparste Profil-Dateien);
+// profiles: Katalog [{ name, fields, parent, exclude }] (geparste
+// Profil-Dateien; parent/exclude aus parseProfileHeritage, optional);
 // assigned: Zuordnungs-Werte des Dokuments in Frontmatter-Reihenfolge;
 // defaultProfile: Profil-Name des Bereichs-Standard-Profils oder null.
 // Liefert { fields, missing }: fields sind die Definitionen ergänzt um
 // { profile, fromDefault } (Herkunfts-Kennzeichnung der Editoren), missing
 // die zugeordneten bzw. als Standard gesetzten, aber nicht vorhandenen
-// Profil-Namen (Hinweis-Grundlage der Einstellungen).
+// Profil-Namen (Hinweis-Grundlage der Einstellungen; ein fehlendes
+// Eltern-Profil gehört bewusst nicht hinein, sein Hinweis hängt über
+// attachHeritageHints am Profil).
+//
+// 4T-1142 (Epic 3E-0218, E2): Die Auflösung bleibt eine einzige geordnete
+// Folge. Je zugeordnetem Profil in Nennungs-Reihenfolge läuft seine
+// Eltern-Kette von unten nach oben, danach das Standard-Profil mit seiner
+// Kette. Jedes Profil wird genau einmal verarbeitet, über alle Ketten
+// hinweg; ein Wiedersehen beendet die Kette und trägt damit zugleich das
+// Standard-Profil in einer Kette und den Zyklus. Bei gleichem Feldnamen
+// gewinnt der erste Treffer der Folge (das eigene Feld überschreibt so das
+// gleichnamige geerbte ohne eigene Regel). Ein Ausschluss (`exclude`)
+// sammelt sich aus den bereits durchlaufenen Profilen einer Kette und
+// unterdrückt allein die gleichnamigen Felder der weiter oben liegenden
+// Profile dieser Kette; beim Wechsel auf die nächste Kette ist er zurückgesetzt.
 function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
   const byName = new Map();
   for (const p of Array.isArray(profiles) ? profiles : []) {
@@ -254,23 +141,40 @@ function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
   const ordered = [];
   const missing = [];
   const seenProfiles = new Set();
-  const push = (rawName, fromDefault) => {
+  const walkChain = (rawName, fromDefault) => {
     const name = cleanString(rawName);
     if (name === '') return;
-    const key = name.toLowerCase();
-    if (seenProfiles.has(key)) return; // Standard-Profil auch zugeordnet: einmal zählt
-    seenProfiles.add(key);
-    const profile = byName.get(key);
-    if (profile) ordered.push({ profile, fromDefault });
-    else missing.push(name);
+    const startKey = name.toLowerCase();
+    if (seenProfiles.has(startKey)) return; // Standard-Profil auch zugeordnet: einmal zählt
+    if (!byName.has(startKey)) {
+      seenProfiles.add(startKey);
+      missing.push(name);
+      return;
+    }
+    const chainExclude = new Set();
+    let currentKey = startKey;
+    // Ein fehlendes Eltern-Profil oder ein Wiedersehen beendet die Kette
+    // still; die Hinweise dazu hängen am Profil (attachHeritageHints).
+    while (byName.has(currentKey) && !seenProfiles.has(currentKey)) {
+      seenProfiles.add(currentKey);
+      const profile = byName.get(currentKey);
+      ordered.push({ profile, fromDefault, exclude: new Set(chainExclude) });
+      for (const ex of Array.isArray(profile.exclude) ? profile.exclude : []) {
+        const exKey = cleanString(ex).toLowerCase();
+        if (exKey !== '') chainExclude.add(exKey);
+      }
+      currentKey = cleanString(profile.parent).toLowerCase();
+      if (currentKey === '') break;
+    }
   };
-  for (const name of Array.isArray(assigned) ? assigned : []) push(name, false);
-  push(defaultProfile, true);
+  for (const name of Array.isArray(assigned) ? assigned : []) walkChain(name, false);
+  walkChain(defaultProfile, true);
   const fields = [];
   const seenFields = new Set();
-  for (const { profile, fromDefault } of ordered) {
+  for (const { profile, fromDefault, exclude } of ordered) {
     for (const def of Array.isArray(profile.fields) ? profile.fields : []) {
       const key = def.name.toLowerCase();
+      if (exclude.has(key)) continue;
       if (seenFields.has(key)) continue;
       seenFields.add(key);
       fields.push({ ...def, profile: profile.name, fromDefault });
@@ -432,10 +336,14 @@ function profileSuggestGroups(resolvedFields, existingKeys, heuristics) {
 }
 
 module.exports = {
+  // 4T-1145: aus property-profiles-format.js weitergereicht (Fassade).
   PROFILE_FIELD_TYPES,
   DEFAULT_ASSIGN_FIELD,
   normalizeProfilesConfig,
   parseProfileFields,
+  // 4T-1142: Vererbung zwischen Profilen.
+  parseProfileHeritage,
+  attachHeritageHints,
   assignedProfileNames,
   resolveProfileFields,
   // 4T-0448: gemeinsame Editor-Logik.

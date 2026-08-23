@@ -78,6 +78,16 @@ Para números en lugar de texto está el segundo tipo de tabla. La Perspective D
 
 En detalle: [Perspective Datatable](datatable.md).
 
+## Tipos de documentos que se apoyan unos en otros
+
+Muchos documentos de un área comparten los mismos campos: un estado, una fecha, una categoría. Los perfiles de propiedades describen estos campos una sola vez, de forma centralizada, con tipo, valores permitidos y valor predeterminado; los editores de propiedades los sugieren y ofrecen los rangos de valores como listas de selección. Los perfiles heredan unos de otros: un perfil base dice lo que vale para todos, y un tipo de documento como artículo o reunión añade solo su propia parte, excluye campos heredados si es necesario o los reemplaza. Las desviaciones producen avisos en lugar de bloqueos.
+
+- **Describir los campos una sola vez** en lugar de en cada documento: sugerencias, listas de selección y tipos vienen del perfil.
+- **Herencia con exclusión y reemplazo:** lo común en el perfil padre, lo propio en el tipo de documento.
+- **Avisos suaves en lugar de bloqueos:** las desviaciones se nombran, nada se bloquea.
+
+En detalle: [Perfiles de propiedades](property-profiles.md).
+
 ## Listas que se mantienen al día
 
 Quien lleva muchos archivos mantiene si no las vistas de conjunto a mano, y envejecen el mismo día. Una consulta Perspective describe en cambio **qué** se busca, y el resultado aparece allí mismo en el documento: una lista o tabla en la que se puede hacer clic sobre todo el conjunto, filtrada por propiedades, etiquetas y campos de archivo, hasta los bloques de texto y las tareas. Si cambia el conjunto, cambia la salida, sin que nadie actualice nada.

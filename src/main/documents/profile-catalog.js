@@ -16,20 +16,25 @@
 
 const path = require('node:path');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
-const { parseProfileFields } = require('../../shared/property-profiles');
+const { parseProfileFields, parseProfileHeritage } = require('../../shared/property-profiles');
 
 // Eigener Cache pro Aufrufer (main.js hält einen prozessweiten; Tests je
-// einen frischen). Map absPath(lowercase) -> { mtimeMs, size, fields, errors }.
+// einen frischen). Map absPath(lowercase) ->
+// { mtimeMs, size, fields, errors, parent, exclude }.
 function createProfileCatalogCache() {
   return new Map();
 }
 
 // Katalog des Profil-Ordners: { missingFolder, profiles }. profiles sind
-// alphabetisch sortierte Einträge { name, fileName, fields, errors };
-// name = Datei-Titel (Dateiname ohne .md), die Identität der Zuordnung.
-// Ein YAML-Fehler im Frontmatter einer Profil-Datei setzt nur dieses
-// Profil auf null Definitionen (Hinweis-Code 'yaml'); unlesbare Einzel-
-// Dateien entfallen still (Fehler-Isolation pro Datei).
+// alphabetisch sortierte Einträge { name, fileName, fields, errors,
+// parent, exclude }; name = Datei-Titel (Dateiname ohne .md), die Identität
+// der Zuordnung. parent/exclude sind die Vererbungs-Angaben der Profil-Ebene
+// (4T-1142, `extends`/`exclude` im Metadaten-Block); die ordnerweiten
+// Zyklus- und Fehlt-Hinweise berechnet der Verbraucher über
+// attachHeritageHints, weil sie am Datei-Cache vorbei vom ganzen Ordner
+// abhängen. Ein YAML-Fehler im Frontmatter einer Profil-Datei setzt nur
+// dieses Profil auf null Definitionen (Hinweis-Code 'yaml'); unlesbare
+// Einzel-Dateien entfallen still (Fehler-Isolation pro Datei).
 async function loadProfileCatalog({ folderAbs, fsp, cache }) {
   let dirents;
   try {
@@ -64,8 +69,20 @@ async function loadProfileCatalog({ folderAbs, fsp, cache }) {
       // Erkennung erwartet '---' ab Byte 0).
       const fm = extractFrontmatter(raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw);
       const { fields, errors } = parseProfileFields(fm.data);
-      if (fm.parseError) errors.unshift({ code: 'yaml', index: -1, name: null });
-      parsed = { mtimeMs: stat.mtimeMs, size: stat.size, fields, errors };
+      const heritage = parseProfileHeritage(fm.data);
+      errors.push(...heritage.errors);
+      if (fm.parseError) {
+        // 4T-1143: dieselbe Hinweis-Gestalt wie die Parser-Hinweise.
+        errors.unshift({ code: 'yaml', index: -1, name: null, key: null, expected: null });
+      }
+      parsed = {
+        mtimeMs: stat.mtimeMs,
+        size: stat.size,
+        fields,
+        errors,
+        parent: heritage.parent,
+        exclude: heritage.exclude,
+      };
       cache.set(cacheKey, parsed);
     }
     profiles.push({
@@ -73,6 +90,8 @@ async function loadProfileCatalog({ folderAbs, fsp, cache }) {
       fileName: entry.name,
       fields: parsed.fields,
       errors: parsed.errors,
+      parent: parsed.parent,
+      exclude: parsed.exclude,
     });
   }
   // Cache-Einträge verschwundener Dateien räumen (nur die dieses Ordners —

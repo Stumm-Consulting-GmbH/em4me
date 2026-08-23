@@ -15,6 +15,7 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
 const {
   normalizeProfilesConfig,
   resolveProfileFields,
+  attachHeritageHints,
   assignedProfileNames,
   DEFAULT_ASSIGN_FIELD,
 } = require('../../shared/property-profiles');
@@ -211,8 +212,11 @@ function registerProfilesIpc(handle, deps) {
     };
     if (!area) return base;
     const eventsOn = isExtensionEnabled('events', store ? store.get('extensions.disabled') : []);
+    // 4T-1142: Zyklus- und Fehlt-Hinweise der Vererbung hängen am Profil und
+    // entstehen ordnerweit (attachHeritageHints, geteiltes Modul); hier wird
+    // nur durchgereicht.
     const rows = (profiles, folderAbs) =>
-      injectEventProfile(profiles, eventsOn).map((p) => ({
+      attachHeritageHints(injectEventProfile(profiles, eventsOn)).map((p) => ({
         name: p.name,
         fileName: p.fileName,
         path: p.internal ? null : path.join(folderAbs, p.fileName),

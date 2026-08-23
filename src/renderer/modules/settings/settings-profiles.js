@@ -56,11 +56,33 @@ export async function readProfilesFromConfig() {
   };
 }
 
-// Lokalisierter Text eines Validierungs-Hinweises ({index} 1-basiert).
+// 4T-1143 (Epic 3E-0218, E4): Lokalisierter Text eines Validierungs-
+// Hinweises. Die Meldung je Code ist ein ganzer Satz mit {ort} und, wo eine
+// konkrete Erwartung besteht, {expected}; der Ort entsteht aus zwei eigenen
+// Schlüsseln (oberste Ebene bzw. Kind-Definition mit ihrem Pfad zum
+// Eltern-Feld, {index} 1-basiert). Profil-Ebene-Meldungen (yaml, extends…)
+// tragen keinen {ort} und höchstens {name}.
 function profileErrorText(err) {
-  return t('settings.profiles.error.' + err.code)
-    .replace('{index}', String((typeof err.index === 'number' ? err.index : -1) + 1))
-    .replace('{name}', err.name || '');
+  let text = t('settings.profiles.error.' + err.code);
+  if (text.includes('{ort}')) {
+    const child = Array.isArray(err.path) && err.path.length > 0;
+    const ort = t(child ? 'settings.profiles.hintLocationChild' : 'settings.profiles.hintLocation')
+      .replace('{index}', String((typeof err.index === 'number' ? err.index : -1) + 1))
+      .replace('{name}', err.name || '—')
+      .replace('{path}', child ? err.path.join(' › ') : '');
+    text = text.replace('{ort}', ort);
+  } else {
+    text = text.replace('{name}', err.name || '—');
+  }
+  if (text.includes('{expected}')) {
+    const expected = Array.isArray(err.expected)
+      ? err.expected.join(', ')
+      : err.expected === null || err.expected === undefined
+        ? ''
+        : String(err.expected);
+    text = text.replace('{expected}', expected);
+  }
+  return text;
 }
 
 // Profil-Liste des Bereichs frisch laden und den Bereich neu rendern
@@ -259,12 +281,22 @@ export function renderProfilesSection(container, draft) {
       );
     }
     meta.textContent = parts.join(' · ');
-    if (profile.errors.length > 0) {
-      meta.classList.add('has-errors');
-      meta.title = profile.errors.map(profileErrorText).join('\n');
-    }
+    if (profile.errors.length > 0) meta.classList.add('has-errors');
     row.appendChild(meta);
     list.appendChild(row);
+    // 4T-1143 (E4): Hinweise stehen ausgeschrieben unter ihrem Profil, in
+    // der Reihenfolge der Definitionen; die Kurzinfo entfällt, weil der
+    // Text sichtbar ist. Zähler und Hervorhebung der Zeile bleiben.
+    if (profile.errors.length > 0) {
+      const hints = document.createElement('ul');
+      hints.className = 'settings-profiles-item-hints';
+      for (const err of profile.errors) {
+        const item = document.createElement('li');
+        item.textContent = profileErrorText(err);
+        hints.appendChild(item);
+      }
+      list.appendChild(hints);
+    }
   }
   container.appendChild(list);
 }

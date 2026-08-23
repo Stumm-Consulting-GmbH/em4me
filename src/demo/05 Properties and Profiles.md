@@ -61,6 +61,6 @@ fields:
 ---
 ```
 
-Documents opt in with a `class:` field naming the profile. The profile folder is set under **Settings → Property profiles** (an area setting), so it is a one-time setup rather than a shipped file. Without it, the panel still works with plain type inference.
+Documents opt in with a `class:` field naming the profile. Profiles can also inherit from each other: `extends` names a parent profile, `exclude` skips inherited fields, and only the field name is required — every other property is optional. The profile folder is set under **Settings → Property profiles** (an area setting), so it is a one-time setup rather than a shipped file. Without it, the panel still works with plain type inference.
 
 On to planning: [[06 Tasks and Reminders]].

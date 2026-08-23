@@ -1,22 +1,20 @@
-// 4T-0446 (Epic 3E-0083): Unit-Tests der Eigenschafts-Profile — tolerante
-// Normalisierung der propertyProfiles-Sektion, Profil-Datei-Format mit
-// weicher Validierung (Fehler-Isolation pro Definition) und Auswertung des
-// Zuordnungs-Felds. 4T-0447: Definitions-Auflösung mit Konflikt-Regeln.
+// 4T-0446 (Epic 3E-0083): Unit-Tests des Profil-Datei-Formats — tolerante
+// Normalisierung der propertyProfiles-Sektion und Definitions-Parsing mit
+// weicher Validierung (Fehler-Isolation pro Definition).
+// 4T-1141 (Epic 3E-0218): erweitertes Definitions-Format — options,
+// valuesFrom, verschachtelte Kind-Definitionen, entkoppelter Mehrfach-Modus.
+// 4T-1143 (Epic 3E-0218): Ortsbezug des Hinweis-Datensatzes.
+//
+// Gegenstück: `property-profiles-aufloesung.test.js` prüft die Auflösung
+// über mehrere Profile, die Vererbung und die gemeinsame Editor-Logik
+// (Schnitt in 4T-1145 entlang der Naht der beiden Module).
 import { describe, it, expect } from 'vitest';
 import {
   PROFILE_FIELD_TYPES,
   DEFAULT_ASSIGN_FIELD,
   normalizeProfilesConfig,
   parseProfileFields,
-  assignedProfileNames,
-  resolveProfileFields,
-  fieldDefinitionHint,
-  profileFieldSuggestions,
-  emptyValueForType,
-  buildProfileFillMap,
-  profileSuggestGroups,
 } from '../../src/shared/property-profiles.js';
-import { extensionById } from '../../src/shared/extensions/extensions.js';
 
 describe('normalizeProfilesConfig', () => {
   it('liefert null für fehlende, leere oder defekte Sektionen', () => {
@@ -147,7 +145,9 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
   it('fields als Nicht-Liste ergibt nur den Sammel-Hinweis', () => {
     const { fields, errors } = parseProfileFields({ fields: 'Status' });
     expect(fields).toEqual([]);
-    expect(errors).toEqual([{ code: 'fieldsNotList', index: -1, name: null }]);
+    expect(errors).toEqual([
+      { code: 'fieldsNotList', index: -1, name: null, key: 'fields', expected: 'list' },
+    ]);
   });
 
   it('defekte Einzel-Definitionen entfallen, gültige bleiben', () => {
@@ -160,7 +160,6 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
         { name: 'ok1' }, // duplicate (case-insensitiv folgt unten)
         { name: 'OK1' }, // duplicate
         { name: 'x', type: 'lookup' }, // unbekannter Typ
-        { name: 'y', multiple: true }, // multiple ohne values
         { name: 'z', type: 'number', values: ['A', 'B'], multiple: true }, // multipleType
         { name: 'v1', values: 'offen' }, // values kein Array
         { name: 'v2', type: 'boolean', values: [true] }, // Typ ohne Wertebereich
@@ -176,15 +175,21 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
       'duplicate',
       'duplicate',
       'type',
-      'multipleWithoutValues',
       'multipleType',
       'values',
       'values',
       'values',
     ]);
-    // Hinweise tragen Position und (falls bekannt) den Feldnamen.
-    expect(errors[2]).toEqual({ code: 'name', index: 3, name: null });
-    expect(errors[5]).toEqual({ code: 'type', index: 6, name: 'x' });
+    // Hinweise tragen Position, (falls bekannt) den Feldnamen sowie seit
+    // 4T-1143 die betroffene Angabe und die Erwartung.
+    expect(errors[2]).toEqual({ code: 'name', index: 3, name: null, key: 'name', expected: null });
+    expect(errors[5]).toEqual({
+      code: 'type',
+      index: 6,
+      name: 'x',
+      key: 'type',
+      expected: PROFILE_FIELD_TYPES,
+    });
   });
 
   it('unpassender Default setzt nur den Default aus, das Feld bleibt', () => {
@@ -205,350 +210,269 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
       fields: [{ name: 'Status', values: ['offen', 'erledigt'], default: 'unklar' }],
     });
     expect(fields[0].default).toBe('unklar');
-    expect(errors).toEqual([{ code: 'defaultOutsideValues', index: 0, name: 'Status' }]);
-  });
-});
-
-describe('assignedProfileNames', () => {
-  it('liest String- und Listen-Werte des Zuordnungs-Felds', () => {
-    expect(assignedProfileNames({ class: 'Projekt' }, 'class')).toEqual(['Projekt']);
-    expect(assignedProfileNames({ class: ['Projekt', 'Person'] }, 'class')).toEqual([
-      'Projekt',
-      'Person',
-    ]);
-  });
-
-  it('Feldname case-insensitiv, Default class, Werte getrimmt und dedupliziert', () => {
-    expect(assignedProfileNames({ Class: ' Projekt ' }, undefined)).toEqual(['Projekt']);
-    expect(assignedProfileNames({ TYP: ['A', 'A', '', null] }, 'typ')).toEqual(['A']);
-  });
-
-  it('fehlendes Feld, leere oder defekte Frontmatter-Daten ergeben leer', () => {
-    expect(assignedProfileNames({}, 'class')).toEqual([]);
-    expect(assignedProfileNames(null, 'class')).toEqual([]);
-    expect(assignedProfileNames({ class: { verschachtelt: true } }, 'class')).toEqual([]);
-    expect(assignedProfileNames({ class: [{ a: 1 }] }, 'class')).toEqual([]);
-  });
-
-  it('Reihenfolge der Zuordnung bleibt erhalten (Konflikt-Regel 4T-0447)', () => {
-    expect(assignedProfileNames({ class: ['B', 'A', 'C'] }, 'class')).toEqual(['B', 'A', 'C']);
-  });
-});
-
-// 4T-0447 (Epic 3E-0083): Definitions-Auflösung pro Datei.
-describe('resolveProfileFields', () => {
-  const field = (name, extra = {}) => ({
-    name,
-    type: 'string',
-    values: null,
-    multiple: false,
-    default: null,
-    ...extra,
-  });
-  const CATALOG = [
-    { name: 'All', fields: [field('status', { values: ['a', 'b'] }), field('thema')] },
-    { name: 'Projekt', fields: [field('status', { type: 'date' }), field('budget')] },
-    { name: 'Person', fields: [field('Status', { type: 'number' }), field('rolle')] },
-  ];
-
-  it('Vereinigung: Standard-Profil plus zugeordnete Profile', () => {
-    const { fields, missing } = resolveProfileFields(CATALOG, {
-      defaultProfile: 'All',
-      assigned: ['Projekt'],
-    });
-    expect(missing).toEqual([]);
-    expect(fields.map((f) => [f.name, f.profile, f.fromDefault])).toEqual([
-      ['status', 'Projekt', false],
-      ['budget', 'Projekt', false],
-      ['thema', 'All', true],
-    ]);
-  });
-
-  it('Konflikt: zugeordnetes Profil gewinnt vor dem Standard-Profil', () => {
-    const { fields } = resolveProfileFields(CATALOG, {
-      defaultProfile: 'All',
-      assigned: ['Projekt'],
-    });
-    expect(fields.find((f) => f.name === 'status').type).toBe('date');
-  });
-
-  it('Konflikt unter Zugeordneten: das zuerst genannte Profil gewinnt (case-insensitiv)', () => {
-    const { fields } = resolveProfileFields(CATALOG, {
-      defaultProfile: null,
-      assigned: ['Person', 'Projekt'],
-    });
-    const status = fields.find((f) => f.name.toLowerCase() === 'status');
-    expect(status.type).toBe('number');
-    expect(status.profile).toBe('Person');
-    expect(fields.map((f) => f.name)).toEqual(['Status', 'rolle', 'budget']);
-  });
-
-  it('Profil-Namen matchen case-insensitiv (Windows-Dateisystem)', () => {
-    const { fields, missing } = resolveProfileFields(CATALOG, {
-      defaultProfile: null,
-      assigned: ['projekt'],
-    });
-    expect(missing).toEqual([]);
-    expect(fields.map((f) => f.name)).toEqual(['status', 'budget']);
-  });
-
-  it('nicht vorhandene Profile landen in missing, doppelte zählen einmal', () => {
-    const { fields, missing } = resolveProfileFields(CATALOG, {
-      defaultProfile: 'Fehlt',
-      assigned: ['Projekt', 'projekt', 'Unbekannt'],
-    });
-    expect(missing).toEqual(['Unbekannt', 'Fehlt']);
-    expect(fields.map((f) => f.name)).toEqual(['status', 'budget']);
-  });
-
-  it('Standard-Profil auch zugeordnet: Felder bleiben als zugeordnet gekennzeichnet', () => {
-    const { fields } = resolveProfileFields(CATALOG, {
-      defaultProfile: 'All',
-      assigned: ['all'],
-    });
-    expect(fields.every((f) => f.fromDefault === false)).toBe(true);
-  });
-
-  it('leerer Katalog oder keine Zuordnung ergibt leer bzw. nur den Standard', () => {
-    expect(resolveProfileFields([], { defaultProfile: null, assigned: [] })).toEqual({
-      fields: [],
-      missing: [],
-    });
-    const { fields } = resolveProfileFields(CATALOG, { defaultProfile: 'All', assigned: [] });
-    expect(fields.map((f) => [f.name, f.fromDefault])).toEqual([
-      ['status', true],
-      ['thema', true],
+    expect(errors).toEqual([
+      {
+        code: 'defaultOutsideValues',
+        index: 0,
+        name: 'Status',
+        key: 'default',
+        expected: ['offen', 'erledigt'],
+      },
     ]);
   });
 });
 
-// 4T-0448 (Epic 3E-0083): gemeinsame Editor-Logik (Hinweise, Vorschläge)
-// und Registrierung als schaltbare Erweiterung.
-describe('fieldDefinitionHint', () => {
-  const def = (extra) => ({
-    name: 'f',
-    type: 'string',
-    values: null,
-    multiple: false,
-    default: null,
-    ...extra,
-  });
-
-  it('leere Werte erzeugen keinen Hinweis (weiche Haltung)', () => {
-    expect(fieldDefinitionHint(def(), '')).toBeNull();
-    expect(fieldDefinitionHint(def(), null)).toBeNull();
-    expect(fieldDefinitionHint(def({ type: 'multistring' }), [])).toBeNull();
-    expect(fieldDefinitionHint(null, 'x')).toBeNull();
-  });
-
-  it('typ-konforme Werte sind hinweisfrei', () => {
-    expect(fieldDefinitionHint(def(), 'Text')).toBeNull();
-    expect(fieldDefinitionHint(def({ type: 'number' }), 5)).toBeNull();
-    expect(fieldDefinitionHint(def({ type: 'boolean' }), true)).toBeNull();
-    expect(fieldDefinitionHint(def({ type: 'date' }), '2026-07-09')).toBeNull();
-    expect(fieldDefinitionHint(def({ type: 'multistring' }), ['a'])).toBeNull();
-    expect(fieldDefinitionHint(def({ type: 'multiline' }), 'a\nb')).toBeNull();
-  });
-
-  it('Typ-Abweichungen melden typeMismatch', () => {
-    expect(fieldDefinitionHint(def({ type: 'number' }), 'fünf')).toBe('typeMismatch');
-    expect(fieldDefinitionHint(def({ type: 'date' }), 'morgen')).toBe('typeMismatch');
-    expect(fieldDefinitionHint(def({ type: 'boolean' }), 'ja')).toBe('typeMismatch');
-    expect(fieldDefinitionHint(def(), 42)).toBe('typeMismatch');
-    expect(fieldDefinitionHint(def(), 'mehr\nzeilig')).toBe('typeMismatch');
-  });
-
-  it('Werte außerhalb des Wertebereichs melden outsideValues', () => {
-    const single = def({ values: ['offen', 'erledigt'] });
-    expect(fieldDefinitionHint(single, 'offen')).toBeNull();
-    expect(fieldDefinitionHint(single, 'unklar')).toBe('outsideValues');
-    const multi = def({ type: 'multistring', values: ['a', 'b'], multiple: true });
-    expect(fieldDefinitionHint(multi, ['a', 'b'])).toBeNull();
-    expect(fieldDefinitionHint(multi, ['a', 'c'])).toBe('outsideValues');
-    // number-Wertebereich: Zahl und String-Repräsentation zählen als Treffer.
-    const num = def({ type: 'number', values: [1, 2] });
-    expect(fieldDefinitionHint(num, 2)).toBeNull();
-    expect(fieldDefinitionHint(num, 3)).toBe('outsideValues');
-  });
-
-  it('Typ-Abweichung hat Vorrang vor dem Wertebereichs-Hinweis', () => {
-    const d = def({ type: 'number', values: [1, 2] });
-    expect(fieldDefinitionHint(d, 'eins')).toBe('typeMismatch');
-  });
-});
-
-describe('profileFieldSuggestions', () => {
-  const FIELDS = [
-    {
-      name: 'status',
-      type: 'string',
-      values: ['a'],
-      multiple: false,
-      default: null,
-      profile: 'All',
-      fromDefault: true,
-    },
-    {
+// 4T-1141 (Epic 3E-0218): erweitertes Definitions-Format — typ-eigene
+// Angaben im Unterobjekt (E9), Quelle des Wertevorrats (E12), verschachtelte
+// Kind-Definitionen (Konzept 6.12) und der entkoppelte Mehrfach-Modus (E11).
+describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
+  it('AK1: options wird als flaches Unterobjekt geführt, die obere Ebene bleibt frei', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'budget', type: 'number', options: { step: 100, min: 0, max: 100000 } }],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0]).toEqual({
       name: 'budget',
       type: 'number',
       values: null,
       multiple: false,
       default: null,
-      profile: 'Projekt',
-      fromDefault: false,
-    },
-  ];
-  const HEURISTICS = [
-    { name: 'tags', type: 'multistring' },
-    { name: 'status', type: 'string' },
-  ];
-
-  it('Definitions-Felder zuerst, danach Heuristik; gesetzte Namen entfallen', () => {
-    const out = profileFieldSuggestions(FIELDS, ['Budget'], HEURISTICS);
-    expect(out.map((s) => [s.source, s.name])).toEqual([
-      ['profile', 'status'],
-      ['heuristic', 'tags'],
-    ]);
-    // Definitions-Vorschläge tragen die volle Definition (Typ, Default, Profil).
-    expect(out[0].def.profile).toBe('All');
-    expect(out[1].def).toBeNull();
-    expect(out[1].type).toBe('multistring');
-  });
-
-  it('Heuristik-Namen, die bereits definiert sind, erscheinen nicht doppelt', () => {
-    const out = profileFieldSuggestions(FIELDS, [], HEURISTICS);
-    expect(out.filter((s) => s.name === 'status')).toHaveLength(1);
-    expect(out.find((s) => s.name === 'status').source).toBe('profile');
-  });
-
-  it('ohne Auflösung bleiben nur die Heuristik-Vorschläge', () => {
-    const out = profileFieldSuggestions([], [], HEURISTICS);
-    expect(out.map((s) => s.name)).toEqual(['tags', 'status']);
-  });
-});
-
-describe('Erweiterungs-Registrierung property-profiles (4T-0448)', () => {
-  it('ist als Werkzeug-Erweiterung mit Einstellungs-Bereich registriert', () => {
-    const manifest = extensionById('property-profiles');
-    expect(manifest).not.toBeNull();
-    expect(manifest.category).toBe('tools');
-    expect(manifest.nameKey).toBe('help.featureName.propertyProfiles');
-    expect(manifest.descKey).toBe('help.feature.propertyProfiles');
-    expect(manifest.settingsSections).toEqual(['propertyProfiles']);
-    expect(manifest.commands).toBeUndefined();
-  });
-});
-
-// 4T-0491 (Epic 3E-0093): Komplett-Übernahme — Leer-Werte, Feld-Map, Ziele.
-describe('emptyValueForType (4T-0491)', () => {
-  it('liefert typgerechte Leer-Werte je Typ', () => {
-    expect(emptyValueForType('multistring')).toEqual([]);
-    expect(emptyValueForType('number')).toBe(0);
-    expect(emptyValueForType('boolean')).toBe(false);
-    expect(emptyValueForType('string')).toBe('');
-    expect(emptyValueForType('multiline')).toBe('');
-    expect(emptyValueForType('date')).toBe('');
-    expect(emptyValueForType('unbekannt')).toBe('');
-  });
-});
-
-describe('buildProfileFillMap (4T-0491)', () => {
-  const field = (name, extra = {}) => ({
-    name,
-    type: 'string',
-    values: null,
-    multiple: false,
-    default: null,
-    ...extra,
-  });
-
-  it('nur fehlende Felder, mit Default bzw. typgerechtem Leer-Wert', () => {
-    const fields = [
-      field('titel'),
-      field('prio', { type: 'number', default: 3 }),
-      field('anzahl', { type: 'number' }),
-      field('aktiv', { type: 'boolean' }),
-      field('themen', { type: 'multistring' }),
-    ];
-    // titel ist bereits vorhanden und entfällt.
-    expect(buildProfileFillMap(fields, ['titel'])).toEqual({
-      prio: 3,
-      anzahl: 0,
-      aktiv: false,
-      themen: [],
+      options: { step: 100, min: 0, max: 100000 },
     });
   });
 
-  it('existingKeys case-insensitiv; Duplikat-Definitionen zählen einmal', () => {
-    const fields = [field('Status'), field('status'), field('rolle')];
-    expect(Object.keys(buildProfileFillMap(fields, ['STATUS']))).toEqual(['rolle']);
+  it('AK1: options als Nicht-Objekt entfällt mit Hinweis, das Feld bleibt', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'budget', type: 'number', options: 'step 100' },
+        { name: 'b', options: [1] },
+      ],
+    });
+    expect(fields.map((f) => f.name)).toEqual(['budget', 'b']);
+    expect(fields.every((f) => !('options' in f))).toBe(true);
+    expect(errors.map((e) => e.code)).toEqual(['options', 'options']);
   });
 
-  it('Einfüge-Reihenfolge = Definitions-Reihenfolge', () => {
-    expect(Object.keys(buildProfileFillMap([field('a'), field('b'), field('c')], []))).toEqual([
-      'a',
-      'b',
-      'c',
+  it('AK2: valuesFrom steht auf der oberen Ebene und trägt note und query', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'ort', valuesFrom: { note: ' Werte/Orte.md ' } },
+        { name: 'projekt', type: 'string', valuesFrom: { query: 'FROM Projekte' } },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].valuesFrom).toEqual({ note: 'Werte/Orte.md', query: null });
+    expect(fields[1].valuesFrom).toEqual({ note: null, query: 'FROM Projekte' });
+  });
+
+  it('AK5: values und valuesFrom zugleich — values gilt, die Quelle entfällt mit Hinweis', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'status', values: ['a', 'b'], valuesFrom: { note: 'W.md' } }],
+    });
+    expect(fields).toHaveLength(1);
+    expect(fields[0].values).toEqual(['a', 'b']);
+    expect('valuesFrom' in fields[0]).toBe(false);
+    expect(errors).toEqual([
+      {
+        code: 'valuesFromConflict',
+        index: 0,
+        name: 'status',
+        key: 'valuesFrom',
+        expected: 'values',
+      },
     ]);
   });
 
-  it('leere oder ungültige Eingaben ergeben eine leere Map', () => {
-    expect(buildProfileFillMap([], [])).toEqual({});
-    expect(buildProfileFillMap(null, [])).toEqual({});
-    expect(buildProfileFillMap([field('')], [])).toEqual({});
+  it('AK3: Kind-Definitionen rekursiv nach demselben Schema, mit Pfad zum Eltern-Feld', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        {
+          name: 'teilnehmer',
+          fields: [
+            { name: 'person', type: 'string' },
+            { name: 'rolle', values: ['Leitung', 'Gast'] },
+            { name: 'adresse', fields: [{ name: 'ort' }] },
+          ],
+        },
+      ],
+    });
+    expect(errors).toEqual([]);
+    const kids = fields[0].fields;
+    expect(kids.map((f) => f.name)).toEqual(['person', 'rolle', 'adresse']);
+    expect(kids[0].path).toEqual(['teilnehmer']);
+    expect(kids[1].values).toEqual(['Leitung', 'Gast']);
+    expect(kids[2].fields[0].path).toEqual(['teilnehmer', 'adresse']);
+  });
+
+  it('AK3/AK6: Fehler in Kind-Definitionen tragen den Pfad und setzen nur die Kind-Definition aus', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'teilnehmer', fields: [{ name: 'rolle', type: 'lookup' }, { name: 'person' }] },
+        { name: 'titel' },
+      ],
+    });
+    expect(errors).toEqual([
+      {
+        code: 'type',
+        index: 0,
+        name: 'rolle',
+        key: 'type',
+        expected: PROFILE_FIELD_TYPES,
+        path: ['teilnehmer'],
+      },
+    ]);
+    expect(fields[0].fields.map((f) => f.name)).toEqual(['person']);
+    expect(fields.map((f) => f.name)).toEqual(['teilnehmer', 'titel']);
+  });
+
+  it('fields an einem Eintrag ist kein Fehler, auch wenn sein Typ keine Kinder kennt', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'notiz', type: 'multiline', fields: [{ name: 'zusatz' }] }],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].fields[0].name).toBe('zusatz');
+  });
+
+  it('AK6: Kind-fields als Nicht-Liste entfällt mit Hinweis, das Feld bleibt', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'teilnehmer', fields: 'person' }],
+    });
+    expect(fields.map((f) => f.name)).toEqual(['teilnehmer']);
+    expect('fields' in fields[0]).toBe(false);
+    expect(errors).toEqual([
+      {
+        code: 'childFieldsNotList',
+        index: 0,
+        name: 'teilnehmer',
+        key: 'fields',
+        expected: 'list',
+      },
+    ]);
+  });
+
+  it('AK4: multiple ohne values ist gültig (Entkopplung E11)', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'beteiligte', multiple: true }],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0]).toEqual({
+      name: 'beteiligte',
+      type: 'multistring',
+      values: null,
+      multiple: true,
+      default: null,
+    });
+  });
+
+  it('AK4: die Typ-Regel bleibt — multiple mit Nicht-multistring-Typ ist weiter ein Fehler', () => {
+    const { errors } = parseProfileFields({
+      fields: [{ name: 'x', type: 'number', multiple: true }],
+    });
+    expect(errors.map((e) => e.code)).toEqual(['multipleType']);
+  });
+
+  it('AK8: Ränder — leeres options, leere Kind-Liste, valuesFrom ohne Unter-Angabe', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'a', options: {} },
+        { name: 'b', fields: [] },
+        { name: 'c', valuesFrom: {} },
+        { name: 'd', valuesFrom: { note: '   ' } },
+      ],
+    });
+    expect(fields.map((f) => f.name)).toEqual(['a', 'b', 'c', 'd']);
+    expect(fields[0].options).toEqual({});
+    expect(fields[1].fields).toEqual([]);
+    expect('valuesFrom' in fields[2]).toBe(false);
+    expect('valuesFrom' in fields[3]).toBe(false);
+    expect(errors.map((e) => e.code)).toEqual(['valuesFrom', 'valuesFrom']);
+  });
+
+  it('AK8: eine Definition mit allen neuen Angaben zugleich', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        {
+          name: 'projekt',
+          multiple: true,
+          valuesFrom: { query: 'FROM Projekte' },
+          options: { sort: 'name' },
+          fields: [{ name: 'rolle' }],
+          default: ['intern'],
+        },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].multiple).toBe(true);
+    expect(fields[0].type).toBe('multistring');
+    expect(fields[0].valuesFrom).toEqual({ note: null, query: 'FROM Projekte' });
+    expect(fields[0].options).toEqual({ sort: 'name' });
+    expect(fields[0].fields[0].name).toBe('rolle');
+    expect(fields[0].default).toEqual(['intern']);
+  });
+
+  it('AK7: die vier Bestands-Formen liefern exakt dieselben Objekte wie vor der Erweiterung', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'Projekt' },
+        { name: 'Fällig', type: 'date' },
+        { name: 'Status', values: ['offen', 'erledigt'] },
+        { name: 'Prio', type: 'number', default: 3 },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields).toEqual([
+      { name: 'Projekt', type: 'string', values: null, multiple: false, default: null },
+      { name: 'Fällig', type: 'date', values: null, multiple: false, default: null },
+      {
+        name: 'Status',
+        type: 'string',
+        values: ['offen', 'erledigt'],
+        multiple: false,
+        default: null,
+      },
+      { name: 'Prio', type: 'number', values: null, multiple: false, default: 3 },
+    ]);
+    // Keine neue Angabe erscheint ungefragt am Objekt (Rückwärts-Verträglichkeit).
+    for (const f of fields) {
+      expect(Object.keys(f).sort()).toEqual(['default', 'multiple', 'name', 'type', 'values']);
+    }
   });
 });
 
-describe('profileSuggestGroups (4T-0491)', () => {
-  const rf = (name, profile, extra = {}) => ({
-    name,
-    type: 'string',
-    values: null,
-    multiple: false,
-    default: null,
-    profile,
-    fromDefault: false,
-    ...extra,
-  });
-  const HEUR = [
-    { name: 'tags', type: 'multistring' },
-    { name: 'title', type: 'string' },
-  ];
-
-  it('gruppiert Definitions-Felder pro Profil (Reihenfolge = Auflösung), Heuristik als otherFields', () => {
-    const fields = [
-      rf('a', 'Projekt'),
-      rf('b', 'Projekt', { type: 'number', default: 5 }),
-      rf('c', 'All'),
-    ];
-    const { profileGroups, otherFields } = profileSuggestGroups(fields, [], HEUR);
-    expect(profileGroups.map((g) => g.profile)).toEqual(['Projekt', 'All']);
-    expect(profileGroups[0].fields.map((s) => s.name)).toEqual(['a', 'b']);
-    expect(profileGroups[0].map).toEqual({ a: '', b: 5 });
-    expect(profileGroups[1].fields.map((s) => s.name)).toEqual(['c']);
-    expect(profileGroups[1].map).toEqual({ c: '' });
-    expect(otherFields.map((s) => s.name)).toEqual(['tags', 'title']);
+// 4T-1143 (Epic 3E-0218, E4): Ortsbezug des Hinweis-Datensatzes — jeder
+// Hinweis trägt die betroffene Angabe (key) und die maschinen-lesbare
+// Erwartung (expected); Kind-Hinweise zusätzlich den Pfad.
+describe('Hinweis-Datensatz mit Angabe und Erwartung (4T-1143)', () => {
+  it('AK2: Hinweise tragen die betroffene Angabe und die Erwartung', () => {
+    const { errors } = parseProfileFields({
+      fields: [
+        { name: 'a', type: 'lookup' },
+        { name: 'b', type: 'number', default: 'fünf' },
+        { name: 'c', values: ['x'], default: 'y' },
+        { name: 'd', options: 'nein' },
+      ],
+    });
+    expect(errors).toEqual([
+      { code: 'type', index: 0, name: 'a', key: 'type', expected: PROFILE_FIELD_TYPES },
+      { code: 'default', index: 1, name: 'b', key: 'default', expected: 'number' },
+      { code: 'defaultOutsideValues', index: 2, name: 'c', key: 'default', expected: ['x'] },
+      { code: 'options', index: 3, name: 'd', key: 'options', expected: 'object' },
+    ]);
   });
 
-  it('bereits gesetzte Felder entfallen; ein vollständiges Profil erhält keine Gruppe', () => {
-    const { profileGroups } = profileSuggestGroups([rf('a', 'Projekt'), rf('b', 'All')], ['b'], []);
-    expect(profileGroups.map((g) => g.profile)).toEqual(['Projekt']);
-    expect(profileGroups[0].map).toEqual({ a: '' });
-  });
-
-  it('Heuristik, die schon als Profil-Feld existiert, erscheint nicht doppelt', () => {
-    const { profileGroups, otherFields } = profileSuggestGroups(
-      [rf('tags', 'Projekt', { type: 'multistring' })],
-      [],
-      HEUR,
-    );
-    expect(profileGroups[0].fields.map((s) => s.name)).toEqual(['tags']);
-    expect(otherFields.map((s) => s.name)).toEqual(['title']);
-  });
-
-  it('ohne Auflösung nur otherFields (Heuristik), keine Profil-Gruppen', () => {
-    const { profileGroups, otherFields } = profileSuggestGroups([], [], HEUR);
-    expect(profileGroups).toEqual([]);
-    expect(otherFields.map((s) => s.name)).toEqual(['tags', 'title']);
+  it('AK3: Kind-Hinweise tragen Pfad, Angabe und Erwartung', () => {
+    const { errors } = parseProfileFields({
+      fields: [{ name: 'eltern', fields: [{ name: 'kind', valuesFrom: {} }] }],
+    });
+    expect(errors).toEqual([
+      {
+        code: 'valuesFrom',
+        index: 0,
+        name: 'kind',
+        key: 'valuesFrom',
+        expected: ['note', 'query'],
+        path: ['eltern'],
+      },
+    ]);
   });
 });

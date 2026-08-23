@@ -78,6 +78,16 @@ Pour les chiffres plutôt que le texte, il existe le second type de tableau. La 
 
 En détail : [Perspective Datatable](datatable.md).
 
+## Des types de documents qui s'appuient les uns sur les autres
+
+Beaucoup de documents d'une zone partagent les mêmes champs : un statut, une date, une catégorie. Les profils de propriétés décrivent ces champs une seule fois, de manière centralisée, avec type, valeurs admises et valeur par défaut ; les éditeurs de propriétés les proposent et présentent les plages de valeurs sous forme de listes de sélection. Les profils héritent les uns des autres : un profil de base dit ce qui vaut pour tous, et un type de document comme article ou réunion n'ajoute plus que sa propre part, exclut au besoin des champs hérités ou les remplace. Les écarts produisent des indications plutôt que des verrous.
+
+- **Décrire les champs une seule fois** au lieu de recommencer dans chaque document : suggestions, listes de sélection et types viennent du profil.
+- **Héritage avec exclusion et remplacement :** le commun dans le profil parent, le propre dans le type de document.
+- **Indications douces plutôt que verrous :** les écarts sont nommés, rien n'est bloqué.
+
+En détail : [Profils de propriétés](property-profiles.md).
+
 ## Des listes qui se tiennent à jour
 
 Qui gère beaucoup de fichiers entretient sinon des vues d'ensemble à la main, et elles vieillissent le jour même. Une requête Perspective décrit au contraire **ce qui** est cherché, et le résultat apparaît sur place dans le document : une liste ou un tableau cliquable sur l'ensemble, filtré par propriétés, mots-clés et champs de fichier, jusqu'aux blocs de texte et aux tâches. Si l'ensemble change, la sortie change, sans que personne ne mette à jour.

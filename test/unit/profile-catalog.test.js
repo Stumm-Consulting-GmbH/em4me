@@ -8,6 +8,7 @@ import {
   createProfileCatalogCache,
   loadProfileCatalog,
 } from '../../src/main/documents/profile-catalog.js';
+import { resolveProfileFields } from '../../src/shared/property-profiles.js';
 
 const FOLDER = path.resolve('C:/Bereich/Profile');
 
@@ -138,5 +139,66 @@ describe('loadProfileCatalog', () => {
       cache: createProfileCatalogCache(),
     });
     expect(profiles.map((p) => p.name)).toEqual(['All', 'projekt', 'zettel']);
+  });
+
+  // 4T-1142 (Epic 3E-0218): Vererbungs-Angaben der Profil-Ebene.
+  it('liest extends und exclude aus dem Frontmatter (4T-1142)', async () => {
+    const files = new Map([
+      [
+        'Artikel.md',
+        {
+          mtimeMs: 1,
+          size: 20,
+          content: '---\nextends: Projekt\nexclude: [status]\nfields:\n  - name: autor\n---\n',
+        },
+      ],
+      ['Projekt.md', { mtimeMs: 1, size: 10, content: PROJEKT }],
+    ]);
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp: fakeFs(files),
+      cache: createProfileCatalogCache(),
+    });
+    const artikel = profiles.find((p) => p.name === 'Artikel');
+    expect(artikel.parent).toBe('Projekt');
+    expect(artikel.exclude).toEqual(['status']);
+    expect(artikel.errors).toEqual([]);
+    const projekt = profiles.find((p) => p.name === 'Projekt');
+    expect(projekt.parent).toBeNull();
+    expect(projekt.exclude).toEqual([]);
+  });
+
+  it('AK11 (4T-1142): eine Änderung am Eltern-Profil wirkt ohne Neustart über den Cache', async () => {
+    const files = new Map([
+      [
+        'Kind.md',
+        {
+          mtimeMs: 1,
+          size: 15,
+          content: '---\nextends: Basis\nfields:\n  - name: eigen\n---\n',
+        },
+      ],
+      ['Basis.md', { mtimeMs: 1, size: 12, content: '---\nfields:\n  - name: alt\n---\n' }],
+    ]);
+    const fsp = fakeFs(files);
+    const cache = createProfileCatalogCache();
+    const first = await loadProfileCatalog({ folderAbs: FOLDER, fsp, cache });
+    const resolveNames = (catalog) =>
+      resolveProfileFields(catalog.profiles, {
+        defaultProfile: null,
+        assigned: ['Kind'],
+      }).fields.map((f) => f.name);
+    expect(resolveNames(first)).toEqual(['eigen', 'alt']);
+    files.set('Basis.md', {
+      mtimeMs: 2,
+      size: 12,
+      content: '---\nfields:\n  - name: neu\n---\n',
+    });
+    const second = await loadProfileCatalog({ folderAbs: FOLDER, fsp, cache });
+    expect(resolveNames(second)).toEqual(['eigen', 'neu']);
+    // Nur das geänderte Eltern-Profil wurde erneut gelesen, das Kind kam aus dem Cache.
+    const gelesene = fsp.readFile.mock.calls.map(([abs]) => path.basename(abs));
+    expect(gelesene.filter((n) => n === 'Basis.md')).toHaveLength(2);
+    expect(gelesene.filter((n) => n === 'Kind.md')).toHaveLength(1);
   });
 });
