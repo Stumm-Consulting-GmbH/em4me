@@ -71,7 +71,13 @@ import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 import { showCommandPalette } from '../command-palette.js';
-import { togglePropertiesPanel, toggleTagsPanel } from '../properties/properties-tags.js';
+import {
+  oeffneFeldFormular,
+  togglePropertiesPanel,
+  toggleTagsPanel,
+} from '../properties/properties-tags.js';
+// 4T-1176 (Epic 3E-0220): Abfrage zu einem Profil einfuegen.
+import { fuegeProfilAbfrageEin } from '../properties/properties-profil-abfrage.js';
 import { activeNotesEditorView, toggleNotesPanel } from '../panels/notes-panel.js';
 import { toggleSearchResultsPanel } from '../search/search-panel.js';
 import { stepReading, toggleBookPanel } from '../books/book-panel.js';
@@ -247,6 +253,10 @@ export const commandHandlers = {
   'edit.insertEvents': () => {
     return insertEventsBlock();
   },
+  // 4T-1176 (Epic 3E-0220, E7): Abfrage zu einem Profil einfuegen.
+  'edit.insertProfileQuery': () => {
+    void fuegeProfilAbfrageEin();
+  },
   // 4T-0433 (Epic 3E-0081): Journal-Eintraege oeffnen bzw. anlegen.
   'journal.openToday': () => {
     openTodayJournalEntry();
@@ -347,6 +357,10 @@ export const commandHandlers = {
   },
   'view.toggleProperties': () => {
     togglePropertiesPanel(state.activePaneIndex);
+  },
+  // 4T-1174 (Epic 3E-0220): Feld-Formular des Dokuments oeffnen.
+  'view.openFieldForm': () => {
+    void oeffneFeldFormular(state.activePaneIndex);
   },
   // 4T-0359 (Epic 3E-0066): Notizen-Sektion toggeln.
   'view.toggleNotes': () => {

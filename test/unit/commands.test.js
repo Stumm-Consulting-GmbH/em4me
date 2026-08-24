@@ -465,3 +465,81 @@ describe('formatTimestamp', () => {
     expect(formatTimestamp(new Date())).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
   });
 });
+
+// 4T-1174 (Epic 3E-0220, E5): Das Kommando des Feld-Formulars — seine
+// Registrierung und seine Bindung an das Erweiterungs-Gate.
+//
+// Geprüft wird hier die Registry-Seite, weil sie das ist, was diese Datei
+// prüfen kann: dass das Kommando existiert, kein Vorgabe-Kürzel belegt, keinen
+// Menü-Block aufmacht und am Gate der Profil-Erweiterung hängt. Die Wirkung
+// des Öffnens — Sektion sichtbar machen, Bereich aufklappen — ist Sache der
+// Abnahme an der gebauten Programmdatei; eine Quelltext-Prüfung dafür wäre
+// genau die Art Nachweis, die beim Profil-Symbol von 1.116.0 grün blieb,
+// während die Funktion unsichtbar war.
+describe('Kommando des Feld-Formulars (4T-1174)', () => {
+  const cmd = COMMANDS.find((c) => c.id === 'view.openFieldForm');
+
+  it('ist in der Registry angelegt', () => {
+    expect(cmd).toBeDefined();
+    expect(cmd.labelKey).toBe('command.view.openFieldForm');
+    expect(cmd.descKey).toBe('help.shortcut.openFieldForm');
+  });
+
+  it('belegt kein Vorgabe-Kürzel und macht keinen Menü-Eintrag auf', () => {
+    // Die Wege sind Palette und Reiter-Kontextmenü; ein Kürzel bleibt über die
+    // Einstellungen belegbar. `menu: false` hält den Struktur-Prüfschritt vom
+    // 2026-08-21 ein: kein neuer Menü-Block.
+    expect(cmd.defaultBindings).toEqual([]);
+    expect(cmd.menu).toBe(false);
+  });
+
+  it('liegt in einer bestehenden Kategorie', () => {
+    expect(COMMAND_CATEGORIES).toContain(cmd.categoryKey);
+  });
+
+  // Die Bindung an das Gate der Erweiterung prüft
+  // `property-profiles-aufloesung.test.js` bei der Erweiterung selbst — dort
+  // steht sie fachlich richtig, und zweimal geprüft wäre sie nicht sicherer.
+
+  it('wird vom Renderer-Dispatcher bedient', async () => {
+    // Ein Kommando ohne Dispatch-Eintrag erscheint in der Palette und tut
+    // nichts — der eine Fall, den die Registry-Seite selbst noch fangen kann.
+    const quelle = fs.readFileSync(
+      path.join('src', 'renderer', 'modules', 'app', 'app-commands.js'),
+      'utf8',
+    );
+    expect(quelle).toContain("'view.openFieldForm':");
+  });
+});
+
+// 4T-1176 (Epic 3E-0220, E7): Das Kommando der erzeugten Profil-Abfrage.
+// Dieselbe Registry-Prüfung wie beim Feld-Formular und aus demselben Grund:
+// Was der erzeugte Text enthält, prüft `property-profiles-abfrage.test.js` an
+// der Fachlichkeit; hier steht nur, dass das Kommando existiert, kein Kürzel
+// belegt, keinen Menü-Block aufmacht und einen Dispatch-Eintrag hat.
+describe('Kommando der erzeugten Profil-Abfrage (4T-1176)', () => {
+  const cmd = COMMANDS.find((c) => c.id === 'edit.insertProfileQuery');
+
+  it('ist in der Registry angelegt', () => {
+    expect(cmd).toBeDefined();
+    expect(cmd.labelKey).toBe('command.edit.insertProfileQuery');
+    expect(cmd.descKey).toBe('help.shortcut.insertProfileQuery');
+  });
+
+  it('belegt kein Vorgabe-Kürzel und macht keinen Menü-Eintrag auf', () => {
+    expect(cmd.defaultBindings).toEqual([]);
+    expect(cmd.menu).toBe(false);
+  });
+
+  it('liegt in einer bestehenden Kategorie', () => {
+    expect(COMMAND_CATEGORIES).toContain(cmd.categoryKey);
+  });
+
+  it('wird vom Renderer-Dispatcher bedient', async () => {
+    const quelle = fs.readFileSync(
+      path.join('src', 'renderer', 'modules', 'app', 'app-commands.js'),
+      'utf8',
+    );
+    expect(quelle).toContain("'edit.insertProfileQuery':");
+  });
+});

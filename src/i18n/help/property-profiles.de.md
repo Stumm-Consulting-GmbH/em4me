@@ -174,6 +174,46 @@ Die Übernahme ist bewusst additiv:
 
 Die gesamte Ergänzung ist ein einziger Schritt und lässt sich mit einem Rückgängig vollständig zurücknehmen. Sie gilt im Properties-Editor wie im Block-Eigenschaften-Panel und entfällt mit der ausgeschalteten Erweiterung «Eigenschafts-Profile».
 
+## Feld-Formular des Dokuments
+
+Die Sektion zeigt oben die Felder, die im Dokument stehen, und darunter den Ausklapp-Bereich **«Alle Felder dieses Dokuments»** mit den Feldern, die die geltenden Profile definieren und das Dokument noch nicht trägt. Beides zusammen ist die vollständige Antwort auf die Frage, was dieses Dokument tragen kann; die Vereinigung wird aufgeteilt und nicht verdoppelt, damit kein Feld zweimal erscheint.
+
+**Herkunft je Feld.** Jedes Feld trägt das Symbol des Profils, aus dem seine Definition stammt; der Tooltip nennt Profil und Weg. Bei einer geerbten Definition ist das dasjenige Profil, in dem sie wirklich steht — nicht das zugeordnete.
+
+**Die Kette der geltenden Profile** steht über den fehlenden Feldern, denn sie beantwortet die Frage, aus der die Felder erst folgen. Je Ebene stehen Symbol, Profil-Name und der Weg, über den das Profil gilt; die Vererbungs-Tiefe wird als **Einrückung** sichtbar. Ab der ersten geerbten Ebene nennt die Zeile «geerbt» statt des Weges — ein geerbtes Profil gilt über denselben Weg wie sein Kind, und dort ist die Vererbung die Aussage, die weiterhilft.
+
+**Übernahme je Ebene.** Neben einer Ebene, auf der Felder fehlen, steht ein Knopf, der genau deren fehlende Felder in einem Zug anlegt: mit typgerechtem Leer-Wert, ohne vorhandene Werte anzurühren und als eine einzige Rückgängig-Einheit — derselbe Weg wie die Komplett-Übernahme. Eine Ebene ohne fehlende Felder trägt keinen Knopf; er verspräche eine Handlung, die nichts tut.
+
+**Ein Feld, das noch nicht im Dokument steht, bleibt draußen, solange es leer ist.** Das Aufklappen allein schreibt also nichts in den Metadaten-Block; erst ein eingetragener Wert oder die Übernahme macht das Feld zu einem Feld des Dokuments.
+
+Bei defektem Metadaten-Block erscheint der Bereich nicht — dort gilt derselbe Hinweis wie für «Eigenschaft hinzufügen». Ohne geltendes Profil und bei ausgeschalteter Erweiterung «Eigenschafts-Profile» erscheint er ebenfalls nicht; ein leerer Bereich oder ein Platzhalter entsteht nie.
+
+**Drei Zugänge** führen zum Formular: der Ausklapp-Bereich selbst, das Kommando «Feld-Formular des Dokuments öffnen» und der Eintrag «Feld-Formular öffnen» im Kontextmenü des Reiters. Die beiden letzten machen die Sektion sichtbar, falls sie verborgen ist, klappen den Bereich auf und rücken ihn in den sichtbaren Ausschnitt; der Kontextmenü-Eintrag meint den angeklickten Reiter und aktiviert ihn zuvor.
+
+## Sicht je Profil als Abfrage
+
+Die Frage «welche Dokumente gehören zu diesem Profil» ist eine Abfrage, und das Kommando **«Profil-Abfrage einfügen»** schreibt sie fertig hin: Es fragt das Profil ab, sofern mehrere in Frage kommen, und fügt an der Cursor-Position einen gewöhnlichen Abfrage-Block ein. Eine eigene Ansicht entsteht nicht — die Ausgabe läuft über die vorhandene Ergebnis-Darstellung der Abfrage-Sprache.
+
+Die erzeugte Abfrage erfasst alle drei ausdrücklichen Zuordnungs-Wege des Profils — das Zuordnungs-Feld, jede Schlagwort-Bindung und jede Ordner-Bindung. Eine Ordner-Bedingung schließt die Unterordner ein, genau wie die Bindung selbst:
+
+````markdown
+```perspective-query
+LIST
+WHERE class = "Projekt"
+  OR icontains(file.tags, "projekt")
+  OR (file.folder = "10 Projekte" OR startswith(lower(file.folder), "10 projekte/"))
+```
+````
+
+Zwei Fälle weichen davon ab:
+
+- **Das Standard-Profil des Bereichs** gilt für alles, was keine andere Zuordnung hat. Für es entsteht deshalb eine Abfrage über alle Dokumente des Bereichs statt der Verneinung sämtlicher Bindungen — die wäre lang, undurchsichtig und würde still falsch, sobald eine Bindung hinzukommt.
+- **Erbende Profile bleiben außen vor.** Erbt `Kunde` von `Projekt`, so erscheinen Kunde-Dokumente nicht in der Abfrage zu `Projekt`: Sie tragen dessen Felder, sind aber keine Projekte.
+
+Der eingefügte Block ist von da an gewöhnlicher Inhalt — er lässt sich ändern, um Spalten, Sortierung oder Begrenzung erweitern, verschieben und löschen wie jede andere Abfrage. Ein Dokument, das ihn enthält, ist damit zugleich eine gespeicherte Sicht: benennbar, verlinkbar, mit einem Lesezeichen versehbar. Umgekehrt gilt: Die Abfrage bildet die Zuordnung zum **Zeitpunkt der Erzeugung** ab. Kommt später eine Bindung hinzu, zieht der bereits geschriebene Block nicht nach; dann wird er neu erzeugt oder von Hand ergänzt.
+
+Das Kommando entfällt mit der ausgeschalteten Erweiterung «Eigenschafts-Profile».
+
 ## Weiche Validierung
 
 Abweichungen blockieren nie und ändern nie den Wert: Ein Wert außerhalb des Wertebereichs oder ein Wert, der nicht zum definierten Typ passt, erzeugt lediglich ein Hinweis-Symbol am Feld; der Tooltip nennt den Grund. Markdown und Frontmatter bleiben frei editierbar — auch direkt im Quelltext.

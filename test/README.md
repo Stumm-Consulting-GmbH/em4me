@@ -471,6 +471,21 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Entwicklungs-Iteration an einzelnen Prüfdateien, solange ihr Ausgang nicht
   berichtet wird.
 
+- **Der Rückgabewert gehört dem Gate, nicht der Kommandozeile** (4T-1178,
+  Vorfall vom 2026-08-24). Der Zugang reicht den Rückgabewert unverfälscht
+  weiter, aber nur bis zum Rand seines eigenen Prozesses. Wer ihn in eine
+  Shell-Kette hängt, deren letztes Glied den Status bestimmt, bekommt den Wert
+  dieses letzten Glieds: `node scripts/gate-lauf.js e2e > lauf.log 2>&1; echo
+  "EXITCODE: $?"` meldet 0, während das Gate 1 lieferte und sich selbst korrekt
+  als rot gemeldet hat. Ein roter Abnahme-Lauf wird so als grün berichtet, und
+  auffallen kann es nur noch beim Lesen der Kennzahlen im Bericht. Für eine
+  Pipe gilt dasselbe, und dort kommt der Beleg-Verlust hinzu. **Ein Gate-Aufruf
+  steht deshalb allein**, besonders im Hintergrund, wo allein der Prozess-Status
+  zurückkommt; die Ausgabe wird danach gelesen und nicht im selben Kommando
+  quittiert. Anlass war die dritte Wiederholung der Klasse L3 binnen eines
+  Tages, diesmal an der Verkettung statt an der Pipe: Die Maßnahme 4T-1116
+  deckte den Beleg, nicht den Rückgabewert.
+
 - **Belege roter Gate-Läufe** (4T-0934, seit 4T-1087 auch für den Einzel-Lauf).
   Bricht ein Gate ab, gleich ob in der Merge-Queue oder über den
   Kommandozeilen-Zugang,

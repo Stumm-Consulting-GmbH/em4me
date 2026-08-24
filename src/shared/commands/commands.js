@@ -154,6 +154,19 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
+  // 4T-1176 (Epic 3E-0220, E7): Abfrage zu einem Profil einfuegen. Ohne
+  // Default-Binding und ohne Menue-Eintrag (Weg ist die Palette;
+  // Struktur-Pruefschritt vom 2026-08-21: kein neuer Menue-Block), am Gate der
+  // Erweiterung `property-profiles`.
+  {
+    id: 'edit.insertProfileQuery',
+    defaultBindings: [],
+    labelKey: 'command.edit.insertProfileQuery',
+    descKey: 'help.shortcut.insertProfileQuery',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: false,
+  },
   // 4T-0433 (Epic 3E-0081): heutigen Journal-Eintrag oeffnen bzw. anlegen
   // (bei mehreren Tages-Journalen Auswahl-Popup). Ohne Default-Binding
   // (Menue-Weg; Kuerzel per Einstellungen belegbar).
@@ -797,6 +810,19 @@ const COMMANDS = [
     descKey: 'help.shortcut.toggleProperties',
     categoryKey: 'help.group.editing',
     menu: true,
+    editorScoped: false,
+  },
+  // 4T-1174 (Epic 3E-0220, E5): Feld-Formular des Dokuments. Ohne
+  // Default-Binding (Wege sind Palette und Reiter-Kontextmenue), ohne
+  // Menue-Eintrag (Struktur-Pruefschritt vom 2026-08-21: kein neuer Block),
+  // am Gate der Erweiterung `property-profiles`.
+  {
+    id: 'view.openFieldForm',
+    defaultBindings: [],
+    labelKey: 'command.view.openFieldForm',
+    descKey: 'help.shortcut.openFieldForm',
+    categoryKey: 'help.group.editing',
+    menu: false,
     editorScoped: false,
   },
   // 4T-0359 (Epic 3E-0066): Notizen-Sidebar-Sektion toggeln. Ohne Default-

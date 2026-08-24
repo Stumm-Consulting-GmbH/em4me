@@ -12,6 +12,7 @@ import { contextMenu, state } from '../app/app-state.js';
 // 4T-0318 (Epic 3E-0057): Ziel-Labels mit App-Kontext.
 import { buildWindowTargetLabel } from '../app/window-title.js';
 import {
+  activateTab,
   closeTab,
   copyTabToNewWindow,
   copyTabToWindow,
@@ -19,6 +20,8 @@ import {
   moveTabToNewWindow,
   moveTabToWindow,
 } from './tabs.js';
+// 4T-1175 (Epic 3E-0220): Feld-Formular des Dokuments oeffnen.
+import { oeffneFeldFormular } from '../properties/properties-tags.js';
 // 4T-0339 (Epic 3E-0061): Umbenennen aus dem Tab-Kontextmenue (Laufzeit-
 // Zyklus dialogs <-> views, Muster wie panels.js).
 import { detachSubpageForTab, renameFileForTab } from '../views/file-actions.js';
@@ -121,6 +124,25 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
     // Kontextmenue steht die gemeinte Datei fest, anders als im Datei-Menue.
     if (isSubpageBasename(api.basename(ctxTab.path).replace(/\.(md|markdown|mdown|mkd)$/i, ''))) {
       items.push({ key: 'tab.detachSubpage', action: () => detachSubpageForTab(paneIdx, tabIdx) });
+    }
+    // 4T-1175 (Epic 3E-0220, E5): Feld-Formular des Dokuments. Es steht hier
+    // bei den uebrigen Datei-Aktionen und macht keinen eigenen Menue-Block
+    // auf (AK2) — der Struktur-Pruefschritt vom 2026-08-21 haelt genau das
+    // fest. Entfaellt bei abgeschalteter Erweiterung (AK3), Muster der
+    // Gruppen-Eintraege weiter unten.
+    //
+    // Der Eintrag meint den ANGEKLICKTEN Reiter, das Formular zeigt aber
+    // immer den aktiven (AK3). Deshalb wird der Reiter zuerst aktiviert; ohne
+    // das oeffnete der Eintrag das Formular eines fremden Dokuments.
+    if (isExtensionActive('property-profiles')) {
+      items.push({
+        key: 'tab.openFieldForm',
+        dataId: 'tab-field-form',
+        action: () => {
+          activateTab(paneIdx, tabIdx);
+          void oeffneFeldFormular(paneIdx);
+        },
+      });
     }
   }
   // 4T-0612 (Epic 3E-0115): Lesezeichen aus dem Tab-Menue anlegen (nur Datei-

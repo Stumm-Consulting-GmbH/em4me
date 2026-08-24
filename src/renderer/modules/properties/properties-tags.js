@@ -70,6 +70,45 @@ export async function togglePropertiesPanel(paneIdx) {
   }
 }
 
+// 4T-1174 (Epic 3E-0220, AK1/AK2): Das Feld-Formular öffnen.
+//
+// «Öffnen» heißt hier drei Dinge, weil das Formular ein Ausklapp-Bereich der
+// Eigenschaften-Sektion ist (Festlegung des Product Owners vom 2026-08-24) und
+// kein eigenes Fenster: die Sektion sichtbar machen, falls sie verborgen ist,
+// den Bereich aufklappen und ihn in den sichtbaren Ausschnitt rücken.
+//
+// Sichtbar machen läuft über `togglePropertiesPanel` und nicht über eine
+// eigene Zuweisung an `state`: Dort hängen der Gruppen-Reiter, die Persistenz
+// und die Menü-Meldung mit dran, und ein zweiter Weg würde sie beim Öffnen
+// über dieses Kommando still übergehen. Ist die Sektion schon sichtbar, wird
+// nichts umgeschaltet — nur der Gruppen-Reiter aktiviert, damit der Bereich in
+// einer Reiter-Anordnung auch wirklich vorne liegt.
+//
+// AK4: Ohne aktives Dokument gibt es keinen Bereich; die Funktion endet dann
+// still, statt einen leeren aufzuklappen.
+export async function oeffneFeldFormular(paneIdx) {
+  if (paneIdx < 0 || paneIdx >= state.panes.length) return null;
+  if (state.properties.visibleByPane[paneIdx]) {
+    await ensurePanelTabActive('properties', paneIdx);
+  } else {
+    await togglePropertiesPanel(paneIdx);
+  }
+  // 4T-1173: Erst den Merker setzen, dann das Element aufklappen. Ein
+  // spaeteres Neu-Rendern (etwa durch die nachziehende Aufloesung) baut den
+  // Bereich neu und liest ihn von dort; ohne den Merker klappte er dabei
+  // sofort wieder zu.
+  state.properties.feldFormularOffenByPane[paneIdx] = true;
+  const els = getPaneEls(paneIdx);
+  const bereich =
+    els && els.propertiesFields
+      ? els.propertiesFields.querySelector('.properties-all-fields')
+      : null;
+  if (!bereich) return null;
+  bereich.open = true;
+  if (typeof bereich.scrollIntoView === 'function') bereich.scrollIntoView({ block: 'nearest' });
+  return bereich;
+}
+
 export async function persistPropertiesSettings() {
   await persistSetting('properties.visibleColumn0', !!state.properties.visibleByPane[0]);
   await persistSetting('properties.visibleColumn1', !!state.properties.visibleByPane[1]);

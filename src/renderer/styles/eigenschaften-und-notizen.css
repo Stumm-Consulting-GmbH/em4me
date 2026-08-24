@@ -613,3 +613,100 @@
 .properties-profile-badge[hidden] {
   display: none;
 }
+
+/* 4T-1172 (Epic 3E-0220, E5): Feld-Formular des Dokuments — Herkunft je Feld
+   und der Ausklapp-Bereich mit den noch fehlenden Profil-Feldern.
+
+   Die Herkunft steht bewusst als einzelnes Zeichen mit Tooltip und nicht als
+   eigene Spalte: Die Sektion ist eine Sidebar-Spalte, in der Name, Typ,
+   Hinweis und Loeschen bereits nebeneinander liegen (Auflage aus dem Task).
+   Das Zeichen ist das Symbol des Herkunfts-Profils, sonst eine Raute. */
+.properties-field-origin {
+  flex: none;
+  cursor: help;
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.75;
+  user-select: none;
+}
+.properties-field-origin.is-inherited {
+  /* Geerbt: dieselbe Angabe, eine Stufe leiser. */
+  opacity: 0.45;
+}
+
+.properties-all-fields {
+  margin: 6px 14px 0;
+  font-size: 12px;
+}
+.properties-all-fields-summary {
+  cursor: pointer;
+  color: var(--fg-muted, #777);
+  padding: 2px 0;
+  user-select: none;
+}
+.properties-all-fields-body {
+  padding-top: 4px;
+}
+.properties-all-fields-group,
+.properties-all-fields-hint {
+  color: var(--fg-muted, #777);
+  padding: 2px 0 4px;
+}
+
+/* Ein definiertes Feld, das noch nicht im Dokument steht: sichtbar, aber als
+   Angebot erkennbar. Es wird erst geschrieben, wenn es einen Wert traegt. */
+.properties-field.is-nicht-im-dokument {
+  opacity: 0.7;
+}
+.properties-field.is-nicht-im-dokument:focus-within {
+  opacity: 1;
+}
+
+/* 4T-1173 (Epic 3E-0220): Kette der beteiligten Profile im Feld-Formular.
+   Die Vererbungs-Tiefe wird als Einrueckung sichtbar (inline gesetzt, weil
+   sie eine Zahl je Zeile ist); der Plus-Knopf erscheint nur an einer Ebene,
+   auf der wirklich Felder fehlen. */
+.properties-chain {
+  padding-bottom: 6px;
+}
+.properties-chain-title {
+  color: var(--fg-muted, #777);
+  padding-bottom: 2px;
+}
+.properties-chain-level {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 1px 0;
+}
+.properties-chain-icon {
+  flex: none;
+  user-select: none;
+}
+.properties-chain-name {
+  flex: none;
+}
+.properties-chain-via {
+  flex: 1 1 auto;
+  color: var(--fg-muted, #777);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.properties-chain-level.is-inherited .properties-chain-name {
+  opacity: 0.8;
+}
+.properties-chain-fill {
+  flex: none;
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 3px;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1;
+  padding: 1px 5px;
+}
+.properties-chain-fill:hover {
+  border-color: var(--accent);
+}

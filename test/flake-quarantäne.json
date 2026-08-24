@@ -118,8 +118,8 @@
       "spec": "test/e2e/funktionen/regal.spec.js",
       "fall": "RG-04: Mehr-Fenster-Sitzung, die Regal-Seite ist nach dem Neustart wieder da",
       "datum": "2026-08-13",
-      "fehlerbild": "Einzel-Fehlschlag im 21-Spec-Parallel-Lauf der 4T-1000-Prüfung (165 von 166 grün), isoliert sofort grün (10/10 in 49 s, den Fall selbst eingeschlossen)",
-      "vermutung": "lastbedingt; das Mehr-Fenster-Restart-Szenario ist zeitfenster-empfindlich und lief unter der Parallel-Last des breitesten Ausschnitts des Epics. Bei erneutem Auftreten außerhalb von Voll-Last gehört der Fall in einen eigenen Prüf-Vorgang, weil Sitzungs-Restore seit dem Main-Schnitt in app/startup.js liegt",
+      "fehlerbild": "Einzel-Fehlschlag im 21-Spec-Parallel-Lauf der 4T-1000-Prüfung (165 von 166 grün), isoliert sofort grün (10/10 in 49 s, den Fall selbst eingeschlossen) Zweite Beobachtung am 2026-08-24 im E2E-Voll-Lauf der Release-Abnahme 1.117.0 (623 von 624 grün, 41,2 min): expect.poll auf zwei Fenster nach dem Neustart lief in das 10-Sekunden-Limit, angekommen war eines. Isoliert wieder sofort grün (11/11 in 53,8 s).",
+      "vermutung": "lastbedingt; das Mehr-Fenster-Restart-Szenario ist zeitfenster-empfindlich und lief unter der Parallel-Last des breitesten Ausschnitts des Epics. Bei erneutem Auftreten außerhalb von Voll-Last gehört der Fall in einen eigenen Prüf-Vorgang, weil Sitzungs-Restore seit dem Main-Schnitt in app/startup.js liegt Zur Sichtung des Release 1.117.0: Das im Eintrag genannte Beförderungs-Kriterium ist NICHT eingetreten, denn auch die zweite Beobachtung fiel unter Voll-Last (E2E-Voll-Lauf), nicht außerhalb. Der Status bleibt deshalb beobachtet; beide Vorkommen zeigen dasselbe Bild und dieselbe sofortige Erholung im isolierten Lauf.",
       "status": "beobachtet"
     },
     {

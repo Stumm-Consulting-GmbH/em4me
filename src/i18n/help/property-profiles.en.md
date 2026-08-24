@@ -174,6 +174,46 @@ The fill is deliberately additive:
 
 The whole fill is a single step and can be undone completely with one undo. It applies in the properties editor as well as the block properties panel and is gone when the «Property profiles» extension is switched off.
 
+## Document field form
+
+At the top the section shows the fields the document carries; below it an expandable area **“All fields of this document”** lists the fields its applicable profiles define and the document does not yet carry. Together the two answer in full what this document can carry; the union is split rather than duplicated, so no field appears twice.
+
+**Origin per field.** Every field carries the symbol of the profile its definition comes from; the tooltip names the profile and the path. For an inherited definition that is the profile the definition really sits in — not the assigned one.
+
+**The chain of applicable profiles** stands above the missing fields, because it answers the question the fields follow from in the first place. Each level shows the symbol, the profile name and the path by which the profile applies; inheritance depth appears as **indentation**. From the first inherited level onwards the line reads “inherited” instead of the path — an inherited profile applies by the same path as its child, and there inheritance is the statement that helps.
+
+**Adoption per level.** Next to a level with missing fields sits a button that creates exactly those fields in one step: with a type-appropriate empty value, leaving existing values untouched and as a single undo step — the same path as filling in all fields at once. A level with no missing fields carries no button; it would promise an action that does nothing.
+
+**A field the document does not yet carry stays out as long as it is empty.** Merely expanding the area therefore writes nothing into the frontmatter; only an entered value or the adoption turns the field into a field of the document.
+
+With a broken frontmatter block the area does not appear — the same notice applies there as for “Add property”. It likewise does not appear without an applicable profile or with the “Property profiles” extension switched off; an empty area or a placeholder never appears.
+
+**Three ways** lead to the form: the expandable area itself, the command “Open the document field form” and the entry “Open field form” in the tab context menu. The latter two make the section visible if it is hidden, expand the area and scroll it into view; the context menu entry refers to the tab that was clicked and activates it first.
+
+## Per-profile view as a query
+
+The question “which documents belong to this profile” is a query, and the command **“Insert profile query”** writes it out in full: it asks for the profile if more than one applies, and inserts an ordinary query block at the cursor position. No separate view is created — the output runs through the existing result display of the query language.
+
+The generated query covers all three explicit assignment paths of the profile — the assignment field, every tag binding and every folder binding. A folder condition includes the subfolders, exactly as the binding itself does:
+
+````markdown
+```perspective-query
+LIST
+WHERE class = "project"
+  OR icontains(file.tags, "project")
+  OR (file.folder = "10 Projects" OR startswith(lower(file.folder), "10 projects/"))
+```
+````
+
+Two cases differ:
+
+- **The area's default profile** applies to everything that has no other assignment. For it the command therefore produces a query over all documents of the area instead of negating every binding — that would be long, opaque and would silently go wrong as soon as a binding is added.
+- **Inheriting profiles stay out.** If `customer` inherits from `project`, customer documents do not appear in the query for `project`: they carry its fields but are not projects.
+
+From then on the inserted block is ordinary content — it can be edited, extended with columns, sorting or a limit, moved and deleted like any other query. A document containing it is therefore also a saved view: it can be named, linked and bookmarked. Conversely: the query reflects the assignment **at the time it was generated**. If a binding is added later, the block already written does not follow; it is then generated again or extended by hand.
+
+The command disappears when the “Property profiles” extension is switched off.
+
 ## Soft validation
 
 Deviations never block and never change the value: a value outside the value range or a value that does not match the defined type merely produces a hint icon at the field; the tooltip names the reason. Markdown and frontmatter remain freely editable — including directly in the source.

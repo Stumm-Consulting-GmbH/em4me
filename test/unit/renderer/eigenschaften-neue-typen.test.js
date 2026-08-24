@@ -305,8 +305,11 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
     // vergleichen, wird geprüft, dass beide Panels dieselben Bau-Funktionen
     // importieren. Ein Panel, das einen eigenen Zweig baute, fiele hier auf.
     const fs = await import('node:fs');
+    // 4T-1172 (Epic 3E-0220): Auf der Dokument-Seite bauen die Wert-Editoren
+    // seit dem Datei-Schnitt in properties-wert-editor.js; der Prüf-Gegenstand
+    // ist unverändert, nur seine Datei.
     const quellen = [
-      'src/renderer/modules/properties/properties-fields.js',
+      'src/renderer/modules/properties/properties-wert-editor.js',
       'src/renderer/modules/properties/block-props-fields.js',
     ].map((p) => fs.readFileSync(p, 'utf8'));
     for (const quelle of quellen) {
@@ -336,8 +339,11 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
     expect(quelle).not.toContain("from '../views/");
     expect(quelle).not.toContain("from './properties-");
     // Die beiden Panels liefern den Öffnen-Weg — dort ist der Import zulässig.
+    // 4T-1172: Auf der Dokument-Seite liegt er seit dem Datei-Schnitt bei den
+    // Wert-Editoren, die ihn ihrerseits über die eingereichte Umgebung
+    // beziehen (properties-fields.js bleibt der Ort des Imports).
     for (const p of [
-      'src/renderer/modules/properties/properties-fields.js',
+      'src/renderer/modules/properties/properties-wert-editor.js',
       'src/renderer/modules/properties/block-props-fields.js',
     ]) {
       expect(fs.readFileSync(p, 'utf8')).toContain('onOpen: (name) =>');
@@ -347,7 +353,8 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
   it('beide Panels behandeln jedes Mehrfach-Feld über die Chips-Leiste', async () => {
     const fs = await import('node:fs');
     for (const p of [
-      'src/renderer/modules/properties/properties-fields.js',
+      // 4T-1172: Dokument-Seite seit dem Datei-Schnitt bei den Wert-Editoren.
+      'src/renderer/modules/properties/properties-wert-editor.js',
       'src/renderer/modules/properties/block-props-fields.js',
     ]) {
       const quelle = fs.readFileSync(p, 'utf8');

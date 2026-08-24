@@ -355,6 +355,27 @@
       "hinweis": "4T-1159 bis 4T-1161 (Epic 3E-0219): Zuordnung ueber Schlagwort und Ordner in der vierstufigen Folge, ihr Einstellungs-Bereich und das Profil-Symbol am Dokument. Die drei Konstellationen des Konzepts (Kapitel 6.13) haben je einen Pruffall, dazu die Praefix-Falle des Ordner-Vergleichs und der Gate-Nachweis; fuer die Zuordnungs-Logik liegt die Zusage in Reihenfolgen an konstruierten Dokument-Lagen, also unit. 4T-1164 ergaenzt den E2E-Fall PP-12: Die Zusage des SYMBOLS ist eine Sichtbarkeit, und die kann keine Unit-Pruefung tragen. Der Abnahme-Befund vom 2026-08-24 belegt es: Das Symbol war in jeder Reiter-Anordnung unsichtbar, waehrend alle Unit-Faelle gruen blieben, weil sie Quelltext lasen statt zu rendern."
     },
     {
+      "key": "help.feature.profileFieldForm",
+      "id": "F-269",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/renderer/eigenschaften-feld-formular.test.js",
+        "test/unit/property-profiles-herkunft.test.js",
+        "test/e2e/funktionen/eigenschafts-feld-formular.spec.js"
+      ],
+      "hinweis": "4T-1171 bis 4T-1175 (Epic 3E-0220): Feld-Formular des Dokuments samt Herkunft je Feld, Profil-Kette und Uebernahme je Ebene. Die Herkunfts-Angabe der Aufloesung liegt unit (property-profiles-herkunft), das gebaute DOM des Bereichs in eigenschaften-feld-formular.test.js (43 Faelle). PP-13 und PP-14 pruefen am gebauten Fenster, was die Unit-Ebene nicht zeigen kann: die Sichtbarkeit des Bereichs und den Zugang ueber das Reiter-Kontextmenue bei verborgener Sektion. Die Trennung folgt dem Abnahme-Befund vom 2026-08-24 (4T-1167): Eine Sichtbarkeits-Zusage traegt keine Quelltext-Pruefung. 4T-1179 ergaenzt die beiden Faelle der Abgrenzung, die der E2E-Voll-Lauf derselben Abnahme erzwungen hat: PP-15 haelt fest, dass der Bereich dem Vorschlags-Menue seine Profil-Eintraege nicht nimmt, PP-16, dass ein Save wegen eines anderen Feldes keine unberuehrten Angebote in das Dokument schreibt. Beide waren vor dem Fix rot; die Unit-Ebene unterscheidet dazu die vorbelegte Null von der eingetragenen."
+    },
+    {
+      "key": "help.feature.profileQuery",
+      "id": "F-270",
+      "testart": "unit",
+      "tests": [
+        "test/unit/property-profiles-abfrage.test.js",
+        "test/unit/renderer/profil-abfrage-einfuegen.test.js"
+      ],
+      "hinweis": "4T-1176 (Epic 3E-0220): erzeugte Abfrage je Profil. Der Gegenstand ist der erzeugte TEXT und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird. Kein E2E-Fall: Die Sicht selbst ist die vorhandene Ergebnis-Ausgabe der Abfrage-Sprache und dort bereits gedeckt; dass die Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 von 4T-1176 an der gebauten Programmdatei."
+    },
+    {
       "key": "help.feature.profileBulkFill",
       "id": "F-121",
       "testart": "e2e",
@@ -953,6 +974,28 @@
       "testart": "ipc",
       "tests": ["test/e2e/funktionen/navigation-und-datei.spec.js"],
       "begruendung": "Strg+; ist Menue-Accelerator; FH-01 testet den menu:toggleProperties-IPC-Pfad."
+    },
+    {
+      "key": "help.shortcut.openFieldForm",
+      "id": "S-137",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/commands.test.js",
+        "test/unit/renderer/eigenschaften-feld-formular.test.js",
+        "test/e2e/funktionen/eigenschafts-feld-formular.spec.js"
+      ],
+      "begruendung": "4T-1174: Registrierung, fehlendes Vorgabe-Kuerzel und Dispatch-Eintrag als Unit-Fall; der Bereich, den das Kommando oeffnet, in eigenschaften-feld-formular.test.js. Die Oeffnungs-Wirkung selbst prueft PP-14 am gebauten Fenster: Sie laeuft ueber dieselbe Funktion wie der Kontextmenue-Weg."
+    },
+    {
+      "key": "help.shortcut.insertProfileQuery",
+      "id": "S-138",
+      "testart": "unit",
+      "tests": [
+        "test/unit/property-profiles-abfrage.test.js",
+        "test/unit/renderer/profil-abfrage-einfuegen.test.js",
+        "test/unit/commands.test.js"
+      ],
+      "begruendung": "4T-1176: Der erzeugte Abfrage-Text ist der Gegenstand und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text (kein Weg fehlt, konfigurierter Feldname) und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird: Cursor-Lage und ein gewoehnlicher Fence ohne jede Markierung. commands.test.js deckt Registrierung und Dispatch-Eintrag. Dass die erzeugte Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 an der gebauten Programmdatei."
     },
     {
       "key": "help.shortcut.toggleTags",

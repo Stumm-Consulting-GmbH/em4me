@@ -325,6 +325,13 @@ export const state = {
     // Lauf-Token gegen veraltete Async-Antworten (Muster blockProps).
     profileByPane: [null, null],
     profileTokens: [0, 0],
+    // 4T-1173 (Epic 3E-0220): Auf- oder zugeklappt je Spalte — das
+    // Feld-Formular wird bei jedem Render neu gebaut (Tab-Wechsel,
+    // Debounce-Save, geänderte Auflösung), und ohne diesen Merker klappte es
+    // dabei jedes Mal zu. Bewusst NICHT persistiert: Der Bereich ist ein
+    // Nachschlag-Werkzeug, kein Panel-Zustand, den man über Sitzungen hinweg
+    // erwartet.
+    feldFormularOffenByPane: [false, false],
   },
   // 4T-0056: Tag-Sidebar-Sektion pro Spalte. visibleByPane wie Outline.
   // filterByPane haelt den aktuell aktivierten Filter-Tag (Klick auf Tag

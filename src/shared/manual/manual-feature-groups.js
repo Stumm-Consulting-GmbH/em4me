@@ -157,6 +157,11 @@ const HELP_FEATURE_GROUPS = [
       // Auflösungs-Bestand sie erweitern.
       'help.feature.profileValueSources',
       'help.feature.profileBindings',
+      // 4T-1177 (Epic 3E-0220): die beiden Zugaenge der Stufe 3, direkt hinter
+      // den Zuordnungs-Wegen — das Formular zeigt deren Ergebnis am Dokument,
+      // die erzeugte Abfrage fragt danach ueber den ganzen Bestand.
+      'help.feature.profileFieldForm',
+      'help.feature.profileQuery',
       // 4T-0356 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query),
       // baut auf den Frontmatter-Properties auf.
       'help.feature.frontmatterQuery',

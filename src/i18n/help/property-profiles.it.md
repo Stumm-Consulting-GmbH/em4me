@@ -174,6 +174,46 @@ L'inserimento è volutamente additivo:
 
 L'intero inserimento è un unico passaggio e può essere annullato completamente con un solo annulla. Vale nell'editor delle proprietà e nel pannello delle proprietà di blocco e scompare quando l'estensione «Profili di proprietà» è disattivata.
 
+## Modulo dei campi del documento
+
+In alto la sezione mostra i campi presenti nel documento; sotto, l'area espandibile **«Tutti i campi di questo documento»** raccoglie i campi che i profili vigenti definiscono e che il documento non porta ancora. I due insieme rispondono per intero alla domanda su che cosa questo documento possa portare; l'unione viene ripartita e non duplicata, così nessun campo compare due volte.
+
+**Provenienza di ogni campo.** Ogni campo porta il simbolo del profilo da cui proviene la sua definizione; il suggerimento nomina il profilo e la via. In una definizione ereditata si tratta del profilo in cui essa sta davvero — non di quello assegnato.
+
+**La catena dei profili vigenti** sta sopra i campi mancanti, perché risponde alla domanda da cui i campi discendono. Ogni livello mostra il simbolo, il nome del profilo e la via per cui il profilo vale; la profondità di ereditarietà è resa come **rientro**. Dal primo livello ereditato in poi la riga indica «ereditato» invece della via — un profilo ereditato vale per la stessa via del suo figlio, e lì è l'ereditarietà l'informazione utile.
+
+**Acquisizione per livello.** Accanto a un livello con campi mancanti si trova un pulsante che crea esattamente quei campi in un solo passo: con un valore vuoto adatto al tipo, senza toccare i valori esistenti e come un unico passo di annullamento — la stessa via dell'inserimento di tutti i campi. Un livello senza campi mancanti non porta alcun pulsante; prometterebbe un'azione che non fa nulla.
+
+**Un campo che il documento non porta ancora resta fuori finché è vuoto.** La semplice espansione non scrive dunque nulla nel blocco di metadati; solo un valore inserito o l'acquisizione rende il campo un campo del documento.
+
+Con un blocco di metadati difettoso l'area non compare — lì vale lo stesso avviso che per «Aggiungi proprietà». Non compare nemmeno senza un profilo vigente né con l'estensione «Profili delle proprietà» disattivata; un'area vuota o un segnaposto non compaiono mai.
+
+**Tre accessi** portano al modulo: l'area espandibile stessa, il comando «Aprire il modulo dei campi del documento» e la voce «Aprire il modulo dei campi» nel menu contestuale della scheda. Gli ultimi due rendono visibile la sezione se è nascosta, espandono l'area e la portano nella parte visibile; la voce del menu contestuale riguarda la scheda su cui si è fatto clic e la attiva prima.
+
+## Vista per profilo come query
+
+La domanda «quali documenti appartengono a questo profilo» è una query, e il comando **«Inserisci query di profilo»** la scrive per intero: chiede il profilo quando ne entrano in gioco più d'uno e inserisce un blocco di query ordinario alla posizione del cursore. Non nasce alcuna vista propria — l'output passa per la restituzione dei risultati già esistente del linguaggio di query.
+
+La query generata comprende tutte e tre le vie di assegnazione esplicite del profilo — il campo di assegnazione, ogni collegamento per etichetta e ogni collegamento per cartella. Una condizione di cartella include le sottocartelle, esattamente come il collegamento stesso:
+
+````markdown
+```perspective-query
+LIST
+WHERE class = "progetto"
+  OR icontains(file.tags, "progetto")
+  OR (file.folder = "10 Progetti" OR startswith(lower(file.folder), "10 progetti/"))
+```
+````
+
+Due casi fanno eccezione:
+
+- **Il profilo standard dell'area** vale per tutto ciò che non ha un'altra assegnazione. Per esso il comando produce quindi una query su tutti i documenti dell'area invece della negazione di tutti i collegamenti — sarebbe lunga, opaca e diventerebbe silenziosamente falsa non appena si aggiungesse un collegamento.
+- **I profili eredi restano fuori.** Se `cliente` eredita da `progetto`, i documenti cliente non compaiono nella query su `progetto`: portano i suoi campi, ma non sono progetti.
+
+Da quel momento il blocco inserito è contenuto ordinario — si può modificare, ampliare con colonne, ordinamento o limite, spostare ed eliminare come ogni altra query. Un documento che lo contiene è così anche una vista salvata: si può denominare, collegare e segnalibrare. Per contro: la query rispecchia l'assegnazione **al momento della generazione**. Se in seguito si aggiunge un collegamento, il blocco già scritto non lo segue; allora lo si genera di nuovo o lo si completa a mano.
+
+Il comando scompare con l'estensione «Profili delle proprietà» disattivata.
+
 ## Validazione leggera
 
 Gli scostamenti non bloccano mai e non modificano mai il valore: un valore al di fuori dell'insieme di valori o un valore che non corrisponde al tipo definito produce soltanto un'icona di avviso sul campo; il suggerimento ne indica il motivo. Il Markdown e il frontmatter restano liberamente modificabili — anche direttamente nel sorgente.

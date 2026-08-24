@@ -127,10 +127,13 @@ describe('resolveProfileFields', () => {
   });
 
   it('leerer Katalog oder keine Zuordnung ergibt leer bzw. nur den Standard', () => {
+    // 4T-1171 (Epic 3E-0220): `chain` ist additiv dazugekommen; dieser
+    // Prüffall vergleicht die vollständige Rückgabe und nennt sie deshalb mit.
     expect(resolveProfileFields([], { defaultProfile: null, assigned: [] })).toEqual({
       fields: [],
       missing: [],
       leading: null,
+      chain: [],
     });
     const { fields } = resolveProfileFields(CATALOG, { defaultProfile: 'All', assigned: [] });
     expect(fields.map((f) => [f.name, f.fromDefault])).toEqual([
@@ -521,7 +524,21 @@ describe('Erweiterungs-Registrierung property-profiles (4T-0448)', () => {
     expect(manifest.nameKey).toBe('help.featureName.propertyProfiles');
     expect(manifest.descKey).toBe('help.feature.propertyProfiles');
     expect(manifest.settingsSections).toEqual(['propertyProfiles']);
-    expect(manifest.commands).toBeUndefined();
+  });
+
+  // 4T-1174 (Epic 3E-0220): Bis Stufe 2 stand hier `commands` auf
+  // `toBeUndefined()` — die Erweiterung brachte keine eigenen Kommandos mit.
+  // Das ist **widerrufen** und nicht ergänzt: Aus den Entscheidungen E5 und E7
+  // folgen zwei Kommandos, und beide müssen im Aus-Zustand entfallen. Genau
+  // dieses Kriterium hat die Story 4S-0225 wiedereröffnet.
+  // 4T-1176 (Epic 3E-0220, AK9): Mit der erzeugten Profil-Abfrage ist die
+  // Liste vollständig — beide Kommandos der Stufe 3 hängen am Gate. Geprüft
+  // wird die exakte Liste und nicht nur die Enthaltung: Ein hier vergessenes
+  // Kommando erschiene im Aus-Zustand weiter in Palette und Dispatcher, und
+  // genau das ist das widerrufene Kriterium der Story 4S-0225.
+  it('führt beide Kommandos der Stufe 3, damit sie im Aus-Zustand entfallen', () => {
+    const manifest = extensionById('property-profiles');
+    expect(manifest.commands).toEqual(['view.openFieldForm', 'edit.insertProfileQuery']);
   });
 });
 

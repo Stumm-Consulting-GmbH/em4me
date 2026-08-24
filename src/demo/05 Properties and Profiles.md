@@ -65,4 +65,6 @@ Documents opt in with a `class:` field naming the profile. Profiles can also inh
 
 Beyond the field name, a definition can carry type-specific options, draw its value set from a note or a query, and a profile can bind itself to a tag or a folder so documents need no `class:` field at all. Where a profile carries an `icon:`, the properties panel header shows it — that is how a document says which profile applies when nothing in it does.
 
+Two more things sit on top of that. The properties panel has an expandable area **All fields of this document**, which lists the fields the applicable profiles define and this document does not carry yet, together with the chain of profiles that apply and where each one comes from; the fields of one level can be adopted in a single step. And the command **Insert profile query** writes out the query for a profile's documents at the cursor — an ordinary query block you can edit afterwards, which is why [[08 Queries]] is where it leads.
+
 On to planning: [[06 Tasks and Reminders]].

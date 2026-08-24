@@ -14,97 +14,23 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+// 4T-1175 (Epic 3E-0220): geteilte Bereichs-Vorbereitung, ausgezogen wegen des
+// Datei-Budgets (Begründung dort).
+const {
+  PANE0,
+  PANEL,
+  ADD_BTN,
+  FIELDS,
+  makeArea,
+  writeDoc,
+  bindAreaAndOpen,
+  openPropertiesPanel,
+  editorContains,
+  cleanupDir,
+} = require('../helpers/profil-bereich');
 
-const PANE0 = '.pane-group[data-pane="0"]';
-const PANEL = `${PANE0} .sidebar-properties`;
-const ADD_BTN = `${PANEL} .properties-add-btn`;
-const FIELDS = `${PANEL} .properties-fields`;
 const MENU = '.properties-suggest-menu';
 const MENU_ITEM = `${MENU} .properties-suggest-item`;
-
-// Bereichs-Wurzel mit Profil-Ordner: Standard-Profil All (Feld thema),
-// Profil Projekt (status mit Wertebereich, budget mit Default) und der
-// propertyProfiles-Sektion in der Bereichsdatei.
-function makeArea() {
-  const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-profile-area-'));
-  fs.mkdirSync(path.join(areaRoot, 'Profile'));
-  fs.writeFileSync(
-    path.join(areaRoot, 'Profile', 'All.md'),
-    '---\nfields:\n  - name: thema\n    type: string\n---\nStandard-Profil.\n',
-    'utf8',
-  );
-  fs.writeFileSync(
-    path.join(areaRoot, 'Profile', 'Projekt.md'),
-    [
-      '---',
-      'fields:',
-      '  - name: status',
-      '    values: [offen, erledigt]',
-      '  - name: budget',
-      '    type: number',
-      '    default: 1000',
-      '---',
-      'Projekt-Profil.',
-      '',
-    ].join('\n'),
-    'utf8',
-  );
-  fs.writeFileSync(
-    path.join(areaRoot, 'Area_Settings.mdda'),
-    JSON.stringify(
-      {
-        schemaVersion: 1,
-        settings: {
-          propertyProfiles: { folder: 'Profile', assignField: 'class', defaultProfile: 'All' },
-        },
-      },
-      null,
-      2,
-    ) + '\n',
-    'utf8',
-  );
-  return areaRoot;
-}
-
-function writeDoc(areaRoot, name, frontmatterLines) {
-  const p = path.join(areaRoot, name);
-  fs.writeFileSync(p, ['---', ...frontmatterLines, '---', '', 'Inhalt.', ''].join('\n'), 'utf8');
-  return p;
-}
-
-// Bereich an das leere Startfenster binden (Muster vorlagen.spec.js VL-10)
-// und die Datei über den Main-Kanal in das Bereichs-Fenster öffnen.
-async function bindAreaAndOpen(app, page, areaRoot, filePath) {
-  await expect
-    .poll(async () => {
-      const result = await page.evaluate((p) => window.api.openAreaPath(p), areaRoot);
-      return !!(result && result.ok !== false);
-    })
-    .toBe(true);
-  await expect.poll(() => page.title()).toContain('(Bereich');
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, filePath);
-  await expect(page.locator(SEL.tabs0).first()).toBeVisible();
-}
-
-async function openPropertiesPanel(page) {
-  await page.locator('#btn-properties').click();
-  await expect(page.locator(PANEL)).toBeVisible();
-}
-
-async function editorContains(page, text) {
-  await page.locator(SEL.viewBtn('source')).click();
-  await expect.poll(() => page.locator(SEL.editorContent0).innerText()).toContain(text);
-}
-
-function cleanupDir(dir) {
-  try {
-    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
-  } catch {
-    /* Windows-Handle noch offen: best effort */
-  }
-}
 
 test.describe('PP-01: Vorschlags-Menü und Feld-Anlage mit Default (F-106)', () => {
   test('Definitions-Felder mit Profil-Badge zuerst; Auswahl legt Feld mit Typ und Default an', async () => {
@@ -610,7 +536,15 @@ test.describe('PP-08: Komplett-Übernahme aller Profil-Felder (F-106)', () => {
       await page.locator(`${MENU_ITEM}.is-profile-head`).filter({ hasText: 'Projekt' }).click();
       await expect(page.locator(MENU)).toBeHidden();
       // class + status + budget; thema (Profil „All") wurde NICHT ergänzt.
-      await expect(page.locator(`${FIELDS} .properties-field-key`)).toHaveCount(3);
+      // 4T-1179 (Epic 3E-0220): Gezählt werden die Felder des DOKUMENTS. Seit
+      // dem Feld-Formular hängen dessen Angebote im selben Container (4T-1172),
+      // und thema steht dort weiterhin als Angebot — die Zusage dieses Falls
+      // ist aber, was im Dokument gelandet ist.
+      await expect(
+        page.locator(
+          `${FIELDS} .properties-field:not(.is-nicht-im-dokument) .properties-field-key`,
+        ),
+      ).toHaveCount(3);
       await expect(editor).toContainText('budget: 1000');
       await expect(editor).toContainText('status:');
       await expect(editor).not.toContainText('thema');

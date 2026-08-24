@@ -18,7 +18,12 @@ import { scheduleAutoSave } from '../views/views.js';
 import { profileSuggestGroups } from '../../../shared/property-profiles.js';
 import { defaultValueForType, FIELD_TYPE_HINTS } from './properties-types.js';
 import { flushPendingPropertiesSave, scheduleSavePropertiesFromPane } from './properties-save.js';
-import { buildPropertyFieldDom, onTypeChange, renderProperties } from './properties-fields.js';
+import { buildPropertyFieldDom, renderProperties } from './properties-fields.js';
+// 4T-1172 (Epic 3E-0220): Der Typ-Wechsel liegt seit dem Schnitt des
+// Datei-Budgets bei den Wert-Editoren.
+import { onTypeChange } from './properties-wert-editor.js';
+// 4T-1179 (Epic 3E-0220): Marke der Angebots-Felder des Feld-Formulars.
+import { MARKE_NICHT_IM_DOKUMENT } from './properties-feld-formular.js';
 
 // --- 4T-0448: Vorschlags-Menü für „Eigenschaft hinzufügen" --------------------
 
@@ -146,7 +151,11 @@ function addFieldFromSuggestion(paneIdx, suggestion) {
 // leere Stub-Felder erscheinen als bare YAML-Schlüssel. Bestehende Werte und ihre
 // Reihenfolge bleiben unangetastet; der Schreibpfad geht am DOM vorbei direkt auf
 // den Datei-Inhalt (keine Feld-für-Feld-Debounce-Saves).
-function applyProfileFill(paneIdx, target) {
+// 4T-1173 (Epic 3E-0220): exportiert, damit die Profil-Kette des Feld-
+// Formulars je Ebene übernehmen kann. Sie reicht dieselbe `map` herein, nur
+// auf die Felder einer Ebene gefiltert — derselbe Schreibweg, dieselbe
+// Undo-Einheit, dieselbe Sperre bei defektem YAML.
+export function applyProfileFill(paneIdx, target) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.propertiesFields) return;
   // R5-02-Linie: bei defektem YAML ist der Hinzufügen-Button gesperrt.
@@ -219,9 +228,17 @@ export function addPropertiesField(paneIdx) {
   if (els.propertiesAddBtn && els.propertiesAddBtn.disabled) return;
   const resolution = state.properties.profileByPane[paneIdx];
   if (resolution) {
-    const existingKeys = [...els.propertiesFields.querySelectorAll('.properties-field-key')].map(
-      (inp) => inp.value,
-    );
+    // 4T-1179 (Epic 3E-0220): Nur die Felder des DOKUMENTS zählen als belegt.
+    // Das Feld-Formular hängt seine Angebote bewusst in denselben Container
+    // (4T-1172, damit der vorhandene Schreibweg sie einsammelt); ungefiltert
+    // galten sie hier als vorhanden, und weil das Formular genau die
+    // fehlenden Profil-Felder zeigt, blieb vom Menü kein einziger
+    // Profil-Vorschlag übrig — samt seiner Profil-Köpfe. Dieselbe Regel wie
+    // in `bleibtAusDemDokument`: ein nur definiertes Feld ist ein Angebot,
+    // kein Inhalt.
+    const existingKeys = [...els.propertiesFields.querySelectorAll('.properties-field-key')]
+      .filter((inp) => !inp.closest(`.${MARKE_NICHT_IM_DOKUMENT}`))
+      .map((inp) => inp.value);
     const heuristics = Object.keys(FIELD_TYPE_HINTS).map((name) => ({
       name,
       type: FIELD_TYPE_HINTS[name],

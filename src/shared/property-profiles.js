@@ -35,6 +35,10 @@ const {
 } = require('./property-profiles-format.js');
 // 4T-1159 (Epic 3E-0219): Bindungen der Bereichs-Sektion.
 const { normalizeBindings } = require('./property-profiles-config.js');
+// 4T-1176 (Epic 3E-0220, E7): Erzeugung der Abfrage zu einem Profil. Eigene
+// Fachlichkeit in eigener Datei; die Fassade reicht sie weiter wie alles
+// andere.
+const { erzeugeProfilAbfrage } = require('./property-profiles-abfrage.js');
 // 4T-1161 (Epic 3E-0219): Die Editor-Logik liegt seit dem Datei-Schnitt im
 // eigenen Modul; die Fassade reicht sie weiter (alle Verbraucher laden hier).
 const {
@@ -235,18 +239,25 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
     }
     const chainExclude = new Set();
     let currentKey = startKey;
+    // 4T-1171 (Epic 3E-0220): Wie tief in der Eltern-Kette dieses Profil
+    // steht — 0 für das zugeordnete Profil selbst, 1 für dessen Eltern, und
+    // so fort. Der Zähler läuft mit der Schleife, die es ohnehin gibt; ein
+    // zweiter Durchlauf, der die Tiefe im Nachhinein rekonstruiert, wäre
+    // eine zweite Wahrheit über dieselbe Ordnung.
+    let tiefe = 0;
     // Ein fehlendes Eltern-Profil oder ein Wiedersehen beendet die Kette
     // still; die Hinweise dazu hängen am Profil (attachHeritageHints).
     while (byName.has(currentKey) && !seenProfiles.has(currentKey)) {
       seenProfiles.add(currentKey);
       const profile = byName.get(currentKey);
-      ordered.push({ profile, fromDefault, stufe, exclude: new Set(chainExclude) });
+      ordered.push({ profile, fromDefault, stufe, tiefe, exclude: new Set(chainExclude) });
       for (const ex of Array.isArray(profile.exclude) ? profile.exclude : []) {
         const exKey = cleanString(ex).toLowerCase();
         if (exKey !== '') chainExclude.add(exKey);
       }
       currentKey = cleanString(profile.parent).toLowerCase();
       if (currentKey === '') break;
+      tiefe += 1;
     }
   };
   // 4T-1159 (Epic 3E-0219, E13): Die Folge wird vierstufig. Sie bleibt EINE
@@ -267,13 +278,19 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
   walkChain(defaultProfile, true);
   const fields = [];
   const seenFields = new Set();
-  for (const { profile, fromDefault, exclude } of ordered) {
+  // 4T-1171 (Epic 3E-0220): Je Feld kommen Weg und Vererbungs-Tiefe mit. Sie
+  // fallen hier ohne Zusatzaufwand an, weil `ordered` beide bereits trägt.
+  // `fromDefault` bleibt daneben unverändert stehen, obwohl es inhaltlich
+  // `stufe === 'default'` entspricht: Es hat eigene Verbraucher, und die
+  // Auflage A2 (Rückwärts-Verträglichkeit) macht diesen Task nicht zum Ort,
+  // eine ausgelieferte Angabe abzulösen.
+  for (const { profile, fromDefault, stufe: feldStufe, tiefe, exclude } of ordered) {
     for (const def of Array.isArray(profile.fields) ? profile.fields : []) {
       const key = def.name.toLowerCase();
       if (exclude.has(key)) continue;
       if (seenFields.has(key)) continue;
       seenFields.add(key);
-      fields.push({ ...def, profile: profile.name, fromDefault });
+      fields.push({ ...def, profile: profile.name, fromDefault, stufe: feldStufe, tiefe });
     }
   }
   // 4T-1161 (E5): Das ZUERST aufgelöste Profil trägt das Symbol am Dokument
@@ -284,7 +301,20 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
   const leading = fuehrend
     ? { profile: fuehrend.profile.name, icon: fuehrend.profile.icon || null, stufe: fuehrend.stufe }
     : null;
-  return { fields, missing, leading };
+  // 4T-1171 (Epic 3E-0220): Die beteiligten Profile als geordnete Kette, für
+  // das Feld-Formular der Stufe 3 — es zeigt sie als Ebenen und bietet je
+  // Ebene die fehlenden Felder zur Übernahme an. Dieselbe Ordnung wie oben,
+  // nur ohne die internen Arbeits-Felder (`exclude`, das Profil-Objekt).
+  // `leading` bleibt daneben stehen: Es ist zwar `chain[0]`, hat aber einen
+  // eigenen Verbraucher und eine eigene Zusicherung aus 4T-1161.
+  const chain = ordered.map(({ profile, fromDefault, stufe: kettenStufe, tiefe }) => ({
+    profile: profile.name,
+    icon: profile.icon || null,
+    stufe: kettenStufe,
+    tiefe,
+    fromDefault,
+  }));
+  return { fields, missing, leading, chain };
 }
 
 module.exports = {
@@ -302,6 +332,9 @@ module.exports = {
   normalizeBindings,
   gebundeneProfile,
   ordnerTrifft,
+  // 4T-1176: Erzeugung der Abfrage zu einem Profil (aus
+  // property-profiles-abfrage.js weitergereicht).
+  erzeugeProfilAbfrage,
   // 4T-0448: gemeinsame Editor-Logik (4T-1161: aus
   // property-profiles-editor.js weitergereicht — die Fassade bleibt der eine
   // Ort, an dem Verbraucher laden, und reicht deshalb alles weiter).

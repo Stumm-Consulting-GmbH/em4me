@@ -174,6 +174,46 @@ La reprise est délibérément additive :
 
 L'ensemble de la reprise est une seule étape et peut être entièrement annulé avec une seule annulation. Elle vaut dans l'éditeur de propriétés comme dans le panneau des propriétés de bloc et disparaît lorsque l'extension « Profils de propriétés » est désactivée.
 
+## Formulaire des champs du document
+
+En haut, la section affiche les champs présents dans le document ; en dessous, la zone dépliable **« Tous les champs de ce document »** réunit les champs que les profils applicables définissent et que le document ne porte pas encore. Les deux ensemble répondent complètement à la question de ce que ce document peut porter ; la réunion est répartie et non dupliquée, afin qu'aucun champ n'apparaisse deux fois.
+
+**Provenance de chaque champ.** Chaque champ porte le symbole du profil dont provient sa définition ; l'infobulle nomme le profil et la voie. Pour une définition héritée, il s'agit du profil où elle se trouve réellement — et non du profil associé.
+
+**La chaîne des profils applicables** figure au-dessus des champs manquants, car elle répond à la question dont les champs découlent. Chaque niveau indique le symbole, le nom du profil et la voie par laquelle le profil s'applique ; la profondeur d'héritage apparaît sous forme de **retrait**. À partir du premier niveau hérité, la ligne indique « hérité » au lieu de la voie — un profil hérité s'applique par la même voie que son enfant, et c'est alors l'héritage qui est l'information utile.
+
+**Reprise par niveau.** À côté d'un niveau où des champs manquent se trouve un bouton qui crée exactement ces champs en une fois : avec une valeur vide adaptée au type, sans toucher aux valeurs existantes et comme une seule étape d'annulation — la même voie que la reprise de tous les champs. Un niveau sans champ manquant ne porte pas de bouton ; il promettrait une action sans effet.
+
+**Un champ que le document ne porte pas encore reste à l'écart tant qu'il est vide.** Le simple dépliage n'écrit donc rien dans le bloc de métadonnées ; seule une valeur saisie ou la reprise fait du champ un champ du document.
+
+Avec un bloc de métadonnées défectueux, la zone n'apparaît pas — le même avertissement s'y applique que pour « Ajouter une propriété ». Elle n'apparaît pas davantage sans profil applicable ni lorsque l'extension « Profils de propriétés » est désactivée ; une zone vide ou un espace réservé n'apparaît jamais.
+
+**Trois accès** mènent au formulaire : la zone dépliable elle-même, la commande « Ouvrir le formulaire des champs du document » et l'entrée « Ouvrir le formulaire des champs » du menu contextuel de l'onglet. Les deux derniers rendent la section visible si elle est masquée, déplient la zone et l'amènent dans la partie visible ; l'entrée du menu contextuel vise l'onglet cliqué et l'active au préalable.
+
+## Vue par profil sous forme de requête
+
+La question « quels documents relèvent de ce profil » est une requête, et la commande **« Insérer une requête de profil »** l'écrit entièrement : elle demande le profil lorsque plusieurs entrent en ligne de compte, puis insère un bloc de requête ordinaire à la position du curseur. Aucune vue distincte n'est créée — l'affichage passe par la restitution des résultats déjà existante du langage de requête.
+
+La requête générée couvre les trois voies d'association explicites du profil — le champ d'association, chaque liaison par étiquette et chaque liaison par dossier. Une condition de dossier englobe les sous-dossiers, exactement comme la liaison elle-même :
+
+````markdown
+```perspective-query
+LIST
+WHERE class = "projet"
+  OR icontains(file.tags, "projet")
+  OR (file.folder = "10 Projets" OR startswith(lower(file.folder), "10 projets/"))
+```
+````
+
+Deux cas font exception :
+
+- **Le profil standard de l'espace** s'applique à tout ce qui n'a pas d'autre association. Pour lui, la commande produit donc une requête portant sur tous les documents de l'espace, plutôt que la négation de toutes les liaisons — celle-ci serait longue, opaque et deviendrait silencieusement fausse dès qu'une liaison est ajoutée.
+- **Les profils héritiers restent en dehors.** Si `client` hérite de `projet`, les documents client n'apparaissent pas dans la requête portant sur `projet` : ils portent ses champs, mais ne sont pas des projets.
+
+Le bloc inséré est dès lors un contenu ordinaire — il peut être modifié, enrichi de colonnes, d'un tri ou d'une limite, déplacé et supprimé comme toute autre requête. Un document qui le contient est ainsi également une vue enregistrée : il peut être nommé, lié et mis en signet. À l'inverse : la requête reflète l'association **au moment de sa génération**. Si une liaison est ajoutée plus tard, le bloc déjà écrit ne suit pas ; il est alors généré de nouveau ou complété à la main.
+
+La commande disparaît lorsque l'extension « Profils de propriétés » est désactivée.
+
 ## Validation douce
 
 Les écarts ne bloquent jamais et ne modifient jamais la valeur : une valeur en dehors de la plage de valeurs ou une valeur qui ne correspond pas au type défini produit seulement une icône d'indication au champ ; l'infobulle en nomme la raison. Le Markdown et le frontmatter restent librement modifiables — y compris directement dans la source.

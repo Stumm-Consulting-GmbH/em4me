@@ -541,14 +541,25 @@ const INTERNAL_EXTENSIONS = [
   // Prüfschritt vom 2026-07-09). Im Aus-Zustand verhalten sich Properties-
   // Editor und Block-Panel exakt wie ohne Konfiguration (Inferenz und
   // Heuristik; der Renderer prüft isExtensionActive vor der Auflösung);
-  // Kommandos gibt es keine. Der Einstellungs-Bereich (4T-0450) dockt hier
-  // an (Muster templates/journals).
+  // Der Einstellungs-Bereich (4T-0450) dockt hier an (Muster
+  // templates/journals).
+  // 4T-1174 (Epic 3E-0220): Bis Stufe 2 stand hier «Kommandos gibt es keine» —
+  // WIDERRUFEN, nicht ergaenzt: Aus E5 und E7 folgen zwei Kommandos, die im
+  // Aus-Zustand entfallen muessen (Story 4S-0225, wiedereroeffnet).
+  // 4T-1176 (Epic 3E-0220, E7): das zweite der beiden — die erzeugte Abfrage
+  // je Profil. Damit ist die Liste vollstaendig.
   {
     id: 'property-profiles',
     category: 'tools',
     nameKey: 'help.featureName.propertyProfiles',
     descKey: 'help.feature.propertyProfiles',
     settingsSections: ['propertyProfiles'],
+    commands: ['view.openFieldForm', 'edit.insertProfileQuery'],
+    // 4T-1177 (Epic 3E-0220): Die beiden Katalog-Zeilen der Stufe 3 muessen im
+    // Aus-Zustand gekennzeichnet sein, sonst behauptet die Funktions-Seite
+    // Funktionen, die es dann nicht gibt. Der descKey traegt weiterhin die
+    // Grundzeile; vier aeltere Profil-Zeilen fehlen hier (Befund in 4T-1177).
+    featureKeys: ['help.feature.profileFieldForm', 'help.feature.profileQuery'],
   },
   // 4T-0461 (Epic 3E-0085): Tab-Gruppen als schaltbare Werkzeug-Erweiterung
   // (Erweiterungs-Prüfschritt vom 2026-07-10, dokumentiert im Epic). Keine

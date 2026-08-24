@@ -14,6 +14,78 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.117.0.1788] - 2026-08-24 — Metadaten-Modell Stufe 3: Bedienung und Sicht
+
+Epic 3E-0220: Die dritte der vier Umsetzungs-Stufen und die, die den Zugang am
+Dokument nachzieht. Nach den beiden ersten Stufen trägt ein Profil eine
+Vererbungs-Kette, mehr Typen und Zuordnungen von außerhalb des Dokuments — die
+Frage «was trägt dieses Dokument und warum» in zwei Panels zusammenzusuchen ist
+dann nicht mehr zumutbar. Sie wird jetzt an einer Stelle beantwortet: ein
+Formular über alle Felder samt ihrer Herkunft, erreichbar auch über das
+Kontextmenü des Reiters. Dazu kommt die Gegenrichtung — ein Kommando, das zu
+einem Profil die Abfrage über seine Dokumente hinschreibt, statt eine zweite
+Ansicht für etwas zu bauen, das die Abfrage-Sprache bereits kann. Ein zweiter
+Schreibweg entsteht nicht: Das Formular lebt in derselben Sektion wie die
+Eigenschafts-Felder und benutzt deren Schreibpfad.
+
+Umsetzungs-Vorgänge des Epics: 4T-1171, 4T-1172, 4T-1173, 4T-1174, 4T-1175,
+4T-1176; Hilfe- und Handbuch-Vorgang 4T-1177, Release-Vorgang 4T-1178,
+Nachbesserung 4T-1179. Drei Fehler entstanden und verschwanden innerhalb dieser
+Stufe und bekommen deshalb wie bei Stufe 2 keinen eigenen Anwender-Text. Der
+Formular-Bereich klappte bei jedem Neu-Rendern wieder zu, also bei jedem
+Reiter-Wechsel und mitten in der Eingabe; der Auf-Zustand liegt jetzt je Spalte
+im Sitzungs-Zustand (4T-1173, gefunden vom E2E-Fall aus 4T-1175). Und die Felder,
+die der neue Bereich anbietet, waren von den Feldern des Dokuments nicht sauber
+getrennt: Das Vorschlags-Menü des Hinzufügen-Knopfes verlor dadurch seine
+Profil-Einträge, und ein leer angebotenes Zahlen-Feld konnte ungefragt in den
+Metadaten-Block geraten (4T-1179, beides gefunden von der Release-Abnahme).
+
+### Neu
+
+- **Feld-Formular des Dokuments** (4T-1171, 4T-1172, 4T-1173): Die
+  Eigenschaften-Sektion zeigt unter den Feldern des Dokuments einen
+  Ausklapp-Bereich «Alle Felder dieses Dokuments» mit den Feldern, die die
+  geltenden Profile definieren und das Dokument noch nicht trägt. Jedes Feld
+  trägt das Symbol des Profils, aus dem seine Definition stammt. Darüber steht
+  die Kette der geltenden Profile: je Ebene Symbol, Name und der Weg, über den
+  das Profil gilt, die Vererbungs-Tiefe als Einrückung, ab der ersten geerbten
+  Ebene «geerbt» statt des Weges. Je Ebene lassen sich die dort fehlenden
+  Felder in einem Zug übernehmen — mit typgerechtem Leer-Wert, ohne vorhandene
+  Werte anzurühren und als eine einzige Rückgängig-Einheit. Ein noch nicht
+  übernommenes Feld bleibt aus dem Metadaten-Block, solange es leer ist; das
+  bloße Aufklappen schreibt nichts.
+- **Zwei Zugänge zum Formular** (4T-1174, 4T-1175): das Kommando
+  «Feld-Formular des Dokuments öffnen» und der Eintrag «Feld-Formular öffnen»
+  im Kontextmenü des Reiters. Beide machen die Sektion sichtbar, falls sie
+  verborgen ist, klappen den Bereich auf und rücken ihn in den sichtbaren
+  Ausschnitt; der Kontextmenü-Eintrag meint den angeklickten Reiter und
+  aktiviert ihn zuvor. Ein neuer Menü-Block entsteht nicht, ein Vorgabe-Kürzel
+  ebenso wenig.
+- **Sicht je Profil als erzeugte Abfrage** (4T-1176): Das Kommando
+  «Profil-Abfrage einfügen» schreibt zu einem Profil die Abfrage über seine
+  Dokumente an der Cursor-Position hin. Sie erfasst alle drei ausdrücklichen
+  Zuordnungs-Wege — Zuordnungs-Feld, Schlagwort- und Ordner-Bindungen —, und
+  eine Ordner-Bedingung schließt die Unterordner ein, gleichlautend mit der
+  Bindung. Ist das gewählte Profil das Standard-Profil des Bereichs, entsteht
+  eine Abfrage über alle Dokumente; Dokumente eines erbenden Profils bleiben
+  außen vor. Der eingefügte Block ist eine gewöhnliche Abfrage und danach frei
+  änderbar — eine eigene Ansicht entsteht nicht, und ein Dokument mit einer
+  solchen Abfrage ist zugleich eine gespeicherte Sicht. Er bildet die Zuordnung
+  zum Zeitpunkt der Erzeugung ab und zieht späteren Änderungen an den Bindungen
+  nicht nach.
+
+### Geändert
+
+- Die Erweiterung «Eigenschafts-Profile» bringt erstmals **eigene Kommandos**
+  mit; beide entfallen in ihrem Aus-Zustand, ebenso der Kontextmenü-Eintrag und
+  der Formular-Bereich (4T-1174, 4T-1175, 4T-1176).
+- Die Profil-Auflösung gibt ihre Ordnung nach außen: Je Feld kommen der Weg und
+  die Vererbungs-Tiefe mit, dazu die Kette der beteiligten Profile. Die
+  bisherigen Angaben bleiben unverändert daneben stehen (4T-1171).
+- Funktions-Katalog und Handbuch-Seite «Eigenschafts-Profile» sind um die Stufe
+  erweitert, in allen fünf Sprachfassungen; die Demo-Area nennt die beiden
+  neuen Zugänge (4T-1177).
+
 ## [1.116.0.1769] - 2026-08-24 — Metadaten-Modell Stufe 2: Typen, Wertevorräte und Zuordnung
 
 Epic 3E-0219: Die zweite der vier Umsetzungs-Stufen und die, die den Ausbau für

@@ -188,6 +188,8 @@ function registerProfilesIpc(handle, deps) {
       fields: [],
       missing: [],
       leading: null,
+      // 4T-1171 (Epic 3E-0220): Ohne Konfiguration gibt es keine Kette.
+      chain: [],
     };
     const area = areaOfWindow(senderWindow(event));
     if (!area) return none;
@@ -249,7 +251,7 @@ function registerProfilesIpc(handle, deps) {
         ? schlagworteAus(params && params.text, params && params.frontmatter)
         : [];
     const folder = bindings.length > 0 ? ordnerVon(area.rootPath, params && params.path) : null;
-    const { fields, missing, leading } = resolveProfileFields(
+    const { fields, missing, leading, chain } = resolveProfileFields(
       injectEventProfile(catalog.profiles, eventsOn),
       {
         defaultProfile: config ? config.defaultProfile : null,
@@ -268,6 +270,10 @@ function registerProfilesIpc(handle, deps) {
       missing,
       // 4T-1161 (E5): das zuerst aufgelöste Profil für das Symbol am Dokument.
       leading,
+      // 4T-1171 (Epic 3E-0220): die geordnete Kette der beteiligten Profile.
+      // Sie endet sonst an der Prozess-Grenze, und das Feld-Formular der
+      // Stufe 3 sitzt auf der anderen Seite.
+      chain,
     };
   });
 

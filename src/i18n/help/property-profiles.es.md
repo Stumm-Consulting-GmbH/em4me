@@ -174,6 +174,46 @@ La incorporación es deliberadamente aditiva:
 
 Toda la incorporación es un único paso y puede deshacerse por completo con una sola acción de deshacer. Se aplica en el editor de propiedades y en el panel de propiedades de bloque, y desaparece cuando la extensión «Perfiles de propiedades» está desactivada.
 
+## Formulario de campos del documento
+
+Arriba, la sección muestra los campos que el documento contiene; debajo, el área desplegable **«Todos los campos de este documento»** reúne los campos que definen los perfiles vigentes y que el documento aún no lleva. Ambos juntos responden por completo a qué puede llevar este documento; la unión se reparte en lugar de duplicarse, para que ningún campo aparezca dos veces.
+
+**Procedencia de cada campo.** Cada campo lleva el símbolo del perfil del que procede su definición; la información emergente nombra el perfil y la vía. En una definición heredada se trata del perfil en el que realmente está — no del perfil asignado.
+
+**La cadena de perfiles vigentes** figura por encima de los campos que faltan, porque responde a la pregunta de la que se derivan los campos. Cada nivel muestra el símbolo, el nombre del perfil y la vía por la que el perfil se aplica; la profundidad de herencia se ve como **sangría**. A partir del primer nivel heredado, la línea indica «heredado» en lugar de la vía — un perfil heredado se aplica por la misma vía que su hijo, y ahí la herencia es la información que ayuda.
+
+**Incorporación por nivel.** Junto a un nivel con campos faltantes hay un botón que crea exactamente esos campos de una vez: con un valor vacío acorde al tipo, sin tocar los valores existentes y como un único paso de deshacer — la misma vía que la incorporación de todos los campos. Un nivel sin campos faltantes no lleva botón; prometería una acción que no hace nada.
+
+**Un campo que el documento aún no lleva permanece fuera mientras esté vacío.** El simple despliegue no escribe, pues, nada en el bloque de metadatos; solo un valor introducido o la incorporación convierte el campo en un campo del documento.
+
+Con un bloque de metadatos defectuoso el área no aparece — allí rige el mismo aviso que para «Añadir propiedad». Tampoco aparece sin perfil vigente ni con la extensión «Perfiles de propiedades» desactivada; nunca surge un área vacía ni un marcador de posición.
+
+**Tres accesos** llevan al formulario: la propia área desplegable, el comando «Abrir el formulario de campos del documento» y la entrada «Abrir el formulario de campos» del menú contextual de la pestaña. Los dos últimos hacen visible la sección si está oculta, despliegan el área y la desplazan a la parte visible; la entrada del menú contextual se refiere a la pestaña pulsada y la activa antes.
+
+## Vista por perfil como consulta
+
+La pregunta «qué documentos pertenecen a este perfil» es una consulta, y el comando **«Insertar consulta de perfil»** la escribe entera: pregunta por el perfil cuando hay varios posibles e inserta un bloque de consulta ordinario en la posición del cursor. No surge ninguna vista propia — la salida pasa por la presentación de resultados ya existente del lenguaje de consulta.
+
+La consulta generada abarca las tres vías de asignación explícitas del perfil — el campo de asignación, cada vinculación por etiqueta y cada vinculación por carpeta. Una condición de carpeta incluye las subcarpetas, igual que la propia vinculación:
+
+````markdown
+```perspective-query
+LIST
+WHERE class = "proyecto"
+  OR icontains(file.tags, "proyecto")
+  OR (file.folder = "10 Proyectos" OR startswith(lower(file.folder), "10 proyectos/"))
+```
+````
+
+Dos casos se apartan de esto:
+
+- **El perfil estándar del área** rige para todo lo que no tiene otra asignación. Por eso el comando produce para él una consulta sobre todos los documentos del área en lugar de la negación de todas las vinculaciones — sería larga, opaca y se volvería silenciosamente falsa en cuanto se añadiera una vinculación.
+- **Los perfiles herederos quedan fuera.** Si `cliente` hereda de `proyecto`, los documentos de cliente no aparecen en la consulta de `proyecto`: llevan sus campos, pero no son proyectos.
+
+A partir de ahí el bloque insertado es contenido ordinario — se puede modificar, ampliar con columnas, ordenación o límite, mover y borrar como cualquier otra consulta. Un documento que lo contiene es así también una vista guardada: se puede nombrar, enlazar y marcar. A la inversa: la consulta refleja la asignación **en el momento de generarse**. Si más tarde se añade una vinculación, el bloque ya escrito no la sigue; entonces se genera de nuevo o se completa a mano.
+
+El comando desaparece con la extensión «Perfiles de propiedades» desactivada.
+
 ## Validación suave
 
 Las desviaciones nunca bloquean ni cambian el valor: un valor fuera del rango de valores o un valor que no corresponde al tipo definido solo produce un icono de aviso en el campo; la información sobre herramientas nombra el motivo. El Markdown y el frontmatter siguen siendo libremente editables, también directamente en el código fuente.

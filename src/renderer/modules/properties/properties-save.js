@@ -12,8 +12,15 @@ import { getPaneEls, state } from '../app/app-state.js';
 import { syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
 import { renderTabbar } from '../views/tabbar.js';
 import { scheduleAutoSave } from '../views/views.js';
+// 4T-1179 (Epic 3E-0220): `isEmptyPropertyValue` wird hier nicht mehr
+// gebraucht — die Leer-Frage des Feld-Formulars beantwortet dessen eigene
+// Prüfung am Bedienelement, weil der typisierte Wert sie für Zahlen und
+// Ja/Nein-Felder falsch beantwortete.
 import { fieldDefinitionHint } from '../../../shared/property-profiles.js';
 import { applyFieldHint, extractFieldValue, refreshProfileResolution } from './properties-types.js';
+// 4T-1172 (Epic 3E-0220): Die Regel, wann ein nur definiertes Feld draußen
+// bleibt — sie gehört zur Fachlichkeit des Feld-Formulars.
+import { bleibtAusDemDokument } from './properties-feld-formular.js';
 
 // 4T-0051: Liest die Felder aus der Sidebar-Sektion einer Spalte und baut
 // ein Plain-Objekt fuer writeFrontmatter. Read-only-Felder behalten ihren
@@ -41,7 +48,14 @@ export function readPropertiesFromPane(paneIdx) {
       }
       continue;
     }
-    out[key] = extractFieldValue(fieldEl, type);
+    const wert = extractFieldValue(fieldEl, type);
+    // 4T-1172 (Epic 3E-0220): Ein Feld aus dem Ausklapp-Bereich des
+    // Feld-Formulars ist definiert, steht aber noch nicht im Dokument; solange
+    // es leer ist, bleibt es draußen. Die Regel selbst liegt beim Formular,
+    // weil sie zu dessen Fachlichkeit gehört — hier steht nur ihre Anwendung,
+    // und der Schreibweg bleibt der eine, den alle Felder nehmen.
+    if (bleibtAusDemDokument(fieldEl)) continue;
+    out[key] = wert;
   }
   return out;
 }
@@ -183,9 +197,23 @@ function updateProfileHints(paneIdx) {
 export function markDuplicatePropertyKeys(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.propertiesFields) return false;
+  // 4T-1179 (Epic 3E-0220): Gezählt wird, was ins Dokument geht. Ein leeres
+  // Angebot des Feld-Formulars bleibt draußen — dieselbe Regel wie oben in
+  // readPropertiesFromPane — und darf deshalb kein Duplikat auslösen. Ohne
+  // die Trennung sperrte das Angebot den Save genau des Feldes, das der
+  // Anwender eben über das Vorschlags-Menü angelegt hatte: Es stand dann im
+  // Dokument-Teil und zugleich noch als Angebot im Bereich, der Save setzte
+  // wegen des scheinbaren Duplikats aus, und ohne Save kam auch kein Render,
+  // der das Angebot entfernt hätte.
+  const zaehlend = new Set();
+  for (const fieldEl of els.propertiesFields.querySelectorAll('.properties-field')) {
+    if (bleibtAusDemDokument(fieldEl)) continue;
+    zaehlend.add(fieldEl);
+  }
   const counts = new Map();
   const keyInputs = els.propertiesFields.querySelectorAll('.properties-field-key');
   for (const inp of keyInputs) {
+    if (!zaehlend.has(inp.closest('.properties-field'))) continue;
     const k = (inp.value || '').trim();
     if (!k) continue;
     counts.set(k, (counts.get(k) || 0) + 1);
@@ -193,7 +221,7 @@ export function markDuplicatePropertyKeys(paneIdx) {
   let hasDuplicates = false;
   for (const inp of keyInputs) {
     const k = (inp.value || '').trim();
-    const dup = !!k && counts.get(k) > 1;
+    const dup = !!k && zaehlend.has(inp.closest('.properties-field')) && counts.get(k) > 1;
     inp.classList.toggle('duplicate', dup);
     inp.title = dup ? t('properties.duplicateKeys') : '';
     if (dup) hasDuplicates = true;
