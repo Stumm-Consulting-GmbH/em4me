@@ -42,10 +42,37 @@ function attachBroadcast(fn) {
   broadcastFn = fn;
 }
 
+// 4T-1158 (Epic 3E-0219, E12): Änderungs-Stand je Wurzel. Eine Zahl, die
+// hochzählt, sobald der Index einer Wurzel sich als geändert meldet — die
+// Bezugsgröße für Zwischenspeicher, die «gegen den Stand des Bereichs-Index»
+// gültig bleiben sollen (Wertevorrat aus einer Abfrage).
+//
+// Sie hängt bewusst an `broadcast` und nicht an `scheduleInvalidate`: Durch
+// diese eine Funktion laufen ALLE Invalidierungs-Meldungen, auch die vier,
+// die der Aufbau-Pfad ohne Debounce direkt absetzt. Ein Zähler in den
+// Mutations-Funktionen wäre feiner, müsste aber in jedem künftigen
+// Mutations-Pfad mitgepflegt werden; hier trägt ihn die Stelle, die ohnehin
+// «etwas hat sich geändert» bedeutet.
+//
+// Kein Zeit-Ablauf: Eine Uhr rechnete ohne Änderung neu und mit Änderung zu
+// spät. Ein Verbraucher merkt sich die Zahl und rechnet neu, wenn sie sich
+// bewegt hat; hat er nichts gesehen, ist sein Ergebnis noch gültig.
+const indexStaende = new Map(); // wurzel -> Zähler
+
+function indexStand(wurzel) {
+  return indexStaende.get(String(wurzel || '')) || 0;
+}
+
 // Zugriffs-Funktion: sendet über den registrierten Mechanismus und schweigt,
 // solange keiner verdrahtet ist (z. B. Unit-Test) — dieselbe Wirkung wie das
 // frühere `if (broadcastFn) broadcastFn(…)` an jeder Aufruf-Stelle.
 function broadcast(channel, payload) {
+  // 4T-1158: Der Stand zählt auch ohne verdrahteten Broadcast hoch (Unit-
+  // Tests, kopflose Läufe) — er beschreibt den Index, nicht die Fenster.
+  if (channel === 'backlinks:invalidated' && payload && payload.wurzel) {
+    const key = String(payload.wurzel);
+    indexStaende.set(key, (indexStaende.get(key) || 0) + 1);
+  }
   if (broadcastFn) broadcastFn(channel, payload);
 }
 
@@ -118,6 +145,8 @@ module.exports = {
   attachSelfWriter,
   selfWrite,
   scheduleInvalidate,
+  // 4T-1158: Änderungs-Stand einer Wurzel für Zwischenspeicher.
+  indexStand,
   resolveRootInfo,
   rootForActiveFile,
 };

@@ -10,6 +10,9 @@ import { openOrJumpToPath } from '../bookmarks/bookmarks.js';
 import { showStatusbarHint } from '../views/views.js';
 import { refreshSettingsButtons, renderActiveSection } from './settings-mount.js';
 import { buildSettingsRow, jsonEqual, pageState } from './settings-shared.js';
+// 4T-1160 (Epic 3E-0219, E13): Die Bindungs-Liste der Zuordnungs-Wege liegt
+// in einem eigenen Modul (Datei-Budget); der Bereich bleibt einer.
+import { renderBindungen } from './settings-profil-bindungen.js';
 
 // Spiegelt applyProfilesSection (normalisierte Konfiguration gegen den
 // Snapshot).
@@ -20,6 +23,7 @@ export function dirtyProfilesSection(draft) {
     folder: values.folder,
     assignField: values.assignField,
     defaultProfile: values.defaultProfile,
+    bindings: values.bindings,
   });
   return !jsonEqual(out, draft.profilesSnapshot);
 }
@@ -43,6 +47,16 @@ export async function readProfilesFromConfig() {
     folder: config && config.folder ? config.folder : '',
     assignField: config ? config.assignField : '',
     defaultProfile: config && config.defaultProfile ? config.defaultProfile : '',
+    // 4T-1160: Bindungen als eigene Kopie in den Entwurf — die Zeilen
+    // mutieren sie, und der Snapshot muss davon unberührt bleiben.
+    bindings:
+      config && Array.isArray(config.bindings)
+        ? config.bindings.map((b) => ({
+            profile: b.profile,
+            tags: [...(b.tags || [])],
+            folders: [...(b.folders || [])],
+          }))
+        : [],
   };
   return {
     draft: {
@@ -214,6 +228,11 @@ export function renderProfilesSection(container, draft) {
   });
   container.appendChild(buildSettingsRow('settings.profiles.defaultProfileLabel', defaultSelect));
 
+  // 4T-1160 (E13): Bindungen an Schlagwort und Ordner. Sie stehen zwischen
+  // der Grund-Konfiguration und der Profil-Liste, weil sie zur Konfiguration
+  // gehören und die Liste den angewendeten Stand zeigt.
+  renderBindungen(container, values);
+
   // Liste der erkannten Profile (angewendeter Stand der Bereichsdatei).
   const listHeading = document.createElement('h4');
   listHeading.className = 'settings-export-group-title';
@@ -308,6 +327,7 @@ export async function applyProfilesSection(draft) {
     folder: values.folder,
     assignField: values.assignField,
     defaultProfile: values.defaultProfile,
+    bindings: values.bindings,
   });
   if (JSON.stringify(out) === JSON.stringify(draft.profilesSnapshot)) return;
   let result;

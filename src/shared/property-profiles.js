@@ -33,6 +33,22 @@ const {
   cleanString,
   scalarToString,
 } = require('./property-profiles-format.js');
+// 4T-1159 (Epic 3E-0219): Bindungen der Bereichs-Sektion.
+const { normalizeBindings } = require('./property-profiles-config.js');
+// 4T-1161 (Epic 3E-0219): Die Editor-Logik liegt seit dem Datei-Schnitt im
+// eigenen Modul; die Fassade reicht sie weiter (alle Verbraucher laden hier).
+const {
+  isEmptyPropertyValue,
+  valueMatchesType,
+  valueMatchesDefinition,
+  fieldDefinitionHint,
+  valueSourceHint,
+  profileFieldSuggestions,
+  emptyValueForType,
+  emptyValueForDefinition,
+  buildProfileFillMap,
+  profileSuggestGroups,
+} = require('./property-profiles-editor.js');
 
 // 4T-1142: Vererbungs-Hinweise je Profil für die Profil-Liste der
 // Einstellungen — ein Zyklus in der Eltern-Beziehung (extendsCycle, benannt
@@ -132,7 +148,69 @@ function assignedProfileNames(frontmatterData, assignField) {
 // sammelt sich aus den bereits durchlaufenen Profilen einer Kette und
 // unterdrückt allein die gleichnamigen Felder der weiter oben liegenden
 // Profile dieser Kette; beim Wechsel auf die nächste Kette ist er zurückgesetzt.
-function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
+//
+// 4T-1159 (Epic 3E-0219, E13): Die Folge ist **vierstufig**, von der
+// ausdrücklichsten zur allgemeinsten Aussage:
+//   1. Zuordnungs-Feld des Dokuments, in Nennungs-Reihenfolge
+//   2. Schlagwort des Dokuments   (Bindung aus der Bereichsdatei)
+//   3. Ordner-Pfad des Dokuments  (Bindung aus der Bereichsdatei)
+//   4. Standard-Profil des Bereichs
+// Innerhalb jeder Stufe gelten die Regeln aus E2 unverändert; über alle
+// Stufen hinweg gewinnt bei gleichem Feldnamen der erste Treffer, und jedes
+// Profil wird genau einmal verarbeitet. Die Wege **kumulieren**: Ein Dokument
+// mit Zuordnungs-Feld UND passendem Ordner trägt die Felder aus beiden.
+// Ohne Bindungen und ohne `tags`/`folder` verhält sich die Auflösung exakt
+// wie vor der Erweiterung — das ist die Rückwärts-Verträglichkeits-Auflage
+// mitten in der laufenden Auflösung.
+
+// 4T-1159 (Epic 3E-0219, E13): Trifft ein Ordner-Pfad des Dokuments eine
+// Bindung? Ein gebundener Pfad bindet den Ordner UND seine Unterordner —
+// sonst müsste jede Unterteilung nachgepflegt werden. Verglichen wird auf
+// dem bereichs-relativen Pfad, case-insensitiv wie alle Pfad-Vergleiche der
+// Anwendung, und **an ganzen Ordner-Namen**: «10 Projekte Archiv» darf nicht
+// unter «10 Projekte» fallen, was ein reiner Zeichenketten-Präfix täte.
+function ordnerTrifft(bindung, ordner) {
+  if (typeof ordner !== 'string') return false;
+  const o = ordner
+    .replace(/\\/g, '/')
+    .replace(/^\/+|\/+$/g, '')
+    .toLowerCase();
+  const b = cleanString(bindung)
+    .replace(/\\/g, '/')
+    .replace(/^\/+|\/+$/g, '')
+    .toLowerCase();
+  if (b === '') return false;
+  return o === b || o.startsWith(b + '/');
+}
+
+// Die Profil-Namen einer Bindungs-Stufe, in der Reihenfolge der
+// Bindungs-Liste. Mehrere Treffer derselben Stufe verhalten sich damit wie
+// mehrere Namen im Zuordnungs-Feld: der zuerst genannte gewinnt.
+//
+// `art` ist 'tags' oder 'folders'; `bezug` die Schlagwort-Liste des Dokuments
+// bzw. sein bereichs-relativer Ordner.
+function gebundeneProfile(bindings, art, bezug) {
+  if (!Array.isArray(bindings) || bindings.length === 0) return [];
+  const namen = [];
+  const tagSatz =
+    art === 'tags'
+      ? new Set((Array.isArray(bezug) ? bezug : []).map((t) => cleanString(t).toLowerCase()))
+      : null;
+  for (const bindung of bindings) {
+    if (!bindung || typeof bindung !== 'object') continue;
+    const eintraege = Array.isArray(bindung[art]) ? bindung[art] : [];
+    const trifft =
+      art === 'tags'
+        ? eintraege.some((t) => tagSatz.has(cleanString(t).toLowerCase()))
+        : eintraege.some((f) => ordnerTrifft(f, bezug));
+    if (!trifft) continue;
+    const name = cleanString(bindung.profile);
+    if (name !== '' && !namen.includes(name)) namen.push(name);
+  }
+  return namen;
+}
+
+function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, tags, folder } = {}) {
   const byName = new Map();
   for (const p of Array.isArray(profiles) ? profiles : []) {
     const key = cleanString(p && p.name).toLowerCase();
@@ -141,6 +219,10 @@ function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
   const ordered = [];
   const missing = [];
   const seenProfiles = new Set();
+  // 4T-1161 (Epic 3E-0219, E5): Welche Stufe der Folge gerade läuft — sie
+  // wird am zuerst erreichten Profil festgehalten, damit das Symbol sagen
+  // kann, WARUM dieses Profil gilt (Nachvollziehbarkeit aus E13).
+  let stufe = 'assigned';
   const walkChain = (rawName, fromDefault) => {
     const name = cleanString(rawName);
     if (name === '') return;
@@ -158,7 +240,7 @@ function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
     while (byName.has(currentKey) && !seenProfiles.has(currentKey)) {
       seenProfiles.add(currentKey);
       const profile = byName.get(currentKey);
-      ordered.push({ profile, fromDefault, exclude: new Set(chainExclude) });
+      ordered.push({ profile, fromDefault, stufe, exclude: new Set(chainExclude) });
       for (const ex of Array.isArray(profile.exclude) ? profile.exclude : []) {
         const exKey = cleanString(ex).toLowerCase();
         if (exKey !== '') chainExclude.add(exKey);
@@ -167,7 +249,21 @@ function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
       if (currentKey === '') break;
     }
   };
+  // 4T-1159 (Epic 3E-0219, E13): Die Folge wird vierstufig. Sie bleibt EINE
+  // geordnete Folge — die neuen Wege gehen hinein, nicht daneben, und
+  // bekommen deshalb auch keinen eigenen Mechanismus: `seenProfiles` sorgt
+  // dafür, dass jedes Profil genau einmal verarbeitet wird, `seenFields`
+  // dafür, dass bei gleichem Feldnamen der erste Treffer der Folge gewinnt.
+  // Daraus fallen die drei Konstellationen aus Kapitel 6.13 von selbst
+  // richtig aus: Die Wege kumulieren, ein Weg auf ein bereits erreichtes
+  // Profil fügt nichts hinzu, und ein Widerspruch zwischen Schlagwort und
+  // Ordner ist keiner, sobald die Ordnung feststeht.
   for (const name of Array.isArray(assigned) ? assigned : []) walkChain(name, false);
+  stufe = 'tag';
+  for (const name of gebundeneProfile(bindings, 'tags', tags)) walkChain(name, false);
+  stufe = 'folder';
+  for (const name of gebundeneProfile(bindings, 'folders', folder)) walkChain(name, false);
+  stufe = 'default';
   walkChain(defaultProfile, true);
   const fields = [];
   const seenFields = new Set();
@@ -180,159 +276,15 @@ function resolveProfileFields(profiles, { defaultProfile, assigned } = {}) {
       fields.push({ ...def, profile: profile.name, fromDefault });
     }
   }
-  return { fields, missing };
-}
-
-// --- 4T-0448 (Epic 3E-0083): Editor-Logik (Vorschläge und weiche Hinweise) --------
-// Reine Funktionen, gemeinsam für Properties-Editor und Block-Panel
-// (ein Verhalten, zwei Oberflächen — Task-Vorgabe 4T-0449).
-
-// Leerer Eigenschafts-Wert: Feld angelegt, aber ohne Inhalt — dafür gibt es
-// keinen Hinweis (weiche Haltung; ein leeres Feld ist kein Verstoß).
-function isEmptyPropertyValue(v) {
-  return v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0);
-}
-
-// Passt der Ist-Wert (JS-Wert aus YAML bzw. Block-Daten) zum definierten Typ?
-function valueMatchesType(value, type) {
-  switch (type) {
-    case 'string':
-      return typeof value === 'string' && !value.includes('\n');
-    case 'multiline':
-      return typeof value === 'string';
-    case 'multistring':
-      return Array.isArray(value) && value.every((item) => typeof item === 'string');
-    case 'number':
-      return typeof value === 'number' && Number.isFinite(value);
-    case 'boolean':
-      return typeof value === 'boolean';
-    case 'date':
-      return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
-    default:
-      return true;
-  }
-}
-
-// Weicher Validierungs-Hinweis eines Werts gegen seine Definition:
-// null (konform oder leer), 'typeMismatch' (Ist-Wert entspricht nicht dem
-// definierten Typ) oder 'outsideValues' (Wert bzw. ein Listen-Eintrag liegt
-// außerhalb des festen Wertebereichs). Keine Blockade, keine Wert-Änderung
-// (PO-Entscheidung 3) — die Editoren zeigen Icon plus Tooltip.
-function fieldDefinitionHint(def, value) {
-  if (!def || isEmptyPropertyValue(value)) return null;
-  if (!valueMatchesType(value, def.type)) return 'typeMismatch';
-  if (Array.isArray(def.values) && def.values.length > 0) {
-    const items = Array.isArray(value) ? value : [value];
-    const allowed = (item) => def.values.some((v) => v === item || String(v) === String(item));
-    if (!items.every(allowed)) return 'outsideValues';
-  }
-  return null;
-}
-
-// Vorschlags-Liste für „Eigenschaft hinzufügen": zuerst die aufgelösten,
-// noch nicht gesetzten Definitions-Felder (source 'profile', mit Profil-
-// Kennzeichnung), danach die Heuristik-Vorschläge (source 'heuristic',
-// [{ name, type }] — die bisherigen Standard-Feldnamen des Editors).
-// Bereits gesetzte Feldnamen entfallen (case-insensitiv).
-function profileFieldSuggestions(resolvedFields, existingKeys, heuristics) {
-  const taken = new Set(
-    (Array.isArray(existingKeys) ? existingKeys : [])
-      .map((k) => cleanString(k).toLowerCase())
-      .filter((k) => k !== ''),
-  );
-  const out = [];
-  for (const def of Array.isArray(resolvedFields) ? resolvedFields : []) {
-    const key = def.name.toLowerCase();
-    if (taken.has(key)) continue;
-    taken.add(key);
-    out.push({ source: 'profile', name: def.name, type: def.type, def });
-  }
-  for (const h of Array.isArray(heuristics) ? heuristics : []) {
-    const name = cleanString(h && h.name);
-    if (name === '' || taken.has(name.toLowerCase())) continue;
-    taken.add(name.toLowerCase());
-    out.push({ source: 'heuristic', name, type: cleanString(h.type) || 'string', def: null });
-  }
-  return out;
-}
-
-// --- 4T-0491 (Epic 3E-0093): Komplett-Übernahme von Profil-Feldern -----------
-// Reine Funktionen für den Bulk-Schreibpfad, gemeinsam für Properties-Editor
-// und Block-Panel (ein Verhalten, zwei Oberflächen).
-
-// Typgerechter Leer-Wert eines Profil-Felds ohne Default. Bewusst identisch zu
-// defaultValueForType des Properties-Editors (ohne den DOM-internen
-// 'readonly'-Fall): Zahl 0, Boolean false, Mehrfach-Liste leer, alle übrigen
-// Typen (Text, Mehrzeilig, Datum) leerer Text. „Echtes unbelegt" für
-// Zahl/Boolean ist in den Editoren nicht stabil darstellbar (leeres Zahlenfeld
-// liest als 0, Checkbox als false) — PO-Festlegung 2026-07-11. Der Dokument-
-// Schreibpfad übersetzt leere Text-/Listen-Stubs zusätzlich in bare
-// YAML-Schlüssel; der Block-Pfad speichert die Werte typgerecht als JSON.
-function emptyValueForType(type) {
-  if (type === 'multistring') return [];
-  if (type === 'number') return 0;
-  if (type === 'boolean') return false;
-  return '';
-}
-
-// Feld-Map für die Komplett-Übernahme: aus einer (ggf. auf ein Profil
-// gefilterten) Definitions-Liste die noch nicht gesetzten Felder mit
-// Default-Wert bzw. typgerechtem Leer-Wert. existingKeys sind die bereits
-// vorhandenen Feldnamen (case-insensitiv); bestehende Felder bleiben außen vor,
-// Duplikat-Definitionen zählen einmal (erste gewinnt). Reihenfolge und
-// Einfüge-Reihenfolge der Map = Definitions-Reihenfolge (neue Felder ans Ende).
-function buildProfileFillMap(fields, existingKeys) {
-  const taken = new Set(
-    (Array.isArray(existingKeys) ? existingKeys : [])
-      .map((k) => cleanString(k).toLowerCase())
-      .filter((k) => k !== ''),
-  );
-  const map = {};
-  for (const def of Array.isArray(fields) ? fields : []) {
-    const name = cleanString(def && def.name);
-    if (name === '') continue;
-    const key = name.toLowerCase();
-    if (taken.has(key)) continue;
-    taken.add(key);
-    map[name] =
-      def.default !== null && def.default !== undefined ? def.default : emptyValueForType(def.type);
-  }
-  return map;
-}
-
-// Menü-Struktur des Vorschlags-Menüs (PO-Festlegung 2026-07-11): eine einzige,
-// nach Profilen gruppierte Liste. `profileGroups` trägt pro aufgelöstem Profil
-// mit mindestens einem fehlenden Feld eine Gruppe (Reihenfolge = Auflösungs-
-// Reihenfolge) mit den Einzel-Vorschlägen (`fields`) und der Komplett-Feld-Map
-// (`map`, für den klickbaren Profil-Kopf); `otherFields` sind die profillosen
-// Heuristik-Vorschläge. Ohne Auflösung leere Gruppen. Baut auf
-// profileFieldSuggestions auf (gleiche Dedup- und Reihenfolge-Regeln).
-function profileSuggestGroups(resolvedFields, existingKeys, heuristics) {
-  const flat = profileFieldSuggestions(resolvedFields, existingKeys, heuristics);
-  const order = [];
-  const byProfile = new Map();
-  const otherFields = [];
-  for (const s of flat) {
-    if (s.source === 'profile' && s.def) {
-      const key = cleanString(s.def.profile).toLowerCase();
-      if (!byProfile.has(key)) {
-        byProfile.set(key, { profile: s.def.profile, fields: [] });
-        order.push(key);
-      }
-      byProfile.get(key).fields.push(s);
-    } else {
-      otherFields.push(s);
-    }
-  }
-  const profileGroups = order.map((key) => {
-    const grp = byProfile.get(key);
-    const map = buildProfileFillMap(
-      grp.fields.map((s) => s.def),
-      existingKeys,
-    );
-    return { profile: grp.profile, fields: grp.fields, map };
-  });
-  return { profileGroups, otherFields };
+  // 4T-1161 (E5): Das ZUERST aufgelöste Profil trägt das Symbol am Dokument
+  // (AK3 der Story). Es ist das erste Element der Folge — kein Sonderfall,
+  // sondern dieselbe Ordnung, die auch die Felder bestimmt. `stufe` sagt,
+  // über welchen Weg es gefunden wurde, und speist den Tooltip.
+  const fuehrend = ordered.length > 0 ? ordered[0] : null;
+  const leading = fuehrend
+    ? { profile: fuehrend.profile.name, icon: fuehrend.profile.icon || null, stufe: fuehrend.stufe }
+    : null;
+  return { fields, missing, leading };
 }
 
 module.exports = {
@@ -346,12 +298,24 @@ module.exports = {
   attachHeritageHints,
   assignedProfileNames,
   resolveProfileFields,
-  // 4T-0448: gemeinsame Editor-Logik.
+  // 4T-1159: Bindungen und ihre Auswertung in der Folge.
+  normalizeBindings,
+  gebundeneProfile,
+  ordnerTrifft,
+  // 4T-0448: gemeinsame Editor-Logik (4T-1161: aus
+  // property-profiles-editor.js weitergereicht — die Fassade bleibt der eine
+  // Ort, an dem Verbraucher laden, und reicht deshalb alles weiter).
   isEmptyPropertyValue,
+  valueMatchesType,
+  valueMatchesDefinition,
   fieldDefinitionHint,
+  // 4T-1157: Hinweis zur Quelle eines Wertevorrats.
+  valueSourceHint,
   profileFieldSuggestions,
   // 4T-0491: Komplett-Übernahme.
   emptyValueForType,
+  // 4T-1156: Leer-Wert einer ganzen Definition (Mehrfach-Modus).
+  emptyValueForDefinition,
   buildProfileFillMap,
   profileSuggestGroups,
 };

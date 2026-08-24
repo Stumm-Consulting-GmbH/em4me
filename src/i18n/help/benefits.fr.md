@@ -80,11 +80,13 @@ En détail : [Perspective Datatable](datatable.md).
 
 ## Des types de documents qui s'appuient les uns sur les autres
 
-Beaucoup de documents d'une zone partagent les mêmes champs : un statut, une date, une catégorie. Les profils de propriétés décrivent ces champs une seule fois, de manière centralisée, avec type, valeurs admises et valeur par défaut ; les éditeurs de propriétés les proposent et présentent les plages de valeurs sous forme de listes de sélection. Les profils héritent les uns des autres : un profil de base dit ce qui vaut pour tous, et un type de document comme article ou réunion n'ajoute plus que sa propre part, exclut au besoin des champs hérités ou les remplace. Les écarts produisent des indications plutôt que des verrous.
+Beaucoup de documents d'une zone partagent les mêmes champs : un statut, une date, une catégorie. Les profils de propriétés décrivent ces champs une seule fois, de manière centralisée, avec type, valeurs admises et valeur par défaut ; les éditeurs de propriétés les proposent et présentent les plages de valeurs sous forme de listes de sélection. Les profils héritent les uns des autres : un profil de base dit ce qui vaut pour tous, et un type de document comme article ou réunion n'ajoute plus que sa propre part, exclut au besoin des champs hérités ou les remplace. Les écarts produisent des indications plutôt que des verrous. Le profil qui s'applique n'a pas besoin d'être inscrit dans le document : une étiquette ou son dossier suffit, et un symbole sur le document montre lequel a été retenu. De même, les valeurs admises d'un champ peuvent venir de votre propre fonds plutôt que de la définition.
 
 - **Décrire les champs une seule fois** au lieu de recommencer dans chaque document : suggestions, listes de sélection et types viennent du profil.
 - **Héritage avec exclusion et remplacement :** le commun dans le profil parent, le propre dans le type de document.
 - **Indications douces plutôt que verrous :** les écarts sont nommés, rien n'est bloqué.
+- **Affectation sans inscription dans le document :** une étiquette ou le dossier décide du profil qui s'applique.
+- **Des listes de valeurs qui s'entretiennent d'elles-mêmes :** les valeurs admises viennent soit d'une note, soit d'une requête sur le fonds.
 
 En détail : [Profils de propriétés](property-profiles.md).
 

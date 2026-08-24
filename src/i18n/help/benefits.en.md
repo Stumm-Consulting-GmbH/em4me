@@ -80,11 +80,13 @@ In detail: [Perspective Datatable](datatable.md).
 
 ## Document kinds that build on each other
 
-Many documents of an area share the same fields: a status, a date, a category. Property profiles describe these fields once, centrally, with type, permitted values and default; the property editors suggest them and offer the value ranges as pick lists. Profiles inherit from each other: a base profile states what applies to all, and a document kind such as article or meeting only adds its own share, excludes inherited fields where needed or overrides them. Deviations produce hints instead of locks.
+Many documents of an area share the same fields: a status, a date, a category. Property profiles describe these fields once, centrally, with type, permitted values and default; the property editors suggest them and offer the value ranges as pick lists. Profiles inherit from each other: a base profile states what applies to all, and a document kind such as article or meeting only adds its own share, excludes inherited fields where needed or overrides them. Deviations produce hints instead of locks. Which profile applies need not be written in the document: a tag or its folder is enough, and a symbol on the document shows which one it turned out to be. The permitted values of a field may likewise come from your own material instead of the definition.
 
 - **Describe fields once** instead of anew in every document: suggestions, pick lists and types come from the profile.
 - **Inheritance with exclusion and overriding:** shared fields in the parent profile, own fields in the document kind.
 - **Soft hints instead of locks:** deviations are named, nothing is blocked.
+- **Assignment without an entry in the document:** a tag or the folder decides which profile applies.
+- **Value lists that keep themselves current:** the permitted values come either from a note or from a query over your material.
 
 In detail: [Property Profiles](property-profiles.md).
 

@@ -27,19 +27,60 @@ Attributes per definition:
 | Attribute | Meaning |
 | --- | --- |
 | `name` | field name (required, unique per profile) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date` or `multiline`; defaults to `string` |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (link to a file) or `time` (time of day); defaults to `string` |
 | `values` | optional: fixed value range as a list of values (for `string`, `multistring`, `number` and `date`) |
-| `multiple` | optional: multiple choice — the value is a list, the type `multistring`; a fixed value range is no longer required |
+| `multiple` | optional: several values — the value is a list. Applies to every type except `boolean` and `multiline`; only for the text field does the type switch to `multistring`, otherwise the type name stays (a link field with several targets is `link` with `multiple`) |
 | `default` | optional: preset when the field is created via the editor |
 | `valuesFrom` | optional: source of the value pool with `note` (path of a values note) and/or `query`; together with `values`, `values` applies |
-| `options` | optional: type-specific settings as a sub-object, reserved for upcoming types |
+| `options` | optional: type-specific settings as a sub-object, see the table below |
 | `fields` | optional: nested child definitions following the same schema, reserved for structured types |
 
 A `multistring` field with `values` is automatically a multiple choice. **The field name is the only required property**: every other property is optional, and existing profile files remain valid unchanged. `valuesFrom`, `options` and nested `fields` are already part of the format but are not yet evaluated in this version (section «Limits»). Defective individual definitions (such as an unknown type or a duplicate field name) only suspend themselves; the remaining definitions of the profile stay effective. The profile list in the settings shows the hints written out under the respective profile — with the affected definition, the faulty property and what was expected in its place, for child definitions with the path to the parent field — and opens the profile file on click.
 
+### Type-specific options
+
+The sub-object `options` carries the settings that apply to one type only:
+
+| Type | Setting | Meaning |
+| --- | --- | --- |
+| `number` | `step`, `min`, `max` | step size and limits of the number field |
+| `date` | `shift` | shift in days; it presets an **empty** field on first focus, an existing date stays untouched |
+| `link` | `restrictTo`, `display`, `sort` | folder path (or list) the suggestions are limited to; frontmatter field of the target as display name; order `name` or `path` |
+| choice field | `control: cycle` | the single choice becomes a button that switches to the next value on click; the stored value stays the same as without the option |
+
+An unknown or unsuitably filled setting is dropped individually with a hint; the field and the remaining settings stay effective. A setting intended for a later type may therefore already be present without causing harm.
+
+## Value sets
+
+The permitted value set of a choice field has three possible sources: the fixed list `values`, a **values note** or a **query**. `values` and `valuesFrom` exclude each other; if both are present, `values` applies and the profile list in the settings reports the contradiction.
+
+```yaml
+---
+fields:
+  - name: location
+    valuesFrom:
+      note: 90 Organisation/Values/Locations.md
+  - name: project
+    type: link
+    valuesFrom:
+      query: WHERE kind = "project"
+---
+```
+
+A **values note** is an ordinary note with one value per line; its path is relative to the area. Empty lines and surrounding whitespace are dropped, a frontmatter block of the note is not part of the value set. It is refreshed like a profile file: a change takes effect without a restart, even when it comes from outside. That makes the value set ordinary content you can link, comment on and share.
+
+A **query** delivers the values from the collection — the names of its matches. It is evaluated only once a field really needs its values, and remembered until the collection changes next; nothing is computed up front across everything. A document without a query field therefore costs no evaluation.
+
+If a source is missing, empty or not evaluable, the **field stays usable**: the value set is empty, a note appears at the field, and custom values remain possible as everywhere.
+
 ## Assignment and default profile
 
 Documents assign themselves via a frontmatter field; the field name is configurable per area (default `class`). The value is a profile name or a list of several profile names:
+
+A document also finds its profile through a **tag** or its **folder**, without having to carry an assignment field. These bindings belong to the area and are set up under Settings → Property profiles: one row per profile, with its tags and its folder paths.
+
+- **Tag**: it counts equally from the frontmatter (`tags`) and from the text (`#tag`) — for the assignment a tag is a tag. An unsaved change takes effect immediately as well.
+- **Folder**: a bound path includes its subfolders, so that a later subdivision does not have to be maintained. The area-relative path is compared at whole folder names; «10 Projects Archive» therefore does not fall under «10 Projects».
 
 ```yaml
 ---
@@ -77,13 +118,38 @@ Alongside the profile files of the folder there is the **internal profile `Ereig
 
 ## Conflict rules
 
-For a file, the union of all definitions from the assigned profiles including their parent chains plus the default profile with its chain applies. The resolution is **one** ordered sequence: per assigned profile in the order of naming first its own fields, then those of its parent chain from bottom to top, then the same for the default profile; each profile is processed exactly once. If more than one profile defines the same field name, the rules are deterministic:
+For a file, the union of all definitions from all profiles that reach it applies. The resolution is **one** ordered sequence in four steps, from the most explicit to the most general statement:
 
-1. An **assigned profile** wins over the **default profile**.
-2. Among several assigned profiles, the one named **first** in the assignment list wins.
+1. the **assignment field** of the document, in the order of naming
+2. a **tag** of the document
+3. the **folder** of the document
+4. the **default profile** of the area
+
+Per profile reached, first its own fields run, then those of its parent chain from bottom to top; each profile is processed exactly once across all steps. If more than one profile defines the same field name, the rules are deterministic:
+
+1. The **first match of the sequence** wins — a path further up beats every path further down.
+2. Among several profiles of the same step, the one named **first** wins (assignment list or order of the bindings).
 3. Within a chain, the **inheriting profile** wins over its parents; an own field thus overrides the inherited one of the same name.
 
+The paths **add to each other, they do not replace each other**: a document with an assignment field and a matching folder carries the fields from both. A path pointing at an already reached profile adds nothing — that follows from «each profile exactly once» and needs no rule of its own. And a contradiction between tag and folder is none: the order decides, there is neither a prompt nor a warning.
+
 An example with four profiles: `all` (field `tags`), `project` (inherits from `all`; fields `phase`, `status`), `article` (inherits from `project`, excludes `status`; own fields `phase`, `author`) and `meeting` (fields `status`, `place`). A document with `class: [article, meeting]` and default profile `all` receives `phase` and `author` from `article`, `tags` via the chain from `all`, `status` and `place` from `meeting` — the exclusion in `article` only applies within its chain; via `meeting`, `status` still arrives.
+
+## Profile symbol at the document
+
+A profile can carry a **symbol** — a single character, usually an emoji, in the frontmatter of the profile file:
+
+```yaml
+---
+icon: 📅
+fields:
+  - name: location
+---
+```
+
+The header of the properties section shows the symbol of the profile that was resolved **first** for the document; the tooltip names it and the step it was found through. That is the actual purpose: as soon as tag and folder have a say, a document can carry fields of which nothing is stated in it — the symbol then answers why.
+
+Without a profile or without a symbol nothing appears; no placeholder is created. An entry of more than one character is dropped with a hint, the profile stays effective.
 
 ## Effect in the editors
 
@@ -92,6 +158,8 @@ The definitions apply in the properties editor and identically in the block prop
 - **Field suggestions**: «Add property» first shows the defined, not yet set fields (with the profile name as a badge), followed by the usual suggestions; «Custom field» at the end remains the free path. Selecting creates the field with the defined type and the default value.
 - **Pick lists**: fields with a value range offer the defined values as a pick list (single choice) or as input suggestions of the chip bar (multiple choice); «Custom value…» still allows free input.
 - **Type default**: defined fields show the defined type, the type switcher is locked and names the profile. If the existing value deviates from the type, the switcher stays free so the value can be converted to the defined type.
+- **Link fields** offer the targets of the area as completion, mark a non-existent target and open it via the arrow — the same path as a click on a wiki link. With `multiple` they carry several targets in the chips bar.
+- **Time fields** use the time control; the value is stored in quotes in the frontmatter, because `09:30` would otherwise be read as a number.
 - Defined fields carry a subtle marker at the field name; the tooltip names the profile.
 
 ## Filling in all fields at once
@@ -116,3 +184,4 @@ Deviations never block and never change the value: a value outside the value ran
 - Renaming a profile file does not change the assignment values in the documents; they then point to a non-existent profile (the settings mark a missing default profile).
 - Profiles live directly in the profile folder; subfolders are not included.
 - The definitions apply in the two property editors; calculated field types or types derived from other files are not part of the profiles.
+- Binding a profile to a bookmark group and assignment via a query are deliberately deferred; tag and folder cover the documented cases and stay explainable.

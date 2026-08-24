@@ -80,11 +80,13 @@ Ausführlich: [Perspective Datatable](datatable.md).
 
 ## Dokument-Arten, die sich aufeinander stützen
 
-Viele Dokumente eines Bereichs teilen dieselben Felder: ein Status, ein Datum, eine Kategorie. Eigenschafts-Profile beschreiben diese Felder einmal zentral, mit Typ, zulässigen Werten und Vorgabe; die Eigenschafts-Editoren schlagen sie vor und bedienen die Wertebereiche als Auswahl-Listen. Profile erben voneinander: Ein Basis-Profil sagt, was für alle gilt, und eine Dokument-Art wie Artikel oder Sitzung ergänzt nur noch ihren eigenen Anteil, schließt Geerbtes bei Bedarf aus oder überschreibt es. Abweichungen erzeugen Hinweise statt Sperren.
+Viele Dokumente eines Bereichs teilen dieselben Felder: ein Status, ein Datum, eine Kategorie. Eigenschafts-Profile beschreiben diese Felder einmal zentral, mit Typ, zulässigen Werten und Vorgabe; die Eigenschafts-Editoren schlagen sie vor und bedienen die Wertebereiche als Auswahl-Listen. Profile erben voneinander: Ein Basis-Profil sagt, was für alle gilt, und eine Dokument-Art wie Artikel oder Sitzung ergänzt nur noch ihren eigenen Anteil, schließt Geerbtes bei Bedarf aus oder überschreibt es. Abweichungen erzeugen Hinweise statt Sperren. Welches Profil gilt, muss dabei nicht im Dokument stehen: Ein Schlagwort oder der Ordner genügt, und ein Symbol am Dokument zeigt, welches es geworden ist. Auch der zulässige Wertevorrat eines Feldes darf aus dem eigenen Bestand kommen statt aus der Definition.
 
 - **Felder einmal beschreiben** statt in jedem Dokument neu: Vorschläge, Auswahl-Listen und Typen kommen aus dem Profil.
 - **Vererbung mit Ausschluss und Überschreiben:** Gemeinsames im Eltern-Profil, Eigenes in der Dokument-Art.
 - **Weiche Hinweise statt Sperren:** Abweichungen werden benannt, nichts wird blockiert.
+- **Zuordnung ohne Eintrag im Dokument:** Ein Schlagwort oder der Ordner entscheidet, welches Profil gilt.
+- **Wertelisten, die sich selbst pflegen:** Der Wertevorrat kommt wahlweise aus einer Notiz oder aus einer Abfrage über den Bestand.
 
 Ausführlich: [Eigenschafts-Profile](property-profiles.md).
 

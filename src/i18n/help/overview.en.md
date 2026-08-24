@@ -37,7 +37,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 ## Metadata, data and queries
 
 - [Frontmatter and properties](frontmatter.md) — YAML metadata and the properties sidebar.
-- [Property Profiles](property-profiles.md) — central field definitions with type, value range and default value: profile files, assignment and default profile, inheritance between profiles, effect in both property editors.
+- [Property Profiles](property-profiles.md) — central field definitions with type, value range and default value: profile files, assignment by field, tag and folder, default profile, inheritance between profiles, value sets from note and query, profile symbol at the document, effect in both property editors.
 - [Block properties](block-properties.md) — typed properties per block anchor: panel following the cursor, orphaned data, anchor renaming, indicator on the block.
 - [Perspective Query](frontmatter-query.md) — dynamic file lists and tables: clause language, sources, file fields, functions, sorting, multi-column layout, export.
 - [Perspective Datatable](datatable.md) — typed data table with calculation functions: column types, aggregates, computed columns, grid editing, sorting and filtering.

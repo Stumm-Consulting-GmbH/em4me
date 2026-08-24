@@ -27,15 +27,51 @@ Attribute pro Definition:
 | Attribut | Bedeutung |
 | --- | --- |
 | `name` | Feldname (Pflicht, pro Profil eindeutig) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date` oder `multiline`; ohne Angabe `string` |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (Verweis auf eine Datei) oder `time` (Uhrzeit); ohne Angabe `string` |
 | `values` | optional: fester Wertebereich als Werte-Liste (für `string`, `multistring`, `number` und `date`) |
-| `multiple` | optional: Mehrfach-Auswahl — der Wert ist eine Liste, der Typ `multistring`; ein fester Wertebereich ist nicht mehr Voraussetzung |
+| `multiple` | optional: mehrere Werte — der Wert ist eine Liste. Gilt für jeden Typ außer `boolean` und `multiline`; nur beim Textfeld wechselt der Typ dabei auf `multistring`, sonst bleibt der Typ-Name stehen (ein Verweis-Feld mit mehreren Zielen ist `link` mit `multiple`) |
 | `default` | optional: Vorbelegung beim Anlegen des Felds über den Editor |
-| `valuesFrom` | optional: Quelle des Wertevorrats mit `note` (Pfad einer Werte-Notiz) und/oder `query` (Abfrage); zusammen mit `values` gilt `values` |
-| `options` | optional: typ-eigene Angaben als Unterobjekt, vorgesehen für kommende Typen |
+| `valuesFrom` | optional: Quelle des Wertevorrats mit `note` (Pfad einer Werte-Notiz) und/oder `query` (Abfrage), siehe «Wertevorräte»; zusammen mit `values` gilt `values` |
+| `options` | optional: typ-eigene Angaben als Unterobjekt, siehe Tabelle unten |
 | `fields` | optional: verschachtelte Kind-Definitionen nach demselben Schema, vorgesehen für strukturierte Typen |
 
-Ein `multistring`-Feld mit `values` ist automatisch eine Mehrfach-Auswahl. **Der Feldname ist die einzige Pflichtangabe**: Jede andere Angabe ist optional, und bestehende Profil-Dateien bleiben unverändert gültig. `valuesFrom`, `options` und verschachtelte `fields` sind bereits Teil des Formats, werden in dieser Version aber noch nicht ausgewertet (Abschnitt «Grenzen»). Defekte Einzel-Definitionen (etwa ein unbekannter Typ oder ein doppelter Feldname) setzen nur sich selbst aus; die übrigen Definitionen des Profils bleiben wirksam. Die Profil-Liste der Einstellungen zeigt die Hinweise ausgeschrieben unter dem jeweiligen Profil — mit der betroffenen Definition, der fehlerhaften Angabe und dem, was an ihrer Stelle erwartet wurde, bei Kind-Definitionen mit dem Pfad zum Eltern-Feld — und öffnet die Profil-Datei per Klick.
+Ein `multistring`-Feld mit `values` ist automatisch eine Mehrfach-Auswahl. **Der Feldname ist die einzige Pflichtangabe**: Jede andere Angabe ist optional, und bestehende Profil-Dateien bleiben unverändert gültig. Verschachtelte `fields` sind bereits Teil des Formats, werden aber erst mit den strukturierten Typen ausgewertet (Abschnitt «Grenzen»). Defekte Einzel-Definitionen (etwa ein unbekannter Typ oder ein doppelter Feldname) setzen nur sich selbst aus; die übrigen Definitionen des Profils bleiben wirksam. Die Profil-Liste der Einstellungen zeigt die Hinweise ausgeschrieben unter dem jeweiligen Profil — mit der betroffenen Definition, der fehlerhaften Angabe und dem, was an ihrer Stelle erwartet wurde, bei Kind-Definitionen mit dem Pfad zum Eltern-Feld — und öffnet die Profil-Datei per Klick.
+
+### Typ-eigene Optionen
+
+Das Unterobjekt `options` trägt die Angaben, die nur für einen bestimmten Typ gelten:
+
+| Typ | Angabe | Bedeutung |
+| --- | --- | --- |
+| `number` | `step`, `min`, `max` | Schrittweite und Grenzen des Zahlenfelds |
+| `date` | `shift` | Verschiebung in Tagen; sie belegt ein **leeres** Feld beim ersten Anklicken vor, ein vorhandenes Datum bleibt unangetastet |
+| `link` | `restrictTo`, `display`, `sort` | Ordner-Pfad (oder Liste), auf den die Vorschläge eingegrenzt werden; Frontmatter-Feld des Ziels als Anzeige-Name; Reihenfolge `name` oder `path` |
+| Auswahl-Feld | `control: cycle` | Die Einfach-Auswahl wird ein Knopf, der beim Klick zum nächsten Wert schaltet; der gespeicherte Wert bleibt derselbe wie ohne die Option |
+
+Eine unbekannte oder unpassend belegte Angabe entfällt einzeln mit einem Hinweis; das Feld und die übrigen Angaben bleiben wirksam. Eine Option, die für einen späteren Typ gedacht ist, darf also schon dastehen, ohne Schaden anzurichten.
+
+## Wertevorräte
+
+Der zulässige Wertevorrat eines Auswahl-Feldes hat drei mögliche Quellen: die feste Liste `values`, eine **Werte-Notiz** oder eine **Abfrage**. `values` und `valuesFrom` schließen einander aus; stehen beide da, gilt `values`, und die Profil-Liste der Einstellungen meldet den Widerspruch.
+
+```yaml
+---
+fields:
+  - name: ort
+    valuesFrom:
+      note: 90 Organisation/Werte/Orte.md
+  - name: projekt
+    type: link
+    valuesFrom:
+      query: WHERE art = "projekt"
+---
+```
+
+Eine **Werte-Notiz** ist eine gewöhnliche Notiz mit einem Wert je Zeile; ihr Pfad ist bereichs-relativ. Leerzeilen und Randleerraum entfallen, ein Metadaten-Block der Notiz gehört nicht zum Vorrat. Sie wird wie eine Profil-Datei nachgezogen: Eine Änderung wirkt ohne Neustart, auch wenn sie von außen kommt. Damit ist der Wertevorrat gewöhnlicher Inhalt, den man verlinken, kommentieren und weitergeben kann.
+
+Eine **Abfrage** liefert die Werte aus dem Bestand — die Namen ihrer Treffer. Sie wird erst ausgewertet, wenn ein Feld ihren Vorrat wirklich braucht, und bis zur nächsten Bestands-Änderung gemerkt; vorab über den Gesamtbestand wird nichts gerechnet. Ein Dokument ohne Abfrage-Feld kostet dadurch keine Auswertung.
+
+Fehlt eine Quelle, ist sie leer oder nicht auswertbar, dann **bleibt das Feld bedienbar**: Der Vorrat ist leer, ein Hinweis steht am Feld, und eigene Werte sind wie überall möglich.
 
 ## Zuordnung und Standard-Profil
 
@@ -50,6 +86,11 @@ class:
 ```
 
 Zusätzlich kann ein **Standard-Profil** gewählt werden: Seine Definitionen gelten für alle Dateien des Bereichs, auch ohne Zuordnungs-Feld. Profil-Namen matchen unabhängig von Groß- und Kleinschreibung.
+
+Ein Dokument findet sein Profil außerdem über ein **Schlagwort** oder seinen **Ordner**, ohne dass in ihm ein Zuordnungs-Feld stehen muss. Diese Bindungen gehören zum Bereich und werden unter Einstellungen → Eigenschafts-Profile eingerichtet: je Zeile ein Profil, seine Schlagworte und seine Ordner-Pfade.
+
+- **Schlagwort**: Es zählt gleichermaßen aus dem Metadaten-Block (`tags`) und aus dem Text (`#schlagwort`) — für die Zuordnung ist ein Schlagwort ein Schlagwort. Auch eine noch ungespeicherte Änderung wirkt sofort.
+- **Ordner**: Ein gebundener Pfad schließt seine Unterordner ein, damit eine spätere Unterteilung nicht nachgepflegt werden muss. Verglichen wird der bereichs-relative Pfad an ganzen Ordner-Namen; «10 Projekte Archiv» fällt also nicht unter «10 Projekte».
 
 ## Vererbung
 
@@ -77,13 +118,38 @@ Neben den Profil-Dateien des Ordners gibt es das **interne Profil `Ereignis`** d
 
 ## Konflikt-Regeln
 
-Für eine Datei gilt die Vereinigung aller Definitionen aus den zugeordneten Profilen samt ihren Eltern-Ketten plus dem Standard-Profil mit seiner Kette. Die Auflösung ist **eine** geordnete Folge: je zugeordnetem Profil in Nennungs-Reihenfolge erst die eigenen Felder, dann die seiner Eltern-Kette von unten nach oben, danach dasselbe für das Standard-Profil; jedes Profil wird genau einmal verarbeitet. Definiert mehr als ein Profil denselben Feldnamen, gilt deterministisch:
+Für eine Datei gilt die Vereinigung aller Definitionen aus allen Profilen, die sie erreichen. Die Auflösung ist **eine** geordnete Folge in vier Stufen, von der ausdrücklichsten zur allgemeinsten Aussage:
 
-1. Ein **zugeordnetes Profil** gewinnt vor dem **Standard-Profil**.
-2. Unter mehreren zugeordneten Profilen gewinnt das in der Zuordnungs-Liste **zuerst genannte**.
+1. das **Zuordnungs-Feld** des Dokuments, in Nennungs-Reihenfolge
+2. ein **Schlagwort** des Dokuments
+3. der **Ordner** des Dokuments
+4. das **Standard-Profil** des Bereichs
+
+Je erreichtem Profil laufen erst seine eigenen Felder, dann die seiner Eltern-Kette von unten nach oben; jedes Profil wird über alle Stufen hinweg genau einmal verarbeitet. Definiert mehr als ein Profil denselben Feldnamen, gilt deterministisch:
+
+1. Der **erste Treffer der Folge** gewinnt — ein Weg weiter oben schlägt jeden weiter unten.
+2. Unter mehreren Profilen derselben Stufe gewinnt das **zuerst genannte** (Zuordnungs-Liste bzw. Reihenfolge der Bindungen).
 3. Innerhalb einer Kette gewinnt das **erbende Profil** vor seinen Eltern; ein eigenes Feld überschreibt so das gleichnamige geerbte.
 
+Die Wege **ergänzen einander, sie ersetzen sich nicht**: Ein Dokument mit Zuordnungs-Feld und passendem Ordner trägt die Felder aus beiden. Ein Weg, der auf ein bereits erreichtes Profil zeigt, fügt nichts hinzu — das ergibt sich aus «jedes Profil genau einmal» und braucht keine eigene Regel. Und ein Widerspruch zwischen Schlagwort und Ordner ist keiner: Die Ordnung entscheidet, es gibt weder Rückfrage noch Warnung.
+
 Ein Beispiel mit vier Profilen: `Alle` (Feld `tags`), `Projekt` (erbt von `Alle`; Felder `phase`, `status`), `Artikel` (erbt von `Projekt`, schließt `status` aus; eigene Felder `phase`, `autor`) und `Sitzung` (Felder `status`, `ort`). Ein Dokument mit `class: [Artikel, Sitzung]` und Standard-Profil `Alle` erhält `phase` und `autor` aus `Artikel`, `tags` über die Kette aus `Alle`, `status` und `ort` aus `Sitzung` — der Ausschluss in `Artikel` wirkt nur in dessen Kette, über `Sitzung` kommt `status` dennoch an.
+
+## Profil-Symbol am Dokument
+
+Ein Profil kann ein **Symbol** führen — ein einzelnes Zeichen, üblicherweise ein Emoji, im Metadaten-Block der Profil-Datei:
+
+```yaml
+---
+icon: 📅
+fields:
+  - name: ort
+---
+```
+
+Der Kopf der Eigenschaften-Sektion zeigt das Symbol des Profils, das für das Dokument **zuerst** aufgelöst wurde; der Tooltip nennt dessen Namen und die Stufe, über die es gefunden wurde. Das ist der eigentliche Zweck: Sobald Schlagwort und Ordner mitbestimmen, kann ein Dokument Felder tragen, von denen in ihm selbst nichts steht — das Symbol beantwortet dann die Frage, warum.
+
+Ohne Profil oder ohne Symbol erscheint nichts; ein Platzhalter entsteht nicht. Eine Angabe aus mehr als einem Zeichen entfällt mit Hinweis, das Profil bleibt wirksam.
 
 ## Wirkung in den Editoren
 
@@ -92,6 +158,8 @@ Die Definitionen wirken im Properties-Editor und identisch im Block-Eigenschafte
 - **Feld-Vorschläge**: «Eigenschaft hinzufügen» zeigt zuerst die definierten, noch nicht gesetzten Felder (mit dem Profil-Namen als Kennzeichnung), danach die üblichen Vorschläge; am Ende bleibt «Eigenes Feld» der freie Weg. Die Auswahl legt das Feld mit Definitions-Typ und Vorgabe-Wert an.
 - **Auswahl-Listen**: Felder mit Wertebereich bieten die definierten Werte als Auswahl-Liste (Einfach-Auswahl) bzw. als Eingabe-Vorschläge der Chips-Leiste (Mehrfach-Auswahl); «Eigener Wert…» erlaubt weiterhin freie Eingaben.
 - **Typ-Vorgabe**: Definierte Felder zeigen den Definitions-Typ, der Typ-Wechsler ist gesperrt und nennt das Profil. Weicht der vorhandene Wert vom Typ ab, bleibt der Wechsler frei, damit der Wert auf den Definitions-Typ umgestellt werden kann.
+- **Verweis-Felder** bieten die Ziele des Bereichs als Vervollständigung, markieren ein nicht vorhandenes Ziel und öffnen es über den Pfeil — denselben Weg wie ein Klick auf einen Wiki-Link. Mit `multiple` tragen sie mehrere Ziele in der Chips-Leiste.
+- **Uhrzeit-Felder** nutzen das Zeit-Bedienelement; der Wert steht im Metadaten-Block in Anführungszeichen, weil `09:30` sonst als Zahl gelesen würde.
 - Definierte Felder tragen eine dezente Markierung am Feldnamen; der Tooltip nennt das Profil.
 
 ## Komplett-Übernahme aller Felder
@@ -112,7 +180,8 @@ Abweichungen blockieren nie und ändern nie den Wert: Ein Wert außerhalb des We
 
 ## Grenzen
 
-- Das Format sieht typ-eigene Optionen (`options`), Wertevorrats-Quellen (`valuesFrom`) und verschachtelte Kind-Definitionen bereits vor; ausgewertet werden sie in dieser Version noch nicht. Eine solche Angabe ist kein Fehler, sie bleibt bis zum Ausbau ohne Wirkung.
+- Verschachtelte Kind-Definitionen (`fields`) sind bereits Teil des Formats; ausgewertet werden sie erst mit den strukturierten Typen. Eine solche Angabe ist kein Fehler, sie bleibt bis dahin ohne Wirkung.
 - Das Umbenennen einer Profil-Datei ändert die Zuordnungs-Werte in den Dokumenten nicht; sie zeigen dann auf ein nicht vorhandenes Profil (die Einstellungen markieren ein fehlendes Standard-Profil).
 - Profile liegen direkt im Profil-Ordner; Unterordner werden nicht einbezogen.
-- Die Definitionen wirken in den beiden Eigenschafts-Editoren; berechnete oder aus anderen Dateien abgeleitete Feld-Typen sind nicht Teil der Profile.
+- Die Definitionen wirken in den beiden Eigenschafts-Editoren; berechnete oder aus anderen Dateien abgeleitete Feld-Typen sind noch nicht Teil der Profile.
+- Die Bindung eines Profils an eine Lesezeichen-Gruppe und die Zuordnung über eine Abfrage sind bewusst zurückgestellt; Schlagwort und Ordner decken die belegten Fälle ab und bleiben erklärbar.

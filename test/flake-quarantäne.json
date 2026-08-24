@@ -11,6 +11,22 @@
   ],
   "eintraege": [
     {
+      "spec": "test/e2e/funktionen/panel-zugänge.spec.js",
+      "fall": "PZ-06",
+      "datum": "2026-08-24",
+      "fehlerbild": "Einzel-Fehlschlag im E2E-Voll-Lauf der Release-Abnahme 1.116.0 (617 von 619 grün, Laufzeit 59,8 min): «Execution context was destroyed, most likely because of a navigation» beim app.evaluate, mit dem der Fall das aufgezeichnete Panel-Menü abholt. Der Fall lief 42,7 s. Isoliert 15 von 15 grün, der Fall selbst in 6,8 s.",
+      "vermutung": "lastbedingt: Der Voll-Lauf brauchte 59,8 min gegenüber sonst rund 38,5 min bei gleicher Fallzahl, war also deutlich verlangsamt. Der Fall stösst einen Menü-Neubau an und greift danach über den Haupt-Prozess auf den Capture zu; unter Last kann der Neubau den Ausführungs-Kontext genau zwischen Anstoss und Zugriff verwerfen. Kein Bezug zum Änderungs-Umfang des Release (Eigenschafts-Profile); die Panel-Zugänge sind von diesem Epic nicht berührt.",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/skript-bloecke.spec.js",
+      "fall": "SK-01",
+      "datum": "2026-08-24",
+      "fehlerbild": "Zweiter Einzel-Fehlschlag desselben Voll-Laufs: Das Skript «pq.out('Ergebnis: ' + (6 * 7))» lief in das Zeit-Limit von 5 Sekunden, statt sein Ergebnis zu zeigen; davor stand im Block noch «Indexiere…». Isoliert grün in 3,3 s.",
+      "vermutung": "lastbedingt, und deutlicher als der Nachbar-Eintrag: Eine Multiplikation kann eine Sekunden-Grenze nur reissen, wenn ihr die Rechenzeit fehlt. Das vorangehende «Indexiere…» zeigt, dass der Bereichs-Index zur selben Zeit lief. Kein Bezug zum Änderungs-Umfang des Release.",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/unit/quellcode-export.test.js",
       "fall": "kein exportierter Bestand trägt einen Marker der privaten Infrastruktur",
       "datum": "2026-08-18",

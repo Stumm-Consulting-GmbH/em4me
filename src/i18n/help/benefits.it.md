@@ -80,11 +80,13 @@ In dettaglio: [Perspective Datatable](datatable.md).
 
 ## Tipi di documenti che si appoggiano l'uno all'altro
 
-Molti documenti di un'area condividono gli stessi campi: uno stato, una data, una categoria. I profili di proprietà descrivono questi campi una sola volta, in modo centralizzato, con tipo, valori ammessi e valore predefinito; gli editor delle proprietà li suggeriscono e offrono gli insiemi di valori come liste di selezione. I profili ereditano l'uno dall'altro: un profilo di base dice ciò che vale per tutti, e un tipo di documento come articolo o riunione aggiunge solo la propria parte, esclude se necessario campi ereditati o li sostituisce. Gli scostamenti producono avvisi invece di blocchi.
+Molti documenti di un'area condividono gli stessi campi: uno stato, una data, una categoria. I profili di proprietà descrivono questi campi una sola volta, in modo centralizzato, con tipo, valori ammessi e valore predefinito; gli editor delle proprietà li suggeriscono e offrono gli insiemi di valori come liste di selezione. I profili ereditano l'uno dall'altro: un profilo di base dice ciò che vale per tutti, e un tipo di documento come articolo o riunione aggiunge solo la propria parte, esclude se necessario campi ereditati o li sostituisce. Gli scostamenti producono avvisi invece di blocchi. Quale profilo vale non deve essere scritto nel documento: bastano un'etichetta o la sua cartella, e un simbolo sul documento mostra quale è risultato. Anche i valori ammessi di un campo possono venire dal materiale stesso invece che dalla definizione.
 
 - **Descrivere i campi una sola volta** invece che in ogni documento: suggerimenti, liste di selezione e tipi vengono dal profilo.
 - **Ereditarietà con esclusione e sostituzione:** il comune nel profilo genitore, il proprio nel tipo di documento.
 - **Avvisi leggeri invece di blocchi:** gli scostamenti vengono indicati, nulla viene bloccato.
+- **Assegnazione senza voce nel documento:** un'etichetta o la cartella decide quale profilo vale.
+- **Liste di valori che si mantengono da sole:** i valori ammessi vengono da una nota o da una query sul materiale.
 
 In dettaglio: [Profili di proprietà](property-profiles.md).
 

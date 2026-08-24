@@ -27,19 +27,60 @@ Attributi per definizione:
 | Attributo | Significato |
 | --- | --- |
 | `name` | nome del campo (obbligatorio, univoco per profilo) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date` o `multiline`; senza indicazione `string` |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (collegamento a un file) o `time` (ora); senza indicazione `string` |
 | `values` | facoltativo: insieme di valori fisso come elenco di valori (per `string`, `multistring`, `number` e `date`) |
-| `multiple` | facoltativo: scelta multipla — il valore è un elenco, il tipo `multistring`; un insieme di valori fisso non è più necessario |
+| `multiple` | facoltativo: più valori — il valore è un elenco. Vale per ogni tipo tranne `boolean` e `multiline`; solo nel campo di testo il tipo passa allora a `multistring`, altrimenti il nome del tipo resta (un campo di collegamento con più destinazioni è `link` con `multiple`) |
 | `default` | facoltativo: preimpostazione alla creazione del campo tramite l'editor |
 | `valuesFrom` | facoltativo: fonte del repertorio di valori con `note` (percorso di una nota di valori) e/o `query` (interrogazione); insieme a `values` vale `values` |
-| `options` | facoltativo: indicazioni proprie del tipo in un sotto-oggetto, previsto per tipi futuri |
+| `options` | facoltativo: indicazioni proprie del tipo in un sotto-oggetto, vedi la tabella seguente |
 | `fields` | facoltativo: definizioni figlie annidate secondo lo stesso schema, previsto per i tipi strutturati |
 
 Un campo `multistring` con `values` è automaticamente una scelta multipla. **Il nome del campo è l'unica indicazione obbligatoria**: ogni altra indicazione è facoltativa e i file di profilo esistenti restano validi senza modifiche. `valuesFrom`, `options` e i `fields` annidati fanno già parte del formato, ma in questa versione non vengono ancora valutati (sezione «Limiti»). Le definizioni singole difettose (ad esempio un tipo sconosciuto o un nome di campo duplicato) sospendono solo sé stesse; le altre definizioni del profilo restano efficaci. L'elenco dei profili nelle impostazioni mostra gli avvisi per esteso sotto il profilo interessato — con la definizione coinvolta, l'indicazione errata e ciò che era atteso al suo posto, per le definizioni figlie con il percorso verso il campo genitore — e apre il file del profilo con un clic.
 
+### Opzioni proprie del tipo
+
+Il sotto-oggetto `options` porta le indicazioni che valgono solo per un determinato tipo:
+
+| Tipo | Indicazione | Significato |
+| --- | --- | --- |
+| `number` | `step`, `min`, `max` | passo e limiti del campo numerico |
+| `date` | `shift` | spostamento in giorni; precompila un campo **vuoto** al primo clic, una data esistente resta intatta |
+| `link` | `restrictTo`, `display`, `sort` | percorso di cartella (o elenco) a cui i suggerimenti sono limitati; campo di metadati della destinazione come nome visualizzato; ordine `name` o `path` |
+| campo a scelta | `control: cycle` | la scelta singola diventa un pulsante che passa al valore successivo al clic; il valore salvato resta lo stesso che senza l'opzione |
+
+Un'indicazione sconosciuta o mal compilata decade singolarmente con un avviso; il campo e le altre indicazioni restano efficaci. Un'opzione prevista per un tipo successivo può quindi già figurare senza causare danno.
+
+## Repertori di valori
+
+Il repertorio di valori ammesso di un campo a scelta ha tre fonti possibili: l'elenco fisso `values`, una **nota di valori** oppure una **query**. `values` e `valuesFrom` si escludono a vicenda; se figurano entrambi vale `values`, e l'elenco dei profili nelle impostazioni segnala la contraddizione.
+
+```yaml
+---
+fields:
+  - name: luogo
+    valuesFrom:
+      note: 90 Organizzazione/Valori/Luoghi.md
+  - name: progetto
+    type: link
+    valuesFrom:
+      query: WHERE genere = "progetto"
+---
+```
+
+Una **nota di valori** è una nota ordinaria con un valore per riga; il suo percorso è relativo all'area. Righe vuote e spazi di bordo decadono, un blocco di metadati della nota non fa parte del repertorio. Viene aggiornata come un file di profilo: una modifica ha effetto senza riavvio, anche se proviene dall'esterno. Il repertorio diventa così contenuto ordinario che si può collegare, commentare e condividere.
+
+Una **query** fornisce i valori dall'archivio: i nomi dei suoi risultati. Viene valutata solo quando un campo ha davvero bisogno dei suoi valori, e resta memorizzata fino alla successiva modifica dell'archivio; nulla viene calcolato in anticipo sull'intero fondo. Un documento senza campo query non costa quindi alcuna valutazione.
+
+Se una fonte manca, è vuota o non è valutabile, il **campo resta utilizzabile**: il repertorio è vuoto, un'indicazione compare accanto al campo, e valori propri restano possibili come ovunque.
+
 ## Assegnazione e profilo standard
 
 I documenti si assegnano tramite un campo del frontmatter; il nome del campo è configurabile per area (predefinito `class`). Il valore è un nome di profilo o un elenco di più nomi di profili:
+
+Un documento trova inoltre il suo profilo tramite un'**etichetta** o la sua **cartella**, senza che vi debba figurare un campo di assegnazione. Queste assegnazioni appartengono all'area e si impostano in Impostazioni → Profili delle proprietà: una riga per profilo, con le sue etichette e i suoi percorsi di cartella.
+
+- **Etichetta**: conta allo stesso modo dal blocco di metadati (`tags`) e dal testo (`#etichetta`) — per l'assegnazione un'etichetta è un'etichetta. Anche una modifica non salvata ha effetto immediato.
+- **Cartella**: un percorso collegato include le sue sottocartelle, così che una successiva suddivisione non debba essere mantenuta. Il percorso relativo all'area viene confrontato su nomi di cartella interi; «10 Progetti Archivio» non ricade quindi sotto «10 Progetti».
 
 ```yaml
 ---
@@ -77,13 +118,38 @@ Accanto ai file di profilo della cartella esiste il **profilo interno `Ereignis`
 
 ## Regole di conflitto
 
-Per un file vale l'unione di tutte le definizioni dei profili assegnati con le loro catene di genitori più il profilo standard con la sua catena. La risoluzione è **una** sequenza ordinata: per ogni profilo assegnato, nell'ordine di menzione, prima i suoi campi, poi quelli della sua catena di genitori dal basso verso l'alto, quindi lo stesso per il profilo standard; ogni profilo viene elaborato esattamente una volta. Se più di un profilo definisce lo stesso nome di campo, le regole sono deterministiche:
+Per un file vale l'unione di tutte le definizioni di tutti i profili che lo raggiungono. La risoluzione è **un'unica** sequenza ordinata in quattro passi, dall'enunciato più esplicito al più generale:
 
-1. Un **profilo assegnato** vince sul **profilo standard**.
-2. Tra più profili assegnati vince quello nominato **per primo** nell'elenco di assegnazione.
+1. il **campo di assegnazione** del documento, nell'ordine di menzione
+2. un'**etichetta** del documento
+3. la **cartella** del documento
+4. il **profilo standard** dell'area
+
+Per ogni profilo raggiunto vengono prima i suoi campi propri, poi quelli della sua catena ereditaria dal basso verso l'alto; ogni profilo viene elaborato esattamente una volta, su tutti i passi. Se più profili definiscono lo stesso nome di campo, le regole sono deterministiche:
+
+1. Vince la **prima corrispondenza della sequenza**: una via più in alto batte ogni via più in basso.
+2. Tra più profili dello stesso passo vince quello **menzionato per primo** (elenco di assegnazione oppure ordine delle assegnazioni).
 3. All'interno di una catena vince il **profilo erede** sui suoi genitori; un campo proprio sostituisce così quello ereditato con lo stesso nome.
 
+Le vie **si completano, non si sostituiscono**: un documento con campo di assegnazione e cartella corrispondente porta i campi di entrambi. Una via che punta a un profilo già raggiunto non aggiunge nulla: discende da «ogni profilo esattamente una volta» e non richiede una regola propria. E una contraddizione tra etichetta e cartella non è tale: decide l'ordine, non c'è né domanda né avvertimento.
+
 Un esempio con quattro profili: `tutti` (campo `tags`), `progetto` (eredita da `tutti`; campi `fase`, `stato`), `articolo` (eredita da `progetto`, esclude `stato`; campi propri `fase`, `autore`) e `riunione` (campi `stato`, `luogo`). Un documento con `class: [articolo, riunione]` e il profilo standard `tutti` riceve `fase` e `autore` da `articolo`, `tags` attraverso la catena da `tutti`, `stato` e `luogo` da `riunione` — l'esclusione in `articolo` agisce solo nella sua catena; attraverso `riunione`, `stato` arriva comunque.
+
+## Simbolo del profilo sul documento
+
+Un profilo può portare un **simbolo**: un singolo carattere, di norma un’emoji, nel blocco di metadati del file di profilo:
+
+```yaml
+---
+icon: 📅
+fields:
+  - name: luogo
+---
+```
+
+L'intestazione della sezione Proprietà mostra il simbolo del profilo risolto per **primo** per il documento; il suggerimento ne indica il nome e il passo tramite cui è stato trovato. È questo lo scopo vero: non appena etichetta e cartella hanno voce in capitolo, un documento può portare campi di cui in esso non è detto nulla — il simbolo risponde allora al perché.
+
+Senza profilo o senza simbolo non compare nulla; non nasce alcun segnaposto. Un'indicazione di più di un carattere decade con un avviso, il profilo resta efficace.
 
 ## Effetto negli editor
 
@@ -92,6 +158,8 @@ Le definizioni agiscono nell'editor delle proprietà e in modo identico nel pann
 - **Suggerimenti dei campi**: «Aggiungi proprietà» mostra prima i campi definiti non ancora presenti (con il nome del profilo come contrassegno), poi i suggerimenti abituali; «Campo personalizzato» alla fine resta la via libera. La selezione crea il campo con il tipo definito e il valore predefinito.
 - **Liste di selezione**: i campi con insieme di valori offrono i valori definiti come lista di selezione (scelta singola) o come suggerimenti di inserimento della barra dei contrassegni (scelta multipla); «Valore personalizzato…» consente ancora inserimenti liberi.
 - **Tipo impostato**: i campi definiti mostrano il tipo definito, il selettore del tipo è bloccato e nomina il profilo. Se il valore esistente si discosta dal tipo, il selettore resta libero affinché il valore possa essere convertito al tipo definito.
+- I **campi di collegamento** offrono le destinazioni dell'area come completamento, segnalano una destinazione inesistente e la aprono tramite la freccia — lo stesso percorso di un clic su un collegamento wiki. Con `multiple` portano più destinazioni nella barra dei chip.
+- I **campi ora** usano il controllo dell'ora; il valore figura tra virgolette nel blocco di metadati, perché `09:30` verrebbe altrimenti letto come numero.
 - I campi definiti portano un contrassegno discreto sul nome del campo; il suggerimento nomina il profilo.
 
 ## Inserimento di tutti i campi in una volta
@@ -116,3 +184,4 @@ Gli scostamenti non bloccano mai e non modificano mai il valore: un valore al di
 - Rinominare un file di profilo non cambia i valori di assegnazione nei documenti; questi puntano allora a un profilo inesistente (le impostazioni segnalano un profilo standard mancante).
 - I profili si trovano direttamente nella cartella dei profili; le sottocartelle non sono incluse.
 - Le definizioni agiscono nei due editor delle proprietà; i tipi di campo calcolati o derivati da altri file non fanno parte dei profili.
+- Il collegamento di un profilo a un gruppo di segnalibri e l'assegnazione tramite una query sono deliberatamente rinviati; etichetta e cartella coprono i casi documentati e restano spiegabili.

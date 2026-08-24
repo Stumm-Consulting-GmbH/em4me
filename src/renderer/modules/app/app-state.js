@@ -647,6 +647,8 @@ function buildPaneEls(paneIdx) {
     propertiesEmpty: root.querySelector('.sidebar-properties .properties-empty'),
     propertiesParseError: root.querySelector('.sidebar-properties .properties-parse-error'),
     propertiesAddBtn: root.querySelector('.sidebar-properties .properties-add-btn'),
+    // 4T-1161 (Epic 3E-0219): Symbol des aufgeloesten Profils im Sektions-Kopf.
+    propertiesProfileBadge: root.querySelector('.sidebar-properties .properties-profile-badge'),
     // 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum oben, Markdown-
     // Dateiliste des gewaehlten Ordners darunter; Empty-State ohne Bereich.
     areaSection: root.querySelector('.sidebar-area'),

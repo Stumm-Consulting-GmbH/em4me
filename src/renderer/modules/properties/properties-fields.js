@@ -7,6 +7,8 @@ import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { isAllEmpty } from '../views/views.js';
+// 4T-1156: Öffnen eines Verweis-Ziels über den Wiki-Link-Weg.
+import { activateLink } from '../views/link-navigation.js';
 import { fieldDefinitionHint } from '../../../shared/property-profiles.js';
 import {
   applyFieldHint,
@@ -20,6 +22,18 @@ import {
   renderTypeFor,
 } from './properties-types.js';
 import { flushPendingPropertiesSave, scheduleSavePropertiesFromPane } from './properties-save.js';
+// 4T-1156 (Epic 3E-0219): Bedienelemente der neuen Typen und Optionen — eine
+// gemeinsame Quelle für beide Panels (Paritäts-Auflage, Konzept 7.3).
+import {
+  applyDateOptions,
+  applyNumberOptions,
+  attachLinkSuggestions,
+  attachQueryValues,
+  hatAuswahl,
+  renderCycleField,
+  renderLinkField,
+  renderTimeField,
+} from './properties-neue-typen.js';
 
 // 4T-0051: Rendert die Properties-Sidebar-Sektion fuer eine Spalte neu.
 // Wird gerufen bei Toggle-on, Tab-Wechsel, View-Mode-Wechsel und externer
@@ -216,7 +230,8 @@ function renderValueSelect(container, def, value, paneIdx) {
   emptyOpt.value = '';
   emptyOpt.textContent = '—';
   select.appendChild(emptyOpt);
-  const known = def.values.map((v) => String(v));
+  // 4T-1158: Mit Abfrage-Quelle kommt das Feld ohne feste Werte hierher.
+  const known = (Array.isArray(def.values) ? def.values : []).map((v) => String(v));
   for (const v of known) {
     const opt = document.createElement('option');
     opt.value = v;
@@ -248,12 +263,47 @@ function renderValueSelect(container, def, value, paneIdx) {
   container.appendChild(select);
 }
 
+// 4T-1156: Pfad der aktiven Datei einer Spalte — er bestimmt den Suchraum
+// der Ziel-Vorschläge eines Verweis-Feldes (derselbe Suchraum, den die
+// Wiki-Link-Vervollständigung des Editors nutzt).
+function aktiverPfad(paneIdx) {
+  const pane = state.panes[paneIdx];
+  const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  return tab && tab.path ? tab.path : null;
+}
+
 export function renderValueEditor(container, type, value, paneIdx, def = null) {
   container.innerHTML = '';
   // 4T-0448: Wertebereichs-Felder — Einfach-Auswahl als Auswahl-Liste,
   // Mehrfach-Auswahl über die Chips-Leiste mit Werte-Vorschlägen (datalist).
-  if (def && Array.isArray(def.values) && def.values.length > 0 && !def.multiple) {
+  if (hatAuswahl(def) && !def.multiple) {
+    // 4T-1156 (E11): Zyklus — anderes Bedienelement, gleicher Wert.
+    if (def.options && def.options.control === 'cycle') {
+      renderCycleField(container, def, value, {
+        onChange: () => scheduleSavePropertiesFromPane(paneIdx),
+      });
+      return;
+    }
     renderValueSelect(container, def, value, paneIdx);
+    // 4T-1158: Abfrage-Werte kommen nach — auf Verlangen, erst hier.
+    const select = container.querySelector('select.properties-field-value-select');
+    if (select) attachQueryValues(select, { def, filePath: aktiverPfad(paneIdx) });
+    return;
+  }
+  // 4T-1156: Verweis im Einzel-Modus; der Mehrfach-Fall läuft über die
+  // Chips-Leiste weiter unten.
+  if (type === 'link' && !(def && def.multiple)) {
+    renderLinkField(container, value, {
+      def,
+      filePath: aktiverPfad(paneIdx),
+      // Öffnen über den Wiki-Link-Weg (Alias-Auflösung eingeschlossen); als
+      // Parameter statt als Import des Bau-Moduls (Ordner-Import-Wächter).
+      onOpen: (name) => void activateLink(paneIdx, name, true),
+    });
+    return;
+  }
+  if (type === 'time') {
+    renderTimeField(container, value, {});
     return;
   }
   if (type === 'readonly') {
@@ -275,6 +325,7 @@ export function renderValueEditor(container, type, value, paneIdx, def = null) {
     input.type = type === 'date' ? 'date' : 'text';
     input.className = 'properties-field-value-input';
     input.value = typeof value === 'string' ? value : value == null ? '' : String(value);
+    if (type === 'date') applyDateOptions(input, def); // 4T-1156: shift
     container.appendChild(input);
     return;
   }
@@ -290,6 +341,7 @@ export function renderValueEditor(container, type, value, paneIdx, def = null) {
     input.type = 'number';
     input.className = 'properties-field-value-input';
     input.value = typeof value === 'number' ? String(value) : value == null ? '' : String(value);
+    applyNumberOptions(input, def); // 4T-1156: step, min, max
     container.appendChild(input);
     return;
   }
@@ -303,7 +355,9 @@ export function renderValueEditor(container, type, value, paneIdx, def = null) {
     container.appendChild(wrap);
     return;
   }
-  if (type === 'multistring') {
+  // 4T-1156 (E11): Chips-Leiste für JEDES Mehrfach-Feld — seit der
+  // Entkopplung verrät der Typ-Name die Vielzahl nicht mehr.
+  if (type === 'multistring' || (def && def.multiple === true)) {
     const list = document.createElement('div');
     list.className = 'properties-field-multistring';
     const arr = Array.isArray(value) ? value : value ? [String(value)] : [];
@@ -325,10 +379,14 @@ export function renderValueEditor(container, type, value, paneIdx, def = null) {
       input.value = '';
       return !exists;
     };
+    // 4T-1158: Vorschlags-Lage — gesetzt unten, ausgewertet einmal.
+    let erlaubt = null;
+    let hatVorschlaege = false;
     // 4T-0448: Mehrfach-Auswahl eines Wertebereichs — die definierten Werte
     // als Eingabe-Vorschläge (datalist); freie Eingabe bleibt möglich
     // (weiche Haltung) und erzeugt den Hinweis beim Save.
     if (def && def.multiple && Array.isArray(def.values) && def.values.length > 0) {
+      hatVorschlaege = true;
       const dl = document.createElement('datalist');
       dl.id = `properties-value-list-${paneIdx}-${valueListSeq++}`;
       for (const v of def.values) {
@@ -344,11 +402,29 @@ export function renderValueEditor(container, type, value, paneIdx, def = null) {
       // Stände liefern undefined — dann greift der exakte Werte-Treffer);
       // Tipp-Eingaben ('insertText') bleiben unberührt, damit eigene Werte
       // wie bisher frei formulierbar sind.
-      const allowed = def.values.map((v) => String(v));
+      erlaubt = def.values.map((v) => String(v));
+    }
+    // 4T-1158: Abfrage-Quelle — die Werte kommen nach.
+    if (def && def.multiple && def.valuesFrom && def.valuesFrom.query) {
+      attachQueryValues(list, { def, filePath: aktiverPfad(paneIdx), input });
+      hatVorschlaege = true;
+      erlaubt = null;
+    }
+    // 4T-1156: Verweis-Feld — dieselbe Leiste, Ziele statt Werte.
+    if (type === 'link') {
+      attachLinkSuggestions(list, input, { def, filePath: aktiverPfad(paneIdx) });
+      hatVorschlaege = true;
+      erlaubt = null;
+    }
+    // 4T-1158: EIN Übernahme-Listener für alle drei Quellen — verschieden ist
+    // nur, WOHER die Vorschläge kommen (Regel: PO-Befund 0.56.0, oben).
+    // `erlaubt` prüft feste Werte, null lässt jeden Vorschlag zu.
+    if (hatVorschlaege) {
       input.addEventListener('input', (e) => {
         if (e.inputType && e.inputType !== 'insertReplacementText') return;
         const v = input.value.trim();
-        if (v && allowed.includes(v) && addChip(v)) scheduleSavePropertiesFromPane(paneIdx);
+        if (!v || (erlaubt && !erlaubt.includes(v))) return;
+        if (addChip(v)) scheduleSavePropertiesFromPane(paneIdx);
       });
     }
     input.addEventListener('keydown', (e) => {

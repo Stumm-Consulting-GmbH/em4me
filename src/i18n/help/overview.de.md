@@ -37,7 +37,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 ## Metadaten, Daten und Abfragen
 
 - [Frontmatter und Properties](frontmatter.md) — YAML-Metadaten und die Properties-Sidebar.
-- [Eigenschafts-Profile](property-profiles.md) — zentrale Feld-Definitionen mit Typ, Wertebereich und Vorgabe-Wert: Profil-Dateien, Zuordnung und Standard-Profil, Vererbung zwischen Profilen, Wirkung in beiden Eigenschafts-Editoren.
+- [Eigenschafts-Profile](property-profiles.md) — zentrale Feld-Definitionen mit Typ, Wertebereich und Vorgabe-Wert: Profil-Dateien, Zuordnung über Feld, Schlagwort und Ordner, Standard-Profil, Vererbung zwischen Profilen, Wertevorräte aus Notiz und Abfrage, Profil-Symbol am Dokument, Wirkung in beiden Eigenschafts-Editoren.
 - [Block-Eigenschaften](block-properties.md) — typisierte Eigenschaften pro Block-Anker: Panel mit Cursor-Folge, verwaiste Daten, Anker umbenennen, Indikator am Block.
 - [Perspective-Abfrage](frontmatter-query.md) — dynamische Datei-Listen und -Tabellen: Klausel-Sprache, Quellen, Datei-Felder, Funktionen, Sortierung, Mehrspaltigkeit, Export.
 - [Perspective Datatable](datatable.md) — typisierte Datentabelle mit Rechenfunktionen: Spalten-Typen, Aggregate, berechnete Spalten, Grid-Bearbeitung, Sortieren und Filtern.

@@ -63,4 +63,6 @@ fields:
 
 Documents opt in with a `class:` field naming the profile. Profiles can also inherit from each other: `extends` names a parent profile, `exclude` skips inherited fields, and only the field name is required — every other property is optional. The profile folder is set under **Settings → Property profiles** (an area setting), so it is a one-time setup rather than a shipped file. Without it, the panel still works with plain type inference.
 
+Beyond the field name, a definition can carry type-specific options, draw its value set from a note or a query, and a profile can bind itself to a tag or a folder so documents need no `class:` field at all. Where a profile carries an `icon:`, the properties panel header shows it — that is how a document says which profile applies when nothing in it does.
+
 On to planning: [[06 Tasks and Reminders]].

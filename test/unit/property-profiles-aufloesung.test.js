@@ -17,8 +17,10 @@ import {
   assignedProfileNames,
   resolveProfileFields,
   fieldDefinitionHint,
+  valueSourceHint,
   profileFieldSuggestions,
   emptyValueForType,
+  emptyValueForDefinition,
   buildProfileFillMap,
   profileSuggestGroups,
 } from '../../src/shared/property-profiles.js';
@@ -128,6 +130,7 @@ describe('resolveProfileFields', () => {
     expect(resolveProfileFields([], { defaultProfile: null, assigned: [] })).toEqual({
       fields: [],
       missing: [],
+      leading: null,
     });
     const { fields } = resolveProfileFields(CATALOG, { defaultProfile: 'All', assigned: [] });
     expect(fields.map((f) => [f.name, f.fromDefault])).toEqual([
@@ -146,6 +149,7 @@ describe('parseProfileHeritage (4T-1142)', () => {
     expect(parseProfileHeritage({ extends: ' Projekt ', exclude: ['status', 'ort'] })).toEqual({
       parent: 'Projekt',
       exclude: ['status', 'ort'],
+      icon: null,
       errors: [],
     });
   });
@@ -162,11 +166,17 @@ describe('parseProfileHeritage (4T-1142)', () => {
     expect(parseProfileHeritage({ extends: ['Projekt'] }).parent).toBe('Projekt');
     expect(parseProfileHeritage({ extends: ['Projekt'] }).errors).toEqual([]);
     expect(parseProfileHeritage({ exclude: 'status' }).exclude).toEqual(['status']);
-    expect(parseProfileHeritage({})).toEqual({ parent: null, exclude: [], errors: [] });
-    expect(parseProfileHeritage(null)).toEqual({ parent: null, exclude: [], errors: [] });
+    expect(parseProfileHeritage({})).toEqual({ parent: null, exclude: [], icon: null, errors: [] });
+    expect(parseProfileHeritage(null)).toEqual({
+      parent: null,
+      exclude: [],
+      icon: null,
+      errors: [],
+    });
     expect(parseProfileHeritage({ extends: '  ', exclude: [null, '', { a: 1 }] })).toEqual({
       parent: null,
       exclude: [],
+      icon: null,
       errors: [],
     });
   });
@@ -414,6 +424,39 @@ describe('fieldDefinitionHint', () => {
     expect(fieldDefinitionHint(num, 3)).toBe('outsideValues');
   });
 
+  // 4T-1155 (Epic 3E-0219): der Typ-Ausbau in der weichen Validierung.
+  it('AK1: link und time werden als Typen erkannt', () => {
+    expect(fieldDefinitionHint(def({ type: 'link' }), '[[Meier 2024]]')).toBeNull();
+    expect(fieldDefinitionHint(def({ type: 'link' }), 'mehr\nzeilig')).toBe('typeMismatch');
+    expect(fieldDefinitionHint(def({ type: 'time' }), '09:30')).toBeNull();
+    expect(fieldDefinitionHint(def({ type: 'time' }), '23:59:59')).toBeNull();
+    expect(fieldDefinitionHint(def({ type: 'time' }), '24:00')).toBe('typeMismatch');
+    expect(fieldDefinitionHint(def({ type: 'time' }), 'morgens')).toBe('typeMismatch');
+  });
+
+  it('AK2: ein Mehrfach-Feld erwartet eine Liste, auch wenn sein Typ es nicht verrät', () => {
+    const mehrfach = def({ type: 'link', multiple: true });
+    expect(fieldDefinitionHint(mehrfach, ['[[A]]', '[[B]]'])).toBeNull();
+    expect(fieldDefinitionHint(mehrfach, '[[A]]')).toBe('typeMismatch');
+    expect(fieldDefinitionHint(mehrfach, ['[[A]]', 42])).toBe('typeMismatch');
+    // Dasselbe für die übrigen mehrfach-fähigen Typen.
+    expect(fieldDefinitionHint(def({ type: 'number', multiple: true }), [1, 2])).toBeNull();
+    expect(fieldDefinitionHint(def({ type: 'number', multiple: true }), 1)).toBe('typeMismatch');
+    expect(fieldDefinitionHint(def({ type: 'time', multiple: true }), ['09:30'])).toBeNull();
+  });
+
+  it('AK2: multistring prüft seine Liste weiterhin selbst — kein doppelter Durchlauf', () => {
+    const alt = def({ type: 'multistring', multiple: true });
+    expect(fieldDefinitionHint(alt, ['a', 'b'])).toBeNull();
+    expect(fieldDefinitionHint(alt, 'a')).toBe('typeMismatch');
+  });
+
+  it('AK2: der Wertebereich eines Mehrfach-Feldes gilt je Eintrag', () => {
+    const d = def({ type: 'link', multiple: true, values: ['[[A]]', '[[B]]'] });
+    expect(fieldDefinitionHint(d, ['[[A]]'])).toBeNull();
+    expect(fieldDefinitionHint(d, ['[[A]]', '[[C]]'])).toBe('outsideValues');
+  });
+
   it('Typ-Abweichung hat Vorrang vor dem Wertebereichs-Hinweis', () => {
     const d = def({ type: 'number', values: [1, 2] });
     expect(fieldDefinitionHint(d, 'eins')).toBe('typeMismatch');
@@ -593,5 +636,77 @@ describe('profileSuggestGroups (4T-0491)', () => {
     const { profileGroups, otherFields } = profileSuggestGroups([], [], HEUR);
     expect(profileGroups).toEqual([]);
     expect(otherFields.map((s) => s.name)).toEqual(['tags', 'title']);
+  });
+});
+
+// 4T-1156 (Epic 3E-0219): Leer-Wert einer ganzen Definition. Seit der
+// Entkopplung des Mehrfach-Modus genügt der Typ nicht mehr.
+describe('emptyValueForDefinition (4T-1156)', () => {
+  const def = (extra) => ({ name: 'f', type: 'string', values: null, multiple: false, ...extra });
+
+  it('folgt für Einzel-Felder dem Typ', () => {
+    expect(emptyValueForDefinition(def())).toBe('');
+    expect(emptyValueForDefinition(def({ type: 'number' }))).toBe(0);
+    expect(emptyValueForDefinition(def({ type: 'boolean' }))).toBe(false);
+    expect(emptyValueForDefinition(def({ type: 'link' }))).toBe('');
+    expect(emptyValueForDefinition(def({ type: 'time' }))).toBe('');
+  });
+
+  it('AK7: ein Mehrfach-Feld bekommt die leere Liste, gleich welchen Typ es trägt', () => {
+    expect(emptyValueForDefinition(def({ type: 'link', multiple: true }))).toEqual([]);
+    expect(emptyValueForDefinition(def({ type: 'number', multiple: true }))).toEqual([]);
+    expect(emptyValueForDefinition(def({ type: 'multistring', multiple: true }))).toEqual([]);
+  });
+
+  it('bleibt ohne Definition beim Leer-Text', () => {
+    expect(emptyValueForDefinition(null)).toBe('');
+  });
+});
+
+// 4T-1156: die Komplett-Übernahme nutzt denselben Leer-Wert.
+describe('buildProfileFillMap mit Mehrfach-Feldern (4T-1156)', () => {
+  it('legt für ein Verweis-Feld mit multiple die leere Liste an', () => {
+    const map = buildProfileFillMap(
+      [
+        { name: 'quelle', type: 'link', values: null, multiple: false, default: null },
+        { name: 'beteiligte', type: 'link', values: null, multiple: true, default: null },
+        { name: 'beginn', type: 'time', values: null, multiple: false, default: null },
+      ],
+      [],
+    );
+    expect(map).toEqual({ quelle: '', beteiligte: [], beginn: '' });
+  });
+
+  it('ein Default gewinnt weiterhin über den Leer-Wert', () => {
+    const map = buildProfileFillMap(
+      [{ name: 'beginn', type: 'time', values: null, multiple: false, default: '09:30' }],
+      [],
+    );
+    expect(map).toEqual({ beginn: '09:30' });
+  });
+});
+
+// 4T-1157 (Epic 3E-0219, E12): Hinweis zur QUELLE eines Wertevorrats — im
+// Unterschied zu fieldDefinitionHint, der den Wert betrifft.
+describe('valueSourceHint (4T-1157)', () => {
+  it('AK4: meldet emptySource, wenn eine Quelle gesetzt ist und der Vorrat leer bleibt', () => {
+    expect(valueSourceHint({ name: 'ort', values: null, valuesFrom: { note: 'W.md' } })).toBe(
+      'emptySource',
+    );
+    expect(valueSourceHint({ name: 'ort', values: [], valuesFrom: { query: 'FROM X' } })).toBe(
+      'emptySource',
+    );
+  });
+
+  it('schweigt, sobald die Quelle Werte geliefert hat', () => {
+    expect(
+      valueSourceHint({ name: 'ort', values: ['Berlin'], valuesFrom: { note: 'W.md' } }),
+    ).toBeNull();
+  });
+
+  it('schweigt bei einem Feld ohne Quelle — auch bei leerem Wertebereich', () => {
+    expect(valueSourceHint({ name: 'a', values: null })).toBeNull();
+    expect(valueSourceHint({ name: 'a', values: ['x'] })).toBeNull();
+    expect(valueSourceHint(null)).toBeNull();
   });
 });

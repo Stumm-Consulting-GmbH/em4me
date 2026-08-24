@@ -14,30 +14,29 @@
 // Datei-Inhalt ist freie Beschreibung. Profil-Name = Datei-Titel (Dateiname
 // ohne .md).
 //
-// Bereichsdatei-Sektion `propertyProfiles` (Area_Settings.mdda, Sektions-
-// Muster mit Fehler-Isolation; Vorbilder templates-/journals-Sektion):
-//   propertyProfiles: {
-//     folder         Profil-Ordner relativ zur Bereichs-Wurzel
-//     assignField    Zuordnungs-Feldname im Frontmatter (Default 'class')
-//     defaultProfile Profil-Name des Standard-Profils oder null
-//   }
+// Die Bereichsdatei-Sektion `propertyProfiles` liegt seit 4T-1159 in
+// property-profiles-config.js; von hier wird sie nur weitergereicht.
 //
 // Feld-Definition im Profil-Frontmatter (`fields`-Liste; erweitertes Format
-// 4T-1141/3E-0218 — der Feldname bleibt die einzige Pflichtangabe, jede
-// bestehende Profil-Datei bleibt unverändert gültig):
+// 4T-1141/3E-0218, Typ-Ausbau 4T-1155/3E-0219 — der Feldname bleibt die
+// einzige Pflichtangabe, jede bestehende Profil-Datei bleibt unverändert
+// gültig):
 //   { name       Feldname (Pflicht, eindeutig pro Definitions-Ebene)
 //     type       'string' | 'multistring' | 'number' | 'boolean' | 'date' |
-//                'multiline' (Default 'string'; 'multistring' bei multiple)
+//                'multiline' | 'link' | 'time' (Default 'string';
+//                'multistring' bei multiple ohne erklärten Typ)
 //     values     optional: fester Wertebereich (Werte-Liste)
 //     valuesFrom optional: Quelle des Wertevorrats { note, query } — wird
-//                gelesen und geführt, die Auswertung folgt in Stufe 2 (E12);
+//                gelesen und geführt, ausgewertet wird sie in 4T-1157/1158;
 //                schließt values aus (values gewinnt, Hinweis)
-//     multiple   optional: Mehrfach-Auswahl (effektiver Typ 'multistring');
-//                vom festen Wertebereich entkoppelt (E11), die Typ-Regel
-//                multistring bleibt bis zum Typ-Ausbau der Stufe 2
+//     multiple   optional: mehrere Werte. Seit 4T-1155 für jeden Typ außer
+//                boolean und multiline; nur beim historischen Paar
+//                string/multistring wechselt dabei der Typ-Name, sonst
+//                trägt die Vielzahl allein dieses Flag
 //     default    optional: Vorbelegung beim Anlegen über den Editor
-//     options    optional: typ-eigene Angaben als Unterobjekt (E9) — wird
-//                geführt, in dieser Stufe wertet kein Typ eine Option aus
+//     options    optional: typ-eigene Angaben als Unterobjekt (E9); seit
+//                4T-1155 je Typ geprüft, Katalog in
+//                property-profiles-options.js
 //     fields     optional: verschachtelte Kind-Definitionen, rekursiv nach
 //                demselben Schema (Objekt-Typen bedient erst Stufe 4);
 //                Kind-Definitionen und ihre Hinweise tragen `path` (die
@@ -46,7 +45,7 @@
 // Die neuen Angaben erscheinen nur dann am Definitions-Objekt, wenn die
 // Profil-Datei sie trägt: Die belegten Bestands-Formen liefern exakt
 // dieselben Objekte wie vor der Erweiterung (Rückwärts-Verträglichkeit,
-// tragende Auflage der Stufe 1).
+// tragende Auflage über alle vier Stufen).
 //
 // Profil-Ebene der Vererbung (4T-1142/3E-0218, E2): Der Metadaten-Block
 // einer Profil-Datei kann neben `fields` die Angaben `extends` (höchstens
@@ -64,30 +63,47 @@
 // und Renderer (Editoren, Einstellungen) laden dieselbe Kette.
 'use strict';
 
-// Die sechs editierbaren Eigenschafts-Typen — bewusst identisch zu
+// 4T-1155 (Epic 3E-0219): der Katalog typ-eigener Angaben und ihre Prüfung
+// liegen in einem eigenen Blatt-Modul; hier wird nur je Definition gefragt.
+const { normalizeOptions } = require('./property-profiles-options.js');
+// 4T-1159 (Epic 3E-0219): Die Bereichs-Sektion liegt seit den Bindungen im
+// eigenen Modul; das Format-Modul reicht sie nur noch weiter (die Fassade
+// bleibt damit der eine Ort, an dem alle Verbraucher laden).
+const { DEFAULT_ASSIGN_FIELD, normalizeProfilesConfig } = require('./property-profiles-config.js');
+
+// Die editierbaren Eigenschafts-Typen — bewusst deckungsgleich mit
 // PROPERTY_TYPES des Properties-Editors ohne den internen 'readonly'-
 // Fallback (der ist Inferenz-Ergebnis verschachtelter YAML-Strukturen,
 // keine definierbare Vorgabe).
-const PROFILE_FIELD_TYPES = ['string', 'multistring', 'number', 'boolean', 'date', 'multiline'];
+// 4T-1155 (Epic 3E-0219, E11): um `link` (Verweis auf eine Datei) und `time`
+// (Uhrzeit) erweitert. Die beiden Objekt-Typen bleiben Stufe 4 vorbehalten;
+// ihre Kind-Definitionen trägt das Format seit 4T-1141 bereits.
+const PROFILE_FIELD_TYPES = [
+  'string',
+  'multistring',
+  'number',
+  'boolean',
+  'date',
+  'multiline',
+  'link',
+  'time',
+];
 
-// Default des Zuordnungs-Feldnamens (belegtes Nutzungs-Muster des PO,
-// Referenz-Analyse Metadata_Menu.md §4: Alias `Class`).
-const DEFAULT_ASSIGN_FIELD = 'class';
+// 4T-1155: Typen ohne sinnvolle Mehrfach-Darstellung. Seit der Entkopplung
+// des Mehrfach-Modus vom festen Wertebereich (E11) gilt `multiple` für jeden
+// anderen Typ; nur diese beiden bleiben der Hinweis-Fall multipleType —
+// ein Wahrheitswert hat seine zwei Werte per Konstruktion, ein mehrzeiliger
+// Text ist Freitext.
+const MULTIPLE_INCAPABLE_TYPES = ['boolean', 'multiline'];
+
+// 4T-1155: Uhrzeit im 24-Stunden-Format, Sekunden optional. Gegenstück zur
+// ISO-Prüfung des Datums; ein Zeit-Wert steht im Metadaten-Block in
+// Anführungszeichen, weil YAML `09:30` sonst als Sexagesimal-Zahl liest
+// (Konzept 6.12).
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 
 function cleanString(v) {
   return typeof v === 'string' ? v.trim() : '';
-}
-
-// Normalisiert die propertyProfiles-Sektion auf { folder, assignField,
-// defaultProfile } oder null (keine Konfiguration). Tolerant: defekte oder
-// fehlende Teile fallen auf null bzw. den Default, nie auf einen Wurf.
-function normalizeProfilesConfig(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const folder = cleanString(value.folder) || null;
-  const assignRaw = cleanString(value.assignField);
-  const defaultProfile = cleanString(value.defaultProfile) || null;
-  if (folder === null && assignRaw === '' && defaultProfile === null) return null;
-  return { folder, assignField: assignRaw || DEFAULT_ASSIGN_FIELD, defaultProfile };
 }
 
 // Skalar -> getrimmter String; null bei Nicht-Skalaren (verschachtelte
@@ -140,23 +156,33 @@ function normalizeDefault(raw, type) {
   if (type === 'boolean') {
     return typeof raw === 'boolean' ? { ok: true, value: raw } : { ok: false };
   }
-  // string, date, multiline: String-Skalar; date zusätzlich im ISO-Format
-  // (ein Nicht-Datum als Datums-Default wäre im Editor nicht darstellbar).
+  // string, date, multiline, link, time: String-Skalar; date zusätzlich im
+  // ISO-Format und time im 24-Stunden-Format (ein nicht darstellbarer Wert
+  // wäre im Editor nicht als Vorgabe verwendbar). Ein Verweis-Default bleibt
+  // ungeprüfter Text: Die Schreibweise eines Ziels ist freie Nutzer-Eingabe,
+  // und ein nicht auflösbares Ziel ist eine Frage des Bedienelements, keine
+  // des Formats (4T-1155).
   const s = scalarToString(raw);
   if (s === null) return { ok: false };
   if (type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(s)) return { ok: false };
+  if (type === 'time' && !TIME_RE.test(s)) return { ok: false };
   return { ok: true, value: s };
 }
 
 // 4T-1141 (Epic 3E-0218): typ-eigene Angaben (`options`, E9). Muss ein
-// einfaches Objekt sein; der Inhalt wird flach kopiert und unbewertet
-// geführt — welche Schlüssel je Typ gelten, definiert erst der Typ-Ausbau.
-// null = nicht bildbar (Hinweis beim Aufrufer, das Feld bleibt).
-function normalizeOptions(raw) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-  return { ...raw };
-}
-
+// einfaches Objekt sein.
+//
+// 4T-1155 (Epic 3E-0219): Der Inhalt wird nicht mehr blind kopiert, sondern
+// je erklärtem Typ gegen den Katalog unten geprüft. Die weiche Linie bleibt
+// dabei unverändert und wird ausdrücklich NICHT verschärft: Eine unbekannte
+// oder unpassend belegte Option entfällt einzeln, das Feld bleibt wirksam,
+// und die übrigen Optionen desselben Objekts bleiben es auch. Damit darf
+// eine Profil-Datei, die für eine spätere Stufe geschrieben wurde, heute
+// schon dastehen, ohne Schaden anzurichten.
+//
+// Ein Prüfer liefert den normalisierten Wert oder null (= Wert nicht
+// bildbar, Hinweis-Code optionValue); `expected` ist die maschinen-lesbare
+// Erwartung für die Meldung.
 // 4T-1141 (Epic 3E-0218): Quelle des Wertevorrats (`valuesFrom`, E12).
 // Trägt `note` (Pfad einer Werte-Notiz) und/oder `query` (Abfrage-Text);
 // beides wird gelesen, nicht ausgewertet (das Lesen der Quellen ist Stufe 2).
@@ -183,7 +209,12 @@ const HINT_META = {
   name: { key: 'name', expected: null },
   duplicate: { key: 'name', expected: null },
   type: { key: 'type', expected: null }, // expected: der zulässige Typ-Satz
-  multipleType: { key: 'multiple', expected: 'multistring' },
+  // 4T-1155: seit der Entkopplung des Mehrfach-Modus nennt die Erwartung
+  // nicht mehr einen Ziel-Typ, sondern die mehrfach-fähigen Typen; die
+  // Prüfstelle setzt sie beim Melden.
+  multipleType: { key: 'multiple', expected: null },
+  optionUnknown: { key: 'options', expected: null }, // expected: die zulässigen Schlüssel
+  optionValue: { key: 'options', expected: null }, // expected: die erwartete Form
   values: { key: 'values', expected: 'list' },
   default: { key: 'default', expected: null }, // expected: der erklärte Typ
   defaultOutsideValues: { key: 'default', expected: null }, // expected: der Wertebereich
@@ -194,6 +225,8 @@ const HINT_META = {
   extendsMultiple: { key: 'extends', expected: 'single' },
   extendsMissing: { key: 'extends', expected: null },
   extendsCycle: { key: 'extends', expected: null },
+  // 4T-1161: Symbol-Angabe eines Profils (genau ein Graphem).
+  icon: { key: 'icon', expected: 'single-grapheme' },
 };
 
 // Baut einen Hinweis in der einheitlichen Gestalt { code, index, name, key,
@@ -222,13 +255,17 @@ function buildHint(code, index, name, expected) {
 //   name                   Feldname fehlt oder ist leer
 //   duplicate              Feldname doppelt (case-insensitiv, je Ebene)
 //   type                   unbekannter Typ
-//   multipleType           multiple mit explizitem Nicht-multistring-Typ
+//   multipleType           multiple an einem Typ ohne Mehrfach-Darstellung
 //   values                 Werte-Liste nicht bildbar (kein Array, leer nach
 //                          Normalisierung oder Typ ohne Wertebereich)
 //   default                Default passt nicht zum Typ (nur Default entfällt)
 //   defaultOutsideValues   Default außerhalb des Wertebereichs (bleibt —
 //                          weiche Haltung, Hinweis für die Profil-Pflege)
 //   options                Options-Objekt nicht bildbar (entfällt, Feld bleibt)
+//   optionUnknown          Options-Schlüssel am erklärten Typ nicht vorgesehen
+//                          (entfällt einzeln, Feld und übrige Optionen bleiben)
+//   optionValue            Options-Schlüssel vorgesehen, Wert nicht bildbar
+//                          (entfällt einzeln; auch der Fall min über max)
 //   valuesFrom             Quelle nicht bildbar (entfällt, Feld bleibt)
 //   valuesFromConflict     values und valuesFrom zugleich (values gilt,
 //                          valuesFrom entfällt)
@@ -258,14 +295,24 @@ function parseDefinitionList(rawList, path, errors) {
     let type = declaredType || (multiple ? 'multistring' : 'string');
     if (!PROFILE_FIELD_TYPES.includes(type)) return fail('type', name, PROFILE_FIELD_TYPES);
 
-    // multiple ist vom festen Wertebereich entkoppelt (E11, 4T-1141); die
-    // Typ-Regel bleibt, bis der Typ-Ausbau der Stufe 2 weitere Typen mit
-    // Mehrfach-Darstellung bringt (PO-Bestätigung vom 2026-08-23).
+    // 4T-1155 (E11): Der Mehrfach-Modus gilt jetzt für jeden Typ, bei dem
+    // mehrere Werte sinnvoll sind — die Typ-Regel aus 4T-1141 ist damit
+    // aufgelöst. Nur `boolean` und `multiline` bleiben der Hinweis-Fall.
+    //
+    // Das historische Paar string/multistring bleibt erhalten: Ein
+    // Mehrfach-Textfeld heißt weiterhin `multistring`, damit jede bestehende
+    // Profil-Datei und jeder Verbraucher unverändert gültig bleiben. Bei
+    // allen anderen Typen trägt die Vielzahl das Flag, nicht der Typ-Name —
+    // ein Verweis-Feld mit mehreren Zielen bleibt `link` mit multiple.
     const hasValues = entry.values !== undefined && entry.values !== null;
-    if (multiple && declaredType !== '' && declaredType !== 'multistring') {
-      return fail('multipleType', name);
+    if (multiple && MULTIPLE_INCAPABLE_TYPES.includes(type)) {
+      return fail(
+        'multipleType',
+        name,
+        PROFILE_FIELD_TYPES.filter((t) => !MULTIPLE_INCAPABLE_TYPES.includes(t)),
+      );
     }
-    if (multiple) type = 'multistring';
+    if (multiple && (type === 'string' || type === 'multistring')) type = 'multistring';
 
     let values = null;
     if (hasValues) {
@@ -298,10 +345,24 @@ function parseDefinitionList(rawList, path, errors) {
     const def = { name, type, values, multiple: effectiveMultiple, default: defaultValue };
     if (path.length > 0) def.path = path;
 
+    // 4T-1155: Ein Feld hat einen Wertevorrat, wenn eine feste Liste oder
+    // eine brauchbare Quelle dasteht; davon hängt ab, ob die Optionen der
+    // Auswahl gelten. Vorgezogen berechnet, weil die Options-Prüfung sie
+    // braucht und der valuesFrom-Block weiter unten steht — die Reihenfolge
+    // der Hinweise bleibt dadurch unverändert.
+    const valuesFromNorm =
+      !hasValues && entry.valuesFrom !== undefined && entry.valuesFrom !== null
+        ? normalizeValuesFrom(entry.valuesFrom)
+        : null;
+    const hasValueSource = values !== null || valuesFromNorm !== null;
+
     if (entry.options !== undefined && entry.options !== null) {
-      const options = normalizeOptions(entry.options);
-      if (options === null) fail('options', name);
-      else def.options = options;
+      const geprueft = normalizeOptions(entry.options, type, hasValueSource);
+      if (geprueft === null) fail('options', name);
+      else {
+        for (const hint of geprueft.hints) fail(hint.code, name, hint.expected);
+        def.options = geprueft.options;
+      }
     }
 
     if (entry.valuesFrom !== undefined && entry.valuesFrom !== null) {
@@ -309,10 +370,10 @@ function parseDefinitionList(rawList, path, errors) {
         // Widerspruch: fester Wertebereich und Quelle zugleich — values
         // gewinnt, die Quelle entfällt mit Hinweis (Konzept 6.12).
         fail('valuesFromConflict', name);
+      } else if (valuesFromNorm === null) {
+        fail('valuesFrom', name);
       } else {
-        const valuesFrom = normalizeValuesFrom(entry.valuesFrom);
-        if (valuesFrom === null) fail('valuesFrom', name);
-        else def.valuesFrom = valuesFrom;
+        def.valuesFrom = valuesFromNorm;
       }
     }
 
@@ -345,10 +406,37 @@ function parseProfileFields(data) {
 // der erste Eintrag). `exclude` nennt Feldnamen, die aus der geerbten Kette
 // nicht übernommen werden (Skalar oder Liste; nicht verwertbare Einträge
 // entfallen still, wie in einer Werte-Liste). Hinweis-Texte: 4T-1143.
+// 4T-1161 (Epic 3E-0219, E5): Symbol-Angabe eines Profils normalisieren.
+// Genau EIN Graphem; alles andere entfällt mit Hinweis, das Profil bleibt
+// wirksam (weiche Linie). `Intl.Segmenter` zählt Graphem-Cluster und liegt
+// damit richtig bei Emoji aus mehreren Code-Punkten; ohne die Schnittstelle
+// (sehr alte Laufzeit) zählt der Code-Punkt-Fallback, der im schlimmsten
+// Fall ein zusammengesetztes Emoji abweist statt eines durchzulassen.
+function grapheme(s) {
+  if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+    return [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s)].length;
+  }
+  return [...s].length;
+}
+
+function normalizeIcon(raw, errors) {
+  if (raw === undefined || raw === null) return null;
+  const s = cleanString(raw);
+  if (s === '') return null;
+  if (grapheme(s) !== 1) {
+    errors.push(buildHint('icon', -1, null));
+    return null;
+  }
+  return s;
+}
+
 function parseProfileHeritage(data) {
   const errors = [];
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return { parent: null, exclude: [], errors };
+    // 4T-1161: dieselbe Objekt-Form wie der normale Weg — ein früher
+    // Ausstieg, der eine andere Gestalt liefert, ist eine Falle für jeden
+    // Verbraucher, der die Schlüssel-Menge liest.
+    return { parent: null, exclude: [], icon: null, errors };
   }
   let parent = null;
   const rawExtends = data.extends;
@@ -372,7 +460,17 @@ function parseProfileHeritage(data) {
   const rawExclude = data.exclude;
   if (Array.isArray(rawExclude)) rawExclude.forEach(pushExclude);
   else if (rawExclude !== undefined && rawExclude !== null) pushExclude(rawExclude);
-  return { parent, exclude, errors };
+  // 4T-1161 (Epic 3E-0219, E5): Symbol des Profils (`icon`). Ein freies
+  // Zeichen und keine ID aus dem internen Icon-Satz — der ist auf Kommandos
+  // zugeschnitten und führt für Dokument-Arten wie Person, Sitzung oder Buch
+  // keine Entsprechung (PO-Entscheidung vom 2026-08-23, gekennzeichnete
+  // Abweichung von «Vorhandenes wiederverwenden»).
+  //
+  // Geprüft wird die Länge in **Graphemen**, nicht in Code-Einheiten: Ein
+  // Emoji mit Variantenselektor oder Hautton besteht aus mehreren
+  // Code-Punkten und wäre nach `length` fälschlich zu lang.
+  const icon = normalizeIcon(data.icon, errors);
+  return { parent, exclude, icon, errors };
 }
 
 module.exports = {

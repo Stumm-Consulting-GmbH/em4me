@@ -539,3 +539,77 @@
   font-size: 0.75em;
   font-style: italic;
 }
+
+/* 4T-1156 (Epic 3E-0219): Bedienelemente der neuen Feld-Typen. Beide
+   Eigenschafts-Panels teilen sie sich, wie schon die Bestands-Klassen. */
+.properties-field-link {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.properties-field-link-input {
+  flex: 1;
+  min-width: 0;
+}
+/* Existenz-Markierung: ein Hinweis am Feld, keine Blockade (weiche Linie,
+   PO-Entscheidung 3). Sichtbar nur, wenn das Ziel nachweislich fehlt. */
+.properties-field-link-missing {
+  color: var(--warn, #e0a030);
+  font-size: 12px;
+  line-height: 1;
+  cursor: help;
+}
+.properties-field-link-open {
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.properties-field-link-open:hover {
+  color: var(--fg);
+}
+/* Zyklus: sieht aus wie ein Wert, nicht wie ein Knopf — er trägt den Wert
+   und schaltet ihn beim Klick weiter. */
+.properties-field-value-cycle {
+  width: 100%;
+  text-align: left;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 5px;
+  min-height: 22px;
+}
+.properties-field-value-cycle:hover:not(:disabled) {
+  border-color: var(--accent, var(--fg-muted));
+}
+.properties-field-value-cycle:disabled {
+  cursor: default;
+  color: var(--fg-muted);
+}
+
+/* 4T-1161 (Epic 3E-0219, E5): Symbol des aufgeloesten Profils der
+   Eigenschaften-Sektion. Es traegt seine Erklaerung im Tooltip; ohne Profil
+   oder ohne Symbol ist es verborgen.
+   4T-1164: Es sitzt im Koerper der Sektion statt in ihrem Kopf, weil der Kopf
+   in einer Reiter-Gruppe ausgeblendet wird. Rechtsbuendig ueber den Feldern,
+   also an derselben Stelle, an der es im Kopf stand. Die eigene
+   [hidden]-Regel ist noetig, weil `display: block` das UA-Verhalten von
+   `hidden` sonst ueberschriebe. */
+.properties-profile-badge {
+  display: block;
+  text-align: right;
+  padding: 0 14px 4px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: help;
+  user-select: none;
+}
+.properties-profile-badge[hidden] {
+  display: none;
+}

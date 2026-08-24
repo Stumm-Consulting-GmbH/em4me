@@ -31,6 +31,10 @@ const query = require('./index/query.js');
 const queryData = require('./index/query-data.js');
 const embed = require('./index/embed.js');
 const views = require('./index/views.js');
+// 4T-1156 (Epic 3E-0219): Ziel-Sicht der Verweis-Felder, neben den Views.
+const verweisZiele = require('./index/profil-verweis-ziele.js');
+// 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Abfrage.
+const wertevorrat = require('./index/profil-wertevorrat.js');
 
 module.exports = {
   attachBroadcast: store.attachBroadcast,
@@ -85,4 +89,16 @@ module.exports = {
   wikiLinkAutocompleteSuggestions: views.wikiLinkAutocompleteSuggestions,
   anchorAutocompleteSuggestions: views.anchorAutocompleteSuggestions,
   tagAutocompleteSuggestions: views.tagAutocompleteSuggestions,
+  // 4T-1156 (Epic 3E-0219): Ziel-Liste eines Verweis-Feldes der
+  // Eigenschafts-Profile (eigene Sicht, siehe profil-verweis-ziele.js).
+  verweisZiele: verweisZiele.verweisZiele,
+  // 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Abfrage, auf Verlangen
+  // ausgewertet und gegen den Index-Stand zwischengespeichert.
+  werteAusAbfrage: wertevorrat.werteAusAbfrage,
+  auswertungsZaehler: wertevorrat.auswertungsZaehler,
+  zwischenspeicherLeeren: wertevorrat.zwischenspeicherLeeren,
+  // 4T-1158: Änderungs-Stand einer Wurzel — die Bezugsgröße, gegen die
+  // Zwischenspeicher gültig bleiben. Hier durchgereicht, damit Verbraucher
+  // und Prüfungen dieselbe Modul-Instanz sehen wie die Sichten selbst.
+  indexStand: store.indexStand,
 };

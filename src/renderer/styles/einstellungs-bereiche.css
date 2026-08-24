@@ -618,3 +618,31 @@
   border-color: #ea868f;
   color: #ea868f;
 }
+
+/* 4T-1160 (Epic 3E-0219): Bindungs-Liste der Zuordnungs-Wege. Vier Spalten
+   je Zeile: Profil, Schlagworte, Ordner samt Wähler, Entfernen. */
+.settings-profil-bindungen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 8px;
+}
+.settings-profil-bindung {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(90px, 1.2fr) minmax(120px, 1.6fr) auto;
+  gap: 4px;
+  align-items: center;
+}
+/* Kopfzeile: dieselben Spalten, nur als Beschriftung. */
+.settings-profil-bindung-kopf {
+  font-size: 11px;
+  color: var(--fg-muted);
+  padding-right: 2px;
+}
+.settings-profil-bindung select.is-missing,
+.settings-profil-bindung option.is-missing {
+  color: var(--warn, #e0a030);
+}
+.settings-profil-bindung-entfernen {
+  padding: 2px 6px;
+}

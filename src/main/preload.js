@@ -761,14 +761,14 @@ contextBridge.exposeInMainWorld('api', {
   // Der globale Baum liegt im Store; ein Schreibvorgang in einem Fenster meldet
   // 'bookmarksTree:changed' (Payload = der neue Baum) an die uebrigen Fenster.
   onBookmarksTreeChanged: (cb) => ipcRenderer.on('bookmarksTree:changed', (_e, value) => cb(value)),
-  // 4T-0447 (Epic 3E-0083): aufgeloeste Definitions-Liste fuer eine Datei.
-  // assigned = Zuordnungs-Werte aus dem Live-Frontmatter (Vorrang), path =
-  // Disk-Fallback ohne assigned.
+  // Eigenschafts-Profile (3E-0083: 4T-0447/4T-0450; 3E-0219: 4T-1156/4T-1158):
+  // Definitions-Liste (assigned = Live-Frontmatter vor path = Disk-Fallback),
+  // Profil-Liste, Ordner-Auswahl, Verweis-Ziele, Wertevorrat aus einer Abfrage.
   profilesResolve: (params) => ipcRenderer.invoke('profiles:resolve', params),
-  // 4T-0450 (Epic 3E-0083): Profil-Liste und Ordner-Auswahl des
-  // Einstellungs-Bereichs.
   profilesList: () => ipcRenderer.invoke('profiles:list'),
   profilesChooseFolder: () => ipcRenderer.invoke('profiles:chooseFolder'),
+  profilesLinkTargets: (params) => ipcRenderer.invoke('profiles:linkTargets', params),
+  profilesFieldValues: (params) => ipcRenderer.invoke('profiles:fieldValues', params),
   // 4T-0339 (Epic 3E-0061): Datei umbenennen plus Nachzug-Broadcast an alle
   // Fenster (Tabs, Lesezeichen, Sitzungs-Pfade).
   onMenuRenameFile: (cb) => ipcRenderer.on('menu:renameFile', () => cb()),

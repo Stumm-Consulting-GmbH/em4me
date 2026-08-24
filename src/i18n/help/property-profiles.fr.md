@@ -27,19 +27,60 @@ Attributs par définition :
 | Attribut | Signification |
 | --- | --- |
 | `name` | nom du champ (obligatoire, unique par profil) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date` ou `multiline` ; `string` par défaut |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (lien vers un fichier) ou `time` (heure) ; `string` par défaut |
 | `values` | facultatif : plage de valeurs fixe sous forme de liste (pour `string`, `multistring`, `number` et `date`) |
-| `multiple` | facultatif : choix multiple — la valeur est une liste, le type `multistring` ; une plage de valeurs fixe n'est plus requise |
+| `multiple` | facultatif : plusieurs valeurs — la valeur est une liste. Vaut pour tout type sauf `boolean` et `multiline` ; seul le champ texte change alors de type pour `multistring`, sinon le nom du type demeure (un champ de lien avec plusieurs cibles est `link` avec `multiple`) |
 | `default` | facultatif : préremplissage lors de la création du champ via l'éditeur |
 | `valuesFrom` | facultatif : source du réservoir de valeurs avec `note` (chemin d'une note de valeurs) et/ou `query` (requête) ; avec `values` en même temps, `values` s'applique |
-| `options` | facultatif : indications propres au type dans un sous-objet, prévu pour des types à venir |
+| `options` | facultatif : indications propres au type dans un sous-objet, voir le tableau ci-dessous |
 | `fields` | facultatif : définitions enfants imbriquées selon le même schéma, prévu pour les types structurés |
 
 Un champ `multistring` avec `values` est automatiquement un choix multiple. **Le nom du champ est la seule indication obligatoire** : toute autre indication est facultative, et les fichiers de profil existants restent valables sans modification. `valuesFrom`, `options` et les `fields` imbriqués font déjà partie du format mais ne sont pas encore évalués dans cette version (section « Limites »). Les définitions individuelles défectueuses (par exemple un type inconnu ou un nom de champ en double) ne suspendent qu'elles-mêmes ; les autres définitions du profil restent effectives. La liste des profils dans les paramètres affiche les indications en toutes lettres sous le profil concerné — avec la définition touchée, l'indication fautive et ce qui était attendu à sa place, pour les définitions enfants avec le chemin vers le champ parent — et ouvre le fichier de profil d'un clic.
 
+### Options propres au type
+
+Le sous-objet `options` porte les indications qui ne valent que pour un type donné :
+
+| Type | Indication | Signification |
+| --- | --- | --- |
+| `number` | `step`, `min`, `max` | pas et limites du champ numérique |
+| `date` | `shift` | décalage en jours ; il pré-remplit un champ **vide** au premier clic, une date existante reste intacte |
+| `link` | `restrictTo`, `display`, `sort` | chemin de dossier (ou liste) auquel les suggestions sont limitées ; champ de métadonnées de la cible comme nom affiché ; ordre `name` ou `path` |
+| champ de choix | `control: cycle` | le choix simple devient un bouton qui passe à la valeur suivante au clic ; la valeur enregistrée reste la même que sans l'option |
+
+Une indication inconnue ou mal renseignée est ignorée individuellement avec une remarque ; le champ et les autres indications restent effectifs. Une option prévue pour un type ultérieur peut donc déjà figurer sans causer de dommage.
+
+## Réservoirs de valeurs
+
+Le réservoir de valeurs autorisé d'un champ de choix a trois sources possibles : la liste fixe `values`, une **note de valeurs** ou une **requête**. `values` et `valuesFrom` s'excluent mutuellement ; si les deux figurent, `values` s'applique et la liste des profils dans les paramètres signale la contradiction.
+
+```yaml
+---
+fields:
+  - name: lieu
+    valuesFrom:
+      note: 90 Organisation/Valeurs/Lieux.md
+  - name: projet
+    type: link
+    valuesFrom:
+      query: WHERE genre = "projet"
+---
+```
+
+Une **note de valeurs** est une note ordinaire avec une valeur par ligne ; son chemin est relatif à l'espace. Les lignes vides et les espaces de bord sont écartés, un bloc de métadonnées de la note ne fait pas partie du réservoir. Elle est actualisée comme un fichier de profil : une modification prend effet sans redémarrage, même venue de l'extérieur. Le réservoir devient ainsi un contenu ordinaire que l'on peut lier, commenter et transmettre.
+
+Une **requête** fournit les valeurs depuis le fonds — les noms de ses résultats. Elle n'est évaluée que lorsqu'un champ a réellement besoin de ses valeurs, et est mémorisée jusqu'à la prochaine modification du fonds ; rien n'est calculé à l'avance sur l'ensemble. Un document sans champ de requête ne coûte donc aucune évaluation.
+
+Si une source manque, est vide ou n'est pas évaluable, le **champ reste utilisable** : le réservoir est vide, une indication apparaît au champ, et des valeurs libres restent possibles comme partout.
+
 ## Association et profil standard
 
 Les documents s'associent via un champ de frontmatter ; le nom du champ est configurable par zone (par défaut `class`). La valeur est un nom de profil ou une liste de plusieurs noms de profils :
+
+Un document trouve en outre son profil par une **étiquette** ou son **dossier**, sans qu'un champ d'association doive y figurer. Ces affectations appartiennent à l'espace et se règlent sous Paramètres → Profils de propriétés : une ligne par profil, avec ses étiquettes et ses chemins de dossier.
+
+- **Étiquette** : elle compte aussi bien depuis le bloc de métadonnées (`tags`) que depuis le texte (`#étiquette`) — pour l'association, une étiquette est une étiquette. Une modification non enregistrée prend effet immédiatement elle aussi.
+- **Dossier** : un chemin lié inclut ses sous-dossiers, afin qu'une subdivision ultérieure n'ait pas à être maintenue. Le chemin relatif à l'espace est comparé sur des noms de dossier entiers ; « 10 Projets Archive » ne tombe donc pas sous « 10 Projets ».
 
 ```yaml
 ---
@@ -77,13 +118,38 @@ Un cycle dans la relation parent ou un profil parent inexistant ne termine que l
 
 ## Règles de conflit
 
-Pour un fichier, c'est l'union de toutes les définitions des profils associés avec leurs chaînes de parents plus le profil standard avec sa chaîne qui s'applique. La résolution est **une** suite ordonnée : par profil associé, dans l'ordre de nomination, d'abord ses propres champs, puis ceux de sa chaîne de parents de bas en haut, ensuite la même chose pour le profil standard ; chaque profil est traité exactement une fois. Si plusieurs profils définissent le même nom de champ, les règles sont déterministes :
+Pour un fichier s'applique la réunion de toutes les définitions de tous les profils qui l'atteignent. La résolution est **une** seule séquence ordonnée en quatre étapes, de l'énoncé le plus explicite au plus général :
 
-1. Un **profil associé** l'emporte sur le **profil standard**.
-2. Parmi plusieurs profils associés, celui nommé **en premier** dans la liste d'association l'emporte.
-3. Au sein d'une chaîne, le **profil héritier** l'emporte sur ses parents ; un champ propre remplace ainsi le champ hérité du même nom.
+1. le **champ d'association** du document, dans l'ordre de mention
+2. une **étiquette** du document
+3. le **dossier** du document
+4. le **profil standard** de l'espace
+
+Par profil atteint viennent d'abord ses propres champs, puis ceux de sa chaîne parente de bas en haut ; chaque profil est traité exactement une fois, toutes étapes confondues. Si plusieurs profils définissent le même nom de champ, les règles sont déterministes :
+
+1. La **première correspondance de la séquence** l'emporte — une voie plus haute bat toute voie plus basse.
+2. Parmi plusieurs profils d'une même étape, celui **mentionné en premier** l'emporte (liste d'association ou ordre des affectations).
+3. Au sein d'une chaîne, le **profil héritier** l'emporte sur ses parents ; un champ propre remplace ainsi le champ hérité de même nom.
+
+Les voies **se complètent, elles ne se remplacent pas** : un document avec un champ d'association et un dossier correspondant porte les champs des deux. Une voie qui pointe vers un profil déjà atteint n'ajoute rien — cela découle de « chaque profil exactement une fois » et ne nécessite aucune règle propre. Et une contradiction entre étiquette et dossier n'en est pas une : l'ordre décide, il n'y a ni question ni avertissement.
 
 Un exemple avec quatre profils : `tous` (champ `tags`), `projet` (hérite de `tous` ; champs `phase`, `statut`), `article` (hérite de `projet`, exclut `statut` ; champs propres `phase`, `auteur`) et `réunion` (champs `statut`, `lieu`). Un document avec `class: [article, réunion]` et le profil standard `tous` reçoit `phase` et `auteur` de `article`, `tags` via la chaîne depuis `tous`, `statut` et `lieu` de `réunion` — l'exclusion dans `article` n'agit que dans sa chaîne ; via `réunion`, `statut` arrive tout de même.
+
+## Symbole du profil sur le document
+
+Un profil peut porter un **symbole** — un caractère unique, généralement un émoji, dans le bloc de métadonnées du fichier de profil :
+
+```yaml
+---
+icon: 📅
+fields:
+  - name: lieu
+---
+```
+
+L'en-tête de la section Propriétés affiche le symbole du profil résolu en **premier** pour le document ; l'infobulle en nomme le nom et l'étape par laquelle il a été trouvé. C'est là le véritable but : dès que l'étiquette et le dossier ont voix au chapitre, un document peut porter des champs dont rien n'est dit en lui — le symbole répond alors au pourquoi.
+
+Sans profil ou sans symbole, rien n'apparaît ; aucun espace réservé n'est créé. Une indication de plus d'un caractère est ignorée avec une remarque, le profil reste effectif.
 
 ## Effet dans les éditeurs
 
@@ -92,6 +158,8 @@ Les définitions agissent dans l'éditeur de propriétés et de manière identiq
 - **Suggestions de champs** : « Ajouter une propriété » montre d'abord les champs définis non encore présents (avec le nom du profil comme badge), puis les suggestions habituelles ; « Champ personnalisé » à la fin reste la voie libre. La sélection crée le champ avec le type défini et la valeur par défaut.
 - **Listes de sélection** : les champs avec plage de valeurs proposent les valeurs définies sous forme de liste de sélection (choix simple) ou de suggestions de saisie de la barre de pastilles (choix multiple) ; « Valeur personnalisée… » permet toujours une saisie libre.
 - **Type imposé** : les champs définis affichent le type défini, le sélecteur de type est verrouillé et nomme le profil. Si la valeur existante s'écarte du type, le sélecteur reste libre afin que la valeur puisse être convertie vers le type défini.
+- Les **champs de lien** proposent les cibles de l'espace en complétion, signalent une cible inexistante et l'ouvrent via la flèche — le même chemin qu'un clic sur un lien wiki. Avec `multiple`, ils portent plusieurs cibles dans la barre de puces.
+- Les **champs d'heure** utilisent le contrôle d'heure ; la valeur figure entre guillemets dans le bloc de métadonnées, car `09:30` serait sinon lu comme un nombre.
 - Les champs définis portent un marquage discret au nom du champ ; l'infobulle nomme le profil.
 
 ## Reprise de tous les champs en une fois
@@ -116,3 +184,4 @@ Les écarts ne bloquent jamais et ne modifient jamais la valeur : une valeur en 
 - Renommer un fichier de profil ne change pas les valeurs d'association dans les documents ; elles pointent alors vers un profil inexistant (les paramètres signalent un profil standard manquant).
 - Les profils se trouvent directement dans le dossier de profils ; les sous-dossiers ne sont pas pris en compte.
 - Les définitions agissent dans les deux éditeurs de propriétés ; les types de champs calculés ou dérivés d'autres fichiers ne font pas partie des profils.
+- La liaison d'un profil à un groupe de signets et l'association par une requête sont volontairement différées ; étiquette et dossier couvrent les cas documentés et restent explicables.

@@ -77,6 +77,14 @@
                 <h2 class="sidebar-section-title" data-i18n="properties.title">Properties</h2>
               </header>
               <div class="sidebar-section-body">
+                <!-- 4T-1161 (Epic 3E-0219, E5): Symbol des aufgeloesten Profils.
+                     Ohne Profil oder ohne Symbol bleibt es leer und verborgen.
+                     4T-1164: Es steht im KOERPER und nicht im Sektions-Kopf. In einer
+                     Reiter-Gruppe ersetzt die Reiterleiste den Kopf und blendet ihn per
+                     CSS aus (.sidebar-section.in-tab-group > .sidebar-section-header);
+                     im Kopf waere das Symbol dort unsichtbar, und genau so ist es beim
+                     Abnahme-Test von 1.116.0 aufgefallen. -->
+                <span class="properties-profile-badge" hidden></span>
                 <div class="properties-empty" hidden data-i18n="properties.empty">
                   Keine Properties in diesem Dokument
                 </div>
@@ -585,6 +593,14 @@
                 <h2 class="sidebar-section-title" data-i18n="properties.title">Properties</h2>
               </header>
               <div class="sidebar-section-body">
+                <!-- 4T-1161 (Epic 3E-0219, E5): Symbol des aufgeloesten Profils.
+                     Ohne Profil oder ohne Symbol bleibt es leer und verborgen.
+                     4T-1164: Es steht im KOERPER und nicht im Sektions-Kopf. In einer
+                     Reiter-Gruppe ersetzt die Reiterleiste den Kopf und blendet ihn per
+                     CSS aus (.sidebar-section.in-tab-group > .sidebar-section-header);
+                     im Kopf waere das Symbol dort unsichtbar, und genau so ist es beim
+                     Abnahme-Test von 1.116.0 aufgefallen. -->
+                <span class="properties-profile-badge" hidden></span>
                 <div class="properties-empty" hidden data-i18n="properties.empty">
                   Keine Properties in diesem Dokument
                 </div>

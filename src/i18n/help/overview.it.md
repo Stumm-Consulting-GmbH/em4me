@@ -37,7 +37,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 ## Metadati, dati e query
 
 - [Frontmatter e proprietà](frontmatter.md) — metadati YAML e barra Proprietà.
-- [Profili di proprietà](property-profiles.md) — definizioni di campi centralizzate con tipo, insieme di valori e valore predefinito: file di profilo, assegnazione e profilo standard, ereditarietà tra profili, effetto in entrambi gli editor delle proprietà.
+- [Profili di proprietà](property-profiles.md) — definizioni di campi centralizzate con tipo, insieme di valori e valore predefinito: file di profilo, assegnazione per campo, etichetta e cartella, profilo standard, ereditarietà tra profili, repertori di valori da nota e query, simbolo del profilo sul documento, effetto in entrambi gli editor delle proprietà.
 - [Proprietà del blocco](block-properties.md) — proprietà tipizzate per ancora di blocco: pannello che segue il cursore, dati orfani, ridenominazione delle ancore, indicatore sul blocco.
 - [Query Perspective](frontmatter-query.md) — elenchi e tabelle di file dinamici: linguaggio a clausole, fonti, campi del file, funzioni, ordinamento, multicolonna, esportazione.
 - [Perspective Datatable](datatable.md) — tabella dati tipizzata con funzioni di calcolo: tipi di colonna, aggregati, colonne calcolate, modifica in griglia, ordinamento e filtro.

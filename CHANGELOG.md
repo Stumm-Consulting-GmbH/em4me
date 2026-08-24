@@ -14,6 +14,72 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.116.0.1769] - 2026-08-24 — Metadaten-Modell Stufe 2: Typen, Wertevorräte und Zuordnung
+
+Epic 3E-0219: Die zweite der vier Umsetzungs-Stufen und die, die den Ausbau für
+Anwender spürbar macht. Der Typ-Satz wächst um Verweis und Uhrzeit und trägt
+typ-eigene Optionen, Wertevorräte folgen dem Bestand statt von Hand gepflegt zu
+werden, und Dokumente finden ihr Profil auch über Schlagwort und Ordner —
+sichtbar gemacht durch das Profil-Symbol. Was Stufe 1 im Format angelegt hat,
+wird damit bedient; erfunden wurde nichts hinzu. Die Rückwärts-Verträglichkeit
+bleibt tragende Auflage: Der Feldname ist weiterhin die einzige Pflichtangabe,
+und ohne Bindungen ändert sich für kein Dokument etwas.
+
+Umsetzungs-Vorgänge des Epics: 4T-1155, 4T-1156, 4T-1157, 4T-1158, 4T-1159,
+4T-1160, 4T-1161; Hilfe- und Handbuch-Vorgang 4T-1162, Release-Vorgang 4T-1163,
+Nachbesserung aus der Test-Iteration 4T-1164 (das Profil-Symbol saß im Kopf der
+Eigenschaften-Sektion und war damit unsichtbar, sobald das Panel mit einem
+anderen in einer Reiter-Gruppe liegt; es steht jetzt im Körper der Sektion).
+Der Fehler entstand und verschwand innerhalb dieser Stufe, war also nie
+ausgeliefert und bekommt deshalb keinen eigenen Anwender-Text.
+
+### Neu
+
+- **Zuordnung über Schlagwort und Ordner** (4T-1159, 4T-1160): Ein Dokument
+  findet sein Profil zusätzlich über ein Schlagwort oder seinen Ordner, ohne
+  dass in ihm ein Zuordnungs-Feld stehen muss. Die Bindungen werden je Bereich
+  unter Einstellungen → Eigenschafts-Profile eingerichtet; ein gebundener
+  Ordner schließt seine Unterordner ein, und verglichen wird an ganzen
+  Ordner-Namen. Ein Schlagwort zählt gleichermaßen aus dem Metadaten-Block und
+  aus dem Text, auch ungespeichert. Die Auflösung bleibt **eine** geordnete
+  Folge, jetzt vierstufig: Zuordnungs-Feld, Schlagwort, Ordner,
+  Standard-Profil. Die Wege ergänzen einander, bei gleichem Feldnamen gilt der
+  erste Treffer, und ein Weg auf ein bereits erreichtes Profil fügt nichts
+  hinzu.
+- **Wertevorräte aus Notiz und Abfrage** (4T-1157, 4T-1158): Der zulässige
+  Wertevorrat eines Auswahl-Feldes kommt wahlweise aus der festen Liste, aus
+  einer gewöhnlichen Notiz mit einem Wert je Zeile oder aus einer Abfrage über
+  den Bestand. Eine Werte-Notiz wird wie eine Profil-Datei nachgezogen und
+  wirkt ohne Neustart, auch bei Änderungen von außen. Eine Abfrage wird erst
+  ausgewertet, wenn ein Feld ihren Vorrat braucht, und gegen den Stand des
+  Bereichs-Index gemerkt; vorab über den Gesamtbestand wird nichts gerechnet.
+  Fehlt eine Quelle, bleibt das Feld bedienbar, der Vorrat ist leer, und ein
+  Hinweis steht am Feld.
+- **Neue Feld-Typen und typ-eigene Optionen** (4T-1155, 4T-1156): Der Typ-Satz
+  trägt `link` (Verweis auf eine Datei, mit Vervollständigung, Existenz-Prüfung
+  und Klick-Pfad) und `time` (Uhrzeit). Zahl, Datum, Verweis und Auswahl tragen
+  Optionen im Unterobjekt `options`: `step`, `min`, `max`, `shift`,
+  `restrictTo`, `display`, `sort` und die Bedien-Option `control: cycle`, die
+  eine Einfach-Auswahl als durchschaltbaren Wert führt, ohne den gespeicherten
+  Wert zu ändern. Der Mehrfach-Modus gilt jetzt für jeden Typ, bei dem mehrere
+  Werte sinnvoll sind; nur `boolean` und `multiline` bleiben ausgenommen. Alle
+  neuen Typen und Optionen wirken in beiden Eigenschafts-Editoren gleich.
+- **Profil-Symbol am Dokument** (4T-1161): Ein Profil kann mit `icon` ein
+  Zeichen führen; der Kopf der Eigenschaften-Sektion zeigt das Symbol des
+  zuerst aufgelösten Profils, und der Tooltip nennt Profil und Fund-Stufe.
+  Damit bleibt ablesbar, warum ein Dokument seine Felder hat, auch wenn in ihm
+  selbst nichts davon steht. Ohne Profil oder ohne Symbol erscheint nichts.
+
+### Geändert
+
+- Die Profil-Liste der Einstellungen meldet zwei weitere Fälle ausgeschrieben:
+  eine unbekannte und eine unpassend belegte Options-Angabe. Beide entfallen
+  einzeln; Feld und übrige Angaben bleiben wirksam (4T-1155).
+- Der Hinweis am Feld nennt jetzt auch den Fall, dass eine Wertevorrats-Quelle
+  gesetzt ist, aber nichts liefert (4T-1157).
+- Funktions-Katalog und Handbuch-Seite «Eigenschafts-Profile» sind um die
+  Stufe erweitert, in allen fünf Sprachfassungen (4T-1162).
+
 ## [1.115.0.1749] - 2026-08-23 — Metadaten-Modell Stufe 1: Format, Vererbung und Diagnose
 
 Epic 3E-0218: Erste der vier Umsetzungs-Stufen des Metadaten-Modells. Das

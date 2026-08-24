@@ -15,8 +15,23 @@ import {
   profileDefFor,
   renderTypeFor,
 } from './properties-types.js';
+// 4T-1156: Öffnen eines Verweis-Ziels über den Wiki-Link-Weg.
+import { activateLink } from '../views/link-navigation.js';
 import { BLOCK_PROP_TYPES, keyDatalistId } from './block-props-context.js';
 import { extractRowValue, scheduleSaveBlockProps } from './block-props-save.js';
+// 4T-1156 (Epic 3E-0219): dieselben Bau-Funktionen wie im Dokument-Panel —
+// die Parität der neuen Typen hängt damit an einer Quelle statt an zwei
+// gleichlautenden Kopien (Konzept 7.3).
+import {
+  applyDateOptions,
+  applyNumberOptions,
+  attachLinkSuggestions,
+  attachQueryValues,
+  hatAuswahl,
+  renderCycleField,
+  renderLinkField,
+  renderTimeField,
+} from './properties-neue-typen.js';
 
 export function refreshKeyDatalist(paneIdx, els, data) {
   let dl = els.blockPropsSection.querySelector(`#${keyDatalistId(paneIdx)}`);
@@ -150,6 +165,15 @@ export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null) {
 // Eingaben (Mehrfach-Auswahl) im Block-Panel.
 let blockValueListSeq = 0;
 
+// 4T-1156: Pfad der aktiven Datei einer Spalte — Suchraum der
+// Ziel-Vorschläge eines Verweis-Feldes. Blöcke erben die Datei-Auflösung
+// (PO-Entscheidung 4), also auch ihren Suchraum.
+function aktiverPfad(paneIdx) {
+  const pane = state.panes[paneIdx];
+  const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  return tab && tab.path ? tab.path : null;
+}
+
 // 4T-0449: Einfach-Auswahl eines Wertebereichs-Felds im Block-Panel —
 // gleiche Semantik wie im Properties-Editor (eigene Option für einen Wert
 // außerhalb, „Eigener Wert…" wechselt in den Freitext-Editor); der Save
@@ -162,7 +186,8 @@ function renderBlockValueSelect(container, def, value, paneIdx) {
   emptyOpt.value = '';
   emptyOpt.textContent = '—';
   select.appendChild(emptyOpt);
-  const known = def.values.map((v) => String(v));
+  // 4T-1158: Ein Feld mit Abfrage-Quelle kommt ohne feste Werte hierher.
+  const known = (Array.isArray(def.values) ? def.values : []).map((v) => String(v));
   for (const v of known) {
     const opt = document.createElement('option');
     opt.value = v;
@@ -195,8 +220,36 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
   // 4T-0449: Wertebereichs-Felder (nur editierbar; read-only bleibt der
   // deaktivierte Freitext-Editor).
   const def = opts.def || null;
-  if (def && !readOnly && Array.isArray(def.values) && def.values.length > 0 && !def.multiple) {
+  if (!readOnly && hatAuswahl(def) && !def.multiple) {
+    // 4T-1156 (E11): Zyklus als Bedien-Option derselben Einfach-Auswahl.
+    if (def.options && def.options.control === 'cycle') {
+      renderCycleField(container, def, value, {
+        readOnly,
+        onChange: () => scheduleSaveBlockProps(paneIdx),
+      });
+      return;
+    }
     renderBlockValueSelect(container, def, value, paneIdx);
+    // 4T-1158: Werte aus einer Abfrage kommen nach (auf Verlangen).
+    const select = container.querySelector('select.properties-field-value-select');
+    if (select) attachQueryValues(select, { def, filePath: aktiverPfad(paneIdx) });
+    return;
+  }
+  // 4T-1156: Verweis im Einzel-Modus; der Mehrfach-Modus läuft über die
+  // Chips-Leiste weiter unten.
+  if (type === 'link' && !(def && def.multiple)) {
+    renderLinkField(container, value, {
+      def,
+      readOnly,
+      filePath: aktiverPfad(paneIdx),
+      // Gleicher Öffnen-Weg wie im Dokument-Panel; als Parameter und nicht
+      // als Import des Bau-Moduls (Import-Wächter, siehe dort).
+      onOpen: (name) => void activateLink(paneIdx, name, true),
+    });
+    return;
+  }
+  if (type === 'time') {
+    renderTimeField(container, value, { readOnly });
     return;
   }
   if (type === 'string' || type === 'date') {
@@ -205,6 +258,7 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
     input.className = 'properties-field-value-input';
     input.value = typeof value === 'string' ? value : value == null ? '' : String(value);
     input.disabled = readOnly;
+    if (type === 'date') applyDateOptions(input, def); // 4T-1156: shift
     container.appendChild(input);
     return;
   }
@@ -222,6 +276,7 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
     input.className = 'properties-field-value-input';
     input.value = typeof value === 'number' ? String(value) : value == null ? '' : String(value);
     input.disabled = readOnly;
+    applyNumberOptions(input, def); // 4T-1156: step, min, max
     container.appendChild(input);
     return;
   }
@@ -236,7 +291,9 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
     container.appendChild(bwrap);
     return;
   }
-  if (type === 'multistring') {
+  // 4T-1156 (E11): Chips-Leiste für JEDES Mehrfach-Feld, nicht nur für das
+  // historische 'multistring' — gleiche Regel wie im Dokument-Panel.
+  if (type === 'multistring' || (def && def.multiple === true)) {
     const list = document.createElement('div');
     list.className = 'properties-field-multistring';
     const arr = Array.isArray(value) ? value : value ? [String(value)] : [];
@@ -277,6 +334,25 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
           if (e.inputType && e.inputType !== 'insertReplacementText') return;
           const v = input.value.trim();
           if (v && allowed.includes(v) && addChip(v)) scheduleSaveBlockProps(paneIdx);
+        });
+      }
+      // 4T-1158: Mehrfach-Auswahl mit Abfrage-Quelle — Werte kommen nach.
+      if (def && def.multiple && def.valuesFrom && def.valuesFrom.query) {
+        attachQueryValues(list, { def, filePath: aktiverPfad(paneIdx), input });
+        input.addEventListener('input', (e) => {
+          if (e.inputType && e.inputType !== 'insertReplacementText') return;
+          const v = input.value.trim();
+          if (v && addChip(v)) scheduleSaveBlockProps(paneIdx);
+        });
+      }
+      // 4T-1156: Verweis-Feld im Mehrfach-Modus — Ziel-Vorschläge statt
+      // Werte-Vorschläge, Übernahme nach demselben Muster.
+      if (type === 'link') {
+        attachLinkSuggestions(list, input, { def, filePath: aktiverPfad(paneIdx) });
+        input.addEventListener('input', (e) => {
+          if (e.inputType && e.inputType !== 'insertReplacementText') return;
+          const v = input.value.trim();
+          if (v && addChip(v)) scheduleSaveBlockProps(paneIdx);
         });
       }
       input.addEventListener('keydown', (e) => {

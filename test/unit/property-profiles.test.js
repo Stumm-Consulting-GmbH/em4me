@@ -64,7 +64,7 @@ describe('parseProfileFields — gültige Definitionen', () => {
     expect(parseProfileFields({ fields: [] })).toEqual({ fields: [], errors: [] });
   });
 
-  it('alle sechs Typen sind definierbar', () => {
+  it('jeder Typ des Satzes ist definierbar', () => {
     const { fields, errors } = parseProfileFields({
       fields: PROFILE_FIELD_TYPES.map((type, i) => ({ name: `f${i}`, type })),
     });
@@ -160,7 +160,9 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
         { name: 'ok1' }, // duplicate (case-insensitiv folgt unten)
         { name: 'OK1' }, // duplicate
         { name: 'x', type: 'lookup' }, // unbekannter Typ
-        { name: 'z', type: 'number', values: ['A', 'B'], multiple: true }, // multipleType
+        // 4T-1155: multipleType trifft seit der Entkopplung nur noch die
+        // Typen ohne Mehrfach-Darstellung; `number` mit multiple ist gültig.
+        { name: 'z', type: 'boolean', multiple: true }, // multipleType
         { name: 'v1', values: 'offen' }, // values kein Array
         { name: 'v2', type: 'boolean', values: [true] }, // Typ ohne Wertebereich
         { name: 'v3', type: 'number', values: ['drei'] }, // leer nach Normalisierung
@@ -364,11 +366,25 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
     });
   });
 
-  it('AK4: die Typ-Regel bleibt — multiple mit Nicht-multistring-Typ ist weiter ein Fehler', () => {
-    const { errors } = parseProfileFields({
-      fields: [{ name: 'x', type: 'number', multiple: true }],
-    });
-    expect(errors.map((e) => e.code)).toEqual(['multipleType']);
+  // 4T-1155 löst die frühere Fassung dieses Falls ab: Bis Stufe 1 war
+  // `multiple` an jedem Nicht-multistring-Typ ein Fehler; mit dem Typ-Ausbau
+  // gilt es für jeden Typ, bei dem mehrere Werte sinnvoll sind (E11).
+  it('AK4: multiple an einem Typ ohne Mehrfach-Darstellung bleibt ein Fehler', () => {
+    for (const type of ['boolean', 'multiline']) {
+      const { fields, errors } = parseProfileFields({
+        fields: [{ name: 'x', type, multiple: true }],
+      });
+      expect(fields).toEqual([]);
+      expect(errors.map((e) => e.code)).toEqual(['multipleType']);
+      expect(errors[0].expected).toEqual([
+        'string',
+        'multistring',
+        'number',
+        'date',
+        'link',
+        'time',
+      ]);
+    }
   });
 
   it('AK8: Ränder — leeres options, leere Kind-Liste, valuesFrom ohne Unter-Angabe', () => {
@@ -395,7 +411,10 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
           name: 'projekt',
           multiple: true,
           valuesFrom: { query: 'FROM Projekte' },
-          options: { sort: 'name' },
+          // 4T-1155: `control` statt `sort` — die Optionen werden jetzt je
+          // Typ geprüft, und `sort` gehört zum Verweis-Typ. An einem Feld mit
+          // Wertevorrat ist `control` die zulässige Angabe.
+          options: { control: 'cycle' },
           fields: [{ name: 'rolle' }],
           default: ['intern'],
         },
@@ -405,7 +424,7 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
     expect(fields[0].multiple).toBe(true);
     expect(fields[0].type).toBe('multistring');
     expect(fields[0].valuesFrom).toEqual({ note: null, query: 'FROM Projekte' });
-    expect(fields[0].options).toEqual({ sort: 'name' });
+    expect(fields[0].options).toEqual({ control: 'cycle' });
     expect(fields[0].fields[0].name).toBe('rolle');
     expect(fields[0].default).toEqual(['intern']);
   });
@@ -474,5 +493,269 @@ describe('Hinweis-Datensatz mit Angabe und Erwartung (4T-1143)', () => {
         path: ['eltern'],
       },
     ]);
+  });
+});
+
+// --- 4T-1155 (Epic 3E-0219, E11): Typ-Ausbau und typ-eigene Optionen -------
+// Der Typ-Satz wächst um Verweis und Uhrzeit, der Mehrfach-Modus gilt für
+// jeden Typ mit sinnvoller Mehrfach-Darstellung, und die Options-Angaben
+// werden je Typ geprüft statt blind durchgereicht.
+describe('parseProfileFields — Typ-Ausbau und typ-eigene Optionen (4T-1155)', () => {
+  it('AK1: link und time sind erklärbar und erscheinen unverändert im Ergebnis', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'quelle', type: 'link' },
+        { name: 'beginn', type: 'time' },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0]).toEqual({
+      name: 'quelle',
+      type: 'link',
+      values: null,
+      multiple: false,
+      default: null,
+    });
+    expect(fields[1].type).toBe('time');
+  });
+
+  it('AK2: multiple an link bleibt link — die Vielzahl trägt das Flag', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'beteiligte', type: 'link', multiple: true }],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].type).toBe('link');
+    expect(fields[0].multiple).toBe(true);
+  });
+
+  it('AK2: das historische Paar string/multistring bleibt unberührt', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'a', multiple: true }, // ohne Typ: multistring wie bisher
+        { name: 'b', type: 'string', multiple: true }, // bis Stufe 1 ein Fehler
+        { name: 'c', type: 'multistring', multiple: true },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields.map((f) => f.type)).toEqual(['multistring', 'multistring', 'multistring']);
+  });
+
+  it('AK2: multiple gilt auch für number, date und time', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'werte', type: 'number', multiple: true },
+        { name: 'termine', type: 'date', multiple: true },
+        { name: 'zeiten', type: 'time', multiple: true },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields.map((f) => f.type)).toEqual(['number', 'date', 'time']);
+    expect(fields.every((f) => f.multiple === true)).toBe(true);
+  });
+
+  it('AK3: die typ-eigenen Optionen werden je Typ geführt', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'budget', type: 'number', options: { step: 100, min: 0, max: 100000 } },
+        { name: 'faellig', type: 'date', options: { shift: 7 } },
+        {
+          name: 'quelle',
+          type: 'link',
+          options: { restrictTo: '10 Projekte', display: 'titel', sort: 'name' },
+        },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].options).toEqual({ step: 100, min: 0, max: 100000 });
+    expect(fields[1].options).toEqual({ shift: 7 });
+    expect(fields[2].options).toEqual({
+      restrictTo: ['10 Projekte'],
+      display: 'titel',
+      sort: 'name',
+    });
+  });
+
+  it('AK3: restrictTo nimmt einen Pfad oder eine Pfad-Liste', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'a', type: 'link', options: { restrictTo: ['10 Projekte', ' 20 Kunden '] } },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].options.restrictTo).toEqual(['10 Projekte', '20 Kunden']);
+  });
+
+  it('AK4: control gilt am Feld mit Wertevorrat, aus fester Liste wie aus Quelle', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'status', values: ['offen', 'fertig'], options: { control: 'cycle' } },
+        { name: 'ort', valuesFrom: { note: 'Werte/Orte.md' }, options: { control: 'cycle' } },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].options).toEqual({ control: 'cycle' });
+    expect(fields[1].options).toEqual({ control: 'cycle' });
+    // Der Wertebereich und der gespeicherte Wert bleiben unberührt: die
+    // Option ist eine Bedien-Angabe und kein Typ (Konzept 6.8).
+    expect(fields[0].values).toEqual(['offen', 'fertig']);
+    expect(fields[0].type).toBe('string');
+  });
+
+  it('AK5: eine unbekannte Option entfällt einzeln, Feld und übrige Optionen bleiben', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'budget', type: 'number', options: { step: 10, farbe: 'rot' } }],
+    });
+    expect(fields[0].name).toBe('budget');
+    expect(fields[0].options).toEqual({ step: 10 });
+    expect(errors).toEqual([
+      {
+        code: 'optionUnknown',
+        index: 0,
+        name: 'budget',
+        key: 'options',
+        expected: ['step', 'min', 'max'],
+      },
+    ]);
+  });
+
+  it('AK5: control ohne Wertevorrat ist unbekannt — die Option gehört zur Auswahl', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'frei', options: { control: 'cycle' } }],
+    });
+    expect(fields[0].options).toEqual({});
+    expect(errors.map((e) => e.code)).toEqual(['optionUnknown']);
+  });
+
+  it('AK6: eine unpassend belegte Option entfällt einzeln', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'a', type: 'number', options: { step: 'viel', min: 0 } },
+        { name: 'b', type: 'date', options: { shift: 1.5 } },
+        { name: 'c', type: 'link', options: { sort: 'groesse' } },
+        { name: 'd', type: 'link', options: { restrictTo: [''] } },
+      ],
+    });
+    expect(fields.map((f) => f.name)).toEqual(['a', 'b', 'c', 'd']);
+    expect(fields[0].options).toEqual({ min: 0 });
+    expect(fields[1].options).toEqual({});
+    expect(fields[2].options).toEqual({});
+    expect(fields[3].options).toEqual({});
+    expect(errors.map((e) => e.code)).toEqual([
+      'optionValue',
+      'optionValue',
+      'optionValue',
+      'optionValue',
+    ]);
+    expect(errors[0].expected).toBe('number');
+    expect(errors[2].expected).toEqual(['name', 'path']);
+  });
+
+  it('AK6: min über max lässt die obere Grenze entfallen, das Feld bleibt bedienbar', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'budget', type: 'number', options: { min: 100, max: 10, step: 5 } }],
+    });
+    expect(fields[0].options).toEqual({ min: 100, step: 5 });
+    expect(errors).toEqual([
+      {
+        code: 'optionValue',
+        index: 0,
+        name: 'budget',
+        key: 'options',
+        expected: 'max-not-below-min',
+      },
+    ]);
+  });
+
+  it('AK8: ein Datum bleibt ein Datums-Wert; die ISO-Prüfung des Defaults gilt unverändert', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'gut', type: 'date', default: '2026-09-01' },
+        { name: 'verweis', type: 'date', default: '[[2026-09-01]]' },
+      ],
+    });
+    expect(fields[0].default).toBe('2026-09-01');
+    expect(fields[1].default).toBeNull();
+    expect(errors.map((e) => e.code)).toEqual(['default']);
+  });
+
+  it('AK8: ein Zeit-Default wird gegen das 24-Stunden-Format geprüft', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'a', type: 'time', default: '09:30' },
+        { name: 'b', type: 'time', default: '23:59:59' },
+        { name: 'c', type: 'time', default: '24:00' },
+        { name: 'd', type: 'time', default: 'morgens' },
+      ],
+    });
+    expect(fields.map((f) => f.default)).toEqual(['09:30', '23:59:59', null, null]);
+    expect(errors.map((e) => e.code)).toEqual(['default', 'default']);
+  });
+
+  it('AK8: ein Verweis-Default bleibt ungeprüfter Text', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [{ name: 'quelle', type: 'link', default: '[[Meier 2024]]' }],
+    });
+    expect(errors).toEqual([]);
+    expect(fields[0].default).toBe('[[Meier 2024]]');
+  });
+
+  it('AK10: Optionen an einem Typ ohne eigene entfallen; das leere Objekt bleibt sichtbar', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'a', type: 'boolean', options: { step: 1 } },
+        { name: 'b', options: {} },
+      ],
+    });
+    expect(fields[0].options).toEqual({});
+    expect(fields[1].options).toEqual({});
+    expect(errors.map((e) => e.code)).toEqual(['optionUnknown']);
+    expect(errors[0].expected).toEqual([]);
+  });
+
+  it('AK10: ein Options-Hinweis einer Kind-Definition trägt ihren Pfad', () => {
+    const { errors } = parseProfileFields({
+      fields: [
+        {
+          name: 'teilnehmer',
+          fields: [{ name: 'rolle', type: 'number', options: { sort: 'name' } }],
+        },
+      ],
+    });
+    expect(errors).toEqual([
+      {
+        code: 'optionUnknown',
+        index: 0,
+        name: 'rolle',
+        key: 'options',
+        expected: ['step', 'min', 'max'],
+        path: ['teilnehmer'],
+      },
+    ]);
+  });
+
+  it('AK9: die belegten Bestands-Formen liefern weiterhin exakt dieselben Objekte', () => {
+    const { fields, errors } = parseProfileFields({
+      fields: [
+        { name: 'Titel' },
+        { name: 'Status', values: ['offen', 'fertig'] },
+        { name: 'Tags', type: 'multistring', values: ['a', 'b'] },
+        { name: 'Fällig', type: 'date', default: '2026-01-01' },
+      ],
+    });
+    expect(errors).toEqual([]);
+    expect(fields).toEqual([
+      { name: 'Titel', type: 'string', values: null, multiple: false, default: null },
+      {
+        name: 'Status',
+        type: 'string',
+        values: ['offen', 'fertig'],
+        multiple: false,
+        default: null,
+      },
+      { name: 'Tags', type: 'multistring', values: ['a', 'b'], multiple: true, default: null },
+      { name: 'Fällig', type: 'date', values: null, multiple: false, default: '2026-01-01' },
+    ]);
+    // Keine der neuen Angaben taucht ungefragt am Objekt auf.
+    expect(fields.every((f) => !('options' in f) && !('valuesFrom' in f))).toBe(true);
   });
 });

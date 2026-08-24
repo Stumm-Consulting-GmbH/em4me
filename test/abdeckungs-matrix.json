@@ -332,6 +332,29 @@
       "hinweis": "4T-1142 (Epic 3E-0218): Vererbung zwischen Profilen — extends/exclude auf Profil-Ebene, Aufloesung als eine geordnete Folge (die drei Konstellationen des Konzepts), Zyklus- und Fehlt-Hinweise am Profil; E2E ueber PP-11 (Vererbungs-Hinweis in der Profil-Liste) und die Profil-Saetze der uebrigen PP-Faelle."
     },
     {
+      "key": "help.feature.profileValueSources",
+      "id": "F-267",
+      "testart": "unit",
+      "tests": [
+        "test/unit/profile-catalog.test.js",
+        "test/unit/profil-wertevorrat.test.js",
+        "test/unit/property-profiles-aufloesung.test.js"
+      ],
+      "hinweis": "4T-1157 und 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Notiz und aus einer Abfrage. Die Notiz-Quelle laeuft ueber den zweiten Eingang des mtime-Abgleichs im Profil-Katalog (Aenderung ohne Neustart, Bereichs-Grenze am Lese-Zaehler belegt); die Abfrage-Quelle wird auf Verlangen ausgewertet und gegen den Index-Stand gepuffert. Testart unit, weil die tragende Zusage die BEGRENZUNG ist: Gezaehlt werden Auswertungen und Datei-Zugriffe, was E2E nicht leisten kann."
+    },
+    {
+      "key": "help.feature.profileBindings",
+      "id": "F-268",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/property-profiles-zuordnung.test.js",
+        "test/unit/renderer/settings-profil-bindungen.test.js",
+        "test/unit/renderer/eigenschaften-neue-typen.test.js",
+        "test/e2e/regression/4t-1164.spec.js"
+      ],
+      "hinweis": "4T-1159 bis 4T-1161 (Epic 3E-0219): Zuordnung ueber Schlagwort und Ordner in der vierstufigen Folge, ihr Einstellungs-Bereich und das Profil-Symbol am Dokument. Die drei Konstellationen des Konzepts (Kapitel 6.13) haben je einen Pruffall, dazu die Praefix-Falle des Ordner-Vergleichs und der Gate-Nachweis; fuer die Zuordnungs-Logik liegt die Zusage in Reihenfolgen an konstruierten Dokument-Lagen, also unit. 4T-1164 ergaenzt den E2E-Fall PP-12: Die Zusage des SYMBOLS ist eine Sichtbarkeit, und die kann keine Unit-Pruefung tragen. Der Abnahme-Befund vom 2026-08-24 belegt es: Das Symbol war in jeder Reiter-Anordnung unsichtbar, waehrend alle Unit-Faelle gruen blieben, weil sie Quelltext lasen statt zu rendern."
+    },
+    {
       "key": "help.feature.profileBulkFill",
       "id": "F-121",
       "testart": "e2e",

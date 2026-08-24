@@ -8,7 +8,7 @@ import {
   createProfileCatalogCache,
   loadProfileCatalog,
 } from '../../src/main/documents/profile-catalog.js';
-import { resolveProfileFields } from '../../src/shared/property-profiles.js';
+import { resolveProfileFields, fieldDefinitionHint } from '../../src/shared/property-profiles.js';
 
 const FOLDER = path.resolve('C:/Bereich/Profile');
 
@@ -200,5 +200,279 @@ describe('loadProfileCatalog', () => {
     const gelesene = fsp.readFile.mock.calls.map(([abs]) => path.basename(abs));
     expect(gelesene.filter((n) => n === 'Basis.md')).toHaveLength(2);
     expect(gelesene.filter((n) => n === 'Kind.md')).toHaveLength(1);
+  });
+});
+
+// --- 4T-1157 (Epic 3E-0219, E12): Wertevorrat aus einer Notiz -------------
+// Der zweite Eingang am Änderungs-Abgleich: eine Werte-Notiz ist eine
+// zweite Datei, die denselben mtime- und Größen-Vergleich durchläuft wie
+// eine Profil-Datei.
+describe('Wertevorrat aus einer Notiz (4T-1157)', () => {
+  const AREA = path.resolve('C:/Bereich');
+
+  // Eigener Fake über VOLLE Pfade (nicht über Basenames wie oben): Werte-
+  // Notizen liegen außerhalb des Profil-Ordners, und die Bereichs-Grenze
+  // lässt sich nur am ganzen Pfad prüfen.
+  function fsMitNotizen(profile, notizen) {
+    const alle = new Map();
+    for (const [name, eintrag] of profile) {
+      alle.set(path.resolve(FOLDER, name).toLowerCase(), eintrag);
+    }
+    for (const [rel, eintrag] of notizen) {
+      alle.set(path.resolve(AREA, rel).toLowerCase(), eintrag);
+    }
+    const readFile = vi.fn(async (abs) => {
+      const e = alle.get(path.resolve(abs).toLowerCase());
+      if (!e) throw new Error('ENOENT');
+      return e.content;
+    });
+    const stat = vi.fn(async (abs) => {
+      const e = alle.get(path.resolve(abs).toLowerCase());
+      if (!e) throw new Error('ENOENT');
+      return { mtimeMs: e.mtimeMs, size: e.size };
+    });
+    return {
+      readdir: async (dir) => {
+        if (path.resolve(dir).toLowerCase() !== FOLDER.toLowerCase()) throw new Error('ENOENT');
+        return [...profile.keys()].map((name) => ({ name, isFile: () => true }));
+      },
+      stat,
+      readFile,
+      _readFile: readFile,
+      _alle: alle,
+    };
+  }
+
+  const MIT_NOTIZ = `---
+fields:
+  - name: ort
+    valuesFrom:
+      note: Werte/Orte.md
+---
+`;
+
+  function lauf(profilInhalt, notizen, cache) {
+    const profile = new Map([['Sitzung.md', { mtimeMs: 1, size: 10, content: profilInhalt }]]);
+    const fsp = fsMitNotizen(profile, notizen);
+    return { fsp, cache: cache || createProfileCatalogCache() };
+  }
+
+  it('AK1/AK2: liest einen Wert je Zeile in den Wertevorrat', async () => {
+    const { fsp, cache } = lauf(
+      MIT_NOTIZ,
+      new Map([['Werte/Orte.md', { mtimeMs: 1, size: 20, content: 'Berlin\nHamburg\nKöln\n' }]]),
+    );
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache,
+      areaRoot: AREA,
+    });
+    expect(profiles[0].fields[0].values).toEqual(['Berlin', 'Hamburg', 'Köln']);
+    // Die Quelle bleibt am Feld stehen — der Unterschied zur festen Liste
+    // geht nicht verloren.
+    expect(profiles[0].fields[0].valuesFrom).toEqual({ note: 'Werte/Orte.md', query: null });
+  });
+
+  it('AK3: Leerzeilen, Randleerraum, Doppelte und ein Metadaten-Block entfallen', async () => {
+    const { fsp, cache } = lauf(
+      MIT_NOTIZ,
+      new Map([
+        [
+          'Werte/Orte.md',
+          {
+            mtimeMs: 1,
+            size: 40,
+            content: '---\ntitel: Orte\n---\n  Berlin  \n\nHamburg\nBerlin\n\n',
+          },
+        ],
+      ]),
+    );
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache,
+      areaRoot: AREA,
+    });
+    expect(profiles[0].fields[0].values).toEqual(['Berlin', 'Hamburg']);
+  });
+
+  it('AK2: eine Änderung an der Notiz wirkt ohne Neustart, unveränderte Dateien werden nicht neu gelesen', async () => {
+    const cache = createProfileCatalogCache();
+    const notizen = new Map([['Werte/Orte.md', { mtimeMs: 1, size: 20, content: 'Berlin\n' }]]);
+    const profile = new Map([['Sitzung.md', { mtimeMs: 1, size: 10, content: MIT_NOTIZ }]]);
+    const fsp = fsMitNotizen(profile, notizen);
+
+    const erst = await loadProfileCatalog({ folderAbs: FOLDER, fsp, cache, areaRoot: AREA });
+    expect(erst.profiles[0].fields[0].values).toEqual(['Berlin']);
+    const nachErstlauf = fsp._readFile.mock.calls.length;
+
+    // Zweiter Lauf ohne Änderung: kein erneutes Lesen (der Abgleich greift
+    // für die Notiz genauso wie für die Profil-Datei).
+    await loadProfileCatalog({ folderAbs: FOLDER, fsp, cache, areaRoot: AREA });
+    expect(fsp._readFile.mock.calls.length).toBe(nachErstlauf);
+
+    // Änderung von außen: mtime und Größe wandern, der Vorrat zieht nach.
+    const eintrag = fsp._alle.get(path.resolve(AREA, 'Werte/Orte.md').toLowerCase());
+    eintrag.mtimeMs = 2;
+    eintrag.size = 30;
+    eintrag.content = 'Berlin\nHamburg\n';
+    const dritt = await loadProfileCatalog({ folderAbs: FOLDER, fsp, cache, areaRoot: AREA });
+    expect(dritt.profiles[0].fields[0].values).toEqual(['Berlin', 'Hamburg']);
+  });
+
+  it('AK4: eine fehlende Notiz lässt das Feld bedienbar, der Vorrat bleibt leer', async () => {
+    const { fsp, cache } = lauf(MIT_NOTIZ, new Map());
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache,
+      areaRoot: AREA,
+    });
+    // Das Feld bleibt, nur ohne Vorrat — keine Blockade, kein Wurf.
+    expect(profiles[0].fields).toHaveLength(1);
+    expect(profiles[0].fields[0].name).toBe('ort');
+    expect(profiles[0].fields[0].values).toBeNull();
+    expect(profiles[0].fields[0].valuesFrom.note).toBe('Werte/Orte.md');
+  });
+
+  it('AK4: eine leere Notiz ist derselbe Fall wie eine fehlende', async () => {
+    const { fsp, cache } = lauf(
+      MIT_NOTIZ,
+      new Map([['Werte/Orte.md', { mtimeMs: 1, size: 0, content: '\n\n  \n' }]]),
+    );
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache,
+      areaRoot: AREA,
+    });
+    expect(profiles[0].fields[0].values).toBeNull();
+  });
+
+  it('AK5: eine Quelle außerhalb des Bereichs wird nicht gelesen', async () => {
+    const profilInhalt = `---
+fields:
+  - name: ort
+    valuesFrom:
+      note: ../Fremd/Orte.md
+---
+`;
+    const profile = new Map([['Sitzung.md', { mtimeMs: 1, size: 10, content: profilInhalt }]]);
+    const fsp = fsMitNotizen(profile, new Map());
+    // Die fremde Datei existiert, liegt aber außerhalb des Bereichs.
+    fsp._alle.set(path.resolve(AREA, '../Fremd/Orte.md').toLowerCase(), {
+      mtimeMs: 1,
+      size: 10,
+      content: 'Geheim\n',
+    });
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache: createProfileCatalogCache(),
+      areaRoot: AREA,
+    });
+    expect(profiles[0].fields[0].values).toBeNull();
+    // Nachweis über den Lese-Zähler: die Datei wurde gar nicht erst geöffnet.
+    const gelesen = fsp._readFile.mock.calls.map((c) => String(c[0]).toLowerCase());
+    expect(gelesen.some((p) => p.includes('fremd'))).toBe(false);
+  });
+
+  it('AK7: ohne valuesFrom.note kostet der Schritt keinen zusätzlichen Zugriff', async () => {
+    const ohneQuelle = `---
+fields:
+  - name: status
+    values: [offen, fertig]
+---
+`;
+    const profile = new Map([['P.md', { mtimeMs: 1, size: 10, content: ohneQuelle }]]);
+    const fsp = fsMitNotizen(profile, new Map());
+    await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache: createProfileCatalogCache(),
+      areaRoot: AREA,
+    });
+    // Genau eine gelesene Datei: die Profil-Datei selbst.
+    expect(fsp._readFile.mock.calls).toHaveLength(1);
+  });
+
+  it('AK7: ohne areaRoot bleibt der Katalog beim Verhalten vor der Erweiterung', async () => {
+    const { fsp, cache } = lauf(
+      MIT_NOTIZ,
+      new Map([['Werte/Orte.md', { mtimeMs: 1, size: 20, content: 'Berlin\n' }]]),
+    );
+    const { profiles } = await loadProfileCatalog({ folderAbs: FOLDER, fsp, cache });
+    expect(profiles[0].fields[0].values).toBeNull();
+    expect(fsp._readFile.mock.calls).toHaveLength(1);
+  });
+
+  it('eine Kind-Definition bezieht ihren Vorrat aus derselben Quelle', async () => {
+    const verschachtelt = `---
+fields:
+  - name: teilnehmer
+    fields:
+      - name: rolle
+        valuesFrom:
+          note: Werte/Rollen.md
+---
+`;
+    const profile = new Map([['S.md', { mtimeMs: 1, size: 10, content: verschachtelt }]]);
+    const fsp = fsMitNotizen(
+      profile,
+      new Map([['Werte/Rollen.md', { mtimeMs: 1, size: 20, content: 'Leitung\nGast\n' }]]),
+    );
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache: createProfileCatalogCache(),
+      areaRoot: AREA,
+    });
+    expect(profiles[0].fields[0].fields[0].values).toEqual(['Leitung', 'Gast']);
+  });
+
+  it('zwei Felder auf derselben Notiz lesen sie einmal', async () => {
+    const zweiFelder = `---
+fields:
+  - name: ort
+    valuesFrom:
+      note: Werte/Orte.md
+  - name: heimat
+    valuesFrom:
+      note: Werte/Orte.md
+---
+`;
+    const profile = new Map([['S.md', { mtimeMs: 1, size: 10, content: zweiFelder }]]);
+    const fsp = fsMitNotizen(
+      profile,
+      new Map([['Werte/Orte.md', { mtimeMs: 1, size: 20, content: 'Berlin\n' }]]),
+    );
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache: createProfileCatalogCache(),
+      areaRoot: AREA,
+    });
+    expect(profiles[0].fields[0].values).toEqual(['Berlin']);
+    expect(profiles[0].fields[1].values).toEqual(['Berlin']);
+    // Profil-Datei plus Notiz: zwei Lese-Zugriffe, nicht drei.
+    expect(fsp._readFile.mock.calls).toHaveLength(2);
+  });
+
+  it('AK6: der Vorrat aus einer Notiz wirkt wie eine feste Liste im weichen Hinweis', async () => {
+    const { fsp, cache } = lauf(
+      MIT_NOTIZ,
+      new Map([['Werte/Orte.md', { mtimeMs: 1, size: 20, content: 'Berlin\n' }]]),
+    );
+    const { profiles } = await loadProfileCatalog({
+      folderAbs: FOLDER,
+      fsp,
+      cache,
+      areaRoot: AREA,
+    });
+    const def = profiles[0].fields[0];
+    expect(fieldDefinitionHint(def, 'Berlin')).toBeNull();
+    // Ein eigener Wert bleibt möglich und erzeugt höchstens den Hinweis.
+    expect(fieldDefinitionHint(def, 'Kiel')).toBe('outsideValues');
   });
 });

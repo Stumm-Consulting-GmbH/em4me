@@ -25,7 +25,19 @@ export function extractRowValue(fieldEl, type) {
     }
     return select.value;
   }
-  if (type === 'string' || type === 'date') {
+  // 4T-1156 (Epic 3E-0219): Zyklus-Knopf und Chips-Leiste vor der
+  // Typ-Verzweigung, weil beide seit der Entkopplung an jedem Typ hängen
+  // können; gleiche Reihenfolge wie in extractFieldValue des Dokument-Panels.
+  const zyklus = valueEl.querySelector('button.properties-field-value-cycle');
+  if (zyklus) return zyklus.dataset.value || '';
+  const chipListe = valueEl.querySelector('.properties-field-multistring');
+  if (chipListe) {
+    const pills = chipListe.querySelectorAll('.properties-field-multistring-pill');
+    return Array.from(pills)
+      .map((p) => p.dataset.value)
+      .filter((v) => v != null && v !== '');
+  }
+  if (type === 'string' || type === 'date' || type === 'link' || type === 'time') {
     const input = valueEl.querySelector('input');
     return input ? input.value : '';
   }

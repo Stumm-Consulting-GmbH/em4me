@@ -80,11 +80,13 @@ En detalle: [Perspective Datatable](datatable.md).
 
 ## Tipos de documentos que se apoyan unos en otros
 
-Muchos documentos de un área comparten los mismos campos: un estado, una fecha, una categoría. Los perfiles de propiedades describen estos campos una sola vez, de forma centralizada, con tipo, valores permitidos y valor predeterminado; los editores de propiedades los sugieren y ofrecen los rangos de valores como listas de selección. Los perfiles heredan unos de otros: un perfil base dice lo que vale para todos, y un tipo de documento como artículo o reunión añade solo su propia parte, excluye campos heredados si es necesario o los reemplaza. Las desviaciones producen avisos en lugar de bloqueos.
+Muchos documentos de un área comparten los mismos campos: un estado, una fecha, una categoría. Los perfiles de propiedades describen estos campos una sola vez, de forma centralizada, con tipo, valores permitidos y valor predeterminado; los editores de propiedades los sugieren y ofrecen los rangos de valores como listas de selección. Los perfiles heredan unos de otros: un perfil base dice lo que vale para todos, y un tipo de documento como artículo o reunión añade solo su propia parte, excluye campos heredados si es necesario o los reemplaza. Las desviaciones producen avisos en lugar de bloqueos. Qué perfil rige no tiene que estar escrito en el documento: basta una etiqueta o su carpeta, y un símbolo en el documento muestra cuál ha resultado. También los valores permitidos de un campo pueden venir del propio fondo en lugar de la definición.
 
 - **Describir los campos una sola vez** en lugar de en cada documento: sugerencias, listas de selección y tipos vienen del perfil.
 - **Herencia con exclusión y reemplazo:** lo común en el perfil padre, lo propio en el tipo de documento.
 - **Avisos suaves en lugar de bloqueos:** las desviaciones se nombran, nada se bloquea.
+- **Asignación sin entrada en el documento:** una etiqueta o la carpeta decide qué perfil rige.
+- **Listas de valores que se mantienen solas:** los valores permitidos vienen de una nota o de una consulta sobre el fondo.
 
 En detalle: [Perfiles de propiedades](property-profiles.md).
 

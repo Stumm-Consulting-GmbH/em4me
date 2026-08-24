@@ -152,6 +152,11 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0491 (Epic 3E-0093): Komplett-Übernahme der Profil-Felder, direkt
       // hinter den Eigenschafts-Profilen, auf denen sie aufsetzt.
       'help.feature.profileBulkFill',
+      // 4T-1162 (Epic 3E-0219): Wertevorräte und Zuordnungs-Wege der Stufe 2,
+      // direkt hinter den Eigenschafts-Profilen, deren Definitions- und
+      // Auflösungs-Bestand sie erweitern.
+      'help.feature.profileValueSources',
+      'help.feature.profileBindings',
       // 4T-0356 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query),
       // baut auf den Frontmatter-Properties auf.
       'help.feature.frontmatterQuery',
