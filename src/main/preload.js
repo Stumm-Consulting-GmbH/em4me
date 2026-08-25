@@ -769,6 +769,7 @@ contextBridge.exposeInMainWorld('api', {
   profilesChooseFolder: () => ipcRenderer.invoke('profiles:chooseFolder'),
   profilesLinkTargets: (params) => ipcRenderer.invoke('profiles:linkTargets', params),
   profilesFieldValues: (params) => ipcRenderer.invoke('profiles:fieldValues', params),
+  profilesLookup: (params) => ipcRenderer.invoke('profiles:lookup', params),
   // 4T-0339 (Epic 3E-0061): Datei umbenennen plus Nachzug-Broadcast an alle
   // Fenster (Tabs, Lesezeichen, Sitzungs-Pfade).
   onMenuRenameFile: (cb) => ipcRenderer.on('menu:renameFile', () => cb()),

@@ -87,6 +87,7 @@ Molti documenti di un'area condividono gli stessi campi: uno stato, una data, un
 - **Avvisi leggeri invece di blocchi:** gli scostamenti vengono indicati, nulla viene bloccato.
 - **Assegnazione senza voce nel documento:** un'etichetta o la cartella decide quale profilo vale.
 - **Liste di valori che si mantengono da sole:** i valori ammessi vengono da una nota o da una query sul materiale.
+- **Campi che portano una struttura:** Una riunione con tre partecipanti ha bisogno di un campo invece di tre elenchi paralleli per nome, ruolo e azienda; nel blocco di metadati resta YAML comune e leggibile.
 
 In dettaglio: [Profili di proprietà](property-profiles.md).
 

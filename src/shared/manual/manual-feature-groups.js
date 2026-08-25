@@ -162,6 +162,12 @@ const HELP_FEATURE_GROUPS = [
       // die erzeugte Abfrage fragt danach ueber den ganzen Bestand.
       'help.feature.profileFieldForm',
       'help.feature.profileQuery',
+      // 4T-1188 (Epic 3E-0221): die beiden Feld-Arten der Stufe 4, direkt
+      // hinter den Zugaengen — sie erweitern denselben Definitions-Bestand um
+      // Felder, die ihren Wert nicht tragen, sondern bekommen, und um Felder,
+      // die eine Struktur tragen statt eines einzelnen Werts.
+      'help.feature.profileDerivedFields',
+      'help.feature.profileStructuredFields',
       // 4T-0356 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query),
       // baut auf den Frontmatter-Properties auf.
       'help.feature.frontmatterQuery',

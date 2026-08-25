@@ -159,7 +159,7 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
         { type: 'string' }, // name fehlt
         { name: 'ok1' }, // duplicate (case-insensitiv folgt unten)
         { name: 'OK1' }, // duplicate
-        { name: 'x', type: 'lookup' }, // unbekannter Typ
+        { name: 'x', type: 'gibtsnicht' }, // unbekannter Typ
         // 4T-1155: multipleType trifft seit der Entkopplung nur noch die
         // Typen ohne Mehrfach-Darstellung; `number` mit multiple ist gültig.
         { name: 'z', type: 'boolean', multiple: true }, // multipleType
@@ -309,7 +309,7 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
   it('AK3/AK6: Fehler in Kind-Definitionen tragen den Pfad und setzen nur die Kind-Definition aus', () => {
     const { fields, errors } = parseProfileFields({
       fields: [
-        { name: 'teilnehmer', fields: [{ name: 'rolle', type: 'lookup' }, { name: 'person' }] },
+        { name: 'teilnehmer', fields: [{ name: 'rolle', type: 'gibtsnicht' }, { name: 'person' }] },
         { name: 'titel' },
       ],
     });
@@ -465,7 +465,7 @@ describe('Hinweis-Datensatz mit Angabe und Erwartung (4T-1143)', () => {
   it('AK2: Hinweise tragen die betroffene Angabe und die Erwartung', () => {
     const { errors } = parseProfileFields({
       fields: [
-        { name: 'a', type: 'lookup' },
+        { name: 'a', type: 'gibtsnicht' },
         { name: 'b', type: 'number', default: 'fünf' },
         { name: 'c', values: ['x'], default: 'y' },
         { name: 'd', options: 'nein' },

@@ -87,6 +87,7 @@ Many documents of an area share the same fields: a status, a date, a category. P
 - **Soft hints instead of locks:** deviations are named, nothing is blocked.
 - **Assignment without an entry in the document:** a tag or the folder decides which profile applies.
 - **Value lists that keep themselves current:** the permitted values come either from a note or from a query over your material.
+- **Fields that carry a structure:** A meeting with three participants needs one field instead of three parallel lists for name, role and company — in the metadata block it stays ordinary, readable YAML.
 
 In detail: [Property Profiles](property-profiles.md).
 

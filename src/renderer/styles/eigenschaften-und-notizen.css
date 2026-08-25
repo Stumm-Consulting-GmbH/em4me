@@ -214,6 +214,111 @@
   font-style: italic;
   word-break: break-word;
 }
+
+/* 4T-1185 (Epic 3E-0221, E1): Anzeige eines abgeleiteten Wertes.
+   Bewusst NICHT wie der readonly-Rückfall gestaltet: Der sagt «nicht
+   darstellbar» und trägt deshalb den gestrichelten Rahmen einer Sackgasse.
+   Ein abgeleiteter Wert ist ein vollwertiger Wert — er wird nur gerechnet
+   statt gespeichert. Er liest sich deshalb wie ein normaler Wert und ist
+   allein am fehlenden Eingabe-Rahmen als nicht bearbeitbar erkennbar. */
+.properties-field-abgeleitet {
+  color: var(--fg);
+  padding: 3px 6px;
+  font-size: 12px;
+  word-break: break-word;
+  cursor: default;
+}
+
+/* Ein leerer abgeleiteter Wert bleibt sichtbar: Das Feld gibt es, es liefert
+   nur gerade nichts. Ohne Platzhalter verschwände die Zeile optisch. */
+.properties-field-abgeleitet.is-leer::before {
+  content: '—';
+  color: var(--fg-muted);
+}
+
+/* Ein Hinweis (Kreis, Bezug ins Leere, fehlende Vorschrift) ersetzt den Wert
+   nicht, sondern begleitet ihn — die weiche Linie aus E10. */
+.properties-field-abgeleitet[data-hinweis]::after {
+  content: ' ⚠';
+  color: var(--warn, var(--fg-muted));
+}
+
+/* Eine abgeleitete Feld-Zeile trägt dieselbe Herkunfts-Kennzeichnung wie jedes
+   definierte Feld; zusätzlich verrät die gedämpfte Beschriftung, dass hier
+   nichts einzutragen ist. */
+.properties-field.is-abgeleitet .properties-field-key {
+  font-style: italic;
+}
+
+/* 4T-1187 (Epic 3E-0221, E11): gestapelte Bedienung der Objekt-Typen.
+   «Gestapelt» heißt eine Ebene tiefer, nicht ein eigenes Fenster: Die
+   Kind-Felder stehen eingerückt unter ihrem Feld, eine Objekt-Liste zeigt
+   ihre Einträge als abgesetzte Gruppen. Die Einrückung trägt die Aussage —
+   ohne sie wäre nicht zu sehen, wozu ein Kind-Feld gehört. */
+.properties-objekt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.properties-objekt-eintrag {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 6px;
+  border-left: 2px solid var(--border);
+}
+
+/* Einträge einer Liste sind gegeneinander abgesetzt; ein einzelnes Objekt
+   braucht die Trennung nicht. */
+.properties-objekt[data-objekt-typ='objectlist']
+  .properties-objekt-eintrag
+  + .properties-objekt-eintrag {
+  margin-top: 2px;
+}
+
+.properties-objekt-kind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.properties-objekt-kind-label {
+  flex: 0 0 auto;
+  min-width: 72px;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+/* Ein noch nicht gesetztes Kind-Feld bleibt als fehlend erkennbar (AK3): Die
+   Beschriftung sagt es, statt dass ein vorbelegter Wert es verdeckte. */
+.properties-objekt-kind.is-fehlend .properties-objekt-kind-label {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.properties-objekt-kind-wert {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.properties-objekt-add {
+  align-self: flex-start;
+  padding: 1px 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.properties-objekt-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  padding: 0 4px;
+  line-height: 1.2;
+  font-size: 12px;
+  cursor: pointer;
+}
 .properties-field-multistring {
   display: flex;
   flex-wrap: wrap;

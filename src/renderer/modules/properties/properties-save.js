@@ -21,6 +21,9 @@ import { applyFieldHint, extractFieldValue, refreshProfileResolution } from './p
 // 4T-1172 (Epic 3E-0220): Die Regel, wann ein nur definiertes Feld draußen
 // bleibt — sie gehört zur Fachlichkeit des Feld-Formulars.
 import { bleibtAusDemDokument } from './properties-feld-formular.js';
+// 4T-1185 (Epic 3E-0221): Marke der abgeleiteten Felder aus dem gemeinsamen
+// Modul beider Panels — Setzen und Auswerten haben dieselbe Quelle.
+import { istAbgeleitetesFeld } from './properties-neue-typen.js';
 
 // 4T-0051: Liest die Felder aus der Sidebar-Sektion einer Spalte und baut
 // ein Plain-Objekt fuer writeFrontmatter. Read-only-Felder behalten ihren
@@ -36,6 +39,13 @@ export function readPropertiesFromPane(paneIdx) {
     const typeSelect = fieldEl.querySelector('.properties-field-type');
     const key = ((keyInput && keyInput.value) || '').trim();
     if (!key) continue;
+    // 4T-1185 (Epic 3E-0221, E1): Ein abgeleitetes Feld geht NIE ins Dokument.
+    // Die Prüfung steht vor jeder anderen — vor dem Lesen des Wertes und vor
+    // dem readonly-Zweig, der den Ursprungs-Wert zurückschreibt —, weil hier
+    // die Zusage aus E1 hängt: Das Öffnen eines Dokuments verändert es nicht.
+    // Anders als beim Angebot des Feld-Formulars gibt es keinen Fall, in dem
+    // der Wert doch gehört: Er hat keinen Ursprung in der Datei.
+    if (istAbgeleitetesFeld(fieldEl)) continue;
     // 4T-0448: der Editor-Typ steht in dataset.currentType — bei einem
     // definierten Feld mit Typ-Abweichung zeigt der (gesperrte) Typ-Wechsler
     // den Definitions-Typ, der Wert-Editor bleibt aber beim Ist-Typ, damit
@@ -207,6 +217,10 @@ export function markDuplicatePropertyKeys(paneIdx) {
   // der das Angebot entfernt hätte.
   const zaehlend = new Set();
   for (const fieldEl of els.propertiesFields.querySelectorAll('.properties-field')) {
+    // 4T-1185: Ein abgeleitetes Feld zaehlt hier so wenig wie ein Angebot —
+    // es geht nicht ins Dokument und darf deshalb keinen Duplikat-Alarm
+    // ausloesen, der den Save eines gleichnamigen echten Feldes sperrt.
+    if (istAbgeleitetesFeld(fieldEl)) continue;
     if (bleibtAusDemDokument(fieldEl)) continue;
     zaehlend.add(fieldEl);
   }

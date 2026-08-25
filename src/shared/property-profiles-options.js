@@ -73,6 +73,23 @@ const OPTION_SPECS = {
     display: { expected: 'field-name', pruef: alsText },
     sort: { expected: ['name', 'path'], pruef: pruefeAuswahl(['name', 'path']) },
   },
+  // 4T-1183 (Epic 3E-0221, E1): Rechenvorschrift des Formel-Feldes. Der
+  // Ausdruck bleibt hier unausgewertet Text — geprüft wird er erst bei der
+  // Auswertung gegen Parser und Funktions-Katalog der Abfrage-Sprache
+  // (property-profiles-abgeleitet.js). Dieselbe Arbeitsteilung wie bei
+  // `valuesFrom.query` in Stufe 1: Das Format liest die Angabe, es führt sie
+  // nicht aus.
+  formula: {
+    expression: { expected: 'expression', pruef: alsText },
+  },
+  // 4T-1184 (Epic 3E-0221, E1): die beiden Angaben des Lookup-Feldes. `from`
+  // grenzt die befragten Dokumente ein (eine Abfrage-Quelle, hier wie
+  // `valuesFrom.query` unausgewertet gelesen), `relatedField` benennt das Feld,
+  // über das sie auf das eigene Dokument verweisen müssen.
+  lookup: {
+    from: { expected: 'query', pruef: alsText },
+    relatedField: { expected: 'field-name', pruef: alsText },
+  },
   // Wertevorrat-Felder: die Bedien-Option aus E11. Sie steht hier und nicht
   // unter einem Typ, weil eine Auswahl kein eigener Typ ist, sondern der
   // Wertebereich eines Typs (Konzept 6.8).

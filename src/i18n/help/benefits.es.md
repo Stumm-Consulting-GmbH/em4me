@@ -87,6 +87,7 @@ Muchos documentos de un área comparten los mismos campos: un estado, una fecha,
 - **Avisos suaves en lugar de bloqueos:** las desviaciones se nombran, nada se bloquea.
 - **Asignación sin entrada en el documento:** una etiqueta o la carpeta decide qué perfil rige.
 - **Listas de valores que se mantienen solas:** los valores permitidos vienen de una nota o de una consulta sobre el fondo.
+- **Campos que llevan una estructura:** Una reunión con tres participantes necesita un campo en lugar de tres listas paralelas para nombre, función y empresa; en el bloque de metadatos sigue siendo YAML corriente y legible.
 
 En detalle: [Perfiles de propiedades](property-profiles.md).
 

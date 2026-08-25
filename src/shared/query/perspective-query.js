@@ -996,4 +996,35 @@ function parseExpression(input) {
   return parseQuery(input, { expression: true });
 }
 
-module.exports = { parseQuery, parseExpression, evaluateQuery, tokenize, parseDurationContent };
+// 4T-1183 (Epic 3E-0221): Feld-Bezüge eines Ausdrucks-AST einsammeln
+// (lowercase, in Vorkommens-Reihenfolge, Doppelte bleiben).
+//
+// **Hier verortet und nicht bei seinem ersten Aufrufer.** Der Helfer stammt
+// aus 4T-0421 und lag in `markdown/perspective-datatable-computed.js`, weil
+// die Spalten-Formeln ihn als Erste brauchten. Mit den Formel-Feldern der
+// Eigenschafts-Profile hat er einen zweiten Aufrufer, und der liegt in einer
+// anderen Familie: Ein Profil-Modul, das die Datatable lädt, um an einen
+// AST-Helfer zu kommen, zöge die ganze Tabellen-Familie in seinen Ladepfad.
+// Der Helfer gehört zum AST, und der entsteht hier. Sein früherer Ort
+// re-exportiert ihn unverändert weiter, damit kein Aufrufer bricht.
+function collectFieldRefs(node, out) {
+  if (!node || typeof node !== 'object') return;
+  if (node.type === 'field') {
+    out.push(String(node.name).toLowerCase());
+    return;
+  }
+  for (const key of ['left', 'right', 'operand']) {
+    if (node[key]) collectFieldRefs(node[key], out);
+  }
+  if (Array.isArray(node.args)) for (const a of node.args) collectFieldRefs(a, out);
+  if (Array.isArray(node.values)) for (const v of node.values) collectFieldRefs(v, out);
+}
+
+module.exports = {
+  parseQuery,
+  parseExpression,
+  evaluateQuery,
+  tokenize,
+  parseDurationContent,
+  collectFieldRefs,
+};

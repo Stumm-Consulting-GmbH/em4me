@@ -25,6 +25,8 @@
 
 const {
   PROFILE_FIELD_TYPES,
+  DERIVED_TYPES,
+  OBJECT_TYPES,
   DEFAULT_ASSIGN_FIELD,
   normalizeProfilesConfig,
   parseProfileFields,
@@ -33,6 +35,16 @@ const {
   cleanString,
   scalarToString,
 } = require('./property-profiles-format.js');
+// 4T-1183 (Epic 3E-0221, E1): Auswertung der abgeleiteten Felder. Eigene
+// Fachlichkeit in eigener Datei — sie rechnet, während das Format-Modul liest;
+// die Fassade reicht sie weiter wie alles andere.
+const {
+  DERIVED_HINTS,
+  istAbgeleitet,
+  ausdruckVon,
+  alsFeldWert,
+  werteAbgeleiteteFelder,
+} = require('./property-profiles-abgeleitet.js');
 // 4T-1159 (Epic 3E-0219): Bindungen der Bereichs-Sektion.
 const { normalizeBindings } = require('./property-profiles-config.js');
 // 4T-1176 (Epic 3E-0220, E7): Erzeugung der Abfrage zu einem Profil. Eigene
@@ -320,6 +332,16 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
 module.exports = {
   // 4T-1145: aus property-profiles-format.js weitergereicht (Fassade).
   PROFILE_FIELD_TYPES,
+  // 4T-1183: abgeleitete Felder — Typ-Menge, Auswertung und ihre Hinweise
+  // (aus property-profiles-abgeleitet.js weitergereicht).
+  DERIVED_TYPES,
+  // 4T-1186: Typen mit verschachtelten Kind-Definitionen.
+  OBJECT_TYPES,
+  DERIVED_HINTS,
+  istAbgeleitet,
+  ausdruckVon,
+  alsFeldWert,
+  werteAbgeleiteteFelder,
   DEFAULT_ASSIGN_FIELD,
   normalizeProfilesConfig,
   parseProfileFields,

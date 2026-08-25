@@ -27,13 +27,13 @@ Attributs par définition :
 | Attribut | Signification |
 | --- | --- |
 | `name` | nom du champ (obligatoire, unique par profil) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (lien vers un fichier) ou `time` (heure) ; `string` par défaut |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (lien vers un fichier), `time` (heure), `formula` et `lookup` (champs dérivés) ou `object` et `objectlist` (champs structurés) ; `string` par défaut |
 | `values` | facultatif : plage de valeurs fixe sous forme de liste (pour `string`, `multistring`, `number` et `date`) |
 | `multiple` | facultatif : plusieurs valeurs — la valeur est une liste. Vaut pour tout type sauf `boolean` et `multiline` ; seul le champ texte change alors de type pour `multistring`, sinon le nom du type demeure (un champ de lien avec plusieurs cibles est `link` avec `multiple`) |
 | `default` | facultatif : préremplissage lors de la création du champ via l'éditeur |
 | `valuesFrom` | facultatif : source du réservoir de valeurs avec `note` (chemin d'une note de valeurs) et/ou `query` (requête) ; avec `values` en même temps, `values` s'applique |
 | `options` | facultatif : indications propres au type dans un sous-objet, voir le tableau ci-dessous |
-| `fields` | facultatif : définitions enfants imbriquées selon le même schéma, prévu pour les types structurés |
+| `fields` | facultatif : définitions enfants imbriquées selon le même schéma ; servies par `object` et `objectlist`. Sur un autre type elles restent admises mais sans effet |
 
 Un champ `multistring` avec `values` est automatiquement un choix multiple. **Le nom du champ est la seule indication obligatoire** : toute autre indication est facultative, et les fichiers de profil existants restent valables sans modification. `valuesFrom`, `options` et les `fields` imbriqués font déjà partie du format mais ne sont pas encore évalués dans cette version (section « Limites »). Les définitions individuelles défectueuses (par exemple un type inconnu ou un nom de champ en double) ne suspendent qu'elles-mêmes ; les autres définitions du profil restent effectives. La liste des profils dans les paramètres affiche les indications en toutes lettres sous le profil concerné — avec la définition touchée, l'indication fautive et ce qui était attendu à sa place, pour les définitions enfants avec le chemin vers le champ parent — et ouvre le fichier de profil d'un clic.
 
@@ -47,6 +47,8 @@ Le sous-objet `options` porte les indications qui ne valent que pour un type don
 | `date` | `shift` | décalage en jours ; il pré-remplit un champ **vide** au premier clic, une date existante reste intacte |
 | `link` | `restrictTo`, `display`, `sort` | chemin de dossier (ou liste) auquel les suggestions sont limitées ; champ de métadonnées de la cible comme nom affiché ; ordre `name` ou `path` |
 | champ de choix | `control: cycle` | le choix simple devient un bouton qui passe à la valeur suivante au clic ; la valeur enregistrée reste la même que sans l'option |
+| `formula` | `expression` | La règle de calcul sur les autres champs du même document |
+| `lookup` | `from`, `relatedField` | Requête restreignant les documents interrogés (toute la zone si omise) ; champ par lequel ils pointent vers ce document |
 
 Une indication inconnue ou mal renseignée est ignorée individuellement avec une remarque ; le champ et les autres indications restent effectifs. Une option prévue pour un type ultérieur peut donc déjà figurer sans causer de dommage.
 
@@ -214,14 +216,85 @@ Le bloc inséré est dès lors un contenu ordinaire — il peut être modifié, 
 
 La commande disparaît lorsque l'extension « Profils de propriétés » est désactivée.
 
+## Champs dérivés
+
+Deux sortes de champs ne portent pas leur valeur mais la reçoivent à l’affichage. Un **champ formule** calcule à partir des autres champs du même document, un **champ collecte** réunit les documents qui pointent vers celui-ci par un champ nommé :
+
+```yaml
+---
+fields:
+  - name: net
+    type: number
+  - name: taxe
+    type: number
+  - name: brut
+    type: formula
+    options:
+      expression: net + taxe
+  - name: articles
+    type: lookup
+    options:
+      from: FROM "Articles"
+      relatedField: projet
+---
+```
+
+Une expression de formule utilise le même langage et le même catalogue de fonctions qu’une colonne de requête, y compris le calcul de dates et de durées ; elle peut se référer à tout autre champ du document, y compris à un autre champ formule. L’ordre dans le fichier de profil n’importe pas.
+
+**La valeur n’est pas dans le fichier.** Elle naît quand quelqu’un la regarde et disparaît ensuite — ouvrir un document ne le modifie donc pas, et la valeur est toujours à jour. Dans les deux éditeurs de propriétés, les champs dérivés apparaissent donc non modifiables, sans bouton de suppression et avec un type verrouillé ; ils ne sont jamais proposés à la reprise.
+
+Si une valeur reste vide, une indication au champ dit pourquoi : deux champs se renvoient en cercle, une règle de calcul nomme un champ inexistant ici, l’expression n’est pas évaluable, ou la règle manque entièrement. Rien n’est jamais bloqué, et les autres champs continuent de calculer.
+
+Un champ collecte interroge l’index de la zone et n’est donc évalué que s’il est affiché ; le résultat vaut jusqu’à ce que le contenu change. Un lien compte dans toutes les notations — `[[cible]]`, `[[cible|libellé]]` et le nom nu — et un lien passant par un alias de ce document correspond également.
+
+**La contrepartie est assumée :** comme une valeur dérivée n’est pas dans le fichier, elle n’est pas non plus dans l’index et ne porte aucune condition de requête. Là où cela gêne, c’est la requête qui calcule — elle en est capable.
+
+## Champs structurés
+
+Un champ peut porter un **objet** avec des champs enfants nommés ou une **liste d’objets semblables**. Sans eux, « réunion à trois participants » aurait besoin de trois listes parallèles pour le nom, le rôle et la société, dont le lien ne tient qu’à l’ordre :
+
+```yaml
+---
+fields:
+  - name: participants
+    type: objectlist
+    fields:
+      - name: personne
+        type: link
+      - name: rôle
+        values: [Présidence, Compte rendu, Invité]
+---
+```
+
+Les définitions enfants sont imbriquées et suivent le même schéma que le niveau supérieur — elles peuvent porter n’importe quel type, y compris un autre objet, et avoir leurs propres plages de valeurs et options. Un type objet sans `fields` est admis ; il affiche alors sa valeur en lecture seule.
+
+Les deux éditeurs de propriétés les présentent **empilés** : les champs enfants en retrait sous leur champ, chacun avec le contrôle de son type ; pour une liste, chaque entrée forme un groupe avec un bouton pour la retirer, et au-dessous un pour en ajouter. Une nouvelle entrée naît vide, et **un champ enfant non encore renseigné reste visiblement vide** au lieu d’être prérempli — il n’est pas écrit non plus.
+
+Dans le bloc de métadonnées, les valeurs apparaissent comme une structure imbriquée ordinaire :
+
+```yaml
+---
+class: Réunion
+participants:
+  - personne: "[[Anna Exemple]]"
+    rôle: Présidence
+  - personne: "[[Bo Modèle]]"
+    rôle: Invité
+---
+```
+
+Elles restent ainsi lisibles sans l’application. Une valeur enfant qu’aucune définition n’explique n’est pas perdue pour autant : elle n’obtient pas de contrôle, mais elle est conservée.
+
+Il en va de même pour les propriétés d’un **paragraphe** (propriétés de bloc), à une différence près : une valeur structurée y figurant n’apparaît pas dans l’index de la zone et ne porte donc aucune condition de requête de bloc.
+
 ## Validation douce
 
 Les écarts ne bloquent jamais et ne modifient jamais la valeur : une valeur en dehors de la plage de valeurs ou une valeur qui ne correspond pas au type défini produit seulement une icône d'indication au champ ; l'infobulle en nomme la raison. Le Markdown et le frontmatter restent librement modifiables — y compris directement dans la source.
 
 ## Limites
 
-- Le format prévoit déjà des options propres au type (`options`), des sources de réservoir de valeurs (`valuesFrom`) et des définitions enfants imbriquées ; elles ne sont pas encore évaluées dans cette version. Une telle indication n'est pas une erreur, elle reste simplement sans effet jusqu'à l'extension.
+- Une valeur dérivée ne peut pas être figée comme valeur ordinaire ; elle reste calculée. Aucun type n’est prévu pour un contenu imbriqué libre — l’affichage en lecture seule y suffit.
 - Renommer un fichier de profil ne change pas les valeurs d'association dans les documents ; elles pointent alors vers un profil inexistant (les paramètres signalent un profil standard manquant).
 - Les profils se trouvent directement dans le dossier de profils ; les sous-dossiers ne sont pas pris en compte.
-- Les définitions agissent dans les deux éditeurs de propriétés ; les types de champs calculés ou dérivés d'autres fichiers ne font pas partie des profils.
+- Les définitions agissent dans les deux éditeurs de propriétés. Les types de champs qui seraient liés à une surface de travail spatiale sont différés jusqu’à ce qu’il en existe une.
 - La liaison d'un profil à un groupe de signets et l'association par une requête sont volontairement différées ; étiquette et dossier couvrent les cas documentés et restent explicables.

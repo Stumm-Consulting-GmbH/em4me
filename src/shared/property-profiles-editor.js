@@ -14,7 +14,16 @@
 // Prozess-neutral (kein Electron, kein DOM).
 'use strict';
 
-const { cleanString } = require('./property-profiles-format.js');
+const { cleanString, DERIVED_TYPES } = require('./property-profiles-format.js');
+
+// 4T-1185 (Epic 3E-0221, E1): Ein abgeleitetes Feld hat keinen eigenen Wert.
+// Es wird deshalb weder vorgeschlagen noch übernommen — beides legte es als
+// gewöhnliches Feld im Metadaten-Block an und schriebe damit genau den Wert in
+// die Datei, den E1 dort verbietet. Die Prüfung steht hier einmal, weil
+// Vorschlags-Menü und Komplett-Übernahme dieselbe Regel brauchen.
+function istAbgeleiteteDefinition(def) {
+  return !!def && DERIVED_TYPES.includes(def.type);
+}
 
 // --- 4T-0448 (Epic 3E-0083): Editor-Logik (Vorschläge und weiche Hinweise) --------
 // Reine Funktionen, gemeinsam für Properties-Editor und Block-Panel
@@ -23,7 +32,20 @@ const { cleanString } = require('./property-profiles-format.js');
 // Leerer Eigenschafts-Wert: Feld angelegt, aber ohne Inhalt — dafür gibt es
 // keinen Hinweis (weiche Haltung; ein leeres Feld ist kein Verstoß).
 function isEmptyPropertyValue(v) {
-  return v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0);
+  if (v === null || v === undefined || v === '') return true;
+  if (Array.isArray(v)) return v.length === 0;
+  // 4T-1186 (Epic 3E-0221): Ein Objekt ohne gesetzte Kind-Felder ist leer wie
+  // eine leere Liste. Ohne diese Zeile trüge ein frisch angelegtes Objekt-Feld
+  // sofort einen Hinweis, obwohl der Anwender nur noch nichts eingetragen hat —
+  // und ein leeres Feld ist nie ein Verstoß (weiche Haltung, E10).
+  if (istEinfachesObjekt(v)) return Object.keys(v).length === 0;
+  return false;
+}
+
+// Ein einfaches Objekt: kein Array, kein null, kein Datum o. Ä. Die Prüfung
+// steht hier einmal, weil Typ-Prüfung, Leer-Frage und Leer-Wert sie teilen.
+function istEinfachesObjekt(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
 // Passt der Ist-Wert (JS-Wert aus YAML bzw. Block-Daten) zum definierten Typ?
@@ -48,6 +70,14 @@ function valueMatchesType(value, type) {
       return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
     case 'time':
       return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
+    // 4T-1186 (Epic 3E-0221, E11): die beiden strukturierten Typen. Geprüft
+    // wird hier nur die GESTALT — ein Objekt beziehungsweise eine Liste von
+    // Objekten. Ob die Kind-Werte zu ihren Kind-Definitionen passen, prüft
+    // `valueMatchesDefinition`, weil dafür die Definition nötig ist.
+    case 'object':
+      return istEinfachesObjekt(value);
+    case 'objectlist':
+      return Array.isArray(value) && value.every((item) => istEinfachesObjekt(item));
     default:
       return true;
   }
@@ -63,7 +93,41 @@ function valueMatchesDefinition(value, def) {
   if (def.multiple === true && def.type !== 'multistring') {
     return Array.isArray(value) && value.every((item) => valueMatchesType(item, def.type));
   }
-  return valueMatchesType(value, def.type);
+  if (!valueMatchesType(value, def.type)) return false;
+  // 4T-1186 (Epic 3E-0221): Bei den Objekt-Typen geht die Prüfung eine Ebene
+  // tiefer — die Gestalt allein sagt nichts über den Inhalt.
+  //
+  // **Ein nicht gesetztes Kind-Feld ist dabei kein Verstoß.** Geprüft werden
+  // nur die Kind-Werte, die dastehen. AK4 der Story verlangt sogar
+  // ausdrücklich, dass ein fehlendes Kind-Feld als fehlend erkennbar bleibt,
+  // statt aufgefüllt zu werden; es dann als Typ-Abweichung zu melden wäre der
+  // Widerspruch dazu.
+  //
+  // **Ein Kind-Wert, den keine Definition erklärt, ist ebenfalls kein
+  // Verstoß.** Die Definitions-Liste ist ein Angebot und keine Schranke —
+  // dieselbe Haltung, mit der ein Dokument Felder tragen darf, die kein Profil
+  // kennt.
+  if (def.type === 'object') return kindWerteVertraeglich(value, def.fields);
+  if (def.type === 'objectlist') {
+    return value.every((eintrag) => kindWerteVertraeglich(eintrag, def.fields));
+  }
+  return true;
+}
+
+// Passen die gesetzten Kind-Werte eines Objekts zu ihren Kind-Definitionen?
+// Ohne erklärte Kinder passt jedes Objekt (ein Objekt-Typ ohne `fields` ist
+// zulässig, siehe Format-Modul).
+function kindWerteVertraeglich(objekt, kinder) {
+  if (!Array.isArray(kinder) || kinder.length === 0) return true;
+  if (!istEinfachesObjekt(objekt)) return false;
+  for (const kind of kinder) {
+    const name = cleanString(kind && kind.name);
+    if (name === '') continue;
+    const wert = objekt[name];
+    if (wert === undefined || isEmptyPropertyValue(wert)) continue;
+    if (!valueMatchesDefinition(wert, kind)) return false;
+  }
+  return true;
 }
 
 // Weicher Validierungs-Hinweis eines Werts gegen seine Definition:
@@ -109,6 +173,9 @@ function profileFieldSuggestions(resolvedFields, existingKeys, heuristics) {
   );
   const out = [];
   for (const def of Array.isArray(resolvedFields) ? resolvedFields : []) {
+    // 4T-1185: Ein abgeleitetes Feld ist kein Angebot — es entsteht nicht
+    // durch Anlegen, sondern durch Rechnen.
+    if (istAbgeleiteteDefinition(def)) continue;
     const key = def.name.toLowerCase();
     if (taken.has(key)) continue;
     taken.add(key);
@@ -139,6 +206,14 @@ function emptyValueForType(type) {
   if (type === 'multistring') return [];
   if (type === 'number') return 0;
   if (type === 'boolean') return false;
+  // 4T-1186 (Epic 3E-0221): leeres Objekt bzw. leere Liste. Die Begründung des
+  // typgerechten Leer-Werts oben — «echtes unbelegt ist nicht stabil
+  // darstellbar» — trägt hier NICHT weiter: Ein nicht gesetztes Kind-Feld ist
+  // sehr wohl darstellbar, und AK4 der Story verlangt, dass es als fehlend
+  // erkennbar bleibt. Ein neues Objekt-Feld entsteht deshalb leer, und seine
+  // Kind-Felder werden ausdrücklich NICHT vorbelegt.
+  if (type === 'object') return {};
+  if (type === 'objectlist') return [];
   return '';
 }
 
@@ -167,6 +242,8 @@ function buildProfileFillMap(fields, existingKeys) {
   );
   const map = {};
   for (const def of Array.isArray(fields) ? fields : []) {
+    // 4T-1185: abgeleitete Felder werden nie übernommen (Begründung oben).
+    if (istAbgeleiteteDefinition(def)) continue;
     const name = cleanString(def && def.name);
     if (name === '') continue;
     const key = name.toLowerCase();

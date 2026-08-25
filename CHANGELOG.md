@@ -14,6 +14,107 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.118.0.1809] - 2026-08-25 — Metadaten-Modell Stufe 4: Abgeleitete Werte und Objekt-Typen
+
+Epic 3E-0221: Die letzte der vier Umsetzungs-Stufen und die beiden teuersten
+Teile des Vorhabens, beide am 2026-07-08 vertagt und jetzt nachgeholt. Felder,
+die ihren Wert nicht tragen, sondern beim Ansehen bekommen — und Felder, die
+eine Struktur tragen statt eines einzelnen Werts. Damit ist der Typ-Satz des
+Metadaten-Modells vollständig.
+
+Der Kern ist eine Zusage, die man an den neuen Feldern nicht sieht: **Ein
+abgeleiteter Wert steht nie in der Datei.** Er entsteht, wenn ihn jemand
+ansieht, und verschwindet danach wieder. Das Öffnen eines Dokuments verändert es
+also nicht — wer einen Ordner durchsieht, schreibt ihn nicht um, und
+Versionsverwaltung und Abgleich-Werkzeuge sehen keine Änderungen, die niemand
+gemacht hat. Die Kehrseite ist bewusst in Kauf genommen: Ein solcher Wert steht
+auch nicht im Index und trägt keine Abfrage-Bedingung; wo das stört, rechnet die
+Abfrage selbst, die dasselbe kann.
+
+Bei den strukturierten Feldern lag die offene Frage anderswo. Das Konzept
+widersprach sich: An einer Stelle stand der nur lesende Rückfall für das
+Block-Panel, an einer anderen die Zusage, dass sich beide Eigenschafts-Editoren
+gleich verhalten. Entschieden wurde für die Gleichheit — beide bedienen die
+Typen, und ein strukturierter Wert an einem Absatz landet in der Begleitdatei.
+Bewusst nicht mitentschieden ist seine Abfragbarkeit: Im Bereichs-Index
+erscheint er nicht, dieselbe Linie wie bei den abgeleiteten Werten.
+
+Umsetzungs-Vorgänge des Epics: 4T-1183, 4T-1184, 4T-1185, 4T-1186, 4T-1187;
+Nachtrag aus Stufe 3: 4T-1180; Hilfe- und Handbuch-Vorgang 4T-1188,
+Release-Vorgang 4T-1189. Vier Fehler entstanden und verschwanden innerhalb
+dieser Stufe und bekommen deshalb wie in den Stufen 2 und 3 keinen eigenen
+Anwender-Text: eine Auslese, die aus einer Teilnehmer-Liste einen einzelnen Wert
+machte und die Struktur damit zerstörte, ein Block-Schreibweg, der den Feld-Typ
+aus einem Bedienelement las, das ihn gar nicht führen konnte, ein
+Definitions-Format, das eine ausgelieferte Zusage der Stufe 1 gebrochen hätte,
+und ein gerechneter Wert, der im Block-Panel nach einer Änderung veraltet
+stehenblieb. Die ersten beiden fand erst der Lauf an der gebauten Anwendung.
+
+### Neu
+
+- **Abgeleitete Felder** (4T-1183, 4T-1184, 4T-1185): Ein Profil kann Felder
+  erklären, die ihren Wert beim Anzeigen bekommen. Ein **Formel-Feld**
+  (`type: formula` mit `options.expression`) rechnet über die anderen Felder
+  desselben Dokuments — mit derselben Sprache und demselben Funktions-Vorrat wie
+  eine Abfrage-Spalte, einschließlich Datums- und Dauer-Rechnung, und über
+  Profil-Grenzen und Vererbungs-Ketten hinweg. Ein **Sammel-Feld**
+  (`type: lookup` mit `options.relatedField`, optional `options.from`) holt
+  die Dokumente, die über ein benanntes Feld auf das eigene verweisen; ein
+  Verweis zählt in allen drei Schreibweisen und auch über einen Alias des
+  eigenen Dokuments. Beide erscheinen in **beiden** Eigenschafts-Editoren nicht
+  bearbeitbar und werden nie zur Übernahme angeboten. Verweisen zwei Felder im
+  Kreis aufeinander, nennt eine Rechenvorschrift ein nicht vorhandenes Feld, ist
+  der Ausdruck nicht auswertbar oder fehlt die Vorschrift ganz, bleibt der Wert
+  leer und trägt einen Hinweis — blockiert wird nie etwas.
+- **Strukturierte Felder** (4T-1186, 4T-1187): Ein Feld kann ein Objekt mit
+  benannten Kind-Feldern tragen (`type: object`) oder eine Liste gleichartiger
+  Objekte (`type: objectlist`); die Kind-Definitionen stehen verschachtelt unter
+  `fields` und können jeden Typ führen, auch wieder ein Objekt. Damit braucht
+  «Sitzung mit drei Teilnehmern» ein Feld statt drei paralleler Listen für Name,
+  Rolle und Firma. Beide Eigenschafts-Editoren zeigen sie gestapelt: Kind-Felder
+  eingerückt unter ihrem Feld, jedes mit dem Bedienelement seines Typs, und
+  Einträge einer Liste als Gruppen zum Anlegen und Entfernen. Ein neuer Eintrag
+  entsteht leer, ein noch nicht gesetztes Kind-Feld bleibt sichtbar leer statt
+  vorbelegt zu werden und wird nicht mitgeschrieben. Im Metadaten-Block
+  erscheinen die Werte als gewöhnliche verschachtelte Struktur und bleiben ohne
+  die Anwendung lesbar; ein Kind-Wert, den keine Definition erklärt, geht nicht
+  verloren.
+
+### Geändert
+
+- **Der Feld-Typ-Satz der Profile umfasst jetzt zwölf Typen** (4T-1183, 4T-1184,
+  4T-1186): zu den acht bisherigen kommen `formula`, `lookup`, `object` und
+  `objectlist`. Jede bestehende Profil-Datei bleibt unverändert gültig, und
+  keine bestehende Definition ändert ihre Bedeutung. Verschachtelte
+  Kind-Definitionen waren seit Stufe 1 Teil des Formats und ohne Wirkung; sie
+  werden jetzt von den beiden Objekt-Typen bedient und bleiben an jedem anderen
+  Typ weiterhin zulässig.
+- **Block-Eigenschaften tragen verschachtelte Werte** (4T-1187): Die
+  Begleitdatei speichert sie, und beide Panels bedienen sie gleich. Im
+  Bereichs-Index erscheinen sie bewusst nicht — eine Block-Abfrage kann einen
+  strukturierten Wert deshalb nicht als Bedingung nutzen, anders als die
+  einfachen Werte.
+- **Die Funktions-Seite kennzeichnet jetzt alle Zeilen der Eigenschafts-Profile**
+  im Aus-Zustand (4T-1180). Vier ältere Zeilen — Vererbung, Komplett-Übernahme,
+  Wertevorrats-Quellen und Zuordnungs-Bindungen — blieben bisher ungekennzeichnet
+  und behaupteten damit Funktionen, die bei abgeschalteter Erweiterung nicht
+  vorhanden sind.
+
+### i18n
+
+- Neue Schlüssel in allen fünf Sprachfassungen: die vier Typ-Namen, die
+  Erläuterung und die vier Hinweise der abgeleiteten Felder, die drei
+  Beschriftungen der gestapelten Bedienung, ein Diagnose-Text für Wert-Angaben
+  an einem abgeleiteten Feld sowie die beiden neuen Funktions-Katalog-Einträge
+  mit je drei Schlüsseln.
+- Handbuch in allen fünf Fassungen: zwei neue Kapitel auf der Seite der
+  Eigenschafts-Profile samt erweiterter Typ- und Options-Tabelle, ein Absatz auf
+  der Seite der Block-Eigenschaften und ein weiterer Punkt auf der Nutzen-Seite.
+  Dabei zwei Bestands-Befunde behoben: Die vier Fremdsprachen-Fassungen führten
+  unter «Grenzen» noch Angaben als nicht ausgewertet, die seit Stufe 2
+  ausgewertet werden, und die Seite der Block-Eigenschaften zählte die Feld-Typen
+  noch ohne Verweis und Uhrzeit auf.
+
 ## [1.117.0.1788] - 2026-08-24 — Metadaten-Modell Stufe 3: Bedienung und Sicht
 
 Epic 3E-0220: Die dritte der vier Umsetzungs-Stufen und die, die den Zugang am

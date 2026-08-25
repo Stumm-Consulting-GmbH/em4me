@@ -25,6 +25,18 @@ import { inferType } from './properties-typ-werte.js';
 // 4T-1155/4T-1156 (Epic 3E-0219): um 'link' und 'time' erweitert, in
 // derselben Reihenfolge wie PROFILE_FIELD_TYPES des Format-Moduls; 'readonly'
 // bleibt der DOM-interne Fallback am Ende.
+// 4T-1185 (Epic 3E-0221, E1): um 'formula' und 'lookup' erweitert. Beide
+// erscheinen im Typ-Wechsler nur an einem Feld, das sie ohnehin trägt — genau
+// wie der interne 'readonly'-Fallback und aus demselben Grund: Ein Anwender
+// legt kein abgeleitetes Feld an, indem er einen Typ wählt; es entsteht durch
+// eine Profil-Definition. Der Wechsler ist an solchen Feldern gesperrt.
+// 4T-1187 (Epic 3E-0221, E11): um die beiden Objekt-Typen erweitert, und zwar
+// aus demselben Grund und mit derselben Folge — ein strukturiertes Feld
+// entsteht aus einer Profil-Definition mit Kind-Feldern, nicht aus einer
+// Typ-Wahl. **Sie MÜSSEN in dieser Liste stehen**, auch wenn sie nicht wählbar
+// sind: Der Typ-Wechsler baut seine Optionen daraus, und ohne eine Option für
+// den eigenen Typ könnte er ihn nicht anzeigen. Genau daran ist der erste
+// E2E-Lauf des Block-Panels gescheitert.
 export const PROPERTY_TYPES = [
   'string',
   'multistring',
@@ -34,8 +46,18 @@ export const PROPERTY_TYPES = [
   'multiline',
   'link',
   'time',
+  'formula',
+  'lookup',
+  'object',
+  'objectlist',
   'readonly',
 ];
+
+// 4T-1185/4T-1187: Typen, die im Wechsler nur am eigenen Feld erscheinen.
+// 'readonly' ist der DOM-interne Rückfall verschachtelter Strukturen, zwei
+// sind abgeleitet, zwei strukturiert — keiner der fünf ist eine Vorgabe, die
+// man wählt; alle entstehen aus einer Definition oder aus dem Wert selbst.
+export const NICHT_WAEHLBARE_TYPEN = ['formula', 'lookup', 'object', 'objectlist', 'readonly'];
 
 // Heuristik fuer Standard-Feldnamen: schlaegt einen Typ vor, wenn ein neu
 // hinzugefuegtes Feld diesen Namen bekommt. Wirkt nur, solange der Nutzer

@@ -11,6 +11,14 @@
   ],
   "eintraege": [
     {
+      "spec": "test/unit/nummern-reservierung.test.js",
+      "fall": "liefert acht gleichzeitigen Vergaben disjunkte Blöcke",
+      "datum": "2026-08-24",
+      "fehlerbild": "Einzel-Fehlschlag im Unit-Gate eines Integrations-Laufs (Anlage der Nachgangs-Tasks 4T-1180/4T-1181): Mindestens einer der acht Kindprozesse kam mit ok=false zurück, die Zusicherung expect(r.ok).toBe(true) fiel. Isoliert sofort grün, 28 von 28, der Fall selbst in 340 ms.",
+      "vermutung": "lastbedingt. Der Fall startet acht echte Node-Kindprozesse, die gleichzeitig um dieselbe Datei-Sperre in einem Temp-Verzeichnis konkurrieren; unter der Last der parallel laufenden Suite kann eine Sperr-Übernahme in ihr Zeitfenster laufen. Kein Bezug zum Änderungs-Umfang, der reine Objekt-Anlage war und die Nummern-Reservierung nicht berührt. Dieselbe Klasse wie die bekannten Parallelitäts-Flakes der Suite.",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/e2e/funktionen/panel-zugänge.spec.js",
       "fall": "PZ-06",
       "datum": "2026-08-24",
@@ -128,6 +136,14 @@
       "datum": "2026-08-19",
       "fehlerbild": "Einzel-Fehlschlag im E2E-Voll-Lauf vor dem Release 1.114.0 (616 von 618 grün, Laufzeit 39,1 min). Unmittelbar danach isoliert geprüft: 5 von 5 grün in 14,6 s. Der Fehlertext des Voll-Laufs ist nicht gesichert worden, weil der Lauf über eine Ausgabe-Kürzung gestartet war und der isolierte Lauf danach den Bericht überschrieb; belegt sind deshalb der rote und der grüne Ausgang, nicht die Abbruch-Stelle.",
       "vermutung": "lastbedingt, und zwar dasselbe Muster, das 4T-1086 am 2026-08-19 eingestuft und gehärtet hat: Der Fall wartet nach dem Escape auf das geschlossene Kontextmenü statt auf eine feste Zeitspanne, was der Sache nach richtig ist. Unter der Eigenlast eines vollen Ablauf-Laufs reicht die Härtung offenbar noch nicht. Der Vorgang hatte den Fall nach seiner Behebung aus dieser Liste entfernt; der Wiedereintrag ist die Korrektur dieser Annahme, nicht ihr Widerspruch. Eigener Vorgang: 4T-1100 im Test-Pflege-Gefäß 3E-0156.",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-suche.spec.js",
+      "fall": "BS-05",
+      "datum": "2026-08-25",
+      "fehlerbild": "Einzel-Fehlschlag im E2E-Abnahme-Lauf vor dem Release 1.118.0 (628 von 629 grün, Laufzeit 23,6 min). Betroffen ist der zweite Fall des Blocks, «der Zaehler laeuft ueber alle Treffer des Bereichs, nicht je Datei» (bereichs-suche.spec.js:230). Das Poll-Prädikat in Zeile 248 lief in seinen 15-Sekunden-Timeout: erwartet true, erhalten false, also blieb der Treffer-Zähler beim Durchlauf mit F3 auf seinem Wert stehen. Der Fall brauchte 15,7 s statt der sonst rund 1,7 s; der erste Fall desselben Blocks (Zeile 208) war im selben Lauf grün. Isoliert unmittelbar danach geprüft: 2 von 2 grün in 3,9 s. Beleg des roten Laufs vollständig gesichert unter test-berichte/rot/2026-08-25T10-04-11Z-…-e2e.log samt Screenshot und Trace — anders als beim BS-06-Eintrag vom 2026-08-19 ist die Abbruch-Stelle hier belegt.",
+      "vermutung": "Lastbedingt. Der Fall springt mit F3 über eine Datei-Grenze hinweg und wartet darauf, dass der Zähler den nächsten Stand zeigt; das setzt voraus, dass die Zieldatei geöffnet und ihr Trefferraum aufgebaut ist. Unter der Eigenlast eines vollen Laufs reichen die 15 Sekunden offenbar nicht immer, während dieselbe Strecke isoliert in Bruchteilen davon läuft. Für einen Produktfehler spricht nichts: Der Zähler ist im isolierten Lauf und im ersten Fall desselben Blocks korrekt, und der Änderungs-Umfang des Epics 3E-0221 berührt weder die Bereichs-Suche noch ihre Spec (Gegenprobe über den Diff gegen origin/main). Zu beobachten ist, ob derselbe Fall wiederkehrt; dann ist die Wartezeit nicht die Ursache, sondern die Bezugsgröße, auf die gewartet wird.",
       "status": "beobachtet"
     }
   ]

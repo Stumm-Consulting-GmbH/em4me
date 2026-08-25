@@ -90,4 +90,56 @@ describe('Funktions-Seite: Zuordnung Erweiterung zu Katalog-Zeile', () => {
     expect(keys.has('help.feature.taskMarkers')).toBe(true);
     expect(keys.has('help.feature.reminders')).toBe(true);
   });
+
+  // 4T-1180 (Epic 3E-0221): Die Erweiterung der Eigenschafts-Profile nennt
+  // ihre Katalog-Zeilen **vollständig**.
+  //
+  // Der Fall steht hier namentlich und nicht als allgemeine Regel, weil genau
+  // das der Befund war: Die Liste entstand in der Stufe 3 und nannte nur deren
+  // beide Zeilen; vier ältere fehlten und blieben im Aus-Zustand
+  // ungekennzeichnet — die Funktions-Seite behauptete dort vier Funktionen,
+  // die es dann nicht gibt. Der Wächter darüber prüft nur, dass jeder
+  // genannte Schlüssel **existiert**, nicht dass keiner **fehlt**; die
+  // allgemeine Prüfung verlangt eine Durchsicht des ganzen Katalogs und läuft
+  // als eigener Vorgang (4T-1181).
+  const PROFIL_ZEILEN = [
+    'help.feature.propertyProfiles',
+    'help.feature.profileInheritance',
+    'help.feature.profileBulkFill',
+    'help.feature.profileValueSources',
+    'help.feature.profileBindings',
+    'help.feature.profileFieldForm',
+    'help.feature.profileQuery',
+  ];
+
+  it('AK1: die Profil-Erweiterung nennt alle ihre Katalog-Zeilen', () => {
+    const profil = allExtensions().find((m) => m.id === 'property-profiles');
+    expect(profil).toBeTruthy();
+    // Die Grundzeile trägt der descKey, die übrigen die featureKeys-Liste.
+    const abgedeckt = new Set([profil.descKey, ...(profil.featureKeys || [])]);
+    const fehlend = PROFIL_ZEILEN.filter((k) => !abgedeckt.has(k));
+    expect(fehlend).toEqual([]);
+  });
+
+  it('AK2: im Aus-Zustand tragen alle Profil-Zeilen die Kennzeichnung', () => {
+    const seite = generateFunctionsPage(t, {
+      disabledFeatureKeys: disabledFeatureKeySet(['property-profiles']),
+    });
+    const ohneMarke = [];
+    for (const key of PROFIL_ZEILEN) {
+      const zeile = zeileZu(seite, key);
+      // Fehlt die Zeile ganz, ist das ebenso ein Befund wie eine ohne Marke.
+      if (!zeile || !zeile.includes('manual.functions.disabledMark')) ohneMarke.push(key);
+    }
+    expect(ohneMarke).toEqual([]);
+  });
+
+  it('AK2: im An-Zustand trägt keine von ihnen eine Kennzeichnung', () => {
+    // Die Gegenprobe: Eine Marke, die immer erscheint, wäre so falsch wie
+    // eine, die nie erscheint.
+    const seite = generateFunctionsPage(t, { disabledFeatureKeys: new Set() });
+    for (const key of PROFIL_ZEILEN) {
+      expect(zeileZu(seite, key)).not.toContain('manual.functions.disabledMark');
+    }
+  });
 });

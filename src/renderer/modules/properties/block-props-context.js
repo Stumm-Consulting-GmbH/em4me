@@ -9,11 +9,15 @@
 import { state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import { extractBlockAnchors, blockAnchorForLine } from '../../../shared/block-anchors.js';
-import { PROPERTY_TYPES } from './properties-types.js';
+import { PROPERTY_TYPES, NICHT_WAEHLBARE_TYPEN } from './properties-types.js';
 
 // Editierbare Typen: der 'readonly'-Fallback der Dokument-Ebene entfaellt, weil
 // das Block-Schema app-kontrolliert ist (Konzept-Entscheidung 1).
-export const BLOCK_PROP_TYPES = PROPERTY_TYPES.filter((ty) => ty !== 'readonly');
+// 4T-1185 (Epic 3E-0221): mit ihm entfallen die beiden abgeleiteten Typen aus
+// demselben Grund — sie sind keine Vorgabe, die man waehlt, sondern ein
+// Ergebnis, das ein Profil erklaert. Ein abgeleitetes Feld traegt seinen Typ
+// trotzdem; sein Wechsler ist gesperrt und zeigt ihn (siehe buildFieldRow).
+export const BLOCK_PROP_TYPES = PROPERTY_TYPES.filter((ty) => !NICHT_WAEHLBARE_TYPEN.includes(ty));
 
 export function activeTabForPane(paneIdx) {
   const pane = state.panes[paneIdx];

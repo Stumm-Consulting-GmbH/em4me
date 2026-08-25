@@ -28,18 +28,58 @@ const markSelfWriting = selbstSchreib.merke;
 // Array-Elemente werden verworfen — konsistent zur Abfragbarkeit der Frontmatter-
 // Properties (extractProperties in backlinks.js). Werte bleiben typ-erhaltend,
 // damit die Renderer-Inferenz den Typ ableitet (keine Typ-Persistenz).
-function sanitizeBlockValues(values) {
+// 4T-1187 (Epic 3E-0221, E11): Höchst-Tiefe verschachtelter Block-Werte.
+//
+// Der Wert kommt über die IPC-Grenze herein, und diese Funktion ist ihr
+// Filter. Das Definitions-Format kennt bewusst keinen Tiefen-Deckel (4T-1141:
+// «ein Deckel wäre eine neue, nicht entschiedene Verhaltens-Zusage») — an
+// einer Prozess-Grenze ist eine unbegrenzte Rekursion auf fremder Eingabe
+// aber kein vertretbares Risiko. Zehn Ebenen liegen so weit über jedem realen
+// Aufbau, dass die Grenze nie im Weg steht; was tiefer liegt, entfällt still
+// wie jeder andere nicht übernehmbare Wert.
+const BLOCK_WERT_MAX_TIEFE = 10;
+
+// Werte einer Block-Eigenschaft säubern.
+//
+// 4T-1187: Seit den strukturierten Feld-Typen kommen auch verschachtelte Werte
+// durch — ein Objekt mit benannten Kind-Feldern und eine Liste gleichartiger
+// Objekte. Die Entscheidung des Product Owners vom 2026-08-25 verlangt genau
+// das: Beide Eigenschafts-Panels bedienen die Objekt-Typen, das Block-Panel
+// speichert sie in der Begleitdatei.
+//
+// **Der Bereichs-Index bleibt davon unberührt**, und das ist ebenso Teil der
+// Entscheidung: `normalizeBlockEntries` in src/main/index/block-data.js lässt
+// weiterhin nur flache Werte durch. Ein strukturierter Wert an einem Absatz ist
+// damit gespeichert und anzeigbar, aber nicht Gegenstand einer Block-Abfrage —
+// dieselbe bewusst gewählte Grenze wie bei den abgeleiteten Werten (E1).
+function sanitizeBlockValues(values, tiefe = 0) {
   if (values === null || typeof values !== 'object' || Array.isArray(values)) return {};
   const out = {};
   for (const key of Object.keys(values)) {
-    const v = values[key];
-    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
-      out[key] = v;
-    } else if (Array.isArray(v)) {
-      out[key] = v.filter((x) => typeof x === 'string');
-    }
+    const sauber = sanitizeBlockWert(values[key], tiefe);
+    if (sauber !== undefined) out[key] = sauber;
   }
   return out;
+}
+
+// Ein einzelner Wert: Skalar, Liste oder verschachtelte Struktur.
+// `undefined` = nicht übernehmbar (der Aufrufer lässt den Schlüssel weg).
+function sanitizeBlockWert(v, tiefe) {
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return v;
+  if (v === null || typeof v !== 'object') return undefined;
+  if (tiefe >= BLOCK_WERT_MAX_TIEFE) return undefined;
+  if (Array.isArray(v)) {
+    // Eine Liste trägt entweder Zeichenketten (der Bestands-Fall) oder
+    // Objekte (eine Objekt-Liste). Gemischte Listen behalten, was übernehmbar
+    // ist — dieselbe Haltung wie bisher beim Zeichenketten-Filter.
+    const liste = [];
+    for (const item of v) {
+      const sauber = sanitizeBlockWert(item, tiefe + 1);
+      if (sauber !== undefined) liste.push(sauber);
+    }
+    return liste;
+  }
+  return sanitizeBlockValues(v, tiefe + 1);
 }
 
 /**

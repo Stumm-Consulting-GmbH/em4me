@@ -27,13 +27,13 @@ Attributes per definition:
 | Attribute | Meaning |
 | --- | --- |
 | `name` | field name (required, unique per profile) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (link to a file) or `time` (time of day); defaults to `string` |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (link to a file), `time` (time of day), `formula` and `lookup` (derived fields) or `object` and `objectlist` (structured fields); defaults to `string` |
 | `values` | optional: fixed value range as a list of values (for `string`, `multistring`, `number` and `date`) |
 | `multiple` | optional: several values — the value is a list. Applies to every type except `boolean` and `multiline`; only for the text field does the type switch to `multistring`, otherwise the type name stays (a link field with several targets is `link` with `multiple`) |
 | `default` | optional: preset when the field is created via the editor |
 | `valuesFrom` | optional: source of the value pool with `note` (path of a values note) and/or `query`; together with `values`, `values` applies |
 | `options` | optional: type-specific settings as a sub-object, see the table below |
-| `fields` | optional: nested child definitions following the same schema, reserved for structured types |
+| `fields` | optional: nested child definitions following the same schema; served by `object` and `objectlist`. On any other type they remain permitted but have no effect |
 
 A `multistring` field with `values` is automatically a multiple choice. **The field name is the only required property**: every other property is optional, and existing profile files remain valid unchanged. `valuesFrom`, `options` and nested `fields` are already part of the format but are not yet evaluated in this version (section «Limits»). Defective individual definitions (such as an unknown type or a duplicate field name) only suspend themselves; the remaining definitions of the profile stay effective. The profile list in the settings shows the hints written out under the respective profile — with the affected definition, the faulty property and what was expected in its place, for child definitions with the path to the parent field — and opens the profile file on click.
 
@@ -47,6 +47,8 @@ The sub-object `options` carries the settings that apply to one type only:
 | `date` | `shift` | shift in days; it presets an **empty** field on first focus, an existing date stays untouched |
 | `link` | `restrictTo`, `display`, `sort` | folder path (or list) the suggestions are limited to; frontmatter field of the target as display name; order `name` or `path` |
 | choice field | `control: cycle` | the single choice becomes a button that switches to the next value on click; the stored value stays the same as without the option |
+| `formula` | `expression` | The calculation rule over the other fields of the same document |
+| `lookup` | `from`, `relatedField` | Query narrowing the documents to ask (the whole area if omitted); field through which they point to this document |
 
 An unknown or unsuitably filled setting is dropped individually with a hint; the field and the remaining settings stay effective. A setting intended for a later type may therefore already be present without causing harm.
 
@@ -214,14 +216,85 @@ From then on the inserted block is ordinary content — it can be edited, extend
 
 The command disappears when the “Property profiles” extension is switched off.
 
+## Derived fields
+
+Two kinds of field do not hold their value but receive it when displayed. A **formula field** calculates from the other fields of the same document, a **collection field** gathers the documents that point to this one through a named field:
+
+```yaml
+---
+fields:
+  - name: net
+    type: number
+  - name: tax
+    type: number
+  - name: gross
+    type: formula
+    options:
+      expression: net + tax
+  - name: items
+    type: lookup
+    options:
+      from: FROM "Items"
+      relatedField: project
+---
+```
+
+A formula expression uses the same language and function set as a query column, including date and duration arithmetic; it may refer to any other field of the document, including another formula field. The order in the profile file does not matter.
+
+**The value is not in the file.** It is produced when someone looks at it and disappears again afterwards — so opening a document does not change it, and the value is always current. In both property editors derived fields therefore appear as not editable, without a delete button and with a locked type; they are also never offered for adoption.
+
+If a value stays empty, a note on the field says why: two fields refer to each other in a circle, a calculation rule names a field that does not exist here, the expression cannot be evaluated, or the rule is missing entirely. Nothing is ever blocked, and the other fields keep calculating.
+
+A collection field queries the area index and is therefore only evaluated when displayed; the result holds until the content changes. A link counts in all notations — `[[target]]`, `[[target|label]]` and the bare name — and a link through an alias of this document matches as well.
+
+**The trade-off is deliberate:** because a derived value is not in the file, it is not in the index either and carries no query condition. Where that matters, let the query calculate instead — it can do the same.
+
+## Structured fields
+
+A field can hold an **object** with named child fields or a **list of similar objects**. Without them, a "meeting with three participants" would need three parallel lists for name, role and company whose connection lies solely in their order:
+
+```yaml
+---
+fields:
+  - name: participants
+    type: objectlist
+    fields:
+      - name: person
+        type: link
+      - name: role
+        values: [Chair, Minutes, Guest]
+---
+```
+
+The child definitions are nested and follow the same schema as the top level — they can carry any type, including another object, and have their own value ranges and options. An object type without `fields` is permitted; it then shows its value read-only.
+
+Both property editors show such fields **stacked**: the child fields indented under their field, each with the control of its type; for a list every entry appears as its own group with a button to remove it, and below them one to add. A new entry starts empty, and **a child field that is not set yet stays visibly empty** instead of being prefilled — it is not written along either.
+
+In the metadata block the values appear as an ordinary nested structure:
+
+```yaml
+---
+class: Meeting
+participants:
+  - person: "[[Anna Example]]"
+    role: Chair
+  - person: "[[Bo Sample]]"
+    role: Guest
+---
+```
+
+They thus remain readable without the application. A child value that no definition explains is not lost in the process: it gets no control, but it is kept.
+
+The same applies to the properties of a **paragraph** (block properties), with one difference: a structured value there does not appear in the area index and therefore carries no block query condition.
+
 ## Soft validation
 
 Deviations never block and never change the value: a value outside the value range or a value that does not match the defined type merely produces a hint icon at the field; the tooltip names the reason. Markdown and frontmatter remain freely editable — including directly in the source.
 
 ## Limits
 
-- The format already provides for type-specific options (`options`), value pool sources (`valuesFrom`) and nested child definitions; they are not yet evaluated in this version. Such a property is not an error, it simply has no effect until the expansion.
+- A derived value cannot be fixed as an ordinary value; it stays calculated. There is no type for free nested content — the read-only display covers that.
 - Renaming a profile file does not change the assignment values in the documents; they then point to a non-existent profile (the settings mark a missing default profile).
 - Profiles live directly in the profile folder; subfolders are not included.
-- The definitions apply in the two property editors; calculated field types or types derived from other files are not part of the profiles.
+- The definitions apply in the two property editors. Field types that would be bound to a spatial canvas are deferred until there is one.
 - Binding a profile to a bookmark group and assignment via a query are deliberately deferred; tag and folder cover the documented cases and stay explainable.

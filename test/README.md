@@ -354,6 +354,48 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Dialog statt Handler-Aufruf, geöffnete Seite statt erzeugtem Text.
     Ein Fall auf Schicht-Ebene ist als **Ergänzung** nützlich, nie als
     Ersatz.
+19. **Ein Negativbeispiel darf nie ein Name sein, der einmal gültig
+    werden kann.** Wer prüft, dass ein *unbekannter* Wert abgewiesen
+    wird — ein Typ, ein Modus, ein Schlüssel —, wählt dafür einen Namen,
+    den es nie geben wird: `gibtsnicht`. Ein plausibel klingender Name
+    ist die Falle, denn er ist genau das, was beim nächsten Ausbau
+    hinzukommt. Der Prüffall wird dann **nicht rot, sondern
+    gegenstandslos**: Er läuft weiter, misst aber nicht mehr, was er
+    messen sollte, und fällt erst auf, wenn eine ganz andere Zusicherung
+    daneben kippt.
+
+    Dreimal am 2026-08-25 belegt, alle beim Typ-Ausbau der
+    Eigenschafts-Profile (4T-1183 bis 4T-1185): Drei Unit-Fälle und der
+    E2E-Fall PP-11 hatten `lookup` als Beispiel für einen unbekannten Typ
+    gewählt — also ausgerechnet den Namen des Typs, der in derselben
+    Stufe hinzukam. Alle vier wurden auf `gibtsnicht` umgestellt, der
+    Prüf-Gegenstand blieb unverändert. **Ein maschineller Wächter ist
+    bewusst nicht vorgesehen:** Er müsste erkennen, welche Zeichenkette
+    in einem Prüffall die Rolle des Negativbeispiels spielt, und das hat
+    kein sicheres Merkmal im Quelltext. Die Regel trägt der Name.
+20. **Ein Umschalter wird nie auf Verdacht bedient.** Wer einen Zustand
+    herstellen will, den ein Umschalter trägt — Panel ein, Modus an,
+    Bereich aufgeklappt —, prüft vorher **den Schalt-Zustand**, nicht das
+    gerenderte Ergebnis. Meldet ein Element den Zustand (`aria-pressed`,
+    `aria-expanded`, eine Zustands-Klasse), ist das die Bezugsgröße; nur
+    wenn keines ihn meldet, bleibt das Ergebnis der letzte Ausweg, und
+    dann mit Warte-Semantik statt Momentaufnahme. Der Grund ist die
+    Lücke: Der Umschalter im Produkt entscheidet am Zustand, ein
+    `isVisible()` im Prüffall an einer Momentaufnahme des DOM. Solange
+    das Rendern dem Zustand hinterherläuft, sehen beide etwas
+    Verschiedenes — und der Klick, der einschalten sollte, schaltet
+    **aus**.
+
+    Belegt am 2026-08-25 (4T-1190): Der Helfer `showBookPanel` klickte im
+    frisch geöffneten zweiten Fenster auf ein Panel, das laut Zustand
+    schon an war und nur noch nicht gezeichnet. Der Fall BU-09 wurde
+    dadurch reproduzierbar rot und blockierte eine Release-Vorbereitung.
+    Die Falle wächst mit dem Produkt: Der Helfer stammte aus der Zeit mit
+    genau einem Fenster, und erst das Applikations-Modell des Buches
+    (4T-0871) brachte das zweite, dessen Sidebar später rendert. **Ein
+    maschineller Wächter ist nicht vorgesehen** — ob ein Ausdruck eine
+    Momentaufnahme ist, hat kein sicheres Merkmal im Quelltext (dieselbe
+    Lage wie bei Regel 19).
 
 ## E2E-Praxis
 

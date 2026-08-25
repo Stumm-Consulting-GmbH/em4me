@@ -348,7 +348,11 @@ test.describe('PP-11: Ortsbezogene Diagnose der Profil-Hinweise (4T-1143)', () =
     const kaputt = path.join(areaRoot, 'Profile', 'Kaputt.md');
     fs.writeFileSync(
       kaputt,
-      '---\nextends: Fehlt\nfields:\n  - name: prio\n    type: lookup\n---\n',
+      // 4T-1184 (Epic 3E-0221): Der Platzhalter für einen UNBEKANNTEN Typ war
+      // bis zur Stufe 4 `lookup`; seither ist der ein gültiger Typ, und der
+      // Fall maß nicht mehr, was er messen soll. Der Prüf-Gegenstand — ein
+      // unbekannter Typ erzeugt seinen Hinweis — ist unverändert.
+      '---\nextends: Fehlt\nfields:\n  - name: prio\n    type: gibtsnicht\n---\n',
       'utf8',
     );
     fs.writeFileSync(

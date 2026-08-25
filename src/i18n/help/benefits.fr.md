@@ -87,6 +87,7 @@ Beaucoup de documents d'une zone partagent les mêmes champs : un statut, une da
 - **Indications douces plutôt que verrous :** les écarts sont nommés, rien n'est bloqué.
 - **Affectation sans inscription dans le document :** une étiquette ou le dossier décide du profil qui s'applique.
 - **Des listes de valeurs qui s'entretiennent d'elles-mêmes :** les valeurs admises viennent soit d'une note, soit d'une requête sur le fonds.
+- **Des champs qui portent une structure :** Une réunion à trois participants a besoin d’un champ au lieu de trois listes parallèles pour le nom, le rôle et la société — dans le bloc de métadonnées, cela reste du YAML ordinaire et lisible.
 
 En détail : [Profils de propriétés](property-profiles.md).
 

@@ -555,11 +555,29 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.propertyProfiles',
     settingsSections: ['propertyProfiles'],
     commands: ['view.openFieldForm', 'edit.insertProfileQuery'],
-    // 4T-1177 (Epic 3E-0220): Die beiden Katalog-Zeilen der Stufe 3 muessen im
+    // 4T-1177 (Epic 3E-0220): Die Katalog-Zeilen dieser Erweiterung muessen im
     // Aus-Zustand gekennzeichnet sein, sonst behauptet die Funktions-Seite
     // Funktionen, die es dann nicht gibt. Der descKey traegt weiterhin die
-    // Grundzeile; vier aeltere Profil-Zeilen fehlen hier (Befund in 4T-1177).
-    featureKeys: ['help.feature.profileFieldForm', 'help.feature.profileQuery'],
+    // Grundzeile.
+    // 4T-1180 (Epic 3E-0221): um die vier aelteren Zeilen vervollstaendigt, die
+    // seit 4T-1177 als Befund offen standen — Vererbung, Komplett-Uebernahme,
+    // Wertevorrats-Quellen und die Zuordnungs-Bindungen. Dass sie im
+    // Aus-Zustand wirklich entfallen, ist geprueft: Die Aufloesung im Renderer
+    // haengt am Gate (isExtensionActive in properties-types.js), ebenso die
+    // IPC-Kanaele fuer Verweis-Ziele, Wertevorraete und Lookup-Treffer
+    // (src/main/ipc/profiles.js); der Einstellungs-Bereich verschwindet ueber
+    // settingsSections.
+    featureKeys: [
+      'help.feature.profileFieldForm',
+      'help.feature.profileQuery',
+      'help.feature.profileInheritance',
+      'help.feature.profileBulkFill',
+      'help.feature.profileValueSources',
+      'help.feature.profileBindings',
+      // 4T-1188 (Epic 3E-0221): die beiden Zeilen der Stufe 4.
+      'help.feature.profileDerivedFields',
+      'help.feature.profileStructuredFields',
+    ],
   },
   // 4T-0461 (Epic 3E-0085): Tab-Gruppen als schaltbare Werkzeug-Erweiterung
   // (Erweiterungs-Prüfschritt vom 2026-07-10, dokumentiert im Epic). Keine

@@ -15,7 +15,7 @@
 // Spalten-Formeln nutzen denselben Funktions-Katalog und dasselbe
 // Typ-System wie die Abfrage (Epic-Entscheidung C2).
 // 4T-0987 (Epic 3E-0196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
-const { parseExpression } = require('../query/perspective-query.js');
+const { parseExpression, collectFieldRefs } = require('../query/perspective-query.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
 const { validateQuery } = require('../query/query-functions.js');
 const { formatValue } = require('../query/query-format.js');
@@ -55,18 +55,10 @@ function pad2(n) {
 // --- Ausdrucks-Validierung (4T-0421) --------------------------------------------
 
 // Feld-Verweise eines Ausdrucks-AST einsammeln (lowercase).
-function collectFieldRefs(node, out) {
-  if (!node || typeof node !== 'object') return;
-  if (node.type === 'field') {
-    out.push(String(node.name).toLowerCase());
-    return;
-  }
-  for (const key of ['left', 'right', 'operand']) {
-    if (node[key]) collectFieldRefs(node[key], out);
-  }
-  if (Array.isArray(node.args)) for (const a of node.args) collectFieldRefs(a, out);
-  if (Array.isArray(node.values)) for (const v of node.values) collectFieldRefs(v, out);
-}
+// 4T-1183 (Epic 3E-0221): Der Helfer liegt seit dem zweiten Aufrufer — den
+// Formel-Feldern der Eigenschafts-Profile — bei der Abfrage-Sprache, wo der
+// AST entsteht (Begründung dort). Hier bleibt der Re-Export, damit die
+// Aufrufer dieses Moduls unverändert bleiben.
 
 // Validiert die Spalten-Formeln nach dem Spalten-Aufbau: Syntax und
 // Funktions-Katalog (badExpr), Verweise nur auf existierende Spalten

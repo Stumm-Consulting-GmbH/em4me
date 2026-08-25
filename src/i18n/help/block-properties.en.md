@@ -18,7 +18,9 @@ The "Block properties" panel is toggled like any sidebar panel: via the View →
 
 The panel **follows the cursor**: it shows the properties of the block the cursor is in. The header names the active anchor and offers a selector of all anchors in the file for jumping; anchors that carry properties are marked. If the cursor is in a block **without** an anchor, the panel offers "Create anchor" and writes a short random identifier, unique within the file, to the end of the block.
 
-The property rows work like in the document properties panel: each row has a freely chosen key, a type (text, list, number, true/false, date, multiline) and a matching value field. For the key, the panel suggests the block keys already used in the document. Saving happens **automatically** shortly after typing; the document tab is not marked as modified, because the data lives in the companion file, not in the text. In read-only views the panel only displays the data.
+The property rows work like in the document properties panel: each row has a freely chosen key, a type (text, list, number, true/false, date, multiline, link, time) and a matching value field. For the key, the panel suggests the block keys already used in the document. Saving happens **automatically** shortly after typing; the document tab is not marked as modified, because the data lives in the companion file, not in the text. In read-only views the panel only displays the data.
+
+If **property profiles** apply to the document, its blocks inherit their definitions: a defined field carries the same type, the same choices and the same marking here as in the document panel. Structured fields (object and object list) can be edited on a paragraph as well; they are stored in the companion file. **Such a nested value does not appear in the area index**, however, and therefore cannot serve as a condition in a block query — unlike the simple values. Derived fields appear here too, with their calculated value and not editable; they are never stored in the companion file.
 
 ## Renaming an anchor
 

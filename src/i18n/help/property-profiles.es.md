@@ -27,13 +27,13 @@ Atributos por definición:
 | Atributo | Significado |
 | --- | --- |
 | `name` | nombre del campo (obligatorio, único por perfil) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (enlace a un archivo) o `time` (hora); sin indicación, `string` |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (enlace a un archivo), `time` (hora), `formula` y `lookup` (campos derivados) u `object` y `objectlist` (campos estructurados); sin indicación, `string` |
 | `values` | opcional: rango de valores fijo como lista de valores (para `string`, `multistring`, `number` y `date`) |
 | `multiple` | opcional: varios valores — el valor es una lista. Rige para todo tipo salvo `boolean` y `multiline`; solo en el campo de texto cambia entonces el tipo a `multistring`, en los demás el nombre del tipo permanece (un campo de enlace con varios destinos es `link` con `multiple`) |
 | `default` | opcional: valor inicial al crear el campo mediante el editor |
 | `valuesFrom` | opcional: fuente del repertorio de valores con `note` (ruta de una nota de valores) y/o `query` (consulta); junto con `values` se aplica `values` |
 | `options` | opcional: indicaciones propias del tipo en un subobjeto, véase la tabla siguiente |
-| `fields` | opcional: definiciones hijas anidadas según el mismo esquema, previsto para tipos estructurados |
+| `fields` | opcional: definiciones hijas anidadas según el mismo esquema; atendidas por `object` y `objectlist`. En cualquier otro tipo siguen admitidas pero sin efecto |
 
 Un campo `multistring` con `values` es automáticamente una selección múltiple. **El nombre del campo es la única indicación obligatoria**: cualquier otra indicación es opcional, y los archivos de perfil existentes siguen siendo válidos sin cambios. `valuesFrom`, `options` y los `fields` anidados ya forman parte del formato, pero en esta versión aún no se evalúan (sección «Límites»). Las definiciones individuales defectuosas (por ejemplo un tipo desconocido o un nombre de campo duplicado) solo se suspenden a sí mismas; las demás definiciones del perfil siguen vigentes. La lista de perfiles de los ajustes muestra los avisos escritos bajo el perfil correspondiente — con la definición afectada, la indicación errónea y lo que se esperaba en su lugar, en las definiciones hijas con la ruta hacia el campo padre — y abre el archivo del perfil con un clic.
 
@@ -47,6 +47,8 @@ El subobjeto `options` lleva las indicaciones que solo rigen para un tipo determ
 | `date` | `shift` | desplazamiento en días; rellena previamente un campo **vacío** al primer clic, una fecha existente permanece intacta |
 | `link` | `restrictTo`, `display`, `sort` | ruta de carpeta (o lista) a la que se limitan las sugerencias; campo de metadatos del destino como nombre mostrado; orden `name` o `path` |
 | campo de selección | `control: cycle` | la selección simple se convierte en un botón que pasa al siguiente valor al hacer clic; el valor guardado sigue siendo el mismo que sin la opción |
+| `formula` | `expression` | La regla de cálculo sobre los demás campos del mismo documento |
+| `lookup` | `from`, `relatedField` | Consulta que acota los documentos consultados (toda el área si se omite); campo por el que apuntan a este documento |
 
 Una indicación desconocida o mal rellenada se descarta individualmente con un aviso; el campo y las demás indicaciones siguen siendo efectivos. Una opción prevista para un tipo posterior puede figurar ya sin causar daño.
 
@@ -214,14 +216,85 @@ A partir de ahí el bloque insertado es contenido ordinario — se puede modific
 
 El comando desaparece con la extensión «Perfiles de propiedades» desactivada.
 
+## Campos derivados
+
+Dos clases de campo no llevan su valor, sino que lo reciben al mostrarse. Un **campo de fórmula** calcula a partir de los demás campos del mismo documento; un **campo de recopilación** reúne los documentos que apuntan a este mediante un campo indicado:
+
+```yaml
+---
+fields:
+  - name: neto
+    type: number
+  - name: impuesto
+    type: number
+  - name: bruto
+    type: formula
+    options:
+      expression: neto + impuesto
+  - name: artículos
+    type: lookup
+    options:
+      from: FROM "Artículos"
+      relatedField: proyecto
+---
+```
+
+Una expresión de fórmula usa el mismo lenguaje y el mismo catálogo de funciones que una columna de consulta, incluido el cálculo de fechas y duraciones; puede referirse a cualquier otro campo del documento, incluso a otro campo de fórmula. El orden en el archivo de perfil no importa.
+
+**El valor no está en el archivo.** Surge cuando alguien lo mira y luego vuelve a desaparecer: abrir un documento no lo modifica, y el valor siempre está al día. Por eso, en ambos editores de propiedades los campos derivados aparecen como no editables, sin botón de borrado y con el tipo bloqueado; tampoco se ofrecen nunca para su adopción.
+
+Si un valor queda vacío, una indicación en el campo dice por qué: dos campos se remiten en círculo, una regla de cálculo nombra un campo que aquí no existe, la expresión no se puede evaluar, o falta la regla por completo. Nunca se bloquea nada, y los demás campos siguen calculando.
+
+Un campo de recopilación consulta el índice del área y por eso solo se evalúa cuando se muestra; el resultado vale hasta que cambie el contenido. Un enlace cuenta en todas sus escrituras —`[[destino]]`, `[[destino|etiqueta]]` y el nombre desnudo—, y también acierta un enlace que pase por un alias de este documento.
+
+**La contrapartida se asume conscientemente:** como un valor derivado no está en el archivo, tampoco está en el índice y no admite condición de consulta. Donde eso moleste, que calcule la consulta: puede hacer lo mismo.
+
+## Campos estructurados
+
+Un campo puede llevar un **objeto** con campos hijos con nombre o una **lista de objetos semejantes**. Sin ellos, «reunión con tres participantes» necesitaría tres listas paralelas para nombre, función y empresa, cuya relación solo está en el orden:
+
+```yaml
+---
+fields:
+  - name: participantes
+    type: objectlist
+    fields:
+      - name: persona
+        type: link
+      - name: función
+        values: [Dirección, Acta, Invitado]
+---
+```
+
+Las definiciones hijas están anidadas y siguen el mismo esquema que el nivel superior: pueden llevar cualquier tipo, incluido otro objeto, y tener sus propios rangos de valores y opciones. Un tipo objeto sin `fields` está admitido; entonces muestra su valor solo en lectura.
+
+Ambos editores de propiedades los muestran **apilados**: los campos hijos sangrados bajo su campo, cada uno con el control de su tipo; en una lista, cada entrada forma un grupo con un botón para quitarla y, debajo, uno para añadir. Una entrada nueva nace vacía, y **un campo hijo aún sin definir permanece visiblemente vacío** en lugar de rellenarse; tampoco se escribe.
+
+En el bloque de metadatos los valores aparecen como una estructura anidada corriente:
+
+```yaml
+---
+class: Reunión
+participantes:
+  - persona: "[[Anna Ejemplo]]"
+    función: Dirección
+  - persona: "[[Bo Muestra]]"
+    función: Invitado
+---
+```
+
+Así siguen siendo legibles sin la aplicación. Un valor hijo que ninguna definición explica no se pierde por ello: no obtiene control, pero se conserva.
+
+Lo mismo vale para las propiedades de un **párrafo** (propiedades de bloque), con una diferencia: un valor estructurado allí no aparece en el índice del área y por eso no admite condición de consulta de bloque.
+
 ## Validación suave
 
 Las desviaciones nunca bloquean ni cambian el valor: un valor fuera del rango de valores o un valor que no corresponde al tipo definido solo produce un icono de aviso en el campo; la información sobre herramientas nombra el motivo. El Markdown y el frontmatter siguen siendo libremente editables, también directamente en el código fuente.
 
 ## Límites
 
-- El formato ya prevé opciones propias del tipo (`options`), fuentes del repertorio de valores (`valuesFrom`) y definiciones hijas anidadas; en esta versión aún no se evalúan. Una indicación así no es un error, simplemente queda sin efecto hasta la ampliación.
+- Un valor derivado no puede fijarse como valor ordinario; sigue siendo calculado. No se prevé un tipo para contenido anidado libre: basta la visualización de solo lectura.
 - Renombrar un archivo de perfil no cambia los valores de asignación en los documentos; entonces apuntan a un perfil inexistente (los ajustes marcan un perfil estándar que falta).
 - Los perfiles están directamente en la carpeta de perfiles; las subcarpetas no se incluyen.
-- Las definiciones actúan en los dos editores de propiedades; los tipos de campos calculados o derivados de otros archivos no forman parte de los perfiles.
+- Las definiciones actúan en los dos editores de propiedades. Los tipos de campo que estarían ligados a un lienzo espacial quedan aplazados hasta que exista uno.
 - La vinculación de un perfil a un grupo de marcadores y la asignación mediante una consulta están deliberadamente aplazadas; etiqueta y carpeta cubren los casos documentados y siguen siendo explicables.

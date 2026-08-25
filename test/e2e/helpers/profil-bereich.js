@@ -66,6 +66,80 @@ function makeArea() {
   return areaRoot;
 }
 
+// 4T-1185 (Epic 3E-0221, E1): Bereichs-Wurzel mit ABGELEITETEN Feldern.
+//
+// Eigene Wurzel und nicht `makeArea` erweitert: Die vorhandenen Prüffälle
+// zählen die Felder ihrer Panels und greifen mit `.last()` auf die zuletzt
+// angelegte Zeile zu. Abgeleitete Felder stehen hinter den Dokument-Feldern
+// und verschöben genau diesen Zugriff — eine Erweiterung der gemeinsamen
+// Wurzel bräche die Fälle der Stufen 1 bis 3, ohne dass an ihnen etwas falsch
+// wäre.
+//
+// Das Profil trägt beide abgeleiteten Typen und einen Kreis-Fall, damit sich
+// Wert, Hinweis und der Negativ-Nachweis an einer Wurzel zeigen lassen.
+//
+// 4T-1187: dazu die beiden Objekt-Typen. Sie bekommen keine eigene Wurzel,
+// weil die Stufe 4 sie gemeinsam einführt und ein Prüffall für die eine Seite
+// die andere ohnehin mit im Panel stehen hat; getrennte Wurzeln wären zwei
+// Wahrheiten über denselben Aufbau. Der Name der Funktion bleibt, damit die
+// Fälle aus 4T-1185 nicht ohne Grund umgeschrieben werden.
+function makeAreaAbgeleitet() {
+  const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-abgeleitet-area-'));
+  fs.mkdirSync(path.join(areaRoot, 'Profile'));
+  fs.writeFileSync(
+    path.join(areaRoot, 'Profile', 'Rechnung.md'),
+    [
+      '---',
+      'fields:',
+      '  - name: netto',
+      '    type: number',
+      '  - name: steuer',
+      '    type: number',
+      '  - name: brutto',
+      '    type: formula',
+      '    options:',
+      '      expression: netto + steuer',
+      '  - name: kreis',
+      '    type: formula',
+      '    options:',
+      '      expression: kreis + 1',
+      '  - name: teilnehmer',
+      '    type: objectlist',
+      '    fields:',
+      '      - name: person',
+      '      - name: rolle',
+      '        values: [Leitung, Gast]',
+      '  - name: adresse',
+      '    type: object',
+      '    fields:',
+      '      - name: ort',
+      '  - name: posten',
+      '    type: lookup',
+      '    options:',
+      '      relatedField: rechnung',
+      '---',
+      'Profil mit abgeleiteten Feldern.',
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+  fs.writeFileSync(
+    path.join(areaRoot, 'Area_Settings.mdda'),
+    JSON.stringify(
+      {
+        schemaVersion: 1,
+        settings: {
+          propertyProfiles: { folder: 'Profile', assignField: 'class', defaultProfile: null },
+        },
+      },
+      null,
+      2,
+    ) + '\n',
+    'utf8',
+  );
+  return areaRoot;
+}
+
 function writeDoc(areaRoot, name, frontmatterLines) {
   const p = path.join(areaRoot, name);
   fs.writeFileSync(p, ['---', ...frontmatterLines, '---', '', 'Inhalt.', ''].join('\n'), 'utf8');
@@ -112,6 +186,7 @@ module.exports = {
   ADD_BTN,
   FIELDS,
   makeArea,
+  makeAreaAbgeleitet,
   writeDoc,
   bindAreaAndOpen,
   openPropertiesPanel,

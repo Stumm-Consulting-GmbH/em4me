@@ -87,6 +87,7 @@ Viele Dokumente eines Bereichs teilen dieselben Felder: ein Status, ein Datum, e
 - **Weiche Hinweise statt Sperren:** Abweichungen werden benannt, nichts wird blockiert.
 - **Zuordnung ohne Eintrag im Dokument:** Ein Schlagwort oder der Ordner entscheidet, welches Profil gilt.
 - **Wertelisten, die sich selbst pflegen:** Der Wertevorrat kommt wahlweise aus einer Notiz oder aus einer Abfrage über den Bestand.
+- **Felder, die eine Struktur tragen:** Eine Sitzung mit drei Teilnehmern braucht ein Feld statt drei paralleler Listen für Name, Rolle und Firma — im Metadaten-Block bleibt sie gewöhnliches, lesbares YAML.
 
 Ausführlich: [Eigenschafts-Profile](property-profiles.md).
 

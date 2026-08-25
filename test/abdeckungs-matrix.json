@@ -314,11 +314,18 @@
       "testart": "e2e",
       "tests": [
         "test/e2e/funktionen/eigenschafts-profile.spec.js",
+        "test/e2e/funktionen/eigenschafts-abgeleitete-felder.spec.js",
+        "test/e2e/funktionen/eigenschafts-objekt-felder.spec.js",
         "test/unit/property-profiles.test.js",
+        "test/unit/property-profiles-abgeleitet.test.js",
+        "test/unit/property-profiles-objekt-typen.test.js",
+        "test/unit/renderer/eigenschaften-objekt-felder.test.js",
+        "test/unit/profil-lookup.test.js",
+        "test/unit/renderer/eigenschaften-abgeleitet.test.js",
         "test/unit/profile-catalog.test.js",
         "test/unit/renderer/settings-profile-hinweise.test.js"
       ],
-      "hinweis": "4T-0446 bis 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — PP-01 bis PP-04 (Vorschlags-Menue mit Definitions-Feldern, Auswahl-Liste des Wertebereichs mit weichem Hinweis, unveraendertes Verhalten ohne Konfiguration, Aus-Zustand der Erweiterung) plus Unit-Suiten fuer Modell, Aufloesung, Katalog und Editor-Logik. 4T-1141 bis 4T-1143 (Epic 3E-0218): erweitertes Definitions-Format, Vererbung samt Aufloesungs-Folge und die ortsbezogene Diagnose — PP-11 (Hinweise ausgeschrieben unter dem Profil, Beheben ohne Neustart) plus Unit-Suiten fuer Format, Ketten-Bildung und Hinweis-Darstellung."
+      "hinweis": "4T-0446 bis 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — PP-01 bis PP-04 (Vorschlags-Menue mit Definitions-Feldern, Auswahl-Liste des Wertebereichs mit weichem Hinweis, unveraendertes Verhalten ohne Konfiguration, Aus-Zustand der Erweiterung) plus Unit-Suiten fuer Modell, Aufloesung, Katalog und Editor-Logik. 4T-1141 bis 4T-1143 (Epic 3E-0218): erweitertes Definitions-Format, Vererbung samt Aufloesungs-Folge und die ortsbezogene Diagnose — PP-11 (Hinweise ausgeschrieben unter dem Profil, Beheben ohne Neustart) plus Unit-Suiten fuer Format, Ketten-Bildung und Hinweis-Darstellung. 4T-1183 bis 4T-1185 (Epic 3E-0221): abgeleitete Felder — Formel und Sammlung, beim Lesen gerechnet und nie geschrieben; PP-12 und PP-13 (Anzeige und Sperre in beiden Panels, Negativ-Nachweis am Dokument-Puffer und an der Begleitdatei) plus Unit-Suiten fuer Auswertung, Kreis-Regel, Lookup-Begrenzung und die Bedienflaeche. 4T-1186 und 4T-1187: die beiden strukturierten Typen — Objekt und Objekt-Liste mit verschachtelten Kind-Definitionen und gestapelter Bedienung in beiden Panels; PP-14 und PP-15 (Kind-Felder gestapelt, Eintrag anlegen und entfernen, Weg bis in den Metadaten-Block und in die Begleitdatei, und die bewusste Grenze zum Bereichs-Index) plus Unit-Suiten fuer Format, Wert-Pruefung, Rueckschrift und den Rundlauf der Bedienung."
     },
     {
       "key": "help.feature.profileInheritance",
@@ -374,6 +381,29 @@
         "test/unit/renderer/profil-abfrage-einfuegen.test.js"
       ],
       "hinweis": "4T-1176 (Epic 3E-0220): erzeugte Abfrage je Profil. Der Gegenstand ist der erzeugte TEXT und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird. Kein E2E-Fall: Die Sicht selbst ist die vorhandene Ergebnis-Ausgabe der Abfrage-Sprache und dort bereits gedeckt; dass die Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 von 4T-1176 an der gebauten Programmdatei."
+    },
+    {
+      "key": "help.feature.profileDerivedFields",
+      "id": "F-271",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/eigenschafts-abgeleitete-felder.spec.js",
+        "test/unit/property-profiles-abgeleitet.test.js",
+        "test/unit/profil-lookup.test.js",
+        "test/unit/renderer/eigenschaften-abgeleitet.test.js"
+      ],
+      "hinweis": "4T-1183 bis 4T-1185 (Epic 3E-0221, E1): abgeleitete Felder — Formel und Sammlung, beim Lesen gerechnet und nie geschrieben. Die Unit-Ebene traegt die Auswertung samt Kreis-Regel und Bezug ins Leere (property-profiles-abgeleitet), die Begrenzung der Lookup-Auswertung ueber einen Auswertungs-Zaehler statt ueber Laufzeit (profil-lookup) und die Anzeige samt Sperre (eigenschaften-abgeleitet). E2E ist Pflicht und nicht Zugabe: Die tragende Zusage aus E1 lautet, dass das Oeffnen eines Dokuments es nicht veraendert, und ob sie haelt, entscheidet sich am geschriebenen Ergebnis — PP-12 prueft den Dokument-Puffer, PP-13 die Begleitdatei. Dasselbe Muster hat in Stufe 3 einen Fehler getragen (4T-1179), den die Unit-Ebene nicht fand."
+    },
+    {
+      "key": "help.feature.profileStructuredFields",
+      "id": "F-272",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/eigenschafts-objekt-felder.spec.js",
+        "test/unit/property-profiles-objekt-typen.test.js",
+        "test/unit/renderer/eigenschaften-objekt-felder.test.js"
+      ],
+      "hinweis": "4T-1186 und 4T-1187 (Epic 3E-0221, E11): Objekt und Objekt-Liste mit verschachtelten Kind-Definitionen. Die Unit-Ebene traegt Format, Wert-Pruefung und die Rueckschrift als verschachteltes YAML (property-profiles-objekt-typen) sowie den Rundlauf der gestapelten Bedienung mit eingespeistem Kind-Editor (eigenschaften-objekt-felder). E2E ist Pflicht, weil die Unit-Ebene an der echten DOM-Verschachtelung vorbeigeht: Beide Fehler dieses Tasks — die Auslese-Reihenfolge und der aus dem Typ-Wechsler gelesene Typ — waren nur an der laufenden Anwendung sichtbar. PP-14 fuehrt den Weg bis in den Metadaten-Block, PP-15 bis in die Begleitdatei und prueft zugleich die bewusste Grenze zum Bereichs-Index."
     },
     {
       "key": "help.feature.profileBulkFill",

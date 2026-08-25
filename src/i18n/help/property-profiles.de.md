@@ -27,13 +27,13 @@ Attribute pro Definition:
 | Attribut | Bedeutung |
 | --- | --- |
 | `name` | Feldname (Pflicht, pro Profil eindeutig) |
-| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (Verweis auf eine Datei) oder `time` (Uhrzeit); ohne Angabe `string` |
+| `type` | `string`, `multistring`, `number`, `boolean`, `date`, `multiline`, `link` (Verweis auf eine Datei), `time` (Uhrzeit), `formula` und `lookup` (abgeleitete Felder) oder `object` und `objectlist` (strukturierte Felder); ohne Angabe `string` |
 | `values` | optional: fester Wertebereich als Werte-Liste (für `string`, `multistring`, `number` und `date`) |
 | `multiple` | optional: mehrere Werte — der Wert ist eine Liste. Gilt für jeden Typ außer `boolean` und `multiline`; nur beim Textfeld wechselt der Typ dabei auf `multistring`, sonst bleibt der Typ-Name stehen (ein Verweis-Feld mit mehreren Zielen ist `link` mit `multiple`) |
 | `default` | optional: Vorbelegung beim Anlegen des Felds über den Editor |
 | `valuesFrom` | optional: Quelle des Wertevorrats mit `note` (Pfad einer Werte-Notiz) und/oder `query` (Abfrage), siehe «Wertevorräte»; zusammen mit `values` gilt `values` |
 | `options` | optional: typ-eigene Angaben als Unterobjekt, siehe Tabelle unten |
-| `fields` | optional: verschachtelte Kind-Definitionen nach demselben Schema, vorgesehen für strukturierte Typen |
+| `fields` | optional: verschachtelte Kind-Definitionen nach demselben Schema; bedient von `object` und `objectlist`. An einem anderen Typ bleiben sie zulässig, aber ohne Wirkung |
 
 Ein `multistring`-Feld mit `values` ist automatisch eine Mehrfach-Auswahl. **Der Feldname ist die einzige Pflichtangabe**: Jede andere Angabe ist optional, und bestehende Profil-Dateien bleiben unverändert gültig. Verschachtelte `fields` sind bereits Teil des Formats, werden aber erst mit den strukturierten Typen ausgewertet (Abschnitt «Grenzen»). Defekte Einzel-Definitionen (etwa ein unbekannter Typ oder ein doppelter Feldname) setzen nur sich selbst aus; die übrigen Definitionen des Profils bleiben wirksam. Die Profil-Liste der Einstellungen zeigt die Hinweise ausgeschrieben unter dem jeweiligen Profil — mit der betroffenen Definition, der fehlerhaften Angabe und dem, was an ihrer Stelle erwartet wurde, bei Kind-Definitionen mit dem Pfad zum Eltern-Feld — und öffnet die Profil-Datei per Klick.
 
@@ -47,6 +47,8 @@ Das Unterobjekt `options` trägt die Angaben, die nur für einen bestimmten Typ 
 | `date` | `shift` | Verschiebung in Tagen; sie belegt ein **leeres** Feld beim ersten Anklicken vor, ein vorhandenes Datum bleibt unangetastet |
 | `link` | `restrictTo`, `display`, `sort` | Ordner-Pfad (oder Liste), auf den die Vorschläge eingegrenzt werden; Frontmatter-Feld des Ziels als Anzeige-Name; Reihenfolge `name` oder `path` |
 | Auswahl-Feld | `control: cycle` | Die Einfach-Auswahl wird ein Knopf, der beim Klick zum nächsten Wert schaltet; der gespeicherte Wert bleibt derselbe wie ohne die Option |
+| `formula` | `expression` | Die Rechenvorschrift über die anderen Felder desselben Dokuments |
+| `lookup` | `from`, `relatedField` | Abfrage, die die befragten Dokumente eingrenzt (ohne Angabe der ganze Bereich); Feld, über das sie auf das eigene Dokument verweisen |
 
 Eine unbekannte oder unpassend belegte Angabe entfällt einzeln mit einem Hinweis; das Feld und die übrigen Angaben bleiben wirksam. Eine Option, die für einen späteren Typ gedacht ist, darf also schon dastehen, ohne Schaden anzurichten.
 
@@ -214,14 +216,85 @@ Der eingefügte Block ist von da an gewöhnlicher Inhalt — er lässt sich änd
 
 Das Kommando entfällt mit der ausgeschalteten Erweiterung «Eigenschafts-Profile».
 
+## Abgeleitete Felder
+
+Zwei Feld-Arten tragen ihren Wert nicht, sondern bekommen ihn beim Anzeigen. Ein **Formel-Feld** rechnet über die anderen Felder desselben Dokuments, ein **Sammel-Feld** holt die Dokumente, die über ein benanntes Feld auf das eigene verweisen:
+
+```yaml
+---
+fields:
+  - name: netto
+    type: number
+  - name: steuer
+    type: number
+  - name: brutto
+    type: formula
+    options:
+      expression: netto + steuer
+  - name: artikel
+    type: lookup
+    options:
+      from: FROM "Artikel"
+      relatedField: projekt
+---
+```
+
+Ein Formel-Ausdruck nutzt dieselbe Sprache und denselben Funktions-Vorrat wie eine Abfrage-Spalte, einschließlich Datums- und Dauer-Rechnung; er darf sich auf jedes andere Feld des Dokuments beziehen, auch auf ein weiteres Formel-Feld. Die Reihenfolge in der Profil-Datei spielt dabei keine Rolle.
+
+**Der Wert steht nicht in der Datei.** Er entsteht, wenn ihn jemand sieht, und verschwindet danach wieder — das Öffnen eines Dokuments verändert es also nicht, und der Wert ist immer aktuell. In beiden Eigenschafts-Editoren erscheinen abgeleitete Felder deshalb nicht bearbeitbar, ohne Löschen-Knopf und mit gesperrtem Typ; sie werden auch nie zur Übernahme angeboten.
+
+Bleibt ein Wert leer, sagt ein Hinweis am Feld, warum: Zwei Felder verweisen im Kreis aufeinander, eine Rechenvorschrift nennt ein Feld, das es hier nicht gibt, der Ausdruck ist nicht auswertbar, oder die Vorschrift fehlt ganz. Blockiert wird nie etwas, und die übrigen Felder rechnen weiter.
+
+Ein Sammel-Feld fragt den Bereichs-Index und wird deshalb nur ausgewertet, wenn es angezeigt wird; das Ergebnis gilt, bis sich der Bestand ändert. Ein Verweis zählt in allen Schreibweisen — `[[Ziel]]`, `[[Ziel|Beschriftung]]` und der blanke Name —, und auch ein Verweis über einen Alias des eigenen Dokuments trifft.
+
+**Die Kehrseite ist bewusst in Kauf genommen:** Weil ein abgeleiteter Wert nicht in der Datei steht, steht er auch nicht im Index und trägt keine Abfrage-Bedingung. Wo das stört, rechnet die Abfrage selbst — sie kann dasselbe.
+
+## Strukturierte Felder
+
+Ein Feld kann ein **Objekt** mit benannten Kind-Feldern tragen oder eine **Liste gleichartiger Objekte**. Ohne sie bräuchte «Sitzung mit drei Teilnehmern» drei parallele Listen für Name, Rolle und Firma, deren Zusammenhang allein in der Reihenfolge steckt:
+
+```yaml
+---
+fields:
+  - name: teilnehmer
+    type: objectlist
+    fields:
+      - name: person
+        type: link
+      - name: rolle
+        values: [Leitung, Protokoll, Gast]
+---
+```
+
+Die Kind-Definitionen stehen verschachtelt und folgen demselben Schema wie die oberste Ebene — sie können jeden Typ führen, einschließlich eines weiteren Objekts, und ihre eigenen Wertebereiche und Optionen tragen. Ein Objekt-Typ ohne `fields` ist zulässig; er zeigt seinen Wert dann nur lesend an.
+
+Beide Eigenschafts-Editoren zeigen solche Felder **gestapelt**: die Kind-Felder eingerückt unter ihrem Feld, jedes mit dem Bedienelement seines Typs; bei einer Liste steht jeder Eintrag als eigene Gruppe mit einem Knopf zum Entfernen, darunter einer zum Anlegen. Ein neuer Eintrag entsteht leer, und **ein noch nicht gesetztes Kind-Feld bleibt sichtbar leer**, statt vorbelegt zu werden — es wird auch nicht mitgeschrieben.
+
+Im Metadaten-Block erscheinen die Werte als gewöhnliche verschachtelte Struktur:
+
+```yaml
+---
+class: Sitzung
+teilnehmer:
+  - person: "[[Anna Beispiel]]"
+    rolle: Leitung
+  - person: "[[Bo Muster]]"
+    rolle: Gast
+---
+```
+
+Damit bleiben sie auch ohne die Anwendung lesbar. Ein Kind-Wert, den keine Definition erklärt, geht dabei nicht verloren: Er bekommt kein Bedienelement, bleibt aber erhalten.
+
+Für die Eigenschaften eines **Absatzes** (Block-Eigenschaften) gilt dasselbe, mit einem Unterschied: Ein strukturierter Wert dort erscheint nicht im Bereichs-Index und trägt deshalb keine Block-Abfrage-Bedingung.
+
 ## Weiche Validierung
 
 Abweichungen blockieren nie und ändern nie den Wert: Ein Wert außerhalb des Wertebereichs oder ein Wert, der nicht zum definierten Typ passt, erzeugt lediglich ein Hinweis-Symbol am Feld; der Tooltip nennt den Grund. Markdown und Frontmatter bleiben frei editierbar — auch direkt im Quelltext.
 
 ## Grenzen
 
-- Verschachtelte Kind-Definitionen (`fields`) sind bereits Teil des Formats; ausgewertet werden sie erst mit den strukturierten Typen. Eine solche Angabe ist kein Fehler, sie bleibt bis dahin ohne Wirkung.
+- Ein abgeleiteter Wert lässt sich nicht als gewöhnlicher Wert festschreiben; er bleibt gerechnet. Ein Typ für freien verschachtelten Inhalt ist nicht vorgesehen — dafür genügt die nur lesende Anzeige.
 - Das Umbenennen einer Profil-Datei ändert die Zuordnungs-Werte in den Dokumenten nicht; sie zeigen dann auf ein nicht vorhandenes Profil (die Einstellungen markieren ein fehlendes Standard-Profil).
 - Profile liegen direkt im Profil-Ordner; Unterordner werden nicht einbezogen.
-- Die Definitionen wirken in den beiden Eigenschafts-Editoren; berechnete oder aus anderen Dateien abgeleitete Feld-Typen sind noch nicht Teil der Profile.
+- Die Definitionen wirken in den beiden Eigenschafts-Editoren. Feld-Typen, die an eine räumliche Arbeitsfläche gebunden wären, sind zurückgestellt, bis es eine solche gibt.
 - Die Bindung eines Profils an eine Lesezeichen-Gruppe und die Zuordnung über eine Abfrage sind bewusst zurückgestellt; Schlagwort und Ordner decken die belegten Fälle ab und bleiben erklärbar.

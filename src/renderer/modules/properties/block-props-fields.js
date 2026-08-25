@@ -7,7 +7,17 @@
 
 import { t } from '../../i18n.js';
 import { state } from '../app/app-state.js';
-import { fieldDefinitionHint } from '../../../shared/property-profiles.js';
+import {
+  DERIVED_TYPES,
+  OBJECT_TYPES,
+  fieldDefinitionHint,
+} from '../../../shared/property-profiles.js';
+// 4T-1187 (Epic 3E-0221): gestapelte Bedienung der Objekt-Typen, gemeinsame
+// Quelle beider Panels.
+import { kindDefinitionen, renderObjektFeld } from './properties-objekt-felder.js';
+// 4T-1185 (Epic 3E-0221): die abgeleiteten Felder — dieselbe Regel wie im
+// Dokument-Panel, der Zeilen-Bau kommt als Parameter herein.
+import { baueAbgeleiteteFelder } from './properties-abgeleitet.js';
 import {
   applyFieldHint,
   coerceValue,
@@ -31,6 +41,8 @@ import {
   renderCycleField,
   renderLinkField,
   renderTimeField,
+  renderAbgeleitetesFeld,
+  attachLookupWerte,
 } from './properties-neue-typen.js';
 
 export function refreshKeyDatalist(paneIdx, els, data) {
@@ -74,6 +86,21 @@ export function buildFields(paneIdx, els, values, readOnly) {
     const type = def ? renderTypeFor(def, data[key]) : inferType(data[key]);
     els.blockPropsFields.appendChild(buildFieldRow(paneIdx, key, data[key], type, readOnly, def));
   }
+
+  // 4T-1185 (Epic 3E-0221, E1): die abgeleiteten Felder — hier aus demselben
+  // Grund wie im Dokument-Panel und über dieselbe Regel. Die Parität ist keine
+  // Zugabe, sondern eine ausgelieferte Zusage (Konzept 7.3); der Unterschied
+  // liegt allein im Zeilen-Bau, und der kommt als Parameter herein.
+  //
+  // **Auch im Lese-Zustand.** Ein abgeleitetes Feld ist ohnehin nicht
+  // bearbeitbar; es zu verbergen, nähme dem Leser eine Information, ohne
+  // irgendetwas zu schützen.
+  baueAbgeleiteteFelder(els.blockPropsFields, {
+    aufloesung: state.properties.profileByPane[paneIdx],
+    werte: data,
+    baueZeile: (def, wert, hinweis) =>
+      buildFieldRow(paneIdx, def.name, wert, def.type, readOnly, def, hinweis),
+  });
 }
 
 // Baut eine Eigenschafts-Zeile (Kopf: Schluessel | Typ | Hinweis | Loeschen;
@@ -81,7 +108,7 @@ export function buildFields(paneIdx, els, values, readOnly) {
 // wie der Dokument-Properties-Editor, aber mit dem Block-Save-Hook.
 // 4T-0449: optionaler def-Parameter — Kennzeichnung, Typ-Sperre, Hinweis und
 // Auswahl-Listen wie im Properties-Editor.
-export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null) {
+export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null, hinweis = null) {
   const wrap = document.createElement('div');
   wrap.className = 'properties-field';
   wrap.dataset.currentType = type;
@@ -152,6 +179,7 @@ export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null) {
   wrap.appendChild(valueWrap);
   renderValueEditor(valueWrap, type, value, paneIdx, readOnly, {
     def: hintCode === 'typeMismatch' ? null : def,
+    hinweis,
   });
 
   if (!readOnly) {
@@ -220,6 +248,26 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
   // 4T-0449: Wertebereichs-Felder (nur editierbar; read-only bleibt der
   // deaktivierte Freitext-Editor).
   const def = opts.def || null;
+  // 4T-1185 (Epic 3E-0221, E1): Abgeleitete Felder zuerst und unabhaengig vom
+  // Lese-Zustand — an ihnen darf kein Bedienelement entstehen. Gleichlautend
+  // zum Dokument-Panel (Paritaets-Auflage, Konzept 7.3).
+  if (DERIVED_TYPES.includes(type)) {
+    const el = renderAbgeleitetesFeld(container, value, { hinweis: opts.hinweis || null });
+    if (type === 'lookup') attachLookupWerte(el, { def, filePath: aktiverPfad(paneIdx) });
+    return;
+  }
+  // 4T-1187 (Epic 3E-0221, E11): gestapelte Bedienung der Objekt-Typen —
+  // gleichlautend zum Dokument-Panel und aus derselben Quelle. Ohne erklaerte
+  // Kind-Felder bleibt der nur lesende Rueckfall (Begruendung dort).
+  if (OBJECT_TYPES.includes(type) && kindDefinitionen(def).length > 0) {
+    renderObjektFeld(container, def, value, {
+      readOnly,
+      baueKindEditor: (zelle, kindDef, kindWert) =>
+        renderValueEditor(zelle, kindDef.type, kindWert, paneIdx, readOnly, { def: kindDef }),
+      onChange: () => scheduleSaveBlockProps(paneIdx),
+    });
+    return;
+  }
   if (!readOnly && hatAuswahl(def) && !def.multiple) {
     // 4T-1156 (E11): Zyklus als Bedien-Option derselben Einfach-Auswahl.
     if (def.options && def.options.control === 'cycle') {

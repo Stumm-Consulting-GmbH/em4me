@@ -21,6 +21,9 @@
 'use strict';
 
 import { t } from '../../i18n.js';
+// 4T-1187 (Epic 3E-0221): Typ-Menge und Auslese der gestapelten Bedienung.
+import { OBJECT_TYPES } from '../../../shared/property-profiles.js';
+import { leseObjektWert } from './properties-objekt-felder.js';
 import {
   // 4T-0491 (Epic 3E-0093): gemeinsame Leer-Wert-Quelle der Komplett-Übernahme.
   emptyValueForType,
@@ -144,9 +147,46 @@ export function applyFieldHint(hintEl, def, code) {
       : t('properties.profileHint.outsideValues');
 }
 
-export function extractFieldValue(fieldEl, type) {
+export function extractFieldValue(fieldEl, type, def = null) {
   const valueEl = fieldEl.querySelector('.properties-field-value');
   if (!valueEl) return defaultValueForType(type);
+  return extractFromValueEl(valueEl, type, def || fieldEl._profileDef || null);
+}
+
+/**
+ * Denselben Wert aus einer bereits gefundenen Wert-Zelle lesen.
+ *
+ * 4T-1187 (Epic 3E-0221): Herausgeloest aus `extractFieldValue`, weil die
+ * gestapelte Bedienung der Objekt-Typen ihre Kind-Werte aus Zellen liest, die
+ * nicht `.properties-field-value` heissen — sie haengen eine Ebene tiefer im
+ * Objekt-Rahmen. Der Rumpf ist unveraendert; hinzugekommen ist allein der
+ * Objekt-Zweig am Ende, der sich fuer die Kind-Werte selbst wieder aufruft.
+ */
+export function extractFromValueEl(valueEl, type, def = null) {
+  if (!valueEl) return defaultValueForType(type);
+  // 4T-1187 (Epic 3E-0221, E11): gestapelte Objekt-Bedienung — ZUERST, vor
+  // jeder anderen Verzweigung.
+  //
+  // **Die Reihenfolge ist der Kern und war der Fehler dieses Tasks.** Alle
+  // Zweige darunter suchen mit `querySelector` in die Tiefe der Wert-Zelle.
+  // Die Kind-Editoren eines Objekt-Feldes liegen aber genau dort: Der erste
+  // Zweig fand die Auswahl-Liste eines KIND-Feldes und gab deren Wert als den
+  // des ganzen Objekt-Feldes zurück. Gemessen im E2E-Lauf: Aus einer
+  // Teilnehmer-Liste wurde die Zeile `teilnehmer: Leitung` — die Struktur
+  // still zerstört. Derselbe Grund, aus dem der abgeleitete Zweig im
+  // Wert-Editor ganz oben steht.
+  //
+  // Der Aufruf geht über `leseObjektWert`, weil die Gestalt (ein Eintrag oder
+  // eine Liste) und das Auslassen leerer Kind-Felder dort liegen; die
+  // Kind-Werte liest diese Funktion rekursiv.
+  if (OBJECT_TYPES.includes(type)) {
+    const kinder = def && Array.isArray(def.fields) ? def.fields : [];
+    if (kinder.length === 0) return defaultValueForType(type);
+    return leseObjektWert(valueEl, def, (zelle, name) => {
+      const kindDef = kinder.find((k) => k && k.name === name) || null;
+      return kindDef ? extractFromValueEl(zelle, kindDef.type, kindDef) : undefined;
+    });
+  }
   // 4T-0448: Auswahl-Liste eines Wertebereichs-Felds (Einfach-Auswahl).
   const select = valueEl.querySelector('select.properties-field-value-select');
   if (select) {

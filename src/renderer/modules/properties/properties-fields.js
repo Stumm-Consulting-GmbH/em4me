@@ -26,12 +26,16 @@ import {
 import {
   applyFieldHint,
   inferType,
+  NICHT_WAEHLBARE_TYPEN,
   onProfileResolutionChanged,
   profileDefFor,
   PROPERTY_TYPES,
   refreshProfileResolution,
   renderTypeFor,
 } from './properties-types.js';
+// 4T-1185 (Epic 3E-0221): die abgeleiteten Felder der geltenden Profile;
+// der Zeilen-Bau kommt von hier als Parameter herein (Begruendung dort).
+import { baueAbgeleiteteFelder } from './properties-abgeleitet.js';
 import { flushPendingPropertiesSave, scheduleSavePropertiesFromPane } from './properties-save.js';
 import {
   onTypeChange,
@@ -121,6 +125,22 @@ export function renderProperties(paneIdx) {
     els.propertiesFields.appendChild(fieldEl);
   }
 
+  // 4T-1185 (Epic 3E-0221, E1): die abgeleiteten Felder der geltenden Profile.
+  // Sie stehen NICHT in `data` — genau das ist die sichtbare Folge von E1 —
+  // und müssen deshalb zusätzlich gebaut werden.
+  //
+  // **Sie stehen nach den Feldern des Dokuments und vor dem Feld-Formular.**
+  // Zuerst, was in der Datei steht; danach, was gerechnet wird; zuletzt, was
+  // man anlegen könnte. Eine Einsortierung zwischen die Dokument-Felder gäbe
+  // es nicht zu tun: Ein abgeleitetes Feld hat in der Frontmatter-Reihenfolge
+  // keinen Platz, weil es dort nicht vorkommt.
+  baueAbgeleiteteFelder(els.propertiesFields, {
+    aufloesung: state.properties.profileByPane[paneIdx],
+    werte: data,
+    baueZeile: (def, wert, hinweis) =>
+      buildPropertyFieldDom(paneIdx, def.name, wert, def.type, def, hinweis),
+  });
+
   // 4T-1172 (Epic 3E-0220, E5): Der Ausklapp-Bereich mit den Feldern, die die
   // Profile definieren und das Dokument noch nicht trägt. Er hängt IM selben
   // Container wie die übrigen Felder — dadurch sammelt ihn der vorhandene
@@ -152,7 +172,7 @@ export function renderProperties(paneIdx) {
 // 4T-0448: optionaler def-Parameter (aufgelöste Profil-Definition) — dann
 // dezente Kennzeichnung, Typ-Sperre (solange der Wert dem Typ entspricht),
 // weicher Hinweis und ggf. Auswahl-Listen im Wert-Editor.
-export function buildPropertyFieldDom(paneIdx, key, value, type, def = null) {
+export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hinweis = null) {
   const wrap = document.createElement('div');
   wrap.className = 'properties-field';
   if (type === 'readonly') wrap.classList.add('is-readonly');
@@ -187,7 +207,9 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null) {
     // Dropdown disabled, also keine Aktion. Bei nicht-readonly-Feldern
     // verbergen, damit der Nutzer ihn nicht versehentlich waehlt und sich
     // selbst in eine Sackgasse manoevriert.
-    if (tname === 'readonly' && type !== 'readonly') continue;
+    // 4T-1185: dieselbe Regel gilt seit der Stufe 4 auch für die beiden
+    // abgeleiteten Typen (Liste in properties-types.js).
+    if (NICHT_WAEHLBARE_TYPEN.includes(tname) && tname !== type) continue;
     const opt = document.createElement('option');
     opt.value = tname;
     opt.textContent = t('properties.type.' + tname) || tname;
@@ -239,7 +261,14 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null) {
   const valueWrap = document.createElement('div');
   valueWrap.className = 'properties-field-value';
   wrap.appendChild(valueWrap);
-  renderValueEditor(valueWrap, type, value, paneIdx, hintCode === 'typeMismatch' ? null : def);
+  renderValueEditor(
+    valueWrap,
+    type,
+    value,
+    paneIdx,
+    hintCode === 'typeMismatch' ? null : def,
+    hinweis,
+  );
 
   // Live-Save-Hook: jede Eingabe in Key/Wert triggert Debounce-Save.
   wrap.addEventListener('input', () => scheduleSavePropertiesFromPane(paneIdx));

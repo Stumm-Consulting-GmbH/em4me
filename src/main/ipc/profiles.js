@@ -395,6 +395,29 @@ function registerProfilesIpc(handle, deps) {
     const { status, values } = backlinks.werteAusAbfrage(abs, area.rootPath, query);
     return { ok: true, status, values };
   });
+
+  // 4T-1184 (Epic 3E-0221, E1): Treffer eines Lookup-Feldes — die Dokumente,
+  // die über ein benanntes Feld auf das eigene verweisen. Eigener Kanal neben
+  // `profiles:fieldValues` und aus demselben Grund: Genau darin steckt die
+  // Zusage «auf Verlangen». Die Auflösung eines Profils bleibt so billig wie
+  // bisher, und gerechnet wird erst, wenn ein Bedienelement den Wert wirklich
+  // anzeigt.
+  handle('profiles:lookup', async (event, params) => {
+    const leer = { ok: true, status: 'unavailable', values: [] };
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return leer;
+    if (!isExtensionEnabled('property-profiles', store ? store.get('extensions.disabled') : [])) {
+      return leer;
+    }
+    const filePath = params && typeof params.path === 'string' ? params.path : null;
+    const optionen = (params && params.options) || {};
+    if (!filePath || typeof optionen.relatedField !== 'string') return leer;
+    const abs = path.resolve(filePath);
+    if (!isInsideArea(area.rootPath, abs)) return leer;
+    backlinks.ensureIndexForDemand(abs, `${event.sender.id}:demand`, area.rootPath);
+    const { status, values } = backlinks.lookupTreffer(abs, area.rootPath, optionen);
+    return { ok: true, status, values };
+  });
 }
 
 module.exports = { registerProfilesIpc };

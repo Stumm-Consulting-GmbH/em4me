@@ -28,12 +28,25 @@ import {
   applyDateOptions,
   applyNumberOptions,
   attachLinkSuggestions,
+  attachLookupWerte,
   attachQueryValues,
   hatAuswahl,
+  renderAbgeleitetesFeld,
   renderCycleField,
   renderLinkField,
   renderTimeField,
 } from './properties-neue-typen.js';
+// 4T-1185/4T-1187 (Epic 3E-0221): Die Typ-Mengen der abgeleiteten und der
+// strukturierten Felder kommen aus dem geteilten Format-Modul, damit Renderer
+// und Datenseite dieselbe Quelle haben.
+import { DERIVED_TYPES, OBJECT_TYPES } from '../../../shared/property-profiles.js';
+// 4T-1187: gestapelte Bedienung der Objekt-Typen — gemeinsame Quelle beider
+// Panels, der Bau der Kind-Editoren kommt als Parameter herein.
+import { kindDefinitionen, renderObjektFeld } from './properties-objekt-felder.js';
+
+function istAbgeleiteterTyp(type) {
+  return DERIVED_TYPES.includes(type);
+}
 
 // 4T-1172 (Epic 3E-0220): Drei Zugriffe dieses Moduls zeigen zurück in die
 // Renderer-Komponente — der Sitzungs-Zustand für den aktiven Pfad, der
@@ -105,8 +118,34 @@ function renderValueSelect(container, def, value, paneIdx) {
   container.appendChild(select);
 }
 
-export function renderValueEditor(container, type, value, paneIdx, def = null) {
+export function renderValueEditor(container, type, value, paneIdx, def = null, hinweis = null) {
   container.innerHTML = '';
+  // 4T-1185 (Epic 3E-0221, E1): Abgeleitete Felder zuerst — vor jeder anderen
+  // Verzweigung, weil an ihnen kein Bedienelement entstehen darf. `value`
+  // trägt den bereits errechneten Wert; der Lookup-Wert kommt über
+  // `attachLookupWerte` nach, und genau darin steckt die Zusage «nur
+  // auswerten, wenn sichtbar» (Konzept 6.11).
+  if (istAbgeleiteterTyp(type)) {
+    const el = renderAbgeleitetesFeld(container, value, { hinweis });
+    if (type === 'lookup') {
+      attachLookupWerte(el, { def, filePath: umgebung.aktiverPfad(paneIdx) });
+    }
+    return;
+  }
+  // 4T-1187 (Epic 3E-0221, E11): gestapelte Bedienung der Objekt-Typen.
+  //
+  // **Nur mit erklärten Kind-Feldern.** Ein Objekt-Typ ohne `fields` ist
+  // zulässig (4T-1186), hat aber nichts zu stapeln; er fällt auf die
+  // vorhandene nur lesende Anzeige verschachtelter Strukturen zurück — genau
+  // der Rückfall, den Konzept 6.8 dafür vorsieht.
+  if (OBJECT_TYPES.includes(type) && kindDefinitionen(def).length > 0) {
+    renderObjektFeld(container, def, value, {
+      baueKindEditor: (zelle, kindDef, kindWert) =>
+        renderValueEditor(zelle, kindDef.type, kindWert, paneIdx, kindDef),
+      onChange: () => umgebung.speichern(paneIdx),
+    });
+    return;
+  }
   // 4T-0448: Wertebereichs-Felder — Einfach-Auswahl als Auswahl-Liste,
   // Mehrfach-Auswahl über die Chips-Leiste mit Werte-Vorschlägen (datalist).
   if (hatAuswahl(def) && !def.multiple) {

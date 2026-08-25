@@ -336,3 +336,141 @@ export function renderCycleField(container, def, value, opts) {
   container.appendChild(knopf);
   return knopf;
 }
+
+// --- 4T-1185 (Epic 3E-0221, E1): abgeleitete Felder ---------------------------
+
+// Marke eines abgeleiteten Feldes am DOM. Sie steht hier und nicht als
+// Zeichenkette in den Schreibwegen, damit Setzen und Auswerten dieselbe Quelle
+// haben — dasselbe Muster wie MARKE_NICHT_IM_DOKUMENT beim Feld-Formular.
+export const MARKE_ABGELEITET = 'is-abgeleitet';
+
+/**
+ * Eine fertig gebaute Feld-Zeile als abgeleitet kennzeichnen und sperren.
+ *
+ * **Eine Funktion für beide Panels**, weil die Sperre in beiden dieselbe
+ * Zusage einlöst (AK4 der Story: in beiden Editoren nicht bearbeitbar). Sie
+ * arbeitet auf dem gebauten DOM statt im Bau selbst, weil die beiden Panels
+ * ihre Zeilen verschieden bauen, aber dieselben Klassen tragen — dasselbe
+ * Mittel, mit dem `applyNumberOptions` die Optionen nachträglich anlegt.
+ *
+ * **Der Löschen-Knopf verschwindet ganz**, statt gesperrt zu werden: Ein
+ * abgeleitetes Feld steht nicht in der Datei, es gibt dort also nichts zu
+ * löschen. Ein grauer Knopf verspräche eine Handlung, die es nicht gibt.
+ */
+export function sperreAbgeleitetesFeld(wrap) {
+  if (!wrap) return;
+  wrap.classList.add(MARKE_ABGELEITET);
+  const keyInput = wrap.querySelector('.properties-field-key');
+  if (keyInput) {
+    keyInput.disabled = true;
+    keyInput.title = t('properties.derivedComputed');
+    // Der Feldname als Attribut an der Zeile. Der Wert des Eingabe-Feldes ist
+    // eine DOM-Property und kein Attribut — von außen (CSS, Prüfung) ist eine
+    // Zeile darüber nicht ansprechbar, und die beiden Panels vergeben ihre
+    // übrigen Kennzeichen verschieden. Hier steht die eine, die beide teilen.
+    if (keyInput.value) wrap.dataset.abgeleitetFeld = keyInput.value;
+  }
+  const typeSelect = wrap.querySelector('.properties-field-type');
+  if (typeSelect) {
+    typeSelect.disabled = true;
+    typeSelect.title = t('properties.derivedComputed');
+  }
+  const delBtn = wrap.querySelector('.properties-field-delete');
+  if (delBtn) delBtn.remove();
+}
+
+/**
+ * Trägt diese Feld-Zeile ein abgeleitetes Feld?
+ *
+ * Die Frage stellen beide Schreibwege, und sie beantworten sie mit einem
+ * unbedingten «dann bleibt es draußen» — anders als beim Feld-Formular gibt es
+ * hier keinen Fall, in dem der Wert doch in die Datei gehört.
+ */
+export function istAbgeleitetesFeld(fieldEl) {
+  return !!fieldEl && fieldEl.classList.contains(MARKE_ABGELEITET);
+}
+
+/**
+ * Ein abgeleitetes Feld anzeigen: der errechnete Wert, nur lesend.
+ *
+ * **Kein Bedienelement, sondern eine Anzeige.** Ein abgeleitetes Feld hat
+ * keinen eigenen Wert, den man ändern könnte; es zeigt, was gerade gilt. Der
+ * Rückfall `readonly` des Editors wäre die naheliegende Vorlage, sagt aber das
+ * Falsche: Er heißt «nicht darstellbar», hier gilt «wird gerechnet».
+ *
+ * Ein Hinweis (Kreis, Bezug ins Leere, fehlende Rechenvorschrift) ersetzt den
+ * Wert nicht, sondern begleitet den leeren Wert — die weiche Linie aus E10.
+ *
+ * @param {HTMLElement} container Wert-Zelle der Feld-Zeile.
+ * @param {*} wert Der errechnete Wert, oder null.
+ * @param {object} opts { hinweis } — Hinweis-Code aus DERIVED_HINTS oder null.
+ * @returns {HTMLElement} das Anzeige-Element (Nachreichen des Lookup-Werts).
+ */
+export function renderAbgeleitetesFeld(container, wert, opts) {
+  const { hinweis = null } = opts || {};
+  const el = document.createElement('div');
+  el.className = 'properties-field-abgeleitet';
+  setzeAbgeleitetenWert(el, wert, hinweis);
+  container.appendChild(el);
+  return el;
+}
+
+/**
+ * Wert und Hinweis eines abgeleiteten Anzeige-Elements setzen.
+ *
+ * Eigene Funktion, weil der Lookup-Wert nachkommt: Er entsteht erst, wenn das
+ * Feld sichtbar ist (Konzept 6.11), und wird dann in dasselbe Element
+ * geschrieben, statt die Zeile neu zu bauen.
+ */
+export function setzeAbgeleitetenWert(el, wert, hinweis) {
+  if (!el) return;
+  const leer = wert === null || wert === undefined || wert === '';
+  const text = Array.isArray(wert) ? wert.join(', ') : leer ? '' : String(wert);
+  el.textContent = text;
+  el.classList.toggle('is-leer', text === '');
+  if (hinweis) {
+    el.dataset.hinweis = hinweis;
+    el.title = t('properties.derivedHint.' + hinweis);
+  } else {
+    delete el.dataset.hinweis;
+    el.title = t('properties.derivedComputed');
+  }
+}
+
+// 4T-1184/4T-1185: Treffer eines Lookup-Feldes. Sie werden **hier** geholt und
+// nicht beim Auflösen des Profils — genau darin steckt die Zusage «nur
+// auswerten, wenn sichtbar» aus Konzept 6.11. Ein Fehler ist ein leeres
+// Ergebnis mit Hinweis, keine Ausnahme.
+async function ladeLookupTreffer(def, filePath) {
+  const options = (def && def.options) || {};
+  if (!options.relatedField || typeof api.profilesLookup !== 'function') return null;
+  try {
+    const antwort = await api.profilesLookup({ path: filePath || null, options });
+    if (!antwort || !antwort.ok || antwort.status !== 'ready') return null;
+    return Array.isArray(antwort.values) ? antwort.values : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Die Treffer eines Lookup-Feldes an sein Anzeige-Element nachreichen.
+ *
+ * @param {HTMLElement} el Element aus `renderAbgeleitetesFeld`.
+ * @param {object} opts { def, filePath }.
+ * @returns {Promise<string[]|null>} die geholten Werte (für den Prüf-Zugang).
+ */
+export function attachLookupWerte(el, opts) {
+  const { def = null, filePath = null } = opts || {};
+  return ladeLookupTreffer(def, filePath).then((werte) => {
+    if (!el.isConnected) return werte;
+    if (werte === null) {
+      // Keine Aussage möglich: leer mit Hinweis, statt «keine Treffer» zu
+      // behaupten. Der Unterschied ist für den Anwender wesentlich.
+      setzeAbgeleitetenWert(el, null, 'derivedUnavailable');
+      return werte;
+    }
+    setzeAbgeleitetenWert(el, werte, null);
+    return werte;
+  });
+}

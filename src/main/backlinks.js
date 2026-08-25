@@ -35,6 +35,8 @@ const views = require('./index/views.js');
 const verweisZiele = require('./index/profil-verweis-ziele.js');
 // 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Abfrage.
 const wertevorrat = require('./index/profil-wertevorrat.js');
+// 4T-1184 (Epic 3E-0221): Treffer eines Lookup-Feldes.
+const lookup = require('./index/profil-lookup.js');
 
 module.exports = {
   attachBroadcast: store.attachBroadcast,
@@ -97,6 +99,13 @@ module.exports = {
   werteAusAbfrage: wertevorrat.werteAusAbfrage,
   auswertungsZaehler: wertevorrat.auswertungsZaehler,
   zwischenspeicherLeeren: wertevorrat.zwischenspeicherLeeren,
+  // 4T-1184 (Epic 3E-0221): Treffer eines Lookup-Feldes, auf Verlangen
+  // ausgewertet und gegen den Index-Stand zwischengespeichert. Eigene Zaehler
+  // und eigener Zwischenspeicher, weil die Begrenzung je Sicht nachgewiesen
+  // wird und ein gemeinsamer Zaehler beide Nachweise verwaschen wuerde.
+  lookupTreffer: lookup.lookupTreffer,
+  lookupAuswertungsZaehler: lookup.auswertungsZaehler,
+  lookupZwischenspeicherLeeren: lookup.zwischenspeicherLeeren,
   // 4T-1158: Änderungs-Stand einer Wurzel — die Bezugsgröße, gegen die
   // Zwischenspeicher gültig bleiben. Hier durchgereicht, damit Verbraucher
   // und Prüfungen dieselbe Modul-Instanz sehen wie die Sichten selbst.

@@ -67,4 +67,6 @@ Beyond the field name, a definition can carry type-specific options, draw its va
 
 Two more things sit on top of that. The properties panel has an expandable area **All fields of this document**, which lists the fields the applicable profiles define and this document does not carry yet, together with the chain of profiles that apply and where each one comes from; the fields of one level can be adopted in a single step. And the command **Insert profile query** writes out the query for a profile's documents at the cursor — an ordinary query block you can edit afterwards, which is why [[08 Queries]] is where it leads.
 
+Two kinds of field go beyond a single stored value. **Derived fields** do not hold their value but receive it when displayed: `type: formula` calculates from the other fields of the same document, `type: lookup` gathers the documents pointing here through a named field. Neither is written to the file — opening a document never changes it, and the value is always current. **Structured fields** hold an object or a list of similar objects: `type: object` and `type: objectlist` carry nested child definitions, so "meeting with three participants" needs one field instead of three parallel lists. In the metadata block they appear as ordinary nested YAML and stay readable without this application.
+
 On to planning: [[06 Tasks and Reminders]].
