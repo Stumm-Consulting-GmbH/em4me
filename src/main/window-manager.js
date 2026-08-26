@@ -1,6 +1,7 @@
 // Fenster-Verwaltung des Hauptprozesses: Multi-Window-Registry, Erzeugung
 // eines Fensters samt seiner Ereignis-Verdrahtung, Fokus-Fuehrung, Broadcast
-// an alle Fenster und die Schliess-Kaskade einer Applikation.
+// an alle Fenster. Die Schliess-Kaskade einer Applikation liegt seit 4T-1231
+// in app/schliess-kaskade.js; diese Datei reicht sie nur noch durch.
 //
 // Auszug aus main.js, 4T-0998 (Epic 3E-0196). Die Rumpf-Inhalte reisen
 // unveraendert mit; geaendert sind allein die Naehte zu den Nachbar-Modulen,
@@ -18,7 +19,6 @@
 //   appLastFocused    : Map<appId, windowId>
 //   lastFocusedId     : id des zuletzt fokussierten Fensters
 //   isQuitting        : true ab 'before-quit'
-//   cascadeCancel     : Abbruch-Haken der laufenden Schliess-Kaskade
 //
 // Fremder Zustand kommt ueber das Deps-Objekt: als Wert, wo das Eigentuemer-
 // Modul frueher konstruiert wird (lastReportedPanes), sonst als GETTER
@@ -30,6 +30,7 @@
 const path = require('node:path');
 const { BrowserWindow, shell, nativeTheme } = require('electron');
 const backlinks = require('./backlinks');
+const { erzeugeSchliessKaskade } = require('./app/schliess-kaskade.js');
 
 /**
  * Baut die Fenster-Verwaltung.
@@ -81,6 +82,7 @@ function createWindowManager(deps) {
     unwatchAllForOwner,
     pendingSecondInstanceFiles,
     onBacklinksInvalidated,
+    schliessRueckfall,
   } = deps;
 
   const windows = new Map();
@@ -148,44 +150,12 @@ function createWindowManager(deps) {
     if (channel === 'backlinks:invalidated') onBacklinksInvalidated();
   }
 
-  // "Bereich schliessen" schliesst alle Fenster der Bereichs-App ueber den
-  // regulaeren Close-Pfad (Speichern-Nachfragen pro Dokument). Sequenziell,
-  // damit ein Nutzer-Abbruch (Speichern-Dialog -> Abbrechen) die Kaskade
-  // stoppt; window:cancelClose meldet den Abbruch hierher.
-  let cascadeCancel = null;
-
-  function closeWindowAndWait(win) {
-    return new Promise((resolve) => {
-      let settled = false;
-      const finish = (result) => {
-        if (settled) return;
-        settled = true;
-        cascadeCancel = null;
-        resolve(result);
-      };
-      cascadeCancel = () => finish(false);
-      win.once('closed', () => finish(true));
-      win.close();
-    });
-  }
-
-  // Gemeinsamer Kaskaden-Kern fuer "Bereich schliessen" und "Arbeitsbereich
-  // schliessen" (4T-0537): alle Fenster der App sequenziell ueber den
-  // regulaeren Close-Pfad, Nutzer-Abbruch stoppt die Kaskade.
-  async function closeAppWindows(appId) {
-    for (const windowId of [...appRegistry.windowsOf(appId)]) {
-      const win = windows.get(windowId);
-      if (!win || win.isDestroyed()) continue;
-      const closed = await closeWindowAndWait(win);
-      if (!closed) return { ok: false, canceled: true };
-    }
-    return { ok: true };
-  }
-
-  async function closeAreaApp(appId) {
-    if (!appRegistry.getArea(appId)) return { ok: false };
-    return closeAppWindows(appId);
-  }
+  // Schliess-Kaskade einer Applikation, ausgezogen mit 4T-1231 (Epic 3E-0228).
+  // Sie fuehrt ihren Abbruch-Haken selbst; hier bleibt allein die Naht.
+  const { closeAppWindows, closeAreaApp, cancelCascade } = erzeugeSchliessKaskade({
+    appRegistry,
+    windows,
+  });
 
   // Erstellt ein neues Fenster. opts:
   //   bounds, maximized   - Startposition/-groesse, optional
@@ -350,6 +320,8 @@ function createWindowManager(deps) {
       if (!confirmedClosings.has(win)) {
         e.preventDefault();
         if (!win.isDestroyed()) win.webContents.send('window:requestClose');
+        // 4T-1213: Stille-Wache ueber die ausbleibende Antwort (schliess-rueckfall.js).
+        schliessRueckfall.starte(id);
         return;
       }
       confirmedClosings.delete(win);
@@ -362,6 +334,7 @@ function createWindowManager(deps) {
     });
 
     win.on('closed', async () => {
+      schliessRueckfall.beende(id);
       windows.delete(id);
       // 4T-0537: Arbeitsbereichs-Zuordnung VOR removeWindow lesen — mit dem
       // letzten Fenster verschwindet die App samt Zuordnung aus der Registry.
@@ -465,11 +438,6 @@ function createWindowManager(deps) {
     });
 
     return win;
-  }
-
-  // 4T-0322: laufende Bereich-Schliessen-Kaskade abbrechen (window:cancelClose).
-  function cancelCascade() {
-    if (cascadeCancel) cascadeCancel();
   }
 
   // Quit-Merker; ab 'before-quit' true, window:cancelClose setzt ihn zurueck.

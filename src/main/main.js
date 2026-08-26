@@ -165,6 +165,8 @@ const {
   areaOfWindow,
   applyMenuToAllWindows,
   updateAllCaptionColors,
+  schliessRueckfall,
+  anzeigeAusfall,
 } = wiring;
 
 // --- Hilfsfunktionen ---------------------------------------------------------
@@ -253,23 +255,42 @@ function registerIpc() {
     sucheImBereich,
     gibBereichsVorratFrei,
   };
-  registerWindowsIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerSettingsIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerFilesIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerHistoryIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerDialogsIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerRenameIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerAreasIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerAttachmentsIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerBooksIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerShelvesIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerIndexViewsIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerRemindersIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerTemplatesIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerAreaFeaturesIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerProfilesIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerExtensionsIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
-  registerHelpIpc((kanal, fn) => ipcMain.handle(kanal, fn), ipcDeps);
+  // 4T-1213 (Epic 3E-0225): Jeder IPC-Aufruf ist das Lebenszeichen seines
+  // Anzeige-Prozesses, denn er setzt dort einen laufenden Ereignis-Zyklus
+  // voraus. Diese Registrier-Funktion ist die eine Stelle, durch die alle
+  // Kanaele laufen; die Stille-Wache des Schliess-Wegs haengt deshalb hier
+  // und nicht in siebzehn Handler-Modulen. Solange ein Aufruf in Bearbeitung
+  // ist, ruht die Frist: Ein laufender Aufruf belegt, dass der Haupt-Prozess
+  // fuer dieses Fenster arbeitet — das deckt jeden Dialog ab, auch die
+  // Nachfrage nach ungespeicherten Inhalten, vor der ein Anwender beliebig
+  // lange sitzen darf.
+  const registriere = (kanal, fn) =>
+    ipcMain.handle(kanal, async (event, ...args) => {
+      const fensterId = event && event.sender ? event.sender.id : null;
+      if (fensterId != null) schliessRueckfall.aufrufBegonnen(fensterId);
+      try {
+        return await fn(event, ...args);
+      } finally {
+        if (fensterId != null) schliessRueckfall.aufrufBeendet(fensterId);
+      }
+    });
+  registerWindowsIpc(registriere, ipcDeps);
+  registerSettingsIpc(registriere, ipcDeps);
+  registerFilesIpc(registriere, ipcDeps);
+  registerHistoryIpc(registriere, ipcDeps);
+  registerDialogsIpc(registriere, ipcDeps);
+  registerRenameIpc(registriere, ipcDeps);
+  registerAreasIpc(registriere, ipcDeps);
+  registerAttachmentsIpc(registriere, ipcDeps);
+  registerBooksIpc(registriere, ipcDeps);
+  registerShelvesIpc(registriere, ipcDeps);
+  registerIndexViewsIpc(registriere, ipcDeps);
+  registerRemindersIpc(registriere, ipcDeps);
+  registerTemplatesIpc(registriere, ipcDeps);
+  registerAreaFeaturesIpc(registriere, ipcDeps);
+  registerProfilesIpc(registriere, ipcDeps);
+  registerExtensionsIpc(registriere, ipcDeps);
+  registerHelpIpc(registriere, ipcDeps);
 }
 
 // --- App-Lifecycle -----------------------------------------------------------
@@ -294,6 +315,26 @@ app.on('second-instance', (_event, argv, workingDirectory) => {
 });
 
 app.whenReady().then(starteApp);
+
+// 4T-1214 (Epic 3E-0225): Ausfall des Anzeige-Prozesses. Zwei getrennte
+// Faelle: `render-process-gone` meldet den verschwundenen Prozess samt Grund,
+// `unresponsive` den noch lebenden, der nicht mehr antwortet — der zweite
+// wird erst nach einer Frist behandelt und verfaellt bei `responsive`.
+//
+// Verdrahtet ueber `browser-window-created`, damit jedes Fenster erfasst ist,
+// ohne window-manager.js anzufassen: Die Datei steht an ihrem Groessen-Budget,
+// ihr Schnitt ist als 3E-0228 verortet.
+app.on('render-process-gone', (_event, contents, details) => {
+  const win = BrowserWindow.fromWebContents(contents);
+  if (win) void anzeigeAusfall.prozessFort(win, contents.id, details);
+});
+
+app.on('browser-window-created', (_event, win) => {
+  const fensterId = win.webContents.id;
+  win.on('unresponsive', () => anzeigeAusfall.antwortetNicht(win, fensterId));
+  win.on('responsive', () => anzeigeAusfall.antwortetWieder(fensterId));
+  win.once('closed', () => anzeigeAusfall.vergiss(fensterId));
+});
 
 app.on('before-quit', () => {
   setQuitting(true);

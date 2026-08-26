@@ -14,7 +14,7 @@
 // Lade-Zeit-Seiteneffekte; alles entsteht erst beim Aufruf.
 'use strict';
 
-const { app } = require('electron');
+const { app, dialog } = require('electron');
 const backlinks = require('../backlinks');
 const mddStore = require('../documents/mdd-store');
 const attachmentPath = require('../documents/attachment-path');
@@ -27,6 +27,8 @@ const { createCheckers } = require('../checks/checkers');
 // 4T-0998 (Epic 3E-0196): die dreizehn Auszuege aus main.js — Logik-Cluster
 // hinter den Handlern und die Fenster-Verwaltung. Sie tragen keine Lade-Zeit-
 // Seiteneffekte; verdrahtet werden sie unten in createMainWiring.
+const { erstelleSchliessRueckfall, erstelleErzwungenenSchluss } = require('./schliess-rueckfall');
+const { erstelleAnzeigeAusfall } = require('./anzeige-ausfall');
 const { createWindowManager } = require('../window-manager');
 const { createWindowPersistence } = require('../window-persistence');
 const { createAreaApps } = require('../area/area-apps');
@@ -158,8 +160,40 @@ function createMainWiring(deps) {
     persistAllWindows,
   } = windowPersistence;
 
+  // 4T-1213 (Epic 3E-0225): Rueckfall im Schliess-Weg. Die Wache entsteht VOR
+  // der Fenster-Verwaltung, weil diese sie im close-Handler startet; ihre
+  // Handlung nach Ablauf greift umgekehrt auf die Fenster-Verwaltung zu und
+  // ist deshalb spaet gebunden (Muster activeShelves weiter unten).
+  const schliessRueckfall = erstelleSchliessRueckfall({
+    beiAblauf: (fensterId, befund) => erzwungenerSchluss(fensterId, befund),
+  });
+  const erzwungenerSchluss = erstelleErzwungenenSchluss({
+    wache: schliessRueckfall,
+    fensterVon: (fensterId) => windowManager.windows.get(fensterId) || null,
+    quittiere: (win) => windowManager.confirmedClosings.add(win),
+    // Der Hinweis kommt aus dem Haupt-Prozess: Der Anzeige-Prozess ist genau
+    // der, der nicht mehr antwortet, also kann die Meldung nicht aus ihm
+    // kommen. Vorbelegt ist das Schliessen, weil der Anwender es angefordert
+    // hat; die Abbruch-Taste faellt auf Weiterwarten zurueck.
+    frage: async (win, sekunden) => {
+      const t = (k) => tForWindow(win, k);
+      const ergebnis = await dialog.showMessageBox(win, {
+        type: 'warning',
+        title: t('window.unresponsiveTitle'),
+        message: t('window.unresponsiveMessage').replace('{n}', String(sekunden)),
+        detail: t('window.unresponsiveDetail'),
+        buttons: [t('window.unresponsiveClose'), t('window.unresponsiveWait')],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+      return ergebnis.response === 0;
+    },
+  });
+
   const windowManager = createWindowManager({
     appRegistry,
+    schliessRueckfall,
     imTestlauf,
     getStore,
     isBoundsVisibleOnAnyDisplay,
@@ -194,6 +228,40 @@ function createMainWiring(deps) {
     createWindow,
     closeAppWindows,
   } = windowManager;
+
+  // 4T-1214 (Epic 3E-0225): Ausfall-Erkennung des Anzeige-Prozesses. Weg N2
+  // (Entscheidung des Product Owners vom 2026-08-26): melden und den Anwender
+  // waehlen lassen, Neuladen als Vorgabe. Beim zweiten Ausfall desselben
+  // Fensters entfaellt das Neuladen — sonst baut ein Dokument, das die Anzeige
+  // zuverlaessig umbringt, eine Endlosschleife.
+  const anzeigeAusfall = erstelleAnzeigeAusfall({
+    schliessenLaeuft: (fensterId) => schliessRueckfall.istAktiv(fensterId),
+    ladeNeu: (win) => win.webContents.reload(),
+    schliesse: (win) => {
+      // Ueber den regulaeren Quittungs-Weg: Der Anzeige-Prozess kann die
+      // Schliess-Quittung nicht mehr erteilen, und der close-Handler schreibt
+      // im quittierten Zweig den Sitzungs-Stand (Muster aus 4T-1213).
+      windowManager.confirmedClosings.add(win);
+      win.close();
+    },
+    frage: async (win, lage) => {
+      const t = (k) => tForWindow(win, k);
+      const knoepfe = lage.wiederholung
+        ? [t('window.crashClose')]
+        : [t('window.crashReload'), t('window.crashClose')];
+      const ergebnis = await dialog.showMessageBox(win, {
+        type: 'error',
+        title: t('window.crashTitle'),
+        message: t('window.crashMessage'),
+        detail: lage.wiederholung ? t('window.crashRepeatDetail') : t('window.crashDetail'),
+        buttons: knoepfe,
+        defaultId: 0,
+        cancelId: knoepfe.length - 1,
+        noLink: true,
+      });
+      return !lage.wiederholung && ergebnis.response === 0 ? 'neuLaden' : 'schliessen';
+    },
+  });
 
   // 4T-0888 (Epic 3E-0168): Die Recent-Listen bekommen ihren Zustand injiziert
   // (Muster createAlarmChecker). Der Store kommt als Getter, weil er erst mit
@@ -360,6 +428,8 @@ function createMainWiring(deps) {
     reminderChecker,
     alarmChecker,
     timerChecker,
+    schliessRueckfall,
+    anzeigeAusfall,
   };
 }
 

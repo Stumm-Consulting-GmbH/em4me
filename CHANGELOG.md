@@ -14,6 +14,83 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.120.0.1869] - 2026-08-26 — Fenster-Schluss und Ausfall-Erkennung
+
+Epic 3E-0225: Fehlerbehebung an zwei Mängeln der Absturz-Sicherheit, die jeden
+Ausfall des Anzeige-Prozesses teuer machten. Ein Fenster, dessen Anzeige nicht
+mehr antwortete, ließ sich bisher nicht mehr schließen, weil der Schließ-Weg auf
+eine Quittung wartete, die nie kam; wer die Anwendung beenden wollte, musste sie
+über die Task-Verwaltung abschießen und verlor dabei die Arbeit in allen anderen
+Fenstern. Und der Ausfall selbst blieb unbemerkt: Die Oberfläche verschwand, die
+Anwendung schwieg dazu, und der Anwender stand vor einem leeren Fenster ohne
+Erklärung und ohne Handlungsangebot. Beide Mängel sind behoben.
+
+Die beiden Behebungen greifen ineinander, ohne sich in die Quere zu kommen:
+Läuft für ein Fenster bereits eine Schließ-Anfrage, so führt der Rückfall aus
+4T-1213 die Sache zu Ende und die Ausfall-Erkennung schweigt. Ohne diese
+Kopplung stünden im Beenden-Fall zwei Dialoge für dasselbe Fenster übereinander.
+
+Umsetzungs-Vorgänge des Epics: 4T-1213, 4T-1214; Release-Vorgang 4T-1215. Dazu
+kommt 4T-1231 aus dem Epic 3E-0228, ein interner Umbau ohne
+Verhaltens-Änderung, den dieses Release ausgelöst hat und deshalb mitträgt.
+Mit
+dem Release erreichen zusätzlich die Anlage des Epics samt seiner Stories und
+die des Nachfolge-Epics 3E-0228 sowie die Fortschreibung von 4T-1165 den
+Hauptzweig; sie tragen keinen Anteil am Programm.
+
+### Behoben
+
+- **Fenster bleibt schließbar, wenn die Anzeige nicht mehr antwortet**
+  (4T-1213): Der Schließ-Weg hat einen Rückfall bekommen. Bleibt der
+  Anzeige-Prozess 20 Sekunden still, erscheint ein Hinweis mit der Wahl zwischen
+  «Trotzdem schließen» (Vorgabe) und «Weiter warten»; die zweite Wahl setzt die
+  Frist neu, sodass bei einem zurückkehrenden Anzeige-Prozess der reguläre Weg
+  samt Nachfrage nach ungespeicherten Inhalten unverändert weiterläuft. Gemessen
+  wird dabei die **Stille** des Anzeige-Prozesses und nicht die Dauer des
+  Vorgangs: Jeder IPC-Aufruf des Fensters gilt als Lebenszeichen, und die Frist
+  ruht, solange ein Aufruf in Bearbeitung ist. Damit reißt weder ein langsamer
+  Anzeige-Prozess die Frist noch eine offene Nachfrage, vor der ein Anwender
+  beliebig lange sitzen darf. Geschlossen wird über den regulären Quittungs-Weg
+  statt über ein hartes Beenden, sodass der Sitzungs-Stand des Fensters
+  geschrieben wird und die Reiter-Anordnung erhalten bleibt. Neu ist das Modul
+  `src/main/app/schliess-rueckfall.js`; die Verdrahtung sitzt in `main.js`,
+  `window-manager.js`, `ipc/windows.js` und `app/wiring.js`.
+- **Hängende Schließ-Kaskaden** (4T-1213, mitgeheilt): «Bereich schließen» und
+  «Arbeitsbereich schließen» warteten bei einem stummen Anzeige-Prozess für
+  immer, weil sie auf ein Ereignis warteten, das ohne den Rückfall nie eintrat.
+- **Ausfall des Anzeige-Prozesses wird erkannt und gemeldet** (4T-1214): Die
+  Anwendung behandelt jetzt die beiden Ereignisse, die die Plattform dafür
+  anbietet, und zwar bewusst verschieden. Stirbt der Anzeige-Prozess, meldet sie
+  das sofort und schreibt Grund und Beendigungs-Code ins Protokoll; das
+  gewöhnliche Schließen ist davon über einen Filter ausgenommen. Antwortet er
+  nur nicht mehr, meldet sie erst nach 30 Sekunden und nur dann, wenn er bis
+  dahin nicht zurückgekommen ist, damit ein längerer Rechenvorgang keine
+  Fehlmeldung auslöst. In beiden Fällen wählt der Anwender zwischen Neuladen
+  (Vorgabe) und Schließen; das Neuladen stellt die Reiter des Fensters aus dem
+  zuletzt gemeldeten Stand wieder her. Beim zweiten Ausfall desselben Fensters
+  innerhalb von zwei Minuten bietet die Meldung nur noch das Schließen an und
+  erklärt das mit einem eigenen Text, statt dieselbe Meldung mit einem fehlenden
+  Knopf zu zeigen. Neu ist das Modul `src/main/app/anzeige-ausfall.js`.
+
+### Geändert
+
+- **Schließ-Kaskade aus der Fenster-Verwaltung ausgezogen** (4T-1231, Epic
+  3E-0228): Interner Umbau ohne Verhaltens-Änderung und ohne Wirkung auf die
+  Bedienung. `src/main/window-manager.js` hatte durch das Zusammentreffen der
+  Plattform-Gates aus 4T-1202 mit der Verdrahtung aus 4T-1213 das
+  Größen-Budget von 500 Zeilen gerissen (501). Die Schließ-Kaskade
+  (`closeWindowAndWait`, `closeAppWindows`, `closeAreaApp`, `cancelCascade`)
+  liegt jetzt in `src/main/app/schliess-kaskade.js`, und die Datei steht bei
+  465 Zeilen. Alle vier Rümpfe sind byte-gleich verschoben, und keine
+  Aufrufstelle außerhalb der beiden Dateien ist berührt, weil die Kaskade
+  hinter dem unveränderten Rückgabe-Objekt der Fenster-Verwaltung sitzt.
+
+### i18n
+
+- Elf neue Schlüssel in allen fünf Sprachfassungen: fünf `window.unresponsive*`
+  für den Hinweis des Schließ-Rückfalls (4T-1213) und sechs `window.crash*` für
+  die Ausfall-Meldung samt eigenem Text des Wiederholungs-Falls (4T-1214).
+
 ## [1.119.0.1850] - 2026-08-26 — Plattform-Entkopplung im Code
 
 Epic 3E-0121: Internes technisches Release ohne Funktions-Änderung. Die

@@ -29,6 +29,7 @@ const { TAB_GROUP_COLOR_KEYS } = require('../../shared/tab-group-colors');
  * @param {Map} deps.windows Fenster-Registry.
  * @param {Map} deps.windowMeta Reiter-Meta je Fenster.
  * @param {Set} deps.confirmedClosings Fenster mit erteilter Schliess-Quittung.
+ * @param {object} deps.schliessRueckfall Stille-Wache des Schliess-Wegs (4T-1213).
  * @param {Map} deps.lastReportedPanes Zuletzt gemeldete Pane-Struktur je Fenster.
  * @param {Map} deps.menuStates Menue-relevanter Stand je Fenster.
  * @param {Map} deps.activeBooks Aktives Buch je Applikation.
@@ -64,6 +65,7 @@ function registerWindowsIpc(handle, deps) {
     windows,
     windowMeta,
     confirmedClosings,
+    schliessRueckfall,
     lastReportedPanes,
     menuStates,
     activeBooks,
@@ -94,6 +96,9 @@ function registerWindowsIpc(handle, deps) {
   handle('window:confirmClose', (event) => {
     const w = senderWindow(event);
     if (w && !w.isDestroyed()) {
+      // 4T-1213 (Epic 3E-0225): Die Quittung ist da, die Stille-Wache des
+      // Schliess-Wegs hat ihren Zweck erfuellt.
+      schliessRueckfall.beende(w.webContents.id);
       confirmedClosings.add(w);
       w.close();
     }
@@ -106,8 +111,12 @@ function registerWindowsIpc(handle, deps) {
   // (dokumentiert im Task): nicht-dirty Fenster, die sich beim abgebrochenen
   // Quit bereits geschlossen haben, bleiben geschlossen; der Reset stellt
   // nur die Persistenz wieder her.
-  handle('window:cancelClose', () => {
+  handle('window:cancelClose', (event) => {
     setQuitting(false);
+    // 4T-1213 (Epic 3E-0225): Der Anwender hat abgebrochen; die Wache endet
+    // mit der Schliess-Anfrage, zu der sie gehoert.
+    const abbrecher = senderWindow(event);
+    if (abbrecher && !abbrecher.isDestroyed()) schliessRueckfall.beende(abbrecher.webContents.id);
     // 4T-0322: laufende Bereich-Schliessen-Kaskade abbrechen.
     cancelCascade();
   });
