@@ -14,6 +14,15 @@
 // werden: Ein UNC-Pfad verraet sich am Praefix, ein gemapptes Laufwerk nur
 // ueber seine Laufwerksart. Eine Erkennung, die allein den Pfad ansieht,
 // deckte den halben Fall ab.
+//
+// 4T-1202 (Epic 3E-0121): Bewusste Plattform-Luecke. Die Laufwerks-Ermittlung
+// laeuft nur unter Windows (PowerShell-Abfrage, Gate unten); auf Linux/macOS
+// erscheinen SMB-/NFS-Mounts als gewoehnliche Pfade, die Beobachtung bleibt
+// dort bei den nativen Ereignissen und ist auf Netz-Mounts entsprechend
+// unzuverlaessig. Eine Mount-Erkennung je Plattform entsteht erst bei Bedarf
+// im Linux-Epic (PO-Entscheidung vom 2026-08-25, Plattform-Analyse Q5) —
+// vor der ersten realen Nutzung auf Netz-Freigaben waere sie ungetestete
+// Vorratsarbeit. Der UNC-Praefix-Zweig ('//…') greift plattformunabhaengig.
 'use strict';
 
 const path = require('node:path');

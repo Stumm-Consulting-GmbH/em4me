@@ -14,6 +14,75 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.119.0.1850] - 2026-08-26 — Plattform-Entkopplung im Code
+
+Epic 3E-0121: Internes technisches Release ohne Funktions-Änderung. Die
+Codebasis löst sich von der Annahme, dass Windows die einzige Plattform ist.
+Windows-eigene Funktionen stehen jetzt hinter ausdrücklichen
+Plattform-Bedingungen statt hinter abgefangenen Fehlern, die Pfad- und
+Dateisystem-Annahmen fragen die Plattform statt sie vorauszusetzen, und die
+Bau-Kette trägt die Icon-Formate und Artefakt-Namen weiterer Ziele. Unter
+Windows verhält sich die Anwendung unverändert; das ist die Zusage des Epics,
+und die bestehende Testsuite ist ihr Nachweis.
+
+Die Arbeit ist Vorleistung, nicht Auslieferung: Eine Linux- oder macOS-Fassung
+entsteht damit noch nicht. Sie schafft die Grundlagen, die keiner einzelnen
+Zielplattform gehören, damit die Plattform-Vorhaben danach nur noch ihre
+eigenen Besonderheiten ergänzen, statt die gemeinsame Basis doppelt zu bauen.
+Das Zielbild dahinter steht seit dem 2026-08-25 fest: Linux wird ausgeliefert,
+macOS wird portierbar gehalten.
+
+Drei Festlegungen sind dabei bewusst gegen den naheliegenden Ausbau gefallen.
+Die Färbung der Titelleiste nach Arbeitsbereichs-Farbe **entfällt** auf anderen
+Plattformen ersatzlos, weil eine plattformeigene Entsprechung Neuentwicklung
+ohne erkennbaren Nutzen wäre. Die Erkennung von Netzpfaden bleibt dort eine
+benannte Lücke, die erst bei realer Nutzung geschlossen wird, statt als
+ungetestete Vorratsarbeit zu entstehen. Und die Build-Nummer bleibt eine
+gemeinsame je Release, weil sie die Commit-Anzahl des Release-Commits ist und
+damit ohnehin nicht zur Plattform gehört.
+
+Umsetzungs-Vorgänge des Epics: 4T-1202, 4T-1203, 4T-1204, 4T-1205;
+Release-Vorgang 4T-1206.
+
+### Geändert
+
+- **Plattform-Gates statt stiller Fehlerpfade** (4T-1202): Die
+  Titelleisten-Färbung (`src/main/app/caption-color.js`) prüft die Plattform,
+  bevor sie die Windows-Systembibliothek lädt; der bisherige Fehlerpfad bleibt
+  daneben bestehen, weil er innerhalb von Windows weiter gebraucht wird. Das
+  Fenster-Icon wählt je Plattform sein Format (Linux PNG, sonst ICO), und die
+  Schrift-Voreinstellungen der Darstellung folgen der Plattform (macOS
+  Menlo/Helvetica Neue, Linux DejaVu, sonst unverändert Consolas/Segoe UI);
+  Quelle ist eine neue Plattform-Konstante der Preload-Bridge, ohne die der
+  Windows-Standard gilt. Die Netzpfad-Erkennung
+  (`src/main/documents/network-paths.js`) trägt ihre Plattform-Lücke jetzt als
+  Vermerk im Kopf, statt sie unausgesprochen zu lassen.
+- **Pfad- und Dateisystem-Annahmen fragen die Plattform** (4T-1203): Neues
+  Modul `src/shared/platform.js` mit der Eigenschaft, ob das Dateisystem Groß-
+  und Kleinschreibung unterscheidet, und einem daraus abgeleiteten
+  Vergleichs-Schlüssel für Pfade. Daran hängen die Grenzprüfung der Bereiche
+  (`src/main/area/area-path.js`), die Zweitsuche des Puffer-Overlays und die
+  Cache-Schlüssel des Profil-Katalogs, die ihre Schlüssel an drei Stellen
+  unbedingt kleingeschrieben hatten und auf Linux zwei verschiedene Pfade auf
+  einen Eintrag zusammengezogen hätten. Die Prüfung auf verbotene Zeichen in
+  Dateinamen bleibt dagegen bewusst überall streng nach Windows-Regel, damit
+  Bereiche zwischen den Plattformen austauschbar bleiben.
+- **Icon-Erzeugung auf die Zielformate erweitert** (4T-1204):
+  `scripts/build-icon.js` erzeugt aus derselben Quell-Grafik zusätzlich
+  `icon-512.png` als Linux-Grundlage und `icon.icns` mit sieben Einträgen von
+  16 bis 1024 px als macOS-Grundlage. Der ICNS-Container ist im Werkzeug selbst
+  geschrieben, ohne neue Fremd-Abhängigkeit; die beiden bisherigen Ausgaben
+  bleiben byte-gleich, und die neuen Dateien sind vom Windows-Paket
+  ausgeschlossen.
+- **Bau-Wrapper und Versions-Archiv plattformfähig** (4T-1205): Die
+  Artefakt-Erkennung des Archiv-Schritts (`scripts/archive-build.js`) läuft
+  über eine einzige Stelle, die neben den Windows-Namen auch Formate ohne
+  Varianten-Zusatz trägt; Prüfsummen-Präfix, Waisen-Räumung und die
+  Kennzeichnung temporärer Bauten folgen derselben Erweiterung. Der Bau-Wrapper
+  `scripts/build-app.js` war bereits ziel-neutral und ist dokumentiert statt
+  umgebaut, samt der Festlegung zur gemeinsamen Build-Nummer. Das endgültige
+  Namensschema der neuen Formate bleibt den Plattform-Vorhaben vorbehalten.
+
 ## [1.118.0.1809] - 2026-08-25 — Metadaten-Modell Stufe 4: Abgeleitete Werte und Objekt-Typen
 
 Epic 3E-0221: Die letzte der vier Umsetzungs-Stufen und die beiden teuersten

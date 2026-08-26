@@ -10,6 +10,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import {
   backlinksFor,
   bufferTextFor,
@@ -24,6 +25,10 @@ import {
   tagsFor,
   areaTaskLines,
 } from '../../src/main/backlinks.js';
+
+// 4T-1203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
+// gesetzt, die overlay.js benutzt (Muster area-search.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -256,6 +261,26 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
       expect(bufferTextFor(path.join(root, 'quelle.md'))).toContain('Frisch getippt');
     },
   );
+
+  // 4T-1203 (Epic 3E-0121): Paar-Test der Zweitsuche über die zentrale
+  // Dateisystem-Eigenschaft — macOS verhält sich wie Windows (APFS-Standard
+  // case-insensitiv), Linux unterscheidet die Schreibung.
+  it('Zweitsuche folgt der Dateisystem-Eigenschaft (darwin ja, linux nein)', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const quelle = write(root, 'Quelle.md', '# Quelle\n');
+    await indexFor(start);
+    setBufferOverlay(quelle, '# Quelle\n\nFrisch getippt\n');
+
+    try {
+      setPlatformForTests('darwin');
+      expect(bufferTextFor(path.join(root, 'quelle.md'))).toContain('Frisch getippt');
+      setPlatformForTests('linux');
+      expect(bufferTextFor(path.join(root, 'quelle.md'))).toBe(null);
+    } finally {
+      setPlatformForTests(undefined);
+    }
+  });
 
   // Die Trennlinie besteht weiter, sie verläuft nur woanders: Verbraucher,
   // die den Product Owner erst nach dem Hauptrelease 1 beschäftigen, lesen

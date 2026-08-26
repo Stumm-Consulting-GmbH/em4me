@@ -7,6 +7,16 @@
 // gebauten Version passt; sonst baut electron-builder die dreiteilige
 // Default-Version. Die electron-builder-Argumente (Targets) reicht der
 // Wrapper unverändert durch.
+//
+// 4T-1205 (Epic 3E-0121): Der Wrapper ist ziel-neutral — die Plattform kommt
+// als durchgereichtes Argument (npm-Skripte geben heute `--win` vor; weitere
+// Targets ergänzen die Plattform-Epics als eigene Skript-Einträge). Die
+// Build-Nummer ist je Release GEMEINSAM für alle Artefakt-Sätze
+// (PO-Entscheidung vom 2026-08-25): Sie ist die Commit-Anzahl des
+// Release-Commits und damit plattformunabhängig; die vierstellige FileVersion
+// ist lediglich ihre Windows-Ausprägung. Die artifactName-Zusätze des
+// temporären Baus unten betreffen die Windows-Targets; Kennzeichnungen
+// weiterer Formate ergänzen die Plattform-Epics an derselben Stelle.
 'use strict';
 
 const path = require('node:path');

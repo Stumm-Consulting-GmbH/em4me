@@ -1,6 +1,6 @@
 {
   "name": "em4me",
-  "version": "1.118.0",
+  "version": "1.119.0",
   "description": "Lokaler Markdown-Editor für Windows 11 mit Bereichen, Verweisen und Volltextsuche.",
   "main": "src/main/main.js",
   "scripts": {
@@ -92,7 +92,8 @@
       "src/**/*",
       "package.json",
       "!src/assets/em4me-mark.svg",
-      "!src/assets/icon.png",
+      "!src/assets/icon-512.png",
+      "!src/assets/icon.icns",
       "!src/renderer/renderer.js",
       "!src/renderer/i18n.js",
       "!src/renderer/mermaid-entry.js",

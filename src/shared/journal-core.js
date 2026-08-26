@@ -281,6 +281,9 @@ function parentPeriods(period) {
 
 // Windows-verbotene Zeichen in Datei-/Ordnernamen (plus Steuerzeichen);
 // '/' ist im Ordner-Schema als Trenner erlaubt und wird getrennt geprüft.
+// 4T-1203 (Epic 3E-0121): Die strenge Windows-Menge gilt bewusst auf ALLEN
+// Plattformen — eine unter Linux erlaubte Datei mit ':' wäre unter Windows
+// unlesbar, und Bereiche sollen plattformübergreifend austauschbar bleiben.
 // eslint-disable-next-line no-control-regex
 const INVALID_SEGMENT_CHARS = new RegExp('[<>:"\\\\|?*\\u0000-\\u001f]');
 

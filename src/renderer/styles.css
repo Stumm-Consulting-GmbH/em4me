@@ -59,8 +59,8 @@
   --code-bg: #f6f8fa;
   --hover: #efefef;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --font-ui: 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  --font-ui: 'Segoe UI', 'Helvetica Neue', 'DejaVu Sans', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Courier New', monospace;
   /* 4T-0018: Konfigurierbare Schriftarten und -groessen fuer Editor und
      Render-Pane. Defaults erben aus --font-mono/--font-ui; der Renderer
      ueberschreibt sie aus den persistierten appearance.*-Settings und

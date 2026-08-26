@@ -6,20 +6,23 @@
 // interne Open-Pfade) laufen ueber DIESE eine Innerhalb-Pruefung, damit die
 // harte Grenze ueberall identisch entscheidet.
 //
-// Windows-Besonderheiten: Pfad-Vergleiche case-insensitiv, Trenner gemischt
-// (\ und /), Laufwerksbuchstaben, keine `..`-Ausbrueche (path.resolve
-// normalisiert sie weg, bevor verglichen wird).
+// Plattform-Besonderheiten: Trenner gemischt (\ und /), Laufwerksbuchstaben,
+// keine `..`-Ausbrueche (path.resolve normalisiert sie weg, bevor verglichen
+// wird). Ob Vergleiche die Schreibung ignorieren, entscheidet seit 4T-1203
+// (Epic 3E-0121) die zentrale Plattform-Eigenschaft in shared/platform.js:
+// case-insensitiv auf Windows und macOS, case-sensitiv auf Linux.
 'use strict';
 
 const path = require('node:path');
+const { pathCompareKey } = require('../../shared/platform.js');
 
 // Normalisiert einen Pfad fuer Vergleiche: absolut aufgeloest, ohne
-// Trailing-Separatoren, case-insensitiv (Windows-Dateisystem).
+// Trailing-Separatoren, Schreibung nach Dateisystem-Eigenschaft (s. Kopf).
 function normalizeForCompare(p) {
   if (typeof p !== 'string' || p === '') return null;
   const resolved = path.resolve(p);
   const trimmed = resolved.replace(/[\\/]+$/, '');
-  return (trimmed === '' ? resolved : trimmed).toLowerCase();
+  return pathCompareKey(trimmed === '' ? resolved : trimmed);
 }
 
 // Zwei Pfade bezeichnen denselben Ort (fuer "derselbe Bereich laeuft schon").
@@ -98,6 +101,9 @@ function sortedAreaListing(entries, isMarkdownName) {
 // Ordner": nur ein nackter Dateiname (keine Pfad-Segmente), keine unter
 // Windows verbotenen Zeichen; ohne Markdown-Endung wird ".md" ergaenzt.
 // Liefert den bereinigten Namen oder null.
+// 4T-1203: Die strenge Windows-Menge gilt bewusst auf ALLEN Plattformen —
+// eine unter Linux erlaubte Datei mit ':' waere unter Windows unlesbar, und
+// Bereiche sollen plattformuebergreifend austauschbar bleiben.
 function sanitizeNewFileName(name) {
   if (typeof name !== 'string') return null;
   const trimmed = name.trim();

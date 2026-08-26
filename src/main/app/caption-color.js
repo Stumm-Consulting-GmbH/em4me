@@ -10,6 +10,13 @@
 // (Windows 10 ohne die Farb-Attribute, Lade- oder Aufruf-Fehler):
 // einmaliges Log, danach stiller No-op — die App bleibt ohne Färbung
 // voll funktionsfähig.
+//
+// 4T-1202 (Epic 3E-0121): Ausdrückliches Plattform-Gate. Die Färbung ist
+// eine Windows-Funktion und entfällt auf anderen Plattformen ersatzlos
+// (PO-Entscheidung vom 2026-08-25) — dort findet weder ein koffi-Laden noch
+// ein DWM-Versuch statt, also auch kein Warn-Log. Der Fehler-Pfad oben
+// bleibt daneben bestehen, weil er INNERHALB von Windows greift (Windows 10
+// ohne die Farb-Attribute).
 'use strict';
 
 const {
@@ -51,6 +58,9 @@ function captionColorsFor(colorKey, dark) {
 // Nativer Aufruf-Kanal: undefined = noch nicht geladen (lazy),
 // null = dauerhaft deaktiviert (Lade- oder Aufruf-Fehler, Windows 10).
 let dwmCall;
+
+// Plattform-Gate, für Tests injizierbar (Muster setDwmCallForTests).
+let plattform = process.platform;
 
 function loadDwmCall() {
   if (dwmCall !== undefined) return dwmCall;
@@ -114,6 +124,7 @@ function hwndFromHandle(handleBuffer) {
 // handleBuffer ist das native Fenster-Handle (win.getNativeWindowHandle()).
 // Liefert true, wenn beide DWM-Aufrufe durchgingen.
 function applyCaptionColor(handleBuffer, colorKey, dark) {
+  if (plattform !== 'win32') return false;
   const hwnd = hwndFromHandle(handleBuffer);
   if (hwnd == null) return false;
   const colors = colorKey ? captionColorsFor(colorKey, !!dark) : null;
@@ -131,6 +142,12 @@ function setDwmCallForTests(fn) {
   dwmCall = fn;
 }
 
+// Nur für Tests: Plattform injizieren bzw. mit undefined auf die reale
+// Plattform zurücksetzen.
+function setPlatformForTests(p) {
+  plattform = p === undefined ? process.platform : p;
+}
+
 module.exports = {
   DWMWA_CAPTION_COLOR,
   DWMWA_TEXT_COLOR,
@@ -139,4 +156,5 @@ module.exports = {
   captionColorsFor,
   applyCaptionColor,
   setDwmCallForTests,
+  setPlatformForTests,
 };

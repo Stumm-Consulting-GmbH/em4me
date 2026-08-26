@@ -201,6 +201,9 @@ function createWindowManager(deps) {
   //                         eine bestehende App adressiert.
   function createWindow(opts = {}) {
     const useStored = isBoundsVisibleOnAnyDisplay(opts.bounds);
+    // 4T-1202: Fenster-Icon je Plattform — Linux nimmt PNG (ICO ist dort nicht
+    // das Fenster-Format); macOS ignoriert die Option (Dock-Symbol aus Bundle).
+    const iconDatei = process.platform === 'linux' ? 'icon.png' : 'icon.ico';
 
     const options = {
       width: 1200,
@@ -208,7 +211,7 @@ function createWindowManager(deps) {
       minWidth: 600,
       minHeight: 400,
       backgroundColor: nativeTheme.shouldUseDarkColors ? '#1e1e1e' : '#ffffff',
-      icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
+      icon: path.join(__dirname, '..', 'assets', iconDatei),
       show: false,
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),

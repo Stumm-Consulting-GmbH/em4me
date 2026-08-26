@@ -28,6 +28,18 @@ const RELEASES = path.join(ROOT, 'releases');
 const VERSION_RE = /\d+\.\d+\.\d+/;
 const PRODUKT_RE = 'EM4me|Perspective Markdown\\+\\+|SCG Markdown|Markdown Viewer';
 const EXE_PATTERN = new RegExp(`^(?:${PRODUKT_RE})-(${VERSION_RE.source})-(Setup|Portable)\\.exe$`);
+// 4T-1205 (Epic 3E-0121): weitere Artefakt-Formate, vorbereitet fuer die
+// Plattform-Epics — Linux (AppImage) und macOS (DMG) ohne Varianten-Zusatz.
+// Das endgueltige Namensschema entscheidet das jeweilige Plattform-Epic; hier
+// steht nur, was Archiv, Pruefsummen und Waisen-Logik tragen muessen. Das
+// Windows-Muster oben bleibt unveraendert (eigene Varianten Setup|Portable).
+const WEITERE_ARTEFAKT_RE = new RegExp(
+  `^(?:${PRODUKT_RE})-(${VERSION_RE.source})\\.(?:AppImage|dmg)$`,
+);
+// Ein Release-Artefakt gleich welcher Plattform; Fanggruppe 1 ist die Version.
+function matchArtefakt(name) {
+  return name.match(EXE_PATTERN) || name.match(WEITERE_ARTEFAKT_RE);
+}
 const NOTES_PATTERN = new RegExp(`^release-notes-(${VERSION_RE.source})\\.md$`);
 // 4T-0921: Dateiname eines temporaeren Baus zwischen zwei Releases
 // (`EM4me-T-0.105.0-202608071130-Portable.exe`). Er wird bewusst NICHT
@@ -37,14 +49,16 @@ const NOTES_PATTERN = new RegExp(`^release-notes-(${VERSION_RE.source})\\.md$`);
 // ausdruecklich (Anordnung des Product Owners vom 2026-08-07).
 // Fanggruppe 1 ist der zwoelfstellige Zeitstempel; die Meldung unten nennt
 // darueber den frischen Stand.
+// 4T-1205: dieselbe Format-Erweiterung wie beim Release-Artefakt — die
+// Windows-Varianten tragen ihren Zusatz, weitere Formate laufen ohne ihn.
 const TEMP_EXE_PATTERN = new RegExp(
-  `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})-(?:Setup|Portable)\\.exe$`,
+  `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})(?:-(?:Setup|Portable))?\\.(?:exe|AppImage|dmg)$`,
 );
 // Dasselbe samt Blockmap-Beigabe der Setup-Datei: die Aufraeum-Menge umfasst
 // alles, was ein temporaerer Bau hinterlaesst, die Melde-Menge nur die
 // Programmdateien.
 const TEMP_ARTEFAKT_PATTERN = new RegExp(
-  `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})-(?:Setup|Portable)\\.exe(?:\\.blockmap)?$`,
+  `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})(?:-(?:Setup|Portable))?\\.(?:exe|AppImage|dmg)(?:\\.blockmap)?$`,
 );
 
 // Zeitstempel aus dem Dateinamen eines temporaeren Artefakts; '' bei Nicht-Treffer.
@@ -146,7 +160,7 @@ function writeChecksumFiles(names, deps = {}) {
   const write = deps.write || ((file, content) => fs.writeFileSync(file, content, 'utf8'));
   const byVersion = new Map();
   for (const name of names) {
-    const version = name.match(EXE_PATTERN)[1];
+    const version = matchArtefakt(name)[1];
     if (!byVersion.has(version)) byVersion.set(version, []);
     byVersion.get(version).push(name);
   }
@@ -164,9 +178,12 @@ function writeChecksumFiles(names, deps = {}) {
       }
     }
     if (lines.length === 0) continue;
-    // Produktnamen-Präfix aus dem EXE-Namen übernehmen, damit die Datei neben
-    // ihren EXEs steht; das Muster erlaubt auch die drei Altnamen.
-    const prefix = files[0].slice(0, files[0].indexOf(`-${version}-`));
+    // Produktnamen-Präfix aus dem Artefakt-Namen übernehmen, damit die Datei
+    // neben ihren Artefakten steht; das Muster erlaubt auch die drei Altnamen.
+    // 4T-1205: Schnitt an `-<version>` statt `-<version>-`, weil Formate ohne
+    // Varianten-Zusatz (AppImage/DMG) direkt nach der Version enden; fuer die
+    // Windows-Namen ist die Schnittstelle identisch.
+    const prefix = files[0].slice(0, files[0].indexOf(`-${version}`));
     const target = path.join(RELEASES, `${prefix}-${version}-SHA256SUMS.txt`);
     try {
       write(target, `${lines.join('\n')}\n`);
@@ -236,9 +253,11 @@ function raeumeWaisenBlockmaps(verbleibend, deps = {}) {
   // deckt Release-Bau und temporaeren Bau gleichermassen ab, weil beide ihre
   // Version im Namen fuehren. Im Versions-Archiv gilt weiter der
   // Vollstaendigkeits-Grundsatz; dort wird nichts entfernt.
+  // 4T-1205: Programmdateien aller Formate zaehlen (Release- wie T-Bauten);
+  // die Version steht bei beiden im Namen.
   const gebauteVersionen = new Set(
     verbleibend
-      .filter((name) => name.toLowerCase().endsWith('.exe'))
+      .filter((name) => matchArtefakt(name) !== null || TEMP_EXE_PATTERN.test(name))
       .map((name) => (name.match(VERSION_RE) || [])[0])
       .filter(Boolean),
   );
@@ -342,7 +361,8 @@ function archiveBuild(entries, deps = {}) {
       }
     });
 
-  const exes = entries.filter((name) => EXE_PATTERN.test(name));
+  // 4T-1205: alle Release-Artefakte (Windows-EXEs plus vorbereitete Formate).
+  const exes = entries.filter((name) => matchArtefakt(name) !== null);
   // 4T-0683: Nur die Notes der gebauten Version. In dist/ sammeln sich die
   // Notes-Dateien aller Releases; pauschales Kopieren hat am 2026-07-22 eine
   // Archiv-Fassung mit einer aelteren Probe-Fassung ueberschrieben. Die
@@ -401,9 +421,9 @@ function archiveBuild(entries, deps = {}) {
     return 0;
   }
 
-  // X-01: Tag-Guard ueber alle gefundenen EXE-Versionen.
+  // X-01: Tag-Guard ueber alle gefundenen Artefakt-Versionen.
   for (const name of exes) {
-    const version = name.match(EXE_PATTERN)[1];
+    const version = matchArtefakt(name)[1];
     if (tagExists(version)) {
       console.error(
         `archive-build: ABBRUCH — fuer Version ${version} existiert bereits der ` +
@@ -465,6 +485,7 @@ module.exports = {
   meldeTemporaere,
   raeumeTemporaere,
   raeumeWaisenBlockmaps,
+  matchArtefakt,
   EXE_PATTERN,
   NOTES_PATTERN,
   TEMP_EXE_PATTERN,

@@ -19,6 +19,7 @@ import {
   captionColorsFor,
   applyCaptionColor,
   setDwmCallForTests,
+  setPlatformForTests,
 } from '../../src/main/app/caption-color.js';
 import {
   TAB_GROUP_COLOR_KEYS,
@@ -42,6 +43,8 @@ afterEach(() => {
   // Kanal auf den Lazy-Ausgangszustand zurücksetzen (siehe Kopf-Kommentar):
   // ungefährlich, solange kein Test ohne eigenen Fake applyCaptionColor ruft.
   setDwmCallForTests(undefined);
+  // Plattform-Gate auf die reale Plattform zurücksetzen (4T-1202).
+  setPlatformForTests(undefined);
 });
 
 describe('hexToColorref (4T-0630)', () => {
@@ -151,6 +154,39 @@ describe('applyCaptionColor: Färbung (4T-0630)', () => {
       { attr: DWMWA_CAPTION_COLOR, value: DWMWA_COLOR_DEFAULT },
       { attr: DWMWA_TEXT_COLOR, value: DWMWA_COLOR_DEFAULT },
     ]);
+  });
+});
+
+// 4T-1202 (Epic 3E-0121): Ausdrückliches Plattform-Gate — auf Nicht-Windows-
+// Plattformen findet kein Färbungs-Versuch statt (kein Kanal-Aufruf, kein
+// Log), die Funktion entfällt dort ersatzlos (PO-Entscheidung vom 2026-08-25).
+describe('applyCaptionColor: Plattform-Gate (4T-1202)', () => {
+  for (const p of ['linux', 'darwin']) {
+    it(`${p}: false ohne Kanal-Aufruf und ohne Log`, () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      let count = 0;
+      setDwmCallForTests(() => {
+        count++;
+        return 0;
+      });
+      setPlatformForTests(p);
+
+      expect(applyCaptionColor(handle8(), 'blue', false)).toBe(false);
+      expect(count).toBe(0);
+      expect(warn).not.toHaveBeenCalled();
+    });
+  }
+
+  it('win32: Färbung läuft unverändert (Gate greift nicht)', () => {
+    const calls = [];
+    setDwmCallForTests((hwnd, attr, value) => {
+      calls.push({ attr, value });
+      return 0;
+    });
+    setPlatformForTests('win32');
+
+    expect(applyCaptionColor(handle8(), 'blue', false)).toBe(true);
+    expect(calls).toHaveLength(2);
   });
 });
 

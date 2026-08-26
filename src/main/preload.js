@@ -2,8 +2,7 @@
 // 4T-0179 (Epic 3E-0039): Die komplette Markdown-Pipeline (markdown-it-
 // Konfiguration, eigene Plugins, Frontmatter, Perspective Table, Portable-Konverter)
 // ist nach src/shared/markdown/** extrahiert und dort Electron-frei testbar.
-// Hier verbleiben nur die Bridge (IPC), Pfad-Helfer und der fs-abhaengige
-// Bild-Resolver.
+// Hier verbleiben nur die Bridge (IPC), Pfad-Helfer und der fs-abhaengige Bild-Resolver.
 'use strict';
 
 const electron = require('electron');
@@ -161,6 +160,7 @@ function mimeForImage(ext) {
 }
 
 contextBridge.exposeInMainWorld('api', {
+  plattform: process.platform, // 4T-1202: fuer plattformabhaengige Renderer-Voreinstellungen
   // Datei-Operationen
   openDialog: () => ipcRenderer.invoke('file:openDialog'),
   readFile: (p) => ipcRenderer.invoke('file:read', p),

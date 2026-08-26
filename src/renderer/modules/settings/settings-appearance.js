@@ -23,10 +23,24 @@ import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 // persistiert; eine Aenderung in einem Fenster wird vom Main an alle anderen
 // Fenster broadcastet, sodass die neuen Werte sofort ueberall greifen.
 
-export const APPEARANCE_DEFAULTS = {
+// 4T-1202 (Epic 3E-0121): Standard-Schriften je Plattform. Die bisherigen
+// Windows-Namen bleiben dort unveraendert der Standard; auf macOS und Linux
+// werden Schriften vorbelegt, die dort tatsaechlich installiert sind, statt
+// eines Windows-Namens, der nur ueber die Fallback-Kette aufgeloest wuerde.
+// Ohne Plattform-Kennung (aeltere Test-Stubs) gilt der Windows-Standard.
+const PLATTFORM_SCHRIFTEN = {
+  darwin: { editorFont: 'Menlo', renderFont: 'Helvetica Neue' },
+  linux: { editorFont: 'DejaVu Sans Mono', renderFont: 'DejaVu Sans' },
+};
+const standardSchriften = PLATTFORM_SCHRIFTEN[api?.plattform] || {
   editorFont: 'Consolas',
-  editorSize: 14,
   renderFont: 'Segoe UI',
+};
+
+export const APPEARANCE_DEFAULTS = {
+  editorFont: standardSchriften.editorFont,
+  editorSize: 14,
+  renderFont: standardSchriften.renderFont,
   renderSize: 15,
   contentWidth: 80,
   // 4T-0575 (Epic 3E-0106): abgerundete Ecken der Dokument-Reiter und der
@@ -66,7 +80,7 @@ export function applyAppearanceVars(values) {
   const renderFont = (values.renderFont || APPEARANCE_DEFAULTS.renderFont).trim();
   root.style.setProperty(
     '--editor-font-family',
-    `"${editorFont}", "Cascadia Code", "Consolas", "Courier New", monospace`,
+    `"${editorFont}", "Cascadia Code", "Consolas", "Menlo", "DejaVu Sans Mono", "Courier New", monospace`,
   );
   root.style.setProperty(
     '--editor-font-size',
@@ -74,7 +88,7 @@ export function applyAppearanceVars(values) {
   );
   root.style.setProperty(
     '--render-font-family',
-    `"${renderFont}", "Segoe UI", system-ui, sans-serif`,
+    `"${renderFont}", "Segoe UI", "Helvetica Neue", "DejaVu Sans", system-ui, sans-serif`,
   );
   root.style.setProperty(
     '--render-font-size',

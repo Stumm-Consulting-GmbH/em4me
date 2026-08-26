@@ -26,6 +26,7 @@
 
 'use strict';
 
+const { isFilesystemCaseInsensitive } = require('../../shared/platform.js');
 const { isInsideArea } = require('../area/area-path.js');
 const { bufferOverlays } = require('./store.js');
 const { parseContent } = require('./parse.js');
@@ -59,14 +60,15 @@ function overlaysUnder(root) {
 // 4T-0948 (Befund E-01): Roh-Text-Auskunft fuer Verbraucher, die den
 // geschriebenen Stand als Text brauchen (Wiki-Einbettung). Ohne Bereichs-
 // Filter, weil der Aufrufer den Ziel-Pfad bereits geprueft hat. Der zweite
-// Anlauf ohne Ruecksicht auf Gross- und Kleinschreibung gilt nur unter
-// Windows und faengt '![[quelle]]' gegen 'Quelle.md'; wo das Dateisystem die
-// Schreibweise unterscheidet, waeren das zwei Dateien.
+// Anlauf ohne Ruecksicht auf Gross- und Kleinschreibung faengt '![[quelle]]'
+// gegen 'Quelle.md' und gilt auf case-insensitiven Dateisystemen (seit
+// 4T-1203 Windows UND macOS, zentrale Eigenschaft in shared/platform.js);
+// wo das Dateisystem die Schreibweise unterscheidet, waeren das zwei Dateien.
 function bufferTextFor(absPath) {
   if (typeof absPath !== 'string' || !absPath) return null;
   const genau = bufferOverlays.get(absPath);
   if (genau) return genau.text;
-  if (process.platform !== 'win32') return null;
+  if (!isFilesystemCaseInsensitive()) return null;
   const gesucht = absPath.toLowerCase();
   for (const [pfad, e] of bufferOverlays) if (pfad.toLowerCase() === gesucht) return e.text;
   return null;

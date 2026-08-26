@@ -27,9 +27,13 @@ const path = require('node:path');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
 const { parseProfileFields, parseProfileHeritage } = require('../../shared/property-profiles');
 const { isInsideArea } = require('../area/area-path');
+// 4T-1203 (Epic 3E-0121): Cache-Schluessel folgen der Dateisystem-Eigenschaft
+// (kleingeschrieben nur, wo die Plattform die Schreibung nicht unterscheidet);
+// auf Linux fielen sonst zwei verschiedene Pfade auf einen Eintrag zusammen.
+const { pathCompareKey } = require('../../shared/platform.js');
 
 // Eigener Cache pro Aufrufer (main.js hält einen prozessweiten; Tests je
-// einen frischen). Map absPath(lowercase) ->
+// einen frischen). Map pathCompareKey(absPath) ->
 // { mtimeMs, size, fields, errors, parent, exclude }.
 function createProfileCatalogCache() {
   return new Map();
@@ -99,7 +103,7 @@ async function ladeWerteNotizen({ pfade, areaRoot, fsp, cache, alive }) {
       vorraete.set(rel, null);
       continue;
     }
-    const cacheKey = abs.toLowerCase();
+    const cacheKey = pathCompareKey(abs);
     let stat;
     try {
       stat = await fsp.stat(abs);
@@ -150,7 +154,7 @@ async function loadProfileCatalog({ folderAbs, fsp, cache, areaRoot = null }) {
   for (const entry of dirents) {
     if (!entry.isFile() || !/\.md$/i.test(entry.name)) continue;
     const abs = path.join(folderAbs, entry.name);
-    const cacheKey = abs.toLowerCase();
+    const cacheKey = pathCompareKey(abs);
     let stat;
     try {
       stat = await fsp.stat(abs);
@@ -220,7 +224,7 @@ async function loadProfileCatalog({ folderAbs, fsp, cache, areaRoot = null }) {
   // der Cache wird prozessweit über Bereiche hinweg geteilt). Werte-Notizen
   // liegen außerhalb des Profil-Ordners und fallen deshalb nicht unter den
   // Präfix; sie werden geräumt, sobald ihre Datei verschwindet (oben).
-  const prefix = folderAbs.toLowerCase() + path.sep;
+  const prefix = pathCompareKey(folderAbs) + path.sep;
   for (const key of [...cache.keys()]) {
     if (key.startsWith(prefix) && !alive.has(key)) cache.delete(key);
   }

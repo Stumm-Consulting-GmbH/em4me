@@ -2,7 +2,7 @@
 // (src/main/area/area-path.js). Die Innerhalb-Prüfung ist die eine Grenze aller
 // Bereichs-Pfade; Windows-Fälle (Groß/Klein, gemischte Trenner, `..`,
 // Präfix-Nachbarn) sind hier abgesichert.
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect } from 'vitest';
 import {
   isSamePath,
   isInsideArea,
@@ -13,8 +13,38 @@ import {
   sortedAreaListing,
   sanitizeNewFileName,
 } from '../../src/main/area/area-path.js';
+import { createRequire } from 'node:module';
+
+// 4T-1203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
+// gesetzt, die area-path.js benutzt. Vitest fuehrt fuer 'import' und
+// 'require' getrennte Instanzen (Muster area-search.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 
 const ROOT = 'C:\\Daten\\Notizen';
+
+afterEach(() => {
+  setPlatformForTests(undefined);
+});
+
+// 4T-1203 (Epic 3E-0121): Paar-Tests beider Dateisystem-Verhaltensweisen —
+// dieselbe Grenz-Entscheidung, einmal case-insensitiv (Windows/macOS), einmal
+// case-sensitiv (Linux). Die uebrigen Faelle dieser Datei laufen auf der
+// realen Plattform (Windows) und belegen das unveraenderte Bestands-Verhalten.
+describe('Bereichs-Grenze je Dateisystem-Verhalten (4T-1203)', () => {
+  it('linux: abweichende Schreibung liegt AUSSERHALB, exakte innerhalb', () => {
+    setPlatformForTests('linux');
+    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\Sub\\a.md')).toBe(true);
+    expect(isInsideArea(ROOT, 'c:\\daten\\NOTIZEN\\a.md')).toBe(false);
+    expect(isSamePath(ROOT, 'c:/daten/notizen/')).toBe(false);
+    expect(isSamePath(ROOT, 'C:/Daten/Notizen/')).toBe(true);
+  });
+
+  it('darwin: abweichende Schreibung liegt innerhalb (wie Windows)', () => {
+    setPlatformForTests('darwin');
+    expect(isInsideArea(ROOT, 'c:\\daten\\NOTIZEN\\a.md')).toBe(true);
+    expect(isSamePath(ROOT, 'c:/daten/notizen/')).toBe(true);
+  });
+});
 
 describe('isInsideArea (4T-0322)', () => {
   it('Dateien im Bereich und in Unterordnern liegen innerhalb', () => {

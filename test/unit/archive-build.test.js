@@ -8,6 +8,7 @@ import {
   meldeTemporaere,
   raeumeTemporaere,
   raeumeWaisenBlockmaps,
+  matchArtefakt,
   EXE_PATTERN,
   NOTES_PATTERN,
   TEMP_EXE_PATTERN,
@@ -27,6 +28,68 @@ describe('archive-build — Pattern', () => {
     expect(EXE_PATTERN.test('Perspective Markdown++-0.30.0-Setup.exe.blockmap')).toBe(false);
     expect(NOTES_PATTERN.test('release-notes-0.24.0.md')).toBe(true);
     expect(NOTES_PATTERN.test('release-notes.md')).toBe(false);
+  });
+});
+
+// 4T-1205 (Epic 3E-0121): vorbereitete Artefakt-Formate der Zielplattformen —
+// AppImage (Linux) und DMG (macOS) ohne Varianten-Zusatz. Die Windows-Muster
+// bleiben unveraendert; matchArtefakt ist die eine Erkennung fuer alle.
+describe('4T-1205: Artefakt-Formate der Zielplattformen', () => {
+  it('erkennt AppImage und DMG mit der Version als Fanggruppe', () => {
+    expect(matchArtefakt('EM4me-1.119.0.AppImage')?.[1]).toBe('1.119.0');
+    expect(matchArtefakt('EM4me-1.119.0.dmg')?.[1]).toBe('1.119.0');
+    expect(matchArtefakt('EM4me-1.119.0-Setup.exe')?.[1]).toBe('1.119.0');
+    expect(matchArtefakt('EM4me-1.119.0.AppImage.blockmap')).toBe(null);
+    expect(matchArtefakt('EM4me-1.119.0.zip')).toBe(null);
+  });
+
+  it('erkennt temporaere Bauten auch ohne Varianten-Zusatz', () => {
+    expect(TEMP_EXE_PATTERN.test('EM4me-T-1.118.0-202608251200.AppImage')).toBe(true);
+    expect(TEMP_EXE_PATTERN.test('EM4me-T-1.118.0-202608251200.dmg')).toBe(true);
+    // Gegenprobe in beide Richtungen: Release-Artefakt ist kein T-Bau und
+    // umgekehrt.
+    expect(TEMP_EXE_PATTERN.test('EM4me-1.118.0.AppImage')).toBe(false);
+    expect(matchArtefakt('EM4me-T-1.118.0-202608251200.AppImage')).toBe(null);
+  });
+
+  it('archiviert gemischte Artefakt-Saetze und schreibt eine Pruefsummen-Datei je Version', () => {
+    const move = vi.fn(() => true);
+    const writeChecksums = vi.fn(() => true);
+    const code = archiveBuild(
+      ['EM4me-1.119.0-Portable.exe', 'EM4me-1.119.0-Setup.exe', 'EM4me-1.119.0.AppImage'],
+      {
+        tagExists: () => false,
+        guardBuildNumber: () => null,
+        pkgVersion: '1.119.0',
+        move,
+        copyNotes: vi.fn(() => true),
+        writeChecksums,
+        raeumeWaisenBlockmaps: () => ({ entfernt: [], gescheitert: [] }),
+      },
+    );
+    expect(code).toBe(0);
+    expect(move.mock.calls.map(([name]) => name).sort()).toEqual([
+      'EM4me-1.119.0-Portable.exe',
+      'EM4me-1.119.0-Setup.exe',
+      'EM4me-1.119.0.AppImage',
+    ]);
+    expect(writeChecksums).toHaveBeenCalledWith([
+      'EM4me-1.119.0-Portable.exe',
+      'EM4me-1.119.0-Setup.exe',
+      'EM4me-1.119.0.AppImage',
+    ]);
+  });
+
+  it('die Pruefsummen-Datei schneidet den Produktnamen auch ohne Varianten-Zusatz', () => {
+    const geschrieben = [];
+    const ok = writeChecksumFiles(['EM4me-1.119.0.AppImage'], {
+      hash: () => 'abc123',
+      write: (file, content) => geschrieben.push({ file, content }),
+    });
+    expect(ok).toBe(true);
+    expect(geschrieben).toHaveLength(1);
+    expect(geschrieben[0].file.endsWith('EM4me-1.119.0-SHA256SUMS.txt')).toBe(true);
+    expect(geschrieben[0].content).toBe('abc123  EM4me-1.119.0.AppImage\n');
   });
 });
 

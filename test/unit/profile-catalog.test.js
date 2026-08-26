@@ -8,6 +8,11 @@ import {
   createProfileCatalogCache,
   loadProfileCatalog,
 } from '../../src/main/documents/profile-catalog.js';
+import { createRequire } from 'node:module';
+
+// 4T-1203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
+// gesetzt, die profile-catalog.js benutzt (Muster area-search.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 import { resolveProfileFields, fieldDefinitionHint } from '../../src/shared/property-profiles.js';
 
 const FOLDER = path.resolve('C:/Bereich/Profile');
@@ -60,6 +65,26 @@ describe('loadProfileCatalog', () => {
     expect(profiles[0].name).toBe('Projekt');
     expect(profiles[0].fields.map((f) => f.name)).toEqual(['status', 'budget']);
     expect(profiles[0].errors).toEqual([]);
+  });
+
+  // 4T-1203 (Epic 3E-0121): Cache-Schlüssel folgen der Dateisystem-Eigenschaft
+  // — kleingeschrieben nur, wo die Plattform die Schreibung nicht
+  // unterscheidet; auf Linux fielen sonst zwei Pfade auf einen Eintrag.
+  it('Cache-Schlüssel folgen der Dateisystem-Eigenschaft (4T-1203)', async () => {
+    const files = new Map([['Projekt.md', { mtimeMs: 1, size: 10, content: PROJEKT }]]);
+    try {
+      setPlatformForTests('linux');
+      const cacheLinux = createProfileCatalogCache();
+      await loadProfileCatalog({ folderAbs: FOLDER, fsp: fakeFs(files), cache: cacheLinux });
+      expect([...cacheLinux.keys()]).toEqual([path.join(FOLDER, 'Projekt.md')]);
+
+      setPlatformForTests('win32');
+      const cacheWin = createProfileCatalogCache();
+      await loadProfileCatalog({ folderAbs: FOLDER, fsp: fakeFs(files), cache: cacheWin });
+      expect([...cacheWin.keys()]).toEqual([path.join(FOLDER, 'Projekt.md').toLowerCase()]);
+    } finally {
+      setPlatformForTests(undefined);
+    }
   });
 
   it('fehlender Ordner ergibt missingFolder ohne Wurf', async () => {
