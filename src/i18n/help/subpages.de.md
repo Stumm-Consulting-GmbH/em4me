@@ -4,7 +4,7 @@ Seiten können Unterseiten in beliebiger Tiefe haben, zum Beispiel `Prozess-A/En
 
 ## Namens-Konvention
 
-Träger der Hierarchie ist der Dateiname: Das **Unterseiten-Trennzeichen ist `∕` (Unicode U+2215, „Division Slash")**. Es sieht aus wie ein Schrägstrich, ist aber in Windows-Dateinamen erlaubt und kommt in normalen Namen praktisch nicht vor — genau dadurch ist eindeutig, dass eine Datei eine Unterseite ist.
+Träger der Hierarchie ist der Dateiname: Das **Unterseiten-Trennzeichen ist `∕` (Unicode U+2215, „Division Slash")**. Es sieht aus wie ein Schrägstrich, ist aber keiner: Der echte Schrägstrich dient auf jedem System als Pfad-Trenner und ist in Dateinamen deshalb ausgeschlossen, dieses Zeichen dagegen ist erlaubt und kommt in normalen Namen praktisch nicht vor — genau dadurch ist eindeutig, dass eine Datei eine Unterseite ist.
 
 ```text
 Prozess-A.md                    Seite

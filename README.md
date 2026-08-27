@@ -1,7 +1,7 @@
 # EM4me
 
-A local Markdown editor for Windows. No account, no cloud, no subscription:
-your notes stay files on your own disk.
+A local Markdown editor for Windows and Linux. No account, no cloud, no
+subscription: your notes stay files on your own disk.
 
 EM4me edits the Markdown files you already have, in the folders where you
 already keep them. Nothing is locked in a database, and what you write never
@@ -40,23 +40,35 @@ Markdown rendering follows CommonMark plus a set of extensions, with math
 
 ## Download
 
-Ready-made Windows builds (installer and portable) are available on the
-product website: [em4me.ch](https://em4me.ch). EM4me targets Windows 11
-(Windows 10 should work too), 64-bit, no runtime required. Every release
-ships with SHA256 checksums, published on the website and in the release
-entries of this repository, so the files can be verified from two
-independent places.
+Ready-made builds for both platforms are available on the product website:
+[em4me.ch](https://em4me.ch), each in two forms — with and without
+installation. All builds are 64-bit and need no runtime.
+
+- **Windows**: installer or portable executable. EM4me targets Windows 11;
+  Windows 10 should work too.
+- **Linux**: `.deb` package for regular installation on Debian and Ubuntu
+  systems, or an AppImage that runs without installation. The AppImage
+  requires the libfuse2 library, which recent distributions no longer ship
+  by default. Runtime behaviour is verified on an Ubuntu 24.04 base with an
+  XFCE desktop; anything beyond that is untested compatibility.
+
+Every release ships with SHA256 checksums, published on the website and in
+the release entries of this repository, so the files can be verified from
+two independent places.
 
 ## Building from source
 
-Requirements: Node.js 20 or newer, on Windows.
+Requirements: Node.js 20 or newer, on Windows. The Linux targets are built
+from Windows inside a container — the way electron-builder documents for
+foreign targets — so Docker has to be running for that step.
 
 ```bash
 npm install
-npm start          # run the app in development mode
-npm test           # unit and snapshot tests
-npm run test:e2e   # end-to-end tests (Playwright)
-npm run build      # build the Windows installer and portable executable
+npm start           # run the app in development mode
+npm test            # unit and snapshot tests
+npm run test:e2e    # end-to-end tests (Playwright)
+npm run build       # Windows: installer and portable executable
+npm run build:linux # Linux: AppImage and .deb package (needs Docker)
 ```
 
 ## Feedback

@@ -4,7 +4,7 @@ Las páginas pueden tener subpáginas a cualquier profundidad, por ejemplo `Proc
 
 ## Convención de nombres
 
-El nombre del archivo porta la jerarquía: el **separador de subpáginas es `∕` (Unicode U+2215, «barra de división»)**. Parece una barra oblicua, pero está permitido en nombres de archivo de Windows y prácticamente nunca aparece en nombres normales — precisamente eso hace inequívoco que un archivo es una subpágina.
+El nombre del archivo porta la jerarquía: el **separador de subpáginas es `∕` (Unicode U+2215, «barra de división»)**. Parece una barra oblicua, pero no lo es: la barra oblicua real sirve de separador de rutas en todos los sistemas y por eso queda excluida de los nombres de archivo, mientras que este carácter sí está permitido y prácticamente nunca aparece en nombres normales — precisamente eso hace inequívoco que un archivo es una subpágina.
 
 ```text
 Proceso-A.md                       página

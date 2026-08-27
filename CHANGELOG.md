@@ -14,6 +14,49 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.121.1.1940] - 2026-08-27 — Texte ohne Windows-Bindung
+
+Epic 3E-0122, Fehlerbehebung nach der Auslieferung von 1.121.0 (Vorgänge 4T-1242,
+4T-1243 und 4T-1244). Die erste Linux-Ausgabe hat den Funktionsumfang mitgebracht,
+aber nicht jeden Text: An vier Stellen sprach das Programm weiter so, als liefe es
+nur unter Windows. Keine davon ist ein Programmfehler, und keine ändert das
+Verhalten; sie erklären eine plattformübergreifende Sache mit einer Plattform und
+lesen sich unter Linux wie ein Irrtum der Anwendung.
+
+**Der eigentliche Anlass des Patch-Releases liegt außerhalb des Programms.** Die
+öffentliche README des Quellcode-Exports, also die erste Seite, die ein Besucher des
+Veröffentlichungs-Repositoriums sieht, beschrieb EM4me weiter als
+Windows-Anwendung. Korrigiert ist sie seit dem 2026-08-27, sichtbar wird sie erst
+jetzt: Der Quellcode-Export überträgt allein den getaggten Stand, und deshalb
+brauchte die Korrektur eine eigene Version statt eines Nachreichens.
+
+### Geändert
+
+- **Funktions-Katalog, Eintrag zum Theme:** Die Vorgabe folgt jetzt „dem Theme des
+  Betriebssystems" statt dem „Windows-Systemtheme". Damit sagt der Katalog dasselbe
+  wie die Handbuch-Seite zur Darstellung, die seit dem Plattform-Epic bereits
+  plattformneutral formuliert ist. Die Grenze unter Linux, wo der Portal-Dienst der
+  Arbeitsumgebung entscheidet, ob überhaupt eine Vorgabe kommt, steht unverändert im
+  Handbuch und in den Release-Hinweisen.
+- **Drei Meldungen zu unzulässigen Dateinamen** (neue Unterseite, neue Datei aus
+  Vorlage, Umbenennen): Sie nennen jetzt den Grund statt einer Plattform — „Zeichen,
+  die nicht auf allen Systemen zulässig sind". Die Prüfung selbst bleibt unverändert
+  streng auf allen Plattformen, damit Dateien zwischen ihnen portabel bleiben; genau
+  das sagte die alte Formulierung nicht.
+- **Handbuch-Seite zu Unterseiten:** Die Begründung des Trennzeichens gilt für jedes
+  System und ist jetzt auch so geschrieben. Das Zeichen sieht aus wie ein
+  Schrägstrich, ist aber keiner, während der echte Schrägstrich überall als
+  Pfad-Trenner dient und in Dateinamen ausscheidet.
+- **Öffentliche README:** nennt beide Plattformen im Einleitungssatz, führt den
+  Bezugs-Abschnitt in der Struktur der Startseite (zwei Plattformen zu je zwei Wegen)
+  samt der libfuse2-Voraussetzung des Anwendungs-Abbilds und ergänzt den
+  Container-Weg des Linux-Baus.
+
+### i18n
+
+- Vier Übersetzungs-Schlüssel und eine Handbuch-Seite in allen fünf Sprachfassungen
+  neu gefasst; keine neuen Schlüssel, keine entfallenen.
+
 ## [1.121.0.1928] - 2026-08-27 — EM4me für Linux
 
 Epic 3E-0122: Die erste Auslieferung für Linux. Das Programm lief bisher

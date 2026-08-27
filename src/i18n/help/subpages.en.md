@@ -4,7 +4,7 @@ Pages can have subpages at any depth, for example `Process-A/Draft` or `Process-
 
 ## Naming convention
 
-The file name carries the hierarchy: the **subpage separator is `∕` (Unicode U+2215, "division slash")**. It looks like a slash but is allowed in Windows file names and practically never occurs in normal names — which is exactly what makes it unambiguous that a file is a subpage.
+The file name carries the hierarchy: the **subpage separator is `∕` (Unicode U+2215, "division slash")**. It looks like a slash but is not one: a real slash serves as the path separator on every system and is therefore ruled out in file names, whereas this character is allowed and practically never occurs in normal names — which is exactly what makes it unambiguous that a file is a subpage.
 
 ```text
 Process-A.md                        page

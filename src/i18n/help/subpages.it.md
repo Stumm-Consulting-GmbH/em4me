@@ -4,7 +4,7 @@ Le pagine possono avere sottopagine a qualsiasi profondità, per esempio `Proces
 
 ## Convenzione dei nomi
 
-Il nome del file porta la gerarchia: il **separatore delle sottopagine è `∕` (Unicode U+2215, «barra di divisione»)**. Assomiglia a una barra obliqua, ma è consentito nei nomi di file di Windows e non compare praticamente mai nei nomi normali — proprio questo rende inequivocabile che un file sia una sottopagina.
+Il nome del file porta la gerarchia: il **separatore delle sottopagine è `∕` (Unicode U+2215, «barra di divisione»)**. Assomiglia a una barra obliqua, ma non lo è: la barra obliqua vera fa da separatore di percorso su ogni sistema ed è quindi esclusa dai nomi di file, mentre questo carattere vi è consentito e non compare praticamente mai nei nomi normali — proprio questo rende inequivocabile che un file sia una sottopagina.
 
 ```text
 Processo-A.md                        pagina

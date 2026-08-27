@@ -4,7 +4,7 @@ Les pages peuvent avoir des sous-pages à n'importe quelle profondeur, par exemp
 
 ## Convention de nommage
 
-Le nom du fichier porte la hiérarchie : le **séparateur de sous-pages est `∕` (Unicode U+2215, « barre de division »)**. Il ressemble à une barre oblique mais est autorisé dans les noms de fichiers Windows et n'apparaît pratiquement jamais dans des noms ordinaires — c'est précisément ce qui rend sans ambiguïté le fait qu'un fichier est une sous-page.
+Le nom du fichier porte la hiérarchie : le **séparateur de sous-pages est `∕` (Unicode U+2215, « barre de division »)**. Il ressemble à une barre oblique sans en être une : la vraie barre oblique sert de séparateur de chemin sur tous les systèmes et est donc exclue des noms de fichiers, alors que ce caractère y est autorisé et n'apparaît pratiquement jamais dans des noms ordinaires — c'est précisément ce qui rend sans ambiguïté le fait qu'un fichier est une sous-page.
 
 ```text
 Processus-A.md                       page
