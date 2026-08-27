@@ -9,9 +9,23 @@
 //
 // Electron-frei und rein (unit-testbar); Tests injizieren die Plattform ueber
 // setPlatformForTests (Muster setDwmCallForTests in caption-color.js).
+//
+// 4T-1225 (Epic 3E-0122, Befund F3 des Linux-Nachweises): Das Modul laeuft
+// seither auch im Renderer-Bundle, und der sandboxed Renderer hat KEIN
+// `process` — der nackte Zugriff brach dort die gesamte Modul-Initialisierung
+// des Bundles (Uncaught ReferenceError beim Start, auf allen Plattformen).
+// Die Plattform kommt deshalb kontext-abhaengig: im Node-Kontext (Main,
+// Werkzeuge, Unit-Tests) aus process.platform, im Renderer aus der vom
+// Preload exponierten Auskunft `api.plattform` (4T-1202).
 'use strict';
 
-let plattform = process.platform;
+function ermitteltePlattform() {
+  if (typeof process !== 'undefined' && process && process.platform) return process.platform;
+  const api = typeof globalThis !== 'undefined' ? globalThis.api : undefined;
+  return api && api.plattform ? api.plattform : undefined;
+}
+
+let plattform = ermitteltePlattform();
 
 // Unterscheidet das Dateisystem der Plattform die Gross-/Kleinschreibung NICHT?
 function isFilesystemCaseInsensitive() {
@@ -26,9 +40,22 @@ function pathCompareKey(p) {
   return isFilesystemCaseInsensitive() ? s.toLowerCase() : s;
 }
 
-// Nur fuer Tests: Plattform injizieren bzw. mit undefined zuruecksetzen.
-function setPlatformForTests(p) {
-  plattform = p === undefined ? process.platform : p;
+// 4T-1225 (Epic 3E-0122): Pfad-Trenner der Plattform. Fuer Code ohne Zugriff
+// auf node:path (Renderer); ein hart verdrahteter Backslash liess unter Linux
+// zusammengesetzte Pfade wie `/bereich\ordner` entstehen, deren readdir still
+// scheiterte (Befund F1 des Linux-Lauffaehigkeits-Nachweises).
+function pathSeparator() {
+  return plattform === 'win32' ? '\\' : '/';
 }
 
-module.exports = { isFilesystemCaseInsensitive, pathCompareKey, setPlatformForTests };
+// Nur fuer Tests: Plattform injizieren bzw. mit undefined zuruecksetzen.
+function setPlatformForTests(p) {
+  plattform = p === undefined ? ermitteltePlattform() : p;
+}
+
+module.exports = {
+  isFilesystemCaseInsensitive,
+  pathCompareKey,
+  pathSeparator,
+  setPlatformForTests,
+};

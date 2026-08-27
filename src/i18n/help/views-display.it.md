@@ -46,6 +46,8 @@ I primi tre interruttori sono **legati al documento**: il loro valore finisce ne
 
 L'applicazione gira in un tema chiaro o scuro; il valore predefinito segue il tema del sistema operativo. Il cambio passa dall'icona del tema nella barra di stato o da Visualizza → Aspetto → Chiaro/Scuro/Sistema. Quali colori usa un tema si stabilisce liberamente tramite le combinazioni di colori, vedi [Combinazioni di colori](color-schemes.md).
 
+Su Linux il valore predefinito del sistema dipende dall'ambiente desktop: se non comunica alcuna preferenza chiaro o scuro, resta il tema chiaro. Il cambio manuale vi funziona senza limitazioni.
+
 ### Modalità focus
 
 La modalità focus nasconde la barra delle schede, la barra di stato e la barra laterale e lascia solo il documento (Visualizza → Aspetto → Modalità focus, predefinito `Ctrl+Maiusc+F`). La barra dei menu resta raggiungibile con `Alt`. `Esc` lascia la modalità, a meno che non sia aperto proprio un dialogo o un menu. Uno stato compresso della barra laterale non ne è toccato e continua a valere dopo l'uscita.

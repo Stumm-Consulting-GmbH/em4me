@@ -31,8 +31,10 @@ pane0.innerHTML = `
 // gestartete Laeufe tatsaechlich interleaven.
 window.api.areaListDir = async () => ({ ok: true, dirs: [], files: [] });
 
-const { renderAreaPanel } = await import('../../../src/renderer/modules/area-panel.js');
+const { invalidateAreaListings, renderAreaPanel } =
+  await import('../../../src/renderer/modules/area-panel.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+const { setPlatformForTests } = await import('../../../src/shared/platform.js');
 
 beforeEach(() => {
   state.areaPath = 'C:\\Bereich';
@@ -67,5 +69,36 @@ describe('renderAreaPanel Concurrency (4T-0612)', () => {
     await renderAreaPanel(0);
     await renderAreaPanel(0);
     expect(tree.querySelectorAll('.area-dir-row').length).toBe(1);
+  });
+});
+
+// 4T-1225 (Epic 3E-0122, Befund F1 des Linux-Lauffaehigkeits-Nachweises):
+// joinPath verkettete hart mit Backslash; unter Linux entstand fuer den
+// aufgeklappten Unterordner `/bereich\ordner`, dessen readdir im Main still
+// scheiterte — Baum und Dateiliste blieben leer («Keine Markdown-Dateien»).
+// Der Trenner kommt jetzt aus dem zentralen Plattform-Modul.
+describe('joinPath je Plattform (4T-1225)', () => {
+  it('fragt Unterordner unter Linux mit Schraegstrich an', async () => {
+    setPlatformForTests('linux');
+    const angefragt = [];
+    window.api.areaListDir = async (dirPath) => {
+      angefragt.push(dirPath);
+      return dirPath === '/Bereich'
+        ? { ok: true, dirs: ['Notizen'], files: [] }
+        : { ok: true, dirs: [], files: [] };
+    };
+    invalidateAreaListings();
+    state.areaPath = '/Bereich';
+    state.areaName = 'Bereich';
+    state.areaPanel.expandedByPane[0] = ['/Bereich'];
+    try {
+      await renderAreaPanel(0);
+    } finally {
+      setPlatformForTests(undefined);
+      window.api.areaListDir = async () => ({ ok: true, dirs: [], files: [] });
+      invalidateAreaListings();
+    }
+    expect(angefragt).toContain('/Bereich/Notizen');
+    expect(angefragt.some((p) => p.includes('\\'))).toBe(false);
   });
 });

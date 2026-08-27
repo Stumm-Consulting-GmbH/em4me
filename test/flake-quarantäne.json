@@ -11,6 +11,14 @@
   ],
   "eintraege": [
     {
+      "spec": "test/e2e/funktionen/bereichs-suche.spec.js",
+      "fall": "BS-05 — der Zaehler laeuft ueber alle Treffer des Bereichs, nicht je Datei",
+      "datum": "2026-08-26",
+      "fehlerbild": "Einzel-Fehlschlag im E2E-Voll-Lauf der Release-Abnahme 1.121.0 (628 von 629 grün, Laufzeit 24,3 min): Der Poll auf eine Änderung von #search-count nach dem ersten F3 lief in sein 15-Sekunden-Limit, der Fall brauchte 15,8 s. Der Nachbar-Fall desselben Blocks, der ebenfalls F3 drückt und den Datei-Wechsel prüft, war grün in 1,7 s. Isoliert 21 von 21 grün über drei Wiederholungen der ganzen Spec, der Fall selbst je rund 2 s.",
+      "vermutung": "verlorener Tastendruck nach Stabilitätsregel 13 (test/README.md): Ein einzelner keyboard.press kann ins Leere gehen, solange das Fenster den Fokus noch nicht hat oder der Renderer seinen Listener erst anhängt; wer danach nur auf die Wirkung wartet, läuft in die Zeitgrenze. Der Helfer pressUntil ist hier bewusst NICHT anwendbar, weil F3 ein Weiterschalter und kein idempotentes Kommando ist — die Regel nimmt diesen Fall ausdrücklich aus und verlangt, die Stabilität anders herzustellen. Fremdlast während des Laufs ist weder belegt noch ausgeschlossen: Sie wurde nicht gemessen, und für diesen Arbeitsbereich (SC-027, Slot B) liegt keine frühere E2E-Vergleichsmessung vor; die im Eintrag zu 1.116.0 genannten rund 38,5 min stammen von einem nicht benannten Arbeitsbereich und taugen deshalb nicht als Maßstab. Belegt ist allein, dass der Rechner unmittelbar vor dem Start frei war. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: 4T-1225 hat zwar genau die Pfad-Vergleichslogik des Renderers angefasst, doch der case-insensitive Zweig von normalizeForCompare ist unter Windows byte-gleich zum alten Code, isOutsideActiveArea und resolveLocalTarget sind es mit pathSeparator() === '\\\\' ebenso, und ein falsch ermittelter Plattform-Wert wäre deterministisch und hätte die Pfad-Fälle der ganzen Suite gerissen statt einen von 629.",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/unit/nummern-reservierung.test.js",
       "fall": "liefert acht gleichzeitigen Vergaben disjunkte Blöcke",
       "datum": "2026-08-24",

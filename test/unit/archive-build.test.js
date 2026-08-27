@@ -85,11 +85,57 @@ describe('4T-1205: Artefakt-Formate der Zielplattformen', () => {
     const ok = writeChecksumFiles(['EM4me-1.119.0.AppImage'], {
       hash: () => 'abc123',
       write: (file, content) => geschrieben.push({ file, content }),
+      read: () => null,
     });
     expect(ok).toBe(true);
     expect(geschrieben).toHaveLength(1);
     expect(geschrieben[0].file.endsWith('EM4me-1.119.0-SHA256SUMS.txt')).toBe(true);
     expect(geschrieben[0].content).toBe('abc123  EM4me-1.119.0.AppImage\n');
+  });
+});
+
+// 4T-1223 (Epic 3E-0122): deb als zweites Linux-Format, und die Pruefsummen-
+// Sammel-Datei wird fortgeschrieben statt ersetzt, weil die Artefaktsaetze
+// einer Version seit den Linux-Zielen in getrennten Bau-Laeufen entstehen.
+describe('4T-1223: deb-Format und Pruefsummen-Fortschreibung', () => {
+  it('erkennt deb als Release- und als temporaeres Artefakt', () => {
+    expect(matchArtefakt('EM4me-1.120.0.deb')?.[1]).toBe('1.120.0');
+    expect(TEMP_EXE_PATTERN.test('EM4me-T-1.119.0-202608261200.deb')).toBe(true);
+    expect(matchArtefakt('EM4me-T-1.119.0-202608261200.deb')).toBe(null);
+    expect(TEMP_EXE_PATTERN.test('EM4me-1.120.0.deb')).toBe(false);
+  });
+
+  it('schreibt Bestands-Zeilen fremder Dateien fort und erneuert die eigenen', () => {
+    const write = vi.fn();
+    const bestand =
+      `${'a'.repeat(64)}  EM4me-1.120.0-Portable.exe\n` +
+      `${'b'.repeat(64)}  EM4me-1.120.0.AppImage\n`;
+    const ok = writeChecksumFiles(['EM4me-1.120.0.AppImage', 'EM4me-1.120.0.deb'], {
+      hash: () => 'c'.repeat(64),
+      write,
+      read: () => bestand,
+    });
+    expect(ok).toBe(true);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(write.mock.calls[0][1]).toBe(
+      `${'a'.repeat(64)}  EM4me-1.120.0-Portable.exe\n` +
+        `${'c'.repeat(64)}  EM4me-1.120.0.AppImage\n` +
+        `${'c'.repeat(64)}  EM4me-1.120.0.deb\n`,
+    );
+  });
+
+  it('meldet einen unlesbaren Pruefsummen-Bestand und schreibt die eigenen Zeilen dennoch', () => {
+    const write = vi.fn();
+    const ok = writeChecksumFiles(['EM4me-1.120.0.deb'], {
+      hash: () => 'd'.repeat(64),
+      write,
+      read: () => {
+        throw new Error('Lesefehler');
+      },
+    });
+    expect(ok).toBe(false);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(write.mock.calls[0][1]).toBe(`${'d'.repeat(64)}  EM4me-1.120.0.deb\n`);
   });
 });
 
@@ -584,6 +630,7 @@ describe('4T-0658: writeChecksumFiles', () => {
     const ok = writeChecksumFiles(['EM4me-0.86.0-Setup.exe', 'EM4me-0.86.0-Portable.exe'], {
       hash: (name) => (name.includes('Setup') ? 'aaa' : 'bbb'),
       write,
+      read: () => null,
     });
     expect(ok).toBe(true);
     expect(write).toHaveBeenCalledTimes(1);
@@ -598,6 +645,7 @@ describe('4T-0658: writeChecksumFiles', () => {
     writeChecksumFiles(['EM4me-0.86.0-Portable.exe', 'SCG Markdown-0.24.0-Portable.exe'], {
       hash: () => 'ccc',
       write,
+      read: () => null,
     });
     const targets = write.mock.calls.map(([t]) => t.split(/[\\/]/).pop());
     expect(targets).toContain('EM4me-0.86.0-SHA256SUMS.txt');
@@ -606,7 +654,11 @@ describe('4T-0658: writeChecksumFiles', () => {
 
   it('schreibt keine Datei, wenn keine Prüfsumme gebildet werden konnte', () => {
     const write = vi.fn();
-    const ok = writeChecksumFiles(['EM4me-0.86.0-Portable.exe'], { hash: () => null, write });
+    const ok = writeChecksumFiles(['EM4me-0.86.0-Portable.exe'], {
+      hash: () => null,
+      write,
+      read: () => null,
+    });
     expect(ok).toBe(true); // fehlende Datei ist kein Fehler, wie bei moveFile
     expect(write).not.toHaveBeenCalled();
   });
@@ -619,6 +671,7 @@ describe('4T-0658: writeChecksumFiles', () => {
         return 'bbb';
       },
       write,
+      read: () => null,
     });
     expect(ok).toBe(false);
     expect(write).toHaveBeenCalledTimes(1);

@@ -116,7 +116,7 @@ A **workspace** is a named, permanently stored application: it comprises all of 
 
 **Area and workspace are two different things:** an *area* binds an application to a **folder** and limits its working space (see above). A *workspace* is a named, reopenable **window collection** — a stored working state. Both can be combined: a workspace whose application has an area bound carries that binding along in its stored entry.
 
-**Title bar color:** windows of an open workspace carry its color in the window title bar — a vivid variant in the light theme, a pastel palette variant in the dark theme, each with a matching title text color. The coloring follows the lifecycle: it appears on opening, changes immediately with the color in the management dialog, disappears on closing or deleting, and is dropped when the "Workspaces" extension is turned off. It requires Windows 11; without this support the standard title bar remains, and the app is unaffected.
+**Title bar color:** windows of an open workspace carry its color in the window title bar — a vivid variant in the light theme, a pastel palette variant in the dark theme, each with a matching title text color. The coloring follows the lifecycle: it appears on opening, changes immediately with the color in the management dialog, disappears on closing or deleting, and is dropped when the "Workspaces" extension is turned off. It requires Windows 11 and therefore does not apply under Linux; without this support the standard title bar remains, and the app is unaffected. The workspace itself, its color dot in the menu and the management dialog, and the window title are unchanged on every platform.
 
 ### Lifecycle
 

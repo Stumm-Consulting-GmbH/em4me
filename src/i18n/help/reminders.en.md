@@ -39,7 +39,7 @@ When a reminder is due, a dialog announces it with the description of the task a
 
 Reminders announce themselves **only while the app is running and the area is open**. There is no background service and no notification while the app is closed. If the app is not open at the notification time, nothing is lost even so: at the next start a **catch-up dialog** gathers all reminders that fell due in the meantime and shows them together, with the same actions as in the normal dialog. Outside an open area no monitoring takes place.
 
-While an area is open, the app continuously checks the markers of all area files (on a 30-second cycle over the area index). Optionally a **system notification** can be switched on that appears in addition to the dialog when the window is not in the foreground; a click on it brings the app to the front.
+While an area is open, the app continuously checks the markers of all area files (on a 30-second cycle over the area index). Optionally a **system notification** can be switched on that appears in addition to the dialog when the window is not in the foreground; a click on it brings the app to the front. It is shown by the operating system: under Linux the desktop environment handles it, and without its notification service only the dialog inside the app remains.
 
 ## Reminder list
 

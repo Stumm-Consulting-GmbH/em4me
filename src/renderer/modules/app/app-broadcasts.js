@@ -21,6 +21,8 @@ import {
 import { buildEditorCommandKeymap } from '../editor/editor-keymaps.js';
 import { scheduleLint } from '../editor/editor-lint.js';
 import { normalizeSpellcheckSetting } from '../../../shared/spellcheck.js';
+// 4T-1225 (Epic 3E-0122): eine Pfad-Normierung fuer beide Vergleichs-Seiten.
+import { normalizeForCompare } from '../area.js';
 import { handleSpellcheckContext } from '../editor/editor-context-menu.js';
 import { refreshAreaVariants } from '../sidebar-variants.js';
 import { refreshAreaPanels } from '../area-panel.js';
@@ -66,10 +68,11 @@ let setPendingExtensionsChange = () => {};
 // stehen (kein Fern-Schliessen ungespeicherter Aenderungen). Ein zweiter
 // Anlauf nach kurzer Frist faengt das Rennen mit einem noch laufenden
 // openInPane ab.
+// 4T-1225 (Epic 3E-0122, Befund F2): dieselbe Normierung wie die Bereichs-
+// Vergleiche — plattformabhängig statt hart Windows-affin. Beide Seiten des
+// Vergleichs (Main-Ziele und Tab-Pfade) laufen durch diese eine Funktion.
 function normalisierterPfad(p) {
-  return String(p || '')
-    .replace(/\//g, '\\')
-    .toLowerCase();
+  return normalizeForCompare(String(p || ''));
 }
 function schliesseZurueckgezogene(ziele) {
   for (let p = 0; p < state.panes.length; p++) {

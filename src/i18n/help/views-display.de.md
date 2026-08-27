@@ -46,6 +46,8 @@ Die ersten drei Schalter sind **dokument-gebunden**: Ihr Wert wandert in das Fro
 
 Die Anwendung läuft in einem hellen oder einem dunklen Theme; die Vorgabe folgt dem Theme des Betriebssystems. Umgestellt wird über das Theme-Symbol in der Statusleiste oder über Ansicht → Erscheinungsbild → Hell/Dunkel/System. Welche Farben das jeweilige Theme verwendet, ist über Farbschemas frei bestimmbar, siehe [Farbschemas](color-schemes.md).
 
+Unter Linux hängt die System-Vorgabe von der Arbeitsumgebung ab: Meldet sie keine Hell/Dunkel-Vorgabe, bleibt es beim hellen Theme. Die Umstellung von Hand wirkt dort unverändert.
+
 ### Fokus-Modus
 
 Der Fokus-Modus blendet Reiterleiste, Statusleiste und Sidebar aus und lässt allein das Dokument stehen (Ansicht → Erscheinungsbild → Fokus-Modus, Standard `Strg+Umschalt+F`). Die Menüleiste bleibt über `Alt` erreichbar. `Esc` verlässt den Modus, sofern nicht gerade ein Dialog oder ein Menü offen ist. Ein eingeklappter Sidebar-Zustand bleibt davon unberührt und gilt nach dem Verlassen unverändert weiter.

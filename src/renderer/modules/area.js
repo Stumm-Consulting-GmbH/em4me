@@ -15,16 +15,26 @@
 import { t } from '../i18n.js';
 
 import { state } from './app/app-state.js';
+// 4T-1225 (Epic 3E-0122): Vergleichs- und Trenner-Verhalten aus der einen
+// Plattform-Quelle (Muster 4T-1203, auf den Renderer ausgeweitet).
+import { isFilesystemCaseInsensitive, pathSeparator } from '../../shared/platform.js';
 
 // 4T-0616 (Epic 3E-0116): exportiert, weil die Bereichs-Suche Pfade aus dem
 // Hauptprozess mit denen offener Reiter vergleicht. Zwei Normalisierungen
 // nebeneinander liefen bei Trenner- oder Schreibweisen-Unterschieden
 // auseinander, und der Fehler waere ein still ausbleibender Treffer.
+// 4T-1225 (Epic 3E-0122, Befund F2 des Linux-Nachweises): Kleinschreibung und
+// Backslash-Normierung gelten nur auf case-insensitiven Dateisystemen; unter
+// Linux sind zwei nur in der Schreibweise verschiedene Pfade zwei Orte, und
+// der Backslash ist dort ein legales Namenszeichen.
 export function normalizeForCompare(p) {
-  return String(p)
-    .replace(/\//g, '\\')
-    .replace(/[\\]+$/, '')
-    .toLowerCase();
+  if (isFilesystemCaseInsensitive()) {
+    return String(p)
+      .replace(/\//g, '\\')
+      .replace(/[\\]+$/, '')
+      .toLowerCase();
+  }
+  return String(p).replace(/\/+$/, '');
 }
 
 // true, wenn ein Bereich aktiv ist UND der Pfad außerhalb liegt.
@@ -33,13 +43,18 @@ export function isOutsideActiveArea(filePath) {
   const root = normalizeForCompare(state.areaPath);
   const target = normalizeForCompare(filePath);
   if (root === '' || target === '') return false;
-  return !(target === root || target.startsWith(root + '\\'));
+  return !(target === root || target.startsWith(root + pathSeparator()));
 }
 
 // 4T-0324: Löst ein lokales Link-Ziel gegen den Pfad des Dokuments auf
 // (reiner String-Resolver: `.`/`..`-Segmente, gemischte Trenner, absolute
 // Windows-Pfade; URI-Encoding wird dekodiert). null für URLs, Anker und
 // leere Ziele.
+// 4T-1225 (Befund F2): Aufgelöst wird mit dem Trenner der Plattform statt
+// hart mit Backslash. Beide Trenner gelten weiterhin als Trenner, damit unter
+// Windows geschriebene Links (`..\ordner\datei.md`) nach einem Umzug auf
+// Linux funktionieren; der Preis — ein Backslash als Namenszeichen wird als
+// Trenner gelesen — ist die bewusste, dokumentierte Migrations-Abwägung.
 export function resolveLocalTarget(basePath, target) {
   if (!basePath || !target) return null;
   let file = String(target).split('#')[0];
@@ -52,13 +67,18 @@ export function resolveLocalTarget(basePath, target) {
   } catch {
     // Ungültiges Encoding: rohen Wert weiterverwenden.
   }
-  file = file.replace(/\//g, '\\');
+  const sep = pathSeparator();
+  file = file.replace(/[\\/]/g, sep);
   let parts;
-  if (/^[a-zA-Z]:\\/.test(file)) {
-    parts = file.split('\\');
+  if (/^[a-zA-Z]:/.test(file) && file.charAt(2) === sep) {
+    parts = file.split(sep);
+  } else if (sep === '/' && file.startsWith(sep)) {
+    // POSIX-absolutes Ziel. Bewusst nur auf Nicht-Windows: unter Windows
+    // bleibt ein fuehrender Trenner wie bisher dokument-relativ.
+    parts = file.split(sep);
   } else {
-    const baseDir = String(basePath).replace(/\//g, '\\').split('\\').slice(0, -1);
-    parts = baseDir.concat(file.split('\\'));
+    const baseDir = String(basePath).replace(/[\\/]/g, sep).split(sep).slice(0, -1);
+    parts = baseDir.concat(file.split(sep));
   }
   const stack = [];
   for (const seg of parts) {
@@ -69,7 +89,7 @@ export function resolveLocalTarget(basePath, target) {
     }
     stack.push(seg);
   }
-  return stack.join('\\');
+  return stack.join(sep);
 }
 
 // 4T-0324: markiert im gerenderten DOM alle Links, deren lokales Ziel

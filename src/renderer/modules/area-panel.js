@@ -31,6 +31,11 @@ import { isExtensionActive } from './extensions/extension-lifecycle.js';
 // 4T-0612 (Epic 3E-0115): "Als Bereichs-Lesezeichen" im Kontextmenue der
 // Datei-Zeilen des Bereichs-Panels (Dateien liegen per Definition im Bereich).
 import { addAreaBookmarkForPath } from './bookmarks/bookmarks-actions.js';
+// 4T-1225 (Epic 3E-0122, Befund F1 des Linux-Nachweises): Pfad-Trenner und
+// Vergleichs-Verhalten kommen aus dem zentralen Plattform-Modul; der frueher
+// hart verdrahtete Backslash liess unter Linux Pfade wie `/bereich\ordner`
+// entstehen, deren Listing still leer blieb.
+import { isFilesystemCaseInsensitive, pathSeparator } from '../../shared/platform.js';
 
 // Listing-Cache pro Ordner-Pfad ({ dirs, files }). Wird beim Bereichs-
 // Wechsel und bei Watcher-Ereignissen (4T-0328) verworfen.
@@ -58,7 +63,7 @@ async function ensureListing(dirPath) {
 }
 
 function joinPath(dir, name) {
-  return `${dir.replace(/[\\/]+$/, '')}\\${name}`;
+  return `${dir.replace(/[\\/]+$/, '')}${pathSeparator()}${name}`;
 }
 
 function isExpanded(paneIdx, dirPath) {
@@ -112,14 +117,17 @@ function buildDirRow(paneIdx, dirPath, name, depth, hasChildren) {
   return row;
 }
 
-// Vergleich wie area.js (Kleinschreibung, Backslashes) — lokale Kopie fuer
-// die Selektions-Hervorhebung, bewusst ohne Import-Kette.
+// Vergleich fuer die Selektions-Hervorhebung — lokale Kopie ohne Import-Kette
+// zu area.js. 4T-1225: Kleinschreibung und Backslash-Normierung gelten nur auf
+// case-insensitiven Dateisystemen (zentrale Plattform-Auskunft); unter Linux
+// sind zwei nur in der Schreibweise verschiedene Pfade zwei Orte, und der
+// Backslash ist dort ein legales Namenszeichen.
 function isSamePathRenderer(a, b) {
-  const norm = (p) =>
-    String(p || '')
-      .replace(/\//g, '\\')
-      .replace(/[\\]+$/, '')
-      .toLowerCase();
+  const norm = (p) => {
+    let s = String(p || '');
+    if (isFilesystemCaseInsensitive()) s = s.replace(/\//g, '\\').toLowerCase();
+    return s.replace(/[\\/]+$/, '');
+  };
   const na = norm(a);
   return na !== '' && na === norm(b);
 }
@@ -329,7 +337,7 @@ export async function renderAreaPanel(paneIdx) {
     els.areaTree.appendChild(treeFrag);
   }
   if (els.areaFilesTitle) {
-    els.areaFilesTitle.textContent = dir === root ? state.areaName || '' : dir.split('\\').pop();
+    els.areaFilesTitle.textContent = dir === root ? state.areaName || '' : dir.split(/[\\/]/).pop();
     els.areaFilesTitle.title = dir;
   }
   if (els.areaFiles) {

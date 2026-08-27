@@ -46,6 +46,8 @@ Les trois premiers interrupteurs sont **liés au document** : leur valeur passe 
 
 L'application tourne dans un thème clair ou sombre ; la valeur par défaut suit le thème du système d'exploitation. Le changement passe par l'icône de thème de la barre d'état ou par Affichage → Apparence → Clair/Sombre/Système. Les couleurs qu'utilise un thème se déterminent librement par les jeux de couleurs, voir [Jeux de couleurs](color-schemes.md).
 
+Sous Linux, la valeur par défaut du système dépend de l'environnement de bureau : s'il ne signale aucune préférence clair/sombre, le thème clair reste en place. Le changement manuel y fonctionne sans restriction.
+
 ### Mode focus
 
 Le mode focus masque la barre d'onglets, la barre d'état et la barre latérale et ne laisse que le document (Affichage → Apparence → Mode focus, défaut `Ctrl+Maj+F`). La barre de menus reste accessible par `Alt`. `Esc` quitte le mode, sauf si un dialogue ou un menu est justement ouvert. Un état réduit de la barre latérale n'en est pas affecté et reste valable après la sortie.

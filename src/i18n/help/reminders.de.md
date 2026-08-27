@@ -39,7 +39,7 @@ Ist eine Erinnerung fällig, meldet sie ein Dialog mit der Beschreibung der Aufg
 
 Erinnerungen melden sich **ausschließlich, solange die App läuft und der Bereich geöffnet ist**. Es gibt keinen Hintergrund-Dienst und keine Meldung bei geschlossener App. Ist die App zum Melde-Zeitpunkt nicht offen, verfällt trotzdem nichts: Beim nächsten Start sammelt ein **Nachhol-Dialog** alle in der Zwischenzeit fällig gewordenen Erinnerungen und zeigt sie gemeinsam an, mit denselben Aktionen wie im normalen Dialog. Außerhalb eines geöffneten Bereichs findet keine Überwachung statt.
 
-Bei geöffnetem Bereich prüft die App die Marker aller Bereichs-Dateien laufend (im 30-Sekunden-Takt über den Bereichs-Index). Optional lässt sich eine **System-Benachrichtigung** zuschalten, die zusätzlich zum Dialog erscheint, wenn das Fenster nicht im Vordergrund steht; ein Klick darauf holt die App nach vorn.
+Bei geöffnetem Bereich prüft die App die Marker aller Bereichs-Dateien laufend (im 30-Sekunden-Takt über den Bereichs-Index). Optional lässt sich eine **System-Benachrichtigung** zuschalten, die zusätzlich zum Dialog erscheint, wenn das Fenster nicht im Vordergrund steht; ein Klick darauf holt die App nach vorn. Angezeigt wird sie vom Betriebssystem: Unter Linux übernimmt das die Arbeitsumgebung, und ohne deren Benachrichtigungs-Dienst bleibt es beim Dialog in der App.
 
 ## Erinnerungs-Liste
 

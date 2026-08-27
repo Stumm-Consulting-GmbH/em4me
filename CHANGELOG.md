@@ -14,6 +14,84 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.121.0.1928] - 2026-08-27 — EM4me für Linux
+
+Epic 3E-0122: Die erste Auslieferung für Linux. Das Programm lief bisher
+ausschließlich unter Windows; mit dieser Ausgabe gibt es zwei zusätzliche
+Bezugs-Formen, ein eigenständig lauffähiges Anwendungs-Abbild und ein
+Debian-Paket für die reguläre Installation, beide für 64-Bit-Systeme. Beide
+tragen die Einbindung in die Arbeitsumgebung: Eintrag im Anwendungs-Menü,
+Anwendungs-Symbol und die Zuordnung der Markdown-Endungen, sodass ein
+Doppelklick im Dateimanager eine Datei in EM4me öffnet.
+
+Der Nachweis der Lauffähigkeit wurde auf Ubuntu-24.04-Basis mit XFCE-Desktop
+geführt und umfasste Start aus beiden Formen, Datei öffnen über Dialog und
+Dateimanager, Bearbeiten, Speichern, Bereichs-Wechsel und Beenden, dazu den
+Einzel-Instanz-Schutz, die Übergabe einer Datei als Aufruf-Argument und die
+Weiterverwendung eines unter Windows angelegten Nutzer-Profils samt Bereich.
+Der eigentliche Prüfstein war das Dateisystem: Unter Linux sind zwei nur in
+der Schreibweise verschiedene Pfade zwei verschiedene Orte, und die
+Bereichs-Grenzen entscheiden entsprechend. Alles jenseits der geprüften
+Konstellation ist unverbindliche Verträglichkeit; die benannten Grenzen stehen
+in den Release-Hinweisen.
+
+**Für die Windows-Fassung ändert sich am Verhalten nichts.** Die Artefakte,
+ihre Namen und der Funktionsumfang bleiben unverändert; die Anpassungen im
+Programm betreffen ausschließlich Entscheidungen, die unter Windows schon
+vorher so ausfielen.
+
+Umsetzungs-Vorgänge des Epics: 4T-1222, 4T-1223, 4T-1224, 4T-1225, 4T-1226;
+Release-Vorgang 4T-1227.
+
+### Neu
+
+- **Linux-Fassung, zwei Bezugs-Formen** (4T-1223): Ein eigenständig
+  lauffähiges Anwendungs-Abbild (AppImage), das ohne Installation startet und
+  dem portablen Modell der Windows-Fassung entspricht, und ein Debian-Paket
+  (deb) für die reguläre Installation. Beide für 64-Bit-Systeme, beide mit
+  Prüfsumme als Integritäts-Nachweis, beide aus derselben Versions- und
+  Bau-Nummer wie die Windows-Artefakte.
+- **Einbindung in die Arbeitsumgebung** (4T-1224): Eintrag im Anwendungs-Menü,
+  Anwendungs-Symbol und die Zuordnung der vier unterstützten Markdown-Endungen
+  auf den Typ `text/markdown`, identisch zur Windows-Datei-Zuordnung. Das Paket
+  richtet sie über die Paket-Mechanik ein, das Abbild trägt dieselben Angaben
+  eingebettet.
+- **Bezugs-Bereich der Produkt-Webseite nach Plattformen gegliedert**
+  (4T-1226): zwei Gruppen zu je zwei Wegen, dazu die Systemvoraussetzungen
+  beider Plattformen und die Referenz-Angabe der geprüften Linux-Konstellation.
+
+### Geändert
+
+- **Pfad-Entscheidungen der Oberfläche folgen der Plattform** (4T-1225): Die
+  Zusammensetzung und der Vergleich von Pfaden in der Anzeige fragen jetzt das
+  gemeinsame Plattform-Modul, statt Windows-Annahmen fest einzubauen. Unter
+  Windows fallen alle Entscheidungen wie zuvor aus: Groß- und Kleinschreibung
+  bleibt dort unerheblich, und beide Trenner bleiben Trenner — auch unter
+  Linux, damit unter Windows geschriebene Verweise nach einem Umzug weiter
+  funktionieren.
+- **Bau- und Archiv-Strecke tragen zwei Artefaktsätze** (4T-1222, 4T-1223):
+  Der Linux-Bau läuft über eine Container-Umgebung, und die Prüfsummen-Datei
+  einer Version wird fortgeschrieben statt ersetzt, weil die beiden
+  Artefaktsätze in getrennten Läufen entstehen.
+
+### Behoben
+
+- Keine Fehlerbehebung an der ausgelieferten Fassung. Die drei Befunde des
+  Lauffähigkeits-Nachweises (4T-1225) betrafen ausschließlich Code, der in
+  diesem Epic entstanden ist, und haben nie eine ausgelieferte Version
+  erreicht.
+
+### Doku und i18n
+
+- **Plattform-Grenzen im Handbuch benannt** (4T-1226), in allen fünf
+  Sprachfassungen und jeweils an der Funktion, die sie betreffen: die
+  Hell/Dunkel-Erkennung des Systems, die System-Benachrichtigung der
+  Erinnerungen und die Färbung der Fenster-Titelleiste.
+- **Acht neue Inhalts-Schlüssel je Sprachfassung** für den Bezugs-Bereich der
+  Produkt-Webseite (4T-1226); keine neuen Schlüssel im Funktions-Katalog der
+  Anwendung, weil das Epic keine neue Funktion, sondern eine neue Plattform
+  bringt.
+
 ## [1.120.0.1869] - 2026-08-26 — Fenster-Schluss und Ausfall-Erkennung
 
 Epic 3E-0225: Fehlerbehebung an zwei Mängeln der Absturz-Sicherheit, die jeden

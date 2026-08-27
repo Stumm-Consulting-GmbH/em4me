@@ -1,7 +1,8 @@
 {
   "name": "em4me",
-  "version": "1.120.0",
+  "version": "1.121.0",
   "description": "Lokaler Markdown-Editor für Windows 11 mit Bereichen, Verweisen und Volltextsuche.",
+  "homepage": "https://em4me.ch",
   "main": "src/main/main.js",
   "scripts": {
     "start": "npm run build:renderer && electron .",
@@ -11,6 +12,8 @@
     "build": "npm run build:renderer && node scripts/build-app.js --win",
     "build:installer": "npm run build:renderer && node scripts/build-app.js --win nsis",
     "build:portable": "npm run build:renderer && node scripts/build-app.js --win portable",
+    "build:linux": "node scripts/build-linux-docker.js",
+    "postbuild:linux": "node scripts/archive-build.js",
     "postbuild": "node scripts/archive-build.js",
     "postbuild:installer": "node scripts/archive-build.js",
     "postbuild:portable": "node scripts/archive-build.js",
@@ -151,6 +154,55 @@
     "portable": {
       "artifactName": "${productName}-${version}-Portable.${ext}",
       "unpackDirName": true
+    },
+    "linux": {
+      "icon": "src/assets/icon-512.png",
+      "category": "Office",
+      "description": "Lokaler Markdown-Editor mit Bereichen, Verweisen und Volltextsuche.",
+      "artifactName": "${productName}-${version}.${ext}",
+      "desktop": {
+        "GenericName": "Markdown-Editor"
+      },
+      "fileAssociations": [
+        {
+          "ext": "md",
+          "name": "Markdown",
+          "mimeType": "text/markdown",
+          "description": "Markdown-Datei"
+        },
+        {
+          "ext": "markdown",
+          "name": "Markdown",
+          "mimeType": "text/markdown",
+          "description": "Markdown-Datei"
+        },
+        {
+          "ext": "mdown",
+          "name": "Markdown",
+          "mimeType": "text/markdown",
+          "description": "Markdown-Datei"
+        },
+        {
+          "ext": "mkd",
+          "name": "Markdown",
+          "mimeType": "text/markdown",
+          "description": "Markdown-Datei"
+        }
+      ],
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     }
   }
 }

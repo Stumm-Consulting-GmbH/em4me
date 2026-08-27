@@ -2,16 +2,26 @@
 // 4T-0323/4T-0324 (Epic 3E-0058): Unit-Tests der Renderer-Bereichs-Logik
 // (src/renderer/modules/area.js) — Innerhalb-Vorprüfung, lokaler
 // Ziel-Resolver und der Außen-Link-Marker im gerenderten DOM.
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import './api-stub.js';
 
 const area = await import('../../../src/renderer/modules/area.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+const { setPlatformForTests } = await import('../../../src/shared/platform.js');
 
 const DOC = 'C:\\Daten\\Notizen\\Sub\\doku.md';
 
+// 4T-1225: Die Pfad-Funktionen sind plattformabhängig geworden; die
+// Bestands-Erwartungen unten beschreiben das Windows-Verhalten und werden
+// deshalb ausdrücklich auf win32 gepinnt, damit die Suite auch auf einer
+// Linux-Maschine dieselben Fälle prüft.
+beforeEach(() => {
+  setPlatformForTests('win32');
+});
+
 afterEach(() => {
   state.areaPath = null;
+  setPlatformForTests(undefined);
 });
 
 describe('isOutsideActiveArea (4T-0323)', () => {
@@ -87,5 +97,38 @@ describe('markOutsideAreaLinks (4T-0324)', () => {
     container.innerHTML = '<a href="../../raus.md">außen</a>';
     area.markOutsideAreaLinks(container, DOC);
     expect(container.querySelector('a').classList.contains('outside-area-link')).toBe(false);
+  });
+});
+
+// 4T-1225 (Epic 3E-0122, Befund F2 des Linux-Lauffaehigkeits-Nachweises):
+// dieselben Funktionen unter Linux — Trenner ist der Schraegstrich, die
+// Schreibweise unterscheidet, und unter Windows geschriebene Links
+// funktionieren nach dem Umzug weiter (Migrations-Abwaegung im Modul).
+describe('Pfad-Funktionen unter Linux (4T-1225)', () => {
+  const DOC_LX = '/daten/notizen/sub/doku.md';
+
+  beforeEach(() => {
+    setPlatformForTests('linux');
+  });
+
+  it('normalizeForCompare laesst Schreibweise und Backslashes unangetastet', () => {
+    expect(area.normalizeForCompare('/Daten/Notizen/')).toBe('/Daten/Notizen');
+    expect(area.normalizeForCompare('/a/Mit\\Backslash')).toBe('/a/Mit\\Backslash');
+  });
+
+  it('isOutsideActiveArea entscheidet case-sensitiv', () => {
+    state.areaPath = '/daten/notizen';
+    expect(area.isOutsideActiveArea('/daten/notizen/sub/a.md')).toBe(false);
+    // Nur in der Schreibweise verschieden: unter Linux ein anderer Ort.
+    expect(area.isOutsideActiveArea('/daten/Notizen/a.md')).toBe(true);
+    expect(area.isOutsideActiveArea('/daten/notizen2/a.md')).toBe(true);
+  });
+
+  it('resolveLocalTarget loest mit Schraegstrich auf, auch fuer Windows-Links', () => {
+    expect(area.resolveLocalTarget(DOC_LX, 'nachbar.md')).toBe('/daten/notizen/sub/nachbar.md');
+    expect(area.resolveLocalTarget(DOC_LX, '../oben.md')).toBe('/daten/notizen/oben.md');
+    // Unter Windows geschriebener Link nach dem Umzug (Migrations-Fall).
+    expect(area.resolveLocalTarget(DOC_LX, '..\\oben.md')).toBe('/daten/notizen/oben.md');
+    expect(area.resolveLocalTarget(DOC_LX, '/etc/x.md')).toBe('/etc/x.md');
   });
 });

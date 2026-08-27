@@ -39,7 +39,7 @@ Cuando un recordatorio vence, un diálogo lo avisa con la descripción de la tar
 
 Los recordatorios se avisan **únicamente mientras la aplicación está en ejecución y el área está abierta**. No hay servicio en segundo plano ni aviso con la aplicación cerrada. Si la aplicación no está abierta en el momento de aviso, aun así no se pierde nada: en el siguiente inicio, un **diálogo de recuperación** reúne todos los recordatorios que vencieron entretanto y los muestra juntos, con las mismas acciones que en el diálogo normal. Fuera de un área abierta no se produce ninguna vigilancia.
 
-Con un área abierta, la aplicación comprueba de forma continua los marcadores de todos los archivos del área (en un ciclo de 30 segundos sobre el índice del área). De forma opcional puede activarse una **notificación del sistema** que aparece además del diálogo cuando la ventana no está en primer plano; un clic en ella trae la aplicación al frente.
+Con un área abierta, la aplicación comprueba de forma continua los marcadores de todos los archivos del área (en un ciclo de 30 segundos sobre el índice del área). De forma opcional puede activarse una **notificación del sistema** que aparece además del diálogo cuando la ventana no está en primer plano; un clic en ella trae la aplicación al frente. La muestra el sistema operativo: en Linux se encarga el entorno de escritorio, y sin su servicio de notificaciones solo queda el diálogo dentro de la aplicación.
 
 ## Lista de recordatorios
 

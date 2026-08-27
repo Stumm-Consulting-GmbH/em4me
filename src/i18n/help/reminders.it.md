@@ -39,7 +39,7 @@ Quando un promemoria è dovuto, un dialogo lo segnala con la descrizione dell'at
 
 I promemoria si segnalano **solo finché l'applicazione è in esecuzione e l'area è aperta**. Non esiste un servizio in background né un avviso con l'applicazione chiusa. Se l'applicazione non è aperta al momento di avviso, non va comunque perso nulla: al successivo avvio un **dialogo di recupero** raccoglie tutti i promemoria diventati dovuti nel frattempo e li mostra insieme, con le stesse azioni del dialogo normale. Fuori da un'area aperta non avviene alcuna sorveglianza.
 
-Con un'area aperta, l'applicazione controlla di continuo i marcatori di tutti i file dell'area (con ciclo di 30 secondi sull'indice dell'area). In opzione si può attivare una **notifica di sistema** che compare in aggiunta al dialogo quando la finestra non è in primo piano; un clic su di essa porta l'applicazione in primo piano.
+Con un'area aperta, l'applicazione controlla di continuo i marcatori di tutti i file dell'area (con ciclo di 30 secondi sull'indice dell'area). In opzione si può attivare una **notifica di sistema** che compare in aggiunta al dialogo quando la finestra non è in primo piano; un clic su di essa porta l'applicazione in primo piano. A mostrarla è il sistema operativo: su Linux se ne occupa l'ambiente desktop, e senza il suo servizio di notifiche resta solo il dialogo dentro l'applicazione.
 
 ## Elenco promemoria
 

@@ -46,6 +46,8 @@ Los tres primeros interruptores están **ligados al documento**: su valor pasa a
 
 La aplicación funciona en un tema claro u oscuro; el valor predeterminado sigue el tema del sistema operativo. El cambio se hace con el icono de tema de la barra de estado o con Ver → Apariencia → Claro/Oscuro/Sistema. Qué colores usa cada tema se determina libremente mediante los esquemas de color, véase [Esquemas de color](color-schemes.md).
 
+En Linux el valor predeterminado del sistema depende del entorno de escritorio: si no comunica ninguna preferencia de claro u oscuro, se mantiene el tema claro. El cambio manual funciona allí sin restricciones.
+
 ### Modo concentración
 
 El modo concentración oculta la barra de pestañas, la barra de estado y la barra lateral y deja solo el documento (Ver → Apariencia → Modo concentración, predeterminado `Ctrl+Mayús+F`). La barra de menús sigue accesible con `Alt`. `Esc` abandona el modo, salvo que haya justo un diálogo o un menú abierto. Un estado contraído de la barra lateral no se ve afectado y sigue valiendo tras la salida.

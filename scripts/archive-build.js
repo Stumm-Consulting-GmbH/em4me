@@ -24,47 +24,18 @@ const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const RELEASES = path.join(ROOT, 'releases');
 
-// SemVer-Versions-Pattern: Major.Minor.Patch.
-const VERSION_RE = /\d+\.\d+\.\d+/;
-const PRODUKT_RE = 'EM4me|Perspective Markdown\\+\\+|SCG Markdown|Markdown Viewer';
-const EXE_PATTERN = new RegExp(`^(?:${PRODUKT_RE})-(${VERSION_RE.source})-(Setup|Portable)\\.exe$`);
-// 4T-1205 (Epic 3E-0121): weitere Artefakt-Formate, vorbereitet fuer die
-// Plattform-Epics — Linux (AppImage) und macOS (DMG) ohne Varianten-Zusatz.
-// Das endgueltige Namensschema entscheidet das jeweilige Plattform-Epic; hier
-// steht nur, was Archiv, Pruefsummen und Waisen-Logik tragen muessen. Das
-// Windows-Muster oben bleibt unveraendert (eigene Varianten Setup|Portable).
-const WEITERE_ARTEFAKT_RE = new RegExp(
-  `^(?:${PRODUKT_RE})-(${VERSION_RE.source})\\.(?:AppImage|dmg)$`,
-);
-// Ein Release-Artefakt gleich welcher Plattform; Fanggruppe 1 ist die Version.
-function matchArtefakt(name) {
-  return name.match(EXE_PATTERN) || name.match(WEITERE_ARTEFAKT_RE);
-}
-const NOTES_PATTERN = new RegExp(`^release-notes-(${VERSION_RE.source})\\.md$`);
-// 4T-0921: Dateiname eines temporaeren Baus zwischen zwei Releases
-// (`EM4me-T-0.105.0-202608071130-Portable.exe`). Er wird bewusst NICHT
-// archiviert: `releases/` ist das Versions-Archiv der Releases, und wer dort
-// eine Datei findet, soll ein Release vor sich haben. Weil der Bau damit an
-// einem anderen Ort landet als sonst, nennt dieser Schritt den Ordner
-// ausdruecklich (Anordnung des Product Owners vom 2026-08-07).
-// Fanggruppe 1 ist der zwoelfstellige Zeitstempel; die Meldung unten nennt
-// darueber den frischen Stand.
-// 4T-1205: dieselbe Format-Erweiterung wie beim Release-Artefakt — die
-// Windows-Varianten tragen ihren Zusatz, weitere Formate laufen ohne ihn.
-const TEMP_EXE_PATTERN = new RegExp(
-  `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})(?:-(?:Setup|Portable))?\\.(?:exe|AppImage|dmg)$`,
-);
-// Dasselbe samt Blockmap-Beigabe der Setup-Datei: die Aufraeum-Menge umfasst
-// alles, was ein temporaerer Bau hinterlaesst, die Melde-Menge nur die
-// Programmdateien.
-const TEMP_ARTEFAKT_PATTERN = new RegExp(
-  `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})(?:-(?:Setup|Portable))?\\.(?:exe|AppImage|dmg)(?:\\.blockmap)?$`,
-);
-
-// Zeitstempel aus dem Dateinamen eines temporaeren Artefakts; '' bei Nicht-Treffer.
-function tempStempel(name) {
-  return (String(name).match(TEMP_ARTEFAKT_PATTERN) || [])[1] || '';
-}
+// 4T-1223: Die Artefakt-Namensmuster sind in scripts/artefakt-muster.js
+// herausgeschnitten (Datei-Groessen-Budget); die Re-Exporte unten bleiben, weil
+// die Muster fachlich zur Archiv-Strecke gehoeren und dort erwartet werden.
+const {
+  VERSION_RE,
+  EXE_PATTERN,
+  matchArtefakt,
+  NOTES_PATTERN,
+  TEMP_EXE_PATTERN,
+  TEMP_ARTEFAKT_PATTERN,
+  tempStempel,
+} = require('./artefakt-muster');
 
 // 4T-0683: Version aus package.json, fuer den Notes-Filter. Ohne lesbare
 // package.json gibt es keinen Build und damit auch keine Notes-Kopie.
@@ -155,9 +126,17 @@ function sha256OfArchived(name) {
 // Release beide Varianten trägt und der Inhalt am Stück in den Herkunfts-
 // Nachweis am Quellcode-Host übernommen wird. Zeilenformat wie sha256sum:
 // Hash, zwei Leerzeichen, Dateiname.
+// 4T-1223: Die Artefaktsätze einer Version entstehen seit den Linux-Zielen in
+// getrennten Bau-Läufen (Windows-Bau, Container-Bau). Eine vorhandene
+// Sammel-Datei wird deshalb fortgeschrieben statt ersetzt: Zeilen fremder
+// Dateinamen bleiben stehen, Zeilen der eben archivierten werden erneuert.
+// Unverändert gilt, dass nur eine tatsächlich archivierte Datei eine Zeile
+// bekommt; die Bestands-Zeilen stammen aus deren früherer Archivierung.
 function writeChecksumFiles(names, deps = {}) {
   const hash = deps.hash || sha256OfArchived;
   const write = deps.write || ((file, content) => fs.writeFileSync(file, content, 'utf8'));
+  const read =
+    deps.read || ((file) => (fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null));
   const byVersion = new Map();
   for (const name of names) {
     const version = matchArtefakt(name)[1];
@@ -166,18 +145,6 @@ function writeChecksumFiles(names, deps = {}) {
   }
   let ok = true;
   for (const [version, files] of byVersion) {
-    const lines = [];
-    // Sortiert, damit die Datei bei gleichem Bau-Ergebnis gleich aussieht.
-    for (const name of [...files].sort()) {
-      try {
-        const digest = hash(name);
-        if (digest) lines.push(`${digest}  ${name}`);
-      } catch (err) {
-        console.error(`archive-build: Pruefsumme fuer ${name} fehlgeschlagen: ${err.message}`);
-        ok = false;
-      }
-    }
-    if (lines.length === 0) continue;
     // Produktnamen-Präfix aus dem Artefakt-Namen übernehmen, damit die Datei
     // neben ihren Artefakten steht; das Muster erlaubt auch die drei Altnamen.
     // 4T-1205: Schnitt an `-<version>` statt `-<version>-`, weil Formate ohne
@@ -185,6 +152,33 @@ function writeChecksumFiles(names, deps = {}) {
     // Windows-Namen ist die Schnittstelle identisch.
     const prefix = files[0].slice(0, files[0].indexOf(`-${version}`));
     const target = path.join(RELEASES, `${prefix}-${version}-SHA256SUMS.txt`);
+    const zeilen = new Map();
+    try {
+      const bestand = read(target);
+      if (bestand) {
+        for (const zeile of bestand.split('\n')) {
+          const treffer = zeile.match(/^([0-9a-f]{64}) {2}(.+)$/);
+          if (treffer) zeilen.set(treffer[2], treffer[1]);
+        }
+      }
+    } catch (err) {
+      console.error(
+        `archive-build: Pruefsummen-Bestand fuer ${version} nicht lesbar: ${err.message}`,
+      );
+      ok = false;
+    }
+    for (const name of [...files].sort()) {
+      try {
+        const digest = hash(name);
+        if (digest) zeilen.set(name, digest);
+      } catch (err) {
+        console.error(`archive-build: Pruefsumme fuer ${name} fehlgeschlagen: ${err.message}`);
+        ok = false;
+      }
+    }
+    if (zeilen.size === 0) continue;
+    // Sortiert, damit die Datei bei gleichem Bau-Ergebnis gleich aussieht.
+    const lines = [...zeilen.keys()].sort().map((name) => `${zeilen.get(name)}  ${name}`);
     try {
       write(target, `${lines.join('\n')}\n`);
       console.log(`archive-build: ${path.basename(target)} -> releases/`);

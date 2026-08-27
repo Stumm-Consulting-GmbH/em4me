@@ -64,6 +64,21 @@ an Subagenten die Sichtbarkeit ausdrücklich vorgeben. Bei einer Meldung
 „wird nicht angezeigt" zuerst automatisiert klären, ob das Produkt oder
 das Material die Ursache ist.
 
+## Linux-Prüfumgebung im Container
+
+Die Prüfung der Linux-Artefakte braucht eine echte Desktop-Sitzung; sie entsteht als
+Docker-Container-Paar und ist Wegwerf-Material. **Aufbau, Zugang, Prüf-Material und
+Abriss stehen in den Konzept-Dokumenten des Projekts, nicht hier** — die Umgebung ist
+Infrastruktur der Plattform-Auslieferung und kein Prüf-Detail dieser Suite.
+
+Was sie für die Prüfung bedeutet: Sie deckt Starter-Eintrag, Datei-Zuordnung, Dialoge und
+Fensterverhalten ab. Zwei Dinge sind in ihr mangels dbus und Desktop-Portal **nicht
+entscheidbar** und gehören als benannte Grenzen in die Release-Hinweise statt als Befund:
+ob die Anwendung die Hell/Dunkel-Vorgabe des Systems übernimmt, und ob eine Erinnerung
+zusätzlich als System-Benachrichtigung erscheint. Ebenso wenig deckt sie das Verhalten
+anderer Arbeitsumgebungen ab; ein Nachweis gilt für die Konstellation, in der er geführt
+wurde.
+
 ## Namenskonventionen
 
 - `*.test.js` — Vitest (Unit-/Snapshot-Tests) unter `test/unit/`.
@@ -482,7 +497,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
 
 ## Rote Läufe einordnen
 
-**Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). Die Quarantäne-Liste wird je Release gesichtet: wiederholt Auffälliges wird zum Testfehler-Vorgang befördert, lange Unauffälliges gestrichen.
+**Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). Aus der Quarantäne-Liste wird wiederholt Auffälliges zum Testfehler-Vorgang befördert und lange Unauffälliges gestrichen; **angesehen wird sie als Schritt 6 der Sammeltask-Checkliste** (Release-Strecke, gemeinsam mit dem Fehlerklassen-Register), nicht nach einer Regel an dieser Stelle.
 
 - **Den Beleg sichern, bevor wiederholt wird** (4T-0934, Vorfall vom
   2026-08-08). Die Ausgabe eines Gate-Laufs wird **ungefiltert** gelesen; wo
@@ -654,6 +669,18 @@ Commit eines fertigen Tasks. Der PM-Linter misst dagegen den
 **Git-Index** (`PM_LINT_SOURCE=index`), also den Commit-Stand; jeder
 einzelne Commit muss deshalb für sich regelkonform sein.
 
+**Zwei nicht blockierende Hinweise laufen davor** (PO-Staffelung vom
+2026-08-20, erweitert am 2026-08-26): die Rückstands-Warnung
+(`scripts/frische.js --warnung-pm`) und seit 4T-1194 der
+Datei-Größen-Hinweis (`scripts/lint-datei-groessen.js --warnung`). Beide
+melden auf stderr und enden immer mit 0; der Commit läuft weiter.
+Der Größen-Hinweis misst wie das Gate den **Arbeitsbaum** — genau deshalb
+darf er nicht sperren, denn er kann über Zeilen sprechen, die gar nicht in
+den Commit wandern. Verbindlich bleibt das Gate der Merge-Queue, das den
+Wächter seit demselben Vorgang auch im Prüf-Ausschnitt der budgetierten
+Änderungsklassen fährt. Kosten des Hinweises: rund 165 ms gegenüber knapp
+16 s für den ganzen Hook.
+
 **Zentral, pro Integration.** Das Testsuite-Gate der Merge-Queue läuft am
 Integrationsstand, zusammen mit Format-Check und Lint; erst bei Grün
 erreicht ein Branch `main`. Sein Umfang folgt seit dem 2026-08-14 der
@@ -711,11 +738,11 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 | **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`, dazu `doku-pfade`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
-| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
-| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`; Format und Lint | Smoke plus EXE-Smoke-Test |
-| **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste) und `doku-pfade`; Format und Lint | keine |
+| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
+| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`, `datei-groessen`; Format und Lint | Smoke plus EXE-Smoke-Test |
+| **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste), `doku-pfade` und `datei-groessen`; Format und Lint | keine |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
-| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst; Format und Lint | keine über die geänderte Spec hinaus |
+| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`; Format und Lint | keine über die geänderte Spec hinaus |
 
 **Warum die Auslassungen tragen.** Für Ä1 folgt es aus den
 Ignore-Dateien: `.prettierignore` schließt `*.md` und

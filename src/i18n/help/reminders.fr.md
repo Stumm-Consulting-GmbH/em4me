@@ -39,7 +39,7 @@ Lorsqu'un rappel est dû, un dialogue le signale avec la description de la tâch
 
 Les rappels ne se signalent **que tant que l'application est ouverte et la zone active**. Il n'y a pas de service en arrière-plan ni de notification lorsque l'application est fermée. Si l'application n'est pas ouverte au moment de notification, rien n'est perdu pour autant : au démarrage suivant, un **dialogue de rattrapage** rassemble tous les rappels devenus dus entre-temps et les affiche ensemble, avec les mêmes actions que dans le dialogue normal. En dehors d'une zone ouverte, aucune surveillance n'a lieu.
 
-Lorsqu'une zone est ouverte, l'application vérifie en continu les marqueurs de tous les fichiers de la zone (par cycle de 30 secondes sur l'index de zone). Une **notification système** peut être activée en option ; elle apparaît en plus du dialogue lorsque la fenêtre n'est pas au premier plan, et un clic dessus ramène l'application au premier plan.
+Lorsqu'une zone est ouverte, l'application vérifie en continu les marqueurs de tous les fichiers de la zone (par cycle de 30 secondes sur l'index de zone). Une **notification système** peut être activée en option ; elle apparaît en plus du dialogue lorsque la fenêtre n'est pas au premier plan, et un clic dessus ramène l'application au premier plan. C'est le système d'exploitation qui l'affiche : sous Linux, l'environnement de bureau s'en charge, et sans son service de notification il ne reste que le dialogue dans l'application.
 
 ## Liste des rappels
 

@@ -46,6 +46,8 @@ The first three switches are **document-bound**: their value goes into the front
 
 The application runs in a light or a dark theme; the default follows the theme of the operating system. It is switched via the theme icon in the status bar or via View → Appearance → Light/Dark/System. Which colors a theme uses is freely determined by color schemes, see [Color schemes](color-schemes.md).
 
+Under Linux the system default depends on the desktop environment: if it reports no light/dark preference, the light theme remains. Switching by hand works there unchanged.
+
 ### Focus mode
 
 Focus mode hides the tab bar, the status bar and the sidebar and leaves only the document (View → Appearance → Focus Mode, default `Ctrl+Shift+F`). The menu bar stays reachable via `Alt`. `Esc` leaves the mode unless a dialog or a menu is currently open. A collapsed sidebar state is untouched by this and continues to apply after leaving.

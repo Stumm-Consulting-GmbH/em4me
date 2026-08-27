@@ -15,8 +15,9 @@
 // (PO-Entscheidung vom 2026-08-25): Sie ist die Commit-Anzahl des
 // Release-Commits und damit plattformunabhängig; die vierstellige FileVersion
 // ist lediglich ihre Windows-Ausprägung. Die artifactName-Zusätze des
-// temporären Baus unten betreffen die Windows-Targets; Kennzeichnungen
-// weiterer Formate ergänzen die Plattform-Epics an derselben Stelle.
+// temporären Baus unten kennzeichnen die Windows-Targets und seit 4T-1223
+// (Epic 3E-0122) die Linux-Formate; macOS ergänzt seine Kennzeichnung an
+// derselben Stelle.
 'use strict';
 
 const path = require('node:path');
@@ -67,9 +68,12 @@ function main() {
     // zweites, unabhaengiges Erkennungsmerkmal eines temporaeren Baus.
     delete env.BUILD_NUMBER;
     const kern = angaben.kennzeichnung;
-    zusatz.push(`"-c.extraMetadata.version=${angaben.version}"`);
-    zusatz.push(`"-c.portable.artifactName=\${productName}-${kern}-Portable.\${ext}"`);
-    zusatz.push(`"-c.nsis.artifactName=\${productName}-${kern}-Setup.\${ext}"`);
+    zusatz.push(`-c.extraMetadata.version=${angaben.version}`);
+    zusatz.push(`-c.portable.artifactName=\${productName}-${kern}-Portable.\${ext}`);
+    zusatz.push(`-c.nsis.artifactName=\${productName}-${kern}-Setup.\${ext}`);
+    // 4T-1223 (Epic 3E-0122): dieselbe Kennzeichnung fuer die Linux-Formate
+    // (AppImage und deb teilen sich den variantenfreien linux.artifactName).
+    zusatz.push(`-c.linux.artifactName=\${productName}-${kern}.\${ext}`);
     console.log(
       `build-app: temporaerer Bau ${kern} — Basis ${angaben.basis} ist bereits ausgeliefert, ` +
         `die Nummer wird nicht erneut vergeben.`,
@@ -79,7 +83,13 @@ function main() {
     if (value) env.BUILD_NUMBER = value;
   }
 
-  const args = [...process.argv.slice(2), ...zusatz].join(' ');
+  // 4T-1223: Die Zusatz-Argumente tragen electron-builder-Platzhalter wie
+  // `${productName}`, die die Shell NICHT expandieren darf. Windows-cmd laesst
+  // sie in doppelten Quotes literal stehen, eine POSIX-Shell (Container-Bau)
+  // expandiert sie dort zu Leerstrings — deshalb je Plattform das Quote-Zeichen,
+  // das die jeweilige Shell literal haelt.
+  const quote = process.platform === 'win32' ? '"' : "'";
+  const args = [...process.argv.slice(2), ...zusatz.map((z) => `${quote}${z}${quote}`)].join(' ');
   execSync(`electron-builder ${args}`, { cwd: ROOT, stdio: 'inherit', env });
 }
 
