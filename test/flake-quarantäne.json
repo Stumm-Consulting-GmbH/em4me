@@ -11,6 +11,14 @@
   ],
   "eintraege": [
     {
+      "spec": "test/e2e/funktionen/vorlagen.spec.js",
+      "fall": "VL-09 — Ordner setzen, Regel anlegen; Auswahl-Popup und Regel-Trigger sehen beides",
+      "datum": "2026-08-28",
+      "fehlerbild": "Einzel-Fehlschlag im Windows-E2E-Voll-Lauf der Parallel-Messung zu 4T-1251 (628 von 629 grün, Laufzeit 27,5 min): Der Klick auf den Navigations-Eintrag «Vorlagen» des Einstellungs-Dialogs lief in sein 30-Sekunden-Limit. Der Eintrag war im DOM aufgelöst, blieb aber über 61 Wiederholungen «not visible». Isoliert 3 von 3 grün, je rund 2,4 s.",
+      "vermutung": "Sichtbarkeit des Navigations-Eintrags noch nicht hergestellt, während der Klick bereits wartet — die Fenster- oder Dialog-Animation war zum Klick-Zeitpunkt nicht abgeschlossen. **Zur Fremdlast: sie lag nachweislich an und war der Zweck des Laufs.** Auf dem Rechner lief zeitgleich ein Linux-E2E-Voll-Lauf im Container (Messung der Parallel-Wirkung, PO-Auftrag vom 2026-08-28). Ob sie den Fall verursacht hat, ist damit dennoch NICHT belegt: Es liegt genau eine Messung unter Last vor, und der Fall ist unter Last erstmals aufgetreten — beides zusammen ergibt einen Verdacht und keinen Nachweis. Gegen die Last als Ursache spricht, dass der parallele Linux-Lauf exakt dieselben drei Fälle riss wie sein lastfreier Vergleichslauf, also keinen einzigen zusätzlichen; und dass die Windows-Laufzeit mit 27,5 min gegenüber den dokumentierten rund 28 min solo nicht gestiegen ist. Für die Last spricht allein die zeitliche Koinzidenz.",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/e2e/funktionen/bereichs-suche.spec.js",
       "fall": "BS-05 — der Zaehler laeuft ueber alle Treffer des Bereichs, nicht je Datei",
       "datum": "2026-08-26",

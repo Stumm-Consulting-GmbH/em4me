@@ -18,9 +18,29 @@ import {
   verweisPfad,
 } from '../../src/main/documents/attachment-path.js';
 
-const WURZEL = 'C:\\Daten\\Notizen';
-const DOK = 'C:\\Daten\\Notizen\\Projekte\\Protokoll.md';
-const DOK_ORDNER = 'C:\\Daten\\Notizen\\Projekte';
+// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
+// die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
+// sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
+// Plattformen als RELATIVEN Pfad liest und das Arbeitsverzeichnis davorsetzt.
+//
+// Der Laufwerksbuchstabe wird zum ERSTEN Pfad-Segment und nicht etwa
+// weggelassen: Sonst faenden 'C:\Daten' und 'D:\Daten' auf der Zielplattform
+// zusammen, und gerade die Faelle, die verschiedene Laufwerke auseinander
+// halten sollen, schluegen ins Gegenteil um (belegt am 2026-08-28).
+// Klein geschrieben, damit zwei Schreibweisen desselben Laufwerks dasselbe
+// Segment ergeben und die Schreibweisen-Faelle weiter greifen.
+//
+// Unter Windows ist der Umrechner die Identitaet, die Haupt-Plattform prueft
+// also unveraendert weiter.
+const P = (w) =>
+  process.platform === 'win32'
+    ? w
+    : `/${w[0].toLowerCase()}/${w.slice(3)}`.split('\\').join('/').replace(/\/+/g, '/');
+
+const WURZEL = P('C:\\Daten\\Notizen');
+const DOK = P('C:\\Daten\\Notizen\\Projekte\\Protokoll.md');
+const DOK_ORDNER = P('C:\\Daten\\Notizen\\Projekte');
 
 describe('normalisiereAnlagenKonfig (4T-0787)', () => {
   it('ohne Konfiguration gilt die Voreinstellung', () => {
@@ -80,13 +100,13 @@ describe('loeseAblageOrt — die vier Formen (4T-0787)', () => {
       konfig: { form: 'fest', ordnername: 'Anlagen' },
     });
     expect(r.ok).toBe(true);
-    expect(r.verzeichnis).toBe('C:\\Daten\\Notizen\\Projekte\\Anlagen');
+    expect(r.verzeichnis).toBe(P('C:\\Daten\\Notizen\\Projekte\\Anlagen'));
   });
 
   it('Ordner mit dem Namen des Dokuments nutzt dessen Basisnamen ohne Endung', () => {
     const r = loeseAblageOrt({ dokumentPfad: DOK, konfig: { form: 'dokument' } });
     expect(r.ok).toBe(true);
-    expect(r.verzeichnis).toBe('C:\\Daten\\Notizen\\Projekte\\Protokoll');
+    expect(r.verzeichnis).toBe(P('C:\\Daten\\Notizen\\Projekte\\Protokoll'));
   });
 
   it('zentraler Bereichs-Ordner hängt am Bereich, nicht am Dokument', () => {
@@ -96,7 +116,7 @@ describe('loeseAblageOrt — die vier Formen (4T-0787)', () => {
       konfig: { form: 'bereich', ordnername: 'Anlagen' },
     });
     expect(r.ok).toBe(true);
-    expect(r.verzeichnis).toBe('C:\\Daten\\Notizen\\Anlagen');
+    expect(r.verzeichnis).toBe(P('C:\\Daten\\Notizen\\Anlagen'));
   });
 
   it('die drei dokumentnahen Formen verhalten sich mit und ohne Bereich gleich', () => {
@@ -153,7 +173,7 @@ describe('loeseAblageOrt — Abweisungen (4T-0787)', () => {
 describe('ordnernameAusDokument (4T-0787)', () => {
   it('liefert den Basisnamen ohne Endung', () => {
     expect(ordnernameAusDokument(DOK)).toBe('Protokoll');
-    expect(ordnernameAusDokument('C:\\a\\Mein Text.markdown')).toBe('Mein Text');
+    expect(ordnernameAusDokument(P('C:\\a\\Mein Text.markdown'))).toBe('Mein Text');
   });
 
   it('liefert null, wenn nach der Bereinigung nichts übrig bleibt', () => {
@@ -164,11 +184,11 @@ describe('ordnernameAusDokument (4T-0787)', () => {
   it('ein unbrauchbarer Dokumentname fällt in der Auflösung auf den Ordnernamen zurück', () => {
     // Basisname besteht nur aus Punkten: als Ordnername unbrauchbar.
     const r = loeseAblageOrt({
-      dokumentPfad: 'C:\\Daten\\Notizen\\...md',
+      dokumentPfad: P('C:\\Daten\\Notizen\\...md'),
       konfig: { form: 'dokument', ordnername: 'Anlagen' },
     });
     expect(r.ok).toBe(true);
-    expect(r.verzeichnis).toBe('C:\\Daten\\Notizen\\Anlagen');
+    expect(r.verzeichnis).toBe(P('C:\\Daten\\Notizen\\Anlagen'));
   });
 });
 
@@ -201,7 +221,7 @@ describe('bereinigeDateinamen (4T-0787)', () => {
   });
 
   it('reduziert einen Pfad auf den nackten Dateinamen', () => {
-    expect(bereinigeDateinamen('C:\\Quelle\\Bericht.pdf')).toBe('Bericht.pdf');
+    expect(bereinigeDateinamen(P('C:\\Quelle\\Bericht.pdf'))).toBe('Bericht.pdf');
   });
 
   it('entfernt verbotene Zeichen und weist Unbrauchbares ab', () => {
@@ -212,7 +232,7 @@ describe('bereinigeDateinamen (4T-0787)', () => {
 });
 
 describe('freierDateiname (4T-0787)', () => {
-  const VZ = 'C:\\Ziel';
+  const VZ = P('C:\\Ziel');
   const machExistiert = (vorhanden) => (p) => vorhanden.includes(p);
 
   it('ein freier Name bleibt unverändert', () => {
@@ -224,7 +244,7 @@ describe('freierDateiname (4T-0787)', () => {
     const name = freierDateiname({
       verzeichnis: VZ,
       name: 'Bild.png',
-      existiert: machExistiert(['C:\\Ziel\\Bild.png']),
+      existiert: machExistiert([P('C:\\Ziel\\Bild.png')]),
     });
     expect(name).toBe('Bild-2.png');
   });
@@ -234,9 +254,9 @@ describe('freierDateiname (4T-0787)', () => {
       verzeichnis: VZ,
       name: 'Bild.png',
       existiert: machExistiert([
-        'C:\\Ziel\\Bild.png',
-        'C:\\Ziel\\Bild-2.png',
-        'C:\\Ziel\\Bild-3.png',
+        P('C:\\Ziel\\Bild.png'),
+        P('C:\\Ziel\\Bild-2.png'),
+        P('C:\\Ziel\\Bild-3.png'),
       ]),
     });
     expect(name).toBe('Bild-4.png');
@@ -246,7 +266,7 @@ describe('freierDateiname (4T-0787)', () => {
     const name = freierDateiname({
       verzeichnis: VZ,
       name: 'Bericht.tar.gz',
-      existiert: machExistiert(['C:\\Ziel\\Bericht.tar.gz']),
+      existiert: machExistiert([P('C:\\Ziel\\Bericht.tar.gz')]),
     });
     expect(name).toBe('Bericht.tar-2.gz');
   });
@@ -282,12 +302,12 @@ describe('istAusfuehrbareEndung (4T-0790)', () => {
   });
 
   it('die Groß-/Kleinschreibung der Endung ist egal', () => {
-    expect(istAusfuehrbareEndung('C:\\Ziel\\Setup.EXE')).toBe(true);
-    expect(istAusfuehrbareEndung('C:\\Ziel\\Start.Bat')).toBe(true);
+    expect(istAusfuehrbareEndung(P('C:\\Ziel\\Setup.EXE'))).toBe(true);
+    expect(istAusfuehrbareEndung(P('C:\\Ziel\\Start.Bat'))).toBe(true);
   });
 
   it('ohne Endung und bei ungültiger Eingabe gilt nicht-ausführbar', () => {
-    expect(istAusfuehrbareEndung('C:\\Ziel\\ohneEndung')).toBe(false);
+    expect(istAusfuehrbareEndung(P('C:\\Ziel\\ohneEndung'))).toBe(false);
     expect(istAusfuehrbareEndung('')).toBe(false);
     expect(istAusfuehrbareEndung(null)).toBe(false);
   });
@@ -298,20 +318,20 @@ describe('verweisPfad (4T-0787)', () => {
     expect(
       verweisPfad({
         dokumentPfad: DOK,
-        zielPfad: 'C:\\Daten\\Notizen\\Projekte\\Protokoll\\a.png',
+        zielPfad: P('C:\\Daten\\Notizen\\Projekte\\Protokoll\\a.png'),
       }),
     ).toBe('Protokoll/a.png');
   });
 
   it('ein Ziel oberhalb des Dokument-Ordners bekommt den Aufstieg', () => {
-    expect(verweisPfad({ dokumentPfad: DOK, zielPfad: 'C:\\Daten\\Notizen\\Anlagen\\a.png' })).toBe(
-      '../Anlagen/a.png',
-    );
+    expect(
+      verweisPfad({ dokumentPfad: DOK, zielPfad: P('C:\\Daten\\Notizen\\Anlagen\\a.png') }),
+    ).toBe('../Anlagen/a.png');
   });
 
   it('eine Anlage neben dem Dokument braucht kein Verzeichnis im Verweis', () => {
     expect(
-      verweisPfad({ dokumentPfad: DOK, zielPfad: 'C:\\Daten\\Notizen\\Projekte\\a.png' }),
+      verweisPfad({ dokumentPfad: DOK, zielPfad: P('C:\\Daten\\Notizen\\Projekte\\a.png') }),
     ).toBe('a.png');
   });
 });

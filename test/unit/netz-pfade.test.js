@@ -14,6 +14,18 @@ import {
   _setNetzLaufwerkeFuerTest,
 } from '../../src/main/documents/network-paths.js';
 
+// 4T-1250 (Epic 3E-0124): Das GEMAPPTE Netzlaufwerk ist ein Windows-Begriff —
+// es hat einen Laufwerksbuchstaben, und den gibt es anderswo nicht. Die
+// beiden Faelle darunter sind auf einer Plattform ohne Laufwerksbuchstaben
+// deshalb GEGENSTANDSLOS und nicht etwa falsch geschrieben; die Anwendung
+// selbst fuehrt dort dieselbe bewusste Luecke (Plattform-Gate in
+// network-paths.js, PO-Entscheidung vom 2026-08-25 zur Plattform-Analyse Q5:
+// eine Mount-Erkennung je Plattform entsteht erst bei Bedarf).
+//
+// Die UNC-Erkennung darunter bleibt ueberall scharf: Sie liest ein Praefix
+// und braucht kein Dateisystem.
+const istWindows = process.platform === 'win32';
+
 afterEach(() => _setNetzLaufwerkeFuerTest(null));
 
 describe('netz-pfade: UNC-Erkennung', () => {
@@ -45,7 +57,7 @@ describe('netz-pfade: Laufwerksbuchstabe', () => {
     expect(laufwerkVon('')).toBe(null);
   });
 
-  it('erkennt ein gemapptes Netzlaufwerk als Netz-Pfad', () => {
+  it.skipIf(!istWindows)('erkennt ein gemapptes Netzlaufwerk als Netz-Pfad', () => {
     _setNetzLaufwerkeFuerTest(['V', 'H']);
     expect(istNetzPfad('V:\\Freigabe\\Datei.md')).toBe(true);
     expect(istNetzPfad('h:/Freigabe/Datei.md')).toBe(true);
@@ -61,7 +73,7 @@ describe('netz-pfade: Laufwerksbuchstabe', () => {
 });
 
 describe('netz-pfade: Beobachtungs-Optionen', () => {
-  it('schaltet den Abfrage-Betrieb nur auf Netz-Pfaden ein', () => {
+  it.skipIf(!istWindows)('schaltet den Abfrage-Betrieb nur auf Netz-Pfaden ein', () => {
     _setNetzLaufwerkeFuerTest(['V']);
     expect(watchOptionenFuer('C:\\Users\\Datei.md')).toEqual({});
     expect(watchOptionenFuer('V:\\Freigabe\\Datei.md')).toEqual({

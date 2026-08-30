@@ -7,6 +7,26 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createRecentListBuilder } from '../../src/main/menu/menu-recent.js';
 
+// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
+// die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
+// sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
+// Plattformen als RELATIVEN Pfad liest und das Arbeitsverzeichnis davorsetzt.
+//
+// Der Laufwerksbuchstabe wird zum ERSTEN Pfad-Segment und nicht etwa
+// weggelassen: Sonst faenden 'C:\Daten' und 'D:\Daten' auf der Zielplattform
+// zusammen, und gerade die Faelle, die verschiedene Laufwerke auseinander
+// halten sollen, schluegen ins Gegenteil um (belegt am 2026-08-28).
+// Klein geschrieben, damit zwei Schreibweisen desselben Laufwerks dasselbe
+// Segment ergeben und die Schreibweisen-Faelle weiter greifen.
+//
+// Unter Windows ist der Umrechner die Identitaet, die Haupt-Plattform prueft
+// also unveraendert weiter.
+const P = (w) =>
+  process.platform === 'win32'
+    ? w
+    : `/${w[0].toLowerCase()}/${w.slice(3)}`.split('\\').join('/').replace(/\/+/g, '/');
+
 // Übersetzung im Test: der Key selbst, damit die Zuordnung sichtbar bleibt.
 const t = (key) => key;
 
@@ -23,7 +43,11 @@ describe('createRecentListBuilder (4T-0888)', () => {
     // 4T-0888
     const build = createRecentListBuilder(t, {});
     const items = build(
-      ['C:\\Werke\\Reise\\Reise.md', 'C:\\Archiv\\Reise\\Reise.md', 'C:\\Werke\\Antike.md'],
+      [
+        P('C:\\Werke\\Reise\\Reise.md'),
+        P('C:\\Archiv\\Reise\\Reise.md'),
+        P('C:\\Werke\\Antike.md'),
+      ],
       'leer',
       'open',
       'clear',
@@ -35,15 +59,15 @@ describe('createRecentListBuilder (4T-0888)', () => {
       'Antike.md',
     ]);
     // Der volle Pfad bleibt am Eintrag (toolTip, macOS) erhalten.
-    expect(items[0].toolTip).toBe('C:\\Werke\\Reise\\Reise.md');
+    expect(items[0].toolTip).toBe(P('C:\\Werke\\Reise\\Reise.md'));
   });
 
   it('escapt & im Anzeige-Label (Windows läse es sonst als Mnemonic)', () => {
     // 4T-0888
     const build = createRecentListBuilder(t, {});
-    const [eintrag] = build(['C:\\Werke\\Hund & Katz'], 'leer', 'open', 'clear');
+    const [eintrag] = build([P('C:\\Werke\\Hund & Katz')], 'leer', 'open', 'clear');
     expect(eintrag.label).toBe('Hund && Katz');
-    expect(eintrag.toolTip).toBe('C:\\Werke\\Hund & Katz');
+    expect(eintrag.toolTip).toBe(P('C:\\Werke\\Hund & Katz'));
   });
 
   it('ruft die benannten Aktionen: Eintrag mit vollem Pfad, Löschen ohne Argument', () => {
@@ -51,7 +75,7 @@ describe('createRecentListBuilder (4T-0888)', () => {
     const actions = { openRecentShelf: vi.fn(), clearRecentShelves: vi.fn() };
     const build = createRecentListBuilder(t, actions);
     const items = build(
-      ['C:\\Regale\\Bibliothek'],
+      [P('C:\\Regale\\Bibliothek')],
       'leer',
       'openRecentShelf',
       'clearRecentShelves',
@@ -61,14 +85,14 @@ describe('createRecentListBuilder (4T-0888)', () => {
     expect(items[2].label).toBe('menu.file.recentClear');
     items[0].click();
     items[2].click();
-    expect(actions.openRecentShelf).toHaveBeenCalledWith('C:\\Regale\\Bibliothek');
+    expect(actions.openRecentShelf).toHaveBeenCalledWith(P('C:\\Regale\\Bibliothek'));
     expect(actions.clearRecentShelves).toHaveBeenCalledWith();
   });
 
   it('bleibt bei fehlender Aktion stumm statt zu werfen', () => {
     // 4T-0888
     const build = createRecentListBuilder(t, null);
-    const items = build(['C:\\Werke\\Antike.md'], 'leer', 'openRecent', 'clearRecent');
+    const items = build([P('C:\\Werke\\Antike.md')], 'leer', 'openRecent', 'clearRecent');
     expect(() => {
       items[0].click();
       items[2].click();

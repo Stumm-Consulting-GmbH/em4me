@@ -195,6 +195,12 @@ function nameKeyForFile(filePath) {
 }
 
 function addToNameMap(entry, filePath) {
+  // 4T-1288: Die Pfad-Menge aendert sich — die lazy gebaute Suffix-Map der
+  // Pfad-Form (resolve.js) ist damit ungueltig und wird beim naechsten
+  // Pfad-Resolve neu gebaut. Invalidieren statt mitpflegen, weil ein
+  // Rebuild einmal O(Dateien) kostet und die Aenderungs-Momente (Anlegen,
+  // Loeschen, Umbenennen) selten gegen die Resolve-Momente sind.
+  entry.pathSuffixMap = null;
   const key = nameKeyForFile(filePath);
   if (!key) return;
   let set = entry.nameMap.get(key);
@@ -206,6 +212,8 @@ function addToNameMap(entry, filePath) {
 }
 
 function removeFromNameMap(entry, filePath) {
+  // 4T-1288: siehe addToNameMap.
+  entry.pathSuffixMap = null;
   const key = nameKeyForFile(filePath);
   const set = entry.nameMap.get(key);
   if (!set) return;
@@ -313,6 +321,8 @@ function markOversized(entry) {
   entry.status = 'oversized';
   entry.files.clear();
   entry.nameMap.clear();
+  // 4T-1288: Suffix-Map der Pfad-Form haengt an der (jetzt leeren) Pfad-Menge.
+  entry.pathSuffixMap = null;
   entry.aliasesPerFile.clear();
   entry.aliasMap.clear();
   entry.anchorsPerFile.clear();

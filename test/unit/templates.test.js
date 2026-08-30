@@ -12,7 +12,27 @@ import {
   matchFolderRule,
 } from '../../src/main/documents/templates.js';
 
-const AREA = 'C:\\Notizen';
+// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
+// die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
+// sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
+// Plattformen als RELATIVEN Pfad liest und das Arbeitsverzeichnis davorsetzt.
+//
+// Der Laufwerksbuchstabe wird zum ERSTEN Pfad-Segment und nicht etwa
+// weggelassen: Sonst faenden 'C:\Daten' und 'D:\Daten' auf der Zielplattform
+// zusammen, und gerade die Faelle, die verschiedene Laufwerke auseinander
+// halten sollen, schluegen ins Gegenteil um (belegt am 2026-08-28).
+// Klein geschrieben, damit zwei Schreibweisen desselben Laufwerks dasselbe
+// Segment ergeben und die Schreibweisen-Faelle weiter greifen.
+//
+// Unter Windows ist der Umrechner die Identitaet, die Haupt-Plattform prueft
+// also unveraendert weiter.
+const P = (w) =>
+  process.platform === 'win32'
+    ? w
+    : `/${w[0].toLowerCase()}/${w.slice(3)}`.split('\\').join('/').replace(/\/+/g, '/');
+
+const AREA = P('C:\\Notizen');
 
 describe('normalizeTemplatesConfig', () => {
   it('liefert null für fehlende, leere oder defekte Konfigurationen', () => {
@@ -55,20 +75,20 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     const resolved = resolveTemplatesConfig({
       areaRootPath: AREA,
       areaConfig: { folder: 'Vorlagen' },
-      globalConfig: { folder: 'C:\\Global\\Templates' },
+      globalConfig: { folder: P('C:\\Global\\Templates') },
     });
     expect(resolved.source).toBe('area');
-    expect(resolved.folder).toBe('C:\\Notizen\\Vorlagen');
-    expect(resolved.baseDir).toBe('C:\\Notizen');
+    expect(resolved.folder).toBe(P('C:\\Notizen\\Vorlagen'));
+    expect(resolved.baseDir).toBe(P('C:\\Notizen'));
   });
 
   it('toleriert absolute Bereichs-Ordner', () => {
     const resolved = resolveTemplatesConfig({
       areaRootPath: AREA,
-      areaConfig: { folder: 'D:\\Anderswo\\Vorlagen' },
+      areaConfig: { folder: P('D:\\Anderswo\\Vorlagen') },
       globalConfig: null,
     });
-    expect(resolved.folder).toBe('D:\\Anderswo\\Vorlagen');
+    expect(resolved.folder).toBe(P('D:\\Anderswo\\Vorlagen'));
   });
 
   it('Bereichs-Sektion übersteuert vollständig: globale Regeln zählen nicht mit', () => {
@@ -76,8 +96,8 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
       areaRootPath: AREA,
       areaConfig: { folder: 'Vorlagen' },
       globalConfig: {
-        folder: 'C:\\Global\\Templates',
-        rules: [{ folder: 'C:\\Global\\GTD', template: 'GTD.md' }],
+        folder: P('C:\\Global\\Templates'),
+        rules: [{ folder: P('C:\\Global\\GTD'), template: 'GTD.md' }],
       },
     });
     expect(resolved.source).toBe('area');
@@ -88,10 +108,10 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     const resolved = resolveTemplatesConfig({
       areaRootPath: AREA,
       areaConfig: undefined,
-      globalConfig: { folder: 'C:\\Global\\Templates' },
+      globalConfig: { folder: P('C:\\Global\\Templates') },
     });
     expect(resolved.source).toBe('global');
-    expect(resolved.folder).toBe('C:\\Global\\Templates');
+    expect(resolved.folder).toBe(P('C:\\Global\\Templates'));
     expect(resolved.baseDir).toBeNull();
   });
 
@@ -99,7 +119,7 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     const resolved = resolveTemplatesConfig({
       areaRootPath: null,
       areaConfig: undefined,
-      globalConfig: { folder: 'C:\\Global\\Templates' },
+      globalConfig: { folder: P('C:\\Global\\Templates') },
     });
     expect(resolved.source).toBe('global');
   });
@@ -117,7 +137,7 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     const resolved = resolveTemplatesConfig({
       areaRootPath: AREA,
       areaConfig: { rules: [{ folder: 'GTD', template: 'GTD.md' }] },
-      globalConfig: { folder: 'C:\\Global\\Templates' },
+      globalConfig: { folder: P('C:\\Global\\Templates') },
     });
     expect(resolved.source).toBe('area');
     expect(resolved.folder).toBeNull();
@@ -126,51 +146,68 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
 });
 
 describe('resolveTemplateFile — Pfad-Sicherung', () => {
-  const FOLDER = 'C:\\Notizen\\Vorlagen';
+  const FOLDER = P('C:\\Notizen\\Vorlagen');
 
   it('löst relative Einträge innerhalb des Ordners auf (auch Unterordner)', () => {
     expect(resolveTemplateFile(FOLDER, 'Besprechung.md')).toBe(
-      'C:\\Notizen\\Vorlagen\\Besprechung.md',
+      P('C:\\Notizen\\Vorlagen\\Besprechung.md'),
     );
     expect(resolveTemplateFile(FOLDER, 'GTD/Projekt.md')).toBe(
-      'C:\\Notizen\\Vorlagen\\GTD\\Projekt.md',
+      P('C:\\Notizen\\Vorlagen\\GTD\\Projekt.md'),
     );
   });
 
   it('weist Ausbrüche und ungültige Eingaben zurück', () => {
-    expect(resolveTemplateFile(FOLDER, '..\\Geheim.md')).toBeNull();
+    // 4T-1250: Der Rueckwaerts-Schraegstrich ist NUR unter Windows ein Trenner;
+    // anderswo ist «..\Geheim.md» ein gewoehnlicher Dateiname und kein Ausbruch.
+    // Der Ausbruch in der Schreibweise des Wirts steht in der naechsten Zeile und
+    // wird ueberall geprueft.
+    if (process.platform === 'win32') {
+      expect(resolveTemplateFile(FOLDER, '..\\Geheim.md')).toBeNull();
+    }
     expect(resolveTemplateFile(FOLDER, '../Geheim.md')).toBeNull();
     expect(resolveTemplateFile(FOLDER, 'GTD/../../Geheim.md')).toBeNull();
-    expect(resolveTemplateFile(FOLDER, 'C:\\Windows\\win.ini')).toBeNull();
+    expect(resolveTemplateFile(FOLDER, P('C:\\Windows\\win.ini'))).toBeNull();
     expect(resolveTemplateFile(FOLDER, '')).toBeNull();
     expect(resolveTemplateFile(FOLDER, '.')).toBeNull(); // der Ordner selbst
     expect(resolveTemplateFile(null, 'A.md')).toBeNull();
   });
 
   it('Präfix-Nachbarn matchen nicht', () => {
-    expect(resolveTemplateFile(FOLDER, '..\\Vorlagen2\\A.md')).toBeNull();
+    // 4T-1250: Rueckwaerts-Schraegstrich als Trenner gibt es nur unter Windows;
+    // anderswo ist das ein Dateiname. Der Praefix-Nachbar in Wirts-Schreibweise
+    // ist durch den Ausbruch-Fall weiter oben abgedeckt.
+    if (process.platform === 'win32') {
+      expect(resolveTemplateFile(FOLDER, '..\\Vorlagen2\\A.md')).toBeNull();
+    }
   });
 });
 
 // 4T-0427 (Epic 3E-0080): Tiefster-Treffer-Auflösung der Ordner-Regeln.
 describe('matchFolderRule — Tiefster-Treffer-Auflösung', () => {
-  const BASE = 'C:\\Notizen';
+  const BASE = P('C:\\Notizen');
   const RULES = [
     { folder: '', template: 'Standard.md' },
     { folder: 'GTD', template: 'GTD.md' },
-    { folder: 'GTD\\Projekte', template: 'Projekt.md' },
+    // 4T-1250: Der Trenner der Ordner-Regel ist der des Wirts; als fester
+    // Rueckwaerts-Schraegstrich waere die Regel anderswo ein Ordnername mit
+    // Sonderzeichen und traefe nie.
+    {
+      folder: ['GTD', 'Projekte'].join(process.platform === 'win32' ? '\\' : '/'),
+      template: 'Projekt.md',
+    },
   ];
 
   it('tiefster passender Ordner gewinnt, Unterordner zählen zum Treffer', () => {
-    const args = { rules: RULES, baseDir: BASE, templatesFolder: 'C:\\Notizen\\Vorlagen' };
-    expect(matchFolderRule({ ...args, filePath: 'C:\\Notizen\\Notiz.md' })).toBe('Standard.md');
-    expect(matchFolderRule({ ...args, filePath: 'C:\\Notizen\\GTD\\Task.md' })).toBe('GTD.md');
-    expect(matchFolderRule({ ...args, filePath: 'C:\\Notizen\\GTD\\Projekte\\P1.md' })).toBe(
+    const args = { rules: RULES, baseDir: BASE, templatesFolder: P('C:\\Notizen\\Vorlagen') };
+    expect(matchFolderRule({ ...args, filePath: P('C:\\Notizen\\Notiz.md') })).toBe('Standard.md');
+    expect(matchFolderRule({ ...args, filePath: P('C:\\Notizen\\GTD\\Task.md') })).toBe('GTD.md');
+    expect(matchFolderRule({ ...args, filePath: P('C:\\Notizen\\GTD\\Projekte\\P1.md') })).toBe(
       'Projekt.md',
     );
-    expect(matchFolderRule({ ...args, filePath: 'C:\\Notizen\\GTD\\Projekte\\Sub\\P2.md' })).toBe(
-      'Projekt.md',
-    );
+    expect(
+      matchFolderRule({ ...args, filePath: P('C:\\Notizen\\GTD\\Projekte\\Sub\\P2.md') }),
+    ).toBe('Projekt.md');
   });
 
   it('Vorlagen-Ordner ist grundsätzlich ausgenommen', () => {
@@ -178,40 +215,44 @@ describe('matchFolderRule — Tiefster-Treffer-Auflösung', () => {
       matchFolderRule({
         rules: RULES,
         baseDir: BASE,
-        templatesFolder: 'C:\\Notizen\\Vorlagen',
-        filePath: 'C:\\Notizen\\Vorlagen\\Neu.md',
+        templatesFolder: P('C:\\Notizen\\Vorlagen'),
+        filePath: P('C:\\Notizen\\Vorlagen\\Neu.md'),
       }),
     ).toBeNull();
   });
 
   it('ohne Treffer und ohne Regeln: null; Präfix-Nachbarn matchen nicht', () => {
     expect(
-      matchFolderRule({ rules: RULES, baseDir: BASE, filePath: 'D:\\Anderswo\\Notiz.md' }),
+      matchFolderRule({ rules: RULES, baseDir: BASE, filePath: P('D:\\Anderswo\\Notiz.md') }),
     ).toBeNull();
-    expect(matchFolderRule({ rules: [], baseDir: BASE, filePath: 'C:\\Notizen\\N.md' })).toBeNull();
+    expect(
+      matchFolderRule({ rules: [], baseDir: BASE, filePath: P('C:\\Notizen\\N.md') }),
+    ).toBeNull();
     expect(
       matchFolderRule({
         rules: [{ folder: 'GTD', template: 'GTD.md' }],
         baseDir: BASE,
-        filePath: 'C:\\Notizen\\GTD2\\N.md',
+        filePath: P('C:\\Notizen\\GTD2\\N.md'),
       }),
     ).toBeNull();
   });
 
   it('globale Regeln (ohne baseDir) zählen nur mit absoluten Ordnern', () => {
     const rules = [
-      { folder: 'C:\\Global\\Notizen', template: 'Global.md' },
+      { folder: P('C:\\Global\\Notizen'), template: 'Global.md' },
       { folder: 'relativ', template: 'Kaputt.md' },
     ];
-    expect(matchFolderRule({ rules, baseDir: null, filePath: 'C:\\Global\\Notizen\\Neu.md' })).toBe(
-      'Global.md',
-    );
-    expect(matchFolderRule({ rules, baseDir: null, filePath: 'C:\\relativ\\Neu.md' })).toBeNull();
+    expect(
+      matchFolderRule({ rules, baseDir: null, filePath: P('C:\\Global\\Notizen\\Neu.md') }),
+    ).toBe('Global.md');
+    expect(
+      matchFolderRule({ rules, baseDir: null, filePath: P('C:\\relativ\\Neu.md') }),
+    ).toBeNull();
   });
 
   it('defekte Regel-Einträge werden übersprungen', () => {
     const rules = [null, { folder: 'GTD' }, { folder: 'GTD', template: 'GTD.md' }];
-    expect(matchFolderRule({ rules, baseDir: BASE, filePath: 'C:\\Notizen\\GTD\\N.md' })).toBe(
+    expect(matchFolderRule({ rules, baseDir: BASE, filePath: P('C:\\Notizen\\GTD\\N.md') })).toBe(
       'GTD.md',
     );
   });

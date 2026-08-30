@@ -14,6 +14,32 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.121.2.2050] - 2026-08-30 — Flüssige Bedienung großer Bereiche
+
+Epic 3E-0233,
+Fehler-Bündel mit einem Vorgang (4T-1288, Sammeltask 4T-1296). Nach dem Umzug
+eines großen Obsidian-Bestands (6483 Dateien) in einen Bereich wurde die
+Anwendung mit sichtbarem Backlinks-Panel unbenutzbar langsam: Jede Eingabe in
+jedem Fenster wartete Sekunden. Die Analyse (4T-1287) belegte die Ursache mit
+CPU-Profil des Hauptprozesses; dieses Release behebt sie.
+
+### Behoben
+
+- **Wiki-Links in Pfad-Form (`[[Ordner/Name]]`) lösen jetzt über eine
+  vorberechnete Suffix-Map auf** statt linear über alle Dateien des Index
+  (4T-1288). Vorher zahlte jede Backlinks-Anfrage, also jeder Datei-Wechsel
+  mit sichtbarem Panel, für jeden der 879 Pfad-Links einen vollen Scan über
+  6483 Dateien, rund 5,7 Millionen Normalisierungen sekundenlang im
+  UI-Thread des Hauptprozesses; dort staute sich die OS-Eingabe-Zustellung
+  an alle Fenster. Mit der Suffix-Map dauert die Anfrage am selben Bestand
+  12 bis 18 ms statt 5,2 bis 5,4 s (Faktor rund 400); Linter, Klick-Pfad,
+  Link-Graph und Abfrage-Felder (`file.inlinks`/`file.outlinks`) nutzen
+  dieselbe Auflösung und profitieren mit. Die Auflösungs-Semantik ist
+  unverändert (Segment-genau, case-insensitiv, NFC-normalisiert; der volle
+  Pfad ohne führendes Segment traf wie bisher nicht). Ein Wächter-Test
+  deckelt die Kosten maschinell über eine Aufruf-Schranke
+  (`test/unit/pfad-suffix-map.test.js`).
+
 ## [1.121.1.1940] - 2026-08-27 — Texte ohne Windows-Bindung
 
 Epic 3E-0122, Fehlerbehebung nach der Auslieferung von 1.121.0 (Vorgänge 4T-1242,

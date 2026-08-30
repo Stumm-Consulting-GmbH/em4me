@@ -108,6 +108,15 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // B-15 (4T-0181): inverse Namens-Map basenameKeyLower -> Set<Pfad>
     // fuer O(1)-Wiki-Aufloesung (traegt die B-04-Normalisierung strukturell).
     nameMap: new Map(),
+    // 4T-1288: Suffix-Map der Pfad-Form (normalisierter Segment-Suffix ->
+    // Set<Pfad>), lazy beim ersten Pfad-Resolve gebaut (resolve.js). Sie
+    // haengt allein an der PFAD-Menge des Index; jede Aenderung der Menge
+    // setzt sie auf null (Invalidierung in build.js), der naechste
+    // Pfad-Resolve baut sie neu. Vorher lief die Pfad-Form linear ueber alle
+    // Dateien mit normalizeNameKey je Datei und je Aufruf — im migrierten
+    // Obsidian-Bestand (879 Pfad-Links, 6483 Dateien) blockierte das den
+    // UI-Thread des Hauptprozesses je Backlinks-Anfrage sekundenlang.
+    pathSuffixMap: null,
     // B-19 (4T-0181): Groesse pro Datei fuer die inkrementelle Cap-Pruefung.
     fileSizes: new Map(),
     // 4T-0402 (Epic 3E-0076): Datei-Zeiten pro Datei fuer die impliziten

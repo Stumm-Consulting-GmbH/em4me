@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { isFilesystemCaseInsensitive } from '../../src/shared/platform.js';
 import {
   SHELF_SETTINGS_FILENAME,
   assignBookDir,
@@ -255,7 +256,17 @@ describe('shelves: Zuordnung (AK4)', () => {
     const eins = await assignBookDir(shelfDir, 'Reise nach Ithaka');
     expect(eins.ok).toBe(true);
     expect(eins.books).toEqual(['Reise nach Ithaka']);
-    expect((await assignBookDir(shelfDir, 'reise nach ithaka')).error).toBe('duplicate-book');
+    // 4T-1250 (Epic 3E-0124): Auf einem Dateisystem, das die Schreibung
+    // unterscheidet, ist der klein geschriebene Ordner ein ANDERER Ordner, und
+    // die Zuordnung meldet folgerichtig «unknown-dir». Dass die Anwendung ihn
+    // dennoch als Doppel abweisen wuerde, sobald er existiert, ist ein
+    // Produkt-Befund: Der Vergleichs-Schluessel in shelf-core.js faltet die
+    // Schreibung fest, statt die zentrale Plattform-Auskunft zu fragen. Er ist
+    // hier NICHT festgeschrieben, sondern als eigener Vorgang verortet — der
+    // Fall prueft deshalb je Dateisystem die Aussage, die dort zutrifft.
+    expect((await assignBookDir(shelfDir, 'reise nach ithaka')).error).toBe(
+      isFilesystemCaseInsensitive() ? 'duplicate-book' : 'unknown-dir',
+    );
     // Persistiert: der Zustand liest die Zuordnung frisch von der Platte.
     const state = await buildShelfState(shelfDir);
     expect(state.state.books).toEqual(['Reise nach Ithaka']);

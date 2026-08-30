@@ -528,20 +528,56 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Entwicklungs-Iteration an einzelnen Prüfdateien, solange ihr Ausgang nicht
   berichtet wird.
 
-- **Der Rückgabewert gehört dem Gate, nicht der Kommandozeile** (4T-1178,
-  Vorfall vom 2026-08-24). Der Zugang reicht den Rückgabewert unverfälscht
-  weiter, aber nur bis zum Rand seines eigenen Prozesses. Wer ihn in eine
-  Shell-Kette hängt, deren letztes Glied den Status bestimmt, bekommt den Wert
-  dieses letzten Glieds: `node scripts/gate-lauf.js e2e > lauf.log 2>&1; echo
-  "EXITCODE: $?"` meldet 0, während das Gate 1 lieferte und sich selbst korrekt
-  als rot gemeldet hat. Ein roter Abnahme-Lauf wird so als grün berichtet, und
-  auffallen kann es nur noch beim Lesen der Kennzahlen im Bericht. Für eine
-  Pipe gilt dasselbe, und dort kommt der Beleg-Verlust hinzu. **Ein Gate-Aufruf
-  steht deshalb allein**, besonders im Hintergrund, wo allein der Prozess-Status
+- **Der Rückgabewert gehört dem Werkzeug, nicht der Kommandozeile** (4T-1178,
+  Vorfall vom 2026-08-24; seit 4T-1165 für **beide** Pflicht-Zugänge). Der
+  Zugang reicht den Rückgabewert unverfälscht weiter, aber nur bis zum Rand
+  seines eigenen Prozesses. Wer ihn in eine Shell-Kette hängt, deren letztes
+  Glied den Status bestimmt, bekommt den Wert dieses letzten Glieds: `node
+  scripts/gate-lauf.js e2e > lauf.log 2>&1; echo "EXITCODE: $?"` meldet 0,
+  während das Gate 1 lieferte und sich selbst korrekt als rot gemeldet hat. Ein
+  roter Abnahme-Lauf wird so als grün berichtet, und auffallen kann es nur noch
+  beim Lesen der Kennzahlen im Bericht. Für eine Pipe gilt dasselbe, und dort
+  kommt der Beleg-Verlust hinzu. **Ein Aufruf eines Pflicht-Zugangs steht
+  deshalb allein**, besonders im Hintergrund, wo allein der Prozess-Status
   zurückkommt; die Ausgabe wird danach gelesen und nicht im selben Kommando
   quittiert. Anlass war die dritte Wiederholung der Klasse L3 binnen eines
   Tages, diesmal an der Verkettung statt an der Pipe: Die Maßnahme 4T-1116
   deckte den Beleg, nicht den Rückgabewert.
+
+  **Die Regel gilt für zwei Werkzeuge, nicht nur für den Gate-Zugang** (seit
+  dem 2026-08-29, Entscheidung des Product Owners in 4T-1165). Die Grenze
+  verläuft nicht am Gate-Zugang, sondern an der Eigenschaft «der Rückgabewert
+  trägt ein Urteil»; davon gibt es zwei:
+
+  | Werkzeug | Sein Rückgabewert sagt |
+  |---|---|
+  | `node scripts/gate-lauf.js <gate>` | ob das Gate grün war |
+  | `node scripts/merge-queue.js <branch>` | ob integriert wurde |
+
+  Anlass war der vierte Vorfall der Klasse L3 am 2026-08-29, der erste an der
+  Queue: Ein Wiederhol-Skript rief `node scripts/merge-queue.js <zweig> | grep
+  -vE …` **innerhalb einer if-Bedingung** auf, bekam den erfolgreichen
+  Rückgabewert von `grep` und meldete «ERFOLG», während in derselben Ausgabe
+  «FEHLGESCHLAGEN — Queue belegt» stand.
+
+  **Zwei Maßnahmen decken die Regel seither maschinell** (4T-1165), und sie
+  ersetzen einander nicht:
+
+  1. **Die Frühwarnung weist die Pipe ab.** `scripts/mandat-fruehwarnung.js`
+     stoppt jedes Shell-Kommando, in dem einem der beiden Pflicht-Zugänge eine
+     Pipe folgt — auch innerhalb einer `if`-Bedingung, weil genau das die Form
+     des Vorfalls war. Bewusst eng: Andere Kommandos mit Pipe bleiben
+     unberührt, und die **Datei-Umleitung bleibt frei**, weil sie den
+     Rückgabewert erhält.
+  2. **Der Lauf schließt mit seinem Urteil ab.** Die **letzte** Zeile beider
+     Werkzeuge lautet `<werkzeug>: ERGEBNIS GRUEN|ROT — … (Rueckgabewert <n>).`
+     und steht hinter dem Beleg-Pfad bzw. hinter dem Start-Hinweis des nächsten
+     Vorgangs. Sie kommt auch im grünen Fall, denn eine Zeile, die nur bei
+     Fehlern käme, wäre bei ihrem Fehlen nicht von einem Abbruch zu
+     unterscheiden. Der Rückgabewert bleibt unverändert; die Zeile nennt ihn.
+
+  Damit überlebt das Urteil jede Kürzung, die das Ende erhält: `… > lauf.log
+  2>&1`, danach die letzte Zeile lesen, ist der vollständige Weg.
 
 - **Belege roter Gate-Läufe** (4T-0934, seit 4T-1087 auch für den Einzel-Lauf).
   Bricht ein Gate ab, gleich ob in der Merge-Queue oder über den
@@ -738,8 +774,8 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 | **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`, dazu `doku-pfade`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
-| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
-| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`, `datei-groessen`; Format und Lint | Smoke plus EXE-Smoke-Test |
+| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
+| **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus EXE-Smoke-Test |
 | **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste), `doku-pfade` und `datei-groessen`; Format und Lint | keine |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
 | **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`; Format und Lint | keine über die geänderte Spec hinaus |
@@ -898,6 +934,62 @@ nicht Datei-Zeiten gegen die Uhr, weil ein mtime-Vergleich gegen
 `Date.now()` unter Windows nachweislich brüchig ist (Befund aus 4T-0729).
 Der Vermerk liegt unversioniert im `.git`-Verzeichnis des
 Integrations-Clones; ist er nicht lesbar, gilt der Voll-Lauf als fällig.
+
+## Prüf-Umfang je Plattform
+
+**Diese Festlegung und die Änderungsklassen oben gehören zusammen gelesen.** Die Klasse beantwortet, **welcher Ausschnitt** der Suite ein Vorgang braucht; dieser Abschnitt beantwortet, **auf welcher Plattform** er läuft. Beide Fragen sind unabhängig: Ein Ä1-Vorgang bleibt Ä1, gleich wo er geprüft wird.
+
+Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-1251), auf der Grundlage **gemessener** Werte aus dem ersten Linux-Betrieb und nicht aus Schätzungen.
+
+### Die vier Größen
+
+1. **Haupt-Plattform ist Windows.** Sie trägt die **vollständige** Suite ohne Ausnahme. Jede Prüfung, die irgendwo läuft, läuft hier.
+2. **Je weiterer freigegebener Plattform läuft der vollständige Ausschnitt**, also Unit-Suite **und** E2E-Suite. Die Beschränkung auf die Unit-Suite ist ausdrücklich **verworfen**: Alle drei Produkt-Befunde des ersten Linux-Laufs am 2026-08-28 lagen in der E2E-Suite, keiner in der Unit-Suite. Wer dort kürzt, prüft genau den Teil, der ohnehin plattformneutral ist.
+3. **Der manuelle Test bleibt für Windows die Regel und findet auf weiteren Plattformen nur bei Anlass statt** — wenn ein Release die Plattform-Einbindung berührt (Bau-Ziele, Datei-Zuordnung, Desktop-Einbindung) oder wenn der automatisierte Lauf einen Befund meldet, der eine Sicht-Prüfung braucht. Grund: Der gründliche manuelle Durchgang vom 2026-08-26 fand drei Befunde und **keinen** der drei, die die automatisierte Suite zwei Tage später fand. Beide Prüf-Arten sehen Verschiedenes; die manuelle ist die teurere und gehört dorthin, wo sie allein etwas leisten kann.
+4. **Ausgelöst wird der Lauf von jedem Release mit Produkt-Code-Anteil.** Ein Release ohne ihn kann die Plattform nicht brechen und löst deshalb keinen Lauf aus.
+
+### Wie eine Plattform in die Menge kommt und sie verlässt
+
+Die Festlegung spricht bewusst von **freigegebenen Plattformen** und nicht von Windows und Linux: Eine Plattform tritt mit ihrer **ersten Auslieferung** ein und mit ihrer **Zurückstellung** aus, beides durch Entscheidung des Product Owners im Zielbild. Damit trägt der Abschnitt eine dritte Plattform, ohne umgeschrieben zu werden, und schrumpft von selbst, solange macOS zurückgestellt ist.
+
+### Das Kommando
+
+```bash
+node scripts/test-linux-docker.js e2e
+```
+
+Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
+
+### Gemessene Größenordnungen (2026-08-28, SC-027 Slot B)
+
+| Lauf | Windows | Linux im Container | Verhältnis |
+|---|---|---|---|
+| Unit-Suite | rund 73 s | rund 4 min | rund 3× |
+| E2E-Voll-Suite | 27,5 min | 38,6 min | 1,4× |
+| Ein Bestands-Wächter über 1348 Objekte | 4,4 s | über 30 s | rund 7× |
+
+**Der Engpass ist das Dateisystem, nicht die Rechenleistung.** Der Container arbeitet über die Brücke zum Windows-Laufwerk; was viele Dateien liest, zahlt dort ein Vielfaches, während reine Rechenarbeit kaum teurer wird. Wer unter Linux eine Zeitgrenze reißen sieht, prüft deshalb zuerst, ob der Fall den Bestand liest — und hebt dann das **benannte** Limit aus `test/zeitlimits.js`, statt eine Zahl an den Fall zu schreiben.
+
+### Beide Läufe gleichzeitig auf einem Rechner
+
+Gemessen am 2026-08-28 in der realen Release-Konstellation: Der Windows-Lauf bleibt bei 27,5 min, der Linux-Lauf steigt von 38,6 auf 44,5 min (+15 %). **Kein Fehlschlag war der Last zuzuschreiben** — der Linux-Lauf riss unter Last exakt dieselben drei Fälle wie lastfrei, und die vier Prüfdateien, die den am 2026-08-07 belegten Versagens-Mechanismus tragen, liefen 3 von 3 grün. Nacheinander kosten beide Läufe rund 67 Minuten, gleichzeitig 44,5.
+
+**Die Anordnung vom 2026-08-07 bleibt davon unberührt** (Entwicklungsrichtlinien, Kapitel 11: nie zwei Suite- oder Bau-Läufe parallel auf demselben Rechner). Sie ist eine Anordnung des Product Owners und wird nicht durch eine Messung geändert; die Zahlen oben sind die Grundlage, falls er sie schärfen will. Bis dahin gilt sie unverändert.
+
+### Benannte Auslassungen
+
+Eine Prüfung, die auf einer Plattform **gegenstandslos** ist, wird ausdrücklich ausgenommen und nennt ihren Grund am Prüffall; sie bleibt weder stillschweigend rot noch läuft sie stillschweigend ins Leere. Der Bestand am 2026-08-28 unter Linux:
+
+| Ausgenommen | Grund |
+|---|---|
+| Anlage-Zeitpunkt einer Datei (3 Fälle) | über die Windows-Schicht gesetzt; die Anwendung führt dort dieselbe bewusste Lücke |
+| gemapptes Netzlaufwerk (2 Fälle) | Laufwerksbuchstaben gibt es dort nicht; die Anwendung führt dieselbe bewusste Lücke |
+| Schreibweisen-Zweitsuche (1 Fall) | prüft die case-insensitive Suche |
+| echter Browser-Lauf (2 Fälle) | braucht einen installierten Browser, den das Abbild nicht mitbringt |
+
+Dazu zwei Zusicherungen, die **auf Windows begrenzt** statt ausgenommen sind, weil sie dort eine Aussage haben und anderswo keine: der Ausbruch über den Rückwärts-Schrägstrich und der Außen-Pfad in Windows-Schreibweise. Beide haben eine Schwester-Zeile, die in Wirts-Schreibweise überall prüft.
+
+**Wo die Auslassung nach außen erscheint:** Die Release-Hinweise nennen je Plattform, was geprüft wurde und was nicht (`docs/release-notes-template.md`, Abschnitt «System-Anforderungen»). Eine stillschweigende Nicht-Prüfung liest sich später wie eine vollständige Abdeckung.
 
 ## Snapshots der Render-Pipeline
 

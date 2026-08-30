@@ -10,7 +10,7 @@
 // diesem Zustand das echte koffi/dwmapi.dll laden. Deshalb injiziert JEDER
 // Test, der applyCaptionColor aufruft, zuerst selbst einen Fake — auch die
 // Fälle, die "kein Fake-Aufruf" erwarten (dort ein zählender Fake).
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DWMWA_CAPTION_COLOR,
   DWMWA_TEXT_COLOR,
@@ -36,6 +36,16 @@ function handle8() {
   buf.writeBigInt64LE(0x0000123456789abcn, 0);
   return buf;
 }
+
+// 4T-1250 (Epic 3E-0124): Die Faerbung der Titelleiste ist eine
+// Windows-Funktion und entfaellt anderswo ersatzlos (Plattform-Gate in
+// caption-color.js). Ihre Logik ist aber rein und ueber setDwmCallForTests
+// injizierbar, laesst sich also auf JEDER Plattform pruefen — sofern das Gate
+// gesetzt ist. Ohne diese Vorbelegung liefen die Faerbungs- und
+// Fehlerfall-Faelle unter Linux ins Gate und meldeten sechs Fehlschlaege.
+// Die Faelle des Gates selbst setzen ihre Plattform weiterhin eigenhaendig
+// und gewinnen damit ueber diese Vorbelegung.
+beforeEach(() => setPlatformForTests('win32'));
 
 afterEach(() => {
   // Konsolen-Spies zurücknehmen.

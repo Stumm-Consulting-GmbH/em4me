@@ -35,6 +35,43 @@ function filesByAlias(entry, alias) {
 // Unterseiten-Form. Der Linter nutzt Pfad- und Unterseiten-Menge fuer die
 // Mehrdeutigkeits-Meldung; resolveWikiLink kombiniert mit Pfad-Vorrang
 // (Epic-Entscheidung: bestehendes B-13-Verhalten bricht nicht).
+// 4T-1288: Suffix-Map der Pfad-Form, lazy gebaut und in build.js bei jeder
+// Aenderung der Pfad-Menge invalidiert (entry.pathSuffixMap = null).
+//
+// Hintergrund: Die Pfad-Form lief vorher linear ueber alle Dateien, mit
+// normalizeNameKey je Datei UND je Aufruf — unter der Annahme «selten
+// genutzt». Der migrierte Obsidian-Bestand des Product Owners bricht sie
+// (879 Pfad-Links auf 6483 Dateien): Jede Backlinks-Anfrage loeste rund 5,7
+// Millionen Normalisierungen aus und blockierte den UI-Thread des
+// Hauptprozesses sekundenlang, samt der OS-Eingabe-Zustellung an alle
+// Fenster (Analyse 4T-1287, CPU-Profil).
+//
+// Die Map traegt je Datei alle ECHTEN Segment-Suffixe ihres normalisierten
+// Pfads (mindestens ein fuehrendes Segment bleibt uebrig) — exakt die Menge,
+// die das bisherige fileKey.endsWith('/' + wanted) treffen konnte. Der volle
+// Pfad ist bewusst NICHT enthalten: Ihn traf das alte Kriterium wegen des
+// verlangten fuehrenden '/' ebenfalls nie.
+function ensurePathSuffixMap(entry) {
+  if (entry.pathSuffixMap) return entry.pathSuffixMap;
+  const map = new Map();
+  for (const f of entry.files.keys()) {
+    const fileKey = normalizeNameKey(f.replace(MD_EXT_RE, '')).replace(/\\/g, '/');
+    const segmente = fileKey.split('/');
+    let suffix = '';
+    for (let i = segmente.length - 1; i > 0; i -= 1) {
+      suffix = suffix === '' ? segmente[i] : `${segmente[i]}/${suffix}`;
+      let set = map.get(suffix);
+      if (!set) {
+        set = new Set();
+        map.set(suffix, set);
+      }
+      set.add(f);
+    }
+  }
+  entry.pathSuffixMap = map;
+  return map;
+}
+
 function resolveWikiLinkDetailed(entry, zielBasename) {
   const wanted = normalizeNameKey(String(zielBasename).replace(MD_EXT_RE, '')).replace(/\\/g, '/');
   if (!wanted.includes('/')) {
@@ -44,12 +81,10 @@ function resolveWikiLinkDetailed(entry, zielBasename) {
     const set = entry.nameMap.get(wanted);
     return { nameMatches: set ? [...set] : [], pathMatches: [], subpageMatches: [] };
   }
-  // Pfad-Form (B-13): Suffix-Match bleibt linear — selten genutzt.
-  const pathMatches = [];
-  for (const f of entry.files.keys()) {
-    const fileKey = normalizeNameKey(f.replace(MD_EXT_RE, '')).replace(/\\/g, '/');
-    if (fileKey.endsWith('/' + wanted)) pathMatches.push(f);
-  }
+  // Pfad-Form (B-13): seit 4T-1288 O(1) ueber die Suffix-Map (siehe oben);
+  // Verhalten identisch zum frueheren endsWith('/' + wanted)-Scan.
+  const pset = ensurePathSuffixMap(entry).get(wanted);
+  const pathMatches = pset ? [...pset] : [];
   // Unterseiten-Form: Slash-Schreibweise -> U+2215 im Basename.
   const subSet = entry.nameMap.get(wanted.replace(/\//g, SUBPAGE_SEP));
   return { nameMatches: [], pathMatches, subpageMatches: subSet ? [...subSet] : [] };
@@ -349,6 +384,9 @@ function resolveWikiTargetInIndex(activeFile, basename, areaRoot) {
 module.exports = {
   filesByAlias,
   resolveWikiLink,
+  // 4T-1288: fuer den Kosten-Waechter-Test exportiert (Suffix-Map-Semantik
+  // und Aufruf-Schranke werden am entry-Objekt direkt geprueft).
+  resolveWikiLinkDetailed,
   backlinksFor,
   existingWikiTargets,
   resolveWikiTargetByAlias,

@@ -2,7 +2,7 @@
 // (src/main/area/area-path.js). Die Innerhalb-Prüfung ist die eine Grenze aller
 // Bereichs-Pfade; Windows-Fälle (Groß/Klein, gemischte Trenner, `..`,
 // Präfix-Nachbarn) sind hier abgesichert.
-import { afterEach, describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import {
   isSamePath,
   isInsideArea,
@@ -20,7 +20,37 @@ import { createRequire } from 'node:module';
 // 'require' getrennte Instanzen (Muster area-search.test.js).
 const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 
-const ROOT = 'C:\\Daten\\Notizen';
+// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
+// die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
+// sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
+// Plattformen als RELATIVEN Pfad liest und das Arbeitsverzeichnis davorsetzt.
+//
+// Der Laufwerksbuchstabe wird zum ERSTEN Pfad-Segment und nicht etwa
+// weggelassen: Sonst faenden 'C:\Daten' und 'D:\Daten' auf der Zielplattform
+// zusammen, und gerade die Faelle, die verschiedene Laufwerke auseinander
+// halten sollen, schluegen ins Gegenteil um (belegt am 2026-08-28).
+// Klein geschrieben, damit zwei Schreibweisen desselben Laufwerks dasselbe
+// Segment ergeben und die Schreibweisen-Faelle weiter greifen.
+//
+// Unter Windows ist der Umrechner die Identitaet, die Haupt-Plattform prueft
+// also unveraendert weiter.
+const P = (w) =>
+  process.platform === 'win32'
+    ? w
+    : `/${w[0].toLowerCase()}/${w.slice(3)}`.split('\\').join('/').replace(/\/+/g, '/');
+
+const ROOT = P('C:\\Daten\\Notizen');
+
+// 4T-1250 (Epic 3E-0124): Die Faelle ausserhalb der Paar-Tests pruefen die
+// case-INSENSITIVE Pfad-Identitaet — dass abweichende Schreibung und
+// gemischte Trenner denselben Ort meinen. Das ist eine Eigenschaft von
+// Windows und macOS, nicht von Linux, und sie hing bisher stillschweigend an
+// der realen Plattform des Rechners. Ausdruecklich gesetzt laufen sie ueberall
+// und pruefen weiterhin genau das, was sie meinen (Vorbild: die Pinnung in
+// test/unit/renderer/area.test.js). Die Paar-Tests unten setzen ihre eigene
+// Plattform und gewinnen ueber diese Vorbelegung.
+beforeEach(() => setPlatformForTests('win32'));
 
 afterEach(() => {
   setPlatformForTests(undefined);
@@ -33,81 +63,84 @@ afterEach(() => {
 describe('Bereichs-Grenze je Dateisystem-Verhalten (4T-1203)', () => {
   it('linux: abweichende Schreibung liegt AUSSERHALB, exakte innerhalb', () => {
     setPlatformForTests('linux');
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\Sub\\a.md')).toBe(true);
-    expect(isInsideArea(ROOT, 'c:\\daten\\NOTIZEN\\a.md')).toBe(false);
-    expect(isSamePath(ROOT, 'c:/daten/notizen/')).toBe(false);
-    expect(isSamePath(ROOT, 'C:/Daten/Notizen/')).toBe(true);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\Sub\\a.md'))).toBe(true);
+    expect(isInsideArea(ROOT, P('c:\\daten\\NOTIZEN\\a.md'))).toBe(false);
+    expect(isSamePath(ROOT, P('c:/daten/notizen/'))).toBe(false);
+    expect(isSamePath(ROOT, P('C:/Daten/Notizen/'))).toBe(true);
   });
 
   it('darwin: abweichende Schreibung liegt innerhalb (wie Windows)', () => {
     setPlatformForTests('darwin');
-    expect(isInsideArea(ROOT, 'c:\\daten\\NOTIZEN\\a.md')).toBe(true);
-    expect(isSamePath(ROOT, 'c:/daten/notizen/')).toBe(true);
+    expect(isInsideArea(ROOT, P('c:\\daten\\NOTIZEN\\a.md'))).toBe(true);
+    expect(isSamePath(ROOT, P('c:/daten/notizen/'))).toBe(true);
   });
 });
 
 describe('isInsideArea (4T-0322)', () => {
   it('Dateien im Bereich und in Unterordnern liegen innerhalb', () => {
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\a.md')).toBe(true);
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\Sub\\Tiefer\\b.md')).toBe(true);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\a.md'))).toBe(true);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\Sub\\Tiefer\\b.md'))).toBe(true);
   });
 
   it('der Wurzelordner selbst zählt als innerhalb', () => {
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen')).toBe(true);
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\')).toBe(true);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen'))).toBe(true);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\'))).toBe(true);
   });
 
   it('Groß-/Kleinschreibung und gemischte Trenner sind egal', () => {
-    expect(isInsideArea(ROOT, 'c:\\daten\\NOTIZEN\\a.md')).toBe(true);
-    expect(isInsideArea(ROOT, 'C:/Daten/Notizen/Sub/a.md')).toBe(true);
-    expect(isInsideArea('C:/daten/notizen', 'C:\\Daten\\Notizen\\a.md')).toBe(true);
+    expect(isInsideArea(ROOT, P('c:\\daten\\NOTIZEN\\a.md'))).toBe(true);
+    expect(isInsideArea(ROOT, P('C:/Daten/Notizen/Sub/a.md'))).toBe(true);
+    expect(isInsideArea(P('C:/daten/notizen'), P('C:\\Daten\\Notizen\\a.md'))).toBe(true);
   });
 
   it('Präfix-Nachbarn matchen nicht', () => {
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen2\\a.md')).toBe(false);
-    expect(isInsideArea(ROOT, 'C:\\Daten\\NotizenArchiv\\a.md')).toBe(false);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen2\\a.md'))).toBe(false);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\NotizenArchiv\\a.md'))).toBe(false);
   });
 
   it('..-Ausbrüche werden aufgelöst und abgewiesen', () => {
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\..\\Geheim\\a.md')).toBe(false);
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\Sub\\..\\..\\a.md')).toBe(false);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\..\\Geheim\\a.md'))).toBe(false);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\Sub\\..\\..\\a.md'))).toBe(false);
     // Aufgelöst wieder innerhalb: erlaubt.
-    expect(isInsideArea(ROOT, 'C:\\Daten\\Notizen\\Sub\\..\\a.md')).toBe(true);
+    expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\Sub\\..\\a.md'))).toBe(true);
   });
 
   it('außerhalb, andere Laufwerke und Nicht-Strings liegen außerhalb', () => {
-    expect(isInsideArea(ROOT, 'D:\\Daten\\Notizen\\a.md')).toBe(false);
-    expect(isInsideArea(ROOT, 'C:\\Woanders\\a.md')).toBe(false);
+    expect(isInsideArea(ROOT, P('D:\\Daten\\Notizen\\a.md'))).toBe(false);
+    expect(isInsideArea(ROOT, P('C:\\Woanders\\a.md'))).toBe(false);
     expect(isInsideArea(ROOT, '')).toBe(false);
     expect(isInsideArea(ROOT, null)).toBe(false);
-    expect(isInsideArea(null, 'C:\\Daten\\Notizen\\a.md')).toBe(false);
+    expect(isInsideArea(null, P('C:\\Daten\\Notizen\\a.md'))).toBe(false);
   });
 });
 
 describe('isSamePath (4T-0322)', () => {
   it('erkennt denselben Ordner über Schreibweisen hinweg', () => {
-    expect(isSamePath(ROOT, 'c:/daten/notizen/')).toBe(true);
-    expect(isSamePath(ROOT, 'C:\\Daten\\Notizen\\Sub')).toBe(false);
+    expect(isSamePath(ROOT, P('c:/daten/notizen/'))).toBe(true);
+    expect(isSamePath(ROOT, P('C:\\Daten\\Notizen\\Sub'))).toBe(false);
     expect(isSamePath(null, null)).toBe(false);
   });
 });
 
 describe('updatedRecentAreas (4T-0325)', () => {
   it('setzt den jüngsten Bereich nach vorn und dedupliziert über Pfad-Gleichheit', () => {
-    const list = ['C:\\A', 'C:\\B'];
-    expect(updatedRecentAreas(list, 'C:\\C')).toEqual(['C:\\C', 'C:\\A', 'C:\\B']);
+    const list = [P('C:\\A'), P('C:\\B')];
+    expect(updatedRecentAreas(list, P('C:\\C'))).toEqual([P('C:\\C'), P('C:\\A'), P('C:\\B')]);
     // Erneutes Öffnen (andere Schreibweise) rückt nach vorn statt zu duplizieren.
-    expect(updatedRecentAreas(['C:\\A', 'C:\\B'], 'c:/b/')).toEqual(['c:\\b', 'C:\\A']);
+    expect(updatedRecentAreas([P('C:\\A'), P('C:\\B')], P('c:/b/'))).toEqual([
+      P('c:\\b'),
+      P('C:\\A'),
+    ]);
   });
 
   it('kappt auf die Maximal-Länge und toleriert kaputte Eingaben', () => {
     const list = Array.from({ length: 10 }, (_, i) => `C:\\Ordner${i}`);
-    const result = updatedRecentAreas(list, 'C:\\Neu');
+    const result = updatedRecentAreas(list, P('C:\\Neu'));
     expect(result).toHaveLength(10);
-    expect(result[0]).toBe('C:\\Neu');
-    expect(result).not.toContain('C:\\Ordner9');
-    expect(updatedRecentAreas(null, 'C:\\Neu')).toEqual(['C:\\Neu']);
-    expect(updatedRecentAreas([42, null, 'C:\\A'], '')).toEqual(['C:\\A']);
+    expect(result[0]).toBe(P('C:\\Neu'));
+    expect(result).not.toContain(P('C:\\Ordner9'));
+    expect(updatedRecentAreas(null, P('C:\\Neu'))).toEqual([P('C:\\Neu')]);
+    expect(updatedRecentAreas([42, null, P('C:\\A')], '')).toEqual([P('C:\\A')]);
   });
 });
 
@@ -117,45 +150,49 @@ describe('updatedRecentAreas (4T-0325)', () => {
 describe('updatedRecentPaths (4T-0888)', () => {
   it('setzt den jüngsten Ordner nach vorn und dedupliziert über Pfad-Gleichheit', () => {
     // 4T-0888
-    expect(updatedRecentPaths(['C:\\Buch1', 'C:\\Buch2'], 'C:\\Buch3')).toEqual([
-      'C:\\Buch3',
-      'C:\\Buch1',
-      'C:\\Buch2',
+    expect(updatedRecentPaths([P('C:\\Buch1'), P('C:\\Buch2')], P('C:\\Buch3'))).toEqual([
+      P('C:\\Buch3'),
+      P('C:\\Buch1'),
+      P('C:\\Buch2'),
     ]);
     // Erneutes Öffnen desselben Buches (andere Schreibweise, Trenner, Schluss-
     // Trenner) rückt nach vorn statt eine Dublette anzulegen.
-    expect(updatedRecentPaths(['C:\\Buch1', 'C:\\Buch2'], 'c:/buch2/')).toEqual([
-      'c:\\buch2',
-      'C:\\Buch1',
+    expect(updatedRecentPaths([P('C:\\Buch1'), P('C:\\Buch2')], P('c:/buch2/'))).toEqual([
+      P('c:\\buch2'),
+      P('C:\\Buch1'),
     ]);
   });
 
   it('kappt auf die Maximal-Länge und toleriert kaputte Eingaben', () => {
     // 4T-0888
-    const list = Array.from({ length: 10 }, (_, i) => `C:\\Regal${i}`);
-    const result = updatedRecentPaths(list, 'C:\\Neu');
+    const list = Array.from({ length: 10 }, (_, i) => P(`C:\\Regal${i}`));
+    const result = updatedRecentPaths(list, P('C:\\Neu'));
     expect(result).toHaveLength(10);
-    expect(result[0]).toBe('C:\\Neu');
-    expect(result).not.toContain('C:\\Regal9');
+    expect(result[0]).toBe(P('C:\\Neu'));
+    expect(result).not.toContain(P('C:\\Regal9'));
     // Eigene Kappungs-Grenze und defekte Eingaben.
-    expect(updatedRecentPaths(list, 'C:\\Neu', 3)).toEqual(['C:\\Neu', 'C:\\Regal0', 'C:\\Regal1']);
-    expect(updatedRecentPaths(null, 'C:\\Neu')).toEqual(['C:\\Neu']);
-    expect(updatedRecentPaths([42, null, 'C:\\A'], '')).toEqual(['C:\\A']);
+    expect(updatedRecentPaths(list, P('C:\\Neu'), 3)).toEqual([
+      P('C:\\Neu'),
+      P('C:\\Regal0'),
+      P('C:\\Regal1'),
+    ]);
+    expect(updatedRecentPaths(null, P('C:\\Neu'))).toEqual([P('C:\\Neu')]);
+    expect(updatedRecentPaths([42, null, P('C:\\A')], '')).toEqual([P('C:\\A')]);
   });
 });
 
 describe('withoutRecentPath (4T-0888)', () => {
   it('trägt genau den angegebenen Eintrag aus (Ziel existiert nicht mehr)', () => {
     // 4T-0888
-    const list = ['C:\\Buch1', 'C:\\Buch2', 'C:\\Buch3'];
-    expect(withoutRecentPath(list, 'C:\\Buch2')).toEqual(['C:\\Buch1', 'C:\\Buch3']);
+    const list = [P('C:\\Buch1'), P('C:\\Buch2'), P('C:\\Buch3')];
+    expect(withoutRecentPath(list, P('C:\\Buch2'))).toEqual([P('C:\\Buch1'), P('C:\\Buch3')]);
     // Pfad-Gleichheit statt String-Gleichheit (Schreibweise, Trenner).
-    expect(withoutRecentPath(list, 'c:/BUCH1/')).toEqual(['C:\\Buch2', 'C:\\Buch3']);
+    expect(withoutRecentPath(list, P('c:/BUCH1/'))).toEqual([P('C:\\Buch2'), P('C:\\Buch3')]);
     // Unbekanntes Ziel und defekte Eingaben lassen die Liste unverändert.
-    expect(withoutRecentPath(list, 'C:\\Fremd')).toEqual(list);
+    expect(withoutRecentPath(list, P('C:\\Fremd'))).toEqual(list);
     expect(withoutRecentPath(list, '')).toEqual(list);
-    expect(withoutRecentPath(null, 'C:\\Buch1')).toEqual([]);
-    expect(withoutRecentPath([42, null, 'C:\\A'], 'C:\\B')).toEqual(['C:\\A']);
+    expect(withoutRecentPath(null, P('C:\\Buch1'))).toEqual([]);
+    expect(withoutRecentPath([42, null, P('C:\\A')], P('C:\\B'))).toEqual([P('C:\\A')]);
   });
 });
 
@@ -208,8 +245,8 @@ describe('sanitizeNewFileName (4T-0328)', () => {
 
 describe('areaFromRootPath (4T-0322)', () => {
   it('leitet den Bereichsnamen aus dem Ordnernamen ab', () => {
-    expect(areaFromRootPath('C:\\Daten\\Notizen\\')).toEqual({
-      rootPath: 'C:\\Daten\\Notizen',
+    expect(areaFromRootPath(P('C:\\Daten\\Notizen\\'))).toEqual({
+      rootPath: P('C:\\Daten\\Notizen'),
       name: 'Notizen',
     });
     expect(areaFromRootPath('')).toBeNull();

@@ -53,3 +53,24 @@ export const VOLLBAU_ZEITLIMIT = 120000;
 // Hook, der ins Limit läuft, einen roten Lauf mit **null** fehlgeschlagenen
 // Tests erzeugt, also das am schwersten zu deutende Fehlerbild.
 export const AUFRAEUM_ZEITLIMIT = 60000;
+
+// Voller Repositoriums-Bestand unter CONTAINER-I/O. Derselbe Auslöser wie
+// BESTAND_ZEITLIMIT, aber über ein gemountetes Volume: Der Linux-Gate-Lauf
+// (scripts/test-linux-docker.js) reicht das Repositorium in den Container, und
+// jeder einzelne Datei-Zugriff kostet dort ein Vielfaches. Der Wert ist damit
+// keine Aussage über die Fach-Logik, sondern über den Prüfstand.
+//
+// Belegt am 2026-08-29 an der Widmungs-Ketten-Auflösung über rund 1500
+// Aufgaben-Dateien: auf Windows 4356 ms für diesen EINEN Fall (er trägt damit
+// fast die gesamte Laufzeit seiner Prüfdatei), im Container zweimal in Folge
+// über der 60-s-Grenze von SCHWER_ZEITLIMIT — auf nachweislich lastfreiem
+// Rechner, also kein Flake. Der Container-Faktor liegt damit über 13.
+//
+// SOFORT-MASSNAHME, kein Zielzustand: Die eigentliche Ursache ist die Laufzeit
+// der Ketten-Auflösung selbst, und sie ist als eigener Vorgang verortet
+// (4T-1283, Epic 3E-0032). Fällt sie, gehört dieser Wert zurück auf
+// SCHWER_ZEITLIMIT. Er ist bewusst großzügig gewählt, weil ein zweiter roter
+// Lauf an derselben Stelle teurer wäre als eine späte Hänger-Erkennung in
+// genau diesem einen Fall; die Warnung im Kopf dieser Datei gilt unverändert
+// für jeden weiteren Nutzer dieses Werts.
+export const BESTAND_CONTAINER_ZEITLIMIT = 180000;
