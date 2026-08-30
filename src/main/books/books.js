@@ -48,6 +48,11 @@ const {
 // die Buch-Ordner-Grenze des Verschiebe-Ziels; `isSamePath` vergleicht zwei
 // Pfade case-insensitiv wie das Windows-Dateisystem.
 const { sanitizeNewFileName, isInsideArea, isSamePath } = require('../area/area-path.js');
+// 4T-1276 (Epic 3E-0232, Befund B1): Pfad- und Dateinamen-Vergleiche dieses
+// Moduls entscheiden über Datei-Identität und fragen deshalb die zentrale
+// Auskunft. NICHT betroffen sind Vergleiche von Datei-ENDUNGEN (isMarkdownName):
+// eine Endung ist konventionell schreibweisen-tolerant, `.MD` ist Markdown.
+const { pathCompareKey } = require('../../shared/platform.js');
 
 // Endungs-Satz der Markdown-Dateien, identisch zu isMarkdownPath in main.js.
 // Bewusst nachgebildet statt importiert: main.js lädt dieses Modul, die
@@ -487,7 +492,7 @@ async function planChapterFileMove(bookDir, relPath, targetDir) {
   const root = path.resolve(bookDir);
   const sourcePath = path.join(root, ...rel.split('/'));
   const bookFileName = readBookFileName(settings.container);
-  if (bookFileName !== null && rel.toLowerCase() === bookFileName.toLowerCase()) {
+  if (bookFileName !== null && pathCompareKey(rel) === pathCompareKey(bookFileName)) {
     return { ok: false, error: 'book-file' };
   }
   try {
@@ -534,11 +539,12 @@ async function planChapterFileMove(bookDir, relPath, targetDir) {
 // Windows-Dateisystem unterscheidet Groß- und Kleinschreibung nicht (Muster
 // fileKey im Kern-Modul).
 function chapterBaseNameKey(relPath) {
-  return String(relPath || '')
-    .replace(/\\/g, '/')
-    .split('/')
-    .pop()
-    .toLowerCase();
+  return pathCompareKey(
+    String(relPath || '')
+      .replace(/\\/g, '/')
+      .split('/')
+      .pop(),
+  );
 }
 
 // Namensgleiche Markdown-Dateien an ANDERER Stelle des Buch-Ordners, als
@@ -552,10 +558,10 @@ function chapterBaseNameKey(relPath) {
 function namesakeSuggestions(markdownPaths, missingPath, tree, bookFileName) {
   const wanted = chapterBaseNameKey(missingPath);
   if (wanted === '') return [];
-  const missingKey = String(missingPath).replace(/\\/g, '/').toLowerCase();
-  const bookKey = typeof bookFileName === 'string' ? bookFileName.toLowerCase() : null;
+  const missingKey = pathCompareKey(String(missingPath).replace(/\\/g, '/'));
+  const bookKey = typeof bookFileName === 'string' ? pathCompareKey(bookFileName) : null;
   return (Array.isArray(markdownPaths) ? markdownPaths : []).filter((rel) => {
-    const key = String(rel).toLowerCase();
+    const key = pathCompareKey(String(rel));
     if (key === missingKey || key === bookKey) return false;
     if (chapterBaseNameKey(rel) !== wanted) return false;
     return !hasChapter(tree, rel);
@@ -624,7 +630,7 @@ async function reassignChapter(bookDir, missingPath, newPath) {
   // von Hand eingetippter Name kann den Filter aber umgehen.
   if (!isMarkdownName(newRel)) return { ok: false, error: 'invalid-path' };
   const bookFileName = readBookFileName(settings.container);
-  if (bookFileName !== null && newRel.toLowerCase() === bookFileName.toLowerCase()) {
+  if (bookFileName !== null && pathCompareKey(newRel) === pathCompareKey(bookFileName)) {
     return { ok: false, error: 'book-file' };
   }
   try {
@@ -634,7 +640,7 @@ async function reassignChapter(bookDir, missingPath, newPath) {
   }
   // Vor der Belegt-Prüfung: der eigene Eintrag hängt selbst im Baum und wäre
   // sonst seine eigene Kollision.
-  if (newRel.toLowerCase() === rel.toLowerCase()) return { ok: false, error: 'unchanged' };
+  if (pathCompareKey(newRel) === pathCompareKey(rel)) return { ok: false, error: 'unchanged' };
   if (hasChapter(tree, newRel)) return { ok: false, error: 'duplicate-path' };
   const result = renameChapterPath(tree, rel, newRel);
   if (!result.ok) return { ok: false, error: result.error };

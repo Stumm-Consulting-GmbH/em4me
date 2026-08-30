@@ -64,7 +64,20 @@ export function ensureFilterUi(ctx) {
     btn.title = t('events.filter.show');
     btn.setAttribute('aria-label', t('events.filter.show'));
     btn.textContent = '▽';
-    ctx.container.insertBefore(btn, ctx.container.firstChild);
+    // 4T-1278 (Epic 3E-0232, Befund B2): Der Knopf gehoert IN die
+    // Ansichts-Leiste, nicht als absolut verankertes Element darueber.
+    // Zuvor schwebte er am rechten Rand des Containers und ueberlappte den
+    // letzten Ansichts-Knopf; unter Linux setzt die Leiste breiter, die
+    // Klick-Mitte des Gantt-Knopfs geriet unter ihn, und die Gantt-Ansicht
+    // war nicht mehr erreichbar. Im Fluss der Leiste ist ein Ueberlapp per
+    // Konstruktion ausgeschlossen — unabhaengig von jeder Schrift.
+    // `.pev-switcher` steht immer, wenn `.pev-display` steht (beide entstehen
+    // zusammen in perspective-events.js); der Rueckfall auf den Container
+    // bleibt dennoch stehen, damit ein kuenftiger Umbau den Knopf nicht
+    // stillschweigend verliert.
+    const leiste = ctx.container.querySelector('.pev-switcher');
+    if (leiste) leiste.appendChild(btn);
+    else ctx.container.insertBefore(btn, ctx.container.firstChild);
   }
   const toggle = ctx.container.querySelector('.pev-filter-toggle');
   toggle.classList.toggle('active', !!(st && st.filtersOpen));

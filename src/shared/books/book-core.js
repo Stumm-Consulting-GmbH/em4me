@@ -42,6 +42,8 @@
 // Schreiben der Datei bleibt dem Main-Prozess vorbehalten.
 'use strict';
 
+const { pathCompareKey } = require('../platform.js');
+
 // Pfad-Normalisierung aus dem Lesezeichen-Modul: `normalizeRelPath` ist dort
 // generisch für wurzel-relative Ziele geschrieben und nicht lesezeichen-
 // spezifisch; eine zweite Fassung wäre eine zweite Wahrheit.
@@ -74,10 +76,29 @@ function normalizeChapterPath(value) {
   return normalizeRelPath(value);
 }
 
-// Vergleichs-Schlüssel für Datei-Identität. Das Windows-Dateisystem
-// unterscheidet Groß-/Kleinschreibung nicht; die gespeicherte Schreibweise
-// bleibt davon unberührt (Muster toRootRelative in bookmark-tree.js).
+// Vergleichs-Schlüssel für Datei-Identität. Die Frage, ob das Dateisystem die
+// Schreibung unterscheidet, beantwortet die zentrale Auskunft in
+// shared/platform.js; die gespeicherte Schreibweise bleibt davon unberührt
+// (Muster toRootRelative in bookmark-tree.js).
+//
+// 4T-1276 (Epic 3E-0232, Befund B1): Vorher stand hier eine feste
+// Kleinschreibung mit dem Kommentar «Das Windows-Dateisystem unterscheidet
+// Groß-/Kleinschreibung nicht». Unter Linux sind `Aufbruch.md` und
+// `aufbruch.md` ZWEI Dateien, und die Anwendung behandelte sie als eine.
 function fileKey(value) {
+  return typeof value === 'string' ? pathCompareKey(value) : '';
+}
+
+// AUSGESPROCHEN plattform-unabhängige Faltung, bewusst abweichend von fileKey:
+// Die Begleitdatei wird an ihrem NAMEN erkannt, verglichen gegen eine
+// Konstante, die die Anwendung selbst schreibt — nicht gegen einen zweiten
+// Pfad. Ein Buch-Ordner, der aus einem fremden System zuwandert und die Datei
+// anders geschrieben trägt, soll auch auf einem case-sensitiven Dateisystem
+// als Buch erkannt werden. Entscheidung des Product Owners vom 2026-08-29
+// (4T-1275); die Absicht steht hier, weil `4S-0841` genau das verlangt: «Wo
+// eine strengere als die plattformübliche Regel bewusst überall gilt, ist die
+// Absicht dokumentiert.»
+function settingsNameKey(value) {
   return typeof value === 'string' ? value.toLowerCase() : '';
 }
 
@@ -144,7 +165,10 @@ function serializeBookContainer(container) {
 
 // Ist dieser Datei-Name die Begleitdatei eines Buches?
 function isBookSettingsFileName(name) {
-  return typeof name === 'string' && fileKey(name.trim()) === fileKey(BOOK_SETTINGS_FILENAME);
+  return (
+    typeof name === 'string' &&
+    settingsNameKey(name.trim()) === settingsNameKey(BOOK_SETTINGS_FILENAME)
+  );
 }
 
 // Trägt der Ordner-Inhalt eine Begleitdatei? `entries` ist die Liste der

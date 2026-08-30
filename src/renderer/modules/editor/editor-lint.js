@@ -11,6 +11,10 @@ import { StateEffect, StateField } from '@codemirror/state';
 import { Decoration, EditorView, hoverTooltip } from '@codemirror/view';
 import { ensureSyntaxTree, syntaxTree } from '@codemirror/language';
 import { CALLOUT_TYPES } from '../../../shared/callouts.js';
+// 4T-1277 (Epic 3E-0232, Befund B3): Erkennung der relativen Wiki-Formen aus
+// der einen Quelle der Unterseiten-Semantik, statt den Schraegstrich hier ein
+// zweites Mal zu deuten.
+import { isRelativeTarget } from '../../../shared/subpages.js';
 import { t } from '../../i18n.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { computeCommentRanges, detectFrontmatterLines } from '../live/live-marker-fields.js';
@@ -283,6 +287,14 @@ export async function runLint(view) {
     for (const w of wikiMatches) {
       const filePart = w.target.split('#')[0].trim();
       if (!filePart) continue;
+      // 4T-1277 (Befund B3): Die relativen Wiki-Formen sind keine Pfade.
+      // `/Name` bezeichnet eine Unterseite der aktuellen Seite und `..` ihre
+      // Elternseite; beide koennen den Bereich bauartbedingt nicht verlassen.
+      // Ohne diese Ausnahme wurde `[[/Earth]]` zu `/Earth.md` und damit unter
+      // Linux zu einem absoluten Pfad an der Wurzel des Dateisystems — also
+      // «ausserhalb» —, waehrend derselbe Verweis unter Windows dokument-
+      // relativ blieb und zufaellig innerhalb landete.
+      if (isRelativeTarget(filePart)) continue;
       const withExt = /\.[a-z0-9]+$/i.test(filePart) ? filePart : `${filePart}.md`;
       const resolved = resolveLocalTarget(tab.path, withExt);
       if (resolved && isOutsideActiveArea(resolved)) {

@@ -50,6 +50,8 @@ const { analyzeTemplate, fillTemplate } = require('./template-engine');
 // 4T-0987 (Epic 3E-0196): Format-Kern der Abfrage-Sprache, seit dem Schnitt
 // in src/shared/query/query-format.js.
 const { formatDateMs, isoWeekOf } = require('./query/query-format.js');
+// 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+const { pathCompareKey } = require('./platform.js');
 const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter');
 
 // Granularitäten in fachlicher Reihenfolge fein -> grob; die Reihenfolge
@@ -361,9 +363,7 @@ const FIND_SPAN = {
 // (opts.aroundMs, Default jetzt) nach außen — der typische Fall (aktueller
 // Eintrag) terminiert damit sofort. null = kein Treffer im Fenster.
 function findPeriodForPath(journal, relPath, opts) {
-  const target = String(relPath == null ? '' : relPath)
-    .replace(/\\/g, '/')
-    .toLowerCase();
+  const target = pathCompareKey(String(relPath == null ? '' : relPath).replace(/\\/g, '/'));
   if (!journal || target === '') return null;
   const span = FIND_SPAN[journal.granularity];
   if (!span) return null;
@@ -373,7 +373,7 @@ function findPeriodForPath(journal, relPath, opts) {
   const matches = (period) => {
     if (!period || !periodAllowed(journal, period)) return false;
     const resolved = resolveEntryPath(journal, period);
-    return resolved.ok && resolved.relPath.toLowerCase() === target;
+    return resolved.ok && pathCompareKey(resolved.relPath) === target;
   };
   if (matches(center)) return center;
   for (let i = 1; i <= Math.max(back, fwd); i++) {

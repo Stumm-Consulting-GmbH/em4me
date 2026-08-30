@@ -1,5 +1,3 @@
-'use strict';
-
 // 4T-1070 (Epic 3E-0211): Quellen-Auswertung der Perspective-Query-Sprache
 // (FROM-Ebene), herausgelöst aus perspective-query-eval.js. Der Schnitt wurde
 // vom Datei-Größen-Budget erzwungen, folgt aber der Naht, die der Kern schon
@@ -14,14 +12,25 @@
 // Quellen-Ebene auch der Funktions-Katalog sie braucht.
 //
 // Prozess-neutral (kein Electron, kein DOM), kein eval.
+'use strict';
+
+const { pathCompareKey } = require('../platform.js');
 
 // Normalisiert eine Ordner-Angabe der Quelle: Backslashes zu '/', führende und
-// schließende Slashes weg, lowercase (Windows-Dateisystem ist case-insensitiv).
+// schließende Slashes weg, Schreibweise nach der zentralen Auskunft.
+//
+// 4T-1276 (Epic 3E-0232, Befund B1): Vorher wurde hier fest kleingeschrieben
+// mit der Begründung «Windows-Dateisystem ist case-insensitiv». Ein Ordner ist
+// Datei-Identität; die Tag-Vergleiche weiter unten (srcTag) sind es NICHT und
+// bleiben deshalb bewusst plattform-unabhängig tolerant — ein Tag ist ein
+// logischer Name, dieselbe Abgrenzung wie bei den Wiki-Namen in
+// shared/markdown/link-scan.js.
 function normFolder(s) {
-  return String(s || '')
-    .replace(/\\/g, '/')
-    .replace(/^\/+|\/+$/g, '')
-    .toLowerCase();
+  return pathCompareKey(
+    String(s || '')
+      .replace(/\\/g, '/')
+      .replace(/^\/+|\/+$/g, ''),
+  );
 }
 
 // Prüft eine Datei (über ihren Abfrage-Kontext) gegen den FROM-Quellen-AST.
@@ -60,12 +69,12 @@ function matchesSource(node, ctx) {
     case 'srcSelf': {
       const selfFile = ctx && ctx.self && ctx.self.file;
       if (!f || !selfFile || typeof selfFile.absPath !== 'string') return false;
-      const target = selfFile.absPath.toLowerCase();
+      const target = pathCompareKey(selfFile.absPath);
       // mode 'in':  Dateien, die auf die Träger-Datei verlinken.
       // mode 'out': Dateien, auf die die Träger-Datei verlinkt.
       const links = node.mode === 'in' ? f.outlinks : f.inlinks;
       if (!Array.isArray(links)) return false;
-      return links.some((l) => String(l.path).toLowerCase() === target);
+      return links.some((l) => pathCompareKey(String(l.path)) === target);
     }
     case 'srcLink': {
       if (!f || !ctx || typeof ctx.resolveLinkTarget !== 'function') return false;
@@ -75,7 +84,7 @@ function matchesSource(node, ctx) {
       // mode 'out': Dateien, auf die X verlinkt   -> eigene inlinks kommen von X.
       const links = node.mode === 'in' ? f.outlinks : f.inlinks;
       if (!Array.isArray(links)) return false;
-      return links.some((l) => targetPaths.has(String(l.path).toLowerCase()));
+      return links.some((l) => targetPaths.has(pathCompareKey(String(l.path))));
     }
     default:
       return false;

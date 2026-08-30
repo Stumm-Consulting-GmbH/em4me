@@ -132,3 +132,88 @@ describe('Pfad-Funktionen unter Linux (4T-1225)', () => {
     expect(area.resolveLocalTarget(DOC_LX, '/etc/x.md')).toBe('/etc/x.md');
   });
 });
+
+// 4T-1277 (Epic 3E-0232, Befund B3): Die Wiki-Kurzform [[/Name]] ist kein Pfad.
+//
+// **Der belegte Befund.** In der Demo-Area sind [[/Earth]] und [[/Mars]] auf der
+// Seite `Milky Way∕Sun` unter Linux markiert, unter Windows nicht (E2E-Fall
+// DA-03, Bildschirmfoto vom 2026-08-29). Der Index ist daran unschuldig: Die
+// Auflösung liefert die Ziel-Datei auf beiden Plattformen, in fünf Stufen belegt
+// in `test/unit/unterseiten-kurzform.test.js`.
+//
+// **Die Stelle.** Die Außen-Link-Prüfung hängt einem Wiki-Ziel ohne Endung ein
+// `.md` an und schickt das Ergebnis durch `resolveLocalTarget` — den Resolver
+// für **Datei-Pfade**. Aus `[[/Earth]]` wird so `/Earth.md`, und das ist unter
+// Linux ein absoluter Pfad an der Wurzel des Dateisystems, also außerhalb jedes
+// Bereichs. Unter Windows greift der POSIX-Zweig nicht, der führende Trenner
+// bleibt dokument-relativ, und das Ziel landet zufällig **innerhalb**.
+//
+// **Warum das die Wurzel ist und nicht ein Nebeneffekt.** `/Name` ist im
+// Wiki-Namensraum kein Pfad, sondern die Kurzform für eine Unterseite der
+// aktuellen Seite (`src/shared/subpages.js`, `isRelativeTarget`). Sie kann den
+// Bereich gar nicht verlassen. Die Prüfung wendet einen Dateisystem-Begriff auf
+// einen logischen Namensraum an — dieselbe Grenze, die 4T-1275 an `link-scan.js`
+// in die andere Richtung gezogen hat.
+describe('Wiki-Kurzform und die Bereichs-Grenze (4T-1277)', () => {
+  const AREA_LX = '/daten/demo';
+  const SUN_LX = '/daten/demo/Milky Way∕Sun.md';
+
+  it('unter Linux liest die Aussen-Pruefung [[/Earth]] als absoluten Pfad — der Marker', () => {
+    setPlatformForTests('linux');
+    state.areaPath = AREA_LX;
+    // Genau die Umformung der Linter-Regel 7 und von markOutsideAreaLinks:
+    // Ziel ohne Endung bekommt '.md' angehaengt.
+    const ziel = area.resolveLocalTarget(SUN_LX, '/Earth.md');
+    expect(ziel).toBe('/Earth.md');
+    expect(area.isOutsideActiveArea(ziel)).toBe(true);
+  });
+
+  it('unter Windows bleibt derselbe Verweis dokument-relativ und damit innerhalb', () => {
+    setPlatformForTests('win32');
+    state.areaPath = 'C:\\daten\\demo';
+    const ziel = area.resolveLocalTarget('C:\\daten\\demo\\Milky Way∕Sun.md', '/Earth.md');
+    expect(ziel).toBe('C:\\daten\\demo\\Earth.md');
+    expect(area.isOutsideActiveArea(ziel)).toBe(false);
+  });
+
+  it('die beiden Verweise, die im Befund aufloesen, liegen auch unter Linux innerhalb', () => {
+    setPlatformForTests('linux');
+    state.areaPath = AREA_LX;
+    // [[..]] wird zu '...md' (Endungs-Test greift bei '..' nicht) und
+    // [[Light Speed]] zu 'Light Speed.md'; beide ohne fuehrenden Trenner.
+    for (const ziel of ['...md', 'Light Speed.md']) {
+      expect(area.isOutsideActiveArea(area.resolveLocalTarget(SUN_LX, ziel))).toBe(false);
+    }
+  });
+
+  // Regressionstest der Behebung. Vor ihr war dieser Fall rot: `#kurz` trug
+  // die Warn-Klasse, weil markOutsideAreaLinks denselben Weg ging wie die
+  // Linter-Regel. Der Befund traf damit zwei Bedienorte, nicht nur den
+  // Editor-Marker — und die Lese-Ansicht deckt kein E2E-Fall ab (DA-03 sieht
+  // nur den Editor), weshalb diese Deckung hier liegt.
+  it('die Lese-Ansicht markiert die Kurzform NICHT mehr als Aussen-Link', () => {
+    setPlatformForTests('linux');
+    state.areaPath = AREA_LX;
+    const container = document.createElement('div');
+    // Die href-Form stammt aus dem Wiki-Plugin (src/shared/markdown/plugins/
+    // wiki.js): ein Ziel ohne Endung bekommt dort bereits '.md' angehaengt,
+    // die Eltern-Form bleibt als blankes '..' stehen.
+    container.innerHTML =
+      '<a id="kurz" class="wikilink" href="/Earth.md">Earth</a>' +
+      '<a id="eltern" class="wikilink" href="..">hoch</a>' +
+      '<a id="voll" class="wikilink" href="Light Speed.md">Light Speed</a>' +
+      '<a id="raus" class="wikilink" href="../../../woanders.md">raus</a>' +
+      '<a id="mdraus" href="/etc/fremd.md">md-Link absolut</a>';
+    area.markOutsideAreaLinks(container, SUN_LX);
+    const klasse = (id) =>
+      container.querySelector(`#${id}`).classList.contains('outside-area-link');
+    expect(klasse('kurz')).toBe(false);
+    expect(klasse('eltern')).toBe(false);
+    expect(klasse('voll')).toBe(false);
+    // Keine Ueber-Korrektur: Ein Wiki-Ziel, das den Bereich wirklich verlaesst,
+    // wird weiterhin markiert — und ein gewoehnlicher Markdown-Link mit
+    // absolutem Ziel ebenso, denn dort ist der Schraegstrich ein Pfad-Anfang.
+    expect(klasse('raus')).toBe(true);
+    expect(klasse('mdraus')).toBe(true);
+  });
+});

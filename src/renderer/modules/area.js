@@ -18,6 +18,9 @@ import { state } from './app/app-state.js';
 // 4T-1225 (Epic 3E-0122): Vergleichs- und Trenner-Verhalten aus der einen
 // Plattform-Quelle (Muster 4T-1203, auf den Renderer ausgeweitet).
 import { isFilesystemCaseInsensitive, pathSeparator } from '../../shared/platform.js';
+// 4T-1277 (Epic 3E-0232): Erkennung der relativen Wiki-Formen aus der einen
+// Quelle der Unterseiten-Semantik.
+import { isRelativeTarget } from '../../shared/subpages.js';
 
 // 4T-0616 (Epic 3E-0116): exportiert, weil die Bereichs-Suche Pfade aus dem
 // Hauptprozess mit denen offener Reiter vergleicht. Zwei Normalisierungen
@@ -107,6 +110,11 @@ export function markOutsideAreaLinks(container, basePath) {
     if (a.classList.contains('wikilink')) {
       const file = href.split('#')[0];
       if (!file) continue;
+      // 4T-1277 (Epic 3E-0232, Befund B3): dieselbe Ausnahme wie in der
+      // Linter-Regel — die relativen Wiki-Formen sind keine Pfade und koennen
+      // den Bereich nicht verlassen. Die Lese-Ansicht ging bis hierher
+      // denselben Weg und markierte `[[/Name]]` unter Linux als Aussen-Link.
+      if (isRelativeTarget(file)) continue;
       target = /\.[a-z0-9]+$/i.test(file) ? file : `${file}.md`;
     }
     const resolved = resolveLocalTarget(base, target);

@@ -272,6 +272,86 @@ test.describe('DT-09: Spaltenkopf-Klick sortiert die Ansicht typ-gerecht', () =>
   });
 });
 
+// 4T-1286 (Epic 3E-0232): Der Filter-Umschalter darf keinen Spaltenkopf
+// verdecken.
+//
+// Anlass ist die Schwester-Behebung 4T-1278: Dort lag `.pev-filter-toggle` der
+// Ereignis-Ansicht absolut ueber der Ansichts-Leiste und fing deren Klicks ab —
+// unter Linux, wo die breitere Schrift die Klick-Mitte des Nachbar-Knopfs unter
+// ihn schob. `.pdt-filter-toggle` ist zeichengleich gebaut (`position: absolute;
+// top: 2px; right: 0; opacity: 0; z-index: 1`, ohne `font: inherit`). Eine
+// Ansichts-Leiste gibt es hier nicht, wohl aber die **klickbaren Spaltenkoepfe**
+// darunter: Der Funktions-Katalog nennt beide nebeneinander («Klick auf den
+// Spaltenkopf; Filter-Umschalter am rechten Tabellen-Rand»).
+//
+// Der Fall misst und klickt, wie in 4T-1278 begruendet: Die reine Geometrie
+// liesse eine geaenderte Stapel-Reihenfolge durch, und der reine Klick sagt
+// nichts ueber den Abstand. Im roten Fall gibt er die Zahlen aus, die die
+// Ursachen-Kandidaten trennen — das erspart unter Linux eine eigene Nachmessung
+// im Container.
+test.describe('DT-12: Filter-Umschalter verdeckt keinen Spaltenkopf (4T-1286)', () => {
+  test('Umschalter und rechtester Spaltenkopf ueberlappen nicht; der Sortier-Klick kommt an', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      const tabelle = page.locator(SEL.markdownBody0).locator('.perspective-datatable').first();
+      // Der Knopf traegt opacity: 0 und wird erst beim Ueberfahren sichtbar;
+      // seine Klick-Flaeche besteht unabhaengig davon.
+      await tabelle.hover();
+      await expect(tabelle.locator('.pdt-filter-toggle')).toHaveCount(1);
+
+      const mass = await tabelle.evaluate((el) => {
+        const f = el.querySelector('.pdt-filter-toggle');
+        const koepfe = [...el.querySelectorAll('.pdt-grid th.pdt-col')];
+        const letzter = koepfe[koepfe.length - 1];
+        const lies = (n) => {
+          const r = n.getBoundingClientRect();
+          const s = getComputedStyle(n);
+          return {
+            links: Math.round(r.left),
+            rechts: Math.round(r.right),
+            oben: Math.round(r.top),
+            unten: Math.round(r.bottom),
+            schrift: s.fontFamily,
+            groesse: s.fontSize,
+            zeiger: s.pointerEvents,
+          };
+        };
+        return { filter: lies(f), kopf: lies(letzter), spalten: koepfe.length };
+      });
+
+      const waagerecht =
+        mass.filter.links < mass.kopf.rechts && mass.kopf.links < mass.filter.rechts;
+      const senkrecht = mass.filter.oben < mass.kopf.unten && mass.kopf.oben < mass.filter.unten;
+      expect(
+        waagerecht && senkrecht,
+        `Filter-Umschalter verdeckt den rechtesten Spaltenkopf — der Sortier-Klick ` +
+          `kann dort ausfallen.\nfilter: ${JSON.stringify(mass.filter)}\n` +
+          `kopf  : ${JSON.stringify(mass.kopf)} (von ${mass.spalten} Spalten)`,
+      ).toBe(false);
+
+      // Beide Bedienelemente derselben Leiste setzen in derselben Schrift. Ein
+      // <button> erbt sie NICHT von selbst — fehlt `font: inherit`, faellt er
+      // auf die Vorgabe der Anzeige-Umgebung zurueck, und die Leiste laeuft in
+      // zwei Rueckfallketten. Genau das war in 4T-1278 gemessen (Arial gegen
+      // Segoe UI) und ist unabhaengig von einem Ueberlapp ein Mangel.
+      expect(
+        mass.filter.schrift,
+        `Der Filter-Umschalter setzt in einer anderen Schrift als die Tabelle:\n` +
+          `filter: ${mass.filter.schrift}\nkopf  : ${mass.kopf.schrift}`,
+      ).toBe(mass.kopf.schrift);
+
+      // Und der Klick muss ankommen: Playwright scheitert hier mit «intercepts
+      // pointer events», wenn etwas davorliegt.
+      const letzterKopf = tabelle.locator('.pdt-grid th.pdt-col').last();
+      await letzterKopf.click({ timeout: 10000 });
+      await expect(letzterKopf).toHaveClass(/pdt-sort-(asc|desc)/);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
 test.describe('DT-10: Filter-Zeile mit gefilterten Aggregaten und n-von-m-Zaehler', () => {
   test('Text-Filter reduziert die Ansicht, Editieren trifft die richtige Zeile, Zustand ueberlebt den Tab-Wechsel', async () => {
     const SECOND = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'mehrspalten.md');

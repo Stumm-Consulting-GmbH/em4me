@@ -22,6 +22,7 @@
 import { StateField, StateEffect } from '@codemirror/state';
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import { t } from '../i18n.js';
+import { pathCompareKey } from '../../shared/platform.js';
 import { api, getDocText } from './app/api.js';
 import { state, getPaneEls } from './app/app-state.js';
 import { paneEditors } from './editor/editor.js';
@@ -33,8 +34,9 @@ import { extractBlockAnchors } from '../../shared/block-anchors.js';
 // nicht-leeren Werten. Speist Render-Pane und Live-Modus aus einer Quelle.
 const metaByPath = new Map();
 
+// 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
 function pathKey(p) {
-  return String(p || '').toLowerCase();
+  return pathCompareKey(String(p || ''));
 }
 
 // Baut aus einer blockData-Map die Anker->values-Map (nur nicht-leere Werte).

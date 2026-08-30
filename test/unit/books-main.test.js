@@ -6,6 +6,7 @@
 // afterEach).
 import { afterEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
+import { isFilesystemCaseInsensitive } from '../../src/shared/platform.js';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -95,11 +96,20 @@ describe('detectBookDirFor (4T-0843)', () => {
     expect(await detectBookDirFor(path.join(dir, 'Reise nach Ithaka.md'))).toBe(dir);
   });
 
-  it('erkennt sie unabhängig von der Groß-/Kleinschreibung', async () => {
-    const dir = makeDir();
-    makeBook(dir, 'Reise nach Ithaka.md', []);
-    expect(await detectBookDirFor(path.join(dir, 'reise nach ithaka.MD'))).toBe(dir);
-  });
+  // 4T-1276 (Epic 3E-0232, Befund B1): Der Fall arbeitet an ECHTEN Dateien und
+  // prüft die Toleranz des Dateisystems selbst — auf einem case-sensitiven
+  // System gibt es die abweichend geschriebene Datei gar nicht, und die
+  // Erkennung liefert dort folgerichtig null. Er gilt deshalb nur, wo das
+  // Dateisystem tolerant ist; die plattform-simulierte Aussage steht in
+  // book-core.test.js, wo sie ohne Dateisystem prüfbar ist.
+  it.skipIf(!isFilesystemCaseInsensitive())(
+    'erkennt sie unabhängig von der Groß-/Kleinschreibung',
+    async () => {
+      const dir = makeDir();
+      makeBook(dir, 'Reise nach Ithaka.md', []);
+      expect(await detectBookDirFor(path.join(dir, 'reise nach ithaka.MD'))).toBe(dir);
+    },
+  );
 
   it('AK5: eine Kapitel-Datei ist keine Buch-Datei', async () => {
     const dir = makeDir();
@@ -745,14 +755,19 @@ describe('suggestMissingChapters (4T-0848)', () => {
     });
   });
 
-  it('vergleicht den Basenamen ohne Rücksicht auf die Schreibweise', async () => {
-    const dir = makeDir();
-    makeBook(dir, 'Buch.md', [{ path: 'Teil 1/Hafen.md', children: [] }]);
-    write(dir, 'Archiv/HAFEN.MD', '# Hafen\n');
-    expect((await suggestMissingChapters(dir, 'teil 1/hafen.md')).suggestions).toEqual([
-      'Archiv/HAFEN.MD',
-    ]);
-  });
+  // 4T-1276 (Epic 3E-0232, Befund B1): wie oben ein Fall an echten Dateien;
+  // der Basename-Vergleich folgt seit der Umstellung dem Dateisystem.
+  it.skipIf(!isFilesystemCaseInsensitive())(
+    'vergleicht den Basenamen ohne Rücksicht auf die Schreibweise',
+    async () => {
+      const dir = makeDir();
+      makeBook(dir, 'Buch.md', [{ path: 'Teil 1/Hafen.md', children: [] }]);
+      write(dir, 'Archiv/HAFEN.MD', '# Hafen\n');
+      expect((await suggestMissingChapters(dir, 'teil 1/hafen.md')).suggestions).toEqual([
+        'Archiv/HAFEN.MD',
+      ]);
+    },
+  );
 
   it('liefert alle Funde, wenn es mehrere gibt', async () => {
     const dir = makeDir();

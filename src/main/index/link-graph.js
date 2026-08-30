@@ -11,6 +11,11 @@ const path = require('node:path');
 const { toLogicalName } = require('../../shared/subpages.js');
 const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
+// 4T-1276 (Epic 3E-0232, Befund B1): Ziel-Pfade sind Datei-Identität.
+// Diese Datei stand NICHT in der Altbestands-Liste des Wächters — sie ist beim
+// Umstellen von query-sources.js aufgefallen, weil beide Seiten desselben
+// Mengen-Vergleichs gleich normalisieren müssen.
+const { pathCompareKey } = require('../../shared/platform.js');
 
 // 4T-0402 (Epic 3E-0076): Link-Graph der Wurzel (ausgehende und eingehende
 // Links pro Datei, als absolute Pfade). Wiki-Ziele werden wie im Backlinks-
@@ -33,7 +38,7 @@ function buildLinkGraph(entry) {
         resolved = [h.zielAbsolut];
       }
       for (const t of resolved) {
-        if (t !== src) targets.set(t.toLowerCase(), t);
+        if (t !== src) targets.set(pathCompareKey(t), t);
       }
     }
     outMap.set(src, [...targets.values()]);
@@ -52,7 +57,7 @@ function buildLinkGraph(entry) {
 }
 
 // 4T-0402 (Epic 3E-0076): Aufloesung eines FROM-Link-Ziels ([[X]] bzw.
-// outgoing([[X]])) zu einer Menge absoluter Pfade (lowercase, Vergleichs-
+// outgoing([[X]])) zu einer Menge absoluter Pfade (Vergleichs-
 // Schluessel). Alias- und Anker-/Label-Teile werden wie beim Klick-Pfad
 // abgeschnitten; pro Abfrage-Lauf memoisiert.
 function createTargetResolver(entry) {
@@ -64,7 +69,7 @@ function createTargetResolver(entry) {
     cleaned = cleaned.replace(MD_EXT_RE, '');
     let resolved = cleaned ? resolveWikiLink(entry, cleaned) : [];
     if (resolved.length === 0 && cleaned) resolved = filesByAlias(entry, cleaned);
-    const set = new Set(resolved.map((p) => p.toLowerCase()));
+    const set = new Set(resolved.map((p) => pathCompareKey(p)));
     cache.set(raw, set);
     return set;
   };

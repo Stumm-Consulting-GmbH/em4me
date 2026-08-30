@@ -6,31 +6,43 @@
 // des Buch-Ordners: es importiert nichts aus dem Renderer.
 'use strict';
 
+import { pathCompareKey } from '../../../shared/platform.js';
+
 // Eigener Datentyp des Zuges (Muster BOOKMARK_DND_MIME): Datei-Drops aus dem
 // Explorer und Reiter-Züge tragen ihn nicht und werden so nie als
 // Kapitel-Zug missdeutet.
 export const BOOK_DND_MIME = 'application/x-book-chapter';
 
 // Vergleichs-Schlüssel für Pfade: Vorwärts-Schrägstriche, ohne Schluss-Trenner,
-// Kleinschreibung. Das Windows-Dateisystem unterscheidet Groß- und
-// Kleinschreibung nicht (Muster fileKey in src/shared/books/book-core.js).
+// Schreibweise nach der zentralen Auskunft in shared/platform.js (Muster
+// fileKey in src/shared/books/book-core.js).
+//
+// 4T-1276 (Epic 3E-0232, Befund B1): Vorher wurde hier fest kleingeschrieben.
 export function pathKey(value) {
-  return String(value || '')
-    .replace(/\\/g, '/')
-    .replace(/\/+$/, '')
-    .toLowerCase();
+  return pathCompareKey(
+    String(value || '')
+      .replace(/\\/g, '/')
+      .replace(/\/+$/, ''),
+  );
 }
 
 // Buch-relativer Pfad einer geöffneten Datei; null, wenn sie außerhalb des
 // Buch-Ordners liegt. Die Schreibweise des Ergebnisses stammt aus dem
 // Datei-Pfad, verglichen wird über den Schlüssel.
+//
+// 4T-1276 (Epic 3E-0232, Befund B1): Der Präfix-Vergleich «liegt die Datei im
+// Buch-Ordner» ist eine GRENZPRÜFUNG und geht deshalb über dieselbe zentrale
+// Auskunft wie jede Gleichheits-Frage — dieselbe Art Entscheidung wie die
+// Bereichs-Grenze aus 4T-1203. `pathCompareKey` ist dafür ausdrücklich
+// vorgesehen («Für Gleichheits- und Präfix-Vergleiche sowie Pfad-Schlüssel von
+// Caches»), eine eigene Eigenschaft braucht es nicht.
 export function chapterPathFromFile(bookDir, filePath) {
   const rootRaw = String(bookDir || '')
     .replace(/\\/g, '/')
     .replace(/\/+$/, '');
   const fileRaw = String(filePath || '').replace(/\\/g, '/');
   if (rootRaw === '' || fileRaw === '') return null;
-  if (!fileRaw.toLowerCase().startsWith(rootRaw.toLowerCase() + '/')) return null;
+  if (!pathCompareKey(fileRaw).startsWith(pathCompareKey(rootRaw) + '/')) return null;
   const rel = fileRaw.slice(rootRaw.length + 1);
   return rel === '' ? null : rel;
 }

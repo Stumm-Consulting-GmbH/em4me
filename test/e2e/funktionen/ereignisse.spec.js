@@ -378,6 +378,73 @@ test.describe('EV-15: Gantt-Ansicht mit Balken, Raute und Abhängigkeits-Linie',
     }
   });
 
+  // 4T-1278 (Epic 3E-0232, Befund B2): Die Bedienelemente der Werkzeugleiste
+  // dürfen einander nicht überlappen.
+  //
+  // Der Befund: Unter Linux fängt der Filter-Umschalter die Klicks auf den
+  // Gantt-Knopf ab («.pev-filter-toggle intercepts pointer events»), und die
+  // Gantt-Ansicht ist damit nicht erreichbar — der vollständige Ausfall einer
+  // Funktion auf einer ausgelieferten Plattform. Unter Windows tritt das nicht
+  // auf.
+  //
+  // Der Fall ist zugleich **Messung und Regressionstest**: Er prüft die
+  // Überlappungs-Freiheit und legt im roten Fall die Zahlen offen, die die drei
+  // Ursachen-Kandidaten trennen (gesetzte Schrift, gerenderte Geometrie,
+  // Stapel-Reihenfolge). Ohne diese Ausgabe müsste ein roter Lauf unter Linux
+  // eigens nachgemessen werden, und ein Container-Lauf kostet Minuten.
+  test('Filter-Umschalter und Ansichts-Knöpfe überlappen einander nicht', async () => {
+    const { app, page, userData } = await launchApp({ args: [GANTT_FIXTURE] });
+    try {
+      await waitForTab(page);
+      const { fence } = await openSplit(page);
+      // Der Filter-Knopf trägt opacity: 0 und wird erst beim Überfahren des
+      // Containers sichtbar — seine Klick-Fläche besteht aber unabhängig davon.
+      await fence.hover();
+      const filter = fence.locator('.pev-filter-toggle');
+      const gantt = fence.locator('.pev-viewbtn[data-ev-viewbtn="gantt"]');
+      await expect(filter).toHaveCount(1);
+      await expect(gantt).toHaveCount(1);
+
+      const mass = await fence.evaluate((el) => {
+        const f = el.querySelector('.pev-filter-toggle');
+        const g = el.querySelector('.pev-viewbtn[data-ev-viewbtn="gantt"]');
+        const lies = (n) => {
+          const r = n.getBoundingClientRect();
+          const s = getComputedStyle(n);
+          return {
+            links: Math.round(r.left),
+            rechts: Math.round(r.right),
+            oben: Math.round(r.top),
+            unten: Math.round(r.bottom),
+            schrift: s.fontFamily,
+            groesse: s.fontSize,
+            zeiger: s.pointerEvents,
+            deckkraft: s.opacity,
+          };
+        };
+        return { filter: lies(f), gantt: lies(g) };
+      });
+
+      // Rechteck-Schnitt in beiden Achsen: nur dann verdeckt das eine das andere.
+      const waagerecht =
+        mass.filter.links < mass.gantt.rechts && mass.gantt.links < mass.filter.rechts;
+      const senkrecht = mass.filter.oben < mass.gantt.unten && mass.gantt.oben < mass.filter.unten;
+      expect(
+        waagerecht && senkrecht,
+        `Bedienelemente überlappen — die Gantt-Ansicht ist nicht erreichbar.\n` +
+          `filter: ${JSON.stringify(mass.filter)}\n` +
+          `gantt : ${JSON.stringify(mass.gantt)}`,
+      ).toBe(false);
+
+      // Und der Klick muss ankommen, nicht nur die Geometrie stimmen: Playwright
+      // scheitert hier mit «intercepts pointer events», wenn etwas davorliegt.
+      await gantt.click({ timeout: 10000 });
+      await expect(fence.locator('.pev-gantt')).toBeVisible();
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
   test('Live-Modus zeigt dieselbe Gantt-Ansicht', async () => {
     const { app, page, userData } = await launchApp({ args: [GANTT_FIXTURE] });
     try {

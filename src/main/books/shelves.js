@@ -15,6 +15,8 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+// 4T-1276 (Epic 3E-0232, Befund B1): Ordner-Identität über die zentrale Auskunft.
+const { pathCompareKey } = require('../../shared/platform.js');
 
 const {
   SHELF_SETTINGS_FILENAME,
@@ -376,7 +378,7 @@ async function buildShelfViewData(shelfDir) {
   if (!state.ok) return state;
   const { shelfFileName, books, unassigned, missing } = state.state;
   const root = state.state.shelfDir;
-  const missingKeys = new Set(missing.map((name) => name.toLowerCase()));
+  const missingKeys = new Set(missing.map((name) => pathCompareKey(name)));
   const shelfExcerpt =
     shelfFileName === null
       ? { title: null }
@@ -389,7 +391,7 @@ async function buildShelfViewData(shelfDir) {
         : path.basename(root);
   const assignedEntries = [];
   for (const dirName of books) {
-    if (missingKeys.has(dirName.toLowerCase())) {
+    if (missingKeys.has(pathCompareKey(dirName))) {
       assignedEntries.push({
         dirName,
         bookDir: path.join(root, dirName),

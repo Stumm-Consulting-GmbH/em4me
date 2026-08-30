@@ -36,6 +36,8 @@
 // Arbeitsbereiche.
 'use strict';
 
+const { pathCompareKey } = require('../platform.js');
+
 // Fester Dateiname der Begleitdatei im Regal-Ordner (Muster
 // Book_Settings.mdda; die Endung .mdda schließt Kollisionen mit
 // Markdown-Dateien aus).
@@ -64,10 +66,35 @@ function normalizeBookDirName(value) {
   return normalizeShelfFileName(value);
 }
 
-// Vergleichs-Schlüssel für Datei- und Ordner-Identität. Das
-// Windows-Dateisystem unterscheidet Groß-/Kleinschreibung nicht; die
-// gespeicherte Schreibweise bleibt unberührt (Muster book-core.js).
+// Vergleichs-Schlüssel für Datei- und Ordner-Identität. Die Frage, ob das
+// Dateisystem die Schreibung unterscheidet, beantwortet die zentrale Auskunft
+// in shared/platform.js; die gespeicherte Schreibweise bleibt unberührt
+// (Muster book-core.js).
+//
+// 4T-1276 (Epic 3E-0232, Befund B1): Dies ist die BELEGTE Stelle des Befunds.
+// Vorher stand hier eine feste Kleinschreibung; unter Linux liess sich ein
+// zweiter Buch-Ordner, der sich nur in der Schreibweise unterschied, nicht
+// zuordnen («duplicate-book») und verschwand zusätzlich kommentarlos aus der
+// Liste der nicht zugeordneten Bücher — die zweite Wirkung entstand in
+// diffBookDirs(), das jeden Ordner überspringt, dessen Schlüssel schon gesehen
+// wurde.
 function fileKey(value) {
+  return typeof value === 'string' ? pathCompareKey(value) : '';
+}
+
+// AUSGESPROCHEN plattform-unabhängige Faltung für die Erkennung der
+// Begleitdatei am NAMEN, verglichen gegen eine Konstante, die die Anwendung
+// selbst schreibt — nicht gegen einen zweiten Pfad. Ein Regal-Ordner, der aus
+// einem fremden System zuwandert und die Datei anders geschrieben trägt, soll
+// auch auf einem case-sensitiven Dateisystem als Regal erkannt werden.
+//
+// 4T-1276: Die Entscheidung des Product Owners vom 2026-08-29 (4T-1275) galt
+// wörtlich der Buch-Begleitdatei in book-core.js. Sie ist hier SINNGEMÄSS
+// übertragen, weil der Fall identisch ist — dieselbe Erkennung, dieselbe
+// Konstante-gegen-Name-Konstruktion, dasselbe Zuwanderungs-Argument. Die
+// Übertragung ist als solche gekennzeichnet und im Task vermerkt, damit sie
+// nicht als eigene Entscheidung durchgeht.
+function settingsNameKey(value) {
   return typeof value === 'string' ? value.toLowerCase() : '';
 }
 
@@ -132,7 +159,10 @@ function serializeShelfContainer(container) {
 
 // Ist dieser Datei-Name die Begleitdatei eines Regals?
 function isShelfSettingsFileName(name) {
-  return typeof name === 'string' && fileKey(name.trim()) === fileKey(SHELF_SETTINGS_FILENAME);
+  return (
+    typeof name === 'string' &&
+    settingsNameKey(name.trim()) === settingsNameKey(SHELF_SETTINGS_FILENAME)
+  );
 }
 
 // Trägt der Ordner-Inhalt eine Regal-Begleitdatei? `entries` ist die Liste der

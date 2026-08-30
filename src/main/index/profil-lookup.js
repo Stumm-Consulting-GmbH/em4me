@@ -38,6 +38,19 @@ const { indexes, indexStand, resolveRootInfo } = require('./store.js');
 const { frontmatterQueryFor } = require('./query.js');
 const { logicalNameFor } = require('./link-graph.js');
 const { createWikiLinkRegex, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
+const { pathCompareKey } = require('../../shared/platform.js');
+
+// Vergleichs-Schlüssel eines absoluten Datei-Pfades. Bewusst als benannte
+// Funktion und nicht inline: So ist die Stelle über die injizierte Plattform
+// prüfbar, statt nur unter einem echten case-sensitiven Dateisystem
+// (4T-1276, Epic 3E-0232, Befund B1 — die Empfehlung stammt aus 4T-1275).
+//
+// Nicht zu verwechseln mit normalizeNameKey aus link-scan.js: Jener vergleicht
+// WIKI-NAMEN und faltet bewusst plattform-unabhängig; dieser hier entscheidet
+// über DATEI-IDENTITÄT und fragt deshalb die zentrale Auskunft.
+function pfadSchluessel(absPfad) {
+  return pathCompareKey(String(absPfad || ''));
+}
 
 // wurzel + ' | ' + eigene Datei + ' | ' + abfrage + ' | ' + feld
 const zwischenspeicher = new Map();
@@ -140,7 +153,7 @@ function lookupTreffer(activeFile, areaRoot, optionen, deps) {
   const abs = path.resolve(activeFile);
   const quelle = typeof opt.from === 'string' && opt.from.trim() !== '' ? opt.from.trim() : 'LIST';
 
-  const schluessel = `${root} | ${abs.toLowerCase()} | ${quelle} | ${feld}`;
+  const schluessel = `${root} | ${pfadSchluessel(abs)} | ${quelle} | ${feld}`;
   const stand = standVon(root);
   const bekannt = zwischenspeicher.get(schluessel);
   if (bekannt && bekannt.stand === stand) return { status: 'ready', values: bekannt.values };
@@ -168,7 +181,7 @@ function lookupTreffer(activeFile, areaRoot, optionen, deps) {
   const entry = indexes.get(root);
   if (!entry) return leer;
   const eigene = eigeneKennzeichen(entry, abs);
-  const eigenerPfad = abs.toLowerCase();
+  const eigenerPfad = pfadSchluessel(abs);
 
   const values = [];
   for (const treffer of Array.isArray(ergebnis.files) ? ergebnis.files : []) {
@@ -176,7 +189,7 @@ function lookupTreffer(activeFile, areaRoot, optionen, deps) {
     if (pfad === '') continue;
     // Das eigene Dokument ist nie sein eigener Treffer, auch wenn es ein
     // Verweis-Feld auf sich selbst trägt.
-    if (pfad.toLowerCase() === eigenerPfad) continue;
+    if (pfadSchluessel(pfad) === eigenerPfad) continue;
     if (!zeigtAufUns(entry.propertiesPerFile.get(pfad), feld, eigene)) continue;
     const name = typeof treffer.name === 'string' ? treffer.name.trim() : '';
     if (name === '' || values.includes(name)) continue;

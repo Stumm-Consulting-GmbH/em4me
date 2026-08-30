@@ -3,7 +3,15 @@
 // Invariante, Lese-Ordnung, Abgleich mit dem Datei-Bestand und
 // Pfad-Nachführung. Reine Funktionen, direkter Import (Muster
 // bookmark-tree.test.js); ohne Datei-, Netz- und Ablage-Bezug.
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { createRequire } from 'node:module';
+
+// Über createRequire geladen, damit die Plattform in DERSELBEN Modul-Instanz
+// gesetzt wird, die book-core.js benutzt: Vitest führt für 'import' und
+// 'require' getrennte Instanzen (Muster area-path.test.js). Ein gewöhnlicher
+// import setzte die Plattform an einer zweiten, unbeteiligten Instanz — der
+// Prüffall bliebe rot und meldete die falsche Ursache.
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 import {
   BOOK_SETTINGS_FILENAME,
   BOOK_SCHEMA_VERSION,
@@ -139,10 +147,18 @@ describe('Erkennung ohne Rückverweis', () => {
     expect(findBookSettingsEntry(null)).toBeNull();
   });
 
+  // 4T-1276 (Epic 3E-0232): Die Schreibweisen-Toleranz gilt seither nur noch da,
+  // wo das Dateisystem selbst tolerant ist — die Plattform wird deshalb gesetzt.
   it('erklärt genau die benannte Markdown-Datei zur Buch-Datei', () => {
+    setPlatformForTests('win32');
     const container = emptyBookContainer(BUCH);
     expect(isBookFileName(container, BUCH)).toBe(true);
     expect(isBookFileName(container, 'reise nach ithaka.md')).toBe(true);
+    setPlatformForTests('linux');
+    // Auf einem case-sensitiven Dateisystem ist das eine ANDERE Datei.
+    expect(isBookFileName(container, 'reise nach ithaka.md')).toBe(false);
+    expect(isBookFileName(container, BUCH)).toBe(true);
+    setPlatformForTests(undefined);
     expect(isBookFileName(container, 'Teil 1/Aufbruch.md')).toBe(false);
     expect(isBookFileName(container, 'Anderes Buch.md')).toBe(false);
     expect(isBookFileName(null, BUCH)).toBe(false);
@@ -176,7 +192,13 @@ describe('Kapitel-Baum: Normalisierung', () => {
     expect(normalizeChapterTree(roh)).toEqual([{ path: 'Kapitel.md', children: [] }]);
   });
 
+  // 4T-1276 (Epic 3E-0232): Der Fall lief bis dahin auf der realen Plattform und
+  // schrieb damit die Windows-Antwort als die einzige fest. Seit der Vergleichs-
+  // Schlüssel die zentrale Auskunft fragt, ist die Antwort plattformabhängig —
+  // geprüft wird sie deshalb als Paar mit injizierter Plattform (Muster
+  // area-path.test.js), nicht mehr gegen das Dateisystem des Prüfrechners.
   it('hält die Invariante: derselbe Pfad hängt höchstens einmal im Baum', () => {
+    setPlatformForTests('win32');
     const roh = [
       { path: 'Kapitel.md', children: [] },
       { path: 'KAPITEL.md', children: [{ path: 'Unterkapitel.md', children: [] }] },
@@ -186,6 +208,24 @@ describe('Kapitel-Baum: Normalisierung', () => {
       { path: 'Kapitel.md', children: [] },
       { path: 'Weiteres.md', children: [] },
     ]);
+    setPlatformForTests(undefined);
+  });
+
+  it('behält beide Schreibweisen, wenn die Plattform sie unterscheidet', () => {
+    setPlatformForTests('linux');
+    const roh = [
+      { path: 'Kapitel.md', children: [] },
+      { path: 'KAPITEL.md', children: [{ path: 'Unterkapitel.md', children: [] }] },
+      { path: 'Weiteres.md', children: [{ path: 'Kapitel.md', children: [] }] },
+    ];
+    // `KAPITEL.md` ist hier eine ANDERE Datei und bleibt samt Unterbaum stehen;
+    // die Invariante trifft nur den echten Doppel-Eintrag unter `Weiteres.md`.
+    expect(normalizeChapterTree(roh)).toEqual([
+      { path: 'Kapitel.md', children: [] },
+      { path: 'KAPITEL.md', children: [{ path: 'Unterkapitel.md', children: [] }] },
+      { path: 'Weiteres.md', children: [] },
+    ]);
+    setPlatformForTests(undefined);
   });
 
   it('lässt die Eingabe unberührt', () => {
@@ -196,11 +236,21 @@ describe('Kapitel-Baum: Normalisierung', () => {
     expect(eingabe).toEqual(kopie);
   });
 
+  // 4T-1276 (Epic 3E-0232): Der Trenner wird plattformfrei vereinheitlicht, die
+  // Schreibweise folgt dem Dateisystem — deshalb die gesetzte Plattform. Die
+  // Aussagen über unbekannte und unzulässige Pfade gelten unverändert überall
+  // und stehen bewusst ausserhalb der Setzung.
   it('beantwortet, ob ein Pfad im Baum hängt', () => {
     expect(hasChapter(baum(), 'Teil 1/Die Fähre.md')).toBe(true);
-    expect(hasChapter(baum(), 'Teil 1\\die fähre.md')).toBe(true);
     expect(hasChapter(baum(), 'Teil 3/Nachwort.md')).toBe(false);
     expect(hasChapter(baum(), '../Ausbruch.md')).toBe(false);
+    setPlatformForTests('win32');
+    expect(hasChapter(baum(), 'Teil 1\\die fähre.md')).toBe(true);
+    setPlatformForTests('linux');
+    // Trenner weiterhin vereinheitlicht, Schreibweise nicht mehr.
+    expect(hasChapter(baum(), 'Teil 1\\Die Fähre.md')).toBe(true);
+    expect(hasChapter(baum(), 'Teil 1\\die fähre.md')).toBe(false);
+    setPlatformForTests(undefined);
   });
 });
 
@@ -232,10 +282,14 @@ describe('Einhängen', () => {
   });
 
   it('lehnt doppelte Kapitel, unbekannte Eltern und unzulässige Pfade ab', () => {
+    // 4T-1276: Ob eine abweichende Schreibweise ein Doppel ist, entscheidet
+    // seither das Dateisystem; der Linux-Fall steht im eigenen Block weiter unten.
+    setPlatformForTests('win32');
     expect(insertChapter(baum(), 'Teil 1/DER HAFEN.md')).toEqual({
       ok: false,
       error: 'duplicate-path',
     });
+    setPlatformForTests(undefined);
     expect(insertChapter(baum(), 'Neu.md', 'Teil 9/Fehlt.md')).toEqual({
       ok: false,
       error: 'unknown-parent',
@@ -409,7 +463,14 @@ describe('Lese-Ordnung', () => {
     expect(nextChapterPath(baum(), 'Teil 1/Die Fähre.md')).toBe('Teil 2/Heimkehr.md');
     expect(previousChapterPath(baum(), 'Teil 2/Heimkehr.md')).toBe('Teil 1/Die Fähre.md');
     expect(previousChapterPath(baum(), 'Teil 1/Der Hafen.md')).toBe('Teil 1/Aufbruch.md');
+    // 4T-1276: Die Leseführung findet ihr Kapitel über denselben Schlüssel; die
+    // Schreibweisen-Toleranz gilt seither dort, wo das Dateisystem sie kennt.
+    setPlatformForTests('win32');
     expect(nextChapterPath(baum(), 'teil 1\\der hafen.md')).toBe('Teil 1/Die Fähre.md');
+    setPlatformForTests('linux');
+    expect(nextChapterPath(baum(), 'Teil 1\\Der Hafen.md')).toBe('Teil 1/Die Fähre.md');
+    expect(nextChapterPath(baum(), 'teil 1\\der hafen.md')).toBeNull();
+    setPlatformForTests(undefined);
   });
 
   it('liefert an den Enden und bei unbekanntem Kapitel null', () => {
@@ -443,12 +504,30 @@ describe('Abgleich mit dem Datei-Bestand', () => {
     expect(eingehaengt).toEqual({ unlinked: [], missing: [] });
   });
 
+  // 4T-1276 (Epic 3E-0232): Der Pfad-TRENNER wird unverändert plattformfrei
+  // vereinheitlicht; die SCHREIBWEISE folgt seit der Umstellung dem
+  // Dateisystem. Als Paar geprüft — vorher stand hier nur die Windows-Antwort.
   it('vergleicht ohne Rücksicht auf Schreibweise und Pfad-Trenner', () => {
+    setPlatformForTests('win32');
     const bestand = ['Teil 1\\AUFBRUCH.md', 'Teil 1/Der Hafen.md', 'Teil 1/Die Fähre.md'];
     expect(diffChapterFiles(baum(), bestand, BUCH)).toEqual({
       unlinked: [],
       missing: ['Teil 2/Heimkehr.md'],
     });
+    setPlatformForTests(undefined);
+  });
+
+  it('zählt eine abweichend geschriebene Datei als eigene, wo die Plattform sie unterscheidet', () => {
+    setPlatformForTests('linux');
+    const bestand = ['Teil 1\\AUFBRUCH.md', 'Teil 1/Der Hafen.md', 'Teil 1/Die Fähre.md'];
+    // Der Trenner wird weiterhin vereinheitlicht — sonst stünde hier ein
+    // Backslash im Ergebnis. Die Datei selbst ist aber eine andere: Sie hängt
+    // nirgends im Baum, und das deklarierte Kapitel fehlt im Bestand.
+    expect(diffChapterFiles(baum(), bestand, BUCH)).toEqual({
+      unlinked: ['Teil 1/AUFBRUCH.md'],
+      missing: ['Teil 1/Aufbruch.md', 'Teil 2/Heimkehr.md'],
+    });
+    setPlatformForTests(undefined);
   });
 
   it('übergeht unzulässige und doppelt genannte Einträge des Bestands', () => {
@@ -500,6 +579,47 @@ describe('Pfad-Nachführung', () => {
     expect(renameChapterPath(baum(), 'Teil 1/Der Hafen.md', '../Ausbruch.md')).toEqual({
       ok: false,
       error: 'invalid-path',
+    });
+  });
+});
+
+// 4T-1275 (Epic 3E-0232, Befund B1): Datei-Identität und Schreibweise.
+//
+// `fileKey()` in book-core.js bildet den Vergleichs-Schlüssel für Kapitel-Pfade
+// und faltet die Schreibung fest, statt die zentrale Auskunft in
+// src/shared/platform.js zu fragen. Auf einem Dateisystem, das die Schreibung
+// unterscheidet, sind `Aufbruch.md` und `aufbruch.md` ZWEI Dateien — die
+// Anwendung behandelt sie heute als eine.
+//
+// Der Fall prüft die Logik über die INJIZIERTE Plattform und nicht über das
+// Dateisystem des Prüfrechners; er ist deshalb auf jeder Plattform
+// aussagekräftig und deckt beide Verhaltensweisen ab (AK8 der Anforderung).
+describe('Datei-Identität und Schreibweise (4T-1275)', () => {
+  afterEach(() => setPlatformForTests(undefined));
+
+  it('unterscheidet zwei Kapitel gleicher Schreibweise auf case-sensitivem Dateisystem', () => {
+    setPlatformForTests('linux');
+    const tree = normalizeChapterTree(baum());
+    expect(hasChapter(tree, 'Teil 1/Aufbruch.md')).toBe(true);
+    // Ein anderer Dateiname und damit ein Kapitel, das der Baum nicht kennt.
+    expect(hasChapter(tree, 'teil 1/aufbruch.md')).toBe(false);
+  });
+
+  it('lässt beide Schreibweisen als eigene Kapitel zu, wenn die Plattform sie unterscheidet', () => {
+    setPlatformForTests('linux');
+    const ergebnis = insertChapter(baum(), 'Teil 2/heimkehr.md', null, null);
+    expect(ergebnis).toMatchObject({ ok: true });
+    expect(chapterPathsInReadingOrder(ergebnis.tree)).toContain('Teil 2/heimkehr.md');
+    expect(chapterPathsInReadingOrder(ergebnis.tree)).toContain('Teil 2/Heimkehr.md');
+  });
+
+  it('behandelt beide Schreibweisen als dasselbe Kapitel, wenn die Plattform sie nicht unterscheidet', () => {
+    setPlatformForTests('win32');
+    const tree = normalizeChapterTree(baum());
+    expect(hasChapter(tree, 'teil 1/aufbruch.md')).toBe(true);
+    expect(insertChapter(baum(), 'Teil 2/heimkehr.md', null, null)).toEqual({
+      ok: false,
+      error: 'duplicate-path',
     });
   });
 });

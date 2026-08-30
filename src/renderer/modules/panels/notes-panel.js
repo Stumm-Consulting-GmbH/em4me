@@ -31,6 +31,7 @@ import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js
 import { decideNoteSync } from './notes-sync.js';
 import { applySpellcheckToView, createNotesEditorState } from '../editor/editor.js';
 import { showEditorContextMenu } from '../editor/editor-context-menu.js';
+import { pathCompareKey } from '../../../shared/platform.js';
 
 // Vorschau-Default (Setting notes.previewByDefault, Default an). Beim Panel-
 // Oeffnen ist die Vorschau aktiv, sofern der Nutzer den Default nicht in den
@@ -256,11 +257,12 @@ async function saveNotesFromPane(paneIdx, targetTab) {
 
 export function handleNoteChanged(payload) {
   if (!payload || typeof payload.path !== 'string') return;
-  const incomingPath = payload.path.toLowerCase();
+  // 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+  const incomingPath = pathCompareKey(payload.path);
   const incoming = payload.note && typeof payload.note.text === 'string' ? payload.note.text : '';
   for (let p = 0; p < state.panes.length; p++) {
     const current = state.notes.currentFileByPane[p];
-    if (!current || current.toLowerCase() !== incomingPath) continue;
+    if (!current || pathCompareKey(current) !== incomingPath) continue;
     const els = getPaneEls(p);
     if (!els || !els.notesSection || !state.notes.visibleByPane[p]) continue;
     const view = notesEditors[p];

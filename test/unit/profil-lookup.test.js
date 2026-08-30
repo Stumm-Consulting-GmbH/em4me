@@ -26,6 +26,7 @@ import {
   rootForActiveFile,
 } from '../../src/main/backlinks.js';
 import { zielSchluessel } from '../../src/main/index/profil-lookup.js';
+import { isFilesystemCaseInsensitive } from '../../src/shared/platform.js';
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -322,4 +323,38 @@ describe('Invalidierung gegen den Index-Stand (4T-1184)', () => {
     expect(lookupTreffer(ziel, null, opt(), deps).status).toBe('indexing');
     expect(laeufe).toBe(2);
   });
+});
+
+// 4T-1275 (Epic 3E-0232, Befund B1): Pfad-Identität des Lookup-Feldes.
+//
+// `lookupTreffer` faltet den absoluten Pfad an zwei Stellen fest klein, statt
+// die zentrale Auskunft in src/shared/platform.js zu fragen: im Schlüssel des
+// Zwischenspeichers und im Selbst-Ausschluss («das eigene Dokument ist nie sein
+// eigener Treffer»). Auf einem Dateisystem, das die Schreibung unterscheidet,
+// sind `Start.md` und `start.md` ZWEI Dokumente — die Faltung wirft sie
+// zusammen, und ein echter Treffer verschwindet.
+//
+// Anders als der Fall in book-core.test.js lässt sich dieser NICHT über die
+// injizierte Plattform prüfen: Die Faltung sitzt inline in `lookupTreffer` und
+// wirkt auf Pfade echter Dateien, die zuvor über den Index gelaufen sind. Auf
+// einem case-insensitiven Dateisystem lassen sich die beiden Dateien nicht
+// nebeneinander anlegen, weshalb der Fall dort übersprungen wird — der
+// verbindliche Nachweis dieses Epics läuft ohnehin unter Linux
+// (`node scripts/test-linux-docker.js`).
+describe('Pfad-Identität und Schreibweise (4T-1275)', () => {
+  it.skipIf(isFilesystemCaseInsensitive())(
+    'schließt nur das eigene Dokument aus, nicht sein schreibweisen-gleiches Geschwister',
+    async () => {
+      const root = makeRoot();
+      const ziel = write(root, 'Start.md', '---\nprojekt: "[[Start]]"\n---\nEinstieg.');
+      // Ein ANDERES Dokument auf einem case-sensitiven Dateisystem, das
+      // ebenfalls auf `Start` verweist und deshalb ein echter Treffer ist.
+      write(root, 'start.md', '---\nprojekt: "[[Start]]"\n---\nZwilling.');
+      await indexFor(ziel, 'test:lookup-schreibweise');
+      const treffer = lookupTreffer(ziel, undefined, opt({ from: 'FROM ""' }));
+      expect(treffer.status).toBe('ready');
+      expect(treffer.values).toContain('start');
+      expect(treffer.values).not.toContain('Start');
+    },
+  );
 });

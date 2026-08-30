@@ -28,6 +28,11 @@ import {
   replaceJournalTimelineFences,
 } from '../../src/shared/journal-timeline-core.js';
 import { isoWeekOf, formatDateMs } from '../../src/shared/query/query-format.js';
+import { createRequire } from 'node:module';
+
+// Über createRequire, damit die Plattform in DERSELBEN Modul-Instanz gesetzt
+// wird, die journal-core.js benutzt (Muster area-path.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 import { isExtensionId } from '../../src/shared/extensions/extensions.js';
 import { disabledCommandIdSet } from '../../src/shared/extensions/extensions-core.js';
 
@@ -290,12 +295,29 @@ describe('applyJournalProperties — automatische Datums-Properties', () => {
 // --- 4T-0435 (Epic 3E-0081): Kontext-Ermittlung des Navigations-Blocks ------------
 
 describe('findPeriodForPath — Pfad-Abgleich über die Schema-Auflösung', () => {
-  it('findet die Periode eines Wochen-Eintrags (case-insensitiv, Backslashes)', () => {
+  // 4T-1276 (Epic 3E-0232): Backslashes vereinheitlicht der Abgleich unverändert
+  // selbst; ob eine abweichende SCHREIBWEISE denselben Pfad meint, beantwortet
+  // seither die zentrale Plattform-Auskunft. Als Paar geprüft — vorher stand hier
+  // nur der Windows-Fall, und unter Linux war er rot.
+  it('findet die Periode eines Wochen-Eintrags (Schreibweise je Dateisystem, Backslashes)', () => {
+    setPlatformForTests('win32');
     const period = findPeriodForPath(WEEKLY, 'tagebuch\\2026\\2026-kw28.md', {
       aroundMs: ms('2026-07-09'),
     });
     expect(period).not.toBeNull();
     expect(period.key).toBe('2026-W28');
+    setPlatformForTests('linux');
+    // Andere Schreibweise, andere Datei: kein Treffer.
+    expect(
+      findPeriodForPath(WEEKLY, 'tagebuch\\2026\\2026-kw28.md', { aroundMs: ms('2026-07-09') }),
+    ).toBeNull();
+    // Bei übereinstimmender Schreibweise greift der Abgleich unverändert,
+    // Backslashes eingeschlossen.
+    const genau = findPeriodForPath(WEEKLY, 'Tagebuch\\2026\\2026-KW28.md', {
+      aroundMs: ms('2026-07-09'),
+    });
+    expect(genau && genau.key).toBe('2026-W28');
+    setPlatformForTests(undefined);
   });
 
   it('findet zurückliegende und kommende Perioden im Fenster', () => {

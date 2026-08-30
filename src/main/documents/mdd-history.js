@@ -22,6 +22,9 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+// 4T-1276 (Epic 3E-0232, Befund B1): Der Schlüssel der Historisierungs-Datei
+// entscheidet über Datei-Identität und fragt deshalb die zentrale Auskunft.
+const { pathCompareKey } = require('../../shared/platform.js');
 const mddStore = require('./mdd-store');
 const saveGuard = require('./save-guard');
 const selbstSchreib = require('./self-write');
@@ -61,7 +64,7 @@ function createMddHistory(deps) {
   }
 
   function mddKeyOf(p) {
-    return path.resolve(p).toLowerCase();
+    return pathCompareKey(path.resolve(p));
   }
 
   // Wirksame Historisierung fuer ein Dokument (4T-0332): die eine Aufloesung

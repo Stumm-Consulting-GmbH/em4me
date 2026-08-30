@@ -50,9 +50,19 @@ function mdLinkTargetFromMatch(m) {
   return { target: m[3], anchor: m[4] || null, angle: false };
 }
 
-// Vergleichs-Schluessel fuer Datei-/Wiki-Namen. NTFS ist case-insensitiv und
-// Dateinamen koennen NFD-dekomponiert sein; Index, Linter, Klick-Pfad und
-// Rewrite muessen gleich entscheiden.
+// Vergleichs-Schluessel des logischen WIKI-NAMENSRAUMS, nicht der Datei-
+// Identitaet: Ein Verweis [[readme]] soll README.md treffen, und Dateinamen
+// koennen NFD-dekomponiert sein; Index, Linter, Klick-Pfad und Rewrite muessen
+// gleich entscheiden.
+//
+// 4T-1275 (Epic 3E-0232): Die Faltung bleibt hier bewusst plattform-unabhaengig
+// und fragt src/shared/platform.js NICHT. Sie ist keine Aussage ueber das
+// Dateisystem — der Beleg dafuer steht in resolve.js (B-04/B-23 aus 4T-0175:
+// der Linter meldete [[readme]] als gebrochen, obwohl der Klick README.md
+// oeffnete) und in der NFC-Normalisierung eine Zeile weiter, die mit der
+// Plattform nichts zu tun hat. Der frueher hier stehende Verweis auf NTFS war
+// die falsche Begruendung fuer ein richtiges Verhalten. Dieselbe Abgrenzung
+// wie in src/main/index/profil-verweis-ziele.js.
 function normalizeNameKey(s) {
   return String(s || '')
     .normalize('NFC')

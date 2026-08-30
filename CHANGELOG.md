@@ -14,6 +14,78 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.121.3.2081] - 2026-08-30 — Gleiches Verhalten auf beiden Systemen
+
+Epic 3E-0232,
+Fehler-Bündel mit sechs Vorgängen (4T-1275, 4T-1276, 4T-1277, 4T-1278, 4T-1279,
+4T-1286; Sammeltask 4T-1280, Release-Strecke 4T-1304). Die erste Linux-Ausgabe
+1.121.0 hat den Funktionsumfang mitgebracht und dabei vier Annahmen im
+Programm-Code sichtbar gemacht, die unter Windows folgenlos blieben und unter
+Linux nicht stimmen. Dieses Release behebt sie.
+
+**Die gemeinsame Wurzel ist eine Verwechslung zweier Namensarten.** Ein Pfad
+benennt eine Datei, ein Wiki-Verweis einen logischen Namen — und ob Groß- und
+Kleinschreibung dabei zählt, entscheidet beim ersten das Dateisystem und beim
+zweiten die Anwendung. Solange beide Fragen auf einem System dieselbe Antwort
+haben, fällt eine Vermischung nicht auf; unter Linux fällt sie auf. Zwei der
+Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
+
+### Behoben
+
+- **Bücher und Regale verlieren unter Linux keine Kapitel mehr** (4T-1275,
+  4T-1276). Dreizehn Stellen bildeten ihren Vergleichs-Schlüssel für Pfade
+  selbst, statt ihn aus der zentralen Auskunft `src/shared/platform.js` zu
+  beziehen; unter Linux galten damit `Teil 1/Aufbruch.md` und
+  `teil 1/aufbruch.md` fälschlich als dieselbe Datei. Die Wirkung reichte vom
+  Kapitel, das sich nicht einhängen ließ, bis zum Buch, das kommentarlos aus
+  dem Regal verschwand. Zwölf Stellen standen als Arbeitsliste im Wächter gegen
+  Portierbarkeits-Erosion und sind abgearbeitet; die dreizehnte
+  (`src/main/index/link-graph.js`) hat der Wächter **nicht** gemeldet und wäre
+  beim Umstellen ihrer Gegenseite still zerrissen — eine Faltung ist nie
+  Eigenschaft einer Stelle, sondern eines Vergleichs, und der hat zwei Seiten.
+  Bewusst schreibweisen-tolerant bleiben Datei-Endungen, Wiki-Namen, Tags und
+  die Erkennung der Begleitdateien von Buch und Regal, damit ein zugewanderter
+  Ordner auch unter Linux als Buch erkannt wird; die Absicht steht jetzt am
+  Code statt zwischen den Zeilen.
+- **Die Gantt-Ansicht der Ereignis-Liste ist unter Linux wieder erreichbar**
+  (4T-1278). Der Filter-Umschalter schwebte absolut positioniert an der rechten
+  oberen Ecke, während die Ansichts-Leiste darunter im Fluss nach rechts wuchs.
+  Der Überlapp bestand **auch unter Windows** — dort vier Pixel und folgenlos,
+  weil die Klick-Mitte des Gantt-Knopfs noch daneben lag; unter Linux setzt die
+  breitere Schrift die Knöpfe weiter und schiebt diese Mitte unter den
+  unsichtbaren Knopf, der `opacity: 0` trägt und Klicks trotzdem abfängt. Der
+  Filter-Knopf ist jetzt das letzte Element der Ansichts-Leiste selbst; ein
+  Überlapp ist damit per Konstruktion ausgeschlossen statt durch eine Messung
+  ausgeschlossen worden zu sein.
+- **Kurzform-Verweise auf Unterseiten gelten nicht mehr als Verweise aus dem
+  Bereich hinaus** (4T-1277). Die Außen-Prüfung hängte einem Wiki-Ziel ohne
+  Endung ein `.md` an und schickte das Ergebnis durch den Pfad-Resolver: Aus
+  `[[/Earth]]` wurde `/Earth.md`, unter Linux ein absoluter Pfad an der Wurzel
+  des Dateisystems und damit außerhalb jedes Bereichs. Die Verweise lösten dabei
+  stets korrekt auf — sie wurden nur vorher als „außerhalb" markiert, im Editor
+  wie in der Lese-Ansicht. Die relativen Wiki-Formen sind jetzt an beiden
+  Bedienorten von der Prüfung ausgenommen, weil eine Unterseiten-Kurzform ihren
+  Bereich bauartbedingt nicht verlassen kann. Der Pfad-Resolver bleibt
+  unangetastet: Für einen echten Markdown-Link mit absolutem Ziel ist der
+  führende Schrägstrich weiterhin ein Pfad-Anfang.
+- **Der Filter-Umschalter der Tabellen-Ansicht setzt in der Schrift seiner
+  Umgebung** (4T-1286). Ein `<button>` erbt die Oberflächen-Schrift nicht von
+  selbst und fiel auf die Vorgabe der Anzeige-Umgebung zurück, während die
+  Tabelle daneben anders setzte. Die zunächst vermutete Überlappung mit dem
+  rechtesten Spaltenkopf hat die Messung **nicht** bestätigt — auf keiner der
+  beiden Plattformen; das Layout bleibt deshalb unverändert.
+
+### i18n
+
+- **Der Funktions-Katalog nennt den Datei-Manager beim Gattungsnamen**
+  (4T-1279). Zwei Einträge sprachen in allen fünf Sprachfassungen vom
+  Windows-Produktnamen; unter Linux heißt das Programm anders, und der
+  beschriebene Bedien-Weg lief ins Leere, obwohl er stimmte. Ein Prüffall in
+  `test/unit/i18n.test.js` verbietet acht Datei-Manager-Produktnamen künftig
+  maschinell und trägt eine eigene Gegenprobe, damit er nicht bloß eingerichtet,
+  sondern nachweislich scharf ist. Eine echte Plattform-Bindung darf weiterhin
+  benannt werden, wo sie besteht. Keine neuen Schlüssel, keine entfallenen.
+
 ## [1.121.2.2050] - 2026-08-30 — Flüssige Bedienung großer Bereiche
 
 Epic 3E-0233,

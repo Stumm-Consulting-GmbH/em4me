@@ -224,6 +224,14 @@
   font-size: 0.75em;
   color: var(--accent);
 }
+/* 4T-1286 (Epic 3E-0232): `font: inherit` ergaenzt — ein <button> erbt die
+   Schrift NICHT von selbst. Gemessen setzte der Knopf in Arial, waehrend die
+   Tabelle daneben in der Oberflaechen-Schrift setzte: zwei Rueckfallketten in
+   einer Leiste. Muster wie `.pdt-add-btn` und `.pev-viewbtn` im selben Blatt.
+   Die Positionierung bleibt dagegen unveraendert: Anders als beim Schwester-
+   Befund `B2` (4T-1278) ist hier gemessen KEIN Ueberlapp entstanden, weil
+   keine fliessende Ansichts-Leiste danebensteht — und ohne Befund wird an
+   einem Layout nicht auf Verdacht gearbeitet. */
 .markdown-body .pdt-filter-toggle {
   position: absolute;
   top: 2px;
@@ -232,6 +240,7 @@
   border-radius: 3px;
   background: var(--bg);
   color: var(--fg-muted);
+  font: inherit;
   font-size: 0.8em;
   line-height: 1.3;
   padding: 0 5px;
@@ -594,21 +603,36 @@
   font-size: 0.75em;
   color: var(--accent);
 }
+/* 4T-1278 (Epic 3E-0232, Befund B2): im Fluss der Ansichts-Leiste, nicht
+   absolut darueber. `margin-left: auto` schiebt ihn an deren rechtes Ende;
+   ein Ueberlapp mit dem letzten Ansichts-Knopf ist damit per Konstruktion
+   ausgeschlossen, statt von einer Schriftbreite abzuhaengen. Gemessen hatte
+   sich die alte Fassung auch unter Windows um vier Pixel ueberlappt — dort
+   nur folgenlos, weil die Klick-Mitte des Knopfs noch daneben lag.
+   `font: inherit` kommt hinzu, weil ein <button> die Schrift NICHT von
+   selbst erbt: Der Knopf setzte in Arial, waehrend die Leiste daneben in der
+   Oberflaechen-Schrift setzte — zwei Rueckfallketten in einer Leiste, und
+   damit je Plattform andere Breitenverhaeltnisse. Muster wie .pev-viewbtn. */
 .markdown-body .pev-filter-toggle {
-  position: absolute;
-  top: 2px;
-  right: 0;
+  margin-left: auto;
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--bg);
   color: var(--fg-muted);
+  font: inherit;
   font-size: 0.8em;
   line-height: 1.3;
   padding: 0 5px;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s;
-  z-index: 1;
+  /* 4T-1278: `pointer-events: none` im unsichtbaren Zustand war vorgesehen und
+     ist nach der Messung VERWORFEN — begruendet im Loesungs-Kapitel. Kurz:
+     Sobald der Knopf im Fluss liegt, ueberdeckt er nichts mehr, und es gibt
+     keine fremden Klicks abzufangen; die Abschaltung haette ihn dafuer per
+     Touch unerreichbar gemacht und den Hit-Test zweier Bestands-Pruefungen auf
+     die Leiste umgelenkt. Der Knopf bleibt deshalb klickbar, auch waehrend er
+     unsichtbar ist — wie vor diesem Vorgang. */
 }
 .markdown-body .perspective-events:hover .pev-filter-toggle,
 .markdown-body .pev-filter-toggle.active {

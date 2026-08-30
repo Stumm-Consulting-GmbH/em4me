@@ -3,7 +3,12 @@
 // Rückverweis, Buch-Zuordnung samt Invariante und Abgleich mit dem
 // Ordner-Bestand. Reine Funktionen, direkter Import (Muster
 // book-core.test.js); ohne Datei-, Netz- und Ablage-Bezug.
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createRequire } from 'node:module';
+
+// Über createRequire, damit die Plattform in DERSELBEN Modul-Instanz gesetzt
+// wird, die shelf-core.js benutzt (Muster area-path.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 import {
   SHELF_SETTINGS_FILENAME,
   SHELF_SCHEMA_VERSION,
@@ -94,7 +99,25 @@ describe('shelf-core: Begleitdatei', () => {
   });
 });
 
+// 4T-1276 (Epic 3E-0232, Befund B1): Die Zuordnungs- und Erkennungs-Fälle der
+// beiden folgenden Blöcke prüfen eine Schreibweisen-Toleranz, die bis dahin
+// als plattform-unabhängige Zusicherung gebaut war — sie stammt aus einer Zeit,
+// in der Windows die einzige Plattform war, und dort ist «tolerant» dasselbe
+// wie «wie das Dateisystem». Seit der Umstellung fällt beides auseinander.
+//
+// Die Fälle behalten ihre Aussage unverändert und setzen dafür die Plattform
+// ausdrücklich; das Linux-Verhalten prüfen die eigenen Gegenstücke am Ende
+// jedes Blocks. So bleibt der Bestands-Nachweis für die Haupt-Plattform
+// erhalten, statt ihn gegen den neuen Fall einzutauschen.
+//
+// AUSGENOMMEN ist «erkennt die Begleitdatei unabhängig von der Schreibweise»:
+// Diese Toleranz bleibt nach der Entscheidung des Product Owners vom
+// 2026-08-29 auf JEDER Plattform bestehen (settingsNameKey) und braucht
+// deshalb keine gesetzte Plattform.
 describe('shelf-core: Erkennung ohne Rückverweis', () => {
+  beforeEach(() => setPlatformForTests('win32'));
+  afterEach(() => setPlatformForTests(undefined));
+
   it('erkennt die Begleitdatei unabhängig von der Schreibweise', () => {
     expect(isShelfSettingsFileName(SHELF_SETTINGS_FILENAME)).toBe(true);
     expect(isShelfSettingsFileName('shelf_settings.MDDA')).toBe(true);
@@ -120,6 +143,9 @@ describe('shelf-core: Erkennung ohne Rückverweis', () => {
 });
 
 describe('shelf-core: Buch-Liste und Zuordnung', () => {
+  beforeEach(() => setPlatformForTests('win32'));
+  afterEach(() => setPlatformForTests(undefined));
+
   it('normalisiert die Liste tolerant: defekte und doppelte Einträge entfallen', () => {
     const roh = ['Reise nach Ithaka', ' Kochbuch ', 'reise nach ithaka', 'a/b', '', 42, null];
     expect(normalizeBookList(roh)).toEqual(['Reise nach Ithaka', 'Kochbuch']);
@@ -184,6 +210,21 @@ describe('shelf-core: Buch-Liste und Zuordnung', () => {
     expect(renameBookDir(liste, 'Atlas', 'a/b')).toEqual({ ok: false, error: 'invalid-name' });
   });
 
+  // Das Linux-Gegenstück der vorstehenden Toleranz-Fälle: Dort ist ein anders
+  // geschriebener Ordner ein anderer Ordner, und genau das ist die Behebung
+  // von Befund B1 — vorher wies die Anwendung ihn als Doppel ab.
+  it('behandelt anders geschriebene Ordner als eigene, wenn die Plattform sie unterscheidet', () => {
+    setPlatformForTests('linux');
+    const liste = ['Kochbuch'];
+    // Kein Doppel: 'kochbuch' ist ein anderer Ordner und wird zugeordnet.
+    expect(assignBook(liste, 'kochbuch')).toEqual({ ok: true, books: ['Kochbuch', 'kochbuch'] });
+    // Die Zugehörigkeits-Frage antwortet entsprechend.
+    expect(hasBook(liste, 'kochbuch')).toBe(false);
+    expect(hasBook(liste, 'Kochbuch')).toBe(true);
+    // Und die Normalisierung entdoppelt nicht mehr über die Schreibweise.
+    expect(normalizeBookList(['B', 'b', 'A'])).toEqual(['B', 'b', 'A']);
+  });
+
   it('beantwortet die Zugehörigkeits-Frage schreibweisen-tolerant', () => {
     expect(hasBook(['Kochbuch'], 'kochbuch')).toBe(true);
     expect(hasBook(['Kochbuch'], 'Fehlt')).toBe(false);
@@ -192,6 +233,11 @@ describe('shelf-core: Buch-Liste und Zuordnung', () => {
 });
 
 describe('shelf-core: Abgleich mit dem Ordner-Bestand', () => {
+  // 4T-1276: wie in den Blöcken oben — der Bestands-Fall prüft das Verhalten der
+  // Haupt-Plattform und setzt sie deshalb; das Linux-Gegenstück steht am Ende.
+  beforeEach(() => setPlatformForTests('win32'));
+  afterEach(() => setPlatformForTests(undefined));
+
   it('trennt nicht zugeordnete Buch-Ordner von fehlenden Zuordnungen', () => {
     const liste = ['Kochbuch', 'Verschollen'];
     const { unassigned, missing } = diffBookDirs(liste, [
@@ -208,6 +254,22 @@ describe('shelf-core: Abgleich mit dem Ordner-Bestand', () => {
   it('bleibt bei leeren und defekten Eingaben stabil', () => {
     expect(diffBookDirs([], [])).toEqual({ unassigned: [], missing: [] });
     expect(diffBookDirs(null, null)).toEqual({ unassigned: [], missing: [] });
+  });
+
+  // 4T-1276 (Epic 3E-0232, Befund B1): Dies ist der Prüffall der ZWEITEN,
+  // stillen Wirkung des Befunds. Vorher galt hier `unassigned: []` als richtig,
+  // egal auf welcher Plattform: `diffBookDirs` übersprang jeden Ordner, dessen
+  // Schlüssel schon gesehen war, und der nur anders geschriebene Ordner
+  // verschwand kommentarlos aus der Liste der nicht zugeordneten Bücher —
+  // ohne Fehlermeldung und für einen Betroffenen kaum als Fehler erkennbar.
+  // Seit der Umstellung antwortet der Abgleich je Dateisystem richtig.
+  it('führt einen nur anders geschriebenen Ordner je Dateisystem', () => {
+    setPlatformForTests('win32');
+    // Derselbe Ordner: zugeordnet, nichts bleibt übrig.
     expect(diffBookDirs(['A'], ['a', 'A', 'x/y'])).toEqual({ unassigned: [], missing: [] });
+    setPlatformForTests('linux');
+    // Ein ANDERER Ordner: nicht zugeordnet — und er wird auch gemeldet.
+    expect(diffBookDirs(['A'], ['a', 'A', 'x/y'])).toEqual({ unassigned: ['a'], missing: [] });
+    setPlatformForTests(undefined);
   });
 });

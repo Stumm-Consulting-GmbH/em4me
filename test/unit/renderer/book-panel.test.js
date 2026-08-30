@@ -14,6 +14,7 @@
 // Element-Referenzen beim ersten Zugriff memoisiert).
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
+import { pathCompareKey, setPlatformForTests } from '../../../src/shared/platform.js';
 
 const pane0 = document.querySelector('.pane-group[data-pane="0"]');
 pane0.innerHTML = `
@@ -216,9 +217,18 @@ beforeEach(() => {
 });
 
 describe('Reine Helfer (4T-0844)', () => {
+  // 4T-1276 (Epic 3E-0232): Trenner und Schluss-Trenner vereinheitlicht `pathKey`
+  // unverändert selbst; die SCHREIBWEISE kommt seither von der zentralen
+  // Plattform-Auskunft und ist damit plattformabhängig. Als Paar geprüft.
   it('pathKey vereinheitlicht Trenner, Schluss-Trenner und Schreibweise', () => {
+    setPlatformForTests('win32');
     expect(pathKey('Teil 1\\Aufbruch.MD')).toBe('teil 1/aufbruch.md');
     expect(pathKey('C:/Buch/')).toBe('c:/buch');
+    setPlatformForTests('linux');
+    // Trenner und Schluss-Trenner unverändert vereinheitlicht, Schreibweise erhalten.
+    expect(pathKey('Teil 1\\Aufbruch.MD')).toBe('Teil 1/Aufbruch.MD');
+    expect(pathKey('C:/Buch/')).toBe('C:/Buch');
+    setPlatformForTests(undefined);
     expect(pathKey(null)).toBe('');
   });
 
@@ -226,11 +236,31 @@ describe('Reine Helfer (4T-0844)', () => {
     expect(chapterPathFromFile(BOOK_DIR, `${BOOK_DIR}\\Teil 1\\Aufbruch.md`)).toBe(
       'Teil 1/Aufbruch.md',
     );
-    // Schreibweise des Ordners egal (Windows-Dateisystem), Ergebnis bleibt
-    // die Schreibweise der Datei.
+  });
+
+  // 4T-1276 (Epic 3E-0232): Die Grenzprüfung «liegt die Datei im Buch-Ordner»
+  // fragt seither die zentrale Plattform-Auskunft. Ob eine abweichend
+  // geschriebene Ordner-Angabe denselben Ordner meint, ist damit eine Frage an
+  // das Dateisystem und keine Konstante — geprüft als Paar mit injizierter
+  // Plattform. Vorher stand hier nur der Windows-Fall, kommentiert mit
+  // «Schreibweise des Ordners egal (Windows-Dateisystem)»; unter Linux war er rot.
+  it('deutet eine abweichend geschriebene Ordner-Angabe je Dateisystem', () => {
+    setPlatformForTests('win32');
+    // Ergebnis bleibt die Schreibweise der DATEI, verglichen wird über den Schlüssel.
     expect(chapterPathFromFile(BOOK_DIR.toLowerCase(), `${BOOK_DIR}/Teil 2/Heimkehr.md`)).toBe(
       'Teil 2/Heimkehr.md',
     );
+    setPlatformForTests('linux');
+    // Ein anders geschriebener Ordner ist hier ein ANDERER Ordner; die Datei
+    // liegt damit ausserhalb.
+    expect(
+      chapterPathFromFile(BOOK_DIR.toLowerCase(), `${BOOK_DIR}/Teil 2/Heimkehr.md`),
+    ).toBeNull();
+    // Bei übereinstimmender Schreibweise greift die Grenze unverändert.
+    expect(chapterPathFromFile(BOOK_DIR, `${BOOK_DIR}/Teil 2/Heimkehr.md`)).toBe(
+      'Teil 2/Heimkehr.md',
+    );
+    setPlatformForTests(undefined);
   });
 
   it('chapterPathFromFile lehnt Dateien ausserhalb des Buch-Ordners ab', () => {
@@ -526,10 +556,17 @@ describe('Ziel-Berechnung der Ablage (4T-0845)', () => {
     expect(dropZone(0, 0)).toBe('into');
   });
 
+  // 4T-1276 (Epic 3E-0232): Die Schlüssel kommen aus `pathKey`, das seit der
+  // Umstellung die zentrale Plattform-Auskunft fragt. Ihre Schreibweise ist
+  // damit plattformabhängig, und die frühere Erwartung fest kleingeschriebener
+  // Schlüssel galt nur unter Windows — unter Linux war der Fall rot. Geprüft
+  // wird deshalb gegen die Antwort derselben Auskunft statt gegen eine
+  // verdrahtete Schreibweise; die Aussage des Falls (welche Knoten gesperrt
+  // sind) bleibt unverändert und gilt jetzt auf beiden Plattformen.
   it('subtreeKeys sperrt den eigenen Knoten samt Unterbaum', () => {
     expect([...subtreeKeys(BAUM, 'Teil 1/Aufbruch.md')]).toEqual([
-      'teil 1/aufbruch.md',
-      'teil 1/der hafen.md',
+      pathCompareKey('Teil 1/Aufbruch.md'),
+      pathCompareKey('Teil 1/Der Hafen.md'),
     ]);
     expect(subtreeKeys(BAUM, 'Teil 2/Heimkehr.md').size).toBe(1);
     expect(subtreeKeys(BAUM, 'gibt-es-nicht.md').size).toBe(0);

@@ -6,7 +6,12 @@
 // 4T-1073 (Datei-Größen-Budget): Die Feld-Auflösung außerhalb des Datei-Scopes
 // (BLOCKS und TASKS) liegt seit dem Schnitt in
 // perspective-query-eval-scopes.test.js.
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect } from 'vitest';
+import { createRequire } from 'node:module';
+
+// Über createRequire, damit die Plattform in DERSELBEN Modul-Instanz gesetzt
+// wird, die query-sources.js benutzt (Muster area-path.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 // 4T-0987 (Epic 3E-0196): Modul-Familie im Feature-Ordner src/shared/query/
 // geschnitten; die Namen kommen direkt aus dem jeweiligen Modul (Kern,
 // Funktions-Katalog, Format). Die geprüften Fälle bleiben unverändert.
@@ -328,7 +333,11 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     { path: 'C:/Wurzel/Journal/2026-03-01.md', name: '2026-03-01' },
   ];
 
+  // 4T-1276 (Epic 3E-0232): Der Fall prüft ausdrücklich auch die
+  // Schreibweisen-Toleranz der Ordner-Angabe; die ist seit der Umstellung eine
+  // Frage an das Dateisystem und wird deshalb mit gesetzter Plattform geprüft.
   it('infolder: Treffer im Ordner und darunter, gegen absolute Link-Pfade', () => {
+    setPlatformForTests('win32');
     const namen = (s, over) =>
       (evaluateExpression(exprOf(s), ctxFor(over)) || []).map((l) => l.name);
     const over = { file: { inlinks: INLINKS } };
@@ -341,6 +350,12 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(namen('infolder(file.inlinks, "gtd\\projekte")', over)).toEqual(['Umzug']);
     // Leere Ordner-Angabe ist die Wurzel und damit alles.
     expect(namen('infolder(file.inlinks, "")', over)).toHaveLength(3);
+    // Wo das Dateisystem die Schreibung unterscheidet, tut es die Ordner-Angabe
+    // auch; die Schrägstrich-Form bleibt davon unberührt.
+    setPlatformForTests('linux');
+    expect(namen('infolder(file.inlinks, "gtd\\projekte")', over)).toEqual([]);
+    expect(namen('infolder(file.inlinks, "GTD\\Projekte")', over)).toEqual(['Umzug']);
+    setPlatformForTests(undefined);
   });
 
   it('infolder: Nicht-Treffer ergibt die leere Liste, nicht null', () => {
@@ -398,12 +413,29 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
   });
 });
 
+// 4T-1276 (Epic 3E-0232, Befund B1): Die Ordner- und Pfad-Vergleiche der
+// Quellen-Ebene fragen seither die zentrale Plattform-Auskunft. Die Fälle
+// behalten ihre Aussage und setzen dafür die Plattform ausdrücklich; das
+// Linux-Verhalten prüft das Gegenstück am Blockende. Die TAG-Quelle ist davon
+// bewusst nicht betroffen — ein Tag ist ein logischer Name, kein Pfad.
 describe('perspective-query-eval — FROM-Quellen', () => {
+  beforeEach(() => setPlatformForTests('win32'));
+  afterEach(() => setPlatformForTests(undefined));
+
   it('Ordner-Quelle: Präfix-Match, case-insensitiv', () => {
     expect(matchWith('FROM "Projekte"')).toBe(true);
     expect(matchWith('FROM "projekte/aktiv"')).toBe(true);
     expect(matchWith('FROM "Projekte/Anderes"')).toBe(false);
     expect(matchWith('FROM "Projekt"')).toBe(false); // kein Teilstring-Match
+  });
+
+  it('Ordner-Quelle: Schreibweise zählt, wo das Dateisystem sie unterscheidet', () => {
+    setPlatformForTests('linux');
+    // Präfix-Match und Nicht-Teilstring-Regel gelten unverändert …
+    expect(matchWith('FROM "Projekte"')).toBe(true);
+    expect(matchWith('FROM "Projekt"')).toBe(false);
+    // … aber ein anders geschriebener Ordner ist ein anderer Ordner.
+    expect(matchWith('FROM "projekte/aktiv"')).toBe(false);
   });
 
   it('Tag-Quelle: hierarchisch und case-insensitiv, Negation über -', () => {

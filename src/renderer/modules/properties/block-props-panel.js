@@ -44,6 +44,7 @@ import { openFieldSuggestMenu } from './properties-suggest.js';
 import { activePathForPane, computeContext, isReadOnlyForPane } from './block-props-context.js';
 import { buildFieldRow, buildFields, refreshKeyDatalist } from './block-props-fields.js';
 import { flushPendingSave, scheduleSaveBlockProps } from './block-props-save.js';
+import { pathCompareKey } from '../../../shared/platform.js';
 import {
   buildAnchorSelect,
   buildOrphans,
@@ -311,10 +312,11 @@ function appendCustomBlockPropsField(paneIdx) {
 
 export function handleBlockDataChanged(payload) {
   if (!payload || typeof payload.path !== 'string') return;
-  const incomingPath = payload.path.toLowerCase();
+  // 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+  const incomingPath = pathCompareKey(payload.path);
   for (let p = 0; p < state.panes.length; p++) {
     const current = state.blockProps.currentFileByPane[p];
-    if (!current || current.toLowerCase() !== incomingPath) continue;
+    if (!current || pathCompareKey(current) !== incomingPath) continue;
     if (!state.blockProps.visibleByPane[p]) continue;
     state.blockProps.dataByPane[p] = payload.blockData || {};
     // Felder nicht neu bauen, wenn der Nutzer gerade in diesem Panel tippt.

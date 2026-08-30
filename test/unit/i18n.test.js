@@ -23,6 +23,77 @@ describe('i18n-Synchronitaet (S-09)', () => {
   });
 });
 
+// 4T-1279 (Epic 3E-0232, Befund B4): Kein Produktname eines Datei-Managers in
+// nutzer-sichtbaren Texten.
+//
+// Anlass: Zwei Katalog-Schluessel nannten den Windows-Datei-Manager beim
+// Produktnamen. Unter Linux heisst er anders, und der Anwender findet dort
+// nichts unter diesem Namen — der beschriebene Weg stimmte, allein die
+// Benennung war falsch. Das Release 1.121.1 hatte im August bereits eine
+// Durchsicht genau dieser Art gefahren und diese zwei Schluessel uebersehen:
+// **Eine Durchsicht von Hand findet nicht alles**, und deshalb steht hier ein
+// Waechter statt einer weiteren Durchsicht.
+//
+// Die Liste ist bewusst eng: nur Produktnamen von Datei-Managern, in den
+// Schreibungen der fuenf Sprachfassungen. Kein Katalog auf Vorrat — eine
+// Bindung an eine Plattform darf benannt werden, wo sie besteht (etwa
+// «setzt Windows 11 voraus» bei der farbigen Fenster-Titelleiste); falsch ist
+// allein, eine plattform-uebergreifende Funktion nach einem Produkt zu
+// benennen, das es nur auf einer Plattform gibt.
+describe('Keine Datei-Manager-Produktnamen in den Sprachdateien (4T-1279)', () => {
+  const VERBOTEN = [
+    'Explorer', // Windows, deutsche und englische Fassung
+    'Explorateur', // franzoesisch
+    'Explorador', // spanisch
+    'Esplora risorse', // italienisch
+    'Finder', // macOS
+    'Nautilus', // GNOME
+    'Thunar', // Xfce
+    'Dolphin', // KDE
+  ];
+
+  // Die Suche als reine Funktion, damit derselbe Code den Bestand prueft und
+  // im Fall darunter an einem konstruierten Woerterbuch belegt, dass er einen
+  // Verstoss auch wirklich findet. Ohne diesen zweiten Fall waere der Waechter
+  // nur eingerichtet und nicht nachweislich scharf (Fehlerklasse L11).
+  function produktnamenIn(dict, quelle) {
+    const funde = [];
+    for (const [key, wert] of Object.entries(dict)) {
+      if (typeof wert !== 'string') continue;
+      for (const name of VERBOTEN) {
+        if (wert.includes(name)) funde.push(`${quelle} / ${key}: "${name}"`);
+      }
+    }
+    return funde;
+  }
+
+  it('findet einen Produktnamen, wenn einer dasteht (Gegenprobe der Erkennung)', () => {
+    const kuenstlich = {
+      'help.feature.beispiel': 'Dateien oeffnen per „Oeffnen mit“ im Explorer.',
+      'help.feature.sauber': 'Dateien oeffnen per „Oeffnen mit“ im Dateimanager.',
+      'help.feature.plattform': 'Die farbige Titelleiste setzt Windows 11 voraus.',
+    };
+    const funde = produktnamenIn(kuenstlich, 'test.json');
+    // Genau der eine Verstoss — und ausdruecklich NICHT die legitime Nennung
+    // einer echten Plattform-Bindung, die kein Datei-Manager-Produktname ist.
+    expect(funde).toEqual(['test.json / help.feature.beispiel: "Explorer"']);
+  });
+
+  it('nennt den Datei-Manager mit dem Gattungsnamen, nicht mit einem Produktnamen', () => {
+    const funde = [];
+    for (const lang of LANGS) {
+      const dict = JSON.parse(fs.readFileSync(`src/i18n/${lang}.json`, 'utf8'));
+      funde.push(...produktnamenIn(dict, `${lang}.json`));
+    }
+    expect(
+      funde,
+      `Produktname eines Datei-Managers in nutzer-sichtbarem Text — Gattungsnamen verwenden ` +
+        `(Dateimanager, file manager, gestionnaire de fichiers, gestor de archivos, gestore ` +
+        `file):\n${funde.join('\n')}`,
+    ).toEqual([]);
+  });
+});
+
 describe('Bereitschaft des Woerterbuchs (4T-1044)', () => {
   // Anlass: Beim Start des gepackten Baus trifft die Anzeige-Info des Main
   // ein, bevor loadTranslations durch ist. t() liefert dann den Schluessel
