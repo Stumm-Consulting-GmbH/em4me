@@ -113,6 +113,7 @@ describe('Registry-Invarianten', () => {
       'insert.codeBlock',
       'insert.footnote',
       'insert.horizontalRule',
+      'insert.perspectiveTable',
       'insert.table',
       'link.insertExternal',
       'link.insertWiki',

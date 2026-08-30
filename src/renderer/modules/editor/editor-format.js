@@ -21,6 +21,7 @@ import {
   detectParagraphState,
   insertFootnote,
   insertTable,
+  insertPerspectiveTable,
   insertTableOfSize,
   insertCallout,
   insertHorizontalRule,
@@ -150,6 +151,7 @@ export const FORMAT_COMMANDS = {
   // 4T-0379: Einfüge-Schablonen.
   'insert.footnote': (view) => dispatchInsert(view, insertFootnote),
   'insert.table': (view) => dispatchInsert(view, insertTable),
+  'insert.perspectiveTable': (view) => dispatchInsert(view, insertPerspectiveTable),
   'insert.callout': (view) => dispatchInsert(view, insertCallout),
   'insert.horizontalRule': (view) => dispatchInsert(view, insertHorizontalRule),
   'insert.codeBlock': (view) => dispatchInsert(view, insertCodeBlock),

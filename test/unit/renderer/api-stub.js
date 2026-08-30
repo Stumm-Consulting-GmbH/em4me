@@ -61,4 +61,5 @@ document.body.innerHTML = `
   </div>
   <div id="empty-state" class="hidden"></div>
   <span id="statusbar-hint"></span>
+  <div id="context-menu" hidden></div>
 `;

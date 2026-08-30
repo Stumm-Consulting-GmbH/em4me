@@ -62,6 +62,8 @@ describe('perspective-datatable — Spalten-Definitionen', () => {
     const model = parseOk('columns: Voller Name:TEXT, Betrag netto:Number(0)');
     expect(model.columns[0]).toEqual({
       name: 'Voller Name',
+      // 4T-1313 (Epic 3E-0235): Anzeige-Überschrift, ohne Angabe leer.
+      label: null,
       type: 'text',
       decimals: null,
       expr: null,
@@ -641,5 +643,122 @@ describe('perspective-datatable — Berechnete Spalten (4T-0421)', () => {
     const computed = computeComputedCells(model);
     expect(sortDatatableRows(model, 1, 1, computed)).toEqual([1, 2, 0]);
     expect(filterDatatableRows(model, [null, { text: '6' }], computed)).toEqual([0]);
+  });
+});
+
+// --- 4T-1313 (Epic 3E-0235): Spaltenkopf — Anzeigetext und Typangabe --------
+
+describe('perspective-datatable — Anzeige-Überschrift der Spalte (4T-1313)', () => {
+  it('liest den Anzeigetext hinter der Kennung', () => {
+    const model = parseOk('columns: Gesamt "Gesamt (brutto)":number(2)\n| 1 |');
+    expect(model.columns[0].name).toBe('Gesamt');
+    expect(model.columns[0].label).toBe('Gesamt (brutto)');
+  });
+
+  it('ohne Anzeigetext bleibt das Feld leer', () => {
+    const model = parseOk('columns: Gesamt:number\n| 1 |');
+    expect(model.columns[0].label).toBeNull();
+  });
+
+  it('der Anzeigetext darf Komma, Doppelpunkt und Gleichheitszeichen tragen', () => {
+    const model = parseOk('columns: G "Summe: a, b = c":number = 1 + 1\n');
+    expect(model.columns[0].name).toBe('G');
+    expect(model.columns[0].label).toBe('Summe: a, b = c');
+    expect(model.columns[0].expr).toBe('1 + 1');
+  });
+
+  it('ein Anführungszeichen im Anzeigetext wird verdoppelt geschrieben', () => {
+    const model = parseOk('columns: G "Der ""gute"" Wert":number\n| 1 |');
+    expect(model.columns[0].label).toBe('Der "gute" Wert');
+    expect(serializePerspectiveDatatable(model)).toContain('G "Der ""gute"" Wert":number');
+  });
+
+  it('Aggregate und Ausdrücke sprechen die Kennung an, nicht den Anzeigetext', () => {
+    const model = parseOk(
+      'columns: Betrag "Betrag in Euro":number, Doppelt:number = Betrag * 2\naggregate: Betrag:sum\n| 3 |',
+    );
+    expect(model.errors).toEqual([]);
+    expect(model.aggregates[0]).toEqual(['sum']);
+    expect(model.columns[1].expr).toBe('Betrag * 2');
+  });
+
+  it('zwei Spalten dürfen denselben Anzeigetext tragen', () => {
+    const model = parseOk('columns: A "Wert":number, B "Wert":number\n| 1 | 2 |');
+    expect(model.errors).toEqual([]);
+    expect(model.columns.map((c) => c.label)).toEqual(['Wert', 'Wert']);
+  });
+
+  it('eine nicht geschlossene oder leere Anführung ist ein Struktur-Fehler', () => {
+    for (const body of ['columns: G "offen:number\n', 'columns: G "":number\n']) {
+      const model = parsePerspectiveDatatable(body);
+      expect(model.errors.map((e) => e.code)).toContain('badColumnLabel');
+    }
+  });
+
+  it('der Rundlauf gibt den Anzeigetext unverändert zurück', () => {
+    const quelle =
+      'columns: Betrag:number(2), Gesamt "Gesamt (brutto)":number(2) = Betrag * 2\n| 12.50 |';
+    const model = parseOk(quelle);
+    const zurueck = serializePerspectiveDatatable(model);
+    expect(zurueck).toContain('Gesamt "Gesamt (brutto)":number(2) = Betrag * 2');
+    // Zweiter Lauf ist stabil: der Serialisierer schreibt seine eigene Ausgabe
+    // unveraendert zurueck.
+    expect(serializePerspectiveDatatable(parseOk(zurueck))).toBe(zurueck);
+  });
+
+  it('Raster und portable Tabelle zeigen den Anzeigetext, der Merkzettel die Kennung', () => {
+    const body = 'columns: Gesamt "Gesamt (brutto)":number\n| 1 |';
+    const raster = renderPerspectiveDatatableViewer(body);
+    expect(raster).toContain('Gesamt (brutto)');
+    expect(raster).toContain('title="Gesamt"');
+    expect(convertPerspectiveDatatableBlockToHtml(body)).toContain('Gesamt (brutto)');
+  });
+});
+
+describe('perspective-datatable — abschaltbare Typangabe (4T-1313)', () => {
+  it('ohne Kopfzeile erscheint der Typ wie bisher', () => {
+    const model = parseOk('columns: A:number\n| 1 |');
+    expect(model.showTypes).toBeNull();
+    expect(renderPerspectiveDatatableViewer('columns: A:number\n| 1 |')).toContain('pdt-type');
+  });
+
+  it('mit dem Wert hidden erscheint kein Typ', () => {
+    const body = 'columns: A:number\ntypes: hidden\n| 1 |';
+    expect(parseOk(body).showTypes).toBe(false);
+    expect(renderPerspectiveDatatableViewer(body)).not.toContain('class="pdt-type"');
+  });
+
+  it('mit dem Wert shown erscheint der Typ', () => {
+    const body = 'columns: A:number\ntypes: shown\n| 1 |';
+    expect(parseOk(body).showTypes).toBe(true);
+    expect(renderPerspectiveDatatableViewer(body)).toContain('class="pdt-type"');
+  });
+
+  it('ein unbekannter Wert ist ein Struktur-Fehler', () => {
+    const model = parsePerspectiveDatatable('columns: A:number\ntypes: vielleicht\n| 1 |');
+    expect(model.errors.map((e) => e.code)).toContain('unknownTypesValue');
+  });
+
+  it('eine zweite Kopfzeile wird als Doppelung gemeldet', () => {
+    const model = parsePerspectiveDatatable(
+      'columns: A:number\ntypes: hidden\ntypes: shown\n| 1 |',
+    );
+    expect(model.errors.map((e) => e.code)).toContain('duplicateDirective');
+  });
+
+  it('der Rundlauf schreibt nur eine ausdrückliche Angabe zurück', () => {
+    // Ohne Angabe entsteht keine Zeile — sonst bekaeme jede Tabelle beim
+    // ersten Zellklick eine, die niemand geschrieben hat.
+    expect(serializePerspectiveDatatable(parseOk('columns: A:number\n| 1 |'))).not.toContain(
+      'types:',
+    );
+    expect(
+      serializePerspectiveDatatable(parseOk('columns: A:number\ntypes: hidden\n| 1 |')),
+    ).toContain('types: hidden');
+  });
+
+  it('die Typ-Prüfung der Zellen bleibt von der Anzeige unberührt', () => {
+    const model = parsePerspectiveDatatable('columns: A:number\ntypes: hidden\n| keine Zahl |');
+    expect(model.rows[0][0].error).toBe('invalidNumber');
   });
 });

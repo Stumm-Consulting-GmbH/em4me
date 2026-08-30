@@ -22,10 +22,14 @@ import {
   pipeTableTemplate,
   insertTableOfSize,
   insertTable,
+  insertPerspectiveTable,
+  PERSPECTIVE_TABLE_TEMPLATE,
   insertCallout,
   insertHorizontalRule,
   insertCodeBlock,
 } from '../../src/shared/markdown-format.js';
+// 4T-1309: Gegenprobe des eingefuegten Geruests am Parser des Konstrukts.
+import { parsePerspectiveTableBlock } from '../../src/shared/markdown/perspective-table.js';
 
 // Wendet ein Änderungs-Ergebnis auf den Text an (wie CodeMirror dispatch).
 function applyResult(text, r) {
@@ -319,6 +323,37 @@ describe('Einfüge-Schablonen (4T-0379)', () => {
     const r = insertTable('', 0);
     expect(applyChanges('', r.changes)).toBe('|  |  |\n| --- | --- |\n|  |  |');
     expect(r.selFrom).toBe(2);
+  });
+  // 4T-1309 (Epic 3E-0235): Geruest der Perspective-Tabelle. Geprueft wird das
+  // Ergebnis als Ganzes und nicht nur die Zeilen-Zahl: Der Block muss der
+  // Notation der Perspective-Tabelle folgen, sonst rendert er nicht.
+  it('Perspective-Tabelle, Cursor in der ersten Kopfzelle', () => {
+    const r = insertPerspectiveTable('', 0);
+    const out = applyChanges('', r.changes);
+    expect(out).toBe(
+      ['```perspective-table', '{|', '|-', '! ', '! ', '|-', '| ', '| ', '|}', '```'].join('\n'),
+    );
+    // Hinter der Marke der ersten Kopfzelle, also am Ende der vierten Zeile.
+    expect(out.slice(0, r.selFrom).split('\n')).toHaveLength(4);
+    expect(out.slice(0, r.selFrom).endsWith('! ')).toBe(true);
+    expect(r.selTo).toBe(r.selFrom);
+  });
+  it('Perspective-Tabelle mitten in einer Zeile beginnt in einer eigenen Zeile', () => {
+    const r = insertPerspectiveTable('Text', 4);
+    const out = applyChanges('Text', r.changes);
+    expect(out.startsWith('Text\n\n```perspective-table')).toBe(true);
+  });
+  // Der eigentliche Nachweis: Das Geruest ist nicht nur formal richtig
+  // geschrieben, sondern wird vom Parser des Konstrukts als Tabelle mit
+  // Kopf- und Datenzeile gelesen. Eine Schablone, die nur wie eine Tabelle
+  // aussieht, waere im Programm ein Code-Block.
+  it('das Geruest der Perspective-Tabelle wird als Tabelle gelesen', () => {
+    const körper = PERSPECTIVE_TABLE_TEMPLATE.split('\n').slice(1, -1).join('\n');
+    const modell = parsePerspectiveTableBlock(körper);
+    expect(modell).not.toBeNull();
+    expect(modell.rows).toHaveLength(2);
+    expect(modell.rows[0].cells.map((c) => c.type)).toEqual(['th', 'th']);
+    expect(modell.rows[1].cells.map((c) => c.type)).toEqual(['td', 'td']);
   });
   it('Quelltext-Block, Cursor auf der Sprach-Position', () => {
     const r = insertCodeBlock('', 0);

@@ -20,6 +20,8 @@ The heading button opens the level selection: heading level one to six plus "No 
 
 The table button opens a selection grid in the style of word processors: sweeping across it marks rows by columns (the label shows the size, rows including the header row), a click inserts the empty table with a header row and separator row at the cursor. Undo removes the inserted table in one step. At all other access points (context menu, palette, shortcut) the table command inserts its compact default template unchanged.
 
+Beside it sits a second button for the [Perspective table](perspective-table.md): its icon shows a table with a merged header row, and a click inserts a small, immediately valid skeleton with a header and a data row; the cursor then sits in the first header cell. There is no grid picker here, because a Perspective table is shaped afterwards through merged cells anyway. With the Perspective tables extension turned off, the button does not appear.
+
 ## Overflow
 
 If the assignment does not fit the width of the editor column, the trailing entries move into a more menu at the right edge of the bar. The menu entries show icon, name and state check mark; the heading menu appears there as a submenu, the table entry opens the selection grid.

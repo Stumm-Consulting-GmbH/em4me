@@ -11,8 +11,13 @@
    Übergeordnete Perioden als Link-Zeile, aktuelle Periode groß mit
    Pfeilen zu voriger/nächster Periode. */
 .perspective-journal-nav {
-  margin: 1em 0;
-  padding: 10px 12px;
+  /* 4T-1310 (Epic 3E-0235): Aussenabstand auf Absatz-Mass (0.6em wie
+     .markdown-body p), Innenabstand von 10 auf 6 px. Der Block soll sich
+     absetzen, nicht den Textfluss auseinanderziehen; gemessen war er vorher
+     bei 15 px Aussen- und 10 px Innenabstand fast dreimal so luftig wie ein
+     Absatz. */
+  margin: 0.6em 0;
+  padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   text-align: center;

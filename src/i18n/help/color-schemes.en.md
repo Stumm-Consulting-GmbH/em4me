@@ -4,7 +4,7 @@ A color scheme defines the app's colors: the interface (backgrounds, text, accen
 
 ## Slots and groups
 
-A slot is a named color, not direct access to internal details. The slots are arranged in five groups: Surfaces (Background, Surface, Muted surface, Toolbar), Text (Main text, Muted text), Accent and borders (Accent, Accent text, Border, Strong border), Tabs (Tab bar, Active tab) and Content (Code background, Warning color). The rendered content follows the surface slots: links carry the accent, headings the main text, the heading rule and the table borders the border, the quote bar the strong border.
+A slot is a named color, not direct access to internal details. The slots are arranged in six groups: Surfaces (Background, Surface, Muted surface, Toolbar), Text (Main text, Muted text), Accent and borders (Accent, Accent text, Border, Strong border), Tabs (Tab bar, Active tab) Content (Code background, Warning color) and Editor text colors (Heading, Link, Address, Inline code, Markup characters, List marker, Quote, Comment, Keyword, String, Number). The rendered content follows the surface slots: links carry the accent, headings the main text, the heading rule and the table borders the border, the quote bar the strong border.
 
 ## Managing schemes
 
@@ -19,4 +19,4 @@ The editor always edits the active scheme of the mode the app is currently runni
 
 ## Contrast and limits
 
-The readability of your own schemes is in your own hands: there is no automatic contrast check. The live preview shows the effect immediately, and "Reset" per slot returns to a template value. A few colors deliberately remain outside the slots: the colors of the tab groups and the syntax highlighting of code blocks still follow the theme. The PDF export stays light and takes the colors of the active light scheme.
+The readability of your own schemes is in your own hands: there is no automatic contrast check. The live preview shows the effect immediately, and "Reset" per slot returns to a template value. A few colors deliberately remain outside the slots: the colors of the tab groups and the highlighting inside code blocks still follow the theme. The colors the editor uses to mark up Markdown text, by contrast, have been part of the slots since 2026-08. The PDF export stays light and takes the colors of the active light scheme.

@@ -52,7 +52,7 @@ Le bloc de navigation se place dans l'entrée comme bloc de code, typiquement vi
 ```
 ````
 
-Dans une entrée de journal, il montre la période actuelle en grand (avec une ligne supplémentaire comme « Cette semaine » pour la période actuelle), au-dessus les périodes parentes de la même étagère (mois, trimestre, année — si un journal existe ; les lacunes sont ignorées) et des flèches vers la période précédente et suivante. Les clics ouvrent les entrées et créent celles qui manquent ; la navigation s'arrête aux limites de dates du journal. Ici même, sur la page du manuel, le même bloc montre l'indice pour les documents hors journal :
+Dans une entrée de journal, il montre la période actuelle en grand (avec une ligne supplémentaire comme « Cette semaine » pour la période actuelle), au-dessus les périodes parentes de la même étagère (mois, trimestre, année — si un journal existe ; les lacunes sont ignorées) et des flèches vers la période précédente et suivante. Les clics ouvrent les entrées et créent celles qui manquent ; la navigation s'arrête aux limites de dates du journal. **Les deux flèches feuillettent dans le même onglet :** l'entrée précédente cède la place à la nouvelle, et l'onglet conserve son mode d'affichage, son mode d'édition, son zoom, son groupe et sa position. S'il porte des modifications non enregistrées, la même question apparaît que lors d'une fermeture ; si l'entrée voisine est déjà ouverte, son onglet est activé. Les liens vers les périodes parentes ouvrent en revanche un onglet distinct, car ils changent de niveau au lieu de feuilleter. Ici même, sur la page du manuel, le même bloc montre l'indice pour les documents hors journal :
 
 ```perspective-journal-nav
 ```

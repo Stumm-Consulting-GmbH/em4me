@@ -4,7 +4,7 @@ Un esquema de color define los colores de la aplicación: la interfaz (fondos, t
 
 ## Ranuras y grupos
 
-Una ranura es un color con nombre, no un acceso directo a los detalles internos. Las ranuras se organizan en cinco grupos: Superficies (Fondo, Superficie, Superficie atenuada, Barra de herramientas), Texto (Texto principal, Texto atenuado), Acento y bordes (Acento, Texto sobre acento, Borde, Borde marcado), Pestañas (Barra de pestañas, Pestaña activa) y Contenido (Fondo de código, Color de advertencia). El contenido renderizado sigue las ranuras de superficie: los enlaces llevan el acento, los encabezados el texto principal, la línea de los encabezados y los bordes de tabla el borde, la barra de cita el borde marcado.
+Una ranura es un color con nombre, no un acceso directo a los detalles internos. Las ranuras se organizan en seis grupos: Superficies (Fondo, Superficie, Superficie atenuada, Barra de herramientas), Texto (Texto principal, Texto atenuado), Acento y bordes (Acento, Texto sobre acento, Borde, Borde marcado), Pestañas (Barra de pestañas, Pestaña activa) Contenido (Fondo de código, Color de advertencia) y Colores del texto del editor (Título, Enlace, Dirección, Código en línea, Caracteres de marcado, Marca de lista, Cita, Comentario, Palabra clave, Cadena, Número). El contenido renderizado sigue las ranuras de superficie: los enlaces llevan el acento, los encabezados el texto principal, la línea de los encabezados y los bordes de tabla el borde, la barra de cita el borde marcado.
 
 ## Gestionar esquemas
 
@@ -19,4 +19,4 @@ El editor siempre edita el esquema activo del modo en el que la aplicación se e
 
 ## Contraste y límites
 
-La legibilidad de tus propios esquemas está en tus manos: no hay una comprobación automática del contraste. La vista previa en vivo muestra el efecto de inmediato, y «Restablecer» por ranura devuelve a un valor de la plantilla. Algunos colores quedan a propósito fuera de las ranuras: los colores de los grupos de pestañas y el resaltado de sintaxis de los bloques de código siguen el tema. La exportación PDF permanece clara y toma los colores del esquema claro activo.
+La legibilidad de tus propios esquemas está en tus manos: no hay una comprobación automática del contraste. La vista previa en vivo muestra el efecto de inmediato, y «Restablecer» por ranura devuelve a un valor de la plantilla. Algunos colores quedan a propósito fuera de las ranuras: los colores de los grupos de pestañas y el resaltado dentro de los bloques de código siguen el tema. Los colores con los que el editor resalta el texto Markdown, en cambio, forman parte de las ranuras desde 2026-08. La exportación PDF permanece clara y toma los colores del esquema claro activo.

@@ -205,6 +205,13 @@ function buildInsertItems(view) {
     ins('horizontalRule', 'insert-hr'),
     ins('codeBlock', 'insert-codeblock'),
   ];
+  // 4T-1309 (Epic 3E-0235): Das Geruest der Perspective-Tabelle steht neben der
+  // einfachen Tabelle, erscheint aber nur bei aktiver Erweiterung — deshalb
+  // nicht in der festen Liste oben, sondern wie die uebrigen gegateten
+  // Eintraege ueber die Menge der abgeschalteten Kommandos.
+  if (!aus.has('insert.perspectiveTable')) {
+    submenu.splice(2, 0, ins('perspectiveTable', 'insert-perspective-table'));
+  }
   // 4T-0887 (Befund L-04): Ereignis-Block und Kalender-Datum fügen ebenfalls an
   // der Cursor-Position ein und stehen deshalb in derselben Gruppe. Der
   // Ereignis-Block schreibt in den Haupt-Editor der aktiven Spalte statt in die

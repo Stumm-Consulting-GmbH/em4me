@@ -120,6 +120,24 @@ async function openTarget(journal, period) {
   await openJournalEntry(journal, period, { inheritGroup: true });
 }
 
+// 4T-1311 (Epic 3E-0235): Blättern mit den Pfeilen. Der Nachbar-Eintrag löst
+// den bisherigen im selben Reiter ab, statt einen weiteren zu öffnen; der
+// Reiter behält dabei seinen Ansichts- und Änderungs-Modus.
+//
+// Entscheidung E1 des Product Owners vom 2026-08-30: Das gilt nur für die
+// Pfeile. Die Verweise auf Monat, Quartal und Jahr öffnen weiterhin einen
+// eigenen Reiter, weil sie die Ebene wechseln statt zu blättern — ein
+// Ebenen-Wechsel, der den Ausgangs-Eintrag schließt, nähme dem Anwender die
+// Stelle, zu der er zurückwill.
+async function blaettereZu(journal, period, basePath) {
+  const { openJournalEntry } = await import('./journals.js');
+  await openJournalEntry(journal, period, {
+    inheritGroup: true,
+    imSelbenReiter: true,
+    quellPfad: basePath,
+  });
+}
+
 function buildLink(label, title, onClick) {
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -174,7 +192,7 @@ async function fillJournalNav(el, basePath) {
   const prev = prevPeriod(journal, period);
   const next = nextPeriod(journal, period);
   if (prev) {
-    const btn = buildLink('‹', periodLabel(prev), () => openTarget(journal, prev));
+    const btn = buildLink('‹', periodLabel(prev), () => blaettereZu(journal, prev, basePath));
     btn.classList.add('journal-nav-arrow');
     row.appendChild(btn);
   }
@@ -193,7 +211,7 @@ async function fillJournalNav(el, basePath) {
   }
   row.appendChild(title);
   if (next) {
-    const btn = buildLink('›', periodLabel(next), () => openTarget(journal, next));
+    const btn = buildLink('›', periodLabel(next), () => blaettereZu(journal, next, basePath));
     btn.classList.add('journal-nav-arrow');
     row.appendChild(btn);
   }

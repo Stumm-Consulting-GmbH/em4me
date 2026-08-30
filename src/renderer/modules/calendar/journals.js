@@ -152,7 +152,26 @@ async function buildEntryContent(journal, period, relPath) {
 // 4T-0631 (Epic 3E-0102): inheritGroup setzen NUR die Dokument-Klick-
 // Aufrufer (Navigations-Block); Kalender-Panel und Kommandos bleiben
 // ungruppiert — ein Flag am Wrapper selbst würde sie falsch eingruppieren.
-export async function openJournalEntry(journal, period, { inheritGroup = false } = {}) {
+// 4T-1311 (Epic 3E-0235): `imSelbenReiter` zeigt den Eintrag im Reiter von
+// `quellPfad`, statt einen weiteren zu oeffnen — das Blaettern mit den Pfeilen
+// des Navigations-Blocks. Ohne einen passenden Quell-Reiter (etwa aus einer
+// Vorschau-Flaeche heraus) faellt der Weg auf das gewohnte Oeffnen zurueck.
+export async function openJournalEntry(
+  journal,
+  period,
+  { inheritGroup = false, imSelbenReiter = false, quellPfad = null } = {},
+) {
+  // Zeigt den Eintrag: im vorhandenen Reiter oder in einem neuen. Liefert
+  // false, wenn der Nutzer den Wechsel abgebrochen hat.
+  const zeige = async (pfad) => {
+    if (imSelbenReiter) {
+      const { ersetzeTabDurchDatei, reiterFuerPfad } = await import('../tabs/tab-ersetzen.js');
+      const stelle = reiterFuerPfad(quellPfad);
+      if (stelle) return await ersetzeTabDurchDatei(stelle.paneIdx, stelle.tabIdx, pfad);
+    }
+    await openInPane(state.activePaneIndex, [pfad], { inheritGroup });
+    return true;
+  };
   if (!period || !periodAllowed(journal, period)) {
     showStatusbarHint('journal.outOfRange', { duration: 3500, error: true });
     return false;
@@ -173,8 +192,7 @@ export async function openJournalEntry(journal, period, { inheritGroup = false }
     return false;
   }
   if (stat.exists) {
-    await openInPane(state.activePaneIndex, [stat.path], { inheritGroup });
-    return true;
+    return await zeige(stat.path);
   }
   const content = await buildEntryContent(journal, period, resolved.relPath);
   if (content === null) return false;
@@ -188,7 +206,7 @@ export async function openJournalEntry(journal, period, { inheritGroup = false }
     showStatusbarHint('journal.createFailed', { duration: 3500, error: true });
     return false;
   }
-  await openInPane(state.activePaneIndex, [created.path], { inheritGroup });
+  if (!(await zeige(created.path))) return false;
   // Race (existed): Datei war inzwischen da — nur öffnen, kein Cursor-Sprung.
   if (!created.existed && content.cursorOffset !== null) {
     jumpToOffsetInActiveTab(content.cursorOffset);

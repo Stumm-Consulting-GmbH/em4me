@@ -11,6 +11,11 @@ export default defineConfig({
   test: {
     include: ['test/unit/**/*.test.js'],
     environment: 'node',
+    // 4T-1191: Der Pflicht-Zugang ist der einzige Weg fuer einen Voll-Lauf.
+    // Ein Aufruf mit Datei- oder Muster-Argument gilt als freie
+    // Entwicklungs-Iteration und laeuft unveraendert durch; Begruendung und
+    // Abgrenzung stehen in scripts/gate-zugang.js.
+    globalSetup: ['./scripts/gate-zugang.js'],
     // 4T-0782 (Epic 3E-0156): Zusaetzlich zum Konsolen-Bericht ein
     // Maschinen-Bericht, aus dem scripts/test-kennzahlen.js die Zahl der
     // tatsaechlich ausgefuehrten Faelle liest. Die statische Quelltext-

@@ -13,7 +13,7 @@
 import { t } from '../../i18n.js';
 
 import { $ } from '../app/api.js';
-import { contextMenu, state, tabDisplayName } from '../app/app-state.js';
+import { contextMenu, getPaneEls, state, tabDisplayName } from '../app/app-state.js';
 import { activateTab, closeTab } from './tabs.js';
 // 4T-0461 (Epic 3E-0085): applyAllLayouts/persistState fuer die
 // Gruppen-Menue-Aktionen (Render und Sitzungs-Persistenz nach Modell-Edit).
@@ -179,6 +179,45 @@ export function schliesseGruppenMenueSofort() {
   if (gruppenMenueGroupId) hideContextMenu();
 }
 
+// 4T-1308 (Epic 3E-0235): Ein Mitglied aus der Liste heraus schliessen und die
+// Liste danach neu aufbauen.
+//
+// Der Neuaufbau ist nicht Kosmetik: Nach dem Schliessen verschieben sich die
+// Reiter-Indizes, und die Liste haelt sie in ihren Klick-Handlern fest. Ohne
+// ihn zeigte der naechste Griff auf den falschen Reiter. Ein Abbruch der
+// Rueckfrage laesst den Reiter offen; der Neuaufbau bildet dann denselben
+// Stand ab und stoert nicht.
+//
+// War es das letzte Mitglied, gibt es die Gruppe nicht mehr. Dann schliesst
+// das Menue, statt leer stehen zu bleiben.
+async function schliesseMitglied(paneIdx, groupId, tabIdx) {
+  await closeTab(paneIdx, tabIdx);
+  const pane = state.panes[paneIdx];
+  const group = pane ? groupById(pane, groupId) : null;
+  const rest = pane ? pane.tabs.filter((tb) => tb.groupId === groupId).length : 0;
+  if (!group || rest === 0) {
+    schliesseGruppenMenueSofort();
+    return;
+  }
+  // Der Kopf wird beim Neuzeichnen des Streifens ersetzt; das alte Element
+  // haengt danach nicht mehr im Dokument und taugte nicht als Anker.
+  const kopf = gruppenKopfEl(paneIdx, groupId);
+  if (!kopf) {
+    schliesseGruppenMenueSofort();
+    return;
+  }
+  zeigeGruppenMitgliederMenue(paneIdx, groupId, kopf);
+}
+
+// Der Gruppen-Kopf im Streifen der Pane. Die Suche bleibt auf die Pane
+// beschraenkt, weil Gruppen-Kennungen je Pane vergeben werden und in der
+// Nachbar-Pane dieselbe Zahl auftreten kann.
+function gruppenKopfEl(paneIdx, groupId) {
+  const els = getPaneEls(paneIdx);
+  if (!els || !els.tabbar) return null;
+  return els.tabbar.querySelector(`.tab-group-head[data-group-id="${groupId}"]`);
+}
+
 function zeigeGruppenMitgliederMenue(paneIdx, groupId, anchorEl) {
   const pane = state.panes[paneIdx];
   const group = pane ? groupById(pane, groupId) : null;
@@ -199,6 +238,18 @@ function zeigeGruppenMitgliederMenue(paneIdx, groupId, anchorEl) {
       // und haelt die uebrigen buendig (Muster Absatz-Submenue).
       checked: i === pane.activeIndex,
       action: () => activateTab(paneIdx, i),
+      // 4T-1308 (Epic 3E-0235): Schliessen unmittelbar aus der Liste, ohne
+      // den Umweg ueber Aufklappen und Suchen im Streifen. Geschlossen wird
+      // ueber den gemeinsamen Weg, damit die Rueckfrage bei ungesicherten
+      // Aenderungen ohne eigenes Zutun greift.
+      trailing: {
+        text: '×',
+        tooltip: t('tabGroup.member.close'),
+        dataId: 'tabgroup-member-close',
+        action: () => {
+          void schliesseMitglied(paneIdx, groupId, i);
+        },
+      },
     });
   }
   const rect = anchorEl.getBoundingClientRect();

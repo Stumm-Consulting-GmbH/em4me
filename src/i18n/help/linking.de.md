@@ -89,6 +89,10 @@ Beim Tippen im Edit-Modus öffnet sich ein Vorschlags-Dropdown:
 
 Pfeil-Tasten navigieren, Enter oder Tab wählt aus, Esc schließt.
 
+Solange nach `[[` nichts getippt ist, stehen die zuletzt geänderten Dateien des Bereichs oben, die jüngste zuerst. Sobald gefiltert wird, führt wieder die Treffer-Güte; die Änderungszeit entscheidet dann nur noch zwischen gleichrangigen Vorschlägen.
+
+Die Übernahme eines Datei- oder Zweitnamen-Vorschlags schreibt die schließenden Klammern mit und setzt die Schreibmarke dahinter. Stehen sie schon da, entsteht kein zweites Paar.
+
 ## Sidebars zum Netz
 
 Drei Sidebar-Sektionen zeigen das Netz der aktiven Datei: **Backlinks** (eingehende Links, inklusive „via Alias"), **Outgoing-Links** (alle ausgehenden Verweise in Dokument-Reihenfolge) und **Tags** (alle Tags des Suchraums mit Häufigkeit). Zugänge stehen in der [Funktions-Tabelle](functions.md).

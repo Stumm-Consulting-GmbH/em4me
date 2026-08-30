@@ -10,7 +10,10 @@
    (transition-delay im Grundzustand) verhindert Hover-Flattern bei
    randnaher Maus; beim Aufklappen gilt Delay 0. */
 .markdown-body .frontmatter-block {
-  margin: 0 0 1em 0;
+  /* 4T-1310 (Epic 3E-0235): Abstand nach unten auf Absatz-Mass. Die Zeile
+     setzt in kleinerer Schrift, deshalb 0.7em statt der 0.6em des Absatzes;
+     in Pixeln gerechnet kommt beides auf dasselbe heraus. */
+  margin: 0 0 0.7em 0;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-alt);

@@ -439,3 +439,61 @@ test.describe('DT-03: Live-Modus zeigt dasselbe Grid als Block-Widget', () => {
     }
   });
 });
+
+// --- 4T-1313 (Epic 3E-0235): Spaltenkopf — Anzeigetext und Typangabe -------
+
+const FIXTURE_KOPF = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'datentabelle-spaltenkopf.md',
+);
+
+test.describe('DT-13: Anzeige-Ueberschrift und abschaltbare Typangabe', () => {
+  test('der Kopf zeigt den Anzeigetext, keine Typangabe und die Kennung im Merkzettel', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE_KOPF] });
+    try {
+      await waitForTab(page);
+      const grid = page
+        .locator(SEL.markdownBody0)
+        .locator('.perspective-datatable[data-dt-index="0"]');
+      await expect(grid.locator('.pdt-grid')).toBeVisible();
+      const kopf = grid.locator('th[data-dt-col="0"]');
+      await expect(kopf.locator('.pdt-name')).toHaveText('Betrag (brutto, in Euro)');
+      // Typangabe abgeschaltet: kein Typ-Feld im ganzen Kopf.
+      await expect(grid.locator('th .pdt-type')).toHaveCount(0);
+      // Die Kennung bleibt ueber den Merkzettel erreichbar; sie wird beim
+      // Schreiben eines Ausdrucks gebraucht.
+      await expect(kopf).toHaveAttribute('title', /Betrag/);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  test('eine Zell-Aenderung schreibt Anzeigetext und Typ-Zeile unveraendert zurueck', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE_KOPF] });
+    try {
+      await waitForTab(page);
+      const { grid, editor } = await openSplit(page);
+      await grid.locator('tr[data-dt-row="0"] td[data-dt-col="0"]').click();
+      const input = grid.locator('input.pdt-cell-input');
+      await expect(input).toBeVisible();
+      await input.fill('20');
+      await input.press('Enter');
+      // Der Wert ist uebernommen …
+      await expect(editor).toContainText('| 20');
+      // … und beide Kopf-Angaben stehen unveraendert im Quelltext. Das ist
+      // der eigentliche Nachweis: Der Serialisierer schreibt den ganzen Block
+      // neu, und ohne sie verloere ein Zellklick still die Beschriftung.
+      await expect(editor).toContainText('Betrag "Betrag (brutto, in Euro)":number(2)');
+      await expect(editor).toContainText('Gesamt "Gesamt = Betrag mal zwei":number(2)');
+      await expect(editor).toContainText('types: hidden');
+      // Der Ausdruck der berechneten Spalte spricht weiter die Kennung an.
+      await expect(editor).toContainText('= Betrag * 2');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

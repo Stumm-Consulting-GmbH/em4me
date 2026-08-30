@@ -28,7 +28,19 @@ aggregate: Montant:sum+avg, Fait:count
 
 - **`columns:`** (obligatoire) déclare les colonnes sous la forme `Nom:type`, séparées par des virgules. Les noms de colonnes peuvent contenir des espaces.
 - **`aggregate:`** (facultatif) associe des fonctions d'agrégat aux colonnes ; plusieurs par colonne se combinent avec `+`.
+- **`types:`** (facultatif) commute l'indication de type sous les en-têtes : `shown` ou `hidden`. Sans cette ligne, elle apparaît.
 - **Les lignes de données** utilisent la notation à barres (`| … | … |`), une ligne par enregistrement. Un `|` dans le texte s'écrit `\|`.
+
+
+### Un en-tête propre par colonne
+
+L'identifiant de colonne sert aussi d'en-tête. Il doit rester court et sans séparateurs, car les agrégats et les colonnes calculées l'utilisent comme nom. Pour un en-tête lisible, placez-le entre guillemets doubles derrière l'identifiant :
+
+```
+columns: Montant:number(2), Total "Total (brut, en €)":number(2) = Montant * 2
+```
+
+Le libellé peut porter n'importe quels caractères, y compris espaces, virgules, deux-points et signes égal ; un guillemet à l'intérieur s'écrit deux fois. La colonne reste adressée uniquement par son identifiant, qui demeure accessible en infobulle sur l'en-tête.
 
 ## Types de colonnes et formats
 

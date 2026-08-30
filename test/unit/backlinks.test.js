@@ -537,6 +537,54 @@ describe('4T-0336: Unterseiten-Aufloesung (U+2215) und relative Links', () => {
     expect(names.some((n) => n.includes(SEP))).toBe(false);
   });
 
+  // 4T-1307 (Epic 3E-0235): Die Vorschlaege tragen die Aenderungszeit ihrer
+  // Datei, damit der Renderer die zuletzt bearbeiteten zuerst anbieten kann.
+  it('Autocomplete-Vorschlaege tragen die Aenderungszeit ihrer Datei', async () => {
+    const root = makeRoot();
+    const alt = write(root, 'Alt.md', '# Alt\n');
+    const neu = write(root, 'Neu.md', '# Neu\n');
+    // Feste Zeiten statt Schreib-Reihenfolge: Auf schnellen Dateisystemen
+    // liegen zwei unmittelbar aufeinander folgende Schreibvorgaenge sonst auf
+    // derselben Millisekunde, und der Test waere nicht aussagekraeftig.
+    const sek = (n) => new Date(n * 1000);
+    fs.utimesSync(alt, sek(1_000_000), sek(1_000_000));
+    fs.utimesSync(neu, sek(2_000_000), sek(2_000_000));
+    await indexFor(alt);
+    const res = wikiLinkAutocompleteSuggestions(alt);
+    expect(res.status).toBe('ready');
+    const zeitVon = (name) => res.suggestions.find((s) => s.name === name).mtimeMs;
+    expect(zeitVon('Alt')).toBe(1_000_000_000);
+    expect(zeitVon('Neu')).toBe(2_000_000_000);
+    expect(zeitVon('Neu')).toBeGreaterThan(zeitVon('Alt'));
+  });
+
+  // 4T-1307: Waehrend des Aufbaus bleibt die Liste stumm statt leer — der
+  // Renderer unterdrueckt das Dropdown dann, statt "keine Treffer" zu zeigen.
+  it('Autocomplete meldet waehrend des Index-Aufbaus indexing statt einer leeren Liste', async () => {
+    const root = makeRoot();
+    const quelle = write(root, 'Quelle.md', '# Quelle\n');
+    write(root, 'Ziel.md', '# Ziel\n');
+    backlinksFor(quelle);
+    openRoots.add(rootForActiveFile(quelle));
+    const waehrend = wikiLinkAutocompleteSuggestions(quelle);
+    expect(waehrend.status).toBe('indexing');
+    expect(waehrend.suggestions).toEqual([]);
+    await indexFor(quelle);
+  });
+
+  it('Ein Zweitname erbt die Aenderungszeit seiner Ziel-Datei', async () => {
+    const root = makeRoot();
+    const quelle = write(root, 'Quelle.md', '# Quelle\n');
+    const ziel = write(root, 'Ziel.md', '---\naliases:\n  - Deckname\n---\n\n# Ziel\n');
+    const sek = (n) => new Date(n * 1000);
+    fs.utimesSync(ziel, sek(3_000_000), sek(3_000_000));
+    await indexFor(quelle);
+    const res = wikiLinkAutocompleteSuggestions(quelle);
+    const zweitname = res.suggestions.find((s) => s.kind === 'alias' && s.name === 'Deckname');
+    expect(zweitname).toBeTruthy();
+    expect(zweitname.mtimeMs).toBe(3_000_000_000);
+  });
+
   it('Anker-Autocomplete funktioniert fuer Slash-Form und relative Formen', async () => {
     const root = makeRoot();
     const eltern = write(root, 'Prozess-A.md', '# A\n\n## Oben\n');

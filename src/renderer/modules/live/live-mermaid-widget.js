@@ -182,6 +182,17 @@ export class MermaidBlockWidget extends WidgetType {
 // Initial-Selektion gerade NICHT demaskiert (siehe buildBlockWidgetValue).
 // eq() vergleicht Quelltext und Sprache (Sprachwechsel erneuert das
 // lokalisierte Label via liveRebuildEffect-Rebuild).
+// 4T-1310 (Epic 3E-0235): Leerraum-Textknoten auf oberster Ebene entfernen.
+// Im Dokument-Fluss sind sie folgenlos; in einem Widget-Kasten bilden sie eine
+// eigene Textzeile und schieben den Inhalt darunter auseinander.
+function entferneLeerraumKnoten(container) {
+  for (const knoten of [...container.childNodes]) {
+    if (knoten.nodeType === Node.TEXT_NODE && !String(knoten.textContent || '').trim()) {
+      knoten.remove();
+    }
+  }
+}
+
 export class FrontmatterBlockWidget extends WidgetType {
   constructor(source, lang) {
     super();
@@ -202,6 +213,12 @@ export class FrontmatterBlockWidget extends WidgetType {
       const html = api.renderMarkdown(this.source, '');
       if (html && html.includes('frontmatter-block')) {
         container.innerHTML = html;
+        // 4T-1310 (Epic 3E-0235): Der gerenderte Ausschnitt endet mit einem
+        // Zeilenumbruch. Als Textknoten im Widget erzeugt er eine leere
+        // Textzeile und damit 24 px Leerraum unter der zusammengeklappten
+        // Zeile (gemessen am 2026-08-30). Sichtbar wird er erst im Editor,
+        // weil der Widget-Kasten dort eine eigene Zeile bildet.
+        entferneLeerraumKnoten(container);
         applyFrontmatterLine(container);
         applyTranslations(container);
         container.addEventListener('mousedown', (e) => {

@@ -89,6 +89,10 @@ Al escribir en modo edición se abre un menú de sugerencias:
 
 Las flechas navegan, Intro o Tab selecciona, Esc cierra.
 
+Mientras no se escriba nada tras `[[`, los archivos del área modificados más recientemente aparecen arriba, el más reciente primero. En cuanto se filtra, vuelve a mandar la calidad de coincidencia; la fecha de modificación solo decide entonces entre sugerencias del mismo rango.
+
+Al aceptar una sugerencia de archivo o de alias se escriben también los corchetes de cierre y el cursor queda detrás. Si ya están, no aparece un segundo par.
+
 ## Barras laterales de la red
 
 Tres secciones de la barra lateral muestran la red del archivo activo: **Retroenlaces** (enlaces entrantes, incluido «vía alias»), **Enlaces salientes** (todas las referencias salientes en orden de documento) y **Etiquetas** (todas las etiquetas del ámbito de búsqueda con su frecuencia). Los accesos figuran en la [tabla de funciones](functions.md).

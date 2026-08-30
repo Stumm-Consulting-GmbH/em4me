@@ -52,7 +52,7 @@ Il blocco di navigazione sta nella voce come blocco di codice, tipicamente trami
 ```
 ````
 
-All'interno di una voce di diario mostra il periodo attuale in grande (con una riga aggiuntiva come «Questa settimana» per il periodo attuale), sopra i periodi superiori dello stesso scaffale (mese, trimestre, anno, dove esiste un diario; le lacune vengono omesse) e frecce al periodo precedente e successivo. I clic aprono le voci e creano quelle mancanti; la navigazione si ferma ai limiti di data del diario. Proprio qui, nella pagina del manuale, lo stesso blocco mostra l'avviso per i documenti al di fuori di un diario:
+All'interno di una voce di diario mostra il periodo attuale in grande (con una riga aggiuntiva come «Questa settimana» per il periodo attuale), sopra i periodi superiori dello stesso scaffale (mese, trimestre, anno, dove esiste un diario; le lacune vengono omesse) e frecce al periodo precedente e successivo. I clic aprono le voci e creano quelle mancanti; la navigazione si ferma ai limiti di data del diario. **Le due frecce sfogliano nella stessa scheda:** la voce precedente cede il posto alla nuova, e la scheda conserva modalità di visualizzazione, modalità di modifica, ingrandimento, gruppo e posizione. Se porta modifiche non salvate compare la stessa domanda della chiusura; se la voce vicina è già aperta, viene attivata la sua scheda. I collegamenti ai periodi superiori aprono invece una scheda propria, perché cambiano livello invece di sfogliare. Proprio qui, nella pagina del manuale, lo stesso blocco mostra l'avviso per i documenti al di fuori di un diario:
 
 ```perspective-journal-nav
 ```

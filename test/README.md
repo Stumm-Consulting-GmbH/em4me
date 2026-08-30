@@ -528,6 +528,26 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Entwicklungs-Iteration an einzelnen Prüfdateien, solange ihr Ausgang nicht
   berichtet wird.
 
+  **Seit dem 2026-08-30 ist die Pflicht maschinell gedeckt** (4T-1191): Der
+  Pflicht-Zugang ist nicht mehr die vorgeschriebene, sondern die **einzige**
+  Möglichkeit, einen Voll-Lauf zu starten. Beide Test-Konfigurationen rufen
+  `scripts/gate-zugang.js` als `globalSetup`; es weist einen Voll-Lauf ohne die
+  Zugangs-Marke ab, die allein `gate-lauf.js` setzt — und damit beide
+  Pflicht-Zugänge, weil die Merge-Queue ihre Gates aus demselben Modul bezieht.
+  `npm test` und `npx vitest run` enden dadurch mit einer Meldung statt mit
+  einem Lauf, `npx playwright test` ebenso. **Die Grenze zur freien Iteration
+  liegt am Argument** (Entscheidung des Product Owners vom 2026-08-29): Ein
+  Aufruf mit konkretem Datei- oder Muster-Argument ist Iteration und läuft
+  unverändert durch, ein Aufruf ohne solches Argument ist ein Voll-Lauf und
+  verlangt den Zugang. Anlass war die Zählung der Klasse L3, die nach dem
+  Maßnahme-Datum vier Wiederholungen auswies: Die Ursache war nicht die
+  fehlende Regel, sondern die fehlende Deckung. **Warum die Sperre in der
+  Test-Konfiguration sitzt und nicht in `package.json`:** Diese Datei gehört
+  zur Release-Isolation und wäre außerhalb einer Release-Strecke nicht
+  integrierbar; der Product Owner hat am 2026-08-30 deshalb den Ort verlegt,
+  nicht das Prinzip. Der gewählte Ort deckt zudem mehr, weil auch der direkte
+  Aufruf des Test-Programms an ihm vorbei müsste.
+
 - **Der Rückgabewert gehört dem Werkzeug, nicht der Kommandozeile** (4T-1178,
   Vorfall vom 2026-08-24; seit 4T-1165 für **beide** Pflicht-Zugänge). Der
   Zugang reicht den Rückgabewert unverfälscht weiter, aber nur bis zum Rand

@@ -34,7 +34,7 @@ Il sottomenu Visualizza → Visualizzazione editor raccoglie i cinque interrutto
 
 - **Piegatura** mostra la barra di piegatura sul bordo sinistro: titoli, elenchi e blocchi si richiudono lì, e la gerarchia resta visibile come traccia.
 - **Numeri di riga** mostra la colonna dei numeri.
-- **A capo automatico** manda a capo le righe lunghe al bordo della finestra invece di scorrere in orizzontale.
+- **A capo automatico** manda a capo le righe lunghe al bordo della finestra invece di scorrere in orizzontale. Il seguito di una riga andata a capo inizia all'altezza del rientro del suo contenuto: in una voce di elenco dopo il segno, in una numerata dopo il numero, in una riga rientrata al suo stesso rientro. Un paragrafo senza rientro resta allineato a sinistra.
 - **Sincronizzazione scorrimento** accoppia le due metà nella vista divisa: scorrendo la sorgente, il risultato segue per contenuto, e viceversa. L'interruttore vale per scheda.
 - **Scorrimento macchina da scrivere** tiene la riga del cursore centrata in verticale non appena il cursore si muove. Agisce solo nella modalità di modifica.
 

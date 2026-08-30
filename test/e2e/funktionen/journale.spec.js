@@ -311,6 +311,152 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
     }
   });
 
+  // 4T-1311 (Epic 3E-0235): Die Pfeile blaettern im selben Reiter.
+  test('die Pfeile wechseln im selben Reiter und behalten den Ansichts-Modus', async () => {
+    const areaRoot = makeArea();
+    const templatesDir = makeTemplatesDir();
+    const userData = makeUserData(templatesDir);
+    const { app, page } = await launchApp({ userData });
+    try {
+      await bindArea(page, areaRoot);
+      const selectModal = page.locator('#template-select-modal');
+      await pressUntilVisible(page, 'Control+Alt+7', selectModal);
+      await page.locator('#template-select-list button', { hasText: 'Tag — Tagebuch' }).click();
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+
+      const nav = page.locator(`${SEL.markdownBody0} .perspective-journal-nav`);
+      await expect(nav).toBeVisible();
+      // Ausgangslage festhalten: ein Reiter, geteilte Ansicht, Beschriftung.
+      await app.evaluate(({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'split');
+      });
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      // Der Reiter-Titel traegt neben dem Namen die Schliess-Flaeche; verglichen
+      // wird deshalb der Dateiname aus dem Merkzettel, nicht der ganze Text.
+      const nameDesReiters = async () => {
+        const titel = await page.locator(SEL.activeTab0).getAttribute('title');
+        return path.basename(String(titel || ''));
+      };
+      const vorher = await nameDesReiters();
+
+      // Rueckwaerts blaettern: derselbe Reiter zeigt den Vortag.
+      await nav.locator('.journal-nav-arrow').first().click();
+      await expect.poll(nameDesReiters).not.toBe(vorher);
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      // Der Ansichts-Modus des Reiters ist erhalten: die geteilte Ansicht
+      // zeigt Editor und gesetzten Text nebeneinander.
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+      await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+
+      // Vorwaerts blaettern fuehrt zurueck, weiterhin ohne zweiten Reiter.
+      await nav.locator('.journal-nav-arrow').last().click();
+      await expect.poll(nameDesReiters).toBe(vorher);
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+      cleanupDir(templatesDir);
+    }
+  });
+
+  // 4T-1311 (Epic 3E-0235): Anlage des fehlenden Nachbar-Eintrags (AK5),
+  // Nachzug der Titelzeile (AK7) und Sitzungs-Ablage ueber den Neustart (AK8).
+  // Die drei haengen an derselben Stelle: ersetzeTabDurchDatei liest die Datei
+  // ueber denselben Weg wie das Oeffnen und ruft danach activateTab, das
+  // Editor, Titelzeile, Panels und Sitzungs-Ablage nachzieht. Ein Test statt
+  // dreier, weil der Neustart die teure Zutat ist und die Anlage ohnehin
+  // vorausgeht.
+  test('das Blaettern legt den fehlenden Eintrag an, zieht die Titelzeile nach und ueberlebt den Neustart', async () => {
+    const areaRoot = makeArea();
+    const templatesDir = makeTemplatesDir();
+    const userData = makeUserData(templatesDir);
+    const erste = await launchApp({ userData });
+    try {
+      await bindArea(erste.page, areaRoot);
+      const selectModal = erste.page.locator('#template-select-modal');
+      await pressUntilVisible(erste.page, 'Control+Alt+7', selectModal);
+      await erste.page
+        .locator('#template-select-list button', { hasText: 'Tag — Tagebuch' })
+        .click();
+      await expect(erste.page.locator(SEL.editorContent0)).toBeVisible();
+
+      // Der Vortag aus demselben Perioden-Kern, den die App nutzt. Die Uhrzeit
+      // steht auf Mittag, damit eine Zeitumstellung den Tages-Sprung nicht
+      // verschluckt.
+      const mittagGestern = new Date();
+      mittagGestern.setHours(12, 0, 0, 0);
+      mittagGestern.setDate(mittagGestern.getDate() - 1);
+      const vortag = periodOf(mittagGestern.getTime(), 'day');
+      const vortagRel = resolveEntryPath(
+        { folderPattern: 'Journal/{{date::yyyy}}', namePattern: '{{date}}' },
+        vortag,
+      ).relPath;
+      const vortagAbs = path.join(areaRoot, ...vortagRel.split('/'));
+      const vortagName = path.basename(vortagRel, '.md');
+      expect(fs.existsSync(vortagAbs)).toBe(false);
+
+      // Geteilte Ansicht: der Navigations-Block ist sichtbar, und die
+      // Titelzeile der Quelltext-Seite ist die aktive Instanz (TZ-01).
+      await erste.app.evaluate(({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'split');
+      });
+      const nav = erste.page.locator(`${SEL.markdownBody0} .perspective-journal-nav`);
+      await expect(nav).toBeVisible();
+      await nav.locator('.journal-nav-arrow').first().click();
+
+      // AK5: der fehlende Eintrag entsteht wie beim Oeffnen, mit Vorlage.
+      await expect
+        .poll(() => (fs.existsSync(vortagAbs) ? fs.readFileSync(vortagAbs, 'utf8') : null))
+        .toContain('perspective-journal-nav');
+      // AK7: die Titelzeile zeigt den neuen Eintrag, nicht den bisherigen.
+      await expect(erste.page.locator(SEL.titleLineSourceText0)).toHaveText(vortagName);
+
+      // AK8: sauber beenden (before-quit schreibt die Sitzung), neu starten.
+      await erste.app.evaluate(({ app }) => app.quit());
+      await erste.app.waitForEvent('close');
+      const zweite = await launchApp({ userData });
+      try {
+        await expect(zweite.page.locator(SEL.tabs0)).toHaveCount(1);
+        // Der Reiter-Titel traegt die Endung, die Titelzeile nicht.
+        await expect(zweite.page.locator(SEL.activeTab0).locator('.tab-title')).toHaveText(
+          path.basename(vortagRel),
+        );
+      } finally {
+        await closeApp(zweite.app, null);
+      }
+    } finally {
+      await closeApp(erste.app, userData);
+      cleanupDir(areaRoot);
+      cleanupDir(templatesDir);
+    }
+  });
+
+  // 4T-1311: Der Eltern-Sprung bleibt beim eigenen Reiter (Entscheidung E1).
+  test('der Sprung auf die uebergeordnete Periode oeffnet weiterhin einen eigenen Reiter', async () => {
+    const areaRoot = makeArea();
+    const templatesDir = makeTemplatesDir();
+    const userData = makeUserData(templatesDir);
+    const { app, page } = await launchApp({ userData });
+    try {
+      await bindArea(page, areaRoot);
+      const selectModal = page.locator('#template-select-modal');
+      await pressUntilVisible(page, 'Control+Alt+7', selectModal);
+      await page.locator('#template-select-list button', { hasText: 'Tag — Tagebuch' }).click();
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+      const nav = page.locator(`${SEL.markdownBody0} .perspective-journal-nav`);
+      await expect(nav).toBeVisible();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      await nav.locator('.journal-nav-parents .journal-nav-link').first().click();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(2);
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+      cleanupDir(templatesDir);
+    }
+  });
+
   test('außerhalb eines Journal-Eintrags erscheint der Hinweis', async () => {
     const areaRoot = makeArea();
     const templatesDir = makeTemplatesDir();

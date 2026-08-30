@@ -44,6 +44,20 @@ const BASE_DEFAULTS = {
     tabActive: '#ffffff',
     codeBg: '#f6f8fa',
     linterWarn: '#c97a00',
+    // 4T-1314 (Epic 3E-0235): Die elf Farben, mit denen der Editor den
+    // Markdown-Text auszeichnet. Werte unveraendert aus dem Stilblatt;
+    // der Drift-Waechter prueft die Gleichheit.
+    syntaxHeading: '#0969da',
+    syntaxLink: '#0969da',
+    syntaxUrl: '#57606a',
+    syntaxCode: '#d73a49',
+    syntaxMeta: '#57606a',
+    syntaxList: '#1a7f37',
+    syntaxQuote: '#6a737d',
+    syntaxComment: '#6a737d',
+    syntaxKeyword: '#cf222e',
+    syntaxString: '#0a3069',
+    syntaxNumber: '#0550ae',
   },
   dark: {
     bg: '#1e1e1e',
@@ -60,6 +74,20 @@ const BASE_DEFAULTS = {
     tabActive: '#1e1e1e',
     codeBg: '#2a2a2a',
     linterWarn: '#e8a544',
+    // 4T-1314 (Epic 3E-0235): Die elf Farben, mit denen der Editor den
+    // Markdown-Text auszeichnet. Werte unveraendert aus dem Stilblatt;
+    // der Drift-Waechter prueft die Gleichheit.
+    syntaxHeading: '#79c0ff',
+    syntaxLink: '#79c0ff',
+    syntaxUrl: '#8b949e',
+    syntaxCode: '#ffa657',
+    syntaxMeta: '#8b949e',
+    syntaxList: '#7ee787',
+    syntaxQuote: '#8b949e',
+    syntaxComment: '#8b949e',
+    syntaxKeyword: '#ff7b72',
+    syntaxString: '#a5d6ff',
+    syntaxNumber: '#79c0ff',
   },
 };
 
@@ -70,6 +98,8 @@ const SLOT_GROUPS = [
   { id: 'accent', nameKey: 'settings.colorSchemes.group.accent' },
   { id: 'tabs', nameKey: 'settings.colorSchemes.group.tabs' },
   { id: 'content', nameKey: 'settings.colorSchemes.group.content' },
+  // 4T-1314 (Epic 3E-0235): Die Farben der Markdown-Auszeichnung im Editor.
+  { id: 'editorText', nameKey: 'settings.colorSchemes.group.editorText' },
 ];
 
 // Kuratierte Slot-Liste. `vars` ist die Liste der gespeisten CSS-Variablen;
@@ -145,6 +175,76 @@ const COLOR_SLOTS = [
     nameKey: 'settings.colorSchemes.slot.linterWarn',
     vars: ['--linter-warn'],
   },
+
+  // 4T-1314 (Epic 3E-0235): Editor-Textfarben. Sie speisen dieselben
+  // Variablen wie bisher das Stilblatt; die Zuordnung zu den Markdown-
+  // Rollen liegt unveraendert in der Hervorhebungs-Definition des Editors.
+  {
+    id: 'syntaxHeading',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxHeading',
+    vars: ['--syntax-heading'],
+  },
+  {
+    id: 'syntaxLink',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxLink',
+    vars: ['--syntax-link'],
+  },
+  {
+    id: 'syntaxUrl',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxUrl',
+    vars: ['--syntax-url'],
+  },
+  {
+    id: 'syntaxCode',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxCode',
+    vars: ['--syntax-code'],
+  },
+  {
+    id: 'syntaxMeta',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxMeta',
+    vars: ['--syntax-meta'],
+  },
+  {
+    id: 'syntaxList',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxList',
+    vars: ['--syntax-list'],
+  },
+  {
+    id: 'syntaxQuote',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxQuote',
+    vars: ['--syntax-quote'],
+  },
+  {
+    id: 'syntaxComment',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxComment',
+    vars: ['--syntax-comment'],
+  },
+  {
+    id: 'syntaxKeyword',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxKeyword',
+    vars: ['--syntax-keyword'],
+  },
+  {
+    id: 'syntaxString',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxString',
+    vars: ['--syntax-string'],
+  },
+  {
+    id: 'syntaxNumber',
+    group: 'editorText',
+    nameKey: 'settings.colorSchemes.slot.syntaxNumber',
+    vars: ['--syntax-number'],
+  },
 ];
 
 const SLOT_IDS = COLOR_SLOTS.map((s) => s.id);
@@ -156,217 +256,10 @@ const SLOT_ID_SET = new Set(SLOT_IDS);
 const ACCENT_SOFT_VAR = '--accent-soft';
 const ACCENT_SOFT_ALPHA = { light: 0.12, dark: 0.18 };
 
-// Mitgelieferte, unveränderliche Schemas (Basis + Abweichungen). Standard
-// Hell/Dunkel haben keine Abweichungen (== Basis-Palette). Die Varianten
-// setzen bewusst wenige Slots ab (kontrastreich, gedämpft-warm).
-const BUILTIN_SCHEMES = [
-  { id: 'standard-light', nameKey: 'colorScheme.builtin.standardLight', base: 'light', colors: {} },
-  { id: 'standard-dark', nameKey: 'colorScheme.builtin.standardDark', base: 'dark', colors: {} },
-  {
-    id: 'contrast-light',
-    nameKey: 'colorScheme.builtin.contrastLight',
-    base: 'light',
-    colors: {
-      text: '#000000',
-      textMuted: '#3a3a3a',
-      border: '#9a9a9a',
-      borderStrong: '#6a6a6a',
-      accent: '#0a4da8',
-    },
-  },
-  {
-    id: 'contrast-dark',
-    nameKey: 'colorScheme.builtin.contrastDark',
-    base: 'dark',
-    colors: {
-      text: '#ffffff',
-      textMuted: '#c8c8c8',
-      border: '#6a6a6a',
-      borderStrong: '#8a8a8a',
-      accent: '#8fc4ff',
-    },
-  },
-  {
-    id: 'sepia-light',
-    nameKey: 'colorScheme.builtin.sepiaLight',
-    base: 'light',
-    colors: {
-      bg: '#f4ecd8',
-      surface: '#efe4c9',
-      muted: '#e6d9b8',
-      toolbar: '#f0e7d0',
-      text: '#43382b',
-      textMuted: '#7a6a52',
-      accent: '#9a5b2d',
-      border: '#d8c9a8',
-      borderStrong: '#c2ad82',
-      codeBg: '#efe4c9',
-    },
-  },
-  // 4T-0578 (Epic 3E-0106): vier kuratierte Paare als weitere Vorlagen. Jedes
-  // Paar traegt denselben Farb-Charakter in hell und dunkel; die Warnfarbe
-  // bleibt auf der Basis-Palette, ausser sie liegt zu nah am Akzent (Bernstein).
-  {
-    id: 'steel-light',
-    nameKey: 'colorScheme.builtin.steelLight',
-    base: 'light',
-    colors: {
-      bg: '#f7f9fc',
-      surface: '#eef2f8',
-      muted: '#e2e8f2',
-      toolbar: '#f1f5fa',
-      text: '#1c2833',
-      textMuted: '#5b6b7c',
-      accent: '#2b6cb0',
-      border: '#d3dce8',
-      borderStrong: '#b3c1d4',
-      tabBar: '#e4eaf3',
-      tabActive: '#f7f9fc',
-      codeBg: '#eef2f8',
-    },
-  },
-  {
-    id: 'steel-dark',
-    nameKey: 'colorScheme.builtin.steelDark',
-    base: 'dark',
-    colors: {
-      bg: '#161c24',
-      surface: '#1c242e',
-      muted: '#232d3a',
-      toolbar: '#1a222c',
-      text: '#dfe7f0',
-      textMuted: '#93a3b5',
-      accent: '#6cb0f5',
-      accentFg: '#0c1620',
-      border: '#2e3a48',
-      borderStrong: '#435264',
-      tabBar: '#202a36',
-      tabActive: '#161c24',
-      codeBg: '#1c242e',
-    },
-  },
-  {
-    id: 'forest-light',
-    nameKey: 'colorScheme.builtin.forestLight',
-    base: 'light',
-    colors: {
-      bg: '#f6faf6',
-      surface: '#ecf3ec',
-      muted: '#e0ebe0',
-      toolbar: '#f1f7f1',
-      text: '#1f2b21',
-      textMuted: '#5c6d5e',
-      accent: '#2f7d4f',
-      border: '#d4e2d5',
-      borderStrong: '#b2c8b4',
-      tabBar: '#e3eee4',
-      tabActive: '#f6faf6',
-      codeBg: '#ecf3ec',
-    },
-  },
-  {
-    id: 'forest-dark',
-    nameKey: 'colorScheme.builtin.forestDark',
-    base: 'dark',
-    colors: {
-      bg: '#151b16',
-      surface: '#1b231d',
-      muted: '#222c24',
-      toolbar: '#192019',
-      text: '#e0e9e1',
-      textMuted: '#94a596',
-      accent: '#6cc38b',
-      accentFg: '#0c1a12',
-      border: '#2c382e',
-      borderStrong: '#405243',
-      tabBar: '#1f2921',
-      tabActive: '#151b16',
-      codeBg: '#1b231d',
-    },
-  },
-  {
-    id: 'amber-light',
-    nameKey: 'colorScheme.builtin.amberLight',
-    base: 'light',
-    colors: {
-      bg: '#fffaf3',
-      surface: '#fbf1e4',
-      muted: '#f5e6d3',
-      toolbar: '#fdf6ec',
-      text: '#33281c',
-      textMuted: '#7b6a55',
-      accent: '#9c6316',
-      border: '#ecdcc6',
-      borderStrong: '#d7c1a3',
-      tabBar: '#f7ead8',
-      tabActive: '#fffaf3',
-      codeBg: '#fbf1e4',
-      // Warnfarbe ins Rot geschoben: das Basis-Orange waere vom bernstein-
-      // farbenen Akzent kaum zu unterscheiden.
-      linterWarn: '#b3261e',
-    },
-  },
-  {
-    id: 'amber-dark',
-    nameKey: 'colorScheme.builtin.amberDark',
-    base: 'dark',
-    colors: {
-      bg: '#1c1813',
-      surface: '#241f18',
-      muted: '#2d261d',
-      toolbar: '#201b15',
-      text: '#ece2d4',
-      textMuted: '#a6957f',
-      accent: '#e0a256',
-      accentFg: '#201509',
-      border: '#3a3128',
-      borderStrong: '#50442f',
-      tabBar: '#29231b',
-      tabActive: '#1c1813',
-      codeBg: '#241f18',
-      linterWarn: '#f07b62',
-    },
-  },
-  {
-    id: 'graphite-light',
-    nameKey: 'colorScheme.builtin.graphiteLight',
-    base: 'light',
-    colors: {
-      bg: '#fbfbfa',
-      surface: '#f2f2f0',
-      muted: '#e8e8e5',
-      toolbar: '#f6f6f4',
-      text: '#23231f',
-      textMuted: '#6b6b64',
-      accent: '#4a5568',
-      border: '#e2e2de',
-      borderStrong: '#c4c4bd',
-      tabBar: '#ededea',
-      tabActive: '#fbfbfa',
-      codeBg: '#f2f2f0',
-    },
-  },
-  {
-    id: 'graphite-dark',
-    nameKey: 'colorScheme.builtin.graphiteDark',
-    base: 'dark',
-    colors: {
-      bg: '#191919',
-      surface: '#202020',
-      muted: '#282828',
-      toolbar: '#1d1d1d',
-      text: '#e4e4e2',
-      textMuted: '#9a9a95',
-      accent: '#a8b4c0',
-      accentFg: '#14181c',
-      border: '#333333',
-      borderStrong: '#474747',
-      tabBar: '#242424',
-      tabActive: '#191919',
-      codeBg: '#202020',
-    },
-  },
-];
+// 4T-1314 (Epic 3E-0235): Die mitgelieferten Vorlagen liegen seit ihrem
+// Wachstum um die Editor-Textfarben in color-schemes-vorlagen.js; dieses
+// Modul reicht sie unverändert weiter, damit die Aufrufer unberührt bleiben.
+const { BUILTIN_SCHEMES } = require('./color-schemes-vorlagen.js');
 
 // Store-Schlüssel des gesamten Farbschema-Zustands (ein Objekt, ein Broadcast).
 const COLOR_SCHEMES_KEY = 'colorSchemes';

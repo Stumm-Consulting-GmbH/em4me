@@ -52,7 +52,7 @@ Der Navigations-Block steht als Code-Block im Eintrag, typischerweise über die 
 ```
 ````
 
-Im Journal-Eintrag zeigt er die aktuelle Periode groß (mit Zusatz-Zeile wie «Diese Woche» bei der aktuellen Periode), darüber die übergeordneten Perioden desselben Regals (Monat, Quartal, Jahr — soweit als Journal vorhanden; Lücken werden ausgelassen) und Pfeile zur vorigen und nächsten Periode. Klicks öffnen die Einträge und legen fehlende an; an den Datums-Grenzen des Journals endet die Navigation. Direkt hier auf der Handbuch-Seite zeigt derselbe Block den Hinweis für Dokumente außerhalb eines Journals:
+Im Journal-Eintrag zeigt er die aktuelle Periode groß (mit Zusatz-Zeile wie «Diese Woche» bei der aktuellen Periode), darüber die übergeordneten Perioden desselben Regals (Monat, Quartal, Jahr — soweit als Journal vorhanden; Lücken werden ausgelassen) und Pfeile zur vorigen und nächsten Periode. Klicks öffnen die Einträge und legen fehlende an; an den Datums-Grenzen des Journals endet die Navigation. **Die beiden Pfeile blättern dabei im selben Reiter:** Der bisherige Eintrag weicht dem neuen, und der Reiter behält Ansichts-Modus, Änderungs-Modus, Vergrößerung, Gruppe und Position. Trägt er ungespeicherte Änderungen, erscheint dieselbe Rückfrage wie beim Schließen; ist der Nachbar-Eintrag schon offen, wird sein Reiter aktiviert. Die Verweise auf die übergeordneten Perioden öffnen dagegen einen eigenen Reiter, weil sie die Ebene wechseln statt zu blättern. Direkt hier auf der Handbuch-Seite zeigt derselbe Block den Hinweis für Dokumente außerhalb eines Journals:
 
 ```perspective-journal-nav
 ```

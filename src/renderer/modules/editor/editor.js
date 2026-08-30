@@ -69,6 +69,8 @@ import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 
 import { mdHighlightStyle } from '../live/live-deco.js';
+// 4T-1312: haengender Einzug umgebrochener Zeilen, in beiden Instanzen fest.
+import { haengenderEinzugPlugin } from './editor-einzug.js';
 import {
   calloutMarkerField,
   commentMarkerField,
@@ -240,6 +242,7 @@ export function createNotesEditorState({ content = '', placeholderText = '', onD
       // (Spitze-Klammern, Schalter, Code-Schutz) allein greift.
       markdown({ extensions: [LezerTable], pasteURLAsLink: false }),
       syntaxHighlighting(mdHighlightStyle, { fallback: true }),
+      haengenderEinzugPlugin,
       history(),
       // 4T-0640 (Epic 3E-0069): Schreibschutz-Wache vor der Markdown-Belegung.
       readOnlyGuardKeymap,
@@ -406,6 +409,7 @@ export function createEditorState(opts = {}) {
       // (Spitze-Klammern, Schalter, Code-Schutz) allein greift.
       markdown({ extensions: [LezerTable], pasteURLAsLink: false }),
       syntaxHighlighting(mdHighlightStyle, { fallback: true }),
+      haengenderEinzugPlugin,
       history(),
       // 4T-0640 (Epic 3E-0069): Schreibschutz-Wache. Sie steht bewusst vor
       // allen anderen Belegungen und traegt Prec.highest, damit sie auch die

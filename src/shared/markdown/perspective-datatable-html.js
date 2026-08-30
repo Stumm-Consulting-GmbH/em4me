@@ -105,16 +105,27 @@ function buildDatatableTableHtml(model, computed, aggs) {
 
   out.push('<thead><tr>');
   if (editable && !truncated) out.push('<th class="pdt-row-del" aria-hidden="true"></th>');
+  // 4T-1313 (Epic 3E-0235): Ohne `types`-Zeile im Block gilt die Anzeige.
+  const zeigeTypen = model.showTypes !== false;
   columns.forEach((col, i) => {
     const cls = ['pdt-col', `pdt-type-${col.type}`];
     if (col.expr != null) cls.push('pdt-computed');
     // Ausdruck als Tooltip am Kopf der berechneten Spalte (Syntax, kein
     // übersetzbarer Text).
-    const title = col.expr != null ? ` title="= ${escapeHtml(col.expr)}"` : '';
+    // 4T-1313: Trägt die Spalte einen Anzeigetext, nennt der Merkzettel
+    // zusätzlich ihre Kennung — beim Schreiben eines Ausdrucks oder einer
+    // Aggregat-Angabe wird sie gebraucht und stünde sonst nirgends.
+    const merkzettelTeile = [];
+    if (col.label) merkzettelTeile.push(col.name);
+    if (col.expr != null) merkzettelTeile.push(`= ${col.expr}`);
+    const title = merkzettelTeile.length
+      ? ` title="${escapeHtml(merkzettelTeile.join('\n'))}"`
+      : '';
     out.push(
       `<th class="${cls.join(' ')}" data-dt-col="${i}" scope="col"${title}>` +
-        `<span class="pdt-name">${escapeHtml(col.name)}</span>` +
-        `<span class="pdt-type">${escapeHtml(col.type)}</span></th>`,
+        `<span class="pdt-name">${escapeHtml(col.label || col.name)}</span>` +
+        (zeigeTypen ? `<span class="pdt-type">${escapeHtml(col.type)}</span>` : '') +
+        `</th>`,
     );
   });
   out.push('</tr></thead>');
@@ -202,7 +213,12 @@ function buildPortableDatatableHtml(model, computed, aggs) {
   out.push('<thead><tr>');
   for (const col of columns) {
     const style = alignStyle(col);
-    out.push(`<th scope="col"${style ? ` style="${style}"` : ''}>${escapeHtml(col.name)}</th>`);
+    // 4T-1313 (Epic 3E-0235): Auch die weitergegebene Fassung trägt den
+    // Anzeigetext. Der Empfänger hat die Kennung sonst vor sich, während der
+    // Absender die Beschriftung sieht.
+    out.push(
+      `<th scope="col"${style ? ` style="${style}"` : ''}>${escapeHtml(col.label || col.name)}</th>`,
+    );
   }
   out.push('</tr></thead>');
   if (model.rows.length > 0) {

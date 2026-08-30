@@ -43,6 +43,15 @@ function defaultFormatToolbarEntries() {
     { type: 'command', commandId: 'link.insertExternal', icon: 'external-link', label: null },
     { type: 'separator' },
     { type: 'command', commandId: 'insert.table', icon: 'table', label: null },
+    // 4T-1309 (Epic 3E-0235): unmittelbar neben der einfachen Tabelle, weil
+    // beide dieselbe Frage beantworten und die Wahl zwischen ihnen am Ort
+    // der Entscheidung stehen soll.
+    {
+      type: 'command',
+      commandId: 'insert.perspectiveTable',
+      icon: 'table-merged',
+      label: null,
+    },
   ];
 }
 

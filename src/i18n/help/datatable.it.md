@@ -28,7 +28,19 @@ aggregate: Importo:sum+avg, Fatto:count
 
 - **`columns:`** (obbligatoria) dichiara le colonne come `Nome:tipo`, separate da virgole. I nomi di colonna possono contenere spazi.
 - **`aggregate:`** (facoltativa) assegna funzioni di aggregato alle colonne; più funzioni per colonna si combinano con `+`.
+- **`types:`** (facoltativo) commuta l'indicazione di tipo sotto le intestazioni: `shown` o `hidden`. Senza questa riga compare.
 - **Le righe di dati** usano la notazione a barre (`| … | … |`), una riga per record. Un `|` nel testo si scrive `\|`.
+
+
+### Un'intestazione propria per colonna
+
+L'identificatore della colonna funge anche da intestazione. Deve restare breve e senza separatori, perché aggregati e colonne calcolate lo usano come nome. Per un'intestazione leggibile, va scritta tra virgolette doppie dopo l'identificatore:
+
+```
+columns: Importo:number(2), Totale "Totale (lordo, in €)":number(2) = Importo * 2
+```
+
+Il testo di visualizzazione può portare qualsiasi carattere, compresi spazi, virgole, due punti e segni di uguale; una virgoletta al suo interno si scrive due volte. La colonna resta indirizzata solo tramite il suo identificatore, che rimane accessibile come suggerimento sull'intestazione.
 
 ## Tipi di colonna e formati
 

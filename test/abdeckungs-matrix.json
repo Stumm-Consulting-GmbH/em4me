@@ -34,8 +34,12 @@
       "key": "help.feature.sourceToggles",
       "id": "F-005",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "FA-02."
+      "tests": [
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/unit/haengender-einzug.test.js",
+        "test/e2e/funktionen/zeilenumbruch.spec.js"
+      ],
+      "hinweis": "FA-02. 4T-1312: haengender Einzug umgebrochener Zeilen — Rechnung im Unit-Test, Darstellung und Schreibmarken-Zuordnung im Pruef-Fall ZU-01."
     },
     {
       "key": "help.feature.foldGutter",
@@ -1191,9 +1195,10 @@
       "tests": [
         "test/e2e/funktionen/frontmatter-anzeige.spec.js",
         "test/e2e/funktionen/einstellungen-seite.spec.js",
-        "test/unit/render/frontmatter-anzeige.test.js"
+        "test/unit/render/frontmatter-anzeige.test.js",
+        "test/e2e/funktionen/abstaende.spec.js"
       ],
-      "hinweis": "FM-01/FM-02 (4T-0282/4T-0283): Zeile, Pin, Live-Widget, Demaskierung, Paritaet; ES-09 (4T-0284): Schalter und Persistenz; Unit-Tests decken Markup, Escaping und Zeilen-Offset; FM-03 (4T-0312): dauerhaft ausgeklappte Darstellung (Schalter, Live-Widget, Print-Zustand, Persistenz)."
+      "hinweis": "FM-01/FM-02 (4T-0282/4T-0283): Zeile, Pin, Live-Widget, Demaskierung, Paritaet; ES-09 (4T-0284): Schalter und Persistenz; Unit-Tests decken Markup, Escaping und Zeilen-Offset; FM-03 (4T-0312): dauerhaft ausgeklappte Darstellung (Schalter, Live-Widget, Print-Zustand, Persistenz). 4T-1310: Abstands-Regression (AB-01/AB-02)."
     },
     {
       "key": "help.feature.sidebarLayout",
@@ -1629,6 +1634,13 @@
       "hinweis": "4T-0379: Tabellen-Schablone; Menue-Weg in editor-format.spec.js (EF-08)."
     },
     {
+      "key": "help.shortcut.insertPerspectiveTable",
+      "id": "S-139",
+      "testart": "unit",
+      "tests": ["test/unit/markdown-format.test.js", "test/unit/format-toolbar.test.js"],
+      "hinweis": "4T-1309: Geruest der Perspective-Tabelle; Registry-, Leisten- und Erweiterungs-Bindung in commands.test.js, format-toolbar.test.js und extensions.test.js."
+    },
+    {
       "key": "help.shortcut.insertCallout",
       "id": "S-067",
       "testart": "unit",
@@ -1769,7 +1781,7 @@
         "test/unit/perspective-datatable.test.js",
         "test/unit/render/snapshots.test.js"
       ],
-      "hinweis": "4T-0417/4T-0418/4T-0421 (Epic 3E-0079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md."
+      "hinweis": "4T-0417/4T-0418/4T-0421 (Epic 3E-0079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-1313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13)."
     },
     {
       "key": "help.feature.datatableGrid",
@@ -1978,9 +1990,10 @@
       "tests": [
         "test/e2e/funktionen/journale.spec.js",
         "test/unit/journal-perioden.test.js",
-        "test/unit/render/snapshots.test.js"
+        "test/unit/render/snapshots.test.js",
+        "test/e2e/funktionen/abstaende.spec.js"
       ],
-      "hinweis": "4T-0435 (Epic 3E-0081): Navigations-Block — JR-06 (Periode und Heute-Zeile, Eltern-Sprung mit Anlage, Hinweis ausserhalb) plus Unit-Suite der Kontext-Ermittlung und Snapshot-Fixture journal-nav.md."
+      "hinweis": "4T-0435 (Epic 3E-0081): Navigations-Block — JR-06 (Periode und Heute-Zeile, Eltern-Sprung mit Anlage, Hinweis ausserhalb) plus Unit-Suite der Kontext-Ermittlung und Snapshot-Fixture journal-nav.md. 4T-1310: Abstands-Regression (AB-01/AB-02). 4T-1311: Blaettern im selben Reiter (JR-06)."
     },
     {
       "key": "help.feature.journalTimeline",

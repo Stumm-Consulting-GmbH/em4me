@@ -28,7 +28,19 @@ aggregate: Amount:sum+avg, Done:count
 
 - **`columns:`** (required) declares the columns as `Name:type`, comma-separated. Column names may contain spaces.
 - **`aggregate:`** (optional) assigns aggregate functions to columns; combine several per column with `+`.
+- **`types:`** (optional) switches the type shown beneath the headings: `shown` or `hidden`. Without the line it appears.
 - **Data rows** use pipe notation (`| … | … |`), one line per record. A `|` inside text is written as `\|`.
+
+
+### A heading of your own per column
+
+The column identifier doubles as the heading. It has to stay short and free of separators, because aggregates and computed columns address it by name. For a heading that reads well, put it in double quotes behind the identifier:
+
+```
+columns: Amount:number(2), Total "Total (gross, in €)":number(2) = Amount * 2
+```
+
+The display text may carry any characters, including spaces, commas, colons and equals signs; a quote inside it is written twice. The column is still addressed by its identifier only, and that identifier stays reachable as a tooltip on the column heading.
 
 ## Column types and formats
 

@@ -20,6 +20,8 @@ El botón de encabezado abre la selección de nivel: nivel de encabezado uno a s
 
 El botón de tabla abre una cuadrícula de selección siguiendo el modelo de los procesadores de texto: al pasar por encima se marcan filas por columnas (la etiqueta muestra el tamaño, filas incluida la de encabezado), un clic inserta la tabla vacía con fila de encabezado y fila de separación en el cursor. Deshacer quita la tabla insertada en un solo paso. En todos los demás accesos (menú contextual, paleta, atajo), el comando de tabla inserta sin cambios su plantilla estándar compacta.
 
+Junto a él hay un segundo botón para la [tabla Perspective](perspective-table.md): su icono muestra una tabla con la fila de encabezado combinada, y un clic inserta un esqueleto pequeño e inmediatamente válido con una fila de encabezado y una de datos; el cursor queda después en la primera celda de encabezado. Aquí no hay cuadrícula, porque una tabla Perspective se moldea de todos modos después mediante celdas combinadas. Con la extensión de las tablas Perspective desactivada, el botón no aparece.
+
 ## Desbordamiento
 
 Si la asignación no cabe en el ancho de la columna de editor, las entradas finales pasan a un menú de más opciones en el borde derecho de la barra. Las entradas del menú muestran el icono, el nombre y la marca de estado; el menú de encabezado aparece allí como submenú, la entrada de tabla abre la cuadrícula de selección.

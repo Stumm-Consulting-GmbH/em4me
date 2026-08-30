@@ -4,7 +4,7 @@ Una combinazione di colori definisce i colori dell'applicazione: l'interfaccia (
 
 ## Slot e gruppi
 
-Uno slot è un colore denominato, non un accesso diretto ai dettagli interni. Gli slot sono organizzati in cinque gruppi: Superfici (Sfondo, Superficie, Superficie attenuata, Barra degli strumenti), Testo (Testo principale, Testo attenuato), Accento e bordi (Accento, Testo su accento, Bordo, Bordo marcato), Schede (Barra delle schede, Scheda attiva) e Contenuto (Sfondo del codice, Colore di avviso). Il contenuto renderizzato segue gli slot di superficie: i link portano l'accento, i titoli il testo principale, la linea dei titoli e i bordi delle tabelle il bordo, la barra di citazione il bordo marcato.
+Uno slot è un colore denominato, non un accesso diretto ai dettagli interni. Gli slot sono organizzati in sei gruppi: Superfici (Sfondo, Superficie, Superficie attenuata, Barra degli strumenti), Testo (Testo principale, Testo attenuato), Accento e bordi (Accento, Testo su accento, Bordo, Bordo marcato), Schede (Barra delle schede, Scheda attiva) Contenuto (Sfondo del codice, Colore di avviso) e Colori del testo nell’editor (Titolo, Collegamento, Indirizzo, Codice in linea, Caratteri di marcatura, Segno di elenco, Citazione, Commento, Parola chiave, Stringa, Numero). Il contenuto renderizzato segue gli slot di superficie: i link portano l'accento, i titoli il testo principale, la linea dei titoli e i bordi delle tabelle il bordo, la barra di citazione il bordo marcato.
 
 ## Gestire le combinazioni
 
@@ -19,4 +19,4 @@ L'editor modifica sempre la combinazione attiva della modalità in cui l'applica
 
 ## Contrasto e limiti
 
-La leggibilità delle tue combinazioni personali dipende da te: non c'è un controllo automatico del contrasto. L'anteprima dal vivo mostra l'effetto subito, e «Ripristina» per singolo slot riporta a un valore del modello. Alcuni colori restano volutamente fuori dagli slot: i colori dei gruppi di schede e l'evidenziazione della sintassi dei blocchi di codice seguono ancora il tema. L'esportazione PDF resta chiara e riprende i colori della combinazione chiara attiva.
+La leggibilità delle tue combinazioni personali dipende da te: non c'è un controllo automatico del contrasto. L'anteprima dal vivo mostra l'effetto subito, e «Ripristina» per singolo slot riporta a un valore del modello. Alcuni colori restano volutamente fuori dagli slot: i colori dei gruppi di schede e l'evidenziazione all'interno dei blocchi di codice seguono ancora il tema. I colori con cui l'editor evidenzia il testo Markdown fanno invece parte degli slot dal 2026-08. L'esportazione PDF resta chiara e riprende i colori della combinazione chiara attiva.

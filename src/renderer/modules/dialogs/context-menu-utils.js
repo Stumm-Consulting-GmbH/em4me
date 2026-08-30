@@ -130,6 +130,30 @@ export function appendContextMenuItem(parent, item) {
       item.action();
     });
   }
+  // 4T-1308 (Epic 3E-0235): optionale Nachlauf-Schaltflaeche am Zeilenende
+  // ({ text, tooltip, action }). Sie traegt eine zweite Handlung am selben
+  // Eintrag und loest die Haupt-Aktion ausdruecklich NICHT aus; das Menue
+  // bleibt dabei offen, weil ihr Zweck gerade die Folge mehrerer Griffe ist
+  // (im Mitglieder-Menue einer Reiter-Gruppe: mehrere Dateien schliessen).
+  // Wer danach schliessen will, ruft hideContextMenu in seiner Aktion selbst.
+  if (item.trailing && typeof item.trailing.action === 'function') {
+    div.classList.add('context-menu-item-trailing');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'context-menu-trailing';
+    btn.textContent = item.trailing.text != null ? item.trailing.text : '×';
+    if (item.trailing.tooltip) {
+      btn.title = item.trailing.tooltip;
+      btn.setAttribute('aria-label', item.trailing.tooltip);
+    }
+    if (item.trailing.dataId) btn.dataset.menuId = item.trailing.dataId;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      item.trailing.action();
+    });
+    div.appendChild(btn);
+  }
   parent.appendChild(div);
 }
 

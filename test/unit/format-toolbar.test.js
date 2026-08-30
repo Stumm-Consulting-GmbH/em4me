@@ -44,6 +44,9 @@ describe('format-toolbar: Standard-Belegung', () => {
       'link.insertWiki',
       'link.insertExternal',
       'insert.table',
+      // 4T-1309 (Epic 3E-0235): Das Geruest der Perspective-Tabelle steht
+      // unmittelbar neben der einfachen Tabelle.
+      'insert.perspectiveTable',
     ]);
     expect(entries.filter((e) => e.type === 'headings')).toHaveLength(1);
     // Die Standard-Belegung ist bereits Trenner-bereinigt.

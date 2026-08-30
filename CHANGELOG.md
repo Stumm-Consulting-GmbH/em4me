@@ -14,6 +14,91 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.122.0.2106] - 2026-08-30 — Feinschliff im täglichen Gebrauch
+
+Epic 3E-0235,
+acht Punkte aus dem Alltagsbetrieb des Product Owners (4T-1307 bis 4T-1315,
+Sammeltask 4T-1316). Keiner davon ist ein Programmfehler im engeren Sinn, und
+keiner allein hätte ein Release getragen; zusammen sind es die Stellen, an denen
+das tägliche Arbeiten hakte, weil eine Funktion einen Schritt zu umständlich war
+oder eine Darstellung nicht das zeigte, was der Text meint.
+
+### Neu
+
+- **Die Werkzeugleiste des Änderungs-Modus fügt jetzt auch eine
+  Perspective-Tabelle ein** (4T-1309). Neben der Schaltfläche für das
+  Tabellen-Raster steht eine zweite für den Block mit mehrzeiligen Zellen; sie
+  hat bewusst kein Raster, weil die Zeilen-Zahl dort nicht vorab feststeht. Das
+  Kommando ist ebenso über Kommando-Palette und Kontextmenü erreichbar, setzt
+  die Schreibmarke in die erste Kopfzelle und lässt sich in einem Schritt
+  zurücknehmen.
+- **Die Farbschemas erreichen jetzt auch die Textfarben des Editors**
+  (4T-1314). Eine sechste Slot-Gruppe stellt elf Farben ein, die bisher fest
+  verdrahtet waren: Überschrift, Verweis, Adresse, Code im Fließtext,
+  Auszeichnungs-Zeichen, Listen-Marke, Zitat, Kommentar, Schlüsselwort,
+  Zeichenkette und Zahl. Alle elf mitgelieferten Nicht-Standard-Schemas haben
+  eine aus ihrem Farbcharakter abgeleitete Palette bekommen, statt weiter die
+  Standard-Farben zu zeigen; ein Wächter prüft für jede den Kontrast gegen den
+  jeweiligen Hintergrund. Die beiden Standard-Schemas stellen den bisherigen
+  Zustand unverändert her.
+- **Der Spaltenkopf einer Datentabelle trägt jetzt einen eigenen Anzeigetext**
+  (4T-1313). Die Kennung einer Spalte muss kurz bleiben, weil Aggregate und
+  berechnete Spalten sie ansprechen; für den Kopf steht jetzt in doppelten
+  Anführungszeichen dahinter der Text, den der Leser sehen soll. Die neue
+  Kopfzeile `types: hidden` blendet zusätzlich die Typangabe unter den
+  Überschriften aus. Beides ist freiwillig, und ohne die Angaben verhält sich
+  eine bestehende Tabelle unverändert.
+- **Aus der Liste einer zugeklappten Reiter-Gruppe lässt sich eine Datei jetzt
+  auch schließen** (4T-1308). Jeder Eintrag trägt am rechten Rand ein
+  Schließen-Kreuz; die Liste bleibt danach offen und zeigt die übrigen Dateien,
+  und bei ungesicherten Änderungen erscheint dieselbe Rückfrage wie beim
+  Schließen eines Reiters.
+
+### Geändert
+
+- **Die Pfeile des Journal-Navigations-Blocks blättern jetzt im selben Reiter**
+  (4T-1311). Bisher öffnete jeder Klick einen weiteren Reiter, und der neue
+  Eintrag begann in der Voreinstellung. Jetzt weicht der bisherige Eintrag dem
+  neuen, und der Reiter behält Ansichts-Modus, Änderungs-Modus, Vergrößerung,
+  Zeilenumbruch, Zeilennummern, Gruppe und Position im Streifen. Ist der
+  Nachbar-Eintrag bereits offen, wird sein Reiter aktiviert; trägt der bisherige
+  ungesicherte Änderungen, erscheint die Rückfrage des Reiter-Schlusses. Die
+  Verweise auf die übergeordneten Perioden öffnen unverändert einen eigenen
+  Reiter, weil sie die Ebene wechseln statt zu blättern.
+- **Die Vorschlags-Liste der Verweise ordnet jetzt nach der letzten Änderung**
+  (4T-1307). Wer `[[` tippt, sieht oben die Dateien, an denen zuletzt gearbeitet
+  wurde, statt einer rein alphabetischen Liste; die Treffer-Güte bleibt das
+  erste Kriterium und die Änderungszeit das zweite. Beim Übernehmen eines
+  Eintrags werden außerdem die schließenden Klammern gesetzt und die
+  Schreibmarke dahinter gestellt, statt sie von Hand nachzutippen.
+
+### Behoben
+
+- **Umgebrochene Listen- und Nummernzeilen beginnen im Editor nicht mehr am
+  linken Rand** (4T-1312). Die Fortsetzung einer zu langen Zeile setzt jetzt
+  unter dem Text an und nicht unter der Listenmarke, in Quellcode-, geteilter
+  und Live-Ansicht. Der Einzug rechnet in Zeichenbreiten und folgt damit
+  Schriftgröße und Vergrößerung; er greift für Aufzählungen, Nummerierungen,
+  Aufgabenzeilen und eingerückte Unterpunkte.
+- **Frontmatter-Zeile und Journal-Block sitzen im Änderungs-Modus nicht mehr in
+  großen Leerräumen** (4T-1310). Um jede Block-Darstellung des Editors lagen
+  rund 42 Pixel zusätzlicher Abstand, weil ein Block-Element in einer
+  Zeilen-Ersetzung anonyme Block-Boxen erzeugte; unter der Frontmatter-Zeile
+  kamen 24 weitere durch einen leeren Text-Knoten hinzu. Gemessen an der
+  laufenden Anwendung schrumpft die Frontmatter-Zeile von 100,7 auf 34,7 Pixel
+  und der Journal-Block von 124,8 auf 44,8; der Abstand entspricht jetzt dem
+  zwischen zwei Absätzen und skaliert mit Schriftgröße und Vergrößerung.
+  Dieselbe Ursache betraf alle Block-Darstellungen, also auch Tabellen,
+  Quelltext-Blöcke und Diagramme.
+
+### i18n
+
+- **Funktions-Katalog, Handbuch und Beispiel-Sammlung sind nachgezogen**
+  (4T-1315). Sieben Katalog-Einträge und sieben Handbuch-Seiten beschreiben die
+  neuen Wege, je in allen fünf Sprachfassungen; die Tabellen-Seite der
+  mitgelieferten Beispiel-Sammlung zeigt zusätzlich eine Datentabelle mit
+  Anzeige-Überschriften und abgeschalteter Typangabe.
+
 ## [1.121.3.2081] - 2026-08-30 — Gleiches Verhalten auf beiden Systemen
 
 Epic 3E-0232,

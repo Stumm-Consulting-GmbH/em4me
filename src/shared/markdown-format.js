@@ -428,6 +428,27 @@ function insertTable(text, pos) {
   return insertTableOfSize(text, pos, 2, 2);
 }
 
+// 4T-1309 (Epic 3E-0235): Geruest einer Perspective-Tabelle. Zwei Spalten,
+// eine Kopfzeile und eine Datenzeile — dieselbe Ausgangsgroesse wie bei der
+// Pipe-Tabelle, weil eine Tabelle im Alltag ohnehin waechst und ein groesseres
+// Geruest nur Leerzeilen zum Wegloeschen brachte.
+//
+// Feste Groesse statt Raster-Auswahl (Task-Entscheidung): Die
+// Perspective-Tabelle wird ueber verbundene Zellen und Block-Inhalte
+// nachtraeglich geformt; ein zweites Raster in der Leiste haette den Zugang
+// verdoppelt, ohne die Arbeit zu verkuerzen.
+// prettier-ignore
+const PERSPECTIVE_TABLE_TEMPLATE = [
+  '```perspective-table', '{|', '|-', '! ', '! ', '|-', '| ', '| ', '|}', '```',
+].join('\n');
+
+function insertPerspectiveTable(text, pos) {
+  // Schreibmarke in die erste Kopfzelle, also hinter deren Marke. Die Stelle
+  // wird gesucht statt gezaehlt, damit sie einer Aenderung der Schablone folgt.
+  const inDerErstenKopfzelle = PERSPECTIVE_TABLE_TEMPLATE.indexOf('! ') + 2;
+  return insertBlock(text, pos, PERSPECTIVE_TABLE_TEMPLATE, inDerErstenKopfzelle);
+}
+
 // Hinweisblock: Callout-Schablone mit selektiertem Typ "note" (per Tippen
 // änderbar) und einer Folgezeile für den Inhalt.
 function insertCallout(text, pos) {
@@ -466,6 +487,8 @@ module.exports = {
   pipeTableTemplate,
   insertTableOfSize,
   insertTable,
+  PERSPECTIVE_TABLE_TEMPLATE,
+  insertPerspectiveTable,
   insertCallout,
   insertHorizontalRule,
   insertCodeBlock,

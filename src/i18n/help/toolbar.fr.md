@@ -20,6 +20,8 @@ Le bouton Titre ouvre la sélection de niveau : niveau de titre un à six plus �
 
 Le bouton Tableau ouvre une grille de sélection sur le modèle des logiciels de traitement de texte : le survol marque des lignes sur des colonnes (l'étiquette indique la taille, lignes en-tête comprise), un clic insère le tableau vide avec ligne d'en-tête et ligne de séparation au curseur. Annuler retire le tableau inséré en une étape. À tous les autres accès (menu contextuel, palette, raccourci), la commande Tableau insère sans changement son gabarit standard compact.
 
+À côté se trouve un second bouton pour le [tableau Perspective](perspective-table.md) : son icône montre un tableau à ligne d'en-tête fusionnée, et un clic insère une petite trame immédiatement valide avec une ligne d'en-tête et une ligne de données ; le curseur se place ensuite dans la première cellule d'en-tête. Il n'y a pas de grille ici, car un tableau Perspective se façonne de toute façon ensuite par des cellules fusionnées. Si l'extension des tableaux Perspective est désactivée, le bouton n'apparaît pas.
+
 ## Débordement
 
 Si l'affectation ne tient pas dans la largeur de la colonne d'éditeur, les entrées de fin passent dans un menu supplémentaire au bord droit de la barre. Les entrées de menu montrent l'icône, le nom et la coche d'état ; le menu Titre y apparaît comme sous-menu, l'entrée Tableau ouvre la grille de sélection.

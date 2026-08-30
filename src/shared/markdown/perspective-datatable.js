@@ -11,14 +11,26 @@
 //   perspective-datatable-view.js      Anzeige-Formatierung, Sortierung,
 //                                      Filter, Fence-Suche
 //   perspective-datatable-html.js      Grid-HTML und Portable-Tabelle
+//   perspective-datatable-kopf.js      Zeichen-Ebene der Kopf-Direktiven
+//                                      (Spalten-Definition, Aggregat-Eintrag);
+//                                      Blatt der Familie, seit 4T-1313
 // Der Import-Graph läuft ausschließlich von hier nach unten (Kern -> html
-// -> view -> computed); kein Schwester-Modul lädt den Kern.
+// -> view -> computed, Kern -> kopf); kein Schwester-Modul lädt den Kern.
 //
 // Format des Fence-Bodys:
 //   columns: Name:text, Datum:date, Start:time, Betrag:number(2),
 //            Erledigt:boolean, Gesamt:number = Betrag * 2
 //   aggregate: Betrag:sum+avg, Erledigt:count
+//   types: hidden
 //   | Anna | 2026-07-08 | 09:30 | 12.50 | x |
+//
+// 4T-1313 (Epic 3E-0235): Zwei Ergänzungen des Formats. Hinter der Kennung
+// einer Spalte darf in doppelten Anführungszeichen ein Anzeigetext stehen
+// (`Gesamt "Gesamt (brutto)":number`); angesprochen wird die Spalte in
+// Aggregaten und Ausdrücken weiterhin nur über ihre Kennung. Die Kopfzeile
+// `types: shown|hidden` schaltet die Typangabe unter der Überschrift; ohne sie
+// gilt die Anzeige. Beides ist reine Darstellung und ohne Wirkung auf die
+// Typ-Prüfung der Zellen.
 //
 // Kanonische Speicherformate (PO-Entscheidung D, Epic 3E-0079):
 //   number  Punkt-Dezimal (optionales Anzeige-Format `number(n)` = Dezimalstellen)
@@ -29,8 +41,13 @@
 //
 // Datenmodell (Rückgabe von parsePerspectiveDatatable):
 //   {
-//     columns:    [{ name, type, decimals|null, expr|null }]   expr = Rohtext
-//                 der berechneten Spalte (Auswertung in 4T-0421)
+//     columns:    [{ name, label|null, type, decimals|null, expr|null }]
+//                 expr = Rohtext der berechneten Spalte (Auswertung in
+//                 4T-0421); label = Anzeige-Überschrift, null ohne Angabe
+//     showTypes:  true|false|null   Typangabe im Spaltenkopf; null = keine
+//                 `types`-Zeile im Block. Der Unterschied zu true trägt die
+//                 Serialisierung: nur eine ausdrückliche Angabe wird
+//                 zurückgeschrieben
 //     aggregates: [[func, …], …]   parallel zu columns (leer = keine Aggregate)
 //     rows:       [[cell, …], …]   cell = { text, value, error|null }; text ist
 //                 der un-escapte Zell-Rohtext (bleibt bei Fehler-Zellen erhalten,
@@ -62,11 +79,8 @@ const {
   buildDatatableTableHtml,
   buildPortableDatatableHtml,
 } = require('./perspective-datatable-html.js');
-
-const COLUMN_TYPES = new Set(['text', 'number', 'date', 'time', 'boolean']);
-const AGGREGATE_FUNCS = new Set(['sum', 'avg', 'min', 'max', 'count']);
-// Anzeige-Format v1: nur Dezimalstellen bei number, begrenzt auf 0..10.
-const MAX_DECIMALS = 10;
+// 4T-1313 (Epic 3E-0235): Zeichen-Ebene der beiden Kopfzeilen.
+const { parseColumnDef, parseAggregateEntry } = require('./perspective-datatable-kopf.js');
 
 // --- Werte-Parsing pro Typ ----------------------------------------------------
 
@@ -163,105 +177,12 @@ function escapePipes(text) {
   return String(text == null ? '' : text).replace(/\|/g, '\\|');
 }
 
-// --- Kopf-Direktiven ------------------------------------------------------------
-
-// Spalten-Definition `Name:typ`, `Name:typ(dez)`, `Name:typ = ausdruck`.
-// Der Ausdruck wird nur als Rohtext erfasst (Auswertung in 4T-0421).
-function parseColumnDef(defText, line, errors) {
-  const colonIdx = defText.indexOf(':');
-  if (colonIdx <= 0) {
-    errors.push({ code: 'badColumnDef', line, detail: defText });
-    return null;
-  }
-  const name = defText.slice(0, colonIdx).trim();
-  let rest = defText.slice(colonIdx + 1).trim();
-  let expr = null;
-  const eqIdx = rest.indexOf('=');
-  if (eqIdx >= 0) {
-    expr = rest.slice(eqIdx + 1).trim();
-    rest = rest.slice(0, eqIdx).trim();
-    if (expr === '') {
-      errors.push({ code: 'badColumnDef', line, detail: defText });
-      return null;
-    }
-  }
-  const m = /^([A-Za-z]+)(?:\s*\((\d{1,2})\))?$/.exec(rest);
-  if (!m) {
-    errors.push({ code: 'badColumnDef', line, detail: defText });
-    return null;
-  }
-  const type = m[1].toLowerCase();
-  if (!COLUMN_TYPES.has(type)) {
-    errors.push({ code: 'unknownType', line, detail: m[1] });
-    return null;
-  }
-  let decimals = null;
-  if (m[2] != null) {
-    if (type !== 'number') {
-      errors.push({ code: 'badFormat', line, detail: defText });
-      return null;
-    }
-    decimals = parseInt(m[2], 10);
-    if (decimals > MAX_DECIMALS) {
-      errors.push({ code: 'badFormat', line, detail: defText });
-      return null;
-    }
-  }
-  return { name, type, decimals, expr };
-}
-
-// Typ-Gerechtigkeit der Aggregate: sum/avg nur auf number; min/max auf
-// number/date/time (chronologisch bzw. numerisch geordnete Typen); count
-// zählt nicht-leere Zellen jedes Typs (boolean: nur `x`-Zellen sind
-// nicht-leer, count zählt also die wahren).
-function aggregateAllowed(func, type) {
-  if (func === 'count') return true;
-  if (func === 'sum' || func === 'avg') return type === 'number';
-  return type === 'number' || type === 'date' || type === 'time';
-}
-
-// Aggregat-Eintrag `Name:func+func`; Spalten-Zuordnung case-insensitiv,
-// Mehrfach-Einträge derselben Spalte werden zusammengeführt (Duplikate
-// dedupliziert).
-function parseAggregateEntry(entryText, columns, aggregates, line, errors) {
-  const colonIdx = entryText.indexOf(':');
-  if (colonIdx <= 0) {
-    errors.push({ code: 'badAggregate', line, detail: entryText });
-    return;
-  }
-  const name = entryText.slice(0, colonIdx).trim().toLowerCase();
-  const colIdx = columns.findIndex((c) => c.name.toLowerCase() === name);
-  if (colIdx < 0) {
-    errors.push({ code: 'unknownAggregateColumn', line, detail: entryText.slice(0, colonIdx) });
-    return;
-  }
-  const funcs = entryText
-    .slice(colonIdx + 1)
-    .split('+')
-    .map((f) => f.trim().toLowerCase())
-    .filter((f) => f !== '');
-  if (funcs.length === 0) {
-    errors.push({ code: 'badAggregate', line, detail: entryText });
-    return;
-  }
-  for (const func of funcs) {
-    if (!AGGREGATE_FUNCS.has(func)) {
-      errors.push({ code: 'unknownAggregate', line, detail: func });
-      continue;
-    }
-    if (!aggregateAllowed(func, columns[colIdx].type)) {
-      errors.push({
-        code: 'aggregateTypeMismatch',
-        line,
-        detail: `${columns[colIdx].name}:${func}`,
-      });
-      continue;
-    }
-    if (!aggregates[colIdx].includes(func)) aggregates[colIdx].push(func);
-  }
-}
-
 // --- Parser ---------------------------------------------------------------------
+//
+// 4T-1313 (Epic 3E-0235): Die Zeichen-Ebene der beiden Kopfzeilen (Lesen einer
+// Spalten-Definition und eines Aggregat-Eintrags) liegt in
+// perspective-datatable-kopf.js; hier steht ihre Verwendung im Durchlauf über
+// den Fence-Body.
 
 // Fence-Body -> Datenmodell (Struktur siehe Kopf-Kommentar). Wirft nie;
 // alle Probleme landen strukturiert in errors bzw. als Fehler-Zellen.
@@ -271,6 +192,10 @@ function parsePerspectiveDatatable(content) {
   let columns = null;
   let columnsLine = 0;
   let aggregates = [];
+  // 4T-1313: null = keine `types`-Zeile im Block; die Vorgabe ist die Anzeige.
+  // Der Unterschied zwischen null und true trägt die Serialisierung: Nur eine
+  // ausdrückliche Angabe wird zurückgeschrieben.
+  let showTypes = null;
   const pendingAggregateLines = [];
   const rows = [];
   let inRows = false;
@@ -308,6 +233,21 @@ function parsePerspectiveDatatable(content) {
         // Aggregate erst nach der columns-Zeile auflösbar; Reihenfolge im
         // Body ist aber frei — Einträge werden gesammelt und am Ende geparst.
         pendingAggregateLines.push({ text: m[2], line: lineNo });
+        continue;
+      }
+      // 4T-1313 (Epic 3E-0235): Anzeige der Typangabe im Spaltenkopf. Reine
+      // Darstellung; auf die Typ-Prüfung der Zellen hat sie keine Wirkung.
+      if (directive === 'types') {
+        if (showTypes !== null) {
+          errors.push({ code: 'duplicateDirective', line: lineNo, detail: 'types' });
+          continue;
+        }
+        const wert = m[2].trim().toLowerCase();
+        if (wert !== 'shown' && wert !== 'hidden') {
+          errors.push({ code: 'unknownTypesValue', line: lineNo, detail: m[2].trim() });
+          continue;
+        }
+        showTypes = wert === 'shown';
         continue;
       }
       errors.push({ code: 'invalidLine', line: lineNo, detail: trimmed });
@@ -365,7 +305,7 @@ function parsePerspectiveDatatable(content) {
     }
   }
 
-  return { columns, aggregates, rows, errors };
+  return { columns, aggregates, rows, errors, showTypes };
 }
 
 // --- Serialisierer ---------------------------------------------------------------
@@ -373,7 +313,12 @@ function parsePerspectiveDatatable(content) {
 function serializeColumnDef(col) {
   const fmt = col.decimals != null ? `(${col.decimals})` : '';
   const expr = col.expr != null ? ` = ${col.expr}` : '';
-  return `${col.name}:${col.type}${fmt}${expr}`;
+  // 4T-1313 (Epic 3E-0235): Der Anzeigetext steht hinter der Kennung in
+  // Anfuehrungszeichen; ein Anfuehrungszeichen im Text wird verdoppelt. Ohne
+  // diese Ausgabe verloere ein Zellklick im Raster die Beschriftung, weil der
+  // Serialisierer den ganzen Block neu schreibt.
+  const label = col.label ? ` "${String(col.label).replace(/"/g, '""')}"` : '';
+  return `${col.name}${label}:${col.type}${fmt}${expr}`;
 }
 
 // Zelle -> kanonischer Zelltext. Fehler-Zellen behalten ihren Rohtext
@@ -402,6 +347,11 @@ function serializePerspectiveDatatable(model) {
     if (funcs.length > 0) aggParts.push(`${col.name}:${funcs.join('+')}`);
   });
   if (aggParts.length > 0) lines.push('aggregate: ' + aggParts.join(', '));
+  // 4T-1313 (Epic 3E-0235): Nur eine ausdrückliche Angabe wird
+  // zurückgeschrieben; ohne diese Unterscheidung bekäme jede Tabelle beim
+  // ersten Zellklick eine Zeile, die der Anwender nie geschrieben hat.
+  if (model.showTypes === false) lines.push('types: hidden');
+  else if (model.showTypes === true) lines.push('types: shown');
 
   const dataColumns = columns.filter((c) => c.expr === null);
   // Zelltexte vorab serialisieren, dann spaltenweise auf die Maximal-
@@ -536,6 +486,4 @@ module.exports = {
   computeAggregates,
   renderPerspectiveDatatableViewer,
   convertPerspectiveDatatableBlockToHtml,
-  COLUMN_TYPES,
-  AGGREGATE_FUNCS,
 };

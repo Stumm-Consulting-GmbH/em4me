@@ -43,6 +43,52 @@ function tempStempel(name) {
   return (String(name).match(TEMP_ARTEFAKT_PATTERN) || [])[1] || '';
 }
 
+// 4T-1318: Die freigegebenen Plattformen und der Artefaktsatz, den eine Version
+// von ihnen tragen muss. Die Muster oben sagen, WELCHE Namen ein Artefakt sein
+// KANN; diese Menge sagt, welche eine Version HABEN MUSS — die Frage, die von
+// 1.121.0 bis 1.121.3 unbeantwortet blieb und ein Release mit halbem
+// Artefaktsatz moeglich machte.
+//
+// Herkunft: test/README.md, Abschnitt «Pruef-Umfang je Plattform» (Festlegung
+// des Product Owners vom 2026-08-28). Eine Plattform tritt mit ihrer ERSTEN
+// AUSLIEFERUNG ein und mit ihrer Zurueckstellung aus, beides auf seine
+// Entscheidung. `seit` traegt deshalb die Version des Eintritts: Aeltere
+// Releases bleiben regelkonform, ohne dass die Historie umgeschrieben wird.
+// macOS ist zurueckgestellt und steht bewusst NICHT in der Liste.
+//
+// Die Liste liegt hier und nirgends sonst. Stuende sie zweimal, liefen die
+// Fassungen beim naechsten Plattform-Eintritt auseinander, und der Waechter
+// pruefte gegen die falsche (Fehlerklasse L5).
+const FREIGEGEBENE_PLATTFORMEN = Object.freeze([
+  Object.freeze({ kennung: 'windows', seit: '0.0.0', endungen: ['-Setup.exe', '-Portable.exe'] }),
+  Object.freeze({ kennung: 'linux', seit: '1.121.0', endungen: ['.AppImage', '.deb'] }),
+]);
+
+// Vergleicht zwei SemVer-Fassungen stellenweise; -1, 0 oder 1.
+function vergleicheVersion(a, b) {
+  const zerlege = (v) => String(v).split('.').map(Number);
+  const [x, y] = [zerlege(a), zerlege(b)];
+  for (let i = 0; i < 3; i += 1) {
+    if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) < (y[i] || 0) ? -1 : 1;
+  }
+  return 0;
+}
+
+// Die Artefakt-Namen, die `version` tragen muss. Ohne Pruefsummen-Datei: Die
+// entsteht je Bau und wird von archive-build.js fortgeschrieben, ist also keine
+// eigene Bau-Pflicht, sondern deren Ergebnis.
+function erwarteteArtefakte(produkt, version) {
+  return FREIGEGEBENE_PLATTFORMEN.filter((p) => vergleicheVersion(version, p.seit) >= 0).flatMap(
+    (p) => p.endungen.map((e) => `${produkt}-${version}${e}`),
+  );
+}
+
+// Liefert die fehlenden Artefakt-Namen; leer heisst vollstaendig.
+function fehlendeArtefakte(produkt, version, dateien) {
+  const vorhanden = new Set(dateien);
+  return erwarteteArtefakte(produkt, version).filter((name) => !vorhanden.has(name));
+}
+
 module.exports = {
   VERSION_RE,
   PRODUKT_RE,
@@ -53,4 +99,8 @@ module.exports = {
   TEMP_EXE_PATTERN,
   TEMP_ARTEFAKT_PATTERN,
   tempStempel,
+  FREIGEGEBENE_PLATTFORMEN,
+  vergleicheVersion,
+  erwarteteArtefakte,
+  fehlendeArtefakte,
 };

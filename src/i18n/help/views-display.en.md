@@ -34,7 +34,7 @@ The submenu View → Editor Display bundles the five switches that concern the e
 
 - **Folding** shows the fold gutter at the left edge: headings, lists and blocks can be collapsed there, and the hierarchy stays visible as a trace.
 - **Line Numbers** shows the number column.
-- **Word Wrap** wraps long lines at the window edge instead of scrolling horizontally.
+- **Word Wrap** wraps long lines at the window edge instead of scrolling horizontally. The continuation of a wrapped line starts at the indent level of its content: for a list item behind the list marker, for a numbered one behind the number, for an indented line at its own indent. A paragraph without indent stays flush left.
 - **Scroll synchronisation** couples both halves in the split view: when you scroll the source, the result follows by content, and the other way round. The switch applies per tab.
 - **Typewriter Scroll** keeps the cursor line vertically centred as soon as the cursor moves. It only works in edit mode.
 

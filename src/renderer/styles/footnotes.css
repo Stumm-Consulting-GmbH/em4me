@@ -180,6 +180,29 @@
   color: var(--fg-muted);
   font-family: var(--font-mono);
 }
+/* 4T-1312 (Epic 3E-0235): Haengender Einzug umgebrochener Zeilen. Der Wert je
+   Zeile kommt aus der Zeilen-Dekoration (editor-einzug.js); hier steht die
+   Regel, die ihn in einen Einzug uebersetzt.
+
+   Der Weg ist das klassische Paar aus Aussenabstand und negativem
+   Erst-Zeilen-Einzug: Die ganze Zeile rueckt ein, die erste Bildschirm-Zeile
+   rueckt um denselben Betrag zurueck. Uebrig bleibt genau der haengende
+   Einzug.
+
+   Aussenabstand und nicht Innenabstand, weil einzelne Zeilen-Arten (Zitat,
+   Hinweisblock) einen eigenen Innenabstand fuehren; eine zweite Regel auf
+   derselben Eigenschaft haette sie ueberschrieben.
+
+   Nicht genommen wurde die Kurzform `text-indent: <laenge> hanging`. Sie
+   beschreibt genau diesen Fall in einer Eigenschaft, bleibt in der
+   Anzeige-Schicht dieser Anwendung aber wirkungslos: Mit ihr begannen die
+   Fortsetzungs-Zeilen unveraendert am linken Rand, waehrend das Paar oben
+   am selben Stand einrueckte (beides am 2026-08-30 ueber den Pruef-Fall
+   ZU-01 gemessen). */
+.cm-editor .cm-line.cm-haengender-einzug {
+  margin-left: var(--haengender-einzug);
+  text-indent: calc(-1 * var(--haengender-einzug));
+}
 /* Blockquote im Live-Modus: linker Akzent-Balken plus Einrueckung und
    gedaempfte Schrift. Akzent-Farbe ueber --syntax-quote (gleiche Quelle wie
    die Heading-Highlight-Stufe aus mdHighlightStyle). Padding-Left enthaelt
@@ -413,8 +436,18 @@
    Editor greifen. Editor-spezifische Anpassungen ueberschreiben hier
    gezielt: max-width verhindert Overflow, Margin-Reset und Block-
    Hintergrund passen ins Editor-Layout. */
+/* 4T-1310 (Epic 3E-0235): inline-block statt block, und das ist der Kern der
+   Abstands-Behebung. Die Ersetzung eines Block-Bereichs ist eine INLINE-
+   Ersetzung; ein als block gestaltetes Widget darin erzeugt vor und hinter
+   sich je einen anonymen Block-Kasten in Zeilenhoehe. Gemessen am
+   2026-08-30: 42 px Leerraum je Widget bei 21 px Zeilenhoehe, unabhaengig
+   von jedem Aussenabstand. Mit inline-block traegt die Zeile die Hoehe des
+   Widgets und sonst nichts; vertical-align: top verhindert zusaetzlich die
+   Grundlinien-Luecke unter dem Kasten. */
 .cm-editor .cm-live-block {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
   margin: 0.4em 0;
   max-width: 100%;
   overflow-x: auto;
@@ -430,13 +463,23 @@
 .cm-editor .cm-live-block pre {
   margin: 0;
 }
+/* 4T-1310 (Epic 3E-0235): Der Journal-Block traegt im Fluss eigene
+   Aussenabstaende. Im Editor haelt sie der Wrapper, und weil dessen
+   overflow-x das Zusammenfallen der Abstaende verhindert, addierten sich
+   beide. Muster wie bei table und pre darueber. */
+.cm-editor .cm-live-block .perspective-journal-nav {
+  margin: 0;
+}
 
 /* 4T-0283 (Epic 3E-0050): Frontmatter-Block-Widget im Live-Modus. Der
    Container traegt markdown-body, damit die .frontmatter-block-Regeln
    des Render-Pane unveraendert greifen (Paritaet); hier nur die
    Einpassung in den Editor-Kontext. */
 .cm-editor .cm-live-frontmatter {
-  display: block;
+  /* 4T-1310: dieselbe Ersetzungs-Lage wie beim Block-Widget darueber. */
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
   margin: 0 0 0.4em 0;
   max-width: 100%;
 }

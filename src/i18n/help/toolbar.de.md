@@ -20,6 +20,8 @@ Der Überschrift-Button öffnet die Ebenen-Auswahl: Überschrift-Ebene eins bis 
 
 Der Tabellen-Button öffnet ein Auswahl-Raster nach Textverarbeitungs-Vorbild: Überstreichen markiert Zeilen mal Spalten (die Beschriftung zeigt die Größe, Zeilen inklusive Kopfzeile), ein Klick fügt die leere Tabelle mit Kopfzeile und Trennzeile am Cursor ein. Rückgängig entfernt die eingefügte Tabelle in einem Schritt. An allen anderen Zugängen (Kontextmenü, Palette, Kürzel) fügt das Tabellen-Kommando unverändert seine kompakte Standard-Schablone ein.
 
+Daneben steht eine zweite Schaltfläche für die [Perspective-Tabelle](perspective-table.md): Ihr Symbol zeigt eine Tabelle mit verbundener Kopfzeile, und ein Klick fügt ein kleines, sofort gültiges Gerüst mit Kopf- und Datenzeile ein; die Schreibmarke steht danach in der ersten Kopfzelle. Ein Raster gibt es hier nicht, weil eine Perspective-Tabelle ohnehin nachträglich über verbundene Zellen geformt wird. Ist die Erweiterung der Perspective-Tabellen abgeschaltet, erscheint die Schaltfläche nicht.
+
 ## Überlauf
 
 Passt die Belegung nicht in die Breite der Editor-Spalte, wandern die hinteren Einträge in ein Mehr-Menü am rechten Rand der Leiste. Die Menü-Einträge zeigen Icon, Namen und Zustands-Häkchen; das Überschrift-Menü erscheint dort als Untermenü, der Tabellen-Eintrag öffnet das Auswahl-Raster.

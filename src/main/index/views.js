@@ -102,6 +102,13 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
   // eingefrorenen Index eines toten Watchers als verbindlich ausgeben.
   if (entry.status === 'error') return { status: 'unavailable', suggestions: [] };
 
+  // 4T-1307 (Epic 3E-0235): Jeder Vorschlag traegt zusaetzlich die
+  // Aenderungszeit seiner Datei, damit der Renderer die zuletzt bearbeiteten
+  // Dateien zuerst anbieten kann. Die Zeit liegt im Index ohnehin vor
+  // (fileStats, gefuellt beim Scan); eine eigene Datei-Abfrage entsteht nicht.
+  // Fehlt der Eintrag, gilt 0 und der Vorschlag sortiert wie der aelteste.
+  const mtimeVon = (absPath) => (entry.fileStats.get(absPath) || {}).mtimeMs || 0;
+
   const suggestions = [];
   const seenFiles = new Set();
   for (const f of entry.files.keys()) {
@@ -111,7 +118,7 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
     const key = base.toLowerCase();
     if (seenFiles.has(key)) continue;
     seenFiles.add(key);
-    suggestions.push({ name: base, kind: 'file', detail: path.dirname(f) });
+    suggestions.push({ name: base, kind: 'file', detail: path.dirname(f), mtimeMs: mtimeVon(f) });
   }
   for (const [aliasLower, fileSet] of entry.aliasMap) {
     let displayAlias = aliasLower;
@@ -125,7 +132,16 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
     }
     const firstFile = [...fileSet][0];
     const detail = firstFile ? toLogicalName(path.basename(firstFile).replace(MD_EXT_RE, '')) : '';
-    suggestions.push({ name: displayAlias, kind: 'alias', detail });
+    // 4T-1307: Ein Zweitname erbt die Aenderungszeit der Datei, auf die er
+    // zeigt; er hat keine eigene. Bei mehreren Dateien gilt dieselbe Datei,
+    // aus der auch das Detail stammt, damit Anzeige und Sortierung zusammen
+    // gehoeren.
+    suggestions.push({
+      name: displayAlias,
+      kind: 'alias',
+      detail,
+      mtimeMs: firstFile ? mtimeVon(firstFile) : 0,
+    });
   }
   return { status: 'ready', suggestions };
 }

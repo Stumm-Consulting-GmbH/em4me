@@ -95,6 +95,15 @@ const COMMAND_ICONS = {
     '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>' +
       '<path d="M9 3v18"/>',
   ),
+  // 4T-1309 (Epic 3E-0235): Tabelle mit verbundener Kopfzeile — das
+  // Unterscheidungs-Merkmal der Perspective-Tabelle gegenueber der einfachen
+  // Tabelle. Der senkrechte Strich beginnt deshalb erst unter der ersten
+  // Querlinie; sonst waeren die beiden Symbole in der Leiste nebeneinander
+  // nicht auseinanderzuhalten.
+  'table-merged': svg(
+    '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>' +
+      '<path d="M9 9v12"/>',
+  ),
   bookmark: svg('<path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>'),
   flag: svg(
     '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',

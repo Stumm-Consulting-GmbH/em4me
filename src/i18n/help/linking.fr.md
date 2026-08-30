@@ -89,6 +89,10 @@ Pendant la saisie en mode édition, un menu de suggestions s'ouvre :
 
 Les flèches naviguent, Entrée ou Tab sélectionne, Échap ferme.
 
+Tant que rien n'est saisi après `[[`, les fichiers de l'espace modifiés le plus récemment figurent en tête, le plus récent d'abord. Dès que l'on filtre, la qualité de correspondance reprend la tête ; la date de modification ne départage plus que les suggestions de même rang.
+
+La validation d'une suggestion de fichier ou d'alias écrit aussi les crochets fermants et place le curseur derrière. S'ils sont déjà présents, aucune seconde paire n'apparaît.
+
 ## Barres latérales du réseau
 
 Trois sections de barre latérale montrent le réseau du fichier actif : **Rétroliens** (liens entrants, y compris « via alias »), **Liens sortants** (toutes les références sortantes dans l'ordre du document) et **Tags** (tous les tags de la portée de recherche avec leur fréquence). Les accès figurent dans le [tableau des fonctionnalités](functions.md).

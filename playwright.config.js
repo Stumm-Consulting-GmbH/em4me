@@ -11,6 +11,11 @@ const { defineConfig } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: 'test/e2e',
+  // 4T-1191: Der Pflicht-Zugang ist der einzige Weg fuer einen Voll-Lauf.
+  // Dasselbe Modul wie in vitest.config.mjs; es traegt beide Setup-Formen,
+  // weil Playwright das Modul selbst als Funktion ruft und Vitest den
+  // benannten Export `setup`.
+  globalSetup: require.resolve('./scripts/gate-zugang.js'),
   workers: 1,
   retries: 0,
   forbidOnly: true,

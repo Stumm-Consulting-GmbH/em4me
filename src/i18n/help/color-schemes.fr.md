@@ -4,7 +4,7 @@ Un jeu de couleurs définit les couleurs de l'application : l'interface (arrièr
 
 ## Emplacements et groupes
 
-Un emplacement est une couleur nommée, pas un accès direct aux détails internes. Les emplacements sont organisés en cinq groupes : Surfaces (Arrière-plan, Surface, Surface atténuée, Barre d'outils), Texte (Texte principal, Texte atténué), Accent et bordures (Accent, Texte sur accent, Bordure, Bordure marquée), Onglets (Barre d'onglets, Onglet actif) et Contenu (Fond de code, Couleur d'avertissement). Le contenu rendu suit les emplacements de surface : les liens portent l'accent, les titres le texte principal, le trait des titres et les bordures de tableau la bordure, la barre de citation la bordure marquée.
+Un emplacement est une couleur nommée, pas un accès direct aux détails internes. Les emplacements sont organisés en six groupes : Surfaces (Arrière-plan, Surface, Surface atténuée, Barre d'outils), Texte (Texte principal, Texte atténué), Accent et bordures (Accent, Texte sur accent, Bordure, Bordure marquée), Onglets (Barre d'onglets, Onglet actif) Contenu (Fond de code, Couleur d'avertissement) et Couleurs du texte de l'éditeur (Titre, Lien, Adresse, Code en ligne, Caractères de balisage, Puce de liste, Citation, Commentaire, Mot-clé, Chaîne, Nombre). Le contenu rendu suit les emplacements de surface : les liens portent l'accent, les titres le texte principal, le trait des titres et les bordures de tableau la bordure, la barre de citation la bordure marquée.
 
 ## Gérer les jeux
 
@@ -19,4 +19,4 @@ L'éditeur modifie toujours le jeu actif du mode dans lequel l'application s'ex�
 
 ## Contraste et limites
 
-La lisibilité de vos jeux personnels est entre vos mains : il n'y a pas de vérification automatique du contraste. L'aperçu en direct montre l'effet immédiatement, et « Réinitialiser » par emplacement ramène à une valeur du modèle. Quelques couleurs restent volontairement hors des emplacements : les couleurs des groupes d'onglets et la coloration syntaxique des blocs de code suivent toujours le thème. L'export PDF reste clair et reprend les couleurs du jeu clair actif.
+La lisibilité de vos jeux personnels est entre vos mains : il n'y a pas de vérification automatique du contraste. L'aperçu en direct montre l'effet immédiatement, et « Réinitialiser » par emplacement ramène à une valeur du modèle. Quelques couleurs restent volontairement hors des emplacements : les couleurs des groupes d'onglets et la coloration à l'intérieur des blocs de code suivent toujours le thème. Les couleurs avec lesquelles l'éditeur met en forme le texte Markdown font en revanche partie des emplacements depuis 2026-08. L'export PDF reste clair et reprend les couleurs du jeu clair actif.

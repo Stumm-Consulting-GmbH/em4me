@@ -229,6 +229,10 @@ const INTERNAL_EXTENSIONS = [
     category: 'render',
     nameKey: 'help.featureName.perspectiveTable',
     descKey: 'help.feature.perspectiveTable',
+    // 4T-1309 (Epic 3E-0235): Das Einfuege-Geruest gehoert zum Konstrukt. Ist
+    // die Erweiterung aus, gibt es nichts einzufuegen, und das Kommando
+    // verschwindet aus Leiste, Palette, Kontextmenue und Tastenkuerzel-Seite.
+    commands: ['insert.perspectiveTable'],
   },
   // 4T-0417 (Epic 3E-0079): Perspective Datatable als schaltbare Render-
   // Erweiterung (PO-Festlegung aus der Test-Iteration vom 2026-07-09;

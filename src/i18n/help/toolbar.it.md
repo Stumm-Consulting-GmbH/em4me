@@ -20,6 +20,8 @@ Il pulsante Titolo apre la selezione del livello: livello di titolo da uno a sei
 
 Il pulsante Tabella apre una griglia di selezione sul modello dei programmi di videoscrittura: passandovi sopra si marcano righe per colonne (l'etichetta indica la dimensione, righe inclusa quella di intestazione), un clic inserisce la tabella vuota con riga di intestazione e riga di separazione al cursore. Annulla rimuove la tabella inserita in un solo passaggio. In tutti gli altri accessi (menu contestuale, palette, scorciatoia), il comando Tabella inserisce senza modifiche il suo modello standard compatto.
 
+Accanto c'è un secondo pulsante per la [tabella Perspective](perspective-table.md): la sua icona mostra una tabella con la riga di intestazione unita, e un clic inserisce uno scheletro piccolo e subito valido con una riga di intestazione e una di dati; il cursore resta poi nella prima cella di intestazione. Qui non c'è una griglia, perché una tabella Perspective si modella comunque in seguito con celle unite. Con l'estensione delle tabelle Perspective disattivata il pulsante non compare.
+
 ## Traboccamento
 
 Se l'assegnazione non entra nella larghezza della colonna di editor, le voci finali passano in un menu aggiuntivo sul bordo destro della barra. Le voci del menu mostrano icona, nome e segno di spunta di stato; il menu Titolo vi appare come sottomenu, la voce Tabella apre la griglia di selezione.

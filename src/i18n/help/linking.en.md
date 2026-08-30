@@ -89,6 +89,10 @@ While typing in edit mode a suggestion dropdown opens:
 
 Arrow keys navigate, Enter or Tab selects, Esc closes.
 
+As long as nothing is typed after `[[`, the most recently changed files of the area appear at the top, the newest first. Once you filter, match quality leads again; the change time then only decides between suggestions of equal rank.
+
+Accepting a file or alias suggestion also writes the closing brackets and places the cursor behind them. If they are already there, no second pair appears.
+
 ## Sidebars for the network
 
 Three sidebar sections show the network of the active file: **Backlinks** (incoming links, including "via alias"), **Outgoing links** (all outgoing references in document order) and **Tags** (all tags of the search scope with counts). Access paths are listed in the [features table](functions.md).

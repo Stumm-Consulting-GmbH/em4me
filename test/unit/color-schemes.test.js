@@ -151,6 +151,26 @@ describe('color-schemes: mitgelieferte Vorlagen (4T-0578)', () => {
     ['linterWarn', 'bg', 2.8],
   ];
 
+  // 4T-1314 (Epic 3E-0235): Die elf Editor-Textfarben tragen Text und müssen
+  // deshalb alle über derselben Schwelle liegen. 4,5 ist die Grenze für
+  // Fließtext und zugleich der schwächste Wert der Grundpalette (Code auf
+  // hellem Grund, 4,57); eine höhere Schwelle würde den ausgelieferten Stand
+  // für ungültig erklären.
+  const EDITOR_TEXT_SLOTS = [
+    'syntaxHeading',
+    'syntaxLink',
+    'syntaxUrl',
+    'syntaxCode',
+    'syntaxMeta',
+    'syntaxList',
+    'syntaxQuote',
+    'syntaxComment',
+    'syntaxKeyword',
+    'syntaxString',
+    'syntaxNumber',
+  ];
+  const MIN_RATIO_EDITOR_TEXT = 4.5;
+
   function relativeLuminance(hex) {
     const parts = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
     const linear = parts.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
@@ -172,6 +192,37 @@ describe('color-schemes: mitgelieferte Vorlagen (4T-0578)', () => {
         expect(ratio, `${scheme.id}: ${fg} auf ${bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(
           min,
         );
+      }
+    }
+  });
+
+  // 4T-1314 (Epic 3E-0235): Die Editor-Textfarben entstehen je Vorlage aus
+  // einer Ableitungs-Regel (Farbton aus dem Akzent bzw. feste Farbfamilie,
+  // Helligkeit auf den Hintergrund gerechnet). Die Regel sichert die
+  // Lesbarkeit nicht von selbst — deshalb dieser Wächter über das Ergebnis.
+  it('alle Vorlagen halten den Kontrast der elf Editor-Textfarben', () => {
+    for (const scheme of BUILTIN_SCHEMES) {
+      const colors = resolveSchemeColors(scheme);
+      for (const slot of EDITOR_TEXT_SLOTS) {
+        const ratio = contrastRatio(colors[slot], colors.bg);
+        expect(ratio, `${scheme.id}: ${slot} auf bg = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(
+          MIN_RATIO_EDITOR_TEXT,
+        );
+      }
+    }
+  });
+
+  // Jede Vorlage außer den beiden Standard-Schemas trägt eine eigene
+  // Editor-Palette; ohne sie zeigte ein warmes oder gedämpftes Schema
+  // unverändert die kräftigen Standard-Farben.
+  it('jede Nicht-Standard-Vorlage setzt alle elf Editor-Textfarben ab', () => {
+    for (const scheme of BUILTIN_SCHEMES) {
+      const istStandard = Object.keys(scheme.colors).length === 0;
+      for (const slot of EDITOR_TEXT_SLOTS) {
+        expect(
+          Object.prototype.hasOwnProperty.call(scheme.colors, slot),
+          `${scheme.id}: ${slot}`,
+        ).toBe(!istStandard);
       }
     }
   });
@@ -219,6 +270,18 @@ describe('color-schemes: Auflösung und Variablen-Berechnung', () => {
       border: '#9a9a9a',
       borderStrong: '#6a6a6a',
       accent: '#0a4da8',
+      // 4T-1314 (Epic 3E-0235): die elf Editor-Textfarben der Vorlage.
+      syntaxHeading: '#0a4da8',
+      syntaxLink: '#0a4da8',
+      syntaxUrl: '#3a3a3a',
+      syntaxCode: '#a40e1a',
+      syntaxMeta: '#3a3a3a',
+      syntaxList: '#138641',
+      syntaxQuote: '#494949',
+      syntaxComment: '#494949',
+      syntaxKeyword: '#9c161f',
+      syntaxString: '#163f9c',
+      syntaxNumber: '#0a4aa8',
     });
     expect(schemeDeviations(standardLight)).toEqual({});
   });

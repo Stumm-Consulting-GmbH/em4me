@@ -46,13 +46,34 @@ import { setTaskId, generateTaskId } from '../../../shared/tasks/task-dependenci
 // Backlinks-Panel), damit gleichnamige Dateien aus verschiedenen Ordnern des
 // Bereichs eindeutig unterscheidbar sind.
 import { relativeDirFromRoot } from '../path-format.js';
+// 4T-1307 (Epic 3E-0235): Auswahl-Regel und Klammer-Schluss der Verweis-Liste
+// liegen prozessneutral, damit sie ohne Editor und ohne IPC pruefbar sind.
+import {
+  AUTOCOMPLETE_RENDER_LIMIT as WIKI_RENDER_LIMIT,
+  waehleWikiZiele,
+  klammerSchluss,
+  schreibmarkeNachUebernahme,
+} from '../../../shared/wiki-vorschlaege.js';
 
 // --- Autocomplete-Quellen (4T-0057, Epic 3E-0011) ---------------------------
 // Zwei Completion-Sources fuer CodeMirror: Wiki-Link (`[[…`) und Tag (`#…`).
 // Beide arbeiten asynchron mit IPC-Lookups gegen den Backlinks-Index. Render-
 // Limit pro Dropdown: 30 Eintraege (clientseitig nach Sortierung).
 
-export const AUTOCOMPLETE_RENDER_LIMIT = 30;
+export const AUTOCOMPLETE_RENDER_LIMIT = WIKI_RENDER_LIMIT;
+
+// 4T-1307: Uebernahme eines Verweis-Vorschlags. Sie schreibt die fehlenden
+// schliessenden Klammern mit und setzt die Schreibmarke dahinter, statt den
+// Anwender beides von Hand nachtragen zu lassen. Die Entscheidung, was fehlt,
+// liegt im geteilten Modul; hier steht nur der Editor-Griff.
+function uebernimmWikiZiel(view, completion, from, to) {
+  const ergaenzung = klammerSchluss(view.state.sliceDoc(to, to + 2));
+  view.dispatch({
+    changes: { from, to, insert: completion.label + ergaenzung },
+    selection: { anchor: schreibmarkeNachUebernahme(from, completion.label) },
+    userEvent: 'input.complete',
+  });
+}
 
 export function paneIdxForCmView(view) {
   return paneEditors.indexOf(view);
@@ -161,6 +182,9 @@ export async function wikiLinkCompletionSource(context) {
         label: c.rel,
         type: 'class',
         detail: t('autocomplete.detail.file'),
+        // 4T-1307: derselbe Klammer-Schluss wie im Basename-Modus; es ist
+        // derselbe Verweis, nur in relativer Schreibweise.
+        apply: uebernimmWikiZiel,
       }));
     return {
       from: context.pos - relPrefix.length,
@@ -178,26 +202,18 @@ export async function wikiLinkCompletionSource(context) {
     return null;
   }
   if (!result || result.status !== 'ready') return null;
-  const prefixLower = prefix.toLowerCase();
-  const items = (result.suggestions || [])
-    .filter((s) => !prefixLower || s.name.toLowerCase().includes(prefixLower))
-    .sort((a, b) => {
-      const aPrefix = a.name.toLowerCase().startsWith(prefixLower) ? 0 : 1;
-      const bPrefix = b.name.toLowerCase().startsWith(prefixLower) ? 0 : 1;
-      if (aPrefix !== bPrefix) return aPrefix - bPrefix;
-      // Dateien vor Aliases bei gleichem Rang.
-      if (a.kind !== b.kind) return a.kind === 'file' ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    })
-    .slice(0, AUTOCOMPLETE_RENDER_LIMIT)
-    .map((s) => ({
-      label: s.name,
-      type: s.kind === 'alias' ? 'keyword' : 'class',
-      detail:
-        s.kind === 'alias'
-          ? t('autocomplete.detail.alias') + (s.detail ? ' → ' + s.detail : '')
-          : t('autocomplete.detail.file'),
-    }));
+  // 4T-1307 (Epic 3E-0235): Filter und Reihenfolge liegen in der geteilten
+  // Auswahl-Regel — ohne Eingabe fuehrt die Aenderungszeit, mit Eingabe die
+  // Treffer-Guete. Das Render-Limit wendet sie mit an.
+  const items = waehleWikiZiele(result.suggestions || [], prefix).map((s) => ({
+    label: s.name,
+    type: s.kind === 'alias' ? 'keyword' : 'class',
+    detail:
+      s.kind === 'alias'
+        ? t('autocomplete.detail.alias') + (s.detail ? ' → ' + s.detail : '')
+        : t('autocomplete.detail.file'),
+    apply: uebernimmWikiZiel,
+  }));
   return {
     from: context.pos - prefix.length,
     options: items,

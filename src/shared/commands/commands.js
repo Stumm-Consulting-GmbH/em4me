@@ -1175,6 +1175,18 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
+  // 4T-1309 (Epic 3E-0235): Einfuege-Geruest der Perspective-Tabelle. Haengt an
+  // der Erweiterung perspective-table und verschwindet mit ihr aus Leiste,
+  // Palette und Kontextmenue (commands-Liste der Erweiterung).
+  {
+    id: 'insert.perspectiveTable',
+    defaultBindings: [],
+    labelKey: 'command.insert.perspectiveTable',
+    descKey: 'help.shortcut.insertPerspectiveTable',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+  },
   {
     id: 'insert.callout',
     defaultBindings: [],

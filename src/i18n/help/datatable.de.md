@@ -28,7 +28,19 @@ aggregate: Betrag:sum+avg, Erledigt:count
 
 - **`columns:`** (Pflicht) deklariert die Spalten als `Name:typ`, kommagetrennt. Spaltennamen dürfen Leerzeichen enthalten.
 - **`aggregate:`** (optional) ordnet Spalten Aggregat-Funktionen zu, mehrere je Spalte mit `+` kombiniert.
+- **`types:`** (optional) schaltet die Typangabe unter den Überschriften: `shown` oder `hidden`. Ohne die Zeile erscheint sie.
 - **Datenzeilen** stehen in Pipe-Notation (`| … | … |`), eine Zeile pro Datensatz. Ein `|` im Text wird als `\|` geschrieben.
+
+
+### Eigene Überschrift je Spalte
+
+Die Spalten-Kennung ist zugleich die Überschrift. Sie muss kurz und ohne Trennzeichen bleiben, weil Aggregate und berechnete Spalten sie als Namen ansprechen. Wer eine sprechende Überschrift will, schreibt sie in doppelten Anführungszeichen hinter die Kennung:
+
+```
+columns: Betrag:number(2), Gesamt "Gesamt (brutto, in €)":number(2) = Betrag * 2
+```
+
+Der Anzeigetext darf beliebige Zeichen tragen, auch Leerzeichen, Komma, Doppelpunkt und Gleichheitszeichen; ein Anführungszeichen darin wird verdoppelt geschrieben. Angesprochen wird die Spalte weiterhin nur über ihre Kennung, und sie bleibt am Spaltenkopf als Merkzettel erreichbar.
 
 ## Spalten-Typen und Formate
 

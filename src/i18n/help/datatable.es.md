@@ -28,7 +28,19 @@ aggregate: Importe:sum+avg, Hecho:count
 
 - **`columns:`** (obligatoria) declara las columnas como `Nombre:tipo`, separadas por comas. Los nombres de columna pueden contener espacios.
 - **`aggregate:`** (opcional) asigna funciones de agregado a las columnas; varias por columna se combinan con `+`.
+- **`types:`** (opcional) conmuta la indicación de tipo bajo los encabezados: `shown` o `hidden`. Sin esa línea aparece.
 - **Las filas de datos** usan notación de barras (`| … | … |`), una línea por registro. Un `|` dentro del texto se escribe `\|`.
+
+
+### Un encabezado propio por columna
+
+El identificador de columna sirve también de encabezado. Ha de seguir siendo corto y sin separadores, porque los agregados y las columnas calculadas lo usan como nombre. Para un encabezado legible, escríbelo entre comillas dobles tras el identificador:
+
+```
+columns: Importe:number(2), Total "Total (bruto, en €)":number(2) = Importe * 2
+```
+
+El texto de presentación puede llevar cualquier carácter, incluidos espacios, comas, dos puntos y signos igual; unas comillas dentro se escriben dos veces. La columna se sigue direccionando solo por su identificador, que permanece accesible como información sobre el encabezado.
 
 ## Tipos de columna y formatos
 

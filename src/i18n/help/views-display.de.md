@@ -34,7 +34,7 @@ Das Untermenü Ansicht → Editor-Darstellung bündelt die fünf Schalter, die d
 
 - **Gliederung** blendet die Falt-Spur am linken Rand ein: Überschriften, Listen und Blöcke lassen sich dort zuklappen, und die Hierarchie bleibt als Spur sichtbar.
 - **Zeilennummern** zeigt die Nummern-Spalte.
-- **Zeilenumbruch** bricht lange Zeilen am Fensterrand um, statt waagerecht zu rollen.
+- **Zeilenumbruch** bricht lange Zeilen am Fensterrand um, statt waagerecht zu rollen. Die Fortsetzung einer umgebrochenen Zeile beginnt dabei auf der Einzug-Höhe ihres Inhalts: bei einem Listen-Eintrag hinter der Listen-Marke, bei einem nummerierten hinter der Nummer, bei einer eingerückten Zeile auf deren eigenem Einzug. Ein Absatz ohne Einzug bleibt linksbündig.
 - **Scroll-Synchronisation** koppelt in der geteilten Ansicht beide Hälften: Beim Rollen im Quelltext folgt das Ergebnis inhaltlich und umgekehrt. Der Schalter gilt pro Reiter.
 - **Typewriter-Scroll** hält die Cursor-Zeile vertikal in der Mitte, sobald der Cursor bewegt wird. Er wirkt nur im Bearbeiten-Modus.
 

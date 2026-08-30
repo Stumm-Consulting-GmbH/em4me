@@ -11,6 +11,22 @@
   ],
   "eintraege": [
     {
+      "spec": "test/unit/web-handbuch.test.js",
+      "fall": "Handbuch-Bau — Erzeugnis (4T-0714): interne Verweise treffen vorhandene Dateien (auch die generierten Seiten)",
+      "datum": "2026-08-30",
+      "fehlerbild": "Einzel-Fehlschlag im Voll-Lauf der Unit-Suite zum Abschluss von 3E-0235 (4828 von 4830 gruen, 1 uebersprungen): Der Fall lief in sein 30-Sekunden-Limit, ohne eine inhaltliche Erwartung zu verletzen. Er loest einen vollstaendigen Handbuch-Bau aus und ist damit der teuerste Fall der Unit-Suite. Isoliert unmittelbar danach gruen, 22 von 22 Faellen der Datei in 11,7 s gesamt. ZWEITES AUFTRETEN am selben Tag im Wiederholungs-Lauf (35,5 s statt 30 s Limit, Gesamt-Laufzeit 756 s); im selben Lauf riss zusaetzlich merge-queue.test.js. Beide danach zusammen isoliert gruen, 52 von 52.",
+      "vermutung": "Rechnerlast, und dafuer spricht hier die Gesamt-Laufzeit statt einer blossen Koinzidenz: Derselbe Umfang lief in den vier Laeufen desselben Nachmittags bei rund 240 s, dieser bei 676 s (Faktor 2,8). Wenn jeder Fall knapp dreimal so lange braucht, reisst zuerst der, der dem Limit ohnehin am naechsten steht. Die QUELLE der Last ist NICHT ermittelt und vom eigenen Arbeitsbereich aus auch nicht ermittelbar: Auf demselben Rechner arbeiten zwei weitere Arbeitsbereiche in eigenen Clones, und was dort lief, ist von hier aus nicht feststellbar. Damit bleibt offen, ob der Fall ein zu knappes Limit hat oder nur eine seltene Last traf; beides waere ein Testfehler-Vorgang, aber erst nach dem zweiten Auftreten, weil ein einzelnes Timeout unter belegter Fremdlast keine Aussage ueber das Limit traegt. NACHTRAG, die Quelle ist ermittelt: Der Projektordner liegt unter C:/Users/matth/Documents/MHS, und dieser Ordner traegt den Marker .SynologyWorkingDirectory, wird also von Synology Drive synchronisiert. Der Dienst cloud-drive-daemon.exe beansprucht dauerhaft rund einen vollen Kern (gemessen 4,9 s CPU in 5 s Wanduhr-Zeit) und sieht jede der tausenden temporaeren Dateien, die die Suite im Repo-Baum anlegt. Damit ist die Ursache eine Umgebungs-Eigenschaft und keine Eigenschaft der Prueffaelle: Die Beitraege der Suite sind I/O-lastig, und die beiden teuersten I/O-Faelle reissen zuerst. Die Beförderung zum Testfehler-Vorgang setzt deshalb aus; vorgelegt ist stattdessen die Umgebungs-Frage an den Product Owner.",
+      "status": "zweimal aufgefallen (2026-08-30, beide Male unter belegter Sync-Last) — Umgebungs-Frage beim Product Owner, keine Beförderung"
+    },
+    {
+      "spec": "test/unit/merge-queue.test.js",
+      "fall": "Merge-Queue: Kern-Szenarien — löst reine Überblick-Konflikte über den Generator auf",
+      "datum": "2026-08-30",
+      "fehlerbild": "Einzel-Fehlschlag im Wiederholungs-Voll-Lauf zum Abschluss von 3E-0235 (4827 von 4830 gruen): Lauf in das 30-Sekunden-Limit (30,7 s), ohne verletzte Erwartung. Der Fall baut temporaere Git-Repositorien auf und ist damit einer der I/O-teuersten der Unit-Suite. Zusammen mit web-handbuch.test.js unmittelbar danach isoliert gruen, 52 von 52.",
+      "vermutung": "Dieselbe Ursache wie beim Eintrag darueber und im selben Lauf aufgetreten: Der Projektordner wird von Synology Drive synchronisiert, dessen Dienst dauerhaft rund einen Kern beansprucht und jede temporaere Datei der Suite sieht. Kein eigener Befund, sondern die zweite Auspraegung derselben Umgebungs-Last; getrennt eingetragen, weil ein Quarantaene-Eintrag je Fall gefuehrt wird und ein spaeteres Wiederauftreten sonst nicht zuzuordnen waere.",
+      "status": "beobachtet"
+    },
+    {
       "spec": "test/e2e/funktionen/vorlagen.spec.js",
       "fall": "VL-09 — Ordner setzen, Regel anlegen; Auswahl-Popup und Regel-Trigger sehen beides",
       "datum": "2026-08-28",

@@ -52,7 +52,7 @@ El bloque de navegación se coloca en la entrada como bloque de código, típica
 ```
 ````
 
-Dentro de una entrada de diario muestra el periodo actual en grande (con una línea adicional como «Esta semana» para el periodo actual), encima los periodos superiores de la misma estantería (mes, trimestre, año, donde exista un diario; los huecos se omiten) y flechas al periodo anterior y siguiente. Los clics abren las entradas y crean las que faltan; la navegación se detiene en los límites de fechas del diario. Aquí mismo, en la página del manual, el mismo bloque muestra el aviso para documentos fuera de un diario:
+Dentro de una entrada de diario muestra el periodo actual en grande (con una línea adicional como «Esta semana» para el periodo actual), encima los periodos superiores de la misma estantería (mes, trimestre, año, donde exista un diario; los huecos se omiten) y flechas al periodo anterior y siguiente. Los clics abren las entradas y crean las que faltan; la navegación se detiene en los límites de fechas del diario. **Las dos flechas hojean en la misma pestaña:** la entrada anterior deja sitio a la nueva, y la pestaña conserva su modo de vista, modo de edición, zoom, grupo y posición. Si lleva cambios sin guardar, aparece la misma pregunta que al cerrar; si la entrada vecina ya está abierta, se activa su pestaña. Los enlaces a los periodos superiores, en cambio, abren una pestaña propia, porque cambian de nivel en lugar de hojear. Aquí mismo, en la página del manual, el mismo bloque muestra el aviso para documentos fuera de un diario:
 
 ```perspective-journal-nav
 ```

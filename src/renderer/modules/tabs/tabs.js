@@ -482,34 +482,42 @@ export function activateTab(paneIdx, tabIdx, opts = {}) {
   persistState();
 }
 
+// W-15 (4T-0308): Pending Properties-Sidebar-Save vor dem Schliessen flushen.
+// Sonst laeuft der 500-ms-Debounce nach dem Splice ins Leere (liest die Felder
+// des dann anderen/keines Tabs) und die letzte Sidebar-Eingabe geht verloren.
+// Der Flush ist synchron und schreibt in tab.content, sodass der folgende
+// Dirty-Check korrekt anschlaegt.
+//
+// Dirty-Check: bei ungespeicherten Aenderungen Dialog mit Speichern/Verwerfen/
+// Abbrechen. Liefert false, wenn der Nutzer abbricht oder das Speichern
+// scheitert; der Aufrufer laesst den Reiter dann stehen.
+//
+// 4T-1311 (Epic 3E-0235): aus closeTab herausgeloest, weil der Eintrags-Wechsel
+// im selben Reiter fachlich ebenfalls eine Datei schliesst und dieselbe
+// Rueckfrage braucht. Zwei Stellen mit derselben Verantwortung liefen bei der
+// naechsten Aenderung auseinander.
+export async function bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts = {}) {
+  const pane = state.panes[paneIdx];
+  const tab = pane && pane.tabs[tabIdx];
+  if (!tab) return false;
+  flushPendingPropertiesSave(paneIdx);
+  if (!tab.dirty || opts.skipDirtyCheck) return true;
+  activatePane(paneIdx);
+  activateTab(paneIdx, tabIdx);
+  const detail = tab.path || tabDisplayName(tab);
+  const result = await withDialog(() => api.confirmCloseDirty({ detail }));
+  if (result === 'cancel') return false;
+  if (result === 'save') return await saveTab(paneIdx, tabIdx);
+  return true; // 'discard'
+}
+
 export async function closeTab(paneIdx, tabIdx, opts = {}) {
   const pane = state.panes[paneIdx];
   if (!pane) return;
   const tab = pane.tabs[tabIdx];
   if (!tab) return;
 
-  // W-15 (4T-0308): Pending Properties-Sidebar-Save vor dem Schliessen
-  // flushen. Sonst laeuft der 500-ms-Debounce nach dem Splice ins Leere
-  // (liest die Felder des dann anderen/keines Tabs) und die letzte
-  // Sidebar-Eingabe geht verloren. Der Flush ist synchron und schreibt in
-  // tab.content, sodass der folgende Dirty-Check korrekt anschlaegt.
-  flushPendingPropertiesSave(paneIdx);
-
-  // Dirty-Check: bei ungespeicherten Aenderungen Dialog mit Speichern/
-  // Verwerfen/Abbrechen. Bei intern ausgeloestem Schliessen (z.B. Tab in
-  // anderes Fenster verschieben) wird der Check uebersprungen.
-  if (tab.dirty && !opts.skipDirtyCheck) {
-    activatePane(paneIdx);
-    activateTab(paneIdx, tabIdx);
-    const detail = tab.path || tabDisplayName(tab);
-    const result = await withDialog(() => api.confirmCloseDirty({ detail }));
-    if (result === 'cancel') return;
-    if (result === 'save') {
-      const ok = await saveTab(paneIdx, tabIdx);
-      if (!ok) return;
-    }
-    // 'discard' faellt durch zum Schliessen
-  }
+  if (!(await bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts))) return;
 
   const stillElsewhere = tab.path
     ? state.panes.some((p, pi) =>

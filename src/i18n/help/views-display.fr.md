@@ -34,7 +34,7 @@ Le sous-menu Affichage → Affichage de l'éditeur regroupe les cinq interrupteu
 
 - **Pliage** affiche la gouttière de pliage au bord gauche : titres, listes et blocs s'y replient, et la hiérarchie reste visible comme trace.
 - **Numéros de ligne** affiche la colonne des numéros.
-- **Retour à la ligne** coupe les longues lignes au bord de la fenêtre au lieu de défiler horizontalement.
+- **Retour à la ligne** coupe les longues lignes au bord de la fenêtre au lieu de défiler horizontalement. La suite d'une ligne renvoyée commence au niveau de retrait de son contenu : pour une entrée de liste derrière la puce, pour une entrée numérotée derrière le numéro, pour une ligne en retrait à son propre retrait. Un paragraphe sans retrait reste aligné à gauche.
 - **Synchronisation du défilement** couple les deux moitiés de la vue scindée : en faisant défiler la source, le résultat suit par le contenu, et inversement. L'interrupteur vaut par onglet.
 - **Défilement machine à écrire** garde la ligne du curseur centrée verticalement dès que le curseur bouge. Il n'agit qu'en mode modification.
 

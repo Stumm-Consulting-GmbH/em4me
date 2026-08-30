@@ -63,4 +63,17 @@ aggregate: Total:sum
 
 Click a cell to edit it; the total recalculates as you type.
 
+A column identifier has to stay short, because aggregates and computed columns
+address it by name. For a heading that reads well, write it in double quotes
+behind the identifier — and `types: hidden` drops the type line under the
+headings:
+
+```perspective-datatable
+columns: Price "Price per cup (in euro)":number(2), Qty "How many":number, Total "Total, gross":number(2) = Price * Qty
+aggregate: Total:sum
+types: hidden
+| 4.00 | 2 |
+| 3.50 | 1 |
+```
+
 More structure awaits in [[04 Links and Structure]].

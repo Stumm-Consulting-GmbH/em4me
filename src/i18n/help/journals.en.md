@@ -52,7 +52,7 @@ The navigation block sits in the entry as a code block, typically via the journa
 ```
 ````
 
-Inside a journal entry it shows the current period prominently (with an extra line such as "This week" for the current period), above it the parent periods of the same shelf (month, quarter, year — where a journal exists; gaps are skipped) and arrows to the previous and next period. Clicks open the entries and create missing ones; navigation stops at the journal's date bounds. Right here on the manual page the same block shows the hint for documents outside a journal:
+Inside a journal entry it shows the current period prominently (with an extra line such as "This week" for the current period), above it the parent periods of the same shelf (month, quarter, year — where a journal exists; gaps are skipped) and arrows to the previous and next period. Clicks open the entries and create missing ones; navigation stops at the journal's date bounds. **The two arrows page within the same tab:** the previous entry gives way to the new one, and the tab keeps its view mode, edit mode, zoom, group and position. If it carries unsaved changes, the same prompt appears as when closing; if the neighbouring entry is already open, its tab is activated. The links to the parent periods, by contrast, open a tab of their own, because they change level instead of paging. Right here on the manual page the same block shows the hint for documents outside a journal:
 
 ```perspective-journal-nav
 ```

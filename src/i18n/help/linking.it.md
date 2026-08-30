@@ -89,6 +89,10 @@ Durante la digitazione in modalità modifica si apre un menu di suggerimenti:
 
 Le frecce navigano, Invio o Tab seleziona, Esc chiude.
 
+Finché dopo `[[` non si digita nulla, i file dell'area modificati più di recente stanno in cima, il più recente per primo. Non appena si filtra, torna a guidare la qualità della corrispondenza; la data di modifica decide allora solo fra suggerimenti di pari rango.
+
+Accettando un suggerimento di file o di secondo nome vengono scritte anche le parentesi di chiusura e il cursore resta dietro. Se ci sono già, non compare una seconda coppia.
+
 ## Barre laterali della rete
 
 Tre sezioni della barra laterale mostrano la rete del file attivo: **Backlink** (collegamenti in entrata, incluso «via alias»), **Collegamenti in uscita** (tutti i riferimenti in uscita nell'ordine del documento) e **Tag** (tutti i tag dell'ambito di ricerca con la frequenza). Gli accessi sono elencati nella [tabella delle funzionalità](functions.md).
