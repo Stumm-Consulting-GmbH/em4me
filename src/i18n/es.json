@@ -717,6 +717,8 @@
   "journal.noDayJournalInFilter": "El filtro seleccionado no contiene ningún diario de día.",
   "journal.noWeekJournalInFilter": "El filtro seleccionado no contiene ningún diario semanal.",
   "journalNav.noEntry": "La navegación de diario solo aparece dentro de una entrada de diario.",
+  "journalNav.pathMismatch": "Este bloque pertenece a una entrada distinta de la mostrada. La visualización se omite porque indicaría una fecha incorrecta.",
+  "journalNav.entryMissing": "La entrada de este bloque ya no existe. La visualización se omite.",
   "journalNav.weekLabel": "Semana {week}",
   "journalNav.quarterLabel": "T{quarter} {year}",
   "journalNav.today": "Hoy",

@@ -24,6 +24,8 @@
 
 import { getLanguage, t } from '../../i18n.js';
 import { api } from '../app/api.js';
+// 4T-1326 (Epic 3E-0236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
+import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
 import {
   findPeriodForPath,
   nextPeriod,
@@ -170,6 +172,16 @@ async function fillJournalNav(el, basePath) {
     return;
   }
   const { journal, period } = context;
+
+  // 4T-1326 (Epic 3E-0236): Spricht der Block über den Eintrag, in dem er
+  // steht? Erst danach wird gebaut — eine falsche Navigation ist schlimmer als
+  // keine, weil sie plausibel aussieht und deshalb geglaubt wird.
+  const rel = api.relative(result.rootPath, basePath);
+  const pruefung = await pruefeBlockPfad(el, basePath, rel ? rel.replace(/\\/g, '/') : '');
+  if (!pruefung.ok) {
+    zeigeBlockFehler(el, pruefung.text);
+    return;
+  }
 
   // Übergeordnete Perioden desselben Regals (Lücken ausgelassen).
   const parents = parentTargets(config, journal, period);

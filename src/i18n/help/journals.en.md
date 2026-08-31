@@ -57,6 +57,8 @@ Inside a journal entry it shows the current period prominently (with an extra li
 ```perspective-journal-nav
 ```
 
+Both journal blocks, this one and the timeline below, also check whether they refer to the entry currently shown. If they do not, or if the entry no longer exists, an error message replaces the display: a wrong period would not be recognizable as wrong and is therefore suppressed.
+
 In the PDF and portable export the block is replaced by the static period label without creation links.
 
 ## Timeline block

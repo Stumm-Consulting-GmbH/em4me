@@ -717,6 +717,8 @@
   "journal.noDayJournalInFilter": "Im gewählten Filter ist kein Tages-Journal.",
   "journal.noWeekJournalInFilter": "Im gewählten Filter ist kein Wochen-Journal.",
   "journalNav.noEntry": "Die Journal-Navigation erscheint nur in einem Journal-Eintrag.",
+  "journalNav.pathMismatch": "Dieser Block gehört zu einem anderen Eintrag als dem angezeigten. Die Anzeige bleibt aus, weil sie ein falsches Datum nennen würde.",
+  "journalNav.entryMissing": "Der Eintrag zu diesem Block ist nicht mehr vorhanden. Die Anzeige bleibt aus.",
   "journalNav.weekLabel": "KW {week}",
   "journalNav.quarterLabel": "Q{quarter} {year}",
   "journalNav.today": "Heute",

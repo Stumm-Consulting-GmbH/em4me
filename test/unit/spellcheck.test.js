@@ -19,6 +19,8 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// 4T-1328: Bestands-Leser ans benannte Limit (Riss im Linux-Container 2026-08-31).
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
 import {
   SPELLCHECK_EXTENSION_ID,
   SPELLCHECK_KEY,
@@ -97,28 +99,32 @@ describe('Erweiterungs-Registrierung (4T-0581)', () => {
 });
 
 describe('Wächter gegen stille Rücknahme (Epic 3E-0107)', () => {
-  it('setzt nirgends im Auslieferungs-Code eine Prüfsprache', () => {
-    const treffer = [];
-    const durchlaufen = (ordner) => {
-      for (const eintrag of fs.readdirSync(ordner, { withFileTypes: true })) {
-        const voll = path.join(ordner, eintrag.name);
-        if (eintrag.isDirectory()) {
-          durchlaufen(voll);
-          continue;
+  it(
+    'setzt nirgends im Auslieferungs-Code eine Prüfsprache',
+    () => {
+      const treffer = [];
+      const durchlaufen = (ordner) => {
+        for (const eintrag of fs.readdirSync(ordner, { withFileTypes: true })) {
+          const voll = path.join(ordner, eintrag.name);
+          if (eintrag.isDirectory()) {
+            durchlaufen(voll);
+            continue;
+          }
+          if (!eintrag.name.endsWith('.js')) continue;
+          // Die gebauten Bundles sind erzeugter Output der Quellen daneben.
+          if (eintrag.name.endsWith('.bundle.js')) continue;
+          const text = fs.readFileSync(voll, 'utf8');
+          // Der Kommentar im Wächter-Test selbst liegt außerhalb von src/.
+          if (text.includes('setSpellCheckerLanguages(')) {
+            treffer.push(path.relative(SRC, voll));
+          }
         }
-        if (!eintrag.name.endsWith('.js')) continue;
-        // Die gebauten Bundles sind erzeugter Output der Quellen daneben.
-        if (eintrag.name.endsWith('.bundle.js')) continue;
-        const text = fs.readFileSync(voll, 'utf8');
-        // Der Kommentar im Wächter-Test selbst liegt außerhalb von src/.
-        if (text.includes('setSpellCheckerLanguages(')) {
-          treffer.push(path.relative(SRC, voll));
-        }
-      }
-    };
-    durchlaufen(SRC);
-    expect(treffer).toEqual([]);
-  });
+      };
+      durchlaufen(SRC);
+      expect(treffer).toEqual([]);
+    },
+    BESTAND_ZEITLIMIT,
+  );
 
   it('erzeugt Fenster fest mit spellcheck: true', () => {
     // 4T-0998: createWindow liegt seit dem Main-Schnitt in window-manager.js;
@@ -151,26 +157,30 @@ describe('Wächter gegen stille Rücknahme (Epic 3E-0107)', () => {
     expect(rumpf).not.toContain('preventDefault');
   });
 
-  it('führt den Store-Schlüssel an genau einer Stelle', () => {
-    expect(SPELLCHECK_KEY).toBe('editor.spellcheck');
-    // Main und Renderer lesen ihn aus dem geteilten Modul; ein zweites
-    // Literal im Code wäre eine Kopie, die auseinanderlaufen kann.
-    const treffer = [];
-    const durchlaufen = (ordner) => {
-      for (const eintrag of fs.readdirSync(ordner, { withFileTypes: true })) {
-        const voll = path.join(ordner, eintrag.name);
-        if (eintrag.isDirectory()) {
-          durchlaufen(voll);
-          continue;
+  it(
+    'führt den Store-Schlüssel an genau einer Stelle',
+    () => {
+      expect(SPELLCHECK_KEY).toBe('editor.spellcheck');
+      // Main und Renderer lesen ihn aus dem geteilten Modul; ein zweites
+      // Literal im Code wäre eine Kopie, die auseinanderlaufen kann.
+      const treffer = [];
+      const durchlaufen = (ordner) => {
+        for (const eintrag of fs.readdirSync(ordner, { withFileTypes: true })) {
+          const voll = path.join(ordner, eintrag.name);
+          if (eintrag.isDirectory()) {
+            durchlaufen(voll);
+            continue;
+          }
+          if (!eintrag.name.endsWith('.js') || eintrag.name.endsWith('.bundle.js')) continue;
+          if (path.relative(SRC, voll) === path.join('shared', 'spellcheck.js')) continue;
+          if (fs.readFileSync(voll, 'utf8').includes("'editor.spellcheck'")) {
+            treffer.push(path.relative(SRC, voll));
+          }
         }
-        if (!eintrag.name.endsWith('.js') || eintrag.name.endsWith('.bundle.js')) continue;
-        if (path.relative(SRC, voll) === path.join('shared', 'spellcheck.js')) continue;
-        if (fs.readFileSync(voll, 'utf8').includes("'editor.spellcheck'")) {
-          treffer.push(path.relative(SRC, voll));
-        }
-      }
-    };
-    durchlaufen(SRC);
-    expect(treffer).toEqual([]);
-  });
+      };
+      durchlaufen(SRC);
+      expect(treffer).toEqual([]);
+    },
+    BESTAND_ZEITLIMIT,
+  );
 });

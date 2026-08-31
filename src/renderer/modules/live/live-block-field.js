@@ -259,6 +259,9 @@ export function buildBlockWidgetValue(state) {
     deco: Decoration.set(ranges, true),
     spans,
     sig: blockWidgetSignature(state, spans),
+    // 4T-1325 (Epic 3E-0236): der Pfad, mit dem dieser Stand gebaut wurde.
+    // Das Field vergleicht ihn im update gegen den aktuellen Facet-Wert.
+    basePath,
   };
 }
 
@@ -268,7 +271,7 @@ export const liveBlockWidgetsField = StateField.define({
       return buildBlockWidgetValue(state);
     } catch (err) {
       console.error('[Live] buildBlockWidgetValue (create) crashed:', err);
-      return { deco: Decoration.none, spans: [], sig: '' };
+      return { deco: Decoration.none, spans: [], sig: '', basePath: '' };
     }
   },
   update(value, tr) {
@@ -284,6 +287,22 @@ export const liveBlockWidgetsField = StateField.define({
           console.error('[Live] buildBlockWidgetValue (rebuild) crashed:', err);
           return value;
         }
+      }
+    }
+    // 4T-1325 (Epic 3E-0236): Wechselt der Dateipfad, werden die Block-Widgets
+    // neu gebaut. Sie tragen ihn im Konstruktor und loesen daraus Bild-Pfade,
+    // Journal-Perioden, Abfrage-Ziele und Metadaten auf. Der Sparfilter unten
+    // sieht eine reine Pfad-Transaktion NICHT (kein Doc-, kein Baum-, kein
+    // Selektions-Wechsel) und liesse die Widgets des vorherigen Reiters stehen.
+    // Genau so zeigte der Journal-Navigations-Block in 1.122.0 das Datum eines
+    // fremden Eintrags: vollstaendig stimmig und vollstaendig falsch. Die
+    // Pruefung steht bewusst VOR dem Sparfilter und kostet einen Wertvergleich.
+    if (tr.state.facet(liveBasePathFacet) !== value.basePath) {
+      try {
+        return buildBlockWidgetValue(tr.state);
+      } catch (err) {
+        console.error('[Live] buildBlockWidgetValue (basePath) crashed:', err);
+        return value;
       }
     }
     // R1-02 (4T-0174): auch beim asynchronen Lezer-Nachlauf rebuilden

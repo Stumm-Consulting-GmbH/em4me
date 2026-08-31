@@ -57,6 +57,8 @@ Dans une entrée de journal, il montre la période actuelle en grand (avec une l
 ```perspective-journal-nav
 ```
 
+Les deux blocs de journal, celui-ci et la chronologie plus bas, vérifient en outre qu'ils se rapportent à l'entrée affichée. Si ce n'est pas le cas, ou si l'entrée n'existe plus, un message d'erreur remplace l'affichage : une période erronée ne serait pas reconnaissable comme telle et elle est donc supprimée.
+
 Dans l'export PDF et portable, le bloc est remplacé par l'étiquette statique de la période, sans liens de création.
 
 ## Bloc de frise

@@ -26,6 +26,26 @@
   font-size: 12px;
   color: var(--fg-muted);
 }
+/* 4T-1326 (Epic 3E-0236): Plausibilitaets-Meldung beider Journal-Bloecke.
+
+   Sie ist bewusst als Fehler gestaltet und nicht wie der neutrale Hinweis
+   darueber (Entscheidung des Product Owners vom 2026-08-31). Grund: Der Befund
+   vom selben Tag — ein Navigations-Block, der das Datum eines fremden Eintrags
+   zeigte — ist genau deshalb bis in eine Auslieferung gereist, weil er
+   unauffaellig aussah. Eine Meldung in derselben zurueckhaltenden Form haette
+   dieselbe Unauffaelligkeit reproduziert.
+
+   Den Rahmen des Blocks faerbt :has() mit ein; wo der Selektor nicht greift,
+   bleibt die Meldung durch Farbe und Fettung erkennbar. */
+.journal-block-fehler {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--linter-error, #d13438);
+}
+.perspective-journal-nav:has(.journal-block-fehler),
+.perspective-journal-timeline:has(.journal-block-fehler) {
+  border-color: var(--linter-error, #d13438);
+}
 .journal-nav-parents {
   display: flex;
   justify-content: center;

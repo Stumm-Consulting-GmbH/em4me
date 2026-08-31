@@ -990,11 +990,45 @@ Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert a
 
 **Der Engpass ist das Dateisystem, nicht die Rechenleistung.** Der Container arbeitet über die Brücke zum Windows-Laufwerk; was viele Dateien liest, zahlt dort ein Vielfaches, während reine Rechenarbeit kaum teurer wird. Wer unter Linux eine Zeitgrenze reißen sieht, prüft deshalb zuerst, ob der Fall den Bestand liest — und hebt dann das **benannte** Limit aus `test/zeitlimits.js`, statt eine Zahl an den Fall zu schreiben.
 
+### Der Rechner-Unterschied und der Weg um die Brücke (2026-08-31, SC-026 Slot A)
+
+Die Größenordnungen oben stammen von SC-027; auf SC-026 wiegt die Brücke
+deutlich schwerer. Gemessen am 2026-08-31 in der Release-Strecke zu 1.123.0:
+
+| Messung | über die Brücke | im Container-Dateisystem | Verhältnis |
+|---|---|---|---|
+| 300 Dateien schreiben | 3113 ms | 6 ms | rund 500× |
+| E2E, je Prüffall | 16 s | 1,6 s | rund 10× |
+| E2E-Voll-Suite, 644 Fälle | rund 172 min (hochgerechnet; ein Lauf wurde bei 141 min abgebrochen) | 24,2 min | rund 7× |
+
+**Die Unit-Suite ist davon nicht betroffen:** 4:43 min über die Brücke und
+damit auf dem Niveau von SC-027. Der Verlust trifft allein die E2E-Suite, weil
+dort je Fall eine vollständige Anwendung startet und jeder Start hunderte
+kleine Dateien liest, während die Unit-Suite ihre Module einmal lädt und dann
+rechnet.
+
+**Nicht die Ursache sind Synchronisations-Dienst und Virenschutz.** Der
+Projektordner liegt in einem Synology-Verzeichnis, doch Windows-seitig schreibt
+es sich dort so schnell wie im Temp-Ordner (102 gegen 103 ms für 300 Dateien),
+und der Dienst zeigte im Messfenster null Datei-Operationen bei 2,7 Prozent
+Maschinen-Last. Wer eine Container-Verlangsamung untersucht, misst deshalb
+zuerst die Brücke und nicht die Prozessliste: Die **kumulierte** Prozessor-Zeit
+eines Dienstes summiert seine gesamte Lebensdauer und sagt über die aktuelle
+Last nichts aus. Genau diese Verwechslung hat am 2026-08-31 vier Läufe und rund
+acht Stunden gekostet.
+
+**Der Ausweg** ist eine Kopie des Quellbaums ins Container-Dateisystem vor dem
+E2E-Lauf, rund 75 Sekunden samt Git-Verzeichnis, mit anschließendem
+Zurückschreiben der Berichte in den Arbeitsbaum. Das Unit-Gate bleibt auf dem
+Arbeitsbaum, weil die Bestands-Wächter ihn samt Git-Verzeichnis lesen. Als
+Kommando ist dieser Weg noch **nicht gekapselt**; solange das so ist, altert er
+ohne Wächter, und wer ihn geht, trägt Abweichungen hier nach.
+
 ### Beide Läufe gleichzeitig auf einem Rechner
 
 Gemessen am 2026-08-28 in der realen Release-Konstellation: Der Windows-Lauf bleibt bei 27,5 min, der Linux-Lauf steigt von 38,6 auf 44,5 min (+15 %). **Kein Fehlschlag war der Last zuzuschreiben** — der Linux-Lauf riss unter Last exakt dieselben drei Fälle wie lastfrei, und die vier Prüfdateien, die den am 2026-08-07 belegten Versagens-Mechanismus tragen, liefen 3 von 3 grün. Nacheinander kosten beide Läufe rund 67 Minuten, gleichzeitig 44,5.
 
-**Die Anordnung vom 2026-08-07 bleibt davon unberührt** (Entwicklungsrichtlinien, Kapitel 11: nie zwei Suite- oder Bau-Läufe parallel auf demselben Rechner). Sie ist eine Anordnung des Product Owners und wird nicht durch eine Messung geändert; die Zahlen oben sind die Grundlage, falls er sie schärfen will. Bis dahin gilt sie unverändert.
+**Die Anordnung vom 2026-08-07 ist am 2026-08-31 vom Product Owner geschärft worden:** Die beiden **Plattform-Läufe eines Releases** (Windows-Suite und Linux-Container-Suite über denselben Stand) laufen **parallel** — genau die oben gemessene Konstellation, und die Zahlen sind ihre Grundlage. Alles Übrige der Anordnung gilt unverändert, insbesondere nie zwei Läufe derselben Plattform und kein Bau parallel zu einer Suite; der Wortlaut steht in den Entwicklungsrichtlinien, Kapitel 11. Anlass: Beim Release 1.123.0 verlängerte die serielle Lesart die Strecke um Stunden.
 
 ### Benannte Auslassungen
 

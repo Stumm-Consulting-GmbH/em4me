@@ -717,6 +717,8 @@
   "journal.noDayJournalInFilter": "Le filtre sélectionné ne contient aucun journal quotidien.",
   "journal.noWeekJournalInFilter": "Le filtre sélectionné ne contient aucun journal hebdomadaire.",
   "journalNav.noEntry": "La navigation de journal n'apparaît que dans une entrée de journal.",
+  "journalNav.pathMismatch": "Ce bloc appartient à une autre entrée que celle affichée. L'affichage est supprimé car il indiquerait une date erronée.",
+  "journalNav.entryMissing": "L'entrée de ce bloc n'existe plus. L'affichage est supprimé.",
   "journalNav.weekLabel": "Semaine {week}",
   "journalNav.quarterLabel": "T{quarter} {year}",
   "journalNav.today": "Aujourd'hui",

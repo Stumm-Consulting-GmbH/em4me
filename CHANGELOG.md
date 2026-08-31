@@ -14,6 +14,50 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.123.0.2123] - 2026-08-31 — Verlässliche Journal-Blöcke
+
+Epic 3E-0236
+(4T-1325 bis 4T-1327, Sammeltask 4T-1328),
+entstanden aus einem Befund des Product Owners an der ausgelieferten 1.122.0
+am Morgen nach ihrer Auslieferung: Der Journal-Navigations-Block seines
+Eintrags vom 30. August zeigte durchgängig den 31. August samt Kalenderwoche 36
+und der Zeile «Heute» — alle Werte stammten aus einem anderen offenen Reiter.
+Die Anzeige war in sich stimmig und vollständig falsch; aufgefallen ist sie
+nur, weil der Product Owner das Datum seines Eintrags kannte.
+
+### Behoben
+
+- **Block-Elemente im Live-Modus binden sich jetzt verlässlich an das Dokument,
+  in dem sie stehen** (4T-1325). Beim Wechsel zwischen Reitern erhielten sie
+  bisher den Dateipfad des vorherigen Reiters: Der Reiter-Abgleich tauschte
+  Inhalt und Pfad in zwei getrennten Schritten, und der Neuaufbau der Blöcke
+  lief im ersten davon. Betroffen war nicht nur der Journal-Navigations-Block,
+  sondern jedes pfad-abhängige Block-Element — der Zeitleisten-Block, der
+  Block-Metadaten-Indikator, Frontmatter-Abfragen, Skript-Blöcke und relative
+  Bild-Pfade in Tabellen. Inhalt und Pfad wechseln jetzt in einem Schritt, und
+  die Blöcke bauen sich zusätzlich bei jedem Pfad-Wechsel neu auf, so dass der
+  Fehler auch bei künftig anderen Aufruf-Reihenfolgen nicht wiederkehren kann.
+  Ein Regressionstest stellt den gemeldeten Ablauf mit zwei offenen
+  Journal-Einträgen nach.
+
+### Neu
+
+- **Die beiden Journal-Blöcke prüfen jetzt, ob sie über den angezeigten Eintrag
+  sprechen** (4T-1326). Navigations- und Zeitleisten-Block machen aus einem
+  Dateipfad eine Aussage über die Zeit, und eine falsche solche Aussage ist
+  nicht als falsch erkennbar — ein Datum sieht wie ein Datum aus. Vor der
+  Anzeige gleichen beide Blöcke ihren Pfad gegen den aktiven Reiter ihrer
+  Spalte ab und stellen fest, ob der Eintrag noch existiert; schlägt eine der
+  Prüfungen fehl, erscheint statt der Anzeige eine sichtbare Fehlermeldung in
+  allen fünf Sprachen. In Vorschau-Flächen und Exporten, wo keine zweite
+  Quelle für den Abgleich existiert, entfällt die Pfad-Prüfung bewusst, statt
+  falsch zu melden.
+
+### Dokumentation
+
+- Die Handbuch-Seite der Journale erklärt die neue Meldung und ihren Grund, in
+  allen fünf Sprachfassungen (4T-1327).
+
 ## [1.122.0.2106] - 2026-08-30 — Feinschliff im täglichen Gebrauch
 
 Epic 3E-0235,

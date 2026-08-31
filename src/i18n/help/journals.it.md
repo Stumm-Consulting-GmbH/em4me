@@ -57,6 +57,8 @@ All'interno di una voce di diario mostra il periodo attuale in grande (con una r
 ```perspective-journal-nav
 ```
 
+Entrambi i blocchi del diario, questo e la linea temporale più sotto, verificano inoltre di riferirsi alla voce visualizzata. In caso contrario, o se la voce non esiste più, un messaggio di errore sostituisce la visualizzazione: un periodo errato non sarebbe riconoscibile come tale e viene quindi omesso.
+
 Nell'esportazione PDF e portabile il blocco viene sostituito dall'etichetta statica del periodo, senza collegamenti di creazione.
 
 ## Blocco linea temporale

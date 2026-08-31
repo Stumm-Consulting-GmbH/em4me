@@ -27,12 +27,20 @@
 // Realer Prozess-Start (git, node, npm) im Aufbau oder im Prüf-Schritt.
 // Belegt: `verlauf-erzeugen` legt je Fall ein Wegwerf-Repositorium an und
 // fährt reale git-Läufe; isoliert rund 2 s, unter Last über 5 s.
-export const PROZESS_ZEITLIMIT = 30000;
+// Angehoben am 2026-08-31 von 30 s, aus demselben Grund wie das
+// Bestands-Limit darunter: Im Linux-Container auf SC-026 zahlt auch ein
+// git-Prozess über die Windows-Brücke ein Vielfaches, und der worktree-Fall
+// von `pm-dokumente` riss die 30 s dreimal in Folge. Obergrenze, kein Ziel.
+export const PROZESS_ZEITLIMIT = 90000;
 
 // Lesen des vollen Repositoriums-Bestands (über 1300 Aufgaben-Dateien, rund
 // 6 s allein für den Lauf über die Dateien). Belegt an `pm-dokumente` und
 // `ueberblick-aggregate`, die das 5000-ms-Limit auch **isoliert** rissen.
-export const BESTAND_ZEITLIMIT = 30000;
+// Angehoben am 2026-08-31 von 30 s: Im Linux-Container auf SC-026 zahlt jeder
+// Datei-Zugriff über die Windows-Brücke rund das Siebenfache (test/README,
+// gemessene Größenordnungen), und unter der dortigen Synchronisations-Last
+// rissen zwei Voll-Läufe in Folge die 30 s. Obergrenze, kein Laufzeit-Ziel.
+export const BESTAND_ZEITLIMIT = 90000;
 
 // Vollständiger Bau eines Erzeugnisses (Webseite, Handbuch) innerhalb eines
 // Falls. Belegt am 2026-07-25, als ein Bau-Test unter Last das
@@ -54,23 +62,20 @@ export const VOLLBAU_ZEITLIMIT = 120000;
 // Tests erzeugt, also das am schwersten zu deutende Fehlerbild.
 export const AUFRAEUM_ZEITLIMIT = 60000;
 
-// Voller Repositoriums-Bestand unter CONTAINER-I/O. Derselbe Auslöser wie
-// BESTAND_ZEITLIMIT, aber über ein gemountetes Volume: Der Linux-Gate-Lauf
-// (scripts/test-linux-docker.js) reicht das Repositorium in den Container, und
-// jeder einzelne Datei-Zugriff kostet dort ein Vielfaches. Der Wert ist damit
-// keine Aussage über die Fach-Logik, sondern über den Prüfstand.
+// 4T-1283: Hier stand vom 2026-08-29 bis zum 2026-08-30 ein
+// BESTAND_CONTAINER_ZEITLIMIT von 180 s. Es war die ausdrücklich benannte
+// Sofort-Maßnahme zu einem Fall, der im Container die 60-s-Grenze riss, und ist
+// mit der Behebung seiner Ursache **entfallen** statt ein drittes Mal angehoben
+// zu werden.
 //
-// Belegt am 2026-08-29 an der Widmungs-Ketten-Auflösung über rund 1500
-// Aufgaben-Dateien: auf Windows 4356 ms für diesen EINEN Fall (er trägt damit
-// fast die gesamte Laufzeit seiner Prüfdatei), im Container zweimal in Folge
-// über der 60-s-Grenze von SCHWER_ZEITLIMIT — auf nachweislich lastfreiem
-// Rechner, also kein Flake. Der Container-Faktor liegt damit über 13.
+// Die Ursache lag nicht am Prüfstand, sondern im Werkzeug: Der Regel-Leser der
+// Ketten-Auflösung las bei jedem Aufruf das ganze Aufgaben-Verzeichnis neu.
+// Gemessen über den Bestand waren das 6072 Verzeichnis-Lesungen mit zusammen
+// 9,7 Millionen Einträgen; mit Verzeichnis-Karte und Inhalts-Zwischenspeicher
+// ist es **eine** Lesung. Der Fall liegt seither im Container bei 3,5 s statt
+// über 60 s und trägt wieder SCHWER_ZEITLIMIT wie die übrigen Fälle seiner
+// Datei.
 //
-// SOFORT-MASSNAHME, kein Zielzustand: Die eigentliche Ursache ist die Laufzeit
-// der Ketten-Auflösung selbst, und sie ist als eigener Vorgang verortet
-// (4T-1283, Epic 3E-0032). Fällt sie, gehört dieser Wert zurück auf
-// SCHWER_ZEITLIMIT. Er ist bewusst großzügig gewählt, weil ein zweiter roter
-// Lauf an derselben Stelle teurer wäre als eine späte Hänger-Erkennung in
-// genau diesem einen Fall; die Warnung im Kopf dieser Datei gilt unverändert
-// für jeden weiteren Nutzer dieses Werts.
-export const BESTAND_CONTAINER_ZEITLIMIT = 180000;
+// Der Merkposten bleibt hier stehen, weil die Lehre allgemeiner ist als ihr
+// Anlass: Eine Zeitgrenze, die zweimal an derselben Stelle steigt, misst nicht
+// mehr den Prüfstand, sondern verdeckt einen Befund.

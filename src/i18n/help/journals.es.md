@@ -57,6 +57,8 @@ Dentro de una entrada de diario muestra el periodo actual en grande (con una lí
 ```perspective-journal-nav
 ```
 
+Ambos bloques de diario, este y la línea de tiempo más abajo, comprueban además si se refieren a la entrada mostrada. Si no es así, o si la entrada ya no existe, un mensaje de error sustituye a la visualización: un período incorrecto no sería reconocible como tal y por eso se omite.
+
 En la exportación a PDF y portable, el bloque se sustituye por la etiqueta estática del periodo, sin enlaces de creación.
 
 ## Bloque de línea de tiempo

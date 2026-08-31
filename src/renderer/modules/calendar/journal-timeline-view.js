@@ -59,6 +59,8 @@ import {
   journalOfLevel,
   loadDots,
 } from './journal-timeline-daten.js';
+// 4T-1326 (Epic 3E-0236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
+import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
 
 // --- Beschriftungen -----------------------------------------------------------------
 
@@ -301,6 +303,18 @@ async function fillTimeline(el, basePath) {
   const context = config ? contextForPath(config, result.rootPath, basePath) : null;
   if (!context) {
     showHint(el, t('journalTimeline.noEntry'));
+    return;
+  }
+
+  // 4T-1326 (Epic 3E-0236): dieselbe Plausibilitäts-Prüfung wie beim
+  // Navigations-Block. Die Zeitleiste leitet ihre Bezugs-Periode aus demselben
+  // Dateipfad ab und trägt damit dieselbe Anfälligkeit für eine plausible
+  // Falschaussage; geprüft wird deshalb an derselben Stelle mit derselben
+  // Funktion, statt zwei auseinanderlaufende Prüfungen zu bauen.
+  const rel = api.relative(result.rootPath, basePath);
+  const pruefung = await pruefeBlockPfad(el, basePath, rel ? rel.replace(/\\/g, '/') : '');
+  if (!pruefung.ok) {
+    zeigeBlockFehler(el, pruefung.text);
     return;
   }
 

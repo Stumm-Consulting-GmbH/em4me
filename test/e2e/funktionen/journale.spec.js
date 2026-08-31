@@ -74,7 +74,11 @@ function makeArea() {
 
 // Profil mit globalem Vorlagen-Ordner (Journal-Vorlage) und belegten
 // Kürzeln für beide Kommandos (Muster vorlagen.spec.js).
-function makeUserData(templatesFolder) {
+// 4T-1325 (Epic 3E-0236): `ansichtsModus` setzt den Standard-Ansichtsmodus des
+// Profils (Muster block-abfrage.spec.js). Der Szenario-Fall braucht ihn, weil
+// ein nachtraeglicher Modus-Wechsel die Live-Bloecke neu aufbaut und damit
+// genau den Zustand aufloest, den er nachstellen soll.
+function makeUserData(templatesFolder, ansichtsModus) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-journale-profile-'));
   fs.writeFileSync(
     path.join(dir, 'config.json'),
@@ -84,6 +88,7 @@ function makeUserData(templatesFolder) {
         'journal.openToday': 'Ctrl+Alt+7',
         'journal.openForDate': 'Ctrl+Alt+6',
       },
+      ...(ansichtsModus ? { app: { defaultViewMode: ansichtsModus } } : {}),
     }),
   );
   return dir;
@@ -353,6 +358,163 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
       await nav.locator('.journal-nav-arrow').last().click();
       await expect.poll(nameDesReiters).toBe(vorher);
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+      cleanupDir(templatesDir);
+    }
+  });
+
+  // 4T-1325 (Epic 3E-0236): Regressionstest zum Befund des Product Owners vom
+  // 2026-08-31 an der ausgelieferten 1.122.0. Der Block behielt nach einem
+  // Wechsel des Reiter-Inhalts den Dateipfad des vorherigen Eintrags und nannte
+  // weiter dessen Periode — samt Kalenderwoche und der Zeile «Heute».
+  //
+  // Warum ein eigener Fall neben dem Blaetter-Test darueber: Jener prueft den
+  // Reiter-NAMEN, und der war die ganze Zeit richtig. Falsch war, was der Block
+  // SAGT. Genau diese Luecke liess den Fehler bis in die Auslieferung reisen,
+  // und deshalb prueft dieser Fall die Beschriftung selbst.
+  test('nach dem Wechsel nennt der Block die Periode des angezeigten Eintrags', async () => {
+    const areaRoot = makeArea();
+    const templatesDir = makeTemplatesDir();
+    const userData = makeUserData(templatesDir);
+    const { app, page } = await launchApp({ userData });
+    try {
+      await bindArea(page, areaRoot);
+      const selectModal = page.locator('#template-select-modal');
+      await pressUntilVisible(page, 'Control+Alt+7', selectModal);
+      await page.locator('#template-select-list button', { hasText: 'Tag — Tagebuch' }).click();
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+
+      // Der Live-Modus ist der Ort des Befunds und zugleich der einzige, an dem
+      // er auftritt: Dort baut ein StateField die Bloecke und liest den Pfad aus
+      // dem Editor-Zustand. Die gesetzte Ansicht bekommt ihn direkt vom Aufrufer
+      // und war nie betroffen — ein Fall gegen sie wuerde nichts beweisen.
+      await app.evaluate(({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'live');
+      });
+      const nav = page.locator('.cm-editor .perspective-journal-nav');
+      await expect(nav).toBeVisible();
+      await expect(nav.locator('.journal-nav-sub')).toHaveText('Heute');
+
+      // Verglichen wird die Tages-Zahl: Der Reiter traegt sie im Dateinamen,
+      // die Beschriftung des Blocks in sprachabhaengiger Form. Die Zahl ist
+      // der gemeinsame Nenner, der ohne Locale-Annahme auskommt.
+      const tagDesReiters = async () => {
+        const titel = await page.locator(SEL.activeTab0).getAttribute('title');
+        const treffer = path.basename(String(titel || '')).match(/\d{4}-\d{2}-(\d{2})/);
+        return treffer ? Number(treffer[1]) : null;
+      };
+      const tagImBlock = async () => {
+        const text = await nav.locator('.journal-nav-label').textContent();
+        const treffer = String(text || '').match(/\d+/);
+        return treffer ? Number(treffer[0]) : null;
+      };
+      const heute = await tagDesReiters();
+      await expect.poll(tagImBlock).toBe(heute);
+
+      // Rueckwaerts blaettern: Der Block muss den Vortag nennen. Ohne die
+      // Behebung nannte er hier unveraendert den heutigen Tag, weil die
+      // Block-Widgets mit dem Pfad des vorherigen Eintrags gebaut wurden.
+      await nav.locator('.journal-nav-arrow').first().click();
+      await expect.poll(tagDesReiters).not.toBe(heute);
+      const vortag = await tagDesReiters();
+      await expect.poll(tagImBlock).toBe(vortag);
+      // Und die Zusatzzeile «Heute» gehoert zum heutigen Eintrag, nicht hierher.
+      await expect(nav.locator('.journal-nav-sub')).toHaveCount(0);
+
+      // Vorwaerts zurueck: wieder der heutige Eintrag samt Zusatzzeile.
+      await nav.locator('.journal-nav-arrow').last().click();
+      await expect.poll(tagDesReiters).toBe(heute);
+      await expect.poll(tagImBlock).toBe(heute);
+      await expect(nav.locator('.journal-nav-sub')).toHaveText('Heute');
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+      cleanupDir(templatesDir);
+    }
+  });
+
+  // 4T-1325 (Epic 3E-0236): Regressionstest des GEMELDETEN Ablaufs — zwei
+  // Journal-Eintraege in zwei Reitern, beide im Live-Modus, Wechsel per Klick.
+  //
+  // Beide Eintraege existieren bereits — wie beim Product Owner, dessen
+  // Sitzungs-Wiederherstellung bestehende Dateien oeffnete. Das ist mehr als
+  // Szenario-Treue: Ein Eintrag, der beim Oeffnen erst entsteht, durchlaeuft
+  // den Cursor-Sprung seiner Vorlage, und dessen Selektions-Transaktion baut
+  // die Widgets des GEOEFFNETEN Reiters mit dem dann schon richtigen Pfad neu
+  // (instrumentiert gemessen am 2026-08-31: Signatur-Rebuild ~15 ms nach dem
+  // Doc-Tausch). Bestehende Eintraege haben diesen Heiler nicht, und die
+  // Rueck-Richtung eines Klick-Wechsels hat ihn nie. Am unbehobenen Stand
+  // belegt: Der Doc-Tausch baut die Widgets mit dem Pfad des VORHERIGEN
+  // Reiters, die nachfolgende Pfad-Transaktion loest keinen Neuaufbau aus,
+  // und ueber acht Sekunden Beobachtung heilt keine spaetere Transaktion.
+  test('zwei bestehende Eintraege: jeder Reiter zeigt die Periode seines eigenen Eintrags', async () => {
+    const areaRoot = makeArea();
+    const templatesDir = makeTemplatesDir();
+    // Beide Reiter oeffnen sich direkt im Live-Modus; ein nachtraeglicher
+    // Modus-Wechsel wuerde die Bloecke neu bauen und den Fehler verdecken.
+    const userData = makeUserData(templatesDir, 'live');
+    // BEIDE Eintraege vorab auf der Platte anlegen (ohne Cursor-Marker) —
+    // siehe Kommentar oben, daran haengt die Reproduktion.
+    const eintrag = (iso) =>
+      `---\njournal-date: ${iso}\n---\n\n# ${iso}\n\n\`\`\`perspective-journal-nav\n\`\`\`\n\nText ${iso}\n`;
+    const heute = isoToday();
+    fs.mkdirSync(path.join(areaRoot, 'Journal', heute.slice(0, 4)), { recursive: true });
+    fs.mkdirSync(path.join(areaRoot, 'Journal', '2026'), { recursive: true });
+    fs.writeFileSync(
+      path.join(areaRoot, 'Journal', heute.slice(0, 4), `${heute}.md`),
+      eintrag(heute),
+    );
+    fs.writeFileSync(
+      path.join(areaRoot, 'Journal', '2026', '2026-01-07.md'),
+      eintrag('2026-01-07'),
+    );
+    const { app, page } = await launchApp({ userData });
+    try {
+      await bindArea(page, areaRoot);
+
+      // Reiter 1: der heutige Eintrag (existiert, wird nur geoeffnet).
+      const selectModal = page.locator('#template-select-modal');
+      await pressUntilVisible(page, 'Control+Alt+7', selectModal);
+      await page.locator('#template-select-list button', { hasText: 'Tag — Tagebuch' }).click();
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+
+      // Reiter 2: ein fester, weit entfernter Tag ueber das Datums-Kommando
+      // (existiert ebenfalls — kein Anlage-Weg, kein Cursor-Sprung).
+      const nameModal = page.locator('#name-input-modal');
+      await pressUntilVisible(page, 'Control+Alt+6', nameModal);
+      await page.locator('#name-input-field').fill('2026-01-07');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(selectModal).toBeVisible();
+      await page.locator('#template-select-list button', { hasText: 'Tag — Tagebuch' }).click();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(2);
+
+      const nav = page.locator('.cm-editor .perspective-journal-nav');
+      const tagImBlock = async () => {
+        const text = await nav
+          .locator('.journal-nav-label')
+          .textContent()
+          .catch(() => null);
+        const treffer = String(text || '').match(/\d+/);
+        return treffer ? Number(treffer[0]) : null;
+      };
+
+      // Der zweite Reiter muss den 7. Januar nennen. Ohne die Behebung trugen
+      // die Bloecke den Pfad des ERSTEN Reiters — genau der gemeldete Befund;
+      // die Plausibilitaets-Pruefung zeigte dann die Fehlermeldung statt der
+      // Beschriftung, und dieser Abgleich wird rot.
+      await expect(page.locator(SEL.activeTab0)).toContainText('2026-01-07');
+      await expect.poll(tagImBlock).toBe(7);
+
+      // Zurueck auf den ersten Reiter: wieder der heutige Eintrag samt
+      // Zusatzzeile. Die Gegenrichtung gehoert dazu, weil ein Fix, der nur
+      // einmal nachzieht, hier gruen waere und im Alltag durchfiele.
+      await page.locator(SEL.tabs0).nth(0).click();
+      await expect(page.locator(SEL.activeTab0)).not.toContainText('2026-01-07');
+      await expect(nav.locator('.journal-nav-sub')).toHaveText('Heute');
+      await expect.poll(tagImBlock).toBe(new Date().getDate());
     } finally {
       await closeApp(app, userData);
       cleanupDir(areaRoot);

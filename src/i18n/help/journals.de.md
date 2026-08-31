@@ -57,6 +57,8 @@ Im Journal-Eintrag zeigt er die aktuelle Periode groß (mit Zusatz-Zeile wie «D
 ```perspective-journal-nav
 ```
 
+Beide Journal-Blöcke, dieser und die Zeitleiste weiter unten, prüfen zudem, ob sie sich auf den angezeigten Eintrag beziehen. Trifft das nicht zu, oder ist der Eintrag nicht mehr vorhanden, erscheint statt der Anzeige eine Fehlermeldung: Eine falsche Perioden-Angabe wäre nicht als falsch erkennbar und wird deshalb unterdrückt.
+
 Im PDF- und Portable-Export erscheint statt des Blocks die statische Perioden-Beschriftung ohne Anlage-Links.
 
 ## Timeline-Block

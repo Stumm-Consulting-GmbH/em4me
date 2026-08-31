@@ -611,13 +611,13 @@ export function syncEditorForPane(paneIdx) {
   }
   const tab = pane.tabs[pane.activeIndex];
   if (!tab) return;
-  const currentDoc = getDocText(view.state.doc);
-  if (currentDoc !== (tab.content || '')) {
-    view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: tab.content || '' },
-    });
-  }
+  // 4T-1325 (Epic 3E-0236): Inhalt und Pfad in EINER Transaktion — getrennt gefahren
+  // bauten die Live-Bloecke mit dem Pfad des VORHERIGEN Reiters (Begruendung im Task).
+  const neuerText = tab.content || '';
   view.dispatch({
+    ...(getDocText(view.state.doc) === neuerText
+      ? {}
+      : { changes: { from: 0, to: view.state.doc.length, insert: neuerText } }),
     effects: [
       editorCompartments.readOnly.reconfigure(EditorState.readOnly.of(!tab.editMode)),
       editorCompartments.lineNumbers.reconfigure(tab.showLineNumbers ? cmLineNumbers() : []),
