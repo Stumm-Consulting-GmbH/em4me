@@ -91,6 +91,8 @@ Les flèches naviguent, Entrée ou Tab sélectionne, Échap ferme.
 
 Tant que rien n'est saisi après `[[`, les fichiers de l'espace modifiés le plus récemment figurent en tête, le plus récent d'abord. Dès que l'on filtre, la qualité de correspondance reprend la tête ; la date de modification ne départage plus que les suggestions de même rang.
 
+Après `#`, les tags les plus souvent attribués dans l’espace figurent en tête, le plus fréquent d’abord ; là aussi la qualité de correspondance prime dès que quelque chose est saisi, et la fréquence tranche alors entre égaux. Le nombre derrière chaque suggestion l’indique.
+
 La validation d'une suggestion de fichier ou d'alias écrit aussi les crochets fermants et place le curseur derrière. S'ils sont déjà présents, aucune seconde paire n'apparaît.
 
 ## Barres latérales du réseau

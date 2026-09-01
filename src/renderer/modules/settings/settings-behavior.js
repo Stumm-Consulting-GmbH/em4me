@@ -9,6 +9,8 @@
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { DEFAULT_VIEW_MODE, state } from '../app/app-state.js';
+// 4T-1341 (Epic 3E-0238): Die Modus-Listen kommen aus der einen Quelle.
+import { DEFAULT_EDIT_VIEW_MODE, EDIT_VIEW_MODES } from '../views/view-modes.js';
 import { setBookmarksAreaFirst } from '../bookmarks/bookmarks.js';
 import {
   applyPerspectiveScriptsEnabled,
@@ -50,6 +52,11 @@ export function dirtyBehaviorSection(draft) {
   if (['rendered', 'split', 'source', 'live'].includes(mode) && mode !== state.defaultViewMode) {
     return true;
   }
+  // 4T-1341 (Epic 3E-0238): zweite Ansichts-Einstellung, gleiche Mechanik.
+  const editMode = draft.editViewMode;
+  if (EDIT_VIEW_MODES.includes(editMode) && editMode !== state.editViewMode) {
+    return true;
+  }
   return (
     dirtyHistorySettings(draft) ||
     dirtyRenameLinkSettings(draft) ||
@@ -68,6 +75,33 @@ const VIEW_MODE_OPTION_KEYS = [
   ['live', 'settings.defaultViewMode.live'],
 ];
 
+// 4T-1341 (Epic 3E-0238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
+// Die Werte-Beschriftungen sind die der Oeffnen-Einstellung darueber — es sind
+// dieselben Ansichten, und eine zweite Uebersetzung derselben Woerter liefe
+// auseinander. Die Lese-Ansicht fehlt: Sie ist der Ausgangspunkt, kein Ziel.
+const EDIT_VIEW_MODE_OPTION_KEYS = [
+  ['split', 'settings.defaultViewMode.split'],
+  ['source', 'settings.defaultViewMode.source'],
+  ['live', 'settings.defaultViewMode.live'],
+];
+
+function renderEditViewModeSetting(container, draft) {
+  const select = document.createElement('select');
+  select.id = 'settings-edit-view-mode';
+  select.className = 'settings-input';
+  for (const [value, key] of EDIT_VIEW_MODE_OPTION_KEYS) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = t(key);
+    select.appendChild(option);
+  }
+  select.value = draft.editViewMode || DEFAULT_EDIT_VIEW_MODE;
+  select.addEventListener('change', () => {
+    draft.editViewMode = select.value;
+  });
+  container.appendChild(buildSettingsRow('settings.editViewMode.label', select));
+}
+
 export function renderBehaviorSection(container, draft) {
   const select = document.createElement('select');
   select.id = 'settings-default-view-mode';
@@ -83,6 +117,7 @@ export function renderBehaviorSection(container, draft) {
     draft.defaultViewMode = select.value;
   });
   container.appendChild(buildSettingsRow('settings.defaultViewMode.label', select));
+  renderEditViewModeSetting(container, draft);
   renderHistorySettings(container, draft);
   renderRenameLinkSettings(container, draft);
   renderKeepDraftsSetting(container, draft);
@@ -183,6 +218,12 @@ export async function applyBehaviorSection(draft) {
   if (['rendered', 'split', 'source', 'live'].includes(mode) && mode !== state.defaultViewMode) {
     state.defaultViewMode = mode;
     await persistSetting('app.defaultViewMode', mode);
+  }
+  // 4T-1341 (Epic 3E-0238): zweite Ansichts-Einstellung, gleiche Mechanik.
+  const editMode = draft.editViewMode;
+  if (EDIT_VIEW_MODES.includes(editMode) && editMode !== state.editViewMode) {
+    state.editViewMode = editMode;
+    await persistSetting('app.editViewMode', editMode);
   }
   await applyHistorySettings(draft);
   await applyRenameLinkSettings(draft);

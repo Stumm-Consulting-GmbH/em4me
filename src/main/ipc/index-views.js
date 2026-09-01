@@ -374,7 +374,6 @@ function registerIndexViewsIpc(handle, deps) {
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     return backlinks.tagAutocompleteSuggestions(filePath, areaRoot);
   });
-
   // 4T-0020: Linter-Lookup fuer broken-wiki-link. Batch-Endpunkt: pro Lint-
   // Lauf ein Roundtrip mit allen Basenames des Dokuments. Antwort siehe
   // existingWikiTargets in backlinks.js (status + Liste der gefundenen).

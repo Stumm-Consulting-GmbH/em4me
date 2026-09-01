@@ -46,14 +46,16 @@ import { setTaskId, generateTaskId } from '../../../shared/tasks/task-dependenci
 // Backlinks-Panel), damit gleichnamige Dateien aus verschiedenen Ordnern des
 // Bereichs eindeutig unterscheidbar sind.
 import { relativeDirFromRoot } from '../path-format.js';
-// 4T-1307 (Epic 3E-0235): Auswahl-Regel und Klammer-Schluss der Verweis-Liste
-// liegen prozessneutral, damit sie ohne Editor und ohne IPC pruefbar sind.
+// 4T-1307 (Epic 3E-0235): Das Render-Limit liegt bei der Auswahl-Regel, weil es
+// zu ihr gehoert; die Anker- und Schlagwort-Quellen unten wenden es mit an.
+import { AUTOCOMPLETE_RENDER_LIMIT as WIKI_RENDER_LIMIT } from '../../../shared/wiki-vorschlaege.js';
+// 4T-1339 (Epic 3E-0238): Ergebnis-Aufbau und Uebernahme liegen als eigene
+// Fachlichkeit daneben; seit 4T-1357 fuer Verweis-Ziele UND Schlagworte.
 import {
-  AUTOCOMPLETE_RENDER_LIMIT as WIKI_RENDER_LIMIT,
-  waehleWikiZiele,
-  klammerSchluss,
-  schreibmarkeNachUebernahme,
-} from '../../../shared/wiki-vorschlaege.js';
+  uebernimmWikiZiel,
+  baueWikiErgebnis,
+  baueSchlagwortErgebnis,
+} from './vervollstaendigung.js';
 
 // --- Autocomplete-Quellen (4T-0057, Epic 3E-0011) ---------------------------
 // Zwei Completion-Sources fuer CodeMirror: Wiki-Link (`[[…`) und Tag (`#…`).
@@ -61,19 +63,6 @@ import {
 // Limit pro Dropdown: 30 Eintraege (clientseitig nach Sortierung).
 
 export const AUTOCOMPLETE_RENDER_LIMIT = WIKI_RENDER_LIMIT;
-
-// 4T-1307: Uebernahme eines Verweis-Vorschlags. Sie schreibt die fehlenden
-// schliessenden Klammern mit und setzt die Schreibmarke dahinter, statt den
-// Anwender beides von Hand nachtragen zu lassen. Die Entscheidung, was fehlt,
-// liegt im geteilten Modul; hier steht nur der Editor-Griff.
-function uebernimmWikiZiel(view, completion, from, to) {
-  const ergaenzung = klammerSchluss(view.state.sliceDoc(to, to + 2));
-  view.dispatch({
-    changes: { from, to, insert: completion.label + ergaenzung },
-    selection: { anchor: schreibmarkeNachUebernahme(from, completion.label) },
-    userEvent: 'input.complete',
-  });
-}
 
 export function paneIdxForCmView(view) {
   return paneEditors.indexOf(view);
@@ -205,20 +194,9 @@ export async function wikiLinkCompletionSource(context) {
   // 4T-1307 (Epic 3E-0235): Filter und Reihenfolge liegen in der geteilten
   // Auswahl-Regel — ohne Eingabe fuehrt die Aenderungszeit, mit Eingabe die
   // Treffer-Guete. Das Render-Limit wendet sie mit an.
-  const items = waehleWikiZiele(result.suggestions || [], prefix).map((s) => ({
-    label: s.name,
-    type: s.kind === 'alias' ? 'keyword' : 'class',
-    detail:
-      s.kind === 'alias'
-        ? t('autocomplete.detail.alias') + (s.detail ? ' → ' + s.detail : '')
-        : t('autocomplete.detail.file'),
-    apply: uebernimmWikiZiel,
-  }));
-  return {
-    from: context.pos - prefix.length,
-    options: items,
-    validFor: /^[\p{L}\p{N}_-]*$/u,
-  };
+  // 4T-1339 (Epic 3E-0238): Damit diese Reihenfolge die Anzeige auch erreicht,
+  // baut `baueWikiErgebnis` das Ergebnis — siehe dort.
+  return baueWikiErgebnis(result.suggestions || [], prefix, context.pos - prefix.length);
 }
 
 export async function tagCompletionSource(context) {
@@ -258,27 +236,15 @@ export async function tagCompletionSource(context) {
     return null;
   }
   if (!result || result.status !== 'ready') return null;
-  const prefixLower = tagPrefix.toLowerCase();
-  const items = (result.suggestions || [])
-    .filter((entry) => !prefixLower || entry.tag.toLowerCase().includes(prefixLower))
-    .sort((a, b) => {
-      const aPrefix = a.tag.toLowerCase().startsWith(prefixLower) ? 0 : 1;
-      const bPrefix = b.tag.toLowerCase().startsWith(prefixLower) ? 0 : 1;
-      if (aPrefix !== bPrefix) return aPrefix - bPrefix;
-      if (b.count !== a.count) return b.count - a.count;
-      return a.tag.localeCompare(b.tag);
-    })
-    .slice(0, AUTOCOMPLETE_RENDER_LIMIT)
-    .map((entry) => ({
-      label: entry.tag,
-      type: 'keyword',
-      detail: t('autocomplete.detail.tag') + ' (' + entry.count + ')',
-    }));
-  return {
-    from: context.pos - tagPrefix.length,
-    options: items,
-    validFor: /^[\p{L}\p{N}_/-]*$/u,
-  };
+  // 4T-1357 (Epic 3E-0238): Auswahl-Regel und Ergebnis-Bau liegen daneben —
+  // dieselbe Ursache und dieselbe Behebung wie bei den Verweis-Zielen. Die
+  // Haeufigkeits-Ordnung erreichte die Anzeige nicht, weil die Bibliothek die
+  // uebergebene Liste neu sortierte.
+  return baueSchlagwortErgebnis(
+    result.suggestions || [],
+    tagPrefix,
+    context.pos - tagPrefix.length,
+  );
 }
 
 // --- Task-Zeilen-Vervollstaendigung (4T-0507, Epic 3E-0096) -------------------

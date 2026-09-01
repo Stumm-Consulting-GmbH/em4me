@@ -16,12 +16,18 @@ import { systemPageById } from './system-pages.js';
 // 4T-1054 (Epic 3E-0151): Ansichts-Modi und Klassen-Helfer liegen in einem
 // importfreien Modul; hier nur re-exportiert, damit Bestands-Importe gelten.
 export {
+  DEFAULT_EDIT_VIEW_MODE,
+  EDIT_VIEW_MODES,
   SYSTEM_VIEW_CLASS,
   VIEW_MODES,
   VIEW_MODE_CLASSES,
   applyContentViewClass,
   isViewMode,
+  zielAnsichtDesAenderungsmodus,
 } from '../views/view-modes.js';
+// 4T-1341 (Epic 3E-0238): zusaetzlich als lokale Bindung, weil der
+// Anfangswert des Zustands unten sie braucht.
+import { DEFAULT_EDIT_VIEW_MODE as EDIT_VIEW_VOREINSTELLUNG } from '../views/view-modes.js';
 // 4T-1047 (Epic 3E-0151): Rueckfall des Mindmap-Modus bei ausgeschalteter
 // Erweiterung. Bewusst aus mindmap-modus.js und NICHT aus mindmap-pane.js:
 // Letzteres zoege ueber das Einstellungs-Modul die Settings-Seite mit, deren
@@ -160,6 +166,11 @@ export const state = {
   // Konfigurierbar im Settings-Dialog; Fallback bleibt DEFAULT_VIEW_MODE
   // ('rendered'). Initial-Wert wird beim App-Start aus dem Store geladen.
   defaultViewMode: DEFAULT_VIEW_MODE,
+  // 4T-1341 (Epic 3E-0238): Ziel-Ansicht des Wechsels in den Bearbeiten-Modus,
+  // wenn er aus der Lese-Ansicht heraus geschieht. In den drei Bearbeitungs-
+  // Ansichten wechselt er keine Ansicht, dort gibt es nichts zu waehlen.
+  // Initial-Wert wird beim App-Start aus dem Store geladen.
+  editViewMode: EDIT_VIEW_VOREINSTELLUNG,
   // 4T-0207 (Epic 3E-0015): User-Overrides der Tastenkuerzel aus dem
   // Store-Key 'hotkeys' ({ commandId: acceleratorString }, leerer String =
   // entbunden). Wird beim App-Start geladen; Dispatcher-Map, Editor-Keymap

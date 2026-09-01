@@ -28,6 +28,38 @@ export function isViewMode(wert) {
 }
 
 /**
+ * 4T-1341 (Epic 3E-0238): Die Ansichten, in denen bearbeitet wird — und damit
+ * die wählbaren Ziele des Wechsels in den Bearbeiten-Modus.
+ *
+ * Die Lese-Ansicht fehlt, weil sie der Ausgangspunkt des Wechsels ist und kein
+ * Ziel; die Mindmap fehlt, weil sie kein Editor-Modus ist. Die Liste steht hier
+ * und nicht im Zustand, weil dieses Modul die eine Quelle der Modus-Listen ist.
+ */
+export const EDIT_VIEW_MODES = ['split', 'source', 'live'];
+
+/**
+ * Voreinstellung des Wechsels. Bis 4T-1341 war „geteilt" fest verdrahtet; der
+ * Wert bleibt die Voreinstellung, damit ein Bestandsprofil ohne die Einstellung
+ * sich unverändert verhält.
+ */
+export const DEFAULT_EDIT_VIEW_MODE = 'split';
+
+/**
+ * In welche Ansicht der Wechsel in den Bearbeiten-Modus führt.
+ *
+ * Prozessneutral und ohne DOM, damit die Entscheidung ohne Editor prüfbar ist;
+ * der Renderer hält nur die Verdrahtung. Ein unbekannter, fehlender oder nicht
+ * bearbeitbarer Wert fällt auf die Voreinstellung zurück, statt eine Ansicht zu
+ * setzen, die es nicht gibt.
+ *
+ * @param {unknown} einstellung der gespeicherte Wert.
+ * @returns {string} einer aus `EDIT_VIEW_MODES`.
+ */
+export function zielAnsichtDesAenderungsmodus(einstellung) {
+  return EDIT_VIEW_MODES.includes(einstellung) ? einstellung : DEFAULT_EDIT_VIEW_MODE;
+}
+
+/**
  * Setzt die Ansichts-Klasse eines Inhalts-Elements und entfernt dabei jede
  * andere, einschließlich der System-Klasse.
  *

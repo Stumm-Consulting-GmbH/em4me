@@ -406,9 +406,13 @@ export async function newFileFromTemplate() {
 }
 
 // Cursor-Sprung nach dem Öffnen der neuen Datei: Edit-Modus sicherstellen
-// (toggleEditMode deckt auch den Rendered-Fall ab, der auf Split wechselt)
-// und die Selektion auf das Ziel-Offset setzen. 4T-0433 (Epic 3E-0081):
-// exportiert — der Journal-Anlage-Pfad springt auf dasselbe Cursor-Ziel.
+// (toggleEditMode deckt auch den Fall der Lese-Ansicht ab, aus der es in eine
+// Bearbeitungs-Ansicht wechselt) und die Selektion auf das Ziel-Offset setzen.
+// 4T-1341 (Epic 3E-0238): welche das ist, entscheidet seither die Einstellung
+// und nicht mehr die feste Verdrahtung auf „geteilt"; für diesen Weg ändert
+// sich nichts, weil er nur den Editor braucht.
+// 4T-0433 (Epic 3E-0081): exportiert — der Journal-Anlage-Pfad springt auf
+// dasselbe Cursor-Ziel.
 export function jumpToOffsetInActiveTab(offset) {
   const tab = activeTab();
   if (!tab || !tab.path || tab.manualPage || tab.systemPage) return;

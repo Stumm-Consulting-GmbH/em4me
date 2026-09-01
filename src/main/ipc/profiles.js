@@ -396,6 +396,33 @@ function registerProfilesIpc(handle, deps) {
     return { ok: true, status, values };
   });
 
+  // 4T-1340 (Epic 3E-0238): Die im Bereich bereits vergebenen Werte einer
+  // Eigenschaft — die zweite Werte-Quelle der Feld-Bedienelemente, neben dem
+  // definierten Wertevorrat darüber. Sie steht hier und nicht bei den
+  // Index-Sichten, weil beide Kanäle dieselbe Frage beantworten: Was kann
+  // dieses Wert-Feld anbieten? Eigenes Gate, weil sie eine eigene
+  // Erweiterung ist und ohne Profile arbeitet.
+  handle('properties:usedValues', async (event, params) => {
+    const leer = { status: 'unavailable', values: [] };
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return leer;
+    if (
+      !isExtensionEnabled(
+        'property-value-suggestions',
+        store ? store.get('extensions.disabled') : [],
+      )
+    ) {
+      return leer;
+    }
+    const filePath = params && typeof params.filePath === 'string' ? params.filePath : null;
+    const feld = params && typeof params.feld === 'string' ? params.feld : null;
+    if (!filePath || !feld) return leer;
+    const abs = path.resolve(filePath);
+    if (!isInsideArea(area.rootPath, abs)) return leer;
+    backlinks.ensureIndexForDemand(abs, `${event.sender.id}:demand`, area.rootPath);
+    return backlinks.eigenschaftsWerteFuerFeld(abs, feld, area.rootPath);
+  });
+
   // 4T-1184 (Epic 3E-0221, E1): Treffer eines Lookup-Feldes — die Dokumente,
   // die über ein benanntes Feld auf das eigene verweisen. Eigener Kanal neben
   // `profiles:fieldValues` und aus demselben Grund: Genau darin steckt die

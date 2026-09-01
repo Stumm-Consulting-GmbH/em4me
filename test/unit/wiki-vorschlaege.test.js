@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   AUTOCOMPLETE_RENDER_LIMIT,
   waehleWikiZiele,
+  trefferBereich,
   klammerSchluss,
   schreibmarkeNachUebernahme,
 } from '../../src/shared/wiki-vorschlaege.js';
@@ -95,6 +96,36 @@ describe('Auswahl-Regel der Verweis-Vorschlaege (4T-1307)', () => {
     const vorher = namen(ZIELE);
     waehleWikiZiele(ZIELE, '');
     expect(namen(ZIELE)).toEqual(vorher);
+  });
+});
+
+// 4T-1339 (Epic 3E-0238): Seit die Quelle die Eigensortierung der
+// Vervollstaendigungs-Bibliothek abbestellt, rechnet diese die Hervorhebung
+// der getroffenen Zeichen nicht mehr selbst aus. Die Regel dafuer liegt neben
+// der Auswahl-Regel, weil sie deren Filter spiegelt.
+describe('Treffer-Bereich fuer die Hervorhebung (4T-1339)', () => {
+  it('nennt Anfang und Ende der Fundstelle', () => {
+    expect(trefferBereich('Notizbuch', 'buch')).toEqual([5, 9]);
+  });
+
+  it('achtet nicht auf Gross- und Kleinschreibung, wie der Filter', () => {
+    expect(trefferBereich('Notizbuch', 'NOTIZ')).toEqual([0, 5]);
+  });
+
+  it('nimmt die erste Fundstelle, wenn die Eingabe mehrfach vorkommt', () => {
+    expect(trefferBereich('Bau-Bauteil', 'bau')).toEqual([0, 3]);
+  });
+
+  it('liefert ohne Eingabe keinen Bereich', () => {
+    // Die Liste ohne Eingabe ist genau die Lage, fuer die 4T-1339 die
+    // Reihenfolge nach Aenderungszeit wiederherstellt; hervorzuheben ist
+    // dort nichts.
+    expect(trefferBereich('Notizbuch', '')).toEqual([]);
+    expect(trefferBereich('Notizbuch', null)).toEqual([]);
+  });
+
+  it('liefert keinen Bereich, wenn die Eingabe nicht vorkommt', () => {
+    expect(trefferBereich('Notizbuch', 'xyz')).toEqual([]);
   });
 });
 

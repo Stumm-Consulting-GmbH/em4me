@@ -91,6 +91,8 @@ Pfeil-Tasten navigieren, Enter oder Tab wählt aus, Esc schließt.
 
 Solange nach `[[` nichts getippt ist, stehen die zuletzt geänderten Dateien des Bereichs oben, die jüngste zuerst. Sobald gefiltert wird, führt wieder die Treffer-Güte; die Änderungszeit entscheidet dann nur noch zwischen gleichrangigen Vorschlägen.
 
+Nach `#` stehen die im Bereich häufiger vergebenen Schlagworte oben, das häufigste zuerst; auch hier führt die Treffer-Güte, sobald etwas getippt ist, und die Häufigkeit entscheidet dann zwischen Gleichrangigen. Die Zahl hinter jedem Vorschlag nennt sie.
+
 Die Übernahme eines Datei- oder Zweitnamen-Vorschlags schreibt die schließenden Klammern mit und setzt die Schreibmarke dahinter. Stehen sie schon da, entsteht kein zweites Paar.
 
 ## Sidebars zum Netz

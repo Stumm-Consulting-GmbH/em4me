@@ -138,8 +138,11 @@
       "key": "help.feature.editMode",
       "id": "F-018",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "FB-01 (Toggle via menu:toggleEdit-IPC), Klick-Weg in SM-04."
+      "tests": [
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/e2e/funktionen/aenderungsmodus-ansicht.spec.js"
+      ],
+      "hinweis": "FB-01 (Toggle via menu:toggleEdit-IPC), Klick-Weg in SM-04; AM-01 bis AM-04 (Ziel-Ansicht des Wechsels, 4T-1341)."
     },
     {
       "key": "help.feature.save",
@@ -313,6 +316,16 @@
       "hinweis": "R5-02/R5-03/R5-10 (Editor-Verhalten, Duplikate, Debounce-Flush)."
     },
     {
+      "key": "help.feature.propertyValueSuggestions",
+      "id": "F-273",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/eigenschafts-bestandswerte.spec.js",
+        "test/unit/eigenschafts-werte.test.js"
+      ],
+      "hinweis": "WB-01 bis WB-04 (Liste am Feld, kein Vorkommen, Aus-Zustand, freie Eingabe); die Sicht des Hauptprozesses unit am echten Index (4T-1340). Der Blick auf die aufgeklappte Liste bleibt der Abnahme vorbehalten — sie zeichnet der Browser nativ."
+    },
+    {
       "key": "help.feature.propertyProfiles",
       "id": "F-106",
       "testart": "e2e",
@@ -467,8 +480,12 @@
       "key": "help.feature.autocomplete",
       "id": "F-040",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "FB-05 (Wiki-Ziele); Tag-Heading-Ausnahme R5-12 implementiert in 4T-0187."
+      "tests": [
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/e2e/funktionen/verweis-vorschlaege.spec.js",
+        "test/e2e/funktionen/schlagwort-vorschlaege.spec.js"
+      ],
+      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-1339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-1357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-0187."
     },
     {
       "key": "help.feature.wikiLinkAnchors",

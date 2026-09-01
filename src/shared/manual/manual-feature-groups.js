@@ -143,6 +143,10 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0052 (Epic 3E-0010): Frontmatter-Erkennung und Properties-Sidebar.
       'help.feature.frontmatter',
       'help.feature.properties',
+      // 4T-1340 (Epic 3E-0238): Werte-Vorschlaege aus dem Bestand, direkt hinter
+      // dem Properties-Editor, auf dem sie wirken — und VOR dem Profil-Cluster,
+      // weil sie gerade ohne Profil helfen.
+      'help.feature.propertyValueSuggestions',
       // 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — zentrale Feld-
       // Definitionen, direkt hinter dem Properties-Editor, auf dem sie wirken.
       'help.feature.propertyProfiles',

@@ -14,6 +14,65 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.125.0.2163] - 2026-09-01 — Vorschläge, die die Anzeige erreichen
+
+Epic 3E-0238
+(4T-1339, 4T-1341, 4T-1340, 4T-1357, Handbuch 4T-1342, Sammeltask 4T-1343),
+entstanden aus drei Punkten einer Liste des Product Owners vom 2026-09-01 aus dem
+Alltagsbetrieb. Der erste war eine Fehlerbehebung: Die mit 1.122.0 zugesagte
+Reihenfolge der Verweis-Vorschläge — ohne Eingabe führt die zuletzt geänderte
+Datei — war zwei Releases lang ohne jede Wirkung. Die Auswahl-Regel sortierte
+richtig; die Vervollständigungs-Bibliothek ordnete die fertige Liste danach neu.
+Beim Beheben zeigte sich dieselbe Ursache in der Schlagwort-Liste, und mit ihr
+eine zweite Lücke: Beim Tippen wurde nur innerhalb der bereits gekürzten Liste
+gefiltert, sodass ein Ziel außerhalb der jüngsten Dateien nicht erreichbar war.
+
+### Neu
+
+- **Ein Klick in ein Wert-Feld der Eigenschaften bietet die im Bereich bereits
+  vergebenen Werte an** (4T-1340), alphabetisch geordnet und mit jedem getippten
+  Zeichen kleiner werdend; ein eigener Wert bleibt frei eingebbar. Gibt ein
+  Eigenschafts-Profil einen Wertevorrat vor, erscheinen beide Herkünfte gemeinsam
+  und bleiben unterscheidbar. Kommt die Eigenschaft im Bereich nirgends vor,
+  erscheint keine Liste statt einer leeren. Die Werte stammen aus dem
+  Bereichs-Index, ohne dass eine Datei erneut gelesen wird; an einem Bereich mit
+  15 000 Dateien kostet die Ermittlung im Median eine Millisekunde. Als
+  Erweiterung «Werte-Vorschläge aus dem Bestand» abschaltbar.
+- **Die Ansicht beim Wechsel in den Bearbeiten-Modus ist einstellbar** (4T-1341).
+  Der Stift führte aus der Lese-Ansicht fest in die geteilte Ansicht; wer
+  überwiegend in der Live-Ansicht arbeitet, schaltete danach jedes Mal von Hand
+  weiter. Wählbar sind Geteilt, Quellcode und Live, voreingestellt bleibt
+  Geteilt. In den drei Bearbeitungs-Ansichten wechselt der Stift wie bisher keine
+  Ansicht.
+- **Die Schlagwort-Vorschläge folgen der Häufigkeit** (4T-1357). Ohne Eingabe
+  stehen die im Bereich häufiger vergebenen Schlagworte oben, mit Eingabe führt
+  die Treffer-Güte und die Häufigkeit entscheidet zwischen Gleichrangigen. Die
+  Sortierung war im Programm angelegt, hatte aber nie eine Wirkung und war
+  nirgends zugesagt.
+
+### Behoben
+
+- **Die Reihenfolge der Verweis-Vorschläge erreicht die Anzeige** (4T-1339). Ohne
+  Eingabe steht nach `[[` wieder die zuletzt geänderte Datei oben, wie mit 1.122.0
+  zugesagt. Die Vervollständigungs-Bibliothek sortierte die übergebene Liste neu,
+  solange die Quelle das nicht ausdrücklich abbestellte; bei leerer Eingabe fiel
+  ihr Gleichstand ans Alphabet — genau in der Lage, für die die Änderungszeit
+  eingeführt worden war.
+- **Die Vorschlagsliste verkleinert sich auf alle passenden Ziele** (4T-1339).
+  Bis dahin filterte die Bibliothek beim Tippen nur innerhalb der bereits auf 30
+  Einträge gekürzten Liste; ein Ziel außerhalb der 30 jüngsten Dateien war durch
+  Eingabe nicht mehr erreichbar. Dieselbe Ursache, mit derselben Änderung
+  behoben.
+
+### Doku
+
+- **Funktions-Katalog und Handbuch in allen fünf Sprachfassungen nachgezogen**
+  (4T-1342). Der Katalog trägt die Werte-Vorschläge als eigenen Eintrag; die
+  Beschreibung des Bearbeiten-Modus nannte die feste geteilte Ansicht und war
+  damit falsch geworden. Die Handbuch-Seiten «Ansichten und Darstellung»,
+  «Verweise» und «Frontmatter und Properties» beschreiben die drei Funktionen an
+  den Stellen, an denen sie gebraucht werden.
+
 ## [1.124.0.2143] - 2026-09-01 — Datums-Werte in der Zeile mit dem Cursor
 
 Epic 3E-0197

@@ -26,7 +26,7 @@ La carte mentale montre les titres et les listes du document sous forme d'arbre,
 
 ### Modifier
 
-Le mode modification active l'éditeur et agit dans la vue source, la vue scindée et la vue directe (défaut `Ctrl+E`, crayon dans la barre d'état, Affichage → Modifier). Un clic sur le crayon dans la vue de lecture pure bascule d'elle-même en vue scindée et y active l'éditeur. Les moyens de mise en forme du mode modification sont décrits par les pages [Menu contextuel de l'éditeur](context-menu.md) et [Barre de format](toolbar.md).
+Le mode modification active l'éditeur et agit dans la vue source, la vue scindée et la vue directe (défaut `Ctrl+E`, crayon dans la barre d'état, Affichage → Modifier). Un clic sur le crayon dans la vue de lecture pure bascule d'elle-même vers une vue d'édition et y active l'éditeur. Laquelle est déterminée par le réglage « Vue lors du passage en mode édition » (Fichier → Paramètres… → Comportement ; Scindée, Source et Direct sont proposées, Scindée par défaut). Si la vue est déjà l'une des trois, elle reste — le crayon n'y active que l'éditeur. Les moyens de mise en forme du mode modification sont décrits par les pages [Menu contextuel de l'éditeur](context-menu.md) et [Barre de format](toolbar.md).
 
 ## Affichage de l'éditeur
 

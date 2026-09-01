@@ -26,7 +26,7 @@ The mind map shows the headings and lists of the document as a tree and the body
 
 ### Editing
 
-Edit mode arms the editor and works in the source, the split and the live view (default `Ctrl+E`, pencil in the status bar, View → Edit). Clicking the pencil in the pure reading view automatically switches to the split view and activates the editor there. What is available for formatting in edit mode is described by the pages [Editor context menu](context-menu.md) and [Format toolbar](toolbar.md).
+Edit mode arms the editor and works in the source, the split and the live view (default `Ctrl+E`, pencil in the status bar, View → Edit). Clicking the pencil in the pure reading view automatically switches to an editing view and activates the editor there. Which one is set by “View when switching to edit mode” (File → Settings… → Behaviour; Split, Source and Live are available, Split by default). If the view is already one of the three, it stays — there the pencil only arms the editor. What is available for formatting in edit mode is described by the pages [Editor context menu](context-menu.md) and [Format toolbar](toolbar.md).
 
 ## Editor display
 

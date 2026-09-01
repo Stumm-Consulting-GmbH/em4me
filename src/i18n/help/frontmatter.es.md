@@ -66,6 +66,8 @@ mindmap:
 
 La barra Propiedades muestra los campos del frontmatter editables en vivo. El tipo de campo se infiere del valor: texto, lista, fecha, número, booleano o multilínea. Los campos nuevos se crean con «+ Añadir propiedad»; los cambios siguen la configuración de autoguardado.
 
+Un clic en un campo de valor ofrece los valores ya asignados a esa propiedad en el área, en orden alfabético; cada carácter escrito reduce la lista y un valor propio sigue siendo libremente escribible. Si un perfil de propiedades define un conjunto de valores, ambos orígenes aparecen juntos y siguen siendo distinguibles: los valores procedentes de lo existente están marcados como tales. Si la propiedad no aparece en ninguna parte del área, no se muestra ninguna lista. Se puede desactivar en Archivo → Ajustes… → Extensiones.
+
 Al escribir, el bloque se conserva en el viaje de ida y vuelta: comentarios, orden de campos y estilo de los campos no modificados no se reformatean, y los finales de línea CRLF permanecen estables.
 
 Con un error de sintaxis YAML, la barra muestra el mensaje de error y bloquea el añadir hasta reparar el bloque en el editor.

@@ -489,6 +489,8 @@ contextBridge.exposeInMainWorld('api', {
   autocompleteAnchors: (filePath, basename, anchorType) =>
     ipcRenderer.invoke('autocomplete:anchors', { filePath, basename, anchorType }),
   autocompleteTags: (filePath) => ipcRenderer.invoke('autocomplete:tags', { filePath }),
+  // 4T-1340 (Epic 3E-0238): die im Bereich vergebenen Werte einer Eigenschaft.
+  propertiesUsedValues: (params) => ipcRenderer.invoke('properties:usedValues', params),
   onBacklinksInvalidated: (cb) =>
     ipcRenderer.on('backlinks:invalidated', (_e, payload) => cb(payload)),
 

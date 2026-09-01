@@ -91,6 +91,8 @@ Arrow keys navigate, Enter or Tab selects, Esc closes.
 
 As long as nothing is typed after `[[`, the most recently changed files of the area appear at the top, the newest first. Once you filter, match quality leads again; the change time then only decides between suggestions of equal rank.
 
+After `#`, the tags used more often in the area appear at the top, the most frequent first; here too match quality leads as soon as something is typed, and frequency then decides between equals. The number behind each suggestion states it.
+
 Accepting a file or alias suggestion also writes the closing brackets and places the cursor behind them. If they are already there, no second pair appears.
 
 ## Sidebars for the network

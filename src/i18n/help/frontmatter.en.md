@@ -66,6 +66,8 @@ mindmap:
 
 The properties sidebar shows the frontmatter fields live-editable. The field type is inferred from the value: text, list, date, number, boolean or multiline. New fields are created via "+ Add property"; changes follow the auto-save setting.
 
+Clicking a value field offers the values already used for that property in the area, in alphabetical order; each character typed narrows the list, and a value of your own remains freely typable. Where a property profile defines a set of values, both origins appear together and stay distinguishable — the values from existing entries are marked as such. If the property occurs nowhere in the area, no list appears. Can be switched off under File → Settings… → Extensions.
+
 When writing, the block round-trips cleanly: comments, field order and the style of unchanged fields are not reformatted, and CRLF line endings stay stable.
 
 On a YAML syntax error the sidebar shows the error message and locks adding until the block is fixed in the editor.

@@ -583,6 +583,18 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.profileStructuredFields',
     ],
   },
+  // 4T-1340 (Epic 3E-0238): Werte-Vorschläge aus dem vorhandenen Bestand als
+  // schaltbare Werkzeug-Erweiterung (Erweiterungs-Prüfschritt, Ergebnis im
+  // Task). Bewusst OHNE Abhängigkeit auf 'property-profiles': Die Werte kommen
+  // aus dem Bereichs-Index und helfen gerade dort, wo kein Profil einen
+  // Wertevorrat vorgibt. Im Aus-Zustand liefert 'properties:usedValues' eine
+  // leere Liste, die Bedienelemente bekommen keine zweite Quelle.
+  {
+    id: 'property-value-suggestions',
+    category: 'tools',
+    nameKey: 'help.featureName.propertyValueSuggestions',
+    descKey: 'help.feature.propertyValueSuggestions',
+  },
   // 4T-0461 (Epic 3E-0085): Tab-Gruppen als schaltbare Werkzeug-Erweiterung
   // (Erweiterungs-Prüfschritt vom 2026-07-10, dokumentiert im Epic). Keine
   // Registry-Kommandos: die Verwaltung läuft über Tab- und Kopf-Kontextmenü

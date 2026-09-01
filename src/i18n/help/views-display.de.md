@@ -26,7 +26,7 @@ Die Mindmap zeigt Überschriften und Listen des Dokuments als Baum, den Fließte
 
 ### Bearbeiten
 
-Der Bearbeiten-Modus schaltet den Editor scharf und wirkt in der Quellcode-, der geteilten und der Live-Ansicht (Standard `Strg+E`, Stift in der Statusleiste, Ansicht → Bearbeiten). Ein Klick auf den Stift in der reinen Lese-Ansicht wechselt selbsttätig in die geteilte Ansicht und aktiviert den Editor dort. Womit sich im Bearbeiten-Modus formatieren lässt, beschreiben die Seiten [Editor-Kontextmenü](context-menu.md) und [Format-Toolbar](toolbar.md).
+Der Bearbeiten-Modus schaltet den Editor scharf und wirkt in der Quellcode-, der geteilten und der Live-Ansicht (Standard `Strg+E`, Stift in der Statusleiste, Ansicht → Bearbeiten). Ein Klick auf den Stift in der reinen Lese-Ansicht wechselt selbsttätig in eine Bearbeitungs-Ansicht und aktiviert den Editor dort. In welche, bestimmt die Einstellung „Ansicht beim Wechsel in den Bearbeiten-Modus" (Datei → Einstellungen… → Verhalten, wählbar sind Geteilt, Quellcode und Live; Vorgabe Geteilt). Steht die Ansicht schon auf einer der drei, bleibt sie stehen — dort schaltet der Stift allein den Editor frei. Womit sich im Bearbeiten-Modus formatieren lässt, beschreiben die Seiten [Editor-Kontextmenü](context-menu.md) und [Format-Toolbar](toolbar.md).
 
 ## Editor-Darstellung
 

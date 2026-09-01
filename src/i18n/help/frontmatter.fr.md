@@ -66,6 +66,8 @@ mindmap:
 
 La barre Propriétés affiche les champs du frontmatter en édition directe. Le type de champ se déduit de la valeur : texte, liste, date, nombre, booléen ou multiligne. Les nouveaux champs se créent via « + Ajouter une propriété » ; les modifications suivent le paramètre d'enregistrement automatique.
 
+Un clic dans un champ de valeur propose les valeurs déjà attribuées à cette propriété dans l'espace, par ordre alphabétique ; chaque caractère saisi réduit la liste, et une valeur propre reste librement saisissable. Lorsqu'un profil de propriétés définit un ensemble de valeurs, les deux origines apparaissent ensemble et restent distinguables — les valeurs issues de l'existant sont signalées comme telles. Si la propriété n'apparaît nulle part dans l'espace, aucune liste ne s'affiche. Désactivable sous Fichier → Paramètres… → Extensions.
+
 À l'écriture, le bloc reste stable en aller-retour : commentaires, ordre des champs et style des champs non modifiés ne sont pas reformatés, et les fins de ligne CRLF restent stables.
 
 En cas d'erreur de syntaxe YAML, la barre affiche le message d'erreur et bloque l'ajout jusqu'à réparation du bloc dans l'éditeur.

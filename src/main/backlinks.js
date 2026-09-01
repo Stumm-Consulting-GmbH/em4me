@@ -35,6 +35,8 @@ const views = require('./index/views.js');
 const verweisZiele = require('./index/profil-verweis-ziele.js');
 // 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Abfrage.
 const wertevorrat = require('./index/profil-wertevorrat.js');
+// 4T-1340 (Epic 3E-0238): die im Bereich vergebenen Werte einer Eigenschaft.
+const eigenschaftsWerte = require('./index/eigenschafts-werte.js');
 // 4T-1184 (Epic 3E-0221): Treffer eines Lookup-Feldes.
 const lookup = require('./index/profil-lookup.js');
 
@@ -97,6 +99,8 @@ module.exports = {
   // 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Abfrage, auf Verlangen
   // ausgewertet und gegen den Index-Stand zwischengespeichert.
   werteAusAbfrage: wertevorrat.werteAusAbfrage,
+  // 4T-1340 (Epic 3E-0238): Werte-Vorschlaege aus dem vorhandenen Bestand.
+  eigenschaftsWerteFuerFeld: eigenschaftsWerte.eigenschaftsWerteFuerFeld,
   auswertungsZaehler: wertevorrat.auswertungsZaehler,
   zwischenspeicherLeeren: wertevorrat.zwischenspeicherLeeren,
   // 4T-1184 (Epic 3E-0221): Treffer eines Lookup-Feldes, auf Verlangen

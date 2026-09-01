@@ -43,6 +43,8 @@ import { DERIVED_TYPES, OBJECT_TYPES } from '../../../shared/property-profiles.j
 // 4T-1187: gestapelte Bedienung der Objekt-Typen — gemeinsame Quelle beider
 // Panels, der Bau der Kind-Editoren kommt als Parameter herein.
 import { kindDefinitionen, renderObjektFeld } from './properties-objekt-felder.js';
+// 4T-1340 (Epic 3E-0238): zweite Werte-Quelle — die im Bereich vergebenen Werte.
+import { attachBestandsWerte } from './properties-bestandswerte.js';
 
 function istAbgeleiteterTyp(type) {
   return DERIVED_TYPES.includes(type);
@@ -118,6 +120,27 @@ function renderValueSelect(container, def, value, paneIdx) {
   container.appendChild(select);
 }
 
+// 4T-1340 (Epic 3E-0238): Name der Eigenschaft, zu der dieses Bedienelement
+// gehört. Er steht im Schlüssel-Feld desselben Rahmens und nicht in der
+// Definition: Ein Feld ohne Profil hat keine Definition, und genau dort hilft
+// die Bestands-Quelle am meisten. Gelesen wird das Feld statt eines
+// mitgeführten Werts, weil der Name umbenennbar ist und die DOM ihn führt.
+function feldNameAus(container) {
+  const rahmen = container && container.closest ? container.closest('.properties-field') : null;
+  const key = rahmen ? rahmen.querySelector('.properties-field-key') : null;
+  const name = key && typeof key.value === 'string' ? key.value.trim() : '';
+  return name || null;
+}
+
+// Die Bestands-Werte an ein Bedienelement hängen, sofern der Feldname bekannt
+// ist. Ein Feld ohne Namen — die noch leere Zeile einer neuen Eigenschaft —
+// hat nichts, wonach sich fragen ließe.
+function haengeBestandsWerte(container, el, paneIdx, input = null) {
+  const feld = feldNameAus(container);
+  if (!feld) return;
+  attachBestandsWerte(el, { feld, filePath: umgebung.aktiverPfad(paneIdx), input });
+}
+
 export function renderValueEditor(container, type, value, paneIdx, def = null, hinweis = null) {
   container.innerHTML = '';
   // 4T-1185 (Epic 3E-0221, E1): Abgeleitete Felder zuerst — vor jeder anderen
@@ -160,6 +183,8 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     // 4T-1158: Abfrage-Werte kommen nach — auf Verlangen, erst hier.
     const select = container.querySelector('select.properties-field-value-select');
     if (select) attachQueryValues(select, { def, filePath: umgebung.aktiverPfad(paneIdx) });
+    // 4T-1340: die zweite Herkunft, als eigene Gruppe hinter dem Vorrat.
+    if (select) haengeBestandsWerte(container, select, paneIdx);
     return;
   }
   // 4T-1156: Verweis im Einzel-Modus; der Mehrfach-Fall läuft über die
@@ -199,6 +224,10 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     input.value = typeof value === 'string' ? value : value == null ? '' : String(value);
     if (type === 'date') applyDateOptions(input, def); // 4T-1156: shift
     container.appendChild(input);
+    // 4T-1340: Werte-Vorschläge aus dem Bestand. Nur am Text-Feld — ein
+    // Datums-Feld hat sein eigenes Bedienelement, und eine Vorschlagsliste
+    // daneben wäre ein zweiter Weg zur selben Angabe.
+    if (type === 'string') haengeBestandsWerte(container, container, paneIdx, input);
     return;
   }
   if (type === 'multiline') {
@@ -279,6 +308,22 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     // 4T-1158: Abfrage-Quelle — die Werte kommen nach.
     if (def && def.multiple && def.valuesFrom && def.valuesFrom.query) {
       attachQueryValues(list, { def, filePath: umgebung.aktiverPfad(paneIdx), input });
+      hatVorschlaege = true;
+      erlaubt = null;
+    }
+    // 4T-1340 (Epic 3E-0238): Werte-Vorschläge aus dem Bestand — auch hier,
+    // weil eine Mehrfach-Eigenschaft dieselbe Frage stellt wie eine einfache.
+    // Der Verweis-Fall bleibt draußen: Dort sind die Vorschläge Ziele und
+    // keine Werte, und die Bestands-Werte wären dieselben Namen ein zweites
+    // Mal.
+    //
+    // `erlaubt` fällt damit wie bei der Abfrage-Quelle auf null: Die Liste
+    // trägt jetzt zwei Herkünfte, und welche Werte aus dem Bestand kommen,
+    // steht erst nach dem Holen fest. Die weiche Haltung bleibt unberührt —
+    // der Hinweis beim Speichern prüft weiterhin gegen den definierten
+    // Wertevorrat, und genau er ist die Zusicherung, nicht dieser Filter.
+    if (type !== 'link' && feldNameAus(container)) {
+      haengeBestandsWerte(container, list, paneIdx, input);
       hatVorschlaege = true;
       erlaubt = null;
     }

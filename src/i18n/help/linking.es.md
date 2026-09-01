@@ -91,6 +91,8 @@ Las flechas navegan, Intro o Tab selecciona, Esc cierra.
 
 Mientras no se escriba nada tras `[[`, los archivos del área modificados más recientemente aparecen arriba, el más reciente primero. En cuanto se filtra, vuelve a mandar la calidad de coincidencia; la fecha de modificación solo decide entonces entre sugerencias del mismo rango.
 
+Tras `#`, las etiquetas más usadas en el área aparecen arriba, la más frecuente primero; también aquí manda la calidad de coincidencia en cuanto se escribe algo, y entonces la frecuencia decide entre iguales. El número tras cada sugerencia la indica.
+
 Al aceptar una sugerencia de archivo o de alias se escriben también los corchetes de cierre y el cursor queda detrás. Si ya están, no aparece un segundo par.
 
 ## Barras laterales de la red

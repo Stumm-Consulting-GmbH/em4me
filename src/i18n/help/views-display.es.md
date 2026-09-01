@@ -26,7 +26,7 @@ El mapa mental muestra los títulos y las listas del documento como un árbol, y
 
 ### Editar
 
-El modo de edición activa el editor y actúa en la vista de código, la dividida y la de en vivo (predeterminado `Ctrl+E`, lápiz en la barra de estado, Ver → Editar). Un clic en el lápiz de la vista de solo lectura cambia por sí mismo a la vista dividida y activa allí el editor. Con qué se da formato en el modo de edición lo describen las páginas [Menú contextual del editor](context-menu.md) y [Barra de formato](toolbar.md).
+El modo de edición activa el editor y actúa en la vista de código, la dividida y la de en vivo (predeterminado `Ctrl+E`, lápiz en la barra de estado, Ver → Editar). Un clic en el lápiz de la vista de solo lectura cambia por sí mismo a una vista de edición y activa allí el editor. Cuál de ellas la determina el ajuste «Vista al cambiar al modo de edición» (Archivo → Ajustes… → Comportamiento; se ofrecen Dividida, Código y En vivo, Dividida de forma predeterminada). Si la vista ya es una de las tres, se mantiene: allí el lápiz solo activa el editor. Con qué se da formato en el modo de edición lo describen las páginas [Menú contextual del editor](context-menu.md) y [Barra de formato](toolbar.md).
 
 ## Presentación del editor
 

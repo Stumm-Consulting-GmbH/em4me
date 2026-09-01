@@ -66,6 +66,8 @@ mindmap:
 
 Die Properties-Sidebar zeigt die Frontmatter-Felder live editierbar. Der Feld-Typ wird aus dem Wert abgeleitet: Text, Liste, Datum, Zahl, Wahr/Falsch oder Mehrzeilig. Neue Felder entstehen über „+ Eigenschaft hinzufügen"; Änderungen folgen dem Auto-Save-Setting.
 
+Ein Klick in ein Wert-Feld bietet die Werte an, die im Bereich für diese Eigenschaft bereits vergeben sind, alphabetisch geordnet; mit jedem getippten Zeichen verkleinert sich die Liste, und ein eigener Wert bleibt frei eingebbar. Gibt ein Eigenschafts-Profil einen Wertevorrat vor, erscheinen beide Herkünfte gemeinsam und bleiben unterscheidbar — die Werte aus dem Bestand sind als solche gekennzeichnet. Kommt die Eigenschaft im Bereich nirgends vor, erscheint keine Liste. Abschaltbar unter Datei → Einstellungen… → Erweiterungen.
+
 Beim Schreiben bleibt der Block im Round-Trip erhalten: Kommentare, Feld-Reihenfolge und Stil nicht geänderter Felder werden nicht umformatiert, auch CRLF-Zeilenenden bleiben stabil.
 
 Bei einem YAML-Syntaxfehler zeigt die Sidebar die Fehlermeldung und sperrt das Hinzufügen, bis der Block im Editor repariert ist.

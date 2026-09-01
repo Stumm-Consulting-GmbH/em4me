@@ -51,6 +51,23 @@ function waehleWikiZiele(vorschlaege, eingabe, limit = AUTOCOMPLETE_RENDER_LIMIT
   return treffer.slice(0, limit);
 }
 
+// Wo die Eingabe im Namen eines Vorschlags steckt, als Paar [Anfang, Ende] fuer
+// die Hervorhebung in der angezeigten Liste. Leere Eingabe: kein Bereich.
+//
+// 4T-1339 (Epic 3E-0238): Die Funktion gehoert neben `waehleWikiZiele`, weil sie
+// deren Filter-Regel spiegelt — gefiltert wird auf `includes` ohne Ruecksicht
+// auf Gross- und Kleinschreibung, und genau diese Fundstelle wird hervorgehoben.
+// Gebraucht wird sie, seit die Quelle die Eigensortierung der Vervollstaendigungs-
+// Bibliothek abbestellt: Die rechnet die Hervorhebung dann nicht mehr selbst aus.
+function trefferBereich(name, eingabe) {
+  const gesucht = String(eingabe == null ? '' : eingabe).toLowerCase();
+  if (!gesucht) return [];
+  const stelle = String(name == null ? '' : name)
+    .toLowerCase()
+    .indexOf(gesucht);
+  return stelle < 0 ? [] : [stelle, stelle + gesucht.length];
+}
+
 // --- Klammer-Schluss bei der Uebernahme --------------------------------------
 
 // Was hinter dem uebernommenen Namen noch fehlt, damit der Verweis geschlossen
@@ -77,6 +94,7 @@ function schreibmarkeNachUebernahme(von, name) {
 module.exports = {
   AUTOCOMPLETE_RENDER_LIMIT,
   waehleWikiZiele,
+  trefferBereich,
   klammerSchluss,
   schreibmarkeNachUebernahme,
 };

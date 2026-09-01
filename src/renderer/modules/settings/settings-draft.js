@@ -14,6 +14,8 @@ import {
 } from '../../../shared/spellcheck.js';
 import { api } from '../app/api.js';
 import { DEFAULT_VIEW_MODE, getEditorViewDefaults, state } from '../app/app-state.js';
+// 4T-1341 (Epic 3E-0238): Die Voreinstellung kommt aus der einen Quelle.
+import { DEFAULT_EDIT_VIEW_MODE } from '../views/view-modes.js';
 import { getColorSchemeState, setColorSchemeState } from '../color-schemes.js';
 import { getDisabledExtensionIds } from '../extensions/extension-lifecycle.js';
 import { isFrontmatterDisplayEnabled, isFrontmatterExpanded } from '../frontmatter-display.js';
@@ -103,6 +105,8 @@ export function buildDraft() {
     // beim App-Start aus dem Store geladen; Wirkung erst bei Anwenden/OK).
     scriptsRun: isPerspectiveScriptsEnabled(),
     defaultViewMode: state.defaultViewMode || DEFAULT_VIEW_MODE,
+    // 4T-1341 (Epic 3E-0238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
+    editViewMode: state.editViewMode || DEFAULT_EDIT_VIEW_MODE,
     // 4T-0204: Arbeitskopie des Task-Status-Sets (Abbrechen verwirft sie;
     // Anwenden validiert, persistiert und wendet an).
     taskStates: taskStatesResolved.map((s) => ({ ...s })),

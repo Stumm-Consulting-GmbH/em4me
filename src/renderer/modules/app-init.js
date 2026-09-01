@@ -22,6 +22,8 @@ import {
   setEditorViewDefaults,
   state,
 } from './app/app-state.js';
+// 4T-1341 (Epic 3E-0238): Die Modus-Liste kommt aus der einen Quelle.
+import { EDIT_VIEW_MODES } from './views/view-modes.js';
 import { paneEditors, updateWindowTitle } from './editor/editor.js';
 // 4T-0581 (Epic 3E-0107): Store-Schluessel und Normalisierung des Schalters.
 import { SPELLCHECK_KEY, normalizeSpellcheckSetting } from '../../shared/spellcheck.js';
@@ -370,6 +372,13 @@ async function init() {
     ['rendered', 'split', 'source', 'live'].includes(storedDefaultViewMode)
   ) {
     state.defaultViewMode = storedDefaultViewMode;
+  }
+  // 4T-1341 (Epic 3E-0238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
+  // Ein unbekannter oder fehlender Wert laesst die Voreinstellung stehen, damit
+  // ein Bestandsprofil ohne die Einstellung sich unveraendert verhaelt.
+  const storedEditViewMode = await api.getSetting('app.editViewMode');
+  if (storedEditViewMode && EDIT_VIEW_MODES.includes(storedEditViewMode)) {
+    state.editViewMode = storedEditViewMode;
   }
   // 4T-0572 (Epic 3E-0105): globale Voreinstellung der drei Editor-Ansicht-
   // Schalter laden (nur echtes true/false uebernimmt; sonst bleibt die

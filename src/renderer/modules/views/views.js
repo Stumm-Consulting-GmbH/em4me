@@ -55,7 +55,7 @@ import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
 import { renderPaneContent } from './pane-render.js';
 import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
-import { applyContentViewClass, isViewMode } from './view-modes.js';
+import { applyContentViewClass, isViewMode, zielAnsichtDesAenderungsmodus } from './view-modes.js';
 
 // 4T-0179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
 // geschrieben und bleiben deshalb modul-privat; ueber die Modul-Grenze fuehrt
@@ -316,10 +316,15 @@ export async function performAutoSave() {
   }
 }
 
-// Klick auf den Stift-Toggle in der Statusbar bzw. Strg+E. Im Render-Modus
-// wechselt der Klick zuerst nach „Geteilt", weil Bearbeiten dort sichtbar
-// werden muss; danach (oder im Source/Split-Modus) wird der Edit-Modus
-// umgeschaltet. Nach Aktivierung bekommt der Editor den Tastatur-Fokus.
+// Klick auf den Stift-Toggle in der Statusbar bzw. Strg+E. In der Lese-Ansicht
+// wechselt der Klick zuerst in eine Bearbeitungs-Ansicht, weil Bearbeiten dort
+// sichtbar werden muss; danach (oder in einer der drei Bearbeitungs-Ansichten)
+// wird der Edit-Modus umgeschaltet. Nach Aktivierung bekommt der Editor den
+// Tastatur-Fokus.
+//
+// 4T-1341 (Epic 3E-0238): Welche Ansicht das ist, entscheidet die Einstellung
+// statt einer festen Verdrahtung auf „Geteilt". Wer überwiegend in der
+// Live-Ansicht arbeitet, schaltete zuvor nach jedem Wechsel von Hand weiter.
 export function toggleEditMode() {
   const tab = activeTab();
   if (!tab) return;
@@ -328,9 +333,10 @@ export function toggleEditMode() {
   // Menue-Pfad laufen ebenfalls hier durch). 4T-0277: System-Seiten ebenso.
   if (tab.manualPage || tab.systemPage) return;
   if (tab.viewMode === 'rendered') {
-    tab.viewMode = 'split';
+    const ziel = zielAnsichtDesAenderungsmodus(state.editViewMode);
+    tab.viewMode = ziel;
     const els = getPaneEls(state.activePaneIndex);
-    applyContentViewClass(els.content, 'view-split');
+    applyContentViewClass(els.content, `view-${ziel}`);
     tab.editMode = true;
   } else {
     tab.editMode = !tab.editMode;

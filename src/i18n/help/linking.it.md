@@ -91,6 +91,8 @@ Le frecce navigano, Invio o Tab seleziona, Esc chiude.
 
 Finché dopo `[[` non si digita nulla, i file dell'area modificati più di recente stanno in cima, il più recente per primo. Non appena si filtra, torna a guidare la qualità della corrispondenza; la data di modifica decide allora solo fra suggerimenti di pari rango.
 
+Dopo `#`, i tag assegnati più spesso nell’area stanno in cima, il più frequente per primo; anche qui comanda la qualità della corrispondenza non appena si digita qualcosa, e la frequenza decide allora fra pari. Il numero dietro ogni suggerimento la indica.
+
 Accettando un suggerimento di file o di secondo nome vengono scritte anche le parentesi di chiusura e il cursore resta dietro. Se ci sono già, non compare una seconda coppia.
 
 ## Barre laterali della rete

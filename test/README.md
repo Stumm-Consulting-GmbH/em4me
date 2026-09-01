@@ -1081,12 +1081,12 @@ Sie hängt an der Zahl der Dateien und am Rechner, und beide wachsen; ohne die
 laufende Zahl fiele erst auf, dass die Kopie teurer geworden ist, wenn sie mehr
 kostet als sie spart.
 
-#### Der eigentliche Unterschied ist die Zwischenspeicherung
+#### Die Deutung vom 2026-08-31 und ihre Korrektur
 
-Nachgetragen am 2026-08-31 nach der Ursachensuche. **Die Brücke ist auf beiden
-Rechnern gleich teuer, solange nichts zwischengespeichert ist.** Derselbe
-Lesevorgang über dieselben 698 Dateien, dreimal hintereinander im selben
-Container-Lauf:
+**Diese Deutung ist am 2026-09-01 widerlegt worden**; sie steht hier, weil sie
+die Ursachensuche bis dahin geleitet hat und ihre Fehlerquelle lehrreich ist.
+Gemessen wurde am 2026-08-31 derselbe Lesevorgang über dieselben 698 Dateien,
+dreimal hintereinander im selben Container-Lauf:
 
 | Durchlauf | Stamm-Rechner | Zweitrechner |
 |---|---|---|
@@ -1094,13 +1094,27 @@ Container-Lauf:
 | 2 | 10,642 s | **1,255 s** |
 | 3 | 10,828 s | **1,351 s** |
 
-Der erste Durchlauf ist praktisch identisch; Hardware und Protokoll scheiden als
-Erklärung damit aus. Der Zweitrechner bedient die Folgezugriffe aus dem
-Zwischenspeicher, der Stamm-Rechner nicht. Weil die E2E-Suite je Prüffall eine
-vollständige Anwendung startet und dabei immer dieselben Dateien liest, ist genau
-das der Unterschied zwischen 38 Minuten und mehreren Stunden — während die
-Unit-Suite, die den Bestand nur einmal liest, auf beiden Rechnern gleich schnell
-bleibt (4:43 gegen rund 4 Minuten).
+**Gelesen wurde das so:** Der erste Durchlauf ist praktisch identisch, Hardware
+und Protokoll scheiden damit aus, und der Unterschied liegt allein darin, dass
+der Zweitrechner die Folgezugriffe aus dem Zwischenspeicher bedient und der
+Stamm-Rechner nicht.
+
+**Die Messreihe vom 2026-09-01 hat das widerlegt** (`4T-1331`, Zahlen unten):
+Auf **beiden** Rechnern greift die Zwischenspeicherung nicht, und der
+Zweitrechner ist schon im **kalten** Durchlauf rund zehnmal schneller. Der
+zweite und dritte Wert seiner Spalte oben (1,255 und 1,351 s) sind seine
+normalen Werte, nicht seine warmen; sein erster Wert von 10,454 s trug einen
+einmaligen Anteil, den das damalige Verfahren in den ersten Durchlauf zog.
+Auf dem Stamm-Rechner fiel derselbe Anteil nicht auf, weil dort jeder Durchlauf
+in dieser Größenordnung liegt.
+
+**Die Lehre für künftige Messungen** steht in den drei Festlegungen des
+Verfahrens weiter unten, besonders in der zweiten: Was einmalig anfällt (das
+Durchlaufen der Verzeichnisse, das Aufbauen von Verbindungen), gehört **vor**
+die Messung. Sonst trägt der erste Durchlauf einen Anteil, den die weiteren
+nicht haben, und die Differenz sieht wie ein Zwischenspeicher-Effekt aus. Hier
+hat das eine ganze Ursachensuche in die falsche Richtung gelenkt: Sieben
+Hypothesen wurden gegen eine Frage geprüft, die sich so nicht stellte.
 
 **Sieben Erklärungen sind geprüft und widerlegt**, jeweils gemessen: Prozessor-
 leistung und Speicher, der Synchronisations-Dienst, der Ort im Ordnerbaum, die
@@ -1114,6 +1128,92 @@ gehen; die Einzelheiten stehen im zugehörigen Vorgang.
 Werte oben streuen erheblich (6,1 bis 10,8 Sekunden für denselben Vorgang), und
 in einem Fall zeigte sich ein Abfall, in anderen nicht. Eine Einzelmessung trägt
 hier keine Schlussfolgerung.
+
+#### Das Messverfahren (`scripts/mess-bruecke.js`)
+
+Seit dem 2026-09-01 (`4T-1331`) steht die Messreihe als Werkzeug zur Verfügung
+statt als Handgriff-Folge. Sie liest eine feste Datei-Menge mehrfach
+hintereinander, fährt mehrere Läufe und weist die Streuung aus:
+
+```bash
+node scripts/mess-bruecke.js
+```
+
+Vorgabe sind fünf Minuten für drei Läufe à drei Durchläufe über `src/`;
+`--laeufe` und `--durchlaeufe` ändern den Umfang, `--json` gibt die Rohdaten.
+Der Bericht ist der Beleg und nennt Rechner, Stand, Umgebung samt
+Einhänge-Optionen und Streuung, damit zwei Rechner ohne Zusatzwissen
+vergleichbar sind. **Er muss auf einer ruhigen Maschine entstehen**, weil eine
+Messung unter Fremdlast nichts belegt (Parallelitäts-Regel der
+Entwicklungsrichtlinien, Kapitel 11). Das gilt hier **in beide Richtungen**:
+Die Leerung des Zwischenspeichers wirkt auf die ganze WSL-Maschine und damit
+über Clone-Grenzen hinweg, eine gleichzeitig laufende Suite desselben Rechners
+würde also nicht nur die Messung stören, sondern auch von ihr gestört.
+
+Drei Festlegungen tragen das Ergebnis. **Der Zwischenspeicher wird vor jedem
+Lauf geleert**, weil er in der WSL-Maschine lebt und einen Container überdauert;
+ohne Leerung startete der zweite Lauf bereits warm. **Die Datei-Liste entsteht
+vor der Messung**, damit das Durchlaufen der Verzeichnisse nicht in den ersten
+Durchlauf fällt. **Metadaten und Inhalt werden getrennt gemessen**, weil beide
+unabhängig voneinander zwischengespeichert werden können.
+
+**Die Gegenprobe ist Teil des Verfahrens** (`--gegenprobe`): Sie misst dieselbe
+Menge im Container-Dateisystem, wo die Zwischenspeicherung erwiesenermaßen
+greift. Ohne sie wäre «greift nicht» nicht von «das Verfahren sieht es nicht» zu
+unterscheiden. Ihre Aussage liegt im absoluten Wert und nicht im Kalt-Warm-
+Faktor, weil das Anlegen der Kopie wärmt, was danach gemessen wird.
+
+#### Die Reihen vom 2026-09-01 auf beiden Rechnern
+
+Je fünf Läufe à drei Durchläufe über `src/` (SC-026: 699 Dateien, 13,6 MB;
+SC-027: 698 Dateien, 13,4 MB — der Unterschied ist ein Bau-Artefakt), ruhige
+Maschine, Leerung vor jedem Lauf, beide auf demselben Stand `f893bb7d`:
+
+| Reihe | SC-026 (Median) | Streuung | SC-027 (Median) | Streuung | Verhältnis |
+|---|---|---|---|---|---|
+| Metadaten, kalt | 7996 ms | 6,3 % | 708 ms | 2,9 % | 11,3× |
+| Metadaten, warm | 7472 ms | 14,0 % | 720 ms | 5,2 % | 10,4× |
+| Inhalt, kalt | 8465 ms | 8,6 % | 1119 ms | 8,0 % | 7,6× |
+| Inhalt, warm | 8890 ms | 15,9 % | 1075 ms | 4,5 % | 8,3× |
+
+**Zwei Befunde, und beide widersprechen der Deutung vom 2026-08-31.**
+
+**Erstens: Die Zwischenspeicherung greift auf keinem der beiden Rechner.** Ein
+wiederholter Zugriff ist auf SC-026 um den Faktor 1,07 und 0,95, auf SC-027 um
+0,98 und 1,04 billiger als der erste — also auf beiden gar nicht. Dass das
+Verfahren einen greifenden Zwischenspeicher sehr wohl sieht, belegt die
+Gegenprobe: dieselben Dateien im Container-Dateisystem, mit demselben Code
+gelesen, kosten **1 ms** (Metadaten) und **8 ms** (Inhalt) statt Sekunden.
+
+**Zweitens: Der Rechner-Unterschied liegt in der Grundgeschwindigkeit der
+Brücke.** SC-027 ist schon im kalten Durchlauf rund acht- bis elfmal schneller.
+Auf einen einzelnen Datei-Zugriff gerechnet sind das **12,1 ms gegen 1,6 ms**.
+Das erklärt die Laufzeit der E2E-Suite (38 Minuten gegen mehrere Stunden)
+vollständig und ohne jede Annahme über Zwischenspeicher, denn die Suite startet
+je Prüffall eine Anwendung, die immer dieselben Dateien einzeln liest. Die
+Unit-Suite bleibt unberührt, weil sie den Bestand nur einmal liest (4:43 gegen
+rund 4 Minuten).
+
+**Nebenbefund:** Der Zwischenspeicher wird auf beiden Rechnern gefüllt und
+danach nicht mehr angefasst — er wächst im kalten Durchlauf und bleibt über die
+warmen auf das Kilobyte genau stehen, ohne dass die Zeit fällt. Das passt zum
+Einhänge-Modus, nicht zu einem Rechner-Unterschied.
+
+**Auch die Streuung unterscheidet die Rechner:** SC-026 streut mit 6,3 bis
+15,9 Prozent deutlich stärker als SC-027 mit 2,9 bis 8,0. Unerklärt, aber
+festgehalten, weil eine spätere Erklärung des Geschwindigkeits-Unterschieds
+auch dazu passen sollte.
+
+**Die Einhängung ist auf beiden Rechnern identisch:** 9p mit `cache=0x5`,
+`noatime`, `msize=65536`, `access=client`, `trans=fd`. Der zuletzt verbliebene
+Umgebungs-Kandidat ist damit ebenfalls erledigt.
+
+**Neun geprüfte Erklärungen**, keine trägt den Unterschied: die sieben vom
+2026-08-31 (Prozessorleistung und Speicher, Synchronisations-Dienst, Ordner-Ort,
+WSL-Fassung samt Kernel, Mount-Einstellungen, Docker-Fassung,
+Virenschutz-Ausschlüsse), dazu die NTFS-Fortschreibung der letzten Zugriffszeit
+(`DisableLastAccess = 2` auf beiden) und eine abweichende WSL-Konfigurationsdatei
+(auf beiden nicht vorhanden). Die Einzelheiten stehen im zugehörigen Vorgang.
 
 ### Beide Läufe gleichzeitig auf einem Rechner
 

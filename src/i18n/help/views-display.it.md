@@ -26,7 +26,7 @@ La mappa mentale mostra i titoli e gli elenchi del documento come albero e il te
 
 ### Modifica
 
-La modalità di modifica attiva l'editor e agisce nella vista sorgente, in quella divisa e in quella live (predefinito `Ctrl+E`, matita nella barra di stato, Visualizza → Modifica). Un clic sulla matita nella vista di sola lettura passa da sé alla vista divisa e vi attiva l'editor. Con che cosa si formatta nella modalità di modifica lo descrivono le pagine [Menu contestuale dell'editor](context-menu.md) e [Barra di formattazione](toolbar.md).
+La modalità di modifica attiva l'editor e agisce nella vista sorgente, in quella divisa e in quella live (predefinito `Ctrl+E`, matita nella barra di stato, Visualizza → Modifica). Un clic sulla matita nella vista di sola lettura passa da sé a una vista di modifica e vi attiva l'editor. Quale, lo determina l'impostazione «Vista al passaggio alla modalità di modifica» (File → Impostazioni… → Comportamento; sono disponibili Divisa, Sorgente e Live, Divisa come predefinita). Se la vista è già una delle tre, resta: lì la matita attiva solo l'editor. Con che cosa si formatta nella modalità di modifica lo descrivono le pagine [Menu contestuale dell'editor](context-menu.md) e [Barra di formattazione](toolbar.md).
 
 ## Visualizzazione editor
 
