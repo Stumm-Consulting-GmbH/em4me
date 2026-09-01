@@ -57,7 +57,7 @@ En los bloques de código y los fragmentos de código, la sintaxis queda intacta
 ## Insertar y editar
 
 - **Insertar:** el comando «Insertar fecha de calendario» (paleta de comandos; se puede asignar un atajo) abre el selector e inserta el instante elegido de forma canónica en el cursor. Está activo en cuanto el área abierta define al menos un calendario.
-- **Editar:** los valores son clicables en modo código y en vivo; el clic abre el selector precargado con el valor, y aplicar lo sustituye en el sitio en un único paso de deshacer.
+- **Editar:** los valores son clicables en modo código y en vivo; el clic abre el selector precargado con el valor, y aplicar lo sustituye en el sitio en un único paso de deshacer. En la línea con el cursor, **Ctrl-clic** abre el selector mientras que el clic simple coloca allí el cursor.
 
 ## Selector
 

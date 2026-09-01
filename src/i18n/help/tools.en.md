@@ -135,11 +135,10 @@ Two semicolons `;;` in the editor open the combined picker at that spot. Confirm
 In the editor, in source as well as live mode, the app recognises values in the three formats and underlines them with a subtle dotted line. A click opens the picker pre-filled with the value, the switches following its form; confirming replaces it in place. Values are not clickable
 
 - in code, formulas and frontmatter,
-- on the line the cursor is currently on,
 - in wiki-link targets,
 - behind the date markers of the [task lists](tasks.md), which appear there as a badge.
 
-The line holding the cursor deliberately stays undecorated: normal text editing happens there, and the value becomes clickable again as soon as the cursor leaves the line. Read-only views have no clickable values.
+On the line holding the cursor, one thing differs: a plain click still places the cursor there — including in the middle of the value — and the picker opens with **Ctrl-click**. As long as the key is not held, the value stays without an underline; hold Ctrl and it appears, signalling that a click will now open the picker. Read-only views have no clickable values.
 
 Recognition deliberately also catches hand-typed values: every date and time in these formats thus becomes editable.
 

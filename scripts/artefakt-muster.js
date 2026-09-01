@@ -89,6 +89,53 @@ function fehlendeArtefakte(produkt, version, dateien) {
   return erwarteteArtefakte(produkt, version).filter((name) => !vorhanden.has(name));
 }
 
+// 4T-1323 (Befund 3): Der Artefaktsatz-Waechter aus 4T-1318 beantwortet, ob
+// alle Artefakte einer Version DA sind. Er beantwortet nicht, ob sie aus
+// DEMSELBEN Bau stammen — und am 2026-08-30 fielen beide Fragen auseinander:
+// Beim Neubau von 1.122.0 mit der Nummer 2106 lagen die beiden Windows-Ziele
+// frisch im Archiv, die beiden Linux-Artefakte unveraendert vom Bau 2104, gut
+// siebzig Minuten aelter. Gemeldet wurde «Artefaktsatz vollstaendig».
+//
+// **Der Mechanismus, gegenstaendlich am Code:** Die Frische-Pruefung des
+// Bau-Schritts (`bau-stand.js`, `pruefeFrische`) laeuft ueber `exePfade`, und
+// die Strecke fuellt diese Liste aus `exeNamen()` — den beiden WINDOWS-Namen.
+// Der Vollstaendigkeits-Waechter laeuft dagegen ueber `erwarteteArtefakte()`,
+// also ueber alle freigegebenen Plattformen. Seit dem Eintritt von Linux mit
+// 1.121.0 fragen die beiden Pruefungen verschiedene Mengen ab; genau in dieser
+// Luecke sass der Befund.
+//
+// **Das Kriterium ist das bereits entschiedene, nur auf die volle Menge
+// angewandt:** Ein Artefakt des gueltigen Baus ist nicht aelter als
+// `src/shared/build-info.json`. Diese Datei wird von `set-build-number.js` in
+// Schritt 2 geschrieben, also VOR dem Bau, und genau dann neu, wenn sich die
+// Nummer aendert — was der Wiederhol-Bau nach geaenderter Commit-Basis tut.
+// `pruefeFrische` benutzt denselben Vergleich seit 4T-0883 als notwendige
+// Bedingung neben dem Fingerabdruck.
+//
+// **Was der Vergleich nicht leistet, und das gehoert dazu:** Er ist notwendig
+// und nicht hinreichend (Begruendung in `bau-stand.js`, Anlass 0.104.0). Bleibt
+// die Build-Nummer stehen, bleibt auch die Datei-Zeit stehen — dann hat aber
+// auch kein zweiter Bau stattgefunden, und der gemischte Satz kann nicht
+// entstehen. Nicht erkannt wird der umgekehrte Fall: ein einzelnes Artefakt,
+// das NACH dem gueltigen Bau nachgereicht wird. Es traegt dann dieselbe Nummer,
+// und der Fall ist ein anderer als der belegte.
+//
+// Rein: Zeiten kommen herein, statt hier gelesen zu werden.
+function veralteteArtefakte(produkt, version, zeitVon, bauInfoZeit) {
+  const befunde = [];
+  for (const name of erwarteteArtefakte(produkt, version)) {
+    const zeit = zeitVon(name);
+    if (zeit === null || zeit === undefined) continue; // Fehlen deckt fehlendeArtefakte ab
+    if (zeit < bauInfoZeit)
+      befunde.push({
+        name,
+        zeit,
+        alter: Math.round((bauInfoZeit - zeit) / 60000),
+      });
+  }
+  return befunde;
+}
+
 module.exports = {
   VERSION_RE,
   PRODUKT_RE,
@@ -103,4 +150,5 @@ module.exports = {
   vergleicheVersion,
   erwarteteArtefakte,
   fehlendeArtefakte,
+  veralteteArtefakte,
 };

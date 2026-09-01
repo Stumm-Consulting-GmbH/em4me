@@ -57,7 +57,7 @@ In Code-Blöcken und Code-Spans bleibt die Syntax unangetastet: `@{Beispiel-Kale
 ## Einfügen und Bearbeiten
 
 - **Einfügen:** Das Kommando «Kalender-Datum einfügen» (Kommando-Palette; Kürzel belegbar) öffnet den Picker und fügt den gewählten Zeitpunkt kanonisch am Cursor ein. Es ist aktiv, sobald der geöffnete Bereich mindestens einen Kalender definiert.
-- **Bearbeiten:** Werte sind im Quelltext- und Live-Modus klickbar; der Klick öffnet den Picker mit dem Wert vorbelegt, Übernehmen ersetzt ihn an Ort und Stelle in einem einzigen Undo-Schritt.
+- **Bearbeiten:** Werte sind im Quelltext- und Live-Modus klickbar; der Klick öffnet den Picker mit dem Wert vorbelegt, Übernehmen ersetzt ihn an Ort und Stelle in einem einzigen Undo-Schritt. Auf der Zeile mit dem Cursor öffnet **Strg-Klick** den Picker, während der einfache Klick dort den Cursor setzt.
 
 ## Picker
 

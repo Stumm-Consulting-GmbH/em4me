@@ -201,13 +201,18 @@ export function liveTaskMarkerDecoAt(from, checked, opts) {
 // oeffnet daraus den vorbelegten Picker (date-picker.js). Der Quelltext
 // bleibt sichtbar der reine Text-Wert — nur dezente Unterstreichung via
 // cm-live-date-value (styles.css).
-export function liveDateValueMarkDeco(from, to) {
+// 4T-0943 (Epic 3E-0197): `modifierOnly` markiert die Zeile mit dem Cursor.
+// Dort bleibt der Wert dekoriert und damit erreichbar, oeffnet aber erst
+// auf den Strg-/Cmd-Klick; die Zusatz-Klasse steuert die Optik.
+export function liveDateValueMarkDeco(from, to, modifierOnly) {
+  const attributes = {
+    'data-live-date-from': String(from),
+    'data-live-date-to': String(to),
+  };
+  if (modifierOnly) attributes['data-live-date-mod'] = '1';
   return Decoration.mark({
-    class: 'cm-live-date-value',
-    attributes: {
-      'data-live-date-from': String(from),
-      'data-live-date-to': String(to),
-    },
+    class: modifierOnly ? 'cm-live-date-value cm-live-date-value-mod' : 'cm-live-date-value',
+    attributes,
   });
 }
 

@@ -57,7 +57,7 @@ Dans les blocs de code et les codes en ligne, la syntaxe reste intacte : `@{Cale
 ## Insérer et modifier
 
 - **Insérer :** la commande « Insérer une date de calendrier » (palette de commandes ; un raccourci peut être attribué) ouvre le sélecteur et insère l'instant choisi sous forme canonique au niveau du curseur. Elle est active dès que la zone ouverte définit au moins un calendrier.
-- **Modifier :** les valeurs sont cliquables en mode source et en mode direct ; le clic ouvre le sélecteur pré-rempli avec la valeur, la validation la remplace sur place en une seule étape d'annulation.
+- **Modifier :** les valeurs sont cliquables en mode source et en mode direct ; le clic ouvre le sélecteur pré-rempli avec la valeur, la validation la remplace sur place en une seule étape d'annulation. Sur la ligne portant le curseur, **Ctrl-clic** ouvre le sélecteur tandis que le clic simple y place le curseur.
 
 ## Sélecteur
 

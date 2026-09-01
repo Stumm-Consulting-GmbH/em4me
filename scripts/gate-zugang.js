@@ -55,6 +55,47 @@ const UNTERBEFEHLE = Object.freeze([
   'playwright',
 ]);
 
+// 4T-1322: Eine Auflistung ist kein Lauf. Vitest kennt sie als Unterbefehl
+// (`vitest list`), Playwright als Schalter (`playwright test --list`); beide
+// laden die Prüfdateien und durchlaufen die Registrierungs-Phase, führen aber
+// keinen einzigen Fall aus und tragen deshalb keinen Befund.
+//
+// **Warum das eine eigene Erkennung ist und nicht ein Eintrag mehr in
+// `UNTERBEFEHLE`.** Dort steht `list` bereits, und zwar als das, was es dort
+// bedeutet: kein Filter. Beide Begriffe fallen für dasselbe Wort verschieden
+// aus — ein Filter macht den Lauf zur freien Iteration, eine Auflistung macht
+// ihn zum Nicht-Lauf — und wer sie in einer Liste vermengt, kann später den
+// einen nicht ändern, ohne den anderen still mitzuändern.
+//
+// **Warum die Sperre dadurch nicht lockerer wird.** Der erklärte Gegenstand
+// des Wächters ist der «Lauf mit Befund-Charakter» (Kopf dieser Datei). Eine
+// Auflistung ist keiner, also trifft die Ausnahme die Regel-Grenze und nicht
+// ihren Inhalt. Der Voll-Lauf bleibt unverändert abgewiesen; der Prüffall dazu
+// ist die Gegenprobe in `test/unit/gate-zugang.test.js`.
+//
+// Anlass: `scripts/test-kennzahlen.js` ermittelt die Kennzahl «Automatische
+// Prüfungen» bewusst über die Auflistung statt über einen Lauf (4T-0831). Seit
+// dem 2026-08-30 wies der Pflicht-Zugang sie ab, Schritt 8 jeder
+// Release-Vorbereitung fiel aus, und die Kennzahl der Webseite fror auf 5400
+// ein.
+function istAuflistung(argv) {
+  const rest = Array.isArray(argv) ? argv.slice(2) : [];
+  for (let i = 0; i < rest.length; i += 1) {
+    const wort = String(rest[i]);
+    if (wort.startsWith('-')) {
+      if (wort === '--list' || wort.startsWith('--list=')) return true;
+      // Wie unten: `--option wert` frisst das nächste Wort. Ohne diesen Schritt
+      // gälte `--reporter list` als Auflistung, obwohl `list` dort der Wert
+      // einer Option ist.
+      if (!wort.includes('=') && i + 1 < rest.length && !String(rest[i + 1]).startsWith('-'))
+        i += 1;
+      continue;
+    }
+    if (wort === 'list') return true;
+  }
+  return false;
+}
+
 // Trägt der Aufruf ein Datei- oder Muster-Argument? Optionen (`--reporter`,
 // `-t`) und ihre Werte bleiben außen vor: Ein Wert nach einer Option ist kein
 // Filter, sondern gehört zu ihr.
@@ -90,6 +131,9 @@ function hatFilterArgument(argv) {
 function pruefeZugang(argv, env, zugangswegVorhanden = true) {
   if (!zugangswegVorhanden) return null;
   if (env && env[ZUGANGS_MARKE]) return null;
+  // 4T-1322: vor der Filter-Frage, weil eine Auflistung gar kein Lauf ist und
+  // die Filter-Frage nur Läufe unterscheidet.
+  if (istAuflistung(argv)) return null;
   if (hatFilterArgument(argv)) return null;
   return (
     `Voll-Lauf ohne Pflicht-Zugang — abgewiesen.\n` +
@@ -128,5 +172,6 @@ module.exports.setup = setup;
 module.exports.pruefeZugang = pruefeZugang;
 module.exports.zugangswegVorhanden = zugangswegVorhanden;
 module.exports.hatFilterArgument = hatFilterArgument;
+module.exports.istAuflistung = istAuflistung;
 module.exports.ZUGANGS_MARKE = ZUGANGS_MARKE;
 module.exports.UNTERBEFEHLE = UNTERBEFEHLE;

@@ -560,3 +560,72 @@ test.describe('DP-12: Marker-Badge im Live-Modus ist klickbar (B-09)', () => {
     }
   });
 });
+
+// 4T-0943 (Epic 3E-0197): Steht der Cursor in der Zeile, war der Datums-Wert
+// dort bis 1.123.0 gar nicht dekoriert und damit nicht erreichbar — die
+// Klick-Dekoration uebersprang die aktive Zeile. Entscheidung des Product
+// Owners vom 2026-09-01 (E1 im Epic): Der Wert bleibt auch dort erreichbar,
+// aber ueber den Strg-Klick, damit der einfache Klick weiterhin den Cursor
+// setzt. DP-13 fixiert beide Haelften: das Nicht-Oeffnen beim einfachen Klick
+// und das Oeffnen beim Strg-Klick.
+test.describe('DP-13: Zugang in der Zeile mit dem Cursor (4T-0943)', () => {
+  test('einfacher Klick setzt den Cursor, Strg-Klick oeffnet den vorbelegten Waehler', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      await enterEditSource(app, page);
+      const editor = page.locator(SEL.editorContent0);
+
+      const zeile = editor.locator('.cm-line', { hasText: 'Fester Termin' });
+      await expect(zeile).toBeVisible({ timeout: 15000 });
+
+      // Cursor in die Zeile setzen, ohne den Wert selbst zu treffen: Klick
+      // auf den Zeilen-Anfang. Danach ist die Zeile die aktive Zeile.
+      await zeile.click({ position: { x: 4, y: 6 } });
+      await expect(page.locator(POPUP)).toBeHidden();
+
+      // Der Wert bleibt in der aktiven Zeile dekoriert (vorher: keine Marke).
+      const wert = zeile.locator('.cm-live-date-value');
+      await expect(wert).toBeVisible({ timeout: 15000 });
+
+      // Erste Haelfte: der einfache Klick oeffnet den Waehler NICHT.
+      await wert.click();
+      await expect(page.locator(POPUP)).toBeHidden();
+
+      // Zweite Haelfte: der Strg-Klick oeffnet ihn vorbelegt.
+      await wert.click({ modifiers: ['Control'] });
+      await expect(page.locator(POPUP)).toBeVisible();
+      await expect(
+        page.locator(`${POPUP} button.date-picker-day[data-iso="2026-03-05"]`),
+      ).toHaveClass(/selected/);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  // AK4: derselbe Zugang im Live-Modus. Dort zeigt die aktive Zeile ohnehin
+  // Roh-Text, der Wert ist also dieselbe Marke wie in der Quelltext-Ansicht.
+  test('im Live-Modus ebenso: einfacher Klick setzt den Cursor, Strg-Klick oeffnet', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      await enterEditLive(app, page);
+      const editor = page.locator(SEL.editorContent0);
+
+      const zeile = editor.locator('.cm-line', { hasText: 'Fester Termin' });
+      await expect(zeile).toBeVisible({ timeout: 15000 });
+      await zeile.click({ position: { x: 4, y: 6 } });
+      await expect(page.locator(POPUP)).toBeHidden();
+
+      const wert = zeile.locator('.cm-live-date-value');
+      await expect(wert).toBeVisible({ timeout: 15000 });
+      await wert.click();
+      await expect(page.locator(POPUP)).toBeHidden();
+
+      await wert.click({ modifiers: ['Control'] });
+      await expect(page.locator(POPUP)).toBeVisible();
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

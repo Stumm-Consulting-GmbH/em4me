@@ -57,7 +57,7 @@ Nei blocchi di codice e negli span di codice la sintassi resta intatta: `@{Calen
 ## Inserire e modificare
 
 - **Inserire:** il comando «Inserisci data di calendario» (palette dei comandi; è possibile assegnare una scorciatoia) apre il selettore e inserisce l'istante scelto in forma canonica alla posizione del cursore. È attivo non appena l'area aperta definisce almeno un calendario.
-- **Modificare:** i valori sono cliccabili in modalità sorgente e live; il clic apre il selettore precompilato con il valore, e la conferma lo sostituisce sul posto in un unico passo di annullamento.
+- **Modificare:** i valori sono cliccabili in modalità sorgente e live; il clic apre il selettore precompilato con il valore, e la conferma lo sostituisce sul posto in un unico passo di annullamento. Sulla riga con il cursore, **Ctrl-clic** apre il selettore mentre il clic semplice vi posiziona il cursore.
 
 ## Selettore
 

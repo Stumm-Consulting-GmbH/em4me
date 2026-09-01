@@ -135,11 +135,10 @@ Zwei Semikolons `;;` im Editor öffnen den kombinierten Picker an dieser Stelle.
 Im Editor, im Quelltext- wie im Live-Modus, erkennt die App Werte in den drei Formaten und unterstreicht sie dezent gepunktet. Ein Klick öffnet den Picker mit dem Wert vorbelegt, die Schalter richten sich nach der Form des Werts; das Übernehmen ersetzt ihn an Ort und Stelle. Nicht klickbar sind Werte
 
 - in Code, Formeln und Frontmatter,
-- auf der Zeile, in der gerade der Cursor steht,
 - in Wiki-Link-Zielen,
 - hinter den Termin-Markern der [Aufgaben-Listen](tasks.md), die dort als Badge erscheinen.
 
-Die Zeile mit dem Cursor bleibt bewusst ohne Dekoration: dort läuft die normale Text-Bearbeitung, und der Wert wird wieder klickbar, sobald der Cursor die Zeile verlässt. In schreibgeschützten Ansichten gibt es keine klickbaren Werte.
+Auf der Zeile, in der der Cursor steht, gilt eine Besonderheit: Dort setzt der einfache Klick weiterhin den Cursor — auch mitten in den Wert —, und der Picker öffnet sich mit **Strg-Klick**. Solange die Taste nicht gedrückt ist, bleibt der Wert dort ohne Unterstreichung; hält man Strg, erscheint sie und zeigt an, dass der Klick jetzt den Picker öffnet. In schreibgeschützten Ansichten gibt es keine klickbaren Werte.
 
 Die Erkennung greift bewusst auch bei von Hand getippten Werten: jedes Datum und jede Uhrzeit in diesen Formaten wird so pflegbar.
 

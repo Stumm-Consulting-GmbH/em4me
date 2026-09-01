@@ -393,6 +393,26 @@
   background: var(--accent-soft);
 }
 
+/* 4T-0943 (Epic 3E-0197): In der Zeile mit dem Cursor bleibt der Wert
+   dekoriert, oeffnet aber erst auf den Strg-Klick. Solange die Taste nicht
+   gedrueckt ist, traegt er deshalb KEINE Klick-Optik — sonst verspraeche er
+   eine Reaktion, die der einfache Klick nicht einloest. Die Klasse
+   cm-mod-gedrueckt setzt modifier-zustand.js. */
+.cm-live-date-value-mod {
+  border-bottom-style: none;
+  cursor: text;
+}
+.cm-live-date-value-mod:hover {
+  background: none;
+}
+.cm-mod-gedrueckt .cm-live-date-value-mod {
+  border-bottom: 1px dotted var(--accent);
+  cursor: pointer;
+}
+.cm-mod-gedrueckt .cm-live-date-value-mod:hover {
+  background: var(--accent-soft);
+}
+
 /* 4T-0454 (Epic 3E-0084): Graphenansicht — Farben ausschließlich über
    Theme-Variablen (hell/dunkel); Hover dimmt den Rest der Fläche und hebt
    die Nachbarschaft an, die aktive Datei trägt den Akzent. */

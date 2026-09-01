@@ -798,7 +798,7 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 | **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus EXE-Smoke-Test |
 | **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste), `doku-pfade` und `datei-groessen`; Format und Lint | keine |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
-| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`; Format und Lint | keine über die geänderte Spec hinaus |
+| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`, `aenderungsklassen` und `quellcode-export-listen`; Format und Lint | keine über die geänderte Spec hinaus |
 
 **Warum die Auslassungen tragen.** Für Ä1 folgt es aus den
 Ignore-Dateien: `.prettierignore` schließt `*.md` und
@@ -814,6 +814,32 @@ bis in die Web-Wächter durch, `index.html` ist die Grundlage der
 Paritäts-Wächter und `src/demo/**` die des Manifest-Wächters. Bei Ä3 ist
 die Auslassung auf E2E-Seite bewusst unvollständig: Einzelne Specs prüfen
 auf lokalisierte Texte, deshalb bleibt dort eine E2E-Pflicht.
+
+**Warum in Ä8 drei Wächter stehen und nicht einer** (seit dem 2026-09-01).
+Die Klasse trägt zwei verschiedene Lagen unter einem Muster: eine
+**geänderte** Prüfdatei und eine **hinzugefügte**. Für die geänderte gilt
+„ein Prüffall prüft sich selbst"; für die hinzugefügte gilt das nicht, denn
+sie löst zwei Wächter aus, die eine Änderung an ihr selbst nie auslösen
+könnte — die Zuordnung in der Klassen-Karte (`aenderungsklassen`) und den
+Eintrag in den Test-Ausnahmen des Quellcode-Exports
+(`quellcode-export-listen`). Die Auswahl **sieht** den Unterschied nicht,
+weil ihre Eingabe `git diff --name-only` ist und keinen Datei-Status trägt;
+deshalb laufen beide Wächter fest mit, statt den Status zu lesen.
+
+Der Preis ist bewusst klein gehalten: zusammen rund **zwei Sekunden**.
+Möglich wurde das durch einen Schnitt — die reinen Listen-Prüfungen des
+Export-Wächters liegen seither in
+`test/unit/quellcode-export-listen.test.js` (0,57 s), während
+`test/unit/quellcode-export.test.js` mit seinen echten Wegwerf-Repositorien
+rund 32 Sekunden braucht und in Ä8 nichts zu suchen hat.
+
+Ohne die Ergänzung integrierte die Merge-Queue einen Zweig grün, der den
+Integrationsstand rot hinterlässt: gemessen fünf so exponierte Commits in
+60 Tagen (250 Commits fügten eine Prüfdatei hinzu, bei fünf davon zog keine
+Nachbar-Änderung die Wächter mit). Ein **Rückfall** auf die vollen Gates
+wäre das falsche Mittel gewesen, weil er die häufige Lage „Code-Änderung
+samt Regressionstest" mitträfe und der Abstufung vom 2026-08-14 ihren
+Gewinn nähme.
 
 **Struktur-Schnitte nehmen die Regression- und Perf-Specs des berührten
 Reviers mit** (Erkenntnis der Release-Abnahme vom 2026-08-13). Verschiebt
@@ -980,6 +1006,14 @@ node scripts/test-linux-docker.js e2e
 
 Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
 
+**Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten):
+
+- Das **E2E-Gate** läuft aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Nach dem Lauf wandern `test-berichte/e2e.json` und die Rot-Belege zurück in den Arbeitsbaum, auch nach einem roten Lauf.
+- Das **Unit-Gate** und alle kopflosen Gates bleiben auf dem **Arbeitsbaum**. Ihre Bestands-Wächter lesen ihn samt Git-Verzeichnis, und sie lesen ihn nur einmal; eine Kopie wäre dort kein Gewinn und ein stiller Wechsel des Prüfstands.
+- `--ohne-kopie` stellt den alten Weg her. Er ist der schnellere, wenn **ein einzelner** Fall nachzuprüfen ist, weil die Kopie dann teurer wäre als der Fall selbst, und er ist der Ausweg, falls die Kopie einmal nicht trägt.
+
+Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/unit/test-linux-docker.test.js` hält sie deshalb fest.
+
 ### Gemessene Größenordnungen (2026-08-28, SC-027 Slot B)
 
 | Lauf | Windows | Linux im Container | Verhältnis |
@@ -1020,9 +1054,66 @@ acht Stunden gekostet.
 **Der Ausweg** ist eine Kopie des Quellbaums ins Container-Dateisystem vor dem
 E2E-Lauf, rund 75 Sekunden samt Git-Verzeichnis, mit anschließendem
 Zurückschreiben der Berichte in den Arbeitsbaum. Das Unit-Gate bleibt auf dem
-Arbeitsbaum, weil die Bestands-Wächter ihn samt Git-Verzeichnis lesen. Als
-Kommando ist dieser Weg noch **nicht gekapselt**; solange das so ist, altert er
-ohne Wächter, und wer ihn geht, trägt Abweichungen hier nach.
+Arbeitsbaum, weil die Bestands-Wächter ihn samt Git-Verzeichnis lesen.
+
+**Seit dem 2026-08-31 ist dieser Weg die Vorgabe des Kommandos** und kein
+Handgriff mehr (`scripts/test-linux-docker.js`, Abschnitt „Das Kommando" oben).
+Damit hängt er an einem Wächter statt an einer Anleitung, und niemand muss ihn
+je Release nachbauen. Wer den alten Weg braucht, nimmt `--ohne-kopie`.
+
+**Gemessen am gekapselten Weg**, erster vollständiger Lauf am 2026-08-31 auf
+SC-026 über `node scripts/test-linux-docker.js test e2e`:
+
+| Abschnitt | Zeit | Bemerkung |
+|---|---|---|
+| Vorlauf | 1 min 41 s | Abhängigkeiten, Anzeige-Vorbereitung und Kopie zusammen |
+| davon die Kopie | 61 s | einzeln gemessen; jeder Lauf nennt den Wert im Protokoll |
+| Unit-Gate, auf dem Arbeitsbaum | 5 min 22 s | 4891 Fälle; dieser Lauf war rot (fehlende Register-Einträge der neuen Prüfdatei), die Laufzeit ist davon unberührt |
+| E2E-Gate, aus der Kopie | **20 min 48 s** | 644 Fälle, keiner unerwartet |
+| gesamt | 27 min 53 s | |
+
+**Der Vergleichswert des alten Wegs auf demselben Rechner** steht in der
+Tabelle darüber: rund 172 Minuten hochgerechnet, ein Lauf bei 141 Minuten
+abgebrochen. Beide Zahlen sind Messungen desselben Tages an derselben Suite.
+
+**Die Kopier-Dauer steht bewusst im Protokoll jedes Laufs** und nicht nur hier.
+Sie hängt an der Zahl der Dateien und am Rechner, und beide wachsen; ohne die
+laufende Zahl fiele erst auf, dass die Kopie teurer geworden ist, wenn sie mehr
+kostet als sie spart.
+
+#### Der eigentliche Unterschied ist die Zwischenspeicherung
+
+Nachgetragen am 2026-08-31 nach der Ursachensuche. **Die Brücke ist auf beiden
+Rechnern gleich teuer, solange nichts zwischengespeichert ist.** Derselbe
+Lesevorgang über dieselben 698 Dateien, dreimal hintereinander im selben
+Container-Lauf:
+
+| Durchlauf | Stamm-Rechner | Zweitrechner |
+|---|---|---|
+| 1 (kalt) | 10,571 s | 10,454 s |
+| 2 | 10,642 s | **1,255 s** |
+| 3 | 10,828 s | **1,351 s** |
+
+Der erste Durchlauf ist praktisch identisch; Hardware und Protokoll scheiden als
+Erklärung damit aus. Der Zweitrechner bedient die Folgezugriffe aus dem
+Zwischenspeicher, der Stamm-Rechner nicht. Weil die E2E-Suite je Prüffall eine
+vollständige Anwendung startet und dabei immer dieselben Dateien liest, ist genau
+das der Unterschied zwischen 38 Minuten und mehreren Stunden — während die
+Unit-Suite, die den Bestand nur einmal liest, auf beiden Rechnern gleich schnell
+bleibt (4:43 gegen rund 4 Minuten).
+
+**Sieben Erklärungen sind geprüft und widerlegt**, jeweils gemessen: Prozessor-
+leistung und Speicher, der Synchronisations-Dienst, der Ort im Ordnerbaum, die
+WSL-Fassung samt Kernel, die Mount-Einstellungen, die Docker-Fassung und die
+Ausschluss-Listen des Virenschutzes. WSL und Docker wurden dabei auf den Stand
+des Zweitrechners gebracht (2.7.12 / Kernel 6.18.33, Docker 29.7.2), ohne jede
+Wirkung auf die Messung. Wer hier weitersucht, braucht diese Wege nicht erneut zu
+gehen; die Einzelheiten stehen im zugehörigen Vorgang.
+
+**Vor jeder weiteren Ursachen-Aussage steht eine wiederholbare Messreihe.** Die
+Werte oben streuen erheblich (6,1 bis 10,8 Sekunden für denselben Vorgang), und
+in einem Fall zeigte sich ein Abfall, in anderen nicht. Eine Einzelmessung trägt
+hier keine Schlussfolgerung.
 
 ### Beide Läufe gleichzeitig auf einem Rechner
 

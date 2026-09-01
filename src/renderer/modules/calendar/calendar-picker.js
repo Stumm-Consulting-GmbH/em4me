@@ -838,13 +838,18 @@ export async function openCalendarPickerForRange(view, { from, to, expected, ...
 // Cursor-Zeilen. Im Live-Modus ersetzen die Badge-Widgets (live-widgets.js)
 // dieselben Bereiche; deren data-Attribute sprechen denselben mousedown-
 // Handler an (kein zweiter Klick-Pfad).
-function calendarValueMarkDeco(from, to) {
+// 4T-0943 (Epic 3E-0197): `modifierOnly` wie bei den ISO-Werten (E2).
+function calendarValueMarkDeco(from, to, modifierOnly) {
+  const attributes = {
+    'data-live-calvalue-from': String(from),
+    'data-live-calvalue-to': String(to),
+  };
+  if (modifierOnly) attributes['data-live-calvalue-mod'] = '1';
   return Decoration.mark({
-    class: 'cm-live-calendar-value',
-    attributes: {
-      'data-live-calvalue-from': String(from),
-      'data-live-calvalue-to': String(to),
-    },
+    class: modifierOnly
+      ? 'cm-live-calendar-value cm-live-calendar-value-mod'
+      : 'cm-live-calendar-value',
+    attributes,
   });
 }
 
@@ -863,9 +868,10 @@ function buildCalendarValueDecorations(view) {
       if (positionInsideCode(state, docFrom)) continue;
       const line = state.doc.lineAt(docFrom);
       if (line.number <= frontmatterEndLine) continue;
-      if (activeLines.has(line.number)) continue;
+      // 4T-0943 (Epic 3E-0197): wie bei den ISO-Werten, siehe E2 im Epic.
+      const inAktiverZeile = activeLines.has(line.number);
       if (docTo > line.to) continue;
-      ranges.push(calendarValueMarkDeco(docFrom, docTo).range(docFrom, docTo));
+      ranges.push(calendarValueMarkDeco(docFrom, docTo, inAktiverZeile).range(docFrom, docTo));
     }
   }
   return Decoration.set(ranges, true);
@@ -897,6 +903,10 @@ export const calendarValuePlugin = ViewPlugin.fromClass(
         const el = tgt.closest('[data-live-calvalue-from]');
         if (!el) return false;
         if (view.state.readOnly) return false;
+        // 4T-0943 (Epic 3E-0197): Strg-Klick in der Zeile mit dem Cursor.
+        if (el.getAttribute('data-live-calvalue-mod') === '1' && !event.ctrlKey && !event.metaKey) {
+          return false;
+        }
         const from = parseInt(el.getAttribute('data-live-calvalue-from'), 10);
         const to = parseInt(el.getAttribute('data-live-calvalue-to'), 10);
         if (Number.isNaN(from) || Number.isNaN(to) || from < 0 || to <= from) return false;

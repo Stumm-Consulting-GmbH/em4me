@@ -505,3 +505,43 @@ test.describe('KS-06: Zeitspanne im Dokument und Picker in Bezugs-Notation', () 
     }
   });
 });
+
+// 4T-0943 (Epic 3E-0197): Der Kalender-Wert trug denselben Ausschluss der
+// aktiven Zeile wie die ISO-Datums-Werte — steht der Cursor in der Zeile,
+// war der Wert dort weder dekoriert noch erreichbar. Entscheidung des
+// Product Owners vom 2026-09-01 (E2 im Epic): beide Wert-Arten bekommen den
+// Zugang, damit zwischen ihnen keine Ungleichheit entsteht.
+test.describe('KS-07: Zugang in der Zeile mit dem Cursor (4T-0943)', () => {
+  test('einfacher Klick setzt den Cursor, Strg-Klick oeffnet den vorbelegten Picker', async () => {
+    const { areaRoot } = makeCalendarArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      await openDocFromAreaPanel(page, 'werte.md');
+      await enterEdit(app, page, 'live');
+
+      // Ausgangslage: der Wert erscheint als Badge, die Zeile ist nicht aktiv.
+      const badge = page.locator('.cm-live-calendar-badge');
+      await expect(badge).toHaveText('500-Mittmond-09 ZZ');
+
+      // Cursor in die Wert-Zeile setzen, ohne den Wert selbst zu treffen.
+      const zeile = page.locator('.cm-line', { hasText: 'Ein Wert' });
+      await zeile.click({ position: { x: 4, y: 6 } });
+      await expect(page.locator(PICKER)).toBeHidden();
+
+      // Die aktive Zeile zeigt Roh-Text; der Wert bleibt dort dekoriert.
+      const wert = zeile.locator('.cm-live-calendar-value');
+      await expect(wert).toBeVisible({ timeout: 15000 });
+
+      await wert.click();
+      await expect(page.locator(PICKER)).toBeHidden();
+
+      await wert.click({ modifiers: ['Control'] });
+      await expect(page.locator(PICKER)).toBeVisible();
+      await expect(page.locator(`${PICKER} .calendar-picker-day.selected`)).toHaveText('9');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(areaRoot);
+    }
+  });
+});

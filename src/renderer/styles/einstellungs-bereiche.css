@@ -320,6 +320,19 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
+
+/* 4T-0943 (Epic 3E-0197): wie bei den ISO-Datums-Werten (E2) — in der Zeile
+   mit dem Cursor bleibt der Wert dekoriert, zeigt seine Klick-Optik aber
+   erst bei gedrueckter Strg-/Cmd-Taste (Klasse aus modifier-zustand.js). */
+.cm-live-calendar-value-mod {
+  text-decoration: none;
+  cursor: text;
+}
+.cm-mod-gedrueckt .cm-live-calendar-value-mod {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
 /* 4T-0595/4T-0596 (Epic 3E-0111): Inline-Berechnungen — Ergebnis-Span im
    Render-Pane (.inline-calc), Live-Widget (.cm-inline-calc) und die dezente
    Konstrukt-Einfaerbung des Quelltext-Modus (.cm-inline-calc-marker).

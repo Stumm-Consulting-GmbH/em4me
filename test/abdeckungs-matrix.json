@@ -766,7 +766,7 @@
       "id": "F-131",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-0544/4T-0545/4T-0546 (Epic 3E-0097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-0747 (Epic 3E-0138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-0748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus)."
+      "hinweis": "4T-0544/4T-0545/4T-0546 (Epic 3E-0097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-0747 (Epic 3E-0138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-0748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-0943 (Epic 3E-0197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07."
     },
     {
       "key": "help.feature.derivedCalendars",
@@ -2106,7 +2106,7 @@
         "test/e2e/funktionen/datums-picker.spec.js",
         "test/unit/renderer/date-picker.test.js"
       ],
-      "hinweis": "4T-0486/4T-0487 (Epic 3E-0091): Datums-/Uhrzeit-Picker — DP-01 bis DP-06 (Kommandos, Schalter, Einfuegen, Schreib-Trigger, Aus-Zustand der Erweiterung) und DP-07 bis DP-09 (Klick-Reaktivierung vorbelegt, Ersetzen an Ort und Stelle, Ausschluss-Kontexte) plus Unit-Suite der Wert-/Kalender-Helfer, Muster-Erkennung und Task-Schwanz-Abgrenzung."
+      "hinweis": "4T-0486/4T-0487 (Epic 3E-0091): Datums-/Uhrzeit-Picker — DP-01 bis DP-06 (Kommandos, Schalter, Einfuegen, Schreib-Trigger, Aus-Zustand der Erweiterung) und DP-07 bis DP-09 (Klick-Reaktivierung vorbelegt, Ersetzen an Ort und Stelle, Ausschluss-Kontexte) plus Unit-Suite der Wert-/Kalender-Helfer, Muster-Erkennung und Task-Schwanz-Abgrenzung. 4T-0943 (Epic 3E-0197): Zugang in der Zeile mit dem Cursor per Strg-Klick — DP-13 in Quelltext- und Live-Ansicht, mit der Gegenprobe, dass der einfache Klick dort weiterhin nur den Cursor setzt."
     },
     {
       "key": "help.shortcut.insertDateTime",

@@ -57,7 +57,7 @@ In code blocks and code spans the syntax stays untouched: `@{Example calendar: 5
 ## Inserting and editing
 
 - **Inserting:** the command "Insert calendar date" (command palette; a shortcut can be assigned) opens the picker and inserts the chosen point in time canonically at the cursor. It is active as soon as the open area defines at least one calendar.
-- **Editing:** values are clickable in source and live mode; the click opens the picker pre-filled with the value, committing replaces it in place in a single undo step.
+- **Editing:** values are clickable in source and live mode; the click opens the picker pre-filled with the value, committing replaces it in place in a single undo step. On the line holding the cursor, **Ctrl-click** opens the picker while a plain click places the cursor there.
 
 ## Picker
 

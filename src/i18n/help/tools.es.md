@@ -135,11 +135,10 @@ Dos puntos y coma `;;` en el editor abren el selector combinado en ese punto. La
 En el editor, tanto en modo código como en vivo, la aplicación reconoce los valores en los tres formatos y los subraya con un discreto punteado. Un clic abre el selector precargado con el valor, los conmutadores según su forma; la confirmación lo reemplaza en el sitio. No son clicables los valores
 
 - en código, fórmulas y frontmatter,
-- en la línea en la que está actualmente el cursor,
 - en destinos de enlace wiki,
 - detrás de los marcadores de fecha de las [listas de tareas](tasks.md), que allí aparecen como insignia.
 
-La línea con el cursor queda a propósito sin decoración: allí transcurre la edición normal del texto, y el valor vuelve a ser clicable en cuanto el cursor abandona la línea. En las vistas de solo lectura no hay valores clicables.
+En la línea en la que está el cursor rige una particularidad: allí el clic simple sigue colocando el cursor —también en medio del valor— y el selector se abre con **Ctrl-clic**. Mientras la tecla no esté pulsada, el valor permanece sin subrayado; al mantener Ctrl aparece y señala que el clic abrirá ahora el selector. En las vistas de solo lectura no hay valores clicables.
 
 El reconocimiento capta a propósito también los valores escritos a mano: así toda fecha y hora en estos formatos se vuelve editable.
 

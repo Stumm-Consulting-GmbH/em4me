@@ -135,11 +135,10 @@ Due punti e virgola `;;` nell'editor aprono il selettore combinato in quel punto
 Nell'editor, in modalità sorgente come in modalità live, l'applicazione riconosce i valori nei tre formati e li sottolinea con un discreto punteggiato. Un clic apre il selettore precompilato con il valore, gli interruttori secondo la sua forma; la conferma lo sostituisce sul posto. Non sono cliccabili i valori
 
 - in codice, formule e frontmatter,
-- sulla riga in cui si trova attualmente il cursore,
 - nelle destinazioni di wiki link,
 - dietro i marcatori di data delle [liste di attività](tasks.md), che vi compaiono come badge.
 
-La riga con il cursore resta di proposito senza decorazione: lì si svolge la normale modifica del testo, e il valore torna cliccabile non appena il cursore lascia la riga. Nelle viste in sola lettura non ci sono valori cliccabili.
+Sulla riga in cui si trova il cursore vale una particolarità: lì il clic semplice continua a posizionare il cursore — anche in mezzo al valore — e il selettore si apre con **Ctrl-clic**. Finché il tasto non è premuto, il valore resta senza sottolineatura; tenendo premuto Ctrl questa compare e segnala che il clic aprirà ora il selettore. Nelle viste in sola lettura non ci sono valori cliccabili.
 
 Il riconoscimento cattura di proposito anche i valori digitati a mano: ogni data e ogni ora in questi formati diventa così modificabile.
 

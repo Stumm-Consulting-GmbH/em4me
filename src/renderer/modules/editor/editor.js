@@ -127,6 +127,8 @@ import { datePickerTriggerExtension, dateValuePlugin } from '../calendar/date-pi
 // 4T-0546 (Epic 3E-0097): calendarValuePlugin dekoriert klickbare
 // @{Kalendername: Wert}-Vorkommen (Quelltext- und Live-Modus).
 import { calendarValuePlugin } from '../calendar/calendar-picker.js';
+// 4T-0943 (Epic 3E-0197): Strg-Zustand der Wert-Marken; Logik im Modul.
+import { modifierZustandExtension } from '../live/modifier-zustand.js';
 import { scheduleSearchRefresh, search } from '../search/search.js';
 // 4T-0377 (Epic 3E-0071): Editor-Kontextmenü (Rechtsklick, Quelltext- und
 // Live-Modus). Laufzeit-Zyklus wie bei den übrigen Nachbar-Modulen: das
@@ -475,6 +477,8 @@ export function createEditorState(opts = {}) {
       dateValuePlugin,
       // 4T-0546: klickbare Kalender-Werte @{Name: Wert} (beide Modi).
       calendarValuePlugin,
+      // 4T-0943: Sichtbarkeit des Strg-Zugangs in der aktiven Zeile.
+      modifierZustandExtension,
       // 4T-0603 (Epic 3E-0113): URL-in-Auswahl als Markdown-Link einfügen.
       pasteLinkHandler,
       // 4T-0790 (Epic 3E-0125): Doppelklick auf ein Bild oeffnet die Anlage.

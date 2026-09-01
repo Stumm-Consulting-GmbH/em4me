@@ -14,6 +14,45 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.124.0.2143] - 2026-09-01 — Datums-Werte in der Zeile mit dem Cursor
+
+Epic 3E-0197
+(4T-0943, Sammeltask 4T-1338), entstanden aus einem Befund des Product Owners in
+der Test-Iteration zu 4T-0937 am 2026-08-10: Steht der Cursor in einer Zeile, war
+der Datums-Wert dort nicht mehr anklickbar — und zwar in genau dem Moment, in dem
+man ihn am ehesten braucht, weil man ohnehin in dieser Zeile arbeitet. Der
+Ausschluss war beabsichtigt und schützte das Setzen des Cursors im Wert; zugesagt
+war er nirgends, weder in der Anforderung noch im Handbuch.
+
+### Neu
+
+- **Der Datums-Wähler ist jetzt auch in der Zeile mit dem Cursor erreichbar, über
+  Strg-Klick** (4T-0943). Der einfache Klick setzt dort weiterhin den Cursor, auch
+  mitten im Wert; erst der Klick mit gedrückter Strg-Taste öffnet den Wähler
+  vorbelegt. Klick-Zugang und Cursor-Setzen teilen sich damit nicht mehr dieselbe
+  Geste, statt dass eines von beiden dem anderen weichen muss. Der Zugang gilt für
+  die ISO-Datums- und Uhrzeit-Werte ebenso wie für die Werte benutzerdefinierter
+  Kalender.
+- **Die Klick-Optik erscheint in dieser Zeile erst mit der gedrückten Taste**
+  (4T-0943). Solange Strg nicht gehalten wird, bleibt der Wert dort ohne
+  Unterstreichung und ohne Hand-Zeiger; sonst verspräche er eine Reaktion, die der
+  einfache Klick nicht einlöst.
+
+### Geändert
+
+- **Die Klick-Dekoration überspringt die aktive Zeile nicht mehr** (4T-0943). Sie
+  erzeugt dort eine eigene Marken-Variante, weil es ohne Marke gar kein Klick-Ziel
+  gäbe. Die übrigen Ausschlüsse bleiben unberührt: Code, Formeln, Frontmatter,
+  schreibgeschützte Ansichten und Wiki-Link-Ziele.
+
+### Doku
+
+- **Handbuch in allen fünf Sprachfassungen nachgezogen** (4T-0943). Die Seite
+  «Werkzeuge» beschreibt den Strg-Zugang statt des früheren Ausschlusses, die Seite
+  der benutzerdefinierten Kalender trägt denselben Hinweis am Bearbeiten-Punkt.
+  Beide Anforderungen nennen den Zugang jetzt ausdrücklich und benennen erstmals
+  die verbleibenden Ausschlüsse.
+
 ## [1.123.0.2123] - 2026-08-31 — Verlässliche Journal-Blöcke
 
 Epic 3E-0236

@@ -178,6 +178,14 @@
       "fehlerbild": "Einzel-Fehlschlag im E2E-Abnahme-Lauf vor dem Release 1.118.0 (628 von 629 grün, Laufzeit 23,6 min). Betroffen ist der zweite Fall des Blocks, «der Zaehler laeuft ueber alle Treffer des Bereichs, nicht je Datei» (bereichs-suche.spec.js:230). Das Poll-Prädikat in Zeile 248 lief in seinen 15-Sekunden-Timeout: erwartet true, erhalten false, also blieb der Treffer-Zähler beim Durchlauf mit F3 auf seinem Wert stehen. Der Fall brauchte 15,7 s statt der sonst rund 1,7 s; der erste Fall desselben Blocks (Zeile 208) war im selben Lauf grün. Isoliert unmittelbar danach geprüft: 2 von 2 grün in 3,9 s. Beleg des roten Laufs vollständig gesichert unter test-berichte/rot/2026-08-25T10-04-11Z-…-e2e.log samt Screenshot und Trace — anders als beim BS-06-Eintrag vom 2026-08-19 ist die Abbruch-Stelle hier belegt.",
       "vermutung": "Lastbedingt. Der Fall springt mit F3 über eine Datei-Grenze hinweg und wartet darauf, dass der Zähler den nächsten Stand zeigt; das setzt voraus, dass die Zieldatei geöffnet und ihr Trefferraum aufgebaut ist. Unter der Eigenlast eines vollen Laufs reichen die 15 Sekunden offenbar nicht immer, während dieselbe Strecke isoliert in Bruchteilen davon läuft. Für einen Produktfehler spricht nichts: Der Zähler ist im isolierten Lauf und im ersten Fall desselben Blocks korrekt, und der Änderungs-Umfang des Epics 3E-0221 berührt weder die Bereichs-Suche noch ihre Spec (Gegenprobe über den Diff gegen origin/main). Zu beobachten ist, ob derselbe Fall wiederkehrt; dann ist die Wartezeit nicht die Ursache, sondern die Bezugsgröße, auf die gewartet wird.",
       "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/zeilenumbruch.spec.js",
+      "fall": "ZU-01: die Schreibmarke folgt dem Klick auch in der eingerückten Fortsetzung",
+      "datum": "2026-09-01",
+      "fehlerbild": "Toleranz-Assert der Schreibmarken-Position (Zeile 148): erwartet ein Abstand unter 8 Pixeln zum Anfang der Fortsetzung, gemessen 16,98. Im E2E-Voll-Lauf der Release-Abnahme zu 1.124.0 als einziger von 647 Fällen rot (646 grün, 23,8 min), unmittelbar danach isoliert grün in 1,7 s. Beleg vor der Wiederholung gesichert: test-berichte/rot/2026-09-01T10-11-12Z-epic-3E-0197-Datums-Werte-anklickbar-e2e.log.",
+      "vermutung": "Umgebungs-Empfindlichkeit des Pixel-Vergleichs unter der Last des Voll-Laufs: Der Fall misst absolute Positionen im umgebrochenen Text und hängt damit an Fenster-Breite und Font-Metrik; die gemessene Abweichung entspricht etwa einer Zeichenbreite. Der laufende Vorgang 4T-0943 scheidet als Ursache aus — die Fixture enthält weder Datums- noch Kalender-Werte, seine Dekorations-Änderung kann sie also nicht erreichen, und die neue Erweiterung modifier-zustand.js setzt allein eine CSS-Klasse ohne Einfluss auf Layout oder Cursor-Position.",
+      "status": "beobachtet"
     }
   ]
 }

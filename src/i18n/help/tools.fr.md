@@ -135,11 +135,10 @@ Deux points-virgules `;;` dans l'éditeur ouvrent le sélecteur combiné à cet 
 Dans l'éditeur, en vue source comme en mode Direct, l'application reconnaît les valeurs dans les trois formats et les souligne d'un discret pointillé. Un clic ouvre le sélecteur pré-rempli avec la valeur, les bascules suivant sa forme ; la validation la remplace sur place. Ne sont pas cliquables les valeurs
 
 - dans le code, les formules et le frontmatter,
-- sur la ligne où se trouve actuellement le curseur,
 - dans les cibles de lien wiki,
 - derrière les marqueurs de date des [listes de tâches](tasks.md), qui y apparaissent comme badge.
 
-La ligne portant le curseur reste volontairement sans décoration : l'édition normale du texte s'y déroule, et la valeur redevient cliquable dès que le curseur quitte la ligne. Les vues en lecture seule n'ont pas de valeurs cliquables.
+Sur la ligne portant le curseur, une particularité s'applique : le clic simple y place toujours le curseur — y compris au milieu de la valeur — et le sélecteur s'ouvre par **Ctrl-clic**. Tant que la touche n'est pas enfoncée, la valeur reste sans soulignement ; en maintenant Ctrl, celui-ci apparaît et signale que le clic ouvrira désormais le sélecteur. Les vues en lecture seule n'ont pas de valeurs cliquables.
 
 La reconnaissance capte volontairement aussi les valeurs saisies à la main : toute date et toute heure dans ces formats devient ainsi modifiable.
 

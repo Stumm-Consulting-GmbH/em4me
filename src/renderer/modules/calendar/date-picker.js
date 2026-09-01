@@ -757,7 +757,10 @@ function buildDateValueDecorations(view) {
       if (positionInsideCode(state, docFrom)) continue;
       const line = state.doc.lineAt(docFrom);
       if (line.number <= frontmatterEndLine) continue;
-      if (activeLines.has(line.number)) continue;
+      // 4T-0943 (Epic 3E-0197): Die aktive Zeile wird nicht mehr
+      // uebersprungen — der Wert bleibt dort dekoriert und oeffnet auf
+      // den Strg-Klick (E1). Ohne Marke gaebe es kein Klick-Ziel.
+      const inAktiverZeile = activeLines.has(line.number);
       if (docTo > line.to) continue;
       let insideMath = false;
       for (const block of mathBlockRanges) {
@@ -799,7 +802,7 @@ function buildDateValueDecorations(view) {
           if (!rv.some((r) => r.from === lineFrom && r.to === lineTo)) continue;
         }
       }
-      ranges.push(liveDateValueMarkDeco(docFrom, docTo).range(docFrom, docTo));
+      ranges.push(liveDateValueMarkDeco(docFrom, docTo, inAktiverZeile).range(docFrom, docTo));
     }
   }
   return Decoration.set(ranges, true);
@@ -840,6 +843,12 @@ export const dateValuePlugin = ViewPlugin.fromClass(
         if (!dateEl) return false;
         if (tgt.closest('[data-live-link-href]')) return false;
         if (view.state.readOnly) return false;
+        // 4T-0943 (Epic 3E-0197): In der Zeile mit dem Cursor traegt die
+        // Marke data-live-date-mod. Dort oeffnet erst der Strg-/Cmd-Klick,
+        // damit der einfache Klick weiterhin den Cursor setzt (E1).
+        if (dateEl.getAttribute('data-live-date-mod') === '1' && !event.ctrlKey && !event.metaKey) {
+          return false;
+        }
         const from = parseInt(dateEl.getAttribute('data-live-date-from'), 10);
         const to = parseInt(dateEl.getAttribute('data-live-date-to'), 10);
         if (Number.isNaN(from) || Number.isNaN(to) || from < 0 || to <= from) return false;
