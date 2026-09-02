@@ -14,6 +14,40 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.125.1.2179] - 2026-09-01 — Darstellung der Aufgaben-Zeilen im Live-Modus
+
+Epic 3E-0240
+(4T-1354, 4T-1355, Sammeltask 4T-1356), entstanden aus zwei Befunden des Product
+Owners vom 2026-09-01 an seinem täglichen Arbeits-Dokument. Beide Befunde hatten
+**eine** Ursache: Der hängende Einzug umgebrochener Zeilen aus 1.122.0 legt auf
+jede Listen-Zeile einen negativen Erst-Zeilen-Einzug, und diese Eigenschaft
+vererbt sich auf die eingebetteten Kästen der Zeile. Marker-Plakette und
+Aufgaben-Kästchen rückten dadurch ihren eigenen Inhalt nach links, während ihre
+Box stehen blieb. Reine Fehlerbehebung ohne Verhaltens-Erweiterung, deshalb die
+dritte Stelle.
+
+### Behoben
+
+- **Das Erledigt-Datum steht wieder hinter dem Zeilen-Text und nicht in ihm**
+  (4T-1354). Bei einer abgehakten Aufgabe erschien die Plakette mit dem Datum
+  mitten im Wort, und der Text darunter war nicht mehr zu lesen; der Versatz
+  entsprach genau der Breite des hängenden Einzugs. Betroffen war jede Fassung
+  ab 1.122.0. Die Positions-Rechnung der Plakette war dabei nie falsch —
+  verschoben war allein ihr Inhalt gegenüber der eigenen Box.
+- **Ein erweitertes Status-Zeichen steht wieder im Kästchen und nicht daneben**
+  (4T-1355). Dieselbe Vererbung schob das Zeichen aus seinem Kästchen nach
+  links, sodass ein leeres Kästchen zurückblieb und die Status-Farbe ihre
+  Bedeutung verlor. Betroffen waren nummerierte Listen und Aufzählungen
+  gleichermaßen, mit unterschiedlich großem Versatz je Listen-Art.
+
+### Geändert
+
+- **Der hängende Einzug wirkt nur noch auf die Zeile selbst, nicht auf ihre
+  eingebetteten Kästen** (4T-1354). Der Einzug bleibt in vollem Umfang erhalten;
+  neu ist, dass eingebettete Elemente ihn nicht mehr erben. Das gilt über die
+  beiden gemeldeten Stellen hinaus für jedes künftige eingebettete Element einer
+  Editor-Zeile.
+
 ## [1.125.0.2163] - 2026-09-01 — Vorschläge, die die Anzeige erreichen
 
 Epic 3E-0238

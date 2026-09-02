@@ -203,6 +203,33 @@
   margin-left: var(--haengender-einzug);
   text-indent: calc(-1 * var(--haengender-einzug));
 }
+/* 4T-1354 (Epic 3E-0240): Der negative Erst-Zeilen-Einzug gilt der Zeile und
+   nicht ihren eingebetteten Kaesten.
+
+   `text-indent` vererbt sich. Auf einem inline-Element bleibt der Wert
+   wirkungslos, auf einem Block-Container nicht — und genau das sind die
+   eingebetteten Kaesten einer Editor-Zeile: die Marker-Plakette
+   (`.task-marker`, inline-block) und das Kaestchen der Aufgaben-Marker
+   (`.cm-live-task-marker::before`, ebenfalls inline-block). Beide erbten den
+   negativen Wert und ruecken damit ihren *eigenen* Inhalt um die volle
+   Einzugs-Breite nach links, waehrend ihre Box stehen bleibt.
+
+   Zwei Befunde des Product Owners vom 2026-09-01, beide daraus: Das
+   Erledigt-Datum stand mitten im Zeilen-Text statt hinter ihm (gemessen
+   41,16 px Versatz bei `- [x] `, das sind die 6 Zeichenbreiten des Einzugs
+   abzueglich des Plaketten-Innenabstands), und das erweiterte Status-Zeichen
+   stand links neben seinem Kaestchen statt darin (3 Zeichenbreiten in der
+   nummerierten, 2 in der Aufzaehlungs-Liste).
+
+   Der Ruecksetzer trifft alle Nachkommen und nicht die zwei belegten Stellen
+   (PO-Entscheidung vom 2026-09-01): Sonst bekaeme jeder kuenftige
+   eingebettete Kasten denselben Fehler von vorn. Wirkung hat er allein auf
+   Block-Container, inline-Nachkommen ignorieren die Eigenschaft ohnehin. Der
+   haengende Einzug selbst bleibt unberuehrt — er steht auf der Zeile, nicht
+   auf ihren Nachkommen. */
+.cm-editor .cm-line.cm-haengender-einzug * {
+  text-indent: 0;
+}
 /* Blockquote im Live-Modus: linker Akzent-Balken plus Einrueckung und
    gedaempfte Schrift. Akzent-Farbe ueber --syntax-quote (gleiche Quelle wie
    die Heading-Highlight-Stufe aus mdHighlightStyle). Padding-Left enthaelt
