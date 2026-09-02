@@ -34,13 +34,21 @@
 // messbaren Gegenwert.
 'use strict';
 
-const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const backlinks = require('../backlinks.js');
 const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const { sucheInTexten } = require('../../shared/search-scope.js');
+// 4T-1293 (Epic 3E-0224): Volltext-Cache und Zusammenfuehrung geteilter
+// Dokumente liegen in eigenen Modulen; hier bleibt die Suche selbst.
+const {
+  konfiguriereCache,
+  ladeCache,
+  schreibeCache,
+  CACHE_SCHEMA_VERSION,
+} = require('./area-search-cache.js');
+const { fasseTeileZusammen, kopfRelPfad } = require('./area-search-teile.js');
 
 // Verzeichnis-Eintraege zwischen zwei Yields (Muster BUILD_BATCH_SIZE des
 // Index-Aufbaus und SCAN_BATCH_SIZE der Statistik-Erhebung).
@@ -55,8 +63,6 @@ const LESE_BREITE = 16;
 // Die Suche bleibt benutzbar, nur nicht mehr augenblicklich.
 const MAX_VORRAT_BYTES = 50 * 1024 * 1024;
 
-const CACHE_SCHEMA_VERSION = 1;
-
 // Vorraete je Bereichs-Wurzel: wurzel -> {
 //   dateien: Map<relPfad, { text, mtimeMs, size }>, bytes, modus
 // }
@@ -66,24 +72,10 @@ const vorraete = new Map();
 // feststellt, dass eine neuere Anfrage laeuft, bricht ab.
 const generationen = new Map();
 
-let cacheVerzeichnis = null;
-
-// Wird vom Hauptprozess beim Start gesetzt; der Unit-Test setzt sein eigenes
-// Verzeichnis. Ohne Konfiguration laeuft die Suche ohne Persistenz weiter
-// (Naht statt harter Electron-Abhaengigkeit, Muster deps in area-stats.js).
+// 4T-1293: Der Volltext-Cache liegt in area-search-cache.js; hier bleibt nur
+// die Durchreiche der Konfiguration.
 function konfiguriereBereichsSuche(optionen) {
-  cacheVerzeichnis =
-    optionen && typeof optionen.cacheVerzeichnis === 'string' ? optionen.cacheVerzeichnis : null;
-}
-
-function cachePfad(wurzel) {
-  if (!cacheVerzeichnis) return null;
-  const kennung = crypto
-    .createHash('sha1')
-    .update(path.resolve(wurzel).toLowerCase())
-    .digest('hex')
-    .slice(0, 16);
-  return path.join(cacheVerzeichnis, `${kennung}.json`);
+  konfiguriereCache(optionen);
 }
 
 // Wurzel-relativer, portabler ('/') und NFC-normalisierter Schluessel —
@@ -164,60 +156,6 @@ async function scanneBereich(wurzel) {
 // Liefert Map<rel, { text, mtimeMs, size }>. Fehlend, defekt oder
 // versionsfremd ergibt eine leere Map: Der Cache ist ein regenerierbares
 // Maschinen-Artefakt, sein Verlust kostet einen Lesevorgang und nie Daten.
-async function ladeCache(wurzel) {
-  const pfad = cachePfad(wurzel);
-  if (!pfad) return new Map();
-  let roh;
-  try {
-    roh = await fs.promises.readFile(pfad, 'utf8');
-  } catch {
-    return new Map();
-  }
-  let container;
-  try {
-    container = JSON.parse(roh);
-  } catch {
-    return new Map();
-  }
-  if (!container || container.v !== CACHE_SCHEMA_VERSION || !Array.isArray(container.dateien)) {
-    return new Map();
-  }
-  const map = new Map();
-  for (const d of container.dateien) {
-    if (!d || typeof d.rel !== 'string' || typeof d.text !== 'string') continue;
-    map.set(d.rel, {
-      text: d.text,
-      mtimeMs: typeof d.mtimeMs === 'number' ? d.mtimeMs : 0,
-      size: typeof d.size === 'number' ? d.size : 0,
-    });
-  }
-  return map;
-}
-
-async function schreibeCache(wurzel, dateien) {
-  const pfad = cachePfad(wurzel);
-  if (!pfad) return;
-  const container = {
-    v: CACHE_SCHEMA_VERSION,
-    wurzel: path.resolve(wurzel),
-    dateien: [],
-  };
-  for (const [rel, eintrag] of dateien) {
-    container.dateien.push({
-      rel,
-      mtimeMs: eintrag.mtimeMs,
-      size: eintrag.size,
-      text: eintrag.text,
-    });
-  }
-  try {
-    await fs.promises.mkdir(path.dirname(pfad), { recursive: true });
-    await fs.promises.writeFile(pfad, JSON.stringify(container), 'utf8');
-  } catch (err) {
-    console.warn('Bereichs-Suche: Cache schreiben fehlgeschlagen:', pfad, err && err.message);
-  }
-}
-
 // --- Vorrat -----------------------------------------------------------------
 
 // Baut den Vorrat auf: unveraenderte Dateien kommen aus dem Cache, geaenderte
@@ -277,13 +215,16 @@ async function baueVorrat(wurzel, generation) {
     await schreibeCache(wurzel, texte);
   }
 
-  return {
+  // 4T-1293: Der Cache haelt die Teil-Dateien einzeln, wie sie auf der Platte
+  // liegen; zusammengefuehrt wird erst danach. So bleibt der Cache-Abgleich
+  // ueber Aenderungszeit und Groesse Datei fuer Datei gueltig.
+  return fasseTeileZusammen({
     modus: 'vorrat',
     texte,
     reihenfolge: dateien.map((d) => d.rel),
     bytes: gesamtBytes,
     uebersprungeneOrdner,
-  };
+  });
 }
 
 // --- Suche ------------------------------------------------------------------
@@ -395,7 +336,12 @@ async function sucheDirekt(zustand, regex, wurzel, generation, { ankerRel, aktiv
     const eintraege = [];
     for (let k = 0; k < welle.length; k++) {
       if (!inhalte[k]) continue;
-      eintraege.push(eintrag(wurzel, welle[k], inhalte[k]));
+      // 4T-1293: Oberhalb des Deckels wird nur der NAME auf die Kopf-Datei
+      // gezogen, nicht der Text zusammengesetzt (Begruendung in
+      // area-search-teile.js). Der Treffer erscheint damit unter dem richtigen
+      // Dokument und der Sprung oeffnet es; nur mehrere Teile bleiben mehrere
+      // Gruppen.
+      eintraege.push(eintrag(wurzel, kopfRelPfad(welle[k]), inhalte[k]));
     }
     const teil = sucheInTexten(eintraege, regex);
     gesamt.treffer.push(...teil.treffer);
@@ -496,5 +442,7 @@ module.exports = {
   sucheImBereich,
   gibBereichsVorratFrei,
   MAX_VORRAT_BYTES,
+  // 4T-1293: Die Cache-Version lebt jetzt in area-search-cache.js und wird
+  // hier weitergereicht, damit die bestehenden Aufrufer unveraendert bleiben.
   CACHE_SCHEMA_VERSION,
 };

@@ -133,6 +133,19 @@ export async function openDialog() {
 // eine Reiter-Positions-Regel, keine Gruppen-Funktion); die Gruppen-Zuordnung
 // übernimmt insertTabNextTo aus dem Herkunfts-Tab und hält damit die
 // Zusammenhangs-Invariante.
+// 4T-1292 (Epic 3E-0224): Hinweis auf einen fehlenden Teil eines geteilten
+// Dokuments. Er steht bewusst lange, weil er eine Handlung verlangt und weil
+// das Dokument bis dahin nur lesbar ist; er nennt beide Wege heraus, denn den
+// zweiten (Begleitdatei entfernen) errät niemand von selbst.
+export function meldeFehlendeTeile(fehlend) {
+  const liste = Array.isArray(fehlend) && fehlend.length > 0 ? fehlend.join(', ') : '?';
+  showStatusbarHint(null, {
+    text: t('statusbar.partsMissing').replace('{teile}', liste),
+    error: true,
+    duration: 10000,
+  });
+}
+
 export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } = {}) {
   // R4-09 (4T-0186): tatsaechliche Ziel-Pane zurueckgeben — wenn die Datei
   // bereits in der anderen Spalte offen ist, landet die Aktivierung dort,
@@ -183,7 +196,14 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
       // createTab selbst auf (Frontmatter → Voreinstellung); viewMode faellt
       // wie bisher auf state.defaultViewMode zurueck.
       const pane = state.panes[targetPaneIdx];
-      const tab = createTab(data.path, data.content);
+      // 4T-1292 (Epic 3E-0224): Fehlt einem geteilten Dokument ein Teil, oeffnet
+      // es nur lesend. Der Hinweis nennt die fehlende Position, damit der
+      // Anwender weiss, welche Datei zurueckzulegen ist.
+      const tab = createTab(data.path, data.content, {
+        readOnly: !!data.nurLesen,
+        fehlendeTeile: data.fehlend,
+      });
+      if (data.nurLesen === 'partsMissing') meldeFehlendeTeile(data.fehlend);
       // 4T-0648: unmittelbar rechts neben dem Herkunfts-Tab einfügen (Gruppe
       // wird dabei aus ihm übernommen); ohne Herkunft — oder wenn sie
       // inzwischen geschlossen bzw. in die andere Spalte gewandert ist — wie

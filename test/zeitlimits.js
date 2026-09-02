@@ -45,6 +45,43 @@ export const BESTAND_ZEITLIMIT = 90000;
 // Vollständiger Bau eines Erzeugnisses (Webseite, Handbuch) innerhalb eines
 // Falls. Belegt am 2026-07-25, als ein Bau-Test unter Last das
 // Testsuite-Gate der Merge-Queue blockierte.
+//
+// 2026-08-30/31 (4T-1290, Epic 3E-0224): Der Wert stand hier für einen Tag auf
+// 60 s und ist wieder auf 30 s zurückgenommen — er blieb also, wo er war. Der
+// Vorgang ist trotzdem festgehalten, weil seine Messreihe die einzige ist, die
+// die STREUUNG dieses Falls beziffert, und weil das Zurücknehmen die Regel
+// unten belegt statt sie nur zu zitieren.
+//
+// Der Fall «interne Verweise treffen vorhandene Dateien» in web-handbuch, vier
+// Messungen desselben Falls:
+//
+//   isoliert, ohne Nebenläufigkeit ............................  5,7 s
+//   Voll-Lauf am 2026-08-30, ROT ..............................  30,4 s
+//   Voll-Lauf am 2026-08-30 kurz darauf, gleiche Datei-Zahl ...  10,0 s
+//   Voll-Lauf am 2026-08-31 nach der Behebung zu 4T-1283 ......  15,6 s
+//
+// Ausgelöst hatte den roten Lauf das blosse Hinzukommen ZWEIER Prüfdateien:
+// Dieselbe Suite lief unmittelbar davor ohne sie grün, mit ihnen zweimal in
+// Folge rot, und der Vergleichslauf mit vollem Produktiv-Code ohne die beiden
+// neuen Dateien war wieder grün. Die beiden tragen zusammen 217 ms Rechenzeit
+// bei — sie kosten nichts, sie verdrängen. Der Auslöser ist damit reine
+// Parallelitäts-Last und kein Fach-Fehler.
+//
+// ZURÜCKGENOMMEN, weil die Anhebung sich als unnötig erwiesen hat: Die
+// Behebung der Ketten-Auflösung (4T-1283) hat die Suite so entlastet, dass der
+// Fall am 2026-08-31 mit den zwei zusätzlichen Prüfdateien bei 15,6 s liegt und
+// die 30-s-Grenze wieder trägt (Voll-Lauf grün, 4943 Fälle). Damit gilt hier
+// dieselbe Lehre, die der Merkposten weiter unten aus 4T-1283 zieht: Eine
+// Grenze, die ein zweites Mal steigt, verdeckt einen Befund. Die Grenze bleibt
+// scharf, der Befund bleibt sichtbar.
+//
+// WAS OFFEN BLEIBT und als 4T-1321 (Epic 3E-0032) verortet ist: Die Streuung
+// oben ist der eigentliche Befund. Zwischen 10,0 s und 30,4 s liegt Faktor 3
+// bei gleicher Datei-Zahl; der Mittelwert liegt bequem unter jeder Grenze, die
+// Spitzen reissen sie. Daraus folgt für jeden, der hier misst: EIN einzelner
+// grüner Lauf beweist nichts, auch der vom 2026-08-31 nicht. Ein absolutes
+// Zeitlimit skaliert nicht mit einer wachsenden Suite, und jede weitere
+// Prüfdatei irgendeines Epics kann den nächsten Bau-Fall kippen.
 export const BAU_ZEITLIMIT = 30000;
 
 // Mehrere Auslöser zugleich: Prozess-Start **und** vollständiges Lesen eines

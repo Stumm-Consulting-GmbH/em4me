@@ -55,6 +55,17 @@ Un ouvrage long se compose de nombreux fichiers, et leur ordre réside sinon dan
 
 En détail : [Livres](books.md).
 
+## Quand un document dépasse la taille d'un fichier
+
+Un document dépasse parfois ce qui se laisse modifier avec fluidité. Plutôt que de vous imposer une limite, l'application divise elle-même un tel document en plusieurs fichiers lors de l'enregistrement et le réunit à l'ouverture. Vous n'en remarquez rien : un texte continu, un historique d'annulation, un résultat de recherche. La coupure se fait uniquement aux titres, afin qu'aucune construction ne soit déchirée, et chaque fichier de partie reste un fichier Markdown ordinaire, lisible sans l'application.
+
+- **La taille cesse d'être une limite** — même les documents très volumineux restent utilisables.
+- **Invisible dans votre travail** : un onglet, un texte, un résultat de recherche.
+- **La coupure se fait aux titres**, jamais au milieu d’un tableau, d’une liste ou d’un bloc de code.
+- **Réversible** : une commande de menu refait un fichier unique à partir des parties.
+
+En détail : [Division des grands documents](document-parts.md).
+
 ## Des tableaux qui portent plus qu'une ligne
 
 Ici s'achève la question des façons de travailler et commence celle de ce que le fichier peut exprimer. Le standard Markdown n'a pas besoin d'explication ; ce qui compte, c'est ce qui va au-delà, et cela commence par le tableau. Un tableau standard est fondé sur la ligne et n'accueille donc qu'un texte court. La Perspective Table accueille des blocs entiers dans une cellule : listes imbriquées, plusieurs paragraphes, blocs de code, images, et même un tableau dans le tableau. Le tableau devient ainsi un outil de structuration pour de vrais contenus au lieu d'une collection de mots-clés.

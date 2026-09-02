@@ -1383,6 +1383,13 @@
       "hinweis": "US-08 (4T-0774): Loesen ueber den Menue-IPC-Pfad — mitwandernde Nachfahren, Verweis-Nachfuehrung, Kollision auf der Zielebene und der Hinweis an einer Top-Level-Seite."
     },
     {
+      "key": "help.shortcut.rejoinParts",
+      "id": "S-140",
+      "testart": "unit",
+      "tests": ["test/unit/document-parts-schreiben.test.js"],
+      "hinweis": "4T-1293 (Epic 3E-0224): Wiedervereinen geteilter Dokumente auf der Datei-Ebene — Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments und die Verweigerung bei fehlendem Teil. Dazu der Negativ-Fall: Der Schreib-Weg vereint nie von selbst (AK5). Bestaetigung, Schwellen-Warnung und Menue-Weg sind manuell abgenommen."
+    },
+    {
       "key": "help.shortcut.toggleSubpages",
       "id": "S-043",
       "testart": "e2e",
@@ -1417,6 +1424,24 @@
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
       "hinweis": "US-08 (4T-0774): Loesen macht die Unterseite eigenstaendig, eigene Nachfahren wandern mit, eingehende Verweise werden nachgefuehrt; Kollision auf der Zielebene und Hinweis an einer Top-Level-Seite."
+    },
+    {
+      "key": "help.feature.documentSplit",
+      "id": "F-275",
+      "testart": "unit",
+      "tests": [
+        "test/unit/document-split.test.js",
+        "test/unit/document-parts-schreiben.test.js",
+        "test/unit/area-search-teile.test.js"
+      ],
+      "hinweis": "4T-1291 bis 4T-1293 (Epic 3E-0224): Schwelle in Byte, Schnitt ausschliesslich an einer Ueberschrift der obersten zwei Ebenen ausserhalb von Code-Zaeunen, Zerlegung und Umkehr-Eigenschaft gegen das Zusammensetzen, Erhalt der Grenzen beim Wachsen, Schreib-Reihenfolge gegen Inhalts-Verlust bei Abbruch, fehlender Teil und Nur-Lesen, Umbenennen-Kaskade, Zusammenfuehrung in der Bereichs-Suche. Ankuendigung und Wahl «nur lesen» sind am gebauten Programm abgenommen."
+    },
+    {
+      "key": "help.feature.rejoinParts",
+      "id": "F-276",
+      "testart": "unit",
+      "tests": ["test/unit/document-parts-schreiben.test.js"],
+      "hinweis": "4T-1293 (Epic 3E-0224): Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments, Verweigerung bei fehlendem Teil, dazu der Negativ-Fall, dass der Schreib-Weg nie von selbst vereint. Bestaetigung und Schwellen-Warnung sind am gebauten Programm abgenommen."
     },
     {
       "key": "help.feature.renameFile",

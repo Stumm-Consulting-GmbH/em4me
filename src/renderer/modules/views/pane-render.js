@@ -244,6 +244,12 @@ export async function reloadFile(filePath, opts = {}) {
       // frueher getroffene Vorentscheidung ist gegenstandslos.
       tab.saveConflict = false;
       tab.foreignOverride = null;
+      // 4T-1292 (Epic 3E-0224): Der Nur-Lese-Zustand eines geteilten Dokuments
+      // haengt am Bestand auf der Platte und wird mit jedem Neuladen neu
+      // ermittelt — ein zurueckgelegter Teil macht den Reiter damit ohne
+      // Zutun wieder schreibfaehig, ein neu verschwundener sperrt ihn.
+      tab.readOnly = !!data.nurLesen;
+      tab.fehlendeTeile = data.fehlend || null;
       // R4-12 (4T-0180): externer Datei-Wechsel — Render-Skip-Caches
       // verwerfen (auch andere Panes koennten die Datei einbetten).
       invalidatePaneRenderCache();

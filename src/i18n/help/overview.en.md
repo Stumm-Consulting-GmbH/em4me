@@ -47,6 +47,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 
 - [Linking](linking.md) — wiki links, anchors, embeds, tags and autocomplete.
 - [Subpages](subpages.md) — page hierarchy via file names: separator ∕ (U+2215), relative links, breadcrumb and renaming with cascade.
+- [Splitting large documents](document-parts.md) — very large documents live in several files and are treated as one: threshold, cutting at headings, naming with • (U+2022), missing parts and rejoining.
 - [Graph view](graph.md) — link relations as an interactive graph: area graph as a tab, file graph as a panel with depth and direction.
 - [Bookmarks](bookmarks.md) — keeping files in two sections: general and area-bound bookmarks with relative paths, adding, converting, order.
 - [Templates](templates.md) — applying Markdown templates: templates folder with area override, placeholders with dialogs, cursor target, folder rules.

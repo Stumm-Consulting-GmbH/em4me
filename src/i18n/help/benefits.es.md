@@ -55,6 +55,17 @@ Una obra larga consta de muchos archivos, y su orden reside si no en el nombre d
 
 En detalle: [Libros](books.md).
 
+## Cuando un documento supera el tamaño de un archivo
+
+A veces un documento crece más allá de lo que se puede editar con fluidez. En lugar de imponerte un límite, la aplicación divide ese documento en varios archivos al guardarlo y lo vuelve a unir al abrirlo. Tú no notas nada: un texto continuo, un historial de deshacer, un resultado de búsqueda. El corte se realiza solo en encabezados, para que ninguna construcción quede partida, y cada archivo de parte sigue siendo un archivo Markdown corriente, legible sin la aplicación.
+
+- **El tamaño deja de ser un límite**: incluso los documentos muy extensos siguen siendo manejables.
+- **Invisible en tu trabajo**: una pestaña, un texto, un resultado de búsqueda.
+- **El corte se hace en encabezados**, nunca en medio de una tabla, una lista o un bloque de código.
+- **Reversible**: un comando de menú convierte las partes de nuevo en un único archivo.
+
+En detalle: [División de documentos grandes](document-parts.md).
+
 ## Tablas que sostienen más de una línea
 
 Aquí termina la pregunta por las formas de trabajar y empieza la pregunta por lo que el archivo puede expresar. El estándar Markdown no necesita explicación; lo interesante es lo que va más allá, y eso empieza por la tabla. Una tabla estándar se basa en líneas y por eso solo admite texto breve. La Perspective Table admite bloques enteros en una celda: listas anidadas, varios párrafos, bloques de código, imágenes e incluso una tabla dentro de la tabla. Así la tabla se convierte en una herramienta de estructuración para contenidos reales en lugar de una colección de palabras sueltas.

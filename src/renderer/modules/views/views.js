@@ -263,13 +263,17 @@ export async function performAutoSave() {
   let savedAny = false;
   let failed = false;
   let konflikt = false;
+  let splitOffen = false;
   for (let p = 0; p < state.panes.length; p++) {
     for (let i = 0; i < state.panes[p].tabs.length; i++) {
       const tab = state.panes[p].tabs[i];
       // 4T-0945: Ein erkannter Konflikt setzt diesen Reiter aus, bis der
       // Anwender entscheidet (Speichern von Hand oder Neuladen). Sonst
       // liefe der Hinweis alle zwei Sekunden erneut auf.
-      if (!tab.dirty || !tab.path || tab.saveConflict) continue;
+      // 4T-1291: Dasselbe gilt fuer ein Dokument, das geteilt werden muesste;
+      // die Frage danach stellt allein das Speichern von Hand.
+      if (!tab.dirty || !tab.path || tab.saveConflict || tab.splitPending) continue;
+      if (tab.readOnly) continue;
       try {
         // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder auch im Autosave-Pfad.
         await stampTabTimestamps(p, i, tab);
@@ -282,7 +286,28 @@ export async function performAutoSave() {
         const res = await api.saveFile(tab.path, tab.content, {
           expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
           force: vorentschieden,
+          // 4T-1291 (Epic 3E-0224): Das Hintergrund-Speichern gibt sich zu
+          // erkennen, damit der Haupt-Prozess die Teilungs-Ankuendigung
+          // unterlaesst statt sie ungefragt aufspringen zu lassen.
+          hintergrund: true,
         });
+        // Das Dokument muesste zum ersten Mal geteilt werden. Der Reiter setzt
+        // aus, bis von Hand gespeichert wird — wie beim Konflikt, und aus
+        // demselben Grund: Der Schaden ist verhindert, sobald nicht geschrieben
+        // wird, und die Entscheidung gehoert dem Anwender.
+        if (res && res.reason === 'splitPending') {
+          tab.splitPending = true;
+          splitOffen = true;
+          continue;
+        }
+        // 4T-1292: Einem geteilten Dokument fehlt ein Teil. Der Reiter geht in
+        // den Nur-Lese-Zustand und wird vom Hintergrund-Speichern nicht mehr
+        // angefasst; die Meldung kommt beim naechsten Speichern von Hand.
+        if (res && res.reason === 'partsMissing') {
+          tab.readOnly = true;
+          tab.fehlendeTeile = res.fehlend || null;
+          continue;
+        }
         if (res && res.reason === 'conflict') {
           // Bewusst ohne Dialog: Ein Fenster, das ungefragt aufspringt,
           // waehrend man in einer anderen Datei tippt, waere ein Uebergriff.
@@ -309,6 +334,10 @@ export async function performAutoSave() {
     // Der Konflikt-Hinweis geht den beiden anderen vor: Er ist der einzige,
     // der eine Handlung verlangt, und er steht laenger.
     showStatusbarHint('statusbar.saveConflict', { error: true, duration: 6000 });
+  } else if (splitOffen) {
+    // Ebenfalls handlungs-bedürftig: Ohne den Hinweis bliebe unerklärlich,
+    // warum ein Reiter geändert stehen bleibt, während die anderen speichern.
+    showStatusbarHint('statusbar.splitPending', { error: true, duration: 6000 });
   } else if (failed) {
     showStatusbarHint('statusbar.saveFailed', { error: true, duration: 3000 });
   } else if (savedAny) {

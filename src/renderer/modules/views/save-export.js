@@ -30,7 +30,7 @@ import {
 // 4T-0585 (Epic 3E-0108): Titelzeile — nach Speichern unter den angezeigten
 // Dateinamen nachziehen (Laufzeit-Zyklus ueber title-line.js ist unkritisch).
 import { updateTitleLineForPane } from './title-line.js';
-import { closeTab } from '../tabs/tabs.js';
+import { closeTab, meldeFehlendeTeile } from '../tabs/tabs.js';
 // 4T-0332 (Epic 3E-0060): Statusbar-Zustand der Dokument-Historie (Laufzeit-
 // Zyklus save-export <-> history-status, Muster 4T-0179).
 import { updateHistoryStatus } from './history-status.js';
@@ -120,6 +120,21 @@ export async function saveTab(paneIdx, tabIdx) {
   // darf nicht in den Save-As-Dialog der pfadlosen Tabs durchfallen).
   // 4T-0277: System-Seiten (Einstellungen) ebenso.
   if (tab.manualPage || tab.systemPage) return false;
+  // 4T-1291 (Epic 3E-0224): Der Anwender hat die Teilung dieses Dokuments
+  // abgelehnt und «nur lesen» gewählt. Der Reiter bleibt bedienbar, schreibt
+  // aber nicht mehr — ungeteilt speichern hieße, die Datei weiter wachsen zu
+  // lassen, und genau das war seine Entscheidung nicht.
+  if (tab.readOnly) {
+    // Zwei Wege führen in den Nur-Lese-Zustand, und sie brauchen verschiedene
+    // Hinweise: ein fehlender Teil (4T-1292) verlangt eine Handlung am
+    // Dateisystem, die abgelehnte Teilung (4T-1291) nicht.
+    if (Array.isArray(tab.fehlendeTeile) && tab.fehlendeTeile.length > 0) {
+      meldeFehlendeTeile(tab.fehlendeTeile);
+    } else {
+      showStatusbarHint('statusbar.splitReadOnly', { duration: 8000 });
+    }
+    return false;
+  }
   if (!tab.path) return saveTabAs(paneIdx, tabIdx);
   try {
     // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder vor dem Schreiben setzen; der
@@ -153,7 +168,42 @@ export async function saveTab(paneIdx, tabIdx) {
       // Fassung in der Historie sichern.
       res = await api.saveFile(tab.path, tab.content, { force: true });
     }
+    // 4T-1291 (Epic 3E-0224): Das Dokument müsste geteilt werden, und der
+    // Anwender hat in der Ankündigung «nur lesen» gewählt. Geschrieben wurde
+    // nichts; der Reiter merkt sich das, damit die Frage nicht bei jedem
+    // Tastendruck wiederkommt.
+    if (res && res.reason === 'readOnly') {
+      tab.readOnly = true;
+      showStatusbarHint('statusbar.splitReadOnly', { duration: 8000 });
+      return false;
+    }
+    // 4T-1292 (Epic 3E-0224): Der Haupt-Prozess hat einen fehlenden Teil
+    // festgestellt und nicht geschrieben. Das kann auch einen Reiter treffen,
+    // der beim Öffnen noch vollständig war — dann ist die Datei seither
+    // verschwunden, und der Reiter zieht den Zustand jetzt nach.
+    if (res && res.reason === 'partsMissing') {
+      tab.readOnly = true;
+      tab.fehlendeTeile = res.fehlend || null;
+      meldeFehlendeTeile(res.fehlend);
+      return false;
+    }
     if (!res || !res.ok) throw new Error((res && res.error) || 'save failed');
+    // Der geschriebene Stand weicht vom Puffer ab, wenn das Dokument eben zum
+    // ersten Mal geteilt wurde: Die Kopf-Datei trägt jetzt die Zuordnungs-Zeile
+    // im Frontmatter. Der Puffer zieht nach, sonst meldete das nächste
+    // Speichern einen Konflikt gegen den eigenen Schreibvorgang. Der Weg ist
+    // derselbe wie bei der Zeitstempel-Automatik, samt eigener Undo-Einheit.
+    if (typeof res.content === 'string' && res.content !== tab.content) {
+      stampFrontmatterInPaneView(paneIdx, tabIdx, res.content);
+    }
+    // Das Dokument ist über der Schwelle, hat aber keine Überschrift der
+    // obersten zwei Ebenen, an der sich schneiden ließe (AK3, O5). Der Hinweis
+    // kommt einmal je Reiter: Ein Dialog bei jedem Speichern wäre binnen Tagen
+    // weggeklickt, und geschrieben wurde ja regulär.
+    if (res.hinweis === 'kein-schnittpunkt' && !tab.splitHinweisGezeigt) {
+      tab.splitHinweisGezeigt = true;
+      showStatusbarHint('statusbar.splitNoHeading', { duration: 8000 });
+    }
     // Der Hinweis auf die Sicherung gilt fuer beide Wege zur Entscheidung:
     // den Dialog eben und den im Nachlade-Dialog vorentschiedenen Fall. Er
     // haengt am Ergebnis des Schreibens, nicht an der Absicht, damit er nicht
@@ -161,6 +211,10 @@ export async function saveTab(paneIdx, tabIdx) {
     if (res.gesichert) showStatusbarHint('statusbar.saveConflictKept', { duration: 6000 });
     tab.originalContent = tab.content;
     tab.saveConflict = false;
+    // 4T-1291: Das Hintergrund-Speichern hatte diesen Reiter ausgesetzt, weil
+    // die Teilung eine Frage an den Anwender verlangt. Sie ist jetzt
+    // beantwortet und geschrieben; der Reiter läuft wieder mit.
+    tab.splitPending = false;
     tab.foreignOverride = null;
     // R4-12 (4T-0180): andere Panes koennten diese Datei als Wiki-Embed
     // zeigen — deren Render-Skip-Cache verwerfen.

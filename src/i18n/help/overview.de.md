@@ -47,6 +47,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 
 - [Vernetzung](linking.md) — Wiki-Links, Anker, Embeds, Tags und Autocomplete.
 - [Unterseiten](subpages.md) — Seiten-Hierarchie über den Dateinamen: Trennzeichen ∕ (U+2215), relative Links, Breadcrumb und Umbenennen mit Kaskade.
+- [Teilung großer Dokumente](document-parts.md) — sehr große Dokumente liegen in mehreren Dateien und werden als eines geführt: Schwelle, Schnitt an Überschriften, Namensform mit • (U+2022), fehlende Teile und das Wiedervereinen.
 - [Graphenansicht](graph.md) — Link-Beziehungen als interaktiver Graph: Bereichs-Graph als Tab, Datei-Graph als Panel mit Tiefe und Richtung.
 - [Lesezeichen](bookmarks.md) — Dateien in zwei Abschnitten merken: allgemeine und bereichsgebundene Lesezeichen mit relativen Pfaden, Anlage, Umwandeln, Reihenfolge.
 - [Vorlagen](templates.md) — Markdown-Vorlagen anwenden: Vorlagen-Ordner mit Bereichs-Übersteuerung, Platzhalter mit Dialogen, Cursor-Ziel, Ordner-Regeln.

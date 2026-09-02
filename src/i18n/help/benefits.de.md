@@ -55,6 +55,17 @@ Ein längeres Werk besteht aus vielen Dateien, und ihre Reihenfolge steckt sonst
 
 Ausführlich: [Bücher](books.md).
 
+## Wenn ein Dokument größer wird als eine Datei
+
+Ein Dokument wächst manchmal über das hinaus, was sich flüssig bearbeiten lässt. Statt Ihnen dafür eine Grenze zu setzen, teilt die Anwendung ein solches Dokument beim Speichern selbst in mehrere Dateien und setzt es beim Öffnen wieder zusammen. Sie merken davon nichts: ein durchgehender Text, ein Rückgängig-Verlauf, ein Suchtreffer. Geschnitten wird nur an Überschriften, damit kein Konstrukt auseinandergerissen wird, und jede Teil-Datei bleibt eine gewöhnliche Markdown-Datei, die auch ohne die Anwendung lesbar ist.
+
+- **Die Größe hört auf, eine Grenze zu sein** — auch sehr umfangreiche Dokumente bleiben bedienbar.
+- **Unsichtbar im Arbeitsfluss**: ein Reiter, ein Text, ein Suchergebnis.
+- **Geschnitten wird an Überschriften**, nie mitten in Tabelle, Liste oder Code-Block.
+- **Umkehrbar**: ein Menü-Befehl macht aus den Teilen wieder eine einzige Datei.
+
+Ausführlich: [Teilung großer Dokumente](document-parts.md).
+
 ## Tabellen, die mehr tragen als eine Zeile
 
 Damit endet die Frage nach den Arbeitsformen und beginnt die Frage, was sich in der Datei ausdrücken lässt. Der Markdown-Standard braucht hier keine Erklärung; interessant ist, was darüber hinausgeht, und das beginnt bei der Tabelle. Eine Standard-Tabelle ist zeilenbasiert und nimmt deshalb nur kurzen Text auf. Die Perspective Table nimmt ganze Blöcke in eine Zelle: geschachtelte Listen, mehrere Absätze, Code-Blöcke, Bilder, sogar eine Tabelle in der Tabelle. Aus der Tabelle wird damit ein Gliederungs-Werkzeug für echte Inhalte statt einer Sammlung von Stichworten.

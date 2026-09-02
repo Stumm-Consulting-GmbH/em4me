@@ -47,6 +47,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 
 - [Enlaces](linking.md) — enlaces wiki, anclas, incrustaciones, etiquetas y autocompletado.
 - [Subpáginas](subpages.md) — jerarquía de páginas mediante nombres de archivo: separador ∕ (U+2215), enlaces relativos, ruta de navegación y renombrado en cascada.
+- [División de documentos grandes](document-parts.md) — los documentos muy grandes residen en varios archivos y se tratan como uno solo: umbral, corte en encabezados, nomenclatura con • (U+2022), partes que faltan y reunión.
 - [Vista de grafo](graph.md) — relaciones de enlaces como grafo interactivo: grafo del área como pestaña, grafo del archivo como panel con profundidad y dirección.
 - [Marcadores](bookmarks.md) — guardar archivos en dos secciones: marcadores generales y del área con rutas relativas, creación, conversión, orden.
 - [Plantillas](templates.md) — aplicar plantillas Markdown: carpeta de plantillas con anulación por área, marcadores con diálogos, destino del cursor, reglas de carpeta.

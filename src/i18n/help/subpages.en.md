@@ -12,7 +12,9 @@ Process-A∕Draft.md                  subpage of Process-A
 Process-A∕Implementation∕Detail.md  second level
 ```
 
-You never need to type the character: new subpages are created via **File → More File Functions → New Subpage…** (a dialog asks for the name; the file is created in the folder of the active file and opens as a tab). For creating files manually in the file explorer, copy the character from this page: `∕`
+You never need to type the character: new subpages are created via **File → More File Functions → New Subpage…** (a dialog asks for the name; the file is created in the folder of the active file and opens as a tab). For creating files manually in the file manager, copy the character from this page: `∕`
+
+**Not to be confused with [splitting large documents](document-parts.md).** That mechanism also carries its assignment in the file name, but uses the bullet `•` (U+2022) for it. A file like `Process-A•part-00002.md` is not a subpage but a piece of one single large document; the two characters are deliberately different.
 
 ## Links to subpages
 

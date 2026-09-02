@@ -47,6 +47,7 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 
 - [Liens](linking.md) — liens wiki, ancres, incorporations, tags et autocomplétion.
 - [Sous-pages](subpages.md) — hiérarchie de pages via les noms de fichiers : séparateur ∕ (U+2215), liens relatifs, fil d'Ariane et renommage en cascade.
+- [Division des grands documents](document-parts.md) — les documents très volumineux résident dans plusieurs fichiers et sont traités comme un seul : seuil, coupure aux titres, nommage avec • (U+2022), parties manquantes et réunion.
 - [Vue graphe](graph.md) — relations de liens sous forme de graphe interactif : graphe de l'espace en onglet, graphe du fichier en panneau avec profondeur et direction.
 - [Signets](bookmarks.md) — mémoriser des fichiers en deux sections : signets généraux et de zone avec chemins relatifs, création, conversion, ordre.
 - [Modèles](templates.md) — appliquer des modèles Markdown : dossier de modèles avec priorité de zone, espaces réservés avec dialogues, cible du curseur, règles de dossier.

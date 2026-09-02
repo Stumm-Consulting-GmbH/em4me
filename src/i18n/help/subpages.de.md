@@ -12,7 +12,9 @@ Prozess-A∕Entwurf.md            Unterseite von Prozess-A
 Prozess-A∕Umsetzung∕Detail.md   zweite Ebene
 ```
 
-Das Zeichen muss nie getippt werden: Neue Unterseiten entstehen über **Datei → Weitere Datei-Funktionen → Neue Unterseite…** (Dialog fragt den Namen ab, die Datei entsteht im Ordner der aktiven Datei und öffnet als Tab). Für die manuelle Anlage im Datei-Explorer lässt sich das Zeichen aus dieser Seite kopieren: `∕`
+Das Zeichen muss nie getippt werden: Neue Unterseiten entstehen über **Datei → Weitere Datei-Funktionen → Neue Unterseite…** (Dialog fragt den Namen ab, die Datei entsteht im Ordner der aktiven Datei und öffnet als Tab). Für die manuelle Anlage im Dateimanager lässt sich das Zeichen aus dieser Seite kopieren: `∕`
+
+**Nicht zu verwechseln mit der [Teilung großer Dokumente](document-parts.md).** Auch sie trägt ihre Zuordnung im Dateinamen, verwendet dafür aber den Aufzählungspunkt `•` (U+2022). Eine Datei wie `Prozess-A•part-00002.md` ist keine Unterseite, sondern ein Stück eines einzigen großen Dokuments; die beiden Zeichen sind bewusst verschieden gewählt.
 
 ## Links auf Unterseiten
 

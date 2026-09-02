@@ -778,6 +778,7 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-0774 (Epic 3E-0128): Unterseite loesen — nutzt denselben Umbenennungs-
   // Pfad (renameFile) und braucht deshalb keinen eigenen Kanal zum Main.
   onMenuDetachSubpage: (cb) => ipcRenderer.on('menu:detachSubpage', () => cb()),
+  onMenuRejoinParts: (cb) => ipcRenderer.on('menu:rejoinParts', () => cb()),
   // 4T-0345 (Epic 3E-0062): updateLinks steuert das automatische Link-Update
   // (Standard aktiv; false schaltet es ab, gesetzt vom Dialog aus 4T-0346).
   renameFile: (oldPath, newBasename, updateLinks) =>
@@ -790,6 +791,8 @@ contextBridge.exposeInMainWorld('api', {
   onLinkUpdateApplied: (cb) => ipcRenderer.on('linkUpdate:applied', (_e, payload) => cb(payload)),
   // 4T-0340 (Epic 3E-0061): Nachfahren-Liste fuer den Kaskaden-Hinweis.
   subpageDescendants: (p) => ipcRenderer.invoke('subpage:descendants', p),
+  // 4T-1293 (Epic 3E-0224): Teile eines geteilten Dokuments wieder vereinen.
+  rejoinParts: (p) => ipcRenderer.invoke('parts:rejoin', p),
   // 4T-0341 (Epic 3E-0061): 'Ansicht -> Unterseiten'.
   onMenuToggleSubpages: (cb) => ipcRenderer.on('menu:toggleSubpages', () => cb()),
   onMenuViewChange: (cb) => ipcRenderer.on('menu:viewChange', (_e, mode) => cb(mode)),

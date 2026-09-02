@@ -47,6 +47,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 
 - [Collegamenti](linking.md) — wiki link, ancore, incorporamenti, tag e completamento automatico.
 - [Sottopagine](subpages.md) — gerarchia di pagine tramite i nomi dei file: separatore ∕ (U+2215), link relativi, breadcrumb e rinomina in cascata.
+- [Divisione di documenti grandi](document-parts.md) — i documenti molto grandi risiedono in più file e vengono trattati come uno solo: soglia, taglio ai titoli, denominazione con • (U+2022), parti mancanti e riunione.
 - [Vista grafo](graph.md) — relazioni di collegamento come grafo interattivo: grafo dell'area come scheda, grafo del file come pannello con profondità e direzione.
 - [Segnalibri](bookmarks.md) — memorizzare file in due sezioni: segnalibri generali e dell'area con percorsi relativi, creazione, conversione, ordine.
 - [Modelli](templates.md) — applicare modelli Markdown: cartella dei modelli con priorità dell'area, segnaposto con dialoghi, destinazione del cursore, regole di cartella.

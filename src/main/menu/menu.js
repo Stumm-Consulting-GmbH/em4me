@@ -379,6 +379,14 @@ function buildMenu(win, state, actions) {
             enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
             click: send('menu:detachSubpage'),
           },
+          {
+            // 4T-1293 (Epic 3E-0224): geteiltes Dokument wieder zu einer Datei
+            // machen; ob es geteilt ist, prueft der Renderer wie beim Loesen.
+            label: t('menu.file.rejoinParts'),
+            accelerator: acc('file.rejoinParts'),
+            enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+            click: send('menu:rejoinParts'),
+          },
           { type: 'separator' },
           {
             // 4T-0303 (Epic 3E-0054): PDF-Export des gerenderten Inhalts.

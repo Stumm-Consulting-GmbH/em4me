@@ -418,6 +418,17 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-1293 (Epic 3E-0224): geteiltes Dokument wieder zu einer Datei machen.
+  // Ohne Default-Binding: selten, loescht Dateien, ausdruecklicher Weg (O9).
+  {
+    id: 'file.rejoinParts',
+    defaultBindings: [],
+    labelKey: 'menu.file.rejoinParts',
+    descKey: 'help.shortcut.rejoinParts',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
   // 4T-0303 (Epic 3E-0054): PDF-Export des gerenderten Inhalts. Umschalt-
   // Modifier, weil Strg+P im Edit-Modus von CodeMirror gegrabbt wird
   // (Begruendung aus 4T-0024 uebernommen).

@@ -386,3 +386,48 @@ export async function handleFileRenamed(oldPath, newPath) {
   }
   persistState();
 }
+
+// --- Teile wieder vereinen (4T-1293, Epic 3E-0224) ---------------------------
+// Kommando 'file.rejoinParts' bzw. Menue-Eintrag: macht aus einem geteilten
+// Dokument wieder eine einzelne Datei. Der Befehl ist der EINZIGE Weg dorthin
+// (O9); automatisch geschieht das nie, weil es Rebalancing waere und die Zahl
+// der Teile nie von selbst schrumpfen soll.
+//
+// Bestaetigung und Schwellen-Warnung fuehrt der Haupt-Prozess, wo auch die
+// Teilungs-Ankuendigung sitzt: Beide gehoeren zur selben Fachlichkeit und
+// stuenden im Renderer ein zweites Mal.
+export async function rejoinActiveDocumentParts() {
+  const tab = activeTab();
+  if (!tab || !tab.path || tab.manualPage || tab.systemPage) {
+    showStatusbarHint('rename.noFile', { duration: 2500, error: true });
+    return;
+  }
+  // Ungespeicherte Aenderungen zuerst sichern — dieselbe Semantik wie beim
+  // Umbenennen. Sonst vereinte der Befehl den Platten-Stand, waehrend der
+  // Puffer einen neueren traegt.
+  const paneIdx = state.activePaneIndex;
+  if (tab.dirty && !(await saveTab(paneIdx, state.panes[paneIdx].activeIndex))) return;
+  const res = await withDialog(() => api.rejoinParts(tab.path));
+  if (!res || !res.ok) {
+    if (res && res.code === 'canceled') return;
+    const schluessel =
+      res && res.code === 'not-split'
+        ? 'statusbar.rejoinNotSplit'
+        : res && res.code === 'parts-missing'
+          ? 'statusbar.rejoinPartsMissing'
+          : 'statusbar.rejoinFailed';
+    showStatusbarHint(schluessel, { duration: 5000, error: true });
+    return;
+  }
+  // Der Text hat sich geaendert: Die Zuordnungs-Zeile ist fort. Der Reiter
+  // zieht den geschriebenen Stand nach, sonst meldete das naechste Speichern
+  // einen Konflikt gegen den eigenen Vorgang.
+  if (typeof res.text === 'string') {
+    tab.content = res.text;
+    tab.originalContent = res.text;
+    tab.dirty = false;
+  }
+  invalidatePaneRenderCache();
+  renderTabbar(paneIdx);
+  showStatusbarHint('statusbar.rejoinDone', { duration: 4000 });
+}

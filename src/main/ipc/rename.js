@@ -12,6 +12,15 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+// 4T-1292 (Epic 3E-0224): Die Teile eines geteilten Dokuments ziehen beim
+// Umbenennen mit, und ihre Zuordnungs-Zeile wird nachgezogen.
+const { scanOwnParts, rewritePartBase } = require('../documents/document-parts-io');
+const { isPartBasename, baseBasenameOf } = require('../../shared/document-parts');
+const selbstSchreib = require('../documents/self-write');
+
+// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// Require-Cache), wie in ipc/files.js.
+const markSelfWriting = selbstSchreib.merke;
 
 /**
  * Registriert die Umbenennen- und Unterseiten-Kanaele.
@@ -93,7 +102,18 @@ function registerRenameIpc(handle, deps) {
     if (typeof filePath !== 'string' || !filePath) return { ok: false, files: [] };
     try {
       const files = await scanSubpageDescendants(path.resolve(filePath));
-      return { ok: true, files };
+      // 4T-1292 (Epic 3E-0224, Auflage des Epics): Teil-Dateien erscheinen
+      // NICHT in der Unterseiten-Sektion. Sie sind keine eigenen Dokumente,
+      // sondern Bruchstuecke eines einzigen.
+      //
+      // Der Filter ist noetig, obwohl die Teile ein eigenes Trennzeichen
+      // tragen: Ist eine UNTERSEITE geteilt, beginnt ihr Teil
+      // ('Eltern∕Kind•part-00002') sehr wohl mit dem Unterseiten-Praefix der
+      // Elternseite und faellt damit in deren Nachkommen-Liste. Gefiltert wird
+      // hier und nicht in scanSubpageDescendants, weil das Umbenennen die
+      // Teile im Gegenteil MITNEHMEN muss — Anzeige und Kaskade brauchen
+      // dieselbe Suche, aber verschiedene Ergebnisse.
+      return { ok: true, files: files.filter((f) => !isPartBasename(path.parse(f).name)) };
     } catch {
       return { ok: false, files: [] };
     }
@@ -119,6 +139,16 @@ function registerRenameIpc(handle, deps) {
       const dParsed = path.parse(d);
       const rest = dParsed.name.slice(oldBase.length); // beginnt mit U+2215
       pairs.push({ from: d, to: path.join(dParsed.dir, newBasename + rest + dParsed.ext) });
+    }
+    // 4T-1292 (Epic 3E-0224): Die eigenen Teile eines geteilten Dokuments
+    // ziehen mit. Sie tragen ein anderes Trennzeichen als die Unterseiten und
+    // fallen deshalb NICHT in die Nachkommen-Suche oben — ohne diesen Zusatz
+    // bliebe 'Notizen•part-00002.md' liegen, waehrend seine Kopf-Datei
+    // 'Merkzettel.md' hiesse, und beide fänden nie wieder zueinander.
+    for (const teil of await scanOwnParts(absolute)) {
+      const tParsed = path.parse(teil);
+      const rest = tParsed.name.slice(oldBase.length); // beginnt mit U+2022
+      pairs.push({ from: teil, to: path.join(tParsed.dir, newBasename + rest + tParsed.ext) });
     }
     // Kollisions-Pruefung ueber alle Ziele VOR der ersten Umbenennung.
     for (const pair of pairs) {
@@ -153,6 +183,26 @@ function registerRenameIpc(handle, deps) {
       renamedCount++;
     }
     await sendBookStateForDirs(bookDirs);
+    // 4T-1292 (Epic 3E-0224): Die Zuordnungs-Zeile traegt den Grundnamen und
+    // wird jetzt nachgezogen — in der Kopf-Datei wie in jedem Teil. Sie ist die
+    // Wahrheit (F2), der Dateiname allein genuegt nicht: Ohne den Nachzug
+    // zeigten die Teile auf ein Dokument, das es unter diesem Namen nicht mehr
+    // gibt, und der Lese-Weg fuegte sie nicht mehr zusammen.
+    //
+    // Erfasst werden alle umbenannten Dateien; wer keine Zuordnungs-Zeile
+    // traegt, wird uebergangen. Damit sind auch die Teile einer geteilten
+    // UNTERSEITE abgedeckt, deren Grundname sich ebenfalls geaendert hat — ihr
+    // neuer Grundname steht in ihrem eigenen neuen Dateinamen.
+    for (const pair of pairs) {
+      // baseBasenameOf liefert bei einem Teil seinen Grundnamen und sonst den
+      // Namen selbst — fuer die Kopf-Datei ist das ihr neuer Name, fuer einen
+      // Teil der neue Name seiner Kopf-Datei.
+      const neuerBase = baseBasenameOf(path.parse(pair.to).name);
+      const res = await rewritePartBase([pair.to], neuerBase, { markSelfWriting });
+      if (!res.ok) {
+        console.error('[teile] Zuordnungs-Zeile nicht nachgezogen:', res.pfad, res.error);
+      }
+    }
     // 4T-0345 (Epic 3E-0062): eingehende Links auf die umbenannten Dateien
     // anpassen (Standard aktiv; der Dialog aus 4T-0346 schaltet updateLinks um).
     // Best-Effort nach vollzogener Umbenennung: ein Fehler hier laesst das

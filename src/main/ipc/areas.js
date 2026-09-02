@@ -15,6 +15,8 @@ const { createDemoAreaAt } = require('../area/demo-area.js');
 // 4T-0645 (Epic 3E-0127): Zustands-Vorlage der Beispiel-Sammlung.
 const { loadDemoWorkspaces } = require('../area/demo-workspace.js');
 const { isInsideArea, sortedAreaListing, sanitizeNewFileName } = require('../area/area-path');
+// 4T-1293 (Epic 3E-0224): Teil-Dateien bleiben aus der Ordner-Liste heraus.
+const { isPartBasename } = require('../../shared/document-parts');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
 /**
@@ -218,7 +220,18 @@ function registerAreasIpc(handle, deps) {
         entries.map((e) => ({ name: e.name, isDir: e.isDirectory() })),
         isMarkdownPath,
       );
-      return { ok: true, dirs: listing.dirs, files: listing.files };
+      // 4T-1293 (Epic 3E-0224, Entscheidung des Product Owners vom
+      // 2026-08-31): Teil-Dateien erscheinen nicht in der Ordner-Liste. Sie
+      // sind keine eigenen Dokumente, und ein Klick auf einen Teil oeffnet
+      // ohnehin dasselbe Gesamt-Dokument — der Eintrag waere redundant und
+      // widerspraeche an der sichtbarsten Stelle der Zusage, dass die
+      // Anwendung die Teile als EIN Dokument fuehrt. Die Spur der Teilung
+      // bleibt, wo F6 sie vorsieht (Zuordnungs-Zeile, Eigenschaften-Panel,
+      // Historie), und im Datei-Verwalter des Betriebssystems ohnehin.
+      const dateien = listing.files.filter(
+        (name) => !isPartBasename(name.replace(/\.[^./]+$/, '')),
+      );
+      return { ok: true, dirs: listing.dirs, files: dateien };
     } catch (err) {
       console.warn('Bereichs-Listing fehlgeschlagen:', dirPath, err && err.message);
       return { ok: true, dirs: [], files: [] };

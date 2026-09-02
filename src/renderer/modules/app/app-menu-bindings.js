@@ -21,6 +21,7 @@ import {
   createSubpageForActiveFile,
   detachActiveSubpage,
   handleFileRenamed,
+  rejoinActiveDocumentParts,
   renameActiveFile,
 } from '../views/file-actions.js';
 import { handleLinkUpdateApplied } from '../views/link-update.js';
@@ -114,6 +115,8 @@ export function bindMenuEvents() {
   api.onMenuRenameFile(() => renameActiveFile());
   // 4T-0774 (Epic 3E-0128): 'Datei -> Von der uebergeordneten Seite loesen...'.
   api.onMenuDetachSubpage(() => detachActiveSubpage());
+  // 4T-1293 (Epic 3E-0224): 'Datei -> Teile wieder vereinen...'.
+  api.onMenuRejoinParts(() => rejoinActiveDocumentParts());
   api.onFileRenamed((payload) => {
     if (payload) handleFileRenamed(payload.oldPath, payload.newPath);
   });

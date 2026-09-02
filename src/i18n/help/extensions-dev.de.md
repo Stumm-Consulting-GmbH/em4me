@@ -7,7 +7,7 @@ Externe Erweiterungen sind selbst erstellte Pakete, die Rendering und Oberfläch
 
 ## Paket-Aufbau
 
-Ein Erweiterungs-Paket ist ein Ordner im Erweiterungs-Verzeichnis des Nutzerprofils. Der Zugang „Ordner öffnen" im Einstellungs-Bereich Erweiterungen (extern) öffnet das Verzeichnis im Datei-Explorer.
+Ein Erweiterungs-Paket ist ein Ordner im Erweiterungs-Verzeichnis des Nutzerprofils. Der Zugang „Ordner öffnen" im Einstellungs-Bereich Erweiterungen (extern) öffnet das Verzeichnis im Dateimanager.
 
 ```text
 <Nutzerprofil>/extensions/

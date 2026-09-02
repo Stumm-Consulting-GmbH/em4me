@@ -63,4 +63,4 @@ Ordner-Regeln füllen neue Dateien automatisch: Jede Regel ordnet einem **Zielor
 - Der **Vorlagen-Ordner selbst ist ausgenommen** — neue Vorlagen bleiben leer.
 - Wählt man explizit «Neue Datei aus Vorlage», hat die gewählte Vorlage Vorrang; die Regel greift nicht zusätzlich.
 - Ein Dialog-Abbruch legt die Datei **leer** an (die Anlage selbst war gewollt) und meldet einen Hinweis.
-- Dateien, die außerhalb der App entstehen (etwa im Datei-Explorer), durchlaufen die Regeln nicht.
+- Dateien, die außerhalb der App entstehen (etwa im Dateimanager), durchlaufen die Regeln nicht.

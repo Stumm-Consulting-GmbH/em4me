@@ -34,6 +34,12 @@ const HELP_FEATURE_GROUPS = [
       // hinter dem Umbenennen-Cluster (gleiche Datei-Operation über einen
       // neuen Bedien-Zugang).
       'help.feature.titleLine',
+      // 4T-1294 (Epic 3E-0224): Teilung großer Dokumente und ihr Gegenstück.
+      // Beides sind Operationen am Datei-Bestand des Anwenders und stehen
+      // deshalb im Verwaltungs-Cluster; die Teilung zuerst, weil das
+      // Wiedervereinen sie voraussetzt.
+      'help.feature.documentSplit',
+      'help.feature.rejoinParts',
       // 4T-0429 (Epic 3E-0080): Vorlagen und Ordner-Regeln — Datei-Anlage-
       // Funktionen, direkt hinter dem Anlage-/Verwaltungs-Cluster.
       'help.feature.templates',

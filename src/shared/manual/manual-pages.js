@@ -55,6 +55,10 @@ const MANUAL_PAGES = [
   // 4T-0342 (Epic 3E-0061): Unterseiten (U+2215-Namens-Konvention,
   // relative Links, Anlage, Breadcrumb/Sektion, Umbenennen mit Kaskade).
   { id: 'subpages', titleKey: 'manual.page.subpages.title', source: 'bundled' },
+  // 4T-1294 (Epic 3E-0224): Teilung großer Dokumente. Steht unmittelbar hinter
+  // den Unterseiten, weil beide den Datei-Namen tragen und der Anwender die
+  // Trennzeichen sonst verwechselt; die Seite grenzt sie ausdrücklich ab.
+  { id: 'document-parts', titleKey: 'manual.page.documentParts.title', source: 'bundled' },
   // 4T-0457 (Epic 3E-0084): Graphenansicht (Bereichs-Graph-Tab und Datei-
   // Graph-Panel, Bedienung, Pfeil-Semantik, Tiefe/Richtung, Grenzen).
   { id: 'graph', titleKey: 'manual.page.graph.title', source: 'bundled' },

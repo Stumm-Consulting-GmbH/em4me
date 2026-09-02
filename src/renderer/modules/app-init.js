@@ -696,7 +696,6 @@ async function restorePanes(saved) {
     const tabSettings = Array.isArray(entry.tabSettings) ? entry.tabSettings : [];
     // Migration: alter Pane-viewMode → für alle Tabs der Pane übernehmen.
     const legacyViewMode = entry.viewMode;
-
     for (let j = 0; j < paths.length; j++) {
       const p = paths[j];
       try {
@@ -706,6 +705,7 @@ async function restorePanes(saved) {
         if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
         const settings = tabSettings[j] || {};
         if (legacyViewMode && !settings.viewMode) settings.viewMode = legacyViewMode;
+        Object.assign(settings, { readOnly: !!data.nurLesen, fehlendeTeile: data.fehlend });
         state.panes[i].tabs.push(createTab(data.path, data.content, settings));
       } catch {
         // W-14 (4T-0308): Tab nicht still verwerfen. Der Fehler trifft nicht

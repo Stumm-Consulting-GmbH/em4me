@@ -55,6 +55,17 @@ Un'opera lunga è fatta di molti file, e il loro ordine sta altrimenti nel nome 
 
 In dettaglio: [Libri](books.md).
 
+## Quando un documento supera le dimensioni di un file
+
+A volte un documento cresce oltre ciò che si riesce a modificare con scorrevolezza. Invece di importi un limite, l’applicazione divide da sé un documento simile in più file al salvataggio e lo riunisce all’apertura. Tu non te ne accorgi: un testo continuo, una cronologia di annullamento, un risultato di ricerca. Il taglio avviene solo in corrispondenza dei titoli, così che nessun costrutto venga spezzato, e ogni file di parte resta un normale file Markdown, leggibile senza l’applicazione.
+
+- **La dimensione smette di essere un limite**: anche i documenti molto ampi restano utilizzabili.
+- **Invisibile nel tuo lavoro**: una scheda, un testo, un risultato di ricerca.
+- **Il taglio avviene ai titoli**, mai in mezzo a una tabella, un elenco o un blocco di codice.
+- **Reversibile**: un comando di menu riporta le parti a un unico file.
+
+In dettaglio: [Divisione di documenti grandi](document-parts.md).
+
 ## Tabelle che reggono più di una riga
 
 Qui finisce la domanda sui modi di lavorare e comincia quella su ciò che il file può esprimere. Lo standard Markdown non ha bisogno di spiegazioni; conta ciò che va oltre, e comincia dalla tabella. Una tabella standard è basata sulla riga e accoglie perciò solo testo breve. La Perspective Table accoglie interi blocchi in una cella: elenchi annidati, più paragrafi, blocchi di codice, immagini e perfino una tabella dentro la tabella. La tabella diventa così uno strumento di struttura per contenuti veri invece di una raccolta di parole chiave.

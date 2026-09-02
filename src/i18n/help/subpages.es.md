@@ -14,6 +14,8 @@ Proceso-A∕Implementacion∕Detalle.md  segundo nivel
 
 El carácter nunca hay que teclearlo: las subpáginas nuevas se crean con **Archivo → Más funciones de archivo → Nueva subpágina…** (un diálogo pide el nombre; el archivo se crea en la carpeta del archivo activo y se abre como pestaña). Para crear archivos manualmente en el explorador, copie el carácter desde esta página: `∕`
 
+**No confundir con la [división de documentos grandes](document-parts.md).** También ella lleva su pertenencia en el nombre del archivo, pero con la viñeta `•` (U+2022). Un archivo como `Proceso-A•part-00002.md` no es una subpágina, sino un trozo de un único documento grande; los dos caracteres son deliberadamente distintos.
+
 ## Enlaces a subpáginas
 
 En los enlaces wiki se escribe siempre la barra normal; la aplicación la traduce al nombre de archivo. Los destinos relativos apuntan a la propia subpágina o a la página padre y funcionan por tanto con independencia del nombre de la página actual:

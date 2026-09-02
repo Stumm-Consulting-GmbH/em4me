@@ -14,6 +14,8 @@ Processus-A∕Realisation∕Detail.md    deuxième niveau
 
 Le caractère ne doit jamais être saisi : les nouvelles sous-pages se créent via **Fichier → Autres fonctions de fichier → Nouvelle sous-page…** (une boîte de dialogue demande le nom ; le fichier est créé dans le dossier du fichier actif et s'ouvre comme onglet). Pour créer un fichier manuellement dans l'explorateur, copiez le caractère depuis cette page : `∕`
 
+**À ne pas confondre avec la [division des grands documents](document-parts.md).** Elle aussi inscrit son appartenance dans le nom du fichier, mais avec la puce `•` (U+2022). Un fichier comme `Processus-A•part-00002.md` n'est pas une sous-page mais un morceau d'un seul grand document ; les deux caractères sont volontairement différents.
+
 ## Liens vers des sous-pages
 
 Dans les liens wiki, on écrit toujours la barre oblique normale ; l'application la traduit dans le nom de fichier. Les cibles relatives pointent vers la propre sous-page ou la page parente et fonctionnent donc indépendamment du nom de la page actuelle :

@@ -12,7 +12,9 @@ Processo-A∕Bozza.md                  sottopagina di Processo-A
 Processo-A∕Realizzazione∕Dettaglio.md  secondo livello
 ```
 
-Il carattere non va mai digitato: le nuove sottopagine si creano con **File → Altre funzioni file → Nuova sottopagina…** (una finestra chiede il nome; il file viene creato nella cartella del file attivo e si apre come scheda). Per creare file manualmente nell'esplora risorse, copiare il carattere da questa pagina: `∕`
+Il carattere non va mai digitato: le nuove sottopagine si creano con **File → Altre funzioni file → Nuova sottopagina…** (una finestra chiede il nome; il file viene creato nella cartella del file attivo e si apre come scheda). Per creare file manualmente nel gestore file, copiare il carattere da questa pagina: `∕`
+
+**Da non confondere con la [divisione di documenti grandi](document-parts.md).** Anche essa porta la propria appartenenza nel nome del file, ma con il punto elenco `•` (U+2022). Un file come `Processo-A•part-00002.md` non è una sottopagina, bensì un pezzo di un unico documento grande; i due caratteri sono volutamente diversi.
 
 ## Link alle sottopagine
 

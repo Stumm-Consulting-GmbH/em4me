@@ -38,6 +38,7 @@ import { activateTab, closeTab, moveActiveTabBetweenPanes, openDialog } from '..
 import {
   createSubpageForActiveFile,
   detachActiveSubpage,
+  rejoinActiveDocumentParts,
   renameActiveFile,
 } from '../views/file-actions.js';
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
@@ -285,6 +286,10 @@ export const commandHandlers = {
   // loesen (Hinweis, wenn die aktive Datei keine Unterseite ist).
   'file.detachSubpage': () => {
     detachActiveSubpage();
+  },
+  // 4T-1293 (Epic 3E-0224): geteiltes Dokument wieder zu einer Datei machen.
+  'file.rejoinParts': () => {
+    rejoinActiveDocumentParts();
   },
   'file.save': () => {
     saveCurrentTab();

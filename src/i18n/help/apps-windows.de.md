@@ -86,7 +86,7 @@ Beim Öffnen gelten drei Regeln:
 
 ### Harte Grenzen
 
-Innerhalb einer Bereichs-Applikation ist der Bereich die Grenze: Der Öffnen-Dialog startet im Bereich und weist eine Auswahl außerhalb ab, „Zuletzt geöffnet" zeigt nur Bereichs-Dateien, „Speichern unter" akzeptiert nur Ziele im Bereich, und auch per Drag & Drop kommt keine fremde Datei herein. Dateien aus dem Datei-Explorer öffnen sich immer in einer Applikation ohne Bereich.
+Innerhalb einer Bereichs-Applikation ist der Bereich die Grenze: Der Öffnen-Dialog startet im Bereich und weist eine Auswahl außerhalb ab, „Zuletzt geöffnet" zeigt nur Bereichs-Dateien, „Speichern unter" akzeptiert nur Ziele im Bereich, und auch per Drag & Drop kommt keine fremde Datei herein. Dateien aus dem Dateimanager öffnen sich immer in einer Applikation ohne Bereich.
 
 Links, deren Ziel außerhalb des Bereichs liegt, werden mit einer Warn-Unterstreichung markiert; der Tooltip nennt den vollen Ziel-Pfad. Ein Klick öffnet nicht, sondern meldet den Grund in der Statusbar. Eingebettete Bilder werden weiterhin angezeigt, auch wenn sie außerhalb liegen; die Grenze gilt für das Öffnen von Dateien, nicht für das Rendern.
 

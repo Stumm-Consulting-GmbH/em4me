@@ -496,6 +496,12 @@ export function createTab(path, content, settings = {}) {
     // oder null. Wird nicht ueber settings gesetzt — die Sitzungs-
     // Wiederherstellung weist Gruppen explizit zu (restoreGroupsIntoPane).
     groupId: null,
+    // 4T-1291/4T-1292 (Epic 3E-0224): Nur-Lese-Zustand eines geteilten
+    // Dokuments (fehlender Teil oder abgelehnte Teilung). Bewusst NICHT
+    // persistiert — er haengt am Platten-Bestand und wird bei jedem Oeffnen neu
+    // ermittelt, damit ein zurueckgelegter Teil den Reiter wieder freigibt.
+    readOnly: !!settings.readOnly,
+    fehlendeTeile: Array.isArray(settings.fehlendeTeile) ? settings.fehlendeTeile : null,
   };
 }
 

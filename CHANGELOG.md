@@ -14,6 +14,81 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.126.0.2198] - 2026-09-02 — Dokumente ohne Größengrenze
+
+Epic 3E-0224
+(4T-1289, 4T-1290, 4T-1291, 4T-1292, 4T-1293, Handbuch 4T-1294, Sammeltask
+4T-1295), entstanden aus einem Befund des Product Owners vom 2026-08-25: Ein
+Dokument jenseits einer bestimmten Größe machte den Wechsel in den
+Änderungsmodus unbedienbar, und was in **anderen** Reitern ungespeichert war,
+ging dabei verloren. Statt eine Größengrenze zu setzen, teilt die Anwendung ein
+solches Dokument beim Speichern in mehrere Dateien und führt sie beim Öffnen
+wieder als eines. Jede Teil-Datei bleibt eine gewöhnliche Markdown-Datei.
+
+### Neu
+
+- **Sehr große Dokumente werden beim Speichern geteilt und beim Öffnen wieder
+  zusammengesetzt** (4T-1289, 4T-1290, 4T-1291). Die Schwelle liegt bei einem
+  Megabyte, gemessen in Byte; das Anzeigen und Lesen ist nie betroffen.
+  Geschnitten wird ausschließlich vor einer Überschrift der obersten zwei Ebenen
+  an Spalte 0 — damit liegt nie ein Konstrukt über einer Grenze, ohne dass eine
+  eigene Erkennung für Tabellen, Listen und Callouts nötig wäre. Findet sich
+  keine solche Überschrift, bleibt das Dokument ungeteilt und der Anwender
+  erfährt den Grund. Die Folgeteile heißen `Name•part-00002.md` mit dem
+  Aufzählungspunkt als Trennzeichen, bewusst einem anderen als dem der
+  Unterseiten; ihre Zugehörigkeit steht als Zeile im Metadaten-Block jeder
+  Datei und ist damit die Wahrheit, nicht der Dateiname. Das erste Teilen wird
+  angekündigt und lässt sich mit «nur lesen» ablehnen; im Hintergrund-Speichern
+  wird nie ungefragt geteilt.
+- **Ein geteiltes Dokument behält beim Wachsen seine Grenzen** (4T-1291). Ein
+  gewöhnliches Speichern schreibt genau **eine** Teil-Datei neu, weil die
+  bestehenden Grenzen erhalten bleiben; ein neuer Teil entsteht nur am Ende.
+  Ohne diese Regel verschöbe jede kleine Einfügung sämtliche folgenden Grenzen,
+  und jedes Speichern schriebe das ganze Dokument neu.
+- **Die Teile wieder vereinen** (4T-1293) über «Datei → Weitere Datei-Funktionen
+  → Teile wieder vereinen…». Der Befehl läuft ausschließlich auf diese
+  Anforderung hin, nie von selbst. Liegt das Ergebnis über der Schwelle, warnt
+  er vorher, dass beim nächsten Speichern erneut geteilt wird.
+
+### Geändert
+
+- **Die Suche führt ein geteiltes Dokument als eines** (4T-1293). Ein Treffer in
+  einem hinteren Teil erscheint als Treffer des Gesamt-Dokuments, ohne Teil-Angabe
+  im Namen, und der Sprung öffnet es an der Fundstelle. Zusammengeführt wird im
+  Volltext-Vorrat der Bereichs-Suche; oberhalb ihres Speicher-Deckels von 50 MB
+  wird nur der Name gezogen.
+- **Die Teile erscheinen in keiner Datei-Liste der Anwendung** (4T-1292,
+  4T-1293), weder in der Unterseiten-Sektion noch in der Ordner-Liste des
+  Bereichs-Panels. Im Dateimanager des Betriebssystems bleiben sie sichtbar.
+- **Der Konflikt-Schutz des Schreibwegs vergleicht gegen alle Teile** (4T-1291).
+  Zuvor verglich er gegen die Kopf-Datei, während der Reiter den
+  zusammengesetzten Text hält; bei einem geteilten Dokument meldete deshalb jedes
+  Speichern einen Konflikt, den es nicht gab.
+
+### Behoben
+
+- **Fehlt ein Teil, öffnet das Dokument nur lesend** (4T-1292) und nennt die
+  fehlende Position; Speichern bleibt gesperrt, weil ein Schreiben aus dem
+  unvollständigen Text den fehlenden Teil endgültig verlöre. Ein zurückgelegter
+  Teil gibt den Reiter ohne Zutun wieder frei. Ein fehlender **letzter** Teil ist
+  dabei nur am Verzeichnis der Teile in der Begleitdatei erkennbar — keine Datei
+  kennt sonst die Soll-Anzahl.
+- **Ein von außen umbenanntes geteiltes Dokument ließ sich gar nicht mehr
+  öffnen** (4T-1292). Der Lese-Weg suchte die Kopf-Datei unter dem Namen aus der
+  Zuordnungs-Zeile und scheiterte mit einem Dateifehler auf einen Namen, den der
+  Anwender längst geändert hatte. Jetzt gilt: Zeigt der Name ins Leere, die
+  geöffnete Datei trägt aber Position 1, dann ist sie die Kopf-Datei.
+- **Umbenennen nimmt die Teile mit** (4T-1292), samt Nachzug ihrer
+  Zuordnungs-Zeile in jeder Datei.
+
+### Doku
+
+- **Neue Handbuch-Seite «Teilung großer Dokumente»** in fünf Sprachfassungen
+  (4T-1294), im Block «Vernetzen und organisieren» hinter den Unterseiten; beide
+  Seiten grenzen sich wechselseitig ab, weil die Trennzeichen `∕` und `•` die
+  naheliegendste Verwechslung sind. Zwei neue Einträge im Funktions-Katalog
+  (Teilung und Wiedervereinen), die Nutzen-Darstellung in Handbuch und Webseite
+  um einen Abschnitt ergänzt, dazu 21 neue Übersetzungs-Schlüssel je Sprache.
 ## [1.125.1.2179] - 2026-09-01 — Darstellung der Aufgaben-Zeilen im Live-Modus
 
 Epic 3E-0240

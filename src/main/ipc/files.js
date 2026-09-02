@@ -12,6 +12,16 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('../documents/self-write');
+// 4T-1290 (Epic 3E-0224): Zusammensetzen geteilter Dokumente beim Lesen.
+// 4T-1291: Zerlegen beim Schreiben.
+const {
+  readAssembledDocument,
+  readStateForSave,
+  writeDocumentParts,
+  rejoinDocument,
+} = require('../documents/document-parts-io');
+const { planeZerlegung, ueberSchwelle, DOKUMENT_SCHWELLE } = require('../../shared/document-split');
+const { assembleParts } = require('../../shared/document-assembly');
 
 // 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -124,19 +134,44 @@ function registerFilesIpc(handle, deps) {
       // gegen tab.originalContent schlug bei CRLF-Dateien sonst sofort an —
       // selbst ohne User-Aenderung wurde der Tab als geaendert markiert.
       const content = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+      // 4T-1290 (Epic 3E-0224): Ist das Dokument geteilt, wird es HIER zu
+      // einem Dokument zusammengesetzt. Dies ist die einzige Lese-Stelle der
+      // Anwendung; alles dahinter — Editor, Historie, Beobachtung, Suche —
+      // sieht deshalb nur ein vollstaendiges Dokument und muss von Teilen
+      // nichts wissen. Genau das ist die zugesicherte Unsichtbarkeit. Ein
+      // ungeteiltes Dokument nimmt den schnellen Weg und kostet nichts.
+      const doc = await readAssembledDocument(absolute, content, { markSelfWriting });
+      if (!doc.ok) {
+        return { ok: false, error: doc.error };
+      }
+      // Wurde ein FOLGETEIL geoeffnet, ist der Pfad der der Kopf-Datei: Ein
+      // Reiter auf einem Bruchstueck waere das Gegenteil der Zusicherung.
+      const docPath = doc.path;
+      const docText = doc.text;
       // Kein pushRecent hier — file:read deckt auch passive Pfade ab
       // (Sitzungs-Restore, Auto-Reload). Aktives Oeffnen meldet sich separat
       // ueber recent:push aus dem Renderer.
-      watchFile(absolute, event.sender.id);
+      watchFile(docPath, event.sender.id);
       // 4T-0331 (Epic 3E-0060): Hash-Abgleich beim Oeffnen — Fremd-
       // Aenderungen landen sofort als external-Paket in der .mdd.
       // Fire-and-forget: das Oeffnen wartet nicht auf die Historie.
       const readOwner = senderWindow(event);
       void (async () => {
-        const resolved = await resolveHistoryFor(readOwner, absolute, content);
-        if (resolved.effective) await recordMddExternalOnOpen(readOwner, absolute, content);
+        const resolved = await resolveHistoryFor(readOwner, docPath, docText);
+        if (resolved.effective) await recordMddExternalOnOpen(readOwner, docPath, docText);
       })();
-      return { ok: true, path: absolute, content };
+      // 4T-1292: Fehlt ein Teil, oeffnet das Dokument NUR LESEND und nennt die
+      // fehlenden Positionen. Der Anwender sieht damit, dass er ein
+      // unvollstaendiges Dokument vor sich hat, statt es fuer ein kuerzeres zu
+      // halten; Speichern sperrt zusaetzlich der Schreib-Weg selbst.
+      const fehlend = Array.isArray(doc.fehlend) ? doc.fehlend : [];
+      return {
+        ok: true,
+        path: docPath,
+        content: docText,
+        nurLesen: fehlend.length > 0 ? 'partsMissing' : undefined,
+        fehlend: fehlend.length > 0 ? fehlend : undefined,
+      };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }
@@ -218,43 +253,178 @@ function registerFilesIpc(handle, deps) {
       // Datei > Bereich > App aus 4T-0332).
       const owner = senderWindow(event);
       const recordHistory = (await resolveHistoryFor(owner, absolute, normalized)).effective;
-      // Ein Lesevorgang deckt alle drei Zwecke ab: Aenderungsprotokoll,
-      // Konflikt-Pruefung und Sicherung der ueberschriebenen Fassung.
-      let previousText = null;
-      if (recordHistory || expected !== null || force) {
-        const stand = await saveGuard.readDiskState(absolute);
-        // Laesst sich der Stand nicht lesen, obwohl er geprueft werden soll,
-        // wird nicht blind geschrieben (eine fehlende Datei ist Neuanlage).
-        if (!stand.ok && expected !== null && stand.code !== 'ENOENT') {
-          return { ok: false, error: stand.error };
-        }
-        previousText = stand.ok ? stand.text : null;
+      // Ein Lesevorgang deckt alle Zwecke ab: Aenderungsprotokoll,
+      // Konflikt-Pruefung, Sicherung der ueberschriebenen Fassung und seit
+      // 4T-1291 (Epic 3E-0224) den Bestand der Teile eines geteilten Dokuments.
+      //
+      // Er laeuft jetzt IMMER, nicht mehr nur bei einem der drei ersten
+      // Gruende: Ob ein Dokument geteilt ist, steht in seiner Datei, und wer
+      // das nicht liest, schriebe den zusammengesetzten Text in die Kopf-Datei
+      // und liesse die Folgeteile daneben liegen. Der Regelfall kostet dadurch
+      // nichts Zusaetzliches — ohne Zuordnungs-Zeile kehrt der Lese-Weg sofort
+      // zurueck, ohne Verzeichnis-Durchlauf und ohne Begleitdatei.
+      const stand = await readStateForSave(absolute);
+      // Laesst sich der Stand nicht lesen, obwohl er geprueft werden soll,
+      // wird nicht blind geschrieben (eine fehlende Datei ist Neuanlage).
+      if (!stand.ok && expected !== null && stand.code !== 'ENOENT') {
+        return { ok: false, error: stand.error };
       }
+      const previousText = stand.ok ? stand.text : null;
+      // 4T-1292 (Epic 3E-0224): Fehlt ein Teil, wird NICHT geschrieben. Ein
+      // Schreiben aus dem unvollstaendigen Puffer verloere den fehlenden Teil
+      // endgueltig, und ein nur verspaetet eintreffender Teil (Synchronisation)
+      // ergaebe hinterher einen Mischtext. Die Sperre sitzt hier im
+      // Haupt-Prozess als zweite Linie hinter dem Nur-Lese-Zustand des Reiters:
+      // Auch ein Aufrufer, der davon nichts weiss, kommt nicht daran vorbei.
+      if (stand.ok && stand.fehlend && stand.fehlend.length > 0) {
+        return { ok: false, reason: 'partsMissing', fehlend: stand.fehlend };
+      }
+      // Bei einem geteilten Dokument ist der Vergleichsstand der
+      // ZUSAMMENGESETZTE Stand aller Teile. Gegen die Kopf-Datei allein
+      // verglichen meldete jedes Speichern einen Konflikt, den es nicht gibt.
       // Ohne `expected` meldet istKonflikt nie einen Konflikt; der reine
       // force-Aufruf nach dem Dialog laeuft deshalb ungeprueft durch.
       if (saveGuard.istKonflikt(previousText, expected)) {
         return { ok: false, reason: 'conflict' };
       }
-      markSelfWriting(absolute, normalized);
-      await fs.writeFile(absolute, normalized, { encoding: 'utf8' });
+      const zielPfad = stand.ok && stand.headPath ? stand.headPath : absolute;
+      const plan = planeZerlegung({
+        text: normalized,
+        base: stand.ok ? stand.basisName : path.parse(absolute).name,
+        schwelle: DOKUMENT_SCHWELLE,
+        bestand: stand.ok && stand.geteilt ? stand.teile : [],
+      });
+      if (plan.ok === false) return { ok: false, error: plan.error };
+
+      let geschriebenerText = normalized;
+      if (plan.geteilt) {
+        // Zwei Auflagen zur Sichtbarkeit: Das ERSTE Teilen einer Datei, die dem
+        // Anwender gehoert, wird angekuendigt, mit «nur lesen» als Ausweg.
+        // Weitere Teile kommen still dazu, weil er die Teilung dann bereits
+        // angenommen hat (Entscheidung des Product Owners vom 2026-08-31).
+        if (plan.neuGeteilt) {
+          // Im Hintergrund wird NICHT gefragt und nicht geteilt. Ein Fenster,
+          // das ungefragt aufspringt, waehrend der Anwender in einer anderen
+          // Datei tippt, waere ein Uebergriff — dieselbe Ueberlegung, aus der
+          // das Hintergrund-Speichern schon den Konflikt-Dialog unterlaesst
+          // (performAutoSave in views.js). Nichts geht verloren: Der Reiter
+          // bleibt geaendert, und beim Speichern von Hand kommt die Frage.
+          if (opts && opts.hintergrund) return { ok: false, reason: 'splitPending' };
+          const wahl = await frageTeilung(owner, absolute);
+          if (wahl !== 'split') return { ok: false, reason: 'readOnly' };
+        }
+        // Beruehrt das Schreiben mehr als eine Datei, wird der alte
+        // Gesamt-Stand vorher in die Historie gelegt — auch bei abgeschalteter
+        // Historisierung. Es gibt keine Reihenfolge, die zwei Dateien atomar
+        // schreibt; die Sicherung macht aus einer nicht umkehrbaren Lage eine
+        // umkehrbare, genau wie beim erzwungenen Ueberschreiben (AK6).
+        const mehrDateien = plan.teile.filter((t) => t.geaendert).length > 1;
+        if (mehrDateien && !recordHistory && previousText !== null) {
+          await recordMddOnSave(owner, zielPfad, previousText, previousText);
+        }
+        const res = await writeDocumentParts(zielPfad, plan.teile, { markSelfWriting });
+        if (!res.ok) return { ok: false, error: res.error };
+        // Der geschriebene Stand ist nicht der Puffer: Beim ersten Teilen
+        // bekommt die Kopf-Datei ihre Zuordnungs-Zeile, das Dokument ist also
+        // um diese Zeile laenger. Der Aufrufer muss den Stand uebernehmen,
+        // sonst meldet das naechste Speichern einen Konflikt gegen sich selbst.
+        geschriebenerText = assembleParts(
+          plan.teile.map((t) => ({ index: t.index, content: t.text })),
+        ).text;
+      } else {
+        markSelfWriting(zielPfad, normalized);
+        await fs.writeFile(zielPfad, normalized, { encoding: 'utf8' });
+      }
       // Beim erzwungenen Schreiben wird die ueberschriebene fremde Fassung
       // auch dann in die Historie gelegt, wenn diese abgeschaltet ist (ab Werk
       // ist sie das). Ohne .mdd legt recordSave einen Anker mit genau diesem
       // Stand an; die Fassung ist damit ueber die Historien-Ansicht abrufbar,
       // und aus einer Entscheidung unter Druck wird eine umkehrbare.
       if (recordHistory || force) {
-        await recordMddOnSave(owner, absolute, previousText, normalized);
+        await recordMddOnSave(owner, zielPfad, previousText, geschriebenerText);
       }
       // `gesichert` sagt dem Aufrufer, ob wirklich eine fremde Fassung
       // ueberschrieben und dabei weggelegt wurde. Nur dann ist der Hinweis
       // auf die Historie wahr; bei unveraenderter Datei waere er eine
       // Behauptung ohne Gegenstand.
       const gesichert = force && previousText !== null && previousText !== normalized;
-      return { ok: true, path: absolute, gesichert };
+      return {
+        ok: true,
+        path: zielPfad,
+        gesichert,
+        geteilt: !!plan.geteilt,
+        // Der tatsaechlich geschriebene Gesamt-Stand, wenn er vom Puffer
+        // abweicht; sonst nichts, damit der Regelfall nichts uebertraegt.
+        content: geschriebenerText === normalized ? undefined : geschriebenerText,
+        // Hinweis fuer die Statusleiste: Das Dokument ist ueber der Schwelle,
+        // hat aber keine Ueberschrift der obersten zwei Ebenen, an der sich
+        // schneiden liesse (AK3, O5). Es bleibt ungeteilt.
+        hinweis: plan.grund === 'kein-schnittpunkt' ? 'kein-schnittpunkt' : undefined,
+      };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }
   });
+
+  // 4T-1293 (Epic 3E-0224): Die Teile eines Dokuments wieder vereinen.
+  // Ausschliesslich auf ausdrueckliche Aktion des Anwenders (O9); es gibt
+  // keinen Weg hierher, den nicht er selbst ausloest.
+  handle('parts:rejoin', async (event, filePath) => {
+    if (typeof filePath !== 'string' || !filePath) {
+      return { ok: false, error: 'parts:rejoin ohne Pfad aufgerufen' };
+    }
+    const ownerArea = areaOfWindow(senderWindow(event));
+    if (ownerArea && !isInsideArea(ownerArea.rootPath, filePath)) {
+      return { ok: false, error: 'outside-area' };
+    }
+    const absolute = path.resolve(filePath);
+    const stand = await readStateForSave(absolute);
+    if (!stand.ok) return { ok: false, error: stand.error, code: stand.code };
+    if (!stand.geteilt) return { ok: false, code: 'not-split' };
+    if (stand.fehlend && stand.fehlend.length > 0) {
+      return { ok: false, code: 'parts-missing', fehlend: stand.fehlend };
+    }
+    const anzahl = stand.teile.length - 1;
+    // Der Befehl loescht Dateien und wird deshalb immer bestaetigt. Liegt das
+    // Ergebnis ueber der Schwelle, kommt die Warnung hinzu, die AK4 verlangt —
+    // und ihr eigentlicher Inhalt ist nicht die Groesse, sondern die Folge:
+    // Der Schreib-Weg teilt das Dokument beim naechsten Speichern sofort
+    // wieder. Ohne diesen Satz waere der Befehl fuer den Anwender wirkungslos
+    // und unerklaerlich.
+    const zuGross = ueberSchwelle(stand.text, DOKUMENT_SCHWELLE);
+    const owner = senderWindow(event);
+    const t = (k) => tForWindow(owner, k);
+    const antwort = await dialog.showMessageBox(owner || undefined, {
+      type: zuGross ? 'warning' : 'question',
+      title: t('rejoin.title'),
+      message: t('rejoin.message').replace('{n}', String(anzahl)),
+      detail: zuGross ? t('rejoin.detailTooLarge') : t('rejoin.detail'),
+      buttons: [t('rejoin.confirm'), t('rejoin.cancel')],
+      defaultId: zuGross ? 1 : 0,
+      cancelId: 1,
+      noLink: true,
+    });
+    if (antwort.response !== 0) return { ok: false, code: 'canceled' };
+    return rejoinDocument(absolute, { markSelfWriting });
+  });
+
+  // Ankuendigung des ersten Teilens (4T-1291, Auflage aus dem Epic).
+  // Liefert 'split' oder 'readOnly'; Abbruch und Escape fallen bewusst auf
+  // 'readOnly', weil die zurueckhaltende Antwort keine Dateien anlegt.
+  async function frageTeilung(owner, filePath) {
+    const t = (k) => tForWindow(owner, k);
+    const result = await dialog.showMessageBox(owner || undefined, {
+      type: 'info',
+      title: t('split.announceTitle'),
+      message: t('split.announceMessage'),
+      detail: `${filePath}\n\n${t('split.announceDetail')}`,
+      buttons: [t('split.btnSplit'), t('split.btnReadOnly')],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    });
+    return result.response === 0 ? 'split' : 'readOnly';
+  }
 
   // Speichern unter: OS-Dialog, dann schreiben. Returnt den gewaehlten Pfad
   // oder null, wenn der Nutzer abgebrochen hat.

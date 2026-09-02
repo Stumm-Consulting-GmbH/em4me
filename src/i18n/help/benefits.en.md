@@ -55,6 +55,17 @@ A longer work consists of many files, and their order otherwise sits in the file
 
 In detail: [Books](books.md).
 
+## When a document outgrows a single file
+
+A document sometimes grows beyond what can be edited smoothly. Instead of imposing a limit on you, the application splits such a document into several files when saving and puts it back together when opening. You notice nothing of it: one continuous text, one undo history, one search hit. Cuts are made only at headings so that no construct is torn apart, and every part file remains an ordinary Markdown file, readable without the application.
+
+- **Size stops being a limit** — even very large documents stay workable.
+- **Invisible in your workflow**: one tab, one text, one search result.
+- **Cuts are made at headings**, never in the middle of a table, list or code block.
+- **Reversible**: a menu command turns the parts back into a single file.
+
+In detail: [Splitting large documents](document-parts.md).
+
 ## Tables that hold more than a line
 
 This is where the question of ways of working ends and the question of what a file can express begins. The Markdown standard needs no explanation here; what matters is what goes beyond it, and that starts with the table. A standard table is line-based and therefore only takes short text. A Perspective Table takes whole blocks into a cell: nested lists, several paragraphs, code blocks, images, even a table inside the table. The table becomes a structuring tool for real content instead of a collection of keywords.
