@@ -1,4 +1,4 @@
-// 4T-0900 (Epic 3E-0016), Register-Paare 9 bis 11: drei gleichartige
+// 4T-000900 (Epic 3E-000016), Register-Paare 9 bis 11: drei gleichartige
 // Durchlauf-Waechter ueber Paare, deren fehlender Eintrag heute still
 // zurueckfaellt. Gebuendelt in einer Datei, weil sie Muster und Geruest
 // teilen; je Paar eine eigene Pruefgruppe.
@@ -31,7 +31,7 @@ const lies = (p) => fs.readFileSync(path.join(WURZEL, p), 'utf8');
 const SPRACHEN = ['de', 'en', 'fr', 'es', 'it'];
 const handbuchSeiten = MANUAL_PAGES.map((p) => p.id).filter((id) => id !== 'overview');
 
-describe('Paar 9: Handbuch-Überblick verweist auf jede Seite (4T-0900)', () => {
+describe('Paar 9: Handbuch-Überblick verweist auf jede Seite (4T-000900)', () => {
   it('alle fünf Fassungen führen jede Handbuch-Seite', () => {
     expect(handbuchSeiten.length).toBeGreaterThan(30);
     for (const sprache of SPRACHEN) {
@@ -51,7 +51,7 @@ describe('Paar 9: Handbuch-Überblick verweist auf jede Seite (4T-0900)', () => 
 // verlangt ausdruecklich, sie gemeinsam zu pflegen. Fehlt eine Variable, faellt
 // die Darstellung still auf die Standard-Farbe zurueck.
 // ---------------------------------------------------------------------------
-describe('Paar 10: Reiter-Gruppen-Farben und Stylesheet (4T-0900)', () => {
+describe('Paar 10: Reiter-Gruppen-Farben und Stylesheet (4T-000900)', () => {
   const css = lies('src/renderer/styles.css');
   const imStylesheet = [
     ...new Set([...css.matchAll(/--tab-group-([a-z]+)\s*:/g)].map((m) => m[1])),
@@ -78,7 +78,7 @@ describe('Paar 10: Reiter-Gruppen-Farben und Stylesheet (4T-0900)', () => {
 // Panel-Aufbau ein undefiniertes Symbol ein: Der Knopf bleibt leer oder zeigt
 // den Text 'undefined'.
 // ---------------------------------------------------------------------------
-describe('Paar 11: Uhr-Modi und ihre Symbole (4T-0900)', () => {
+describe('Paar 11: Uhr-Modi und ihre Symbole (4T-000900)', () => {
   const quelle = lies('src/renderer/modules/clock/clock-panel.js');
   const beginn = quelle.indexOf('MODE_ICONS');
   const block = beginn < 0 ? '' : quelle.slice(beginn, quelle.indexOf('};', beginn));

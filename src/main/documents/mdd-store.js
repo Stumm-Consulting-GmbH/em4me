@@ -1,4 +1,4 @@
-// 4T-0331 (Epic 3E-0060): Kern der Dokument-Historie — Container-Format der
+// 4T-000331 (Epic 3E-000060): Kern der Dokument-Historie — Container-Format der
 // Markdown-Data-Datei (.mdd), Aenderungspakete mit zeilenbasierten Deltas,
 // Anker-Snapshots, Hash-Absicherung und Rekonstruktion.
 //
@@ -7,7 +7,7 @@
 // Node-Abhaengigkeit nur node:crypto (SHA-256).
 //
 // Container-Format (JSON): { schemaVersion: 1, history: { anchors, packets } }
-// plus optionale Sektion `notes` (Dokument-Notiz, 4T-0358). Unbekannte
+// plus optionale Sektion `notes` (Dokument-Notiz, 4T-000358). Unbekannte
 // Sektionen bleiben beim Schreiben erhalten (Vorwaerts-Kompatibilitaet fuer
 // weitere Inhalte; Epic-Entscheidung).
 //
@@ -78,12 +78,12 @@ function serializeContainer(container) {
   return JSON.stringify(container, null, 2) + '\n';
 }
 
-// --- 4T-0332 (Epic 3E-0060): Bereichsdatei und Einstellungs-Hierarchie -------
+// --- 4T-000332 (Epic 3E-000060): Bereichsdatei und Einstellungs-Hierarchie -------
 
 // Fester Dateiname der Bereichsdatei im Bereichs-Wurzelordner
 // (PO-Entscheidung: produktneutral und umbenennungsfest; die eigene Endung
-// .mdda schliesst Kollisionen mit Markdown-Dateien aus). 4T-0352 (Epic
-// 3E-0064): Umbenennung von .mddb auf .mdda ("Markdown Data Area"); der
+// .mdda schliesst Kollisionen mit Markdown-Dateien aus). 4T-000352 (Epic
+// 3E-000064): Umbenennung von .mddb auf .mdda ("Markdown Data Area"); der
 // Altname bleibt fuer die stille Einmal-Migration und die uebergangsweise
 // Erkennung erhalten.
 const MDDA_FILENAME = 'Area_Settings.mdda';
@@ -114,7 +114,7 @@ function parseSettingsContainer(raw) {
   return { ok: true, container: parsed };
 }
 
-// --- 4T-0348 (Epic 3E-0062): Bereichs-Index-Cache (Area_Cache.mdda) -----------
+// --- 4T-000348 (Epic 3E-000062): Bereichs-Index-Cache (Area_Cache.mdda) -----------
 
 // Eigene Cache-Datei im Bereichs-Wurzelordner, getrennt von Area_Settings.mdda
 // (Architektur-Entscheidung des Epics): der Link-Index ist regenerierbarer
@@ -123,12 +123,12 @@ function parseSettingsContainer(raw) {
 // gefahrlos (Neuaufbau beim naechsten Bereichs-Oeffnen).
 const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 
-// 4T-0354 (Epic 3E-0065): Eigene schemaVersion NUR für den Area-Cache, entkoppelt
+// 4T-000354 (Epic 3E-000065): Eigene schemaVersion NUR für den Area-Cache, entkoppelt
 // von MDD_SCHEMA_VERSION (die auch History-.mdd und Settings trägt). Der Cache ist
 // regenerierbar; das Anheben dieser Version verwirft ihn und baut ihn neu auf
 // (hier: Ergänzung der Frontmatter-Properties), ohne History oder Settings zu
 // invalidieren. Version 2: Properties-Map im parsed-Objekt. Version 3
-// (4T-0502, Epic 3E-0096): Task-Zeilen-Liste im parsed-Objekt — Alt-Caches
+// (4T-000502, Epic 3E-000096): Task-Zeilen-Liste im parsed-Objekt — Alt-Caches
 // ohne sie müssen verworfen werden, sonst lieferte der Warmstart leere
 // Task-Treffer für unveränderte Dateien.
 const MDDA_CACHE_SCHEMA_VERSION = 3;
@@ -356,7 +356,7 @@ function recordSave(container, opts) {
   };
 }
 
-// --- 4T-0358 (Epic 3E-0066): Dokument-Notiz -----------------------------------
+// --- 4T-000358 (Epic 3E-000066): Dokument-Notiz -----------------------------------
 
 // Optionale `notes`-Sektion des Containers: EINE Markdown-fähige Notiz pro
 // Dokument (PO-Entscheidung), v1 als { text, updated }. Bewusst getrennt von
@@ -389,11 +389,11 @@ function setNote(container, text, nowMs) {
   return container;
 }
 
-// --- 4T-0363 (Epic 3E-0067): Block-Metadaten ----------------------------------
+// --- 4T-000363 (Epic 3E-000067): Block-Metadaten ----------------------------------
 
 // Optionale `blockData`-Sektion des Containers: strukturierte Metadaten pro
 // Block-Anker (`^id`), analog zur Frontmatter-Ebene, aber pro Block. Schema
-// (Konzept-Entscheidung 2, 4T-0362):
+// (Konzept-Entscheidung 2, 4T-000362):
 //   blockData: { <ankerId>: { values: { <schluessel>: wert }, updated } }
 // `updated` je Anker in UTC ISO-8601 sekundengenau; keine Typ-Persistenz (Typen
 // per Wert-Inferenz auf Renderer-Seite, wie bei den Frontmatter-Properties).
@@ -496,10 +496,10 @@ module.exports = {
   lastRecordedState,
   recordExternalIfNeeded,
   recordSave,
-  // 4T-0358 (Epic 3E-0066): Dokument-Notiz.
+  // 4T-000358 (Epic 3E-000066): Dokument-Notiz.
   getNote,
   setNote,
-  // 4T-0363 (Epic 3E-0067): Block-Metadaten.
+  // 4T-000363 (Epic 3E-000067): Block-Metadaten.
   getBlockData,
   getAllBlockData,
   blockAnchorIdsWithData,
@@ -510,7 +510,7 @@ module.exports = {
   emptySettingsContainer,
   parseSettingsContainer,
   resolveHistoryEnabled,
-  // 4T-0348 (Epic 3E-0062): Bereichs-Index-Cache.
+  // 4T-000348 (Epic 3E-000062): Bereichs-Index-Cache.
   MDDA_CACHE_FILENAME,
   emptyCacheContainer,
   parseCacheContainer,

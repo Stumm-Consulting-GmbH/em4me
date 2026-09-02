@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0697 (Epic 3E-0141): Zustand und Setter-Logik des Sidebar-Spalten-
+// 4T-000697 (Epic 3E-000141): Zustand und Setter-Logik des Sidebar-Spalten-
 // Kollaps. Der Kollaps-Zustand liegt getrennt von den Panel-Sichtbarkeiten
 // im Renderer-State (app-state.js), Setter/Toggle/Clear rendern die
 // betroffene Spalte neu und persistieren global (panels/sidebar-collapse.js). Ohne echtes
@@ -23,7 +23,7 @@ beforeEach(() => {
   window.api.setSetting = vi.fn(async () => {});
 });
 
-describe('normalizeSidebarCollapsed (4T-0697)', () => {
+describe('normalizeSidebarCollapsed (4T-000697)', () => {
   it('liefert die feste Form aus einem gültigen Wert', () => {
     expect(
       appState.normalizeSidebarCollapsed({ left: [true, false], right: [false, true] }),
@@ -47,7 +47,7 @@ describe('normalizeSidebarCollapsed (4T-0697)', () => {
   });
 });
 
-describe('isSidebarCollapsed (4T-0697)', () => {
+describe('isSidebarCollapsed (4T-000697)', () => {
   it('liest den Zustand je Pane-Group und Seite; Unbekanntes gilt als nicht eingeklappt', () => {
     state.sidebarCollapsed = { left: [true, false], right: [false, true] };
     expect(appState.isSidebarCollapsed(0, 'left')).toBe(true);
@@ -58,7 +58,7 @@ describe('isSidebarCollapsed (4T-0697)', () => {
   });
 });
 
-describe('setSidebarCollapsed / toggleSidebarCollapse (4T-0697)', () => {
+describe('setSidebarCollapsed / toggleSidebarCollapse (4T-000697)', () => {
   it('setzt genau die adressierte Spalte und persistiert global', () => {
     collapse.setSidebarCollapsed(0, 'left', true);
     expect(state.sidebarCollapsed.left[0]).toBe(true);
@@ -95,7 +95,7 @@ describe('setSidebarCollapsed / toggleSidebarCollapse (4T-0697)', () => {
   });
 });
 
-describe('clearSidebarCollapsed (4T-0697, Aus-Zustand der Erweiterung)', () => {
+describe('clearSidebarCollapsed (4T-000697, Aus-Zustand der Erweiterung)', () => {
   it('hebt jeden eingeklappten Zustand auf und persistiert einmalig', () => {
     state.sidebarCollapsed = { left: [true, false], right: [false, true] };
     collapse.clearSidebarCollapsed();

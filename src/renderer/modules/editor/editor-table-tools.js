@@ -1,12 +1,12 @@
-// 4T-0590 (Epic 3E-0109): Laufzeit-Backend der Tabellen-Kommandos.
+// 4T-000590 (Epic 3E-000109): Laufzeit-Backend der Tabellen-Kommandos.
 //
 // Ein Operationen-Satz, zwei Backends (Architekturentscheidung 1 des Epics):
 // getTableContext erkennt am Cursor, ob eine klassische Pipe-Tabelle oder
 // ein perspective-table-Fence vorliegt, und die table.*-Kommandos delegieren
 // an das passende Backend. Das Pipe-Backend nutzt den reinen Kern aus
-// src/shared/markdown/table-edit.js (4T-0589) und schreibt die Tabelle in
+// src/shared/markdown/table-edit.js (4T-000589) und schreibt die Tabelle in
 // einer Editor-Transaktion zurück (ein Undo-Schritt); das Perspective-
-// Backend entsteht in 4T-0591.
+// Backend entsteht in 4T-000591.
 //
 // Modul-Zyklus editor.js <-> editor-table-tools.js: editor.js hält die
 // dünnen Kommando-Wrapper als lokales Objekt und ruft runTableCommand nur
@@ -22,7 +22,7 @@ import {
   locatePipeCell,
   pipeOpAvailability,
 } from '../../../shared/markdown/table-edit.js';
-// 4T-0591 (Epic 3E-0109): Perspective-Backend auf der Fence-Syntax.
+// 4T-000591 (Epic 3E-000109): Perspective-Backend auf der Fence-Syntax.
 import {
   editPerspectiveTable,
   scanPerspectiveTable,
@@ -31,7 +31,7 @@ import {
   hasSpanAttributes,
 } from '../../../shared/markdown/perspective-table-edit.js';
 import { parsePerspectiveTableHeaderAttrs } from '../../../shared/markdown/perspective-table-syntax.js';
-// 4T-1002 (Epic 3E-0196): Tabellen- und Code-Block-Kontext liegen seit dem
+// 4T-001002 (Epic 3E-000196): Tabellen- und Code-Block-Kontext liegen seit dem
 // Schnitt in editor-keymaps.js (Laufzeit-Zyklus, Zugriffe nur in
 // Funktionskoerpern).
 import { isTableContextLine, lineInsideCodeBlock } from './editor-keymaps.js';
@@ -45,7 +45,7 @@ const REJECT_HINT_KEYS = {
   spans: 'tableTools.spanRejected',
 };
 
-// 4T-0591: Perspective-Table-Fence am Cursor erkennen. Lezer liefert den
+// 4T-000591: Perspective-Table-Fence am Cursor erkennen. Lezer liefert den
 // FencedCode-Knoten samt CodeInfo (Sprach-Tag, Muster live-widgets.js);
 // der Kontext umfasst die Body-Zeilen zwischen den Fence-Zeilen. Cursor
 // auf den ```-Zeilen selbst sowie Fences ohne {|-Kopf liefern null.
@@ -92,7 +92,7 @@ function getPerspectiveContext(state, line, pos) {
 }
 
 // Bestimmt den Tabellen-Kontext am Cursor: zuerst der
-// perspective-table-Fence (4T-0591), sonst bei einer Pipe-Tabelle der
+// perspective-table-Fence (4T-000591), sonst bei einer Pipe-Tabelle der
 // zusammenhängende Zeilen-Bereich (auf- und abwärts über
 // isTableContextLine, Code-Blöcke ausgenommen — dort greift die
 // Pipe-Syntax nicht). Liefert null außerhalb von Tabellen sowie bei

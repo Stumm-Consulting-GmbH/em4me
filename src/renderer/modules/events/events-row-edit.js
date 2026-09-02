@@ -2,7 +2,7 @@
 // uebrigen Zeilen, Duplizieren und Loeschen mit Bestaetigung sowie der
 // Datums-Picker der Eingabefelder.
 //
-// Auszug aus events-editor.js, 4T-1003 (Epic 3E-0196). activeRowEdit ist der
+// Auszug aus events-editor.js, 4T-001003 (Epic 3E-000196). activeRowEdit ist der
 // eine app-weite Zustand der offenen Bearbeitung und lebt ausschliesslich
 // hier; die Fremd-Leser kommen ueber getActiveRowEdit().
 'use strict';
@@ -19,7 +19,7 @@ import {
 } from '../../../shared/events/events-core.js';
 import { parsePerspectiveEvents } from '../../../shared/events/events-fence.js';
 import { localTodayIso } from '../../../shared/markdown/perspective-events.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung, Fence-Zuordnung
+// 4T-001003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung, Fence-Zuordnung
 // und Rueckschreiben werden ausschliesslich im Funktionskoerper aufgerufen.
 import {
   AUTO_RECURRING,
@@ -28,7 +28,7 @@ import {
   normalizeBody,
   writeBody,
 } from './events-editor.js';
-// 4T-1003: Laufzeit-Zyklus mit der Aggregation. Der Aggregations-Fall der
+// 4T-001003: Laufzeit-Zyklus mit der Aggregation. Der Aggregations-Fall der
 // Uebernahme reicht dorthin weiter, gelesen wird erst im Funktionskoerper.
 import { commitAggRowEdit, getAggState } from './events-aggregation.js';
 
@@ -101,7 +101,7 @@ export function addFromForm(ctx, form) {
 // die Container-Klasse pev-editing-locked (CSS) plus Laufzeit-Guard.
 let activeRowEdit = null;
 
-// 4T-1003: Zugriff der Fremd-Leser (Wurzel-Handler des Kerns,
+// 4T-001003: Zugriff der Fremd-Leser (Wurzel-Handler des Kerns,
 // ensureTableDisplay des Ansichts-Zustands). Geschrieben wird activeRowEdit
 // ausschliesslich in diesem Modul.
 export function getActiveRowEdit() {
@@ -140,7 +140,7 @@ export function startRowEdit(ctx, tr) {
   if (!Number.isFinite(rowIdx)) return;
   let entry;
   if (ctx.aggregation) {
-    // 4T-0515: Eintrag aus dem Aggregations-Zustand (kein Fence-Zugriff).
+    // 4T-000515: Eintrag aus dem Aggregations-Zustand (kein Fence-Zugriff).
     const ag = getAggState(ctx.container);
     entry = ag && ag.status === 'ready' ? ag.entries[rowIdx] : null;
     if (!entry) return;
@@ -263,7 +263,7 @@ export function commitRowEdit() {
   activeRowEdit = null;
   edit.ctx.container.classList.remove('pev-editing-locked');
 
-  // 4T-0515: Aggregations-Eintrag — Rückschreiben in die Quell-Datei.
+  // 4T-000515: Aggregations-Eintrag — Rückschreiben in die Quell-Datei.
   // Die Zeile kehrt sofort in die Anzeige zurück (der Index-Refresh
   // bringt anschließend die geschriebenen Werte).
   if (edit.aggregation) {
@@ -346,7 +346,7 @@ export async function deleteRow(ctx, tr) {
     return;
   }
   model.entries.splice(rowIdx, 1);
-  // 4T-0516: Löschen bereinigt die Bezüge auf beiden Seiten.
+  // 4T-000516: Löschen bereinigt die Bezüge auf beiden Seiten.
   cleanupEventLinks(model.entries, entry.id);
   writeBody(ctx, fresh, model);
 }

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0293 (Epic 3E-0052): Aus-Zustand der Mermaid-Erweiterung — der
+// 4T-000293 (Epic 3E-000052): Aus-Zustand der Mermaid-Erweiterung — der
 // Renderer-Guard lebt (anders als bei den markdown-it-Erweiterungen) in
 // der Render-Nachverarbeitung: applyMermaidIfPresent laesst den
 // ```mermaid-Block bei deaktivierter Erweiterung unangetastet, und der
@@ -16,7 +16,7 @@ function mermaidContainer() {
   return div;
 }
 
-describe('Mermaid-Erweiterung: Aus-Zustand (4T-0293)', () => {
+describe('Mermaid-Erweiterung: Aus-Zustand (4T-000293)', () => {
   beforeEach(() => {
     lifecycle.resetExtensionStateForTests();
   });

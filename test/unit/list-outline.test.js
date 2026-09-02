@@ -1,4 +1,4 @@
-// 4T-0599 (Epic 3E-0112): Unit-Matrix für den Listen-Struktur-Kern
+// 4T-000599 (Epic 3E-000112): Unit-Matrix für den Listen-Struktur-Kern
 // (src/shared/markdown/list-outline.js). Deckt Zeilen-Zerlegung, Block- und
 // Teilbaum-Erkennung, Geschwister-Suche, Verschieben (Teilbaum und markierter
 // Bereich), Ein-/Ausrücken sowie die Neu-Nummerierung samt Startnummern-
@@ -40,7 +40,7 @@ describe('parseListLine', () => {
   it('liefert null für Nicht-Listen-Zeilen', () => {
     expect(parseListLine('Absatz')).toBeNull();
     expect(parseListLine('')).toBeNull();
-    // Klammer-Variante ist bewusst nicht unterstützt (Bestand aus 4T-0016).
+    // Klammer-Variante ist bewusst nicht unterstützt (Bestand aus 4T-000016).
     expect(parseListLine('1) Text')).toBeNull();
     // Gliederungsnummern sind kein Listen-Marker (PO-Festlegung 6).
     expect(parseListLine('1.1. Text')).toBeNull();
@@ -185,7 +185,7 @@ describe('moveLineRange', () => {
 });
 
 describe('indentSubtree', () => {
-  // 4T-0660: Die Ziel-Einrückung ist die Inhalts-Spalte des Vorgängers, nicht
+  // 4T-000660: Die Ziel-Einrückung ist die Inhalts-Spalte des Vorgängers, nicht
   // eine feste Schrittweite. Unter `1. ` sind das drei Zeichen — mit zweien
   // bliebe die Liste in der Anzeige flach.
   it('rückt auf die Inhalts-Spalte des Vorgängers ein', () => {
@@ -201,7 +201,7 @@ describe('indentSubtree', () => {
     expect(indentSubtree(['10. A', '11. B'], 1).lines).toEqual(['10. A', '    1. B']);
   });
 
-  // 4T-0661: Ohne Vorgänger-Geschwister gibt es keinen Punkt, unter den der
+  // 4T-000661: Ohne Vorgänger-Geschwister gibt es keinen Punkt, unter den der
   // eigene rutschen könnte. Eine Verschiebung wäre reine Optik und fiele bei
   // mehrfachem Einrücken aus dem gültigen Fenster — die Zeile gälte dann als
   // Fortsetzungstext. Die frühere Festlegung „Einrücken ohne Vorgänger
@@ -248,7 +248,7 @@ describe('outdentSubtree', () => {
     expect(outdentSubtree(BEISPIEL, 0)).toBeNull();
   });
 
-  // 4T-0661 (Befund des Product Owners): Beim Ausruecken bleiben die
+  // 4T-000661 (Befund des Product Owners): Beim Ausruecken bleiben die
   // ehemaligen Geschwister als eigene Teilliste direkt unter dem verschobenen
   // Punkt zurueck. Sie muss bei 1 beginnen, sonst zieht der Renderer die
   // Zeile als Fortsetzungstext in den Punkt darueber (einzeilige Darstellung).
@@ -263,7 +263,7 @@ describe('outdentSubtree', () => {
   });
 });
 
-describe('shiftLineRange (4T-0661)', () => {
+describe('shiftLineRange (4T-000661)', () => {
   it('rueckt den markierten Bereich auf die Inhalts-Spalte des Vorgaengers ein', () => {
     const lines = ['1. Alpha', '2. Bravo', '3. Charlie'];
     expect(shiftLineRange(lines, 1, 2, +1).lines).toEqual([

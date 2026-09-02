@@ -1,4 +1,4 @@
-// 4T-0761 (Epic 3E-0142): Suche über alle Einstellungs-Bereiche.
+// 4T-000761 (Epic 3E-000142): Suche über alle Einstellungs-Bereiche.
 //
 // Kern der Zusage: Wer den Namen einer Einstellung kennt, findet ihren
 // Bereich — auch wenn dieser Bereich in dieser Sitzung nie geöffnet war.
@@ -95,9 +95,9 @@ test.describe('SE-02: Sprung in den Bereich', () => {
   });
 });
 
-test.describe('SE-04: Erweiterungs-Zeilen im Suchraum (4T-0872)', () => {
+test.describe('SE-04: Erweiterungs-Zeilen im Suchraum (4T-000872)', () => {
   test('«Bücher» findet den Bereich Erweiterungen; der Sprung hebt die Zeile hervor', async () => {
-    // Regressionstest 4T-0872 (PO-Befund vom 2026-08-04): Die Erweiterungs-
+    // Regressionstest 4T-000872 (PO-Befund vom 2026-08-04): Die Erweiterungs-
     // Zeilen rendern mit eigenen Klassen und fehlten komplett im Suchraum —
     // die Suche nach «Bücher» fand nichts, obwohl der Bereich Erweiterungen
     // den Eintrag sichtbar führt.

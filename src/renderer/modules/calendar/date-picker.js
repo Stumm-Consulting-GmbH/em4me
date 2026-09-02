@@ -1,4 +1,4 @@
-// 4T-0486 (Epic 3E-0091): Datums-/Uhrzeit-Picker.
+// 4T-000486 (Epic 3E-000091): Datums-/Uhrzeit-Picker.
 //
 // Wiederverwendbares Popup mit Kalender-Monatsansicht (Montag-Start,
 // ISO-KW-Spalte) links und Uhrzeit-Eingabe rechts; beide Teile sind ueber
@@ -6,24 +6,24 @@
 // Promise-API: showDateTimePicker() liefert { date, time, text } oder null
 // bei Abbruch (Esc, Klick ausserhalb, Abbrechen). Aufrufer sind die drei
 // Registry-Kommandos (app-init.js), der Schreib-Trigger "\\"
-// (datePickerTriggerExtension, unten) und ab 4T-0487 die klickbaren
-// Datums-Werte im Live-Modus; das Folge-Epic 3E-0096 dockt mit
+// (datePickerTriggerExtension, unten) und ab 4T-000487 die klickbaren
+// Datums-Werte im Live-Modus; das Folge-Epic 3E-000096 dockt mit
 // Task-Dialog und Auto-Vervollstaendigung an dieselbe API an.
 //
 // Kalender-Mathematik kommt aus dem Perioden-Kern (journal-core.js:
 // monthGrid, msToIsoDate — Format-Kern formatDateMs/isoWeekOf dahinter),
 // die Gueltigkeits-Pruefung aus dem Task-Marker-Kern (isValidIsoDate/
 // isValidTime). Die Ausgabeformate 'yyyy-MM-dd', 'HH:mm' und
-// 'yyyy-MM-dd HH:mm' passen damit exakt zu den Termin-Markern aus 3E-0090.
+// 'yyyy-MM-dd HH:mm' passen damit exakt zu den Termin-Markern aus 3E-000090.
 'use strict';
 
 import { Decoration, EditorView, ViewPlugin } from '@codemirror/view';
-// 4T-0641 (Epic 3E-0069): Fence-Sprache am Cursor bestimmen (Ausnahme der
+// 4T-000641 (Epic 3E-000069): Fence-Sprache am Cursor bestimmen (Ausnahme der
 // Perspective-Tabellen vom Code-Ausschluss).
 import { syntaxTree } from '@codemirror/language';
 import { t } from '../../i18n.js';
 import { msToIsoDate } from '../../../shared/journal-core.js';
-// 4T-0752 (Epic 3E-0146): gemeinsamer Gitter-Aufbau, geteilt mit dem
+// 4T-000752 (Epic 3E-000146): gemeinsamer Gitter-Aufbau, geteilt mit dem
 // Kalender-Panel der Journale und dem Kalender-Modus der Uhr.
 import { createDayCell, monthLabel, renderMonthGrid } from './month-grid-view.js';
 import {
@@ -41,7 +41,7 @@ import {
 import { detectFrontmatterLines } from '../live/live-marker-fields.js';
 import { activeLineSet, positionInsideCode } from '../live/live-shared.js';
 
-// 4T-0641 (Epic 3E-0069): Zeichenfolge des Schreib-Triggers. Bis dahin waren
+// 4T-000641 (Epic 3E-000069): Zeichenfolge des Schreib-Triggers. Bis dahin waren
 // es zwei Backslashes; die Wahl kollidierte mit der Bedeutung des Backslash
 // als Escape-Zeichen (`\\` ist in CommonMark ein literaler Backslash). Das
 // Semikolon-Doppel hat weder in CommonMark noch in einer der Erweiterungen
@@ -60,7 +60,7 @@ const DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})$/;
 // Zerlegt einen Text in den Einfuege-Formaten in { date, time } (beide
 // String oder null). Liefert null bei fremder Form oder kalendarisch/
 // zeitlich ungueltigen Werten — die Vorbelegung faellt dann auf die
-// Defaults zurueck (und 4T-0487 dekoriert solche Werte gar nicht erst).
+// Defaults zurueck (und 4T-000487 dekoriert solche Werte gar nicht erst).
 export function parseDateTimeValue(text) {
   const s = String(text || '');
   let m = s.match(DATE_TIME_RE);
@@ -126,7 +126,7 @@ function pad2(n) {
   return String(n).padStart(2, '0');
 }
 
-// --- Kandidaten-Suche der Klick-Dekoration (4T-0487, rein) -----------------------------
+// --- Kandidaten-Suche der Klick-Dekoration (4T-000487, rein) -----------------------------
 
 // Werte in den drei Einfuege-Formen im Fliesstext. Die Waechter-Gruppen
 // (kein Wort-Zeichen/Doppelpunkt davor oder danach) verhindern Treffer in
@@ -174,7 +174,7 @@ export function taskLineDescriptionEnd(lineText) {
 // Der Schreib-Trigger greift nicht in Code (Inline/Fenced/Block), Formeln
 // (Inline- und Block-Math) und im Frontmatter — dieselben Kontext-Helfer
 // wie die Live-Modus-Paesse (live-deco.js/live-widgets.js).
-// 4T-0641 (Epic 3E-0069): Fence-Sprache an einer Position oder null.
+// 4T-000641 (Epic 3E-000069): Fence-Sprache an einer Position oder null.
 // Lezer liefert den FencedCode-Knoten samt CodeInfo (Sprach-Tag); Vorlage
 // ist getPerspectiveContext in editor-table-tools.js.
 function fenceLanguageAt(state, pos) {
@@ -192,7 +192,7 @@ function fenceLanguageAt(state, pos) {
   return '';
 }
 
-// 4T-0641: Fence-Sprachen, die trotz Code-Kontext Eingabe-Kontext sind.
+// 4T-000641: Fence-Sprachen, die trotz Code-Kontext Eingabe-Kontext sind.
 // Die Perspective-Tabellen sind technisch Fenced-Code, für den Nutzer aber
 // Tabellen mit Inhaltszellen — der pauschale Code-Ausschluss trifft hier
 // einen Fall, für den er nicht gedacht war (PO-Entscheidung 2026-07-20).
@@ -303,7 +303,7 @@ function buildPopup() {
     setTimeFromString(`${pad2(now.getHours())}:${pad2(now.getMinutes())}`);
     renderTimeDigits();
   });
-  // Segment-Steuerung der Uhrzeit (PO-Befund Runde 1, 4T-0486): vier
+  // Segment-Steuerung der Uhrzeit (PO-Befund Runde 1, 4T-000486): vier
   // einzeln einstellbare Stellen statt Freitext — ungueltige Uhrzeiten
   // sind konstruktionsbedingt nicht eingebbar. Klick waehlt die Stelle,
   // die Pfeil-Buttons und Pfeiltasten aendern sie (mit Umlauf), Ziffern-
@@ -493,7 +493,7 @@ function shiftView(delta) {
 function renderCalendar() {
   els.monthLabel.textContent = monthLabel(session.viewYear, session.viewMonthIndex);
 
-  // 4T-0752 (Epic 3E-0146): Kopfzeile und Zeilen-Durchlauf kommen aus dem
+  // 4T-000752 (Epic 3E-000146): Kopfzeile und Zeilen-Durchlauf kommen aus dem
   // gemeinsamen Gitter-Modul; picker-spezifisch bleiben Auswahl-Zustand,
   // Sperre und der Klick auf einen Tag.
   renderMonthGrid(els.grid, {
@@ -659,7 +659,7 @@ function anchorForPos(view, pos) {
 }
 
 function applyResult(view, from, to, text) {
-  // 4T-0487: programmatischer Dispatch wird von EditorState.readOnly nicht
+  // 4T-000487: programmatischer Dispatch wird von EditorState.readOnly nicht
   // blockiert — expliziter Guard (Muster Task-Toggle), z.B. fuer den
   // Klick-Pfad in read-only Ansichten.
   if (view.state.readOnly) return;
@@ -685,7 +685,7 @@ export async function openDatePickerAtSelection(view, { dateEnabled, timeEnabled
   applyResult(view, range.from, range.to, result.text);
 }
 
-// Bereichs-Pfad (Schreib-Trigger, ab 4T-0487 Klick-Reaktivierung): Ergebnis
+// Bereichs-Pfad (Schreib-Trigger, ab 4T-000487 Klick-Reaktivierung): Ergebnis
 // ersetzt exakt [from, to). expected sichert gegen zwischenzeitliche
 // Dokument-Aenderungen — bei Abweichung wird nichts ersetzt.
 export async function openDatePickerForRange(view, { from, to, expected, ...pickerOptions }) {
@@ -718,7 +718,7 @@ export const datePickerTriggerExtension = EditorView.inputHandler.of((view, from
   return false;
 });
 
-// --- Klickbare Datums-Werte im Editor (4T-0487, PO-Befund Runde 1) ---------------------
+// --- Klickbare Datums-Werte im Editor (4T-000487, PO-Befund Runde 1) ---------------------
 
 // Dekorations-Plugin fuer Quelltext- UND Live-Modus (Basis-Extension der
 // EditorView, nicht Teil des Live-Compartments): Werte in den Einfuege-
@@ -728,10 +728,10 @@ export const datePickerTriggerExtension = EditorView.inputHandler.of((view, from
 // Ausschluesse: read-only Ansichten (dort waere Ersetzen wirkungslos),
 // Code, Formeln, Frontmatter, aktive Cursor-Zeilen (dort greift normale
 // Text-Bearbeitung), Wiki-Link-Ziele und bei aktiver tasks-Erweiterung
-// der Marker-Schwanz von Checkbox-Zeilen (Badge-Dekoration aus 3E-0090).
-// 4T-0528 (Epic 3E-0095): Wert-Bereich des Erinnerungs-Markers einer Zeile
+// der Marker-Schwanz von Checkbox-Zeilen (Badge-Dekoration aus 3E-000090).
+// 4T-000528 (Epic 3E-000095): Wert-Bereich des Erinnerungs-Markers einer Zeile
 // (Offsets in der Zeile) oder null. Der Marker-Schwanz von Checkbox-Zeilen
-// ist von der Klick-Dekoration ausgenommen (Badges aus 3E-0090); der
+// ist von der Klick-Dekoration ausgenommen (Badges aus 3E-000090); der
 // ⏰-Wert bleibt als gezielte Ausnahme klickbar (Popup vorbelegt, Ersetzen
 // an Ort und Stelle — Workshop-Punkt 1). Das rechteste Vorkommen ist das
 // wirksame Segment (Parse-Richtung des Marker-Kerns).
@@ -744,7 +744,7 @@ function buildDateValueDecorations(view) {
   const mathBlockRanges = computeMathBlockRanges(state);
   const katexActive = isExtensionActive('katex');
   const tasksActive = isExtensionActive('tasks');
-  // 4T-0528 (Epic 3E-0095): Ausnahme vom Marker-Schwanz-Ausschluss.
+  // 4T-000528 (Epic 3E-000095): Ausnahme vom Marker-Schwanz-Ausschluss.
   const remindersActive = tasksActive && isExtensionActive('reminders');
   const ranges = [];
   for (const { from, to } of view.visibleRanges) {
@@ -757,7 +757,7 @@ function buildDateValueDecorations(view) {
       if (positionInsideCode(state, docFrom)) continue;
       const line = state.doc.lineAt(docFrom);
       if (line.number <= frontmatterEndLine) continue;
-      // 4T-0943 (Epic 3E-0197): Die aktive Zeile wird nicht mehr
+      // 4T-000943 (Epic 3E-000197): Die aktive Zeile wird nicht mehr
       // uebersprungen — der Wert bleibt dort dekoriert und oeffnet auf
       // den Strg-Klick (E1). Ohne Marke gaebe es kein Klick-Ziel.
       const inAktiverZeile = activeLines.has(line.number);
@@ -787,7 +787,7 @@ function buildDateValueDecorations(view) {
           descEndByLine.set(line.number, descEnd);
         }
         if (descEnd !== null && docTo - line.from > descEnd) {
-          // 4T-0937 (Befund B-09): Im Marker-Schwanz bleibt jeder Wert eines
+          // 4T-000937 (Befund B-09): Im Marker-Schwanz bleibt jeder Wert eines
           // Datums-Markers klick-dekoriert (Cursor auf der Zeile zeigt
           // Roh-Text; der generische openDatePickerForRange-Pfad ersetzt
           // exakt den Wert und liest Datum wie Uhrzeit aus ihm). Alles
@@ -843,7 +843,7 @@ export const dateValuePlugin = ViewPlugin.fromClass(
         if (!dateEl) return false;
         if (tgt.closest('[data-live-link-href]')) return false;
         if (view.state.readOnly) return false;
-        // 4T-0943 (Epic 3E-0197): In der Zeile mit dem Cursor traegt die
+        // 4T-000943 (Epic 3E-000197): In der Zeile mit dem Cursor traegt die
         // Marke data-live-date-mod. Dort oeffnet erst der Strg-/Cmd-Klick,
         // damit der einfache Klick weiterhin den Cursor setzt (E1).
         if (dateEl.getAttribute('data-live-date-mod') === '1' && !event.ctrlKey && !event.metaKey) {

@@ -1,4 +1,4 @@
-// 4T-0595 (Epic 3E-0111): Inline-Berechnungen — Rechenausdrücke `{= Ausdruck =}`
+// 4T-000595 (Epic 3E-000111): Inline-Berechnungen — Rechenausdrücke `{= Ausdruck =}`
 // im Fließtext. Die Auswertung läuft ausschließlich über die vorhandene
 // Query-Ausdrucks-Engine (parseExpression/evaluateExpression) in einem
 // kontext-freien Rahmen: nur Literale, Operatoren, date()/dur()-Literale und
@@ -14,7 +14,7 @@
 // (perspective-query.js, perspective-query-eval.js, link-scan.js,
 // task-markers.js) ist dort über die Datatable-Anbindung bereits enthalten.
 //
-// Marker-Grammatik (Syntax-Verifikation 4T-0595 gegen den Bestand):
+// Marker-Grammatik (Syntax-Verifikation 4T-000595 gegen den Bestand):
 // - Öffner `{=`, Schließer `=}`, einzeilig. Das `{` hängt beim Rule-Aufruf
 //   bereits in state.pending (kein Terminator-Zeichen der text-Rule) und
 //   wird dort abgeschnitten — Muster critic_markup.
@@ -28,7 +28,7 @@
 //   nie als `{`; findInlineCalcSpans prüft die Backslash-Parität explizit.
 'use strict';
 
-// 4T-0987 (Epic 3E-0196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
+// 4T-000987 (Epic 3E-000196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
 const { parseExpression } = require('../query/perspective-query.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
 const { validateQuery } = require('../query/query-functions.js');
@@ -102,7 +102,7 @@ function findInlineCalcSpans(text) {
   return spans;
 }
 
-// 4T-0596 (Epic 3E-0111): Portable-Export — ersetzt Konstrukte im Markdown-
+// 4T-000596 (Epic 3E-000111): Portable-Export — ersetzt Konstrukte im Markdown-
 // Quelltext durch selbsttragende Ergebnis-Spans (Inline-Styles, Roh-Ausdruck
 // als title), damit der exportierte Text das Ergebnis auch in anderen
 // Markdown-Programmen zeigt. Fehlerhafte Ausdrücke bleiben roh (Quelltext-

@@ -1,6 +1,6 @@
-// Epic 3E-0062: Bereichs-Index-Persistenz (Area_Cache.mdda).
+// Epic 3E-000062: Bereichs-Index-Persistenz (Area_Cache.mdda).
 //
-// BIC-01 (4T-0348): Beim Oeffnen eines Bereichs wird der Index proaktiv
+// BIC-01 (4T-000348): Beim Oeffnen eines Bereichs wird der Index proaktiv
 //        aufgebaut und in Area_Cache.mdda persistiert, OHNE dass ein Dokument
 //        oder Panel offen sein muss ("automatisch beim Start"). Die Cache-Datei
 //        erscheint nicht in der Bereichs-Panel-Dateiliste. Nach Schliessen und
@@ -30,7 +30,7 @@ function removeDir(dir) {
   }
 }
 
-test.describe('BIC-01: Bereichs-Index-Cache (4T-0348)', () => {
+test.describe('BIC-01: Bereichs-Index-Cache (4T-000348)', () => {
   test('Cache entsteht proaktiv beim Oeffnen, nicht im Panel, Warmstart-Paritaet', async () => {
     const dir = makeAreaTree();
     const cachePath = path.join(dir, 'Area_Cache.mdda');

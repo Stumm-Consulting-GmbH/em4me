@@ -1,10 +1,10 @@
-// 4T-1067 (Epic 3E-0212): Datenschicht des Journal-Timeline-Blocks —
+// 4T-001067 (Epic 3E-000212): Datenschicht des Journal-Timeline-Blocks —
 // Kontext-Ermittlung aus dem Datei-Pfad, Auswahl des Ziel-Journals je
 // Perioden-Ebene und die Punkt-Markierung samt ihrem Zwischenspeicher.
 //
 // Herausgelöst aus journal-timeline-view.js, weil Anzeige und Export
 // dieselben Daten brauchen, sie aber verschieden ausgeben (DOM gegen
-// Markdown-Tabelle). Auslöser war das Datei-Größen-Budget (4T-0878): Die
+// Markdown-Tabelle). Auslöser war das Datei-Größen-Budget (4T-000878): Die
 // View-Datei überschritt mit dem Export-Teil die 500 Zeilen, und die Naht
 // zwischen Beschaffung und Ausgabe ist die tragfähige.
 'use strict';

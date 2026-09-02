@@ -1,4 +1,4 @@
-// 4T-1326 (Epic 3E-0236): Plausibilitäts-Prüfung der Journal-Blöcke.
+// 4T-001326 (Epic 3E-000236): Plausibilitäts-Prüfung der Journal-Blöcke.
 //
 // Beide Journal-Blöcke, die Navigation und die Zeitleiste, machen aus einem
 // Dateipfad eine Aussage über die Zeit: dieses Dokument ist der Eintrag vom
@@ -13,7 +13,7 @@
 // sich vollständig stimmig und vollständig falsch; aufgefallen ist sie allein,
 // weil der Product Owner das Datum seines Eintrags kannte.
 //
-// Die Ursache ist mit 4T-1325 behoben. Dieses Modul macht einen künftigen Fall
+// Die Ursache ist mit 4T-001325 behoben. Dieses Modul macht einen künftigen Fall
 // derselben Klasse SICHTBAR, gleich woher der falsche Pfad kommt.
 //
 // **Warum die Übereinstimmung und nicht nur die Existenz.** Eine reine

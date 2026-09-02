@@ -1,4 +1,4 @@
-// 4T-0599 (Epic 3E-0112): Laufzeit-Backend der Listen-Struktur-Kommandos.
+// 4T-000599 (Epic 3E-000112): Laufzeit-Backend der Listen-Struktur-Kommandos.
 //
 // Bindeglied zwischen dem reinen Struktur-Kern (src/shared/markdown/
 // list-outline.js) und der EditorView: Kontext am Cursor bestimmen, Kern
@@ -34,7 +34,7 @@ import {
   parseListLine,
   renumberOrdered,
 } from '../../../shared/markdown/list-outline.js';
-// 4T-1002 (Epic 3E-0196): der Code-Block-Test liegt seit dem Schnitt in
+// 4T-001002 (Epic 3E-000196): der Code-Block-Test liegt seit dem Schnitt in
 // editor-keymaps.js (Laufzeit-Zyklus, Zugriffe nur in Funktionskoerpern).
 import { lineInsideCodeBlock } from './editor-keymaps.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
@@ -130,7 +130,7 @@ export function runListMove(view, direction) {
   return writeBack(view, ctx, result.lines, { anchor, head }, 'move.line');
 }
 
-// === 4T-0655 (Epic 3E-0112): Nummerierungs-Invariante ========================
+// === 4T-000655 (Epic 3E-000112): Nummerierungs-Invariante ========================
 // Die Nummern im Quelltext sollen nach JEDER Bearbeitung mit der gerenderten
 // Ansicht übereinstimmen, nicht nur nach den Struktur-Kommandos oben. Der
 // auslösende Fall: Wird die Leerzeile zwischen zwei bei 1 beginnenden Listen
@@ -152,7 +152,7 @@ const RENUMBER_USER_EVENTS = ['input', 'delete', 'move'];
 // Blockgrenze ist die Leerzeile (Festlegung des Product Owners): Sie beginnt
 // eine neue Liste, die wieder bei ihrer eigenen Startnummer zählt. Damit die
 // Anzeige dasselbe zeigt, setzt die Render-Pipeline die Nummer am ersten
-// Punkt nach einer Leerzeile zurück (4T-0660).
+// Punkt nach einer Leerzeile zurück (4T-000660).
 function blockBounds(doc, lineNumber) {
   let first = lineNumber;
   while (first > 1 && doc.line(first - 1).text.trim() !== '') first--;
@@ -284,7 +284,7 @@ export function listRenumberFilter(tr) {
   return [tr, { changes, sequential: true }];
 }
 
-// 4T-0600 (Epic 3E-0112): Listenpunkt samt Teilbaum auswählen. Grundlage für
+// 4T-000600 (Epic 3E-000112): Listenpunkt samt Teilbaum auswählen. Grundlage für
 // Kopieren und Ausschneiden ganzer Äste; wirkt auch im Schreibschutz, weil
 // eine Auswahl das Dokument nicht verändert.
 export function runListSelectSubtree(view) {
@@ -308,14 +308,14 @@ export function runListSelectSubtree(view) {
   return true;
 }
 
-// 4T-0600 (Epic 3E-0112): Listen-Ausstieg auf der obersten Ebene.
+// 4T-000600 (Epic 3E-000112): Listen-Ausstieg auf der obersten Ebene.
 //
 // Die eingekaufte Enter-Automatik deckt fast alles ab (in der Anwendung
 // gemessen): Sie setzt jede Marker-Art fort, nummeriert nach, hängt bei
 // Aufgaben eine leere Checkbox an und rückt auf einem leeren Unterpunkt
 // korrekt eine Ebene aus. Nur auf der obersten Ebene beendet sie die Liste
 // nicht, sondern hinterlässt eine Leerzeile UND einen weiteren leeren Punkt.
-// Seit der Leerzeilen-Trennung aus 4T-0660 wiegt das schwerer als früher: Der
+// Seit der Leerzeilen-Trennung aus 4T-000660 wiegt das schwerer als früher: Der
 // Versuch auszusteigen erzeugte eine zweite Liste statt eines Absatzes.
 //
 // Dieser Handler greift genau in diesem einen Fall und lässt sonst die
@@ -345,7 +345,7 @@ export function runListExit(view) {
   return true;
 }
 
-// 4T-0661: Ein- bzw. Ausrücken eines markierten Zeilen-Bereichs. Die Auswahl
+// 4T-000661: Ein- bzw. Ausrücken eines markierten Zeilen-Bereichs. Die Auswahl
 // bleibt erhalten, die Verschiebung folgt der Struktur (Inhalts-Spalte des
 // Elternpunkts) statt einer festen Schrittweite.
 function runListIndentRange(view, delta, first, last) {
@@ -381,7 +381,7 @@ export function runListIndentSubtree(view, delta) {
   const state = view.state;
   if (state.selection.ranges.length !== 1) return false;
   const { first, last, single } = selectedLines(state);
-  // 4T-0661: Bei einer Markierung über mehrere Zeilen wirkt die Operation
+  // 4T-000661: Bei einer Markierung über mehrere Zeilen wirkt die Operation
   // zeilenweise auf genau den markierten Bereich, aber mit derselben
   // Einrück-Tiefe wie im Cursor-Fall.
   if (!single) return runListIndentRange(view, delta, first, last);

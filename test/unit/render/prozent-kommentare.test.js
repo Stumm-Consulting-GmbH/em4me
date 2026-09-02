@@ -1,4 +1,4 @@
-// 4T-0479 (Epic 3E-0089): %%-Kommentare — Scanner, Strip und Render-Pfade.
+// 4T-000479 (Epic 3E-000089): %%-Kommentare — Scanner, Strip und Render-Pfade.
 //
 // Deckt die code-bewusste Vorverarbeitung (stripPercentComments /
 // findPercentCommentRanges in plugins.js) sowie die Anbindung in
@@ -23,7 +23,7 @@ afterEach(() => {
   configureExtensions([]);
 });
 
-describe('stripPercentComments (4T-0479)', () => {
+describe('stripPercentComments (4T-000479)', () => {
   it('entfernt einen Inline-Kommentar inklusive Marker', () => {
     expect(stripPercentComments('a %%privat%% b')).toBe('a  b');
   });
@@ -78,7 +78,7 @@ describe('stripPercentComments (4T-0479)', () => {
   });
 });
 
-describe('findPercentCommentRanges (4T-0479)', () => {
+describe('findPercentCommentRanges (4T-000479)', () => {
   it('liefert from/to inklusive der Marker fuer einen Inline-Kommentar', () => {
     // 'a %%x%% b' — Marker beginnt bei Offset 2, schliessende %% bei 5,
     // to = 5 + 2 = 7 (exklusive obere Grenze).
@@ -98,7 +98,7 @@ describe('findPercentCommentRanges (4T-0479)', () => {
     ]);
   });
 
-  // 4T-0533: closed-Flag als Grundlage des Linter-Hinweises auf unpaarige
+  // 4T-000533: closed-Flag als Grundlage des Linter-Hinweises auf unpaarige
   // Marker. Ein Dokument, das exakt mit dem schliessenden %% endet, ist
   // geschlossen (to == Textlaenge reicht als Unpaarig-Kriterium NICHT);
   // ein Escape am Text-Ende schliesst nicht.
@@ -112,7 +112,7 @@ describe('findPercentCommentRanges (4T-0479)', () => {
   });
 });
 
-describe('renderMarkdown mit %%-Kommentaren (4T-0479)', () => {
+describe('renderMarkdown mit %%-Kommentaren (4T-000479)', () => {
   it('Kommentar-Inhalt erscheint nicht im HTML', () => {
     const html = renderMarkdown('Sichtbar %%geheim privat%% Text', 'de');
     expect(html).not.toContain('geheim');
@@ -140,7 +140,7 @@ describe('renderMarkdown mit %%-Kommentaren (4T-0479)', () => {
   });
 });
 
-describe('convertMarkdownPortable mit %%-Kommentaren (4T-0479)', () => {
+describe('convertMarkdownPortable mit %%-Kommentaren (4T-000479)', () => {
   it('Kommentare fehlen im Export, Code-Fence-Inhalt bleibt erhalten', () => {
     const src = 'Sichtbar %%privat export%% Text\n\n```\n%%literal%%\n```\n';
     const out = convertMarkdownPortable(src);

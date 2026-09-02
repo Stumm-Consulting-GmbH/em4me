@@ -52,7 +52,7 @@ FunctionEnd
 
 ; --- Nach erfolgreicher Installation: Registry-Einträge anlegen -------------
 !macro customInstall
-  ; 4T-1005: Verwaisten Deinstallations-Eintrag der früheren appId entfernen.
+  ; 4T-001005: Verwaisten Deinstallations-Eintrag der früheren appId entfernen.
   ; Bis v0.105.0 lautete die appId net.stumm.perspective-markdown; ihr Eintrag
   ; (GUID per UUIDv5 aus der appId) blieb beim Wechsel auf net.stumm.em4me
   ; stehen und zeigte eine zweite, scheinbar parallele Installation. Der
@@ -92,7 +92,7 @@ FunctionEnd
 !macroend
 
 ; --- Beim Deinstallieren: Einträge entfernen, falls sie zu uns gehören ------
-; X-04 (4T-0182): KEIN DeleteRegKey auf die Extension-Keys — das löschte den
+; X-04 (4T-000182): KEIN DeleteRegKey auf die Extension-Keys — das löschte den
 ; gesamten Key rekursiv inklusive der OpenWithProgids-Werte FREMDER Programme.
 ; Stattdessen wird nur der eigene Default-Wert zurückgesetzt und der eigene
 ; OpenWithProgids-Eintrag entfernt; der Extension-Key selbst bleibt bestehen.

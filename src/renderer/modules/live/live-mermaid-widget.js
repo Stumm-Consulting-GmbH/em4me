@@ -1,6 +1,6 @@
 // Mermaid-Render-Queue sowie die beiden Block-Widgets mit eigenem Render-Weg:
 // Mermaid-Diagramm (asynchron, eigene Bibliothek) und Frontmatter-Block.
-// 4T-0982 (Epic 3E-0196): aus live-widgets.js herausgelöst. Der Queue-Zustand
+// 4T-000982 (Epic 3E-000196): aus live-widgets.js herausgelöst. Der Queue-Zustand
 // bleibt modul-privat und ist ausschließlich über enqueueMermaidRun erreichbar;
 // ein beschreibbares Export-Binding über Modul-Grenzen gibt es damit nicht.
 'use strict';
@@ -18,7 +18,7 @@ import {
 } from '../render-mermaid.js';
 import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 
-// 4T-0089 (Epic 3E-0014): Mermaid-Block-Widget. Unterscheidet sich von
+// 4T-000089 (Epic 3E-000014): Mermaid-Block-Widget. Unterscheidet sich von
 // MarkdownBlockWidget durch:
 // 1) Eigene Bibliothek (loadMermaid + mermaid.run aus dem Renderer, NICHT
 //    api.renderMarkdown), weil Mermaid nicht in der preload-Pipeline laeuft.
@@ -38,10 +38,10 @@ import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 
 // Render-Queue: pro Widget einen Promise, der nach dem Vorgaenger
 // startet. So sind gleichzeitige Mermaid-Aufrufe ausgeschlossen.
-// 4T-0982: modul-privat statt exportiert; Zugriff nur über enqueueMermaidRun.
+// 4T-000982: modul-privat statt exportiert; Zugriff nur über enqueueMermaidRun.
 let mermaidRenderQueue = Promise.resolve();
 
-// R1-03/R2-04 (4T-0174): ALLE mermaid.run-Pfade (Live-Widgets, Render-Pane,
+// R1-03/R2-04 (4T-000174): ALLE mermaid.run-Pfade (Live-Widgets, Render-Pane,
 // Theme-Re-Render) laufen ueber dieselbe Queue. Mermaid v11 haelt globalen
 // Counter-State; parallele Laeufe vermischten Diagramme, warfen Phantom-
 // Syntax-Fehler und konnten defekte SVGs in den Cache heben.
@@ -81,7 +81,7 @@ export class MermaidBlockWidget extends WidgetType {
     }
     const placeholder = document.createElement('div');
     placeholder.className = 'cm-live-mermaid-loading';
-    // R1-10 (4T-0185): lokalisiert (war hartkodiert deutsch).
+    // R1-10 (4T-000185): lokalisiert (war hartkodiert deutsch).
     placeholder.textContent = t('live.mermaid.loading');
     wrapper.appendChild(placeholder);
     // Render-Queue: pro Widget hinten anhaengen, damit Mermaid serialisiert
@@ -129,7 +129,7 @@ export class MermaidBlockWidget extends WidgetType {
       liveBlockCacheSet(cacheKey, svg);
     } else {
       // Theoretisch unerreichbar mit suppressErrors:false, aber als
-      // Sicherheitsnetz behalten. R1-10 (4T-0185): lokalisiert.
+      // Sicherheitsnetz behalten. R1-10 (4T-000185): lokalisiert.
       this._renderError(wrapper, inner, new Error(t('live.mermaid.noSvg')));
     }
   }
@@ -164,10 +164,10 @@ export class MermaidBlockWidget extends WidgetType {
   }
 }
 
-// 4T-0283 (Epic 3E-0050): Frontmatter-Block-Widget. Ersetzt die
+// 4T-000283 (Epic 3E-000050): Frontmatter-Block-Widget. Ersetzt die
 // Frontmatter-Zeilen (Erkennung: detectFrontmatterLines, dieselbe Quelle
 // wie die Zeilen-Dekoration) durch die zusammengeklappte Zeile aus
-// 4T-0282, solange Cursor und Selektion ausserhalb liegen (blockIsActive-
+// 4T-000282, solange Cursor und Selektion ausserhalb liegen (blockIsActive-
 // Muster der KaTeX-/Mermaid-Block-Widgets). Der Inhalt kommt aus
 // api.renderMarkdown mit dem reinen Frontmatter-Quelltext — der Body ist
 // leer, der Output ist exakt der Frontmatter-Block des Render-Pane
@@ -182,7 +182,7 @@ export class MermaidBlockWidget extends WidgetType {
 // Initial-Selektion gerade NICHT demaskiert (siehe buildBlockWidgetValue).
 // eq() vergleicht Quelltext und Sprache (Sprachwechsel erneuert das
 // lokalisierte Label via liveRebuildEffect-Rebuild).
-// 4T-1310 (Epic 3E-0235): Leerraum-Textknoten auf oberster Ebene entfernen.
+// 4T-001310 (Epic 3E-000235): Leerraum-Textknoten auf oberster Ebene entfernen.
 // Im Dokument-Fluss sind sie folgenlos; in einem Widget-Kasten bilden sie eine
 // eigene Textzeile und schieben den Inhalt darunter auseinander.
 function entferneLeerraumKnoten(container) {
@@ -213,7 +213,7 @@ export class FrontmatterBlockWidget extends WidgetType {
       const html = api.renderMarkdown(this.source, '');
       if (html && html.includes('frontmatter-block')) {
         container.innerHTML = html;
-        // 4T-1310 (Epic 3E-0235): Der gerenderte Ausschnitt endet mit einem
+        // 4T-001310 (Epic 3E-000235): Der gerenderte Ausschnitt endet mit einem
         // Zeilenumbruch. Als Textknoten im Widget erzeugt er eine leere
         // Textzeile und damit 24 px Leerraum unter der zusammengeklappten
         // Zeile (gemessen am 2026-08-30). Sichtbar wird er erst im Editor,

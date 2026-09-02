@@ -1,4 +1,4 @@
-// 4T-0378 / 4T-0379 (Epic 3E-0071): Ausführung der Format-, Link-, Absatz- und
+// 4T-000378 / 4T-000379 (Epic 3E-000071): Ausführung der Format-, Link-, Absatz- und
 // Einfüge-Kommandos auf dem CodeMirror-Dokument. Ein Ausführungs-Pfad für beide
 // Zugänge: EDITOR_COMMAND_FUNCTIONS in editor.js (Hotkey über die commandKeymap)
 // und die Kontextmenü-Anbindung in editor-context-menu.js (Klick). Die reinen
@@ -6,7 +6,7 @@
 'use strict';
 
 import { getDocText } from '../app/api.js';
-// 4T-0498 (Epic 3E-0090): Erstellt-Automatik der Erweiterung "Aufgaben"
+// 4T-000498 (Epic 3E-000090): Erstellt-Automatik der Erweiterung "Aufgaben"
 // beim Umwandeln einer Zeile in eine Task-Zeile.
 import { withCreatedDate } from '../tasks.js';
 import {
@@ -59,7 +59,7 @@ function makeFormatCommand(formatId) {
     dispatchFormat(view, (text, from, to) => applyInlineFormat(text, from, to, formatId));
 }
 
-// 4T-0379: Absatz-Aktion — transformiert alle Zeilen der Selektion (bzw. die
+// 4T-000379: Absatz-Aktion — transformiert alle Zeilen der Selektion (bzw. die
 // Cursor-Zeile) über eine reine Zeilen-Funktion und hält die Selektion auf dem
 // transformierten Bereich.
 function dispatchLineTransform(view, transform) {
@@ -86,7 +86,7 @@ function makeParagraphCommand(transform) {
   return (view) => dispatchLineTransform(view, transform);
 }
 
-// 4T-0379: Einfüge-Aktion — eine reine Schablonen-Funktion liefert die
+// 4T-000379: Einfüge-Aktion — eine reine Schablonen-Funktion liefert die
 // CodeMirror-Änderungen (ggf. mehrere) und die Cursor-/Selektions-Position.
 function dispatchInsert(view, compute) {
   if (!view || view.state.readOnly) return false;
@@ -103,13 +103,13 @@ function dispatchInsert(view, compute) {
   return true;
 }
 
-// 4T-0379: Absatz-Zustand der Cursor-Zeile für die Häkchen im Absatz-Submenü.
+// 4T-000379: Absatz-Zustand der Cursor-Zeile für die Häkchen im Absatz-Submenü.
 export function getParagraphState(view) {
   const line = view.state.doc.lineAt(view.state.selection.main.head);
   return detectParagraphState(line.text);
 }
 
-// 4T-0608 (Epic 3E-0114): parametrisiertes Tabellen-Einfügen des Raster-
+// 4T-000608 (Epic 3E-000114): parametrisiertes Tabellen-Einfügen des Raster-
 // Pickers der Format-Toolbar — derselbe Dispatch-Pfad wie insert.table
 // (ein dispatch, Undo nimmt die Tabelle in einem Schritt zurück).
 export function insertTableSized(view, rows, cols) {
@@ -119,7 +119,7 @@ export function insertTableSized(view, rows, cols) {
 // Kommando-ID -> CodeMirror-Command (view) => boolean. Wird von editor.js in
 // EDITOR_COMMAND_FUNCTIONS gemerged und vom Kontextmenü direkt aufgerufen.
 export const FORMAT_COMMANDS = {
-  // 4T-0378: Zeichen-Formate und Links.
+  // 4T-000378: Zeichen-Formate und Links.
   'format.bold': makeFormatCommand('bold'),
   'format.italic': makeFormatCommand('italic'),
   'format.strikethrough': makeFormatCommand('strikethrough'),
@@ -130,10 +130,10 @@ export const FORMAT_COMMANDS = {
   'format.clear': (view) => dispatchFormat(view, clearInlineFormats, { guard: false }),
   'link.insertWiki': (view) => dispatchFormat(view, insertWikiLink),
   'link.insertExternal': (view) => dispatchFormat(view, insertExternalLink),
-  // 4T-0379: Absatz-Aktionen.
+  // 4T-000379: Absatz-Aktionen.
   'paragraph.bulletList': makeParagraphCommand((l) => toggleListType(l, 'bullet')),
   'paragraph.orderedList': makeParagraphCommand((l) => toggleListType(l, 'ordered')),
-  // 4T-0498 (Epic 3E-0090): beim Umwandeln IN eine Task-Zeile haengt die
+  // 4T-000498 (Epic 3E-000090): beim Umwandeln IN eine Task-Zeile haengt die
   // Erstellt-Automatik der Erweiterung "Aufgaben" das Erstellt-Datum an
   // (withCreatedDate prueft Erweiterung, Schalter und Global Filter
   // selbst; der Rueckweg — Task-Zeile zu Bullet — bleibt unberuehrt).
@@ -148,7 +148,7 @@ export const FORMAT_COMMANDS = {
   'paragraph.heading6': makeParagraphCommand((l) => setHeadingLevel(l, 6)),
   'paragraph.noHeading': makeParagraphCommand((l) => setHeadingLevel(l, 0)),
   'paragraph.quote': makeParagraphCommand(toggleQuote),
-  // 4T-0379: Einfüge-Schablonen.
+  // 4T-000379: Einfüge-Schablonen.
   'insert.footnote': (view) => dispatchInsert(view, insertFootnote),
   'insert.table': (view) => dispatchInsert(view, insertTable),
   'insert.perspectiveTable': (view) => dispatchInsert(view, insertPerspectiveTable),

@@ -1,4 +1,4 @@
-// 4T-0322 (Epic 3E-0058): Pfad-Logik der Bereiche (Ordner inklusive
+// 4T-000322 (Epic 3E-000058): Pfad-Logik der Bereiche (Ordner inklusive
 // Unterordner als Arbeitsraum einer logischen Applikation).
 //
 // Electron-frei und rein (unit-testbar); alle Bereichs-Grenzen der App
@@ -8,8 +8,8 @@
 //
 // Plattform-Besonderheiten: Trenner gemischt (\ und /), Laufwerksbuchstaben,
 // keine `..`-Ausbrueche (path.resolve normalisiert sie weg, bevor verglichen
-// wird). Ob Vergleiche die Schreibung ignorieren, entscheidet seit 4T-1203
-// (Epic 3E-0121) die zentrale Plattform-Eigenschaft in shared/platform.js:
+// wird). Ob Vergleiche die Schreibung ignorieren, entscheidet seit 4T-001203
+// (Epic 3E-000121) die zentrale Plattform-Eigenschaft in shared/platform.js:
 // case-insensitiv auf Windows und macOS, case-sensitiv auf Linux.
 'use strict';
 
@@ -50,9 +50,9 @@ function areaFromRootPath(rootPath) {
   return { rootPath: resolved, name: path.basename(resolved) };
 }
 
-// 4T-0888 (Epic 3E-0168): Pflege einer "Zuletzt geoeffnet"-Liste von
+// 4T-000888 (Epic 3E-000168): Pflege einer "Zuletzt geoeffnet"-Liste von
 // Ordner-Pfaden (juengste zuerst, dedupliziert ueber Pfad-Gleichheit, auf max
-// gekappt). Kern der Bereichs-Liste aus 4T-0325 und seit 4T-0888 zugleich der
+// gekappt). Kern der Bereichs-Liste aus 4T-000325 und seit 4T-000888 zugleich der
 // Buch- und der Regal-Liste: die drei Listen unterscheiden sich allein im
 // Store-Schluessel, deshalb EIN Aufbau statt dreier gleichlautender.
 function updatedRecentPaths(list, dirPath, max = 10) {
@@ -64,7 +64,7 @@ function updatedRecentPaths(list, dirPath, max = 10) {
   return filtered.slice(0, max);
 }
 
-// 4T-0888: Einzelnen Eintrag austragen — der Weg fuer ein Ziel, das es nicht
+// 4T-000888: Einzelnen Eintrag austragen — der Weg fuer ein Ziel, das es nicht
 // mehr gibt (Klick auf einen Eintrag, dessen Ordner verschwunden ist).
 function withoutRecentPath(list, dirPath) {
   const base = Array.isArray(list) ? list.filter((p) => typeof p === 'string' && p) : [];
@@ -72,14 +72,14 @@ function withoutRecentPath(list, dirPath) {
   return base.filter((p) => !isSamePath(p, dirPath));
 }
 
-// 4T-0325: Liste "Zuletzt geoeffnete Bereiche"; main.js persistiert das
-// Ergebnis im Store-Key 'recentAreas'. Seit 4T-0888 nur noch die
+// 4T-000325: Liste "Zuletzt geoeffnete Bereiche"; main.js persistiert das
+// Ergebnis im Store-Key 'recentAreas'. Seit 4T-000888 nur noch die
 // bereichs-benannte Sicht auf updatedRecentPaths (Verhalten unveraendert).
 function updatedRecentAreas(list, rootPath, max = 10) {
   return updatedRecentPaths(list, rootPath, max);
 }
 
-// 4T-0327: sortiert ein Verzeichnis-Listing fuer das Bereichs-Panel —
+// 4T-000327: sortiert ein Verzeichnis-Listing fuer das Bereichs-Panel —
 // Unterordner und Markdown-Dateien getrennt, locale-bewusst und numerisch
 // sortiert. entries: [{ name, isDir }]; isMarkdownName: Praedikat des
 // Aufrufers (main.js liefert isMarkdownPath).
@@ -97,11 +97,11 @@ function sortedAreaListing(entries, isMarkdownName) {
   return { dirs, files };
 }
 
-// 4T-0328: validiert und normalisiert den Namen fuer "Neue Datei in diesem
+// 4T-000328: validiert und normalisiert den Namen fuer "Neue Datei in diesem
 // Ordner": nur ein nackter Dateiname (keine Pfad-Segmente), keine unter
 // Windows verbotenen Zeichen; ohne Markdown-Endung wird ".md" ergaenzt.
 // Liefert den bereinigten Namen oder null.
-// 4T-1203: Die strenge Windows-Menge gilt bewusst auf ALLEN Plattformen —
+// 4T-001203: Die strenge Windows-Menge gilt bewusst auf ALLEN Plattformen —
 // eine unter Linux erlaubte Datei mit ':' waere unter Windows unlesbar, und
 // Bereiche sollen plattformuebergreifend austauschbar bleiben.
 function sanitizeNewFileName(name) {

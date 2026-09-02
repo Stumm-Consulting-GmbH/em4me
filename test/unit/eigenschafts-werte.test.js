@@ -1,4 +1,4 @@
-// 4T-1340 (Epic 3E-0238): Die im Bereich vergebenen Werte einer Eigenschaft.
+// 4T-001340 (Epic 3E-000238): Die im Bereich vergebenen Werte einer Eigenschaft.
 //
 // Geprüft wird die Sicht des Hauptprozesses am **echten Index** über ein
 // Temp-Verzeichnis (Muster profil-wertevorrat.test.js): Sammeln, Entdoppeln,
@@ -8,7 +8,7 @@
 // sollte.
 //
 // Dass die Werte an der Oberfläche erscheinen, misst die E2E-Ebene; die
-// Trennung ist die Lehre aus 4T-1339, wo eine grüne Prüfung der Funktion eine
+// Trennung ist die Lehre aus 4T-001339, wo eine grüne Prüfung der Funktion eine
 // wirkungslose Anzeige deckte.
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs';
@@ -73,7 +73,7 @@ afterEach(() => {
   tmpDirs = [];
 });
 
-describe('Werte einer Eigenschaft aus dem Bereich (4T-1340)', () => {
+describe('Werte einer Eigenschaft aus dem Bereich (4T-001340)', () => {
   it('AK1: sammelt über alle Dateien und ordnet alphabetisch', async () => {
     const { start } = await bestandMit(['status: Zeta', 'status: Alpha', 'status: Mitte']);
     const r = eigenschaftsWerteFuerFeld(start, 'status', null);

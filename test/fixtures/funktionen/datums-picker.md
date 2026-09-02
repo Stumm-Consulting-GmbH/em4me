@@ -13,7 +13,7 @@ codezeile im Fenced-Block
 2026-03-09
 ```
 
-4T-0641: Perspective-Fence — technisch Code, fuer den Nutzer eine Tabelle.
+4T-000641: Perspective-Fence — technisch Code, fuer den Nutzer eine Tabelle.
 Der Schreib-Trigger ist hier ausdruecklich erlaubt.
 
 ```perspective-table

@@ -1,4 +1,4 @@
-// 4T-0433 (Epic 3E-0081): E2E-Funktions-Suite Journale — Kommandos und der
+// 4T-000433 (Epic 3E-000081): E2E-Funktions-Suite Journale — Kommandos und der
 // gemeinsame Öffnen-/Anlage-Pfad. JR-01: Heute-Kommando legt den Eintrag mit
 // Vorlage und Frontmatter-Datums-Properties an und öffnet ihn (Cursor-Sprung);
 // JR-02: erneuter Aufruf öffnet nur (keine Doppel-Anwendung der Vorlage);
@@ -15,9 +15,9 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { leseTextOderNull, warteAufJson } = require('../helpers/dateien');
-// 4T-0777 (Epic 3E-0156): Wiederhol-Helfer, hier entstanden und seither geteilt.
+// 4T-000777 (Epic 3E-000156): Wiederhol-Helfer, hier entstanden und seither geteilt.
 const { pressUntilVisible } = require('../helpers/eingabe');
-// 4T-0434: erwartete Wochen-Schlüssel/-Pfade aus demselben Perioden-Kern,
+// 4T-000434: erwartete Wochen-Schlüssel/-Pfade aus demselben Perioden-Kern,
 // den die App nutzt (keine zweite KW-Rechnung im Test).
 const { periodOf, resolveEntryPath } = require('../../../src/shared/journal-core.js');
 
@@ -74,7 +74,7 @@ function makeArea() {
 
 // Profil mit globalem Vorlagen-Ordner (Journal-Vorlage) und belegten
 // Kürzeln für beide Kommandos (Muster vorlagen.spec.js).
-// 4T-1325 (Epic 3E-0236): `ansichtsModus` setzt den Standard-Ansichtsmodus des
+// 4T-001325 (Epic 3E-000236): `ansichtsModus` setzt den Standard-Ansichtsmodus des
 // Profils (Muster block-abfrage.spec.js). Der Szenario-Fall braucht ihn, weil
 // ein nachtraeglicher Modus-Wechsel die Live-Bloecke neu aufbaut und damit
 // genau den Zustand aufloest, den er nachstellen soll.
@@ -96,7 +96,7 @@ function makeUserData(templatesFolder, ansichtsModus) {
 
 function makeTemplatesDir() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-journale-vorlagen-'));
-  // 4T-0435: die Vorlage trägt den Navigations-Fence (belegtes PO-Muster:
+  // 4T-000435: die Vorlage trägt den Navigations-Fence (belegtes PO-Muster:
   // Navigation kommt aus der Journal-Vorlage).
   fs.writeFileSync(
     path.join(dir, 'Tag.md'),
@@ -180,7 +180,7 @@ test.describe('JR-01/JR-02/JR-04: Heute-Kommando — Anlage, Wiederöffnen, Gren
   });
 });
 
-// --- 4T-0434 (Epic 3E-0081): Kalender-Panel --------------------------------------
+// --- 4T-000434 (Epic 3E-000081): Kalender-Panel --------------------------------------
 
 const CAL = '.pane-group[data-pane="0"] .sidebar-calendar';
 
@@ -270,7 +270,7 @@ test.describe('JR-05: Kalender-Panel — Punkte, Klick-Anlage, Monats-Blättern,
   });
 });
 
-// --- 4T-0435 (Epic 3E-0081): Journal-Navigations-Block ----------------------------
+// --- 4T-000435 (Epic 3E-000081): Journal-Navigations-Block ----------------------------
 
 test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-103)', () => {
   test('zeigt die Periode, springt auf das Wochen-Journal und legt an', async () => {
@@ -316,7 +316,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
     }
   });
 
-  // 4T-1311 (Epic 3E-0235): Die Pfeile blaettern im selben Reiter.
+  // 4T-001311 (Epic 3E-000235): Die Pfeile blaettern im selben Reiter.
   test('die Pfeile wechseln im selben Reiter und behalten den Ansichts-Modus', async () => {
     const areaRoot = makeArea();
     const templatesDir = makeTemplatesDir();
@@ -365,7 +365,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
     }
   });
 
-  // 4T-1325 (Epic 3E-0236): Regressionstest zum Befund des Product Owners vom
+  // 4T-001325 (Epic 3E-000236): Regressionstest zum Befund des Product Owners vom
   // 2026-08-31 an der ausgelieferten 1.122.0. Der Block behielt nach einem
   // Wechsel des Reiter-Inhalts den Dateipfad des vorherigen Eintrags und nannte
   // weiter dessen Periode — samt Kalenderwoche und der Zeile «Heute».
@@ -436,7 +436,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
     }
   });
 
-  // 4T-1325 (Epic 3E-0236): Regressionstest des GEMELDETEN Ablaufs — zwei
+  // 4T-001325 (Epic 3E-000236): Regressionstest des GEMELDETEN Ablaufs — zwei
   // Journal-Eintraege in zwei Reitern, beide im Live-Modus, Wechsel per Klick.
   //
   // Beide Eintraege existieren bereits — wie beim Product Owner, dessen
@@ -522,7 +522,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
     }
   });
 
-  // 4T-1311 (Epic 3E-0235): Anlage des fehlenden Nachbar-Eintrags (AK5),
+  // 4T-001311 (Epic 3E-000235): Anlage des fehlenden Nachbar-Eintrags (AK5),
   // Nachzug der Titelzeile (AK7) und Sitzungs-Ablage ueber den Neustart (AK8).
   // Die drei haengen an derselben Stelle: ersetzeTabDurchDatei liest die Datei
   // ueber denselben Weg wie das Oeffnen und ruft danach activateTab, das
@@ -595,7 +595,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
     }
   });
 
-  // 4T-1311: Der Eltern-Sprung bleibt beim eigenen Reiter (Entscheidung E1).
+  // 4T-001311: Der Eltern-Sprung bleibt beim eigenen Reiter (Entscheidung E1).
   test('der Sprung auf die uebergeordnete Periode oeffnet weiterhin einen eigenen Reiter', async () => {
     const areaRoot = makeArea();
     const templatesDir = makeTemplatesDir();
@@ -638,7 +638,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
   });
 });
 
-// --- 4T-0436 (Epic 3E-0081): Einstellungs-Bereich Journale ------------------------
+// --- 4T-000436 (Epic 3E-000081): Einstellungs-Bereich Journale ------------------------
 
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
@@ -711,7 +711,7 @@ test.describe('JR-07: Einstellungen — Journal anlegen, Vorschau, sofort wirksa
 
       // Wirkt ohne Neustart: das Heute-Kommando legt den Eintrag an.
       const target = path.join(areaRoot, 'Journal', today.slice(0, 4), `${today}.md`);
-      // 4T-0757: auf den Inhalt warten, nicht auf die blosse Existenz — die
+      // 4T-000757: auf den Inhalt warten, nicht auf die blosse Existenz — die
       // Datei entsteht vor ihrem Inhalt, und unter Voll-Last fiel das Lesen
       // in diese Luecke (leerer String, Fehlschlag im Release-Lauf 0.94.0).
       await expect

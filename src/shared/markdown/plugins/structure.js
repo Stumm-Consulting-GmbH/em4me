@@ -1,4 +1,4 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Struktur-Gruppe des Dokuments: Zuordnung der Quellzeilen an die Tokens,
 // Ueberschriften-Nummerierung samt Marker-Strip und der Listen-Neustart
 // nach einer Leerzeile. Electron-frei; die Instanz-Registrierung macht
@@ -6,12 +6,12 @@
 'use strict';
 
 const { escapeHtml } = require('../slug.js');
-// 4T-0470 (Epic 3E-0087): Nummerierungs-Kern der Gliederungs-Nummerierung.
+// 4T-000470 (Epic 3E-000087): Nummerierungs-Kern der Gliederungs-Nummerierung.
 const { computeHeadingNumbers, parseHeadingMarker } = require('../../heading-numbers.js');
 
 function sourceLineMapperPlugin(mdInstance) {
   mdInstance.core.ruler.push('source_line_mapper', (state) => {
-    // 4T-0282 (Epic 3E-0050): renderMarkdown rendert nur den Body NACH dem
+    // 4T-000282 (Epic 3E-000050): renderMarkdown rendert nur den Body NACH dem
     // Frontmatter-Block; env.sourceLineOffset traegt die Zeilenzahl des
     // abgetrennten Frontmatters, damit data-source-line die Zeile im
     // GESAMT-Dokument angibt (Scroll-Sync und Checkbox-Toggle adressieren
@@ -24,7 +24,7 @@ function sourceLineMapperPlugin(mdInstance) {
     }
   });
 }
-// 4T-0470 (Epic 3E-0087): Zeilenende-Marker {-}/{+} code-bewusst aus einem
+// 4T-000470 (Epic 3E-000087): Zeilenende-Marker {-}/{+} code-bewusst aus einem
 // Markdown-Text nehmen — fuer den Portable-Export (der Text bleibt Standard-
 // Markdown, nur der echte Steuer-Marker verschwindet; escapte Marker und
 // Marker in Fenced-Code bleiben Literal). Gleiche Marker-Erkennung wie der
@@ -56,7 +56,7 @@ function stripHeadingMarkers(text) {
   return lines.join('\n');
 }
 
-// 4T-0470 (Epic 3E-0087): Ueberschriften-Nummerierung als Anzeige-Praefix.
+// 4T-000470 (Epic 3E-000087): Ueberschriften-Nummerierung als Anzeige-Praefix.
 // Core-Ruler VOR 'inline': entfernt an jeder Ueberschrift einen echten
 // (nicht escapten) Zeilenende-Marker {-}/{+} aus dem Roh-Inline-Content,
 // BEVOR der Inline-Parser laeuft — damit weder der Slug (markdown-it-anchor)
@@ -117,7 +117,7 @@ function headingNumbersPlugin(mdInstance, options) {
   };
 }
 
-// 4T-0660 (Epic 3E-0112): Leerzeile beginnt eine neue nummerierte Liste.
+// 4T-000660 (Epic 3E-000112): Leerzeile beginnt eine neue nummerierte Liste.
 //
 // Bewusste Abweichung von der Standard-Interpretation (Festlegung des Product
 // Owners vom 2026-07-21): Dort setzt eine Leerzeile eine Liste nur weitläufig

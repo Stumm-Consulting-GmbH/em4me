@@ -1,6 +1,6 @@
 // Erkennungs-Muster und Dokument-Scans des Live-Modus (Regex-Konstanten,
 // WeakMap-gecachte Zeilen-Scans, Kontext- und Fussnoten-Suchen).
-// 4T-0982 (Epic 3E-0196): aus live-widgets.js herausgelöst; reine Analyse ohne
+// 4T-000982 (Epic 3E-000196): aus live-widgets.js herausgelöst; reine Analyse ohne
 // Decoration- oder Widget-Bezug, deshalb nur von api und den geteilten
 // Callout-Typen abhängig.
 'use strict';
@@ -10,7 +10,7 @@ import { syntaxTree } from '@codemirror/language';
 import { CALLOUT_TYPES } from '../../../shared/callouts.js';
 import { getDocText } from '../app/api.js';
 
-// 4T-0476 (Epic 3E-0088): CommonMark-Destination in spitzen Klammern
+// 4T-000476 (Epic 3E-000088): CommonMark-Destination in spitzen Klammern
 // (<Mein Ziel.md>) — der Lezer-URL-Knoten umfasst die Klammern selbst.
 // Klick-Pfad (file:resolveLink) und Bild-Auflösung erwarten den rohen
 // Zielwert, deshalb werden umschließende Klammern hier abgestreift.
@@ -19,14 +19,14 @@ export function stripAngleDestination(url) {
   return s.startsWith('<') && s.endsWith('>') ? s.slice(1, -1) : s;
 }
 
-// 4T-0081: Highlight (`==Text==`). Identisches Pattern wie EDITOR_MARK_RE
+// 4T-000081: Highlight (`==Text==`). Identisches Pattern wie EDITOR_MARK_RE
 // im markMarkerField (live-marker-fields.js); im Live-Plugin als Regex-Pass
 // parallel zur Lezer-Iteration, weil kein Standard-Lezer-Knoten existiert.
 // Die existierende cm-mark-marker-Klasse aus markMarkerField bleibt fuer
 // die gelbe Hinterlegung des Inhalts aktiv.
 export const LIVE_HIGHLIGHT_RE = /(?<!\\)==([^=\n][^\n]*?)(?<!\\)==/g;
 
-// 4T-0081: Tag-Erkennung. Spiegelt die Regeln aus tagsPlugin (src/shared/markdown/plugins.js)
+// 4T-000081: Tag-Erkennung. Spiegelt die Regeln aus tagsPlugin (src/shared/markdown/plugins.js)
 // (`#` am Zeilenanfang oder nach Nicht-Wortzeichen, Tag-Zeichen
 // [\p{L}\p{N}_/-]+, kein Slash am Rand, mindestens ein Buchstabe, kein
 // Hex-Farbcode). Lookbehind sorgt dafuer, dass m.index die `#`-Position
@@ -36,19 +36,19 @@ export const LIVE_TAG_RE = /(?<![\p{L}\p{N}_#])#([\p{L}\p{N}_/-]+)/gu;
 export const LIVE_TAG_HEX_COLOR = /^[0-9a-f]{3,8}$/i;
 export const LIVE_TAG_HAS_LETTER = /[\p{L}]/u;
 
-// 4T-0082: Wiki-Link-Erkennung. Pattern matched `[[Inhalt]]`, Inhalt darf
+// 4T-000082: Wiki-Link-Erkennung. Pattern matched `[[Inhalt]]`, Inhalt darf
 // keine Klammern und keinen Zeilenumbruch enthalten. Inhalt kann
 // `Datei`, `Datei#Anker`, `Datei^block-id`, `Datei|Alias`,
 // `Datei#Anker|Alias` sein; Aufloesung im Klick-Handler ueber activateLink.
 export const LIVE_WIKILINK_RE = /\[\[([^[\]\n]+?)\]\]/g;
 
-// 4T-0082: Footnote-Verweis-Erkennung. Lookahead `(?!:)` schliesst
+// 4T-000082: Footnote-Verweis-Erkennung. Lookahead `(?!:)` schliesst
 // Definitionen (`[^id]:`) aus, sodass nur die Verweis-Variante als
 // hochgestellt gerendert wird. id-Pattern wie in EDITOR_FOOTNOTE_RE
 // (live-marker-fields.js).
 export const LIVE_FOOTNOTE_REF_RE = /\[\^([\w-]+)\](?!:)/g;
 
-// 4T-0197: Emoji-Shortcode-Kandidaten. Zeichenklasse deckt die Keys des
+// 4T-000197: Emoji-Shortcode-Kandidaten. Zeichenklasse deckt die Keys des
 // full-Sets ab (lowercase, Ziffern, `_`, `+`, `-`). Ob ein Kandidat
 // wirklich ein Shortcode ist, entscheidet der Lookup in emojiDefs —
 // bei Nicht-Treffern wird ab dem schliessenden `:` weitergesucht
@@ -56,7 +56,7 @@ export const LIVE_FOOTNOTE_REF_RE = /\[\^([\w-]+)\](?!:)/g;
 // zur Plugin-Scan-Semantik im Render-Pfad.
 export const LIVE_EMOJI_RE = /:([a-z0-9_+-]+):/g;
 
-// 4T-0197: Abbreviation-Definitionen scannen (`*[KUERZEL]: Langtext`).
+// 4T-000197: Abbreviation-Definitionen scannen (`*[KUERZEL]: Langtext`).
 // WeakMap-Cache pro Doc-Version (Muster computeCalloutScan). defLines
 // traegt die Zeilen-Nummern der Definitionszeilen — dort wird kein
 // Vorkommen dekoriert (die Zeile bleibt im Live-Modus sichtbar, analog
@@ -76,7 +76,7 @@ export function computeAbbrScan(doc) {
     defs.set(m[1], m[2]);
     defLines.add(i + 1);
   }
-  // K-04 (4T-0310): Vorkommen-Regex pro Kuerzel einmal pro Doc-Version
+  // K-04 (4T-000310): Vorkommen-Regex pro Kuerzel einmal pro Doc-Version
   // kompilieren (statt bei jedem Build-Durchlauf neu). matchAll klont die
   // Regex intern, ein geteiltes globales Objekt ist damit gefahrlos.
   const regexes = new Map();
@@ -89,14 +89,14 @@ export function computeAbbrScan(doc) {
   return result;
 }
 
-// 4T-0198: Bild mit Groessen-Suffix `![alt](url =WxH)`. Lezer parst das
+// 4T-000198: Bild mit Groessen-Suffix `![alt](url =WxH)`. Lezer parst das
 // Suffix nicht als Image-Bestandteil (der Image-Knoten endet nach
 // `![alt]`, kein URL-Child), deshalb eigener Regex-Pass. Mindestens eine
 // Ziffer Pflicht (`=100x200`, `=100x`, `=x200`); andere Suffixe bleiben
 // dem Render-Pfad ueberlassen.
 export const LIVE_IMG_SIZE_RE = /!\[([^[\]\n]*)\]\(([^()\n]*?)\s+=(?:\d+x\d*|\d*x\d+)\)/g;
 
-// 4T-0201: Sub-/Sup-/Ins-Erkennung, gegen das jeweilige Plugin-Verhalten
+// 4T-000201: Sub-/Sup-/Ins-Erkennung, gegen das jeweilige Plugin-Verhalten
 // kalibriert (Fixture-Paare Render vs. Live):
 // - Sub: Single-Tilde, KEIN Whitespace im Inhalt (markdown-it-sub-
 //   Regel); Lookarounds schliessen `~~`-Strikethrough und Escapes aus.
@@ -109,7 +109,7 @@ export const LIVE_SUB_RE = /(?<![~\\])~([^~\s]+)~(?!~)/g;
 export const LIVE_SUP_RE = /(?<![\^\\])\^\^(?=[^\s^])([^^\n]*?)(?<![\s\\])\^\^(?!\^)/g;
 export const LIVE_INS_RE = /(?<![+\\])\+\+(?=[\p{L}\p{N}])([^+\n]*?)(?<![\s+\\])\+\+(?!\+)/gu;
 
-// 4T-0203: Spoiler `||Text||` (kalibriert an der scanDelims-Mechanik:
+// 4T-000203: Spoiler `||Text||` (kalibriert an der scanDelims-Mechanik:
 // kein Whitespace direkt innen) und Critic Markup (fuenf Formen; das
 // Mapping open->close prueft der Pass, der Regex sammelt nur
 // Kandidaten). Critic-Spannen werden VOR den Sub/Sup/Ins-Paessen
@@ -120,7 +120,7 @@ export const LIVE_SPOILER_RE = /(?<![\\|])\|\|(?=[^\s|])([^|\n]*?)(?<![\s\\])\|\
 export const LIVE_CRITIC_RE = /\{(\+\+|--|~~|==|>>)([^\n{}]*?)(\+\+|--|~~|==|<<)\}/g;
 export const LIVE_CRITIC_CLOSE_FOR = { '++': '++', '--': '--', '~~': '~~', '==': '==', '>>': '<<' };
 
-// 4T-0202: Bracketed Spans `[Text]{...}`. Marker (`[` und `]{...}`)
+// 4T-000202: Bracketed Spans `[Text]{...}`. Marker (`[` und `]{...}`)
 // werden versteckt, der Inhalt bleibt ohne Klassen-Anwendung sichtbar
 // (nutzerdefinierte Klassen haben im Editor-Kontext kein CSS;
 // dokumentierte Einschraenkung — die volle Wirkung zeigt das Render-
@@ -128,16 +128,16 @@ export const LIVE_CRITIC_CLOSE_FOR = { '++': '++', '--': '--', '~~': '~~', '==':
 // Footnote-Referenzen (`[^...]`).
 export const LIVE_SPAN_ATTRS_RE = /(?<![![\\])\[([^[\]\n^][^[\]\n]*)\]\{([^{}\n]*)\}/g;
 
-// 4T-0202: trailing Attribut-Block an Heading-Zeilen (`# H {#id}`).
+// 4T-000202: trailing Attribut-Block an Heading-Zeilen (`# H {#id}`).
 // markdown-it-attrs konsumiert den Block am Heading-Ende auch bei
 // verworfenen Attributen; non-space nach `{` haelt geschweifte
 // Fliesstext-Klammern (`{ so }`) heraus.
 export const LIVE_HEADING_ATTRS_RE = /\{[^\s{}][^{}\n]*\}[ \t]*$/;
-// 4T-0471 (Epic 3E-0087): echter (nicht escapter) Zeilenende-Marker {-}/{+}
+// 4T-000471 (Epic 3E-000087): echter (nicht escapter) Zeilenende-Marker {-}/{+}
 // der Nummerierung. Wird auf inaktiven Heading-Zeilen versteckt.
 export const LIVE_HEADING_MARKER_RE = /(?<!\\)\{[-+]\}[ \t]*$/;
 
-// 4T-0198: Steht das Bild allein im Absatz? Zeilenbasierte Naeherung an
+// 4T-000198: Steht das Bild allein im Absatz? Zeilenbasierte Naeherung an
 // die implicit-figures-Absatz-Definition: Zeile == Bild-Quelltext und
 // beide Nachbar-Zeilen leer bzw. Doc-Grenze. Einzeiligkeit des Images ist
 // durch R1-01 ohnehin Voraussetzung der Live-Ersetzung.
@@ -149,7 +149,7 @@ export function imageIsStandalone(state, line, matchText) {
   return true;
 }
 
-// 4T-0199: Pre-Pass fuer Definition Lists und Pandoc Line Blocks
+// 4T-000199: Pre-Pass fuer Definition Lists und Pandoc Line Blocks
 // (WeakMap-Cache pro Doc, Muster computeCalloutScan). Beide Konstrukte
 // kennt der Lezer nicht, deshalb zeilenbasierte Erkennung; die Bloecke
 // werden in buildBlockWidgetValue als MarkdownBlockWidget ersetzt.
@@ -235,7 +235,7 @@ export function computeDeflistLineBlockScan(doc) {
   return result;
 }
 
-// 4T-0199: liegt die Position in einem Lezer-Table-Knoten? (Guard fuer
+// 4T-000199: liegt die Position in einem Lezer-Table-Knoten? (Guard fuer
 // Line Blocks — GFM-Tabellen-Zeilen matchen ebenfalls `| `.)
 export function positionInsideTable(state, pos) {
   let n = syntaxTree(state).resolveInner(pos, 1);
@@ -246,7 +246,7 @@ export function positionInsideTable(state, pos) {
   return false;
 }
 
-// 4T-0200: Custom-Container-Scan (WeakMap-Cache pro Doc). Erkennt Top-
+// 4T-000200: Custom-Container-Scan (WeakMap-Cache pro Doc). Erkennt Top-
 // Level-Bloecke `::: name [Titel]` bis zur schliessenden Marker-Zeile
 // gleicher oder groesserer Laenge; ohne Schluss-Marker laeuft der Block
 // bis zum Doc-Ende (markdown-it-container-Verhalten, empirisch
@@ -295,7 +295,7 @@ export function computeContainerScan(doc) {
   return result;
 }
 
-// R1-05 (4T-0180): Callout-Zeilen-Scan pro Doc-Version cachen. Der Scan
+// R1-05 (4T-000180): Callout-Zeilen-Scan pro Doc-Version cachen. Der Scan
 // (Voll-Text-Split plus Zeilen-Regexes) lief zuvor bei jeder Cursor-
 // Bewegung und jedem Viewport-Scroll komplett neu, haengt aber nur vom
 // Doc-Inhalt ab. CALLOUT_TYPES ist statisch.
@@ -307,7 +307,7 @@ export function computeCalloutScan(doc) {
   const calloutLines = new Set();
   const calloutInfos = [];
   const docLines = getDocText(doc).split('\n');
-  // R1-13 (4T-0186): Header-Muster an markdown-it angeglichen —
+  // R1-13 (4T-000186): Header-Muster an markdown-it angeglichen —
   // (a) `>` ohne Pflicht-Leerzeichen vor `[!type]` (CommonMark erlaubt
   //     den Blockquote-Marker ohne folgendes Space),
   // (b) Einrueckung maximal drei Spaces (ab vier Spaces parst markdown-it
@@ -344,7 +344,7 @@ export function computeCalloutScan(doc) {
   return result;
 }
 
-// 4T-0082: Footnote-Definition im Doc suchen. Liefert den Definitions-Text
+// 4T-000082: Footnote-Definition im Doc suchen. Liefert den Definitions-Text
 // der ersten Zeile (alles nach `[^id]:`). Mehrzeilige Definitionen werden
 // vereinfacht zur ersten Zeile gekuerzt — Tooltip soll kompakt bleiben.
 export function findFootnoteDefinitionText(doc, id) {
@@ -355,7 +355,7 @@ export function findFootnoteDefinitionText(doc, id) {
   return m ? m[1] : null;
 }
 
-// 4T-0082: Footnote-Definition-Range im Doc suchen. Liefert {from, to} des
+// 4T-000082: Footnote-Definition-Range im Doc suchen. Liefert {from, to} des
 // `[^id]:`-Markers (nicht des kompletten Definitions-Texts), reicht zum
 // Hinscrollen.
 export function findFootnoteDefinitionRange(doc, id) {

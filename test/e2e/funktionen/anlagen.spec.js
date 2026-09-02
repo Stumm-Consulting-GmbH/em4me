@@ -1,4 +1,4 @@
-// 4T-0642 / 4T-0789 (Epic 3E-0125): E2E-Suite fuer das Ablegen von Anlagen.
+// 4T-000642 / 4T-000789 (Epic 3E-000125): E2E-Suite fuer das Ablegen von Anlagen.
 //
 // AN-01 bis AN-04: Einfuegen aus der Zwischenablage. Die Pfad-Rechnung selbst
 // ist in attachment-path.test.js bewiesen; hier laeuft der echte Editor-Pfad
@@ -202,7 +202,7 @@ test.describe('AN-05/AN-06: Ziehen legt auf beiden Dokument-Flaechen ab', () => 
   });
 });
 
-// Regression zum Befund des Product Owners aus der Test-Iteration zu 4T-0789:
+// Regression zum Befund des Product Owners aus der Test-Iteration zu 4T-000789:
 // Beim Ziehen einer TEXTdatei stand anschliessend beides im Dokument, der
 // Verweis UND der komplette Datei-Inhalt. Ursache war der eingebaute
 // drop-Handler des Editor-Moduls, der eine gezogene Datei per FileReader als

@@ -1,7 +1,7 @@
 // Menues und Dialog der Tab-Gruppen: Kontextmenue-Aktionen des Reiter-Menues,
 // Kopf-Menue der Gruppe, Aufklapp-Menue einer zugeklappten Gruppe und der
 // Gruppen-Dialog (Name und Farbe).
-// 4T-0978 (Epic 3E-0196): aus modules/dialogs/dialogs.js ausgezogen (reiner
+// 4T-000978 (Epic 3E-000196): aus modules/dialogs/dialogs.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert). Eigenes Modul neben
 // tab-context-menu.js, weil beide zusammen ueber dem Zeilen-Budget lagen;
 // die Trennlinie folgt der Fachlichkeit (Gruppen gegen Reiter). Der
@@ -15,11 +15,11 @@ import { t } from '../../i18n.js';
 import { $ } from '../app/api.js';
 import { contextMenu, getPaneEls, state, tabDisplayName } from '../app/app-state.js';
 import { activateTab, closeTab } from './tabs.js';
-// 4T-0461 (Epic 3E-0085): applyAllLayouts/persistState fuer die
+// 4T-000461 (Epic 3E-000085): applyAllLayouts/persistState fuer die
 // Gruppen-Menue-Aktionen (Render und Sitzungs-Persistenz nach Modell-Edit).
 import { applyAllLayouts } from '../views/pane-render.js';
 import { persistState } from '../views/views.js';
-// 4T-0461: Gruppen-Modell-Helfer fuer Kontextmenue und Dialog.
+// 4T-000461: Gruppen-Modell-Helfer fuer Kontextmenue und Dialog.
 import {
   TAB_GROUP_COLOR_KEYS,
   addTabsToGroup,
@@ -29,7 +29,7 @@ import {
   nextFreeColor,
   removeTabsFromGroup,
 } from './tab-groups.js';
-// 4T-0978: generische Menue-Helfer aus dem Dialog-Bereich.
+// 4T-000978: generische Menue-Helfer aus dem Dialog-Bereich.
 import {
   appendContextMenuItem,
   hideContextMenu,
@@ -37,12 +37,12 @@ import {
   registerContextMenuCloseHook,
 } from '../dialogs/context-menu-utils.js';
 
-// --- Tab-Gruppen: Kontextmenue-Aktionen und Kopf-Menue (4T-0461) --------------
+// --- Tab-Gruppen: Kontextmenue-Aktionen und Kopf-Menue (4T-000461) --------------
 
 // Neue-Gruppe-Fluss: Gruppe mit Standard-Name ("Gruppe n") und naechster
 // freier Palette-Farbe anlegen, dann direkt den Umbenennen-Dialog oeffnen.
 // Abbruch im Dialog behaelt Standard-Name und -Farbe (Gruppe bleibt).
-// 4T-0766 (Epic 3E-0158): auf eine Index-Liste erweitert — bei einer Menge
+// 4T-000766 (Epic 3E-000158): auf eine Index-Liste erweitert — bei einer Menge
 // ruecken die Mitglieder an der Stelle des ersten Ausgewaehlten zusammen.
 export async function newGroupWithTabs(paneIdx, tabIdxList) {
   const pane = state.panes[paneIdx];
@@ -69,7 +69,7 @@ export async function newGroupWithTabs(paneIdx, tabIdxList) {
 export function addTabsToGroupAction(paneIdx, tabIdxList, groupId) {
   const pane = state.panes[paneIdx];
   if (!pane || !addTabsToGroup(pane, tabIdxList, groupId)) return;
-  // 4T-0767 (Epic 3E-0158): Tritt der aktive Reiter einer zugeklappten Gruppe
+  // 4T-000767 (Epic 3E-000158): Tritt der aktive Reiter einer zugeklappten Gruppe
   // bei, bleibt sie zu — die Sichtbarkeits-Garantie ist entfallen.
   applyAllLayouts();
   persistState();
@@ -111,7 +111,7 @@ export function showGroupContextMenu(event, paneIdx, groupId) {
   placeContextMenuAt(contextMenu, event.clientX, event.clientY);
 }
 
-// --- Aufklapp-Menue einer zugeklappten Gruppe (4T-0768, Epic 3E-0158) --------
+// --- Aufklapp-Menue einer zugeklappten Gruppe (4T-000768, Epic 3E-000158) --------
 //
 // Eine zugeklappte Gruppe verbirgt ihre Mitglieder vollstaendig; das Menue
 // macht den Wechsel zu einem Zeigen und einem Klick. Mechanik und Zeiten sind
@@ -129,7 +129,7 @@ let gruppenMenueOeffnenTimer = null;
 let gruppenMenueSchliessenTimer = null;
 let gruppenMenueGroupId = null;
 
-// 4T-0978: Der Besitz am gemeinsamen #context-menu endet, sobald es
+// 4T-000978: Der Besitz am gemeinsamen #context-menu endet, sobald es
 // geschlossen wird, gleich von wem. Vor dem Schnitt setzte hideContextMenu die
 // Kennung selbst zurück; jetzt meldet dieses Modul den Rücksetzer dort an.
 registerContextMenuCloseHook(() => {
@@ -179,7 +179,7 @@ export function schliesseGruppenMenueSofort() {
   if (gruppenMenueGroupId) hideContextMenu();
 }
 
-// 4T-1308 (Epic 3E-0235): Ein Mitglied aus der Liste heraus schliessen und die
+// 4T-001308 (Epic 3E-000235): Ein Mitglied aus der Liste heraus schliessen und die
 // Liste danach neu aufbauen.
 //
 // Der Neuaufbau ist nicht Kosmetik: Nach dem Schliessen verschieben sich die
@@ -238,7 +238,7 @@ function zeigeGruppenMitgliederMenue(paneIdx, groupId, anchorEl) {
       // und haelt die uebrigen buendig (Muster Absatz-Submenue).
       checked: i === pane.activeIndex,
       action: () => activateTab(paneIdx, i),
-      // 4T-1308 (Epic 3E-0235): Schliessen unmittelbar aus der Liste, ohne
+      // 4T-001308 (Epic 3E-000235): Schliessen unmittelbar aus der Liste, ohne
       // den Umweg ueber Aufklappen und Suchen im Streifen. Geschlossen wird
       // ueber den gemeinsamen Weg, damit die Rueckfrage bei ungesicherten
       // Aenderungen ohne eigenes Zutun greift.

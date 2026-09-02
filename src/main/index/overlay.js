@@ -1,7 +1,7 @@
-// 4T-0977 (Epic 3E-0196): Puffer-Overlay-Schicht des Index, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Puffer-Overlay-Schicht des Index, herausgelöst aus
 // src/main/backlinks.js (die Map selbst wohnt in store.js).
 //
-// --- Puffer-Overlay (4T-0935, Befund B-08) ---------------------------------------
+// --- Puffer-Overlay (4T-000935, Befund B-08) ---------------------------------------
 // Zweite, ausdrueckliche Schicht ueber dem Index: je Datei-Pfad optional der
 // Parse des GESCHRIEBENEN Stands aus dem Editor-Puffer. Die Platten-Schicht
 // bleibt unangetastet daneben liegen; der Datei-Beobachter bleibt damit Herr
@@ -9,17 +9,17 @@
 // Schliessen.
 //
 // Die Schicht wirkt NICHT von selbst. Nur wer sie ausdruecklich anfordert,
-// sieht sie — freigeschaltet sind in 4T-0935 die drei Verbraucher der
+// sieht sie — freigeschaltet sind in 4T-000935 die drei Verbraucher der
 // gerenderten Ansicht (frontmatterQueryFor, scriptDataFor, eventsForQuery).
 // Die uebrigen neun Index-Verbraucher (Backlinks, Tags, Graph, Autocomplete,
 // Ziel-Aufloesung samt Linter, Embeds) sehen weiter den Platten-Stand; ob sie
-// folgen sollen, erhebt 4T-0936 und entscheidet der Product Owner.
+// folgen sollen, erhebt 4T-000936 und entscheidet der Product Owner.
 //
 // Sie liegt bewusst im Hauptprozess und gilt damit fensteruebergreifend: Der
 // gemeldete Fall hatte dieselbe Datei in zwei Fenstern offen. Melden zwei
 // Fenster verschiedene Staende derselben Datei, gilt der zuletzt gemeldete —
 // dieselbe Regel, die beim Speichern ohnehin greift.
-// 4T-0948 (Befund E-01): Der Eintrag fuehrt neben dem Parse den ROH-TEXT, weil
+// 4T-000948 (Befund E-01): Der Eintrag fuehrt neben dem Parse den ROH-TEXT, weil
 // die Wiki-Einbettung ihren Anker am Text schneidet (extractEmbedSnippet). Die
 // uebrigen Verbraucher sehen davon nichts: overlaysUnder reicht wie bisher
 // allein den Parse weiter.
@@ -57,12 +57,12 @@ function overlaysUnder(root) {
   return treffer.size > 0 ? treffer : null;
 }
 
-// 4T-0948 (Befund E-01): Roh-Text-Auskunft fuer Verbraucher, die den
+// 4T-000948 (Befund E-01): Roh-Text-Auskunft fuer Verbraucher, die den
 // geschriebenen Stand als Text brauchen (Wiki-Einbettung). Ohne Bereichs-
 // Filter, weil der Aufrufer den Ziel-Pfad bereits geprueft hat. Der zweite
 // Anlauf ohne Ruecksicht auf Gross- und Kleinschreibung faengt '![[quelle]]'
 // gegen 'Quelle.md' und gilt auf case-insensitiven Dateisystemen (seit
-// 4T-1203 Windows UND macOS, zentrale Eigenschaft in shared/platform.js);
+// 4T-001203 Windows UND macOS, zentrale Eigenschaft in shared/platform.js);
 // wo das Dateisystem die Schreibweise unterscheidet, waeren das zwei Dateien.
 function bufferTextFor(absPath) {
   if (typeof absPath !== 'string' || !absPath) return null;

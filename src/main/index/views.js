@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Lese-Sichten auf den Index, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Lese-Sichten auf den Index, herausgelöst aus
 // src/main/backlinks.js. Reine Read-only-Views ohne eigenen Scan: Status wird
 // durchgereicht, kein ensureIndex. Hier wohnen die Autocomplete-Suggestions
 // (Wiki-Link, Anker, Tag), das Tag-System (tagsFor samt Zähl- und
@@ -21,7 +21,7 @@ const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
 const { buildLinkGraph, logicalNameFor } = require('./link-graph.js');
 
-// 4T-0950 (Befund E-03): Tag-Zuordnung aus einer Sicht ableiten, statt die im
+// 4T-000950 (Befund E-03): Tag-Zuordnung aus einer Sicht ableiten, statt die im
 // Index gepflegten Umkehr-Abbildungen zu lesen.
 //
 // Hintergrund: tagMap und tagDisplay bilden Tag -> Dateien ab und werden beim
@@ -54,7 +54,7 @@ function tagMapsAusSicht(sicht) {
   return { tagMap, tagDisplay };
 }
 
-// 4T-0056: Liefert alle Tags der Wurzel sortiert nach Haeufigkeit
+// 4T-000056: Liefert alle Tags der Wurzel sortiert nach Haeufigkeit
 // (absteigend), bei Gleichstand alphabetisch. Tag-Casing: das erste
 // gesehene Casing wird beibehalten (deterministisch durch Iteration der
 // tagMap-Schluessel-Reihenfolge).
@@ -62,7 +62,7 @@ function getAllTagsWithCounts(entry) {
   if (!entry || !entry.tagMap) return [];
   const out = [];
   for (const [keyLower, set] of entry.tagMap) {
-    // B-16 (4T-0181): Display-Casing kommt aus der beim Indexieren
+    // B-16 (4T-000181): Display-Casing kommt aus der beim Indexieren
     // gepflegten Map statt aus einer linearen Suche pro Tag.
     const displayTag = entry.tagDisplay.get(keyLower) || keyLower;
     out.push({ tag: displayTag, count: set.size });
@@ -74,7 +74,7 @@ function getAllTagsWithCounts(entry) {
   return out;
 }
 
-// 4T-0056: Liefert alle Dateien im Index, die den gegebenen Tag fuehren.
+// 4T-000056: Liefert alle Dateien im Index, die den gegebenen Tag fuehren.
 // Case-insensitive Lookup. Pfade alphabetisch sortiert fuer deterministische
 // Anzeige in der Sidebar.
 function filesForTag(entry, tag) {
@@ -84,7 +84,7 @@ function filesForTag(entry, tag) {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
-// 4T-0057 (Epic 3E-0011): Autocomplete-Suggestions fuer Wiki-Link-Trigger
+// 4T-000057 (Epic 3E-000011): Autocomplete-Suggestions fuer Wiki-Link-Trigger
 // `[[`. Liefert die Liste aller Datei-Basenames (ohne .md) und Aliases
 // im aktiven Suchraum, je mit Hinweis-Detail (Verzeichnis bzw. Ziel-
 // Datei). Renderer filtert clientseitig per Prefix und sortiert. Liefert
@@ -98,11 +98,11 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
   if (!entry) return { status: 'unavailable', suggestions: [] };
   if (entry.status === 'oversized') return { status: 'unavailable', suggestions: [] };
   if (entry.status === 'indexing') return { status: 'indexing', suggestions: [] };
-  // W-07 (4T-0309): Fehler-Status wie unavailable behandeln — nicht den
+  // W-07 (4T-000309): Fehler-Status wie unavailable behandeln — nicht den
   // eingefrorenen Index eines toten Watchers als verbindlich ausgeben.
   if (entry.status === 'error') return { status: 'unavailable', suggestions: [] };
 
-  // 4T-1307 (Epic 3E-0235): Jeder Vorschlag traegt zusaetzlich die
+  // 4T-001307 (Epic 3E-000235): Jeder Vorschlag traegt zusaetzlich die
   // Aenderungszeit seiner Datei, damit der Renderer die zuletzt bearbeiteten
   // Dateien zuerst anbieten kann. Die Zeit liegt im Index ohnehin vor
   // (fileStats, gefuellt beim Scan); eine eigene Datei-Abfrage entsteht nicht.
@@ -112,7 +112,7 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
   const suggestions = [];
   const seenFiles = new Set();
   for (const f of entry.files.keys()) {
-    // 4T-0337 (Epic 3E-0061): Unterseiten erscheinen in Slash-Schreibweise
+    // 4T-000337 (Epic 3E-000061): Unterseiten erscheinen in Slash-Schreibweise
     // (U+2215 im Basename -> '/'), so wie sie im Wiki-Link geschrieben werden.
     const base = toLogicalName(path.basename(f).replace(MD_EXT_RE, ''));
     const key = base.toLowerCase();
@@ -132,7 +132,7 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
     }
     const firstFile = [...fileSet][0];
     const detail = firstFile ? toLogicalName(path.basename(firstFile).replace(MD_EXT_RE, '')) : '';
-    // 4T-1307: Ein Zweitname erbt die Aenderungszeit der Datei, auf die er
+    // 4T-001307: Ein Zweitname erbt die Aenderungszeit der Datei, auf die er
     // zeigt; er hat keine eigene. Bei mehreren Dateien gilt dieselbe Datei,
     // aus der auch das Detail stammt, damit Anzeige und Sortierung zusammen
     // gehoeren.
@@ -146,7 +146,7 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
   return { status: 'ready', suggestions };
 }
 
-// 4T-0057: Heading-/Block-Anker-Suggestions fuer Wiki-Link-Anker-Trigger
+// 4T-000057: Heading-/Block-Anker-Suggestions fuer Wiki-Link-Anker-Trigger
 // `[[Datei#` bzw. `[[Datei#^`. Loest den Basename ueber Datei-Namen und
 // Aliases auf und sammelt die Union aller Anker der gefundenen Datei(en).
 function anchorAutocompleteSuggestions(activeFile, basename, anchorType, areaRoot) {
@@ -160,11 +160,11 @@ function anchorAutocompleteSuggestions(activeFile, basename, anchorType, areaRoo
   if (!entry) return { status: 'unavailable', suggestions: [] };
   if (entry.status === 'oversized') return { status: 'unavailable', suggestions: [] };
   if (entry.status === 'indexing') return { status: 'indexing', suggestions: [] };
-  // W-07 (4T-0309): Fehler-Status wie unavailable behandeln — nicht den
+  // W-07 (4T-000309): Fehler-Status wie unavailable behandeln — nicht den
   // eingefrorenen Index eines toten Watchers als verbindlich ausgeben.
   if (entry.status === 'error') return { status: 'unavailable', suggestions: [] };
 
-  // 4T-0337 (Epic 3E-0061): relative Unterseiten-Formen ('[[/Name#',
+  // 4T-000337 (Epic 3E-000061): relative Unterseiten-Formen ('[[/Name#',
   // '[[..#') gegen die aktive Datei expandieren, damit auch dort Anker
   // vorgeschlagen werden.
   let lookupName = basename;
@@ -191,7 +191,7 @@ function anchorAutocompleteSuggestions(activeFile, basename, anchorType, areaRoo
   return { status: 'ready', suggestions: [...seen].sort((a, b) => a.localeCompare(b)) };
 }
 
-// 4T-0057: Tag-Autocomplete-Suggestions fuer den `#`-Trigger ausserhalb
+// 4T-000057: Tag-Autocomplete-Suggestions fuer den `#`-Trigger ausserhalb
 // von Wiki-Link-Kontexten. Nutzt direkt getAllTagsWithCounts; sortiert
 // also nach Haeufigkeit (absteigend) und alphabetisch.
 function tagAutocompleteSuggestions(activeFile, areaRoot) {
@@ -202,13 +202,13 @@ function tagAutocompleteSuggestions(activeFile, areaRoot) {
   if (!entry) return { status: 'unavailable', suggestions: [] };
   if (entry.status === 'oversized') return { status: 'unavailable', suggestions: [] };
   if (entry.status === 'indexing') return { status: 'indexing', suggestions: [] };
-  // W-07 (4T-0309): Fehler-Status wie unavailable behandeln — nicht den
+  // W-07 (4T-000309): Fehler-Status wie unavailable behandeln — nicht den
   // eingefrorenen Index eines toten Watchers als verbindlich ausgeben.
   if (entry.status === 'error') return { status: 'unavailable', suggestions: [] };
   return { status: 'ready', suggestions: getAllTagsWithCounts(entry) };
 }
 
-// 4T-0056: High-level-API fuer Renderer. Liefert Tag-Liste mit Counts
+// 4T-000056: High-level-API fuer Renderer. Liefert Tag-Liste mit Counts
 // und ggf. Datei-Liste fuer einen ausgewaehlten Filter-Tag. Pattern
 // analog zu backlinksFor: kein ensureIndex-Aufruf, nutzt nur vorhandenen
 // Index.
@@ -227,11 +227,11 @@ function tagsFor(filePath, filterTag, areaRoot) {
   if (entry.status === 'indexing') {
     return { status: 'indexing', meta: { wurzel: root } };
   }
-  // B-21 (4T-0187): Fehler-Status durchreichen.
+  // B-21 (4T-000187): Fehler-Status durchreichen.
   if (entry.status === 'error') {
     return { status: 'error', meta: { wurzel: root } };
   }
-  // 4T-0950 (Befund E-03): Puffer-Overlay freigeschaltet. Ein gerade
+  // 4T-000950 (Befund E-03): Puffer-Overlay freigeschaltet. Ein gerade
   // getippter Tag erscheint damit in der Liste, ein gerade gelöschter
   // verschwindet, ohne dass gespeichert werden muss.
   const overlays = overlaysUnder(root);
@@ -252,9 +252,9 @@ function tagsFor(filePath, filterTag, areaRoot) {
   return result;
 }
 
-// 4T-0453 (Epic 3E-0084): Graph-Daten der Graphenansicht — alle Markdown-
+// 4T-000453 (Epic 3E-000084): Graph-Daten der Graphenansicht — alle Markdown-
 // Knoten des Suchraums plus gerichtete Link-Kanten aus dem Link-Graph-Cache
-// (buildLinkGraph, 4T-0402). Read-only-View wie tagsFor: Status wird
+// (buildLinkGraph, 4T-000402). Read-only-View wie tagsFor: Status wird
 // durchgereicht, kein eigener Scan. Der Bereichs-Graph-Tab fragt ohne aktive
 // Datei an (filePath null, areaRoot gesetzt); das Datei-Graph-Panel liefert
 // die aktive Datei mit. Außerhalb eines Bereichs arbeitet die Ansicht über
@@ -305,7 +305,7 @@ function graphFor(filePath, areaRoot) {
   };
 }
 
-// 4T-0525 (Epic 3E-0095): Roh-Task-Zeilen eines Bereichs fuer den
+// 4T-000525 (Epic 3E-000095): Roh-Task-Zeilen eines Bereichs fuer den
 // Erinnerungs-Pruefer — schlanker Lese-Pfad auf tasksPerFile ohne
 // Query-Auswertung (die Anker stecken in den Roh-Zeilen, es gibt keine
 // zusaetzlichen Index-Felder und damit keinen Cache-Schema-Bump).
@@ -316,7 +316,7 @@ function areaTaskLines(rootPath) {
   const root = path.resolve(rootPath);
   const entry = indexes.get(root);
   if (!entry || entry.status !== 'ready') return null;
-  // 4T-0951 (Befund E-06): Puffer-Overlay freigeschaltet. Eine gerade
+  // 4T-000951 (Befund E-06): Puffer-Overlay freigeschaltet. Eine gerade
   // getippte Erinnerung wird damit fällig, eine gerade gelöschte meldet sich
   // nicht mehr — ohne dass gespeichert werden muss. Das wiegt schwerer als
   // seine Häufigkeit, weil eine ausbleibende Erinnerung nicht auffällt.
@@ -330,7 +330,7 @@ function areaTaskLines(rootPath) {
   return out;
 }
 
-// 4T-0619 (Epic 3E-0117): Index-Anteil der Bereichs-Statistik — alle
+// 4T-000619 (Epic 3E-000117): Index-Anteil der Bereichs-Statistik — alle
 // Kennzahlen, die der Index ohnehin fuehrt. Read-only-View wie graphFor:
 // Status wird durchgereicht, kein eigener Scan, kein ensureIndex. Den
 // Index-fremden Anteil (Nicht-Markdown, Ordner, Begleitdateien) erhebt
@@ -438,7 +438,7 @@ function statsFor(areaRoot, env) {
   };
 }
 
-// 4T-0619: Laenge der Top-Listen der Auffaelligkeiten.
+// 4T-000619: Laenge der Top-Listen der Auffaelligkeiten.
 const TOP_N = 10;
 
 // Absteigend nach Anzahl, bei Gleichstand alphabetisch — deterministische

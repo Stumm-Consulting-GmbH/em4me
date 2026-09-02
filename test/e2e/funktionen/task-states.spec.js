@@ -1,4 +1,4 @@
-// 4T-0204 (Epic 3E-0017): Erweiterte Task-States — Render, Klick-Toggle,
+// 4T-000204 (Epic 3E-000017): Erweiterte Task-States — Render, Klick-Toggle,
 // Settings-Roundtrip (Custom-Status, Deaktivieren). describe-Titel tragen
 // die Matrix-IDs (TS-01 …) fuer test/abdeckungs-matrix.json.
 'use strict';
@@ -15,7 +15,7 @@ async function waitForTab(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
-// 4T-0279: Task-Status-Bereich der Einstellungs-Seite oeffnen. Zugang
+// 4T-000279: Task-Status-Bereich der Einstellungs-Seite oeffnen. Zugang
 // ueber das Verdrahtungs-Event der System-Seiten (Muster
 // scg:open-manual-page; deterministisch, unabhaengig vom Menue-Fokus).
 async function openTaskStatesSection(page) {
@@ -74,7 +74,7 @@ test.describe('TS-03: Custom-Status ueber die Einstellungen', () => {
       await waitForTab(page);
       const body = page.locator(SEL.markdownBody0);
       await expect(body.locator('li', { hasText: 'geplant' })).toContainText('[+] geplant');
-      // 4T-0279: Task-Status-Bereich der Einstellungs-Seite oeffnen
+      // 4T-000279: Task-Status-Bereich der Einstellungs-Seite oeffnen
       // (Verdrahtungs-Event, Muster scg:open-manual-page).
       await openTaskStatesSection(page);
       await page.locator('#btn-task-state-add').click();
@@ -100,7 +100,7 @@ test.describe('TS-04: Status deaktivieren stellt Roh-Text wieder her', () => {
       await waitForTab(page);
       const body = page.locator(SEL.markdownBody0);
       await expect(body.locator('.task-state-box[data-task-state="/"]')).toBeVisible();
-      // 4T-0279: Task-Status-Bereich der Einstellungs-Seite, siehe TS-03.
+      // 4T-000279: Task-Status-Bereich der Einstellungs-Seite, siehe TS-03.
       await openTaskStatesSection(page);
       // Erste Default-Zeile ist `/` (Reihenfolge des Default-Sets).
       const firstRow = page.locator('#settings-task-states-list .task-state-row').first();
@@ -116,7 +116,7 @@ test.describe('TS-04: Status deaktivieren stellt Roh-Text wieder her', () => {
   });
 });
 
-// 4T-0497 (Epic 3E-0090): Ketten-Toggle ueber das konfigurierbare Folge-
+// 4T-000497 (Epic 3E-000090): Ketten-Toggle ueber das konfigurierbare Folge-
 // Symbol und Live-Warnung bei doppelt belegten Zeichen.
 test.describe('TS-05: Ketten-Toggle ueber das Folge-Symbol', () => {
   test('Folge-Symbol der /-Zeile auf - gesetzt: Klick toggelt auf [-] statt [x]', async () => {

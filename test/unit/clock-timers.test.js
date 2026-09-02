@@ -1,4 +1,4 @@
-// 4T-0638 (Epic 3E-0069): Timer- und Stoppuhr-Modell der Uhr-Erweiterung.
+// 4T-000638 (Epic 3E-000069): Timer- und Stoppuhr-Modell der Uhr-Erweiterung.
 //
 // Prueft die prozessneutralen Funktionen aus src/shared/clock/clock-timers.js:
 // Normalisierung defekter Staende, Restzeit-Rechnung aus Zeitstempeln
@@ -49,7 +49,7 @@ function timer(over = {}) {
   };
 }
 
-describe('normalizeTimer (4T-0638)', () => {
+describe('normalizeTimer (4T-000638)', () => {
   it('uebernimmt einen gueltigen Timer', () => {
     const raw = { id: 't3', label: 'Tee', durationMs: 3 * MIN, state: 'paused', elapsedMs: 1000 };
     expect(normalizeTimer(raw)).toEqual({
@@ -87,14 +87,14 @@ describe('normalizeTimer (4T-0638)', () => {
   });
 });
 
-describe('nextTimerId (4T-0638)', () => {
+describe('nextTimerId (4T-000638)', () => {
   it('zaehlt ueber den hoechsten Bestand hinaus', () => {
     expect(nextTimerId([])).toBe('t1');
     expect(nextTimerId([timer({ id: 't2' }), timer({ id: 't9' })])).toBe('t10');
   });
 });
 
-describe('Restzeit-Rechnung (4T-0638)', () => {
+describe('Restzeit-Rechnung (4T-000638)', () => {
   it('rechnet die Restzeit aus dem Startzeitpunkt statt herunterzuzaehlen', () => {
     const t = timer({ state: 'running', startedAt: T0, durationMs: 5 * MIN });
     expect(timerRemaining(t, T0)).toBe(5 * MIN);
@@ -126,7 +126,7 @@ describe('Restzeit-Rechnung (4T-0638)', () => {
   });
 });
 
-describe('Zustands-Uebergaenge Timer (4T-0638)', () => {
+describe('Zustands-Uebergaenge Timer (4T-000638)', () => {
   it('Start setzt den Zeitstempel, Pause friert die aufgelaufene Zeit ein', () => {
     const gestartet = startTimer(timer(), T0);
     expect(gestartet).toMatchObject({ state: 'running', startedAt: T0, elapsedMs: 0 });
@@ -161,7 +161,7 @@ describe('Zustands-Uebergaenge Timer (4T-0638)', () => {
   });
 });
 
-describe('Ablauf und Weckruf-Planung (4T-0638)', () => {
+describe('Ablauf und Weckruf-Planung (4T-000638)', () => {
   it('expireDueTimers setzt nur faellige Timer auf abgelaufen', () => {
     const list = [
       timer({ id: 't1', state: 'running', startedAt: T0, durationMs: MIN }),
@@ -188,7 +188,7 @@ describe('Ablauf und Weckruf-Planung (4T-0638)', () => {
   });
 });
 
-describe('Stoppuhr (4T-0638)', () => {
+describe('Stoppuhr (4T-000638)', () => {
   it('normalisiert defekte Staende', () => {
     expect(normalizeStopwatch(null)).toEqual({
       state: 'idle',
@@ -225,7 +225,7 @@ describe('Stoppuhr (4T-0638)', () => {
   });
 });
 
-describe('Formatierung und Dauer-Umrechnung (4T-0638)', () => {
+describe('Formatierung und Dauer-Umrechnung (4T-000638)', () => {
   it('formatDuration rundet auf und blendet Stunden nur bei Bedarf ein', () => {
     expect(formatDuration(0)).toBe('00:00');
     expect(formatDuration(4200)).toBe('00:05');

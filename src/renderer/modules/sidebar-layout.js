@@ -1,9 +1,9 @@
-// 4T-0287 (Epic 3E-0051): Panel-Registry und Sidebar-Layout-Modell.
+// 4T-000287 (Epic 3E-000051): Panel-Registry und Sidebar-Layout-Modell.
 //
 // Fundament der dynamischen Sidebar: die sechs Bestands-Panels (Outline,
 // Properties, Tags, Outgoing-Links, Backlinks, Bookmarks) registrieren sich
 // hier als Panel-Definitionen (Andockpunkt auch für spätere Erweiterungs-
-// Panels, 3E-0052/3E-0053). Das globale Layout-Modell (Einstellung
+// Panels, 3E-000052/3E-000053). Das globale Layout-Modell (Einstellung
 // `sidebar.layout`) beschreibt beide Seiten (links, rechts) als geordnete
 // Slot-Listen; ein Slot mit mehreren Panel-IDs bildet eine Reiter-Gruppe,
 // der aktive Reiter wird mitpersistiert. Die Sichtbarkeit je Panel bleibt
@@ -13,13 +13,13 @@
 // Die Layout-Operationen sind reine Funktionen (Eingabe unverändert, neues
 // Layout als Rückgabe; No-op liefert die Eingabe-Referenz zurück). Das hält
 // sie unit-testbar und macht Änderungs-Erkennung über Identität möglich.
-// Konsumenten (Rendering 4T-0288, Konfigurations-UI 4T-0289) hängen am
+// Konsumenten (Rendering 4T-000288, Konfigurations-UI 4T-000289) hängen am
 // Dokument-Event 'scg:sidebar-layout-changed' (Muster task-states/
 // frontmatter-display).
 'use strict';
 
 import { api } from './app/api.js';
-// 4T-0568 (Epic 3E-0104): Zugangs-Reihenfolge der Panel-Toggles (Statusbar-
+// 4T-000568 (Epic 3E-000104): Zugangs-Reihenfolge der Panel-Toggles (Statusbar-
 // Leiste und Ansichtsmenü-Untermenü) aus dem prozess-neutralen Modell —
 // reine Daten, zyklusfrei.
 import {
@@ -48,7 +48,7 @@ export function attachSidebarLayoutPersistence(fn) {
   if (typeof fn === 'function') persistFn = fn;
 }
 
-// 4T-0942 (Befund B-07): Die spaltenweise Reiter-Wahl braucht die aktive
+// 4T-000942 (Befund B-07): Die spaltenweise Reiter-Wahl braucht die aktive
 // Editor-Spalte. Sie kommt zur Laufzeit herein statt ueber einen Import aus
 // app-state.js — dieses Modul haelt sich aus dem oben begruendeten Grund frei
 // von App-Importen. Ohne angehaengten Geber gilt Spalte 0; das ist der Stand
@@ -61,51 +61,51 @@ export function attachActivePaneIndexGetter(fn) {
 
 // --- Konstanten ---------------------------------------------------------------
 export const SIDEBAR_SIDES = ['left', 'right'];
-// Kanonische Reihenfolge der eingebauten Panels. Seit 4T-0563 (Epic 3E-0102)
+// Kanonische Reihenfolge der eingebauten Panels. Seit 4T-000563 (Epic 3E-000102)
 // bestimmt sie nicht mehr das Default-Layout (das liefert die explizite
 // Struktur DEFAULT_SIDEBAR_STRUCTURE unten), sondern nur noch die kanonische
 // Ordnung von knownPanelIds() und die Anhänge-Reihenfolge fehlender Panels
 // in normalizeSidebarLayout. Bestehende persistierte Layouts werden nicht
 // umsortiert (normalizeSidebarLayout übernimmt die gespeicherte Slot-Reihen-
 // folge unverändert und ergänzt nur fehlende Panel-IDs am Ende).
-// 4T-0475 (Epic 3E-0088): 'bookmarks' vor 'outline' (PO-Wunsch I-05).
+// 4T-000475 (Epic 3E-000088): 'bookmarks' vor 'outline' (PO-Wunsch I-05).
 export const DEFAULT_PANEL_ORDER = [
   'bookmarks',
   'properties',
-  // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Panel (Block-Metadaten aus der
+  // 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Panel (Block-Metadaten aus der
   // .mdd), direkt neben dem Dokument-Properties-Panel.
   'blockprops',
   'tags',
   'outgoing',
   'backlinks',
-  // 4T-0359 (Epic 3E-0066): Notizen-Panel (Dokument-Notiz aus der .mdd).
+  // 4T-000359 (Epic 3E-000066): Notizen-Panel (Dokument-Notiz aus der .mdd).
   'notes',
   'outline',
-  // 4T-0563 (Epic 3E-0102): Unterseiten-Panel in die kanonische Reihenfolge
+  // 4T-000563 (Epic 3E-000102): Unterseiten-Panel in die kanonische Reihenfolge
   // aufgenommen (fehlte zuvor und hing nur über den extras-Zweig von
   // knownPanelIds hinten an), thematisch neben dem Inhaltsverzeichnis.
   'subpages',
-  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel, thematisch bei den
+  // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel, thematisch bei den
   // Finde- und Navigations-Panels.
   'searchresults',
-  // 4T-0327 (Epic 3E-0059): Bereichs-Panel (Ordnerbaum plus Dateiliste).
+  // 4T-000327 (Epic 3E-000059): Bereichs-Panel (Ordnerbaum plus Dateiliste).
   'area',
-  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches — Kapitel-Baum,
+  // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches — Kapitel-Baum,
   // Lese-Markierung und Abschnitt "nicht eingehaengt". Thematisch bei den
   // ortsgebenden Panels (Lesezeichen, Bereich).
   'book',
-  // 4T-0434 (Epic 3E-0081): Kalender-Panel (Journal-Einstieg, Monatsansicht).
+  // 4T-000434 (Epic 3E-000081): Kalender-Panel (Journal-Einstieg, Monatsansicht).
   'calendar',
-  // 4T-0527 (Epic 3E-0095): Erinnerungs-Panel (Fälligkeits-Gruppen mit
+  // 4T-000527 (Epic 3E-000095): Erinnerungs-Panel (Fälligkeits-Gruppen mit
   // Überfällig-Sektion), thematisch neben dem Kalender.
   'reminders',
-  // 4T-0372 (Epic 3E-0069): Uhr-Panel (analoge und digitale Zeit, Datum),
+  // 4T-000372 (Epic 3E-000069): Uhr-Panel (analoge und digitale Zeit, Datum),
   // Abschluss der Zeit-Gruppe hinter Kalender und Erinnerungen.
   'clock',
-  // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel (Umfeld der aktiven Datei).
+  // 4T-000456 (Epic 3E-000084): Datei-Graph-Panel (Umfeld der aktiven Datei).
   'filegraph',
 ];
-// 4T-0563 (Epic 3E-0102): explizite Standard-Anordnung der Sidebar (PO-
+// 4T-000563 (Epic 3E-000102): explizite Standard-Anordnung der Sidebar (PO-
 // Vorgabe): Panels auf beide Seiten verteilt, thematisch als Reiter-Gruppen
 // gebündelt. Innere Arrays mit mehreren IDs sind Reiter-Gruppen, aktiver
 // Reiter ist das jeweils erste Panel. Gilt für die frische Installation
@@ -114,15 +114,15 @@ export const DEFAULT_PANEL_ORDER = [
 // normalizeSidebarLayout robust als Einzel-Slots links an.
 const DEFAULT_SIDEBAR_STRUCTURE = {
   left: [
-    // 4T-0844 (Epic 3E-0147): Das Inhaltsverzeichnis schliesst die
+    // 4T-000844 (Epic 3E-000147): Das Inhaltsverzeichnis schliesst die
     // Ort-Gruppe ab. Als dritter Reiter derselben Gruppe kostet es keinen
     // zusaetzlichen vertikalen Platz (Muster der Uhr in der Zeit-Gruppe).
     ['bookmarks', 'area', 'book'],
-    // 4T-0759 (Epic 3E-0142): Die Suchergebnisse schliessen die Finde-Gruppe
+    // 4T-000759 (Epic 3E-000142): Die Suchergebnisse schliessen die Finde-Gruppe
     // ab. Als vierter Reiter derselben Gruppe kosten sie keinen zusaetzlichen
     // vertikalen Platz (Muster der Uhr in der Zeit-Gruppe).
     ['outline', 'subpages', 'filegraph', 'searchresults'],
-    // 4T-0372 (Epic 3E-0069): die Uhr schliesst die Zeit-Gruppe ab. Als
+    // 4T-000372 (Epic 3E-000069): die Uhr schliesst die Zeit-Gruppe ab. Als
     // dritter Reiter derselben Gruppe kostet sie keinen zusaetzlichen
     // vertikalen Platz in der Sidebar.
     ['calendar', 'reminders', 'clock'],
@@ -131,7 +131,7 @@ const DEFAULT_SIDEBAR_STRUCTURE = {
 };
 // Breiten-Grenzen wie die bisherige Sidebar (panels.js OUTLINE_MIN/MAX_WIDTH);
 // Default entspricht der bisherigen CSS-Startbreite der .pane-sidebar.
-// 4T-0639 (Epic 3E-0069): Die Untergrenze bleibt auch im Icon-Zustand der
+// 4T-000639 (Epic 3E-000069): Die Untergrenze bleibt auch im Icon-Zustand der
 // Panel-Überschriften bei 180 Pixeln. Eine testweise Absenkung auf 120 hat
 // der Product Owner am 2026-07-20 verworfen: Panel-Inhalte sind auf diese
 // Breite ausgelegt (die Modusleiste der Uhr braucht allein 124 Pixel).
@@ -161,7 +161,7 @@ export function registerSidebarPanel(def) {
   panelRegistry.set(def.id, def);
 }
 
-// 4T-0299 (Epic 3E-0053): Abmeldung fuer Panels externer Erweiterungen
+// 4T-000299 (Epic 3E-000053): Abmeldung fuer Panels externer Erweiterungen
 // (Rollback beim Deaktivieren). Das Layout-Modell verliert die ID beim
 // naechsten Normalisieren (unbekannte IDs werden verworfen); persistierte
 // Positionen bleiben im Store und greifen wieder, wenn das Panel vor dem
@@ -191,7 +191,7 @@ export function sidebarPanels() {
     .filter(Boolean);
 }
 
-// --- Zugangs-Reihenfolge der Panel-Toggles (4T-0568/4T-0569, Epic 3E-0104) -------
+// --- Zugangs-Reihenfolge der Panel-Toggles (4T-000568/4T-000569, Epic 3E-000104) -------
 // Effektive Reihenfolge der Panel-Zugänge in Statusbar-Leiste und
 // Ansichtsmenü-Untermenü. Getrennt vom Sidebar-Layout (Seite/Gruppen der
 // Panels IN der Sidebar): hier geht es nur um die Toggle-Anordnung.
@@ -206,7 +206,7 @@ export function getPanelToggleOrder() {
   return [...panelToggleOrder];
 }
 
-// 4T-0569: persistierte Reihenfolge laden (fehlend oder defekt fällt auf
+// 4T-000569: persistierte Reihenfolge laden (fehlend oder defekt fällt auf
 // die Modell-Reihenfolge zurück). Läuft in init() vor dem ersten
 // applyPanelButtonOrder/reportMenuStateNow-Durchgang.
 export async function initPanelToggleOrderFromStore() {
@@ -222,7 +222,7 @@ export async function initPanelToggleOrderFromStore() {
   return getPanelToggleOrder();
 }
 
-// 4T-0569: Reihenfolge setzen — normalisiert, benachrichtigt Konsumenten
+// 4T-000569: Reihenfolge setzen — normalisiert, benachrichtigt Konsumenten
 // (Statusbar-Anordnung, Menü-State-Meldung, offene Einstellungs-Entwürfe)
 // und persistiert. persist:false für den Empfang des Fenster-Broadcasts
 // (panelToggleOrder:changed), damit der Store nicht doppelt geschrieben
@@ -238,7 +238,7 @@ export async function setPanelToggleOrder(order, opts = {}) {
   return getPanelToggleOrder();
 }
 
-// 4T-0569: Zurücksetzen auf die Modell-Reihenfolge (Einstellungs-Knopf).
+// 4T-000569: Zurücksetzen auf die Modell-Reihenfolge (Einstellungs-Knopf).
 export function defaultPanelToggleOrder() {
   return [...DEFAULT_PANEL_TOGGLE_ORDER];
 }
@@ -292,7 +292,7 @@ export function normalizeSidebarLayout(raw, knownIds) {
 }
 
 // Default-Layout: die explizite Standard-Anordnung DEFAULT_SIDEBAR_STRUCTURE
-// (4T-0563), normalisiert gegen die bekannten Panel-IDs. Nicht registrierte
+// (4T-000563), normalisiert gegen die bekannten Panel-IDs. Nicht registrierte
 // Struktur-Panels fallen dabei heraus, nicht in der Struktur genannte
 // bekannte Panels (Erweiterungs-Panels) werden als Einzel-Slots links
 // angehängt. Bewusst entkoppelt vom Defekt-Fallback normalizeSidebarLayout(
@@ -355,7 +355,7 @@ export function movePanelToNewSlot(layout, panelId, targetSide, slotIndex) {
   return layoutsEqual(next, layout) ? layout : next;
 }
 
-// 4T-0289: Verschiebt ein Panel als eigenen Slot direkt vor bzw. hinter den
+// 4T-000289: Verschiebt ein Panel als eigenen Slot direkt vor bzw. hinter den
 // Slot, der targetPanelId enthält. Die Ziel-Identifikation über die Panel-ID
 // ist gegenüber Slot-Indizes stabil (das Entfernen des Quell-Panels kann
 // Indizes verschieben). No-op bei Selbst-Bezug oder unbekannten IDs.
@@ -425,7 +425,7 @@ export function dissolveGroup(layout, panelId) {
 let currentLayout = null;
 const sidebarWidths = { left: SIDEBAR_DEFAULT_WIDTH, right: SIDEBAR_DEFAULT_WIDTH };
 
-// 4T-0475 (Epic 3E-0088): manuell eingestellte Panel-Höhen. Objekt
+// 4T-000475 (Epic 3E-000088): manuell eingestellte Panel-Höhen. Objekt
 // panelId → Pixel-Zahl; nur gesetzte Panels haben einen Eintrag (fehlender
 // Eintrag = Automatik/Default-Höhe). Die Höhe gilt global pro Panel-ID (jede
 // ID kommt laut Layout-Invariante genau einmal im Gesamtlayout vor). Persistiert
@@ -435,7 +435,7 @@ export const MIN_PANEL_HEIGHT = 60;
 const MAX_PANEL_HEIGHT = 2000;
 const sidebarPanelHeights = {};
 
-// 4T-0855 (Epic 3E-0164): Höhen-Modell der Blöcke. Zwei Werte:
+// 4T-000855 (Epic 3E-000164): Höhen-Modell der Blöcke. Zwei Werte:
 //   'panel' (Vorgabe) die Höhe hängt am einzelnen Panel — Bestandsverhalten,
 //           in einer Reiter-Gruppe gilt die Höhe des aktiven Reiters, und die
 //           Blockhöhe wechselt beim Durchblättern mit.
@@ -540,7 +540,7 @@ export async function resetSidebarLayout(options) {
   return applySidebarLayout(defaultSidebarLayout(knownPanelIds()), options);
 }
 
-// --- Aktiver Reiter je Editor-Spalte (4T-0942, Befund B-07) ------------------------
+// --- Aktiver Reiter je Editor-Spalte (4T-000942, Befund B-07) ------------------------
 // Der aktive Reiter einer Gruppe gehoert zu der Spalte, in der er steht, und
 // zum Fenster, in dem sie liegt — wie Sichtbarkeit und Einklapp-Zustand. Bis
 // dahin lag er im fensterweiten Layout: Ein Einblenden oder ein Reiter-Klick
@@ -610,17 +610,17 @@ export async function setActivePanelForColumn(panelId, paneIdx, { persist = true
   return true;
 }
 
-// 4T-0288: Reiter des Panels in seiner Gruppe aktivieren (No-op außerhalb
+// 4T-000288: Reiter des Panels in seiner Gruppe aktivieren (No-op außerhalb
 // von Gruppen bzw. wenn bereits aktiv). Wird von den Sichtbarkeits-Toggles
 // gerufen — das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
-// 4T-0942: Die Aktivierung wirkt in der uebergebenen Spalte; ohne Angabe
+// 4T-000942: Die Aktivierung wirkt in der uebergebenen Spalte; ohne Angabe
 // (Alt-Aufrufer) in der aktiven.
 export async function ensurePanelTabActive(panelId, paneIdx) {
   const idx = Number.isInteger(paneIdx) ? paneIdx : activePaneIndexFn();
   return setActivePanelForColumn(panelId, idx);
 }
 
-// 4T-0639 (Epic 3E-0069): Panel-Überschriften als Icon statt Text. Der
+// 4T-000639 (Epic 3E-000069): Panel-Überschriften als Icon statt Text. Der
 // Zustand liegt hier bei den übrigen Sidebar-Layout-Daten, weil er zum
 // Layout gehört und wie dieses global gilt.
 const SIDEBAR_ICON_HEADINGS_KEY = 'sidebar.iconHeadings';
@@ -664,7 +664,7 @@ export async function setSidebarWidth(side, value, { persist = true } = {}) {
   }
 }
 
-// 4T-0475 (Epic 3E-0088): numerische Sanity einer Panel-Höhe. Ungültige
+// 4T-000475 (Epic 3E-000088): numerische Sanity einer Panel-Höhe. Ungültige
 // Werte (nicht-endlich, null/undefined) liefern null zurück (= Automatik),
 // gültige werden auf [MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT] geklemmt und
 // gerundet. Bewusst asymmetrisch zu clampSidebarWidth: dort ist der Fallback
@@ -715,7 +715,7 @@ export async function loadSidebarPanelHeights() {
 }
 
 // App-Start: persistiertes Layout und Breiten laden. Ohne gespeichertes
-// Layout entsteht das explizite Default-Layout (4T-0563; derselbe Stand wie
+// Layout entsteht das explizite Default-Layout (4T-000563; derselbe Stand wie
 // nach „Auf Standard-Anordnung zurücksetzen"); ein vorhandener, auch
 // defekter Speicher-Stand läuft dagegen durch die Normalisierung und bleibt
 // damit als Nutzer-Layout erhalten. Die bisherige gemeinsame Breite
@@ -733,9 +733,9 @@ export async function initSidebarLayoutFromStore() {
     storedLeft = await api.getSetting('sidebar.widthLeft');
     storedRight = await api.getSetting('sidebar.widthRight');
     legacyWidth = await api.getSetting('outline.width');
-    // 4T-0639: Icon-Zustand der Panel-Überschriften.
+    // 4T-000639: Icon-Zustand der Panel-Überschriften.
     iconHeadings = (await api.getSetting(SIDEBAR_ICON_HEADINGS_KEY)) === true;
-    // 4T-0855 (Epic 3E-0164): Höhen-Modell. Jeder Wert außer dem
+    // 4T-000855 (Epic 3E-000164): Höhen-Modell. Jeder Wert außer dem
     // Gruppen-Modus fällt auf die Vorgabe zurück, auch ein defekter Stand.
     panelHeightMode =
       (await api.getSetting(HEIGHT_MODE_KEY)) === HEIGHT_MODE_GROUP
@@ -758,11 +758,11 @@ export function resetSidebarLayoutStateForTests() {
   currentLayout = null;
   sidebarWidths.left = SIDEBAR_DEFAULT_WIDTH;
   sidebarWidths.right = SIDEBAR_DEFAULT_WIDTH;
-  // 4T-0639: Icon-Zustand der Überschriften ebenfalls zurücksetzen.
+  // 4T-000639: Icon-Zustand der Überschriften ebenfalls zurücksetzen.
   iconHeadings = false;
-  // 4T-0475 (Epic 3E-0088): Panel-Höhen ebenfalls zurücksetzen.
+  // 4T-000475 (Epic 3E-000088): Panel-Höhen ebenfalls zurücksetzen.
   for (const key of Object.keys(sidebarPanelHeights)) delete sidebarPanelHeights[key];
-  // 4T-0855 (Epic 3E-0164): Höhen-Modell und Gruppen-Höhen ebenfalls.
+  // 4T-000855 (Epic 3E-000164): Höhen-Modell und Gruppen-Höhen ebenfalls.
   panelHeightMode = HEIGHT_MODE_PANEL;
   for (const key of Object.keys(sidebarGroupHeights)) delete sidebarGroupHeights[key];
   panelRegistry.clear();

@@ -1,7 +1,7 @@
 // Block-Metadaten (blockData-Sektion der .mdd): Bereinigung der ueber IPC
 // eingehenden Werte und der gemeinsame Schreib-Pfad der Mutationen.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Muster des Notiz-Datenpfads
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Muster des Notiz-Datenpfads
 // (note:read/note:write): Lesen ist idempotent und setzt bei defekter .mdd
 // nichts aus; Schreiben legt die .mdd bei Bedarf an, respektiert
 // mddSuspendedPaths und broadcastet 'blockData:changed' fuer die
@@ -19,7 +19,7 @@ const mddStore = require('./mdd-store');
 const backlinks = require('../backlinks');
 const selbstSchreib = require('./self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -28,10 +28,10 @@ const markSelfWriting = selbstSchreib.merke;
 // Array-Elemente werden verworfen — konsistent zur Abfragbarkeit der Frontmatter-
 // Properties (extractProperties in backlinks.js). Werte bleiben typ-erhaltend,
 // damit die Renderer-Inferenz den Typ ableitet (keine Typ-Persistenz).
-// 4T-1187 (Epic 3E-0221, E11): Höchst-Tiefe verschachtelter Block-Werte.
+// 4T-001187 (Epic 3E-000221, E11): Höchst-Tiefe verschachtelter Block-Werte.
 //
 // Der Wert kommt über die IPC-Grenze herein, und diese Funktion ist ihr
-// Filter. Das Definitions-Format kennt bewusst keinen Tiefen-Deckel (4T-1141:
+// Filter. Das Definitions-Format kennt bewusst keinen Tiefen-Deckel (4T-001141:
 // «ein Deckel wäre eine neue, nicht entschiedene Verhaltens-Zusage») — an
 // einer Prozess-Grenze ist eine unbegrenzte Rekursion auf fremder Eingabe
 // aber kein vertretbares Risiko. Zehn Ebenen liegen so weit über jedem realen
@@ -41,7 +41,7 @@ const BLOCK_WERT_MAX_TIEFE = 10;
 
 // Werte einer Block-Eigenschaft säubern.
 //
-// 4T-1187: Seit den strukturierten Feld-Typen kommen auch verschachtelte Werte
+// 4T-001187: Seit den strukturierten Feld-Typen kommen auch verschachtelte Werte
 // durch — ein Objekt mit benannten Kind-Feldern und eine Liste gleichartiger
 // Objekte. Die Entscheidung des Product Owners vom 2026-08-25 verlangt genau
 // das: Beide Eigenschafts-Panels bedienen die Objekt-Typen, das Block-Panel
@@ -131,7 +131,7 @@ function createBlockData(deps) {
       markSelfWriting(mddPath, serialized);
       await fs.writeFile(mddPath, serialized, { encoding: 'utf8' });
       const blockData = mddStore.getAllBlockData(container);
-      // 4T-0408 (Epic 3E-0077): Block-Ebene des Abfrage-Index nachziehen — die
+      // 4T-000408 (Epic 3E-000077): Block-Ebene des Abfrage-Index nachziehen — die
       // .mdd liegt ausserhalb des Markdown-Watchers, dieser Schreibpfad ist ihr
       // Invalidierungs-Weg (loest den backlinks:invalidated-Broadcast aus, der
       // sichtbare Abfrage-Container neu befuellt).

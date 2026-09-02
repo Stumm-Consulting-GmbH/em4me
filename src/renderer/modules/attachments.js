@@ -1,4 +1,4 @@
-// 4T-0642 / 4T-0789 (Epic 3E-0125): Gemeinsamer Renderer-Anteil der Anlagen.
+// 4T-000642 / 4T-000789 (Epic 3E-000125): Gemeinsamer Renderer-Anteil der Anlagen.
 // Beide Eingabewege (Einfuegen aus der Zwischenablage, Ziehen auf eine
 // Dokument-Flaeche) enden hier: Anlagen aus einem DataTransfer einsammeln,
 // ueber den Ablage-Kanal ablegen lassen und den Markdown-Verweis erzeugen.

@@ -1,4 +1,4 @@
-// 4T-0948 (Befund E-01, Story 4S-0787): Woher der Inhalt einer Wiki-Einbettung
+// 4T-000948 (Befund E-01, Story 4S-000787): Woher der Inhalt einer Wiki-Einbettung
 // stammt. Ist die eingebettete Datei offen und ungespeichert geaendert, gilt
 // ihr GESCHRIEBENER Stand aus der Puffer-Overlay-Schicht; sonst der Stand auf
 // der Platte. Das Groessen-Limit gilt in beiden Faellen, beim Puffer als
@@ -6,7 +6,7 @@
 //
 // Eigenes Modul aus zwei Gruenden: main.js ist eine gelistete Uebergroesse,
 // deren Ratsche kein Wachstum erlaubt (scripts/datei-groessen-ausnahmen.json,
-// Auflage «wer main.js vor 3E-0196 erweitert, traegt den Schnitt selbst»); und
+// Auflage «wer main.js vor 3E-000196 erweitert, traegt den Schnitt selbst»); und
 // die Entscheidung ist ohne Electron pruefbar. Muster: save-guard.js,
 // network-paths.js, self-write.js.
 'use strict';

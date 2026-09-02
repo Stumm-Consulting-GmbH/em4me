@@ -1,4 +1,4 @@
-// 4T-1290 (Epic 3E-0224): Unit-Tests für das Zusammensetzen der Teile eines
+// 4T-001290 (Epic 3E-000224): Unit-Tests für das Zusammensetzen der Teile eines
 // großen Dokuments (src/shared/document-assembly.js). Abgedeckt sind AK1
 // (ein Dokument, richtige Reihenfolge, ohne sichtbare Naht), AK2 (Katalog
 // gilt, solange er stimmt, sonst neu aus den Dateien) und AK3 (ohne Katalog
@@ -105,8 +105,8 @@ describe('document-assembly.js — Teile ordnen (AK1, AK3)', () => {
   });
 
   it('folgt dem Dateisystem: case-sensitiv findet den fremd geschriebenen Teil nicht', () => {
-    // Die Grenze zwischen Datei-Identität und logischem Namensraum (4T-1275,
-    // Epic 3E-0232): Hier geht es um Datei-Identität, also entscheidet das
+    // Die Grenze zwischen Datei-Identität und logischem Namensraum (4T-001275,
+    // Epic 3E-000232): Hier geht es um Datei-Identität, also entscheidet das
     // Dateisystem und nicht die Wiki-Faltung.
     const real = `notizen${SEP}${PART_INFIX}00002`;
     expect(orderPartFiles('Notizen', [real]).parts).toHaveLength(1);

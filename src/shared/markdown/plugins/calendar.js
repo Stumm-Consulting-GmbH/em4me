@@ -1,4 +1,4 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Kalender-Gruppe: die Wert-Syntax @{Kalendername: Wert} als Inline-Regel
 // und die Badge-Beschreibung als gemeinsame Quelle von Render-Pane und
 // Live-Widget. Electron-frei; die Instanz-Registrierung macht markdown.js
@@ -6,15 +6,15 @@
 'use strict';
 
 const { escapeHtml } = require('../slug.js');
-// 4T-0546 (Epic 3E-0097): Kalender-Kern fuer die Wert-Syntax @{Name: Wert}
+// 4T-000546 (Epic 3E-000097): Kalender-Kern fuer die Wert-Syntax @{Name: Wert}
 // (Erkennung, Aufloesung, Namens-Formatierung der Badge-Darstellung).
-// 4T-0995 (Epic 3E-0196): Der Kern liegt seither im Ordner
+// 4T-000995 (Epic 3E-000196): Der Kern liegt seither im Ordner
 // src/shared/calendar/; die Bezugs-Aufloesung einer Ableitung und die
 // Kennung der eingebauten Zeitrechnung stehen in seinem Konfigurations-Rand.
 const calendarCore = require('../../calendar/calendar-core.js');
 const { baseCalendarOf, STANDARD_CALENDAR_ID } = require('../../calendar/calendar-config.js');
 
-// 4T-0748 (Epic 3E-0138): Einheiten-Namen der Zeitspanne. Steht eine
+// 4T-000748 (Epic 3E-000138): Einheiten-Namen der Zeitspanne. Steht eine
 // Ableitung auf der eingebauten Standard-Zeitrechnung, kommen Ein- und
 // Mehrzahl aus den vorhandenen i18n-Schluesseln (Entscheidung des Product
 // Owners vom 2026-07-26, Variante 1c); bei selbst definierten Kalendern
@@ -30,7 +30,7 @@ const CALENDAR_SPAN_UNIT_KEYS = {
 };
 
 const CALENDAR_SPAN_LABEL_KEYS = [...new Set(Object.values(CALENDAR_SPAN_UNIT_KEYS).flat())];
-// --- 4T-0546 (Epic 3E-0097): Kalender-Wert-Syntax @{Kalendername: Wert} -------------
+// --- 4T-000546 (Epic 3E-000097): Kalender-Wert-Syntax @{Kalendername: Wert} -------------
 // Badge-Spec als gemeinsame Quelle fuer Render-Pane (Rule unten) und
 // Live-Widget (live-widgets.js) — Paritaets-Muster taskMarkerBadgeSpec.
 // Aufloesung gegen die calendarSystems-Konfiguration des Bereichs

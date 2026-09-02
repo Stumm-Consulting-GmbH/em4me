@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0323/4T-0324 (Epic 3E-0058): Unit-Tests der Renderer-Bereichs-Logik
+// 4T-000323/4T-000324 (Epic 3E-000058): Unit-Tests der Renderer-Bereichs-Logik
 // (src/renderer/modules/area.js) — Innerhalb-Vorprüfung, lokaler
 // Ziel-Resolver und der Außen-Link-Marker im gerenderten DOM.
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
@@ -11,7 +11,7 @@ const { setPlatformForTests } = await import('../../../src/shared/platform.js');
 
 const DOC = 'C:\\Daten\\Notizen\\Sub\\doku.md';
 
-// 4T-1225: Die Pfad-Funktionen sind plattformabhängig geworden; die
+// 4T-001225: Die Pfad-Funktionen sind plattformabhängig geworden; die
 // Bestands-Erwartungen unten beschreiben das Windows-Verhalten und werden
 // deshalb ausdrücklich auf win32 gepinnt, damit die Suite auch auf einer
 // Linux-Maschine dieselben Fälle prüft.
@@ -24,7 +24,7 @@ afterEach(() => {
   setPlatformForTests(undefined);
 });
 
-describe('isOutsideActiveArea (4T-0323)', () => {
+describe('isOutsideActiveArea (4T-000323)', () => {
   it('ohne aktiven Bereich liegt nichts außerhalb', () => {
     state.areaPath = null;
     expect(area.isOutsideActiveArea('D:\\woanders\\x.md')).toBe(false);
@@ -38,7 +38,7 @@ describe('isOutsideActiveArea (4T-0323)', () => {
   });
 });
 
-describe('resolveLocalTarget (4T-0324)', () => {
+describe('resolveLocalTarget (4T-000324)', () => {
   it('löst relative Ziele gegen den Dokument-Ordner auf', () => {
     expect(area.resolveLocalTarget(DOC, 'nachbar.md')).toBe('C:\\Daten\\Notizen\\Sub\\nachbar.md');
     expect(area.resolveLocalTarget(DOC, '../oben.md')).toBe('C:\\Daten\\Notizen\\oben.md');
@@ -67,7 +67,7 @@ describe('resolveLocalTarget (4T-0324)', () => {
   });
 });
 
-describe('markOutsideAreaLinks (4T-0324)', () => {
+describe('markOutsideAreaLinks (4T-000324)', () => {
   it('markiert Außen-Links mit Klasse und Pfad-Tooltip, Innen-Links nicht', () => {
     state.areaPath = 'C:\\Daten\\Notizen';
     const container = document.createElement('div');
@@ -100,11 +100,11 @@ describe('markOutsideAreaLinks (4T-0324)', () => {
   });
 });
 
-// 4T-1225 (Epic 3E-0122, Befund F2 des Linux-Lauffaehigkeits-Nachweises):
+// 4T-001225 (Epic 3E-000122, Befund F2 des Linux-Lauffaehigkeits-Nachweises):
 // dieselben Funktionen unter Linux — Trenner ist der Schraegstrich, die
 // Schreibweise unterscheidet, und unter Windows geschriebene Links
 // funktionieren nach dem Umzug weiter (Migrations-Abwaegung im Modul).
-describe('Pfad-Funktionen unter Linux (4T-1225)', () => {
+describe('Pfad-Funktionen unter Linux (4T-001225)', () => {
   const DOC_LX = '/daten/notizen/sub/doku.md';
 
   beforeEach(() => {
@@ -133,7 +133,7 @@ describe('Pfad-Funktionen unter Linux (4T-1225)', () => {
   });
 });
 
-// 4T-1277 (Epic 3E-0232, Befund B3): Die Wiki-Kurzform [[/Name]] ist kein Pfad.
+// 4T-001277 (Epic 3E-000232, Befund B3): Die Wiki-Kurzform [[/Name]] ist kein Pfad.
 //
 // **Der belegte Befund.** In der Demo-Area sind [[/Earth]] und [[/Mars]] auf der
 // Seite `Milky Way∕Sun` unter Linux markiert, unter Windows nicht (E2E-Fall
@@ -152,9 +152,9 @@ describe('Pfad-Funktionen unter Linux (4T-1225)', () => {
 // Wiki-Namensraum kein Pfad, sondern die Kurzform für eine Unterseite der
 // aktuellen Seite (`src/shared/subpages.js`, `isRelativeTarget`). Sie kann den
 // Bereich gar nicht verlassen. Die Prüfung wendet einen Dateisystem-Begriff auf
-// einen logischen Namensraum an — dieselbe Grenze, die 4T-1275 an `link-scan.js`
+// einen logischen Namensraum an — dieselbe Grenze, die 4T-001275 an `link-scan.js`
 // in die andere Richtung gezogen hat.
-describe('Wiki-Kurzform und die Bereichs-Grenze (4T-1277)', () => {
+describe('Wiki-Kurzform und die Bereichs-Grenze (4T-001277)', () => {
   const AREA_LX = '/daten/demo';
   const SUN_LX = '/daten/demo/Milky Way∕Sun.md';
 

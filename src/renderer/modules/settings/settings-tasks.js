@@ -1,4 +1,4 @@
-// 4T-0498 (Epic 3E-0090) und 4T-0528 (Epic 3E-0095): Bereiche „Aufgaben"
+// 4T-000498 (Epic 3E-000090) und 4T-000528 (Epic 3E-000095): Bereiche „Aufgaben"
 // und „Erinnerungen" — beide konfigurieren das Arbeiten mit Aufgaben und
 // bleiben deshalb zusammen.
 'use strict';
@@ -26,7 +26,7 @@ export function dirtyRemindersSection(draft) {
   return !jsonEqual(normalizeRemindersConfig(draft.reminders), currentRemindersConfig());
 }
 
-// --- Bereich Aufgaben (4T-0498, Epic 3E-0090) ----------------------------------
+// --- Bereich Aufgaben (4T-000498, Epic 3E-000090) ----------------------------------
 // Global Filter (Text plus Ausblende-Option), die drei Automatik-Schalter
 // (Erstellt/Erledigt/Abgebrochen) und die Einfüge-Position der neuen
 // Wiederholungs-Instanz. Alle Werte leben im Entwurf (draft.tasks, eine in
@@ -53,7 +53,7 @@ export function renderTasksSection(container, draft) {
   filterHint.textContent = t('settings.tasks.globalFilterHint');
   container.appendChild(filterHint);
 
-  // (a2) 4T-0505 (Epic 3E-0096): globale Abfrage — FROM-/WHERE-Vorgabe,
+  // (a2) 4T-000505 (Epic 3E-000096): globale Abfrage — FROM-/WHERE-Vorgabe,
   // die jeder TASKS-Abfrage implizit vorangestellt wird.
   const globalQuery = document.createElement('textarea');
   globalQuery.id = 'settings-tasks-global-query';
@@ -115,7 +115,7 @@ export function renderTasksSection(container, draft) {
   });
   container.appendChild(buildSettingsRow('settings.tasks.recurrenceInsert', insertSelect));
 
-  // (e) 4T-0507 (Epic 3E-0096): Task-Zeilen-Vervollstaendigung — Mindest-
+  // (e) 4T-000507 (Epic 3E-000096): Task-Zeilen-Vervollstaendigung — Mindest-
   // Tipplaenge und Vorschlagszahl (Zahl-Steuerungen mit festen Grenzen;
   // die Normalisierung klemmt zusaetzlich).
   const buildNumber = (id, key, labelKey, min, max) => {
@@ -154,7 +154,7 @@ export async function applyTasksSection(draft) {
   // Unveränderter Stand ist ein No-op: sonst würde JEDER OK der
   // Einstellungs-Seite einen tasksConfig-Broadcast samt Voll-Re-Render
   // aller Fenster auslösen und die Persistenz nachfolgender Sektionen
-  // messbar verzögern (EW-01-Befund im Voll-Suite-Gate von 4T-0501).
+  // messbar verzögern (EW-01-Befund im Voll-Suite-Gate von 4T-000501).
   // Schlüssel-Reihenfolge ist stabil (beide Seiten aus
   // normalizeTasksConfig), der JSON-Vergleich damit verlässlich.
   if (JSON.stringify(normalized) === JSON.stringify(tasksConfig)) {
@@ -169,7 +169,7 @@ export async function applyTasksSection(draft) {
   draft.tasks = { ...normalized };
 }
 
-// --- Bereich Erinnerungen (4T-0528, Epic 3E-0095) --------------------------------
+// --- Bereich Erinnerungen (4T-000528, Epic 3E-000095) --------------------------------
 // Default-Uhrzeit (Wert plus Aendern-Knopf ueber den Zeit-Picker, kein
 // Freitext — Eingabe-Komfort-Konvention), Snooze-Optionen als editierbare
 // Liste (Zahl plus Einheiten-Auswahl) und der System-Notification-Schalter.
@@ -208,7 +208,7 @@ export function renderRemindersSection(container, draft) {
     if (!picked || !picked.time) return;
     values.defaultTime = picked.time;
     timeValue.textContent = picked.time;
-    // Mutation nach dem await — Dirty-Erkennung explizit nachziehen (4T-0554).
+    // Mutation nach dem await — Dirty-Erkennung explizit nachziehen (4T-000554).
     refreshSettingsButtons();
   });
   timeWrap.appendChild(timeBtn);

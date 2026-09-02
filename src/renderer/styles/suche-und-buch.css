@@ -1,10 +1,10 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 18 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 18 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Suchergebnis-Sektion, Inhaltsverzeichnis-Sektion des Buches. */
 
-/* === Suchergebnis-Sektion (4T-0759, Epic 3E-0142) ========================= */
+/* === Suchergebnis-Sektion (4T-000759, Epic 3E-000142) ========================= */
 /* Gruppierte Trefferliste der Suche über Handbuch bzw. Einstellungen.
    Muster der Backlinks-Sektion: Status-Zeile, darunter Gruppen-Kopfzeilen
    mit eingerückten Treffern. Anders als dort ist der Treffer ein Button
@@ -97,7 +97,7 @@
   color: #222;
 }
 
-/* 4T-0761 (Epic 3E-0142): Ziel-Hervorhebung eines Such-Sprungs in den
+/* 4T-000761 (Epic 3E-000142): Ziel-Hervorhebung eines Such-Sprungs in den
    Einstellungen. Kurz sichtbar, damit die gefundene Zeile im Formular
    auffindbar ist; Muster der Zeilen-Hervorhebung der Ereignis-Tabelle. */
 .settings-row-hervorgehoben {
@@ -109,7 +109,7 @@
   background: rgba(255, 235, 59, 0.2);
 }
 
-/* === Inhaltsverzeichnis-Sektion des Buches (4T-0844, Epic 3E-0147) ========= */
+/* === Inhaltsverzeichnis-Sektion des Buches (4T-000844, Epic 3E-000147) ========= */
 /* Kapitel-Baum in erklärter Reihenfolge, Muster der Bereichs-Sektion:
    flache Zeilen mit Einrück-Padding statt verschachtelter Container, damit
    die Zeilen über die volle Panel-Breite anklickbar bleiben. Die
@@ -163,7 +163,7 @@
   font-style: italic;
 }
 .book-entry-row {
-  position: relative; /* 4T-0845: Anker der Ablage-Striche (::before/::after) */
+  position: relative; /* 4T-000845: Anker der Ablage-Striche (::before/::after) */
   display: flex;
   align-items: center;
   gap: 4px;
@@ -186,14 +186,14 @@
   box-shadow: inset 3px 0 0 var(--accent);
   font-weight: 600;
 }
-/* 4T-0845: Fokussierbare Zeile — die Tastatur-Gesten wirken auf den
+/* 4T-000845: Fokussierbare Zeile — die Tastatur-Gesten wirken auf den
    fokussierten Eintrag, und ohne sichtbaren Fokus wäre nicht erkennbar,
    welchen sie treffen. */
 .book-entry-row:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-/* Der Marker ist der Anfasser für die Struktur-Pflege (4T-0845): an ihm wird
+/* Der Marker ist der Anfasser für die Struktur-Pflege (4T-000845): an ihm wird
    ein Kapitel samt Unterbaum gezogen. */
 .book-entry-handle {
   flex: 0 0 12px;
@@ -208,7 +208,7 @@
 .book-entry-handle:active {
   cursor: grabbing;
 }
-/* 4T-0845: Ablage-Anzeige, identisch zum Lesezeichen-Baum — Strich zwischen
+/* 4T-000845: Ablage-Anzeige, identisch zum Lesezeichen-Baum — Strich zwischen
    zwei Einträgen für das Einordnen in der Ebene, Rahmen auf dem Eintrag für
    das Einhängen als Unterkapitel, Strich am Fuß des Baums für das Anfügen
    ans Ende der obersten Ebene. */
@@ -236,7 +236,7 @@
 .book-tree.is-drop-root {
   box-shadow: inset 0 -2px 0 0 var(--accent);
 }
-/* 4T-0845: Inline-Eingabe für „Neues Kapitel" am Kopf des Baums (Muster der
+/* 4T-000845: Inline-Eingabe für „Neues Kapitel" am Kopf des Baums (Muster der
    Datei-Anlage im Bereichs-Panel). */
 .book-new-chapter-input {
   width: calc(100% - 16px);
@@ -260,7 +260,7 @@
   text-overflow: ellipsis;
 }
 /* Ein deklariertes Kapitel ohne Datei: durchgestrichen plus Warnzeichen, und
-   nicht anklickbar (repariert wird über das Kontextmenü, 4T-0848). */
+   nicht anklickbar (repariert wird über das Kontextmenü, 4T-000848). */
 .book-entry-row.missing {
   color: #c0392b;
   text-decoration: line-through;
@@ -283,7 +283,7 @@
   font-size: 12px;
   color: var(--fg-muted);
 }
-/* 4T-0848: Hinweis am fehlenden Kapitel, dass es einen namensgleichen Fund
+/* 4T-000848: Hinweis am fehlenden Kapitel, dass es einen namensgleichen Fund
    gibt. Bewusst dezent und ohne Durchstreichung — er meldet eine Möglichkeit,
    nicht den Fehler selbst. */
 .book-entry-suggest-mark {
@@ -292,7 +292,7 @@
   text-decoration: none;
   cursor: help;
 }
-/* 4T-0848: Auswahl der Zuordnung, unter der fehlenden Zeile eingeblendet
+/* 4T-000848: Auswahl der Zuordnung, unter der fehlenden Zeile eingeblendet
    (Muster der Inline-Eingabe für „Neues Kapitel"). */
 .book-reassign {
   margin: 2px 8px 6px;

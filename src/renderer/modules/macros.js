@@ -1,4 +1,4 @@
-// 4T-0522 (Epic 3E-0094): Makros der Kommando-Platzierung im Renderer.
+// 4T-000522 (Epic 3E-000094): Makros der Kommando-Platzierung im Renderer.
 //
 // Registriert jedes konfigurierte Makro als reguläres Registry-Kommando
 // (registerDynamicCommand, Namensraum macro.<id>) — damit sind Makros

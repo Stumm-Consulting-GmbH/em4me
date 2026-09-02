@@ -1,4 +1,4 @@
-// 4T-0525 (Epic 3E-0095): Unit-Tests der Scheduler-Factory
+// 4T-000525 (Epic 3E-000095): Unit-Tests der Scheduler-Factory
 // createReminderChecker (src/main/checks/reminder-check.js) mit vollstaendig
 // injizierten Fake-Abhaengigkeiten (kein Electron): Erst-Lauf als
 // Nachhol-Lieferung (catchUp), kein Doppel-Feuern, Neu-Faelligkeit ueber eine
@@ -65,7 +65,7 @@ function makeHarness(init = {}) {
 }
 
 // --- 1. Erst-Lauf, kein Doppel-Feuern, Neu-Faelligkeit -----------------------------
-describe('createReminderChecker — Nachhol-Lieferung und Takt (4T-0525)', () => {
+describe('createReminderChecker — Nachhol-Lieferung und Takt (4T-000525)', () => {
   it('liefert im Erst-Lauf alle ueberfaelligen als EIN reminders:due mit catchUp true', () => {
     const h = makeHarness();
     h.checker.tick();
@@ -94,7 +94,7 @@ describe('createReminderChecker — Nachhol-Lieferung und Takt (4T-0525)', () =>
 });
 
 // --- 2. Index nicht bereit ----------------------------------------------------------
-describe('createReminderChecker — Index nicht bereit (4T-0525)', () => {
+describe('createReminderChecker — Index nicht bereit (4T-000525)', () => {
   it('sendet nichts und bewahrt catchUp fuer den spaeteren ersten echten Lauf', () => {
     let ready = false;
     const h = makeHarness({ lines: () => (ready ? DEFAULT_LINES : null) });
@@ -110,7 +110,7 @@ describe('createReminderChecker — Index nicht bereit (4T-0525)', () => {
 });
 
 // --- 3. Deaktivierte Erweiterung ----------------------------------------------------
-describe('createReminderChecker — Erweiterung aus (4T-0525)', () => {
+describe('createReminderChecker — Erweiterung aus (4T-000525)', () => {
   it('sendet nichts und verbraucht keinen Zustand (catchUp bleibt fuer den spaeteren Lauf)', () => {
     const h = makeHarness({ enabled: false });
     h.checker.tick();
@@ -125,7 +125,7 @@ describe('createReminderChecker — Erweiterung aus (4T-0525)', () => {
 });
 
 // --- 4. Mute und Retrigger ----------------------------------------------------------
-describe('createReminderChecker — mute und retrigger (4T-0525)', () => {
+describe('createReminderChecker — mute und retrigger (4T-000525)', () => {
   it('mute(): list() zeigt das muted-Flag und tick() feuert gemutete Anker nicht', () => {
     const h = makeHarness();
     const before = h.checker.list('R');
@@ -160,7 +160,7 @@ describe('createReminderChecker — mute und retrigger (4T-0525)', () => {
 });
 
 // --- 5. Panel-Liste -----------------------------------------------------------------
-describe('createReminderChecker — list (4T-0525)', () => {
+describe('createReminderChecker — list (4T-000525)', () => {
   it('ready false ohne Index oder bei ausgeschalteter Erweiterung', () => {
     expect(makeHarness({ lines: null }).checker.list('R')).toEqual({
       ready: false,
@@ -193,7 +193,7 @@ describe('createReminderChecker — list (4T-0525)', () => {
 });
 
 // --- 6. Fehler-Isolation ------------------------------------------------------------
-describe('createReminderChecker — Fehler-Isolation (4T-0525)', () => {
+describe('createReminderChecker — Fehler-Isolation (4T-000525)', () => {
   it('ein Fehler in deps.areas() bricht tick() nicht und sendet nichts', () => {
     const h = makeHarness({ throwAreas: true });
     expect(() => h.checker.tick()).not.toThrow();
@@ -216,7 +216,7 @@ describe('createReminderChecker — Fehler-Isolation (4T-0525)', () => {
 });
 
 // --- 7. Konstante -------------------------------------------------------------------
-describe('createReminderChecker — Takt-Konstante (4T-0525)', () => {
+describe('createReminderChecker — Takt-Konstante (4T-000525)', () => {
   it('exportiert das feste 30-Sekunden-Intervall', () => {
     expect(CHECK_INTERVAL_MS).toBe(30000);
   });

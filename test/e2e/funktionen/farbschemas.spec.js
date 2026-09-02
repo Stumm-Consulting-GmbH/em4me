@@ -1,4 +1,4 @@
-// 4T-0466 (Epic 3E-0086): E2E-Funktions-Suite — Farbschemas. Deckt den
+// 4T-000466 (Epic 3E-000086): E2E-Funktions-Suite — Farbschemas. Deckt den
 // Einstellungs-Bereich ab: Navigation zu Modus-Zuordnung und Slot-Editor,
 // Anlegen eines eigenen Schemas, Live-Vorschau einer Slot-Farbe über die
 // CSS-Variable am Wurzel-Element, Anwenden/Persistenz und Löschen mit Rückfall
@@ -14,7 +14,7 @@ const {
   DEFAULT_DARK_ID,
 } = require('../../../src/shared/color-schemes.js');
 
-// 4T-0751 (Epic 3E-0146): Voreingestellt ist seither Bernstein, und dessen
+// 4T-000751 (Epic 3E-000146): Voreingestellt ist seither Bernstein, und dessen
 // Akzent weicht von der Basis-Palette ab. Der erwartete Wert haengt am
 // Anzeige-Modus, der dem Betriebssystem folgt (Vorzug 'system'); er wird
 // deshalb zur Laufzeit aus dem Modell geholt statt als Literal gesetzt.

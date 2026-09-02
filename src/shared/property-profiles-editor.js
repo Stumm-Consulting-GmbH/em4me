@@ -1,22 +1,22 @@
-// 4T-0448/4T-0491 (Epic 3E-0083/3E-0093): Editor-Logik der Eigenschafts-
+// 4T-000448/4T-000491 (Epic 3E-000083/3E-000093): Editor-Logik der Eigenschafts-
 // Profile — die Wirkung EINER Definition in den beiden Panels: weiche
 // Hinweise, Vorschlags-Listen und die Komplett-Übernahme.
 //
-// Eigene Datei seit 4T-1161 (Epic 3E-0219), beim Erreichen des Datei-Budgets.
+// Eigene Datei seit 4T-001161 (Epic 3E-000219), beim Erreichen des Datei-Budgets.
 // Die Naht folgt der, die der Gegenstand ohnehin führt: In der Fassade
 // `property-profiles.js` liegt die AUFLÖSUNG über mehrere Profile, hier die
 // Wirkung einer aufgelösten Definition an der Oberfläche. Alle Verbraucher
 // laden unverändert die Fassade, die alles Öffentliche weiterreicht.
 //
 // Reine Funktionen, gemeinsam für Properties-Editor und Block-Panel (ein
-// Verhalten, zwei Oberflächen — Task-Vorgabe 4T-0449).
+// Verhalten, zwei Oberflächen — Task-Vorgabe 4T-000449).
 //
 // Prozess-neutral (kein Electron, kein DOM).
 'use strict';
 
 const { cleanString, DERIVED_TYPES } = require('./property-profiles-format.js');
 
-// 4T-1185 (Epic 3E-0221, E1): Ein abgeleitetes Feld hat keinen eigenen Wert.
+// 4T-001185 (Epic 3E-000221, E1): Ein abgeleitetes Feld hat keinen eigenen Wert.
 // Es wird deshalb weder vorgeschlagen noch übernommen — beides legte es als
 // gewöhnliches Feld im Metadaten-Block an und schriebe damit genau den Wert in
 // die Datei, den E1 dort verbietet. Die Prüfung steht hier einmal, weil
@@ -25,16 +25,16 @@ function istAbgeleiteteDefinition(def) {
   return !!def && DERIVED_TYPES.includes(def.type);
 }
 
-// --- 4T-0448 (Epic 3E-0083): Editor-Logik (Vorschläge und weiche Hinweise) --------
+// --- 4T-000448 (Epic 3E-000083): Editor-Logik (Vorschläge und weiche Hinweise) --------
 // Reine Funktionen, gemeinsam für Properties-Editor und Block-Panel
-// (ein Verhalten, zwei Oberflächen — Task-Vorgabe 4T-0449).
+// (ein Verhalten, zwei Oberflächen — Task-Vorgabe 4T-000449).
 
 // Leerer Eigenschafts-Wert: Feld angelegt, aber ohne Inhalt — dafür gibt es
 // keinen Hinweis (weiche Haltung; ein leeres Feld ist kein Verstoß).
 function isEmptyPropertyValue(v) {
   if (v === null || v === undefined || v === '') return true;
   if (Array.isArray(v)) return v.length === 0;
-  // 4T-1186 (Epic 3E-0221): Ein Objekt ohne gesetzte Kind-Felder ist leer wie
+  // 4T-001186 (Epic 3E-000221): Ein Objekt ohne gesetzte Kind-Felder ist leer wie
   // eine leere Liste. Ohne diese Zeile trüge ein frisch angelegtes Objekt-Feld
   // sofort einen Hinweis, obwohl der Anwender nur noch nichts eingetragen hat —
   // und ein leeres Feld ist nie ein Verstoß (weiche Haltung, E10).
@@ -49,7 +49,7 @@ function istEinfachesObjekt(v) {
 }
 
 // Passt der Ist-Wert (JS-Wert aus YAML bzw. Block-Daten) zum definierten Typ?
-// 4T-1155 (Epic 3E-0219): um 'link' und 'time' erweitert. Ein Verweis ist
+// 4T-001155 (Epic 3E-000219): um 'link' und 'time' erweitert. Ein Verweis ist
 // für die Typ-Prüfung ein einzeiliger Text — er trägt die Wiki-Schreibweise,
 // und ob sein Ziel existiert, ist eine Frage des Bedienelements und nicht
 // des Werts (Konzept 6.12).
@@ -70,7 +70,7 @@ function valueMatchesType(value, type) {
       return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
     case 'time':
       return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
-    // 4T-1186 (Epic 3E-0221, E11): die beiden strukturierten Typen. Geprüft
+    // 4T-001186 (Epic 3E-000221, E11): die beiden strukturierten Typen. Geprüft
     // wird hier nur die GESTALT — ein Objekt beziehungsweise eine Liste von
     // Objekten. Ob die Kind-Werte zu ihren Kind-Definitionen passen, prüft
     // `valueMatchesDefinition`, weil dafür die Definition nötig ist.
@@ -83,7 +83,7 @@ function valueMatchesType(value, type) {
   }
 }
 
-// 4T-1155 (Epic 3E-0219): Passt der Ist-Wert zur Definition, also zum Typ
+// 4T-001155 (Epic 3E-000219): Passt der Ist-Wert zur Definition, also zum Typ
 // **und** zum Mehrfach-Modus? Seit der Entkopplung (E11) tragen auch Typen
 // mehrere Werte, deren Name das nicht mehr verrät — ein Verweis-Feld mit
 // `multiple` erwartet eine Liste, obwohl sein Typ 'link' heißt. Das
@@ -94,7 +94,7 @@ function valueMatchesDefinition(value, def) {
     return Array.isArray(value) && value.every((item) => valueMatchesType(item, def.type));
   }
   if (!valueMatchesType(value, def.type)) return false;
-  // 4T-1186 (Epic 3E-0221): Bei den Objekt-Typen geht die Prüfung eine Ebene
+  // 4T-001186 (Epic 3E-000221): Bei den Objekt-Typen geht die Prüfung eine Ebene
   // tiefer — die Gestalt allein sagt nichts über den Inhalt.
   //
   // **Ein nicht gesetztes Kind-Feld ist dabei kein Verstoß.** Geprüft werden
@@ -146,7 +146,7 @@ function fieldDefinitionHint(def, value) {
   return null;
 }
 
-// 4T-1157 (Epic 3E-0219, E12): Hinweis zur QUELLE eines Wertevorrats, im
+// 4T-001157 (Epic 3E-000219, E12): Hinweis zur QUELLE eines Wertevorrats, im
 // Unterschied zu `fieldDefinitionHint`, der den WERT betrifft. Fehlt die
 // Quelle oder liefert sie nichts, bleibt das Feld bedienbar, der Vorrat ist
 // leer, und ein Hinweis steht am Feld (E12, letzte Festlegung).
@@ -173,7 +173,7 @@ function profileFieldSuggestions(resolvedFields, existingKeys, heuristics) {
   );
   const out = [];
   for (const def of Array.isArray(resolvedFields) ? resolvedFields : []) {
-    // 4T-1185: Ein abgeleitetes Feld ist kein Angebot — es entsteht nicht
+    // 4T-001185: Ein abgeleitetes Feld ist kein Angebot — es entsteht nicht
     // durch Anlegen, sondern durch Rechnen.
     if (istAbgeleiteteDefinition(def)) continue;
     const key = def.name.toLowerCase();
@@ -190,7 +190,7 @@ function profileFieldSuggestions(resolvedFields, existingKeys, heuristics) {
   return out;
 }
 
-// --- 4T-0491 (Epic 3E-0093): Komplett-Übernahme von Profil-Feldern -----------
+// --- 4T-000491 (Epic 3E-000093): Komplett-Übernahme von Profil-Feldern -----------
 // Reine Funktionen für den Bulk-Schreibpfad, gemeinsam für Properties-Editor
 // und Block-Panel (ein Verhalten, zwei Oberflächen).
 
@@ -206,7 +206,7 @@ function emptyValueForType(type) {
   if (type === 'multistring') return [];
   if (type === 'number') return 0;
   if (type === 'boolean') return false;
-  // 4T-1186 (Epic 3E-0221): leeres Objekt bzw. leere Liste. Die Begründung des
+  // 4T-001186 (Epic 3E-000221): leeres Objekt bzw. leere Liste. Die Begründung des
   // typgerechten Leer-Werts oben — «echtes unbelegt ist nicht stabil
   // darstellbar» — trägt hier NICHT weiter: Ein nicht gesetztes Kind-Feld ist
   // sehr wohl darstellbar, und AK4 der Story verlangt, dass es als fehlend
@@ -217,7 +217,7 @@ function emptyValueForType(type) {
   return '';
 }
 
-// 4T-1156 (Epic 3E-0219): Leer-Wert einer ganzen Definition. Seit der
+// 4T-001156 (Epic 3E-000219): Leer-Wert einer ganzen Definition. Seit der
 // Entkopplung des Mehrfach-Modus (E11) genügt der Typ nicht mehr: Ein
 // Verweis-Feld mit `multiple` braucht die leere Liste, obwohl sein Typ
 // 'link' den Leer-Text ergäbe. `multistring` trägt seine Vielzahl weiterhin
@@ -242,7 +242,7 @@ function buildProfileFillMap(fields, existingKeys) {
   );
   const map = {};
   for (const def of Array.isArray(fields) ? fields : []) {
-    // 4T-1185: abgeleitete Felder werden nie übernommen (Begründung oben).
+    // 4T-001185: abgeleitete Felder werden nie übernommen (Begründung oben).
     if (istAbgeleiteteDefinition(def)) continue;
     const name = cleanString(def && def.name);
     if (name === '') continue;
@@ -293,17 +293,17 @@ function profileSuggestGroups(resolvedFields, existingKeys, heuristics) {
 }
 
 module.exports = {
-  // 4T-0448: weiche Hinweise und Vorschläge.
+  // 4T-000448: weiche Hinweise und Vorschläge.
   isEmptyPropertyValue,
   valueMatchesType,
   valueMatchesDefinition,
   fieldDefinitionHint,
-  // 4T-1157: Hinweis zur Quelle eines Wertevorrats.
+  // 4T-001157: Hinweis zur Quelle eines Wertevorrats.
   valueSourceHint,
   profileFieldSuggestions,
-  // 4T-0491: Komplett-Übernahme.
+  // 4T-000491: Komplett-Übernahme.
   emptyValueForType,
-  // 4T-1156: Leer-Wert einer ganzen Definition (Mehrfach-Modus).
+  // 4T-001156: Leer-Wert einer ganzen Definition (Mehrfach-Modus).
   emptyValueForDefinition,
   buildProfileFillMap,
   profileSuggestGroups,

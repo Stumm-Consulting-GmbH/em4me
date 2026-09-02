@@ -1,4 +1,4 @@
-// 4T-0569 (Epic 3E-0104): Bereich „Panel-Reihenfolge" der Einstellungs-Seite.
+// 4T-000569 (Epic 3E-000104): Bereich „Panel-Reihenfolge" der Einstellungs-Seite.
 //
 // Sortiert die Panel-Zugänge — Ansichtsmenü-Untermenü „Panels" und
 // Statusbar-Leiste führen dieselbe Reihenfolge — über Hoch/Runter-

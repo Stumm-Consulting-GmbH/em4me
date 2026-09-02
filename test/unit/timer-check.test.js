@@ -1,4 +1,4 @@
-// 4T-0638 (Epic 3E-0069): Unit-Tests der Scheduler-Factory
+// 4T-000638 (Epic 3E-000069): Unit-Tests der Scheduler-Factory
 // createTimerChecker (src/main/checks/timer-check.js) mit vollstaendig injizierten
 // Fake-Abhaengigkeiten (kein Electron): gezielter Weckruf statt Polling,
 // Etappen-Planung bei langen Wartezeiten, Meldung aller faelligen Timer,
@@ -70,7 +70,7 @@ function running(id, durationMs, startedAt = T0) {
   return { id, label: id, durationMs, state: 'running', startedAt, elapsedMs: 0 };
 }
 
-describe('Timer-Pruefer: Weckruf-Planung (4T-0638)', () => {
+describe('Timer-Pruefer: Weckruf-Planung (4T-000638)', () => {
   it('plant den Weckruf auf den naechsten Ablauf', () => {
     const h = makeHarness({ timers: [running('t1', 3 * MIN), running('t2', 90000)] });
     h.checker.start();
@@ -112,7 +112,7 @@ describe('Timer-Pruefer: Weckruf-Planung (4T-0638)', () => {
   });
 });
 
-describe('Timer-Pruefer: Meldung (4T-0638)', () => {
+describe('Timer-Pruefer: Meldung (4T-000638)', () => {
   it('meldet den abgelaufenen Timer und schreibt den Zustand zurueck', () => {
     const h = makeHarness({ timers: [running('t1', MIN)] });
     h.checker.start();
@@ -158,7 +158,7 @@ describe('Timer-Pruefer: Meldung (4T-0638)', () => {
   });
 });
 
-describe('Timer-Pruefer: Gates und Robustheit (4T-0638)', () => {
+describe('Timer-Pruefer: Gates und Robustheit (4T-000638)', () => {
   it('plant und meldet nichts, solange die Erweiterung aus ist', () => {
     const h = makeHarness({ enabled: false, timers: [running('t1', MIN)] });
     h.checker.start();

@@ -1,4 +1,4 @@
-// 4T-1289 (Epic 3E-0224): Namensform und Erkennung der Teile großer Dokumente.
+// 4T-001289 (Epic 3E-000224): Namensform und Erkennung der Teile großer Dokumente.
 // Ein Dokument jenseits der Größen-Schwelle liegt in mehreren Teil-Dateien,
 // die die Anwendung als ein Dokument führt. Träger der Zuordnung sind zwei
 // Spuren mit klarer Rangfolge (Architektur, Kapitel «Teilung großer

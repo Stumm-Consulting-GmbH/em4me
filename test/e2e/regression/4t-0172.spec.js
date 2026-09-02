@@ -1,4 +1,4 @@
-// 4T-0172: Regressionstests fuer die Properties-/Frontmatter-Fixes
+// 4T-000172: Regressionstests fuer die Properties-/Frontmatter-Fixes
 // (R5-02 Parse-Fehler-Guard, R5-03 Flush des pending Debounce-Save).
 // R5-10 (Duplikat-Keys) ist ueber den Save-Guard abgedeckt; das UI-Szenario
 // (Key-Umbenennung auf bestehenden Namen) ist im Task als manueller

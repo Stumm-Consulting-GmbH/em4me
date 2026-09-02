@@ -1,4 +1,4 @@
-// 4T-0377 (Epic 3E-0071): Unit-Tests für die Zustandslogik des Editor-
+// 4T-000377 (Epic 3E-000071): Unit-Tests für die Zustandslogik des Editor-
 // Kontextmenü-Klipboard-Blocks (src/shared/editor-menu.js). Prüft die Auswahl
 // der Einträge und ihre Aktiv-Zustände je nach Read-only, Selektion,
 // Klipboard-Inhalt und Dokument-Füllung.
@@ -10,7 +10,7 @@ function byId(states) {
   return Object.fromEntries(states.map((s) => [s.id, s.enabled]));
 }
 
-describe('computeClipboardMenuState (4T-0377)', () => {
+describe('computeClipboardMenuState (4T-000377)', () => {
   it('editierbar: alle vier Einträge in Menü-Reihenfolge', () => {
     const states = computeClipboardMenuState({
       readOnly: false,

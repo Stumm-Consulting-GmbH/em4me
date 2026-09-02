@@ -1,4 +1,4 @@
-// 4T-0277 (Epic 3E-0049): System-Seiten im Tab-System.
+// 4T-000277 (Epic 3E-000049): System-Seiten im Tab-System.
 //
 // Verallgemeinerung des Handbuch-Musters (tab.manualPage) auf interaktive
 // Seiten mit eigenem DOM: eine System-Seite läuft als pfadloser Tab
@@ -14,21 +14,21 @@
 //
 // Modul-Zyklus system-pages <-> app-state/tabs/views ist unkritisch:
 // alle Zugriffe erfolgen erst zur Laufzeit (Funktionsaufrufe), Muster wie
-// die dokumentierten manual.js-Zyklen der Modularisierung (4T-0179).
+// die dokumentierten manual.js-Zyklen der Modularisierung (4T-000179).
 'use strict';
 
 import { createTab, getPaneEls, state } from './app-state.js';
 import { activatePane, activateTab } from '../tabs/tabs.js';
 import { applyAllLayouts } from '../views/pane-render.js';
 import { persistState } from '../views/views.js';
-// 4T-0648 (Epic 3E-0130): Platzierung einer Folge-Ansicht neben ihrem
+// 4T-000648 (Epic 3E-000130): Platzierung einer Folge-Ansicht neben ihrem
 // Bezugsdokument (reine Helfer des Tab-Modells).
 import { insertTabNextTo, moveTabNextTo } from '../tabs/tab-groups.js';
 
 // Registry: Seiten-ID -> { id, titleKey, mount(container, paneIdx), onOpen? }.
 //   id        stabile, sprachneutrale Seiten-Kennung (Wert von tab.systemPage).
 //   titleKey  i18n-Key des lokalisierten Tab-Titels.
-//   title     optional; Funktion für dynamische Tab-Titel (4T-0455:
+//   title     optional; Funktion für dynamische Tab-Titel (4T-000455:
 //             „Graph: <Bereichs-Name>"). Hat Vorrang vor titleKey; wird bei
 //             jedem Tabbar-Render frisch ausgewertet (tabDisplayName).
 //   mount     baut das Seiten-DOM in den übergebenen Container; wird beim
@@ -36,11 +36,11 @@ import { insertTabNextTo, moveTabNextTo } from '../tabs/tab-groups.js';
 //             (der Container wird vorher geleert).
 //   onOpen    optional; läuft beim echten Neu-Öffnen der Seite (nicht beim
 //             Aktivieren einer bestehenden Instanz) — Lebenszyklus-Haken
-//             für einen frischen Seiten-Zustand (4T-0278: Entwurfs-Reset
+//             für einen frischen Seiten-Zustand (4T-000278: Entwurfs-Reset
 //             der Einstellungs-Seite, auch beim Transfer-Pfad).
 //   onClose   optional; läuft beim Schließen des Tabs (jeder Pfad:
 //             Button, Tab-X, Strg+W, Fenster-Transfer) — Aufräum-Haken
-//             (4T-0279: Abbrechen-Semantik der Einstellungs-Seite).
+//             (4T-000279: Abbrechen-Semantik der Einstellungs-Seite).
 const SYSTEM_PAGES = new Map();
 
 export function registerSystemPage(def) {
@@ -71,7 +71,7 @@ export function findSystemTabAcrossPanes(pageId) {
 const mountState = new Map(); // pageId -> { container, lang, generation }
 const pageGenerations = new Map(); // pageId -> number
 
-// 4T-0701 (Epic 3E-0161): Zaehler der Oeffnungs-Anforderungen je Seite.
+// 4T-000701 (Epic 3E-000161): Zaehler der Oeffnungs-Anforderungen je Seite.
 // Anders als pageGenerations, das nur echte Neu-Anlagen zaehlt, zaehlt er
 // JEDE Anforderung — auch das Aktivieren einer bereits offenen Instanz.
 // Genau diese Unterscheidung traegt: Waehrend eines laufenden, asynchronen
@@ -87,7 +87,7 @@ export function systemPageOpenCount(pageId) {
   return openRequests.get(pageId) || 0;
 }
 
-// 4T-0648 (Epic 3E-0130): Index des Bezugs-Reiters einer Folge-Ansicht in
+// 4T-000648 (Epic 3E-000130): Index des Bezugs-Reiters einer Folge-Ansicht in
 // einer bestimmten Spalte. -1, wenn kein Bezug angegeben ist oder das
 // Dokument dort nicht offen ist. Bewusst spalten-lokal: liegt das Dokument
 // in der ANDEREN Spalte, gilt das bisherige Verhalten (Epic-Randfall) —
@@ -103,7 +103,7 @@ function refTabIndexInPane(paneIdx, refPath) {
 // bestehenden Tab (Einfach-Instanz pro Fenster, Muster openManualPage).
 // viewMode ist für System-Tabs bedeutungslos (die Pane trägt die Klasse
 // view-system); 'rendered' hält Statusbar-Toggles und Menü-Radio konsistent.
-// 4T-0648: nextToPath kennzeichnet eine Folge-Ansicht, die zu einem
+// 4T-000648: nextToPath kennzeichnet eine Folge-Ansicht, die zu einem
 // Dokument gehört (heute die Dokument-Historie). Ist dieses Dokument in der
 // Ziel-Spalte offen, entsteht der Reiter unmittelbar rechts daneben statt
 // am Streifen-Ende; ein bereits offener Reiter wandert beim Umbinden auf
@@ -111,7 +111,7 @@ function refTabIndexInPane(paneIdx, refPath) {
 export function openSystemPage(pageId, { nextToPath = null } = {}) {
   const page = systemPageById(pageId);
   if (!page) return;
-  // 4T-0701: vor beiden Zweigen, damit die Anforderung auch dann zaehlt,
+  // 4T-000701: vor beiden Zweigen, damit die Anforderung auch dann zaehlt,
   // wenn sie nur eine bestehende Instanz aktiviert.
   openRequests.set(page.id, (openRequests.get(page.id) || 0) + 1);
   const existing = findSystemTabAcrossPanes(pageId);
@@ -150,7 +150,7 @@ export function openSystemPage(pageId, { nextToPath = null } = {}) {
 // Mount-Guard (siehe mountState) es verlangt. Beim Pane-Wechsel wird der
 // alte Container geleert, damit kein verwaistes Seiten-DOM mit toten
 // Referenzen zurückbleibt.
-// 4T-0455 (Epic 3E-0084, PO-Befund der Release-Test-Iteration 0.57.0):
+// 4T-000455 (Epic 3E-000084, PO-Befund der Release-Test-Iteration 0.57.0):
 // Der Guard prüft zusätzlich, ob der Container aktuell dieser Seite gehört
 // (data-system-page). Teilen sich zwei System-Tabs eine Pane (z.B.
 // Bereichs-Graph und Einstellungen), überschreibt jede Seite beim

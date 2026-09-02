@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Ziel-Auflösung des Index, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Ziel-Auflösung des Index, herausgelöst aus
 // src/main/backlinks.js. Löst Wiki-Link-Basenames (Namens-, Pfad- und
 // Unterseiten-Form) und Aliases gegen den Index auf, prüft Linter-Ziele samt
 // Ankern (existingWikiTargets) und sammelt die Backlinks der aktiven Datei
@@ -13,7 +13,7 @@ const { MD_EXT_RE, normalizeNameKey } = require('../../shared/markdown/link-scan
 const { indexes, resolveRootInfo } = require('./store.js');
 const { ensureIndex } = require('./lifecycle.js');
 
-// 4T-0050: Liefert alle Dateien im Index, die den gegebenen Alias fuehren.
+// 4T-000050: Liefert alle Dateien im Index, die den gegebenen Alias fuehren.
 // Case-insensitive Lookup. Leeres Array bei keinem Treffer.
 function filesByAlias(entry, alias) {
   if (!alias) return [];
@@ -25,17 +25,17 @@ function filesByAlias(entry, alias) {
 // Aufloesung von Wiki-Link-Treffern: zielBasename wird gegen alle Dateien
 // im Index gematcht, deren Basename ohne Markdown-Extension passt. Mehrere
 // Treffer pro Wiki-Link sind erlaubt (Namens-Konflikt).
-// B-04/B-23 (4T-0175): Vergleich case-insensitiv und NFC-normalisiert —
+// B-04/B-23 (4T-000175): Vergleich case-insensitiv und NFC-normalisiert —
 // der Klick-Pfad (NTFS) und die Alias-Map entscheiden bereits so; vorher
 // meldete der Linter [[readme]] als broken, obwohl der Klick README.md
 // oeffnete.
-// B-13 (4T-0175): Pfad-Ziele ([[sub/Datei]]) matchen per Suffix gegen den
+// B-13 (4T-000175): Pfad-Ziele ([[sub/Datei]]) matchen per Suffix gegen den
 // Datei-Pfad, wie es der dokument-relative Klick-Pfad effektiv tut.
-// 4T-0336 (Epic 3E-0061): getrennte Treffer-Mengen fuer Namens-, Pfad- und
+// 4T-000336 (Epic 3E-000061): getrennte Treffer-Mengen fuer Namens-, Pfad- und
 // Unterseiten-Form. Der Linter nutzt Pfad- und Unterseiten-Menge fuer die
 // Mehrdeutigkeits-Meldung; resolveWikiLink kombiniert mit Pfad-Vorrang
 // (Epic-Entscheidung: bestehendes B-13-Verhalten bricht nicht).
-// 4T-1288: Suffix-Map der Pfad-Form, lazy gebaut und in build.js bei jeder
+// 4T-001288: Suffix-Map der Pfad-Form, lazy gebaut und in build.js bei jeder
 // Aenderung der Pfad-Menge invalidiert (entry.pathSuffixMap = null).
 //
 // Hintergrund: Die Pfad-Form lief vorher linear ueber alle Dateien, mit
@@ -44,7 +44,7 @@ function filesByAlias(entry, alias) {
 // (879 Pfad-Links auf 6483 Dateien): Jede Backlinks-Anfrage loeste rund 5,7
 // Millionen Normalisierungen aus und blockierte den UI-Thread des
 // Hauptprozesses sekundenlang, samt der OS-Eingabe-Zustellung an alle
-// Fenster (Analyse 4T-1287, CPU-Profil).
+// Fenster (Analyse 4T-001287, CPU-Profil).
 //
 // Die Map traegt je Datei alle ECHTEN Segment-Suffixe ihres normalisierten
 // Pfads (mindestens ein fuehrendes Segment bleibt uebrig) — exakt die Menge,
@@ -75,13 +75,13 @@ function ensurePathSuffixMap(entry) {
 function resolveWikiLinkDetailed(entry, zielBasename) {
   const wanted = normalizeNameKey(String(zielBasename).replace(MD_EXT_RE, '')).replace(/\\/g, '/');
   if (!wanted.includes('/')) {
-    // B-15 (4T-0181): O(1) ueber die inverse Namens-Map statt linear ueber
+    // B-15 (4T-000181): O(1) ueber die inverse Namens-Map statt linear ueber
     // alle Dateien (vorher O(Hits x Dateien) in collectBacklinksFor).
     // Deckt auch bereits expandierte Unterseiten-Namen in U+2215-Form ab.
     const set = entry.nameMap.get(wanted);
     return { nameMatches: set ? [...set] : [], pathMatches: [], subpageMatches: [] };
   }
-  // Pfad-Form (B-13): seit 4T-1288 O(1) ueber die Suffix-Map (siehe oben);
+  // Pfad-Form (B-13): seit 4T-001288 O(1) ueber die Suffix-Map (siehe oben);
   // Verhalten identisch zum frueheren endsWith('/' + wanted)-Scan.
   const pset = ensurePathSuffixMap(entry).get(wanted);
   const pathMatches = pset ? [...pset] : [];
@@ -97,14 +97,14 @@ function resolveWikiLink(entry, zielBasename) {
 }
 
 // Liefert alle Treffer in der Wurzel, deren Ziel die aktive Datei ist.
-// 4T-0050: Aliases-aware. Ein Wiki-Link [[MV]] aus quelle.md gilt als
+// 4T-000050: Aliases-aware. Ein Wiki-Link [[MV]] aus quelle.md gilt als
 // Backlink auf die aktive Datei, wenn entweder
 //   (a) die aktive Datei den Basename 'MV' hat, oder
 //   (b) die aktive Datei einen Alias 'MV' im Frontmatter fuehrt.
 // Im Treffer wird viaAlias='MV' gesetzt, wenn (b) zutrifft; sonst null.
 function collectBacklinksFor(activeFile, entry) {
   const activeAbs = path.resolve(activeFile);
-  // 4T-0050: Aliases der aktiven Datei (case-insensitive Vergleich gegen
+  // 4T-000050: Aliases der aktiven Datei (case-insensitive Vergleich gegen
   // Wiki-Link-Basenames der Quelldateien).
   const activeAliases = entry.aliasesPerFile.get(activeAbs) || [];
   const activeAliasesLower = new Set(activeAliases.map((a) => normalizeNameKey(a.trim())));
@@ -121,7 +121,7 @@ function collectBacklinksFor(activeFile, entry) {
         if (candidates.includes(activeAbs)) {
           isMatch = true;
         } else {
-          // 4T-0050: Alias-Match? Nur greifen, wenn kein direkter
+          // 4T-000050: Alias-Match? Nur greifen, wenn kein direkter
           // Datei-Treffer existiert (sonst wuerde ein Wiki-Link auf eine
           // echte Datei zusaetzlich als Alias-Backlink auftauchen). Wenn
           // candidates.length === 0 und der Basename ein Alias der aktiven
@@ -166,7 +166,7 @@ function collectBacklinksFor(activeFile, entry) {
 
 // Haupt-API fuer den IPC-Handler in main.js. Bestimmt die Wurzel zur
 // aktiven Datei, sorgt fuer den Index, liefert das Status-Payload zurueck.
-// B-01 (4T-0175): ownerKey identifiziert den anfragenden Kontext
+// B-01 (4T-000175): ownerKey identifiziert den anfragenden Kontext
 // ('<webContentsId>:<paneIdx>'); Mehrfach-Requests desselben Owners
 // erhoehen die Referenz nicht.
 function backlinksFor(filePath, ownerKey, areaRoot) {
@@ -185,24 +185,24 @@ function backlinksFor(filePath, ownerKey, areaRoot) {
   if (entry.status === 'indexing') {
     return { status: 'indexing', meta: { wurzel: root } };
   }
-  // B-21 (4T-0187): Watcher-Fehler-Status an das Panel melden.
+  // B-21 (4T-000187): Watcher-Fehler-Status an das Panel melden.
   if (entry.status === 'error') {
     return { status: 'error', meta: { wurzel: root } };
   }
   const results = collectBacklinksFor(filePath, entry);
   return {
     status: 'ready',
-    // B-22 (4T-0187): skippedDirs fuer den Panel-Hinweis.
+    // B-22 (4T-000187): skippedDirs fuer den Panel-Hinweis.
     meta: { wurzel: root, fileCount: entry.fileCount, skippedDirs: entry.skippedDirs || 0 },
     results,
   };
 }
 
-// B-17 (4T-0183): fileBelongsToRoot entfernt — exportiert, aber ohne
+// B-17 (4T-000183): fileBelongsToRoot entfernt — exportiert, aber ohne
 // Aufrufer, und die Semantik (reiner Prefix-Match) entsprach nicht dem
-// Owner-basierten Root-Modell seit 4T-0175/4T-0181.
+// Owner-basierten Root-Modell seit 4T-000175/4T-000181.
 
-// 4T-0020: Lookup fuer den Markdown-Linter. Liefert fuer eine Liste von
+// 4T-000020: Lookup fuer den Markdown-Linter. Liefert fuer eine Liste von
 // Wiki-Link-Basenames das Set derjenigen, deren Ziel im Suchraum der aktiven
 // Datei existiert. Aufrufer (Renderer-Linter) entscheidet anhand des Status,
 // ob er die broken-wiki-link-Regel anwenden darf:
@@ -210,9 +210,9 @@ function backlinksFor(filePath, ownerKey, areaRoot) {
 // - 'indexing': Index wird gerade aufgebaut, Regel temporaer unterdruecken.
 // - 'unavailable': kein Suchraum (z.B. unbenannte Datei) oder Index
 //   oversized, Regel ebenfalls unterdruecken.
-// B-18 (4T-0187): Der Index-AUFBAU wird nicht mehr hier, sondern im IPC-
+// B-18 (4T-000187): Der Index-AUFBAU wird nicht mehr hier, sondern im IPC-
 // Handler ueber ensureIndexForDemand angestossen (Owner-Modell macht das
-// seit 4T-0175 leak-frei); diese Funktion bleibt ein reiner Read-Pfad.
+// seit 4T-000175 leak-frei); diese Funktion bleibt ein reiner Read-Pfad.
 function existingWikiTargets(filePath, targets, areaRoot) {
   if (!filePath || !Array.isArray(targets)) {
     return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
@@ -225,20 +225,20 @@ function existingWikiTargets(filePath, targets, areaRoot) {
     return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
   if (entry.status === 'indexing')
     return { status: 'indexing', existing: [], brokenAnchor: [], ambiguous: [] };
-  // W-07 (4T-0309): Fehler-Status wie unavailable — sonst markiert der Linter
+  // W-07 (4T-000309): Fehler-Status wie unavailable — sonst markiert der Linter
   // gegen den Stale-Index neue Dateien faelschlich als broken.
   if (entry.status === 'error')
     return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
   const existing = [];
   const brokenAnchor = [];
-  // 4T-0336 (Epic 3E-0061): Ziele, bei denen Ordner-Pfad-Form und
+  // 4T-000336 (Epic 3E-000061): Ziele, bei denen Ordner-Pfad-Form und
   // Unterseiten-Form auf verschiedene Dateien zeigen (Linter-Hinweis).
   const ambiguous = [];
   const activeFileAbs = path.resolve(filePath);
 
   for (const target of targets) {
     if (typeof target !== 'string' || !target) continue;
-    // 4T-0054: Anker-Trennung. '#' beendet den Pfad-Teil. Reiner Anker
+    // 4T-000054: Anker-Trennung. '#' beendet den Pfad-Teil. Reiner Anker
     // ('#Heading' oder '#^id') zaehlt gegen die aktive Datei selbst.
     let basename = target;
     let anchor = null;
@@ -259,7 +259,7 @@ function existingWikiTargets(filePath, targets, areaRoot) {
       continue;
     }
 
-    // 4T-0336: relative Unterseiten-Formen gegen die aktive Datei
+    // 4T-000336: relative Unterseiten-Formen gegen die aktive Datei
     // expandieren; '..' auf Top-Level bleibt unaufloesbar (broken).
     let lookupName = basename;
     if (isRelativeTarget(basename)) {
@@ -269,8 +269,8 @@ function existingWikiTargets(filePath, targets, areaRoot) {
       lookupName = expanded;
     }
 
-    // 4T-0050: Datei direkt oder ueber Alias auflösen.
-    // 4T-0336: getrennte Treffer-Mengen fuer die Mehrdeutigkeits-Meldung.
+    // 4T-000050: Datei direkt oder ueber Alias auflösen.
+    // 4T-000336: getrennte Treffer-Mengen fuer die Mehrdeutigkeits-Meldung.
     const detailed = resolveWikiLinkDetailed(entry, lookupName);
     if (detailed.pathMatches.length > 0 && detailed.subpageMatches.length > 0) {
       ambiguous.push(target);
@@ -296,7 +296,7 @@ function existingWikiTargets(filePath, targets, areaRoot) {
       continue;
     }
 
-    // 4T-0054: Anker pruefen. Es reicht, wenn EIN Kandidat den Anker fuehrt.
+    // 4T-000054: Anker pruefen. Es reicht, wenn EIN Kandidat den Anker fuehrt.
     let anchorOk = false;
     for (const candPath of candidates) {
       if (anchorExistsInFile(entry, candPath, anchor)) {
@@ -310,7 +310,7 @@ function existingWikiTargets(filePath, targets, areaRoot) {
   return { status: 'ready', existing, brokenAnchor, ambiguous };
 }
 
-// 4T-0054: Prueft, ob die Datei einen Heading-Slug oder eine Block-ID
+// 4T-000054: Prueft, ob die Datei einen Heading-Slug oder eine Block-ID
 // fuehrt, die dem Anker entspricht. Anker mit '^'-Prefix sind Block-IDs;
 // alle anderen werden via githubLikeSlug zu einem Slug normalisiert und
 // gegen die Heading-Slugs der Datei geprueft.
@@ -327,7 +327,7 @@ function anchorExistsInFile(entry, filePath, anchor) {
   return meta.headings.has(slug);
 }
 
-// 4T-0050: Aufloesung eines Wiki-Link-Basenames ueber den Alias-Index.
+// 4T-000050: Aufloesung eines Wiki-Link-Basenames ueber den Alias-Index.
 // Wird vom Renderer aufgerufen, wenn die direkte Datei (basename.md
 // relativ zum aktiven Dokument) nicht existiert. Liefert alle Dateien,
 // die den gegebenen Basename als Alias fuehren.
@@ -352,7 +352,7 @@ function resolveWikiTargetByAlias(activeFile, basename, areaRoot) {
   if (entry.status === 'oversized')
     return { status: 'unavailable', candidates: [], viaAlias: null };
   if (entry.status === 'indexing') return { status: 'indexing', candidates: [], viaAlias: null };
-  // W-07 (4T-0309): Fehler-Status wie unavailable behandeln.
+  // W-07 (4T-000309): Fehler-Status wie unavailable behandeln.
   if (entry.status === 'error') return { status: 'unavailable', candidates: [], viaAlias: null };
   const candidates = filesByAlias(entry, basename);
   return {
@@ -362,7 +362,7 @@ function resolveWikiTargetByAlias(activeFile, basename, areaRoot) {
   };
 }
 
-// B-13 (4T-0175): Suchraum-Fallback fuer den Klick-Pfad. Loest einen
+// B-13 (4T-000175): Suchraum-Fallback fuer den Klick-Pfad. Loest einen
 // Wiki-Link-Basename (auch Pfad-Form) gegen den VORHANDENEN Index auf —
 // kein ensureIndex, gleicher Grundsatz wie existingWikiTargets. Damit ist
 // jeder Treffer, den das Backlinks-Panel meldet, auch klickbar.
@@ -376,7 +376,7 @@ function resolveWikiTargetInIndex(activeFile, basename, areaRoot) {
   if (!entry) return { status: 'unavailable', candidates: [] };
   if (entry.status === 'oversized') return { status: 'unavailable', candidates: [] };
   if (entry.status === 'indexing') return { status: 'indexing', candidates: [] };
-  // W-07 (4T-0309): Fehler-Status wie unavailable behandeln.
+  // W-07 (4T-000309): Fehler-Status wie unavailable behandeln.
   if (entry.status === 'error') return { status: 'unavailable', candidates: [] };
   return { status: 'ready', candidates: resolveWikiLink(entry, basename) };
 }
@@ -384,7 +384,7 @@ function resolveWikiTargetInIndex(activeFile, basename, areaRoot) {
 module.exports = {
   filesByAlias,
   resolveWikiLink,
-  // 4T-1288: fuer den Kosten-Waechter-Test exportiert (Suffix-Map-Semantik
+  // 4T-001288: fuer den Kosten-Waechter-Test exportiert (Suffix-Map-Semantik
   // und Aufruf-Schranke werden am entry-Objekt direkt geprueft).
   resolveWikiLinkDetailed,
   backlinksFor,

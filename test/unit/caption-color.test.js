@@ -1,4 +1,4 @@
-// 4T-0630 (Epic 3E-0102): Unit-Tests für die Titelleisten-Färbung
+// 4T-000630 (Epic 3E-000102): Unit-Tests für die Titelleisten-Färbung
 // (src/main/app/caption-color.js). Geprüft werden die reinen Umrechnungs- und
 // Auswahl-Funktionen (hexToColorref, captionColorsFor) sowie der
 // Aufruf-Vertrag von applyCaptionColor gegen einen injizierten Fake-Kanal
@@ -37,7 +37,7 @@ function handle8() {
   return buf;
 }
 
-// 4T-1250 (Epic 3E-0124): Die Faerbung der Titelleiste ist eine
+// 4T-001250 (Epic 3E-000124): Die Faerbung der Titelleiste ist eine
 // Windows-Funktion und entfaellt anderswo ersatzlos (Plattform-Gate in
 // caption-color.js). Ihre Logik ist aber rein und ueber setDwmCallForTests
 // injizierbar, laesst sich also auf JEDER Plattform pruefen — sofern das Gate
@@ -53,11 +53,11 @@ afterEach(() => {
   // Kanal auf den Lazy-Ausgangszustand zurücksetzen (siehe Kopf-Kommentar):
   // ungefährlich, solange kein Test ohne eigenen Fake applyCaptionColor ruft.
   setDwmCallForTests(undefined);
-  // Plattform-Gate auf die reale Plattform zurücksetzen (4T-1202).
+  // Plattform-Gate auf die reale Plattform zurücksetzen (4T-001202).
   setPlatformForTests(undefined);
 });
 
-describe('hexToColorref (4T-0630)', () => {
+describe('hexToColorref (4T-000630)', () => {
   it('rechnet #rrggbb in das little-endian COLORREF 0x00BBGGRR um', () => {
     expect(hexToColorref('#1a73e8')).toBe(0x00e8731a);
     expect(hexToColorref('#ffffff')).toBe(0x00ffffff);
@@ -77,7 +77,7 @@ describe('hexToColorref (4T-0630)', () => {
   });
 });
 
-describe('captionColorsFor (4T-0630)', () => {
+describe('captionColorsFor (4T-000630)', () => {
   it('blue light: Werte aus VALUES/TEXT_VALUES', () => {
     expect(captionColorsFor('blue', false)).toEqual({
       caption: hexToColorref(TAB_GROUP_COLOR_VALUES.blue),
@@ -105,7 +105,7 @@ describe('captionColorsFor (4T-0630)', () => {
   });
 });
 
-describe('applyCaptionColor: Färbung (4T-0630)', () => {
+describe('applyCaptionColor: Färbung (4T-000630)', () => {
   it('setzt Attribut 35 (Caption) und 36 (Text) mit dem HWND aus dem Handle', () => {
     const calls = [];
     setDwmCallForTests((hwnd, attr, value) => {
@@ -167,10 +167,10 @@ describe('applyCaptionColor: Färbung (4T-0630)', () => {
   });
 });
 
-// 4T-1202 (Epic 3E-0121): Ausdrückliches Plattform-Gate — auf Nicht-Windows-
+// 4T-001202 (Epic 3E-000121): Ausdrückliches Plattform-Gate — auf Nicht-Windows-
 // Plattformen findet kein Färbungs-Versuch statt (kein Kanal-Aufruf, kein
 // Log), die Funktion entfällt dort ersatzlos (PO-Entscheidung vom 2026-08-25).
-describe('applyCaptionColor: Plattform-Gate (4T-1202)', () => {
+describe('applyCaptionColor: Plattform-Gate (4T-001202)', () => {
   for (const p of ['linux', 'darwin']) {
     it(`${p}: false ohne Kanal-Aufruf und ohne Log`, () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -200,7 +200,7 @@ describe('applyCaptionColor: Plattform-Gate (4T-1202)', () => {
   });
 });
 
-describe('applyCaptionColor: unbrauchbares Handle (4T-0630)', () => {
+describe('applyCaptionColor: unbrauchbares Handle (4T-000630)', () => {
   it('liefert false ohne Fake-Aufruf bei Nicht-Buffer oder zu kurzem Buffer', () => {
     let count = 0;
     setDwmCallForTests(() => {
@@ -214,7 +214,7 @@ describe('applyCaptionColor: unbrauchbares Handle (4T-0630)', () => {
   });
 });
 
-describe('applyCaptionColor: Fehler-Fallback deaktiviert den Kanal (4T-0630)', () => {
+describe('applyCaptionColor: Fehler-Fallback deaktiviert den Kanal (4T-000630)', () => {
   it('Fehl-HRESULT beim ersten Aufruf: false, kein zweiter Attribut-Aufruf, ein Log', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     let count = 0;
@@ -255,10 +255,10 @@ describe('applyCaptionColor: Fehler-Fallback deaktiviert den Kanal (4T-0630)', (
   });
 });
 
-// Palette-Erweiterung für die Titelleisten-Färbung: die drei in 4T-0630
+// Palette-Erweiterung für die Titelleisten-Färbung: die drei in 4T-000630
 // hinzugekommenen Wert-Objekte plus das Bestands-Objekt tragen exakt die acht
 // Paletten-Keys und ausschließlich #rrggbb-Werte (Basis der DWM-Umrechnung).
-describe('tab-group-colors: Paletten-Vollständigkeit (4T-0630)', () => {
+describe('tab-group-colors: Paletten-Vollständigkeit (4T-000630)', () => {
   const objects = {
     TAB_GROUP_COLOR_VALUES,
     TAB_GROUP_COLOR_VALUES_DARK,

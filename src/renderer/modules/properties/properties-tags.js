@@ -1,26 +1,26 @@
 // Sichtbarkeit, Umschalten und Persistenz der Properties- und der Tag-Sektion,
 // dazu die Registrierung beider Panels in der Sidebar-Registry.
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
-// 4T-0981 (Epic 3E-0196): Kern des Feature-Ordners `properties/`; Typ-System,
+// 4T-000981 (Epic 3E-000196): Kern des Feature-Ordners `properties/`; Typ-System,
 // Feld-DOM, Schreibweg und Vorschlags-Menü liegen in den Nachbar-Modulen
 // properties-types, properties-fields, properties-save und properties-suggest.
 'use strict';
 
 import { api } from '../app/api.js';
-// 4T-0294 (Epic 3E-0052): Tag-Panel gehoert zur Tag-Erweiterung.
+// 4T-000294 (Epic 3E-000052): Tag-Panel gehoert zur Tag-Erweiterung.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { applySidebarVisibility } from '../panels/panels.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
 import { renderTags } from '../editor/autocomplete-help.js';
-// 4T-0287/4T-0288 (Epic 3E-0051): Panel-Registry — Properties und Tags
+// 4T-000287/4T-000288 (Epic 3E-000051): Panel-Registry — Properties und Tags
 // registrieren sich am Modul-Ende; Einblenden aktiviert den Gruppen-Reiter.
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { renderProperties } from './properties-fields.js';
 
-// --- Properties-Sidebar (4T-0051) -------------------------------------------
+// --- Properties-Sidebar (4T-000051) -------------------------------------------
 // Live-editierbare Sidebar-Sektion fuer YAML-Frontmatter-Felder (Sektion
 // neben Outline und Backlinks). Pro Spalte eine eigene Instanz; Sichtbar-
 // keit pro Spalte persistent. Typ-Inferenz aus dem aktuellen Wert, Round-
@@ -39,7 +39,7 @@ import { renderProperties } from './properties-fields.js';
 export function applyPropertiesVisibility(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.propertiesSection) return;
-  // 4T-0075: Properties im Empty-State zwangsweise unsichtbar.
+  // 4T-000075: Properties im Empty-State zwangsweise unsichtbar.
   const visible = !isAllEmpty() && !!state.properties.visibleByPane[paneIdx];
   els.propertiesSection.hidden = !visible;
   applySidebarVisibility(paneIdx);
@@ -61,7 +61,7 @@ export async function togglePropertiesPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.properties.visibleByPane[paneIdx];
   state.properties.visibleByPane[paneIdx] = next;
-  // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
+  // 4T-000288: Einblenden aktiviert den Reiter in einer Gruppe.
   if (next) await ensurePanelTabActive('properties', paneIdx);
   applyPropertiesVisibility(paneIdx);
   await persistPropertiesSettings();
@@ -70,7 +70,7 @@ export async function togglePropertiesPanel(paneIdx) {
   }
 }
 
-// 4T-1174 (Epic 3E-0220, AK1/AK2): Das Feld-Formular öffnen.
+// 4T-001174 (Epic 3E-000220, AK1/AK2): Das Feld-Formular öffnen.
 //
 // «Öffnen» heißt hier drei Dinge, weil das Formular ein Ausklapp-Bereich der
 // Eigenschaften-Sektion ist (Festlegung des Product Owners vom 2026-08-24) und
@@ -93,7 +93,7 @@ export async function oeffneFeldFormular(paneIdx) {
   } else {
     await togglePropertiesPanel(paneIdx);
   }
-  // 4T-1173: Erst den Merker setzen, dann das Element aufklappen. Ein
+  // 4T-001173: Erst den Merker setzen, dann das Element aufklappen. Ein
   // spaeteres Neu-Rendern (etwa durch die nachziehende Aufloesung) baut den
   // Bereich neu und liest ihn von dort; ohne den Merker klappte er dabei
   // sofort wieder zu.
@@ -121,7 +121,7 @@ export async function loadPropertiesSettings() {
   state.properties.visibleByPane[1] = !!v1;
 }
 
-// --- Tag-Sidebar (4T-0056, Epic 3E-0011) ------------------------------------
+// --- Tag-Sidebar (4T-000056, Epic 3E-000011) ------------------------------------
 // Vierte Sidebar-Sektion zwischen Properties und Backlinks. Zeigt alle
 // Tags im Backlinks-Suchraum mit Haeufigkeits-Counts in hierarchischer
 // Anzeige (Slash-getrennte Hierarchie). Filter-Eingabe macht Substring-
@@ -130,8 +130,8 @@ export async function loadPropertiesSettings() {
 export function applyTagsVisibility(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.tagsSection) return;
-  // 4T-0075: Tags im Empty-State zwangsweise unsichtbar.
-  // 4T-0294: bei deaktivierter Tag-Erweiterung ebenso; die persistierte
+  // 4T-000075: Tags im Empty-State zwangsweise unsichtbar.
+  // 4T-000294: bei deaktivierter Tag-Erweiterung ebenso; die persistierte
   // Sichtbarkeits-Preference bleibt erhalten.
   const visible = !isAllEmpty() && isExtensionActive('tags') && !!state.tags.visibleByPane[paneIdx];
   els.tagsSection.hidden = !visible;
@@ -152,7 +152,7 @@ export async function toggleTagsPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.tags.visibleByPane[paneIdx];
   state.tags.visibleByPane[paneIdx] = next;
-  // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
+  // 4T-000288: Einblenden aktiviert den Reiter in einer Gruppe.
   if (next) await ensurePanelTabActive('tags', paneIdx);
   applyTagsVisibility(paneIdx);
   await persistTagsSettings();
@@ -173,7 +173,7 @@ export async function loadTagsSettings() {
   state.tags.visibleByPane[1] = !!v1;
 }
 
-// === 4T-0287 (Epic 3E-0051): Panel-Registrierung =============================
+// === 4T-000287 (Epic 3E-000051): Panel-Registrierung =============================
 // getVisible spiegelt die effektive Sichtbarkeits-Logik aus
 // applySidebarVisibility (panels.js) inklusive Empty-State-Override.
 

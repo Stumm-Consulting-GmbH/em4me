@@ -1,4 +1,4 @@
-// 4T-0502 (Epic 3E-0096): E2E-Funktions-Suite Aufgaben-Abfrage (TASKS-Scope der
+// 4T-000502 (Epic 3E-000096): E2E-Funktions-Suite Aufgaben-Abfrage (TASKS-Scope der
 // Perspective-Abfrage). TQ-01 prueft den Treffer-Aufbau der Task-Liste aus den
 // indexierten Checkbox-Zeilen im Reading-Modus (.perspective-query-tasks mit
 // den Task-Beschreibungen); TQ-02 die Live-Aktualisierung: eine auf der Platte
@@ -92,7 +92,7 @@ test.describe('TQ-02: Aufgaben-Abfrage — Live-Aktualisierung bei neuer Task-Ze
   });
 });
 
-// 4T-0503 (Epic 3E-0096): TQ-03 prueft die Gruppierung (GROUP BY heading): eine
+// 4T-000503 (Epic 3E-000096): TQ-03 prueft die Gruppierung (GROUP BY heading): eine
 // Datei mit Task-Zeilen unter zwei Ueberschriften rendert zwei Gruppen-Titel
 // (die Ueberschrifts-Texte) mit den zugehoerigen Tasks darunter.
 const GROUP_FENCE = ['```perspective-query', 'LIST TASKS GROUP BY heading', '```'].join('\n');
@@ -146,7 +146,7 @@ test.describe('TQ-03: Aufgaben-Abfrage — GROUP BY heading gruppiert nach Ueber
   });
 });
 
-// 4T-0504 (Epic 3E-0096): TQ-04 prueft den Status-Toggle direkt aus der
+// 4T-000504 (Epic 3E-000096): TQ-04 prueft den Status-Toggle direkt aus der
 // Abfrage-Ansicht in eine NICHT geoeffnete Quelldatei. Ein Klick auf die
 // Status-Box des Alpha-Treffers schreibt zeilen-genau ueber den Main auf die
 // Platte ('- [x] Alpha ...'; das Automatik-Erledigt-Datum ist per Default an,
@@ -177,7 +177,7 @@ test.describe('TQ-04: Aufgaben-Abfrage — Status-Toggle in nicht geoeffnete Dat
         .toMatch(/- \[x\] Alpha/);
 
       // Die Trefferliste zieht nach: genau eine Status-Box zeigt den Haken
-      // (die Liste baut ueber den Index-Watcher neu auf). 4T-0505: der
+      // (die Liste baut ueber den Index-Watcher neu auf). 4T-000505: der
       // erledigte Treffer sortiert per Default-Sortierung ans Listen-Ende,
       // deshalb kein Positions-Bezug.
       await expect(
@@ -190,7 +190,7 @@ test.describe('TQ-04: Aufgaben-Abfrage — Status-Toggle in nicht geoeffnete Dat
   });
 });
 
-// 4T-0504 (Epic 3E-0096): TQ-05 prueft das Termin-Verschieben aus der Abfrage.
+// 4T-000504 (Epic 3E-000096): TQ-05 prueft das Termin-Verschieben aus der Abfrage.
 // Der Verschiebe-Knopf des Beta-Treffers (faellig 2099-02-02) oeffnet ein
 // Kontextmenue; der erste Eintrag ('Auf morgen') verschiebt den Zukunftstermin
 // um einen Tag auf 2099-02-03 (Basis-Regel: Zukunftstermin + 1 Tag,
@@ -226,7 +226,7 @@ test.describe('TQ-05: Aufgaben-Abfrage — Termin verschieben in nicht geoeffnet
   });
 });
 
-// 4T-0506 (Epic 3E-0096): TQ-06/TQ-07 pruefen den Task-Bearbeitungs-Dialog
+// 4T-000506 (Epic 3E-000096): TQ-06/TQ-07 pruefen den Task-Bearbeitungs-Dialog
 // per Kuerzel (Strg+Alt+A) direkt im Quelltext-Editor. TQ-06 bearbeitet eine
 // bestehende Task-Zeile (Beschreibung umbenennen, faelliger Termin bleibt
 // erhalten); TQ-07 legt auf einer leeren Zeile eine neue Task an. Der Dialog
@@ -331,7 +331,7 @@ test.describe('TQ-07: Task-Dialog per Kuerzel — neue Task auf leerer Zeile anl
   });
 });
 
-// 4T-0507 (Epic 3E-0096): TQ-08 prueft die dritte Autocomplete-Quelle auf
+// 4T-000507 (Epic 3E-000096): TQ-08 prueft die dritte Autocomplete-Quelle auf
 // Task-Zeilen (taskMarkerCompletionSource). Im Quelltext-Editor wird hinter
 // der Beschreibung ' prio' getippt; das Autocomplete-Popup erscheint und der
 // Prioritaets-Eintrag ('Priorität: Höchste', de-Locale) wird uebernommen.
@@ -375,7 +375,7 @@ test.describe('TQ-08: Task-Zeilen-Autocomplete — Prioritaets-Marker uebernehme
   });
 });
 
-// 4T-0508 (Epic 3E-0096): TQ-09 prueft den Blockiert-Filter (WHERE blocked =
+// 4T-000508 (Epic 3E-000096): TQ-09 prueft den Blockiert-Filter (WHERE blocked =
 // true) datei-uebergreifend. Zwei Dateien: ein Blocker (offene Task mit ID)
 // und eine Abhaengige (offene Task mit ⛔-Vorgaenger-Bezug auf die ID). Der
 // Filter zeigt genau die Abhaengige (mit ⛔-Badge). Wird der Blocker auf der

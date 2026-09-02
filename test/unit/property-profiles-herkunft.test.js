@@ -1,8 +1,8 @@
-// 4T-1171 (Epic 3E-0220): Unit-Tests der Herkunft je Feld — der Weg, über den
+// 4T-001171 (Epic 3E-000220): Unit-Tests der Herkunft je Feld — der Weg, über den
 // ein Profil erreicht wurde, die Vererbungs-Tiefe innerhalb seiner Kette und
 // die geordnete Kette der beteiligten Profile.
 //
-// Eigene Datei nach dem Muster von 4T-1159: Die HERKUNFT ist ein eigener
+// Eigene Datei nach dem Muster von 4T-001159: Die HERKUNFT ist ein eigener
 // Gegenstand neben den Zuordnungs-Wegen und der Vererbung selbst, und
 // `property-profiles-aufloesung.test.js` steht mit über 700 Zeilen dicht am
 // Test-Budget. Was die Wege binden, prüft `property-profiles-zuordnung.test.js`;
@@ -27,7 +27,7 @@ const BINDINGS = [
 
 const feld = (r, name) => r.fields.find((f) => f.name === name);
 
-describe('resolveProfileFields — Weg je Feld (4T-1171)', () => {
+describe('resolveProfileFields — Weg je Feld (4T-001171)', () => {
   it('AK1: das Zuordnungs-Feld ergibt den Weg "assigned"', () => {
     const r = resolveProfileFields(PROFILE, { assigned: ['Sitzung'] });
     expect(feld(r, 'ort').stufe).toBe('assigned');
@@ -56,7 +56,7 @@ describe('resolveProfileFields — Weg je Feld (4T-1171)', () => {
   });
 });
 
-describe('resolveProfileFields — Vererbungs-Tiefe je Feld (4T-1171)', () => {
+describe('resolveProfileFields — Vererbungs-Tiefe je Feld (4T-001171)', () => {
   it('AK2: zählt vom zugeordneten Profil aus über die ganze Kette', () => {
     const r = resolveProfileFields(PROFILE, { assigned: ['Artikel'] });
     expect(feld(r, 'autor').tiefe).toBe(0);
@@ -77,7 +77,7 @@ describe('resolveProfileFields — Vererbungs-Tiefe je Feld (4T-1171)', () => {
   });
 });
 
-describe('resolveProfileFields — Kette der beteiligten Profile (4T-1171)', () => {
+describe('resolveProfileFields — Kette der beteiligten Profile (4T-001171)', () => {
   it('AK3: nennt je Eintrag Profil, Weg, Tiefe und Standard-Kennzeichen', () => {
     const r = resolveProfileFields(PROFILE, { assigned: ['Artikel'], defaultProfile: 'Alle' });
     expect(r.chain).toEqual([
@@ -140,7 +140,7 @@ describe('resolveProfileFields — Kette der beteiligten Profile (4T-1171)', () 
   });
 });
 
-describe('resolveProfileFields — eine Folge, keine zweite Wahrheit (4T-1171)', () => {
+describe('resolveProfileFields — eine Folge, keine zweite Wahrheit (4T-001171)', () => {
   it('AK7: die Herkunft jedes Feldes deckt sich mit seinem Ketten-Eintrag', () => {
     const r = resolveProfileFields(PROFILE, {
       assigned: ['Artikel'],

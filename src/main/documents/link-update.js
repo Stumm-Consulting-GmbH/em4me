@@ -2,9 +2,9 @@
 // (Dry-Run) und das Anwenden der Umschreibungen auf die eingehenden Links,
 // dazu die physische Umbenennung einer einzelnen Datei samt Nachzug.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Der Rewrite-Kern selbst liegt
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Der Rewrite-Kern selbst liegt
 // unveraendert in shared/link-rewrite.js; hier bleiben Suchraum, Datei-I/O
-// und die Kopplung an die Dokument-Historie. 4T-0999 (Epic 3E-0196) hat
+// und die Kopplung an die Dokument-Historie. 4T-000999 (Epic 3E-000196) hat
 // renameSingleFile aus dem IPC-Block nachgezogen: die Funktion hat zwei
 // Aufrufer (Umbenennen-Kaskade und das Verschieben einer Kapitel-Datei) und
 // gehoert deshalb in ein Logik-Modul, nicht in ein ipc-Modul.
@@ -18,7 +18,7 @@ const { computeLinkRewrites } = require('../../shared/link-rewrite');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('./self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -59,15 +59,15 @@ function createLinkUpdate(deps) {
     applyMenuToAllWindows,
     broadcast,
     books,
-    // 4T-1364 (Epic 3E-0171): Nachtrag der Start-Seiten-Festlegung.
+    // 4T-001364 (Epic 3E-000171): Nachtrag der Start-Seiten-Festlegung.
     followAreaStartPage,
   } = deps;
 
-  // 4T-0345 (Epic 3E-0062): Suchraum fuer das Link-Update beim Umbenennen. In
+  // 4T-000345 (Epic 3E-000062): Suchraum fuer das Link-Update beim Umbenennen. In
   // einer Bereichs-App der gesamte Bereichs-Baum (ohne Tiefen-Grenze), sonst der
   // Ordner der Ankerdatei plus zwei Unterordner-Ebenen wie der Backlinks-Scan.
   // Ignore-Regeln (node_modules, Punkt-Ordner) identisch. Der Index-Vorfilter als
-  // Beschleunigung folgt mit dem bereichsweiten Index (4T-0347); hier deckt der
+  // Beschleunigung folgt mit dem bereichsweiten Index (4T-000347); hier deckt der
   // Voll-Scan den Suchraum verlaesslich ab.
   async function collectMarkdownFilesInScope(owner, anchorAbsolute) {
     const area = areaOfWindow(owner);
@@ -103,7 +103,7 @@ function createLinkUpdate(deps) {
     return out;
   }
 
-  // 4T-0345 (Epic 3E-0062): Rename-Paare (from/to absolut) in die renames-Form des
+  // 4T-000345 (Epic 3E-000062): Rename-Paare (from/to absolut) in die renames-Form des
   // Rewrite-Kerns bringen (logischer Basename ohne Endung plus absolute Pfade).
   function renamesFromPairs(pairs) {
     return pairs.map((p) => ({
@@ -114,7 +114,7 @@ function createLinkUpdate(deps) {
     }));
   }
 
-  // 4T-0345 (Epic 3E-0062): eingehende Links auf alle umbenannten Dateien (pairs)
+  // 4T-000345 (Epic 3E-000062): eingehende Links auf alle umbenannten Dateien (pairs)
   // im Suchraum anpassen. Pro Kandidat frisch geparst; EOL/BOM des Original-Stands
   // bleiben erhalten (kein stilles Normalisieren fremder Dateien). Historisierung
   // wie beim regulaeren Speichern (Aufloesung Datei > Bereich > App), previousText
@@ -138,7 +138,7 @@ function createLinkUpdate(deps) {
         continue;
       }
       if (!result.changed) continue;
-      // 4T-0847 (Epic 3E-0147): Ein Rewrite, der denselben Text ergibt, ist
+      // 4T-000847 (Epic 3E-000147): Ein Rewrite, der denselben Text ergibt, ist
       // keine Änderung. Beim reinen Umbenennen kam der Fall nicht vor (der
       // Basename ändert sich immer); das physische Verschieben einer
       // Kapitel-Datei lässt ihn genau eintreten, weil der Basename bleibt.
@@ -163,7 +163,7 @@ function createLinkUpdate(deps) {
     return { updated, failed };
   }
 
-  // 4T-0345 (Epic 3E-0062): Dry-Run fuer die Vorschau (4T-0346). Ermittelt pro
+  // 4T-000345 (Epic 3E-000062): Dry-Run fuer die Vorschau (4T-000346). Ermittelt pro
   // Kandidat die Trefferzahl ohne zu schreiben. `pairs` sind die geplanten
   // Umbenennungen; die alten Dateien existieren zum Vorschau-Zeitpunkt noch,
   // deshalb ist der Suchraum-Anker der alte Pfad.
@@ -188,7 +188,7 @@ function createLinkUpdate(deps) {
    * Konsumenten nachziehen: Beobachtung, .mdd-Begleitdatei, offene
    * Historien-Pakete samt Suspend-Markierung, Zuletzt-Liste und der Eintrag
    * im Kapitel-Baum eines Buches. Der Broadcast 'file:renamed' erreicht alle
-   * Fenster. 4T-0999: aus dem IPC-Block herausgeloest; die Semantik ist
+   * Fenster. 4T-000999: aus dem IPC-Block herausgeloest; die Semantik ist
    * unveraendert.
    *
    * @param {string} absolute Bisheriger Pfad.
@@ -196,7 +196,7 @@ function createLinkUpdate(deps) {
    * @returns {Promise<object>} { ok: true, bookDir } bzw. { ok: false, error }.
    */
   async function renameSingleFile(absolute, newPath) {
-    // 4T-0998: Die Beobachtung reist ueber moveWatchEntry mit; die Semantik
+    // 4T-000998: Die Beobachtung reist ueber moveWatchEntry mit; die Semantik
     // ist unveraendert (Watcher der alten Datei VOR dem Rename schliessen,
     // damit kein unlink-Event ('file:removed') die Tabs als fehlend markiert;
     // die Owner danach auf den neuen Pfad ummelden, bei einem Fehler zurueck
@@ -211,7 +211,7 @@ function createLinkUpdate(deps) {
       return { ok: true };
     });
     if (!bewegt.ok) return bewegt;
-    // .mdd-Begleitdatei mitziehen (3E-0060); Fehler sind nicht fatal —
+    // .mdd-Begleitdatei mitziehen (3E-000060); Fehler sind nicht fatal —
     // der Hash-Abgleich der Historie faengt eine verwaiste .mdd ab.
     try {
       const oldMdd = mddPathFor(absolute);
@@ -232,7 +232,7 @@ function createLinkUpdate(deps) {
       mddSuspendedPaths.add(newKey);
     }
     // Recent-Files-Eintrag ersetzen (Position bleibt erhalten).
-    // 4T-0999: Der Speicher entsteht erst mit loadStore, diese Fabrik aber
+    // 4T-000999: Der Speicher entsteht erst mit loadStore, diese Fabrik aber
     // schon beim Programmstart — deshalb der Getter statt eines Werts.
     const store = getStore();
     if (store) {
@@ -246,7 +246,7 @@ function createLinkUpdate(deps) {
       }
     }
     broadcast('file:renamed', { oldPath: absolute, newPath });
-    // 4T-0847 (Epic 3E-0147, Story 4S-0756): Ist die bewegte Datei Kapitel
+    // 4T-000847 (Epic 3E-000147, Story 4S-000756): Ist die bewegte Datei Kapitel
     // eines Buches, fährt ihr Eintrag im Kapitel-Baum mit — beim Umbenennen
     // wie beim Verschieben, und unabhängig davon, ob das Buch gerade
     // geöffnet ist (die Zugehörigkeit hängt an der Begleitdatei, nicht am
@@ -267,10 +267,10 @@ function createLinkUpdate(deps) {
         err && err.message ? err.message : err,
       );
     }
-    // 4T-1364 (Epic 3E-0171): Ist die bewegte Datei die Start-Seite ihres
+    // 4T-001364 (Epic 3E-000171): Ist die bewegte Datei die Start-Seite ihres
     // Bereichs, faehrt die Festlegung mit — gleiches Best-Effort-Muster wie der
     // Kapitel-Baum darueber. Eine eigene Nachfuehrungs-Mechanik entsteht dafuer
-    // bewusst nicht (Entscheidung aus 4T-1363): Schlaegt der Nachtrag fehl,
+    // bewusst nicht (Entscheidung aus 4T-001363): Schlaegt der Nachtrag fehl,
     // faengt der Ungueltig-Fall beim naechsten Oeffnen den Rest ab.
     try {
       if (followAreaStartPage) await followAreaStartPage(absolute, newPath);

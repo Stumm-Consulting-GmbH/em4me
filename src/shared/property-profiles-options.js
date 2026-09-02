@@ -1,4 +1,4 @@
-// 4T-1155 (Epic 3E-0219, E9/E11): Typ-eigene Angaben einer Feld-Definition —
+// 4T-001155 (Epic 3E-000219, E9/E11): Typ-eigene Angaben einer Feld-Definition —
 // der Katalog zulässiger Options-Schlüssel je Typ und ihre Prüfung.
 //
 // Eigene Datei seit dem Typ-Ausbau der Stufe 2: Stufe 1 hat `options` blind
@@ -57,7 +57,7 @@ function pruefeAuswahl(erlaubt) {
 
 // Katalog je Typ. Ein Prüfer liefert den normalisierten Wert oder null
 // (= Wert nicht bildbar, Hinweis-Code optionValue); `expected` ist die
-// maschinen-lesbare Erwartung für die Meldung (Hinweis-Gestalt aus 4T-1143:
+// maschinen-lesbare Erwartung für die Meldung (Hinweis-Gestalt aus 4T-001143:
 // die Übersetzung setzt sie ein, statt sie zu erzeugen).
 const OPTION_SPECS = {
   number: {
@@ -73,7 +73,7 @@ const OPTION_SPECS = {
     display: { expected: 'field-name', pruef: alsText },
     sort: { expected: ['name', 'path'], pruef: pruefeAuswahl(['name', 'path']) },
   },
-  // 4T-1183 (Epic 3E-0221, E1): Rechenvorschrift des Formel-Feldes. Der
+  // 4T-001183 (Epic 3E-000221, E1): Rechenvorschrift des Formel-Feldes. Der
   // Ausdruck bleibt hier unausgewertet Text — geprüft wird er erst bei der
   // Auswertung gegen Parser und Funktions-Katalog der Abfrage-Sprache
   // (property-profiles-abgeleitet.js). Dieselbe Arbeitsteilung wie bei
@@ -82,7 +82,7 @@ const OPTION_SPECS = {
   formula: {
     expression: { expected: 'expression', pruef: alsText },
   },
-  // 4T-1184 (Epic 3E-0221, E1): die beiden Angaben des Lookup-Feldes. `from`
+  // 4T-001184 (Epic 3E-000221, E1): die beiden Angaben des Lookup-Feldes. `from`
   // grenzt die befragten Dokumente ein (eine Abfrage-Quelle, hier wie
   // `valuesFrom.query` unausgewertet gelesen), `relatedField` benennt das Feld,
   // über das sie auf das eigene Dokument verweisen müssen.
@@ -121,7 +121,7 @@ function optionSpecsFor(type, hasValueSource) {
 // überhaupt kein einfaches Objekt ist (Hinweis-Code options, wie bisher).
 //
 // `options` bleibt ein Objekt, auch wenn nach der Prüfung nichts übrig ist.
-// Das ist bewusst und hält das Verhalten aus 4T-1141: Wer eine
+// Das ist bewusst und hält das Verhalten aus 4T-001141: Wer eine
 // Options-Angabe schreibt, sieht sie am Definitions-Objekt — der Unterschied
 // zwischen «keine Angabe» und «Angabe, deren Inhalt verworfen wurde» bleibt
 // damit sichtbar.

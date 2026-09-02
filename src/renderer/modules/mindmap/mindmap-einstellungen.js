@@ -1,4 +1,4 @@
-// 4T-1048 (Epic 3E-0151): Anwendungsweite Voreinstellung der Mindmap-
+// 4T-001048 (Epic 3E-000151): Anwendungsweite Voreinstellung der Mindmap-
 // Darstellung — **nur der Zustand**, ohne Oberfläche.
 //
 // Muster ist die Gliederungs-Nummerierung (heading-numbering.js): ein
@@ -11,7 +11,7 @@
 // mindmap-settings.js): Er importiert settings-page.js, und dessen
 // Registrierung ist ein Modul-Seiteneffekt. Läge er hier, zöge ihn die Kette
 // editor → mindmap-pane → hier mit, und die Settings-Seite würde mitten im
-// Laden von app-state registriert; genau das riss in 4T-1048 einundzwanzig
+// Laden von app-state registriert; genau das riss in 4T-001048 einundzwanzig
 // Testdateien beim Import. Dieses Modul importiert deshalb nur api und den
 // reinen Options-Kern.
 'use strict';
@@ -32,7 +32,7 @@ export function getMindmapVoreinstellung() {
 /**
  * Setzt die Voreinstellung und meldet die Änderung. Das Ereignis zieht die
  * offenen Mindmap-Ansichten nach, damit eine geänderte Einstellung ohne
- * Neustart wirkt (Story 4S-0805, AK5).
+ * Neustart wirkt (Story 4S-000805, AK5).
  */
 export function applyMindmapVoreinstellung(roh) {
   voreinstellung = { ...MINDMAP_VORGABEN, ...normalisiereMindmapOptionen(roh) };

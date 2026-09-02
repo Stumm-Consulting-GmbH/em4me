@@ -1,9 +1,9 @@
-// 4T-0189: Export-Konsistenz des Portable-Exports.
+// 4T-000189: Export-Konsistenz des Portable-Exports.
 // K-01: Frontmatter bleibt in Zeile 1, der perspective-portable-Marker steht
 //       danach; die Render-Weiche erkennt Alt- und Neu-Exporte.
 // K-12: KaTeX in Tabellen-Zellen bleibt Quelltext (kein eingefrorenes
 //       stylesheet-abhaengiges KaTeX-HTML im Export).
-// 4T-0596 (Epic 3E-0111): Inline-Berechnungen werden als selbsttragende
+// 4T-000596 (Epic 3E-000111): Inline-Berechnungen werden als selbsttragende
 //       Ergebnis-Spans eingebrannt; Fehler/Code/Escape bleiben roh.
 import { describe, it, expect, afterEach } from 'vitest';
 import {
@@ -80,8 +80,8 @@ describe('Portable-Export: KaTeX in Tabellen-Zellen (K-12)', () => {
   });
 });
 
-// 4T-0596 (Epic 3E-0111): Inline-Berechnungen im Portable-Export.
-describe('Portable-Export: Inline-Berechnungen (4T-0596)', () => {
+// 4T-000596 (Epic 3E-000111): Inline-Berechnungen im Portable-Export.
+describe('Portable-Export: Inline-Berechnungen (4T-000596)', () => {
   afterEach(() => {
     configureExtensions([]);
   });

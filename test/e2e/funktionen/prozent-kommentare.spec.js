@@ -1,4 +1,4 @@
-// 4T-0479 (Epic 3E-0089): %%-Kommentare — End-to-End ueber die drei
+// 4T-000479 (Epic 3E-000089): %%-Kommentare — End-to-End ueber die drei
 // Ansichten. Privater Text zwischen %%-Markern erscheint in keiner
 // gerenderten Ansicht, bleibt aber Quelltext; im Quelltext-Modus faerbt
 // die App die Marker (.cm-comment-marker), im Live-Modus blendet sie den
@@ -52,7 +52,7 @@ test.describe('PK-02: Quelltext-Modus zeigt den Kommentar und faerbt die Marker'
       // Der Kommentar bleibt Quelltext und ist im Editor sichtbar.
       await expect(editor).toContainText('GEHEIM-INLINE');
       // Einfaerbung der %%-Bereiche im Haupt-Editor (.pane-source
-      // qualifiziert gegen die zweite CodeMirror-Instanz, 4T-0361).
+      // qualifiziert gegen die zweite CodeMirror-Instanz, 4T-000361).
       const marker = page.locator(`${SEL.paneSource0} .cm-comment-marker`);
       await expect(marker.first()).toBeVisible();
     } finally {

@@ -1,6 +1,6 @@
 // Leichte Inline-Widgets des Live-Modus: Callout-Icon und -Titel, Task-Marker-
 // und Kalender-Badge, Inline-Berechnung, Emoji.
-// 4T-0982 (Epic 3E-0196): aus live-deco.js herausgelöst. Alle Widgets hier
+// 4T-000982 (Epic 3E-000196): aus live-deco.js herausgelöst. Alle Widgets hier
 // bauen ihr DOM ohne die Render-Pipeline; sie brauchen deshalb weder api noch
 // die Nachverarbeitung des Render-Panes (Abgrenzung zu live-widget-render.js).
 'use strict';
@@ -10,7 +10,7 @@ import { WidgetType } from '@codemirror/view';
 import { CALLOUT_TYPES } from '../../../shared/callouts.js';
 import { t } from '../../i18n.js';
 
-// 4T-0087: Inline-WidgetType fuer das Callout-Icon. Setzt das SVG aus
+// 4T-000087: Inline-WidgetType fuer das Callout-Icon. Setzt das SVG aus
 // CALLOUT_TYPES[type].iconSvg als HTML in einen Wrapper-Span. eq()
 // vergleicht nur den Typ — Icon ist statisch pro Typ, kein Cache noetig.
 // ignoreEvent verhindert, dass Klicks auf das Icon den CodeMirror-Cursor
@@ -35,7 +35,7 @@ export class CalloutIconWidget extends WidgetType {
   }
 }
 
-// 4T-0087: Inline-WidgetType fuer den lokalisierten Default-Titel. Wird
+// 4T-000087: Inline-WidgetType fuer den lokalisierten Default-Titel. Wird
 // nur eingesetzt, wenn der Callout-Header keinen Override-Titel traegt.
 // eq() vergleicht zusaetzlich die aktuelle Sprache — das Widget wird bei
 // Sprach-Wechsel neu gebaut, sobald der i18n-Refresh-Hook den Plugin-
@@ -66,13 +66,13 @@ export class CalloutDefaultTitleWidget extends WidgetType {
   }
 }
 
-// 4T-0498 (Epic 3E-0090): Task-Marker-Badge. Inline-Replace eines
+// 4T-000498 (Epic 3E-000090): Task-Marker-Badge. Inline-Replace eines
 // Marker-Segments (Termin, Prioritaet, Wiederholung, ID) durch die
 // Badge-Darstellung — Klassen und Inhalt kommen aus taskMarkerBadgeSpec
 // (plugins.js), derselben Quelle wie der Render-Pane (Paritaet). Cursor
 // auf der Zeile zeigt den Roh-Text (activeLines-Guard beim Aufbau).
 //
-// 4T-0528 (Epic 3E-0095): optionaler clickRange { from, to } (Doc-Bereich
+// 4T-000528 (Epic 3E-000095): optionaler clickRange { from, to } (Doc-Bereich
 // des ⏰-Werts) macht das Badge klickbar: die data-live-date-Attribute
 // sprechen den bestehenden mousedown-Handler des dateValuePlugin an
 // (date-picker.js), der den vorbelegten Picker fuer exakt diesen Bereich
@@ -109,7 +109,7 @@ export class TaskMarkerBadgeWidget extends WidgetType {
     return span;
   }
   ignoreEvent(event) {
-    // 4T-0528: mousedown auf einem klickbaren Badge gehoert dem Editor
+    // 4T-000528: mousedown auf einem klickbaren Badge gehoert dem Editor
     // (der dateValuePlugin-Handler verbraucht ihn); alles andere bleibt
     // widget-intern ignoriert.
     if (this.clickRange && event && event.type === 'mousedown') return false;
@@ -117,7 +117,7 @@ export class TaskMarkerBadgeWidget extends WidgetType {
   }
 }
 
-// 4T-0546 (Epic 3E-0097): Kalender-Wert-Badge. Inline-Replace eines
+// 4T-000546 (Epic 3E-000097): Kalender-Wert-Badge. Inline-Replace eines
 // @{Kalendername: Wert}-Vorkommens durch die Badge-Darstellung — Klassen
 // und Inhalt kommen aus calendarValueBadgeSpec (plugins.js), derselben
 // Quelle wie der Render-Pane (Paritaet). Cursor auf der Zeile zeigt den
@@ -163,7 +163,7 @@ export class CalendarValueBadgeWidget extends WidgetType {
   }
 }
 
-// 4T-0596 (Epic 3E-0111): Inline-Berechnungs-Widget. Inline-Replace des
+// 4T-000596 (Epic 3E-000111): Inline-Berechnungs-Widget. Inline-Replace des
 // {= … =}-Konstrukts durch das Ergebnis bzw. das Fehler-Zeichen mit Tooltip —
 // Spec-Quelle wie der Render-Pane (Paritaet). Cursor auf der Zeile zeigt den
 // Roh-Ausdruck (activeLines-Guard beim Aufbau); ein Klick setzt den Cursor
@@ -208,7 +208,7 @@ export class InlineCalcWidget extends WidgetType {
   }
 }
 
-// 4T-0197 (Epic 3E-0017): Emoji-Widget. Inline-Replace eines `:code:`-
+// 4T-000197 (Epic 3E-000017): Emoji-Widget. Inline-Replace eines `:code:`-
 // Shortcode-Ranges durch das Unicode-Zeichen. Kein Markdown-Render-
 // Roundtrip noetig — das Zeichen kommt direkt aus der Lookup-Map des
 // markdown-it-emoji-Pakets (Single Source of Truth, Import in

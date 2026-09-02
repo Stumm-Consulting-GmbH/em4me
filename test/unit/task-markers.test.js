@@ -1,4 +1,4 @@
-// 4T-0496 (Epic 3E-0090): Unit-Tests des Task-Marker-Kerns — verlustfreier
+// 4T-000496 (Epic 3E-000090): Unit-Tests des Task-Marker-Kerns — verlustfreier
 // Round-Trip realer Referenz-Format-Zeilen, Zeilen-Erkennung, Feld-Extraktion
 // (Termine mit optionaler Uhrzeit, Prioritaet, Wiederholung, ID/Abhaengigkeiten),
 // Ungueltig-Markierung, Duplikate, Toleranz-Marker, Mutatoren, Global-Filter
@@ -210,7 +210,7 @@ describe('parseTaskLine — Toleranz und Varianten', () => {
     expect(onCompletion.segments.some((s) => s.kind === 'unknown')).toBe(true);
   });
 
-  // 4T-0525 (Epic 3E-0095): der ⏰-Marker ist vom Toleranz-Segment zum
+  // 4T-000525 (Epic 3E-000095): der ⏰-Marker ist vom Toleranz-Segment zum
   // echten Modell-Feld gehoben.
   it('⏰ mit Wert wird als reminder-Feld geparst und round-trippt', () => {
     const line = '- [ ] Erinnerung (@fremd) ⏰ 2026-09-16 10:00 📅 2026-09-17';
@@ -306,7 +306,7 @@ describe('setStatusChar', () => {
   });
 });
 
-// 4T-0506 (Epic 3E-0096): setRecurrence — Wiederholungs-Segment setzen,
+// 4T-000506 (Epic 3E-000096): setRecurrence — Wiederholungs-Segment setzen,
 // aendern und entfernen (Dialog-Feld). Neuanlage mit kanonischem Symbol,
 // bestehendes Segment behaelt Position und fuehrenden Weissraum.
 describe('setRecurrence', () => {
@@ -355,12 +355,12 @@ describe('setRecurrence', () => {
   });
 });
 
-// 4T-0525 (Epic 3E-0095): setReminder — Erinnerungs-Segment setzen, aendern
+// 4T-000525 (Epic 3E-000095): setReminder — Erinnerungs-Segment setzen, aendern
 // und entfernen. Neuanlage kanonisch am Zeilenende (` ⏰ <Datum> [<Uhrzeit>]`),
 // bestehendes Segment behaelt Position, fuehrenden Weissraum und die gelesene
 // Symbol-Variante (inklusive Variation Selector); model.reminder wird jeweils
 // nachgefuehrt.
-describe('setReminder (4T-0525)', () => {
+describe('setReminder (4T-000525)', () => {
   it('haengt ein neues Segment kanonisch ans Zeilenende an (mit Uhrzeit)', () => {
     const model = parseTaskLine('- [ ] Task 📅 2099-01-01');
     setReminder(model, { date: '2099-01-05', time: '09:00' });
@@ -400,10 +400,10 @@ describe('setReminder (4T-0525)', () => {
   });
 });
 
-// 4T-0525 (Epic 3E-0095): buildRecurrenceInstance verschiebt den ⏰-Wert um
+// 4T-000525 (Epic 3E-000095): buildRecurrenceInstance verschiebt den ⏰-Wert um
 // dasselbe Tages-Delta wie das Faelligkeits-Datum (Uhrzeit unveraendert); ein
 // ungueltiger ⏰-Wert bleibt byte-identisch stehen.
-describe('buildRecurrenceInstance — Erinnerungs-Mitwandern (4T-0525)', () => {
+describe('buildRecurrenceInstance — Erinnerungs-Mitwandern (4T-000525)', () => {
   it('verschiebt den gueltigen ⏰-Wert um dasselbe Delta wie die Faelligkeit, Uhrzeit bleibt', () => {
     const model = parseTaskLine(
       '- [x] Zahlung 🔁 every month 📅 2026-07-16 ⏰ 2026-07-14 09:00 ✅ 2026-07-16',
@@ -506,7 +506,7 @@ describe('compareDateValue', () => {
   });
 });
 
-// --- 11. Verschiebe-Helfer (4T-0504, Epic 3E-0096) ---------------------------------
+// --- 11. Verschiebe-Helfer (4T-000504, Epic 3E-000096) ---------------------------------
 describe('shiftIsoDateByDays', () => {
   it('verschiebt innerhalb des Monats', () => {
     expect(shiftIsoDateByDays('2026-07-11', 1)).toBe('2026-07-12');
@@ -523,7 +523,7 @@ describe('shiftIsoDateByDays', () => {
   });
 });
 
-describe('primaryDateField (4T-0504)', () => {
+describe('primaryDateField (4T-000504)', () => {
   it('waehlt due vor scheduled vor start', () => {
     const model = parseTaskLine('- [ ] X 🛫 2026-07-01 ⏳ 2026-07-05 📅 2026-07-10');
     expect(primaryDateField(model)).toBe('due');
@@ -544,12 +544,12 @@ describe('primaryDateField (4T-0504)', () => {
   });
 });
 
-// --- 12. Dringlichkeits-Score (4T-0505, Epic 3E-0096) ------------------------------
+// --- 12. Dringlichkeits-Score (4T-000505, Epic 3E-000096) ------------------------------
 // computeUrgency(model, { todayIso }) rechnet auf Tages-Basis mit injiziertem
 // Bezugstag (deterministisch). Referenz-Formel: Prioritaets-Komponente +
 // Faelligkeits-Komponente (Gleit-Verlauf) + Geplant-Bonus + Start-Abwertung.
 // Fester Bezugstag 2026-07-11, Termine im Juli drumherum (kein Monats-Ueberlauf).
-describe('computeUrgency (4T-0505)', () => {
+describe('computeUrgency (4T-000505)', () => {
   const TODAY = '2026-07-11';
   const model = (line) => parseTaskLine(line);
   const urg = (line, todayIso = TODAY) => computeUrgency(model(line), { todayIso });
@@ -613,10 +613,10 @@ describe('computeUrgency (4T-0505)', () => {
   });
 });
 
-// --- 13. Task-ID setzen/entfernen (4T-0508, Epic 3E-0096) --------------------------
+// --- 13. Task-ID setzen/entfernen (4T-000508, Epic 3E-000096) --------------------------
 // setTaskId schreibt bzw. entfernt das ID-Segment kanonisch, erhaelt den
 // fuehrenden Weissraum eines bestehenden Segments und weist ungueltige IDs ab.
-describe('setTaskId (4T-0508)', () => {
+describe('setTaskId (4T-000508)', () => {
   it('haengt eine neue ID mit kanonischem Symbol hinter bestehende Marker an', () => {
     const model = parseTaskLine('- [ ] Task 📅 2099-01-01');
     setTaskId(model, 'abc123');
@@ -660,10 +660,10 @@ describe('setTaskId (4T-0508)', () => {
   });
 });
 
-// --- 14. Vorgaenger-Liste setzen/entfernen (4T-0508, Epic 3E-0096) -----------------
+// --- 14. Vorgaenger-Liste setzen/entfernen (4T-000508, Epic 3E-000096) -----------------
 // setDependsOn schreibt eine deduplizierte, gefilterte ID-Liste; ungueltige
 // Werte und Duplikate fallen weg, die Eingabe-Reihenfolge bleibt.
-describe('setDependsOn (4T-0508)', () => {
+describe('setDependsOn (4T-000508)', () => {
   it('legt ein neues Segment mit kanonischer Komma-Liste an', () => {
     const model = parseTaskLine('- [ ] Task 📅 2099-01-01');
     setDependsOn(model, ['abc123', '0h17ye']);
@@ -696,8 +696,8 @@ describe('setDependsOn (4T-0508)', () => {
   });
 });
 
-// --- 15. isValidTaskId (4T-0508, Epic 3E-0096) ------------------------------------
-describe('isValidTaskId (4T-0508)', () => {
+// --- 15. isValidTaskId (4T-000508, Epic 3E-000096) ------------------------------------
+describe('isValidTaskId (4T-000508)', () => {
   it('akzeptiert Buchstaben, Ziffern, Unterstrich und Bindestrich', () => {
     expect(isValidTaskId('abc123')).toBe(true);
     expect(isValidTaskId('A-Z_9')).toBe(true);
@@ -713,10 +713,10 @@ describe('isValidTaskId (4T-0508)', () => {
   });
 });
 
-// --- 16. generateTaskId (4T-0508, Epic 3E-0096) -----------------------------------
+// --- 16. generateTaskId (4T-000508, Epic 3E-000096) -----------------------------------
 // Sechs Zeichen aus [a-z0-9], injizierbarer rng (Determinismus), Eindeutigkeit
 // gegen die bestehenden IDs (Set oder Array).
-describe('generateTaskId (4T-0508)', () => {
+describe('generateTaskId (4T-000508)', () => {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
   // rng-Wert, der deterministisch alphabet[idx] erzeugt (Mitte des Intervalls,
   // damit floor(r * 36) === idx auch bei Fliesskomma sicher trifft).
@@ -765,11 +765,11 @@ describe('generateTaskId (4T-0508)', () => {
   });
 });
 
-// --- 17. computeDependencyFlags (4T-0508, Epic 3E-0096) ---------------------------
+// --- 17. computeDependencyFlags (4T-000508, Epic 3E-000096) ---------------------------
 // Blockierungs-/Duplikat-Flags ueber die Task-Menge eines Bereichs. Offen =
 // TODO/IN_PROGRESS/ON_HOLD; erledigte Vorgaenger blockieren nicht; nicht-
 // rekursiv (Zyklen tolerant).
-describe('computeDependencyFlags (4T-0508)', () => {
+describe('computeDependencyFlags (4T-000508)', () => {
   it('blocked nur bei offenem Vorgaenger; der Vorgaenger ist blocking', () => {
     const flags = computeDependencyFlags([
       { id: 'a', dependsOn: [], statusType: 'TODO' },

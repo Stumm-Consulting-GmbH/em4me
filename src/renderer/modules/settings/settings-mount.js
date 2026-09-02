@@ -1,4 +1,4 @@
-// 4T-0988 (Epic 3E-0196): Seiten-DOM und Bereichsnavigation der
+// 4T-000988 (Epic 3E-000196): Seiten-DOM und Bereichsnavigation der
 // Einstellungs-Seite.
 //
 // Baut das Seiten-Gerüst (Titel, Navigation, Bereichs-Inhalt, Button-
@@ -27,7 +27,7 @@ import { pageState } from './settings-shared.js';
 // Referenzen auf das zuletzt montierte DOM (pro Fenster genau eine Seite).
 let pageEls = null;
 
-// 4T-0988 (Epic 3E-0196): Die Referenzen bleiben modul-lokal; der Kern und
+// 4T-000988 (Epic 3E-000196): Die Referenzen bleiben modul-lokal; der Kern und
 // die Entwurfs-Strecke erreichen sie ausschließlich über diese beiden
 // Funktionen (kein beschreibbares Binding über eine Modul-Grenze).
 export function settingsPageEls() {
@@ -38,13 +38,13 @@ export function setSettingsPageEls(els) {
   pageEls = els;
 }
 
-// 4T-0889 (Epic 3E-0168): Vier-Block-Gliederung der Bereichsnavigation
+// 4T-000889 (Epic 3E-000168): Vier-Block-Gliederung der Bereichsnavigation
 // (PO-Entscheidung, Reihenfolge fest). Die Blöcke in Anzeige-Reihenfolge:
 //   general             Kern-Sektionen, also alles ohne Erweiterungs-
 //                       Bindung. Die beiden Verwaltungs-Sektionen
 //                       „Erweiterungen" und „Erweiterungen (extern)" stehen
 //                       darin ganz am Ende (GENERAL_TRAILING_SECTION_IDS).
-//   area                die bereichsgebundenen Sektionen (4T-0555), nur bei
+//   area                die bereichsgebundenen Sektionen (4T-000555), nur bei
 //                       gebundenem Bereich; Inhalt und Reihenfolge
 //                       unverändert.
 //   extensionsInternal  Sektionen aktiver INTERNER Erweiterungen.
@@ -76,7 +76,7 @@ function internalExtensionSectionIdSet() {
   return ids;
 }
 
-// 4T-0900 (Register-Paar 12/13-Muster): Beansprucht eine Erweiterung einen
+// 4T-000900 (Register-Paar 12/13-Muster): Beansprucht eine Erweiterung einen
 // Bereich, den es nicht gibt (Tippfehler, umbenannter oder entfernter
 // Bereich), fiel das bisher still durch: Der Anspruch trifft ins Leere, und
 // beim Abschalten der Erweiterung verschwindet nichts. Umgekehrt landet ein
@@ -89,7 +89,7 @@ function internalExtensionSectionIdSet() {
 //
 // Je Kennung nur einmal, weil der Navigations-Aufbau bei jedem Mount, jedem
 // Erweiterungs-Umschalten und jedem Bereichs-Wechsel erneut laeuft. Scharf
-// wird die Meldung ueber den Konsolen-Waechter der Ablauf-Laeufe (4T-0901).
+// wird die Meldung ueber den Konsolen-Waechter der Ablauf-Laeufe (4T-000901).
 const gemeldeteFehlAnsprueche = new Set();
 
 function meldeUnerfuellteBereichsAnsprueche(beansprucht) {
@@ -116,9 +116,9 @@ function navGroupOfSection(section, extensionSectionIds) {
 }
 
 // Baut die Navigations-Einträge aus der (gefilterten) Bereichs-Liste —
-// beim Mount, beim Erweiterungs-Umschalten (4T-0295: erweiterungs-eigene
+// beim Mount, beim Erweiterungs-Umschalten (4T-000295: erweiterungs-eigene
 // Bereiche erscheinen und verschwinden mit ihrer Erweiterung) und beim
-// Bereichs-Wechsel (4T-0555). Die Reihenfolge innerhalb eines Blocks folgt
+// Bereichs-Wechsel (4T-000555). Die Reihenfolge innerhalb eines Blocks folgt
 // der Registry-Reihenfolge; Ausnahmen sind die ans Ende gezogenen
 // Verwaltungs-Sektionen und der interne Erweiterungs-Block, der
 // alphabetisch nach dem lokalisierten Titel sortiert (die Registry-
@@ -180,7 +180,7 @@ export function refreshSettingsNav() {
   }
 }
 
-// 4T-0554 (Epic 3E-0100): Schaltflächen spiegeln den Speicher-Status.
+// 4T-000554 (Epic 3E-000100): Schaltflächen spiegeln den Speicher-Status.
 // Bei ungesicherten Änderungen tragen „Anwenden" und „OK" die Primary-
 // Hervorhebung; ohne Änderungen ist „Anwenden" deaktiviert (PO-Entscheidung
 // E2), „OK" bleibt immer klickbar (schließt die Seite auch ohne Änderungen).
@@ -207,14 +207,14 @@ export function renderActiveSection() {
   if (!pageEls || !pageEls.content || !pageEls.content.isConnected) return;
   if (!pageState.draft) return;
   let section = sectionById(pageState.activeSectionId);
-  // 4T-0295: verschwindet der offene Bereich (Erweiterung deaktiviert,
+  // 4T-000295: verschwindet der offene Bereich (Erweiterung deaktiviert,
   // z.B. per Broadcast aus einem anderen Fenster), faellt die Seite auf
   // den Bereich „Erweiterungen" zurueck.
   if (!section) {
     pageState.activeSectionId = 'extensions';
     section = sectionById('extensions');
   }
-  // 4T-0555: bereichsgebundene Sektionen sind ohne gebundenen Bereich
+  // 4T-000555: bereichsgebundene Sektionen sind ohne gebundenen Bereich
   // nicht erreichbar (Navigations-Gruppe fehlt) — entfällt die Bindung
   // einer offenen Sektion, fällt die Seite auf den ersten Bereich zurück.
   if (section && section.group === 'area' && !state.areaPath) {
@@ -233,7 +233,7 @@ export function renderActiveSection() {
   section.render(body, pageState.draft);
   refreshSettingsNav();
   renderActiveSectionError();
-  // 4T-0554: Struktur-Änderungen der Bereiche laufen über ein Re-Render
+  // 4T-000554: Struktur-Änderungen der Bereiche laufen über ein Re-Render
   // (Regel-/Journal-/Kalender-Editoren) — der Speicher-Status zieht mit.
   refreshSettingsButtons();
 }
@@ -297,7 +297,7 @@ export function mountSettingsPage(container) {
   buttons.appendChild(
     buildButton('btn-settings-cancel', 'settings.cancel', 'btn', () => cancelSettingsPage()),
   );
-  // 4T-0554: „Anwenden" und „OK" starten neutral; refreshSettingsButtons
+  // 4T-000554: „Anwenden" und „OK" starten neutral; refreshSettingsButtons
   // (am Ende von renderActiveSection) setzt Primary-Hervorhebung und
   // Deaktivierung aus dem Speicher-Status — auch beim Re-Mount einer Seite
   // mit bereits geändertem Entwurf (Sprachwechsel, Pane-Wechsel).

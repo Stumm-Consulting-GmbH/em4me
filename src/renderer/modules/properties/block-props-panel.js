@@ -1,6 +1,6 @@
-// 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Panel — Sidebar-Panel zur Pflege
+// 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Panel — Sidebar-Panel zur Pflege
 // der Block-Metadaten (strukturierte Daten pro Block-Anker `^id`, gespeichert in
-// der .mdd-Sektion `blockData`; Datenpfad aus 4T-0363 ueber api.readBlockData/
+// der .mdd-Sektion `blockData`; Datenpfad aus 4T-000363 ueber api.readBlockData/
 // writeBlockData/renameBlockAnchor/onBlockDataChanged).
 //
 // Das Panel folgt der Cursor-Position (Block unter dem Cursor, Konzept-
@@ -14,7 +14,7 @@
 // "einem Anker zuordnen" und "loeschen" (Entscheidung 3). In Lese-Ansichten
 // (Reading, Handbuch-Tabs) ist das Panel read-only.
 //
-// 4T-0979 (Epic 3E-0196): Kern des Panels. Kontext-Helfer, Wert-Editoren,
+// 4T-000979 (Epic 3E-000196): Kern des Panels. Kontext-Helfer, Wert-Editoren,
 // Schreibweg und Anker-Verwaltung liegen in den Nachbar-Modulen
 // block-props-context, block-props-fields, block-props-save und
 // block-props-anchors.
@@ -27,11 +27,11 @@ import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import {
-  // 4T-0491 (Epic 3E-0093): profil-gruppierte Menü-Struktur.
+  // 4T-000491 (Epic 3E-000093): profil-gruppierte Menü-Struktur.
   profileSuggestGroups,
 } from '../../../shared/property-profiles.js';
 import { isValidBlockAnchorId } from '../../../shared/block-anchors.js';
-// 4T-0449 (Epic 3E-0083): Eigenschafts-Profile — Blöcke erben die Datei-
+// 4T-000449 (Epic 3E-000083): Eigenschafts-Profile — Blöcke erben die Datei-
 // Auflösung; Definitions-Lookup, Hinweis-Darstellung und Vorschlags-Menü
 // kommen aus den Properties-Editor-Modulen (ein Verhalten, zwei Oberflächen),
 // die reine Logik aus dem Shared-Modul.
@@ -60,7 +60,7 @@ export async function renderBlockProps(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.blockPropsSection) return;
   flushPendingSave(paneIdx);
-  // 4T-0449: Profil-Auflösung der Datei nachziehen (Blöcke erben sie);
+  // 4T-000449: Profil-Auflösung der Datei nachziehen (Blöcke erben sie);
   // Änderungen melden sich über onProfileResolutionChanged zurück.
   void refreshProfileResolution(paneIdx);
   const token = ++state.blockProps.loadTokens[paneIdx];
@@ -128,7 +128,7 @@ export function scheduleBlockPropsRender(paneIdx) {
   timers[paneIdx] = setTimeout(() => {
     timers[paneIdx] = null;
     if (state.blockProps.visibleByPane[paneIdx]) {
-      // 4T-0449: Doc-Änderungen können das Zuordnungs-Feld betreffen —
+      // 4T-000449: Doc-Änderungen können das Zuordnungs-Feld betreffen —
       // Auflösung mit nachziehen (re-rendert nur bei echter Änderung).
       void refreshProfileResolution(paneIdx);
       syncActive(paneIdx);
@@ -204,7 +204,7 @@ export function addBlockPropsField(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.blockPropsFields) return;
   if (!state.blockProps.activeAnchorByPane[paneIdx]) return;
-  // 4T-0449: mit konfigurierten Profilen öffnet der Button das Vorschlags-
+  // 4T-000449: mit konfigurierten Profilen öffnet der Button das Vorschlags-
   // Menü (Definitions-Felder zuerst, danach die im Dokument verwendeten
   // Block-Schlüssel, am Ende „Eigenes Feld"); ohne Konfiguration bleibt das
   // direkte Anlegen wie bisher.
@@ -217,7 +217,7 @@ export function addBlockPropsField(paneIdx) {
     for (const entry of Object.values(state.blockProps.dataByPane[paneIdx] || {})) {
       for (const k of Object.keys((entry && entry.values) || {})) docKeys.add(k);
     }
-    // 4T-0491 (Epic 3E-0093): profil-gruppierte Menü-Struktur (Profil-Kopf =
+    // 4T-000491 (Epic 3E-000093): profil-gruppierte Menü-Struktur (Profil-Kopf =
     // Komplett-Übernahme). Profillose Vorschläge = im Dokument verwendete
     // Block-Schlüssel.
     const groups = profileSuggestGroups(
@@ -235,7 +235,7 @@ export function addBlockPropsField(paneIdx) {
   appendCustomBlockPropsField(paneIdx);
 }
 
-// 4T-0449: Feld aus einem Vorschlag anlegen (Definitions-Typ und Default
+// 4T-000449: Feld aus einem Vorschlag anlegen (Definitions-Typ und Default
 // bei Profil-Feldern; Dokument-Schlüssel starten als Text-Feld).
 function addBlockFieldFromSuggestion(paneIdx, suggestion) {
   const els = getPaneEls(paneIdx);
@@ -256,7 +256,7 @@ function addBlockFieldFromSuggestion(paneIdx, suggestion) {
   if (focusTarget) setTimeout(() => focusTarget.focus(), 0);
 }
 
-// 4T-0491 (Epic 3E-0093): Komplett-Übernahme im Block-Panel. Ergänzt alle
+// 4T-000491 (Epic 3E-000093): Komplett-Übernahme im Block-Panel. Ergänzt alle
 // fehlenden Felder des Ziels in EINEM writeBlockData-Aufruf; der Block-Pfad
 // speichert die typgerechten Leer-Werte direkt (JSON in der .mdd). Bestehende
 // Werte und ihre Reihenfolge bleiben unangetastet.
@@ -312,7 +312,7 @@ function appendCustomBlockPropsField(paneIdx) {
 
 export function handleBlockDataChanged(payload) {
   if (!payload || typeof payload.path !== 'string') return;
-  // 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+  // 4T-001276 (Epic 3E-000232, Befund B1): Pfad-Identität über die zentrale Auskunft.
   const incomingPath = pathCompareKey(payload.path);
   for (let p = 0; p < state.panes.length; p++) {
     const current = state.blockProps.currentFileByPane[p];
@@ -359,7 +359,7 @@ export async function toggleBlockPropsPanel(paneIdx) {
   }
 }
 
-// 4T-0365 (Epic 3E-0067): Klick-Pfad des Block-Indikators — oeffnet das Panel
+// 4T-000365 (Epic 3E-000067): Klick-Pfad des Block-Indikators — oeffnet das Panel
 // (falls geschlossen) und macht den gegebenen Anker aktiv. jumpToAnchor setzt im
 // editierbaren Modus den Cursor (Cursor-Folge zieht nach), in Lese-Ansichten den
 // aktiven Anker direkt.
@@ -420,7 +420,7 @@ export function initBlockPropsPanel() {
   if (typeof api.onBlockDataChanged === 'function') {
     api.onBlockDataChanged(handleBlockDataChanged);
   }
-  // 4T-0449: Auflösungs-Änderungen der Eigenschafts-Profile (properties-types
+  // 4T-000449: Auflösungs-Änderungen der Eigenschafts-Profile (properties-types
   // verwaltet den Cache) ziehen die Felder nach — außer der Nutzer tippt
   // gerade in diesem Panel (Muster handleBlockDataChanged).
   onProfileResolutionChanged((paneIdx) => {
@@ -432,7 +432,7 @@ export function initBlockPropsPanel() {
   });
 }
 
-// 4T-0979 (Epic 3E-0196): Rückweg der Anker-Aktionen in den Kern (siehe
+// 4T-000979 (Epic 3E-000196): Rückweg der Anker-Aktionen in den Kern (siehe
 // setBlockPropsViewHooks). Die Anmeldung im Modul-Rumpf liegt vor jedem
 // Laufzeit-Aufruf, weil alle Anker-Aktionen an Bedien-Ereignissen haengen.
 setBlockPropsViewHooks({ syncActive, refreshView });

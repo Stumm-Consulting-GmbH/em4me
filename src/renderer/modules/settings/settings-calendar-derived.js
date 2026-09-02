@@ -1,4 +1,4 @@
-// 4T-0747 (Epic 3E-0138): Editor einer abgeleiteten Zeitrechnung samt
+// 4T-000747 (Epic 3E-000138): Editor einer abgeleiteten Zeitrechnung samt
 // Nullpunkt-Auswahl und Spannen-Text.
 'use strict';
 
@@ -32,7 +32,7 @@ import { buildSettingsRow } from './settings-shared.js';
 
 // Detailansicht eines Blocks: Kalender-Editoren, „Kalender hinzufügen",
 // Vorlage-Knopf und „Block schließen" (Muster Journal-Regal-Detail).
-// 4T-0747 (Epic 3E-0138): Kurz-Editor einer abgeleiteten Zeitrechnung.
+// 4T-000747 (Epic 3E-000138): Kurz-Editor einer abgeleiteten Zeitrechnung.
 // Bearbeitbar sind nur Name, Bezug, Nullpunkt, Gliederungs-Tiefe und die
 // beiden Richtungs-Kürzel; alles Übrige erbt sie phasenverschoben vom Bezug.
 export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0504 (Epic 3E-0096): Unit-Test der reinen Verschiebe-Wert-Berechnung
+// 4T-000504 (Epic 3E-000096): Unit-Test der reinen Verschiebe-Wert-Berechnung
 // postponedDateValue aus task-query-actions.js. Das Modul bindet beim Laden
 // api aus modules/app/api.js und weitere Renderer-Module; der api-Stub stellt
 // window.api und das minimale DOM-Geruest bereit (Muster task-states.test.js),
@@ -9,7 +9,7 @@ import './api-stub.js';
 
 const { postponedDateValue } = await import('../../../src/renderer/modules/task-query-actions.js');
 
-describe('postponedDateValue (4T-0504)', () => {
+describe('postponedDateValue (4T-000504)', () => {
   const today = '2026-07-11';
 
   it('Zukunfts-Termin: day verschiebt um einen Tag', () => {

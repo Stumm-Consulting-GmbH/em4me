@@ -1,4 +1,4 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 2 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 2 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
@@ -37,7 +37,7 @@
   overflow-y: hidden;
   flex-shrink: 0;
   min-height: 32px;
-  /* 4T-0575 (Epic 3E-0106): zwei Pixel Luft ueber den Reitern, damit die
+  /* 4T-000575 (Epic 3E-000106): zwei Pixel Luft ueber den Reitern, damit die
      Akzentlinie der aktiven Spalte (inset-Schatten der Regel weiter oben)
      auf voller Breite sichtbar bleibt. Ohne sie decken die Reiter die Linie
      ab und sie blitzt nur in den Luecken abgerundeter Ecken durch. */
@@ -70,7 +70,7 @@
 .tab.drag-over-right {
   box-shadow: inset -3px 0 0 0 var(--accent);
 }
-/* S-15 (4T-0188): Theme-Variable statt hartem Light-Accent-Blau. */
+/* S-15 (4T-000188): Theme-Variable statt hartem Light-Accent-Blau. */
 .tabbar.drag-target {
   background: var(--accent-soft);
 }
@@ -102,7 +102,7 @@
   opacity: 0.6;
 }
 
-/* === Tab-Gruppen (4T-0460, Epic 3E-0085) ================================== */
+/* === Tab-Gruppen (4T-000460, Epic 3E-000085) ================================== */
 /* Gruppen-Kopf: Name auf Farbflaeche; --tab-group-color/-fg werden pro
    Kopf inline auf die Palette-Variablen der Gruppen-Farbe gesetzt. */
 .tab-group-head {
@@ -143,7 +143,7 @@
 .tab-group-head.dragging {
   opacity: 0.5;
 }
-/* 4T-0767 (Epic 3E-0158): Liegt der aktive Reiter in der Gruppe, traegt der
+/* 4T-000767 (Epic 3E-000158): Liegt der aktive Reiter in der Gruppe, traegt der
    Kopf dieselbe Aktiv-Unterstreichung wie ein aktiver Reiter. Bei einer
    zugeklappten Gruppe ist das die einzige Kennzeichnung in der Leiste. */
 .tab-group-head.active {
@@ -163,7 +163,7 @@
   box-shadow: none;
   border-bottom-color: var(--tab-group-color);
 }
-/* === Mehrfach-Auswahl der Reiter (4T-0765, Epic 3E-0158) ================== */
+/* === Mehrfach-Auswahl der Reiter (4T-000765, Epic 3E-000158) ================== */
 /* Ausgewaehlte Reiter tragen eine flaechige Hinterlegung mit Rahmen. Sie
    erscheint erst ab zwei Mitgliedern (hasMultiSelection); eine Auswahl aus
    einem Reiter sieht aus wie bisher. Die Regeln stehen NACH den Gruppen-
@@ -179,7 +179,7 @@
     inset 0 -3px 0 0 var(--tab-group-color);
 }
 
-/* 4T-0461: Farb-Auswahl im Gruppen-Dialog (acht Swatches der Palette). */
+/* 4T-000461: Farb-Auswahl im Gruppen-Dialog (acht Swatches der Palette). */
 .tab-group-colors {
   display: flex;
   gap: 8px;
@@ -201,7 +201,7 @@
   border-color: var(--fg-muted);
 }
 
-/* 4T-0538 (Epic 3E-0098): Verwaltungs-Dialog der Arbeitsbereiche — Liste
+/* 4T-000538 (Epic 3E-000098): Verwaltungs-Dialog der Arbeitsbereiche — Liste
    mit Farbpunkt (gefuellt = offen, Ring = geschlossen), Meta-Zeile und
    Zeilen-Aktionen. Farbe kommt pro Zeile als --workspace-color aus der
    Acht-Farben-Palette. */
@@ -267,7 +267,7 @@
     inset 0 -3px 0 0 var(--tab-group-color);
 }
 
-/* === Abgerundete Reiter-Ecken (4T-0575, Epic 3E-0106) ===================== */
+/* === Abgerundete Reiter-Ecken (4T-000575, Epic 3E-000106) ===================== */
 /* Schaltbar ueber die Einstellung appearance.roundedTabs; applyAppearanceVars
    setzt dazu die Root-Klasse rounded-tabs. Ohne die Klasse greift keine der
    Regeln, das eckige Bild bleibt unveraendert.
@@ -309,14 +309,14 @@
 .content.view-split .pane {
   flex: 1;
 }
-/* 4T-0085 (Epic 3E-0014): Live-Modus zeigt nur den Editor (linke Pane);
+/* 4T-000085 (Epic 3E-000014): Live-Modus zeigt nur den Editor (linke Pane);
    die Render-Pane und der innere Splitter werden versteckt, weil das
    Live-Plugin das Rendering direkt im Editor uebernimmt. */
 .content.view-live .pane-rendered,
 .content.view-live .inner-splitter {
   display: none;
 }
-/* 4T-0277 (Epic 3E-0049): System-Seiten (Einstellungen) ersetzen Editor
+/* 4T-000277 (Epic 3E-000049): System-Seiten (Einstellungen) ersetzen Editor
    und Render-Pane vollständig durch das Seiten-DOM in .pane-system. */
 .pane-system {
   display: none;
@@ -331,7 +331,7 @@
   flex-direction: column;
 }
 
-/* 4T-0278 (Epic 3E-0049): Einstellungs-Seite — Bereichsnavigation links,
+/* 4T-000278 (Epic 3E-000049): Einstellungs-Seite — Bereichsnavigation links,
    Bereichs-Inhalt rechts, seitenweite Button-Leiste unten. Optik angelehnt
    an die settings-section-Gestaltung des bisherigen Dialogs. */
 .settings-page {
@@ -365,8 +365,8 @@
   border-right: 1px solid var(--border);
   overflow-y: auto;
 }
-/* 4T-0555 (Epic 3E-0100): gegliederte Navigation mit Zwischenüberschriften.
-   4T-0889 (Epic 3E-0168): vier mögliche Blöcke („Allgemein", „Aktueller
+/* 4T-000555 (Epic 3E-000100): gegliederte Navigation mit Zwischenüberschriften.
+   4T-000889 (Epic 3E-000168): vier mögliche Blöcke („Allgemein", „Aktueller
    Bereich", interne und externe Erweiterungen); der Abstand hängt am
    Geschwister-Selektor und trägt deshalb jede Block-Zahl. */
 .settings-nav-group {
@@ -453,7 +453,7 @@
   min-width: 96px;
 }
 
-/* 4T-0289 (Epic 3E-0051): Bereich „Sidebar" der Einstellungs-Seite —
+/* 4T-000289 (Epic 3E-000051): Bereich „Sidebar" der Einstellungs-Seite —
    zwei Seiten-Listen mit Panel-Zeilen, Gruppen-Bloecken und
    Symbol-Aktionen. */
 .sidebar-settings-hint {
@@ -527,7 +527,7 @@
 .sidebar-settings-reset-row {
   margin-top: 16px;
 }
-/* 4T-0624/4T-0625 (Epic 3E-0119): Varianten-Verwaltung — globale Liste im
+/* 4T-000624/4T-000625 (Epic 3E-000119): Varianten-Verwaltung — globale Liste im
    Sidebar-Bereich, Bereichs-Liste in der eigenen Sektion unter
    „Aktueller Bereich". */
 .sidebar-variants-save-row {
@@ -586,7 +586,7 @@
   min-width: 2.5ch;
   text-align: right;
 }
-/* 4T-0013: Folding-Gutter mit dynamischen Hierarchie-Spuren. Pro
+/* 4T-000013: Folding-Gutter mit dynamischen Hierarchie-Spuren. Pro
    tatsaechlich vorkommender Heading-Ebene UND pro Block-Verschachtelungs-
    tiefe (ListItem, Blockquote, FencedCode, HTMLBlock, Table) eine 10px-Spur.
    Spurenanzahl variiert mit dem Inhalt der Datei und wird ueber den Spacer-
@@ -639,12 +639,12 @@
 }
 /* Aus-Zustand der Zeilen-Hervorhebung. !important wie bei der Selection-Regel
    weiter unten: CodeMirror bringt fuer .cm-activeLine eine eigene Theme-Farbe
-   mit, die bei gleicher Spezifitaet gewinnen wuerde (4T-0577). */
+   mit, die bei gleicher Spezifitaet gewinnen wuerde (4T-000577). */
 .pane-source-editor .cm-activeLineGutter,
 .pane-source-editor .cm-activeLine {
   background: transparent !important;
 }
-/* 4T-0577 (Epic 3E-0106): Hervorhebung der Cursor-Zeile, schaltbar ueber die
+/* 4T-000577 (Epic 3E-000106): Hervorhebung der Cursor-Zeile, schaltbar ueber die
    Einstellung appearance.highlightActiveLine (Root-Klasse, Default an). Nur
    im Edit-Modus: ohne sichtbaren Cursor (read-only) waere eine hinterlegte
    Zeile orientierungslos (PO-Festlegung 2026-07-19). Die Farbe ist

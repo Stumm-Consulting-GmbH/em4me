@@ -1,5 +1,5 @@
 // CodeMirror-Autocomplete (Wiki-Links/Anker/Tags), Tag-Sidebar-Rendering und Funktions-Katalog-Quelle.
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
 'use strict';
 
@@ -8,7 +8,7 @@ import { autocompletion } from '@codemirror/autocomplete';
 
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
-// 4T-0716 (Epic 3E-0137): Die Daten und die Markdown-Erzeugung der Funktions-
+// 4T-000716 (Epic 3E-000137): Die Daten und die Markdown-Erzeugung der Funktions-
 // und Tastenkürzel-Seite liegen im geteilten, prozessneutralen Modul
 // manual-generated.js. Hier bleiben nur die Tasten-Helfer, die andere
 // Renderer-Teile (settings-page.js) und ein Unit-Test nutzen: splitShortcutKeys
@@ -17,16 +17,16 @@ import {
   splitShortcutKeys,
   localizeKey as localizeKeyShared,
 } from '../../../shared/manual/manual-generated.js';
-// 4T-0337 (Epic 3E-0061): Unterseiten — '[[/' schlaegt die Unterseiten der
+// 4T-000337 (Epic 3E-000061): Unterseiten — '[[/' schlaegt die Unterseiten der
 // aktiven Datei vor (logische Namen in Slash-Schreibweise).
 import { toLogicalName } from '../../../shared/subpages.js';
-// 4T-0294 (Epic 3E-0052): Autocomplete ist eine schaltbare Erweiterung; die
+// 4T-000294 (Epic 3E-000052): Autocomplete ist eine schaltbare Erweiterung; die
 // Trigger prüfen zusätzlich den Zustand von wiki-links bzw. tags.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { paneEditors } from './editor.js';
 import { openInPane } from '../tabs/tabs.js';
-// 4T-0507 (Epic 3E-0096): dritte Vervollstaendigungs-Quelle auf Task-Zeilen
-// (Marker-Vorschlaege; Datums-Eintraege oeffnen den Picker aus 3E-0091).
+// 4T-000507 (Epic 3E-000096): dritte Vervollstaendigungs-Quelle auf Task-Zeilen
+// (Marker-Vorschlaege; Datums-Eintraege oeffnen den Picker aus 3E-000091).
 import { tasksConfig } from '../tasks.js';
 import { taskStatesResolved } from '../task-states.js';
 import { showDateTimePicker } from '../calendar/date-picker.js';
@@ -42,22 +42,22 @@ import {
 } from '../../../shared/tasks/task-markers.js';
 import { setRecurrence } from '../../../shared/tasks/task-recurrence.js';
 import { setTaskId, generateTaskId } from '../../../shared/tasks/task-dependencies.js';
-// 4T-0347 (Epic 3E-0062): bereichsrelative Ordner-Anzeige (gemeinsam mit dem
+// 4T-000347 (Epic 3E-000062): bereichsrelative Ordner-Anzeige (gemeinsam mit dem
 // Backlinks-Panel), damit gleichnamige Dateien aus verschiedenen Ordnern des
 // Bereichs eindeutig unterscheidbar sind.
 import { relativeDirFromRoot } from '../path-format.js';
-// 4T-1307 (Epic 3E-0235): Das Render-Limit liegt bei der Auswahl-Regel, weil es
+// 4T-001307 (Epic 3E-000235): Das Render-Limit liegt bei der Auswahl-Regel, weil es
 // zu ihr gehoert; die Anker- und Schlagwort-Quellen unten wenden es mit an.
 import { AUTOCOMPLETE_RENDER_LIMIT as WIKI_RENDER_LIMIT } from '../../../shared/wiki-vorschlaege.js';
-// 4T-1339 (Epic 3E-0238): Ergebnis-Aufbau und Uebernahme liegen als eigene
-// Fachlichkeit daneben; seit 4T-1357 fuer Verweis-Ziele UND Schlagworte.
+// 4T-001339 (Epic 3E-000238): Ergebnis-Aufbau und Uebernahme liegen als eigene
+// Fachlichkeit daneben; seit 4T-001357 fuer Verweis-Ziele UND Schlagworte.
 import {
   uebernimmWikiZiel,
   baueWikiErgebnis,
   baueSchlagwortErgebnis,
 } from './vervollstaendigung.js';
 
-// --- Autocomplete-Quellen (4T-0057, Epic 3E-0011) ---------------------------
+// --- Autocomplete-Quellen (4T-000057, Epic 3E-000011) ---------------------------
 // Zwei Completion-Sources fuer CodeMirror: Wiki-Link (`[[…`) und Tag (`#…`).
 // Beide arbeiten asynchron mit IPC-Lookups gegen den Backlinks-Index. Render-
 // Limit pro Dropdown: 30 Eintraege (clientseitig nach Sortierung).
@@ -78,7 +78,7 @@ export function activeFileForCmView(view) {
 }
 
 export async function wikiLinkCompletionSource(context) {
-  // 4T-0294: Trigger nur bei aktivem Autocomplete UND aktiven Wiki-Links.
+  // 4T-000294: Trigger nur bei aktivem Autocomplete UND aktiven Wiki-Links.
   if (!isExtensionActive('autocomplete') || !isExtensionActive('wiki-links')) return null;
   const lineObj = context.state.doc.lineAt(context.pos);
   const lineText = lineObj.text;
@@ -138,7 +138,7 @@ export async function wikiLinkCompletionSource(context) {
     };
   }
 
-  // 4T-0337 (Epic 3E-0061): '[[/' — Unterseiten der aktiven Datei
+  // 4T-000337 (Epic 3E-000061): '[[/' — Unterseiten der aktiven Datei
   // vorschlagen (relative Schreibweise). Kandidaten sind alle Dateien,
   // deren logischer Name mit '<aktive Seite>/' beginnt; angezeigt und
   // eingefuegt wird die relative Form ('/Entwurf', '/Umsetzung/Detail').
@@ -171,7 +171,7 @@ export async function wikiLinkCompletionSource(context) {
         label: c.rel,
         type: 'class',
         detail: t('autocomplete.detail.file'),
-        // 4T-1307: derselbe Klammer-Schluss wie im Basename-Modus; es ist
+        // 4T-001307: derselbe Klammer-Schluss wie im Basename-Modus; es ist
         // derselbe Verweis, nur in relativer Schreibweise.
         apply: uebernimmWikiZiel,
       }));
@@ -191,16 +191,16 @@ export async function wikiLinkCompletionSource(context) {
     return null;
   }
   if (!result || result.status !== 'ready') return null;
-  // 4T-1307 (Epic 3E-0235): Filter und Reihenfolge liegen in der geteilten
+  // 4T-001307 (Epic 3E-000235): Filter und Reihenfolge liegen in der geteilten
   // Auswahl-Regel — ohne Eingabe fuehrt die Aenderungszeit, mit Eingabe die
   // Treffer-Guete. Das Render-Limit wendet sie mit an.
-  // 4T-1339 (Epic 3E-0238): Damit diese Reihenfolge die Anzeige auch erreicht,
+  // 4T-001339 (Epic 3E-000238): Damit diese Reihenfolge die Anzeige auch erreicht,
   // baut `baueWikiErgebnis` das Ergebnis — siehe dort.
   return baueWikiErgebnis(result.suggestions || [], prefix, context.pos - prefix.length);
 }
 
 export async function tagCompletionSource(context) {
-  // 4T-0294: Trigger nur bei aktivem Autocomplete UND aktivem Tag-System.
+  // 4T-000294: Trigger nur bei aktivem Autocomplete UND aktivem Tag-System.
   if (!isExtensionActive('autocomplete') || !isExtensionActive('tags')) return null;
   const lineObj = context.state.doc.lineAt(context.pos);
   const lineText = lineObj.text;
@@ -224,7 +224,7 @@ export async function tagCompletionSource(context) {
   const activeFile = activeFileForCmView(context.view);
   if (!activeFile) return null;
   const tagPrefix = tagMatch[1];
-  // R5-12 (4T-0187): Ein einzelnes '#' als erstes Nicht-Whitespace der
+  // R5-12 (4T-000187): Ein einzelnes '#' als erstes Nicht-Whitespace der
   // Zeile ist fast immer der Beginn einer Ueberschrift — Vorschlaege erst
   // ab dem ersten Tag-Zeichen oder bei explizitem Trigger (Strg+Leertaste).
   if (!tagPrefix && !context.explicit && /^\s*#$/.test(textBefore)) return null;
@@ -236,7 +236,7 @@ export async function tagCompletionSource(context) {
     return null;
   }
   if (!result || result.status !== 'ready') return null;
-  // 4T-1357 (Epic 3E-0238): Auswahl-Regel und Ergebnis-Bau liegen daneben —
+  // 4T-001357 (Epic 3E-000238): Auswahl-Regel und Ergebnis-Bau liegen daneben —
   // dieselbe Ursache und dieselbe Behebung wie bei den Verweis-Zielen. Die
   // Haeufigkeits-Ordnung erreichte die Anzeige nicht, weil die Bibliothek die
   // uebergebene Liste neu sortierte.
@@ -247,13 +247,13 @@ export async function tagCompletionSource(context) {
   );
 }
 
-// --- Task-Zeilen-Vervollstaendigung (4T-0507, Epic 3E-0096) -------------------
+// --- Task-Zeilen-Vervollstaendigung (4T-000507, Epic 3E-000096) -------------------
 // Dritte Quelle: Marker-Vorschlaege auf Task-Zeilen (Workshop-Punkt 8).
 // Aktiv nur bei aktiven Erweiterungen autocomplete UND tasks, auf Zeilen,
 // die der Marker-Kern als Task erkennt (Global Filter respektiert), hinter
 // der Status-Box. Trigger: getipptes Wort ab der konfigurierten Mindest-
 // Tipplaenge (tasksConfig) bzw. explizit per Strg+Leertaste; Vorschlagszahl
-// ebenfalls konfigurierbar. Datums-Eintraege oeffnen den Picker aus 3E-0091
+// ebenfalls konfigurierbar. Datums-Eintraege oeffnen den Picker aus 3E-000091
 // (keine natuerlichsprachigen Daten, PO-Entscheidung); alle Anwendungen
 // laufen ueber den Marker-Kern in EINER Transaktion (das getippte Wort
 // wird dabei mit ersetzt — ein Undo-Schritt).
@@ -299,7 +299,7 @@ async function applyTaskDateSuggestion(view, lineNumber, wordFrom, wordTo, field
   view.focus();
 }
 
-// 4T-0528 (Epic 3E-0095): Picker-Anwendung des Erinnerungs-Vorschlags —
+// 4T-000528 (Epic 3E-000095): Picker-Anwendung des Erinnerungs-Vorschlags —
 // wie der Termin-Weg, aber mit Uhrzeit-Teil (Melde-Zeitpunkt) und
 // setReminder. Doc-Guard gegen Blind-Schreiben nach Doc-Aenderung.
 async function applyTaskReminderSuggestion(view, lineNumber, wordFrom, wordTo) {
@@ -322,7 +322,7 @@ async function applyTaskReminderSuggestion(view, lineNumber, wordFrom, wordTo) {
   view.focus();
 }
 
-// 4T-0508: ID-Vergabe mit Eindeutigkeits-Pruefung — die Bereichs-IDs
+// 4T-000508: ID-Vergabe mit Eindeutigkeits-Pruefung — die Bereichs-IDs
 // kommen aus der Task-Abfrage (LIST TASKS, kein eigener IPC); danach
 // Zeilen-Mutation mit Doc-Guard (kein Blind-Schreiben nach Doc-Aenderung).
 async function applyTaskIdSuggestion(view, lineNumber, wordFrom, wordTo) {
@@ -399,7 +399,7 @@ export function taskMarkerCompletionSource(context) {
       },
     });
   }
-  // 4T-0528 (Epic 3E-0095): Erinnerung setzen (Picker mit Datum und
+  // 4T-000528 (Epic 3E-000095): Erinnerung setzen (Picker mit Datum und
   // Uhrzeit; nur ohne bestehenden Anker und bei aktiver Erweiterung).
   if (!model.reminder && isExtensionActive('reminders')) {
     options.push({
@@ -452,7 +452,7 @@ export function taskMarkerCompletionSource(context) {
       },
     });
   }
-  // 4T-0508: eindeutige ID erzeugen (Bereichs-IDs werden vor der Vergabe
+  // 4T-000508: eindeutige ID erzeugen (Bereichs-IDs werden vor der Vergabe
   // abgefragt; Vorgaenger-Bezuege brauchen die Task-Suche und bleiben
   // bewusst beim Dialog). Doc-Guard wie beim Picker-Weg.
   if (!model.id) {
@@ -478,9 +478,9 @@ export function taskMarkerCompletionSource(context) {
   };
 }
 
-// 4T-0057: Extension fuer CodeMirror. override=[...] ersetzt die Default-
+// 4T-000057: Extension fuer CodeMirror. override=[...] ersetzt die Default-
 // Completion-Quellen. activateOnTyping=true triggert bei jedem Wortzeichen.
-// 4T-0507: dritte Quelle fuer Task-Zeilen-Marker.
+// 4T-000507: dritte Quelle fuer Task-Zeilen-Marker.
 export const autocompleteExtension = autocompletion({
   override: [wikiLinkCompletionSource, tagCompletionSource, taskMarkerCompletionSource],
   activateOnTyping: true,
@@ -489,14 +489,14 @@ export const autocompleteExtension = autocompletion({
   maxRenderedOptions: AUTOCOMPLETE_RENDER_LIMIT,
 });
 
-// 4T-0056: Render-Token pro Pane verhindert Race bei mehrfachen Triggern.
+// 4T-000056: Render-Token pro Pane verhindert Race bei mehrfachen Triggern.
 // Zwischen innerHTML='' und appendChild-Schleife liegt ein await; ohne
 // Token-Check wuerden parallele renderTags-Aufrufe die Tags doppelt bis
 // vierfach in den Container appenden (gleiches Phaenomen wie der
-// Properties-Race in 4T-0051).
+// Properties-Race in 4T-000051).
 export const tagsRenderToken = [0, 0];
 
-// R5-14 (4T-0180): letzte Tags-Payload pro Pane. Das Filter-Eingabefeld
+// R5-14 (4T-000180): letzte Tags-Payload pro Pane. Das Filter-Eingabefeld
 // loeste zuvor pro Tastendruck einen IPC-Roundtrip aus, obwohl die
 // Query-Filterung ohnehin clientseitig in renderTagsTreeView passiert.
 // renderTagsFromCache rendert bei unveraendertem Kontext (Datei, Tag-
@@ -573,7 +573,7 @@ export async function renderTags(paneIdx) {
   // Token-Check nach dem await: wenn zwischenzeitlich ein neuer Aufruf
   // gestartet wurde, verwerfen wir das Ergebnis dieses Aufrufs.
   if (myToken !== tagsRenderToken[paneIdx]) return;
-  // R5-14 (4T-0180): Payload fuer den lokalen Filter-Pfad merken.
+  // R5-14 (4T-000180): Payload fuer den lokalen Filter-Pfad merken.
   tagsPayloadCache[paneIdx] = {
     filePath,
     filterTag: filterTag || null,
@@ -597,7 +597,7 @@ export async function renderTags(paneIdx) {
     els.tagsStatus.textContent = t('tags.indexing');
     return;
   }
-  // B-21 (4T-0187): Watcher-Fehler sichtbar machen.
+  // B-21 (4T-000187): Watcher-Fehler sichtbar machen.
   if (payload.status === 'error') {
     els.tagsStatus.hidden = false;
     els.tagsStatus.textContent = t('tags.watchError');
@@ -641,7 +641,7 @@ export function renderTagsTreeView(paneIdx, els, tags) {
   for (const entry of filtered) {
     const item = document.createElement('div');
     item.className = 'tags-tree-item';
-    // 4T-0056: Tags werden flach mit ihrem vollen Slash-Pfad angezeigt
+    // 4T-000056: Tags werden flach mit ihrem vollen Slash-Pfad angezeigt
     // (z.B. '#projekt/markdown-viewer'). Eine echte Baum-Struktur mit
     // ableitbaren Eltern-Knoten (Parent-Counts, Prefix-Filter) ist eine
     // Folge-Erweiterung und kommt in einer spaeteren Iteration.
@@ -697,7 +697,7 @@ export function renderTagsFilesView(paneIdx, els, filterTag, files, wurzel) {
       name.className = 'tags-files-item-name';
       name.textContent = api.basename(filePath);
       item.appendChild(name);
-      // 4T-0347 (Epic 3E-0062): Ordner relativ zur Index-Wurzel statt absolut,
+      // 4T-000347 (Epic 3E-000062): Ordner relativ zur Index-Wurzel statt absolut,
       // damit gleichnamige Dateien im Bereich eindeutig sind; Datei direkt in
       // der Wurzel -> keine Ordner-Zeile.
       const relDir = relativeDirFromRoot(wurzel, filePath);
@@ -715,9 +715,9 @@ export function renderTagsFilesView(paneIdx, els, filterTag, files, wurzel) {
   els.tagsFiles.appendChild(list);
 }
 
-// --- Tasten-Helfer (4T-0716) ------------------------------------------------
+// --- Tasten-Helfer (4T-000716) ------------------------------------------------
 // Die Daten (HELP_FEATURE_GROUPS, STATIC_HELP_SHORTCUTS) und die Markdown-
-// Erzeugung der Funktions- und Tastenkürzel-Seite sind seit 4T-0716 in das
+// Erzeugung der Funktions- und Tastenkürzel-Seite sind seit 4T-000716 in das
 // geteilte, prozessneutrale Modul src/shared/manual/manual-generated.js gewandert, das
 // App (manual.js) und Web-Bau gemeinsam nutzen. Hier verbleiben nur die von
 // anderen Renderer-Teilen genutzten Tasten-Helfer: settings-page.js bindet

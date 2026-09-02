@@ -1,4 +1,4 @@
-// 4T-0644 (Epic 3E-0127): Stationen-Folge der geführten Produkt-Tour.
+// 4T-000644 (Epic 3E-000127): Stationen-Folge der geführten Produkt-Tour.
 //
 // Diese Liste ist die führende Quelle für Reihenfolge, Anker und Texte der
 // Tour. Aus der `id` leiten sich die beiden i18n-Schlüssel `tour.<id>.title`

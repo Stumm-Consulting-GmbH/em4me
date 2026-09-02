@@ -1,4 +1,4 @@
-// B-12 / Baustein B (4T-0945, Story 4S-0786): Das Speichern prueft den
+// B-12 / Baustein B (4T-000945, Story 4S-000786): Das Speichern prueft den
 // Datei-Stand und ueberschreibt keine fremde Aenderung mehr still.
 //
 // Gemeldeter Ablauf (Messung am 2026-08-10 auf einer Netz-Freigabe): Datei
@@ -97,7 +97,7 @@ async function tippeAmEnde(page, text) {
   await page.keyboard.type(text);
 }
 
-test.describe('KS: Konflikt-Schutz beim Speichern (4T-0945)', () => {
+test.describe('KS: Konflikt-Schutz beim Speichern (4T-000945)', () => {
   test('KS-01 gemeldeter Ablauf: Speichern auf veraltetem Stand fragt, statt zu ueberschreiben', async () => {
     const dir = makeDir('scg-md-ks01-');
     const datei = path.join(dir, 'Notiz.md');
@@ -198,7 +198,7 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-0945)', () => {
       await page.keyboard.press('Control+s');
       await expect.poll(() => konfliktDialogCalls(app), { timeout: 10000 }).toBe(1);
 
-      // Abnahme-Befund 3E-0196: Der Sicherungs-Schreibvorgang laeuft erst
+      // Abnahme-Befund 3E-000196: Der Sicherungs-Schreibvorgang laeuft erst
       // wenige Millisekunden nach dem Dialog, und die Historien-Seite laedt
       // ihre Liste genau einmal beim Oeffnen. Deshalb erst auf die .mdd
       // warten (Muster KS-02/KS-06) — der Fall sichert die ABRUFBARKEIT der

@@ -1,4 +1,4 @@
-// 4T-0466 (Epic 3E-0086): Bereich „Farbschemas" der Einstellungs-Seite
+// 4T-000466 (Epic 3E-000086): Bereich „Farbschemas" der Einstellungs-Seite
 // (kuratierte Farb-Slots, Live-Vorschau, eigene Schemas).
 'use strict';
 
@@ -30,7 +30,7 @@ export function dirtyColorSchemesSection(draft) {
   return !jsonEqual(draft.colorSchemes, draft.colorSchemesSnapshot);
 }
 
-// --- Bereich Farbschemas (4T-0466, Epic 3E-0086) -------------------------------
+// --- Bereich Farbschemas (4T-000466, Epic 3E-000086) -------------------------------
 // Modus-Zuordnung (aktives Schema je Hell/Dunkel), Schema-Verwaltung und ein
 // gruppierter Slot-Editor mit nativen Farbwählern. Live-Vorschau über
 // setColorSchemeState (wendet das aktive Schema des aktuellen Anzeige-Modus
@@ -166,7 +166,7 @@ export function renderColorSchemesSection(container, draft) {
     .replace('{name}', colorSchemeLabel(active));
   manage.appendChild(info);
 
-  // 4T-0466 (Epic 3E-0086): Modus-Kopplung direkt im Bereich erklären (der
+  // 4T-000466 (Epic 3E-000086): Modus-Kopplung direkt im Bereich erklären (der
   // Editor folgt dem Anzeige-Modus; das andere Schema über den Theme-Umschalter).
   const modeHint = document.createElement('div');
   modeHint.className = 'color-scheme-mode-hint';

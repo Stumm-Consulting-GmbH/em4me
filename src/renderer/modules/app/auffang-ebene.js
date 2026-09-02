@@ -1,4 +1,4 @@
-// 4T-0971 (Epic 3E-0207): Letzte Auffang-Ebene des Renderers.
+// 4T-000971 (Epic 3E-000207): Letzte Auffang-Ebene des Renderers.
 //
 // Fehler-Ereignis und unbehandelte Promise-Ablehnung erreichen hier eine
 // definierte Stelle. Verhalten nach dem Auffangen: Weg **R2** (Entscheidung
@@ -15,7 +15,7 @@
 //
 // Registrierung als Modul-Seiteneffekt beim Laden, nicht in init(): Ein Fehler
 // waehrend der Modul-Kette ist genau der Fall ohne Spur, und der Renderer-Entry
-// laedt dieses Modul deshalb als erstes. Dasselbe Muster traegt seit 4T-0320
+// laedt dieses Modul deshalb als erstes. Dasselbe Muster traegt seit 4T-000320
 // der Schliess-Haken in app-broadcasts.js.
 //
 // Die Entwurfs-Sicherung kommt spaet ueber `setzeEntwurfsSicherung`, statt sie

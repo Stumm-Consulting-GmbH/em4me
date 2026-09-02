@@ -1,4 +1,4 @@
-// 4T-0591 (Epic 3E-0109): Tabellen-Operationen für die Perspective Table
+// 4T-000591 (Epic 3E-000109): Tabellen-Operationen für die Perspective Table
 // auf der Fence-Syntax. Bewusst zeilenbasiert (kein Voll-Round-Trip über
 // das Parser-Modell): Tabellen-Zeilen entsprechen |- Abschnitten, Zellen
 // entsprechen Zell-Blöcken (Marker-Zeile ! bzw. | plus Fortsetzungszeilen).
@@ -15,7 +15,7 @@
 // Rein und Electron-/DOM-frei (CJS, wie table-edit.js). Bewusst OHNE
 // require auf perspective-table.js: dessen lazy markdown.js-Bezug würde
 // esbuild statisch ins Renderer-Bundle ziehen (markdown.js ist
-// Preload-only, Falle aus 4T-0546). Die geteilte Attribut- und
+// Preload-only, Falle aus 4T-000546). Die geteilte Attribut- und
 // Status-Grammatik kommt aus perspective-table-syntax.js.
 'use strict';
 

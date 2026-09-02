@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1064 (Epic 3E-0212): Journal-Timeline-Block — Aufbau der vier Modi im
+// 4T-001064 (Epic 3E-000212): Journal-Timeline-Block — Aufbau der vier Modi im
 // Renderer. Geprüft sind die Modus-Ableitung aus dem Fence, die Kopfzeile
 // samt Hervorhebung der Modus-Ebene, die Zahl der Gitter und Zellen je Modus
 // sowie die beiden Degradations-Fälle (kein Journal-Kontext, fehlerhafte
@@ -249,7 +249,7 @@ describe('Journal-Timeline-Block: Degradation', () => {
   });
 });
 
-// --- 4T-1065 (Epic 3E-0212): Punkte, Klick-Ziele, Leistung -------------------------
+// --- 4T-001065 (Epic 3E-000212): Punkte, Klick-Ziele, Leistung -------------------------
 
 describe('Journal-Timeline-Block: Punkt-Markierung', () => {
   it('fragt genau die Pfade des Tages-Journals im Regal ab, in EINEM Batch', async () => {
@@ -403,7 +403,7 @@ describe('Journal-Timeline-Block: Leistung des Jahres-Modus', () => {
   });
 });
 
-// --- 4T-1066 (Epic 3E-0212): Portable-Export ---------------------------------------
+// --- 4T-001066 (Epic 3E-000212): Portable-Export ---------------------------------------
 
 describe('Journal-Timeline-Block: Portable-Export', () => {
   const FENCE = (mode) => '```perspective-journal-timeline\nmode: ' + mode + '\n```';

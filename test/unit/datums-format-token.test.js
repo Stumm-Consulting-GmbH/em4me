@@ -1,4 +1,4 @@
-// 4T-1057 (Epic 3E-0210): Tests der Datums-Format-Token mit Namen und ohne
+// 4T-001057 (Epic 3E-000210): Tests der Datums-Format-Token mit Namen und ohne
 // führende Null samt Literal-Schutz (formatDateMs) und der Sprach-Zufuhr
 // über den Vorlagen-Kontext (fillTemplate).
 import { describe, it, expect } from 'vitest';

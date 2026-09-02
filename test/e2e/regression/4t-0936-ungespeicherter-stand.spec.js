@@ -1,4 +1,4 @@
-// 4T-0936: Erhebung «Funktionen auf ungespeichertem Stand».
+// 4T-000936: Erhebung «Funktionen auf ungespeichertem Stand».
 //
 // Anordnung des Product Owners vom 2026-08-08: Jede Funktionalität arbeitet auf
 // dem GESCHRIEBENEN Stand des offenen Dokuments, nicht auf seinem zuletzt
@@ -8,14 +8,14 @@
 // Die Fälle prüfen den SOLL-Zustand. Solange ein Befund besteht, trägt sein
 // Fall die Markierung `test.fail()`: Er gilt dann als bestanden und wird rot,
 // sobald jemand den Befund behebt. Wer ihn behebt, entfernt die Markierung und
-// hat damit unmittelbar seine Zusicherung. Seit 4T-0950 (E-03) und 4T-0948
+// hat damit unmittelbar seine Zusicherung. Seit 4T-000950 (E-03) und 4T-000948
 // (E-01) trägt kein Fall dieser Datei mehr eine Markierung; die verbliebenen
-// Befunde der Erhebung sind nach dem Hauptrelease 1 in 3E-0198 verortet und
+// Befunde der Erhebung sind nach dem Hauptrelease 1 in 3E-000198 verortet und
 // bekommen ihre Fälle dort, wo sie behoben werden.
 //
 // Jeder Fall trägt seinen ANKER: Vor der Messung wird belegt, dass der
 // Ausgangs-Stand sichtbar ist. Ohne ihn wäre ein «nicht wirksam» kein Befund,
-// sondern ein Nicht-Ergebnis (Lehre aus der Messreihe zu 4T-0925).
+// sondern ein Nicht-Ergebnis (Lehre aus der Messreihe zu 4T-000925).
 'use strict';
 
 const fs = require('node:fs');
@@ -44,11 +44,11 @@ async function bearbeitenAn(page, modus) {
   await expect(page.locator(SEL.editorContent0)).toHaveAttribute('contenteditable', 'true');
 }
 
-test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () => {
+test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-000936)', () => {
   // Befund E-01: Ein Wiki-Embed liest die eingebettete Datei vom Datenträger
   // (main.js, Kanal embed:read). Ist sie in einem anderen Reiter offen und
   // geändert, zeigte das Embed den zuletzt gespeicherten Stand.
-  // 4T-0948 hat den Befund behoben: Die Markierung ist entfernt, der Fall
+  // 4T-000948 hat den Befund behoben: Die Markierung ist entfernt, der Fall
   // gilt jetzt regulär als Zusicherung des behobenen Zustands.
   test('E-01 Wiki-Embed zeigt den geschriebenen Stand der Quelle', async () => {
     const dir = makeDir('scg-md-ug01-');
@@ -87,8 +87,8 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () 
     }
   });
 
-  // 4T-0948, AK2: Dasselbe mit Anker. Der Ausschnitt wird am Text geschnitten
-  // (extractEmbedSnippet), weshalb die Schicht seit 4T-0948 den Roh-Text führt
+  // 4T-000948, AK2: Dasselbe mit Anker. Der Ausschnitt wird am Text geschnitten
+  // (extractEmbedSnippet), weshalb die Schicht seit 4T-000948 den Roh-Text führt
   // und nicht nur seinen Parse. Ohne diesen Fall bliebe genau das ungeprüft.
   test('E-01/AK2 Anker-Einbettung schneidet im geschriebenen Stand', async () => {
     const dir = makeDir('scg-md-ug01b-');
@@ -124,7 +124,7 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () 
     }
   });
 
-  // 4T-0948, AK3: Das Gegenstück. Ist das Ziel nicht offen, gibt es keinen
+  // 4T-000948, AK3: Das Gegenstück. Ist das Ziel nicht offen, gibt es keinen
   // geschriebenen Stand, und es bleibt beim Datei-Inhalt. Der Fall prüft, dass
   // die neue Abzweigung nur greift, wo sie soll: Getippt wird in der Hülle,
   // was dieselbe Melde-Strecke auslöst wie im Fall E-01.
@@ -160,7 +160,7 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () 
     }
   });
 
-  // 4T-0948, Variante B (Entscheidung des Product Owners vom 2026-08-11):
+  // 4T-000948, Variante B (Entscheidung des Product Owners vom 2026-08-11):
   // Stehen Hülle und Quelle NEBENEINANDER, ändern sich Text und Pfad der
   // Hülle beim Tippen nicht. Weder der Render-Zwischenspeicher der Spalte
   // noch die eq()-Prüfung des Live-Widgets baut ihr DOM dann neu, und der
@@ -212,7 +212,7 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () 
     }
   });
 
-  // 4T-0948, Parität: Dieselbe Lage im Live-Modus. Sie ist der schärfere
+  // 4T-000948, Parität: Dieselbe Lage im Live-Modus. Sie ist der schärfere
   // Fall, weil das Live-Widget sein DOM behält, solange Quelltext und
   // Basis-Pfad gleich bleiben (eq()), und ein Voll-Render der Spalte es gar
   // nicht erreichte. Der Nachzug greift deshalb an der Einbettung selbst an
@@ -269,8 +269,8 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () 
   // wurde im Stand seiner letzten Speicherung durchsucht.
   //
   // Die Erhebung führte den Fall nicht als Messung, weil ihr Versuch am Anker
-  // scheiterte. 4T-0949 hat ihn geholt: Der Bereich wird über den Pfad-Einstieg
-  // gebunden, wie es die Funktions-Spec seit 4T-0616 vormacht.
+  // scheiterte. 4T-000949 hat ihn geholt: Der Bereich wird über den Pfad-Einstieg
+  // gebunden, wie es die Funktions-Spec seit 4T-000616 vormacht.
   //
   // Die Konstruktion beider Fälle ist die Zusicherung: Nach dem Schreiben wird
   // auf die ANDERE Datei gewechselt, damit die geänderte gerade nicht die
@@ -413,7 +413,7 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-0936)', () 
   // Befund E-03: Das Tag-Panel bezieht seine Liste aus dem Index
   // (backlinks.tagsFor, ohne Puffer-Overlay). Ein gerade getippter Tag des
   // offenen Dokuments fehlt.
-  // 4T-0950 hat den Befund behoben: Die Markierung ist entfernt, der Fall
+  // 4T-000950 hat den Befund behoben: Die Markierung ist entfernt, der Fall
   // gilt jetzt regulär als Zusicherung des behobenen Zustands.
   //
   // Der Fall geht bewusst den Weg des ANWENDERS und nicht den der Schicht:

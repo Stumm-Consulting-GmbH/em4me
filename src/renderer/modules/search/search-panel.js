@@ -1,4 +1,4 @@
-// 4T-0759 (Epic 3E-0142): Suchergebnis-Panel — Trefferliste der Suche über
+// 4T-000759 (Epic 3E-000142): Suchergebnis-Panel — Trefferliste der Suche über
 // Handbuch bzw. Einstellungen, gruppiert nach Seite bzw. Bereich.
 //
 // Entscheidung des Product Owners vom 2026-07-27 nach einer Mockup-Runde:
@@ -9,7 +9,7 @@
 // und nur die gruppierte Liste beantwortet sie.
 //
 // Dieses Modul zeigt an und wählt aus; es sucht nicht und springt nicht.
-// Den Trefferbestand reicht der Suchlauf über zeigeTreffer herein (4T-0760),
+// Den Trefferbestand reicht der Suchlauf über zeigeTreffer herein (4T-000760),
 // den Sprung führt ein registrierter Handler aus. Der Schnitt hält das
 // Panel frei von Wissen über die Herkunft der Treffer und ist die
 // Voraussetzung dafür, dass später ein dritter Lieferant (bereichsweite
@@ -43,7 +43,7 @@ const zugeklappt = new Set();
 
 let sprungHandler = null;
 
-// Verdrahtungs-Punkt für den Suchlauf (4T-0760): Der Handler bekommt den
+// Verdrahtungs-Punkt für den Suchlauf (4T-000760): Der Handler bekommt den
 // Treffer und führt Öffnen und Anspringen aus.
 export function setzeSprungHandler(fn) {
   sprungHandler = typeof fn === 'function' ? fn : null;
@@ -55,7 +55,7 @@ export function zeigeTreffer({ treffer, gruppen, abgeschnitten, raum, vorratModu
     gruppen: Array.isArray(gruppen) ? gruppen : [],
     abgeschnitten: !!abgeschnitten,
     raum: raum || null,
-    // 4T-0616: 'direkt' meldet einen Bereich oberhalb des Vorrats-Deckels.
+    // 4T-000616: 'direkt' meldet einen Bereich oberhalb des Vorrats-Deckels.
     vorratModus: vorratModus || null,
     auswahl: Array.isArray(treffer) && treffer.length > 0 ? 0 : -1,
   };
@@ -98,7 +98,7 @@ function statusText() {
   if (bestand.treffer.length === 0) return t('searchResults.empty');
   const anzahl = String(bestand.treffer.length);
   const gruppen = String(bestand.gruppen.length);
-  // 4T-0616: Im Bereichs-Raum sind die Gruppen Dateien, in den uebrigen
+  // 4T-000616: Im Bereichs-Raum sind die Gruppen Dateien, in den uebrigen
   // Raeumen Seiten bzw. Bereiche. Ein eigener Schluessel statt eines
   // zusammengesetzten Satzes, damit jede Sprache ihre eigene Wendung waehlen
   // kann.
@@ -226,7 +226,7 @@ function onKeydown(ev) {
 
 // --- Sichtbarkeit und Registrierung -----------------------------------------
 
-// Bewusst ohne Empty-State-Kopplung (Muster der Lesezeichen aus 4T-0330):
+// Bewusst ohne Empty-State-Kopplung (Muster der Lesezeichen aus 4T-000330):
 // Das Panel gehört nicht zum Dokument, sondern zum Handbuch und zu den
 // Einstellungen. Beide lassen sich ohne offene Datei benutzen, und ein
 // Panel, das der Schalter nicht einblenden kann, wäre eine Sackgasse.
@@ -261,7 +261,7 @@ export async function toggleSearchResultsPanel(paneIdx) {
 }
 
 // Öffnet das Panel, ohne zu schalten: Der Suchlauf zeigt Treffer an, und ein
-// unsichtbares Panel wäre eine Sackgasse (4T-0760 nutzt das).
+// unsichtbares Panel wäre eine Sackgasse (4T-000760 nutzt das).
 export async function zeigeSuchPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   if (state.searchResults.visibleByPane[paneIdx]) return;

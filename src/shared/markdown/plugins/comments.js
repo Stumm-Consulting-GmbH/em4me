@@ -1,11 +1,11 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Kommentar-Gruppe: der code-bewusste Scanner der %%-Kommentare und das
 // zeilentreue Strippen. Electron-frei; aufgerufen wird beides direkt aus
 // markdown.js (Quelltext-Vorverarbeitung, keine markdown-it-Regel).
 'use strict';
 
 // ---------------------------------------------------------------------------
-// 4T-0479 (Epic 3E-0089): %%-Kommentare. Text zwischen %%-Markern (inline
+// 4T-000479 (Epic 3E-000089): %%-Kommentare. Text zwischen %%-Markern (inline
 // und mehrzeilig) erscheint in keiner gerenderten Ansicht und keinem Export,
 // bleibt aber im Quelltext. Als code-bewusste Quelltext-Vorverarbeitung
 // statt markdown-it-Regel, weil die Kombination "block-uebergreifend,
@@ -50,7 +50,7 @@ function findBacktickRun(src, from, runLen) {
 
 // Liefert die Kommentar-Bereiche als [{ from, to, closed }] in Quelltext-
 // Offsets, inklusive der %%-Marker. closed=false markiert einen unpaarigen
-// Kommentar (wirkt bis Text-Ende; Grundlage des Linter-Hinweises, 4T-0533).
+// Kommentar (wirkt bis Text-Ende; Grundlage des Linter-Hinweises, 4T-000533).
 // Einziger Scanner — Render-Strip und Editor-Dekoration arbeiten auf
 // identischen Bereichen.
 function findPercentCommentRanges(text) {

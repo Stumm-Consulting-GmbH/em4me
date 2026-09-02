@@ -1,4 +1,4 @@
-// 4T-0333 (Epic 3E-0060): Historien-Ansicht als read-only System-Seite.
+// 4T-000333 (Epic 3E-000060): Historien-Ansicht als read-only System-Seite.
 //
 // Pro Fenster eine Instanz (Muster der Einstellungs-Seite); die Seite ist
 // an ein Ziel-Dokument gebunden (Modul-Zustand), erneutes Öffnen für ein
@@ -10,7 +10,7 @@
 // Speichern erzeugt die nächste Revision — MediaWiki-Semantik der
 // Epic-Entscheidung, es wird nie Historie gelöscht).
 //
-// Modul-Zyklen zu tabs/views sind Laufzeit-Zugriffe (Muster 4T-0179).
+// Modul-Zyklen zu tabs/views sind Laufzeit-Zugriffe (Muster 4T-000179).
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -58,7 +58,7 @@ export function openHistoryPage(filePath) {
     pageState.selectA = -1;
     pageState.selectB = 'current';
   }
-  // 4T-0648 (Epic 3E-0130): Die Historie ist eine Folge-Ansicht ihres
+  // 4T-000648 (Epic 3E-000130): Die Historie ist eine Folge-Ansicht ihres
   // Dokuments — ihr Reiter liegt unmittelbar rechts neben dem Reiter des
   // Dokuments, und beim Umbinden wandert er mit.
   openSystemPage(HISTORY_PAGE_ID, { nextToPath: filePath });

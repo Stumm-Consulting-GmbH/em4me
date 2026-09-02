@@ -1,9 +1,9 @@
 // Anker-Verwaltung des Block-Eigenschaften-Panels: Dropdown, Sprung, Anlegen,
 // Umbenennen und der Verwaisten-Abschnitt.
-// 4T-0979 (Epic 3E-0196): Auszug aus block-props-panel.js.
+// 4T-000979 (Epic 3E-000196): Auszug aus block-props-panel.js.
 'use strict';
 
-// 4T-0484 (Epic 3E-0088): Undo-Isolation der Ganz-Dokument-Ersetzung beim
+// 4T-000484 (Epic 3E-000088): Undo-Isolation der Ganz-Dokument-Ersetzung beim
 // Anker-Umbenennen (Muster handleLinkUpdateApplied in views.js).
 import { isolateHistory } from '@codemirror/commands';
 import { t } from '../../i18n.js';
@@ -24,11 +24,11 @@ import {
 } from './block-props-context.js';
 import { flushPendingSave } from './block-props-save.js';
 
-// 4T-0979 (Epic 3E-0196): Rückweg in den Panel-Kern. Jede Anker-Aktion stößt
+// 4T-000979 (Epic 3E-000196): Rückweg in den Panel-Kern. Jede Anker-Aktion stößt
 // den Neuaufbau der Ansicht an; der Kern reicht die beiden Funktionen beim
 // Laden herein, statt dass dieses Modul ihn importiert. Das hält den
 // Import-Graph gerichtet (Kern nach Anker) und kommt ohne beschreibbares
-// Export-Binding aus (Muster der Deps-Injektion aus 4T-0977).
+// Export-Binding aus (Muster der Deps-Injektion aus 4T-000977).
 let viewHooks = {
   syncActive: () => {},
   refreshView: () => {},
@@ -113,7 +113,7 @@ export function createAnchorForCursor(paneIdx) {
     changes: { from: targetLine.to, insert },
     selection: { anchor: targetLine.to + insert.length },
     scrollIntoView: true,
-    // 4T-0484 (Epic 3E-0088): Klick-/Kommando-Pfad ohne Tipp-Ereignis —
+    // 4T-000484 (Epic 3E-000088): Klick-/Kommando-Pfad ohne Tipp-Ereignis —
     // Annotation verhindert das Verschmelzen mit dem vorherigen Historien-
     // Ereignis (Muster views.js toggleTaskFromRendered).
     userEvent: 'input',
@@ -186,7 +186,7 @@ async function applyRename(paneIdx, oldId, newId) {
     const oldText = getDocText(view.state.doc);
     const newText = rewriteAnchorReferences(oldText, oldId, newId);
     if (newText !== oldText) {
-      // 4T-0484 (Epic 3E-0088): Ganz-Dokument-Ersetzung aus dem Panel-Pfad als
+      // 4T-000484 (Epic 3E-000088): Ganz-Dokument-Ersetzung aus dem Panel-Pfad als
       // eigene Undo-Einheit isolieren (Muster handleLinkUpdateApplied,
       // views.js) — sonst verschmilzt sie mit dem vorherigen Historien-
       // Ereignis und ein Undo nimmt zu viel zurück.

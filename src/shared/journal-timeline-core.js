@@ -1,4 +1,4 @@
-// 4T-1067 (Epic 3E-0212): Kern des Journal-Timeline-Blocks — Modus-Modell,
+// 4T-001067 (Epic 3E-000212): Kern des Journal-Timeline-Blocks — Modus-Modell,
 // Auswertung des Fence-Bodys und Fence-Erkennung fuer den Portable-Export.
 //
 // Herausgeloest aus journal-core.js: Der Perioden-Kern traegt das Journal-
@@ -7,7 +7,7 @@
 // Blocks ist dagegen seine eigene Fachlichkeit und waechst mit ihm; sie
 // gehoert deshalb in ein eigenes Modul. Ausloeser war das Datei-Groessen-
 // Budget, das den Perioden-Kern nach der Aufnahme dieser Teile ueber seinen
-// eingefrorenen Wert hob (4T-0878; die Ausnahmeliste darf nur schrumpfen).
+// eingefrorenen Wert hob (4T-000878; die Ausnahmeliste darf nur schrumpfen).
 //
 // Prozess-neutral wie der Perioden-Kern (CJS, kein Electron, kein DOM):
 // markdown.js und der Renderer laden dasselbe Modul.
@@ -62,7 +62,7 @@ function parseTimelineFence(body) {
   return { ok: true, mode: mode || DEFAULT_TIMELINE_MODE };
 }
 
-// 4T-1066: Fence-Erkennung des Portable-Exports, mit Fence-Koerper — der
+// 4T-001066: Fence-Erkennung des Portable-Exports, mit Fence-Koerper — der
 // Ersatz-Text haengt vom Modus ab, den der Koerper nennt. build(body)
 // liefert den Ersatz; liefert er null, bleibt der Fence unveraendert stehen
 // (Muster des Navigations-Blocks ausserhalb eines Journal-Kontexts: lieber

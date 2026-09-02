@@ -1,12 +1,12 @@
-// 4T-0179 (Epic 3E-0039): aus src/main/preload.js extrahiert.
+// 4T-000179 (Epic 3E-000039): aus src/main/preload.js extrahiert.
 // Eigene markdown-it-Plugins der Pipeline (Source-Line-Mapping, Wiki-Links,
 // Wiki-Embeds, Tags, Block-Anker, Callouts). Electron-frei; die Instanz-
 // Registrierung (md.use/mdPortable.use) macht markdown.js in der
 // Original-Reihenfolge.
 //
-// 4T-0985 (Epic 3E-0196): Der Inhalt liegt seither in den Gruppen-Modulen
+// 4T-000985 (Epic 3E-000196): Der Inhalt liegt seither in den Gruppen-Modulen
 // unter ./plugins/; diese Datei ist das Barrel des Subsystems und damit
-// eine bewusste Fassade (Entscheidung E3 der Bestandsaufnahme 4T-0964).
+// eine bewusste Fassade (Entscheidung E3 der Bestandsaufnahme 4T-000964).
 // Ihre Export-Flaeche ist unveraendert, deshalb blieben markdown.js,
 // main.js, preload.js, die Renderer-Verbraucher und die Test-Dateien vom
 // Schnitt unberuehrt. Neue Verbraucher duerfen ebenso gut direkt das
@@ -105,7 +105,7 @@ module.exports = {
   findPercentCommentRanges,
   stripPercentComments,
   stripHeadingMarkers,
-  // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges.
+  // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges.
   calendarValueBadgeSpec,
   calendarSpanText,
   CALENDAR_SPAN_LABEL_KEYS,

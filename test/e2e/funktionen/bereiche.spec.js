@@ -1,20 +1,20 @@
-// Epic 3E-0058: Bereiche — Öffnen, Automatik-Regeln, Schließen, Restore.
+// Epic 3E-000058: Bereiche — Öffnen, Automatik-Regeln, Schließen, Restore.
 //
-// BE-01 (4T-0322): Bereich in leerer App öffnen bindet die App (Titel
+// BE-01 (4T-000322): Bereich in leerer App öffnen bindet die App (Titel
 //        "(Bereich <Name>)", kein neues Fenster).
-// BE-02 (4T-0322): Bereich öffnen bei geöffneter Datei erzeugt eine neue
+// BE-02 (4T-000322): Bereich öffnen bei geöffneter Datei erzeugt eine neue
 //        Bereichs-Applikation; die Quell-App bleibt unverändert.
-// BE-03 (4T-0322): derselbe Bereich erneut → Sprung statt Duplikat.
-// BE-04 (4T-0322): Bereich schließen schließt die Fenster der Bereichs-App.
-// BE-05 (4T-0322): die Bereichs-Bindung überlebt Beenden und Neustart.
-// BE-06 (4T-0323): harte Grenze im Lese-Pfad — file:read weist Dateien
+// BE-03 (4T-000322): derselbe Bereich erneut → Sprung statt Duplikat.
+// BE-04 (4T-000322): Bereich schließen schließt die Fenster der Bereichs-App.
+// BE-05 (4T-000322): die Bereichs-Bindung überlebt Beenden und Neustart.
+// BE-06 (4T-000323): harte Grenze im Lese-Pfad — file:read weist Dateien
 //        außerhalb des Bereichs ab (zweite Linie hinter den UI-Pfaden).
-// BE-07 (4T-0323): Tab-Transfer in eine Bereichs-App wird für Dateien
+// BE-07 (4T-000323): Tab-Transfer in eine Bereichs-App wird für Dateien
 //        außerhalb des Bereichs abgewiesen (reason 'outside-area').
-// BE-08 (4T-0324): Außen-Link-Warnung — hinauszeigende Links tragen im
+// BE-08 (4T-000324): Außen-Link-Warnung — hinauszeigende Links tragen im
 //        Render-Pane die Warn-Klasse samt Pfad-Tooltip; der Klick öffnet
 //        nicht und meldet den Grund in der Statusbar.
-// BE-09 (4T-0325): Zuletzt geöffnete Bereiche — jedes Öffnen pflegt die
+// BE-09 (4T-000325): Zuletzt geöffnete Bereiche — jedes Öffnen pflegt die
 //        Liste (jüngste zuerst, dedupliziert); der Menü-Klick selbst ist
 //        natives Menü und manueller Test.
 // Der native Ordner-Dialog (area:open), die Dialog-Vorbelegungen und der
@@ -48,7 +48,7 @@ function removeDir(dir) {
 const windowCount = (app) =>
   app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
 
-test.describe('BE-01: Bereich in leerer App öffnen (4T-0322)', () => {
+test.describe('BE-01: Bereich in leerer App öffnen (4T-000322)', () => {
   test('bindet die App: Bereichs-Titel, kein neues Fenster', async () => {
     const { app, page, userData } = await launchApp();
     const dir = makeAreaDir('be01');
@@ -101,7 +101,7 @@ test.describe('BE-02 bis BE-04: Bereich bei geöffneter Datei, Doppel-Öffnung, 
   });
 });
 
-test.describe('BE-06/BE-07: Harte Bereichsgrenzen (4T-0323)', () => {
+test.describe('BE-06/BE-07: Harte Bereichsgrenzen (4T-000323)', () => {
   test('file:read und Tab-Transfer weisen Dateien außerhalb des Bereichs ab', async () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     const dir = makeAreaDir('be06');
@@ -145,7 +145,7 @@ test.describe('BE-06/BE-07: Harte Bereichsgrenzen (4T-0323)', () => {
   });
 });
 
-test.describe('BE-08: Außen-Link-Warnung (4T-0324)', () => {
+test.describe('BE-08: Außen-Link-Warnung (4T-000324)', () => {
   test('Marker im Render-Pane, Klick öffnet nicht und meldet den Grund', async () => {
     const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-bereich-be08-'));
     const dir = path.join(parent, 'Bereich');
@@ -192,7 +192,7 @@ test.describe('BE-08: Außen-Link-Warnung (4T-0324)', () => {
   });
 });
 
-test.describe('BE-09: Zuletzt geöffnete Bereiche (4T-0325)', () => {
+test.describe('BE-09: Zuletzt geöffnete Bereiche (4T-000325)', () => {
   test('Liste wird bei jedem Öffnen gepflegt (jüngste zuerst, ohne Duplikate)', async () => {
     const { app, page, userData } = await launchApp();
     const dirA = makeAreaDir('be09a');
@@ -224,7 +224,7 @@ test.describe('BE-09: Zuletzt geöffnete Bereiche (4T-0325)', () => {
   });
 });
 
-test.describe('BE-05: Bereichs-Bindung überlebt den Neustart (4T-0322)', () => {
+test.describe('BE-05: Bereichs-Bindung überlebt den Neustart (4T-000322)', () => {
   test('Bereich wird mit der Sitzung wiederhergestellt', async () => {
     const first = await launchApp();
     const userData = first.userData;

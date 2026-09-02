@@ -1,13 +1,13 @@
 // Erzeugt icon.ico (Multi-Size), icon.png (256px), icon-512.png und
 // icon.icns aus den beiden EM4me-Quell-SVG.
-// 4T-1204 (Epic 3E-0121): icon-512.png ist die Linux-Build-Grundlage
+// 4T-001204 (Epic 3E-000121): icon-512.png ist die Linux-Build-Grundlage
 // (electron-builder verlangt dort mindestens 512 px), icon.icns die
 // macOS-Grundlage. Die ICNS entsteht OHNE neue Abhaengigkeit: Der Container
 // traegt PNG-basierte Eintraege (Typen icp4 bis ic10), sein Aufbau ist
 // Typ-Kennung plus Laenge je Eintrag — handgeschrieben in icnsFromPngs.
 // Beide neuen Dateien sind reine Build-Grundlagen und vom Windows-Paket
 // ausgeschlossen (package.json, build.files).
-// 4T-0649 (Epic 3E-0126): Die ICO ist bewusst GESTAFFELT — eine ICO-Datei
+// 4T-000649 (Epic 3E-000126): Die ICO ist bewusst GESTAFFELT — eine ICO-Datei
 // kann pro Groesse ein eigenes Bild fuehren, und Windows greift je nach
 // Anzeige-Ort zur passenden Stufe:
 //   16/24/32 px -> em4me-mark.svg  (Kompaktmarke: nur die Vier, Buchstaben
@@ -16,7 +16,7 @@
 //                  Verknuepfung, Alt-Tab, Datei-Eigenschaften)
 // Das frueher noetige Wrapper-SVG (helle Plate um den fremden Markdown Mark)
 // entfaellt: Beide Quellen bringen ihr goldenes Plaettchen selbst mit.
-// X-07 (4T-0182): bewusst NICHT an den regulaeren Build gekoppelt — die
+// X-07 (4T-000182): bewusst NICHT an den regulaeren Build gekoppelt — die
 // ICO wird nur nach Aenderungen an den Quell-SVG manuell per
 // `npm run build:icon` neu erzeugt (kein sharp-Lauf pro Build).
 'use strict';

@@ -1,4 +1,4 @@
-// 4T-0186: Modus-Konsistenz Live/Render/Reading — Regressionstests.
+// 4T-000186: Modus-Konsistenz Live/Render/Reading — Regressionstests.
 //
 // MK-01: K-02 — In-Dokument-Anker-Klick im Live-Modus springt zur
 //        Heading-Zeile im Editor (lief vorher ins unsichtbare Render-DOM).
@@ -41,8 +41,8 @@ test.describe('MK-01: Anker-Sprung im Live-Modus (K-02)', () => {
       // der Link liegt auf Zeile 3 und ist damit dekoriert).
       const link = page.locator('.cm-live-wikilink').first();
       await expect(link).toBeVisible();
-      // 4T-0361: '.pane-source' qualifiziert den Haupt-Editor. Seit 3E-0066
-      // (Notizen-Panel, 4T-0398) steht eine zweite, unsichtbare CodeMirror-
+      // 4T-000361: '.pane-source' qualifiziert den Haupt-Editor. Seit 3E-000066
+      // (Notizen-Panel, 4T-000398) steht eine zweite, unsichtbare CodeMirror-
       // Instanz (Notiz-Feld) im DOM vor dem Editor; ein generischer
       // '.cm-scroller' traefe sonst die nicht scrollende Notiz-Instanz.
       const scrollBefore = await page.evaluate(() => {

@@ -1,6 +1,6 @@
-// 4T-0867 (Epic 3E-0162): Unit-Tests der Datei-Ebene des Bücherregals
+// 4T-000867 (Epic 3E-000162): Unit-Tests der Datei-Ebene des Bücherregals
 // (src/main/books/shelves.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
-// (Story 4S-0760, AK2), Zustands-Aufbau für die Preload-API, Neuanlage (AK3)
+// (Story 4S-000760, AK2), Zustands-Aufbau für die Preload-API, Neuanlage (AK3)
 // und Zuordnung samt «nicht zugeordnet» (AK4). Setup-Muster
 // test/unit/books-main.test.js (mkdtemp je Fall, Aufräumen im afterEach).
 import { afterEach, describe, expect, it } from 'vitest';
@@ -167,8 +167,8 @@ describe('shelves: Neuanlage (AK3)', () => {
   });
 });
 
-// 4T-0868 (Story 4S-0761): Anzeige-Daten der Regal-Ansicht.
-describe('shelves: Ansichts-Daten (4T-0868)', () => {
+// 4T-000868 (Story 4S-000761): Anzeige-Daten der Regal-Ansicht.
+describe('shelves: Ansichts-Daten (4T-000868)', () => {
   it('liefert Titel, Autor, Beschreibung, Bild und Kapitel-Anzahl je Buch', async () => {
     const parent = makeTempDir();
     const shelfDir = makeShelf(parent, 'Bibliothek');
@@ -256,7 +256,7 @@ describe('shelves: Zuordnung (AK4)', () => {
     const eins = await assignBookDir(shelfDir, 'Reise nach Ithaka');
     expect(eins.ok).toBe(true);
     expect(eins.books).toEqual(['Reise nach Ithaka']);
-    // 4T-1250 (Epic 3E-0124): Auf einem Dateisystem, das die Schreibung
+    // 4T-001250 (Epic 3E-000124): Auf einem Dateisystem, das die Schreibung
     // unterscheidet, ist der klein geschriebene Ordner ein ANDERER Ordner, und
     // die Zuordnung meldet folgerichtig «unknown-dir». Dass die Anwendung ihn
     // dennoch als Doppel abweisen wuerde, sobald er existiert, ist ein

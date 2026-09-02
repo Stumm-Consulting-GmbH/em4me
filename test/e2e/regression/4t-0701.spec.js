@@ -1,4 +1,4 @@
-// 4T-0701 (Epic 3E-0161): Der OK-Zyklus der Einstellungs-Seite darf keine
+// 4T-000701 (Epic 3E-000161): Der OK-Zyklus der Einstellungs-Seite darf keine
 // Seite schliessen, die waehrend des Anwendens erneut angefordert wurde.
 //
 // Gemeldeter Ablauf (Fall KS-01 der Kalender-Spec, ueber Wochen intermittierend
@@ -49,7 +49,7 @@ async function setzeAenderung(page) {
   await expect(page.locator(APPLY)).toBeEnabled();
 }
 
-test.describe('4T-0701: OK-Zyklus der Einstellungs-Seite und Sofort-Wiederoeffnen', () => {
+test.describe('4T-000701: OK-Zyklus der Einstellungs-Seite und Sofort-Wiederoeffnen', () => {
   test('waehrend des Anwendens erneut angefordert: die Seite bleibt offen', async () => {
     const { app, page, userData } = await launchApp();
     try {

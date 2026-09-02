@@ -1,4 +1,4 @@
-// 4T-0544 (Epic 3E-0097): Bausteine des Kalender-Formulars — Zahlen-Zelle,
+// 4T-000544 (Epic 3E-000097): Bausteine des Kalender-Formulars — Zahlen-Zelle,
 // Segment-Zeile, Ebenen-Auswahl, Ebenen-Editor und die Editoren der
 // abgeleiteten Gruppierungen.
 'use strict';
@@ -347,8 +347,8 @@ export function buildCalSysLevelSelect(id, calDraft, current, onChange, filter) 
   return select;
 }
 
-// 4T-0544 (Epic 3E-0097): Editoren der abgeleiteten Gruppierungen (etwa
-// Quartal) einer Kalender-Definition. Mit 4T-0988 (Epic 3E-0196) aus dem
+// 4T-000544 (Epic 3E-000097): Editoren der abgeleiteten Gruppierungen (etwa
+// Quartal) einer Kalender-Definition. Mit 4T-000988 (Epic 3E-000196) aus dem
 // Kalender-Editor herausgeloest; der Rumpf ist unveraendert, die vier
 // Parameter sind genau die Werte, die er zuvor aus dem umschliessenden
 // Gueltigkeitsbereich las.

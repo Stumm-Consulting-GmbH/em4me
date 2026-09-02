@@ -1,9 +1,9 @@
-/* 4T-1046 (Epic 3E-0151): Mindmap-Ansicht — Farben ausschließlich über
+/* 4T-001046 (Epic 3E-000151): Mindmap-Ansicht — Farben ausschließlich über
    Theme-Variablen (hell/dunkel). Die Ast-Farben stehen hier und nicht in der
    Komponente: Sie werden über das Attribut data-mindmap-farbe (1 bis 8)
    zugeordnet, damit die Farbschemas sie tragen und der Renderer farbfrei
    bleibt. */
-/* 4T-1047 (Epic 3E-0151): Der Mindmap-Modus ersetzt Editor und Render-Pane
+/* 4T-001047 (Epic 3E-000151): Der Mindmap-Modus ersetzt Editor und Render-Pane
    vollständig, genau wie die System-Pane. Sichtbar wird der Container erst
    über die Modus-Klasse am .content-Element. */
 .pane-mindmap {
@@ -69,7 +69,7 @@
   fill: var(--border-strong);
 }
 
-/* 4T-1054: Notiz-Symbol als beschriebener Zettel. Das gezeichnete Blatt bleibt
+/* 4T-001054: Notiz-Symbol als beschriebener Zettel. Das gezeichnete Blatt bleibt
    klein, die Trefferfläche darüber ist größer und durchsichtig. */
 .mindmap-notiz-marker {
   cursor: pointer;

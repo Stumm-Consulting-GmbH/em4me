@@ -1,5 +1,5 @@
-// --- Modus-uebergreifende Ziel-Navigation (4T-0186) -------------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// --- Modus-uebergreifende Ziel-Navigation (4T-000186) -------------------------
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // K-02/R3-03/R4-09: Anker- und Zeilen-Spruenge muessen in jedem Ansichts-Modus
 // wirken. Reading scrollt das Render-Pane (Anker-Element bzw.
 // data-source-line-Mapping); Source/Live setzen den Editor-Cursor auf die
@@ -11,24 +11,24 @@ import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 
 import { getDocText } from '../app/api.js';
-// K-02 (4T-0186): identische Slugs wie der markdown-it-anchor-Render-Pfad.
+// K-02 (4T-000186): identische Slugs wie der markdown-it-anchor-Render-Pfad.
 import { githubLikeSlug } from '../../../shared/markdown/slug.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
-// 4T-0990 (Epic 3E-0196): panels.js ist in den Feature-Ordner panels/ geteilt.
+// 4T-000990 (Epic 3E-000196): panels.js ist in den Feature-Ordner panels/ geteilt.
 import { extractHeadingText } from '../panels/panel-outline.js';
 
 import { findRenderElementForLine } from './scroll-sync.js';
 
-// 4T-0054: Nach dem Oeffnen einer Datei (Klick auf [[Datei#Anker]]) zum
+// 4T-000054: Nach dem Oeffnen einer Datei (Klick auf [[Datei#Anker]]) zum
 // Anker scrollen. Render-Pane braucht einen Repaint, daher Verzoegerung;
 // 100 ms reicht typischerweise auch fuer groessere Dokumente.
-// R4-09 (4T-0186): modusbewusst (Editor-Sprung in source/live).
+// R4-09 (4T-000186): modusbewusst (Editor-Sprung in source/live).
 export function scrollToAnchorAfterOpen(paneIdx, anchorId) {
   setTimeout(() => navigateToAnchorInPane(paneIdx, anchorId), 100);
 }
 
-// 4T-0502 (Epic 3E-0096): Zeilen-Sprung nach dem Oeffnen (Task-Treffer der
+// 4T-000502 (Epic 3E-000096): Zeilen-Sprung nach dem Oeffnen (Task-Treffer der
 // Abfrage) — gleiches Timing wie der Anker-Sprung, modusbewusst wie
 // navigateToAnchorInPane (Reading scrollt das Render-Pane ueber das
 // data-source-line-Mapping, Source/Live setzen den Editor-Cursor).
@@ -61,7 +61,7 @@ export function scrollToAnchorInPane(paneIdx, anchorId) {
   }
 }
 
-// --- Modus-uebergreifende Ziel-Navigation (4T-0186) --------------------------
+// --- Modus-uebergreifende Ziel-Navigation (4T-000186) --------------------------
 // K-02/R3-03/R4-09: Anker- und Zeilen-Sprünge muessen in jedem Ansichts-
 // Modus wirken. Reading scrollt das Render-Pane (Anker-Element bzw.
 // data-source-line-Mapping); Source/Live setzen den Editor-Cursor auf die

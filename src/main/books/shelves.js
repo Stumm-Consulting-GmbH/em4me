@@ -1,4 +1,4 @@
-// 4T-0867 (Epic 3E-0162): Datei-Ebene des Bücherregals — Erkennung eines
+// 4T-000867 (Epic 3E-000162): Datei-Ebene des Bücherregals — Erkennung eines
 // Regal-Ordners, Zustands-Aufbau für den Renderer, Neuanlage und Zuordnung.
 //
 // Der Kern des Regal-Modells (Begleitdatei, Buch-Liste, Abgleich) liegt
@@ -15,7 +15,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
-// 4T-1276 (Epic 3E-0232, Befund B1): Ordner-Identität über die zentrale Auskunft.
+// 4T-001276 (Epic 3E-000232, Befund B1): Ordner-Identität über die zentrale Auskunft.
 const { pathCompareKey } = require('../../shared/platform.js');
 
 const {
@@ -37,7 +37,7 @@ const {
 // beantwortet „ist dieser Ordner ein Buch-Ordner?", sanitizeBookName gilt für
 // Regal-Namen unverändert (dieselben Windows-Ordnernamen-Regeln).
 const { readBookSettings, sanitizeBookName } = require('./books.js');
-// 4T-0868: Bausteine der Regal-Ansicht — Kapitel-Anzahl aus dem Kapitel-Baum
+// 4T-000868: Bausteine der Regal-Ansicht — Kapitel-Anzahl aus dem Kapitel-Baum
 // des Buches, Titel/Autor/Beschreibung/Bild aus dem Frontmatter der
 // Buch-Datei (dieselben Parser wie überall, keine zweite Fassung).
 const {
@@ -129,7 +129,7 @@ async function collectBookDirs(shelfDir) {
   return out;
 }
 
-// 4T-0873 (Story 4S-0760, AK7): Der Buch-Ordner des Regals, in dem diese Datei
+// 4T-000873 (Story 4S-000760, AK7): Der Buch-Ordner des Regals, in dem diese Datei
 // liegt — Grundlage des strikten Routings (Variante R1): Jeder Griff in ein
 // Buch verlaesst das Regal-Fenster und landet in der Buch-Applikation.
 // Geprueft wird das ERSTE Pfad-Segment unter dem Regal-Ordner, weil die
@@ -226,7 +226,7 @@ async function createShelf(parentDir, rawName) {
   return { ok: true, shelfDir, shelfFileName, shelfFilePath };
 }
 
-// --- Zuordnung (Story 4S-0760, AK4) -------------------------------------------
+// --- Zuordnung (Story 4S-000760, AK4) -------------------------------------------
 
 // Schreibt den Container zurück. Bewusst ohne Zwischendatei (Begründung in
 // books.js: eine halb geschriebene Datei fiele beim nächsten Lesen als
@@ -294,14 +294,14 @@ async function unassignBookDir(shelfDir, rawDirName) {
   return { ok: true, books: result.books };
 }
 
-// --- Ansichts-Daten (4T-0868, Story 4S-0761) ----------------------------------
+// --- Ansichts-Daten (4T-000868, Story 4S-000761) ----------------------------------
 
 // Frontmatter-Auszug einer Markdown-Datei: { title, author, description,
 // cover } — fehlende oder nicht lesbare Werte als null. Nicht lesbare Datei
 // oder defektes Frontmatter liefert leere Werte statt eines Fehlers
 // (Fehler-Isolation: die Ansicht zeigt dann den Ordner-Namen). Der
 // Bild-Verweis heißt `cover` — die Bestands-Konvention des mitgelieferten
-// Demo-Buches (4T-0850), keine zweite Schlüssel-Wahrheit.
+// Demo-Buches (4T-000850), keine zweite Schlüssel-Wahrheit.
 async function readFrontmatterExcerpt(filePath) {
   const leer = { title: null, author: null, description: null, cover: null };
   let raw;

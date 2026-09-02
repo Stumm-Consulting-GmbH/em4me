@@ -3,7 +3,7 @@
 // Konfiguration (global und je Bereich), die Ordner-Auswahl und die Anlage
 // einer Datei aus einer Vorlage.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: templates:*.
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: templates:*.
 //
 // Eigener Zustand: keiner; die Aufloesung des Vorlagen-Ordners kommt als Dep,
 // die reine Pfad- und Regel-Logik aus dem Vorlagen-Modul.
@@ -21,7 +21,7 @@ const {
 } = require('../documents/templates');
 const selbstSchreib = require('../documents/self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -54,11 +54,11 @@ function registerTemplatesIpc(handle, deps) {
     readAreaTemplatesConfig,
     resolveTemplatesForWindow,
   } = deps;
-  // 4T-0999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
+  // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
 
-  // --- 4T-0424 (Epic 3E-0080): Vorlagen-Quellen und Datenpfad -----------------
+  // --- 4T-000424 (Epic 3E-000080): Vorlagen-Quellen und Datenpfad -----------------
 
   // Vorlagen-Liste des aufgeloesten Ordners (Bereich vor global), inklusive
   // Unterordnern. Kein Watcher und kein Cache (Epic-Entscheidung): die Liste
@@ -123,7 +123,7 @@ function registerTemplatesIpc(handle, deps) {
     }
   });
 
-  // 4T-0427 (Epic 3E-0080): Ordner-Regel für eine neu angelegte Datei
+  // 4T-000427 (Epic 3E-000080): Ordner-Regel für eine neu angelegte Datei
   // auflösen (tiefster Treffer gewinnt, Vorlagen-Ordner ausgenommen; Kern in
   // src/main/documents/templates.js). Der Renderer ruft das nach jeder Datei-Anlage
   // über die App auf und wendet die gemeldete Vorlage an; extern angelegte
@@ -141,7 +141,7 @@ function registerTemplatesIpc(handle, deps) {
     return { ok: true, template };
   });
 
-  // 4T-0428 (Epic 3E-0080): Konfigurations-Stand fuer den Einstellungs-
+  // 4T-000428 (Epic 3E-000080): Konfigurations-Stand fuer den Einstellungs-
   // Bereich "Vorlagen": globale Werte (Store) und Bereichs-Sektion
   // (Bereichsdatei), beide normalisiert; hasArea/areaName steuern die
   // Bereichs-Gruppe der UI.
@@ -160,7 +160,7 @@ function registerTemplatesIpc(handle, deps) {
     };
   });
 
-  // 4T-0428: templates-Sektion der Bereichsdatei schreiben (config = Objekt)
+  // 4T-000428: templates-Sektion der Bereichsdatei schreiben (config = Objekt)
   // bzw. entfernen (config = null). Muster history:setAreaDefault: die
   // Bereichsdatei entsteht erst beim ersten tatsaechlichen Setzen, eine
   // defekte Bereichsdatei wird nie ueberschrieben.
@@ -196,8 +196,8 @@ function registerTemplatesIpc(handle, deps) {
     }
   });
 
-  // 4T-0428: Ordner-Auswahl fuer den Einstellungs-Bereich (globaler bzw.
-  // Bereichs-Vorlagen-Ordner). 4T-0426 (Befund der Release-Test-Iteration):
+  // 4T-000428: Ordner-Auswahl fuer den Einstellungs-Bereich (globaler bzw.
+  // Bereichs-Vorlagen-Ordner). 4T-000426 (Befund der Release-Test-Iteration):
   // purpose 'target' nutzt denselben Dialog als Zielordner-Fallback von
   // "Neue Datei aus Vorlage" im Fenster ohne Datei-/Bereichs-Kontext.
   handle('templates:chooseFolder', async (event, params) => {
@@ -216,11 +216,11 @@ function registerTemplatesIpc(handle, deps) {
     return { ok: true, path: result.filePaths[0] };
   });
 
-  // 4T-0426 (Epic 3E-0080): "Neue Datei aus Vorlage" — legt die Datei mit
+  // 4T-000426 (Epic 3E-000080): "Neue Datei aus Vorlage" — legt die Datei mit
   // dem bereits gefuellten Vorlagen-Inhalt an (Platzhalter-Dialoge laufen im
   // Renderer VOR der Anlage; Abbruch dort erzeugt keine Datei). Bewusst
   // getrennt von area:createFile: dieser Pfad triggert keine Ordner-Regel
-  // (expliziter Vorlagen-Weg hat Vorrang, 4T-0427) und funktioniert auch in
+  // (expliziter Vorlagen-Weg hat Vorrang, 4T-000427) und funktioniert auch in
   // Fenstern ohne Bereich (Zielordner = Ordner der aktiven Datei). Mit
   // Bereich gilt die harte Bereichs-Grenze. Namens-Validierung ueber
   // sanitizeNewFileName (die Unterseiten-Form U+2215 passiert sie);

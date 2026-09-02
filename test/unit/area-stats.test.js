@@ -1,4 +1,4 @@
-// 4T-0619 (Epic 3E-0117): Unit-Tests der Kennzahlen-Erhebung eines Bereichs
+// 4T-000619 (Epic 3E-000117): Unit-Tests der Kennzahlen-Erhebung eines Bereichs
 // (statsFor im Index plus ergaenzender Scan in area-stats.js). Alle
 // Erwartungswerte sind am angelegten Fixture-Verzeichnis von Hand
 // nachgerechnet und stehen als Zahl im Test, nicht als Rechnung.
@@ -121,7 +121,7 @@ afterEach(() => {
   tmpDirs = [];
 });
 
-describe('statsFor — Index-Anteil der Bereichs-Statistik (4T-0619)', () => {
+describe('statsFor — Index-Anteil der Bereichs-Statistik (4T-000619)', () => {
   it('zaehlt Tags und Eigenschaften je Datei, absteigend sortiert', async () => {
     const { root, start } = makeFixture();
     await indexFor(start, 'test:stats-index', root);
@@ -177,7 +177,7 @@ describe('statsFor — Index-Anteil der Bereichs-Statistik (4T-0619)', () => {
   });
 });
 
-describe('collectAreaStats — Zusammenfuehrung mit dem Ordner-Scan (4T-0619)', () => {
+describe('collectAreaStats — Zusammenfuehrung mit dem Ordner-Scan (4T-000619)', () => {
   it('zaehlt Ordner, Nicht-Markdown-Dateien und Begleitdateien am Fixture', async () => {
     const { root, start } = makeFixture();
     await indexFor(start, 'test:stats-scan', root);

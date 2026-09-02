@@ -1,4 +1,4 @@
-// 4T-0752 (Epic 3E-0146): E2E-Funktions-Suite — Monatskalender der Uhr.
+// 4T-000752 (Epic 3E-000146): E2E-Funktions-Suite — Monatskalender der Uhr.
 //
 // Die Navigations-Rechnung selbst prüft test/unit/clock-options.test.js, den
 // Gitter-Aufbau test/unit/renderer/month-grid-view.test.js. Hier geht es um
@@ -171,7 +171,7 @@ test.describe('UK-04: Kalenderwochen-Spalte', () => {
     });
     const { app, page } = await launchApp({ userData, settings: null });
     try {
-      // 4T-0644 (Epic 3E-0127): `settings: null` haelt das hier von Hand
+      // 4T-000644 (Epic 3E-000127): `settings: null` haelt das hier von Hand
       // geschriebene Profil unveraendert — und damit ohne den Tour-Merker, den
       // launchApp sonst jeder Vorbelegung unterlegt. Die Produkt-Tour laeuft
       // deshalb an und wird weggeraeumt, bevor ihr Overlay den Klick auf die

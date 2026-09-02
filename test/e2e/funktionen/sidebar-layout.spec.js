@@ -1,7 +1,7 @@
-// 4T-0288 (Epic 3E-0051): E2E-Layout-Spec der dynamischen Sidebar.
+// 4T-000288 (Epic 3E-000051): E2E-Layout-Spec der dynamischen Sidebar.
 // Nicht-Default-Layouts werden über ein vorab geschriebenes Profil
 // (electron-store config.json im Temp-userData) gesetzt — die
-// Konfigurations-UI kommt erst mit 4T-0289.
+// Konfigurations-UI kommt erst mit 4T-000289.
 'use strict';
 
 const fs = require('node:fs');
@@ -29,7 +29,7 @@ async function waitForTab(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
-// 4T-0639 (Epic 3E-0069): Einstellungs-Seite über Strg+, öffnen. Mit Poll,
+// 4T-000639 (Epic 3E-000069): Einstellungs-Seite über Strg+, öffnen. Mit Poll,
 // weil launchApp nach domcontentloaded zurückkehrt, der Kommando-Dispatcher
 // aber erst am Ende des asynchronen init() steht (Muster
 // einstellungen-seite.spec.js).
@@ -59,7 +59,7 @@ test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () 
       await expect(page.locator(RIGHT)).toBeHidden();
       // Migrierte Breite der linken Seite (Legacy-Key outline.width).
       await expect(left).toHaveCSS('width', '333px');
-      // 4T-0563 (Epic 3E-0102): neue Standard-Anordnung. Die Struktur wird
+      // 4T-000563 (Epic 3E-000102): neue Standard-Anordnung. Die Struktur wird
       // sichtbarkeits-unabhängig geprüft — alle Sektionen sind gemäß Layout in
       // ihren Seiten-Container gehängt (auch wenn dieser mangels sichtbarem
       // Panel versteckt ist), die Gruppen-Zugehörigkeit trägt die Klasse
@@ -87,18 +87,18 @@ test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () 
       expect(dom.left.map((e) => e.id)).toEqual([
         'bookmarks',
         'area',
-        // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches als dritter
+        // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches als dritter
         // Reiter der Ort-Gruppe.
         'book',
         'outline',
         'subpages',
         'filegraph',
-        // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel als vierter Reiter der
+        // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel als vierter Reiter der
         // Finde-Gruppe.
         'searchresults',
         'calendar',
         'reminders',
-        // 4T-0372 (Epic 3E-0069): Uhr-Panel als dritter Reiter der Zeit-Gruppe.
+        // 4T-000372 (Epic 3E-000069): Uhr-Panel als dritter Reiter der Zeit-Gruppe.
         'clock',
       ]);
       expect(dom.right.map((e) => e.id)).toEqual([
@@ -209,7 +209,7 @@ test.describe('SL-04: Reiter-Gruppe mit Reiterwechsel', () => {
       await tabs.nth(1).click();
       await expect(page.locator(`${LEFT} .sidebar-bookmarks`)).not.toHaveClass(/tab-hidden/);
       await expect(page.locator(`${LEFT} .sidebar-outline`)).toHaveClass(/tab-hidden/);
-      // 4T-0942 (Befund B-07): Der aktive Reiter gehoert seit der Modell-
+      // 4T-000942 (Befund B-07): Der aktive Reiter gehoert seit der Modell-
       // Entscheidung vom 2026-08-10 zur Spalte und wird deshalb spaltenweise
       // persistiert; der Layout-Wert bleibt die Vorgabe und aendert sich
       // nicht mehr mit. Zuvor pruefte dieser Fall genau das Gegenteil.
@@ -285,7 +285,7 @@ test.describe('SL-05: Sichtbarkeits-Toggles wirken pro Pane', () => {
   });
 });
 
-// 4T-0289: Drag-and-Drop der Panels. Die Zonen-Logik wird über synthetische
+// 4T-000289: Drag-and-Drop der Panels. Die Zonen-Logik wird über synthetische
 // DragEvents geprüft (deterministisch, unabhängig von OS-Drag-Timing);
 // dataTransfer wird pro Event frisch erzeugt — die Handler arbeiten auf dem
 // Modul-Drag-Zustand, nicht auf den Payload-Daten.
@@ -319,7 +319,7 @@ async function syntheticPanelDrag(page, sourceSel, steps) {
 
 test.describe('SL-07: Drag-and-Drop — Gruppe bilden und Reihenfolge ändern', () => {
   test('Header auf Sektions-Mitte gruppiert; oberes Drittel sortiert davor', async () => {
-    // 4T-0563 (Epic 3E-0102): explizites flaches Layout (bookmarks und outline
+    // 4T-000563 (Epic 3E-000102): explizites flaches Layout (bookmarks und outline
     // als benachbarte Einzel-Slots links), damit die DnD-Semantik dieses Tests
     // unabhängig vom neuen Gruppen-Standard prüfbar bleibt.
     const userData = seedProfile({
@@ -377,7 +377,7 @@ test.describe('SL-07: Drag-and-Drop — Gruppe bilden und Reihenfolge ändern', 
 
 test.describe('SL-08: Drag-and-Drop — leerer Container und Ziel-Markierung', () => {
   test('Drop in den leeren rechten Container wechselt die Seite', async () => {
-    // 4T-0563 (Epic 3E-0102): outline als Einzel-Slot links, rechte Seite
+    // 4T-000563 (Epic 3E-000102): outline als Einzel-Slot links, rechte Seite
     // explizit leer (der neue Standard hätte rechts bereits Slots) — die
     // DnD-Semantik dieses Tests bleibt so unverändert prüfbar.
     const userData = seedProfile({
@@ -414,7 +414,7 @@ test.describe('SL-08: Drag-and-Drop — leerer Container und Ziel-Markierung', (
   });
 
   test('Während des Drags ist die Ziel-Zone visuell markiert; Esc räumt auf', async () => {
-    // 4T-0563 (Epic 3E-0102): explizites flaches Layout (wie SL-07/SL-08a),
+    // 4T-000563 (Epic 3E-000102): explizites flaches Layout (wie SL-07/SL-08a),
     // damit outline und bookmarks Einzel-Slots mit sichtbarem Sektions-Header
     // (Drag-Quelle) bzw. sichtbarer Sektion (Drop-Ziel) sind.
     const userData = seedProfile({
@@ -543,7 +543,7 @@ test.describe('SL-06: Unabhängige Breiten je Seite', () => {
   });
 });
 
-// 4T-0475 (Epic 3E-0088): manuell einstellbare Panel-Höhen. Zwischen zwei
+// 4T-000475 (Epic 3E-000088): manuell einstellbare Panel-Höhen. Zwischen zwei
 // gestapelten Blöcken entsteht ein Zieh-Griff (.sidebar-panel-resizer), der
 // die Höhe des Blocks darüber steuert; die Höhe wird persistiert und über
 // den Neustart wiederhergestellt, Doppelklick setzt sie zurück.
@@ -630,7 +630,7 @@ test.describe('SL-10: Manuell einstellbare Panel-Höhen', () => {
   });
 });
 
-// 4T-0634 (Epic 3E-0119): Regressionstest — das gezogene Panel folgt der
+// 4T-000634 (Epic 3E-000119): Regressionstest — das gezogene Panel folgt der
 // Maus exakt (Starthöhe plus Delta), Nachbar-Panels bleiben unverändert.
 // Vor dem Fix staucht der Flex-Algorithmus die gesetzte Höhe bei
 // überfüllter Sidebar (flex-shrink auf .has-fixed-height) und verteilt das
@@ -705,7 +705,7 @@ test.describe('SL-11: Höhen-Drag folgt der Maus 1:1, Nachbarn stabil', () => {
 });
 
 test.describe('SL-12: Panel-Überschriften wahlweise als Icon', () => {
-  // 4T-0639 (Epic 3E-0069): Der Schalter im Bereich „Sidebar" tauscht Text-
+  // 4T-000639 (Epic 3E-000069): Der Schalter im Bereich „Sidebar" tauscht Text-
   // gegen Icon-Überschriften — in Einzel-Panel-Köpfen UND in den Reitern
   // gruppierter Panels, nie gemischt. Im Icon-Zustand darf die Sidebar
   // schmaler gezogen werden (120 statt 180 Pixel).
@@ -794,7 +794,7 @@ test.describe('SL-12: Panel-Überschriften wahlweise als Icon', () => {
   });
 });
 
-// 4T-0682 (Epic 3E-0139): Der letzte sichtbare Block einer Seite hat keinen
+// 4T-000682 (Epic 3E-000139): Der letzte sichtbare Block einer Seite hat keinen
 // Höhen-Griff — der Griff steuert stets den Block darüber, hinter dem letzten
 // folgt keiner mehr. Bis zu diesem Fix bekam er trotzdem eine fixierte Höhe
 // (freezeSidePanelHeights friert beim Ziehen eines beliebigen Griffs alle

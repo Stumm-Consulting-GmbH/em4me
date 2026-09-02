@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-// 4T-0506 (Epic 3E-0096): Unit-Test des Task-Bearbeitungs-Dialogs
+// 4T-000506 (Epic 3E-000096): Unit-Test des Task-Bearbeitungs-Dialogs
 // (showTaskDialog). Der Dialog arbeitet auf einer Round-Trip-Kopie des
 // Modells und liefert beim OK den neuen Zeilen-Text bzw. beim Abbruch
-// null. Die Datums-Eingabe laeuft ueber den Picker (3E-0091, eigenes
+// null. Die Datums-Eingabe laeuft ueber den Picker (3E-000091, eigenes
 // Testgut); hier wird nur das Formular-zu-Zeile-Verhalten geprueft, nicht
 // der Picker selbst.
 //
@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
 
-// 4T-0508 (Epic 3E-0096): Die Abhaengigkeits-Suche des Dialogs laeuft ueber
+// 4T-000508 (Epic 3E-000096): Die Abhaengigkeits-Suche des Dialogs laeuft ueber
 // api.runFrontmatterQuery('LIST TASKS'). Der Basis-Stub (api-stub.js) kennt
 // die Methode nicht; hier ein Test-Stub, der eine leere Task-Liste liefert
 // (die Bereichs-Suche bleibt damit ohne Kandidaten). NUR im Test, nicht
@@ -71,7 +71,7 @@ const recInput = () => el('task-dialog-recurrence');
 const btnOk = () => el('btn-task-dialog-ok');
 const btnCancel = () => el('btn-task-dialog-cancel');
 
-describe('showTaskDialog (4T-0506)', () => {
+describe('showTaskDialog (4T-000506)', () => {
   it('(a) Formular zu Zeile: Beschreibung, Prioritaet, Wiederholung — Round-Trip erhaelt den Termin', async () => {
     const model = parseTaskLine('- [ ] Alt 📅 2099-01-01');
     const p = showTaskDialog(model, 'edit');
@@ -164,7 +164,7 @@ describe('showTaskDialog (4T-0506)', () => {
     const p = showTaskDialog(model, 'edit');
     const rows = el('task-dialog-dates').querySelectorAll('.task-dialog-date-row');
     // Drei manuelle Termin-Felder (due, scheduled, start) plus die
-    // Erinnerungs-Zeile (4T-0528, Epic 3E-0095).
+    // Erinnerungs-Zeile (4T-000528, Epic 3E-000095).
     expect(rows.length).toBe(4);
     for (const row of rows) {
       expect(row.querySelector('button.task-dialog-date-btn')).not.toBeNull();
@@ -174,9 +174,9 @@ describe('showTaskDialog (4T-0506)', () => {
   });
 });
 
-// 4T-0508 (Epic 3E-0096): Abhaengigkeits-Bereich des Dialogs (#task-dialog-deps)
+// 4T-000508 (Epic 3E-000096): Abhaengigkeits-Bereich des Dialogs (#task-dialog-deps)
 // — ID-Zeile (bestehende ID anzeigen, ID erzeugen) und Vorgaenger-Chips.
-describe('showTaskDialog — Abhaengigkeiten (4T-0508)', () => {
+describe('showTaskDialog — Abhaengigkeiten (4T-000508)', () => {
   const depsEl = () => el('task-dialog-deps');
   // Nach einem Klick, dessen Handler ueber api.runFrontmatterQuery laeuft
   // (async), die Mikro-/Makro-Task-Warteschlange leeren.

@@ -1,4 +1,4 @@
-// 4T-0378 (Epic 3E-0071): E2E-Suite für die Zeichen-Format- und Link-
+// 4T-000378 (Epic 3E-000071): E2E-Suite für die Zeichen-Format- und Link-
 // Kommandos. Prüft den Hotkey-Pfad (Strg+B), den Menü-Pfad (Format-Submenü),
 // das Toggle-Verhalten, das Wiki-Link-Einfügen, die Read-only-Abmeldung und
 // den Schutz gegen Formatierung im Wiki-Link-Ziel. Die Toggle-Regeln selbst

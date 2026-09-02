@@ -1,4 +1,4 @@
-// 4T-0567 (Epic 3E-0104): Prozess-neutrales Panel-Zugangs-Modell.
+// 4T-000567 (Epic 3E-000104): Prozess-neutrales Panel-Zugangs-Modell.
 //
 // Single Source of Truth fuer die Zugangs-Metadaten der eingebauten
 // Sidebar-Panels: Statusbar-Button, Toggle-Kommando (Accelerator, Palette,
@@ -47,9 +47,9 @@ const PANEL_ACCESS = [
     commandId: 'view.toggleAreaPanel',
     extensionId: null,
   },
-  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches, thematisch bei den
+  // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches, thematisch bei den
   // ortsgebenden Panels (Lesezeichen, Bereich).
-  // 4T-0849 (Story 4S-0758): Erweiterungs-Gate auf 'books' gesetzt — im
+  // 4T-000849 (Story 4S-000758): Erweiterungs-Gate auf 'books' gesetzt — im
   // Aus-Zustand entfaellt der Panel-Zugang an beiden Bedienorten
   // (Statusbar-Button ueber das Renderer-Gate, Untermenue-Eintrag ueber
   // unless() am Toggle-Kommando). Das commandId steht dafuer in der
@@ -82,7 +82,7 @@ const PANEL_ACCESS = [
     commandId: 'view.toggleGraphPanel',
     extensionId: 'graph-view',
   },
-  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel, Abschluss der Finde-Gruppe
+  // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel, Abschluss der Finde-Gruppe
   // der linken Seite (Gliederung, Unterseiten, Graph). Kern-Panel ohne
   // Erweiterungs-Gate: Die Suche gehoert zur Grundausstattung.
   {
@@ -106,7 +106,7 @@ const PANEL_ACCESS = [
     commandId: 'view.toggleReminders',
     extensionId: 'reminders',
   },
-  // 4T-0372 (Epic 3E-0069): Uhr-Panel, thematisch in der Zeit-Gruppe hinter
+  // 4T-000372 (Epic 3E-000069): Uhr-Panel, thematisch in der Zeit-Gruppe hinter
   // Kalender und Erinnerungen (identisch zur Reiter-Gruppe der linken Seite
   // in DEFAULT_SIDEBAR_STRUCTURE).
   {
@@ -168,7 +168,7 @@ function panelAccessById(id) {
   return PANEL_ACCESS.find((p) => p.id === id) || null;
 }
 
-// 4T-0569 (Epic 3E-0104): Reihenfolge-Setting normalisieren — unbekannte
+// 4T-000569 (Epic 3E-000104): Reihenfolge-Setting normalisieren — unbekannte
 // IDs entfallen, Duplikate reduzieren sich aufs erste Vorkommen, fehlende
 // bekannte Panels werden am Ende in Modell-Reihenfolge ergaenzt (Muster
 // normalizeSidebarLayout: kein Panel geht verloren, kuenftige Panels

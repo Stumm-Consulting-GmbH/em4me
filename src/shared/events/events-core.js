@@ -1,4 +1,4 @@
-// 4T-0511 (Epic 3E-0092): Ereignisse — internes Profil, Rechen-Kern und
+// 4T-000511 (Epic 3E-000092): Ereignisse — internes Profil, Rechen-Kern und
 // Verknüpfungen.
 //
 // Prozess-neutraler Kern der Ereignis-Funktion (kein Electron, kein DOM;
@@ -6,7 +6,7 @@
 //
 // 1. Definition des festen internen Eigenschafts-Profils „Ereignis" im
 //    Feld-Format der Profil-Auflösung (property-profiles.js). Die
-//    Einspeisung in profiles:resolve/profiles:list liegt in 4T-0517.
+//    Einspeisung in profiles:resolve/profiles:list liegt in 4T-000517.
 // 2. Rechen-Kern: Zeitdifferenz-Staffelung in vier Stufen, Meilenstein-
 //    Regeln, nächstes Jahres-Vorkommen, Spannen-Differenz. Alle Funktionen
 //    sind rein und nehmen den Stichtag als Parameter (Determinismus,
@@ -15,7 +15,7 @@
 // 3. Verknüpfungen: Vorgänger/Nachfolger-Beziehungen mit bidirektionaler
 //    Pflege samt Kennungs-Vergabe.
 //
-// 4T-0984 (Epic 3E-0196): Ordner `src/shared/events/`. Neben dem Kern
+// 4T-000984 (Epic 3E-000196): Ordner `src/shared/events/`. Neben dem Kern
 // liegen `events-fence.js` (Fence-Datenformat, weiche Validierung,
 // Fence-Suche im Dokument-Text) und `events-views.js` (Sortierung und
 // Filter, Ansichts-Aufbereitung, Gantt). Beide laden den Kern, der Kern
@@ -66,7 +66,7 @@ const EVENT_CATEGORIES = [
 // Feste Farbzuordnung der Kategorie-Badges (hell/dunkel). Die Referenz-
 // Analyse verlangt eine feste Zuordnung, nennt aber keine konkreten Werte —
 // die Palette ist eine Design-Entscheidung dieses Epics (dokumentiert in
-// 4T-0511) und deckt beide Themes mit ausreichendem Kontrast ab.
+// 4T-000511) und deckt beide Themes mit ausreichendem Kontrast ab.
 const EVENT_CATEGORY_COLORS = {
   geburtstag: { light: { bg: '#e8f5e9', fg: '#1b5e20' }, dark: { bg: '#1e3a22', fg: '#a5d6a7' } },
   todestag: { light: { bg: '#eceff1', fg: '#37474f' }, dark: { bg: '#2e3438', fg: '#b0bec5' } },
@@ -119,7 +119,7 @@ function eventProfileFields() {
   ];
 }
 
-// Katalog-förmiger Profil-Eintrag für die Einspeisung (4T-0517). `internal`
+// Katalog-förmiger Profil-Eintrag für die Einspeisung (4T-000517). `internal`
 // kennzeichnet das Profil als nicht änderbar/nicht löschbar; `fileName`
 // bleibt null (keine Datei dahinter).
 function eventProfile() {
@@ -132,7 +132,7 @@ function eventProfile() {
   };
 }
 
-// 4T-0517: Einspeisung — stellt das interne Profil vor die Katalog-Profile
+// 4T-000517: Einspeisung — stellt das interne Profil vor die Katalog-Profile
 // (Vorrang bei Namens-Kollision über die Konflikt-Regeln der Auflösung).
 // Das Gating (Erweiterung `events` aktiv?) liefert der Aufrufer, damit der
 // Baustein als reine Funktion testbar bleibt.
@@ -311,7 +311,7 @@ function nextOccurrence(dateIso, todayIso) {
   return { dateIso: toIso(occ), inDays: daysBetweenParts(today, occ), years };
 }
 
-// --- Verknüpfungen (4T-0516) -----------------------------------------------------------
+// --- Verknüpfungen (4T-000516) -----------------------------------------------------------
 // Vorgänger/Nachfolger-Beziehungen mit bidirektionaler Pflege (Workshop-
 // Punkt 6). Art 1 verknüpft über kurze technische Kennungen im Fence
 // (vergeben erst bei der ersten Verknüpfung — Kennungs-Kompromiss); Art 2
@@ -411,7 +411,7 @@ module.exports = {
   JUBILEE_YEARS,
   eventMilestones,
   nextOccurrence,
-  // 4T-0984: Datums-Bausteine fuer die Schwester-Module des Ordners
+  // 4T-000984: Datums-Bausteine fuer die Schwester-Module des Ordners
   // (Formatierung, UTC-Zeitpunkt, Monatslaenge, Tages-Differenz, Wochen-
   // Anfang) — bewusst exportiert statt dort neu geschrieben.
   toIso,
@@ -419,7 +419,7 @@ module.exports = {
   daysInMonth,
   daysBetweenParts,
   mondayOfParts,
-  // Verknüpfungen (4T-0516)
+  // Verknüpfungen (4T-000516)
   nextEventId,
   eventIndexById,
   toggleEventLink,

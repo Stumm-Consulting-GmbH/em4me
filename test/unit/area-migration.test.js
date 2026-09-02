@@ -1,4 +1,4 @@
-// 4T-0352 (Epic 3E-0064): Unit-Tests der stillen Bereichsdatei-Migration
+// 4T-000352 (Epic 3E-000064): Unit-Tests der stillen Bereichsdatei-Migration
 // (.mddb -> .mdda). IO über gemockte deps; prüft die vier Fälle plus den
 // Leerfall.
 import { describe, it, expect, vi } from 'vitest';

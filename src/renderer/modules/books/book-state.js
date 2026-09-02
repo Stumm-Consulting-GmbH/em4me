@@ -1,7 +1,7 @@
 // Gemeinsamer Zustand des Buch-Panels und der Zugriff auf den Preload-
 // Namensraum: gemeldeter Buch-Zustand, abgeleitete Abfragen und das Öffnen
 // eines Kapitels.
-// 4T-0980 (Epic 3E-0196): aus modules/books/book-panel.js ausgezogen (reiner
+// 4T-000980 (Epic 3E-000196): aus modules/books/book-panel.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert). Das Modul sitzt bewusst
 // zwischen den reinen Helfern und den drei Fach-Modulen: Struktur-Pflege,
 // Reparatur und Kern greifen alle auf denselben Zustand zu, und nur so bleibt
@@ -55,7 +55,7 @@ export function missingKeys(book) {
   return new Set(list.map(pathKey));
 }
 
-// 4T-0848 (Story 4S-0757): Wiederfinde-Vorschläge eines fehlenden Kapitels aus
+// 4T-000848 (Story 4S-000757): Wiederfinde-Vorschläge eines fehlenden Kapitels aus
 // dem gemeldeten Zustand — namensgleiche Dateien an anderer Stelle des
 // Buch-Ordners. Der Main-Prozess legt sie dem Zustands-Paket bei (er hat den
 // Datei-Bestand für den Abgleich ohnehin gelesen); Kapitel ohne Fund fehlen in

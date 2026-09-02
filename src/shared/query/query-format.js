@@ -1,6 +1,6 @@
 'use strict';
 
-// 4T-0987 (Epic 3E-0196): Werte-Modell und Anzeige-Form der Perspective-
+// 4T-000987 (Epic 3E-000196): Werte-Modell und Anzeige-Form der Perspective-
 // Query-Sprache, herausgelöst aus perspective-query-eval.js. Das Modul
 // beantwortet zwei zusammengehörige Fragen über einen Abfrage-Wert: was er
 // ist (Typ-Prüfer, Koerzierung, Wahrheitswert, Gleichheit) und wie er
@@ -22,7 +22,7 @@
 //   { kind: 'dur',  ms }  Dauer (Millisekunden; Monat/Jahr fixe Näherung, siehe Parser)
 //   { kind: 'link', path, name }  Datei-Verweis (absoluter Pfad, logischer Name)
 //   { kind: 'rich', segs }  ausgezeichneter Anzeige-Wert als Segment-Liste
-//                         (4T-1074, Epic 3E-0211). Die Werte-Art trägt eine
+//                         (4T-001074, Epic 3E-000211). Die Werte-Art trägt eine
 //                         Auszeichnung durch die VERKETTUNG hindurch: `+` mit
 //                         einem Rich-Operanden verbindet Segment-Listen statt
 //                         Zeichenketten, sodass ein TEIL eines zusammen-
@@ -34,7 +34,7 @@
 //                         darum überall gleich wie ohne.
 //   Array                 Liste von Werten
 
-// 4T-0344 (Epic 3E-0062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
+// 4T-000344 (Epic 3E-000062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
 // und Backlinks-Index (NFC + lowercase), damit Link-Vergleiche der Abfrage
 // dieselben Treffer sehen wie der Klick-Pfad.
 const { normalizeNameKey } = require('../markdown/link-scan.js');
@@ -47,7 +47,7 @@ function isDate(v) {
 function isDur(v) {
   return !!v && typeof v === 'object' && v.kind === 'dur';
 }
-// 4T-1074 (Epic 3E-0211): ausgezeichneter Anzeige-Wert (Segment-Liste).
+// 4T-001074 (Epic 3E-000211): ausgezeichneter Anzeige-Wert (Segment-Liste).
 function isRich(v) {
   return !!v && typeof v === 'object' && v.kind === 'rich' && Array.isArray(v.segs);
 }
@@ -127,7 +127,7 @@ function coerceBool(v) {
 // String-Sonderfall: 'false' ist falsch, weil boolesche Frontmatter-Werte als
 // Strings im Index liegen; jeder andere nicht-leere String ist wahr.
 function truthy(vRaw) {
-  // 4T-1074: Ein Rich-Wert ist ein Anzeige-Wert; sein Wahrheitswert ist der
+  // 4T-001074: Ein Rich-Wert ist ein Anzeige-Wert; sein Wahrheitswert ist der
   // seiner Text-Form, damit bold(x) in einer Bedingung wie x wirkt.
   const v = plainValue(vRaw);
   if (v === null || v === undefined) return false;
@@ -146,7 +146,7 @@ function truthy(vRaw) {
 // des Listen-Felds); Strings case-insensitiv; Zahl gegen Zahl-String numerisch;
 // Links über den logischen Namen (normalizeNameKey, wie die Wiki-Aufloesung).
 function equalsValue(aRaw, bRaw) {
-  // 4T-1074: Rich-Werte vergleichen über ihre Text-Form (siehe plainValue).
+  // 4T-001074: Rich-Werte vergleichen über ihre Text-Form (siehe plainValue).
   const a = plainValue(aRaw);
   const b = plainValue(bRaw);
   const aList = Array.isArray(a);
@@ -196,7 +196,7 @@ function dateToIsoString(ms) {
   return `${datePart} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 
-// 4T-0432 (Epic 3E-0081): ISO-8601-Kalenderwoche eines Zeitpunkts (lokal):
+// 4T-000432 (Epic 3E-000081): ISO-8601-Kalenderwoche eines Zeitpunkts (lokal):
 // Montag-Start, KW-Zählung mit Donnerstags-Regel. Das KW-Jahr kann vom
 // Kalenderjahr abweichen (Jahreswechsel-Wochen). Liefert { week, year }.
 function isoWeekOf(ms) {
@@ -216,14 +216,14 @@ function isoWeekOf(ms) {
 }
 
 // Kuratierte Format-Token (yyyy, MM, dd, HH, mm, ss, ww, kkkk, q) auf einen
-// Zeitpunkt anwenden; längste zuerst, ein Pass. 4T-0425 (Epic 3E-0080): aus
+// Zeitpunkt anwenden; längste zuerst, ein Pass. 4T-000425 (Epic 3E-000080): aus
 // der dateformat-Funktion extrahiert und exportiert — dieselbe Format-Sprache
 // gilt für die Datums-Platzhalter der Vorlagen (Architekturentscheidung 5).
-// 4T-0432/4T-0438 (Epic 3E-0081): ww (ISO-Kalenderwoche, zweistellig), kkkk
+// 4T-000432/4T-000438 (Epic 3E-000081): ww (ISO-Kalenderwoche, zweistellig), kkkk
 // (ISO-KW-Jahr) und q (Quartals-Nummer 1–4) für die Journal-Schemata — z.B.
 // 'kkkk-KWww' -> '2026-KW28', 'yyyy-Qq' -> '2026-Q3' (Großbuchstaben wie
 // 'KW'/'Q' sind keine Token und bleiben Literal).
-// 4T-1057 (Epic 3E-0210): sprachabhängiger Namens-Teil über die Standard-
+// 4T-001057 (Epic 3E-000210): sprachabhängiger Namens-Teil über die Standard-
 // Schnittstelle der Laufzeit (Muster der Uhr: expliziter Sprach-Tag mit
 // Rückfall auf die Laufzeit-Locale). Bewusst keine zweite Datums-Bibliothek
 // und keine neuen Übersetzungs-Schlüssel.
@@ -235,7 +235,7 @@ function localeDatePart(locale, options, d) {
   }
 }
 
-// 4T-1057 (Epic 3E-0210): Token-Erkennung, längste zuerst — ein Monatsname
+// 4T-001057 (Epic 3E-000210): Token-Erkennung, längste zuerst — ein Monatsname
 // (MMMM) darf nie in Monatszahlen (MM) zerfallen, mm (Minuten) bleibt von M
 // (Monat ohne führende Null) durch die Groß-Kleinschreibung getrennt.
 const DATE_TOKEN_RE = /kkkk|yyyy|MMMM|MMM|MM|EEEE|EEE|dd|HH|mm|ss|ww|M|d|q/g;
@@ -280,7 +280,7 @@ function formatDateTokens(ms, teil, locale) {
   });
 }
 
-// 4T-1057 (Epic 3E-0210): Literal-Schutz per eckiger Klammer — `[der]`
+// 4T-001057 (Epic 3E-000210): Literal-Schutz per eckiger Klammer — `[der]`
 // bleibt wörtlich «der», ohne dass `d` als Tag ersetzt wird. Der Schutz ist
 // mit den einstelligen Token `d`/`M` zwingend, weil sonst jedes einzelne
 // Vorkommen im Fließtext einer Format-Angabe ersetzt würde. Ein unpaariges
@@ -296,8 +296,8 @@ function formatDateMs(ms, fmt, locale) {
     .join('');
 }
 
-// 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Formatierung über dieselbe
-// Standard-Schnittstelle der Laufzeit, die 4T-1057 für die Monats- und
+// 4T-001072 (Epic 3E-000211): Zahlen- und Währungs-Formatierung über dieselbe
+// Standard-Schnittstelle der Laufzeit, die 4T-001057 für die Monats- und
 // Wochentagsnamen gewählt hat (expliziter Sprach-Tag mit Rückfall auf die
 // Laufzeit-Locale, keine zweite Bibliothek und keine neuen Übersetzungs-
 // Schlüssel). Ein unbekannter Sprach-Tag oder Währungs-Code darf die Zelle
@@ -357,7 +357,7 @@ function durToString(ms) {
   return sign + (parts.length ? parts.join(' ') : '0s');
 }
 
-// Wert -> Anzeige-String (string()-Funktion; 4T-0404 nutzt dieselbe Form für
+// Wert -> Anzeige-String (string()-Funktion; 4T-000404 nutzt dieselbe Form für
 // Tabellen-Zellen). null -> leerer String.
 function formatValue(v) {
   if (v === null || v === undefined) return '';
@@ -368,12 +368,12 @@ function formatValue(v) {
   if (isDate(v)) return dateToIsoString(v.ms);
   if (isDur(v)) return durToString(v.ms);
   if (isLink(v)) return v.name || '';
-  // 4T-1074: Text-Form ohne Marker — string(bold(x)) ist string(x).
+  // 4T-001074: Text-Form ohne Marker — string(bold(x)) ist string(x).
   if (isRich(v)) return richText(v);
   return String(v);
 }
 
-// --- Anzeige-Segmente und Ausdrucks-Quelltext (4T-0404) -------------------------
+// --- Anzeige-Segmente und Ausdrucks-Quelltext (4T-000404) -------------------------
 
 // Zerlegt einen Abfrage-Wert in Anzeige-Segmente für Tabellen-Zellen und das
 // LIST-Zusatzfeld: reiner Text ({ text }) und klickbare Datei-Verweise
@@ -381,7 +381,7 @@ function formatValue(v) {
 // Text-Knoten bzw. Links mit dem bestehenden data-fm-path-Klick-Pfad.
 function formatValueSegments(v) {
   if (v === null || v === undefined) return [];
-  // 4T-1074: Rich-Werte tragen ihre Segmente bereits; sie werden flach kopiert,
+  // 4T-001074: Rich-Werte tragen ihre Segmente bereits; sie werden flach kopiert,
   // damit kein Aufrufer die Segmente eines Werts nachträglich verändert.
   if (isRich(v)) return v.segs.map((s) => ({ ...s }));
   if (isLink(v)) return [{ link: { path: v.path, name: v.name } }];
@@ -397,7 +397,7 @@ function formatValueSegments(v) {
   return s === '' ? [] : [{ text: s }];
 }
 
-// 4T-1074 (Epic 3E-0211): bold(wert) — jedes Anzeige-Segment des Werts bekommt
+// 4T-001074 (Epic 3E-000211): bold(wert) — jedes Anzeige-Segment des Werts bekommt
 // die Auszeichnung. Ein fehlender Wert bleibt fehlend, statt eine leere
 // Hervorhebung zu erzeugen; Link-Segmente bleiben Link-Segmente und werden
 // mit-ausgezeichnet. bold(bold(x)) ist wirkungsgleich mit bold(x), weil die
@@ -407,11 +407,11 @@ function boldValue(v) {
   return { kind: 'rich', segs: formatValueSegments(v).map((s) => ({ ...s, bold: true })) };
 }
 
-// 4T-1074: Verkettung, sobald eine Seite ausgezeichnet ist. Sie verbindet
+// 4T-001074: Verkettung, sobald eine Seite ausgezeichnet ist. Sie verbindet
 // Segment-Listen statt Zeichenketten — genau der Grund für die eigene
 // Werte-Art: Die unmarkierte Seite wird zu Segmenten ohne Marke, die markierte
 // behält ihre. Ein fehlender Operand macht die ganze Verkettung leer, wie im
-// Zeichenketten-Rückfall aus 4T-1071.
+// Zeichenketten-Rückfall aus 4T-001071.
 function concatRich(a, b) {
   if (a === null || a === undefined || b === null || b === undefined) return null;
   return { kind: 'rich', segs: [...formatValueSegments(a), ...formatValueSegments(b)] };
@@ -464,7 +464,7 @@ module.exports = {
   isDate,
   isDur,
   isLink,
-  // 4T-1074 (Epic 3E-0211): ausgezeichneter Anzeige-Wert (Segment-Liste).
+  // 4T-001074 (Epic 3E-000211): ausgezeichneter Anzeige-Wert (Segment-Liste).
   isRich,
   plainValue,
   boldValue,
@@ -478,7 +478,7 @@ module.exports = {
   dateToIsoString,
   isoWeekOf,
   formatDateMs,
-  // 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Formatierung.
+  // 4T-001072 (Epic 3E-000211): Zahlen- und Währungs-Formatierung.
   formatNumberMs,
   formatCurrencyValue,
   durToString,

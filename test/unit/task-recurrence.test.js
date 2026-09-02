@@ -1,4 +1,4 @@
-// 4T-0499 (Epic 3E-0090): Wiederholungs-Kern — Regel-Parser (alle
+// 4T-000499 (Epic 3E-000090): Wiederholungs-Kern — Regel-Parser (alle
 // Referenz-Formen plus "when done"), naechstes Vorkommen (Werktags-,
 // Wochen-, Monats- und Jahres-Rechnung inklusive Zyklus-Ueberspringen
 // bei fehlendem Tag und Schaltjahr) und die Folge-Instanz (Abstands-
@@ -14,7 +14,7 @@ import { parseTaskLine, serializeTaskLine } from '../../src/shared/tasks/task-ma
 
 const next = (rule, base) => nextOccurrenceDate(parseRecurrenceRule(rule), base);
 
-describe('parseRecurrenceRule (4T-0499)', () => {
+describe('parseRecurrenceRule (4T-000499)', () => {
   it('parst alle Referenz-Formen', () => {
     expect(parseRecurrenceRule('every day')).toEqual({ unit: 'day', interval: 1, whenDone: false });
     expect(parseRecurrenceRule('every 3 days when done')).toEqual({
@@ -90,7 +90,7 @@ describe('parseRecurrenceRule (4T-0499)', () => {
   });
 });
 
-describe('nextOccurrenceDate (4T-0499)', () => {
+describe('nextOccurrenceDate (4T-000499)', () => {
   it('Tages- und Werktags-Rechnung', () => {
     expect(next('every day', '2026-07-10')).toBe('2026-07-11');
     expect(next('every 3 days', '2026-07-10')).toBe('2026-07-13');
@@ -125,7 +125,7 @@ describe('nextOccurrenceDate (4T-0499)', () => {
   });
 });
 
-describe('buildRecurrenceInstance (4T-0499)', () => {
+describe('buildRecurrenceInstance (4T-000499)', () => {
   it('erzeugt die Folge-Instanz ab dem Soll-Termin', () => {
     const model = parseTaskLine(
       '- [x] Wochenplanung 🔁 every week on Sunday ⏳ 2026-07-12 ✅ 2026-07-10',

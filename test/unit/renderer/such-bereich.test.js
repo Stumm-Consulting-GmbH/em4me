@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0616 (Epic 3E-0116): Der Bereich als dritter Lieferant der Raum-Suche.
+// 4T-000616 (Epic 3E-000116): Der Bereich als dritter Lieferant der Raum-Suche.
 //
 // Geprüft wird die Renderer-Seite: Was der Lieferant über die Prozess-Grenze
 // schickt (Muster, Flags, Editor-Stand der offenen Datei), wie er auf einen
@@ -37,7 +37,7 @@ function dokument(pfad, inhalt) {
   return { path: pfad, content: inhalt, viewMode: 'rendered', editMode: false };
 }
 
-describe('such-bereich (4T-0616)', () => {
+describe('such-bereich (4T-000616)', () => {
   beforeEach(() => {
     auftraege = [];
     state.areaPath = 'C:/Bereich';

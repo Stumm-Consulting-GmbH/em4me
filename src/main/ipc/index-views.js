@@ -4,7 +4,7 @@
 // Abfrage- und Ereignis-Ansicht, die Bereichs-Suche, die Autocomplete- und
 // Linter-Quellen sowie das Lesen einer Wiki-Einbettung.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: backlinks:*,
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: backlinks:*,
 // wikiLink:*, tags:request, frontmatterQuery:run, task:applyLineEdit,
 // events:*, graph:edges, areaStats:collect, areaSearch:*, index:overlay,
 // perspectiveScript:data, autocomplete:*, linter:resolveWikiTargets,
@@ -63,16 +63,16 @@ function registerIndexViewsIpc(handle, deps) {
     readPreviousTextFor,
     recordMddOnSave,
   } = deps;
-  // 4T-0999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
+  // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
 
-  // 4T-0015: Backlinks-Anfrage einer Pane. Registriert den Owner
+  // 4T-000015: Backlinks-Anfrage einer Pane. Registriert den Owner
   // (webContents + Pane) auf der Wurzel der angefragten Datei und liefert
   // das aktuelle Status-Payload. Der Renderer macht beim Tab-Wechsel
   // passend zu einem 'request' immer auch ein 'release' fuer die vorher
   // angefragte Datei.
-  // B-01 (4T-0175): Owner-Key statt blindem Refcount — Mehrfach-Requests
+  // B-01 (4T-000175): Owner-Key statt blindem Refcount — Mehrfach-Requests
   // desselben Owners (Editor-Sync, Invalidate-Refresh) leaken nicht mehr.
   handle('backlinks:request', (event, params) => {
     const filePath = params && params.filePath;
@@ -86,14 +86,14 @@ function registerIndexViewsIpc(handle, deps) {
   handle('backlinks:release', (event, params) => {
     const filePath = params && params.filePath;
     const paneIdx = params && Number.isInteger(params.paneIdx) ? params.paneIdx : 0;
-    // 4T-0347 (Epic 3E-0062): dieselbe bereichsbewusste Wurzel wie beim Request,
+    // 4T-000347 (Epic 3E-000062): dieselbe bereichsbewusste Wurzel wie beim Request,
     // sonst gibt release in Bereichs-Apps den falschen Owner frei (Leak).
     const root = backlinks.rootForActiveFile(filePath, areaRootForEvent(event));
     if (root) backlinks.releaseRoot(root, `${event.sender.id}:${paneIdx}`);
     return { ok: true };
   });
 
-  // B-13 (4T-0175): Klick-Fallback ueber den Index, wenn das dokument-
+  // B-13 (4T-000175): Klick-Fallback ueber den Index, wenn das dokument-
   // relative Ziel nicht existiert (analog zum Alias-Fallback).
   handle('wikiLink:resolveInIndex', (event, params) => {
     const filePath = params && params.filePath;
@@ -103,14 +103,14 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.resolveWikiTargetInIndex(filePath, basename, areaRoot);
   });
 
-  // 4T-0056 (Epic 3E-0011): Tag-System. Liefert die Tag-Liste der Wurzel
+  // 4T-000056 (Epic 3E-000011): Tag-System. Liefert die Tag-Liste der Wurzel
   // (mit Counts) und optional die Datei-Liste fuer einen Filter-Tag.
   // Aehnlich backlinks:request, aber ohne Refcount/Soft-Timer-Mechanik:
   // Tags sind ein Read-only-View und triggern keinen Index-Aufbau.
   handle('tags:request', (event, params) => {
     const filePath = params && params.filePath;
     const filterTag = params && params.filterTag;
-    // B-18 (4T-0187): Tag-Sidebar stoesst den Index-Aufbau selbst an —
+    // B-18 (4T-000187): Tag-Sidebar stoesst den Index-Aufbau selbst an —
     // vorher entstand der Index nur ueber das Backlinks-Panel, ohne das
     // die Tag-Sektion dauerhaft 'unavailable' meldete.
     const areaRoot = areaRootForEvent(event);
@@ -118,7 +118,7 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.tagsFor(filePath, filterTag, areaRoot);
   });
 
-  // 4T-0354 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query). Read-only-
+  // 4T-000354 (Epic 3E-000065): Frontmatter-Abfrage (perspective-query). Read-only-
   // View wie tags:request: stoesst den Index bei Bedarf an, wertet die Query im
   // Main gegen die Properties-Maps aus und liefert die Datei-Liste plus Status.
   handle('frontmatterQuery:run', (event, params) => {
@@ -126,7 +126,7 @@ function registerIndexViewsIpc(handle, deps) {
     const query = params && typeof params.query === 'string' ? params.query : '';
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
-    // 4T-0502 (Epic 3E-0096): Task-Umgebung fuer den TASKS-Scope aus dem
+    // 4T-000502 (Epic 3E-000096): Task-Umgebung fuer den TASKS-Scope aus dem
     // Store — Erweiterungs-Gate, Global Filter und Status-Typ-Aufloesung
     // (pro Lauf frisch gelesen; Settings-Aenderungen wirken damit sofort).
     const tasksConfig = store ? store.get('tasksConfig') : null;
@@ -136,7 +136,7 @@ function registerIndexViewsIpc(handle, deps) {
         tasksConfig && typeof tasksConfig.globalFilter === 'string'
           ? tasksConfig.globalFilter.trim()
           : '',
-      // 4T-0505 (Epic 3E-0096): globale Abfrage (implizite FROM-/WHERE-
+      // 4T-000505 (Epic 3E-000096): globale Abfrage (implizite FROM-/WHERE-
       // Vorgabe aus den Einstellungen) fuer alle TASKS-Blöcke.
       globalQuery:
         tasksConfig && typeof tasksConfig.globalQuery === 'string'
@@ -147,10 +147,10 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.frontmatterQueryFor(filePath, query, areaRoot, taskEnv, params && params.lang);
   });
 
-  // 4T-0504 (Epic 3E-0096): Rueckschreiben aus der Abfrage-Ansicht in NICHT
+  // 4T-000504 (Epic 3E-000096): Rueckschreiben aus der Abfrage-Ansicht in NICHT
   // im aufrufenden Fenster geoeffnete Quelldateien (offene Tabs aktualisiert
   // der Renderer ueber den Editor-Zustand, nicht ueber die Platte). Muster
-  // des Link-Updates (3E-0062): Roh-Stand lesen (EOL/BOM bleiben erhalten),
+  // des Link-Updates (3E-000062): Roh-Stand lesen (EOL/BOM bleiben erhalten),
   // zeilen-genau ersetzen, Historie wie beim regulaeren Speichern. BEWUSST
   // ohne markSelfWriting: in anderen Fenstern offene Tabs sollen den
   // definierten file:changed-Weg gehen (nicht-dirty -> stiller Reload,
@@ -189,7 +189,7 @@ function registerIndexViewsIpc(handle, deps) {
     }
   });
 
-  // 4T-0515 (Epic 3E-0092): Ereignis-Aggregation — Treffer-Dateien mit
+  // 4T-000515 (Epic 3E-000092): Ereignis-Aggregation — Treffer-Dateien mit
   // event-*-Feldern aus dem Bereichs-Index (Grundmenge = Zuordnungs-Feld
   // nennt das interne Ereignis-Profil; optionale FROM/WHERE-Verfeinerung).
   // Gate auf die Erweiterung "events" (transitiv ueber property-profiles).
@@ -207,7 +207,7 @@ function registerIndexViewsIpc(handle, deps) {
     });
   });
 
-  // 4T-0515 (Epic 3E-0092): Inline-Rueckschreiben der Aggregation in NICHT
+  // 4T-000515 (Epic 3E-000092): Inline-Rueckschreiben der Aggregation in NICHT
   // im aufrufenden Fenster geoeffnete Quell-Dateien (offene Tabs schreibt
   // der Renderer ueber den Editor-Zustand). Muster task:applyLineEdit:
   // Roh-Stand lesen (EOL/BOM bleiben erhalten), Mehrfeld-Update ueber
@@ -267,7 +267,7 @@ function registerIndexViewsIpc(handle, deps) {
     }
   });
 
-  // 4T-0453 (Epic 3E-0084): Graph-Daten fuer Bereichs-Graph-Tab und Datei-
+  // 4T-000453 (Epic 3E-000084): Graph-Daten fuer Bereichs-Graph-Tab und Datei-
   // Graph-Panel (Knoten plus gerichtete Link-Kanten des Suchraums). Read-only-
   // View wie tags:request; der Bereichs-Fall kommt ohne aktive Datei aus (den
   // Bereichs-Index haelt der area:<appId>-Owner seit dem Bereichs-Oeffnen).
@@ -280,7 +280,7 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.graphFor(filePath, areaRoot);
   });
 
-  // 4T-0619 (Epic 3E-0117): Kennzahlen des geoeffneten Bereichs fuer die
+  // 4T-000619 (Epic 3E-000117): Kennzahlen des geoeffneten Bereichs fuer die
   // Statistik-Seite. Read-only-View wie graph:edges, aber mit ergaenzendem
   // Ordner-Scan; ohne Bereich gibt es keinen abgegrenzten Datei-Raum und
   // damit den Status 'unavailable'. Der Status-Typ-Aufloeser wird pro Lauf
@@ -293,7 +293,7 @@ function registerIndexViewsIpc(handle, deps) {
     });
   });
 
-  // 4T-0615 (Epic 3E-0116): Bereichs-Suchlauf. Der Renderer schickt den
+  // 4T-000615 (Epic 3E-000116): Bereichs-Suchlauf. Der Renderer schickt den
   // fertigen Regex-Quelltext samt Flags (eine Auslegung von Gross-/
   // Kleinschreibung und Regex-Modus, nicht zwei) und den wurzel-relativen
   // Pfad der aktiven Datei, deren Treffer er selbst aus dem Editor-Stand
@@ -328,7 +328,7 @@ function registerIndexViewsIpc(handle, deps) {
     return true;
   });
 
-  // 4T-0935 (Befund B-08): Puffer-Overlay des Index — ein Kanal fuer Setzen
+  // 4T-000935 (Befund B-08): Puffer-Overlay des Index — ein Kanal fuer Setzen
   // und Zuruecknehmen (content === null loescht). Begruendung der Schicht am
   // Overlay in backlinks.js.
   handle('index:overlay', (event, params) => {
@@ -338,7 +338,7 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.setBufferOverlay(filePath, content);
   });
 
-  // 4T-0413 (Epic 3E-0078): Daten-Snapshot fuer Skript-Bloecke
+  // 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke
   // (perspective-script). Read-only-View wie frontmatterQuery:run; die
   // Auswertung uebernimmt das Skript in der Renderer-Sandbox, der Main
   // liefert nur den Suchraum (pages/blocks) als Snapshot.
@@ -349,13 +349,13 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.scriptDataFor(filePath, areaRoot);
   });
 
-  // 4T-0057 (Epic 3E-0011): Autocomplete-Suggestions fuer drei Quellen:
+  // 4T-000057 (Epic 3E-000011): Autocomplete-Suggestions fuer drei Quellen:
   // Wiki-Link-Ziele ([[), Heading-/Block-Anker ([[Datei#, [[Datei#^),
   // Tags (#). Pro Trigger ein IPC, weil die Quellen unterschiedliche
   // Eingabe-Parameter brauchen.
   handle('autocomplete:wikiTargets', (event, params) => {
     const filePath = params && params.filePath;
-    // B-18 (4T-0187): Autocomplete-Bedarf baut den Index bei Bedarf auf.
+    // B-18 (4T-000187): Autocomplete-Bedarf baut den Index bei Bedarf auf.
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     return backlinks.wikiLinkAutocompleteSuggestions(filePath, areaRoot);
@@ -374,7 +374,7 @@ function registerIndexViewsIpc(handle, deps) {
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     return backlinks.tagAutocompleteSuggestions(filePath, areaRoot);
   });
-  // 4T-0020: Linter-Lookup fuer broken-wiki-link. Batch-Endpunkt: pro Lint-
+  // 4T-000020: Linter-Lookup fuer broken-wiki-link. Batch-Endpunkt: pro Lint-
   // Lauf ein Roundtrip mit allen Basenames des Dokuments. Antwort siehe
   // existingWikiTargets in backlinks.js (status + Liste der gefundenen).
   // Triggert keinen Index-Aufbau; falls kein Index vorliegt, wird 'unavailable'
@@ -382,14 +382,14 @@ function registerIndexViewsIpc(handle, deps) {
   handle('linter:resolveWikiTargets', (event, params) => {
     const filePath = params && params.filePath;
     const basenames = params && Array.isArray(params.basenames) ? params.basenames : [];
-    // B-18 (4T-0187): Linter-Bedarf baut den Index bei Bedarf auf; bis er
+    // B-18 (4T-000187): Linter-Bedarf baut den Index bei Bedarf auf; bis er
     // ready ist, unterdrueckt der 'indexing'-Status die Regel wie bisher.
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     return backlinks.existingWikiTargets(filePath, basenames, areaRoot);
   });
 
-  // 4T-0050 (Epic 3E-0010): Wiki-Link-Klick mit Alias-Fallback. Wird vom
+  // 4T-000050 (Epic 3E-000010): Wiki-Link-Klick mit Alias-Fallback. Wird vom
   // Renderer aufgerufen, wenn die direkte Datei (Basename.md relativ zum
   // aktiven Dokument) nicht existiert. Liefert die Liste der Dateien, die
   // den Basename als Alias im Frontmatter fuehren. Bei eindeutigem Treffer
@@ -403,7 +403,7 @@ function registerIndexViewsIpc(handle, deps) {
     return backlinks.resolveWikiTargetByAlias(filePath, basename, areaRoot);
   });
 
-  // 4T-0055 (Epic 3E-0011): Wiki-Embed-Datei lesen. Liest die Ziel-Datei
+  // 4T-000055 (Epic 3E-000011): Wiki-Embed-Datei lesen. Liest die Ziel-Datei
   // und extrahiert ggf. Heading-Snippet oder Block-Element gemaess Anker.
   // Wird vom Renderer fuer Markdown-Embeds aufgerufen (![[Datei]] /
   // ![[Datei#Heading]] / ![[Datei#^id]]).
@@ -411,7 +411,7 @@ function registerIndexViewsIpc(handle, deps) {
     const basePath = params && params.basePath;
     let embedPath = params && params.embedPath;
     const anchor = params && params.anchor;
-    // 4T-0337 (Epic 3E-0061): relative Unterseiten-Embeds ('![[/Name]]',
+    // 4T-000337 (Epic 3E-000061): relative Unterseiten-Embeds ('![[/Name]]',
     // '![[..]]') gegen den Basename der Basis-Datei expandieren; Ergebnis
     // ist die U+2215-Form im selben Ordner.
     if (typeof embedPath === 'string' && subpages.isRelativeTarget(embedPath)) {
@@ -425,7 +425,7 @@ function registerIndexViewsIpc(handle, deps) {
       if (!expanded) return { ok: false, error: 'not found' };
       embedPath = expanded + (ext || '.md');
     }
-    // B-02 (4T-0307): Containment auf den Dokument-Ordner-Teilbaum plus
+    // B-02 (4T-000307): Containment auf den Dokument-Ordner-Teilbaum plus
     // Markdown-Extension-Whitelist, bevor gelesen wird — fremder Embed-Pfad
     // gilt als nicht vertrauenswuerdig (Entwicklungsrichtlinien §6).
     const guard = resolveContainedEmbedPath(basePath, embedPath);
@@ -433,7 +433,7 @@ function registerIndexViewsIpc(handle, deps) {
       return { ok: false, error: guard.error };
     }
     let abs = guard.abs;
-    // 4T-0337: Unterseiten-/Suchraum-Fallback wie im Klick-Pfad (B-13),
+    // 4T-000337: Unterseiten-/Suchraum-Fallback wie im Klick-Pfad (B-13),
     // wenn die dokument-relative Datei fehlt. Kandidaten muessen im
     // Dokument-Ordner-Teilbaum liegen (B-02-Containment bleibt gewahrt).
     try {
@@ -471,7 +471,7 @@ function registerIndexViewsIpc(handle, deps) {
       }
     }
     try {
-      // 4T-0948 (Befund E-01): geschriebener Stand vor Platten-Stand (Wahl und
+      // 4T-000948 (Befund E-01): geschriebener Stand vor Platten-Stand (Wahl und
       // Groessen-Limit in embed-content.js). Erst hier, weil der Ziel-Pfad nach
       // Containment-Pruefung und Unterseiten-Rueckfall feststeht.
       const puffer = backlinks.bufferTextFor(abs);

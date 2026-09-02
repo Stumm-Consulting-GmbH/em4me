@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0900 (Epic 3E-0016): Der Uebersetzungs-Zugriff meldet einen unbekannten
+// 4T-000900 (Epic 3E-000016): Der Uebersetzungs-Zugriff meldet einen unbekannten
 // Schluessel, statt ihn stillschweigend als Text zurueckzugeben.
 //
 // Hintergrund: t() endete mit `?? key`. Ein fehlender Schluessel erschien
@@ -7,13 +7,13 @@
 // fremdsprachigen Oberflaeche, ohne dass ein Gate rot wurde. Der vorhandene
 // i18n-Waechter kann das nicht sehen: Er vergleicht nur die fuenf
 // Sprachdateien untereinander, nie den Code gegen sie. Belegte Faelle dieser
-// Klasse: 4T-0850 (Tasten-Bezeichnungen), dazu die im Kopplungs-Audit
+// Klasse: 4T-000850 (Tasten-Bezeichnungen), dazu die im Kopplungs-Audit
 // gefundenen Stellen in Funktions-Katalog, Uhr-Optionen und Ereignis-
 // Kategorien.
 //
 // Die Faelle unten pruefen die Melde-Logik selbst. Ihre Wirkung im laufenden
 // Programm haengt daran, dass ein Konsolen-Fehler eine Spec rot macht — das
-// leistet 4T-0901, und zwar erst mit einem Zuhoerer, der VOR dem Start steht:
+// leistet 4T-000901, und zwar erst mit einem Zuhoerer, der VOR dem Start steht:
 // Der heutige Smoke-Fall setzt ihn danach und sieht Start-Meldungen nicht.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
@@ -27,7 +27,7 @@ async function ladeModul(woerterbuch) {
   return modul;
 }
 
-describe('Übersetzungs-Zugriff meldet fehlende Schlüssel (4T-0900)', () => {
+describe('Übersetzungs-Zugriff meldet fehlende Schlüssel (4T-000900)', () => {
   let fehlerAusgabe;
 
   beforeEach(() => {
@@ -53,7 +53,7 @@ describe('Übersetzungs-Zugriff meldet fehlende Schlüssel (4T-0900)', () => {
   });
 
   // Ohne Entprellung meldete jeder Neuaufbau der Oberfläche denselben
-  // Schlüssel erneut; die Flut würde den Wächter aus 4T-0901 entwerten.
+  // Schlüssel erneut; die Flut würde den Wächter aus 4T-000901 entwerten.
   it('derselbe Schlüssel wird nur einmal gemeldet', async () => {
     const { t } = await ladeModul({ 'menu.file': 'Datei' });
     t('gibt.es.nicht');

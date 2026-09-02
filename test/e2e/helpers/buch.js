@@ -2,7 +2,7 @@
 // Test-Buchs im Temp-Verzeichnis, das Aufräumen danach und die Lese-Helfer auf
 // seine Begleitdatei.
 //
-// 4T-1190 (Epic 3E-0221): Auszug aus buch.spec.js, erzwungen vom Datei-Budget
+// 4T-001190 (Epic 3E-000221): Auszug aus buch.spec.js, erzwungen vom Datei-Budget
 // der Test-Dateien, als der Race-Fix des Panel-Helfers die Datei über 800
 // Zeilen hob. Der Schnitt folgt der Fachlichkeit nach dem Vorbild von
 // profil-bereich.js: Was hier steht, ist AUFBAU und kein Prüffall, und es

@@ -1,4 +1,4 @@
-// 4T-0612 (Epic 3E-0115): E2E-Funktions-Suite — Bereichs-Lesezeichen.
+// 4T-000612 (Epic 3E-000115): E2E-Funktions-Suite — Bereichs-Lesezeichen.
 // Zweigeteiltes Panel (allgemeine Lesezeichen und Bereichs-Lesezeichen),
 // Anlage-Fluss mit Ziel-Wahl, Reihenfolge-Schalter und Umwandeln zwischen den
 // Abschnitten. Der Bereich wird ueber den Pfad-Einstieg window.api.openAreaPath
@@ -13,7 +13,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
-// 4T-0777 (Epic 3E-0156): Strg+D ging im Voll-Lauf sporadisch ins Leere (BL-03).
+// 4T-000777 (Epic 3E-000156): Strg+D ging im Voll-Lauf sporadisch ins Leere (BL-03).
 // Der Druck wird wiederholt, bis seine Wirkung sichtbar ist; er ist dafuer
 // idempotent — eine bereits gemerkte Datei meldet nur, dass es sie schon gibt.
 const { pressUntilVisible } = require('../helpers/eingabe');
@@ -21,7 +21,7 @@ const { pressUntilVisible } = require('../helpers/eingabe');
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
 const PANE = '.pane-group[data-pane="0"]';
-// 4T-0372-Marker: der erste Panel-Button des source-toggles-Segments steht erst
+// 4T-000372-Marker: der erste Panel-Button des source-toggles-Segments steht erst
 // nach applyPanelButtonOrder() am Ende von init(); als Bereitschafts-Signal fuer
 // ein frisch geoeffnetes zweites Fenster (Muster launchApp-Helfer).
 const FIRST_PANEL_BUTTON_ID = PANEL_ACCESS.find(
@@ -133,7 +133,7 @@ test.describe('BL-03: Bereich — Ziel-Wahl beim Anlegen', () => {
       const area = page.locator('#context-menu [data-menu-id="bookmark-target-area"]');
       await expect(general).toBeVisible();
       await expect(area).toBeVisible();
-      // 4T-0612 (PO-Testbefund EXE 0.91.0.919): Das Ziel-Wahl-Popup liegt oben
+      // 4T-000612 (PO-Testbefund EXE 0.91.0.919): Das Ziel-Wahl-Popup liegt oben
       // bei der Menueleiste (dort sitzt das Datei-Menue), nicht unten am
       // Statusbar-Stern. Die obere Kante liegt damit in der oberen Fensterhaelfte.
       const menuBox = await page.locator('#context-menu').boundingBox();
@@ -220,7 +220,7 @@ test.describe('BL-05: Umwandeln zwischen den Abschnitten', () => {
 
 test.describe('BL-06: Allgemeine Lesezeichen synchronisieren zwischen Fenstern', () => {
   test('ein allgemeines Lesezeichen aus Fenster A erscheint in Fenster B', async () => {
-    // 4T-0612 (PO-Testbefund EXE 0.91.0.919): Der globale Lesezeichen-Baum liegt
+    // 4T-000612 (PO-Testbefund EXE 0.91.0.919): Der globale Lesezeichen-Baum liegt
     // im Store; ein Schreibvorgang in einem Fenster erreichte die anderen bisher
     // nicht (nur die Bereichs-Lesezeichen synchronisierten). Der Fix verteilt
     // den Wechsel per 'bookmarksTree:changed' an die uebrigen Fenster.
@@ -238,7 +238,7 @@ test.describe('BL-06: Allgemeine Lesezeichen synchronisieren zwischen Fenstern',
       const page2 = await win2Promise;
       await page2.waitForLoadState('domcontentloaded');
       // Ende der asynchronen init() von Fenster B abwarten. Der Panel-Button-Marker
-      // (4T-0372) belegt nur, dass applyPanelButtonOrder() gelaufen ist; das
+      // (4T-000372) belegt nur, dass applyPanelButtonOrder() gelaufen ist; das
       // passiert im init()-Verlauf jedoch deutlich VOR bindUi(), das die
       // Statusbar-Toggle-Klicks (u.a. #btn-bookmarks) bindet. Ein Klick in diesem
       // Fenster zwischen beiden Schritten verpuffte (Handler noch nicht gebunden),

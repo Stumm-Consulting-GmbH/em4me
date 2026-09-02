@@ -1,4 +1,4 @@
-// 4T-0520 (Epic 3E-0094): Datenmodell der Kommando-Platzierung.
+// 4T-000520 (Epic 3E-000094): Datenmodell der Kommando-Platzierung.
 //
 // Gemeinsames Eintrag-Modell für nutzerdefinierte Kommando-Zugänge
 // (Statusbar-Buttons und Kontextmenü-Sektion teilen dieselbe Form), die
@@ -18,7 +18,7 @@ const { COMMAND_ICON_IDS, DEFAULT_COMMAND_ICON } = require('./command-icons.js')
 const COMMAND_PLACEMENT_KEY = 'commandPlacement';
 const COMMAND_PLACEMENT_EXTENSION_ID = 'command-placement';
 
-// Makro-Konstanten (4T-0522 nutzt Runner und Registrierung): Verzögerung
+// Makro-Konstanten (4T-000522 nutzt Runner und Registrierung): Verzögerung
 // pro Schritt 0–10 s (PO-Festlegung), Aufruf-Kette Makro-in-Makro auf
 // fünf Ebenen begrenzt (Rekursions-Schutz mit Statusbar-Hinweis), IDs der
 // dynamischen Registry-Kommandos im Namensraum 'macro.'.
@@ -178,7 +178,7 @@ function normalizeCommandPlacement(raw) {
   };
 }
 
-// 4T-0521: Sichtbarkeits-Kern der Kontextmenü-Sektion (und identisch der
+// 4T-000521: Sichtbarkeits-Kern der Kontextmenü-Sektion (und identisch der
 // Statusbar-Buttons): Einträge unbekannter Kommandos (z.B. gelöschtes
 // Makro) und Kommandos deaktivierter Erweiterungen erscheinen NICHT
 // (Konsistenz zu Menü und Palette; die Konfiguration bleibt erhalten).

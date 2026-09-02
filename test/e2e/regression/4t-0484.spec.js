@@ -1,4 +1,4 @@
-// 4T-0484 (Epic 3E-0088): Undo-Härtung des Checkbox-/Status-Box-Toggles aus
+// 4T-000484 (Epic 3E-000088): Undo-Härtung des Checkbox-/Status-Box-Toggles aus
 // dem Gerenderten. Der Toggle-Dispatch lief ohne userEvent-Annotation und
 // verschmolz in der Editor-Historie mit dem vorherigen Ereignis (typisch dem
 // initialen Doc-Set beim Öffnen): ein Strg+Z nach dem Klick leerte das ganze
@@ -24,7 +24,7 @@ async function undoInSourceMode(page) {
   await page.keyboard.press('Control+z');
 }
 
-test.describe('4T-0484: Undo nach Checkbox-Toggle aus dem Render-Pane', () => {
+test.describe('4T-000484: Undo nach Checkbox-Toggle aus dem Render-Pane', () => {
   test('Strg+Z nimmt genau den Toggle zurück, das Dokument bleibt intakt', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
@@ -63,7 +63,7 @@ test.describe('4T-0484: Undo nach Checkbox-Toggle aus dem Render-Pane', () => {
   });
 });
 
-test.describe('4T-0484: Undo nach Task-Toggle im Live-Modus', () => {
+test.describe('4T-000484: Undo nach Task-Toggle im Live-Modus', () => {
   test('Strg+Z nach Live-Klick nimmt nur den Toggle zurück', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {

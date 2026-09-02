@@ -1,16 +1,16 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 7 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 7 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Frontmatter-Zeile. */
 
-/* === Frontmatter-Zeile (4T-0282, Epic 3E-0050) ============================
+/* === Frontmatter-Zeile (4T-000282, Epic 3E-000050) ============================
    Dezente, zusammengeklappte Zeile am Dokumentanfang; Hover klappt das
    Klartext-YAML auf, Klick pinnt (.is-pinned). Die Schliess-Verzoegerung
    (transition-delay im Grundzustand) verhindert Hover-Flattern bei
    randnaher Maus; beim Aufklappen gilt Delay 0. */
 .markdown-body .frontmatter-block {
-  /* 4T-1310 (Epic 3E-0235): Abstand nach unten auf Absatz-Mass. Die Zeile
+  /* 4T-001310 (Epic 3E-000235): Abstand nach unten auf Absatz-Mass. Die Zeile
      setzt in kleinerer Schrift, deshalb 0.7em statt der 0.6em des Absatzes;
      in Pixeln gerechnet kommt beides auf dasselbe heraus. */
   margin: 0 0 0.7em 0;
@@ -63,7 +63,7 @@
 .markdown-body .frontmatter-count {
   color: var(--fg-muted);
 }
-/* 4T-0470 (Epic 3E-0087): Nummern-Praefix der Gliederungs-Nummerierung.
+/* 4T-000470 (Epic 3E-000087): Nummern-Praefix der Gliederungs-Nummerierung.
    Dezent gedaempft, gleichbreite Ziffern fuer saubere Ausrichtung; das
    Gewicht erbt von der Ueberschrift. */
 .markdown-body .heading-number {
@@ -71,7 +71,7 @@
   font-variant-numeric: tabular-nums;
   font-weight: inherit;
 }
-/* 4T-0471 (Epic 3E-0087): Nummern-Praefix in der Gliederungs-Ansicht und im
+/* 4T-000471 (Epic 3E-000087): Nummern-Praefix in der Gliederungs-Ansicht und im
    Live-Modus (gleiche dezente Optik wie im Render-Pane). */
 .outline-number,
 .cm-editor .cm-live-heading-number {
@@ -100,7 +100,7 @@
   transition-delay: 0s;
 }
 
-/* 4T-0021: Mermaid-Diagramm-Container. */
+/* 4T-000021: Mermaid-Diagramm-Container. */
 .markdown-body .mermaid-block {
   display: flex;
   justify-content: center;
@@ -130,7 +130,7 @@
   font-size: 0.85em;
   font-family: var(--editor-font-family);
 }
-/* S-03 (4T-0188): Dark-Override analog zum Live-Widget-Pendant —
+/* S-03 (4T-000188): Dark-Override analog zum Live-Widget-Pendant —
    #cc0000 hatte auf dunklem Grund nur ~2,4:1 Kontrast. */
 [data-theme='dark'] .markdown-body .mermaid-block.mermaid-error {
   border-color: #ea868f;
@@ -159,7 +159,7 @@
   font-weight: 600;
 }
 
-/* 4T-0034: perspective-table. Erbt von .markdown-body table; eigene Regeln fuer
+/* 4T-000034: perspective-table. Erbt von .markdown-body table; eigene Regeln fuer
    <caption> und fuer das von md.render() in Zellen erzeugte umschliessende
    <p>, das in Block-Zellen sonst sichtbare Margins erzeugt. */
 .markdown-body .perspective-table caption {
@@ -182,7 +182,7 @@
   margin-bottom: 0;
 }
 
-/* 4T-0037: Stufe-2-Ausrichtung. align-* und valign-* sind die CSS-Klassen,
+/* 4T-000037: Stufe-2-Ausrichtung. align-* und valign-* sind die CSS-Klassen,
    die der perspective-table-Renderer aus den Whitelist-Attributen align="..." und
    valign="..." erzeugt. Spezifitaet (0,3,0) schlaegt die Default-Regel fuer
    td/th (0,2,1), das valign-* ueberschreibt das Stufe-1-Default vertical-
@@ -206,7 +206,7 @@
   vertical-align: bottom;
 }
 
-/* 4T-0044: Status-Hervorhebung. status-* Klasse sitzt direkt am <td>/<th>
+/* 4T-000044: Status-Hervorhebung. status-* Klasse sitzt direkt am <td>/<th>
    (Zell-Status gewinnt gegen Zeilen-Status, das ist im Renderer aufgeloest;
    die CSS-Regel muss also nur die Zell-Klasse adressieren). Light-Theme
    mit hellen Hintergruenden, Dark-Theme mit gedaempften dunklen Toenen,
@@ -253,7 +253,7 @@
   color: #bdbdbd;
 }
 
-/* 4T-0046: Sortierbare Tabellen. Header-Zellen bekommen cursor: pointer und
+/* 4T-000046: Sortierbare Tabellen. Header-Zellen bekommen cursor: pointer und
    ein Sort-Indikator-Icon (Lucide-Stil, Inline-SVG). Aktiver Sort-State
    hebt das Icon farblich hervor. */
 .markdown-body .perspective-table.sortable th.perspective-th-sortable {
@@ -261,7 +261,7 @@
   user-select: none;
 }
 .markdown-body .perspective-table.sortable th.perspective-th-sortable:hover {
-  /* S-07 (4T-0183): vorher var(--bg-alt) — identisch mit dem th-Grund-
+  /* S-07 (4T-000183): vorher var(--bg-alt) — identisch mit dem th-Grund-
      Hintergrund und damit wirkungslos. Jetzt sichtbares Hover-Feedback. */
   background-color: var(--hover);
 }
@@ -286,8 +286,8 @@
   opacity: 1;
   color: var(--accent);
 }
-/* 4T-0355 (Epic 3E-0065): Frontmatter-Abfrage. Der perspective-query-Fence
-   rendert als leerer Platzhalter (4T-0354); der Renderer befüllt ihn mit der
+/* 4T-000355 (Epic 3E-000065): Frontmatter-Abfrage. Der perspective-query-Fence
+   rendert als leerer Platzhalter (4T-000354); der Renderer befüllt ihn mit der
    dynamischen, klickbaren Datei-Liste. Gilt in Render-Pane, Reading und im
    Live-Block-Widget (trägt ebenfalls markdown-body). */
 .markdown-body .perspective-query-list {
@@ -313,7 +313,7 @@
   color: var(--danger, #c0392b);
   font-style: normal;
 }
-/* 4T-0502 (Epic 3E-0096): Task-Treffer des TASKS-Scopes. Listenpunkte ohne
+/* 4T-000502 (Epic 3E-000096): Task-Treffer des TASKS-Scopes. Listenpunkte ohne
    Marker (die Status-Box übernimmt die Rolle); Status-Box in der Optik der
    Task-Checkboxen, Datei-Herkunft gedämpft hinter den Badges. */
 .markdown-body .perspective-query-list.perspective-query-tasks {
@@ -354,7 +354,7 @@
   color: var(--fg-muted);
   font-size: 0.85em;
 }
-/* 4T-0503 (Epic 3E-0096): Gruppen-Überschriften (GROUP BY, verschachtelt über
+/* 4T-000503 (Epic 3E-000096): Gruppen-Überschriften (GROUP BY, verschachtelt über
    data-level) und Treffer-Zähler der Task-Ausgabe. */
 .markdown-body .perspective-query-group {
   margin: 0.4em 0;
@@ -379,7 +379,7 @@
   font-size: 0.85em;
   margin-top: 0.4em;
 }
-/* 4T-0504 (Epic 3E-0096): Rückschreib-Aktionen der Task-Treffer — klickbare
+/* 4T-000504 (Epic 3E-000096): Rückschreib-Aktionen der Task-Treffer — klickbare
    Status-Box und dezente Aktions-Knöpfe (Verschieben, Bearbeiten). */
 .markdown-body .perspective-query-task-status[data-task-action] {
   cursor: pointer;
@@ -403,7 +403,7 @@
 .markdown-body .perspective-query-task-btn:hover {
   color: var(--accent);
 }
-/* 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog — Formular-Raster
+/* 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog — Formular-Raster
    (Label/Feld) und Termin-Zeilen mit Picker-/Entfernen-Knöpfen. */
 .task-dialog-content {
   min-width: 420px;
@@ -447,7 +447,7 @@
   font-size: 0.85em;
   margin: 0.4em 0 0;
 }
-/* 4T-0526 (Epic 3E-0095): Erinnerungs-Dialog — Sammel-Liste mit Aktionen
+/* 4T-000526 (Epic 3E-000095): Erinnerungs-Dialog — Sammel-Liste mit Aktionen
    pro Eintrag (Beschreibung, Quell-Datei-Link, Zeitpunkt, Erledigt/Später). */
 .reminders-modal-content {
   max-width: 640px;
@@ -487,7 +487,7 @@
   color: inherit;
   cursor: pointer;
 }
-/* 4T-0527 (Epic 3E-0095): Erinnerungs-Panel — Fälligkeits-Gruppen mit
+/* 4T-000527 (Epic 3E-000095): Erinnerungs-Panel — Fälligkeits-Gruppen mit
    Direkt-Aktionen (Erledigt, Snooze, Wiederauslösung gemuteter Einträge). */
 .reminders-status {
   color: var(--fg-muted);
@@ -543,12 +543,12 @@
 .reminders-action-btn:hover {
   background: var(--hover-bg, rgba(128, 128, 128, 0.12));
 }
-/* 4T-0528 (Epic 3E-0095): klickbares Erinnerungs-Badge im Live-Modus
+/* 4T-000528 (Epic 3E-000095): klickbares Erinnerungs-Badge im Live-Modus
    (öffnet den vorbelegten Datums-Picker). */
 .cm-editor .cm-live-task-marker-badge.task-marker-click {
   cursor: pointer;
 }
-/* 4T-0528 (Epic 3E-0095): Snooze-Options-Liste des Einstellungs-Bereichs
+/* 4T-000528 (Epic 3E-000095): Snooze-Options-Liste des Einstellungs-Bereichs
    Erinnerungen (Zahl plus Einheiten-Auswahl pro Zeile). */
 .settings-reminders-snooze-row {
   display: flex;
@@ -558,7 +558,7 @@
 .settings-reminders-snooze-row input[type='number'] {
   width: 5em;
 }
-/* 4T-0508 (Epic 3E-0096): Abhängigkeits-Zeilen des Task-Dialogs (Chips,
+/* 4T-000508 (Epic 3E-000096): Abhängigkeits-Zeilen des Task-Dialogs (Chips,
    Task-Suche mit Vorschlagsliste) und Blockiert-Optik der Treffer. */
 .task-dialog-deps {
   display: flex;
@@ -627,7 +627,7 @@
 .markdown-body .perspective-query-task-blocked a.perspective-query-task-desc {
   opacity: 0.75;
 }
-/* 4T-0412 (Epic 3E-0078): Skript-Blöcke (perspective-script). Der Fence
+/* 4T-000412 (Epic 3E-000078): Skript-Blöcke (perspective-script). Der Fence
    rendert als Platzhalter; die Sandbox-Ausführung übernimmt
    perspective-script-view.js. Das Lauf-iframe hängt unsichtbar im
    Container; Status-/Fehler-Optik wie bei der Perspective-Abfrage. */
@@ -652,7 +652,7 @@
 .markdown-body table.perspective-script-table {
   margin: 0.5em 0;
 }
-/* 4T-0414: Hinweis-Banner der Quelltext-Darstellung (Skript-Ausführung
+/* 4T-000414: Hinweis-Banner der Quelltext-Darstellung (Skript-Ausführung
    deaktiviert) über dem Code-Block. */
 .markdown-body .perspective-script-banner {
   color: var(--fg-muted);
@@ -684,7 +684,7 @@
   margin-right: 0.4em;
 }
 
-/* 4T-0075: Empty-State mit sichtbarer Bookmarks-Sidebar. Im Pane-Group
+/* 4T-000075: Empty-State mit sichtbarer Bookmarks-Sidebar. Im Pane-Group
    werden Tabbar, Source-Pane, Render-Pane und der innere Splitter
    ausgeblendet, sodass nur die Sidebar (links) sichtbar bleibt. Der
    Empty-State-Block (Oeffnen-Button) liegt darueber als Overlay zentriert. */

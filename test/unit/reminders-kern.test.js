@@ -1,4 +1,4 @@
-// 4T-0525 (Epic 3E-0095): Unit-Tests des Erinnerungs-Kerns
+// 4T-000525 (Epic 3E-000095): Unit-Tests des Erinnerungs-Kerns
 // (src/shared/reminders.js): Konfigurations-Normalisierung (Default-Uhrzeit,
 // Snooze-Set), deterministischer Bezugszeitpunkt (injiziertes Date),
 // Melde-Zeitpunkt, Anker-Sammlung mit Global-Filter und Status-Typ-Filter,
@@ -30,7 +30,7 @@ const statusTypeOf = (ch) =>
   ch === 'x' ? 'DONE' : ch === '-' ? 'CANCELLED' : ch === ' ' ? 'TODO' : null;
 
 // --- 1. Konfigurations-Normalisierung ----------------------------------------------
-describe('normalizeSnoozeOptions (4T-0525)', () => {
+describe('normalizeSnoozeOptions (4T-000525)', () => {
   it('faellt bei null oder Defekt auf das Standard-Set (10m/1h/4h/1d/1w) zurueck', () => {
     expect(normalizeSnoozeOptions(null)).toEqual(DEFAULT_SNOOZE_OPTIONS);
     expect(normalizeSnoozeOptions('kaputt')).toEqual(DEFAULT_SNOOZE_OPTIONS);
@@ -73,7 +73,7 @@ describe('normalizeSnoozeOptions (4T-0525)', () => {
   });
 });
 
-describe('normalizeRemindersConfig (4T-0525)', () => {
+describe('normalizeRemindersConfig (4T-000525)', () => {
   it('liefert bei null die Defaults (Uhrzeit 09:00, Standard-Snooze, ohne System-Notification)', () => {
     expect(normalizeRemindersConfig(null)).toEqual({
       defaultTime: '09:00',
@@ -101,7 +101,7 @@ describe('normalizeRemindersConfig (4T-0525)', () => {
 });
 
 // --- 2. Bezugszeitpunkt und Melde-Zeitpunkt ----------------------------------------
-describe('localNowString (4T-0525)', () => {
+describe('localNowString (4T-000525)', () => {
   it('bildet aus einem injizierten Date deterministisch die lokale Wanduhr-Zeit', () => {
     // Monat 6 (0-basiert) = Juli.
     expect(localNowString(new Date(2026, 6, 11, 9, 5))).toBe('2026-07-11T09:05');
@@ -110,7 +110,7 @@ describe('localNowString (4T-0525)', () => {
   });
 });
 
-describe('reminderInstant (4T-0525)', () => {
+describe('reminderInstant (4T-000525)', () => {
   const model = (date, time, invalid = false) => ({ reminder: { date, time, invalid } });
 
   it('bildet Datum plus Uhrzeit', () => {
@@ -129,7 +129,7 @@ describe('reminderInstant (4T-0525)', () => {
   });
 });
 
-describe('reminderKey (4T-0525)', () => {
+describe('reminderKey (4T-000525)', () => {
   it('setzt sich aus Pfad und Roh-Zeilentext zusammen', () => {
     expect(reminderKey('Ordner/a.md', '- [ ] X ⏰ 2099-01-01')).toBe(
       'Ordner/a.md\n- [ ] X ⏰ 2099-01-01',
@@ -152,7 +152,7 @@ const LINES = [
   { path: 'a.md', zeile: 8, text: '- [ ] KeinFilter ⏰ 2099-06-01' },
 ];
 
-describe('collectReminders (4T-0525)', () => {
+describe('collectReminders (4T-000525)', () => {
   it('sammelt nur offene Anker mit gueltigem ⏰-Wert, nach Zeitpunkt sortiert', () => {
     const res = collectReminders(LINES, {
       globalFilter: '#task',
@@ -218,7 +218,7 @@ describe('collectReminders (4T-0525)', () => {
 });
 
 // --- 4. Faelligkeit -----------------------------------------------------------------
-describe('computeDue (4T-0525)', () => {
+describe('computeDue (4T-000525)', () => {
   const items = [
     { key: 'k1', instant: '2099-01-01T09:00' },
     { key: 'k2', instant: '2099-01-01T10:00' },
@@ -257,7 +257,7 @@ describe('computeDue (4T-0525)', () => {
 });
 
 // --- 5. Panel-Gruppen ---------------------------------------------------------------
-describe('groupForPanel (4T-0525)', () => {
+describe('groupForPanel (4T-000525)', () => {
   it('teilt in ueberfaellig, heute (noch anstehend), morgen und spaeter', () => {
     const items = [
       { key: 'heutePast', instant: '2099-06-15T08:00', date: '2099-06-15' },
@@ -295,7 +295,7 @@ describe('groupForPanel (4T-0525)', () => {
 });
 
 // --- 6. Snooze ----------------------------------------------------------------------
-describe('snoozedReminderValue (4T-0525)', () => {
+describe('snoozedReminderValue (4T-000525)', () => {
   it('Minuten und Stunden rechnen minutengenau ab dem Bezugszeitpunkt', () => {
     expect(snoozedReminderValue('2099-06-15T09:00', { amount: 10, unit: 'm' })).toEqual({
       date: '2099-06-15',

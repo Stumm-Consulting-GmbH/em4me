@@ -2,7 +2,7 @@
 // (Rebranding-Nutzerdaten, altes Single-Window-Schema) und die Einmal-
 // Entscheidung des Start-Farbschemas.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Electron-frei: die beiden
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Electron-frei: die beiden
 // Verzeichnisse kommen als Argumente herein, damit der Lade-Pfad ohne
 // Electron pruefbar bleibt (Muster user-data-migration.js).
 //
@@ -15,7 +15,7 @@ const { migrateUserData } = require('./user-data-migration.js');
 const { migrateWindowsToApps, normalizeSavedWorkspaces } = require('./session-schema');
 const { COLOR_SCHEMES_KEY, startupSchemeState } = require('../../shared/color-schemes.js');
 
-// Nutzerdaten-Migration beim Rebranding (4T-0643): Logik prozess-neutral in
+// Nutzerdaten-Migration beim Rebranding (4T-000643): Logik prozess-neutral in
 // user-data-migration.js, damit die Unit-Tests denselben Pfad pruefen. Hier nur
 // die Bindung an die Electron-Pfade des Aufrufers.
 async function migrateSettingsFromPreviousName(dirs) {
@@ -25,7 +25,7 @@ async function migrateSettingsFromPreviousName(dirs) {
   });
 }
 
-// 4T-0751 (Epic 3E-0146): Steht noch kein Schema-Zustand im Store, wird er
+// 4T-000751 (Epic 3E-000146): Steht noch kein Schema-Zustand im Store, wird er
 // hier einmalig geschrieben — bestehende Installationen auf die bisherigen
 // Standard-Schemas, frische auf die neue Bernstein-Voreinstellung. Die
 // Begruendung samt der Falle, die das unbedingte Schreiben abfaengt, steht
@@ -99,41 +99,41 @@ async function loadStore(dirs) {
   const store = new Store({
     defaults: {
       restoreSession: true,
-      apps: [], // Sitzung ueber logische Applikationen (4T-0320)
-      workspaces: [], // benannte Arbeitsbereiche (4T-0537, Epic 3E-0098)
+      apps: [], // Sitzung ueber logische Applikationen (4T-000320)
+      workspaces: [], // benannte Arbeitsbereiche (4T-000537, Epic 3E-000098)
       windows: [], // Legacy: flache Multi-Window-Sitzung (Lese-Fallback)
       recentFiles: [],
-      recentAreas: [], // zuletzt geoeffnete Bereiche (4T-0325)
-      // 4T-0888 (Epic 3E-0168): zuletzt geoeffnete Buecher und Buecherregale,
+      recentAreas: [], // zuletzt geoeffnete Bereiche (4T-000325)
+      // 4T-000888 (Epic 3E-000168): zuletzt geoeffnete Buecher und Buecherregale,
       // nach demselben Muster wie die Bereichs-Liste (juengste zuerst,
       // dedupliziert, gekappt auf zehn).
       recentBooks: [],
       recentShelves: [],
-      // 4T-0751 (Epic 3E-0146): Englisch ist der Auslieferungszustand.
+      // 4T-000751 (Epic 3E-000146): Englisch ist der Auslieferungszustand.
       // conf materialisiert die Defaults schon bei der Store-Konstruktion,
       // deshalb wirkt dieser Wert ausschliesslich fuer frische Staende;
       // bestehende Installationen tragen ihr persistiertes null weiter und
       // leiten unveraendert aus der Windows-Locale ab (Entscheidung des
       // Product Owners vom 2026-07-27: nur frische Installationen).
       language: 'en',
-      // 4T-0030: Theme-Vorzug. 'system' folgt der OS-Einstellung
+      // 4T-000030: Theme-Vorzug. 'system' folgt der OS-Einstellung
       // (bisheriges Verhalten), 'light'/'dark' erzwingt das jeweilige Theme.
       themePref: 'system',
-      // 4T-0207: User-Overrides der Tastenkuerzel als flaches Objekt
+      // 4T-000207: User-Overrides der Tastenkuerzel als flaches Objekt
       // { commandId: acceleratorString }; leer = ueberall Registry-Defaults.
       hotkeys: {},
-      // 4T-0331 (Epic 3E-0060): Dokument-Historie. App-weiter Default ist
+      // 4T-000331 (Epic 3E-000060): Dokument-Historie. App-weiter Default ist
       // bewusst aus (PO-Entscheidung vom 2026-07-03); die Zeitparameter der
       // Paket-Bildung in Minuten (max. Paket-Dauer, Inaktivitaets-Schluss).
       historyEnabled: false,
       historyMaxPacketMinutes: 5,
       historyInactivityMinutes: 2,
-      // 4T-0346 (Epic 3E-0062): Link-Update beim Umbenennen. Beide Standard-
+      // 4T-000346 (Epic 3E-000062): Link-Update beim Umbenennen. Beide Standard-
       // Werte aktiv (PO-Anforderung), per Einstellung im Bereich Verhalten
       // umstellbar.
       renameUpdateLinks: true,
       renameLinkPreview: true,
-      // 4T-0369 (Epic 3E-0068): Entwurfs-Zwischenspeicher — nie gespeicherte
+      // 4T-000369 (Epic 3E-000068): Entwurfs-Zwischenspeicher — nie gespeicherte
       // Unbenannt-Tabs ueberleben das App-Ende. Default an.
       keepUnsavedDrafts: true,
       // Legacy-Defaults bleiben fuer Migration verwertbar:
@@ -144,12 +144,12 @@ async function loadStore(dirs) {
     },
   });
   migrateLegacySettings(store);
-  // 4T-0320: flaches 'windows'-Format einmalig in das App-Schema ueberfuehren
+  // 4T-000320: flaches 'windows'-Format einmalig in das App-Schema ueberfuehren
   // (alle Bestands-Fenster als EINE Applikation); der alte Key bleibt
   // defensiv erhalten, wird aber nicht mehr geschrieben.
   const migratedApps = migrateWindowsToApps(store.get('apps'), store.get('windows'));
   if (migratedApps) store.set('apps', migratedApps);
-  // 4T-0537: Arbeitsbereichs-Ablage normalisiert in den In-Memory-Stand laden.
+  // 4T-000537: Arbeitsbereichs-Ablage normalisiert in den In-Memory-Stand laden.
   const workspaces = normalizeSavedWorkspaces(store.get('workspaces'));
   applyStartupSchemeState(store);
   return { store, workspaces };

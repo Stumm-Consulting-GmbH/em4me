@@ -1,4 +1,4 @@
-// 4T-0425 (Epic 3E-0080): Platzhalter-Engine der Vorlagen.
+// 4T-000425 (Epic 3E-000080): Platzhalter-Engine der Vorlagen.
 //
 // Kuratierter Platzhalter-Satz statt freiem JavaScript (Architektur-
 // entscheidung 1 des Epics): Syntax `{{…}}`, Escape `\{{…}}`, Namen englisch
@@ -6,7 +6,7 @@
 // zwei Phasen geschnitten, damit das Modul rein und vollständig unit-testbar
 // bleibt: `analyzeTemplate` zerlegt den Vorlagen-Text in Literale und
 // Platzhalter und meldet die benötigten interaktiven Eingaben; der Aufrufer
-// (4T-0426) erhebt die Antworten per Dialog und übergibt sie an
+// (4T-000426) erhebt die Antworten per Dialog und übergibt sie an
 // `fillTemplate` für den Füll-Lauf. Interaktive Platzhalter werden im Modul
 // selbst nie beantwortet.
 //
@@ -34,7 +34,7 @@
 // erhoben (Schlüssel = kanonischer Spec-String) und überall eingesetzt.
 'use strict';
 
-// 4T-0987 (Epic 3E-0196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
+// 4T-000987 (Epic 3E-000196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
 const { parseDurationContent } = require('./query/perspective-query.js');
 const { formatDateMs } = require('./query/query-format.js');
 
@@ -134,7 +134,7 @@ function parsePlaceholder(inner, pos) {
 // Liefert { ok: true, segments, inputs } oder { ok: false, error }.
 // inputs: [{ key, kind: 'prompt'|'select', question, defaultValue?, options? }]
 // — identische Platzhalter (gleicher key) erscheinen nur einmal, in der
-// Reihenfolge ihres ersten Vorkommens (Dialog-Reihenfolge in 4T-0426).
+// Reihenfolge ihres ersten Vorkommens (Dialog-Reihenfolge in 4T-000426).
 function analyzeTemplate(text) {
   const src = String(text == null ? '' : text);
   const segments = [];
@@ -205,7 +205,7 @@ function fillTemplate(analysis, context) {
         text += seg.text;
         break;
       case 'datetime':
-        // 4T-1057 (Epic 3E-0210): Sprach-Zufuhr über den Vorlagen-Kontext —
+        // 4T-001057 (Epic 3E-000210): Sprach-Zufuhr über den Vorlagen-Kontext —
         // die sprachabhängigen Namens-Token (MMMM, EEEE …) folgen der
         // Oberflächen-Sprache; ohne ctx.locale bleibt die Laufzeit-Locale.
         text += formatDateMs(nowMs + seg.offsetMs, seg.format, ctx.locale);

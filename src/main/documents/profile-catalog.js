@@ -1,4 +1,4 @@
-// 4T-0447 (Epic 3E-0083): Profil-Katalog — liest die Profil-Dateien des
+// 4T-000447 (Epic 3E-000083): Profil-Katalog — liest die Profil-Dateien des
 // konfigurierten Profil-Ordners (flacher Scan, Profile liegen direkt im
 // Ordner) und parst ihre Feld-Definitionen aus dem Frontmatter.
 //
@@ -10,7 +10,7 @@
 // Dateien werden erneut gelesen und geparst; verschwundene Dateien werden
 // aus dem Cache geräumt.
 //
-// 4T-1157 (Epic 3E-0219, E12): **Der zweite Eingang.** Eine Werte-Notiz
+// 4T-001157 (Epic 3E-000219, E12): **Der zweite Eingang.** Eine Werte-Notiz
 // (`valuesFrom.note` einer Definition) ist eine zweite Datei, die dieser
 // Abgleich bisher nicht sah. Sie bekommt keinen neuen Mechanismus, sondern
 // denselben: dieselbe Cache-Map, derselbe mtime- und Größen-Vergleich, nur
@@ -27,7 +27,7 @@ const path = require('node:path');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
 const { parseProfileFields, parseProfileHeritage } = require('../../shared/property-profiles');
 const { isInsideArea } = require('../area/area-path');
-// 4T-1203 (Epic 3E-0121): Cache-Schluessel folgen der Dateisystem-Eigenschaft
+// 4T-001203 (Epic 3E-000121): Cache-Schluessel folgen der Dateisystem-Eigenschaft
 // (kleingeschrieben nur, wo die Plattform die Schreibung nicht unterscheidet);
 // auf Linux fielen sonst zwei verschiedene Pfade auf einen Eintrag zusammen.
 const { pathCompareKey } = require('../../shared/platform.js');
@@ -39,7 +39,7 @@ function createProfileCatalogCache() {
   return new Map();
 }
 
-// 4T-1157 (Epic 3E-0219, E12): Werte-Notiz lesen — ein Wert je Zeile.
+// 4T-001157 (Epic 3E-000219, E12): Werte-Notiz lesen — ein Wert je Zeile.
 // Leerzeilen und Randleerraum entfallen, Doppelte zählen einmal; ein
 // Metadaten-Block der Notiz gehört NICHT zum Vorrat (er beschreibt die
 // Notiz, er ist kein Wert). Liefert null, wenn nichts Verwertbares
@@ -136,7 +136,7 @@ async function ladeWerteNotizen({ pfade, areaRoot, fsp, cache, alive }) {
 // alphabetisch sortierte Einträge { name, fileName, fields, errors,
 // parent, exclude }; name = Datei-Titel (Dateiname ohne .md), die Identität
 // der Zuordnung. parent/exclude sind die Vererbungs-Angaben der Profil-Ebene
-// (4T-1142, `extends`/`exclude` im Metadaten-Block); die ordnerweiten
+// (4T-001142, `extends`/`exclude` im Metadaten-Block); die ordnerweiten
 // Zyklus- und Fehlt-Hinweise berechnet der Verbraucher über
 // attachHeritageHints, weil sie am Datei-Cache vorbei vom ganzen Ordner
 // abhängen. Ein YAML-Fehler im Frontmatter einer Profil-Datei setzt nur
@@ -179,7 +179,7 @@ async function loadProfileCatalog({ folderAbs, fsp, cache, areaRoot = null }) {
       const heritage = parseProfileHeritage(fm.data);
       errors.push(...heritage.errors);
       if (fm.parseError) {
-        // 4T-1143: dieselbe Hinweis-Gestalt wie die Parser-Hinweise.
+        // 4T-001143: dieselbe Hinweis-Gestalt wie die Parser-Hinweise.
         errors.unshift({ code: 'yaml', index: -1, name: null, key: null, expected: null });
       }
       parsed = {
@@ -189,7 +189,7 @@ async function loadProfileCatalog({ folderAbs, fsp, cache, areaRoot = null }) {
         errors,
         parent: heritage.parent,
         exclude: heritage.exclude,
-        // 4T-1161 (Epic 3E-0219, E5): Symbol des Profils.
+        // 4T-001161 (Epic 3E-000219, E5): Symbol des Profils.
         icon: heritage.icon,
       };
       cache.set(cacheKey, parsed);
@@ -204,7 +204,7 @@ async function loadProfileCatalog({ folderAbs, fsp, cache, areaRoot = null }) {
       icon: parsed.icon,
     });
   }
-  // 4T-1157 (E12): der zweite Eingang — Werte-Notizen der Definitionen mit
+  // 4T-001157 (E12): der zweite Eingang — Werte-Notizen der Definitionen mit
   // demselben Abgleich lesen und ihren Vorrat einsetzen. Läuft nach dem
   // Profil-Durchlauf, weil erst dann feststeht, welche Notizen überhaupt
   // gebraucht werden; ohne `valuesFrom.note` kostet der Schritt keinen

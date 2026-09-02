@@ -1,4 +1,4 @@
-// 4T-0331 (Epic 3E-0060): Zeilenbasierter Diff fuer das Aenderungsprotokoll
+// 4T-000331 (Epic 3E-000060): Zeilenbasierter Diff fuer das Aenderungsprotokoll
 // der Dokument-Historie (.mdd). Eigenimplementierung ohne Dependency
 // (Dependency-Politik der Entwicklungsrichtlinien): gemeinsamer Praefix/
 // Suffix wird abgeschnitten, der veraenderliche Mittelteil ueber eine
@@ -128,7 +128,7 @@ function countChanges(ops) {
   return { added, removed };
 }
 
-// 4T-0333 (Epic 3E-0060): Zeilen der Vergleichs-Ansicht. Aus Basistext und
+// 4T-000333 (Epic 3E-000060): Zeilen der Vergleichs-Ansicht. Aus Basistext und
 // Delta entsteht eine Hunk-Darstellung: geaenderte Stellen mit `context`
 // unveraenderten Zeilen davor/danach, ausgelassene Bereiche als 'gap'.
 // Typen: 'ctx' (unveraendert), 'del' (entfernt), 'ins' (eingefuegt), 'gap'.

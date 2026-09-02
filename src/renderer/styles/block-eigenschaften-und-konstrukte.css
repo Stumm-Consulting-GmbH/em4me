@@ -1,11 +1,11 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 10 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 10 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Block-Eigenschaften-Panel, Wiki-Embeds, Callouts, Hervorhebung, private
    Kommentare. */
 
-/* === Block-Eigenschaften-Panel (4T-0364, Epic 3E-0067) ================== */
+/* === Block-Eigenschaften-Panel (4T-000364, Epic 3E-000067) ================== */
 /* Pflegt die Block-Metadaten (.mdd blockData) des Ankers unter dem Cursor. Die
    Eigenschafts-Zeilen teilen die .properties-field-*-Optik des Dokument-
    Properties-Editors; hier nur die block-spezifischen Teile: Anker-Leiste,
@@ -151,7 +151,7 @@
   border-color: #c0392b;
 }
 
-/* 4T-0365 (Epic 3E-0067): Block-Metadaten-Indikator (Render-Pane, Reading und
+/* 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator (Render-Pane, Reading und
    Live-Modus). Dezenter Marker am Blockende; Hover zeigt die Werte (title),
    Klick öffnet das Panel. Im PDF-Export ausgeblendet (siehe body.printing). */
 .block-meta-indicator,
@@ -254,7 +254,7 @@
   font-size: 0.85em;
 }
 
-/* === Wiki-Embeds (4T-0055, Epic 3E-0011) ================================= */
+/* === Wiki-Embeds (4T-000055, Epic 3E-000011) ================================= */
 /* Bilder: kommen schon als <img> aus dem preload (mit data-URI). Hier nur
    Basis-Styling fuer Inline-Bilder. */
 .markdown-body .wiki-embed.wiki-embed-image {
@@ -347,7 +347,7 @@
   border-color: rgba(255, 118, 118, 0.25);
 }
 
-/* === Callouts (4T-0061, Epic 3E-0012) ==================================== */
+/* === Callouts (4T-000061, Epic 3E-000012) ==================================== */
 /* Obsidian-Style Block-Hinweisboxen. Akzentfarbe pro Typ als CSS-Custom-
    Property; Light- und Dark-Theme jeweils mit eigenen Werten. Klappbare
    Varianten ueber <details>/<summary>, statische ueber <div>. */
@@ -505,7 +505,7 @@
   color: #6ea8fe;
 }
 
-/* === Highlight (4T-0062, Epic 3E-0012) ==================================== */
+/* === Highlight (4T-000062, Epic 3E-000012) ==================================== */
 /* `==Text==` rendert als <mark> mit gelbem Hintergrund. Im Dark-Theme
    gedaempfter Gelbton mit hellem Text fuer ausreichenden Kontrast. */
 .markdown-body mark {
@@ -528,7 +528,7 @@
   background: rgba(125, 107, 0, 0.45);
 }
 
-/* === %%-Kommentare (4T-0479, Epic 3E-0089) ================================ */
+/* === %%-Kommentare (4T-000479, Epic 3E-000089) ================================ */
 /* Kommentar-Bereiche (inklusive %%-Marker) im Quelltext- und Live-Modus
    dezent abgesetzt; --syntax-comment folgt dem Light/Dark-Theme. */
 .cm-editor .cm-comment-marker {

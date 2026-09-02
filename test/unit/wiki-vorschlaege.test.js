@@ -1,4 +1,4 @@
-// 4T-1307 (Epic 3E-0235): Auswahl-Regel und Klammer-Schluss der Vorschlagsliste
+// 4T-001307 (Epic 3E-000235): Auswahl-Regel und Klammer-Schluss der Vorschlagsliste
 // fuer interne Verweise.
 //
 // Beide Entscheidungen liegen prozessneutral in src/shared/wiki-vorschlaege.js
@@ -25,7 +25,7 @@ const ZIELE = [
 
 const namen = (liste) => liste.map((s) => s.name);
 
-describe('Auswahl-Regel der Verweis-Vorschlaege (4T-1307)', () => {
+describe('Auswahl-Regel der Verweis-Vorschlaege (4T-001307)', () => {
   it('ohne Eingabe fuehrt die Aenderungszeit, die juengste Datei zuerst', () => {
     expect(namen(waehleWikiZiele(ZIELE, ''))).toEqual(['Delta', 'Gamma', 'Beta', 'Alpha']);
   });
@@ -99,11 +99,11 @@ describe('Auswahl-Regel der Verweis-Vorschlaege (4T-1307)', () => {
   });
 });
 
-// 4T-1339 (Epic 3E-0238): Seit die Quelle die Eigensortierung der
+// 4T-001339 (Epic 3E-000238): Seit die Quelle die Eigensortierung der
 // Vervollstaendigungs-Bibliothek abbestellt, rechnet diese die Hervorhebung
 // der getroffenen Zeichen nicht mehr selbst aus. Die Regel dafuer liegt neben
 // der Auswahl-Regel, weil sie deren Filter spiegelt.
-describe('Treffer-Bereich fuer die Hervorhebung (4T-1339)', () => {
+describe('Treffer-Bereich fuer die Hervorhebung (4T-001339)', () => {
   it('nennt Anfang und Ende der Fundstelle', () => {
     expect(trefferBereich('Notizbuch', 'buch')).toEqual([5, 9]);
   });
@@ -117,7 +117,7 @@ describe('Treffer-Bereich fuer die Hervorhebung (4T-1339)', () => {
   });
 
   it('liefert ohne Eingabe keinen Bereich', () => {
-    // Die Liste ohne Eingabe ist genau die Lage, fuer die 4T-1339 die
+    // Die Liste ohne Eingabe ist genau die Lage, fuer die 4T-001339 die
     // Reihenfolge nach Aenderungszeit wiederherstellt; hervorzuheben ist
     // dort nichts.
     expect(trefferBereich('Notizbuch', '')).toEqual([]);
@@ -129,7 +129,7 @@ describe('Treffer-Bereich fuer die Hervorhebung (4T-1339)', () => {
   });
 });
 
-describe('Klammer-Schluss bei der Uebernahme (4T-1307)', () => {
+describe('Klammer-Schluss bei der Uebernahme (4T-001307)', () => {
   it('ergaenzt beide Klammern, wenn keine dasteht', () => {
     expect(klammerSchluss('')).toBe(']]');
     expect(klammerSchluss(' und weiter')).toBe(']]');

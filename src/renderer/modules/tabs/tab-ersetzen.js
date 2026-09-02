@@ -1,4 +1,4 @@
-// 4T-1311 (Epic 3E-0235): Den Inhalt eines Reiters durch eine andere Datei
+// 4T-001311 (Epic 3E-000235): Den Inhalt eines Reiters durch eine andere Datei
 // ersetzen, ohne den Reiter selbst aufzugeben.
 //
 // Der Unterschied zum Öffnen ist der Zustand. Ein neu geöffneter Reiter

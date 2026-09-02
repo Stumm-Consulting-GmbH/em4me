@@ -1,4 +1,4 @@
-// 4T-1340 (Epic 3E-0238): Werte-Vorschläge aus dem vorhandenen Bestand.
+// 4T-001340 (Epic 3E-000238): Werte-Vorschläge aus dem vorhandenen Bestand.
 //
 // Die zweite Werte-Quelle der Eigenschafts-Felder, neben dem definierten
 // Wertevorrat eines Profils. Sie holt die im Bereich für dieses Feld bereits

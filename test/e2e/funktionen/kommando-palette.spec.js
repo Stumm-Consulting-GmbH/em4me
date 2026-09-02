@@ -1,4 +1,4 @@
-// 4T-0480 (Epic 3E-0089): E2E-Funktions-Suite Kommando-Palette.
+// 4T-000480 (Epic 3E-000089): E2E-Funktions-Suite Kommando-Palette.
 // KP-01: Strg+K oeffnet das Popup (Modal sichtbar, Filter fokussiert, Liste
 // gefuellt), Esc schliesst es; KP-02: Oeffnen ueber den Menue-Kanal
 // menu:openCommandPalette (Poll-Muster wie die Graph-Suite, weil der
@@ -28,7 +28,7 @@ const MODAL = '#command-palette-modal';
 const FILTER = '#command-palette-filter';
 const ITEM = '.command-palette-item';
 const OUTLINE = '.pane-group[data-pane="0"] .outline-tree';
-// 4T-0781 (Epic 3E-0161): Sektion des Block-Eigenschaften-Panels.
+// 4T-000781 (Epic 3E-000161): Sektion des Block-Eigenschaften-Panels.
 const BLOCKPROPS = '.pane-group[data-pane="0"] .sidebar-blockprops';
 
 // Menue-Klicks simulieren (Muster smoke.spec.js / graphenansicht.spec.js).
@@ -150,7 +150,7 @@ test.describe('KP-04: Enter fuehrt das gefilterte Kommando aus und schliesst (S-
   });
 });
 
-// 4T-0781 (Epic 3E-0161): Regressionstest zum Befund, dass drei Registry-
+// 4T-000781 (Epic 3E-000161): Regressionstest zum Befund, dass drei Registry-
 // Kommandos keinen Eintrag in der Dispatcher-Map hatten und deshalb ueber
 // Palette und belegtes Kuerzel wirkungslos blieben. Geprueft wird die
 // Wirkung am realen Bedienweg; die Vollstaendigkeit der Map selbst haelt der

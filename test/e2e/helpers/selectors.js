@@ -1,10 +1,10 @@
-// 4T-0167: Zentrale Selektor-Konstanten der E2E-Suite. Eine Quelle fuer
-// Smoke- (SM-*) und spaetere Funktions-Specs (4T-0195), damit UI-Umbauten
+// 4T-000167: Zentrale Selektor-Konstanten der E2E-Suite. Eine Quelle fuer
+// Smoke- (SM-*) und spaetere Funktions-Specs (4T-000195), damit UI-Umbauten
 // nur hier nachgezogen werden muessen. Selektoren entsprechen dem realen
 // DOM aus src/renderer/index.html bzw. renderer.js (renderTabbar u.a.).
 'use strict';
 
-// 4T-0899: Spalten-gebundene Selektoren als Funktion einer Spalten-Nummer.
+// 4T-000899: Spalten-gebundene Selektoren als Funktion einer Spalten-Nummer.
 // Anlass ist die Bestandsaufnahme des Charter-Durchgangs: Der Satz war
 // durchgehend auf data-pane="0" verdrahtet, weshalb nur vier von 71 Specs die
 // zweite Spalte ueberhaupt beruehrten — jede musste ihre Selektoren selbst
@@ -16,7 +16,7 @@ function paneSel(idx) {
     paneGroup: g,
     content: `${g} .content`,
     paneSource: `${g} .pane-source`,
-    // 4T-0577 (Epic 3E-0106): Editor-Huelle der Quelltext-Spalte. Traegt im
+    // 4T-000577 (Epic 3E-000106): Editor-Huelle der Quelltext-Spalte. Traegt im
     // Lese-Zustand die Klasse read-only (das contenteditable-Attribut der
     // cm-content steht dort ebenfalls auf true und taugt nicht als Beleg).
     paneSourceEditor: `${g} .pane-source-editor`,
@@ -28,7 +28,7 @@ function paneSel(idx) {
     tabs: `${g} .tabbar .tab`,
     activeTab: `${g} .tabbar .tab.active`,
     dirtyTab: `${g} .tabbar .tab.dirty`,
-    // Tab-Gruppen (4T-0460, Epic 3E-0085): Kopf, Zaehler und Reiter-Kennung
+    // Tab-Gruppen (4T-000460, Epic 3E-000085): Kopf, Zaehler und Reiter-Kennung
     groupHeads: `${g} .tabbar .tab-group-head`,
     groupHeadLabel: `${g} .tabbar .tab-group-head .tab-group-head-label`,
     groupHeadCount: `${g} .tabbar .tab-group-head .tab-group-head-count`,
@@ -36,14 +36,14 @@ function paneSel(idx) {
     // Sidebar-Spalten der Pane (bislang nur in Sidebar-Specs von Hand gebaut)
     sidebarLeft: `${g} .pane-sidebar-left`,
     sidebarRight: `${g} .pane-sidebar-right`,
-    // Titelzeile (4T-0585, Epic 3E-0108): zwei Instanzen pro Pane, data-host
+    // Titelzeile (4T-000585, Epic 3E-000108): zwei Instanzen pro Pane, data-host
     // steuert die Sichtbarkeit je Ansichts-Modus (source: Quelltext/Geteilt/
     // Live; rendered: Reading).
     titleLineSource: `${g} .pane-source .title-line`,
     titleLineRendered: `${g} .pane-rendered .title-line`,
     titleLineSourceText: `${g} .pane-source .title-line .title-line-text`,
     titleLineRenderedText: `${g} .pane-rendered .title-line .title-line-text`,
-    // 4T-0646 (Epic 3E-0128): Die Zeile besteht aus dem nie editierbaren
+    // 4T-000646 (Epic 3E-000128): Die Zeile besteht aus dem nie editierbaren
     // Eltern-Anteil und dem editierbaren eigenen Segment.
     titleLineRenderedPrefix: `${g} .pane-rendered .title-line .title-line-prefix`,
     titleLineRenderedSegment: `${g} .pane-rendered .title-line .title-line-segment`,

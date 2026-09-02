@@ -2,7 +2,7 @@
 // Inline-Mathematik, Wiki-Einbettungen, Fußnoten, Emoji, Kalender-Werte,
 // Inline-Berechnungen, Abkürzungen, Bild-Größen, Critic Markup, Tief- und
 // Hochstellung, Spoiler und Attribut-Spannen.
-// 4T-0996 (Epic 3E-0196): aus der Kernfunktion von live-widgets.js
+// 4T-000996 (Epic 3E-000196): aus der Kernfunktion von live-widgets.js
 // herausgelöst. Rümpfe unverändert übernommen; die Reihenfolge ist
 // semantiktragend (Inline-Mathematik vor den Fußnoten, Critic Markup vor
 // Tief-, Hoch- und Einfügungs-Pass), die Critic-Spannen sind ein
@@ -54,11 +54,11 @@ import { positionInsideCode } from './live-shared.js';
 import { CalendarValueBadgeWidget, EmojiWidget, InlineCalcWidget } from './live-widget-inline.js';
 import { ImageWidget, MathInlineWidget, WikiEmbedWidget } from './live-widget-render.js';
 
-// 4T-0996: Zweiter Inline-Block eines Sichtbereichs.
+// 4T-000996: Zweiter Inline-Block eines Sichtbereichs.
 export function runLateInlinePasses(ctx) {
   const { state, ranges, activeLines, basePath, frontmatterEndLine } = ctx;
   const { mathBlockRanges, text, from, criticSpans } = ctx;
-  // === 4T-0084: Regex-Pass Inline-Math ($x$) ===
+  // === 4T-000084: Regex-Pass Inline-Math ($x$) ===
   // Wird vor dem Footnote-Pass platziert, weil Math-Inhalt potenziell
   // `[^id]`-aehnliche Sequenzen enthalten koennte; mit Inline-Math als
   // Replace-Decoration ist der Bereich danach nicht mehr fuer den
@@ -88,7 +88,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0084: Regex-Pass Wiki-Embeds (![[…]]) ===
+  // === 4T-000084: Regex-Pass Wiki-Embeds (![[…]]) ===
   if (isExtensionActive('wiki-embeds')) {
     for (const m of text.matchAll(LIVE_WIKI_EMBED_RE)) {
       const docPos = from + m.index;
@@ -111,7 +111,7 @@ export function runLateInlinePasses(ctx) {
       const docPos = from + m.index;
       if (positionInsideCode(state, docPos)) continue;
       const lineNo = state.doc.lineAt(docPos).number;
-      // R1-11 (4T-0186): Frontmatter ausklammern.
+      // R1-11 (4T-000186): Frontmatter ausklammern.
       if (lineNo <= frontmatterEndLine) continue;
       if (activeLines.has(lineNo)) continue;
       const id = m[1];
@@ -125,7 +125,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0197: Regex-Pass Emoji-Shortcodes (:smile:) ===
+  // === 4T-000197: Regex-Pass Emoji-Shortcodes (:smile:) ===
   // exec-Loop statt matchAll, weil bei Nicht-Shortcode-Kandidaten der
   // lastIndex auf das schliessende `:` zurueckgesetzt werden muss —
   // sonst verschluckt z.B. `a:x:smile:` den Start von `:smile:`.
@@ -151,7 +151,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0546 (Epic 3E-0097): Regex-Pass Kalender-Werte (@{Name: Wert}) ===
+  // === 4T-000546 (Epic 3E-000097): Regex-Pass Kalender-Werte (@{Name: Wert}) ===
   // Inline-Replace durch die Badge-Darstellung (Spec-Quelle wie der
   // Render-Pane); der Klick-Bereich spricht den mousedown-Handler des
   // calendarValuePlugin an (calendar-picker.js). Cursor auf der Zeile
@@ -176,7 +176,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0596 (Epic 3E-0111): Regex-Pass Inline-Berechnungen ({= … =}) ===
+  // === 4T-000596 (Epic 3E-000111): Regex-Pass Inline-Berechnungen ({= … =}) ===
   // Inline-Replace durch das Ergebnis-Widget (Spec-Quelle wie der Render-
   // Pane, Fehler als ⚠︎ mit lokalisiertem Tooltip). Cursor auf der Zeile
   // zeigt den Roh-Ausdruck (activeLines-Guard); ein Klick aufs Widget setzt
@@ -200,7 +200,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0197: Regex-Pass Abbreviation-Vorkommen ===
+  // === 4T-000197: Regex-Pass Abbreviation-Vorkommen ===
   // Pro definiertem Kuerzel werden Wort-Vorkommen im sichtbaren Bereich
   // mit dotted-underline-Mark plus Tooltip-Attribut versehen. Wort-
   // Grenzen Unicode-bewusst (markdown-it-abbr ersetzt nur ganze
@@ -225,10 +225,10 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0198: Regex-Pass Image-Size (![alt](url =WxH)) ===
+  // === 4T-000198: Regex-Pass Image-Size (![alt](url =WxH)) ===
   // Der Lezer-Image-Branch oben greift hier nicht (kein URL-Child im
   // abgebrochenen Image-Knoten) — kein Doppel-Replace moeglich.
-  // 4T-0293: gehoert zur figures-Erweiterung; deaktiviert bleibt das
+  // 4T-000293: gehoert zur figures-Erweiterung; deaktiviert bleibt das
   // Groessen-Suffix Roh-Text (Paritaet: der Render zeigt es dann auch roh).
   if (isExtensionActive('figures')) {
     for (const m of text.matchAll(LIVE_IMG_SIZE_RE)) {
@@ -246,11 +246,11 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0203: Regex-Pass Critic Markup ===
+  // === 4T-000203: Regex-Pass Critic Markup ===
   // Laeuft VOR den Sub/Sup/Ins-Paessen und sammelt seine Spannen —
   // `{++x++}` darf dort nicht erneut als `++x++` matchen (im Render-
   // Pfad konsumiert die frueher registrierte Critic-Rule zuerst).
-  // 4T-0293: bei deaktivierter Critic-Erweiterung bleibt criticSpans
+  // 4T-000293: bei deaktivierter Critic-Erweiterung bleibt criticSpans
   // leer — die Typografie-Paesse duerfen dann in `{++x++}` matchen
   // (Paritaet: ohne Critic-Rule konsumiert auch der Render die Spanne
   // nicht zuerst).
@@ -290,7 +290,7 @@ export function runLateInlinePasses(ctx) {
   }
   const insideCriticSpan = (idx) => criticSpans.some(([a, b]) => idx >= a && idx < b);
 
-  // === 4T-0201: Regex-Paesse Sub (~x~), Sup (^^x^^), Ins (++x++) ===
+  // === 4T-000201: Regex-Paesse Sub (~x~), Sup (^^x^^), Ins (++x++) ===
   // Muster = Highlight-Pass: Marker-Paar in Nicht-Cursor-Zeilen
   // verstecken, Inhalt mit Style-Mark versehen. Der Sub-Pass laeuft
   // nach dem Lezer-Strikethrough-Pass; die Lookarounds schliessen
@@ -320,7 +320,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0203: Regex-Pass Spoiler (||Text||) ===
+  // === 4T-000203: Regex-Pass Spoiler (||Text||) ===
   // Zeilen in Lezer-Table-Knoten ueberspringen — dort gewinnt die
   // Zellen-Trennung (Verhalten konsistent zum Render-Pfad, wo der
   // Block-Tabellen-Parser die Zeile vor den Inline-Rules zerschneidet).
@@ -342,7 +342,7 @@ export function runLateInlinePasses(ctx) {
     }
   }
 
-  // === 4T-0202: Regex-Pass Bracketed Spans ([Text]{...}) ===
+  // === 4T-000202: Regex-Pass Bracketed Spans ([Text]{...}) ===
   // `[` und `]{...}` verstecken, Inhalt sichtbar lassen. Lezer-Link-
   // Guard: liegt der Treffer in einem Link-/Image-Knoten (z.B. eine
   // definierte Shortcut-Referenz `[ref]` mit folgendem Block), bleibt

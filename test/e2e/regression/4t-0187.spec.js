@@ -1,4 +1,4 @@
-// 4T-0187: Nutzer-Feedback und Sidebar-Lücken — Regressionstests.
+// 4T-000187: Nutzer-Feedback und Sidebar-Lücken — Regressionstests.
 //
 // NF-01: B-18 — Die Tag-Sidebar funktioniert OHNE jemals geöffnetes
 //        Backlinks-Panel (Index-Lebenszyklus entkoppelt; vorher blieb sie

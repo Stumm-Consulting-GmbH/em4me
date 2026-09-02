@@ -1,4 +1,4 @@
-// 4T-1314 (Epic 3E-0235): Mitgelieferte Farbschema-Vorlagen.
+// 4T-001314 (Epic 3E-000235): Mitgelieferte Farbschema-Vorlagen.
 //
 // Herausgelöst aus src/shared/color-schemes.js, als die Vorlagen mit den elf
 // Editor-Textfarben je Schema über die Größe des Modells hinauswuchsen. Der
@@ -96,7 +96,7 @@ const BUILTIN_SCHEMES = [
       syntaxNumber: '#965a2c',
     },
   },
-  // 4T-0578 (Epic 3E-0106): vier kuratierte Paare als weitere Vorlagen. Jedes
+  // 4T-000578 (Epic 3E-000106): vier kuratierte Paare als weitere Vorlagen. Jedes
   // Paar traegt denselben Farb-Charakter in hell und dunkel; die Warnfarbe
   // bleibt auf der Basis-Palette, ausser sie liegt zu nah am Akzent (Bernstein).
   {

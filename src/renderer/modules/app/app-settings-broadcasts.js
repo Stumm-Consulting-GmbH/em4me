@@ -2,7 +2,7 @@
 // Lesezeichen-Baum, Anzeige-Schalter, Sidebar-Layout und -Varianten) und der
 // zugehoerigen scg:-Dokument-Ereignisse.
 //
-// Auszug aus app-init.js, 4T-1001 (Epic 3E-0196). Alle Registrierungen laufen
+// Auszug aus app-init.js, 4T-001001 (Epic 3E-000196). Alle Registrierungen laufen
 // synchron ueber registerSettingsBroadcasts, das app-init.js auf Modul-Ebene
 // aufruft — Electron-IPC puffert nicht.
 'use strict';
@@ -28,7 +28,7 @@ import { applyHeadingNumbering } from '../heading-numbering.js';
 import { setColorSchemeState } from '../color-schemes.js';
 import { applyPerspectiveScriptsEnabled } from '../query/perspective-script-view.js';
 
-// 4T-1001: Das Init-Fertig-Flag gehoert app-init.js; eine Zuweisung an ein
+// 4T-001001: Das Init-Fertig-Flag gehoert app-init.js; eine Zuweisung an ein
 // importiertes Binding waere in ESM ein TypeError, deshalb kommt der Zugriff
 // als Funktion aus den Deps (Muster der attach-Helfer im Bestand).
 let initDone = () => false;
@@ -43,7 +43,7 @@ let initDone = () => false;
 export function registerSettingsBroadcasts(deps) {
   initDone = deps.initDone;
 
-  // 4T-0204: taskStates-Broadcast (auch das ausloesende Fenster empfaengt
+  // 4T-000204: taskStates-Broadcast (auch das ausloesende Fenster empfaengt
   // ihn — applyTaskStates ist idempotent). Vor initDone ankommende
   // Aenderungen ignorieren: init() laedt den Store-Stand ohnehin frisch.
   api.onTaskStatesChanged((stored) => {
@@ -51,14 +51,14 @@ export function registerSettingsBroadcasts(deps) {
     applyTaskStates(resolveStoredTaskStates(stored));
   });
 
-  // 4T-0498: tasksConfig-Broadcast (auch das ausloesende Fenster empfaengt
+  // 4T-000498: tasksConfig-Broadcast (auch das ausloesende Fenster empfaengt
   // ihn — applyTasksConfig ist idempotent, Muster taskStates).
   api.onTasksConfigChanged((stored) => {
     if (!initDone()) return;
     applyTasksConfig(stored);
   });
 
-  // 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Broadcast des globalen
+  // 4T-000612 (Epic 3E-000115, PO-Testbefund EXE 0.91.0.919): Broadcast des globalen
   // (allgemeinen) Lesezeichen-Baums aus einem anderen Fenster — den frischen Baum
   // uebernehmen und den allgemeinen Abschnitt neu rendern. Der Main verteilt ohne
   // das ausloesende Fenster; vor initDone eintreffende Broadcasts ignorieren, weil
@@ -70,21 +70,21 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0284: Frontmatter-Anzeige-Broadcast (auch das ausloesende Fenster
+  // 4T-000284: Frontmatter-Anzeige-Broadcast (auch das ausloesende Fenster
   // empfaengt ihn — applyFrontmatterDisplay ist idempotent).
   api.onFrontmatterDisplayChanged((enabled) => {
     if (!initDone()) return;
     applyFrontmatterDisplay(enabled);
   });
 
-  // 4T-0471 (Epic 3E-0087): Nummerierungs-Broadcast (auch das ausloesende
+  // 4T-000471 (Epic 3E-000087): Nummerierungs-Broadcast (auch das ausloesende
   // Fenster empfaengt ihn — applyHeadingNumbering ist idempotent).
   api.onHeadingNumberingChanged((cfg) => {
     if (!initDone()) return;
     applyHeadingNumbering(cfg && cfg.enabled, cfg && cfg.startLevel);
   });
 
-  // 4T-0465 (Epic 3E-0086): Farbschema-Broadcast (auch das auslösende Fenster
+  // 4T-000465 (Epic 3E-000086): Farbschema-Broadcast (auch das auslösende Fenster
   // empfängt ihn — setColorSchemeState normalisiert und wendet idempotent an).
   if (typeof api.onColorSchemeChanged === 'function') {
     api.onColorSchemeChanged((schemeState) => {
@@ -93,7 +93,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0414 (Epic 3E-0078): Skript-Block-Schalter-Broadcast (auch das
+  // 4T-000414 (Epic 3E-000078): Skript-Block-Schalter-Broadcast (auch das
   // ausloesende Fenster empfaengt ihn — applyPerspectiveScriptsEnabled ist
   // idempotent, ein unveraenderter Zustand ist ein No-op).
   if (typeof api.onPerspectiveScriptsChanged === 'function') {
@@ -103,7 +103,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0312 (Epic 3E-0055): Broadcast der ausgeklappten Darstellung (auch
+  // 4T-000312 (Epic 3E-000055): Broadcast der ausgeklappten Darstellung (auch
   // das ausloesende Fenster empfaengt ihn — Root-Klassen-Toggle, idempotent,
   // rein CSS-getragen ohne Re-Render).
   if (typeof api.onFrontmatterExpandedChanged === 'function') {
@@ -113,7 +113,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0289: Sidebar-Layout-Broadcast (auch das ausloesende Fenster empfaengt
+  // 4T-000289: Sidebar-Layout-Broadcast (auch das ausloesende Fenster empfaengt
   // ihn — persist:false, und ein unveraendertes Layout ist dort ein No-op).
   if (typeof api.onSidebarLayoutChanged === 'function') {
     api.onSidebarLayoutChanged((layout) => {
@@ -122,7 +122,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0639 (Epic 3E-0069): Broadcast der Panel-Ueberschriften (Icon oder
+  // 4T-000639 (Epic 3E-000069): Broadcast der Panel-Ueberschriften (Icon oder
   // Text). Der Empfangspfad persistiert nicht — das Ausloeser-Fenster hat
   // bereits geschrieben.
   if (typeof api.onSidebarIconHeadingsChanged === 'function') {
@@ -132,7 +132,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0855 (Epic 3E-0164): Broadcast des Hoehen-Modells der Sidebar-Bloecke.
+  // 4T-000855 (Epic 3E-000164): Broadcast des Hoehen-Modells der Sidebar-Bloecke.
   // Wie oben persistiert der Empfangspfad nicht.
   if (typeof api.onSidebarHeightModeChanged === 'function') {
     api.onSidebarHeightModeChanged((value) => {
@@ -141,7 +141,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0624 (Epic 3E-0119): Varianten-Broadcast (auch das ausloesende Fenster
+  // 4T-000624 (Epic 3E-000119): Varianten-Broadcast (auch das ausloesende Fenster
   // empfaengt ihn — der Empfangspfad normalisiert und persistiert nicht).
   if (typeof api.onSidebarLayoutVariantsChanged === 'function') {
     api.onSidebarLayoutVariantsChanged((variants) => {
@@ -150,7 +150,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0625 (Epic 3E-0119): Bereichs-Varianten-Broadcast — jedes Fenster
+  // 4T-000625 (Epic 3E-000119): Bereichs-Varianten-Broadcast — jedes Fenster
   // liest seine fenster-eigene Bereichs-Konfiguration frisch (Fenster
   // fremder Bereiche erhalten unveraenderten Inhalt, der JSON-Vergleich im
   // Modul unterdrueckt dann das Aenderungs-Event).
@@ -161,7 +161,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0569 (Epic 3E-0104): Panel-Toggle-Reihenfolge-Broadcast (Muster
+  // 4T-000569 (Epic 3E-000104): Panel-Toggle-Reihenfolge-Broadcast (Muster
   // Sidebar-Layout: auch das ausloesende Fenster empfaengt ihn — persist:false,
   // eine unveraenderte Reihenfolge ist im Setter ein No-op).
   if (typeof api.onPanelToggleOrderChanged === 'function') {
@@ -171,7 +171,7 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
-  // 4T-0204: Nach jeder Task-Status-Aenderung offene Tabs neu rendern
+  // 4T-000204: Nach jeder Task-Status-Aenderung offene Tabs neu rendern
   // (Live-Rebuild haengt als eigener Listener in live-widgets.js). Der
   // Render-Cache kennt nur content/path/lang/theme — ohne Invalidierung
   // wuerde der Re-Render uebersprungen.
@@ -181,7 +181,7 @@ export function registerSettingsBroadcasts(deps) {
     renderAllPanes();
   });
 
-  // 4T-0498: Nach jeder Aufgaben-Konfigurations-Aenderung (Global Filter,
+  // 4T-000498: Nach jeder Aufgaben-Konfigurations-Aenderung (Global Filter,
   // Ausblende-Option, Labels) offene Tabs neu rendern (Muster taskStates;
   // Live-Rebuild haengt als eigener Listener in live-widgets.js).
   document.addEventListener('scg:tasks-changed', () => {
@@ -190,7 +190,7 @@ export function registerSettingsBroadcasts(deps) {
     renderAllPanes();
   });
 
-  // 4T-0284: Nach dem Umschalten der Frontmatter-Anzeige offene Tabs neu
+  // 4T-000284: Nach dem Umschalten der Frontmatter-Anzeige offene Tabs neu
   // rendern (Live-Rebuild haengt als eigener Listener in live-widgets.js);
   // der Render-Cache kennt nur content/path/lang/theme und muss invalidiert
   // werden, sonst wuerde der Re-Render uebersprungen.
@@ -200,7 +200,7 @@ export function registerSettingsBroadcasts(deps) {
     renderAllPanes();
   });
 
-  // 4T-0471 (Epic 3E-0087): Nach dem Umschalten der Nummerierung offene Tabs
+  // 4T-000471 (Epic 3E-000087): Nach dem Umschalten der Nummerierung offene Tabs
   // neu rendern (Render-Cache invalidieren) und die Gliederungs-Ansicht neu
   // aufbauen; der Live-Rebuild haengt als eigener Listener in live-widgets.js.
   document.addEventListener('scg:heading-numbering-changed', () => {
@@ -212,8 +212,8 @@ export function registerSettingsBroadcasts(deps) {
     }
   });
 
-  // 4T-0288 (Epic 3E-0051): Nach jeder Layout-Änderung (Reiterwechsel,
-  // später Drag-and-Drop und Einstellungs-Bereich aus 4T-0289) das
+  // 4T-000288 (Epic 3E-000051): Nach jeder Layout-Änderung (Reiterwechsel,
+  // später Drag-and-Drop und Einstellungs-Bereich aus 4T-000289) das
   // Slot-Mounting aller Panes nachziehen. applySidebarVisibility ist
   // idempotent; Panel-Inhalte sind vom Umhängen unberührt.
   document.addEventListener('scg:sidebar-layout-changed', () => {
@@ -221,7 +221,7 @@ export function registerSettingsBroadcasts(deps) {
     for (let i = 0; i < state.panes.length; i++) applySidebarVisibility(i);
   });
 
-  // 4T-0639 (Epic 3E-0069): Umschalten zwischen Text- und Icon-Überschriften
+  // 4T-000639 (Epic 3E-000069): Umschalten zwischen Text- und Icon-Überschriften
   // zieht dasselbe Slot-Mounting nach — Köpfe, Reiter und die Breiten-
   // Untergrenze hängen daran.
   document.addEventListener('scg:sidebar-icon-headings-changed', () => {
@@ -229,7 +229,7 @@ export function registerSettingsBroadcasts(deps) {
     for (let i = 0; i < state.panes.length; i++) applySidebarVisibility(i);
   });
 
-  // 4T-0855 (Epic 3E-0164): Ein Wechsel des Höhen-Modells zieht dasselbe
+  // 4T-000855 (Epic 3E-000164): Ein Wechsel des Höhen-Modells zieht dasselbe
   // Slot-Mounting nach — die Herkunft der Block-Höhen ändert sich, und die
   // Griffe schreiben danach in den anderen Speicher.
   document.addEventListener('scg:sidebar-height-mode-changed', () => {

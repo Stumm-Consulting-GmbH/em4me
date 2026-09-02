@@ -1,4 +1,4 @@
-// 4T-0624 (Epic 3E-0119): Benannte Sidebar-Varianten — Laufzeit-Zustand,
+// 4T-000624 (Epic 3E-000119): Benannte Sidebar-Varianten — Laufzeit-Zustand,
 // Lebenszyklus (speichern, anwenden, umbenennen, überschreiben, löschen)
 // und die beiden Dialoge (Namens-Dialog, Auswahl-Popup).
 //
@@ -38,7 +38,7 @@ import { persistSetting } from './views/views.js';
 
 let globalVariants = [];
 
-// 4T-0625 (Epic 3E-0119): Bereichs-Varianten — Liste aus der
+// 4T-000625 (Epic 3E-000119): Bereichs-Varianten — Liste aus der
 // sidebarLayouts-Sektion der Bereichsdatei des Fenster-Bereichs, dazu der
 // Bereichs-Kontext (hasArea/areaName) aus derselben IPC-Antwort. Ohne
 // Bereich bleibt die Liste leer und die Bereichs-Gruppe entfällt überall.
@@ -55,8 +55,8 @@ function nextVariantId() {
 
 function fireChanged() {
   document.dispatchEvent(new CustomEvent('scg:sidebar-variants-changed'));
-  // 4T-0626 (Epic 3E-0119): jede Listen-Änderung zieht das Untermenü
-  // „Sidebar-Anordnungen" nach (Meldeweg-Muster 3E-0104).
+  // 4T-000626 (Epic 3E-000119): jede Listen-Änderung zieht das Untermenü
+  // „Sidebar-Anordnungen" nach (Meldeweg-Muster 3E-000104).
   reportMenuStateNow();
 }
 
@@ -90,7 +90,7 @@ export function areaGroupLabel() {
   return t('sidebarVariants.areaGroup').replace('{name}', areaName || '');
 }
 
-// 4T-0625: Bereichs-Varianten des Fensters frisch laden (Bereichs-Wechsel
+// 4T-000625: Bereichs-Varianten des Fensters frisch laden (Bereichs-Wechsel
 // über onWindowDisplayInfo, Broadcast sidebarVariants:changed, eigener
 // Schreib-Erfolg). Feuert das Änderungs-Event nur bei echter Änderung
 // (JSON-Vergleich, Muster refreshProfileResolution).
@@ -287,7 +287,7 @@ export function findGlobalVariantById(id) {
 // Namens-Dialog für „Aktuelle Anordnung als Variante speichern".
 // Gleicher Name wie eine bestehende Variante desselben Geltungsbereichs
 // überschreibt diese (siehe saveGlobalVariant/saveAreaVariant); der Dialog
-// validiert nur den leeren Namen. 4T-0625: bei geöffnetem Bereich wählt
+// validiert nur den leeren Namen. 4T-000625: bei geöffnetem Bereich wählt
 // eine Checkbox das Ziel (global oder Bereichsdatei); Namens-Kollisionen
 // zwischen den Geltungsbereichen sind erlaubt (Epic-Entscheidung 3).
 export async function showSaveVariantDialog() {
@@ -312,7 +312,7 @@ export async function showSaveVariantDialog() {
   return saveGlobalVariant(result.value);
 }
 
-// 4T-0625: Speichern-Dialog der Bereichs-Sektion — legt direkt im
+// 4T-000625: Speichern-Dialog der Bereichs-Sektion — legt direkt im
 // geöffneten Bereich ab (ohne Ziel-Option; PO-Testbefund 0.77.0: die
 // Bereichs-Verwaltung liegt in der Einstellungs-Gruppe „Aktueller
 // Bereich" mit eigenem Speichern-Knopf).
@@ -444,7 +444,7 @@ function showVariantPickerDialog(entries) {
   });
 }
 
-// 4T-0626 (Epic 3E-0119): Provider der Menü-Listen — der Renderer meldet
+// 4T-000626 (Epic 3E-000119): Provider der Menü-Listen — der Renderer meldet
 // die effektiven Varianten (global plus Bereich) im Menü-State, der Main
 // baut daraus das Untermenü „Sidebar-Anordnungen" (kein zweiter
 // Mechanismus). Registrierung beim Modul-Laden per Injektion (Zyklus-

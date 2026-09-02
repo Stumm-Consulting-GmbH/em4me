@@ -1,4 +1,4 @@
-// 4T-1158 (Epic 3E-0219, E12): Unit-Tests des Wertevorrats aus einer Abfrage.
+// 4T-001158 (Epic 3E-000219, E12): Unit-Tests des Wertevorrats aus einer Abfrage.
 //
 // Der Schwerpunkt liegt auf der **Begrenzung**, weil sie die Zusage dieses
 // Tasks ist und ihr Bruch unsichtbar wäre: Ein zu früh oder zu oft
@@ -168,7 +168,7 @@ describe('werteAusAbfrage — Wertevorrat aus einer Abfrage', () => {
 // bleibt bei 1, und ein Test darüber wäre eine Behauptung statt eines
 // Nachweises. Eingespeist werden deshalb `stand` und `auswerten` — dasselbe
 // Mittel, mit dem der Profil-Katalog seinen Dateizugriff prüfbar macht.
-describe('werteAusAbfrage — Invalidierung gegen den Index-Stand (4T-1158)', () => {
+describe('werteAusAbfrage — Invalidierung gegen den Index-Stand (4T-001158)', () => {
   function umgebung(werteJeLauf) {
     let stand = 1;
     let laeufe = 0;

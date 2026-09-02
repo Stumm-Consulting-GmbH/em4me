@@ -1,9 +1,9 @@
-// 4T-0595 (Epic 3E-0111): Inline-Berechnungen {= Ausdruck =} — Marker-
+// 4T-000595 (Epic 3E-000111): Inline-Berechnungen {= Ausdruck =} — Marker-
 // Grammatik (Grenzfaelle, Escape, Quotes), kontext-freie Auswertung ueber
 // die Query-Engine und das Fehlerbild mit Tooltip-Codes. Render-Nachweise
 // laufen gegen renderMarkdown (Default-Zustand, alles an); die Abgrenzung
 // gegen Critic Markup und markdown-it-attrs ist explizit mitgetestet
-// (Syntax-Verifikation der 4T-0595-Loesung).
+// (Syntax-Verifikation der 4T-000595-Loesung).
 import { describe, it, expect } from 'vitest';
 import {
   matchInlineCalcAt,
@@ -191,7 +191,7 @@ describe('Render-Integration (renderMarkdown, Default-Zustand)', () => {
   });
 
   it('Konstrukt direkt nach Inline-Element: attrs konsumiert nicht mehr', () => {
-    // Vor 4T-0595 konsumierte markdown-it-attrs das {…} nach dem Element;
+    // Vor 4T-000595 konsumierte markdown-it-attrs das {…} nach dem Element;
     // die Inline-Regel laeuft frueher und erzeugt das Ergebnis-Span.
     const html = renderMarkdown('A *kursiv*{= 2+2 =} B', 'de');
     expect(html).toContain('<em>kursiv</em>');

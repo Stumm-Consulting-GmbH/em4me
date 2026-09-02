@@ -1,6 +1,6 @@
 // StateField der Block-Widgets des Live-Modus samt Basispfad-Facet und den
 // Signaturen, die den teuren Neuaufbau bei reiner Cursor-Bewegung sparen.
-// 4T-0982 (Epic 3E-0196): aus live-widgets.js herausgelöst; die Widget-Klassen
+// 4T-000982 (Epic 3E-000196): aus live-widgets.js herausgelöst; die Widget-Klassen
 // selbst liegen in live-widget-render.js und live-mermaid-widget.js.
 'use strict';
 
@@ -9,13 +9,13 @@ import { EditorView, Decoration } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 
 import { getLanguage } from '../../i18n.js';
-// 4T-0512 (Epic 3E-0092): Stichtag fuer den Cache-Key der Ereignis-Widgets.
+// 4T-000512 (Epic 3E-000092): Stichtag fuer den Cache-Key der Ereignis-Widgets.
 import { localTodayIso } from '../../../shared/markdown/perspective-events.js';
-// 4T-0293 (Epic 3E-0052): Schalt-Zustand der Render-Erweiterungen — jeder
+// 4T-000293 (Epic 3E-000052): Schalt-Zustand der Render-Erweiterungen — jeder
 // Konstrukt-Pass steht unter der Guard seiner Erweiterung, damit der
 // Live-Modus konsistent zum Render-Pane schaltet.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
-// 4T-0283 (Epic 3E-0050): Schalter-Zustand der Frontmatter-Anzeige als
+// 4T-000283 (Epic 3E-000050): Schalter-Zustand der Frontmatter-Anzeige als
 // Guard fuer das Frontmatter-Block-Widget (zyklenfrei: importiert nur api).
 import { isFrontmatterDisplayEnabled } from '../frontmatter-display.js';
 import { currentMermaidTheme, mermaidHash } from '../render-mermaid.js';
@@ -26,20 +26,20 @@ import { computeDeflistLineBlockScan, positionInsideTable } from './live-scans.j
 import { MarkdownBlockWidget, MathBlockWidget } from './live-widget-render.js';
 import { FrontmatterBlockWidget, MermaidBlockWidget } from './live-mermaid-widget.js';
 
-// 4T-0084 / 4T-0088: StateField fuer Block-Widget-Decorations im Live-
+// 4T-000084 / 4T-000088: StateField fuer Block-Widget-Decorations im Live-
 // Modus. ViewPlugins duerfen keine Replace-Decorations liefern, deren
 // Range einen Zeilenumbruch ueberspannt (CM6-Einschraenkung). Wir nutzen
-// Inline-Replace OHNE block:true — block:true hat in der 4T-0084-Spike-
+// Inline-Replace OHNE block:true — block:true hat in der 4T-000084-Spike-
 // Version die vertikale Cursor-Navigation zerschossen (Pfeil oben/unten
 // sprang 20-30 Zeilen weg). Multi-line Inline-Replace zieht den Quell-
 // Range visuell zu einer Zeile zusammen, in der das Widget sitzt; CSS
 // macht es als Block-Layout sichtbar.
 //
-// 4T-0088: Field umbenannt von liveMathBlockField; deckt seitdem auch
+// 4T-000088: Field umbenannt von liveMathBlockField; deckt seitdem auch
 // Tabellen und Fenced-Code-Bloecke ab. basePath wird via liveBasePathFacet
 // aus dem State gelesen (Compartment-Reconfigure bei Tab-Wechsel).
 
-// 4T-0088: Facet fuer den basePath des aktiven Tabs einer Pane. Block-
+// 4T-000088: Facet fuer den basePath des aktiven Tabs einer Pane. Block-
 // Widgets (StateField) brauchen den Pfad fuer relative Image-/Embed-
 // Aufloesung in Tabellen, koennen aber keine View-Referenz lesen.
 // Pro Pane-View wird das Facet ueber editorCompartments.basePath
@@ -50,7 +50,7 @@ export const liveBasePathFacet = Facet.define({
   combine: (values) => (values.length ? values[0] : ''),
 });
 
-// R1-05 (4T-0180): Signatur der blockrelevanten Aktiv-Zeilen. Nur aktive
+// R1-05 (4T-000180): Signatur der blockrelevanten Aktiv-Zeilen. Nur aktive
 // Zeilen, die in einem Widget-Kandidaten-Block liegen, beeinflussen das
 // Decoration-Ergebnis — eine Cursor-Bewegung ausserhalb aller Bloecke
 // (haeufigster Fall) liefert dieselbe Signatur und kann den teuren
@@ -69,7 +69,7 @@ export function blockActiveSignature(activeLines, spans) {
   return parts.sort((a, b) => a - b).join(',');
 }
 
-// 4T-0283: unberuehrte Initial-Selektion (leerer Cursor auf Position 0).
+// 4T-000283: unberuehrte Initial-Selektion (leerer Cursor auf Position 0).
 // Fliesst in die Aktiv-Signatur ein, weil das Frontmatter-Widget in
 // diesem Zustand trotz aktiver Zeile 1 maskiert bleibt — der Uebergang
 // Position 0 <-> 1 aendert die Zeilen-Menge nicht, muss aber rebuilden.
@@ -91,14 +91,14 @@ export function buildBlockWidgetValue(state) {
   const spans = [];
   const activeLines = activeLineSet(state);
   const basePath = state.facet(liveBasePathFacet);
-  // 4T-0479 (Epic 3E-0089): Bloecke, die einen %%-Kommentar schneiden,
+  // 4T-000479 (Epic 3E-000089): Bloecke, die einen %%-Kommentar schneiden,
   // werden NICHT durch Widgets ersetzt (eine kommentierte Tabelle darf im
   // Live-Modus nicht gerendert erscheinen; der Quelltext bleibt stehen und
   // der Kommentar-Pass blendet ihn auf inaktiven Zeilen aus).
   const commentRanges = isExtensionActive('comments') ? computeCommentRanges(state.doc) : [];
   const intersectsComment = (fromPos, toPos) =>
     commentRanges.some((r) => r.from < toPos && r.to > fromPos);
-  // KaTeX-Block (4T-0084); 4T-0293: deaktiviert bleibt `$$…$$` Roh-Text.
+  // KaTeX-Block (4T-000084); 4T-000293: deaktiviert bleibt `$$…$$` Roh-Text.
   if (isExtensionActive('katex')) {
     for (const block of computeMathBlockRanges(state)) {
       if (intersectsComment(block.from, block.to)) continue;
@@ -111,15 +111,15 @@ export function buildBlockWidgetValue(state) {
       );
     }
   }
-  // 4T-0088: Tabellen und Fenced-Code via Lezer-AST. Pre-Pass-Filter:
+  // 4T-000088: Tabellen und Fenced-Code via Lezer-AST. Pre-Pass-Filter:
   // Block muss Zeilen-aligned sein (Voraussetzung fuer sauberen Replace),
   // darf nicht im Frontmatter liegen, Cursor in irgendeiner Block-Zeile
   // klappt zur Quelle auf. Mermaid (lang === 'mermaid') wird hier
-  // ausgelassen und in 4T-0089 separat behandelt.
+  // ausgelassen und in 4T-000089 separat behandelt.
   const frontmatter = detectFrontmatterLines(state.doc);
   const frontmatterEndLine = frontmatter ? frontmatter.toLine : 0;
-  // 4T-0283 (Epic 3E-0050): Frontmatter-Block-Widget (zusammengeklappte
-  // Zeile aus 4T-0282) bei aktivem Schalter. Cursor- oder Selektions-
+  // 4T-000283 (Epic 3E-000050): Frontmatter-Block-Widget (zusammengeklappte
+  // Zeile aus 4T-000282) bei aktivem Schalter. Cursor- oder Selektions-
   // Eintritt demaskiert zum Quelltext mit der bestehenden
   // cm-frontmatter-line-Dekoration (frontmatterField bleibt aktiv).
   // Ausnahme: der unberuehrte Initial-Cursor (leere Selektion auf
@@ -143,7 +143,7 @@ export function buildBlockWidgetValue(state) {
       );
     }
   }
-  // 4T-0199: Definition Lists und Line Blocks als Block-Widgets (Quell-
+  // 4T-000199: Definition Lists und Line Blocks als Block-Widgets (Quell-
   // Block wird durch den Pipeline-Render ersetzt; Cursor im Block klappt
   // zur Quelle auf). Guards: Frontmatter, Lezer-Code-Kontext, fuer Line
   // Blocks zusaetzlich Lezer-Table (GFM-Tabellen matchen `| ` ebenfalls).
@@ -155,7 +155,7 @@ export function buildBlockWidgetValue(state) {
       const toPos = state.doc.line(block.toLine).to;
       if (positionInsideCode(state, fromPos)) return;
       if (kind === 'lineblock' && positionInsideTable(state, fromPos)) return;
-      // 4T-0479: kommentierte Bloecke nicht als Widget rendern.
+      // 4T-000479: kommentierte Bloecke nicht als Widget rendern.
       if (intersectsComment(fromPos, toPos)) return;
       spans.push({ fromLine: block.fromLine, toLine: block.toLine });
       if (blockIsActive(activeLines, block.fromLine, block.toLine)) return;
@@ -166,7 +166,7 @@ export function buildBlockWidgetValue(state) {
         }).range(fromPos, toPos),
       );
     };
-    // 4T-0293: pro Konstrukt nur bei aktiver Erweiterung ersetzen —
+    // 4T-000293: pro Konstrukt nur bei aktiver Erweiterung ersetzen —
     // deaktiviert bleibt der Quelltext stehen (Paritaet zum Render, der
     // die Zeilen dann als Absatz bzw. Roh-Text ausgibt).
     if (isExtensionActive('definition-lists')) {
@@ -190,7 +190,7 @@ export function buildBlockWidgetValue(state) {
       const toPos = node.to > fromLine.from ? node.to - 1 : node.to;
       const toLine = state.doc.lineAt(Math.max(toPos, fromLine.from));
       if (fromLine.number <= frontmatterEndLine) return;
-      // 4T-0479: kommentierte Bloecke nicht als Widget rendern.
+      // 4T-000479: kommentierte Bloecke nicht als Widget rendern.
       if (intersectsComment(node.from, node.to)) return;
       spans.push({ fromLine: fromLine.number, toLine: toLine.number });
       // Validation gelockert: kein strikter Linien-Match wie bei block:true,
@@ -211,10 +211,10 @@ export function buildBlockWidgetValue(state) {
           }
           inner = inner.nextSibling;
         }
-        // 4T-0293: bei deaktivierter Mermaid-Erweiterung faellt der Block
+        // 4T-000293: bei deaktivierter Mermaid-Erweiterung faellt der Block
         // auf das generische MarkdownBlockWidget durch (Code-Block).
         if (lang === 'mermaid' && isExtensionActive('mermaid')) {
-          // 4T-0089: eigene Widget-Klasse mit Async-Render und Theme-Cache.
+          // 4T-000089: eigene Widget-Klasse mit Async-Render und Theme-Cache.
           // Mermaid bekommt NUR den CodeText-Inhalt (ohne ```-Marker und
           // Info-String), sonst meldet es "Syntax error in text". Im
           // Render-Pane extrahiert markdown-it das automatisch; hier
@@ -240,7 +240,7 @@ export function buildBlockWidgetValue(state) {
         if (lang === 'perspective-table') {
           cacheKey = `perspective-table:${mermaidHash(source)}`;
         } else if (lang === 'perspective-events') {
-          // 4T-0512 (Epic 3E-0092): Stichtag im Cache-Key — die Differenz-
+          // 4T-000512 (Epic 3E-000092): Stichtag im Cache-Key — die Differenz-
           // Spalte rechnet gegen "heute"; ohne Datums-Anteil zeigte ein
           // ueber Mitternacht gecachtes Widget veraltete Tages-Zaehler.
           cacheKey = `perspective-events:${localTodayIso()}:${mermaidHash(source)}`;
@@ -259,7 +259,7 @@ export function buildBlockWidgetValue(state) {
     deco: Decoration.set(ranges, true),
     spans,
     sig: blockWidgetSignature(state, spans),
-    // 4T-1325 (Epic 3E-0236): der Pfad, mit dem dieser Stand gebaut wurde.
+    // 4T-001325 (Epic 3E-000236): der Pfad, mit dem dieser Stand gebaut wurde.
     // Das Field vergleicht ihn im update gegen den aktuellen Facet-Wert.
     basePath,
   };
@@ -275,7 +275,7 @@ export const liveBlockWidgetsField = StateField.define({
     }
   },
   update(value, tr) {
-    // R1-14 (4T-0186): expliziter Rebuild-Trigger (Theme-/Sprachwechsel).
+    // R1-14 (4T-000186): expliziter Rebuild-Trigger (Theme-/Sprachwechsel).
     // Der liveRebuildEffect erreichte zuvor nur das Inline-ViewPlugin;
     // Mermaid-BLOCK-Widgets behielten beim Theme-Wechsel die alte Palette,
     // bis die naechste Eingabe den Field-Rebuild ausloeste.
@@ -289,7 +289,7 @@ export const liveBlockWidgetsField = StateField.define({
         }
       }
     }
-    // 4T-1325 (Epic 3E-0236): Wechselt der Dateipfad, werden die Block-Widgets
+    // 4T-001325 (Epic 3E-000236): Wechselt der Dateipfad, werden die Block-Widgets
     // neu gebaut. Sie tragen ihn im Konstruktor und loesen daraus Bild-Pfade,
     // Journal-Perioden, Abfrage-Ziele und Metadaten auf. Der Sparfilter unten
     // sieht eine reine Pfad-Transaktion NICHT (kein Doc-, kein Baum-, kein
@@ -305,15 +305,15 @@ export const liveBlockWidgetsField = StateField.define({
         return value;
       }
     }
-    // R1-02 (4T-0174): auch beim asynchronen Lezer-Nachlauf rebuilden
+    // R1-02 (4T-000174): auch beim asynchronen Lezer-Nachlauf rebuilden
     // (Tree-Identitaetsvergleich, Muster vom foldStructureField) — sonst
     // fehlen Block-Widgets in spaeten Teilen grosser Dateien.
     if (!tr.docChanged && syntaxTree(tr.state) === syntaxTree(tr.startState)) {
       if (!tr.selection) return value;
-      // R1-05 (4T-0180): reine Selektionsaenderung — Rebuild nur, wenn
+      // R1-05 (4T-000180): reine Selektionsaenderung — Rebuild nur, wenn
       // sich die blockrelevante Aktiv-Zeilen-Menge tatsaechlich aendert
       // (Cursor betritt oder verlaesst einen Kandidaten-Block; inkl.
-      // Initial-Cursor-Flanke des Frontmatter-Widgets, 4T-0283).
+      // Initial-Cursor-Flanke des Frontmatter-Widgets, 4T-000283).
       const sig = blockWidgetSignature(tr.state, value.spans);
       if (sig === value.sig) return value;
     }

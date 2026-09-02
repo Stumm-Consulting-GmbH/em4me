@@ -1,4 +1,4 @@
-// 4T-0023: erzeugt src/renderer/hljs-themes.css aus den GitHub-Themes von
+// 4T-000023: erzeugt src/renderer/hljs-themes.css aus den GitHub-Themes von
 // highlight.js. Beide Themes werden in eine Datei zusammengefuehrt; jede
 // Regel wird mit dem passenden data-theme-Wrapper geprefixt, sodass beide
 // Themes parallel geladen werden koennen und der Wechsel zur Laufzeit allein
@@ -58,7 +58,7 @@ function buildHljsThemes() {
 `;
   const light = transform(fs.readFileSync(lightSrc, 'utf8'), ':root:not([data-theme="dark"])');
   const dark = transform(fs.readFileSync(darkSrc, 'utf8'), '[data-theme="dark"]');
-  // X-09 (4T-0182): Output-Validierung — der Regex-Transform haengt am
+  // X-09 (4T-000182): Output-Validierung — der Regex-Transform haengt am
   // Vendor-CSS-Format. Wenn ein highlight.js-Update das Format aendert,
   // soll der Build laut scheitern statt leere/defekte Themes zu liefern.
   for (const [label, css] of [

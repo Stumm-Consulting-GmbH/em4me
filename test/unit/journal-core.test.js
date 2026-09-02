@@ -1,4 +1,4 @@
-// 4T-0431 (Epic 3E-0081): Unit-Tests des Journal-Modells — tolerante
+// 4T-000431 (Epic 3E-000081): Unit-Tests des Journal-Modells — tolerante
 // Normalisierung der journals-Sektion (Fehler-Isolation pro Eintrag,
 // Defaults, Regal-Selbstheilung, Roundtrip-Idempotenz).
 import { describe, it, expect } from 'vitest';

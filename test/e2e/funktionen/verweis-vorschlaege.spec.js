@@ -1,4 +1,4 @@
-// 4T-1339 (Epic 3E-0238): Reihenfolge und Auswahl der Verweis-Vorschlaege nach
+// 4T-001339 (Epic 3E-000238): Reihenfolge und Auswahl der Verweis-Vorschlaege nach
 // `[[` — gemessen an der **angezeigten** Liste.
 //
 // Warum auf dieser Ebene: Die Auswahl-Regel in src/shared/wiki-vorschlaege.js
@@ -100,7 +100,7 @@ async function enterEditSource(app, page) {
   await page.keyboard.press('Control+End');
 }
 
-// B-18 (4T-0187): Der erste Trigger stoesst den Index-Aufbau an und liefert
+// B-18 (4T-000187): Der erste Trigger stoesst den Index-Aufbau an und liefert
 // noch 'indexing'. Hier wird auf einer Wegwerf-Zeile so lange nachgetriggert,
 // bis Vorschlaege erscheinen; danach ist die Zeile wieder leer und der
 // eigentliche Ablauf beginnt gegen einen fertigen Index.
@@ -145,7 +145,7 @@ test.describe('VV-01: Verweis-Vorschlaege ohne Eingabe folgen der Aenderungszeit
       expect(await beschriftungen(page, 4)).toEqual(['Delta', 'Gamma', 'Beta', 'Alpha']);
 
       // Die Uebernahme haengt jetzt an einem Ergebnis ohne `to`-Angabe; sie
-      // schreibt die schliessenden Klammern unveraendert mit (4T-1307).
+      // schreibt die schliessenden Klammern unveraendert mit (4T-001307).
       // Die Bibliothek weist eine Uebernahme innerhalb von 75 ms nach dem
       // Oeffnen ab (interactionDelay, Schutz vor versehentlichem Annehmen);
       // ein Mensch ist nie so schnell, die Tastatur-Automatik hier schon.
@@ -161,7 +161,7 @@ test.describe('VV-01: Verweis-Vorschlaege ohne Eingabe folgen der Aenderungszeit
 
 test.describe('VV-02: Eingabe verkleinert die Liste auf alle passenden Ziele', () => {
   test('ein Ziel ausserhalb der juengsten Dateien bleibt auffindbar', async () => {
-    // Die Liste ohne Eingabe zeigt hoechstens 30 Eintraege. Bis 4T-1339
+    // Die Liste ohne Eingabe zeigt hoechstens 30 Eintraege. Bis 4T-001339
     // filterte die Bibliothek beim Tippen nur innerhalb dieser 30, sodass ein
     // aelteres Ziel durch Eingabe nicht mehr erreichbar war.
     const { dir, notiz } = baueGrossenBereich('em4me-vv02-');

@@ -1,8 +1,8 @@
-// 4T-0995 (Epic 3E-0196): aus src/shared/calendar/calendar-core.js geschnitten.
+// 4T-000995 (Epic 3E-000196): aus src/shared/calendar/calendar-core.js geschnitten.
 // Konfigurations-Rand der Kalender-Sektion: Normalisierung der
 // calendarSystems-Sektion, die Ableitung abgeleiteter Zeitrechnungen und
 // die Persistenz-Form. Der Rechenkern selbst bleibt in calendar-core.js
-// ungeteilt (Entscheidung E2 der Bestandsaufnahme 4T-0964).
+// ungeteilt (Entscheidung E2 der Bestandsaufnahme 4T-000964).
 //
 // Import-Richtung: Dieses Modul laedt Kern und Vorlage, nie umgekehrt.
 // compileSafe bleibt deshalb einmalig im Kern, und sein WeakMap-Cache
@@ -218,7 +218,7 @@ function normalizeCalendar(value) {
   cal.epochs = normalizeEpochs(cal, c, value.epochs);
   cal.cycles = normalizeCycles(cal, c, value.cycles);
   cal.groups = normalizeGroups(c, value.groups);
-  // 4T-0746: Herkunfts-Angaben einer abgeleiteten Zeitrechnung; sie sind
+  // 4T-000746: Herkunfts-Angaben einer abgeleiteten Zeitrechnung; sie sind
   // Anzeige- und Pflege-Information und werden von der Arithmetik nicht
   // gebraucht (die Ableitung ist eine vollwertige Definition).
   if (value.derived && typeof value.derived === 'object') {
@@ -237,7 +237,7 @@ function normalizeCalendar(value) {
 
 // Normalisiert die calendarSystems-Sektion auf { blocks } oder null (keine
 // Konfiguration). Defekte Blöcke und Kalender entfallen einzeln; doppelte
-// ids behalten den ersten Eintrag. Abgeleitete Zeitrechnungen (4T-0746)
+// ids behalten den ersten Eintrag. Abgeleitete Zeitrechnungen (4T-000746)
 // werden in einem ZWEITEN Durchgang je Block aufgelöst, damit die
 // Reihenfolge der Definitionen keine Rolle spielt.
 function normalizeCalendarConfig(value) {
@@ -428,7 +428,7 @@ function deriveCalendar(base, raw) {
 // Ohne das würde die aufgelöste Abschrift abgelegt, und eine spätere
 // Änderung am Bezug erreichte die Ableitung nie mehr — genau die Kopie, die
 // das Modell vermeidet. Eigenständige Kalender werden unverändert in ihrer
-// normalisierten Form abgelegt (Bestandsverhalten aus 4T-0543).
+// normalisierten Form abgelegt (Bestandsverhalten aus 4T-000543).
 function configForPersist(raw, normalized) {
   if (!normalized) return null;
   const rawBlocks = raw && Array.isArray(raw.blocks) ? raw.blocks : [];

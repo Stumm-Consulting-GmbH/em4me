@@ -1,4 +1,4 @@
-// 4T-0480 (Epic 3E-0089): Unit-Matrix fuer das DOM-freie Filter-Modul der
+// 4T-000480 (Epic 3E-000089): Unit-Matrix fuer das DOM-freie Filter-Modul der
 // Kommando-Palette (src/shared/commands/command-palette-filter.js). Deckt die
 // Normalisierung der Roh-Eingabe (Trim, Lowercase, null/undefined) und den
 // Teilstring-Filter (leere Query, Case-Insensitivitaet inkl. Umlaute,

@@ -1,4 +1,4 @@
-// 4T-0988 (Epic 3E-0196): Bereich „Verhalten" der Einstellungs-Seite.
+// 4T-000988 (Epic 3E-000196): Bereich „Verhalten" der Einstellungs-Seite.
 //
 // Standard-Ansichtsmodus und die Schalter des Arbeitens am Dokument
 // (Link-Update beim Umbenennen, Entwurfs-Zwischenspeicher, Link beim
@@ -9,7 +9,7 @@
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { DEFAULT_VIEW_MODE, state } from '../app/app-state.js';
-// 4T-1341 (Epic 3E-0238): Die Modus-Listen kommen aus der einen Quelle.
+// 4T-001341 (Epic 3E-000238): Die Modus-Listen kommen aus der einen Quelle.
 import { DEFAULT_EDIT_VIEW_MODE, EDIT_VIEW_MODES } from '../views/view-modes.js';
 import { setBookmarksAreaFirst } from '../bookmarks/bookmarks.js';
 import {
@@ -52,7 +52,7 @@ export function dirtyBehaviorSection(draft) {
   if (['rendered', 'split', 'source', 'live'].includes(mode) && mode !== state.defaultViewMode) {
     return true;
   }
-  // 4T-1341 (Epic 3E-0238): zweite Ansichts-Einstellung, gleiche Mechanik.
+  // 4T-001341 (Epic 3E-000238): zweite Ansichts-Einstellung, gleiche Mechanik.
   const editMode = draft.editViewMode;
   if (EDIT_VIEW_MODES.includes(editMode) && editMode !== state.editViewMode) {
     return true;
@@ -67,7 +67,7 @@ export function dirtyBehaviorSection(draft) {
   );
 }
 
-// --- Bereich Verhalten (4T-0085) -------------------------------------------------
+// --- Bereich Verhalten (4T-000085) -------------------------------------------------
 const VIEW_MODE_OPTION_KEYS = [
   ['rendered', 'settings.defaultViewMode.rendered'],
   ['split', 'settings.defaultViewMode.split'],
@@ -75,7 +75,7 @@ const VIEW_MODE_OPTION_KEYS = [
   ['live', 'settings.defaultViewMode.live'],
 ];
 
-// 4T-1341 (Epic 3E-0238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
+// 4T-001341 (Epic 3E-000238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
 // Die Werte-Beschriftungen sind die der Oeffnen-Einstellung darueber — es sind
 // dieselben Ansichten, und eine zweite Uebersetzung derselben Woerter liefe
 // auseinander. Die Lese-Ansicht fehlt: Sie ist der Ausgangspunkt, kein Ziel.
@@ -127,7 +127,7 @@ export function renderBehaviorSection(container, draft) {
   renderScriptBlocksSetting(container, draft);
 }
 
-// 4T-0612 (Epic 3E-0115): Reihenfolge der Lesezeichen-Abschnitte (global,
+// 4T-000612 (Epic 3E-000115): Reihenfolge der Lesezeichen-Abschnitte (global,
 // Default an: Bereichs-Lesezeichen oben). Bewusst kein Entwurf, sondern eine
 // direkte Praeferenz (wie die Panel-Zugangs-Reihenfolge): der Schalter wirkt
 // sofort (das Panel rendert neu) und persistiert unmittelbar, unabhaengig von
@@ -148,7 +148,7 @@ function renderBookmarksAreaFirstSetting(container) {
   container.appendChild(hint);
 }
 
-// 4T-0656 (Epic 3E-0112): Schalter „Tabulator rückt ein" (Store-Key
+// 4T-000656 (Epic 3E-000112): Schalter „Tabulator rückt ein" (Store-Key
 // input.tabIndents, Default an). Aus lässt den Fokus weiterwandern, wie vor
 // der Einstellung. In Listen und Tabellen behält die Taste in beiden
 // Zuständen ihre eigene Bedeutung.
@@ -182,7 +182,7 @@ function dirtyTabIndentSetting(draft) {
   return draft.tabIndents !== draft.tabIndentsSnapshot;
 }
 
-// --- 4T-0414 (Epic 3E-0078): Skript-Blöcke ausführen (Default aus) -----------
+// --- 4T-000414 (Epic 3E-000078): Skript-Blöcke ausführen (Default aus) -----------
 // Sicherheits-Schalter des Vertrauensmodells: Skripte stammen aus Dokumenten;
 // der Warntext steht dauerhaft unter der Zeile (kein versteckter Tooltip).
 function renderScriptBlocksSetting(container, draft) {
@@ -219,7 +219,7 @@ export async function applyBehaviorSection(draft) {
     state.defaultViewMode = mode;
     await persistSetting('app.defaultViewMode', mode);
   }
-  // 4T-1341 (Epic 3E-0238): zweite Ansichts-Einstellung, gleiche Mechanik.
+  // 4T-001341 (Epic 3E-000238): zweite Ansichts-Einstellung, gleiche Mechanik.
   const editMode = draft.editViewMode;
   if (EDIT_VIEW_MODES.includes(editMode) && editMode !== state.editViewMode) {
     state.editViewMode = editMode;
@@ -233,7 +233,7 @@ export async function applyBehaviorSection(draft) {
   await applyScriptBlocksSetting(draft);
 }
 
-// 4T-0346 (Epic 3E-0062): Link-Update-Einstellungen. Zwei App-weite Schalter
+// 4T-000346 (Epic 3E-000062): Link-Update-Einstellungen. Zwei App-weite Schalter
 // (Update aktiv, Vorschau aktiv), beide Default an; die Vorschau-Option ist nur
 // bedienbar, solange das Update aktiv ist.
 export async function readRenameLinkSettings() {
@@ -292,7 +292,7 @@ async function applyRenameLinkSettings(draft) {
   draft.renameLinksSnapshot = { ...next };
 }
 
-// 4T-0369 (Epic 3E-0068): Entwurfs-Zwischenspeicher — App-weiter Schalter
+// 4T-000369 (Epic 3E-000068): Entwurfs-Zwischenspeicher — App-weiter Schalter
 // (Default an), ob nie gespeicherte Unbenannt-Tabs beim App-Ende ohne Dialog
 // zwischengespeichert und beim Neustart wiederhergestellt werden.
 function renderKeepDraftsSetting(container, draft) {
@@ -319,7 +319,7 @@ async function applyKeepDraftsSetting(draft) {
   }
 }
 
-// 4T-0603 (Epic 3E-0113): Schalter „URL beim Einfügen in eine Auswahl als
+// 4T-000603 (Epic 3E-000113): Schalter „URL beim Einfügen in eine Auswahl als
 // Link" (Store-Key input.pasteUrlAsLink, Default an). Bei nicht-leerer Auswahl
 // und einer URL in der Zwischenablage erzeugt Strg+V einen Markdown-Link, statt
 // die Auswahl zu ersetzen.

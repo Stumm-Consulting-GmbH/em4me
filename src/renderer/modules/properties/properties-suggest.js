@@ -1,12 +1,12 @@
 // Vorschlags-Menü für „Eigenschaft hinzufügen" und die Komplett-Übernahme
 // eines Profils.
-// 4T-0981 (Epic 3E-0196): Auszug aus properties-tags.js. Das Menü selbst ist
+// 4T-000981 (Epic 3E-000196): Auszug aus properties-tags.js. Das Menü selbst ist
 // generisch (Handler-Objekt) und wird vom Block-Eigenschaften-Panel
 // mitbenutzt — ein Verhalten, zwei Oberflächen.
 'use strict';
 
 import { t } from '../../i18n.js';
-// 4T-0491 (Epic 3E-0093): isolierte Undo-Einheit der Komplett-Übernahme.
+// 4T-000491 (Epic 3E-000093): isolierte Undo-Einheit der Komplett-Übernahme.
 import { isolateHistory } from '@codemirror/commands';
 import { api, getDocText } from '../app/api.js';
 import { applyRenderPipeline } from '../render-mermaid.js';
@@ -14,18 +14,18 @@ import { getPaneEls, state } from '../app/app-state.js';
 import { paneEditors, syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
 import { renderTabbar } from '../views/tabbar.js';
 import { scheduleAutoSave } from '../views/views.js';
-// 4T-0491 (Epic 3E-0093): profil-gruppierte Menü-Struktur.
+// 4T-000491 (Epic 3E-000093): profil-gruppierte Menü-Struktur.
 import { profileSuggestGroups } from '../../../shared/property-profiles.js';
 import { defaultValueForType, FIELD_TYPE_HINTS } from './properties-types.js';
 import { flushPendingPropertiesSave, scheduleSavePropertiesFromPane } from './properties-save.js';
 import { buildPropertyFieldDom, renderProperties } from './properties-fields.js';
-// 4T-1172 (Epic 3E-0220): Der Typ-Wechsel liegt seit dem Schnitt des
+// 4T-001172 (Epic 3E-000220): Der Typ-Wechsel liegt seit dem Schnitt des
 // Datei-Budgets bei den Wert-Editoren.
 import { onTypeChange } from './properties-wert-editor.js';
-// 4T-1179 (Epic 3E-0220): Marke der Angebots-Felder des Feld-Formulars.
+// 4T-001179 (Epic 3E-000220): Marke der Angebots-Felder des Feld-Formulars.
 import { MARKE_NICHT_IM_DOKUMENT } from './properties-feld-formular.js';
 
-// --- 4T-0448: Vorschlags-Menü für „Eigenschaft hinzufügen" --------------------
+// --- 4T-000448: Vorschlags-Menü für „Eigenschaft hinzufügen" --------------------
 
 let suggestMenuEl = null;
 
@@ -146,12 +146,12 @@ function addFieldFromSuggestion(paneIdx, suggestion) {
   if (focusTarget) setTimeout(() => focusTarget.focus(), 0);
 }
 
-// 4T-0491 (Epic 3E-0093): Komplett-Übernahme im Properties-Editor. Ergänzt alle
+// 4T-000491 (Epic 3E-000093): Komplett-Übernahme im Properties-Editor. Ergänzt alle
 // fehlenden Felder des Ziels in EINEM writeFrontmatter-Aufruf (ein Undo-Schritt);
 // leere Stub-Felder erscheinen als bare YAML-Schlüssel. Bestehende Werte und ihre
 // Reihenfolge bleiben unangetastet; der Schreibpfad geht am DOM vorbei direkt auf
 // den Datei-Inhalt (keine Feld-für-Feld-Debounce-Saves).
-// 4T-1173 (Epic 3E-0220): exportiert, damit die Profil-Kette des Feld-
+// 4T-001173 (Epic 3E-000220): exportiert, damit die Profil-Kette des Feld-
 // Formulars je Ebene übernehmen kann. Sie reicht dieselbe `map` herein, nur
 // auf die Felder einer Ebene gefiltert — derselbe Schreibweg, dieselbe
 // Undo-Einheit, dieselbe Sperre bei defektem YAML.
@@ -193,7 +193,7 @@ export function applyProfileFill(paneIdx, target) {
   renderProperties(paneIdx);
   // Editor-Inhalt als EIGENE, isolierte Undo-Einheit setzen: ein Undo-Schritt
   // nimmt genau die Komplett-Übernahme zurück und verschmilzt nicht mit einem
-  // vorherigen Historien-Ereignis (Muster block-props applyRename, 4T-0484) —
+  // vorherigen Historien-Ereignis (Muster block-props applyRename, 4T-000484) —
   // sonst kann ein Undo bis zum leeren Dokument zurücklaufen.
   const view = paneEditors[paneIdx];
   if (view && getDocText(view.state.doc) !== tab.content) {
@@ -216,21 +216,21 @@ export function applyProfileFill(paneIdx, target) {
   scheduleAutoSave();
 }
 
-// 4T-0051: Fuegt der Sidebar-Sektion einer Pane ein neues, leeres Feld
+// 4T-000051: Fuegt der Sidebar-Sektion einer Pane ein neues, leeres Feld
 // hinzu. Default-Typ 'string'; wenn der Nutzer den Key auf einen bekannten
 // Standard-Namen setzt, wird der Typ aus FIELD_TYPE_HINTS uebernommen.
-// 4T-0448: mit konfigurierten Profilen öffnet der Button zuerst das
+// 4T-000448: mit konfigurierten Profilen öffnet der Button zuerst das
 // Vorschlags-Menü; ohne Konfiguration bleibt das Verhalten exakt wie bisher.
 export function addPropertiesField(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.propertiesFields) return;
-  // R5-02 (4T-0172): Guard zusaetzlich zum disabled-Button (defensiv).
+  // R5-02 (4T-000172): Guard zusaetzlich zum disabled-Button (defensiv).
   if (els.propertiesAddBtn && els.propertiesAddBtn.disabled) return;
   const resolution = state.properties.profileByPane[paneIdx];
   if (resolution) {
-    // 4T-1179 (Epic 3E-0220): Nur die Felder des DOKUMENTS zählen als belegt.
+    // 4T-001179 (Epic 3E-000220): Nur die Felder des DOKUMENTS zählen als belegt.
     // Das Feld-Formular hängt seine Angebote bewusst in denselben Container
-    // (4T-1172, damit der vorhandene Schreibweg sie einsammelt); ungefiltert
+    // (4T-001172, damit der vorhandene Schreibweg sie einsammelt); ungefiltert
     // galten sie hier als vorhanden, und weil das Formular genau die
     // fehlenden Profil-Felder zeigt, blieb vom Menü kein einziger
     // Profil-Vorschlag übrig — samt seiner Profil-Köpfe. Dieselbe Regel wie
@@ -243,7 +243,7 @@ export function addPropertiesField(paneIdx) {
       name,
       type: FIELD_TYPE_HINTS[name],
     }));
-    // 4T-0491 (Epic 3E-0093): profil-gruppierte Menü-Struktur (Profil-Kopf =
+    // 4T-000491 (Epic 3E-000093): profil-gruppierte Menü-Struktur (Profil-Kopf =
     // Komplett-Übernahme, darunter die Einzel-Felder).
     const groups = profileSuggestGroups(resolution.fields, existingKeys, heuristics);
     openFieldSuggestMenu(els.propertiesAddBtn, groups, {

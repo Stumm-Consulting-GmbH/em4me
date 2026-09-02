@@ -1,4 +1,4 @@
-// 4T-0984 (Epic 3E-0196): Fence-Datenformat der Ereignisse — aus
+// 4T-000984 (Epic 3E-000196): Fence-Datenformat der Ereignisse — aus
 // `events-core.js` ausgezogen, Funktions-Rümpfe unverändert.
 //
 // Inhalt: das Datenformat des `perspective-events`-Fence (Format-
@@ -26,11 +26,11 @@ const { EVENT_CATEGORIES, daysBetweenParts, parseIsoDate } = require('./events-c
 // --- Fence-Datenformat ---------------------------------------------------------------
 
 // Ansichts-Werte des `view:`-Parameters (Workshop-Punkt 7; Gantt als
-// sechster Wert aus 4T-0722).
+// sechster Wert aus 4T-000722).
 const EVENT_VIEWS = ['table', 'dashboard', 'month', 'week', 'timeline', 'gantt'];
 
 // Spalten-Folge der Datenzeilen (Format-Konkretisierung PO 2026-07-15).
-// Kennung/Vorgänger/Nachfolger bleiben leer, bis 4T-0516 die erste
+// Kennung/Vorgänger/Nachfolger bleiben leer, bis 4T-000516 die erste
 // Verknüpfung schreibt.
 const ENTRY_CELL_COUNT = 9;
 
@@ -97,7 +97,7 @@ function parseIdList(text) {
 // Gespeicherter Filter: `filter: Name := key=value; key=value`. Werte
 // escapen `;` als `\;`. Schlüssel: text, categories (kommagetrennt,
 // `none` = ohne Kategorie), from, to sowie die Flags notes, recurring,
-// timespan (`x` = an). Struktur aus 4T-0490 Punkt 3 / Referenz-Analyse §4.
+// timespan (`x` = an). Struktur aus 4T-000490 Punkt 3 / Referenz-Analyse §4.
 const FILTER_FLAG_KEYS = new Set(['notes', 'recurring', 'timespan']);
 const FILTER_VALUE_KEYS = new Set(['text', 'categories', 'from', 'to']);
 

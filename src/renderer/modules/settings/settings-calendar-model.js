@@ -1,4 +1,4 @@
-// 4T-0544 (Epic 3E-0097): Datenmodell des Bereichs „Kalender-Systeme".
+// 4T-000544 (Epic 3E-000097): Datenmodell des Bereichs „Kalender-Systeme".
 //
 // Umrechnung zwischen Bereichsdatei und Entwurf, Persistenz-Form,
 // Normalisierung über die Kern-API, Abhängigkeits-Ermittlung der
@@ -23,9 +23,9 @@ export function dirtyCalendarSection(draft) {
   return !jsonEqual(calendarConfigPersistForm(values), draft.calendarSnapshot);
 }
 
-// --- Bereich Kalender-Systeme (4T-0544, Epic 3E-0097) --------------------------
+// --- Bereich Kalender-Systeme (4T-000544, Epic 3E-000097) --------------------------
 // Zweistufige Pflege der calendarSystems-Sektion der Bereichsdatei
-// (Datenpfad aus 4T-0543): Übersicht = Blöcke, Detail = Kalender-Editoren
+// (Datenpfad aus 4T-000543): Übersicht = Blöcke, Detail = Kalender-Editoren
 // des geöffneten Blocks. Struktur-Änderungen (Ebene/Zyklus/Epoche anlegen,
 // entfernen, verschieben, Typ-Wechsel) rendern den Bereich neu (Muster
 // Journale); Text-/Zahlen-Eingaben aktualisieren nur Hinweis und Vorschau.
@@ -86,7 +86,7 @@ export function calSysIdFromName(name, fallback, taken) {
 // Normalisierten Kalender in die Entwurfs-Form bringen (bearbeitbare Kopien,
 // Zahlen als Eingabe-Strings, 1-basierte Positionen für die UI).
 // Kanonischer Wert des Nullpunkts einer abgeleiteten Zeitrechnung: alle
-// groeberen Einheiten null, die kleinste Datums-Einheit 1 (4T-0747).
+// groeberen Einheiten null, die kleinste Datums-Einheit 1 (4T-000747).
 export function calSysZeroValue(segCount) {
   if (!segCount || segCount < 1) return '';
   return new Array(segCount)
@@ -96,7 +96,7 @@ export function calSysZeroValue(segCount) {
 }
 
 export function calendarToDraft(cal) {
-  // 4T-0747: Eine abgeleitete Zeitrechnung trägt im Entwurf nur ihre eigenen
+  // 4T-000747: Eine abgeleitete Zeitrechnung trägt im Entwurf nur ihre eigenen
   // Angaben; Ebenen, Zyklen, Gruppierungen und Epochen entstehen bei der
   // Auflösung im Kern und sind nicht bearbeitbar.
   if (cal.derived) {
@@ -179,7 +179,7 @@ export function calendarToDraft(cal) {
 // Kern-Normalisierung lehnt den Kalender dann ab (weiche/harte Validierung
 // aus einer Quelle).
 export function calendarPersistForm(calDraft) {
-  // 4T-0747: Kurze Form der abgeleiteten Zeitrechnung; die vollständige
+  // 4T-000747: Kurze Form der abgeleiteten Zeitrechnung; die vollständige
   // Definition erzeugt der Kern beim Normalisieren aus Bezug und Nullpunkt.
   if (calDraft.derived) {
     const depth = String(calDraft.derived.depth || '').trim();
@@ -299,7 +299,7 @@ export function calSysNormalizedDraft(calDraft, block) {
   return probe && probe.blocks[0].calendars.length === 1 ? probe.blocks[0].calendars[0] : null;
 }
 
-// 4T-0747: Probe-Block aus Bezug und Ableitung. Er ist die gemeinsame
+// 4T-000747: Probe-Block aus Bezug und Ableitung. Er ist die gemeinsame
 // Grundlage von weicher Validierung, Vorschau und Rückschau auf das
 // Bezugs-Datum; der Bezug auf die Standard-Zeitrechnung löst der Kern selbst
 // auf und braucht deshalb keinen Eintrag im Block.

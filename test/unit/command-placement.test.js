@@ -1,4 +1,4 @@
-// 4T-0520 (Epic 3E-0094): Datenmodell-Tests der Kommando-Platzierung
+// 4T-000520 (Epic 3E-000094): Datenmodell-Tests der Kommando-Platzierung
 // (src/shared/commands/command-placement.js) plus Wächter über die Hide-Ziele:
 // jedes Ziel existiert real in index.html, führt einen belegten i18n-Key
 // und die Panel-Ziele decken das komplette Zugangs-Modell — die
@@ -31,7 +31,7 @@ const DE_JSON = JSON.parse(
   fs.readFileSync(path.resolve(HERE, '..', '..', 'src', 'i18n', 'de.json'), 'utf8'),
 );
 
-describe('Hide-Ziele der Statusbar (4T-0520)', () => {
+describe('Hide-Ziele der Statusbar (4T-000520)', () => {
   it('Keys sind eindeutig und jedes Ziel existiert real in index.html', () => {
     const keys = STATUSBAR_HIDE_TARGETS.map((t) => t.key);
     expect(new Set(keys).size).toBe(keys.length);
@@ -86,7 +86,7 @@ describe('Hide-Ziele der Statusbar (4T-0520)', () => {
   });
 });
 
-describe('normalizeCommandPlacement (4T-0520)', () => {
+describe('normalizeCommandPlacement (4T-000520)', () => {
   it('Nicht-Objekte fallen auf den leeren Default zurück', () => {
     expect(normalizeCommandPlacement(null)).toEqual(defaultCommandPlacement());
     expect(normalizeCommandPlacement('kaputt')).toEqual(defaultCommandPlacement());
@@ -169,11 +169,11 @@ describe('normalizeCommandPlacement (4T-0520)', () => {
   });
 });
 
-// 4T-0521: Sichtbarkeits-Kern der nutzerdefinierten Kontextmenü-Sektion —
+// 4T-000521: Sichtbarkeits-Kern der nutzerdefinierten Kontextmenü-Sektion —
 // unbekannte Kommandos (gelöschtes Makro) und Kommandos deaktivierter
 // Erweiterungen entfallen, kontextbedingte Verfügbarkeit bleibt Sache des
 // Aufrufers (deaktivierte Darstellung statt Verschwinden).
-describe('visibleContextMenuEntries (4T-0521)', () => {
+describe('visibleContextMenuEntries (4T-000521)', () => {
   const entries = [
     { commandId: 'file.save', icon: 'save', label: null },
     { commandId: 'macro.geloescht', icon: 'zap', label: null },
@@ -202,7 +202,7 @@ describe('visibleContextMenuEntries (4T-0521)', () => {
 // Erweiterung ist als Werkzeug registriert und ihr Einstellungs-Bereich
 // verschwindet mit dem Schalter; die UI-Wirkung (Standard-Statusbar,
 // keine Sektion) deckt die E2E-Spec kommando-platzierung ab.
-describe('Erweiterung command-placement (4T-0520)', () => {
+describe('Erweiterung command-placement (4T-000520)', () => {
   it('ist als Werkzeug-Erweiterung mit Einstellungs-Bereich registriert', () => {
     const ext = extensionById('command-placement');
     expect(ext).toBeTruthy();

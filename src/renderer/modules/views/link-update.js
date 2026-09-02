@@ -1,18 +1,18 @@
-// --- Verweis-Nachfuehrung beim Umbenennen (4T-0345/4T-0346, Epic 3E-0062) ---
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// --- Verweis-Nachfuehrung beim Umbenennen (4T-000345/4T-000346, Epic 3E-000062) ---
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // Vorschau und Ergebnis-Bericht der Verweis-Anpassung sowie der Nachzug im
 // eigenen Fenster, wenn der Hauptprozess ein Link-Update angewendet hat.
 'use strict';
 
-// 4T-0345 (Epic 3E-0062): History-Isolation, damit der programmatische Link-
+// 4T-000345 (Epic 3E-000062): History-Isolation, damit der programmatische Link-
 // Fix eine eigene Undo-Einheit bildet (nicht mit Nutzer-Eingaben gruppiert).
 import { isolateHistory } from '@codemirror/commands';
 import { t } from '../../i18n.js';
 
 import { api } from '../app/api.js';
 import { toLogicalName } from '../../../shared/subpages.js';
-// 4T-0345: Rewrite-Kern fuer den Buffer-Fix offener dirty Tabs beim
-// automatischen Link-Update (shared Modul aus 4T-0344, esbuild-Interop).
+// 4T-000345: Rewrite-Kern fuer den Buffer-Fix offener dirty Tabs beim
+// automatischen Link-Update (shared Modul aus 4T-000344, esbuild-Interop).
 import { computeLinkRewrites } from '../../../shared/link-rewrite.js';
 import { state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
@@ -21,20 +21,20 @@ import { showLinkPreviewDialog, showLinkReportDialog } from '../dialogs/dialogs.
 import { invalidatePaneRenderCache, renderPaneContent } from './pane-render.js';
 import { renderTabbar } from './tabbar.js';
 
-// 4T-0346 (Epic 3E-0062): Anzeigename einer Datei im Vorschau-/Bericht-Dialog
+// 4T-000346 (Epic 3E-000062): Anzeigename einer Datei im Vorschau-/Bericht-Dialog
 // (Basename, Unterseiten in Slash-Schreibweise).
 function linkUpdateDisplayName(p) {
   return toLogicalName(api.basename(p));
 }
 
-// 4T-0346: ob ein Pfad in einem offenen Tab ungespeicherte Aenderungen hat
+// 4T-000346: ob ein Pfad in einem offenen Tab ungespeicherte Aenderungen hat
 // (Dirty-Kennzeichnung; der Main fuehrt keinen Dirty-Status).
 function isPathDirty(p) {
   return state.panes.some((pane) => pane.tabs.some((tb) => tb.path === p && tb.dirty));
 }
 
-// 4T-0346: Vorschau-Datenpfad. Holt die betroffenen Dateien (Dry-Run aus
-// 4T-0345), ergaenzt die Dirty-Kennzeichnung aus den eigenen Tabs und zeigt den
+// 4T-000346: Vorschau-Datenpfad. Holt die betroffenen Dateien (Dry-Run aus
+// 4T-000345), ergaenzt die Dirty-Kennzeichnung aus den eigenen Tabs und zeigt den
 // Vorschau-Dialog. Liefert true (Fortfahren) oder false (Abbrechen).
 export async function runLinkUpdatePreview(oldPath, newBase) {
   let preview;
@@ -61,7 +61,7 @@ export async function runLinkUpdatePreview(oldPath, newBase) {
   });
 }
 
-// 4T-0346: Ergebnis-Bericht aus dem file:rename-Ergebnis (umbenannt, angepasst,
+// 4T-000346: Ergebnis-Bericht aus dem file:rename-Ergebnis (umbenannt, angepasst,
 // fehlgeschlagen).
 export function showLinkUpdateReport(result) {
   const lu = result.linkUpdate || { updated: [], failed: [] };
@@ -101,7 +101,7 @@ export function showLinkUpdateReport(result) {
   });
 }
 
-// 4T-0345 (Epic 3E-0062): angewendetes Link-Update im Renderer nachziehen.
+// 4T-000345 (Epic 3E-000062): angewendetes Link-Update im Renderer nachziehen.
 // Nicht-dirty Tabs auf angepasste Pfade laden den vom Main bereits gefixten
 // Disk-Stand nach; dirty Tabs erhalten den Fix auf ihrem Buffer-Stand als eine
 // Undo-Transaktion und bleiben dirty. Der Buffer wird frisch geparst, damit

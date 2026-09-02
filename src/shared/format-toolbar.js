@@ -1,4 +1,4 @@
-// 4T-0607 (Epic 3E-0114): Datenmodell der Format-Toolbar.
+// 4T-000607 (Epic 3E-000114): Datenmodell der Format-Toolbar.
 //
 // Belegung der Leiste oberhalb des Editors als Eintrags-Liste. Drei
 // Eintrags-Typen: Kommando-Einträge im Eintrag-Modell der Kommando-
@@ -43,7 +43,7 @@ function defaultFormatToolbarEntries() {
     { type: 'command', commandId: 'link.insertExternal', icon: 'external-link', label: null },
     { type: 'separator' },
     { type: 'command', commandId: 'insert.table', icon: 'table', label: null },
-    // 4T-1309 (Epic 3E-0235): unmittelbar neben der einfachen Tabelle, weil
+    // 4T-001309 (Epic 3E-000235): unmittelbar neben der einfachen Tabelle, weil
     // beide dieselbe Frage beantworten und die Wahl zwischen ihnen am Ort
     // der Entscheidung stehen soll.
     {

@@ -1,4 +1,4 @@
-// 4T-0512 (Epic 3E-0092): HTML-Bausteine des `perspective-events`-Fence —
+// 4T-000512 (Epic 3E-000092): HTML-Bausteine des `perspective-events`-Fence —
 // interaktive Ereignis-Tabelle (Viewer-Pfad) und statische Portable-Tabelle.
 //
 // Arbeitsteilung (Muster perspective-datatable.js):
@@ -46,7 +46,7 @@ const {
   ganttAxis,
   ganttOffsets,
 } = require('../events/events-views.js');
-// 4T-0514: Monats-Gitter des Journal-Kalenders (Wochenstart Montag) als
+// 4T-000514: Monats-Gitter des Journal-Kalenders (Wochenstart Montag) als
 // gemeinsame Kalender-Mathematik.
 const { monthGrid } = require('../journal-core.js');
 
@@ -218,7 +218,7 @@ function buildAddFormHtml() {
 // Differenz-Spalte bleibt leer (events-view.js rechnet und lokalisiert
 // über den Container-Stichtag). Editier-Affordanzen sind immer im Markup
 // und werden per CSS nur in editierbaren Kontexten sichtbar (Muster pdt).
-// opts.aggregation (4T-0515): Art-2-Variante — keine Formularzeile, nur
+// opts.aggregation (4T-000515): Art-2-Variante — keine Formularzeile, nur
 // der Bearbeiten-Knopf, Zeilen tragen die Quell-Datei (data-ev-source,
 // Herkunfts-Zeile, Titel-Fallback kursiv); Anlage/Duplizieren/Löschen
 // gibt es in der Aggregations-Sicht nicht (Workshop-Punkt 5).
@@ -238,7 +238,7 @@ function buildEventsTableHtml(model, opts = {}) {
   }
   const out = ['<table class="pev-table">'];
   out.push('<thead><tr>');
-  // data-ev-sort: Klick-Sortierung der Ansicht (4T-0513, events-editor.js);
+  // data-ev-sort: Klick-Sortierung der Ansicht (4T-000513, events-editor.js);
   // Differenz- und Aktions-Spalte sind nicht sortierbar.
   out.push('<th class="pev-col-date" data-ev-sort="date" data-i18n="events.column.date">date</th>');
   out.push('<th class="pev-col-end" data-ev-sort="end" data-i18n="events.column.end">end</th>');
@@ -265,7 +265,7 @@ function buildEventsTableHtml(model, opts = {}) {
           ? ` data-ev-source="${escapeHtml(e.source.path)}" data-ev-mtime="${e.source.mtimeMs || 0}"`
           : '';
       out.push(`<tr class="${rowCls}" data-ev-row="${i}"${sourceAttr}>`);
-      // 4T-0516: Verknüpfungs-Indikator in der Zeitpunkt-Spalte (Referenz-
+      // 4T-000516: Verknüpfungs-Indikator in der Zeitpunkt-Spalte (Referenz-
       // Platzierung); die Aufklapp-Liste baut der Editor.
       const linkCount = (e.predecessors || []).length + (e.successors || []).length;
       const linkInd =
@@ -329,7 +329,7 @@ function buildEventsTableHtml(model, opts = {}) {
   return out.join('');
 }
 
-// --- Zusatz-Ansichten (4T-0514) --------------------------------------------------------
+// --- Zusatz-Ansichten (4T-000514) --------------------------------------------------------
 // Dashboard, Monats-/Wochen-Kalender und Timeline als reine HTML-Builder
 // über der gefilterten Index-Menge. L ist der Label-Resolver (Pipeline:
 // aufgeloeste Sprachdatei-Map aus markdown.js; Client: t()); lang steuert
@@ -375,7 +375,7 @@ function buildEventsViewBarHtml(effective) {
 }
 
 // Kompakter Ereignis-Chip (Sprung-Ziel data-ev-jump = Modell-Index).
-// opts.style trägt Inline-Positionen (4T-0722: Gantt-Balken und -Rauten
+// opts.style trägt Inline-Positionen (4T-000722: Gantt-Balken und -Rauten
 // sitzen prozentual auf der Zeitachse), opts.title einen abweichenden
 // Titel — der Chip bleibt sonst in allen Ansichten derselbe, damit die
 // Kategorie-Farben und der Klick-Weg nur einmal existieren.
@@ -575,7 +575,7 @@ function buildEventsTimelineHtml(model, indices, { L, lang }) {
   return out.join('');
 }
 
-// Gantt (4T-0722): Balken-Diagramm über einer gemeinsamen Zeitachse.
+// Gantt (4T-000722): Balken-Diagramm über einer gemeinsamen Zeitachse.
 // Zeilen-Modell, Achse und Prozent-Positionen kommen aus events-views.js;
 // dieses Modul setzt nur Struktur, Beschriftung und Inline-Positionen.
 // Balken und Rauten sind Ereignis-Chips wie in den übrigen Zusatz-
@@ -753,7 +753,7 @@ function renderPerspectiveEventsViewer(content, opts = {}) {
   if (model.errors.length > 0) return buildEventsErrorsHtml(model.errors);
   if (model.query !== null) {
     // Art 2 (Aggregation): Platzhalter, den der Aggregations-Renderer
-    // (4T-0515) über das data-Attribut befüllt.
+    // (4T-000515) über das data-Attribut befüllt.
     return (
       `<div class="pev-aggregation" data-ev-query="${escapeHtml(model.query)}">` +
       '<span class="pev-agg-pending" data-i18n="events.aggregationPending">events</span></div>'
@@ -909,7 +909,7 @@ const PORTABLE_EVENT_LABEL_KEYS = [
   'events.recurring.inDays',
   'events.recurring.year',
   ...EVENT_CATEGORIES.map((c) => `events.category.${c}`),
-  // 4T-0514: Zusatz-Ansichten (Pipeline-seitige Lokalisierung; der Client
+  // 4T-000514: Zusatz-Ansichten (Pipeline-seitige Lokalisierung; der Client
   // baut mit t() neu). calendar.* sind die bestehenden Kalender-Keys.
   'events.category.none',
   'events.view.empty',
@@ -925,7 +925,7 @@ const PORTABLE_EVENT_LABEL_KEYS = [
   'calendar.today',
   'calendar.prevMonth',
   'calendar.nextMonth',
-  // 4T-0722: Gantt-Ansicht (Wiederkehr-Markierung und Verknüpfungs-Zähler;
+  // 4T-000722: Gantt-Ansicht (Wiederkehr-Markierung und Verknüpfungs-Zähler;
   // Heute-Linie und Meilenstein-Texte nutzen die Keys darüber).
   'events.gantt.recurring',
   'events.link.indicator',
@@ -941,13 +941,13 @@ module.exports = {
   composeSpanText,
   composeMilestoneText,
   composeCountdownText,
-  // 4T-0514: Zusatz-Ansichten (Client-Neubau in events-editor.js).
+  // 4T-000514: Zusatz-Ansichten (Client-Neubau in events-editor.js).
   buildEventsTableHtml,
   buildEventsViewBarHtml,
   buildEventsDashboardHtml,
   buildEventsCalendarHtml,
   buildEventsTimelineHtml,
-  // 4T-0722 (Epic 3E-0150): Gantt-Ansicht.
+  // 4T-000722 (Epic 3E-000150): Gantt-Ansicht.
   buildEventsGanttHtml,
   DASHBOARD_MILESTONE_HORIZON,
 };

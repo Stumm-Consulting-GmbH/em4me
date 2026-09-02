@@ -1,4 +1,4 @@
-// 4T-0752 (Epic 3E-0146): Gemeinsamer Aufbau des Monatsgitters im Renderer.
+// 4T-000752 (Epic 3E-000146): Gemeinsamer Aufbau des Monatsgitters im Renderer.
 //
 // Drei Stellen zeichnen dasselbe Gitter: das Kalender-Panel der Journale
 // (klickbare Woche und Tage mit Eintrags-Punkt), das Popup der Datums-Eingabe
@@ -15,7 +15,7 @@
 // Die Kalender-Mathematik kommt unveraendert aus dem Perioden-Kern
 // (journal-core.js: monthGrid), den beide aelteren Stellen bereits nutzen.
 //
-// 4T-1063 (Epic 3E-0212): Vierte Stelle ist der Journal-Timeline-Block, der
+// 4T-001063 (Epic 3E-000212): Vierte Stelle ist der Journal-Timeline-Block, der
 // im Wochen-Modus eine einzelne Zeile zeichnet. Dafuer ist der
 // Zeilen-Durchlauf als renderGridRows herausgeloest; renderMonthGrid ist
 // darauf zurueckgefuehrt und behaelt Signatur und erzeugtes DOM.
@@ -57,7 +57,7 @@ export function createDayCell(day, { todayIso, as = 'button', className = '' } =
 }
 
 /**
- * 4T-1063 (Epic 3E-0212): Zeichnet Kopfzeile und beliebige Wochen-Zeilen in
+ * 4T-001063 (Epic 3E-000212): Zeichnet Kopfzeile und beliebige Wochen-Zeilen in
  * ein Gitter-Element. Herausgeloest aus renderMonthGrid, weil der
  * Journal-Timeline-Block im Wochen-Modus genau EINE Zeile zeichnet und ein
  * Monatsgitter mit ausgeblendeten Zeilen ein Kniff waere, kein Schnitt.

@@ -1,4 +1,4 @@
-// 4T-0520 (Epic 3E-0094): Bereich „Kommando-Platzierung" der Einstellungs-
+// 4T-000520 (Epic 3E-000094): Bereich „Kommando-Platzierung" der Einstellungs-
 // Seite (erweiterungs-gebunden über settingsSections der Erweiterung
 // command-placement; dynamische Registrierung nach dem Muster
 // panel-order-settings.js).
@@ -9,8 +9,8 @@
 // und die Hide-Liste der Standard-Statusbar-Elemente mit Zurücksetzen-
 // Knopf. Entwurf-/Anwenden-Logik wie der Bereich „Panel-Reihenfolge";
 // die Wirkung übernimmt setCommandPlacement (command-placement.js), das
-// an alle Fenster broadcastet. Die Kontextmenü-Liste (4T-0521) und der
-// Makro-Editor (4T-0522) docken als weitere Sektionen an.
+// an alle Fenster broadcastet. Die Kontextmenü-Liste (4T-000521) und der
+// Makro-Editor (4T-000522) docken als weitere Sektionen an.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -30,7 +30,7 @@ import { COMMANDS, COMMAND_CATEGORIES } from '../../../shared/commands/commands.
 import { disabledCommandIdSet } from '../../../shared/extensions/extensions-core.js';
 import { filterCommandEntries } from '../../../shared/commands/command-palette-filter.js';
 import { getDisabledExtensionIds } from '../extensions/extension-lifecycle.js';
-// 4T-0522: Testlauf-Knopf des Makro-Editors (führt den Entwurfs-Stand aus).
+// 4T-000522: Testlauf-Knopf des Makro-Editors (führt den Entwurfs-Stand aus).
 import { runMacro } from '../macros.js';
 
 function jsonEqual(a, b) {
@@ -118,7 +118,7 @@ function buildDialogCommandEntries() {
 // Zeigt den Anlage-/Bearbeitungs-Dialog (statisches Modal in index.html).
 // options: titleKey (Dialog-Titel), initial (Vorbelegung beim Bearbeiten),
 // withCommand/withIcon/withName (Schritt-Container ein-/ausblenden — der
-// Makro-Kopf aus 4T-0522 braucht z.B. kein Kommando, der Kommando-Schritt
+// Makro-Kopf aus 4T-000522 braucht z.B. kein Kommando, der Kommando-Schritt
 // weder Icon noch Name), requireName + nameLabelKey (Makro-Name als
 // Pflichtfeld). Liefert den Eintrag { commandId, icon, label } oder null
 // bei Abbruch.
@@ -275,7 +275,7 @@ export function showPlacementEntryDialog(options = {}) {
 // --- Eintrag-Listen-Editor -------------------------------------------------------
 
 // Gemeinsame Listen-Komponente für Statusbar-Buttons (dieser Task) und
-// Kontextmenü-Einträge (4T-0521): listKey benennt das Entwurfs-Feld
+// Kontextmenü-Einträge (4T-000521): listKey benennt das Entwurfs-Feld
 // ('statusbar' oder 'contextMenu'), die Dialog-Titel kommen pro Liste.
 function buildEntryListEditor(body, draft, rerender, opts) {
   const { listKey, addTitleKey, editTitleKey, testId } = opts;
@@ -368,7 +368,7 @@ function buildEntryListEditor(body, draft, rerender, opts) {
   body.appendChild(addRow);
 }
 
-// --- Makro-Editor (4T-0522) ------------------------------------------------------
+// --- Makro-Editor (4T-000522) ------------------------------------------------------
 
 // Aufgeklapptes Makro (Schritt-Liste sichtbar); Modul-Zustand überlebt
 // das Re-Rendern des Bereichs.
@@ -648,7 +648,7 @@ function buildInto(body, draft, rerender) {
     editTitleKey: 'commandPlacement.dialog.editStatusbarTitle',
     testId: 'statusbar',
   });
-  // 4T-0521: zweite Liste — nutzerdefinierte Kontextmenü-Sektion, gleicher
+  // 4T-000521: zweite Liste — nutzerdefinierte Kontextmenü-Sektion, gleicher
   // Anlage-Flow und gleiches Datenmodell, eigene Reihenfolge.
   body.appendChild(subtitle('settings.commandPlacement.contextMenuTitle'));
   body.appendChild(hint('settings.commandPlacement.contextMenuHint'));
@@ -658,7 +658,7 @@ function buildInto(body, draft, rerender) {
     editTitleKey: 'commandPlacement.dialog.editContextMenuTitle',
     testId: 'contextmenu',
   });
-  // 4T-0522: Makro-Editor — Makro-Liste mit aufklappbarer Schritt-Liste,
+  // 4T-000522: Makro-Editor — Makro-Liste mit aufklappbarer Schritt-Liste,
   // Testlauf-Knopf und Anlage über den Dialog (Name Pflicht, Icon).
   body.appendChild(subtitle('settings.commandPlacement.macrosTitle'));
   body.appendChild(hint('settings.commandPlacement.macrosHint'));

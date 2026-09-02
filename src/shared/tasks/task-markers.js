@@ -1,4 +1,4 @@
-// 4T-0496 (Epic 3E-0090): Task-Marker-Kern — Parsing und Serialisierung
+// 4T-000496 (Epic 3E-000090): Task-Marker-Kern — Parsing und Serialisierung
 // der Task-Zeile mit Symbol-Markern im Referenz-Format.
 //
 // Aufgaben des Moduls: eine Checkbox-Zeile in ein Task-Modell parsen
@@ -8,7 +8,7 @@
 // Checkbox-Zeile ist Task) und die Vergleichs-Helfer fuer Prioritaets-
 // und Termin-Ordnung.
 //
-// 4T-0983 (Epic 3E-0196): Der Kern liegt im Ordner `src/shared/tasks/`.
+// 4T-000983 (Epic 3E-000196): Der Kern liegt im Ordner `src/shared/tasks/`.
 // Er liest und schreibt alle Marker-Arten; die Fach-Logik zweier Arten
 // liegt daneben und lädt ihn: `task-recurrence.js` (Wiederholungs-Regel,
 // Tages-Arithmetik, Dringlichkeits-Score) und `task-dependencies.js`
@@ -23,7 +23,7 @@
 // und Tests laden dasselbe Modul.
 //
 // Format-Treue ist das Top-Risiko des Epics (Architekturentscheidung 1,
-// 3E-0090): der Datei-Bestand des PO im Referenz-Format muss ohne
+// 3E-000090): der Datei-Bestand des PO im Referenz-Format muss ohne
 // Konvertierung funktionieren. Deshalb arbeitet der Parser Segment-
 // basiert vom Zeilenende her: jedes erkannte Marker-Segment behaelt
 // seinen exakten Roh-Text (inklusive fuehrendem Weissraum und
@@ -35,14 +35,14 @@
 //
 // Marker-Bestand (Referenz-Format, Analyse Obsidian_Tasks.md):
 // - Termine: faellig, geplant, Start (manuell); erstellt, erledigt,
-//   abgebrochen (Automatik, 4T-0498). Festes Datum YYYY-MM-DD; optionale
+//   abgebrochen (Automatik, 4T-000498). Festes Datum YYYY-MM-DD; optionale
 //   Uhrzeit "HH:mm" hinter dem Datum ist die eigene Format-Erweiterung
 //   (Querschnitt B) — ohne Uhrzeit referenz-identisch.
 // - Prioritaet: sechs Stufen, "normal" ohne Marker zwischen niedrig und
 //   mittel (Workshop-Punkt 2).
 // - Wiederholung und ID/Abhaengigkeiten: hier nur gelesen, geschrieben
 //   und erhalten; ihre Fach-Logik liegt in den beiden Schwester-Modulen.
-// - Erinnerung (4T-0525, Epic 3E-0095): eigenes Segment-Kind mit
+// - Erinnerung (4T-000525, Epic 3E-000095): eigenes Segment-Kind mit
 //   Datums-/Zeit-Wert — der Melde-Zeitpunkt des Erinnerungs-Systems
 //   (Abgrenzung: Faelligkeits-Marker = Sach-Termin, Erinnerungs-Marker =
 //   Melde-Zeitpunkt). Ein nackter Wecker ohne Wert bleibt Toleranz-Segment.
@@ -76,7 +76,7 @@ const DATE_MARKER_READ_VARIANTS = {
 };
 
 // Reihenfolge = fachliche Ordnung der Termin-Felder (Referenz-Rangfolge
-// faellig vor geplant vor Start dient 4T-0499 als Rechen-Basis).
+// faellig vor geplant vor Start dient 4T-000499 als Rechen-Basis).
 const TASK_DATE_FIELDS = ['due', 'scheduled', 'start', 'created', 'done', 'cancelled'];
 
 // Prioritaets-Stufen in Rang-Reihenfolge (dringlichste zuerst). "normal"
@@ -96,7 +96,7 @@ const RECURRENCE_SYMBOL = '\u{1F501}'; // Wiederholungs-Pfeile
 const ID_SYMBOL = '\u{1F194}'; // ID-Zeichen
 const DEPENDS_SYMBOL = '⛔'; // Zufahrt-verboten (Vorgaenger-Bezug)
 const ON_COMPLETION_SYMBOL = '\u{1F3C1}'; // Zielflagge (Abschluss-Aktion)
-const REMINDER_SYMBOL = '⏰'; // Wecker (Erinnerung, 3E-0095)
+const REMINDER_SYMBOL = '⏰'; // Wecker (Erinnerung, 3E-000095)
 
 // --- Zeilen-Erkennung --------------------------------------------------------------
 // Checkbox-Zeile: Aufzaehlungszeichen (-, *, +, nummeriert) plus
@@ -160,7 +160,7 @@ function buildMatchers() {
       'u',
     ),
   });
-  // Erinnerungs-Marker (4T-0525, Epic 3E-0095): Datum mit optionaler
+  // Erinnerungs-Marker (4T-000525, Epic 3E-000095): Datum mit optionaler
   // Uhrzeit, gleiche Wert-Form wie die Termin-Felder (DATE_VALUE_SRC).
   matchers.push({
     kind: 'reminder',
@@ -194,9 +194,9 @@ function escapeRegExp(s) {
 
 const MARKER_MATCHERS = buildMatchers();
 
-// --- Wert-Bereiche der Datums-Marker (4T-0937, Befund B-09) -------------------------
+// --- Wert-Bereiche der Datums-Marker (4T-000937, Befund B-09) -------------------------
 // Aus einer Ausnahme wird die Regel: Bis dahin war allein der ⏰-Wert einer
-// Aufgaben-Zeile klick-dekoriert, weil nur er Gegenstand von 4T-0528 war; in
+// Aufgaben-Zeile klick-dekoriert, weil nur er Gegenstand von 4T-000528 war; in
 // derselben Zeile blieben sechs weitere Datums-Werte stumm, obwohl sie gleich
 // aussehen. Anordnung des Product Owners vom 2026-08-08: jeder Datums-Wert im
 // Dokument ist anklickbar, ueberall gleich.
@@ -455,12 +455,12 @@ function setPriority(model, level) {
   model.priority = level;
 }
 
-// Status-Zeichen setzen (Toggle-Pfad 4T-0497).
+// Status-Zeichen setzen (Toggle-Pfad 4T-000497).
 function setStatusChar(model, ch) {
   model.statusChar = ch;
 }
 
-// 4T-0525 (Epic 3E-0095): Erinnerungs-Marker setzen oder entfernen.
+// 4T-000525 (Epic 3E-000095): Erinnerungs-Marker setzen oder entfernen.
 // value: { date, time? } oder null. Bestehende Segmente behalten Position,
 // Symbol-Variante (inklusive Variation Selector) und fuehrenden Weissraum
 // (Muster setDateField); neue Segmente werden kanonisch angehaengt.
@@ -492,10 +492,10 @@ function setReminder(model, value) {
 }
 
 // ID- und Abhaengigkeits-Segmente entfernen (Folge-Instanz der
-// Wiederholung, 4T-0499: IDs gelten pro Vorkommen, die neue Instanz darf
+// Wiederholung, 4T-000499: IDs gelten pro Vorkommen, die neue Instanz darf
 // keine Duplikate erzeugen). Bleibt im Kern, weil es ein reiner
 // Segment-Filter ohne Kennungs-Logik ist und die Wiederholungs-Schicht
-// ihn braucht (4T-0983: sonst Zyklus zwischen den Schwester-Modulen).
+// ihn braucht (4T-000983: sonst Zyklus zwischen den Schwester-Modulen).
 function stripIdAndDependsOn(model) {
   model.segments = model.segments.filter((s) => s.kind !== 'id' && s.kind !== 'dependsOn');
   model.id = null;
@@ -520,7 +520,7 @@ function modelMatchesGlobalFilter(model, globalFilter) {
 }
 
 // Filter-String fuer Anzeigen aus der Beschreibung entfernen
-// (Ausblende-Option, 4T-0498): erstes Vorkommen samt einem angrenzenden
+// (Ausblende-Option, 4T-000498): erstes Vorkommen samt einem angrenzenden
 // Leerzeichen; uebriger Text bleibt unveraendert.
 function stripGlobalFilter(description, globalFilter) {
   const filter = String(globalFilter == null ? '' : globalFilter).trim();
@@ -566,7 +566,7 @@ function compareDateValue(a, b) {
 module.exports = {
   TASK_DATE_FIELDS,
   DATE_MARKER_SYMBOLS,
-  // 4T-0937 (Befund B-09): Die Klick-Dekoration der Datums-Werte leitet ihre
+  // 4T-000937 (Befund B-09): Die Klick-Dekoration der Datums-Werte leitet ihre
   // Marker-Erkennung aus dieser Tabelle ab, statt eine zweite zu fuehren.
   DATE_MARKER_READ_VARIANTS,
   PRIORITY_ORDER,
@@ -592,7 +592,7 @@ module.exports = {
   compareDateValue,
   isValidIsoDate,
   isValidTime,
-  // 4T-0983: Bausteine fuer die Schwester-Module des Ordners (Monatslaenge
+  // 4T-000983: Bausteine fuer die Schwester-Module des Ordners (Monatslaenge
   // fuer die Wiederholungs-Zyklen, Segment-Suche und Weissraum-Erhalt fuer
   // deren Mutatoren) — bewusst exportiert statt dort neu geschrieben.
   daysInMonth,

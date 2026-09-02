@@ -1,4 +1,4 @@
-// 4T-0486 (Epic 3E-0091): E2E-Funktions-Suite — Datums-/Uhrzeit-Picker.
+// 4T-000486 (Epic 3E-000091): E2E-Funktions-Suite — Datums-/Uhrzeit-Picker.
 // DP-01: Strg+Alt+T oeffnet den kombinierten Picker, Uebernehmen fuegt
 // 'yyyy-MM-dd HH:mm' am Cursor ein; DP-02: Strg+Alt+D (nur Datum) — Uhrzeit-
 // Schalter aus, Kalender-Tag anklicken, Einfuegen liefert exakt dessen
@@ -7,14 +7,14 @@
 // Freitext, PO-Befund Runde 1); DP-04: Schreib-Trigger ';;' oeffnet den
 // Picker, Uebernehmen ersetzt beide Zeichen; DP-05: Trigger + Esc laesst die
 // Zeichen stehen, in gewoehnlichem Fenced-Code loest ';;' nicht aus, in
-// einem Perspective-Fence dagegen schon (4T-0641); DP-06: bei deaktivierter
+// einem Perspective-Fence dagegen schon (4T-000641); DP-06: bei deaktivierter
 // Erweiterung 'date-picker' oeffnet weder das Kuerzel noch der Trigger.
 //
-// 4T-0641 (Epic 3E-0069): Der Trigger war bis dahin ein Backslash-Doppel.
+// 4T-000641 (Epic 3E-000069): Der Trigger war bis dahin ein Backslash-Doppel.
 // Die Zeichenfolge kollidierte mit der Bedeutung des Backslash als
 // Escape-Zeichen und wurde auf ';;' gewechselt (PO-Entscheidung 2026-07-20).
 //
-// 4T-0487 (Epic 3E-0091): klickbare Datums-/Uhrzeit-Werte (dateValuePlugin,
+// 4T-000487 (Epic 3E-000091): klickbare Datums-/Uhrzeit-Werte (dateValuePlugin,
 // Quelltext- UND Live-Modus im Edit-Modus; read-only keine Dekoration).
 // DP-07: realer Klick auf einen Prosa-Datumswert im Live-Modus oeffnet den
 // Picker vorbelegt (Datums-Schalter an, Uhrzeit aus, Tag .selected), ein
@@ -231,7 +231,7 @@ test.describe('DP-05: Abbruch und Ausschluss-Kontext (F-114)', () => {
       await page.waitForTimeout(150);
       await expect(page.locator(POPUP)).toBeHidden();
 
-      // 4T-0641 (Epic 3E-0069): Im Perspective-Fence dagegen schon — er ist
+      // 4T-000641 (Epic 3E-000069): Im Perspective-Fence dagegen schon — er ist
       // technisch Code, fuer den Nutzer aber eine Tabelle mit Inhaltszellen.
       await editor.locator('.cm-line', { hasText: 'zelle mit datum' }).click();
       await page.keyboard.press('End');
@@ -295,7 +295,7 @@ test.describe('DP-06: Aus-Zustand der Erweiterung date-picker (F-114)', () => {
   });
 });
 
-// 4T-0487 (Epic 3E-0091): klickbare Datums-/Uhrzeit-Werte im Live-Modus.
+// 4T-000487 (Epic 3E-000091): klickbare Datums-/Uhrzeit-Werte im Live-Modus.
 // Die Dekoration .cm-live-date-value sitzt im .cm-content; ein realer Klick
 // oeffnet den vorbelegten Picker, Uebernehmen ersetzt exakt den Bereich.
 const DATE_VALUE = `${SEL.editorContent0} .cm-live-date-value`;
@@ -482,7 +482,7 @@ test.describe('DP-10: Klick-Reaktivierung im Quelltext-Modus (F-114)', () => {
   });
 });
 
-// B-09 (4T-0937, erhoben im Charter-Durchgang 4T-0899, Pruef-Runde 4): Der
+// B-09 (4T-000937, erhoben im Charter-Durchgang 4T-000899, Pruef-Runde 4): Der
 // Wert hinter dem Faelligkeits-Marker war nicht klickbar, der hinter dem
 // Erinnerungs-Marker in derselben Zeile schon. Anordnung des Product Owners
 // vom 2026-08-08: jeder Datums-Wert im Dokument ist anklickbar, ueberall
@@ -525,9 +525,9 @@ test.describe('DP-11: Datums-Wert eines Aufgaben-Markers ist klickbar (B-09)', (
   });
 });
 
-// B-09, Live-Modus (AK4 in 4T-0937): Dort ersetzt ein Badge den Rohtext, die
+// B-09, Live-Modus (AK4 in 4T-000937): Dort ersetzt ein Badge den Rohtext, die
 // Klick-Faehigkeit haengt also am Badge und nicht an der Text-Dekoration.
-// Bis 4T-0937 trug allein das ⏰-Badge einen Klick-Bereich.
+// Bis 4T-000937 trug allein das ⏰-Badge einen Klick-Bereich.
 test.describe('DP-12: Marker-Badge im Live-Modus ist klickbar (B-09)', () => {
   test('Klick auf das Faelligkeits-Badge oeffnet den vorbelegten Waehler', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
@@ -561,14 +561,14 @@ test.describe('DP-12: Marker-Badge im Live-Modus ist klickbar (B-09)', () => {
   });
 });
 
-// 4T-0943 (Epic 3E-0197): Steht der Cursor in der Zeile, war der Datums-Wert
+// 4T-000943 (Epic 3E-000197): Steht der Cursor in der Zeile, war der Datums-Wert
 // dort bis 1.123.0 gar nicht dekoriert und damit nicht erreichbar — die
 // Klick-Dekoration uebersprang die aktive Zeile. Entscheidung des Product
 // Owners vom 2026-09-01 (E1 im Epic): Der Wert bleibt auch dort erreichbar,
 // aber ueber den Strg-Klick, damit der einfache Klick weiterhin den Cursor
 // setzt. DP-13 fixiert beide Haelften: das Nicht-Oeffnen beim einfachen Klick
 // und das Oeffnen beim Strg-Klick.
-test.describe('DP-13: Zugang in der Zeile mit dem Cursor (4T-0943)', () => {
+test.describe('DP-13: Zugang in der Zeile mit dem Cursor (4T-000943)', () => {
   test('einfacher Klick setzt den Cursor, Strg-Klick oeffnet den vorbelegten Waehler', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {

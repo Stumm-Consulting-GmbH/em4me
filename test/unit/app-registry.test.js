@@ -1,4 +1,4 @@
-// 4T-0318 (Epic 3E-0057): Unit-Tests für die App-Registry
+// 4T-000318 (Epic 3E-000057): Unit-Tests für die App-Registry
 // (src/main/app/app-registry.js) — logische Applikationen als Fenster-Gruppen.
 // Kern: lückenloses Nachrücken der App- und Fenster-Nummern beim Schließen
 // und die Sonderrolle der Bereichs-Apps (keine App-Nummer, Bereichsname).
@@ -9,7 +9,7 @@ function infosFor(reg) {
   return reg.displayInfos();
 }
 
-describe('createAppRegistry (4T-0318)', () => {
+describe('createAppRegistry (4T-000318)', () => {
   it('ordnet Fenster ihrer App zu und nummeriert app-lokal', () => {
     const reg = createAppRegistry();
     const app1 = reg.createApp();
@@ -102,10 +102,10 @@ describe('createAppRegistry (4T-0318)', () => {
   });
 });
 
-// 4T-0537 (Epic 3E-0098): Arbeitsbereichs-Zuordnung — benannte Apps tragen
+// 4T-000537 (Epic 3E-000098): Arbeitsbereichs-Zuordnung — benannte Apps tragen
 // { id, name }, zählen nicht in die "App N"-Nummerierung und liefern ihren
-// Namen über displayInfos (Fenster-Titel-Grundlage für 4T-0538).
-describe('Arbeitsbereichs-Zuordnung (4T-0537)', () => {
+// Namen über displayInfos (Fenster-Titel-Grundlage für 4T-000538).
+describe('Arbeitsbereichs-Zuordnung (4T-000537)', () => {
   it('setWorkspace/getWorkspace/findAppByWorkspaceId verwalten die Zuordnung', () => {
     const reg = createAppRegistry();
     const app1 = reg.createApp();

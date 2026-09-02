@@ -1,4 +1,4 @@
-// 4T-0344 (Epic 3E-0062): Unit-Tests fuer den Link-Rewrite-Kern
+// 4T-000344 (Epic 3E-000062): Unit-Tests fuer den Link-Rewrite-Kern
 // (src/shared/link-rewrite.js). Fixture-Matrix ueber alle Link-Formen, die
 // Maskierungs-/Frontmatter-Ausschluesse, relative Formen (gueltig bleibend vs.
 // brechend), Kaskade, %-Kodierung, EOL-/BOM-Erhalt und Idempotenz.
@@ -117,18 +117,18 @@ describe('link-rewrite — relative Markdown-Links', () => {
   });
 
   it('stellt ein klammerloses Ziel bei neuem Namen mit Leerzeichen auf die <…>-Form um', () => {
-    // 4T-0476 (Epic 3E-0088): ein unkodiertes Leerzeichen waere kein gueltiges
+    // 4T-000476 (Epic 3E-000088): ein unkodiertes Leerzeichen waere kein gueltiges
     // CommonMark-Ziel; die Destination wandert daher in spitze Klammern.
     const rr = [rename('Alt', 'Neu Datei')];
     expect(rewrite('[Text](Alt.md)', rr).newContent).toBe('[Text](<Neu Datei.md>)');
   });
 });
 
-// 4T-0476 (Epic 3E-0088): CommonMark-Destination in spitzen Klammern
+// 4T-000476 (Epic 3E-000088): CommonMark-Destination in spitzen Klammern
 // ([Text](<Mein Ziel.md>)). <…>-Ziele erlauben Leerzeichen nativ und werden roh
 // ersetzt (Klammern und Anker bleiben stehen); ein klammerloses Ziel, dem die
 // Umbenennung ein Leerzeichen einbringt, wird auf die <…>-Form umgestellt.
-describe('link-rewrite — <…>-Destination (4T-0476)', () => {
+describe('link-rewrite — <…>-Destination (4T-000476)', () => {
   it('ersetzt ein Blank-Ziel in <…>-Form roh und behaelt die Klammern', () => {
     const rr = [rename('Meine Alte', 'Neue Datei')];
     expect(rewrite('[Text](<Meine Alte.md>)', rr).newContent).toBe('[Text](<Neue Datei.md>)');
@@ -249,13 +249,13 @@ describe('link-rewrite — Kaskade, Idempotenz, EOL/BOM', () => {
   });
 });
 
-// 4T-0847 (Epic 3E-0147): Ein Rename-Paar darf zugleich das Verzeichnis
+// 4T-000847 (Epic 3E-000147): Ein Rename-Paar darf zugleich das Verzeichnis
 // wechseln — das physische Verschieben einer Kapitel-Datei innerhalb ihres
 // Buch-Ordners. Ein relatives Markdown-Ziel wird dann als ganzer Pfad neu
 // geschrieben (neue relative Lage von der verweisenden Datei aus), weil das
 // Ersetzen des Basenames allein den Verzeichnis-Anteil stehen ließe und der
 // Link danach ins Leere zeigte.
-describe('link-rewrite — Verzeichnis-Wechsel des Ziels (4T-0847)', () => {
+describe('link-rewrite — Verzeichnis-Wechsel des Ziels (4T-000847)', () => {
   // Verschiebe-Eintrag: derselbe Basename, anderes Verzeichnis.
   function move(base, vonOrdner, nachOrdner) {
     return {
@@ -318,7 +318,7 @@ describe('link-rewrite — Verzeichnis-Wechsel des Ziels (4T-0847)', () => {
   it('stellt auf die <…>-Form um, wenn der neue Ordner ein Leerzeichen einbringt', () => {
     const r = [move('Kapitel', '/root', '/root/Teil 1')];
     expect(rewrite('[Text](Kapitel.md)', r).newContent).toBe('[Text](<Teil 1/Kapitel.md>)');
-    // Der Anker wandert dabei mit in die Klammern (Regel 4T-0476).
+    // Der Anker wandert dabei mit in die Klammern (Regel 4T-000476).
     expect(rewrite('[Text](Kapitel.md#kap)', r).newContent).toBe('[Text](<Teil 1/Kapitel.md#kap>)');
   });
 

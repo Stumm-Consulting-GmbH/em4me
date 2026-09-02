@@ -1,4 +1,4 @@
-// 4T-0363 (Epic 3E-0067): Unit-Tests fuer die gemeinsame Block-Anker-Quelle
+// 4T-000363 (Epic 3E-000067): Unit-Tests fuer die gemeinsame Block-Anker-Quelle
 // (src/shared/block-anchors.js): Extraktion in Textreihenfolge, Ueberspringen von
 // Frontmatter und Fenced-Code, Duplikat-Erkennung, ID-Validierung und die
 // kollisionsfreie ID-Generierung.
@@ -12,7 +12,7 @@ import {
   generateBlockAnchorId,
 } from '../../src/shared/block-anchors.js';
 
-describe('extractBlockAnchors (4T-0363)', () => {
+describe('extractBlockAnchors (4T-000363)', () => {
   it('findet Anker am Zeilenende und auf eigener Zeile, in Reihenfolge', () => {
     const text = ['# Titel', '', 'Ein Absatz. ^a1b2c3', '', '^eigen', '', 'Noch was ^zweiter'].join(
       '\n',
@@ -56,7 +56,7 @@ describe('extractBlockAnchors (4T-0363)', () => {
   });
 });
 
-describe('isValidBlockAnchorId (4T-0363)', () => {
+describe('isValidBlockAnchorId (4T-000363)', () => {
   it('akzeptiert erlaubte Zeichen', () => {
     expect(isValidBlockAnchorId('a1b2c3')).toBe(true);
     expect(isValidBlockAnchorId('grün_2-x')).toBe(true);
@@ -70,7 +70,7 @@ describe('isValidBlockAnchorId (4T-0363)', () => {
   });
 });
 
-describe('generateBlockAnchorId (4T-0363)', () => {
+describe('generateBlockAnchorId (4T-000363)', () => {
   it('liefert eine gueltige, 6-stellige ID', () => {
     const id = generateBlockAnchorId(new Set());
     expect(id).toHaveLength(6);
@@ -92,7 +92,7 @@ describe('generateBlockAnchorId (4T-0363)', () => {
   });
 });
 
-describe('blockAnchorForLine (4T-0364)', () => {
+describe('blockAnchorForLine (4T-000364)', () => {
   const text = [
     'Absatz eins mit Anker. ^aaa', // 1
     '', // 2
@@ -124,7 +124,7 @@ describe('blockAnchorForLine (4T-0364)', () => {
   });
 });
 
-describe('rewriteAnchorReferences (4T-0364)', () => {
+describe('rewriteAnchorReferences (4T-000364)', () => {
   it('schreibt Anker-Definition und eingehende Verweise um', () => {
     const text = [
       'Ein Absatz mit Daten. ^alt',

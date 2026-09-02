@@ -1,4 +1,4 @@
-// 4T-0791 (Epic 3E-0125): Bereiche „Anlagen" und Bereichs-Übersteuerung
+// 4T-000791 (Epic 3E-000125): Bereiche „Anlagen" und Bereichs-Übersteuerung
 // (Ablage-Form und Ordnername beim Einfügen und Ziehen).
 'use strict';
 
@@ -7,16 +7,16 @@ import { api } from '../app/api.js';
 import { renderActiveSection } from './settings-mount.js';
 import { buildSettingsRow } from './settings-shared.js';
 
-// --- Bereich Vorlagen (4T-0428, Epic 3E-0080) ----------------------------------
+// --- Bereich Vorlagen (4T-000428, Epic 3E-000080) ----------------------------------
 // Globaler Vorlagen-Ordner und globale Ordner-Regeln (Store-Keys
 // templates.folder/templates.rules) plus — bei Bereichs-Fenstern — die
 // Bereichs-Konfiguration in der templates-Sektion der Bereichsdatei.
 // Bereichs-Werte übersteuern die globalen VOLLSTÄNDIG (keine Misch-
 // Auflösung; Architekturentscheidung 2 des Epics). Änderungen wirken ohne
 // Neustart: Auswahl-Popup und Regel-Trigger lesen die Konfiguration frisch
-// pro Aufruf (kein Cache, Epic-Entscheidung aus 4T-0424).
+// pro Aufruf (kein Cache, Epic-Entscheidung aus 4T-000424).
 
-// --- Anlagen (4T-0791, Epic 3E-0125) ----------------------------------------
+// --- Anlagen (4T-000791, Epic 3E-000125) ----------------------------------------
 // Vier Ablage-Formen; 'bereich' erscheint nur in der Bereichs-Sektion, weil er
 // ohne Bereich keinen Bezug hätte. Die Reihenfolge ist die der Anzeige.
 const ATTACHMENT_FORMS = ['neben', 'fest', 'dokument'];

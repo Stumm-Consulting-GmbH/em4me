@@ -1,4 +1,4 @@
-// 4T-0453 (Epic 3E-0084): Unit-Tests des Graph-Kerns — Modell-Aufbau
+// 4T-000453 (Epic 3E-000084): Unit-Tests des Graph-Kerns — Modell-Aufbau
 // (Dedup, Doppel-Pfeil, Kanten-Bereinigung), Tiefen-Expansion (Richtungen,
 // Zyklen, Klemmen), Ober-Grenze und Kraft-Layout (Determinismus,
 // Reihenfolge-Unabhängigkeit, inkrementelle Stabilität).
@@ -244,7 +244,7 @@ describe('layoutGraph — Determinismus und Stabilität', () => {
   });
 });
 
-// 4T-0456 (Epic 3E-0084): Wirkung des Aus-Zustands der Erweiterung
+// 4T-000456 (Epic 3E-000084): Wirkung des Aus-Zustands der Erweiterung
 // graph-view — beide Kommandos verschwinden aus Dispatcher, Menü und
 // Handbuch-Generatoren (Muster journal-perioden.test.js; die Panel-
 // Ausblendung deckt der isExtensionActive-Guard der Sichtbarkeits-Pfade).

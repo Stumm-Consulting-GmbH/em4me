@@ -11,48 +11,48 @@ const {
   shell,
   nativeTheme,
   Notification,
-  // 4T-0582 (Epic 3E-0107): Woerterbuch-Pflege der Rechtschreibpruefung.
+  // 4T-000582 (Epic 3E-000107): Woerterbuch-Pflege der Rechtschreibpruefung.
   session,
 } = require('electron');
 const backlinks = require('./backlinks');
-// 4T-0337 (Epic 3E-0061): Unterseiten-Namens-Logik fuer Embeds und
+// 4T-000337 (Epic 3E-000061): Unterseiten-Namens-Logik fuer Embeds und
 // Anlage-/Umbenennen-Kommandos.
 const subpages = require('../shared/subpages');
 // Groessen-Limit fuer Markdown-Embeds (embed:read); Markdown-Text, daher
 // deutlich unter dem 20-MB-Limit des Bild-Resolvers.
 const MAX_EMBED_BYTES = 5 * 1024 * 1024;
-// 4T-0318 (Epic 3E-0057): logische Applikationen — jedes Fenster gehoert zu
+// 4T-000318 (Epic 3E-000057): logische Applikationen — jedes Fenster gehoert zu
 // genau einer App; Nummerierung und Titel-Infos kommen aus der Registry.
 const { createAppRegistry } = require('./app/app-registry');
-// 4T-0331 (Epic 3E-0060): Dokument-Historie — Kern der .mdd-Protokollierung
+// 4T-000331 (Epic 3E-000060): Dokument-Historie — Kern der .mdd-Protokollierung
 // (Container-Format, Delta-Pakete, Anker, Hash-Abgleich). Electron- und
 // IO-frei; Datei-Zugriff und Fenster-Hinweise bleiben hier in main.js.
 const mddStore = require('./documents/mdd-store');
-// 4T-0945 (Story 4S-0786): Stand-Pruefung vor dem Ueberschreiben.
+// 4T-000945 (Story 4S-000786): Stand-Pruefung vor dem Ueberschreiben.
 const saveGuard = require('./documents/save-guard');
-// 4T-0948 (Story 4S-0787): Inhalt einer Wiki-Einbettung, Puffer vor Platte.
+// 4T-000948 (Story 4S-000787): Inhalt einer Wiki-Einbettung, Puffer vor Platte.
 const embedInhalt = require('./documents/embed-content');
-// 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
+// 4T-000619 (Epic 3E-000117): Kennzahlen-Erhebung des Bereichs (Index-Anteil
 // plus ergaenzender Ordner-Scan).
 const { collectAreaStats } = require('./area/area-stats');
-// 4T-0615 (Epic 3E-0116): Bereichs-Suchraum — Volltext-Suche ueber alle
+// 4T-000615 (Epic 3E-000116): Bereichs-Suchraum — Volltext-Suche ueber alle
 // Markdown-Dateien des Bereichs, mit Speicher-Vorrat und Cache im
 // Nutzerdaten-Verzeichnis.
 const { sucheImBereich, gibBereichsVorratFrei } = require('./area/area-search');
-// 4T-0375 (Epic 3E-0070): erweiterte Versionsnummer — volle Anzeige-Version
+// 4T-000375 (Epic 3E-000070): erweiterte Versionsnummer — volle Anzeige-Version
 // (X.Y.Z.N) aus der package.json-Version plus der Build-Info.
 const { computeFullVersion } = require('../shared/build-version');
 
-// 4T-1000 (Epic 3E-0196): Verdrahtung und Start-Ablauf liegen in eigenen
+// 4T-001000 (Epic 3E-000196): Verdrahtung und Start-Ablauf liegen in eigenen
 // Modulen. Beide sind Aufbau-Funktionen ohne Lade-Zeit-Seiteneffekte; die
 // Warteschlange der Zweitstart-Dateien gehoert dem Start-Modul und wird der
 // Verdrahtung als Getter gereicht.
 const { createMainWiring } = require('./app/wiring');
-// 4T-0971 (Epic 3E-0207): letzte Auffang-Ebene dieser Prozess-Seite.
+// 4T-000971 (Epic 3E-000207): letzte Auffang-Ebene dieser Prozess-Seite.
 const { erstelleAuffangEbene } = require('./app/auffang-ebene');
 const { createStartup, gibWartendeZweitstartDateien } = require('./app/startup');
 
-// 4T-0999/4T-1000 (Epic 3E-0196): die siebzehn ipc-Module der Kanal-Gruppen.
+// 4T-000999/4T-001000 (Epic 3E-000196): die siebzehn ipc-Module der Kanal-Gruppen.
 // Sie sind zur Lade-Zeit electron-frei und tragen keine Seiteneffekte;
 // Registrier-Funktion und Bezuege bekommen sie unten in registerIpc.
 const { registerWindowsIpc } = require('./ipc/windows');
@@ -73,7 +73,7 @@ const { registerProfilesIpc } = require('./ipc/profiles');
 const { registerExtensionsIpc } = require('./ipc/extensions');
 const { registerHelpIpc } = require('./ipc/help');
 
-// 4T-0375: volle Version aus package.json-Version und Build-Info; fehlende
+// 4T-000375: volle Version aus package.json-Version und Build-Info; fehlende
 // oder defekte Build-Info fällt auf die dreiteilige Version zurück.
 function fullVersion() {
   let buildInfo = null;
@@ -85,7 +85,7 @@ function fullVersion() {
   return computeFullVersion(app.getVersion(), buildInfo);
 }
 
-// 4T-0166: Test-Isolation. E2E-Laeufe setzen SCG_TEST_USER_DATA auf ein
+// 4T-000166: Test-Isolation. E2E-Laeufe setzen SCG_TEST_USER_DATA auf ein
 // Temp-Verzeichnis, damit electron-store und Single-Instance-Lock nie das
 // echte Nutzer-Profil beruehren. Muss vor requestSingleInstanceLock() und
 // vor jedem Store-Zugriff stehen.
@@ -93,7 +93,7 @@ if (process.env.SCG_TEST_USER_DATA) {
   app.setPath('userData', process.env.SCG_TEST_USER_DATA);
 }
 
-// 4T-0784 (Epic 3E-0156): Im E2E-Lauf nehmen die Fenster keinen Fokus.
+// 4T-000784 (Epic 3E-000156): Im E2E-Lauf nehmen die Fenster keinen Fokus.
 //
 // Ein Lauf oeffnet ueber eine halbe Stunde hinweg laufend Fenster. Jedes davon
 // riss unter Windows den Fokus an sich, und zwar mit zwei Folgen: Am Rechner
@@ -124,7 +124,7 @@ if (!gotLock) {
   app.quit();
 }
 
-// 4T-0971 (Epic 3E-0207): Letzte Auffang-Ebene des Haupt-Prozesses, registriert
+// 4T-000971 (Epic 3E-000207): Letzte Auffang-Ebene des Haupt-Prozesses, registriert
 // VOR der Verdrahtung. Ein Fehler waehrend des Aufbaus ist genau der Fall, in
 // dem es sonst keine Spur gaebe. `persistAllWindows` entsteht erst weiter unten
 // und kommt deshalb als spaet gebundener Aufruf; faellt der Fehler vor seiner
@@ -135,12 +135,12 @@ erstelleAuffangEbene({
   beende: () => app.quit(),
 }).registriere(process);
 
-// 4T-0318: App-Registry — Zuordnung Fenster -> logische Applikation.
+// 4T-000318: App-Registry — Zuordnung Fenster -> logische Applikation.
 const appRegistry = createAppRegistry();
 
 let store = null; // electron-store, asynchron geladen (ESM-only)
 
-// --- 4T-1000 (Epic 3E-0196): Verdrahtung -------------------------------------
+// --- 4T-001000 (Epic 3E-000196): Verdrahtung -------------------------------------
 //
 // Die Logik-Cluster, die Fenster-Verwaltung und die drei Pruefer entstehen in
 // app/wiring.js. Der Aufruf steht an derselben Stelle des Modul-Ablaufs wie
@@ -191,7 +191,7 @@ function pushRecent(filePath) {
 // theme:setPref-Aufruf (Electron feuert 'updated' nach themeSource-Aenderung).
 nativeTheme.on('updated', () => {
   broadcast('theme:changed', nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
-  // 4T-0630 (Epic 3E-0102): Titelleisten der Arbeitsbereichs-Fenster auf die
+  // 4T-000630 (Epic 3E-000102): Titelleisten der Arbeitsbereichs-Fenster auf die
   // Theme-Variante der Palette umfaerben (deckt theme:setPref und System-
   // Wechsel ab — beide feuern 'updated').
   updateAllCaptionColors();
@@ -203,7 +203,7 @@ function senderWindow(event) {
   return BrowserWindow.fromWebContents(event.sender);
 }
 
-// 4T-0347 (Epic 3E-0062): Bereichs-Wurzel des anfragenden Fensters fuer die
+// 4T-000347 (Epic 3E-000062): Bereichs-Wurzel des anfragenden Fensters fuer die
 // Backlinks-Index-Einstiege. In einer Bereichs-App ist das der Bereichs-
 // Wurzelordner (bereichsweiter Index ueber den ganzen Baum), sonst null
 // (backlinks.js faellt dann auf die Ordner-Wurzel der Datei zurueck).
@@ -213,7 +213,7 @@ function areaRootForEvent(event) {
 }
 
 function registerIpc() {
-  // 4T-0999/4T-1000 (Epic 3E-0196): Alle Kanal-Gruppen liegen in eigenen
+  // 4T-000999/4T-001000 (Epic 3E-000196): Alle Kanal-Gruppen liegen in eigenen
   // Modulen unter ipc/ und registrieren ihre Handler selbst ueber die hier
   // uebergebene Registrier-Funktion (Entscheidung E1, Variante B). Das
   // gemeinsame Deps-Objekt reicht ihnen die Electron-Werte, die Modul-APIs
@@ -255,7 +255,7 @@ function registerIpc() {
     sucheImBereich,
     gibBereichsVorratFrei,
   };
-  // 4T-1213 (Epic 3E-0225): Jeder IPC-Aufruf ist das Lebenszeichen seines
+  // 4T-001213 (Epic 3E-000225): Jeder IPC-Aufruf ist das Lebenszeichen seines
   // Anzeige-Prozesses, denn er setzt dort einen laufenden Ereignis-Zyklus
   // voraus. Diese Registrier-Funktion ist die eine Stelle, durch die alle
   // Kanaele laufen; die Stille-Wache des Schliess-Wegs haengt deshalb hier
@@ -295,7 +295,7 @@ function registerIpc() {
 
 // --- App-Lifecycle -----------------------------------------------------------
 
-// 4T-1000 (Epic 3E-0196): Der Start-Ablauf liegt in app/startup.js; hier
+// 4T-001000 (Epic 3E-000196): Der Start-Ablauf liegt in app/startup.js; hier
 // bleiben allein die Registrierungen der App-Ereignisse als duenne
 // Weiterleitungen dorthin. Der Speicher bleibt Zustand von main.js und
 // wandert nur hinter Funktionen (getStore/setStore).
@@ -316,14 +316,14 @@ app.on('second-instance', (_event, argv, workingDirectory) => {
 
 app.whenReady().then(starteApp);
 
-// 4T-1214 (Epic 3E-0225): Ausfall des Anzeige-Prozesses. Zwei getrennte
+// 4T-001214 (Epic 3E-000225): Ausfall des Anzeige-Prozesses. Zwei getrennte
 // Faelle: `render-process-gone` meldet den verschwundenen Prozess samt Grund,
 // `unresponsive` den noch lebenden, der nicht mehr antwortet — der zweite
 // wird erst nach einer Frist behandelt und verfaellt bei `responsive`.
 //
 // Verdrahtet ueber `browser-window-created`, damit jedes Fenster erfasst ist,
 // ohne window-manager.js anzufassen: Die Datei steht an ihrem Groessen-Budget,
-// ihr Schnitt ist als 3E-0228 verortet.
+// ihr Schnitt ist als 3E-000228 verortet.
 app.on('render-process-gone', (_event, contents, details) => {
   const win = BrowserWindow.fromWebContents(contents);
   if (win) void anzeigeAusfall.prozessFort(win, contents.id, details);
@@ -342,7 +342,7 @@ app.on('before-quit', () => {
   // Fenster offen sind. Wenn die Map bereits leer ist (z.B. weil der Nutzer
   // das letzte Fenster ueber X geschlossen hat und 'window-all-closed' den
   // Quit ausloest), darf nicht mit leerer Liste ueberschrieben werden, sonst
-  // gingen die zuletzt im 'close'-Handler gemerkten Bounds verloren (4T-0025).
+  // gingen die zuletzt im 'close'-Handler gemerkten Bounds verloren (4T-000025).
   if (windows.size > 0) persistAllWindows();
 });
 

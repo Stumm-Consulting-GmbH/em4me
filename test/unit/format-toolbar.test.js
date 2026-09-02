@@ -1,4 +1,4 @@
-// 4T-0607 (Epic 3E-0114): Datenmodell der Format-Toolbar — Normalisierung
+// 4T-000607 (Epic 3E-000114): Datenmodell der Format-Toolbar — Normalisierung
 // der Belegung (Kommando-Einträge, Trenner, Überschrift-Menü), Rückfall
 // auf die Standard-Belegung, Sichtbarkeits-Kern und Registry-Wächter
 // (Standard-Belegung referenziert nur existierende Kommandos und Icons;
@@ -44,7 +44,7 @@ describe('format-toolbar: Standard-Belegung', () => {
       'link.insertWiki',
       'link.insertExternal',
       'insert.table',
-      // 4T-1309 (Epic 3E-0235): Das Geruest der Perspective-Tabelle steht
+      // 4T-001309 (Epic 3E-000235): Das Geruest der Perspective-Tabelle steht
       // unmittelbar neben der einfachen Tabelle.
       'insert.perspectiveTable',
     ]);

@@ -1,7 +1,7 @@
-// 4T-0299/4T-0298 (Epic 3E-0053): Host der externen Erweiterungen —
+// 4T-000299/4T-000298 (Epic 3E-000053): Host der externen Erweiterungen —
 // API-v1-Fassade, Aktivierungs-Zustand und Fehler-Isolation.
 //
-// Lade-Modell (Spike-Ergebnis 4T-0298): der UI-Einstiegspunkt (Manifest-
+// Lade-Modell (Spike-Ergebnis 4T-000298): der UI-Einstiegspunkt (Manifest-
 // Feld `entry`) ist ein ES-Modul, das der Renderer per dynamischem
 // import() von seiner file://-URL lädt (die CSP `script-src 'self'`
 // erlaubt file->file-Modul-Importe; eval/new Function/blob sind bewusst
@@ -13,7 +13,7 @@
 // API-Oberfläche v1 (Vertrag, klein geschnitten — alles andere ist
 // nicht-öffentlich): der default-Export des Einstiegs-Moduls liefert
 // activate(ctx) und optional deactivate(). ctx bietet genau die sechs
-// Beitrags-Arten der Konzeption (4T-0225): markdown-it-Plugin (über das
+// Beitrags-Arten der Konzeption (4T-000225): markdown-it-Plugin (über das
 // Manifest), registerSidebarPanel, registerCommand (hotkey-fähig über den
 // Tastenkürzel-Editor), registerSettingsSection, Lese-Zugriff auf Theme-
 // Variablen/Theme/Sprache sowie eigene Übersetzungen mit Fallback auf die
@@ -22,14 +22,14 @@
 // Einstellungs-Bereiche. Die Fassade reicht keine internen Objekte durch
 // (keine CodeMirror-Views, kein State-Objekt, keine Modul-Referenzen).
 //
-// API v1.1 (4T-0825, Epic 3E-0103): dazu der Render-Andockpunkt
+// API v1.1 (4T-000825, Epic 3E-000103): dazu der Render-Andockpunkt
 // getRenderRoot(paneIdx)/onRenderUpdated(cb). Er schliesst die Luecke, die
 // der erste ernsthafte Bau einer Erweiterung offengelegt hat — ohne ihn
 // kommt ein Panel nicht an das angezeigte Dokument und muesste App-internes
 // DOM raten. Der Schritt ist abwaertskompatibel: Pakete mit apiVersion 1.0
 // laufen unveraendert.
 //
-// Vertrauensmodell (Product-Owner-Entscheidung, 4T-0225/Epic): keine
+// Vertrauensmodell (Product-Owner-Entscheidung, 4T-000225/Epic): keine
 // Sandbox im Renderer — aktivierter Code hat vollen DOM- und App-Zugriff.
 // Deshalb starten neu erkannte Erweiterungen deaktiviert, die Aktivierung
 // verlangt den Warn-Dialog (Main, je Erweiterung und Version persistiert),
@@ -119,7 +119,7 @@ function entryById(id) {
   return entries.find((e) => e.ok && e.manifest.id === id) || null;
 }
 
-// Anzeige-Zustand für den Einstellungs-Bereich (4T-0300): Scan-Einträge
+// Anzeige-Zustand für den Einstellungs-Bereich (4T-000300): Scan-Einträge
 // plus abgeleiteter Status. 'active' zeigt den WIRKLICH geladenen Zustand
 // (nicht nur den gewollten) — eine beim Laden gescheiterte Erweiterung
 // steht bereits auf 'error'.
@@ -331,7 +331,7 @@ function registerSettingsContribution(id, def, tracker) {
   runtime.registerSettingsSection({
     id: sectionId,
     titleKey,
-    // 4T-0889 (Epic 3E-0168): Herkunfts-Marke fuer die Bereichsnavigation —
+    // 4T-000889 (Epic 3E-000168): Herkunfts-Marke fuer die Bereichsnavigation —
     // Beitraege externer Erweiterungen sammeln sich im eigenen Block
     // „Erweiterungen (extern)". Hier gesetzt, weil der Host die einzige
     // Stelle ist, die die Herkunft sicher kennt.
@@ -353,7 +353,7 @@ function registerSettingsContribution(id, def, tracker) {
 }
 
 // --- Render-Andockpunkt (API v1.1) --------------------------------------------------------
-// 4T-0825 (Epic 3E-0103): Eine Erweiterung braucht zwei Dinge, um ein Panel
+// 4T-000825 (Epic 3E-000103): Eine Erweiterung braucht zwei Dinge, um ein Panel
 // an das angezeigte Dokument zu koppeln — den Container der gerenderten
 // Ansicht ihrer Spalte und ein Ereignis nach dessen Neuaufbau. Ohne beides
 // bliebe ihr nur, App-internes DOM zu raten; genau das schliesst die
@@ -520,7 +520,7 @@ function buildContext(entry, tracker) {
     registerSidebarPanel: (def) => registerPanelContribution(id, def, tracker),
     registerCommand: (def) => registerCommandContribution(id, def, tracker),
     registerSettingsSection: (def) => registerSettingsContribution(id, def, tracker),
-    // 4T-0825: Andockpunkt an die gerenderte Ansicht. Der Spalten-Index ist
+    // 4T-000825: Andockpunkt an die gerenderte Ansicht. Der Spalten-Index ist
     // derselbe wie im zweiten Argument von registerSidebarPanel().render.
     getRenderRoot: (paneIdx) => renderRootOf(Number.isInteger(paneIdx) ? paneIdx : 0),
     onRenderUpdated: (cb) => registerRenderCallback(cb, tracker),
@@ -576,7 +576,7 @@ async function activateExtension(entry) {
   if (activeExtensions.has(id)) return true;
   const tracker = createTracker(id);
   try {
-    // Registry-Anbindung (3E-0052): Herkunfts-Kennzeichnung 'extern' und
+    // Registry-Anbindung (3E-000052): Herkunfts-Kennzeichnung 'extern' und
     // ID-Kollisionsschutz gegen interne Erweiterungen.
     registerExternalExtension({
       id,
@@ -587,7 +587,7 @@ async function activateExtension(entry) {
 
     let module = null;
     if (entry.manifest.entry) {
-      // Dynamischer file://-Import (Spike 4T-0298); esbuild bundelt
+      // Dynamischer file://-Import (Spike 4T-000298); esbuild bundelt
       // variable Importe nicht und lässt den Aufruf unangetastet.
       module = await import(entry.entryUrl);
       const def = module && module.default;

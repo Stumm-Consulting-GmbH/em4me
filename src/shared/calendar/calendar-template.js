@@ -1,4 +1,4 @@
-// 4T-0995 (Epic 3E-0196): aus src/shared/calendar/calendar-core.js geschnitten.
+// 4T-000995 (Epic 3E-000196): aus src/shared/calendar/calendar-core.js geschnitten.
 // Gregorianische Vorlage der Kalender-Sektion: eine Objekt-Fabrik, die
 // ausser der Zeichenketten-Saeuberung des Kerns nichts braucht.
 //
@@ -11,7 +11,7 @@
 const { cleanString } = require('./calendar-core.js');
 
 // Vollständige gregorianische Definition als Vorlage (Einstellungs-Knopf aus
-// 4T-0544) und Referenz-Testfall: zwölf Monate per Längen-Tabelle,
+// 4T-000544) und Referenz-Testfall: zwölf Monate per Längen-Tabelle,
 // Schalt-Regel 4/100/400 auf den Februar, Sieben-Tage-Zyklus mit
 // Donnerstags-Regel (Anker: 2000-01-01 war ein Samstag), Epochen
 // v. Chr./n. Chr., Zeit-Ebenen Sekunde/Minute/Stunde. Namen mit deutschen

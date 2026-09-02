@@ -1,4 +1,4 @@
-// 4T-0293 (Epic 3E-0052): Aus-Zustand der Render-Erweiterungen.
+// 4T-000293 (Epic 3E-000052): Aus-Zustand der Render-Erweiterungen.
 // Pro Erweiterung genau ein gezielter Test (Epic-Test-Pragmatik): erst der
 // An-Zustand als Nicht-Vakuitaets-Probe, dann schaltet configureExtensions
 // die Erweiterung ab und die Syntax erscheint als Klartext bzw.
@@ -10,7 +10,7 @@ import {
   convertMarkdownPortable,
   configureExtensions,
 } from '../../../src/shared/markdown/markdown.js';
-// 4T-0849 (Epic 3E-0147): deklarative Seite des Aus-Zustands (Kommandos,
+// 4T-000849 (Epic 3E-000147): deklarative Seite des Aus-Zustands (Kommandos,
 // Panel-Zugang) fuer Erweiterungen ohne Render-Konstrukt.
 import { extensionById, internalExtensions } from '../../../src/shared/extensions/extensions.js';
 import {
@@ -30,7 +30,7 @@ function renderOff(id, src) {
   return renderMarkdown(src, 'de');
 }
 
-describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
+describe('Render-Erweiterungen: Aus-Zustand (4T-000293)', () => {
   it('callouts: Block wird normales Blockquote, Header bleibt Klartext', () => {
     const src = '> [!note] Titel\n> Inhalt';
     expect(renderMarkdown(src, 'de')).toContain('callout-note');
@@ -49,7 +49,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain(':::');
   });
 
-  // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges der custom-calendars-
+  // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges der custom-calendars-
   // Erweiterung. Ohne Konfiguration erscheint der An-Zustand als
   // "unbekannter Kalender"-Badge (Klasse calendar-value) — als Nicht-
   // Vakuitaets-Probe ausreichend; aus bleibt @{…} reiner Klartext.
@@ -161,10 +161,10 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).not.toContain('critic');
   });
 
-  // 4T-0595 (Epic 3E-0111): Inline-Berechnungen. Probe mittig im Satz —
+  // 4T-000595 (Epic 3E-000111): Inline-Berechnungen. Probe mittig im Satz —
   // am Block-Ende wuerde im Aus-Zustand markdown-it-attrs das {…} als
   // Attribut-Block konsumieren (Bestandsverhalten der attributes-
-  // Erweiterung, dokumentierter Sonderfall der 4T-0595-Loesung).
+  // Erweiterung, dokumentierter Sonderfall der 4T-000595-Loesung).
   it('inline-calc: {= … =} bleibt Klartext', () => {
     const src = 'Summe {= 2+3 =} im Satz';
     const on = renderMarkdown(src, 'de');
@@ -175,7 +175,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain('{= 2+3 =}');
   });
 
-  it('comments: %%…%% verschwindet an, bleibt Literal aus (4T-0479)', () => {
+  it('comments: %%…%% verschwindet an, bleibt Literal aus (4T-000479)', () => {
     const src = 'Sichtbar %%geheim%% Text';
     // An-Zustand: der Kommentar-Inhalt verschwindet aus HTML und Export.
     expect(renderMarkdown(src, 'de')).not.toContain('geheim');
@@ -196,7 +196,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain('task-list-item-checkbox');
   });
 
-  it('tasks: Marker werden Badges an, bleiben Klartext aus (4T-0498)', () => {
+  it('tasks: Marker werden Badges an, bleiben Klartext aus (4T-000498)', () => {
     const src = '- [ ] Aufgabe mit Termin 📅 2099-12-31';
     expect(renderMarkdown(src, 'de')).toContain('task-marker');
     const off = renderOff('tasks', src);
@@ -205,7 +205,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain('📅 2099-12-31');
   });
 
-  it('perspective-datatable: Fence bleibt Code-Block, Export konvertiert nicht (4T-0417)', () => {
+  it('perspective-datatable: Fence bleibt Code-Block, Export konvertiert nicht (4T-000417)', () => {
     const src = '```perspective-datatable\ncolumns: N:number\naggregate: N:sum\n| 7 |\n```';
     expect(renderMarkdown(src, 'de')).toContain('pdt-grid');
     const off = renderOff('perspective-datatable', src);
@@ -218,11 +218,11 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(conv).not.toContain('<table');
   });
 
-  // 4T-0512 (Epic 3E-0092): Ereignis-Erweiterung aus — Fence bleibt in
+  // 4T-000512 (Epic 3E-000092): Ereignis-Erweiterung aus — Fence bleibt in
   // Render und Export ein neutraler Code-Block. Die Einspeisung des
-  // internen Profils deckt 4T-0517 auf Main-Seite ab (events-core.test.js,
+  // internen Profils deckt 4T-000517 auf Main-Seite ab (events-core.test.js,
   // E2E eigenschafts-profile.spec.js).
-  it('events: Fence bleibt Code-Block, Export konvertiert nicht (4T-0512)', () => {
+  it('events: Fence bleibt Code-Block, Export konvertiert nicht (4T-000512)', () => {
     const src = '```perspective-events\n| 2020-01-01 | | Start | projekt | | | | | |\n```';
     expect(renderMarkdown(src, 'de')).toContain('perspective-events');
     expect(renderMarkdown(src, 'de')).toContain('pev-table');
@@ -234,9 +234,9 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(conv).not.toContain('<table');
   });
 
-  // 4T-0517 (Epic 3E-0092): transitive Richtung — property-profiles aus
+  // 4T-000517 (Epic 3E-000092): transitive Richtung — property-profiles aus
   // nimmt events mit (dependencies-Kaskade wie wiki-embeds/wiki-links).
-  it('events kaskadiert mit property-profiles (4T-0517)', () => {
+  it('events kaskadiert mit property-profiles (4T-000517)', () => {
     const src = '```perspective-events\n| 2020-01-01 | | Start | projekt | | | | | |\n```';
     const off = renderOff('property-profiles', src);
     expect(off).not.toContain('pev-table');
@@ -260,7 +260,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(on).toContain('wikilink');
     expect(on).toContain('id="block-id"');
     expect(on).toContain('wiki-embed');
-    // 4T-0294: wiki-embeds haengt deklarativ an wiki-links und
+    // 4T-000294: wiki-embeds haengt deklarativ an wiki-links und
     // deaktiviert sich effektiv mit.
     const off = renderOff('wiki-links', src);
     expect(off).not.toContain('wikilink');
@@ -289,7 +289,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain('#projekt/alpha');
   });
 
-  // 4T-0435 (Epic 3E-0081): journals — der Navigations-Fence fällt auf den
+  // 4T-000435 (Epic 3E-000081): journals — der Navigations-Fence fällt auf den
   // Default-Code-Block zurück (die Kommando-Filterung deckt der Registry-
   // Test in journal-perioden.test.js ab).
   it('journals: perspective-journal-nav wird regulärer Code-Block', () => {
@@ -300,7 +300,7 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
     expect(off).toContain('<pre>');
   });
 
-  // 4T-1064 (Epic 3E-0212): journals — der Timeline-Fence haengt an derselben
+  // 4T-001064 (Epic 3E-000212): journals — der Timeline-Fence haengt an derselben
   // Erweiterung wie der Navigations-Fence und faellt ebenso zurueck.
   it('journals: perspective-journal-timeline wird regulärer Code-Block', () => {
     const src = '```perspective-journal-timeline\nmode: month\n```';
@@ -324,13 +324,13 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-0293)', () => {
   });
 });
 
-// 4T-0849 (Epic 3E-0147, Story 4S-0758): Aus-Zustand der Bücher-Erweiterung.
+// 4T-000849 (Epic 3E-000147, Story 4S-000758): Aus-Zustand der Bücher-Erweiterung.
 // Bücher bringen kein Markdown-Konstrukt mit, deshalb kein renderMarkdown-Fall
 // wie oben: ihre Wirkung liegt auf den Kommandos, dem Panel-Zugang und der
 // Buch-Erkennung im Main. Geprüft wird hier die deklarative Quelle, aus der
 // sich alle drei speisen (Muster area-stats-extension.test.js); die
 // Sichtbarkeits-Wirkung an der Oberfläche prüft die Test-Iteration an der EXE.
-describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
+describe('Erweiterung books: Aus-Zustand (4T-000849)', () => {
   const BUCH_KOMMANDOS = [
     'book.open',
     'book.create',
@@ -339,7 +339,7 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
     'book.previousChapter',
     'book.moveChapterFile',
     'view.toggleBookPanel',
-    // 4T-0867 (Epic 3E-0162): Buecherregale laufen unter demselben Schalter
+    // 4T-000867 (Epic 3E-000162): Buecherregale laufen unter demselben Schalter
     // (Epic-Entscheidung: eine Stufe desselben Funktionsblocks).
     'shelf.open',
     'shelf.create',
@@ -359,7 +359,7 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
     // der Disabled-Liste ist leer, die Erweiterung damit aktiv.
     expect(isExtensionEnabled('books', [])).toBe(true);
     // Intern registriert und damit im Einstellungs-Bereich „Erweiterungen“
-    // schaltbar (Story 4S-0758, AK1).
+    // schaltbar (Story 4S-000758, AK1).
     expect(internalExtensions().some((m) => m.id === 'books')).toBe(true);
   });
 
@@ -404,7 +404,7 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
   });
 
   it('Schalten wirkt nur auf den Zustand: keine Kaskade, sauberer Round-Trip', () => {
-    // Soweit auf dieser Ebene prüfbar (Story 4S-0758, AK3): Die Registry-
+    // Soweit auf dieser Ebene prüfbar (Story 4S-000758, AK3): Die Registry-
     // Funktionen sind rein und fassen keine Datei an, das Manifest zieht keine
     // andere Erweiterung mit und wird von keiner gezogen, und Aus-und-wieder-An
     // liefert exakt die Ausgangs-Menge. Dass Buch-Datei, Begleitdatei und
@@ -420,11 +420,11 @@ describe('Erweiterung books: Aus-Zustand (4T-0849)', () => {
   });
 });
 
-// 4T-1047 (Epic 3E-0151): Aus-Zustand der Mindmap-Ansicht. Sie bringt kein
+// 4T-001047 (Epic 3E-000151): Aus-Zustand der Mindmap-Ansicht. Sie bringt kein
 // Render-Konstrukt mit, sondern einen Ansichts-Modus; geprüft wird deshalb
 // die deklarative Seite (Registry, Kommando-Filterung) plus der Rückfall des
 // gespeicherten Modus, der in mindmap-pane.js liegt.
-describe('Erweiterung mindmap: Registry und Aus-Zustand (4T-1047)', () => {
+describe('Erweiterung mindmap: Registry und Aus-Zustand (4T-001047)', () => {
   it('ist als Render-Erweiterung mit den Katalog-Keys registriert', () => {
     const manifest = extensionById('mindmap');
     expect(manifest).not.toBeNull();

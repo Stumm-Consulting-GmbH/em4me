@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1160 (Epic 3E-0219, E13): Die Bindungs-Liste des Einstellungs-Bereichs
+// 4T-001160 (Epic 3E-000219, E13): Die Bindungs-Liste des Einstellungs-Bereichs
 // «Eigenschafts-Profile» — Zeilen anlegen und entfernen, Profil-Auswahl samt
 // Kennzeichnung eines nicht gefundenen Profils, Komma-Listen für Schlagworte
 // und Ordner.

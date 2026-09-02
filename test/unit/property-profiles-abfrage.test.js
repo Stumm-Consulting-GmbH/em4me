@@ -1,4 +1,4 @@
-// 4T-1176 (Epic 3E-0220, E7): Unit-Tests der erzeugten Abfrage je Profil.
+// 4T-001176 (Epic 3E-000220, E7): Unit-Tests der erzeugten Abfrage je Profil.
 //
 // Zwei Prüf-Arten stehen hier nebeneinander, und beide werden gebraucht. Die
 // erste sieht sich den erzeugten TEXT an — sie hält fest, dass kein
@@ -36,7 +36,7 @@ function trifft(abfrage, ctx) {
   return matchesQuery(geparst.ast, ctx);
 }
 
-describe('erzeugeProfilAbfrage — Umfang der Wege (4T-1176, AK2/AK8)', () => {
+describe('erzeugeProfilAbfrage — Umfang der Wege (4T-001176, AK2/AK8)', () => {
   const bindings = normalizeBindings([
     { profile: 'Projekt', tags: ['projekt'], folders: ['10 Projekte'] },
   ]);
@@ -82,7 +82,7 @@ describe('erzeugeProfilAbfrage — Umfang der Wege (4T-1176, AK2/AK8)', () => {
   });
 });
 
-describe('erzeugte Abfrage findet dieselben Dateien wie die Auflösung (4T-1176, AK2)', () => {
+describe('erzeugte Abfrage findet dieselben Dateien wie die Auflösung (4T-001176, AK2)', () => {
   const bindings = normalizeBindings([
     { profile: 'Projekt', tags: ['projekt'], folders: ['10 Projekte'] },
   ]);
@@ -117,7 +117,7 @@ describe('erzeugte Abfrage findet dieselben Dateien wie die Auflösung (4T-1176,
 
 // AK3: die Ordner-Bedingung gegen ihren Maßstab. Geprüft wird nicht der Text,
 // sondern die WIRKUNG — Fall für Fall dieselbe Antwort wie `ordnerTrifft`.
-describe('Ordner-Bedingung ist gleichlautend mit ordnerTrifft (4T-1176, AK3)', () => {
+describe('Ordner-Bedingung ist gleichlautend mit ordnerTrifft (4T-001176, AK3)', () => {
   const bindung = '10 Projekte';
   const abfrage = erzeugeProfilAbfrage({
     profil: 'Projekt',
@@ -149,7 +149,7 @@ describe('Ordner-Bedingung ist gleichlautend mit ordnerTrifft (4T-1176, AK3)', (
   });
 });
 
-describe('Standard-Profil des Bereichs (4T-1176, AK4)', () => {
+describe('Standard-Profil des Bereichs (4T-001176, AK4)', () => {
   it('fragt über alle Dokumente des Bereichs', () => {
     const { text } = erzeugeProfilAbfrage({
       profil: 'Notiz',
@@ -177,7 +177,7 @@ describe('Standard-Profil des Bereichs (4T-1176, AK4)', () => {
 // AK7: Die Abfrage nennt die Dokumente, für die genau dieses Profil aufgelöst
 // wird. Ein erbendes Profil trägt die Felder des Eltern-Profils, ist aber
 // nicht dasselbe — seine Dokumente bleiben außen vor.
-describe('Vererbung bleibt außen vor (4T-1176, AK7)', () => {
+describe('Vererbung bleibt außen vor (4T-001176, AK7)', () => {
   const abfrage = erzeugeProfilAbfrage({
     profil: 'Projekt',
     bindings: normalizeBindings([
@@ -196,7 +196,7 @@ describe('Vererbung bleibt außen vor (4T-1176, AK7)', () => {
   });
 });
 
-describe('Zuordnungs-Feldname, den die Sprache nicht ansprechen kann (4T-1176)', () => {
+describe('Zuordnungs-Feldname, den die Sprache nicht ansprechen kann (4T-001176)', () => {
   it('erkennt die drei Ausschluss-Gründe', () => {
     expect(zuordnungsFeldAnsprechbar('class')).toBe(true);
     expect(zuordnungsFeldAnsprechbar('parent-categories')).toBe(true);
@@ -228,7 +228,7 @@ describe('Zuordnungs-Feldname, den die Sprache nicht ansprechen kann (4T-1176)',
   });
 });
 
-describe('Text-Literale ohne Escape-Sequenzen (4T-1176)', () => {
+describe('Text-Literale ohne Escape-Sequenzen (4T-001176)', () => {
   it('nimmt das doppelte Anführungszeichen als Regelfall', () => {
     expect(alsTextLiteral('Projekt')).toBe('"Projekt"');
   });

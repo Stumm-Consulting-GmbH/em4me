@@ -1,4 +1,4 @@
-// 4T-0182: Unit-Tests fuer die archive-build-Logik (X-01 Tag-Guard,
+// 4T-000182: Unit-Tests fuer die archive-build-Logik (X-01 Tag-Guard,
 // X-03 Fehler-Toleranz, X-10 Notes-Archivierung) ueber die exportierte
 // archiveBuild()-Funktion mit injizierten Abhaengigkeiten.
 import { describe, it, expect, vi } from 'vitest';
@@ -18,7 +18,7 @@ describe('archive-build — Pattern', () => {
   it('erkennt Versions-EXEs und Release-Notes', () => {
     expect(EXE_PATTERN.test('EM4me-0.85.0-Portable.exe')).toBe(true);
     expect(EXE_PATTERN.test('EM4me-0.85.0-Setup.exe')).toBe(true);
-    // 4T-0643: Altnamen bleiben als Alternation erkannt (Robustheit fuer
+    // 4T-000643: Altnamen bleiben als Alternation erkannt (Robustheit fuer
     // Bestands-Builds; das Versions-Archiv fuehrt EXEs aller drei Vorgaenger).
     expect(EXE_PATTERN.test('Perspective Markdown++-0.30.0-Portable.exe')).toBe(true);
     expect(EXE_PATTERN.test('Perspective Markdown++-0.30.0-Setup.exe')).toBe(true);
@@ -31,10 +31,10 @@ describe('archive-build — Pattern', () => {
   });
 });
 
-// 4T-1205 (Epic 3E-0121): vorbereitete Artefakt-Formate der Zielplattformen —
+// 4T-001205 (Epic 3E-000121): vorbereitete Artefakt-Formate der Zielplattformen —
 // AppImage (Linux) und DMG (macOS) ohne Varianten-Zusatz. Die Windows-Muster
 // bleiben unveraendert; matchArtefakt ist die eine Erkennung fuer alle.
-describe('4T-1205: Artefakt-Formate der Zielplattformen', () => {
+describe('4T-001205: Artefakt-Formate der Zielplattformen', () => {
   it('erkennt AppImage und DMG mit der Version als Fanggruppe', () => {
     expect(matchArtefakt('EM4me-1.119.0.AppImage')?.[1]).toBe('1.119.0');
     expect(matchArtefakt('EM4me-1.119.0.dmg')?.[1]).toBe('1.119.0');
@@ -94,10 +94,10 @@ describe('4T-1205: Artefakt-Formate der Zielplattformen', () => {
   });
 });
 
-// 4T-1223 (Epic 3E-0122): deb als zweites Linux-Format, und die Pruefsummen-
+// 4T-001223 (Epic 3E-000122): deb als zweites Linux-Format, und die Pruefsummen-
 // Sammel-Datei wird fortgeschrieben statt ersetzt, weil die Artefaktsaetze
 // einer Version seit den Linux-Zielen in getrennten Bau-Laeufen entstehen.
-describe('4T-1223: deb-Format und Pruefsummen-Fortschreibung', () => {
+describe('4T-001223: deb-Format und Pruefsummen-Fortschreibung', () => {
   it('erkennt deb als Release- und als temporaeres Artefakt', () => {
     expect(matchArtefakt('EM4me-1.120.0.deb')?.[1]).toBe('1.120.0');
     expect(TEMP_EXE_PATTERN.test('EM4me-T-1.119.0-202608261200.deb')).toBe(true);
@@ -139,10 +139,10 @@ describe('4T-1223: deb-Format und Pruefsummen-Fortschreibung', () => {
   });
 });
 
-// 4T-0921: Ein temporaerer Bau bleibt in dist/ und wird gemeldet statt
+// 4T-000921: Ein temporaerer Bau bleibt in dist/ und wird gemeldet statt
 // archiviert. Die Meldung ist die Zusicherung an den Product Owner, den
 // Ablage-Ort nach jedem solchen Bau genannt zu bekommen.
-describe('4T-0921: temporaerer Bau', () => {
+describe('4T-000921: temporaerer Bau', () => {
   const TEMP = 'EM4me-T-0.105.0-202608071130-Portable.exe';
 
   it('erkennt den Dateinamen und grenzt ihn gegen Release-EXEs ab', () => {
@@ -250,7 +250,7 @@ describe('4T-0921: temporaerer Bau', () => {
     it('meldet nach dem Aufraeumen nur noch den frischen Stand', () => {
       const zeilen = [];
       const code = archiveBuild(BESTAND, {
-        // 4T-1028: Ein temporaerer Bau entsteht genau dann, wenn die
+        // 4T-001028: Ein temporaerer Bau entsteht genau dann, wenn die
         // Versions-Angabe bereits eine Release-Marke traegt; der Lauf wird
         // seither daran erkannt und nicht mehr am Datei-Bestand.
         pkgVersion: '0.105.0',
@@ -321,7 +321,7 @@ describe('4T-0921: temporaerer Bau', () => {
       expect(zeilen.join('\n')).toContain('verwaiste Beigabe');
     });
 
-    // 4T-0957 (Nebenpunkt zu Befund B-06, Entscheidung des Product Owners vom
+    // 4T-000957 (Nebenpunkt zu Befund B-06, Entscheidung des Product Owners vom
     // 2026-08-11): Dieselbe Regel gilt fuer die Release-Hinweise. Sie sammelten
     // sich ueber alle Versionen an und waren am 2026-07-22 die Voraussetzung
     // eines echten Schadens, als ein pauschales Kopieren eine Archiv-Fassung
@@ -401,7 +401,7 @@ describe('4T-0921: temporaerer Bau', () => {
     const copyNotes = vi.fn(() => true);
     const writeChecksums = vi.fn(() => true);
     const code = archiveBuild([TEMP, 'release-notes-0.105.0.md', 'EM4me-0.105.0-Portable.exe'], {
-      // 4T-1028: Die 0.105.0 traegt ihre Release-Marke — genau deshalb baut
+      // 4T-001028: Die 0.105.0 traegt ihre Release-Marke — genau deshalb baut
       // build-app.js hier temporaer, und genau daran erkennt der Archiv-Schritt
       // den Lauf. Vorher stand hier `tagExists: () => false`; damit beschrieb
       // die Vorlage einen Bestand, den es so nie gibt (ohne Marke entstuende
@@ -420,7 +420,7 @@ describe('4T-0921: temporaerer Bau', () => {
     expect(writeChecksums).not.toHaveBeenCalled();
   });
 
-  // 4T-1028: Die Gegenrichtung desselben Bestands — ein frischer Release-Bau,
+  // 4T-001028: Die Gegenrichtung desselben Bestands — ein frischer Release-Bau,
   // waehrend Artefakte frueherer temporaerer Bauten in dist/ liegen geblieben
   // sind. Befund der Release-Vorbereitung 1.107.0 (2026-08-13): Der Lauf stufte
   // sich am blossen Vorhandensein der T-Dateien als temporaer ein und
@@ -518,7 +518,7 @@ describe('X-03: Fehler-Toleranz pro Datei', () => {
   });
 });
 
-describe('X-10/4T-0683: Nur die Notes der gebauten Version wandern ins Archiv', () => {
+describe('X-10/4T-000683: Nur die Notes der gebauten Version wandern ins Archiv', () => {
   // In dist/ sammeln sich die Notes-Dateien aller Releases. Pauschales
   // Kopieren hat am 2026-07-22 die Archiv-Fassung der 0.87.0 mit einer
   // aelteren Probe-Fassung ueberschrieben; seitdem gilt der Filter auf die
@@ -554,7 +554,7 @@ describe('X-10/4T-0683: Nur die Notes der gebauten Version wandern ins Archiv', 
   });
 });
 
-describe('4T-0375: Build-Nummer-Guard', () => {
+describe('4T-000375: Build-Nummer-Guard', () => {
   it('bricht ab, wenn die Build-Nummer nicht zur Commit-Anzahl passt', () => {
     const move = vi.fn(() => true);
     const code = archiveBuild(['EM4me-0.42.0-Portable.exe'], {
@@ -581,10 +581,10 @@ describe('4T-0375: Build-Nummer-Guard', () => {
   });
 });
 
-// 4T-0658: Ohne Code-Signatur ist die Prüfsumme der einzige Integritäts-
+// 4T-000658: Ohne Code-Signatur ist die Prüfsumme der einzige Integritäts-
 // Nachweis. Sie muss deshalb automatisch entstehen und darf nur Dateien
 // beschreiben, die tatsächlich im Versions-Archiv liegen.
-describe('4T-0658: Prüfsummen beim Archivieren', () => {
+describe('4T-000658: Prüfsummen beim Archivieren', () => {
   it('erzeugt Prüfsummen nur für erfolgreich archivierte EXEs', () => {
     const writeChecksums = vi.fn(() => true);
     const code = archiveBuild(['EM4me-0.86.0-Setup.exe', 'EM4me-0.86.0-Portable.exe'], {
@@ -624,7 +624,7 @@ describe('4T-0658: Prüfsummen beim Archivieren', () => {
   });
 });
 
-describe('4T-0658: writeChecksumFiles', () => {
+describe('4T-000658: writeChecksumFiles', () => {
   it('schreibt je Version eine Sammel-Datei im sha256sum-Format', () => {
     const write = vi.fn();
     const ok = writeChecksumFiles(['EM4me-0.86.0-Setup.exe', 'EM4me-0.86.0-Portable.exe'], {

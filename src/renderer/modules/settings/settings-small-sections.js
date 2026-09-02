@@ -1,4 +1,4 @@
-// 4T-0988 (Epic 3E-0196): Bündel der kleinen Einstellungs-Bereiche.
+// 4T-000988 (Epic 3E-000196): Bündel der kleinen Einstellungs-Bereiche.
 //
 // Rechtschreibprüfung, Zeitstempel-Automatik, Export und Überschriften-
 // Nummerierung. Der Zuschnitt folgt hier dem Umfang und nicht der
@@ -39,7 +39,7 @@ export function dirtyHeadingNumberingSection(draft) {
   return enabled !== isHeadingNumberingEnabled() || startLevel !== headingNumberingStartLevel();
 }
 
-// --- 4T-0581/4T-0582 (Epic 3E-0107): Bereich „Rechtschreibprüfung" -----------
+// --- 4T-000581/4T-000582 (Epic 3E-000107): Bereich „Rechtschreibprüfung" -----------
 // Ein Schalter und die Liste der eigenen Wörterbuch-Einträge. Eine Sprach-
 // Auswahl gibt es bewusst nicht: geprüft wird mit dem Prüfer des
 // Betriebssystems gegen dessen Sprache (Architekturentscheidung 6 des Epics).
@@ -125,7 +125,7 @@ export function dirtySpellcheckSection(draft) {
   return draft.spellcheck !== draft.spellcheckSnapshot;
 }
 
-// --- 4T-0604 (Epic 3E-0113): Bereich „Zeitstempel" ---------------------------
+// --- 4T-000604 (Epic 3E-000113): Bereich „Zeitstempel" ---------------------------
 // Erweiterungs-eigener Bereich der Erweiterung 'frontmatter-timestamps': zwei
 // unabhängige Schalter (Erstellungs-/Änderungszeitpunkt), je ein Feldname,
 // gemeinsames Format und die Anlage-Option für fehlende Felder. Store-Keys
@@ -261,7 +261,7 @@ export function dirtyFrontmatterTimestampsSection(draft) {
   return !jsonEqual(normalizeTimestampDraft(draft.timestamps), draft.timestampsSnapshot);
 }
 
-// --- Bereich Export (4T-0304, Epic 3E-0054) ----------------------------------
+// --- Bereich Export (4T-000304, Epic 3E-000054) ----------------------------------
 // Drei Felder fuer den PDF-Export: Seitenformat, Ausrichtung, Raender.
 // Wertelisten und Defaults kommen aus src/shared/pdf-options.js (dieselbe
 // Quelle liest der Main beim Druck); persistiert wird erst bei Anwenden/OK.
@@ -364,7 +364,7 @@ export async function applyExportSection(draft) {
   draft.exportPdf = { ...values };
 }
 
-// --- Bereich Ueberschriften-Nummerierung (4T-0471, Epic 3E-0087) -----------
+// --- Bereich Ueberschriften-Nummerierung (4T-000471, Epic 3E-000087) -----------
 // Globale Einstellung "Ueberschriften nummerieren" plus Start-Ebene (H1/H2).
 // Werte leben im Entwurf; Wirkung erst bei Anwenden/OK (Muster showFrontmatter).
 const HEADING_START_LEVEL_KEYS = [

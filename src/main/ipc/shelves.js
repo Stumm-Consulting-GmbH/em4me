@@ -1,7 +1,7 @@
 // IPC-Kanal-Gruppe Buecherregale: Zustand und Anzeige-Daten des aktiven
 // Regals, Oeffnen, Anlegen und Schliessen sowie die Zuordnung von Buechern.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: shelves:*.
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: shelves:*.
 //
 // Eigener Zustand: keiner; die Regal-Applikationen kommen als Deps.
 'use strict';
@@ -38,15 +38,15 @@ function registerShelvesIpc(handle, deps) {
     createShelfDialog,
   } = deps;
 
-  // --- 4T-0867 (Epic 3E-0162): Buecherregale ---------------------------------
+  // --- 4T-000867 (Epic 3E-000162): Buecherregale ---------------------------------
   // Namensraum `shelves` in der Preload-API; alle Handler beziehen sich auf
   // das aktive Regal der Applikation des aufrufenden Fensters (Muster des
   // books-Namensraums).
 
-  // Zustand des aktiven Regals (Regal-Ansicht, Story 4S-0761).
+  // Zustand des aktiven Regals (Regal-Ansicht, Story 4S-000761).
   handle('shelves:getState', (event) => shelfPayloadFor(appIdOfWindow(senderWindow(event))));
 
-  // 4T-0868: Anzeige-Daten der Regal-Ansicht (Kachel- und Zeilen-Darstellung):
+  // 4T-000868: Anzeige-Daten der Regal-Ansicht (Kachel- und Zeilen-Darstellung):
   // je Buch Titel, Autor, Beschreibung, aufgeloestes Bild und Kapitel-Anzahl.
   // Bei jedem Abruf frisch von der Platte (Muster shelves:getState).
   handle('shelves:getViewData', async (event) => {
@@ -62,7 +62,7 @@ function registerShelvesIpc(handle, deps) {
   // "Neues Buecherregal…": Eltern-Ordner und Name in einem Dialog.
   handle('shelves:createDialog', (event) => createShelfDialog(senderWindow(event)));
 
-  // "Buecherregal schliessen" schliesst die Regal-Applikation (4T-0873).
+  // "Buecherregal schliessen" schliesst die Regal-Applikation (4T-000873).
   handle('shelves:close', (event) => closeActiveShelf(appIdOfWindow(senderWindow(event))));
 
   // Dialog-freie Pfad-Einstiege (Muster books:openPath/createAt): identische
@@ -87,7 +87,7 @@ function registerShelvesIpc(handle, deps) {
     return openShelfApp(created.shelfDir, owner);
   });
 
-  // Zuordnung (Story 4S-0760, AK4): beide Handler schreiben ausschliesslich die
+  // Zuordnung (Story 4S-000760, AK4): beide Handler schreiben ausschliesslich die
   // Begleitdatei des aktiven Regals; nach einer erfolgreichen Aenderung meldet
   // sendShelfState den frisch gelesenen Zustand an alle Fenster der App.
   handle('shelves:assignBook', async (event, dirName) => {

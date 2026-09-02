@@ -1,4 +1,4 @@
-// 4T-0782 (Epic 3E-0156): Wächter über die versionierte Kennzahl der
+// 4T-000782 (Epic 3E-000156): Wächter über die versionierte Kennzahl der
 // ausgeführten Testfälle (test/lauf-kennzahlen.json).
 //
 // Die Datei wird nicht von Hand gepflegt, sondern von
@@ -39,7 +39,7 @@ function zaehleStatisch(ordner) {
   return summe;
 }
 
-describe('Lauf-Kennzahlen der Testsuiten (4T-0782, 4T-0831)', () => {
+describe('Lauf-Kennzahlen der Testsuiten (4T-000782, 4T-000831)', () => {
   it('die Datei existiert und trägt die drei Zahlen', () => {
     expect(fs.existsSync(DATEI), `${path.relative(WURZEL, DATEI)} fehlt`).toBe(true);
     const daten = JSON.parse(fs.readFileSync(DATEI, 'utf8'));
@@ -57,7 +57,7 @@ describe('Lauf-Kennzahlen der Testsuiten (4T-0782, 4T-0831)', () => {
     // Nach unten großzügig (übersprungene Fälle, Abstand der Zählweisen),
     // nach oben ebenfalls: Schleifen-erzeugte Fälle dürfen die statische Zahl
     // deutlich übersteigen. Was die Schranke fängt, ist der grobe Verfall —
-    // eine Datei, die zwei Releases alt ist. Den Teillauf gibt es seit 4T-0831
+    // eine Datei, die zwei Releases alt ist. Den Teillauf gibt es seit 4T-000831
     // nicht mehr: Die Zahlen stammen aus der Auflistung, nicht aus Lauf-Berichten.
     expect(daten.unit).toBeGreaterThan(statischUnit * 0.8);
     expect(daten.unit).toBeLessThan(statischUnit * 2);

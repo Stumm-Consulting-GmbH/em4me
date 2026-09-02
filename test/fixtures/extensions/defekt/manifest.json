@@ -3,6 +3,6 @@
   "name": "Absichtlich defekte Erweiterung",
   "version": "1.0.0",
   "apiVersion": "1.0",
-  "description": "Wirft beim Aktivieren — Test der Fehler-Isolation (4T-0298).",
+  "description": "Wirft beim Aktivieren — Test der Fehler-Isolation (4T-000298).",
   "entry": "main.js"
 }

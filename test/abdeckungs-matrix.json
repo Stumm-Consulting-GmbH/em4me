@@ -1,5 +1,5 @@
 {
-  "beschreibung": "Abdeckungs-Matrix 4T-0195: jeder help.feature.*- und help.shortcut.*-Key aus src/i18n/de.json braucht einen Eintrag. testart: e2e|unit|snapshot|ipc|manuell; bei ipc/manuell ist \"begruendung\" Pflicht. Der Meta-Test test/unit/abdeckungs-matrix.test.js erzwingt Vollstaendigkeit und Datei-Existenz.",
+  "beschreibung": "Abdeckungs-Matrix 4T-000195: jeder help.feature.*- und help.shortcut.*-Key aus src/i18n/de.json braucht einen Eintrag. testart: e2e|unit|snapshot|ipc|manuell; bei ipc/manuell ist \"begruendung\" Pflicht. Der Meta-Test test/unit/abdeckungs-matrix.test.js erzwingt Vollstaendigkeit und Datei-Existenz.",
   "stand": "0.26.0",
   "eintraege": [
     {
@@ -39,7 +39,7 @@
         "test/unit/haengender-einzug.test.js",
         "test/e2e/funktionen/zeilenumbruch.spec.js"
       ],
-      "hinweis": "FA-02. 4T-1312: haengender Einzug umgebrochener Zeilen — Rechnung im Unit-Test, Darstellung und Schreibmarken-Zuordnung im Pruef-Fall ZU-01."
+      "hinweis": "FA-02. 4T-001312: haengender Einzug umgebrochener Zeilen — Rechnung im Unit-Test, Darstellung und Schreibmarken-Zuordnung im Pruef-Fall ZU-01."
     },
     {
       "key": "help.feature.foldGutter",
@@ -87,7 +87,7 @@
       "id": "F-011",
       "testart": "manuell",
       "tests": [],
-      "begruendung": "Watcher-Timing (chokidar awaitWriteFinish) macht einen externen Schreib-Test flaky; die Konflikt-Logik (R4-08) ist in 4T-0170 abgedeckt, der Reload-Kern liegt main-seitig. Pruefung in der Gesamtabnahme: Datei extern aendern, App laedt nach."
+      "begruendung": "Watcher-Timing (chokidar awaitWriteFinish) macht einen externen Schreib-Test flaky; die Konflikt-Logik (R4-08) ist in 4T-000170 abgedeckt, der Reload-Kern liegt main-seitig. Pruefung in der Gesamtabnahme: Datei extern aendern, App laedt nach."
     },
     {
       "key": "help.feature.restoreSession",
@@ -142,7 +142,7 @@
         "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
         "test/e2e/funktionen/aenderungsmodus-ansicht.spec.js"
       ],
-      "hinweis": "FB-01 (Toggle via menu:toggleEdit-IPC), Klick-Weg in SM-04; AM-01 bis AM-04 (Ziel-Ansicht des Wechsels, 4T-1341)."
+      "hinweis": "FB-01 (Toggle via menu:toggleEdit-IPC), Klick-Weg in SM-04; AM-01 bis AM-04 (Ziel-Ansicht des Wechsels, 4T-001341)."
     },
     {
       "key": "help.feature.save",
@@ -236,7 +236,7 @@
       "id": "F-027",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
-      "hinweis": "ES-01 bis ES-08 (Einstellungs-Seite: Tab, Einfach-Instanz, Guards, gruppierte Navigation ohne Bereich, Live-Vorschau, Anwenden/Abbrechen, Tab-Schliessen), ES-12 (Speicher-Status von Anwenden/OK, 4T-0554), ES-13 (Navigations-Gruppe Aktueller Bereich mit gebundenem Bereich, 4T-0555). Multi-Window-Snapshot-Merge (R5-08) bleibt manueller Pruefpfad."
+      "hinweis": "ES-01 bis ES-08 (Einstellungs-Seite: Tab, Einfach-Instanz, Guards, gruppierte Navigation ohne Bereich, Live-Vorschau, Anwenden/Abbrechen, Tab-Schliessen), ES-12 (Speicher-Status von Anwenden/OK, 4T-000554), ES-13 (Navigations-Gruppe Aktueller Bereich mit gebundenem Bereich, 4T-000555). Multi-Window-Snapshot-Merge (R5-08) bleibt manueller Pruefpfad."
     },
     {
       "key": "help.feature.focusMode",
@@ -285,7 +285,7 @@
       "id": "F-249",
       "testart": "unit",
       "tests": ["test/unit/spellcheck.test.js"],
-      "hinweis": "Schalter-Aufloesung, Woerterbuch-Normalisierung und der Waechter gegen setSpellCheckerLanguages. Der Pruefer selbst gehoert dem Betriebssystem und ist im Testlauf nicht nachstellbar; die Kette Rechtsklick bis Vorschlag ist am 2026-08-02 an Electron 33 gemessen (Belege im Epic 3E-0107)."
+      "hinweis": "Schalter-Aufloesung, Woerterbuch-Normalisierung und der Waechter gegen setSpellCheckerLanguages. Der Pruefer selbst gehoert dem Betriebssystem und ist im Testlauf nicht nachstellbar; die Kette Rechtsklick bis Vorschlag ist am 2026-08-02 an Electron 33 gemessen (Belege im Epic 3E-000107)."
     },
     {
       "key": "help.feature.perspectiveTable",
@@ -323,7 +323,7 @@
         "test/e2e/funktionen/eigenschafts-bestandswerte.spec.js",
         "test/unit/eigenschafts-werte.test.js"
       ],
-      "hinweis": "WB-01 bis WB-04 (Liste am Feld, kein Vorkommen, Aus-Zustand, freie Eingabe); die Sicht des Hauptprozesses unit am echten Index (4T-1340). Der Blick auf die aufgeklappte Liste bleibt der Abnahme vorbehalten — sie zeichnet der Browser nativ."
+      "hinweis": "WB-01 bis WB-04 (Liste am Feld, kein Vorkommen, Aus-Zustand, freie Eingabe); die Sicht des Hauptprozesses unit am echten Index (4T-001340). Der Blick auf die aufgeklappte Liste bleibt der Abnahme vorbehalten — sie zeichnet der Browser nativ."
     },
     {
       "key": "help.feature.propertyProfiles",
@@ -342,7 +342,7 @@
         "test/unit/profile-catalog.test.js",
         "test/unit/renderer/settings-profile-hinweise.test.js"
       ],
-      "hinweis": "4T-0446 bis 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — PP-01 bis PP-04 (Vorschlags-Menue mit Definitions-Feldern, Auswahl-Liste des Wertebereichs mit weichem Hinweis, unveraendertes Verhalten ohne Konfiguration, Aus-Zustand der Erweiterung) plus Unit-Suiten fuer Modell, Aufloesung, Katalog und Editor-Logik. 4T-1141 bis 4T-1143 (Epic 3E-0218): erweitertes Definitions-Format, Vererbung samt Aufloesungs-Folge und die ortsbezogene Diagnose — PP-11 (Hinweise ausgeschrieben unter dem Profil, Beheben ohne Neustart) plus Unit-Suiten fuer Format, Ketten-Bildung und Hinweis-Darstellung. 4T-1183 bis 4T-1185 (Epic 3E-0221): abgeleitete Felder — Formel und Sammlung, beim Lesen gerechnet und nie geschrieben; PP-12 und PP-13 (Anzeige und Sperre in beiden Panels, Negativ-Nachweis am Dokument-Puffer und an der Begleitdatei) plus Unit-Suiten fuer Auswertung, Kreis-Regel, Lookup-Begrenzung und die Bedienflaeche. 4T-1186 und 4T-1187: die beiden strukturierten Typen — Objekt und Objekt-Liste mit verschachtelten Kind-Definitionen und gestapelter Bedienung in beiden Panels; PP-14 und PP-15 (Kind-Felder gestapelt, Eintrag anlegen und entfernen, Weg bis in den Metadaten-Block und in die Begleitdatei, und die bewusste Grenze zum Bereichs-Index) plus Unit-Suiten fuer Format, Wert-Pruefung, Rueckschrift und den Rundlauf der Bedienung."
+      "hinweis": "4T-000446 bis 4T-000448 (Epic 3E-000083): Eigenschafts-Profile — PP-01 bis PP-04 (Vorschlags-Menue mit Definitions-Feldern, Auswahl-Liste des Wertebereichs mit weichem Hinweis, unveraendertes Verhalten ohne Konfiguration, Aus-Zustand der Erweiterung) plus Unit-Suiten fuer Modell, Aufloesung, Katalog und Editor-Logik. 4T-001141 bis 4T-001143 (Epic 3E-000218): erweitertes Definitions-Format, Vererbung samt Aufloesungs-Folge und die ortsbezogene Diagnose — PP-11 (Hinweise ausgeschrieben unter dem Profil, Beheben ohne Neustart) plus Unit-Suiten fuer Format, Ketten-Bildung und Hinweis-Darstellung. 4T-001183 bis 4T-001185 (Epic 3E-000221): abgeleitete Felder — Formel und Sammlung, beim Lesen gerechnet und nie geschrieben; PP-12 und PP-13 (Anzeige und Sperre in beiden Panels, Negativ-Nachweis am Dokument-Puffer und an der Begleitdatei) plus Unit-Suiten fuer Auswertung, Kreis-Regel, Lookup-Begrenzung und die Bedienflaeche. 4T-001186 und 4T-001187: die beiden strukturierten Typen — Objekt und Objekt-Liste mit verschachtelten Kind-Definitionen und gestapelter Bedienung in beiden Panels; PP-14 und PP-15 (Kind-Felder gestapelt, Eintrag anlegen und entfernen, Weg bis in den Metadaten-Block und in die Begleitdatei, und die bewusste Grenze zum Bereichs-Index) plus Unit-Suiten fuer Format, Wert-Pruefung, Rueckschrift und den Rundlauf der Bedienung."
     },
     {
       "key": "help.feature.profileInheritance",
@@ -353,7 +353,7 @@
         "test/unit/property-profiles-aufloesung.test.js",
         "test/unit/profile-catalog.test.js"
       ],
-      "hinweis": "4T-1142 (Epic 3E-0218): Vererbung zwischen Profilen — extends/exclude auf Profil-Ebene, Aufloesung als eine geordnete Folge (die drei Konstellationen des Konzepts), Zyklus- und Fehlt-Hinweise am Profil; E2E ueber PP-11 (Vererbungs-Hinweis in der Profil-Liste) und die Profil-Saetze der uebrigen PP-Faelle."
+      "hinweis": "4T-001142 (Epic 3E-000218): Vererbung zwischen Profilen — extends/exclude auf Profil-Ebene, Aufloesung als eine geordnete Folge (die drei Konstellationen des Konzepts), Zyklus- und Fehlt-Hinweise am Profil; E2E ueber PP-11 (Vererbungs-Hinweis in der Profil-Liste) und die Profil-Saetze der uebrigen PP-Faelle."
     },
     {
       "key": "help.feature.profileValueSources",
@@ -364,7 +364,7 @@
         "test/unit/profil-wertevorrat.test.js",
         "test/unit/property-profiles-aufloesung.test.js"
       ],
-      "hinweis": "4T-1157 und 4T-1158 (Epic 3E-0219): Wertevorrat aus einer Notiz und aus einer Abfrage. Die Notiz-Quelle laeuft ueber den zweiten Eingang des mtime-Abgleichs im Profil-Katalog (Aenderung ohne Neustart, Bereichs-Grenze am Lese-Zaehler belegt); die Abfrage-Quelle wird auf Verlangen ausgewertet und gegen den Index-Stand gepuffert. Testart unit, weil die tragende Zusage die BEGRENZUNG ist: Gezaehlt werden Auswertungen und Datei-Zugriffe, was E2E nicht leisten kann."
+      "hinweis": "4T-001157 und 4T-001158 (Epic 3E-000219): Wertevorrat aus einer Notiz und aus einer Abfrage. Die Notiz-Quelle laeuft ueber den zweiten Eingang des mtime-Abgleichs im Profil-Katalog (Aenderung ohne Neustart, Bereichs-Grenze am Lese-Zaehler belegt); die Abfrage-Quelle wird auf Verlangen ausgewertet und gegen den Index-Stand gepuffert. Testart unit, weil die tragende Zusage die BEGRENZUNG ist: Gezaehlt werden Auswertungen und Datei-Zugriffe, was E2E nicht leisten kann."
     },
     {
       "key": "help.feature.profileBindings",
@@ -376,7 +376,7 @@
         "test/unit/renderer/eigenschaften-neue-typen.test.js",
         "test/e2e/regression/4t-1164.spec.js"
       ],
-      "hinweis": "4T-1159 bis 4T-1161 (Epic 3E-0219): Zuordnung ueber Schlagwort und Ordner in der vierstufigen Folge, ihr Einstellungs-Bereich und das Profil-Symbol am Dokument. Die drei Konstellationen des Konzepts (Kapitel 6.13) haben je einen Pruffall, dazu die Praefix-Falle des Ordner-Vergleichs und der Gate-Nachweis; fuer die Zuordnungs-Logik liegt die Zusage in Reihenfolgen an konstruierten Dokument-Lagen, also unit. 4T-1164 ergaenzt den E2E-Fall PP-12: Die Zusage des SYMBOLS ist eine Sichtbarkeit, und die kann keine Unit-Pruefung tragen. Der Abnahme-Befund vom 2026-08-24 belegt es: Das Symbol war in jeder Reiter-Anordnung unsichtbar, waehrend alle Unit-Faelle gruen blieben, weil sie Quelltext lasen statt zu rendern."
+      "hinweis": "4T-001159 bis 4T-001161 (Epic 3E-000219): Zuordnung ueber Schlagwort und Ordner in der vierstufigen Folge, ihr Einstellungs-Bereich und das Profil-Symbol am Dokument. Die drei Konstellationen des Konzepts (Kapitel 6.13) haben je einen Pruffall, dazu die Praefix-Falle des Ordner-Vergleichs und der Gate-Nachweis; fuer die Zuordnungs-Logik liegt die Zusage in Reihenfolgen an konstruierten Dokument-Lagen, also unit. 4T-001164 ergaenzt den E2E-Fall PP-12: Die Zusage des SYMBOLS ist eine Sichtbarkeit, und die kann keine Unit-Pruefung tragen. Der Abnahme-Befund vom 2026-08-24 belegt es: Das Symbol war in jeder Reiter-Anordnung unsichtbar, waehrend alle Unit-Faelle gruen blieben, weil sie Quelltext lasen statt zu rendern."
     },
     {
       "key": "help.feature.profileFieldForm",
@@ -387,7 +387,7 @@
         "test/unit/property-profiles-herkunft.test.js",
         "test/e2e/funktionen/eigenschafts-feld-formular.spec.js"
       ],
-      "hinweis": "4T-1171 bis 4T-1175 (Epic 3E-0220): Feld-Formular des Dokuments samt Herkunft je Feld, Profil-Kette und Uebernahme je Ebene. Die Herkunfts-Angabe der Aufloesung liegt unit (property-profiles-herkunft), das gebaute DOM des Bereichs in eigenschaften-feld-formular.test.js (43 Faelle). PP-13 und PP-14 pruefen am gebauten Fenster, was die Unit-Ebene nicht zeigen kann: die Sichtbarkeit des Bereichs und den Zugang ueber das Reiter-Kontextmenue bei verborgener Sektion. Die Trennung folgt dem Abnahme-Befund vom 2026-08-24 (4T-1167): Eine Sichtbarkeits-Zusage traegt keine Quelltext-Pruefung. 4T-1179 ergaenzt die beiden Faelle der Abgrenzung, die der E2E-Voll-Lauf derselben Abnahme erzwungen hat: PP-15 haelt fest, dass der Bereich dem Vorschlags-Menue seine Profil-Eintraege nicht nimmt, PP-16, dass ein Save wegen eines anderen Feldes keine unberuehrten Angebote in das Dokument schreibt. Beide waren vor dem Fix rot; die Unit-Ebene unterscheidet dazu die vorbelegte Null von der eingetragenen."
+      "hinweis": "4T-001171 bis 4T-001175 (Epic 3E-000220): Feld-Formular des Dokuments samt Herkunft je Feld, Profil-Kette und Uebernahme je Ebene. Die Herkunfts-Angabe der Aufloesung liegt unit (property-profiles-herkunft), das gebaute DOM des Bereichs in eigenschaften-feld-formular.test.js (43 Faelle). PP-13 und PP-14 pruefen am gebauten Fenster, was die Unit-Ebene nicht zeigen kann: die Sichtbarkeit des Bereichs und den Zugang ueber das Reiter-Kontextmenue bei verborgener Sektion. Die Trennung folgt dem Abnahme-Befund vom 2026-08-24 (4T-001167): Eine Sichtbarkeits-Zusage traegt keine Quelltext-Pruefung. 4T-001179 ergaenzt die beiden Faelle der Abgrenzung, die der E2E-Voll-Lauf derselben Abnahme erzwungen hat: PP-15 haelt fest, dass der Bereich dem Vorschlags-Menue seine Profil-Eintraege nicht nimmt, PP-16, dass ein Save wegen eines anderen Feldes keine unberuehrten Angebote in das Dokument schreibt. Beide waren vor dem Fix rot; die Unit-Ebene unterscheidet dazu die vorbelegte Null von der eingetragenen."
     },
     {
       "key": "help.feature.profileQuery",
@@ -397,7 +397,7 @@
         "test/unit/property-profiles-abfrage.test.js",
         "test/unit/renderer/profil-abfrage-einfuegen.test.js"
       ],
-      "hinweis": "4T-1176 (Epic 3E-0220): erzeugte Abfrage je Profil. Der Gegenstand ist der erzeugte TEXT und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird. Kein E2E-Fall: Die Sicht selbst ist die vorhandene Ergebnis-Ausgabe der Abfrage-Sprache und dort bereits gedeckt; dass die Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 von 4T-1176 an der gebauten Programmdatei."
+      "hinweis": "4T-001176 (Epic 3E-000220): erzeugte Abfrage je Profil. Der Gegenstand ist der erzeugte TEXT und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird. Kein E2E-Fall: Die Sicht selbst ist die vorhandene Ergebnis-Ausgabe der Abfrage-Sprache und dort bereits gedeckt; dass die Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 von 4T-001176 an der gebauten Programmdatei."
     },
     {
       "key": "help.feature.profileDerivedFields",
@@ -409,7 +409,7 @@
         "test/unit/profil-lookup.test.js",
         "test/unit/renderer/eigenschaften-abgeleitet.test.js"
       ],
-      "hinweis": "4T-1183 bis 4T-1185 (Epic 3E-0221, E1): abgeleitete Felder — Formel und Sammlung, beim Lesen gerechnet und nie geschrieben. Die Unit-Ebene traegt die Auswertung samt Kreis-Regel und Bezug ins Leere (property-profiles-abgeleitet), die Begrenzung der Lookup-Auswertung ueber einen Auswertungs-Zaehler statt ueber Laufzeit (profil-lookup) und die Anzeige samt Sperre (eigenschaften-abgeleitet). E2E ist Pflicht und nicht Zugabe: Die tragende Zusage aus E1 lautet, dass das Oeffnen eines Dokuments es nicht veraendert, und ob sie haelt, entscheidet sich am geschriebenen Ergebnis — PP-12 prueft den Dokument-Puffer, PP-13 die Begleitdatei. Dasselbe Muster hat in Stufe 3 einen Fehler getragen (4T-1179), den die Unit-Ebene nicht fand."
+      "hinweis": "4T-001183 bis 4T-001185 (Epic 3E-000221, E1): abgeleitete Felder — Formel und Sammlung, beim Lesen gerechnet und nie geschrieben. Die Unit-Ebene traegt die Auswertung samt Kreis-Regel und Bezug ins Leere (property-profiles-abgeleitet), die Begrenzung der Lookup-Auswertung ueber einen Auswertungs-Zaehler statt ueber Laufzeit (profil-lookup) und die Anzeige samt Sperre (eigenschaften-abgeleitet). E2E ist Pflicht und nicht Zugabe: Die tragende Zusage aus E1 lautet, dass das Oeffnen eines Dokuments es nicht veraendert, und ob sie haelt, entscheidet sich am geschriebenen Ergebnis — PP-12 prueft den Dokument-Puffer, PP-13 die Begleitdatei. Dasselbe Muster hat in Stufe 3 einen Fehler getragen (4T-001179), den die Unit-Ebene nicht fand."
     },
     {
       "key": "help.feature.profileStructuredFields",
@@ -420,7 +420,7 @@
         "test/unit/property-profiles-objekt-typen.test.js",
         "test/unit/renderer/eigenschaften-objekt-felder.test.js"
       ],
-      "hinweis": "4T-1186 und 4T-1187 (Epic 3E-0221, E11): Objekt und Objekt-Liste mit verschachtelten Kind-Definitionen. Die Unit-Ebene traegt Format, Wert-Pruefung und die Rueckschrift als verschachteltes YAML (property-profiles-objekt-typen) sowie den Rundlauf der gestapelten Bedienung mit eingespeistem Kind-Editor (eigenschaften-objekt-felder). E2E ist Pflicht, weil die Unit-Ebene an der echten DOM-Verschachtelung vorbeigeht: Beide Fehler dieses Tasks — die Auslese-Reihenfolge und der aus dem Typ-Wechsler gelesene Typ — waren nur an der laufenden Anwendung sichtbar. PP-14 fuehrt den Weg bis in den Metadaten-Block, PP-15 bis in die Begleitdatei und prueft zugleich die bewusste Grenze zum Bereichs-Index."
+      "hinweis": "4T-001186 und 4T-001187 (Epic 3E-000221, E11): Objekt und Objekt-Liste mit verschachtelten Kind-Definitionen. Die Unit-Ebene traegt Format, Wert-Pruefung und die Rueckschrift als verschachteltes YAML (property-profiles-objekt-typen) sowie den Rundlauf der gestapelten Bedienung mit eingespeistem Kind-Editor (eigenschaften-objekt-felder). E2E ist Pflicht, weil die Unit-Ebene an der echten DOM-Verschachtelung vorbeigeht: Beide Fehler dieses Tasks — die Auslese-Reihenfolge und der aus dem Typ-Wechsler gelesene Typ — waren nur an der laufenden Anwendung sichtbar. PP-14 fuehrt den Weg bis in den Metadaten-Block, PP-15 bis in die Begleitdatei und prueft zugleich die bewusste Grenze zum Bereichs-Index."
     },
     {
       "key": "help.feature.profileBulkFill",
@@ -431,7 +431,7 @@
         "test/unit/property-profiles.test.js",
         "test/unit/markdown-pipeline.test.js"
       ],
-      "hinweis": "4T-0491 (Epic 3E-0093): Komplett-Uebernahme von Profil-Feldern — PP-08 (Properties-Editor, ein Undo-Schritt) und PP-09 (Block-Panel, .mdd) plus Unit-Tests fuer buildProfileFillMap/profileSuggestGroups und den writeFrontmatter-emptyStubKeys-Schreibpfad."
+      "hinweis": "4T-000491 (Epic 3E-000093): Komplett-Uebernahme von Profil-Feldern — PP-08 (Properties-Editor, ein Undo-Schritt) und PP-09 (Block-Panel, .mdd) plus Unit-Tests fuer buildProfileFillMap/profileSuggestGroups und den writeFrontmatter-emptyStubKeys-Schreibpfad."
     },
     {
       "key": "help.feature.reminders",
@@ -442,7 +442,7 @@
         "test/unit/task-markers.test.js",
         "test/unit/reminders-kern.test.js"
       ],
-      "hinweis": "4T-0525/4T-0528 (Epic 3E-0095): ⏰-Melde-Marker — ER-01 (Nachhol-Dialog listet die faelligen Anker) und ER-06 (Kommando Strg+Alt+R setzt den Marker) plus Unit-Tests fuer setReminder/Round-Trip/Recurrence-Mitwandern und den Erinnerungs-Kern (Faelligkeit mit/ohne Default-Uhrzeit)."
+      "hinweis": "4T-000525/4T-000528 (Epic 3E-000095): ⏰-Melde-Marker — ER-01 (Nachhol-Dialog listet die faelligen Anker) und ER-06 (Kommando Strg+Alt+R setzt den Marker) plus Unit-Tests fuer setReminder/Round-Trip/Recurrence-Mitwandern und den Erinnerungs-Kern (Faelligkeit mit/ohne Default-Uhrzeit)."
     },
     {
       "key": "help.feature.reminderNotifications",
@@ -453,14 +453,14 @@
         "test/unit/reminders-kern.test.js",
         "test/unit/reminder-check.test.js"
       ],
-      "hinweis": "4T-0526 (Epic 3E-0095): Benachrichtigungen mit Snooze/Muting/Nachholen — ER-02 (Erledigt schreibt [x]), ER-03 (Snooze aus dem Dialog schreibt neuen ⏰-Wert) und ER-04 (Muten plus Wiederauslosung) plus Unit-Tests fuer Snooze-Rechnung und den Pruefer-Zustand (catchUp/reported/muted)."
+      "hinweis": "4T-000526 (Epic 3E-000095): Benachrichtigungen mit Snooze/Muting/Nachholen — ER-02 (Erledigt schreibt [x]), ER-03 (Snooze aus dem Dialog schreibt neuen ⏰-Wert) und ER-04 (Muten plus Wiederauslosung) plus Unit-Tests fuer Snooze-Rechnung und den Pruefer-Zustand (catchUp/reported/muted)."
     },
     {
       "key": "help.feature.reminderList",
       "id": "F-124",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/erinnerungen.spec.js", "test/unit/reminders-kern.test.js"],
-      "hinweis": "4T-0527 (Epic 3E-0095): Erinnerungs-Liste als Panel — ER-04 (gemuteter Eintrag in der Ueberfaellig-Gruppe) und ER-05 (Gruppen Ueberfaellig/Spaeter, Klick oeffnet die Quelle) plus Unit-Test der Gruppen-Bildung (groupForPanel)."
+      "hinweis": "4T-000527 (Epic 3E-000095): Erinnerungs-Liste als Panel — ER-04 (gemuteter Eintrag in der Ueberfaellig-Gruppe) und ER-05 (Gruppen Ueberfaellig/Spaeter, Klick oeffnet die Quelle) plus Unit-Test der Gruppen-Bildung (groupForPanel)."
     },
     {
       "key": "help.feature.aliases",
@@ -485,7 +485,7 @@
         "test/e2e/funktionen/verweis-vorschlaege.spec.js",
         "test/e2e/funktionen/schlagwort-vorschlaege.spec.js"
       ],
-      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-1339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-1357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-0187."
+      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-001339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-001357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-000187."
     },
     {
       "key": "help.feature.wikiLinkAnchors",
@@ -580,7 +580,7 @@
         "test/e2e/funktionen/uhr-größen.spec.js",
         "test/e2e/funktionen/uhr-kalender.spec.js"
       ],
-      "hinweis": "4T-0372 (Epic 3E-0069): Rechen-Kern (Normalisierung, Zeiger-Winkel, Zeit-/Datums-Format, Timer-Takt) als reine Unit-Tests, Panel-Aufbau und Aus-Zustand der Erweiterung als jsdom-Unit; die Zugangs-Paritaet deckt PZ-01/PZ-02 ueber panel-access.test.js und die Panel-Zugaenge-Spec ab. 4T-0636 ergaenzt die Modus-Umschaltleiste (Modell, Leisten-Aufbau, Persistenz je Spalte, Takt nur im Uhr-Modus). 4T-0679 (Epic 3E-0139) ergaenzt die Groessen-Stufe der digitalen Anzeige: Faktor-Tabelle und Setzen der CSS-Variable als Unit, wirksame Schriftgroesse und das beidseitige Beschneiden in der schmalsten Spalte als E2E (UG-01 bis UG-03). 4T-0752 (Epic 3E-0146) ergaenzt den Monatskalender als fuenften Modus: Ansichts-Zustand und Navigations-Rechnung als Unit (clock-options.test.js), der gemeinsame Gitter-Aufbau als jsdom-Unit (renderer/month-grid-view.test.js), Modus-Taste, Blaettern, Jahres-Eingabe und Kalenderwochen-Spalte als E2E (UK-01 bis UK-04)."
+      "hinweis": "4T-000372 (Epic 3E-000069): Rechen-Kern (Normalisierung, Zeiger-Winkel, Zeit-/Datums-Format, Timer-Takt) als reine Unit-Tests, Panel-Aufbau und Aus-Zustand der Erweiterung als jsdom-Unit; die Zugangs-Paritaet deckt PZ-01/PZ-02 ueber panel-access.test.js und die Panel-Zugaenge-Spec ab. 4T-000636 ergaenzt die Modus-Umschaltleiste (Modell, Leisten-Aufbau, Persistenz je Spalte, Takt nur im Uhr-Modus). 4T-000679 (Epic 3E-000139) ergaenzt die Groessen-Stufe der digitalen Anzeige: Faktor-Tabelle und Setzen der CSS-Variable als Unit, wirksame Schriftgroesse und das beidseitige Beschneiden in der schmalsten Spalte als E2E (UG-01 bis UG-03). 4T-000752 (Epic 3E-000146) ergaenzt den Monatskalender als fuenften Modus: Ansichts-Zustand und Navigations-Rechnung als Unit (clock-options.test.js), der gemeinsame Gitter-Aufbau als jsdom-Unit (renderer/month-grid-view.test.js), Modus-Taste, Blaettern, Jahres-Eingabe und Kalenderwochen-Spalte als E2E (UK-01 bis UK-04)."
     },
     {
       "key": "help.feature.clockAlarms",
@@ -591,7 +591,7 @@
         "test/unit/alarm-check.test.js",
         "test/e2e/funktionen/wecker.spec.js"
       ],
-      "hinweis": "4T-0637 (Epic 3E-0069): Modell und Faelligkeits-Rechnung als reine Unit-Tests, der Main-Pruefer mit injizierten Abhaengigkeiten ebenfalls; WE-01 bis WE-05 decken Anlegen, Wochentags-Muster, Persistenz, das reale Auslösen samt Dialog und den Aus-Zustand der Erweiterung ab."
+      "hinweis": "4T-000637 (Epic 3E-000069): Modell und Faelligkeits-Rechnung als reine Unit-Tests, der Main-Pruefer mit injizierten Abhaengigkeiten ebenfalls; WE-01 bis WE-05 decken Anlegen, Wochentags-Muster, Persistenz, das reale Auslösen samt Dialog und den Aus-Zustand der Erweiterung ab."
     },
     {
       "key": "help.feature.clockTimers",
@@ -602,7 +602,7 @@
         "test/unit/timer-check.test.js",
         "test/e2e/funktionen/timer-stoppuhr.spec.js"
       ],
-      "hinweis": "4T-0638 (Epic 3E-0069): Restzeit-Rechnung aus Zeitstempeln (inkl. Hintergrund-Sprung) und Zustands-Uebergaenge als Unit-Tests, der Weckruf-Pruefer ohne Polling ebenfalls; TS-01 bis TS-06 decken Schnellwahl, Zeilen-Aktionen, eigene Dauer, Ablauf, Stoppuhr mit Runden und den Neustart mit laufendem Timer ab."
+      "hinweis": "4T-000638 (Epic 3E-000069): Restzeit-Rechnung aus Zeitstempeln (inkl. Hintergrund-Sprung) und Zustands-Uebergaenge als Unit-Tests, der Weckruf-Pruefer ohne Polling ebenfalls; TS-01 bis TS-06 decken Schnellwahl, Zeilen-Aktionen, eigene Dauer, Ablauf, Stoppuhr mit Runden und den Neustart mit laufendem Timer ab."
     },
     {
       "key": "help.feature.clockCalendar",
@@ -613,14 +613,14 @@
         "test/unit/renderer/month-grid-view.test.js",
         "test/e2e/funktionen/uhr-kalender.spec.js"
       ],
-      "hinweis": "4T-0752 (Epic 3E-0146): Ansichts-Zustand und Navigations-Rechnung (Jahres-Uebertrag, Mehr-Monats-Spruenge, Klemmung an beiden Jahres-Grenzen) als reine Unit-Tests, der gemeinsame Gitter-Aufbau als jsdom-Unit; UK-01 bis UK-04 decken die fuenfte Modus-Taste, das Blaettern um Monat und Jahr samt Rueckkehr, die direkte Jahres-Eingabe ueber die Ziffern-Steuerung und die abschaltbare Kalenderwochen-Spalte ab."
+      "hinweis": "4T-000752 (Epic 3E-000146): Ansichts-Zustand und Navigations-Rechnung (Jahres-Uebertrag, Mehr-Monats-Spruenge, Klemmung an beiden Jahres-Grenzen) als reine Unit-Tests, der gemeinsame Gitter-Aufbau als jsdom-Unit; UK-01 bis UK-04 decken die fuenfte Modus-Taste, das Blaettern um Monat und Jahr samt Rueckkehr, die direkte Jahres-Eingabe ueber die Ziffern-Steuerung und die abschaltbare Kalenderwochen-Spalte ab."
     },
     {
       "key": "help.feature.outgoingLinks",
       "id": "F-051",
       "testart": "unit",
       "tests": ["test/unit/renderer/struktur-und-state.test.js"],
-      "hinweis": "Extraktion (inkl. R3-14-Fences) unit; Panel-Toggle e2e in FH-01; Sprung-Normalisierung MK-Mechanik aus 4T-0186."
+      "hinweis": "Extraktion (inkl. R3-14-Fences) unit; Panel-Toggle e2e in FH-01; Sprung-Normalisierung MK-Mechanik aus 4T-000186."
     },
     {
       "key": "help.feature.bookmarks",
@@ -647,98 +647,98 @@
       "id": "F-053",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture emoji.md (4T-0197)."
+      "hinweis": "Fixture emoji.md (4T-000197)."
     },
     {
       "key": "help.feature.abbreviations",
       "id": "F-054",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture abbreviations.md (4T-0197)."
+      "hinweis": "Fixture abbreviations.md (4T-000197)."
     },
     {
       "key": "help.feature.implicitFigures",
       "id": "F-055",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture implicit-figures.md (4T-0198)."
+      "hinweis": "Fixture implicit-figures.md (4T-000198)."
     },
     {
       "key": "help.feature.imageSize",
       "id": "F-056",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture image-size.md (4T-0198)."
+      "hinweis": "Fixture image-size.md (4T-000198)."
     },
     {
       "key": "help.feature.definitionLists",
       "id": "F-057",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture definition-lists.md (4T-0199)."
+      "hinweis": "Fixture definition-lists.md (4T-000199)."
     },
     {
       "key": "help.feature.lineBlocks",
       "id": "F-058",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture line-blocks.md (4T-0199)."
+      "hinweis": "Fixture line-blocks.md (4T-000199)."
     },
     {
       "key": "help.feature.customContainers",
       "id": "F-059",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixtures custom-containers.md und custom-containers-portable.md (4T-0200)."
+      "hinweis": "Fixtures custom-containers.md und custom-containers-portable.md (4T-000200)."
     },
     {
       "key": "help.feature.subSup",
       "id": "F-060",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture sub-sup-ins.md (4T-0201)."
+      "hinweis": "Fixture sub-sup-ins.md (4T-000201)."
     },
     {
       "key": "help.feature.insertion",
       "id": "F-061",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture sub-sup-ins.md (4T-0201)."
+      "hinweis": "Fixture sub-sup-ins.md (4T-000201)."
     },
     {
       "key": "help.feature.headingAttributes",
       "id": "F-062",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture attributes-spans.md (4T-0202)."
+      "hinweis": "Fixture attributes-spans.md (4T-000202)."
     },
     {
       "key": "help.feature.spoiler",
       "id": "F-063",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture spoiler.md (4T-0203)."
+      "hinweis": "Fixture spoiler.md (4T-000203)."
     },
     {
       "key": "help.feature.criticMarkup",
       "id": "F-064",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixture critic-markup.md (4T-0203)."
+      "hinweis": "Fixture critic-markup.md (4T-000203)."
     },
     {
       "key": "help.feature.comments",
       "id": "F-111",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixtures kommentare.md und kommentare-portable.md; Unit test/unit/render/prozent-kommentare.test.js und E2E test/e2e/funktionen/prozent-kommentare.spec.js (PK-01 bis PK-03, 4T-0479)."
+      "hinweis": "Fixtures kommentare.md und kommentare-portable.md; Unit test/unit/render/prozent-kommentare.test.js und E2E test/e2e/funktionen/prozent-kommentare.spec.js (PK-01 bis PK-03, 4T-000479)."
     },
     {
       "key": "help.feature.headingNumbering",
       "id": "F-125",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
-      "hinweis": "Fixtures gliederungs-nummerierung.md und gliederungs-nummerierung-portable.md; Unit test/unit/render/gliederungs-nummerierung.test.js und E2E test/e2e/funktionen/gliederungs-nummerierung.spec.js (GN-01 bis GN-06, 4T-0470)."
+      "hinweis": "Fixtures gliederungs-nummerierung.md und gliederungs-nummerierung-portable.md; Unit test/unit/render/gliederungs-nummerierung.test.js und E2E test/e2e/funktionen/gliederungs-nummerierung.spec.js (GN-01 bis GN-06, 4T-000470)."
     },
     {
       "key": "help.feature.colorSchemes",
@@ -748,112 +748,112 @@
         "test/unit/color-schemes.test.js",
         "test/unit/renderer/color-schemes-apply.test.js"
       ],
-      "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-0466). Auslieferungs-Voreinstellung und der Einmal-Schritt beim Start: test/e2e/funktionen/voreinstellungen.spec.js (VE-01/VE-02, 4T-0751)."
+      "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-000466). Auslieferungs-Voreinstellung und der Einmal-Schritt beim Start: test/e2e/funktionen/voreinstellungen.spec.js (VE-01/VE-02, 4T-000751)."
     },
     {
       "key": "help.feature.events",
       "id": "F-127",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/ereignisse.spec.js"],
-      "hinweis": "4T-0518 (Epic 3E-0092): Fence-Tabelle mit CRUD, Sortierung/Filter, gespeicherte Filter, Ansichten und Live-Modus (EV-01 bis EV-10); Rechen-Kern und Fence-Format Unit test/unit/events-core.test.js, Markup test/unit/perspective-events.test.js, Snapshot-Fixture ereignisse.md. 4T-0653: EV-14 sichert, dass eine offene Zeilen-Bearbeitung den nachlaufenden Vorschau-Aufbau ueberlebt. 4T-0722: Gantt als sechste Ansicht (EV-15 samt Live-Modus, Fixture ereignisse-gantt.md); Zeilen-Modell, Achse und Prozent-Rechnung Unit events-core.test.js, Markup und Overlay perspective-events.test.js, Snapshot-Fixture ereignis-ansichten.md."
+      "hinweis": "4T-000518 (Epic 3E-000092): Fence-Tabelle mit CRUD, Sortierung/Filter, gespeicherte Filter, Ansichten und Live-Modus (EV-01 bis EV-10); Rechen-Kern und Fence-Format Unit test/unit/events-core.test.js, Markup test/unit/perspective-events.test.js, Snapshot-Fixture ereignisse.md. 4T-000653: EV-14 sichert, dass eine offene Zeilen-Bearbeitung den nachlaufenden Vorschau-Aufbau ueberlebt. 4T-000722: Gantt als sechste Ansicht (EV-15 samt Live-Modus, Fixture ereignisse-gantt.md); Zeilen-Modell, Achse und Prozent-Rechnung Unit events-core.test.js, Markup und Overlay perspective-events.test.js, Snapshot-Fixture ereignis-ansichten.md."
     },
     {
       "key": "help.feature.eventsAggregation",
       "id": "F-128",
       "testart": "unit",
       "tests": ["test/unit/events-aggregation.test.js"],
-      "hinweis": "4T-0518 (Epic 3E-0092): Grundmenge und Query-Verfeinerung (eventsForQuery), Frontmatter-Rueckschreiben mit mtime-Konflikt; E2E test/e2e/funktionen/ereignisse.spec.js (EV-11); internes Profil E2E eigenschafts-profile.spec.js (PP-10, 4T-0517)."
+      "hinweis": "4T-000518 (Epic 3E-000092): Grundmenge und Query-Verfeinerung (eventsForQuery), Frontmatter-Rueckschreiben mit mtime-Konflikt; E2E test/e2e/funktionen/ereignisse.spec.js (EV-11); internes Profil E2E eigenschafts-profile.spec.js (PP-10, 4T-000517)."
     },
     {
       "key": "help.feature.eventsLinks",
       "id": "F-129",
       "testart": "unit",
       "tests": ["test/unit/events-core.test.js"],
-      "hinweis": "4T-0518 (Epic 3E-0092): Kennungs-Vergabe, bidirektionaler Toggle, Loesch-Bereinigung und verwaiste Verweise (events-core.test.js); E2E test/e2e/funktionen/ereignisse.spec.js (EV-12/EV-13, beide Arten inkl. Gegenrichtungs-Schreiben)."
+      "hinweis": "4T-000518 (Epic 3E-000092): Kennungs-Vergabe, bidirektionaler Toggle, Loesch-Bereinigung und verwaiste Verweise (events-core.test.js); E2E test/e2e/funktionen/ereignisse.spec.js (EV-12/EV-13, beide Arten inkl. Gegenrichtungs-Schreiben)."
     },
     {
       "key": "help.feature.workspaces",
       "id": "F-130",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/arbeitsbereiche.spec.js"],
-      "hinweis": "4T-0537/4T-0538/4T-0539 (Epic 3E-0098): Lebenszyklus WS-01 bis WS-05 (Speichern/Restore, Einfrieren/Fokus, Entwurfs-Mitnahme, Degradierung, Erweiterungs-Aus); Ablage-Normalisierung und Registry zusaetzlich unit-getestet (session-schema/app-registry/menu-state)."
+      "hinweis": "4T-000537/4T-000538/4T-000539 (Epic 3E-000098): Lebenszyklus WS-01 bis WS-05 (Speichern/Restore, Einfrieren/Fokus, Entwurfs-Mitnahme, Degradierung, Erweiterungs-Aus); Ablage-Normalisierung und Registry zusaetzlich unit-getestet (session-schema/app-registry/menu-state)."
     },
     {
       "key": "help.feature.customCalendars",
       "id": "F-131",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-0544/4T-0545/4T-0546 (Epic 3E-0097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-0747 (Epic 3E-0138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-0748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-0943 (Epic 3E-0197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07."
+      "hinweis": "4T-000544/4T-000545/4T-000546 (Epic 3E-000097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-000747 (Epic 3E-000138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-000748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-000943 (Epic 3E-000197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07."
     },
     {
       "key": "help.feature.derivedCalendars",
       "id": "F-240",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-0747/4T-0748 (Epic 3E-0138): abgeleitete Zeitrechnungen — Anlage, Schutz der Abhaengigen (KS-05) sowie Zeitspanne im Dokument, Kurzhinweis und Picker in Bezugs-Notation (KS-06); Ableitung, Klemmung, kanonische Form und Staffelung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte)."
+      "hinweis": "4T-000747/4T-000748 (Epic 3E-000138): abgeleitete Zeitrechnungen — Anlage, Schutz der Abhaengigen (KS-05) sowie Zeitspanne im Dokument, Kurzhinweis und Picker in Bezugs-Notation (KS-06); Ableitung, Klemmung, kanonische Form und Staffelung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte)."
     },
     {
       "key": "help.feature.taskStates",
       "id": "F-065",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/task-states.spec.js"],
-      "hinweis": "TS-01 bis TS-04 (Render, Klick-Toggle, Settings-Roundtrip); TS-05 (Ketten-Toggle ueber das Folge-Symbol) und TS-06 (Duplikat-Warnung) ergaenzt (4T-0497); Snapshot-Fixture task-states.md ergaenzt (4T-0204)."
+      "hinweis": "TS-01 bis TS-04 (Render, Klick-Toggle, Settings-Roundtrip); TS-05 (Ketten-Toggle ueber das Folge-Symbol) und TS-06 (Duplikat-Warnung) ergaenzt (4T-000497); Snapshot-Fixture task-states.md ergaenzt (4T-000204)."
     },
     {
       "key": "help.feature.taskMarkers",
       "id": "F-112",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben.spec.js"],
-      "hinweis": "4T-0500 (Epic 3E-0090): Task-Marker fuer Termine, Prioritaet und Wiederholung sowie Automatik-Daten — AU-01/AU-02/AU-04/AU-05."
+      "hinweis": "4T-000500 (Epic 3E-000090): Task-Marker fuer Termine, Prioritaet und Wiederholung sowie Automatik-Daten — AU-01/AU-02/AU-04/AU-05."
     },
     {
       "key": "help.feature.taskGlobalFilter",
       "id": "F-113",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben.spec.js"],
-      "hinweis": "4T-0500 (Epic 3E-0090): Global Filter entscheidet, welche Checkbox-Zeilen als Aufgaben gelten, optional ausgeblendet — AU-03."
+      "hinweis": "4T-000500 (Epic 3E-000090): Global Filter entscheidet, welche Checkbox-Zeilen als Aufgaben gelten, optional ausgeblendet — AU-03."
     },
     {
       "key": "help.feature.taskQuery",
       "id": "F-115",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): TASKS-Scope mit Feldern, Gruppierung und Live-Aktualisierung — TQ-01 bis TQ-03; Felder/Layout zusaetzlich unit (perspective-query-tasks.test.js)."
+      "hinweis": "4T-000509 (Epic 3E-000096): TASKS-Scope mit Feldern, Gruppierung und Live-Aktualisierung — TQ-01 bis TQ-03; Felder/Layout zusaetzlich unit (perspective-query-tasks.test.js)."
     },
     {
       "key": "help.feature.taskQueryActions",
       "id": "F-116",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): Status-Toggle und Verschieben in nicht geoeffnete Dateien — TQ-04, TQ-05; Konflikt-Kern unit (task-line-edit.test.js)."
+      "hinweis": "4T-000509 (Epic 3E-000096): Status-Toggle und Verschieben in nicht geoeffnete Dateien — TQ-04, TQ-05; Konflikt-Kern unit (task-line-edit.test.js)."
     },
     {
       "key": "help.feature.taskDialog",
       "id": "F-117",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): Dialog bearbeitet und legt an — TQ-06, TQ-07; Formular-zu-Zeile unit (task-dialog.test.js)."
+      "hinweis": "4T-000509 (Epic 3E-000096): Dialog bearbeitet und legt an — TQ-06, TQ-07; Formular-zu-Zeile unit (task-dialog.test.js)."
     },
     {
       "key": "help.feature.taskAutocomplete",
       "id": "F-118",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): Tipp-zu-Marker-Weg — TQ-08; Trigger-Logik unit (task-autocomplete.test.js)."
+      "hinweis": "4T-000509 (Epic 3E-000096): Tipp-zu-Marker-Weg — TQ-08; Trigger-Logik unit (task-autocomplete.test.js)."
     },
     {
       "key": "help.feature.taskDependencies",
       "id": "F-119",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): Blockiert-Filter ueber Datei-Grenzen — TQ-09; Flags und ID-Vergabe unit (task-markers.test.js)."
+      "hinweis": "4T-000509 (Epic 3E-000096): Blockiert-Filter ueber Datei-Grenzen — TQ-09; Flags und ID-Vergabe unit (task-markers.test.js)."
     },
     {
       "key": "help.feature.taskUrgency",
       "id": "F-120",
       "testart": "unit",
       "tests": ["test/unit/task-markers.test.js", "test/unit/perspective-query-tasks.test.js"],
-      "hinweis": "4T-0509 (Epic 3E-0096): Referenz-Formel mit injiziertem Bezugstag plus Default-Sortierung und urgency-Feld der Abfrage."
+      "hinweis": "4T-000509 (Epic 3E-000096): Referenz-Formel mit injiziertem Bezugstag plus Default-Sortierung und urgency-Feld der Abfrage."
     },
     {
       "key": "help.shortcut.openFile",
@@ -1035,7 +1035,7 @@
         "test/unit/renderer/eigenschaften-feld-formular.test.js",
         "test/e2e/funktionen/eigenschafts-feld-formular.spec.js"
       ],
-      "begruendung": "4T-1174: Registrierung, fehlendes Vorgabe-Kuerzel und Dispatch-Eintrag als Unit-Fall; der Bereich, den das Kommando oeffnet, in eigenschaften-feld-formular.test.js. Die Oeffnungs-Wirkung selbst prueft PP-14 am gebauten Fenster: Sie laeuft ueber dieselbe Funktion wie der Kontextmenue-Weg."
+      "begruendung": "4T-001174: Registrierung, fehlendes Vorgabe-Kuerzel und Dispatch-Eintrag als Unit-Fall; der Bereich, den das Kommando oeffnet, in eigenschaften-feld-formular.test.js. Die Oeffnungs-Wirkung selbst prueft PP-14 am gebauten Fenster: Sie laeuft ueber dieselbe Funktion wie der Kontextmenue-Weg."
     },
     {
       "key": "help.shortcut.insertProfileQuery",
@@ -1046,7 +1046,7 @@
         "test/unit/renderer/profil-abfrage-einfuegen.test.js",
         "test/unit/commands.test.js"
       ],
-      "begruendung": "4T-1176: Der erzeugte Abfrage-Text ist der Gegenstand und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text (kein Weg fehlt, konfigurierter Feldname) und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird: Cursor-Lage und ein gewoehnlicher Fence ohne jede Markierung. commands.test.js deckt Registrierung und Dispatch-Eintrag. Dass die erzeugte Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 an der gebauten Programmdatei."
+      "begruendung": "4T-001176: Der erzeugte Abfrage-Text ist der Gegenstand und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text (kein Weg fehlt, konfigurierter Feldname) und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird: Cursor-Lage und ein gewoehnlicher Fence ohne jede Markierung. commands.test.js deckt Registrierung und Dispatch-Eintrag. Dass die erzeugte Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 an der gebauten Programmdatei."
     },
     {
       "key": "help.shortcut.toggleTags",
@@ -1077,7 +1077,7 @@
         "test/e2e/funktionen/block-eigenschaften.spec.js",
         "test/e2e/funktionen/kommando-palette.spec.js"
       ],
-      "hinweis": "BP-01 (Menue Ansicht -> Block-Eigenschaften). 4T-0781: KP-06 deckt zusaetzlich den Palette-Weg ab, der bis dahin wirkungslos war."
+      "hinweis": "BP-01 (Menue Ansicht -> Block-Eigenschaften). 4T-000781: KP-06 deckt zusaetzlich den Palette-Weg ab, der bis dahin wirkungslos war."
     },
     {
       "key": "help.shortcut.foldRegion",
@@ -1147,63 +1147,63 @@
       "id": "S-035",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "FB-07 (4T-0207): Einfuegen an Cursor-Position, Selektion-Ersetzen, wirkungslos im Reading-Modus."
+      "hinweis": "FB-07 (4T-000207): Einfuegen an Cursor-Position, Selektion-Ersetzen, wirkungslos im Reading-Modus."
     },
     {
       "key": "help.shortcut.exportPdf",
       "id": "S-036",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/pdf-export.spec.js"],
-      "hinweis": "PD-01/PD-02 (4T-0303): Strg+Umschalt+P loest den Export aus (Save-Dialog im Test durch Stub mit festem Zielpfad ersetzt); der native Dialog selbst ist manueller Test."
+      "hinweis": "PD-01/PD-02 (4T-000303): Strg+Umschalt+P loest den Export aus (Save-Dialog im Test durch Stub mit festem Zielpfad ersetzt); der native Dialog selbst ist manueller Test."
     },
     {
       "key": "help.shortcut.newApp",
       "id": "S-037",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/logische-apps.spec.js"],
-      "hinweis": "LA-02 (4T-0319): Kommando-Pfad app.newApplication (identisch mit Menue-Eintrag und EXE-Zweitstart ohne Argument); der echte EXE-Zweitstart ist manueller Test."
+      "hinweis": "LA-02 (4T-000319): Kommando-Pfad app.newApplication (identisch mit Menue-Eintrag und EXE-Zweitstart ohne Argument); der echte EXE-Zweitstart ist manueller Test."
     },
     {
       "key": "help.shortcut.openArea",
       "id": "S-038",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereiche.spec.js"],
-      "hinweis": "BE-01 bis BE-03 (4T-0322): Pfad-Einstieg area:openPath (identische Strecke wie Dialog-Weg ab Ordner-Wahl); der native Ordner-Dialog selbst ist manueller Test."
+      "hinweis": "BE-01 bis BE-03 (4T-000322): Pfad-Einstieg area:openPath (identische Strecke wie Dialog-Weg ab Ordner-Wahl); der native Ordner-Dialog selbst ist manueller Test."
     },
     {
       "key": "help.shortcut.closeArea",
       "id": "S-039",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereiche.spec.js"],
-      "hinweis": "BE-04 (4T-0322): Bereich schliessen schliesst alle Fenster der Bereichs-App."
+      "hinweis": "BE-04 (4T-000322): Bereich schliessen schliesst alle Fenster der Bereichs-App."
     },
     {
       "key": "help.shortcut.openHistory",
       "id": "S-040",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/dokument-historie.spec.js"],
-      "hinweis": "DH-08 (4T-0333): Historien-Ansicht ueber den Menue-IPC-Kanal menu:openHistory (identische Strecke wie der Menue-Klick)."
+      "hinweis": "DH-08 (4T-000333): Historien-Ansicht ueber den Menue-IPC-Kanal menu:openHistory (identische Strecke wie der Menue-Klick)."
     },
     {
       "key": "help.feature.insertTimestamp",
       "id": "F-066",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "FB-07 (4T-0207), identische Strecke wie S-035."
+      "hinweis": "FB-07 (4T-000207), identische Strecke wie S-035."
     },
     {
       "key": "help.feature.customHotkeys",
       "id": "F-067",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/hotkeys.spec.js"],
-      "hinweis": "HK-01 bis HK-05 (4T-0208): Capture, Konflikt, Reset, Persistenz, Draft."
+      "hinweis": "HK-01 bis HK-05 (4T-000208): Capture, Konflikt, Reset, Persistenz, Draft."
     },
     {
       "key": "help.feature.manual",
       "id": "F-068",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/handbuch.spec.js", "test/e2e/smoke/smoke.spec.js"],
-      "hinweis": "HB-01 bis HB-12 (4T-0213 bis 4T-0216, 4T-0649, 4T-0758): Read-only-Tabs, Einfach-Instanz, View-Modi, interne Navigation, generierte Seiten, fuenf Sprachen, Bildmarke der Ueberblicksseite, Sammel-Abruf aller Seiten samt Englisch-Fallback; SM-07 deckt den F1-/Menue-Einstieg."
+      "hinweis": "HB-01 bis HB-12 (4T-000213 bis 4T-000216, 4T-000649, 4T-000758): Read-only-Tabs, Einfach-Instanz, View-Modi, interne Navigation, generierte Seiten, fuenf Sprachen, Bildmarke der Ueberblicksseite, Sammel-Abruf aller Seiten samt Englisch-Fallback; SM-07 deckt den F1-/Menue-Einstieg."
     },
     {
       "key": "help.feature.frontmatterDisplay",
@@ -1215,7 +1215,7 @@
         "test/unit/render/frontmatter-anzeige.test.js",
         "test/e2e/funktionen/abstaende.spec.js"
       ],
-      "hinweis": "FM-01/FM-02 (4T-0282/4T-0283): Zeile, Pin, Live-Widget, Demaskierung, Paritaet; ES-09 (4T-0284): Schalter und Persistenz; Unit-Tests decken Markup, Escaping und Zeilen-Offset; FM-03 (4T-0312): dauerhaft ausgeklappte Darstellung (Schalter, Live-Widget, Print-Zustand, Persistenz). 4T-1310: Abstands-Regression (AB-01/AB-02)."
+      "hinweis": "FM-01/FM-02 (4T-000282/4T-000283): Zeile, Pin, Live-Widget, Demaskierung, Paritaet; ES-09 (4T-000284): Schalter und Persistenz; Unit-Tests decken Markup, Escaping und Zeilen-Offset; FM-03 (4T-000312): dauerhaft ausgeklappte Darstellung (Schalter, Live-Widget, Print-Zustand, Persistenz). 4T-001310: Abstands-Regression (AB-01/AB-02)."
     },
     {
       "key": "help.feature.sidebarLayout",
@@ -1226,14 +1226,14 @@
         "test/e2e/funktionen/einstellungen-seite.spec.js",
         "test/unit/renderer/sidebar-layout.test.js"
       ],
-      "hinweis": "SL-01 bis SL-09 (4T-0288/4T-0289): Default-Layout und Migration, Panels rechts, Reihenfolge, Reiter-Gruppen, Toggles pro Pane, Breiten, Drag-and-Drop, Broadcast; ES-10 (4T-0289): Einstellungs-Bereich; Unit-Tests decken Modell, Validierung und Operationen."
+      "hinweis": "SL-01 bis SL-09 (4T-000288/4T-000289): Default-Layout und Migration, Panels rechts, Reihenfolge, Reiter-Gruppen, Toggles pro Pane, Breiten, Drag-and-Drop, Broadcast; ES-10 (4T-000289): Einstellungs-Bereich; Unit-Tests decken Modell, Validierung und Operationen."
     },
     {
       "key": "help.feature.sidebarIconHeadings",
       "id": "F-151",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-layout.spec.js", "test/unit/panel-access.test.js"],
-      "hinweis": "4T-0639 (Epic 3E-0069): SL-12 deckt das Umschalten ueber den Einstellungs-Bereich (Abbrechen, Anwenden, OK), Sektions-Koepfe und Gruppen-Reiter, Tooltip und Screenreader-Label sowie den gespeicherten Zustand nach dem Neustart ab; der Paritaets-Waechter erzwingt, dass jeder Panel-Button ein Inline-SVG als Symbol-Quelle traegt."
+      "hinweis": "4T-000639 (Epic 3E-000069): SL-12 deckt das Umschalten ueber den Einstellungs-Bereich (Abbrechen, Anwenden, OK), Sektions-Koepfe und Gruppen-Reiter, Tooltip und Screenreader-Label sowie den gespeicherten Zustand nach dem Neustart ab; der Paritaets-Waechter erzwingt, dass jeder Panel-Button ein Inline-SVG als Symbol-Quelle traegt."
     },
     {
       "key": "help.feature.panelHeights",
@@ -1244,7 +1244,7 @@
         "test/e2e/funktionen/sidebar-überlauf.spec.js",
         "test/unit/renderer/sidebar-mindesthoehe.test.js"
       ],
-      "hinweis": "SL-10 (4T-0475, Epic 3E-0088): Zieh-Griff zieht die Höhe des Panels darüber, persistiert über Neustart, Doppelklick setzt auf Automatik zurück. SL-11 (4T-0634, Epic 3E-0119): Drag folgt der Maus 1:1, Nachbarn stabil. SL-13 (4T-0682, Epic 3E-0139): Der letzte Block einer Seite hat keinen Griff und laeuft deshalb immer auf Automatik — er nimmt seine Inhaltshoehe statt einer fixierten, und Ziehen legt fuer ihn keinen Store-Eintrag mehr an. SU-01 bis SU-03 (4T-0854, Epic 3E-0164): Uebersteigen die eingestellten Hoehen den Platz, rollt die Spalte senkrecht statt die unteren Bloecke zu kappen; das verdraengte Panel behaelt seine Mindesthoehe und ist durch Rollen erreichbar, die Spaltenbreite bleibt unveraendert, ohne Ueberlauf rollt nichts, und die eingeklappte Spalte rollt nicht. Der Unit-Waechter haelt die CSS-Mindesthoehe und MIN_PANEL_HEIGHT zusammen."
+      "hinweis": "SL-10 (4T-000475, Epic 3E-000088): Zieh-Griff zieht die Höhe des Panels darüber, persistiert über Neustart, Doppelklick setzt auf Automatik zurück. SL-11 (4T-000634, Epic 3E-000119): Drag folgt der Maus 1:1, Nachbarn stabil. SL-13 (4T-000682, Epic 3E-000139): Der letzte Block einer Seite hat keinen Griff und laeuft deshalb immer auf Automatik — er nimmt seine Inhaltshoehe statt einer fixierten, und Ziehen legt fuer ihn keinen Store-Eintrag mehr an. SU-01 bis SU-03 (4T-000854, Epic 3E-000164): Uebersteigen die eingestellten Hoehen den Platz, rollt die Spalte senkrecht statt die unteren Bloecke zu kappen; das verdraengte Panel behaelt seine Mindesthoehe und ist durch Rollen erreichbar, die Spaltenbreite bleibt unveraendert, ohne Ueberlauf rollt nichts, und die eingeklappte Spalte rollt nicht. Der Unit-Waechter haelt die CSS-Mindesthoehe und MIN_PANEL_HEIGHT zusammen."
     },
     {
       "key": "help.feature.panelHeightMode",
@@ -1254,7 +1254,7 @@
         "test/e2e/funktionen/sidebar-höhen-modell.spec.js",
         "test/unit/renderer/sidebar-höhen-modell.test.js"
       ],
-      "hinweis": "HM-01 bis HM-03 (4T-0855, Epic 3E-0164): Im Vorgabe-Modus «Hoehe je Panel» wechselt die Blockhoehe mit dem Reiter, im Modus «feste Hoehe je Gruppe» bleibt sie gleich; einzeln stehende Panels verhalten sich in beiden Modi gleich. Beide Modus-Faelle unterscheiden sich allein im Profil-Wert und belegen damit die Wirkung des Schalters. Die Unit-Faelle decken Zustand, Persistenz, Rueckfall bei defektem Wert, den Gruppen-Schluessel und vor allem die Trennung beider Hoehen-Speicher ab (ein Moduswechsel hin und zurueck verliert keine Hoehe)."
+      "hinweis": "HM-01 bis HM-03 (4T-000855, Epic 3E-000164): Im Vorgabe-Modus «Hoehe je Panel» wechselt die Blockhoehe mit dem Reiter, im Modus «feste Hoehe je Gruppe» bleibt sie gleich; einzeln stehende Panels verhalten sich in beiden Modi gleich. Beide Modus-Faelle unterscheiden sich allein im Profil-Wert und belegen damit die Wirkung des Schalters. Die Unit-Faelle decken Zustand, Persistenz, Rueckfall bei defektem Wert, den Gruppen-Schluessel und vor allem die Trennung beider Hoehen-Speicher ab (ein Moduswechsel hin und zurueck verliert keine Hoehe)."
     },
     {
       "key": "help.feature.extensions",
@@ -1267,7 +1267,7 @@
         "test/unit/renderer/extension-lifecycle.test.js",
         "test/unit/renderer/settings-extensions.test.js"
       ],
-      "hinweis": "EW-01 bis EW-03 (4T-0295): Schalten mit Sofort-Wirkung und Persistenz, erweiterungs-eigener Bereich, UI-Konsistenz; Unit-Tests decken Registry, Lebenszyklus, Aus-Zustaende der Pipeline und den Einstellungs-Bereich (3E-0052)."
+      "hinweis": "EW-01 bis EW-03 (4T-000295): Schalten mit Sofort-Wirkung und Persistenz, erweiterungs-eigener Bereich, UI-Konsistenz; Unit-Tests decken Registry, Lebenszyklus, Aus-Zustaende der Pipeline und den Einstellungs-Bereich (3E-000052)."
     },
     {
       "key": "help.feature.extensionsExternal",
@@ -1282,7 +1282,7 @@
         "test/unit/renderer/extension-host.test.js",
         "test/unit/renderer/settings-extensions-external.test.js"
       ],
-      "hinweis": "EX-01 bis EX-04 (4T-0298/4T-0300): Laden und Wirken der Referenz-Erweiterung, keine Ausfuehrung ohne Aktivierung, Fehler-Isolation mit Auto-Deaktivierung, Verwaltungs-Bereich; Unit-Tests decken Manifest/Versionierung, Scan mit ID-Whitelist, dynamische Kommandos, externe Markdown-Plugins, Host-Fassade mit Vertrauens-Ablauf und den Einstellungs-Bereich (3E-0053). Der native Warn-Dialog selbst ist manueller Test."
+      "hinweis": "EX-01 bis EX-04 (4T-000298/4T-000300): Laden und Wirken der Referenz-Erweiterung, keine Ausfuehrung ohne Aktivierung, Fehler-Isolation mit Auto-Deaktivierung, Verwaltungs-Bereich; Unit-Tests decken Manifest/Versionierung, Scan mit ID-Whitelist, dynamische Kommandos, externe Markdown-Plugins, Host-Fassade mit Vertrauens-Ablauf und den Einstellungs-Bereich (3E-000053). Der native Warn-Dialog selbst ist manueller Test."
     },
     {
       "key": "help.feature.exportPdf",
@@ -1293,7 +1293,7 @@
         "test/unit/pdf-options.test.js",
         "test/unit/renderer/pdf-source-print.test.js"
       ],
-      "hinweis": "PD-01 bis PD-08 (4T-0303/4T-0304/4T-0311): Export aus Dark-Theme mehrseitig ohne Dark-Reste, Abbruch, Fehlerpfad, Modus-Wiederherstellung, Print-Layout-Regeln, Export-Einstellungen mit Querformat, Quelltext-Export mit Print-Block; Unit-Tests decken das printToPDF-Options-Mapping und die Quelltext-Druck-Aufbereitung. Save-Dialog im Test gestubbt, der native Dialog selbst ist manueller Test."
+      "hinweis": "PD-01 bis PD-08 (4T-000303/4T-000304/4T-000311): Export aus Dark-Theme mehrseitig ohne Dark-Reste, Abbruch, Fehlerpfad, Modus-Wiederherstellung, Print-Layout-Regeln, Export-Einstellungen mit Querformat, Quelltext-Export mit Print-Block; Unit-Tests decken das printToPDF-Options-Mapping und die Quelltext-Druck-Aufbereitung. Save-Dialog im Test gestubbt, der native Dialog selbst ist manueller Test."
     },
     {
       "key": "help.feature.multiApp",
@@ -1305,7 +1305,7 @@
         "test/unit/session-schema.test.js",
         "test/unit/renderer/window-title.test.js"
       ],
-      "hinweis": "LA-01 bis LA-03 (3E-0057): App-Anlage ueber den Kommando-Pfad, Titel-Systematik, Nummern-Nachruecken, Sitzungs-Wiederherstellung ueber Apps; Unit-Tests decken Registry-Nummerierung, Sitzungs-Schema und Titel-Suffix-Aufbau. Der echte EXE-Zweitstart ist manueller Test."
+      "hinweis": "LA-01 bis LA-03 (3E-000057): App-Anlage ueber den Kommando-Pfad, Titel-Systematik, Nummern-Nachruecken, Sitzungs-Wiederherstellung ueber Apps; Unit-Tests decken Registry-Nummerierung, Sitzungs-Schema und Titel-Suffix-Aufbau. Der echte EXE-Zweitstart ist manueller Test."
     },
     {
       "key": "help.feature.area",
@@ -1316,28 +1316,28 @@
         "test/unit/area-path.test.js",
         "test/unit/renderer/area.test.js"
       ],
-      "hinweis": "BE-01 bis BE-08 (3E-0058): Bindung, Automatik-Regeln, Schliessen, Restore, harte Grenzen (file:read, Tab-Transfer) und Aussen-Link-Warnung; Unit-Tests decken die Innerhalb-Pruefung und den Ziel-Resolver. Native Dialoge (Ordner-Wahl, Abweisungen) sind manueller Test."
+      "hinweis": "BE-01 bis BE-08 (3E-000058): Bindung, Automatik-Regeln, Schliessen, Restore, harte Grenzen (file:read, Tab-Transfer) und Aussen-Link-Warnung; Unit-Tests decken die Innerhalb-Pruefung und den Ziel-Resolver. Native Dialoge (Ordner-Wahl, Abweisungen) sind manueller Test."
     },
     {
       "key": "help.feature.recentAreas",
       "id": "F-076",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereiche.spec.js", "test/unit/area-path.test.js"],
-      "hinweis": "BE-09 (4T-0325): Listen-Pflege (juengste zuerst, Dedupe, Sprung-Fall); der native Menue-Klick ist manueller Test."
+      "hinweis": "BE-09 (4T-000325): Listen-Pflege (juengste zuerst, Dedupe, Sprung-Fall); der native Menue-Klick ist manueller Test."
     },
     {
       "key": "help.feature.areaStartPage",
       "id": "F-274",
       "testart": "unit",
       "tests": ["test/unit/area-start-page.test.js", "test/unit/session-schema.test.js"],
-      "hinweis": "4T-1364/4T-1365 (3E-0171): Ablage der Festlegung in der Bereichsdatei als wurzel-relativer Pfad, Rueckgabe bei fehlendem, ordner-artigem oder ausserhalb liegendem Ziel, Schutz einer defekten Bereichsdatei; die Vorrang-Regel gegenueber der Sitzungs-Wiederherstellung als eigene Pruefung (sitzungHatPanes). Das Setzen ueber das Kontextmenue und die Kennzeichnung der Datei-Zeile sind manueller Test an der EXE."
+      "hinweis": "4T-001364/4T-001365 (3E-000171): Ablage der Festlegung in der Bereichsdatei als wurzel-relativer Pfad, Rueckgabe bei fehlendem, ordner-artigem oder ausserhalb liegendem Ziel, Schutz einer defekten Bereichsdatei; die Vorrang-Regel gegenueber der Sitzungs-Wiederherstellung als eigene Pruefung (sitzungHatPanes). Das Setzen ueber das Kontextmenue und die Kennzeichnung der Datei-Zeile sind manueller Test an der EXE."
     },
     {
       "key": "help.feature.areaPanel",
       "id": "F-077",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereichs-panel.spec.js", "test/unit/area-path.test.js"],
-      "hinweis": "BP-01 bis BP-03 (3E-0059): Auto-Anzeige, Baum und Dateiliste (nur Markdown), Oeffnen per Klick, Pfad-Tooltips, Statusbar-Toggle, Watcher-Aktualisierung, Neue-Datei-Anlage mit Kollisions-Meldung; Unit-Tests decken Listing-Sortierung und Namens-Validierung."
+      "hinweis": "BP-01 bis BP-03 (3E-000059): Auto-Anzeige, Baum und Dateiliste (nur Markdown), Oeffnen per Klick, Pfad-Tooltips, Statusbar-Toggle, Watcher-Aktualisierung, Neue-Datei-Anlage mit Kollisions-Meldung; Unit-Tests decken Listing-Sortierung und Namens-Validierung."
     },
     {
       "key": "help.feature.history",
@@ -1348,7 +1348,7 @@
         "test/unit/mdd-store.test.js",
         "test/unit/line-diff.test.js"
       ],
-      "hinweis": "DH-01/DH-02/DH-04 (3E-0060): Anker+Paket-Aufbau, Coalescing, external-Pakete, App-Default aus; Unit-Tests decken Delta-Roundtrip, Anker-Kadenz und Zeitfenster-Logik."
+      "hinweis": "DH-01/DH-02/DH-04 (3E-000060): Anker+Paket-Aufbau, Coalescing, external-Pakete, App-Default aus; Unit-Tests decken Delta-Roundtrip, Anker-Kadenz und Zeitfenster-Logik."
     },
     {
       "key": "help.feature.historyControl",
@@ -1359,49 +1359,49 @@
         "test/unit/mdd-store.test.js",
         "test/unit/area-migration.test.js"
       ],
-      "hinweis": "DH-05 bis DH-07 (3E-0060): YAML schlaegt App, Bereichs-Default aus Area_Settings.mdda, Statusbar-Zustaende und Klick-Menue; Unit-Tests decken die Drei-Ebenen-Aufloesung. 4T-0352 (3E-0064): stille Migration .mddb -> .mdda (DH-06, area-migration.test.js)."
+      "hinweis": "DH-05 bis DH-07 (3E-000060): YAML schlaegt App, Bereichs-Default aus Area_Settings.mdda, Statusbar-Zustaende und Klick-Menue; Unit-Tests decken die Drei-Ebenen-Aufloesung. 4T-000352 (3E-000064): stille Migration .mddb -> .mdda (DH-06, area-migration.test.js)."
     },
     {
       "key": "help.feature.historyView",
       "id": "F-080",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/dokument-historie.spec.js", "test/unit/line-diff.test.js"],
-      "hinweis": "DH-08 (3E-0060): Revisionsliste, Vergleich mit Diff-Zeilen, Ansehen, Wiederherstellen; Unit-Tests decken die Hunk-Darstellung (buildDiffRows)."
+      "hinweis": "DH-08 (3E-000060): Revisionsliste, Vergleich mit Diff-Zeilen, Ansehen, Wiederherstellen; Unit-Tests decken die Hunk-Darstellung (buildDiffRows)."
     },
     {
       "key": "help.shortcut.newSubpage",
       "id": "S-041",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
-      "hinweis": "US-03 (4T-0338): Dialog-Anlage der Unterseite ueber den Menue-IPC-Pfad; das Kommando hat kein Default-Binding."
+      "hinweis": "US-03 (4T-000338): Dialog-Anlage der Unterseite ueber den Menue-IPC-Pfad; das Kommando hat kein Default-Binding."
     },
     {
       "key": "help.shortcut.renameFile",
       "id": "S-042",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
-      "hinweis": "US-04 (4T-0339): Umbenennen ueber den Menue-IPC-Pfad mit Tab-, Lesezeichen- und Recent-Nachzug; Kollisions-Ablehnung. US-07 (4T-0646) deckt zusaetzlich den Vollname-Schalter des Dialogs ab."
+      "hinweis": "US-04 (4T-000339): Umbenennen ueber den Menue-IPC-Pfad mit Tab-, Lesezeichen- und Recent-Nachzug; Kollisions-Ablehnung. US-07 (4T-000646) deckt zusaetzlich den Vollname-Schalter des Dialogs ab."
     },
     {
       "key": "help.shortcut.detachSubpage",
       "id": "S-117",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
-      "hinweis": "US-08 (4T-0774): Loesen ueber den Menue-IPC-Pfad — mitwandernde Nachfahren, Verweis-Nachfuehrung, Kollision auf der Zielebene und der Hinweis an einer Top-Level-Seite."
+      "hinweis": "US-08 (4T-000774): Loesen ueber den Menue-IPC-Pfad — mitwandernde Nachfahren, Verweis-Nachfuehrung, Kollision auf der Zielebene und der Hinweis an einer Top-Level-Seite."
     },
     {
       "key": "help.shortcut.rejoinParts",
       "id": "S-140",
       "testart": "unit",
       "tests": ["test/unit/document-parts-schreiben.test.js"],
-      "hinweis": "4T-1293 (Epic 3E-0224): Wiedervereinen geteilter Dokumente auf der Datei-Ebene — Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments und die Verweigerung bei fehlendem Teil. Dazu der Negativ-Fall: Der Schreib-Weg vereint nie von selbst (AK5). Bestaetigung, Schwellen-Warnung und Menue-Weg sind manuell abgenommen."
+      "hinweis": "4T-001293 (Epic 3E-000224): Wiedervereinen geteilter Dokumente auf der Datei-Ebene — Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments und die Verweigerung bei fehlendem Teil. Dazu der Negativ-Fall: Der Schreib-Weg vereint nie von selbst (AK5). Bestaetigung, Schwellen-Warnung und Menue-Weg sind manuell abgenommen."
     },
     {
       "key": "help.shortcut.toggleSubpages",
       "id": "S-043",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
-      "hinweis": "US-06 (4T-0341): Toggle ueber den Menue-IPC-Pfad, Listen-Inhalt und Klick-Navigation; Breadcrumb im selben Spec."
+      "hinweis": "US-06 (4T-000341): Toggle ueber den Menue-IPC-Pfad, Listen-Inhalt und Klick-Navigation; Breadcrumb im selben Spec."
     },
     {
       "key": "help.feature.subpages",
@@ -1412,7 +1412,7 @@
         "test/unit/subpages.test.js",
         "test/unit/backlinks.test.js"
       ],
-      "hinweis": "US-01/US-02 (4T-0336/4T-0337): Klick-Aufloesung Slash-Form, relative Links, Embeds; Unit-Tests decken Namens-Logik und Index-Aufloesung."
+      "hinweis": "US-01/US-02 (4T-000336/4T-000337): Klick-Aufloesung Slash-Form, relative Links, Embeds; Unit-Tests decken Namens-Logik und Index-Aufloesung."
     },
     {
       "key": "help.feature.subpageCreate",
@@ -1423,14 +1423,14 @@
         "test/unit/subpages.test.js",
         "test/unit/backlinks.test.js"
       ],
-      "hinweis": "US-03 (4T-0338): Dialog-Anlage, Validierung, Kollisionsfall."
+      "hinweis": "US-03 (4T-000338): Dialog-Anlage, Validierung, Kollisionsfall."
     },
     {
       "key": "help.feature.subpageDetach",
       "id": "F-244",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/unterseiten.spec.js"],
-      "hinweis": "US-08 (4T-0774): Loesen macht die Unterseite eigenstaendig, eigene Nachfahren wandern mit, eingehende Verweise werden nachgefuehrt; Kollision auf der Zielebene und Hinweis an einer Top-Level-Seite."
+      "hinweis": "US-08 (4T-000774): Loesen macht die Unterseite eigenstaendig, eigene Nachfahren wandern mit, eingehende Verweise werden nachgefuehrt; Kollision auf der Zielebene und Hinweis an einer Top-Level-Seite."
     },
     {
       "key": "help.feature.documentSplit",
@@ -1441,14 +1441,14 @@
         "test/unit/document-parts-schreiben.test.js",
         "test/unit/area-search-teile.test.js"
       ],
-      "hinweis": "4T-1291 bis 4T-1293 (Epic 3E-0224): Schwelle in Byte, Schnitt ausschliesslich an einer Ueberschrift der obersten zwei Ebenen ausserhalb von Code-Zaeunen, Zerlegung und Umkehr-Eigenschaft gegen das Zusammensetzen, Erhalt der Grenzen beim Wachsen, Schreib-Reihenfolge gegen Inhalts-Verlust bei Abbruch, fehlender Teil und Nur-Lesen, Umbenennen-Kaskade, Zusammenfuehrung in der Bereichs-Suche. Ankuendigung und Wahl «nur lesen» sind am gebauten Programm abgenommen."
+      "hinweis": "4T-001291 bis 4T-001293 (Epic 3E-000224): Schwelle in Byte, Schnitt ausschliesslich an einer Ueberschrift der obersten zwei Ebenen ausserhalb von Code-Zaeunen, Zerlegung und Umkehr-Eigenschaft gegen das Zusammensetzen, Erhalt der Grenzen beim Wachsen, Schreib-Reihenfolge gegen Inhalts-Verlust bei Abbruch, fehlender Teil und Nur-Lesen, Umbenennen-Kaskade, Zusammenfuehrung in der Bereichs-Suche. Ankuendigung und Wahl «nur lesen» sind am gebauten Programm abgenommen."
     },
     {
       "key": "help.feature.rejoinParts",
       "id": "F-276",
       "testart": "unit",
       "tests": ["test/unit/document-parts-schreiben.test.js"],
-      "hinweis": "4T-1293 (Epic 3E-0224): Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments, Verweigerung bei fehlendem Teil, dazu der Negativ-Fall, dass der Schreib-Weg nie von selbst vereint. Bestaetigung und Schwellen-Warnung sind am gebauten Programm abgenommen."
+      "hinweis": "4T-001293 (Epic 3E-000224): Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments, Verweigerung bei fehlendem Teil, dazu der Negativ-Fall, dass der Schreib-Weg nie von selbst vereint. Bestaetigung und Schwellen-Warnung sind am gebauten Programm abgenommen."
     },
     {
       "key": "help.feature.renameFile",
@@ -1459,14 +1459,14 @@
         "test/unit/subpages.test.js",
         "test/unit/backlinks.test.js"
       ],
-      "hinweis": "US-04/US-05 (4T-0339/4T-0340): Grundfunktion mit Tab-/Recent-Nachzug und Kaskade ueber den Unterseiten-Baum."
+      "hinweis": "US-04/US-05 (4T-000339/4T-000340): Grundfunktion mit Tab-/Recent-Nachzug und Kaskade ueber den Unterseiten-Baum."
     },
     {
       "key": "help.feature.renameLinkUpdate",
       "id": "F-085",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/link-update.spec.js"],
-      "hinweis": "LU-01 bis LU-08 (4T-0345/4T-0346): Link-Update auf Disk und im Buffer, Dialog-Checkbox, Vorschau, Bericht, Einstellungs-Vorbelegung."
+      "hinweis": "LU-01 bis LU-08 (4T-000345/4T-000346): Link-Update auf Disk und im Buffer, Dialog-Checkbox, Vorschau, Bericht, Einstellungs-Vorbelegung."
     },
     {
       "key": "help.feature.subpagesNavigation",
@@ -1477,154 +1477,154 @@
         "test/unit/subpages.test.js",
         "test/unit/backlinks.test.js"
       ],
-      "hinweis": "US-06 (4T-0341): Breadcrumb mit fehlender Zwischen-Ebene und Klick-Navigation; Sektions-Liste mit Oeffnen per Klick."
+      "hinweis": "US-06 (4T-000341): Breadcrumb mit fehlender Zwischen-Ebene und Klick-Navigation; Sektions-Liste mit Oeffnen per Klick."
     },
     {
       "key": "help.shortcut.formatBold",
       "id": "S-044",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern (setzen/entfernen/Wort/leeres Paar); Hotkey Strg+B und Menue-Weg zusaetzlich in editor-format.spec.js (EF-01)."
+      "hinweis": "4T-000378: Toggle-Kern (setzen/entfernen/Wort/leeres Paar); Hotkey Strg+B und Menue-Weg zusaetzlich in editor-format.spec.js (EF-01)."
     },
     {
       "key": "help.shortcut.formatItalic",
       "id": "S-045",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern; Hotkey Strg+I in editor-format.spec.js."
+      "hinweis": "4T-000378: Toggle-Kern; Hotkey Strg+I in editor-format.spec.js."
     },
     {
       "key": "help.shortcut.formatStrikethrough",
       "id": "S-046",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
+      "hinweis": "4T-000378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
     },
     {
       "key": "help.shortcut.formatHighlight",
       "id": "S-047",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
+      "hinweis": "4T-000378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
     },
     {
       "key": "help.shortcut.formatCode",
       "id": "S-048",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
+      "hinweis": "4T-000378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
     },
     {
       "key": "help.shortcut.formatMath",
       "id": "S-049",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern inkl. avoid-Regel gegen $$-Bloecke; Zugang ueber Format-Submenue."
+      "hinweis": "4T-000378: Toggle-Kern inkl. avoid-Regel gegen $$-Bloecke; Zugang ueber Format-Submenue."
     },
     {
       "key": "help.shortcut.formatComment",
       "id": "S-050",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Toggle-Kern mit asymmetrischen Critic-Markern; Zugang ueber Format-Submenue."
+      "hinweis": "4T-000378: Toggle-Kern mit asymmetrischen Critic-Markern; Zugang ueber Format-Submenue."
     },
     {
       "key": "help.shortcut.formatClear",
       "id": "S-051",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Formatierung entfernen inkl. verschachtelter Marker; Link-Struktur bleibt erhalten."
+      "hinweis": "4T-000378: Formatierung entfernen inkl. verschachtelter Marker; Link-Struktur bleibt erhalten."
     },
     {
       "key": "help.shortcut.linkWiki",
       "id": "S-052",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: Wiki-Link um die Selektion bzw. leeres Paar; Menue-Weg in editor-format.spec.js."
+      "hinweis": "4T-000378: Wiki-Link um die Selektion bzw. leeres Paar; Menue-Weg in editor-format.spec.js."
     },
     {
       "key": "help.shortcut.linkExternal",
       "id": "S-053",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0378: externer Link mit url-Platzhalter; Zugang ueber die Link-Aktionen im Kontextmenue."
+      "hinweis": "4T-000378: externer Link mit url-Platzhalter; Zugang ueber die Link-Aktionen im Kontextmenue."
     },
     {
       "key": "help.shortcut.paragraphBulletList",
       "id": "S-054",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Zeilen-Toggle Aufzaehlung; Menue-Weg in editor-format.spec.js (EF-06)."
+      "hinweis": "4T-000379: Zeilen-Toggle Aufzaehlung; Menue-Weg in editor-format.spec.js (EF-06)."
     },
     {
       "key": "help.shortcut.paragraphOrderedList",
       "id": "S-055",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Zeilen-Toggle nummerierte Liste (fortlaufend); Absatz-Submenue."
+      "hinweis": "4T-000379: Zeilen-Toggle nummerierte Liste (fortlaufend); Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphTaskList",
       "id": "S-056",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Zeilen-Toggle Aufgabenliste; Absatz-Submenue."
+      "hinweis": "4T-000379: Zeilen-Toggle Aufgabenliste; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphHeading1",
       "id": "S-057",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift 1 als Toggle; Haekchen-Pruefung in editor-format.spec.js (EF-07)."
+      "hinweis": "4T-000379: Ueberschrift 1 als Toggle; Haekchen-Pruefung in editor-format.spec.js (EF-07)."
     },
     {
       "key": "help.shortcut.paragraphHeading2",
       "id": "S-058",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift 2 als Toggle; Absatz-Submenue."
+      "hinweis": "4T-000379: Ueberschrift 2 als Toggle; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphHeading3",
       "id": "S-059",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift 3 als Toggle; Absatz-Submenue."
+      "hinweis": "4T-000379: Ueberschrift 3 als Toggle; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphHeading4",
       "id": "S-060",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift 4 als Toggle; Absatz-Submenue."
+      "hinweis": "4T-000379: Ueberschrift 4 als Toggle; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphHeading5",
       "id": "S-061",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift 5 als Toggle; Absatz-Submenue."
+      "hinweis": "4T-000379: Ueberschrift 5 als Toggle; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphHeading6",
       "id": "S-062",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift 6 als Toggle; Absatz-Submenue."
+      "hinweis": "4T-000379: Ueberschrift 6 als Toggle; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphNoHeading",
       "id": "S-063",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Ueberschrift der Zeile entfernen; Absatz-Submenue."
+      "hinweis": "4T-000379: Ueberschrift der Zeile entfernen; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.paragraphQuote",
       "id": "S-064",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Zeilen-Toggle Zitat; Absatz-Submenue."
+      "hinweis": "4T-000379: Zeilen-Toggle Zitat; Absatz-Submenue."
     },
     {
       "key": "help.shortcut.listMove",
@@ -1635,14 +1635,14 @@
         "test/unit/extensions.test.js",
         "test/unit/renderer/listen-nummerierung.test.js"
       ],
-      "hinweis": "4T-0599: Struktur-Kern (Teilbaum, Verschieben, Neu-Nummerierung) und Kommando-Filterung bei abgeschalteter Erweiterung. 4T-0655: Trigger-Bedingungen der Nummerierungs-Invariante. Tastenbedienung und Undo zusaetzlich in test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-09 bis FB-17)."
+      "hinweis": "4T-000599: Struktur-Kern (Teilbaum, Verschieben, Neu-Nummerierung) und Kommando-Filterung bei abgeschalteter Erweiterung. 4T-000655: Trigger-Bedingungen der Nummerierungs-Invariante. Tastenbedienung und Undo zusaetzlich in test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-09 bis FB-17)."
     },
     {
       "key": "help.feature.listOutline",
       "id": "F-234",
       "testart": "unit",
       "tests": ["test/unit/list-outline.test.js", "test/unit/extensions.test.js"],
-      "hinweis": "4T-0599/4T-0600: Struktur-Kern (Teilbaum, Verschieben, Geschwister-Suche) und Kommando-Filterung; Tastenbedienung in test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-09 bis FB-11, FB-15)."
+      "hinweis": "4T-000599/4T-000600: Struktur-Kern (Teilbaum, Verschieben, Geschwister-Suche) und Kommando-Filterung; Tastenbedienung in test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-09 bis FB-11, FB-15)."
     },
     {
       "key": "help.feature.listNumbering",
@@ -1652,63 +1652,63 @@
         "test/unit/renderer/listen-nummerierung.test.js",
         "test/unit/render/listen-neustart.test.js"
       ],
-      "hinweis": "4T-0655/4T-0660: Trigger-Bedingungen der Nummerierungs-Invariante und der Nummern-Neustart in der Anzeige; Bedienung in FB-12 bis FB-14."
+      "hinweis": "4T-000655/4T-000660: Trigger-Bedingungen der Nummerierungs-Invariante und der Nummern-Neustart in der Anzeige; Bedienung in FB-12 bis FB-14."
     },
     {
       "key": "help.feature.listExit",
       "id": "F-236",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "4T-0600: FB-17 prueft alle drei Enter-Schritte (Fortsetzung, Ausruecken, Ausstieg). Die Fortsetzung selbst stammt aus der Editor-Bibliothek und ist dort nicht eigens getestet."
+      "hinweis": "4T-000600: FB-17 prueft alle drei Enter-Schritte (Fortsetzung, Ausruecken, Ausstieg). Die Fortsetzung selbst stammt aus der Editor-Bibliothek und ist dort nicht eigens getestet."
     },
     {
       "key": "help.shortcut.listSelectSubtree",
       "id": "S-113",
       "testart": "unit",
       "tests": ["test/unit/list-outline.test.js", "test/unit/commands.test.js"],
-      "hinweis": "4T-0600: Teilbaum-Bestimmung im Struktur-Kern (subtreeRange) und Registrierung des Kommandos; die Auswahl selbst braucht eine EditorView und ist manuell geprueft."
+      "hinweis": "4T-000600: Teilbaum-Bestimmung im Struktur-Kern (subtreeRange) und Registrierung des Kommandos; die Auswahl selbst braucht eine EditorView und ist manuell geprueft."
     },
     {
       "key": "help.shortcut.insertFootnote",
       "id": "S-065",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Fussnote mit naechster freier Nummer und Definition am Doc-Ende."
+      "hinweis": "4T-000379: Fussnote mit naechster freier Nummer und Definition am Doc-Ende."
     },
     {
       "key": "help.shortcut.insertTable",
       "id": "S-066",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Tabellen-Schablone; Menue-Weg in editor-format.spec.js (EF-08)."
+      "hinweis": "4T-000379: Tabellen-Schablone; Menue-Weg in editor-format.spec.js (EF-08)."
     },
     {
       "key": "help.shortcut.insertPerspectiveTable",
       "id": "S-139",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js", "test/unit/format-toolbar.test.js"],
-      "hinweis": "4T-1309: Geruest der Perspective-Tabelle; Registry-, Leisten- und Erweiterungs-Bindung in commands.test.js, format-toolbar.test.js und extensions.test.js."
+      "hinweis": "4T-001309: Geruest der Perspective-Tabelle; Registry-, Leisten- und Erweiterungs-Bindung in commands.test.js, format-toolbar.test.js und extensions.test.js."
     },
     {
       "key": "help.shortcut.insertCallout",
       "id": "S-067",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Hinweisblock-Schablone mit selektiertem Typ note."
+      "hinweis": "4T-000379: Hinweisblock-Schablone mit selektiertem Typ note."
     },
     {
       "key": "help.shortcut.insertHorizontalRule",
       "id": "S-068",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Horizontale Linie mit Leerzeilen-Puffer (Setext-sicher)."
+      "hinweis": "4T-000379: Horizontale Linie mit Leerzeilen-Puffer (Setext-sicher)."
     },
     {
       "key": "help.shortcut.insertCodeBlock",
       "id": "S-069",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
-      "hinweis": "4T-0379: Quelltext-Block, Cursor auf der Sprach-Position."
+      "hinweis": "4T-000379: Quelltext-Block, Cursor auf der Sprach-Position."
     },
     {
       "key": "help.feature.editorContextMenu",
@@ -1718,35 +1718,35 @@
         "test/e2e/funktionen/editor-kontextmenue.spec.js",
         "test/e2e/funktionen/editor-format.spec.js"
       ],
-      "hinweis": "4T-0380: Katalog-Eintrag fuer das Editor-Kontextmenue; abgedeckt durch EK-01 bis EK-05 (Menue, Klipboard, Read-only, Schliessen) und EF-01 bis EF-08 (Format/Absatz/Einfuegen)."
+      "hinweis": "4T-000380: Katalog-Eintrag fuer das Editor-Kontextmenue; abgedeckt durch EK-01 bis EK-05 (Menue, Klipboard, Read-only, Schliessen) und EF-01 bis EF-08 (Format/Absatz/Einfuegen)."
     },
     {
       "key": "help.feature.frontmatterQuery",
       "id": "F-087",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/frontmatter-abfrage.spec.js"],
-      "hinweis": "4T-0356: Katalog-Eintrag fuer die Frontmatter-Abfrage (perspective-query); abgedeckt durch FQ-01 (Liste, Klick, Live-Aktualisierung) und FQ-02 (Paritaet im Live-Modus)."
+      "hinweis": "4T-000356: Katalog-Eintrag fuer die Frontmatter-Abfrage (perspective-query); abgedeckt durch FQ-01 (Liste, Klick, Live-Aktualisierung) und FQ-02 (Paritaet im Live-Modus)."
     },
     {
       "key": "help.feature.documentNotes",
       "id": "F-088",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/notizen-panel.spec.js"],
-      "hinweis": "4T-0359/4T-0360 (Epic 3E-0066): Katalog-Eintrag fuer die Dokument-Notizen; abgedeckt durch NP-01 bis NP-05 (Eingeben/Speichern/Wiederfinden, Vorschau-Umschaltung, Unbenannt-Hinweis, Vorschau-Default, Format-Kuerzel und Kontextmenue im Notiz-Feld)."
+      "hinweis": "4T-000359/4T-000360 (Epic 3E-000066): Katalog-Eintrag fuer die Dokument-Notizen; abgedeckt durch NP-01 bis NP-05 (Eingeben/Speichern/Wiederfinden, Vorschau-Umschaltung, Unbenannt-Hinweis, Vorschau-Default, Format-Kuerzel und Kontextmenue im Notiz-Feld)."
     },
     {
       "key": "help.feature.blockMetadata",
       "id": "F-093",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/block-eigenschaften.spec.js"],
-      "hinweis": "4T-0363 bis 4T-0366 (Epic 3E-0067): Katalog-Eintrag fuer die Block-Metadaten; abgedeckt durch BP-01 bis BP-06 (Panel mit Anker-Dropdown, Anker anlegen und Persistenz in die .mdd, Verwaisten-Anzeige, Indikator im Render-Pane mit Hover und Panel-Klick, Broadcast-Nachzug, Live-Modus-Widget)."
+      "hinweis": "4T-000363 bis 4T-000366 (Epic 3E-000067): Katalog-Eintrag fuer die Block-Metadaten; abgedeckt durch BP-01 bis BP-06 (Panel mit Anker-Dropdown, Anker anlegen und Persistenz in die .mdd, Verwaisten-Anzeige, Indikator im Render-Pane mit Hover und Panel-Klick, Broadcast-Nachzug, Live-Modus-Widget)."
     },
     {
       "key": "help.feature.unsavedDrafts",
       "id": "F-089",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/entwurfs-zwischenspeicher.spec.js"],
-      "hinweis": "4T-0368/4T-0369 (Epic 3E-0068): Katalog-Eintrag fuer den Entwurfs-Zwischenspeicher; abgedeckt durch DR-01 bis DR-04 (Roundtrip Beenden/Neustart, mehrere Entwuerfe, Einstellung aus haelt den Dialog, bestehende Datei behaelt den Dialog)."
+      "hinweis": "4T-000368/4T-000369 (Epic 3E-000068): Katalog-Eintrag fuer den Entwurfs-Zwischenspeicher; abgedeckt durch DR-01 bis DR-04 (Roundtrip Beenden/Neustart, mehrere Entwuerfe, Einstellung aus haelt den Dialog, bestehende Datei behaelt den Dialog)."
     },
     {
       "key": "help.feature.querySources",
@@ -1756,28 +1756,28 @@
         "test/unit/perspective-query-index.test.js",
         "test/unit/perspective-query-eval.test.js"
       ],
-      "hinweis": "4T-0402/4T-0406 (Epic 3E-0076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet."
+      "hinweis": "4T-000402/4T-000406 (Epic 3E-000076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet."
     },
     {
       "key": "help.feature.queryTable",
       "id": "F-091",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/frontmatter-abfrage.spec.js"],
-      "hinweis": "4T-0404/4T-0406 (Epic 3E-0076): Tabellen-Ausgabe; abgedeckt durch FQ-03 (Kopfzeile mit Alias, sortierte Zeilen, Datei-Klick) plus jsdom-Suite der Bau-Funktion."
+      "hinweis": "4T-000404/4T-000406 (Epic 3E-000076): Tabellen-Ausgabe; abgedeckt durch FQ-03 (Kopfzeile mit Alias, sortierte Zeilen, Datei-Klick) plus jsdom-Suite der Bau-Funktion."
     },
     {
       "key": "help.feature.querySort",
       "id": "F-092",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/frontmatter-abfrage.spec.js"],
-      "hinweis": "4T-0403/4T-0405/4T-0406 (Epic 3E-0076): Sortierung/Limit (FQ-03, Pipeline-Unit-Suite) und Mehrspalten-Layout samt COLUMNS-Hinweis (FQ-04)."
+      "hinweis": "4T-000403/4T-000405/4T-000406 (Epic 3E-000076): Sortierung/Limit (FQ-03, Pipeline-Unit-Suite) und Mehrspalten-Layout samt COLUMNS-Hinweis (FQ-04)."
     },
     {
       "key": "help.feature.queryBlocks",
       "id": "F-099",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/block-abfrage.spec.js"],
-      "hinweis": "4T-0408 bis 4T-0410 (Epic 3E-0077): BLOCKS-Scope der Perspective-Abfrage; abgedeckt durch BQ-01 (Treffer als Datei#^anker plus Anker-Sprung), BQ-02 (Panel-Aenderung invalidiert die sichtbare Liste) und BQ-03 (Live-Paritaet und Klick) plus Parser-/Eval-/Index-Unit-Suiten."
+      "hinweis": "4T-000408 bis 4T-000410 (Epic 3E-000077): BLOCKS-Scope der Perspective-Abfrage; abgedeckt durch BQ-01 (Treffer als Datei#^anker plus Anker-Sprung), BQ-02 (Panel-Aenderung invalidiert die sichtbare Liste) und BQ-03 (Live-Paritaet und Klick) plus Parser-/Eval-/Index-Unit-Suiten."
     },
     {
       "key": "help.feature.queryContext",
@@ -1787,7 +1787,7 @@
         "test/unit/perspective-query-eval.test.js",
         "test/unit/perspective-query-index.test.js"
       ],
-      "hinweis": "4T-1070 (Epic 3E-0211): Bezug auf die Traeger-Datei — this.-Praefix in allen drei Scopes und Selbstbezugs-Quelle FROM [[]] / outgoing([[]]); Evaluator-Faelle mit und ohne ctx.self, Quellen-Faelle gegen den echten Link-Graphen samt Selbstverlinkungs-Ausschluss und weicher Degradation."
+      "hinweis": "4T-001070 (Epic 3E-000211): Bezug auf die Traeger-Datei — this.-Praefix in allen drei Scopes und Selbstbezugs-Quelle FROM [[]] / outgoing([[]]); Evaluator-Faelle mit und ohne ctx.self, Quellen-Faelle gegen den echten Link-Graphen samt Selbstverlinkungs-Ausschluss und weicher Degradation."
     },
     {
       "key": "help.feature.queryValues",
@@ -1797,7 +1797,7 @@
         "test/unit/perspective-query-eval.test.js",
         "test/unit/perspective-query-index.test.js"
       ],
-      "hinweis": "4T-1071 bis 4T-1073 (Epic 3E-0211): file.day (ISO-Praefix, unmoegliche Daten), days() mit Zeitumstellungs-Fall, Verkettungs-Rueckfall samt Regressions-Anker des numerischen Zweigs, numberformat/currencyformat mit Sprach-Bindung und beiden Rueckfall-Stufen, infolder gegen absolute Link-Pfade; Referenz-Muster «Letzter Kontakt» integriert gegen einen echten Index."
+      "hinweis": "4T-001071 bis 4T-001073 (Epic 3E-000211): file.day (ISO-Praefix, unmoegliche Daten), days() mit Zeitumstellungs-Fall, Verkettungs-Rueckfall samt Regressions-Anker des numerischen Zweigs, numberformat/currencyformat mit Sprach-Bindung und beiden Rueckfall-Stufen, infolder gegen absolute Link-Pfade; Referenz-Muster «Letzter Kontakt» integriert gegen einen echten Index."
     },
     {
       "key": "help.feature.queryHighlight",
@@ -1807,7 +1807,7 @@
         "test/unit/perspective-query-eval.test.js",
         "test/unit/renderer/frontmatter-query-view.test.js"
       ],
-      "hinweis": "4T-1074 (Epic 3E-0211): bold() als Segment-Liste — Verkettung mischt markierte und unmarkierte Anteile, Sternchen im Text bleiben woertlich, Vergleich/Ordnung/Wahrheitswert verhalten sich wie ohne Marke; jsdom-Faelle fuer Tabellen-Zelle, Listen-Zusatzfeld und Gruppen-Titel. PDF-Ausgabe manuell an der EXE (Test-Iteration des Sammeltasks)."
+      "hinweis": "4T-001074 (Epic 3E-000211): bold() als Segment-Liste — Verkettung mischt markierte und unmarkierte Anteile, Sternchen im Text bleiben woertlich, Vergleich/Ordnung/Wahrheitswert verhalten sich wie ohne Marke; jsdom-Faelle fuer Tabellen-Zelle, Listen-Zusatzfeld und Gruppen-Titel. PDF-Ausgabe manuell an der EXE (Test-Iteration des Sammeltasks)."
     },
     {
       "key": "help.feature.scriptBlocks",
@@ -1819,7 +1819,7 @@
         "test/unit/renderer/perspective-script-view.test.js",
         "test/unit/perspective-script-data.test.js"
       ],
-      "hinweis": "4T-0412 bis 4T-0414 (Epic 3E-0078): Skript-Bloecke (perspective-script); abgedeckt durch SK-01 bis SK-08 (Ausfuehrung/Fehler-Bild, Default aus mit Banner, Sandbox-Isolation, Zeit-Limit, Referenz-Baum, Tabellen-Ausgabe, Live-Paritaet, Einstellungs-Umschalten) plus Laufzeit-, Uebersetzer- und Snapshot-Unit-Suiten."
+      "hinweis": "4T-000412 bis 4T-000414 (Epic 3E-000078): Skript-Bloecke (perspective-script); abgedeckt durch SK-01 bis SK-08 (Ausfuehrung/Fehler-Bild, Default aus mit Banner, Sandbox-Isolation, Zeit-Limit, Referenz-Baum, Tabellen-Ausgabe, Live-Paritaet, Einstellungs-Umschalten) plus Laufzeit-, Uebersetzer- und Snapshot-Unit-Suiten."
     },
     {
       "key": "help.feature.datatable",
@@ -1830,14 +1830,14 @@
         "test/unit/perspective-datatable.test.js",
         "test/unit/render/snapshots.test.js"
       ],
-      "hinweis": "4T-0417/4T-0418/4T-0421 (Epic 3E-0079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-1313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13)."
+      "hinweis": "4T-000417/4T-000418/4T-000421 (Epic 3E-000079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-001313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13)."
     },
     {
       "key": "help.feature.datatableGrid",
       "id": "F-097",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/datentabelle.spec.js"],
-      "hinweis": "4T-0419 (Epic 3E-0079): Grid-Bearbeitung; abgedeckt durch DT-04 bis DT-08 (Typ-Zwang mit Rueckschreib-Kontrolle, Abweisen ungueltiger Werte, Boolean-Toggle, Zeilen-Aktionen mit zwei Tabellen, Read-only-Reading, Live-Widget-Bearbeitung)."
+      "hinweis": "4T-000419 (Epic 3E-000079): Grid-Bearbeitung; abgedeckt durch DT-04 bis DT-08 (Typ-Zwang mit Rueckschreib-Kontrolle, Abweisen ungueltiger Werte, Boolean-Toggle, Zeilen-Aktionen mit zwei Tabellen, Read-only-Reading, Live-Widget-Bearbeitung)."
     },
     {
       "key": "help.feature.datatableView",
@@ -1847,7 +1847,7 @@
         "test/e2e/funktionen/datentabelle.spec.js",
         "test/unit/perspective-datatable.test.js"
       ],
-      "hinweis": "4T-0420 (Epic 3E-0079): Ansichts-Sortierung und Filter; abgedeckt durch DT-09/DT-10 (Sortier-Zyklus ohne Dirty, Filter mit n-von-m und gefilterten Aggregaten, Editieren in gefilterter Ansicht, Tab-Wechsel) plus Vergleicher-/Filter-Unit-Suite."
+      "hinweis": "4T-000420 (Epic 3E-000079): Ansichts-Sortierung und Filter; abgedeckt durch DT-09/DT-10 (Sortier-Zyklus ohne Dirty, Filter mit n-von-m und gefilterten Aggregaten, Editieren in gefilterter Ansicht, Tab-Wechsel) plus Vergleicher-/Filter-Unit-Suite."
     },
     {
       "key": "help.feature.multiColumns",
@@ -1858,7 +1858,7 @@
         "test/unit/render/snapshots.test.js",
         "test/unit/markdown-pipeline.test.js"
       ],
-      "hinweis": "4T-0382/4T-0384 (Epic 3E-0072): Mehrspalten-Container; MC-01 bis MC-03 (Spaltenzahl-Klassen, Rueckfall ungueltiger Zahlen, Reading-Paritaet) plus Snapshot-Fixtures columns.md/columns-portable.md und Unit-Parsing-Matrix."
+      "hinweis": "4T-000382/4T-000384 (Epic 3E-000072): Mehrspalten-Container; MC-01 bis MC-03 (Spaltenzahl-Klassen, Rueckfall ungueltiger Zahlen, Reading-Paritaet) plus Snapshot-Fixtures columns.md/columns-portable.md und Unit-Parsing-Matrix."
     },
     {
       "key": "help.feature.roundedTabs",
@@ -1868,7 +1868,7 @@
         "test/e2e/funktionen/einstellungen-seite.spec.js",
         "test/unit/renderer/settings-page.test.js"
       ],
-      "hinweis": "4T-0575/4T-0579 (Epic 3E-0106): abgerundete Reiter-Ecken; abgedeckt durch ES-14 (Startzustand eckig, Live-Vorschau, entfallende Trennlinie, freie Akzentlinie, Persistenz ueber den Neustart) plus Unit-Block (Default aus, Root-Klasse, montierter Schalter)."
+      "hinweis": "4T-000575/4T-000579 (Epic 3E-000106): abgerundete Reiter-Ecken; abgedeckt durch ES-14 (Startzustand eckig, Live-Vorschau, entfallende Trennlinie, freie Akzentlinie, Persistenz ueber den Neustart) plus Unit-Block (Default aus, Root-Klasse, montierter Schalter)."
     },
     {
       "key": "help.feature.activeLine",
@@ -1878,7 +1878,7 @@
         "test/e2e/funktionen/einstellungen-seite.spec.js",
         "test/unit/renderer/settings-page.test.js"
       ],
-      "hinweis": "4T-0577/4T-0579 (Epic 3E-0106): Hervorhebung der Cursor-Zeile; abgedeckt durch ES-15 (Lese-Zustand ohne Hinterlegung, Edit-Modus mit, Abschalten, Persistenz ueber den Neustart) plus Unit-Block (Default an, Root-Klasse, montierter Schalter)."
+      "hinweis": "4T-000577/4T-000579 (Epic 3E-000106): Hervorhebung der Cursor-Zeile; abgedeckt durch ES-15 (Lese-Zustand ohne Hinterlegung, Edit-Modus mit, Abschalten, Persistenz ueber den Neustart) plus Unit-Block (Default an, Root-Klasse, montierter Schalter)."
     },
     {
       "key": "help.feature.contentWidth",
@@ -1888,7 +1888,7 @@
         "test/e2e/funktionen/einstellungen-seite.spec.js",
         "test/unit/renderer/settings-page.test.js"
       ],
-      "hinweis": "4T-0383/4T-0384 (Epic 3E-0072): Inhalts-Breite in Prozent; abgedeckt durch ES-11 (Default 80, Klemmen auf den Bereich, reale Breiten-Wirkung, Persistenz ueber den Neustart) plus Clamp-/Variablen-Unit-Suite."
+      "hinweis": "4T-000383/4T-000384 (Epic 3E-000072): Inhalts-Breite in Prozent; abgedeckt durch ES-11 (Default 80, Klemmen auf den Bereich, reale Breiten-Wirkung, Persistenz ueber den Neustart) plus Clamp-/Variablen-Unit-Suite."
     },
     {
       "key": "help.feature.books",
@@ -1902,7 +1902,7 @@
         "test/unit/render/extensions-aus.test.js",
         "test/unit/panel-access.test.js"
       ],
-      "hinweis": "4T-0842 bis 4T-0849 (Epic 3E-0147, Stories 4S-0751 bis 4S-0758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE."
+      "hinweis": "4T-000842 bis 4T-000849 (Epic 3E-000147, Stories 4S-000751 bis 4S-000758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE."
     },
     {
       "key": "help.feature.bookToc",
@@ -1914,7 +1914,7 @@
         "test/unit/book-core.test.js",
         "test/unit/panel-access.test.js"
       ],
-      "hinweis": "4T-0844 (Epic 3E-0147, Story 4S-0753): Inhaltsverzeichnis-Panel — BU-02 (Baum in Lese-Reihenfolge samt Einrückung, Abschnitt 'nicht eingehängt') und BU-03 (Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert mit). Der Aufbau der Zeilen ist zusätzlich gegen einen gemockten Buch-Zustand unit-getestet (Markierung eines fehlenden Kapitels, Leer-Zustände), der Abgleich Deklaration gegen Datei-Bestand im Kern-Modul (diffChapterFiles: die Buch-Datei erscheint nie als nicht eingehängt); die beiden Panel-Zugänge deckt der Paritäts-Wächter."
+      "hinweis": "4T-000844 (Epic 3E-000147, Story 4S-000753): Inhaltsverzeichnis-Panel — BU-02 (Baum in Lese-Reihenfolge samt Einrückung, Abschnitt 'nicht eingehängt') und BU-03 (Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert mit). Der Aufbau der Zeilen ist zusätzlich gegen einen gemockten Buch-Zustand unit-getestet (Markierung eines fehlenden Kapitels, Leer-Zustände), der Abgleich Deklaration gegen Datei-Bestand im Kern-Modul (diffChapterFiles: die Buch-Datei erscheint nie als nicht eingehängt); die beiden Panel-Zugänge deckt der Paritäts-Wächter."
     },
     {
       "key": "help.feature.bookStructure",
@@ -1926,7 +1926,7 @@
         "test/unit/book-core.test.js",
         "test/unit/books-main.test.js"
       ],
-      "hinweis": "4T-0845 (Epic 3E-0147, Story 4S-0754): Struktur-Pflege im Inhaltsverzeichnis — BU-05 (Baum-Operation und Tastatur-Geste, Panel und Begleitdatei ziehen nach, keine Datei bewegt sich). Zusätzlich unit-getestet: die Ziel-Berechnung der Ablage (Drittelung der Zeile, Index nach dem Aushängen, gesperrter eigener Unterbaum), die Alt-Pfeil-Gesten am fokussierten Eintrag und das Kontextmenü (Neues Kapitel, Einhängen, Aushängen) sind gegen die gemockte Brücke unit-getestet, die Baum-Operationen selbst im Kern-Modul (einhängen, aushängen, umsortieren, ein- und ausrücken samt Zyklus-Abwehr) und die Schreib-Strecke am Temp-Ordner (applyTreeOp, createChapter)."
+      "hinweis": "4T-000845 (Epic 3E-000147, Story 4S-000754): Struktur-Pflege im Inhaltsverzeichnis — BU-05 (Baum-Operation und Tastatur-Geste, Panel und Begleitdatei ziehen nach, keine Datei bewegt sich). Zusätzlich unit-getestet: die Ziel-Berechnung der Ablage (Drittelung der Zeile, Index nach dem Aushängen, gesperrter eigener Unterbaum), die Alt-Pfeil-Gesten am fokussierten Eintrag und das Kontextmenü (Neues Kapitel, Einhängen, Aushängen) sind gegen die gemockte Brücke unit-getestet, die Baum-Operationen selbst im Kern-Modul (einhängen, aushängen, umsortieren, ein- und ausrücken samt Zyklus-Abwehr) und die Schreib-Strecke am Temp-Ordner (applyTreeOp, createChapter)."
     },
     {
       "key": "help.feature.bookReading",
@@ -1937,7 +1937,7 @@
         "test/unit/renderer/book-panel.test.js",
         "test/unit/book-core.test.js"
       ],
-      "hinweis": "4T-0846 (Epic 3E-0147, Story 4S-0755): Leseführung über Kapitel-Grenzen — BU-04 (die Führung folgt der Baum-Ordnung über Ordner-Grenzen, am Ende Rückmeldung statt Umlauf). Die Lese-Ordnung ist zusätzlich im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel in beide Richtungen, kein Umlauf an den Enden, Hinweis-Zeile an der Grenze, abgeschaltete Kopf-Schaltflächen, nicht eingehängte Dateien außerhalb der Führung."
+      "hinweis": "4T-000846 (Epic 3E-000147, Story 4S-000755): Leseführung über Kapitel-Grenzen — BU-04 (die Führung folgt der Baum-Ordnung über Ordner-Grenzen, am Ende Rückmeldung statt Umlauf). Die Lese-Ordnung ist zusätzlich im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel in beide Richtungen, kein Umlauf an den Enden, Hinweis-Zeile an der Grenze, abgeschaltete Kopf-Schaltflächen, nicht eingehängte Dateien außerhalb der Führung."
     },
     {
       "key": "help.feature.bookMoveFile",
@@ -1948,7 +1948,7 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js"
       ],
-      "hinweis": "4T-0847 (Epic 3E-0147, Story 4S-0756): Kapitel-Datei verschieben mit Nachführung — BU-06 (Baum-Eintrag und eingehende Links einer dritten Datei ziehen nach). Zusätzlich unit-getestet: Planung samt Grenz- und Kollisions-Prüfung (Ziel im Buch-Ordner, belegter Name, Buch-Datei selbst) und die Nachführung der Deklaration (Aufwärts-Suche nach dem Buch, Baum-Position und Unterbaum bleiben) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog und die Verweis-Nachführung im Verbund sind manueller Test."
+      "hinweis": "4T-000847 (Epic 3E-000147, Story 4S-000756): Kapitel-Datei verschieben mit Nachführung — BU-06 (Baum-Eintrag und eingehende Links einer dritten Datei ziehen nach). Zusätzlich unit-getestet: Planung samt Grenz- und Kollisions-Prüfung (Ziel im Buch-Ordner, belegter Name, Buch-Datei selbst) und die Nachführung der Deklaration (Aufwärts-Suche nach dem Buch, Baum-Position und Unterbaum bleiben) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog und die Verweis-Nachführung im Verbund sind manueller Test."
     },
     {
       "key": "help.feature.bookRepair",
@@ -1959,14 +1959,14 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js"
       ],
-      "hinweis": "4T-0848 (Epic 3E-0147, Story 4S-0757): Reparatur fehlender Kapitel — BU-07 (ein am Dateisystem umbenanntes Kapitel wird als fehlend markiert, die Neu-Zuordnung heilt den Baum). Zusätzlich unit-getestet: die Wiederfinde-Vorschläge (namensgleiche Dateien im Buch-Ordner, Beilage am Zustands-Paket) und die Zuordnung samt Grenzen (außerhalb des Buch-Ordners, unbekannte Datei, bereits eingehängt, Buch-Datei) sind am Temp-Ordner unit-getestet, die Auswahl unter der Zeile und das Kontextmenü gegen die gemockte Brücke: Vorschlag nur vorbelegt und nie von selbst ausgeführt, Datei-Wahl als zweiter Weg, Aushängen als Ausweg."
+      "hinweis": "4T-000848 (Epic 3E-000147, Story 4S-000757): Reparatur fehlender Kapitel — BU-07 (ein am Dateisystem umbenanntes Kapitel wird als fehlend markiert, die Neu-Zuordnung heilt den Baum). Zusätzlich unit-getestet: die Wiederfinde-Vorschläge (namensgleiche Dateien im Buch-Ordner, Beilage am Zustands-Paket) und die Zuordnung samt Grenzen (außerhalb des Buch-Ordners, unbekannte Datei, bereits eingehängt, Buch-Datei) sind am Temp-Ordner unit-getestet, die Auswahl unter der Zeile und das Kontextmenü gegen die gemockte Brücke: Vorschlag nur vorbelegt und nie von selbst ausgeführt, Datei-Wahl als zweiter Weg, Aushängen als Ausweg."
     },
     {
       "key": "help.feature.fonts",
       "id": "F-250",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
-      "hinweis": "4T-0837 (Epic 3E-0161): Schriftart und -groesse getrennt fuer Bearbeiten-Flaeche und gerenderte Ansicht; abgedeckt durch ES-06 (Groessen-Aenderung wirkt sofort als CSS-Variable, Abbrechen setzt zurueck) und ES-07 (Anwenden persistiert). Die Funktion war ausgeliefert und getestet, nur der Katalog-Eintrag fehlte; er ist mit diesem Vorgang nachgetragen."
+      "hinweis": "4T-000837 (Epic 3E-000161): Schriftart und -groesse getrennt fuer Bearbeiten-Flaeche und gerenderte Ansicht; abgedeckt durch ES-06 (Groessen-Aenderung wirkt sofort als CSS-Variable, Abbrechen setzt zurueck) und ES-07 (Anwenden persistiert). Die Funktion war ausgeliefert und getestet, nur der Katalog-Eintrag fehlte; er ist mit diesem Vorgang nachgetragen."
     },
     {
       "key": "help.feature.templates",
@@ -1977,42 +1977,42 @@
         "test/unit/template-engine.test.js",
         "test/unit/templates.test.js"
       ],
-      "hinweis": "4T-0424 bis 4T-0427 (Epic 3E-0080): Vorlagen — VL-01 bis VL-08 (Datei aus Vorlage mit Dialog-Kette, Abbruch ohne Datei-Anlage, Einfuegen mit Cursor-Sprung und Ein-Schritt-Undo, Hinweis ohne konfigurierten Ordner, Ordner-Regeln: Treffer/kein Treffer/Vorrang des expliziten Wegs/Leer-Anlage bei Abbruch) plus Unit-Suiten der Engine, der Quellen-Aufloesung und der Tiefster-Treffer-Regel."
+      "hinweis": "4T-000424 bis 4T-000427 (Epic 3E-000080): Vorlagen — VL-01 bis VL-08 (Datei aus Vorlage mit Dialog-Kette, Abbruch ohne Datei-Anlage, Einfuegen mit Cursor-Sprung und Ein-Schritt-Undo, Hinweis ohne konfigurierten Ordner, Ordner-Regeln: Treffer/kein Treffer/Vorrang des expliziten Wegs/Leer-Anlage bei Abbruch) plus Unit-Suiten der Engine, der Quellen-Aufloesung und der Tiefster-Treffer-Regel."
     },
     {
       "key": "help.shortcut.newFromTemplate",
       "id": "S-072",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/vorlagen.spec.js"],
-      "hinweis": "4T-0426 (Epic 3E-0080): Kommando-Weg in VL-01/VL-02 (per belegbarem Kuerzel ausgeloest)."
+      "hinweis": "4T-000426 (Epic 3E-000080): Kommando-Weg in VL-01/VL-02 (per belegbarem Kuerzel ausgeloest)."
     },
     {
       "key": "help.shortcut.insertTemplate",
       "id": "S-073",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/vorlagen.spec.js"],
-      "hinweis": "4T-0426 (Epic 3E-0080): Einfuege-Weg in VL-03 (Cursor-Sprung, Undo in einem Schritt)."
+      "hinweis": "4T-000426 (Epic 3E-000080): Einfuege-Weg in VL-03 (Cursor-Sprung, Undo in einem Schritt)."
     },
     {
       "key": "help.shortcut.journalToday",
       "id": "S-074",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/journale.spec.js"],
-      "hinweis": "4T-0433 (Epic 3E-0081): Kommando-Weg in JR-01/JR-02 (per belegbarem Kuerzel ausgeloest)."
+      "hinweis": "4T-000433 (Epic 3E-000081): Kommando-Weg in JR-01/JR-02 (per belegbarem Kuerzel ausgeloest)."
     },
     {
       "key": "help.shortcut.journalForDate",
       "id": "S-075",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/journale.spec.js"],
-      "hinweis": "4T-0433 (Epic 3E-0081): Datum-Kommando in JR-03 (Datums-Dialog, Journal-Auswahl)."
+      "hinweis": "4T-000433 (Epic 3E-000081): Datum-Kommando in JR-03 (Datums-Dialog, Journal-Auswahl)."
     },
     {
       "key": "help.feature.templateRules",
       "id": "F-102",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/vorlagen.spec.js", "test/unit/templates.test.js"],
-      "hinweis": "4T-0427/4T-0429 (Epic 3E-0080): Ordner-Regeln — VL-05 bis VL-08 (Treffer, kein Treffer, Vorrang des expliziten Wegs, Leer-Anlage bei Abbruch) plus Unit-Suite der Tiefster-Treffer-Aufloesung."
+      "hinweis": "4T-000427/4T-000429 (Epic 3E-000080): Ordner-Regeln — VL-05 bis VL-08 (Treffer, kein Treffer, Vorrang des expliziten Wegs, Leer-Anlage bei Abbruch) plus Unit-Suite der Tiefster-Treffer-Aufloesung."
     },
     {
       "key": "help.feature.journals",
@@ -2023,14 +2023,14 @@
         "test/unit/journal-core.test.js",
         "test/unit/journal-perioden.test.js"
       ],
-      "hinweis": "4T-0431 bis 4T-0433 (Epic 3E-0081): Journale — JR-01 bis JR-04 (Heute-Kommando legt an mit Vorlage und Properties, erneuter Aufruf oeffnet nur, Datum-Kommando, Grenze vor startDate mit Hinweis) plus Unit-Suiten des Modells und des Perioden-Kerns."
+      "hinweis": "4T-000431 bis 4T-000433 (Epic 3E-000081): Journale — JR-01 bis JR-04 (Heute-Kommando legt an mit Vorlage und Properties, erneuter Aufruf oeffnet nur, Datum-Kommando, Grenze vor startDate mit Hinweis) plus Unit-Suiten des Modells und des Perioden-Kerns."
     },
     {
       "key": "help.feature.journalCalendar",
       "id": "F-104",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/journale.spec.js", "test/unit/journal-perioden.test.js"],
-      "hinweis": "4T-0434 (Epic 3E-0081): Kalender-Panel — JR-05 (Punkte nach Anlage, Tag- und KW-Klick, Monats-Blaettern, Heute-Knopf, Hinweis ohne Bereich) plus Unit-Suite des Monats-Gitters."
+      "hinweis": "4T-000434 (Epic 3E-000081): Kalender-Panel — JR-05 (Punkte nach Anlage, Tag- und KW-Klick, Monats-Blaettern, Heute-Knopf, Hinweis ohne Bereich) plus Unit-Suite des Monats-Gitters."
     },
     {
       "key": "help.feature.journalNav",
@@ -2042,7 +2042,7 @@
         "test/unit/render/snapshots.test.js",
         "test/e2e/funktionen/abstaende.spec.js"
       ],
-      "hinweis": "4T-0435 (Epic 3E-0081): Navigations-Block — JR-06 (Periode und Heute-Zeile, Eltern-Sprung mit Anlage, Hinweis ausserhalb) plus Unit-Suite der Kontext-Ermittlung und Snapshot-Fixture journal-nav.md. 4T-1310: Abstands-Regression (AB-01/AB-02). 4T-1311: Blaettern im selben Reiter (JR-06)."
+      "hinweis": "4T-000435 (Epic 3E-000081): Navigations-Block — JR-06 (Periode und Heute-Zeile, Eltern-Sprung mit Anlage, Hinweis ausserhalb) plus Unit-Suite der Kontext-Ermittlung und Snapshot-Fixture journal-nav.md. 4T-001310: Abstands-Regression (AB-01/AB-02). 4T-001311: Blaettern im selben Reiter (JR-06)."
     },
     {
       "key": "help.feature.journalTimeline",
@@ -2054,21 +2054,21 @@
         "test/unit/render/extensions-aus.test.js",
         "test/unit/render/snapshots.test.js"
       ],
-      "hinweis": "4T-1064 bis 4T-1066 (Epic 3E-0212): Timeline-Block — Aufbau der vier Modi, Kopfzeile samt Hervorhebung, Punkt-Markierung aus dem Existenz-Batch, Klick-Ziele je Perioden-Ebene mit Anlage, Degradations-Faelle und Portable-Ersetzung als jsdom-Unit; Modus-Parser, Wochen-Zeile und Fence-Erkennung als reine Unit im Perioden-Kern; Aus-Zustand der journals-Erweiterung und Snapshot-Fixture journal-timeline.md. Die Zeit-Zusage des Jahres-Modus (unter 150 ms) prueft der Product Owner an der gebauten Programmdatei, weil jsdom die Zeit eines echten Browsers nicht misst."
+      "hinweis": "4T-001064 bis 4T-001066 (Epic 3E-000212): Timeline-Block — Aufbau der vier Modi, Kopfzeile samt Hervorhebung, Punkt-Markierung aus dem Existenz-Batch, Klick-Ziele je Perioden-Ebene mit Anlage, Degradations-Faelle und Portable-Ersetzung als jsdom-Unit; Modus-Parser, Wochen-Zeile und Fence-Erkennung als reine Unit im Perioden-Kern; Aus-Zustand der journals-Erweiterung und Snapshot-Fixture journal-timeline.md. Die Zeit-Zusage des Jahres-Modus (unter 150 ms) prueft der Product Owner an der gebauten Programmdatei, weil jsdom die Zeit eines echten Browsers nicht misst."
     },
     {
       "key": "help.shortcut.areaGraph",
       "id": "S-076",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/graphenansicht.spec.js"],
-      "hinweis": "4T-0455 (Epic 3E-0084): Bereichs-Graph-Tab — GA-01 bis GA-04 (Oeffnen ueber den Menue-Kanal, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Hinweis ohne Bereich)."
+      "hinweis": "4T-000455 (Epic 3E-000084): Bereichs-Graph-Tab — GA-01 bis GA-04 (Oeffnen ueber den Menue-Kanal, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Hinweis ohne Bereich)."
     },
     {
       "key": "help.shortcut.commandPalette",
       "id": "S-078",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kommando-palette.spec.js"],
-      "hinweis": "4T-0480 (Epic 3E-0089): Kommando-Palette — KP-01 bis KP-05 (Oeffnen per Kuerzel und Menue-Kanal, Teilstring-Filter, Pfeil-Navigation mit Enter-Ausfuehrung, Esc, gedimmte nicht verfuegbare Kommandos) plus Unit-Suite des Filter-Moduls (test/unit/command-palette-filter.test.js). KP-06 (4T-0781): ein Kommando ohne Standard-Kuerzel wirkt ueber die Palette; die Vollstaendigkeit der Dispatcher-Map haelt test/unit/renderer/kommando-dispatcher.test.js."
+      "hinweis": "4T-000480 (Epic 3E-000089): Kommando-Palette — KP-01 bis KP-05 (Oeffnen per Kuerzel und Menue-Kanal, Teilstring-Filter, Pfeil-Navigation mit Enter-Ausfuehrung, Esc, gedimmte nicht verfuegbare Kommandos) plus Unit-Suite des Filter-Moduls (test/unit/command-palette-filter.test.js). KP-06 (4T-000781): ein Kommando ohne Standard-Kuerzel wirkt ueber die Palette; die Vollstaendigkeit der Dispatcher-Map haelt test/unit/renderer/kommando-dispatcher.test.js."
     },
     {
       "key": "help.feature.mindmap",
@@ -2081,7 +2081,7 @@
         "test/unit/renderer/mindmap-pane.test.js",
         "test/unit/render/extensions-aus.test.js"
       ],
-      "hinweis": "4T-1045 bis 4T-1049 (Epic 3E-0151): Mindmap-Ansicht — Baum-Abbildung und Anordnung im Kern samt der fuenf Wurzel-Lagen (44 Faelle: je Lage Wuchsrichtung, Ueberlappungsfreiheit, Determinismus, Klapp-Zustand und Rueckfall bei unbekanntem Wert, dazu die Verteilungs-Regel der mittigen Lage), Options-Aufloesung aus Voreinstellung und Kopfbereich (14), SVG-Ansicht mit Klappen, Zoom, Notiz-Popover, Sprung zur Quellzeile und der richtungs-abhaengigen Zeichnung (34), Rueckfall des Modus bei ausgeschalteter Erweiterung (5) sowie die Registry-Seite des Aus-Zustands. Der Bedienpfad an der gebauten Programmdatei kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
+      "hinweis": "4T-001045 bis 4T-001049 (Epic 3E-000151): Mindmap-Ansicht — Baum-Abbildung und Anordnung im Kern samt der fuenf Wurzel-Lagen (44 Faelle: je Lage Wuchsrichtung, Ueberlappungsfreiheit, Determinismus, Klapp-Zustand und Rueckfall bei unbekanntem Wert, dazu die Verteilungs-Regel der mittigen Lage), Options-Aufloesung aus Voreinstellung und Kopfbereich (14), SVG-Ansicht mit Klappen, Zoom, Notiz-Popover, Sprung zur Quellzeile und der richtungs-abhaengigen Zeichnung (34), Rueckfall des Modus bei ausgeschalteter Erweiterung (5) sowie die Registry-Seite des Aus-Zustands. Der Bedienpfad an der gebauten Programmdatei kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
     },
     {
       "key": "help.feature.mindmapDisplay",
@@ -2093,7 +2093,7 @@
         "test/unit/renderer/mindmap-view.test.js",
         "test/unit/renderer/mindmap-pane.test.js"
       ],
-      "hinweis": "4T-1048 und 4T-1049 (Epic 3E-0151): Darstellungs-Optionen der Mindmap — Aufloesung aus anwendungsweiter Voreinstellung und Kopfbereich des Dokuments samt stillem Rueckfall bei unzulaessigen Werten (14 Faelle), Wirkung der Wurzel-Lage in der Anordnung (44) und in der Zeichnung (34), Nachziehen offener Karten beim Aendern der Voreinstellung. Der Einstellungs-Bereich selbst kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
+      "hinweis": "4T-001048 und 4T-001049 (Epic 3E-000151): Darstellungs-Optionen der Mindmap — Aufloesung aus anwendungsweiter Voreinstellung und Kopfbereich des Dokuments samt stillem Rueckfall bei unzulaessigen Werten (14 Faelle), Wirkung der Wurzel-Lage in der Anordnung (44) und in der Zeichnung (34), Nachziehen offener Karten beim Aendern der Voreinstellung. Der Einstellungs-Bereich selbst kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
     },
     {
       "key": "help.feature.areaGraph",
@@ -2104,7 +2104,7 @@
         "test/unit/graph-core.test.js",
         "test/unit/graph-index.test.js"
       ],
-      "hinweis": "4T-0453 bis 4T-0455 (Epic 3E-0084): Bereichs-Graph — GA-01 bis GA-05 (Oeffnen, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Kontextmenue, Hinweis ohne Bereich) plus Unit-Suiten des Graph-Kerns und der Index-Lieferung."
+      "hinweis": "4T-000453 bis 4T-000455 (Epic 3E-000084): Bereichs-Graph — GA-01 bis GA-05 (Oeffnen, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Kontextmenue, Hinweis ohne Bereich) plus Unit-Suiten des Graph-Kerns und der Index-Lieferung."
     },
     {
       "key": "help.feature.fileGraph",
@@ -2114,28 +2114,28 @@
         "test/e2e/funktionen/graphenansicht.spec.js",
         "test/unit/renderer/graph-view.test.js"
       ],
-      "hinweis": "4T-0454/4T-0456 (Epic 3E-0084): Datei-Graph-Panel — GA-06 (Folgen der aktiven Datei, Tiefe, Richtung, Einzel-Knoten-Hinweis, Klick-Navigation) plus jsdom-Suite des SVG-Renderers (Marker, Hover, Drag, Ober-Grenze)."
+      "hinweis": "4T-000454/4T-000456 (Epic 3E-000084): Datei-Graph-Panel — GA-06 (Folgen der aktiven Datei, Tiefe, Richtung, Einzel-Knoten-Hinweis, Klick-Navigation) plus jsdom-Suite des SVG-Renderers (Marker, Hover, Drag, Ober-Grenze)."
     },
     {
       "key": "help.shortcut.toggleFileGraph",
       "id": "S-077",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/graphenansicht.spec.js"],
-      "hinweis": "4T-0456 (Epic 3E-0084): Datei-Graph-Panel — GA-06 (Toggle ueber den Menue-Kanal, Folgen der aktiven Datei, Tiefen- und Richtungs-Steuerung, Klick-Navigation, Einzel-Knoten-Hinweis)."
+      "hinweis": "4T-000456 (Epic 3E-000084): Datei-Graph-Panel — GA-06 (Toggle ueber den Menue-Kanal, Folgen der aktiven Datei, Tiefen- und Richtungs-Steuerung, Klick-Navigation, Einzel-Knoten-Hinweis)."
     },
     {
       "key": "help.feature.tabGroups",
       "id": "F-109",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/tab-gruppen.spec.js"],
-      "hinweis": "4T-0460/4T-0461 (Epic 3E-0085): Tab-Gruppen — TG-01 bis TG-08 (Menue-Fluesse, Klappen, Drop auf den Kopf, Sitzungs-Wiederherstellung, Aus-Zustand der Erweiterung); 4T-0767/4T-0768 (Epic 3E-0158): TG-20 bis TG-22 (Zuklappen mit aktivem Reiter darin, Aufklapp-Menue beim Ueberfahren samt Negativ-Fall). Modell-Invarianten zusaetzlich in test/unit/renderer/tab-groups.test.js."
+      "hinweis": "4T-000460/4T-000461 (Epic 3E-000085): Tab-Gruppen — TG-01 bis TG-08 (Menue-Fluesse, Klappen, Drop auf den Kopf, Sitzungs-Wiederherstellung, Aus-Zustand der Erweiterung); 4T-000767/4T-000768 (Epic 3E-000158): TG-20 bis TG-22 (Zuklappen mit aktivem Reiter darin, Aufklapp-Menue beim Ueberfahren samt Negativ-Fall). Modell-Invarianten zusaetzlich in test/unit/renderer/tab-groups.test.js."
     },
     {
       "key": "help.feature.tabSelection",
       "id": "F-243",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/tab-gruppen.spec.js"],
-      "hinweis": "4T-0765/4T-0766 (Epic 3E-0158): Mehrfach-Auswahl — TG-16 und TG-17 (Strg- und Umschalt-Geste, Markierung ab zwei Mitgliedern, Ziehen der Menge als Block), TG-18 und TG-19 (Mengen-Operationen auf Gruppen ueber das Kontextmenue). Auswahl-Modell zusaetzlich in test/unit/renderer/tab-selection.test.js."
+      "hinweis": "4T-000765/4T-000766 (Epic 3E-000158): Mehrfach-Auswahl — TG-16 und TG-17 (Strg- und Umschalt-Geste, Markierung ab zwei Mitgliedern, Ziehen der Menge als Block), TG-18 und TG-19 (Mengen-Operationen auf Gruppen ueber das Kontextmenue). Auswahl-Modell zusaetzlich in test/unit/renderer/tab-selection.test.js."
     },
     {
       "key": "help.feature.tabPlacement",
@@ -2145,7 +2145,7 @@
         "test/e2e/funktionen/tab-gruppen.spec.js",
         "test/e2e/funktionen/dokument-historie.spec.js"
       ],
-      "hinweis": "4T-0648 (Epic 3E-0130): Position neuer Reiter — TG-13 (Herkunft im Gruppen-Block), TG-14 (ohne Gruppe), TG-15 (Erweiterung tab-groups aus), DH-09 (dokument-gebundene Folge-Ansicht samt Umbinden und Rueckfall); Modell-Helfer zusaetzlich in test/unit/renderer/tab-groups.test.js."
+      "hinweis": "4T-000648 (Epic 3E-000130): Position neuer Reiter — TG-13 (Herkunft im Gruppen-Block), TG-14 (ohne Gruppe), TG-15 (Erweiterung tab-groups aus), DH-09 (dokument-gebundene Folge-Ansicht samt Umbinden und Rueckfall); Modell-Helfer zusaetzlich in test/unit/renderer/tab-groups.test.js."
     },
     {
       "key": "help.feature.datePicker",
@@ -2155,28 +2155,28 @@
         "test/e2e/funktionen/datums-picker.spec.js",
         "test/unit/renderer/date-picker.test.js"
       ],
-      "hinweis": "4T-0486/4T-0487 (Epic 3E-0091): Datums-/Uhrzeit-Picker — DP-01 bis DP-06 (Kommandos, Schalter, Einfuegen, Schreib-Trigger, Aus-Zustand der Erweiterung) und DP-07 bis DP-09 (Klick-Reaktivierung vorbelegt, Ersetzen an Ort und Stelle, Ausschluss-Kontexte) plus Unit-Suite der Wert-/Kalender-Helfer, Muster-Erkennung und Task-Schwanz-Abgrenzung. 4T-0943 (Epic 3E-0197): Zugang in der Zeile mit dem Cursor per Strg-Klick — DP-13 in Quelltext- und Live-Ansicht, mit der Gegenprobe, dass der einfache Klick dort weiterhin nur den Cursor setzt."
+      "hinweis": "4T-000486/4T-000487 (Epic 3E-000091): Datums-/Uhrzeit-Picker — DP-01 bis DP-06 (Kommandos, Schalter, Einfuegen, Schreib-Trigger, Aus-Zustand der Erweiterung) und DP-07 bis DP-09 (Klick-Reaktivierung vorbelegt, Ersetzen an Ort und Stelle, Ausschluss-Kontexte) plus Unit-Suite der Wert-/Kalender-Helfer, Muster-Erkennung und Task-Schwanz-Abgrenzung. 4T-000943 (Epic 3E-000197): Zugang in der Zeile mit dem Cursor per Strg-Klick — DP-13 in Quelltext- und Live-Ansicht, mit der Gegenprobe, dass der einfache Klick dort weiterhin nur den Cursor setzt."
     },
     {
       "key": "help.shortcut.insertDateTime",
       "id": "S-079",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/datums-picker.spec.js"],
-      "hinweis": "4T-0486 (Epic 3E-0091): kombinierter Picker per Kuerzel — DP-01 (Popup oeffnet, Uebernehmen fuegt 'yyyy-MM-dd HH:mm' am Cursor ein)."
+      "hinweis": "4T-000486 (Epic 3E-000091): kombinierter Picker per Kuerzel — DP-01 (Popup oeffnet, Uebernehmen fuegt 'yyyy-MM-dd HH:mm' am Cursor ein)."
     },
     {
       "key": "help.shortcut.insertDate",
       "id": "S-080",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/datums-picker.spec.js"],
-      "hinweis": "4T-0486 (Epic 3E-0091): Nur-Datum-Variante — DP-02 (Uhrzeit-Schalter aus, Einfuegen 'yyyy-MM-dd')."
+      "hinweis": "4T-000486 (Epic 3E-000091): Nur-Datum-Variante — DP-02 (Uhrzeit-Schalter aus, Einfuegen 'yyyy-MM-dd')."
     },
     {
       "key": "help.shortcut.insertTime",
       "id": "S-081",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/datums-picker.spec.js"],
-      "hinweis": "4T-0486 (Epic 3E-0091): Nur-Uhrzeit-Variante — DP-03 (Datums-Schalter aus, Einfuegen 'HH:mm')."
+      "hinweis": "4T-000486 (Epic 3E-000091): Nur-Uhrzeit-Variante — DP-03 (Datums-Schalter aus, Einfuegen 'HH:mm')."
     },
     {
       "key": "help.shortcut.taskEditDialog",
@@ -2190,189 +2190,189 @@
       "id": "S-083",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/erinnerungen.spec.js"],
-      "hinweis": "4T-0528 (Epic 3E-0095): Kommando Erinnerung setzen — ER-06 (Strg+Alt+R oeffnet den Picker, bestaetigen setzt den ⏰-Marker)."
+      "hinweis": "4T-000528 (Epic 3E-000095): Kommando Erinnerung setzen — ER-06 (Strg+Alt+R oeffnet den Picker, bestaetigen setzt den ⏰-Marker)."
     },
     {
       "key": "help.shortcut.toggleReminders",
       "id": "S-084",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/erinnerungen.spec.js"],
-      "hinweis": "4T-0527 (Epic 3E-0095): Erinnerungs-Panel toggeln — ER-05 (Statusbar-Button blendet die Sektion ein) und ER-07 (Aus-Zustand: kein Panel)."
+      "hinweis": "4T-000527 (Epic 3E-000095): Erinnerungs-Panel toggeln — ER-05 (Statusbar-Button blendet die Sektion ein) und ER-07 (Aus-Zustand: kein Panel)."
     },
     {
       "key": "help.shortcut.insertEvents",
       "id": "S-085",
       "testart": "unit",
       "tests": ["test/unit/perspective-events.test.js"],
-      "hinweis": "4T-0512 (Epic 3E-0092): Einfuege-Kommando des Ereignis-Blocks; der eingefuegte Fence-Aufbau ist ueber Viewer-/Format-Unit-Tests abgesichert, der CRUD-Weg im realen Fence ueber test/e2e/funktionen/ereignisse.spec.js (EV-01 bis EV-04)."
+      "hinweis": "4T-000512 (Epic 3E-000092): Einfuege-Kommando des Ereignis-Blocks; der eingefuegte Fence-Aufbau ist ueber Viewer-/Format-Unit-Tests abgesichert, der CRUD-Weg im realen Fence ueber test/e2e/funktionen/ereignisse.spec.js (EV-01 bis EV-04)."
     },
     {
       "key": "help.shortcut.workspaceSaveAs",
       "id": "S-086",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/arbeitsbereiche.spec.js"],
-      "hinweis": "4T-0538 (Epic 3E-0098): Kommando ohne Default-Kuerzel (Menue-Weg, Dimmung ueber hasWorkspace) — WS-01 (saveAs setzt Titel, Ablage und Untermenue)."
+      "hinweis": "4T-000538 (Epic 3E-000098): Kommando ohne Default-Kuerzel (Menue-Weg, Dimmung ueber hasWorkspace) — WS-01 (saveAs setzt Titel, Ablage und Untermenue)."
     },
     {
       "key": "help.shortcut.workspaceCreate",
       "id": "S-087",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/arbeitsbereiche.spec.js"],
-      "hinweis": "4T-0538 (Epic 3E-0098): Kommando ohne Default-Kuerzel (Menue-Weg) — WS-02/WS-03 (create oeffnet leeres Arbeitsbereichs-Fenster)."
+      "hinweis": "4T-000538 (Epic 3E-000098): Kommando ohne Default-Kuerzel (Menue-Weg) — WS-02/WS-03 (create oeffnet leeres Arbeitsbereichs-Fenster)."
     },
     {
       "key": "help.shortcut.workspaceClose",
       "id": "S-088",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/arbeitsbereiche.spec.js"],
-      "hinweis": "4T-0538 (Epic 3E-0098): Kommando ohne Default-Kuerzel (aktiv nur im Arbeitsbereichs-Fenster) — WS-02/WS-03 (close friert ein, Entwurfs-Mitnahme)."
+      "hinweis": "4T-000538 (Epic 3E-000098): Kommando ohne Default-Kuerzel (aktiv nur im Arbeitsbereichs-Fenster) — WS-02/WS-03 (close friert ein, Entwurfs-Mitnahme)."
     },
     {
       "key": "help.shortcut.workspaceManage",
       "id": "S-089",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/arbeitsbereiche.spec.js"],
-      "hinweis": "4T-0538 (Epic 3E-0098): Kommando ohne Default-Kuerzel (Verwaltungs-Dialog auf workspace:list/rename/setColor/delete) — Ablage-Wirkung ueber WS-04/WS-05 abgedeckt."
+      "hinweis": "4T-000538 (Epic 3E-000098): Kommando ohne Default-Kuerzel (Verwaltungs-Dialog auf workspace:list/rename/setColor/delete) — Ablage-Wirkung ueber WS-04/WS-05 abgedeckt."
     },
     {
       "key": "help.shortcut.insertCalendarValue",
       "id": "S-090",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-0546 (Epic 3E-0097): Kommando ohne Default-Kuerzel (Picker fuer benutzerdefinierte Kalender, kanonischer Wert am Cursor) — KS-04 (Einfuegen per belegtem Kuerzel); Klick-Bearbeitung ueber KS-03."
+      "hinweis": "4T-000546 (Epic 3E-000097): Kommando ohne Default-Kuerzel (Picker fuer benutzerdefinierte Kalender, kanonischer Wert am Cursor) — KS-04 (Einfuegen per belegtem Kuerzel); Klick-Bearbeitung ueber KS-03."
     },
     {
       "key": "help.feature.demoArea",
       "id": "F-132",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/demo-area.spec.js"],
-      "hinweis": "4T-0632 (Epic 3E-0102): mitgelieferte Demo-Area (englisch) — Erstellen in leeren Ordner inkl. Anlagen, Ablehnung nicht-leerer Ziele, Linter-Sauberkeit der Demo-Dateien; Manifest-Waechter test/unit/demo-area.test.js."
+      "hinweis": "4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area (englisch) — Erstellen in leeren Ordner inkl. Anlagen, Ablehnung nicht-leerer Ziele, Linter-Sauberkeit der Demo-Dateien; Manifest-Waechter test/unit/demo-area.test.js."
     },
     {
       "key": "help.shortcut.createDemoArea",
       "id": "S-091",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/demo-area.spec.js"],
-      "hinweis": "4T-0632 (Epic 3E-0102): Kommando ohne Default-Kuerzel (Menue-Weg, Dialog im Main) — Wirkung ueber den direkten Pfad-Einstieg demoArea:createAt abgedeckt."
+      "hinweis": "4T-000632 (Epic 3E-000102): Kommando ohne Default-Kuerzel (Menue-Weg, Dialog im Main) — Wirkung ueber den direkten Pfad-Einstieg demoArea:createAt abgedeckt."
     },
     {
       "key": "help.feature.panelToggleOrder",
       "id": "F-133",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/panel-zugänge.spec.js"],
-      "hinweis": "4T-0567/4T-0568/4T-0569 (Epic 3E-0104): Panel-Untermenue, dynamische Statusbar-Reihenfolge und Einstellungs-Bereich Panel-Reihenfolge — PZ-01 bis PZ-05; Modell, Normalisierung und Menue-State zusaetzlich unit-getestet (panel-access.test.js inkl. Paritaets-Waechter, menu-state.test.js)."
+      "hinweis": "4T-000567/4T-000568/4T-000569 (Epic 3E-000104): Panel-Untermenue, dynamische Statusbar-Reihenfolge und Einstellungs-Bereich Panel-Reihenfolge — PZ-01 bis PZ-05; Modell, Normalisierung und Menue-State zusaetzlich unit-getestet (panel-access.test.js inkl. Paritaets-Waechter, menu-state.test.js)."
     },
     {
       "key": "help.shortcut.toggleAreaPanel",
       "id": "S-092",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/panel-zugänge.spec.js"],
-      "hinweis": "4T-0567 (Epic 3E-0104): Kommando ohne Default-Kuerzel (Untermenue-/Statusbar-/Paletten-Weg) — Untermenue-Eintrag und Button-Reihenfolge ueber PZ-01/PZ-02, Toggle-Pfad ueber den zentralen Kanal menu:togglePanel (PZ-03-Muster)."
+      "hinweis": "4T-000567 (Epic 3E-000104): Kommando ohne Default-Kuerzel (Untermenue-/Statusbar-/Paletten-Weg) — Untermenue-Eintrag und Button-Reihenfolge ueber PZ-01/PZ-02, Toggle-Pfad ueber den zentralen Kanal menu:togglePanel (PZ-03-Muster)."
     },
     {
       "key": "help.shortcut.toggleCalendarPanel",
       "id": "S-093",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/panel-zugänge.spec.js"],
-      "hinweis": "4T-0567 (Epic 3E-0104): Kommando ohne Default-Kuerzel (Untermenue-/Statusbar-/Paletten-Weg) — Untermenue-Eintrag und Button-Reihenfolge ueber PZ-01/PZ-02, Toggle-Pfad ueber den zentralen Kanal menu:togglePanel (PZ-03-Muster)."
+      "hinweis": "4T-000567 (Epic 3E-000104): Kommando ohne Default-Kuerzel (Untermenue-/Statusbar-/Paletten-Weg) — Untermenue-Eintrag und Button-Reihenfolge ueber PZ-01/PZ-02, Toggle-Pfad ueber den zentralen Kanal menu:togglePanel (PZ-03-Muster)."
     },
     {
       "key": "help.shortcut.toggleClock",
       "id": "S-111",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/panel-zugänge.spec.js"],
-      "hinweis": "4T-0372 (Epic 3E-0069): Kommando ohne Default-Kuerzel (Untermenue-/Statusbar-/Paletten-Weg) — Untermenue-Eintrag und Button-Reihenfolge ueber PZ-01/PZ-02, Toggle-Pfad ueber den zentralen Kanal menu:togglePanel (PZ-03-Muster)."
+      "hinweis": "4T-000372 (Epic 3E-000069): Kommando ohne Default-Kuerzel (Untermenue-/Statusbar-/Paletten-Weg) — Untermenue-Eintrag und Button-Reihenfolge ueber PZ-01/PZ-02, Toggle-Pfad ueber den zentralen Kanal menu:togglePanel (PZ-03-Muster)."
     },
     {
       "key": "help.feature.editorViewSettings",
       "id": "F-134",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "4T-0572/4T-0573 (Epic 3E-0105): dokument-gebundene Editor-Ansicht-Schalter im Frontmatter (fold-gutter/line-numbers/word-wrap) plus globale Voreinstellung — FA-02 (Umschalten schreibt Frontmatter, Tab dirty) und Frontmatter-Override beim Oeffnen; Aufloesungs-Kette und Frontmatter-Schreiben zusaetzlich unit-getestet (editor-ansicht-voreinstellung.test.js)."
+      "hinweis": "4T-000572/4T-000573 (Epic 3E-000105): dokument-gebundene Editor-Ansicht-Schalter im Frontmatter (fold-gutter/line-numbers/word-wrap) plus globale Voreinstellung — FA-02 (Umschalten schreibt Frontmatter, Tab dirty) und Frontmatter-Override beim Oeffnen; Aufloesungs-Kette und Frontmatter-Schreiben zusaetzlich unit-getestet (editor-ansicht-voreinstellung.test.js)."
     },
     {
       "key": "help.shortcut.toggleFoldGutter",
       "id": "S-094",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "4T-0573 (Epic 3E-0105): Kommando ohne Default-Kuerzel (Statusbar-/Menue-/Paletten-Weg) — Toggle-Wirkung inkl. Frontmatter-Schreiben ueber FA-02 abgedeckt."
+      "hinweis": "4T-000573 (Epic 3E-000105): Kommando ohne Default-Kuerzel (Statusbar-/Menue-/Paletten-Weg) — Toggle-Wirkung inkl. Frontmatter-Schreiben ueber FA-02 abgedeckt."
     },
     {
       "key": "help.shortcut.toggleLineNumbers",
       "id": "S-095",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "4T-0573 (Epic 3E-0105): Kommando ohne Default-Kuerzel (Statusbar-/Menue-/Paletten-Weg) — Toggle-Wirkung inkl. Frontmatter-Schreiben ueber FA-02 abgedeckt."
+      "hinweis": "4T-000573 (Epic 3E-000105): Kommando ohne Default-Kuerzel (Statusbar-/Menue-/Paletten-Weg) — Toggle-Wirkung inkl. Frontmatter-Schreiben ueber FA-02 abgedeckt."
     },
     {
       "key": "help.shortcut.toggleWordWrap",
       "id": "S-096",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "4T-0573 (Epic 3E-0105): Kommando ohne Default-Kuerzel (Statusbar-/Menue-/Paletten-Weg) — Toggle-Wirkung inkl. Frontmatter-Schreiben ueber FA-02 abgedeckt."
+      "hinweis": "4T-000573 (Epic 3E-000105): Kommando ohne Default-Kuerzel (Statusbar-/Menue-/Paletten-Weg) — Toggle-Wirkung inkl. Frontmatter-Schreiben ueber FA-02 abgedeckt."
     },
     {
       "key": "help.feature.statusbarCommandButtons",
       "id": "F-135",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kommando-platzierung.spec.js"],
-      "hinweis": "4T-0520/4T-0523 (Epic 3E-0094): eigenes Statusbar-Segment mit Kommando-Buttons — KP-01 (Seed-Button fuehrt Kommando aus, Tooltip), KP-02 (Drei-Schritt-Anlage), KP-04 (Ueberlauf-Mehr-Menue), KP-05 (Aus-Zustand)."
+      "hinweis": "4T-000520/4T-000523 (Epic 3E-000094): eigenes Statusbar-Segment mit Kommando-Buttons — KP-01 (Seed-Button fuehrt Kommando aus, Tooltip), KP-02 (Drei-Schritt-Anlage), KP-04 (Ueberlauf-Mehr-Menue), KP-05 (Aus-Zustand)."
     },
     {
       "key": "help.feature.statusbarHideList",
       "id": "F-136",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kommando-platzierung.spec.js"],
-      "hinweis": "4T-0520/4T-0523 (Epic 3E-0094): Hide-Liste der Standard-Statusbar-Elemente ueber die Render-Logik — KP-03 (Ausblenden, DOM bleibt, Zuruecksetzen), KP-05 (Aus-Zustand laesst Hide-Liste inaktiv)."
+      "hinweis": "4T-000520/4T-000523 (Epic 3E-000094): Hide-Liste der Standard-Statusbar-Elemente ueber die Render-Logik — KP-03 (Ausblenden, DOM bleibt, Zuruecksetzen), KP-05 (Aus-Zustand laesst Hide-Liste inaktiv)."
     },
     {
       "key": "help.feature.contextMenuCommands",
       "id": "F-137",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kommando-platzierung.spec.js"],
-      "hinweis": "4T-0521/4T-0523 (Epic 3E-0094): nutzerdefinierte Sektion am Ende des Editor-Kontextmenues — KP-06 (Sektion, Ausfuehrung, disabled bei Bereichs-Pflicht), KP-07 (Live-Modus-Paritaet, Aus-Zustand)."
+      "hinweis": "4T-000521/4T-000523 (Epic 3E-000094): nutzerdefinierte Sektion am Ende des Editor-Kontextmenues — KP-06 (Sektion, Ausfuehrung, disabled bei Bereichs-Pflicht), KP-07 (Live-Modus-Paritaet, Aus-Zustand)."
     },
     {
       "key": "help.feature.macros",
       "id": "F-138",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kommando-platzierung.spec.js"],
-      "hinweis": "4T-0522/4T-0523 (Epic 3E-0094): Makros als dynamische Registry-Kommandos — KP-08 (platzierter Makro-Button, Abbruch-Hinweis), KP-09 (Editor-Flow, Testlauf, Palette-Findbarkeit); Runner-Kern zusaetzlich unit-getestet (macro-runner.test.js)."
+      "hinweis": "4T-000522/4T-000523 (Epic 3E-000094): Makros als dynamische Registry-Kommandos — KP-08 (platzierter Makro-Button, Abbruch-Hinweis), KP-09 (Editor-Flow, Testlauf, Palette-Findbarkeit); Runner-Kern zusaetzlich unit-getestet (macro-runner.test.js)."
     },
     {
       "key": "help.shortcut.saveSidebarVariant",
       "id": "S-097",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-varianten.spec.js"],
-      "hinweis": "4T-0624 (Epic 3E-0119): Kommando sidebar.saveVariant — SV-01 (Speichern per Namens-Dialog aus dem Einstellungs-Bereich, gleicher Weg wie das Kommando)."
+      "hinweis": "4T-000624 (Epic 3E-000119): Kommando sidebar.saveVariant — SV-01 (Speichern per Namens-Dialog aus dem Einstellungs-Bereich, gleicher Weg wie das Kommando)."
     },
     {
       "key": "help.shortcut.applySidebarVariant",
       "id": "S-098",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-varianten.spec.js"],
-      "hinweis": "4T-0624 (Epic 3E-0119): Kommando sidebar.applyVariant — SV-01/SV-03 (Anwenden inkl. Normalisierung alter Varianten)."
+      "hinweis": "4T-000624 (Epic 3E-000119): Kommando sidebar.applyVariant — SV-01/SV-03 (Anwenden inkl. Normalisierung alter Varianten)."
     },
     {
       "key": "help.feature.sidebarVariants",
       "id": "F-139",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-varianten.spec.js"],
-      "hinweis": "4T-0624/4T-0625/4T-0626 (Epic 3E-0119): benannte Sidebar-Varianten — SV-01 (Speichern/Anwenden inkl. Sichtbarkeit), SV-02 (Lebenszyklus), SV-03 (Normalisierung/Neustart), SV-04 (Bereichsdatei), SV-05 (Ansichtsmenü); Modell zusätzlich unit-getestet (sidebar-variants.test.js, mdd-store.test.js)."
+      "hinweis": "4T-000624/4T-000625/4T-000626 (Epic 3E-000119): benannte Sidebar-Varianten — SV-01 (Speichern/Anwenden inkl. Sichtbarkeit), SV-02 (Lebenszyklus), SV-03 (Normalisierung/Neustart), SV-04 (Bereichsdatei), SV-05 (Ansichtsmenü); Modell zusätzlich unit-getestet (sidebar-variants.test.js, mdd-store.test.js)."
     },
     {
       "key": "help.feature.formatToolbar",
       "id": "F-140",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/format-toolbar.spec.js"],
-      "hinweis": "4T-0607/4T-0608 (Epic 3E-0114): Format-Toolbar — FT-01 (Sichtbarkeit je Modus/Edit-Zustand), FT-02 (Format-Kommando mit Gedrückt-Zustand), FT-03 (Absatz-Zustand), FT-04 (Überschrift-Menü), FT-05 (Überlauf), FT-06 (Erweiterung aus), FT-07 (Tabellen-Raster-Picker inkl. Ein-Schritt-Undo), FT-08 (Belegung umsortieren/entfernen/zurücksetzen), FT-09 (Persistenz der Belegung); Belegungs-Modell und Raster-Geometrie zusätzlich unit-getestet (format-toolbar.test.js, markdown-format.test.js)."
+      "hinweis": "4T-000607/4T-000608 (Epic 3E-000114): Format-Toolbar — FT-01 (Sichtbarkeit je Modus/Edit-Zustand), FT-02 (Format-Kommando mit Gedrückt-Zustand), FT-03 (Absatz-Zustand), FT-04 (Überschrift-Menü), FT-05 (Überlauf), FT-06 (Erweiterung aus), FT-07 (Tabellen-Raster-Picker inkl. Ein-Schritt-Undo), FT-08 (Belegung umsortieren/entfernen/zurücksetzen), FT-09 (Persistenz der Belegung); Belegungs-Modell und Raster-Geometrie zusätzlich unit-getestet (format-toolbar.test.js, markdown-format.test.js)."
     },
     {
       "key": "help.feature.titleLine",
       "id": "F-141",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/titelzeile.spec.js"],
-      "hinweis": "4T-0585/4T-0586 (Epic 3E-0108): Titelzeile — TZ-01 (Sichtbarkeit je Ansichts-Modus, genau eine Instanz), TZ-02 (System-Tabs ohne Titelzeile), TZ-03 (Erweiterung aus), TZ-04 (Umbenennen über die Titelzeile inkl. Link-Update), TZ-05 (Kollisions-Hinweis), TZ-06 (Escape/Fokusverlust ohne Änderung), TZ-07 (Validierungs-Hinweis bei ungültigem Namen), TZ-08 (Unbenannt-Platzhalter); Anzeigenamen-Ableitung zusätzlich unit-getestet (subpages.test.js)."
+      "hinweis": "4T-000585/4T-000586 (Epic 3E-000108): Titelzeile — TZ-01 (Sichtbarkeit je Ansichts-Modus, genau eine Instanz), TZ-02 (System-Tabs ohne Titelzeile), TZ-03 (Erweiterung aus), TZ-04 (Umbenennen über die Titelzeile inkl. Link-Update), TZ-05 (Kollisions-Hinweis), TZ-06 (Escape/Fokusverlust ohne Änderung), TZ-07 (Validierungs-Hinweis bei ungültigem Namen), TZ-08 (Unbenannt-Platzhalter); Anzeigenamen-Ableitung zusätzlich unit-getestet (subpages.test.js)."
     },
     {
       "key": "help.feature.tableTools",
@@ -2382,7 +2382,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Tabellen-Kontextmenü — TK-01 (Untermenü nur in Tabellen, alle Operationen als Einträge), TK-02 (Zeile verschieben mit Datei-Wirkung und Ein-Schritt-Undo), TK-03 (Spalten-Ausrichtung mit Häkchen), TK-04 (Erweiterung table-tools aus), TK-05 (Kommando-Palette inkl. Dimmung), TK-06 (Perspective-Fence: Zeilen-Operation mit Undo), TK-07 (Span-Ablehnung mit Statusbar-Hinweis); Operationen-Kern vollständig unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Tabellen-Kontextmenü — TK-01 (Untermenü nur in Tabellen, alle Operationen als Einträge), TK-02 (Zeile verschieben mit Datei-Wirkung und Ein-Schritt-Undo), TK-03 (Spalten-Ausrichtung mit Häkchen), TK-04 (Erweiterung table-tools aus), TK-05 (Kommando-Palette inkl. Dimmung), TK-06 (Perspective-Fence: Zeilen-Operation mit Undo), TK-07 (Span-Ablehnung mit Statusbar-Hinweis); Operationen-Kern vollständig unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableAlignLeft",
@@ -2392,7 +2392,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.alignLeft — Menü-Eintrag und Zugang über TK-03 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.alignLeft — Menü-Eintrag und Zugang über TK-03 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableAlignCenter",
@@ -2402,7 +2402,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.alignCenter — Menü-Eintrag und Zugang über TK-03 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.alignCenter — Menü-Eintrag und Zugang über TK-03 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableAlignRight",
@@ -2412,7 +2412,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.alignRight — Menü-Eintrag und Zugang über TK-03 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.alignRight — Menü-Eintrag und Zugang über TK-03 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableRowUp",
@@ -2422,7 +2422,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.rowUp — Menü-Eintrag und Zugang über TK-02 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.rowUp — Menü-Eintrag und Zugang über TK-02 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableRowDown",
@@ -2432,7 +2432,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.rowDown — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.rowDown — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableRowInsert",
@@ -2442,7 +2442,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.rowInsert — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.rowInsert — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableRowDelete",
@@ -2452,7 +2452,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.rowDelete — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.rowDelete — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableColLeft",
@@ -2462,7 +2462,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.colLeft — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.colLeft — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableColRight",
@@ -2472,7 +2472,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.colRight — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.colRight — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableColInsert",
@@ -2482,7 +2482,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.colInsert — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.colInsert — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableColDelete",
@@ -2492,7 +2492,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.colDelete — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.colDelete — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.shortcut.tableTranspose",
@@ -2502,7 +2502,7 @@
         "test/e2e/funktionen/tabellen-kontextmenue.spec.js",
         "test/unit/table-edit.test.js"
       ],
-      "hinweis": "4T-0590/4T-0591 (Epic 3E-0109): Kommando table.transpose — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
+      "hinweis": "4T-000590/4T-000591 (Epic 3E-000109): Kommando table.transpose — Menü-Eintrag und Zugang über TK-01 der Tabellen-Kontextmenü-Spec; Operations-Semantik unit-getestet (table-edit.test.js, perspective-table-edit.test.js)."
     },
     {
       "key": "help.feature.inlineCalc",
@@ -2514,7 +2514,7 @@
         "test/unit/render/snapshots.test.js",
         "test/unit/export-portable.test.js"
       ],
-      "hinweis": "4T-0595/4T-0596 (Epic 3E-0111): Inline-Berechnungen {= Ausdruck =} — IB-01 (Render-Ergebnis mit Tooltip und Fehlerbild), IB-02 (Quelltext-Einfärbung), IB-03 (Live-Widget mit Cursor-Aufdecken und Klick ins Konstrukt), IB-04 (Erweiterung aus); Marker-Grammatik, kontext-freie Auswertung über die Query-Engine, Fehler-Codes und attrs-/Critic-Abgrenzung unit-getestet (inline-calc.test.js), Render-HTML und Portable-Einbrennen über Snapshot-Fixture und Export-Tests abgesichert."
+      "hinweis": "4T-000595/4T-000596 (Epic 3E-000111): Inline-Berechnungen {= Ausdruck =} — IB-01 (Render-Ergebnis mit Tooltip und Fehlerbild), IB-02 (Quelltext-Einfärbung), IB-03 (Live-Widget mit Cursor-Aufdecken und Klick ins Konstrukt), IB-04 (Erweiterung aus); Marker-Grammatik, kontext-freie Auswertung über die Query-Engine, Fehler-Codes und attrs-/Critic-Abgrenzung unit-getestet (inline-calc.test.js), Render-HTML und Portable-Einbrennen über Snapshot-Fixture und Export-Tests abgesichert."
     },
     {
       "key": "help.feature.frontmatterTimestamps",
@@ -2524,7 +2524,7 @@
         "test/unit/frontmatter-timestamps.test.js",
         "test/e2e/funktionen/eingabe-automatiken.spec.js"
       ],
-      "hinweis": "4T-0604 (Epic 3E-0113): Automatik für created/updated im Frontmatter — Regel-Matrix unit-getestet (Feld vorhanden/leer/fehlend, Anlage-Option, beide Formate, created einmalig, birthtime-Fallback, Parse-Fehler, keine Änderung ohne Anlass); der echte Speicher-Pfad samt Aus-Zustand der Erweiterung über die E2E-Spec."
+      "hinweis": "4T-000604 (Epic 3E-000113): Automatik für created/updated im Frontmatter — Regel-Matrix unit-getestet (Feld vorhanden/leer/fehlend, Anlage-Option, beide Formate, created einmalig, birthtime-Fallback, Parse-Fehler, keine Änderung ohne Anlass); der echte Speicher-Pfad samt Aus-Zustand der Erweiterung über die E2E-Spec."
     },
     {
       "key": "help.feature.pasteLink",
@@ -2534,7 +2534,7 @@
         "test/unit/markdown-format.test.js",
         "test/e2e/funktionen/eingabe-automatiken.spec.js"
       ],
-      "hinweis": "4T-0603 (Epic 3E-0113): URL-in-Auswahl als Markdown-Link — URL-Erkennung und Link-Erzeugung inklusive Spitze-Klammern bei Leerzeichen- und Klammer-Zielen unit-getestet; EA-01 bis EA-07 decken Umwandlung, leere Auswahl, Klammer-URL, Code-Kontext, Schalter aus, Undo in einem Schritt und Strg+Umschalt+V ab."
+      "hinweis": "4T-000603 (Epic 3E-000113): URL-in-Auswahl als Markdown-Link — URL-Erkennung und Link-Erzeugung inklusive Spitze-Klammern bei Leerzeichen- und Klammer-Zielen unit-getestet; EA-01 bis EA-07 decken Umwandlung, leere Auswahl, Klammer-URL, Code-Kontext, Schalter aus, Undo in einem Schritt und Strg+Umschalt+V ab."
     },
     {
       "key": "help.feature.sidebarCollapse",
@@ -2544,28 +2544,28 @@
         "test/e2e/funktionen/sidebar-einklappen.spec.js",
         "test/unit/renderer/sidebar-collapse.test.js"
       ],
-      "hinweis": "4T-0697/4T-0698 (Epic 3E-0141): ganze Sidebar-Spalten ein-/ausklappen — SC-01 (Kopf-Icon am inneren Rand, rechts gespiegelt), SC-02 (Icon in der Reiterleiste einer Gruppe), SC-03 (Einklappen zum Strich, Hover-Icon, verlustfreies Ausklappen), SC-04 (Tooltip je Zustand), SC-07 (Icon wandert in den neuen obersten Kopf); Zustands-Modell (Setter/Toggle je Editor-Spalte, globale Speicherung, Aus-Zustand der Erweiterung) zusaetzlich unit-getestet (sidebar-collapse.test.js)."
+      "hinweis": "4T-000697/4T-000698 (Epic 3E-000141): ganze Sidebar-Spalten ein-/ausklappen — SC-01 (Kopf-Icon am inneren Rand, rechts gespiegelt), SC-02 (Icon in der Reiterleiste einer Gruppe), SC-03 (Einklappen zum Strich, Hover-Icon, verlustfreies Ausklappen), SC-04 (Tooltip je Zustand), SC-07 (Icon wandert in den neuen obersten Kopf); Zustands-Modell (Setter/Toggle je Editor-Spalte, globale Speicherung, Aus-Zustand der Erweiterung) zusaetzlich unit-getestet (sidebar-collapse.test.js)."
     },
     {
       "key": "help.shortcut.toggleSidebarLeft",
       "id": "S-114",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-einklappen.spec.js"],
-      "hinweis": "4T-0697 (Epic 3E-0141): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Linke Sidebar einklappen' (Menue-/Paletten-Weg, belegbar) — SC-05 klappt ueber den Menue-Kanal menu:toggleSidebarLeft die linke Spalte ein und wieder aus; Setter/Toggle-Zustand und globale Speicherung zusaetzlich unit-getestet (sidebar-collapse.test.js)."
+      "hinweis": "4T-000697 (Epic 3E-000141): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Linke Sidebar einklappen' (Menue-/Paletten-Weg, belegbar) — SC-05 klappt ueber den Menue-Kanal menu:toggleSidebarLeft die linke Spalte ein und wieder aus; Setter/Toggle-Zustand und globale Speicherung zusaetzlich unit-getestet (sidebar-collapse.test.js)."
     },
     {
       "key": "help.shortcut.toggleSidebarRight",
       "id": "S-115",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/sidebar-einklappen.spec.js"],
-      "hinweis": "4T-0697 (Epic 3E-0141): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Rechte Sidebar einklappen' (Menue-/Paletten-Weg, belegbar) — SC-01 deckt das rechte, gespiegelte Kopf-Icon ab, SC-05 den gleichartigen Menue-Kommando-Weg der linken Spalte; Setter/Toggle-Zustand und globale Speicherung zusaetzlich unit-getestet (sidebar-collapse.test.js)."
+      "hinweis": "4T-000697 (Epic 3E-000141): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Rechte Sidebar einklappen' (Menue-/Paletten-Weg, belegbar) — SC-01 deckt das rechte, gespiegelte Kopf-Icon ab, SC-05 den gleichartigen Menue-Kommando-Weg der linken Spalte; Setter/Toggle-Zustand und globale Speicherung zusaetzlich unit-getestet (sidebar-collapse.test.js)."
     },
     {
       "key": "help.shortcut.areaStats",
       "id": "S-118",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereichs-statistik.spec.js"],
-      "hinweis": "4T-0620 (Epic 3E-0117): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Bereichs-Statistik' (Menue-/Paletten-Weg, belegbar) — BS-01 oeffnet die Seite ueber den Menue-Kanal, BS-02 prueft die Tab-Wiederverwendung, BS-04 den Hinweis ohne Bereich."
+      "hinweis": "4T-000620 (Epic 3E-000117): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Bereichs-Statistik' (Menue-/Paletten-Weg, belegbar) — BS-01 oeffnet die Seite ueber den Menue-Kanal, BS-02 prueft die Tab-Wiederverwendung, BS-04 den Hinweis ohne Bereich."
     },
     {
       "key": "help.feature.areaStats",
@@ -2576,28 +2576,28 @@
         "test/unit/area-stats.test.js",
         "test/unit/area-stats-extension.test.js"
       ],
-      "hinweis": "4T-0619/4T-0620 (Epic 3E-0117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet."
+      "hinweis": "4T-000619/4T-000620 (Epic 3E-000117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet."
     },
     {
       "key": "help.shortcut.openBook",
       "id": "S-119",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/books-main.test.js"],
-      "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch oeffnen' (Menue-/Paletten-Weg, belegbar) — der native Ordner-Dialog ist manueller Test, die Wirkung dahinter ist am Temp-Ordner unit-getestet: Erkennung des Buch-Ordners ueber die Begleitdatei, Zustands-Aufbau mit Baum, Lese-Ordnung und Datei-Abgleich, Abweisung eines Ordners ohne benannte Buch-Datei."
+      "hinweis": "4T-000843 (Epic 3E-000147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch oeffnen' (Menue-/Paletten-Weg, belegbar) — der native Ordner-Dialog ist manueller Test, die Wirkung dahinter ist am Temp-Ordner unit-getestet: Erkennung des Buch-Ordners ueber die Begleitdatei, Zustands-Aufbau mit Baum, Lese-Ordnung und Datei-Abgleich, Abweisung eines Ordners ohne benannte Buch-Datei."
     },
     {
       "key": "help.shortcut.newBook",
       "id": "S-120",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/books-main.test.js"],
-      "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Neues Buch' (Menue-/Paletten-Weg, belegbar) — die Anlage selbst ist am Temp-Ordner unit-getestet (Buch-Ordner, leere Buch-Datei, Begleitdatei; Namens-Pruefung; bestehender Ordner bleibt unangetastet), der native Dialog ist manueller Test."
+      "hinweis": "4T-000843 (Epic 3E-000147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Neues Buch' (Menue-/Paletten-Weg, belegbar) — die Anlage selbst ist am Temp-Ordner unit-getestet (Buch-Ordner, leere Buch-Datei, Begleitdatei; Namens-Pruefung; bestehender Ordner bleibt unangetastet), der native Dialog ist manueller Test."
     },
     {
       "key": "help.shortcut.closeBook",
       "id": "S-121",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/books-main.test.js"],
-      "hinweis": "4T-0843 (Epic 3E-0147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Buch-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildBookState unit-getestet, die Bindung selbst prueft die Test-Iteration an der EXE."
+      "hinweis": "4T-000843 (Epic 3E-000147): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buch schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Buch-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildBookState unit-getestet, die Bindung selbst prueft die Test-Iteration an der EXE."
     },
     {
       "key": "help.feature.bookshelf",
@@ -2608,42 +2608,42 @@
         "test/unit/shelves-main.test.js",
         "test/unit/shelf-core.test.js"
       ],
-      "hinweis": "4T-0866/4T-0867 (Epic 3E-0162): Regal-Modell (Begleitdatei, Erkennung ohne Rueckverweis, Zuordnung) unit-getestet am Temp-Ordner; beide Oeffnungswege, Neuanlage, Zuordnen/Loesen und Sitzungs-Wiederherstellung als RG-01 bis RG-04. Die nativen Dialoge sind manueller Test."
+      "hinweis": "4T-000866/4T-000867 (Epic 3E-000162): Regal-Modell (Begleitdatei, Erkennung ohne Rueckverweis, Zuordnung) unit-getestet am Temp-Ordner; beide Oeffnungswege, Neuanlage, Zuordnen/Loesen und Sitzungs-Wiederherstellung als RG-01 bis RG-04. Die nativen Dialoge sind manueller Test."
     },
     {
       "key": "help.feature.shelfView",
       "id": "S-130",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
-      "hinweis": "4T-0868 (Epic 3E-0162): Regal-Seite im Reiter-System — Platzhalter-Kachel, Zeilen-Angaben (Kapitel-Anzahl, Autor, Beschreibung), Modus-Persistenz je Regal, Buch-Oeffnen per Klick und Aufnahme aus «nicht zugeordnet» als RG-05 bis RG-07; die Ansichts-Daten (Titel/Autor/Beschreibung/Bild/Kapitel-Anzahl) sind am Temp-Ordner unit-getestet. Sichtbarkeit eines echten Buch-Bildes prueft die Test-Iteration an der EXE."
+      "hinweis": "4T-000868 (Epic 3E-000162): Regal-Seite im Reiter-System — Platzhalter-Kachel, Zeilen-Angaben (Kapitel-Anzahl, Autor, Beschreibung), Modus-Persistenz je Regal, Buch-Oeffnen per Klick und Aufnahme aus «nicht zugeordnet» als RG-05 bis RG-07; die Ansichts-Daten (Titel/Autor/Beschreibung/Bild/Kapitel-Anzahl) sind am Temp-Ordner unit-getestet. Sichtbarkeit eines echten Buch-Bildes prueft die Test-Iteration an der EXE."
     },
     {
       "key": "help.shortcut.openShelf",
       "id": "S-126",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
-      "hinweis": "4T-0867 (Epic 3E-0162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buecherregal oeffnen' (Menue-/Paletten-Weg, belegbar) — der native Ordner-Dialog ist manueller Test, die Wirkung dahinter ist am Temp-Ordner unit-getestet: Erkennung des Regal-Ordners ueber die Begleitdatei, Zustands-Aufbau mit Buch-Liste und Bestands-Abgleich, Abweisung eines Ordners ohne benannte Regal-Datei."
+      "hinweis": "4T-000867 (Epic 3E-000162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buecherregal oeffnen' (Menue-/Paletten-Weg, belegbar) — der native Ordner-Dialog ist manueller Test, die Wirkung dahinter ist am Temp-Ordner unit-getestet: Erkennung des Regal-Ordners ueber die Begleitdatei, Zustands-Aufbau mit Buch-Liste und Bestands-Abgleich, Abweisung eines Ordners ohne benannte Regal-Datei."
     },
     {
       "key": "help.shortcut.newShelf",
       "id": "S-127",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
-      "hinweis": "4T-0867 (Epic 3E-0162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Neues Buecherregal' (Menue-/Paletten-Weg, belegbar) — die Anlage selbst ist am Temp-Ordner unit-getestet (Regal-Ordner, leere Regal-Datei, Begleitdatei; Namens-Pruefung; bestehender Ordner bleibt unangetastet), der native Dialog ist manueller Test."
+      "hinweis": "4T-000867 (Epic 3E-000162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Neues Buecherregal' (Menue-/Paletten-Weg, belegbar) — die Anlage selbst ist am Temp-Ordner unit-getestet (Regal-Ordner, leere Regal-Datei, Begleitdatei; Namens-Pruefung; bestehender Ordner bleibt unangetastet), der native Dialog ist manueller Test."
     },
     {
       "key": "help.shortcut.closeShelf",
       "id": "S-128",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/regal.spec.js", "test/unit/shelves-main.test.js"],
-      "hinweis": "4T-0867 (Epic 3E-0162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buecherregal schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Regal-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildShelfState unit-getestet."
+      "hinweis": "4T-000867 (Epic 3E-000162): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Buecherregal schliessen' (Menue-/Paletten-Weg, belegbar) — es loest allein die Regal-Bindung der Applikation und laesst die Reiter offen; der Zustands-Vertrag dahinter ist ueber buildShelfState unit-getestet."
     },
     {
       "key": "help.shortcut.toggleBookPanel",
       "id": "S-122",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/buch.spec.js", "test/unit/panel-access.test.js"],
-      "hinweis": "4T-0844 (Epic 3E-0147): Kommando ohne Default-Kuerzel (Untermenue-, Statusbar- und Paletten-Weg) — der Paritaets-Waechter prueft beide Zugaenge des Panels (Statusbar-Button in index.html, Toggle-Kommando in der Registry) und den Gleichlauf mit der Renderer-Panel-Registry; die Sichtbarkeits-Wirkung selbst prueft die Test-Iteration an der EXE."
+      "hinweis": "4T-000844 (Epic 3E-000147): Kommando ohne Default-Kuerzel (Untermenue-, Statusbar- und Paletten-Weg) — der Paritaets-Waechter prueft beide Zugaenge des Panels (Statusbar-Button in index.html, Toggle-Kommando in der Registry) und den Gleichlauf mit der Renderer-Panel-Registry; die Sichtbarkeits-Wirkung selbst prueft die Test-Iteration an der EXE."
     },
     {
       "key": "help.shortcut.nextChapter",
@@ -2654,7 +2654,7 @@
         "test/unit/renderer/book-panel.test.js",
         "test/unit/book-core.test.js"
       ],
-      "hinweis": "4T-0846 (Epic 3E-0147, Story 4S-0755): Leseführung vorwärts über Kapitel-Grenzen — die Lese-Ordnung selbst ist im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel, kein Umlauf am Ende, Hinweis-Zeile an der Grenze, nicht eingehängte Dateien außerhalb der Führung."
+      "hinweis": "4T-000846 (Epic 3E-000147, Story 4S-000755): Leseführung vorwärts über Kapitel-Grenzen — die Lese-Ordnung selbst ist im Kern-Modul unit-getestet (Kapitel vor Unterkapiteln, dann Geschwister), der Schritt-Weg des Panels gegen einen gemockten Buch-Zustand: Sprung zum Nachbar-Kapitel, kein Umlauf am Ende, Hinweis-Zeile an der Grenze, nicht eingehängte Dateien außerhalb der Führung."
     },
     {
       "key": "help.shortcut.previousChapter",
@@ -2665,7 +2665,7 @@
         "test/unit/renderer/book-panel.test.js",
         "test/unit/book-core.test.js"
       ],
-      "hinweis": "4T-0846 (Epic 3E-0147, Story 4S-0755): Gegenrichtung derselben Leseführung — geprüft werden dieselben Wege rückwärts, insbesondere die Grenze am Anfang des Buches (Hinweis statt Sprung ans Ende) und der Fall ohne gelesenes Kapitel."
+      "hinweis": "4T-000846 (Epic 3E-000147, Story 4S-000755): Gegenrichtung derselben Leseführung — geprüft werden dieselben Wege rückwärts, insbesondere die Grenze am Anfang des Buches (Hinweis statt Sprung ans Ende) und der Fall ohne gelesenes Kapitel."
     },
     {
       "key": "help.shortcut.moveChapterFile",
@@ -2676,7 +2676,7 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js"
       ],
-      "hinweis": "4T-0847 (Epic 3E-0147, Story 4S-0756): physisches Verschieben einer Kapitel-Datei — die Planung samt Grenz- und Kollisions-Prüfung und die Nachführung der Begleitdatei (Aufwärts-Suche, Baum-Position bleibt) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog ist manueller Test."
+      "hinweis": "4T-000847 (Epic 3E-000147, Story 4S-000756): physisches Verschieben einer Kapitel-Datei — die Planung samt Grenz- und Kollisions-Prüfung und die Nachführung der Begleitdatei (Aufwärts-Suche, Baum-Position bleibt) sind am Temp-Ordner unit-getestet, der Bedien- und Fehler-Weg des Panels gegen die gemockte Brücke; der native Ordner-Dialog ist manueller Test."
     },
     {
       "key": "help.shortcut.exportPortable",
@@ -2686,7 +2686,7 @@
         "test/unit/export-portable.test.js",
         "test/unit/renderer/kommando-dispatcher.test.js"
       ],
-      "hinweis": "4T-0890 (Epic 3E-0168, Befund L-05): der portable Export ist seither ein Registry-Kommando ohne Default-Kürzel (Menü-, Paletten- und Kürzel-Weg). Die Konverter-Strecke dahinter ist vollständig unit- und snapshot-getestet (F-021), der Vollständigkeits-Wächter der Dispatcher-Map hält fest, dass Palette und belegtes Kürzel wirklich ausführen statt ins Leere zu laufen; der Speichern-Dialog bleibt OS-UI der Gesamtabnahme."
+      "hinweis": "4T-000890 (Epic 3E-000168, Befund L-05): der portable Export ist seither ein Registry-Kommando ohne Default-Kürzel (Menü-, Paletten- und Kürzel-Weg). Die Konverter-Strecke dahinter ist vollständig unit- und snapshot-getestet (F-021), der Vollständigkeits-Wächter der Dispatcher-Map hält fest, dass Palette und belegtes Kürzel wirklich ausführen statt ins Leere zu laufen; der Speichern-Dialog bleibt OS-UI der Gesamtabnahme."
     },
     {
       "key": "help.shortcut.toggleAutoSave",
@@ -2696,7 +2696,7 @@
         "test/e2e/funktionen/navigation-und-datei.spec.js",
         "test/unit/renderer/kommando-dispatcher.test.js"
       ],
-      "hinweis": "4T-0890 (Epic 3E-0168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Automatisch speichern» (Menü-, Paletten- und Kürzel-Weg, belegbar) — die Toggle-Wirkung selbst deckt FD-03 als Platten-Roundtrip ab (F-020), der Dispatcher-Wächter den Ausführungs-Pfad des Kommandos."
+      "hinweis": "4T-000890 (Epic 3E-000168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Automatisch speichern» (Menü-, Paletten- und Kürzel-Weg, belegbar) — die Toggle-Wirkung selbst deckt FD-03 als Platten-Roundtrip ab (F-020), der Dispatcher-Wächter den Ausführungs-Pfad des Kommandos."
     },
     {
       "key": "help.shortcut.toggleScrollSync",
@@ -2706,28 +2706,28 @@
         "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
         "test/unit/renderer/struktur-und-state.test.js"
       ],
-      "hinweis": "4T-0890 (Epic 3E-0168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Scroll-Synchronisation» — FA-05 prüft den Toggle, das Zeilen-Mapping dahinter ist unit-getestet (R4-14, siehe F-047)."
+      "hinweis": "4T-000890 (Epic 3E-000168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Scroll-Synchronisation» — FA-05 prüft den Toggle, das Zeilen-Mapping dahinter ist unit-getestet (R4-14, siehe F-047)."
     },
     {
       "key": "help.shortcut.toggleTypewriterScroll",
       "id": "S-134",
       "testart": "unit",
       "tests": ["test/unit/renderer/kommando-dispatcher.test.js", "test/unit/commands.test.js"],
-      "hinweis": "4T-0890 (Epic 3E-0168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Schreibmaschinen-Scrollen». Geprüft wird der Kommando-Weg (Eintrag in der Dispatcher-Map, Registry-Invarianten samt Sprachdatei-Abgleich der Schlüssel); die Scroll-Zentrierung selbst bleibt aus den in F-029 genannten Gründen (DPI-/Viewport-abhängige Geometrie) Sache der Gesamtabnahme."
+      "hinweis": "4T-000890 (Epic 3E-000168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Schreibmaschinen-Scrollen». Geprüft wird der Kommando-Weg (Eintrag in der Dispatcher-Map, Registry-Invarianten samt Sprachdatei-Abgleich der Schlüssel); die Scroll-Zentrierung selbst bleibt aus den in F-029 genannten Gründen (DPI-/Viewport-abhängige Geometrie) Sache der Gesamtabnahme."
     },
     {
       "key": "help.shortcut.toggleRestoreSession",
       "id": "S-135",
       "testart": "e2e",
       "tests": ["test/e2e/smoke/smoke.spec.js", "test/unit/renderer/kommando-dispatcher.test.js"],
-      "hinweis": "4T-0890 (Epic 3E-0168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Sitzung wiederherstellen» — SM-09 deckt die Wirkung des Schalters über den Neustart mit gleichem Profil ab (F-012), der Dispatcher-Wächter den Ausführungs-Pfad des Kommandos."
+      "hinweis": "4T-000890 (Epic 3E-000168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Sitzung wiederherstellen» — SM-09 deckt die Wirkung des Schalters über den Neustart mit gleichem Profil ab (F-012), der Dispatcher-Wächter den Ausführungs-Pfad des Kommandos."
     },
     {
       "key": "help.feature.extensionsDev",
       "id": "F-258",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/handbuch.spec.js", "test/unit/manual-pages.test.js"],
-      "hinweis": "4T-0892 (Epic 3E-0168, Befund L-10): Das Erstellen eigener externer Erweiterungen war als Handbuch-Seite vorhanden, aber nicht im Funktions-Katalog. Der Eintrag beschreibt genau diese Seite, deshalb liegt seine Prüfung dort: HB-09 lädt alle gebündelten Seiten in fünf Sprachen linter-sauber, der Registry-Wächter erzwingt Sprachfassungen und Titel-Key. Die beschriebene Erweiterungs-API selbst prüft F-072."
+      "hinweis": "4T-000892 (Epic 3E-000168, Befund L-10): Das Erstellen eigener externer Erweiterungen war als Handbuch-Seite vorhanden, aber nicht im Funktions-Katalog. Der Eintrag beschreibt genau diese Seite, deshalb liegt seine Prüfung dort: HB-09 lädt alle gebündelten Seiten in fünf Sprachen linter-sauber, der Registry-Wächter erzwingt Sprachfassungen und Titel-Key. Die beschriebene Erweiterungs-API selbst prüft F-072."
     },
     {
       "key": "help.feature.tour",
@@ -2738,7 +2738,7 @@
         "test/unit/tour-stationen.test.js",
         "test/unit/renderer/tour-erststart.test.js"
       ],
-      "hinweis": "4T-1090 (Epic 3E-0127): der Katalog-Eintrag der geführten Produkt-Tour, in der Gruppe «Allgemein» direkt hinter dem Handbuch-Eintrag. Geprüft wird die beschriebene Funktion selbst: PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch, Start von Hand und den Durchlauf ab, der Stations-Wächter die Kopplung an die Oberfläche und alle fünf Sprachfassungen der Tour-Schlüssel, die Unit-Fälle die Merker-Mechanik. Der Zugang über das Menü ist derselbe Gegenstand wie bei S-136, deshalb teilen sich beide Einträge die Testdateien."
+      "hinweis": "4T-001090 (Epic 3E-000127): der Katalog-Eintrag der geführten Produkt-Tour, in der Gruppe «Allgemein» direkt hinter dem Handbuch-Eintrag. Geprüft wird die beschriebene Funktion selbst: PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch, Start von Hand und den Durchlauf ab, der Stations-Wächter die Kopplung an die Oberfläche und alle fünf Sprachfassungen der Tour-Schlüssel, die Unit-Fälle die Merker-Mechanik. Der Zugang über das Menü ist derselbe Gegenstand wie bei S-136, deshalb teilen sich beide Einträge die Testdateien."
     },
     {
       "key": "help.shortcut.openTour",
@@ -2749,7 +2749,7 @@
         "test/unit/renderer/tour-erststart.test.js",
         "test/unit/tour-stationen.test.js"
       ],
-      "hinweis": "4T-0644 (Epic 3E-0127): geführte Produkt-Tour, Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Hilfe → Produkt-Tour». PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch samt Neustart, Start von Hand über den Menü-Kanal, die Stellung im Hilfe-Menü und den Durchlauf bis «Fertig» ab; die Merker-Mechanik dahinter ist am Modul unit-getestet, die Kopplung der Stations-Anker an index.html und an alle fünf Sprachfassungen hält ein eigener Wächter."
+      "hinweis": "4T-000644 (Epic 3E-000127): geführte Produkt-Tour, Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Hilfe → Produkt-Tour». PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch samt Neustart, Start von Hand über den Menü-Kanal, die Stellung im Hilfe-Menü und den Durchlauf bis «Fertig» ab; die Merker-Mechanik dahinter ist am Modul unit-getestet, die Kopplung der Stations-Anker an index.html und an alle fünf Sprachfassungen hält ein eigener Wächter."
     }
   ]
 }

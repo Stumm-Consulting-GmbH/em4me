@@ -8,7 +8,7 @@
     />
     <title>EM4me</title>
     <link rel="stylesheet" href="styles.css" />
-    <!-- 4T-0992 (Epic 3E-0196): Das Renderer-Stilblatt ist in 18 zusammenhängende
+    <!-- 4T-000992 (Epic 3E-000196): Das Renderer-Stilblatt ist in 18 zusammenhängende
          Scheiben geschnitten (Datei-Größen-Budget). styles.css ist die erste
          Scheibe; die folgenden Link-Tags stehen in Original-Reihenfolge und
          bilden damit die Kaskade ab. Reihenfolge nicht verändern. -->
@@ -31,29 +31,29 @@
     <link rel="stylesheet" href="styles/uhr-panel.css" />
     <link rel="stylesheet" href="styles/mindmap.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
-    <!-- 4T-0644 (Epic 3E-0127): Overlay- und Popover-Stilblatt von driver.js
+    <!-- 4T-000644 (Epic 3E-000127): Overlay- und Popover-Stilblatt von driver.js
          für die geführte Produkt-Tour. Kopiert von scripts/build-tour-assets.js
          aus node_modules (nicht versioniert, Muster katex/katex.css). Die
          Theme-Anpassung an die Farb-Token der App steht bewusst DANACH, damit
          ihre Regeln bei gleicher Spezifität gewinnen. -->
     <link rel="stylesheet" href="driverjs/driver.css" />
     <link rel="stylesheet" href="styles/tour.css" />
-    <!-- 4T-0023: highlight.js GitHub Light/Dark, prefixed mit data-theme.
+    <!-- 4T-000023: highlight.js GitHub Light/Dark, prefixed mit data-theme.
          Generiert von scripts/build-hljs-themes.js. -->
     <link rel="stylesheet" href="hljs-themes.css" />
-    <!-- 4T-0022: KaTeX-CSS plus woff2-Fonts. Generiert von
+    <!-- 4T-000022: KaTeX-CSS plus woff2-Fonts. Generiert von
          scripts/build-katex-assets.js aus node_modules/katex. -->
     <link rel="stylesheet" href="katex/katex.css" />
   </head>
   <body>
     <main id="panes-container" class="panes-container">
       <section class="pane-group active-pane" data-pane="0">
-        <!-- 4T-0644: Tour-Anker der Reiterleiste. Bewusst nur an Spalte 0, die
+        <!-- 4T-000644: Tour-Anker der Reiterleiste. Bewusst nur an Spalte 0, die
              Reiterleiste der Spalte 1 ist ihr Spiegelbild und im Regelfall
              ausgeblendet. -->
         <div class="tabbar" data-tour="tabs"></div>
         <div class="content view-split">
-          <!-- 4T-0288 (Epic 3E-0051): dynamische Sidebar — je Pane ein linker
+          <!-- 4T-000288 (Epic 3E-000051): dynamische Sidebar — je Pane ein linker
                und ein rechter Container. Die Panel-Sektionen starten im linken
                Container (Default-Layout); das Slot-Mounting (panels.js) hängt
                sie gemäß Layout-Modell per DOM-Umhängen um. -->
@@ -69,7 +69,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0051 (Epic 3E-0010): Properties-Sektion mit live-editierbaren
+            <!-- 4T-000051 (Epic 3E-000010): Properties-Sektion mit live-editierbaren
                  Frontmatter-Feldern. Pro Spalte eine Instanz, persistent
                  ein-/ausblendbar wie Outline und Backlinks. -->
             <section class="sidebar-section sidebar-properties" hidden>
@@ -77,9 +77,9 @@
                 <h2 class="sidebar-section-title" data-i18n="properties.title">Properties</h2>
               </header>
               <div class="sidebar-section-body">
-                <!-- 4T-1161 (Epic 3E-0219, E5): Symbol des aufgeloesten Profils.
+                <!-- 4T-001161 (Epic 3E-000219, E5): Symbol des aufgeloesten Profils.
                      Ohne Profil oder ohne Symbol bleibt es leer und verborgen.
-                     4T-1164: Es steht im KOERPER und nicht im Sektions-Kopf. In einer
+                     4T-001164: Es steht im KOERPER und nicht im Sektions-Kopf. In einer
                      Reiter-Gruppe ersetzt die Reiterleiste den Kopf und blendet ihn per
                      CSS aus (.sidebar-section.in-tab-group > .sidebar-section-header);
                      im Kopf waere das Symbol dort unsichtbar, und genau so ist es beim
@@ -95,7 +95,7 @@
                 </button>
               </div>
             </section>
-            <!-- 4T-0056 (Epic 3E-0011): Tag-Sektion. Hierarchische Tag-Liste
+            <!-- 4T-000056 (Epic 3E-000011): Tag-Sektion. Hierarchische Tag-Liste
                  mit Haeufigkeits-Counts, Filter-Eingabe, Klick filtert auf
                  Dateien mit diesem Tag. Pro Spalte eine Instanz. -->
             <section class="sidebar-section sidebar-tags" hidden>
@@ -114,7 +114,7 @@
                 <div class="tags-files" hidden></div>
               </div>
             </section>
-            <!-- 4T-0073 (Epic 3E-0013): Outgoing-Links-Sektion. Listet alle
+            <!-- 4T-000073 (Epic 3E-000013): Outgoing-Links-Sektion. Listet alle
                  Wiki-Links, Markdown-Links und Embeds der aktiven Datei. Pro
                  Spalte eine Instanz, persistent ein-/ausblendbar. -->
             <section class="sidebar-section sidebar-outgoing" hidden>
@@ -138,7 +138,7 @@
                 <div class="backlinks-results"></div>
               </div>
             </section>
-            <!-- 4T-0359 (Epic 3E-0066): Notizen-Sektion. Editierbare Dokument-Notiz
+            <!-- 4T-000359 (Epic 3E-000066): Notizen-Sektion. Editierbare Dokument-Notiz
                  aus der .mdd, mit umschaltbarer gerenderter Vorschau. Pro Spalte
                  eine Instanz. -->
             <section class="sidebar-section sidebar-notes" hidden>
@@ -170,7 +170,7 @@
                 <div class="notes-hint" data-i18n="notes.markdownHint">Unterstützt Markdown.</div>
               </div>
             </section>
-            <!-- 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sektion. Pflegt die
+            <!-- 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Sektion. Pflegt die
                  Block-Metadaten (.mdd blockData) des Ankers unter dem Cursor;
                  pro Spalte eine Instanz. -->
             <section class="sidebar-section sidebar-blockprops" hidden>
@@ -224,7 +224,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Sektion. Listet die
+            <!-- 4T-000341 (Epic 3E-000061): Unterseiten-Sektion. Listet die
                  direkten Unterseiten der aktiven Datei (U+2215-Namens-
                  Konvention); Klick oeffnet. Pro Spalte eine Instanz. -->
             <section class="sidebar-section sidebar-subpages" hidden>
@@ -236,16 +236,16 @@
                 <div class="subpages-list"></div>
               </div>
             </section>
-            <!-- 4T-0075 (Epic 3E-0013): Bookmarks-Sektion. Persistente
-                 Datei-Lesezeichen mit Tree-Render (Folder + File). In 4T-0075
-                 Basis flach im Root; Ordner-Operationen kommen in 4T-0078,
-                 Drag-and-Drop in 4T-0079. -->
+            <!-- 4T-000075 (Epic 3E-000013): Bookmarks-Sektion. Persistente
+                 Datei-Lesezeichen mit Tree-Render (Folder + File). In 4T-000075
+                 Basis flach im Root; Ordner-Operationen kommen in 4T-000078,
+                 Drag-and-Drop in 4T-000079. -->
             <section class="sidebar-section sidebar-bookmarks" hidden>
               <header class="sidebar-section-header">
                 <h2 class="sidebar-section-title" data-i18n="bookmarks.title">Lesezeichen</h2>
               </header>
               <div class="sidebar-section-body">
-                <!-- 4T-0612 (Epic 3E-0115): zweigeteilter Aufbau — Bereichs-
+                <!-- 4T-000612 (Epic 3E-000115): zweigeteilter Aufbau — Bereichs-
                      Abschnitt (nur bei geoeffnetem Bereich sichtbar) und
                      allgemeiner Abschnitt. Die Abschnitts-Koepfe erscheinen
                      nur bei geoeffnetem Bereich; ohne Bereich bleibt das
@@ -271,7 +271,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum des
+            <!-- 4T-000327 (Epic 3E-000059): Bereichs-Panel. Ordnerbaum des
                  Bereichs oben, Markdown-Dateiliste des gewaehlten Ordners
                  darunter; ohne aktiven Bereich zeigt der Body den
                  Empty-State. Pro Spalte eine Instanz. -->
@@ -302,7 +302,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Sektion des Buches.
+            <!-- 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Sektion des Buches.
                  Kapitel-Baum des aktiven Buches in erklärter Reihenfolge, das
                  gelesene Kapitel hervorgehoben, darunter der Abschnitt
                  „nicht eingehängt". Die Leseführungs-Leiste steht bewusst
@@ -352,7 +352,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0434 (Epic 3E-0081): Kalender-Sektion. Monatsansicht mit
+            <!-- 4T-000434 (Epic 3E-000081): Kalender-Sektion. Monatsansicht mit
                  ISO-KW-Spalte; Punkte an Tagen mit Journal-Eintrag; Klick
                  öffnet bzw. legt über den Journal-Anlage-Pfad an. -->
             <section class="sidebar-section sidebar-calendar" hidden>
@@ -398,7 +398,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0527 (Epic 3E-0095): Erinnerungs-Sektion. Fälligkeits-Gruppen
+            <!-- 4T-000527 (Epic 3E-000095): Erinnerungs-Sektion. Fälligkeits-Gruppen
                  (überfällig, heute, morgen, später) mit Direkt-Aktionen und
                  Wiederauslösung gemuteter Einträge; Inhalt rendert
                  reminders-panel.js aus den Daten des Main-Prüfers. -->
@@ -413,10 +413,10 @@
                 <div class="reminders-groups"></div>
               </div>
             </section>
-            <!-- 4T-0372 (Epic 3E-0069): Uhr-Sektion. Analoge Uhr (SVG),
+            <!-- 4T-000372 (Epic 3E-000069): Uhr-Sektion. Analoge Uhr (SVG),
                  digitale Zeit, Datum und optional die Kalenderwoche; den
                  Inhalt baut clock-panel.js aus den Anzeige-Optionen auf.
-                 4T-0636: Die Modus-Leiste steht bewusst zwischen Header und
+                 4T-000636: Die Modus-Leiste steht bewusst zwischen Header und
                  Body — der Header ist in einer Reiter-Gruppe ausgeblendet
                  (.in-tab-group), und der Body scrollt. -->
             <section class="sidebar-section sidebar-clock" hidden>
@@ -428,11 +428,11 @@
                 <div class="clock-body"></div>
               </div>
             </section>
-            <!-- 4T-0456 (Epic 3E-0084): Datei-Graph-Sektion. Umfeld der aktiven
+            <!-- 4T-000456 (Epic 3E-000084): Datei-Graph-Sektion. Umfeld der aktiven
                  Datei mit Tiefe 1–5 und Richtungs-Filter; Klick öffnet die
                  Nachbar-Datei. Hinweise: keine aktive Datei, Datei ohne Links,
                  Best-Effort-Suchraum außerhalb eines Bereichs. -->
-            <!-- 4T-0759 (Epic 3E-0142): Suchergebnis-Panel. Trefferliste der
+            <!-- 4T-000759 (Epic 3E-000142): Suchergebnis-Panel. Trefferliste der
                  Suche über alle Handbuch-Seiten bzw. über alle Einstellungs-
                  Bereiche, gruppiert nach Seite bzw. Bereich. -->
             <section class="sidebar-section sidebar-searchresults" hidden>
@@ -483,7 +483,7 @@
             hidden
           ></div>
           <section class="pane pane-source">
-            <!-- 4T-0607 (Epic 3E-0114): Format-Toolbar. Sichtbar nur im
+            <!-- 4T-000607 (Epic 3E-000114): Format-Toolbar. Sichtbar nur im
                  Edit-Modus (format-toolbar.js schaltet hidden); Buttons
                  werden zur Laufzeit aus der Belegung gerendert, der
                  Mehr-Button fängt Überlauf bei schmalen Panes ab. -->
@@ -521,9 +521,9 @@
                 </svg>
               </button>
             </div>
-            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Live-Modus). -->
+            <!-- 4T-000341 (Epic 3E-000061): Unterseiten-Breadcrumb (Live-Modus). -->
             <div class="subpage-breadcrumb" data-host="source" hidden></div>
-            <!-- 4T-0585 (Epic 3E-0108): Titelzeile („Zeile 0") — Dateiname in
+            <!-- 4T-000585 (Epic 3E-000108): Titelzeile („Zeile 0") — Dateiname in
                  Überschrift-Optik, scroll-fest über dem Editor. Sichtbarkeit
                  schaltet title-line.js über das hidden-Attribut; data-host
                  steuert wie beim Breadcrumb, in welchem Ansichts-Modus
@@ -539,9 +539,9 @@
           </section>
           <div class="splitter inner-splitter" aria-hidden="true"></div>
           <section class="pane pane-rendered">
-            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Reading/Geteilt). -->
+            <!-- 4T-000341 (Epic 3E-000061): Unterseiten-Breadcrumb (Reading/Geteilt). -->
             <div class="subpage-breadcrumb" data-host="rendered" hidden></div>
-            <!-- 4T-0585 (Epic 3E-0108): Titelzeile der Render-Spalte
+            <!-- 4T-000585 (Epic 3E-000108): Titelzeile der Render-Spalte
                  (sticky im Scroll-Container, nur Reading-Ansicht). -->
             <div class="title-line" data-host="rendered" hidden>
               <h1 class="title-line-text" spellcheck="false" tabindex="0">
@@ -552,11 +552,11 @@
             </div>
             <article class="markdown-body"></article>
           </section>
-          <!-- 4T-0277 (Epic 3E-0049): Container der System-Seiten
+          <!-- 4T-000277 (Epic 3E-000049): Container der System-Seiten
                (Einstellungen). Sichtbar nur bei .content.view-system;
                das Seiten-DOM montiert renderSystemPane zur Laufzeit. -->
           <section class="pane pane-system"></section>
-          <!-- 4T-1047 (Epic 3E-0151): Container der Mindmap-Ansicht.
+          <!-- 4T-001047 (Epic 3E-000151): Container der Mindmap-Ansicht.
                Sichtbar nur bei .content.view-mindmap; die Komponente
                montiert mindmap-pane.js zur Laufzeit. -->
           <section class="pane pane-mindmap"></section>
@@ -572,7 +572,7 @@
       <section class="pane-group" data-pane="1" hidden>
         <div class="tabbar"></div>
         <div class="content view-split">
-          <!-- 4T-0288: Container-Aufbau identisch zu Pane 0, siehe dort. -->
+          <!-- 4T-000288: Container-Aufbau identisch zu Pane 0, siehe dort. -->
           <aside class="pane-sidebar pane-sidebar-left" hidden>
             <section class="sidebar-section sidebar-outline" hidden>
               <header class="sidebar-section-header">
@@ -585,7 +585,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0051 (Epic 3E-0010): Properties-Sektion mit live-editierbaren
+            <!-- 4T-000051 (Epic 3E-000010): Properties-Sektion mit live-editierbaren
                  Frontmatter-Feldern. Pro Spalte eine Instanz, persistent
                  ein-/ausblendbar wie Outline und Backlinks. -->
             <section class="sidebar-section sidebar-properties" hidden>
@@ -593,9 +593,9 @@
                 <h2 class="sidebar-section-title" data-i18n="properties.title">Properties</h2>
               </header>
               <div class="sidebar-section-body">
-                <!-- 4T-1161 (Epic 3E-0219, E5): Symbol des aufgeloesten Profils.
+                <!-- 4T-001161 (Epic 3E-000219, E5): Symbol des aufgeloesten Profils.
                      Ohne Profil oder ohne Symbol bleibt es leer und verborgen.
-                     4T-1164: Es steht im KOERPER und nicht im Sektions-Kopf. In einer
+                     4T-001164: Es steht im KOERPER und nicht im Sektions-Kopf. In einer
                      Reiter-Gruppe ersetzt die Reiterleiste den Kopf und blendet ihn per
                      CSS aus (.sidebar-section.in-tab-group > .sidebar-section-header);
                      im Kopf waere das Symbol dort unsichtbar, und genau so ist es beim
@@ -611,7 +611,7 @@
                 </button>
               </div>
             </section>
-            <!-- 4T-0056 (Epic 3E-0011): Tag-Sektion. Hierarchische Tag-Liste
+            <!-- 4T-000056 (Epic 3E-000011): Tag-Sektion. Hierarchische Tag-Liste
                  mit Haeufigkeits-Counts, Filter-Eingabe, Klick filtert auf
                  Dateien mit diesem Tag. Pro Spalte eine Instanz. -->
             <section class="sidebar-section sidebar-tags" hidden>
@@ -630,7 +630,7 @@
                 <div class="tags-files" hidden></div>
               </div>
             </section>
-            <!-- 4T-0073 (Epic 3E-0013): Outgoing-Links-Sektion. Listet alle
+            <!-- 4T-000073 (Epic 3E-000013): Outgoing-Links-Sektion. Listet alle
                  Wiki-Links, Markdown-Links und Embeds der aktiven Datei. Pro
                  Spalte eine Instanz, persistent ein-/ausblendbar. -->
             <section class="sidebar-section sidebar-outgoing" hidden>
@@ -654,7 +654,7 @@
                 <div class="backlinks-results"></div>
               </div>
             </section>
-            <!-- 4T-0359 (Epic 3E-0066): Notizen-Sektion. Editierbare Dokument-Notiz
+            <!-- 4T-000359 (Epic 3E-000066): Notizen-Sektion. Editierbare Dokument-Notiz
                  aus der .mdd, mit umschaltbarer gerenderter Vorschau. Pro Spalte
                  eine Instanz. -->
             <section class="sidebar-section sidebar-notes" hidden>
@@ -686,7 +686,7 @@
                 <div class="notes-hint" data-i18n="notes.markdownHint">Unterstützt Markdown.</div>
               </div>
             </section>
-            <!-- 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sektion. Pflegt die
+            <!-- 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Sektion. Pflegt die
                  Block-Metadaten (.mdd blockData) des Ankers unter dem Cursor;
                  pro Spalte eine Instanz. -->
             <section class="sidebar-section sidebar-blockprops" hidden>
@@ -740,7 +740,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Sektion. Listet die
+            <!-- 4T-000341 (Epic 3E-000061): Unterseiten-Sektion. Listet die
                  direkten Unterseiten der aktiven Datei (U+2215-Namens-
                  Konvention); Klick oeffnet. Pro Spalte eine Instanz. -->
             <section class="sidebar-section sidebar-subpages" hidden>
@@ -752,16 +752,16 @@
                 <div class="subpages-list"></div>
               </div>
             </section>
-            <!-- 4T-0075 (Epic 3E-0013): Bookmarks-Sektion. Persistente
-                 Datei-Lesezeichen mit Tree-Render (Folder + File). In 4T-0075
-                 Basis flach im Root; Ordner-Operationen kommen in 4T-0078,
-                 Drag-and-Drop in 4T-0079. -->
+            <!-- 4T-000075 (Epic 3E-000013): Bookmarks-Sektion. Persistente
+                 Datei-Lesezeichen mit Tree-Render (Folder + File). In 4T-000075
+                 Basis flach im Root; Ordner-Operationen kommen in 4T-000078,
+                 Drag-and-Drop in 4T-000079. -->
             <section class="sidebar-section sidebar-bookmarks" hidden>
               <header class="sidebar-section-header">
                 <h2 class="sidebar-section-title" data-i18n="bookmarks.title">Lesezeichen</h2>
               </header>
               <div class="sidebar-section-body">
-                <!-- 4T-0612 (Epic 3E-0115): zweigeteilter Aufbau — Bereichs-
+                <!-- 4T-000612 (Epic 3E-000115): zweigeteilter Aufbau — Bereichs-
                      Abschnitt (nur bei geoeffnetem Bereich sichtbar) und
                      allgemeiner Abschnitt. Die Abschnitts-Koepfe erscheinen
                      nur bei geoeffnetem Bereich; ohne Bereich bleibt das
@@ -787,7 +787,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel. Ordnerbaum des
+            <!-- 4T-000327 (Epic 3E-000059): Bereichs-Panel. Ordnerbaum des
                  Bereichs oben, Markdown-Dateiliste des gewaehlten Ordners
                  darunter; ohne aktiven Bereich zeigt der Body den
                  Empty-State. Pro Spalte eine Instanz. -->
@@ -818,7 +818,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Sektion des Buches.
+            <!-- 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Sektion des Buches.
                  Kapitel-Baum des aktiven Buches in erklärter Reihenfolge, das
                  gelesene Kapitel hervorgehoben, darunter der Abschnitt
                  „nicht eingehängt". Die Leseführungs-Leiste steht bewusst
@@ -868,7 +868,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0434 (Epic 3E-0081): Kalender-Sektion. Monatsansicht mit
+            <!-- 4T-000434 (Epic 3E-000081): Kalender-Sektion. Monatsansicht mit
                  ISO-KW-Spalte; Punkte an Tagen mit Journal-Eintrag; Klick
                  öffnet bzw. legt über den Journal-Anlage-Pfad an. -->
             <section class="sidebar-section sidebar-calendar" hidden>
@@ -914,7 +914,7 @@
                 </div>
               </div>
             </section>
-            <!-- 4T-0527 (Epic 3E-0095): Erinnerungs-Sektion. Fälligkeits-Gruppen
+            <!-- 4T-000527 (Epic 3E-000095): Erinnerungs-Sektion. Fälligkeits-Gruppen
                  (überfällig, heute, morgen, später) mit Direkt-Aktionen und
                  Wiederauslösung gemuteter Einträge; Inhalt rendert
                  reminders-panel.js aus den Daten des Main-Prüfers. -->
@@ -929,10 +929,10 @@
                 <div class="reminders-groups"></div>
               </div>
             </section>
-            <!-- 4T-0372 (Epic 3E-0069): Uhr-Sektion. Analoge Uhr (SVG),
+            <!-- 4T-000372 (Epic 3E-000069): Uhr-Sektion. Analoge Uhr (SVG),
                  digitale Zeit, Datum und optional die Kalenderwoche; den
                  Inhalt baut clock-panel.js aus den Anzeige-Optionen auf.
-                 4T-0636: Die Modus-Leiste steht bewusst zwischen Header und
+                 4T-000636: Die Modus-Leiste steht bewusst zwischen Header und
                  Body — der Header ist in einer Reiter-Gruppe ausgeblendet
                  (.in-tab-group), und der Body scrollt. -->
             <section class="sidebar-section sidebar-clock" hidden>
@@ -944,11 +944,11 @@
                 <div class="clock-body"></div>
               </div>
             </section>
-            <!-- 4T-0456 (Epic 3E-0084): Datei-Graph-Sektion. Umfeld der aktiven
+            <!-- 4T-000456 (Epic 3E-000084): Datei-Graph-Sektion. Umfeld der aktiven
                  Datei mit Tiefe 1–5 und Richtungs-Filter; Klick öffnet die
                  Nachbar-Datei. Hinweise: keine aktive Datei, Datei ohne Links,
                  Best-Effort-Suchraum außerhalb eines Bereichs. -->
-            <!-- 4T-0759 (Epic 3E-0142): Suchergebnis-Panel. Trefferliste der
+            <!-- 4T-000759 (Epic 3E-000142): Suchergebnis-Panel. Trefferliste der
                  Suche über alle Handbuch-Seiten bzw. über alle Einstellungs-
                  Bereiche, gruppiert nach Seite bzw. Bereich. -->
             <section class="sidebar-section sidebar-searchresults" hidden>
@@ -999,7 +999,7 @@
             hidden
           ></div>
           <section class="pane pane-source">
-            <!-- 4T-0607 (Epic 3E-0114): Format-Toolbar. Sichtbar nur im
+            <!-- 4T-000607 (Epic 3E-000114): Format-Toolbar. Sichtbar nur im
                  Edit-Modus (format-toolbar.js schaltet hidden); Buttons
                  werden zur Laufzeit aus der Belegung gerendert, der
                  Mehr-Button fängt Überlauf bei schmalen Panes ab. -->
@@ -1037,9 +1037,9 @@
                 </svg>
               </button>
             </div>
-            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Live-Modus). -->
+            <!-- 4T-000341 (Epic 3E-000061): Unterseiten-Breadcrumb (Live-Modus). -->
             <div class="subpage-breadcrumb" data-host="source" hidden></div>
-            <!-- 4T-0585 (Epic 3E-0108): Titelzeile (siehe Pane 0). -->
+            <!-- 4T-000585 (Epic 3E-000108): Titelzeile (siehe Pane 0). -->
             <div class="title-line" data-host="source" hidden>
               <h1 class="title-line-text" spellcheck="false" tabindex="0">
                 <span class="title-line-prefix" hidden></span
@@ -1051,9 +1051,9 @@
           </section>
           <div class="splitter inner-splitter" aria-hidden="true"></div>
           <section class="pane pane-rendered">
-            <!-- 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb (Reading/Geteilt). -->
+            <!-- 4T-000341 (Epic 3E-000061): Unterseiten-Breadcrumb (Reading/Geteilt). -->
             <div class="subpage-breadcrumb" data-host="rendered" hidden></div>
-            <!-- 4T-0585 (Epic 3E-0108): Titelzeile der Render-Spalte (siehe Pane 0). -->
+            <!-- 4T-000585 (Epic 3E-000108): Titelzeile der Render-Spalte (siehe Pane 0). -->
             <div class="title-line" data-host="rendered" hidden>
               <h1 class="title-line-text" spellcheck="false" tabindex="0">
                 <span class="title-line-prefix" hidden></span
@@ -1063,11 +1063,11 @@
             </div>
             <article class="markdown-body"></article>
           </section>
-          <!-- 4T-0277 (Epic 3E-0049): Container der System-Seiten
+          <!-- 4T-000277 (Epic 3E-000049): Container der System-Seiten
                (Einstellungen). Sichtbar nur bei .content.view-system;
                das Seiten-DOM montiert renderSystemPane zur Laufzeit. -->
           <section class="pane pane-system"></section>
-          <!-- 4T-1047 (Epic 3E-0151): Container der Mindmap-Ansicht.
+          <!-- 4T-001047 (Epic 3E-000151): Container der Mindmap-Ansicht.
                Sichtbar nur bei .content.view-mindmap; die Komponente
                montiert mindmap-pane.js zur Laufzeit. -->
           <section class="pane pane-mindmap"></section>
@@ -1083,13 +1083,13 @@
 
     <footer class="statusbar">
       <div class="statusbar-left">
-        <!-- 4T-0031: Statusbar-Buttons als Icons. Acht Lucide-SVGs
+        <!-- 4T-000031: Statusbar-Buttons als Icons. Acht Lucide-SVGs
              (ISC-lizenziert), inline eingebettet ohne Library-Dependency.
              Texte werden zu Tooltips (data-i18n-title) und Screen-Reader-
              Labels (data-i18n-aria-label) lokalisiert in allen fuenf Sprachen. -->
-        <!-- 4T-0644: Tour-Anker der Panel-Toggle-Leiste. -->
+        <!-- 4T-000644: Tour-Anker der Panel-Toggle-Leiste. -->
         <div class="source-toggles" role="group" data-tour="sidebars">
-          <!-- 4T-0327 (Epic 3E-0059): Bereichs-Panel-Toggle. Lucide-Icon 'folder'. -->
+          <!-- 4T-000327 (Epic 3E-000059): Bereichs-Panel-Toggle. Lucide-Icon 'folder'. -->
           <button
             id="btn-area"
             class="btn-toggle btn-icon"
@@ -1115,7 +1115,7 @@
               />
             </svg>
           </button>
-          <!-- 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Toggle des Buches.
+          <!-- 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Toggle des Buches.
                Lucide-Icon 'book-open'. -->
           <button
             id="btn-book"
@@ -1168,7 +1168,7 @@
               <path d="M3 5v12a2 2 0 0 0 2 2h3" />
             </svg>
           </button>
-          <!-- 4T-0567 (Epic 3E-0104): Unterseiten-Toggle. Lucide-Icon 'network'. -->
+          <!-- 4T-000567 (Epic 3E-000104): Unterseiten-Toggle. Lucide-Icon 'network'. -->
           <button
             id="btn-subpages"
             class="btn-toggle btn-icon"
@@ -1196,7 +1196,7 @@
               <path d="M12 12V8" />
             </svg>
           </button>
-          <!-- 4T-0567 (Epic 3E-0104): Datei-Graph-Toggle. Lucide-Icon 'waypoints'. -->
+          <!-- 4T-000567 (Epic 3E-000104): Datei-Graph-Toggle. Lucide-Icon 'waypoints'. -->
           <button
             id="btn-filegraph"
             class="btn-toggle btn-icon"
@@ -1225,7 +1225,7 @@
               <circle cx="12" cy="19.5" r="2.5" />
             </svg>
           </button>
-          <!-- 4T-0759 (Epic 3E-0142): Suchergebnis-Sidebar-Toggle. Lucide-Icon
+          <!-- 4T-000759 (Epic 3E-000142): Suchergebnis-Sidebar-Toggle. Lucide-Icon
                'list-search' (Lupe über Listenzeilen). -->
           <button
             id="btn-search-results"
@@ -1253,7 +1253,7 @@
               <path d="m22 21-2.6-2.6" />
             </svg>
           </button>
-          <!-- 4T-0051: Properties-Sidebar-Toggle. Lucide-Icon 'tags'. -->
+          <!-- 4T-000051: Properties-Sidebar-Toggle. Lucide-Icon 'tags'. -->
           <button
             id="btn-properties"
             class="btn-toggle btn-icon"
@@ -1279,7 +1279,7 @@
               <path d="M15 5v14" />
             </svg>
           </button>
-          <!-- 4T-0056: Tags-Sidebar-Toggle. Lucide-Icon 'tag' (Schleifchen-Form). -->
+          <!-- 4T-000056: Tags-Sidebar-Toggle. Lucide-Icon 'tag' (Schleifchen-Form). -->
           <button
             id="btn-tags"
             class="btn-toggle btn-icon"
@@ -1305,7 +1305,7 @@
               <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
             </svg>
           </button>
-          <!-- 4T-0073 (Epic 3E-0013): Outgoing-Links-Statusbar-Toggle.
+          <!-- 4T-000073 (Epic 3E-000013): Outgoing-Links-Statusbar-Toggle.
                Lucide-Icon 'external-link' (Pfeil aus Box). -->
           <button
             id="btn-outgoing-links"
@@ -1355,7 +1355,7 @@
               <line x1="8" x2="16" y1="12" y2="12" />
             </svg>
           </button>
-          <!-- 4T-0359 (Epic 3E-0066): Notizen-Sidebar-Toggle. Lucide-Icon 'sticky-note'. -->
+          <!-- 4T-000359 (Epic 3E-000066): Notizen-Sidebar-Toggle. Lucide-Icon 'sticky-note'. -->
           <button
             id="btn-notes"
             class="btn-toggle btn-icon"
@@ -1379,7 +1379,7 @@
               <path d="M15 21v-4a2 2 0 0 1 2-2h4" />
             </svg>
           </button>
-          <!-- 4T-0434 (Epic 3E-0081): Kalender-Sidebar-Toggle. Lucide-Icon 'calendar'. -->
+          <!-- 4T-000434 (Epic 3E-000081): Kalender-Sidebar-Toggle. Lucide-Icon 'calendar'. -->
           <button
             id="btn-calendar"
             class="btn-toggle btn-icon"
@@ -1405,7 +1405,7 @@
               <path d="M3 10h18" />
             </svg>
           </button>
-          <!-- 4T-0527 (Epic 3E-0095): Erinnerungs-Sidebar-Toggle. Lucide-Icon 'alarm-clock'. -->
+          <!-- 4T-000527 (Epic 3E-000095): Erinnerungs-Sidebar-Toggle. Lucide-Icon 'alarm-clock'. -->
           <button
             id="btn-reminders"
             class="btn-toggle btn-icon"
@@ -1433,7 +1433,7 @@
               <path d="M17.64 18.67 20 21" />
             </svg>
           </button>
-          <!-- 4T-0372 (Epic 3E-0069): Uhr-Sidebar-Toggle. Lucide-Icon 'clock'. -->
+          <!-- 4T-000372 (Epic 3E-000069): Uhr-Sidebar-Toggle. Lucide-Icon 'clock'. -->
           <button
             id="btn-clock"
             class="btn-toggle btn-icon"
@@ -1457,7 +1457,7 @@
               <polyline points="12 6 12 12 16 14" />
             </svg>
           </button>
-          <!-- 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sidebar-Toggle. Lucide-Icon 'braces'. -->
+          <!-- 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Sidebar-Toggle. Lucide-Icon 'braces'. -->
           <button
             id="btn-blockprops"
             class="btn-toggle btn-icon"
@@ -1481,7 +1481,7 @@
               <path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1" />
             </svg>
           </button>
-          <!-- 4T-0075 (Epic 3E-0013): Bookmarks-Statusbar-Toggle.
+          <!-- 4T-000075 (Epic 3E-000013): Bookmarks-Statusbar-Toggle.
                Lucide-Icon 'star'. Klick toggelt die Sidebar-Sektion;
                wird ausgefuellt dargestellt, wenn die aktive Datei
                als Bookmark vorkommt (via .is-marked-Klasse). -->
@@ -1510,7 +1510,7 @@
             </svg>
           </button>
         </div>
-        <!-- 4T-0520 (Epic 3E-0094): eigenes Segment der nutzerdefinierten
+        <!-- 4T-000520 (Epic 3E-000094): eigenes Segment der nutzerdefinierten
              Kommando-Buttons (Erweiterung Kommando-Platzierung). Inhalt wird
              zur Laufzeit aus der Konfiguration gerendert
              (command-placement.js); bewusst als eigener Container neben
@@ -1545,7 +1545,7 @@
           </button>
         </div>
       </div>
-      <!-- 4T-0576 (Epic 3E-0106): mittlere Statusbar-Zone. Die drei
+      <!-- 4T-000576 (Epic 3E-000106): mittlere Statusbar-Zone. Die drei
            Editor-Ansicht-Schalter und die vier Ansichts-Schalter stehen hier
            als gemeinsame Gruppe und sitzen dank des Drei-Spalten-Rasters in
            der Fenster-Mitte, unabhaengig von der Breite der Seiten-Zonen. -->
@@ -1627,9 +1627,9 @@
             </svg>
           </button>
         </div>
-        <!-- 4T-0644: Tour-Anker der Ansichts-Umschaltgruppe. -->
+        <!-- 4T-000644: Tour-Anker der Ansichts-Umschaltgruppe. -->
         <div class="view-toggle" role="group" aria-label="Ansicht" data-tour="views">
-          <!-- 4T-0085 (Epic 3E-0014): Live-Modus-Button. Lucide wand-2-Icon
+          <!-- 4T-000085 (Epic 3E-000014): Live-Modus-Button. Lucide wand-2-Icon
                symbolisiert "Markdown wird magisch gerendert beim Tippen".
                Links vom Quellcode-Button platziert, damit das Render-
                Spektrum von links nach rechts geordnet bleibt: Live (Inline-
@@ -1736,7 +1736,7 @@
               <circle cx="12" cy="12" r="3" />
             </svg>
           </button>
-          <!-- 4T-1055 (Epic 3E-0151): Mindmap-Modus als fuenfte Schaltflaeche.
+          <!-- 4T-001055 (Epic 3E-000151): Mindmap-Modus als fuenfte Schaltflaeche.
                Ganz rechts, weil das Render-Spektrum der Gruppe von der rohen
                Quelle zur abstraktesten Sicht laeuft und die Karte deren Ende
                ist. Das Symbol zeigt einen Wurzel-Knoten mit zwei Aesten. Die
@@ -1771,7 +1771,7 @@
         </div>
       </div>
       <div class="statusbar-right">
-        <!-- 4T-0072: Word Count in Statusbar. Default zeigt die aktive Datei
+        <!-- 4T-000072: Word Count in Statusbar. Default zeigt die aktive Datei
              (Woerter, Zeichen, Lesezeit). Bei Editor-Selektion wechselt die
              Anzeige auf die Auswahl. Klick oeffnet den Detail-Dialog. -->
         <button
@@ -1809,7 +1809,7 @@
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
         </button>
-        <!-- 4T-0070: Scroll-Synchronisation in der geteilten Ansicht. Pro
+        <!-- 4T-000070: Scroll-Synchronisation in der geteilten Ansicht. Pro
              aktivem Tab; tooltip wird zur Laufzeit auf on/off umgestellt. -->
         <button
           id="btn-scroll-sync"
@@ -1835,7 +1835,7 @@
             <path d="M7 4v16" />
           </svg>
         </button>
-        <!-- 4T-0332 (Epic 3E-0060): Dokument-Historie. Drei Zustände
+        <!-- 4T-000332 (Epic 3E-000060): Dokument-Historie. Drei Zustände
              (aktiv/pausiert/inaktiv, Klassen active/paused), Tooltip nennt
              die Herkunft der wirksamen Einstellung; Klick öffnet das Menü
              für den Datei-Schalter (YAML-Eigenschaft history). -->
@@ -1856,7 +1856,7 @@
             <path d="M12 7v5l4 2" />
           </svg>
         </button>
-        <!-- 4T-0030: Theme-Toggle. Icon und Tooltip werden zur Laufzeit
+        <!-- 4T-000030: Theme-Toggle. Icon und Tooltip werden zur Laufzeit
              aus state.themePref gesetzt (Sonne/Mond/Monitor). Klick
              schaltet zyklisch Hell -> Dunkel -> System -> Hell. -->
         <button
@@ -1879,7 +1879,7 @@
     <div id="empty-state" class="empty-state">
       <div class="empty-state-inner">
         <h1 data-i18n="empty.title">EM4me</h1>
-        <!-- 4T-0643 (Epic 3E-0126): Marken-Claim, die Auflösung des Namens.
+        <!-- 4T-000643 (Epic 3E-000126): Marken-Claim, die Auflösung des Namens.
              Bleibt in allen Sprachen englisch, er ist Bestandteil der Marke. -->
         <p class="app-claim" data-i18n="app.claim">extended memory for me</p>
         <p data-i18n="empty.hint">Datei öffnen oder per Drag &amp; Drop hier ablegen.</p>
@@ -2006,7 +2006,7 @@
       <dl class="regex-help-list" id="regex-help-list"></dl>
     </div>
 
-    <!-- 4T-0078 (Epic 3E-0013): Bestaetigungs-Dialog beim Entfernen eines
+    <!-- 4T-000078 (Epic 3E-000013): Bestaetigungs-Dialog beim Entfernen eines
          nicht-leeren Bookmark-Ordners. Zeigt Anzahl enthaltener Bookmarks
          und Unterordner; Aktion ist destruktiv. -->
     <div id="bookmark-confirm-remove-modal" class="bookmark-modal" hidden>
@@ -2040,7 +2040,7 @@
       </div>
     </div>
 
-    <!-- 4T-0078 (Epic 3E-0013): Modal-Picker fuer "In Ordner verschieben...".
+    <!-- 4T-000078 (Epic 3E-000013): Modal-Picker fuer "In Ordner verschieben...".
          Zeigt einen Tree aller Folder-Knoten plus virtuellem Root; der zu
          verschiebende Knoten und alle seine Nachfahren sind als Ziel gesperrt
          (Zyklus-Schutz). -->
@@ -2070,7 +2070,7 @@
       </div>
     </div>
 
-    <!-- 4T-0072: Detail-Dialog mit erweiterten Statistiken (Woerter, Zeichen
+    <!-- 4T-000072: Detail-Dialog mit erweiterten Statistiken (Woerter, Zeichen
          mit/ohne Leerzeichen, Lesezeit, Absaetze, Saetze, Headings nach Ebene). -->
     <div id="wordcount-modal" class="wordcount-modal" hidden>
       <div class="wordcount-modal-backdrop"></div>
@@ -2096,7 +2096,7 @@
         aria-modal="true"
         aria-labelledby="about-title"
       >
-        <!-- 4T-0649 (Epic 3E-0126): Bildmarke als eingebettetes SVG statt als
+        <!-- 4T-000649 (Epic 3E-000126): Bildmarke als eingebettetes SVG statt als
              Datei-Verweis. Ein Pfad muesste im gepackten Zustand aus dem
              asar-Archiv aufgeloest werden; eingebettet ist die Darstellung
              davon unabhaengig und skaliert verlustfrei mit der Anzeige.
@@ -2164,7 +2164,7 @@
           <span data-i18n="about.versionLabel">Version</span>
           <span id="about-version">&mdash;</span>
         </p>
-        <!-- 4T-0674 (Epic 3E-0135): Rückverweis auf die Produkt-Webseite. Statischer
+        <!-- 4T-000674 (Epic 3E-000135): Rückverweis auf die Produkt-Webseite. Statischer
              Anker mit i18n-Text (applyTranslations setzt textContent, kein HTML); der
              Klick öffnet die sprachabhängige Adresse über die bestehende
              externe-Link-Brücke (api.openExternal). Von sich aus nimmt die App
@@ -2186,12 +2186,12 @@
       </div>
     </div>
 
-    <!-- 4T-0279 (Epic 3E-0049): Der fruehere modale Einstellungs-Dialog
+    <!-- 4T-000279 (Epic 3E-000049): Der fruehere modale Einstellungs-Dialog
          (#settings-modal) ist ersatzlos abgeloest; die Einstellungen leben
          als System-Seite im Tab-System (settings-page.js baut das
          Seiten-DOM zur Laufzeit in .pane-system). -->
 
-    <!-- 4T-0050 (Epic 3E-0010): Alias-Disambiguation-Dialog. Wird gezeigt,
+    <!-- 4T-000050 (Epic 3E-000010): Alias-Disambiguation-Dialog. Wird gezeigt,
          wenn ein Wiki-Link auf einen Alias zeigt, den mehrere Dateien im
          Suchraum fuehren. Inhalt (Titel-Alias und Kandidaten-Liste) wird
          zur Laufzeit pro Aufruf befuellt. -->
@@ -2212,7 +2212,7 @@
       </div>
     </div>
 
-    <!-- 4T-0338 (Epic 3E-0061): generischer Namens-Eingabe-Dialog
+    <!-- 4T-000338 (Epic 3E-000061): generischer Namens-Eingabe-Dialog
          (Unterseite anlegen, Datei umbenennen). Titel, Beschreibung,
          Vorbelegung und Validierung werden pro Aufruf gesetzt
          (showNameInputDialog in dialogs.js). -->
@@ -2228,7 +2228,7 @@
         <p id="name-input-description"></p>
         <input id="name-input-field" class="name-input-field" type="text" />
         <p id="name-input-error" class="name-input-error" hidden></p>
-        <!-- 4T-0346 (Epic 3E-0062): optionale Checkboxen (Link-Update, Vorschau);
+        <!-- 4T-000346 (Epic 3E-000062): optionale Checkboxen (Link-Update, Vorschau);
              leer/versteckt bei Dialogen ohne checkboxes-Option. -->
         <div id="name-input-checkboxes" class="name-input-checkboxes" hidden></div>
         <div class="bookmark-modal-buttons">
@@ -2238,7 +2238,7 @@
       </div>
     </div>
 
-    <!-- 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog — Formular-Gegenpol
+    <!-- 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog — Formular-Gegenpol
          zur Marker-Syntax (Beschreibung, Status, Priorität, Wiederholung,
          Termine über den Datums-Picker). Befüllung und Verhalten in
          task-dialog.js; Texte via i18n beim Öffnen. -->
@@ -2275,7 +2275,7 @@
         <p id="task-dialog-recurrence-hint" class="name-input-error" hidden></p>
         <div id="task-dialog-dates" class="task-dialog-dates"></div>
         <p id="task-dialog-auto-dates" class="task-dialog-auto-dates" hidden></p>
-        <!-- 4T-0508 (Epic 3E-0096): Abhängigkeiten — ID, Vorgänger und
+        <!-- 4T-000508 (Epic 3E-000096): Abhängigkeiten — ID, Vorgänger und
              Nachfolger mit Task-Suche über den Bereich (task-dialog.js). -->
         <div id="task-dialog-deps" class="task-dialog-deps"></div>
         <div class="bookmark-modal-buttons">
@@ -2285,7 +2285,7 @@
       </div>
     </div>
 
-    <!-- 4T-0526 (Epic 3E-0095): Erinnerungs-Dialog — Einzel-, Sammel- und
+    <!-- 4T-000526 (Epic 3E-000095): Erinnerungs-Dialog — Einzel-, Sammel- und
          Nachhol-Fall in einem Gerüst; Einträge mit Erledigt/Später-Aktionen
          rendert reminders.js, Texte via i18n beim Öffnen. Escape, Backdrop
          und Schließen muten die verbliebenen Einträge bis zum Neustart. -->
@@ -2305,7 +2305,7 @@
       </div>
     </div>
 
-    <!-- 4T-0461 (Epic 3E-0085): Tab-Gruppen-Dialog — Name plus feste
+    <!-- 4T-000461 (Epic 3E-000085): Tab-Gruppen-Dialog — Name plus feste
          Acht-Farben-Auswahl (Swatches werden pro Aufruf aus der Palette
          aufgebaut; showTabGroupDialog in dialogs.js). -->
     <div id="tab-group-modal" class="bookmark-modal" hidden>
@@ -2328,7 +2328,7 @@
       </div>
     </div>
 
-    <!-- 4T-0637 (Epic 3E-0069): Wecker anlegen und bearbeiten. Uhrzeit über
+    <!-- 4T-000637 (Epic 3E-000069): Wecker anlegen und bearbeiten. Uhrzeit über
          den vorhandenen Picker (Ziffern-Segmente, kein Freitext), dazu
          Bezeichnung, Wiederhol-Muster und die Wochentage; die Wochentags-
          Zeile erscheint nur beim Muster „an Wochentagen"
@@ -2362,7 +2362,7 @@
       </div>
     </div>
 
-    <!-- 4T-0637 (Epic 3E-0069): Meldung eines fälligen Weckers. Bewusst
+    <!-- 4T-000637 (Epic 3E-000069): Meldung eines fälligen Weckers. Bewusst
          schlank (Uhrzeit, Bezeichnung, zwei Aktionen) und ohne Datei-Bezug —
          anders als der Erinnerungs-Dialog, der an einem Marker in einer
          Datei hängt. -->
@@ -2383,7 +2383,7 @@
       </div>
     </div>
 
-    <!-- 4T-0638 (Epic 3E-0069): Timer anlegen und bearbeiten. Die Dauer
+    <!-- 4T-000638 (Epic 3E-000069): Timer anlegen und bearbeiten. Die Dauer
          kommt über eine eigene Segment-Steuerung (Stunden, Minuten,
          Sekunden) — der Uhrzeit-Picker bildet nur HH:mm mit Uhrzeit-Semantik
          ab und taugt für eine Dauer nicht (showTimerDialog in
@@ -2412,7 +2412,7 @@
       </div>
     </div>
 
-    <!-- 4T-0638 (Epic 3E-0069): Meldung abgelaufener Timer. Aktionen sind
+    <!-- 4T-000638 (Epic 3E-000069): Meldung abgelaufener Timer. Aktionen sind
          Bestätigen und erneut starten; Schlummern wie beim Wecker ergibt
          bei einer abgelaufenen Dauer keinen Sinn. -->
     <div id="timer-due-modal" class="bookmark-modal" hidden>
@@ -2432,7 +2432,7 @@
       </div>
     </div>
 
-    <!-- 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Dialog — Titel pro
+    <!-- 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Dialog — Titel pro
          Anwendungsfall (speichern als / neu / umbenennen), Name plus feste
          Acht-Farben-Auswahl (showWorkspaceDialog in workspaces.js). -->
     <div id="workspace-modal" class="bookmark-modal" hidden>
@@ -2453,7 +2453,7 @@
       </div>
     </div>
 
-    <!-- 4T-0538 (Epic 3E-0098): Verwaltungs-Dialog der Arbeitsbereiche —
+    <!-- 4T-000538 (Epic 3E-000098): Verwaltungs-Dialog der Arbeitsbereiche —
          Liste mit Farbpunkt/Offen-Status und den Aktionen Oeffnen,
          Umbenennen und Farbe, Loeschen (showWorkspaceManager in
          workspaces.js). -->
@@ -2475,10 +2475,10 @@
       </div>
     </div>
 
-    <!-- 4T-0426 (Epic 3E-0080): Vorlagen-Auswahl-Popup — filterbare Liste
+    <!-- 4T-000426 (Epic 3E-000080): Vorlagen-Auswahl-Popup — filterbare Liste
          mit Unterordnern als Gruppen und Pfeiltasten-Navigation. Inhalt wird
          pro Aufruf befuellt (showTemplatePickerDialog in templates.js). -->
-    <!-- 4T-0624 (Epic 3E-0119): Auswahl-Popup der Sidebar-Varianten
+    <!-- 4T-000624 (Epic 3E-000119): Auswahl-Popup der Sidebar-Varianten
          (Markup-Muster template-picker-modal). -->
     <div id="sidebar-variant-picker-modal" class="bookmark-modal" hidden>
       <div class="bookmark-modal-backdrop"></div>
@@ -2519,7 +2519,7 @@
       </div>
     </div>
 
-    <!-- 4T-0426 (Epic 3E-0080): Auswahl-Dialog der {{select:…}}-Platzhalter
+    <!-- 4T-000426 (Epic 3E-000080): Auswahl-Dialog der {{select:…}}-Platzhalter
          (Frage als Titel, Optionen als Liste). -->
     <div id="template-select-modal" class="bookmark-modal" hidden>
       <div class="bookmark-modal-backdrop"></div>
@@ -2539,7 +2539,7 @@
       </div>
     </div>
 
-    <!-- 4T-0480 (Epic 3E-0089): Kommando-Palette — filterbare Liste aller
+    <!-- 4T-000480 (Epic 3E-000089): Kommando-Palette — filterbare Liste aller
          Registry-Kommandos mit Kürzel-Anzeige und Pfeiltasten-Navigation.
          Inhalt wird pro Aufruf befüllt (showCommandPalette in
          command-palette.js). -->
@@ -2562,7 +2562,7 @@
       </div>
     </div>
 
-    <!-- 4T-0520 (Epic 3E-0094): Anlage- und Bearbeitungs-Dialog der
+    <!-- 4T-000520 (Epic 3E-000094): Anlage- und Bearbeitungs-Dialog der
          Kommando-Platzierung — Drei-Schritt-Flow als ein Dialog (Kommando
          per Filter-Suche wählen, Icon aus dem kuratierten Raster, optionaler
          Anzeigename). Inhalt wird pro Aufruf befüllt
@@ -2608,7 +2608,7 @@
       </div>
     </div>
 
-    <!-- 4T-0346 (Epic 3E-0062): Vorschau vor dem Link-Update. -->
+    <!-- 4T-000346 (Epic 3E-000062): Vorschau vor dem Link-Update. -->
     <div id="link-preview-modal" class="bookmark-modal" hidden>
       <div class="bookmark-modal-backdrop"></div>
       <div
@@ -2627,7 +2627,7 @@
       </div>
     </div>
 
-    <!-- 4T-0346 (Epic 3E-0062): Ergebnis-Bericht nach dem Link-Update. -->
+    <!-- 4T-000346 (Epic 3E-000062): Ergebnis-Bericht nach dem Link-Update. -->
     <div id="link-report-modal" class="bookmark-modal" hidden>
       <div class="bookmark-modal-backdrop"></div>
       <div

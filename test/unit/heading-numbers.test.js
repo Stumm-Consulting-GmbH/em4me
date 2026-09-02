@@ -1,4 +1,4 @@
-// 4T-0469 (Epic 3E-0087): Unit-Tests des Nummerierungs-Kerns.
+// 4T-000469 (Epic 3E-000087): Unit-Tests des Nummerierungs-Kerns.
 //
 // Deckt Marker-Erkennung (parseHeadingMarker) und Zaehl-Logik
 // (computeHeadingNumbers) ueber alle Regel-Kombinationen ab: Hierarchie,
@@ -21,7 +21,7 @@ function numbers(result) {
   return result.map((r) => r.number);
 }
 
-describe('parseHeadingMarker (4T-0469)', () => {
+describe('parseHeadingMarker (4T-000469)', () => {
   it('erkennt den Ausnahme-Marker {-} am Zeilenende', () => {
     expect(parseHeadingMarker('Titel {-}')).toEqual({ marker: 'exclude', cleanTitle: 'Titel' });
   });
@@ -71,7 +71,7 @@ describe('parseHeadingMarker (4T-0469)', () => {
   });
 });
 
-describe('computeHeadingNumbers — Grundhierarchie (4T-0469)', () => {
+describe('computeHeadingNumbers — Grundhierarchie (4T-000469)', () => {
   it('nummeriert H1/H2/H3 hierarchisch ab Start-Ebene 1', () => {
     const res = computeHeadingNumbers(
       headings([
@@ -108,7 +108,7 @@ describe('computeHeadingNumbers — Grundhierarchie (4T-0469)', () => {
   });
 });
 
-describe('computeHeadingNumbers — Start-Ebene (4T-0469)', () => {
+describe('computeHeadingNumbers — Start-Ebene (4T-000469)', () => {
   it('ignoriert H1 bei Start-Ebene 2 (kein Zaehler-Einfluss, H2 laeuft durch)', () => {
     const res = computeHeadingNumbers(
       headings([
@@ -125,7 +125,7 @@ describe('computeHeadingNumbers — Start-Ebene (4T-0469)', () => {
   });
 });
 
-describe('computeHeadingNumbers — uebersprungene Ebenen (4T-0469)', () => {
+describe('computeHeadingNumbers — uebersprungene Ebenen (4T-000469)', () => {
   it('zaehlt uebersprungene Zwischenebenen als 1 (H1 -> H3)', () => {
     const res = computeHeadingNumbers(
       headings([
@@ -140,7 +140,7 @@ describe('computeHeadingNumbers — uebersprungene Ebenen (4T-0469)', () => {
   });
 });
 
-describe('computeHeadingNumbers — Ausnahmen {-} (4T-0469)', () => {
+describe('computeHeadingNumbers — Ausnahmen {-} (4T-000469)', () => {
   it('ausgenommene Ueberschrift zaehlt nicht mit; Nachbar zaehlt weiter', () => {
     const res = computeHeadingNumbers(
       headings([
@@ -169,7 +169,7 @@ describe('computeHeadingNumbers — Ausnahmen {-} (4T-0469)', () => {
   });
 });
 
-describe('computeHeadingNumbers — Dokument-Zustand und {+} (4T-0469)', () => {
+describe('computeHeadingNumbers — Dokument-Zustand und {+} (4T-000469)', () => {
   it('bei enabled=false bleibt alles ohne Nummer', () => {
     const res = computeHeadingNumbers(
       headings([
@@ -199,7 +199,7 @@ describe('computeHeadingNumbers — Dokument-Zustand und {+} (4T-0469)', () => {
   });
 });
 
-describe('computeHeadingNumbers — Robustheit (4T-0469)', () => {
+describe('computeHeadingNumbers — Robustheit (4T-000469)', () => {
   it('leere Liste liefert leeres Ergebnis', () => {
     expect(computeHeadingNumbers([], { enabled: true, startLevel: 1 })).toEqual([]);
   });

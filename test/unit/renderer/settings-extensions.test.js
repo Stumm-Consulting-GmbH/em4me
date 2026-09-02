@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0295 (Epic 3E-0052): Bereich „Erweiterungen" der Einstellungs-Seite —
+// 4T-000295 (Epic 3E-000052): Bereich „Erweiterungen" der Einstellungs-Seite —
 // Bereichs-Registrierung, Schalter-Zeilen mit Abhängigkeits-Hinweis,
 // Entwurfs-/Anwenden-Semantik, dynamisches Verschwinden erweiterungs-
 // eigener Bereiche (Task-Status) und Rückfall auf den Bereich
@@ -38,7 +38,7 @@ function activateSection(container, id) {
   btn.click();
 }
 
-describe('Bereich Erweiterungen (4T-0295)', () => {
+describe('Bereich Erweiterungen (4T-000295)', () => {
   beforeEach(() => {
     lifecycle.resetExtensionStateForTests();
   });

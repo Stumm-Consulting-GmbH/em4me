@@ -1,4 +1,4 @@
-// 4T-1214 (Epic 3E-0225): Unit-Tests der Ausfall-Erkennung des
+// 4T-001214 (Epic 3E-000225): Unit-Tests der Ausfall-Erkennung des
 // Anzeige-Prozesses (src/main/app/anzeige-ausfall.js).
 //
 // Die Lücke, die sie schließt: Die bestehenden Auffang-Ebenen brauchen einen
@@ -265,7 +265,7 @@ describe('Verdrahtung an den Plattform-Ereignissen', () => {
     expect(quelle).toContain("win.on('unresponsive'");
     expect(quelle).toContain("win.on('responsive'");
     // Die Fenster-Haken hängen an browser-window-created und nicht in der
-    // Fenster-Verwaltung: Die Datei steht an ihrem Größen-Budget (3E-0228).
+    // Fenster-Verwaltung: Die Datei steht an ihrem Größen-Budget (3E-000228).
     expect(quelle).toContain("app.on('browser-window-created'");
   });
 

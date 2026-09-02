@@ -1,7 +1,7 @@
 // Kontextmenue der Reiterleiste: Verschieben und Kopieren zwischen Spalten und
 // Fenstern, Umbenennen, Unterseite loesen, Lesezeichen und die Gruppen-
 // Eintraege (deren Aktionen in tab-group-menu.js liegen).
-// 4T-0978 (Epic 3E-0196): aus modules/dialogs/dialogs.js ausgezogen (reiner
+// 4T-000978 (Epic 3E-000196): aus modules/dialogs/dialogs.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert).
 'use strict';
 
@@ -9,7 +9,7 @@ import { t } from '../../i18n.js';
 
 import { api } from '../app/api.js';
 import { contextMenu, state } from '../app/app-state.js';
-// 4T-0318 (Epic 3E-0057): Ziel-Labels mit App-Kontext.
+// 4T-000318 (Epic 3E-000057): Ziel-Labels mit App-Kontext.
 import { buildWindowTargetLabel } from '../app/window-title.js';
 import {
   activateTab,
@@ -20,20 +20,20 @@ import {
   moveTabToNewWindow,
   moveTabToWindow,
 } from './tabs.js';
-// 4T-1175 (Epic 3E-0220): Feld-Formular des Dokuments oeffnen.
+// 4T-001175 (Epic 3E-000220): Feld-Formular des Dokuments oeffnen.
 import { oeffneFeldFormular } from '../properties/properties-tags.js';
-// 4T-0339 (Epic 3E-0061): Umbenennen aus dem Tab-Kontextmenue (Laufzeit-
+// 4T-000339 (Epic 3E-000061): Umbenennen aus dem Tab-Kontextmenue (Laufzeit-
 // Zyklus dialogs <-> views, Muster wie panels.js).
 import { detachSubpageForTab, renameFileForTab } from '../views/file-actions.js';
-// 4T-0774 (Epic 3E-0128): Loesen-Eintrag nur an einer Unterseite.
+// 4T-000774 (Epic 3E-000128): Loesen-Eintrag nur an einer Unterseite.
 import { isSubpageBasename } from '../../../shared/subpages.js';
-// 4T-0766 (Epic 3E-0158): Die drei Gruppen-Eintraege beziehen sich auf die
+// 4T-000766 (Epic 3E-000158): Die drei Gruppen-Eintraege beziehen sich auf die
 // Mehrfach-Auswahl, sobald der angeklickte Reiter Teil von ihr ist.
 import { hasMultiSelection, isTabSelected, selectedIndices } from './tab-selection.js';
-// 4T-0461: Gruppen-Menuepunkte entfallen bei deaktivierter Erweiterung.
+// 4T-000461: Gruppen-Menuepunkte entfallen bei deaktivierter Erweiterung.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
-// 4T-0612 (Epic 3E-0115): Lesezeichen direkt aus dem Tab-Kontextmenue anlegen.
-// 4T-0991 (Epic 3E-0196): bookmarks.js ist in den Feature-Ordner bookmarks/
+// 4T-000612 (Epic 3E-000115): Lesezeichen direkt aus dem Tab-Kontextmenue anlegen.
+// 4T-000991 (Epic 3E-000196): bookmarks.js ist in den Feature-Ordner bookmarks/
 // geteilt; die Anlage-Fluesse liegen in bookmarks-actions.js, die Abfrage im
 // Datenmodell.
 import {
@@ -41,9 +41,9 @@ import {
   addGeneralBookmarkForPath,
 } from '../bookmarks/bookmarks-actions.js';
 import { bookmarkTargetsForPath } from '../bookmarks/bookmarks-tree.js';
-// 4T-0978: generische Menue-Helfer aus dem Dialog-Bereich.
+// 4T-000978: generische Menue-Helfer aus dem Dialog-Bereich.
 import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
-// 4T-0978: die Aktionen hinter den Gruppen-Eintraegen.
+// 4T-000978: die Aktionen hinter den Gruppen-Eintraegen.
 import {
   addTabsToGroupAction,
   newGroupWithTabs,
@@ -54,10 +54,10 @@ import {
 export async function showTabContextMenu(event, paneIdx, tabIdx) {
   contextMenu.innerHTML = '';
 
-  // 4T-0012: Fensterliste abrufen, um zu entscheiden, ob das Tab-Verschieben/
+  // 4T-000012: Fensterliste abrufen, um zu entscheiden, ob das Tab-Verschieben/
   // Kopieren als flache Eintraege (Solo) oder als Submenues (Multi) angezeigt
   // wird. Bei Fehler fallen wir auf Solo zurueck — kein Blocker.
-  // 4T-0318: Selbst-Filter ueber die eindeutige Fenster-ID — displayNumber
+  // 4T-000318: Selbst-Filter ueber die eindeutige Fenster-ID — displayNumber
   // ist seither app-lokal und kollidiert zwischen Applikationen.
   let otherWindows;
   try {
@@ -89,7 +89,7 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
     items.push({ key: 'tab.copyToNewWindow', action: () => copyTabToNewWindow(paneIdx, tabIdx) });
   } else {
     // Multi-Fall: Submenues mit "Neues Fenster" + einem Eintrag pro anderem Fenster.
-    // 4T-0318: Ziel-Label mit App-Kontext, sobald mehrere Applikationen
+    // 4T-000318: Ziel-Label mit App-Kontext, sobald mehrere Applikationen
     // laufen ("App 2, Fenster 1" bzw. "Bereich Notizen, Fenster 2").
     const moveSubmenu = [
       { key: 'tab.menu.targetNewWindow', action: () => moveTabToNewWindow(paneIdx, tabIdx) },
@@ -114,18 +114,18 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
   }
 
   items.push({ separator: true });
-  // 4T-0339 (Epic 3E-0061): Umbenennen nur fuer Datei-Tabs (mit Pfad,
+  // 4T-000339 (Epic 3E-000061): Umbenennen nur fuer Datei-Tabs (mit Pfad,
   // keine Handbuch-/System-Seiten).
   const ctxPane = state.panes[paneIdx];
   const ctxTab = ctxPane ? ctxPane.tabs[tabIdx] : null;
   if (ctxTab && ctxTab.path && !ctxTab.manualPage && !ctxTab.systemPage) {
     items.push({ key: 'tab.rename', action: () => renameFileForTab(paneIdx, tabIdx) });
-    // 4T-0774 (Epic 3E-0128): Loesen nur an einer Unterseite anbieten — im
+    // 4T-000774 (Epic 3E-000128): Loesen nur an einer Unterseite anbieten — im
     // Kontextmenue steht die gemeinte Datei fest, anders als im Datei-Menue.
     if (isSubpageBasename(api.basename(ctxTab.path).replace(/\.(md|markdown|mdown|mkd)$/i, ''))) {
       items.push({ key: 'tab.detachSubpage', action: () => detachSubpageForTab(paneIdx, tabIdx) });
     }
-    // 4T-1175 (Epic 3E-0220, E5): Feld-Formular des Dokuments. Es steht hier
+    // 4T-001175 (Epic 3E-000220, E5): Feld-Formular des Dokuments. Es steht hier
     // bei den uebrigen Datei-Aktionen und macht keinen eigenen Menue-Block
     // auf (AK2) — der Struktur-Pruefschritt vom 2026-08-21 haelt genau das
     // fest. Entfaellt bei abgeschalteter Erweiterung (AK3), Muster der
@@ -145,7 +145,7 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
       });
     }
   }
-  // 4T-0612 (Epic 3E-0115): Lesezeichen aus dem Tab-Menue anlegen (nur Datei-
+  // 4T-000612 (Epic 3E-000115): Lesezeichen aus dem Tab-Menue anlegen (nur Datei-
   // Tabs, nur bei aktiver Lesezeichen-Erweiterung). Der Bereichs-Eintrag
   // erscheint nur bei geoeffnetem Bereich und Datei innerhalb; bereits
   // gemerkte Ziele blenden ihren Eintrag aus.
@@ -172,11 +172,11 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
       });
     }
   }
-  // 4T-0461 (Epic 3E-0085): Gruppen-Verwaltung — neue Gruppe, Beitritt zu
+  // 4T-000461 (Epic 3E-000085): Gruppen-Verwaltung — neue Gruppe, Beitritt zu
   // bestehenden Gruppen der Leiste (Untermenue), Austritt. Entfaellt bei
   // deaktivierter Erweiterung tab-groups.
   if (isExtensionActive('tab-groups') && ctxPane && ctxTab) {
-    // 4T-0766 (Epic 3E-0158): Menge statt Einzel-Reiter, sobald der
+    // 4T-000766 (Epic 3E-000158): Menge statt Einzel-Reiter, sobald der
     // angeklickte Reiter Teil einer Mehrfach-Auswahl ist. Die uebrigen
     // Eintraege des Menues meinen genau eine Datei und bleiben beim
     // angeklickten Reiter (Umbenennen, Lesezeichen, Fenster-Transfer).
@@ -221,7 +221,7 @@ export async function showTabContextMenu(event, paneIdx, tabIdx) {
   placeContextMenuAt(contextMenu, event.clientX, event.clientY);
 }
 
-// 4T-0012: Tooltip-Text fuer einen Fenster-Eintrag im Tab-Kontextmenue:
+// 4T-000012: Tooltip-Text fuer einen Fenster-Eintrag im Tab-Kontextmenue:
 // Dateiname des aktiven Tabs des Zielfensters, bei mehreren Tabs zusaetzlich
 // "(+N weitere)" (lokalisiert).
 export function buildWindowTooltip(w) {

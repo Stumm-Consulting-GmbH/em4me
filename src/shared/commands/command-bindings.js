@@ -1,4 +1,4 @@
-// 4T-0993 (Epic 3E-0196): Binding-Schicht der Kommando-Registry.
+// 4T-000993 (Epic 3E-000196): Binding-Schicht der Kommando-Registry.
 //
 // Funktions-Auszug aus src/shared/commands/commands.js: Normalisierung von
 // Accelerator-Strings und keydown-Ereignissen auf ein kanonisches
@@ -7,7 +7,7 @@
 // des Kommandos edit.insertTimestamp (es gehört zur Kommando-Schicht, nicht
 // zu den deklarativen Registry-Daten). Die Registry selbst (COMMANDS,
 // COMMAND_CATEGORIES) bleibt in commands.js als begründete Ausnahme des
-// Datei-Größen-Budgets (Entscheidung E2 der Bestandsaufnahme 4T-0964).
+// Datei-Größen-Budgets (Entscheidung E2 der Bestandsaufnahme 4T-000964).
 //
 // Bewusst ohne jeden Import: Das Modul kennt die Kommando-Liste nicht und
 // arbeitet ausschließlich auf übergebenen Zeichenketten und Ereignissen.
@@ -159,7 +159,7 @@ function eventToBinding(e) {
 // Symbol-Tasten brauchen je nach Layout Shift (z.B. '+' auf englischer
 // Tastatur als Shift+'='). Fuer solche Events versucht der Dispatcher
 // zusaetzlich einen Lookup ohne Shift-Modifier — das erhaelt das bisherige
-// Verhalten der Zoom-Hotkeys (4T-0017) layoutunabhaengig.
+// Verhalten der Zoom-Hotkeys (4T-000017) layoutunabhaengig.
 function isShiftSymbolEvent(e) {
   return (
     !!e &&
@@ -186,7 +186,7 @@ const DISPLAY_KEY_MAP = new Map([
   ['Up', '↑'],
   ['Down', '↓'],
   ['Escape', 'Esc'],
-  // 4T-0850 (Epic 3E-0147): Bild-Tasten der Buch-Leseführung. Ohne Eintrag
+  // 4T-000850 (Epic 3E-000147): Bild-Tasten der Buch-Leseführung. Ohne Eintrag
   // erschienen sie in der Tastenkürzel-Seite als 'PageUp'/'PageDown' und
   // ließen sich nicht übersetzen (KEY_LABEL_KEY in manual-generated.js
   // schlüsselt über genau diese deutschen Anzeige-Tokens).
@@ -250,7 +250,7 @@ function acceleratorToCmKey(binding) {
   return parts.join('-');
 }
 
-// --- Capture-Regeln (4T-0208) -----------------------------------------------------
+// --- Capture-Regeln (4T-000208) -----------------------------------------------------
 // Die Konflikt-Erkennung, die diese Liste gegen die Registry hält, läuft über
 // die COMMANDS-Liste und liegt deshalb in commands.js.
 //
@@ -268,7 +268,7 @@ const FIXED_BINDINGS = [
   { binding: 'Escape', descKey: 'help.shortcut.escape' },
 ];
 
-// Sperr-Regel fuer das Capture (4T-0208, Entscheidungspunkt 3 als Regel
+// Sperr-Regel fuer das Capture (4T-000208, Entscheidungspunkt 3 als Regel
 // statt erschoepfender Liste): ohne Strg- oder Alt-Modifier sind nur
 // F-Tasten zulaessig. Modifierlose Zeichen-Tasten (auch mit Umschalt)
 // wuerden das normale Tippen kapern; nacktes Tab/Esc/Enter faellt damit

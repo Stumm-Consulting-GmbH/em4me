@@ -1,4 +1,4 @@
-// 4T-0448 (Epic 3E-0083): E2E-Funktions-Suite Eigenschafts-Profile im
+// 4T-000448 (Epic 3E-000083): E2E-Funktions-Suite Eigenschafts-Profile im
 // Properties-Editor. PP-01: Vorschlags-Menü listet Definitions-Felder mit
 // Profil-Kennzeichnung, Auswahl legt das Feld mit Definitions-Typ und
 // Default an; PP-02: Wertebereichs-Feld als Auswahl-Liste mit Typ-Sperre,
@@ -14,7 +14,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
-// 4T-1175 (Epic 3E-0220): geteilte Bereichs-Vorbereitung, ausgezogen wegen des
+// 4T-001175 (Epic 3E-000220): geteilte Bereichs-Vorbereitung, ausgezogen wegen des
 // Datei-Budgets (Begründung dort).
 const {
   PANE0,
@@ -47,7 +47,7 @@ test.describe('PP-01: Vorschlags-Menü und Feld-Anlage mit Default (F-106)', () 
       // Definitions-Felder zuerst (zugeordnetes Profil vor dem Standard),
       // mit Profil-Kennzeichnung; Heuristik-Vorschläge danach; am Ende
       // „Eigenes Feld".
-      // 4T-0491 (PO-Befund 2026-07-11): profil-gruppierte Liste. Klickbare
+      // 4T-000491 (PO-Befund 2026-07-11): profil-gruppierte Liste. Klickbare
       // Profil-Köpfe (is-profile-head) in Auflösungs-Reihenfolge, darunter
       // eingerückt die Einzel-Felder; profillose Vorschläge unter „Weitere
       // Felder" (nicht klickbare Überschrift).
@@ -177,7 +177,7 @@ test.describe('PP-05: Block-Panel mit denselben Definitionen (F-106)', () => {
       // Vorschlags-Menü: Definitions-Felder zuerst (status, budget, thema).
       await page.locator(`${SEC} .block-props-add-btn`).click();
       await expect(page.locator(MENU)).toBeVisible();
-      // 4T-0491 (PO-Befund): profil-gruppiert; Einzel-Feld „budget" auswählen.
+      // 4T-000491 (PO-Befund): profil-gruppiert; Einzel-Feld „budget" auswählen.
       await expect(
         page.locator(`${MENU_ITEM}.is-profile-head`).filter({ hasText: 'Projekt' }),
       ).toHaveCount(1);
@@ -300,7 +300,7 @@ test.describe('PP-06: Einstellungs-Bereich Eigenschafts-Profile (F-106)', () => 
       expect(parsed.settings.propertyProfiles.assignField).toBe('class');
 
       // Wieder öffnen: die Liste zeigt das interne Ereignis-Profil zuerst
-      // (4T-0517), dann beide Datei-Profile, das defekte mit Hinweis; das
+      // (4T-000517), dann beide Datei-Profile, das defekte mit Hinweis; das
       // Standard-Profil ist aus den Datei-Profilen wählbar.
       await openProfilesSettings(page);
       const items = page.locator('.settings-profiles-item');
@@ -314,7 +314,7 @@ test.describe('PP-06: Einstellungs-Bereich Eigenschafts-Profile (F-106)', () => 
       await expect(items.nth(1).locator('.settings-profiles-item-meta')).toHaveClass(/has-errors/);
       await expect(items.nth(2).locator('.settings-profiles-item-name')).toHaveText('Projekt');
       await expect(items.nth(2).locator('.settings-profiles-item-meta')).toContainText('2');
-      // Interne Profile stehen nicht zur Wahl als Standard-Profil (4T-0517).
+      // Interne Profile stehen nicht zur Wahl als Standard-Profil (4T-000517).
       await expect(page.locator('#settings-profiles-default option[value="Ereignis"]')).toHaveCount(
         0,
       );
@@ -337,18 +337,18 @@ test.describe('PP-06: Einstellungs-Bereich Eigenschafts-Profile (F-106)', () => 
   });
 });
 
-// 4T-1143 (Epic 3E-0218, E4): Die Hinweise defekter Definitionen stehen
+// 4T-001143 (Epic 3E-000218, E4): Die Hinweise defekter Definitionen stehen
 // ausgeschrieben unter ihrem Profil (ortsbezogen: Definition, Angabe,
 // Erwartung; Vererbungs-Hinweise am Profil), und das Beheben in der
 // Profil-Datei räumt sie über den Aktualisieren-Knopf ohne Neustart ab.
-test.describe('PP-11: Ortsbezogene Diagnose der Profil-Hinweise (4T-1143)', () => {
+test.describe('PP-11: Ortsbezogene Diagnose der Profil-Hinweise (4T-001143)', () => {
   test('Hinweise erscheinen ausgeschrieben; nach dem Beheben verschwinden sie per Aktualisieren', async () => {
     const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-profile-diagnose-'));
     fs.mkdirSync(path.join(areaRoot, 'Profile'));
     const kaputt = path.join(areaRoot, 'Profile', 'Kaputt.md');
     fs.writeFileSync(
       kaputt,
-      // 4T-1184 (Epic 3E-0221): Der Platzhalter für einen UNBEKANNTEN Typ war
+      // 4T-001184 (Epic 3E-000221): Der Platzhalter für einen UNBEKANNTEN Typ war
       // bis zur Stufe 4 `lookup`; seither ist der ein gültiger Typ, und der
       // Fall maß nicht mehr, was er messen soll. Der Prüf-Gegenstand — ein
       // unbekannter Typ erzeugt seinen Hinweis — ist unverändert.
@@ -516,7 +516,7 @@ test.describe('PP-04: Aus-Zustand der Erweiterung (F-106)', () => {
   });
 });
 
-// 4T-0491 (Epic 3E-0093): Komplett-Übernahme von Profil-Feldern im Properties-
+// 4T-000491 (Epic 3E-000093): Komplett-Übernahme von Profil-Feldern im Properties-
 // Editor — ein Klick ergänzt alle fehlenden Felder (Default bzw. typgerechter
 // Leer-Wert als bare Schlüssel), rückgängig in einem einzigen Undo-Schritt.
 test.describe('PP-08: Komplett-Übernahme aller Profil-Felder (F-106)', () => {
@@ -540,8 +540,8 @@ test.describe('PP-08: Komplett-Übernahme aller Profil-Felder (F-106)', () => {
       await page.locator(`${MENU_ITEM}.is-profile-head`).filter({ hasText: 'Projekt' }).click();
       await expect(page.locator(MENU)).toBeHidden();
       // class + status + budget; thema (Profil „All") wurde NICHT ergänzt.
-      // 4T-1179 (Epic 3E-0220): Gezählt werden die Felder des DOKUMENTS. Seit
-      // dem Feld-Formular hängen dessen Angebote im selben Container (4T-1172),
+      // 4T-001179 (Epic 3E-000220): Gezählt werden die Felder des DOKUMENTS. Seit
+      // dem Feld-Formular hängen dessen Angebote im selben Container (4T-001172),
       // und thema steht dort weiterhin als Angebot — die Zusage dieses Falls
       // ist aber, was im Dokument gelandet ist.
       await expect(
@@ -564,7 +564,7 @@ test.describe('PP-08: Komplett-Übernahme aller Profil-Felder (F-106)', () => {
   });
 });
 
-// 4T-0491 (Epic 3E-0093): Komplett-Übernahme im Block-Eigenschaften-Panel —
+// 4T-000491 (Epic 3E-000093): Komplett-Übernahme im Block-Eigenschaften-Panel —
 // dasselbe Verhalten, zweite Oberfläche; die Werte landen in der .mdd.
 test.describe('PP-09: Komplett-Übernahme im Block-Panel (F-106)', () => {
   test('Profil-Kopf schreibt die Felder des Profils in die .mdd', async () => {
@@ -616,11 +616,11 @@ test.describe('PP-09: Komplett-Übernahme im Block-Panel (F-106)', () => {
   });
 });
 
-// 4T-0517 (Epic 3E-0092): internes Ereignis-Profil — die Auflösung wirkt
+// 4T-000517 (Epic 3E-000092): internes Ereignis-Profil — die Auflösung wirkt
 // auch ohne konfigurierten Profil-Ordner (Zuordnungs-Feld-Default class),
 // die Profil-Liste kennzeichnet das interne Profil ohne Öffnen-Affordanz,
 // und mit deaktivierter Ereignis-Erweiterung verschwindet beides.
-test.describe('PP-10: Internes Ereignis-Profil (4T-0517)', () => {
+test.describe('PP-10: Internes Ereignis-Profil (4T-000517)', () => {
   test('Auflösung ohne Profil-Konfiguration: Ereignis-Felder im Vorschlags-Menü', async () => {
     // Bereich OHNE Bereichsdatei und ohne Profil-Ordner.
     const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-profile-intern-'));

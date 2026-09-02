@@ -1,25 +1,25 @@
 // --- Speichern, Zeitstempel-Automatik und portabler Export ------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // Speichern und Speichern unter samt Konflikt-Behandlung, der Zeitstempel-
 // Automatik (created/updated) und dem Export als portables Markdown.
 'use strict';
 
-// 4T-0604 (Epic 3E-0113): History-Isolation fuer den Zeitstempel-Dispatch.
+// 4T-000604 (Epic 3E-000113): History-Isolation fuer den Zeitstempel-Dispatch.
 import { isolateHistory } from '@codemirror/commands';
 import { getLanguage } from '../../i18n.js';
 
 import { api, getDocText } from '../app/api.js';
-// 4T-0435 (Epic 3E-0081): Export-Ersetzung des Journal-Navigations-Blocks.
+// 4T-000435 (Epic 3E-000081): Export-Ersetzung des Journal-Navigations-Blocks.
 import { replaceJournalNavFencesForExport } from '../calendar/journal-nav-view.js';
-// 4T-1066 (Epic 3E-0212): Timeline-Fences werden zur statischen Pipe-Tabelle.
+// 4T-001066 (Epic 3E-000212): Timeline-Fences werden zur statischen Pipe-Tabelle.
 import { replaceJournalTimelineFencesForExport } from '../calendar/journal-timeline-view.js';
 import { EDITOR_VIEW_FM_KEYS, getEditorViewDefaults, state, withDialog } from '../app/app-state.js';
-// 4T-0572 (Epic 3E-0105): Frontmatter-Lesen der dokument-gebundenen Editor-
+// 4T-000572 (Epic 3E-000105): Frontmatter-Lesen der dokument-gebundenen Editor-
 // Ansicht-Schalter. Direkter Import aus dem Electron-freien Shared-Modul
 // (Muster live-widgets.js), damit die Content-Transformation ohne Preload-
 // Bruecke unit-testbar bleibt.
 import { extractFrontmatter } from '../../../shared/markdown/frontmatter.js';
-// 4T-0604 (Epic 3E-0113): reiner Kern der Zeitstempel-Automatik.
+// 4T-000604 (Epic 3E-000113): reiner Kern der Zeitstempel-Automatik.
 import { applyTimestampFields } from '../../../shared/markdown/frontmatter-timestamps.js';
 import {
   clearIndexOverlayFor,
@@ -27,18 +27,18 @@ import {
   syncEditorForPane,
   updateWindowTitle,
 } from '../editor/editor.js';
-// 4T-0585 (Epic 3E-0108): Titelzeile — nach Speichern unter den angezeigten
+// 4T-000585 (Epic 3E-000108): Titelzeile — nach Speichern unter den angezeigten
 // Dateinamen nachziehen (Laufzeit-Zyklus ueber title-line.js ist unkritisch).
 import { updateTitleLineForPane } from './title-line.js';
 import { closeTab, meldeFehlendeTeile } from '../tabs/tabs.js';
-// 4T-0332 (Epic 3E-0060): Statusbar-Zustand der Dokument-Historie (Laufzeit-
-// Zyklus save-export <-> history-status, Muster 4T-0179).
+// 4T-000332 (Epic 3E-000060): Statusbar-Zustand der Dokument-Historie (Laufzeit-
+// Zyklus save-export <-> history-status, Muster 4T-000179).
 import { updateHistoryStatus } from './history-status.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 
 import { invalidatePaneRenderCache, reloadFile } from './pane-render.js';
 import { renderTabbar } from './tabbar.js';
-// 4T-0989: Laufzeit-Zyklus save-export <-> views (Kern). Der Kern ruft
+// 4T-000989: Laufzeit-Zyklus save-export <-> views (Kern). Der Kern ruft
 // stampTabTimestamps im Auto-Save-Pfad, save-export ruft Hinweis, Persistenz
 // und die Frontmatter-Transformation; beide Richtungen sind reine
 // Funktionsaufrufe zur Laufzeit.
@@ -48,7 +48,7 @@ import { buildEditorViewFrontmatterUpdate, persistState, showStatusbarHint } fro
 // Speichert einen bestimmten Tab. Wenn kein Pfad vorhanden, leitet in
 // saveTabAs weiter. Aktualisiert originalContent + dirty + UI bei Erfolg.
 // Returnt true bei Erfolg (oder kein Speichern noetig), false bei Fehler/Abbruch.
-// --- 4T-0604 (Epic 3E-0113): Zeitstempel-Automatik beim Speichern ------------
+// --- 4T-000604 (Epic 3E-000113): Zeitstempel-Automatik beim Speichern ------------
 
 // Konfiguration aus dem Laufzeit-Zustand. Liefert null, wenn die Erweiterung
 // abgeschaltet ist oder beide Felder aus sind; dann bleibt das Dokument beim
@@ -116,18 +116,18 @@ export async function saveTab(paneIdx, tabIdx) {
   if (!pane) return false;
   const tab = pane.tabs[tabIdx];
   if (!tab) return false;
-  // 4T-0213: Handbuch-Tabs sind read-only — Speichern wirkt nicht (und
+  // 4T-000213: Handbuch-Tabs sind read-only — Speichern wirkt nicht (und
   // darf nicht in den Save-As-Dialog der pfadlosen Tabs durchfallen).
-  // 4T-0277: System-Seiten (Einstellungen) ebenso.
+  // 4T-000277: System-Seiten (Einstellungen) ebenso.
   if (tab.manualPage || tab.systemPage) return false;
-  // 4T-1291 (Epic 3E-0224): Der Anwender hat die Teilung dieses Dokuments
+  // 4T-001291 (Epic 3E-000224): Der Anwender hat die Teilung dieses Dokuments
   // abgelehnt und «nur lesen» gewählt. Der Reiter bleibt bedienbar, schreibt
   // aber nicht mehr — ungeteilt speichern hieße, die Datei weiter wachsen zu
   // lassen, und genau das war seine Entscheidung nicht.
   if (tab.readOnly) {
     // Zwei Wege führen in den Nur-Lese-Zustand, und sie brauchen verschiedene
-    // Hinweise: ein fehlender Teil (4T-1292) verlangt eine Handlung am
-    // Dateisystem, die abgelehnte Teilung (4T-1291) nicht.
+    // Hinweise: ein fehlender Teil (4T-001292) verlangt eine Handlung am
+    // Dateisystem, die abgelehnte Teilung (4T-001291) nicht.
     if (Array.isArray(tab.fehlendeTeile) && tab.fehlendeTeile.length > 0) {
       meldeFehlendeTeile(tab.fehlendeTeile);
     } else {
@@ -137,13 +137,13 @@ export async function saveTab(paneIdx, tabIdx) {
   }
   if (!tab.path) return saveTabAs(paneIdx, tabIdx);
   try {
-    // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder vor dem Schreiben setzen; der
+    // 4T-000604 (Epic 3E-000113): Zeitstempel-Felder vor dem Schreiben setzen; der
     // gestempelte Text ist damit sowohl der gespeicherte als auch der im Tab
     // gehaltene Stand (originalContent unten zieht ihn als sauber nach).
     await stampTabTimestamps(paneIdx, tabIdx, tab);
-    // W-02 (4T-0309): {ok,error}-Vertrag — Schreibfehler ueber den vorhandenen
+    // W-02 (4T-000309): {ok,error}-Vertrag — Schreibfehler ueber den vorhandenen
     // catch (showSaveError) statt frueherer IPC-Exception.
-    // 4T-0945 (Story 4S-0786): Der zuletzt gelesene bzw. geschriebene Stand
+    // 4T-000945 (Story 4S-000786): Der zuletzt gelesene bzw. geschriebene Stand
     // geht als Erwartung mit; weicht die Datei davon ab, schreibt der Main
     // nicht, sondern meldet den Konflikt.
     //
@@ -168,7 +168,7 @@ export async function saveTab(paneIdx, tabIdx) {
       // Fassung in der Historie sichern.
       res = await api.saveFile(tab.path, tab.content, { force: true });
     }
-    // 4T-1291 (Epic 3E-0224): Das Dokument müsste geteilt werden, und der
+    // 4T-001291 (Epic 3E-000224): Das Dokument müsste geteilt werden, und der
     // Anwender hat in der Ankündigung «nur lesen» gewählt. Geschrieben wurde
     // nichts; der Reiter merkt sich das, damit die Frage nicht bei jedem
     // Tastendruck wiederkommt.
@@ -177,7 +177,7 @@ export async function saveTab(paneIdx, tabIdx) {
       showStatusbarHint('statusbar.splitReadOnly', { duration: 8000 });
       return false;
     }
-    // 4T-1292 (Epic 3E-0224): Der Haupt-Prozess hat einen fehlenden Teil
+    // 4T-001292 (Epic 3E-000224): Der Haupt-Prozess hat einen fehlenden Teil
     // festgestellt und nicht geschrieben. Das kann auch einen Reiter treffen,
     // der beim Öffnen noch vollständig war — dann ist die Datei seither
     // verschwunden, und der Reiter zieht den Zustand jetzt nach.
@@ -211,12 +211,12 @@ export async function saveTab(paneIdx, tabIdx) {
     if (res.gesichert) showStatusbarHint('statusbar.saveConflictKept', { duration: 6000 });
     tab.originalContent = tab.content;
     tab.saveConflict = false;
-    // 4T-1291: Das Hintergrund-Speichern hatte diesen Reiter ausgesetzt, weil
+    // 4T-001291: Das Hintergrund-Speichern hatte diesen Reiter ausgesetzt, weil
     // die Teilung eine Frage an den Anwender verlangt. Sie ist jetzt
     // beantwortet und geschrieben; der Reiter läuft wieder mit.
     tab.splitPending = false;
     tab.foreignOverride = null;
-    // R4-12 (4T-0180): andere Panes koennten diese Datei als Wiki-Embed
+    // R4-12 (4T-000180): andere Panes koennten diese Datei als Wiki-Embed
     // zeigen — deren Render-Skip-Cache verwerfen.
     invalidatePaneRenderCache();
     if (tab.dirty) {
@@ -226,10 +226,10 @@ export async function saveTab(paneIdx, tabIdx) {
         updateWindowTitle();
       }
     }
-    // 4T-0332 (Epic 3E-0060): erst mit dem Speichern kann eine .mdd
+    // 4T-000332 (Epic 3E-000060): erst mit dem Speichern kann eine .mdd
     // entstehen — Statusbar-Zustand der Historie nachziehen.
     void updateHistoryStatus();
-    // 4T-0935 (Befund B-08): Mit dem Speichern gilt wieder der Platten-Stand;
+    // 4T-000935 (Befund B-08): Mit dem Speichern gilt wieder der Platten-Stand;
     // der Puffer-Overlay des Index wird zurueckgenommen. Der Index selbst
     // zieht ueber den Datei-Beobachter nach.
     void clearIndexOverlayFor(tab.path);
@@ -241,7 +241,7 @@ export async function saveTab(paneIdx, tabIdx) {
 }
 
 // Speichern unter: OS-Dialog im Main, schreibt, aktualisiert Tab und
-// File-Watcher. opts.suggestedName (4T-0586, Epic 3E-0108): nackter
+// File-Watcher. opts.suggestedName (4T-000586, Epic 3E-000108): nackter
 // Dateiname als Dialog-Vorbelegung für pfadlose Tabs — der Main-Handler
 // löst ihn im Bereichs-Fall gegen den Bereichs-Root auf, sonst nutzt der
 // OS-Dialog seinen Standard-Ordner.
@@ -250,10 +250,10 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
   if (!pane) return false;
   const tab = pane.tabs[tabIdx];
   if (!tab) return false;
-  // 4T-0213: Handbuch-Tabs sind read-only — kein Speichern unter.
-  // 4T-0277: System-Seiten (Einstellungen) ebenso.
+  // 4T-000213: Handbuch-Tabs sind read-only — kein Speichern unter.
+  // 4T-000277: System-Seiten (Einstellungen) ebenso.
   if (tab.manualPage || tab.systemPage) return false;
-  // 4T-0572 (Epic 3E-0105): Uebernahme fluechtiger Editor-Ansicht-Toggles beim
+  // 4T-000572 (Epic 3E-000105): Uebernahme fluechtiger Editor-Ansicht-Toggles beim
   // ersten Speichern eines Unbenannt-Tabs — Werte, die von der globalen
   // Voreinstellung abweichen, wandern ins Frontmatter der neuen Datei. Bei
   // defektem Frontmatter-YAML im Entwurf entfaellt die Uebernahme still.
@@ -273,7 +273,7 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
       }
     }
   }
-  // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder auch beim Speichern unter. Der
+  // 4T-000604 (Epic 3E-000113): Zeitstempel-Felder auch beim Speichern unter. Der
   // Zielpfad steht erst nach dem Dialog fest, es gibt hier also keine
   // birthtime; created fällt auf den Speicherzeitpunkt zurück, was für die neu
   // entstehende Datei der richtige Wert ist.
@@ -293,7 +293,7 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
       tab.path || (opts && opts.suggestedName) || null,
       contentToSave,
     );
-    // W-03 (4T-0309): {ok, canceled, error}-Vertrag. Abbruch: still false.
+    // W-03 (4T-000309): {ok, canceled, error}-Vertrag. Abbruch: still false.
     // Schreibfehler: ueber den catch (showSaveError).
     if (!result || !result.ok) {
       if (result && result.error) throw new Error(result.error);
@@ -304,10 +304,10 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
     if (contentTakenOver) tab.content = contentToSave;
     tab.originalContent = tab.content;
     tab.dirty = false;
-    // R4-12 (4T-0180): wie in saveTab — Embed-Frische anderer Panes.
+    // R4-12 (4T-000180): wie in saveTab — Embed-Frische anderer Panes.
     invalidatePaneRenderCache();
     if (oldPath && oldPath !== result.path) {
-      // M-14 (4T-0170): Nur entwatchen, wenn kein anderer Tab denselben
+      // M-14 (4T-000170): Nur entwatchen, wenn kein anderer Tab denselben
       // alten Pfad noch offen hat (Check analog closeTab). Der eigene Tab
       // traegt bereits den neuen Pfad und matcht nicht mehr.
       const stillElsewhere = state.panes.some((p) => p.tabs.some((tb) => tb.path === oldPath));
@@ -322,10 +322,10 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
       /* nur Watcher-Registrierung, Lesefehler hier irrelevant */
     }
     renderTabbar(paneIdx);
-    // 4T-0585 (Epic 3E-0108): Titelzeile zeigt den neuen Dateinamen (der
+    // 4T-000585 (Epic 3E-000108): Titelzeile zeigt den neuen Dateinamen (der
     // Tab kann vorher pfadlos gewesen sein — Unbenannt-Platzhalter).
     if (tabIdx === pane.activeIndex) updateTitleLineForPane(paneIdx);
-    // 4T-0572: uebernommene Editor-Ansicht-Flags in den Editor spiegeln
+    // 4T-000572: uebernommene Editor-Ansicht-Flags in den Editor spiegeln
     // (nur wenn dieser Tab im Pane aktiv ist; sonst zieht activateTab nach).
     if (contentTakenOver && tabIdx === pane.activeIndex) {
       syncEditorForPane(paneIdx);
@@ -334,7 +334,7 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
       updateWindowTitle();
     }
     persistState();
-    // R4-11 (4T-0170): Save-As auf einen bereits offenen Pfad wuerde sonst
+    // R4-11 (4T-000170): Save-As auf einen bereits offenen Pfad wuerde sonst
     // Duplikat-Tabs hinterlassen (reloadFile/markFileMissing erreichen nur
     // den ersten). Der soeben gespeicherte Tab uebernimmt; andere Tabs mit
     // demselben Pfad werden geschlossen. skipDirtyCheck ist hier bewusst:
@@ -368,7 +368,7 @@ export function saveCurrentTabAs() {
   return saveTabAs(state.activePaneIndex, pane.activeIndex);
 }
 
-// 4T-0041 (Epic 3E-0008): Export 'Portables Markdown...'. Konvertiert
+// 4T-000041 (Epic 3E-000008): Export 'Portables Markdown...'. Konvertiert
 // perspective-table-Codebloecke im aktiven Tab durch inline HTML-Tabellen und
 // speichert das Ergebnis ueber den OS-Save-As-Dialog. Vorbelegung des
 // Dateinamens '<basename>-portable.md'. Der aktive Tab bleibt unveraendert.
@@ -378,14 +378,14 @@ export async function exportCurrentTabAsPortable() {
   const tab = pane.tabs[pane.activeIndex];
   if (!tab) return false;
   try {
-    // 4T-0512 (Epic 3E-0092): aktive UI-Sprache fuer die statische
+    // 4T-000512 (Epic 3E-000092): aktive UI-Sprache fuer die statische
     // Ereignis-Tabelle im Export.
     let portableText = api.convertMarkdownPortable(tab.content, getLanguage());
-    // 4T-0435 (Epic 3E-0081): journal-nav-Fences werden im Export durch die
+    // 4T-000435 (Epic 3E-000081): journal-nav-Fences werden im Export durch die
     // statische Perioden-Beschriftung ersetzt (ohne Anlage-Links); außerhalb
     // eines Journal-Eintrags bleibt der Fence unverändert.
     portableText = await replaceJournalNavFencesForExport(portableText, tab.path || '');
-    // 4T-1066 (Epic 3E-0212): Timeline-Fences werden zum statischen Gitter
+    // 4T-001066 (Epic 3E-000212): Timeline-Fences werden zum statischen Gitter
     // als Pipe-Tabelle (ohne Anlage-Links); außerhalb eines Journal-Eintrags
     // bleibt der Fence ebenfalls unverändert.
     portableText = await replaceJournalTimelineFencesForExport(portableText, tab.path || '');
@@ -400,7 +400,7 @@ export async function exportCurrentTabAsPortable() {
       }
     }
     const result = await api.saveFileAs(suggestedPath, portableText);
-    // W-03/K-05 (4T-0309): Abbruch meldet jetzt false (nicht faelschlich true);
+    // W-03/K-05 (4T-000309): Abbruch meldet jetzt false (nicht faelschlich true);
     // Schreibfehler ueber den catch.
     if (!result || !result.ok) {
       if (result && result.error) throw new Error(result.error);

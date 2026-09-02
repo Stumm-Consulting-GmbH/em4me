@@ -1,6 +1,6 @@
-// 4T-0166: Erster Unit-Test (Beispiel- und Smoke-Basis) gegen das
+// 4T-000166: Erster Unit-Test (Beispiel- und Smoke-Basis) gegen das
 // Electron-freie Shared-Modul src/shared/callouts.js.
-// Inhaltliche Vertiefung der Main-Prozess-Tests: 4T-0168.
+// Inhaltliche Vertiefung der Main-Prozess-Tests: 4T-000168.
 //
 // ESM-Syntax (Vitest 4 ist ESM-only); das CJS-Modul callouts.js wird
 // ueber den Vite-Interop mit Named-Exports importiert.

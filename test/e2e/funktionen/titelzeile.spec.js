@@ -1,4 +1,4 @@
-// 4T-0585/4T-0586 (Epic 3E-0108): E2E-Suite der Titelzeile. Prüft die
+// 4T-000585/4T-000586 (Epic 3E-000108): E2E-Suite der Titelzeile. Prüft die
 // Sichtbarkeits-Logik (genau eine Instanz je Ansichts-Modus, keine
 // Titelzeile auf System-Tabs), den Aus-Zustand der Erweiterung
 // 'title-line', den Unbenannt-Platzhalter sowie das Direkt-Umbenennen über
@@ -140,7 +140,7 @@ function cleanupDir(dir) {
 }
 
 // Titel in der sichtbaren Render-Instanz editieren: Klick auf die Zeile macht
-// das eigene Namens-Segment editierbar (4T-0646; Auswahl ist danach komplett
+// das eigene Namens-Segment editierbar (4T-000646; Auswahl ist danach komplett
 // markiert), Tippen ersetzt es.
 async function editTitleTo(page, newName) {
   const textEl = page.locator(SEL.titleLineRenderedText0);
@@ -170,7 +170,7 @@ test.describe('TZ-04: Umbenennen über die Titelzeile', () => {
       await expect(page.locator(SEL.activeTab0)).toContainText('C.md');
       await expect(page.locator(SEL.titleLineRenderedText0)).toHaveText('C');
       // Disk: Datei, .mdd-Begleitdatei und Unterseiten-Kaskade.
-      // 4T-0874: Die Unterseite folgt der Haupt-Datei erst im zweiten Schritt
+      // 4T-000874: Die Unterseite folgt der Haupt-Datei erst im zweiten Schritt
       // der Kaskade; auf sie wird gewartet statt sofort gelesen
       // (Stabilitaetsregel 12). Erst danach steht der Endstand fest, und die
       // uebrigen Pruefungen duerfen ihn synchron lesen.
@@ -296,7 +296,7 @@ test.describe('TZ-08: Unbenannt-Platzhalter', () => {
   });
 });
 
-// 4T-0646 (Epic 3E-0128): Bei einer Unterseite ist nur das eigene Segment
+// 4T-000646 (Epic 3E-000128): Bei einer Unterseite ist nur das eigene Segment
 // editierbar; der Eltern-Anteil bleibt sichtbar und unangetastet.
 test.describe('TZ-09: Unterseite — nur das eigene Namens-Segment', () => {
   test('Praefix bleibt stehen, die Umbenennung wirkt nur auf das Segment', async () => {
@@ -325,7 +325,7 @@ test.describe('TZ-09: Unterseite — nur das eigene Namens-Segment', () => {
         .toBe(true);
       expect(fs.existsSync(subFile)).toBe(false);
       // Eigene Unterseite wandert mit, die Elternseite bleibt unberuehrt.
-      // 4T-0874: gewartet statt sofort gelesen — die Kaskade laeuft nach der
+      // 4T-000874: gewartet statt sofort gelesen — die Kaskade laeuft nach der
       // Reiter- und Titelzeilen-Rueckmeldung noch (Stabilitaetsregel 12).
       await expect
         .poll(() => fs.existsSync(path.join(dir, `Projekt${SEP}Entwurf${SEP}Detail.md`)), {
@@ -343,7 +343,7 @@ test.describe('TZ-09: Unterseite — nur das eigene Namens-Segment', () => {
   });
 });
 
-// 4T-0646: Der Schraegstrich ist im Segment abgelehnt (die Seite koennte
+// 4T-000646: Der Schraegstrich ist im Segment abgelehnt (die Seite koennte
 // sonst still ihren Ast verlassen), an einer Top-Level-Seite bleibt er
 // erlaubt und macht sie zur Unterseite.
 test.describe('TZ-10: Schraegstrich nach Lage der Seite', () => {

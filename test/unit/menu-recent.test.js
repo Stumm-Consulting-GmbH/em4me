@@ -1,4 +1,4 @@
-// 4T-0888 (Epic 3E-0168): Unit-Tests für den Aufbau der „Zuletzt
+// 4T-000888 (Epic 3E-000168): Unit-Tests für den Aufbau der „Zuletzt
 // geöffnet"-Untermenüs (src/main/menu/menu-recent.js). Der Aufbau saß bis zum
 // Auszug in menu.js und war dort nicht prüfbar, weil das Modul Electron lädt;
 // als eigenes elektron-freies Modul ist er es. Vier Aufrufer teilen ihn sich
@@ -7,7 +7,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createRecentListBuilder } from '../../src/main/menu/menu-recent.js';
 
-// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// 4T-001250 (Epic 3E-000124): Wirts-gerechter Pfad aus der gewachsenen
 // Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
 // die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
 // sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
@@ -30,9 +30,9 @@ const P = (w) =>
 // Übersetzung im Test: der Key selbst, damit die Zuordnung sichtbar bleibt.
 const t = (key) => key;
 
-describe('createRecentListBuilder (4T-0888)', () => {
+describe('createRecentListBuilder (4T-000888)', () => {
   it('meldet die leere Liste mit dem übergebenen Leer-Text als inaktiven Eintrag', () => {
-    // 4T-0888
+    // 4T-000888
     const build = createRecentListBuilder(t, {});
     expect(build([], 'menu.file.recentBooksEmpty', 'openRecentBook', 'clearRecentBooks')).toEqual([
       { label: 'menu.file.recentBooksEmpty', enabled: false },
@@ -40,7 +40,7 @@ describe('createRecentListBuilder (4T-0888)', () => {
   });
 
   it('zeigt Basisnamen, unterscheidet Gleichnamige über den Eltern-Ordner', () => {
-    // 4T-0888
+    // 4T-000888
     const build = createRecentListBuilder(t, {});
     const items = build(
       [
@@ -63,7 +63,7 @@ describe('createRecentListBuilder (4T-0888)', () => {
   });
 
   it('escapt & im Anzeige-Label (Windows läse es sonst als Mnemonic)', () => {
-    // 4T-0888
+    // 4T-000888
     const build = createRecentListBuilder(t, {});
     const [eintrag] = build([P('C:\\Werke\\Hund & Katz')], 'leer', 'open', 'clear');
     expect(eintrag.label).toBe('Hund && Katz');
@@ -71,7 +71,7 @@ describe('createRecentListBuilder (4T-0888)', () => {
   });
 
   it('ruft die benannten Aktionen: Eintrag mit vollem Pfad, Löschen ohne Argument', () => {
-    // 4T-0888
+    // 4T-000888
     const actions = { openRecentShelf: vi.fn(), clearRecentShelves: vi.fn() };
     const build = createRecentListBuilder(t, actions);
     const items = build(
@@ -90,7 +90,7 @@ describe('createRecentListBuilder (4T-0888)', () => {
   });
 
   it('bleibt bei fehlender Aktion stumm statt zu werfen', () => {
-    // 4T-0888
+    // 4T-000888
     const build = createRecentListBuilder(t, null);
     const items = build([P('C:\\Werke\\Antike.md')], 'leer', 'openRecent', 'clearRecent');
     expect(() => {

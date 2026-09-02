@@ -1,4 +1,4 @@
-// 4T-0368 (Epic 3E-0068): Entwurfs-Zwischenspeicher — reine, electron- und
+// 4T-000368 (Epic 3E-000068): Entwurfs-Zwischenspeicher — reine, electron- und
 // IO-freie Logik. Normalisiert das Draft-Manifest, ordnet die Entwuerfe den
 // beim Start wiederhergestellten Applikationen zu (bereichs-treu) und erkennt
 // verwaiste Inhalts-Dateien. Der Datei-Zugriff (Ordner <userData>/drafts)
@@ -10,7 +10,7 @@
 // nicht-leerer String-ID; `area` als nicht-leerer rootPath oder null; `order`
 // als Zahl (Default: laufender Index); `tabSettings` als Objekt; `savedAt`
 // als String. Beschaedigte oder fremde Eintraege werden verworfen.
-// 4T-0539 (Epic 3E-0098): dazu eine optionale `workspaceId` (nicht-leerer
+// 4T-000539 (Epic 3E-000098): dazu eine optionale `workspaceId` (nicht-leerer
 // String oder null) — Bestands-Eintraege ohne Feld bleiben gueltig
 // (keine Migration).
 function normalizeManifest(raw) {
@@ -45,7 +45,7 @@ function findOrphans(manifest, fileIds) {
 
 // Zuordnung der Entwuerfe zu den beim Start wiederhergestellten Applikationen.
 //   drafts     — normalisierte Entwuerfe (mit `area` rootPath|null und
-//                `workspaceId` string|null, 4T-0539)
+//                `workspaceId` string|null, 4T-000539)
 //   appTargets — geordnete Ziel-Apps als { rootPath: string|null,
 //                workspaceId: string|null } (Index = Applikation)
 //   isSamePath — Pfad-Vergleich (injiziert, damit plattform-/electron-frei
@@ -55,7 +55,7 @@ function findOrphans(manifest, fileIds) {
 //                Entwuerfe ausschliesslich ihren Arbeitsbereich, uebrige
 //                bereichs-treu NUR auf Nicht-Arbeitsbereichs-Apps (globale
 //                Entwuerfe wandern nicht still in einen Arbeitsbereichs-
-//                Zustand, 4T-0539).
+//                Zustand, 4T-000539).
 //   leftover   — Entwuerfe ohne workspaceId, bereichslos oder mit nicht
 //                wiederkehrendem Bereich; der Aufrufer legt sie in die erste
 //                bereichslose unbenannte Applikation (verlustfrei,

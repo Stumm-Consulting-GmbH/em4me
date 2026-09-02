@@ -1,4 +1,4 @@
-// 4T-0988 (Epic 3E-0196): Entwurf der Einstellungs-Seite.
+// 4T-000988 (Epic 3E-000196): Entwurf der Einstellungs-Seite.
 //
 // Aufbau des Entwurfs beim Öffnen, die asynchrone Nachlade-Strecke aus
 // Store und Bereichsdatei, der Abbruch-Weg beim Schließen des Tabs und der
@@ -14,7 +14,7 @@ import {
 } from '../../../shared/spellcheck.js';
 import { api } from '../app/api.js';
 import { DEFAULT_VIEW_MODE, getEditorViewDefaults, state } from '../app/app-state.js';
-// 4T-1341 (Epic 3E-0238): Die Voreinstellung kommt aus der einen Quelle.
+// 4T-001341 (Epic 3E-000238): Die Voreinstellung kommt aus der einen Quelle.
 import { DEFAULT_EDIT_VIEW_MODE } from '../views/view-modes.js';
 import { getColorSchemeState, setColorSchemeState } from '../color-schemes.js';
 import { getDisabledExtensionIds } from '../extensions/extension-lifecycle.js';
@@ -45,7 +45,7 @@ import { pageState } from './settings-shared.js';
 import { normalizeTimestampDraft, readPdfExportFromStore } from './settings-small-sections.js';
 import { readTemplatesFromConfig } from './settings-templates.js';
 
-// 4T-0179/R5-08: Merge fuer den Appearance-Broadcast eines anderen
+// 4T-000179/R5-08: Merge fuer den Appearance-Broadcast eines anderen
 // Fensters — der offene Entwurfs-Snapshot zieht mit, sonst revertiert
 // "Abbrechen" auf den Stand vor dem Broadcast und ueberschreibt die
 // Aenderung des anderen Fensters.
@@ -73,7 +73,7 @@ export function resetPageState() {
   void ladeAppearanceInDraft();
 }
 
-// 4T-0761 (Epic 3E-0142): Der Entwurfs-Aufbau ist aus resetPageState
+// 4T-000761 (Epic 3E-000142): Der Entwurfs-Aufbau ist aus resetPageState
 // herausgeloest, damit die Such-Ernte einen Wegwerf-Entwurf bauen kann,
 // ohne einen offenen Entwurf der Seite anzutasten. Rein mechanischer,
 // verhaltensneutraler Schnitt.
@@ -83,69 +83,69 @@ export function buildDraft() {
     // dahin mit Defaults und zieht nach dem Laden nach.
     appearance: null,
     appearanceSnapshot: null,
-    // 4T-0466 (Epic 3E-0086): Farbschema-Zustand als Arbeitskopie des aktuellen
+    // 4T-000466 (Epic 3E-000086): Farbschema-Zustand als Arbeitskopie des aktuellen
     // Modul-Stands (beim App-Start aus dem Store geladen). Live-Vorschau über
     // setColorSchemeState; Abbrechen revertiert auf den Snapshot.
     colorSchemes: structuredClone(getColorSchemeState()),
     colorSchemesSnapshot: structuredClone(getColorSchemeState()),
-    // 4T-0284: Frontmatter-Anzeige aus dem Laufzeit-Zustand (beim
+    // 4T-000284: Frontmatter-Anzeige aus dem Laufzeit-Zustand (beim
     // App-Start aus dem Store geladen); kein Sofort-Anwenden, Wirkung
     // erst bei Anwenden/OK.
     showFrontmatter: isFrontmatterDisplayEnabled(),
-    // 4T-0312: dauerhaft ausgeklappte Frontmatter-Darstellung (Wirkung
+    // 4T-000312: dauerhaft ausgeklappte Frontmatter-Darstellung (Wirkung
     // erst bei Anwenden/OK, Muster showFrontmatter).
     frontmatterExpanded: isFrontmatterExpanded(),
-    // 4T-0359 (Epic 3E-0066): Vorschau-Default des Notizen-Panels.
+    // 4T-000359 (Epic 3E-000066): Vorschau-Default des Notizen-Panels.
     notesPreviewByDefault: isNotesPreviewByDefault(),
-    // 4T-0572 (Epic 3E-0105): globale Voreinstellung der drei Editor-
+    // 4T-000572 (Epic 3E-000105): globale Voreinstellung der drei Editor-
     // Ansicht-Schalter aus dem Laufzeit-Zustand (beim App-Start aus dem
     // Store geladen; Wirkung erst bei Anwenden/OK, Muster showFrontmatter).
     editorViewDefaults: getEditorViewDefaults(),
-    // 4T-0414 (Epic 3E-0078): Skript-Blöcke ausführen (Laufzeit-Zustand,
+    // 4T-000414 (Epic 3E-000078): Skript-Blöcke ausführen (Laufzeit-Zustand,
     // beim App-Start aus dem Store geladen; Wirkung erst bei Anwenden/OK).
     scriptsRun: isPerspectiveScriptsEnabled(),
     defaultViewMode: state.defaultViewMode || DEFAULT_VIEW_MODE,
-    // 4T-1341 (Epic 3E-0238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
+    // 4T-001341 (Epic 3E-000238): Ziel-Ansicht des Wechsels in den Aenderungsmodus.
     editViewMode: state.editViewMode || DEFAULT_EDIT_VIEW_MODE,
-    // 4T-0204: Arbeitskopie des Task-Status-Sets (Abbrechen verwirft sie;
+    // 4T-000204: Arbeitskopie des Task-Status-Sets (Abbrechen verwirft sie;
     // Anwenden validiert, persistiert und wendet an).
     taskStates: taskStatesResolved.map((s) => ({ ...s })),
-    // 4T-0498 (Epic 3E-0090): Arbeitskopie der Aufgaben-Konfiguration aus
+    // 4T-000498 (Epic 3E-000090): Arbeitskopie der Aufgaben-Konfiguration aus
     // dem Laufzeit-Zustand (beim App-Start aus dem Store geladen). Wirkung
     // erst bei Anwenden/OK; Abbrechen verwirft die Kopie.
     tasks: { ...tasksConfig },
-    // 4T-0208: Arbeitskopie der effektiven Bindings (nur Abweichungen vom
+    // 4T-000208: Arbeitskopie der effektiven Bindings (nur Abweichungen vom
     // Default werden persistiert).
     hotkeys: buildHotkeysDraftFromState(),
-    // 4T-0295: Arbeitskopie der bewusst deaktivierten Erweiterungs-IDs
+    // 4T-000295: Arbeitskopie der bewusst deaktivierten Erweiterungs-IDs
     // (Wirkung erst bei Anwenden/OK, Muster der uebrigen Bereiche).
     extensionsDisabled: getDisabledExtensionIds(),
-    // 4T-0304: null = Export-Einstellungen noch nicht aus dem Store
+    // 4T-000304: null = Export-Einstellungen noch nicht aus dem Store
     // geladen; der Bereich rendert bis dahin mit den Defaults und zieht
     // nach dem Laden nach (Muster appearance). Der Snapshot traegt den
     // geladenen Stand fuer den Nur-bei-Aenderung-Persist.
     exportPdf: null,
     exportPdfSnapshot: null,
-    // 4T-0332 (Epic 3E-0060): Dokument-Historie (App-Schalter, Zeitparameter,
+    // 4T-000332 (Epic 3E-000060): Dokument-Historie (App-Schalter, Zeitparameter,
     // Bereichs-Default). null = noch nicht geladen (Muster exportPdf).
     history: null,
     historySnapshot: null,
-    // 4T-0428 (Epic 3E-0080): Vorlagen-Konfiguration (globaler Ordner und
+    // 4T-000428 (Epic 3E-000080): Vorlagen-Konfiguration (globaler Ordner und
     // Regeln, Bereichs-Übersteuerung). null = noch nicht geladen.
     templates: null,
     templatesSnapshot: null,
-    // 4T-0450 (Epic 3E-0083): Eigenschafts-Profile (propertyProfiles-Sektion
+    // 4T-000450 (Epic 3E-000083): Eigenschafts-Profile (propertyProfiles-Sektion
     // der Bereichsdatei plus Profil-Liste). null = noch nicht geladen.
     profiles: null,
     profilesSnapshot: null,
-    // 4T-0544 (Epic 3E-0097): Kalender-Systeme (calendarSystems-Sektion
+    // 4T-000544 (Epic 3E-000097): Kalender-Systeme (calendarSystems-Sektion
     // der Bereichsdatei). null = noch nicht geladen (Muster journals).
     calendar: null,
     calendarSnapshot: null,
   };
 }
 
-// 4T-0761 (Epic 3E-0142): Nachlade-Strecke des Entwurfs (asynchrone Store-
+// 4T-000761 (Epic 3E-000142): Nachlade-Strecke des Entwurfs (asynchrone Store-
 // und Bereichsdatei-Werte, die den aktiven Bereich nachrendern). Sie
 // gehoert zum GEOEFFNETEN Entwurf und laeuft deshalb nicht fuer den
 // Wegwerf-Entwurf der Such-Ernte.
@@ -167,25 +167,25 @@ function ladeAppearanceInDraft() {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.history = { ...values };
     pageState.draft.historySnapshot = { ...values };
-    // 4T-0555: der Bereichs-Default lebt in der eigenen Sektion historyArea.
+    // 4T-000555: der Bereichs-Default lebt in der eigenen Sektion historyArea.
     if (['behavior', 'historyArea'].includes(pageState.activeSectionId)) renderActiveSection();
   });
-  // 4T-0346 (Epic 3E-0062): Link-Update-Einstellungen (Bereich Verhalten).
+  // 4T-000346 (Epic 3E-000062): Link-Update-Einstellungen (Bereich Verhalten).
   readRenameLinkSettings().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.renameLinks = { ...values };
     pageState.draft.renameLinksSnapshot = { ...values };
     if (pageState.activeSectionId === 'behavior') renderActiveSection();
   });
-  // 4T-0428 (Epic 3E-0080): Vorlagen-Konfiguration (Muster exportPdf).
+  // 4T-000428 (Epic 3E-000080): Vorlagen-Konfiguration (Muster exportPdf).
   readTemplatesFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.templates = values.draft;
     pageState.draft.templatesSnapshot = values.snapshot;
-    // 4T-0555: die Bereichs-Konfiguration lebt in der Sektion templatesArea.
+    // 4T-000555: die Bereichs-Konfiguration lebt in der Sektion templatesArea.
     if (['templates', 'templatesArea'].includes(pageState.activeSectionId)) renderActiveSection();
   });
-  // 4T-0791 (Epic 3E-0125): Anlagen-Konfiguration (Muster Vorlagen).
+  // 4T-000791 (Epic 3E-000125): Anlagen-Konfiguration (Muster Vorlagen).
   readAttachmentsFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.attachments = values.draft;
@@ -194,35 +194,35 @@ function ladeAppearanceInDraft() {
       renderActiveSection();
     }
   });
-  // 4T-0436 (Epic 3E-0081): Journal-Konfiguration des Bereichs.
+  // 4T-000436 (Epic 3E-000081): Journal-Konfiguration des Bereichs.
   readJournalsFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.journals = values.draft;
     pageState.draft.journalsSnapshot = values.snapshot;
     if (pageState.activeSectionId === 'journals') renderActiveSection();
   });
-  // 4T-0450 (Epic 3E-0083): Profil-Konfiguration des Bereichs.
+  // 4T-000450 (Epic 3E-000083): Profil-Konfiguration des Bereichs.
   readProfilesFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.profiles = values.draft;
     pageState.draft.profilesSnapshot = values.snapshot;
     if (pageState.activeSectionId === 'propertyProfiles') renderActiveSection();
   });
-  // 4T-0544 (Epic 3E-0097): Kalender-System-Konfiguration des Bereichs.
+  // 4T-000544 (Epic 3E-000097): Kalender-System-Konfiguration des Bereichs.
   readCalendarFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.calendar = values.draft;
     pageState.draft.calendarSnapshot = values.snapshot;
     if (pageState.activeSectionId === 'calendarSystems') renderActiveSection();
   });
-  // 4T-0369 (Epic 3E-0068): Entwurfs-Zwischenspeicher-Schalter (Bereich Verhalten).
+  // 4T-000369 (Epic 3E-000068): Entwurfs-Zwischenspeicher-Schalter (Bereich Verhalten).
   api.getSetting('keepUnsavedDrafts').then((value) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.keepUnsavedDrafts = value !== false;
     pageState.draft.keepUnsavedDraftsSnapshot = value !== false;
     if (pageState.activeSectionId === 'behavior') renderActiveSection();
   });
-  // 4T-0603 (Epic 3E-0113): Link-in-Auswahl-Schalter (Bereich Verhalten).
+  // 4T-000603 (Epic 3E-000113): Link-in-Auswahl-Schalter (Bereich Verhalten).
   api.getSetting('input.tabIndents').then((value) => {
     pageState.draft.tabIndents = value !== false;
     pageState.draft.tabIndentsSnapshot = value !== false;
@@ -233,7 +233,7 @@ function ladeAppearanceInDraft() {
     pageState.draft.pasteUrlAsLinkSnapshot = value !== false;
     if (pageState.activeSectionId === 'behavior') renderActiveSection();
   });
-  // 4T-0581/4T-0582 (Epic 3E-0107): Schalter und Wörterbuch-Liste der
+  // 4T-000581/4T-000582 (Epic 3E-000107): Schalter und Wörterbuch-Liste der
   // Rechtschreibprüfung.
   api.getSetting(SPELLCHECK_KEY).then((value) => {
     if (generation !== pageState.generation || !pageState.draft) return;
@@ -246,7 +246,7 @@ function ladeAppearanceInDraft() {
     pageState.draft.spellcheckWords = normalizeDictionaryWords(words);
     if (pageState.activeSectionId === 'spellcheck') renderActiveSection();
   });
-  // 4T-0604 (Epic 3E-0113): Zeitstempel-Automatik (eigener Bereich).
+  // 4T-000604 (Epic 3E-000113): Zeitstempel-Automatik (eigener Bereich).
   Promise.all([
     api.getSetting('frontmatter.createdEnabled'),
     api.getSetting('frontmatter.createdField'),
@@ -279,7 +279,7 @@ export function handleSettingsPageClose() {
   if (pageState.draft && pageState.draft.appearanceSnapshot) {
     applyAppearanceVars(pageState.draft.appearanceSnapshot);
   }
-  // 4T-0466 (Epic 3E-0086): Farbschema-Live-Vorschau auf den Snapshot
+  // 4T-000466 (Epic 3E-000086): Farbschema-Live-Vorschau auf den Snapshot
   // zurücksetzen (Semantik Abbrechen). Bei OK trägt der Snapshot bereits den
   // angewandten Stand, der Revert ist dann ein No-op.
   if (pageState.draft && pageState.draft.colorSchemesSnapshot) {
@@ -289,7 +289,7 @@ export function handleSettingsPageClose() {
   setSettingsPageEls(null);
 }
 
-// 4T-0555 (Epic 3E-0100): Bereichs-Wechsel einer offenen Seite (Bindung
+// 4T-000555 (Epic 3E-000100): Bereichs-Wechsel einer offenen Seite (Bindung
 // einer leeren App; Signal ist der areaPath-Wechsel in onWindowDisplayInfo,
 // app-init.js). Die bereichsgebundenen Entwürfe gehören zum alten Bereich
 // und dürfen nicht in den neuen geschrieben werden: rein bereichsgebundene

@@ -1,5 +1,5 @@
 // --- Pane-Rendering, Render-Skip-Cache und Auto-Reload -----------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // Baut den Inhalt einer Pane auf (Render-DOM, System-Seiten, Zoom, Scroll-
 // Wiederherstellung), haelt den Render-Skip-Cache und zieht den Bestand nach,
 // wenn eine Datei von aussen wechselt oder verschwindet.
@@ -16,33 +16,33 @@ import {
 } from '../app/app-state.js';
 import { paneEditors, syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
 import { applyRenderPipeline } from '../render-mermaid.js';
-// 4T-0277 (Epic 3E-0049): System-Seiten (Einstellungen) montieren ihr DOM
+// 4T-000277 (Epic 3E-000049): System-Seiten (Einstellungen) montieren ihr DOM
 // statt Editor/Render-Pane; Zyklus laufzeit-unkritisch (Muster manual.js).
 import { renderSystemPane } from '../app/system-pages.js';
 import { refreshSearchIfVisible } from '../search/search.js';
-// 4T-0531 (Epic 3E-0088): Panel-Registry fuer die generische Sichtbarkeits-
+// 4T-000531 (Epic 3E-000088): Panel-Registry fuer die generische Sichtbarkeits-
 // Anwendung in applyAllLayouts (statt hartkodierter apply-Liste).
 import { sidebarPanels } from '../sidebar-layout.js';
 import { syncToolbarToActiveTab, updateActivePaneClasses } from '../tabs/tabs.js';
-// 4T-0991 (Epic 3E-0196): Existenz-Hinweis des Lesezeichen-Baums.
+// 4T-000991 (Epic 3E-000196): Existenz-Hinweis des Lesezeichen-Baums.
 import { noteBookmarkFileExistence } from '../bookmarks/bookmarks-tree.js';
 import { renderProperties } from '../properties/properties-fields.js';
 import { renderTags } from '../editor/autocomplete-help.js';
 
 import { renderTabbar } from './tabbar.js';
-// 4T-0989: Laufzeit-Zyklus pane-render <-> views (Kern). applyAllLayouts ruft
+// 4T-000989: Laufzeit-Zyklus pane-render <-> views (Kern). applyAllLayouts ruft
 // den Empty-State, der Kern ruft renderPaneContent; beide Richtungen sind
 // reine Funktionsaufrufe zur Laufzeit (Muster der dokumentierten
 // Modularisierungs-Zyklen views <-> editor, history-status, templates).
 import { updateEmptyState } from './views.js';
 import { SYSTEM_VIEW_CLASS, applyContentViewClass } from './view-modes.js';
 
-// 4T-0179: Dieses Laufzeit-Flag wird ausschliesslich hier geschrieben und
+// 4T-000179: Dieses Laufzeit-Flag wird ausschliesslich hier geschrieben und
 // bleibt deshalb modul-privat; ueber die Modul-Grenze fuehrt kein
 // beschreibbarer Export (Entwicklungsrichtlinien).
 let suppressScrollSave = false;
 
-// R4-12 (4T-0180): Render-Skip-Cache pro Pane. Merkt sich, fuer welchen
+// R4-12 (4T-000180): Render-Skip-Cache pro Pane. Merkt sich, fuer welchen
 // Stand (content-Referenz, Pfad, Sprache, Theme) das Render-DOM der Pane
 // zuletzt aufgebaut wurde. renderPaneContent ueberspringt den teuren
 // markdown-it-Voll-Parse samt Nachverarbeitung, wenn der Stand unveraendert
@@ -80,7 +80,7 @@ export function renderPaneContent(paneIdx) {
     syncEditorForPane(paneIdx);
     els.renderedHtml.innerHTML = '';
     paneRenderCache[paneIdx] = null;
-    // 4T-0277: war zuletzt eine System-Seite aktiv, bliebe ihr DOM sonst
+    // 4T-000277: war zuletzt eine System-Seite aktiv, bliebe ihr DOM sonst
     // in der leeren Pane sichtbar stehen.
     els.content.classList.remove('view-system');
     requestAnimationFrame(() => {
@@ -94,7 +94,7 @@ export function renderPaneContent(paneIdx) {
   const tab = pane.tabs[pane.activeIndex];
   syncEditorForPane(paneIdx);
 
-  // 4T-0277: System-Seiten (Einstellungen) montieren ihr eigenes DOM in
+  // 4T-000277: System-Seiten (Einstellungen) montieren ihr eigenes DOM in
   // .pane-system; Editor und Render-Pane sind per view-system-Klasse
   // versteckt. Render-DOM und Skip-Cache werden geleert, damit die Suche
   // keine Treffer im unsichtbaren Alt-Inhalt des vorherigen Tabs findet.
@@ -121,16 +121,16 @@ export function renderPaneContent(paneIdx) {
     cached.theme === (document.documentElement.getAttribute('data-theme') || '');
   if (!canSkip) {
     els.renderedHtml.innerHTML = api.renderMarkdown(tab.content, tab.path);
-    // R2-13/R5-07 (4T-0179): vereinheitlichte Render-Nachverarbeitung
+    // R2-13/R5-07 (4T-000179): vereinheitlichte Render-Nachverarbeitung
     // (inkl. Search-Refresh, der hier zuvor fehlte).
     applyRenderPipeline(els.renderedHtml, tab.path);
     notePaneRendered(paneIdx, tab);
   }
 
-  // View-Mode-Klassen auf dem .content-Element setzen (4T-1054: eine Quelle).
+  // View-Mode-Klassen auf dem .content-Element setzen (4T-001054: eine Quelle).
   applyContentViewClass(els.content, `view-${tab.viewMode}`);
 
-  // 4T-0017: Zoom des aktiven Tabs auf die Inhalts-Container der Pane
+  // 4T-000017: Zoom des aktiven Tabs auf die Inhalts-Container der Pane
   // anwenden. Tab-Wechsel innerhalb einer Pane wechselt damit den Zoom.
   applyZoomToPane(paneIdx);
 
@@ -167,9 +167,9 @@ export function applyAllLayouts() {
   syncToolbarToActiveTab();
   renderAllPanes();
   updateEmptyState();
-  // 4T-0014: Panel-Sichtbarkeit pro Pane anwenden (versteckt -> sichtbar
+  // 4T-000014: Panel-Sichtbarkeit pro Pane anwenden (versteckt -> sichtbar
   // oder umgekehrt; Inhalte werden bei sichtbarer Sidebar gerendert).
-  // 4T-0531 (Epic 3E-0088): generisch ueber die Panel-Registry statt einer
+  // 4T-000531 (Epic 3E-000088): generisch ueber die Panel-Registry statt einer
   // hartkodierten apply-Liste — die kannte nur die sieben aelteren Panels;
   // ein als sichtbar persistiertes Kalender-, Block-Eigenschaften-, Datei-
   // Graph-, Bereichs- oder Unterseiten-Panel blieb nach dem Start verborgen,
@@ -193,7 +193,7 @@ export function saveScroll(paneIdx) {
 }
 
 // --- Auto-Reload ------------------------------------------------------------
-// opts.alreadyConfirmed (4T-0945): Der Aufrufer hat den Konflikt-Dialog
+// opts.alreadyConfirmed (4T-000945): Der Aufrufer hat den Konflikt-Dialog
 // bereits gezeigt und die Antwort 'neu laden' erhalten. Ohne diese Angabe
 // fragte der Speicher-Weg zweimal dasselbe.
 export async function reloadFile(filePath, opts = {}) {
@@ -209,7 +209,7 @@ export async function reloadFile(filePath, opts = {}) {
         // 'keepOurs': Buffer behalten. Der externe Stand wird beim naechsten
         // Speichern ueberschrieben; das ist die bewusste Entscheidung.
         //
-        // 4T-0945: Sie wird hier festgehalten, und zwar mit dem Stand, GEGEN
+        // 4T-000945: Sie wird hier festgehalten, und zwar mit dem Stand, GEGEN
         // den entschieden wurde. Das leistet zweierlei: Das Speichern fragt
         // nicht ein zweites Mal dasselbe, und die ueberschriebene fremde
         // Fassung wird dabei trotzdem gesichert. Ohne diesen Merker wuerde
@@ -224,11 +224,11 @@ export async function reloadFile(filePath, opts = {}) {
     }
 
     try {
-      // R4-08 (4T-0170): Inhalt vor dem IO-Roundtrip merken. Tastenschlaege
+      // R4-08 (4T-000170): Inhalt vor dem IO-Roundtrip merken. Tastenschlaege
       // im await-Fenster duerfen nicht stillschweigend ueberschrieben werden.
       const contentBeforeRead = tab.content;
       const data = await api.readFile(filePath);
-      // W-01 (4T-0309): {ok,error}-Vertrag — Lesefehler ueber den vorhandenen
+      // W-01 (4T-000309): {ok,error}-Vertrag — Lesefehler ueber den vorhandenen
       // catch (markFileMissing) statt frueherer IPC-Exception.
       if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
       if (tab.content !== contentBeforeRead) {
@@ -239,29 +239,29 @@ export async function reloadFile(filePath, opts = {}) {
       tab.originalContent = data.content;
       tab.dirty = false;
       tab.missing = false;
-      // 4T-0945: Mit dem geladenen Stand ist der Speicher-Konflikt erledigt;
+      // 4T-000945: Mit dem geladenen Stand ist der Speicher-Konflikt erledigt;
       // das automatische Speichern nimmt diesen Reiter wieder auf, und eine
       // frueher getroffene Vorentscheidung ist gegenstandslos.
       tab.saveConflict = false;
       tab.foreignOverride = null;
-      // 4T-1292 (Epic 3E-0224): Der Nur-Lese-Zustand eines geteilten Dokuments
+      // 4T-001292 (Epic 3E-000224): Der Nur-Lese-Zustand eines geteilten Dokuments
       // haengt am Bestand auf der Platte und wird mit jedem Neuladen neu
       // ermittelt — ein zurueckgelegter Teil macht den Reiter damit ohne
       // Zutun wieder schreibfaehig, ein neu verschwundener sperrt ihn.
       tab.readOnly = !!data.nurLesen;
       tab.fehlendeTeile = data.fehlend || null;
-      // R4-12 (4T-0180): externer Datei-Wechsel — Render-Skip-Caches
+      // R4-12 (4T-000180): externer Datei-Wechsel — Render-Skip-Caches
       // verwerfen (auch andere Panes koennten die Datei einbetten).
       invalidatePaneRenderCache();
-      // R3-08 (4T-0180): Bookmark-Existenz-Cache nachfuehren.
+      // R3-08 (4T-000180): Bookmark-Existenz-Cache nachfuehren.
       noteBookmarkFileExistence(filePath, true);
       if (idx === state.panes[p].activeIndex) {
         renderPaneContent(p);
-        // 4T-0051: Properties-Sektion nach externer Aenderung neu rendern.
+        // 4T-000051: Properties-Sektion nach externer Aenderung neu rendern.
         if (state.properties && state.properties.visibleByPane[p]) {
           renderProperties(p);
         }
-        // 4T-0056: Tag-Sektion ebenfalls aktualisieren.
+        // 4T-000056: Tag-Sektion ebenfalls aktualisieren.
         if (state.tags && state.tags.visibleByPane[p]) {
           renderTags(p);
         }
@@ -284,7 +284,7 @@ export function markFileMissing(filePath) {
       renderTabbar(p);
     }
   }
-  // R4-12/R3-08 (4T-0180): Embeds auf die Datei sollen beim naechsten
+  // R4-12/R3-08 (4T-000180): Embeds auf die Datei sollen beim naechsten
   // Render als broken erscheinen; Bookmark-Existenz-Cache nachfuehren.
   invalidatePaneRenderCache();
   noteBookmarkFileExistence(filePath, false);

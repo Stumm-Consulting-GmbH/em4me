@@ -1,10 +1,10 @@
-// 4T-0359 (Epic 3E-0066): Unit-Test der reinen Notiz-Sync-Entscheidung.
+// 4T-000359 (Epic 3E-000066): Unit-Test der reinen Notiz-Sync-Entscheidung.
 // decideNoteSync steuert, wie ein Panel auf einen note:changed-Broadcast
 // reagiert (Eigen-Broadcast ignorieren, fremde Fassung uebernehmen, Konflikt).
 import { describe, it, expect } from 'vitest';
 import { decideNoteSync } from '../../../src/renderer/modules/panels/notes-sync.js';
 
-describe('decideNoteSync (4T-0359)', () => {
+describe('decideNoteSync (4T-000359)', () => {
   it('ignoriert einen Broadcast, der der Baseline gleicht (Eigen-Broadcast)', () => {
     // incoming === baseline: der eigene Schreib-Broadcast oder bereits aktuell,
     // unabhaengig davon, ob lokal getippt wurde.

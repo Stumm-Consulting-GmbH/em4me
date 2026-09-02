@@ -1,4 +1,4 @@
-// 4T-0615 (Epic 3E-0116): Unit-Tests des Bereichs-Suchraums im Hauptprozess.
+// 4T-000615 (Epic 3E-000116): Unit-Tests des Bereichs-Suchraums im Hauptprozess.
 // Fixture-Verzeichnis mit Markdown-Dateien, Erwartungswerte von Hand am
 // Fixture nachgerechnet. Setup-Muster wie area-stats.test.js (Temp-
 // Verzeichnis je Fall, Aufraeumen im afterEach).
@@ -14,7 +14,7 @@ import {
 } from '../../src/main/area/area-search.js';
 import { createRequire } from 'node:module';
 
-// 4T-0949: Die Puffer-Schicht wird ueber DIESELBE Modul-Instanz gesetzt, die
+// 4T-000949: Die Puffer-Schicht wird ueber DIESELBE Modul-Instanz gesetzt, die
 // area-search.js benutzt. Vitest fuehrt fuer 'import' und 'require' getrennte
 // Instanzen desselben Moduls; ein Overlay, das ueber den ESM-Import gesetzt
 // wird, saehe das Modul unter Test nicht. Im Hauptprozess gibt es nur den
@@ -286,7 +286,7 @@ describe('Bereichs-Suchraum, Cache', () => {
   });
 });
 
-// 4T-0949 (Befund E-02, Story 4S-0787): Der geschriebene Stand eines offenen
+// 4T-000949 (Befund E-02, Story 4S-000787): Der geschriebene Stand eines offenen
 // Dokuments, das nicht das aktive ist. Der Renderer schickt nur den Stand der
 // aktiven Datei mit; jedes andere offene Dokument kam bis hierher von der
 // Platte. Gemessen wird gegen die Puffer-Overlay-Schicht des Hauptprozesses.

@@ -1,9 +1,9 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 9 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 9 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Farbschema-Bereich, Eigenschaften-Sidebar, Etiketten-System, Notizen-Panel. */
-/* === Farbschema-Bereich (4T-0466, Epic 3E-0086) =========================
+/* === Farbschema-Bereich (4T-000466, Epic 3E-000086) =========================
    Modus-Zuordnung, Schema-Verwaltung und gruppierter Slot-Editor mit nativen
    Farbwaehlern. Nutzt die Theme-Variablen, folgt also selbst dem Schema. */
 .color-scheme-manage {
@@ -70,7 +70,7 @@
   font-size: 14px;
   line-height: 1.2;
 }
-/* === Properties-Sidebar (4T-0051, Epic 3E-0010) =========================
+/* === Properties-Sidebar (4T-000051, Epic 3E-000010) =========================
    Sidebar-Sektion mit live-editierbaren Frontmatter-Feldern. Kompaktes
    Layout, eine Property pro Block: Header (Key + Type-Select + Delete)
    plus Value-Editor darunter. Pillen, Date-Picker und Checkbox folgen
@@ -130,7 +130,7 @@
   background: var(--bg-alt);
   outline: none;
 }
-/* R5-10 (4T-0172): doppelte Eigenschafts-Namen sichtbar markieren;
+/* R5-10 (4T-000172): doppelte Eigenschafts-Namen sichtbar markieren;
    der Save ist bis zur Aufloesung ausgesetzt (Tooltip nennt den Grund). */
 .properties-field-key.duplicate {
   outline: 1px solid #c0392b;
@@ -215,7 +215,7 @@
   word-break: break-word;
 }
 
-/* 4T-1185 (Epic 3E-0221, E1): Anzeige eines abgeleiteten Wertes.
+/* 4T-001185 (Epic 3E-000221, E1): Anzeige eines abgeleiteten Wertes.
    Bewusst NICHT wie der readonly-Rückfall gestaltet: Der sagt «nicht
    darstellbar» und trägt deshalb den gestrichelten Rahmen einer Sackgasse.
    Ein abgeleiteter Wert ist ein vollwertiger Wert — er wird nur gerechnet
@@ -250,7 +250,7 @@
   font-style: italic;
 }
 
-/* 4T-1187 (Epic 3E-0221, E11): gestapelte Bedienung der Objekt-Typen.
+/* 4T-001187 (Epic 3E-000221, E11): gestapelte Bedienung der Objekt-Typen.
    «Gestapelt» heißt eine Ebene tiefer, nicht ein eigenes Fenster: Die
    Kind-Felder stehen eingerückt unter ihrem Feld, eine Objekt-Liste zeigt
    ihre Einträge als abgesetzte Gruppen. Die Einrückung trägt die Aussage —
@@ -339,7 +339,7 @@
   padding: 1px 4px 1px 6px;
   font-size: 11px;
 }
-/* S-14 (4T-0188): Dark-Override analog zu Tag-Pillen/Alias-Badges. */
+/* S-14 (4T-000188): Dark-Override analog zu Tag-Pillen/Alias-Badges. */
 [data-theme='dark'] .properties-field-multistring-pill {
   background: rgba(100, 181, 246, 0.16);
 }
@@ -369,16 +369,16 @@
 .properties-field-multistring-input:focus {
   outline: none;
 }
-/* S-16 (4T-0188): Fokus-Indikator am Container — das Multistring-Feld war
+/* S-16 (4T-000188): Fokus-Indikator am Container — das Multistring-Feld war
    der einzige Properties-Input ohne sichtbaren Fokus-Stil (Muster der
    uebrigen Inputs: Accent-Border). */
 .properties-field-multistring:focus-within {
   border-color: var(--accent);
 }
-/* 4T-0448 (Epic 3E-0083): Eigenschafts-Profile im Properties-Editor —
+/* 4T-000448 (Epic 3E-000083): Eigenschafts-Profile im Properties-Editor —
    dezente Kennzeichnung definierter Felder, weicher Hinweis (Icon plus
    Tooltip), Auswahl-Liste des Wertebereichs und Vorschlags-Menü am
-   Hinzufügen-Button. Gleiche Klassen wirken im Block-Panel (4T-0449). */
+   Hinzufügen-Button. Gleiche Klassen wirken im Block-Panel (4T-000449). */
 .properties-field.is-profile-defined .properties-field-key {
   border-left: 2px solid var(--accent);
   padding-left: 4px;
@@ -466,7 +466,7 @@
 [data-theme='dark'] .properties-suggest-badge {
   background: rgba(100, 181, 246, 0.16);
 }
-/* 4T-0491 (Epic 3E-0093): profil-gruppiertes Vorschlags-Menü. Der Profil-Kopf
+/* 4T-000491 (Epic 3E-000093): profil-gruppiertes Vorschlags-Menü. Der Profil-Kopf
    ist ein klickbarer, hervorgehobener Eintrag (Komplett-Übernahme des Profils);
    die Einzel-Felder darunter sind eingerückt; die profillose Gruppe trägt eine
    dezente, nicht klickbare Überschrift. */
@@ -503,7 +503,7 @@
   border-color: var(--border-strong);
 }
 
-/* === Tag-System (4T-0056, Epic 3E-0011) ================================= */
+/* === Tag-System (4T-000056, Epic 3E-000011) ================================= */
 /* Inline-Tag-Pillen im Render-Pane (per #tag-Markup erzeugt). */
 .markdown-body .tag-link {
   display: inline-block;
@@ -550,7 +550,7 @@
   font-style: italic;
 }
 
-/* === Notizen-Panel (4T-0359, Epic 3E-0066) ============================== */
+/* === Notizen-Panel (4T-000359, Epic 3E-000066) ============================== */
 /* Editierbare Dokument-Notiz aus der .mdd. Der Header traegt den Vorschau-
    Toggle rechts; der Body wechselt zwischen Editier-Textfeld und gerenderter
    Vorschau. Hinweise (unbenannt/defekt/Konflikt) folgen dem Panel-Muster. */
@@ -572,7 +572,7 @@
   color: var(--accent);
   border-color: var(--accent);
 }
-/* 4T-0398: Das Notiz-Feld ist eine schlanke CodeMirror-Instanz (Kontextmenü und
+/* 4T-000398: Das Notiz-Feld ist eine schlanke CodeMirror-Instanz (Kontextmenü und
    Format-Kürzel wie im Haupt-Editor). Grund-Optik analog .pane-source-editor,
    aber kompakt und höhenbegrenzt (Sidebar). */
 .notes-editor {
@@ -645,7 +645,7 @@
   font-style: italic;
 }
 
-/* 4T-1156 (Epic 3E-0219): Bedienelemente der neuen Feld-Typen. Beide
+/* 4T-001156 (Epic 3E-000219): Bedienelemente der neuen Feld-Typen. Beide
    Eigenschafts-Panels teilen sie sich, wie schon die Bestands-Klassen. */
 .properties-field-link {
   display: flex;
@@ -698,10 +698,10 @@
   color: var(--fg-muted);
 }
 
-/* 4T-1161 (Epic 3E-0219, E5): Symbol des aufgeloesten Profils der
+/* 4T-001161 (Epic 3E-000219, E5): Symbol des aufgeloesten Profils der
    Eigenschaften-Sektion. Es traegt seine Erklaerung im Tooltip; ohne Profil
    oder ohne Symbol ist es verborgen.
-   4T-1164: Es sitzt im Koerper der Sektion statt in ihrem Kopf, weil der Kopf
+   4T-001164: Es sitzt im Koerper der Sektion statt in ihrem Kopf, weil der Kopf
    in einer Reiter-Gruppe ausgeblendet wird. Rechtsbuendig ueber den Feldern,
    also an derselben Stelle, an der es im Kopf stand. Die eigene
    [hidden]-Regel ist noetig, weil `display: block` das UA-Verhalten von
@@ -719,7 +719,7 @@
   display: none;
 }
 
-/* 4T-1172 (Epic 3E-0220, E5): Feld-Formular des Dokuments — Herkunft je Feld
+/* 4T-001172 (Epic 3E-000220, E5): Feld-Formular des Dokuments — Herkunft je Feld
    und der Ausklapp-Bereich mit den noch fehlenden Profil-Feldern.
 
    Die Herkunft steht bewusst als einzelnes Zeichen mit Tooltip und nicht als
@@ -767,7 +767,7 @@
   opacity: 1;
 }
 
-/* 4T-1173 (Epic 3E-0220): Kette der beteiligten Profile im Feld-Formular.
+/* 4T-001173 (Epic 3E-000220): Kette der beteiligten Profile im Feld-Formular.
    Die Vererbungs-Tiefe wird als Einrueckung sichtbar (inline gesetzt, weil
    sie eine Zahl je Zeile ist); der Plus-Knopf erscheint nur an einer Ebene,
    auf der wirklich Felder fehlen. */

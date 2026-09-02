@@ -1,4 +1,4 @@
-// 4T-0589 (Epic 3E-0109): Tabellen-Bearbeitungs-Kern für klassische
+// 4T-000589 (Epic 3E-000109): Tabellen-Bearbeitungs-Kern für klassische
 // Pipe-Tabellen. Enthält die aus editor.js hierher verschobenen reinen
 // Text-Helfer (findUnescapedPipes, isTableLine, parseTableCells,
 // buildEmptyTableRow, findCellAt; editor.js re-exportiert sie für die
@@ -16,7 +16,7 @@
 // Pipes (\|) bleiben darin unverändert erhalten. Der Serialisierer schreibt
 // immer die Rand-Pipe-Form mit Leerzeichen-ausgerichteten Spalten — randlose
 // Tabellen werden dadurch bewusst normalisiert (dokumentierte Entscheidung
-// des Epics 3E-0109); eine fehlende Trenn-Zeile wird ergänzt.
+// des Epics 3E-000109); eine fehlende Trenn-Zeile wird ergänzt.
 'use strict';
 
 function findUnescapedPipes(text) {
@@ -45,7 +45,7 @@ function isTableLine(text) {
 function parseTableCells(text) {
   const pipes = findUnescapedPipes(text);
   if (pipes.length === 0) return null;
-  // R2-19 (4T-0186): virtuelle Randzellen — beginnt die Zeile nicht mit
+  // R2-19 (4T-000186): virtuelle Randzellen — beginnt die Zeile nicht mit
   // einer Pipe bzw. endet sie nicht mit einer, zählen Zeilenanfang/-ende
   // als Zellgrenzen (randlose GFM-Form). Bei klassischen Rand-Pipe-Zeilen
   // bleiben die Grenzen unverändert (identisches Verhalten wie zuvor).
@@ -247,7 +247,7 @@ function swapColumns(m, a, b) {
 //   { rejected: 'header' | 'lastColumn' } bei geschützten Zielen,
 //   null als No-op (Rand erreicht) — der Aufrufer lässt das Dokument
 //   dann unangetastet.
-// Cursor-Semantik (Sonderfall-Entscheidungen des Epics 3E-0109):
+// Cursor-Semantik (Sonderfall-Entscheidungen des Epics 3E-000109):
 //   Verschieben führt den Cursor mit Zeile/Spalte mit; Einfügen setzt ihn in
 //   die erste Zelle der neuen Zeile bzw. in die neue Spalte; Löschen klemmt
 //   ihn auf den nächsten verbleibenden Index; Transponieren setzt ihn in die
@@ -371,7 +371,7 @@ function editPipeTable(blockLines, cursor, op) {
   const cells = parseTableCells(lineText) || [];
   const cell = cells[Math.max(0, Math.min(c.col, cells.length - 1))] || null;
   // Cursor an den Inhalts-Anfang der Ziel-Zelle (Formel des Bestands-
-  // Zellsprungs aus 4T-0074; bei leerer Zelle das Zell-Ende im Padding).
+  // Zellsprungs aus 4T-000074; bei leerer Zelle das Zell-Ende im Padding).
   const ch = cell ? Math.max(cell.contentStart, cell.start) : 0;
   return { lines, cursor: { line: lineOffset, ch } };
 }

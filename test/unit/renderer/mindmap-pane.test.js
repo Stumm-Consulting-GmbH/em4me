@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-// 4T-1047 (Epic 3E-0151): Verfuegbarkeit des Mindmap-Modus — geprueft wird
+// 4T-001047 (Epic 3E-000151): Verfuegbarkeit des Mindmap-Modus — geprueft wird
 // der Rückfall des gespeicherten Ansichts-Modus bei ausgeschalteter
-// Erweiterung (Story 4S-0804, AK7). Ohne ihn trüge ein wiederhergestellter
+// Erweiterung (Story 4S-000804, AK7). Ohne ihn trüge ein wiederhergestellter
 // Reiter einen Modus, den es nicht mehr gibt, und seine Pane bliebe leer.
 //
 // Die Nachbar-Module sind gemockt, weil die Pane-Einbettung sonst den halben
@@ -31,7 +31,7 @@ beforeEach(() => {
   istAktiv.mockReset();
 });
 
-describe('Mindmap-Pane: Rückfall des Ansichts-Modus (4T-1047)', () => {
+describe('Mindmap-Pane: Rückfall des Ansichts-Modus (4T-001047)', () => {
   it('AK7: bei ausgeschalteter Erweiterung fällt «mindmap» auf die Lese-Ansicht', () => {
     istAktiv.mockReturnValue(false);
     expect(resolveViewModeForTab('mindmap')).toBe('rendered');

@@ -1,4 +1,4 @@
-// 4T-0777 (Epic 3E-0156): Wiederhol-Helfer fuer Tastendrucke, deren Wirkung
+// 4T-000777 (Epic 3E-000156): Wiederhol-Helfer fuer Tastendrucke, deren Wirkung
 // eine Bedingung sichtbar macht.
 //
 // Ein Tastendruck kann ins Leere gehen: Das Fenster hat den Fokus noch nicht,

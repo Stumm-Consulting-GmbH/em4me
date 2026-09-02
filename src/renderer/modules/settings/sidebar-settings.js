@@ -1,12 +1,12 @@
-// 4T-0289 (Epic 3E-0051): Bereich „Sidebar" der Einstellungs-Seite.
+// 4T-000289 (Epic 3E-000051): Bereich „Sidebar" der Einstellungs-Seite.
 //
-// Dockt über registerSettingsSection() an die Bereichs-Registry (3E-0049)
+// Dockt über registerSettingsSection() an die Bereichs-Registry (3E-000049)
 // an und bietet die übersichtliche Gesamt-Konfiguration des globalen
 // Sidebar-Layouts: pro Seite (links, rechts) die Slots in Reihenfolge,
 // Reiter-Gruppen als Block, Aktionen Verschieben/Seitenwechsel/Gruppieren/
 // Lösen/Auflösen plus Zurücksetzen auf das Default-Layout. Der Bereich
 // folgt der Entwurf-/OK-/Anwenden-Logik der Seite; alle Aktionen arbeiten
-// auf denselben reinen Modell-Operationen wie das Drag-and-Drop (4T-0287,
+// auf denselben reinen Modell-Operationen wie das Drag-and-Drop (4T-000287,
 // sidebar-layout.js), wirken aber erst bei Anwenden/OK.
 'use strict';
 
@@ -31,10 +31,10 @@ import {
   setPanelHeightMode,
   sidebarPanelById,
 } from '../sidebar-layout.js';
-// 4T-0624 (Epic 3E-0119): benannte Sidebar-Varianten — die Verwaltung
+// 4T-000624 (Epic 3E-000119): benannte Sidebar-Varianten — die Verwaltung
 // (speichern, anwenden, umbenennen, überschreiben, löschen) wirkt sofort,
 // nicht über den Bereichs-Entwurf (Muster Drag-and-Drop-Sofort-Wirkung).
-// 4T-0625: die Bereichs-Varianten (Ablage in der Bereichsdatei) haben
+// 4T-000625: die Bereichs-Varianten (Ablage in der Bereichsdatei) haben
 // einen eigenen Einstellungs-Bereich „Sidebar-Varianten" in der
 // Navigations-Gruppe „Aktueller Bereich" (PO-Testbefund 0.77.0: sie
 // gehören nicht in den allgemeinen Sidebar-Bereich); hier registriert,
@@ -61,14 +61,14 @@ function cloneLayout(layout) {
 // aktuellen Layouts.
 function ensureDraft(draft) {
   if (!draft.sidebarLayout) draft.sidebarLayout = cloneLayout(getSidebarLayout());
-  // 4T-0639 (Epic 3E-0069): Der Icon-Schalter gehört wie das Layout in den
+  // 4T-000639 (Epic 3E-000069): Der Icon-Schalter gehört wie das Layout in den
   // Entwurf — er wirkt erst bei Anwenden oder OK und lässt sich mit
   // Abbrechen verwerfen (PO-Testbefund 2026-07-20; ein erster Entwurf ließ
   // ihn sofort wirken, das war falsch).
   if (typeof draft.sidebarIconHeadings !== 'boolean') {
     draft.sidebarIconHeadings = getIconHeadings();
   }
-  // 4T-0855 (Epic 3E-0164): Das Höhen-Modell folgt demselben Entwurfs-Muster
+  // 4T-000855 (Epic 3E-000164): Das Höhen-Modell folgt demselben Entwurfs-Muster
   // wie der Icon-Schalter.
   if (typeof draft.sidebarHeightMode !== 'string') {
     draft.sidebarHeightMode = getPanelHeightMode();
@@ -91,12 +91,12 @@ document.addEventListener('scg:sidebar-layout-changed', () => {
   if (!lastDraft || !lastDraft.sidebarLayout) return;
   lastDraft.sidebarLayout = cloneLayout(getSidebarLayout());
   if (lastBody && lastBody.isConnected && typeof lastRerender === 'function') lastRerender();
-  // 4T-0554: Der Abgleich kann offene Bereichs-Änderungen verwerfen —
+  // 4T-000554: Der Abgleich kann offene Bereichs-Änderungen verwerfen —
   // Speicher-Status der Seiten-Schaltflächen nachziehen.
   refreshSettingsButtons();
 });
 
-// 4T-0639 (Epic 3E-0069): Kommt der Icon-Zustand aus einem anderen Fenster,
+// 4T-000639 (Epic 3E-000069): Kommt der Icon-Zustand aus einem anderen Fenster,
 // zieht der offene Entwurf auf den neuen Ist-Stand nach (Muster oben).
 document.addEventListener('scg:sidebar-icon-headings-changed', () => {
   if (!lastDraft || typeof lastDraft.sidebarIconHeadings !== 'boolean') return;
@@ -105,7 +105,7 @@ document.addEventListener('scg:sidebar-icon-headings-changed', () => {
   refreshSettingsButtons();
 });
 
-// 4T-0855 (Epic 3E-0164): Dasselbe für das Höhen-Modell, wenn es aus einem
+// 4T-000855 (Epic 3E-000164): Dasselbe für das Höhen-Modell, wenn es aus einem
 // anderen Fenster kommt.
 document.addEventListener('scg:sidebar-height-mode-changed', () => {
   if (!lastDraft || typeof lastDraft.sidebarHeightMode !== 'string') return;
@@ -114,7 +114,7 @@ document.addEventListener('scg:sidebar-height-mode-changed', () => {
   refreshSettingsButtons();
 });
 
-// 4T-0624: Varianten-Änderungen (auch aus anderen Fenstern) rendern die
+// 4T-000624: Varianten-Änderungen (auch aus anderen Fenstern) rendern die
 // offenen Bereiche neu; der Layout-Entwurf bleibt dabei unberührt.
 document.addEventListener('scg:sidebar-variants-changed', () => {
   if (lastBody && lastBody.isConnected && typeof lastRerender === 'function') lastRerender();
@@ -217,7 +217,7 @@ function buildInto(body, draft, rerender) {
   hint.textContent = t('settings.sidebar.hint');
   body.appendChild(hint);
 
-  // 4T-0639 (Epic 3E-0069): Überschriften als Icon statt Text. Läuft wie
+  // 4T-000639 (Epic 3E-000069): Überschriften als Icon statt Text. Läuft wie
   // die Anordnung über den Entwurf und wirkt erst bei Anwenden oder OK
   // (PO-Festlegung 2026-07-20).
   const iconRow = document.createElement('label');
@@ -235,7 +235,7 @@ function buildInto(body, draft, rerender) {
   iconRow.append(iconInput, iconLabel);
   body.appendChild(iconRow);
 
-  // 4T-0855 (Epic 3E-0164): Höhen-Modell der Blöcke. Läuft wie der
+  // 4T-000855 (Epic 3E-000164): Höhen-Modell der Blöcke. Läuft wie der
   // Icon-Schalter über den Entwurf und wirkt erst bei Anwenden oder OK.
   const modeRow = document.createElement('label');
   modeRow.className = 'settings-row';
@@ -328,7 +328,7 @@ function buildInto(body, draft, rerender) {
   buildVariantsInto(body);
 }
 
-// 4T-0624 (Epic 3E-0119): Verwaltungs-Block der benannten Varianten.
+// 4T-000624 (Epic 3E-000119): Verwaltungs-Block der benannten Varianten.
 // Alle Aktionen wirken sofort; das Neu-Rendern übernimmt der
 // scg:sidebar-variants-changed-Listener (bzw. beim Anwenden der
 // scg:sidebar-layout-changed-Abgleich).
@@ -425,7 +425,7 @@ function buildVariantsInto(body) {
   });
 }
 
-// 4T-0625: Bereichs-Sektion „Sidebar-Varianten" (Navigations-Gruppe
+// 4T-000625: Bereichs-Sektion „Sidebar-Varianten" (Navigations-Gruppe
 // „Aktueller Bereich", erscheint nur bei geöffnetem Bereich). Der
 // Speichern-Knopf legt direkt im Bereich ab (ohne Ziel-Option).
 let lastVariantsAreaBody = null;
@@ -473,14 +473,14 @@ async function applySidebarSection(draft) {
   // No-op und broadcastet sonst an alle Fenster.
   await applySidebarLayout(draft.sidebarLayout);
   draft.sidebarLayout = cloneLayout(getSidebarLayout());
-  // 4T-0639: Icon-Zustand der Überschriften; setIconHeadings ist bei
+  // 4T-000639: Icon-Zustand der Überschriften; setIconHeadings ist bei
   // unverändertem Wert ein No-op und zieht sonst Rendering, Breiten-
   // Untergrenze und Broadcast nach.
   if (typeof draft.sidebarIconHeadings === 'boolean') {
     await setIconHeadings(draft.sidebarIconHeadings);
     draft.sidebarIconHeadings = getIconHeadings();
   }
-  // 4T-0855: Höhen-Modell; setPanelHeightMode ist bei unverändertem Wert ein
+  // 4T-000855: Höhen-Modell; setPanelHeightMode ist bei unverändertem Wert ein
   // No-op und zieht sonst Rendering und Broadcast nach.
   if (typeof draft.sidebarHeightMode === 'string') {
     await setPanelHeightMode(draft.sidebarHeightMode);
@@ -488,19 +488,19 @@ async function applySidebarSection(draft) {
   }
 }
 
-// Spiegelt applySidebarSection (4T-0554): Entwurfs-Layout gegen das
+// Spiegelt applySidebarSection (4T-000554): Entwurfs-Layout gegen das
 // wirksame Layout; der scg:sidebar-layout-changed-Abgleich oben hält den
 // Entwurf bei Sofort-Wirkungen (Drag-and-Drop) synchron.
 function dirtySidebarSection(draft) {
   if (!draft.sidebarLayout) return false;
-  // 4T-0639: auch der Icon-Schalter zählt als offene Änderung.
+  // 4T-000639: auch der Icon-Schalter zählt als offene Änderung.
   if (
     typeof draft.sidebarIconHeadings === 'boolean' &&
     draft.sidebarIconHeadings !== getIconHeadings()
   ) {
     return true;
   }
-  // 4T-0855: auch das Höhen-Modell zählt als offene Änderung.
+  // 4T-000855: auch das Höhen-Modell zählt als offene Änderung.
   if (
     typeof draft.sidebarHeightMode === 'string' &&
     draft.sidebarHeightMode !== getPanelHeightMode()
@@ -518,7 +518,7 @@ registerSettingsSection({
   dirty: dirtySidebarSection,
 });
 
-// 4T-0625 (Epic 3E-0119): Bereichs-Varianten der Sidebar unter
+// 4T-000625 (Epic 3E-000119): Bereichs-Varianten der Sidebar unter
 // „Aktueller Bereich" (nur bei geöffnetem Bereich sichtbar; Aktionen
 // wirken sofort, daher ohne apply/dirty).
 registerSettingsSection({

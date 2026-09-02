@@ -1,9 +1,9 @@
-// 4T-0277 (Epic 3E-0049): E2E-Funktions-Suite — Einstellungs-Seite als
+// 4T-000277 (Epic 3E-000049): E2E-Funktions-Suite — Einstellungs-Seite als
 // System-Tab (ES-01 bis ES-04). Deckt die Tab-Infrastruktur ab: Öffnen
 // über Kommando und Menü, Einfach-Instanz pro Fenster, System-Tab-Guards
 // (kein Edit-Modus, View-Buttons deaktiviert) und Ausschluss aus der
 // Sitzungs-Wiederherstellung. Die Bereichs-Inhalte der Seite testen die
-// mit 4T-0278/4T-0279 erweiterten Specs.
+// mit 4T-000278/4T-000279 erweiterten Specs.
 'use strict';
 
 const fs = require('node:fs');
@@ -22,7 +22,7 @@ const FRONTMATTER_FIXTURE = path.resolve(
   'frontmatter.md',
 );
 
-// 4T-0563 (Epic 3E-0102): Profil-Verzeichnis mit vorbefüllter electron-store-
+// 4T-000563 (Epic 3E-000102): Profil-Verzeichnis mit vorbefüllter electron-store-
 // config.json (Muster seedProfile in sidebar-layout.spec.js) für Tests, die
 // ein bestimmtes Ausgangs-Sidebar-Layout brauchen.
 function seedProfile(settings) {
@@ -112,7 +112,7 @@ test.describe('ES-03: System-Tab-Guards', () => {
   });
 });
 
-// 4T-0278: Seiten-Layout — Bereichsnavigation, Bereichs-Wechsel,
+// 4T-000278: Seiten-Layout — Bereichsnavigation, Bereichs-Wechsel,
 // Button-Leiste.
 test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
   test('ohne Bereich keine Bereichs-Gruppe, Wechsel hebt aktiv hervor, Buttons vorhanden', async () => {
@@ -121,33 +121,33 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       await openSettingsPageViaKeyboard(page);
       await expect(page.locator(SETTINGS_PAGE)).toBeVisible();
       const nav = page.locator(`${SETTINGS_PAGE} .settings-nav-entry`);
-      // 4T-0555 (Epic 3E-0100): gruppierte Navigation. Ohne gebundenen
+      // 4T-000555 (Epic 3E-000100): gruppierte Navigation. Ohne gebundenen
       // Bereich erscheinen die dreizehn
       // app-weiten festen Bereiche (Darstellung, Farbschemas, Verhalten,
       // Zeitstempel, Export, Vorlagen, Task-Status, Aufgaben, Erinnerungen,
       // Überschriften-Nummerierung, Tastenkürzel, Erweiterungen,
       // Erweiterungen extern) plus den dynamisch registrierten Bereichen
-      // „Sidebar", „Panel-Reihenfolge" (4T-0569, Epic 3E-0104),
-      // „Kommando-Platzierung" (4T-0520, Epic 3E-0094), „Format-Toolbar"
-      // (4T-0608, Epic 3E-0114) und „Uhr" (4T-0372, Epic 3E-0069); die
+      // „Sidebar", „Panel-Reihenfolge" (4T-000569, Epic 3E-000104),
+      // „Kommando-Platzierung" (4T-000520, Epic 3E-000094), „Format-Toolbar"
+      // (4T-000608, Epic 3E-000114) und „Uhr" (4T-000372, Epic 3E-000069); die
       // bereichsgebundenen Sektionen (historyArea, templatesArea,
       // journals, calendarSystems, propertyProfiles) fehlen vollständig
-      // (ES-13 prüft den Fall mit Bereich). „Zeitstempel" (4T-0604, Epic
-      // 3E-0113) haengt an der Erweiterung frontmatter-timestamps, die
-      // im frischen Profil aktiv ist. „Anlagen" (4T-0791, Epic 3E-0125) ist
+      // (ES-13 prüft den Fall mit Bereich). „Zeitstempel" (4T-000604, Epic
+      // 3E-000113) haengt an der Erweiterung frontmatter-timestamps, die
+      // im frischen Profil aktiv ist. „Anlagen" (4T-000791, Epic 3E-000125) ist
       // Kern und immer sichtbar; seine Bereichs-Uebersteuerung
       // (attachmentsArea) fehlt hier wie die uebrigen bereichsgebundenen.
-      // „Rechtschreibung" (4T-0581, Epic 3E-0107) kommt als eigener Bereich
+      // „Rechtschreibung" (4T-000581, Epic 3E-000107) kommt als eigener Bereich
       // der Erweiterung spellcheck hinzu; sie ist im frischen Profil aktiv,
       // weil der Default die leere Deaktivierungs-Liste ist. Ausgeschaltet
       // startet allein der Funktions-Schalter innerhalb des Bereichs, der
       // Bereich selbst ist sichtbar.
-      // 4T-1048 (Epic 3E-0151): „Mindmap" kommt als eigener Bereich der
+      // 4T-001048 (Epic 3E-000151): „Mindmap" kommt als eigener Bereich der
       // gleichnamigen Erweiterung hinzu; sie ist im frischen Profil aktiv.
-      // Der Fall war seit 4T-1048 rot und fiel erst am Abnahme-Gate auf, weil
+      // Der Fall war seit 4T-001048 rot und fiel erst am Abnahme-Gate auf, weil
       // die E2E-Suite ausserhalb der Commit- und Integrations-Gates liegt.
       await expect(nav).toHaveCount(21);
-      // 4T-0889 (Epic 3E-0168): Die Einträge verteilen sich seither auf vier
+      // 4T-000889 (Epic 3E-000168): Die Einträge verteilen sich seither auf vier
       // mögliche Blöcke. Ohne gebundenen Bereich und ohne installierte
       // externe Erweiterung erscheinen zwei davon: „Allgemein" mit den
       // Kern-Bereichen (die beiden Verwaltungs-Bereiche „Erweiterungen" und
@@ -181,7 +181,7 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
   });
 });
 
-// 4T-0279: migrierte Sektions-Inhalte — Live-Vorschau, Snapshot-Semantik
+// 4T-000279: migrierte Sektions-Inhalte — Live-Vorschau, Snapshot-Semantik
 // von Anwenden/Abbrechen und Tab-Schließen als Abbrechen. (Task-Status-
 // und Tastenkürzel-Roundtrips decken task-states.spec.js und
 // hotkeys.spec.js ab.)
@@ -250,7 +250,7 @@ test.describe('ES-08: Tab-Schließen ohne Anwenden entspricht Abbrechen', () => 
   });
 });
 
-// 4T-0284 (Epic 3E-0050): Frontmatter-Anzeige-Schalter im Bereich
+// 4T-000284 (Epic 3E-000050): Frontmatter-Anzeige-Schalter im Bereich
 // Darstellung — Umschalten wirkt nach Anwenden/OK sofort auf offene
 // Panes und persistiert über Neustarts (Store-Key render.showFrontmatter).
 test.describe('ES-09: Frontmatter-Anzeige-Schalter (Darstellung)', () => {
@@ -284,7 +284,7 @@ test.describe('ES-09: Frontmatter-Anzeige-Schalter (Darstellung)', () => {
       await page.locator('#settings-show-frontmatter').uncheck();
       await page.locator('#btn-settings-ok').click();
       await expect(page.locator(`${SEL.markdownBody0} .frontmatter-block`)).toHaveCount(0);
-      // 4T-0577: vor dem Beenden den Abschluss des Anwendens abwarten.
+      // 4T-000577: vor dem Beenden den Abschluss des Anwendens abwarten.
       // okSettingsPage schließt den Tab erst, wenn alle Bereiche angewandt
       // UND persistiert sind; die sichtbare Wirkung im Dokument tritt früher
       // ein. Ohne dieses Warten schneidet der force-Close (app.exit(0)) den
@@ -307,7 +307,7 @@ test.describe('ES-09: Frontmatter-Anzeige-Schalter (Darstellung)', () => {
   });
 });
 
-// 4T-0289 (Epic 3E-0051): Bereich „Sidebar" — Layout-Konfiguration über
+// 4T-000289 (Epic 3E-000051): Bereich „Sidebar" — Layout-Konfiguration über
 // die Einstellungs-Seite (Entwurf-/OK-Semantik, Verschieben, Seitenwechsel,
 // Gruppieren, Zurücksetzen). Wirkt auf dieselben Modell-Operationen wie das
 // Drag-and-Drop (sidebar-layout.spec.js deckt den DnD-Weg ab).
@@ -322,17 +322,17 @@ test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
       await expect(leftContainer.locator('.sidebar-outline')).toBeVisible();
 
       await openSettingsPageViaKeyboard(page);
-      // 4T-0555: gezielt per Sektions-ID statt .last() (gruppierte Navigation).
+      // 4T-000555: gezielt per Sektions-ID statt .last() (gruppierte Navigation).
       await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="sidebar"]`).click();
       const section = page.locator(`${SETTINGS_PAGE} .sidebar-settings`);
       await expect(section).toBeVisible();
-      // 4T-0563 (Epic 3E-0102): der neue Standard verteilt die Panels auf beide
+      // 4T-000563 (Epic 3E-000102): der neue Standard verteilt die Panels auf beide
       // Seiten — links bookmarks, area, outline, subpages, filegraph, calendar,
-      // reminders und (4T-0372, Epic 3E-0069) clock, rechts notes, properties,
+      // reminders und (4T-000372, Epic 3E-000069) clock, rechts notes, properties,
       // tags, blockprops, outgoing, backlinks; die rechte Seite ist belegt, der
       // Leer-Hinweis entfällt.
-      // 4T-0759 (Epic 3E-0142): links kommt das Suchergebnis-Panel hinzu (9).
-      // 4T-0844 (Epic 3E-0147): links kommt das Inhaltsverzeichnis des Buches
+      // 4T-000759 (Epic 3E-000142): links kommt das Suchergebnis-Panel hinzu (9).
+      // 4T-000844 (Epic 3E-000147): links kommt das Inhaltsverzeichnis des Buches
       // hinzu (10), als dritter Reiter der Ort-Gruppe.
       const leftList = section.locator('.sidebar-settings-list[data-side="left"]');
       const rightList = section.locator('.sidebar-settings-list[data-side="right"]');
@@ -354,7 +354,7 @@ test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
       await page.locator('#btn-settings-ok').click();
       await expect(rightContainer.locator('.sidebar-outline')).toBeVisible();
       await expect(leftContainer).toBeHidden();
-      // 4T-0563 (Epic 3E-0102): rechts liegen im Standard bereits Slots; der
+      // 4T-000563 (Epic 3E-000102): rechts liegen im Standard bereits Slots; der
       // Seitenwechsel hängt outline hinten an. Geprüft wird die Seite, nicht
       // eine feste Slot-Zahl.
       await expect
@@ -379,7 +379,7 @@ test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
   });
 
   test('Gruppieren über den Bereich erzeugt eine Reiter-Gruppe', async () => {
-    // 4T-0563 (Epic 3E-0102): explizites flaches Layout, damit 'bookmarks' und
+    // 4T-000563 (Epic 3E-000102): explizites flaches Layout, damit 'bookmarks' und
     // 'properties' benachbarte Einzel-Slots links sind (der neue Standard legt
     // 'properties' rechts in eine Gruppe) — die Gruppier-Semantik dieses Tests
     // bleibt so unverändert prüfbar.
@@ -444,7 +444,7 @@ test.describe('ES-04: keine Sitzungs-Wiederherstellung', () => {
   });
 });
 
-// 4T-0383 (Epic 3E-0072): Inhalts-Breite der gerenderten Ansicht in
+// 4T-000383 (Epic 3E-000072): Inhalts-Breite der gerenderten Ansicht in
 // Prozent — Default 80, Live-Vorschau mit Klemmen auf den Bereich 20–100,
 // reale Breiten-Wirkung im Render-Pane und Persistenz über den Neustart.
 async function contentWidthVar(page) {
@@ -502,7 +502,7 @@ test.describe('ES-11: Inhalts-Breite in Prozent (Darstellung)', () => {
   });
 });
 
-// 4T-0554 (Epic 3E-0100): Speicher-Status der Schaltflächen — „Anwenden"
+// 4T-000554 (Epic 3E-000100): Speicher-Status der Schaltflächen — „Anwenden"
 // und „OK" tragen die Primary-Hervorhebung nur bei ungesicherten
 // Änderungen; „Anwenden" ist ohne Änderungen deaktiviert, „OK" bleibt
 // immer klickbar und schließt die Seite auch ohne Änderungen.
@@ -542,7 +542,7 @@ test.describe('ES-12: Speicher-Status von Anwenden/OK', () => {
   });
 });
 
-// 4T-0555 (Epic 3E-0100): zweigeteilte Navigation mit gebundenem Bereich —
+// 4T-000555 (Epic 3E-000100): zweigeteilte Navigation mit gebundenem Bereich —
 // Gruppe „Aktueller Bereich" mit den fünf bereichsgebundenen Sektionen
 // (Historie-Bereichs-Default und Vorlagen-Bereichsteil abgespalten,
 // PO-Entscheidung E3) hinter der Gruppe „Allgemein".
@@ -561,7 +561,7 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       await openSettingsPageViaKeyboard(page);
       await expect(page.locator(SETTINGS_PAGE)).toBeVisible();
       const groups = page.locator(`${SETTINGS_PAGE} .settings-nav-group`);
-      // 4T-0889 (Epic 3E-0168): mit gebundenem Bereich stehen drei Blöcke —
+      // 4T-000889 (Epic 3E-000168): mit gebundenem Bereich stehen drei Blöcke —
       // „Allgemein", „Bereich" und „Erweiterungen (intern)"; der vierte
       // Block erscheint erst mit einer installierten externen Erweiterung.
       await expect(groups).toHaveCount(3);
@@ -574,8 +574,8 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       await expect(groups.nth(2).locator('.settings-nav-group-title')).toBeVisible();
       // Bereichs-Gruppe: die sieben bereichsgebundenen Sektionen in
       // Registry-Reihenfolge (sechs feste plus die dynamisch registrierten
-      // Sidebar-Varianten aus 4T-0625, Epic 3E-0119). „attachmentsArea"
-      // kam mit 4T-0791 (Epic 3E-0125) hinzu.
+      // Sidebar-Varianten aus 4T-000625, Epic 3E-000119). „attachmentsArea"
+      // kam mit 4T-000791 (Epic 3E-000125) hinzu.
       const areaEntries = groups.nth(1).locator('.settings-nav-entry');
       await expect(areaEntries).toHaveCount(7);
       for (const [idx, id] of [
@@ -611,7 +611,7 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
   });
 });
 
-// 4T-0575 (Epic 3E-0106): abgerundete Tab-Ecken im Bereich Darstellung —
+// 4T-000575 (Epic 3E-000106): abgerundete Tab-Ecken im Bereich Darstellung —
 // Live-Vorschau, reale Wirkung am Reiter (Radius plus entfallende
 // Trennlinie) und Persistenz über den Neustart (Muster ES-11).
 async function tabCorner(page) {
@@ -628,7 +628,7 @@ async function tabCorner(page) {
         borderRight: parseFloat(cs.borderRightWidth),
         // Abstand der Reiter-Oberkante zur Leisten-Oberkante: dort liegt die
         // Akzentlinie der aktiven Spalte, die die Reiter nicht verdecken
-        // duerfen (PO-Befund in der Test-Iteration zu 4T-0575).
+        // duerfen (PO-Befund in der Test-Iteration zu 4T-000575).
         topGap: tab.getBoundingClientRect().top - bar.getBoundingClientRect().top,
       };
     },
@@ -678,7 +678,7 @@ test.describe('ES-14: Abgerundete Tab-Ecken (Darstellung)', () => {
   });
 });
 
-// 4T-0577 (Epic 3E-0106): Hervorhebung der Cursor-Zeile — Default an, nur im
+// 4T-000577 (Epic 3E-000106): Hervorhebung der Cursor-Zeile — Default an, nur im
 // Edit-Modus sichtbar (im Lese-Zustand ohne Cursor bewusst nicht), abschaltbar
 // und über den Neustart stabil.
 async function activeLineBg(page) {

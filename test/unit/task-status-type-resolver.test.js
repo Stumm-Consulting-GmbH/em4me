@@ -1,4 +1,4 @@
-// 4T-0502 (Epic 3E-0096): Unit-Tests fuer createTaskStatusTypeResolver aus
+// 4T-000502 (Epic 3E-000096): Unit-Tests fuer createTaskStatusTypeResolver aus
 // plugins.js — der Status-Typ-Resolver des TASKS-Scopes, der (anders als die
 // Pipeline-Instanz activeTaskStates) direkt aus der Persistenz-Form des
 // taskStates-Stores baut. Prueft Basis-Zeichen, das Default-Set, den builtin-
@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { createTaskStatusTypeResolver } from '../../src/shared/markdown/plugins.js';
 
-describe('createTaskStatusTypeResolver (4T-0502)', () => {
+describe('createTaskStatusTypeResolver (4T-000502)', () => {
   it('Basis-Zeichen sind fest (Space TODO, x/X DONE)', () => {
     const resolve = createTaskStatusTypeResolver(null);
     expect(resolve(' ')).toBe('TODO');

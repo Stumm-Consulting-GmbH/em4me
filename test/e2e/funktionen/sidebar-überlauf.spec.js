@@ -1,4 +1,4 @@
-// 4T-0854 (Epic 3E-0164): E2E-Spec des Überlauf-Verhaltens einer
+// 4T-000854 (Epic 3E-000164): E2E-Spec des Überlauf-Verhaltens einer
 // Seitenleisten-Spalte. Kürzel SU- (Sidebar-Überlauf).
 //
 // Regression: Zog man ein Panel so groß, dass die Höhen-Summe die Spalte

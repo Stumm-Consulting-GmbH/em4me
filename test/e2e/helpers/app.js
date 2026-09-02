@@ -1,4 +1,4 @@
-// 4T-0166: Gemeinsamer E2E-Helper — App-Start mit isoliertem Temp-Profil.
+// 4T-000166: Gemeinsamer E2E-Helper — App-Start mit isoliertem Temp-Profil.
 //
 // Jeder Lauf bekommt ein frisches userData-Verzeichnis (SCG_TEST_USER_DATA,
 // siehe Hook in src/main/main.js). Damit beruehren Tests nie das echte
@@ -14,7 +14,7 @@ const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/share
 // Projekt-Wurzel (test/e2e/helpers -> drei Ebenen hoch).
 const APP_ROOT = path.resolve(__dirname, '..', '..', '..');
 
-// 4T-0372 (Epic 3E-0069): Bereitschafts-Marker der Renderer-Init.
+// 4T-000372 (Epic 3E-000069): Bereitschafts-Marker der Renderer-Init.
 // applyPanelButtonOrder() sortiert die Statusbar-Panel-Buttons ganz am Ende
 // von init() in die Modell-Reihenfolge; statisch steht in index.html ein
 // anderer Button vorn. Der erste Button des Segments ist damit das spaeteste
@@ -27,7 +27,7 @@ const FIRST_PANEL_BUTTON_ID = PANEL_ACCESS.find(
 /**
  * Wartet, bis die asynchrone Renderer-init() durchgelaufen ist.
  *
- * Hintergrund (4T-0372): waitForLoadState('domcontentloaded') deckt nur die
+ * Hintergrund (4T-000372): waitForLoadState('domcontentloaded') deckt nur die
  * Listener auf Modulkopf-Ebene ab. init() laeuft danach mit vielen
  * await-Schritten weiter und registriert dort unter anderem den
  * reminders:due-Listener und die Panel-Sichtbarkeiten aus dem Store. Specs,
@@ -58,7 +58,7 @@ async function waitForRendererInit(page) {
   }
 }
 
-// 4T-0751 (Epic 3E-0146): Vorbelegung des frischen Profils. Die Anwendung
+// 4T-000751 (Epic 3E-000146): Vorbelegung des frischen Profils. Die Anwendung
 // liefert seither Englisch als Voreinstellung aus; die Specs pruefen aber
 // gegen deutsche Oberflaechen-Texte. Ohne diese Vorbelegung haetten sie die
 // Sprache des Pruef-Rechners geerbt (auf einem englischsprachigen System
@@ -66,7 +66,7 @@ async function waitForRendererInit(page) {
 // Umschreiben von rund zwanzig Spec-Dateien Aufwand ohne Gewinn waere; den
 // ausgelieferten Zustand deckt die eigene Spec voreinstellungen.spec.js ab,
 // die ohne Vorbelegung startet.
-// 4T-0644 (Epic 3E-0127): Merker der gefuehrten Produkt-Tour. Ohne ihn liefe
+// 4T-000644 (Epic 3E-000127): Merker der gefuehrten Produkt-Tour. Ohne ihn liefe
 // die Tour beim ersten Start JEDER Spec automatisch an und legte ihr Overlay
 // ueber die Oberflaeche; die Klicks der Faelle liefen dann ins Leere.
 //
@@ -96,13 +96,13 @@ function seedSettings(userData, settings) {
   fs.writeFileSync(datei, JSON.stringify({ ...bestand, ...settings }, null, 2), 'utf8');
 }
 
-// 4T-0901 (Epic 3E-0016): Zentrale Beobachtung der Konsole. Ein Fehler in der
+// 4T-000901 (Epic 3E-000016): Zentrale Beobachtung der Konsole. Ein Fehler in der
 // Entwickler-Konsole ist ein Fehler, auch wenn die Oberflaeche ihn nicht zeigt;
 // bis hierher pruefte ihn genau ein Fall der Smoke-Suite, die uebrigen rund 570
 // liefen daran vorbei.
 //
 // Der Zuhoerer haengt am 'window'-Ereignis der Anwendung und damit VOR
-// firstWindow(). Der Befund aus 4T-0900 zeigte, warum das noetig ist: Der
+// firstWindow(). Der Befund aus 4T-000900 zeigte, warum das noetig ist: Der
 // bisherige Fall registrierte ihn erst nach dem Hochfahren und blieb deshalb
 // gruen, obwohl waehrend des Starts ein Fehler gemeldet wurde. Ueber dasselbe
 // Ereignis werden auch weitere Fenster erfasst, ohne dass eine Spec etwas tun
@@ -161,7 +161,7 @@ function beobachteKonsole(app) {
  *                                    DEFAULT_TEST_SETTINGS (Sprache Deutsch).
  *                                    Eine eigene Angabe ersetzt die Sprache,
  *                                    bekommt aber weiterhin den Tour-Merker
- *                                    untergelegt (4T-0644, siehe TOUR_GESEHEN).
+ *                                    untergelegt (4T-000644, siehe TOUR_GESEHEN).
  *                                    null startet ohne jede Vorbelegung und
  *                                    zeigt damit den Auslieferungszustand —
  *                                    dort laeuft die Produkt-Tour an, und der
@@ -172,7 +172,7 @@ function beobachteKonsole(app) {
  */
 async function launchApp(opts = {}) {
   const userData = opts.userData || fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-'));
-  // 4T-0644: Tour-Merker als Unterlage jeder Vorbelegung (Begruendung an
+  // 4T-000644: Tour-Merker als Unterlage jeder Vorbelegung (Begruendung an
   // TOUR_GESEHEN); eine eigene Angabe des Falls liegt darueber und gewinnt.
   const vorbelegung = 'settings' in opts ? opts.settings : DEFAULT_TEST_SETTINGS;
   seedSettings(userData, vorbelegung ? { ...TOUR_GESEHEN, ...vorbelegung } : vorbelegung);
@@ -191,14 +191,14 @@ async function launchApp(opts = {}) {
   // nach der Modul-Ausfuehrung; type=module ist deferred und laeuft vor
   // DOMContentLoaded — danach gehen keine gesendeten Events mehr verloren.
   await page.waitForLoadState('domcontentloaded');
-  // 4T-0372 (Epic 3E-0069): zusaetzlich das Ende der asynchronen init()
+  // 4T-000372 (Epic 3E-000069): zusaetzlich das Ende der asynchronen init()
   // abwarten — Begruendung am Helfer waitForRendererInit.
   await waitForRendererInit(page);
   return { app, page, userData };
 }
 
 /**
- * 4T-0644 (Epic 3E-0127): Ein angelaufenes Tour-Overlay wegraeumen.
+ * 4T-000644 (Epic 3E-000127): Ein angelaufenes Tour-Overlay wegraeumen.
  *
  * Gebraucht wird das nur von Faellen, die mit `settings: null` und ohne
  * gesetzten Merker starten — dort ist der Erststart echt, und die Tour legt
@@ -241,7 +241,7 @@ async function schliesseTour(page, timeout = 10000) {
  * normale Close-Pfad wuerde sonst im nativen Speichern-Dialog haengen
  * und den Worker-Teardown blockieren.
  */
-// 4T-0901: Auswertung am Ende eines Falls. Sie laeuft in closeApp, weil jede
+// 4T-000901: Auswertung am Ende eines Falls. Sie laeuft in closeApp, weil jede
 // Spec ihn ohnehin im finally aufruft — so greift der Waechter, ohne dass eine
 // Spec etwas dafuer tun muss.
 //

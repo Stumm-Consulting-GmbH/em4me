@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0278/4T-0279 (Epic 3E-0049): Unit-Tests der Einstellungs-Seite —
+// 4T-000278/4T-000279 (Epic 3E-000049): Unit-Tests der Einstellungs-Seite —
 // Bereichs-Registry (feste Reihenfolge, Andockpunkt für dynamische
 // Bereiche), Seiten-Layout (Navigation, Bereichs-Wechsel mit
 // Entwurfs-Erhalt), seitenweite Validierungs-Blockade von Anwenden/OK
@@ -10,12 +10,12 @@ import './api-stub.js';
 
 const settingsPage = await import('../../../src/renderer/modules/settings/settings-page.js');
 const systemPages = await import('../../../src/renderer/modules/app/system-pages.js');
-// 4T-0555 (Epic 3E-0100): state.areaPath steuert die Sichtbarkeit der
+// 4T-000555 (Epic 3E-000100): state.areaPath steuert die Sichtbarkeit der
 // Navigations-Gruppe „Aktueller Bereich".
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
 // Seiten-Lebenszyklus wie beim echten Öffnen: onOpen baut den frischen
-// Entwurf (4T-0279), mount montiert das DOM.
+// Entwurf (4T-000279), mount montiert das DOM.
 function mountPage() {
   const pageDef = systemPages.systemPageById(settingsPage.SETTINGS_PAGE_ID);
   pageDef.onOpen();
@@ -25,23 +25,23 @@ function mountPage() {
   return container;
 }
 
-describe('Bereichs-Registry (settings-page.js, 4T-0278)', () => {
+describe('Bereichs-Registry (settings-page.js, 4T-000278)', () => {
   it('feste Bereiche erscheinen in definierter Reihenfolge', () => {
-    // 4T-0304 (Epic 3E-0054): Bereich „Export" hinter „Verhalten".
-    // 4T-0436 (Epic 3E-0081): Bereich „Journale" hinter „Vorlagen".
-    // 4T-0450 (Epic 3E-0083): Bereich "Eigenschafts-Profile" hinter "Journale".
-    // 4T-0498 (Epic 3E-0090): Bereich "Aufgaben" hinter "Task-Status".
-    // 4T-0528 (Epic 3E-0095): Bereich "Erinnerungen" hinter "Aufgaben".
-    // 4T-0471 (Epic 3E-0087): Bereich "Ueberschriften-Nummerierung" hinter "Erinnerungen".
-    // 4T-0466 (Epic 3E-0086): Bereich "Farbschemas" direkt hinter "Darstellung".
-    // 4T-0544 (Epic 3E-0097): Bereich "Kalender-Systeme" hinter "Journale".
-    // 4T-0555 (Epic 3E-0100): abgespaltene Bereichs-Sektionen "historyArea"
+    // 4T-000304 (Epic 3E-000054): Bereich „Export" hinter „Verhalten".
+    // 4T-000436 (Epic 3E-000081): Bereich „Journale" hinter „Vorlagen".
+    // 4T-000450 (Epic 3E-000083): Bereich "Eigenschafts-Profile" hinter "Journale".
+    // 4T-000498 (Epic 3E-000090): Bereich "Aufgaben" hinter "Task-Status".
+    // 4T-000528 (Epic 3E-000095): Bereich "Erinnerungen" hinter "Aufgaben".
+    // 4T-000471 (Epic 3E-000087): Bereich "Ueberschriften-Nummerierung" hinter "Erinnerungen".
+    // 4T-000466 (Epic 3E-000086): Bereich "Farbschemas" direkt hinter "Darstellung".
+    // 4T-000544 (Epic 3E-000097): Bereich "Kalender-Systeme" hinter "Journale".
+    // 4T-000555 (Epic 3E-000100): abgespaltene Bereichs-Sektionen "historyArea"
     // hinter "Verhalten" und "templatesArea" hinter "Vorlagen".
-    // 4T-0604 (Epic 3E-0113): Bereich „Zeitstempel" hinter „Verhalten"
+    // 4T-000604 (Epic 3E-000113): Bereich „Zeitstempel" hinter „Verhalten"
     // (erweiterungs-eigener Bereich der Erweiterung frontmatter-timestamps).
-    // 4T-0791 (Epic 3E-0125): Bereiche „Anlagen" und „attachmentsArea" hinter
+    // 4T-000791 (Epic 3E-000125): Bereiche „Anlagen" und „attachmentsArea" hinter
     // „historyArea", also im Block der dokument-nahen Einstellungen.
-    // 4T-0581 (Epic 3E-0107): Bereich „Rechtschreibprüfung" hinter
+    // 4T-000581 (Epic 3E-000107): Bereich „Rechtschreibprüfung" hinter
     // „Zeitstempel" (erweiterungs-eigener Bereich der Erweiterung spellcheck).
     const ids = settingsPage.settingsSections().map((s) => s.id);
     expect(ids.slice(0, 19)).toEqual([
@@ -105,7 +105,7 @@ describe('Bereichs-Registry (settings-page.js, 4T-0278)', () => {
   });
 });
 
-describe('Seiten-Layout und Bereichs-Wechsel (4T-0278)', () => {
+describe('Seiten-Layout und Bereichs-Wechsel (4T-000278)', () => {
   it('Mount baut Navigation, Bereichs-Inhalt und Button-Leiste', () => {
     const container = mountPage();
     const entries = container.querySelectorAll('.settings-nav-entry');
@@ -129,7 +129,7 @@ describe('Seiten-Layout und Bereichs-Wechsel (4T-0278)', () => {
   });
 });
 
-describe('Migrierte Draft-Logik (4T-0279)', () => {
+describe('Migrierte Draft-Logik (4T-000279)', () => {
   it('validateTaskStatesDraft: Ein-Zeichen-Pflicht, verbotene Zeichen, Duplikate', () => {
     const ok = [
       { char: '/', enabled: true },
@@ -144,7 +144,7 @@ describe('Migrierte Draft-Logik (4T-0279)', () => {
     expect(settingsPage.validateTaskStatesDraft([{ char: 'x' }])).toBe(false);
   });
 
-  it('Entwurf startet mit eingeschalteter Frontmatter-Anzeige (Default an, 4T-0284)', () => {
+  it('Entwurf startet mit eingeschalteter Frontmatter-Anzeige (Default an, 4T-000284)', () => {
     mountPage();
     const draft = settingsPage.settingsPageStateForTests().draft;
     expect(draft.showFrontmatter).toBe(true);
@@ -174,7 +174,7 @@ describe('Migrierte Draft-Logik (4T-0279)', () => {
     expect(await settingsPage.applySettingsPage()).toBe(true);
   });
 
-  // 4T-0497 (Epic 3E-0090): mehrfach belegte Zeichen der Warnung/Validierung.
+  // 4T-000497 (Epic 3E-000090): mehrfach belegte Zeichen der Warnung/Validierung.
   it('duplicateTaskStateChars: leer ohne Duplikate, erkennt Mehrfach-Belegung in Auftritts-Reihenfolge', () => {
     expect(settingsPage.duplicateTaskStateChars([{ char: '/' }, { char: '-' }])).toEqual([]);
     expect(
@@ -185,9 +185,9 @@ describe('Migrierte Draft-Logik (4T-0279)', () => {
   });
 });
 
-// 4T-0383 (Epic 3E-0072): Inhalts-Breite in Prozent — Clamp-Matrix,
+// 4T-000383 (Epic 3E-000072): Inhalts-Breite in Prozent — Clamp-Matrix,
 // CSS-Variable und montiertes Eingabefeld im Bereich Darstellung.
-describe('Inhalts-Breite in Prozent (4T-0383, Epic 3E-0072)', () => {
+describe('Inhalts-Breite in Prozent (4T-000383, Epic 3E-000072)', () => {
   it('clampContentWidth klemmt auf 20 bis 100, rundet und fällt auf den Default zurück', () => {
     expect(settingsPage.clampContentWidth(50, 80)).toBe(50);
     expect(settingsPage.clampContentWidth(20, 80)).toBe(20);
@@ -224,9 +224,9 @@ describe('Inhalts-Breite in Prozent (4T-0383, Epic 3E-0072)', () => {
   });
 });
 
-// 4T-0575 (Epic 3E-0106): abgerundete Tab-Ecken — Default, Root-Klasse und
+// 4T-000575 (Epic 3E-000106): abgerundete Tab-Ecken — Default, Root-Klasse und
 // montierter Schalter im Bereich Darstellung.
-describe('Abgerundete Tab-Ecken (4T-0575, Epic 3E-0106)', () => {
+describe('Abgerundete Tab-Ecken (4T-000575, Epic 3E-000106)', () => {
   it('Default ist aus; nur explizites true rundet', () => {
     expect(settingsPage.APPEARANCE_DEFAULTS.roundedTabs).toBe(false);
     settingsPage.applyAppearanceVars({ roundedTabs: true });
@@ -259,9 +259,9 @@ describe('Abgerundete Tab-Ecken (4T-0575, Epic 3E-0106)', () => {
   });
 });
 
-// 4T-0577 (Epic 3E-0106): Hervorhebung der aktiven Zeile — Default an,
+// 4T-000577 (Epic 3E-000106): Hervorhebung der aktiven Zeile — Default an,
 // Root-Klasse und montierter Schalter im Bereich Darstellung.
-describe('Hervorhebung der aktiven Zeile (4T-0577, Epic 3E-0106)', () => {
+describe('Hervorhebung der aktiven Zeile (4T-000577, Epic 3E-000106)', () => {
   it('Default ist an; nur explizites false schaltet ab', () => {
     expect(settingsPage.APPEARANCE_DEFAULTS.highlightActiveLine).toBe(true);
     settingsPage.applyAppearanceVars({ highlightActiveLine: false });
@@ -291,14 +291,14 @@ describe('Hervorhebung der aktiven Zeile (4T-0577, Epic 3E-0106)', () => {
   });
 });
 
-// 4T-0555 (Epic 3E-0100): zweigeteilte Navigation — Gruppe „Allgemein"
+// 4T-000555 (Epic 3E-000100): zweigeteilte Navigation — Gruppe „Allgemein"
 // immer, Gruppe „Aktueller Bereich" nur bei gebundenem Bereich
 // (state.areaPath); bereichsgebundene Sektionen (group 'area') erscheinen
 // ausschließlich dort, in Registry-Reihenfolge.
-describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
+describe('Bereichs-Gliederung der Navigation (4T-000555, Epic 3E-000100)', () => {
   const AREA_SECTION_IDS = [
     'historyArea',
-    // 4T-0791 (Epic 3E-0125): Bereichs-Uebersteuerung der Anlagen-Ablage.
+    // 4T-000791 (Epic 3E-000125): Bereichs-Uebersteuerung der Anlagen-Ablage.
     'attachmentsArea',
     'templatesArea',
     'journals',
@@ -311,7 +311,7 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
     state.areaPath = null;
     const container = mountPage();
     const groups = [...container.querySelectorAll('.settings-nav-group')];
-    // 4T-0889 (Epic 3E-0168): ohne Bereich bleiben „Allgemein" und der
+    // 4T-000889 (Epic 3E-000168): ohne Bereich bleiben „Allgemein" und der
     // interne Erweiterungs-Block; die Bereichs-Gruppe entfällt.
     expect(groups.map((g) => g.dataset.navGroup)).toEqual(['general', 'extensionsInternal']);
     expect(groups[0].querySelector('.settings-nav-group-title').textContent).not.toBe('');
@@ -328,7 +328,7 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
     try {
       const container = mountPage();
       const groups = container.querySelectorAll('.settings-nav-group');
-      // 4T-0889: die Bereichs-Gruppe steht zwischen „Allgemein" und dem
+      // 4T-000889: die Bereichs-Gruppe steht zwischen „Allgemein" und dem
       // internen Erweiterungs-Block.
       expect([...groups].map((g) => g.dataset.navGroup)).toEqual([
         'general',
@@ -377,7 +377,7 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
   });
 });
 
-// 4T-0889 (Epic 3E-0168): Vier-Block-Gliederung der Navigation. Die
+// 4T-000889 (Epic 3E-000168): Vier-Block-Gliederung der Navigation. Die
 // Herkunft einer Sektion entscheidet über ihren Block: Kern-Sektionen
 // stehen unter „Allgemein" (die beiden Verwaltungs-Sektionen dort am
 // Ende), Sektionen interner Erweiterungen im eigenen Block (alphabetisch
@@ -385,7 +385,7 @@ describe('Bereichs-Gliederung der Navigation (4T-0555, Epic 3E-0100)', () => {
 // vierten Block, der ohne solche Erweiterungen gar nicht erscheint.
 // Bereichsgebundene Sektionen bleiben unabhängig von ihrer Herkunft in der
 // Bereichs-Gruppe.
-describe('Vier-Block-Gliederung der Navigation (4T-0889, Epic 3E-0168)', () => {
+describe('Vier-Block-Gliederung der Navigation (4T-000889, Epic 3E-000168)', () => {
   // Erweiterungs-gebundene Sektionen ohne Bereichs-Bindung, wie sie die
   // Registry (src/shared/extensions/extensions.js, Feld settingsSections) ausweist.
   const INTERNAL_EXTENSION_SECTION_IDS = [
@@ -484,12 +484,12 @@ describe('Vier-Block-Gliederung der Navigation (4T-0889, Epic 3E-0168)', () => {
   });
 });
 
-// 4T-0554 (Epic 3E-0100): Speicher-Status der Schaltflächen — „Anwenden"
+// 4T-000554 (Epic 3E-000100): Speicher-Status der Schaltflächen — „Anwenden"
 // und „OK" tragen die Primary-Hervorhebung nur bei ungesicherten
 // Änderungen; „Anwenden" ist ohne Änderungen deaktiviert, „OK" bleibt
 // immer klickbar. Die Erkennung ist bereichsübergreifend (dirty-Hooks der
 // Registry spiegeln die Änderungs-Prüfung der apply-Hooks).
-describe('Speicher-Status der Einstellungs-Buttons (4T-0554, Epic 3E-0100)', () => {
+describe('Speicher-Status der Einstellungs-Buttons (4T-000554, Epic 3E-000100)', () => {
   it('ohne Änderungen: Anwenden deaktiviert und neutral, OK neutral und klickbar', () => {
     document.body.innerHTML = '';
     const container = mountPage();
@@ -557,7 +557,7 @@ describe('Speicher-Status der Einstellungs-Buttons (4T-0554, Epic 3E-0100)', () 
   });
 });
 
-describe('Validierungs-Blockade von Anwenden/OK (4T-0278)', () => {
+describe('Validierungs-Blockade von Anwenden/OK (4T-000278)', () => {
   it('ein Bereichs-Fehler blockiert seitenweit, markiert die Navigation und apply läuft nicht', async () => {
     let applied = 0;
     let valid = false;

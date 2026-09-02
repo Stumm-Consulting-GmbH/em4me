@@ -3,7 +3,7 @@
 // einer Applikation, Titelleisten-Farbe und der Verzeichnis-Watcher je
 // Bereichs-App.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196).
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196).
 //
 // Eigentuemer-Zustand dieses Moduls:
 //   workspacesState : In-Memory-Stand des Store-Keys 'workspaces' (Quelle der
@@ -22,7 +22,7 @@ const { dialog, nativeTheme } = require('electron');
 const chokidar = require('chokidar');
 const backlinks = require('../backlinks');
 const { isSamePath, areaFromRootPath, updatedRecentAreas } = require('./area-path');
-// 4T-0630 (Epic 3E-0102): Titelleisten-Faerbung nach Arbeitsbereichs-Farbe
+// 4T-000630 (Epic 3E-000102): Titelleisten-Faerbung nach Arbeitsbereichs-Farbe
 // (DWM-Fenster-Attribute via koffi; Windows-10-Fallback: stiller No-op).
 const { applyCaptionColor } = require('../app/caption-color.js');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
@@ -79,13 +79,13 @@ function createAreaApps(deps) {
     removeDraftsByIds,
     restoreBookForApp,
     restoreShelfForApp,
-    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs aufloesen.
+    // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs aufloesen.
     resolveAreaStartPage,
   } = deps;
 
   const workspacesState = [];
 
-  // 4T-0998: loadStore liefert den normalisierten Stand zurueck, statt eine
+  // 4T-000998: loadStore liefert den normalisierten Stand zurueck, statt eine
   // fremde Modul-Variable zu setzen. Der Behaelter behaelt dabei seine
   // Identitaet, weil main.js und die Nachbar-Module ihn als Wert halten.
   function setWorkspacesState(list) {
@@ -95,7 +95,7 @@ function createAreaApps(deps) {
 
   const areaWatchers = new Map(); // appId -> { watcher, timer }
 
-  // Bereichs-Bindung der App eines Fensters (null ohne Bereich). 4T-0323:
+  // Bereichs-Bindung der App eines Fensters (null ohne Bereich). 4T-000323:
   // gemeinsamer Zugriff aller Grenz-Pfade (Dialoge, file:read, Recent-Filter).
   function areaOfWindow(win) {
     if (!win || win.isDestroyed()) return null;
@@ -122,7 +122,7 @@ function createAreaApps(deps) {
     inDenVordergrund(win);
   }
 
-  // 4T-0537: "erneutes Oeffnen fokussiert" zielt aufs zuletzt aktive Fenster
+  // 4T-000537: "erneutes Oeffnen fokussiert" zielt aufs zuletzt aktive Fenster
   // des Arbeitsbereichs (Workshop-Punkt 3); Fallback erstes Fenster der App.
   function focusLastActiveAppWindow(appId) {
     const winIds = appRegistry.windowsOf(appId);
@@ -132,7 +132,7 @@ function createAreaApps(deps) {
     inDenVordergrund(win);
   }
 
-  // 4T-0538 (Epic 3E-0098): jede Arbeitsbereichs-Aenderung zieht die
+  // 4T-000538 (Epic 3E-000098): jede Arbeitsbereichs-Aenderung zieht die
   // Fenster-Menues (Untermenue-Liste, Dimmungen) und die Renderer
   // (Verwaltungs-Dialog) nach.
   function workspacesChanged() {
@@ -140,7 +140,7 @@ function createAreaApps(deps) {
     broadcast('workspaces:changed');
   }
 
-  // 4T-0630 (Epic 3E-0102): Titelleisten-Farbe eines Fensters an den
+  // 4T-000630 (Epic 3E-000102): Titelleisten-Farbe eines Fensters an den
   // Arbeitsbereichs-Zustand angleichen — Farb-Key aus workspacesState
   // (die App-Registry fuehrt nur {id, name}), Theme-Variante aus
   // nativeTheme. Ohne Arbeitsbereichs-Zuordnung oder bei ausgeschalteter
@@ -166,7 +166,7 @@ function createAreaApps(deps) {
     for (const win of windows.values()) updateCaptionColor(win);
   }
 
-  // Oeffnen-Kern fuer IPC-Handler und Menue-Action (4T-0538 aus dem
+  // Oeffnen-Kern fuer IPC-Handler und Menue-Action (4T-000538 aus dem
   // workspace:open-Handler extrahiert): laeuft der Arbeitsbereich schon,
   // wird nur fokussiert (Workshop-Punkt 3); sonst Fenster-Schleife nach dem
   // Restore-Muster aus whenReady. Fehlender Bereichs-Ordner: bestehende
@@ -206,13 +206,13 @@ function createAreaApps(deps) {
     const appId = appRegistry.createApp(area);
     appRegistry.setWorkspace(appId, { id: entry.id, name: entry.name });
     if (area) startAreaWatcher(appId);
-    // 4T-0843 (Epic 3E-0147): aktives Buch des eingefrorenen Arbeitsbereichs
+    // 4T-000843 (Epic 3E-000147): aktives Buch des eingefrorenen Arbeitsbereichs
     // zurueckbringen (Muster der Sitzungs-Wiederherstellung).
     if (entry.app.book?.dir) void restoreBookForApp(appId, entry.app.book.dir);
-    // 4T-0867 (Epic 3E-0162): aktives Regal des eingefrorenen Arbeitsbereichs
+    // 4T-000867 (Epic 3E-000162): aktives Regal des eingefrorenen Arbeitsbereichs
     // zurueckbringen (Muster der Buch-Wiederherstellung).
     if (entry.app.shelf?.dir) void restoreShelfForApp(appId, entry.app.shelf.dir);
-    // 4T-0539 (Epic 3E-0098): liegende Entwuerfe dieses Arbeitsbereichs
+    // 4T-000539 (Epic 3E-000098): liegende Entwuerfe dieses Arbeitsbereichs
     // mitnehmen (erstes Fenster, window:initialState-Weg) und danach selektiv
     // aus dem Speicher raeumen. Vorher die Schreib-Kette abwarten, damit ein
     // gerade abgeschlossenes Schliessen seine Entwuerfe fertig persistiert hat.
@@ -246,10 +246,10 @@ function createAreaApps(deps) {
   // - ausloesende App ist bereichslos und ohne geoeffnete Datei -> Bindung.
   // - sonst -> neue Applikation mit Bereich (PO-Regel: unabhaengig davon, wo
   //   die geoeffneten Dateien liegen).
-  // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs als Pane-Snapshot fuer ein
+  // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs als Pane-Snapshot fuer ein
   // neu entstehendes Fenster. Liefert [] wenn keine Festlegung besteht oder sie
   // ins Leere zeigt; im zweiten Fall wird der Anwender hingewiesen, ohne dass
-  // das Oeffnen scheitert (Entscheidung aus 4T-1363: die Start-Seite ist eine
+  // das Oeffnen scheitert (Entscheidung aus 4T-001363: die Start-Seite ist eine
   // Bequemlichkeit, kein Tor).
   async function startPagePanes(rootPath, senderWin) {
     if (!resolveAreaStartPage) return [];
@@ -285,7 +285,7 @@ function createAreaApps(deps) {
     const store = getStore();
     const area = areaFromRootPath(rootPath);
     if (!area) return { ok: false, error: 'invalid path' };
-    // 4T-0325: jedes Bereich-Oeffnen pflegt die Zuletzt-Liste (auch der
+    // 4T-000325: jedes Bereich-Oeffnen pflegt die Zuletzt-Liste (auch der
     // Sprung in eine laufende Bereichs-App zaehlt als Oeffnen).
     if (store) {
       store.set('recentAreas', updatedRecentAreas(store.get('recentAreas'), area.rootPath));
@@ -304,7 +304,7 @@ function createAreaApps(deps) {
       broadcastDisplayInfo();
       applyMenuToAllWindows();
       persistAllWindows();
-      // 4T-1364: Die App war leer und uebernimmt den Bereich — es gibt nichts
+      // 4T-001364: Die App war leer und uebernimmt den Bereich — es gibt nichts
       // wiederherzustellen, also greift die Start-Seite. Sie wird in das
       // bereits laufende Fenster gereicht (Muster der Start-Dateien).
       const panes = await startPagePanes(area.rootPath, senderWin);
@@ -313,7 +313,7 @@ function createAreaApps(deps) {
       }
       return { ok: true, boundExisting: true };
     }
-    // 4T-1364: Neues Bereichs-Fenster — die Start-Seite reist als Pane-Snapshot
+    // 4T-001364: Neues Bereichs-Fenster — die Start-Seite reist als Pane-Snapshot
     // mit, damit sie wie ein wiederhergestellter Tab entsteht.
     const initialPanes = await startPagePanes(area.rootPath, senderWin);
     const win = createWindow({ area, initialPanes });
@@ -321,7 +321,7 @@ function createAreaApps(deps) {
     return { ok: true, createdNew: true };
   }
 
-  // --- 4T-0328 (Epic 3E-0059): Verzeichnis-Watcher pro Bereichs-App ------------
+  // --- 4T-000328 (Epic 3E-000059): Verzeichnis-Watcher pro Bereichs-App ------------
   // Struktur-Ereignisse (Datei/Ordner angelegt, geloescht, umbenannt) im
   // Bereichs-Baum werden debounced als 'area:changed' an die Fenster der App
   // gemeldet; der Renderer liest die Listings idempotent neu (kein Echo-
@@ -331,7 +331,7 @@ function createAreaApps(deps) {
     if (areaWatchers.has(appId)) return;
     const area = appRegistry.getArea(appId);
     if (!area) return;
-    // 4T-0348 (Epic 3E-0062): Bereichs-Index proaktiv aufbauen, sobald ein
+    // 4T-000348 (Epic 3E-000062): Bereichs-Index proaktiv aufbauen, sobald ein
     // Bereich gebunden wird. So entsteht der Index "automatisch beim Start" und
     // persistiert sich in Area_Cache.mdda, ohne dass eine Datei offen sein muss.
     // Der Owner haelt den Index ueber die Lebensdauer der Bereichs-App;
@@ -339,7 +339,7 @@ function createAreaApps(deps) {
     backlinks.ensureAreaIndex(area.rootPath, `area:${appId}`);
     const watcher = chokidar.watch(area.rootPath, {
       ignoreInitial: true,
-      // 4T-0348 (Epic 3E-0062): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind
+      // 4T-000348 (Epic 3E-000062): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind
       // Bereichs-Infrastruktur (Historie, Einstellungen, Index-Cache), keine
       // Nutzer-Struktur; ihr Anlegen/Schreiben soll kein Panel-Refresh ausloesen.
       // Sie erscheinen ohnehin nicht in der Datei-Liste (kein Markdown-Name).
@@ -376,7 +376,7 @@ function createAreaApps(deps) {
     } catch {
       /* ignore */
     }
-    // 4T-0348 (Epic 3E-0062): proaktiven Bereichs-Index-Owner freigeben. Ist er
+    // 4T-000348 (Epic 3E-000062): proaktiven Bereichs-Index-Owner freigeben. Ist er
     // der letzte Owner der Wurzel, startet der Soft-Timer und der Teardown flusht
     // den Cache ein letztes Mal.
     if (entry.rootPath) backlinks.releaseRoot(entry.rootPath, `area:${appId}`);

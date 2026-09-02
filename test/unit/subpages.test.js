@@ -1,4 +1,4 @@
-// 4T-0336 (Epic 3E-0061): Unit-Tests fuer die Unterseiten-Namens-Logik
+// 4T-000336 (Epic 3E-000061): Unit-Tests fuer die Unterseiten-Namens-Logik
 // (src/shared/subpages.js) — Uebersetzung Slash-Form <-> U+2215-Form,
 // Segmente, Eltern-Kette, Expansion relativer Ziele, Segment-Validierung.
 import { describe, it, expect } from 'vitest';
@@ -50,7 +50,7 @@ describe('subpages.js — Uebersetzung und Segmente', () => {
   });
 });
 
-// 4T-0585 (Epic 3E-0108): Anzeige-Titel der Titelzeile — Markdown-Endung
+// 4T-000585 (Epic 3E-000108): Anzeige-Titel der Titelzeile — Markdown-Endung
 // weg, Unterseiten in logischer Slash-Form.
 describe('subpages.js — displayTitleFromBasename', () => {
   it('entfernt Markdown-Endungen unabhängig von der Schreibweise', () => {
@@ -78,7 +78,7 @@ describe('subpages.js — displayTitleFromBasename', () => {
   });
 });
 
-// 4T-0646 (Epic 3E-0128): Zerlegung in unveraenderlichen Eltern-Anteil und
+// 4T-000646 (Epic 3E-000128): Zerlegung in unveraenderlichen Eltern-Anteil und
 // editierbares Segment — gemeinsame Quelle fuer Titelzeile und Dialog.
 describe('subpages.js — Anzeige-Zerlegung (splitDisplayTitle)', () => {
   it('liefert bei Top-Level-Seiten einen leeren Praefix', () => {
@@ -148,7 +148,7 @@ describe('subpages.js — Segment-Validierung', () => {
     expect(segmentValidationError('Überprüfung')).toBeNull();
   });
 
-  // 4T-0339: Basename-Validierung (Umbenennen) erlaubt das Trennzeichen,
+  // 4T-000339: Basename-Validierung (Umbenennen) erlaubt das Trennzeichen,
   // prueft aber jedes Segment einzeln.
   it('basenameValidationError erlaubt U+2215, prueft Segmente einzeln', () => {
     expect(basenameValidationError('Solo Neu')).toBeNull();

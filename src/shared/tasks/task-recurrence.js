@@ -1,4 +1,4 @@
-// 4T-0983 (Epic 3E-0196): Wiederholungs-Schicht des Task-Marker-Kerns —
+// 4T-000983 (Epic 3E-000196): Wiederholungs-Schicht des Task-Marker-Kerns —
 // aus `task-markers.js` ausgezogen, Funktions-Rümpfe unverändert.
 //
 // Inhalt:
@@ -74,16 +74,16 @@ function weekdayOfDayNumber(n) {
   return (((n + 3) % 7) + 7) % 7;
 }
 
-// 4T-0504 (Epic 3E-0096): ISO-Datum um ganze Tage verschieben — zeitzonen-
+// 4T-000504 (Epic 3E-000096): ISO-Datum um ganze Tage verschieben — zeitzonen-
 // frei ueber die Tages-Nummern-Arithmetik (Verschiebe-Knopf der Abfrage-
 // Treffer; Uhrzeit-Anteile bleiben Sache des Aufrufers unveraendert).
 function shiftIsoDateByDays(date, deltaDays) {
   return dayNumberToIso(isoToDayNumber(date) + deltaDays);
 }
 
-// 4T-0504 (Epic 3E-0096): massgebliches Termin-Feld eines Task-Modells in
+// 4T-000504 (Epic 3E-000096): massgebliches Termin-Feld eines Task-Modells in
 // der Referenz-Rangfolge faellig vor geplant vor Start (nur gueltige
-// Werte) — gemeinsame Feld-Wahl der Wiederholungs-Basis (4T-0499) und des
+// Werte) — gemeinsame Feld-Wahl der Wiederholungs-Basis (4T-000499) und des
 // Verschiebe-Knopfs; null ohne verwertbares Termin-Feld.
 function primaryDateField(model) {
   for (const f of ['due', 'scheduled', 'start']) {
@@ -94,7 +94,7 @@ function primaryDateField(model) {
 
 // --- Mutator des Regel-Segments -------------------------------------------------------
 
-// 4T-0506 (Epic 3E-0096): Wiederholungs-Regel setzen oder entfernen
+// 4T-000506 (Epic 3E-000096): Wiederholungs-Regel setzen oder entfernen
 // (Dialog-Feld). Bestehende Segmente behalten Position und fuehrenden
 // Weissraum; neue werden mit kanonischem Symbol angehaengt. text null
 // oder leer entfernt das Segment.
@@ -120,7 +120,7 @@ function setRecurrence(model, text) {
   model.recurrence = { text: trimmed };
 }
 
-// --- Dringlichkeits-Score (4T-0505, Epic 3E-0096) -----------------------------------
+// --- Dringlichkeits-Score (4T-000505, Epic 3E-000096) -----------------------------------
 // Referenz-Formel des Konzept-Workshops (Punkt 10): Faelligkeit dominant,
 // Prioritaet, Geplant-Bonus, Start-Abwertung. Rein funktional; der
 // Bezugstag kommt injiziert (opts.todayIso), nie aus der System-Uhr —
@@ -166,7 +166,7 @@ function computeUrgency(model, opts) {
   return score;
 }
 
-// --- Wiederholung (4T-0499) ---------------------------------------------------------
+// --- Wiederholung (4T-000499) ---------------------------------------------------------
 // Regel-Parser und Instanz-Erzeugung im vollen Referenz-Umfang: alle n
 // Tage, jeden Werktag, jede Woche (mit Wochentags-Liste), jeden Monat
 // (am Tag N / am Letzten), jaehrlich; Zusatz "when done" rechnet ab dem
@@ -339,7 +339,7 @@ function buildRecurrenceInstance(model, opts) {
       time: v.time,
     });
   }
-  // 4T-0525 (Epic 3E-0095): der Erinnerungs-Marker wandert um dasselbe
+  // 4T-000525 (Epic 3E-000095): der Erinnerungs-Marker wandert um dasselbe
   // Delta mit (Workshop-Punkt 4, Abstands-Erhalt; Uhrzeit unveraendert).
   if (clone.reminder && !clone.reminder.invalid) {
     setReminder(clone, {

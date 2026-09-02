@@ -1,5 +1,5 @@
-// --- Unterseiten-Sektion (4T-0341, Epic 3E-0061) ------------------------------
-// 4T-0990 (Epic 3E-0196): aus panels.js in den Ordner panels/ ausgezogen,
+// --- Unterseiten-Sektion (4T-000341, Epic 3E-000061) ------------------------------
+// 4T-000990 (Epic 3E-000196): aus panels.js in den Ordner panels/ ausgezogen,
 // samt eigener Panel-Registrierung am Modul-Ende.
 // Listet die direkten Unterseiten der aktiven Datei (Basename-Praefix mit
 // U+2215, Quelle ist der Nachfahren-Scan des Main — deterministisch ohne
@@ -18,7 +18,7 @@ import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { openInPane, reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
-// 4T-0341: Segment-Logik fuer die Unterseiten-Sektion.
+// 4T-000341: Segment-Logik fuer die Unterseiten-Sektion.
 import { lastSegment, segmentsOf } from '../../../shared/subpages.js';
 
 import { applySidebarVisibility } from './panels.js';
@@ -107,7 +107,7 @@ export function applySubpagesVisibility(paneIdx) {
   updateSubpagesToggleButton();
 }
 
-// 4T-0567 (Epic 3E-0104): Active-State des neuen Statusbar-Buttons
+// 4T-000567 (Epic 3E-000104): Active-State des neuen Statusbar-Buttons
 // (Muster updateOutgoingToggleButton).
 export function updateSubpagesToggleButton() {
   const btn = document.getElementById('btn-subpages');
@@ -141,8 +141,8 @@ export async function loadSubpagesSettings() {
   state.subpages.visibleByPane[1] = !!v1;
 }
 
-// === 4T-0341 (Epic 3E-0061): Panel-Registrierung =============================
-// Import-Seiteneffekt; Statusbar-Button seit 4T-0567 (Epic 3E-0104,
+// === 4T-000341 (Epic 3E-000061): Panel-Registrierung =============================
+// Import-Seiteneffekt; Statusbar-Button seit 4T-000567 (Epic 3E-000104,
 // Zugangs-Symmetrie).
 registerSidebarPanel({
   id: 'subpages',

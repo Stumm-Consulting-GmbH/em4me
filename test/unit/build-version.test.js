@@ -1,4 +1,4 @@
-// 4T-0375 (Epic 3E-0070): Unit-Tests der reinen Build-Nummer-Logik
+// 4T-000375 (Epic 3E-000070): Unit-Tests der reinen Build-Nummer-Logik
 // (Versions-Kopplung, Fallback, Env-Wert, Guard-Vergleich). Git-frei durch
 // Injektion des Commit-Counts.
 import { describe, it, expect } from 'vitest';
@@ -38,7 +38,7 @@ describe('computeFullVersion', () => {
     expect(computeFullVersion('0.42.0', null)).toBe('0.42.0');
     expect(computeFullVersion('0.42.0', {})).toBe('0.42.0');
   });
-  // 4T-0921: Beim temporären Bau geht die Kennzeichnung vor. Die Build-Info
+  // 4T-000921: Beim temporären Bau geht die Kennzeichnung vor. Die Build-Info
   // gehört dort stets zu einer anderen Version, ihre Nummer sagt nichts aus.
   it('zeigt beim temporären Bau die Kennzeichnung mit führendem T', () => {
     expect(
@@ -66,7 +66,7 @@ describe('buildNumberEnvValue', () => {
   });
 });
 
-// 4T-0921: temporäre Kennzeichnung eines Baus zwischen zwei Releases. Der
+// 4T-000921: temporäre Kennzeichnung eines Baus zwischen zwei Releases. Der
 // reale Fall vom 2026-08-07 ist der Prüf-Fall: package.json stand auf 0.105.0,
 // die Marke v0.105.0 existierte bereits, und der Bau erzeugte trotzdem eine
 // Datei mit genau dieser Nummer.
@@ -137,7 +137,7 @@ describe('buildNumberGuardError', () => {
     );
   });
   it('ist still vor dem Release-Commit (Nummer == Commit-Anzahl + 1)', () => {
-    // 4T-0396: Die Nummer nimmt den kommenden Release-Commit vorweg, damit die
+    // 4T-000396: Die Nummer nimmt den kommenden Release-Commit vorweg, damit die
     // EXE schon vor dem Commit mit korrekter Nummer baubar und testbar ist.
     expect(buildNumberGuardError({ version: '0.42.0', buildNumber: 268 }, '0.42.0', 267)).toBe(
       null,

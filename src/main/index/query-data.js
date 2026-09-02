@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Daten-Views auf dem Abfrage-Kontext, herausgelöst
+// 4T-000977 (Epic 3E-000196): Daten-Views auf dem Abfrage-Kontext, herausgelöst
 // aus src/main/backlinks.js. Zwei Verbraucher der gerenderten Ansicht, die
 // den Abfrage-Kontext (link-graph.js) nutzen, aber keine Perspective-Abfrage
 // im engeren Sinn sind: die Ereignis-Aggregation über das Frontmatter
@@ -6,11 +6,11 @@
 
 'use strict';
 
-// 4T-0987 (Epic 3E-0196): im Feature-Ordner src/shared/query/.
+// 4T-000987 (Epic 3E-000196): im Feature-Ordner src/shared/query/.
 const { parseQuery } = require('../../shared/query/perspective-query.js');
 const { matchesQuery } = require('../../shared/query/perspective-query-eval.js');
 const { validateQuery, queryUsesLinks } = require('../../shared/query/query-functions.js');
-// 4T-0515 (Epic 3E-0092): Zuordnungs-Feld-Auswertung der Ereignis-
+// 4T-000515 (Epic 3E-000092): Zuordnungs-Feld-Auswertung der Ereignis-
 // Aggregation (Grundmenge = Dateien, deren Zuordnungs-Feld das interne
 // Ereignis-Profil nennt).
 const { assignedProfileNames } = require('../../shared/property-profiles.js');
@@ -23,7 +23,7 @@ const {
   logicalNameFor,
 } = require('./link-graph.js');
 
-// 4T-0515 (Epic 3E-0092): Ereignis-Aggregation. Grundmenge sind alle
+// 4T-000515 (Epic 3E-000092): Ereignis-Aggregation. Grundmenge sind alle
 // Index-Dateien, deren Zuordnungs-Feld (assignField der Profil-
 // Konfiguration) das interne Ereignis-Profil nennt; eine optionale
 // FROM/WHERE-Abfrage verfeinert die Menge ueber denselben Evaluator wie
@@ -74,7 +74,7 @@ function eventsForQuery(filePath, queryText, areaRoot, opts) {
   const linkGraph = ast && queryUsesLinks(ast) ? entry.linkGraph : null;
   const profileName = String((opts && opts.profileName) || '').toLowerCase();
   const events = [];
-  // 4T-0935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten Ansicht).
+  // 4T-000935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten Ansicht).
   const sicht = entryWithOverlay(entry, overlaysUnder(root));
   for (const [absPath, props] of sicht.propertiesPerFile) {
     const assigned = assignedProfileNames(props, opts && opts.assignField);
@@ -103,7 +103,7 @@ function eventsForQuery(filePath, queryText, areaRoot, opts) {
   return { status: 'ready', meta: { wurzel: root }, events };
 }
 
-// 4T-0413 (Epic 3E-0078): Daten-Snapshot fuer Skript-Bloecke
+// 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke
 // (perspective-script). Liefert einmalig pro Lauf den kompletten Suchraum
 // als serialisierbare Struktur: pro Datei der Abfrage-Kontext (Frontmatter-
 // props plus implizite file.*-Felder inkl. inlinks/outlinks — identisches
@@ -130,7 +130,7 @@ function scriptDataFor(filePath, areaRoot) {
   const now = Date.now();
   const pages = [];
   const blocks = [];
-  // 4T-0935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten
+  // 4T-000935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten
   // Ansicht). Die Sicht wird nach dem Link-Graph-Aufbau gebildet, damit der
   // Cache am Original-Eintrag landet und nicht an der Sicht.
   const sicht = entryWithOverlay(entry, overlaysUnder(root));

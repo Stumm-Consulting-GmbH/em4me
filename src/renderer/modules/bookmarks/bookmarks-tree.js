@@ -1,28 +1,28 @@
 // Lesezeichen: Datenmodell, Abschnitts-Abstraktion und Persistenz.
-// 4T-0991 (Epic 3E-0196): aus bookmarks.js in den Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): aus bookmarks.js in den Ordner bookmarks/
 // ausgezogen. Blatt-Modul des Ordners — es kennt weder Rendering noch
 // Bedienung und importiert kein Geschwister-Modul.
-// 4T-0612 (Epic 3E-0115): zweigeteiltes Panel — allgemeine Lesezeichen
+// 4T-000612 (Epic 3E-000115): zweigeteiltes Panel — allgemeine Lesezeichen
 // (globaler Baum, absolute Pfade, electron-store) und Bereichs-Lesezeichen
 // (bereichsgebundener Baum, wurzel-relative Pfade, Area_Settings.mdda ueber
-// die 4T-0611-Bruecken).
+// die 4T-000611-Bruecken).
 'use strict';
 
 import { api } from '../app/api.js';
 import { activeTab, state } from '../app/app-state.js';
 import { persistSetting } from '../views/views.js';
-// 4T-0611/4T-0612 (Epic 3E-0115): prozess-neutrale Pfad-Helfer der Bereichs-
+// 4T-000611/4T-000612 (Epic 3E-000115): prozess-neutrale Pfad-Helfer der Bereichs-
 // Lesezeichen (esbuild bundelt das CJS-Modul transparent).
 import { toAbsolute, toRootRelative } from '../../../shared/bookmark-tree.js';
 
-// === 4T-0075 (Epic 3E-0013): Bookmarks-Basis ================================
+// === 4T-000075 (Epic 3E-000013): Bookmarks-Basis ================================
 // Persistente Lesezeichen mit Tree-Datenmodell (Folder + File-Knoten).
 
 export function newBookmarkId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-// === 4T-0612 (Epic 3E-0115): Abschnitts-Abstraktion =========================
+// === 4T-000612 (Epic 3E-000115): Abschnitts-Abstraktion =========================
 // Ein Abschnitt buendelt Baum, Persistenz-Ziel und DOM-Container. 'general'
 // ist der bestehende globale Baum (absolute Pfade), 'area' der bereichs-
 // gebundene Baum (wurzel-relative Pfade). Die Objekt-Methoden lesen den State
@@ -53,12 +53,12 @@ export function cloneBookmarksTree() {
   return JSON.parse(JSON.stringify(state.bookmarks.tree || []));
 }
 
-// 4T-0612: Tiefe Kopie des Baums EINES Abschnitts (allgemein oder Bereich).
+// 4T-000612: Tiefe Kopie des Baums EINES Abschnitts (allgemein oder Bereich).
 export function cloneSectionTree(section) {
   return JSON.parse(JSON.stringify(section.getTree() || []));
 }
 
-// 4T-0612: Absoluter Ziel-Pfad eines Knotens. Allgemein direkt, Bereich gegen
+// 4T-000612: Absoluter Ziel-Pfad eines Knotens. Allgemein direkt, Bereich gegen
 // die aktuelle Bereichs-Wurzel aufgeloest. null, wenn kein Bereich offen ist
 // oder das Ziel unaufloesbar bleibt.
 export function resolveBookmarkPath(section, node) {
@@ -106,7 +106,7 @@ export function removeNodeById(nodes, id) {
   return false;
 }
 
-// 4T-0078: Liefert das Array, in dem der Knoten direkt liegt (Parent-Children
+// 4T-000078: Liefert das Array, in dem der Knoten direkt liegt (Parent-Children
 // oder Root). Wird beim Verschieben und Loeschen gebraucht, um den Knoten
 // aus dem alten Container zu entfernen.
 export function findParentArray(rootArray, id, parentArray) {
@@ -122,7 +122,7 @@ export function findParentArray(rootArray, id, parentArray) {
   return null;
 }
 
-// 4T-0078: Liefert {parent, container, index} fuer den Knoten mit der id.
+// 4T-000078: Liefert {parent, container, index} fuer den Knoten mit der id.
 // parent ist der Folder-Knoten (oder null, wenn der Knoten direkt im Root
 // liegt). container ist das Array, in dem der Knoten enthalten ist. index
 // ist die Position im container. Liefert null, wenn die id nicht gefunden.
@@ -139,7 +139,7 @@ export function findNodeLocation(tree, id, parent) {
   return null;
 }
 
-// 4T-0078: Sammelt alle IDs des Teilbaums ab `node` (inkl. node selbst).
+// 4T-000078: Sammelt alle IDs des Teilbaums ab `node` (inkl. node selbst).
 // Wird im Modal-Picker fuer den Zyklus-Schutz gebraucht (verbotene Ziele).
 export function collectSubtreeIds(node) {
   const ids = new Set();
@@ -154,11 +154,11 @@ export function collectSubtreeIds(node) {
   return ids;
 }
 
-// 4T-0183 (Knip-Zusatzfund): sortFoldersFirst entfernt — ohne Aufrufer;
+// 4T-000183 (Knip-Zusatzfund): sortFoldersFirst entfernt — ohne Aufrufer;
 // "Folder first" wird ueber die Insert-Logik (insertAtEndOfGroup) und die
 // einmalige Migration in loadBookmarksTree gesichert.
 
-// 4T-0078: Neuen Knoten am Ende seiner Type-Gruppe in den Container einfuegen.
+// 4T-000078: Neuen Knoten am Ende seiner Type-Gruppe in den Container einfuegen.
 // Folder-Knoten landen vor dem ersten File-Knoten; File-Knoten am Ende.
 // Damit ist die persistierte Daten-Reihenfolge konsistent mit dem Render.
 export function insertAtEndOfGroup(container, node) {
@@ -172,7 +172,7 @@ export function insertAtEndOfGroup(container, node) {
   }
 }
 
-// 4T-0078: Zaehlt rekursiv die Inhalte eines Folders.
+// 4T-000078: Zaehlt rekursiv die Inhalte eines Folders.
 export function countFolderContents(folder) {
   let files = 0;
   let folders = 0;
@@ -197,7 +197,7 @@ export function collectFileNodes(nodes, out) {
   }
 }
 
-// 4T-0079: In-place rekursive Folder-First-Sortierung. Wird einmalig bei
+// 4T-000079: In-place rekursive Folder-First-Sortierung. Wird einmalig bei
 // der Migration aufgerufen; danach respektiert das Rendering die Daten-
 // Reihenfolge 1:1, damit DnD frei sortieren kann.
 export function applyFolderFirstSortInPlace(nodes) {
@@ -217,19 +217,19 @@ export function applyFolderFirstSortInPlace(nodes) {
 // === Persistenz =============================================================
 
 export async function persistBookmarksTree() {
-  // 4T-0079 Bugfix: Tree wandert auf eigenen Key 'bookmarksTree'. Vorher
+  // 4T-000079 Bugfix: Tree wandert auf eigenen Key 'bookmarksTree'. Vorher
   // wurde 'bookmarks' als Array geschrieben, was die unter dem gleichen
   // Top-Level-Key liegenden Punkt-Notationen 'bookmarks.visibleColumn0'
   // und 'bookmarks.sortMigrationDone' aus electron-store entfernte (Array
   // ueberschreibt Object). Folge: Sichtbarkeits-Preference ueberlebte den
   // App-Neustart nicht.
-  // W-20 (4T-0309): ueber den Persist-Helfer — ein Store-Schreibfehler wuerde
+  // W-20 (4T-000309): ueber den Persist-Helfer — ein Store-Schreibfehler wuerde
   // die Struktur-Aenderung sonst still beim naechsten Start verlieren.
   await persistSetting('bookmarksTree', state.bookmarks.tree);
 }
 
-// 4T-0612 (Epic 3E-0115): Bereichs-Baum in die bookmarks-Sektion der
-// Bereichsdatei schreiben (IPC-Bruecke aus 4T-0611). Der Handler validiert die
+// 4T-000612 (Epic 3E-000115): Bereichs-Baum in die bookmarks-Sektion der
+// Bereichsdatei schreiben (IPC-Bruecke aus 4T-000611). Der Handler validiert die
 // Grenze, entfernt die Sektion bei leerer Liste und broadcastet 'bookmarks:
 // changed'. Liefert { ok } zurueck; bei Erfolg wird der normalisierte Stand
 // uebernommen, damit In-Memory und Datei deckungsgleich sind. Bei Fehler (IO,
@@ -251,7 +251,7 @@ export async function persistAreaBookmarksTree() {
 export async function loadBookmarksTree() {
   let stored = await api.getSetting('bookmarksTree');
   if (!Array.isArray(stored)) {
-    // 4T-0079 Bugfix: Migration vom alten Key 'bookmarks' (Array) auf den
+    // 4T-000079 Bugfix: Migration vom alten Key 'bookmarks' (Array) auf den
     // neuen Key 'bookmarksTree'. Aelter gespeicherte Trees liegen unter
     // 'bookmarks' und werden hier umkopiert. Anschliessend wird 'bookmarks'
     // auf null gesetzt, damit das Object-Format ('bookmarks.visibleColumn0'
@@ -264,9 +264,9 @@ export async function loadBookmarksTree() {
     }
   }
   state.bookmarks.tree = Array.isArray(stored) ? stored : [];
-  // 4T-0079: Einmalige Migration in "Folder first"-Reihenfolge fuer
-  // Bestandsdaten aus 4T-0075/4T-0078-Zeit (vor der Insert-Sort-Einfuehrung
-  // konnten Knoten in gemischter Reihenfolge entstehen). Ab 4T-0079
+  // 4T-000079: Einmalige Migration in "Folder first"-Reihenfolge fuer
+  // Bestandsdaten aus 4T-000075/4T-000078-Zeit (vor der Insert-Sort-Einfuehrung
+  // konnten Knoten in gemischter Reihenfolge entstehen). Ab 4T-000079
   // respektiert das Rendering die Daten-Reihenfolge 1:1, damit Drag-and-Drop
   // frei sortieren kann.
   const migrationDone = await api.getSetting('bookmarks.sortMigrationDone');
@@ -289,14 +289,14 @@ export async function loadBookmarksSettings() {
   const v1 = await api.getSetting('bookmarks.visibleColumn1');
   state.bookmarks.visibleByPane[0] = !!v0;
   state.bookmarks.visibleByPane[1] = !!v1;
-  // 4T-0612 (Epic 3E-0115): Abschnitts-Reihenfolge (global, Default an).
+  // 4T-000612 (Epic 3E-000115): Abschnitts-Reihenfolge (global, Default an).
   const areaFirst = await api.getSetting('bookmarks.areaFirst');
   state.bookmarks.areaFirst = areaFirst !== false;
 }
 
 // === Abfragen ueber beide Abschnitte ========================================
 
-// 4T-0612: Gibt es in irgendeinem Abschnitt Lesezeichen? Steuert Empty-State
+// 4T-000612: Gibt es in irgendeinem Abschnitt Lesezeichen? Steuert Empty-State
 // und Panel-Sichtbarkeit.
 export function hasAnyBookmarks() {
   const general = Array.isArray(state.bookmarks.tree) && state.bookmarks.tree.length > 0;
@@ -307,7 +307,7 @@ export function hasAnyBookmarks() {
   return general || area;
 }
 
-// 4T-0612: Welche Lesezeichen-Ziele kommen fuer einen absoluten Pfad in Frage?
+// 4T-000612: Welche Lesezeichen-Ziele kommen fuer einen absoluten Pfad in Frage?
 // Genutzt von den Kontextmenue-Eintraegen am Tab und im Bereichs-Panel.
 // general/area sind true, wenn dort noch KEIN Lesezeichen auf die Datei
 // existiert; insideArea ist true, wenn ein Bereich offen ist und die Datei
@@ -326,7 +326,7 @@ export function bookmarkTargetsForPath(absPath) {
   return { general, area, insideArea };
 }
 
-// 4T-0612: Ist die aktive Datei in irgendeinem Abschnitt als Lesezeichen
+// 4T-000612: Ist die aktive Datei in irgendeinem Abschnitt als Lesezeichen
 // gemerkt? (Statusbar-Stern-Zustand).
 export function isActiveFileBookmarked() {
   const tab = activeTab();
@@ -341,13 +341,13 @@ export function isActiveFileBookmarked() {
 }
 
 // === Existenz-Cache =========================================================
-// R3-08 (4T-0180): Existenz-Cache fuer Bookmark-Ziele samt Pflege-Hook
+// R3-08 (4T-000180): Existenz-Cache fuer Bookmark-Ziele samt Pflege-Hook
 // fuer bekannte Datei-Ereignisse (reloadFile -> true, markFileMissing ->
 // false). Unbekannte Pfade werden beim naechsten Render frisch geprueft.
 // Schluessel ist der aufgeloeste ABSOLUTE Pfad (allgemein direkt, Bereich
 // gegen die Wurzel aufgeloest), damit relative Bereichs-Ziele nicht mit
 // absoluten kollidieren.
-// 4T-0991 (Epic 3E-0196): Die Map bleibt Modul-Variable und wird nur ueber
+// 4T-000991 (Epic 3E-000196): Die Map bleibt Modul-Variable und wird nur ueber
 // Zugriffs-Funktionen angeboten (Entwicklungsrichtlinien: veraenderlicher
 // Zustand wandert nie als Export ueber Modul-Grenzen).
 const bookmarkExistsCache = new Map();

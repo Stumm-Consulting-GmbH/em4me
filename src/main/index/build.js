@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Index-Aufbau und -Pflege, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Index-Aufbau und -Pflege, herausgelöst aus
 // src/main/backlinks.js. Dieses Modul schreibt die Index-Maps eines Eintrags:
 // asynchroner Initial-Aufbau samt chokidar-Watcher (buildIndexAsync), das
 // Ein- und Austragen einzelner Dateien (applyParsedFile, removeFileFromIndex)
@@ -27,11 +27,11 @@ const { parseFile, parseFileAsync } = require('./parse.js');
 const { readBlockDataAsync, readBlockDataSync } = require('./block-data.js');
 const { cacheRelPath, loadAreaCache, scheduleCacheWrite } = require('./cache.js');
 
-// B-21 (4T-0187): Wartezeit nach einem Watcher-Fehler, bevor ein neuer
+// B-21 (4T-000187): Wartezeit nach einem Watcher-Fehler, bevor ein neuer
 // Bedarf den Index wieder aufbauen darf.
 const WATCHER_ERROR_BACKOFF_MS = 30 * 1000;
 
-// B-14 (4T-0181): asynchroner Initial-Aufbau mit Batch-Yielding. Bricht
+// B-14 (4T-000181): asynchroner Initial-Aufbau mit Batch-Yielding. Bricht
 // still ab, wenn der Eintrag zwischenzeitlich abgebaut wurde (Teardown
 // waehrend des Aufbaus).
 async function buildIndexAsync(rootPath, entry) {
@@ -41,7 +41,7 @@ async function buildIndexAsync(rootPath, entry) {
   if (!stillCurrent()) return;
   entry.fileCount = scan.fileCount;
   entry.byteSize = scan.byteSize;
-  // B-22 (4T-0187): Anzahl unlesbarer Ordner fuer den Panel-Hinweis.
+  // B-22 (4T-000187): Anzahl unlesbarer Ordner fuer den Panel-Hinweis.
   entry.skippedDirs = scan.skippedDirs || 0;
   if (scan.oversized) {
     entry.status = 'oversized';
@@ -49,7 +49,7 @@ async function buildIndexAsync(rootPath, entry) {
     return;
   }
 
-  // 4T-0348 (Epic 3E-0062): Warmstart-Abgleich fuer Bereichs-Wurzeln. Die
+  // 4T-000348 (Epic 3E-000062): Warmstart-Abgleich fuer Bereichs-Wurzeln. Die
   // Cache-Datei liefert das Parse-Ergebnis unveraenderter Dateien (mtime+size
   // stimmen ueberein); nur geaenderte oder neue Dateien werden gelesen/geparst.
   let cache = null;
@@ -82,11 +82,11 @@ async function buildIndexAsync(rootPath, entry) {
       }
     }
     entry.fileSizes.set(f, size);
-    // 4T-0402 (Epic 3E-0076): Datei-Zeiten fuer file.ctime/file.mtime.
+    // 4T-000402 (Epic 3E-000076): Datei-Zeiten fuer file.ctime/file.mtime.
     entry.fileStats.set(f, { ctimeMs: scan.ctimes.get(f) || 0, mtimeMs });
     if (parsed) applyParsedFile(entry, f, parsed);
     if (entry.isArea) entry.cacheFiles.set(f, { mtimeMs, size, hash });
-    // 4T-0408 (Epic 3E-0077): Block-Daten der .mdd mitlesen — auch bei Cache-
+    // 4T-000408 (Epic 3E-000077): Block-Daten der .mdd mitlesen — auch bei Cache-
     // Treffern, denn die blockData-Sektion ist bewusst nicht Teil des Caches
     // (Begruendung am Block-Daten-Abschnitt in parse.js).
     const blocks = await readBlockDataAsync(f);
@@ -103,16 +103,16 @@ async function buildIndexAsync(rootPath, entry) {
   // Watcher starten. ignoreInitial: true, weil wir gerade selbst geparst
   // haben. Markdown-Filter via ignored-Funktion.
   entry.watcher = chokidar.watch(rootPath, {
-    // 4T-0347 (Epic 3E-0062): Bereichs-Wurzeln ohne Tiefen-Grenze (chokidar
+    // 4T-000347 (Epic 3E-000062): Bereichs-Wurzeln ohne Tiefen-Grenze (chokidar
     // depth: undefined = unbegrenzt).
     depth: entry.isArea ? undefined : SCAN_DEPTH,
     ignoreInitial: true,
     awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
-    // B-12 (4T-0175): Symlink-/Junction-Verzeichnissen nicht folgen — der
+    // B-12 (4T-000175): Symlink-/Junction-Verzeichnissen nicht folgen — der
     // Initial-Scan (readdir mit Dirents) folgt ihnen auch nicht.
     followSymlinks: false,
     ignored: (p) => {
-      // B-03 (4T-0175): gleiche Ignore-Regel wie der Initial-Scan
+      // B-03 (4T-000175): gleiche Ignore-Regel wie der Initial-Scan
       // (node_modules und alle Punkt-Ordner, nicht nur .git*).
       const base = path.basename(p);
       try {
@@ -129,7 +129,7 @@ async function buildIndexAsync(rootPath, entry) {
   entry.watcher.on('change', (p) => onWatcherChange(entry, p, 'change'));
   entry.watcher.on('unlink', (p) => onWatcherChange(entry, p, 'unlink'));
   entry.watcher.on('error', (err) => {
-    // B-21 (4T-0187): Fehler-Status mit Backoff statt Force-Teardown mit
+    // B-21 (4T-000187): Fehler-Status mit Backoff statt Force-Teardown mit
     // Sofort-Rebuild — ein dauerhaft kaputter Watcher (z.B. geloeschtes
     // Netzlaufwerk) loeste sonst eine Scan-Schleife aus. Die Panels
     // zeigen den 'error'-Status; nach Ablauf des Backoffs baut der
@@ -146,7 +146,7 @@ async function buildIndexAsync(rootPath, entry) {
     broadcast('backlinks:invalidated', { wurzel: rootPath });
   });
 
-  // 4T-0348 (Epic 3E-0062): den nach dem Warmstart aktualisierten Stand (neue,
+  // 4T-000348 (Epic 3E-000062): den nach dem Warmstart aktualisierten Stand (neue,
   // geaenderte oder entfernte Dateien) persistieren. Debounced, damit schnelle
   // Re-Opens nicht mehrfach schreiben.
   if (entry.isArea) scheduleCacheWrite(entry);
@@ -165,37 +165,37 @@ function applyParsedFile(entry, filePath, parsed) {
     entry.aliasesPerFile.set(filePath, parsed.aliases);
     addToAliasMap(entry, filePath, parsed.aliases);
   }
-  // 4T-0054: Headings und Block-IDs pro Datei speichern.
+  // 4T-000054: Headings und Block-IDs pro Datei speichern.
   if (parsed.headings.length > 0 || parsed.blockIds.length > 0) {
     entry.anchorsPerFile.set(filePath, {
       headings: new Set(parsed.headings),
       blockIds: new Set(parsed.blockIds),
     });
   }
-  // 4T-0056: Tags pro Datei speichern und in die inverse Map eintragen.
+  // 4T-000056: Tags pro Datei speichern und in die inverse Map eintragen.
   if (parsed.tags && parsed.tags.length > 0) {
     entry.tagsPerFile.set(filePath, parsed.tags);
     addToTagMap(entry, filePath, parsed.tags);
   }
-  // 4T-0354 (Epic 3E-0065): abfragbare Frontmatter-Properties pro Datei ablegen.
+  // 4T-000354 (Epic 3E-000065): abfragbare Frontmatter-Properties pro Datei ablegen.
   if (parsed.properties && Object.keys(parsed.properties).length > 0) {
     entry.propertiesPerFile.set(filePath, parsed.properties);
   }
-  // 4T-0502 (Epic 3E-0096): Task-Zeilen pro Datei ablegen.
+  // 4T-000502 (Epic 3E-000096): Task-Zeilen pro Datei ablegen.
   if (Array.isArray(parsed.tasks) && parsed.tasks.length > 0) {
     entry.tasksPerFile.set(filePath, parsed.tasks);
   }
-  // 4T-0402 (Epic 3E-0076): geaenderte Links machen den Link-Graphen ungueltig.
+  // 4T-000402 (Epic 3E-000076): geaenderte Links machen den Link-Graphen ungueltig.
   entry.linkGraph = null;
 }
 
-// B-15 (4T-0181): Pflege der inversen Namens-Map.
+// B-15 (4T-000181): Pflege der inversen Namens-Map.
 function nameKeyForFile(filePath) {
   return normalizeNameKey(path.basename(filePath).replace(MD_EXT_RE, ''));
 }
 
 function addToNameMap(entry, filePath) {
-  // 4T-1288: Die Pfad-Menge aendert sich — die lazy gebaute Suffix-Map der
+  // 4T-001288: Die Pfad-Menge aendert sich — die lazy gebaute Suffix-Map der
   // Pfad-Form (resolve.js) ist damit ungueltig und wird beim naechsten
   // Pfad-Resolve neu gebaut. Invalidieren statt mitpflegen, weil ein
   // Rebuild einmal O(Dateien) kostet und die Aenderungs-Momente (Anlegen,
@@ -212,7 +212,7 @@ function addToNameMap(entry, filePath) {
 }
 
 function removeFromNameMap(entry, filePath) {
-  // 4T-1288: siehe addToNameMap.
+  // 4T-001288: siehe addToNameMap.
   entry.pathSuffixMap = null;
   const key = nameKeyForFile(filePath);
   const set = entry.nameMap.get(key);
@@ -236,15 +236,15 @@ function removeFileFromIndex(entry, filePath) {
     removeFromTagMap(entry, filePath, prevTags);
     entry.tagsPerFile.delete(filePath);
   }
-  // 4T-0354 (Epic 3E-0065): Properties-Eintrag der Datei mit entfernen.
+  // 4T-000354 (Epic 3E-000065): Properties-Eintrag der Datei mit entfernen.
   entry.propertiesPerFile.delete(filePath);
-  // 4T-0408 (Epic 3E-0077): Block-Daten der Datei mit entfernen.
+  // 4T-000408 (Epic 3E-000077): Block-Daten der Datei mit entfernen.
   entry.blockDataPerFile.delete(filePath);
-  // 4T-0502 (Epic 3E-0096): Task-Zeilen der Datei mit entfernen.
+  // 4T-000502 (Epic 3E-000096): Task-Zeilen der Datei mit entfernen.
   entry.tasksPerFile.delete(filePath);
   entry.byteSize -= entry.fileSizes.get(filePath) || 0;
   entry.fileSizes.delete(filePath);
-  // 4T-0402 (Epic 3E-0076): Datei-Zeiten und Link-Graph mit austragen.
+  // 4T-000402 (Epic 3E-000076): Datei-Zeiten und Link-Graph mit austragen.
   entry.fileStats.delete(filePath);
   entry.linkGraph = null;
   entry.fileCount = entry.files.size;
@@ -255,7 +255,7 @@ function onWatcherChange(entry, filePath, kind) {
   if (kind === 'unlink') {
     if (entry.files.has(filePath)) {
       removeFileFromIndex(entry, filePath);
-      // 4T-0348 (Epic 3E-0062): Cache-Eintrag mit entfernen.
+      // 4T-000348 (Epic 3E-000062): Cache-Eintrag mit entfernen.
       if (entry.isArea) {
         entry.cacheFiles.delete(filePath);
         scheduleCacheWrite(entry);
@@ -265,7 +265,7 @@ function onWatcherChange(entry, filePath, kind) {
     return;
   }
   // add oder change
-  // B-19 (4T-0181): Caps gelten auch fuer nachtraegliches Wachstum. Bei
+  // B-19 (4T-000181): Caps gelten auch fuer nachtraegliches Wachstum. Bei
   // Ueberschreiten wird die Wurzel oversized (Daten geleert, Watcher zu,
   // Broadcast); nach Teardown ueber das Owner-Modell ist ein frischer
   // Re-Scan moeglich.
@@ -276,7 +276,7 @@ function onWatcherChange(entry, filePath, kind) {
     const st = fs.statSync(filePath);
     size = st.size;
     mtimeMs = st.mtimeMs;
-    // 4T-0402 (Epic 3E-0076): birthtime = Anlage-Zeit, ctime-Fallback.
+    // 4T-000402 (Epic 3E-000076): birthtime = Anlage-Zeit, ctime-Fallback.
     ctimeMs = st.birthtimeMs || st.ctimeMs;
   } catch {
     /* unlink folgt */
@@ -284,14 +284,14 @@ function onWatcherChange(entry, filePath, kind) {
   const prevSize = entry.fileSizes.get(filePath) || 0;
   const newCount = entry.files.has(filePath) ? entry.fileCount : entry.fileCount + 1;
   const newBytes = entry.byteSize - prevSize + size;
-  // 4T-0347 (Epic 3E-0062): nachtraeglicher Cap-Check nur fuer bereichslose
+  // 4T-000347 (Epic 3E-000062): nachtraeglicher Cap-Check nur fuer bereichslose
   // Wurzeln; Bereichs-Wurzeln kennen keinen oversized-Status.
   if (!entry.isArea && (newCount > MAX_FILES || newBytes > MAX_BYTES)) {
     markOversized(entry);
     return;
   }
   const parsed = parseFile(filePath);
-  // B-11 (4T-0175): Lesefehler (Datei kurz gesperrt/gerade geloescht)
+  // B-11 (4T-000175): Lesefehler (Datei kurz gesperrt/gerade geloescht)
   // ueberschreibt die bestehenden Index-Daten nicht mit einem Leer-
   // Ergebnis; der naechste Event bzw. unlink raeumt regulaer auf.
   if (!parsed) return;
@@ -299,16 +299,16 @@ function onWatcherChange(entry, filePath, kind) {
   // (gemeinsamer applyParsedFile-Pfad mit dem Initial-Aufbau).
   if (entry.files.has(filePath)) removeFileFromIndex(entry, filePath);
   entry.fileSizes.set(filePath, size);
-  // 4T-0402 (Epic 3E-0076): Datei-Zeiten fuer file.ctime/file.mtime nachziehen.
+  // 4T-000402 (Epic 3E-000076): Datei-Zeiten fuer file.ctime/file.mtime nachziehen.
   entry.fileStats.set(filePath, { ctimeMs, mtimeMs });
   entry.byteSize += size;
   applyParsedFile(entry, filePath, parsed);
-  // 4T-0408 (Epic 3E-0077): Block-Daten der .mdd nachziehen (removeFileFromIndex
+  // 4T-000408 (Epic 3E-000077): Block-Daten der .mdd nachziehen (removeFileFromIndex
   // hat den alten Stand mit ausgetragen); sync wie parseFile in diesem Pfad.
   const blocks = readBlockDataSync(filePath);
   if (blocks) entry.blockDataPerFile.set(filePath, blocks);
   entry.fileCount = entry.files.size;
-  // 4T-0348 (Epic 3E-0062): Cache-Metadaten mitpflegen und Schreiben planen.
+  // 4T-000348 (Epic 3E-000062): Cache-Metadaten mitpflegen und Schreiben planen.
   if (entry.isArea) {
     entry.cacheFiles.set(filePath, { mtimeMs, size, hash: parsed.hash || '' });
     scheduleCacheWrite(entry);
@@ -316,12 +316,12 @@ function onWatcherChange(entry, filePath, kind) {
   scheduleInvalidate(entry);
 }
 
-// B-19 (4T-0181): Wurzel nachtraeglich als oversized markieren.
+// B-19 (4T-000181): Wurzel nachtraeglich als oversized markieren.
 function markOversized(entry) {
   entry.status = 'oversized';
   entry.files.clear();
   entry.nameMap.clear();
-  // 4T-1288: Suffix-Map der Pfad-Form haengt an der (jetzt leeren) Pfad-Menge.
+  // 4T-001288: Suffix-Map der Pfad-Form haengt an der (jetzt leeren) Pfad-Menge.
   entry.pathSuffixMap = null;
   entry.aliasesPerFile.clear();
   entry.aliasMap.clear();
@@ -333,7 +333,7 @@ function markOversized(entry) {
   entry.blockDataPerFile.clear();
   entry.tasksPerFile.clear();
   entry.fileSizes.clear();
-  // 4T-0402 (Epic 3E-0076): Datei-Zeiten und Link-Graph mit leeren.
+  // 4T-000402 (Epic 3E-000076): Datei-Zeiten und Link-Graph mit leeren.
   entry.fileStats.clear();
   entry.linkGraph = null;
   if (entry.watcher) {
@@ -347,7 +347,7 @@ function markOversized(entry) {
   broadcast('backlinks:invalidated', { wurzel: entry.wurzel });
 }
 
-// 4T-0050: Helfer fuer die inverse Alias-Map. Schluessel ist Alias-Lowercase
+// 4T-000050: Helfer fuer die inverse Alias-Map. Schluessel ist Alias-Lowercase
 // (case-insensitive Lookup), Werte sind Sets von Datei-Pfaden (mehrere
 // Dateien koennen denselben Alias fuehren). Leere Sets werden geloescht,
 // damit aliasMap.has() ein verlaesslicher Existenz-Check bleibt.
@@ -375,7 +375,7 @@ function removeFromAliasMap(entry, filePath, aliases) {
   }
 }
 
-// 4T-0056: Helfer fuer die inverse Tag-Map. Schluessel ist Tag-Lowercase
+// 4T-000056: Helfer fuer die inverse Tag-Map. Schluessel ist Tag-Lowercase
 // (case-insensitive Lookup), Werte sind Sets von Datei-Pfaden. Identisches
 // Pattern zur Alias-Map.
 function addToTagMap(entry, filePath, tags) {
@@ -390,7 +390,7 @@ function addToTagMap(entry, filePath, tags) {
       entry.tagMap.set(key, set);
     }
     set.add(filePath);
-    // B-16 (4T-0181): Display-Casing beim ersten Vorkommen merken, statt
+    // B-16 (4T-000181): Display-Casing beim ersten Vorkommen merken, statt
     // es spaeter pro Listen-Aufbau linear zu suchen.
     if (!entry.tagDisplay.has(key)) entry.tagDisplay.set(key, String(t).trim());
   }

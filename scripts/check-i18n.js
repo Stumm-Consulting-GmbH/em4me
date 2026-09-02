@@ -1,4 +1,4 @@
-// S-09 (4T-0185): Waechter fuer die i18n-Synchronitaet. Prueft die fuenf
+// S-09 (4T-000185): Waechter fuer die i18n-Synchronitaet. Prueft die fuenf
 // Sprachdateien auf identische Key-Mengen, nicht-leere Werte und pro Key
 // identische Platzhalter-Mengen ({name}-Tokens). Wird als Unit-Test
 // eingebunden (test/unit/i18n.test.js) und laeuft damit in `npm test`

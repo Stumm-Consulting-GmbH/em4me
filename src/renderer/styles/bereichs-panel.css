@@ -1,9 +1,9 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 4 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 4 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Bereichs-Panel. */
-/* === Bereichs-Panel (4T-0327, Epic 3E-0059) ============================= */
+/* === Bereichs-Panel (4T-000327, Epic 3E-000059) ============================= */
 /* Zweigeteilt: Ordnerbaum oben, Markdown-Dateiliste des gewaehlten Ordners
    darunter. Beide Haelften scrollen unabhaengig; Zeilen-Optik folgt dem
    Outline-Muster (hover/selected ueber die Theme-Variablen). */
@@ -41,7 +41,7 @@
   background: var(--hover);
   box-shadow: inset 3px 0 0 var(--accent);
 }
-/* 4T-1365 (Epic 3E-0171): Start-Seite des Bereichs. Bewusst zurueckhaltend —
+/* 4T-001365 (Epic 3E-000171): Start-Seite des Bereichs. Bewusst zurueckhaltend —
    ein vorangestelltes Zeichen und halbfette Schrift statt einer Farbflaeche,
    damit die Auswahl-Markierung der Ordner-Zeilen ihre Bedeutung behaelt. */
 .area-file-row.area-file-start-page {
@@ -95,7 +95,7 @@
   font-size: 12px;
   color: var(--fg-muted);
 }
-/* 4T-0328: "Neue Datei in diesem Ordner" — Kopf-Button und Inline-Eingabe. */
+/* 4T-000328: "Neue Datei in diesem Ordner" — Kopf-Button und Inline-Eingabe. */
 .area-new-file-btn {
   flex: 0 0 auto;
   width: 18px;
@@ -132,7 +132,7 @@
   outline-offset: -1px;
 }
 
-/* 4T-0434 (Epic 3E-0081): Kalender-Panel — Monatsansicht mit KW-Spalte.
+/* 4T-000434 (Epic 3E-000081): Kalender-Panel — Monatsansicht mit KW-Spalte.
    Gitter aus 8 Spalten (KW plus Mo–So); Tages-Zellen sind Buttons mit
    Punkt-Indikator (::after) für vorhandene Einträge, Heute über --accent. */
 .calendar-empty,
@@ -253,7 +253,7 @@
   background: var(--accent);
 }
 
-/* 4T-0486 (Epic 3E-0091): Datums-/Uhrzeit-Picker — cursor-verankertes
+/* 4T-000486 (Epic 3E-000091): Datums-/Uhrzeit-Picker — cursor-verankertes
    Popup (kein Backdrop, Klick außerhalb bricht ab). Kalender-Gitter nutzt
    die bestehenden calendar-*-Klassen des Kalender-Panels; Theming rein
    über die Variablen (hell/dunkel). */
@@ -394,7 +394,7 @@
   margin-top: 12px;
 }
 
-/* 4T-0487 (Epic 3E-0091): klickbare Datums-/Uhrzeit-Werte im Live-Modus —
+/* 4T-000487 (Epic 3E-000091): klickbare Datums-/Uhrzeit-Werte im Live-Modus —
    dezente gepunktete Unterstreichung statt Chip-Optik, Hover hebt an;
    der Quelltext bleibt der reine Text-Wert. */
 .cm-live-date-value {
@@ -405,7 +405,7 @@
   background: var(--accent-soft);
 }
 
-/* 4T-0943 (Epic 3E-0197): In der Zeile mit dem Cursor bleibt der Wert
+/* 4T-000943 (Epic 3E-000197): In der Zeile mit dem Cursor bleibt der Wert
    dekoriert, oeffnet aber erst auf den Strg-Klick. Solange die Taste nicht
    gedrueckt ist, traegt er deshalb KEINE Klick-Optik — sonst verspraeche er
    eine Reaktion, die der einfache Klick nicht einloest. Die Klasse
@@ -425,7 +425,7 @@
   background: var(--accent-soft);
 }
 
-/* 4T-0454 (Epic 3E-0084): Graphenansicht — Farben ausschließlich über
+/* 4T-000454 (Epic 3E-000084): Graphenansicht — Farben ausschließlich über
    Theme-Variablen (hell/dunkel); Hover dimmt den Rest der Fläche und hebt
    die Nachbarschaft an, die aktive Datei trägt den Akzent. */
 .graph-view {
@@ -493,7 +493,7 @@
 .graph-node.graph-focus circle {
   fill: var(--accent);
 }
-/* 4T-0455 (Epic 3E-0084): Bereichs-Graph-Seite — Steuerleiste oben,
+/* 4T-000455 (Epic 3E-000084): Bereichs-Graph-Seite — Steuerleiste oben,
    Graph-Fläche füllt den Rest der Pane. */
 .graph-page {
   flex: 1;
@@ -577,7 +577,7 @@
   pointer-events: none;
 }
 
-/* 4T-0456 (Epic 3E-0084): Datei-Graph-Panel — Steuerung im Kopf, darunter
+/* 4T-000456 (Epic 3E-000084): Datei-Graph-Panel — Steuerung im Kopf, darunter
    die Graph-Fläche mit fester Höhe (Sidebar scrollt den Rest). */
 .filegraph-controls {
   display: flex;

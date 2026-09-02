@@ -1,10 +1,10 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 11 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 11 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Footnotes. */
 
-/* === Footnotes (4T-0063, Epic 3E-0012) ==================================== */
+/* === Footnotes (4T-000063, Epic 3E-000012) ==================================== */
 /* `[^id]` rendert als hochgestellte Verweis-Zahl mit Anchor-Link; die zuge-
    hoerigen `[^id]: Def`-Definitionen sammelt markdown-it-footnote am Datei-
    Ende in einer <section class="footnotes">. */
@@ -58,7 +58,7 @@
   font-weight: 600;
 }
 
-/* 4T-0080/4T-0081 (Epic 3E-0014): Inline-Live-Preview-Decorations. Marker-
+/* 4T-000080/4T-000081 (Epic 3E-000014): Inline-Live-Preview-Decorations. Marker-
    Zeichen werden in nicht-aktiven Zeilen ueber `font-size: 0` ausgeblendet —
    Caret-freundlicher als `display: none`, weil das Zeichen-Layout im Doc
    erhalten bleibt und CodeMirror keine Cursor-Positionen verliert. Inhalt
@@ -75,12 +75,12 @@
 .cm-editor .cm-live-italic {
   font-style: italic;
 }
-/* 4T-0081: Strikethrough analog zum Render-Pane; Style kommt zusaetzlich
+/* 4T-000081: Strikethrough analog zum Render-Pane; Style kommt zusaetzlich
    bereits aus mdHighlightStyle (tags.strikethrough). */
 .cm-editor .cm-live-strikethrough {
   text-decoration: line-through;
 }
-/* 4T-0081: Inline-Code im Live-Modus. Spike-konformer Stil: monospace und
+/* 4T-000081: Inline-Code im Live-Modus. Spike-konformer Stil: monospace und
    Code-Farbe (var(--syntax-code)), KEIN Box-Hintergrund. Bewusst entschieden,
    damit der Source-Look beim Live-Toggle nicht durch Pillen-Effekte aus dem
    Editor-Rahmen bricht. */
@@ -88,16 +88,16 @@
   font-family: var(--font-mono);
   color: var(--syntax-code);
 }
-/* 4T-0081: Tag-Pillen, subtiler Stil. Dezenter Hintergrund aus --accent-soft,
+/* 4T-000081: Tag-Pillen, subtiler Stil. Dezenter Hintergrund aus --accent-soft,
    Akzentfarbe fuer `#` und Tag-Text. Keine Rundung, gleiche Schriftgroesse —
    passt in den Mono-Font-Editor ohne Zeilenhoehen-Unruhe. */
 .cm-editor .cm-live-tag {
   background-color: var(--accent-soft);
   color: var(--accent);
-  /* K-09 (4T-0186): Tags sind im Live-Modus jetzt klickbar (Tag-Filter). */
+  /* K-09 (4T-000186): Tags sind im Live-Modus jetzt klickbar (Tag-Filter). */
   cursor: pointer;
 }
-/* 4T-0082: Markdown- und Wiki-Links im Live-Modus. Akzentfarbe, Unterstreichung
+/* 4T-000082: Markdown- und Wiki-Links im Live-Modus. Akzentfarbe, Unterstreichung
    beim Hover als Klick-Indikator (analog zu Browser-Links). Cursor zeigt
    Pointer, damit klar wird, dass der Span klickbar ist. */
 .cm-editor .cm-live-link,
@@ -109,7 +109,7 @@
 .cm-editor .cm-live-wikilink:hover {
   text-decoration: underline;
 }
-/* 4T-0082: Footnote-Verweise im Live-Modus als hochgestelltes id-Zeichen.
+/* 4T-000082: Footnote-Verweise im Live-Modus als hochgestelltes id-Zeichen.
    font-size:0.75em und vertical-align:super entsprechen einer typischen
    sup-Darstellung; line-height bleibt unberuehrt, damit die Zeilenhoehe nicht
    springt. Akzentfarbe + Pointer-Cursor signalisieren Klickbarkeit. */
@@ -122,7 +122,7 @@
 .cm-editor .cm-live-footnote-ref:hover {
   text-decoration: underline;
 }
-/* 4T-0082: Tooltip-Container fuer Footnote-Definitionen bei Hover. Nutzt das
+/* 4T-000082: Tooltip-Container fuer Footnote-Definitionen bei Hover. Nutzt das
    CodeMirror-tooltip-Wrapping (.cm-tooltip) und stylet nur den Innenbereich.
    Theme-konform ueber die bekannten Variablen. */
 .cm-editor .cm-tooltip .cm-live-footnote-tooltip {
@@ -138,7 +138,7 @@
   box-shadow: var(--shadow);
 }
 
-/* 4T-0083 (Epic 3E-0014): Block-Markup-Decorations im Live-Modus. Headings
+/* 4T-000083 (Epic 3E-000014): Block-Markup-Decorations im Live-Modus. Headings
    in Render-Pane-konformen Stufen (H1=1.9em, H2=1.5em, H3=1.25em analog
    styles.css:1123). H4-H6 etwas dezenter als im Browser-Default, damit der
    Editor-Look ruhig bleibt. */
@@ -180,7 +180,7 @@
   color: var(--fg-muted);
   font-family: var(--font-mono);
 }
-/* 4T-1312 (Epic 3E-0235): Haengender Einzug umgebrochener Zeilen. Der Wert je
+/* 4T-001312 (Epic 3E-000235): Haengender Einzug umgebrochener Zeilen. Der Wert je
    Zeile kommt aus der Zeilen-Dekoration (editor-einzug.js); hier steht die
    Regel, die ihn in einen Einzug uebersetzt.
 
@@ -203,7 +203,7 @@
   margin-left: var(--haengender-einzug);
   text-indent: calc(-1 * var(--haengender-einzug));
 }
-/* 4T-1354 (Epic 3E-0240): Der negative Erst-Zeilen-Einzug gilt der Zeile und
+/* 4T-001354 (Epic 3E-000240): Der negative Erst-Zeilen-Einzug gilt der Zeile und
    nicht ihren eingebetteten Kaesten.
 
    `text-indent` vererbt sich. Auf einem inline-Element bleibt der Wert
@@ -297,7 +297,7 @@
   background-position: center;
 }
 
-/* 4T-0087 (Epic 3E-0014): Callouts im Live-Modus. Box wird ueber
+/* 4T-000087 (Epic 3E-000014): Callouts im Live-Modus. Box wird ueber
    Decoration.line auf jeder Block-Zeile gesetzt, Header-Zeile bekommt
    zusaetzlich cm-live-callout-header. Akzentfarben gespiegelt aus der
    Render-Pane-Tabelle (styles.css:2511ff), damit Live- und Render-Modus
@@ -412,7 +412,7 @@
   --callout-bg: rgba(173, 181, 189, 0.12);
 }
 
-/* 4T-0084 (Epic 3E-0014): Replace-Decoration-Widgets im Live-Modus.
+/* 4T-000084 (Epic 3E-000014): Replace-Decoration-Widgets im Live-Modus.
    Bilder, Inline-Math, KaTeX-Block, Wiki-Embeds. Visuelles Ziel:
    Render-Pane-konforme Darstellung im Editor, ohne Layout-Bruch der
    umgebenden Zeilen-Geometrie. */
@@ -457,13 +457,13 @@
   display: inline-block;
 }
 
-/* 4T-0088 (Epic 3E-0014): Generisches Block-Widget fuer Tabellen, Perspective-
+/* 4T-000088 (Epic 3E-000014): Generisches Block-Widget fuer Tabellen, Perspective-
    Tabellen, Fenced-Code mit Syntax-Highlighting. Wrapper traegt zusaetzlich
    markdown-body, damit Render-Pane-Styles fuer tables/pre/code/hljs im
    Editor greifen. Editor-spezifische Anpassungen ueberschreiben hier
    gezielt: max-width verhindert Overflow, Margin-Reset und Block-
    Hintergrund passen ins Editor-Layout. */
-/* 4T-1310 (Epic 3E-0235): inline-block statt block, und das ist der Kern der
+/* 4T-001310 (Epic 3E-000235): inline-block statt block, und das ist der Kern der
    Abstands-Behebung. Die Ersetzung eines Block-Bereichs ist eine INLINE-
    Ersetzung; ein als block gestaltetes Widget darin erzeugt vor und hinter
    sich je einen anonymen Block-Kasten in Zeilenhoehe. Gemessen am
@@ -490,7 +490,7 @@
 .cm-editor .cm-live-block pre {
   margin: 0;
 }
-/* 4T-1310 (Epic 3E-0235): Der Journal-Block traegt im Fluss eigene
+/* 4T-001310 (Epic 3E-000235): Der Journal-Block traegt im Fluss eigene
    Aussenabstaende. Im Editor haelt sie der Wrapper, und weil dessen
    overflow-x das Zusammenfallen der Abstaende verhindert, addierten sich
    beide. Muster wie bei table und pre darueber. */
@@ -498,12 +498,12 @@
   margin: 0;
 }
 
-/* 4T-0283 (Epic 3E-0050): Frontmatter-Block-Widget im Live-Modus. Der
+/* 4T-000283 (Epic 3E-000050): Frontmatter-Block-Widget im Live-Modus. Der
    Container traegt markdown-body, damit die .frontmatter-block-Regeln
    des Render-Pane unveraendert greifen (Paritaet); hier nur die
    Einpassung in den Editor-Kontext. */
 .cm-editor .cm-live-frontmatter {
-  /* 4T-1310: dieselbe Ersetzungs-Lage wie beim Block-Widget darueber. */
+  /* 4T-001310: dieselbe Ersetzungs-Lage wie beim Block-Widget darueber. */
   display: inline-block;
   vertical-align: top;
   width: 100%;
@@ -525,7 +525,7 @@
   background: transparent;
 }
 
-/* 4T-0089 (Epic 3E-0014): Mermaid-Block-Widget. Wrapper als Block, der
+/* 4T-000089 (Epic 3E-000014): Mermaid-Block-Widget. Wrapper als Block, der
    das gerenderte SVG zentriert anzeigt. Platzhalter waehrend des async
    Render-Vorgangs ist dezent gehalten — bei Cache-Hits oder schnellem
    Render kaum sichtbar. Fehler-Box mit roter Akzent-Border, plus
@@ -578,7 +578,7 @@
   color: #ea868f;
 }
 
-/* S-13 (4T-0188): CodeMirror-Tooltips (Lint-Hover, Autocomplete-Info)
+/* S-13 (4T-000188): CodeMirror-Tooltips (Lint-Hover, Autocomplete-Info)
    lagen mit dem CM-Default z-index 500 unter der Suchleiste (1500);
    1700 haelt sie sichtbar und bleibt unter dem Kontextmenue (2000). */
 .cm-editor .cm-tooltip {

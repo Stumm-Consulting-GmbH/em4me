@@ -1,4 +1,4 @@
-// 4T-0292 (Epic 3E-0052): Erweiterungs-Registry und Pipeline-Neuaufbau.
+// 4T-000292 (Epic 3E-000052): Erweiterungs-Registry und Pipeline-Neuaufbau.
 // Registry-Validierung, Disabled-Normalisierung, Abhaengigkeits-Kopplung
 // und Kommando-Filterung laufen als reine Funktionen gegen synthetische
 // Listen; der Pipeline-Teil schaltet die real registrierte KaTeX-
@@ -11,7 +11,7 @@ import {
   isExtensionId,
   validateExtensionRegistry,
 } from '../../src/shared/extensions/extensions.js';
-// 4T-0993 (Epic 3E-0196): Die Ableitungen aus der Disabled-Liste liegen seit
+// 4T-000993 (Epic 3E-000196): Die Ableitungen aus der Disabled-Liste liegen seit
 // dem Funktions-Auszug in src/shared/extensions/extensions-core.js.
 import {
   normalizeDisabledIds,
@@ -35,7 +35,7 @@ const SYNTH = [
   { id: 'spitze', category: 'linking', nameKey: 'n.s', descKey: 'd.s', dependencies: ['aufbau'] },
 ];
 
-describe('Erweiterungs-Registry: Validierung (4T-0292)', () => {
+describe('Erweiterungs-Registry: Validierung (4T-000292)', () => {
   it('eingebaute Registry ist gueltig und enthaelt katex', () => {
     expect(validateExtensionRegistry(allExtensions())).toEqual([]);
     expect(isExtensionId('katex')).toBe(true);
@@ -72,7 +72,7 @@ describe('Erweiterungs-Registry: Validierung (4T-0292)', () => {
   });
 });
 
-describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
+describe('Erweiterungs-Registry: Disabled-Zustand (4T-000292)', () => {
   it('normalizeDisabledIds verwirft Nicht-Arrays, unbekannte IDs und Duplikate', () => {
     expect(normalizeDisabledIds(null, SYNTH)).toEqual([]);
     expect(normalizeDisabledIds('basis', SYNTH)).toEqual([]);
@@ -103,16 +103,16 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
     expect(EXTENSIONS_DISABLED_KEY).toBe('extensions.disabled');
   });
 
-  it('reale Registry: wiki-embeds deaktiviert sich mit wiki-links (4T-0294)', () => {
+  it('reale Registry: wiki-embeds deaktiviert sich mit wiki-links (4T-000294)', () => {
     const eff = effectiveDisabledSet(['wiki-links']);
     expect(eff.has('wiki-embeds')).toBe(true);
     // Umgekehrt nicht: wiki-links bleibt bei deaktivierten Embeds aktiv.
     expect(effectiveDisabledSet(['wiki-embeds']).has('wiki-links')).toBe(false);
   });
 
-  // 4T-0517 (Epic 3E-0092): events haengt an property-profiles — die
+  // 4T-000517 (Epic 3E-000092): events haengt an property-profiles — die
   // Voraussetzung nimmt die Ereignis-Erweiterung transitiv mit.
-  it('reale Registry: events deaktiviert sich mit property-profiles (4T-0517)', () => {
+  it('reale Registry: events deaktiviert sich mit property-profiles (4T-000517)', () => {
     expect(extensionById('events').dependencies).toEqual(['property-profiles']);
     expect(isExtensionEnabled('events', ['property-profiles'])).toBe(false);
     // Umgekehrt nicht: property-profiles bleibt bei deaktivierten events aktiv.
@@ -120,7 +120,7 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
     expect(isExtensionEnabled('events', [])).toBe(true);
   });
 
-  it('reale Registry: Kommando-Filterung der Panel-Erweiterungen (4T-0294)', () => {
+  it('reale Registry: Kommando-Filterung der Panel-Erweiterungen (4T-000294)', () => {
     const cmds = disabledCommandIdSet(['wiki-links', 'bookmarks']);
     expect(cmds.has('view.toggleOutgoingLinks')).toBe(true);
     expect(cmds.has('view.toggleBacklinks')).toBe(true);
@@ -129,12 +129,12 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
     expect(cmds.has('view.toggleOutline')).toBe(false);
   });
 
-  // 4T-0599 (Epic 3E-0112): Aus-Zustand der Listen-Struktur-Erweiterung — die
+  // 4T-000599 (Epic 3E-000112): Aus-Zustand der Listen-Struktur-Erweiterung — die
   // beiden Verschiebe-Kommandos verlieren ihr Binding, der Tastendruck faellt
   // damit auf das zeilenweise Verschieben der Standard-Belegung durch. Die
   // Erweiterung haengt bewusst an keiner anderen: Listen sind Kern, nur ihre
   // Struktur-Bearbeitung ist schaltbar.
-  it('reale Registry: outliner filtert die beiden Listen-Kommandos (4T-0599)', () => {
+  it('reale Registry: outliner filtert die beiden Listen-Kommandos (4T-000599)', () => {
     expect(extensionById('outliner').dependencies).toBeUndefined();
     const cmds = disabledCommandIdSet(['outliner']);
     expect(cmds.has('list.moveUp')).toBe(true);
@@ -144,10 +144,10 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
     expect(disabledCommandIdSet([]).has('list.moveUp')).toBe(false);
   });
 
-  // 4T-0538 (Epic 3E-0098): Aus-Zustand der Arbeitsbereichs-Erweiterung —
+  // 4T-000538 (Epic 3E-000098): Aus-Zustand der Arbeitsbereichs-Erweiterung —
   // alle vier Lebenszyklus-Kommandos verschwinden (Menue-Block, Palette,
   // Dispatcher); die Ablage selbst liegt im Main und bleibt unberuehrt.
-  it('reale Registry: workspaces filtert die vier Lebenszyklus-Kommandos (4T-0538)', () => {
+  it('reale Registry: workspaces filtert die vier Lebenszyklus-Kommandos (4T-000538)', () => {
     expect(extensionById('workspaces').dependencies).toBeUndefined();
     const cmds = disabledCommandIdSet(['workspaces']);
     expect(cmds.has('workspace.saveAs')).toBe(true);
@@ -158,18 +158,18 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
     expect(disabledCommandIdSet([]).has('workspace.saveAs')).toBe(false);
   });
 
-  // 4T-0632 (Epic 3E-0102): Demo-Area — Aus-Zustand filtert das einzige
+  // 4T-000632 (Epic 3E-000102): Demo-Area — Aus-Zustand filtert das einzige
   // Kommando area.createDemo (Menue-Punkt und Palette-Eintrag entfallen).
-  it('reale Registry: demo-area filtert area.createDemo (4T-0632)', () => {
+  it('reale Registry: demo-area filtert area.createDemo (4T-000632)', () => {
     expect(extensionById('demo-area').dependencies).toBeUndefined();
     expect(disabledCommandIdSet(['demo-area']).has('area.createDemo')).toBe(true);
     // Ohne Deaktivierung bleibt das Kommando erhalten.
     expect(disabledCommandIdSet([]).has('area.createDemo')).toBe(false);
   });
 
-  // 4T-0590 (Epic 3E-0109): Tabellen-Werkzeuge — Aus-Zustand filtert alle
+  // 4T-000590 (Epic 3E-000109): Tabellen-Werkzeuge — Aus-Zustand filtert alle
   // zwoelf table.*-Kommandos (Kontextmenue-Untermenue, Palette, Keymap).
-  it('reale Registry: table-tools filtert alle zwoelf table.*-Kommandos (4T-0590)', () => {
+  it('reale Registry: table-tools filtert alle zwoelf table.*-Kommandos (4T-000590)', () => {
     expect(extensionById('table-tools').dependencies).toBeUndefined();
     const cmds = disabledCommandIdSet(['table-tools']);
     const ids = [
@@ -191,10 +191,10 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
     expect(disabledCommandIdSet([]).has('table.rowUp')).toBe(false);
   });
 
-  // 4T-0697 (Epic 3E-0141): Sidebar-Spalten-Kollaps — Aus-Zustand filtert die
+  // 4T-000697 (Epic 3E-000141): Sidebar-Spalten-Kollaps — Aus-Zustand filtert die
   // beiden Toggle-Kommandos (Menue-Eintraege, Palette, Dispatcher). Ohne
   // Abhaengigkeit auf andere Erweiterungen; die Sidebar selbst bleibt Kern.
-  it('reale Registry: sidebar-collapse filtert die beiden Toggle-Kommandos (4T-0697)', () => {
+  it('reale Registry: sidebar-collapse filtert die beiden Toggle-Kommandos (4T-000697)', () => {
     const manifest = extensionById('sidebar-collapse');
     expect(manifest).not.toBeNull();
     expect(manifest.category).toBe('tools');
@@ -209,7 +209,7 @@ describe('Erweiterungs-Registry: Disabled-Zustand (4T-0292)', () => {
   });
 });
 
-describe('Pipeline-Neuaufbau: KaTeX schaltbar (4T-0292)', () => {
+describe('Pipeline-Neuaufbau: KaTeX schaltbar (4T-000292)', () => {
   afterEach(() => {
     configureExtensions([]);
   });
@@ -256,10 +256,10 @@ describe('Pipeline-Neuaufbau: KaTeX schaltbar (4T-0292)', () => {
   });
 });
 
-// 4T-0528 (Epic 3E-0095): Erweiterung "reminders" — Abhaengigkeit zur
+// 4T-000528 (Epic 3E-000095): Erweiterung "reminders" — Abhaengigkeit zur
 // Erweiterung "Aufgaben" (zweiter Nutzer der dependencies-Mechanik) und
 // Aus-Zustand in beide Richtungen (eigener Schalter, transitiv ueber tasks).
-describe('Erweiterung reminders: Abhaengigkeit und Aus-Zustand (4T-0528)', () => {
+describe('Erweiterung reminders: Abhaengigkeit und Aus-Zustand (4T-000528)', () => {
   it('ist als tools-Erweiterung mit Abhaengigkeit auf tasks registriert', () => {
     const manifest = extensionById('reminders');
     expect(manifest).not.toBeNull();

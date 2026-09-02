@@ -1,4 +1,4 @@
-// 4T-0941 (Story 4S-0455): Die generierte Funktions-Seite kennzeichnet die
+// 4T-000941 (Story 4S-000455): Die generierte Funktions-Seite kennzeichnet die
 // Einträge abgeschalteter Erweiterungen, statt sie wegzulassen.
 //
 // Beide Richtungen stehen hier, weil eine einseitige Prüfung nichts wert wäre:
@@ -91,7 +91,7 @@ describe('Funktions-Seite: Zuordnung Erweiterung zu Katalog-Zeile', () => {
     expect(keys.has('help.feature.reminders')).toBe(true);
   });
 
-  // 4T-1180 (Epic 3E-0221): Die Erweiterung der Eigenschafts-Profile nennt
+  // 4T-001180 (Epic 3E-000221): Die Erweiterung der Eigenschafts-Profile nennt
   // ihre Katalog-Zeilen **vollständig**.
   //
   // Der Fall steht hier namentlich und nicht als allgemeine Regel, weil genau
@@ -101,7 +101,7 @@ describe('Funktions-Seite: Zuordnung Erweiterung zu Katalog-Zeile', () => {
   // die es dann nicht gibt. Der Wächter darüber prüft nur, dass jeder
   // genannte Schlüssel **existiert**, nicht dass keiner **fehlt**; die
   // allgemeine Prüfung verlangt eine Durchsicht des ganzen Katalogs und läuft
-  // als eigener Vorgang (4T-1181).
+  // als eigener Vorgang (4T-001181).
   const PROFIL_ZEILEN = [
     'help.feature.propertyProfiles',
     'help.feature.profileInheritance',

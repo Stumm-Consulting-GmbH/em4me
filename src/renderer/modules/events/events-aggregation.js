@@ -2,7 +2,7 @@
 // Bereichs-Index, Abbildung der Treffer auf das Modell der Art 1 und das
 // Rueckschreiben in die Quell-Datei.
 //
-// Auszug aus events-editor.js, 4T-1003 (Epic 3E-0196). aggStates ist der eine
+// Auszug aus events-editor.js, 4T-001003 (Epic 3E-000196). aggStates ist der eine
 // Aggregations-Zustand und lebt ausschliesslich hier; die Fremd-Leser kommen
 // ueber getAggState(). writeSourceFields ist zugleich der Schreibweg des
 // Verknuepfungs-Popups.
@@ -19,14 +19,14 @@ import {
   effectiveEventsView,
 } from '../../../shared/events/events-fence.js';
 import { buildEventsViewBarHtml } from '../../../shared/markdown/perspective-events.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung und
+// 4T-001003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung und
 // Body-Normalisierung werden ausschliesslich im Funktionskoerper aufgerufen.
 import { normalizeBody, resolveContext } from './events-editor.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Ansichts-Zustand. Der Abruf zeichnet nach
+// 4T-001003: Laufzeit-Zyklus mit dem Ansichts-Zustand. Der Abruf zeichnet nach
 // seiner Antwort die Anzeige neu, aufgerufen erst im Funktionskoerper.
 import { applyEventsViewState } from './events-view-state.js';
 
-// --- Aggregation über Frontmatter (4T-0515) -----------------------------------------
+// --- Aggregation über Frontmatter (4T-000515) -----------------------------------------
 // Art 2: Einträge kommen asynchron aus dem Bereichs-Index (IPC
 // events:query); die Anzeige (Tabelle, Filter, Zusatz-Ansichten) läuft
 // über dieselben Wege wie Art 1 auf den gemappten Einträgen. Inline-
@@ -36,7 +36,7 @@ import { applyEventsViewState } from './events-view-state.js';
 const aggStates = new WeakMap(); // container -> { key, stamp, status, error, entries }
 let aggStampCounter = 0;
 
-// 4T-1003: Zugriff der Fremd-Leser (Zeilen-Bearbeitung, Ansichts-Zustand,
+// 4T-001003: Zugriff der Fremd-Leser (Zeilen-Bearbeitung, Ansichts-Zustand,
 // Verknuepfungs-Popup). Geschrieben wird aggStates ausschliesslich in diesem
 // Modul.
 export function getAggState(container) {
@@ -193,7 +193,7 @@ function findOpenTabByPath(path) {
 }
 
 // Mehrfeld-Update in eine Quell-Datei schreiben (gemeinsamer Schreibweg
-// der Inline-Bearbeitung und der Verknüpfungs-Pflege, 4T-0516): aktiver
+// der Inline-Bearbeitung und der Verknüpfungs-Pflege, 4T-000516): aktiver
 // Tab über den Editor-Puffer, geöffneter dirty Tab nur Hinweis, sonst
 // Main-Schreibweg mit mtime-Konflikt-Erkennung.
 export async function writeSourceFields(source, updates) {

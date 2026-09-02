@@ -5,7 +5,7 @@ const SUPPORTED = ['de', 'en', 'fr', 'es', 'it'];
 let current = 'en';
 let dict = {};
 
-// 4T-0299 (Epic 3E-0053): Übersetzungs-Beiträge externer Erweiterungen.
+// 4T-000299 (Epic 3E-000053): Übersetzungs-Beiträge externer Erweiterungen.
 // Jede Erweiterung bringt eigene Bundles ({ sprache: { key: text } }) mit
 // einer Standard-Sprache als Fallback mit. Die Keys werden unter dem
 // Präfix 'ext.<erweiterungs-id>.' in eine flache Zusatz-Tabelle gelegt,
@@ -60,11 +60,11 @@ export async function loadTranslations(lang) {
   dict = await res.json();
   current = target;
   document.documentElement.lang = target;
-  // 4T-0299: Erweiterungs-Zusätze folgen der neuen Sprache.
+  // 4T-000299: Erweiterungs-Zusätze folgen der neuen Sprache.
   rebuildExtensionExtras();
 }
 
-// 4T-1044 (Epic 3E-0208): Ist das Woerterbuch schon da? Vor dem ersten
+// 4T-001044 (Epic 3E-000208): Ist das Woerterbuch schon da? Vor dem ersten
 // erfolgreichen loadTranslations liefert t() jeden Schluessel unveraendert
 // zurueck UND meldet ihn als Fehler auf der Konsole. Wer vor diesem Zeitpunkt
 // uebersetzten Text in eine dauerhaft sichtbare Flaeche schreibt, zeigt dort
@@ -74,19 +74,19 @@ export function hatUebersetzungen() {
   return Object.keys(dict).length > 0;
 }
 
-// S-08 (4T-0183): setLanguage entfernt — loadTranslations setzt `current`
+// S-08 (4T-000183): setLanguage entfernt — loadTranslations setzt `current`
 // bereits selbst; der nachgelagerte Aufruf war redundant und haette bei
 // abweichendem Fallback (nicht unterstuetzte Sprache) den Zustand sogar
 // vom tatsaechlich geladenen Dictionary entkoppelt.
 
-// 4T-0087 (Epic 3E-0014): Aktuelle Sprache fuer Konsumenten, die ihre
+// 4T-000087 (Epic 3E-000014): Aktuelle Sprache fuer Konsumenten, die ihre
 // Render-Reaktion an Sprach-Wechsel knuepfen muessen (z.B. CodeMirror-
 // WidgetType.eq()).
 export function getLanguage() {
   return current;
 }
 
-// 4T-0900 (Epic 3E-0016): Ein unbekannter Schluessel fiel bisher nicht auf.
+// 4T-000900 (Epic 3E-000016): Ein unbekannter Schluessel fiel bisher nicht auf.
 // Der Rueckfall gibt ihn als Text zurueck, und was der Anwender sieht, ist je
 // nach Stelle der rohe Bezeichner, ein leeres Auswahlfeld oder ein deutsches
 // Wort in der fremdsprachigen Oberflaeche — kein Gate wurde davon rot. Der
@@ -96,7 +96,7 @@ export function getLanguage() {
 // Diese eine Stelle traegt die ganze Fehlerklasse, auch die zusammengesetzten
 // Schluessel (t(`events.category.${cat}`)), die eine statische Pruefung des
 // Quelltexts nicht erfasst. Scharf wird die Meldung ueber den
-// Konsolen-Fehler-Waechter der End-zu-End-Laeufe (4T-0901).
+// Konsolen-Fehler-Waechter der End-zu-End-Laeufe (4T-000901).
 const gemeldeteLuecken = new Set();
 
 function meldeFehlendenSchluessel(key) {
@@ -117,7 +117,7 @@ export function t(key) {
   return key;
 }
 
-// 4T-0299: Nachschlag inklusive der Erweiterungs-Zusätze — DOM-Elemente
+// 4T-000299: Nachschlag inklusive der Erweiterungs-Zusätze — DOM-Elemente
 // externer Panels tragen data-i18n mit 'ext.<id>.'-Keys und ziehen beim
 // Sprachwechsel über applyTranslations mit.
 function lookup(key) {
@@ -137,7 +137,7 @@ export function applyTranslations(root) {
     const key = el.getAttribute('data-i18n-placeholder');
     if (key && lookup(key) != null) el.placeholder = lookup(key);
   });
-  // 4T-0031: aria-label fuer Icon-only-Buttons (Statusbar). Ohne sichtbaren
+  // 4T-000031: aria-label fuer Icon-only-Buttons (Statusbar). Ohne sichtbaren
   // Text-Inhalt liest ein Screen-Reader sonst nur den Tooltip vor; bei
   // expliziten aria-labels ist die Vorlesung konsistenter.
   root.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {

@@ -1,4 +1,4 @@
-// 4T-0944 (Epic 3E-0156): Zeitlimits teurer Prüf-Fälle, benannt nach ihrem
+// 4T-000944 (Epic 3E-000156): Zeitlimits teurer Prüf-Fälle, benannt nach ihrem
 // Auslöser.
 //
 // Das voreingestellte Limit von Vitest (5000 ms, `vitest.config.mjs`) bleibt
@@ -46,7 +46,7 @@ export const BESTAND_ZEITLIMIT = 90000;
 // Falls. Belegt am 2026-07-25, als ein Bau-Test unter Last das
 // Testsuite-Gate der Merge-Queue blockierte.
 //
-// 2026-08-30/31 (4T-1290, Epic 3E-0224): Der Wert stand hier für einen Tag auf
+// 2026-08-30/31 (4T-001290, Epic 3E-000224): Der Wert stand hier für einen Tag auf
 // 60 s und ist wieder auf 30 s zurückgenommen — er blieb also, wo er war. Der
 // Vorgang ist trotzdem festgehalten, weil seine Messreihe die einzige ist, die
 // die STREUUNG dieses Falls beziffert, und weil das Zurücknehmen die Regel
@@ -58,7 +58,7 @@ export const BESTAND_ZEITLIMIT = 90000;
 //   isoliert, ohne Nebenläufigkeit ............................  5,7 s
 //   Voll-Lauf am 2026-08-30, ROT ..............................  30,4 s
 //   Voll-Lauf am 2026-08-30 kurz darauf, gleiche Datei-Zahl ...  10,0 s
-//   Voll-Lauf am 2026-08-31 nach der Behebung zu 4T-1283 ......  15,6 s
+//   Voll-Lauf am 2026-08-31 nach der Behebung zu 4T-001283 ......  15,6 s
 //
 // Ausgelöst hatte den roten Lauf das blosse Hinzukommen ZWEIER Prüfdateien:
 // Dieselbe Suite lief unmittelbar davor ohne sie grün, mit ihnen zweimal in
@@ -68,14 +68,14 @@ export const BESTAND_ZEITLIMIT = 90000;
 // Parallelitäts-Last und kein Fach-Fehler.
 //
 // ZURÜCKGENOMMEN, weil die Anhebung sich als unnötig erwiesen hat: Die
-// Behebung der Ketten-Auflösung (4T-1283) hat die Suite so entlastet, dass der
+// Behebung der Ketten-Auflösung (4T-001283) hat die Suite so entlastet, dass der
 // Fall am 2026-08-31 mit den zwei zusätzlichen Prüfdateien bei 15,6 s liegt und
 // die 30-s-Grenze wieder trägt (Voll-Lauf grün, 4943 Fälle). Damit gilt hier
-// dieselbe Lehre, die der Merkposten weiter unten aus 4T-1283 zieht: Eine
+// dieselbe Lehre, die der Merkposten weiter unten aus 4T-001283 zieht: Eine
 // Grenze, die ein zweites Mal steigt, verdeckt einen Befund. Die Grenze bleibt
 // scharf, der Befund bleibt sichtbar.
 //
-// WAS OFFEN BLEIBT und als 4T-1321 (Epic 3E-0032) verortet ist: Die Streuung
+// WAS OFFEN BLEIBT und als 4T-001321 (Epic 3E-000032) verortet ist: Die Streuung
 // oben ist der eigentliche Befund. Zwischen 10,0 s und 30,4 s liegt Faktor 3
 // bei gleicher Datei-Zahl; der Mittelwert liegt bequem unter jeder Grenze, die
 // Spitzen reissen sie. Daraus folgt für jeden, der hier misst: EIN einzelner
@@ -99,7 +99,7 @@ export const VOLLBAU_ZEITLIMIT = 120000;
 // Tests erzeugt, also das am schwersten zu deutende Fehlerbild.
 export const AUFRAEUM_ZEITLIMIT = 60000;
 
-// 4T-1283: Hier stand vom 2026-08-29 bis zum 2026-08-30 ein
+// 4T-001283: Hier stand vom 2026-08-29 bis zum 2026-08-30 ein
 // BESTAND_CONTAINER_ZEITLIMIT von 180 s. Es war die ausdrücklich benannte
 // Sofort-Maßnahme zu einem Fall, der im Container die 60-s-Grenze riss, und ist
 // mit der Behebung seiner Ursache **entfallen** statt ein drittes Mal angehoben

@@ -4,7 +4,7 @@
 // app.whenReady — Speicher laden, Pruefer starten, Theme vorbereiten, IPC
 // registrieren, Sitzung und Entwuerfe wiederherstellen, Start-Dateien reichen.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Rolle: Aufbau-Funktion ohne
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Rolle: Aufbau-Funktion ohne
 // Lade-Zeit-Seiteneffekte; die App-Ereignisse selbst bleiben in main.js und
 // leiten hierher weiter.
 //
@@ -28,7 +28,7 @@ const books = require('../books/books');
 const shelves = require('../books/shelves');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
-// M-02 (4T-0173): second-instance-Dateien, die ankommen, bevor das erste
+// M-02 (4T-000173): second-instance-Dateien, die ankommen, bevor das erste
 // Fenster ladefertig ist. Electron-IPC puffert nicht; ohne Queue verpufft
 // der Send waehrend der Startphase der ersten Instanz.
 const wartendeZweitstartDateien = [];
@@ -91,7 +91,7 @@ function createStartup(deps) {
     restoreBookForApp,
     openShelfApp,
     restoreShelfForApp,
-    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs.
+    // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs.
     resolveAreaStartPage,
     readAllDrafts,
     removeDraftsByIds,
@@ -100,10 +100,10 @@ function createStartup(deps) {
     alarmChecker,
     timerChecker,
   } = deps;
-  // Der Behaelter reist als Wert; ersetzt wird er nie (4T-0998-Konvention).
+  // Der Behaelter reist als Wert; ersetzt wird er nie (4T-000998-Konvention).
   const pendingSecondInstanceFiles = wartendeZweitstartDateien;
   // Extrahiert Datei-Argumente aus process.argv (Windows: "Öffnen mit").
-  // M-03 (4T-0173): optionale Resolve-Basis. second-instance liefert das
+  // M-03 (4T-000173): optionale Resolve-Basis. second-instance liefert das
   // Arbeitsverzeichnis der ZWEITEN Instanz mit; ohne Basis wuerden relative
   // CLI-Pfade gegen das CWD der ersten Instanz aufgeloest (falsche Datei).
   function extractFileArgs(argv, baseDir) {
@@ -114,7 +114,7 @@ function createStartup(deps) {
       .filter(isMarkdownPath);
   }
 
-  // 4T-0871/4T-0873 (Buch und Regal = Bereich): Buch- und Regal-Dateien aus
+  // 4T-000871/4T-000873 (Buch und Regal = Bereich): Buch- und Regal-Dateien aus
   // Explorer-/CLI-Argumenten herausloesen und als eigene Applikationen oeffnen
   // (Drei-Stufen-Muster); zurueck bleiben die gewoehnlichen Dateien fuer die
   // bestehende Zustellung. Bei abgeschalteter Buecher-Erweiterung bleibt die
@@ -142,8 +142,8 @@ function createStartup(deps) {
 
   // Zustellung der gewoehnlichen Zweitstart-Dateien (Explorer-Doppelklick,
   // CLI): in der zuletzt fokussierten Applikation OHNE Bereich oeffnen
-  // (4T-0323 — Bereiche sind fix, Explorer-Dateien gehen nie in eine
-  // Bereichs-App, seit 4T-0871 damit auch nie in eine Buch-App). Laufen nur
+  // (4T-000323 — Bereiche sind fix, Explorer-Dateien gehen nie in eine
+  // Bereichs-App, seit 4T-000871 damit auch nie in eine Buch-App). Laufen nur
   // Bereichs-Apps, wird eine neue bereichslose Applikation angelegt.
   function deliverExternalFiles(files) {
     if (files.length === 0) return;
@@ -167,12 +167,12 @@ function createStartup(deps) {
     }
   }
 
-  // 4T-0319 (Epic 3E-0057): Rumpf des second-instance-Ereignisses.
+  // 4T-000319 (Epic 3E-000057): Rumpf des second-instance-Ereignisses.
   function zweitInstanz(argv, workingDirectory) {
-    // M-03 (4T-0173): relative Pfade gegen das CWD der zweiten Instanz aufloesen.
+    // M-03 (4T-000173): relative Pfade gegen das CWD der zweiten Instanz aufloesen.
     const files = extractFileArgs(argv, workingDirectory || undefined);
 
-    // 4T-0319 (Epic 3E-0057): EXE-Zweitstart OHNE Datei-Argument ist der
+    // 4T-000319 (Epic 3E-000057): EXE-Zweitstart OHNE Datei-Argument ist der
     // "Mehrfachstart" aus Nutzersicht — er legt eine neue logische Applikation
     // mit leerem Fenster an (statt wie vorher nur das bestehende zu fokussieren).
     if (files.length === 0) {
@@ -190,7 +190,7 @@ function createStartup(deps) {
 
   // Rumpf von app.whenReady: Speicher, Pruefer, IPC, Sitzung, Start-Dateien.
   async function starteApp() {
-    // 4T-0998: loadStore liegt in app/settings-store.js und gibt Store und den
+    // 4T-000998: loadStore liegt in app/settings-store.js und gibt Store und den
     // normalisierten Arbeitsbereichs-Stand zurueck, statt fremde Modul-Variablen
     // zu setzen (Entwicklungsrichtlinien §1).
     const geladen = await loadStore({
@@ -201,14 +201,14 @@ function createStartup(deps) {
     const store = getStore();
     setWorkspacesState(geladen.workspaces);
 
-    // 4T-0946 (Story 4S-0005): Die gemappten Netzlaufwerke frueh und nebenher
+    // 4T-000946 (Story 4S-000005): Die gemappten Netzlaufwerke frueh und nebenher
     // ermitteln. Bewusst ohne await: Die Abfrage startet einen fremden Prozess
     // und darf den Programmstart nicht bremsen; bis eine Datei geoeffnet ist,
     // liegt das Ergebnis in aller Regel vor, und andernfalls zieht die
     // Beobachtung selbst nach.
     netzPfade.ermittleNetzLaufwerke();
 
-    // 4T-0030: Persistierten Theme-Pref VOR dem Erzeugen des ersten Fensters
+    // 4T-000030: Persistierten Theme-Pref VOR dem Erzeugen des ersten Fensters
     // anwenden, damit der Background-Color-Init in createWindow direkt korrekt
     // ist und kein Theme-Flash am Start sichtbar wird.
     const savedThemePref = store?.get('themePref');
@@ -218,7 +218,7 @@ function createStartup(deps) {
 
     registerIpc();
 
-    // 4T-0615 (Epic 3E-0116): Ablage-Ort des Bereichs-Suchraum-Caches. Bewusst
+    // 4T-000615 (Epic 3E-000116): Ablage-Ort des Bereichs-Suchraum-Caches. Bewusst
     // im Nutzerdaten-Verzeichnis und nicht im Bereich des Anwenders (Muster
     // drafts/, extensions/): Der Cache verdoppelte dort dessen Text-Bestand und
     // liefe durch jede Ordner-Synchronisierung mit.
@@ -226,24 +226,24 @@ function createStartup(deps) {
       cacheVerzeichnis: path.join(app.getPath('userData'), 'bereichs-suche'),
     });
 
-    // 4T-0525 (Epic 3E-0095): Erinnerungs-Takt starten (Gates pro Lauf:
+    // 4T-000525 (Epic 3E-000095): Erinnerungs-Takt starten (Gates pro Lauf:
     // Erweiterungs-Zustand, Index-Bereitschaft; zusaetzlicher Anstoss ueber
     // den backlinks:invalidated-Broadcast).
     reminderChecker.start();
-    // 4T-0637 (Epic 3E-0069): Wecker-Takt starten. Gate pro Lauf ist der
+    // 4T-000637 (Epic 3E-000069): Wecker-Takt starten. Gate pro Lauf ist der
     // Erweiterungs-Zustand; der Bezugspunkt des Faelligkeits-Fensters wird
     // hier gesetzt, damit vergangene Weckzeiten nicht nachtraeglich feuern.
     alarmChecker.start();
-    // 4T-0638 (Epic 3E-0069): Weckruf fuer den naechsten Timer-Ablauf setzen.
+    // 4T-000638 (Epic 3E-000069): Weckruf fuer den naechsten Timer-Ablauf setzen.
     // Ein beim Beenden laufender Timer wird damit direkt nach dem Start wieder
     // ueberwacht (die Restzeit rechnet sich aus dem gespeicherten Zeitstempel).
     timerChecker.start();
 
-    // Sitzungs-Wiederherstellung ueber logische Applikationen (4T-0320).
+    // Sitzungs-Wiederherstellung ueber logische Applikationen (4T-000320).
     const restore = !!store.get('restoreSession');
     const savedApps = normalizeSavedApps(store.get('apps'));
 
-    // 4T-0368: Entwuerfe frueh lesen (raeumt zugleich verwaiste Dateien) und den
+    // 4T-000368: Entwuerfe frueh lesen (raeumt zugleich verwaiste Dateien) und den
     // tatsaechlich entstehenden Applikationen bereichs-treu zuordnen. Dazu wird
     // die Ziel-App-Liste vor der Fenster-Erzeugung bestimmt (inkl. Bereichs-
     // Existenz-Filter), damit die Zuordnung nicht auf uebersprungene Apps zielt.
@@ -251,7 +251,7 @@ function createStartup(deps) {
     const targetApps = []; // [{ area: areaObj|null, windows: [...] }]
     const missingAreas = [];
     if (savedApps.length > 0 && restore) {
-      // 4T-0322: Bereichs-Apps nur wiederherstellen, wenn der Bereichs-Ordner
+      // 4T-000322: Bereichs-Apps nur wiederherstellen, wenn der Bereichs-Ordner
       // noch existiert; fehlende Bereiche werden gesammelt gemeldet.
       for (const appEntry of savedApps) {
         const area = appEntry.area ? areaFromRootPath(appEntry.area.rootPath) : null;
@@ -264,7 +264,7 @@ function createStartup(deps) {
             continue;
           }
         }
-        // 4T-0843 (Epic 3E-0147): aktives Buch der App mitfuehren.
+        // 4T-000843 (Epic 3E-000147): aktives Buch der App mitfuehren.
         targetApps.push({
           area,
           windows: appEntry.windows,
@@ -281,7 +281,7 @@ function createStartup(deps) {
         windows: [{ bounds: first?.bounds || null, maximized: !!first?.maximized, panes: [] }],
       });
     }
-    // 4T-0537 (Epic 3E-0098): bei aktiver Sitzungs-Wiederherstellung kommen
+    // 4T-000537 (Epic 3E-000098): bei aktiver Sitzungs-Wiederherstellung kommen
     // zusaetzlich die beim Beenden offenen Arbeitsbereiche zurueck (Workshop-
     // Punkt 6); fehlende Bereichs-Ordner laufen in dieselbe Sammel-Warnung,
     // der Ablage-Eintrag bleibt erhalten. Bei deaktivierter Wiederherstellung
@@ -322,7 +322,7 @@ function createStartup(deps) {
 
     // Entwuerfe zuordnen: byApp[i] trifft App i exakt (Arbeitsbereichs-
     // Entwuerfe nur ihren Arbeitsbereich, uebrige bereichs-treu auf
-    // Nicht-Arbeitsbereichs-Apps, 4T-0539); leftover (bereichslos oder
+    // Nicht-Arbeitsbereichs-Apps, 4T-000539); leftover (bereichslos oder
     // Bereich nicht wiederhergestellt) kommt in die erste bereichslose
     // unbenannte App (verlustfrei, ggf. eine neue; PO-Entscheidung
     // 2026-07-08). unassigned (Arbeitsbereich geschlossen) bleibt liegen.
@@ -346,21 +346,21 @@ function createStartup(deps) {
     for (let ai = 0; ai < targetApps.length; ai++) {
       const t = targetApps[ai];
       const appId = appRegistry.createApp(t.area || null);
-      // 4T-0537: wiederhergestellte Arbeitsbereiche behalten ihre Zuordnung.
+      // 4T-000537: wiederhergestellte Arbeitsbereiche behalten ihre Zuordnung.
       if (t.workspace) appRegistry.setWorkspace(appId, t.workspace);
       if (t.area) startAreaWatcher(appId);
-      // 4T-0843 (Epic 3E-0147): aktives Buch wiederherstellen (Story 4S-0752,
+      // 4T-000843 (Epic 3E-000147): aktives Buch wiederherstellen (Story 4S-000752,
       // AK4). Fire-and-forget nach dem Muster der uebrigen Nachzuegler: die
       // Fenster entstehen synchron weiter, das Zustands-Paket erreicht sie
       // ueber books:stateChanged, sobald der Buch-Ordner gelesen ist.
       if (t.bookDir) void restoreBookForApp(appId, t.bookDir);
-      // 4T-0867 (Epic 3E-0162): aktives Regal wiederherstellen (Story 4S-0760,
+      // 4T-000867 (Epic 3E-000162): aktives Regal wiederherstellen (Story 4S-000760,
       // AK5), gleiches Fire-and-forget-Muster.
       if (t.shelfDir) void restoreShelfForApp(appId, t.shelfDir);
       const draftPayload = draftsToPayload(byApp[ai] || []);
-      // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs. Sie greift nur, wo
+      // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs. Sie greift nur, wo
       // NICHTS wiederherzustellen ist — die Sitzung hat Vorrang (Entscheidung
-      // aus 4T-1363). Traegt die Bereichs-App gespeicherte Panes, bleibt es bei
+      // aus 4T-001363). Traegt die Bereichs-App gespeicherte Panes, bleibt es bei
       // ihnen; ist ihre Pane-Liste leer, tritt die Start-Seite an ihre Stelle.
       // Eine ins Leere zeigende Festlegung wird hier still uebergangen: Der
       // Programmstart hat mit den fehlenden Bereichs-Ordnern bereits eine
@@ -393,7 +393,7 @@ function createStartup(deps) {
       }
     }
     if (windows.size === 0) createWindow();
-    // 4T-0537: normalisierten Arbeitsbereichs-Stand samt aktualisierter
+    // 4T-000537: normalisierten Arbeitsbereichs-Stand samt aktualisierter
     // lastOpenedAt-Werte zurueckschreiben (Bounds/Panes folgen laufend ueber
     // persistAllWindows).
     store.set('workspaces', workspacesState);
@@ -408,8 +408,8 @@ function createStartup(deps) {
       });
     }
 
-    // 4T-0368: uebergebene Entwuerfe aus dem Speicher raeumen, damit die neue
-    // Sitzung ihn beim naechsten App-Ende frisch fuellt. 4T-0539: selektiv —
+    // 4T-000368: uebergebene Entwuerfe aus dem Speicher raeumen, damit die neue
+    // Sitzung ihn beim naechsten App-Ende frisch fuellt. 4T-000539: selektiv —
     // Entwuerfe geschlossener Arbeitsbereiche (unassigned) bleiben liegen und
     // kommen erst mit dem Oeffnen ihres Arbeitsbereichs zurueck.
     if (allDrafts.length > unassigned.length) {
@@ -418,10 +418,10 @@ function createStartup(deps) {
     }
 
     // Beim Start uebergebene Dateien (Datei-Assoziation, "Öffnen mit") in das
-    // erste Fenster OHNE Bereich reichen (4T-0323); stammen alle
+    // erste Fenster OHNE Bereich reichen (4T-000323); stammen alle
     // wiederhergestellten Apps aus Bereichen, uebernimmt eine neue bereichslose
     // App die Dateien ueber die Pending-Queue. Buch-Dateien oeffnen seit
-    // 4T-0871 zuerst als eigene Buch-Applikationen (routeBookFileArgs).
+    // 4T-000871 zuerst als eigene Buch-Applikationen (routeBookFileArgs).
     const initialFiles = extractFileArgs(process.argv);
     if (initialFiles.length > 0) {
       const restFiles = await routeBookFileArgs(initialFiles);

@@ -1,4 +1,4 @@
-// 4T-1222 (Epic 3E-0122): Linux-Bau im Docker-Container.
+// 4T-001222 (Epic 3E-000122): Linux-Bau im Docker-Container.
 //
 // PO-Entscheidung vom 2026-08-26: Linux-Targets entstehen von Windows aus im
 // Referenz-Image von electron-builder (electronuserland/builder), nicht in
@@ -11,7 +11,7 @@
 // node_modules/.bin gehört dort ausdrücklich in den PATH, weil der
 // Direkt-Aufruf — anders als ein npm-Skript — ihn nicht mitbringt.
 // Argumente werden unverändert an build-app.js durchgereicht; ohne Argumente
-// entstehen die konfigurierten Linux-Ziele (--linux, seit 4T-1223 AppImage
+// entstehen die konfigurierten Linux-Ziele (--linux, seit 4T-001223 AppImage
 // und deb), das entpackte Probe-Ziel bleibt über `--linux dir` erreichbar.
 'use strict';
 

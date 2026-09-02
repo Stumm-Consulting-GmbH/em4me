@@ -1,13 +1,13 @@
-// 4T-0544 (Epic 3E-0097): E2E-Funktions-Suite Kalender-Systeme —
+// 4T-000544 (Epic 3E-000097): E2E-Funktions-Suite Kalender-Systeme —
 // Einstellungs-Sektion der calendarSystems-Sektion der Bereichsdatei.
 // KS-01: Kern-Durchlauf (Block anlegen → gregorianische Vorlage einfügen →
 // Anwenden persistiert in die MDDA → Neustart-simuliertes Nachladen zeigt
 // den Stand). KS-02: ohne Bereich zeigt die Sektion den Hinweis-Zustand.
-// 4T-0546 (Epic 3E-0097): Wert-Syntax @{Kalendername: Wert} im Dokument.
+// 4T-000546 (Epic 3E-000097): Wert-Syntax @{Kalendername: Wert} im Dokument.
 // KS-03: Live-Badge mit Namens-Anzeige, Klick öffnet den vorbelegten
 // Picker (Esc lässt unverändert, anderer Tag ersetzt an Ort und Stelle in
 // kanonischer Form — Rundreise-Sicherheit); KS-04: Einfüge-Kommando per
-// belegtem Kürzel schreibt den kanonischen Wert am Cursor (4T-0545:
+// belegtem Kürzel schreibt den kanonischen Wert am Cursor (4T-000545:
 // gemeinsamer Durchlauf Einfügen → Klick → Ändern deckt die Picker-API ab).
 // describe-Titel tragen die Matrix-IDs (test/abdeckungs-matrix.json).
 'use strict';
@@ -103,7 +103,7 @@ function makeUserData() {
   return dir;
 }
 
-// 4T-0748 (Epic 3E-0138): Bereich mit einer abgeleiteten Zeitrechnung auf
+// 4T-000748 (Epic 3E-000138): Bereich mit einer abgeleiteten Zeitrechnung auf
 // der eingebauten Standard-Zeitrechnung plus Dokument mit zwei Werten.
 function makeDerivedArea() {
   const areaRoot = makeArea();
@@ -197,7 +197,7 @@ async function openCalendarSection(page) {
   const navEntry = page.locator(
     `${SETTINGS_PAGE} .settings-nav-entry[data-section-id="calendarSystems"]`,
   );
-  // 4T-0876: Oeffnen UND Klicken gehoeren in dieselbe Wiederhol-Bedingung.
+  // 4T-000876: Oeffnen UND Klicken gehoeren in dieselbe Wiederhol-Bedingung.
   // Zwei Fehlerbilder treffen hier zusammen, und jede Haelfte allein laesst
   // das andere offen: Ein Tastendruck in JEDEM Durchlauf montiert die Seite
   // neu, waehrend der Poll ihre Sichtbarkeit gerade bejaht hat (der Klick
@@ -278,7 +278,7 @@ test.describe('KS-01: Kern-Durchlauf der Einstellungs-Sektion', () => {
   });
 });
 
-// 4T-0555 (Epic 3E-0100): Ohne gebundenen Bereich erscheint die Sektion
+// 4T-000555 (Epic 3E-000100): Ohne gebundenen Bereich erscheint die Sektion
 // gar nicht mehr in der Navigation (Gruppe „Aktueller Bereich" entfällt
 // vollständig) — der frühere Hinweis-Zustand ist über die UI nicht mehr
 // erreichbar.
@@ -387,7 +387,7 @@ test.describe('KS-04: Einfüge-Kommando schreibt den kanonischen Wert (S-090)', 
   });
 });
 
-// 4T-0747 (Epic 3E-0138): Abgeleitete Zeitrechnung über die Einstellungen
+// 4T-000747 (Epic 3E-000138): Abgeleitete Zeitrechnung über die Einstellungen
 // anlegen. Sie erbt ihre Struktur phasenverschoben vom Bezug; im Entwurf
 // sind nur Name, Bezug, Nullpunkt, Tiefe und die Richtungs-Kürzel sichtbar.
 // Geprüft werden zusätzlich der Hinweis am Bezug und die Löschsperre.
@@ -464,7 +464,7 @@ test.describe('KS-05: Abgeleitete Zeitrechnung anlegen und schützen', () => {
   });
 });
 
-// 4T-0748 (Epic 3E-0138): Der Wert einer abgeleiteten Zeitrechnung erscheint
+// 4T-000748 (Epic 3E-000138): Der Wert einer abgeleiteten Zeitrechnung erscheint
 // als Zeitspanne; der Kurzhinweis nennt kanonischen Wert und Bezugs-Datum.
 // Der Picker arbeitet in der Notation des Bezugs (Entscheidung 2a): sein
 // Gitter zeigt den gregorianischen Monat, uebernommen wird die Zaehlung.
@@ -506,12 +506,12 @@ test.describe('KS-06: Zeitspanne im Dokument und Picker in Bezugs-Notation', () 
   });
 });
 
-// 4T-0943 (Epic 3E-0197): Der Kalender-Wert trug denselben Ausschluss der
+// 4T-000943 (Epic 3E-000197): Der Kalender-Wert trug denselben Ausschluss der
 // aktiven Zeile wie die ISO-Datums-Werte — steht der Cursor in der Zeile,
 // war der Wert dort weder dekoriert noch erreichbar. Entscheidung des
 // Product Owners vom 2026-09-01 (E2 im Epic): beide Wert-Arten bekommen den
 // Zugang, damit zwischen ihnen keine Ungleichheit entsteht.
-test.describe('KS-07: Zugang in der Zeile mit dem Cursor (4T-0943)', () => {
+test.describe('KS-07: Zugang in der Zeile mit dem Cursor (4T-000943)', () => {
   test('einfacher Klick setzt den Cursor, Strg-Klick oeffnet den vorbelegten Picker', async () => {
     const { areaRoot } = makeCalendarArea();
     const { app, page, userData } = await launchApp();

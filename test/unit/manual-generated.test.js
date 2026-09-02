@@ -1,4 +1,4 @@
-// 4T-0716 (Epic 3E-0137): Unit-Test des geteilten Erzeugungs-Moduls der beiden
+// 4T-000716 (Epic 3E-000137): Unit-Test des geteilten Erzeugungs-Moduls der beiden
 // generierten Handbuch-Seiten. Prueft, dass die reine Erzeugung deterministisch
 // ist und dass die drei veraenderlichen Parameter (Uebersetzung, wirksame
 // Bindings, deaktivierte Kommandos) wie erwartet durchschlagen. Damit ist der
@@ -21,7 +21,7 @@ import { mergeBindings } from '../../src/shared/commands/commands.js';
 // zurueck (translated === key), was fuer die Struktur-Pruefungen genuegt.
 const tId = (key) => key;
 
-describe('manual-generated: reine Helfer (4T-0716)', () => {
+describe('manual-generated: reine Helfer (4T-000716)', () => {
   it('escapeTableCell maskiert Pipes und Zeilenumbrueche, ohne Doppel-Escape', () => {
     expect(escapeTableCell('a|b')).toBe('a\\|b');
     expect(escapeTableCell('a\\|b')).toBe('a\\|b');
@@ -44,7 +44,7 @@ describe('manual-generated: reine Helfer (4T-0716)', () => {
   });
 });
 
-describe('manual-generated: Funktions-Seite (4T-0716)', () => {
+describe('manual-generated: Funktions-Seite (4T-000716)', () => {
   it('ist deterministisch und traegt H1, Intro und je Gruppe eine H2', () => {
     const a = generateFunctionsPage(tId);
     const b = generateFunctionsPage(tId);
@@ -57,7 +57,7 @@ describe('manual-generated: Funktions-Seite (4T-0716)', () => {
   });
 });
 
-describe('manual-generated: Tastenkuerzel-Seite (4T-0716)', () => {
+describe('manual-generated: Tastenkuerzel-Seite (4T-000716)', () => {
   it('zeigt das Default-Binding der Suche als lokalisiertes Token', () => {
     const md = generateShortcutsPage({
       t: tId,

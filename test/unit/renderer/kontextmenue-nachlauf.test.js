@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1308 (Epic 3E-0235): Nachlauf-Schaltflaeche am Zeilenende eines
+// 4T-001308 (Epic 3E-000235): Nachlauf-Schaltflaeche am Zeilenende eines
 // Kontextmenue-Eintrags.
 //
 // Sie traegt eine zweite Handlung am selben Eintrag (im Mitglieder-Menue einer
@@ -25,7 +25,7 @@ function eintragBauen(item) {
   return contextMenu.querySelector('.context-menu-item');
 }
 
-describe('Nachlauf-Schaltflaeche im Kontextmenue (4T-1308)', () => {
+describe('Nachlauf-Schaltflaeche im Kontextmenue (4T-001308)', () => {
   beforeEach(() => {
     contextMenu.innerHTML = '';
     contextMenu.hidden = true;

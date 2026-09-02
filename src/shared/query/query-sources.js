@@ -1,4 +1,4 @@
-// 4T-1070 (Epic 3E-0211): Quellen-Auswertung der Perspective-Query-Sprache
+// 4T-001070 (Epic 3E-000211): Quellen-Auswertung der Perspective-Query-Sprache
 // (FROM-Ebene), herausgelöst aus perspective-query-eval.js. Der Schnitt wurde
 // vom Datei-Größen-Budget erzwungen, folgt aber der Naht, die der Kern schon
 // als eigenes Kapitel führte: Hier steht ausschließlich die Frage, ob eine
@@ -19,7 +19,7 @@ const { pathCompareKey } = require('../platform.js');
 // Normalisiert eine Ordner-Angabe der Quelle: Backslashes zu '/', führende und
 // schließende Slashes weg, Schreibweise nach der zentralen Auskunft.
 //
-// 4T-1276 (Epic 3E-0232, Befund B1): Vorher wurde hier fest kleingeschrieben
+// 4T-001276 (Epic 3E-000232, Befund B1): Vorher wurde hier fest kleingeschrieben
 // mit der Begründung «Windows-Dateisystem ist case-insensitiv». Ein Ordner ist
 // Datei-Identität; die Tag-Vergleiche weiter unten (srcTag) sind es NICHT und
 // bleiben deshalb bewusst plattform-unabhängig tolerant — ein Tag ist ein
@@ -61,7 +61,7 @@ function matchesSource(node, ctx) {
         return tl === wanted || tl.startsWith(wanted + '/');
       });
     }
-    // 4T-1070 (Epic 3E-0211): Selbstbezugs-Quelle. Ziel ist die Träger-Datei
+    // 4T-001070 (Epic 3E-000211): Selbstbezugs-Quelle. Ziel ist die Träger-Datei
     // selbst, ihr Pfad steht im Selbst-Kontext — es braucht also keine
     // Wiki-Auflösung. Ohne Träger-Kontext liefert die Quelle die LEERE Menge
     // und nicht 'alles', damit ein unvollständiger Kontext nie zu einem zu

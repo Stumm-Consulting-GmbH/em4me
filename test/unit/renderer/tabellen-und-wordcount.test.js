@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0193: Unit-Tests Renderer-Module — Tabellen-Zell-Logik (editor.js)
+// 4T-000193: Unit-Tests Renderer-Module — Tabellen-Zell-Logik (editor.js)
 // und Statistik/Caches (render-mermaid.js). Tabellen-getriebene Faelle,
 // Befund-IDs an den Regressionsfaellen.
 import { describe, it, expect } from 'vitest';
@@ -22,7 +22,7 @@ describe('Tabellen-Zell-Logik (editor.js)', () => {
     expect(editor.isTableLine('| nur eine Pipe')).toBe(false);
   });
 
-  // R2-19 (4T-0186): virtuelle Randzellen fuer randlose GFM-Tabellen.
+  // R2-19 (4T-000186): virtuelle Randzellen fuer randlose GFM-Tabellen.
   const cellCases = [
     { text: '| a | b |', cells: 2, first: 'a' },
     { text: 'a | b', cells: 2, first: 'a' },
@@ -106,7 +106,7 @@ describe('Mermaid-Cache (render-mermaid.js)', () => {
     rm.mermaidRenderCache.clear();
   });
 
-  // R2-07 (4T-0174): Sonderzeichen-feste file:///-URLs.
+  // R2-07 (4T-000174): Sonderzeichen-feste file:///-URLs.
   it('fileUrlFor escaped #, ?, % und Leerzeichen', () => {
     const url = rm.fileUrlFor('C:\\Ordner mit Raum\\datei #1 50%.pdf');
     expect(url).toBe('file:///C:/Ordner%20mit%20Raum/datei%20%231%2050%25.pdf');

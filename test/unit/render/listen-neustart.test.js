@@ -1,4 +1,4 @@
-// 4T-0660 (Epic 3E-0112): Leerzeile beginnt eine neue nummerierte Liste.
+// 4T-000660 (Epic 3E-000112): Leerzeile beginnt eine neue nummerierte Liste.
 //
 // Bewusste Abweichung von der Standard-Interpretation (Festlegung des
 // Product Owners vom 2026-07-21): Ohne diese Regel setzt eine Leerzeile die
@@ -16,7 +16,7 @@ afterEach(() => configureExtensions([]));
 
 const ZWEI_LISTEN = '1. Erste A\n2. Erste B\n\n1. Zweite A\n2. Zweite B\n';
 
-describe('Listen-Neustart nach Leerzeile (4T-0660)', () => {
+describe('Listen-Neustart nach Leerzeile (4T-000660)', () => {
   it('setzt die Nummer am ersten Punkt nach der Leerzeile zurueck', () => {
     // Der Zeilen-Mapper haengt zusaetzlich data-source-line an, deshalb wird
     // nur der Attribut-Anfang geprueft.

@@ -1,5 +1,5 @@
-// Epic 3E-0098: Arbeitsbereiche — benannte logische Applikationen mit
-// Ablage, Lebenszyklus und Entwurfs-Mitnahme (4T-0537/4T-0538/4T-0539).
+// Epic 3E-000098: Arbeitsbereiche — benannte logische Applikationen mit
+// Ablage, Lebenszyklus und Entwurfs-Mitnahme (4T-000537/4T-000538/4T-000539).
 // Die Lebenszyklus-Aufrufe laufen ueber die echte Preload-Bruecke
 // (window.api.workspace*, identisch mit den Dialog-/Menue-Pfaden; native
 // Menues und Dialoge sind per Playwright nicht bedienbar).
@@ -11,12 +11,12 @@
 //        erneutes Oeffnen fokussiert statt dupliziert.
 // WS-03: Unbenannt-Entwurf gehoert zum Arbeitsbereichs-Zustand — er bleibt
 //        beim normalen App-Start liegen und kehrt erst mit dem Oeffnen
-//        seines Arbeitsbereichs zurueck (4T-0539).
+//        seines Arbeitsbereichs zurueck (4T-000539).
 // WS-04: Loeschen entfernt nur die Ablage; ein offener Arbeitsbereich wird
 //        zur unbenannten Applikation degradiert (Fenster bleibt).
 // WS-05: Erweiterung aus — Untermenue-Block und Titel-Teil verschwinden,
 //        die Ablage bleibt; Einschalten bringt beides zurueck.
-// WS-06: Regressionstest 4T-0633 — der aus dem Verwaltungs-Dialog
+// WS-06: Regressionstest 4T-000633 — der aus dem Verwaltungs-Dialog
 //        geoeffnete Namens-und-Farb-Dialog liegt OBEN und ist bedienbar.
 'use strict';
 
@@ -115,7 +115,7 @@ async function addDraftTabTo(app, page, text) {
   await expect(page.locator(SEL.dirtyTab0).last()).toBeVisible();
 }
 
-test.describe('WS-01: Speichern als Arbeitsbereich und Neustart-Restore (4T-0537/4T-0538)', () => {
+test.describe('WS-01: Speichern als Arbeitsbereich und Neustart-Restore (4T-000537/4T-000538)', () => {
   test('saveAs setzt Titel und Untermenue, der offene Arbeitsbereich ueberlebt den Neustart', async () => {
     const first = await launchApp({ args: [BASIS] });
     const userData = first.userData;
@@ -159,7 +159,7 @@ test.describe('WS-01: Speichern als Arbeitsbereich und Neustart-Restore (4T-0537
   });
 });
 
-test.describe('WS-02: Schliessen friert ein, Wiederoeffnen fokussiert statt dupliziert (4T-0537)', () => {
+test.describe('WS-02: Schliessen friert ein, Wiederoeffnen fokussiert statt dupliziert (4T-000537)', () => {
   test('close friert den Stand ein, open stellt her, zweites open fokussiert nur', async () => {
     const { app, page, userData } = await launchApp();
     try {
@@ -205,7 +205,7 @@ test.describe('WS-02: Schliessen friert ein, Wiederoeffnen fokussiert statt dupl
   });
 });
 
-test.describe('WS-03: Unbenannt-Entwurf gehoert zum Arbeitsbereich (4T-0539)', () => {
+test.describe('WS-03: Unbenannt-Entwurf gehoert zum Arbeitsbereich (4T-000539)', () => {
   test('Entwurf bleibt beim normalen Start liegen und kehrt mit dem Arbeitsbereich zurueck', async () => {
     const first = await launchApp();
     const userData = first.userData;
@@ -256,7 +256,7 @@ test.describe('WS-03: Unbenannt-Entwurf gehoert zum Arbeitsbereich (4T-0539)', (
   });
 });
 
-test.describe('WS-04: Loeschen degradiert den offenen Arbeitsbereich (4T-0537)', () => {
+test.describe('WS-04: Loeschen degradiert den offenen Arbeitsbereich (4T-000537)', () => {
   test('delete entfernt die Ablage, das Fenster laeuft als unbenannte App weiter', async () => {
     const { app, page, userData } = await launchApp();
     try {
@@ -283,7 +283,7 @@ test.describe('WS-04: Loeschen degradiert den offenen Arbeitsbereich (4T-0537)',
   });
 });
 
-test.describe('WS-05: Erweiterung aus nimmt Zugaenge, laesst die Ablage (4T-0538)', () => {
+test.describe('WS-05: Erweiterung aus nimmt Zugaenge, laesst die Ablage (4T-000538)', () => {
   test('Untermenue-Block und Titel-Teil verschwinden und kehren zurueck, die Ablage bleibt', async () => {
     const { app, page, userData } = await launchApp();
     try {
@@ -309,13 +309,13 @@ test.describe('WS-05: Erweiterung aus nimmt Zugaenge, laesst die Ablage (4T-0538
   });
 });
 
-// Regressionstest 4T-0633 (Epic 3E-0102, PO-Befund der Release-Test-
+// Regressionstest 4T-000633 (Epic 3E-000102, PO-Befund der Release-Test-
 // Iteration): Der Namens-und-Farb-Dialog ("Umbenennen und Farbe...")
 // oeffnete AUS dem Verwaltungs-Dialog heraus UNTER diesem (beide teilten
 // z-index 3000, der spaetere DOM-Knoten gewann) und war unbedienbar.
 // Playwright-Actionability (fill/click mit Hit-Test am Aktionspunkt)
 // schlaegt bei verdecktem Element fehl — genau der Befund.
-test.describe('WS-06: Umbenennen-Dialog liegt ueber dem Verwaltungs-Dialog (4T-0633)', () => {
+test.describe('WS-06: Umbenennen-Dialog liegt ueber dem Verwaltungs-Dialog (4T-000633)', () => {
   test('Aus "Verwalten" geoeffneter Namens-und-Farb-Dialog ist bedienbar', async () => {
     const { app, page, userData } = await launchApp();
     try {

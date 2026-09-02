@@ -1,5 +1,5 @@
-// === 4T-0079: Drag-and-Drop der Lesezeichen ================================
-// 4T-0991 (Epic 3E-0196): aus bookmarks.js in den Ordner bookmarks/
+// === 4T-000079: Drag-and-Drop der Lesezeichen ================================
+// 4T-000991 (Epic 3E-000196): aus bookmarks.js in den Ordner bookmarks/
 // ausgezogen.
 // HTML5-DnD-API. Drei Drop-Zonen pro Knoten:
 //   - obere Drittel: davor (gleiche Ebene)
@@ -9,7 +9,7 @@
 // Zyklus-Schutz: ein Folder kann nicht in sich selbst oder einen seiner
 // Nachfahren gezogen werden. Drop auf den leeren Sektions-Bereich legt am
 // Ende des Roots ab.
-// 4T-0612: Drag-and-Drop bleibt strikt innerhalb des eigenen Abschnitts —
+// 4T-000612: Drag-and-Drop bleibt strikt innerhalb des eigenen Abschnitts —
 // der Drag traegt seinen Abschnitt (sectionKind), fremde Abschnitte lehnen
 // den Drop ab (Cross-Drag ueber die Grenze ist bewusst nicht im Umfang;
 // der Wechsel laeuft ueber "umwandeln").
@@ -84,7 +84,7 @@ export function handleBookmarkDragOverNode(ev, node, rowEl, section) {
   const drag = state.bookmarks.dragging;
   if (!drag || !drag.sourceId) return;
   const sec = section || bookmarkSection(SECTION_GENERAL);
-  // 4T-0612: kein Drop ueber die Abschnitts-Grenze.
+  // 4T-000612: kein Drop ueber die Abschnitts-Grenze.
   if (drag.sectionKind !== sec.kind) {
     if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
     return;
@@ -110,7 +110,7 @@ export function handleBookmarkDragOverRoot(ev, containerEl, section) {
   const drag = state.bookmarks.dragging;
   if (!drag || !drag.sourceId) return;
   const sec = section || bookmarkSection(SECTION_GENERAL);
-  // 4T-0612: kein Drop ueber die Abschnitts-Grenze.
+  // 4T-000612: kein Drop ueber die Abschnitts-Grenze.
   if (drag.sectionKind !== sec.kind) {
     if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
     return;
@@ -140,7 +140,7 @@ export async function handleBookmarkDrop(ev, section) {
   const sec = section || bookmarkSection(SECTION_GENERAL);
   ev.preventDefault();
   ev.stopPropagation();
-  // 4T-0612: Drop im fremden Abschnitt wird abgewiesen (kein Cross-Drag).
+  // 4T-000612: Drop im fremden Abschnitt wird abgewiesen (kein Cross-Drag).
   if (drag.sectionKind !== sec.kind) {
     state.bookmarks.dragging = {
       sourceId: null,

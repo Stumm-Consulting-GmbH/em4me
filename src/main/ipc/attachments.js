@@ -2,7 +2,7 @@
 // einer Anlage in der Standardanwendung und die Anlagen-Konfiguration
 // (globaler Wert im Speicher, Bereichs-Sektion in der Bereichsdatei).
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: attachment:*,
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: attachment:*,
 // attachments:*.
 //
 // Eigener Zustand: keiner; die Pfad-Rechnung liegt im reinen Modul
@@ -15,7 +15,7 @@ const attachmentPath = require('../documents/attachment-path');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('../documents/self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -48,11 +48,11 @@ function registerAttachmentsIpc(handle, deps) {
     resolveAttachmentsConfig,
     bereinigterQuellName,
   } = deps;
-  // 4T-0999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
+  // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
 
-  // 4T-0787 (Epic 3E-0125): Anlage ablegen und den Verweis-Pfad liefern. Der
+  // 4T-000787 (Epic 3E-000125): Anlage ablegen und den Verweis-Pfad liefern. Der
   // eine Kanal beider Eingabewege (Einfuegen, Ziehen). Die Pfad-Rechnung liegt
   // vollstaendig im reinen Modul attachment-path; hier bleiben nur die
   // Datei-Operationen und die Parameter-Pruefung.
@@ -132,7 +132,7 @@ function registerAttachmentsIpc(handle, deps) {
     }
   });
 
-  // 4T-0791 (Epic 3E-0125): Konfigurations-Stand fuer den Einstellungs-Bereich
+  // 4T-000791 (Epic 3E-000125): Konfigurations-Stand fuer den Einstellungs-Bereich
   // „Anlagen": globale Werte (Store) und Bereichs-Sektion (Bereichsdatei).
   // hasArea/areaName steuern die Bereichs-Gruppe der UI (Muster
   // templates:getConfig).
@@ -154,7 +154,7 @@ function registerAttachmentsIpc(handle, deps) {
     };
   });
 
-  // 4T-0791: globale Anlagen-Einstellung schreiben.
+  // 4T-000791: globale Anlagen-Einstellung schreiben.
   handle('attachments:setGlobalConfig', async (_event, config) => {
     if (!store) return { ok: false, error: 'no store' };
     const normalisiert = attachmentPath.normalisiereAnlagenKonfig(config);
@@ -163,7 +163,7 @@ function registerAttachmentsIpc(handle, deps) {
     return { ok: true };
   });
 
-  // 4T-0791: attachments-Sektion der Bereichsdatei schreiben (config = Objekt)
+  // 4T-000791: attachments-Sektion der Bereichsdatei schreiben (config = Objekt)
   // bzw. entfernen (config = null, also „Wie allgemein"). Muster
   // templates:setAreaConfig: die Bereichsdatei entsteht erst beim ersten
   // tatsaechlichen Setzen, eine defekte Bereichsdatei wird nie ueberschrieben.
@@ -197,7 +197,7 @@ function registerAttachmentsIpc(handle, deps) {
     }
   });
 
-  // 4T-0790 (Epic 3E-0125): Eine Anlage in der Standardanwendung oeffnen.
+  // 4T-000790 (Epic 3E-000125): Eine Anlage in der Standardanwendung oeffnen.
   //
   // Bewusst ein EIGENER Kanal mit shell.openPath statt einer Lockerung von
   // 'shell:openExternal'. Dessen Beschraenkung auf http/https schuetzt einen

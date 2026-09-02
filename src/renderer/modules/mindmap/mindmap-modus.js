@@ -1,11 +1,11 @@
-// 4T-1047 (Epic 3E-0151): Verfügbarkeit des Mindmap-Ansichts-Modus.
+// 4T-001047 (Epic 3E-000151): Verfügbarkeit des Mindmap-Ansichts-Modus.
 //
 // **Bewusst ein eigenes, winziges Modul.** Die Regel wird von app-state.js
 // (beim Erzeugen eines Reiters) und von views.js (beim Umschalten) gebraucht.
 // Lag sie in mindmap-pane.js, zöge app-state über diesen Weg das
 // Einstellungs-Modul mit, und dessen Registrierung läuft als Modul-
 // Seiteneffekt: Die Kette app-state → mindmap-pane → mindmap-einstellungen →
-// settings-page → system-pages traf in 4T-1048 auf ein noch nicht
+// settings-page → system-pages traf in 4T-001048 auf ein noch nicht
 // initialisiertes SYSTEM_PAGES und riss 21 Testdateien beim Import.
 //
 // Dieses Modul importiert deshalb ausschließlich den Erweiterungs-Zustand,
@@ -27,7 +27,7 @@ export function isMindmapModeAvailable() {
 /**
  * Rückfall-Modus für einen gespeicherten Reiter. Ohne ihn trüge ein
  * wiederhergestellter Reiter einen Modus, den es nicht mehr gibt, und seine
- * Pane bliebe leer (Story 4S-0804, AK7).
+ * Pane bliebe leer (Story 4S-000804, AK7).
  */
 export function resolveViewModeForTab(mode) {
   if (mode === 'mindmap' && !isMindmapModeAvailable()) return 'rendered';

@@ -1,4 +1,4 @@
-// 4T-0589 (Epic 3E-0109): Unit-Matrix für den Pipe-Tabellen-Bearbeitungs-Kern
+// 4T-000589 (Epic 3E-000109): Unit-Matrix für den Pipe-Tabellen-Bearbeitungs-Kern
 // (src/shared/markdown/table-edit.js). Deckt Voll-Parser (Ausrichtungs-Zeile,
 // randlose Form, escapte Pipes, Auffüllung), Serialisierer (Rand-Pipe-
 // Normalisierung, Spalten-Padding, Round-Trip), alle Operationen inklusive

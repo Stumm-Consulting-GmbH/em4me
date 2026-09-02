@@ -1,4 +1,4 @@
-// 4T-1156 (Epic 3E-0219, E11): Bedienelemente der Typen und Optionen aus dem
+// 4T-001156 (Epic 3E-000219, E11): Bedienelemente der Typen und Optionen aus dem
 // Typ-Ausbau der Stufe 2 — Verweis, Uhrzeit, die Optionen von Zahl und Datum
 // und der Zyklus der Einfach-Auswahl.
 //
@@ -174,12 +174,12 @@ export function attachLinkSuggestions(list, input, opts) {
 }
 
 /**
- * 4T-1158 (Epic 3E-0219, E12): Hat ein Feld Auswahl-Charakter?
+ * 4T-001158 (Epic 3E-000219, E12): Hat ein Feld Auswahl-Charakter?
  *
  * Seit der Abfrage-Quelle genügt die feste Werte-Liste nicht mehr als
  * Kennzeichen: Ein Feld mit `valuesFrom.query` bekommt seinen Vorrat erst
  * nach der Auswertung und trägt bis dahin keine Werte — es ist trotzdem eine
- * Auswahl und braucht ihr Bedienelement. Die Notiz-Quelle (4T-1157) füllt
+ * Auswahl und braucht ihr Bedienelement. Die Notiz-Quelle (4T-001157) füllt
  * `values` bereits im Profil-Katalog und fällt deshalb schon unter den
  * ersten Teil der Bedingung.
  *
@@ -192,7 +192,7 @@ export function hatAuswahl(def) {
   return !!(def.valuesFrom && def.valuesFrom.query);
 }
 
-// 4T-1158 (Epic 3E-0219, E12): Wertevorrat aus einer Abfrage. Er wird **hier**
+// 4T-001158 (Epic 3E-000219, E12): Wertevorrat aus einer Abfrage. Er wird **hier**
 // geholt und nicht beim Auflösen des Profils — genau darin steckt die Zusage
 // «auf Verlangen»: Nur ein Feld, das sein Bedienelement bekommt, löst eine
 // Auswertung aus. Ein Fehler ist ein leerer Vorrat, keine Ausnahme.
@@ -337,7 +337,7 @@ export function renderCycleField(container, def, value, opts) {
   return knopf;
 }
 
-// --- 4T-1185 (Epic 3E-0221, E1): abgeleitete Felder ---------------------------
+// --- 4T-001185 (Epic 3E-000221, E1): abgeleitete Felder ---------------------------
 
 // Marke eines abgeleiteten Feldes am DOM. Sie steht hier und nicht als
 // Zeichenkette in den Schreibwegen, damit Setzen und Auswerten dieselbe Quelle
@@ -437,7 +437,7 @@ export function setzeAbgeleitetenWert(el, wert, hinweis) {
   }
 }
 
-// 4T-1184/4T-1185: Treffer eines Lookup-Feldes. Sie werden **hier** geholt und
+// 4T-001184/4T-001185: Treffer eines Lookup-Feldes. Sie werden **hier** geholt und
 // nicht beim Auflösen des Profils — genau darin steckt die Zusage «nur
 // auswerten, wenn sichtbar» aus Konzept 6.11. Ein Fehler ist ein leeres
 // Ergebnis mit Hinweis, keine Ausnahme.

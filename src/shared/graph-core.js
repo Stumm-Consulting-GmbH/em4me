@@ -1,4 +1,4 @@
-// 4T-0453 (Epic 3E-0084): Graph-Kern der Graphenansicht — Knoten-/Kanten-
+// 4T-000453 (Epic 3E-000084): Graph-Kern der Graphenansicht — Knoten-/Kanten-
 // Modell aus dem Link-Index, Tiefen-Expansion um eine Start-Datei,
 // Richtungs-Filter und deterministisches Kraft-Layout.
 //
@@ -143,7 +143,7 @@ function neighborhood(model, startId, options = {}) {
   return { nodes, edges };
 }
 
-// --- Ober-Grenze (4T-0454) ------------------------------------------------------
+// --- Ober-Grenze (4T-000454) ------------------------------------------------------
 
 // Reduziert ein Modell auf die maxNodes am stärksten vernetzten Knoten
 // (Grad = Anzahl beteiligter Kanten; twoWay zählt wie eine Kante). Ties

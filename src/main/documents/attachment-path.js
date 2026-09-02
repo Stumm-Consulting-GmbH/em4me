@@ -1,4 +1,4 @@
-// 4T-0787 (Epic 3E-0125): Ablage-Kern fuer Anlagen. Beantwortet die eine
+// 4T-000787 (Epic 3E-000125): Ablage-Kern fuer Anlagen. Beantwortet die eine
 // Frage, die beide Eingabewege stellen (Einfuegen aus der Zwischenablage,
 // Ziehen auf eine Dokument-Flaeche): Wohin gehoert die Datei, wie heisst sie
 // dort, und liegt der Ort innerhalb der erlaubten Grenze?
@@ -17,7 +17,7 @@ const path = require('node:path');
 // Die vier Ablage-Formen (PO-Festlegung 2026-07-29). 'bereich' ist die
 // einzige, die eine gebundene Bereichs-Wurzel voraussetzt; die uebrigen drei
 // liegen im Ordner-Teilbaum des Dokuments und kommen deshalb ohne die in
-// 4T-0788 aufgeweitete Bild-Grenze aus.
+// 4T-000788 aufgeweitete Bild-Grenze aus.
 const ABLAGE_FORMEN = ['neben', 'fest', 'dokument', 'bereich'];
 
 // Voreinstellung in beiden Lagen, mit und ohne Bereich: der Ordner mit dem
@@ -212,7 +212,7 @@ function verweisPfad({ dokumentPfad, zielPfad } = {}) {
   return rel.split(path.sep).join('/');
 }
 
-// 4T-0790 (Epic 3E-0125): Endungen, deren Oeffnen ueber das Betriebssystem
+// 4T-000790 (Epic 3E-000125): Endungen, deren Oeffnen ueber das Betriebssystem
 // Code ausfuehrt. Sie werden nicht gesperrt, aber erst nach einer Rueckfrage
 // geoeffnet, die Name und vollen Pfad zeigt (PO-Festlegung 2026-07-29).
 //

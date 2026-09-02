@@ -1,6 +1,6 @@
 // --- Ansichts-Kern ----------------------------------------------------------
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul.
-// 4T-0989 (Epic 3E-0196): in den Ordner views/ geteilt; hier bleiben der
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul.
+// 4T-000989 (Epic 3E-000196): in den Ordner views/ geteilt; hier bleiben der
 // Ansichts-Modus samt Editor-Ansicht-Schaltern, das automatische Speichern,
 // die Statusbar-Hinweise, der Persist-Helfer der Einstellungen, der
 // Empty-State und die Sitzungs-Persistenz der Panes.
@@ -21,28 +21,28 @@ import {
   state,
   statusbarHint,
 } from '../app/app-state.js';
-// 4T-0572 (Epic 3E-0105): Frontmatter-Lesen/-Schreiben der dokument-
+// 4T-000572 (Epic 3E-000105): Frontmatter-Lesen/-Schreiben der dokument-
 // gebundenen Editor-Ansicht-Schalter. Direkter Import aus dem Electron-
 // freien Shared-Modul (Muster live-widgets.js), damit die Content-
 // Transformation ohne Preload-Bruecke unit-testbar bleibt.
 import { extractFrontmatter, writeFrontmatter } from '../../../shared/markdown/frontmatter.js';
 import { paneEditors, syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
 import { reportMenuStateNow, syncToolbarToActiveTab } from '../tabs/tabs.js';
-// 4T-0459 (Epic 3E-0085): Gruppen-Anteil des Panes-Snapshots (reiner Helfer).
+// 4T-000459 (Epic 3E-000085): Gruppen-Anteil des Panes-Snapshots (reiner Helfer).
 import { buildGroupsSnapshot } from '../tabs/tab-groups.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
-// 4T-0991 (Epic 3E-0196): bookmarks.js ist in den Feature-Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): bookmarks.js ist in den Feature-Ordner bookmarks/
 // geteilt.
 import { applyBookmarksVisibility } from '../bookmarks/bookmarks.js';
 import { refreshSearchIfVisible } from '../search/search.js';
 
-// 4T-0989: Laufzeit-Zyklen des Ordners. views (Kern) ruft renderTabbar/
+// 4T-000989: Laufzeit-Zyklen des Ordners. views (Kern) ruft renderTabbar/
 // renderPaneContent und die Zeitstempel-Automatik, waehrend pane-render den
 // Empty-State und save-export Hinweis, Persistenz und Frontmatter-
 // Transformation zurueckruft. Beide Richtungen sind reine Funktionsaufrufe
 // zur Laufzeit (Muster der dokumentierten Modularisierungs-Zyklen
 // views <-> editor, history-status, templates, title-line).
-// 4T-1047 (Epic 3E-0151): Zeichnen und Einpassen kommen aus der Pane-Ebene,
+// 4T-001047 (Epic 3E-000151): Zeichnen und Einpassen kommen aus der Pane-Ebene,
 // die Verfuegbarkeits-Regel aus dem zyklusfreien Modus-Modul (Begruendung im
 // Kopf von mindmap-modus.js).
 import {
@@ -57,7 +57,7 @@ import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
 import { applyContentViewClass, isViewMode, zielAnsichtDesAenderungsmodus } from './view-modes.js';
 
-// 4T-0179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
+// 4T-000179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
 // geschrieben und bleiben deshalb modul-privat; ueber die Modul-Grenze fuehrt
 // kein beschreibbarer Export (Entwicklungsrichtlinien).
 let autoSaveTimer = null;
@@ -65,24 +65,24 @@ let hintTimer = null;
 
 // --- View-Modus + Toggles (alle pro Tab) ------------------------------------
 export function setViewMode(mode) {
-  // 4T-1047 (Epic 3E-0151): 'mindmap' als fuenfter Modus. Ist die
+  // 4T-001047 (Epic 3E-000151): 'mindmap' als fuenfter Modus. Ist die
   // Erweiterung aus, faellt er auf die Lese-Ansicht zurueck, statt eine
-  // leere Pane zu zeigen (Story 4S-0804, AK7).
+  // leere Pane zu zeigen (Story 4S-000804, AK7).
   const gewuenscht = resolveViewModeForTab(mode);
-  // 4T-1054: Die Modus-Liste kommt aus view-modes.js, nicht als sechste
+  // 4T-001054: Die Modus-Liste kommt aus view-modes.js, nicht als sechste
   // Kopie hierher.
   if (!isViewMode(gewuenscht)) return;
   const tab = activeTab();
   if (!tab) return;
   mode = gewuenscht;
-  // 4T-0277: System-Seiten (Einstellungen) kennen keine View-Modi — das
+  // 4T-000277: System-Seiten (Einstellungen) kennen keine View-Modi — das
   // Seiten-DOM ersetzt Editor und Render-Pane vollstaendig.
   if (tab.systemPage) return;
   tab.viewMode = mode;
   // Edit-Modus ist nur in Source/Split/Live sinnvoll. Beim Wechsel auf
   // "Gerendert" wird der Edit-Modus automatisch ausgeschaltet, damit der
   // Statusbar-Toggle konsistent zum sichtbaren View ist. Bei Source,
-  // Split und Live (4T-0085) wird Edit-Modus NICHT automatisch
+  // Split und Live (4T-000085) wird Edit-Modus NICHT automatisch
   // eingeschaltet — der User aktiviert ihn explizit via Strg+E oder
   // den Bearbeiten-Button. So bleibt Live konsistent zu Source und
   // Split (alle drei zeigen den Editor read-only, bis User editieren
@@ -92,7 +92,7 @@ export function setViewMode(mode) {
   }
   const els = getPaneEls(state.activePaneIndex);
   applyContentViewClass(els.content, `view-${mode}`);
-  // 4T-0351 (Epic 3E-0063): Beim Wechsel in einen Modus mit sichtbarem
+  // 4T-000351 (Epic 3E-000063): Beim Wechsel in einen Modus mit sichtbarem
   // Render-Pane (Gerendert/Geteilt) das Render-DOM aus dem aktuellen
   // tab.content aufbauen. syncEditorForPane synchronisiert nur den Editor;
   // ausserhalb des Split-Modus laeuft bei Quelltext-Aenderungen kein
@@ -104,7 +104,7 @@ export function setViewMode(mode) {
   if (mode === 'rendered' || mode === 'split') {
     renderPaneContent(state.activePaneIndex);
   } else if (mode === 'mindmap') {
-    // 4T-1047: Die Karte baut auf tab.content auf, nicht auf dem Editor;
+    // 4T-001047: Die Karte baut auf tab.content auf, nicht auf dem Editor;
     // ein Editor-Abgleich ist hier ohne Wirkung. Nach dem Zeichnen einmal
     // einpassen, damit der Nutzer die ganze Karte sieht.
     renderMindmap(state.activePaneIndex);
@@ -118,7 +118,7 @@ export function setViewMode(mode) {
   refreshSearchIfVisible();
 }
 
-// 4T-1054 (Epic 3E-0151): Sprung aus der Mindmap. Die Karte meldet nur den
+// 4T-001054 (Epic 3E-000151): Sprung aus der Mindmap. Die Karte meldet nur den
 // Wunsch; welcher Modus die Stelle zeigt, entscheidet die Ansichts-Ebene.
 // Geteilte Ansicht, weil der Nutzer die Quellzeile und das gerenderte
 // Dokument nebeneinander sehen soll (PO-Entscheidung vom 2026-08-16). Der
@@ -134,7 +134,7 @@ document.addEventListener(MINDMAP_JUMP_EVENT, (ev) => {
   );
 });
 
-// 4T-0572 (Epic 3E-0105): Frontmatter-Update fuer Editor-Ansicht-Schalter als
+// 4T-000572 (Epic 3E-000105): Frontmatter-Update fuer Editor-Ansicht-Schalter als
 // reine Content-Transformation. updates ist ein Objekt Frontmatter-Key →
 // Boolean. Liefert den neuen Dokument-Text oder null, wenn nicht geschrieben
 // werden kann (defektes YAML wird nie ueberschrieben, Muster history-status).
@@ -155,7 +155,7 @@ export function buildEditorViewFrontmatterUpdate(content, updates) {
   return result.text;
 }
 
-// 4T-0572 (Epic 3E-0105, Weg A): gemeinsamer Kern der drei Editor-Ansicht-
+// 4T-000572 (Epic 3E-000105, Weg A): gemeinsamer Kern der drei Editor-Ansicht-
 // Toggles. Der neue Wert wird in das Frontmatter des aktiven Dokuments
 // geschrieben (dokument-gebunden, portabel); die Datei wird dadurch
 // aenderungsbeduerftig und ueber den normalen Speicher-Weg persistiert
@@ -205,7 +205,7 @@ export function toggleShowLineNumbers() {
   refreshSearchIfVisible();
 }
 
-// 4T-0013: Gliederung (Heading-Folding-Gutter) pro Tab toggeln. Analog zu
+// 4T-000013: Gliederung (Heading-Folding-Gutter) pro Tab toggeln. Analog zu
 // toggleShowLineNumbers; reconfiguriert das foldGutter-Compartment ueber
 // syncEditorForPane und synchronisiert Statusbar-Button und Menue-Haken.
 export function toggleShowFoldGutter() {
@@ -220,7 +220,7 @@ export function toggleShowFoldGutter() {
 // Fokusverlust alle dirtigen Tabs, die einen Pfad haben. Tabs ohne Pfad
 // ("Unbenannt") werden nicht automatisch gespeichert.
 
-// W-20/K-05 (4T-0309): Zentraler Persist-Helfer. Ein Store-Schreibfehler
+// W-20/K-05 (4T-000309): Zentraler Persist-Helfer. Ein Store-Schreibfehler
 // (api.setSetting kann rejecten) darf nicht still verpuffen — sonst wirkt die
 // Aenderung im Speicher weiter und geht beim Neustart kommentarlos verloren.
 // Gibt true/false zurueck und zeigt bei Fehler einen Statusbar-Hinweis.
@@ -267,18 +267,18 @@ export async function performAutoSave() {
   for (let p = 0; p < state.panes.length; p++) {
     for (let i = 0; i < state.panes[p].tabs.length; i++) {
       const tab = state.panes[p].tabs[i];
-      // 4T-0945: Ein erkannter Konflikt setzt diesen Reiter aus, bis der
+      // 4T-000945: Ein erkannter Konflikt setzt diesen Reiter aus, bis der
       // Anwender entscheidet (Speichern von Hand oder Neuladen). Sonst
       // liefe der Hinweis alle zwei Sekunden erneut auf.
-      // 4T-1291: Dasselbe gilt fuer ein Dokument, das geteilt werden muesste;
+      // 4T-001291: Dasselbe gilt fuer ein Dokument, das geteilt werden muesste;
       // die Frage danach stellt allein das Speichern von Hand.
       if (!tab.dirty || !tab.path || tab.saveConflict || tab.splitPending) continue;
       if (tab.readOnly) continue;
       try {
-        // 4T-0604 (Epic 3E-0113): Zeitstempel-Felder auch im Autosave-Pfad.
+        // 4T-000604 (Epic 3E-000113): Zeitstempel-Felder auch im Autosave-Pfad.
         await stampTabTimestamps(p, i, tab);
-        // W-02 (4T-0309): {ok,error}-Vertrag — Fehler ueber den catch.
-        // 4T-0945 (Story 4S-0786): auch im Hintergrund wird der Stand geprueft.
+        // W-02 (4T-000309): {ok,error}-Vertrag — Fehler ueber den catch.
+        // 4T-000945 (Story 4S-000786): auch im Hintergrund wird der Stand geprueft.
         // Eine im Nachlade-Dialog getroffene Entscheidung gilt hier ebenso:
         // Sie ist gefallen, das Hintergrund-Speichern setzt sie um und sichert
         // die ueberschriebene Fassung, statt den Reiter auszusetzen.
@@ -286,7 +286,7 @@ export async function performAutoSave() {
         const res = await api.saveFile(tab.path, tab.content, {
           expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
           force: vorentschieden,
-          // 4T-1291 (Epic 3E-0224): Das Hintergrund-Speichern gibt sich zu
+          // 4T-001291 (Epic 3E-000224): Das Hintergrund-Speichern gibt sich zu
           // erkennen, damit der Haupt-Prozess die Teilungs-Ankuendigung
           // unterlaesst statt sie ungefragt aufspringen zu lassen.
           hintergrund: true,
@@ -300,7 +300,7 @@ export async function performAutoSave() {
           splitOffen = true;
           continue;
         }
-        // 4T-1292: Einem geteilten Dokument fehlt ein Teil. Der Reiter geht in
+        // 4T-001292: Einem geteilten Dokument fehlt ein Teil. Der Reiter geht in
         // den Nur-Lese-Zustand und wird vom Hintergrund-Speichern nicht mehr
         // angefasst; die Meldung kommt beim naechsten Speichern von Hand.
         if (res && res.reason === 'partsMissing') {
@@ -351,15 +351,15 @@ export async function performAutoSave() {
 // wird der Edit-Modus umgeschaltet. Nach Aktivierung bekommt der Editor den
 // Tastatur-Fokus.
 //
-// 4T-1341 (Epic 3E-0238): Welche Ansicht das ist, entscheidet die Einstellung
+// 4T-001341 (Epic 3E-000238): Welche Ansicht das ist, entscheidet die Einstellung
 // statt einer festen Verdrahtung auf „Geteilt". Wer überwiegend in der
 // Live-Ansicht arbeitet, schaltete zuvor nach jedem Wechsel von Hand weiter.
 export function toggleEditMode() {
   const tab = activeTab();
   if (!tab) return;
-  // 4T-0213: Handbuch-Tabs sind dauerhaft read-only — der Toggle bleibt
+  // 4T-000213: Handbuch-Tabs sind dauerhaft read-only — der Toggle bleibt
   // wirkungslos (Statusbar-Stift ist zusaetzlich deaktiviert, Strg+E und
-  // Menue-Pfad laufen ebenfalls hier durch). 4T-0277: System-Seiten ebenso.
+  // Menue-Pfad laufen ebenfalls hier durch). 4T-000277: System-Seiten ebenso.
   if (tab.manualPage || tab.systemPage) return;
   if (tab.viewMode === 'rendered') {
     const ziel = zielAnsichtDesAenderungsmodus(state.editViewMode);
@@ -381,7 +381,7 @@ export function toggleEditMode() {
 }
 
 // --- Empty-State ------------------------------------------------------------
-// 4T-0075 (Epic 3E-0013): isAllEmpty als zentrale Helper-Funktion. Wird nicht
+// 4T-000075 (Epic 3E-000013): isAllEmpty als zentrale Helper-Funktion. Wird nicht
 // nur vom Empty-State selbst, sondern auch von den Sidebar-Sichtbarkeits-
 // Funktionen genutzt, um im Empty-State alle Sektionen ausser Bookmarks
 // zwangsweise auszublenden (sie ergeben ohne Tab eh keinen Sinn).
@@ -393,16 +393,16 @@ export function updateEmptyState() {
   const allEmpty = isAllEmpty();
   if (allEmpty) {
     emptyState.classList.remove('hidden');
-    // 4T-0075: Wenn die Lesezeichen-Sektion etwas zu zeigen hat, bleibt der
+    // 4T-000075: Wenn die Lesezeichen-Sektion etwas zu zeigen hat, bleibt der
     // Pane-Container sichtbar, damit die Sidebar sie anzeigen kann. Der
     // Empty-State-Block (mit Oeffnen-Button) liegt als pointer-events-loses
     // Overlay ueber dem Pane-Container und laesst Klicks auf die Sidebar
     // durch. Tabbar, Source-Pane, Render-Pane und der innere Splitter werden
     // ueber die Klasse .is-empty-with-bookmarks per CSS ausgeblendet, damit
     // nur Sidebar und Statusbar uebrig bleiben.
-    // 4T-0327 (Epic 3E-0059): gleiche Mechanik fuer die leere Bereichs-App —
+    // 4T-000327 (Epic 3E-000059): gleiche Mechanik fuer die leere Bereichs-App —
     // das Bereichs-Panel ist dort der Einstieg (erste Datei waehlen).
-    // 4T-0330 (PO-Testbefund): beides haengt an den Panel-SCHALTERN, nicht
+    // 4T-000330 (PO-Testbefund): beides haengt an den Panel-SCHALTERN, nicht
     // mehr an der blossen Existenz — ausgeschaltete Panels blenden die
     // Sidebar im Empty-State aus.
     const hasBookmarks =
@@ -410,7 +410,7 @@ export function updateEmptyState() {
     const bookmarksWanted =
       hasBookmarks && !!(state.bookmarks.visibleByPane[0] || state.bookmarks.visibleByPane[1]);
     const areaWanted = !!state.areaPath && (areaPanelVisiblePref(0) || areaPanelVisiblePref(1));
-    // 4T-0527 (PO-Testbefund 2026-07-11): das Erinnerungs-Panel ist bereichs-
+    // 4T-000527 (PO-Testbefund 2026-07-11): das Erinnerungs-Panel ist bereichs-
     // weit und soll im geoeffneten Bereich auch ohne offene Datei sichtbar
     // bleiben (Muster Bereichs-Panel). Nur bei aktiver Erweiterung.
     const remindersWanted =
@@ -418,7 +418,7 @@ export function updateEmptyState() {
       isExtensionActive('reminders') &&
       isExtensionActive('tasks') &&
       !!(state.reminders && (state.reminders.visibleByPane[0] || state.reminders.visibleByPane[1]));
-    // 4T-0372 (Epic 3E-0069): die Uhr zeigt nichts Dokument- oder Bereichs-
+    // 4T-000372 (Epic 3E-000069): die Uhr zeigt nichts Dokument- oder Bereichs-
     // Gebundenes und bleibt deshalb auch ohne offene Datei und ohne Bereich
     // sichtbar, sofern der Nutzer sie eingeschaltet hat.
     const clockWanted =
@@ -445,7 +445,7 @@ export function updateEmptyState() {
 // --- Persistenz -------------------------------------------------------------
 // Schickt den aktuellen Pane-Stand an den Main-Prozess. Main fuehrt die
 // Multi-Window-Persistenz pro Fenster zusammen und schreibt sie in die Settings.
-// 4T-0572 (Epic 3E-0105): die fruehere Per-Datei-Persistenz der drei Editor-
+// 4T-000572 (Epic 3E-000105): die fruehere Per-Datei-Persistenz der drei Editor-
 // Ansicht-Schalter (Store-Key 'app.fileSettings', R4-13) ist ersatzlos
 // abgeloest — die Werte leben dokument-gebunden im Frontmatter.
 export function persistState() {
@@ -468,7 +468,7 @@ export function buildPanesSnapshot() {
       const pos = indices.indexOf(p.activeIndex);
       activeIndex = pos >= 0 ? pos : 0;
     }
-    // 4T-0459 (Epic 3E-0085): Gruppen additiv persistieren — auf den
+    // 4T-000459 (Epic 3E-000085): Gruppen additiv persistieren — auf den
     // GEFILTERTEN Indizes ausgedrueckt (Gruppen, deren Mitglieder alle
     // pfadlos sind, entfallen). Gruppen-freie Sitzungen erzeugen exakt
     // das bisherige Schema (kein groups-Feld, kein group-Eintrag).
@@ -481,7 +481,7 @@ export function buildPanesSnapshot() {
         wrapLines: p.tabs[i].wrapLines,
         showLineNumbers: p.tabs[i].showLineNumbers,
         showFoldGutter: p.tabs[i].showFoldGutter,
-        // 4T-0070: Scroll-Synchronisation pro Tab in der Session erhalten.
+        // 4T-000070: Scroll-Synchronisation pro Tab in der Session erhalten.
         scrollSyncEnabled: !!p.tabs[i].scrollSyncEnabled,
         ...(groupOf[j] >= 0 ? { group: groupOf[j] } : {}),
       })),

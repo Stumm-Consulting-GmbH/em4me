@@ -1,4 +1,4 @@
-// 4T-0207 (Epic 3E-0015): Zentrale Kommando-Registry.
+// 4T-000207 (Epic 3E-000015): Zentrale Kommando-Registry.
 //
 // Single Source of Truth fuer alle konfigurierbaren Tastenkuerzel der App.
 // Reine Daten plus reine Funktionen (CJS, ohne DOM- und ohne Electron-
@@ -11,7 +11,7 @@
 // physische `code` (Epic-Vorueberlegung verworfen): Electron-Menue-
 // Accelerators sind key-basiert, und der bisherige Renderer-Vergleich
 // matcht ebenfalls `e.key` (deckt z.B. '+' auf deutscher Tastatur,
-// englischer Tastatur und Numpad gleichermassen ab, Kommentar 4T-0017).
+// englischer Tastatur und Numpad gleichermassen ab, Kommentar 4T-000017).
 //
 // User-Overrides liegen in electron-store unter dem EINEN Key 'hotkeys'
 // als flaches Objekt { [commandId]: acceleratorString }. Leerer String =
@@ -19,13 +19,13 @@
 // scheiden aus, weil electron-store Punkt-Pfade verschachtelt und die
 // Kommando-IDs selbst Punkte tragen.
 //
-// 4T-0993 (Epic 3E-0196): Die registry-freie Binding-Schicht liegt in
+// 4T-000993 (Epic 3E-000196): Die registry-freie Binding-Schicht liegt in
 // src/shared/commands/command-bindings.js (Normalisierung, Ereignis-Abbildung,
 // Anzeige- und CodeMirror-Konvertierung, fixe Bindings samt Capture-Regel,
 // Zeitstempel-Format). Hier bleiben die deklarativen Registry-Daten und die
 // Funktionen, die über die live mutierte COMMANDS-Liste laufen; die Datei ist
 // als deklarative Registry eine begründete Ausnahme des Datei-Größen-Budgets
-// (Entscheidung E2 der Bestandsaufnahme 4T-0964). Die Import-Richtung ist
+// (Entscheidung E2 der Bestandsaufnahme 4T-000964). Die Import-Richtung ist
 // einseitig: commands.js liest command-bindings.js, nie umgekehrt. Die dort
 // liegenden Namen werden hier bewusst NICHT erneut exportiert (Entscheidung
 // E3: Fassaden nur als bewusste Subsystem-APIs) — Verbraucher importieren sie
@@ -61,7 +61,7 @@ const COMMAND_CATEGORIES = [
 //
 // Die Array-Reihenfolge bestimmt die Zeilen-Reihenfolge der generierten
 // Hilfe-Tabelle (Eintraege mit gleichem descKey buendeln in eine Zeile)
-// und die Reihenfolge innerhalb der Settings-Gruppen (4T-0208).
+// und die Reihenfolge innerhalb der Settings-Gruppen (4T-000208).
 const COMMANDS = [
   {
     id: 'file.newTab',
@@ -72,7 +72,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0319 (Epic 3E-0057): neue logische Applikation. Bewusst ohne
+  // 4T-000319 (Epic 3E-000057): neue logische Applikation. Bewusst ohne
   // Default-Binding — der Menue-Weg genuegt, ein Kuerzel ist ueber die
   // Einstellungen belegbar.
   {
@@ -93,7 +93,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0338 (Epic 3E-0061): Unterseite zur aktiven Datei anlegen. Ohne
+  // 4T-000338 (Epic 3E-000061): Unterseite zur aktiven Datei anlegen. Ohne
   // Default-Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
   {
     id: 'file.newSubpage',
@@ -104,7 +104,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0426 (Epic 3E-0080): neue Datei aus Vorlage (Auswahl-Popup, Platz-
+  // 4T-000426 (Epic 3E-000080): neue Datei aus Vorlage (Auswahl-Popup, Platz-
   // halter-Dialoge). Ohne Default-Binding (Menue-Weg; Kuerzel belegbar).
   {
     id: 'file.newFromTemplate',
@@ -115,7 +115,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0426 (Epic 3E-0080): Vorlage an der Cursor-Position einfuegen. Kein
+  // 4T-000426 (Epic 3E-000080): Vorlage an der Cursor-Position einfuegen. Kein
   // Menueleisten-Eintrag (Zugang: Editor-Kontextmenue, Kuerzel belegbar);
   // Guards wie edit.insertTimestamp (nur editierbare Ansichten).
   {
@@ -127,11 +127,11 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0512 (Epic 3E-0092): leeren Ereignis-Block an der Cursor-Position
+  // 4T-000512 (Epic 3E-000092): leeren Ereignis-Block an der Cursor-Position
   // einfuegen. Kein Menueleisten-Eintrag (Zugang: Kommando-Palette, Kuerzel
   // belegbar); Guards wie edit.insertTemplate (nur editierbare Ansichten).
   // Bei deaktivierter Erweiterung "Ereignisse" gefiltert (Manifest).
-  // 4T-0546 (Epic 3E-0097): Kalender-Datum einfügen — öffnet den Picker
+  // 4T-000546 (Epic 3E-000097): Kalender-Datum einfügen — öffnet den Picker
   // für benutzerdefinierte Kalender und fügt den kanonischen Wert
   // @{Kalendername: Wert} am Cursor ein. Ohne Default-Kürzel (Palette;
   // Kürzel per Einstellungen belegbar); aktiv nur bei Bereich mit
@@ -154,7 +154,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-1176 (Epic 3E-0220, E7): Abfrage zu einem Profil einfuegen. Ohne
+  // 4T-001176 (Epic 3E-000220, E7): Abfrage zu einem Profil einfuegen. Ohne
   // Default-Binding und ohne Menue-Eintrag (Weg ist die Palette;
   // Struktur-Pruefschritt vom 2026-08-21: kein neuer Menue-Block), am Gate der
   // Erweiterung `property-profiles`.
@@ -167,7 +167,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0433 (Epic 3E-0081): heutigen Journal-Eintrag oeffnen bzw. anlegen
+  // 4T-000433 (Epic 3E-000081): heutigen Journal-Eintrag oeffnen bzw. anlegen
   // (bei mehreren Tages-Journalen Auswahl-Popup). Ohne Default-Binding
   // (Menue-Weg; Kuerzel per Einstellungen belegbar).
   {
@@ -179,7 +179,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0433 (Epic 3E-0081): Journal-Eintrag fuer ein gewaehltes Datum
+  // 4T-000433 (Epic 3E-000081): Journal-Eintrag fuer ein gewaehltes Datum
   // (Datums-Dialog, dann Journal-Auswahl).
   {
     id: 'journal.openForDate',
@@ -190,7 +190,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0322 (Epic 3E-0058): Bereich oeffnen/schliessen. Ohne Default-
+  // 4T-000322 (Epic 3E-000058): Bereich oeffnen/schliessen. Ohne Default-
   // Bindings (Menue-Weg; Kuerzel per Einstellungen belegbar).
   {
     id: 'area.open',
@@ -210,7 +210,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0632 (Epic 3E-0102): mitgelieferte Demo-Area in einen leeren Ordner
+  // 4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area in einen leeren Ordner
   // kopieren und als Bereich oeffnen. Ohne Default-Binding (Menue-Weg;
   // Kuerzel per Einstellungen belegbar); Teil der Erweiterung demo-area.
   {
@@ -222,7 +222,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0843 (Epic 3E-0147): Buch oeffnen, neu anlegen und schliessen. Der
+  // 4T-000843 (Epic 3E-000147): Buch oeffnen, neu anlegen und schliessen. Der
   // Menue-Klick fuehrt im Main aus (Ordner-Dialog, Anlage, aktives Buch der
   // Applikation); Kommando-IDs bleiben fuer Palette und Kuerzel-Belegung.
   // Ohne Default-Bindings wie die benachbarten Bereichs- und
@@ -255,7 +255,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0867 (Epic 3E-0162): Buecherregal oeffnen, neu anlegen und schliessen —
+  // 4T-000867 (Epic 3E-000162): Buecherregal oeffnen, neu anlegen und schliessen —
   // dieselbe Aufteilung wie die Buch-Kommandos (Main fuehrt aus, keine
   // Default-Bindings, Kuerzel ueber die Einstellungen belegbar).
   {
@@ -285,10 +285,10 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0847 (Story 4S-0756): Kapitel-Datei physisch innerhalb des Buch-Ordners
+  // 4T-000847 (Story 4S-000756): Kapitel-Datei physisch innerhalb des Buch-Ordners
   // verschieben (Ordner-Wahl im Main, Ziel muss im Buch-Ordner liegen). Ohne
   // Default-Kürzel wie die übrigen Buch-Kommandos; ein Kürzel ist über die
-  // Einstellungen belegbar. 4T-0887 (Befund L-04 des Struktur-Reviews): seither
+  // Einstellungen belegbar. 4T-000887 (Befund L-04 des Struktur-Reviews): seither
   // zusätzlich im Untermenü „Buch und Bücherregal" der Menüleiste, deshalb
   // menu: true (nur so trägt der Eintrag ein belegtes Kürzel an).
   {
@@ -300,7 +300,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0846 (Story 4S-0755): Leseführung über Kapitel-Grenzen. Beide
+  // 4T-000846 (Story 4S-000755): Leseführung über Kapitel-Grenzen. Beide
   // Kommandos folgen der Lese-Ordnung des aktiven Buches (ein Kapitel vor
   // seinen Unterkapiteln, dann die Geschwister); an Anfang und Ende gibt es
   // keinen Umlauf, sondern eine Rückmeldung in der Hinweis-Zeile.
@@ -328,7 +328,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Lebenszyklus. Alle vier ohne
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Lebenszyklus. Alle vier ohne
   // Default-Bindings (Menue-Weg; Kuerzel per Einstellungen belegbar);
   // Verfuegbarkeits-Dimmung in der Palette (saveAs nur ohne bestehende
   // Zuordnung, close nur im Arbeitsbereichs-Fenster).
@@ -395,8 +395,8 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0339 (Epic 3E-0061): aktive Datei umbenennen (inkl. Unterseiten-
-  // Kaskade aus 4T-0340). Ohne Default-Binding (Menue-/Kontextmenue-Weg).
+  // 4T-000339 (Epic 3E-000061): aktive Datei umbenennen (inkl. Unterseiten-
+  // Kaskade aus 4T-000340). Ohne Default-Binding (Menue-/Kontextmenue-Weg).
   {
     id: 'file.rename',
     defaultBindings: [],
@@ -406,7 +406,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0774 (Epic 3E-0128): Unterseite von der uebergeordneten Seite loesen.
+  // 4T-000774 (Epic 3E-000128): Unterseite von der uebergeordneten Seite loesen.
   // Technisch die Umbenennung auf das eigene letzte Segment, deshalb ohne
   // eigenen Nachfuehrungs-Pfad. Ohne Default-Binding (Menue-/Kontextmenue-Weg).
   {
@@ -418,7 +418,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-1293 (Epic 3E-0224): geteiltes Dokument wieder zu einer Datei machen.
+  // 4T-001293 (Epic 3E-000224): geteiltes Dokument wieder zu einer Datei machen.
   // Ohne Default-Binding: selten, loescht Dateien, ausdruecklicher Weg (O9).
   {
     id: 'file.rejoinParts',
@@ -429,9 +429,9 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0303 (Epic 3E-0054): PDF-Export des gerenderten Inhalts. Umschalt-
+  // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts. Umschalt-
   // Modifier, weil Strg+P im Edit-Modus von CodeMirror gegrabbt wird
-  // (Begruendung aus 4T-0024 uebernommen).
+  // (Begruendung aus 4T-000024 uebernommen).
   {
     id: 'file.exportPdf',
     defaultBindings: ['CmdOrCtrl+Shift+P'],
@@ -441,7 +441,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0890 (Epic 3E-0168, Befund L-05): portabler Markdown-Export als
+  // 4T-000890 (Epic 3E-000168, Befund L-05): portabler Markdown-Export als
   // regulaeres Registry-Kommando. Der Menue-Eintrag war bis dahin hart auf
   // den IPC-Kanal 'menu:exportPortable' verdrahtet — das Kommando erschien
   // weder in der Kommando-Palette noch in der Kuerzel-Belegung, anders als
@@ -466,7 +466,7 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
-    // 4T-0333 (Epic 3E-0060): Historien-Ansicht des aktiven Dokuments als
+    // 4T-000333 (Epic 3E-000060): Historien-Ansicht des aktiven Dokuments als
     // read-only System-Seite; bewusst ohne Default-Binding.
     id: 'history.open',
     defaultBindings: [],
@@ -477,7 +477,7 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
-    // 4T-0455 (Epic 3E-0084): Bereichs-Graph als read-only System-Seite;
+    // 4T-000455 (Epic 3E-000084): Bereichs-Graph als read-only System-Seite;
     // bewusst ohne Default-Binding (Menue-Weg; Kuerzel belegbar). Nur bei
     // aktivem Bereich aktiv (Menue-Guard hasArea plus Renderer-Guard).
     id: 'graph.openArea',
@@ -489,7 +489,7 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
-    // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only System-Seite;
+    // 4T-000620 (Epic 3E-000117): Bereichs-Statistik als read-only System-Seite;
     // bewusst ohne Default-Binding (Menue-Weg; Kuerzel belegbar). Nur bei
     // aktivem Bereich aktiv (Menue-Guard hasArea plus Renderer-Guard).
     id: 'stats.openArea',
@@ -509,7 +509,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // Neues Kommando (Epic 3E-0015): Lokalzeit-Timestamp an der Cursor-
+  // Neues Kommando (Epic 3E-000015): Lokalzeit-Timestamp an der Cursor-
   // Position. Kein Menue-Eintrag (die App hat kein Bearbeiten-Menue).
   {
     id: 'edit.insertTimestamp',
@@ -520,7 +520,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0486 (Epic 3E-0091): Datums-/Uhrzeit-Picker in drei Varianten
+  // 4T-000486 (Epic 3E-000091): Datums-/Uhrzeit-Picker in drei Varianten
   // (Schalter-Vorbelegung: beide / nur Datum / nur Uhrzeit). Strg+Alt+T/D/U
   // gegen die Registry als frei verifiziert; T, D und U tragen auf
   // deutschem Layout keine AltGr-Drittbelegung (AltGr normalisiert der
@@ -553,7 +553,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog — auf einer Task-Zeile
+  // 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog — auf einer Task-Zeile
   // bearbeitend, auf einer leeren Zeile anlegend. Kuerzel Strg+Alt+A
   // (konfliktfrei gegen Registry und FIXED_BINDINGS verifiziert, per
   // Einstellungen umbelegbar); Editor-Aufloesung und Guards wie die
@@ -567,7 +567,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0528 (Epic 3E-0095): Erinnerung setzen — Picker (Datum plus Uhrzeit)
+  // 4T-000528 (Epic 3E-000095): Erinnerung setzen — Picker (Datum plus Uhrzeit)
   // auf der Checkbox-Zeile, setzt oder aktualisiert den ⏰-Marker. Kuerzel
   // Strg+Alt+R (konfliktfrei gegen Registry und FIXED_BINDINGS verifiziert,
   // per Einstellungen umbelegbar); Muster task.editDialog.
@@ -617,7 +617,7 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
-    // 4T-1047 (Epic 3E-0151): Fuenfter Ansichts-Modus. Setzt die
+    // 4T-001047 (Epic 3E-000151): Fuenfter Ansichts-Modus. Setzt die
     // 1-2-3-4-Folge mit CmdOrCtrl+5 fort; entfaellt mit der Erweiterung
     // 'mindmap' aus Menue, Palette und Dispatcher.
     id: 'view.modeMindmap',
@@ -691,7 +691,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0341 (Epic 3E-0061): Unterseiten-Sektion toggeln. Ohne Default-
+  // 4T-000341 (Epic 3E-000061): Unterseiten-Sektion toggeln. Ohne Default-
   // Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
   {
     id: 'view.toggleSubpages',
@@ -702,7 +702,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0456 (Epic 3E-0084): Datei-Graph-Sektion toggeln. Ohne Default-
+  // 4T-000456 (Epic 3E-000084): Datei-Graph-Sektion toggeln. Ohne Default-
   // Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
   {
     id: 'view.toggleGraphPanel',
@@ -713,7 +713,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0527 (Epic 3E-0095): Erinnerungs-Sektion toggeln. Ohne Default-
+  // 4T-000527 (Epic 3E-000095): Erinnerungs-Sektion toggeln. Ohne Default-
   // Binding (Menue-/Statusbar-Weg; Kuerzel ueber die Einstellungen belegbar).
   {
     id: 'view.toggleReminders',
@@ -724,7 +724,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0567 (Epic 3E-0104): Bereichs- und Kalender-Panel toggeln — Zugangs-
+  // 4T-000567 (Epic 3E-000104): Bereichs- und Kalender-Panel toggeln — Zugangs-
   // Symmetrie aller Sidebar-Panels (Panel-Untermenue, Palette, belegbares
   // Kuerzel). Ohne Default-Binding.
   {
@@ -736,7 +736,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches toggeln (Muster
+  // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches toggeln (Muster
   // view.toggleAreaPanel, ohne Default-Binding). Die ID folgt dem
   // Bestandsmuster aller Panel-Toggles: ein Bindestrich im Namensraum waere
   // gegen die ID-Invariante der Registry (siehe Kopf-Kommentar und
@@ -759,7 +759,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0372 (Epic 3E-0069): Uhr-Panel toggeln. Ohne Default-Binding
+  // 4T-000372 (Epic 3E-000069): Uhr-Panel toggeln. Ohne Default-Binding
   // (Menue-/Statusbar-Weg; Kuerzel ueber die Einstellungen belegbar) —
   // Muster der uebrigen Panel-Toggles.
   {
@@ -771,11 +771,11 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0697 (Epic 3E-0141): linke bzw. rechte Sidebar-Spalte der aktiven
+  // 4T-000697 (Epic 3E-000141): linke bzw. rechte Sidebar-Spalte der aktiven
   // Editor-Spalte als Ganzes ein-/ausklappen. Ohne Default-Binding (Menü-
   // und Palette-Weg; Kürzel über die Einstellungen belegbar), Muster
   // view.toggleAreaPanel. descKey-Beschreibung und der Funktions-Katalog-
-  // Eintrag entstehen im Hilfe- und Handbuch-Task 4T-0699.
+  // Eintrag entstehen im Hilfe- und Handbuch-Task 4T-000699.
   {
     id: 'view.toggleSidebarLeft',
     defaultBindings: [],
@@ -823,7 +823,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-1174 (Epic 3E-0220, E5): Feld-Formular des Dokuments. Ohne
+  // 4T-001174 (Epic 3E-000220, E5): Feld-Formular des Dokuments. Ohne
   // Default-Binding (Wege sind Palette und Reiter-Kontextmenue), ohne
   // Menue-Eintrag (Struktur-Pruefschritt vom 2026-08-21: kein neuer Block),
   // am Gate der Erweiterung `property-profiles`.
@@ -836,7 +836,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
   },
-  // 4T-0359 (Epic 3E-0066): Notizen-Sidebar-Sektion toggeln. Ohne Default-
+  // 4T-000359 (Epic 3E-000066): Notizen-Sidebar-Sektion toggeln. Ohne Default-
   // Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar, wie Unterseiten).
   {
     id: 'view.toggleNotes',
@@ -847,7 +847,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0759 (Epic 3E-0142): Suchergebnis-Panel toggeln. Ohne Default-Binding
+  // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel toggeln. Ohne Default-Binding
   // (Menue-Weg; Kuerzel ueber die Einstellungen belegbar, Muster Notizen).
   {
     id: 'view.toggleSearchResults',
@@ -858,7 +858,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sidebar-Sektion toggeln. Ohne
+  // 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Sidebar-Sektion toggeln. Ohne
   // Default-Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
   {
     id: 'view.toggleBlockProps',
@@ -878,7 +878,7 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
-  // 4T-0624 (Epic 3E-0119): benannte Sidebar-Varianten. Speichern friert
+  // 4T-000624 (Epic 3E-000119): benannte Sidebar-Varianten. Speichern friert
   // Anordnung und Panel-Sichtbarkeit ein, Anwenden waehlt ueber ein
   // Listen-Popup; beide ohne Default-Binding, per Settings belegbar.
   {
@@ -935,7 +935,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
-  // 4T-0378 (Epic 3E-0071): Zeichen-Format- und Link-Kommandos. editorScoped
+  // 4T-000378 (Epic 3E-000071): Zeichen-Format- und Link-Kommandos. editorScoped
   // (wirken als CodeMirror-Keymap im Editor), ohne Menüleisten-Eintrag —
   // Zugang über Editor-Kontextmenü und Hotkey. Nur Fett/Kursiv tragen ein
   // Default-Binding (Strg+B/Strg+I, gegen die Registry als frei verifiziert);
@@ -1030,7 +1030,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
-  // 4T-0379 (Epic 3E-0071): Absatz- und Einfüge-Kommandos. editorScoped, ohne
+  // 4T-000379 (Epic 3E-000071): Absatz- und Einfüge-Kommandos. editorScoped, ohne
   // Menüleisten-Eintrag und ohne Default-Binding (über die Einstellungen
   // belegbar); Zugang über das Editor-Kontextmenü.
   {
@@ -1060,7 +1060,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
-  // 4T-0599 (Epic 3E-0112): Listenpunkt samt Unterpunkten verschieben.
+  // 4T-000599 (Epic 3E-000112): Listenpunkt samt Unterpunkten verschieben.
   // Alt+Pfeil ist gegen Registry und FIXED_BINDINGS als frei verifiziert.
   // Der defaultKeymap bindet dieselbe Kombination auf moveLineUp/-Down; das
   // commandKeymap-Compartment steht davor und gewinnt, und der Handler faellt
@@ -1085,7 +1085,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
-  // 4T-0600 (Epic 3E-0112): Listenpunkt samt Unterpunkten auswaehlen.
+  // 4T-000600 (Epic 3E-000112): Listenpunkt samt Unterpunkten auswaehlen.
   // Bewusst ohne Default-Kuerzel (Kommando-Palette; Kuerzel belegbar).
   {
     id: 'list.selectSubtree',
@@ -1186,7 +1186,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
-  // 4T-1309 (Epic 3E-0235): Einfuege-Geruest der Perspective-Tabelle. Haengt an
+  // 4T-001309 (Epic 3E-000235): Einfuege-Geruest der Perspective-Tabelle. Haengt an
   // der Erweiterung perspective-table und verschwindet mit ihr aus Leiste,
   // Palette und Kontextmenue (commands-Liste der Erweiterung).
   {
@@ -1225,7 +1225,7 @@ const COMMANDS = [
     menu: false,
     editorScoped: true,
   },
-  // 4T-0590 (Epic 3E-0109): Tabellen-Operationen des Kontextmenü-Untermenüs
+  // 4T-000590 (Epic 3E-000109): Tabellen-Operationen des Kontextmenü-Untermenüs
   // „Tabelle" (Erweiterung table-tools). Ein Kommando-Satz für beide
   // Tabellenarten (Pipe-Tabelle und Perspective Table); die Ausführung
   // erkennt die Tabellenart am Cursor-Kontext. Ohne Standard-Kürzel,
@@ -1420,7 +1420,7 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
-    // 4T-0644 (Epic 3E-0127): geführte Produkt-Tour. Bewusst ohne
+    // 4T-000644 (Epic 3E-000127): geführte Produkt-Tour. Bewusst ohne
     // Default-Kürzel — ein einmalig gelaufener Einführungs-Ablauf rechtfertigt
     // keine belegte Taste; über die Kürzel-Einstellungen bleibt er bindbar.
     id: 'help.tour',
@@ -1432,10 +1432,10 @@ const COMMANDS = [
     editorScoped: false,
   },
   {
-    // 4T-0480 (Epic 3E-0089): Kommando-Palette. CmdOrCtrl+K ist am Bestand
+    // 4T-000480 (Epic 3E-000089): Kommando-Palette. CmdOrCtrl+K ist am Bestand
     // konfliktfrei (Registry, FIXED_BINDINGS und CodeMirror-defaultKeymap
     // auf Windows; CmdOrCtrl+Shift+P gehoert dem PDF-Export, CmdOrCtrl+P
-    // grabbt CodeMirror im Edit-Modus, siehe 4T-0024).
+    // grabbt CodeMirror im Edit-Modus, siehe 4T-000024).
     id: 'app.commandPalette',
     defaultBindings: ['CmdOrCtrl+K'],
     labelKey: 'menu.view.commandPalette',
@@ -1445,7 +1445,7 @@ const COMMANDS = [
     editorScoped: false,
   },
   // Menue-Kommandos ohne Default-Binding (Entscheidungspunkt 4 aus
-  // 4T-0207): in der Settings-UI bindbar. 4T-0890 (Epic 3E-0168, Befund
+  // 4T-000207): in der Settings-UI bindbar. 4T-000890 (Epic 3E-000168, Befund
   // L-08): die vier bis dahin beschreibungslosen Eintraege tragen jetzt
   // ebenfalls einen descKey — sonst blieben sie auf der generierten
   // Handbuch-Seite auch dann unsichtbar, wenn der Nutzer ihnen ein Kuerzel
@@ -1515,7 +1515,7 @@ const COMMANDS = [
   },
 ];
 
-// --- Dynamische Kommandos (4T-0299, Epic 3E-0053) ---------------------------------
+// --- Dynamische Kommandos (4T-000299, Epic 3E-000053) ---------------------------------
 // Externe Erweiterungen registrieren Kommandos zur Laufzeit (Host in
 // extension-host.js). Die Eintraege wandern in DIESELBE COMMANDS-Liste —
 // Dispatcher-Map, Editor-Keymap, Tastenkuerzel-Editor und mergeBindings
@@ -1526,7 +1526,7 @@ const COMMANDS = [
 // generierte Tastenkuerzel-Seite listet nur eingebaute Kommandos; die
 // Kuerzel externer Erweiterungen verwaltet der Tastenkuerzel-Editor).
 // Handler-Zuordnung bleibt Renderer-Sache (commandHandlers in app-init).
-// 4T-0522 (Epic 3E-0094): zweiter dynamischer Namensraum 'macro.<id>' fuer
+// 4T-000522 (Epic 3E-000094): zweiter dynamischer Namensraum 'macro.<id>' fuer
 // die Makros der Kommando-Platzierung (Registrierung in macros.js) — der
 // Registrierungs-Kniff macht Makros ohne Sonderpfad kuerzel-, paletten-
 // und platzierbar.
@@ -1589,7 +1589,7 @@ function effectiveMenuAccelerators(overrides) {
   return out;
 }
 
-// --- Konflikt-Erkennung (4T-0208) -------------------------------------------------
+// --- Konflikt-Erkennung (4T-000208) -------------------------------------------------
 // Beide Funktionen laufen über die live mutierte COMMANDS-Liste und bleiben
 // deshalb hier; die fixen Bindings selbst und die Capture-Regel
 // (isBindingCapturable) liegen in command-bindings.js.
@@ -1617,7 +1617,7 @@ function findBindingConflict(draft, commandId, binding) {
   return null;
 }
 
-// 4T-0211 (Hotfix 0.28.1): Findet doppelt vergebene Bindings in einem
+// 4T-000211 (Hotfix 0.28.1): Findet doppelt vergebene Bindings in einem
 // Draft ({ commandId: bindingString }). Liefert Konflikt-Gruppen
 // [{ binding: <normalisiert>, commandIds: [...] }]; leeres Array =
 // konsistent. Entbundene Kommandos ('') und unbekannte IDs zaehlen nicht;

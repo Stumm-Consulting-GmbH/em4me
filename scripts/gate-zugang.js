@@ -1,4 +1,4 @@
-// 4T-1191: Der Pflicht-Zugang wird zum einzigen Weg (Weg 4 der
+// 4T-001191: Der Pflicht-Zugang wird zum einzigen Weg (Weg 4 der
 // Entscheidungsvorlage vom 2026-08-29, Ort am 2026-08-30 entschieden).
 //
 // Die Regel «jeder Lauf mit Befund-Charakter geht über node scripts/gate-lauf.js
@@ -55,7 +55,7 @@ const UNTERBEFEHLE = Object.freeze([
   'playwright',
 ]);
 
-// 4T-1322: Eine Auflistung ist kein Lauf. Vitest kennt sie als Unterbefehl
+// 4T-001322: Eine Auflistung ist kein Lauf. Vitest kennt sie als Unterbefehl
 // (`vitest list`), Playwright als Schalter (`playwright test --list`); beide
 // laden die Prüfdateien und durchlaufen die Registrierungs-Phase, führen aber
 // keinen einzigen Fall aus und tragen deshalb keinen Befund.
@@ -74,7 +74,7 @@ const UNTERBEFEHLE = Object.freeze([
 // ist die Gegenprobe in `test/unit/gate-zugang.test.js`.
 //
 // Anlass: `scripts/test-kennzahlen.js` ermittelt die Kennzahl «Automatische
-// Prüfungen» bewusst über die Auflistung statt über einen Lauf (4T-0831). Seit
+// Prüfungen» bewusst über die Auflistung statt über einen Lauf (4T-000831). Seit
 // dem 2026-08-30 wies der Pflicht-Zugang sie ab, Schritt 8 jeder
 // Release-Vorbereitung fiel aus, und die Kennzahl der Webseite fror auf 5400
 // ein.
@@ -115,7 +115,7 @@ function hatFilterArgument(argv) {
   return false;
 }
 
-// 4T-1324: Der Pflicht-Zugang gilt nur dort, wo sein Weg überhaupt existiert.
+// 4T-001324: Der Pflicht-Zugang gilt nur dort, wo sein Weg überhaupt existiert.
 // Der kuratierte Quellcode-Export überträgt beide Test-Konfigurationen samt
 // diesem Modul, aber bewusst **nicht** `gate-lauf.js`: Der Gate-Weg ist internes
 // Vorgehen und gehört nicht in die Veröffentlichung. Dort liefe der Wächter
@@ -131,7 +131,7 @@ function hatFilterArgument(argv) {
 function pruefeZugang(argv, env, zugangswegVorhanden = true) {
   if (!zugangswegVorhanden) return null;
   if (env && env[ZUGANGS_MARKE]) return null;
-  // 4T-1322: vor der Filter-Frage, weil eine Auflistung gar kein Lauf ist und
+  // 4T-001322: vor der Filter-Frage, weil eine Auflistung gar kein Lauf ist und
   // die Filter-Frage nur Läufe unterscheidet.
   if (istAuflistung(argv)) return null;
   if (hatFilterArgument(argv)) return null;
@@ -146,7 +146,7 @@ function pruefeZugang(argv, env, zugangswegVorhanden = true) {
     `Beleg selbsttätig.\n` +
     `Die freie Entwicklungs-Iteration bleibt offen: Ein Aufruf mit konkretem Datei- ` +
     `oder Muster-Argument läuft unverändert durch.\n` +
-    `Hintergrund: Fehlerklasse L3, Vorgang 4T-1191.`
+    `Hintergrund: Fehlerklasse L3, Vorgang 4T-001191.`
   );
 }
 
@@ -164,7 +164,7 @@ function setup() {
   const befund = pruefeZugang(process.argv, process.env, zugangswegVorhanden());
   if (!befund) return;
   process.stderr.write(`\n${befund}\n\n`);
-  throw new Error('Voll-Lauf ohne Pflicht-Zugang (4T-1191)');
+  throw new Error('Voll-Lauf ohne Pflicht-Zugang (4T-001191)');
 }
 
 module.exports = setup;

@@ -1,4 +1,4 @@
-// 4T-0637 (Epic 3E-0069): Wecker der Uhr-Erweiterung im Renderer.
+// 4T-000637 (Epic 3E-000069): Wecker der Uhr-Erweiterung im Renderer.
 //
 // Drei Aufgaben, bewusst getrennt vom Uhr-Panel selbst (clock-panel.js baut
 // nur noch den Rumpf des Wecker-Modus hier ein):

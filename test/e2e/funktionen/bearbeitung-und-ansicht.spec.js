@@ -1,4 +1,4 @@
-// 4T-0195: E2E-Funktions-Suite — Gruppen Bearbeitung und Ansicht.
+// 4T-000195: E2E-Funktions-Suite — Gruppen Bearbeitung und Ansicht.
 // describe-Titel tragen die Matrix-IDs aus test/abdeckungs-matrix.json.
 'use strict';
 
@@ -9,10 +9,10 @@ const { SEL } = require('../helpers/selectors');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'regression', '4t-0186.md');
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
-// 4T-0640 (Epic 3E-0069): nummerierte und unnummerierte Liste fuer den
+// 4T-000640 (Epic 3E-000069): nummerierte und unnummerierte Liste fuer den
 // Regressionstest zum Schreibschutz im Lesemodus.
 const LISTEN = path.resolve(__dirname, '..', '..', 'fixtures', 'regression', '4t-0640.md');
-// 4T-0599 (Epic 3E-0112): nummerierte Liste mit Unterpunkt plus zwei freie
+// 4T-000599 (Epic 3E-000112): nummerierte Liste mit Unterpunkt plus zwei freie
 // Textzeilen fuer die Struktur-Kommandos und ihren Rueckfall.
 const LISTEN_STRUKTUR = path.resolve(
   __dirname,
@@ -22,7 +22,7 @@ const LISTEN_STRUKTUR = path.resolve(
   'funktionen',
   'listen-struktur.md',
 );
-// 4T-0655 (Epic 3E-0112): zwei durch eine Leerzeile getrennte Listen, beide
+// 4T-000655 (Epic 3E-000112): zwei durch eine Leerzeile getrennte Listen, beide
 // bei 1 beginnend — Vorlage für die Nummerierungs-Invariante.
 const LISTEN_NUMMERIERUNG = path.resolve(
   __dirname,
@@ -32,7 +32,7 @@ const LISTEN_NUMMERIERUNG = path.resolve(
   'funktionen',
   'listen-nummerierung.md',
 );
-// 4T-0600 (Epic 3E-0112): verschachtelte nummerierte Liste mit gueltiger
+// 4T-000600 (Epic 3E-000112): verschachtelte nummerierte Liste mit gueltiger
 // Einrueckung fuer den Listen-Ausstieg.
 const LISTEN_AUSSTIEG = path.resolve(
   __dirname,
@@ -42,7 +42,7 @@ const LISTEN_AUSSTIEG = path.resolve(
   'funktionen',
   'listen-ausstieg.md',
 );
-// 4T-0572 (Epic 3E-0105): Fixture mit dokument-gebundenen Editor-Ansicht-
+// 4T-000572 (Epic 3E-000105): Fixture mit dokument-gebundenen Editor-Ansicht-
 // Schaltern im Frontmatter (alle drei entgegen den Defaults).
 const EDITOR_VIEW_FIXTURE = path.resolve(
   __dirname,
@@ -103,7 +103,7 @@ test.describe('FB-02: Listen-Indent (Tab/Umschalt+Tab)', () => {
       await waitForTab(page);
       await enterEditSource(app, page);
       const editor = page.locator(SEL.editorContent0);
-      // 4T-0661: Eingerueckt wird der ZWEITE Punkt — er hat einen Vorgaenger,
+      // 4T-000661: Eingerueckt wird der ZWEITE Punkt — er hat einen Vorgaenger,
       // unter den er rutschen kann. Beim ersten Punkt einer Liste gibt es
       // keinen; dort ist Tab seit der Festlegung des Product Owners bewusst
       // wirkungslos (Gegenprobe unten).
@@ -210,7 +210,7 @@ test.describe('FB-06: Undo/Redo', () => {
 });
 
 test.describe('FB-07: Timestamp einfuegen (Strg+Umschalt+D)', () => {
-  // 4T-0207 (Epic 3E-0015): Kommando edit.insertTimestamp — Lokalzeit-
+  // 4T-000207 (Epic 3E-000015): Kommando edit.insertTimestamp — Lokalzeit-
   // Timestamp 'yyyy-mm-dd hh:mm' an der Cursor-Position. Format-Pruefung
   // per Regex statt exaktem Zeitvergleich (Minutenwechsel-robust).
   test('fuegt Timestamp ein, ersetzt Selektion, bleibt im Reading-Modus wirkungslos', async () => {
@@ -248,7 +248,7 @@ test.describe('FB-07: Timestamp einfuegen (Strg+Umschalt+D)', () => {
 });
 
 test.describe('FB-08: Lesemodus schuetzt vor der Listen-Automatik', () => {
-  // 4T-0640 (Epic 3E-0069): Regressionstest zum gemeldeten Fehler — Enter am
+  // 4T-000640 (Epic 3E-000069): Regressionstest zum gemeldeten Fehler — Enter am
   // Ende des letzten Eintrags einer nummerierten Liste setzte im reinen
   // Lesemodus eine neue Nummer. Ursache war die Tastenbelegung aus
   // @codemirror/lang-markdown, deren Enter- und Backspace-Kommandos den
@@ -341,8 +341,8 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
         await expect(foldGutter).toBeVisible();
       }
       // Wrap-Toggle schaltet die CodeMirror-Klasse um.
-      // 4T-0361: '.pane-source' -> Haupt-Editor; ohne den Qualifier matcht
-      // '.cm-content' auch die Notiz-CodeMirror-Instanz (3E-0066/4T-0398)
+      // 4T-000361: '.pane-source' -> Haupt-Editor; ohne den Qualifier matcht
+      // '.cm-content' auch die Notiz-CodeMirror-Instanz (3E-000066/4T-000398)
       // und bricht mit Playwright-Strict-Mode (zwei Treffer).
       const scroller = page.locator('.pane-group[data-pane="0"] .pane-source .cm-content');
       const wrapBefore = await scroller.evaluate((el) => el.classList.contains('cm-lineWrapping'));
@@ -350,7 +350,7 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
       await expect
         .poll(() => scroller.evaluate((el) => el.classList.contains('cm-lineWrapping')))
         .toBe(!wrapBefore);
-      // 4T-0572 (Epic 3E-0105, Weg A): Jedes Umschalten schreibt den Wert in
+      // 4T-000572 (Epic 3E-000105, Weg A): Jedes Umschalten schreibt den Wert in
       // das Frontmatter des Dokuments — der Tab wird dirty, das Dokument
       // beginnt mit einem Frontmatter-Block mit den drei Schluesseln.
       await expect(page.locator(SEL.dirtyTab0)).toHaveCount(1);
@@ -361,12 +361,12 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
       expect(docText).toContain('fold-gutter:');
       expect(docText).toContain('word-wrap:');
     } finally {
-      // 4T-0572: die Toggles hinterlassen absichtlich einen dirty Buffer.
+      // 4T-000572: die Toggles hinterlassen absichtlich einen dirty Buffer.
       await closeApp(app, userData, { force: true });
     }
   });
 
-  // 4T-0572 (Epic 3E-0105): Frontmatter-Vorgabe uebersteuert die globale
+  // 4T-000572 (Epic 3E-000105): Frontmatter-Vorgabe uebersteuert die globale
   // Voreinstellung schon beim Oeffnen (dokument-gebunden, portabel).
   test('Frontmatter-Schluessel steuern die Editor-Ansicht beim Oeffnen', async () => {
     const { app, page, userData } = await launchApp({ args: [EDITOR_VIEW_FIXTURE] });
@@ -390,12 +390,12 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
   });
 });
 
-// 4T-0576 (Epic 3E-0106): Die drei Editor-Ansicht-Schalter und die
+// 4T-000576 (Epic 3E-000106): Die drei Editor-Ansicht-Schalter und die
 // Ansichts-Schalter bilden eine gemeinsame Gruppe in der mittleren
 // Statusbar-Zone und sitzen in der Fenster-Mitte, nicht in der Mitte des
 // Restplatzes. Gegenprobe mit breitem Fenster (viel Restplatz rechts).
 //
-// 4T-1055 (Epic 3E-0151): Aus sieben Schaltern sind acht geworden, weil der
+// 4T-001055 (Epic 3E-000151): Aus sieben Schaltern sind acht geworden, weil der
 // Mindmap-Modus seine Schaltflaeche bekommen hat; die Zahl steht deshalb nicht
 // mehr im Titel. Die Liste bleibt vollstaendig geprueft, damit eine kuenftige
 // Aenderung hier auffaellt und nicht erst am Abnahme-Gate.
@@ -484,7 +484,7 @@ test.describe('FA-04: Theme ueber Menue-Weg (Hell/Dunkel)', () => {
   });
 });
 
-// 4T-0599 (Epic 3E-0112): Struktur-Kommandos der Listen. Die reine Logik
+// 4T-000599 (Epic 3E-000112): Struktur-Kommandos der Listen. Die reine Logik
 // deckt test/unit/list-outline.test.js ab; hier zaehlen die Punkte, die nur
 // gegen eine echte EditorView pruefbar sind: Tastenbindung, Atomaritaet des
 // Rueckgaengig-Schritts und der Rueckfall auf die Standard-Belegung.
@@ -528,7 +528,7 @@ test.describe('FB-10: Einruecken nimmt den Teilbaum mit', () => {
       await page.keyboard.press('Tab');
       await expect
         .poll(async () => (await nonEmptyLines(editor)).slice(1, 5))
-        // 4T-0660: eingerueckt wird auf die Inhalts-Spalte des Vorgaengers
+        // 4T-000660: eingerueckt wird auf die Inhalts-Spalte des Vorgaengers
         // (unter "1. " drei Zeichen), sonst bliebe die Liste in der Anzeige
         // flach.
         .toEqual(['1. Alpha', '   1. Beta', '     - Beta eins', '2. Gamma']);
@@ -556,7 +556,7 @@ test.describe('FB-11: Alt+Pfeil ausserhalb von Listen', () => {
   });
 });
 
-// 4T-0655 (Epic 3E-0112): Nummerierungs-Invariante. Prüft den auslösenden
+// 4T-000655 (Epic 3E-000112): Nummerierungs-Invariante. Prüft den auslösenden
 // Fall des Product Owners und die Umkehrung; die Korrektur muss Teil der
 // Bearbeitung sein, also mit einem einzigen Rückgängig-Schritt verschwinden.
 test.describe('FB-12: Nummerierung nach dem Verschmelzen zweier Listen', () => {
@@ -594,7 +594,7 @@ test.describe('FB-12: Nummerierung nach dem Verschmelzen zweier Listen', () => {
   });
 });
 
-// 4T-0655: Zweiter Befund des Product Owners — Enter erzeugt einen neuen
+// 4T-000655: Zweiter Befund des Product Owners — Enter erzeugt einen neuen
 // Punkt, dessen Marker anschliessend geloescht wird. Zurueck bleibt eine
 // Leerzeile, die nach der Festlegung des Product Owners trennt: Beide Listen
 // behalten ihre eigene Zaehlung, es entsteht keine Luecke.
@@ -627,7 +627,7 @@ test.describe('FB-13: Leerzeile mitten in der Liste haelt beide Zaehlungen', () 
   });
 });
 
-// 4T-0660: Die Anzeige folgt derselben Listen-Grenze wie der Quelltext. Ohne
+// 4T-000660: Die Anzeige folgt derselben Listen-Grenze wie der Quelltext. Ohne
 // das Render-Plugin zaehlte sie ueber die Leerzeile hinweg bis 4 durch und
 // wich damit vom Quelltext ab — der vom Product Owner gemeldete Fehler.
 test.describe('FB-14: Anzeige beginnt nach der Leerzeile neu', () => {
@@ -647,7 +647,7 @@ test.describe('FB-14: Anzeige beginnt nach der Leerzeile neu', () => {
   });
 });
 
-// 4T-0661: Dieselbe Einrueck-Tiefe wie im Cursor-Fall, auch wenn mehrere
+// 4T-000661: Dieselbe Einrueck-Tiefe wie im Cursor-Fall, auch wenn mehrere
 // Zeilen markiert sind. Vorher lief dort die zeilenweise Bestands-Logik mit
 // fester Schrittweite, und die Verschachtelung blieb in der Anzeige flach.
 test.describe('FB-15: Einruecken mit Markierung ueber mehrere Zeilen', () => {
@@ -673,7 +673,7 @@ test.describe('FB-15: Einruecken mit Markierung ueber mehrere Zeilen', () => {
   });
 });
 
-// 4T-0656: Tabulator ausserhalb von Listen und Tabellen. Ohne die Belegung
+// 4T-000656: Tabulator ausserhalb von Listen und Tabellen. Ohne die Belegung
 // war die Taste dort unbelegt, und der Fokus wanderte aus dem Editor heraus
 // (Befund des Product Owners).
 test.describe('FB-16: Tabulator rueckt ausserhalb von Listen ein', () => {
@@ -705,7 +705,7 @@ test.describe('FB-16: Tabulator rueckt ausserhalb von Listen ein', () => {
   });
 });
 
-// 4T-0600: Listen-Ausstieg. Die eingekaufte Automatik setzt Listen fort und
+// 4T-000600: Listen-Ausstieg. Die eingekaufte Automatik setzt Listen fort und
 // rueckt auf leeren Unterpunkten korrekt aus (in der Anwendung gemessen); nur
 // auf der obersten Ebene hinterliess sie eine Leerzeile plus einen weiteren
 // leeren Punkt, statt die Liste zu beenden.
@@ -730,7 +730,7 @@ test.describe('FB-17: Enter auf leerem Punkt beendet die Liste', () => {
         .toBe('2. ');
       // Drittes Enter: beendet die Liste, ohne Rest-Punkt und ohne
       // zusaetzliche Leerzeile. Delta beginnt danach bei 1, weil die frisch
-      // entstandene Leerzeile die Liste trennt (Regel aus 4T-0655/4T-0660).
+      // entstandene Leerzeile die Liste trennt (Regel aus 4T-000655/4T-000660).
       await page.keyboard.press('Enter');
       await expect
         .poll(async () => (await editor.locator('.cm-line').allTextContents()).slice(2, 7))

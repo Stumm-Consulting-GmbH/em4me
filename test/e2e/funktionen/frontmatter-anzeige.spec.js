@@ -1,4 +1,4 @@
-// 4T-0282/4T-0283 (Epic 3E-0050): E2E-Funktions-Specs der Frontmatter-
+// 4T-000282/4T-000283 (Epic 3E-000050): E2E-Funktions-Specs der Frontmatter-
 // Anzeige — Render-Pane (Zeile, Pin) und Live-Modus (Block-Widget,
 // Demaskierung) inklusive Paritäts-Abgleich der beiden Modi.
 'use strict';
@@ -60,7 +60,7 @@ test.describe('FM-01: Frontmatter-Zeile im Render-Pane', () => {
       await waitForTab(page);
       await sendMenuChannel(app, 'menu:viewChange', 'rendered');
       // '# Frontmatter-Anzeige' steht in Zeile 7 des Gesamt-Dokuments
-      // (5 Frontmatter-Zeilen + Leerzeile davor). Regression 4T-0282.
+      // (5 Frontmatter-Zeilen + Leerzeile davor). Regression 4T-000282.
       const h1 = page.locator(`${SEL.markdownBody0} h1`);
       await expect(h1).toHaveAttribute('data-source-line', '7');
       const block = page.locator(`${SEL.markdownBody0} .frontmatter-block`);
@@ -128,7 +128,7 @@ test.describe('FM-02: Frontmatter-Block-Widget im Live-Modus', () => {
   });
 });
 
-// 4T-0312 (Epic 3E-0055): dauerhaft ausgeklappte Frontmatter-Darstellung
+// 4T-000312 (Epic 3E-000055): dauerhaft ausgeklappte Frontmatter-Darstellung
 // (Darstellungs-Schalter, Setting render.frontmatterExpanded). Wirkt im
 // Render-Pane und im Live-Widget (gleiche Klassen) und damit im PDF.
 test.describe('FM-03: Frontmatter dauerhaft ausgeklappt', () => {

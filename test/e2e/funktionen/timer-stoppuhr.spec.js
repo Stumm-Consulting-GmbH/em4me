@@ -1,4 +1,4 @@
-// 4T-0638 (Epic 3E-0069): E2E-Funktions-Suite Timer und Stoppuhr
+// 4T-000638 (Epic 3E-000069): E2E-Funktions-Suite Timer und Stoppuhr
 // (Uhr-Erweiterung).
 //
 // Timer und Stoppuhr stehen wie die Wecker app-weit im Einstellungs-

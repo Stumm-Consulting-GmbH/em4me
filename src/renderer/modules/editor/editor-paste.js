@@ -1,26 +1,26 @@
 // Einfuegen und Anlagen im Editor: Link-in-Auswahl beim Einfuegen, Anlagen aus
 // Zwischenablage und Ziehen, Doppelklick auf ein Bild.
 //
-// Auszug aus editor.js, 4T-1002 (Epic 3E-0196). Die beiden domEventHandlers
+// Auszug aus editor.js, 4T-001002 (Epic 3E-000196). Die beiden domEventHandlers
 // sind einmalige Extension-Werte und leben ausschliesslich hier.
 'use strict';
 
 import { EditorView } from '@codemirror/view';
 import { getDocText } from '../app/api.js';
 import { state } from '../app/app-state.js';
-// 4T-0642 (Epic 3E-0125): Anlagen aus Zwischenablage und Ziehen ablegen.
+// 4T-000642 (Epic 3E-000125): Anlagen aus Zwischenablage und Ziehen ablegen.
 import { anlagenAusDataTransfer, legeAnlagenAb } from '../attachments.js';
-// 4T-0603 (Epic 3E-0113): Link-Erzeugung und URL-Erkennung für den
+// 4T-000603 (Epic 3E-000113): Link-Erzeugung und URL-Erkennung für den
 // Paste-in-Auswahl-Handler (reiner Shared-Baustein).
 import { detectPasteUrl, insertExternalLink } from '../../../shared/markdown-format.js';
 import { positionInsideCode } from '../live/live-shared.js';
-// 4T-0790 (Epic 3E-0125): Bild-Anlage per Doppelklick oeffnen.
+// 4T-000790 (Epic 3E-000125): Bild-Anlage per Doppelklick oeffnen.
 import { oeffneBildAusQuelle } from '../views/link-navigation.js';
-// 4T-1002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
+// 4T-001002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
 // Funktionskoerpern gelesen.
 import { paneEditors } from './editor.js';
 
-// 4T-0603 (Epic 3E-0113): Paste-Handler Link-Einfügen in die Auswahl. Bei
+// 4T-000603 (Epic 3E-000113): Paste-Handler Link-Einfügen in die Auswahl. Bei
 // nicht-leerer Auswahl und einer als URL erkannten Zwischenablage entsteht ein
 // Markdown-Link [Auswahl](URL) statt des ersetzten Texts. Konservativ: nur bei
 // aktivem Schalter (state.pasteUrlAsLink, Default an), einfacher Auswahl,
@@ -38,7 +38,7 @@ import { paneEditors } from './editor.js';
 // Einfügen) korrigiert sich mit dem nächsten V-Tastendruck.
 let pasteMatchStyle = false;
 
-// 4T-0642 / 4T-0789 (Epic 3E-0125): Anlagen ablegen und den Verweis an einer
+// 4T-000642 / 4T-000789 (Epic 3E-000125): Anlagen ablegen und den Verweis an einer
 // Position einsetzen. Gemeinsame Strecke beider Eingabewege; das Ablegen
 // selbst liegt im Modul attachments.js, der Ort im Hauptprozess.
 //
@@ -67,7 +67,7 @@ export async function fuegeAnlagenEin(view, anlagen, pos) {
   return true;
 }
 
-// 4T-0790 (Epic 3E-0125): Doppelklick auf ein Bild oeffnet es in der
+// 4T-000790 (Epic 3E-000125): Doppelklick auf ein Bild oeffnet es in der
 // Standardanwendung. Im Editor gilt bewusst der DOPPELklick und nicht der
 // einfache (PO-Festlegung 2026-07-29): Der einfache Klick setzt hier die
 // Schreibmarke, und wer neben einem Bild weiterschreiben will, darf dabei
@@ -77,7 +77,7 @@ export async function fuegeAnlagenEin(view, anlagen, pos) {
 // Praktisch betrifft das den Live-Modus, weil nur dort Bilder als Widget
 // erscheinen; im reinen Quelltext steht ihre Markdown-Zeile.
 export const imageOpenHandler = EditorView.domEventHandlers({
-  // 4T-0789 (Epic 3E-0125), Befund des Product Owners aus der Test-Iteration:
+  // 4T-000789 (Epic 3E-000125), Befund des Product Owners aus der Test-Iteration:
   // Der Zieh-Weg gehoert IN den Editor und nicht nur an das Fenster.
   //
   // Das eingesetzte Editor-Modul bringt einen eigenen drop-Handler mit, der
@@ -133,7 +133,7 @@ export const pasteLinkHandler = EditorView.domEventHandlers({
     if (matchStyle) return false;
     if (view.state.readOnly) return false;
 
-    // 4T-0642 (Epic 3E-0125): Anlagen-Zweig VOR der URL-in-Auswahl-Pruefung.
+    // 4T-000642 (Epic 3E-000125): Anlagen-Zweig VOR der URL-in-Auswahl-Pruefung.
     // Eine Zwischenablage mit Datei-Inhalt ist kein Text-Fall, und der Zweig
     // haengt bewusst NICHT am Schalter pasteUrlAsLink — das ist eine andere
     // Einstellung mit anderer Bedeutung.

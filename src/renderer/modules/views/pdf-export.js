@@ -1,5 +1,5 @@
-// --- PDF-Export (4T-0303, Epic 3E-0054) -------------------------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// --- PDF-Export (4T-000303, Epic 3E-000054) -------------------------------------
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -8,18 +8,18 @@ import { api } from '../app/api.js';
 import { getPaneEls, state, tabDisplayName, withDialog } from '../app/app-state.js';
 import { syncEditorForPane } from '../editor/editor.js';
 import { rerenderAllMermaidBlocks, waitForMermaidIdle } from '../render-mermaid.js';
-// 4T-0355 (Epic 3E-0065): Idle-Barriere, damit der PDF-Export die befuellten
+// 4T-000355 (Epic 3E-000065): Idle-Barriere, damit der PDF-Export die befuellten
 // Abfrage-Listen druckt statt des leeren Platzhalters.
 import { waitForFrontmatterQueriesIdle } from '../query/frontmatter-query-view.js';
-// 4T-0435 (Epic 3E-0081): Idle-Barriere des Journal-Navigations-Blocks.
+// 4T-000435 (Epic 3E-000081): Idle-Barriere des Journal-Navigations-Blocks.
 import { waitForJournalNavIdle } from '../calendar/journal-nav-view.js';
-// 4T-1066 (Epic 3E-0212): Idle-Barriere des Journal-Timeline-Blocks.
+// 4T-001066 (Epic 3E-000212): Idle-Barriere des Journal-Timeline-Blocks.
 import { waitForJournalTimelineIdle } from '../calendar/journal-timeline-view.js';
-// 4T-0412 (Epic 3E-0078): Idle-Barriere der Skript-Bloecke fuer den PDF-Export.
+// 4T-000412 (Epic 3E-000078): Idle-Barriere der Skript-Bloecke fuer den PDF-Export.
 import { waitForPerspectiveScriptsIdle } from '../query/perspective-script-view.js';
-// 4T-0311 (Epic 3E-0055): Druck-Aufbereitung der Quelltext-Ansicht.
+// 4T-000311 (Epic 3E-000055): Druck-Aufbereitung der Quelltext-Ansicht.
 import { buildPdfSourcePrintElement } from './pdf-source-print.js';
-// 4T-0465 (Epic 3E-0086): PDF-Farb-Overrides aus dem aktiven Hell-Schema.
+// 4T-000465 (Epic 3E-000086): PDF-Farb-Overrides aus dem aktiven Hell-Schema.
 import { pdfColorOverrides } from '../color-schemes.js';
 import { syncToolbarToActiveTab } from '../tabs/tabs.js';
 
@@ -28,14 +28,14 @@ import { showStatusbarHint } from './views.js';
 import { applyContentViewClass } from './view-modes.js';
 
 // Variante B+: statt einzelne Container-Selektoren im Print-CSS zu
-// ueberschreiben (Spezifitaets-Falle aus 4T-0024), werden die CSS-Custom-
+// ueberschreiben (Spezifitaets-Falle aus 4T-000024), werden die CSS-Custom-
 // Properties am Wurzel-Element per JS auf die Light-Werte gesetzt und
 // data-theme fuer die Print-Dauer auf 'light' gezwungen. Damit folgen ALLE
 // theme-abhaengigen Container automatisch dem Light-Schema (inkl. der
 // data-theme-praefixierten hljs- und Dark-Bloecke). Mermaid wird im
 // Light-Theme neu gerendert; im finally wird alles zurueckgestellt.
 //
-// Werte-Satz (4T-0465, Epic 3E-0086, Export-Option 2): die Farben des aktiven
+// Werte-Satz (4T-000465, Epic 3E-000086, Export-Option 2): die Farben des aktiven
 // HELL-Schemas, geliefert von pdfColorOverrides() (Farbschema-Modul). Ohne
 // eigenes Schema sind das exakt die :root-Light-Werte aus styles.css; ein
 // eigenes Hell-Schema wird farbtreu gedruckt, der Druck bleibt stets hell (nie
@@ -48,7 +48,7 @@ let pdfExportRunning = false;
 
 // Zwei rAF-Ticks plus kurzer Timeout: Print-Klassen, Variablen-Override und
 // Mermaid-DOM-Tausch muessen im Layout angekommen sein, bevor printToPDF
-// den Frame rastert (Reflow-Wait aus 4T-0024, rAF-basiert statt fix 50 ms).
+// den Frame rastert (Reflow-Wait aus 4T-000024, rAF-basiert statt fix 50 ms).
 function waitForReflow() {
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
@@ -81,7 +81,7 @@ export async function exportActiveTabAsPdf() {
   const savedVars = {};
   let printStateApplied = false;
   let modeChanged = false;
-  // 4T-0311: der Export folgt der aktiven Ansicht — die Quelltext-Ansicht
+  // 4T-000311: der Export folgt der aktiven Ansicht — die Quelltext-Ansicht
   // druckt den Quelltext (dedizierter Print-Block, CodeMirror ist wegen
   // Virtualisierung nicht druckbar); alle anderen Modi drucken gerendert.
   const sourceExport = tab.viewMode === 'source';
@@ -106,7 +106,7 @@ export async function exportActiveTabAsPdf() {
     if (!target || !target.ok || !target.path) return false;
 
     // 2. Inhalt: Quelltext-Ansicht baut den Print-Block aus dem
-    //    Dokumenttext auf (Zeilennummern gemaess Tab-Toggle, 4T-0311);
+    //    Dokumenttext auf (Zeilennummern gemaess Tab-Toggle, 4T-000311);
     //    Geteilt und Live schalten temporaer auf 'rendered' (befuellt das
     //    Render-Pane frisch, falls der Inhalt seit dem letzten Render
     //    geaendert wurde); der Modus wird im finally wiederhergestellt.
@@ -141,16 +141,16 @@ export async function exportActiveTabAsPdf() {
     if (!sourceExport) {
       await waitForMermaidIdle();
       await rerenderAllMermaidBlocks();
-      // 4T-0355: Abfrage-Listen fertig befüllen lassen, sonst druckt der
+      // 4T-000355: Abfrage-Listen fertig befüllen lassen, sonst druckt der
       // Export den leeren Platzhalter statt der Datei-Liste.
       await waitForFrontmatterQueriesIdle();
-      // 4T-0435 (Epic 3E-0081): Journal-Navigation fertig befüllen lassen
+      // 4T-000435 (Epic 3E-000081): Journal-Navigation fertig befüllen lassen
       // (der Export druckt die Perioden-Beschriftung statt des Platzhalters).
       await waitForJournalNavIdle();
-      // 4T-1066 (Epic 3E-0212): Journal-Timeline fertig aufbauen lassen
+      // 4T-001066 (Epic 3E-000212): Journal-Timeline fertig aufbauen lassen
       // (sonst druckt der Export den leeren Platzhalter statt des Gitters).
       await waitForJournalTimelineIdle();
-      // 4T-0412 (Epic 3E-0078): Skript-Blöcke fertig ausführen lassen
+      // 4T-000412 (Epic 3E-000078): Skript-Blöcke fertig ausführen lassen
       // (Ergebnis, Fehler oder Timeout), bevor der Export druckt.
       await waitForPerspectiveScriptsIdle();
     }

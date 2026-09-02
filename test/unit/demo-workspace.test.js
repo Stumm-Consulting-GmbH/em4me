@@ -1,4 +1,4 @@
-// 4T-0645 (Epic 3E-0127): Unit-Tests der Zustands-Vorlage der Beispiel-Sammlung
+// 4T-000645 (Epic 3E-000127): Unit-Tests der Zustands-Vorlage der Beispiel-Sammlung
 // (src/main/area/demo-workspace.js). Geprüft werden die Auflösung der relativen
 // Pfade gegen den Zielordner, die Gruppen- und tabSettings-Behandlung, die
 // Abwehr defekter Vorlagen und ein Wächter über die mitgelieferte Vorlage

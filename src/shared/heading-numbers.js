@@ -1,4 +1,4 @@
-// 4T-0469 (Epic 3E-0087): Nummerierungs-Kern der Gliederungs-Nummerierung.
+// 4T-000469 (Epic 3E-000087): Nummerierungs-Kern der Gliederungs-Nummerierung.
 //
 // Reine Zaehl- und Marker-Logik fuer automatische Ueberschriften-Nummern.
 // Aufgaben des Moduls:

@@ -1,4 +1,4 @@
-// 4T-0674 (Epic 3E-0135): Wächter des Rückverweises auf die Produkt-Webseite.
+// 4T-000674 (Epic 3E-000135): Wächter des Rückverweises auf die Produkt-Webseite.
 //
 // Die Adresse der Webseite steht an zwei Orten in der Anwendung: als anklickbarer
 // Verweis im Über-Dialog und als Listenpunkt der Handbuch-Überblicksseite. Beide
@@ -27,7 +27,7 @@ const ZIEL = {
   it: 'https://em4me.ch/it/',
 };
 
-describe('Rückverweis auf die Produkt-Webseite (4T-0674)', () => {
+describe('Rückverweis auf die Produkt-Webseite (4T-000674)', () => {
   it('der Über-Dialog führt genau ein Rückverweis-Element', () => {
     const html = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'index.html'), 'utf8');
     const vorkommen = (html.match(/data-i18n="about\.website"/g) || []).length;

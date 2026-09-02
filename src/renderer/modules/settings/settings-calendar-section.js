@@ -1,4 +1,4 @@
-// 4T-0544 (Epic 3E-0097): Bereich „Kalender-Systeme" — Block-Übersicht,
+// 4T-000544 (Epic 3E-000097): Bereich „Kalender-Systeme" — Block-Übersicht,
 // Block-Detail, Validierung und Persistenz der calendarSystems-Sektion.
 'use strict';
 
@@ -203,7 +203,7 @@ function renderCalendarBlockDetail(container, values) {
     block.calendars.push(draft);
     renderActiveSection();
   });
-  // 4T-0747: Anlage einer abgeleiteten Zeitrechnung (kurze Form).
+  // 4T-000747: Anlage einer abgeleiteten Zeitrechnung (kurze Form).
   const derivedBtn = document.createElement('button');
   derivedBtn.type = 'button';
   derivedBtn.id = 'settings-calsys-derived-add';
@@ -291,7 +291,7 @@ export function validateCalendarSection(draft) {
   return null;
 }
 
-// 4T-0747: Vergleichs-Form einer Bezugs-Zeitrechnung ohne die Bestandteile,
+// 4T-000747: Vergleichs-Form einer Bezugs-Zeitrechnung ohne die Bestandteile,
 // die in einer Ableitung nicht durchschlagen (Anzeige-Name und Epochen).
 function calSysEffectiveForm(entry) {
   if (!entry) return null;
@@ -346,7 +346,7 @@ export async function applyCalendarSection(draft) {
   }
   const out = calendarConfigPersistForm(values);
   if (JSON.stringify(out) === JSON.stringify(draft.calendarSnapshot)) return;
-  // 4T-0747: Bestätigung, wenn eine wirksame Änderung an einer Bezugs-
+  // 4T-000747: Bestätigung, wenn eine wirksame Änderung an einer Bezugs-
   // Zeitrechnung auch die Werte ihrer Ableitungen verschiebt.
   const affected = calSysAffectedDependents(values, draft.calendarSnapshot);
   if (affected.length > 0) {

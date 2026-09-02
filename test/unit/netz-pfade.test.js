@@ -1,4 +1,4 @@
-// 4T-0946 (Story 4S-0005, Befund B-12): Erkennung von Pfaden auf Netz-Freigaben.
+// 4T-000946 (Story 4S-000005, Befund B-12): Erkennung von Pfaden auf Netz-Freigaben.
 //
 // Beide Zugangswege gehoeren geprueft: Der UNC-Pfad verraet sich am Praefix,
 // das gemappte Laufwerk nur ueber seine Laufwerksart. Eine Erkennung, die
@@ -14,7 +14,7 @@ import {
   _setNetzLaufwerkeFuerTest,
 } from '../../src/main/documents/network-paths.js';
 
-// 4T-1250 (Epic 3E-0124): Das GEMAPPTE Netzlaufwerk ist ein Windows-Begriff —
+// 4T-001250 (Epic 3E-000124): Das GEMAPPTE Netzlaufwerk ist ein Windows-Begriff —
 // es hat einen Laufwerksbuchstaben, und den gibt es anderswo nicht. Die
 // beiden Faelle darunter sind auf einer Plattform ohne Laufwerksbuchstaben
 // deshalb GEGENSTANDSLOS und nicht etwa falsch geschrieben; die Anwendung

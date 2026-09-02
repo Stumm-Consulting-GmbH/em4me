@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
-// 4T-0299/4T-0298 (Epic 3E-0053): Host der externen Erweiterungen —
+// 4T-000299/4T-000298 (Epic 3E-000053): Host der externen Erweiterungen —
 // API-v1-Fassade (Beitrags-Registrierung und Rollback), Aktivierungs-
 // Zustand, Fehler-Isolation mit automatischer Deaktivierung und der
 // Vertrauens-Ablauf (Warn-Dialog-Ergebnis, Persistenz je Version).
 // Einstiegs-Module kommen als data:-URLs (derselbe dynamische import()-
-// Pfad wie die file://-URLs der echten Pakete, Spike 4T-0298).
+// Pfad wie die file://-URLs der echten Pakete, Spike 4T-000298).
 import { describe, it, expect, beforeEach } from 'vitest';
 import './api-stub.js';
 
 // Sidebar-Container je Pane ergänzen (api-stub baut nur die Pane-Gruppen).
-// 4T-0825: dazu das Render-Gerüst, das der Andockpunkt abfragt — Ansicht-
+// 4T-000825: dazu das Render-Gerüst, das der Andockpunkt abfragt — Ansicht-
 // Klasse am .content, Render-Ziel spezifisch unter .pane-rendered.
 for (const group of document.querySelectorAll('.pane-group')) {
   const aside = document.createElement('aside');
@@ -115,7 +115,7 @@ beforeEach(() => {
   window.api.confirmExternalExtensionTrust = async () => true;
 });
 
-describe('extension-host: Aktivierung und Beiträge (4T-0299)', () => {
+describe('extension-host: Aktivierung und Beiträge (4T-000299)', () => {
   it('aktiviert und registriert alle Beitrags-Arten der API v1', async () => {
     host.resetExternalHostForTests([makeEntry('test-ext', ENTRY_SRC)]);
     const changed = await host.applyExternalStateForTests({
@@ -216,7 +216,7 @@ describe('extension-host: Aktivierung und Beiträge (4T-0299)', () => {
   });
 });
 
-describe('extension-host: Vertrauens-Ablauf (4T-0298)', () => {
+describe('extension-host: Vertrauens-Ablauf (4T-000298)', () => {
   it('Aktivierung ohne bestätigten Dialog passiert nicht', async () => {
     host.resetExternalHostForTests([makeEntry('test-ext', ENTRY_SRC)]);
     window.api.confirmExternalExtensionTrust = async () => false;
@@ -281,8 +281,8 @@ describe('extension-host: Vertrauens-Ablauf (4T-0298)', () => {
   });
 });
 
-// 4T-0825 (Epic 3E-0103): Render-Andockpunkt der API v1.1.
-describe('extension-host: Render-Andockpunkt (4T-0825)', () => {
+// 4T-000825 (Epic 3E-000103): Render-Andockpunkt der API v1.1.
+describe('extension-host: Render-Andockpunkt (4T-000825)', () => {
   // Eigener Zugriffs-Helfer: die Indizierung direkt am querySelectorAll-
   // Ergebnis bricht der Formatierer so um, dass ESLint sie als mehrzeiligen
   // Property-Zugriff anmahnt (no-unexpected-multiline).

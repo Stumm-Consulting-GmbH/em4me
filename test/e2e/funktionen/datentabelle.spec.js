@@ -1,8 +1,8 @@
-// 4T-0418 (Epic 3E-0079): Perspective Datatable — Grid-Anzeige mit Typ-
+// 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-Anzeige mit Typ-
 // Symbolen, Fehler-Zellen, lokalisierter Aggregat-Zeile; Paritaet im
 // Live-Modus. describe-Titel tragen die Funktions-IDs (DT-01 …); die
-// Abdeckungs-Matrix-Eintraege liefert der Hilfe-/Handbuch-Task 4T-0422.
-// 4T-0419: Grid-Editor (DT-04 …) — typ-validierte Zell-Eingabe, Boolean-
+// Abdeckungs-Matrix-Eintraege liefert der Hilfe-/Handbuch-Task 4T-000422.
+// 4T-000419: Grid-Editor (DT-04 …) — typ-validierte Zell-Eingabe, Boolean-
 // Toggle, Zeilen-Aktionen, Rueckschreib-Kontrolle im Quelltext, Undo,
 // zwei Tabellen im Dokument, Read-only-Reading.
 'use strict';
@@ -272,10 +272,10 @@ test.describe('DT-09: Spaltenkopf-Klick sortiert die Ansicht typ-gerecht', () =>
   });
 });
 
-// 4T-1286 (Epic 3E-0232): Der Filter-Umschalter darf keinen Spaltenkopf
+// 4T-001286 (Epic 3E-000232): Der Filter-Umschalter darf keinen Spaltenkopf
 // verdecken.
 //
-// Anlass ist die Schwester-Behebung 4T-1278: Dort lag `.pev-filter-toggle` der
+// Anlass ist die Schwester-Behebung 4T-001278: Dort lag `.pev-filter-toggle` der
 // Ereignis-Ansicht absolut ueber der Ansichts-Leiste und fing deren Klicks ab —
 // unter Linux, wo die breitere Schrift die Klick-Mitte des Nachbar-Knopfs unter
 // ihn schob. `.pdt-filter-toggle` ist zeichengleich gebaut (`position: absolute;
@@ -284,12 +284,12 @@ test.describe('DT-09: Spaltenkopf-Klick sortiert die Ansicht typ-gerecht', () =>
 // darunter: Der Funktions-Katalog nennt beide nebeneinander («Klick auf den
 // Spaltenkopf; Filter-Umschalter am rechten Tabellen-Rand»).
 //
-// Der Fall misst und klickt, wie in 4T-1278 begruendet: Die reine Geometrie
+// Der Fall misst und klickt, wie in 4T-001278 begruendet: Die reine Geometrie
 // liesse eine geaenderte Stapel-Reihenfolge durch, und der reine Klick sagt
 // nichts ueber den Abstand. Im roten Fall gibt er die Zahlen aus, die die
 // Ursachen-Kandidaten trennen — das erspart unter Linux eine eigene Nachmessung
 // im Container.
-test.describe('DT-12: Filter-Umschalter verdeckt keinen Spaltenkopf (4T-1286)', () => {
+test.describe('DT-12: Filter-Umschalter verdeckt keinen Spaltenkopf (4T-001286)', () => {
   test('Umschalter und rechtester Spaltenkopf ueberlappen nicht; der Sortier-Klick kommt an', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
@@ -333,7 +333,7 @@ test.describe('DT-12: Filter-Umschalter verdeckt keinen Spaltenkopf (4T-1286)', 
       // Beide Bedienelemente derselben Leiste setzen in derselben Schrift. Ein
       // <button> erbt sie NICHT von selbst — fehlt `font: inherit`, faellt er
       // auf die Vorgabe der Anzeige-Umgebung zurueck, und die Leiste laeuft in
-      // zwei Rueckfallketten. Genau das war in 4T-1278 gemessen (Arial gegen
+      // zwei Rueckfallketten. Genau das war in 4T-001278 gemessen (Arial gegen
       // Segoe UI) und ist unabhaengig von einem Ueberlapp ein Mangel.
       expect(
         mass.filter.schrift,
@@ -392,7 +392,7 @@ test.describe('DT-10: Filter-Zeile mit gefilterten Aggregaten und n-von-m-Zaehle
   });
 });
 
-test.describe('DT-11: Berechnete Spalte rechnet pro Zeile und reagiert live (4T-0421)', () => {
+test.describe('DT-11: Berechnete Spalte rechnet pro Zeile und reagiert live (4T-000421)', () => {
   test('Formel-Werte im Grid; Eingabe in der Eingangs-Spalte aktualisiert den berechneten Wert', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
@@ -440,7 +440,7 @@ test.describe('DT-03: Live-Modus zeigt dasselbe Grid als Block-Widget', () => {
   });
 });
 
-// --- 4T-1313 (Epic 3E-0235): Spaltenkopf — Anzeigetext und Typangabe -------
+// --- 4T-001313 (Epic 3E-000235): Spaltenkopf — Anzeigetext und Typangabe -------
 
 const FIXTURE_KOPF = path.resolve(
   __dirname,

@@ -1,7 +1,7 @@
-// 4T-0977 (Epic 3E-0196): Perspective-Abfrage über den Index, herausgelöst
+// 4T-000977 (Epic 3E-000196): Perspective-Abfrage über den Index, herausgelöst
 // aus src/main/backlinks.js. Trägt frontmatterQueryFor (Datei-, Block- und
 // Task-Scope samt Gruppierung und Task-Layout).
-// 4T-1070 (Epic 3E-0211): Die Abfrage-Helfer des Task-Scopes (globale
+// 4T-001070 (Epic 3E-000211): Die Abfrage-Helfer des Task-Scopes (globale
 // Task-Abfrage, Task-Tags, Status-Ordnung, Bezugstag, Gruppen-Bildung) liegen
 // seit dem Datei-Größen-Schnitt in query-task-helfer.js; hier bleibt
 // frontmatterQueryFor als die eine Fachlichkeit der Datei.
@@ -10,13 +10,13 @@
 
 const path = require('node:path');
 
-// 4T-0354 (Epic 3E-0065): Query-Parser der Perspective-Query-Sprache
+// 4T-000354 (Epic 3E-000065): Query-Parser der Perspective-Query-Sprache
 // (perspective-query-Fence). Prozess-neutral, mit den Unit-Tests geteilt.
-// Seit 4T-0401 (Epic 3E-0076) unter dem Namen perspective-query.js
+// Seit 4T-000401 (Epic 3E-000076) unter dem Namen perspective-query.js
 // (Klausel-Sprache, nicht mehr nur Frontmatter).
-// 4T-0987 (Epic 3E-0196): im Feature-Ordner src/shared/query/.
+// 4T-000987 (Epic 3E-000196): im Feature-Ordner src/shared/query/.
 const { parseQuery } = require('../../shared/query/perspective-query.js');
-// 4T-0402 (Epic 3E-0076): Auswertung (Typ-System, file.*-Felder, Funktions-
+// 4T-000402 (Epic 3E-000076): Auswertung (Typ-System, file.*-Felder, Funktions-
 // Katalog, FROM-Quellen) aus dem Schwester-Modul; frontmatterQueryFor baut
 // den Kontext pro Datei aus dem Index und laesst matchesQuery entscheiden.
 const {
@@ -26,8 +26,8 @@ const {
 } = require('../../shared/query/perspective-query-eval.js');
 const { validateQuery, queryUsesLinks } = require('../../shared/query/query-functions.js');
 const { formatValueSegments, formatExprSource } = require('../../shared/query/query-format.js');
-// 4T-0502 (Epic 3E-0096): Marker-Kern fuer den TASKS-Scope der Abfrage.
-// 4T-0505: Dringlichkeits-Score und Vergleichs-Helfer der Default-Sortierung.
+// 4T-000502 (Epic 3E-000096): Marker-Kern fuer den TASKS-Scope der Abfrage.
+// 4T-000505: Dringlichkeits-Score und Vergleichs-Helfer der Default-Sortierung.
 const {
   parseTaskLine,
   modelMatchesGlobalFilter,
@@ -35,12 +35,12 @@ const {
   priorityRank,
 } = require('../../shared/tasks/task-markers.js');
 const { computeUrgency } = require('../../shared/tasks/task-recurrence.js');
-// 4T-0508: Blockierungs-/Duplikat-Flags ueber die Task-Menge des Bereichs.
+// 4T-000508: Blockierungs-/Duplikat-Flags ueber die Task-Menge des Bereichs.
 const { computeDependencyFlags } = require('../../shared/tasks/task-dependencies.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
 const { buildLinkGraph, createTargetResolver, buildQueryContext } = require('./link-graph.js');
-// 4T-1070 (Epic 3E-0211): Abfrage-Helfer des Task-Scopes im eigenen Modul.
+// 4T-001070 (Epic 3E-000211): Abfrage-Helfer des Task-Scopes im eigenen Modul.
 const {
   statusTypeRank,
   localIsoDateOf,
@@ -49,24 +49,24 @@ const {
   buildTaskGroups,
 } = require('./query-task-helfer.js');
 
-// 4T-0354 (Epic 3E-0065): Perspective-Abfrage. Prueft jede Index-Datei ueber
+// 4T-000354 (Epic 3E-000065): Perspective-Abfrage. Prueft jede Index-Datei ueber
 // ihren Kontext (Frontmatter-Properties plus implizite file.*-Felder) gegen
-// den Abfrage-AST (FROM-Quelle und WHERE-Bedingung, 4T-0402) und liefert die
+// den Abfrage-AST (FROM-Quelle und WHERE-Bedingung, 4T-000402) und liefert die
 // passenden Dateien (logischer Name plus Pfad), alphabetisch nach Anzeigename
-// (SORT/LIMIT uebernimmt die Ergebnis-Pipeline in 4T-0403). Read-only-View wie
+// (SORT/LIMIT uebernimmt die Ergebnis-Pipeline in 4T-000403). Read-only-View wie
 // tagsFor: Status wird durchgereicht, kein eigener Scan. Ein Query-Syntax-
 // oder Funktions-Fehler wird als queryError-Info bei status 'ready' mit leerer
 // Liste durchgereicht; die nutzer-sichtbare Anzeige uebernimmt die View.
-// 4T-0409 (Epic 3E-0077): im BLOCKS-Scope (Scope-Zusatz am Ausgabe-Typ) sind
+// 4T-000409 (Epic 3E-000077): im BLOCKS-Scope (Scope-Zusatz am Ausgabe-Typ) sind
 // die Treffer Bloecke statt Dateien — pro aktivem blockData-Eintrag ein
 // Kontext, Anzeige-Name 'Datei#^anker', anchor als Sprung-Information.
-// 4T-0502 (Epic 3E-0096): im TASKS-Scope sind die Treffer Task-Zeilen —
+// 4T-000502 (Epic 3E-000096): im TASKS-Scope sind die Treffer Task-Zeilen —
 // pro indexierter Checkbox-Zeile ein Kontext (Datei-Kontext plus ctx.task),
 // Treffer tragen Zeilennummer und Roh-Zeile fuer Anzeige und Zeilen-Sprung.
 // taskEnv liefert der IPC-Handler aus dem Store: { enabled (Erweiterung
 // "Aufgaben" aktiv), globalFilter, statusTypeOf (char -> Typ | null) };
 // im Aus-Zustand meldet der TASKS-Scope einen lokalisierbaren queryError.
-// 4T-1072 (Epic 3E-0211): locale ist die eingestellte Programmsprache, der die
+// 4T-001072 (Epic 3E-000211): locale ist die eingestellte Programmsprache, der die
 // Formatierer der Sprache folgen (dateformat, numberformat, currencyformat).
 // Sie kommt vom Renderer durch, weil nur er sie kennt (Muster von
 // convertMarkdownPortable); ohne Angabe gilt weiterhin die Laufzeit-Locale.
@@ -89,13 +89,13 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   if (!parsedQuery.ok) {
     return { status: 'ready', meta: { wurzel: root }, queryError: parsedQuery.error, files: [] };
   }
-  // 4T-0402 (Epic 3E-0076): unbekannte Funktionen und falsche Stelligkeit
+  // 4T-000402 (Epic 3E-000076): unbekannte Funktionen und falsche Stelligkeit
   // laufen ueber denselben queryError-Pfad wie Syntaxfehler.
   const fnError = validateQuery(parsedQuery.ast);
   if (fnError) {
     return { status: 'ready', meta: { wurzel: root }, queryError: fnError, files: [] };
   }
-  // 4T-0503 (Epic 3E-0096): Aktivierungs-Grenze der Gruppierung und der
+  // 4T-000503 (Epic 3E-000096): Aktivierungs-Grenze der Gruppierung und der
   // Layout-Klauseln — generisch geparst, in dieser Stufe aber nur fuer
   // LIST TASKS ausgewertet (Epic-Risiko-Punkt: die Klauseln sollen spaeter
   // auch Datei- und Block-Scope tragen koennen, ohne sie dort zu aktivieren).
@@ -127,7 +127,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   const resolveLinkTarget = createTargetResolver(entry);
   const blockScope = parsedQuery.ast.scope === 'blocks';
   const taskScope = parsedQuery.ast.scope === 'tasks';
-  // 4T-0502 (Epic 3E-0096): TASKS-Scope nur bei aktiver Erweiterung
+  // 4T-000502 (Epic 3E-000096): TASKS-Scope nur bei aktiver Erweiterung
   // "Aufgaben" (Querschnitt C des Konzept-Workshops: im Aus-Zustand
   // entfaellt der Scope; klarer Hinweis statt stiller Leer-Liste).
   if (taskScope && !(taskEnv && taskEnv.enabled)) {
@@ -141,9 +141,9 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   const globalFilter = (taskEnv && taskEnv.globalFilter) || '';
   const statusTypeOf =
     taskEnv && typeof taskEnv.statusTypeOf === 'function' ? taskEnv.statusTypeOf : () => null;
-  // 4T-0505: Bezugstag des Dringlichkeits-Scores (lokales Datum zu now).
+  // 4T-000505: Bezugstag des Dringlichkeits-Scores (lokales Datum zu now).
   const todayIso = localIsoDateOf(now);
-  // 4T-0505: globale Abfrage (Einstellungs-Vorgabe) — einmal pro Lauf
+  // 4T-000505: globale Abfrage (Einstellungs-Vorgabe) — einmal pro Lauf
   // geparst und als zusaetzliche FROM-/WHERE-Anteile vorangestellt; ein
   // Fehler der globalen Abfrage meldet sich mit eigenem Code, damit die
   // Anzeige global von lokal unterscheidet.
@@ -178,11 +178,11 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
     if (!entry.linkGraph) entry.linkGraph = buildLinkGraph(entry);
     linkGraph = entry.linkGraph;
   }
-  // 4T-0935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten
+  // 4T-000935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten
   // Ansicht). Erst hier, nach dem Link-Graph-Aufbau oben, damit dessen Cache
   // am Original-Eintrag landet.
   const sicht = entryWithOverlay(entry, overlaysUnder(root));
-  // 4T-1070 (Epic 3E-0211): Kontext der Träger-Datei — Ziel des
+  // 4T-001070 (Epic 3E-000211): Kontext der Träger-Datei — Ziel des
   // `this.`-Präfixes und der Selbstbezugs-Quelle. EINMAL je Lauf gebaut und an
   // jeden Treffer-Kontext gehängt, nicht je Treffer neu: Er ist für alle
   // Treffer derselbe, und der Aufbau kostet Link-Graph-Zugriffe. Liegt die
@@ -193,7 +193,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
     ? buildQueryContext(sicht, root, selfAbs, linkGraph, now, resolveLinkTarget)
     : null;
   const rows = [];
-  // 4T-0502/4T-0508: TASKS-Scope in zwei Phasen — erst ALLE Task-Zeilen des
+  // 4T-000502/4T-000508: TASKS-Scope in zwei Phasen — erst ALLE Task-Zeilen des
   // Bereichs zum Modell parsen (Global Filter angewandt), dann die
   // Blockierungs-/Duplikat-Flags ueber die Gesamt-Menge berechnen
   // (computeDependencyFlags braucht die Datei-uebergreifende Sicht), erst
@@ -227,7 +227,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
       const c = candidates[i];
       let fileCtx = fileCtxCache.get(c.absPath);
       if (!fileCtx) {
-        // 4T-1070: Selbst-Kontext an jeden Treffer (konstant je Lauf).
+        // 4T-001070: Selbst-Kontext an jeden Treffer (konstant je Lauf).
         fileCtx = {
           ...buildQueryContext(sicht, root, c.absPath, linkGraph, now, resolveLinkTarget),
           self: selfCtx,
@@ -245,9 +245,9 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
           description: c.model.description.trim(),
           tags: taskLineTags(c.model.description),
           raw: c.tl.text,
-          // 4T-0505: Dringlichkeits-Score mit injiziertem Bezugstag.
+          // 4T-000505: Dringlichkeits-Score mit injiziertem Bezugstag.
           urgency: computeUrgency(c.model, { todayIso }),
-          // 4T-0508: Blockierungs- und Duplikat-Flags.
+          // 4T-000508: Blockierungs- und Duplikat-Flags.
           blocked: flags[i].blocked,
           blocking: flags[i].blocking,
           duplicateId: flags[i].duplicateId,
@@ -258,9 +258,9 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   }
   for (const absPath of taskScope ? [] : sicht.files.keys()) {
     if (blockScope) {
-      // 4T-0409 (Epic 3E-0077): BLOCKS-Scope — pro Block-Daten-Eintrag ein
+      // 4T-000409 (Epic 3E-000077): BLOCKS-Scope — pro Block-Daten-Eintrag ein
       // Kontext aus Datei-Kontext plus Block ({ anchor, values, updatedMs },
-      // 4T-0408). Nur aktive Anker zaehlen: verwaiste Eintraege (Anker steht
+      // 4T-000408). Nur aktive Anker zaehlen: verwaiste Eintraege (Anker steht
       // nicht mehr im Dokument) sind kein Block-Treffer, denn Treffer sind
       // klickbare Datei#^anker-Ziele (Anker als Identitaet, Epic-Entscheidung);
       // das Panel fuehrt verwaiste Daten separat. Dateien ohne Block-Daten
@@ -273,7 +273,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
       for (const block of blocks) {
         if (!anchorsMeta.blockIds.has(block.anchor)) continue;
         if (!fileCtx) {
-          // 4T-1070: Selbst-Kontext an jeden Treffer (konstant je Lauf).
+          // 4T-001070: Selbst-Kontext an jeden Treffer (konstant je Lauf).
           fileCtx = {
             ...buildQueryContext(sicht, root, absPath, linkGraph, now, resolveLinkTarget),
             self: selfCtx,
@@ -293,11 +293,11 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
     if (matchesQuery(evalAst, ctx)) rows.push(ctx);
   }
   // Basis-Ordnung: Datei- und Block-Scope alphabetisch (Name, Pfad, Anker)
-  // wie bisher; der Task-Scope folgt seit 4T-0505 der Referenz-Default-
+  // wie bisher; der Task-Scope folgt seit 4T-000505 der Referenz-Default-
   // Sortierung Status-Typ -> Dringlichkeit (absteigend) -> Faelligkeit ->
   // Prioritaet -> Pfad (Zeile als letzter Determinismus-Anker). SORT
   // ueberschreibt sie in der Ergebnis-Pipeline, LIMIT schneidet nach der
-  // Sortierung (4T-0403).
+  // Sortierung (4T-000403).
   if (taskScope) {
     rows.sort(
       (a, b) =>
@@ -318,10 +318,10 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   }
   const finalRows = applyResultPipeline(rows, evalAst);
   const ast = parsedQuery.ast;
-  // 4T-0409: Treffer-Identitaet der View. Im Block-Scope ist der Anzeige-Name
+  // 4T-000409: Treffer-Identitaet der View. Im Block-Scope ist der Anzeige-Name
   // 'Datei#^anker' und `anchor` traegt die Sprung-Information fuer den Klick
   // (bestehende Wiki-Link-Sprung-Mechanik); path bleibt der absolute Index-Pfad.
-  // 4T-0502: im Task-Scope tragen Treffer Zeilennummer (Zeilen-Sprung) und
+  // 4T-000502: im Task-Scope tragen Treffer Zeilennummer (Zeilen-Sprung) und
   // Roh-Zeile (die View parst sie mit dem Marker-Kern und baut die Task-Optik).
   const toHit = (ctx) => {
     if (blockScope) {
@@ -337,10 +337,10 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
         path: ctx.file.absPath,
         line: ctx.task.line,
         taskText: ctx.task.raw,
-        // 4T-0505: einblendbarer Score (SHOW urgency), auf zwei
+        // 4T-000505: einblendbarer Score (SHOW urgency), auf zwei
         // Nachkommastellen gerundet (Anzeige-Form der Referenz-Formel).
         urgency: Math.round(ctx.task.urgency * 100) / 100,
-        // 4T-0508: dezente Kennzeichnungen der Treffer-Darstellung.
+        // 4T-000508: dezente Kennzeichnungen der Treffer-Darstellung.
         blocked: ctx.task.blocked,
         duplicateId: ctx.task.duplicateId,
       };
@@ -350,14 +350,14 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   const result = {
     status: 'ready',
     meta: { wurzel: root, fileCount: entry.fileCount },
-    // 4T-0404 (Epic 3E-0076): Ausgabe-Typ fuer die View ('list' | 'table').
+    // 4T-000404 (Epic 3E-000076): Ausgabe-Typ fuer die View ('list' | 'table').
     queryType: ast.type,
-    // 4T-0502 (Epic 3E-0096): Auswertungs-Ebene fuer die View
+    // 4T-000502 (Epic 3E-000096): Auswertungs-Ebene fuer die View
     // ('files' | 'blocks' | 'tasks') — steuert die Task-Listen-Optik.
     queryScope: ast.scope,
     files: finalRows.map(toHit),
   };
-  // 4T-0405 (Epic 3E-0076): COLUMNS ist reines Listen-Layout; bei TABLE wird
+  // 4T-000405 (Epic 3E-000076): COLUMNS ist reines Listen-Layout; bei TABLE wird
   // es ignoriert und als lokalisierter Hinweis am Fence gemeldet (kein Fehler).
   if (ast.layoutColumns) {
     if (ast.type === 'list') result.layoutColumns = ast.layoutColumns;
@@ -382,7 +382,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
       extra: formatValueSegments(evaluateExpression(ast.fields[0].expr, ctx)),
     }));
   }
-  // 4T-0503 (Epic 3E-0096): Task-Layout und Gruppierung (nur LIST TASKS,
+  // 4T-000503 (Epic 3E-000096): Task-Layout und Gruppierung (nur LIST TASKS,
   // Aktivierungs-Grenze oben). Die Gruppierung laeuft NACH der Ergebnis-
   // Pipeline: SORT bestimmt die Reihenfolge innerhalb der Gruppen, LIMIT
   // schneidet vor der Gruppen-Bildung; die Gruppen-Reihenfolge folgt der

@@ -1,9 +1,9 @@
-// 4T-0358 (Epic 3E-0066): E2E-Suite Dokument-Notiz — Datenpfad über die
-// IPC-Bridge (note:read/note:write), ohne UI-Panel (das folgt in 4T-0359).
+// 4T-000358 (Epic 3E-000066): E2E-Suite Dokument-Notiz — Datenpfad über die
+// IPC-Bridge (note:read/note:write), ohne UI-Panel (das folgt in 4T-000359).
 // Deckt den Schreib-/Lese-Roundtrip samt Leeren, den Mitzug beim Umbenennen
 // und die Unabhängigkeit von der Historisierungs-Schaltung ab. describe-Titel
 // tragen die Szenario-IDs (NT-*); die Zuordnung zum Funktions-Katalog entsteht
-// mit der Hilfe-Pflege in 4T-0360.
+// mit der Hilfe-Pflege in 4T-000360.
 'use strict';
 
 const fs = require('node:fs');

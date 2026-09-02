@@ -1,13 +1,13 @@
-// 4T-0446 (Epic 3E-0083): Unit-Tests des Profil-Datei-Formats — tolerante
+// 4T-000446 (Epic 3E-000083): Unit-Tests des Profil-Datei-Formats — tolerante
 // Normalisierung der propertyProfiles-Sektion und Definitions-Parsing mit
 // weicher Validierung (Fehler-Isolation pro Definition).
-// 4T-1141 (Epic 3E-0218): erweitertes Definitions-Format — options,
+// 4T-001141 (Epic 3E-000218): erweitertes Definitions-Format — options,
 // valuesFrom, verschachtelte Kind-Definitionen, entkoppelter Mehrfach-Modus.
-// 4T-1143 (Epic 3E-0218): Ortsbezug des Hinweis-Datensatzes.
+// 4T-001143 (Epic 3E-000218): Ortsbezug des Hinweis-Datensatzes.
 //
 // Gegenstück: `property-profiles-aufloesung.test.js` prüft die Auflösung
 // über mehrere Profile, die Vererbung und die gemeinsame Editor-Logik
-// (Schnitt in 4T-1145 entlang der Naht der beiden Module).
+// (Schnitt in 4T-001145 entlang der Naht der beiden Module).
 import { describe, it, expect } from 'vitest';
 import {
   PROFILE_FIELD_TYPES,
@@ -160,7 +160,7 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
         { name: 'ok1' }, // duplicate (case-insensitiv folgt unten)
         { name: 'OK1' }, // duplicate
         { name: 'x', type: 'gibtsnicht' }, // unbekannter Typ
-        // 4T-1155: multipleType trifft seit der Entkopplung nur noch die
+        // 4T-001155: multipleType trifft seit der Entkopplung nur noch die
         // Typen ohne Mehrfach-Darstellung; `number` mit multiple ist gültig.
         { name: 'z', type: 'boolean', multiple: true }, // multipleType
         { name: 'v1', values: 'offen' }, // values kein Array
@@ -183,7 +183,7 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
       'values',
     ]);
     // Hinweise tragen Position, (falls bekannt) den Feldnamen sowie seit
-    // 4T-1143 die betroffene Angabe und die Erwartung.
+    // 4T-001143 die betroffene Angabe und die Erwartung.
     expect(errors[2]).toEqual({ code: 'name', index: 3, name: null, key: 'name', expected: null });
     expect(errors[5]).toEqual({
       code: 'type',
@@ -224,10 +224,10 @@ describe('parseProfileFields — weiche Validierung (Fehler-Isolation)', () => {
   });
 });
 
-// 4T-1141 (Epic 3E-0218): erweitertes Definitions-Format — typ-eigene
+// 4T-001141 (Epic 3E-000218): erweitertes Definitions-Format — typ-eigene
 // Angaben im Unterobjekt (E9), Quelle des Wertevorrats (E12), verschachtelte
 // Kind-Definitionen (Konzept 6.12) und der entkoppelte Mehrfach-Modus (E11).
-describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
+describe('parseProfileFields — erweitertes Format (4T-001141)', () => {
   it('AK1: options wird als flaches Unterobjekt geführt, die obere Ebene bleibt frei', () => {
     const { fields, errors } = parseProfileFields({
       fields: [{ name: 'budget', type: 'number', options: { step: 100, min: 0, max: 100000 } }],
@@ -366,7 +366,7 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
     });
   });
 
-  // 4T-1155 löst die frühere Fassung dieses Falls ab: Bis Stufe 1 war
+  // 4T-001155 löst die frühere Fassung dieses Falls ab: Bis Stufe 1 war
   // `multiple` an jedem Nicht-multistring-Typ ein Fehler; mit dem Typ-Ausbau
   // gilt es für jeden Typ, bei dem mehrere Werte sinnvoll sind (E11).
   it('AK4: multiple an einem Typ ohne Mehrfach-Darstellung bleibt ein Fehler', () => {
@@ -411,7 +411,7 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
           name: 'projekt',
           multiple: true,
           valuesFrom: { query: 'FROM Projekte' },
-          // 4T-1155: `control` statt `sort` — die Optionen werden jetzt je
+          // 4T-001155: `control` statt `sort` — die Optionen werden jetzt je
           // Typ geprüft, und `sort` gehört zum Verweis-Typ. An einem Feld mit
           // Wertevorrat ist `control` die zulässige Angabe.
           options: { control: 'cycle' },
@@ -458,10 +458,10 @@ describe('parseProfileFields — erweitertes Format (4T-1141)', () => {
   });
 });
 
-// 4T-1143 (Epic 3E-0218, E4): Ortsbezug des Hinweis-Datensatzes — jeder
+// 4T-001143 (Epic 3E-000218, E4): Ortsbezug des Hinweis-Datensatzes — jeder
 // Hinweis trägt die betroffene Angabe (key) und die maschinen-lesbare
 // Erwartung (expected); Kind-Hinweise zusätzlich den Pfad.
-describe('Hinweis-Datensatz mit Angabe und Erwartung (4T-1143)', () => {
+describe('Hinweis-Datensatz mit Angabe und Erwartung (4T-001143)', () => {
   it('AK2: Hinweise tragen die betroffene Angabe und die Erwartung', () => {
     const { errors } = parseProfileFields({
       fields: [
@@ -496,11 +496,11 @@ describe('Hinweis-Datensatz mit Angabe und Erwartung (4T-1143)', () => {
   });
 });
 
-// --- 4T-1155 (Epic 3E-0219, E11): Typ-Ausbau und typ-eigene Optionen -------
+// --- 4T-001155 (Epic 3E-000219, E11): Typ-Ausbau und typ-eigene Optionen -------
 // Der Typ-Satz wächst um Verweis und Uhrzeit, der Mehrfach-Modus gilt für
 // jeden Typ mit sinnvoller Mehrfach-Darstellung, und die Options-Angaben
 // werden je Typ geprüft statt blind durchgereicht.
-describe('parseProfileFields — Typ-Ausbau und typ-eigene Optionen (4T-1155)', () => {
+describe('parseProfileFields — Typ-Ausbau und typ-eigene Optionen (4T-001155)', () => {
   it('AK1: link und time sind erklärbar und erscheinen unverändert im Ergebnis', () => {
     const { fields, errors } = parseProfileFields({
       fields: [

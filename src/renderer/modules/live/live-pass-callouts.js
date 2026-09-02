@@ -1,7 +1,7 @@
 // Block-Pässe des Live-Modus: Callout-Blöcke aus dem Vor-Scan und die
 // Custom-Container. Beide setzen Zeilen-Decorations, verstecken ihre
 // Marker-Zeilen und setzen Icon- und Standardtitel-Widgets.
-// 4T-0996 (Epic 3E-0196): aus der Kernfunktion von live-widgets.js
+// 4T-000996 (Epic 3E-000196): aus der Kernfunktion von live-widgets.js
 // herausgelöst. Rümpfe unverändert übernommen; der Block läuft zwischen den
 // beiden Inline-Blöcken.
 'use strict';
@@ -20,11 +20,11 @@ import { computeContainerScan } from './live-scans.js';
 import { positionInsideCode } from './live-shared.js';
 import { CalloutDefaultTitleWidget, CalloutIconWidget } from './live-widget-inline.js';
 
-// 4T-0996: Callout- und Container-Pass eines Sichtbereichs.
+// 4T-000996: Callout- und Container-Pass eines Sichtbereichs.
 export function runCalloutPasses(ctx) {
   const { state, ranges, activeLines, frontmatterEndLine } = ctx;
   const { calloutInfos, from, to } = ctx;
-  // === 4T-0087: Callout-Decoration-Pass ===
+  // === 4T-000087: Callout-Decoration-Pass ===
   // Pro Callout-Info aus dem Pre-Pass: Line-Decorations auf alle Block-
   // Zeilen, Hide-Range fuer den Header-Marker `> [!type][+-]?`, Hide-
   // Range fuer `> ` pro Body-Zeile (cursor-bewusst), Inline-Widget mit
@@ -47,7 +47,7 @@ export function runCalloutPasses(ctx) {
       // `> [!type][+-]?` plus folgendes Whitespace bis zum
       // (optionalen) Override-Titel.
       const headerText = state.doc.sliceString(headerLine.from, headerLine.to);
-      // R1-13 (4T-0186): Muster synchron zur Pre-Pass-Erkennung halten.
+      // R1-13 (4T-000186): Muster synchron zur Pre-Pass-Erkennung halten.
       const markerMatch = headerText.match(/^( {0,3}>[ \t]*\[!([a-z]+)\][+-]?)([ \t]*)/);
       if (!markerMatch) continue;
       const markerEnd = headerLine.from + markerMatch[1].length;
@@ -88,8 +88,8 @@ export function runCalloutPasses(ctx) {
     }
   }
 
-  // === 4T-0200: Custom-Container-Decoration-Pass ===
-  // Bekannte Callout-Typen nutzen die 4T-0087-Bausteine (Line-Decos,
+  // === 4T-000200: Custom-Container-Decoration-Pass ===
+  // Bekannte Callout-Typen nutzen die 4T-000087-Bausteine (Line-Decos,
   // Icon- und Default-Titel-Widget) unveraendert; unbekannte Namen
   // bekommen die neutrale cm-live-container-Line-Deco. Marker-Zeilen
   // werden in Nicht-Cursor-Zeilen versteckt; bei Containern ohne

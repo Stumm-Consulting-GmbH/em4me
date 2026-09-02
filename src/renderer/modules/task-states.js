@@ -1,4 +1,4 @@
-// 4T-0204 (Epic 3E-0017): Renderer-Verwaltung der erweiterten Task-States.
+// 4T-000204 (Epic 3E-000017): Renderer-Verwaltung der erweiterten Task-States.
 //
 // Aufgaben des Moduls:
 // - Store-Stand (electron-store-Key `taskStates`, Voll-Array) mit dem
@@ -47,7 +47,7 @@ export function getLiveTaskMarkerRe() {
   return liveTaskMarkerRe;
 }
 
-// 4T-0497: renderedToggleRe wird nicht mehr exportiert — der Toggle-Pfad
+// 4T-000497: renderedToggleRe wird nicht mehr exportiert — der Toggle-Pfad
 // laeuft ueber computeStatusToggle/performStatusToggle in diesem Modul.
 
 function escapeForCharClass(ch) {
@@ -58,7 +58,7 @@ function rebuildDerived() {
   activeMap = new Map();
   for (const s of taskStatesResolved) {
     if (!s.enabled) continue;
-    // 4T-0497: Typ und Folge-Symbol wandern mit in die aktive Map
+    // 4T-000497: Typ und Folge-Symbol wandern mit in die aktive Map
     // (Ketten-Toggle und Semantik-Hooks lesen hier).
     activeMap.set(s.char, { color: s.color, label: s.label, type: s.type, next: s.next });
   }
@@ -69,7 +69,7 @@ function rebuildDerived() {
   renderedToggleRe = new RegExp(`^(\\s*(?:[-*+]|\\d+[.)])\\s+\\[)([ xX${extra}])(\\])`);
 }
 
-// 4T-0497: Typ-/Folge-Symbol-Normalisierung der Migration. Bestands-
+// 4T-000497: Typ-/Folge-Symbol-Normalisierung der Migration. Bestands-
 // Konfigurationen ohne die neuen Felder erhalten verhaltensneutrale
 // Defaults (builtin: Typ aus dem Default-Set; custom: TODO; Folge-Symbol
 // ueberall 'x' = Abschliessen wie bisher hart kodiert).
@@ -127,7 +127,7 @@ export function resolveStoredTaskStates(stored) {
 }
 
 // Persistenz-Form (Voll-Array): builtin ohne Label (kommt aus i18n),
-// Custom mit Freitext-Label; Typ und Folge-Symbol bei beiden (4T-0497).
+// Custom mit Freitext-Label; Typ und Folge-Symbol bei beiden (4T-000497).
 export function toStoredTaskStates(resolved) {
   return resolved.map((s) =>
     s.builtin
@@ -152,7 +152,7 @@ export function toStoredTaskStates(resolved) {
   );
 }
 
-// --- Ketten-Toggle (4T-0497) -------------------------------------------------------
+// --- Ketten-Toggle (4T-000497) -------------------------------------------------------
 // Naechster Schritt der Toggling-Kette fuer eine Zeile: Basis fest
 // (' ' -> 'x' -> ' '), erweiterte Status folgen ihrem konfigurierten
 // Folge-Symbol. Reine Funktion fuer Unit-Tests; liefert null, wenn die
@@ -173,13 +173,13 @@ export function computeStatusToggle(lineText) {
   };
 }
 
-// 4T-0498 (Epic 3E-0090): Semantik-Hook der Erweiterung "Aufgaben".
+// 4T-000498 (Epic 3E-000090): Semantik-Hook der Erweiterung "Aufgaben".
 // Der registrierte Augmenter erhaelt (zeilenText, toggle) und darf den
 // Toggle zu einer Zeilen-Transformation erweitern: Rueckgabe null =
 // keine Erweiterung (Einzel-Zeichen-Toggle), sonst
 // { lineText: string|null, insert: { text, where: 'above'|'below' }|null }
 // — lineText ersetzt die ganze Zeile (Automatik-Daten), insert fuegt
-// eine neue Zeile ein (Wiederholungs-Instanz, 4T-0499). Alles laeuft in
+// eine neue Zeile ein (Wiederholungs-Instanz, 4T-000499). Alles laeuft in
 // EINER Transaktion (ein Undo-Schritt).
 let statusToggleAugmenter = null;
 
@@ -190,7 +190,7 @@ export function setStatusToggleAugmenter(fn) {
 // Gemeinsamer Toggle-Pfad beider Ansichten (Render-Pane views.js,
 // Live-Modus live-widgets.js): schaltet das Status-Zeichen der Zeile auf
 // das Folge-Symbol und liefert den Uebergang fuer Semantik-Hooks
-// (Erledigt-/Abgebrochen-Automatik und Wiederholung ab 4T-0498/4T-0499:
+// (Erledigt-/Abgebrochen-Automatik und Wiederholung ab 4T-000498/4T-000499:
 // nur der Uebergang AUF einen DONE-Typ gilt als Abschluss).
 export function performStatusToggle(view, lineNumber) {
   if (!view || !Number.isFinite(lineNumber)) return null;
@@ -199,7 +199,7 @@ export function performStatusToggle(view, lineNumber) {
   const lineText = view.state.doc.sliceString(lineObj.from, lineObj.to);
   const toggle = computeStatusToggle(lineText);
   if (!toggle) return null;
-  // 4T-0498: Augmenter fragen (Automatik-Daten, Wiederholung). Ein
+  // 4T-000498: Augmenter fragen (Automatik-Daten, Wiederholung). Ein
   // Fehler im Hook darf den Basis-Toggle nie verhindern.
   let augmented = null;
   if (statusToggleAugmenter) {
@@ -224,7 +224,7 @@ export function performStatusToggle(view, lineNumber) {
       changes.push({ from: lineObj.from, insert: `${augmented.insert.text}\n` });
     }
   }
-  // 4T-0484 (Epic 3E-0088): userEvent-Annotation — ohne sie verschmilzt die
+  // 4T-000484 (Epic 3E-000088): userEvent-Annotation — ohne sie verschmilzt die
   // programmatische Transaktion in der Editor-Historie mit dem vorherigen
   // Ereignis (typisch dem initialen Doc-Set beim Oeffnen); ein Undo leerte
   // dann das ganze Dokument statt nur den Toggle zurueckzunehmen.

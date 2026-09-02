@@ -1,4 +1,4 @@
-// 4T-0520 (Epic 3E-0094): Laufzeit der Kommando-Platzierung im Renderer.
+// 4T-000520 (Epic 3E-000094): Laufzeit der Kommando-Platzierung im Renderer.
 //
 // Hält die persistierte Konfiguration (Store-Key 'commandPlacement') im
 // Fenster, rendert das eigene Statusbar-Segment mit den nutzerdefinierten

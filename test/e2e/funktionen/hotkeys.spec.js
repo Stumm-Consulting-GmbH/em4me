@@ -1,5 +1,5 @@
-// 4T-0208 (Epic 3E-0015): E2E-Funktions-Suite — konfigurierbare
-// Tastenkuerzel. Tastenkuerzel-Bereich der Einstellungs-Seite (4T-0279)
+// 4T-000208 (Epic 3E-000015): E2E-Funktions-Suite — konfigurierbare
+// Tastenkuerzel. Tastenkuerzel-Bereich der Einstellungs-Seite (4T-000279)
 // mit Capture, Konflikt-Erkennung, Entfernen/Reset, Draft-Semantik
 // (Abbrechen) und Persistenz ueber den App-Neustart (zweiter
 // electron.launch mit demselben Temp-Profil).
@@ -18,7 +18,7 @@ async function waitForTab(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
-// 4T-0279: Einstellungen sind eine Seite im Tab-System; der Bereich
+// 4T-000279: Einstellungen sind eine Seite im Tab-System; der Bereich
 // Tastenkuerzel wird ueber die Bereichsnavigation aktiviert. Poll, weil
 // der Kommando-Dispatcher erst am Ende des asynchronen init() steht.
 async function openSettings(page) {
@@ -220,7 +220,7 @@ test.describe('HK-05: Abbrechen verwirft den Draft vollstaendig', () => {
   });
 });
 
-test.describe('HK-06: Einzel-Reset auf belegten Default warnt statt Duplikat (4T-0211)', () => {
+test.describe('HK-06: Einzel-Reset auf belegten Default warnt statt Duplikat (4T-000211)', () => {
   // Regressionstest zum Nutzer-Befund aus der Gesamtabnahme 0.28.0:
   // AutoSave auf Strg+N (Ueberschreiben raeumt Neu frei), danach Reset
   // bei Neu — vor dem Hotfix entstand Strg+N doppelt, jetzt erscheint

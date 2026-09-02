@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0355 (Epic 3E-0065): buildQueryListDom erzeugt aus der Abfrage-IPC-Antwort
+// 4T-000355 (Epic 3E-000065): buildQueryListDom erzeugt aus der Abfrage-IPC-Antwort
 // das Listen-DOM der Frontmatter-Abfrage (perspective-query). Reine Funktion mit
 // injiziertem t; deterministisch über alle Status- und Fehlerzustände prüfbar.
 // Der t-Stub liest die echte de.json, damit Platzhalter-Ersetzung ({pos},
@@ -20,7 +20,7 @@ function render(payload) {
   return host;
 }
 
-describe('frontmatter-query-view buildQueryListDom (4T-0355)', () => {
+describe('frontmatter-query-view buildQueryListDom (4T-000355)', () => {
   it('ready mit Treffern: klickbare Eintraege in Eingabe-Reihenfolge mit data-fm-path', () => {
     const host = render({
       status: 'ready',
@@ -99,9 +99,9 @@ describe('frontmatter-query-view buildQueryListDom (4T-0355)', () => {
   });
 });
 
-// --- 4T-0404 (Epic 3E-0076): Tabellen-Ausgabe und LIST-Zusatzfeld -------------
+// --- 4T-000404 (Epic 3E-000076): Tabellen-Ausgabe und LIST-Zusatzfeld -------------
 
-describe('frontmatter-query-view — TABLE und Zusatzfeld (4T-0404)', () => {
+describe('frontmatter-query-view — TABLE und Zusatzfeld (4T-000404)', () => {
   const tablePayload = {
     status: 'ready',
     queryType: 'table',
@@ -167,7 +167,7 @@ describe('frontmatter-query-view — TABLE und Zusatzfeld (4T-0404)', () => {
     expect(host.querySelector('.perspective-query-status').textContent).toBe(de['query.empty']);
   });
 
-  it('COLUMNS: Listen-Container trägt data-fm-columns (4T-0405)', () => {
+  it('COLUMNS: Listen-Container trägt data-fm-columns (4T-000405)', () => {
     const files = [
       { name: 'Alpha', path: '/raum/Alpha.md' },
       { name: 'Beta', path: '/raum/Beta.md' },
@@ -181,7 +181,7 @@ describe('frontmatter-query-view — TABLE und Zusatzfeld (4T-0404)', () => {
     expect(one.querySelector('.perspective-query-list').dataset.fmColumns).toBeUndefined();
   });
 
-  it('Hinweis columnsIgnored: lokalisierter Text oberhalb der Tabelle (4T-0405)', () => {
+  it('Hinweis columnsIgnored: lokalisierter Text oberhalb der Tabelle (4T-000405)', () => {
     const host = render({ ...tablePayload, hint: 'columnsIgnored' });
     const hint = host.querySelector('.perspective-query-hint');
     expect(hint).not.toBeNull();
@@ -216,9 +216,9 @@ describe('frontmatter-query-view — TABLE und Zusatzfeld (4T-0404)', () => {
   });
 });
 
-// --- 4T-0409 (Epic 3E-0077): Block-Treffer mit Anker-Sprung -------------------
+// --- 4T-000409 (Epic 3E-000077): Block-Treffer mit Anker-Sprung -------------------
 
-describe('frontmatter-query-view — Block-Treffer (4T-0409)', () => {
+describe('frontmatter-query-view — Block-Treffer (4T-000409)', () => {
   it('LIST: Block-Treffer tragen data-fm-anchor mit ^-Praefix', () => {
     const host = render({
       status: 'ready',
@@ -260,9 +260,9 @@ describe('frontmatter-query-view — Block-Treffer (4T-0409)', () => {
   });
 });
 
-// --- 4T-0502 (Epic 3E-0096): Task-Trefferliste (TASKS-Scope) -----------------
+// --- 4T-000502 (Epic 3E-000096): Task-Trefferliste (TASKS-Scope) -----------------
 
-describe('frontmatter-query-view — Task-Treffer (4T-0502)', () => {
+describe('frontmatter-query-view — Task-Treffer (4T-000502)', () => {
   // Payload wie der Main-Query-Pfad (queryScope 'tasks', Treffer mit taskText,
   // line, path). Die View parst taskText mit dem Marker-Kern und baut die Optik.
   const DUE = '\u{1F4C5}';
@@ -352,9 +352,9 @@ describe('frontmatter-query-view — Task-Treffer (4T-0502)', () => {
   });
 });
 
-// --- 4T-0503 (Epic 3E-0096): Gruppierung und Task-Layout (HIDE/SHOW/SHORT) ----
+// --- 4T-000503 (Epic 3E-000096): Gruppierung und Task-Layout (HIDE/SHOW/SHORT) ----
 
-describe('frontmatter-query-view — Gruppierung und Layout (4T-0503)', () => {
+describe('frontmatter-query-view — Gruppierung und Layout (4T-000503)', () => {
   const DUE = '\u{1F4C5}';
   const HIGH = '\u{1F53A}';
 
@@ -483,9 +483,9 @@ describe('frontmatter-query-view — Gruppierung und Layout (4T-0503)', () => {
   });
 });
 
-// --- 4T-0504 (Epic 3E-0096): Rueckschreib-Aktionen an den Task-Treffern --------
+// --- 4T-000504 (Epic 3E-000096): Rueckschreib-Aktionen an den Task-Treffern --------
 
-describe('frontmatter-query-view — Aktions-Elemente der Task-Treffer (4T-0504)', () => {
+describe('frontmatter-query-view — Aktions-Elemente der Task-Treffer (4T-000504)', () => {
   const DUE = '\u{1F4C5}';
 
   function datedFile(over) {
@@ -558,9 +558,9 @@ describe('frontmatter-query-view — Aktions-Elemente der Task-Treffer (4T-0504)
   });
 });
 
-// --- 4T-0505 (Epic 3E-0096): Dringlichkeits-Badge (SHOW urgency) und globaler ---
+// --- 4T-000505 (Epic 3E-000096): Dringlichkeits-Badge (SHOW urgency) und globaler ---
 // Abfrage-Fehler.
-describe('frontmatter-query-view — Dringlichkeit und globale Abfrage (4T-0505)', () => {
+describe('frontmatter-query-view — Dringlichkeit und globale Abfrage (4T-000505)', () => {
   const DUE = '\u{1F4C5}';
 
   function urgencyFile(over) {
@@ -618,13 +618,13 @@ describe('frontmatter-query-view — Dringlichkeit und globale Abfrage (4T-0505)
   });
 });
 
-// --- 4T-0508 (Epic 3E-0096): Blockiert- und Duplikat-Kennzeichnung -------------
+// --- 4T-000508 (Epic 3E-000096): Blockiert- und Duplikat-Kennzeichnung -------------
 // Die Flags kommen vorberechnet vom Main (file.blocked / file.duplicateId); die
 // View haengt dezente Badges an und setzt bei blocked eine li-Klasse. Bewusst
 // schlichte taskText-Zeilen, damit die Marker-Badges der Segmente die Flag-
 // Badges nicht ueberdecken (dependsOn-Segment -> task-marker-other, invalides
 // Datum -> task-marker-invalid — hier beides nicht vorhanden).
-describe('frontmatter-query-view — Blockiert und Duplikat (4T-0508)', () => {
+describe('frontmatter-query-view — Blockiert und Duplikat (4T-000508)', () => {
   function taskFile(over) {
     return {
       name: 'Aufgaben',
@@ -678,9 +678,9 @@ describe('frontmatter-query-view — Blockiert und Duplikat (4T-0508)', () => {
   });
 });
 
-// --- 4T-1074 (Epic 3E-0211): Hervorhebung in Ergebnis-Spalten -----------------
+// --- 4T-001074 (Epic 3E-000211): Hervorhebung in Ergebnis-Spalten -----------------
 
-describe('frontmatter-query-view — Hervorhebung (4T-1074)', () => {
+describe('frontmatter-query-view — Hervorhebung (4T-001074)', () => {
   it('TABLE: markierte Segmente werden ausgezeichnet, unmarkierte bleiben Text', () => {
     const host = render({
       status: 'ready',

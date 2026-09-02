@@ -1,4 +1,4 @@
-// 4T-1290 (Epic 3E-0224): Tests der Datei-Ebene des Lese-Wegs geteilter
+// 4T-001290 (Epic 3E-000224): Tests der Datei-Ebene des Lese-Wegs geteilter
 // Dokumente (src/main/documents/document-parts-io.js). Geprüft wird am realen
 // Dateisystem über eine Wegwerf-Wurzel, weil genau das Zusammenspiel von
 // Verzeichnis-Durchlauf, Begleitdatei und Zusammensetzen der Gegenstand ist;
@@ -149,7 +149,7 @@ describe('document-parts-io: geteiltes Dokument zusammensetzen (AK1)', () => {
     // die Ablage-Regeln ausschließen. Der einzige Anhaltspunkt ist der
     // Katalog, der hier aber Cache ist und bei Widerspruch verworfen wird.
     // Der Test hält die Grenze fest, statt sie zu verdecken; ihre Auflösung
-    // gehört zu 4T-1292 und braucht eine Entscheidung des Product Owners.
+    // gehört zu 4T-001292 und braucht eine Entscheidung des Product Owners.
     const { w, kopfPfad } = legeGeteiltesDokument('Notizen', [
       '# Notizen\n\neins\n',
       '## Zwei\n\nzwei\n',

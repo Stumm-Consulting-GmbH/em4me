@@ -1,6 +1,6 @@
-// 4T-0943 (Epic 3E-0197): Sichtbarkeit des Modifier-Zugangs.
+// 4T-000943 (Epic 3E-000197): Sichtbarkeit des Modifier-Zugangs.
 //
-// Werte in der Zeile mit dem Cursor sind seit 4T-0943 dekoriert, reagieren
+// Werte in der Zeile mit dem Cursor sind seit 4T-000943 dekoriert, reagieren
 // dort aber nur auf den Strg-Klick (E1 im Epic: der einfache Klick bleibt dem
 // Cursor vorbehalten). Traegt die Marke dort dieselbe Klick-Optik wie sonst,
 // verspricht sie eine Reaktion, die der einfache Klick nicht einloest — genau

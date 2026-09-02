@@ -1,11 +1,11 @@
-// 4T-0179 (Epic 3E-0039): aus src/main/preload.js extrahiert.
+// 4T-000179 (Epic 3E-000039): aus src/main/preload.js extrahiert.
 // Markdown-Pipeline: md (Viewer, html:false) und mdPortable (html:true mit
 // P-02-Whitelist-Sanitizer), Plugin-Verkabelung in Original-Reihenfolge,
 // perspective-table-Fence-Hook und der Portable-Konverter. Electron-frei: das
 // Modul ist ohne Electron/DOM ladbar (der DOMParser im Block-Sanitizer
 // wird erst im Aufruf referenziert und faellt in Node auf Escaping zurueck).
 //
-// 4T-0292 (Epic 3E-0052): Der Instanz-Aufbau ist in buildPipelines(enabled)
+// 4T-000292 (Epic 3E-000052): Der Instanz-Aufbau ist in buildPipelines(enabled)
 // parametrisiert. configureExtensions(disabledIds) baut beide Instanzen mit
 // dem aktiven Plugin-Satz neu auf (Erweiterungs-Registry in
 // src/shared/extensions/extensions.js; Schalt-Zustand kommt wie bei
@@ -45,7 +45,7 @@ const {
   taskMarkersPlugin,
   stripPercentComments,
   stripHeadingMarkers,
-  // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges @{Kalendername: Wert}.
+  // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges @{Kalendername: Wert}.
   calendarValuesPlugin,
   CALENDAR_SPAN_LABEL_KEYS,
 } = require('./plugins.js');
@@ -53,13 +53,13 @@ const {
   renderPerspectiveTable,
   convertPerspectiveTableBlockToHtml,
 } = require('./perspective-table.js');
-// 4T-0418 (Epic 3E-0079): Perspective Datatable — Grid-HTML für den Fence-
+// 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-HTML für den Fence-
 // Override und statische Tabellen-Konvertierung für den Portable-Export.
 const {
   renderPerspectiveDatatableViewer,
   convertPerspectiveDatatableBlockToHtml,
 } = require('./perspective-datatable.js');
-// 4T-0512 (Epic 3E-0092): Ereignis-Fence — Tabellen-HTML für den Fence-
+// 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-HTML für den Fence-
 // Override und statische Tabellen-Konvertierung für den Portable-Export.
 const {
   localTodayIso,
@@ -68,7 +68,7 @@ const {
   PORTABLE_EVENT_LABEL_KEYS,
 } = require('./perspective-events.js');
 
-// 4T-0023: highlight.js als Core-Bundle plus kuratierte Sprachliste. Damit
+// 4T-000023: highlight.js als Core-Bundle plus kuratierte Sprachliste. Damit
 // landet nur das benoetigte Set im Bundle, nicht das gesamte Default-Bundle
 // mit ueber 190 Sprachen. Aliase wie js/ts/sh/py/c#/c++ deckt highlight.js
 // intern ueber die jeweiligen language-Definitionen ab.
@@ -101,14 +101,14 @@ for (const lang of HLJS_LANGUAGES) {
 }
 // HTML wird vom xml-Modul mitabgedeckt.
 
-// 4T-0023: Syntax-Highlighting fuer Fenced-Code-Bloecke mit Sprach-Tag.
+// 4T-000023: Syntax-Highlighting fuer Fenced-Code-Bloecke mit Sprach-Tag.
 // Keine Auto-Detection ohne Tag — Fehlerkennungen bei kurzen Snippets
 // stiften mehr Verwirrung als Nutzen. Unbekannte Sprache und Tokenizer-
 // Fehler fallen still auf den Plain-Block mit hljs-Klasse zurueck. Die
 // `language-<tag>`-Klasse wird auch bei unbekannten Tags mitgesetzt, damit
-// das Renderer-seitige Post-Processing (z.B. Mermaid in 4T-0021) Bloecke
+// das Renderer-seitige Post-Processing (z.B. Mermaid in 4T-000021) Bloecke
 // zuverlaessig per Klassennamen finden kann. Gemeinsamer Callback beider
-// Instanzen (4T-0292: aus den Konstruktor-Optionen extrahiert).
+// Instanzen (4T-000292: aus den Konstruktor-Optionen extrahiert).
 function highlightFence(str, lang) {
   if (lang && hljs.getLanguage(lang)) {
     try {
@@ -122,10 +122,10 @@ function highlightFence(str, lang) {
   return `<pre><code class="${classes}">${escapeHtml(str)}</code></pre>`;
 }
 
-// P-02 (4T-0176): Whitelist-Sanitizer fuer ROHES HTML im Portable-Modus.
-// 4T-0994 (Epic 3E-0196): nach ./portable-sanitizer.js ausgezogen — der
+// P-02 (4T-000176): Whitelist-Sanitizer fuer ROHES HTML im Portable-Modus.
+// 4T-000994 (Epic 3E-000196): nach ./portable-sanitizer.js ausgezogen — der
 // einzige Teil dieses Moduls, der ohne Beruehrung des Pipeline-Kerns
-// ausziehen konnte (Entscheidung E2 der Bestandsaufnahme 4T-0964). Die
+// ausziehen konnte (Entscheidung E2 der Bestandsaufnahme 4T-000964). Die
 // Begruendung der engen Whitelist steht dort; angewendet wird der
 // Sanitizer unveraendert an den html_block-/html_inline-Render-Rules der
 // mdPortable-Instanz (weiter unten in buildPipelines).
@@ -134,7 +134,7 @@ const {
   sanitizePortableHtmlInline,
 } = require('./portable-sanitizer.js');
 
-// K-12 (4T-0189): Waehrend der Export-Konvertierung geben die KaTeX-
+// K-12 (4T-000189): Waehrend der Export-Konvertierung geben die KaTeX-
 // Renderer-Rules den Formel-QUELLTEXT zurueck statt KaTeX-HTML. Der
 // Schalter liegt bewusst auf globalThis (Zaehler, reentranz-sicher):
 // die Zell-Konvertierung laeuft ueber den CJS-Zyklus perspective-table.js <->
@@ -149,7 +149,7 @@ function enablePortableMath() {
   globalThis[PORTABLE_MATH_OFF_FLAG] = Math.max(0, (globalThis[PORTABLE_MATH_OFF_FLAG] || 0) - 1);
 }
 
-// 4T-0041: Marker am Anfang einer konvertierten Datei. Wird in renderMarkdown
+// 4T-000041: Marker am Anfang einer konvertierten Datei. Wird in renderMarkdown
 // erkannt und schaltet die Datei auf mdPortable (html:true), damit die
 // eingebetteten HTML-Tabellen im Viewer als Tabellen rendern statt als
 // escapter Quelltext. Bei rekursiven Konverter-Aufrufen (Zell-Inhalt mit
@@ -157,15 +157,15 @@ function enablePortableMath() {
 // einmal an der Datei-Spitze stehen soll.
 const PERSPECTIVE_PORTABLE_MARKER = '<!-- perspective-portable -->';
 
-// --- 3E-0017: Markdown-Erweiterungen (0.27.0) ---------------------------
-// Gemeinsamer Erweiterungs-Block des Epics (4T-0197 ff.): alle neuen
+// --- 3E-000017: Markdown-Erweiterungen (0.27.0) ---------------------------
+// Gemeinsamer Erweiterungs-Block des Epics (4T-000197 ff.): alle neuen
 // Plugin-Registrierungen laufen fuer md UND mdPortable ueber
 // registerMarkdownExtensions, damit die Reihenfolge in beiden Instanzen
 // identisch bleibt. Portable-spezifische Render-Rules (inline-Styles)
 // folgen direkt nach dem Block in buildPipelines.
 const { full: emojiFull } = require('markdown-it-emoji');
 const markdownItAbbr = require('markdown-it-abbr');
-// 4T-0198: markdown-it-imsize (reines CJS) statt @mdit/plugin-img-size —
+// 4T-000198: markdown-it-imsize (reines CJS) statt @mdit/plugin-img-size —
 // dessen exports-Map loest unter Electrons Node 20 via require() auf den
 // ESM-Build auf (ERR_REQUIRE_ESM, Preload-Abbruch; unter System-Node 22
 // kaschiert require(esm) das Problem). Verifiziert am 2026-06-12.
@@ -176,17 +176,17 @@ const markdownItSub = require('markdown-it-sub');
 const markdownItIns = require('markdown-it-ins');
 const markdownItBracketedSpans = require('markdown-it-bracketed-spans');
 const markdownItAttrs = require('markdown-it-attrs');
-// 4T-0595 (Epic 3E-0111): Inline-Berechnungen {= Ausdruck =} über die
-// Query-Ausdrucks-Engine; 4T-0596: Export-Konverter (Ergebnis-Spans).
+// 4T-000595 (Epic 3E-000111): Inline-Berechnungen {= Ausdruck =} über die
+// Query-Ausdrucks-Engine; 4T-000596: Export-Konverter (Ergebnis-Spans).
 const { inlineCalcPlugin, convertInlineCalc } = require('./inline-calc.js');
 
-// 4T-0292/4T-0293: enabled(id) liefert den effektiven Aktiv-Zustand einer
+// 4T-000292/4T-000293: enabled(id) liefert den effektiven Aktiv-Zustand einer
 // Erweiterungs-ID (Kern bzw. noch nicht registrierte IDs sind immer
 // aktiv). Jede Registrierung steht unter der Guard ihrer Erweiterung;
 // deaktivierte Syntax bleibt regulaerer Fliesstext bzw. Standard-Markdown.
 function registerMarkdownExtensions(mdInstance, opts = {}) {
   const enabled = opts.enabled || (() => true);
-  // 4T-0197: Emoji-Shortcodes `:smile:` -> Unicode-Zeichen (full-Set,
+  // 4T-000197: Emoji-Shortcodes `:smile:` -> Unicode-Zeichen (full-Set,
   // GitHub-kompatibel inkl. Aliase wie `:+1:`). shortcuts:{} schaltet die
   // Emoticon-Kurzformen (`:)`, `8-)`) bewusst ab — GitHub wandelt sie
   // nicht um, und im Fliesstext waeren Fehlpositive (z.B. `8-)` am
@@ -194,19 +194,19 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   // unbekannte Codes und Doppelpunkt-Muster (Uhrzeiten, URLs) bleiben
   // unveraendert Text (Plugin-Heuristik).
   if (enabled('emoji')) mdInstance.use(emojiFull, { shortcuts: {} });
-  // 4T-0197: Abbreviations `*[HTML]: Langtext` (Pandoc/PHP-Markdown-Extra).
+  // 4T-000197: Abbreviations `*[HTML]: Langtext` (Pandoc/PHP-Markdown-Extra).
   // Definitionszeile verschwindet aus dem Output; jedes Wort-Vorkommen
   // wird zu <abbr title="Langtext">.
   if (enabled('abbreviations')) mdInstance.use(markdownItAbbr);
-  // 4T-0198: Image Size `![alt](url =100x200)` (auch `=100x`/`=x200`);
+  // 4T-000198: Image Size `![alt](url =100x200)` (auch `=100x`/`=x200`);
   // width/height landen als numerische HTML-Attribute (kein style-Pfad),
   // ungueltige Suffixe bleiben Roh-Text. Registrierung VOR implicit-
   // figures, damit das Figure-Wrapping auf dem bereits groessen-
-  // annotierten image-Token aufsetzt. 4T-0293: mit implicit-figures als
+  // annotierten image-Token aufsetzt. 4T-000293: mit implicit-figures als
   // Erweiterung 'figures' gebuendelt (beide veraendern die Bild-
   // Darstellung und greifen am selben Bild ineinander).
   if (enabled('figures')) mdInstance.use(markdownItImsize);
-  // 4T-0198: Implicit Figures — ein Bild, das allein in einem Absatz
+  // 4T-000198: Implicit Figures — ein Bild, das allein in einem Absatz
   // steht, wird zu <figure> mit <figcaption> aus dem alt-Text (Pandoc-
   // Konvention). keepAlt:true behaelt den alt-Text am <img> (Pandoc-
   // Verhalten, Accessibility); Fliesstext-Bilder bleiben unveraendert.
@@ -215,35 +215,35 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   if (enabled('figures')) {
     mdInstance.use(markdownItImplicitFigures, { figcaption: 'alt', keepAlt: true });
   }
-  // 4T-0199: Definition Lists `Begriff` + `: Definition` (Pandoc).
+  // 4T-000199: Definition Lists `Begriff` + `: Definition` (Pandoc).
   // Marker ':' oder '~' mit 0-2 Spaces Einrueckung und Whitespace danach;
   // ueber Leerzeilen getrennte Term-Gruppen verschmelzen zu EINEM <dl>
   // (Plugin-Verhalten, empirisch verifiziert — der Live-Scan spiegelt es).
   if (enabled('definition-lists')) mdInstance.use(markdownItDeflist);
-  // 4T-0199: Pandoc Line Blocks `| Zeile` als eigenes Plugin (kein
+  // 4T-000199: Pandoc Line Blocks `| Zeile` als eigenes Plugin (kein
   // tragfaehiges Fremd-Plugin; Architekturentscheidung 4 des Epics).
   if (enabled('line-blocks')) mdInstance.use(lineBlocksPlugin);
-  // 4T-0200: Custom Containers `::: name` — bekannte Callout-Typen in
+  // 4T-000200: Custom Containers `::: name` — bekannte Callout-Typen in
   // Callout-Optik (gemeinsame Helper, Architekturentscheidung 2),
   // unbekannte Namen als neutrale custom-container-Box.
   if (enabled('custom-containers')) {
     mdInstance.use(customContainersPlugin, { portable: opts.portable });
   }
-  // 4T-0201: Subscript `H~2~O` -> <sub> (Single-Tilde; GFM-Strikethrough
+  // 4T-000201: Subscript `H~2~O` -> <sub> (Single-Tilde; GFM-Strikethrough
   // `~~Text~~` bleibt unberuehrt, kein Whitespace im Inhalt) und
   // Insertion/Underline `++Text++` -> <ins>. Beide selbsttragend im
   // Portable-Export (Browser-Default-Rendering, keine Inline-Styles).
-  // 4T-0293: Sub, Ins und Superscript als Erweiterung 'typography'
+  // 4T-000293: Sub, Ins und Superscript als Erweiterung 'typography'
   // gebuendelt (drei kleine Inline-Konstrukte derselben Familie).
   if (enabled('typography')) {
     mdInstance.use(markdownItSub);
     mdInstance.use(markdownItIns);
-    // 4T-0201: Superscript `x^^2^^` -> <sup> als eigenes Plugin
+    // 4T-000201: Superscript `x^^2^^` -> <sup> als eigenes Plugin
     // (Architekturentscheidung 1: Doppel-Marker statt Pandoc-Single-Caret,
     // weil `^` durch Footnotes und Block-Anker doppelt belegt ist).
     mdInstance.use(superscriptPlugin);
   }
-  // 4T-0202: Bracketed Spans `[Text]{.klasse #id}` und Heading Attributes
+  // 4T-000202: Bracketed Spans `[Text]{.klasse #id}` und Heading Attributes
   // `# H {#id}`. bracketed-spans VOR attrs (verifizierte Doku-
   // Konvention); allowedAttributes hart auf id/class begrenzt — Style-/
   // Event-Injection aus Markdown-Quellen ausgeschlossen (Architektur-
@@ -251,31 +251,31 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   // wird akzeptiert, aber nicht beworben). attrs laeuft als
   // core.ruler.before('linkify') VOR markdown-it-anchor: die explizite
   // `{#id}` gewinnt, anchor respektiert vorhandene IDs (verifiziert).
-  // 4T-0293: als Erweiterung 'attributes' gebuendelt (beide Konstrukte
+  // 4T-000293: als Erweiterung 'attributes' gebuendelt (beide Konstrukte
   // haengen am selben attrs-Plugin und sind nicht unabhaengig schaltbar).
   if (enabled('attributes')) {
     mdInstance.use(markdownItBracketedSpans);
     mdInstance.use(markdownItAttrs, { allowedAttributes: ['id', 'class'] });
   }
-  // 4T-0203: Spoiler `||Text||` (Hover-Reveal, CSS-only) und Critic
+  // 4T-000203: Spoiler `||Text||` (Hover-Reveal, CSS-only) und Critic
   // Markup ({++/--/~~…~>…~~/==/>>…<<}) als eigene Plugins; Critic
   // registriert sich VOR strikethrough/mark (sonst fraesse `==…==` bzw.
   // `~~…~~` das Innere). Portable-Varianten mit inline-Styles.
   if (enabled('spoiler')) mdInstance.use(spoilerPlugin, { portable: opts.portable });
   if (enabled('critic-markup')) mdInstance.use(criticMarkupPlugin, { portable: opts.portable });
-  // 4T-0595 (Epic 3E-0111): Inline-Berechnungen `{= Ausdruck =}` — Ergebnis-
+  // 4T-000595 (Epic 3E-000111): Inline-Berechnungen `{= Ausdruck =}` — Ergebnis-
   // Span über die Query-Ausdrucks-Engine (kontext-frei, formatValue), Fehler
   // als dezentes Zeichen mit Tooltip. Anker ist das `=` hinter `{` (Muster
   // critic_markup); `{==` bleibt Critic-Highlight. Deaktiviert bleibt die
   // Syntax regulärer Fließtext.
   if (enabled('inline-calc')) mdInstance.use(inlineCalcPlugin, { portable: opts.portable });
-  // 4T-0204: Erweiterte Task-States `[/]`, `[!]`, … als farbige Status-
+  // 4T-000204: Erweiterte Task-States `[/]`, `[!]`, … als farbige Status-
   // Boxen; aktives Set via configureTaskStates (Settings-gesteuert),
   // `[ ]`/`[x]` bleiben beim task-lists-Plugin (Kern, nicht abschaltbar).
   if (enabled('task-states')) {
     mdInstance.use(extendedTaskStatesPlugin, { portable: opts.portable });
   }
-  // 4T-0498 (Epic 3E-0090): Task-Marker der Erweiterung "Aufgaben" —
+  // 4T-000498 (Epic 3E-000090): Task-Marker der Erweiterung "Aufgaben" —
   // Symbol-Marker (Termine, Prioritaet, Wiederholung, IDs) am Zeilenende
   // von Task-Zeilen als Badges; Global Filter und Labels via
   // configureTaskMarkers (Settings-gesteuert). Deaktiviert bleiben die
@@ -285,14 +285,14 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   if (enabled('tasks')) {
     mdInstance.use(taskMarkersPlugin, { portable: opts.portable });
   }
-  // 4T-0470 (Epic 3E-0087): Ueberschriften-Nummerierung. Der Ruler entfernt
+  // 4T-000470 (Epic 3E-000087): Ueberschriften-Nummerierung. Der Ruler entfernt
   // die Zeilenende-Marker {-}/{+} und stellt die berechneten Nummern voran
   // (Nummern nur bei aktiver Einstellung ueber env.headingNumbering).
   // Deaktiviert bleiben die Marker Literal-Text (Plugin nicht registriert).
   if (enabled('heading-numbering')) {
     mdInstance.use(headingNumbersPlugin, { portable: opts.portable });
   }
-  // 4T-0660 (Epic 3E-0112): Leerzeile beginnt eine neue nummerierte Liste
+  // 4T-000660 (Epic 3E-000112): Leerzeile beginnt eine neue nummerierte Liste
   // (bewusste Abweichung von der Standard-Interpretation, PO-Festlegung vom
   // 2026-07-21). Haengt an derselben Erweiterung wie die Struktur-Kommandos,
   // weil beide dieselbe Listen-Grenze voraussetzen: deaktiviert zaehlt die
@@ -302,7 +302,7 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   }
 }
 
-// --- Pipeline-Aufbau (4T-0292) -----------------------------------------------------
+// --- Pipeline-Aufbau (4T-000292) -----------------------------------------------------
 // Baut beide markdown-it-Instanzen mit dem aktiven Plugin-Satz auf.
 // enabled(id) -> bool entscheidet pro Erweiterungs-ID; die Registrierungs-
 // Reihenfolge bleibt fuer jede Teilmenge strukturell identisch zur
@@ -314,12 +314,12 @@ function buildPipelines(enabled) {
     linkify: true, // Auto-Links
     typographer: true,
     breaks: false,
-    // 4T-0293: ohne Code-Highlighting-Erweiterung rendert markdown-it den
+    // 4T-000293: ohne Code-Highlighting-Erweiterung rendert markdown-it den
     // Default-Fence (escaped, mit language-Klasse — die Mermaid-Erkennung
     // im Renderer findet ihre Bloecke weiterhin per Klassennamen).
     highlight: enabled('code-highlight') ? highlightFence : undefined,
   });
-  // K-11 (4T-0186): enabled bleibt hier false — markdown-it-task-lists haelt
+  // K-11 (4T-000186): enabled bleibt hier false — markdown-it-task-lists haelt
   // seine Optionen als MODUL-GLOBALE Variablen, der spaetere use()-Aufruf
   // fuer mdPortable wuerde ein enabled:true ohnehin wieder ueberschreiben.
   // Der Viewer aktiviert die Checkboxen DOM-seitig in der Render-
@@ -334,12 +334,12 @@ function buildPipelines(enabled) {
     permalink: false,
   });
 
-  // 4T-0022: KaTeX-Mathematik. Inline `$…$` und Block `$$…$$`. Das Plugin
+  // 4T-000022: KaTeX-Mathematik. Inline `$…$` und Block `$$…$$`. Das Plugin
   // erkennt `$` nur dann als Delimiter, wenn die umgebenden Zeichen die
   // Heuristik erfuellen (kein Whitespace direkt neben dem inneren Inhalt) —
   // damit bleiben Dollar-Betraege wie `$5 bis $10` Fliesstext. Syntaxfehler
   // werden rot inline angezeigt statt den Render-Pane abzuschiessen.
-  // 4T-0292: als Erweiterung 'katex' schaltbar — deaktiviert bleibt `$…$`
+  // 4T-000292: als Erweiterung 'katex' schaltbar — deaktiviert bleibt `$…$`
   // regulaerer Fliesstext.
   if (enabled('katex')) {
     md.use(markdownItKatex, {
@@ -348,22 +348,22 @@ function buildPipelines(enabled) {
     });
   }
 
-  // 4T-0062 (Epic 3E-0012): Highlight `==Text==` als <mark>-Element. Inline-
+  // 4T-000062 (Epic 3E-000012): Highlight `==Text==` als <mark>-Element. Inline-
   // Token, Escape `\==` bleibt Klartext. Registrierung NACH KaTeX, damit das
   // `==` in `$...$`-Math-Bloecken nicht als Highlight interpretiert wird.
   if (enabled('highlight')) md.use(markdownItMark);
 
-  // 4T-0063 (Epic 3E-0012): Footnotes. Klassisch `[^id]` mit `[^id]: Def` am
+  // 4T-000063 (Epic 3E-000012): Footnotes. Klassisch `[^id]` mit `[^id]: Def` am
   // Datei-Ende, plus Inline-Variante `^[Direkt hier]`. Library-Default rendert
   // hochgestellte Zahlen mit Anchor-Link plus Backlink im Fussnoten-Block.
   if (enabled('footnotes')) md.use(markdownItFootnote);
 
-  // 4T-0070 (Epic 3E-0012): Source-Line-Mapping fuer die Scroll-Synchronisation
+  // 4T-000070 (Epic 3E-000012): Source-Line-Mapping fuer die Scroll-Synchronisation
   // in der geteilten Ansicht. Markiert jedes Block-Open-Token mit einem
   // data-source-line-Attribut, das die Start-Zeile der Quelle traegt
   // (1-basiert). Damit kann der Renderer die Zeilen-Position aus dem DOM
   md.use(sourceLineMapperPlugin);
-  // 4T-0294: Wiki-Syntax als Vernetzungs-Erweiterungen — Block-Anker
+  // 4T-000294: Wiki-Syntax als Vernetzungs-Erweiterungen — Block-Anker
   // gehoeren zur Wiki-Link-Erweiterung (sie existieren als Ziel-Anker der
   // `[[Datei#^id]]`-Form); Embeds haengen deklarativ an wiki-links.
   if (enabled('wiki-links')) {
@@ -373,7 +373,7 @@ function buildPipelines(enabled) {
   if (enabled('wiki-embeds')) md.use(wikiEmbedsPlugin, { portable: false });
   if (enabled('tags')) md.use(tagsPlugin);
   if (enabled('callouts')) md.use(calloutsPlugin, { portable: false });
-  // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges; deaktiviert bleibt
+  // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges; deaktiviert bleibt
   // @{…} regulaerer Fliesstext (Workshop-Punkt 7).
   if (enabled('custom-calendars')) md.use(calendarValuesPlugin, { portable: false });
 
@@ -389,7 +389,7 @@ function buildPipelines(enabled) {
   if (enabled('katex')) {
     mdPortable.use(markdownItKatex, { throwOnError: false, errorColor: '#cc0000' });
   }
-  // 4T-0062: Highlight `==Text==` auch im portablen Export. Custom Render-Rule
+  // 4T-000062: Highlight `==Text==` auch im portablen Export. Custom Render-Rule
   // mit inline-Style, damit das <mark>-Element auch ohne styles.css beim
   // Empfaenger sichtbar gelb hinterlegt erscheint.
   if (enabled('highlight')) {
@@ -398,7 +398,7 @@ function buildPipelines(enabled) {
       '<mark style="background:#fff3a3;padding:0 0.15em;border-radius:2px;">';
     mdPortable.renderer.rules.mark_close = () => '</mark>';
   }
-  // 4T-0063: Footnotes auch im portablen Export. Inline-Styles fuer Section
+  // 4T-000063: Footnotes auch im portablen Export. Inline-Styles fuer Section
   // und Reference, damit der Footnote-Block ohne externe styles.css als
   // dezent abgesetzter Bereich am Datei-Ende erscheint.
   if (enabled('footnotes')) {
@@ -415,38 +415,38 @@ function buildPipelines(enabled) {
   }
   if (enabled('wiki-links')) {
     mdPortable.use(wikiLinksPlugin);
-    // 4T-0054: Block-Anker auch im portablen Export.
+    // 4T-000054: Block-Anker auch im portablen Export.
     mdPortable.use(blockAnchorsPlugin);
   }
 
-  // P-02 (4T-0176): Whitelist-Sanitizer an den Roh-HTML-Render-Rules des
+  // P-02 (4T-000176): Whitelist-Sanitizer an den Roh-HTML-Render-Rules des
   // Portable-Modus (Implementierung oben auf Modul-Ebene).
   mdPortable.renderer.rules.html_block = (tokens, idx) =>
     sanitizePortableHtmlBlock(tokens[idx].content);
   mdPortable.renderer.rules.html_inline = (tokens, idx) =>
     sanitizePortableHtmlInline(tokens[idx].content);
-  // 4T-0055: Wiki-Embeds im portablen Export ebenfalls erkennen. Bilder
+  // 4T-000055: Wiki-Embeds im portablen Export ebenfalls erkennen. Bilder
   // werden direkt als <img> ausgegeben; PDF/MD/Other-Embeds bleiben
   // Platzhalter, weil das Renderer-Postprocessing im portablen Output nicht
-  // laeuft. 4T-0891 (Epic 3E-0168, Befund L-02): Der Platzhalter ist dort
+  // laeuft. 4T-000891 (Epic 3E-000168, Befund L-02): Der Platzhalter ist dort
   // nicht mehr leer, sondern traegt einen sichtbaren Verweis auf das Ziel in
   // der Optik eines gewoehnlichen Wiki-Links (portable-Option des Plugins).
   if (enabled('wiki-embeds')) mdPortable.use(wikiEmbedsPlugin, { portable: true });
-  // 4T-0056: Tag-Inline-Rule auch im portablen Export — die Anker-href
+  // 4T-000056: Tag-Inline-Rule auch im portablen Export — die Anker-href
   // `#tag:<name>` funktioniert im portablen Output zwar nicht als Filter,
   // aber der sichtbare Text `#tag` bleibt erhalten.
   if (enabled('tags')) mdPortable.use(tagsPlugin);
-  // 4T-0061: Callouts im Portable-Export. Inline-Styles statt CSS-Klassen,
+  // 4T-000061: Callouts im Portable-Export. Inline-Styles statt CSS-Klassen,
   // Default-Titel zur Render-Zeit aus env.lang aufgeloest.
   if (enabled('callouts')) mdPortable.use(calloutsPlugin, { portable: true });
-  // 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges im Portable-Export
+  // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges im Portable-Export
   // (Inline-Styles, damit die Badges ohne styles.css sichtbar bleiben).
   if (enabled('custom-calendars')) mdPortable.use(calendarValuesPlugin, { portable: true });
 
   registerMarkdownExtensions(md, { portable: false, enabled });
   registerMarkdownExtensions(mdPortable, { portable: true, enabled });
 
-  // 4T-0197: Abbr im Portable-Export mit inline-Style, damit die dotted
+  // 4T-000197: Abbr im Portable-Export mit inline-Style, damit die dotted
   // Underline auch ohne styles.css beim Empfaenger erkennbar ist (Muster:
   // mark_open-Rule oben). title-Attribut traegt der Token bereits.
   if (enabled('abbreviations')) {
@@ -455,7 +455,7 @@ function buildPipelines(enabled) {
       return `<abbr title="${escapeHtml(title)}" style="border-bottom:1px dotted;cursor:help;">`;
     };
   }
-  // 4T-0198: Figure/Figcaption im Portable-Export mit inline-Styles
+  // 4T-000198: Figure/Figcaption im Portable-Export mit inline-Styles
   // (zentriert, gedaempfte Caption — Optik der Viewer-CSS-Regeln).
   // figcaption_open/_close liegen als Inline-Token-Children im inline-
   // Token; Renderer-Rules wirken dort ebenso.
@@ -465,13 +465,13 @@ function buildPipelines(enabled) {
     mdPortable.renderer.rules.figcaption_open = () =>
       '<figcaption style="font-size:0.9em;color:#555;margin-top:0.4em;">';
   }
-  // 4T-0199: Definition Lists — <dl>-Struktur ist selbsttragend, nur die
+  // 4T-000199: Definition Lists — <dl>-Struktur ist selbsttragend, nur die
   // dd-Einrueckung bekommt einen vereinheitlichten margin (Browser-
   // Defaults schwanken).
   if (enabled('definition-lists')) {
     mdPortable.renderer.rules.dd_open = () => '<dd style="margin:0.25em 0 0.8em 1.5em;">';
   }
-  // 4T-0199: Line Blocks mit inline-Styles (margin wie Absatz, pre-wrap
+  // 4T-000199: Line Blocks mit inline-Styles (margin wie Absatz, pre-wrap
   // erhaelt Einrueckung und exakte Leerzeichen).
   if (enabled('line-blocks')) {
     mdPortable.renderer.rules.line_block_open = () =>
@@ -479,9 +479,9 @@ function buildPipelines(enabled) {
     mdPortable.renderer.rules.line_block_line_open = () =>
       '<div class="line-block-line" style="white-space:pre-wrap;">';
   }
-  // --- Ende 3E-0017-Erweiterungs-Block ------------------------------------
+  // --- Ende 3E-000017-Erweiterungs-Block ------------------------------------
 
-  // K-12 (4T-0189): Portable-Math-Off-Wrapper um die KaTeX-Render-Rules
+  // K-12 (4T-000189): Portable-Math-Off-Wrapper um die KaTeX-Render-Rules
   // (nur vorhanden, wenn die KaTeX-Erweiterung registriert wurde).
   for (const ruleName of [
     'math_inline',
@@ -501,19 +501,19 @@ function buildPipelines(enabled) {
     };
   }
 
-  // 4T-0034: perspective-table — MediaWiki-aehnliche Tabellen-Syntax als Fenced-Code-
-  // Block mit Sprach-Tag 'perspective-table'. Stufe 1 des Epics 3E-0006: Basis-Tabelle
+  // 4T-000034: perspective-table — MediaWiki-aehnliche Tabellen-Syntax als Fenced-Code-
+  // Block mit Sprach-Tag 'perspective-table'. Stufe 1 des Epics 3E-000006: Basis-Tabelle
   // mit Caption (|+), Header-Zellen (!), Datenzellen (|), Zeilen-Trenner (|-)
   // und mehrzeiligem Markdown-Inhalt pro Zelle.
   //
-  // 4T-0037 (Epic 3E-0007, Stufe 2): Zell-Attribute mit strikter Whitelist
+  // 4T-000037 (Epic 3E-000007, Stufe 2): Zell-Attribute mit strikter Whitelist
   // (colspan, rowspan, align, valign) und Accessibility-scope auf <th>.
   //
   // Integration: ueberschreibt md.renderer.rules.fence am Ende der md-Setup-
   // Kette. Bei lang === 'perspective-table' uebernimmt renderPerspectiveTable; sonst
   // delegiert der Override an den Default-Renderer, sodass Code-Highlighting via
   // highlight.js (siehe highlight-Callback im Konstruktor) unangetastet bleibt.
-  // 4T-0293 / 4T-0354: Fence-Override wird immer installiert, weil perspective-
+  // 4T-000293 / 4T-000354: Fence-Override wird immer installiert, weil perspective-
   // query ein Kern-Konstrukt ohne Erweiterungs-Toggle ist. perspective-table
   // bleibt an seine Erweiterung gebunden; ist sie deaktiviert, fällt der Block
   // auf den Default-Code-Block zurück.
@@ -523,15 +523,15 @@ function buildPipelines(enabled) {
       const token = tokens[idx];
       const info = (token.info || '').trim();
       const lang = info.split(/\s+/g)[0];
-      // 4T-0354 (Epic 3E-0065): perspective-query rendert als statischer
+      // 4T-000354 (Epic 3E-000065): perspective-query rendert als statischer
       // Platzhalter-Container mit dem Query-Text im data-Attribut; die Datei-Liste
-      // füllt der Renderer (4T-0355). escapeHtml maskiert auch die " der String-
+      // füllt der Renderer (4T-000355). escapeHtml maskiert auch die " der String-
       // Literale, sodass das data-Attribut nicht bricht.
       if (lang === 'perspective-query') {
         const q = escapeHtml(String(token.content || '').trim());
         return `<div class="perspective-query" data-fm-query="${q}"></div>\n`;
       }
-      // 4T-0412 (Epic 3E-0078): perspective-script rendert als statischer
+      // 4T-000412 (Epic 3E-000078): perspective-script rendert als statischer
       // Platzhalter-Container mit dem Skript-Quelltext im data-Attribut.
       // Ausfuehrung und Ergebnis-Aufbau uebernimmt ausschliesslich der
       // Renderer (perspective-script-view.js) in einer isolierten Sandbox;
@@ -543,11 +543,11 @@ function buildPipelines(enabled) {
         const src = escapeHtml(String(token.content || ''));
         return `<div class="perspective-script" data-script-source="${src}"></div>\n`;
       }
-      // 4T-0417 (Epic 3E-0079): perspective-datatable rendert als Container
+      // 4T-000417 (Epic 3E-000079): perspective-datatable rendert als Container
       // mit Fence-Index (fortlaufend pro Render-Lauf über env) und Token-
       // Zeilenbereich im Gesamt-Dokument (map + sourceLineOffset wie beim
-      // sourceLineMapper) — der Grid-Editor (4T-0419) adressiert darüber
-      // den Fence-Body im Quelltext. 4T-0418: Grid-HTML (Kopf, typ-
+      // sourceLineMapper) — der Grid-Editor (4T-000419) adressiert darüber
+      // den Fence-Body im Quelltext. 4T-000418: Grid-HTML (Kopf, typ-
       // gerechte Zellen, Aggregat-Zeile) kommt aus dem Shared-Modul.
       // Schaltbare Erweiterung (PO-Festlegung 2026-07-09): deaktiviert
       // fällt der Block auf den Default-Code-Block zurück.
@@ -567,7 +567,7 @@ function buildPipelines(enabled) {
           `${renderPerspectiveDatatableViewer(body)}</div>\n`
         );
       }
-      // 4T-0512 (Epic 3E-0092): perspective-events rendert als Container
+      // 4T-000512 (Epic 3E-000092): perspective-events rendert als Container
       // mit Fence-Index, Token-Zeilenbereich und Stichtag (data-ev-today,
       // Kalendertag des Render-Laufs — die Differenz-Spalte lokalisiert
       // und rechnet der Renderer in events-view.js). Adressierungs-Muster
@@ -583,7 +583,7 @@ function buildPipelines(enabled) {
         const lineStart = token.map ? token.map[0] + 1 + offset : 0;
         const lineEnd = token.map ? token.map[1] + offset : 0;
         const body = String(token.content || '');
-        // 4T-0514: Stichtag, Sprache und aufgeloeste Labels fuer die
+        // 4T-000514: Stichtag, Sprache und aufgeloeste Labels fuer die
         // Zusatz-Ansichten (die Tabelle lokalisiert weiter der Renderer
         // ueber data-i18n; der Client baut Ansichten mit t() neu).
         const evToday = localTodayIso();
@@ -600,7 +600,7 @@ function buildPipelines(enabled) {
           })}</div>\n`
         );
       }
-      // 4T-0435 (Epic 3E-0081): perspective-journal-nav rendert als leerer
+      // 4T-000435 (Epic 3E-000081): perspective-journal-nav rendert als leerer
       // Platzhalter-Container; Kontext-Ermittlung (Datei-Pfad -> Journal/
       // Periode) und Navigation baut ausschliesslich der Renderer
       // (journal-nav-view.js). An die journals-Erweiterung gebunden:
@@ -608,7 +608,7 @@ function buildPipelines(enabled) {
       if (lang === 'perspective-journal-nav' && enabled('journals')) {
         return `<div class="perspective-journal-nav"></div>\n`;
       }
-      // 4T-1064 (Epic 3E-0212): perspective-journal-timeline rendert als
+      // 4T-001064 (Epic 3E-000212): perspective-journal-timeline rendert als
       // Platzhalter-Container mit dem Fence-Body als Attribut; Modus-
       // Auswertung, Kontext-Ermittlung und Gitter-Aufbau liegen beim
       // Renderer (journal-timeline-view.js). Der Body reist als
@@ -636,7 +636,7 @@ function buildPipelines(enabled) {
   return { md, mdPortable };
 }
 
-// --- Instanz-Zustand und Erweiterungs-Konfiguration (4T-0292) ----------------------
+// --- Instanz-Zustand und Erweiterungs-Konfiguration (4T-000292) ----------------------
 // Start-Zustand: alles eingeschaltet (leere Disabled-Liste) — identisch zum
 // Verhalten vor dem Erweiterungs-System; Unit-/Snapshot-Tests laufen damit
 // deterministisch ohne Store.
@@ -646,7 +646,7 @@ let activeDisabledKey = null;
 // Effektiv deaktivierter Satz des aktuellen Aufbaus — fuer Pfade ausserhalb
 // der Instanzen (Portable-Konverter).
 let activeEffectiveDisabled = new Set();
-// 4T-0299 (Epic 3E-0053): aktive externe markdown-it-Plugins
+// 4T-000299 (Epic 3E-000053): aktive externe markdown-it-Plugins
 // ([{ id, version, plugin }], vom Preload-Loader vm-evaluiert und nur fuer
 // aktivierte, bestaetigte Erweiterungen uebergeben). Sie werden beim
 // Instanz-Aufbau NACH allen internen Registrierungen (inklusive Fence-
@@ -704,7 +704,7 @@ function configureExtensions(disabledIds) {
   return true;
 }
 
-// 4T-0299: aktiven Satz externer markdown-it-Plugins setzen (Preload-
+// 4T-000299: aktiven Satz externer markdown-it-Plugins setzen (Preload-
 // Loader). Unveraenderter Satz (IDs und Versionen) ist ein No-op; sonst
 // werden beide Instanzen neu aufgebaut. Rueckgabe: { id: fehlertext } der
 // beim Aufbau gescheiterten Plugins (leer = alles registriert).
@@ -722,14 +722,14 @@ function configureExternalMarkdownPlugins(list) {
   return rebuildPipelines();
 }
 
-// --- 4T-0282 (Epic 3E-0050): Frontmatter-Zeile im Gerenderten -------------
+// --- 4T-000282 (Epic 3E-000050): Frontmatter-Zeile im Gerenderten -------------
 // Bei aktivem Schalter stellt renderMarkdown dem Body-HTML einen
 // Frontmatter-Block voran: zusammengeklappte Kopfzeile (Chevron, Label,
 // Feldanzahl) plus <pre> mit dem Klartext-YAML ohne die Marker-Zeilen.
 // Alle Render-Aufrufer (beide Panes, Lese-Ansicht, Live-Widget) erben das
 // Verhalten aus dieser einen Quelle. Der Schalter kommt wie bei
 // configureTaskStates von aussen (Renderer: Setting render.showFrontmatter,
-// 4T-0284); das Modul bleibt Electron-frei und startet mit dem
+// 4T-000284); das Modul bleibt Electron-frei und startet mit dem
 // Product-Owner-Default an — Unit-/Snapshot-Tests laufen deterministisch.
 // Lokalisierung: Label ueber data-i18n (applyTranslations), Feldanzahl
 // ueber data-fm-count (applyFrontmatterLine im Renderer) — die Pipeline
@@ -740,7 +740,7 @@ function configureFrontmatterDisplay(enabled) {
   frontmatterDisplayEnabled = enabled !== false;
 }
 
-// 4T-0546 (Epic 3E-0097): normalisierte calendarSystems-Konfiguration des
+// 4T-000546 (Epic 3E-000097): normalisierte calendarSystems-Konfiguration des
 // aktiven Bereichs fuer die Wert-Badges (gesetzt vom Renderer beim Start
 // und ueber den calendar:changed-Broadcast; Muster configureFrontmatter-
 // Display). null = kein Bereich/keine Konfiguration — Badges erscheinen
@@ -755,7 +755,7 @@ function getCalendarConfig() {
   return activeCalendarConfig;
 }
 
-// 4T-0470 (Epic 3E-0087): Globaler Nummerierungs-Zustand (Einstellung
+// 4T-000470 (Epic 3E-000087): Globaler Nummerierungs-Zustand (Einstellung
 // "Ueberschriften nummerieren" plus Start-Ebene), gesetzt vom Renderer ueber
 // api.configureHeadingNumbering (Muster configureFrontmatterDisplay). Default
 // aus (PO-Festlegung 2026-07-08). Der Dokument-Frontmatter-Schalter
@@ -814,31 +814,31 @@ function renderFrontmatterBlockHtml(fm) {
   );
 }
 
-// 4T-0179: Kern-Render ohne Bild-Aufloesung (resolveImagesForBase bleibt
+// 4T-000179: Kern-Render ohne Bild-Aufloesung (resolveImagesForBase bleibt
 // als fs-naher Schritt im Preload). lang kommt als Parameter, weil dieses
 // Modul auch ausserhalb eines DOM-Kontexts laufen koennen muss.
-// 4T-0282: opts.frontmatterBlock === false unterdrueckt den Frontmatter-
+// 4T-000282: opts.frontmatterBlock === false unterdrueckt den Frontmatter-
 // Block unabhaengig vom Schalter (Markdown-Embeds zeigen nur den Inhalt).
 function renderMarkdown(text, lang, opts) {
   const src = String(text || '');
   const fm = extractFrontmatter(src);
-  // K-01 (4T-0189): Portable-Marker tolerant erkennen — in Zeile 1
+  // K-01 (4T-000189): Portable-Marker tolerant erkennen — in Zeile 1
   // (Alt-Exporte und Exporte ohne Frontmatter) ODER direkt nach dem
   // Frontmatter-Block (Neu-Exporte).
   const markerRe = /^\s*<!--\s*perspective-portable\s*-->/;
   const isPortable =
     markerRe.test(src) || (fm.raw != null && markerRe.test(src.slice(fm.endOffset)));
   const renderer = isPortable ? mdPortable : md;
-  // 4T-0282: Zeilen-Offset des abgetrennten Frontmatters an den
+  // 4T-000282: Zeilen-Offset des abgetrennten Frontmatters an den
   // sourceLineMapper durchreichen (raw endet mit dem Newline der
   // Schliess-Zeile; die Newline-Anzahl ist die Zeilenzahl des Blocks).
   const sourceLineOffset = fm.raw != null ? (fm.raw.match(/\n/g) || []).length : 0;
-  // 4T-0479 (Epic 3E-0089): %%-Kommentare vor dem Rendern zeilentreu
+  // 4T-000479 (Epic 3E-000089): %%-Kommentare vor dem Rendern zeilentreu
   // entfernen — wirkt damit automatisch fuer Viewer, Portable-Anzeige,
   // Reading, PDF und Live-Block-Widgets (alle rendern ueber diesen
   // Chokepoint). Bei deaktivierter Erweiterung bleibt %% Literal.
   const body = activeEffectiveDisabled.has('comments') ? fm.body : stripPercentComments(fm.body);
-  // 4T-0470 (Epic 3E-0087): effektiven Nummerierungs-Zustand (global ->
+  // 4T-000470 (Epic 3E-000087): effektiven Nummerierungs-Zustand (global ->
   // Dokument) an die Pipeline durchreichen; der heading_numbers-Ruler liest
   // env.headingNumbering. Bei deaktivierter Erweiterung ist der Ruler nicht
   // registriert (Marker bleiben Literal, keine Nummern).
@@ -846,9 +846,9 @@ function renderMarkdown(text, lang, opts) {
     lang: lang || 'de',
     sourceLineOffset,
     headingNumbering: resolveHeadingNumbering(fm.data),
-    // 4T-0546 (Epic 3E-0097): Kalender-Konfiguration fuer die Wert-Badges.
+    // 4T-000546 (Epic 3E-000097): Kalender-Konfiguration fuer die Wert-Badges.
     calendarSystems: activeCalendarConfig,
-    // 4T-0748: Einheiten-Namen der Zeitspannen-Badges.
+    // 4T-000748: Einheiten-Namen der Zeitspannen-Badges.
     calendarLabels: portableLabels(lang || 'de'),
   });
   const showBlock =
@@ -856,7 +856,7 @@ function renderMarkdown(text, lang, opts) {
   return showBlock ? renderFrontmatterBlockHtml(fm) + bodyHtml : bodyHtml;
 }
 
-// 4T-0512 (Epic 3E-0092): Label-Aufloesung des Ereignis-Portable-Pfads.
+// 4T-000512 (Epic 3E-000092): Label-Aufloesung des Ereignis-Portable-Pfads.
 // Dieses Modul laeuft nur in Preload und Node-Tests (nie im Renderer-
 // Bundle) — die Sprachdatei wird deshalb lazy von Platte gelesen (asar-
 // transparent); jeder Fehlschlag faellt weich auf die Key-Namen zurueck.
@@ -884,26 +884,26 @@ function portableLabels(lang) {
 
 function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
   const fenceRegex = /^( {0,3}`{3,})perspective-table[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
-  // 4T-0418 (Epic 3E-0079): perspective-datatable wird beim Export zur
+  // 4T-000418 (Epic 3E-000079): perspective-datatable wird beim Export zur
   // statischen HTML-Tabelle (alle Zeilen, mit Aggregat-Zeile); bei
   // Struktur-Fehlern bleibt der Fence unveraendert (Konverter liefert
   // null). Wie perspective-table an die eigene Erweiterung gebunden
   // (PO-Festlegung 2026-07-09): deaktiviert wird nicht konvertiert.
   const datatableFenceRegex = /^( {0,3}`{3,})perspective-datatable[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
-  // 4T-0512 (Epic 3E-0092): perspective-events (Art 1) wird zur statischen
+  // 4T-000512 (Epic 3E-000092): perspective-events (Art 1) wird zur statischen
   // Tabelle mit Staffelung zum Export-Stichtag; Art 2 (query-Direktive)
   // und Struktur-Fehler bleiben unveraendert (Konverter liefert null,
   // PO-Festlegung 2026-07-15).
   const eventsFenceRegex = /^( {0,3}`{3,})perspective-events[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
   const source = String(markdownText || '');
-  // 4T-0293: pro Erweiterung konvertiert der Export nur bei aktivem
+  // 4T-000293: pro Erweiterung konvertiert der Export nur bei aktivem
   // Schalter; die Marker-ERKENNUNG in renderMarkdown bleibt Kern, damit
   // frueher exportierte Dateien ihre eingebetteten Tabellen weiter
   // anzeigen.
   const tableEnabled = !activeEffectiveDisabled.has('perspective-table');
   const datatableEnabled = !activeEffectiveDisabled.has('perspective-datatable');
   const eventsEnabled = !activeEffectiveDisabled.has('events');
-  // K-01 (4T-0189): YAML-Frontmatter intakt am Datei-Anfang lassen — der
+  // K-01 (4T-000189): YAML-Frontmatter intakt am Datei-Anfang lassen — der
   // Marker davor brach die '---'-in-Zeile-1-Erkennung sowohl der eigenen
   // App (Properties-Sidebar leer, Block als Fliesstext) als auch fremder
   // Renderer (GitHub/Obsidian zeigten das YAML als Text). Der Marker
@@ -911,7 +911,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
   const fm = extractFrontmatter(source);
   const head = fm.raw != null ? source.slice(0, fm.endOffset) : '';
   const restSource = fm.raw != null ? source.slice(fm.endOffset) : source;
-  // 4T-0479 (Epic 3E-0089): %%-Kommentare gehoeren nie in den exportierten
+  // 4T-000479 (Epic 3E-000089): %%-Kommentare gehoeren nie in den exportierten
   // Datei-Text (Kommentare sind privat; keine Export-Option). Der Strip
   // laeuft code-bewusst VOR der Fence-Konvertierung; bei deaktivierter
   // Erweiterung bleibt der Text unveraendert.
@@ -919,7 +919,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
     ? restSource
     : stripPercentComments(restSource);
   const commentsStripped = rest !== restSource;
-  // 4T-0470 (Epic 3E-0087): Zeilenende-Marker {-}/{+} auch aus dem
+  // 4T-000470 (Epic 3E-000087): Zeilenende-Marker {-}/{+} auch aus dem
   // exportierten Text nehmen (Marker in keinem Export sichtbar). PO-
   // Entscheidung 2026-07-12: KEINE Nummern einbrennen — der Portable-Text
   // bleibt Standard-Markdown, die Nummern sind reine Anzeige. Nur bei
@@ -928,7 +928,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
     ? rest
     : stripHeadingMarkers(rest);
   const headingMarkersStripped = restForExport !== rest;
-  // 4T-0596 (Epic 3E-0111): Inline-Berechnungen als selbsttragende Ergebnis-
+  // 4T-000596 (Epic 3E-000111): Inline-Berechnungen als selbsttragende Ergebnis-
   // Spans in den Export einbrennen (der exportierte Text zeigt das Ergebnis
   // auch in anderen Markdown-Programmen). Code-bewusst VOR der Fence-
   // Konvertierung; fehlerhafte Ausdrücke bleiben roh (Quelltext-Erhalt).
@@ -938,7 +938,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
     ? restForExport
     : convertInlineCalc(restForExport);
   const inlineCalcConverted = restAfterCalc !== restForExport;
-  // K-12 (4T-0189): KaTeX fuer die Dauer der Export-Konvertierung
+  // K-12 (4T-000189): KaTeX fuer die Dauer der Export-Konvertierung
   // deaktivieren — `$…$` in Tabellen-Zellen bleibt Quelltext (Graceful
   // Degradation wie im Fliesstext des Exports, den die Konvertierung
   // ohnehin nicht anfasst); eingefrorenes KaTeX-HTML saehe ohne das
@@ -983,7 +983,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
   if (!addMarker) return head + converted;
   // Alt-Verhalten bei deaktivierter Perspective-Table-Erweiterung: ohne
   // konvertierte Datatable bleibt der Text komplett unveraendert (kein
-  // Marker — er dient allein den eingebetteten HTML-Tabellen). 4T-0479:
+  // Marker — er dient allein den eingebetteten HTML-Tabellen). 4T-000479:
   // gestrippte Kommentare erzwingen den zusammengesetzten Rueckgabe-Pfad,
   // brauchen aber selbst keinen Marker.
   if (!tableEnabled && !datatableConverted && !eventsConverted && !inlineCalcConverted) {
@@ -1002,7 +1002,7 @@ module.exports = {
   configureExternalMarkdownPlugins,
   configureFrontmatterDisplay,
   configureHeadingNumbering,
-  // 4T-0546 (Epic 3E-0097): Kalender-Konfiguration der Wert-Badges.
+  // 4T-000546 (Epic 3E-000097): Kalender-Konfiguration der Wert-Badges.
   setCalendarConfig,
   getCalendarConfig,
   PERSPECTIVE_PORTABLE_MARKER,

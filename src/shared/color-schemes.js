@@ -1,4 +1,4 @@
-// 4T-0464 (Epic 3E-0086): Slot-Modell und Schema-Verwaltung der Farbschemas.
+// 4T-000464 (Epic 3E-000086): Slot-Modell und Schema-Verwaltung der Farbschemas.
 //
 // Single Source of Truth für die kuratierte Farb-Slot-Liste und das
 // Schema-Datenmodell. Ein Farbschema ist ein benanntes Set von Farbwerten
@@ -11,7 +11,7 @@
 // kein DOM) — Main (Broadcast), Preload, Renderer (Anwendung, Settings-UI)
 // und die Tests laden dasselbe Modul. Die eigentliche Anwendung auf das
 // Wurzel-Element (root.style.setProperty) lebt im Renderer-Modul
-// modules/color-schemes.js (4T-0465); hier nur die Berechnung, welche
+// modules/color-schemes.js (4T-000465); hier nur die Berechnung, welche
 // Variablen zu setzen bzw. zu räumen sind (computeSchemeVars).
 //
 // Modell A (PO-Freigabe 2026-07-13): Slots bilden auf Bestands-Variablen ab;
@@ -44,7 +44,7 @@ const BASE_DEFAULTS = {
     tabActive: '#ffffff',
     codeBg: '#f6f8fa',
     linterWarn: '#c97a00',
-    // 4T-1314 (Epic 3E-0235): Die elf Farben, mit denen der Editor den
+    // 4T-001314 (Epic 3E-000235): Die elf Farben, mit denen der Editor den
     // Markdown-Text auszeichnet. Werte unveraendert aus dem Stilblatt;
     // der Drift-Waechter prueft die Gleichheit.
     syntaxHeading: '#0969da',
@@ -74,7 +74,7 @@ const BASE_DEFAULTS = {
     tabActive: '#1e1e1e',
     codeBg: '#2a2a2a',
     linterWarn: '#e8a544',
-    // 4T-1314 (Epic 3E-0235): Die elf Farben, mit denen der Editor den
+    // 4T-001314 (Epic 3E-000235): Die elf Farben, mit denen der Editor den
     // Markdown-Text auszeichnet. Werte unveraendert aus dem Stilblatt;
     // der Drift-Waechter prueft die Gleichheit.
     syntaxHeading: '#79c0ff',
@@ -98,7 +98,7 @@ const SLOT_GROUPS = [
   { id: 'accent', nameKey: 'settings.colorSchemes.group.accent' },
   { id: 'tabs', nameKey: 'settings.colorSchemes.group.tabs' },
   { id: 'content', nameKey: 'settings.colorSchemes.group.content' },
-  // 4T-1314 (Epic 3E-0235): Die Farben der Markdown-Auszeichnung im Editor.
+  // 4T-001314 (Epic 3E-000235): Die Farben der Markdown-Auszeichnung im Editor.
   { id: 'editorText', nameKey: 'settings.colorSchemes.group.editorText' },
 ];
 
@@ -176,7 +176,7 @@ const COLOR_SLOTS = [
     vars: ['--linter-warn'],
   },
 
-  // 4T-1314 (Epic 3E-0235): Editor-Textfarben. Sie speisen dieselben
+  // 4T-001314 (Epic 3E-000235): Editor-Textfarben. Sie speisen dieselben
   // Variablen wie bisher das Stilblatt; die Zuordnung zu den Markdown-
   // Rollen liegt unveraendert in der Hervorhebungs-Definition des Editors.
   {
@@ -256,7 +256,7 @@ const SLOT_ID_SET = new Set(SLOT_IDS);
 const ACCENT_SOFT_VAR = '--accent-soft';
 const ACCENT_SOFT_ALPHA = { light: 0.12, dark: 0.18 };
 
-// 4T-1314 (Epic 3E-0235): Die mitgelieferten Vorlagen liegen seit ihrem
+// 4T-001314 (Epic 3E-000235): Die mitgelieferten Vorlagen liegen seit ihrem
 // Wachstum um die Editor-Textfarben in color-schemes-vorlagen.js; dieses
 // Modul reicht sie unverändert weiter, damit die Aufrufer unberührt bleiben.
 const { BUILTIN_SCHEMES } = require('./color-schemes-vorlagen.js');
@@ -264,7 +264,7 @@ const { BUILTIN_SCHEMES } = require('./color-schemes-vorlagen.js');
 // Store-Schlüssel des gesamten Farbschema-Zustands (ein Objekt, ein Broadcast).
 const COLOR_SCHEMES_KEY = 'colorSchemes';
 
-// 4T-0751 (Epic 3E-0146): Bernstein ist der Auslieferungszustand. Dasselbe
+// 4T-000751 (Epic 3E-000146): Bernstein ist der Auslieferungszustand. Dasselbe
 // Paar dient als Rückfall bei unbekanntem oder Basis-fremdem Verweis
 // (Entscheidung des Product Owners vom 2026-07-27: der Rückfall wandert mit,
 // Voreinstellung und Reparatur-Zustand bleiben derselbe Wert). Zuvor zeigten
@@ -281,7 +281,7 @@ function defaultState() {
   return { custom: [], activeLight: DEFAULT_LIGHT_ID, activeDark: DEFAULT_DARK_ID };
 }
 
-// 4T-0751 (Epic 3E-0146): Einmal-Entscheidung beim App-Start, welcher
+// 4T-000751 (Epic 3E-000146): Einmal-Entscheidung beim App-Start, welcher
 // Schema-Zustand zu persistieren ist. Hintergrund der Entscheidung des
 // Product Owners vom 2026-07-27: Die Umstellung auf Bernstein soll nur
 // frische Installationen treffen. Der Store-Key `colorSchemes` steht NICHT

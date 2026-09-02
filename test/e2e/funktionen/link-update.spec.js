@@ -1,4 +1,4 @@
-// 4T-0345 (Epic 3E-0062): E2E-Funktions-Suite Link-Update beim Umbenennen.
+// 4T-000345 (Epic 3E-000062): E2E-Funktions-Suite Link-Update beim Umbenennen.
 // Deckt die Disk-Anpassung eingehender Links (Wiki/Embed/Markdown), die
 // Dirty-Buffer-Semantik mit Undo, die Umbenennen-Kaskade und das Abschalten
 // (updateLinks false) ab. describe-Titel tragen die Matrix-IDs (LU-*).

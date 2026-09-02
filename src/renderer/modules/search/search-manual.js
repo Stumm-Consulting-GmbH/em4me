@@ -1,4 +1,4 @@
-// 4T-0758 (Epic 3E-0142): Handbuch als Lieferant durchsuchbarer Texte.
+// 4T-000758 (Epic 3E-000142): Handbuch als Lieferant durchsuchbarer Texte.
 //
 // Liefert für die aktuelle Oberflächen-Sprache alle Handbuch-Seiten als
 // Eintrags-Liste im Format des Suchraum-Kerns (src/shared/search-scope.js),

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0655 (Epic 3E-0112): Nummerierungs-Invariante — Trigger-Bedingungen des
+// 4T-000655 (Epic 3E-000112): Nummerierungs-Invariante — Trigger-Bedingungen des
 // Transaktions-Filters. Geprüft wird ohne EditorView, allein über
 // EditorState.update: der Filter hängt an der Transaktion und wirkt damit
 // auch hier. Die Bedienung über die Tastatur deckt FB-12 in
@@ -40,7 +40,7 @@ function removeBlankLine(state, line, userEvent = 'delete.backward') {
 
 const ZWEI_LISTEN = '1. Erste A\n2. Erste B\n\n1. Zweite A\n2. Zweite B\n';
 
-describe('Nummerierungs-Invariante (4T-0655)', () => {
+describe('Nummerierungs-Invariante (4T-000655)', () => {
   it('zaehlt nach dem Verschmelzen zweier Listen durch', () => {
     const tr = removeBlankLine(stateFor(ZWEI_LISTEN), 3);
     expect(tr.state.doc.toString()).toBe('1. Erste A\n2. Erste B\n3. Zweite A\n4. Zweite B\n');
@@ -62,7 +62,7 @@ describe('Nummerierungs-Invariante (4T-0655)', () => {
 
   it('greift nicht im Schreibschutz', () => {
     // EditorState.readOnly blockiert nur den Eingabepfad, nicht die
-    // programmatische Aenderung dieses Tests (Befund aus 4T-0640). Die
+    // programmatische Aenderung dieses Tests (Befund aus 4T-000640). Die
     // Leerzeile verschwindet hier deshalb, die Nummern bleiben aber
     // unangetastet — genau das prueft der Fall.
     const tr = removeBlankLine(stateFor(ZWEI_LISTEN, { readOnly: true }), 3);
@@ -81,7 +81,7 @@ describe('Nummerierungs-Invariante (4T-0655)', () => {
     // Die Leerzeile trennt (PO-Festlegung). Weil sie eben erst entstanden
     // ist, sind die Nummern dahinter Reste der vorherigen Zaehlung: Die neue
     // Liste beginnt deshalb bei 1. Die Anzeige zeigt dasselbe, weil
-    // listRestartPlugin die Nummer am ersten Punkt zuruecksetzt (4T-0660).
+    // listRestartPlugin die Nummer am ersten Punkt zuruecksetzt (4T-000660).
     const state = stateFor('1. A\n2. B\n3. C\n4. D\n');
     const tr = state.update({
       changes: { from: state.doc.line(2).to, insert: '\n' },
@@ -115,7 +115,7 @@ describe('Nummerierungs-Invariante (4T-0655)', () => {
     // Aus dem zweiten Befund des Product Owners: Enter erzeugt einen Punkt,
     // dessen Marker wieder geloescht wird. Die Zeilen darunter bilden damit
     // eine eigene Liste, die bei ihrer vorgefundenen Nummer beginnt — die
-    // Anzeige zeigt seit 4T-0660 dieselbe Nummer.
+    // Anzeige zeigt seit 4T-000660 dieselbe Nummer.
     const state = stateFor('1. Alpha\n2. Bravo\n\n4. Charlie\n6. Delta\n');
     const from = state.doc.line(4).to;
     const tr = state.update({ changes: { from, insert: '!' }, userEvent: 'input' });

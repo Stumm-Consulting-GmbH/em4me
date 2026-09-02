@@ -1,17 +1,17 @@
-// 4T-0643 (Epic 3E-0126): Uebernahme der Nutzerdaten nach einem Rebranding.
+// 4T-000643 (Epic 3E-000126): Uebernahme der Nutzerdaten nach einem Rebranding.
 //
 // Der userData-Pfad haengt am productName: %APPDATA%/<productName>/. Bei jeder
-// Umbenennung — „Markdown Viewer" → „SCG Markdown" (4T-0011), „SCG Markdown" →
-// „Perspective Markdown++" (4T-0247), „Perspective Markdown++" → „EM4me"
-// (4T-0643) — startet die App auf einem leeren Profil. Fehlt unter dem
+// Umbenennung — „Markdown Viewer" → „SCG Markdown" (4T-000011), „SCG Markdown" →
+// „Perspective Markdown++" (4T-000247), „Perspective Markdown++" → „EM4me"
+// (4T-000643) — startet die App auf einem leeren Profil. Fehlt unter dem
 // aktuellen Pfad noch eine Config, existiert aber eine unter einem
 // Vorgaengernamen, wird der Bestand einmalig uebernommen (neuester Vorgaenger
 // zuerst). Es wird nur kopiert; die alten Pfade bleiben defensiv liegen.
 //
-// Bis 4T-0247 wanderte allein config.json mit. Inzwischen liegen im selben
+// Bis 4T-000247 wanderte allein config.json mit. Inzwischen liegen im selben
 // Ordner zwei weitere Nutzdaten-Bestaende, die eine Umbenennung sonst
-// verschluckt: Entwuerfe nie gespeicherter Tabs (4T-0369) und externe
-// Erweiterungen (4T-0298). Die Liste ist bewusst explizit statt „Ordner
+// verschluckt: Entwuerfe nie gespeicherter Tabs (4T-000369) und externe
+// Erweiterungen (4T-000298). Die Liste ist bewusst explizit statt „Ordner
 // komplett kopieren": userData enthaelt auch Chromium-Caches und Logs, die im
 // neuen Profil nichts zu suchen haben.
 //

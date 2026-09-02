@@ -1,5 +1,5 @@
 // Lesezeichen: Inline-Edit der Namen und Kontextmenue des Baums.
-// 4T-0991 (Epic 3E-0196): aus bookmarks.js in den Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): aus bookmarks.js in den Ordner bookmarks/
 // ausgezogen. Der Edit-Zustand liegt unveraendert im Renderer-State
 // (state.bookmarks.editingId/editingIsNew/editingSectionKind), weil ihn der
 // Render und die Esc-Kaskade lesen.
@@ -38,7 +38,7 @@ import {
   updateBookmarksToggleButton,
 } from './bookmarks.js';
 
-// 4T-0078: Inline-Edit-Input fuer Bookmark-/Folder-Namen. Enter committet,
+// 4T-000078: Inline-Edit-Input fuer Bookmark-/Folder-Namen. Enter committet,
 // Esc bricht ab, Blur committet ebenfalls (uebliches UI-Verhalten in
 // Browser-Lesezeichen-Managern).
 export function appendBookmarkInlineEditInput(row, id, initialValue) {
@@ -79,19 +79,19 @@ export function appendBookmarkInlineEditInput(row, id, initialValue) {
   row.appendChild(input);
 }
 
-// 4T-0078: Kontext-Menue fuer Bookmarks. Je nach Knotentyp:
+// 4T-000078: Kontext-Menue fuer Bookmarks. Je nach Knotentyp:
 //  - Bookmark (file): Umbenennen, In Ordner verschieben..., Umwandeln, Entfernen.
 //  - Folder:           Neuer Unterordner, Umbenennen, In Ordner verschieben...,
 //                      Umwandeln, Entfernen (mit Bestaetigung bei Inhalt).
 //  - Leerer Sektions-Bereich: Neuer Ordner (im Root).
-// 4T-0612: der "umwandeln"-Eintrag richtet sich nach dem Abschnitt (allgemein
+// 4T-000612: der "umwandeln"-Eintrag richtet sich nach dem Abschnitt (allgemein
 // -> Bereich nur bei geoeffnetem Bereich; Bereich -> allgemein immer).
 export function showBookmarkContextMenu(ev, node, section) {
   const sec = section || bookmarkSection(SECTION_GENERAL);
   const menu = document.getElementById('context-menu');
   if (!menu) return;
   menu.innerHTML = '';
-  // R3-15 (4T-0187): ausloesende Pane merken, damit der Inline-Edit-Fokus
+  // R3-15 (4T-000187): ausloesende Pane merken, damit der Inline-Edit-Fokus
   // bei Zwei-Spalten-Ansicht in der richtigen Sidebar landet.
   const paneEl = ev.target instanceof Element ? ev.target.closest('.pane-group') : null;
   const menuPaneIdx = paneEl ? parseInt(paneEl.dataset.pane, 10) : state.activePaneIndex;
@@ -113,7 +113,7 @@ export function showBookmarkContextMenu(ev, node, section) {
     sep.className = 'context-menu-separator';
     menu.appendChild(sep);
   };
-  // 4T-0612: Umwandeln-Eintrag passend zum Abschnitt.
+  // 4T-000612: Umwandeln-Eintrag passend zum Abschnitt.
   const addConvertItem = () => {
     if (!sec.isArea && state.areaPath) {
       addItem('bookmarks.convertToArea', () => convertBookmarkToArea(node.id), {
@@ -148,11 +148,11 @@ export function showBookmarkContextMenu(ev, node, section) {
     addItem('bookmarks.remove', () => removeBookmark(node.id, sec), { danger: true });
   }
 
-  // R3-10 (4T-0187): an den Viewport klemmen (gemeinsamer Helper).
+  // R3-10 (4T-000187): an den Viewport klemmen (gemeinsamer Helper).
   placeContextMenuAt(menu, ev.clientX, ev.clientY);
 }
 
-// 4T-0078: Neuen Folder anlegen. parentFolderId === null oder undefined
+// 4T-000078: Neuen Folder anlegen. parentFolderId === null oder undefined
 // bedeutet "im Root". Der Knoten wird mit einem Default-Namen angelegt und
 // sofort in den Inline-Edit-Modus gesetzt; bei Esc wird der Knoten wieder
 // entfernt (editingIsNew = true).
@@ -171,7 +171,7 @@ export async function createNewFolderUI(parentFolderId, paneIdx, section) {
     if (loc && loc.container[loc.index].type === 'folder') {
       const parent = loc.container[loc.index];
       if (!Array.isArray(parent.children)) parent.children = [];
-      // 4T-0078: Folder ans Ende der Folder-Gruppe einsortieren.
+      // 4T-000078: Folder ans Ende der Folder-Gruppe einsortieren.
       insertAtEndOfGroup(parent.children, folder);
       parent.expanded = true;
     } else {
@@ -206,19 +206,19 @@ export async function createNewFolderUI(parentFolderId, paneIdx, section) {
   focusInlineEditInput(paneIdx);
 }
 
-// 4T-0078: Inline-Edit fuer Folder-Name oder Bookmark-DisplayName starten.
+// 4T-000078: Inline-Edit fuer Folder-Name oder Bookmark-DisplayName starten.
 export function startInlineEdit(id, options) {
   state.bookmarks.editingId = id;
   state.bookmarks.editingIsNew = !!(options && options.isNew);
   state.bookmarks.editingSectionKind =
     options && options.section ? options.section.kind : SECTION_GENERAL;
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-  // R3-15 (4T-0187): Input der ausloesenden Pane fokussieren.
+  // R3-15 (4T-000187): Input der ausloesenden Pane fokussieren.
   focusInlineEditInput(options && options.paneIdx);
 }
 
 export function focusInlineEditInput(paneIdx) {
-  // R3-15 (4T-0187): bevorzugt den Input der angegebenen Pane fokussieren —
+  // R3-15 (4T-000187): bevorzugt den Input der angegebenen Pane fokussieren —
   // document.querySelector traf bei Zwei-Spalten-Ansicht immer die linke
   // Sidebar. setTimeout(0), damit das DOM nach dem Render bereit ist.
   setTimeout(() => {
@@ -293,7 +293,7 @@ export async function cancelInlineEdit() {
   updateBookmarksToggleButton();
 }
 
-// 4T-0078: "Entfernen" mit Bestaetigung bei nicht-leerem Folder.
+// 4T-000078: "Entfernen" mit Bestaetigung bei nicht-leerem Folder.
 export async function removeNodeWithConfirm(id, section) {
   const sec = section || bookmarkSection(SECTION_GENERAL);
   const loc = findNodeLocation(sec.getTree(), id);

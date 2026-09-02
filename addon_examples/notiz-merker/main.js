@@ -1,4 +1,4 @@
-// Beispiel-Erweiterung „Notiz-Merker" (4T-0826, Epic 3E-0103):
+// Beispiel-Erweiterung „Notiz-Merker" (4T-000826, Epic 3E-000103):
 // UI-Einstiegspunkt.
 //
 // ES-Modul; die Anwendung laedt es und ruft activate(ctx) mit der

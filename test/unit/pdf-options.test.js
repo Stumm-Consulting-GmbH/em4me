@@ -1,4 +1,4 @@
-// 4T-0303/4T-0304 (Epic 3E-0054): Unit-Tests des printToPDF-Options-
+// 4T-000303/4T-000304 (Epic 3E-000054): Unit-Tests des printToPDF-Options-
 // Mappings (src/shared/pdf-options.js) — Defaults, Validierung ungueltiger
 // Store-Werte und Rand-Stufen-Abbildung.
 import { describe, it, expect } from 'vitest';

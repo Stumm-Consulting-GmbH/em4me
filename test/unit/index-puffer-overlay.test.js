@@ -1,4 +1,4 @@
-// 4T-0935 (Befund B-08): Puffer-Overlay des Index — die Schicht, mit der die
+// 4T-000935 (Befund B-08): Puffer-Overlay des Index — die Schicht, mit der die
 // gerenderte Ansicht den GESCHRIEBENEN Stand einer offenen Datei sieht, ohne
 // dass gespeichert wurde.
 //
@@ -26,7 +26,7 @@ import {
   areaTaskLines,
 } from '../../src/main/backlinks.js';
 
-// 4T-1203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
+// 4T-001203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
 // gesetzt, die overlay.js benutzt (Muster area-search.test.js).
 const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 
@@ -169,7 +169,7 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     expect(events[0].fields.date).toBe('2026-01-01');
   });
 
-  // 4T-0950 (Befund E-03): Das Tag-Panel war bis zur Erhebung 4T-0936 NICHT
+  // 4T-000950 (Befund E-03): Das Tag-Panel war bis zur Erhebung 4T-000936 NICHT
   // freigeschaltet; seit der Rang-Entscheidung des Product Owners vom
   // 2026-08-10 ist es das. Die Zusicherung hält jetzt die neue Lage.
   it('zeigt dem Tag-Panel den geschriebenen Stand', async () => {
@@ -205,7 +205,7 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     expect(treffer[0]).toContain('Notiz.md');
   });
 
-  // 4T-0951 (Befund E-06): dieselbe Freischaltung für den Erinnerungs-Prüfer.
+  // 4T-000951 (Befund E-06): dieselbe Freischaltung für den Erinnerungs-Prüfer.
   it('zeigt dem Erinnerungs-Prüfer den geschriebenen Stand', async () => {
     const root = makeRoot();
     const start = write(root, 'Start.md', '# Start\n');
@@ -226,7 +226,7 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     expect(nachher).not.toContain('Alte Aufgabe');
   });
 
-  // 4T-0948 (Befund E-01): Die Wiki-Einbettung braucht den Roh-Text und nicht
+  // 4T-000948 (Befund E-01): Die Wiki-Einbettung braucht den Roh-Text und nicht
   // seinen Parse, weil ihr Anker am Text schneidet. Die Schicht führt ihn
   // seitdem mit. Geprüft wird hier die Auskunft selbst; den Weg des Anwenders
   // geht der E2E-Fall der Erhebung.
@@ -262,7 +262,7 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     },
   );
 
-  // 4T-1203 (Epic 3E-0121): Paar-Test der Zweitsuche über die zentrale
+  // 4T-001203 (Epic 3E-000121): Paar-Test der Zweitsuche über die zentrale
   // Dateisystem-Eigenschaft — macOS verhält sich wie Windows (APFS-Standard
   // case-insensitiv), Linux unterscheidet die Schreibung.
   it('Zweitsuche folgt der Dateisystem-Eigenschaft (darwin ja, linux nein)', async () => {

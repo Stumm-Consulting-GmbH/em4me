@@ -1,4 +1,4 @@
-// 4T-0624 (Epic 3E-0119): E2E-Funktions-Suite — benannte Sidebar-Varianten.
+// 4T-000624 (Epic 3E-000119): E2E-Funktions-Suite — benannte Sidebar-Varianten.
 // SV-01 Speichern und Anwenden (Anordnung UND Panel-Sichtbarkeit),
 // SV-02 Umbenennen/Überschreiben/Löschen inkl. Namens-Validierung,
 // SV-03 Normalisierung alter Varianten beim Anwenden plus Persistenz über
@@ -74,7 +74,7 @@ test.describe('SV-01: Variante speichern und anwenden', () => {
 
       // Speichern über den Verwaltungs-Block (gleicher Weg wie das
       // Registry-Kommando sidebar.saveVariant → Namens-Dialog). Ohne
-      // geöffneten Bereich existiert keine Bereichs-Gruppe (4T-0625).
+      // geöffneten Bereich existiert keine Bereichs-Gruppe (4T-000625).
       await openSidebarSettings(page);
       await expect(
         page.locator(`${SETTINGS_PAGE} .sidebar-variants-list[data-variant-scope="area"]`),
@@ -231,10 +231,10 @@ test.describe('SV-03: Normalisierung und Neustart', () => {
             ghost: ids.includes('geist-panel'),
           };
         })
-        // 4T-0372 (Epic 3E-0069): 13 -> 14 durch das Uhr-Panel.
-        // 4T-0771 (Epic 3E-0156): 14 -> 15 durch das Panel „Suchergebnisse"
+        // 4T-000372 (Epic 3E-000069): 13 -> 14 durch das Uhr-Panel.
+        // 4T-000771 (Epic 3E-000156): 14 -> 15 durch das Panel „Suchergebnisse"
         // aus Release 0.95.0.
-        // 4T-0844 (Epic 3E-0147): 15 -> 16 durch das Inhaltsverzeichnis des
+        // 4T-000844 (Epic 3E-000147): 15 -> 16 durch das Inhaltsverzeichnis des
         // Buches.
         .toEqual({ count: 16, unique: 16, ghost: false });
     } finally {
@@ -256,7 +256,7 @@ test.describe('SV-03: Normalisierung und Neustart', () => {
   });
 });
 
-// 4T-0625 (Epic 3E-0119): Bereichs-Varianten — Ablage in der
+// 4T-000625 (Epic 3E-000119): Bereichs-Varianten — Ablage in der
 // sidebarLayouts-Sektion der Bereichsdatei; die Verwaltung liegt in der
 // eigenen Einstellungs-Sektion „Sidebar-Varianten" der Navigations-Gruppe
 // „Aktueller Bereich" (PO-Testbefund 0.77.0), nur bei geöffnetem Bereich
@@ -381,7 +381,7 @@ test.describe('SV-04: Bereichs-Varianten in der Bereichsdatei', () => {
   });
 });
 
-// 4T-0626 (Epic 3E-0119): Ansichtsmenü-Untermenü „Sidebar-Anordnungen" —
+// 4T-000626 (Epic 3E-000119): Ansichtsmenü-Untermenü „Sidebar-Anordnungen" —
 // Aufbau (Standard-Anordnung, globale Varianten, Bereichs-Gruppe,
 // Speichern-Eintrag), Anwenden über den Menü-Kanal und Menü-Frische ohne
 // Neustart. Menü-Inspektion über den setMenu-Interceptor (Muster

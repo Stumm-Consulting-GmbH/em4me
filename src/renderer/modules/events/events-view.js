@@ -1,6 +1,6 @@
 'use strict';
 
-// 4T-0512 (Epic 3E-0092): Renderer-seitige Lokalisierung und Rechen-Anzeige
+// 4T-000512 (Epic 3E-000092): Renderer-seitige Lokalisierung und Rechen-Anzeige
 // des Ereignis-Fence. Die Tabellen-Struktur kommt vollständig aus der
 // Pipeline (perspective-events.js); dieses Modul füllt die Texte, die
 // Platzhalter oder Rechnung brauchen: Struktur-Fehler ({line}/{detail}),

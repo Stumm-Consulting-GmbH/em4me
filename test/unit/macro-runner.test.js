@@ -1,4 +1,4 @@
-// 4T-0522 (Epic 3E-0094): Ausführungs-Kern der Makros
+// 4T-000522 (Epic 3E-000094): Ausführungs-Kern der Makros
 // (src/shared/macro-runner.js) — Sequenz-Reihenfolge, Verzögerungs-
 // Schritte, Abbruch bei fehlgeschlagenem Schritt, Sub-Makro-Auflösung
 // und Tiefen-Limit (Rekursions-Schutz). Alle Wirkungen laufen über
@@ -24,7 +24,7 @@ function makeDeps(overrides = {}) {
   return { deps, calls };
 }
 
-describe('runMacroSequence (4T-0522)', () => {
+describe('runMacroSequence (4T-000522)', () => {
   it('führt Kommando- und Verzögerungs-Schritte strikt in Reihenfolge aus', async () => {
     const { deps, calls } = makeDeps();
     const macro = {

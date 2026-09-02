@@ -1,4 +1,4 @@
-// 4T-0180: Performance-Messung und Verhaltens-Nachweise der Hotspot-Fixes.
+// 4T-000180: Performance-Messung und Verhaltens-Nachweise der Hotspot-Fixes.
 //
 // P-01/P-03 sind Mess-Szenarien auf der grossen Fixture (5.200 Zeilen):
 // sie loggen Tab-Wechsel-Dauer bzw. Live-Tipp-Dauer in die Test-Ausgabe
@@ -22,7 +22,7 @@ const ANKER = path.join(FIXTURES, 'mermaid-anker.md');
 const KLEIN_A = path.join(FIXTURES, 'klein-a.md');
 
 async function sendMenuChannel(app, channel, ...args) {
-  // Abnahme-Befund 3E-0196: Der erste app.evaluate unmittelbar nach dem
+  // Abnahme-Befund 3E-000196: Der erste app.evaluate unmittelbar nach dem
   // Sichtbarwerden des Reiters scheitert je nach Anlauf-Stoss des Renderers
   // sporadisch an einem verworfenen CDP-Promise («Promise was collected»,
   // von Playwright als «Execution context was destroyed» gemeldet), ohne
@@ -78,7 +78,7 @@ test.describe('P-01: Tab-Wechsel-Dauer auf grosser Fixture', () => {
       }
       // [gross, klein, gross] — der zweite Wechsel auf die grosse Datei
       // ist der teure Fall (Voll-Parse der 5.200 Zeilen).
-      console.log(`[4T-0180/P-01] Tab-Wechsel-Dauern (ms): ${durations.join(', ')}`);
+      console.log(`[4T-000180/P-01] Tab-Wechsel-Dauern (ms): ${durations.join(', ')}`);
       // Grobe Obergrenze als Regressionswache (kein Latenz-Versprechen).
       for (const d of durations) expect(d).toBeLessThan(5000);
       await expect(page.locator(`${SEL.markdownBody0} h1`).first()).toBeVisible();
@@ -90,7 +90,7 @@ test.describe('P-01: Tab-Wechsel-Dauer auf grosser Fixture', () => {
 
 test.describe('P-02: Render-Skip bei unveraendertem Stand (R4-12)', () => {
   test('Erneutes Aktivieren laesst Render-DOM identisch, echter Wechsel rendert frisch', async () => {
-    // 4T-0901: Die frühere lokale Konsolen-Prüfung dieses Falls ist entfallen.
+    // 4T-000901: Die frühere lokale Konsolen-Prüfung dieses Falls ist entfallen.
     // Sie wäre doppelt und zugleich schwächer als der zentrale Wächter in
     // helpers/app.js: Der hängt vor dem ersten Fenster, erfasst damit auch die
     // Start-Phase, sieht weitere Fenster mit und fängt zusätzlich unbehandelte
@@ -135,7 +135,7 @@ test.describe('P-02: Render-Skip bei unveraendertem Stand (R4-12)', () => {
 
 test.describe('P-03: Tippen im Live-Modus auf grosser Fixture', () => {
   test('15 Zeichen am Dokument-Anfang, Dauer geloggt, Inhalt kommt an', async () => {
-    // 4T-0901: lokale Konsolen-Pruefung entfallen, siehe Begruendung an P-02.
+    // 4T-000901: lokale Konsolen-Pruefung entfallen, siehe Begruendung an P-02.
     const { app, page, userData } = await launchApp({ args: [GROSS] });
     try {
       await waitForTab(page);
@@ -150,7 +150,7 @@ test.describe('P-03: Tippen im Live-Modus auf grosser Fixture', () => {
       const text = 'Perf-Messlauf x';
       const ms = await measure(page, () => page.keyboard.type(text));
       console.log(
-        `[4T-0180/P-03] ${text.length} Zeichen im Live-Modus (5.200 Zeilen): ${Math.round(ms)} ms inkl. Treiber-Overhead`,
+        `[4T-000180/P-03] ${text.length} Zeichen im Live-Modus (5.200 Zeilen): ${Math.round(ms)} ms inkl. Treiber-Overhead`,
       );
       expect(ms).toBeLessThan(20000);
       // Funktionsnachweis: Text steht im Editor (erste Zeile).
@@ -175,7 +175,7 @@ test.describe('P-04: Fold-Gutter auf grosser Fixture (R1-07/R1-08)', () => {
       const marker = page.locator('.pane-group[data-pane="0"] [data-fold-line]');
       await expect(marker.first()).toBeVisible();
       const count = await marker.count();
-      console.log(`[4T-0180/P-04] Sichtbare Fold-Marker: ${count}`);
+      console.log(`[4T-000180/P-04] Sichtbare Fold-Marker: ${count}`);
       expect(count).toBeGreaterThan(0);
     } finally {
       await closeApp(app, userData);
@@ -183,7 +183,7 @@ test.describe('P-04: Fold-Gutter auf grosser Fixture (R1-07/R1-08)', () => {
   });
 });
 
-// 4T-0903 (Epic 3E-0016): Start-Dauer der Anwendung als wiederholbare Messung.
+// 4T-000903 (Epic 3E-000016): Start-Dauer der Anwendung als wiederholbare Messung.
 //
 // Der abschliessende Leistungs-Vergleich vor dem Hauptrelease nennt die
 // App-Start-Zeit als einen der Hotspots, fuer den es bis hierher keine
@@ -204,7 +204,7 @@ test.describe('P-05: Start-Dauer bis zur bedienbaren Oberflaeche', () => {
     const ms = Date.now() - t0;
     try {
       await expect(page.locator(SEL.statusbar)).toBeVisible();
-      console.log(`[4T-0903/P-05] Start bis bedienbare Oberflaeche: ${ms} ms`);
+      console.log(`[4T-000903/P-05] Start bis bedienbare Oberflaeche: ${ms} ms`);
       expect(ms).toBeGreaterThan(0);
     } finally {
       await closeApp(app, userData);

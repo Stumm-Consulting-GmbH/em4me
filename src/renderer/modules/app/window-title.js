@@ -1,4 +1,4 @@
-// 4T-0318 (Epic 3E-0057): Aufbau des Fenstertitel-Suffixes und der
+// 4T-000318 (Epic 3E-000057): Aufbau des Fenstertitel-Suffixes und der
 // Fenster-Ziel-Labels als reine Funktionen (unit-testbar, ohne DOM/State).
 //
 // Gestufte Titel-Systematik (PO-Entscheidung 2026-07-03):
@@ -12,10 +12,10 @@
 // info: { workspaceName, bookName, shelfName, areaName, appNumber,
 //         numberedAppCount, displayNumber, totalWindowCount }
 // t: Uebersetzungsfunktion (key) -> string mit {n}/{name}-Platzhaltern.
-// 4T-0538 (Epic 3E-0098): der Arbeitsbereichs-Name tritt an die Stelle der
+// 4T-000538 (Epic 3E-000098): der Arbeitsbereichs-Name tritt an die Stelle der
 // App-Nummer; bei gebundenem Bereich kombiniert mit dem Bereichsnamen,
 // z.B. "(Arbeitsbereich Alpha, Bereich Notizen, Fenster 2)".
-// 4T-0871/4T-0873 (Buch und Regal = Bereich): Buch- und Regal-Apps tragen
+// 4T-000871/4T-000873 (Buch und Regal = Bereich): Buch- und Regal-Apps tragen
 // ihren Namen an der Stelle des Bereichsnamens ("Buch {name}",
 // "Buecherregal {name}"); die Bereichs-Bindung einer solchen App ist der
 // Buch- bzw. Regal-Ordner selbst und erscheint nicht doppelt.
@@ -58,12 +58,12 @@ export function buildWindowTargetLabel(w, t) {
     String((w && w.displayNumber) || 1),
   );
   if (!w) return windowPart;
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Apps sind ueber ihren Namen
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Apps sind ueber ihren Namen
   // eindeutig adressiert (analog Bereichs-Apps).
   if (w.workspaceName) {
     return `${t('window.title.workspace').replace('{name}', String(w.workspaceName))}, ${windowPart}`;
   }
-  // 4T-0871/4T-0873: Buch- und Regal-Apps adressieren ueber ihren Namen.
+  // 4T-000871/4T-000873: Buch- und Regal-Apps adressieren ueber ihren Namen.
   if (w.bookName) {
     return `${t('window.title.book').replace('{name}', String(w.bookName))}, ${windowPart}`;
   }

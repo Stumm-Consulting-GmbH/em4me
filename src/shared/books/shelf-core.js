@@ -1,10 +1,10 @@
-// 4T-0866 (Epic 3E-0162): Kern-Modell des Bücherregals — Begleitdatei
+// 4T-000866 (Epic 3E-000162): Kern-Modell des Bücherregals — Begleitdatei
 // (Shelf_Settings.mdda), Buch-Zuordnung und Bestands-Abgleich.
 //
 // Ein Regal lebt in einem eigenen Ordner: darin die Regal-Datei (gewöhnliches
 // Markdown mit dem Beschreibungstext; Eigenschaften und Bild-Verweis im
 // Frontmatter) und die Begleitdatei, die die Regal-Datei benennt und die
-// zugeordneten Bücher führt (Story 4S-0759). Die Bücher liegen als Buch-Ordner
+// zugeordneten Bücher führt (Story 4S-000759). Die Bücher liegen als Buch-Ordner
 // unmittelbar unter dem Regal-Ordner; die Hierarchie endet beim Regal
 // (Epic-Abgrenzung: keine Regale in Regalen).
 //
@@ -71,7 +71,7 @@ function normalizeBookDirName(value) {
 // in shared/platform.js; die gespeicherte Schreibweise bleibt unberührt
 // (Muster book-core.js).
 //
-// 4T-1276 (Epic 3E-0232, Befund B1): Dies ist die BELEGTE Stelle des Befunds.
+// 4T-001276 (Epic 3E-000232, Befund B1): Dies ist die BELEGTE Stelle des Befunds.
 // Vorher stand hier eine feste Kleinschreibung; unter Linux liess sich ein
 // zweiter Buch-Ordner, der sich nur in der Schreibweise unterschied, nicht
 // zuordnen («duplicate-book») und verschwand zusätzlich kommentarlos aus der
@@ -88,7 +88,7 @@ function fileKey(value) {
 // einem fremden System zuwandert und die Datei anders geschrieben trägt, soll
 // auch auf einem case-sensitiven Dateisystem als Regal erkannt werden.
 //
-// 4T-1276: Die Entscheidung des Product Owners vom 2026-08-29 (4T-1275) galt
+// 4T-001276: Die Entscheidung des Product Owners vom 2026-08-29 (4T-001275) galt
 // wörtlich der Buch-Begleitdatei in book-core.js. Sie ist hier SINNGEMÄSS
 // übertragen, weil der Fall identisch ist — dieselbe Erkennung, dieselbe
 // Konstante-gegen-Name-Konstruktion, dasselbe Zuwanderungs-Argument. Die

@@ -1,4 +1,4 @@
-// 4T-0611 (Epic 3E-0115): Datenmodell der Bereichs-Lesezeichen.
+// 4T-000611 (Epic 3E-000115): Datenmodell der Bereichs-Lesezeichen.
 //
 // Bereichs-Lesezeichen nutzen dieselbe Knoten-Struktur wie der globale
 // Lesezeichen-Baum (src/renderer/modules/bookmarks/bookmarks-tree.js), aber mit Zielen
@@ -18,7 +18,7 @@
 // (CJS, Muster src/shared/sidebar-variants.js und src/shared/journal-core.js).
 // Bewusst STRING-basiert ohne node:path, damit dasselbe Modul in beiden
 // Prozessen identisch läuft: Main (Datenpfad, IPC) und Renderer (Panel,
-// Anlage — 4T-0612) laden es gleichermaßen. Die harte, dateisystem-nahe
+// Anlage — 4T-000612) laden es gleichermaßen. Die harte, dateisystem-nahe
 // Bereichs-Grenze (Laufwerke, Groß/Klein, `..`-Auflösung) bleibt dem
 // Main-Handler über isInsideArea (src/main/area/area-path.js) vorbehalten; dieses
 // Modul liefert die dazu passende reine String-Ebene.
@@ -154,7 +154,7 @@ function normalizeBookmarksTree(raw) {
   return sanitizeBookmarkNodes(raw);
 }
 
-// 4T-0612 (Epic 3E-0115): Bildet einen Knoten (Datei oder Ordner mit Unterbaum)
+// 4T-000612 (Epic 3E-000115): Bildet einen Knoten (Datei oder Ordner mit Unterbaum)
 // auf eine neue Kopie ab, in der jeder Datei-Pfad durch mapFn(filePath) ersetzt
 // ist. Trägt die Umwandlung zwischen allgemeinen und Bereichs-Lesezeichen
 // (absolut <-> wurzel-relativ). Struktur, Reihenfolge, ids und optionale Felder

@@ -1,4 +1,4 @@
-// 4T-1070 (Epic 3E-0211): Abfrage-Helfer des TASKS-Scopes, herausgelöst aus
+// 4T-001070 (Epic 3E-000211): Abfrage-Helfer des TASKS-Scopes, herausgelöst aus
 // query.js. Der Schnitt wurde vom Datei-Größen-Budget erzwungen und folgt der
 // Naht, die der Kopf von query.js schon als Gruppe benannte: Status-Ordnung,
 // Bezugstag, globale Task-Abfrage, Task-Tags und Gruppen-Bildung. In query.js
@@ -11,18 +11,18 @@
 const { parseQuery } = require('../../shared/query/perspective-query.js');
 const {
   evaluateExpression,
-  // 4T-0503 (Epic 3E-0096): Werte-Ordnung der Gruppen-Reihenfolge.
+  // 4T-000503 (Epic 3E-000096): Werte-Ordnung der Gruppen-Reihenfolge.
   orderForSort,
 } = require('../../shared/query/perspective-query-eval.js');
 const { validateQuery } = require('../../shared/query/query-functions.js');
-// 4T-0503 (Epic 3E-0096): Anzeige-Form der Gruppen-Keys.
-// 4T-1074 (Epic 3E-0211): dazu die Segment-Form, damit eine Hervorhebung im
+// 4T-000503 (Epic 3E-000096): Anzeige-Form der Gruppen-Keys.
+// 4T-001074 (Epic 3E-000211): dazu die Segment-Form, damit eine Hervorhebung im
 // Gruppen-Wert bis in den Titel überlebt.
 const { formatValue, formatValueSegments } = require('../../shared/query/query-format.js');
 const { maskInlineCode } = require('../../shared/markdown/link-scan.js');
 const { TAG_RE, isValidTag } = require('./parse.js');
 
-// 4T-0505 (Epic 3E-0096): Ordnung der Status-Typen fuer die Task-Default-
+// 4T-000505 (Epic 3E-000096): Ordnung der Status-Typen fuer die Task-Default-
 // Sortierung (Referenz-Muster: Laufendes zuerst, Erledigtes und Verworfenes
 // ans Ende); unbekannte Zeichen ohne Typ ordnen sich hinter ON_HOLD ein.
 const STATUS_TYPE_ORDER = {
@@ -39,7 +39,7 @@ function statusTypeRank(type) {
   return rank === undefined ? 3 : rank;
 }
 
-// 4T-0505 (Epic 3E-0096): lokales ISO-Datum eines Zeitpunkts (Bezugstag des
+// 4T-000505 (Epic 3E-000096): lokales ISO-Datum eines Zeitpunkts (Bezugstag des
 // Dringlichkeits-Scores; dieselbe lokale Zeitachse wie date(today)).
 function localIsoDateOf(ms) {
   const d = new Date(ms);
@@ -47,7 +47,7 @@ function localIsoDateOf(ms) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-// 4T-0505 (Epic 3E-0096): globale Task-Abfrage aus den Einstellungen —
+// 4T-000505 (Epic 3E-000096): globale Task-Abfrage aus den Einstellungen —
 // zugelassen sind nur FROM- und WHERE-Anteile (auch als Alt-Body bzw. mit
 // fuehrendem LIST/LIST TASKS); alles andere (Spalten, SORT, LIMIT,
 // Gruppierung, Layout) gehoert in den lokalen Fence und macht die globale
@@ -74,7 +74,7 @@ function parseGlobalTaskQuery(text) {
   return { where: ast.where || null, source: ast.source || null };
 }
 
-// 4T-0502 (Epic 3E-0096): Inline-Tags einer Task-Beschreibung fuer das
+// 4T-000502 (Epic 3E-000096): Inline-Tags einer Task-Beschreibung fuer das
 // tags-Feld des TASKS-Scopes. Dieselben Maskierungen und Gueltigkeits-
 // Filter wie der Datei-Tag-Scan in parseContent (Inline-Code, Wiki-Links,
 // Attribut-Bloecke), damit beide Ebenen dieselben Tags sehen.
@@ -91,7 +91,7 @@ function taskLineTags(description) {
   return tags;
 }
 
-// 4T-0503 (Epic 3E-0096): rekursive Gruppen-Bildung der Task-Ausgabe.
+// 4T-000503 (Epic 3E-000096): rekursive Gruppen-Bildung der Task-Ausgabe.
 // Pro Ebene wird der Gruppen-Key je Treffer ausgewertet; Treffer mit
 // gleichem Anzeige-Wert bilden eine Gruppe (Reihenfolge der Treffer
 // innerhalb der Gruppe bleibt die der Ergebnis-Pipeline). Gruppen
@@ -124,7 +124,7 @@ function buildTaskGroups(rows, keyExprs, level, hitFor) {
     return a.label.localeCompare(b.label);
   });
   return groups.map((g) => {
-    // 4T-1074: labelSegs neben label — der Text bleibt der Schlüssel und die
+    // 4T-001074: labelSegs neben label — der Text bleibt der Schlüssel und die
     // Rückfall-Darstellung, die Segmente tragen die Auszeichnung.
     const segs = g.label === null ? [] : formatValueSegments(g.value);
     if (level + 1 < keyExprs.length) {

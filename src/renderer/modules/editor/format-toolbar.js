@@ -1,4 +1,4 @@
-// 4T-0607 (Epic 3E-0114): Laufzeit der Format-Toolbar im Renderer.
+// 4T-000607 (Epic 3E-000114): Laufzeit der Format-Toolbar im Renderer.
 //
 // Hält die persistierte Belegung (Store-Key 'formatToolbar') im Fenster
 // und rendert pro Pane eine Leiste oberhalb des Editors (Container
@@ -30,7 +30,7 @@ import { t } from '../../i18n.js';
 import { api, getDocText } from '../app/api.js';
 import { contextMenu, state } from '../app/app-state.js';
 import { COMMANDS, mergeBindings } from '../../../shared/commands/commands.js';
-// 4T-0993: Anzeige-String eines Bindings aus der Binding-Schicht.
+// 4T-000993: Anzeige-String eines Bindings aus der Binding-Schicht.
 import { bindingToDisplayString } from '../../../shared/commands/command-bindings.js';
 import { disabledCommandIdSet } from '../../../shared/extensions/extensions-core.js';
 import {
@@ -206,7 +206,7 @@ function showHeadingMenu(paneIdx, anchorRect) {
   placeContextMenuAt(contextMenu, anchorRect.left, anchorRect.bottom + 2);
 }
 
-// --- Tabellen-Raster-Picker (4T-0608) --------------------------------------------
+// --- Tabellen-Raster-Picker (4T-000608) --------------------------------------------
 
 // Hover-Raster nach Textverarbeitungs-Vorbild: Überstreichen markiert
 // Zeilen mal Spalten (Live-Beschriftung „3 × 4", Zeilen inklusive
@@ -370,7 +370,7 @@ function renderFormatToolbarForPane(paneIdx) {
       node.title = title;
       node.setAttribute('aria-label', title);
       if (entry.commandId === 'insert.table') {
-        // 4T-0608: in der Toolbar öffnet der Tabellen-Eintrag den
+        // 4T-000608: in der Toolbar öffnet der Tabellen-Eintrag den
         // Raster-Picker statt der festen 2×2-Schablone.
         node.classList.add('format-toolbar-table-button');
         node.setAttribute('aria-haspopup', 'menu');
@@ -535,7 +535,7 @@ function showFormatToolbarOverflowMenu(paneIdx, anchorRect) {
       ...(active !== null ? { checked: active } : {}),
       disabled: !cmd.editorScoped && !isCommandIdAvailable(entry.commandId),
       action: () => {
-        // 4T-0608: auch im Mehr-Menü öffnet der Tabellen-Eintrag den
+        // 4T-000608: auch im Mehr-Menü öffnet der Tabellen-Eintrag den
         // Raster-Picker (am Menü-Anker, das Menü ist beim Öffnen zu).
         if (entry.commandId === 'insert.table') {
           showTableGridPicker(paneIdx, anchorRect);

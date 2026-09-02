@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0300 (Epic 3E-0053): Bereich „Erweiterungen (extern)" der
+// 4T-000300 (Epic 3E-000053): Bereich „Erweiterungen (extern)" der
 // Einstellungs-Seite — Registrierung als fester Bereich, Zeilen mit
 // Status und Fehlertext, Aktions-Schaltflächen je Zustand (Aktivieren
 // über den Warn-Dialog, Deaktivieren, Entfernen), Leer-Zustand und
@@ -76,7 +76,7 @@ beforeEach(() => {
   host.attachExternalPersistence(async () => true);
 });
 
-describe('Bereich Erweiterungen (extern) (4T-0300)', () => {
+describe('Bereich Erweiterungen (extern) (4T-000300)', () => {
   it('ist als fester Bereich nach den internen Erweiterungen registriert', () => {
     const ids = settingsPage.settingsSections().map((s) => s.id);
     expect(ids).toContain('extensionsExternal');

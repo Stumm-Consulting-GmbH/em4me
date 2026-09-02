@@ -1,5 +1,5 @@
-// 4T-0971 (Epic 3E-0207): Nachgestellte Fehlerfälle der letzten Auffang-Ebenen,
-// je Prozess-Seite einer (AK4 der Story 4S-0788).
+// 4T-000971 (Epic 3E-000207): Nachgestellte Fehlerfälle der letzten Auffang-Ebenen,
+// je Prozess-Seite einer (AK4 der Story 4S-000788).
 //
 // AE-01 Renderer (Weg R2): Ein unbehandelter Fehler im Fenster wird
 //       protokolliert, der ungespeicherte Entwurf wandert in den
@@ -74,7 +74,7 @@ function entwurfsDateien(userData) {
 
 // --- AE-01 --------------------------------------------------------------------
 
-test.describe('AE-01: Auffang-Ebene des Renderers (4T-0971, Weg R2)', () => {
+test.describe('AE-01: Auffang-Ebene des Renderers (4T-000971, Weg R2)', () => {
   test('protokolliert, sichert den Entwurf und lässt das Fenster stehen', async () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     const meldungen = [];
@@ -123,7 +123,7 @@ test.describe('AE-01: Auffang-Ebene des Renderers (4T-0971, Weg R2)', () => {
 
 // --- AE-02 --------------------------------------------------------------------
 
-test.describe('AE-02: Auffang-Ebene des Haupt-Prozesses (4T-0971, Weg M2)', () => {
+test.describe('AE-02: Auffang-Ebene des Haupt-Prozesses (4T-000971, Weg M2)', () => {
   test('protokolliert, sichert die Sitzung und beendet definiert', async () => {
     const { app, userData } = await launchApp();
     const ausgabe = [];

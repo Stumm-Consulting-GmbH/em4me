@@ -1,19 +1,19 @@
 'use strict';
 
-// 4T-0987 (Epic 3E-0196): Funktions-Katalog der Perspective-Query-Sprache
+// 4T-000987 (Epic 3E-000196): Funktions-Katalog der Perspective-Query-Sprache
 // samt der Validierung, die auf ihm aufsetzt, herausgelöst aus
 // perspective-query-eval.js. Enthalten sind die Katalog-Einträge mit ihren
 // reinen Implementierungen, die AST-Prüfung auf Funktions-Namen und
 // Stelligkeit sowie die Frage, ob eine Abfrage den Link-Graphen braucht.
 // Prozess-neutral (kein Electron, kein DOM), kein eval.
 
-// 4T-0344 (Epic 3E-0062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
+// 4T-000344 (Epic 3E-000062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
 // und Backlinks-Index (NFC + lowercase), damit Link-Vergleiche der Abfrage
 // dieselben Treffer sehen wie der Klick-Pfad.
 const { normalizeNameKey } = require('../markdown/link-scan.js');
 const {
   isLink,
-  // 4T-1071 (Epic 3E-0211): Typ-Prüfer für days().
+  // 4T-001071 (Epic 3E-000211): Typ-Prüfer für days().
   isDur,
   coerceDateMs,
   coerceNumber,
@@ -21,13 +21,13 @@ const {
   equalsValue,
   formatDateMs,
   formatValue,
-  // 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Formatierung.
+  // 4T-001072 (Epic 3E-000211): Zahlen- und Währungs-Formatierung.
   formatNumberMs,
   formatCurrencyValue,
-  // 4T-1074 (Epic 3E-0211): Hervorhebung als Anzeige-Wert.
+  // 4T-001074 (Epic 3E-000211): Hervorhebung als Anzeige-Wert.
   boldValue,
 } = require('./query-format.js');
-// 4T-1073 (Epic 3E-0211): Die Ordner-Normalisierung der FROM-Quellen-Ebene ist
+// 4T-001073 (Epic 3E-000211): Die Ordner-Normalisierung der FROM-Quellen-Ebene ist
 // der EINE Ordner-Begriff der Sprache; `infolder` benutzt sie, statt einen
 // zweiten aufzumachen (Konzept-Entscheid E8). Der Bezug ist gerichtet
 // (Katalog -> Quellen-Ebene, die selbst nichts aus dem Ordner lädt) und
@@ -74,7 +74,7 @@ function numericList(v) {
   return nums.length ? nums : null;
 }
 
-// 4T-1073 (Epic 3E-0211): Vorbereitung für infolder — Liste -> Link-Werte.
+// 4T-001073 (Epic 3E-000211): Vorbereitung für infolder — Liste -> Link-Werte.
 // Ein einzelner Link zählt als einelementige Liste (Muster von numericList),
 // jede andere Eingabe ergibt null. Anders als numericList bleibt die LEERE
 // Liste hier ein gültiges Ergebnis und wird nicht zu null: `length(...) = 0`
@@ -85,7 +85,7 @@ function linkList(v) {
   return isLink(v) ? [v] : null;
 }
 
-// 4T-1073 (Epic 3E-0211): Der Pfad-Bruch des Werte-Modells, an genau einer
+// 4T-001073 (Epic 3E-000211): Der Pfad-Bruch des Werte-Modells, an genau einer
 // Stelle überbrückt. Link-Werte tragen den ABSOLUTEN Index-Pfad, die
 // Ordner-Angabe einer Abfrage ist WURZEL-RELATIV wie file.folder. Liefert den
 // wurzel-relativen Ordner eines Link-Ziels oder null, wenn das Ziel gar nicht
@@ -99,7 +99,7 @@ function folderOfLink(absPath, rootN) {
   return cut >= 0 ? rel.slice(0, cut) : '';
 }
 
-// 4T-1073 (Epic 3E-0211): infolder(liste, "Ordner") — die Teilliste der
+// 4T-001073 (Epic 3E-000211): infolder(liste, "Ordner") — die Teilliste der
 // Link-Werte, deren Ziel im Ordner oder darunter liegt. Ordner-Vergleich wie
 // die FROM-Ordner-Quelle (normFolder plus Präfix-Treffer auf Ordner-Grenze),
 // leerer Ordner-String heißt Wurzel und damit alles.
@@ -137,7 +137,7 @@ const FUNCTIONS = new Map([
       fn: ([v]) => (typeof v === 'string' || Array.isArray(v) ? v.length : null),
     },
   ],
-  // 4T-1073 (Epic 3E-0211): Mengen-Einschränkung einer Link-Liste auf einen
+  // 4T-001073 (Epic 3E-000211): Mengen-Einschränkung einer Link-Liste auf einen
   // Ordner, zusammen mit length() der belegte Endknoten-Fall des Bestands:
   // `length(infolder(file.inlinks, "12 Getting Things Done (GTD)")) = 0`.
   // Genau zwei Argumente, ein Ordner: eine spätere Erweiterung auf mehrere
@@ -163,12 +163,12 @@ const FUNCTIONS = new Map([
   ['choice', { arity: [3, 3], fn: ([c, a, b]) => (truthy(c) ? a : b) }],
   ['number', { arity: [1, 1], fn: ([v]) => coerceNumber(v) }],
   ['string', { arity: [1, 1], fn: ([v]) => formatValue(v) }],
-  // 4T-1074 (Epic 3E-0211): Hervorhebung eines Werts oder eines Teils eines
+  // 4T-001074 (Epic 3E-000211): Hervorhebung eines Werts oder eines Teils eines
   // zusammengesetzten Ausdrucks. KEINE Markdown-Auswertung in Zellen: Ein
   // Sternchen im Text bleibt wörtlich, die Auszeichnung entsteht ausschließlich
   // über diesen ausdrücklichen Aufruf (Konzept-Entscheid E10 samt Zusatz).
   ['bold', { arity: [1, 1], fn: ([v]) => boldValue(v) }],
-  // 4T-1072 (Epic 3E-0211): Die drei Formatierer folgen der Sprache aus dem
+  // 4T-001072 (Epic 3E-000211): Die drei Formatierer folgen der Sprache aus dem
   // Kontext (ctx.locale, gesetzt aus der Fenster-Sprache); fehlt sie, gilt
   // weiterhin die Laufzeit-Locale. Vorher war der Aufruf sprachfrei, was bei
   // Datums-Namen kaum und bei Währungen sofort auffiel (Konzept-Entscheid E7).
@@ -197,7 +197,7 @@ const FUNCTIONS = new Map([
       fn: ([v, currency], ctx) => formatCurrencyValue(coerceNumber(v), ctx && ctx.locale, currency),
     },
   ],
-  // 4T-1071 (Epic 3E-0211): Tages-Zahl einer Dauer, etwa
+  // 4T-001071 (Epic 3E-000211): Tages-Zahl einer Dauer, etwa
   // `days(date(today) - file.day)`. GERUNDET, nicht abgeschnitten: Eine Spanne
   // über eine Zeitumstellung hinweg ist um eine Stunde kürzer oder länger als
   // ein Vielfaches von 24 Stunden, ein Abschneiden lieferte dann 47 statt 48.
@@ -307,7 +307,7 @@ function validateQuery(queryAst) {
     for (const f of queryAst.fields || []) walkExpr(f.expr);
     walkExpr(queryAst.where);
     for (const s of queryAst.sort || []) walkExpr(s.key);
-    // 4T-0503 (Epic 3E-0096): Gruppierungs-Ausdruecke mit validieren.
+    // 4T-000503 (Epic 3E-000096): Gruppierungs-Ausdruecke mit validieren.
     for (const g of queryAst.groupBy || []) walkExpr(g);
   } else {
     walkExpr(queryAst);
@@ -322,7 +322,7 @@ function queryUsesLinks(queryAst) {
   function walk(node) {
     if (found || !node || typeof node !== 'object') return;
     if (node.type === 'field') {
-      // 4T-1070 (Epic 3E-0211): auch der Selbstbezug auf die Link-Listen zählt
+      // 4T-001070 (Epic 3E-000211): auch der Selbstbezug auf die Link-Listen zählt
       // (`this.file.inlinks`), sonst bliebe der Graph ungebaut und das Feld
       // still leer.
       const lower = String(node.name)
@@ -331,7 +331,7 @@ function queryUsesLinks(queryAst) {
       if (lower === 'file.inlinks' || lower === 'file.outlinks') found = true;
       return;
     }
-    // 4T-1070: srcSelf braucht den Graphen ebenso wie srcLink.
+    // 4T-001070: srcSelf braucht den Graphen ebenso wie srcLink.
     if (node.type === 'srcLink' || node.type === 'srcSelf') {
       found = true;
       return;
@@ -343,7 +343,7 @@ function queryUsesLinks(queryAst) {
     if (Array.isArray(node.values)) for (const v of node.values) walk(v);
     if (Array.isArray(node.fields)) for (const f of node.fields) walk(f.expr);
     if (Array.isArray(node.sort)) for (const s of node.sort) walk(s.key);
-    // 4T-0503 (Epic 3E-0096): Gruppierungs-Ausdruecke mit durchsuchen.
+    // 4T-000503 (Epic 3E-000096): Gruppierungs-Ausdruecke mit durchsuchen.
     if (Array.isArray(node.groupBy)) for (const g of node.groupBy) walk(g);
   }
   walk(queryAst);

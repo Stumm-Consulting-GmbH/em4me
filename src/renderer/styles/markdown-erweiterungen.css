@@ -1,25 +1,25 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 12 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 12 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Markdown-Erweiterungen (Abkuerzungen bis Aufgaben-Zustaende). */
 
-/* === 3E-0017: Markdown-Erweiterungen (0.27.0) =========================== */
-/* 4T-0197: Abbreviations. Browser-natives title-Tooltip; dotted underline
+/* === 3E-000017: Markdown-Erweiterungen (0.27.0) =========================== */
+/* 4T-000197: Abbreviations. Browser-natives title-Tooltip; dotted underline
    als visueller Hinweis, theme-neutral ueber currentColor. */
 .markdown-body abbr[title] {
   text-decoration: underline dotted;
   text-underline-offset: 2px;
   cursor: help;
 }
-/* 4T-0197: Abbr-Vorkommen im Live-Modus (Mark-Decoration), Tooltip via
+/* 4T-000197: Abbr-Vorkommen im Live-Modus (Mark-Decoration), Tooltip via
    liveAbbrHoverTooltip. Gleiche Optik wie im Render-Pane. */
 .cm-editor .cm-live-abbr {
   text-decoration: underline dotted;
   text-underline-offset: 2px;
   cursor: help;
 }
-/* 4T-0198: Implicit Figures — allein stehendes Bild als <figure> mit
+/* 4T-000198: Implicit Figures — allein stehendes Bild als <figure> mit
    Caption aus dem alt-Text. Zentriert wie bisherige Block-Bilder. */
 .markdown-body figure {
   margin: 1em auto;
@@ -30,14 +30,14 @@
   color: var(--fg-muted);
   margin-top: 0.4em;
 }
-/* 4T-0198: Image Size setzt width/height als HTML-Attribute. Das pauschale
+/* 4T-000198: Image Size setzt width/height als HTML-Attribute. Das pauschale
    height:auto (responsive Bilder, styles.css:1355) wuerde das height-
    Attribut aushebeln — bei explizitem Attribut auf den Browser-Default
    zurueckfallen. */
 .markdown-body img[height] {
   height: revert;
 }
-/* 4T-0649 (Epic 3E-0126): Bildmarke auf der Handbuch-Ueberblicksseite. Die
+/* 4T-000649 (Epic 3E-000126): Bildmarke auf der Handbuch-Ueberblicksseite. Die
    Groesse steht bewusst hier und nicht als Groessen-Angabe im Markdown: das
    Suffix `=96x96` haengt an der Erweiterung „Bilder mit Groesse und Figuren".
    Ist sie ausgeschaltet, wuerde das Suffix Teil der Bild-Adresse und das Logo
@@ -48,7 +48,7 @@
   width: 96px;
   height: auto;
 }
-/* 4T-0643: Die Bildunterschrift des Logos bleibt unsichtbar. Die Erweiterung
+/* 4T-000643: Die Bildunterschrift des Logos bleibt unsichtbar. Die Erweiterung
    „Figuren" macht aus einem allein stehenden Bild eine Abbildung und setzt
    den Alt-Text als Unterschrift darunter — hier waere das ein zweites
    „EM4me" direkt ueber dem ausgeschriebenen Claim. Der Alt-Text selbst
@@ -58,7 +58,7 @@
 .cm-editor .cm-live-image figure:has(img[src$='em4me-logo.svg']) figcaption {
   display: none;
 }
-/* 4T-0643: Der Marken-Claim direkt unter dem Logo laeuft mittig mit, sonst
+/* 4T-000643: Der Marken-Claim direkt unter dem Logo laeuft mittig mit, sonst
    steht er linksbuendig neben einem zentrierten Bild. Bewusst ueber das
    Logo-Bild adressiert statt ueber eine allgemeine Regel „Absatz nach Bild",
    damit Dokumente der Nutzer unberuehrt bleiben. Zwei Faelle, weil das Bild
@@ -69,7 +69,7 @@
   color: var(--fg-muted);
   letter-spacing: 0.02em;
 }
-/* 4T-0198: Live-Modus-Pendants (ImageWidget rendert figure/figcaption im
+/* 4T-000198: Live-Modus-Pendants (ImageWidget rendert figure/figcaption im
    Editor-Kontext; .cm-live-image img traegt ebenfalls height:auto). */
 .cm-editor .cm-live-image img[height] {
   height: revert;
@@ -84,7 +84,7 @@
   margin-top: 0.3em;
   font-family: var(--font-ui);
 }
-/* 4T-0199: Definition Lists (Pandoc) — dt fett, dd eingerueckt. */
+/* 4T-000199: Definition Lists (Pandoc) — dt fett, dd eingerueckt. */
 .markdown-body dl {
   margin: 1em 0;
 }
@@ -98,7 +98,7 @@
 .markdown-body dd {
   margin: 0.25em 0 0.8em 1.5em;
 }
-/* 4T-0199: Pandoc Line Blocks — pre-wrap erhaelt fuehrende Leerzeichen
+/* 4T-000199: Pandoc Line Blocks — pre-wrap erhaelt fuehrende Leerzeichen
    und exakte Abstaende (Copy-Paste liefert echte Spaces, kein &nbsp;). */
 .markdown-body .line-block {
   margin: 1em 0;
@@ -106,7 +106,7 @@
 .markdown-body .line-block-line {
   white-space: pre-wrap;
 }
-/* 4T-0200: Custom Containers — unbekannte Namen als neutrale Box mit
+/* 4T-000200: Custom Containers — unbekannte Namen als neutrale Box mit
    dezenter Border/Toenung; der Name-Slug haengt als container-<slug>-
    Klasse fuer nutzereigenes Styling dran. Bekannte Callout-Typen nutzen
    die bestehende .callout-Optik (gemeinsame Render-Helper). */
@@ -117,13 +117,13 @@
   margin: 1em 0;
   background: var(--bg-alt);
 }
-/* 4T-0200: Live-Modus-Pendant der neutralen Container-Box. */
+/* 4T-000200: Live-Modus-Pendant der neutralen Container-Box. */
 .cm-editor .cm-line.cm-live-container {
   background: var(--bg-alt);
   border-left: 2px solid var(--border-strong);
   padding-left: 0.6em;
 }
-/* 4T-0382 (Epic 3E-0072): Mehrspalten-Block `::: columns <n>`. CSS-
+/* 4T-000382 (Epic 3E-000072): Mehrspalten-Block `::: columns <n>`. CSS-
    Mehrspaltigkeit — der Inhalt fliesst automatisch und ausgeglichen ueber
    die Spalten; der Umbruch-Marker `+++` erzwingt den Spaltenwechsel. Gilt
    fuer Render-Pane und Reading (gleicher Render-Pfad) und traegt in den
@@ -155,7 +155,7 @@
 .markdown-body .md-column-break {
   break-before: column;
 }
-/* 4T-0201: Insertion/Underline `++Text++` — reine Unterstreichung ohne
+/* 4T-000201: Insertion/Underline `++Text++` — reine Unterstreichung ohne
    Einfuege-Semantik-Faerbung (Zielnutzung ist Underline im Notiz-
    Kontext); ueberschreibt das Browser-Default-Rendering von <ins>. */
 .markdown-body ins {
@@ -163,7 +163,7 @@
   background: none;
   color: inherit;
 }
-/* 4T-0201: Live-Marks fuer Sub/Sup/Ins (Marker versteckt, Inhalt
+/* 4T-000201: Live-Marks fuer Sub/Sup/Ins (Marker versteckt, Inhalt
    gestylt; Werte analog Render-Pane-Browser-Defaults). */
 .cm-editor .cm-live-sub {
   vertical-align: sub;
@@ -176,7 +176,7 @@
 .cm-editor .cm-live-ins {
   text-decoration: underline;
 }
-/* 4T-0203: Spoiler — verdeckt (Hintergrund = Schriftfarbe), Hover oder
+/* 4T-000203: Spoiler — verdeckt (Hintergrund = Schriftfarbe), Hover oder
    Tastatur-Fokus deckt auf; CSS-only, theme-uebergreifend ueber --fg.
    Verschachtelte Elemente (Links, Tags, mark) werden im verdeckten
    Zustand mitneutralisiert, sonst blieben Akzentfarben lesbar. */
@@ -199,7 +199,7 @@
   background: var(--bg-alt);
   color: inherit;
 }
-/* 4T-0203: Critic Markup — Addition gruen/unterstrichen, Deletion rot/
+/* 4T-000203: Critic Markup — Addition gruen/unterstrichen, Deletion rot/
    durchgestrichen, Highlight in Mark-Optik mit Critic-Akzent, Kommentar
    als gedaempfte Inline-Box. */
 .markdown-body ins.critic {
@@ -236,7 +236,7 @@
   color: #fff8d6;
   outline-color: #a08900;
 }
-/* 4T-0203: Live-Modus-Pendants (Marker versteckt der Pass). */
+/* 4T-000203: Live-Modus-Pendants (Marker versteckt der Pass). */
 .cm-editor .cm-live-spoiler {
   background: var(--fg);
   color: var(--fg);
@@ -272,7 +272,7 @@
   background: #7d6b00;
   color: #fff8d6;
 }
-/* 4T-0204: Erweiterte Task-States — Status-Box im Render-Pane. Kaestchen-
+/* 4T-000204: Erweiterte Task-States — Status-Box im Render-Pane. Kaestchen-
    Optik wie die native Task-Checkbox, das Marker-Zeichen als farbiger
    Glyph (Farbe via --task-state-color als inline-Style vom Plugin). */
 .markdown-body .task-state-box {
@@ -292,7 +292,7 @@
   cursor: pointer;
   user-select: none;
 }
-/* 4T-0204: Live-Modus-Pendant — Glyph via ::before content:attr(),
+/* 4T-000204: Live-Modus-Pendant — Glyph via ::before content:attr(),
    gleiche Mechanik wie die Checkbox-Nachbildung darueber. */
 .cm-editor .cm-live-task-marker.cm-live-task-state::before {
   content: attr(data-live-task-state);
@@ -304,7 +304,7 @@
   line-height: 1em;
   text-align: center;
 }
-/* 4T-0498 (Epic 3E-0090): Task-Marker-Badges der Erweiterung „Aufgaben".
+/* 4T-000498 (Epic 3E-000090): Task-Marker-Badges der Erweiterung „Aufgaben".
    Dezente Pill am Zeilenende; gilt in Render-Pane UND Live-Editor (deshalb
    NICHT auf .markdown-body gescopet). Farben ueber die Theme-Variablen,
    Fehler-/Ueberfaellig-Zustaende in den bekannten Fehlerfarben (hell
@@ -343,7 +343,7 @@
 .cm-editor .cm-live-task-marker-badge {
   vertical-align: baseline;
 }
-/* 4T-0204: Task-Status-Editor im Settings-Dialog. */
+/* 4T-000204: Task-Status-Editor im Settings-Dialog. */
 .task-states-head,
 .task-state-row {
   display: grid;
@@ -360,7 +360,7 @@
 .task-state-row .ts-next {
   text-align: center;
 }
-/* 4T-0497 (Epic 3E-0090): Live-Warnung doppelt belegter Zeichen. Dezenter
+/* 4T-000497 (Epic 3E-000090): Live-Warnung doppelt belegter Zeichen. Dezenter
    Warnhinweis im Muster von .settings-section-error. */
 .task-states-warning {
   margin: 6px 0 2px;

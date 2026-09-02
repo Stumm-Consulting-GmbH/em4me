@@ -1,4 +1,4 @@
-// 4T-1187 (Epic 3E-0221, E11): Gestapelte Bedienung der beiden Objekt-Typen —
+// 4T-001187 (Epic 3E-000221, E11): Gestapelte Bedienung der beiden Objekt-Typen —
 // ein Objekt mit benannten Kind-Feldern und eine Liste gleichartiger Objekte.
 //
 // **Eine Quelle, zwei Panels.** Beide Eigenschafts-Editoren rufen dieselben
@@ -26,14 +26,14 @@ import { t } from '../../i18n.js';
 // Marke einer Kind-Zeile am DOM. Sie trägt den Kind-Feldnamen als Attribut,
 // weil die Auslese die Zeilen über ihn wiederfindet — der Wert eines
 // Eingabe-Feldes ist eine DOM-Property und kein Attribut, über ihn ließe sich
-// nicht suchen (belegter Fall aus 4T-1185).
+// nicht suchen (belegter Fall aus 4T-001185).
 const KIND_KLASSE = 'properties-objekt-kind';
 const EINTRAG_KLASSE = 'properties-objekt-eintrag';
 
 /**
  * Die Kind-Definitionen eines Objekt-Feldes, oder eine leere Liste.
  *
- * Ein Objekt-Typ ohne erklärte Kinder ist zulässig (4T-1186); er bekommt keine
+ * Ein Objekt-Typ ohne erklärte Kinder ist zulässig (4T-001186); er bekommt keine
  * gestapelte Bedienung, sondern fällt beim Aufrufer auf die vorhandene nur
  * lesende Anzeige verschachtelter Strukturen zurück.
  */

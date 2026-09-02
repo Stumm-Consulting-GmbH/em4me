@@ -1,4 +1,4 @@
-// 4T-0868 (Epic 3E-0162, Story 4S-0761): Regal-Ansicht als read-only
+// 4T-000868 (Epic 3E-000162, Story 4S-000761): Regal-Ansicht als read-only
 // System-Seite im Reiter-System (Muster area-stats-page.js).
 //
 // Die Seite zeigt das aktive Bücherregal in zwei umschaltbaren Darstellungen:
@@ -7,7 +7,7 @@
 // (Bild-Miniatur, Name, Kapitel-Anzahl, Autor und Beschreibung aus dem
 // Frontmatter, PO-Entscheidung vom 2026-08-04). Ein Klick öffnet das Buch
 // über den dialog-freien Buch-Weg; der Abschnitt «nicht zugeordnet» trägt
-// die Aufnahme-Aktion, zugeordnete Zeilen die Lösen-Aktion (Story 4S-0760,
+// die Aufnahme-Aktion, zugeordnete Zeilen die Lösen-Aktion (Story 4S-000760,
 // AK4). Der Umschalter-Zustand wird je Regal persistiert (Store-Schlüssel
 // SHELF_VIEW_MODES_KEY, nur Abweichungen vom Kachel-Default).
 //
@@ -281,7 +281,7 @@ function zeichne() {
 
 // --- Registrierung -----------------------------------------------------------
 
-// 4T-0868: Der Main meldet das Öffnen der Seite bei jedem Regal-Öffnen-Weg
+// 4T-000868: Der Main meldet das Öffnen der Seite bei jedem Regal-Öffnen-Weg
 // (Menü, Neuanlage, Pfad-Einstieg, Datei-Erkennung). Electron-IPC puffert
 // nicht — der Listener MUSS deshalb synchron beim Modul-Laden registriert
 // sein (Muster onOpenExternal in app-init.js), sonst verfällt eine Meldung,
@@ -332,7 +332,7 @@ export function initShelfViewPage() {
     oeffnenGemerkt = false;
     openShelfViewPage();
   }
-  // 4T-0882, zweiter Anlauf (PO-Befund vom 2026-08-05 am realen Profil): Die
+  // 4T-000882, zweiter Anlauf (PO-Befund vom 2026-08-05 am realen Profil): Die
   // Öffnen-Meldung des Mains ist ein Push über Prozess- und Lade-Grenzen und
   // ging in einer großen Mehr-Fenster-Sitzung trotz sendWhenLoaded und
   // Merk-Puffer verloren — das wiederhergestellte Regal-Fenster blieb leer,

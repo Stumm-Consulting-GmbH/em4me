@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Verzeichnis-Scan des Backlinks-Index, herausgelöst
+// 4T-000977 (Epic 3E-000196): Verzeichnis-Scan des Backlinks-Index, herausgelöst
 // aus src/main/backlinks.js. Sammelt die Markdown-Dateien einer Wurzel samt
 // Größen und Zeitstempeln und trägt die Scan-Konstanten (Tiefe, Caps,
 // Batch-Größe), die auch der Aufbau- und Watcher-Pfad (build.js) nutzt.
@@ -13,10 +13,10 @@ const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const SCAN_DEPTH = 2;
 const MAX_FILES = 2000;
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
-// B-14 (4T-0181): Batch-Groesse fuer das Yielding beim Async-Aufbau.
+// B-14 (4T-000181): Batch-Groesse fuer das Yielding beim Async-Aufbau.
 const BUILD_BATCH_SIZE = 50;
 
-// B-03/B-12 (4T-0175): gemeinsame Ignore-Regel fuer Initial-Scan und
+// B-03/B-12 (4T-000175): gemeinsame Ignore-Regel fuer Initial-Scan und
 // Watcher — node_modules und alle Punkt-Ordner bleiben draussen.
 function isIgnoredDirName(name) {
   return name === 'node_modules' || name.startsWith('.');
@@ -24,21 +24,21 @@ function isIgnoredDirName(name) {
 
 // Verzeichnis-Scan, der die Datei-Liste plus Gesamt-Bytes ermittelt.
 // Bricht ab, sobald MAX_FILES oder MAX_BYTES ueberschritten ist (oversized).
-// B-14 (4T-0181): asynchron mit Batch-Yielding, damit der Main-Prozess
+// B-14 (4T-000181): asynchron mit Batch-Yielding, damit der Main-Prozess
 // waehrend des Scans grosser Wurzeln nicht blockiert.
 async function collectMarkdownFiles(root, isArea) {
   const files = [];
   const sizes = new Map();
-  // 4T-0348 (Epic 3E-0062): mtime pro Datei fuer den Cache-Abgleich (der stat
+  // 4T-000348 (Epic 3E-000062): mtime pro Datei fuer den Cache-Abgleich (der stat
   // wird ohnehin erhoben). Nur bei Bereichs-Wurzeln ausgewertet.
   const mtimes = new Map();
-  // 4T-0402 (Epic 3E-0076): Erstell-Zeit pro Datei fuer das implizite
+  // 4T-000402 (Epic 3E-000076): Erstell-Zeit pro Datei fuer das implizite
   // Abfrage-Feld file.ctime (birthtime = Anlage-Zeit; ctime-Fallback fuer
   // Dateisysteme ohne birthtime).
   const ctimes = new Map();
   let bytes = 0;
   let sinceYield = 0;
-  // B-22 (4T-0187): unlesbare Ordner nicht mehr voellig still uebergehen —
+  // B-22 (4T-000187): unlesbare Ordner nicht mehr voellig still uebergehen —
   // zaehlen, loggen und im meta-Payload an die Panels melden.
   let skippedDirs = 0;
   const dirs = [{ dir: root, depth: 0 }];
@@ -55,10 +55,10 @@ async function collectMarkdownFiles(root, isArea) {
     for (const entry of entries) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        // B-03 (4T-0175): gleiche Ignore-Regel wie der Watcher, sonst
+        // B-03 (4T-000175): gleiche Ignore-Regel wie der Watcher, sonst
         // landen node_modules-/Punkt-Ordner-Dateien im Index.
         if (isIgnoredDirName(entry.name)) continue;
-        // 4T-0347 (Epic 3E-0062): Bereichs-Wurzeln ohne Tiefen-Grenze.
+        // 4T-000347 (Epic 3E-000062): Bereichs-Wurzeln ohne Tiefen-Grenze.
         if (isArea || depth < SCAN_DEPTH) dirs.push({ dir: full, depth: depth + 1 });
       } else if (entry.isFile() && MD_EXT_RE.test(entry.name)) {
         let size = 0;
@@ -77,7 +77,7 @@ async function collectMarkdownFiles(root, isArea) {
         mtimes.set(full, mtimeMs);
         ctimes.set(full, ctimeMs);
         bytes += size;
-        // 4T-0347 (Epic 3E-0062): Caps gelten nur fuer bereichslose Wurzeln;
+        // 4T-000347 (Epic 3E-000062): Caps gelten nur fuer bereichslose Wurzeln;
         // eine Bereichs-Wurzel indexiert immer den gesamten Bereich.
         if (!isArea && (files.length > MAX_FILES || bytes > MAX_BYTES)) {
           return { oversized: true, fileCount: files.length, byteSize: bytes, skippedDirs };

@@ -1,4 +1,4 @@
-// 4T-0595/4T-0596 (Epic 3E-0111): Inline-Berechnungen {= Ausdruck =} —
+// 4T-000595/4T-000596 (Epic 3E-000111): Inline-Berechnungen {= Ausdruck =} —
 // End-to-End über die drei Ansichten. IB-01: Render-Pane zeigt das Ergebnis
 // als Span (Fehler als ⚠︎ mit Fehler-Klasse); IB-02: Quelltext-Modus zeigt
 // den Roh-Ausdruck und färbt das Konstrukt (.cm-inline-calc-marker);
@@ -72,7 +72,7 @@ test.describe('IB-02: Quelltext-Modus zeigt den Roh-Ausdruck eingefärbt (F-143)
       // Der Quelltext behält den Ausdruck (keine Ersetzung).
       await expect(editor).toContainText('{= 2+3*4 =}');
       // Dezente Einfärbung des Konstrukts im Haupt-Editor (.pane-source
-      // qualifiziert gegen die zweite CodeMirror-Instanz, 4T-0361).
+      // qualifiziert gegen die zweite CodeMirror-Instanz, 4T-000361).
       const marker = page.locator(`${SEL.paneSource0} .cm-inline-calc-marker`);
       await expect(marker.first()).toBeVisible();
     } finally {

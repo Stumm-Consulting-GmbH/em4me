@@ -1,4 +1,4 @@
-// 4T-0318 (Epic 3E-0057): App-Registry — logische Applikationen als
+// 4T-000318 (Epic 3E-000057): App-Registry — logische Applikationen als
 // Fenster-Gruppen innerhalb des einen Electron-Prozesses (Weg-B-Entscheidung:
 // der Single-Instance-Lock bleibt, "Mehrfachstart" erzeugt logische Apps).
 //
@@ -11,10 +11,10 @@
 //   - Eine App ohne Bereich ist "nummeriert"; App-Nummern und Fenster-Nummern
 //     (pro App) ruecken beim Schliessen lueckenlos nach, weil sie bei jedem
 //     Broadcast aus der aktuellen Insertion-Order neu berechnet werden
-//     (Muster der bisherigen Fenster-Nummerierung aus 4T-0012).
-//   - Eine App mit Bereich (3E-0058) traegt statt der Nummer den Bereichsnamen;
+//     (Muster der bisherigen Fenster-Nummerierung aus 4T-000012).
+//   - Eine App mit Bereich (3E-000058) traegt statt der Nummer den Bereichsnamen;
 //     das area-Feld ist hier bereits vorgesehen: { rootPath, name } | null.
-//   - Eine App kann ein benannter Arbeitsbereich sein (4T-0537, Epic 3E-0098):
+//   - Eine App kann ein benannter Arbeitsbereich sein (4T-000537, Epic 3E-000098):
 //     workspace = { id, name } | null. Arbeitsbereichs-Apps sind benannt und
 //     zaehlen daher — wie Bereichs-Apps — nicht in die "App N"-Nummerierung.
 //   - Die letzte schliessende Fenster-Zuordnung entfernt die App.
@@ -87,7 +87,7 @@ function createAppRegistry() {
     return null;
   }
 
-  // 4T-0537: Arbeitsbereichs-Zuordnung einer App setzen ({ id, name }) bzw.
+  // 4T-000537: Arbeitsbereichs-Zuordnung einer App setzen ({ id, name }) bzw.
   // loesen (null; Degradierung zur unbenannten App beim Loeschen).
   function setWorkspace(appId, workspace) {
     const app = apps.get(appId);

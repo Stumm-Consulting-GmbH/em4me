@@ -1,4 +1,4 @@
-// 4T-0432 (Epic 3E-0081): Unit-Tests des Perioden-Kerns — ISO-Perioden-
+// 4T-000432 (Epic 3E-000081): Unit-Tests des Perioden-Kerns — ISO-Perioden-
 // Rechnung (KW-Grenzfälle 1/52/53, Monats-/Quartals-Grenzen, Schaltjahr),
 // Schema-Auflösung mit Jahres-Unterordnern (Beleg-Muster 2026/2026-KW28),
 // Journal-Grenzen und Eintrags-Ermittlung mit injiziertem Existenz-Check.
@@ -20,7 +20,7 @@ import {
   resolveEntryPath,
   weekRow,
 } from '../../src/shared/journal-core.js';
-// 4T-1067 (Epic 3E-0212): Modus-Sprache und Fence-Erkennung des
+// 4T-001067 (Epic 3E-000212): Modus-Sprache und Fence-Erkennung des
 // Timeline-Blocks liegen in einem eigenen Kern-Modul (Datei-Größen-Budget).
 import {
   hasJournalTimelineFence,
@@ -69,7 +69,7 @@ describe('formatDateMs — ISO-KW- und Quartals-Token', () => {
     expect(formatDateMs(ms('2021-01-01'), 'kkkk-Www')).toBe('2020-W53');
   });
 
-  it('q formatiert die Quartals-Nummer (4T-0438)', () => {
+  it('q formatiert die Quartals-Nummer (4T-000438)', () => {
     expect(formatDateMs(ms('2026-07-09'), 'yyyy-Qq')).toBe('2026-Q3');
     expect(formatDateMs(ms('2026-01-15'), 'q')).toBe('1');
     expect(formatDateMs(ms('2026-12-31'), 'q')).toBe('4');
@@ -249,7 +249,7 @@ describe('entriesInRange — Eintrags-Ermittlung', () => {
   });
 });
 
-// --- 4T-0433 (Epic 3E-0081): Frontmatter-Datums-Properties ------------------------
+// --- 4T-000433 (Epic 3E-000081): Frontmatter-Datums-Properties ------------------------
 
 describe('applyJournalProperties — automatische Datums-Properties', () => {
   const props = {
@@ -292,10 +292,10 @@ describe('applyJournalProperties — automatische Datums-Properties', () => {
   });
 });
 
-// --- 4T-0435 (Epic 3E-0081): Kontext-Ermittlung des Navigations-Blocks ------------
+// --- 4T-000435 (Epic 3E-000081): Kontext-Ermittlung des Navigations-Blocks ------------
 
 describe('findPeriodForPath — Pfad-Abgleich über die Schema-Auflösung', () => {
-  // 4T-1276 (Epic 3E-0232): Backslashes vereinheitlicht der Abgleich unverändert
+  // 4T-001276 (Epic 3E-000232): Backslashes vereinheitlicht der Abgleich unverändert
   // selbst; ob eine abweichende SCHREIBWEISE denselben Pfad meint, beantwortet
   // seither die zentrale Plattform-Auskunft. Als Paar geprüft — vorher stand hier
   // nur der Windows-Fall, und unter Linux war er rot.
@@ -369,7 +369,7 @@ describe('replaceJournalNavFences — Portable-Export-Ersetzung', () => {
   });
 });
 
-// --- 4T-0434 (Epic 3E-0081): Monats-Gitter der Kalender-Ansicht -------------------
+// --- 4T-000434 (Epic 3E-000081): Monats-Gitter der Kalender-Ansicht -------------------
 
 describe('monthGrid — Wochen-Zeilen der Monatsansicht', () => {
   it('Juli 2026: fünf Zeilen KW 27 bis KW 31, Randtage der Nachbar-Monate', () => {
@@ -405,7 +405,7 @@ describe('monthGrid — Wochen-Zeilen der Monatsansicht', () => {
   });
 });
 
-// --- 4T-1063 (Epic 3E-0212): einzelne Wochen-Zeile ---------------------------------
+// --- 4T-001063 (Epic 3E-000212): einzelne Wochen-Zeile ---------------------------------
 
 describe('weekRow — eine Wochen-Zeile im Format des Monats-Gitters', () => {
   it('liefert Montag bis Sonntag der Woche um den Zeitpunkt', () => {
@@ -450,7 +450,7 @@ describe('weekRow — eine Wochen-Zeile im Format des Monats-Gitters', () => {
   });
 });
 
-// --- 4T-1064 (Epic 3E-0212): Modus-Auswertung des Timeline-Fence -------------------
+// --- 4T-001064 (Epic 3E-000212): Modus-Auswertung des Timeline-Fence -------------------
 
 describe('parseTimelineFence — Modus des Journal-Timeline-Blocks', () => {
   it('liest die vier Bestands-Modi', () => {
@@ -493,7 +493,7 @@ describe('parseTimelineFence — Modus des Journal-Timeline-Blocks', () => {
   });
 });
 
-// --- 4T-1066 (Epic 3E-0212): Fence-Erkennung des Portable-Exports ------------------
+// --- 4T-001066 (Epic 3E-000212): Fence-Erkennung des Portable-Exports ------------------
 
 describe('replaceJournalTimelineFences — Fence-Erkennung des Timeline-Blocks', () => {
   it('reicht den Fence-Körper durch und ersetzt den ganzen Block', () => {
@@ -534,7 +534,7 @@ describe('replaceJournalTimelineFences — Fence-Erkennung des Timeline-Blocks',
   });
 });
 
-// 4T-0433 (Epic 3E-0081): Erweiterungs-Prüfschritt — die deaktivierte
+// 4T-000433 (Epic 3E-000081): Erweiterungs-Prüfschritt — die deaktivierte
 // journals-Erweiterung filtert beide Kommandos (Dispatcher, Menü).
 describe('Erweiterung journals — Aus-Zustand filtert die Kommandos', () => {
   it('ist registriert und liefert beide Kommando-IDs in die Filterung', () => {

@@ -1,12 +1,12 @@
 'use strict';
 
-// 4T-0402 (Epic 3E-0076): Auswertung der Perspective-Query-Sprache.
+// 4T-000402 (Epic 3E-000076): Auswertung der Perspective-Query-Sprache.
 // Gegenstück zum Parser in perspective-query.js (der den Fence-Body in den
 // Abfrage-AST zerlegt); eigenes Modul, damit beide je EIN Thema tragen:
 // dort die Sprache, hier die Werte. Prozess-neutral (kein Electron, kein
 // DOM), kein eval — die Auswertung läuft ausschließlich über den AST-Walker.
 //
-// 4T-0987 (Epic 3E-0196): Kern des Ordners `query/`. Er trägt die Feld-
+// 4T-000987 (Epic 3E-000196): Kern des Ordners `query/`. Er trägt die Feld-
 // Auflösung, den Ausdrucks-Walker, die FROM-Quellen und die Ergebnis-
 // Pipeline; die übrigen Teile liegen in den Schwester-Modulen:
 //   query-format.js       Werte-Modell (Typ-Prüfer, Koerzierung, Gleichheit)
@@ -14,7 +14,7 @@
 //   query-functions.js    Funktions-Katalog, AST-Validierung, Link-Bedarf
 //   query-task-fields.js  Feld-Katalog des TASKS-Scopes
 //   query-sources.js      Quellen-Ebene (FROM: Ordner, Tag, Link, Selbstbezug)
-//                         samt der Ordner-Normalisierung; Blatt (4T-1070)
+//                         samt der Ordner-Normalisierung; Blatt (4T-001070)
 // Der Import-Graph läuft ausschließlich von hier nach unten; kein
 // Schwester-Modul lädt den Kern.
 //
@@ -22,10 +22,10 @@
 //
 // Kontext-Struktur (pro Datei vom Aufrufer bereitgestellt, alle Teile optional):
 //   ctx = {
-//     root,              4T-1070 (Epic 3E-0211): Wurzel-Pfad des Suchraums —
+//     root,              4T-001070 (Epic 3E-000211): Wurzel-Pfad des Suchraums —
 //                        nötig, weil Link-Werte den absoluten, file.path/
 //                        file.folder aber den wurzel-relativen Pfad tragen
-//     self,              4T-1070 (Epic 3E-0211): Kontext der TRÄGER-Datei des
+//     self,              4T-001070 (Epic 3E-000211): Kontext der TRÄGER-Datei des
 //                        Fence (selbst wieder eine Struktur dieser Form, aber
 //                        ohne block/task/self). Ziel des `this.`-Präfixes und
 //                        der Selbstbezugs-Quelle; fehlt, wenn die Träger-Datei
@@ -39,13 +39,13 @@
 //     },
 //     now,               Bezugszeitpunkt für date(today)/date(now) (Epoch-ms)
 //     resolveLinkTarget, (targetText) -> Set<pfad-lowercase> für FROM-Link-Quellen
-//     block,             4T-0409 (Epic 3E-0077): Block-Kontext des BLOCKS-Scopes
+//     block,             4T-000409 (Epic 3E-000077): Block-Kontext des BLOCKS-Scopes
 //                        { anchor, values, updatedMs } — pro Block-Treffer;
 //                        fehlt auf Datei-Ebene (Datei-Scope unverändert)
-//     task,              4T-0502 (Epic 3E-0096): Task-Kontext des TASKS-Scopes
+//     task,              4T-000502 (Epic 3E-000096): Task-Kontext des TASKS-Scopes
 //                        { model (Task-Modell aus task-markers.js), line,
 //                          heading, statusType, description, tags, urgency
-//                          (4T-0505, vorberechneter Score) } — pro
+//                          (4T-000505, vorberechneter Score) } — pro
 //                        Task-Treffer; fehlt in den anderen Scopes
 //   }
 //
@@ -67,16 +67,16 @@ const {
   coerceNumber,
   truthy,
   equalsValue,
-  // 4T-1071 (Epic 3E-0211): Anzeige-Form für den Verkettungs-Rückfall.
+  // 4T-001071 (Epic 3E-000211): Anzeige-Form für den Verkettungs-Rückfall.
   formatValue,
-  // 4T-1074 (Epic 3E-0211): ausgezeichneter Anzeige-Wert.
+  // 4T-001074 (Epic 3E-000211): ausgezeichneter Anzeige-Wert.
   isRich,
   plainValue,
   concatRich,
 } = require('./query-format.js');
 const { FUNCTIONS } = require('./query-functions.js');
 const { resolveTaskField } = require('./query-task-fields.js');
-// 4T-1070 (Epic 3E-0211): Quellen-Ebene (FROM) im eigenen Schwester-Modul.
+// 4T-001070 (Epic 3E-000211): Quellen-Ebene (FROM) im eigenen Schwester-Modul.
 const { matchesSource } = require('./query-sources.js');
 
 // --- Werte-Ordnung ------------------------------------------------------------
@@ -84,7 +84,7 @@ const { matchesSource } = require('./query-sources.js');
 // Ordnung zweier Werte: -1/0/1 oder null (nicht vergleichbar). Datum vor Zahl
 // prüfen, damit ISO-Strings gegen Datums-Werte chronologisch laufen.
 function orderValues(aRaw, bRaw) {
-  // 4T-1074 (Epic 3E-0211): Rich-Werte ordnen über ihre Text-Form; SORT über
+  // 4T-001074 (Epic 3E-000211): Rich-Werte ordnen über ihre Text-Form; SORT über
   // einen ausgezeichneten Ausdruck sortiert wie über den unmarkierten.
   const a = plainValue(aRaw);
   const b = plainValue(bRaw);
@@ -137,7 +137,7 @@ function toLinkValue(l) {
   return { kind: 'link', path: l.path, name: l.name };
 }
 
-// 4T-1071 (Epic 3E-0211): Datum aus dem Dateinamen für `file.day`. Erkannt wird
+// 4T-001071 (Epic 3E-000211): Datum aus dem Dateinamen für `file.day`. Erkannt wird
 // ausschließlich das ISO-Präfix JJJJ-MM-TT am Namensanfang, nicht ein Datum
 // irgendwo im Namen — sonst bekäme eine Notiz «Rückblick auf 2020-01-01» ein
 // falsches Datum (Konzept-Entscheid E3). Die Kalender-Gegenprobe fängt Werte
@@ -156,7 +156,7 @@ function dayFromName(name) {
 // Löst einen Feld-Pfad gegen den Kontext auf. `file.*` gegen die Datei-Felder,
 // alles andere wie bisher als nackter Frontmatter-Name.
 //
-// 4T-0409 (Epic 3E-0077): Im Block-Scope (ctx.block gesetzt) lösen nackte
+// 4T-000409 (Epic 3E-000077): Im Block-Scope (ctx.block gesetzt) lösen nackte
 // Feldnamen zuerst gegen die Block-Eigenschaften auf und fallen sonst auf die
 // Frontmatter-Properties der Träger-Datei zurück (der Block „erbt" seinen
 // Datei-Kontext); `updated` steht als Block-Meta-Feld (Datums-Wert) bereit,
@@ -164,7 +164,7 @@ function dayFromName(name) {
 // werden nie verdeckt). `file.*` bleibt unverändert die Träger-Datei.
 function resolveField(name, ctx) {
   const lower = String(name).toLowerCase();
-  // 4T-1070 (Epic 3E-0211): Selbstbezug. `this.X` löst X gegen den Kontext der
+  // 4T-001070 (Epic 3E-000211): Selbstbezug. `this.X` löst X gegen den Kontext der
   // TRÄGER-Datei auf (ctx.self), nie gegen die Treffer-Zeile — dieselbe Regel in
   // allen drei Scopes, damit derselbe Satz überall dasselbe bedeutet
   // (Konzept-Entscheid E1). Der Selbst-Kontext trägt seinerseits kein `self`,
@@ -190,7 +190,7 @@ function resolveField(name, ctx) {
         return typeof f.ext === 'string' ? f.ext : null;
       case 'size':
         return typeof f.size === 'number' ? f.size : null;
-      // 4T-1071 (Epic 3E-0211): Quelle ist der LOGISCHE Name (file.name), damit
+      // 4T-001071 (Epic 3E-000211): Quelle ist der LOGISCHE Name (file.name), damit
       // beide Felder nie auseinanderlaufen.
       case 'day':
         return dayFromName(f.name);
@@ -220,7 +220,7 @@ function resolveField(name, ctx) {
         return null;
     }
   }
-  // 4T-0502 (Epic 3E-0096): Im Task-Scope (ctx.task gesetzt) loesen die
+  // 4T-000502 (Epic 3E-000096): Im Task-Scope (ctx.task gesetzt) loesen die
   // festen Task-Feld-Namen zuerst auf; unbekannte Namen fallen wie im
   // Block-Scope auf die Frontmatter-Properties der Traeger-Datei zurueck.
   const task = ctx && ctx.task;
@@ -242,7 +242,7 @@ function resolveField(name, ctx) {
 
 // --- Ausdrucks-Auswertung --------------------------------------------------------
 
-// 4T-0502 (Epic 3E-0096): relative Datums-Woerter der date(...)-Literale.
+// 4T-000502 (Epic 3E-000096): relative Datums-Woerter der date(...)-Literale.
 // Kalender-Arithmetik ueber den Date-Konstruktor (lokal, DST-sicher durch
 // Tag-Ueberlauf-Normalisierung). Start-Woerter liefern 00:00, End-Woerter
 // das Tages-Ende (23:59:59.999), damit `<= date(eow)` den letzten Tag der
@@ -295,7 +295,7 @@ function evaluateExpression(node, ctx) {
       return node.value;
     case 'date': {
       const now = ctx && typeof ctx.now === 'number' ? ctx.now : Date.now();
-      // 4T-0502 (Epic 3E-0096): relative Woerter (today, now, tomorrow,
+      // 4T-000502 (Epic 3E-000096): relative Woerter (today, now, tomorrow,
       // yesterday, sow/eow/som/eom/soy/eoy) rechnen relativ zu ctx.now.
       const rel = /^[a-z]+$/.test(node.value) ? relativeDateMs(node.value, now) : null;
       if (rel !== null) return { kind: 'date', ms: rel };
@@ -359,7 +359,7 @@ function evaluateExpression(node, ctx) {
 
 function evaluateArith(op, a, b) {
   if (op === 'add') {
-    // 4T-1074 (Epic 3E-0211): Segment-Verkettung, sobald eine Seite ausgezeichnet
+    // 4T-001074 (Epic 3E-000211): Segment-Verkettung, sobald eine Seite ausgezeichnet
     // ist. VOR allen anderen Zweigen, denn ein Rich-Wert ist ein Anzeige-Wert und
     // darf nie in einen numerischen Weg geraten (Werte-Modell in query-format.js).
     if (isRich(a) || isRich(b)) return concatRich(a, b);
@@ -370,7 +370,7 @@ function evaluateArith(op, a, b) {
     const an = coerceNumber(a);
     const bn = coerceNumber(b);
     if (an !== null && bn !== null) return an + bn;
-    // 4T-1071 (Epic 3E-0211): Rückfall auf die Anzeige-Form. Greift NUR, wenn
+    // 4T-001071 (Epic 3E-000211): Rückfall auf die Anzeige-Form. Greift NUR, wenn
     // der numerische Weg gescheitert ist und mindestens eine Seite eine
     // Zeichenkette ist — die Änderung ist damit strikt additiv: jeder Fall, den
     // sie berührt, ergab bisher null (Konzept-Entscheid E5). Ein fehlender Wert
@@ -401,7 +401,7 @@ function evaluateArith(op, a, b) {
 
 // Prüft eine Datei (über ihren Kontext) gegen den Abfrage-AST: FROM-Quelle und
 // WHERE-Bedingung müssen beide zutreffen. Sortierung, Limit und Spalten-
-// Auswertung sind Sache der Ergebnis-Pipeline (4T-0403/4T-0404).
+// Auswertung sind Sache der Ergebnis-Pipeline (4T-000403/4T-000404).
 function matchesQuery(queryAst, ctx) {
   if (!queryAst) return false;
   if (queryAst.type !== 'list' && queryAst.type !== 'table') {
@@ -412,7 +412,7 @@ function matchesQuery(queryAst, ctx) {
   return true;
 }
 
-// --- Ergebnis-Pipeline (4T-0403): Sortierung und Limit -------------------------
+// --- Ergebnis-Pipeline (4T-000403): Sortierung und Limit -------------------------
 
 // Sortier-Ordnung zweier Werte. Wie orderValues, aber Strings locale-bewusst
 // über localeCompare (case-insensitiv via Lowercase), damit Umlaute und
@@ -494,7 +494,7 @@ module.exports = {
   matchesQuery,
   evaluateExpression,
   applyResultPipeline,
-  // 4T-0503 (Epic 3E-0096): Werte-Ordnung fuer die Gruppen-Reihenfolge
+  // 4T-000503 (Epic 3E-000096): Werte-Ordnung fuer die Gruppen-Reihenfolge
   // der Task-Gruppierung (dieselbe Ordnung wie SORT).
   orderForSort,
 };

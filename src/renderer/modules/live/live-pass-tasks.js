@@ -1,6 +1,6 @@
 // Listen- und Aufgaben-Zweig des Lezer-Passes: Listen-Zeilen-Decorations,
 // Aufgaben-Marker samt erweiterten Status-Zeichen und die Marker-Badges.
-// 4T-0996 (Epic 3E-0196): aus dem Lezer-Pass herausgelöst, damit beide
+// 4T-000996 (Epic 3E-000196): aus dem Lezer-Pass herausgelöst, damit beide
 // Module unter dem Datei-Budget bleiben. Rumpf unverändert übernommen; der
 // Zweig endete schon vorher mit einem Rücksprung, deshalb kehrt der Aufrufer
 // nach dem Aufruf unbedingt zurück.
@@ -24,7 +24,7 @@ import {
 import { nodeInsideCode } from './live-shared.js';
 import { TaskMarkerBadgeWidget } from './live-widget-inline.js';
 
-// 4T-0083: Listen-Items. BulletList und OrderedList enthalten
+// 4T-000083: Listen-Items. BulletList und OrderedList enthalten
 // ListItem-Children. Pro ListItem wird die erste Zeile mit
 // cm-live-list-bullet bzw. cm-live-list-number versehen; Marker
 // bleibt sichtbar wie im Source-Modus (Entscheidung Punkt 4 der
@@ -42,7 +42,7 @@ export function runListItemPass(ctx, node) {
   const isOrdered = parent && parent.name === 'OrderedList';
   ranges.push((isOrdered ? liveListNumberLineDeco : liveListBulletLineDeco).range(itemLine.from));
   const itemText = state.doc.sliceString(itemLine.from, itemLine.to);
-  // 4T-0204: Pattern enthaelt zusaetzlich die aktivierten
+  // 4T-000204: Pattern enthaelt zusaetzlich die aktivierten
   // Status-Zeichen (Settings-gesteuert, Regex wird bei jeder
   // Aenderung in task-states.js neu gebaut).
   const taskMatch = itemText.match(getLiveTaskMarkerRe());
@@ -51,7 +51,7 @@ export function runListItemPass(ctx, node) {
     const markerTo = markerFrom + 3;
     const markerChar = taskMatch[2][1];
     const checked = markerChar === 'x' || markerChar === 'X';
-    // 4T-0293: erweiterte Status-Zeichen nur bei aktiver
+    // 4T-000293: erweiterte Status-Zeichen nur bei aktiver
     // task-states-Erweiterung als Box rendern; deaktiviert
     // bleibt `[/]` roher Text (Basis `[ ]`/`[x]` ist Kern).
     if (markerChar !== ' ' && !checked && !isExtensionActive('task-states')) return;
@@ -68,7 +68,7 @@ export function runListItemPass(ctx, node) {
             : undefined,
         ).range(markerFrom, markerTo),
       );
-      // 4T-0498 (Epic 3E-0090): Task-Marker-Badges am Zeilenende
+      // 4T-000498 (Epic 3E-000090): Task-Marker-Badges am Zeilenende
       // (Paritaet zum Render-Pane: gleiche Spec-Quelle, gleiche
       // Guards — Erweiterung aktiv, kein NON_TASK-Status, Global
       // Filter). Cursor auf der Zeile zeigt den Roh-Text
@@ -87,11 +87,11 @@ export function runListItemPass(ctx, node) {
           for (const seg of model.segments) {
             const segTo = segFrom + seg.raw.length;
             const spec = taskMarkerBadgeSpec(seg, cfg.labels);
-            // 4T-0937 (Befund B-09): Jedes Badge mit Datums-Wert ist
+            // 4T-000937 (Befund B-09): Jedes Badge mit Datums-Wert ist
             // klickbar — clickRange traegt den Doc-Bereich des
             // Werts, der dateValuePlugin-Handler oeffnet den
             // vorbelegten Picker (Ersetzen an Ort und Stelle).
-            // Bis dahin galt das allein fuer ⏰ (4T-0528), weil nur
+            // Bis dahin galt das allein fuer ⏰ (4T-000528), weil nur
             // die Erinnerung Gegenstand jenes Vorgangs war; die
             // sechs Termin-Marker sahen gleich aus und reagierten
             // nicht. Die Erinnerung braucht zusaetzlich ihre eigene

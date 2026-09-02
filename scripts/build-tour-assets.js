@@ -1,4 +1,4 @@
-// 4T-0644: kopiert das Overlay- und Popover-Stilblatt von driver.js aus
+// 4T-000644: kopiert das Overlay- und Popover-Stilblatt von driver.js aus
 // node_modules nach src/renderer/driverjs/, damit der Renderer es per <link>
 // laden kann. Muster der KaTeX-Assets: das Vendor-CSS wird bewusst nicht über
 // esbuild gebündelt, weil es kein Modul-Import des Renderers ist, sondern eine
@@ -20,7 +20,7 @@ function ensureDir(dir) {
 }
 
 function buildTourAssets() {
-  // Eingangs-Validierung nach dem Muster der KaTeX-Assets (X-09, 4T-0182):
+  // Eingangs-Validierung nach dem Muster der KaTeX-Assets (X-09, 4T-000182):
   // fehlt die Quelle oder trägt sie die erwartete Popover-Klasse nicht mehr,
   // hat sich das Vendor-Format geändert. Dann laut scheitern, statt still ein
   // Stilblatt auszuliefern, auf das die Theme-Anpassung nicht mehr greift.

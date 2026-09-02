@@ -1,7 +1,7 @@
 // Such-/Ersetzen-Leiste: Suchleiste am unteren Fensterrand, Regex-Hilfe,
 // Ersetzen im Quellcode-Scope.
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul; 4T-0279
-// (Epic 3E-0049): der zuvor mitliegende Einstellungs-Dialog ist in die
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul; 4T-000279
+// (Epic 3E-000049): der zuvor mitliegende Einstellungs-Dialog ist in die
 // Einstellungs-Seite (settings-page.js) migriert, das Modul traegt seither
 // nur noch die Suche (Umbenennung settings-search.js -> search.js).
 'use strict';
@@ -12,12 +12,12 @@ import { t } from '../../i18n.js';
 import { clearSearchDecorations, setSearchDecorations } from '../live/live-marker-fields.js';
 import { api, $, getDocText } from '../app/api.js';
 import { activeTab, getPaneEls, state } from '../app/app-state.js';
-// 4T-0616 (Epic 3E-0116): Bereichs-Zugehoerigkeit der aktiven Datei; dieselbe
+// 4T-000616 (Epic 3E-000116): Bereichs-Zugehoerigkeit der aktiven Datei; dieselbe
 // Pruefung, die auch das Oeffnen gegen die Bereichs-Grenze absichert.
 import { isOutsideActiveArea } from '../area.js';
 import { paneEditors } from '../editor/editor.js';
 import { persistSetting, showStatusbarHint } from '../views/views.js';
-// 4T-0760 (Epic 3E-0142): Suchlauf ueber Handbuch und Einstellungen.
+// 4T-000760 (Epic 3E-000142): Suchlauf ueber Handbuch und Einstellungen.
 import {
   leereRaumBestand,
   naechsterRaumTreffer,
@@ -150,7 +150,7 @@ export function toggleRegexHelp() {
 export function determineSearchScope() {
   const tab = activeTab();
   if (!tab) return 'rendered';
-  // 4T-0760 (Epic 3E-0142): Der Suchraum folgt dem aktiven Reiter, und zwar
+  // 4T-000760 (Epic 3E-000142): Der Suchraum folgt dem aktiven Reiter, und zwar
   // exklusiv (PO-Entscheidung 2026-07-27). Die Einstellungs-Seite hat kein
   // Dokument-Verhalten, deshalb steht sie vor der Modus-Abfrage.
   if (tab.systemPage === 'settings') return 'settings';
@@ -159,7 +159,7 @@ export function determineSearchScope() {
   // Markdown-Syntax in genau dieser Seite; das kann der Handbuch-Raum
   // nicht bedienen, und diese Absicht wiegt schwerer.
   if (tab.manualPage && tab.viewMode === 'rendered') return 'manual';
-  // 4T-0616 (Epic 3E-0116): Eine Datei in einem geoeffneten Bereich durchsucht
+  // 4T-000616 (Epic 3E-000116): Eine Datei in einem geoeffneten Bereich durchsucht
   // den GANZEN Bereich (PO-Entscheidung 2026-07-29). Damit setzt sich die
   // Regel fort, nach der der Raum der Behaelter ist, in dem der Anwender
   // steht: Handbuch-Seite -> Handbuch, Einstellungen -> alle Bereiche, Datei
@@ -193,7 +193,7 @@ export function determineSearchScope() {
   return 'rendered';
 }
 
-// 4T-0760: Die Raum-Scopes verhalten sich grundlegend anders als die zwei
+// 4T-000760: Die Raum-Scopes verhalten sich grundlegend anders als die zwei
 // Dokument-Scopes (Trefferliste statt reiner Inline-Markierung, asynchrone
 // Lieferanten, Sprung über Seiten-, Bereichs- und Datei-Grenzen). Diese
 // Abfrage macht die Verzweigungen unten lesbar.
@@ -201,10 +201,10 @@ export function isRaumScope(scope) {
   return scope === 'manual' || scope === 'settings' || scope === 'area';
 }
 
-// R5-16 (4T-0183): Die Helpers werden ausschliesslich vom Render-Pane-
+// R5-16 (4T-000183): Die Helpers werden ausschliesslich vom Render-Pane-
 // Suchpfad erreicht (der source-Scope biegt vorher in performSourceSearch
 // ab und arbeitet ueber CodeMirror-Decorations) — der tote source-Zweig
-// samt veraltetem 4T-0007-Vorschau-Kommentar ist entfernt. Der scope-
+// samt veraltetem 4T-000007-Vorschau-Kommentar ist entfernt. Der scope-
 // Parameter bleibt fuer Lesbarkeit an den Aufrufstellen erhalten.
 export function getSearchContainer(_scope) {
   const els = getPaneEls(state.activePaneIndex);
@@ -216,7 +216,7 @@ export function getSearchScrollContainer(_scope) {
   return els.renderedEl;
 }
 
-// 4T-0760: Der Sprung zu einem Raum-Treffer (Seite oeffnen bzw. Bereich
+// 4T-000760: Der Sprung zu einem Raum-Treffer (Seite oeffnen bzw. Bereich
 // wechseln, Fundstelle hervorheben) lebt in search-jump.js und wird beim
 // Start registriert. Ueber den Registrierungs-Punkt statt eines Imports,
 // weil die Sprung-Logik ihrerseits highlightInContainer aus diesem Modul
@@ -280,7 +280,7 @@ export function highlightInContainer(container, regex) {
       ) {
         return NodeFilter.FILTER_REJECT;
       }
-      // R5-05/R5-06 (4T-0171): KaTeX-MathML ist per CSS auf 1 px geclippt
+      // R5-05/R5-06 (4T-000171): KaTeX-MathML ist per CSS auf 1 px geclippt
       // (unsichtbare Doppel-Treffer, Zaehler zu hoch, F3 springt ins Leere);
       // in SVG-<text> (Mermaid-Labels) wird ein HTML-<mark> nicht gerendert
       // und der Label-Text verschwindet. Beide Bereiche ueberspringen.
@@ -346,7 +346,7 @@ export function findFirstVisibleMatchIndex() {
   return 0;
 }
 
-// B-01 (4T-0904): Sind die Treffer Editor-Positionen ({ from, to }) statt
+// B-01 (4T-000904): Sind die Treffer Editor-Positionen ({ from, to }) statt
 // DOM-Elemente? Geprueft wird am ersten Eintrag, weil die Liste immer aus
 // einer Quelle stammt und deshalb homogen ist.
 function sindEditorTreffer(matches) {
@@ -355,7 +355,7 @@ function sindEditorTreffer(matches) {
 }
 
 export function setCurrentMatch(idx, scroll = true) {
-  // B-01 (4T-0904): Die Verzweigung folgt der Art der Treffer, nicht allein
+  // B-01 (4T-000904): Die Verzweigung folgt der Art der Treffer, nicht allein
   // dem Geltungsbereich. Beide gehoeren zusammen, werden aber getrennt
   // gesetzt und koennen auseinanderlaufen: Bei geoeffnetem Bereich ist der
   // Geltungsbereich 'area', waehrend der Markier-Weg der offenen Datei
@@ -376,7 +376,7 @@ export function setCurrentMatch(idx, scroll = true) {
         }),
       });
       if (scroll && idx >= 0 && search.matches[idx]) {
-        // R5-13 (4T-0186): Selektion auf den Treffer setzen — im Live-
+        // R5-13 (4T-000186): Selektion auf den Treffer setzen — im Live-
         // Modus klappt das den umgebenden Block (Tabelle, Code, Math) zur
         // Quelle auf, sonst bleibt der angesprungene Treffer unsichtbar
         // hinter dem Widget. Die Suchleiste behaelt den Tastatur-Fokus.
@@ -404,7 +404,7 @@ export function setCurrentMatch(idx, scroll = true) {
 
 export function updateSearchCounter() {
   const els = getSearchEls();
-  // 4T-0760: Im Raum-Scope zaehlt der Bestand des Suchlaufs ueber alle
+  // 4T-000760: Im Raum-Scope zaehlt der Bestand des Suchlaufs ueber alle
   // Seiten bzw. Bereiche, nicht die (leere) Treffer-Liste der Pane.
   const total = isRaumScope(search.scope) ? raumTrefferAnzahl() : search.matches.length;
   const current = isRaumScope(search.scope) ? raumIndex() : search.currentIndex;
@@ -425,10 +425,10 @@ export function updateSearchCounter() {
 const SCOPE_LABEL_KEYS = {
   source: 'search.scopeSource',
   rendered: 'search.scopeRendered',
-  // 4T-0760 (Epic 3E-0142)
+  // 4T-000760 (Epic 3E-000142)
   manual: 'search.scopeManual',
   settings: 'search.scopeSettings',
-  // 4T-0616 (Epic 3E-0116)
+  // 4T-000616 (Epic 3E-000116)
   area: 'search.scopeArea',
 };
 
@@ -447,10 +447,10 @@ export function setInvalidRegex(invalid) {
 }
 
 export function performSearch(opts = {}) {
-  // R5-04 (4T-0171): nie nach geschlossener Leiste suchen (nachlaufende
+  // R5-04 (4T-000171): nie nach geschlossener Leiste suchen (nachlaufende
   // Timer, programmatische Aufrufe).
   if (!search.visible) return;
-  // B-10 (4T-0904): Eine Neu-Ermittlung bewegt den Cursor NICHT. Selektion
+  // B-10 (4T-000904): Eine Neu-Ermittlung bewegt den Cursor NICHT. Selektion
   // und Bildlauf gehoeren allein zum Sprung, und alle Sprung-Wege (F3,
   // Shift+F3, Klick auf einen Treffer, Raum-Sprung) rufen setCurrentMatch
   // ohnehin direkt mit dessen Vorgabe scroll=true.
@@ -467,9 +467,9 @@ export function performSearch(opts = {}) {
   const vorherigerScope = search.scope;
   search.scope = determineSearchScope();
   updateSearchScopeLabel();
-  // R5-09 (4T-0171): Replace-Bedienbarkeit an Scope/Edit-Modus koppeln.
+  // R5-09 (4T-000171): Replace-Bedienbarkeit an Scope/Edit-Modus koppeln.
   updateReplaceUiState();
-  // 4T-0760: Beim Verlassen eines Raums seinen Trefferbestand verwerfen —
+  // 4T-000760: Beim Verlassen eines Raums seinen Trefferbestand verwerfen —
   // die Treffer gehoerten zu einem anderen Suchraum und waeren im neuen
   // schlicht falsch (die Raeume schliessen einander aus).
   if (isRaumScope(vorherigerScope) && vorherigerScope !== search.scope) {
@@ -492,7 +492,7 @@ export function performSearch(opts = {}) {
   }
   setInvalidRegex(false);
 
-  // 4T-0760: Raum-Suche. Der Lieferant arbeitet asynchron (Handbuch-Seiten
+  // 4T-000760: Raum-Suche. Der Lieferant arbeitet asynchron (Handbuch-Seiten
   // kommen per IPC), deshalb laeuft der Zaehler dem Tastendruck hinterher;
   // ueberholte Laeufe verwirft sucheImRaum selbst ueber seine Generation.
   if (isRaumScope(search.scope)) {
@@ -539,7 +539,7 @@ export function performSourceSearch(regex, prevIdx, moveCursor = false) {
     updateSearchCounter();
     return;
   }
-  // W-19 (4T-0310): geteilter Voll-Text-Cache statt eigener Serialisierung
+  // W-19 (4T-000310): geteilter Voll-Text-Cache statt eigener Serialisierung
   // pro Such-Refresh (Entwicklungsrichtlinien §5).
   const doc = getDocText(view.state.doc);
   const matches = [];
@@ -588,7 +588,7 @@ export function debouncedSearch() {
   }, SEARCH_DEBOUNCE_MS);
 }
 
-// R5-01 (4T-0171): Debounced Re-Search nach Doc-Aenderungen, vom
+// R5-01 (4T-000171): Debounced Re-Search nach Doc-Aenderungen, vom
 // updateListener aufgerufen. Eigener Timer, damit das Tipp-Debounce der
 // Suchleiste (debouncedSearch) unabhaengig bleibt.
 export let searchRefreshTimer = null;
@@ -601,7 +601,7 @@ export function scheduleSearchRefresh() {
 }
 
 export function nextMatch() {
-  // 4T-0760: Im Raum-Scope laeuft F3 ueber die Seiten- bzw. Bereichsgrenze
+  // 4T-000760: Im Raum-Scope laeuft F3 ueber die Seiten- bzw. Bereichsgrenze
   // hinweg; der Sprung selbst haengt am Sprung-Handler des Panels.
   if (isRaumScope(search.scope)) {
     const treffer = naechsterRaumTreffer();
@@ -639,7 +639,7 @@ export function openSearchBar(opts = {}) {
   if (search.query) {
     performSearch();
   } else {
-    // R5-09 (4T-0171): Scope und Replace-Bedienbarkeit auch ohne Query
+    // R5-09 (4T-000171): Scope und Replace-Bedienbarkeit auch ohne Query
     // aktuell halten (performSearch laeuft hier nicht).
     search.scope = determineSearchScope();
     updateSearchScopeLabel();
@@ -651,7 +651,7 @@ export function closeSearchBar() {
   const els = getSearchEls();
   search.visible = false;
   search.replaceMode = false;
-  // R5-04 (4T-0171): laufende Debounce-Timer stoppen, sonst laeuft
+  // R5-04 (4T-000171): laufende Debounce-Timer stoppen, sonst laeuft
   // performSearch nach dem Schliessen weiter (Highlights + Scroll).
   if (search.debounceTimer) {
     clearTimeout(search.debounceTimer);
@@ -665,10 +665,10 @@ export function closeSearchBar() {
   els.bar.hidden = true;
   closeRegexHelp();
   clearSearchHighlights();
-  // 4T-0760: Auch den Raum-Bestand samt Trefferliste raeumen; das Panel
+  // 4T-000760: Auch den Raum-Bestand samt Trefferliste raeumen; das Panel
   // bleibt offen, zeigt aber seinen Leerzustand statt veralteter Treffer.
   leereRaumBestand(null);
-  // 4T-0616 (Epic 3E-0116): Den Speicher-Vorrat des Bereichs im Hauptprozess
+  // 4T-000616 (Epic 3E-000116): Den Speicher-Vorrat des Bereichs im Hauptprozess
   // freigeben. Er haengt bewusst an der geoeffneten Suchleiste und nicht am
   // geoeffneten Bereich; wer nicht sucht, soll die Texte nicht im Speicher
   // halten. Der Cache auf Platte bleibt und traegt den naechsten Suchlauf.
@@ -679,7 +679,7 @@ export function closeSearchBar() {
   } catch {
     /* Freigeben ist bestes Bemuehen; ein Fehlschlag kostet nur Speicher */
   }
-  // 4T-0616: Ende der Such-Sitzung. Die naechste bestimmt ihre Anker-Datei
+  // 4T-000616: Ende der Such-Sitzung. Die naechste bestimmt ihre Anker-Datei
   // neu, also die Datei, welche die Trefferliste anfuehrt. Ueber ein
   // Dokument-Ereignis aus demselben Zyklus-Grund wie oben.
   document.dispatchEvent(new CustomEvent('scg:search-closed'));
@@ -687,11 +687,11 @@ export function closeSearchBar() {
   updateSearchCounter();
 }
 
-// --- Ersetzen (4T-0007) -----------------------------------------------------
+// --- Ersetzen (4T-000007) -----------------------------------------------------
 // Ersetzt den aktiven Treffer durch search.replacement. Bei Regex-Modus werden
 // Backreferences ($1, $2 …) im Ersetzungstext ausgewertet. Voraussetzung:
 // scope === 'source' und aktiver Tab im Edit-Modus (Source ist editierbar).
-// R5-01 (4T-0171): Verifiziert, dass der Doc-Text an [from, to) noch ein
+// R5-01 (4T-000171): Verifiziert, dass der Doc-Text an [from, to) noch ein
 // vollstaendiger Treffer des aktuellen Suchmusters ist. Schutz gegen
 // veraltete Offsets in einem Restfenster (z.B. Aenderung zwischen
 // Invalidierung und Klick); bei Mismatch wird re-searcht statt ersetzt.
@@ -722,7 +722,7 @@ export function replaceCurrentMatch() {
     return;
   }
   const replaceText = computeReplacement(matchText);
-  // 4T-0484 (Epic 3E-0088): userEvent-Annotation — der Ersetzen-Klick kommt
+  // 4T-000484 (Epic 3E-000088): userEvent-Annotation — der Ersetzen-Klick kommt
   // aus der Such-Leiste (kein Tipp-Ereignis im Editor); ohne Annotation
   // verschmilzt die Transaktion mit dem vorherigen Historien-Ereignis.
   // 'input.replace' ist der CodeMirror-Standard-Wert fuer Ersetzungen.
@@ -744,7 +744,7 @@ export function replaceAllMatches() {
   if (!tab || !tab.editMode) return;
   const view = paneEditors[state.activePaneIndex];
   if (!view || search.matches.length === 0) return;
-  // R5-01 (4T-0171): jeden Treffer gegen den aktuellen Doc-Stand
+  // R5-01 (4T-000171): jeden Treffer gegen den aktuellen Doc-Stand
   // verifizieren; bei einem einzigen Mismatch Re-Search statt Replace.
   for (const m of search.matches) {
     if (!isStillFullMatch(view.state.doc.sliceString(m.from, m.to))) {
@@ -760,7 +760,7 @@ export function replaceAllMatches() {
       return { from: m.from, to: m.to, insert: computeReplacement(matchText) };
     });
   const count = changes.length;
-  // 4T-0484 (Epic 3E-0088): siehe replaceCurrentMatch — eigener Historien-
+  // 4T-000484 (Epic 3E-000088): siehe replaceCurrentMatch — eigener Historien-
   // Eintrag; 'input.replace.all' ist der CodeMirror-Standard-Wert.
   view.dispatch({ changes, userEvent: 'input.replace.all' });
   // Counter im Statusbar-Hinweis (1.5 s)
@@ -788,7 +788,7 @@ export function refreshSearchIfVisible(opts = {}) {
   // currentIndex bleibt erhalten und wird in performSearch als prevIdx genutzt;
   // matches wird per clearSearchHighlights zurueckgesetzt.
   //
-  // B-10 (4T-0904): Keiner der Aufrufer (Doc-Aenderung, Tab-Wechsel,
+  // B-10 (4T-000904): Keiner der Aufrufer (Doc-Aenderung, Tab-Wechsel,
   // Ansichts-Wechsel, Render-Pipeline der Vorschau, Sprung ueber
   // Reiter-Grenzen) bewegt dabei den Cursor; die Markierung stellen die
   // Sprung-Wege selbst her (markiereOffeneRaumSeite, markiereOffeneDatei).
@@ -796,11 +796,11 @@ export function refreshSearchIfVisible(opts = {}) {
   performSearch({ keepCurrent: true, ...opts });
 }
 
-// R5-09 (4T-0171): Ersetzen ist nur im Quellcode-Scope mit aktivem
+// R5-09 (4T-000171): Ersetzen ist nur im Quellcode-Scope mit aktivem
 // Edit-Modus wirksam (replaceCurrentMatch/replaceAllMatches returnen sonst).
 // Statt still funktionsloser Buttons: deaktivieren und Grund als Tooltip.
-// 4T-0760: In den Raum-Scopes bleibt Ersetzen abgeschaltet — Handbuch und
-// Einstellungen sind schreibgeschuetzt (Abgrenzung des Epics 3E-0142). Der
+// 4T-000760: In den Raum-Scopes bleibt Ersetzen abgeschaltet — Handbuch und
+// Einstellungen sind schreibgeschuetzt (Abgrenzung des Epics 3E-000142). Der
 // vorhandene Weg traegt das ohne Erweiterung: Er verlangt bereits den
 // Quellcode-Scope, den kein Raum-Scope erfuellt.
 export function updateReplaceUiState() {

@@ -1,21 +1,21 @@
-// Epic 3E-0057: Logische Applikationen — Fenstertitel-Systematik und
+// Epic 3E-000057: Logische Applikationen — Fenstertitel-Systematik und
 // Mehrfachstart.
 //
-// LA-01 (4T-0318): Zwei Fenster derselben App tragen "(Fenster 1)"/"(Fenster 2)"
+// LA-01 (4T-000318): Zwei Fenster derselben App tragen "(Fenster 1)"/"(Fenster 2)"
 //        ohne App-Teil; nach dem Schließen des zweiten verschwindet der Suffix
 //        (Nachrücken der app-lokalen Nummern).
-// LA-02 (4T-0319): "Neue Applikation" (Kommando-/Menü-Pfad, identisch mit dem
+// LA-02 (4T-000319): "Neue Applikation" (Kommando-/Menü-Pfad, identisch mit dem
 //        EXE-Zweitstart ohne Argument) erzeugt eine zweite App — beide Fenster
 //        tragen den App-Teil "(App 1)"/"(App 2)"; schließt App 1 komplett,
 //        rückt App 2 zu App 1 nach und verliert den Suffix.
-// LA-03 (4T-0320): Sitzungs-Wiederherstellung über Apps — zwei Apps überleben
+// LA-03 (4T-000320): Sitzungs-Wiederherstellung über Apps — zwei Apps überleben
 //        Beenden und Neustart als zwei Apps (Titel-Systematik intakt).
 'use strict';
 
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 
-test.describe('LA-01: Fenstertitel innerhalb einer App (4T-0318)', () => {
+test.describe('LA-01: Fenstertitel innerhalb einer App (4T-000318)', () => {
   test('Fenster-Suffix ohne App-Teil, Suffix verschwindet beim Schließen', async () => {
     const { app, page, userData } = await launchApp();
     try {
@@ -53,7 +53,7 @@ test.describe('LA-01: Fenstertitel innerhalb einer App (4T-0318)', () => {
   });
 });
 
-test.describe('LA-02: Neue Applikation und App-Nummern-Nachrücken (4T-0319)', () => {
+test.describe('LA-02: Neue Applikation und App-Nummern-Nachrücken (4T-000319)', () => {
   test('zweite App trägt App-Teil, Nummern rücken beim App-Schließen nach', async () => {
     const { app, page, userData } = await launchApp();
     try {
@@ -87,7 +87,7 @@ test.describe('LA-02: Neue Applikation und App-Nummern-Nachrücken (4T-0319)', (
   });
 });
 
-test.describe('LA-03: Sitzungs-Wiederherstellung über Apps (4T-0320)', () => {
+test.describe('LA-03: Sitzungs-Wiederherstellung über Apps (4T-000320)', () => {
   test('zwei Apps überleben Beenden und Neustart als zwei Apps', async () => {
     const first = await launchApp();
     const userData = first.userData;

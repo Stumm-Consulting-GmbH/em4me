@@ -86,7 +86,7 @@ module.exports = [
 
   // Block-Sanitizer nutzt DOMParser direkt (läuft im Preload-/Browser-
   // Kontext; in purem Node fängt das try/catch den Fallback ab).
-  // 4T-0994 (Epic 3E-0196): Der Sanitizer ist aus markdown.js in ein
+  // 4T-000994 (Epic 3E-000196): Der Sanitizer ist aus markdown.js in ein
   // eigenes Modul gezogen; der Eintrag folgt ihm dorthin.
   {
     files: ['src/shared/markdown/portable-sanitizer.js'],
@@ -95,11 +95,11 @@ module.exports = [
     },
   },
 
-  // Externe Erweiterungs-Pakete (4T-0299, Epic 3E-0053): eigenständige
+  // Externe Erweiterungs-Pakete (4T-000299, Epic 3E-000053): eigenständige
   // Pakete außerhalb des App-Bundles. Einstiegs-Module (main.js) sind
   // ES-Module im Renderer-Kontext; markdownPlugin-Dateien laufen als
   // CommonJS-artiger Quelltext im vm-Sandbox-Kontext des Preload-Loaders.
-  // Zwei Orte, weil das Referenz-Beispiel seit 4T-0826 (Epic 3E-0103) real
+  // Zwei Orte, weil das Referenz-Beispiel seit 4T-000826 (Epic 3E-000103) real
   // in addon_examples/ ausgeliefert wird und nur die Fehlerfall-Pakete
   // Fixtures bleiben.
   {
@@ -151,7 +151,7 @@ module.exports = [
     },
   },
 
-  // 4T-1093: Kein stiller Rückfall-Wert hinter einer typeof-Prüfung über eine
+  // 4T-001093: Kein stiller Rückfall-Wert hinter einer typeof-Prüfung über eine
   // fremde Schnittstelle. Anlass ist der Datenverlust vom 2026-08-18: Die
   // Zeile `typeof workspacesState === 'function' ? workspacesState() : []` lief
   // immer in den leeren Zweig, weil die Verdrahtung ein Array durchreicht und
@@ -174,13 +174,13 @@ module.exports = [
           selector:
             "ConditionalExpression[test.left.operator='typeof'] > ArrayExpression.alternate[elements.length=0]",
           message:
-            'Kein stiller Rueckfall auf [] hinter einer typeof-Pruefung: Vertrag der Schnittstelle pruefen und laut brechen (4T-1093).',
+            'Kein stiller Rueckfall auf [] hinter einer typeof-Pruefung: Vertrag der Schnittstelle pruefen und laut brechen (4T-001093).',
         },
         {
           selector:
             "ConditionalExpression[test.left.operator='typeof'] > ObjectExpression.alternate[properties.length=0]",
           message:
-            'Kein stiller Rueckfall auf {} hinter einer typeof-Pruefung: Vertrag der Schnittstelle pruefen und laut brechen (4T-1093).',
+            'Kein stiller Rueckfall auf {} hinter einer typeof-Pruefung: Vertrag der Schnittstelle pruefen und laut brechen (4T-001093).',
         },
       ],
     },

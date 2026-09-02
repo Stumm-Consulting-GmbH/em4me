@@ -1,4 +1,4 @@
-// 4T-1048 (Epic 3E-0151): Einstellungs-Bereich der Mindmap-Ansicht.
+// 4T-001048 (Epic 3E-000151): Einstellungs-Bereich der Mindmap-Ansicht.
 //
 // Liegt hier und nicht bei den übrigen Mindmap-Modulen, weil die
 // Registrierung ein Modul-Seiteneffekt ist: Ein Import aus dem Mindmap-Ordner

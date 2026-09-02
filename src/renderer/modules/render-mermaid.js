@@ -1,5 +1,5 @@
 // Render-Pane-Nachverarbeitung (Copy-Buttons, Mermaid-Lazy-Load, Wiki-Embeds, Tabellen-Sortierung) und Word-Count.
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
 'use strict';
 
@@ -9,46 +9,46 @@ import { applyTranslations, t } from '../i18n.js';
 
 import { enqueueMermaidRun } from './live/live-mermaid-widget.js';
 import { api } from './app/api.js';
-// 4T-0293 (Epic 3E-0052): Mermaid ist eine schaltbare Render-Erweiterung —
+// 4T-000293 (Epic 3E-000052): Mermaid ist eine schaltbare Render-Erweiterung —
 // deaktiviert bleibt der ```mermaid-Block ein regulaerer Code-Block.
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { activeTab, state } from './app/app-state.js';
-// 4T-0324 (Epic 3E-0058): Aussen-Link-Warnung der Bereichs-Apps als Teil
+// 4T-000324 (Epic 3E-000058): Aussen-Link-Warnung der Bereichs-Apps als Teil
 // der Render-Nachverarbeitung.
 import { markOutsideAreaLinks } from './area.js';
 import { paneEditors } from './editor/editor.js';
-// 4T-0790 (Epic 3E-0125): Anlagen-Embeds oeffnen ueber denselben Kanal wie
+// 4T-000790 (Epic 3E-000125): Anlagen-Embeds oeffnen ueber denselben Kanal wie
 // verlinkte Anlagen und Bilder.
 import { oeffneAnlage } from './views/link-navigation.js';
 import { openInPane } from './tabs/tabs.js';
-// 4T-0355 (Epic 3E-0065): Befüllung der perspective-query-Platzhalter mit der
+// 4T-000355 (Epic 3E-000065): Befüllung der perspective-query-Platzhalter mit der
 // dynamischen Datei-Liste (Render-Pane und Reading über diese Pipeline).
 import { applyFrontmatterQueriesIfPresent } from './query/frontmatter-query-view.js';
-// 4T-0435 / 4T-1064: Journal-Blöcke (Navigation, Zeitleiste) aus dem Datei-Pfad befüllen.
+// 4T-000435 / 4T-001064: Journal-Blöcke (Navigation, Zeitleiste) aus dem Datei-Pfad befüllen.
 import { applyJournalNavIfPresent } from './calendar/journal-nav-view.js';
 import { applyJournalTimelineIfPresent } from './calendar/journal-timeline-view.js';
-// 4T-0412 (Epic 3E-0078): Skript-Blöcke (perspective-script) — Sandbox-
+// 4T-000412 (Epic 3E-000078): Skript-Blöcke (perspective-script) — Sandbox-
 // Ausführung bzw. Quelltext-Rückfall, analog zur Abfrage-Befüllung.
 import { applyPerspectiveScriptsIfPresent } from './query/perspective-script-view.js';
-// 4T-0365 (Epic 3E-0067): Block-Metadaten-Indikator als Render-Nachverarbeitung.
+// 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator als Render-Nachverarbeitung.
 import { applyBlockMetaIndicators } from './block-meta-indicator.js';
-// 4T-0418 (Epic 3E-0079): Lokalisierung der Perspective-Datatable-Texte
+// 4T-000418 (Epic 3E-000079): Lokalisierung der Perspective-Datatable-Texte
 // mit Platzhaltern (Struktur-Fehler, Zeilen-Limit).
 import { applyPerspectiveDatatablesIfPresent } from './query/perspective-datatable-view.js';
-// 4T-0512 (Epic 3E-0092): Ereignis-Fence — Lokalisierung/Differenz-Spalte
+// 4T-000512 (Epic 3E-000092): Ereignis-Fence — Lokalisierung/Differenz-Spalte
 // und Editor-Bindung (delegierte Listener, idempotent pro Container).
 import { applyPerspectiveEventsIfPresent } from './events/events-view.js';
 import { bindPerspectiveEventsEditor } from './events/events-editor.js';
 import { applyPerspectiveEventsViewStates } from './events/events-view-state.js';
-// 4T-0419 (Epic 3E-0079): Grid-Editor der Datatable (delegierte Listener,
-// idempotent pro Container). 4T-0420: plus Wiederanwendung des Ansichts-
+// 4T-000419 (Epic 3E-000079): Grid-Editor der Datatable (delegierte Listener,
+// idempotent pro Container). 4T-000420: plus Wiederanwendung des Ansichts-
 // Zustands (Sortierung/Filter) nach jedem Voll-Render.
 import {
   bindPerspectiveDatatableEditor,
   applyPerspectiveDatatableViewStates,
 } from './query/perspective-datatable-editor.js';
 
-// --- Mermaid (4T-0021) ------------------------------------------------------
+// --- Mermaid (4T-000021) ------------------------------------------------------
 // Mermaid wird per dynamischem import() lazy geladen (siehe scripts/
 // build-mermaid.js fuer den separaten Bundle), sodass Dokumente ohne
 // Mermaid-Bloecke den ~3MB-Bundle gar nicht erst holen. Das Post-Render-Hook
@@ -59,7 +59,7 @@ export let mermaidPromise = null;
 export function loadMermaid() {
   if (mermaidPromise) return mermaidPromise;
   const url = new URL('./mermaid.bundle.js', import.meta.url).href;
-  // R1-04 (4T-0174): bei Import-Fehler den Cache zuruecksetzen, sonst
+  // R1-04 (4T-000174): bei Import-Fehler den Cache zuruecksetzen, sonst
   // bleibt das rejected Promise fuer die Session haengen und Mermaid ist
   // dauerhaft tot, obwohl ein erneuter Versuch klappen koennte.
   mermaidPromise = import(url).then(
@@ -73,7 +73,7 @@ export function loadMermaid() {
 }
 
 export let mermaidConfiguredTheme = null;
-// 4T-0179: Setter fuer Modul-Grenzen (ESM-Imports sind read-only; der
+// 4T-000179: Setter fuer Modul-Grenzen (ESM-Imports sind read-only; der
 // Theme-Wechsel-Handler im Init-Modul setzt hierueber zurueck).
 export function resetMermaidConfiguredTheme() {
   mermaidConfiguredTheme = null;
@@ -89,7 +89,7 @@ export function ensureMermaidConfigured(mermaid, theme) {
 
 // Modul-Level-Cache (svgString je Quelltext+Theme). Verhindert wiederholten
 // Mermaid-Parse beim Live-Tippen im Edit-Modus.
-// R1-09/R2-05 (4T-0180): Insertion-Order-Eviction (Muster vom
+// R1-09/R2-05 (4T-000180): Insertion-Order-Eviction (Muster vom
 // liveBlockRenderCache) deckelt das Wachstum; die Quelltext-Laenge im
 // Schluessel dient als Kollisions-Gegenpruefung zum 32-bit-Hash.
 export const MERMAID_CACHE_MAX_SIZE = 100;
@@ -115,7 +115,7 @@ export function mermaidHash(str) {
   }
   return (h >>> 0).toString(16);
 }
-// 4T-0046 (Epic 3E-0009): Sortierbare Perspective-Tabellen. Nach jedem renderMarkdown
+// 4T-000046 (Epic 3E-000009): Sortierbare Perspective-Tabellen. Nach jedem renderMarkdown
 // werden alle <table class="perspective-table sortable"> im Render-DOM mit Klick-
 // Handlern auf den Header-Zellen versehen. Drei Zustaende zyklisch:
 // neutral -> aufsteigend -> absteigend -> neutral (reset). Bei reset wird die
@@ -214,7 +214,7 @@ export function compareScgSortCells(a, b) {
   return aText.localeCompare(bText, undefined, { numeric: true, sensitivity: 'base' });
 }
 
-// 4T-0072: Word Count in Statusbar.
+// 4T-000072: Word Count in Statusbar.
 // Berechnet Woerter, Zeichen und Lesezeit fuer die aktive Datei bzw. fuer die
 // aktive Editor-Selektion. Bereinigung: Frontmatter, Fenced-Code-Bloecke
 // (auch ~~~), Inline-Code, Display-Math `$$...$$` und KaTeX-Inline `$...$`
@@ -281,7 +281,7 @@ export function formatWordCountNumber(n) {
 
 export let wordCountTimer = null;
 export const wordCountState = { fileStats: null, selectionStats: null };
-// R2-10 (4T-0180): merkt sich, fuer welchen tab.content-String die
+// R2-10 (4T-000180): merkt sich, fuer welchen tab.content-String die
 // fileStats berechnet wurden. Bei reiner Cursor-/Selektionsbewegung ist
 // die Referenz identisch (O(1)-Vergleich) und nur die Selektions-Stats
 // werden neu berechnet; beim Tippen ersetzt der UpdateListener
@@ -300,9 +300,9 @@ export function updateWordCountStatusbar() {
   const el = document.getElementById('statusbar-wordcount');
   if (!el) return;
   const tab = activeTab();
-  // 4T-0277: System-Seiten (Einstellungen) haben keinen Dokument-Inhalt —
+  // 4T-000277: System-Seiten (Einstellungen) haben keinen Dokument-Inhalt —
   // ein "0 Woerter"-Zaehler waere irrefuehrend, Anzeige ausblenden.
-  // 4T-0294: deaktivierte Wort-Statistik-Erweiterung blendet ebenso aus
+  // 4T-000294: deaktivierte Wort-Statistik-Erweiterung blendet ebenso aus
   // (der Guard sitzt hier, weil jeder Update-Pfad el.hidden neu setzt).
   if (!tab || tab.systemPage || !isExtensionActive('word-count')) {
     el.hidden = true;
@@ -325,7 +325,7 @@ export function updateWordCountStatusbar() {
       selectionStats = computeWordCountStats(selText);
     }
   }
-  // R2-10 (4T-0180): Vollberechnung nur bei geaendertem Datei-Inhalt.
+  // R2-10 (4T-000180): Vollberechnung nur bei geaendertem Datei-Inhalt.
   const content = tab.content || '';
   let fileStats = wordCountState.fileStats;
   if (!fileStats || wordCountStatsForContent !== content) {
@@ -409,7 +409,7 @@ export function closeWordCountDialog() {
   if (modal) modal.hidden = true;
 }
 
-// 4T-0071: Code-Block Copy-Button. Wickelt jeden <pre>-Block im Render-Pane
+// 4T-000071: Code-Block Copy-Button. Wickelt jeden <pre>-Block im Render-Pane
 // in einen <div class="code-block-wrapper"> und setzt einen Button rechts oben,
 // der den Code-Inhalt in die Zwischenablage kopiert. Mermaid-Bloecke werden
 // uebersprungen, weil applyMermaidIfPresent das <pre> spaeter zu einem SVG
@@ -425,17 +425,17 @@ export const CODE_COPY_ICON_CHECK =
 
 export function applyCodeCopyButtons(container) {
   if (!container) return;
-  // 4T-0294: Code-Copy-Button ist eine schaltbare Werkzeug-Erweiterung.
+  // 4T-000294: Code-Copy-Button ist eine schaltbare Werkzeug-Erweiterung.
   if (!isExtensionActive('code-copy')) return;
   const preEls = container.querySelectorAll('pre');
   for (const pre of preEls) {
     // Idempotenz: schon gewrapt.
     if (pre.parentElement && pre.parentElement.classList.contains('code-block-wrapper')) continue;
-    // 4T-0282: das Klartext-YAML der Frontmatter-Zeile ist reine Anzeige
+    // 4T-000282: das Klartext-YAML der Frontmatter-Zeile ist reine Anzeige
     // mit eigener Aufklapp-Mechanik — kein Copy-Button-Wrapper.
     if (pre.classList.contains('frontmatter-yaml')) continue;
     // Mermaid uebernimmt der Mermaid-Renderer und ersetzt das <pre> durch
-    // ein SVG. 4T-0293: nur bei aktiver Mermaid-Erweiterung — deaktiviert
+    // ein SVG. 4T-000293: nur bei aktiver Mermaid-Erweiterung — deaktiviert
     // bleibt der Block ein Code-Block und bekommt regulaer den Copy-Button.
     const codeEl = pre.querySelector(':scope > code');
     if (codeEl && codeEl.classList.contains('language-mermaid') && isExtensionActive('mermaid')) {
@@ -463,7 +463,7 @@ export function applyCodeCopyButtons(container) {
         button.classList.add('is-copied');
         setTimeout(() => button.classList.remove('is-copied'), 1500);
       } catch (err) {
-        console.warn('[4T-0071] Code-Copy fehlgeschlagen', err);
+        console.warn('[4T-000071] Code-Copy fehlgeschlagen', err);
       }
     });
     wrapper.appendChild(button);
@@ -472,7 +472,7 @@ export function applyCodeCopyButtons(container) {
 
 export async function applyMermaidIfPresent(container) {
   if (!container) return;
-  // 4T-0293: deaktivierte Mermaid-Erweiterung — Bloecke bleiben Code.
+  // 4T-000293: deaktivierte Mermaid-Erweiterung — Bloecke bleiben Code.
   if (!isExtensionActive('mermaid')) return;
   const codeBlocks = container.querySelectorAll('pre > code.language-mermaid');
   if (codeBlocks.length === 0) return;
@@ -514,7 +514,7 @@ export async function applyMermaidIfPresent(container) {
     pending.push({ block, inner, source, cacheKey });
   }
   if (pending.length === 0) return;
-  // R1-03/R2-04 (4T-0174): ueber die gemeinsame Queue serialisieren. Auch
+  // R1-03/R2-04 (4T-000174): ueber die gemeinsame Queue serialisieren. Auch
   // die Nachbearbeitung (Cache-Fuellung, Leftover-Cleanup) laeuft im
   // Queue-Glied, damit kein paralleler Lauf die Arbeits-DOM-Knoten
   // wegraeumt oder defekte SVGs in den Cache hebt.
@@ -569,7 +569,7 @@ export function cleanupMermaidLeftovers() {
   }
 }
 
-// 4T-0055 (Epic 3E-0011): Wiki-Embeds expandieren.
+// 4T-000055 (Epic 3E-000011): Wiki-Embeds expandieren.
 // Scannt den Container nach <span class="wiki-embed-*">-Platzhaltern aus
 // dem markdown-it-Renderer und baut das echte DOM-Element pro Embed-Typ:
 //   pdf  -> <embed type="application/pdf" src="file://...">
@@ -607,7 +607,7 @@ export async function applyWikiEmbedsIfPresent(container, basePath, depth = 0) {
   }
 }
 
-// 4T-0948 (Befund E-01): Einbettungen einer bestimmten Ziel-Datei erneut
+// 4T-000948 (Befund E-01): Einbettungen einer bestimmten Ziel-Datei erneut
 // aufloesen, ohne das ganze Dokument neu zu zeichnen. Gebraucht wird das,
 // wenn sich der GESCHRIEBENE Stand der eingebetteten Datei geaendert hat:
 // Text und Pfad der Huelle bleiben dabei gleich, also greift weder der
@@ -654,7 +654,7 @@ export async function refreshEmbedsOfTarget(wurzel, zielPfad, dokumentPfad) {
   return treffer.length;
 }
 
-// R2-07 (4T-0174): file:///-URL aus einem Windows-Pfad bauen. '#', '?', '%'
+// R2-07 (4T-000174): file:///-URL aus einem Windows-Pfad bauen. '#', '?', '%'
 // und Leerzeichen im Dateinamen wuerden die URL sonst zerlegen; das
 // Laufwerks-':' und die Slashes bleiben unangetastet.
 export function fileUrlFor(absolutePath) {
@@ -680,7 +680,7 @@ export async function renderPdfEmbed(span, basePath, embedPath, widthAttr) {
     renderBrokenEmbed(span, embedPath, null);
     return;
   }
-  // W-18 (4T-0309): fileExists kapseln (Muster renderOtherEmbed R2-18); eine
+  // W-18 (4T-000309): fileExists kapseln (Muster renderOtherEmbed R2-18); eine
   // Rejection lief sonst als unbehandelte Promise-Rejection, der Embed blieb
   // ohne Broken-Darstellung stehen.
   let exists = false;
@@ -731,11 +731,11 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
   link.textContent = result.displayPath || embedPath;
   link.addEventListener('click', (e) => {
     e.preventDefault();
-    // R2-16 (4T-0183): sonst laeuft der Klick zusaetzlich durch den
+    // R2-16 (4T-000183): sonst laeuft der Klick zusaetzlich durch den
     // delegierten handleRenderedClick/activateLink-Pfad (redundante
     // IPC-Roundtrips); Muster vom Copy-Button.
     e.stopPropagation();
-    // Datei in der aktuellen Pane oeffnen. 4T-0631 (Epic 3E-0102): der
+    // Datei in der aktuellen Pane oeffnen. 4T-000631 (Epic 3E-000102): der
     // Embed-Kopf-Link liegt im Dokument-Inhalt — Gruppe erben.
     openInPane(state.activePaneIndex, [result.path], { inheritGroup: true });
   });
@@ -749,18 +749,18 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
   span.appendChild(header);
   const body = document.createElement('div');
   body.className = 'wiki-embed-md-body markdown-body';
-  // R2-02 (4T-0174): Resolve-Basis fuer Links IM Embed ist die Embed-Datei,
+  // R2-02 (4T-000174): Resolve-Basis fuer Links IM Embed ist die Embed-Datei,
   // nicht der Pane-Tab. handleRenderedClick liest das Attribut per closest().
   body.dataset.embedBase = result.path || '';
-  // 4T-0282: Embeds zeigen nur den Inhalt — die Frontmatter-Zeile der
+  // 4T-000282: Embeds zeigen nur den Inhalt — die Frontmatter-Zeile der
   // eingebetteten Datei bleibt unterdrueckt (wie der fruehere Voll-Strip).
   body.innerHTML = api.renderMarkdown(result.content || '', result.path, {
     frontmatterBlock: false,
   });
-  // 4T-0071: Copy-Button-Wrapper VOR applyTranslations, damit die Button-Spans
+  // 4T-000071: Copy-Button-Wrapper VOR applyTranslations, damit die Button-Spans
   // mit data-i18n vom selben Lauf mit-uebersetzt werden.
   applyCodeCopyButtons(body);
-  // 4T-0061: Callout-Default-Titel aus data-i18n-Attributen aufloesen.
+  // 4T-000061: Callout-Default-Titel aus data-i18n-Attributen aufloesen.
   applyTranslations(body);
   span.appendChild(body);
   // Rekursive Verarbeitung: Mermaid, perspective-table-Sortierung und weitere
@@ -777,7 +777,7 @@ export async function renderOtherEmbed(span, basePath, embedPath) {
   } catch {
     resolved = null;
   }
-  // R2-18 (4T-0187): Existenz pruefen wie bei PDF-/Markdown-Embeds —
+  // R2-18 (4T-000187): Existenz pruefen wie bei PDF-/Markdown-Embeds —
   // vorher zeigte ein Other-Embed auf eine fehlende Datei einen
   // funktionslosen Link statt der Broken-Darstellung.
   if (resolved) {
@@ -802,10 +802,10 @@ export async function renderOtherEmbed(span, basePath, embedPath) {
     link.title = resolved;
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      // R2-16 (4T-0183): Doppel-Verarbeitung durch den delegierten
+      // R2-16 (4T-000183): Doppel-Verarbeitung durch den delegierten
       // Klick-Pfad unterbinden (s.o.).
       e.stopPropagation();
-      // 4T-0790 (Epic 3E-0125): Umgestellt von openExternal auf den Anlagen-
+      // 4T-000790 (Epic 3E-000125): Umgestellt von openExternal auf den Anlagen-
       // Kanal. Der bisherige Aufruf war WIRKUNGSLOS: openExternal laesst
       // ausschliesslich http/https durch und verwirft eine file://-URL still,
       // der Klick tat also nichts. Der neue Kanal oeffnet ueber shell.openPath
@@ -827,11 +827,11 @@ export function renderBrokenEmbed(span, embedPath, errorMsg) {
   span.textContent = errorMsg ? `${text} (${errorMsg})` : text;
 }
 
-// 4T-0303 (Epic 3E-0054): Barriere auf der gemeinsamen Mermaid-Queue.
+// 4T-000303 (Epic 3E-000054): Barriere auf der gemeinsamen Mermaid-Queue.
 // Loest auf, sobald alle zuvor eingereihten Mermaid-Laeufe (Erst-Render
 // aus applyRenderPipeline, Live-Widgets) abgeschlossen sind — der
 // PDF-Export wartet darauf, bevor er die Bloecke im Light-Theme neu
-// rendert (Nachfolger des lastApplyMermaidPromise-Syncs aus 4T-0024).
+// rendert (Nachfolger des lastApplyMermaidPromise-Syncs aus 4T-000024).
 export function waitForMermaidIdle() {
   return enqueueMermaidRun(async () => {});
 }
@@ -843,7 +843,7 @@ export async function rerenderAllMermaidBlocks() {
   try {
     mermaid = await loadMermaid();
   } catch (err) {
-    // W-17 (4T-0309): Fehler nicht kommentarlos verschlucken (Muster
+    // W-17 (4T-000309): Fehler nicht kommentarlos verschlucken (Muster
     // applyMermaidIfPresent). Diagramme bleiben beim Theme-Wechsel dann im
     // alten Theme; der Log macht die Ursache sichtbar.
     console.warn('rerenderAllMermaidBlocks: Mermaid-Laden fehlgeschlagen:', err);
@@ -877,7 +877,7 @@ export async function rerenderAllMermaidBlocks() {
     pending.push({ block, inner, source, cacheKey });
   }
   if (pending.length === 0) return;
-  // R1-03 (4T-0174): ebenfalls ueber die gemeinsame Queue serialisieren.
+  // R1-03 (4T-000174): ebenfalls ueber die gemeinsame Queue serialisieren.
   await enqueueMermaidRun(async () => {
     try {
       await mermaid.run({ nodes: pending.map((p) => p.inner), suppressErrors: true });
@@ -898,12 +898,12 @@ export async function rerenderAllMermaidBlocks() {
   });
 }
 
-// R2-13/R5-07 (4T-0179): EINE Render-Nachverarbeitung fuer alle drei
+// R2-13/R5-07 (4T-000179): EINE Render-Nachverarbeitung fuer alle drei
 // Voll-Render-Stellen (Tab-Render, Split-Preview, Properties-Refresh).
 // Vorher existierte die Hook-Kette dreifach und war bereits divergiert;
 // der Search-Refresh am Ende ist der dabei vereinheitlichte, gewollte
 // Fix (Treffer-Markierungen ueberleben jetzt jeden Voll-Render).
-// K-11 (4T-0186): Task-Checkboxen im Viewer aktivierbar machen. Das
+// K-11 (4T-000186): Task-Checkboxen im Viewer aktivierbar machen. Das
 // markdown-it-Plugin liefert sie disabled (Modul-globale Optionen, der
 // Portable-Export braucht disabled); der Klick-Toggle laeuft ueber
 // toggleTaskFromRendered in handleRenderedClick. Bewusst NUR im
@@ -916,7 +916,7 @@ export function enableTaskCheckboxes(container) {
   }
 }
 
-// 4T-0282 (Epic 3E-0050): Interaktion der Frontmatter-Zeile. Das Markup
+// 4T-000282 (Epic 3E-000050): Interaktion der Frontmatter-Zeile. Das Markup
 // kommt aus der Pipeline (renderFrontmatterBlockHtml in markdown.js); hier
 // werden pro Block einmalig (data-fm-bound) der Klick-Pin gebunden und die
 // lokalisierte Feldanzahl gesetzt. Aufklappen/Zuklappen laeuft rein ueber
@@ -953,36 +953,36 @@ export function applyRenderPipeline(container, basePath) {
   applyMermaidIfPresent(container);
   enhancePerspectiveTableSorting(container);
   enableTaskCheckboxes(container);
-  // 4T-0355: perspective-query-Listen asynchron befüllen (No-op ohne solchen
+  // 4T-000355: perspective-query-Listen asynchron befüllen (No-op ohne solchen
   // Container). basePath auch leer möglich — der Resolver zeigt dann den
   // 'unavailable'-Hinweis (pfadloser Tab).
   applyFrontmatterQueriesIfPresent(container, basePath);
-  // 4T-0435 / 4T-1064: Journal-Blöcke befüllen (No-op ohne solchen Container).
+  // 4T-000435 / 4T-001064: Journal-Blöcke befüllen (No-op ohne solchen Container).
   applyJournalNavIfPresent(container, basePath);
   applyJournalTimelineIfPresent(container, basePath);
-  // 4T-0412 (Epic 3E-0078): Skript-Blöcke ausführen bzw. als Quelltext
+  // 4T-000412 (Epic 3E-000078): Skript-Blöcke ausführen bzw. als Quelltext
   // zeigen (No-op ohne solchen Container).
   applyPerspectiveScriptsIfPresent(container, basePath);
-  // 4T-0418: Platzhalter-Texte der Perspective Datatable lokalisieren
+  // 4T-000418: Platzhalter-Texte der Perspective Datatable lokalisieren
   // (No-op ohne solchen Container).
   applyPerspectiveDatatablesIfPresent(container);
-  // 4T-0419: Grid-Editor-Listener binden (einmalig pro Container; die
+  // 4T-000419: Grid-Editor-Listener binden (einmalig pro Container; die
   // Editierbarkeit prüfen die Handler zur Laufzeit über den View-Modus).
   bindPerspectiveDatatableEditor(container);
-  // 4T-0420: Ansichts-Zustand (Sortierung/Filter) auf das frische DOM
+  // 4T-000420: Ansichts-Zustand (Sortierung/Filter) auf das frische DOM
   // wiederanwenden (No-op ohne Zustand).
   applyPerspectiveDatatableViewStates(container);
-  // 4T-0512 (Epic 3E-0092): Ereignis-Fence lokalisieren und Differenz-
+  // 4T-000512 (Epic 3E-000092): Ereignis-Fence lokalisieren und Differenz-
   // Spalte rechnen (No-op ohne solchen Container); Editor-Listener binden.
   applyPerspectiveEventsIfPresent(container);
   bindPerspectiveEventsEditor(container);
-  // 4T-0513: Ansichts-Zustand (Sortierung/Filter) samt Filter-Leiste auf
+  // 4T-000513: Ansichts-Zustand (Sortierung/Filter) samt Filter-Leiste auf
   // das frische DOM wiederanwenden (Default-Sortierung Zeitpunkt absteigend).
   applyPerspectiveEventsViewStates(container);
   if (basePath) applyWikiEmbedsIfPresent(container, basePath);
-  // 4T-0324 (Epic 3E-0058): Aussen-Link-Warnung (No-op ohne aktiven Bereich).
+  // 4T-000324 (Epic 3E-000058): Aussen-Link-Warnung (No-op ohne aktiven Bereich).
   if (basePath) markOutsideAreaLinks(container, basePath);
-  // 4T-0365 (Epic 3E-0067): Block-Metadaten-Indikator an Blöcken mit Daten
+  // 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator an Blöcken mit Daten
   // (asynchron; lädt die .mdd-blockData der Datei und markiert die Anker-Blöcke).
   if (basePath) applyBlockMetaIndicators(container, basePath);
   refreshSearchIfVisible();

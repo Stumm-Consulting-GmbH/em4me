@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-// 4T-0412 (Epic 3E-0078): Whitelist-Übersetzer und Ergebnis-Aufbau der
+// 4T-000412 (Epic 3E-000078): Whitelist-Übersetzer und Ergebnis-Aufbau der
 // Skript-Blöcke (perspective-script-view.js). Sicherheits-Nachweise auf
 // Unit-Ebene: nicht erlaubte Elemente und Attribute werden verworfen,
 // Links laufen ausschließlich über den data-fm-path-Klick-Pfad, der
 // Ausgabe-Deckel greift. Der t-Stub liest die echte de.json, damit
 // Platzhalter-Ersetzung und Key-Existenz gleich mitgetestet werden.
-// 4T-0413: md-Knoten (Pipeline-Rendering über den api-Stub, Entfernen
+// 4T-000413: md-Knoten (Pipeline-Rendering über den api-Stub, Entfernen
 // dynamischer Platzhalter) und Anker der Link-Knoten.
 import './api-stub.js';
 import { describe, it, expect } from 'vitest';
@@ -28,7 +28,7 @@ function render(output, basePath) {
   return host;
 }
 
-describe('perspective-script-view buildScriptOutputDom (4T-0412)', () => {
+describe('perspective-script-view buildScriptOutputDom (4T-000412)', () => {
   it('Text-Knoten werden als Text angehängt (kein HTML-Parsing)', () => {
     const host = render([{ kind: 'text', text: '<b>kein HTML</b> & Text' }]);
     expect(host.querySelector('b')).toBeNull();
@@ -187,7 +187,7 @@ describe('perspective-script-view buildScriptOutputDom (4T-0412)', () => {
     expect(note).toBeTruthy();
   });
 
-  it('link-Knoten mit Anker: data-fm-anchor für den Block-Sprung (4T-0413)', () => {
+  it('link-Knoten mit Anker: data-fm-anchor für den Block-Sprung (4T-000413)', () => {
     const host = render([
       { kind: 'link', path: '/raum/Alpha.md', label: 'Alpha#^abc', anchor: 'abc' },
     ]);
@@ -195,7 +195,7 @@ describe('perspective-script-view buildScriptOutputDom (4T-0412)', () => {
     expect(a.dataset.fmAnchor).toBe('^abc');
   });
 
-  it('md-Knoten: Pipeline-HTML wird eingebettet, dynamische Platzhalter entfernt (4T-0413)', () => {
+  it('md-Knoten: Pipeline-HTML wird eingebettet, dynamische Platzhalter entfernt (4T-000413)', () => {
     window.api.renderMarkdown = (text, basePath, opts) => {
       expect(text).toBe('**fett**');
       expect(basePath).toBe('/raum/Basis.md');
@@ -243,7 +243,7 @@ describe('perspective-script-view buildScriptOutputDom (4T-0412)', () => {
   });
 });
 
-describe('perspective-script-view renderScriptResult (4T-0412)', () => {
+describe('perspective-script-view renderScriptResult (4T-000412)', () => {
   it('result: Ausgabe wird über den Whitelist-Übersetzer aufgebaut', () => {
     const el = document.createElement('div');
     renderScriptResult(
@@ -281,7 +281,7 @@ describe('perspective-script-view renderScriptResult (4T-0412)', () => {
   });
 });
 
-describe('perspective-script-view renderSourceFallback (4T-0414)', () => {
+describe('perspective-script-view renderSourceFallback (4T-000414)', () => {
   it('Aus-Zustand: Hinweis-Banner plus Quelltext als Code-Block', () => {
     const el = document.createElement('div');
     renderSourceFallback(el, "pq.out('x');", tStub);

@@ -1,9 +1,9 @@
-// 4T-0402 (Epic 3E-0076): Unit-Tests für das Auswertungs-Modul der
+// 4T-000402 (Epic 3E-000076): Unit-Tests für das Auswertungs-Modul der
 // Perspective-Query-Sprache (perspective-query-eval.js): Typ-System,
 // implizite file.*-Felder, Funktions-Katalog, FROM-Quellen und Validierung.
 // Prozess-neutral mit synthetischem Kontext (kein Temp-FS); die Integration
 // mit dem echten Index liegt in perspective-query-index.test.js.
-// 4T-1073 (Datei-Größen-Budget): Die Feld-Auflösung außerhalb des Datei-Scopes
+// 4T-001073 (Datei-Größen-Budget): Die Feld-Auflösung außerhalb des Datei-Scopes
 // (BLOCKS und TASKS) liegt seit dem Schnitt in
 // perspective-query-eval-scopes.test.js.
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 // Über createRequire, damit die Plattform in DERSELBEN Modul-Instanz gesetzt
 // wird, die query-sources.js benutzt (Muster area-path.test.js).
 const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
-// 4T-0987 (Epic 3E-0196): Modul-Familie im Feature-Ordner src/shared/query/
+// 4T-000987 (Epic 3E-000196): Modul-Familie im Feature-Ordner src/shared/query/
 // geschnitten; die Namen kommen direkt aus dem jeweiligen Modul (Kern,
 // Funktions-Katalog, Format). Die geprüften Fälle bleiben unverändert.
 import { parseQuery } from '../../src/shared/query/perspective-query.js';
@@ -59,14 +59,14 @@ function ctxFor(over = {}) {
       ...(over.file || {}),
     },
     now: NOW,
-    // 4T-1073 (Epic 3E-0211): Wurzel des Suchraums; infolder braucht sie, um
+    // 4T-001073 (Epic 3E-000211): Wurzel des Suchraums; infolder braucht sie, um
     // absolute Link-Pfade gegen eine wurzel-relative Ordner-Angabe zu prüfen.
     // Ausdrücklich auf null setzbar, um den kontextlosen Ort zu prüfen.
     root: over.root === undefined ? 'C:/Wurzel' : over.root,
     resolveLinkTarget: over.resolveLinkTarget,
-    // 4T-1070 (Epic 3E-0211): Kontext der Träger-Datei (Selbstbezug).
+    // 4T-001070 (Epic 3E-000211): Kontext der Träger-Datei (Selbstbezug).
     self: over.self,
-    // 4T-1072 (Epic 3E-0211): Sprache der Formatierer.
+    // 4T-001072 (Epic 3E-000211): Sprache der Formatierer.
     locale: over.locale,
   };
 }
@@ -75,7 +75,7 @@ function matchWith(query, over) {
   return matchesQuery(parseOk(query), ctxFor(over));
 }
 
-// 4T-1071 (Epic 3E-0211): einzelner Wert-Ausdruck (Ausdrucks-Modus des Parsers).
+// 4T-001071 (Epic 3E-000211): einzelner Wert-Ausdruck (Ausdrucks-Modus des Parsers).
 function exprOf(source) {
   const r = parseQuery(source, { expression: true });
   if (!r.ok) throw new Error(`unerwarteter Parse-Fehler: ${r.error.code}`);
@@ -156,7 +156,7 @@ describe('perspective-query-eval — implizite file.*-Felder', () => {
     expect(matchesQuery(parseOk('WHERE file.name = "alpha"'), { props: {}, now: NOW })).toBe(false);
   });
 
-  // 4T-1071 (Epic 3E-0211): file.day — Datum aus dem ISO-Präfix des Namens.
+  // 4T-001071 (Epic 3E-000211): file.day — Datum aus dem ISO-Präfix des Namens.
   it('file.day liest das ISO-Präfix des Namens als Datums-Wert', () => {
     const tag = (name) => evaluateExpression(exprOf('file.day'), ctxFor({ file: { name } }));
     expect(tag('2026-03-16')).toEqual({ kind: 'date', ms: new Date(2026, 2, 16).getTime() });
@@ -223,7 +223,7 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(matchWith('sum(titel) = 0', { props })).toBe(false); // nicht numerisch -> null
   });
 
-  // 4T-1072 (Epic 3E-0211): Zahlen- und Währungs-Format, Sprach-Bindung.
+  // 4T-001072 (Epic 3E-000211): Zahlen- und Währungs-Format, Sprach-Bindung.
   it('currencyformat: lokalisierter Betrag, EUR als Vorgabe', () => {
     const wert = (s, locale) => evaluateExpression(exprOf(s), ctxFor({ locale }));
     // Die deutsche Form trennt Betrag und Zeichen mit einem geschützten
@@ -270,7 +270,7 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(wert('dateformat(date(2026-08-17), "yyyy-MM-dd")', 'en')).toBe('2026-08-17');
   });
 
-  // 4T-1071 (Epic 3E-0211): Tages-Zahl einer Dauer.
+  // 4T-001071 (Epic 3E-000211): Tages-Zahl einer Dauer.
   it('days: ganze Tage, gerundet über die Zeitumstellung hinweg', () => {
     const tage = (s) => evaluateExpression(exprOf(s), ctxFor());
     expect(tage('days(dur(48 days))')).toBe(48);
@@ -293,7 +293,7 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(tage('days(fehlt)', { props: {} })).toBe(null);
   });
 
-  // 4T-1071 (Epic 3E-0211): Verkettungs-Rückfall (Konzept-Entscheid E5).
+  // 4T-001071 (Epic 3E-000211): Verkettungs-Rückfall (Konzept-Entscheid E5).
   it('Verkettung mit Nicht-Text-Werten nutzt die Anzeige-Form', () => {
     const wert = (s, over) => evaluateExpression(exprOf(s), ctxFor(over));
     expect(wert('file.day + " x"', { file: { name: '2026-03-01' } })).toBe('2026-03-01 x');
@@ -324,7 +324,7 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(wert('file.link + file.link', { file: { absPath: 'C:/W/A.md' } })).toBe(null);
   });
 
-  // 4T-1073 (Epic 3E-0211): Link-Listen-Filter über Ordner (Entscheid E8).
+  // 4T-001073 (Epic 3E-000211): Link-Listen-Filter über Ordner (Entscheid E8).
   // Die inlinks des Kontexts liegen absolut unter C:/Wurzel, die Ordner-Angabe
   // ist wurzel-relativ — genau der Pfad-Bruch, den die Funktion überbrückt.
   const INLINKS = [
@@ -333,7 +333,7 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     { path: 'C:/Wurzel/Journal/2026-03-01.md', name: '2026-03-01' },
   ];
 
-  // 4T-1276 (Epic 3E-0232): Der Fall prüft ausdrücklich auch die
+  // 4T-001276 (Epic 3E-000232): Der Fall prüft ausdrücklich auch die
   // Schreibweisen-Toleranz der Ordner-Angabe; die ist seit der Umstellung eine
   // Frage an das Dateisystem und wird deshalb mit gesetzter Plattform geprüft.
   it('infolder: Treffer im Ordner und darunter, gegen absolute Link-Pfade', () => {
@@ -413,7 +413,7 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
   });
 });
 
-// 4T-1276 (Epic 3E-0232, Befund B1): Die Ordner- und Pfad-Vergleiche der
+// 4T-001276 (Epic 3E-000232, Befund B1): Die Ordner- und Pfad-Vergleiche der
 // Quellen-Ebene fragen seither die zentrale Plattform-Auskunft. Die Fälle
 // behalten ihre Aussage und setzen dafür die Plattform ausdrücklich; das
 // Linux-Verhalten prüft das Gegenstück am Blockende. Die TAG-Quelle ist davon
@@ -469,7 +469,7 @@ describe('perspective-query-eval — FROM-Quellen', () => {
     expect(matchWith('FROM #fehlt WHERE file.size > 1000')).toBe(false);
   });
 
-  // 4T-1070 (Epic 3E-0211): Selbstbezugs-Quelle. Der Kontext der Träger-Datei
+  // 4T-001070 (Epic 3E-000211): Selbstbezugs-Quelle. Der Kontext der Träger-Datei
   // steht in ctx.self; die Quelle braucht keinen Ziel-Resolver, weil ihr Ziel
   // der bekannte Pfad der Träger-Datei ist.
   it('Selbstbezugs-Quelle über den Kontext der Träger-Datei', () => {
@@ -490,7 +490,7 @@ describe('perspective-query-eval — FROM-Quellen', () => {
   });
 });
 
-// --- 4T-1070 (Epic 3E-0211): Selbstbezug als Wert-Zugriff --------------------
+// --- 4T-001070 (Epic 3E-000211): Selbstbezug als Wert-Zugriff --------------------
 
 describe('perspective-query-eval — Selbstbezug this.', () => {
   const selfCtx = ctxFor({
@@ -576,7 +576,7 @@ describe('perspective-query-eval — Validierung und Link-Bedarf', () => {
     expect(queryUsesLinks(parseOk('FROM [[Datei]]'))).toBe(true);
     expect(queryUsesLinks(parseOk('FROM #tag WHERE a = "1"'))).toBe(false);
     expect(queryUsesLinks(parseOk('LIST SORT file.mtime DESC'))).toBe(false);
-    // 4T-1070 (Epic 3E-0211): Selbstbezugs-Quelle und Selbstbezug auf die
+    // 4T-001070 (Epic 3E-000211): Selbstbezugs-Quelle und Selbstbezug auf die
     // Link-Listen brauchen den Graphen ebenso; ohne diese Erkennung bliebe er
     // ungebaut und beide lieferten still leer.
     expect(queryUsesLinks(parseOk('FROM [[]]'))).toBe(true);
@@ -586,7 +586,7 @@ describe('perspective-query-eval — Validierung und Link-Bedarf', () => {
   });
 });
 
-// --- 4T-0403 (Epic 3E-0076): Ergebnis-Pipeline (SORT/LIMIT) ------------------
+// --- 4T-000403 (Epic 3E-000076): Ergebnis-Pipeline (SORT/LIMIT) ------------------
 
 describe('perspective-query-eval — Ergebnis-Pipeline', () => {
   // Kontext-Zeile mit Kurzform: Name, Properties, optionale Datei-Felder.
@@ -651,7 +651,7 @@ describe('perspective-query-eval — Ergebnis-Pipeline', () => {
   });
 });
 
-// --- 4T-0404 (Epic 3E-0076): Anzeige-Segmente und Ausdrucks-Quelltext --------
+// --- 4T-000404 (Epic 3E-000076): Anzeige-Segmente und Ausdrucks-Quelltext --------
 
 describe('perspective-query-eval — Segmente und Quelltext', () => {
   it('formatValueSegments: Text, Links und kommagetrennte Listen', () => {
@@ -670,7 +670,7 @@ describe('perspective-query-eval — Segmente und Quelltext', () => {
     ]);
   });
 
-  // 4T-1074 (Epic 3E-0211): Hervorhebung als Segment-Liste (Entscheid E10).
+  // 4T-001074 (Epic 3E-000211): Hervorhebung als Segment-Liste (Entscheid E10).
   it('bold: jedes Segment trägt die Marke, Links bleiben Links', () => {
     const segs = (s, over) => formatValueSegments(evaluateExpression(exprOf(s), ctxFor(over)));
     expect(segs('bold("48 Tage")')).toEqual([{ text: '48 Tage', bold: true }]);
@@ -697,7 +697,7 @@ describe('perspective-query-eval — Segmente und Quelltext', () => {
     ).toEqual([{ text: '2026-03-01 — ' }, { text: '48 Tage', bold: true }]);
     // Auch andersherum: markiert zuerst, unmarkiert hinten.
     expect(segs('bold("A") + "B"')).toEqual([{ text: 'A', bold: true }, { text: 'B' }]);
-    // Ein fehlender Operand macht die ganze Verkettung leer (wie in 4T-1071).
+    // Ein fehlender Operand macht die ganze Verkettung leer (wie in 4T-001071).
     expect(evaluateExpression(exprOf('bold("A") + fehlt'), ctxFor({ props: {} }))).toBe(null);
   });
 
@@ -738,9 +738,9 @@ describe('perspective-query-eval — Segmente und Quelltext', () => {
   });
 });
 
-// --- 4T-0502 (Epic 3E-0096): relative Datums-Woerter der date(...)-Literale ----
+// --- 4T-000502 (Epic 3E-000096): relative Datums-Woerter der date(...)-Literale ----
 
-describe('perspective-query-eval — relative Datums-Woerter (4T-0502)', () => {
+describe('perspective-query-eval — relative Datums-Woerter (4T-000502)', () => {
   // date(<wort>) gegen den injizierten Bezugszeitpunkt NOW (Mi 2026-07-08 12:00).
   const dv = (word) =>
     evaluateExpression(parseOk(`LIST date(${word})`).fields[0].expr, { now: NOW });

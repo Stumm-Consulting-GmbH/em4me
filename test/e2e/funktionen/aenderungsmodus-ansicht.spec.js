@@ -1,8 +1,8 @@
-// 4T-1341 (Epic 3E-0238): Ansicht beim Wechsel in den Bearbeiten-Modus.
+// 4T-001341 (Epic 3E-000238): Ansicht beim Wechsel in den Bearbeiten-Modus.
 //
-// Bis 4T-1341 führte der Stift aus der Lese-Ansicht fest in die geteilte
+// Bis 4T-001341 führte der Stift aus der Lese-Ansicht fest in die geteilte
 // Ansicht. Gemessen wird hier die **Wirkung** des Stifts, nicht die Funktion
-// dahinter — die Lehre aus 4T-1339, wo eine grüne Unit-Prüfung eine
+// dahinter — die Lehre aus 4T-001339, wo eine grüne Unit-Prüfung eine
 // wirkungslose Regel deckte.
 //
 // describe-Titel tragen die Matrix-IDs aus test/abdeckungs-matrix.json (F-018).

@@ -1,4 +1,4 @@
-// B-02 (4T-0307, Epic 3E-0048): Containment- und Whitelist-Prüfung für den
+// B-02 (4T-000307, Epic 3E-000048): Containment- und Whitelist-Prüfung für den
 // IPC-Handler embed:read. Fremder Markdown-Inhalt gilt als nicht
 // vertrauenswürdig (Entwicklungsrichtlinien §6); ohne diese Prüfung konnte
 // ein `![[…]]`-Embed per `../`-Kette oder absolutem Pfad beliebige lokale

@@ -2,7 +2,7 @@
 // Bereichs-Vorgabe, Revisionsliste und Rekonstruktion, dazu die beiden
 // weiteren Sektionen der .mdd-Begleitdatei (Notiz und Block-Metadaten).
 //
-// Auszug aus main.js, 4T-0999 (Epic 3E-0196). Kanal-Gruppe: history:*,
+// Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: history:*,
 // note:*, blockData:*.
 //
 // Eigener Zustand: keiner; die offenen Pakete und die Suspend-Markierung
@@ -16,7 +16,7 @@ const { countChanges } = require('../../shared/line-diff');
 const { sanitizeBlockValues } = require('../documents/block-data');
 const selbstSchreib = require('../documents/self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -54,7 +54,7 @@ function registerHistoryIpc(handle, deps) {
     broadcast,
   } = deps;
 
-  // --- 4T-0332 (Epic 3E-0060): Historisierungs-Schaltung ---------------------
+  // --- 4T-000332 (Epic 3E-000060): Historisierungs-Schaltung ---------------------
 
   // Zustand fuer die Statusbar: wirksame Einstellung samt Herkunft, dazu ob
   // eine .mdd existiert (aktiv/pausiert/inaktiv) und ob die Protokollierung
@@ -120,7 +120,7 @@ function registerHistoryIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0333 (Epic 3E-0060): Historien-Ansicht ------------------------------
+  // --- 4T-000333 (Epic 3E-000060): Historien-Ansicht ------------------------------
 
   // Revisionsliste eines Dokuments: Ausgangsstand (erster Anker) plus alle
   // Pakete mit Zeitstempeln, Ausloeser und Umfangs-Angabe. Ohne .mdd eine
@@ -174,7 +174,7 @@ function registerHistoryIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0358 (Epic 3E-0066): Dokument-Notiz ---------------------------------
+  // --- 4T-000358 (Epic 3E-000066): Dokument-Notiz ---------------------------------
 
   // Notiz eines Dokuments aus der `notes`-Sektion der .mdd lesen. Ohne .mdd
   // eine leere Notiz (null). Eine defekte .mdd meldet den Fehler, setzt die
@@ -202,7 +202,7 @@ function registerHistoryIpc(handle, deps) {
   // überschrieben (Fehler-Prinzip der Historie). Ein transienter Schreibfehler
   // meldet nur den Fehler, ohne dauerhaftes Aussetzen (explizite Nutzer-Aktion,
   // erneut versuchbar). Nach dem Schreiben Broadcast 'note:changed' an alle
-  // Fenster, damit Panels derselben Datei nachziehen (Datengrundlage 4T-0359).
+  // Fenster, damit Panels derselben Datei nachziehen (Datengrundlage 4T-000359).
   handle('note:write', async (event, filePath, text) => {
     if (typeof filePath !== 'string' || !filePath) {
       return { ok: false, error: 'invalid path' };
@@ -241,7 +241,7 @@ function registerHistoryIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0363 (Epic 3E-0067): Block-Metadaten lesen/schreiben/umbenennen ------
+  // --- 4T-000363 (Epic 3E-000067): Block-Metadaten lesen/schreiben/umbenennen ------
   // blockData:read liefert die rohe Anker->{values,updated}-Map (idempotent, ohne
   // Aussetzen); write setzt die values eines Ankers (leeres Objekt entfernt den
   // Eintrag); rename verschiebt einen Anker-Schluessel (Umbenennen/Zuordnen). Die

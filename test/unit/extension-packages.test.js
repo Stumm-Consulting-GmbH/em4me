@@ -1,4 +1,4 @@
-// 4T-0298 (Epic 3E-0053): Verzeichnis-Scan der externen Erweiterungen —
+// 4T-000298 (Epic 3E-000053): Verzeichnis-Scan der externen Erweiterungen —
 // Erkennung, Manifest-Validierung, Fehler-Einträge, ID-Whitelist für
 // Quelltext-Zugriff und Entfernen. Läuft gegen ein Temp-Wurzelverzeichnis
 // mit Kopien der Fixtures plus zur Laufzeit erzeugten Defekt-Fällen
@@ -16,7 +16,7 @@ import {
 } from '../../src/main/extensions/extension-packages.js';
 
 const FIXTURES = path.join(__dirname, '..', 'fixtures', 'extensions');
-// 4T-0826 (Epic 3E-0103): Das Referenz-Paket liegt nicht als Attrappe im
+// 4T-000826 (Epic 3E-000103): Das Referenz-Paket liegt nicht als Attrappe im
 // Test-Ordner, sondern ist das real ausgelieferte Beispiel. So faellt ein
 // Bruch der API am veroeffentlichten Paket auf und nicht nur an einer
 // Nachbildung, die niemand benutzt. Die Fehlerfall-Pakete (defekt,
@@ -25,7 +25,7 @@ const BEISPIEL_PAKET = path.join(__dirname, '..', '..', 'addon_examples', 'notiz
 
 let root;
 
-// 4T-0703 (Epic 3E-0101): Nicht fs.cpSync(..., { recursive: true }) verwenden —
+// 4T-000703 (Epic 3E-000101): Nicht fs.cpSync(..., { recursive: true }) verwenden —
 // Node v22.18.0 stürzt unter Windows bei einem Nicht-ASCII-QUELLpfad hart und
 // unfangbar im Fork-Worker ab ("Worker exited unexpectedly"). Der öffentliche
 // Klon liegt im Umlaut-Verzeichnis 0012_EM4me_Veröffentlichung, wodurch FIXTURES
@@ -57,7 +57,7 @@ afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-describe('extension-packages: Scan (4T-0298)', () => {
+describe('extension-packages: Scan (4T-000298)', () => {
   it('legt das Wurzel-Verzeichnis bei Bedarf an und liefert leer', async () => {
     const sub = path.join(root, 'noch-nicht-da');
     expect(await scanExtensionsRoot(sub)).toEqual([]);
@@ -109,7 +109,7 @@ describe('extension-packages: Scan (4T-0298)', () => {
   });
 });
 
-describe('extension-packages: ID-Whitelist und Entfernen (4T-0298)', () => {
+describe('extension-packages: ID-Whitelist und Entfernen (4T-000298)', () => {
   it('Quelltext-Zugriff nur für gescannte IDs mit markdownPlugin', async () => {
     copyFixture('notiz-merker');
     copyFixture('defekt');

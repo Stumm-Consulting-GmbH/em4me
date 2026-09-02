@@ -1,8 +1,8 @@
-// 4T-1357 (Epic 3E-0238): Auswahl-Regel der Schlagwort-Vorschlagsliste.
+// 4T-001357 (Epic 3E-000238): Auswahl-Regel der Schlagwort-Vorschlagsliste.
 //
 // Sie liegt prozessneutral und ist deshalb ohne Editor prüfbar. Dass ihre
 // Reihenfolge die Anzeige auch erreicht, misst die E2E-Ebene — die Lehre aus
-// 4T-1339, wo genau diese Trennung den Fehler verdeckt hatte.
+// 4T-001339, wo genau diese Trennung den Fehler verdeckt hatte.
 import { describe, it, expect } from 'vitest';
 import {
   SCHLAGWORT_RENDER_LIMIT,
@@ -22,7 +22,7 @@ const TAGS = [
 
 const namen = (liste) => liste.map((e) => e.tag);
 
-describe('Auswahl-Regel der Schlagwort-Vorschlaege (4T-1357)', () => {
+describe('Auswahl-Regel der Schlagwort-Vorschlaege (4T-001357)', () => {
   it('ohne Eingabe fuehrt die Haeufigkeit, das haeufigste zuerst', () => {
     expect(namen(waehleSchlagworte(TAGS, ''))).toEqual(['delta', 'gamma', 'beta', 'alpha']);
   });

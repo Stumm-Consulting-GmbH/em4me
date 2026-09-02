@@ -2,7 +2,7 @@
 // Bereichs-Wurzel mit Profil-Ordner, das Binden an das Startfenster, das
 // Öffnen des Panels und das Aufräumen.
 //
-// 4T-1175 (Epic 3E-0220): Auszug aus eigenschafts-profile.spec.js, erzwungen
+// 4T-001175 (Epic 3E-000220): Auszug aus eigenschafts-profile.spec.js, erzwungen
 // vom Datei-Budget der Test-Dateien, als die Fälle des Feld-Formulars
 // dazukamen. Der Schnitt folgt der Fachlichkeit: Was hier steht, ist
 // AUFBAU und kein Prüffall — dieselbe Bereichs-Wurzel trägt die Suite der
@@ -66,7 +66,7 @@ function makeArea() {
   return areaRoot;
 }
 
-// 4T-1185 (Epic 3E-0221, E1): Bereichs-Wurzel mit ABGELEITETEN Feldern.
+// 4T-001185 (Epic 3E-000221, E1): Bereichs-Wurzel mit ABGELEITETEN Feldern.
 //
 // Eigene Wurzel und nicht `makeArea` erweitert: Die vorhandenen Prüffälle
 // zählen die Felder ihrer Panels und greifen mit `.last()` auf die zuletzt
@@ -78,11 +78,11 @@ function makeArea() {
 // Das Profil trägt beide abgeleiteten Typen und einen Kreis-Fall, damit sich
 // Wert, Hinweis und der Negativ-Nachweis an einer Wurzel zeigen lassen.
 //
-// 4T-1187: dazu die beiden Objekt-Typen. Sie bekommen keine eigene Wurzel,
+// 4T-001187: dazu die beiden Objekt-Typen. Sie bekommen keine eigene Wurzel,
 // weil die Stufe 4 sie gemeinsam einführt und ein Prüffall für die eine Seite
 // die andere ohnehin mit im Panel stehen hat; getrennte Wurzeln wären zwei
 // Wahrheiten über denselben Aufbau. Der Name der Funktion bleibt, damit die
-// Fälle aus 4T-1185 nicht ohne Grund umgeschrieben werden.
+// Fälle aus 4T-001185 nicht ohne Grund umgeschrieben werden.
 function makeAreaAbgeleitet() {
   const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-abgeleitet-area-'));
   fs.mkdirSync(path.join(areaRoot, 'Profile'));

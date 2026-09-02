@@ -1,4 +1,4 @@
-// 4T-0604 (Epic 3E-0113): Reiner Kern der Erstellungs- und Änderungszeitpunkt-
+// 4T-000604 (Epic 3E-000113): Reiner Kern der Erstellungs- und Änderungszeitpunkt-
 // Automatik. Setzt die konfigurierbaren Frontmatter-Felder beim Speichern,
 // ohne Electron und ohne DOM, damit die Regeln unit-testbar sind. Die
 // Dateisystem-Zeitstempel besorgt der Speicher-Hook im Renderer (views.js);

@@ -3,7 +3,7 @@
 // Bereichs-Lesezeichen. Alle vier lesen und schreiben ihre Sektion der
 // Bereichsdatei nach demselben Muster.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: journals:*,
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: journals:*,
 // calendar:getConfig/setAreaConfig, sidebarVariants:*, bookmarks:*.
 //
 // Eigener Zustand: keiner; die Bereichs-Leser kommen als Deps, die
@@ -22,7 +22,7 @@ const { normalizeSidebarVariantList } = require('../../shared/sidebar-variants')
 const { normalizeBookmarksTree, collectBookmarkFilePaths } = require('../../shared/bookmark-tree');
 const selbstSchreib = require('../documents/self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -52,7 +52,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     readAreaBookmarksConfig,
   } = deps;
 
-  // --- 4T-0431 (Epic 3E-0081): Journal-Konfiguration (journals-Sektion) -------
+  // --- 4T-000431 (Epic 3E-000081): Journal-Konfiguration (journals-Sektion) -------
 
   // Konfigurations-Stand des Bereichs, normalisiert. Journale existieren nur
   // pro Bereich (Architekturentscheidung 2 des Epics): ohne Bereich liefert
@@ -109,7 +109,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     }
   });
 
-  // 4T-0433 (Epic 3E-0081): Existenz eines aufgeloesten Eintrags-Pfads
+  // 4T-000433 (Epic 3E-000081): Existenz eines aufgeloesten Eintrags-Pfads
   // (bereichsrelativ). Die Aufloesung selbst macht der Renderer ueber den
   // Perioden-Kern; hier nur Pfad-Sicherung (harte Bereichs-Grenze) und stat.
   handle('journals:statEntry', async (event, params) => {
@@ -127,7 +127,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     }
   });
 
-  // 4T-0433: Journal-Eintrag anlegen — Ordner-Kette erzeugen und die Datei
+  // 4T-000433: Journal-Eintrag anlegen — Ordner-Kette erzeugen und die Datei
   // mit dem fertig gefuellten Inhalt schreiben (Vorlagen-Dialoge laufen im
   // Renderer VOR der Anlage; Abbruch dort erzeugt keine Datei). 'wx' statt
   // Ueberschreiben: existiert die Datei inzwischen (Race), meldet existed
@@ -152,12 +152,12 @@ function registerAreaFeaturesIpc(handle, deps) {
     }
   });
 
-  // 4T-0434 (Epic 3E-0081): Existenz-Batch fuer die Kalender-Punkte — ein
+  // 4T-000434 (Epic 3E-000081): Existenz-Batch fuer die Kalender-Punkte — ein
   // Aufruf pro sichtbarem Monat statt einem stat-IPC pro Tag (begrenzter
   // Scan, Epic-Risiko Performance). Pfad-Sicherung pro Eintrag; unsichere
   // Pfade entfallen still. Kappung als Schutz gegen entartete Aufrufer.
   //
-  // 4T-1065 (Epic 3E-0212): Kappung von 500 auf 1000 angehoben. Der
+  // 4T-001065 (Epic 3E-000212): Kappung von 500 auf 1000 angehoben. Der
   // Jahres-Modus des Journal-Timeline-Blocks fragt bei einem Tages-Journal
   // 371 Pfade in einem Aufruf ab (am Kalenderjahr 2026 ausgezaehlt: zwoelf
   // Gitter mit 441 Zellen, davon 371 verschiedene Tage); mit 500 lag der
@@ -185,7 +185,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     return { ok: true, exists };
   });
 
-  // --- 4T-0543 (Epic 3E-0097): Kalender-Systeme (calendarSystems-Sektion) -----
+  // --- 4T-000543 (Epic 3E-000097): Kalender-Systeme (calendarSystems-Sektion) -----
 
   // Konfigurations-Stand des Bereichs, normalisiert. Kalender-Systeme gelten
   // nur pro Bereich (Architekturentscheidung 4 des Epics, Journal-Muster):
@@ -227,7 +227,7 @@ function registerAreaFeaturesIpc(handle, deps) {
         container = parsed.container;
       }
       const normalized = normalizeCalendarConfig(config);
-      // 4T-0747: Abgeleitete Zeitrechnungen bleiben in ihrer kurzen Form
+      // 4T-000747: Abgeleitete Zeitrechnungen bleiben in ihrer kurzen Form
       // erhalten; die aufgeloeste Abschrift wuerde die Verbindung zum Bezug
       // kappen. Eigenstaendige Kalender werden weiter normalisiert abgelegt.
       const persistable = configForPersist(config, normalized);
@@ -246,7 +246,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0625 (Epic 3E-0119): Bereichs-Varianten (sidebarLayouts-Sektion) ---
+  // --- 4T-000625 (Epic 3E-000119): Bereichs-Varianten (sidebarLayouts-Sektion) ---
 
   // Varianten-Liste des Bereichs, normalisiert. Ohne Bereich liefert der
   // Handler hasArea false und eine leere Liste; die Bereichs-Gruppe der
@@ -303,7 +303,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0611 (Epic 3E-0115): Bereichs-Lesezeichen (bookmarks-Sektion) ------
+  // --- 4T-000611 (Epic 3E-000115): Bereichs-Lesezeichen (bookmarks-Sektion) ------
 
   // Lesezeichen-Baum des Bereichs, sanitisiert. Ohne Bereich liefert der
   // Handler hasArea false und eine leere Liste; das Panel zeigt dann nur die

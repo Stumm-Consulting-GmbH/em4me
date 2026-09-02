@@ -1,4 +1,4 @@
-// 4T-0348 (Epic 3E-0062): Bereichs-Index-Persistenz (Area_Cache.mdda).
+// 4T-000348 (Epic 3E-000062): Bereichs-Index-Persistenz (Area_Cache.mdda).
 //
 // Zwei Ebenen: (1) reine Container-Funktionen aus mdd-store (Roundtrip, defekte
 // bzw. versions-fremde Datei); (2) der Warmstart-Abgleich in backlinks.js ueber
@@ -37,7 +37,7 @@ describe('mdd-store — Area_Cache-Container', () => {
       mtimeMs: 123,
       size: 45,
       hash: 'abc',
-      // 4T-0354: Properties-Map im parsed-Objekt muss den Roundtrip überstehen.
+      // 4T-000354: Properties-Map im parsed-Objekt muss den Roundtrip überstehen.
       parsed: {
         hits: [],
         aliases: ['X'],
@@ -57,7 +57,7 @@ describe('mdd-store — Area_Cache-Container', () => {
 
   it('defektes JSON, versions-fremde und strukturell defekte Container werden abgelehnt', () => {
     expect(parseCacheContainer('{ kaputt').ok).toBe(false);
-    // 4T-0354: die Vorgänger-Version 1 ist nach dem Bump auf 2 versions-fremd.
+    // 4T-000354: die Vorgänger-Version 1 ist nach dem Bump auf 2 versions-fremd.
     expect(
       parseCacheContainer(JSON.stringify({ schemaVersion: 1, linkIndex: { files: {} } })).ok,
     ).toBe(false);
@@ -72,7 +72,7 @@ describe('mdd-store — Area_Cache-Container', () => {
     ).toBe(false);
   });
 
-  // 4T-0354 (Epic 3E-0065): der Cache trägt eine eigene schemaVersion, damit ihr
+  // 4T-000354 (Epic 3E-000065): der Cache trägt eine eigene schemaVersion, damit ihr
   // Bump die History-.mdd- und Settings-Container (MDD_SCHEMA_VERSION) nicht
   // invalidiert.
   it('Cache-schemaVersion ist von der History-/Settings-Version entkoppelt', () => {
@@ -155,7 +155,7 @@ afterEach(() => {
   tmpDirs = [];
 });
 
-describe('backlinks.js — Warmstart aus Area_Cache (4T-0348)', () => {
+describe('backlinks.js — Warmstart aus Area_Cache (4T-000348)', () => {
   it('uebernimmt bei passendem mtime+size das Cache-Parse-Ergebnis (kein Neu-Parsen)', async () => {
     const root = makeRoot();
     // Auf Disk verweist die Quelle auf [[Disk]]; der Cache behauptet [[Cache]].

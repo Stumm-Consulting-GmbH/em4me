@@ -1,11 +1,11 @@
-// 4T-1045 (Epic 3E-0151): Unit-Tests des Mindmap-Kerns — Baum-Abbildung
+// 4T-001045 (Epic 3E-000151): Unit-Tests des Mindmap-Kerns — Baum-Abbildung
 // (Überschriften, Listen, Fließtext als Notiz), Wurzel-Regel, Quellzeilen,
 // Ränder (leer, strukturlos, übersprungene Ebene), Obergrenze und die
 // Anordnung (Überlappungsfreiheit, Determinismus).
 //
 // Gemessen wird gegen die **echte** Render-Pipeline (src/shared/markdown/
 // markdown.js), nicht gegen eine eigens gebaute markdown-it-Instanz: Die
-// Story 4S-0802 verlangt den Token-Strom der bestehenden Pipeline, und ein
+// Story 4S-000802 verlangt den Token-Strom der bestehenden Pipeline, und ein
 // zweiter Parser im Test prüfte etwas anderes als das, was im Betrieb läuft.
 import { describe, it, expect } from 'vitest';
 import {
@@ -40,7 +40,7 @@ function alleKnoten(wurzel) {
   return out;
 }
 
-describe('Mindmap-Kern: Baum-Abbildung (4T-1045)', () => {
+describe('Mindmap-Kern: Baum-Abbildung (4T-001045)', () => {
   it('AK1: Überschriften bilden die oberen Baum-Ebenen', () => {
     const { root } = baum('# Titel\n\n## Eins\n\n### Tiefer\n\n## Zwei\n');
     expect(root.titel).toBe('Titel');
@@ -142,7 +142,7 @@ describe('Mindmap-Kern: Baum-Abbildung (4T-1045)', () => {
   });
 });
 
-describe('Mindmap-Kern: Ränder (4T-1045)', () => {
+describe('Mindmap-Kern: Ränder (4T-001045)', () => {
   it('AK8: ein leeres Dokument ergibt einen Baum aus der Wurzel allein', () => {
     const { root, knotenZahl } = baum('');
     expect(root.titel).toBe('Datei');
@@ -178,7 +178,7 @@ describe('Mindmap-Kern: Ränder (4T-1045)', () => {
   });
 });
 
-describe('Mindmap-Kern: Anordnung (4T-1045)', () => {
+describe('Mindmap-Kern: Anordnung (4T-001045)', () => {
   const quelle = [
     '# Wurzel',
     '',
@@ -229,7 +229,7 @@ describe('Mindmap-Kern: Anordnung (4T-1045)', () => {
   });
 
   it('ein sehr breiter Knoten ragt nicht in die Spalte seiner Kinder', () => {
-    // Regressionsfall aus 4T-1045: Ein festes Spalten-Raster ließ Knoten,
+    // Regressionsfall aus 4T-001045: Ein festes Spalten-Raster ließ Knoten,
     // die breiter als das Raster sind, in die nächste Spalte laufen. Mit
     // kurzen Titeln blieb das unsichtbar, weil die Schätzbreite klein ist.
     const lang =
@@ -285,7 +285,7 @@ describe('Mindmap-Kern: Anordnung (4T-1045)', () => {
   });
 });
 
-describe('Mindmap-Kern: Wurzel-Lagen (4T-1049)', () => {
+describe('Mindmap-Kern: Wurzel-Lagen (4T-001049)', () => {
   const quelle = [
     '# Wurzel',
     '',
@@ -484,7 +484,7 @@ describe('Mindmap-Kern: Wurzel-Lagen (4T-1049)', () => {
   });
 });
 
-describe('Mindmap-Kern: Kopfbereich und Zeilenversatz (4T-1045)', () => {
+describe('Mindmap-Kern: Kopfbereich und Zeilenversatz (4T-001045)', () => {
   // Geprüft wird die Kern-Funktion selbst, die auch die Preload-Brücke ruft:
   // Kopfbereich abtrennen, Zeilen zählen, als Versatz verrechnen. Die Brücke
   // reicht nur noch durch und ist damit ohne eigene Logik; ihr Nachweis am
@@ -515,7 +515,7 @@ describe('Mindmap-Kern: Kopfbereich und Zeilenversatz (4T-1045)', () => {
   });
 });
 
-describe('Mindmap-Kern: Token-Eingang (4T-1045)', () => {
+describe('Mindmap-Kern: Token-Eingang (4T-001045)', () => {
   it('buildMindmapTree verträgt einen fehlenden Token-Strom', () => {
     const { root, knotenZahl } = buildMindmapTree(null, { wurzelTitel: 'Leer' });
     expect(root.titel).toBe('Leer');

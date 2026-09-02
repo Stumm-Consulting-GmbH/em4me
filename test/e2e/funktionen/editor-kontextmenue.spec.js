@@ -1,8 +1,8 @@
-// 4T-0377 (Epic 3E-0071): E2E-Suite für das Editor-Kontextmenü.
+// 4T-000377 (Epic 3E-000071): E2E-Suite für das Editor-Kontextmenü.
 // Grundgerüst-Task: Menü öffnet in Quelltext- und Live-Modus, Klipboard-
 // Aktionen wirken (Kopieren/Einfügen-Roundtrip über das Electron-Klipboard),
 // Read-only zeigt die Teilmenge, Menü schließt per Esc und Klick außerhalb.
-// Die Format-/Absatz-/Einfüge-Einträge kommen in 4T-0378/4T-0379 dazu.
+// Die Format-/Absatz-/Einfüge-Einträge kommen in 4T-000378/4T-000379 dazu.
 'use strict';
 
 const path = require('node:path');

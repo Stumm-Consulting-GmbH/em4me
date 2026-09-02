@@ -3,7 +3,7 @@
 // Vorgaenger/Nachfolger, der Sprung zum Ziel und das Loesen verwaister
 // Kennungen in beiden Welten.
 //
-// Auszug aus events-editor.js, 4T-1003 (Epic 3E-0196). linkPopup und sein
+// Auszug aus events-editor.js, 4T-001003 (Epic 3E-000196). linkPopup und sein
 // Capture-Listener am Dokument gehoeren zusammen und leben ausschliesslich
 // hier.
 'use strict';
@@ -12,10 +12,10 @@ import { t } from '../../i18n.js';
 import { openInPane } from '../tabs/tabs.js';
 import { toggleEventLink, eventLinksOf } from '../../../shared/events/events-core.js';
 import { parsePerspectiveEvents } from '../../../shared/events/events-fence.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Kern. Fence-Zuordnung und Rueckschreiben
+// 4T-001003: Laufzeit-Zyklus mit dem Kern. Fence-Zuordnung und Rueckschreiben
 // werden ausschliesslich im Funktionskoerper aufgerufen.
 import { abortWithHint, locateFence, writeBody } from './events-editor.js';
-// 4T-1003: Laufzeit-Zyklus mit der Aggregation (Art 2 schreibt ueber deren
+// 4T-001003: Laufzeit-Zyklus mit der Aggregation (Art 2 schreibt ueber deren
 // Schreibweg) und mit dem Ansichts-Zustand (Sprung zur Tabellen-Zeile).
 import {
   getAggState,
@@ -24,7 +24,7 @@ import {
 } from './events-aggregation.js';
 import { jumpToTableRow } from './events-view-state.js';
 
-// --- Verknüpfungen (4T-0516) ---------------------------------------------------------
+// --- Verknüpfungen (4T-000516) ---------------------------------------------------------
 // Ein leichtgewichtiges Popup pro Zeile: Suche über die übrigen Einträge
 // (Art 1) bzw. aggregierten Quell-Dateien (Art 2), pro Treffer die beiden
 // Toggle-Knöpfe Vorgänger/Nachfolger und der Sprung zum Ziel. Bestehende
@@ -225,7 +225,7 @@ function renderLinkPopupList(filterText) {
     jump.textContent = `${e.date ? `${e.date} · ` : ''}${label}`;
     jump.addEventListener('click', () => {
       closeLinkPopup();
-      // 4T-0631 (Epic 3E-0102): Springen aus dem Verknüpfungs-Popup des
+      // 4T-000631 (Epic 3E-000102): Springen aus dem Verknüpfungs-Popup des
       // Ereignis-Widgets ist ein Dokument-Klick — Gruppe erben.
       if (ctx.aggregation) void openInPane(ctx.paneIdx, [e.source.path], { inheritGroup: true });
       else jumpToTableRow(ctx, i);

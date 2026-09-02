@@ -1,4 +1,4 @@
-// 4T-0332 (Epic 3E-0060): Statusbar-Anzeige der Dokument-Historie.
+// 4T-000332 (Epic 3E-000060): Statusbar-Anzeige der Dokument-Historie.
 //
 // Drei Zustände am aktiven Tab (Epic-Entscheidung): aktiv (Protokollierung
 // läuft), pausiert (wirksam aus, .mdd vorhanden), inaktiv (wirksam aus,
@@ -9,7 +9,7 @@
 // Editor-Änderung), Erbwert entfernt den Eintrag.
 //
 // Modul-Zyklen zu views/tabs sind Laufzeit-Zugriffe (dokumentiertes Muster
-// der Modularisierung, 4T-0179).
+// der Modularisierung, 4T-000179).
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -24,7 +24,7 @@ import { syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
 import { applyRenderPipeline } from '../render-mermaid.js';
 import { renderTabbar } from './tabbar.js';
 import { scheduleAutoSave, showStatusbarHint } from './views.js';
-// 4T-0333 (Epic 3E-0060): Zugang zur Historien-Ansicht aus dem Klick-Menü.
+// 4T-000333 (Epic 3E-000060): Zugang zur Historien-Ansicht aus dem Klick-Menü.
 import { openHistoryPage } from './history-page.js';
 
 // Laufender Abfrage-Zähler: eine langsame history:getState-Antwort darf
@@ -129,7 +129,7 @@ function showHistoryMenu(event) {
   const tab = activeTab();
   if (!tab || tab.systemPage || tab.manualPage) return;
   contextMenu.innerHTML = '';
-  // 4T-0333: Zugang zur Historien-Ansicht auch über das Statusbar-Element.
+  // 4T-000333: Zugang zur Historien-Ansicht auch über das Statusbar-Element.
   if (tab.path) {
     appendContextMenuItem(contextMenu, {
       key: 'history.menu.open',

@@ -2,7 +2,7 @@
 // Unterseiten-Baum, die Vorschau des Link-Updates und das Anlegen einer
 // Unterseite.
 //
-// Auszug aus main.js, 4T-0999 (Epic 3E-0196). Kanal-Gruppe: file:rename,
+// Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: file:rename,
 // rename:linkUpdatePreview, subpage:*.
 //
 // Eigener Zustand: keiner. Die physische Umbenennung einer einzelnen Datei
@@ -12,13 +12,13 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
-// 4T-1292 (Epic 3E-0224): Die Teile eines geteilten Dokuments ziehen beim
+// 4T-001292 (Epic 3E-000224): Die Teile eines geteilten Dokuments ziehen beim
 // Umbenennen mit, und ihre Zuordnungs-Zeile wird nachgezogen.
 const { scanOwnParts, rewritePartBase } = require('../documents/document-parts-io');
 const { isPartBasename, baseBasenameOf } = require('../../shared/document-parts');
 const selbstSchreib = require('../documents/self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache), wie in ipc/files.js.
 const markSelfWriting = selbstSchreib.merke;
 
@@ -50,19 +50,19 @@ function registerRenameIpc(handle, deps) {
     broadcast,
   } = deps;
 
-  // --- 4T-0339/4T-0340 (Epic 3E-0061): Datei umbenennen ------------------------
+  // --- 4T-000339/4T-000340 (Epic 3E-000061): Datei umbenennen ------------------------
   // Benennt eine Markdown-Datei im selben Ordner um und kaskadiert ueber
-  // ihren Unterseiten-Baum (4T-0340: Praefix-Ersetzung im Basename aller
+  // ihren Unterseiten-Baum (4T-000340: Praefix-Ersetzung im Basename aller
   // Nachfahren, jede Datei in ihrem eigenen Ordner). Pro Datei ziehen die
   // Main-seitigen Konsumenten nach: Datei-Watcher (Owner-Transfer ohne
-  // unlink-Rauschen), .mdd-Begleitdatei (3E-0060), offene Historien-
+  // unlink-Rauschen), .mdd-Begleitdatei (3E-000060), offene Historien-
   // Pakete, Recent-Files-Liste. Der Broadcast 'file:renamed' erreicht alle
   // Fenster; der Renderer zieht Tabs, Lesezeichen, Per-Datei-Settings und
   // Sitzung nach. Kollisions-Pruefung ueber ALLE Ziele vor der ersten
   // Umbenennung (reine Case-Aenderung auf NTFS bleibt erlaubt); ein
   // Teilfehler stoppt die Kaskade und wird als 'partial' gemeldet.
 
-  // 4T-0340: Nachfahren einer Seite im Suchraum finden — alle Markdown-
+  // 4T-000340: Nachfahren einer Seite im Suchraum finden — alle Markdown-
   // Dateien, deren Basename mit '<Name>∕' beginnt. Suchraum und Ignore-
   // Regeln wie der Backlinks-Index (Ordner der Datei plus zwei Unterordner-
   // Ebenen; node_modules und Punkt-Ordner bleiben draussen); Vergleich
@@ -97,12 +97,12 @@ function registerRenameIpc(handle, deps) {
     return out;
   }
 
-  // 4T-0340: Nachfahren-Liste fuer den Dialog-Hinweis des Renderers.
+  // 4T-000340: Nachfahren-Liste fuer den Dialog-Hinweis des Renderers.
   handle('subpage:descendants', async (_event, filePath) => {
     if (typeof filePath !== 'string' || !filePath) return { ok: false, files: [] };
     try {
       const files = await scanSubpageDescendants(path.resolve(filePath));
-      // 4T-1292 (Epic 3E-0224, Auflage des Epics): Teil-Dateien erscheinen
+      // 4T-001292 (Epic 3E-000224, Auflage des Epics): Teil-Dateien erscheinen
       // NICHT in der Unterseiten-Sektion. Sie sind keine eigenen Dokumente,
       // sondern Bruchstuecke eines einzigen.
       //
@@ -131,7 +131,7 @@ function registerRenameIpc(handle, deps) {
     const ext = parsed.ext || '.md';
     const newPath = path.join(parsed.dir, newBasename + ext);
     if (newPath === absolute) return { ok: true, path: absolute, unchanged: true };
-    // 4T-0340: Unterseiten-Baum ermitteln und Ziel-Paare bilden
+    // 4T-000340: Unterseiten-Baum ermitteln und Ziel-Paare bilden
     // (Praefix-Ersetzung des geaenderten Namens-Anteils).
     const oldBase = parsed.name;
     const pairs = [{ from: absolute, to: newPath }];
@@ -140,7 +140,7 @@ function registerRenameIpc(handle, deps) {
       const rest = dParsed.name.slice(oldBase.length); // beginnt mit U+2215
       pairs.push({ from: d, to: path.join(dParsed.dir, newBasename + rest + dParsed.ext) });
     }
-    // 4T-1292 (Epic 3E-0224): Die eigenen Teile eines geteilten Dokuments
+    // 4T-001292 (Epic 3E-000224): Die eigenen Teile eines geteilten Dokuments
     // ziehen mit. Sie tragen ein anderes Trennzeichen als die Unterseiten und
     // fallen deshalb NICHT in die Nachkommen-Suche oben — ohne diesen Zusatz
     // bliebe 'Notizen•part-00002.md' liegen, waehrend seine Kopf-Datei
@@ -161,7 +161,7 @@ function registerRenameIpc(handle, deps) {
       }
     }
     let renamedCount = 0;
-    // 4T-0847: Buch-Ordner, deren Begleitdatei mitgezogen wurde; ihr
+    // 4T-000847: Buch-Ordner, deren Begleitdatei mitgezogen wurde; ihr
     // Zustands-Broadcast läuft einmal am Ende statt je Datei der Kaskade.
     const bookDirs = [];
     for (const pair of pairs) {
@@ -183,7 +183,7 @@ function registerRenameIpc(handle, deps) {
       renamedCount++;
     }
     await sendBookStateForDirs(bookDirs);
-    // 4T-1292 (Epic 3E-0224): Die Zuordnungs-Zeile traegt den Grundnamen und
+    // 4T-001292 (Epic 3E-000224): Die Zuordnungs-Zeile traegt den Grundnamen und
     // wird jetzt nachgezogen — in der Kopf-Datei wie in jedem Teil. Sie ist die
     // Wahrheit (F2), der Dateiname allein genuegt nicht: Ohne den Nachzug
     // zeigten die Teile auf ein Dokument, das es unter diesem Namen nicht mehr
@@ -203,8 +203,8 @@ function registerRenameIpc(handle, deps) {
         console.error('[teile] Zuordnungs-Zeile nicht nachgezogen:', res.pfad, res.error);
       }
     }
-    // 4T-0345 (Epic 3E-0062): eingehende Links auf die umbenannten Dateien
-    // anpassen (Standard aktiv; der Dialog aus 4T-0346 schaltet updateLinks um).
+    // 4T-000345 (Epic 3E-000062): eingehende Links auf die umbenannten Dateien
+    // anpassen (Standard aktiv; der Dialog aus 4T-000346 schaltet updateLinks um).
     // Best-Effort nach vollzogener Umbenennung: ein Fehler hier laesst das
     // Rename-Ergebnis nicht scheitern.
     const updateLinks = !(params && params.updateLinks === false);
@@ -222,7 +222,7 @@ function registerRenameIpc(handle, deps) {
         console.error('[link-update] fehlgeschlagen:', err && err.message ? err.message : err);
       }
     }
-    // 4T-0346 (Epic 3E-0062): linkUpdate im Ergebnis, damit der ausloesende
+    // 4T-000346 (Epic 3E-000062): linkUpdate im Ergebnis, damit der ausloesende
     // Renderer den Bericht ohne den (an alle Fenster gehenden) Broadcast bauen
     // kann; { updated:[{path,count}], failed:[{path,error}] } oder null. `renamed`
     // traegt alle neuen Pfade (Hauptdatei plus Kaskaden-Nachfahren).
@@ -235,8 +235,8 @@ function registerRenameIpc(handle, deps) {
     };
   });
 
-  // 4T-0345 (Epic 3E-0062): Vorschau-Datenpfad fuer den Umbenennen-Dialog
-  // (4T-0346). Dry-Run vor der Umbenennung: liefert die betroffenen Dateien mit
+  // 4T-000345 (Epic 3E-000062): Vorschau-Datenpfad fuer den Umbenennen-Dialog
+  // (4T-000346). Dry-Run vor der Umbenennung: liefert die betroffenen Dateien mit
   // Trefferzahl, ohne zu schreiben. Die alten Dateien existieren noch, deshalb
   // ist der Suchraum-Anker der alte Pfad. Die Dirty-Kennzeichnung ergaenzt der
   // Renderer aus seinen offenen Tabs (der Main fuehrt keinen Dirty-Status).
@@ -262,7 +262,7 @@ function registerRenameIpc(handle, deps) {
     return { ok: true, items };
   });
 
-  // 4T-0338 (Epic 3E-0061): Unterseite anlegen — baut den U+2215-Dateinamen
+  // 4T-000338 (Epic 3E-000061): Unterseite anlegen — baut den U+2215-Dateinamen
   // aus aktiver Datei und Segment und legt die Datei an, ohne Bestehendes
   // zu ueberschreiben ('wx'-Flag). Existiert das Ziel, meldet der Handler
   // das als existed=true (der Renderer oeffnet dann die vorhandene Datei).

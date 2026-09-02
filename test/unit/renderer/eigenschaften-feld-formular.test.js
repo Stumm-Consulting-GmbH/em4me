@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-// 4T-1172 (Epic 3E-0220, E5): Feld-Formular des Dokuments — die Herkunft je
+// 4T-001172 (Epic 3E-000220, E5): Feld-Formular des Dokuments — die Herkunft je
 // Feld, der Ausklapp-Bereich mit den noch fehlenden Profil-Feldern und die
 // Regel, die ein leeres Angebot aus dem Metadaten-Block heraushält.
-// 4T-1173: dazu die Kette der beteiligten Profile und die Übernahme je Ebene.
+// 4T-001173: dazu die Kette der beteiligten Profile und die Übernahme je Ebene.
 //
 // Geprüft wird das Verhalten am gebauten DOM, nicht der Quelltext als
 // Zeichenkette. Das ist die Lehre aus dem Abnahme-Befund von 1.116.0: Vier
@@ -28,7 +28,7 @@ const {
   zeigtFeldFormular,
 } = await import('../../../src/renderer/modules/properties/properties-feld-formular.js');
 
-// Kette, wie sie die Auflösung seit 4T-1171 liefert.
+// Kette, wie sie die Auflösung seit 4T-001171 liefert.
 const KETTE = [
   { profile: 'Artikel', icon: '📄', stufe: 'assigned', tiefe: 0, fromDefault: false },
   { profile: 'Projekt', icon: '📁', stufe: 'assigned', tiefe: 1, fromDefault: false },
@@ -54,7 +54,7 @@ beforeEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('AK3: Herkunft je Feld (4T-1172)', () => {
+describe('AK3: Herkunft je Feld (4T-001172)', () => {
   it('zeigt das Symbol des Herkunfts-Profils und nennt den Weg im Tooltip', () => {
     const el = baueHerkunftsZeichen(
       { name: 'autor', profile: 'Artikel', stufe: 'assigned', tiefe: 0 },
@@ -107,7 +107,7 @@ describe('AK3: Herkunft je Feld (4T-1172)', () => {
   });
 });
 
-describe('AK1/AK4: Feld-Menge des Formulars (4T-1172)', () => {
+describe('AK1/AK4: Feld-Menge des Formulars (4T-001172)', () => {
   const DEFS = [
     { name: 'autor', type: 'string', profile: 'Artikel' },
     { name: 'budget', type: 'number', profile: 'Projekt' },
@@ -136,7 +136,7 @@ describe('AK1/AK4: Feld-Menge des Formulars (4T-1172)', () => {
   });
 });
 
-describe('AK1/AK4: Ausklapp-Bereich (4T-1172)', () => {
+describe('AK1/AK4: Ausklapp-Bereich (4T-001172)', () => {
   it('baut je fehlender Definition ein Feld und markiert es', () => {
     const c = container();
     const gebaut = [];
@@ -186,7 +186,7 @@ describe('AK1/AK4: Ausklapp-Bereich (4T-1172)', () => {
   });
 });
 
-describe('AK6/AK9: wann es den Bereich überhaupt gibt (4T-1172)', () => {
+describe('AK6/AK9: wann es den Bereich überhaupt gibt (4T-001172)', () => {
   it('AK9: im Aus-Zustand der Erweiterung entsteht kein Bereich', () => {
     // Ohne aktive Erweiterung liefert refreshProfileResolution `null` — die
     // Sektion verhält sich dann exakt wie ohne Konfiguration.
@@ -211,8 +211,8 @@ describe('AK6/AK9: wann es den Bereich überhaupt gibt (4T-1172)', () => {
   });
 });
 
-describe('AK5: ein leeres Angebot bleibt aus dem Dokument (4T-1172, 4T-1179)', () => {
-  // 4T-1179 (Epic 3E-0220): Die Regel misst seit dem Befund der
+describe('AK5: ein leeres Angebot bleibt aus dem Dokument (4T-001172, 4T-001179)', () => {
+  // 4T-001179 (Epic 3E-000220): Die Regel misst seit dem Befund der
   // Release-Abnahme 1.117.0 am BEDIENELEMENT und nicht mehr am typisierten
   // Wert. Über den Wert war sie für Zahlen und Ja/Nein-Felder falsch:
   // `extractFieldValue` liefert dort `0` bzw. `false`, und beides ist zu
@@ -281,7 +281,7 @@ describe('AK5: ein leeres Angebot bleibt aus dem Dokument (4T-1172, 4T-1179)', (
   });
 });
 
-// --- 4T-1173 (Epic 3E-0220): Profil-Kette und Übernahme je Ebene -----------
+// --- 4T-001173 (Epic 3E-000220): Profil-Kette und Übernahme je Ebene -----------
 // Die Kette macht die Vererbung sichtbar, die Übernahme macht sie benutzbar.
 // Geprüft wird beides am gebauten DOM; die Übernahme selbst läuft über den
 // vorhandenen Weg der Komplett-Übernahme und wird hier über den Callback
@@ -294,7 +294,7 @@ const DEFS_KETTE = [
   { name: 'titel', type: 'string', profile: 'Ordner-Profil' },
 ];
 
-describe('AK2: fehlende Felder einer Ebene (4T-1173)', () => {
+describe('AK2: fehlende Felder einer Ebene (4T-001173)', () => {
   it('wählt genau die Felder des genannten Profils', () => {
     const fehlend = fehlendeDefinitionenDerEbene(DEFS_KETTE, {}, 'Projekt');
     expect(fehlend.map((d) => d.name)).toEqual(['budget', 'status']);
@@ -315,7 +315,7 @@ describe('AK2: fehlende Felder einer Ebene (4T-1173)', () => {
   });
 });
 
-describe('AK1: Kette der beteiligten Profile (4T-1173)', () => {
+describe('AK1: Kette der beteiligten Profile (4T-001173)', () => {
   const kette = (data = {}) =>
     baueKette(KETTE, {
       fehlendeJeEbene: (p) => fehlendeDefinitionenDerEbene(DEFS_KETTE, data, p),
@@ -352,7 +352,7 @@ describe('AK1: Kette der beteiligten Profile (4T-1173)', () => {
   });
 });
 
-describe('AK2/AK4/AK5: Übernahme je Ebene (4T-1173)', () => {
+describe('AK2/AK4/AK5: Übernahme je Ebene (4T-001173)', () => {
   it('bietet die Übernahme genau dort an, wo Felder fehlen', () => {
     const el = baueKette(KETTE, {
       // Nur auf der Ebene «Projekt» fehlt etwas.
@@ -398,7 +398,7 @@ describe('AK2/AK4/AK5: Übernahme je Ebene (4T-1173)', () => {
   });
 });
 
-describe('Kette im Formular-Bereich (4T-1173)', () => {
+describe('Kette im Formular-Bereich (4T-001173)', () => {
   it('steht über den fehlenden Feldern', () => {
     const c = container();
     baueFeldFormular(c, {
@@ -435,13 +435,13 @@ describe('Kette im Formular-Bereich (4T-1173)', () => {
   });
 });
 
-// --- 4T-1173 (Epic 3E-0220): Der Auf-Zustand überlebt das Neu-Rendern -------
+// --- 4T-001173 (Epic 3E-000220): Der Auf-Zustand überlebt das Neu-Rendern -------
 // Befund aus dem E2E-Lauf PP-14: Der Bereich wird bei jedem Render neu
 // gebaut — beim Tab-Wechsel, bei jeder nachziehenden Auflösung und bei jedem
 // Debounce-Save. Ohne einen Merker klappte er dabei zu, auch mitten in einer
 // Eingabe. Der Zustand kommt deshalb von außen herein und wird beim Umschalten
 // zurückgemeldet.
-describe('Auf-Zustand des Formular-Bereichs (4T-1173)', () => {
+describe('Auf-Zustand des Formular-Bereichs (4T-001173)', () => {
   it('übernimmt den hereingereichten Zustand', () => {
     const c = container();
     const zu = baueFeldFormular(c, { fehlende: [], baueFeld: () => null });

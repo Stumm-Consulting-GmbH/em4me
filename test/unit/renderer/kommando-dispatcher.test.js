@@ -1,5 +1,5 @@
-// 4T-0781 (Epic 3E-0161): Vollstaendigkeits-Waechter ueber die Dispatcher-Map
-// commandHandlers in src/renderer/modules/app/app-commands.js (bis 4T-1001 lag
+// 4T-000781 (Epic 3E-000161): Vollstaendigkeits-Waechter ueber die Dispatcher-Map
+// commandHandlers in src/renderer/modules/app/app-commands.js (bis 4T-001001 lag
 // sie in app-init.js).
 //
 // Kommando-Palette und Tasten-Dispatcher fuehren ein Kommando ausschliesslich
@@ -53,7 +53,7 @@ function dispatcherKeys() {
   return new Set([...block.matchAll(/^ {2}'([^']+)':/gm)].map((m) => m[1]));
 }
 
-describe('Kommando-Dispatcher — Vollständigkeit der Map (4T-0781)', () => {
+describe('Kommando-Dispatcher — Vollständigkeit der Map (4T-000781)', () => {
   const keys = dispatcherKeys();
   const dispatchbar = COMMANDS.filter((c) => !c.editorScoped);
 

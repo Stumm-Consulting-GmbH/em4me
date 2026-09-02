@@ -2,7 +2,7 @@
 // eines Regals an eine logische Applikation, Oeffnungs-Wege, Zustands-Meldung,
 // striktes Routing in die Buch-Applikation, Schliessen und Wiederherstellung.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Die Datei-Ebene liegt
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Die Datei-Ebene liegt
 // unveraendert in shelves.js, der Kern in shared/books/shelf-core.js.
 //
 // Ein Regal je Applikation, dieselbe Bindungs-Mechanik wie beim aktiven Buch
@@ -93,8 +93,8 @@ function createShelfApps(deps) {
     }
   }
 
-  // --- 4T-0873 (Epic 3E-0162): Regal als Bereich -------------------------------
-  // Fortsetzung der Grundsatz-Entscheidung aus 4T-0871 fuer die Regal-Ebene
+  // --- 4T-000873 (Epic 3E-000162): Regal als Bereich -------------------------------
+  // Fortsetzung der Grundsatz-Entscheidung aus 4T-000871 fuer die Regal-Ebene
   // (PO-Entscheidung vom 2026-08-04, Variante R1): Eine Regal-Applikation ist
   // eine Bereichs-Applikation mit dem Regal-Ordner als Wurzel; ihr Inhalt ist
   // die Regal-Ansicht. Das Regal-Fenster haelt ausschliesslich die
@@ -131,13 +131,13 @@ function createShelfApps(deps) {
   // - sonst -> neue Applikation mit dem Regal-Ordner als Bereich.
   //
   // Die Regal-Ansicht oeffnet in beiden Faellen als eigene Seite im
-  // Reiter-System (Story 4S-0761, AK1); die Regal-Datei selbst bleibt eine
+  // Reiter-System (Story 4S-000761, AK1); die Regal-Datei selbst bleibt eine
   // gewoehnliche Markdown-Datei und oeffnet nur auf ausdruecklichen Wunsch.
   async function openShelfApp(shelfDir, senderWin) {
     const state = await shelves.buildShelfState(shelfDir);
     if (!state.ok) return state;
     const dir = state.state.shelfDir;
-    // 4T-0888 (Epic 3E-0168): Zuletzt-Liste der Regale (Muster openBookApp).
+    // 4T-000888 (Epic 3E-000168): Zuletzt-Liste der Regale (Muster openBookApp).
     recentLists.pushRecentEntry('recentShelves', dir);
     const running = findAppByShelf(dir);
     if (running != null) {
@@ -171,7 +171,7 @@ function createShelfApps(deps) {
   }
 
   // "Buecherregal schliessen" schliesst die Regal-Applikation samt Fenstern
-  // ueber den regulaeren Close-Pfad (4T-0873, Regal = Bereich; Muster
+  // ueber den regulaeren Close-Pfad (4T-000873, Regal = Bereich; Muster
   // closeActiveBook).
   async function closeActiveShelf(appId) {
     if (appId == null || !activeShelves.has(appId)) return { ok: false, error: 'no-shelf' };
@@ -192,13 +192,13 @@ function createShelfApps(deps) {
     });
   }
 
-  // (Die frühere Ordner-Grenzprüfung der Buch- und Regal-Wege ist mit 4T-0871
-  // und 4T-0873 entfallen: Buch und Regal öffnen als eigene Applikation mit
+  // (Die frühere Ordner-Grenzprüfung der Buch- und Regal-Wege ist mit 4T-000871
+  // und 4T-000873 entfallen: Buch und Regal öffnen als eigene Applikation mit
   // eigener Bereichs-Bindung und sind vom Bereich des Aufrufers unabhängig.)
 
-  // Weg 2 des Oeffnens (Story 4S-0760, AK2): Ist die aktiv geoeffnete Datei die
+  // Weg 2 des Oeffnens (Story 4S-000760, AK2): Ist die aktiv geoeffnete Datei die
   // Regal-Datei ihres Ordners, IST das Oeffnen ein "Buecherregal oeffnen"
-  // (4T-0873, Regal = Bereich, Muster bindBookIfBookFile): Eine freie App wird
+  // (4T-000873, Regal = Bereich, Muster bindBookIfBookFile): Eine freie App wird
   // gebunden, sonst wandert der frisch geoeffnete Reiter in die
   // Regal-Applikation. Der Reiter der Regal-Datei bleibt dort neben der
   // Regal-Seite bestehen, damit ihr Beschreibungstext editierbar bleibt.
@@ -220,7 +220,7 @@ function createShelfApps(deps) {
       !activeShelves.has(appId) &&
       !appHasOpenFilesOutside(appId, shelfDir);
     if (frei) {
-      // 4T-0888: direkte Bindung ohne openShelfApp (Muster bindBookIfBookFile).
+      // 4T-000888: direkte Bindung ohne openShelfApp (Muster bindBookIfBookFile).
       recentLists.pushRecentEntry('recentShelves', shelfDir);
       await bindShelfToApp(appId, shelfDir);
       if (win && !win.isDestroyed()) win.webContents.send('shelves:openPage');
@@ -240,7 +240,7 @@ function createShelfApps(deps) {
     }
   }
 
-  // 4T-0873 (Story 4S-0760, AK7): Striktes Routing der Regal-Applikation
+  // 4T-000873 (Story 4S-000760, AK7): Striktes Routing der Regal-Applikation
   // (Variante R1). Eine im Regal-Fenster geoeffnete Datei, die in einem seiner
   // Buch-Ordner liegt — Buch-Datei wie Kapitel-Datei —, gehoert nicht ins
   // Regal-Fenster: Der frisch entstandene Reiter wird zurueckgezogen, die
@@ -263,10 +263,10 @@ function createShelfApps(deps) {
     return true;
   }
 
-  // Sitzungs-Wiederherstellung des aktiven Regals (Story 4S-0760, AK5). Ein
+  // Sitzungs-Wiederherstellung des aktiven Regals (Story 4S-000760, AK5). Ein
   // entfernter oder beschaedigter Regal-Ordner wird still uebergangen; der
   // Sitzungs-Eintrag bleibt bei abgeschalteter Erweiterung erhalten.
-  // 4T-0873 (Regal = Bereich): Alt-Sitzungen ohne Bereichs-Bindung erhalten sie
+  // 4T-000873 (Regal = Bereich): Alt-Sitzungen ohne Bereichs-Bindung erhalten sie
   // hier nach; eine App mit FREMDEM Bereich behaelt ihn und verliert die
   // Regal-Bindung (Muster restoreBookForApp).
   async function restoreShelfForApp(appId, shelfDir) {
@@ -285,7 +285,7 @@ function createShelfApps(deps) {
     broadcastDisplayInfo();
     applyMenuToAllWindows();
     await sendShelfState(appId);
-    // 4T-0882 (Befund c der Test-Iteration 0.104.0): Die Wiederherstellung
+    // 4T-000882 (Befund c der Test-Iteration 0.104.0): Die Wiederherstellung
     // stellte nur die Bindung her; ohne 'shelves:openPage' blieb das
     // Regal-Fenster leer. Die Seite oeffnet wie beim regulaeren Oeffnen
     // (openShelfApp, sendWhenLoaded-Muster) im Fenster der App.
@@ -298,7 +298,7 @@ function createShelfApps(deps) {
     }
   }
 
-  // Weg 1 des Oeffnens (Story 4S-0760, AK1): "Buecherregal oeffnen…" mit
+  // Weg 1 des Oeffnens (Story 4S-000760, AK1): "Buecherregal oeffnen…" mit
   // Ordner-Wahl. Ein Ordner ohne Begleitdatei, die eine Regal-Datei benennt,
   // wird mit Meldung abgewiesen.
   async function openShelfDialog(ownerWin) {
@@ -319,7 +319,7 @@ function createShelfApps(deps) {
     return opened;
   }
 
-  // Story 4S-0760, AK3: "Neues Buecherregal…" legt Regal-Ordner, Regal-Datei und
+  // Story 4S-000760, AK3: "Neues Buecherregal…" legt Regal-Ordner, Regal-Datei und
   // Begleitdatei an und oeffnet das Regal (Dialog-Muster createBookDialog).
   async function createShelfDialog(ownerWin) {
     const owner = ownerWin && !ownerWin.isDestroyed() ? ownerWin : null;

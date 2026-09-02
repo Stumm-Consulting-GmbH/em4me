@@ -1,4 +1,4 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Inline- und Zeilen-Gruppe: Pandoc Line Blocks, Superscript, Spoiler und
 // Critic Markup. Electron-frei; die Instanz-Registrierung macht
 // markdown.js in der Original-Reihenfolge.
@@ -6,14 +6,14 @@
 
 const { escapeHtml } = require('../slug.js');
 
-// 4T-0041 (Epic 3E-0008): Zweite markdown-it-Instanz fuer den HTML-Konverter.
+// 4T-000041 (Epic 3E-000008): Zweite markdown-it-Instanz fuer den HTML-Konverter.
 // Unterschied zur Haupt-Instanz md: html=true, damit die vom Konverter
 // generierten HTML-Tabellen im Zellinhalt nicht escaped werden, wenn der
 // Zellinhalt rekursiv durch mdPortable.render() laeuft. Die perspective-table-Fence
 // wird hier NICHT ueberschrieben, weil convertMarkdownPortable perspective-table-
 // Bloecke separat behandelt (Top-Level-Regex + parsePerspectiveTableBlock +
 
-// 4T-0199 (Epic 3E-0017): Pandoc Line Blocks — zusammenhaengende Zeilen,
+// 4T-000199 (Epic 3E-000017): Pandoc Line Blocks — zusammenhaengende Zeilen,
 // die mit `| ` (Pipe + Leerzeichen) beginnen. Zeilenumbrueche und
 // fuehrende Leerzeichen nach `| ` bleiben erhalten (Adressen, Gedichte):
 //
@@ -30,7 +30,7 @@ const { escapeHtml } = require('../slug.js');
 // Markdown innerhalb der Zeilen bleibt aktiv (eigenes inline-Token pro
 // Zeile). Die Einrueckungs-Erhaltung uebernimmt CSS (`white-space:
 // pre-wrap` auf .line-block-line; Entscheidung pro Copy-Paste: echte
-// Spaces statt &nbsp;-Ersetzung, siehe Task 4T-0199).
+// Spaces statt &nbsp;-Ersetzung, siehe Task 4T-000199).
 function lineBlocksPlugin(mdInstance) {
   function lineBlockRule(state, startLine, endLine, silent) {
     // Ab vier Spaces Einrueckung parst markdown-it einen Code-Block.
@@ -81,7 +81,7 @@ function lineBlocksPlugin(mdInstance) {
   mdInstance.block.ruler.before('paragraph', 'line_block', lineBlockRule);
 }
 
-// 4T-0201 (Epic 3E-0017): Superscript als `^^Text^^` -> <sup>Text</sup>.
+// 4T-000201 (Epic 3E-000017): Superscript als `^^Text^^` -> <sup>Text</sup>.
 // Eigenes Plugin statt markdown-it-sup: das einzelne `^` ist in der App
 // doppelt belegt (Footnotes `[^id]`/`^[Inline]`, Block-Anker `^id`) —
 // der Doppel-Marker macht die Kollision by design unmoeglich
@@ -177,7 +177,7 @@ function superscriptPlugin(mdInstance) {
   });
 }
 
-// 4T-0203 (Epic 3E-0017): Spoiler `||Text||` -> <span class="spoiler">.
+// 4T-000203 (Epic 3E-000017): Spoiler `||Text||` -> <span class="spoiler">.
 // Gleiche Delimiter-Mechanik wie superscriptPlugin (markdown-it-mark-
 // Vorlage) mit Marker 0x7C. In Pipe-Tabellen-Zellen zerschneidet der
 // Block-Tabellen-Parser die Zeile an `|`, bevor Inline-Rules laufen —
@@ -216,7 +216,7 @@ function spoilerTerminatorChar(ch) {
     case 0x5f /* _ */:
     case 0x60 /* ` */:
     case 0x7b /* { */:
-    case 0x7c /* | */: // 4T-0203: Spoiler-Marker
+    case 0x7c /* | */: // 4T-000203: Spoiler-Marker
     case 0x7d /* } */:
     case 0x7e /* ~ */:
       return true;
@@ -328,7 +328,7 @@ function spoilerPlugin(mdInstance, options) {
   if (isPortable) {
     // Verdeckt ohne Stylesheet: Hintergrund- = Schriftfarbe; ohne
     // Hover-CSS bleibt das Aufdecken der Text-Selektion ueberlassen
-    // (dokumentierte Einschraenkung, analog Embed-Einschraenkung 4T-0055).
+    // (dokumentierte Einschraenkung, analog Embed-Einschraenkung 4T-000055).
     mdInstance.renderer.rules.spoiler_open = () =>
       '<span class="spoiler" style="background:#444;color:#444;border-radius:3px;padding:0 0.15em;">';
     mdInstance.renderer.rules.spoiler_close = () => '</span>';
@@ -338,7 +338,7 @@ function spoilerPlugin(mdInstance, options) {
   }
 }
 
-// 4T-0203 (Epic 3E-0017): Critic Markup (CriticMarkup-Spezifikation),
+// 4T-000203 (Epic 3E-000017): Critic Markup (CriticMarkup-Spezifikation),
 // eigenes Plugin statt des verwaisten markdown-it-criticmarkup-Pakets
 // (Architekturentscheidung 4 des Epics):
 //

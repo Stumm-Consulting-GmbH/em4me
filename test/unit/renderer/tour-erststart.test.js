@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0644 (Epic 3E-0127): Erststart-Logik der geführten Produkt-Tour
+// 4T-000644 (Epic 3E-000127): Erststart-Logik der geführten Produkt-Tour
 // (src/renderer/modules/tour/tour.js). Prüfgegenstand ist ausschließlich die
 // Merker-Mechanik, also die Stelle, an der ein Irrtum dauerhaft wirkt: Wann
 // läuft die Tour von selbst an, und wann wird `tourSeen` geschrieben?
@@ -89,7 +89,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('maybeStartTourOnFirstRun: Anlauf-Entscheidung (4T-0644)', () => {
+describe('maybeStartTourOnFirstRun: Anlauf-Entscheidung (4T-000644)', () => {
   it('startet bei nie gesetztem Merker (undefined)', async () => {
     merkerWert = undefined;
     await maybeStartTourOnFirstRun();
@@ -128,7 +128,7 @@ describe('maybeStartTourOnFirstRun: Anlauf-Entscheidung (4T-0644)', () => {
   });
 });
 
-describe('Merker-Schreiben am Ende der Tour (4T-0644)', () => {
+describe('Merker-Schreiben am Ende der Tour (4T-000644)', () => {
   it('Sofort-Abbruch einer automatisch gestarteten Tour setzt tourSeen', async () => {
     // Regressionsfall zum Befund vom 2026-08-19: Der Abbruch fällt mitten in
     // den Stations-Übergang, es wird NICHT vorgespult (Begründung im Kopf).

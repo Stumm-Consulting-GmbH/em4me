@@ -1,8 +1,8 @@
-// 4T-0504 (Epic 3E-0096): Rueckschreiben aus der Abfrage-Ansicht — die drei
+// 4T-000504 (Epic 3E-000096): Rueckschreiben aus der Abfrage-Ansicht — die drei
 // Treffer-Interaktionen der Task-Abfrage (Status-Toggle, Termin-Verschieben,
 // Bearbeiten) mit definiertem Schreibweg in die Quelldateien.
 //
-// Schreibweg-Regeln (Muster Link-Update 3E-0062, offene Tabs werden ueber
+// Schreibweg-Regeln (Muster Link-Update 3E-000062, offene Tabs werden ueber
 // den Editor-Zustand aktualisiert und nie auf der Platte ueberholt):
 // - Datei ist der AKTIVE Tab einer Pane: CodeMirror-Transaktion im Puffer
 //   (ein Undo-Schritt); war der Tab vorher nicht dirty, wird direkt ueber
@@ -22,7 +22,7 @@
 //   einen Statusbar-Hinweis statt blind zu schreiben.
 //
 // Der Bearbeiten-Knopf delegiert an einen registrierbaren Handler (Dialog
-// aus 4T-0506); ohne Handler oeffnet er die Quelldatei an der Zeile.
+// aus 4T-000506); ohne Handler oeffnet er die Quelldatei an der Zeile.
 'use strict';
 
 import { api } from './app/api.js';
@@ -172,7 +172,7 @@ export function postponedDateValue(value, mode, todayIso) {
 }
 
 // Neue Zeilen-Fassung eines Treffers schreiben — gemeinsamer Schreibweg
-// des Verschiebe-Menues und des Bearbeitungs-Dialogs (4T-0506): aktiver
+// des Verschiebe-Menues und des Bearbeitungs-Dialogs (4T-000506): aktiver
 // Tab per CodeMirror-Transaktion (ein Undo-Schritt, Save nur wenn der Tab
 // vorher sauber war), inaktiver dirty Tab Hinweis, sonst Main-Schreibweg.
 export async function writeTaskHitLine(hit, newText) {
@@ -252,7 +252,7 @@ export function showPostponeMenu(hit, x, y) {
 
 // --- Bearbeiten ------------------------------------------------------------------
 
-// Andock-Punkt des Task-Dialogs (4T-0506). Ohne registrierten Handler
+// Andock-Punkt des Task-Dialogs (4T-000506). Ohne registrierten Handler
 // oeffnet der Bearbeiten-Knopf die Quelldatei an der Treffer-Zeile.
 let taskEditHandler = null;
 
@@ -267,7 +267,7 @@ export async function editTaskFromQuery(hit, paneIdx) {
   }
   const target = typeof paneIdx === 'number' && paneIdx >= 0 ? paneIdx : state.activePaneIndex;
   activatePane(target);
-  // 4T-0631 (Epic 3E-0102): Bearbeiten-Klick im Abfrage-Treffer des Dokuments
+  // 4T-000631 (Epic 3E-000102): Bearbeiten-Klick im Abfrage-Treffer des Dokuments
   // erbt die Gruppe (beide Aufruf-Pfade sind Dokument-Klicks: Render-Pane und
   // Live-Widget).
   const realPane = await openInPane(target, [hit.path], { inheritGroup: true });

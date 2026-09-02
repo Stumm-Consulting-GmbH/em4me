@@ -1,4 +1,4 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 14 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 14 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
@@ -20,9 +20,9 @@
   background: var(--fg-muted);
 }
 
-/* === PDF-Export (4T-0303, Epic 3E-0054) ================================== */
+/* === PDF-Export (4T-000303, Epic 3E-000054) ================================== */
 /* Waehrend des Exports tragen <html> UND <body> die Klasse .printing
-   (beide, weil der html-Selektor sonst nicht greift, 4T-0024 Fehlerbild 1).
+   (beide, weil der html-Selektor sonst nicht greift, 4T-000024 Fehlerbild 1).
    Alle Regeln haengen an dieser Klasse statt an @media print: der Export
    ist der einzige Print-Pfad der App, und der Klassen-Hook wirkt
    deterministisch unabhaengig davon, welches Medium printToPDF emuliert.
@@ -30,7 +30,7 @@
    Der Theme-Anteil (Light-Farben) kommt NICHT aus diesem Block, sondern
    aus dem JS-Variablen-Override in views.js (Variante B+). */
 
-/* Fehlerbild 2 aus 4T-0024 (nur erste Seite): das Grundlayout kappt den
+/* Fehlerbild 2 aus 4T-000024 (nur erste Seite): das Grundlayout kappt den
    Inhalt per height:100% / overflow:hidden auf den Viewport. */
 html.printing,
 body.printing {
@@ -45,7 +45,7 @@ body.printing {
 /* Streuner-Regel: alles auf Body-Ebene ausser dem Pane-Container
    verschwindet — Statusbar, Empty-State, Drop-Overlay, Kontextmenue,
    Suchleiste, Modals und von Bibliotheken (CodeMirror, Mermaid) an den
-   <body> gehaengte Layer/Tooltips (Restverdacht aus 4T-0024). */
+   <body> gehaengte Layer/Tooltips (Restverdacht aus 4T-000024). */
 body.printing > *:not(main) {
   display: none !important;
 }
@@ -59,7 +59,7 @@ body.printing .pane-group:not(.active-pane) {
 /* UI-Chrome innerhalb des Pane-Containers verstecken. .pane-source und
    .pane-system BEWUSST als eigene Selektoren und nirgends wieder
    einblenden — die Selektor-Kollision ".pane" vs. ".pane-source" war
-   Fehlerbild 3 aus 4T-0024. */
+   Fehlerbild 3 aus 4T-000024. */
 body.printing .tabbar,
 body.printing .pane-sidebar,
 body.printing .splitter,
@@ -84,7 +84,7 @@ body.printing .pane-group.active-pane .pane-rendered {
 }
 
 /* Inhalt: volle Druckbreite (Papier-Rand kommt aus printToPDF-margins),
-   Druck-Schriftgroesse 11pt (4T-0024). */
+   Druck-Schriftgroesse 11pt (4T-000024). */
 body.printing .markdown-body {
   padding: 0;
   max-width: none;
@@ -101,7 +101,7 @@ body.printing .block-meta-indicator {
   display: none !important;
 }
 
-/* Seitenumbruch-Regeln (4T-0024, ergaenzt um die seit 0.10.0
+/* Seitenumbruch-Regeln (4T-000024, ergaenzt um die seit 0.10.0
    hinzugekommenen Block-Typen: Callouts, Custom Containers, Perspective
    Table faellt unter table, Wiki-Embeds, Frontmatter-Block). */
 body.printing .markdown-body pre,
@@ -126,7 +126,7 @@ body.printing .markdown-body h6 {
   page-break-after: avoid;
 }
 
-/* === Quelltext-Ansicht im PDF-Export (4T-0311, Epic 3E-0055) ============= */
+/* === Quelltext-Ansicht im PDF-Export (4T-000311, Epic 3E-000055) ============= */
 /* Der Export baut aus dem Dokumenttext einen dedizierten Print-Block
    (.pdf-source-print in .content des aktiven Panes) und setzt zusaetzlich
    zur printing-Klasse die Klasse printing-source am <body>. Ausserhalb
@@ -165,7 +165,7 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   user-select: none;
 }
 
-/* === Frontmatter dauerhaft ausgeklappt (4T-0312, Epic 3E-0055) =========== */
+/* === Frontmatter dauerhaft ausgeklappt (4T-000312, Epic 3E-000055) =========== */
 /* Die Root-Klasse frontmatter-expanded (Setting render.frontmatterExpanded)
    haelt den Frontmatter-Block dauerhaft offen — im Render-Pane, im
    Live-Widget (gleiche Klassen) und damit auch im PDF-Export. max-height
@@ -182,7 +182,7 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   transition: none;
 }
 
-/* === Historien-Ansicht (4T-0333, Epic 3E-0060) ============================ */
+/* === Historien-Ansicht (4T-000333, Epic 3E-000060) ============================ */
 /* Read-only System-Seite: Revisionsliste als Tabelle, darunter der
    Detail-Bereich (Revision read-only bzw. Zeilen-Diff mit Hunks). */
 .history-page {
@@ -270,10 +270,10 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   border-bottom: 1px dashed var(--border);
 }
 
-/* === Bereichs-Statistik (4T-0620, Epic 3E-0117) =========================== */
+/* === Bereichs-Statistik (4T-000620, Epic 3E-000117) =========================== */
 /* Read-only System-Seite: Kopfzeile mit Stand und Aktualisieren-Knopf,
    darunter sechs Abschnitte. Optik und Variablen wie die Historien-Seite. */
-/* 4T-0868 (Epic 3E-0162): Regal-Ansicht — Kachel- und Zeilen-Darstellung. */
+/* 4T-000868 (Epic 3E-000162): Regal-Ansicht — Kachel- und Zeilen-Darstellung. */
 .shelf-view-page {
   padding: 16px 20px;
   max-width: 1080px;

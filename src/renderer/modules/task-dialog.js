@@ -1,8 +1,8 @@
-// 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog — der komfortable
+// 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog — der komfortable
 // Gegenpol zur Marker-Syntax (Workshop-Punkt 7). Formular mit Beschreibung,
 // Status (aus der task-states-Konfiguration), Prioritaet, Wiederholungs-
 // Regel (mit Validierungs-Hinweis) und den drei manuellen Terminen; die
-// Datums-Eingabe laeuft AUSSCHLIESSLICH ueber den Picker aus 3E-0091
+// Datums-Eingabe laeuft AUSSCHLIESSLICH ueber den Picker aus 3E-000091
 // (PO-Entscheidung: strukturierte Werte ueber einstellbare Steuerungen,
 // kein Freitext). Automatik-Daten (erstellt/erledigt/abgebrochen) werden
 // nur angezeigt; der Status-Wechsel auf einen DONE-/CANCELLED-Typ setzt
@@ -14,7 +14,7 @@
 // Zugaenge: Registry-Kommando task.editDialog (auf einer Task-Zeile
 // bearbeitend, auf einer leeren Zeile anlegend), Editor-Kontextmenue und
 // der Bearbeiten-Knopf der Abfrage-Treffer (setTaskQueryEditHandler aus
-// 4T-0504; der Schreibweg der Treffer laeuft ueber writeTaskHitLine).
+// 4T-000504; der Schreibweg der Treffer laeuft ueber writeTaskHitLine).
 // Schreiben ueber den Marker-Kern: verlustfreier Round-Trip, EIN
 // Undo-Schritt pro Anwendung (eine Transaktion bzw. ein Main-Schreiben).
 'use strict';
@@ -74,7 +74,7 @@ function statusOptions(currentChar) {
   return options;
 }
 
-// --- Abhaengigkeiten (4T-0508, Epic 3E-0096) ------------------------------------
+// --- Abhaengigkeiten (4T-000508, Epic 3E-000096) ------------------------------------
 
 // Bereichs-Tasks fuer die Vorgaenger-/Nachfolger-Suche: laeuft ueber die
 // bestehende Task-Abfrage (LIST TASKS gegen den Index; kein eigener IPC).
@@ -122,7 +122,7 @@ async function applySuccessorLinks(successors, ownId) {
 // Zeigt den Dialog fuer ein Task-Modell (Kopie via Round-Trip; das
 // uebergebene Modell bleibt unangetastet). Rueckgabe der neue Zeilen-Text
 // oder null (Abbruch). mode 'create' | 'edit' steuert nur den Titel.
-// opts (4T-0508): contextPath = Bereichs-Kontext der Task-Suche (aktive
+// opts (4T-000508): contextPath = Bereichs-Kontext der Task-Suche (aktive
 // Datei bzw. Treffer-Datei), selfRef = { path, line } zur Selbst-
 // Ausfilterung. Neue Nachfolger-Bezuege werden nach dem OK direkt auf die
 // Ziel-Zeilen geschrieben (die eigene Zeile schreibt der Aufrufer).
@@ -242,7 +242,7 @@ export function showTaskDialog(model, mode, opts) {
         row.appendChild(clearBtn);
         datesEl.appendChild(row);
       }
-      // 4T-0528 (Epic 3E-0095): Erinnerungs-Zeile — Melde-Zeitpunkt mit
+      // 4T-000528 (Epic 3E-000095): Erinnerungs-Zeile — Melde-Zeitpunkt mit
       // Datum plus Uhrzeit ueber den Picker (nur bei aktiver Erweiterung;
       // Muster der Termin-Zeilen, geschrieben ueber setReminder).
       if (isExtensionActive('reminders')) {
@@ -300,7 +300,7 @@ export function showTaskDialog(model, mode, opts) {
     autoEl.hidden = autoParts.length === 0;
     autoEl.textContent = autoParts.join(' · ');
 
-    // 4T-0508: Abhaengigkeiten — ID-Zeile plus Vorgaenger/Nachfolger mit
+    // 4T-000508: Abhaengigkeiten — ID-Zeile plus Vorgaenger/Nachfolger mit
     // Task-Suche ueber den Bereich (lazy beim ersten Fokus geladen).
     const depsEl = $('#task-dialog-deps');
     const contextPath = opts && opts.contextPath ? opts.contextPath : null;
@@ -424,7 +424,7 @@ export function showTaskDialog(model, mode, opts) {
         setStatusChar(draft, newChar);
         applyStatusDateAutomatics(draft, originalStatusChar, newChar);
       }
-      // 4T-0508: Nachfolger-Bezuege brauchen die eigene ID — ohne ID wird
+      // 4T-000508: Nachfolger-Bezuege brauchen die eigene ID — ohne ID wird
       // beim OK automatisch eine eindeutige erzeugt (Bereichs-IDs geprueft).
       if (pendingSuccessors.length > 0 && !draft.id) {
         const known = (areaTasks || []).map((task) => task.id).filter(Boolean);
@@ -467,7 +467,7 @@ export function showTaskDialog(model, mode, opts) {
   });
 }
 
-// 4T-0508: eine Abhaengigkeits-Zeile des Dialogs — Label, entfernbare
+// 4T-000508: eine Abhaengigkeits-Zeile des Dialogs — Label, entfernbare
 // Chips und ein Such-Feld mit Vorschlagsliste (Filter ueber den
 // Kandidaten-Text, Auswahl per Klick; Kandidaten laedt der Aufrufer lazy).
 function buildDependencyRow({
@@ -581,7 +581,7 @@ function resolveEditorView() {
 export async function runTaskEditDialogCommand() {
   if (!isExtensionActive('tasks')) return false;
   const view = resolveEditorView();
-  // B-11 (4T-0904, Nebenbefund): Ohne bearbeitbaren Editor brach die Funktion
+  // B-11 (4T-000904, Nebenbefund): Ohne bearbeitbaren Editor brach die Funktion
   // still ab, waehrend sie auf einer Nicht-Task-Zeile einen Hinweis zeigt —
   // dieselbe Funktion schwieg also im einen Fall und erklaerte sich im
   // anderen. Die Leitfrage der Pruef-Runde 4 verlangt das Erklaeren: Wer den
@@ -607,7 +607,7 @@ export async function runTaskEditDialogCommand() {
       return false;
     }
   }
-  // 4T-0508: Bereichs-Kontext der Task-Suche ist die aktive Datei; die
+  // 4T-000508: Bereichs-Kontext der Task-Suche ist die aktive Datei; die
   // eigene Zeile wird aus den Such-Kandidaten ausgefiltert.
   const tab = activeTab();
   const selfPath = tab && tab.path ? tab.path : null;
@@ -624,7 +624,7 @@ export async function runTaskEditDialogCommand() {
   return true;
 }
 
-// --- Abfrage-Treffer (Bearbeiten-Knopf, 4T-0504) --------------------------------
+// --- Abfrage-Treffer (Bearbeiten-Knopf, 4T-000504) --------------------------------
 
 // Registriert den Dialog als Edit-Handler der Task-Abfrage-Treffer; das
 // Schreiben laeuft ueber den gemeinsamen Schreibweg der Treffer-Aktionen

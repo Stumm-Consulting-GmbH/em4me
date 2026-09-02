@@ -1,17 +1,17 @@
-// 4T-0277 (Epic 3E-0049): Menü-State-Normalisierung für die Menü-Factory.
+// 4T-000277 (Epic 3E-000049): Menü-State-Normalisierung für die Menü-Factory.
 //
 // Der Renderer meldet den menü-relevanten Stand pro Fenster
 // (reportMenuStateNow in tabs.js); diese Funktion bildet ihn zusammen mit
 // den Store-Werten auf das State-Objekt ab, das buildMenu (menu.js)
 // erwartet. Electron-frei ausgelagert, damit der Durchreich-Vertrag
-// unit-testbar ist — Regression 4T-0277: manualTab wurde vom Renderer seit
-// 4T-0213 gemeldet, im früheren getMenuState (main.js) aber nicht
+// unit-testbar ist — Regression 4T-000277: manualTab wurde vom Renderer seit
+// 4T-000213 gemeldet, im früheren getMenuState (main.js) aber nicht
 // durchgereicht; die Menü-Einträge Speichern/Speichern unter/Bearbeiten
 // blieben bei Handbuch-Tabs fälschlich aktiv (Klick war nur
 // renderer-seitig inert).
 'use strict';
 
-// 4T-0626 (Epic 3E-0119): Varianten-Listen des Untermenüs
+// 4T-000626 (Epic 3E-000119): Varianten-Listen des Untermenüs
 // „Sidebar-Anordnungen" — je Gruppe nur Einträge mit nicht-leerer
 // String-ID und nicht-leerem Namen.
 function normalizeVariantEntries(list) {
@@ -46,39 +46,39 @@ function normalizeMenuState(base, stored) {
     wordWrap: !!b.wordWrap,
     togglesEnabled: !!b.togglesEnabled,
     hasActiveTab: !!b.hasActiveTab,
-    // 4T-0213/4T-0277: Read-only-Kennungen des aktiven Tabs — Handbuch-
+    // 4T-000213/4T-000277: Read-only-Kennungen des aktiven Tabs — Handbuch-
     // Seiten deaktivieren Speichern/Bearbeiten, System-Seiten
     // (Einstellungen) zusätzlich View-Modi und Export.
     manualTab: !!b.manualTab,
     systemTab: !!b.systemTab,
     restoreSession: !!s.restoreSession,
     autoSave: !!s.autoSave,
-    // 4T-0322 (Epic 3E-0058): Bereichs-Bindung der App dieses Fensters
+    // 4T-000322 (Epic 3E-000058): Bereichs-Bindung der App dieses Fensters
     // (main-seitig aus der App-Registry, aktiviert "Bereich schliessen").
     hasArea: !!s.hasArea,
-    // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Zuordnung der App dieses
+    // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Zuordnung der App dieses
     // Fensters (aktiviert "Arbeitsbereich schliessen", dimmt "Als
     // Arbeitsbereich speichern") plus die Liste fuer das Untermenue
     // ([{ id, name, color, open }], main-seitig aus Ablage und Registry).
     hasWorkspace: !!s.hasWorkspace,
     workspaces: Array.isArray(s.workspaces) ? s.workspaces : [],
-    // 4T-0843 (Epic 3E-0147): aktives Buch der App dieses Fensters
+    // 4T-000843 (Epic 3E-000147): aktives Buch der App dieses Fensters
     // (main-seitig aus der Buch-Bindung, aktiviert "Buch schliessen").
     hasBook: !!s.hasBook,
-    // 4T-0867/4T-0881 (Epic 3E-0162): aktives Regal der App dieses Fensters
-    // (aktiviert "Buecherregal schliessen"). 4T-0881: Das Feld wurde bis dahin
+    // 4T-000867/4T-000881 (Epic 3E-000162): aktives Regal der App dieses Fensters
+    // (aktiviert "Buecherregal schliessen"). 4T-000881: Das Feld wurde bis dahin
     // nicht durchgereicht; der Menuepunkt blieb dadurch immer deaktiviert.
     hasShelf: !!s.hasShelf,
     recentFiles: Array.isArray(s.recentFiles) ? s.recentFiles : [],
-    // 4T-0325 (Epic 3E-0058): zuletzt geoeffnete Bereiche.
+    // 4T-000325 (Epic 3E-000058): zuletzt geoeffnete Bereiche.
     recentAreas: Array.isArray(s.recentAreas) ? s.recentAreas : [],
-    // 4T-0888 (Epic 3E-0168): zuletzt geöffnete Bücher und Bücherregale —
+    // 4T-000888 (Epic 3E-000168): zuletzt geöffnete Bücher und Bücherregale —
     // dieselben Listen-Regeln wie bei den Bereichen, eigener Store-Schlüssel.
     recentBooks: Array.isArray(s.recentBooks) ? s.recentBooks : [],
     recentShelves: Array.isArray(s.recentShelves) ? s.recentShelves : [],
-    // 4T-0013: Häkchen-Stand für das Gliederungs-Toggle im Ansicht-Menü.
+    // 4T-000013: Häkchen-Stand für das Gliederungs-Toggle im Ansicht-Menü.
     foldGutter: b.foldGutter !== undefined ? b.foldGutter : true,
-    // 4T-0568 (Epic 3E-0104): geordnete Panel-Liste für das Panel-
+    // 4T-000568 (Epic 3E-000104): geordnete Panel-Liste für das Panel-
     // Untermenü ([{ id, visible }], ersetzt die früheren xxxVisible-
     // Einzel-Flags — vier davon wurden hier nie durchgereicht, deren
     // Häkchen blieben dauerhaft leer). Ungültige Einträge entfallen.
@@ -87,30 +87,30 @@ function normalizeMenuState(base, stored) {
           .filter((p) => p && typeof p.id === 'string' && p.id !== '')
           .map((p) => ({ id: p.id, visible: !!p.visible }))
       : [],
-    // 4T-0626 (Epic 3E-0119): Sidebar-Varianten-Listen für das Untermenü
+    // 4T-000626 (Epic 3E-000119): Sidebar-Varianten-Listen für das Untermenü
     // „Sidebar-Anordnungen" ({ global, area, areaName }). Ungültige
     // Einträge entfallen (Muster panels).
     sidebarVariants: normalizeSidebarVariants(b.sidebarVariants),
-    // 4T-0019: Fokus-Modus, Typewriter-Scroll und Edit-Modus pro Fenster
+    // 4T-000019: Fokus-Modus, Typewriter-Scroll und Edit-Modus pro Fenster
     // bzw. aktivem Tab.
     focusMode: !!b.focusMode,
     typewriterScroll: !!b.typewriterScroll,
     editMode: !!b.editMode,
-    // 4T-0697 (Epic 3E-0141): Kollaps-Zustand der linken/rechten Sidebar-
+    // 4T-000697 (Epic 3E-000141): Kollaps-Zustand der linken/rechten Sidebar-
     // Spalte der aktiven Pane-Group (Menü-Häkchen der beiden direkten
     // Ansichtsmenü-Einträge).
     sidebarCollapsedLeft: !!b.sidebarCollapsedLeft,
     sidebarCollapsedRight: !!b.sidebarCollapsedRight,
-    // 4T-0070: Scroll-Synchronisation pro aktivem Tab.
+    // 4T-000070: Scroll-Synchronisation pro aktivem Tab.
     scrollSyncEnabled: !!b.scrollSyncEnabled,
-    // 4T-0030: Theme-Vorzug für das Radio-Untermenü 'Ansicht -> Theme'.
+    // 4T-000030: Theme-Vorzug für das Radio-Untermenü 'Ansicht -> Theme'.
     themePref:
       s.themePref === 'light' || s.themePref === 'dark' || s.themePref === 'system'
         ? s.themePref
         : 'system',
-    // 4T-0207: effektive Menü-Accelerators (Registry plus Store-Overrides).
+    // 4T-000207: effektive Menü-Accelerators (Registry plus Store-Overrides).
     hotkeys: s.hotkeys,
-    // 4T-0294: Kommandos effektiv deaktivierter Erweiterungen (Menü-
+    // 4T-000294: Kommandos effektiv deaktivierter Erweiterungen (Menü-
     // Einträge dazu entfallen in der Menü-Factory).
     disabledCommands: Array.isArray(s.disabledCommands) ? s.disabledCommands : [],
   };

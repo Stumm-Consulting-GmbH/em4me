@@ -1,4 +1,4 @@
-// 4T-0428 (Epic 3E-0080) und 4T-0555 (Epic 3E-0100): Bereich „Vorlagen"
+// 4T-000428 (Epic 3E-000080) und 4T-000555 (Epic 3E-000100): Bereich „Vorlagen"
 // (globaler Ordner und Regeln) samt der Bereichs-Übersteuerung als eigener
 // Sektion der Gruppe „Aktueller Bereich".
 'use strict';
@@ -12,7 +12,7 @@ import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 
 // Spiegelt den globalen Teil von applyTemplatesSection (normalisierte
 // Persistenz-Form gegen den Snapshot). Der Bereichs-Teil gehört zur
-// Sektion templatesArea (4T-0555).
+// Sektion templatesArea (4T-000555).
 export function dirtyTemplatesSection(draft) {
   const values = draft.templates;
   if (!values) return false;
@@ -20,7 +20,7 @@ export function dirtyTemplatesSection(draft) {
   return !jsonEqual(normalizedTemplatesPart(values.global), snap.global);
 }
 
-// Spiegelt den Bereichs-Teil von applyTemplatesSection (4T-0555).
+// Spiegelt den Bereichs-Teil von applyTemplatesSection (4T-000555).
 export function dirtyTemplatesAreaSection(draft) {
   const values = draft.templates;
   if (!values || !values.hasArea) return false;
@@ -162,7 +162,7 @@ function buildTemplatesFolderRow(container, part, idPrefix, toRelative) {
     part.folder = value;
     input.value = value;
     // Mutation nach dem await: die delegierten Dokument-Listener der
-    // Dirty-Erkennung liefen vor dem Dialog — explizit nachziehen (4T-0554).
+    // Dirty-Erkennung liefen vor dem Dialog — explizit nachziehen (4T-000554).
     refreshSettingsButtons();
   });
   const row = document.createElement('div');
@@ -196,12 +196,12 @@ export function renderTemplatesSection(container, draft) {
   container.appendChild(globalHeading);
   buildTemplatesFolderRow(container, values.global, 'settings-templates-global', null);
   buildTemplatesRulesEditor(container, values.global.rules, 'settings-templates-global');
-  // 4T-0555 (Epic 3E-0100): Die Bereichs-Konfiguration lebt als eigene
+  // 4T-000555 (Epic 3E-000100): Die Bereichs-Konfiguration lebt als eigene
   // Sektion in der Navigations-Gruppe „Aktueller Bereich"
   // (renderTemplatesAreaSection) — hier bleibt der globale Teil.
 }
 
-// --- 4T-0555 (Epic 3E-0100): Bereichs-Sektion Vorlagen -------------------------
+// --- 4T-000555 (Epic 3E-000100): Bereichs-Sektion Vorlagen -------------------------
 // Bereichs-Konfiguration der Vorlagen (übersteuert die globale vollständig);
 // vormals ein hasArea-Block innerhalb des Bereichs „Vorlagen"
 // (PO-Entscheidung E3: hybride Bereiche aufteilen). Liest und schreibt
@@ -251,7 +251,7 @@ export function renderTemplatesAreaSection(container, draft) {
 
 // Regel-Zeilen mit Ordner, aber ohne Vorlage sind unvollständig (komplett
 // leere Zeilen entfallen beim Anwenden still). Gemeinsamer Prüf-Helfer der
-// globalen und der Bereichs-Sektion (4T-0555: getrennte validate-Hooks,
+// globalen und der Bereichs-Sektion (4T-000555: getrennte validate-Hooks,
 // damit der Fehler-Punkt am richtigen Navigations-Eintrag erscheint).
 function templatesRulesError(part) {
   for (const rule of part.rules) {

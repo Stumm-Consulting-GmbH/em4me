@@ -1,7 +1,7 @@
 // Die "Zuletzt geoeffnet"-Listen des Datei-Menues: Dateien, Bereiche, Buecher
 // und Buecherregale.
 //
-// 4T-0888 (Epic 3E-0168): aus main.js herausgeloest, als die Buch- und die
+// 4T-000888 (Epic 3E-000168): aus main.js herausgeloest, als die Buch- und die
 // Regal-Liste dazukamen. Die vier Listen sind EINE Fachlichkeit — sie teilen
 // Speicher-Form (Pfad-Liste im Store), Menue-Aufbau, Bestaetigungs-Dialog und
 // den Umgang mit einem verschwundenen Ziel; sie unterscheiden sich nur im
@@ -31,7 +31,7 @@ const { isSamePath, updatedRecentPaths, withoutRecentPath } = require('./area/ar
 function createRecentLists(deps) {
   const store = () => deps.getStore();
 
-  // 4T-0888: Pflege einer Liste im Store samt Menue-Nachzug. Buecher und
+  // 4T-000888: Pflege einer Liste im Store samt Menue-Nachzug. Buecher und
   // Regale haengen an mehreren Oeffnungs-Pfaden und rufen das von dort;
   // die Bereichs-Liste pflegt openAreaPath unmittelbar.
   function pushRecentEntry(key, dirPath) {
@@ -102,7 +102,7 @@ function createRecentLists(deps) {
     }
   }
 
-  // 4T-0325 (Epic 3E-0058): Klick auf einen Eintrag im Submenue "Zuletzt
+  // 4T-000325 (Epic 3E-000058): Klick auf einen Eintrag im Submenue "Zuletzt
   // geoeffnete Bereiche". Fehlt der Ordner, wird der Eintrag ausgetragen und
   // gemeldet; sonst identische Regeln wie "Bereich oeffnen..." (openAreaPath).
   async function openRecentArea(rootPath, sourceWindow) {
@@ -127,13 +127,13 @@ function createRecentLists(deps) {
       });
       return;
     }
-    // 4T-1364 (Epic 3E-0171): openAreaPath ist asynchron geworden (die
+    // 4T-001364 (Epic 3E-000171): openAreaPath ist asynchron geworden (die
     // Start-Seite wird aus der Bereichsdatei gelesen). Der Menue-Klick wartet
     // nicht auf das Ergebnis; Muster der uebrigen Nachzuegler.
     void deps.openAreaPath(rootPath, sourceWindow);
   }
 
-  // 4T-0888: Klick auf einen Eintrag im Submenue "Zuletzt geoeffnete Buecher".
+  // 4T-000888: Klick auf einen Eintrag im Submenue "Zuletzt geoeffnete Buecher".
   // Bewusst OHNE eigene Vorab-Pruefung des Ordners: das Oeffnen selbst prueft
   // ihn (buildBookState) und meldet ueber den bestehenden lokalisierten Weg des
   // Dialog-Oeffnens (reportNotABook). 'no-book' heisst Ordner weg oder kein Buch
@@ -151,7 +151,7 @@ function createRecentLists(deps) {
     return opened;
   }
 
-  // 4T-0888: dasselbe fuer die Regale (inklusive der Unterscheidung
+  // 4T-000888: dasselbe fuer die Regale (inklusive der Unterscheidung
   // 'no-shelf' -> austragen, 'invalid' -> stehen lassen).
   async function openRecentShelf(shelfDir, sourceWindow) {
     const owner = sourceWindow && !sourceWindow.isDestroyed() ? sourceWindow : null;

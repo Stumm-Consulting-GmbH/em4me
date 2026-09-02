@@ -1,12 +1,12 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 6 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 6 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Sektion der ausgehenden Verweise, Kontextmenue, Markdown-Body des
    Render-Bereichs. */
 
-/* === Outgoing-Links-Sektion (4T-0073) ===================================== */
-/* 4T-0288: border-top entfernt — Block-Trenner via .sidebar-sep. */
+/* === Outgoing-Links-Sektion (4T-000073) ===================================== */
+/* 4T-000288: border-top entfernt — Block-Trenner via .sidebar-sep. */
 .sidebar-outgoing {
   flex: 1 1 auto;
   min-height: 100px;
@@ -89,7 +89,7 @@
 /* === Kontextmenue ========================================================= */
 .context-menu {
   position: fixed;
-  /* 4T-0526 (Epic 3E-0095): oberhalb der Modals (3000) und des Datums-Pickers
+  /* 4T-000526 (Epic 3E-000095): oberhalb der Modals (3000) und des Datums-Pickers
      (3200). Ein Kontextmenue ist ein transientes Popup und gehoert immer
      obenauf; aus einem Modal heraus geoeffnete Menues (z.B. das Snooze-Menue
      des Erinnerungs-Dialogs) waren sonst hinter dem Modal verdeckt und nicht
@@ -124,7 +124,7 @@
 .context-menu-item.disabled:hover {
   background: transparent;
 }
-/* 4T-0379 (Epic 3E-0071): Zustands-Häkchen im Absatz-Submenü. Feste
+/* 4T-000379 (Epic 3E-000071): Zustands-Häkchen im Absatz-Submenü. Feste
    Häkchen-Spalte, damit Eintraege mit und ohne ✓ buendig ausgerichtet sind. */
 .context-menu-item-checkable {
   display: flex;
@@ -137,7 +137,7 @@
   text-align: center;
   color: var(--accent);
 }
-/* 4T-1308 (Epic 3E-0235): Nachlauf-Schaltflaeche am Zeilenende eines
+/* 4T-001308 (Epic 3E-000235): Nachlauf-Schaltflaeche am Zeilenende eines
    Kontextmenue-Eintrags (Schliessen im Mitglieder-Menue einer Reiter-Gruppe).
    margin-left: auto schiebt sie an die rechte Kante, ohne die Breite des
    Menues an einen festen Wert zu binden; der rechte Innenabstand faellt
@@ -173,7 +173,7 @@
   background: var(--border);
   margin: 4px 0;
 }
-/* Submenu-Eintrag (4T-0012): Eltern-Item mit ▸ rechts, Submenu absolut rechts
+/* Submenu-Eintrag (4T-000012): Eltern-Item mit ▸ rechts, Submenu absolut rechts
    daneben verankert. left: 100% setzt das Submenu nahtlos an die rechte Kante,
    margin-left: -1px ueberbrueckt die 1px-Border, damit beim Mausweg kein Gap
    entsteht und der Hover-Wechsel ins Submenu zuverlaessig funktioniert. */
@@ -195,7 +195,7 @@
   top: -5px;
   margin-left: -1px;
 }
-/* 4T-0315 (Epic 3E-0056): Ausweich-Richtung am rechten Fensterrand — das
+/* 4T-000315 (Epic 3E-000056): Ausweich-Richtung am rechten Fensterrand — das
    Submenue oeffnet links vom Eintrag (Messung und Umschaltung in
    placeSubmenu, dialogs.js). */
 .context-menu-submenu.context-menu-submenu-left {
@@ -211,7 +211,7 @@
 /* === Markdown-Body (Render-Bereich) ====================================== */
 .markdown-body {
   padding: 24px 32px;
-  /* 4T-0383 (Epic 3E-0072): Inhalts-Breite als Prozent der Pane-Breite
+  /* 4T-000383 (Epic 3E-000072): Inhalts-Breite als Prozent der Pane-Breite
      (Einstellung im Bereich Darstellung; applyAppearanceVars setzt die
      Variable auf :root). Ersetzt die feste 920-px-Begrenzung; Werte unter
      100 Prozent bleiben ueber margin auto zentriert. Der PDF-Export
@@ -220,7 +220,7 @@
   max-width: var(--content-width, 80%);
   margin: 0 auto;
   line-height: 1.6;
-  /* 4T-0018: Konfigurierbare Render-Schriftart/-groesse. Headings, Code,
+  /* 4T-000018: Konfigurierbare Render-Schriftart/-groesse. Headings, Code,
      Listen-Marker etc. erben automatisch ueber em-relative Groessen weiter
      unten. */
   font-family: var(--render-font-family);
@@ -262,7 +262,7 @@
   background: var(--code-bg);
   padding: 2px 5px;
   border-radius: 3px;
-  /* 4T-0018: Code im Render-Pane nutzt die Editor-Schriftart, damit Code-
+  /* 4T-000018: Code im Render-Pane nutzt die Editor-Schriftart, damit Code-
      Beispiele konsistent zur Editor-Ansicht erscheinen. */
   font-family: var(--editor-font-family);
   font-size: 0.9em;
@@ -280,7 +280,7 @@
   font-size: 0.9em;
 }
 
-/* 4T-0071: Code-Block Copy-Button. Der Wrapper sitzt um das <pre> und
+/* 4T-000071: Code-Block Copy-Button. Der Wrapper sitzt um das <pre> und
    positioniert den Button rechts oben. Default unsichtbar, sichtbar bei
    Hover ueber dem Wrapper oder Focus auf dem Button. */
 .code-block-wrapper {

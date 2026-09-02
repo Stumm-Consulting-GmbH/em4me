@@ -1,4 +1,4 @@
-// 4T-0637 (Epic 3E-0069): Wecker-Modell der Uhr-Erweiterung.
+// 4T-000637 (Epic 3E-000069): Wecker-Modell der Uhr-Erweiterung.
 //
 // Prueft die prozessneutralen Funktionen aus src/shared/clock/clock-alarms.js:
 // Normalisierung defekter Staende, Kennungs-Vergabe, Wochentags-Logik,
@@ -28,7 +28,7 @@ function alarm(over = {}) {
   return { id: 'a1', time: '07:00', label: '', enabled: true, repeat: 'daily', days: [], ...over };
 }
 
-describe('normalizeAlarm (4T-0637)', () => {
+describe('normalizeAlarm (4T-000637)', () => {
   it('uebernimmt einen gueltigen Wecker unveraendert', () => {
     const raw = { id: 'a3', time: '06:45', label: 'Aufstehen', enabled: false, repeat: 'once' };
     expect(normalizeAlarm(raw)).toEqual({
@@ -75,7 +75,7 @@ describe('normalizeAlarm (4T-0637)', () => {
   });
 });
 
-describe('normalizeAlarms (4T-0637)', () => {
+describe('normalizeAlarms (4T-000637)', () => {
   it('sortiert nach Uhrzeit und entfernt Duplikat-Kennungen', () => {
     const list = normalizeAlarms([
       alarm({ id: 'a2', time: '21:30' }),
@@ -102,7 +102,7 @@ describe('normalizeAlarms (4T-0637)', () => {
   });
 });
 
-describe('nextAlarmId (4T-0637)', () => {
+describe('nextAlarmId (4T-000637)', () => {
   it('zaehlt ueber den hoechsten Bestand hinaus', () => {
     expect(nextAlarmId([])).toBe('a1');
     expect(nextAlarmId([alarm({ id: 'a1' }), alarm({ id: 'a7' })])).toBe('a8');
@@ -111,7 +111,7 @@ describe('nextAlarmId (4T-0637)', () => {
   });
 });
 
-describe('Wochentags-Logik (4T-0637)', () => {
+describe('Wochentags-Logik (4T-000637)', () => {
   it('zaehlt Montag als 0', () => {
     expect(isoWeekdayIndex(MONTAG)).toBe(0);
     expect(isoWeekdayIndex(new Date(2099, 5, 21))).toBe(6); // Sonntag
@@ -130,7 +130,7 @@ describe('Wochentags-Logik (4T-0637)', () => {
   });
 });
 
-describe('computeDueAlarms (4T-0637)', () => {
+describe('computeDueAlarms (4T-000637)', () => {
   const fenster = (vonH, vonM, bisH, bisM) => ({
     from: new Date(2099, 5, 15, vonH, vonM, 0, 0),
     to: new Date(2099, 5, 15, bisH, bisM, 0, 0),
@@ -180,7 +180,7 @@ describe('computeDueAlarms (4T-0637)', () => {
   });
 });
 
-describe('Schlummern und einmalige Wecker (4T-0637)', () => {
+describe('Schlummern und einmalige Wecker (4T-000637)', () => {
   it('normalizeSnoozeMinutes klemmt und faellt zurueck', () => {
     expect(normalizeSnoozeMinutes(undefined)).toBe(DEFAULT_SNOOZE_MINUTES);
     expect(normalizeSnoozeMinutes('kaputt')).toBe(DEFAULT_SNOOZE_MINUTES);

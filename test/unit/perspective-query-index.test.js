@@ -1,9 +1,9 @@
-// 4T-0402 (Epic 3E-0076): Integrations-Tests der Perspective-Abfrage gegen den
+// 4T-000402 (Epic 3E-000076): Integrations-Tests der Perspective-Abfrage gegen den
 // echten Backlinks-Index (Temp-Verzeichnis-Fixtures): implizite file.*-Felder
 // aus dem Index (Zeiten, Größe, Pfade), FROM-Quellen (Ordner, Tags, Links über
 // den Link-Graphen) und der queryError-Pfad der Funktions-Validierung.
 // Eigene Datei neben backlinks.test.js (gleiches Setup-/Teardown-Muster),
-// damit die Abfrage-Suite unabhängig wächst. 4T-0972 (Datei-Größen-Budget):
+// damit die Abfrage-Suite unabhängig wächst. 4T-000972 (Datei-Größen-Budget):
 // Die Task-Blöcke (TASKS-Scope, Gruppierung, Default-Sortierung,
 // Abhängigkeiten, areaTaskLines) liegen seit dem Schnitt in
 // perspective-query-tasks.test.js.
@@ -70,7 +70,7 @@ afterEach(() => {
 // Kleiner Suchraum: Start.md an der Wurzel (aktive Datei), zwei Projekt-Dateien
 // (Alpha verlinkt per Wiki-Link auf Beta), eine Notiz mit Markdown-Link auf
 // Alpha. Alphas mtime wird künstlich auf 2020 gesetzt (Datums-Vergleiche).
-// 4T-0409 (Epic 3E-0077): Alpha und Beta tragen Block-Anker plus .mdd mit
+// 4T-000409 (Epic 3E-000077): Alpha und Beta tragen Block-Anker plus .mdd mit
 // blockData (Beta zusätzlich einen verwaisten Eintrag), Gamma eine defekte
 // .mdd — Fixture für den BLOCKS-Scope.
 let start;
@@ -180,7 +180,7 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
     expect(frontmatterQueryFor(start, 'FROM [[Unbekannt]]').files).toEqual([]);
   });
 
-  // 4T-1070 (Epic 3E-0211): Selbstbezug gegen den echten Index. Träger-Datei
+  // 4T-001070 (Epic 3E-000211): Selbstbezug gegen den echten Index. Träger-Datei
   // ist hier Alpha (eingehend von Gamma, ausgehend auf Beta); sie liegt in
   // einem Unterordner, deshalb läuft die Abfrage über die Bereichs-Wurzel —
   // ohne sie wäre der Suchraum nur der Ordner der Träger-Datei.
@@ -239,7 +239,7 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
   });
 });
 
-describe('perspective-query — Index-Integration (SORT/LIMIT, 4T-0403)', () => {
+describe('perspective-query — Index-Integration (SORT/LIMIT, 4T-000403)', () => {
   it('SORT über Properties: fehlende Werte ans Ende, Pfad-Tiebreak', async () => {
     // prio: Beta 10, Alpha 3; Gamma/Start ohne prio -> ans Ende, Pfad-Ordnung.
     expect(names(frontmatterQueryFor(start, 'LIST SORT prio DESC'))).toEqual([
@@ -281,7 +281,7 @@ describe('perspective-query — Index-Integration (SORT/LIMIT, 4T-0403)', () => 
   });
 });
 
-describe('perspective-query — Index-Integration (TABLE und Zusatzfeld, 4T-0404)', () => {
+describe('perspective-query — Index-Integration (TABLE und Zusatzfeld, 4T-000404)', () => {
   it('TABLE liefert Kopfzeilen (Alias/Quelltext) und Zell-Segmente', async () => {
     const res = frontmatterQueryFor(
       start,
@@ -313,7 +313,7 @@ describe('perspective-query — Index-Integration (TABLE und Zusatzfeld, 4T-0404
     expect(res.files[1].extra).toEqual([{ text: '3' }]);
   });
 
-  it('COLUMNS: layoutColumns bei LIST, Hinweis bei TABLE (4T-0405)', async () => {
+  it('COLUMNS: layoutColumns bei LIST, Hinweis bei TABLE (4T-000405)', async () => {
     const list = frontmatterQueryFor(start, 'LIST COLUMNS 3');
     expect(list.layoutColumns).toBe(3);
     expect(list.hint).toBeUndefined();
@@ -339,7 +339,7 @@ describe('perspective-query — Index-Integration (Fehler-Pfad)', () => {
   });
 });
 
-// --- 4T-0409 (Epic 3E-0077): Block-Ebene (BLOCKS-Scope) --------------------------
+// --- 4T-000409 (Epic 3E-000077): Block-Ebene (BLOCKS-Scope) --------------------------
 
 describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
   it('LIST BLOCKS liefert aktive Block-Treffer als Datei#^anker (verwaiste nicht)', async () => {
@@ -417,7 +417,7 @@ describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
     expect(names(frontmatterQueryFor(start, 'LIST'))).toEqual(['Alpha', 'Beta', 'Gamma', 'Start']);
   });
 
-  it('Invalidierung: updateBlockDataForFile wirkt beim naechsten Abfrage-Lauf (4T-0408)', async () => {
+  it('Invalidierung: updateBlockDataForFile wirkt beim naechsten Abfrage-Lauf (4T-000408)', async () => {
     updateBlockDataForFile(alpha, {
       a1: { values: { status: 'wartend' }, updated: '2026-07-09T08:00:00Z' },
     });
@@ -432,13 +432,13 @@ describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
   });
 });
 
-// --- 4T-1071 (Epic 3E-0211): Referenz-Muster «Letzter Kontakt» ----------------
+// --- 4T-001071 (Epic 3E-000211): Referenz-Muster «Letzter Kontakt» ----------------
 
-// Story 4S-0812 AK1 als Ganzes: eine Personen-Notiz gibt die jüngste auf sie
+// Story 4S-000812 AK1 als Ganzes: eine Personen-Notiz gibt die jüngste auf sie
 // verlinkende datierte Notiz mit Datum und Tages-Differenz aus. Der Fall baut
 // seinen eigenen Suchraum, weil er eine andere Bestands-Form braucht als die
 // Fixture oben (datierte Journal-Notizen plus eine undatierte).
-describe('perspective-query — Referenz-Muster «Letzter Kontakt» (4T-1071)', () => {
+describe('perspective-query — Referenz-Muster «Letzter Kontakt» (4T-001071)', () => {
   it('jüngste verlinkende datierte Notiz mit Tages-Differenz', async () => {
     const root = makeRoot();
     const einstieg = write(root, 'Start.md', '# Start\n');
@@ -495,9 +495,9 @@ describe('perspective-query — Referenz-Muster «Letzter Kontakt» (4T-1071)', 
   });
 });
 
-// --- 4T-1072 (Epic 3E-0211): Sprach-Bindung der Formatierer -------------------
+// --- 4T-001072 (Epic 3E-000211): Sprach-Bindung der Formatierer -------------------
 
-describe('perspective-query — Sprache der Formatierer (4T-1072)', () => {
+describe('perspective-query — Sprache der Formatierer (4T-001072)', () => {
   it('die Sprache aus der Anfrage erreicht die Formatierer', async () => {
     const spalte = (lang) =>
       frontmatterQueryFor(
@@ -522,14 +522,14 @@ describe('perspective-query — Sprache der Formatierer (4T-1072)', () => {
   });
 });
 
-// --- 4T-1073 (Epic 3E-0211): Link-Listen-Filter über Ordner --------------------
+// --- 4T-001073 (Epic 3E-000211): Link-Listen-Filter über Ordner --------------------
 
 // Der Prüfgegenstand ist der Pfad-Bruch aus Entscheid E8: Die Link-Werte des
 // Graphen tragen den absoluten Pfad des Temp-Verzeichnisses, die Ordner-Angabe
 // der Abfrage ist wurzel-relativ. Nur gegen den echten Index ist belegbar, dass
 // infolder beide Seiten zusammenbringt; im synthetischen Kontext wäre die
 // Wurzel gesetzt und der Fall nicht echt.
-describe('perspective-query — infolder gegen den echten Link-Graphen (4T-1073)', () => {
+describe('perspective-query — infolder gegen den echten Link-Graphen (4T-001073)', () => {
   const GTD = '12 Getting Things Done (GTD)';
   let einstieg;
   let wurzel;

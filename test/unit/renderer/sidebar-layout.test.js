@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0287 (Epic 3E-0051): Panel-Registry und Sidebar-Layout-Modell —
+// 4T-000287 (Epic 3E-000051): Panel-Registry und Sidebar-Layout-Modell —
 // Validierung/Normalisierung (inklusive unbekannter und fehlender
 // Panel-IDs), Default-Layout, Verschiebe-/Gruppier-Operationen,
 // Persistenz-Anwendung und Breiten-Migration (outline.width).
@@ -59,22 +59,22 @@ beforeEach(() => {
   };
 });
 
-describe('Default-Layout (4T-0287, 4T-0563)', () => {
-  it('expliziter Standard: Gruppen links und rechts (4T-0563)', () => {
-    // 4T-0563 (Epic 3E-0102): der neue Standard verteilt die Panels auf beide
+describe('Default-Layout (4T-000287, 4T-000563)', () => {
+  it('expliziter Standard: Gruppen links und rechts (4T-000563)', () => {
+    // 4T-000563 (Epic 3E-000102): der neue Standard verteilt die Panels auf beide
     // Seiten und bündelt sie thematisch als Reiter-Gruppen. Die PO-Vorgabe wird
     // hier hart gepinnt (nicht aus DEFAULT_SIDEBAR_STRUCTURE abgeleitet), damit
     // der Test eine unbeabsichtigte Änderung der Standard-Anordnung fängt.
     const layout = defaultSidebarLayout(KNOWN);
     expect(layout).toEqual({
       left: [
-        // 4T-0844 (Epic 3E-0147): das Inhaltsverzeichnis des Buches schliesst
+        // 4T-000844 (Epic 3E-000147): das Inhaltsverzeichnis des Buches schliesst
         // die Ort-Gruppe ab.
         { panels: ['bookmarks', 'area', 'book'], active: 'bookmarks' },
-        // 4T-0759 (Epic 3E-0142): das Suchergebnis-Panel schliesst die
+        // 4T-000759 (Epic 3E-000142): das Suchergebnis-Panel schliesst die
         // Finde-Gruppe ab.
         { panels: ['outline', 'subpages', 'filegraph', 'searchresults'], active: 'outline' },
-        // 4T-0372 (Epic 3E-0069): die Uhr schliesst die Zeit-Gruppe ab.
+        // 4T-000372 (Epic 3E-000069): die Uhr schliesst die Zeit-Gruppe ab.
         { panels: ['calendar', 'reminders', 'clock'], active: 'calendar' },
       ],
       right: [
@@ -137,8 +137,8 @@ describe('normalizeSidebarLayout (Validierung)', () => {
     expect(layout.left[0]).toEqual({ panels: ['tags', 'properties'], active: 'tags' });
   });
 
-  it('defekter/leerer Input ergibt den Fallback (alle Panels links, keine Gruppen) (4T-0563)', () => {
-    // 4T-0563 (Epic 3E-0102): Default und Defekt-Fallback sind entkoppelt.
+  it('defekter/leerer Input ergibt den Fallback (alle Panels links, keine Gruppen) (4T-000563)', () => {
+    // 4T-000563 (Epic 3E-000102): Default und Defekt-Fallback sind entkoppelt.
     // normalizeSidebarLayout(null/defekt) liefert weiterhin alle bekannten
     // Panels als Einzel-Slots links (rechts leer), NICHT den expliziten Standard.
     const fallback = { left: KNOWN.map((id) => ({ panels: [id], active: id })), right: [] };
@@ -164,7 +164,7 @@ describe('normalizeSidebarLayout (Validierung)', () => {
 
 describe('movePanelToNewSlot', () => {
   it('verschiebt ein Panel als eigenen Slot auf die rechte (leere) Seite', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture statt Default — der neue Standard
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture statt Default — der neue Standard
     // hat rechts bereits Slots, die frühere Annahme „rechts leer" gilt nicht mehr.
     const layout = normalizeSidebarLayout(
       {
@@ -184,7 +184,7 @@ describe('movePanelToNewSlot', () => {
   });
 
   it('ändert die Reihenfolge innerhalb einer Seite (Index nach Entfernen)', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture statt Default. outline (Slot 2) an
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture statt Default. outline (Slot 2) an
     // Slot-Index 1 (nach Entfernen) einsortieren: ergibt bookmarks, outline,
     // properties als erste drei Panels.
     const layout = normalizeSidebarLayout(
@@ -207,7 +207,7 @@ describe('movePanelToNewSlot', () => {
   });
 
   it('klemmt den Slot-Index auf gültige Grenzen', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture statt Default (Klemm-Semantik
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture statt Default (Klemm-Semantik
     // unabhängig von der Standard-Anordnung geprüft).
     const layout = normalizeSidebarLayout(
       {
@@ -252,7 +252,7 @@ describe('movePanelToNewSlot', () => {
 
 describe('groupPanelWith', () => {
   it('bildet eine Reiter-Gruppe; das verschobene Panel wird aktiver Reiter', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture statt Default.
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture statt Default.
     const layout = normalizeSidebarLayout(
       {
         left: [
@@ -271,7 +271,7 @@ describe('groupPanelWith', () => {
   });
 
   it('erweitert eine bestehende Gruppe über Seiten-Grenzen hinweg', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture mit einem Slot rechts, statt den
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture mit einem Slot rechts, statt den
     // Default umzubauen.
     const layout = normalizeSidebarLayout(
       {
@@ -297,9 +297,9 @@ describe('groupPanelWith', () => {
   });
 });
 
-describe('movePanelRelativeTo (4T-0289)', () => {
+describe('movePanelRelativeTo (4T-000289)', () => {
   it('verschiebt vor bzw. hinter den Slot des Ziel-Panels (Index-stabil)', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture statt Default.
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture statt Default.
     const layout = normalizeSidebarLayout(
       {
         left: [
@@ -346,7 +346,7 @@ describe('movePanelRelativeTo (4T-0289)', () => {
   });
 
   it('No-ops: Selbst-Bezug, unbekannte IDs, ungültige Position', () => {
-    // 4T-0563 (Epic 3E-0102): Hand-Fixture — bookmarks liegt hier direkt vor
+    // 4T-000563 (Epic 3E-000102): Hand-Fixture — bookmarks liegt hier direkt vor
     // properties, damit der letzte Assert eine echte No-op-Position prüft.
     const layout = normalizeSidebarLayout(
       {
@@ -429,7 +429,7 @@ describe('Registry (registerSidebarPanel)', () => {
       titleKey: 'outline.title',
       sectionClass: 'sidebar-outline',
     });
-    // 4T-0475 (Epic 3E-0088): Default-Reihenfolge = tags vor outline.
+    // 4T-000475 (Epic 3E-000088): Default-Reihenfolge = tags vor outline.
     expect(knownPanelIds()).toEqual(['tags', 'outline', 'extra']);
   });
 });
@@ -440,8 +440,8 @@ describe('Persistenz, Migration und Breiten', () => {
     expect(layoutsEqual(getSidebarLayout(), defaultSidebarLayout(KNOWN))).toBe(true);
   });
 
-  it('gespeicherter defekter Stand ergibt den Fallback, nicht den Default (4T-0563)', async () => {
-    // 4T-0563 (Epic 3E-0102): Migration bleibt Nutzer-Layout-schonend. Ein
+  it('gespeicherter defekter Stand ergibt den Fallback, nicht den Default (4T-000563)', async () => {
+    // 4T-000563 (Epic 3E-000102): Migration bleibt Nutzer-Layout-schonend. Ein
     // vorhandener (auch defekter) Speicher-Stand läuft durch
     // normalizeSidebarLayout und ergibt den Fallback (alle Panels links, flach),
     // NICHT den neuen expliziten Standard (der greift nur bei fehlendem Layout).
@@ -540,10 +540,10 @@ describe('Persistenz, Migration und Breiten', () => {
   });
 });
 
-// 4T-0475 (Epic 3E-0088): getauschte Default-Reihenfolge (Lesezeichen vor
-// Inhaltsverzeichnis). 4T-0563 (Epic 3E-0102): zusätzlich 'subpages' in der
+// 4T-000475 (Epic 3E-000088): getauschte Default-Reihenfolge (Lesezeichen vor
+// Inhaltsverzeichnis). 4T-000563 (Epic 3E-000102): zusätzlich 'subpages' in der
 // kanonischen Reihenfolge und Notizen rechts im neuen Standard-Layout.
-describe('Default-Reihenfolge nach Panel-Tausch (4T-0475, 4T-0563)', () => {
+describe('Default-Reihenfolge nach Panel-Tausch (4T-000475, 4T-000563)', () => {
   it("DEFAULT_PANEL_ORDER beginnt mit 'bookmarks'; 'outline' an alter bookmarks-Position", () => {
     expect(DEFAULT_PANEL_ORDER[0]).toBe('bookmarks');
     // Die alte bookmarks-Position lag unmittelbar hinter 'notes'.
@@ -552,7 +552,7 @@ describe('Default-Reihenfolge nach Panel-Tausch (4T-0475, 4T-0563)', () => {
     // Der Tausch erzeugt kein doppeltes/fehlendes Panel.
     expect(DEFAULT_PANEL_ORDER.filter((id) => id === 'outline')).toHaveLength(1);
     expect(DEFAULT_PANEL_ORDER.filter((id) => id === 'bookmarks')).toHaveLength(1);
-    // 4T-0563 (Epic 3E-0102): 'subpages' in die kanonische Reihenfolge
+    // 4T-000563 (Epic 3E-000102): 'subpages' in die kanonische Reihenfolge
     // aufgenommen, unmittelbar hinter 'outline'.
     expect(DEFAULT_PANEL_ORDER).toContain('subpages');
     const outlineIdx = DEFAULT_PANEL_ORDER.indexOf('outline');
@@ -560,19 +560,19 @@ describe('Default-Reihenfolge nach Panel-Tausch (4T-0475, 4T-0563)', () => {
     expect(DEFAULT_PANEL_ORDER.filter((id) => id === 'subpages')).toHaveLength(1);
   });
 
-  it('Default-Layout: Lesezeichen vorn links, Notizen als erster Slot rechts (4T-0563)', () => {
+  it('Default-Layout: Lesezeichen vorn links, Notizen als erster Slot rechts (4T-000563)', () => {
     const layout = defaultSidebarLayout(KNOWN);
-    // 4T-0475 (Epic 3E-0088): Lesezeichen bleiben das vorderste Panel links.
+    // 4T-000475 (Epic 3E-000088): Lesezeichen bleiben das vorderste Panel links.
     expect(layout.left[0].panels[0]).toBe('bookmarks');
-    // 4T-0563 (Epic 3E-0102): Notizen liegen im neuen Standard rechts als
+    // 4T-000563 (Epic 3E-000102): Notizen liegen im neuen Standard rechts als
     // erster Slot.
     expect(layout.right[0].panels[0]).toBe('notes');
   });
 });
 
-// 4T-0475 (Epic 3E-0088): manuell einstellbare Panel-Höhen (Modell,
+// 4T-000475 (Epic 3E-000088): manuell einstellbare Panel-Höhen (Modell,
 // Persistenz-Key sidebar.panelHeights, Lade-Logik).
-describe('Panel-Höhen (4T-0475)', () => {
+describe('Panel-Höhen (4T-000475)', () => {
   it('clampPanelHeight: numerische Sanity, min/max, ungültig → null', () => {
     expect(clampPanelHeight(10)).toBe(MIN_PANEL_HEIGHT);
     expect(clampPanelHeight(9999)).toBe(2000);

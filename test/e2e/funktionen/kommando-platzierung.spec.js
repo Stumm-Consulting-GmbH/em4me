@@ -1,14 +1,14 @@
-// 4T-0520 (Epic 3E-0094): E2E-Funktions-Suite — Kommando-Platzierung.
+// 4T-000520 (Epic 3E-000094): E2E-Funktions-Suite — Kommando-Platzierung.
 // KP-01 platzierter Statusbar-Button führt sein Kommando aus (Store-Seed),
 // KP-02 Anlage über den Einstellungs-Dialog (Drei-Schritt-Flow),
 // KP-03 Hide-Liste blendet Standard-Buttons aus (DOM bleibt erhalten)
 // und der Zurücksetzen-Knopf holt sie zurück, KP-04 Überlauf-Mehr-Menü
 // am schmalen Fenster, KP-05 Aus-Zustand der Erweiterung (Standard-
 // Statusbar, kein Einstellungs-Bereich, Konfiguration bleibt).
-// 4T-0521: KP-06 nutzerdefinierte Kontextmenü-Sektion (Sektion am
+// 4T-000521: KP-06 nutzerdefinierte Kontextmenü-Sektion (Sektion am
 // Menü-Ende, Ausführung, deaktivierter Eintrag bei Bereichs-Pflicht),
 // KP-07 Live-Modus-Parität und Aus-Zustand der Sektion.
-// 4T-0522: KP-08 Makro als platzierter Button (Ausführung und
+// 4T-000522: KP-08 Makro als platzierter Button (Ausführung und
 // Abbruch-Hinweis), KP-09 Makro-Editor-Flow (Anlage, Schritte, Testlauf,
 // Palette-Findbarkeit nach Anwenden).
 // Store-Vorbelegung über seedProfile (Muster einstellungen-seite.spec.js).

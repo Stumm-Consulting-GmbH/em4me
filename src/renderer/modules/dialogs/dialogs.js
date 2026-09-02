@@ -1,8 +1,8 @@
 // Modale Dialoge: Ueber-Dialog, Alias-Auswahl, Namens-Eingabe und die beiden
 // Link-Update-Dialoge (Vorschau und Bericht).
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
-// 4T-0978 (Epic 3E-0196): Tab- und Gruppen-Menues nach tabs/tab-context-menu.js
+// 4T-000978 (Epic 3E-000196): Tab- und Gruppen-Menues nach tabs/tab-context-menu.js
 // und die generischen Menue-Helfer nach dialogs/context-menu-utils.js
 // ausgezogen; hier bleiben die Modale (reiner Struktur-Schnitt).
 'use strict';
@@ -30,13 +30,13 @@ export function hideAbout() {
   aboutModal.hidden = true;
 }
 
-// --- Alias-Modal (4T-0050) --------------------------------------------------
+// --- Alias-Modal (4T-000050) --------------------------------------------------
 // Promise-basiertes Modal. Aufrufer ruft showAliasDialog(alias, candidates)
 // und wartet auf den ausgewaehlten Pfad oder null (Abbruch durch Esc,
 // Backdrop oder Cancel-Button). Nur ein Dialog gleichzeitig aktiv;
 // pendingAliasResolver speichert den Promise-Resolver fuer den aktuellen
 // Aufruf.
-// 4T-0978: Die Bindung bleibt mit ihren drei Funktionen in diesem Modul —
+// 4T-000978: Die Bindung bleibt mit ihren drei Funktionen in diesem Modul —
 // kein Modul von aussen liest oder schreibt sie, sodass die Regel gegen
 // beschreibbare Export-Bindings über Modul-Grenzen ohne Zugriffs-Funktionen
 // eingehalten ist.
@@ -104,7 +104,7 @@ export function cancelAliasDialog() {
   resolveAliasDialog(null);
 }
 
-// --- Namens-Eingabe-Modal (4T-0338, Epic 3E-0061) ----------------------------
+// --- Namens-Eingabe-Modal (4T-000338, Epic 3E-000061) ----------------------------
 // Generischer Eingabe-Dialog fuer Unterseite-anlegen und Datei-umbenennen.
 // Promise-basiert wie showAliasDialog: liefert den bestaetigten Namen oder
 // null bei Abbruch (Esc, Backdrop, Abbrechen-Button). opts:
@@ -114,13 +114,13 @@ export function cancelAliasDialog() {
 //   placeholder  Platzhalter-Text
 //   okLabel      Beschriftung des Bestaetigen-Buttons (bereits lokalisiert)
 //   validate     (value, checkboxes) => i18n-Key des Fehlers oder null
-// 4T-0346 (Epic 3E-0062): opts.checkboxes ist eine optionale Liste
+// 4T-000346 (Epic 3E-000062): opts.checkboxes ist eine optionale Liste
 //   [{ id, label, checked, requires?, onChange? }]. Ohne die Option verhaelt
 //   sich der Dialog wie bisher (Rueckgabe: String bzw. null). Mit der Option
 //   zeigt er die Checkboxen und liefert bei OK ein Objekt
 //   { value, checkboxes: { id: bool } }; `requires` deaktiviert eine Checkbox,
 //   solange die referenzierte aus ist.
-// 4T-0646 (Epic 3E-0128): `onChange(checked, input)` laesst eine Checkbox das
+// 4T-000646 (Epic 3E-000128): `onChange(checked, input)` laesst eine Checkbox das
 //   Eingabefeld umschalten (Vollname-Schalter des Umbenennen-Dialogs), und
 //   `validate` bekommt die Checkbox-Werte als zweiten Parameter, damit die
 //   Pruefung dem umgeschalteten Modus folgen kann.
@@ -177,7 +177,7 @@ export function showNameInputDialog(opts) {
         if (def.requires && checkboxInputs[def.requires]) {
           checkboxInputs[def.requires].addEventListener('change', applyDeps);
         }
-        // 4T-0646 (Epic 3E-0128): Eine Checkbox darf das Eingabefeld
+        // 4T-000646 (Epic 3E-000128): Eine Checkbox darf das Eingabefeld
         // umschalten (Vollname-Schalter des Umbenennen-Dialogs). Der Aufrufer
         // bekommt den Zustand und das Feld; die Validierung liest die
         // Checkbox-Werte ueber den zweiten validate-Parameter.
@@ -245,7 +245,7 @@ export function showNameInputDialog(opts) {
   });
 }
 
-// 4T-0346 (Epic 3E-0062): gemeinsamer Listen-Aufbau fuer Vorschau und Bericht.
+// 4T-000346 (Epic 3E-000062): gemeinsamer Listen-Aufbau fuer Vorschau und Bericht.
 // sections: Liste von { title?, emptyText?, rows: [{ text, detail? }] }. Leere
 // Sektionen zeigen ihren emptyText (oder werden uebersprungen). Ein Dialog, zwei
 // Betriebsarten (Architektur-Entscheidung des Epics).
@@ -287,7 +287,7 @@ function renderLinkUpdateSections(container, sections) {
   }
 }
 
-// 4T-0346 (Epic 3E-0062): Vorschau vor dem Link-Update. opts:
+// 4T-000346 (Epic 3E-000062): Vorschau vor dem Link-Update. opts:
 //   title, summary (lokalisiert), sections (fuer renderLinkUpdateSections),
 //   continueLabel, cancelLabel. Liefert true (Fortfahren) oder false (Abbruch).
 export function showLinkPreviewDialog(opts) {
@@ -340,7 +340,7 @@ export function showLinkPreviewDialog(opts) {
   });
 }
 
-// 4T-0346 (Epic 3E-0062): Ergebnis-Bericht nach dem Link-Update. opts:
+// 4T-000346 (Epic 3E-000062): Ergebnis-Bericht nach dem Link-Update. opts:
 //   title, sections, okLabel. Liefert nichts (nur Bestaetigung).
 export function showLinkReportDialog(opts) {
   const modal = $('#link-report-modal');

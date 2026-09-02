@@ -1,4 +1,4 @@
-// 4T-0787 (Epic 3E-0125): Unit-Tests für den Ablage-Kern der Anlagen
+// 4T-000787 (Epic 3E-000125): Unit-Tests für den Ablage-Kern der Anlagen
 // (src/main/documents/attachment-path.js). Geprüft sind die vier Ablage-Formen, die
 // Grenz-Abweisungen, die Namensvergabe samt Kollisions-Zähler und der
 // dokumentrelative Verweis-Pfad.
@@ -18,7 +18,7 @@ import {
   verweisPfad,
 } from '../../src/main/documents/attachment-path.js';
 
-// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// 4T-001250 (Epic 3E-000124): Wirts-gerechter Pfad aus der gewachsenen
 // Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
 // die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
 // sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
@@ -42,7 +42,7 @@ const WURZEL = P('C:\\Daten\\Notizen');
 const DOK = P('C:\\Daten\\Notizen\\Projekte\\Protokoll.md');
 const DOK_ORDNER = P('C:\\Daten\\Notizen\\Projekte');
 
-describe('normalisiereAnlagenKonfig (4T-0787)', () => {
+describe('normalisiereAnlagenKonfig (4T-000787)', () => {
   it('ohne Konfiguration gilt die Voreinstellung', () => {
     expect(normalisiereAnlagenKonfig(undefined)).toEqual({
       form: STANDARD_FORM,
@@ -66,7 +66,7 @@ describe('normalisiereAnlagenKonfig (4T-0787)', () => {
   });
 });
 
-describe('istGueltigerOrdnername (4T-0787)', () => {
+describe('istGueltigerOrdnername (4T-000787)', () => {
   it('einfache Namen sind gültig', () => {
     expect(istGueltigerOrdnername('Anlagen')).toBe(true);
     expect(istGueltigerOrdnername('_Anlagen 2')).toBe(true);
@@ -87,7 +87,7 @@ describe('istGueltigerOrdnername (4T-0787)', () => {
   });
 });
 
-describe('loeseAblageOrt — die vier Formen (4T-0787)', () => {
+describe('loeseAblageOrt — die vier Formen (4T-000787)', () => {
   it('neben dem Dokument liefert dessen Ordner', () => {
     const r = loeseAblageOrt({ dokumentPfad: DOK, konfig: { form: 'neben' } });
     expect(r.ok).toBe(true);
@@ -128,7 +128,7 @@ describe('loeseAblageOrt — die vier Formen (4T-0787)', () => {
   });
 });
 
-describe('loeseAblageOrt — Abweisungen (4T-0787)', () => {
+describe('loeseAblageOrt — Abweisungen (4T-000787)', () => {
   it('ohne gespeichertes Dokument gibt es keinen Ablage-Ort', () => {
     const r = loeseAblageOrt({ dokumentPfad: '', konfig: { form: 'dokument' } });
     expect(r.ok).toBe(false);
@@ -170,7 +170,7 @@ describe('loeseAblageOrt — Abweisungen (4T-0787)', () => {
   });
 });
 
-describe('ordnernameAusDokument (4T-0787)', () => {
+describe('ordnernameAusDokument (4T-000787)', () => {
   it('liefert den Basisnamen ohne Endung', () => {
     expect(ordnernameAusDokument(DOK)).toBe('Protokoll');
     expect(ordnernameAusDokument(P('C:\\a\\Mein Text.markdown'))).toBe('Mein Text');
@@ -192,7 +192,7 @@ describe('ordnernameAusDokument (4T-0787)', () => {
   });
 });
 
-describe('erzeugeAnlagenNamen (4T-0787)', () => {
+describe('erzeugeAnlagenNamen (4T-000787)', () => {
   const ZEIT = new Date(2026, 6, 29, 14, 30, 22); // 2026-07-29 14:30:22 lokal
 
   it('setzt Dokumentname, Unterstrich und Datum-Uhrzeit zusammen', () => {
@@ -214,7 +214,7 @@ describe('erzeugeAnlagenNamen (4T-0787)', () => {
   });
 });
 
-describe('bereinigeDateinamen (4T-0787)', () => {
+describe('bereinigeDateinamen (4T-000787)', () => {
   it('behält die eigene Endung und ergänzt keine', () => {
     expect(bereinigeDateinamen('Bericht.pdf')).toBe('Bericht.pdf');
     expect(bereinigeDateinamen('Ohne-Endung')).toBe('Ohne-Endung');
@@ -231,7 +231,7 @@ describe('bereinigeDateinamen (4T-0787)', () => {
   });
 });
 
-describe('freierDateiname (4T-0787)', () => {
+describe('freierDateiname (4T-000787)', () => {
   const VZ = P('C:\\Ziel');
   const machExistiert = (vorhanden) => (p) => vorhanden.includes(p);
 
@@ -278,7 +278,7 @@ describe('freierDateiname (4T-0787)', () => {
   });
 });
 
-describe('istAusfuehrbareEndung (4T-0790)', () => {
+describe('istAusfuehrbareEndung (4T-000790)', () => {
   it('erkennt die Endungen, die beim Öffnen Code ausführen', () => {
     for (const name of [
       'setup.exe',
@@ -313,7 +313,7 @@ describe('istAusfuehrbareEndung (4T-0790)', () => {
   });
 });
 
-describe('verweisPfad (4T-0787)', () => {
+describe('verweisPfad (4T-000787)', () => {
   it('liefert den Pfad relativ zum Dokument mit Vorwärts-Schrägstrichen', () => {
     expect(
       verweisPfad({

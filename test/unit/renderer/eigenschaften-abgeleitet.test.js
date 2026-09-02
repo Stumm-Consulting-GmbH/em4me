@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1185 (Epic 3E-0221, E1): Abgeleitete Felder in beiden Eigenschafts-Panels
+// 4T-001185 (Epic 3E-000221, E1): Abgeleitete Felder in beiden Eigenschafts-Panels
 // — Anzeige, Sperre und der Negativ-Nachweis, dass nichts geschrieben wird.
 //
 // **Der Schwerpunkt liegt auf dem Negativ-Nachweis.** Die Anzeige eines
@@ -8,7 +8,7 @@
 // abgeleitetes Feld hängt in derselben Feld-Liste, aus der heraus gespeichert
 // wird — die Regel «geht nie ins Dokument» ist damit die einzige Sperre
 // zwischen einem gerechneten Wert und der Datei des Anwenders. Genau dieses
-// Muster hat in Stufe 3 einen Fehler getragen (4T-1179), deshalb prüfen die
+// Muster hat in Stufe 3 einen Fehler getragen (4T-001179), deshalb prüfen die
 // Fälle unten das GESCHRIEBENE Ergebnis und nicht das DOM.
 import { describe, it, expect, vi } from 'vitest';
 import './api-stub.js';
@@ -36,7 +36,7 @@ const { DERIVED_TYPES, buildProfileFillMap, profileFieldSuggestions } =
 // Modul geladen, sondern als Quelltext gelesen: Beide hängen über
 // `link-navigation` am Panel-Geflecht und sind in einem Unit-Umfeld nicht
 // isoliert ladbar. Dasselbe Mittel nutzt `eigenschaften-neue-typen.test.js`
-// seit 4T-1156 für dieselben Dateien.
+// seit 4T-001156 für dieselben Dateien.
 const fsMod = await import('node:fs');
 const quelleVon = (p) => fsMod.readFileSync(p, 'utf8');
 

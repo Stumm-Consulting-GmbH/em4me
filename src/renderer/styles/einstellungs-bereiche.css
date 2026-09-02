@@ -1,10 +1,10 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 13 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 13 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Einstellungs-Bereiche (Erweiterungen bis Kalender-Systeme). */
 
-/* 4T-0295 (Epic 3E-0052): Bereich "Erweiterungen" der Einstellungs-Seite. */
+/* 4T-000295 (Epic 3E-000052): Bereich "Erweiterungen" der Einstellungs-Seite. */
 .settings-extensions-intro {
   margin: 0 0 8px;
   font-size: 12.5px;
@@ -48,7 +48,7 @@
   margin-top: 2px;
 }
 
-/* 4T-0300 (Epic 3E-0053): Bereich "Erweiterungen (extern)". */
+/* 4T-000300 (Epic 3E-000053): Bereich "Erweiterungen (extern)". */
 .settings-extension-external-row {
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
@@ -110,7 +110,7 @@
   font-size: 12.5px;
   color: var(--fg-muted);
 }
-/* 4T-0927 (Epic 3E-0016): Diagnose-Zugang am Ende des Bereichs. Die Trennlinie
+/* 4T-000927 (Epic 3E-000016): Diagnose-Zugang am Ende des Bereichs. Die Trennlinie
    setzt ihn von den Paket-Aktionen darueber ab — er betrifft kein Paket,
    sondern die Diagnose aller. */
 .settings-extension-external-diagnose {
@@ -124,19 +124,19 @@
   color: var(--fg-muted);
 }
 
-/* 4T-0208 (Epic 3E-0015): Tastenkuerzel-Editor der Einstellungs-Seite. */
+/* 4T-000208 (Epic 3E-000015): Tastenkuerzel-Editor der Einstellungs-Seite. */
 .hotkeys-hint {
   margin: 0 0 8px;
   font-size: 12.5px;
   color: var(--fg-muted);
 }
-/* 4T-0369 (Epic 3E-0068): erklaerender Hinweis unter einer Einstellungs-Zeile. */
+/* 4T-000369 (Epic 3E-000068): erklaerender Hinweis unter einer Einstellungs-Zeile. */
 .settings-row-hint {
   margin: 4px 0 10px;
   font-size: 12.5px;
   color: var(--fg-muted);
 }
-/* 4T-0582 (Epic 3E-0107): Einstellungs-Bereich Rechtschreibprüfung — Liste
+/* 4T-000582 (Epic 3E-000107): Einstellungs-Bereich Rechtschreibprüfung — Liste
    der eigenen Wörterbuch-Einträge (Wort links, Entfernen-Button rechts). */
 .settings-spellcheck-words {
   display: flex;
@@ -154,7 +154,7 @@
   overflow-wrap: anywhere;
 }
 
-/* 4T-0428 (Epic 3E-0080): Einstellungs-Bereich Vorlagen — Ordner-Zeile
+/* 4T-000428 (Epic 3E-000080): Einstellungs-Bereich Vorlagen — Ordner-Zeile
    (Eingabe plus Auswahl-Button) und Regel-Tabelle (Ordner → Vorlage). */
 .settings-templates-folder-row {
   display: flex;
@@ -177,7 +177,7 @@
 .settings-templates-rule-add {
   margin: 4px 0 12px;
 }
-/* 4T-0450 (Epic 3E-0083): Einstellungs-Bereich Eigenschafts-Profile —
+/* 4T-000450 (Epic 3E-000083): Einstellungs-Bereich Eigenschafts-Profile —
    Profil-Liste mit Öffnen-Link und Definitions-/Hinweis-Meta. */
 .settings-profiles-list {
   margin: 8px 0 12px;
@@ -201,7 +201,7 @@
 .settings-profiles-item-name:hover {
   text-decoration: underline;
 }
-/* 4T-0517: internes Profil — Name ohne Klick-Affordanz. */
+/* 4T-000517: internes Profil — Name ohne Klick-Affordanz. */
 .settings-profiles-item-name-static {
   font-size: 13px;
 }
@@ -215,7 +215,7 @@
 [data-theme='dark'] .settings-profiles-item-meta.has-errors {
   color: #e0b341;
 }
-/* 4T-1143 (Epic 3E-0218): Hinweise stehen ausgeschrieben unter ihrem
+/* 4T-001143 (Epic 3E-000218): Hinweise stehen ausgeschrieben unter ihrem
    Profil (E4 — sichtbar statt allein in einer Kurzinfo). */
 .settings-profiles-item-hints {
   margin: 0 0 6px;
@@ -229,7 +229,7 @@
 .settings-profiles-item-hints li {
   margin: 1px 0;
 }
-/* 4T-0436 (Epic 3E-0081): Einstellungs-Bereich Journale — Regal-Zeilen und
+/* 4T-000436 (Epic 3E-000081): Einstellungs-Bereich Journale — Regal-Zeilen und
    Journal-Formular-Gruppen mit Pfad-Vorschau und Schema-Warnung. */
 .settings-journals-shelf {
   display: flex;
@@ -290,7 +290,7 @@
 .settings-journals-schema-warning {
   color: var(--error, #c0392b);
 }
-/* 4T-0546 (Epic 3E-0097): Kalender-Wert-Badges — Render-Pane
+/* 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges — Render-Pane
    (.calendar-value), Live-Badge (.cm-live-calendar-badge) und die
    Klick-Markierung des Quelltext-Modus (.cm-live-calendar-value).
    Unbekannte Kalender und ungueltige Werte sind sichtbar markiert,
@@ -321,7 +321,7 @@
   cursor: pointer;
 }
 
-/* 4T-0943 (Epic 3E-0197): wie bei den ISO-Datums-Werten (E2) — in der Zeile
+/* 4T-000943 (Epic 3E-000197): wie bei den ISO-Datums-Werten (E2) — in der Zeile
    mit dem Cursor bleibt der Wert dekoriert, zeigt seine Klick-Optik aber
    erst bei gedrueckter Strg-/Cmd-Taste (Klasse aus modifier-zustand.js). */
 .cm-live-calendar-value-mod {
@@ -333,7 +333,7 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
-/* 4T-0595/4T-0596 (Epic 3E-0111): Inline-Berechnungen — Ergebnis-Span im
+/* 4T-000595/4T-000596 (Epic 3E-000111): Inline-Berechnungen — Ergebnis-Span im
    Render-Pane (.inline-calc), Live-Widget (.cm-inline-calc) und die dezente
    Konstrukt-Einfaerbung des Quelltext-Modus (.cm-inline-calc-marker).
    Fehlerhafte Ausdruecke zeigen das Fehler-Zeichen in gedaempfter
@@ -360,7 +360,7 @@
   background: var(--hover);
   border-radius: 3px;
 }
-/* 4T-0545 (Epic 3E-0097): Picker fuer benutzerdefinierte Kalender — Kopf-
+/* 4T-000545 (Epic 3E-000097): Picker fuer benutzerdefinierte Kalender — Kopf-
    Auswahl (Block/Kalender/Epoche), generisches Gitter mit dynamischer
    Spalten-Zahl, Zeit-Segmente und Umrechnungs-Zeilen. Basis-Look kommt aus
    den date-picker-/calendar-Klassen. */
@@ -425,7 +425,7 @@
   text-align: left;
   margin: 0 0 2px;
 }
-/* 4T-0544 (Epic 3E-0097): Einstellungs-Bereich Kalender-Systeme — Block-
+/* 4T-000544 (Epic 3E-000097): Einstellungs-Bereich Kalender-Systeme — Block-
    Zeilen (Muster Journal-Regale), Kalender-Editoren mit Ebenen-/Epochen-/
    Zyklus-Boxen, Segment-Eingaben und Live-Vorschau. */
 .settings-calsys-block {
@@ -632,7 +632,7 @@
   color: #ea868f;
 }
 
-/* 4T-1160 (Epic 3E-0219): Bindungs-Liste der Zuordnungs-Wege. Vier Spalten
+/* 4T-001160 (Epic 3E-000219): Bindungs-Liste der Zuordnungs-Wege. Vier Spalten
    je Zeile: Profil, Schlagworte, Ordner samt Wähler, Entfernen. */
 .settings-profil-bindungen {
   display: flex;

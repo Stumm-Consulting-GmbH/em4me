@@ -1,4 +1,4 @@
-// 4T-0173: Regressionstests fuer die Main-Prozess-Fixes.
+// 4T-000173: Regressionstests fuer die Main-Prozess-Fixes.
 // Automatisiert: M-04 (BOM), M-13 (Renderer-Reload).
 // Manuelle Pruefpfade (im Task dokumentiert): M-01 (Quit-Abbruch),
 // M-02/M-03 (zweite Instanz), M-07 (minimiert schliessen), M-12

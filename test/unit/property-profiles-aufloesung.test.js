@@ -1,14 +1,14 @@
-// 4T-0447 (Epic 3E-0083): Unit-Tests der Definitions-Auflösung — Auswertung
+// 4T-000447 (Epic 3E-000083): Unit-Tests der Definitions-Auflösung — Auswertung
 // des Zuordnungs-Felds und Vereinigung über mehrere Profile mit ihren
-// Konflikt-Regeln. 4T-0448/4T-0491: gemeinsame Editor-Logik (weiche
+// Konflikt-Regeln. 4T-000448/4T-000491: gemeinsame Editor-Logik (weiche
 // Hinweise, Vorschläge, Komplett-Übernahme) und die Registrierung als
 // schaltbare Erweiterung.
-// 4T-1142 (Epic 3E-0218): Vererbung zwischen Profilen — Profil-Ebene
+// 4T-001142 (Epic 3E-000218): Vererbung zwischen Profilen — Profil-Ebene
 // (extends/exclude), Ketten-Bildung in der Auflösungs-Folge und die
 // Vererbungs-Hinweise der Profil-Liste.
 //
 // Gegenstück: `property-profiles.test.js` prüft das Datei-Format und das
-// Definitions-Parsing (Schnitt in 4T-1145 entlang der Naht der beiden
+// Definitions-Parsing (Schnitt in 4T-001145 entlang der Naht der beiden
 // Module).
 import { describe, it, expect } from 'vitest';
 import {
@@ -47,12 +47,12 @@ describe('assignedProfileNames', () => {
     expect(assignedProfileNames({ class: [{ a: 1 }] }, 'class')).toEqual([]);
   });
 
-  it('Reihenfolge der Zuordnung bleibt erhalten (Konflikt-Regel 4T-0447)', () => {
+  it('Reihenfolge der Zuordnung bleibt erhalten (Konflikt-Regel 4T-000447)', () => {
     expect(assignedProfileNames({ class: ['B', 'A', 'C'] }, 'class')).toEqual(['B', 'A', 'C']);
   });
 });
 
-// 4T-0447 (Epic 3E-0083): Definitions-Auflösung pro Datei.
+// 4T-000447 (Epic 3E-000083): Definitions-Auflösung pro Datei.
 describe('resolveProfileFields', () => {
   const field = (name, extra = {}) => ({
     name,
@@ -127,7 +127,7 @@ describe('resolveProfileFields', () => {
   });
 
   it('leerer Katalog oder keine Zuordnung ergibt leer bzw. nur den Standard', () => {
-    // 4T-1171 (Epic 3E-0220): `chain` ist additiv dazugekommen; dieser
+    // 4T-001171 (Epic 3E-000220): `chain` ist additiv dazugekommen; dieser
     // Prüffall vergleicht die vollständige Rückgabe und nennt sie deshalb mit.
     expect(resolveProfileFields([], { defaultProfile: null, assigned: [] })).toEqual({
       fields: [],
@@ -143,11 +143,11 @@ describe('resolveProfileFields', () => {
   });
 });
 
-// 4T-1142 (Epic 3E-0218): Vererbung zwischen Profilen (E2) — Profil-Ebene
+// 4T-001142 (Epic 3E-000218): Vererbung zwischen Profilen (E2) — Profil-Ebene
 // (extends/exclude), Ketten-Bildung in der Auflösungs-Folge und die
 // Vererbungs-Hinweise der Profil-Liste. Die drei Konstellationen aus
 // Kapitel 6.2 des Konzepts sind die Vorlage der Prüffälle.
-describe('parseProfileHeritage (4T-1142)', () => {
+describe('parseProfileHeritage (4T-001142)', () => {
   it('liest extends als Skalar und exclude als Liste', () => {
     expect(parseProfileHeritage({ extends: ' Projekt ', exclude: ['status', 'ort'] })).toEqual({
       parent: 'Projekt',
@@ -185,7 +185,7 @@ describe('parseProfileHeritage (4T-1142)', () => {
   });
 });
 
-describe('resolveProfileFields — Vererbung (4T-1142)', () => {
+describe('resolveProfileFields — Vererbung (4T-001142)', () => {
   const field = (name, extra = {}) => ({
     name,
     type: 'string',
@@ -328,7 +328,7 @@ describe('resolveProfileFields — Vererbung (4T-1142)', () => {
   });
 });
 
-describe('attachHeritageHints (4T-1142)', () => {
+describe('attachHeritageHints (4T-001142)', () => {
   const profile = (name, extra = {}) => ({ name, fields: [], errors: [], ...extra });
 
   const cycleHint = (name) => ({
@@ -378,7 +378,7 @@ describe('attachHeritageHints (4T-1142)', () => {
   });
 });
 
-// 4T-0448 (Epic 3E-0083): gemeinsame Editor-Logik (Hinweise, Vorschläge)
+// 4T-000448 (Epic 3E-000083): gemeinsame Editor-Logik (Hinweise, Vorschläge)
 // und Registrierung als schaltbare Erweiterung.
 describe('fieldDefinitionHint', () => {
   const def = (extra) => ({
@@ -427,7 +427,7 @@ describe('fieldDefinitionHint', () => {
     expect(fieldDefinitionHint(num, 3)).toBe('outsideValues');
   });
 
-  // 4T-1155 (Epic 3E-0219): der Typ-Ausbau in der weichen Validierung.
+  // 4T-001155 (Epic 3E-000219): der Typ-Ausbau in der weichen Validierung.
   it('AK1: link und time werden als Typen erkannt', () => {
     expect(fieldDefinitionHint(def({ type: 'link' }), '[[Meier 2024]]')).toBeNull();
     expect(fieldDefinitionHint(def({ type: 'link' }), 'mehr\nzeilig')).toBe('typeMismatch');
@@ -516,7 +516,7 @@ describe('profileFieldSuggestions', () => {
   });
 });
 
-describe('Erweiterungs-Registrierung property-profiles (4T-0448)', () => {
+describe('Erweiterungs-Registrierung property-profiles (4T-000448)', () => {
   it('ist als Werkzeug-Erweiterung mit Einstellungs-Bereich registriert', () => {
     const manifest = extensionById('property-profiles');
     expect(manifest).not.toBeNull();
@@ -526,24 +526,24 @@ describe('Erweiterungs-Registrierung property-profiles (4T-0448)', () => {
     expect(manifest.settingsSections).toEqual(['propertyProfiles']);
   });
 
-  // 4T-1174 (Epic 3E-0220): Bis Stufe 2 stand hier `commands` auf
+  // 4T-001174 (Epic 3E-000220): Bis Stufe 2 stand hier `commands` auf
   // `toBeUndefined()` — die Erweiterung brachte keine eigenen Kommandos mit.
   // Das ist **widerrufen** und nicht ergänzt: Aus den Entscheidungen E5 und E7
   // folgen zwei Kommandos, und beide müssen im Aus-Zustand entfallen. Genau
-  // dieses Kriterium hat die Story 4S-0225 wiedereröffnet.
-  // 4T-1176 (Epic 3E-0220, AK9): Mit der erzeugten Profil-Abfrage ist die
+  // dieses Kriterium hat die Story 4S-000225 wiedereröffnet.
+  // 4T-001176 (Epic 3E-000220, AK9): Mit der erzeugten Profil-Abfrage ist die
   // Liste vollständig — beide Kommandos der Stufe 3 hängen am Gate. Geprüft
   // wird die exakte Liste und nicht nur die Enthaltung: Ein hier vergessenes
   // Kommando erschiene im Aus-Zustand weiter in Palette und Dispatcher, und
-  // genau das ist das widerrufene Kriterium der Story 4S-0225.
+  // genau das ist das widerrufene Kriterium der Story 4S-000225.
   it('führt beide Kommandos der Stufe 3, damit sie im Aus-Zustand entfallen', () => {
     const manifest = extensionById('property-profiles');
     expect(manifest.commands).toEqual(['view.openFieldForm', 'edit.insertProfileQuery']);
   });
 });
 
-// 4T-0491 (Epic 3E-0093): Komplett-Übernahme — Leer-Werte, Feld-Map, Ziele.
-describe('emptyValueForType (4T-0491)', () => {
+// 4T-000491 (Epic 3E-000093): Komplett-Übernahme — Leer-Werte, Feld-Map, Ziele.
+describe('emptyValueForType (4T-000491)', () => {
   it('liefert typgerechte Leer-Werte je Typ', () => {
     expect(emptyValueForType('multistring')).toEqual([]);
     expect(emptyValueForType('number')).toBe(0);
@@ -555,7 +555,7 @@ describe('emptyValueForType (4T-0491)', () => {
   });
 });
 
-describe('buildProfileFillMap (4T-0491)', () => {
+describe('buildProfileFillMap (4T-000491)', () => {
   const field = (name, extra = {}) => ({
     name,
     type: 'string',
@@ -602,7 +602,7 @@ describe('buildProfileFillMap (4T-0491)', () => {
   });
 });
 
-describe('profileSuggestGroups (4T-0491)', () => {
+describe('profileSuggestGroups (4T-000491)', () => {
   const rf = (name, profile, extra = {}) => ({
     name,
     type: 'string',
@@ -656,9 +656,9 @@ describe('profileSuggestGroups (4T-0491)', () => {
   });
 });
 
-// 4T-1156 (Epic 3E-0219): Leer-Wert einer ganzen Definition. Seit der
+// 4T-001156 (Epic 3E-000219): Leer-Wert einer ganzen Definition. Seit der
 // Entkopplung des Mehrfach-Modus genügt der Typ nicht mehr.
-describe('emptyValueForDefinition (4T-1156)', () => {
+describe('emptyValueForDefinition (4T-001156)', () => {
   const def = (extra) => ({ name: 'f', type: 'string', values: null, multiple: false, ...extra });
 
   it('folgt für Einzel-Felder dem Typ', () => {
@@ -680,8 +680,8 @@ describe('emptyValueForDefinition (4T-1156)', () => {
   });
 });
 
-// 4T-1156: die Komplett-Übernahme nutzt denselben Leer-Wert.
-describe('buildProfileFillMap mit Mehrfach-Feldern (4T-1156)', () => {
+// 4T-001156: die Komplett-Übernahme nutzt denselben Leer-Wert.
+describe('buildProfileFillMap mit Mehrfach-Feldern (4T-001156)', () => {
   it('legt für ein Verweis-Feld mit multiple die leere Liste an', () => {
     const map = buildProfileFillMap(
       [
@@ -703,9 +703,9 @@ describe('buildProfileFillMap mit Mehrfach-Feldern (4T-1156)', () => {
   });
 });
 
-// 4T-1157 (Epic 3E-0219, E12): Hinweis zur QUELLE eines Wertevorrats — im
+// 4T-001157 (Epic 3E-000219, E12): Hinweis zur QUELLE eines Wertevorrats — im
 // Unterschied zu fieldDefinitionHint, der den Wert betrifft.
-describe('valueSourceHint (4T-1157)', () => {
+describe('valueSourceHint (4T-001157)', () => {
   it('AK4: meldet emptySource, wenn eine Quelle gesetzt ist und der Vorrat leer bleibt', () => {
     expect(valueSourceHint({ name: 'ort', values: null, valuesFrom: { note: 'W.md' } })).toBe(
       'emptySource',

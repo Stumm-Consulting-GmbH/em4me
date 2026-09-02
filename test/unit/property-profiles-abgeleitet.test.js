@@ -1,8 +1,8 @@
-// 4T-1183 (Epic 3E-0221, E1): Unit-Tests der abgeleiteten Felder — Format-Seite
+// 4T-001183 (Epic 3E-000221, E1): Unit-Tests der abgeleiteten Felder — Format-Seite
 // des Typs `formula`, Auswertung des Ausdrucks und die beiden Entartungs-Fälle
 // Kreis und Bezug ins Leere.
 //
-// Eigene Datei nach dem Muster von 4T-1171: Die ABLEITUNG ist ein eigener
+// Eigene Datei nach dem Muster von 4T-001171: Die ABLEITUNG ist ein eigener
 // Gegenstand neben Definitions-Format und Auflösung, und `property-profiles.js`
 // steht mit über 700 Zeilen dicht am Test-Budget. Was eine Definition liest,
 // prüft `property-profiles.test.js`; hier steht ausschließlich, was ein
@@ -27,7 +27,7 @@ const formel = (name, expression) => ({
   options: expression === null ? {} : { expression },
 });
 
-describe('Format-Seite des Typs formula (4T-1183)', () => {
+describe('Format-Seite des Typs formula (4T-001183)', () => {
   it('AK1: `formula` gehört zum Typ-Satz und ist als abgeleitet erkennbar', () => {
     expect(PROFILE_FIELD_TYPES).toContain('formula');
     expect(DERIVED_TYPES).toContain('formula');
@@ -124,7 +124,7 @@ describe('Format-Seite des Typs formula (4T-1183)', () => {
   });
 });
 
-describe('Format-Seite des Typs lookup (4T-1184)', () => {
+describe('Format-Seite des Typs lookup (4T-001184)', () => {
   it('AK1: `lookup` gehört zum Typ-Satz und gilt als abgeleitet', () => {
     expect(PROFILE_FIELD_TYPES).toContain('lookup');
     expect(DERIVED_TYPES).toContain('lookup');
@@ -176,7 +176,7 @@ describe('Format-Seite des Typs lookup (4T-1184)', () => {
   });
 
   it('ein lookup wird von der lokalen Auswertung nicht angefasst', () => {
-    // Es rechnet nicht lokal, sondern fragt den Index (4T-1184, Main-seitig);
+    // Es rechnet nicht lokal, sondern fragt den Index (4T-001184, Main-seitig);
     // `werteAbgeleiteteFelder` darf es deshalb nicht als Formel behandeln.
     const felder = [{ name: 'artikel', type: 'lookup', options: { relatedField: 'projekt' } }];
     const r = werteAbgeleiteteFelder(felder, {});
@@ -184,7 +184,7 @@ describe('Format-Seite des Typs lookup (4T-1184)', () => {
   });
 });
 
-describe('Auswertung der Formel-Felder (4T-1183)', () => {
+describe('Auswertung der Formel-Felder (4T-001183)', () => {
   it('AK1: rechnet über die Werte desselben Dokuments', () => {
     const r = werteAbgeleiteteFelder([formel('gesamt', 'budget + reserve')], {
       budget: 2500,
@@ -244,7 +244,7 @@ describe('Auswertung der Formel-Felder (4T-1183)', () => {
   });
 });
 
-describe('Entartungs-Fälle der Auswertung (4T-1183)', () => {
+describe('Entartungs-Fälle der Auswertung (4T-001183)', () => {
   it('AK3: ein Kreis-Bezug bleibt leer und trägt einen Hinweis', () => {
     const r = werteAbgeleiteteFelder([formel('a', 'b + 1'), formel('b', 'a + 1')], {});
     expect(r.a).toEqual({ value: null, hint: 'derivedCycle' });
@@ -309,7 +309,7 @@ describe('Entartungs-Fälle der Auswertung (4T-1183)', () => {
   });
 });
 
-describe('Kreis-Erkennung über eine Vererbungs-Kette (4T-1183)', () => {
+describe('Kreis-Erkennung über eine Vererbungs-Kette (4T-001183)', () => {
   // AK8 an der realen Konstellation: Die beteiligten Felder stammen aus
   // VERSCHIEDENEN Profilen und finden erst über die Auflösung zueinander.
   // Ein Prüffall an einem einzelnen Profil wäre der bequemere und würde die
@@ -383,8 +383,8 @@ describe('Kreis-Erkennung über eine Vererbungs-Kette (4T-1183)', () => {
   });
 });
 
-describe('Die Auswertung schreibt nichts (4T-1183, AK6)', () => {
-  // Der Datei-Nachweis gehört zu 4T-1185 (Schreibwege beider Panels). Auf
+describe('Die Auswertung schreibt nichts (4T-001183, AK6)', () => {
+  // Der Datei-Nachweis gehört zu 4T-001185 (Schreibwege beider Panels). Auf
   // dieser Ebene ist die prüfbare Zusage: Die Auswertung ist eine reine
   // Funktion — sie fasst weder die übergebenen Werte noch die Definitionen an.
   it('die übergebenen Dokument-Werte bleiben unverändert', () => {

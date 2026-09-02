@@ -1,14 +1,14 @@
-// 4T-0303/4T-0304 (Epic 3E-0054): Abbildung der Export-Einstellungen auf
+// 4T-000303/4T-000304 (Epic 3E-000054): Abbildung der Export-Einstellungen auf
 // printToPDF-Optionen. Electron-frei und damit unit-testbar (Muster
 // menu-state.js): der IPC-Handler pdf:print in main.js reicht die rohen
 // Store-Werte (export.pdf.*) herein; hier werden sie validiert, auf die
 // Defaults zurueckgefallen und in das Options-Objekt fuer
 // webContents.printToPDF uebersetzt. Liegt unter src/shared, weil auch
-// der Einstellungs-Bereich Export (Renderer, 4T-0304) Formate,
+// der Einstellungs-Bereich Export (Renderer, 4T-000304) Formate,
 // Rand-Stufen und Defaults aus derselben Quelle liest.
 'use strict';
 
-// Formate: Auswahl der Einstellungs-Seite (4T-0304). printToPDF kennt
+// Formate: Auswahl der Einstellungs-Seite (4T-000304). printToPDF kennt
 // weitere (A0-A6, Tabloid, Ledger); die App bietet die fuenf gaengigen an.
 const PDF_PAGE_SIZES = ['A4', 'A3', 'A5', 'Letter', 'Legal'];
 
@@ -22,7 +22,7 @@ const PDF_MARGIN_PRESETS = {
   wide: 1.2,
 };
 
-// Defaults gemaess Product-Owner-Entscheidung (3E-0054): A4, Hochformat,
+// Defaults gemaess Product-Owner-Entscheidung (3E-000054): A4, Hochformat,
 // normaler Rand. Greifen auch bei fehlenden oder ungueltigen Store-Werten.
 const PDF_EXPORT_DEFAULTS = {
   pageSize: 'A4',
@@ -44,7 +44,7 @@ function normalizePdfExportSettings(raw) {
 }
 
 // Validierte Einstellungen -> printToPDF-Optionen. printBackground bleibt
-// immer an (Code-Block-, Callout- und Tabellen-Hintergruende, 4T-0024).
+// immer an (Code-Block-, Callout- und Tabellen-Hintergruende, 4T-000024).
 function printToPdfOptions(raw) {
   const settings = normalizePdfExportSettings(raw);
   const margin = PDF_MARGIN_PRESETS[settings.margins];

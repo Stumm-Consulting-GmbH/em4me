@@ -1,8 +1,8 @@
-// Entwurfs-Zwischenspeicher (4T-0368, Epic 3E-0068): Datei-I/O der nie
+// Entwurfs-Zwischenspeicher (4T-000368, Epic 3E-000068): Datei-I/O der nie
 // gespeicherten Unbenannt-Tabs unter <userData>/drafts samt Manifest und der
 // Serialisierung der Schreibvorgaenge.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Die reine Zuordnungs- und
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Die reine Zuordnungs- und
 // Manifest-Logik liegt unveraendert in draft-store.js; hier bleibt alles, was
 // Platte und Reihenfolge betrifft.
 //
@@ -85,7 +85,7 @@ function createDraftCache(deps) {
         drafts.push({
           id: e.id,
           area: e.area,
-          // 4T-0539 (Epic 3E-0098): Arbeitsbereichs-Zuordnung des Entwurfs.
+          // 4T-000539 (Epic 3E-000098): Arbeitsbereichs-Zuordnung des Entwurfs.
           workspaceId: e.workspaceId,
           content,
           tabSettings: e.tabSettings,
@@ -103,7 +103,7 @@ function createDraftCache(deps) {
   // [{ content, tabSettings, order }]. `areaRootPath` ist der Bereich der
   // sendenden App (autoritativ aus der App-Registry) oder null. Additiv, weil
   // beim Multi-Fenster-Quit jedes Fenster einzeln schreibt.
-  // 4T-0539 (Epic 3E-0098): `workspaceId` ist die Arbeitsbereichs-Zuordnung
+  // 4T-000539 (Epic 3E-000098): `workspaceId` ist die Arbeitsbereichs-Zuordnung
   // der sendenden App (ebenfalls autoritativ aus der Registry) oder null.
   async function appendDrafts(entries, areaRootPath, workspaceId) {
     const list = Array.isArray(entries)
@@ -144,7 +144,7 @@ function createDraftCache(deps) {
     }
   }
 
-  // 4T-0539 (Epic 3E-0098): selektiver Entferner — nur die uebergebenen
+  // 4T-000539 (Epic 3E-000098): selektiver Entferner — nur die uebergebenen
   // Entwuerfe verschwinden (Manifest-Rewrite plus Inhalts-Dateien); liegende
   // Arbeitsbereichs-Entwuerfe geschlossener Arbeitsbereiche ueberleben den
   // Start. Ein leer gewordenes Manifest raeumt den Ordner komplett.
@@ -167,7 +167,7 @@ function createDraftCache(deps) {
     await fs.writeFile(draftManifestPath(), JSON.stringify(remaining, null, 2), 'utf8');
   }
 
-  // 4T-0539: Entwuerfe eines geloeschten Arbeitsbereichs wandern in den
+  // 4T-000539: Entwuerfe eines geloeschten Arbeitsbereichs wandern in den
   // globalen Topf (workspaceId loesen, nichts geht verloren; Degradierungs-
   // Logik aus Workshop-Punkt 4).
   async function retagDraftsToGlobal(workspaceId) {
@@ -194,7 +194,7 @@ function createDraftCache(deps) {
   }
 
   /**
-   * Haengt einen Schreibvorgang an die Serialisierungs-Kette. 4T-0998: Zugang
+   * Haengt einen Schreibvorgang an die Serialisierungs-Kette. 4T-000998: Zugang
    * fuer die IPC-Handler, die frueher die Ketten-Variable selbst fortschrieben.
    *
    * @param {() => Promise<any>} fn Der auszufuehrende Schreibvorgang.

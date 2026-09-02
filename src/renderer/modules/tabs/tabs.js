@@ -1,5 +1,5 @@
 // Tab-Lebenszyklus (Oeffnen, Aktivieren, Schliessen, Verschieben/Kopieren zwischen Panes und Fenstern).
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
 'use strict';
 
@@ -7,10 +7,10 @@ import { t } from '../../i18n.js';
 
 import { api, $ } from '../app/api.js';
 import { updateWordCountStatusbar } from '../render-mermaid.js';
-// 4T-1055: Verfuegbarkeit des Mindmap-Modus fuer die Statusbar-Schaltflaeche.
+// 4T-001055: Verfuegbarkeit des Mindmap-Modus fuer die Statusbar-Schaltflaeche.
 // Wie in app-state.js bewusst aus mindmap-modus.js und nicht aus
 // mindmap-pane.js: Jenes zoege ueber die Einstellungs-Kette Module in die
-// Ladereihenfolge, die hier nichts zu suchen haben (Vorfall aus 4T-1048).
+// Ladereihenfolge, die hier nichts zu suchen haben (Vorfall aus 4T-001048).
 import { isMindmapModeAvailable } from '../mindmap/mindmap-modus.js';
 import {
   DEFAULT_VIEW_MODE,
@@ -30,20 +30,20 @@ import {
   tabDisplayName,
   withDialog,
 } from '../app/app-state.js';
-// 4T-0568 (Epic 3E-0104): geordnete Panel-Liste im Menue-State — Reihenfolge
+// 4T-000568 (Epic 3E-000104): geordnete Panel-Liste im Menue-State — Reihenfolge
 // aus dem shared Modell bzw. dem Reihenfolge-Setting, Erweiterungs-Filterung
 // wie an der Statusbar (isExtensionActive kommt weiter unten mit den
 // Tab-Gruppen-Imports).
 import { PANEL_ACCESS } from '../../../shared/panel-access.js';
 import { getPanelToggleOrder } from '../sidebar-layout.js';
 import { clearIndexOverlayFor, updateWindowTitle } from '../editor/editor.js';
-// 4T-0990 (Epic 3E-0196): panels.js ist in den Feature-Ordner panels/ geteilt;
+// 4T-000990 (Epic 3E-000196): panels.js ist in den Feature-Ordner panels/ geteilt;
 // die drei Funktionen liegen jetzt in ihren Panel-Modulen.
 import { updateBacklinksToggleButton } from '../panels/panel-backlinks.js';
 import { renderOutgoingLinks } from '../panels/panel-outgoing.js';
 import { updateOutlineToggleButton } from '../panels/panel-outline.js';
 import { updateBookmarksToggleButton } from '../bookmarks/bookmarks.js';
-// 4T-0456 (Epic 3E-0084): Datei-Graph-Panel folgt der aktiven Datei
+// 4T-000456 (Epic 3E-000084): Datei-Graph-Panel folgt der aktiven Datei
 // (debounct; Hooks in activateTab/closeTab, Muster Outgoing-Links).
 import { scheduleFileGraphRender } from '../file-graph-panel.js';
 import { flushPendingPropertiesSave } from '../properties/properties-save.js';
@@ -56,21 +56,21 @@ import { saveTab } from '../views/save-export.js';
 import { updateScrollSyncButton } from '../views/scroll-sync.js';
 import { renderTabbar } from '../views/tabbar.js';
 import { persistState, showStatusbarHint } from '../views/views.js';
-// 4T-0323 (Epic 3E-0058): Renderer-seitige Bereichs-Vorpruefung.
+// 4T-000323 (Epic 3E-000058): Renderer-seitige Bereichs-Vorpruefung.
 import { isOutsideActiveArea } from '../area.js';
-// 4T-0332 (Epic 3E-0060): Statusbar-Zustand der Dokument-Historie folgt dem
-// aktiven Tab (Laufzeit-Zyklus tabs <-> history-status, Muster 4T-0179).
+// 4T-000332 (Epic 3E-000060): Statusbar-Zustand der Dokument-Historie folgt dem
+// aktiven Tab (Laufzeit-Zyklus tabs <-> history-status, Muster 4T-000179).
 import { updateHistoryStatus } from '../views/history-status.js';
-// 4T-0213 (Epic 3E-0042): Handbuch-Tab-Transfer zwischen Fenstern laeuft
+// 4T-000213 (Epic 3E-000042): Handbuch-Tab-Transfer zwischen Fenstern laeuft
 // ueber openManualPage (Einfach-Instanz-Pruefung im Zielfenster).
 import { openManualPage } from '../manual.js';
-// 4T-0277 (Epic 3E-0049): System-Seiten-Transfer analog zum Handbuch;
-// 4T-0279: onClose-Haken beim Schliessen eines System-Tabs.
+// 4T-000277 (Epic 3E-000049): System-Seiten-Transfer analog zum Handbuch;
+// 4T-000279: onClose-Haken beim Schliessen eines System-Tabs.
 import { openSystemPage, systemPageById } from '../app/system-pages.js';
 import { refreshSearchIfVisible } from '../search/search.js';
-// 4T-0459 (Epic 3E-0085): Tab-Gruppen-Invarianten — Leergruppen-Bereinigung
+// 4T-000459 (Epic 3E-000085): Tab-Gruppen-Invarianten — Leergruppen-Bereinigung
 // nach Schliessen/Verschieben, Gruppen-Beitritt bei Einfuegung ins
-// Block-Innere (reine Helfer, unit-getestet). 4T-0460: Klapp-Logik
+// Block-Innere (reine Helfer, unit-getestet). 4T-000460: Klapp-Logik
 // (Kopf-Klick, Aktivierungs-Wechsel, Sichtbarkeits-Garantie des aktiven
 // Tabs) und Gruppen-Block-Verschiebung per Kopf-Ziehen.
 import {
@@ -83,11 +83,11 @@ import {
   moveGroupWithinPane,
   pruneEmptyGroups,
 } from './tab-groups.js';
-// 4T-0461 (Epic 3E-0085): bei deaktivierter Erweiterung tab-groups sind
+// 4T-000461 (Epic 3E-000085): bei deaktivierter Erweiterung tab-groups sind
 // alle Tabs sichtbar — die Klapp-bezogene Aktivierungs-Logik entfaellt,
 // damit gespeicherte Klapp-Zustaende nicht veraendert werden.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
-// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl der Reiterleiste (reine Helfer).
+// 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl der Reiterleiste (reine Helfer).
 import {
   clearSelection,
   moveTabsWithinPane,
@@ -95,7 +95,7 @@ import {
   setSelection,
 } from './tab-selection.js';
 
-// K-04 (4T-0310): Tab-Drag-Payload parsen — gehoert fachlich zum Tab-System
+// K-04 (4T-000310): Tab-Drag-Payload parsen — gehoert fachlich zum Tab-System
 // (zuvor Fremdkoerper in settings-search.js). Verwirft Payloads mit fremdem
 // Fenster-Token.
 export function parseTabDrag(e) {
@@ -103,7 +103,7 @@ export function parseTabDrag(e) {
     const raw = e.dataTransfer.getData(MIME_TAB);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    // R4-04 (4T-0170): Drops aus einem anderen BrowserWindow derselben App
+    // R4-04 (4T-000170): Drops aus einem anderen BrowserWindow derselben App
     // verwerfen — deren Pane-/Tab-Indizes beziehen sich auf fremden State.
     if (!data || data.windowToken !== WINDOW_DRAG_TOKEN) return null;
     return data;
@@ -120,12 +120,12 @@ export async function openDialog() {
 
 // Cross-Pane-Lookup (Variante B): wenn die Datei in IRGENDEINER Pane offen ist,
 // dorthin springen und Tab aktivieren — kein Duplikat.
-// 4T-0631 (Epic 3E-0102): inheritGroup kennzeichnet Öffnungen, die ein Klick
+// 4T-000631 (Epic 3E-000102): inheritGroup kennzeichnet Öffnungen, die ein Klick
 // im Inhalt eines Dokument-Tabs auslöst — neue Tabs erben dann die Tab-Gruppe
 // des zum Aufruf-Zeitpunkt aktiven Tabs der Ziel-Pane. Bewusst ein explizites
 // Flag der Aufrufer statt einer Pauschal-Heuristik: Panel-, Paletten- und
 // Dialog-Öffnungen bleiben ungruppiert (Epic-Architekturentscheidung 6).
-// 4T-0648 (Epic 3E-0130): Der Einfüge-Ort ist nicht mehr das Gruppen-Ende,
+// 4T-000648 (Epic 3E-000130): Der Einfüge-Ort ist nicht mehr das Gruppen-Ende,
 // sondern die Stelle unmittelbar RECHTS NEBEN dem Herkunfts-Tab. Der
 // Zusammenhang zwischen Herkunft und Ziel bleibt so sichtbar; am Gruppen-Ende
 // lag das Ziel bei mehreren Mitgliedern weit von seiner Herkunft entfernt.
@@ -133,7 +133,7 @@ export async function openDialog() {
 // eine Reiter-Positions-Regel, keine Gruppen-Funktion); die Gruppen-Zuordnung
 // übernimmt insertTabNextTo aus dem Herkunfts-Tab und hält damit die
 // Zusammenhangs-Invariante.
-// 4T-1292 (Epic 3E-0224): Hinweis auf einen fehlenden Teil eines geteilten
+// 4T-001292 (Epic 3E-000224): Hinweis auf einen fehlenden Teil eines geteilten
 // Dokuments. Er steht bewusst lange, weil er eine Handlung verlangt und weil
 // das Dokument bis dahin nur lesbar ist; er nennt beide Wege heraus, denn den
 // zweiten (Begleitdatei entfernen) errät niemand von selbst.
@@ -147,7 +147,7 @@ export function meldeFehlendeTeile(fehlend) {
 }
 
 export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } = {}) {
-  // R4-09 (4T-0186): tatsaechliche Ziel-Pane zurueckgeben — wenn die Datei
+  // R4-09 (4T-000186): tatsaechliche Ziel-Pane zurueckgeben — wenn die Datei
   // bereits in der anderen Spalte offen ist, landet die Aktivierung dort,
   // und Anker-/Zeilen-Sprünge der Aufrufer muessen dieser Pane folgen.
   let landedPaneIdx = targetPaneIdx;
@@ -162,7 +162,7 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
   }
   for (const raw of paths) {
     const p = raw;
-    // 4T-0323 (Epic 3E-0058): harte Bereichs-Grenze — Dateien ausserhalb des
+    // 4T-000323 (Epic 3E-000058): harte Bereichs-Grenze — Dateien ausserhalb des
     // Bereichs werden nicht geoeffnet (Drag & Drop, Links, Lesezeichen etc.);
     // lokalisierte Meldung statt des generischen Lesefehlers. Die
     // autoritative zweite Linie sitzt main-seitig in file:read.
@@ -170,10 +170,10 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
       showStatusbarHint('statusbar.outsideAreaFile', { duration: 3000, error: true });
       continue;
     }
-    // 4T-0331 (Epic 3E-0060): Markdown-Data-Begleitdateien (.mdd/.mdda/.mddb)
+    // 4T-000331 (Epic 3E-000060): Markdown-Data-Begleitdateien (.mdd/.mdda/.mddb)
     // sind keine Dokumente — lokalisierter Hinweis statt generischem
     // Lesefehler. Die autoritative zweite Linie sitzt main-seitig in file:read.
-    // 4T-0352 (Epic 3E-0064): explizite Endungs-Liste statt mddb?-Muster,
+    // 4T-000352 (Epic 3E-000064): explizite Endungs-Liste statt mddb?-Muster,
     // damit die neue .mdda-Endung sicher mitgefasst wird.
     if (/\.(mdd|mdda|mddb)$/i.test(p)) {
       showStatusbarHint('statusbar.mddFile', { duration: 3000, error: true });
@@ -189,14 +189,14 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
     }
     try {
       const data = await api.readFile(p);
-      // W-01 (4T-0309): {ok,error}-Vertrag — Lesefehler ueber den vorhandenen
+      // W-01 (4T-000309): {ok,error}-Vertrag — Lesefehler ueber den vorhandenen
       // catch (Statusbar-Hinweis) statt frueherer IPC-Exception.
       if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
-      // 4T-0572 (Epic 3E-0105): die drei Editor-Ansicht-Schalter loest
+      // 4T-000572 (Epic 3E-000105): die drei Editor-Ansicht-Schalter loest
       // createTab selbst auf (Frontmatter → Voreinstellung); viewMode faellt
       // wie bisher auf state.defaultViewMode zurueck.
       const pane = state.panes[targetPaneIdx];
-      // 4T-1292 (Epic 3E-0224): Fehlt einem geteilten Dokument ein Teil, oeffnet
+      // 4T-001292 (Epic 3E-000224): Fehlt einem geteilten Dokument ein Teil, oeffnet
       // es nur lesend. Der Hinweis nennt die fehlende Position, damit der
       // Anwender weiss, welche Datei zurueckzulegen ist.
       const tab = createTab(data.path, data.content, {
@@ -204,7 +204,7 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
         fehlendeTeile: data.fehlend,
       });
       if (data.nurLesen === 'partsMissing') meldeFehlendeTeile(data.fehlend);
-      // 4T-0648: unmittelbar rechts neben dem Herkunfts-Tab einfügen (Gruppe
+      // 4T-000648: unmittelbar rechts neben dem Herkunfts-Tab einfügen (Gruppe
       // wird dabei aus ihm übernommen); ohne Herkunft — oder wenn sie
       // inzwischen geschlossen bzw. in die andere Spalte gewandert ist — wie
       // bisher ans Streifen-Ende.
@@ -223,7 +223,7 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
       landedPaneIdx = targetPaneIdx;
     } catch (err) {
       console.error('Konnte Datei nicht lesen:', p, err);
-      // R4-10 (4T-0187): sichtbares Feedback statt stillem Konsolen-Log.
+      // R4-10 (4T-000187): sichtbares Feedback statt stillem Konsolen-Log.
       showStatusbarHint(null, {
         text: t('open.failedHint').replace('{name}', api.basename(p) || p),
         error: true,
@@ -252,13 +252,13 @@ export function activatePane(paneIdx) {
     syncToolbarToActiveTab();
     updateOutlineToggleButton();
     updateBacklinksToggleButton();
-    // R5-11 (4T-0187): Properties-/Tags-Toggle folgen der aktiven Pane.
+    // R5-11 (4T-000187): Properties-/Tags-Toggle folgen der aktiven Pane.
     updatePropertiesToggleButton();
     updateTagsToggleButton();
     renderZoomIndicator();
     return;
   }
-  // 4T-0765 (Epic 3E-0158): Die Auswahl gehoert zur einzelnen Leiste und
+  // 4T-000765 (Epic 3E-000158): Die Auswahl gehoert zur einzelnen Leiste und
   // verfaellt beim Wechsel der Spalte — sonst bezoege sich eine unsichtbar
   // gewordene Menge spaeter auf Reiter, die der Anwender laengst vergessen hat.
   const vorherigePane = state.panes[state.activePaneIndex];
@@ -268,11 +268,11 @@ export function activatePane(paneIdx) {
   syncToolbarToActiveTab();
   updateOutlineToggleButton();
   updateBacklinksToggleButton();
-  // R5-11 (4T-0187): Properties-/Tags-Toggle zeigten nach Pane-Wechsel den
+  // R5-11 (4T-000187): Properties-/Tags-Toggle zeigten nach Pane-Wechsel den
   // Zustand der vorherigen Pane (Muster Outline/Backlinks).
   updatePropertiesToggleButton();
   updateTagsToggleButton();
-  // 4T-0017: Pane-Wechsel aendert den fokussierten Tab — Indikator nachziehen.
+  // 4T-000017: Pane-Wechsel aendert den fokussierten Tab — Indikator nachziehen.
   renderZoomIndicator();
   // Bei aktiver Suche im neuen Pane neu suchen.
   refreshSearchIfVisible();
@@ -286,7 +286,7 @@ export function updateActivePaneClasses() {
 // Toggles werden ausgegraut, wenn keine Quellcode-Pane sichtbar ist.
 export function syncToolbarToActiveTab() {
   const tab = activeTab();
-  // 4T-0572 (Epic 3E-0105): ohne aktiven Tab zeigen die Toggles die globale
+  // 4T-000572 (Epic 3E-000105): ohne aktiven Tab zeigen die Toggles die globale
   // Voreinstellung statt der frueheren hartkodierten Konstanten.
   const viewDefaults = getEditorViewDefaults();
   const viewMode = tab ? tab.viewMode : DEFAULT_VIEW_MODE;
@@ -294,11 +294,11 @@ export function syncToolbarToActiveTab() {
   const numbers = tab ? tab.showLineNumbers : viewDefaults.showLineNumbers;
   const foldGutter = tab ? tab.showFoldGutter : viewDefaults.showFoldGutter;
 
-  // 4T-0277: System-Seiten (Einstellungen) kennen keine View-Modi — die
+  // 4T-000277: System-Seiten (Einstellungen) kennen keine View-Modi — die
   // vier View-Buttons sind fuer sie deaktiviert (sichtbar deaktiviert
   // statt still wirkungslos, Entwicklungsrichtlinien §3).
   const systemTab = !!(tab && tab.systemPage);
-  // 4T-1055 (Epic 3E-0151): Die Mindmap-Schaltflaeche folgt dem Schalt-Zustand
+  // 4T-001055 (Epic 3E-000151): Die Mindmap-Schaltflaeche folgt dem Schalt-Zustand
   // ihrer Erweiterung, genau wie der Menue-Eintrag; ein toter Schalter waere
   // schlimmer als keiner. Die Pruefung sitzt hier und braucht keinen eigenen
   // Laufzeit-Hook, weil dieser Sync bei jedem Reiter- und Modus-Wechsel laeuft
@@ -326,9 +326,9 @@ export function syncToolbarToActiveTab() {
   numbersBtn.disabled = !sourceVisible || !tab;
   if (btnEdit) {
     btnEdit.classList.toggle('active', !!(tab && tab.editMode));
-    // 4T-0213: Handbuch-Tabs sind dauerhaft read-only — Stift deaktiviert,
+    // 4T-000213: Handbuch-Tabs sind dauerhaft read-only — Stift deaktiviert,
     // Tooltip erklaert den Grund (data-i18n-title fuer Sprachwechsel).
-    // 4T-0277: System-Seiten ebenso (Tooltip bleibt der Standard-Text;
+    // 4T-000277: System-Seiten ebenso (Tooltip bleibt der Standard-Text;
     // das Formular der Seite ist selbst der Bearbeitungs-Ort).
     const manualTab = !!(tab && tab.manualPage);
     btnEdit.disabled = !tab || manualTab || systemTab;
@@ -336,32 +336,32 @@ export function syncToolbarToActiveTab() {
     btnEdit.setAttribute('data-i18n-title', titleKey);
     btnEdit.title = t(titleKey);
   }
-  // 4T-0070: Scroll-Sync-Toggle in der Statusbar an den aktiven Tab anpassen.
+  // 4T-000070: Scroll-Sync-Toggle in der Statusbar an den aktiven Tab anpassen.
   updateScrollSyncButton();
-  // 4T-0332 (Epic 3E-0060): Historien-Zustand des aktiven Tabs nachziehen
+  // 4T-000332 (Epic 3E-000060): Historien-Zustand des aktiven Tabs nachziehen
   // (asynchron; veraltete Antworten verwirft das Modul selbst).
   void updateHistoryStatus();
   reportMenuStateNow();
   updateWindowTitle();
 }
 
-// 4T-0568 (Epic 3E-0104): Roh-Praeferenz je Panel (Haekchen-Semantik der
+// 4T-000568 (Epic 3E-000104): Roh-Praeferenz je Panel (Haekchen-Semantik der
 // bisherigen xxxVisible-Flags: der geschaltete Wunsch-Zustand einer Spalte,
 // OHNE Empty-State-Override — identisch zur Active-State-Quelle der
 // Statusbar-Buttons). getVisible der Registry ist bewusst NICHT die Quelle,
 // weil es die effektive Sichtbarkeit inklusive Empty-State liefert.
-// 4T-0624 (Epic 3E-0119): auf paneIdx parametrisiert und ueber
+// 4T-000624 (Epic 3E-000119): auf paneIdx parametrisiert und ueber
 // panelRawVisible exportiert — die Sidebar-Varianten frieren die
 // Roh-Sichtbarkeit beider Spalten ein.
 const PANEL_RAW_VISIBLE = {
   bookmarks: (paneIdx) => !!(state.bookmarks && state.bookmarks.visibleByPane[paneIdx]),
   area: (paneIdx) => !!areaPanelVisiblePref(paneIdx),
-  // 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis des Buches.
+  // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches.
   book: (paneIdx) => !!(state.bookPanel && state.bookPanel.visibleByPane[paneIdx]),
   outline: (paneIdx) => !!state.outline.visibleByPane[paneIdx],
   subpages: (paneIdx) => !!(state.subpages && state.subpages.visibleByPane[paneIdx]),
   filegraph: (paneIdx) => !!(state.fileGraph && state.fileGraph.visibleByPane[paneIdx]),
-  // 4T-0887 (PO-Befund der Test-Iteration 0.105.0): Das Such-Panel fehlte in
+  // 4T-000887 (PO-Befund der Test-Iteration 0.105.0): Das Such-Panel fehlte in
   // dieser Tabelle seit ihrer Einfuehrung; unbekannte IDs liefern false, das
   // Menue-Haekchen der Suchergebnisse blieb dadurch dauerhaft leer.
   searchresults: (paneIdx) => !!(state.searchResults && state.searchResults.visibleByPane[paneIdx]),
@@ -376,14 +376,14 @@ const PANEL_RAW_VISIBLE = {
   backlinks: (paneIdx) => !!(state.backlinks && state.backlinks.visibleByPane[paneIdx]),
 };
 
-// 4T-0624 (Epic 3E-0119): Roh-Sichtbarkeit eines Panels in einer Spalte
+// 4T-000624 (Epic 3E-000119): Roh-Sichtbarkeit eines Panels in einer Spalte
 // (unbekannte Panel-IDs liefern false).
 export function panelRawVisible(id, paneIdx) {
   const getter = PANEL_RAW_VISIBLE[id];
   return getter ? getter(paneIdx) : false;
 }
 
-// 4T-0626 (Epic 3E-0119): Provider der Sidebar-Varianten-Listen fuer den
+// 4T-000626 (Epic 3E-000119): Provider der Sidebar-Varianten-Listen fuer den
 // Menue-State ({ global, area, areaName }). Injektion statt Import, damit
 // kein Zyklus tabs.js <-> sidebar-variants.js entsteht (sidebar-variants
 // importiert panelRawVisible und reportMenuStateNow von hier).
@@ -416,7 +416,7 @@ export function panelToggleStates() {
 export function reportMenuStateNow() {
   const tab = activeTab();
   const viewMode = tab ? tab.viewMode : null;
-  // 4T-0572 (Epic 3E-0105): Fallbacks ohne aktiven Tab aus der globalen
+  // 4T-000572 (Epic 3E-000105): Fallbacks ohne aktiven Tab aus der globalen
   // Voreinstellung statt hartkodierter Literale/Konstanten.
   const viewDefaults = getEditorViewDefaults();
   api.reportMenuState({
@@ -424,46 +424,46 @@ export function reportMenuStateNow() {
     viewMode,
     lineNumbers: tab ? !!tab.showLineNumbers : viewDefaults.showLineNumbers,
     wordWrap: tab ? !!tab.wrapLines : viewDefaults.wrapLines,
-    // 4T-0013: Haekchen-Stand fuer das Gliederungs-Toggle im Ansicht-Menue.
+    // 4T-000013: Haekchen-Stand fuer das Gliederungs-Toggle im Ansicht-Menue.
     foldGutter: tab ? !!tab.showFoldGutter : viewDefaults.showFoldGutter,
     togglesEnabled: viewMode === 'source' || viewMode === 'split' || viewMode === 'live',
     hasActiveTab: !!tab,
-    // 4T-0213: Handbuch-Tabs — Menue deaktiviert Bearbeiten/Speichern.
+    // 4T-000213: Handbuch-Tabs — Menue deaktiviert Bearbeiten/Speichern.
     manualTab: !!(tab && tab.manualPage),
-    // 4T-0277: System-Seiten (Einstellungen) — Menue deaktiviert zusaetzlich
+    // 4T-000277: System-Seiten (Einstellungen) — Menue deaktiviert zusaetzlich
     // View-Modi und Export.
     systemTab: !!(tab && tab.systemPage),
-    // 4T-0568 (Epic 3E-0104): geordnete Panel-Liste fuer das Panel-
+    // 4T-000568 (Epic 3E-000104): geordnete Panel-Liste fuer das Panel-
     // Untermenue (ersetzt die frueheren elf xxxVisible-Einzel-Flags; damit
     // fuehren erstmals auch Notizen/Block-Eigenschaften/Datei-Graph/
     // Erinnerungen korrekte Haekchen — die vier Flags fielen zuvor in
     // normalizeMenuState unter den Tisch).
     panels: panelToggleStates(),
-    // 4T-0626 (Epic 3E-0119): Sidebar-Varianten-Listen fuer das Untermenue
+    // 4T-000626 (Epic 3E-000119): Sidebar-Varianten-Listen fuer das Untermenue
     // „Sidebar-Anordnungen" ({ global, area, areaName }; der Main baut
     // daraus die Eintraege — Muster Panel-Untermenue).
     sidebarVariants: sidebarVariantsMenuState(),
-    // 4T-0019: Haekchen-Stand fuer Fokus-Modus und Typewriter-Scroll im
+    // 4T-000019: Haekchen-Stand fuer Fokus-Modus und Typewriter-Scroll im
     // Ansicht-Menue (beide pro Fenster wirksam, global persistiert).
     focusMode: !!state.focusMode,
     typewriterScroll: !!state.typewriterScroll,
-    // 4T-0697 (Epic 3E-0141): Kollaps-Zustand der linken/rechten Sidebar-
+    // 4T-000697 (Epic 3E-000141): Kollaps-Zustand der linken/rechten Sidebar-
     // Spalte der AKTIVEN Pane-Group (die beiden Menue-Haekchen folgen der
     // aktiven Spalte; bei geteilter Ansicht schaltet jede Pane-Group
     // unabhaengig).
     sidebarCollapsedLeft: !!state.sidebarCollapsed.left[state.activePaneIndex],
     sidebarCollapsedRight: !!state.sidebarCollapsed.right[state.activePaneIndex],
-    // 4T-0019: Edit-Modus pro Tab. Im Menue als Checkbox "Bearbeiten" mit
+    // 4T-000019: Edit-Modus pro Tab. Im Menue als Checkbox "Bearbeiten" mit
     // Accelerator Strg+E. Damit ist der Modus auch im Fokus-Modus
     // erreichbar (Toolbar-Button ist dort ausgeblendet).
     editMode: tab ? !!tab.editMode : false,
-    // 4T-0070: Scroll-Synchronisation pro Tab. Im Menue als Checkbox.
+    // 4T-000070: Scroll-Synchronisation pro Tab. Im Menue als Checkbox.
     scrollSyncEnabled: tab ? !!tab.scrollSyncEnabled : false,
   });
 }
 
 // --- Tab-Verwaltung ---------------------------------------------------------
-// 4T-0765 (Epic 3E-0158): opts.keepSelection haelt die Mehrfach-Auswahl. Ohne
+// 4T-000765 (Epic 3E-000158): opts.keepSelection haelt die Mehrfach-Auswahl. Ohne
 // das Flag setzt jede Aktivierung die Auswahl auf den aktivierten Reiter
 // zurueck — das haelt die Invariante „der aktive Reiter ist Mitglied" ohne
 // Sonderfaelle und verhindert, dass eine Menge eine Oeffnung aus einem
@@ -474,35 +474,35 @@ export function activateTab(paneIdx, tabIdx, opts = {}) {
   if (!pane || tabIdx < 0 || tabIdx >= pane.tabs.length) return;
   pane.activeIndex = tabIdx;
   if (!opts.keepSelection) setSelection(pane, tabIdx);
-  // 4T-0767 (Epic 3E-0158): Eine Aktivierung von aussen (Datei-Oeffnen,
+  // 4T-000767 (Epic 3E-000158): Eine Aktivierung von aussen (Datei-Oeffnen,
   // Wiki-Link, Kommando-Palette, Cross-Pane-Lookup, Fenster-Transfer,
   // Strg+Tab) klappt die Gruppe NICHT mehr auf (Entscheidung des Product
   // Owners vom 2026-07-28). Der Zustand der Leiste aendert sich nie von
   // selbst; die aktive Datei nennen Fenstertitel und Aufklapp-Menue.
   activatePane(paneIdx);
-  // K-04 (4T-0310): kein direktes renderTabbar/renderPaneContent hier — das
+  // K-04 (4T-000310): kein direktes renderTabbar/renderPaneContent hier — das
   // folgende applyAllLayouts() rendert ueber renderAllPanes ohnehin alle Panes
   // (Tabbar-DOM wurde sonst zwei- bis dreifach pro Aktivierung gebaut).
   applyAllLayouts();
-  // 4T-0017: Indikator zeigt den Zoom des fokussierten Tabs; bei Tab-Wechsel
+  // 4T-000017: Indikator zeigt den Zoom des fokussierten Tabs; bei Tab-Wechsel
   // innerhalb der aktiven Pane mit anpassen.
   renderZoomIndicator();
-  // 4T-0072: Word Count an die jetzt aktive Datei anpassen.
+  // 4T-000072: Word Count an die jetzt aktive Datei anpassen.
   updateWordCountStatusbar();
-  // 4T-0073: Outgoing-Links neu rendern, sofern Sektion sichtbar.
+  // 4T-000073: Outgoing-Links neu rendern, sofern Sektion sichtbar.
   if (state.outgoing && state.outgoing.visibleByPane[paneIdx]) {
     renderOutgoingLinks(paneIdx);
   }
-  // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel folgt der aktiven Datei.
+  // 4T-000456 (Epic 3E-000084): Datei-Graph-Panel folgt der aktiven Datei.
   if (state.fileGraph && state.fileGraph.visibleByPane[paneIdx]) {
     scheduleFileGraphRender(paneIdx);
   }
-  // 4T-0075: Statusbar-Stern an den Bookmark-Stand der aktiven Datei anpassen.
+  // 4T-000075: Statusbar-Stern an den Bookmark-Stand der aktiven Datei anpassen.
   updateBookmarksToggleButton();
   persistState();
 }
 
-// W-15 (4T-0308): Pending Properties-Sidebar-Save vor dem Schliessen flushen.
+// W-15 (4T-000308): Pending Properties-Sidebar-Save vor dem Schliessen flushen.
 // Sonst laeuft der 500-ms-Debounce nach dem Splice ins Leere (liest die Felder
 // des dann anderen/keines Tabs) und die letzte Sidebar-Eingabe geht verloren.
 // Der Flush ist synchron und schreibt in tab.content, sodass der folgende
@@ -512,7 +512,7 @@ export function activateTab(paneIdx, tabIdx, opts = {}) {
 // Abbrechen. Liefert false, wenn der Nutzer abbricht oder das Speichern
 // scheitert; der Aufrufer laesst den Reiter dann stehen.
 //
-// 4T-1311 (Epic 3E-0235): aus closeTab herausgeloest, weil der Eintrags-Wechsel
+// 4T-001311 (Epic 3E-000235): aus closeTab herausgeloest, weil der Eintrags-Wechsel
 // im selben Reiter fachlich ebenfalls eine Datei schliesst und dieselbe
 // Rueckfrage braucht. Zwei Stellen mit derselben Verantwortung liefen bei der
 // naechsten Aenderung auseinander.
@@ -545,14 +545,14 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
       )
     : true;
   if (tab.path && !stillElsewhere) await api.unwatchFile(tab.path);
-  // 4T-0935 (Befund B-08): Mit dem letzten Reiter auf diese Datei faellt auch
+  // 4T-000935 (Befund B-08): Mit dem letzten Reiter auf diese Datei faellt auch
   // ihr Puffer-Overlay weg — sonst zeigten Abfragen weiter den Stand eines
   // Editors, den es nicht mehr gibt. Der Verwerfen-Zweig oben laeuft hier
   // ebenfalls durch, damit eine verworfene Aenderung nicht ueberlebt.
   if (tab.path && !stillElsewhere) void clearIndexOverlayFor(tab.path);
 
   pane.tabs.splice(tabIdx, 1);
-  // 4T-0279: System-Seiten (Einstellungen) raeumen beim Schliessen auf —
+  // 4T-000279: System-Seiten (Einstellungen) raeumen beim Schliessen auf —
   // Tab-Schliessen ohne Anwenden entspricht Abbrechen (Revert der
   // Live-Vorschau, Capture-Teardown). Gilt fuer jeden Schliess-Pfad
   // (Button, Tab-X, Strg+W, Fenster-Transfer).
@@ -567,27 +567,27 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
   } else if (tabIdx < pane.activeIndex) {
     pane.activeIndex -= 1;
   }
-  // 4T-0459 (Epic 3E-0085): letzte Mitglieder hinterlassen keine leere Gruppe.
+  // 4T-000459 (Epic 3E-000085): letzte Mitglieder hinterlassen keine leere Gruppe.
   pruneEmptyGroups(pane);
-  // 4T-0765 (Epic 3E-0158): der geschlossene Reiter faellt aus der Auswahl.
+  // 4T-000765 (Epic 3E-000158): der geschlossene Reiter faellt aus der Auswahl.
   pruneSelection(pane);
-  // 4T-0767 (Epic 3E-0158): Der Aktivierungs-Index bleibt gueltig (Korrektur
+  // 4T-000767 (Epic 3E-000158): Der Aktivierungs-Index bleibt gueltig (Korrektur
   // oben), wird aber nicht mehr auf Sichtbarkeit gezogen. Der Kanten-Fall
   // „letzter sichtbarer Reiter geschlossen" endet damit in einer Leiste, die
   // nur Koepfe zeigt; aufloesbar ueber Kopf-Klick oder Aufklapp-Menue.
   collapseEmptyPanes();
   applyAllLayouts();
-  // 4T-0072: Word-Count an die neue aktive Datei anpassen, ggf. ausblenden.
+  // 4T-000072: Word-Count an die neue aktive Datei anpassen, ggf. ausblenden.
   updateWordCountStatusbar();
-  // 4T-0073: Outgoing-Links an die neue aktive Datei anpassen.
+  // 4T-000073: Outgoing-Links an die neue aktive Datei anpassen.
   if (state.outgoing && state.outgoing.visibleByPane[paneIdx]) {
     renderOutgoingLinks(paneIdx);
   }
-  // 4T-0456 (Epic 3E-0084): Datei-Graph-Panel an die neue aktive Datei anpassen.
+  // 4T-000456 (Epic 3E-000084): Datei-Graph-Panel an die neue aktive Datei anpassen.
   if (state.fileGraph && state.fileGraph.visibleByPane[paneIdx]) {
     scheduleFileGraphRender(paneIdx);
   }
-  // 4T-0075: Statusbar-Stern an den neuen Aktiv-Tab anpassen.
+  // 4T-000075: Statusbar-Stern an den neuen Aktiv-Tab anpassen.
   updateBookmarksToggleButton();
   persistState();
 }
@@ -613,7 +613,7 @@ export function moveTabBetweenPanes(fromPane, fromIdx, toPane, toIdx) {
 
   ensurePaneExists(toPane);
 
-  // R4-02 (4T-0170): Duplikat-Check nur bei gesetztem Pfad. Bei Unbenannt-
+  // R4-02 (4T-000170): Duplikat-Check nur bei gesetztem Pfad. Bei Unbenannt-
   // Tabs matchte `null === null` den erstbesten Unbenannt-Tab der Ziel-Pane;
   // der gezogene Tab wurde gesplict und nie eingefuegt (Totalverlust).
   const targetExisting = tab.path
@@ -622,9 +622,9 @@ export function moveTabBetweenPanes(fromPane, fromIdx, toPane, toIdx) {
   if (targetExisting >= 0) {
     pane.tabs.splice(fromIdx, 1);
     if (pane.activeIndex >= pane.tabs.length) pane.activeIndex = pane.tabs.length - 1;
-    // 4T-0459 (Epic 3E-0085): Gruppen-Invariante der Quell-Pane erhalten.
+    // 4T-000459 (Epic 3E-000085): Gruppen-Invariante der Quell-Pane erhalten.
     pruneEmptyGroups(pane);
-    // 4T-0765 (Epic 3E-0158): ein Reiter, der die Leiste verlaesst, verlaesst
+    // 4T-000765 (Epic 3E-000158): ein Reiter, der die Leiste verlaesst, verlaesst
     // auch ihre Auswahl.
     pruneSelection(pane);
     activatePane(toPane);
@@ -637,12 +637,12 @@ export function moveTabBetweenPanes(fromPane, fromIdx, toPane, toIdx) {
 
   pane.tabs.splice(fromIdx, 1);
   if (pane.activeIndex >= pane.tabs.length) pane.activeIndex = pane.tabs.length - 1;
-  // 4T-0459 (Epic 3E-0085): Gruppen sind pro Tab-Leiste — der Wechsel in die
+  // 4T-000459 (Epic 3E-000085): Gruppen sind pro Tab-Leiste — der Wechsel in die
   // andere Pane beendet die Mitgliedschaft; landet der Tab dort im Inneren
   // eines Gruppen-Blocks, tritt er dieser Gruppe bei (Zusammenhangs-
   // Invariante). Leere Quell-Gruppen werden bereinigt.
   pruneEmptyGroups(pane);
-  // 4T-0765 (Epic 3E-0158): dito fuer die Auswahl der Quell-Leiste.
+  // 4T-000765 (Epic 3E-000158): dito fuer die Auswahl der Quell-Leiste.
   pruneSelection(pane);
 
   const insertAt = Math.max(0, Math.min(toIdx, state.panes[toPane].tabs.length));
@@ -664,7 +664,7 @@ export function reorderTabWithinPane(paneIdx, fromIdx, toIdx) {
   let newIdx = toIdx;
   if (toIdx > fromIdx) newIdx -= 1;
   newIdx = Math.max(0, Math.min(newIdx, pane.tabs.length));
-  // 4T-0459 (Epic 3E-0085): Gruppen-Semantik des Ziehens — wer strikt ins
+  // 4T-000459 (Epic 3E-000085): Gruppen-Semantik des Ziehens — wer strikt ins
   // Innere eines Gruppen-Blocks faellt, tritt der Gruppe bei; wer den
   // eigenen Block verlaesst, tritt aus (Zusammenhangs-Invariante). Wird die
   // eigene Gruppe dadurch leer, entfaellt sie.
@@ -676,7 +676,7 @@ export function reorderTabWithinPane(paneIdx, fromIdx, toIdx) {
   persistState();
 }
 
-// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl als Block verschieben — das
+// 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl als Block verschieben — das
 // Gegenstueck zu reorderTabWithinPane fuer mehr als einen Reiter. Nur
 // innerhalb der eigenen Leiste; ueber die Spaltengrenze wandert weiterhin der
 // einzelne gezogene Reiter (die Auswahl gehoert zur Leiste).
@@ -689,14 +689,14 @@ export function reorderTabsWithinPane(paneIdx, tabIdxList, insertIdx) {
   persistState();
 }
 
-// --- Tab-Gruppen-Aktionen (4T-0460, Epic 3E-0085) -----------------------------
+// --- Tab-Gruppen-Aktionen (4T-000460, Epic 3E-000085) -----------------------------
 
 // Kopf-Klick: Gruppe zu- oder aufklappen.
-// 4T-0767 (Epic 3E-0158): Das Zuklappen gelingt jetzt auch dann, wenn der
+// 4T-000767 (Epic 3E-000158): Das Zuklappen gelingt jetzt auch dann, wenn der
 // aktive Reiter in der Gruppe liegt — genau der Fall, in dem es am
 // nuetzlichsten ist. Er bleibt aktiv, sein Inhalt bleibt im Pane, und der
 // Kopf traegt die Aktiv-Kennzeichnung. Der fruehere Aktivierungs-Wechsel
-// (4T-0460) entfaellt samt seinem Abbruch fuer den Fall, dass kein anderer
+// (4T-000460) entfaellt samt seinem Abbruch fuer den Fall, dass kein anderer
 // sichtbarer Reiter existiert.
 export function toggleGroupCollapsed(paneIdx, groupId) {
   const pane = state.panes[paneIdx];
@@ -712,9 +712,9 @@ export function toggleGroupCollapsed(paneIdx, groupId) {
 // Aktivierung, Pane-Kollabierung); die Gruppe wird danach ueber ihr Objekt
 // wiedergefunden, weil sich Pane-Indizes durch collapseEmptyPanes
 // verschieben koennen.
-// 4T-0767 (Epic 3E-0158): Tritt der aktive Reiter einer zugeklappten Gruppe
+// 4T-000767 (Epic 3E-000158): Tritt der aktive Reiter einer zugeklappten Gruppe
 // bei, bleibt sie zu — die Sichtbarkeits-Garantie ist entfallen.
-// 4T-0766 (Epic 3E-0158): tabIdxList traegt eine Mehrfach-Auswahl; sie tritt
+// 4T-000766 (Epic 3E-000158): tabIdxList traegt eine Mehrfach-Auswahl; sie tritt
 // als Ganzes bei (nur innerhalb der eigenen Leiste, die Auswahl gehoert zur
 // Leiste). Ohne Liste bleibt es beim gezogenen Reiter.
 export function dropTabIntoGroup(fromPane, fromIdx, toPane, groupId, tabIdxList = null) {
@@ -790,7 +790,7 @@ export function singlePaneSnapshotFromTab(tab) {
           wrapLines: tab.wrapLines,
           showLineNumbers: tab.showLineNumbers,
           showFoldGutter: tab.showFoldGutter,
-          // 4T-0070: Scroll-Synchronisation pro Tab.
+          // 4T-000070: Scroll-Synchronisation pro Tab.
           scrollSyncEnabled: !!tab.scrollSyncEnabled,
         },
       ],
@@ -803,10 +803,10 @@ export async function copyTabToNewWindow(paneIdx, tabIdx) {
   if (!pane) return;
   const tab = pane.tabs[tabIdx];
   if (!tab) return;
-  // 4T-0213: Handbuch-Tabs sind pfadlos — der Pfad-Snapshot wuerde im
+  // 4T-000213: Handbuch-Tabs sind pfadlos — der Pfad-Snapshot wuerde im
   // neuen Fenster leer ausgehen. Transfer ueber den Payload-Mechanismus;
   // das Zielfenster oeffnet die Seite regulaer (frischer Inhalt).
-  // 4T-0277: System-Seiten (Einstellungen) analog.
+  // 4T-000277: System-Seiten (Einstellungen) analog.
   if (tab.manualPage || tab.systemPage) {
     await api.openNewWindow([], buildTabPayload(tab));
     return;
@@ -819,7 +819,7 @@ export async function moveTabToNewWindow(paneIdx, tabIdx) {
   if (!pane) return;
   const tab = pane.tabs[tabIdx];
   if (!tab) return;
-  // R4-03 (4T-0170): Transfer ueber den Payload-Mechanismus (buildTabPayload
+  // R4-03 (4T-000170): Transfer ueber den Payload-Mechanismus (buildTabPayload
   // traegt content/dirty/editMode), nicht ueber den Pfad-Snapshot. Vorher las
   // das neue Fenster nur von Platte: dirty Buffer ging verloren, Unbenannt-
   // Tabs (path null) komplett. Der Main reicht den Payload nach
@@ -831,7 +831,7 @@ export async function moveTabToNewWindow(paneIdx, tabIdx) {
   await closeTab(paneIdx, tabIdx, { skipDirtyCheck: true });
 }
 
-// 4T-0012: Tab-Payload fuer den Transfer in ein bestehendes Fenster. Im
+// 4T-000012: Tab-Payload fuer den Transfer in ein bestehendes Fenster. Im
 // Gegensatz zu singlePaneSnapshotFromTab traegt dieser Snapshot auch den
 // aktuellen (ggf. dirty) Buffer-Inhalt sowie editMode mit, damit die Bearbeitung
 // im Zielfenster nahtlos weitergeht.
@@ -840,11 +840,11 @@ export function buildTabPayload(tab) {
     path: tab.path || null,
     content: tab.content || '',
     dirty: !!tab.dirty,
-    // 4T-0213: Seiten-Kennung der Handbuch-Tabs wandert mit; das
+    // 4T-000213: Seiten-Kennung der Handbuch-Tabs wandert mit; das
     // Zielfenster oeffnet die Seite ueber openManualPage (inkl.
     // Einfach-Instanz-Pruefung) statt einen Unbenannt-Tab anzulegen.
     manualPage: tab.manualPage || null,
-    // 4T-0277: Kennung der System-Seiten (Einstellungen) analog.
+    // 4T-000277: Kennung der System-Seiten (Einstellungen) analog.
     systemPage: tab.systemPage || null,
     settings: {
       viewMode: tab.viewMode,
@@ -852,16 +852,16 @@ export function buildTabPayload(tab) {
       showLineNumbers: tab.showLineNumbers,
       showFoldGutter: tab.showFoldGutter,
       editMode: !!tab.editMode,
-      // 4T-0017: Zoom des Tabs wandert mit (analog zu View-Modus und Edit-Mode).
+      // 4T-000017: Zoom des Tabs wandert mit (analog zu View-Modus und Edit-Mode).
       zoom: tab.zoom ?? DEFAULT_ZOOM,
-      // 4T-0070: Scroll-Synchronisation pro Tab.
+      // 4T-000070: Scroll-Synchronisation pro Tab.
       scrollSyncEnabled: !!tab.scrollSyncEnabled,
     },
     untitledIndex: tab.untitledIndex || null,
   };
 }
 
-// 4T-0012: Tab in ein bereits offenes Zielfenster kopieren. Der Quell-Tab
+// 4T-000012: Tab in ein bereits offenes Zielfenster kopieren. Der Quell-Tab
 // bleibt unveraendert offen.
 export async function copyTabToWindow(targetWindowId, paneIdx, tabIdx) {
   const pane = state.panes[paneIdx];
@@ -870,7 +870,7 @@ export async function copyTabToWindow(targetWindowId, paneIdx, tabIdx) {
   if (!tab) return;
   const result = await api.appendTabToWindow(targetWindowId, buildTabPayload(tab));
   if (!result || !result.ok) {
-    // 4T-0323: Bereichs-Grenze des Ziel-Fensters unterscheiden.
+    // 4T-000323: Bereichs-Grenze des Ziel-Fensters unterscheiden.
     const key =
       result && result.reason === 'outside-area'
         ? 'statusbar.outsideAreaFile'
@@ -879,7 +879,7 @@ export async function copyTabToWindow(targetWindowId, paneIdx, tabIdx) {
   }
 }
 
-// 4T-0012: Tab in ein bereits offenes Zielfenster verschieben. Erst kopieren,
+// 4T-000012: Tab in ein bereits offenes Zielfenster verschieben. Erst kopieren,
 // und nur bei Erfolg den Quell-Tab schliessen (skipDirtyCheck, weil der Inhalt
 // inkl. dirty Buffer mitwandert).
 export async function moveTabToWindow(targetWindowId, paneIdx, tabIdx) {
@@ -889,7 +889,7 @@ export async function moveTabToWindow(targetWindowId, paneIdx, tabIdx) {
   if (!tab) return;
   const result = await api.appendTabToWindow(targetWindowId, buildTabPayload(tab));
   if (!result || !result.ok) {
-    // 4T-0323: Bereichs-Grenze des Ziel-Fensters unterscheiden.
+    // 4T-000323: Bereichs-Grenze des Ziel-Fensters unterscheiden.
     const key =
       result && result.reason === 'outside-area'
         ? 'statusbar.outsideAreaFile'
@@ -900,7 +900,7 @@ export async function moveTabToWindow(targetWindowId, paneIdx, tabIdx) {
   await closeTab(paneIdx, tabIdx, { skipDirtyCheck: true });
 }
 
-// 4T-0012: Vom Main empfangenes Append-Event verarbeiten. Fuegt den Tab in der
+// 4T-000012: Vom Main empfangenes Append-Event verarbeiten. Fuegt den Tab in der
 // aktiven Pane an und aktiviert ihn. Wenn der Pfad in irgendeiner Pane schon
 // offen ist, wird der bestehende Tab aktiviert (kein Duplikat); ein eventuell
 // dirty Buffer aus dem Quell-Fenster wird in diesem Fall in den bestehenden
@@ -910,7 +910,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
   if (targetPane < 0 || targetPane >= state.panes.length) return;
   const settings = payload.settings || {};
 
-  // 4T-0213: Handbuch-Tab aus einem anderen Fenster — die Seite regulaer
+  // 4T-000213: Handbuch-Tab aus einem anderen Fenster — die Seite regulaer
   // oeffnen (aktiviert einen bereits offenen Tab statt zu duplizieren);
   // der Inhalt wird frisch geladen bzw. generiert, nicht aus dem Payload
   // uebernommen (Sprache dieses Fensters zaehlt).
@@ -919,7 +919,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
     return;
   }
 
-  // 4T-0277: System-Seite (Einstellungen) aus einem anderen Fenster — die
+  // 4T-000277: System-Seite (Einstellungen) aus einem anderen Fenster — die
   // Seite regulaer oeffnen (aktiviert einen bereits offenen Tab statt zu
   // duplizieren); Formular-Zustand wandert bewusst nicht mit.
   if (payload.systemPage) {
@@ -936,7 +936,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
         typeof payload.content === 'string' &&
         target.content !== payload.content
       ) {
-        // W-13 (4T-0308): Traegt der Ziel-Tab selbst ungespeicherte
+        // W-13 (4T-000308): Traegt der Ziel-Tab selbst ungespeicherte
         // Aenderungen, den Quell-Buffer nicht stillschweigend uebernehmen,
         // sondern den Nutzer fragen (Konflikt-Dialog wie beim Auto-Reload).
         let takeIncoming = true;
@@ -945,7 +945,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
           takeIncoming = choice === 'reload';
         }
         if (takeIncoming) {
-          // R4-01 (4T-0170): KEIN manueller view.dispatch hier. Der Editor der
+          // R4-01 (4T-000170): KEIN manueller view.dispatch hier. Der Editor der
           // Pane zeigt zu diesem Zeitpunkt noch den bisherigen aktiven Tab;
           // ein Dispatch wuerde ueber den updateListener dessen Inhalt
           // ueberschreiben (stille Korruption, Auto-Save persistiert sie).
@@ -961,7 +961,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
     }
     try {
       const data = await api.readFile(payload.path);
-      // W-01 (4T-0309): {ok,error}-Vertrag — Lesefehler ueber den catch, der
+      // W-01 (4T-000309): {ok,error}-Vertrag — Lesefehler ueber den catch, der
       // den dirty Buffer als missing-Tab uebernimmt (B-03).
       if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
       const tab = createTab(data.path, data.content, settings);
@@ -973,7 +973,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
       state.panes[targetPane].tabs.push(tab);
       activateTab(targetPane, state.panes[targetPane].tabs.length - 1);
     } catch {
-      // B-03 (4T-0308): Ziel-Datei nicht lesbar. Trug der transferierte Tab
+      // B-03 (4T-000308): Ziel-Datei nicht lesbar. Trug der transferierte Tab
       // einen ungespeicherten Buffer, ist der Quell-Tab bereits geschlossen
       // (skipDirtyCheck) — den Inhalt aus dem Payload als missing-Tab
       // uebernehmen statt zu verwerfen (sonst Datenverlust in beiden
@@ -999,7 +999,7 @@ export async function handleAppendTabFromOtherWindow(payload) {
   const tab = createTab(null, payload.content || '', settings);
   tab.editMode = settings.editMode !== undefined ? !!settings.editMode : true;
   tab.untitledIndex = state.untitledCounter++;
-  // R4-03 (4T-0170): Transferierter Unbenannt-Inhalt ist ungespeichert.
+  // R4-03 (4T-000170): Transferierter Unbenannt-Inhalt ist ungespeichert.
   // createTab setzt originalContent = content; damit wuerde der naechste
   // Editor-Sync dirty auf false normalisieren und der Close-Dialog-Schutz
   // entfiele (stiller Verlust beim Schliessen). originalContent leer halten.

@@ -1,4 +1,4 @@
-// 4T-0899 (Epic 3E-0016): Durchlauf-Pruefung der zweiten Spalte (ZS-01,
+// 4T-000899 (Epic 3E-000016): Durchlauf-Pruefung der zweiten Spalte (ZS-01,
 // ZS-05). Anlass ist die Bestandsaufnahme des Charter-Durchgangs: Von 71
 // Funktions-Specs beruehrten nur vier die zweite Spalte, weil der gemeinsame
 // Selektor-Satz durchgehend auf data-pane="0" verdrahtet war. Seit derselben
@@ -35,7 +35,7 @@ const { SEL } = require('../helpers/selectors');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 
 // Eigene Vorbelegung ersetzt die des Helfers vollstaendig; die Sprach-
-// Festlegung aus 4T-0751 muss deshalb hier mitgegeben werden, sonst startet die
+// Festlegung aus 4T-000751 muss deshalb hier mitgegeben werden, sonst startet die
 // Anwendung englisch und die Menue-Beschriftungen unten stimmen nicht.
 const SIDEBAR_SETTINGS = {
   language: 'de',
@@ -351,7 +351,7 @@ test.describe('ZS-05: Reiter der zweiten Spalte', () => {
   });
 });
 
-// ZS-09 (4T-0942, Befund B-07): Der aktive Reiter einer Panel-Gruppe gehoert
+// ZS-09 (4T-000942, Befund B-07): Der aktive Reiter einer Panel-Gruppe gehoert
 // zu der Spalte, in der er steht. Zuvor lag er im fensterweiten Layout: Ein
 // Reiter-Klick in der einen Spalte stellte die andere mit um, und zwei
 // verschiedene Panels derselben Gruppe waren nebeneinander unmoeglich —
@@ -425,7 +425,7 @@ test.describe('ZS-09: aktiver Reiter einer Gruppe gilt je Spalte', () => {
       throw err;
     }
 
-    // 4T-0644 (Epic 3E-0127): Hier ist bewusst KEIN Wegräumen der Produkt-Tour
+    // 4T-000644 (Epic 3E-000127): Hier ist bewusst KEIN Wegräumen der Produkt-Tour
     // nötig. `settings: null` hält den beim Beenden geschriebenen Sitzungs-Stand
     // unverändert — und in diesem Profil steht der Tour-Merker bereits, weil der
     // erste Start ihn über die Vorbelegung mitbekommen hat.

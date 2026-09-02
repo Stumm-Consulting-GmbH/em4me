@@ -1,4 +1,4 @@
-// 4T-0170: Regressionstests fuer die Datenverlust-Fixes im Tab- und
+// 4T-000170: Regressionstests fuer die Datenverlust-Fixes im Tab- und
 // Fenster-Management (R4-01, R4-02, R4-03). R4-08 (Timing-Fenster im
 // reloadFile-Roundtrip) ist nicht automatisierbar — manueller Pruefpfad
 // im Task dokumentiert.
@@ -121,7 +121,7 @@ test.describe('R4-03: Dirty Unbenannt-Tab in neues Fenster verschieben', () => {
 
       // Kontextmenue auf dem Tab: Solo-Fenster-Reihenfolge ist
       // [nach rechts, in neues Fenster verschieben, kopieren,
-      // neue Gruppe (4T-0461, Epic 3E-0085), schliessen].
+      // neue Gruppe (4T-000461, Epic 3E-000085), schliessen].
       await page.locator(SEL.tabs0).first().click({ button: 'right' });
       const menuItems = page.locator('#context-menu .context-menu-item');
       await expect(menuItems).toHaveCount(5);

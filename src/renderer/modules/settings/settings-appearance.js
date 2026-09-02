@@ -1,4 +1,4 @@
-// 4T-0988 (Epic 3E-0196): Bereich „Darstellung" der Einstellungs-Seite.
+// 4T-000988 (Epic 3E-000196): Bereich „Darstellung" der Einstellungs-Seite.
 //
 // Konstanten und Helfer der Darstellungs-Werte (Schriftarten, Größen,
 // Inhalts-Breite, Ecken-Form, Zeilen-Hervorhebung) samt der Anwendung auf
@@ -17,13 +17,13 @@ import { isNotesPreviewByDefault, setNotesPreviewByDefault } from '../panels/not
 import { persistSetting } from '../views/views.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 
-// --- Darstellung: Konstanten und Helfer (4T-0018) -------------------------------
+// --- Darstellung: Konstanten und Helfer (4T-000018) -------------------------------
 // Konfigurierbare Schriftart und -groesse fuer Editor und Render-Pane.
 // Werte werden ueber electron-store unter dem Schluessel-Prefix appearance.*
 // persistiert; eine Aenderung in einem Fenster wird vom Main an alle anderen
 // Fenster broadcastet, sodass die neuen Werte sofort ueberall greifen.
 
-// 4T-1202 (Epic 3E-0121): Standard-Schriften je Plattform. Die bisherigen
+// 4T-001202 (Epic 3E-000121): Standard-Schriften je Plattform. Die bisherigen
 // Windows-Namen bleiben dort unveraendert der Standard; auf macOS und Linux
 // werden Schriften vorbelegt, die dort tatsaechlich installiert sind, statt
 // eines Windows-Namens, der nur ueber die Fallback-Kette aufgeloest wuerde.
@@ -43,17 +43,17 @@ export const APPEARANCE_DEFAULTS = {
   renderFont: standardSchriften.renderFont,
   renderSize: 15,
   contentWidth: 80,
-  // 4T-0575 (Epic 3E-0106): abgerundete Ecken der Dokument-Reiter und der
+  // 4T-000575 (Epic 3E-000106): abgerundete Ecken der Dokument-Reiter und der
   // Tab-Gruppen-Koepfe. Default aus, das heutige eckige Bild bleibt damit
   // der Auslieferungszustand.
   roundedTabs: false,
-  // 4T-0577 (Epic 3E-0106): Hervorhebung der Cursor-Zeile im Edit-Modus.
+  // 4T-000577 (Epic 3E-000106): Hervorhebung der Cursor-Zeile im Edit-Modus.
   // Default an (PO-Festlegung: ueblicher Editor-Komfort).
   highlightActiveLine: true,
 };
 const APPEARANCE_SIZE_MIN = 8;
 const APPEARANCE_SIZE_MAX = 32;
-// 4T-0383 (Epic 3E-0072): Inhalts-Breite der gerenderten Ansicht in Prozent
+// 4T-000383 (Epic 3E-000072): Inhalts-Breite der gerenderten Ansicht in Prozent
 // der Pane-Breite (PO-Festlegung: freie Prozent-Eingabe 20 bis 100,
 // Default 80). Ersetzt die feste 920-px-Begrenzung der .markdown-body-Regel.
 const CONTENT_WIDTH_MIN = 20;
@@ -94,18 +94,18 @@ export function applyAppearanceVars(values) {
     '--render-font-size',
     `${clampAppearanceSize(values.renderSize, APPEARANCE_DEFAULTS.renderSize)}px`,
   );
-  // 4T-0383: Prozent-Breite der gerenderten Ansicht (Render-Pane und
+  // 4T-000383: Prozent-Breite der gerenderten Ansicht (Render-Pane und
   // Reading; der PDF-Export ueberschreibt mit max-width: none).
   root.style.setProperty(
     '--content-width',
     `${clampContentWidth(values.contentWidth, APPEARANCE_DEFAULTS.contentWidth)}%`,
   );
-  // 4T-0575: Ecken-Form der Reiter und Gruppen-Koepfe. Reine Root-Klasse
+  // 4T-000575: Ecken-Form der Reiter und Gruppen-Koepfe. Reine Root-Klasse
   // (Muster frontmatter-expanded) — die Geometrie (Radius, Abstand statt
   // Trennlinie) liegt vollstaendig im Stylesheet, damit Themes und
   // Farbschemas sie ueber --tab-radius uebersteuern koennen.
   root.classList.toggle('rounded-tabs', values.roundedTabs === true);
-  // 4T-0577: Hervorhebung der Cursor-Zeile. Default an, deshalb schaltet
+  // 4T-000577: Hervorhebung der Cursor-Zeile. Default an, deshalb schaltet
   // nur ein explizites false ab (Alt-Profile und leere Broadcast-Payloads
   // landen auf dem Default).
   root.classList.toggle('highlight-active-line', values.highlightActiveLine !== false);
@@ -125,10 +125,10 @@ export async function readAppearanceFromStore() {
     renderFont: renderFont || APPEARANCE_DEFAULTS.renderFont,
     renderSize: clampAppearanceSize(renderSize, APPEARANCE_DEFAULTS.renderSize),
     contentWidth: clampContentWidth(contentWidth, APPEARANCE_DEFAULTS.contentWidth),
-    // 4T-0575: nur explizites true rundet (Default aus, auch fuer
+    // 4T-000575: nur explizites true rundet (Default aus, auch fuer
     // Bestands-Profile ohne gespeicherten Wert).
     roundedTabs: roundedTabs === true,
-    // 4T-0577: Default an, nur explizites false schaltet ab.
+    // 4T-000577: Default an, nur explizites false schaltet ab.
     highlightActiveLine: highlightActiveLine !== false,
   };
 }
@@ -162,7 +162,7 @@ export function dirtyAppearanceSection(draft) {
   return (draft.notesPreviewByDefault !== false) !== isNotesPreviewByDefault();
 }
 
-// --- Bereich Darstellung (4T-0018) ---------------------------------------------
+// --- Bereich Darstellung (4T-000018) ---------------------------------------------
 // Vier Font-Controls mit Live-Vorschau über CSS-Variablen; Datalists
 // liefern kuratierte Vorschläge, freie Eingabe ist erlaubt. Persistiert
 // wird erst bei Anwenden/OK.
@@ -234,7 +234,7 @@ function buildFontInput(id, listId, draft, key) {
   return input;
 }
 
-// 4T-0383: opts.min/opts.max erlauben abweichende Bereiche (Inhalts-Breite
+// 4T-000383: opts.min/opts.max erlauben abweichende Bereiche (Inhalts-Breite
 // 20 bis 100); ohne opts bleibt der Schriftgroessen-Bereich der Default.
 function buildSizeInput(id, draft, key, opts) {
   const input = document.createElement('input');
@@ -278,7 +278,7 @@ export function renderAppearanceSection(container, draft) {
       buildSizeInput('settings-render-size', draft, 'renderSize'),
     ),
   );
-  // 4T-0383 (Epic 3E-0072): Inhalts-Breite der gerenderten Ansicht in
+  // 4T-000383 (Epic 3E-000072): Inhalts-Breite der gerenderten Ansicht in
   // Prozent (20 bis 100). Live-Vorschau wie bei den Schriftgroessen ueber
   // die CSS-Variable; Werte ausserhalb des Bereichs klemmt
   // appearanceDraftValues auf die Grenzen.
@@ -295,7 +295,7 @@ export function renderAppearanceSection(container, draft) {
   container.appendChild(
     buildDatalist('settings-proportional-fonts', PROPORTIONAL_FONT_SUGGESTIONS),
   );
-  // 4T-0575 (Epic 3E-0106): abgerundete Ecken der Dokument-Reiter und der
+  // 4T-000575 (Epic 3E-000106): abgerundete Ecken der Dokument-Reiter und der
   // Tab-Gruppen-Koepfe. Anders als die Schalter darunter mit Live-Vorschau
   // (Muster der Schrift- und Breiten-Felder): die Wirkung ist reine
   // CSS-Geometrie, ein Re-Render der Panes faellt nicht an.
@@ -309,7 +309,7 @@ export function renderAppearanceSection(container, draft) {
     applyAppearanceVars(appearanceDraftValues(draft));
   });
   container.appendChild(buildSettingsRow('settings.roundedTabs', roundedTabs));
-  // 4T-0577 (Epic 3E-0106): Hervorhebung der Cursor-Zeile im Edit-Modus,
+  // 4T-000577 (Epic 3E-000106): Hervorhebung der Cursor-Zeile im Edit-Modus,
   // ebenfalls mit Live-Vorschau (reine CSS-Wirkung).
   const activeLine = document.createElement('input');
   activeLine.id = 'settings-highlight-active-line';
@@ -321,7 +321,7 @@ export function renderAppearanceSection(container, draft) {
     applyAppearanceVars(appearanceDraftValues(draft));
   });
   container.appendChild(buildSettingsRow('settings.highlightActiveLine', activeLine));
-  // 4T-0284: Frontmatter-Anzeige im Gerenderten (Render-Pane und
+  // 4T-000284: Frontmatter-Anzeige im Gerenderten (Render-Pane und
   // Live-Modus). Checkbox folgt der Entwurfs-Semantik: Wirkung erst bei
   // Anwenden/OK (keine Live-Vorschau — ein Re-Render aller Panes als
   // Vorschau waere teurer und inkonsistent zum Broadcast-Pfad).
@@ -333,7 +333,7 @@ export function renderAppearanceSection(container, draft) {
     draft.showFrontmatter = showFm.checked;
   });
   container.appendChild(buildSettingsRow('settings.showFrontmatter', showFm));
-  // 4T-0312: dauerhaft ausgeklappte Darstellung, nur wirksam bei aktiver
+  // 4T-000312: dauerhaft ausgeklappte Darstellung, nur wirksam bei aktiver
   // Frontmatter-Anzeige (rein CSS-getragene Root-Klasse).
   const showFmExpanded = document.createElement('input');
   showFmExpanded.id = 'settings-frontmatter-expanded';
@@ -343,7 +343,7 @@ export function renderAppearanceSection(container, draft) {
     draft.frontmatterExpanded = showFmExpanded.checked;
   });
   container.appendChild(buildSettingsRow('settings.showFrontmatterExpanded', showFmExpanded));
-  // 4T-0359 (Epic 3E-0066): Vorschau des Notizen-Panels standardmaessig aktiv.
+  // 4T-000359 (Epic 3E-000066): Vorschau des Notizen-Panels standardmaessig aktiv.
   const notesPreview = document.createElement('input');
   notesPreview.id = 'settings-notes-preview-default';
   notesPreview.type = 'checkbox';
@@ -352,7 +352,7 @@ export function renderAppearanceSection(container, draft) {
     draft.notesPreviewByDefault = notesPreview.checked;
   });
   container.appendChild(buildSettingsRow('settings.notesPreviewByDefault', notesPreview));
-  // 4T-0572 (Epic 3E-0105): globale Voreinstellung der drei Editor-Ansicht-
+  // 4T-000572 (Epic 3E-000105): globale Voreinstellung der drei Editor-Ansicht-
   // Schalter fuer Dokumente ohne eigene Frontmatter-Angabe (Reihenfolge wie
   // Statusbar/Ansichtsmenue: Gliederung, Zeilennummern, Zeilenumbruch).
   // Wirkung erst bei Anwenden/OK; bereits offene Tabs behalten ihren Stand.
@@ -379,7 +379,7 @@ export function renderAppearanceSection(container, draft) {
 
 export async function applyAppearanceSection(draft) {
   // Die Font-/Breiten-Werte hängen am asynchronen Store-Laden; die drei
-  // Schalter darunter sind davon unabhängig und laufen immer (4T-0554:
+  // Schalter darunter sind davon unabhängig und laufen immer (4T-000554:
   // ein Anwenden vor Abschluss des Ladens verlor Schalter-Änderungen
   // sonst still — der frühere Komplett-Abbruch bei draft.appearance null
   // übersprang auch die Schalter-Blöcke).
@@ -392,9 +392,9 @@ export async function applyAppearanceSection(draft) {
     await persistSetting('appearance.renderFont', values.renderFont);
     await persistSetting('appearance.renderSize', values.renderSize);
     await persistSetting('appearance.contentWidth', values.contentWidth);
-    // 4T-0575 (Epic 3E-0106): Ecken-Form der Reiter und Gruppen-Koepfe.
+    // 4T-000575 (Epic 3E-000106): Ecken-Form der Reiter und Gruppen-Koepfe.
     await persistSetting('appearance.roundedTabs', values.roundedTabs);
-    // 4T-0577 (Epic 3E-0106): Hervorhebung der Cursor-Zeile.
+    // 4T-000577 (Epic 3E-000106): Hervorhebung der Cursor-Zeile.
     await persistSetting('appearance.highlightActiveLine', values.highlightActiveLine);
     applyAppearanceVars(values);
     // Snapshot auf den neuen Apply-Stand setzen, damit ein spaeteres
@@ -402,7 +402,7 @@ export async function applyAppearanceSection(draft) {
     draft.appearance = { ...values };
     draft.appearanceSnapshot = { ...values };
   }
-  // 4T-0284: Frontmatter-Anzeige — lokal sofort anwenden (Pipeline,
+  // 4T-000284: Frontmatter-Anzeige — lokal sofort anwenden (Pipeline,
   // Cache-Invalidierung, Re-Render via Event) und persistieren; der
   // settings:set-Broadcast erreicht zusaetzlich alle Fenster inkl.
   // diesem (idempotent, Muster taskStates).
@@ -411,21 +411,21 @@ export async function applyAppearanceSection(draft) {
     applyFrontmatterDisplay(showFrontmatter);
     await persistSetting('render.showFrontmatter', showFrontmatter);
   }
-  // 4T-0312: ausgeklappte Darstellung — lokal anwenden (Root-Klasse) und
+  // 4T-000312: ausgeklappte Darstellung — lokal anwenden (Root-Klasse) und
   // persistieren; der settings:set-Broadcast erreicht alle Fenster.
   const frontmatterExpanded = draft.frontmatterExpanded === true;
   if (frontmatterExpanded !== isFrontmatterExpanded()) {
     applyFrontmatterExpanded(frontmatterExpanded);
     await persistSetting('render.frontmatterExpanded', frontmatterExpanded);
   }
-  // 4T-0359: Vorschau-Default des Notizen-Panels — lokal anwenden (offene Panels
+  // 4T-000359: Vorschau-Default des Notizen-Panels — lokal anwenden (offene Panels
   // ziehen nach) und persistieren.
   const notesPreviewByDefault = draft.notesPreviewByDefault !== false;
   if (notesPreviewByDefault !== isNotesPreviewByDefault()) {
     setNotesPreviewByDefault(notesPreviewByDefault);
     await persistSetting('notes.previewByDefault', notesPreviewByDefault);
   }
-  // 4T-0572 (Epic 3E-0105): globale Voreinstellung der Editor-Ansicht-
+  // 4T-000572 (Epic 3E-000105): globale Voreinstellung der Editor-Ansicht-
   // Schalter — lokal anwenden (wirkt beim naechsten Tab-Erstellen) und nur
   // geaenderte Werte persistieren. Andere offene Fenster lesen die Werte
   // beim eigenen Start; bereits offene Tabs bleiben unberuehrt.

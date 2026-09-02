@@ -1,4 +1,4 @@
-// 4T-0619 (Epic 3E-0117): Kennzahlen-Erhebung eines Bereichs.
+// 4T-000619 (Epic 3E-000117): Kennzahlen-Erhebung eines Bereichs.
 //
 // Zwei Anteile: Der Bereichs-Index (backlinks.statsFor) liefert alles, was
 // er ohnehin fuehrt — Markdown-Zahlen, Tags, Eigenschaften, Aufgaben,

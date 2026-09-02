@@ -1,10 +1,10 @@
-// 4T-0842 (Epic 3E-0147): Kern-Modell des Buches — Begleitdatei
+// 4T-000842 (Epic 3E-000147): Kern-Modell des Buches — Begleitdatei
 // (Book_Settings.mdda), Kapitel-Baum und seine Operationen.
 //
 // Ein Buch lebt in einem eigenen Ordner: darin die Buch-Datei (gewöhnliches
 // Markdown mit dem eigenen Text; Eigenschaften und Bild-Verweis im
 // Frontmatter) und die Begleitdatei, die ausschließlich Struktur trägt
-// (Story 4S-0751). Kapitel sind gewöhnliche Markdown-Dateien im Buch-Ordner
+// (Story 4S-000751). Kapitel sind gewöhnliche Markdown-Dateien im Buch-Ordner
 // oder in beliebig tiefen Unterordnern; die Ordner-Lage trägt keine
 // Struktur-Aussage, die Gliederung steht allein im deklarierten Kapitel-Baum
 // (Epic-Entscheidung 4).
@@ -81,7 +81,7 @@ function normalizeChapterPath(value) {
 // shared/platform.js; die gespeicherte Schreibweise bleibt davon unberührt
 // (Muster toRootRelative in bookmark-tree.js).
 //
-// 4T-1276 (Epic 3E-0232, Befund B1): Vorher stand hier eine feste
+// 4T-001276 (Epic 3E-000232, Befund B1): Vorher stand hier eine feste
 // Kleinschreibung mit dem Kommentar «Das Windows-Dateisystem unterscheidet
 // Groß-/Kleinschreibung nicht». Unter Linux sind `Aufbruch.md` und
 // `aufbruch.md` ZWEI Dateien, und die Anwendung behandelte sie als eine.
@@ -95,7 +95,7 @@ function fileKey(value) {
 // Pfad. Ein Buch-Ordner, der aus einem fremden System zuwandert und die Datei
 // anders geschrieben trägt, soll auch auf einem case-sensitiven Dateisystem
 // als Buch erkannt werden. Entscheidung des Product Owners vom 2026-08-29
-// (4T-1275); die Absicht steht hier, weil `4S-0841` genau das verlangt: «Wo
+// (4T-001275); die Absicht steht hier, weil `4S-000841` genau das verlangt: «Wo
 // eine strengere als die plattformübliche Regel bewusst überall gilt, ist die
 // Absicht dokumentiert.»
 function settingsNameKey(value) {

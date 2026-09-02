@@ -1,14 +1,14 @@
-// 4T-0433 (Epic 3E-0081): Journal-Kommandos und der gemeinsame Anlage-Pfad.
+// 4T-000433 (Epic 3E-000081): Journal-Kommandos und der gemeinsame Anlage-Pfad.
 //
 // Der EINE Öffnen-/Anlage-Weg der Journal-Einträge (Task-Vorgabe): Pfad über
 // den Perioden-Kern auflösen → existiert die Datei, öffnen (Tab-Mechanik) →
 // sonst anlegen: Vorlage des Journals anwenden (volle Platzhalter-Engine aus
-// 3E-0080 inklusive Dialog-Kette; ohne Vorlage leerer Inhalt), Frontmatter-
+// 3E-000080 inklusive Dialog-Kette; ohne Vorlage leerer Inhalt), Frontmatter-
 // Datums-Properties setzen, Datei mit Ordner-Kette schreiben, öffnen.
-// Kalender-Panel (4T-0434) und Navigations-Block (4T-0435) rufen denselben
+// Kalender-Panel (4T-000434) und Navigations-Block (4T-000435) rufen denselben
 // openJournalEntry-Pfad auf.
 //
-// Abbruch-Semantik wie bei den Vorlagen (3E-0080): der Abbruch irgendeines
+// Abbruch-Semantik wie bei den Vorlagen (3E-000080): der Abbruch irgendeines
 // Platzhalter-Dialogs bricht das GESAMTE Anlegen ab — es entsteht keine
 // Datei. Die Journal-Vorlage übersteuert eine gegebenenfalls greifende
 // Ordner-Regel: der Anlage-Weg läuft über journals:createEntry und damit
@@ -71,7 +71,7 @@ async function journalsConfigOrHint() {
 // Auswahl-Popup über Journale (Muster der select-Platzhalter-Liste).
 // Anzeige-Label: Name, bei gesetztem Regal mit Regal-Zusatz; Duplikate
 // werden über die id eindeutig gemacht (die Auswahl mappt über den Index
-// des Labels). null = Abbruch. 4T-0434: exportiert — der Kalender-Klick
+// des Labels). null = Abbruch. 4T-000434: exportiert — der Kalender-Klick
 // nutzt dieselbe Auswahl bei mehreren Treffern.
 export async function pickJournal(journals, title) {
   if (journals.length === 1) return journals[0];
@@ -120,7 +120,7 @@ async function buildEntryContent(journal, period, relPath) {
       title: relPath.slice(slash + 1).replace(/\.md$/i, ''),
       folder: slash >= 0 ? relPath.slice(0, slash) : '',
       nowMs: period.startMs,
-      // 4T-1057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache;
+      // 4T-001057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache;
       // der Datums-Kontext bleibt der Perioden-Start des Eintrags.
       locale: getLanguage(),
       clipboard: typeof api.clipboardReadText === 'function' ? api.clipboardReadText() : '',
@@ -149,10 +149,10 @@ async function buildEntryContent(journal, period, relPath) {
 // Öffnet den Eintrag eines Journals für eine Periode bzw. legt ihn an.
 // Liefert true, wenn ein Tab geöffnet wurde. Alle Journal-Einstiege
 // (Kommandos, Kalender-Klick, Navigations-Block) laufen hier durch.
-// 4T-0631 (Epic 3E-0102): inheritGroup setzen NUR die Dokument-Klick-
+// 4T-000631 (Epic 3E-000102): inheritGroup setzen NUR die Dokument-Klick-
 // Aufrufer (Navigations-Block); Kalender-Panel und Kommandos bleiben
 // ungruppiert — ein Flag am Wrapper selbst würde sie falsch eingruppieren.
-// 4T-1311 (Epic 3E-0235): `imSelbenReiter` zeigt den Eintrag im Reiter von
+// 4T-001311 (Epic 3E-000235): `imSelbenReiter` zeigt den Eintrag im Reiter von
 // `quellPfad`, statt einen weiteren zu oeffnen — das Blaettern mit den Pfeilen
 // des Navigations-Blocks. Ohne einen passenden Quell-Reiter (etwa aus einer
 // Vorschau-Flaeche heraus) faellt der Weg auf das gewohnte Oeffnen zurueck.

@@ -1,4 +1,4 @@
-// 4T-0177: Regressionstests fuer die UI-Detail-Fixes: (a) S-01/S-02
+// 4T-000177: Regressionstests fuer die UI-Detail-Fixes: (a) S-01/S-02
 // sichtbarer Tastatur-Fokus im Alias-Dialog, (b) R4-05 Bindings der
 // zweiten Pane (Properties-Add, Tags-Filter), (c) M-06 Shift-Guard am
 // Strg+F-Handler. R5-08 (Multi-Window-Snapshot) bleibt manueller

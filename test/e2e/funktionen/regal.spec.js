@@ -1,35 +1,35 @@
-// Epic 3E-0162 (4T-0867): E2E-Funktions-Suite „Bücherregale" — ein Regal als
+// Epic 3E-000162 (4T-000867): E2E-Funktions-Suite „Bücherregale" — ein Regal als
 // Gruppierung von Buch-Ordnern mit eigener Regal-Datei und Begleitdatei.
 //
-// RG-01 (4T-0867/4T-0868): Regal anlegen — Ordner, Regal-Datei und
+// RG-01 (4T-000867/4T-000868): Regal anlegen — Ordner, Regal-Datei und
 //        Begleitdatei entstehen, das Regal ist aktiv, die Regal-Ansicht
 //        öffnet als eigene Seite im Reiter-System.
-// RG-02 (4T-0867): Regal öffnen per Pfad-Einstieg — der Zustand trägt
+// RG-02 (4T-000867): Regal öffnen per Pfad-Einstieg — der Zustand trägt
 //        Zuordnung und Abschnitt „nicht zugeordnet"; Zuordnen und Lösen
 //        wirken auf die Begleitdatei.
-// RG-03 (4T-0867): Öffnen der Regal-Datei selbst macht das Regal aktiv
+// RG-03 (4T-000867): Öffnen der Regal-Datei selbst macht das Regal aktiv
 //        (Erkennung ohne Rückverweis); eine gewöhnliche Markdown-Datei
 //        desselben Ordners macht kein Regal aktiv.
-// RG-04 (4T-0867): Ein geöffnetes Regal übersteht Beenden und Neustart mit
+// RG-04 (4T-000867): Ein geöffnetes Regal übersteht Beenden und Neustart mit
 //        demselben Profil (Sitzungs-Wiederherstellung).
-// RG-05 (4T-0868): Regal-Ansicht — Kachel-Darstellung mit Platzhalter-Kachel,
+// RG-05 (4T-000868): Regal-Ansicht — Kachel-Darstellung mit Platzhalter-Kachel,
 //        Umschalter auf Zeilen (Kapitel-Anzahl, Autor, Beschreibung), der
 //        Zustand wird je Regal gemerkt.
-// RG-06 (4T-0868): Ein Buch öffnet sich aus beiden Darstellungen (Klick
+// RG-06 (4T-000868): Ein Buch öffnet sich aus beiden Darstellungen (Klick
 //        öffnet die Buch-Datei als Reiter und macht das Buch aktiv).
-// RG-07 (4T-0868): Abschnitt «nicht zugeordnet» mit Aufnahme-Aktion; das
+// RG-07 (4T-000868): Abschnitt «nicht zugeordnet» mit Aufnahme-Aktion; das
 //        aufgenommene Buch wandert in den Bestand.
-// RG-09 (4T-0881): Menü-Zustand folgt dem Fenster-Kontext — «Bereich
+// RG-09 (4T-000881): Menü-Zustand folgt dem Fenster-Kontext — «Bereich
 // schließen» ist in Buch- und Regal-Fenstern deaktiviert und nur im echten
 // Bereichs-Fenster aktiv; «Bücherregal schließen» bzw. «Buch schließen»
-// tragen dort. RG-04 prüft seit 4T-0882 zusätzlich die sichtbare Regal-Seite
+// tragen dort. RG-04 prüft seit 4T-000882 zusätzlich die sichtbare Regal-Seite
 // nach dem Neustart (Befund c der Test-Iteration 0.104.0).
 //
-// RG-08 (4T-0873): Regal als Bereich mit striktem Routing (R1) — eine
+// RG-08 (4T-000873): Regal als Bereich mit striktem Routing (R1) — eine
 //        Kapitel-Datei landet in der Buch-Applikation, die Regal-Datei
 //        bleibt im Regal-Fenster.
 //
-// Seit 4T-0873 ist ein geöffnetes Regal eine eigene logische Applikation mit
+// Seit 4T-000873 ist ein geöffnetes Regal eine eigene logische Applikation mit
 // dem Regal-Ordner als Bereich; die Fälle starten deshalb ohne Start-Datei,
 // damit die freie Start-Applikation zur Regal-Applikation wird.
 //
@@ -91,7 +91,7 @@ function shelfState(page) {
 }
 
 // Datei über denselben Kanal öffnen wie Explorer-Doppelklick und
-// Zuletzt-Liste; genau dieser Weg löst die Regal-Erkennung und seit 4T-0873
+// Zuletzt-Liste; genau dieser Weg löst die Regal-Erkennung und seit 4T-000873
 // das strikte Buch-Routing aus (Muster buch.spec.js, gepollt gegen ein noch
 // ladendes Fenster).
 async function openExternally(app, page, filePath) {
@@ -108,7 +108,7 @@ async function openExternally(app, page, filePath) {
 }
 
 // Dieselbe Zustellung, aber gezielt an EIN Fenster und ohne Erwartung an
-// dessen Reiter: Beim strikten Routing (4T-0873) wandert der Reiter in ein
+// dessen Reiter: Beim strikten Routing (4T-000873) wandert der Reiter in ein
 // anderes Fenster, im adressierten bleibt er also gerade nicht stehen.
 //
 // Das Ziel-Fenster wird über seinen Titel gewählt, nicht über
@@ -132,7 +132,7 @@ async function sendeAnFenster(app, titelTeil, filePath) {
 
 // --- RG-01 --------------------------------------------------------------------
 
-test.describe('RG-01: Regal anlegen (4T-0867)', () => {
+test.describe('RG-01: Regal anlegen (4T-000867)', () => {
   test('Ordner, Regal-Datei und Begleitdatei entstehen; das Regal ist aktiv', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -151,9 +151,9 @@ test.describe('RG-01: Regal anlegen (4T-0867)', () => {
       expect(settings.shelf.file).toBe('Bibliothek.md');
       expect(settings.books).toEqual([]);
       // Zustand: aktiv und leer; die Regal-Ansicht öffnet als eigene Seite
-      // im Reiter-System (4T-0868, Story 4S-0761 AK1). Die freie
+      // im Reiter-System (4T-000868, Story 4S-000761 AK1). Die freie
       // Start-Applikation wurde zur Regal-Applikation, ihr Fenstertitel
-      // trägt den Regal-Namen (4T-0873).
+      // trägt den Regal-Namen (4T-000873).
       await expect
         .poll(async () => (await shelfState(page)).active?.shelfFileName)
         .toBe('Bibliothek.md');
@@ -168,7 +168,7 @@ test.describe('RG-01: Regal anlegen (4T-0867)', () => {
 
 // --- RG-02 --------------------------------------------------------------------
 
-test.describe('RG-02: Regal öffnen und Bücher zuordnen (4T-0867)', () => {
+test.describe('RG-02: Regal öffnen und Bücher zuordnen (4T-000867)', () => {
   test('Zustand trägt Zuordnung und „nicht zugeordnet"; Zuordnen und Lösen wirken', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -214,7 +214,7 @@ test.describe('RG-02: Regal öffnen und Bücher zuordnen (4T-0867)', () => {
 
 // --- RG-03 --------------------------------------------------------------------
 
-test.describe('RG-03: Erkennung der Regal-Datei (4T-0867)', () => {
+test.describe('RG-03: Erkennung der Regal-Datei (4T-000867)', () => {
   test('Regal-Datei macht das Regal aktiv, eine gewöhnliche Datei nicht', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -237,7 +237,7 @@ test.describe('RG-03: Erkennung der Regal-Datei (4T-0867)', () => {
 
 // --- RG-05 --------------------------------------------------------------------
 
-test.describe('RG-05: Kacheln, Zeilen und gemerkter Umschalter (4T-0868)', () => {
+test.describe('RG-05: Kacheln, Zeilen und gemerkter Umschalter (4T-000868)', () => {
   test('Platzhalter-Kachel, Zeilen-Angaben und Modus-Persistenz je Regal', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -294,7 +294,7 @@ test.describe('RG-05: Kacheln, Zeilen und gemerkter Umschalter (4T-0868)', () =>
 
 // --- RG-06 --------------------------------------------------------------------
 
-test.describe('RG-06: Buch öffnet aus der Ansicht als eigene Applikation (4T-0868/4T-0871)', () => {
+test.describe('RG-06: Buch öffnet aus der Ansicht als eigene Applikation (4T-000868/4T-000871)', () => {
   test('Klick auf die Kachel öffnet die Buch-Applikation im eigenen Fenster', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -305,7 +305,7 @@ test.describe('RG-06: Buch öffnet aus der Ansicht als eigene Applikation (4T-08
       await expect(page.locator(`${VIEW} .shelf-view-tile`)).toBeVisible();
       const fensterVorher = app.windows().length;
       await page.locator(`${VIEW} .shelf-view-tile`).click();
-      // 4T-0871 (Buch = Bereich): Das Buch öffnet als eigene Applikation mit
+      // 4T-000871 (Buch = Bereich): Das Buch öffnet als eigene Applikation mit
       // eigenem Fenster; das Regal-Fenster bleibt als Übersicht stehen.
       await expect.poll(() => app.windows().length).toBe(fensterVorher + 1);
       const page2 = app.windows().find((p) => p !== page);
@@ -329,7 +329,7 @@ test.describe('RG-06: Buch öffnet aus der Ansicht als eigene Applikation (4T-08
 
 // --- RG-07 --------------------------------------------------------------------
 
-test.describe('RG-07: Aufnahme aus «nicht zugeordnet» (4T-0868)', () => {
+test.describe('RG-07: Aufnahme aus «nicht zugeordnet» (4T-000868)', () => {
   test('Der Abschnitt zeigt das Buch, die Aufnahme verschiebt es in den Bestand', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -361,7 +361,7 @@ test.describe('RG-07: Aufnahme aus «nicht zugeordnet» (4T-0868)', () => {
 
 // --- RG-08 --------------------------------------------------------------------
 
-test.describe('RG-08: Striktes Routing der Regal-Applikation (4T-0873)', () => {
+test.describe('RG-08: Striktes Routing der Regal-Applikation (4T-000873)', () => {
   test('Eine Kapitel-Datei landet in der Buch-Applikation, die Regal-Datei bleibt', async () => {
     // Variante R1 (PO-Entscheidung vom 2026-08-04): Das Regal-Fenster hält
     // ausschließlich die Regal-Ebene; jeder Griff in ein Buch — Buch-Datei
@@ -413,7 +413,7 @@ test.describe('RG-08: Striktes Routing der Regal-Applikation (4T-0873)', () => {
 
 // --- RG-09 --------------------------------------------------------------------
 
-test.describe('RG-09: Menü-Zustand folgt dem Fenster-Kontext (4T-0881)', () => {
+test.describe('RG-09: Menü-Zustand folgt dem Fenster-Kontext (4T-000881)', () => {
   test('«Bereich schließen» nur im Bereichs-Fenster, Buch/Regal haben ihre eigenen Punkte', async () => {
     // Befunde a und b der PO-Test-Iteration 0.104.0: In Buch- und
     // Regal-Fenstern war «Bereich schließen» aktiv, weil der Menü-Zustand nur
@@ -469,7 +469,7 @@ test.describe('RG-09: Menü-Zustand folgt dem Fenster-Kontext (4T-0881)', () => 
 
 // --- RG-04 --------------------------------------------------------------------
 
-test.describe('RG-04: Sitzungs-Wiederherstellung (4T-0867)', () => {
+test.describe('RG-04: Sitzungs-Wiederherstellung (4T-000867)', () => {
   test('Ein geöffnetes Regal übersteht Beenden und Neustart mit demselben Profil', async () => {
     const parent = makeTempDir();
     const shelfDir = makeShelfOnDisk(parent, 'Bibliothek', []);
@@ -491,7 +491,7 @@ test.describe('RG-04: Sitzungs-Wiederherstellung (4T-0867)', () => {
         await expect
           .poll(async () => (await shelfState(second.page)).active?.shelfFileName)
           .toBe('Bibliothek.md');
-        // 4T-0882 (Regressionsfall, Befund c der Test-Iteration 0.104.0):
+        // 4T-000882 (Regressionsfall, Befund c der Test-Iteration 0.104.0):
         // Die Bindung allein genügt nicht — das wiederhergestellte Fenster
         // zeigt die Regal-Seite, kein leeres Fenster. Vor dem Fix stellte
         // restoreShelfForApp nur die Bindung her (kein shelves:openPage).
@@ -508,8 +508,8 @@ test.describe('RG-04: Sitzungs-Wiederherstellung (4T-0867)', () => {
     }
   });
 
-  test('Mehr-Fenster-Sitzung: die Regal-Seite ist nach dem Neustart wieder da (4T-0882)', async () => {
-    // PO-Befund vom 2026-08-05 am realen Profil (zweiter Anlauf von 4T-0882):
+  test('Mehr-Fenster-Sitzung: die Regal-Seite ist nach dem Neustart wieder da (4T-000882)', async () => {
+    // PO-Befund vom 2026-08-05 am realen Profil (zweiter Anlauf von 4T-000882):
     // In einer Sitzung mit Regal-App UND Buch-App blieb das
     // wiederhergestellte Regal-Fenster leer, während der kleine Einzel-Fall
     // oben grün lief — die Öffnen-Meldung des Mains ging als Push über
@@ -573,7 +573,7 @@ test.describe('RG-04: Sitzungs-Wiederherstellung (4T-0867)', () => {
 
 // --- RG-10 --------------------------------------------------------------------
 
-test.describe('RG-10: Erneutes Öffnen nach dem Schließen (4T-1031)', () => {
+test.describe('RG-10: Erneutes Öffnen nach dem Schließen (4T-001031)', () => {
   test('Ein geschlossenes Regal lässt sich in derselben Sitzung wieder öffnen', async () => {
     // Regressionsfall zum Befund vom 2026-08-12: Der closed-Pfad löste die
     // Buch-Bindung der verschwundenen Applikation, die Regal-Bindung aber

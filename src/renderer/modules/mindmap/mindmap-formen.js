@@ -1,7 +1,7 @@
-// 4T-1049 (Epic 3E-0151): Formen der Mindmap-Zeichnung — Kanten-Pfade,
+// 4T-001049 (Epic 3E-000151): Formen der Mindmap-Zeichnung — Kanten-Pfade,
 // Anfasser-Lage und das Notiz-Symbol.
 //
-// Eigene Datei seit 4T-1049: Mit den fünf Wurzel-Lagen trägt jede gezeichnete
+// Eigene Datei seit 4T-001049: Mit den fünf Wurzel-Lagen trägt jede gezeichnete
 // Form eine Fallunterscheidung nach der Wuchsrichtung, und die Ansicht
 // überschritt darüber das Zeilen-Budget. Der Schnitt trennt **was gezeichnet
 // wird** von **wie die Ansicht darauf reagiert**: Hier steht ausschließlich
@@ -17,7 +17,7 @@ export const SVG_NS = 'http://www.w3.org/2000/svg';
 // Radius des Anfassers am Ast-Ende, an dem geklappt wird.
 export const ANFASSER_RADIUS = 5;
 
-// 4T-1054: Maße des Notiz-Symbols. Die Trefferfläche ist bewusst größer als
+// 4T-001054: Maße des Notiz-Symbols. Die Trefferfläche ist bewusst größer als
 // das gezeichnete Blatt (Befund der ersten Test-Iteration: der frühere Punkt
 // mit 6 Pixeln Durchmesser war kaum zu treffen).
 const NOTIZ_BREITE = 11;
@@ -38,7 +38,7 @@ export function wuchs(knoten) {
   };
 }
 
-// 4T-1049: Ansatz und Ende einer Kante hängen an der Wuchsrichtung des
+// 4T-001049: Ansatz und Ende einer Kante hängen an der Wuchsrichtung des
 // **Kindes**, nicht an der des Elternteils. Bei mittiger Lage trägt die Wurzel
 // Kinder auf beiden Seiten; nur so verlässt die Kante sie auf der jeweils
 // richtigen.
@@ -98,7 +98,7 @@ export function anfasserLage(knoten) {
 }
 
 /**
- * 4T-1054 (Epic 3E-0151): Notiz-Symbol statt Punkt. Der vorherige Kreis mit
+ * 4T-001054 (Epic 3E-000151): Notiz-Symbol statt Punkt. Der vorherige Kreis mit
  * 3 Pixeln Radius war kaum zu treffen (Befund der ersten Test-Iteration);
  * gezeichnet wird ein Zettel mit Schreiblinien, und darüber liegt eine
  * unsichtbare, größere Trefferfläche, damit auch ein Klick am Rand sitzt.
@@ -110,7 +110,7 @@ export function anfasserLage(knoten) {
 export function notizSymbol(knoten, beschriftung) {
   const gruppe = document.createElementNS(SVG_NS, 'g');
   gruppe.setAttribute('class', 'mindmap-notiz-marker');
-  // 4T-1054 (zweite Test-Iteration): Das Symbol steht **hinter** dem Text,
+  // 4T-001054 (zweite Test-Iteration): Das Symbol steht **hinter** dem Text,
   // nicht davor. Vor dem Text lag es auf der Unterstreichung und verdeckte
   // sie; hinter dem Ast-Ende ist Platz, den sonst nichts belegt.
   //
@@ -118,7 +118,7 @@ export function notizSymbol(knoten, beschriftung) {
   // rückt das Symbol um seine halbe Höhe nach oben, damit es die Linie nicht
   // kreuzt; bei einem Blatt bleibt es auf Textmitte.
   //
-  // 4T-1049: «Hinter dem Text» heißt bei Wuchs nach links spiegelbildlich vor
+  // 4T-001049: «Hinter dem Text» heißt bei Wuchs nach links spiegelbildlich vor
   // dem linken Rand. Bei senkrechtem Wuchs bleibt das Symbol rechts vom Text
   // und braucht keinen Versatz, weil die Kante dort oben oder unten abgeht
   // und die Fläche neben dem Text frei ist.

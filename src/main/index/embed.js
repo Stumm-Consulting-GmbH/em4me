@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Anker-Snippet-Extraktion für Wiki-Embeds,
+// 4T-000977 (Epic 3E-000196): Anker-Snippet-Extraktion für Wiki-Embeds,
 // herausgelöst aus src/main/backlinks.js. Schneidet aus einem Datei-Inhalt
 // den Abschnitt zu einem Heading- oder Block-Anker (extractEmbedSnippet für
 // den embed:read-IPC-Handler); der markdown-it-Parser der Block-Range-
@@ -10,7 +10,7 @@ const { githubLikeSlug } = require('../../shared/markdown/slug.js');
 const { FENCE_RE } = require('../../shared/markdown/link-scan.js');
 const { HEADING_RE } = require('./parse.js');
 
-// 4T-0064 (Epic 3E-0012): markdown-it fuer die AST-basierte Block-Range-
+// 4T-000064 (Epic 3E-000012): markdown-it fuer die AST-basierte Block-Range-
 // Erkennung bei `![[Datei#^id]]`-Embeds. Lazy-Init beim ersten Aufruf, damit
 // das Modul nur geladen wird, wenn ein Embed-Lookup tatsaechlich erfolgt.
 let mdEmbedParserInstance = null;
@@ -22,7 +22,7 @@ function getEmbedParser() {
   return mdEmbedParserInstance;
 }
 
-// 4T-0055 (Epic 3E-0011): Schneidet aus dem Datei-Inhalt einen Anker-
+// 4T-000055 (Epic 3E-000011): Schneidet aus dem Datei-Inhalt einen Anker-
 // Snippet heraus. Wird vom embed:read-IPC-Handler genutzt fuer Markdown-
 // Embeds mit Anker (![[Datei#Heading]] / ![[Datei#^id]]).
 //
@@ -32,7 +32,7 @@ function getEmbedParser() {
 // Markdown-Beispiele im Code nicht versehentlich als Heading gefunden
 // werden.
 //
-// Bei Block-Anker (anchor.startsWith('^')): wird mit 4T-0064 AST-basiert
+// Bei Block-Anker (anchor.startsWith('^')): wird mit 4T-000064 AST-basiert
 // aufgeloest — siehe extractBlockByAnchor. Das umschliessende Block-Element
 // (Listen-Item inkl. Sub-Listen, Fenced-Code, Tabellen-Zeile, mehrzeiliger
 // Blockquote, Paragraph) wird komplett extrahiert. Bei Parser-Fehler oder
@@ -41,7 +41,7 @@ function getEmbedParser() {
 //
 // Liefert null, wenn der Anker nicht gefunden wurde.
 
-// 4T-0064 (Epic 3E-0012): Token-Typen, die als Block-Container gelten und
+// 4T-000064 (Epic 3E-000012): Token-Typen, die als Block-Container gelten und
 // das gesamte umschliessende Block-Konstrukt abdecken (mehrzeilige Listen-
 // Items, Blockquotes, Tabellen-Zeilen, Fenced- und Indented-Code).
 const EMBED_CONTAINER_TYPES = new Set([
@@ -53,7 +53,7 @@ const EMBED_CONTAINER_TYPES = new Set([
   'html_block',
 ]);
 
-// 4T-0064 (Epic 3E-0012): AST-basierte Block-Range-Erkennung fuer Block-
+// 4T-000064 (Epic 3E-000012): AST-basierte Block-Range-Erkennung fuer Block-
 // Anker `^id`. Parst den Content mit markdown-it, findet die Source-Zeile
 // mit dem `^id`-Marker und ermittelt das innerste Container-Block-Token,
 // dessen token.map die Zeile einschliesst. Dessen Source-Range
@@ -66,7 +66,7 @@ const EMBED_CONTAINER_TYPES = new Set([
 // zugeordnet werden kann (Fallback wird dann vom Aufrufer verwendet).
 function extractBlockByAnchor(content, blockId, lines) {
   const escapedId = blockId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // 4T-0064: Marker kann entweder mit Whitespace davor am Ende einer
+  // 4T-000064: Marker kann entweder mit Whitespace davor am Ende einer
   // Inhalts-Zeile stehen (typisch: `Text ^id`) oder allein am Zeilen-
   // anfang (typisch: nach einem Fenced Code Block, wo der Marker nicht
   // auf der Closing-Fence-Zeile stehen darf).
@@ -151,15 +151,15 @@ function extractEmbedSnippet(content, anchor) {
 
   if (anchor.startsWith('^')) {
     const id = anchor.slice(1);
-    // 4T-0064 (Epic 3E-0012): AST-basierte Block-Range-Erkennung. Erkennt
+    // 4T-000064 (Epic 3E-000012): AST-basierte Block-Range-Erkennung. Erkennt
     // den umschliessenden Block (Listen-Item mit Sub-Inhalt, Code-Block,
     // Tabellen-Zeile, mehrzeiliger Blockquote) und extrahiert ihn vollstaen-
     // dig. Bei Fehler oder unbekannter Struktur Fallback auf die alte
     // Zeilen-Heuristik (eine Zeile mit dem Marker).
     const blockSnippet = extractBlockByAnchor(content, id, lines);
     if (blockSnippet !== null) return blockSnippet;
-    // Fallback: nur die Marker-Zeile selbst (Verhalten vor 4T-0064).
-    // 4T-0064: Pattern erlaubt jetzt auch Marker am Zeilenanfang ohne
+    // Fallback: nur die Marker-Zeile selbst (Verhalten vor 4T-000064).
+    // 4T-000064: Pattern erlaubt jetzt auch Marker am Zeilenanfang ohne
     // Whitespace davor — symmetrisch zum AST-Pfad in extractBlockByAnchor.
     const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = new RegExp(`(?:^|\\s)\\^${escapedId}\\s*$`, 'u');

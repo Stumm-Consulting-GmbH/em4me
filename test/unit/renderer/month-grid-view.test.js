@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0752 (Epic 3E-0146): Gemeinsamer Gitter-Aufbau des Renderers. Geprüft
+// 4T-000752 (Epic 3E-000146): Gemeinsamer Gitter-Aufbau des Renderers. Geprüft
 // sind die Struktur (Kopfzeile, Zellen-Anzahl, Reihenfolge), die abschaltbare
 // Kalenderwochen-Spalte und die Zustands-Klassen der Tages-Zelle.
 //
@@ -93,7 +93,7 @@ describe('month-grid-view: Kopfzeile und Zeilen', () => {
   });
 });
 
-// 4T-1063 (Epic 3E-0212): Zeilen-Durchlauf als eigener Einstieg. Der
+// 4T-001063 (Epic 3E-000212): Zeilen-Durchlauf als eigener Einstieg. Der
 // Waechter-Charakter liegt im Gleichlauf: renderMonthGrid muss exakt das
 // erzeugen, was renderGridRows mit den Zeilen desselben Monats erzeugt.
 describe('month-grid-view: renderGridRows', () => {

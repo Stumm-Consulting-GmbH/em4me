@@ -1,7 +1,7 @@
 // Erster Regex-Pass-Block des Live-Modus, gefahren nach dem Lezer-Pass und
 // vor den Block-Pässen: Hervorhebung, %%-Kommentare, Tags, Wiki-Links und
 // Trennlinien.
-// 4T-0996 (Epic 3E-0196): aus der Kernfunktion von live-widgets.js
+// 4T-000996 (Epic 3E-000196): aus der Kernfunktion von live-widgets.js
 // herausgelöst. Rümpfe unverändert übernommen; die Spannen-Sammlungen der
 // Wiki-Links und Attribut-Blöcke sind Kontext-Felder statt Closures.
 'use strict';
@@ -24,20 +24,20 @@ import {
 } from './live-scans.js';
 import { positionInsideCode } from './live-shared.js';
 
-// 4T-0996: Erster Inline-Block eines Sichtbereichs. Die Reihenfolge der
+// 4T-000996: Erster Inline-Block eines Sichtbereichs. Die Reihenfolge der
 // Pässe ist semantiktragend und unverändert.
 export function runInlinePasses(ctx) {
   const { state, ranges, activeLines, frontmatterEndLine, commentRanges } = ctx;
   const { text, from, to, wikiSpans, attrSpans } = ctx;
   // === Regex-Pass: Highlight (==Text==) ===
-  // 4T-0293: Marker nur bei aktiver Highlight-Erweiterung verstecken
+  // 4T-000293: Marker nur bei aktiver Highlight-Erweiterung verstecken
   // (die gelbe Hinterlegung schaltet markMarkerField in live-marker-fields.js).
   if (isExtensionActive('highlight')) {
     for (const m of text.matchAll(LIVE_HIGHLIGHT_RE)) {
       const docPos = from + m.index;
       if (positionInsideCode(state, docPos)) continue;
       const lineNo = state.doc.lineAt(docPos).number;
-      // R1-11 (4T-0186): Frontmatter ausklammern.
+      // R1-11 (4T-000186): Frontmatter ausklammern.
       if (lineNo <= frontmatterEndLine) continue;
       if (activeLines.has(lineNo)) continue;
       const innerStart = docPos + 2;
@@ -50,12 +50,12 @@ export function runInlinePasses(ctx) {
     }
   }
 
-  // 4T-0487 (Epic 3E-0091): Die Dekoration klickbarer Datums-/Uhrzeit-
+  // 4T-000487 (Epic 3E-000091): Die Dekoration klickbarer Datums-/Uhrzeit-
   // Werte liegt seit dem PO-Befund der ersten Test-Runde als Basis-
   // Extension der EditorView (dateValuePlugin in date-picker.js) und
   // wirkt damit in Quelltext- UND Live-Modus — hier kein eigener Pass.
 
-  // === Pass: %%-Kommentare (4T-0479, Epic 3E-0089) ===
+  // === Pass: %%-Kommentare (4T-000479, Epic 3E-000089) ===
   // Auf inaktiven Zeilen wird der komplette Kommentar inklusive Marker
   // ausgeblendet; auf aktiven Zeilen bleibt die Quelle stehen und
   // commentMarkerField (live-marker-fields.js) faerbt dezent. Segment-weise pro
@@ -79,7 +79,7 @@ export function runInlinePasses(ctx) {
   }
 
   // === Regex-Pass: Tag (#tag) ===
-  // B-08-Paritaet (K-09/4T-0186): `#…` innerhalb einer [[…]]-Spanne ist
+  // B-08-Paritaet (K-09/4T-000186): `#…` innerhalb einer [[…]]-Spanne ist
   // ein Wiki-Anker, kein Tag — der markdown-it-Pfad erkennt dort seit
   // B-08 ebenfalls keinen Tag. Ohne den Ausschluss wuerde die Tag-
   // Decoration (jetzt klickbar) den Wiki-Link-Klick kapern.
@@ -87,7 +87,7 @@ export function runInlinePasses(ctx) {
     wikiSpans.push([wm.index, wm.index + wm[0].length]);
   }
   const insideWikiSpan = (idx) => wikiSpans.some(([a, b]) => idx >= a && idx < b);
-  // 4T-0202: '#id' in {...}-Attribut-Bloecken ist kein Tag (Paritaet
+  // 4T-000202: '#id' in {...}-Attribut-Bloecken ist kein Tag (Paritaet
   // zum insideAttrBlock-Guard im tagsPlugin und zum Index-Scan).
   for (const am of text.matchAll(/\{[^{}\n]*\}/g)) {
     attrSpans.push([am.index, am.index + am[0].length]);
@@ -107,7 +107,7 @@ export function runInlinePasses(ctx) {
       if (activeLines.has(lineNo)) continue;
       if (lineNo <= frontmatterEndLine) continue;
       const tagEnd = docPos + 1 + tagText.length;
-      // K-09 (4T-0186): Tags im Live-Modus klickbar wie im Render-Pane —
+      // K-09 (4T-000186): Tags im Live-Modus klickbar wie im Render-Pane —
       // das data-Attribut bedient den bestehenden Klick-Handler, der
       // '#tag:'-hrefs an die Tag-Sidebar weiterreicht.
       ranges.push(liveTagMarkDeco(tagText).range(docPos, tagEnd));
@@ -118,22 +118,22 @@ export function runInlinePasses(ctx) {
   if (isExtensionActive('wiki-links'))
     for (const m of text.matchAll(LIVE_WIKILINK_RE)) {
       const docPos = from + m.index;
-      // 4T-0084: `![[…]]` ist ein Wiki-Embed und wird vom Embed-Pass
+      // 4T-000084: `![[…]]` ist ein Wiki-Embed und wird vom Embed-Pass
       // unten behandelt — hier ueberspringen, sonst kollidieren die
       // beiden Replace-Decorations.
       if (docPos > 0 && state.doc.sliceString(docPos - 1, docPos) === '!') continue;
       if (positionInsideCode(state, docPos)) continue;
       const lineNo = state.doc.lineAt(docPos).number;
-      // R1-11 (4T-0186): Frontmatter ausklammern.
+      // R1-11 (4T-000186): Frontmatter ausklammern.
       if (lineNo <= frontmatterEndLine) continue;
       if (activeLines.has(lineNo)) continue;
       const inner = m[1];
       const pipeIdx = inner.indexOf('|');
       const targetRaw = (pipeIdx >= 0 ? inner.slice(0, pipeIdx) : inner).replace(/\\$/, '').trim();
       if (!targetRaw) continue;
-      // 4T-0082: href so konstruieren wie wikiLinksPlugin im shared-
+      // 4T-000082: href so konstruieren wie wikiLinksPlugin im shared-
       // Plugin (Pfad und Anker trennen, .md anhaengen wenn keine Endung).
-      // K-02 (4T-0186): Anker wie dort normalisieren — Block-Anker
+      // K-02 (4T-000186): Anker wie dort normalisieren — Block-Anker
       // '^id' wird zu '#id' (nur bei gueltiger ID), Heading-Anker zum
       // githubLikeSlug; vorher stand der rohe Text im href und
       // Heading-Sprünge liefen ins Leere.
@@ -152,7 +152,7 @@ export function runInlinePasses(ctx) {
       }
       let href;
       if (pathPart === '..' || pathPart === '../') {
-        // 4T-0336 (Epic 3E-0061): Eltern-Link — Konstruktion wie im
+        // 4T-000336 (Epic 3E-000061): Eltern-Link — Konstruktion wie im
         // wikiLinksPlugin (kein '.md', Klick-Pfad expandiert).
         href = '..' + anchorPart;
       } else if (pathPart) {
@@ -177,7 +177,7 @@ export function runInlinePasses(ctx) {
       ranges.push(liveMarkerHiddenDeco.range(textEnd, fullEnd));
     }
 
-  // === 4T-0083: Regex-Pass HR (---, ***, ___) ===
+  // === 4T-000083: Regex-Pass HR (---, ***, ___) ===
   // Pattern-basiert statt Lezer-AST, weil HorizontalRule-Knoten in der
   // aktuellen lang-markdown-Konfiguration nicht zuverlaessig geliefert
   // wird. Pro Zeile pruefen, ob die Zeile ausschliesslich aus drei oder

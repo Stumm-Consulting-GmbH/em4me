@@ -1,5 +1,5 @@
-// 4T-0307 (Epic 3E-0048): Regressionstests fuer den Inline-HTML-Sanitizer
-// des Portable-Exports. Befund B-01 aus dem Code-Audit 4T-0275:
+// 4T-000307 (Epic 3E-000048): Regressionstests fuer den Inline-HTML-Sanitizer
+// des Portable-Exports. Befund B-01 aus dem Code-Audit 4T-000275:
 // einfach-gequotete Attributwerte mit eingebettetem " brachen aus dem
 // doppelt-gequoteten Ausgabe-Attribut aus und schleusten einen Event-
 // Handler ein. Der Inline-Pfad laeuft ueber Regex (kein DOMParser), ist
@@ -14,7 +14,7 @@ function portable(md) {
   return renderMarkdown(`${PERSPECTIVE_PORTABLE_MARKER}\n\n${md}\n`, 'de');
 }
 
-describe('Portable Inline-Sanitizer (B-01, 4T-0307)', () => {
+describe('Portable Inline-Sanitizer (B-01, 4T-000307)', () => {
   it('einfach-gequoteter Wert mit " schleust keinen Event-Handler ein', () => {
     const html = portable(`Ein <a title='x" onmouseover="alert(1)'>Link</a> hier.`);
     // Der Handler darf kein echtes Attribut sein: kein onmouseover, gefolgt

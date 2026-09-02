@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1326 (Epic 3E-0236): Prüffälle der Plausibilitäts-Prüfung beider
+// 4T-001326 (Epic 3E-000236): Prüffälle der Plausibilitäts-Prüfung beider
 // Journal-Blöcke.
 //
 // Der Gegenstand ist eine Schutz-Maßnahme, und die eigentliche Frage an sie

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0193: Unit-Tests Renderer-Module — Fold-Struktur (folding.js),
+// 4T-000193: Unit-Tests Renderer-Module — Fold-Struktur (folding.js),
 // Outgoing-/Snippet-Logik (panels/panel-outgoing.js), Outline-Titel
 // (panels/panel-outline.js), Navigation/State (views/),
 // Bookmark-Tree-Helfer (bookmarks/bookmarks-tree.js), Such-Regex (search.js)
@@ -14,7 +14,7 @@ import { ensureSyntaxTree } from '@codemirror/language';
 const folding = await import('../../../src/renderer/modules/editor/folding.js');
 const panelOutgoing = await import('../../../src/renderer/modules/panels/panel-outgoing.js');
 const panelOutline = await import('../../../src/renderer/modules/panels/panel-outline.js');
-// 4T-0989 (Epic 3E-0196): views.js ist in den Feature-Ordner views/ geteilt;
+// 4T-000989 (Epic 3E-000196): views.js ist in den Feature-Ordner views/ geteilt;
 // die geprüften Funktionen liegen jetzt in drei Modulen des Ordners.
 const anchorNav = await import('../../../src/renderer/modules/views/anchor-navigation.js');
 const scrollSync = await import('../../../src/renderer/modules/views/scroll-sync.js');
@@ -97,7 +97,7 @@ describe('Outgoing-Links und Snippets (panels/panel-outgoing.js)', () => {
     expect(links[2].anchor).toBe('kap');
   });
 
-  // R3-14 (4T-0183): Fence-Marker-Typ wird gemerkt.
+  // R3-14 (4T-000183): Fence-Marker-Typ wird gemerkt.
   it('Fence-Erkennung schliesst nur mit passendem Marker (R3-14)', () => {
     const text = '~~~\n```\n[[ImFence]]\n~~~\n[[Draussen]]\n';
     const links = panelOutgoing.extractOutgoingLinks(text);
@@ -109,7 +109,7 @@ describe('Outgoing-Links und Snippets (panels/panel-outgoing.js)', () => {
     expect(links.map((l) => l.target)).toEqual(['doch']);
   });
 
-  // R3-12 (4T-0183): Fenster um den Treffer-Index.
+  // R3-12 (4T-000183): Fenster um den Treffer-Index.
   it('snippetAroundIndex zentriert lange Zeilen um den Treffer (R3-12)', () => {
     const prefix = 'x'.repeat(150);
     const line = `${prefix} [[ZielMitte]] ${'y'.repeat(150)}`;
@@ -131,14 +131,14 @@ describe('Outgoing-Links und Snippets (panels/panel-outgoing.js)', () => {
 });
 
 describe('Navigation und Persistenz-Logik (views/)', () => {
-  // R3-06 (4T-0186): Anker-Normalisierung.
+  // R3-06 (4T-000186): Anker-Normalisierung.
   it('normalizedAnchorId slugifiziert Headings und strippt ^ bei Block-IDs', () => {
     expect(anchorNav.normalizedAnchorId('Mein Abschnitt')).toBe('mein-abschnitt');
     expect(anchorNav.normalizedAnchorId('^block-42')).toBe('block-42');
     expect(anchorNav.normalizedAnchorId('  ')).toBe('');
   });
 
-  // R4-14 (4T-0180): gecachte Zeilen-Liste + binaere Suche.
+  // R4-14 (4T-000180): gecachte Zeilen-Liste + binaere Suche.
   it('findRenderElementForLine trifft das letzte Element mit Zeile <= Ziel (R4-14)', () => {
     const host = document.createElement('div');
     // In den Body haengen — der R4-14-Cache ueberspringt disconnected

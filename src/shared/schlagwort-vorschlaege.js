@@ -1,11 +1,11 @@
-// 4T-1357 (Epic 3E-0238): Auswahl-Regel der Schlagwort-Vorschlagsliste.
+// 4T-001357 (Epic 3E-000238): Auswahl-Regel der Schlagwort-Vorschlagsliste.
 //
 // Prozessneutral (CJS, reine Funktionen, kein Electron, kein DOM), aus
 // demselben Grund wie die Schwester-Regel der Verweis-Ziele in
 // `wiki-vorschlaege.js`: Die Entscheidung ist ohne Editor und ohne IPC
 // prüfbar, der Renderer hält nur die Verdrahtung.
 //
-// Sie stand bis 4T-1357 in der Vervollständigungs-Quelle des Renderers und ist
+// Sie stand bis 4T-001357 in der Vervollständigungs-Quelle des Renderers und ist
 // dort ohne Wirkung geblieben — die Bibliothek sortierte die übergebene Liste
 // neu. Der Umzug hierher ist Teil der Behebung: Die Regel wird prüfbar, und die
 // Quelle bestellt die Eigensortierung ab.

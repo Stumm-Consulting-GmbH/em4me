@@ -1,4 +1,4 @@
-// 4T-0378 (Epic 3E-0071): Toggle-Kern der Zeichen-Format-Kommandos.
+// 4T-000378 (Epic 3E-000071): Toggle-Kern der Zeichen-Format-Kommandos.
 //
 // Rein und Electron-/DOM-frei (CJS, wie src/shared/commands/commands.js), damit die
 // Toggle-Regeln und Randfälle ohne UI unit-testbar sind. Jede Funktion nimmt
@@ -182,7 +182,7 @@ function clearInlineFormats(text, from, to) {
   return { from: a, to: b, insert: mid, selFrom: a, selTo: a + mid.length };
 }
 
-// 4T-0607 (Epic 3E-0114): aktive Zeichen-Formate an der Selektion für die
+// 4T-000607 (Epic 3E-000114): aktive Zeichen-Formate an der Selektion für die
 // gedrückt-Darstellung der Format-Toolbar. Ein Format gilt genau dann als
 // aktiv, wenn applyInlineFormat es an derselben Selektion entfernen würde
 // (Fall 1 oder Fall 2) — Anzeige und Toggle-Wirkung bleiben deckungsgleich.
@@ -220,7 +220,7 @@ function insertWikiLink(text, from, to) {
 
 // Externer Link [Selektion](url). Ohne url-Argument bleibt der Platzhalter
 // 'url' selektiert, damit der Nutzer die Adresse direkt tippt (Kommando
-// link.insertExternal). Mit url (4T-0603, Epic 3E-0113: Link-Einfügen in die
+// link.insertExternal). Mit url (4T-000603, Epic 3E-000113: Link-Einfügen in die
 // Auswahl) wird die übergebene Adresse eingesetzt und der Cursor hinter den
 // Link gestellt; enthält die Adresse Leerzeichen oder Klammern, wird sie in die
 // Spitze-Klammern-Schreibweise <…> gesetzt (CommonMark-Ziel-Konvention).
@@ -238,7 +238,7 @@ function insertExternalLink(text, from, to, url) {
   return { from, to, insert, selFrom: end, selTo: end };
 }
 
-// 4T-0603 (Epic 3E-0113): Erkennt, ob ein eingefügter Zwischenablage-Text als
+// 4T-000603 (Epic 3E-000113): Erkennt, ob ein eingefügter Zwischenablage-Text als
 // einzelnes, eindeutiges Link-Ziel taugt. Rückgabe: die normalisierte URL
 // (http(s)://… und file://… unverändert, www.<domain> erhält das
 // https://-Präfix) oder null. Konservativ: getrimmt, genau ein Token ohne
@@ -286,7 +286,7 @@ function isProtectedForFormatting(text, from, to) {
   );
 }
 
-// --- 4T-0379: Absatz-Transformationen (zeilenweise) -------------------------
+// --- 4T-000379: Absatz-Transformationen (zeilenweise) -------------------------
 
 // Einrückung und Inhalt einer Zeile ohne ihren Listen-Präfix (Aufzählung,
 // Aufgabe oder nummeriert). Die Task-Variante `- [ ] ` wird vor der einfachen
@@ -359,7 +359,7 @@ function detectParagraphState(lineText) {
   return { list, heading: hm ? hm[1].length : 0, quote: /^> /.test(lineText) };
 }
 
-// --- 4T-0379: Einfüge-Schablonen --------------------------------------------
+// --- 4T-000379: Einfüge-Schablonen --------------------------------------------
 
 // Nächste freie numerische Fußnoten-Nummer ([^n]).
 function nextFootnoteNumber(text) {
@@ -404,7 +404,7 @@ function insertFootnote(text, pos) {
   return { changes, selFrom: cur, selTo: cur };
 }
 
-// 4T-0608 (Epic 3E-0114): leere Pipe-Tabelle in Raster-Größe. rows zählt
+// 4T-000608 (Epic 3E-000114): leere Pipe-Tabelle in Raster-Größe. rows zählt
 // inklusive Kopfzeile (Raster-Semantik „r × c" wie in der Live-
 // Beschriftung des Pickers), Minimum 1×1 (Kopfzeile plus Trenner).
 function pipeTableTemplate(rows, cols) {
@@ -428,7 +428,7 @@ function insertTable(text, pos) {
   return insertTableOfSize(text, pos, 2, 2);
 }
 
-// 4T-1309 (Epic 3E-0235): Geruest einer Perspective-Tabelle. Zwei Spalten,
+// 4T-001309 (Epic 3E-000235): Geruest einer Perspective-Tabelle. Zwei Spalten,
 // eine Kopfzeile und eine Datenzeile — dieselbe Ausgangsgroesse wie bei der
 // Pipe-Tabelle, weil eine Tabelle im Alltag ohnehin waechst und ein groesseres
 // Geruest nur Leerzeilen zum Wegloeschen brachte.

@@ -1,4 +1,4 @@
-// 4T-0470/4T-0471 (Epic 3E-0087): E2E der Gliederungs-Nummerierung.
+// 4T-000470/4T-000471 (Epic 3E-000087): E2E der Gliederungs-Nummerierung.
 //
 // Deckt die Anzeige der Nummern und das Verschwinden der Marker in allen
 // Renderer-Wegen ab (Render-Pane, Gliederungs-Ansicht, Live-Modus) sowie die

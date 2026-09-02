@@ -1,4 +1,4 @@
-// 4T-0545 (Epic 3E-0097): Picker fuer benutzerdefinierte Kalender.
+// 4T-000545 (Epic 3E-000097): Picker fuer benutzerdefinierte Kalender.
 //
 // Popup mit Block-/Kalender-/Epochen-Wahl, generischem Gitter aus der
 // Ebenen-Struktur (Zyklus-Laenge = Spalten-Zahl, Zyklus-Nummern-Spalte bei
@@ -33,11 +33,11 @@ import {
   findCalendarValues,
   parseCalendarValueRaw,
 } from '../../../shared/calendar/calendar-core.js';
-// 4T-0995 (Epic 3E-0196): Die Aufloesung des Bezugs einer Ableitung haengt
+// 4T-000995 (Epic 3E-000196): Die Aufloesung des Bezugs einer Ableitung haengt
 // an der eingebauten Standard-Zeitrechnung und liegt deshalb im
 // Konfigurations-Rand des Kalender-Kerns.
 import { baseCalendarOf } from '../../../shared/calendar/calendar-config.js';
-// 4T-0546 (Epic 3E-0097): Renderer-Zustand der calendarSystems-
+// 4T-000546 (Epic 3E-000097): Renderer-Zustand der calendarSystems-
 // Konfiguration (gesetzt von app-init; die Preload-Pipeline haelt ihren
 // eigenen Zustand — markdown.js ist im Renderer-Bundle nicht importierbar).
 import { getAreaCalendarConfig } from './calendar-config.js';
@@ -66,7 +66,7 @@ function tuplePos(cal, levelIdx) {
 
 let popupEl = null;
 // Laufende Sitzung: { resolve, config, block, cal, tuple, target }.
-// 4T-0748 (Epic 3E-0138): Bei einer abgeleiteten Zeitrechnung arbeitet der
+// 4T-000748 (Epic 3E-000138): Bei einer abgeleiteten Zeitrechnung arbeitet der
 // Picker in der Notation ihres Bezugs (Entscheidung 2a): Gitter und Kopf
 // zeigen den Bezug, `target` haelt die Ableitung, und uebernommen wird ihr
 // Wert. Ein Datum zu waehlen ist die natuerliche Handlung; die Zaehlung ab
@@ -751,7 +751,7 @@ export function showCalendarPicker(options = {}) {
   ensurePopup();
   if (session) closeSession(null);
   return new Promise((resolve) => {
-    // 4T-0748: Bei einer Ableitung zeigt der Picker ihren Bezug; der
+    // 4T-000748: Bei einer Ableitung zeigt der Picker ihren Bezug; der
     // uebernommene Wert bleibt der der Ableitung.
     session = {
       resolve,
@@ -771,7 +771,7 @@ export function showCalendarPicker(options = {}) {
   });
 }
 
-// --- 4T-0546 (Epic 3E-0097): Editor-Anbindung der Wert-Syntax ---------------------------
+// --- 4T-000546 (Epic 3E-000097): Editor-Anbindung der Wert-Syntax ---------------------------
 
 // Anker unterhalb der Cursor-Position (Muster date-picker.js).
 function anchorForPos(view, pos) {
@@ -838,7 +838,7 @@ export async function openCalendarPickerForRange(view, { from, to, expected, ...
 // Cursor-Zeilen. Im Live-Modus ersetzen die Badge-Widgets (live-widgets.js)
 // dieselben Bereiche; deren data-Attribute sprechen denselben mousedown-
 // Handler an (kein zweiter Klick-Pfad).
-// 4T-0943 (Epic 3E-0197): `modifierOnly` wie bei den ISO-Werten (E2).
+// 4T-000943 (Epic 3E-000197): `modifierOnly` wie bei den ISO-Werten (E2).
 function calendarValueMarkDeco(from, to, modifierOnly) {
   const attributes = {
     'data-live-calvalue-from': String(from),
@@ -868,7 +868,7 @@ function buildCalendarValueDecorations(view) {
       if (positionInsideCode(state, docFrom)) continue;
       const line = state.doc.lineAt(docFrom);
       if (line.number <= frontmatterEndLine) continue;
-      // 4T-0943 (Epic 3E-0197): wie bei den ISO-Werten, siehe E2 im Epic.
+      // 4T-000943 (Epic 3E-000197): wie bei den ISO-Werten, siehe E2 im Epic.
       const inAktiverZeile = activeLines.has(line.number);
       if (docTo > line.to) continue;
       ranges.push(calendarValueMarkDeco(docFrom, docTo, inAktiverZeile).range(docFrom, docTo));
@@ -903,7 +903,7 @@ export const calendarValuePlugin = ViewPlugin.fromClass(
         const el = tgt.closest('[data-live-calvalue-from]');
         if (!el) return false;
         if (view.state.readOnly) return false;
-        // 4T-0943 (Epic 3E-0197): Strg-Klick in der Zeile mit dem Cursor.
+        // 4T-000943 (Epic 3E-000197): Strg-Klick in der Zeile mit dem Cursor.
         if (el.getAttribute('data-live-calvalue-mod') === '1' && !event.ctrlKey && !event.metaKey) {
           return false;
         }

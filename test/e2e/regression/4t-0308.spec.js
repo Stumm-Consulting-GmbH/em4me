@@ -1,12 +1,12 @@
-// 4T-0308 (Epic 3E-0048): Regressionstest fuer W-14 aus dem Code-Audit
-// 4T-0275. Ein bei der Sitzungswiederherstellung nicht lesbarer Tab wurde
+// 4T-000308 (Epic 3E-000048): Regressionstest fuer W-14 aus dem Code-Audit
+// 4T-000275. Ein bei der Sitzungswiederherstellung nicht lesbarer Tab wurde
 // zuvor still verworfen (und beim naechsten persistState() dauerhaft aus der
 // Sitzung entfernt); jetzt bleibt er als missing-Tab erhalten, plus ein
 // Statusbar-Hinweis. B-03 und W-13 (Tab-Transfer zwischen Fenstern mit
 // nicht lesbarer Ziel-Datei bzw. dirty Ziel-Tab) sind ueber native
 // Konflikt-/Fehler-Dialoge und ein nicht deterministisch simulierbares
 // readFile-Timing gefuehrt und im manuellen EXE-Test der Gesamtabnahme
-// abgedeckt (siehe Task-Loesung 4T-0308).
+// abgedeckt (siehe Task-Loesung 4T-000308).
 'use strict';
 
 const fs = require('node:fs');
@@ -16,7 +16,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
-test.describe('SR-01: Session-Restore einer geloeschten Datei (W-14, 4T-0308)', () => {
+test.describe('SR-01: Session-Restore einer geloeschten Datei (W-14, 4T-000308)', () => {
   test('nicht lesbarer Tab bleibt als missing-Tab erhalten statt still verworfen', async () => {
     // Datei in einem eigenen Temp-Ordner anlegen, damit sie nach dem Quit
     // geloescht werden kann.

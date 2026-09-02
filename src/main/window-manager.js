@@ -1,9 +1,9 @@
 // Fenster-Verwaltung des Hauptprozesses: Multi-Window-Registry, Erzeugung
 // eines Fensters samt seiner Ereignis-Verdrahtung, Fokus-Fuehrung, Broadcast
-// an alle Fenster. Die Schliess-Kaskade einer Applikation liegt seit 4T-1231
+// an alle Fenster. Die Schliess-Kaskade einer Applikation liegt seit 4T-001231
 // in app/schliess-kaskade.js; diese Datei reicht sie nur noch durch.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Die Rumpf-Inhalte reisen
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Die Rumpf-Inhalte reisen
 // unveraendert mit; geaendert sind allein die Naehte zu den Nachbar-Modulen,
 // die frueher freie Variablen derselben Datei waren.
 //
@@ -87,7 +87,7 @@ function createWindowManager(deps) {
 
   const windows = new Map();
   const pendingInitPanes = new Map();
-  // 4T-0368: pro Fenster die beim Start zugeteilten Entwuerfe (Unbenannt-Tabs
+  // 4T-000368: pro Fenster die beim Start zugeteilten Entwuerfe (Unbenannt-Tabs
   // mit Inhalt), analog pendingInitPanes; via window:initialState ausgeliefert.
   const pendingInitDrafts = new Map();
   let lastFocusedId = null;
@@ -103,7 +103,7 @@ function createWindowManager(deps) {
   const appLastFocused = new Map(); // appId -> windowId
 
   // Pro Fenster vom Renderer gemeldete Anzeige-Infos fuer die Fenster-Liste
-  // und das Titel-Suffix (4T-0012): aktiver Dateiname und Tab-Anzahl. Wird in
+  // und das Titel-Suffix (4T-000012): aktiver Dateiname und Tab-Anzahl. Wird in
   // window:list ausgeliefert, damit das Tab-Kontextmenue eines anderen Fensters
   // Tooltips ohne Renderer-Round-Trip aufbauen kann.
   const windowMeta = new Map(); // ownerId -> { activeTabName, tabCount }
@@ -124,7 +124,7 @@ function createWindowManager(deps) {
     return first.done ? null : first.value;
   }
 
-  // 4T-0323 (Epic 3E-0058): Datei-Argumente aus Explorer/CLI landen immer in
+  // 4T-000323 (Epic 3E-000058): Datei-Argumente aus Explorer/CLI landen immer in
   // einer Applikation OHNE Bereich (Bereiche sind fix und werden nur innerhalb
   // der Applikation bedient): bevorzugt das zuletzt fokussierte bereichslose
   // Fenster, sonst irgendein bereichsloses; null, wenn nur Bereichs-Apps laufen.
@@ -142,7 +142,7 @@ function createWindowManager(deps) {
     for (const win of windows.values()) {
       if (!win.isDestroyed()) win.webContents.send(channel, ...args);
     }
-    // 4T-0525 (Epic 3E-0095): eine Index-Invalidierung stoesst zusaetzlich
+    // 4T-000525 (Epic 3E-000095): eine Index-Invalidierung stoesst zusaetzlich
     // einen Erinnerungs-Pruef-Lauf an — der Nachhol-Dialog erscheint damit
     // direkt nach dem Index-Aufbau statt erst mit dem naechsten 30-Sekunden-
     // Takt (der Lauf ist durch die ⏰-Vorpruefung billig und im Index-Fluss
@@ -150,7 +150,7 @@ function createWindowManager(deps) {
     if (channel === 'backlinks:invalidated') onBacklinksInvalidated();
   }
 
-  // Schliess-Kaskade einer Applikation, ausgezogen mit 4T-1231 (Epic 3E-0228).
+  // Schliess-Kaskade einer Applikation, ausgezogen mit 4T-001231 (Epic 3E-000228).
   // Sie fuehrt ihren Abbruch-Haken selbst; hier bleibt allein die Naht.
   const { closeAppWindows, closeAreaApp, cancelCascade } = erzeugeSchliessKaskade({
     appRegistry,
@@ -164,14 +164,14 @@ function createWindowManager(deps) {
   //                         der Sitzung gefuellt; bei "Tab in neues Fenster" mit
   //                         genau einer Pane und einem Tab; sonst leer.
   //   appId               - logische Applikation, zu der das Fenster gehoert
-  //                         (4T-0318). Ohne gueltige appId wird eine neue App
+  //                         (4T-000318). Ohne gueltige appId wird eine neue App
   //                         angelegt (Kaltstart, "Neue Applikation").
   //   area                - Bereichs-Bindung { rootPath, name } fuer die NEU
-  //                         angelegte App (4T-0322); ignoriert, wenn appId
+  //                         angelegte App (4T-000322); ignoriert, wenn appId
   //                         eine bestehende App adressiert.
   function createWindow(opts = {}) {
     const useStored = isBoundsVisibleOnAnyDisplay(opts.bounds);
-    // 4T-1202: Fenster-Icon je Plattform — Linux nimmt PNG (ICO ist dort nicht
+    // 4T-001202: Fenster-Icon je Plattform — Linux nimmt PNG (ICO ist dort nicht
     // das Fenster-Format); macOS ignoriert die Option (Dock-Symbol aus Bundle).
     const iconDatei = process.platform === 'linux' ? 'icon.png' : 'icon.ico';
 
@@ -188,13 +188,13 @@ function createWindowManager(deps) {
         contextIsolation: true,
         nodeIntegration: false,
         sandbox: false,
-        // 4T-0784 (Epic 3E-0156): Ein Fenster ohne Fokus gilt Chromium als im
+        // 4T-000784 (Epic 3E-000156): Ein Fenster ohne Fokus gilt Chromium als im
         // Hintergrund und bekaeme gedrosselte Timer. Das aenderte das
         // Zeitverhalten und damit Testergebnisse. Nur im Testlauf abgeschaltet;
         // im Auslieferungs-Zustand bleibt die Drosselung, weil sie bei
         // Fenstern im Hintergrund Rechenzeit spart.
         ...(imTestlauf ? { backgroundThrottling: false } : {}),
-        // 4T-0581 (Epic 3E-0107): Rechtschreibpruefung des Betriebssystems.
+        // 4T-000581 (Epic 3E-000107): Rechtschreibpruefung des Betriebssystems.
         // Der Wert steht bewusst FEST auf true und folgt NICHT dem Schalter:
         // Messung vom 2026-08-02 an Electron 33 — ein mit spellcheck:false
         // erzeugtes WebContents laesst sich spaeter durch nichts mehr zum
@@ -219,7 +219,7 @@ function createWindowManager(deps) {
     // Default-Optionen erzeugen (landet auf Primary), dann setBounds zweimal
     // hintereinander aufrufen. Der erste Aufruf verschiebt das Fenster auf den
     // Zielmonitor und triggert die DPI-Erkennung; der zweite Aufruf setzt die
-    // Bounds mit der dann aktiven korrekten Ziel-DPI (4T-0025).
+    // Bounds mit der dann aktiven korrekten Ziel-DPI (4T-000025).
     const win = new BrowserWindow(options);
     const id = win.webContents.id;
     windows.set(id, win);
@@ -229,7 +229,7 @@ function createWindowManager(deps) {
         ? opts.appId
         : appRegistry.createApp(opts.area || null);
     appRegistry.assignWindow(id, appId);
-    // 4T-0630 (Epic 3E-0102): Arbeitsbereichs-Farbe der Titelleiste sofort
+    // 4T-000630 (Epic 3E-000102): Arbeitsbereichs-Farbe der Titelleiste sofort
     // nach der App-Zuordnung setzen — vor dem ready-to-show-Anzeigen, damit
     // der Sitzungs-Restore und workspace:create/open ohne Nachflackern
     // gefaerbt erscheinen ('Tab in neues Fenster' erbt ueber dieselbe Stelle).
@@ -255,13 +255,13 @@ function createWindowManager(deps) {
     // einen veralteten Stand setzt, merken wir uns die initiale Pane-Struktur
     // sofort auch als "letzten gemeldeten Stand" dieses Fensters.
     lastReportedPanes.set(id, initPanes);
-    // 4T-0368: beim Start zugeteilte Entwuerfe dieses Fensters (nur das erste
+    // 4T-000368: beim Start zugeteilte Entwuerfe dieses Fensters (nur das erste
     // Fenster einer App bekommt welche; sonst leer).
     pendingInitDrafts.set(id, Array.isArray(opts.initialDrafts) ? opts.initialDrafts : []);
 
     win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
-    // 4T-0784 (Epic 3E-0156): Im E2E-Lauf ohne Fokus zeigen. showInactive()
+    // 4T-000784 (Epic 3E-000156): Im E2E-Lauf ohne Fokus zeigen. showInactive()
     // bringt das Fenster auf den Bildschirm, ohne es zu aktivieren; es rendert
     // damit normal, nimmt aber keine Tastatureingaben entgegen.
     win.once('ready-to-show', () => (imTestlauf ? win.showInactive() : win.show()));
@@ -269,23 +269,23 @@ function createWindowManager(deps) {
     // Initialen Zustand IMMER schicken — auch leer. So kann der Renderer
     // deterministisch darauf warten und entscheidet nicht selbst per Timeout,
     // wann er mit dem Rendern starten darf.
-    // M-13 (4T-0173): 'on' statt 'once' — nach einem Renderer-Reload
+    // M-13 (4T-000173): 'on' statt 'once' — nach einem Renderer-Reload
     // (DevTools, Strg+R) blockierte der frisch geladene Renderer sonst
     // dauerhaft auf initialStatePromise (leeres Fenster). Beim erneuten Load
     // wird der zuletzt gemeldete Pane-Stand dieses Fensters gesendet.
     win.webContents.on('did-finish-load', () => {
       const pending = pendingInitPanes.get(id);
       const panes = pending !== undefined ? pending : lastReportedPanes.get(id) || [];
-      // 4T-0368: Entwuerfe nur beim ERSTEN Load ausliefern (delete vor dem
+      // 4T-000368: Entwuerfe nur beim ERSTEN Load ausliefern (delete vor dem
       // naechsten did-finish-load nach einem Renderer-Reload), sonst wuerden sie
       // doppelt geoeffnet.
       const drafts = pendingInitDrafts.get(id) || [];
       pendingInitDrafts.delete(id);
       win.webContents.send('window:initialState', { panes, drafts });
       pendingInitPanes.delete(id);
-      // M-02 (4T-0173): waehrend der Ladephase eingegangene second-instance-
+      // M-02 (4T-000173): waehrend der Ladephase eingegangene second-instance-
       // Dateien jetzt nachreichen (Muster des Kaltstart-Pfads in whenReady).
-      // 4T-0323: nur bereichslose Fenster leeren die Queue — sonst koennte
+      // 4T-000323: nur bereichslose Fenster leeren die Queue — sonst koennte
       // beim Restore ein frueher ladendes Bereichs-Fenster Explorer-Dateien
       // an sich ziehen.
       if (pendingSecondInstanceFiles().length > 0 && !areaOfWindow(win)) {
@@ -299,7 +299,7 @@ function createWindowManager(deps) {
       broadcastDisplayInfo();
     });
 
-    // Fokus tracken (fuer second-instance-Routing; seit 4T-0537 auch pro App
+    // Fokus tracken (fuer second-instance-Routing; seit 4T-000537 auch pro App
     // fuer das "erneutes Oeffnen fokussiert" der Arbeitsbereiche).
     win.on('focus', () => {
       lastFocusedId = id;
@@ -320,7 +320,7 @@ function createWindowManager(deps) {
       if (!confirmedClosings.has(win)) {
         e.preventDefault();
         if (!win.isDestroyed()) win.webContents.send('window:requestClose');
-        // 4T-1213: Stille-Wache ueber die ausbleibende Antwort (schliess-rueckfall.js).
+        // 4T-001213: Stille-Wache ueber die ausbleibende Antwort (schliess-rueckfall.js).
         schliessRueckfall.starte(id);
         return;
       }
@@ -329,26 +329,26 @@ function createWindowManager(deps) {
       // Stand persistieren, solange dieses Fenster noch in der `windows`-Map
       // steht und nicht destroyed ist. Sonst geht beim Schliessen des letzten
       // Fensters die Position verloren, weil der nachgelagerte 'closed'-Handler
-      // nur noch eine leere Map sehen wuerde (4T-0025).
+      // nur noch eine leere Map sehen wuerde (4T-000025).
       if (!isQuitting) persistAllWindows();
     });
 
     win.on('closed', async () => {
       schliessRueckfall.beende(id);
       windows.delete(id);
-      // 4T-0537: Arbeitsbereichs-Zuordnung VOR removeWindow lesen — mit dem
+      // 4T-000537: Arbeitsbereichs-Zuordnung VOR removeWindow lesen — mit dem
       // letzten Fenster verschwindet die App samt Zuordnung aus der Registry.
       const appIdBefore = appRegistry.appOf(id);
       const wsBefore = appIdBefore != null ? appRegistry.getWorkspace(appIdBefore) : null;
       const removedAppId = appRegistry.removeWindow(id);
-      // 4T-0328: verschwindet die App komplett, endet ihr Bereichs-Watcher.
+      // 4T-000328: verschwindet die App komplett, endet ihr Bereichs-Watcher.
       if (removedAppId != null && !appRegistry.hasApp(removedAppId)) {
         stopAreaWatcher(removedAppId);
         appLastFocused.delete(removedAppId);
-        // 4T-0843 (Epic 3E-0147): Buch-Bindung der verschwundenen App loesen
+        // 4T-000843 (Epic 3E-000147): Buch-Bindung der verschwundenen App loesen
         // (der persistierte Stand ist im 'close'-Handler bereits geschrieben).
         activeBooks().delete(removedAppId);
-        // 4T-1031 (Epic 3E-0207): dasselbe fuer die Regal-Bindung. Sie fehlte
+        // 4T-001031 (Epic 3E-000207): dasselbe fuer die Regal-Bindung. Sie fehlte
         // hier, und der Rest war kein blosser Speicher-Rest: `findAppByShelf`
         // sucht die laufende Regal-Applikation genau in dieser Map, fand die
         // tote App und liess das erneute Oeffnen den Zweig «Regal laeuft schon»
@@ -357,12 +357,12 @@ function createWindowManager(deps) {
         // 2026-08-13). Von den fuenf App-gebundenen Behaeltern raeumten vier
         // auf; dieser war der einzige, der es nicht tat.
         activeShelves().delete(removedAppId);
-        // 4T-0537: letztes Fenster eines Arbeitsbereichs ausserhalb des Quits
+        // 4T-000537: letztes Fenster eines Arbeitsbereichs ausserhalb des Quits
         // friert den Stand ein (Offen-Merker false; der 'close'-Handler hat den
         // Endstand bereits persistiert). Beim Quit bleibt der Merker true —
         // genau das oeffnet den Arbeitsbereich bei der Sitzungs-
         // Wiederherstellung wieder. Nur der 'workspaces'-Key wird geschrieben;
-        // die apps/Bounds-Schutzlogik (4T-0025) bleibt unberuehrt.
+        // die apps/Bounds-Schutzlogik (4T-000025) bleibt unberuehrt.
         if (wsBefore && !isQuitting) {
           const wsEntry = workspacesState().find((w) => w.id === wsBefore.id);
           if (wsEntry) {
@@ -383,12 +383,12 @@ function createWindowManager(deps) {
         if (!first.done) lastFocusedId = first.value;
       }
       await unwatchAllForOwner(id);
-      // B-02 (4T-0175): Backlinks-Roots dieses Fensters freigeben, sonst
+      // B-02 (4T-000175): Backlinks-Roots dieses Fensters freigeben, sonst
       // bleiben Indexe samt Watcher fuer die Prozess-Lebensdauer bestehen.
       backlinks.releaseAllForOwner(id);
       // Nur persistieren, wenn nach dem `windows.delete(id)` noch andere Fenster
       // uebrig sind. Sonst wuerde eine leere Liste die zuletzt gemerkten Bounds
-      // des soeben geschlossenen letzten Fensters ueberschreiben (4T-0025; das
+      // des soeben geschlossenen letzten Fensters ueberschreiben (4T-000025; das
       // 'close'-Event hat den Stand inkl. dieses Fensters bereits persistiert).
       if (!isQuitting && windows.size > 0) {
         persistAllWindows();
@@ -406,13 +406,13 @@ function createWindowManager(deps) {
       return { action: 'deny' };
     });
 
-    // M-17 (4T-0176): Defense-in-Depth — keine In-Place-Navigation des
+    // M-17 (4T-000176): Defense-in-Depth — keine In-Place-Navigation des
     // Renderers (setWindowOpenHandler deckt nur window.open ab). Der eigene
     // Erst-Load laeuft ueber loadFile, ein Renderer-Reload (Strg+R/DevTools)
     // loest kein will-navigate aus; pauschales preventDefault ist daher safe.
     win.webContents.on('will-navigate', (e) => e.preventDefault());
 
-    // 4T-0582 (Epic 3E-0107): Vorschlags-Daten der Rechtschreibpruefung an den
+    // 4T-000582 (Epic 3E-000107): Vorschlags-Daten der Rechtschreibpruefung an den
     // Renderer weiterreichen. Chromium meldet das falsch geschriebene Wort und
     // seine Korrektur-Vorschlaege ausschliesslich hier im Main-Prozess; das
     // eigene HTML-Kontextmenue im Renderer kaeme sonst nicht an sie heran.

@@ -1,8 +1,8 @@
-// 4T-0417 (Epic 3E-0079): Perspective Datatable — Format, Parser und
+// 4T-000417 (Epic 3E-000079): Perspective Datatable — Format, Parser und
 // Serialisierer der typisierten Datentabelle (Fence `perspective-datatable`).
 // Prozess-neutral (kein Electron, kein DOM), Muster perspective-table.js.
 //
-// 4T-0986 (Epic 3E-0196): Kern der Modul-Familie. Neben Format, Parser,
+// 4T-000986 (Epic 3E-000196): Kern der Modul-Familie. Neben Format, Parser,
 // Serialisierer und Aggregat-Rechnung hält er die zwei Render-Einstiege
 // und reicht die Arbeit an die Schwester-Module weiter:
 //   perspective-datatable-computed.js  berechnete Spalten (Validierung,
@@ -13,7 +13,7 @@
 //   perspective-datatable-html.js      Grid-HTML und Portable-Tabelle
 //   perspective-datatable-kopf.js      Zeichen-Ebene der Kopf-Direktiven
 //                                      (Spalten-Definition, Aggregat-Eintrag);
-//                                      Blatt der Familie, seit 4T-1313
+//                                      Blatt der Familie, seit 4T-001313
 // Der Import-Graph läuft ausschließlich von hier nach unten (Kern -> html
 // -> view -> computed, Kern -> kopf); kein Schwester-Modul lädt den Kern.
 //
@@ -24,7 +24,7 @@
 //   types: hidden
 //   | Anna | 2026-07-08 | 09:30 | 12.50 | x |
 //
-// 4T-1313 (Epic 3E-0235): Zwei Ergänzungen des Formats. Hinter der Kennung
+// 4T-001313 (Epic 3E-000235): Zwei Ergänzungen des Formats. Hinter der Kennung
 // einer Spalte darf in doppelten Anführungszeichen ein Anzeigetext stehen
 // (`Gesamt "Gesamt (brutto)":number`); angesprochen wird die Spalte in
 // Aggregaten und Ausdrücken weiterhin nur über ihre Kennung. Die Kopfzeile
@@ -32,7 +32,7 @@
 // gilt die Anzeige. Beides ist reine Darstellung und ohne Wirkung auf die
 // Typ-Prüfung der Zellen.
 //
-// Kanonische Speicherformate (PO-Entscheidung D, Epic 3E-0079):
+// Kanonische Speicherformate (PO-Entscheidung D, Epic 3E-000079):
 //   number  Punkt-Dezimal (optionales Anzeige-Format `number(n)` = Dezimalstellen)
 //   date    JJJJ-MM-TT
 //   time    HH:MM
@@ -43,7 +43,7 @@
 //   {
 //     columns:    [{ name, label|null, type, decimals|null, expr|null }]
 //                 expr = Rohtext der berechneten Spalte (Auswertung in
-//                 4T-0421); label = Anzeige-Überschrift, null ohne Angabe
+//                 4T-000421); label = Anzeige-Überschrift, null ohne Angabe
 //     showTypes:  true|false|null   Typangabe im Spaltenkopf; null = keine
 //                 `types`-Zeile im Block. Der Unterschied zu true trägt die
 //                 Serialisierung: nur eine ausdrückliche Angabe wird
@@ -60,7 +60,7 @@
 //
 // Fehler-Semantik: Struktur-Fehler (unbekannter Typ, Spalten-Anzahl-Abweichung,
 // …) landen in errors und machen die Tabelle für den Grid-Editor unbearbeitbar
-// (4T-0419 blockiert das Rückschreiben, solange errors nicht leer ist — sonst
+// (4T-000419 blockiert das Rückschreiben, solange errors nicht leer ist — sonst
 // könnte der kanonische Serialisierer strukturell defekte Zeilen verändern).
 // Zell-Wert-Fehler sind dagegen weich: die Zelle trägt den Fehler-Code, der
 // Rohtext bleibt erhalten und wird unverändert re-serialisiert.
@@ -79,7 +79,7 @@ const {
   buildDatatableTableHtml,
   buildPortableDatatableHtml,
 } = require('./perspective-datatable-html.js');
-// 4T-1313 (Epic 3E-0235): Zeichen-Ebene der beiden Kopfzeilen.
+// 4T-001313 (Epic 3E-000235): Zeichen-Ebene der beiden Kopfzeilen.
 const { parseColumnDef, parseAggregateEntry } = require('./perspective-datatable-kopf.js');
 
 // --- Werte-Parsing pro Typ ----------------------------------------------------
@@ -179,7 +179,7 @@ function escapePipes(text) {
 
 // --- Parser ---------------------------------------------------------------------
 //
-// 4T-1313 (Epic 3E-0235): Die Zeichen-Ebene der beiden Kopfzeilen (Lesen einer
+// 4T-001313 (Epic 3E-000235): Die Zeichen-Ebene der beiden Kopfzeilen (Lesen einer
 // Spalten-Definition und eines Aggregat-Eintrags) liegt in
 // perspective-datatable-kopf.js; hier steht ihre Verwendung im Durchlauf über
 // den Fence-Body.
@@ -192,7 +192,7 @@ function parsePerspectiveDatatable(content) {
   let columns = null;
   let columnsLine = 0;
   let aggregates = [];
-  // 4T-1313: null = keine `types`-Zeile im Block; die Vorgabe ist die Anzeige.
+  // 4T-001313: null = keine `types`-Zeile im Block; die Vorgabe ist die Anzeige.
   // Der Unterschied zwischen null und true trägt die Serialisierung: Nur eine
   // ausdrückliche Angabe wird zurückgeschrieben.
   let showTypes = null;
@@ -235,7 +235,7 @@ function parsePerspectiveDatatable(content) {
         pendingAggregateLines.push({ text: m[2], line: lineNo });
         continue;
       }
-      // 4T-1313 (Epic 3E-0235): Anzeige der Typangabe im Spaltenkopf. Reine
+      // 4T-001313 (Epic 3E-000235): Anzeige der Typangabe im Spaltenkopf. Reine
       // Darstellung; auf die Typ-Prüfung der Zellen hat sie keine Wirkung.
       if (directive === 'types') {
         if (showTypes !== null) {
@@ -296,7 +296,7 @@ function parsePerspectiveDatatable(content) {
   } else if (columns.length === 0) {
     errors.push({ code: 'noColumns', line: columnsLine, detail: '' });
   }
-  // 4T-0421: Spalten-Formeln validieren (Syntax, Funktions-Katalog,
+  // 4T-000421: Spalten-Formeln validieren (Syntax, Funktions-Katalog,
   // Verweis-Regel) — Verstöße sind Struktur-Fehler.
   validateComputedColumns(columns, columnsLine || 1, errors);
   for (const pending of pendingAggregateLines) {
@@ -313,7 +313,7 @@ function parsePerspectiveDatatable(content) {
 function serializeColumnDef(col) {
   const fmt = col.decimals != null ? `(${col.decimals})` : '';
   const expr = col.expr != null ? ` = ${col.expr}` : '';
-  // 4T-1313 (Epic 3E-0235): Der Anzeigetext steht hinter der Kennung in
+  // 4T-001313 (Epic 3E-000235): Der Anzeigetext steht hinter der Kennung in
   // Anfuehrungszeichen; ein Anfuehrungszeichen im Text wird verdoppelt. Ohne
   // diese Ausgabe verloere ein Zellklick im Raster die Beschriftung, weil der
   // Serialisierer den ganzen Block neu schreibt.
@@ -347,7 +347,7 @@ function serializePerspectiveDatatable(model) {
     if (funcs.length > 0) aggParts.push(`${col.name}:${funcs.join('+')}`);
   });
   if (aggParts.length > 0) lines.push('aggregate: ' + aggParts.join(', '));
-  // 4T-1313 (Epic 3E-0235): Nur eine ausdrückliche Angabe wird
+  // 4T-001313 (Epic 3E-000235): Nur eine ausdrückliche Angabe wird
   // zurückgeschrieben; ohne diese Unterscheidung bekäme jede Tabelle beim
   // ersten Zellklick eine Zeile, die der Anwender nie geschrieben hat.
   if (model.showTypes === false) lines.push('types: hidden');
@@ -379,7 +379,7 @@ function serializePerspectiveDatatable(model) {
   return lines.join('\n');
 }
 
-// --- Aggregat-Rechnung (4T-0418) --------------------------------------------------
+// --- Aggregat-Rechnung (4T-000418) --------------------------------------------------
 
 // Leer-Definition pro Typ (count zählt nicht-leere Zellen): text '' und
 // boolean false sind die kanonischen Leer-Werte, sonst null.
@@ -391,7 +391,7 @@ function isEmptyValue(type, value) {
 }
 
 // Aggregate über die (ggf. gefilterten) Zeilen. rows default = alle Zeilen
-// des Modells; getValue erlaubt 4T-0421, berechnete Spalten-Werte zu
+// des Modells; getValue erlaubt 4T-000421, berechnete Spalten-Werte zu
 // liefern (Default: berechnete Spalten -> null, Fehler-Zellen -> null).
 // Rückgabe parallel zu columns: je Spalte [{ func, value }] in der
 // deklarierten Reihenfolge; value null, wenn keine gültige Zelle einfließt.
@@ -447,10 +447,10 @@ function computeAggregates(model, rows, getValue) {
   });
 }
 
-// --- Render-Einstiege (4T-0418) -----------------------------------------------------
+// --- Render-Einstiege (4T-000418) -----------------------------------------------------
 
 // Berechnete Zellen und Aggregate einmal pro Render auswerten; die
-// HTML-Bauer bekommen beides gereicht (Arbeitsteilung 4T-0986).
+// HTML-Bauer bekommen beides gereicht (Arbeitsteilung 4T-000986).
 function computeRenderData(model) {
   const computed = computeComputedCells(model);
   const aggs = computeAggregates(model, model.rows, makeCellValueResolver(model, computed));

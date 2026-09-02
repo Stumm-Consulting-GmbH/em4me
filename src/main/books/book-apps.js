@@ -2,12 +2,12 @@
 // die drei Oeffnungs-Wege (Dialog, Pfad, Erkennung einer Buch-Datei), die
 // Zustands-Meldung an die Fenster, Schliessen und Wiederherstellung.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Die Datei-Ebene (Erkennung,
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Die Datei-Ebene (Erkennung,
 // Zustands-Aufbau, Anlage) liegt unveraendert in books.js, der Struktur-Kern
 // in shared/books/book-core.js.
 //
 // Ein geoeffnetes Buch ist ein eigener Kontext auf derselben Ebene wie
-// Bereich und Arbeitsbereich (Epic-Entscheidung 11 zu 3E-0147): Das aktive
+// Bereich und Arbeitsbereich (Epic-Entscheidung 11 zu 3E-000147): Das aktive
 // Buch haengt an der logischen APPLIKATION, nicht am Fenster, und alle
 // Fenster derselben App teilen es (Muster der Bereichs-Bindung in der
 // App-Registry). Die Bindung liegt bewusst hier statt in der Registry, weil
@@ -74,7 +74,7 @@ function createBookApps(deps) {
   // Zustands-Paket fuer den Renderer: { active: null | { bookDir,
   // bookFileName, tree, readingOrder, unlinked, missing, missingSuggestions } }.
   // `missingSuggestions` nennt je fehlendem Kapitel die namensgleichen Funde des
-  // Buch-Ordners (4T-0848, nur Eintraege mit Fund). Der Zustand wird
+  // Buch-Ordners (4T-000848, nur Eintraege mit Fund). Der Zustand wird
   // bei jedem Abruf frisch von der Platte gelesen, weil Kapitel-Dateien und
   // Begleitdatei jederzeit von aussen wandern koennen (offene Flanke jeder
   // deklarierten Struktur, Epic-Risiko). Ist die Begleitdatei gerade nicht
@@ -98,7 +98,7 @@ function createBookApps(deps) {
     }
   }
 
-  // 4T-0847 (Story 4S-0756): Nach einer physischen Bewegung von Kapitel-Dateien
+  // 4T-000847 (Story 4S-000756): Nach einer physischen Bewegung von Kapitel-Dateien
   // den Buch-Zustand aller Applikationen nachziehen, die eines der betroffenen
   // Bücher aktiv haben. Eine Bewegung kann jedes Buch treffen, auch eines, das
   // gerade in keinem Fenster offen ist — dann gibt es schlicht nichts zu melden.
@@ -112,7 +112,7 @@ function createBookApps(deps) {
     }
   }
 
-  // --- 4T-0871 (Epic 3E-0162): Buch als Bereich --------------------------------
+  // --- 4T-000871 (Epic 3E-000162): Buch als Bereich --------------------------------
   // Grundsatz-Entscheidung des Product Owners vom 2026-08-04: Ein Buch wird
   // vollstaendig wie ein Bereich behandelt (Epic-Entscheidung 11 konsequent zu
   // Ende gefuehrt). Eine Buch-Applikation traegt die Bereichs-Bindung auf den
@@ -164,7 +164,7 @@ function createBookApps(deps) {
     await sendBookState(appId);
   }
 
-  // 4T-0871: Meldung an ein moeglicherweise noch ladendes Fenster. Electron-IPC
+  // 4T-000871: Meldung an ein moeglicherweise noch ladendes Fenster. Electron-IPC
   // puffert nicht; ein frisch erzeugtes Fenster bekommt sie deshalb erst nach
   // did-finish-load (Muster der Start-Dateien).
   function sendWhenLoaded(targetWin, channel, ...args) {
@@ -180,7 +180,7 @@ function createBookApps(deps) {
   }
 
   // Buch-Datei als Reiter im Ziel-Fenster oeffnen (Weg "Buch oeffnen").
-  // `alsoOpen` kommt vom Regal-Routing (4T-0873): die dort angeklickte Datei
+  // `alsoOpen` kommt vom Regal-Routing (4T-000873): die dort angeklickte Datei
   // (etwa ein Kapitel) oeffnet in der Buch-Applikation gleich mit.
   async function openBookFileTab(bookDir, bookFileName, targetWin, alsoOpen = null) {
     const target = targetWin && !targetWin.isDestroyed() ? targetWin : null;
@@ -212,7 +212,7 @@ function createBookApps(deps) {
     const state = await books.buildBookState(bookDir);
     if (!state.ok) return state;
     const dir = state.state.bookDir;
-    // 4T-0888 (Epic 3E-0168): jedes Buch-Oeffnen pflegt die Zuletzt-Liste — vor
+    // 4T-000888 (Epic 3E-000168): jedes Buch-Oeffnen pflegt die Zuletzt-Liste — vor
     // der Fallunterscheidung, weil auch der Sprung in eine laufende
     // Buch-Applikation als Oeffnen zaehlt (Muster openAreaPath). Der Weg der
     // Neuanlage laeuft ueber dieselbe Stelle (createBookDialog ruft hierher).
@@ -222,9 +222,9 @@ function createBookApps(deps) {
       focusFirstAppWindow(running);
       // Erneutes Oeffnen liest den Zustand frisch von der Platte: ein von
       // aussen geaenderter Buch-Ordner (umbenannte Kapitel-Datei) kommt so im
-      // Panel an, wie es der Wechsel-Weg vor 4T-0871 tat.
+      // Panel an, wie es der Wechsel-Weg vor 4T-000871 tat.
       await sendBookState(running);
-      // 4T-0873: Ein aus dem Regal angeklicktes Kapitel oeffnet auch dann in
+      // 4T-000873: Ein aus dem Regal angeklicktes Kapitel oeffnet auch dann in
       // der laufenden Buch-Applikation, wenn sie schon offen ist.
       if (alsoOpen) {
         const [firstId] = appRegistry.windowsOf(running);
@@ -258,7 +258,7 @@ function createBookApps(deps) {
   }
 
   // "Buch schliessen" schliesst die Buch-Applikation samt Fenstern ueber den
-  // regulaeren Close-Pfad (4T-0871, Buch = Bereich; vorher loeste es allein
+  // regulaeren Close-Pfad (4T-000871, Buch = Bereich; vorher loeste es allein
   // die Bindung). Nutzer-Abbruch stoppt die Kaskade, App und Bindung bleiben
   // dann bestehen; die Bindung raeumt der closed-Pfad des letzten Fensters.
   async function closeActiveBook(appId) {
@@ -280,10 +280,10 @@ function createBookApps(deps) {
     });
   }
 
-  // Weg 2 des Oeffnens (Story 4S-0752, AK2): Der Renderer meldet ein aktives
+  // Weg 2 des Oeffnens (Story 4S-000752, AK2): Der Renderer meldet ein aktives
   // Datei-Oeffnen (recent:push, sowohl Datei-Dialog als auch Doppelklick und
   // Zuletzt-Liste). Ist die Datei die Buch-Datei ihres Ordners, IST das
-  // Oeffnen ein "Buch oeffnen" (4T-0871, Buch = Bereich): Eine freie App wird
+  // Oeffnen ein "Buch oeffnen" (4T-000871, Buch = Bereich): Eine freie App wird
   // gebunden (ihr Reiter ist schon da); sonst wandert der frisch geoeffnete
   // Reiter — hier schliessen, Buch-Applikation oeffnen bzw. fokussieren, die
   // die Buch-Datei selbst oeffnet. Kapitel-Dateien treffen die Erkennung
@@ -292,7 +292,7 @@ function createBookApps(deps) {
     const store = getStore();
     const appId = appIdOfWindow(win);
     if (appId == null) return;
-    // 4T-0849 (Story 4S-0758): Im Aus-Zustand der Buecher-Erweiterung entfaellt
+    // 4T-000849 (Story 4S-000758): Im Aus-Zustand der Buecher-Erweiterung entfaellt
     // die Erkennung — eine Buch-Datei oeffnet wie jede andere Markdown-Datei.
     if (!isExtensionEnabled('books', store ? store.get('extensions.disabled') : [])) return;
     const bookDir = await books.detectBookDirFor(filePath);
@@ -305,7 +305,7 @@ function createBookApps(deps) {
       !activeShelves().has(appId) &&
       !appHasOpenFilesOutside(appId, bookDir);
     if (frei) {
-      // 4T-0888: Weg 2 des Oeffnens bindet direkt, ohne openBookApp — die
+      // 4T-000888: Weg 2 des Oeffnens bindet direkt, ohne openBookApp — die
       // Zuletzt-Liste wird deshalb hier gepflegt (der Zweig darunter erledigt
       // sie ueber openBookApp).
       recentLists.pushRecentEntry('recentBooks', bookDir);
@@ -322,14 +322,14 @@ function createBookApps(deps) {
   // oder beschaedigter Buch-Ordner wird still uebergangen (Muster der
   // Bereichs-Wiederherstellung, dort mit Sammel-Meldung; hier genuegt das
   // stille Auslassen, weil ohne Buch nur ein Panel leer bleibt).
-  // 4T-0871 (Buch = Bereich): Alt-Sitzungen ohne Bereichs-Bindung erhalten sie
+  // 4T-000871 (Buch = Bereich): Alt-Sitzungen ohne Bereichs-Bindung erhalten sie
   // hier nach; eine App mit FREMDEM Bereich (Alt-Zustand "Buch im Bereich")
   // behaelt den Bereich und verliert die Buch-Bindung, weil beides zusammen
   // dem Applikations-Modell widerspricht.
   async function restoreBookForApp(appId, bookDir) {
     const store = getStore();
     if (appId == null || typeof bookDir !== 'string' || bookDir === '') return;
-    // 4T-0849 (Story 4S-0758): keine Buch-Wiederherstellung bei abgeschalteter
+    // 4T-000849 (Story 4S-000758): keine Buch-Wiederherstellung bei abgeschalteter
     // Erweiterung; der Sitzungs-Eintrag bleibt fuer das Wiedereinschalten
     // erhalten (die Bereichs-Bindung einer Buch-App aus dem Snapshot bleibt —
     // die App restauriert dann als gewoehnliche Bereichs-App).
@@ -348,10 +348,10 @@ function createBookApps(deps) {
     await sendBookState(appId);
   }
 
-  // Weg 1 des Oeffnens (Story 4S-0752, AK1): "Buch oeffnen…" mit Ordner-Wahl
+  // Weg 1 des Oeffnens (Story 4S-000752, AK1): "Buch oeffnen…" mit Ordner-Wahl
   // (Muster area:open). Ein Ordner ohne Begleitdatei, die eine Buch-Datei
   // benennt, wird mit Meldung abgewiesen; sonst Drei-Stufen-Muster
-  // (openBookApp). Eine Bereichs-Grenzpruefung entfaellt seit 4T-0871: Das
+  // (openBookApp). Eine Bereichs-Grenzpruefung entfaellt seit 4T-000871: Das
   // Buch oeffnet als eigene Applikation und ist vom Bereich des Aufrufers
   // unabhaengig (Anforderungs-Briefing: Buecher sind bereichs-unabhaengig).
   async function openBookDialog(ownerWin) {
@@ -372,7 +372,7 @@ function createBookApps(deps) {
     return opened;
   }
 
-  // Story 4S-0752, AK3: "Neues Buch…" legt Buch-Ordner, Buch-Datei und
+  // Story 4S-000752, AK3: "Neues Buch…" legt Buch-Ordner, Buch-Datei und
   // Begleitdatei an und oeffnet das Buch. Eltern-Ordner und Name kommen aus
   // EINEM nativen Dialog: der Speichern-Dialog liefert beides in einem Schritt
   // und laesst den Anwender zugleich einen neuen Eltern-Ordner anlegen. Ein

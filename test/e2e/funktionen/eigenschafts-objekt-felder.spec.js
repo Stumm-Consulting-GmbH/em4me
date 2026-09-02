@@ -1,4 +1,4 @@
-// 4T-1187 (Epic 3E-0221, E11): E2E-Funktions-Suite der gestapelten Bedienung.
+// 4T-001187 (Epic 3E-000221, E11): E2E-Funktions-Suite der gestapelten Bedienung.
 //
 // **Warum an der laufenden Anwendung.** Die Unit-Ebene prüft den Bau und die
 // Auslese mit einem eingespeisten Kind-Editor; was sie nicht prüfen kann, ist
@@ -141,7 +141,7 @@ test.describe('PP-15: Gestapelte Objekt-Bedienung im Block-Panel (F-106)', () =>
         {
           schemaVersion: 1,
           // Pflicht-Sektion: Ohne sie weist `parseContainer` die ganze
-          // Begleitdatei ab (belegter Fall aus 4T-1185).
+          // Begleitdatei ab (belegter Fall aus 4T-001185).
           history: { anchors: [], packets: [] },
           blockData: {
             abc: {

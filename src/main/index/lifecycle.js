@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Lebenszyklus der Index-Einträge, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Lebenszyklus der Index-Einträge, herausgelöst aus
 // src/main/backlinks.js. Hier wohnen der Bedarfs-Einstieg (ensureIndex mit
 // Owner-Modell, ensureIndexForDemand, ensureAreaIndex), die Freigabe mit
 // Soft-Timer (releaseRoot, releaseAllForOwner), der Abbau (teardownIndex mit
@@ -18,7 +18,7 @@ const SOFT_TIMEOUT_MS = 60 * 1000;
 // Stellt sicher, dass fuer eine Wurzel ein Index existiert. Beim ersten
 // Aufruf wird er asynchron aufgebaut und der Watcher gestartet. Folgeaufrufe
 // liefern den existierenden Eintrag.
-// B-01/R3-01 (4T-0175): Owner-Modell statt blindem Refcount. Referenzen
+// B-01/R3-01 (4T-000175): Owner-Modell statt blindem Refcount. Referenzen
 // werden pro Owner-Key (webContents-ID + Pane) als Set gefuehrt; wiederholte
 // Requests desselben Owners fuer dieselbe Wurzel zaehlen nicht erneut.
 // Vorher liefen request/release asymmetrisch (Request bei jedem Editor-Sync
@@ -32,7 +32,7 @@ function ensureIndex(rootPath, ownerKey, isArea) {
       clearTimeout(entry.softTimer);
       entry.softTimer = null;
     }
-    // 4T-0347 (Epic 3E-0062): Upgrade bereichslos -> Bereich. Wird eine
+    // 4T-000347 (Epic 3E-000062): Upgrade bereichslos -> Bereich. Wird eine
     // bestehende Wurzel als Bereichs-Wurzel angefragt (dieselbe Datei zugleich
     // in einer Bereichs-App und einer bereichslosen App, Datei direkt im
     // Wurzelordner), muss der Index auf den vollen Bereichs-Baum umgestellt
@@ -49,7 +49,7 @@ function ensureIndex(rootPath, ownerKey, isArea) {
       }
       return fresh || ensureIndex(rootPath, ownerKey, true);
     }
-    // B-21 (4T-0187): Nach einem Watcher-Fehler bleibt der Eintrag im
+    // B-21 (4T-000187): Nach einem Watcher-Fehler bleibt der Eintrag im
     // 'error'-Status liegen (kein Sofort-Rebuild, kein Schleifen-Risiko);
     // erst nach Ablauf des Backoffs stoesst der naechste Bedarf einen
     // frischen Aufbau an.
@@ -66,49 +66,49 @@ function ensureIndex(rootPath, ownerKey, isArea) {
   }
   entry = {
     wurzel: rootPath,
-    // 4T-0347 (Epic 3E-0062): true = Bereichs-Wurzel (voller Baum, keine
+    // 4T-000347 (Epic 3E-000062): true = Bereichs-Wurzel (voller Baum, keine
     // Tiefen-Grenze, keine Caps); false = Ordner-Wurzel mit SCAN_DEPTH und Caps.
     isArea: !!isArea,
     status: 'indexing',
     files: new Map(),
-    // 4T-0050: Aliases pro Datei (Original-Casing aus dem YAML) plus inverse
+    // 4T-000050: Aliases pro Datei (Original-Casing aus dem YAML) plus inverse
     // Map alias-lowercase -> Set von Datei-Pfaden. Inverse Map fuer schnelles
     // Lookup beim Wiki-Link-Klick und im Linter.
     aliasesPerFile: new Map(),
     aliasMap: new Map(),
-    // 4T-0054: Heading-Slugs und Block-IDs pro Datei fuer Anker-Pruefung
+    // 4T-000054: Heading-Slugs und Block-IDs pro Datei fuer Anker-Pruefung
     // im Linter. Sets fuer O(1)-Lookup.
     //   anchorsPerFile: Map<absPath, { headings: Set<slug>, blockIds: Set<id> }>
     anchorsPerFile: new Map(),
-    // 4T-0056: Tags pro Datei (Inline + Frontmatter) plus inverse Map fuer
+    // 4T-000056: Tags pro Datei (Inline + Frontmatter) plus inverse Map fuer
     // O(1)-Lookup beim Filtern. tagsPerFile speichert Original-Casing,
     // tagMap-Schluessel ist Lowercase fuer case-insensitive Filter.
     //   tagsPerFile: Map<absPath, string[]>
     //   tagMap:      Map<tagLower, Set<absPath>>
     tagsPerFile: new Map(),
     tagMap: new Map(),
-    // B-16 (4T-0181): Display-Casing pro Tag-Key (erstes gesehenes Casing).
+    // B-16 (4T-000181): Display-Casing pro Tag-Key (erstes gesehenes Casing).
     tagDisplay: new Map(),
-    // 4T-0354 (Epic 3E-0065): Frontmatter-Properties pro Datei für die Abfrage-
+    // 4T-000354 (Epic 3E-000065): Frontmatter-Properties pro Datei für die Abfrage-
     // Auswertung. Objekt mit lowercase-Schlüsseln -> String bzw. String-Liste
     // (Nicht-Skalare und leere Werte weggelassen). Vorwärts-Map; der Evaluator
     // läuft pro Datei gegen diese Map (bewusst keine inverse Wert-Map).
     //   propertiesPerFile: Map<absPath, { [keyLower]: string | string[] }>
     propertiesPerFile: new Map(),
-    // 4T-0408 (Epic 3E-0077): Block-Daten pro Datei aus der blockData-Sektion
+    // 4T-000408 (Epic 3E-000077): Block-Daten pro Datei aus der blockData-Sektion
     // der .mdd-Begleitdatei (nur Dateien mit Eintraegen). Grundlage des
     // BLOCKS-Scopes der Abfrage; Pflege ueber Index-Aufbau, Watcher-Pfad und
     // updateBlockDataForFile (blockData:changed-Mutationen aus main.js).
     //   blockDataPerFile: Map<absPath, Array<{ anchor, values, updatedMs }>>
     blockDataPerFile: new Map(),
-    // 4T-0502 (Epic 3E-0096): Task-Zeilen pro Datei fuer den TASKS-Scope
+    // 4T-000502 (Epic 3E-000096): Task-Zeilen pro Datei fuer den TASKS-Scope
     // (nur Dateien mit Eintraegen). Roh-Zeilen; Modell-Parsing im Query-Zweig.
     //   tasksPerFile: Map<absPath, Array<{ zeile, text, heading }>>
     tasksPerFile: new Map(),
-    // B-15 (4T-0181): inverse Namens-Map basenameKeyLower -> Set<Pfad>
+    // B-15 (4T-000181): inverse Namens-Map basenameKeyLower -> Set<Pfad>
     // fuer O(1)-Wiki-Aufloesung (traegt die B-04-Normalisierung strukturell).
     nameMap: new Map(),
-    // 4T-1288: Suffix-Map der Pfad-Form (normalisierter Segment-Suffix ->
+    // 4T-001288: Suffix-Map der Pfad-Form (normalisierter Segment-Suffix ->
     // Set<Pfad>), lazy beim ersten Pfad-Resolve gebaut (resolve.js). Sie
     // haengt allein an der PFAD-Menge des Index; jede Aenderung der Menge
     // setzt sie auf null (Invalidierung in build.js), der naechste
@@ -117,18 +117,18 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // Obsidian-Bestand (879 Pfad-Links, 6483 Dateien) blockierte das den
     // UI-Thread des Hauptprozesses je Backlinks-Anfrage sekundenlang.
     pathSuffixMap: null,
-    // B-19 (4T-0181): Groesse pro Datei fuer die inkrementelle Cap-Pruefung.
+    // B-19 (4T-000181): Groesse pro Datei fuer die inkrementelle Cap-Pruefung.
     fileSizes: new Map(),
-    // 4T-0402 (Epic 3E-0076): Datei-Zeiten pro Datei fuer die impliziten
+    // 4T-000402 (Epic 3E-000076): Datei-Zeiten pro Datei fuer die impliziten
     // Abfrage-Felder file.ctime/file.mtime (Epoch-ms aus dem ohnehin
     // erhobenen stat; ctime = birthtime mit ctime-Fallback).
     //   fileStats: Map<absPath, { ctimeMs, mtimeMs }>
     fileStats: new Map(),
-    // 4T-0402 (Epic 3E-0076): Link-Graph-Cache fuer file.inlinks/file.outlinks
+    // 4T-000402 (Epic 3E-000076): Link-Graph-Cache fuer file.inlinks/file.outlinks
     // und FROM-Link-Quellen: { outMap, inMap } (Map<absPath, absPath[]>),
     // lazy beim ersten Bedarf gebaut, bei jeder Index-Aenderung invalidiert.
     linkGraph: null,
-    // 4T-0348 (Epic 3E-0062): Cache-Metadaten pro Datei (mtimeMs, size, hash)
+    // 4T-000348 (Epic 3E-000062): Cache-Metadaten pro Datei (mtimeMs, size, hash)
     // fuer den Warmstart-Abgleich; nur bei Bereichs-Wurzeln gefuellt. Das
     // Parse-Ergebnis selbst wird beim Schreiben aus den Index-Maps rekonstruiert
     // (keine doppelte Haltung). cachePath/cacheWriteTimer steuern das debouncede
@@ -139,20 +139,20 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     fileCount: 0,
     byteSize: 0,
     watcher: null,
-    // B-01 (4T-0175): Owner-Keys statt Zaehler (Set dedupliziert).
+    // B-01 (4T-000175): Owner-Keys statt Zaehler (Set dedupliziert).
     ownerKeys: new Set(ownerKey ? [ownerKey] : []),
     softTimer: null,
     invalidateTimer: null,
   };
   indexes.set(rootPath, entry);
 
-  // B-14 (4T-0181): Aufbau asynchron starten, NICHT awaiten. Der IPC-
+  // B-14 (4T-000181): Aufbau asynchron starten, NICHT awaiten. Der IPC-
   // Handler liefert sofort 'indexing'; das fertige Ergebnis meldet sich
   // ueber den bestehenden 'backlinks:invalidated'-Broadcast.
   buildIndexAsync(rootPath, entry).catch((err) => {
     console.warn('Backlinks-Index-Aufbau fehlgeschlagen:', err);
     if (indexes.get(rootPath) === entry) teardownIndex(rootPath, { force: true });
-    // W-08 (4T-0309): wartende Panels aus dem 'indexing'-Stand loesen. Ohne
+    // W-08 (4T-000309): wartende Panels aus dem 'indexing'-Stand loesen. Ohne
     // Broadcast blieben sie bis zum naechsten eigenen Request haengen
     // (Muster wie beim Watcher-Fehler oben).
     broadcast('backlinks:invalidated', { wurzel: rootPath });
@@ -186,7 +186,7 @@ function updateBlockDataForFile(filePath, rawBlockData) {
 // Ein Owner gibt die Wurzel frei. Wenn kein Owner mehr registriert ist,
 // startet der Soft-Timer. Wird in dieser Zeit erneut ensureIndex aufgerufen,
 // wird der Timer abgebrochen.
-// B-01 (4T-0175): Owner-Key-Modell; ohne ownerKey (Alt-Aufrufer) wird nur
+// B-01 (4T-000175): Owner-Key-Modell; ohne ownerKey (Alt-Aufrufer) wird nur
 // der Leer-Check ausgefuehrt.
 function releaseRoot(rootPath, ownerKey) {
   const entry = indexes.get(rootPath);
@@ -199,7 +199,7 @@ function releaseRoot(rootPath, ownerKey) {
   }, SOFT_TIMEOUT_MS);
 }
 
-// B-02 (4T-0175): Beim Schliessen eines Fensters alle Owner-Keys dieses
+// B-02 (4T-000175): Beim Schliessen eines Fensters alle Owner-Keys dieses
 // webContents freigeben (Keys haben die Form '<webContentsId>:<paneIdx>').
 function releaseAllForOwner(webContentsId) {
   const prefix = `${webContentsId}:`;
@@ -225,7 +225,7 @@ function teardownIndex(rootPath, opts = {}) {
   if (!opts.force && entry.ownerKeys.size > 0) return;
   if (entry.softTimer) clearTimeout(entry.softTimer);
   if (entry.invalidateTimer) clearTimeout(entry.invalidateTimer);
-  // 4T-0348 (Epic 3E-0062): letzten Cache-Stand sichern, bevor die Wurzel
+  // 4T-000348 (Epic 3E-000062): letzten Cache-Stand sichern, bevor die Wurzel
   // abgebaut wird. Container-Aufbau synchron (liest die noch intakten Index-
   // Maps), Schreiben asynchron (fire-and-forget). Ein verpasster Flush ist
   // unkritisch, weil geaenderte Dateien beim naechsten Oeffnen per mtime-
@@ -245,7 +245,7 @@ function teardownIndex(rootPath, opts = {}) {
   indexes.delete(rootPath);
 }
 
-// B-18 (4T-0187): Index-Lebenszyklus von der Panel-Sichtbarkeit entkoppelt.
+// B-18 (4T-000187): Index-Lebenszyklus von der Panel-Sichtbarkeit entkoppelt.
 // Bedarfs-Pfade (Tag-Sidebar, Autocomplete, Linter, Alias-/Index-Klick)
 // stossen den asynchronen Aufbau selbst an. Der Owner-Key folgt dem
 // B-01-Modell ('<webContentsId>:…'); releaseAllForOwner raeumt ihn beim
@@ -258,7 +258,7 @@ function ensureIndexForDemand(filePath, ownerKey, areaRoot) {
   ensureIndex(root, ownerKey, isArea);
 }
 
-// 4T-0348 (Epic 3E-0062): proaktiver Aufbau des Bereichs-Index beim Bereichs-
+// 4T-000348 (Epic 3E-000062): proaktiver Aufbau des Bereichs-Index beim Bereichs-
 // Oeffnen, unabhaengig von einer offenen Datei. So entsteht der Index (und
 // damit Area_Cache.mdda) "automatisch beim Start" statt erst beim ersten
 // Panel-/Linter-Bedarf. Der ownerKey ('area:<appId>') haelt den Index ueber

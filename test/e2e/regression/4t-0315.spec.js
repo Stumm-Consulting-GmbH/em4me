@@ -1,4 +1,4 @@
-// 4T-0315 (Epic 3E-0056): Regressionstest — das Submenü des Tab-
+// 4T-000315 (Epic 3E-000056): Regressionstest — das Submenü des Tab-
 // Kontextmenüs („Verschieben in" / „Kopieren in") lag bei Tabs nahe dem
 // rechten Fensterrand außerhalb des Fensters (öffnete stur rechts vom
 // Eintrag, left: 100%, ohne Viewport-Prüfung) und war nicht bedienbar.
@@ -34,7 +34,7 @@ async function openTabContextMenuAt(page, clientX, clientY) {
   await expect(page.locator('#context-menu .context-menu-item-submenu').first()).toBeVisible();
 }
 
-test.describe('S-03: Tab-Kontextmenü-Submenü bleibt im Fenster (4T-0315)', () => {
+test.describe('S-03: Tab-Kontextmenü-Submenü bleibt im Fenster (4T-000315)', () => {
   test('am rechten Rand öffnet das Submenü links, in der Mitte rechts', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {

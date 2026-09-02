@@ -1,4 +1,4 @@
-// 4T-0375 (Epic 3E-0070): Reine Logik der erweiterten Versionsnummer.
+// 4T-000375 (Epic 3E-000070): Reine Logik der erweiterten Versionsnummer.
 // Die vierte Stelle (Build-Nummer = Commit-Anzahl beim Release-Commit) lebt
 // in src/shared/build-info.json und wird versions-gekoppelt angewandt: die
 // volle Nummer gilt nur, wenn build-info.version zur gebauten Version passt.
@@ -18,7 +18,7 @@ function hasBuildNumberFor(version, buildInfo) {
   );
 }
 
-// 4T-0921: Technische Form eines temporären Baus. Die Basis-Version steht
+// 4T-000921: Technische Form eines temporären Baus. Die Basis-Version steht
 // vorne, weil das Bau-Werkzeug daraus das numerische Windows-Vierertupel
 // bildet und ein führender Buchstabe den Bau abbricht; am 2026-08-07 an der
 // Bibliothek gemessen ("Invalid major number") und am Ressourcen-Werkzeug
@@ -64,7 +64,7 @@ function zeitstempelFuerBau(datum) {
 }
 
 /**
- * 4T-0921: Entscheidet, mit welchen Angaben gebaut wird. Reine Funktion ohne
+ * 4T-000921: Entscheidet, mit welchen Angaben gebaut wird. Reine Funktion ohne
  * Git- und Datei-Zugriff; der Aufrufer reicht die Tatsachen herein.
  *
  * Trägt die Versions-Angabe bereits eine Release-Marke, ist das Release
@@ -124,7 +124,7 @@ function buildNumberEnvValue(pkgVersion, buildInfo) {
 function buildNumberGuardError(buildInfo, pkgVersion, gitCount) {
   if (!buildInfo || buildInfo.version !== pkgVersion) return null;
   if (!Number.isInteger(buildInfo.buildNumber)) return null;
-  // 4T-0396 (Hotfix 0.42.1): Die Nummer ist die Commit-Anzahl des Release-
+  // 4T-000396 (Hotfix 0.42.1): Die Nummer ist die Commit-Anzahl des Release-
   // Commits (Vorgaenger-Commits + 1). Vor dem Release-Commit ist das
   // gitCount + 1 (die Nummer nimmt den kommenden Commit vorweg), nach dem
   // Commit gitCount. Beide sind gueltig, damit die EXE schon vor dem Commit
@@ -146,7 +146,7 @@ module.exports = {
   nextBuildNumber,
   buildNumberEnvValue,
   buildNumberGuardError,
-  // 4T-0921: temporäre Kennzeichnung eines Baus zwischen zwei Releases.
+  // 4T-000921: temporäre Kennzeichnung eines Baus zwischen zwei Releases.
   temporaereKennzeichnung,
   zeitstempelFuerBau,
   bauAngaben,

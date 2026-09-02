@@ -1,7 +1,7 @@
-// 4T-0498 (Epic 3E-0090): Erweiterung „Aufgaben" — Task-Marker-Badges in
+// 4T-000498 (Epic 3E-000090): Erweiterung „Aufgaben" — Task-Marker-Badges in
 // Render-Pane und Live-Modus, Automatik-Datum beim Statuswechsel und der
 // Global Filter. describe-Titel tragen die Funktions-IDs (AU-01 …); ein
-// Matrix-Eintrag folgt erst mit den help.feature-Keys in 4T-0500.
+// Matrix-Eintrag folgt erst mit den help.feature-Keys in 4T-000500.
 'use strict';
 
 const path = require('node:path');
@@ -100,7 +100,7 @@ test.describe('AU-03: Global Filter blendet Nicht-Task-Zeilen aus', () => {
   });
 });
 
-// 4T-0499 (Epic 3E-0090): Wiederholung beim Abschluss — der Klick auf die
+// 4T-000499 (Epic 3E-000090): Wiederholung beim Abschluss — der Klick auf die
 // Checkbox einer wiederkehrenden Task erzeugt die naechste Instanz
 // (Standard-Einfuegeposition oberhalb) in derselben Transaktion wie den
 // Status-Wechsel samt Erledigt-Datum.

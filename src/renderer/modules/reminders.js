@@ -1,9 +1,9 @@
-// 4T-0526 (Epic 3E-0095): Erinnerungs-Dialog und Snooze — die nutzer-
+// 4T-000526 (Epic 3E-000095): Erinnerungs-Dialog und Snooze — die nutzer-
 // sichtbare Kern-Mechanik des Erinnerungs-Systems im Renderer.
 //
 // Aufgaben des Moduls:
 // - Faellige Anker vom Main-Pruefer entgegennehmen ('reminders:due',
-//   4T-0525) und in einer Warteschlange sammeln. Die Anzeige wartet die
+//   4T-000525) und in einer Warteschlange sammeln. Die Anzeige wartet die
 //   Tipp-Ruhe ab (10 Sekunden seit dem letzten Editor-Edit, Workshop-
 //   Punkt 7; Zeitstempel editorActivity in app-state.js).
 // - Ein Dialog-Geruest fuer Einzel-Fall, Sammel-Liste und Nachholen
@@ -19,7 +19,7 @@
 //   Schutz). Optionen aus den Einstellungen plus freie Picker-Wahl.
 // - Wegklicken (Escape, Backdrop, Schliessen) mutet die verbliebenen
 //   Eintraege bis zum Neustart (Punkt 3); Wiederausloesung uebernimmt die
-//   Ueberfaellig-Sektion des Panels (4T-0527).
+//   Ueberfaellig-Sektion des Panels (4T-000527).
 // - System-Notification (Einstellung, Standard aus): nach der Tipp-Ruhe
 //   und nur bei nicht fokussiertem Fenster; Anzeige im Main
 //   (reminders:systemNotify), Klick holt das Fenster nach vorn.
@@ -73,7 +73,7 @@ async function refreshConfig() {
   }
 }
 
-// 4T-0527: Snooze-Menue und Konfigurations-Zugriff auch fuer das Panel.
+// 4T-000527: Snooze-Menue und Konfigurations-Zugriff auch fuer das Panel.
 export function currentRemindersConfig() {
   return remindersConfig;
 }
@@ -134,7 +134,7 @@ export function showSnoozeMenu(item, x, y, onWritten) {
   placeContextMenuAt(contextMenu, x, y);
 }
 
-// --- Kommando "Erinnerung setzen" (4T-0528) ------------------------------------------
+// --- Kommando "Erinnerung setzen" (4T-000528) ------------------------------------------
 
 // Editor-Aufloesung wie die Picker-Kommandos (Muster task-dialog.js):
 // Notiz-Feld hat Vorrang, sonst der Haupt-Editor der aktiven Spalte im
@@ -334,7 +334,7 @@ function scheduleShow() {
 
 // --- Entgegennahme ------------------------------------------------------------------
 
-// 4T-0635: Die Anmeldung steht am **Modulkopf** und nicht in initReminders().
+// 4T-000635: Die Anmeldung steht am **Modulkopf** und nicht in initReminders().
 //
 // Der Melde-Weg des Pruefers ist fire-and-forget: Der Hauptprozess sendet
 // `reminders:due`, und `ipcRenderer.on` puffert nichts. War der Zuhoerer noch
@@ -343,7 +343,7 @@ function scheduleShow() {
 // `await`-Schritten. Der reale Ausloeser ist die Sitzungs-Wiederherstellung mit
 // gebundenem Bereich: Dort laeuft das Binden parallel zur Initialisierung, und
 // der Anwender sah seine ueberfaelligen Erinnerungen nicht. Das Rennen wird mit
-// wachsendem Renderer-Bundle schlechter (Messung in 4T-0372: von 10/10 grün auf
+// wachsendem Renderer-Bundle schlechter (Messung in 4T-000372: von 10/10 grün auf
 // 4/5 nach nur drei zusaetzlichen Modulen).
 //
 // Entgegennahme und Anzeige sind deshalb getrennt: Der frühe Zuhoerer fuellt
@@ -388,7 +388,7 @@ export function initReminders() {
     true,
   );
 
-  // 4T-0528: Konfigurations-Broadcast (Einstellungs-Aenderungen wirken
+  // 4T-000528: Konfigurations-Broadcast (Einstellungs-Aenderungen wirken
   // sofort auf Snooze-Menue und Default-Uhrzeit).
   if (typeof api.onRemindersConfigChanged === 'function') {
     api.onRemindersConfigChanged((cfg) => {
@@ -396,7 +396,7 @@ export function initReminders() {
     });
   }
 
-  // 4T-0635: Ab hier sind die Dialog-Elemente gebunden. Was der Zuhoerer am
+  // 4T-000635: Ab hier sind die Dialog-Elemente gebunden. Was der Zuhoerer am
   // Modulkopf waehrend der Initialisierung gepuffert hat, wird jetzt einmal
   // nachgezogen; ohne wartende Eintraege ist der Aufruf folgenlos.
   dialogBereit = true;

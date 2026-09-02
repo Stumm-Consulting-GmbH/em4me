@@ -1,4 +1,4 @@
-// 4T-0298 (Epic 3E-0053): Erweiterungs-Pakete im Nutzerprofil — Scan,
+// 4T-000298 (Epic 3E-000053): Erweiterungs-Pakete im Nutzerprofil — Scan,
 // Quelltext-Zugriff und Entfernen.
 //
 // Bewusst OHNE Electron-Import (nur fs/path plus die geteilte Manifest-

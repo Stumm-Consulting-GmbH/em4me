@@ -1,7 +1,7 @@
 // Kontext-Helfer des Block-Eigenschaften-Panels: aktiver Tab, Datei-Pfad,
 // Dokument-Text, Lese-Ansicht, Cursor-Zeile und der zusammengesetzte
 // Anker-Kontext einer Pane.
-// 4T-0979 (Epic 3E-0196): Auszug aus block-props-panel.js. Blatt-Modul des
+// 4T-000979 (Epic 3E-000196): Auszug aus block-props-panel.js. Blatt-Modul des
 // Panels — es importiert kein anderes Panel-Modul und hält den Import-Graph
 // des Feature-Ordners damit gerichtet.
 'use strict';
@@ -13,7 +13,7 @@ import { PROPERTY_TYPES, NICHT_WAEHLBARE_TYPEN } from './properties-types.js';
 
 // Editierbare Typen: der 'readonly'-Fallback der Dokument-Ebene entfaellt, weil
 // das Block-Schema app-kontrolliert ist (Konzept-Entscheidung 1).
-// 4T-1185 (Epic 3E-0221): mit ihm entfallen die beiden abgeleiteten Typen aus
+// 4T-001185 (Epic 3E-000221): mit ihm entfallen die beiden abgeleiteten Typen aus
 // demselben Grund — sie sind keine Vorgabe, die man waehlt, sondern ein
 // Ergebnis, das ein Profil erklaert. Ein abgeleitetes Feld traegt seinen Typ
 // trotzdem; sein Wechsler ist gesperrt und zeigt ihn (siehe buildFieldRow).

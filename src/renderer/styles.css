@@ -1,4 +1,4 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 1 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 1 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
@@ -7,7 +7,7 @@
 :root {
   --bg: #ffffff;
   --bg-alt: #f5f5f5;
-  /* S-01 (4T-0177): gedaempfte Hintergrund-Toenung (Hover-/Fokus-Flaechen
+  /* S-01 (4T-000177): gedaempfte Hintergrund-Toenung (Hover-/Fokus-Flaechen
      in Listen und Pillen). War an fuenf Stellen verwendet, aber nie
      definiert — die Flaechen fielen auf transparent zurueck. */
   --bg-muted: #e8e8e8;
@@ -18,26 +18,26 @@
   --border-strong: #c8c8c8;
   --accent: #0a66c2;
   --accent-fg: #ffffff;
-  /* 4T-0081 (Epic 3E-0014): Dezent transparente Akzent-Variante fuer
+  /* 4T-000081 (Epic 3E-000014): Dezent transparente Akzent-Variante fuer
      Live-Preview-Tags (Pillen-Hintergrund). Bewusst sehr gedaempft, damit
      der Pillen-Effekt im Mono-Font-Editor nicht aus dem Source-Look bricht. */
   --accent-soft: rgba(10, 102, 194, 0.12);
-  /* 4T-0577 (Epic 3E-0106): Hintergrund der Cursor-Zeile im Editor. Bewusst
+  /* 4T-000577 (Epic 3E-000106): Hintergrund der Cursor-Zeile im Editor. Bewusst
      halbtransparent statt fester Farbe, damit die Toenung auf jedem
      Farbschema-Hintergrund gleich dezent wirkt. */
   --active-line-bg: rgba(0, 0, 0, 0.045);
-  /* 4T-0333 (Epic 3E-0060): Zeilen-Hintergruende der Vergleichs-Ansicht
+  /* 4T-000333 (Epic 3E-000060): Zeilen-Hintergruende der Vergleichs-Ansicht
      der Dokument-Historie (eingefuegt/entfernt). */
   --diff-ins-bg: rgba(46, 160, 67, 0.15);
   --diff-del-bg: rgba(218, 54, 51, 0.13);
   --tab-active-bg: #ffffff;
   --tab-bg: #ececec;
-  /* 4T-0460 (Epic 3E-0085): feste Acht-Farben-Palette der Tab-Gruppen
+  /* 4T-000460 (Epic 3E-000085): feste Acht-Farben-Palette der Tab-Gruppen
      (Schluessel aus tab-groups.js). Light: kraeftige Toene mit hellem
      Kopf-Text; Gelb traegt dunklen Text (Kontrast).
-     4T-0538 (Epic 3E-0098): die Light-Hex-Werte sind zusaetzlich in
+     4T-000538 (Epic 3E-000098): die Light-Hex-Werte sind zusaetzlich in
      src/shared/tab-group-colors.js (TAB_GROUP_COLOR_VALUES) hinterlegt
-     (Menue-Icons im Main); 4T-0630 (Epic 3E-0102): auch die Dark- und
+     (Menue-Icons im Main); 4T-000630 (Epic 3E-000102): auch die Dark- und
      Text-Werte beider Themes liegen dort (Titelleisten-Faerbung im Main);
      bei Farb-Aenderungen alle Stellen pflegen. */
   --tab-group-blue: #1a73e8;
@@ -61,7 +61,7 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --font-ui: 'Segoe UI', 'Helvetica Neue', 'DejaVu Sans', system-ui, sans-serif;
   --font-mono: 'Cascadia Code', 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Courier New', monospace;
-  /* 4T-0018: Konfigurierbare Schriftarten und -groessen fuer Editor und
+  /* 4T-000018: Konfigurierbare Schriftarten und -groessen fuer Editor und
      Render-Pane. Defaults erben aus --font-mono/--font-ui; der Renderer
      ueberschreibt sie aus den persistierten appearance.*-Settings und
      legt jeweils eine Fallback-Kette an, damit fehlende Familien nicht
@@ -85,7 +85,7 @@
   --syntax-string: #0a3069;
   --syntax-number: #0550ae;
   --syntax-selection: rgba(10, 102, 194, 0.4);
-  /* 4T-0020: Markdown-Linter-Light. Warn-Farbe fuer die Wellen-
+  /* 4T-000020: Markdown-Linter-Light. Warn-Farbe fuer die Wellen-
      Unterstreichung der Inline-Hinweise. Light-Theme: gedaempftes
      Bernstein, deutlich genug sichtbar ohne aufdringlich zu wirken. */
   --linter-warn: #c97a00;
@@ -94,7 +94,7 @@
 [data-theme='dark'] {
   --bg: #1e1e1e;
   --bg-alt: #252526;
-  /* S-01 (4T-0177): Dark-Pendant der gedaempften Hintergrund-Toenung. */
+  /* S-01 (4T-000177): Dark-Pendant der gedaempften Hintergrund-Toenung. */
   --bg-muted: #2d2d2d;
   --bg-toolbar: #2a2a2a;
   --fg: #e6e6e6;
@@ -103,19 +103,19 @@
   --border-strong: #4d4d4d;
   --accent: #4ea2ff;
   --accent-fg: #0b1f33;
-  /* 4T-0081: Dezent transparente Akzent-Variante (Dark). Etwas kraeftiger
+  /* 4T-000081: Dezent transparente Akzent-Variante (Dark). Etwas kraeftiger
      als Light, weil Dark-Theme dichtere Akzente vertraegt. */
   --accent-soft: rgba(78, 162, 255, 0.18);
-  /* 4T-0577: Cursor-Zeile im dunklen Theme — heller Schleier statt Schatten. */
+  /* 4T-000577: Cursor-Zeile im dunklen Theme — heller Schleier statt Schatten. */
   --active-line-bg: rgba(255, 255, 255, 0.055);
-  /* 4T-0333: Vergleichs-Ansicht der Dokument-Historie (Dark). */
+  /* 4T-000333: Vergleichs-Ansicht der Dokument-Historie (Dark). */
   --diff-ins-bg: rgba(63, 185, 80, 0.2);
   --diff-del-bg: rgba(248, 81, 73, 0.18);
   --tab-active-bg: #1e1e1e;
   --tab-bg: #2d2d2d;
-  /* 4T-0460: Tab-Gruppen-Palette (Dark) — pastellige Toene mit dunklem
-     Kopf-Text, angelehnt an die Dark-Syntax-Palette. 4T-0630 (Epic
-     3E-0102): Werte zusaetzlich in src/shared/tab-group-colors.js
+  /* 4T-000460: Tab-Gruppen-Palette (Dark) — pastellige Toene mit dunklem
+     Kopf-Text, angelehnt an die Dark-Syntax-Palette. 4T-000630 (Epic
+     3E-000102): Werte zusaetzlich in src/shared/tab-group-colors.js
      (TAB_GROUP_COLOR_VALUES_DARK/-TEXT_VALUES_DARK, Titelleisten-Faerbung
      im Main); bei Farb-Aenderungen alle Stellen pflegen. */
   --tab-group-blue: #8ab4f8;
@@ -150,7 +150,7 @@
   --syntax-string: #a5d6ff;
   --syntax-number: #79c0ff;
   --syntax-selection: rgba(78, 162, 255, 0.5);
-  /* 4T-0020: Linter-Warnfarbe im Dark-Theme — etwas waermer als Light,
+  /* 4T-000020: Linter-Warnfarbe im Dark-Theme — etwas waermer als Light,
      bleibt vor dunklem Hintergrund gut lesbar. */
   --linter-warn: #e8a544;
 }
@@ -192,7 +192,7 @@ body {
 .btn:active:not(:disabled) {
   transform: translateY(1px);
 }
-/* 4T-0554 (Epic 3E-0100): deaktivierter Zustand (z.B. „Anwenden" ohne
+/* 4T-000554 (Epic 3E-000100): deaktivierter Zustand (z.B. „Anwenden" ohne
    ungesicherte Änderungen) — Muster des .btn-toggle:disabled. */
 .btn:disabled {
   cursor: default;
@@ -226,7 +226,7 @@ body {
 .view-btn:last-child {
   border-right: none;
 }
-/* 4T-1055 (Epic 3E-0151): Ist die Mindmap-Erweiterung aus, wird ihre
+/* 4T-001055 (Epic 3E-000151): Ist die Mindmap-Erweiterung aus, wird ihre
    Schaltflaeche ausgeblendet, bleibt aber letztes Kind. Ohne diese Regel
    behielte die Schaltflaeche davor ihre Trennlinie und stuende als doppelter
    Strich neben dem Rahmen der Gruppe. */
@@ -246,7 +246,7 @@ body {
   gap: 4px;
   margin-right: 8px;
 }
-/* 4T-0576 (Epic 3E-0106): die drei Editor-Ansicht-Schalter (Gliederung,
+/* 4T-000576 (Epic 3E-000106): die drei Editor-Ansicht-Schalter (Gliederung,
    Zeilennummern, Zeilenumbruch) sind in die mittlere Statusbar-Zone gezogen
    und bilden dort mit den vier Ansichts-Schaltern die zentrierte Gruppe.
    Optik wie .source-toggles; die frueher noetige Extra-Luecke zum
@@ -278,14 +278,14 @@ body {
   cursor: default;
   opacity: 0.4;
 }
-/* 4T-0332 (Epic 3E-0060): Statusbar-Zustand der Dokument-Historie.
+/* 4T-000332 (Epic 3E-000060): Statusbar-Zustand der Dokument-Historie.
    Pausiert = Protokoll vorhanden, Aufzeichnung wirksam aus — Akzent nur
    als Rahmen/Farbe, ohne die Voll-Fuellung des aktiv-Zustands. */
 .btn-history.paused:not(:disabled) {
   color: var(--accent);
   border-color: var(--accent);
 }
-/* 4T-0031: Icon-only-Variante fuer Statusbar-Buttons. Schmaler als die
+/* 4T-000031: Icon-only-Variante fuer Statusbar-Buttons. Schmaler als die
    Text-Variante, quadratisch, SVG zentriert. Wirkt auf .btn-toggle und
    .view-btn gleichermassen, weil beide in der Statusbar als Icon-Buttons
    auftreten. */
@@ -302,7 +302,7 @@ body {
 .view-btn.btn-icon svg {
   display: block;
 }
-/* 4T-0295 (Epic 3E-0052): Statusbar-Buttons deaktivierter Erweiterungen
+/* 4T-000295 (Epic 3E-000052): Statusbar-Buttons deaktivierter Erweiterungen
    werden per hidden-Attribut ausgeblendet — das inline-flex oben schlaegt
    sonst die [hidden]-UA-Regel. */
 .btn-toggle.btn-icon[hidden],
@@ -310,13 +310,13 @@ body {
   display: none;
 }
 
-/* 4T-0520 (Epic 3E-0094): Segment der nutzerdefinierten Kommando-Buttons
+/* 4T-000520 (Epic 3E-000094): Segment der nutzerdefinierten Kommando-Buttons
    (Optik wie .source-toggles; Inhalt rendert command-placement.js). */
 .command-buttons {
   display: inline-flex;
   gap: 4px;
 }
-/* 4T-0520: Hide-Liste der Standard-Statusbar-Elemente. Die Render-Logik
+/* 4T-000520: Hide-Liste der Standard-Statusbar-Elemente. Die Render-Logik
    (applyStatusbarHideList) setzt die Klasse pro Ziel; !important, weil
    die rechten Buttons (.btn-edit, .btn-theme, .btn-scroll-sync) eigene
    display-Regeln ohne [hidden]-Guard tragen und Wort-Statistik/Zoom ihr
@@ -326,7 +326,7 @@ body {
   display: none !important;
 }
 
-/* 4T-0520: Icon-Raster des Anlage-Dialogs (Buttons erben die
+/* 4T-000520: Icon-Raster des Anlage-Dialogs (Buttons erben die
    btn-toggle/btn-icon-Optik; Auswahl ueber die .active-Klasse). */
 .command-placement-icon-grid {
   display: grid;
@@ -339,7 +339,7 @@ body {
   font-size: 12px;
   color: var(--fg-muted);
 }
-/* 4T-0520: Einstellungs-Bereich Kommando-Platzierung — Eintrag-Zeilen
+/* 4T-000520: Einstellungs-Bereich Kommando-Platzierung — Eintrag-Zeilen
    (sidebar-settings-Optik) mit Icon-Spalte; Hide-Liste als kompakte
    Checkbox-Spalten. */
 .command-placement-row-icon {
@@ -361,7 +361,7 @@ body {
   gap: 8px;
   cursor: pointer;
 }
-/* 4T-0521: optionales Icon vor dem Label eines Kontextmenü-Eintrags
+/* 4T-000521: optionales Icon vor dem Label eines Kontextmenü-Eintrags
    (nutzerdefinierte Sektion der Kommando-Platzierung). */
 .context-menu-icon {
   display: inline-block;
@@ -371,7 +371,7 @@ body {
 .context-menu-icon svg {
   vertical-align: -2px;
 }
-/* 4T-0522: Makro-Editor — eingerückte Schritt-Liste unter dem
+/* 4T-000522: Makro-Editor — eingerückte Schritt-Liste unter dem
    aufgeklappten Makro; schmales Zahlen-Feld des Verzögerungs-Schritts. */
 .command-placement-steps {
   margin: 2px 0 8px 28px;
@@ -381,7 +381,7 @@ body {
 }
 
 /* === Statusbar ============================================================ */
-/* 4T-0576 (Epic 3E-0106): Drei-Spalten-Raster statt reinem Flex. Die mittlere
+/* 4T-000576 (Epic 3E-000106): Drei-Spalten-Raster statt reinem Flex. Die mittlere
    Spalte nimmt ihre natuerliche Breite ein, die beiden Seiten teilen sich den
    Rest zu gleichen Teilen — die Schalter-Gruppe sitzt damit in der Fenster-
    Mitte und nicht in der Mitte des Restplatzes.
@@ -392,7 +392,7 @@ body {
    vor dem Umbau); die Ueberlauf-Mechanik der Kommando-Buttons greift dann
    ueber den gewachsenen Leisten-Inhalt. */
 .statusbar {
-  /* B-13 (4T-0904): Bezugsrahmen der Meldung, die ueber der Leiste schwebt. */
+  /* B-13 (4T-000904): Bezugsrahmen der Meldung, die ueber der Leiste schwebt. */
   position: relative;
   display: grid;
   grid-template-columns: minmax(max-content, 1fr) max-content minmax(max-content, 1fr);
@@ -413,7 +413,7 @@ body {
   align-items: center;
   gap: 8px;
 }
-/* 4T-1055 (Epic 3E-0151): Die mittlere Zone traegt zwei fachlich
+/* 4T-001055 (Epic 3E-000151): Die mittlere Zone traegt zwei fachlich
    verschiedene Gruppen, die drei Editor-Ansicht-Schalter und die fuenf
    Ansichts-Umschalter. Mit dem Zonen-Abstand von 8 px lasen sie sich als eine
    Leiste aus acht Schaltflaechen; der groessere Abstand trennt sie sichtbar,
@@ -438,7 +438,7 @@ body {
 .btn-edit svg {
   display: block;
 }
-/* 4T-0030: Theme-Toggle in der Statusbar (zwischen btn-edit und lang-select).
+/* 4T-000030: Theme-Toggle in der Statusbar (zwischen btn-edit und lang-select).
    Gleiches Format wie btn-edit. Icon (Sonne/Mond/Monitor) wird zur Laufzeit
    in renderer.js gesetzt, abhaengig von state.themePref. */
 .btn-theme {
@@ -452,7 +452,7 @@ body {
 .btn-theme svg {
   display: block;
 }
-/* 4T-0070: Scroll-Sync-Toggle in der Statusbar. Aktiv-Zustand (Sync an) zeigt
+/* 4T-000070: Scroll-Sync-Toggle in der Statusbar. Aktiv-Zustand (Sync an) zeigt
    sich ueber die generische .btn-toggle.active-Regel (Accent-Hintergrund);
    Default zeigt das Icon gedaempft an, damit der Aus-Zustand vom Aktiv-
    Zustand klar unterscheidbar ist. */
@@ -477,7 +477,7 @@ body {
 /* Statusbar-Hinweis fuer Auto-Save ("Gespeichert" / "Speichern fehlgeschlagen").
    Wird vom Renderer mit Klasse .visible eingeblendet, faden nach Ablauf
    automatisch wieder aus. */
-/* B-13 (4T-0904, Entscheidung des Product Owners vom 2026-08-10): Die
+/* B-13 (4T-000904, Entscheidung des Product Owners vom 2026-08-10): Die
    fluechtige Meldung schwebt UEBER der Statusleiste statt in ihr. Im Fluss der
    rechten Zone verbreiterte sie diese und schob Wort-Zaehler, Zoom-Anzeige und
    Knoepfe; innerhalb der Leiste schwebend verdeckte sie deren Knoepfe. Die
@@ -513,7 +513,7 @@ body {
   display: none;
 }
 
-/* 4T-0072: Word-Count-Statusbar-Element. Klickbar, oeffnet den Detail-Dialog. */
+/* 4T-000072: Word-Count-Statusbar-Element. Klickbar, oeffnet den Detail-Dialog. */
 .statusbar-wordcount {
   display: inline-flex;
   align-items: center;
@@ -556,7 +556,7 @@ body {
   color: #ff7b72;
 }
 
-/* 4T-0017: Zoom-Indikator in der Statusbar. Sichtbar nur bei Zoom != 100 %;
+/* 4T-000017: Zoom-Indikator in der Statusbar. Sichtbar nur bei Zoom != 100 %;
    Klick setzt den aktiven Tab der fokussierten Pane zurueck auf 100 %. */
 .zoom-indicator {
   font-size: 12px;

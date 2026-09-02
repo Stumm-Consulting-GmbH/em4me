@@ -1,4 +1,4 @@
-// 4T-0581 (Epic 3E-0107): Gemeinsame Konstanten und reine Helfer der
+// 4T-000581 (Epic 3E-000107): Gemeinsame Konstanten und reine Helfer der
 // Rechtschreibpruefung.
 //
 // Geprueft wird ausschliesslich mit dem Pruefer des Betriebssystems. Die

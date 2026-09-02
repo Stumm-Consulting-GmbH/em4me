@@ -1,5 +1,5 @@
 // --- Datei-Aktionen: Unterseite anlegen, Umbenennen, Loesen -----------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // Die drei Bedienwege am Dateinamen samt ihrem gemeinsamen Ausfuehrungs-Teil
 // und dem zentralen Nachzug nach einem Umbenennen (Broadcast erreicht alle
 // Fenster).
@@ -8,7 +8,7 @@
 import { t } from '../../i18n.js';
 
 import { api } from '../app/api.js';
-// 4T-0336 (Epic 3E-0061): Unterseiten-Namens-Logik.
+// 4T-000336 (Epic 3E-000061): Unterseiten-Namens-Logik.
 import {
   SUBPAGE_SEP,
   basenameValidationError,
@@ -21,18 +21,18 @@ import {
 } from '../../../shared/subpages.js';
 import { activeTab, state, withDialog } from '../app/app-state.js';
 import { updateWindowTitle } from '../editor/editor.js';
-// 4T-0585 (Epic 3E-0108): Titelzeile — nach Umbenennen den angezeigten
+// 4T-000585 (Epic 3E-000108): Titelzeile — nach Umbenennen den angezeigten
 // Dateinamen nachziehen (Laufzeit-Zyklus ueber title-line.js ist unkritisch,
 // Muster format-toolbar/editor-context-menu).
 import { updateTitleLineForPane } from './title-line.js';
 import { scheduleSubpagesRender } from '../panels/panel-subpages.js';
-// 4T-0991 (Epic 3E-0196): bookmarks.js ist in den Feature-Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): bookmarks.js ist in den Feature-Ordner bookmarks/
 // geteilt; der Existenz-Hinweis gehoert zum Datenmodell.
 import { updateBookmarkPathsForRename } from '../bookmarks/bookmarks.js';
 import { noteBookmarkFileExistence } from '../bookmarks/bookmarks-tree.js';
 import { openInPane } from '../tabs/tabs.js';
 import { showNameInputDialog } from '../dialogs/dialogs.js';
-// 4T-0427 (Epic 3E-0080): Ordner-Regel-Trigger der Unterseiten-Anlage.
+// 4T-000427 (Epic 3E-000080): Ordner-Regel-Trigger der Unterseiten-Anlage.
 // Laufzeit-Zyklus file-actions <-> templates ist unkritisch (Funktionsaufrufe
 // erst zur Laufzeit; Muster der dokumentierten Modularisierungs-Zyklen).
 import { openCreatedFileWithRule } from '../templates.js';
@@ -44,7 +44,7 @@ import { updateSubpageBreadcrumb } from './subpage-breadcrumb.js';
 import { renderTabbar } from './tabbar.js';
 import { persistState, showStatusbarHint } from './views.js';
 
-// --- Unterseite anlegen (4T-0338, Epic 3E-0061) ------------------------------
+// --- Unterseite anlegen (4T-000338, Epic 3E-000061) ------------------------------
 // Kommando 'file.newSubpage' bzw. Menue 'Datei -> Neue Unterseite...':
 // fragt das Namens-Segment per Dialog ab, laesst den Main die Datei
 // '<aktiver Basename>∕<Segment>.md' im Ordner der aktiven Datei anlegen
@@ -86,13 +86,13 @@ export async function createSubpageForActiveFile() {
     await openInPane(state.activePaneIndex, [result.path]);
     return;
   }
-  // 4T-0427 (Epic 3E-0080): frisch angelegte Unterseiten durchlaufen den
+  // 4T-000427 (Epic 3E-000080): frisch angelegte Unterseiten durchlaufen den
   // Ordner-Regel-Trigger (Vorlage füllen, öffnen, Cursor-Sprung); bereits
   // existierende Dateien (existed) sind keine Anlage und bleiben unberührt.
   await openCreatedFileWithRule(state.activePaneIndex, result.path);
 }
 
-// --- Datei umbenennen (4T-0339, Epic 3E-0061) --------------------------------
+// --- Datei umbenennen (4T-000339, Epic 3E-000061) --------------------------------
 // Kommando 'file.rename' bzw. Menue/Tab-Kontextmenue: fragt den neuen
 // Basename per Dialog ab (Vorbelegung aktueller Name ohne Extension) und
 // laesst den Main die Datei im selben Ordner umbenennen. Der Nachzug in
@@ -113,7 +113,7 @@ export async function renameFileForTab(paneIdx, tabIdx) {
     if (!saved) return;
   }
   const currentBase = api.basename(tab.path).replace(/\.(md|markdown|mdown|mkd)$/i, '');
-  // 4T-0340: drei Ebenen-Faelle einheitlich als "eigenes Namens-Segment
+  // 4T-000340: drei Ebenen-Faelle einheitlich als "eigenes Namens-Segment
   // aendern". Bei Unterseiten wird nur das letzte Segment editiert (die
   // Eltern-Kette bleibt), bei Top-Level-Seiten der ganze Basename. Der
   // Nachfahren-Scan liefert die Anzahl fuer den Kaskaden-Hinweis im Dialog.
@@ -131,14 +131,14 @@ export async function renameFileForTab(paneIdx, tabIdx) {
   if (descendantCount > 0) {
     description += ' ' + t('rename.cascadeHint').replace('{n}', String(descendantCount));
   }
-  // 4T-0646 (Epic 3E-0128): Bei einer Unterseite nennt die Beschreibung die
+  // 4T-000646 (Epic 3E-000128): Bei einer Unterseite nennt die Beschreibung die
   // Wirkung des Vollname-Schalters, bevor er betaetigt wird.
   if (isSub) description += ' ' + t('rename.fullNameHint');
-  // 4T-0346 (Epic 3E-0062): Checkbox-Vorbelegung aus den App-Einstellungen
+  // 4T-000346 (Epic 3E-000062): Checkbox-Vorbelegung aus den App-Einstellungen
   // (beide Standard an). Die Vorschau-Checkbox haengt an der Update-Checkbox.
   const defaultUpdate = (await api.getSetting('renameUpdateLinks')) !== false;
   const defaultPreview = (await api.getSetting('renameLinkPreview')) !== false;
-  // 4T-0646: Vollname-Schalter. Er wechselt Vorbelegung und Pruefung zwischen
+  // 4T-000646: Vollname-Schalter. Er wechselt Vorbelegung und Pruefung zwischen
   // Segment- und Vollname-Modus; im Vollname-Modus wird die logische
   // Slash-Schreibweise angezeigt und akzeptiert (U+2215-Uebersetzung wie in
   // der Titelzeile), sonst waere der Eltern-Anteil gar nicht eingebbar — das
@@ -210,12 +210,12 @@ export async function renameFileForTab(paneIdx, tabIdx) {
   await applyRename(tab, newBase, updateLinks, showPreview);
 }
 
-// 4T-0774 (Epic 3E-0128): gemeinsamer Ausfuehrungs-Teil von Umbenennen und
+// 4T-000774 (Epic 3E-000128): gemeinsamer Ausfuehrungs-Teil von Umbenennen und
 // Loesen — optionale Vorschau, der Aufruf selbst, Fehler- und Ergebnis-
 // Bericht. Beide Bedienwege unterscheiden sich nur im Dialog davor und im
 // gebildeten Ziel-Basename.
 async function applyRename(tab, newBase, updateLinks, showPreview) {
-  // 4T-0346: optionale Vorschau vor der Umbenennung. Abbrechen bricht den
+  // 4T-000346: optionale Vorschau vor der Umbenennung. Abbrechen bricht den
   // gesamten Vorgang ab (es ist noch nichts passiert).
   if (showPreview) {
     const proceed = await withDialog(() => runLinkUpdatePreview(tab.path, newBase));
@@ -230,7 +230,7 @@ async function applyRename(tab, newBase, updateLinks, showPreview) {
   }
   if (!result || !result.ok) {
     if (result && result.code === 'partial') {
-      // 4T-0340: Teilfehler-Bericht — wie viele Dateien umbenannt wurden.
+      // 4T-000340: Teilfehler-Bericht — wie viele Dateien umbenannt wurden.
       showStatusbarHint(null, {
         text: t('rename.partial')
           .replace('{done}', String(result.renamedCount || 0))
@@ -244,14 +244,14 @@ async function applyRename(tab, newBase, updateLinks, showPreview) {
     showStatusbarHint(key, { duration: 2500, error: true });
     return;
   }
-  // 4T-0346: Ergebnis-Bericht — nur bei aktivem Link-Update (PO-Anforderung);
+  // 4T-000346: Ergebnis-Bericht — nur bei aktivem Link-Update (PO-Anforderung);
   // ohne Update bleibt das bisherige Verhalten (Statusbar-Hinweise).
   if (updateLinks && result.linkUpdate) {
     await withDialog(() => showLinkUpdateReport(result));
   }
 }
 
-// --- Unterseite loesen (4T-0774, Epic 3E-0128) -------------------------------
+// --- Unterseite loesen (4T-000774, Epic 3E-000128) -------------------------------
 // Kommando 'file.detachSubpage' bzw. Menue/Tab-Kontextmenue: macht aus einer
 // Unterseite eine eigenstaendige Seite. Technisch ist das die Umbenennung auf
 // das eigene letzte Namens-Segment — der Main bildet die Ziel-Paare ueber
@@ -377,17 +377,17 @@ export async function handleFileRenamed(oldPath, newPath) {
   noteBookmarkFileExistence(newPath, true);
   if (touchedActive) updateWindowTitle();
   invalidatePaneRenderCache();
-  // 4T-0341: Breadcrumb und Unterseiten-Sektion folgen dem neuen Namen.
+  // 4T-000341: Breadcrumb und Unterseiten-Sektion folgen dem neuen Namen.
   for (let p = 0; p < state.panes.length; p++) {
     updateSubpageBreadcrumb(p);
     if (state.subpages && state.subpages.visibleByPane[p]) scheduleSubpagesRender(p);
-    // 4T-0585 (Epic 3E-0108): Titelzeile zeigt den neuen Namen.
+    // 4T-000585 (Epic 3E-000108): Titelzeile zeigt den neuen Namen.
     updateTitleLineForPane(p);
   }
   persistState();
 }
 
-// --- Teile wieder vereinen (4T-1293, Epic 3E-0224) ---------------------------
+// --- Teile wieder vereinen (4T-001293, Epic 3E-000224) ---------------------------
 // Kommando 'file.rejoinParts' bzw. Menue-Eintrag: macht aus einem geteilten
 // Dokument wieder eine einzelne Datei. Der Befehl ist der EINZIGE Weg dorthin
 // (O9); automatisch geschieht das nie, weil es Rebalancing waere und die Zahl

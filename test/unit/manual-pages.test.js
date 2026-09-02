@@ -1,11 +1,11 @@
-// 4T-0215 (Epic 3E-0042): Vollstaendigkeits-Waechter der Handbuch-Seiten.
+// 4T-000215 (Epic 3E-000042): Vollstaendigkeits-Waechter der Handbuch-Seiten.
 //
 // Jede gebuendelte Seite der Registry (src/shared/manual/manual-pages.js) braucht
 // alle fuenf Sprachfassungen unter src/i18n/help/<id>.<lang>.md, und jeder
 // titleKey existiert in allen fuenf Sprachdateien. Eine neue Seite ohne
 // vollstaendige Uebersetzungen laesst `npm test` fehlschlagen — analog zum
 // i18n-Waechter (scripts/check-i18n.js); technische Absicherung der
-// Handbuch-Pflege-Konvention (4T-0218).
+// Handbuch-Pflege-Konvention (4T-000218).
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,7 +24,7 @@ const dicts = Object.fromEntries(
   ]),
 );
 
-describe('Handbuch-Seiten-Registry (4T-0215)', () => {
+describe('Handbuch-Seiten-Registry (4T-000215)', () => {
   it('jede gebuendelte Seite hat alle fuenf Sprachfassungen', () => {
     const fehlend = [];
     for (const page of MANUAL_PAGES) {

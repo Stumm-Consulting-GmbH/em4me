@@ -2,7 +2,7 @@
 // Drei-Ebenen-Schaltung (Datei > Bereich > App), Protokollierung beim
 // Speichern und beim Oeffnen sowie die Defekt-Meldung an das Fenster.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Der Container-Kern (Delta-
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Der Container-Kern (Delta-
 // Pakete, Anker, Hash-Abgleich) liegt unveraendert in mdd-store.js; hier
 // bleiben Datei-Zugriff, Zeitfenster-Parameter und die Fenster-Hinweise.
 //
@@ -22,7 +22,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
-// 4T-1276 (Epic 3E-0232, Befund B1): Der Schlüssel der Historisierungs-Datei
+// 4T-001276 (Epic 3E-000232, Befund B1): Der Schlüssel der Historisierungs-Datei
 // entscheidet über Datei-Identität und fragt deshalb die zentrale Auskunft.
 const { pathCompareKey } = require('../../shared/platform.js');
 const mddStore = require('./mdd-store');
@@ -31,7 +31,7 @@ const selbstSchreib = require('./self-write');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
 const { isInsideArea } = require('../area/area-path');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -67,7 +67,7 @@ function createMddHistory(deps) {
     return pathCompareKey(path.resolve(p));
   }
 
-  // Wirksame Historisierung fuer ein Dokument (4T-0332): die eine Aufloesung
+  // Wirksame Historisierung fuer ein Dokument (4T-000332): die eine Aufloesung
   // der Drei-Ebenen-Schaltung. Datei-Ebene aus dem YAML des Inhalts, Bereichs-
   // Ebene aus der Bereichsdatei (nur wenn das Dokument im Bereich des Fensters
   // liegt), App-Ebene aus dem Store. Liefert { effective, source }.
@@ -100,7 +100,7 @@ function createMddHistory(deps) {
   // Datei-Stand vor dem Ueberschreiben (Basis des Deltas und Eingang des
   // Hash-Abgleichs), BOM-/LF-normalisiert symmetrisch zu file:read.
   // null = Datei existiert noch nicht (neues Dokument).
-  // 4T-0945 (Story 4S-0786): Der Lesevorgang liegt jetzt im save-guard-Modul,
+  // 4T-000945 (Story 4S-000786): Der Lesevorgang liegt jetzt im save-guard-Modul,
   // weil Stand lesen und Stand vergleichen dieselbe Sache sind. Hier bleibt der
   // Rueckfall auf null fuer die Historien-Aufrufer, die keinen Fehler brauchen.
   async function readPreviousTextFor(absolute) {

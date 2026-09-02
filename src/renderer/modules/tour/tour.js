@@ -1,4 +1,4 @@
-// 4T-0644 (Epic 3E-0127): Kern der geführten Produkt-Tour.
+// 4T-000644 (Epic 3E-000127): Kern der geführten Produkt-Tour.
 //
 // Die Tour läuft über driver.js (devDependency, per esbuild im Renderer-
 // Bundle). Das Overlay- und Popover-Stilblatt des Pakets kommt nicht über den

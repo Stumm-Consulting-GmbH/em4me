@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0855 (Epic 3E-0164): Höhen-Modell der Sidebar-Blöcke.
+// 4T-000855 (Epic 3E-000164): Höhen-Modell der Sidebar-Blöcke.
 //
 // Geprüft werden der Modus-Zustand samt Vorgabe, Persistenz und Robustheit
 // gegen defekte Stände, der Gruppen-Schlüssel und vor allem die **Trennung

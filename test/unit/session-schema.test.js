@@ -1,10 +1,10 @@
-// 4T-0320 (Epic 3E-0057): Unit-Tests für das App-Sitzungs-Schema
+// 4T-000320 (Epic 3E-000057): Unit-Tests für das App-Sitzungs-Schema
 // (src/main/app/session-schema.js) — Migration des flachen Bestands-Formats und
 // defensive Normalisierung des persistierten Stands.
-// 4T-0537 (Epic 3E-0098): dazu die Normalisierung der Arbeitsbereichs-Ablage
+// 4T-000537 (Epic 3E-000098): dazu die Normalisierung der Arbeitsbereichs-Ablage
 // (Store-Key 'workspaces').
 import { describe, it, expect } from 'vitest';
-// 4T-1364 (Epic 3E-0171): dazu die Vorrang-Regel der Start-Seite.
+// 4T-001364 (Epic 3E-000171): dazu die Vorrang-Regel der Start-Seite.
 import {
   migrateWindowsToApps,
   normalizeSavedApps,
@@ -14,7 +14,7 @@ import {
 
 const WIN = { bounds: { x: 0, y: 0, width: 800, height: 600 }, maximized: false, panes: [] };
 
-describe('migrateWindowsToApps (4T-0320)', () => {
+describe('migrateWindowsToApps (4T-000320)', () => {
   it('wickelt eine Bestands-Sitzung als eine App ohne Bereich ein', () => {
     const result = migrateWindowsToApps([], [WIN, WIN]);
     expect(result).toEqual([{ area: null, windows: [WIN, WIN] }]);
@@ -31,7 +31,7 @@ describe('migrateWindowsToApps (4T-0320)', () => {
   });
 });
 
-describe('normalizeSavedApps (4T-0320)', () => {
+describe('normalizeSavedApps (4T-000320)', () => {
   it('übernimmt gültige Apps mit und ohne Bereich', () => {
     const saved = [
       { area: null, windows: [WIN] },
@@ -71,7 +71,7 @@ describe('normalizeSavedApps (4T-0320)', () => {
   });
 });
 
-describe('normalizeSavedWorkspaces (4T-0537)', () => {
+describe('normalizeSavedWorkspaces (4T-000537)', () => {
   const VALID = {
     id: 'ws-1',
     name: 'Projekt Alpha',
@@ -145,8 +145,8 @@ describe('normalizeSavedWorkspaces (4T-0537)', () => {
   });
 });
 
-// 4T-1364 (Epic 3E-0171): Die Vorrang-Regel der Start-Seite. Sie greift nur,
-// wo NICHTS wiederherzustellen ist (Entscheidung aus 4T-1363); dieser Test
+// 4T-001364 (Epic 3E-000171): Die Vorrang-Regel der Start-Seite. Sie greift nur,
+// wo NICHTS wiederherzustellen ist (Entscheidung aus 4T-001363); dieser Test
 // haelt genau diese Bedingung fest.
 describe('sitzungHatPanes — Vorrang der Sitzung vor der Start-Seite', () => {
   it('meldet true, sobald ein Fenster gespeicherte Panes traegt', () => {

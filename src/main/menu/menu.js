@@ -6,20 +6,20 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const { Menu } = require('electron');
-// 4T-0207 (Epic 3E-0015): Accelerators kommen aus der Kommando-Registry
+// 4T-000207 (Epic 3E-000015): Accelerators kommen aus der Kommando-Registry
 // (effektive Map wird von main.js aus Registry plus Store gemerged und in
 // state.hotkeys uebergeben); der Fallback deckt defensive Aufrufe ohne
 // Map ab und entspricht den Registry-Defaults.
 const { effectiveMenuAccelerators } = require('../../shared/commands/commands');
-// 4T-0538 (Epic 3E-0098): Farbpunkt-Icons des Arbeitsbereichs-Untermenues.
-// 4T-0887: seither in menu-icons.js, weil Bitmap-Zeichnung eine eigene
+// 4T-000538 (Epic 3E-000098): Farbpunkt-Icons des Arbeitsbereichs-Untermenues.
+// 4T-000887: seither in menu-icons.js, weil Bitmap-Zeichnung eine eigene
 // Fachlichkeit neben dem Menue-Baum ist.
 const { workspaceDotIcon } = require('./menu-icons');
-// 4T-0888 (Epic 3E-0168): Aufbau der vier "Zuletzt geoeffnet"-Untermenues
+// 4T-000888 (Epic 3E-000168): Aufbau der vier "Zuletzt geoeffnet"-Untermenues
 // (Dateien, Bereiche, Buecher, Regale) — eigene Fachlichkeit neben dem
 // Menue-Baum, Muster menu-icons.js.
 const { createRecentListBuilder } = require('./menu-recent');
-// 4T-0568 (Epic 3E-0104): Panel-Zugangs-Modell — Label-Key, Toggle-Kommando
+// 4T-000568 (Epic 3E-000104): Panel-Zugangs-Modell — Label-Key, Toggle-Kommando
 // (Accelerator) und Fallback-Reihenfolge des Panel-Untermenues.
 const { PANEL_ACCESS, panelAccessById } = require('../../shared/panel-access');
 
@@ -42,17 +42,17 @@ function loadDict(locale) {
   }
 }
 
-// M-18 (4T-0183): clearDictCache entfernt — exportiert, aber von keiner
+// M-18 (4T-000183): clearDictCache entfernt — exportiert, aber von keiner
 // Stelle aufgerufen (der Cache bleibt ueber die App-Laufzeit warm; das
 // Menue wird bei Sprachwechsel ueber buildMenu mit frischem Dict gebaut).
 
-// --- Untermenue-Saeuberung (4T-0887, Epic 3E-0168) ---------------------------
+// --- Untermenue-Saeuberung (4T-000887, Epic 3E-000168) ---------------------------
 // Die Menue-Baeume sind seit der Neuordnung mehrstufig; jede Ebene kann durch
 // unless() Luecken bekommen (deaktivierte Erweiterung). compactSubmenu wirft
 // die Luecken weg und mit ihnen jeden Trenner, der dadurch fuehrend, doppelt
 // oder abschliessend stuende. Ein Untermenue, von dem nichts uebrig bleibt,
 // liefert eine leere Liste — der Aufrufer laesst den Menuepunkt dann ganz weg,
-// statt einen toten Eintrag stehen zu lassen (Muster 4T-0294).
+// statt einen toten Eintrag stehen zu lassen (Muster 4T-000294).
 function compactSubmenu(items) {
   const out = [];
   for (const item of items) {
@@ -97,29 +97,29 @@ function buildMenu(win, state, actions) {
   const viewMode = state && state.viewMode ? state.viewMode : 'rendered';
   const togglesEnabled = !!(state && state.togglesEnabled);
   const recentFiles = Array.isArray(state && state.recentFiles) ? state.recentFiles : [];
-  // 4T-0325 (Epic 3E-0058): zuletzt geoeffnete Bereiche.
+  // 4T-000325 (Epic 3E-000058): zuletzt geoeffnete Bereiche.
   const recentAreas = Array.isArray(state && state.recentAreas) ? state.recentAreas : [];
-  // 4T-0888 (Epic 3E-0168): dieselben Listen fuer Buecher und Buecherregale.
+  // 4T-000888 (Epic 3E-000168): dieselben Listen fuer Buecher und Buecherregale.
   const recentBooks = Array.isArray(state && state.recentBooks) ? state.recentBooks : [];
   const recentShelves = Array.isArray(state && state.recentShelves) ? state.recentShelves : [];
-  // 4T-0277: System-Seiten (Einstellungen) kennen keine View-Modi, kein
+  // 4T-000277: System-Seiten (Einstellungen) kennen keine View-Modi, kein
   // Bearbeiten/Speichern und keinen Export — betroffene Eintraege sind
   // deaktiviert (Muster manualTab der Handbuch-Tabs).
   const systemTab = !!(state && state.systemTab);
 
-  // 4T-0207: effektive Accelerators pro Kommando-ID. Leerer String =
+  // 4T-000207: effektive Accelerators pro Kommando-ID. Leerer String =
   // Kommando bewusst ohne Binding -> Menue-Eintrag ohne Accelerator
   // (Electron erwartet dann undefined).
   const hotkeys = (state && state.hotkeys) || effectiveMenuAccelerators(null);
   const acc = (commandId) => hotkeys[commandId] || undefined;
 
-  // 4T-0294 (Epic 3E-0052): Eintraege deaktivierter Erweiterungen
+  // 4T-000294 (Epic 3E-000052): Eintraege deaktivierter Erweiterungen
   // verschwinden aus dem Menue (kein toter Menuepunkt). unless liefert
   // null, die Template-Listen filtern mit .filter(Boolean).
   const disabledCommands = new Set((state && state.disabledCommands) || []);
   const unless = (commandId, item) => (disabledCommands.has(commandId) ? null : item);
 
-  // 4T-0887 (Epic 3E-0168): Untermenue-Eintrag aus einer Item-Liste, die
+  // 4T-000887 (Epic 3E-000168): Untermenue-Eintrag aus einer Item-Liste, die
   // unless()-Luecken enthalten darf. Bleibt nach compactSubmenu nichts
   // uebrig, entfaellt der Menuepunkt selbst (null wird oben herausgefiltert).
   const submenuOrNull = (labelKey, items) => {
@@ -127,7 +127,7 @@ function buildMenu(win, state, actions) {
     return cleaned.length > 0 ? { label: t(labelKey), submenu: cleaned } : null;
   };
 
-  // 4T-0568 (Epic 3E-0104): Panel-Untermenue aus der vom Renderer
+  // 4T-000568 (Epic 3E-000104): Panel-Untermenue aus der vom Renderer
   // gemeldeten, sortierten Liste ([{ id, visible }]). Fallback vor dem
   // ersten Report eines frischen Fensters: Modell-Reihenfolge, alle
   // unsichtbar. Panels deaktivierter Erweiterungen verschwinden doppelt —
@@ -151,7 +151,7 @@ function buildMenu(win, state, actions) {
     })
     .filter(Boolean);
 
-  // 4T-0626 (Epic 3E-0119): Untermenue „Sidebar-Anordnungen" aus den vom
+  // 4T-000626 (Epic 3E-000119): Untermenue „Sidebar-Anordnungen" aus den vom
   // Renderer gemeldeten Varianten-Listen (Muster Panel-Untermenue, kein
   // zweiter Mechanismus): Standard-Anordnung, globale Varianten, Gruppe
   // „Bereich <Name>" (nur bei geoeffnetem Bereich, Kopf als deaktivierter
@@ -196,13 +196,13 @@ function buildMenu(win, state, actions) {
     click: send('menu:saveSidebarVariant'),
   });
 
-  // Recent-Submenues dynamisch befuellen. 4T-0325 (Epic 3E-0058) legte die
-  // Bereichs-Liste neben die Datei-Liste, 4T-0888 die Buch- und die
+  // Recent-Submenues dynamisch befuellen. 4T-000325 (Epic 3E-000058) legte die
+  // Bereichs-Liste neben die Datei-Liste, 4T-000888 die Buch- und die
   // Regal-Liste; seither teilen sich alle vier diesen einen Aufbau, der seit
-  // 4T-0888 in menu-recent.js liegt.
+  // 4T-000888 in menu-recent.js liegt.
   const buildRecentList = createRecentListBuilder(t, actions);
 
-  // 4T-0538 (Epic 3E-0098): Untermenue "Arbeitsbereiche" — Liste aller
+  // 4T-000538 (Epic 3E-000098): Untermenue "Arbeitsbereiche" — Liste aller
   // Arbeitsbereiche (Farbpunkt-Icon traegt die Offen-Markierung; Klick
   // oeffnet bzw. fokussiert ueber die Main-Action), darunter die vier
   // Lebenszyklus-Aktionen. hasWorkspace dimmt "Als Arbeitsbereich
@@ -252,7 +252,7 @@ function buildMenu(win, state, actions) {
     return items;
   };
 
-  // 4T-0887 (Epic 3E-0168): Neuordnung des Datei-Menues nach dem vom Product
+  // 4T-000887 (Epic 3E-000168): Neuordnung des Datei-Menues nach dem vom Product
   // Owner beschlossenen Mockup. Die oberste Ebene traegt nur noch die vier
   // taeglich gebrauchten Datei-Aktionen, den Applikations-Block und "Beenden";
   // alles Uebrige liegt in vier thematischen Untermenues (Weitere
@@ -278,7 +278,7 @@ function buildMenu(win, state, actions) {
         {
           label: t('menu.file.save'),
           accelerator: acc('file.save'),
-          // 4T-0213: Handbuch-Tabs sind read-only — Speichern deaktiviert.
+          // 4T-000213: Handbuch-Tabs sind read-only — Speichern deaktiviert.
           enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
           click: () => {
             if (actions && actions.save) actions.save();
@@ -295,7 +295,7 @@ function buildMenu(win, state, actions) {
         { type: 'separator' },
         submenuOrNull('menu.file.more', [
           {
-            // 4T-0338 (Epic 3E-0061): Unterseite zur aktiven Datei anlegen
+            // 4T-000338 (Epic 3E-000061): Unterseite zur aktiven Datei anlegen
             // (U+2215-Namens-Konvention; Dialog fragt das Segment ab).
             label: t('menu.file.newSubpage'),
             accelerator: acc('file.newSubpage'),
@@ -303,7 +303,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:newSubpage'),
           },
           unless('file.newFromTemplate', {
-            // 4T-0426 (Epic 3E-0080): neue Datei aus Vorlage (Auswahl-Popup
+            // 4T-000426 (Epic 3E-000080): neue Datei aus Vorlage (Auswahl-Popup
             // und Platzhalter-Dialoge laufen im Renderer). Immer aktiv; ohne
             // konfigurierten Vorlagen-Ordner oder Ziel-Kontext meldet der
             // Renderer einen lokalisierten Hinweis.
@@ -312,7 +312,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:newFromTemplate'),
           }),
           unless('journal.openToday', {
-            // 4T-0433 (Epic 3E-0081): heutiger Journal-Eintrag. Nur bei
+            // 4T-000433 (Epic 3E-000081): heutiger Journal-Eintrag. Nur bei
             // aktivem Bereich aktiv (PO-Befund der Release-Test-Iteration
             // 0.55.0: Journale gibt es nur pro Bereich, ohne Bereich sind
             // die Eintraege ausgegraut wie "Bereich schliessen"); ohne
@@ -323,7 +323,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:journalToday'),
           }),
           unless('journal.openForDate', {
-            // 4T-0433 (Epic 3E-0081): Journal-Eintrag fuer gewaehltes Datum
+            // 4T-000433 (Epic 3E-000081): Journal-Eintrag fuer gewaehltes Datum
             // (Bereichs-Bindung wie beim Heute-Eintrag).
             label: t('menu.file.journalForDate'),
             accelerator: acc('journal.openForDate'),
@@ -341,7 +341,7 @@ function buildMenu(win, state, actions) {
             ),
           },
           unless('file.bookmarkAdd', {
-            // 4T-0075 (Epic 3E-0013): "Aktive Datei merken"; der Toggle der
+            // 4T-000075 (Epic 3E-000013): "Aktive Datei merken"; der Toggle der
             // Sektion liegt im Ansichts-Menue (Lesezeichen-Panel).
             label: t('menu.file.bookmarks.add'),
             accelerator: acc('file.bookmarkAdd'),
@@ -350,7 +350,7 @@ function buildMenu(win, state, actions) {
           }),
           { type: 'separator' },
           {
-            // 4T-0890 (Befund L-06): Accelerator-Anzeige aus der Registry —
+            // 4T-000890 (Befund L-06): Accelerator-Anzeige aus der Registry —
             // das Kommando ist belegbar, der Menue-Eintrag zeigte das
             // gewaehlte Kuerzel bis dahin nicht an.
             label: t('menu.file.autoSave'),
@@ -362,15 +362,15 @@ function buildMenu(win, state, actions) {
             },
           },
           {
-            // 4T-0339 (Epic 3E-0061): aktive Datei umbenennen (Dialog im
-            // Renderer; Unterseiten-Baeume kaskadieren, 4T-0340).
+            // 4T-000339 (Epic 3E-000061): aktive Datei umbenennen (Dialog im
+            // Renderer; Unterseiten-Baeume kaskadieren, 4T-000340).
             label: t('menu.file.rename'),
             accelerator: acc('file.rename'),
             enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
             click: send('menu:renameFile'),
           },
           {
-            // 4T-0774 (Epic 3E-0128): Unterseite von der uebergeordneten Seite
+            // 4T-000774 (Epic 3E-000128): Unterseite von der uebergeordneten Seite
             // loesen. Ob die aktive Datei ueberhaupt eine Unterseite ist, prueft
             // der Renderer und meldet es als Hinweis — wie beim Umbenennen, damit
             // der Eintrag nicht ohne erkennbaren Grund verschwindet.
@@ -380,7 +380,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:detachSubpage'),
           },
           {
-            // 4T-1293 (Epic 3E-0224): geteiltes Dokument wieder zu einer Datei
+            // 4T-001293 (Epic 3E-000224): geteiltes Dokument wieder zu einer Datei
             // machen; ob es geteilt ist, prueft der Renderer wie beim Loesen.
             label: t('menu.file.rejoinParts'),
             accelerator: acc('file.rejoinParts'),
@@ -389,7 +389,7 @@ function buildMenu(win, state, actions) {
           },
           { type: 'separator' },
           {
-            // 4T-0303 (Epic 3E-0054): PDF-Export des gerenderten Inhalts.
+            // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts.
             // Handbuch-Tabs sind exportierbar (gerenderter Inhalt vorhanden),
             // nur der Einstellungs-Tab (systemTab) ist ausgenommen.
             label: t('menu.file.exportPdf'),
@@ -398,7 +398,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:exportPdf'),
           },
           {
-            // 4T-0041 (Epic 3E-0008): Export-Submenu fuer den HTML-Konverter.
+            // 4T-000041 (Epic 3E-000008): Export-Submenu fuer den HTML-Konverter.
             // 'Portables Markdown...' ersetzt perspective-table-Codeblocks im aktiven
             // Tab durch inline HTML-Tabellen und speichert das Ergebnis ueber
             // einen Save-As-Dialog (Vorbelegung '<basename>-portable.md').
@@ -406,7 +406,7 @@ function buildMenu(win, state, actions) {
             enabled: !!(state && state.hasActiveTab) && !systemTab,
             submenu: [
               {
-                // 4T-0890 (Befund L-05): seit der Registrierung als Kommando
+                // 4T-000890 (Befund L-05): seit der Registrierung als Kommando
                 // 'file.exportPortable' mit Accelerator-Anzeige; der Klick
                 // laeuft unveraendert ueber den Menue-Kanal.
                 label: t('menu.file.exportPortable'),
@@ -417,20 +417,20 @@ function buildMenu(win, state, actions) {
           },
         ]),
         { type: 'separator' },
-        // 4T-0887: Kontext-Block — Bereich, Buch/Buecherregal und
+        // 4T-000887: Kontext-Block — Bereich, Buch/Buecherregal und
         // Arbeitsbereiche stehen als drei gleichrangige Untermenues
         // nebeneinander (frueher drei Bloecke auf der obersten Ebene).
         submenuOrNull('menu.file.areaSubmenu', [
           {
-            // 4T-0322 (Epic 3E-0058): Ordner-Bereich als Arbeitsraum der
+            // 4T-000322 (Epic 3E-000058): Ordner-Bereich als Arbeitsraum der
             // Applikation oeffnen.
             label: t('menu.file.openArea'),
             accelerator: acc('area.open'),
             click: send('menu:openArea'),
           },
           {
-            // 4T-0322: Bereich schliessen — schliesst alle Fenster der
-            // Bereichs-App; nur bei aktivem Bereich aktiv. 4T-0881 (Befund der
+            // 4T-000322: Bereich schliessen — schliesst alle Fenster der
+            // Bereichs-App; nur bei aktivem Bereich aktiv. 4T-000881 (Befund der
             // Test-Iteration 0.104.0): Buch- und Regal-Fenster binden intern
             // einen Bereich, sind aber keine Bereichs-Fenster — dort gelten
             // "Buch schliessen" bzw. "Buecherregal schliessen".
@@ -441,7 +441,7 @@ function buildMenu(win, state, actions) {
           },
           { type: 'separator' },
           {
-            // 4T-0325 (Epic 3E-0058): schneller Wiedereinstieg in Bereiche.
+            // 4T-000325 (Epic 3E-000058): schneller Wiedereinstieg in Bereiche.
             label: t('menu.file.recentAreas'),
             submenu: buildRecentList(
               recentAreas,
@@ -452,7 +452,7 @@ function buildMenu(win, state, actions) {
           },
           { type: 'separator' },
           unless('area.createDemo', {
-            // 4T-0632 (Epic 3E-0102): mitgelieferte Demo-Inhalte in einen
+            // 4T-000632 (Epic 3E-000102): mitgelieferte Demo-Inhalte in einen
             // leeren Ordner kopieren und als Bereich oeffnen (Erweiterung
             // demo-area; im Aus-Zustand entfaellt der Eintrag).
             label: t('menu.file.createDemoArea'),
@@ -460,7 +460,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:createDemoArea'),
           }),
         ]),
-        // 4T-0843 (Epic 3E-0147): Buecher sind ein eigener Kontext auf
+        // 4T-000843 (Epic 3E-000147): Buecher sind ein eigener Kontext auf
         // derselben Ebene wie Bereich und Arbeitsbereich. Oeffnen, Anlegen und
         // Schliessen fuehrt der Main direkt aus (Ordner-Dialog, Anlage,
         // aktives Buch der Applikation); anders als beim Bereich gibt es
@@ -490,7 +490,7 @@ function buildMenu(win, state, actions) {
             },
           }),
           unless('book.moveChapterFile', {
-            // 4T-0887 (Befund L-04 des Struktur-Reviews): das Kommando
+            // 4T-000887 (Befund L-04 des Struktur-Reviews): das Kommando
             // "Kapitel-Datei verschieben" hatte bis hierher nur das
             // Kontextmenue des Inhaltsverzeichnisses und die Palette. Der
             // Renderer entscheidet, welche Datei gemeint ist (gerade gelesenes
@@ -502,7 +502,7 @@ function buildMenu(win, state, actions) {
             enabled: !!(state && state.hasBook),
             click: send('menu:moveChapterFile'),
           }),
-          // 4T-0888 (Epic 3E-0168): schneller Wiedereinstieg in Buecher, exakt
+          // 4T-000888 (Epic 3E-000168): schneller Wiedereinstieg in Buecher, exakt
           // nach dem Muster der Bereichs-Liste. Das unless() haengt am
           // Oeffnen-Kommando: Es traegt keine eigene Kommando-ID, soll aber mit
           // der abgeschalteten Erweiterung 'books' verschwinden — sonst bliebe
@@ -517,7 +517,7 @@ function buildMenu(win, state, actions) {
             ),
           }),
           { type: 'separator' },
-          // 4T-0867 (Epic 3E-0162): Buecherregale neben den Buechern — dieselbe
+          // 4T-000867 (Epic 3E-000162): Buecherregale neben den Buechern — dieselbe
           // Aufteilung, der Main fuehrt alle drei Aktionen direkt aus.
           unless('shelf.open', {
             label: t('menu.file.openShelf'),
@@ -542,7 +542,7 @@ function buildMenu(win, state, actions) {
               if (actions && actions.closeShelf) actions.closeShelf();
             },
           }),
-          // 4T-0888: Zuletzt geoeffnete Buecherregale als letzter Eintrag des
+          // 4T-000888: Zuletzt geoeffnete Buecherregale als letzter Eintrag des
           // Untermenues (Gate am Regal-Oeffnen, Muster der Buch-Liste).
           unless('shelf.open', {
             label: t('menu.file.recentShelves'),
@@ -560,7 +560,7 @@ function buildMenu(win, state, actions) {
         }),
         { type: 'separator' },
         {
-          // 4T-0319 (Epic 3E-0057): neue logische Applikation (eigener
+          // 4T-000319 (Epic 3E-000057): neue logische Applikation (eigener
           // Fenster-Verbund mit eigener Nummerierung; entspricht dem
           // EXE-Zweitstart ohne Datei-Argument).
           label: t('menu.file.newApp'),
@@ -568,7 +568,7 @@ function buildMenu(win, state, actions) {
           click: send('menu:newApplication'),
         },
         {
-          // 4T-0018: Settings-Dialog (Schriftart, -groesse). Renderer-Hook.
+          // 4T-000018: Settings-Dialog (Schriftart, -groesse). Renderer-Hook.
           label: t('menu.file.settings'),
           accelerator: acc('app.openSettings'),
           click: send('menu:openSettings'),
@@ -608,7 +608,7 @@ function buildMenu(win, state, actions) {
           click: send('menu:viewChange', 'source'),
         },
         {
-          // 4T-0085 (Epic 3E-0014): Vierter View-Modus "Live" mit Inline-
+          // 4T-000085 (Epic 3E-000014): Vierter View-Modus "Live" mit Inline-
           // Render im Source-Editor. Hotkey CmdOrCtrl+4 schliesst die
           // 1-2-3-4-Folge ab.
           label: t('menu.view.live'),
@@ -618,7 +618,7 @@ function buildMenu(win, state, actions) {
           accelerator: acc('view.modeLive'),
           click: send('menu:viewChange', 'live'),
         },
-        // 4T-1047 (Epic 3E-0151): Fuenfter Modus. Bei ausgeschalteter
+        // 4T-001047 (Epic 3E-000151): Fuenfter Modus. Bei ausgeschalteter
         // Erweiterung faellt der Eintrag ueber unless() weg, und der
         // Renderer schaltet einen gespeicherten Mindmap-Reiter auf die
         // Lese-Ansicht zurueck.
@@ -631,12 +631,12 @@ function buildMenu(win, state, actions) {
           click: send('menu:viewChange', 'mindmap'),
         }),
         {
-          // 4T-0019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist
+          // 4T-000019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist
           // der Toolbar-Button rechts unten ausgeblendet). Pro aktivem Tab.
           label: t('menu.view.edit'),
           type: 'checkbox',
           checked: !!(state && state.editMode),
-          // 4T-0213: Handbuch-Tabs sind read-only — Bearbeiten deaktiviert
+          // 4T-000213: Handbuch-Tabs sind read-only — Bearbeiten deaktiviert
           // (sonst toggelt die native Checkbox sichtbar, obwohl der
           // Renderer-Guard den Modus-Wechsel verwirft).
           enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
@@ -644,10 +644,10 @@ function buildMenu(win, state, actions) {
           click: send('menu:toggleEdit'),
         },
         { type: 'separator' },
-        // 4T-0887 (Epic 3E-0168): drei thematische Untermenues statt der
+        // 4T-000887 (Epic 3E-000168): drei thematische Untermenues statt der
         // gewachsenen Folge einzelner Toggle-Bloecke — Editor-Darstellung,
         // Sidebar, Erscheinungsbild.
-        // 4T-0890 (Befund L-06): die fuenf Toggles dieses Untermenues sind
+        // 4T-000890 (Befund L-06): die fuenf Toggles dieses Untermenues sind
         // belegbare Registry-Kommandos, zeigten das belegte Kuerzel im Menue
         // aber nicht an; acc() schliesst die Anzeige-Luecke (gewirkt haben
         // die Kuerzel schon vorher ueber den Renderer-Dispatcher).
@@ -678,7 +678,7 @@ function buildMenu(win, state, actions) {
           },
           { type: 'separator' },
           {
-            // 4T-0070: Scroll-Synchronisation zwischen Source- und Render-Pane
+            // 4T-000070: Scroll-Synchronisation zwischen Source- und Render-Pane
             // in der geteilten Ansicht. Pro aktivem Tab.
             label: t('menu.view.scrollSync'),
             type: 'checkbox',
@@ -688,7 +688,7 @@ function buildMenu(win, state, actions) {
             click: send('menu:toggleScrollSync'),
           },
           unless('view.toggleTypewriterScroll', {
-            // 4T-0019: Typewriter-Scroll haelt die Cursor-Zeile im Editor-Pane
+            // 4T-000019: Typewriter-Scroll haelt die Cursor-Zeile im Editor-Pane
             // vertikal zentriert.
             label: t('menu.view.typewriterScroll'),
             type: 'checkbox',
@@ -699,20 +699,20 @@ function buildMenu(win, state, actions) {
         ]),
         submenuOrNull('menu.view.sidebarSubmenu', [
           {
-            // 4T-0568 (Epic 3E-0104): Panel-Untermenue — alle Panel-Toggles
+            // 4T-000568 (Epic 3E-000104): Panel-Untermenue — alle Panel-Toggles
             // gebuendelt, in der vom Renderer gemeldeten, frei einstellbaren
             // Reihenfolge (identisch zur Statusbar-Leiste).
             label: t('menu.view.panels'),
             submenu: panelSubmenu,
           },
           {
-            // 4T-0626 (Epic 3E-0119): benannte Sidebar-Anordnungen — direkt
+            // 4T-000626 (Epic 3E-000119): benannte Sidebar-Anordnungen — direkt
             // beim Panel-Untermenue (derselbe Themen-Block Sidebar/Panels).
             label: t('menu.view.sidebarLayouts'),
             submenu: variantsSubmenu,
           },
           { type: 'separator' },
-          // 4T-0697 (Epic 3E-0141): linke/rechte Sidebar-Spalte der aktiven
+          // 4T-000697 (Epic 3E-000141): linke/rechte Sidebar-Spalte der aktiven
           // Editor-Spalte ein-/ausklappen. BEWUSST neben dem Panel-Untermenue
           // und NICHT darin — dieses ist dem Waechter panel-zugaenge.spec.js
           // vorbehalten, der dort nur Panel-Checkboxen erwartet. Haekchen aus
@@ -735,7 +735,7 @@ function buildMenu(win, state, actions) {
         ]),
         submenuOrNull('menu.view.appearance', [
           unless('view.toggleFocusMode', {
-            // 4T-0019: Fokus-Modus toggelt UI-Chrome (Tabbar, Statusbar, Sidebar)
+            // 4T-000019: Fokus-Modus toggelt UI-Chrome (Tabbar, Statusbar, Sidebar)
             // im aktiven Fenster. Wirkt nur auf dieses Fenster, persistierter
             // Wert ist global.
             label: t('menu.view.focusMode'),
@@ -745,9 +745,9 @@ function buildMenu(win, state, actions) {
             click: send('menu:toggleFocusMode'),
           }),
           { type: 'separator' },
-          // 4T-0030: drei Theme-Radios. 'System' folgt dem Windows-Theme
+          // 4T-000030: drei Theme-Radios. 'System' folgt dem Windows-Theme
           // (bisheriges Verhalten), 'Hell'/'Dunkel' erzwingen das jeweilige
-          // Theme app-weit. 4T-0887: seither direkt im Erscheinungsbild statt
+          // Theme app-weit. 4T-000887: seither direkt im Erscheinungsbild statt
           // in einem eigenen Theme-Untermenue (eine Ebene weniger; der Key
           // menu.view.theme wird im Menue nicht mehr gebraucht).
           {
@@ -771,7 +771,7 @@ function buildMenu(win, state, actions) {
         ]),
         { type: 'separator' },
         {
-          // 4T-0333 (Epic 3E-0060): Historien-Ansicht des aktiven Dokuments
+          // 4T-000333 (Epic 3E-000060): Historien-Ansicht des aktiven Dokuments
           // (Revisionsliste, Vergleich, Wiederherstellen) als System-Seite.
           label: t('menu.view.history'),
           accelerator: acc('history.open'),
@@ -779,7 +779,7 @@ function buildMenu(win, state, actions) {
           click: send('menu:openHistory'),
         },
         unless('graph.openArea', {
-          // 4T-0455 (Epic 3E-0084): Bereichs-Graph als read-only Tab; nur
+          // 4T-000455 (Epic 3E-000084): Bereichs-Graph als read-only Tab; nur
           // bei aktivem Bereich aktiv (Muster journal.openToday).
           label: t('menu.view.areaGraph'),
           accelerator: acc('graph.openArea'),
@@ -787,7 +787,7 @@ function buildMenu(win, state, actions) {
           click: send('menu:openAreaGraph'),
         }),
         unless('stats.openArea', {
-          // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only Tab,
+          // 4T-000620 (Epic 3E-000117): Bereichs-Statistik als read-only Tab,
           // direkt hinter dem Bereichs-Graph (beide bereichsweite
           // Auswertungen); nur bei aktivem Bereich aktiv.
           label: t('menu.view.areaStats'),
@@ -797,15 +797,15 @@ function buildMenu(win, state, actions) {
         }),
         { type: 'separator' },
         {
-          // 4T-0480 (Epic 3E-0089): Kommando-Palette — filterbares Popup
+          // 4T-000480 (Epic 3E-000089): Kommando-Palette — filterbares Popup
           // aller Registry-Kommandos; immer verfuegbar (Kern-Bedienung).
           label: t('menu.view.commandPalette'),
           accelerator: acc('app.commandPalette'),
           click: send('menu:openCommandPalette'),
         },
-        // 4T-0927 (Epic 3E-0016): Der Eintrag «Entwickler-Tools» samt Trenner
+        // 4T-000927 (Epic 3E-000016): Der Eintrag «Entwickler-Tools» samt Trenner
         // und Kuerzel F12 ist hier entfallen (Anordnung des Product Owners vom
-        // 2026-08-07). Er war seit 4T-0191 als Debug-Werkzeug und nicht als
+        // 2026-08-07). Er war seit 4T-000191 als Debug-Werkzeug und nicht als
         // beworbenes Nutzer-Feature gekennzeichnet und gehoert damit nicht in
         // das Auslieferungs-Menue einer Reife-Version. Ersatzlos entfiel er
         // nicht: Der Zugang liegt jetzt im Einstellungs-Bereich
@@ -824,7 +824,7 @@ function buildMenu(win, state, actions) {
           click: send('menu:openHelp'),
         },
         {
-          // 4T-0644 (Epic 3E-0127): geführte Produkt-Tour, manuell startbar
+          // 4T-000644 (Epic 3E-000127): geführte Produkt-Tour, manuell startbar
           // direkt hinter dem Handbuch (beide Einstiege in die Erklärung der
           // Anwendung); ohne Default-Kürzel, die Registry liefert ein in den
           // Einstellungen belegtes Kürzel nach.
@@ -838,7 +838,7 @@ function buildMenu(win, state, actions) {
         },
         { type: 'separator' },
         {
-          // 4T-0890 (Befund L-06): Accelerator-Anzeige aus der Registry
+          // 4T-000890 (Befund L-06): Accelerator-Anzeige aus der Registry
           // (Kommando app.toggleRestoreSession, ohne Default-Kuerzel).
           label: t('menu.help.restoreSession'),
           type: 'checkbox',
@@ -850,7 +850,7 @@ function buildMenu(win, state, actions) {
     },
   ];
 
-  // 4T-0294: unless()-Luecken (deaktivierte Erweiterungen) entfernen. 4T-0887:
+  // 4T-000294: unless()-Luecken (deaktivierte Erweiterungen) entfernen. 4T-000887:
   // ueber compactSubmenu, damit ein Trenner nicht stehen bleibt, dessen Block
   // durch die Luecke leer geworden ist.
   for (const top of template) {

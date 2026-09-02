@@ -1,8 +1,8 @@
-// Absichtlich defekte Erweiterung (4T-0298): activate() wirft. Erwartetes
+// Absichtlich defekte Erweiterung (4T-000298): activate() wirft. Erwartetes
 // Verhalten: Rollback, automatische Deaktivierung, Fehlertext im
 // Einstellungs-Bereich — kein Absturz.
 export default {
   activate() {
-    throw new Error('Absichtlich defekt (Test 4T-0298)');
+    throw new Error('Absichtlich defekt (Test 4T-000298)');
   },
 };

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0635 (Epic 3E-0161): Regressionstest des Nachhol-Dialogs bei früh
+// 4T-000635 (Epic 3E-000161): Regressionstest des Nachhol-Dialogs bei früh
 // gebundenem Bereich.
 //
 // Gemeldeter Ablauf: Bei der Sitzungs-Wiederherstellung mit gebundenem Bereich
@@ -44,7 +44,7 @@ const faellig = (key) => ({
   catchUp: true,
 });
 
-describe('4T-0635: Erinnerungs-Meldung vor der Initialisierung', () => {
+describe('4T-000635: Erinnerungs-Meldung vor der Initialisierung', () => {
   beforeEach(() => {
     // Ohne Tipp-Aktivitaet zeigt scheduleShow sofort statt zu vertagen.
     editorActivity.lastDocEditAt = 0;

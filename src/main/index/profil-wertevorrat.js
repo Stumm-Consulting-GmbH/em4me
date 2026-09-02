@@ -1,7 +1,7 @@
-// 4T-1158 (Epic 3E-0219, E12): Wertevorrat eines Feldes aus einer Abfrage.
+// 4T-001158 (Epic 3E-000219, E12): Wertevorrat eines Feldes aus einer Abfrage.
 //
 // Die zweite und mächtigere der beiden neuen Wertevorrats-Quellen. Die
-// Notiz-Quelle (4T-1157) bindet den Vorrat an EINE Datei und läuft deshalb
+// Notiz-Quelle (4T-001157) bindet den Vorrat an EINE Datei und läuft deshalb
 // über den mtime-Abgleich des Profil-Katalogs; eine Abfrage hat überhaupt
 // keine einzelne Datei — sie hängt am Bestand. Daraus folgen die beiden
 // Festlegungen aus E12, die dieses Modul trägt:

@@ -1,7 +1,7 @@
-// 4T-1073 (Epic 3E-0211, Datei-Größen-Budget): Schnitt aus
+// 4T-001073 (Epic 3E-000211, Datei-Größen-Budget): Schnitt aus
 // perspective-query-eval.test.js — die Feld-Auflösung außerhalb des
-// Datei-Scopes. Hier liegen der BLOCKS-Scope (ctx.block, 4T-0409) und der
-// TASKS-Scope (ctx.task über query-task-fields.js, 4T-0502); die Auswertung
+// Datei-Scopes. Hier liegen der BLOCKS-Scope (ctx.block, 4T-000409) und der
+// TASKS-Scope (ctx.task über query-task-fields.js, 4T-000502); die Auswertung
 // selbst (Typ-System, file.*-Felder, Funktions-Katalog, FROM-Quellen,
 // Selbstbezug, Validierung, Ergebnis-Pipeline, Segmente) bleibt in der
 // Ursprungs-Datei. Der Schnitt folgt der Naht, die die Suite schon einmal
@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseQuery } from '../../src/shared/query/perspective-query.js';
 import { matchesQuery, evaluateExpression } from '../../src/shared/query/perspective-query-eval.js';
-// 4T-0502 (Epic 3E-0096): Task-Modell fuer die Feld-Aufloesung des TASKS-Scopes.
+// 4T-000502 (Epic 3E-000096): Task-Modell fuer die Feld-Aufloesung des TASKS-Scopes.
 import { parseTaskLine } from '../../src/shared/tasks/task-markers.js';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -54,7 +54,7 @@ function ctxFor(over = {}) {
   };
 }
 
-// --- 4T-0409 (Epic 3E-0077): Feld-Aufloesung im Block-Kontext ------------------
+// --- 4T-000409 (Epic 3E-000077): Feld-Aufloesung im Block-Kontext ------------------
 
 describe('perspective-query-eval — Block-Kontext (BLOCKS-Scope)', () => {
   const block = (over = {}) => ({
@@ -110,9 +110,9 @@ describe('perspective-query-eval — Block-Kontext (BLOCKS-Scope)', () => {
   });
 });
 
-// --- 4T-0502 (Epic 3E-0096): Task-Feld-Katalog des TASKS-Scopes ----------------
+// --- 4T-000502 (Epic 3E-000096): Task-Feld-Katalog des TASKS-Scopes ----------------
 
-describe('perspective-query-eval — Task-Felder (TASKS-Scope, 4T-0502)', () => {
+describe('perspective-query-eval — Task-Felder (TASKS-Scope, 4T-000502)', () => {
   // Baut einen Task-Kontext (ctx.task) wie frontmatterQueryFor: Modell aus dem
   // Marker-Kern plus die Zusatz-Felder line/heading/statusType/description/tags.
   function taskCtx(line, over = {}) {

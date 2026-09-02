@@ -1,7 +1,7 @@
-// 4T-0179: Import-Nachweis fuer die extrahierte Markdown-Pipeline.
+// 4T-000179: Import-Nachweis fuer die extrahierte Markdown-Pipeline.
 // Akzeptanzkriterium: src/shared/markdown/** ist OHNE Electron ladbar und
 // renderMarkdown laeuft auf einem Fixture. Die inhaltliche Tiefe (Snapshot-
-// Tests je Konstrukt) folgt in 4T-0194 (Epic 3E-0041).
+// Tests je Konstrukt) folgt in 4T-000194 (Epic 3E-000041).
 import { describe, it, expect } from 'vitest';
 import {
   renderMarkdown,
@@ -39,7 +39,7 @@ describe('shared/markdown — Electron-freie Pipeline', () => {
   it('renderMarkdown rendert alle Kern-Konstrukte ohne Electron/DOM', () => {
     const html = renderMarkdown(FIXTURE, 'de');
     expect(html).toContain('<h1'); // Heading (Frontmatter vom Body getrennt)
-    // 4T-0282: Frontmatter erscheint als eigener Block vor dem Body,
+    // 4T-000282: Frontmatter erscheint als eigener Block vor dem Body,
     // nicht mehr gar nicht — aber nie als regulaer gerenderter Body-Text.
     expect(html).toContain('frontmatter-block');
     expect(html).not.toContain('<p>titel:'); // kein Frontmatter als Fliesstext
@@ -72,11 +72,11 @@ describe('shared/markdown — Electron-freie Pipeline', () => {
   });
 });
 
-// 4T-0491 (Epic 3E-0093): writeFrontmatter mit emptyStubKeys (Komplett-
+// 4T-000491 (Epic 3E-000093): writeFrontmatter mit emptyStubKeys (Komplett-
 // Übernahme von Profil-Feldern). Neue, in emptyStubKeys genannte Leer-Felder
 // werden als bare YAML-Schlüssel geschrieben; Zahl/Boolean als 0/false; der
-// 4T-0069-Churn-Schutz für BESTEHENDE Leer-Felder bleibt unangetastet.
-describe('writeFrontmatter emptyStubKeys (4T-0491, Epic 3E-0093)', () => {
+// 4T-000069-Churn-Schutz für BESTEHENDE Leer-Felder bleibt unangetastet.
+describe('writeFrontmatter emptyStubKeys (4T-000491, Epic 3E-000093)', () => {
   it('ergänzt fehlende Felder als bare Schlüssel; Default und 0/false erhalten', () => {
     const src = '---\ntitle: Fest\nclass: Ereignis\n---\n\nBody\n';
     const map = { ort: '', gaeste: [], anzahl: 0, ganztags: false, datum: '', art: 'Termin' };
@@ -105,7 +105,7 @@ describe('writeFrontmatter emptyStubKeys (4T-0491, Epic 3E-0093)', () => {
     });
   });
 
-  it('ohne emptyStubKeys bleibt der 4T-0069-Schutz: neue Leer-Felder erscheinen nicht', () => {
+  it('ohne emptyStubKeys bleibt der 4T-000069-Schutz: neue Leer-Felder erscheinen nicht', () => {
     const src = '---\ntitle: X\nTaetigkeit:\n---\n\nBody\n';
     const res = writeFrontmatter(src, { title: 'X', Taetigkeit: '', neu: '' });
     expect(res.ok).toBe(true);
@@ -142,9 +142,9 @@ describe('writeFrontmatter emptyStubKeys (4T-0491, Epic 3E-0093)', () => {
   });
 });
 
-// 4T-0382 (Epic 3E-0072): Mehrspalten-Container `::: columns <n>` mit
+// 4T-000382 (Epic 3E-000072): Mehrspalten-Container `::: columns <n>` mit
 // Umbruch-Marker `+++` und Rueckfall bei ungueltiger Spaltenzahl.
-describe('Mehrspalten-Container (4T-0382, Epic 3E-0072)', () => {
+describe('Mehrspalten-Container (4T-000382, Epic 3E-000072)', () => {
   it('parseColumnsCount akzeptiert strikt 2 bis 5, sonst null', () => {
     expect(parseColumnsCount('2')).toBe(2);
     expect(parseColumnsCount('3')).toBe(3);

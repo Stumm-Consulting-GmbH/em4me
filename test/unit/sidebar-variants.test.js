@@ -1,4 +1,4 @@
-// 4T-0624 (Epic 3E-0119): Datenmodell der benannten Sidebar-Varianten
+// 4T-000624 (Epic 3E-000119): Datenmodell der benannten Sidebar-Varianten
 // (src/shared/sidebar-variants.js) — Struktur-Sanitisierung von Layout,
 // Sichtbarkeit und Varianten-Liste. Reine Funktionen, direkter Import
 // (Muster mdd-store.test.js).

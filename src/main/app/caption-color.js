@@ -1,4 +1,4 @@
-// 4T-0630 (Epic 3E-0102): Titelleisten-Färbung nach Arbeitsbereichs-Farbe
+// 4T-000630 (Epic 3E-000102): Titelleisten-Färbung nach Arbeitsbereichs-Farbe
 // über die Windows-11-DWM-Fenster-Attribute DWMWA_CAPTION_COLOR und
 // DWMWA_TEXT_COLOR (DwmSetWindowAttribute, dwmapi.dll) per FFI (koffi).
 // Electron 33 bietet für die native Titelleiste keine Färbungs-API
@@ -11,7 +11,7 @@
 // einmaliges Log, danach stiller No-op — die App bleibt ohne Färbung
 // voll funktionsfähig.
 //
-// 4T-1202 (Epic 3E-0121): Ausdrückliches Plattform-Gate. Die Färbung ist
+// 4T-001202 (Epic 3E-000121): Ausdrückliches Plattform-Gate. Die Färbung ist
 // eine Windows-Funktion und entfällt auf anderen Plattformen ersatzlos
 // (PO-Entscheidung vom 2026-08-25) — dort findet weder ein koffi-Laden noch
 // ein DWM-Versuch statt, also auch kein Warn-Log. Der Fehler-Pfad oben

@@ -1,4 +1,4 @@
-// 4T-0299 (Epic 3E-0053): dynamische Kommandos externer Erweiterungen in
+// 4T-000299 (Epic 3E-000053): dynamische Kommandos externer Erweiterungen in
 // der Kommando-Registry — Registrierung, Namensraum-Zwang, Binding-
 // Validierung, mergeBindings-Anschluss und Abmeldung.
 import { describe, it, expect, afterEach } from 'vitest';
@@ -15,7 +15,7 @@ afterEach(() => {
   unregisterDynamicCommand(CMD_ID);
 });
 
-describe('dynamische Kommandos (4T-0299)', () => {
+describe('dynamische Kommandos (4T-000299)', () => {
   it('registriert im ext.-Namensraum mit festen Konventionen', () => {
     expect(
       registerDynamicCommand({
@@ -38,7 +38,7 @@ describe('dynamische Kommandos (4T-0299)', () => {
     expect(COMMANDS.some((c) => c.id === 'file.boese')).toBe(false);
   });
 
-  // 4T-0522 (Epic 3E-0094): Makros registrieren sich im macro.-Namensraum
+  // 4T-000522 (Epic 3E-000094): Makros registrieren sich im macro.-Namensraum
   // mit denselben Konventionen wie ext.-Kommandos.
   it('akzeptiert den macro.-Namensraum der Kommando-Platzierung', () => {
     expect(registerDynamicCommand({ id: 'macro.m1', labelKey: 'x' })).toBe(true);

@@ -1,4 +1,4 @@
-// 4T-0480 (Epic 3E-0089): Kommando-Palette — filterbares Popup aller
+// 4T-000480 (Epic 3E-000089): Kommando-Palette — filterbares Popup aller
 // Registry-Kommandos. Aufbau nach dem Overlay-Muster des Vorlagen-Pickers
 // (templates.js showTemplatePickerDialog): statisches Modal in index.html,
 // Filter-Input mit dauerhaftem Fokus, Pfeil-Navigation ueber die
@@ -19,19 +19,19 @@
 'use strict';
 
 import { COMMANDS, COMMAND_CATEGORIES, mergeBindings } from '../../shared/commands/commands.js';
-// 4T-0993: Anzeige-String eines Bindings aus der Binding-Schicht.
+// 4T-000993: Anzeige-String eines Bindings aus der Binding-Schicht.
 import { bindingToDisplayString } from '../../shared/commands/command-bindings.js';
 import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
 import { filterCommandEntries } from '../../shared/commands/command-palette-filter.js';
 import { t } from '../i18n.js';
 import { state, activeTab } from './app/app-state.js';
-// 4T-0546 (Epic 3E-0097): Verfuegbarkeits-Regel des Kalender-Kommandos
+// 4T-000546 (Epic 3E-000097): Verfuegbarkeits-Regel des Kalender-Kommandos
 // (zyklenfreier Renderer-Zustand der Kalender-Konfiguration).
 import { hasCalendarConfig } from './calendar/calendar-config.js';
 import { getDisabledExtensionIds } from './extensions/extension-lifecycle.js';
 import { paneEditors } from './editor/editor.js';
 import { EDITOR_COMMAND_FUNCTIONS } from './editor/editor-keymaps.js';
-// 4T-0590 (Epic 3E-0109): Verfuegbarkeits-Regel der table.*-Kommandos —
+// 4T-000590 (Epic 3E-000109): Verfuegbarkeits-Regel der table.*-Kommandos —
 // zusaetzlich zum Editor-Kontext muss der Cursor in einer Tabelle stehen.
 import { hasTableContext } from './editor/editor-table-tools.js';
 
@@ -56,7 +56,7 @@ const AREA_COMMANDS = new Set([
   'journal.openForDate',
   'area.close',
   'graph.openArea',
-  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik braucht den abgegrenzten
+  // 4T-000620 (Epic 3E-000117): Bereichs-Statistik braucht den abgegrenzten
   // Datei-Raum eines Bereichs.
   'stats.openArea',
 ]);
@@ -72,7 +72,7 @@ const FILE_TAB_COMMANDS = new Set([
   'view.toggleEdit',
 ]);
 // Kommandos auf einem Inhalts-Tab (Menue: hasActiveTab && !systemTab).
-// 4T-0890 (Befund L-05): der portable Export teilt die enabled-Regel des
+// 4T-000890 (Befund L-05): der portable Export teilt die enabled-Regel des
 // Export-Untermenues mit dem PDF-Export und wird deshalb hier gespiegelt.
 const CONTENT_TAB_COMMANDS = new Set(['file.exportPdf', 'file.exportPortable']);
 // Kommandos, die irgendeinen aktiven Tab brauchen (Menue: hasActiveTab).
@@ -105,10 +105,10 @@ function currentPaletteContext() {
     editMode: tab ? !!tab.editMode : false,
     viewMode,
     hasArea: !!state.areaPath,
-    // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Zuordnung der eigenen App.
+    // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Zuordnung der eigenen App.
     hasWorkspace: !!state.workspaceName,
     sourceVisible: viewMode === 'source' || viewMode === 'split' || viewMode === 'live',
-    // 4T-0590 (Epic 3E-0109): steht der Cursor des aktiven Editors in einer
+    // 4T-000590 (Epic 3E-000109): steht der Cursor des aktiven Editors in einer
     // Tabelle? (Dimmung der table.*-Kommandos ausserhalb von Tabellen.)
     inTable: hasTableContext(paneEditors[state.activePaneIndex]),
   };
@@ -123,7 +123,7 @@ function editorContextAvailable(ctx) {
 }
 
 export function isCommandAvailable(cmd, ctx) {
-  // 4T-0590 (Epic 3E-0109): Tabellen-Operationen nur mit Cursor in einer
+  // 4T-000590 (Epic 3E-000109): Tabellen-Operationen nur mit Cursor in einer
   // Tabelle (sichtbar, aber gedimmt ausserhalb — wie die Menue-Dimmung).
   if (cmd.id.startsWith('table.')) {
     return editorContextAvailable(ctx) && !!ctx.inTable;
@@ -131,13 +131,13 @@ export function isCommandAvailable(cmd, ctx) {
   if (cmd.editorScoped || EDITOR_CONTEXT_COMMANDS.has(cmd.id)) {
     return editorContextAvailable(ctx);
   }
-  // 4T-0546 (Epic 3E-0097): Kalender-Wert einfuegen — Editor-Kontext plus
+  // 4T-000546 (Epic 3E-000097): Kalender-Wert einfuegen — Editor-Kontext plus
   // Bereich mit mindestens einem definierten Kalender.
   if (cmd.id === 'calendar.insertValue') {
     return editorContextAvailable(ctx) && ctx.hasArea && hasCalendarConfig();
   }
   if (AREA_COMMANDS.has(cmd.id)) return ctx.hasArea;
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Kommandos — "speichern als"
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Kommandos — "speichern als"
   // nur ohne bestehende Zuordnung, "schliessen" nur im Arbeitsbereichs-
   // Fenster (spiegelt die enabled-Regeln des Datei-Menues).
   if (cmd.id === 'workspace.saveAs') return !ctx.hasWorkspace;
@@ -200,7 +200,7 @@ function executePaletteEntry(entry) {
   if (runGlobalCommand) runGlobalCommand(entry.id);
 }
 
-// 4T-0520 (Epic 3E-0094): zentrale Ausfuehrung per Kommando-ID fuer die
+// 4T-000520 (Epic 3E-000094): zentrale Ausfuehrung per Kommando-ID fuer die
 // platzierten Zugaenge (Statusbar-Buttons, Kontextmenue-Sektion) und die
 // Makro-Schritte. Buendelt beide Dispatch-Pfade der Palette und liefert —
 // anders als executePaletteEntry — ein Erfolgs-Signal: false bei
@@ -208,7 +208,7 @@ function executePaletteEntry(entry) {
 // Kontext nicht verfuegbarem Kommando oder einem Handler, der den Aufruf
 // mit false ablehnt (Guard-Konvention der commandHandlers-Map). Verzoegerte
 // Fehler asynchroner Handler sind damit bewusst nicht erfassbar.
-// 4T-0521 (Epic 3E-0094): Verfügbarkeits-Prädikat per Kommando-ID für die
+// 4T-000521 (Epic 3E-000094): Verfügbarkeits-Prädikat per Kommando-ID für die
 // Kontextmenü-Sektion (Einträge erscheinen deaktiviert statt zu
 // verschwinden — Konsistenz zum restlichen Menü).
 export function isCommandIdAvailable(commandId) {

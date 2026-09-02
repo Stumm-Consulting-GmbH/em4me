@@ -1,4 +1,4 @@
-// 4T-0546 (Epic 3E-0097): Renderer-Zustand der calendarSystems-
+// 4T-000546 (Epic 3E-000097): Renderer-Zustand der calendarSystems-
 // Konfiguration des Bereichs (normalisierte Form aus calendar:getConfig).
 // Eine Quelle fuer Live-Badges (live-widgets.js), Klick-Pfad und Kommando
 // (calendar-picker.js) und die Verfuegbarkeits-Regel der Kommando-Palette;

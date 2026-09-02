@@ -1,6 +1,6 @@
-// === 4T-0289: Drag-and-Drop der Panels ======================================
-// 4T-0990 (Epic 3E-0196): aus panels.js in den Ordner panels/ ausgezogen.
-// HTML5-DnD nach dem Bookmarks-Muster (4T-0079), eigener MIME-Typ, damit
+// === 4T-000289: Drag-and-Drop der Panels ======================================
+// 4T-000990 (Epic 3E-000196): aus panels.js in den Ordner panels/ ausgezogen.
+// HTML5-DnD nach dem Bookmarks-Muster (4T-000079), eigener MIME-Typ, damit
 // Bookmark-Drags, Tab-Drags und Datei-Drops unberuehrt bleiben. Quellen:
 // Sektions-Header (Einzel-Panels) und Gruppen-Reiter. Ziel-Zonen:
 //   - Sektion oberes/unteres Drittel: davor/dahinter (eigener Slot),
@@ -55,7 +55,7 @@ export function handlePanelDragStart(ev, panelId) {
   ev.stopPropagation();
 }
 
-// 4T-0289: bricht einen laufenden Panel-Drag ab bzw. raeumt nach dessen
+// 4T-000289: bricht einen laufenden Panel-Drag ab bzw. raeumt nach dessen
 // Ende auf (dragend, Esc-Kaskade in app-init).
 export function cancelPanelDrag() {
   panelDrag = null;

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0465 (Epic 3E-0086): Renderer-Anwendung der Farbschemas — DOM-Wirkung
+// 4T-000465 (Epic 3E-000086): Renderer-Anwendung der Farbschemas — DOM-Wirkung
 // (Setzen/Räumen der Slot-Variablen je Modus) und die PDF-Override-Ableitung
 // aus dem aktiven Hell-Schema (Export-Option 2). Die Assertions laufen gegen
 // ein Fake-Wurzel-Element mit eigener Property-Ablage, unabhängig davon, ob
@@ -82,7 +82,7 @@ describe('color-schemes (Renderer): applyActiveColorScheme folgt data-theme', ()
 
 describe('color-schemes (Renderer): pdfColorOverrides (Export-Option 2)', () => {
   it('Standard-Hell aktiv: Overrides entsprechen der Basis-Hell-Palette', () => {
-    // 4T-0751 (Epic 3E-0146): Das Standard-Schema ist seit der Umstellung auf
+    // 4T-000751 (Epic 3E-000146): Das Standard-Schema ist seit der Umstellung auf
     // Bernstein nicht mehr die Voreinstellung und wird hier ausdrücklich
     // gesetzt; geprüft ist weiterhin die Gleichheit mit der Basis-Palette.
     setColorSchemeState({ custom: [], activeLight: 'standard-light', activeDark: 'standard-dark' });
@@ -93,7 +93,7 @@ describe('color-schemes (Renderer): pdfColorOverrides (Export-Option 2)', () => 
     expect(ov['--shadow']).toBe('0 2px 8px rgba(0, 0, 0, 0.08)');
   });
 
-  // 4T-0751: Der Auslieferungszustand weicht von der Basis-Palette ab, der
+  // 4T-000751: Der Auslieferungszustand weicht von der Basis-Palette ab, der
   // Druck muss ihm trotzdem folgen.
   it('Voreinstellung aktiv: Overrides tragen die Bernstein-Hell-Werte', () => {
     setColorSchemeState(defaultState());

@@ -1,14 +1,14 @@
-// 4T-1046 (Epic 3E-0151): Mindmap-Renderer — zeichnet einen Knoten-Baum des
+// 4T-001046 (Epic 3E-000151): Mindmap-Renderer — zeichnet einen Knoten-Baum des
 // Kerns (mindmap-core.js) als SVG und trägt die gesamte Interaktion: Klappen
 // einzeln und rekursiv, Zoom um den Zeiger, Verschieben der Fläche,
 // Einpassen, Notiz-Popover und den Sprung zur Quellzeile.
 //
 // Die reinen Formen (Kanten-Pfad, Anfasser-Lage, Notiz-Symbol) liegen seit
-// 4T-1049 in mindmap-formen.js; hier bleibt, was Sitzungs-Zustand, Ereignisse
+// 4T-001049 in mindmap-formen.js; hier bleibt, was Sitzungs-Zustand, Ereignisse
 // oder Übersetzungen braucht.
 //
 // Bewusst abhängigkeitsfrei von api/i18n/app-state: Der Aufrufer injiziert t
-// und den Sprung-Rückruf (Muster createGraphView, 4T-0454) — die Komponente
+// und den Sprung-Rückruf (Muster createGraphView, 4T-000454) — die Komponente
 // bleibt zyklenfrei und in jsdom ohne window.api-Stub testbar. Farben kommen
 // ausschließlich aus Theme-Variablen (styles/mindmap.css, Klassen mindmap-*);
 // die Komponente setzt keine Farbwerte.
@@ -21,7 +21,7 @@
 'use strict';
 
 import { layoutMindmap } from '../../../shared/mindmap-core.js';
-// Die reinen Formen der Zeichnung liegen seit 4T-1049 nebenan; hier bleibt,
+// Die reinen Formen der Zeichnung liegen seit 4T-001049 nebenan; hier bleibt,
 // was Zustand, Ereignisse und Übersetzung braucht.
 import {
   SVG_NS,
@@ -168,7 +168,7 @@ export function createMindmapView(container, options = {}) {
   // --- Zeichnen --------------------------------------------------------------
 
   function zeichneKnoten(knoten, farbe) {
-    // 4T-1049: Die Wuchsrichtung des Knotens bestimmt, wo Beschriftung,
+    // 4T-001049: Die Wuchsrichtung des Knotens bestimmt, wo Beschriftung,
     // Anfasser und Notiz-Symbol sitzen. Der Text bleibt in **jeder** Lage
     // waagerecht (AK6): Gedreht wird die Anordnung, nie die Beschriftung.
     const { nachLinks } = wuchs(knoten);
@@ -258,7 +258,7 @@ export function createMindmapView(container, options = {}) {
       else teil.textContent = notiz.text || '';
       popover.appendChild(teil);
     }
-    // 4T-1054: Erst einblenden, dann die Lage bestimmen — die eigene Größe
+    // 4T-001054: Erst einblenden, dann die Lage bestimmen — die eigene Größe
     // steht erst fest, wenn das Popover im Layout ist. Anschließend wird es in
     // die sichtbare Fläche geklemmt, damit es an einem Knoten am rechten oder
     // unteren Rand nicht außerhalb landet (zweite mögliche Ursache des
@@ -406,7 +406,7 @@ export function createMindmapView(container, options = {}) {
 
   // --- Steuerung von außen ---------------------------------------------------
 
-  // 4T-1049: Eingepasst wird über die **sichtbaren** Knoten und über beide
+  // 4T-001049: Eingepasst wird über die **sichtbaren** Knoten und über beide
   // Achsen. Vorher schlug das Bild links an und maß nur bis zum rechten Rand;
   // das trug, solange die Wurzel links saß, und ließ die Lagen rechts, oben
   // und unten außerhalb des Sichtfensters landen. Verborgene Knoten bleiben

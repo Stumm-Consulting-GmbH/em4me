@@ -1,4 +1,4 @@
-// 4T-0638 (Epic 3E-0069): Timer-Pruefer im Main-Prozess.
+// 4T-000638 (Epic 3E-000069): Timer-Pruefer im Main-Prozess.
 //
 // Anders als der Wecker-Pruefer (fester 30-Sekunden-Takt, reminder-check.js
 // und alarm-check.js) arbeitet dieser OHNE Polling: Ein Timer soll auf die

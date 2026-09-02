@@ -1,9 +1,9 @@
-// 4T-0624 (Epic 3E-0119): Datenmodell der benannten Sidebar-Varianten.
+// 4T-000624 (Epic 3E-000119): Datenmodell der benannten Sidebar-Varianten.
 //
 // Reine Struktur-Sanitisierung ohne DOM- und ohne Electron-Abhängigkeit
 // (CJS, Muster src/shared/color-schemes.js), gemeinsam für den Renderer
 // (globale Liste im Einstellungs-Store, Key `sidebar.layoutVariants`) und
-// den Main (Bereichs-Varianten in der mdda-Sektion, 4T-0625).
+// den Main (Bereichs-Varianten in der mdda-Sektion, 4T-000625).
 //
 // Eine Variante ist ein benannter Snapshot der Sidebar-Anordnung:
 //   { id, name, layout, visibility }

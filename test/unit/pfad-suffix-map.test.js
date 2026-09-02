@@ -1,10 +1,10 @@
-// 4T-1288: Waechter ueber die Kosten und die Semantik der Pfad-Form der
+// 4T-001288: Waechter ueber die Kosten und die Semantik der Pfad-Form der
 // Wiki-Link-Aufloesung (resolveWikiLinkDetailed, src/main/index/resolve.js).
 //
 // Anlass: Die Pfad-Form ([[Ordner/Name]]) lief linear ueber alle Dateien des
 // Index, je Aufruf — im migrierten Obsidian-Bestand (879 Pfad-Links, 6483
 // Dateien) blockierte das den UI-Thread des Hauptprozesses je
-// Backlinks-Anfrage sekundenlang (Analyse 4T-1287, CPU-Profil). Seit 4T-1288
+// Backlinks-Anfrage sekundenlang (Analyse 4T-001287, CPU-Profil). Seit 4T-001288
 // loest eine lazy gebaute Suffix-Map auf; dieser Test sichert beides:
 //
 // 1. KOSTEN: Die Datei-Menge wird hoechstens einmal je Map-Aufbau iteriert —
@@ -41,7 +41,7 @@ function mitZaehler(entry) {
   return zaehler;
 }
 
-describe('Pfad-Form der Wiki-Link-Aufloesung (4T-1288)', () => {
+describe('Pfad-Form der Wiki-Link-Aufloesung (4T-001288)', () => {
   const PFADE = [
     'C:\\wurzel\\62 CRM\\Stammdaten\\1 Firmen\\Familie.md',
     'C:\\wurzel\\99 Archiv\\1 Firmen\\Familie.md',

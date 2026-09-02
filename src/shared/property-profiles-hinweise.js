@@ -1,8 +1,8 @@
-// 4T-1183 (Epic 3E-0221): Gestalt des Hinweis-Datensatzes der Profil-Diagnose
+// 4T-001183 (Epic 3E-000221): Gestalt des Hinweis-Datensatzes der Profil-Diagnose
 // — der Katalog der Hinweis-Codes und der Bauplan, aus dem ein Hinweis
 // entsteht.
 //
-// **Eigene Datei seit der Stufe 4.** Der Katalog stammt aus 4T-1143 (E4) und
+// **Eigene Datei seit der Stufe 4.** Der Katalog stammt aus 4T-001143 (E4) und
 // lag bis dahin im Format-Modul. Er ist dort mit jedem neuen Konstrukt
 // mitgewachsen — Optionen, Wertevorrats-Quellen, Vererbung, Symbol, jetzt die
 // abgeleiteten Felder — und wächst in dieser Stufe weiter. Der Schnitt folgt
@@ -18,7 +18,7 @@
 // Prozess-neutral (kein Electron, kein DOM).
 'use strict';
 
-// 4T-1143 (Epic 3E-0218, E4): Ortsbezug des Hinweis-Datensatzes. Jeder
+// 4T-001143 (Epic 3E-000218, E4): Ortsbezug des Hinweis-Datensatzes. Jeder
 // Hinweis trägt neben { code, index, name } die betroffene Angabe (`key`)
 // und, wo eine konkrete Erwartung besteht, ihre maschinen-lesbare, nicht
 // übersetzte Form (`expected`) — die Übersetzung setzt sie ein, statt sie
@@ -31,7 +31,7 @@ const HINT_META = {
   name: { key: 'name', expected: null },
   duplicate: { key: 'name', expected: null },
   type: { key: 'type', expected: null }, // expected: der zulässige Typ-Satz
-  // 4T-1155: seit der Entkopplung des Mehrfach-Modus nennt die Erwartung
+  // 4T-001155: seit der Entkopplung des Mehrfach-Modus nennt die Erwartung
   // nicht mehr einen Ziel-Typ, sondern die mehrfach-fähigen Typen; die
   // Prüfstelle setzt sie beim Melden.
   multipleType: { key: 'multiple', expected: null },
@@ -47,9 +47,9 @@ const HINT_META = {
   extendsMultiple: { key: 'extends', expected: 'single' },
   extendsMissing: { key: 'extends', expected: null },
   extendsCycle: { key: 'extends', expected: null },
-  // 4T-1161: Symbol-Angabe eines Profils (genau ein Graphem).
+  // 4T-001161: Symbol-Angabe eines Profils (genau ein Graphem).
   icon: { key: 'icon', expected: 'single-grapheme' },
-  // 4T-1183: Wert-Angabe an einem abgeleiteten Feld. `expected` nennt die
+  // 4T-001183: Wert-Angabe an einem abgeleiteten Feld. `expected` nennt die
   // betroffene Angabe, weil hier drei verschiedene Schlüssel denselben Grund
   // haben — ein Feld ohne eigenen Wert trägt keine Wert-Vorgabe.
   derivedNoValues: { key: null, expected: null },

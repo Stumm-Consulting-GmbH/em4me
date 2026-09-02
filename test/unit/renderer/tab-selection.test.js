@@ -1,4 +1,4 @@
-// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl der Reiterleiste — reines Modul
+// 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl der Reiterleiste — reines Modul
 // ohne DOM/IPC. Geprueft werden die Auswahl-Gesten (Setzen, Aufnehmen und
 // Herausnehmen, Spanne), die beiden Invarianten (nur Reiter der Leiste, der
 // aktive Reiter bleibt Mitglied) und das Verschieben einer Menge als Block.
@@ -29,7 +29,7 @@ function names(p) {
   return p.tabs.map((t) => t.path);
 }
 
-describe('Auswahl-Modell: Gesten (4T-0765)', () => {
+describe('Auswahl-Modell: Gesten (4T-000765)', () => {
   it('ensurePaneSelection ruestet Panes ohne selection-Feld nach', () => {
     const p = { tabs: [], activeIndex: -1, groups: [] };
     expect(ensurePaneSelection(p)).toEqual([]);
@@ -109,7 +109,7 @@ describe('Auswahl-Modell: Gesten (4T-0765)', () => {
   });
 });
 
-describe('Auswahl-Modell: Menge verschieben (4T-0765)', () => {
+describe('Auswahl-Modell: Menge verschieben (4T-000765)', () => {
   it('verschiebt die Menge als Block und haelt ihre Reihenfolge', () => {
     const p = pane(['a', 'b', 'c', 'd'], 0);
     expect(moveTabsWithinPane(p, [0, 2], 4)).toBe(true);

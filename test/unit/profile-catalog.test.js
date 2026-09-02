@@ -1,4 +1,4 @@
-// 4T-0447 (Epic 3E-0083): Unit-Tests des Profil-Katalogs — Ordner-Scan mit
+// 4T-000447 (Epic 3E-000083): Unit-Tests des Profil-Katalogs — Ordner-Scan mit
 // Fehler-Isolation pro Datei und mtime+size-validiertem Cache (Änderungen
 // an Profil-Dateien wirken ohne Neustart). Dateizugriff über ein Fake-
 // Dateisystem injiziert.
@@ -10,7 +10,7 @@ import {
 } from '../../src/main/documents/profile-catalog.js';
 import { createRequire } from 'node:module';
 
-// 4T-1203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
+// 4T-001203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
 // gesetzt, die profile-catalog.js benutzt (Muster area-search.test.js).
 const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 import { resolveProfileFields, fieldDefinitionHint } from '../../src/shared/property-profiles.js';
@@ -67,10 +67,10 @@ describe('loadProfileCatalog', () => {
     expect(profiles[0].errors).toEqual([]);
   });
 
-  // 4T-1203 (Epic 3E-0121): Cache-Schlüssel folgen der Dateisystem-Eigenschaft
+  // 4T-001203 (Epic 3E-000121): Cache-Schlüssel folgen der Dateisystem-Eigenschaft
   // — kleingeschrieben nur, wo die Plattform die Schreibung nicht
   // unterscheidet; auf Linux fielen sonst zwei Pfade auf einen Eintrag.
-  it('Cache-Schlüssel folgen der Dateisystem-Eigenschaft (4T-1203)', async () => {
+  it('Cache-Schlüssel folgen der Dateisystem-Eigenschaft (4T-001203)', async () => {
     const files = new Map([['Projekt.md', { mtimeMs: 1, size: 10, content: PROJEKT }]]);
     try {
       setPlatformForTests('linux');
@@ -166,8 +166,8 @@ describe('loadProfileCatalog', () => {
     expect(profiles.map((p) => p.name)).toEqual(['All', 'projekt', 'zettel']);
   });
 
-  // 4T-1142 (Epic 3E-0218): Vererbungs-Angaben der Profil-Ebene.
-  it('liest extends und exclude aus dem Frontmatter (4T-1142)', async () => {
+  // 4T-001142 (Epic 3E-000218): Vererbungs-Angaben der Profil-Ebene.
+  it('liest extends und exclude aus dem Frontmatter (4T-001142)', async () => {
     const files = new Map([
       [
         'Artikel.md',
@@ -193,7 +193,7 @@ describe('loadProfileCatalog', () => {
     expect(projekt.exclude).toEqual([]);
   });
 
-  it('AK11 (4T-1142): eine Änderung am Eltern-Profil wirkt ohne Neustart über den Cache', async () => {
+  it('AK11 (4T-001142): eine Änderung am Eltern-Profil wirkt ohne Neustart über den Cache', async () => {
     const files = new Map([
       [
         'Kind.md',
@@ -228,11 +228,11 @@ describe('loadProfileCatalog', () => {
   });
 });
 
-// --- 4T-1157 (Epic 3E-0219, E12): Wertevorrat aus einer Notiz -------------
+// --- 4T-001157 (Epic 3E-000219, E12): Wertevorrat aus einer Notiz -------------
 // Der zweite Eingang am Änderungs-Abgleich: eine Werte-Notiz ist eine
 // zweite Datei, die denselben mtime- und Größen-Vergleich durchläuft wie
 // eine Profil-Datei.
-describe('Wertevorrat aus einer Notiz (4T-1157)', () => {
+describe('Wertevorrat aus einer Notiz (4T-001157)', () => {
   const AREA = path.resolve('C:/Bereich');
 
   // Eigener Fake über VOLLE Pfade (nicht über Basenames wie oben): Werte-

@@ -1,4 +1,4 @@
-// 4T-1289 (Epic 3E-0224): Unit-Tests für die Namensform und die
+// 4T-001289 (Epic 3E-000224): Unit-Tests für die Namensform und die
 // Zuordnungs-Zeile der Teile großer Dokumente (src/shared/document-parts.js).
 // Abgedeckt sind AK1 (Zerlegen und Bilden), AK2 (Zuordnungs-Zeile lesen und
 // schreiben samt Schema-Version), AK3 (Trennschärfe zu den Unterseiten ohne

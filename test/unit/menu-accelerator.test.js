@@ -1,4 +1,4 @@
-// 4T-0900 (Epic 3E-0016), Register-Paar 8: Waechter ueber die
+// 4T-000900 (Epic 3E-000016), Register-Paar 8: Waechter ueber die
 // Accelerator-Anzeige der Menue-Eintraege.
 //
 // Die Registry markiert ein Kommando mit `menu: true`, wenn es einen
@@ -6,7 +6,7 @@
 // holt das Kuerzel ueber `acc('<id>')`; fehlt der Aufruf, bleibt der Eintrag
 // ohne Kuerzel-Anzeige. Das faellt nicht auf, weil das Kuerzel selbst weiter
 // wirkt — die Tasten laufen ueber den Dispatcher, nicht ueber das Menue.
-// Genau diese Lage hatte Befund L-06 (4T-0890) fuer sieben Umschalter.
+// Genau diese Lage hatte Befund L-06 (4T-000890) fuer sieben Umschalter.
 //
 // Geprueft wird gegen den QUELLTEXT: menu.js ist Hauptprozess-Code und laedt
 // Electron, ist im Unit-Kontext also nicht importierbar. Die acc-Aufrufe sind
@@ -39,7 +39,7 @@ const ueberPanelSchleife = new Set(
     .filter(Boolean),
 );
 
-describe('Menü-Accelerator: Registry und Menü-Aufbau (4T-0900)', () => {
+describe('Menü-Accelerator: Registry und Menü-Aufbau (4T-000900)', () => {
   it('jedes Menü-Kommando bekommt seinen Accelerator', () => {
     // Untere Schranken gegen ein stilles Leerlaufen der Auswertungen.
     expect(menuKommandos.length).toBeGreaterThan(50);

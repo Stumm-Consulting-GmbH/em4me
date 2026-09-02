@@ -1,4 +1,4 @@
-// 4T-1176 (Epic 3E-0220, E7): Erzeugung der Abfrage zu einem Profil — der
+// 4T-001176 (Epic 3E-000220, E7): Erzeugung der Abfrage zu einem Profil — der
 // Text, den das Kommando «Profil-Abfrage einfügen» an der Cursor-Position
 // hinschreibt.
 //

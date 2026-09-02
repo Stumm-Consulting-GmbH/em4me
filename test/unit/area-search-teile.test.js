@@ -1,4 +1,4 @@
-// 4T-1293 (Epic 3E-0224): Geteilte Dokumente in der Bereichs-Suche
+// 4T-001293 (Epic 3E-000224): Geteilte Dokumente in der Bereichs-Suche
 // (src/main/area/area-search-teile.js). Abgedeckt ist AK1: Ein Treffer in
 // einem hinteren Teil erscheint als Treffer des Gesamt-Dokuments, ohne
 // Teil-Angabe im Namen.
@@ -51,7 +51,7 @@ describe('area-search-teile: Kopf-Pfad eines Teils', () => {
   });
 });
 
-describe('Teil-Dateien in der Ordner-Liste des Bereichs (4T-1293)', () => {
+describe('Teil-Dateien in der Ordner-Liste des Bereichs (4T-001293)', () => {
   // Entscheidung des Product Owners vom 2026-08-31: Teile erscheinen nicht in
   // der Ordner-Liste. Geprueft wird die Filter-Bedingung, die der Handler
   // area:listDir anwendet — sie ist derselbe Namens-Test wie in der

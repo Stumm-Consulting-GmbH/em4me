@@ -1,4 +1,4 @@
-// 4T-1291 (Epic 3E-0224): Unit-Tests für das Zerlegen eines großen Dokuments
+// 4T-001291 (Epic 3E-000224): Unit-Tests für das Zerlegen eines großen Dokuments
 // beim Speichern (src/shared/document-split.js). Abgedeckt sind AK1 (Zerlegung
 // mit Namensform und Zuordnungs-Zeile), AK2 (Schnitt nur an einer Überschrift
 // der obersten zwei Ebenen, kein Konstrukt über eine Grenze), AK3 (ohne
@@ -166,7 +166,7 @@ describe('document-split.js — Erstzerlegung (AK1, AK3)', () => {
 });
 
 describe('document-split.js — Umkehr-Eigenschaft (die tragende Zusage)', () => {
-  // Der Prüffall aus 4T-1290 hält fest, dass das Zusammensetzen die Rümpfe ohne
+  // Der Prüffall aus 4T-001290 hält fest, dass das Zusammensetzen die Rümpfe ohne
   // Trennzeichen aneinanderhängt. Hier steht das Gegenstück: Was diese Seite
   // schneidet, muss jene Seite zeichengleich zurückgeben.
   //

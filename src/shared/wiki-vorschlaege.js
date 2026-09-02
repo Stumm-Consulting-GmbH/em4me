@@ -1,4 +1,4 @@
-// 4T-1307 (Epic 3E-0235): Auswahl-Regel und Klammer-Schluss der Vorschlagsliste
+// 4T-001307 (Epic 3E-000235): Auswahl-Regel und Klammer-Schluss der Vorschlagsliste
 // fuer interne Verweise (`[[…`).
 //
 // Prozessneutral (CJS, reine Funktionen, kein Electron, kein DOM). Die beiden
@@ -7,7 +7,7 @@
 // CodeMirror.
 'use strict';
 
-// Wieviele Eintraege ein Dropdown hoechstens zeigt. Der Wert stand bis 4T-1307
+// Wieviele Eintraege ein Dropdown hoechstens zeigt. Der Wert stand bis 4T-001307
 // im Renderer-Modul und ist mit der Auswahl-Regel hierher gewandert, weil er
 // zu ihr gehoert; das Renderer-Modul re-exportiert ihn unveraendert.
 const AUTOCOMPLETE_RENDER_LIMIT = 30;
@@ -54,7 +54,7 @@ function waehleWikiZiele(vorschlaege, eingabe, limit = AUTOCOMPLETE_RENDER_LIMIT
 // Wo die Eingabe im Namen eines Vorschlags steckt, als Paar [Anfang, Ende] fuer
 // die Hervorhebung in der angezeigten Liste. Leere Eingabe: kein Bereich.
 //
-// 4T-1339 (Epic 3E-0238): Die Funktion gehoert neben `waehleWikiZiele`, weil sie
+// 4T-001339 (Epic 3E-000238): Die Funktion gehoert neben `waehleWikiZiele`, weil sie
 // deren Filter-Regel spiegelt — gefiltert wird auf `includes` ohne Ruecksicht
 // auf Gross- und Kleinschreibung, und genau diese Fundstelle wird hervorgehoben.
 // Gebraucht wird sie, seit die Quelle die Eigensortierung der Vervollstaendigungs-

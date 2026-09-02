@@ -1,7 +1,7 @@
 // Reine Helfer des Buch-Panels: Pfad-Schlüssel, Beschriftung, Leseführungs-Ziel
 // und die Ziel-Berechnung der Struktur-Pflege. Ohne DOM und ohne Zustand,
 // deshalb unmittelbar unit-testbar.
-// 4T-0980 (Epic 3E-0196): aus modules/books/book-panel.js ausgezogen (reiner
+// 4T-000980 (Epic 3E-000196): aus modules/books/book-panel.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert). Das Modul ist das Blatt
 // des Buch-Ordners: es importiert nichts aus dem Renderer.
 'use strict';
@@ -17,7 +17,7 @@ export const BOOK_DND_MIME = 'application/x-book-chapter';
 // Schreibweise nach der zentralen Auskunft in shared/platform.js (Muster
 // fileKey in src/shared/books/book-core.js).
 //
-// 4T-1276 (Epic 3E-0232, Befund B1): Vorher wurde hier fest kleingeschrieben.
+// 4T-001276 (Epic 3E-000232, Befund B1): Vorher wurde hier fest kleingeschrieben.
 export function pathKey(value) {
   return pathCompareKey(
     String(value || '')
@@ -30,10 +30,10 @@ export function pathKey(value) {
 // Buch-Ordners liegt. Die Schreibweise des Ergebnisses stammt aus dem
 // Datei-Pfad, verglichen wird über den Schlüssel.
 //
-// 4T-1276 (Epic 3E-0232, Befund B1): Der Präfix-Vergleich «liegt die Datei im
+// 4T-001276 (Epic 3E-000232, Befund B1): Der Präfix-Vergleich «liegt die Datei im
 // Buch-Ordner» ist eine GRENZPRÜFUNG und geht deshalb über dieselbe zentrale
 // Auskunft wie jede Gleichheits-Frage — dieselbe Art Entscheidung wie die
-// Bereichs-Grenze aus 4T-1203. `pathCompareKey` ist dafür ausdrücklich
+// Bereichs-Grenze aus 4T-001203. `pathCompareKey` ist dafür ausdrücklich
 // vorgesehen («Für Gleichheits- und Präfix-Vergleiche sowie Pfad-Schlüssel von
 // Caches»), eine eigene Eigenschaft braucht es nicht.
 export function chapterPathFromFile(bookDir, filePath) {
@@ -72,7 +72,7 @@ export function chapterLabel(relPath) {
   return name.replace(/\.md$/i, '') || name;
 }
 
-// --- Struktur-Pflege: reine Ziel-Berechnung (4T-0845) -------------------------
+// --- Struktur-Pflege: reine Ziel-Berechnung (4T-000845) -------------------------
 
 // Umgebung eines Kapitels im gemeldeten Baum: Eltern-Pfad (null auf oberster
 // Ebene), Index in seiner Geschwister-Liste und der Knoten selbst. null =

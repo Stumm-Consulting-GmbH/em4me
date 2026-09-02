@@ -1,4 +1,4 @@
-// 4T-0336 (Epic 3E-0061): Unterseiten-Namens-Logik.
+// 4T-000336 (Epic 3E-000061): Unterseiten-Namens-Logik.
 // Traeger der logischen Seiten-Hierarchie ist der Dateiname: das
 // Unterseiten-Trennzeichen im Basename ist U+2215 (Division Slash), in
 // Wiki-Links wird durchgaengig der normale Slash geschrieben. Dieses Modul
@@ -106,7 +106,7 @@ function segmentValidationError(segment) {
   return null;
 }
 
-// 4T-0585 (Epic 3E-0108): Anzeige-Titel aus einem Datei-Basename (mit oder
+// 4T-000585 (Epic 3E-000108): Anzeige-Titel aus einem Datei-Basename (mit oder
 // ohne Endung) — Markdown-Endung entfernen, Unterseiten-Trennzeichen in die
 // logische Slash-Form uebersetzen. Die Endungs-Liste entspricht dem
 // Umbenennen-Fluss (views.js) und den akzeptierten Markdown-Endungen.
@@ -115,7 +115,7 @@ function displayTitleFromBasename(basenameWithExt) {
   return toLogicalName(String(basenameWithExt || '').replace(MD_EXTENSION_RE, ''));
 }
 
-// 4T-0646 (Epic 3E-0128): Anzeige-Zerlegung eines Datei-Basenames (mit oder
+// 4T-000646 (Epic 3E-000128): Anzeige-Zerlegung eines Datei-Basenames (mit oder
 // ohne Endung) in den Eltern-Anteil und das eigene Namens-Segment. Beide in
 // logischer Slash-Schreibweise; der Praefix traegt den abschliessenden
 // Schraegstrich, damit Praefix + Segment wieder den Anzeige-Titel ergeben.
@@ -129,7 +129,7 @@ function splitDisplayTitle(basenameWithExt) {
   return { prefix: toLogicalName(parent) + '/', segment: lastSegment(base) };
 }
 
-// 4T-0339 (Epic 3E-0061): Validierung eines vollstaendigen Datei-Basenames
+// 4T-000339 (Epic 3E-000061): Validierung eines vollstaendigen Datei-Basenames
 // (Umbenennen-Dialog). Das Unterseiten-Trennzeichen ist hier erlaubt;
 // jedes Segment folgt den Segment-Regeln. Liefert null oder den
 // Fehler-Code des ersten ungueltigen Segments.

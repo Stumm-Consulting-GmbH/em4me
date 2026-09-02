@@ -1,4 +1,4 @@
-// 4T-0408 (Epic 3E-0077): Lese-Pfad der Block-Daten fuer den Abfrage-Index —
+// 4T-000408 (Epic 3E-000077): Lese-Pfad der Block-Daten fuer den Abfrage-Index —
 // Extraktion der blockData-Sektion aus dem rohen .mdd-Inhalt (Normalisierung,
 // Fehler-Isolation). Die Index-Integration (BLOCKS-Scope, Invalidierung ueber
 // updateBlockDataForFile) prueft test/unit/perspective-query-index.test.js
@@ -14,7 +14,7 @@ function mddRaw(sections) {
   });
 }
 
-describe('extractBlockEntries — Lese-Pfad der blockData-Sektion (4T-0408)', () => {
+describe('extractBlockEntries — Lese-Pfad der blockData-Sektion (4T-000408)', () => {
   it('liefert null ohne blockData-Sektion (Substring-Vorpruefung)', () => {
     expect(extractBlockEntries(mddRaw({}))).toBeNull();
     expect(extractBlockEntries(mddRaw({ notes: { text: 'Notiz' } }))).toBeNull();

@@ -2,7 +2,7 @@
 // sequenziell ueber den regulaeren Close-Pfad und laesst sich vom Nutzer
 // abbrechen.
 //
-// Auszug aus window-manager.js, 4T-1231 (Epic 3E-0228). Die Rumpf-Inhalte
+// Auszug aus window-manager.js, 4T-001231 (Epic 3E-000228). Die Rumpf-Inhalte
 // reisen unveraendert mit; geaendert ist allein die Naht zu den Nachbarn:
 // `appRegistry` und `windows` waren frueher freie Variablen derselben Datei
 // und kommen jetzt als Abhaengigkeit.
@@ -43,7 +43,7 @@ function erzeugeSchliessKaskade({ appRegistry, windows }) {
   }
 
   // Gemeinsamer Kaskaden-Kern fuer "Bereich schliessen" und "Arbeitsbereich
-  // schliessen" (4T-0537): alle Fenster der App sequenziell ueber den
+  // schliessen" (4T-000537): alle Fenster der App sequenziell ueber den
   // regulaeren Close-Pfad, Nutzer-Abbruch stoppt die Kaskade.
   async function closeAppWindows(appId) {
     for (const windowId of [...appRegistry.windowsOf(appId)]) {
@@ -60,7 +60,7 @@ function erzeugeSchliessKaskade({ appRegistry, windows }) {
     return closeAppWindows(appId);
   }
 
-  // 4T-0322: laufende Bereich-Schliessen-Kaskade abbrechen (window:cancelClose).
+  // 4T-000322: laufende Bereich-Schliessen-Kaskade abbrechen (window:cancelClose).
   function cancelCascade() {
     if (cascadeCancel) cascadeCancel();
   }

@@ -1,4 +1,4 @@
-// 4T-0608 (Epic 3E-0114): Bereich „Format-Toolbar" der Einstellungs-Seite
+// 4T-000608 (Epic 3E-000114): Bereich „Format-Toolbar" der Einstellungs-Seite
 // (erweiterungs-gebunden über settingsSections der Erweiterung toolbar;
 // dynamische Registrierung nach dem Muster command-placement-settings.js).
 //

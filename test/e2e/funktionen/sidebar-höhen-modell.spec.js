@@ -1,4 +1,4 @@
-// 4T-0855 (Epic 3E-0164): E2E-Spec des umschaltbaren Höhen-Modells der
+// 4T-000855 (Epic 3E-000164): E2E-Spec des umschaltbaren Höhen-Modells der
 // Reiter-Gruppen. Kürzel HM- (Höhen-Modell).
 //
 // Kern der Anforderung: Im Vorgabe-Modus „Höhe je Panel" hängt die Höhe am

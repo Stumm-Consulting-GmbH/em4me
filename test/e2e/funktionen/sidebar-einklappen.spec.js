@@ -1,10 +1,10 @@
-// 4T-0698 (Epic 3E-0141): E2E-Spec des sichtbaren Bedien-Orts zum Ein- und
+// 4T-000698 (Epic 3E-000141): E2E-Spec des sichtbaren Bedien-Orts zum Ein- und
 // Ausklappen einer Sidebar-Spalte. Kürzel SC- (Sidebar-Collapse). Geprüft
 // werden Kopf-Toggle am inneren Rand (Einzel-Panel und Reiter-Gruppe), der
 // schmale Strich mit Hover-Icon im eingeklappten Zustand, der Menü-Kommando-
 // Weg, die Unabhängigkeit je Editor-Spalte, das Mitwandern des Icons und die
 // Persistenz über den Neustart. Der Unterbau (Zustand, Setter, Kommandos,
-// Menü, Erweiterung) stammt aus 4T-0697.
+// Menü, Erweiterung) stammt aus 4T-000697.
 'use strict';
 
 const fs = require('node:fs');
@@ -357,7 +357,7 @@ test.describe('SC-08: Kollaps-Zustand überlebt den Neustart', () => {
   });
 });
 
-// 4T-0697 (Epic 3E-0141): PO-Befund vom 2026-07-23 — Der Schalt-Zustand der
+// 4T-000697 (Epic 3E-000141): PO-Befund vom 2026-07-23 — Der Schalt-Zustand der
 // Erweiterung „Sidebar-Spalten einklappen" zog die Kopf-Icons nicht sofort
 // nach. Die Icon-Injektion lebt im Render-Pfad renderSidebarSide, den der
 // scg:extensions-changed-Handler (renderAllPanes) nicht anfasst; ohne

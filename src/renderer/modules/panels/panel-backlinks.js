@@ -1,5 +1,5 @@
-// --- Backlinks-Sidebar (4T-0015) -------------------------------------------
-// 4T-0990 (Epic 3E-0196): aus panels.js in den Ordner panels/ ausgezogen,
+// --- Backlinks-Sidebar (4T-000015) -------------------------------------------
+// 4T-000990 (Epic 3E-000196): aus panels.js in den Ordner panels/ ausgezogen,
 // samt eigener Panel-Registrierung am Modul-Ende.
 // Zeigt eingehende Referenzen auf die aktive Datei aus dem Suchraum
 // (Datei-Ordner + 2 Unterordner-Ebenen). Indexierung laeuft im Main-Prozess;
@@ -12,13 +12,13 @@ import { t } from '../../i18n.js';
 
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
-// 4T-0294 (Epic 3E-0052): Backlinks gehören zur Wiki-Link-Erweiterung — ihre
+// 4T-000294 (Epic 3E-000052): Backlinks gehören zur Wiki-Link-Erweiterung — ihre
 // Auswertung ist Wiki-Syntax-Auswertung. Deaktiviert verschwindet das Panel;
 // die Sichtbarkeits-Preference bleibt persistiert und greift beim
 // Wiedereinschalten.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { openOrJumpToPath } from '../bookmarks/bookmarks.js';
-// 4T-0347 (Epic 3E-0062): bereichsrelative Ordner-Anzeige (gemeinsam mit der
+// 4T-000347 (Epic 3E-000062): bereichsrelative Ordner-Anzeige (gemeinsam mit der
 // Tag-Datei-Liste), damit gleichnamige Dateien aus verschiedenen Ordnern des
 // Bereichs eindeutig unterscheidbar sind.
 import { relativeDirFromRoot } from '../path-format.js';
@@ -29,7 +29,7 @@ import { isAllEmpty, persistSetting } from '../views/views.js';
 import { applySidebarVisibility } from './panels.js';
 
 export async function activateBacklinksFor(paneIdx, filePath) {
-  // R3-02 (4T-0175): currentFileByPane SYNCHRON setzen und eine Request-
+  // R3-02 (4T-000175): currentFileByPane SYNCHRON setzen und eine Request-
   // Generation ziehen, bevor irgendein await die Kontrolle abgibt. Parallele
   // Aufrufe (Tab-Wechsel + Invalidate) konnten sonst doppelt releasen und
   // ein veraltetes Ergebnis nach dem neuen rendern.
@@ -39,7 +39,7 @@ export async function activateBacklinksFor(paneIdx, filePath) {
   const gen = ++state.backlinks.requestGenByPane[paneIdx];
 
   if (prev && prev !== filePath) {
-    // B-01 (4T-0175): Release mit Owner-Kontext (Pane). Doppel-Release ist
+    // B-01 (4T-000175): Release mit Owner-Kontext (Pane). Doppel-Release ist
     // im Owner-Modell idempotent.
     try {
       await api.releaseBacklinks(prev, paneIdx);
@@ -113,7 +113,7 @@ export function renderBacklinks(paneIdx) {
     els.backlinksStatus.textContent = t('backlinks.indexing');
     return;
   }
-  // B-21 (4T-0187): Watcher-Fehler sichtbar machen statt leerem Panel.
+  // B-21 (4T-000187): Watcher-Fehler sichtbar machen statt leerem Panel.
   if (payload.status === 'error') {
     els.backlinksStatus.hidden = false;
     els.backlinksStatus.textContent = t('backlinks.watchError');
@@ -121,10 +121,10 @@ export function renderBacklinks(paneIdx) {
   }
   // ready
   const groups = Array.isArray(payload.results) ? payload.results : [];
-  // 4T-0347 (Epic 3E-0062): Index-Wurzel fuer die relative Ordner-Anzeige der
+  // 4T-000347 (Epic 3E-000062): Index-Wurzel fuer die relative Ordner-Anzeige der
   // Quelldateien (im Bereich der Bereichs-Wurzelordner, sonst die Ordner-Wurzel).
   const wurzel = payload.meta && payload.meta.wurzel;
-  // B-22 (4T-0187): Hinweis auf beim Scan uebersprungene (unlesbare) Ordner.
+  // B-22 (4T-000187): Hinweis auf beim Scan uebersprungene (unlesbare) Ordner.
   const skipped = payload.meta && payload.meta.skippedDirs ? payload.meta.skippedDirs : 0;
   if (skipped > 0) {
     els.backlinksStatus.hidden = false;
@@ -143,7 +143,7 @@ export function renderBacklinks(paneIdx) {
 
     const header = document.createElement('div');
     header.className = 'backlinks-group-header';
-    // 4T-0347 (Epic 3E-0062): zweizeilig — Basename prominent, darunter der
+    // 4T-000347 (Epic 3E-000062): zweizeilig — Basename prominent, darunter der
     // Ordner relativ zur Index-Wurzel. Datei direkt in der Wurzel -> nur der
     // Basename (kein Ordner-Zusatz). Voller Pfad bleibt im Tooltip.
     const nameEl = document.createElement('div');
@@ -169,7 +169,7 @@ export function renderBacklinks(paneIdx) {
       hitEl.className = 'backlinks-hit';
       const meta = document.createElement('span');
       meta.className = 'backlinks-hit-meta';
-      // R3-09 (4T-0185): Zeilen-Label lokalisiert (Muster vom Outgoing-
+      // R3-09 (4T-000185): Zeilen-Label lokalisiert (Muster vom Outgoing-
       // Panel); der Anker-Teil ('#<anker>') ist sprachneutrale Markdown-
       // Notation und bleibt unuebersetzt.
       let metaText = t('backlinks.line').replace('{line}', String(hit.zeile));
@@ -181,7 +181,7 @@ export function renderBacklinks(paneIdx) {
       snip.className = 'backlinks-hit-snippet';
       snip.textContent = hit.snippet || '';
       hitEl.appendChild(snip);
-      // 4T-0050 (Epic 3E-0010): Wenn der Backlink ueber einen Alias der
+      // 4T-000050 (Epic 3E-000010): Wenn der Backlink ueber einen Alias der
       // aktiven Datei zustande kommt, wird ein dezentes 'via <alias>'-Tag
       // angehaengt. Macht transparent, dass die Quelldatei nicht den
       // Datei-Namen verwendet hat, sondern einen Alias.
@@ -211,8 +211,8 @@ export function renderBacklinks(paneIdx) {
 export function applyBacklinksVisibility(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.backlinksSection) return;
-  // 4T-0075: Backlinks im Empty-State zwangsweise unsichtbar.
-  // 4T-0294: bei deaktivierter Wiki-Link-Erweiterung ebenso — der
+  // 4T-000075: Backlinks im Empty-State zwangsweise unsichtbar.
+  // 4T-000294: bei deaktivierter Wiki-Link-Erweiterung ebenso — der
   // else-Zweig gibt zugleich die Index-Wurzel frei (keine Index-Last).
   const visible =
     !isAllEmpty() && isExtensionActive('wiki-links') && !!state.backlinks.visibleByPane[paneIdx];
@@ -241,7 +241,7 @@ export async function toggleBacklinksPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.backlinks.visibleByPane[paneIdx];
   state.backlinks.visibleByPane[paneIdx] = next;
-  // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
+  // 4T-000288: Einblenden aktiviert den Reiter in einer Gruppe.
   if (next) await ensurePanelTabActive('backlinks', paneIdx);
   applyBacklinksVisibility(paneIdx);
   await persistBacklinksSettings();
@@ -262,9 +262,9 @@ export async function loadBacklinksSettings() {
   state.backlinks.visibleByPane[1] = !!v1;
 }
 
-// === 4T-0287 (Epic 3E-0051): Panel-Registrierung =============================
+// === 4T-000287 (Epic 3E-000051): Panel-Registrierung =============================
 // Import-Seiteneffekt: getVisible spiegelt die effektive Sichtbarkeits-Logik
-// aus applyBacklinksVisibility inklusive Empty-State-Override (4T-0075).
+// aus applyBacklinksVisibility inklusive Empty-State-Override (4T-000075).
 registerSidebarPanel({
   id: 'backlinks',
   titleKey: 'backlinks.title',

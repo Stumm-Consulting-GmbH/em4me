@@ -1,5 +1,5 @@
-// 4T-0645 (Epic 3E-0127): Wächter über die Verweis-Ziele der mitgelieferten
-// Beispiel-Sammlung (AK7 der Story 4S-0823: "Innerhalb der Sammlung fehlt kein
+// 4T-000645 (Epic 3E-000127): Wächter über die Verweis-Ziele der mitgelieferten
+// Beispiel-Sammlung (AK7 der Story 4S-000823: "Innerhalb der Sammlung fehlt kein
 // Verweis-Ziel").
 //
 // Warum ein eigener Prüffall: Ein toter Wiki-Link in der Sammlung fällt sonst

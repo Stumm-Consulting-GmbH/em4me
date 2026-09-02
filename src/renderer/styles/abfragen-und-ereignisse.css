@@ -1,10 +1,10 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 15 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 15 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Perspective-Abfragen und Datatable, Ereignis-Fence samt Sortierung und Filter. */
 
-/* 4T-0404 (Epic 3E-0076): Tabellen-Ausgabe der Perspective-Abfrage. Die
+/* 4T-000404 (Epic 3E-000076): Tabellen-Ausgabe der Perspective-Abfrage. Die
    Tabelle erbt die Standard-Tabellen-Optik der gerenderten Ansicht
    (.markdown-body table); hier nur Abstaende. Das LIST-Zusatzfeld haengt
    gedaempft hinter dem Datei-Link. */
@@ -16,7 +16,7 @@
   margin-left: 0.6em;
 }
 
-/* 4T-0405 (Epic 3E-0076): Mehrspalten-Layout der Abfrage-Ergebnis-Liste
+/* 4T-000405 (Epic 3E-000076): Mehrspalten-Layout der Abfrage-Ergebnis-Liste
    (COLUMNS 2-8, data-fm-columns aus der View). Eigene schlanke Regel auf der
    Query-Liste; Spalten-Abstand wie die Mehrspalten-Bloecke der Render-
    Darstellung (2.5em). Der Hinweis (COLUMNS bei TABLE ignoriert) ist ein
@@ -52,7 +52,7 @@
   margin: 0.3em 0;
 }
 
-/* 4T-0418 (Epic 3E-0079): Perspective Datatable — Grid-Anzeige mit
+/* 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-Anzeige mit
    Kopfzeile (Name + dezentes Typ-Symbol), typ-gerechter Ausrichtung
    (Zahlen rechts, Boolean zentriert), Fehler-Zellen und Aggregat-Zeile.
    Die Tabelle erbt die Standard-Tabellen-Optik (.markdown-body table);
@@ -120,7 +120,7 @@
   margin: 0.3em 0;
 }
 
-/* 4T-0419 (Epic 3E-0079): Grid-Editor-Affordanzen der Perspective
+/* 4T-000419 (Epic 3E-000079): Grid-Editor-Affordanzen der Perspective
    Datatable. Sichtbar nur in editierbaren Kontexten: Render-Pane der
    geteilten Ansicht (view-split) und Live-Block-Widget; Reading und
    Handbuch-Tabs zeigen das Grid ohne Editier-Affordanzen. */
@@ -204,7 +204,7 @@
   border-color: var(--danger, #c0392b);
 }
 
-/* 4T-0420 (Epic 3E-0079): Ansichts-Sortierung und Filter der Perspective
+/* 4T-000420 (Epic 3E-000079): Ansichts-Sortierung und Filter der Perspective
    Datatable. Sortier-Indikator am Kopf, Filter-Umschalter am Tabellen-
    Rand, Filter-Zeile unter dem Kopf, versteckte Zeilen, Treffer-Zähler. */
 .markdown-body .perspective-datatable {
@@ -224,12 +224,12 @@
   font-size: 0.75em;
   color: var(--accent);
 }
-/* 4T-1286 (Epic 3E-0232): `font: inherit` ergaenzt — ein <button> erbt die
+/* 4T-001286 (Epic 3E-000232): `font: inherit` ergaenzt — ein <button> erbt die
    Schrift NICHT von selbst. Gemessen setzte der Knopf in Arial, waehrend die
    Tabelle daneben in der Oberflaechen-Schrift setzte: zwei Rueckfallketten in
    einer Leiste. Muster wie `.pdt-add-btn` und `.pev-viewbtn` im selben Blatt.
    Die Positionierung bleibt dagegen unveraendert: Anders als beim Schwester-
-   Befund `B2` (4T-1278) ist hier gemessen KEIN Ueberlapp entstanden, weil
+   Befund `B2` (4T-001278) ist hier gemessen KEIN Ueberlapp entstanden, weil
    keine fliessende Ansichts-Leiste danebensteht — und ohne Befund wird an
    einem Layout nicht auf Verdacht gearbeitet. */
 .markdown-body .pdt-filter-toggle {
@@ -296,7 +296,7 @@
   margin: 0.2em 0;
 }
 
-/* 4T-0512 (Epic 3E-0092): Ereignis-Fence (perspective-events) — Tabelle,
+/* 4T-000512 (Epic 3E-000092): Ereignis-Fence (perspective-events) — Tabelle,
    Kategorie-Badges, Differenz-Spalte, Anlage-Formular und Editier-
    Affordanzen. Affordanzen sichtbar nur in editierbaren Kontexten
    (Render-Pane der geteilten Ansicht, Live-Block-Widget; Muster pdt). */
@@ -582,10 +582,10 @@
   border-color: var(--accent);
 }
 
-/* 4T-0513 (Epic 3E-0092): Ansichts-Sortierung und Filter des Ereignis-
+/* 4T-000513 (Epic 3E-000092): Ansichts-Sortierung und Filter des Ereignis-
    Fence. Sortier-Indikator am Kopf, Filter-Umschalter mit Zähler-Badge,
    zuklappbare Filter-Leiste, aktive Filter als entfernbare Chips,
-   Treffer-Zähler (Muster Datatable 4T-0420). */
+   Treffer-Zähler (Muster Datatable 4T-000420). */
 .markdown-body .perspective-events {
   position: relative;
 }
@@ -603,7 +603,7 @@
   font-size: 0.75em;
   color: var(--accent);
 }
-/* 4T-1278 (Epic 3E-0232, Befund B2): im Fluss der Ansichts-Leiste, nicht
+/* 4T-001278 (Epic 3E-000232, Befund B2): im Fluss der Ansichts-Leiste, nicht
    absolut darueber. `margin-left: auto` schiebt ihn an deren rechtes Ende;
    ein Ueberlapp mit dem letzten Ansichts-Knopf ist damit per Konstruktion
    ausgeschlossen, statt von einer Schriftbreite abzuhaengen. Gemessen hatte
@@ -626,7 +626,7 @@
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s;
-  /* 4T-1278: `pointer-events: none` im unsichtbaren Zustand war vorgesehen und
+  /* 4T-001278: `pointer-events: none` im unsichtbaren Zustand war vorgesehen und
      ist nach der Messung VERWORFEN — begruendet im Loesungs-Kapitel. Kurz:
      Sobald der Knopf im Fluss liegt, ueberdeckt er nichts mehr, und es gibt
      keine fremden Klicks abzufangen; die Abschaltung haette ihn dafuer per

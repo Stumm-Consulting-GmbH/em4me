@@ -1,6 +1,6 @@
-// 4T-0476 (Epic 3E-0088): Unit-Tests fuer createMdLinkRegex und den Form-Helfer
+// 4T-000476 (Epic 3E-000088): Unit-Tests fuer createMdLinkRegex und den Form-Helfer
 // mdLinkTargetFromMatch aus der gemeinsamen Erkennungs-Quelle (link-scan.js).
-// Die Regex erfasst seit 4T-0476 zusaetzlich die CommonMark-Destination in
+// Die Regex erfasst seit 4T-000476 zusaetzlich die CommonMark-Destination in
 // spitzen Klammern ([Text](<Mein Ziel.md>)), die Leerzeichen im Ziel erlaubt.
 // Der Helfer liefert fuer beide Formen { target, anchor, angle }; Backlinks-
 // Index und Rewrite-Kern lesen ausschliesslich ueber ihn (keine rohen Gruppen-

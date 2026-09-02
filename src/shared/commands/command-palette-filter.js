@@ -1,11 +1,11 @@
-// 4T-0480 (Epic 3E-0089): Teilstring-Filter der Kommando-Palette.
+// 4T-000480 (Epic 3E-000089): Teilstring-Filter der Kommando-Palette.
 // Eigenstaendiges, DOM-freies Shared-Modul (CJS), damit die Such-/Filter-
-// Komponente wiederverwendbar bleibt (Konzept-Festlegung 4T-0494: das
+// Komponente wiederverwendbar bleibt (Konzept-Festlegung 4T-000494: das
 // Kommando-Platzierungs-Epic baut auf dieser Basis auf) und die Logik
 // direkt in Node unit-testbar ist.
 //
 // v1 bewusst reiner Teilstring-Match ueber den lokalisierten Namen in
-// stabiler Eingangs-Reihenfolge (Epic-Abgrenzung 3E-0089: kein Fuzzy-Match,
+// stabiler Eingangs-Reihenfolge (Epic-Abgrenzung 3E-000089: kein Fuzzy-Match,
 // kein Zuletzt-verwendet-Ranking).
 'use strict';
 

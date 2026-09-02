@@ -3,7 +3,7 @@
 // die beiden Dienste, die nur im Main erreichbar sind (externer Aufruf einer
 // Adresse, Rechtschreibpruefung ueber Session und WebContents).
 //
-// Auszug aus main.js, 4T-0999 (Epic 3E-0196). Kanal-Gruppe: dialog:*,
+// Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: dialog:*,
 // events:confirmDelete, calendar:confirmDependents/blockedDelete, pdf:*,
 // shell:openExternal, spellcheck:*.
 //
@@ -30,12 +30,12 @@ const { printToPdfOptions } = require('../../shared/pdf-options');
  */
 function registerDialogsIpc(handle, deps) {
   const { app, dialog, shell, session, senderWindow, tForWindow, getStore } = deps;
-  // 4T-0999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
+  // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
 
   handle('shell:openExternal', async (_event, url) => {
-    // W-21 (4T-0309): defensiver Typ-Guard — ein Nicht-String wuerde bei
+    // W-21 (4T-000309): defensiver Typ-Guard — ein Nicht-String wuerde bei
     // startsWith einen TypeError ueber die IPC-Grenze werfen.
     if (typeof url !== 'string') return;
     if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -43,7 +43,7 @@ function registerDialogsIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0582 (Epic 3E-0107): Rechtschreibpruefung ---------------------------
+  // --- 4T-000582 (Epic 3E-000107): Rechtschreibpruefung ---------------------------
   // Ersetzen und Woerterbuch laufen ueber das WebContents bzw. die Session; im
   // Renderer sind beide nicht erreichbar. Die Pruefsprache wird bewusst
   // nirgends gesetzt (Architekturentscheidung 6 des Epics).
@@ -72,7 +72,7 @@ function registerDialogsIpc(handle, deps) {
     }
   });
 
-  // --- 4T-0303 (Epic 3E-0054): PDF-Export ------------------------------------
+  // --- 4T-000303 (Epic 3E-000054): PDF-Export ------------------------------------
   // Zwei getrennte Endpunkte: pdf:chooseTarget zeigt den Save-Dialog,
   // pdf:print druckt und schreibt. Getrennt, damit der Renderer den
   // Print-Zustand (Light-Override, printing-Klassen) erst NACH dem Dialog
@@ -116,13 +116,13 @@ function registerDialogsIpc(handle, deps) {
     // Chromium malt die Fenster-Hintergrundfarbe als Seiten-Grund unter
     // die Druck-Raender. Im Dark-Theme ist das #1e1e1e (createWindow) und
     // ergaebe einen dunklen Rahmen um jede Seite — fuer die Druck-Dauer
-    // auf Weiss stellen und danach zuruecksetzen (Spike-Befund 4T-0303,
-    // Rest des Fehlerbilds 1 aus 4T-0024).
+    // auf Weiss stellen und danach zuruecksetzen (Spike-Befund 4T-000303,
+    // Rest des Fehlerbilds 1 aus 4T-000024).
     const savedBackgroundColor = owner.getBackgroundColor();
     try {
       owner.setBackgroundColor('#ffffff');
       // Format, Ausrichtung und Raender aus den Export-Einstellungen
-      // (4T-0304); fehlende oder ungueltige Werte fallen im Mapping auf
+      // (4T-000304); fehlende oder ungueltige Werte fallen im Mapping auf
       // die Defaults A4/Hochformat/normal zurueck.
       const options = printToPdfOptions({
         pageSize: store?.get('export.pdf.pageSize'),
@@ -179,7 +179,7 @@ function registerDialogsIpc(handle, deps) {
     return 'keepOurs';
   });
 
-  // 4T-0512 (Epic 3E-0092): Lösch-Bestätigung eines Ereignis-Eintrags
+  // 4T-000512 (Epic 3E-000092): Lösch-Bestätigung eines Ereignis-Eintrags
   // (Referenz-Verhalten: Löschen nur mit Bestätigung; Abbrechen ist
   // Default und Escape-Ziel).
   handle('events:confirmDelete', async (event, entryText) => {
@@ -200,7 +200,7 @@ function registerDialogsIpc(handle, deps) {
     return result.response === 0;
   });
 
-  // 4T-0747 (Epic 3E-0138): Schutz der abgeleiteten Zeitrechnungen. Eine
+  // 4T-000747 (Epic 3E-000138): Schutz der abgeleiteten Zeitrechnungen. Eine
   // wirksame Änderung an einer Bezugs-Zeitrechnung verschiebt auch deren
   // Werte, deshalb Bestätigung vor dem Anwenden; das Löschen einer
   // Zeitrechnung mit Abhängigen ist gesperrt und meldet nur (Muster

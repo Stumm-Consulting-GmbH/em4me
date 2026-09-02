@@ -1,5 +1,5 @@
-// === 4T-0073 (Epic 3E-0013): Outgoing-Links-Panel ===========================
-// 4T-0990 (Epic 3E-0196): aus panels.js in den Ordner panels/ ausgezogen,
+// === 4T-000073 (Epic 3E-000013): Outgoing-Links-Panel ===========================
+// 4T-000990 (Epic 3E-000196): aus panels.js in den Ordner panels/ ausgezogen,
 // samt eigener Panel-Registrierung am Modul-Ende.
 // Extrahiert Wiki-Links, Wiki-Embeds und interne Markdown-Links der aktiven
 // Datei. Pro Re-Render Token-Walk ueber den Text — kein globaler Index. Die
@@ -11,7 +11,7 @@ import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { showAliasDialog } from '../dialogs/dialogs.js';
-// 4T-0294 (Epic 3E-0052): Outgoing-Links gehören zur Wiki-Link-Erweiterung —
+// 4T-000294 (Epic 3E-000052): Outgoing-Links gehören zur Wiki-Link-Erweiterung —
 // ihre Auswertung ist Wiki-Syntax-Auswertung. Deaktiviert verschwindet das
 // Panel; die Sichtbarkeits-Preference bleibt persistiert und greift beim
 // Wiedereinschalten.
@@ -21,7 +21,7 @@ import { openInPane, reportMenuStateNow } from '../tabs/tabs.js';
 import { normalizedAnchorId, scrollToAnchorAfterOpen } from '../views/anchor-navigation.js';
 import { tryResolveByAlias } from '../views/link-navigation.js';
 import { isAllEmpty, persistSetting, showStatusbarHint } from '../views/views.js';
-// 4T-0337 (Epic 3E-0061): Unterseiten — relative Ziele expandieren und
+// 4T-000337 (Epic 3E-000061): Unterseiten — relative Ziele expandieren und
 // Index-Fallback im Outgoing-Klick (Paritaet zum Wiki-Link-Klick-Pfad).
 import {
   expandRelativeTarget,
@@ -31,7 +31,7 @@ import {
 
 import { applySidebarVisibility } from './panels.js';
 
-// Erkennung (R3-14/4T-0183: Kommentar an die implementierte Regex
+// Erkennung (R3-14/4T-000183: Kommentar an die implementierte Regex
 // angeglichen — die Nur-Anker-Form [[#Heading]] wird nicht erfasst):
 //   - Wiki-Link        [[Ziel]] / [[Ziel|Label]] / [[Ziel#Heading]]
 //   - Wiki-Embed       ![[Ziel]] (Bild, PDF, Markdown, Other) plus Label/Anchor-Form
@@ -46,7 +46,7 @@ export function extractOutgoingLinks(text) {
   const links = [];
   if (!text) return links;
   const lines = text.split(/\r?\n/);
-  // R3-14 (4T-0183): oeffnenden Fence-Marker merken und nur mit dem
+  // R3-14 (4T-000183): oeffnenden Fence-Marker merken und nur mit dem
   // passenden Typ schliessen — vorher toggelte jeder ```- ODER ~~~-
   // Zeilenstart den Zustand, sodass z.B. eine ```-Zeile innerhalb eines
   // ~~~-Fences den Block faelschlich beendete.
@@ -124,7 +124,7 @@ export function extractOutgoingLinks(text) {
 }
 
 export function snippetAroundIndex(line, idx) {
-  // R3-12 (4T-0183): Fenster um den Treffer-Index zentrieren. Vorher
+  // R3-12 (4T-000183): Fenster um den Treffer-Index zentrieren. Vorher
   // zeigten lange Zeilen unabhaengig von der Treffer-Position die ersten
   // 80 Zeichen — der Link selbst war dann nicht im Snippet sichtbar.
   const raw = String(line || '');
@@ -220,7 +220,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
     // schlaegt fehl. Markdown-Links tragen die Extension bereits im Quelltext.
     let resolveTarget = link.target;
     if (link.type === 'wikiLink' || link.type === 'embed') {
-      // 4T-0337 (Epic 3E-0061): relative Unterseiten-Ziele ('/Name', '..')
+      // 4T-000337 (Epic 3E-000061): relative Unterseiten-Ziele ('/Name', '..')
       // gegen die Quell-Datei expandieren (U+2215-Form).
       if (isRelativeTarget(resolveTarget)) {
         const ownBase = api.basename(sourcePath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
@@ -241,7 +241,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
       // Alias-Fallback nur fuer Wiki-Links und Embeds (Markdown-Links sind
       // explizite Pfade, dort gibt es keine Aliases).
       if (link.type === 'wikiLink' || link.type === 'embed') {
-        // 4T-0337: deterministischer Same-Dir-Versuch ('/' -> U+2215) vor
+        // 4T-000337: deterministischer Same-Dir-Versuch ('/' -> U+2215) vor
         // dem Index-Fallback, wie im Wiki-Link-Klick-Pfad.
         if (/[/\\]/.test(resolveTarget)) {
           const translated = toFileBasename(resolveTarget.replace(/\\/g, '/'));
@@ -252,7 +252,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
             return;
           }
         }
-        // 4T-0337: Index-Fallback wie im Wiki-Link-Klick-Pfad (B-13 plus
+        // 4T-000337: Index-Fallback wie im Wiki-Link-Klick-Pfad (B-13 plus
         // Unterseiten-Form), damit Panel-Klicks dieselben Ziele erreichen.
         const logical = resolveTarget
           .replace(/\.(md|markdown|mdown|mkd)$/i, '')
@@ -276,36 +276,36 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
         }
         const aliasTarget = await tryResolveByAlias(sourcePath, resolved);
         if (aliasTarget) {
-          // R3-06/R4-09 (4T-0186): Anker normalisieren (Slug bzw. ^-Strip)
+          // R3-06/R4-09 (4T-000186): Anker normalisieren (Slug bzw. ^-Strip)
           // und der tatsaechlichen Ziel-Pane folgen.
           const realPane = await openInPane(paneIdx, [aliasTarget]);
           if (link.anchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(link.anchor));
           return;
         }
       }
-      // W-16 (4T-0309): kein stiller No-op — Ziel existiert nicht (und kein
+      // W-16 (4T-000309): kein stiller No-op — Ziel existiert nicht (und kein
       // Alias-Treffer). Rueckmeldung wie bei Backlinks/Bookmarks.
       showStatusbarHint('outgoing.notOpenable', { duration: 2500, error: true });
       return;
     }
     const isMd = await api.isMarkdownPath(resolved);
     if (!isMd) {
-      // W-16 (4T-0309): Nicht-Markdown-Ziel — Klick blieb sonst reaktionslos.
+      // W-16 (4T-000309): Nicht-Markdown-Ziel — Klick blieb sonst reaktionslos.
       showStatusbarHint('outgoing.notOpenable', { duration: 2500, error: true });
       return;
     }
     const realPane = await openInPane(paneIdx, [resolved]);
     if (link.anchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(link.anchor));
   } catch (err) {
-    console.warn('[4T-0073] Outgoing-Link konnte nicht geoeffnet werden', err);
+    console.warn('[4T-000073] Outgoing-Link konnte nicht geoeffnet werden', err);
   }
 }
 
 export function applyOutgoingVisibility(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.outgoingSection) return;
-  // 4T-0075: Outgoing-Links im Empty-State zwangsweise unsichtbar.
-  // 4T-0294: bei deaktivierter Wiki-Link-Erweiterung ebenso.
+  // 4T-000075: Outgoing-Links im Empty-State zwangsweise unsichtbar.
+  // 4T-000294: bei deaktivierter Wiki-Link-Erweiterung ebenso.
   const visible =
     !isAllEmpty() && isExtensionActive('wiki-links') && !!state.outgoing.visibleByPane[paneIdx];
   els.outgoingSection.hidden = !visible;
@@ -328,7 +328,7 @@ export async function toggleOutgoingPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.outgoing.visibleByPane[paneIdx];
   state.outgoing.visibleByPane[paneIdx] = next;
-  // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
+  // 4T-000288: Einblenden aktiviert den Reiter in einer Gruppe.
   if (next) await ensurePanelTabActive('outgoing', paneIdx);
   applyOutgoingVisibility(paneIdx);
   await persistOutgoingSettings();
@@ -349,9 +349,9 @@ export async function loadOutgoingSettings() {
   state.outgoing.visibleByPane[1] = !!v1;
 }
 
-// === 4T-0287 (Epic 3E-0051): Panel-Registrierung =============================
+// === 4T-000287 (Epic 3E-000051): Panel-Registrierung =============================
 // Import-Seiteneffekt: getVisible spiegelt die effektive Sichtbarkeits-Logik
-// aus applyOutgoingVisibility inklusive Empty-State-Override (4T-0075).
+// aus applyOutgoingVisibility inklusive Empty-State-Override (4T-000075).
 registerSidebarPanel({
   id: 'outgoing',
   titleKey: 'outgoing.title',

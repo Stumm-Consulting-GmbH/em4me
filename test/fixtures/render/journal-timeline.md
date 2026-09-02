@@ -1,4 +1,4 @@
-# Journal-Timeline-Block (4T-1064)
+# Journal-Timeline-Block (4T-001064)
 
 Der Fence rendert als Platzhalter-Container mit dem Fence-Körper als Attribut;
 Modus-Auswertung, Kontext und Gitter baut der Renderer.

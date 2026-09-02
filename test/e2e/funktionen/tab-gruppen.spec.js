@@ -1,12 +1,12 @@
-// 4T-0460/4T-0461 (Epic 3E-0085): E2E-Funktions-Suite — Tab-Gruppen.
+// 4T-000460/4T-000461 (Epic 3E-000085): E2E-Funktions-Suite — Tab-Gruppen.
 // Deckt die Menue-Fluesse (anlegen, hinzufuegen, entfernen, umbenennen/
 // Farbe, aufloesen, schliessen), das Klappen mit Aktivierungs-Wechsel,
 // das Ziehen auf den Gruppen-Kopf, die Sitzungs-Wiederherstellung und
 // den Aus-Zustand der Erweiterung tab-groups ab. Der Dirty-Dialog-Fall
 // beim Gruppen-Schliessen bleibt manueller PO-Pruefpunkt (nativer Dialog).
-// 4T-0648 (Epic 3E-0130): TG-13 bis TG-15 pruefen die Einfuege-Position der
+// 4T-000648 (Epic 3E-000130): TG-13 bis TG-15 pruefen die Einfuege-Position der
 // per Dokument-Klick geoeffneten Reiter (neben der Herkunft).
-// 4T-0765 (Epic 3E-0158): TG-16 und TG-17 pruefen die Mehrfach-Auswahl
+// 4T-000765 (Epic 3E-000158): TG-16 und TG-17 pruefen die Mehrfach-Auswahl
 // (Strg- und Umschalt-Geste, Markierung ab zwei Mitgliedern) und das Ziehen
 // einer Menge als Block.
 'use strict';
@@ -34,7 +34,7 @@ async function tabMenuAction(page, tabText, menuId) {
 }
 
 // Neue Gruppe mit dem Tab bilden; der automatisch geoeffnete Dialog wird
-// mit Name/Farbe bestaetigt (Standard-Fluss aus 4T-0461).
+// mit Name/Farbe bestaetigt (Standard-Fluss aus 4T-000461).
 async function createGroupWithTab(page, tabText, { name, color } = {}) {
   await page.locator(SEL.tabs0, { hasText: tabText }).click({ button: 'right' });
   await page.locator(MENU_ITEM('tabgroup-new')).click();
@@ -61,7 +61,7 @@ async function readStrip(page) {
 
 // Nicht-Dokument-Oeffnungs-Pfad: externes 'file:openExternal' (Doppelklick/
 // "Oeffnen mit"). Landet ueber openInPane OHNE inheritGroup — dient dem
-// Negativ-Fall (4T-0631).
+// Negativ-Fall (4T-000631).
 async function openExternalFile(app, filePath) {
   await app.evaluate(({ BrowserWindow }, p) => {
     const win = BrowserWindow.getAllWindows()[0];
@@ -131,7 +131,7 @@ test.describe('TG-02: Zu Gruppe hinzufuegen und aus Gruppe entfernen', () => {
   });
 });
 
-// 4T-0767 (Epic 3E-0158): Der Fall prueft nicht mehr den Aktivierungs-Wechsel
+// 4T-000767 (Epic 3E-000158): Der Fall prueft nicht mehr den Aktivierungs-Wechsel
 // beim Zuklappen (Sichtbarkeits-Garantie entfallen), sondern das Zuklappen aus
 // einer Lage heraus, in der der aktive Reiter AUSSERHALB der Gruppe liegt.
 test.describe('TG-03: Klappen ueber den Gruppen-Kopf', () => {
@@ -363,7 +363,7 @@ test.describe('TG-08: Aus-Zustand der Erweiterung tab-groups', () => {
   });
 });
 
-test.describe('TG-09: Link-Klick im Render-Modus erbt die Tab-Gruppe (4T-0631)', () => {
+test.describe('TG-09: Link-Klick im Render-Modus erbt die Tab-Gruppe (4T-000631)', () => {
   test('Wiki-Link im gerenderten Dokument oeffnet das Ziel in der Gruppe und aktiviert es', async () => {
     // Setup: A (mit Wiki-Link auf B) und ein ungruppierter C hinter der Gruppe,
     // damit der Einfuege-Ort (in der Gruppe, nicht am Streifen-Ende) beweisbar ist.
@@ -391,7 +391,7 @@ test.describe('TG-09: Link-Klick im Render-Modus erbt die Tab-Gruppe (4T-0631)',
   });
 });
 
-test.describe('TG-10: Link-Klick im Live-Modus erbt die Tab-Gruppe (4T-0631)', () => {
+test.describe('TG-10: Link-Klick im Live-Modus erbt die Tab-Gruppe (4T-000631)', () => {
   test('Live-Wiki-Link oeffnet das Ziel in der Gruppe und aktiviert es', async () => {
     const { app, page, userData } = await launchApp({ args: [FIX('link-a'), FIX('c')] });
     try {
@@ -416,7 +416,7 @@ test.describe('TG-10: Link-Klick im Live-Modus erbt die Tab-Gruppe (4T-0631)', (
   });
 });
 
-test.describe('TG-11: Nicht-Dokument-Oeffnung erbt keine Gruppe (4T-0631)', () => {
+test.describe('TG-11: Nicht-Dokument-Oeffnung erbt keine Gruppe (4T-000631)', () => {
   test('Externes Oeffnen bei aktivem Gruppen-Tab haengt den neuen Tab ungruppiert ans Streifen-Ende', async () => {
     const { app, page, userData } = await launchApp({ args: [FIX('link-a')] });
     try {
@@ -438,7 +438,7 @@ test.describe('TG-11: Nicht-Dokument-Oeffnung erbt keine Gruppe (4T-0631)', () =
   });
 });
 
-test.describe('TG-12: Geerbtes Gruppen-Mitglied ueberlebt den Neustart (4T-0631)', () => {
+test.describe('TG-12: Geerbtes Gruppen-Mitglied ueberlebt den Neustart (4T-000631)', () => {
   test('Ein per Link-Klick beigetretener Tab ist nach dem Neustart wieder Gruppen-Mitglied', async () => {
     const first = await launchApp({ args: [FIX('link-a')] });
     const userData = first.userData;
@@ -474,20 +474,20 @@ test.describe('TG-12: Geerbtes Gruppen-Mitglied ueberlebt den Neustart (4T-0631)
   });
 });
 
-// 4T-0648 (Epic 3E-0130): Der per Dokument-Klick geoeffnete Reiter liegt
+// 4T-000648 (Epic 3E-000130): Der per Dokument-Klick geoeffnete Reiter liegt
 // unmittelbar rechts neben seinem Herkunfts-Reiter, nicht mehr am Gruppen-
 // oder Streifen-Ende. Bei einer Gruppe mit nur einem Mitglied sind beide Orte
 // identisch — die Faelle unten stellen die Herkunft deshalb bewusst VOR ein
 // weiteres Element.
 
-test.describe('TG-13: Link-Klick oeffnet neben der Herkunft im Gruppen-Block (4T-0648)', () => {
+test.describe('TG-13: Link-Klick oeffnet neben der Herkunft im Gruppen-Block (4T-000648)', () => {
   test('Herkunft ist das erste von zwei Mitgliedern; das Ziel landet dazwischen', async () => {
     const { app, page, userData } = await launchApp({ args: [FIX('link-a'), FIX('c')] });
     try {
       await waitForTabs(page, 2);
       await createGroupWithTab(page, 'tab-gruppen-link-a', { name: 'Recherche' });
       // C derselben Gruppe hinzufuegen: Block ist [link-a, c], die Herkunft
-      // link-a steht vorn. Am Gruppen-Ende (Verhalten vor 4T-0648) waere das
+      // link-a steht vorn. Am Gruppen-Ende (Verhalten vor 4T-000648) waere das
       // Ziel hinter c gelandet.
       await page.locator(SEL.tabs0, { hasText: 'tab-gruppen-c' }).click({ button: 'right' });
       await page.locator(MENU_ITEM('tabgroup-add')).hover();
@@ -518,7 +518,7 @@ test.describe('TG-13: Link-Klick oeffnet neben der Herkunft im Gruppen-Block (4T
   });
 });
 
-test.describe('TG-14: Link-Klick oeffnet neben der Herkunft ohne Gruppe (4T-0648)', () => {
+test.describe('TG-14: Link-Klick oeffnet neben der Herkunft ohne Gruppe (4T-000648)', () => {
   test('Herkunft in der Streifen-Mitte; das Ziel landet dahinter statt am Ende', async () => {
     const { app, page, userData } = await launchApp({
       args: [FIX('a'), FIX('link-a'), FIX('c')],
@@ -543,7 +543,7 @@ test.describe('TG-14: Link-Klick oeffnet neben der Herkunft ohne Gruppe (4T-0648
   });
 });
 
-test.describe('TG-15: Positions-Regel gilt bei abgeschalteter Erweiterung (4T-0648)', () => {
+test.describe('TG-15: Positions-Regel gilt bei abgeschalteter Erweiterung (4T-000648)', () => {
   test('Ohne tab-groups landet das Ziel ebenfalls neben seiner Herkunft', async () => {
     const { app, page, userData } = await launchApp({
       args: [FIX('a'), FIX('link-a'), FIX('c')],
@@ -577,7 +577,7 @@ test.describe('TG-15: Positions-Regel gilt bei abgeschalteter Erweiterung (4T-06
   });
 });
 
-// --- Mehrfach-Auswahl (4T-0765, Epic 3E-0158) --------------------------------
+// --- Mehrfach-Auswahl (4T-000765, Epic 3E-000158) --------------------------------
 
 // Synthetischer HTML5-Drag von Reiter auf Reiter. clientX entscheidet ueber
 // die Drop-Haelfte und damit ueber den Einfuege-Index (Muster TG-06, dort
@@ -602,7 +602,7 @@ async function ziehe(page, vonText, aufText, { rechteHaelfte = false } = {}) {
 
 const SELECTED = '.pane-group[data-pane="0"] .tabbar .tab.tab-selected';
 
-test.describe('TG-16: Mehrfach-Auswahl per Strg und Umschalt (4T-0765)', () => {
+test.describe('TG-16: Mehrfach-Auswahl per Strg und Umschalt (4T-000765)', () => {
   test('Strg nimmt einzeln auf, Umschalt bildet die Spanne, Markierung erscheint ab zwei', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {
@@ -631,7 +631,7 @@ test.describe('TG-16: Mehrfach-Auswahl per Strg und Umschalt (4T-0765)', () => {
   });
 });
 
-test.describe('TG-17: Ziehen bewegt die ganze Auswahl (4T-0765)', () => {
+test.describe('TG-17: Ziehen bewegt die ganze Auswahl (4T-000765)', () => {
   test('Zwei ausgewaehlte Reiter wandern als Block ans Leisten-Ende', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {
@@ -653,7 +653,7 @@ test.describe('TG-17: Ziehen bewegt die ganze Auswahl (4T-0765)', () => {
   });
 });
 
-test.describe('TG-18: Menge tritt einer Gruppe bei (4T-0766)', () => {
+test.describe('TG-18: Menge tritt einer Gruppe bei (4T-000766)', () => {
   test('Zwei ausgewaehlte Reiter haengen sich ueber das Kontextmenue ans Block-Ende', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {
@@ -682,7 +682,7 @@ test.describe('TG-18: Menge tritt einer Gruppe bei (4T-0766)', () => {
   });
 });
 
-test.describe('TG-19: Menge verlaesst die Gruppe (4T-0766)', () => {
+test.describe('TG-19: Menge verlaesst die Gruppe (4T-000766)', () => {
   test('Die ausgewaehlten Mitglieder stehen danach hinter ihrem Block', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {
@@ -713,7 +713,7 @@ test.describe('TG-19: Menge verlaesst die Gruppe (4T-0766)', () => {
   });
 });
 
-test.describe('TG-20: Zuklappen mit aktivem Reiter darin (4T-0767)', () => {
+test.describe('TG-20: Zuklappen mit aktivem Reiter darin (4T-000767)', () => {
   test('Der aktive Reiter bleibt aktiv, sein Inhalt sichtbar, der Kopf zeigt es an', async () => {
     const first = await launchApp({ args: THREE_FILES });
     const userData = first.userData;
@@ -762,7 +762,7 @@ test.describe('TG-20: Zuklappen mit aktivem Reiter darin (4T-0767)', () => {
   });
 });
 
-test.describe('TG-21: Aufklapp-Menue beim Ueberfahren (4T-0768)', () => {
+test.describe('TG-21: Aufklapp-Menue beim Ueberfahren (4T-000768)', () => {
   test('Zeigen listet die Mitglieder, ein Klick wechselt, die Gruppe bleibt zu', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {
@@ -800,7 +800,7 @@ test.describe('TG-21: Aufklapp-Menue beim Ueberfahren (4T-0768)', () => {
   });
 });
 
-test.describe('TG-22: Kein Aufklapp-Menue an offener Gruppe (4T-0768)', () => {
+test.describe('TG-22: Kein Aufklapp-Menue an offener Gruppe (4T-000768)', () => {
   test('Zeigen auf einen aufgeklappten Kopf oeffnet nichts', async () => {
     const { app, page, userData } = await launchApp({ args: THREE_FILES });
     try {

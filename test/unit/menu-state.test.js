@@ -1,6 +1,6 @@
-// 4T-0277 (Epic 3E-0049): Unit-Tests für die Menü-State-Normalisierung
+// 4T-000277 (Epic 3E-000049): Unit-Tests für die Menü-State-Normalisierung
 // (src/main/menu/menu-state.js). Kern ist der Regressionstest zum
-// Durchreich-Fehler aus 4T-0213: der Renderer meldete manualTab, das
+// Durchreich-Fehler aus 4T-000213: der Renderer meldete manualTab, das
 // frühere getMenuState (main.js) reichte das Feld aber nicht an die
 // Menü-Factory durch — Speichern/Speichern unter/Bearbeiten blieben bei
 // Handbuch-Tabs fälschlich aktiv. Gleicher Vertrag gilt für das neue
@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { normalizeMenuState } from '../../src/main/menu/menu-state.js';
 
-describe('normalizeMenuState (4T-0277)', () => {
-  it('Regression 4T-0277: manualTab und systemTab werden durchgereicht', () => {
+describe('normalizeMenuState (4T-000277)', () => {
+  it('Regression 4T-000277: manualTab und systemTab werden durchgereicht', () => {
     const state = normalizeMenuState({ hasActiveTab: true, manualTab: true, systemTab: true }, {});
     expect(state.manualTab).toBe(true);
     expect(state.systemTab).toBe(true);
@@ -33,14 +33,14 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(state.hasActiveTab).toBe(false);
     expect(state.recentFiles).toEqual([]);
     expect(state.themePref).toBe('system');
-    // 4T-0538 (Epic 3E-0098): ohne Store-Werte keine Arbeitsbereichs-Daten.
+    // 4T-000538 (Epic 3E-000098): ohne Store-Werte keine Arbeitsbereichs-Daten.
     expect(state.hasWorkspace).toBe(false);
     expect(state.workspaces).toEqual([]);
   });
 
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Zuordnung und Untermenue-Liste
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Zuordnung und Untermenue-Liste
   // werden fuer Menue-Dimmung und Untermenue-Aufbau durchgereicht.
-  it('4T-0538: hasWorkspace und workspaces werden durchgereicht', () => {
+  it('4T-000538: hasWorkspace und workspaces werden durchgereicht', () => {
     const list = [{ id: 'ws-1', name: 'Projekt Alpha', color: 'green', open: true }];
     const state = normalizeMenuState({}, { hasWorkspace: true, workspaces: list });
     expect(state.hasWorkspace).toBe(true);
@@ -64,11 +64,11 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(state.hotkeys).toEqual({ x: 'Ctrl+X' });
   });
 
-  // 4T-0888 (Epic 3E-0168): Die Listen „Zuletzt geöffnete Bücher/Bücherregale"
+  // 4T-000888 (Epic 3E-000168): Die Listen „Zuletzt geöffnete Bücher/Bücherregale"
   // brauchen denselben Durchreich-Weg wie die Bereichs-Liste — fehlt er, baut
   // die Menü-Factory die beiden Untermenüs dauerhaft leer auf (Regressions-
-  // Muster 4T-0277).
-  it('4T-0888: reicht recentBooks und recentShelves durch', () => {
+  // Muster 4T-000277).
+  it('4T-000888: reicht recentBooks und recentShelves durch', () => {
     const state = normalizeMenuState(
       {},
       { recentBooks: ['C:\\Buch1'], recentShelves: ['C:\\Regal1', 'C:\\Regal2'] },
@@ -77,7 +77,7 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(state.recentShelves).toEqual(['C:\\Regal1', 'C:\\Regal2']);
   });
 
-  it('4T-0888: normalisiert fehlende und ungültige Buch-/Regal-Listen auf leer', () => {
+  it('4T-000888: normalisiert fehlende und ungültige Buch-/Regal-Listen auf leer', () => {
     const state = normalizeMenuState({}, { recentBooks: 'kein-array', recentShelves: 42 });
     expect(state.recentBooks).toEqual([]);
     expect(state.recentShelves).toEqual([]);
@@ -91,7 +91,7 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(state.recentFiles).toEqual([]);
   });
 
-  // 4T-0294 (Epic 3E-0052): Kommandos deaktivierter Erweiterungen werden
+  // 4T-000294 (Epic 3E-000052): Kommandos deaktivierter Erweiterungen werden
   // an die Menü-Factory durchgereicht (deren Einträge entfallen dort).
   it('reicht disabledCommands durch und normalisiert Nicht-Arrays', () => {
     const state = normalizeMenuState({}, { disabledCommands: ['view.toggleTags'] });
@@ -100,10 +100,10 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(normalizeMenuState(null, null).disabledCommands).toEqual([]);
   });
 
-  // 4T-0568 (Epic 3E-0104): geordnete Panel-Liste für das Panel-Untermenü —
+  // 4T-000568 (Epic 3E-000104): geordnete Panel-Liste für das Panel-Untermenü —
   // ersetzt die früheren xxxVisible-Einzel-Flags (vier davon wurden nie
   // durchgereicht, deren Menü-Häkchen blieben dauerhaft leer).
-  it('4T-0568: reicht die Panel-Liste geordnet durch und erzwingt boolesche Sichtbarkeit', () => {
+  it('4T-000568: reicht die Panel-Liste geordnet durch und erzwingt boolesche Sichtbarkeit', () => {
     const state = normalizeMenuState(
       {
         panels: [
@@ -121,7 +121,7 @@ describe('normalizeMenuState (4T-0277)', () => {
     ]);
   });
 
-  it('4T-0568: verwirft ungültige Panel-Einträge und Nicht-Arrays', () => {
+  it('4T-000568: verwirft ungültige Panel-Einträge und Nicht-Arrays', () => {
     const state = normalizeMenuState(
       { panels: [null, { visible: true }, { id: '' }, { id: 'notes' }, 'kaputt'] },
       {},
@@ -131,9 +131,9 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(normalizeMenuState(null, null).panels).toEqual([]);
   });
 
-  // 4T-0626 (Epic 3E-0119): Sidebar-Varianten-Listen für das Untermenü
+  // 4T-000626 (Epic 3E-000119): Sidebar-Varianten-Listen für das Untermenü
   // „Sidebar-Anordnungen" — Gruppen global/area plus Bereichs-Name.
-  it('4T-0626: reicht die Varianten-Listen durch und verwirft ungültige Einträge', () => {
+  it('4T-000626: reicht die Varianten-Listen durch und verwirft ungültige Einträge', () => {
     const state = normalizeMenuState(
       {
         sidebarVariants: {
@@ -156,10 +156,10 @@ describe('normalizeMenuState (4T-0277)', () => {
     });
   });
 
-  // 4T-0881 (Epic 3E-0162): Regression zur Regal-Bindung — hasShelf wurde
+  // 4T-000881 (Epic 3E-000162): Regression zur Regal-Bindung — hasShelf wurde
   // nicht durchgereicht, «Bücherregal schließen» blieb dadurch immer
-  // deaktiviert. Gleicher Vertrag wie hasArea/hasBook (Muster 4T-0277).
-  it('4T-0881: hasBook und hasShelf werden durchgereicht und normalisieren auf false', () => {
+  // deaktiviert. Gleicher Vertrag wie hasArea/hasBook (Muster 4T-000277).
+  it('4T-000881: hasBook und hasShelf werden durchgereicht und normalisieren auf false', () => {
     const state = normalizeMenuState({}, { hasArea: true, hasBook: true, hasShelf: true });
     expect(state.hasArea).toBe(true);
     expect(state.hasBook).toBe(true);
@@ -170,7 +170,7 @@ describe('normalizeMenuState (4T-0277)', () => {
     expect(leer.hasShelf).toBe(false);
   });
 
-  it('4T-0626: liefert ohne Meldung die leere Varianten-Form', () => {
+  it('4T-000626: liefert ohne Meldung die leere Varianten-Form', () => {
     expect(normalizeMenuState(null, null).sidebarVariants).toEqual({
       global: [],
       area: [],
@@ -184,11 +184,11 @@ describe('normalizeMenuState (4T-0277)', () => {
   });
 });
 
-// 4T-0900 (Epic 3E-0016): Durchlauf-Waechter der Menue-Zustands-Durchreichung.
+// 4T-000900 (Epic 3E-000016): Durchlauf-Waechter der Menue-Zustands-Durchreichung.
 //
 // Die Einzelfaelle oben sind je aus einem Vorfall entstanden, in dem ein Feld
-// still unter den Tisch fiel: 4T-0277 (manualTab), 4T-0568 (vier Panel-Flags)
-// und 4T-0881 (hasShelf, der Menuepunkt blieb dauerhaft deaktiviert). Sie
+// still unter den Tisch fiel: 4T-000277 (manualTab), 4T-000568 (vier Panel-Flags)
+// und 4T-000881 (hasShelf, der Menuepunkt blieb dauerhaft deaktiviert). Sie
 // sichern genau die damals gefundenen Felder — das naechste neue Feld faellt
 // genauso still aus. Dieser Waechter prueft stattdessen die ganze Menge.
 //
@@ -197,7 +197,7 @@ describe('normalizeMenuState (4T-0277)', () => {
 //   stored (s.*) stellt der Hauptprozess in main.js bereit
 // Beide Bereitsteller sind je ein einziges Objekt-Literal, deshalb genuegt ein
 // Quelltext-Vergleich (Muster: kommando-dispatcher.test.js).
-describe('Menü-Zustands-Durchreichung: Feldmengen (4T-0900)', () => {
+describe('Menü-Zustands-Durchreichung: Feldmengen (4T-000900)', () => {
   const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
   const lies = (p) => fs.readFileSync(path.join(WURZEL, p), 'utf8');
 
@@ -251,7 +251,7 @@ describe('Menü-Zustands-Durchreichung: Feldmengen (4T-0900)', () => {
   });
 
   it('jedes vom Hauptprozess bereitgestellte Feld wird gelesen, und umgekehrt', () => {
-    // 4T-0998: getMenuState liegt seit dem Main-Schnitt in menu/menu-apply.js;
+    // 4T-000998: getMenuState liegt seit dem Main-Schnitt in menu/menu-apply.js;
     // der Anker selbst ist unveraendert mitgereist.
     const bereitgestellt = literalSchluessel(
       lies('src/main/menu/menu-apply.js'),

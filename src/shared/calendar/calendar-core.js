@@ -1,4 +1,4 @@
-// 4T-0542 (Epic 3E-0097): Kalender-Kern — Definitions-Modell und Rechen-Achse
+// 4T-000542 (Epic 3E-000097): Kalender-Kern — Definitions-Modell und Rechen-Achse
 // benutzerdefinierter Kalender-Systeme (Fantasie-Kalender, reale Nicht-West-
 // Kalender). Prozess-neutral (kein DOM, kein Electron; Muster journal-core.js):
 // Main (Bereichs-Ablage) und Renderer (Einstellungen, Picker, Wert-Syntax)
@@ -750,7 +750,7 @@ function formatTuple(cal, tuple, opts = {}) {
   const c = compileSafe(cal);
   if (!c || !Array.isArray(cal.epochs) || cal.epochs.length === 0) return null;
   if (!validateTuple(cal, tuple).ok) return null;
-  // 4T-0747: Abgeleitete Zeitrechnungen zählen vom Nullpunkt weg statt in
+  // 4T-000747: Abgeleitete Zeitrechnungen zählen vom Nullpunkt weg statt in
   // Kalender-Koordinaten; Positions-Namen gibt es dort nicht.
   if (cal.derived) return formatDerived(cal, c, tuple);
   const ep = epochOfUnchecked(cal, c, tuple);
@@ -854,7 +854,7 @@ function convertInBlock(block, fromId, tuple, toId) {
 
 // Dieselbe Umrechnung zwischen zwei Kalender-Objekten. Sie trägt auch dann,
 // wenn der Ziel-Kalender nicht im Block steht — der Fall einer Ableitung auf
-// die eingebaute Standard-Zeitrechnung (4T-0748). Die Block-Zugehörigkeit
+// die eingebaute Standard-Zeitrechnung (4T-000748). Die Block-Zugehörigkeit
 // prüft der Aufrufer; die Rechnung selbst braucht nur Anker und Skala.
 function convertBetween(from, tuple, to) {
   if (!from || !to) return { ok: false, code: 'unknownCalendar' };
@@ -871,7 +871,7 @@ function convertBetween(from, tuple, to) {
   return out ? { ok: true, tuple: out } : { ok: false, code: 'outOfRange' };
 }
 
-// --- Wert-Syntax im Dokument (4T-0546) -------------------------------------------------
+// --- Wert-Syntax im Dokument (4T-000546) -------------------------------------------------
 // `@{Kalendername: Wert}` — eine Zeile, keine geschachtelten Klammern; der
 // erste Doppelpunkt trennt Name und Wert (Kalendernamen mit Doppelpunkt
 // sind nicht adressierbar, dokumentierte Grenze). Gemeinsame Erkennungs-
@@ -930,7 +930,7 @@ function findCalendarByName(config, name) {
 
 // --- Ebenen-Helfer der Positions-Rechnung ---------------------------------------------
 //
-// 4T-0995 (Epic 3E-0196): Diese drei Helfer standen im Abschnitt der
+// 4T-000995 (Epic 3E-000196): Diese drei Helfer standen im Abschnitt der
 // abgeleiteten Zeitrechnungen, werden aber auch von der Zeitspannen-
 // Staffelung dieses Moduls gebraucht (spanParts, tupleFromAbs,
 // totalAtLevel) und bleiben deshalb im Kern.
@@ -961,7 +961,7 @@ function nextAtLevel(c, tuple, levelIdx) {
   out[0] += 1;
   return out;
 }
-// --- Zeitspannen-Staffelung (4T-0746) --------------------------------------------------
+// --- Zeitspannen-Staffelung (4T-000746) --------------------------------------------------
 
 // Einheiten-Leiter einer Zeitrechnung, von der kleinsten zur größten:
 // die Datums-Ebenen, dazu Zyklen und Gruppierungen als reine Rechen-
@@ -996,7 +996,7 @@ function spanParts(cal, tuple) {
   if (!cal.epochs[1].start || !validateTuple(cal, tuple).ok) return null;
   const zeroFull = cal.epochs[1].start.concat(timeStartSegs(c));
   const axisZero = tupleToAxisUnchecked(c, zeroFull);
-  // Der Zeit-Anteil bleibt außen vor (4T-0745, Punkt 4b): gezählt wird der
+  // Der Zeit-Anteil bleibt außen vor (4T-000745, Punkt 4b): gezählt wird der
   // Datums-Anteil, der Zeit-Anteil wandert unverändert durch die Anzeige.
   const dateOnly = floorAtLevel(c, tuple, c.timeCount);
   const axisVal = tupleToAxisUnchecked(c, dateOnly);
@@ -1069,7 +1069,7 @@ function stepAxisAtLevel(cal, c, axis, levelIdx, n) {
   return next ? tupleToAxisUnchecked(c, next) : null;
 }
 
-// --- Kanonische Form abgeleiteter Zeitrechnungen (4T-0747, Variante B) -----------------
+// --- Kanonische Form abgeleiteter Zeitrechnungen (4T-000747, Variante B) -----------------
 //
 // Sie zählt in BEIDE Richtungen vom Nullpunkt weg: gröbere Einheiten als
 // vollständige Anzahl ab 0, die kleinste Datums-Einheit als Ordnungszahl ab
@@ -1195,7 +1195,7 @@ function spanTiers(cal, tuple) {
 }
 
 module.exports = {
-  // 4T-0746 (Epic 3E-0138): Zeitspannen.
+  // 4T-000746 (Epic 3E-000138): Zeitspannen.
   spanUnits,
   spanTiers,
   tupleToAxis,
@@ -1210,10 +1210,10 @@ module.exports = {
   convertInBlock,
   convertBetween,
   findCalendarByName,
-  // 4T-0546: Wert-Syntax im Dokument (gemeinsame Erkennungs-Quelle).
+  // 4T-000546: Wert-Syntax im Dokument (gemeinsame Erkennungs-Quelle).
   parseCalendarValueRaw,
   findCalendarValues,
-  // 4T-0995 (Epic 3E-0196): ordner-interne Bausteine fuer calendar-config.js.
+  // 4T-000995 (Epic 3E-000196): ordner-interne Bausteine fuer calendar-config.js.
   // Sie sind KEINE Aussen-API des Kalender-Kerns: ausserhalb von
   // src/shared/calendar/ wird nichts davon geladen. Sie stehen hier, weil
   // die Sektions-Normalisierung und die Ableitung auf denselben

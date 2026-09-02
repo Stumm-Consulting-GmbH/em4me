@@ -1,4 +1,4 @@
-// 4T-0542 (Epic 3E-0097): Unit-Tests des Kalender-Kerns — tolerante
+// 4T-000542 (Epic 3E-000097): Unit-Tests des Kalender-Kerns — tolerante
 // Normalisierung (Fehler-Isolation pro Block/Kalender), Gegenprobe der
 // gregorianischen Vorlage gegen Date/Format-Kern, Roundtrip-Identität der
 // Achsen-Arithmetik (BigInt), Epochen, Zyklen/Gruppierungen, kanonisches
@@ -19,7 +19,7 @@ import {
   spanUnits,
   spanTiers,
 } from '../../src/shared/calendar/calendar-core.js';
-// 4T-0995 (Epic 3E-0196): Sektions-Normalisierung und Persistenz-Form liegen
+// 4T-000995 (Epic 3E-000196): Sektions-Normalisierung und Persistenz-Form liegen
 // im Konfigurations-Rand, die gregorianische Vorlage in ihrem eigenen Modul.
 import {
   normalizeCalendarConfig,
@@ -711,9 +711,9 @@ describe('findCalendarByName — Bezugsname der Wert-Syntax', () => {
   });
 });
 
-// --- Abgeleitete Zeitrechnungen (4T-0746, Epic 3E-0138) ---------------------
+// --- Abgeleitete Zeitrechnungen (4T-000746, Epic 3E-000138) ---------------------
 // Die Zahlen der Erwartungen stammen aus den Messungen der Konzept-Runde
-// 4T-0745 (Protokoll-Zeilen 3b und 5).
+// 4T-000745 (Protokoll-Zeilen 3b und 5).
 
 // Block mit dem gregorianischen Kalender und einer Ableitung; `roh`
 // ergänzt oder überschreibt die Angaben der Ableitung.
@@ -904,7 +904,7 @@ describe('spanTiers — gestaffelte Zeitspanne', () => {
     expect(zaehl(spanTiers(cal, nullpunkt).tiers, 0)).toBe('1 Tag');
   });
 
-  it('legt die Ableitung in kurzer Form ab, nicht als Abschrift (4T-0747)', () => {
+  it('legt die Ableitung in kurzer Form ab, nicht als Abschrift (4T-000747)', () => {
     // Regressionstest: Die Ablage schrieb zunächst die aufgelöste Form. Damit
     // verlor die Ableitung ihren Bezug, und eine spätere Änderung am Bezug
     // hätte sie nie mehr erreicht.
@@ -934,7 +934,7 @@ describe('spanTiers — gestaffelte Zeitspanne', () => {
     expect(configForPersist(roh, null)).toBeNull();
   });
 
-  it('zählt in der kanonischen Form vom Nullpunkt weg (4T-0747, Variante B)', () => {
+  it('zählt in der kanonischen Form vom Nullpunkt weg (4T-000747, Variante B)', () => {
     // Der Nullpunkt ist 0-0-1: gröbere Einheiten als vollständige Anzahl
     // ab 0, die kleinste Datums-Einheit als Ordnungszahl ab 1. Vor dem
     // Nullpunkt zählt dieselbe Form spiegelbildlich.

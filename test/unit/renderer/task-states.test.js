@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0497 (Epic 3E-0090): Migration und Ketten-Toggle im Renderer-Modul
+// 4T-000497 (Epic 3E-000090): Migration und Ketten-Toggle im Renderer-Modul
 // task-states.js — Aufloesung (resolveStoredTaskStates ergaenzt Typ/Folge-
 // Symbol verhaltensneutral, respektiert und normalisiert gespeicherte
 // Werte), Persistenz-Form (toStoredTaskStates traegt beide Felder) und der
@@ -9,7 +9,7 @@ import './api-stub.js';
 
 const taskStates = await import('../../../src/renderer/modules/task-states.js');
 
-describe('resolveStoredTaskStates: Typ/Folge-Symbol-Migration (4T-0497)', () => {
+describe('resolveStoredTaskStates: Typ/Folge-Symbol-Migration (4T-000497)', () => {
   it('ergaenzt fehlende Felder verhaltensneutral (builtin aus Default, alle next x)', () => {
     const list = taskStates.resolveStoredTaskStates(null);
     const slash = list.find((s) => s.char === '/');
@@ -50,7 +50,7 @@ describe('resolveStoredTaskStates: Typ/Folge-Symbol-Migration (4T-0497)', () => 
   });
 });
 
-describe('toStoredTaskStates persistiert Typ/Folge-Symbol (4T-0497)', () => {
+describe('toStoredTaskStates persistiert Typ/Folge-Symbol (4T-000497)', () => {
   it('builtin und custom tragen type und next', () => {
     const resolved = taskStates.resolveStoredTaskStates([
       { char: '+', builtin: false, enabled: true, label: 'Geplant', type: 'ON_HOLD', next: 'z' },
@@ -66,7 +66,7 @@ describe('toStoredTaskStates persistiert Typ/Folge-Symbol (4T-0497)', () => {
   });
 });
 
-describe('computeStatusToggle folgt der Kette (4T-0497)', () => {
+describe('computeStatusToggle folgt der Kette (4T-000497)', () => {
   it('konfiguriertes Folge-Symbol steuert Uebergang und Typen', () => {
     // '/' (IN_PROGRESS) hat Folge-Symbol '-' (CANCELLED) statt hart 'x'.
     const resolved = taskStates.resolveStoredTaskStates([

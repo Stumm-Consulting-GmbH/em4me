@@ -2,7 +2,7 @@
 // freigeben, Rueckfall auf den Abfrage-Betrieb bei Netz-Freigaben und der
 // Umzug einer Beobachtung beim Umbenennen bzw. Verschieben.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196).
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196).
 //
 // Eigentuemer-Zustand dieses Moduls:
 //   watchers : Map<filePath, { watcher, owners: Set<webContents.id>, polling }>
@@ -15,7 +15,7 @@ const chokidar = require('chokidar');
 const netzPfade = require('./network-paths');
 const selbstSchreib = require('./self-write');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const isOwnWriteState = selbstSchreib.istEigenerStand;
 
@@ -36,7 +36,7 @@ function createFileWatching(deps) {
   function watchFile(filePath, ownerId) {
     let entry = watchers.get(filePath);
     if (!entry) {
-      // 4T-0946 (Story 4S-0005): Auf Netz-Freigaben kommen die nativen
+      // 4T-000946 (Story 4S-000005): Auf Netz-Freigaben kommen die nativen
       // Datei-Ereignisse unzuverlaessig; dort laeuft die Beobachtung im
       // Abfrage-Betrieb. Lokale Pfade behalten die nativen Ereignisse.
       const watcher = chokidar.watch(filePath, {
@@ -50,7 +50,7 @@ function createFileWatching(deps) {
       watcher.on('change', async () => {
         // Eigene Schreibvorgaenge nicht als externer Change melden; eine
         // abweichende (echte externe) Aenderung im Self-Writing-Fenster
-        // wird durchgelassen (M-15, 4T-0173).
+        // wird durchgelassen (M-15, 4T-000173).
         if (await isOwnWriteState(filePath)) return;
         for (const id of entry.owners) {
           const win = windows().get(id);
@@ -63,7 +63,7 @@ function createFileWatching(deps) {
           if (win && !win.isDestroyed()) win.webContents.send('file:removed', filePath);
         }
       });
-      // W-04 (4T-0309): Watcher-Fehler behandeln (z.B. wegfallendes Netz-
+      // W-04 (4T-000309): Watcher-Fehler behandeln (z.B. wegfallendes Netz-
       // laufwerk). Ohne Handler wuerde chokidars EventEmitter ein unbehandeltes
       // 'error'-Event werfen und koennte den Main-Prozess abbrechen; backlinks.js
       // behandelt denselben Fall bereits (B-21).
@@ -112,7 +112,7 @@ function createFileWatching(deps) {
     if (entry.owners.size === 0) {
       await entry.watcher.close();
       watchers.delete(filePath);
-      // 4T-0947: Mit dem Ende der Beobachtung wird der gemerkte Eigen-Stand
+      // 4T-000947: Mit dem Ende der Beobachtung wird der gemerkte Eigen-Stand
       // gegenstandslos — es kommt keine Meldung mehr, die er einordnen koennte.
       selbstSchreib.vergiss(filePath);
     }
@@ -151,7 +151,7 @@ function createFileWatching(deps) {
    * kein unlink-Ereignis ('file:removed') die Tabs als fehlend markiert; die
    * Besitzer werden danach auf den neuen Pfad umgemeldet. Scheitert die
    * Bewegung, kommt die alte Beobachtung zurueck und der Zustand bleibt
-   * konsistent. 4T-0998: aus dem IPC-Block herausgeloest, der bis dahin selbst
+   * konsistent. 4T-000998: aus dem IPC-Block herausgeloest, der bis dahin selbst
    * in die watchers-Map griff; die Semantik ist unveraendert.
    *
    * @param {string} oldPath Bisheriger Pfad.

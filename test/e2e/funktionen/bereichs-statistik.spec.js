@@ -1,4 +1,4 @@
-// 4T-0620 (Epic 3E-0117): E2E-Funktions-Suite der Bereichs-Statistik.
+// 4T-000620 (Epic 3E-000117): E2E-Funktions-Suite der Bereichs-Statistik.
 // BS-01: Öffnen über den Menü-Kanal (read-only System-Seite, sechs
 // Abschnitte, Zahlen treffen den angelegten Bestand); BS-02: erneutes
 // Öffnen aktiviert den bestehenden Tab statt zu duplizieren; BS-03:
@@ -221,11 +221,11 @@ test.describe('BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118)',
       await page.evaluate(() => window.api.setSetting('extensions.disabled', ['area-stats']));
       await expect
         .poll(async () => {
-          // 4T-0874: Vor jedem Versuch das ggf. offene Menue schliessen —
+          // 4T-000874: Vor jedem Versuch das ggf. offene Menue schliessen —
           // ein zweiter Rechtsklick bei offenem Menue trifft das Menue statt
           // die Zeile, und der Poll bliebe auf dem alten Stand stehen.
           //
-          // 4T-1086: Gewartet wird auf das **geschlossene Menue**, nicht auf
+          // 4T-001086: Gewartet wird auf das **geschlossene Menue**, nicht auf
           // eine feste Zeitspanne. Die fruehere Pause von 300 ms war unter
           // Last zu kurz: Das Menue stand noch offen, der Rechtsklick traf es
           // statt die Zeile, und die Zaehlung fiel deshalb NIE auf 0 — der

@@ -1,4 +1,4 @@
-// 4T-0455 (Epic 3E-0084): E2E-Funktions-Suite Bereichs-Graph-Tab.
+// 4T-000455 (Epic 3E-000084): E2E-Funktions-Suite Bereichs-Graph-Tab.
 // GA-01: Öffnen über den Menü-Kanal (read-only System-Seite, Knoten-Zähler,
 // alle Bereichs-Dateien als Knoten) und Klick-Navigation zum Nachbarn;
 // GA-02: Richtungs-Filter (Erreichbarkeits-Sicht relativ zur beim Öffnen
@@ -181,7 +181,7 @@ test.describe('GA-04: ohne Bereich deaktiviert (S-076)', () => {
   });
 });
 
-// --- 4T-0456 (Epic 3E-0084): Datei-Graph-Panel --------------------------------
+// --- 4T-000456 (Epic 3E-000084): Datei-Graph-Panel --------------------------------
 
 const PANEL = '.pane-group[data-pane="0"] .sidebar-filegraph';
 
@@ -241,7 +241,7 @@ test.describe('GA-06: Datei-Graph-Panel — folgt der Datei, Tiefe und Richtung 
   });
 });
 
-// 4T-0455 (PO-Befund der Release-Test-Iteration 0.57.0): Teilen sich zwei
+// 4T-000455 (PO-Befund der Release-Test-Iteration 0.57.0): Teilen sich zwei
 // System-Tabs eine Pane (Graph und Einstellungen), zeigte der Tab-Wechsel
 // die jeweils andere Seite weiter an (Mount-Guard ohne Container-Besitz-
 // Prüfung). Regressionstest am realen Nutzungspfad: nur Tabs wechseln.

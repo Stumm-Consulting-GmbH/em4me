@@ -1,6 +1,6 @@
 // Lesezeichen: Aktionen an Knoten — Anlegen, Umwandeln, Entfernen, Auf- und
 // Zuklappen, Oeffnen.
-// 4T-0991 (Epic 3E-0196): aus bookmarks.js in den Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): aus bookmarks.js in den Ordner bookmarks/
 // ausgezogen. Gegenueber der Bestandsaufnahme ein eigenes Modul, weil die
 // Anlage- und Umwandlungs-Fluesse zusammen rund 300 Zeilen wiegen: im Kern
 // haetten sie dessen Budget gesprengt, in bookmarks-edit.js dessen
@@ -43,11 +43,11 @@ import {
   updateBookmarksToggleButton,
 } from './bookmarks.js';
 
-// === 4T-0612 (Epic 3E-0115): Anlage-Fluss mit Ziel-Wahl =====================
+// === 4T-000612 (Epic 3E-000115): Anlage-Fluss mit Ziel-Wahl =====================
 
 // Ziel-Wahl-Menue: bei geoeffnetem Bereich und Datei innerhalb des Bereichs
 // wird gefragt, ob das Lesezeichen allgemein oder bereichsgebunden angelegt
-// wird (Muster showCommandOverflowMenu). 4T-0612 (Epic 3E-0115, PO-Testbefund
+// wird (Muster showCommandOverflowMenu). 4T-000612 (Epic 3E-000115, PO-Testbefund
 // EXE 0.91.0.919): Das Menue erscheint oben links im Fenster, unterhalb der
 // Menueleiste (dort sitzt das Datei-Menue, zu dem die Lesezeichen-Anlage
 // gehoert), nicht mehr unten am Statusbar-Stern.
@@ -88,14 +88,14 @@ export async function addBookmarkForActiveFile() {
   await addGeneralBookmarkForPath(tab.path);
 }
 
-// 4T-0612: Lesezeichen fuer einen absoluten Pfad im allgemeinen Abschnitt
+// 4T-000612: Lesezeichen fuer einen absoluten Pfad im allgemeinen Abschnitt
 // anlegen. Genutzt vom Ziel-Wahl-Menue, vom Tab-Kontextmenue und vom
 // bisherigen Strg+D-/Menue-Fluss.
 export async function addGeneralBookmarkForPath(absPath) {
   return addBookmarkToSection(bookmarkSection(SECTION_GENERAL), absPath);
 }
 
-// 4T-0612: Lesezeichen fuer einen absoluten Pfad im Bereichs-Abschnitt anlegen.
+// 4T-000612: Lesezeichen fuer einen absoluten Pfad im Bereichs-Abschnitt anlegen.
 // Genutzt vom Ziel-Wahl-Menue, vom Tab-Kontextmenue und vom Kontextmenue der
 // Datei-Zeilen im Bereichs-Panel. Datei ausserhalb -> Ablehnung mit Hinweis.
 export async function addAreaBookmarkForPath(absPath) {
@@ -134,7 +134,7 @@ async function addBookmarkToSection(section, absPath) {
     addedAt: new Date().toISOString(),
   };
 
-  // 4T-0078/4T-0612: Ablage-Logik. Ein selektierter Knoten DESSELBEN
+  // 4T-000078/4T-000612: Ablage-Logik. Ein selektierter Knoten DESSELBEN
   // Abschnitts steuert die Position (in dessen Ordner bzw. als Geschwister);
   // sonst ans Ende der File-Gruppe im Root.
   let parentFolderName = '';
@@ -172,13 +172,13 @@ async function addBookmarkToSection(section, absPath) {
     await persistBookmarksTree();
   }
 
-  // 4T-0075/4T-0612: Beim ersten Lesezeichen eines Abschnitts die Sektion
+  // 4T-000075/4T-000612: Beim ersten Lesezeichen eines Abschnitts die Sektion
   // automatisch sichtbar machen, wenn sie noch nicht sichtbar ist.
   if (wasEmpty && !state.bookmarks.visibleByPane[state.activePaneIndex]) {
     state.bookmarks.visibleByPane[state.activePaneIndex] = true;
     await persistBookmarksSettings();
     applyBookmarksVisibility(state.activePaneIndex);
-    // R3-11 (4T-0187): auch die andere Pane rendern.
+    // R3-11 (4T-000187): auch die andere Pane rendern.
     for (let i = 0; i < state.panes.length; i++) {
       if (i !== state.activePaneIndex) renderBookmarks(i);
     }
@@ -187,7 +187,7 @@ async function addBookmarkToSection(section, absPath) {
     for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   }
   updateBookmarksToggleButton();
-  // 4T-0078: Toast nennt die Ablage-Stelle, sofern in einem Ordner.
+  // 4T-000078: Toast nennt die Ablage-Stelle, sofern in einem Ordner.
   const toastKey = parentFolderName ? 'bookmarks.add.toast.inFolder' : 'bookmarks.add.toast';
   const toastText = t(toastKey)
     .replace('{name}', displayName)
@@ -195,7 +195,7 @@ async function addBookmarkToSection(section, absPath) {
   showStatusbarHint(null, { text: toastText, duration: 2000 });
 }
 
-// === 4T-0612 (Epic 3E-0115): Umwandeln zwischen den Abschnitten =============
+// === 4T-000612 (Epic 3E-000115): Umwandeln zwischen den Abschnitten =============
 
 // Einen Knoten (Datei oder Ordner mit Unterbaum) aus den allgemeinen in die
 // Bereichs-Lesezeichen umwandeln. Alle Datei-Ziele des Unterbaums muessen
@@ -280,14 +280,14 @@ export async function removeBookmark(id, section) {
   }
   for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   updateBookmarksToggleButton();
-  // 4T-0075: Wenn jetzt kein Bookmark mehr da ist und kein Tab offen, soll
+  // 4T-000075: Wenn jetzt kein Bookmark mehr da ist und kein Tab offen, soll
   // der Empty-State-Pane wieder ausgeblendet werden (Sidebar verschwindet).
   if (!hasAnyBookmarks()) updateEmptyState();
 }
 
-// 4T-0079: Wenn der Nutzer in der Lesezeichen-Sidebar aktiv mit einem Knoten
+// 4T-000079: Wenn der Nutzer in der Lesezeichen-Sidebar aktiv mit einem Knoten
 // interagiert (Klick), persistieren wir die Sektions-Sichtbarkeit auf true.
-// Seit 4T-0330 zeigt der Empty-State die Sektion nur noch bei
+// Seit 4T-000330 zeigt der Empty-State die Sektion nur noch bei
 // eingeschaltetem Schalter (kein Override mehr) — der Auto-Set ist damit in
 // der Regel ein No-op und bleibt als Absicherung erhalten, dass eine aktiv
 // genutzte Sektion nach dem Oeffnen einer Datei sichtbar bleibt.
@@ -330,7 +330,7 @@ export async function openBookmarkFile(filePath) {
   await openOrJumpToPath(filePath, 1);
 }
 
-// 4T-0612: Einen Knoten oeffnen (Abschnitts-aufloesend). Bereichs-Ziele werden
+// 4T-000612: Einen Knoten oeffnen (Abschnitts-aufloesend). Bereichs-Ziele werden
 // gegen die aktuelle Wurzel absolut gemacht.
 export async function openBookmarkNode(section, node) {
   const abs = resolveBookmarkPath(section, node);

@@ -1,10 +1,10 @@
-// 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only System-Seite.
+// 4T-000620 (Epic 3E-000117): Bereichs-Statistik als read-only System-Seite.
 //
 // Muster Bereichs-Graph (graph-tab.js): eine Instanz pro Fenster, erneutes
 // Öffnen aktiviert den bestehenden Tab und erhebt neu. Die Seite zeigt sechs
 // Abschnitte über den geöffneten Bereich — Dateien und Speicher,
 // Eigenschaften, Tags, Begleitdateien, Inhalte, Auffälligkeiten — jeweils
-// aus dem Kennzahlen-Objekt des Hauptprozesses (4T-0619).
+// aus dem Kennzahlen-Objekt des Hauptprozesses (4T-000619).
 //
 // Erhoben wird ausschließlich auf Anforderung (Epic-Entscheidung 3): Der
 // Ordner-Scan läuft über den gesamten Bereichs-Baum, und die Zahlen einer

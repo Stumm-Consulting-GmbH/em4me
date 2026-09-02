@@ -1,5 +1,5 @@
-// 4T-0307 (Epic 3E-0048): Regressionstests für die Containment-/Whitelist-
-// Prüfung des embed:read-Pfads. Befund B-02 aus dem Code-Audit 4T-0275:
+// 4T-000307 (Epic 3E-000048): Regressionstests für die Containment-/Whitelist-
+// Prüfung des embed:read-Pfads. Befund B-02 aus dem Code-Audit 4T-000275:
 // embed:read löste Pfade ohne Containment, ohne Extension-Whitelist und
 // ohne Größen-Limit auf.
 import { describe, it, expect } from 'vitest';
@@ -9,7 +9,7 @@ import { resolveContainedEmbedPath } from '../../src/main/documents/embed-path.j
 const base = path.join(path.sep === '\\' ? 'C:\\' : '/', 'docs', 'projekt', 'aktiv.md');
 const dir = path.dirname(base);
 
-describe('resolveContainedEmbedPath (B-02, 4T-0307)', () => {
+describe('resolveContainedEmbedPath (B-02, 4T-000307)', () => {
   it('erlaubt eine Markdown-Datei im Dokument-Ordner', () => {
     const r = resolveContainedEmbedPath(base, 'notiz.md');
     expect(r.ok).toBe(true);

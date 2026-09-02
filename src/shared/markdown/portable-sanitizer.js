@@ -1,8 +1,8 @@
-// 4T-0994 (Epic 3E-0196): aus src/shared/markdown/markdown.js geschnitten.
+// 4T-000994 (Epic 3E-000196): aus src/shared/markdown/markdown.js geschnitten.
 // Whitelist-Sanitizer des Portable-Modus. Er haengt an den Roh-HTML-Render-
 // Rules der mdPortable-Instanz (html_block/html_inline) und ist der einzige
 // Teil des Moduls, der ohne Beruehrung des Pipeline-Kerns ausziehen konnte
-// (Entscheidung E2 der Bestandsaufnahme 4T-0964): keine Beteiligung am
+// (Entscheidung E2 der Bestandsaufnahme 4T-000964): keine Beteiligung am
 // CJS-Zyklus mit perspective-table, kein Export-Reassignment, keine
 // Abhaengigkeit von der Initialisierungs-Reihenfolge.
 //
@@ -12,7 +12,7 @@
 
 const { escapeHtml } = require('./slug.js');
 
-// P-02 (4T-0176): Whitelist-Sanitizer fuer ROHES HTML im Portable-Modus.
+// P-02 (4T-000176): Whitelist-Sanitizer fuer ROHES HTML im Portable-Modus.
 // Der Marker schaltet html:true; jede fremde Datei kann ihn tragen. Der
 // Zweck des Markers ist allein das Rendern der eigenen exportierten
 // HTML-Tabellen — deshalb werden nur deren Tags/Attribute durchgelassen
@@ -22,7 +22,7 @@ const { escapeHtml } = require('./slug.js');
 // Render-Rules: der regulaere markdown-it-Output (KaTeX, Callouts,
 // Task-Listen) bleibt unberuehrt. Entscheidung GEGEN eine Sanitizer-
 // Dependency (DOMPurify): die enge Whitelist ueber DOMParser/Tag-Parsing
-// reicht fuer den klar umrissenen Zweck (Begruendung im Task 4T-0176).
+// reicht fuer den klar umrissenen Zweck (Begruendung im Task 4T-000176).
 const PORTABLE_HTML_ALLOWED_TAGS = new Set([
   'table',
   'colgroup',
@@ -95,7 +95,7 @@ function sanitizePortableHtmlInline(src) {
     const name = am[1].toLowerCase();
     if (!PORTABLE_HTML_ALLOWED_ATTRS.has(name)) continue;
     const value = am[2] || '""';
-    // B-01 (4T-0307): Roh-Wert bestimmen (mit oder ohne umschliessende
+    // B-01 (4T-000307): Roh-Wert bestimmen (mit oder ohne umschliessende
     // Quotes) und IMMER neu escapen, bevor er in ein doppelt-gequotetes
     // Attribut zurueckgebaut wird. Ohne Re-Escape brach ein einfach-
     // gequoteter Wert mit eingebettetem " aus (`title='x" onX="…'` wurde

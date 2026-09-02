@@ -1,10 +1,10 @@
-// 4T-0947 (Story 4S-0005, AK6): Eigene Schreibvorgaenge von fremden trennen.
+// 4T-000947 (Story 4S-000005, AK6): Eigene Schreibvorgaenge von fremden trennen.
 //
 // Die Anwendung schreibt Dateien selbst und beobachtet dieselben Dateien. Ohne
 // Unterscheidung meldete jeder eigene Schreibvorgang eine «externe Aenderung»
 // und loeste einen Reload aus.
 //
-// Zugesagt ist (AK6 von 4S-0005), dass diese Unterscheidung ueber einen
+// Zugesagt ist (AK6 von 4S-000005), dass diese Unterscheidung ueber einen
 // Vergleich des geschriebenen Inhalts laeuft und NICHT ueber eine pauschale
 // Zeitsperre — damit eine echte fremde Aenderung unmittelbar nach einem
 // eigenen Schreibvorgang den Konflikt-Dialog erreicht. Der Vergleich war

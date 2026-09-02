@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1156 (Epic 3E-0219, E11): Bedienelemente der neuen Feld-Typen und der
+// 4T-001156 (Epic 3E-000219, E11): Bedienelemente der neuen Feld-Typen und der
 // typ-eigenen Optionen — Verweis, Uhrzeit, Zahl-Grenzen, Datums-Verschiebung
 // und der Zyklus der Einfach-Auswahl.
 //
@@ -305,7 +305,7 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
     // vergleichen, wird geprüft, dass beide Panels dieselben Bau-Funktionen
     // importieren. Ein Panel, das einen eigenen Zweig baute, fiele hier auf.
     const fs = await import('node:fs');
-    // 4T-1172 (Epic 3E-0220): Auf der Dokument-Seite bauen die Wert-Editoren
+    // 4T-001172 (Epic 3E-000220): Auf der Dokument-Seite bauen die Wert-Editoren
     // seit dem Datei-Schnitt in properties-wert-editor.js; der Prüf-Gegenstand
     // ist unverändert, nur seine Datei.
     const quellen = [
@@ -339,7 +339,7 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
     expect(quelle).not.toContain("from '../views/");
     expect(quelle).not.toContain("from './properties-");
     // Die beiden Panels liefern den Öffnen-Weg — dort ist der Import zulässig.
-    // 4T-1172: Auf der Dokument-Seite liegt er seit dem Datei-Schnitt bei den
+    // 4T-001172: Auf der Dokument-Seite liegt er seit dem Datei-Schnitt bei den
     // Wert-Editoren, die ihn ihrerseits über die eingereichte Umgebung
     // beziehen (properties-fields.js bleibt der Ort des Imports).
     for (const p of [
@@ -353,7 +353,7 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
   it('beide Panels behandeln jedes Mehrfach-Feld über die Chips-Leiste', async () => {
     const fs = await import('node:fs');
     for (const p of [
-      // 4T-1172: Dokument-Seite seit dem Datei-Schnitt bei den Wert-Editoren.
+      // 4T-001172: Dokument-Seite seit dem Datei-Schnitt bei den Wert-Editoren.
       'src/renderer/modules/properties/properties-wert-editor.js',
       'src/renderer/modules/properties/block-props-fields.js',
     ]) {
@@ -365,7 +365,7 @@ describe('AK2: Parität beider Eigenschafts-Panels', () => {
   });
 });
 
-describe('AK13: Erweiterungs-Gate der Zuordnungs-Wege (4T-1159)', () => {
+describe('AK13: Erweiterungs-Gate der Zuordnungs-Wege (4T-001159)', () => {
   it('die Auflösung läuft nur bei aktiver Erweiterung — auch die neuen Wege', async () => {
     // Schlagwort und Ordner bekommen kein eigenes Gate: Sie laufen über
     // dieselbe eine Auflösung, und die fragt der Renderer nur bei aktiver
@@ -405,7 +405,7 @@ describe('AK13: Erweiterungs-Gate der Zuordnungs-Wege (4T-1159)', () => {
   });
 
   it('der Main-Handler prüft das Gate für die Ziel- und Wertevorrats-Kanäle selbst', async () => {
-    // Die beiden Kanäle aus 4T-1156 und 4T-1158 sind eigene Eingänge und
+    // Die beiden Kanäle aus 4T-001156 und 4T-001158 sind eigene Eingänge und
     // tragen ihre Gate-Prüfung deshalb im Handler.
     const fs = await import('node:fs');
     const quelle = fs.readFileSync('src/main/ipc/profiles.js', 'utf8');
@@ -414,12 +414,12 @@ describe('AK13: Erweiterungs-Gate der Zuordnungs-Wege (4T-1159)', () => {
   });
 });
 
-// 4T-1164: Diese Gruppe prüft ausschließlich die VERDRAHTUNG als Quelltext,
+// 4T-001164: Diese Gruppe prüft ausschließlich die VERDRAHTUNG als Quelltext,
 // nicht die Sichtbarkeit. Genau daran ist der Abnahme-Befund von 1.116.0
 // vorbeigelaufen: Alle Fälle waren grün, während das Symbol in jeder
 // Reiter-Anordnung unsichtbar war. Den Nachweis am Rendering führt seit
-// 4T-1164 der E2E-Fall PP-12; er ist der eigentliche Wächter dieser Funktion.
-describe('AK2/AK4/AK7: Profil-Symbol der Eigenschaften-Sektion (4T-1161)', () => {
+// 4T-001164 der E2E-Fall PP-12; er ist der eigentliche Wächter dieser Funktion.
+describe('AK2/AK4/AK7: Profil-Symbol der Eigenschaften-Sektion (4T-001161)', () => {
   it('das Markup trägt das Symbol-Element in BEIDEN Sektions-Körpern', async () => {
     // Pro Spalte eine Instanz — ein Symbol nur in einer Spalte wäre je nach
     // Arbeitsweise unsichtbar.
@@ -431,7 +431,7 @@ describe('AK2/AK4/AK7: Profil-Symbol der Eigenschaften-Sektion (4T-1161)', () =>
     expect(html).toContain('<span class="properties-profile-badge" hidden></span>');
   });
 
-  it('4T-1164: das Symbol steht im Körper und nicht im Sektions-Kopf', async () => {
+  it('4T-001164: das Symbol steht im Körper und nicht im Sektions-Kopf', async () => {
     // Der Kopf wird in einer Reiter-Gruppe per CSS ausgeblendet
     // (.sidebar-section.in-tab-group > .sidebar-section-header). Ein Symbol
     // darin ist dort unsichtbar — der Abnahme-Befund von 1.116.0.

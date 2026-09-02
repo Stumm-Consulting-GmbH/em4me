@@ -1,4 +1,4 @@
-// 4T-0520 (Epic 3E-0094): kuratiertes internes Icon-Set der Kommando-
+// 4T-000520 (Epic 3E-000094): kuratiertes internes Icon-Set der Kommando-
 // Platzierung. Inline-SVG-Strings im Stil der bestehenden Statusbar-Icons
 // (viewBox 0 0 24 24, stroke currentColor, 14 px, runde Kappen — Muster
 // THEME_ICON_SVGS in app-state.js); ein Teil der Pfade stammt aus den
@@ -68,7 +68,7 @@ const COMMAND_ICONS = {
       '<circle cx="12" cy="12" r="3"/>',
   ),
   clock: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
-  // 4T-0636 (Epic 3E-0069): Modus-Icons der Uhr-Umschaltleiste (Timer und
+  // 4T-000636 (Epic 3E-000069): Modus-Icons der Uhr-Umschaltleiste (Timer und
   // Stoppuhr; Uhr und Wecker nutzen 'clock' und 'bell'). Ueber das kuratierte
   // Set stehen sie zugleich im Icon-Raster der Kommando-Anlage zur Wahl.
   hourglass: svg(
@@ -95,7 +95,7 @@ const COMMAND_ICONS = {
     '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>' +
       '<path d="M9 3v18"/>',
   ),
-  // 4T-1309 (Epic 3E-0235): Tabelle mit verbundener Kopfzeile — das
+  // 4T-001309 (Epic 3E-000235): Tabelle mit verbundener Kopfzeile — das
   // Unterscheidungs-Merkmal der Perspective-Tabelle gegenueber der einfachen
   // Tabelle. Der senkrechte Strich beginnt deshalb erst unter der ersten
   // Querlinie; sonst waeren die beiden Symbole in der Leiste nebeneinander
@@ -118,7 +118,7 @@ const COMMAND_ICONS = {
       '<path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/>',
   ),
   refresh: svg('<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'),
-  // 4T-0607 (Epic 3E-0114): Format-Icons für die Format-Toolbar (Lucide-
+  // 4T-000607 (Epic 3E-000114): Format-Icons für die Format-Toolbar (Lucide-
   // Pfade im selben Stil; über das kuratierte Set auch in den Anlage-
   // Dialogen der Kommando-Platzierung wählbar).
   bold: svg('<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>'),

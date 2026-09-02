@@ -1,16 +1,16 @@
-// 4T-1054 (Epic 3E-0151): Ansichts-Modi und ihre CSS-Klassen — die eine Quelle.
+// 4T-001054 (Epic 3E-000151): Ansichts-Modi und ihre CSS-Klassen — die eine Quelle.
 //
 // **Anlass.** Die Liste der zu entfernenden Modus-Klassen stand an fünf
 // Stellen: der Modus-Umschaltung, dem System-Seiten- und dem Normal-Pfad des
 // Pane-Renderns, zweimal im PDF-Export und beim Wechsel in den
-// Bearbeiten-Modus. Der fünfte Modus wurde in 4T-1047 nur an einer davon
+// Bearbeiten-Modus. Der fünfte Modus wurde in 4T-001047 nur an einer davon
 // nachgezogen, weshalb die Mindmap über der Einstellungs-Seite stehenblieb.
 // Wer einen Modus ergänzt, ergänzt ihn seither hier; ein Wächter hält die
 // Liste vollständig und prüft, dass keine Stelle wieder eine eigene führt.
 //
 // **Bewusst ohne jeden Import.** Das Modul wird von app-state, views,
 // pane-render und pdf-export gebraucht; zöge es selbst etwas nach, entstünde
-// genau die Lade-Kette, die in 4T-1047 einundzwanzig Testdateien gerissen hat.
+// genau die Lade-Kette, die in 4T-001047 einundzwanzig Testdateien gerissen hat.
 'use strict';
 
 /** Alle Ansichts-Modi eines Reiters, in der Reihenfolge ihrer Tastenkürzel. */
@@ -28,7 +28,7 @@ export function isViewMode(wert) {
 }
 
 /**
- * 4T-1341 (Epic 3E-0238): Die Ansichten, in denen bearbeitet wird — und damit
+ * 4T-001341 (Epic 3E-000238): Die Ansichten, in denen bearbeitet wird — und damit
  * die wählbaren Ziele des Wechsels in den Bearbeiten-Modus.
  *
  * Die Lese-Ansicht fehlt, weil sie der Ausgangspunkt des Wechsels ist und kein
@@ -38,7 +38,7 @@ export function isViewMode(wert) {
 export const EDIT_VIEW_MODES = ['split', 'source', 'live'];
 
 /**
- * Voreinstellung des Wechsels. Bis 4T-1341 war „geteilt" fest verdrahtet; der
+ * Voreinstellung des Wechsels. Bis 4T-001341 war „geteilt" fest verdrahtet; der
  * Wert bleibt die Voreinstellung, damit ein Bestandsprofil ohne die Einstellung
  * sich unverändert verhält.
  */

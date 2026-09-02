@@ -1,7 +1,7 @@
-// 4T-0760 (Epic 3E-0142): Suchlauf über Handbuch und Einstellungen.
+// 4T-000760 (Epic 3E-000142): Suchlauf über Handbuch und Einstellungen.
 //
 // Bindeglied zwischen der Suchleiste (search.js), dem Suchraum-Kern
-// (shared/search-scope.js), den Lieferanten (search-manual.js, ab 4T-0761
+// (shared/search-scope.js), den Lieferanten (search-manual.js, ab 4T-000761
 // settings/settings-search.js) und der Trefferliste (search-panel.js).
 //
 // Grundregel des Epics, Entscheidung des Product Owners vom 2026-07-27:
@@ -21,7 +21,7 @@ import { state } from '../app/app-state.js';
 // Kerns zurück (Gruppe, Titel, Volltext) — dann sucht dieses Modul darin —
 // oder ein fertiges Ergebnis `{ treffer, gruppen, abgeschnitten }`.
 //
-// Die zweite Form ist mit 4T-0616 (Epic 3E-0116) dazugekommen: Ein Bereich
+// Die zweite Form ist mit 4T-000616 (Epic 3E-000116) dazugekommen: Ein Bereich
 // kann seine Volltexte nicht in den Renderer reichen, weil ihre Zahl
 // unbegrenzt ist und der Dateizugriff in den Hauptprozess gehört. Er sucht
 // deshalb dort und liefert Treffer. Damit ein solcher Lieferant überhaupt

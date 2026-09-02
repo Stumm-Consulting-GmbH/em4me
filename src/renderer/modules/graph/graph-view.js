@@ -1,12 +1,12 @@
-// 4T-0454 (Epic 3E-0084): Graph-Renderer der Graphenansicht — zeichnet ein
+// 4T-000454 (Epic 3E-000084): Graph-Renderer der Graphenansicht — zeichnet ein
 // Graph-Modell des Kerns (graph-core.js) als SVG und trägt die gesamte
 // Interaktion: Zoom um den Zeiger, Pan der Fläche, Knoten-Ziehen (Position
 // bleibt für die Sitzungs-Dauer), Hover-Hervorhebung der Nachbarschaft und
-// Klick-Öffnen. Bereichs-Graph-Tab (4T-0455) und Datei-Graph-Panel (4T-0456)
+// Klick-Öffnen. Bereichs-Graph-Tab (4T-000455) und Datei-Graph-Panel (4T-000456)
 // betten dieselbe Komponente ein.
 //
 // Bewusst abhängigkeitsfrei von api/i18n/app-state: der Aufrufer injiziert
-// t und den Öffnen-Callback (Muster buildQueryListDom, 4T-0355) — die
+// t und den Öffnen-Callback (Muster buildQueryListDom, 4T-000355) — die
 // Komponente bleibt zyklenfrei und in jsdom ohne window.api-Stub testbar.
 // Farben kommen ausschließlich aus Theme-Variablen (styles.css, Klassen
 // graph-*); die Komponente setzt keine Farbwerte.
@@ -19,7 +19,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // Ober-Grenze der gerenderten Knoten (Epic-Risiko Performance): Layout mit
 // Gitter-Abstoßung und SVG tragen Graphen dieser Größe noch flüssig; darüber
 // rendert die Ansicht die am stärksten vernetzten Knoten plus Hinweis.
-// Messung 4T-0454: 1500 Knoten layouten in <1 s, SVG bleibt bedienbar;
+// Messung 4T-000454: 1500 Knoten layouten in <1 s, SVG bleibt bedienbar;
 // deutlich darüber dominieren DOM-Kosten pro Interaktion.
 export const GRAPH_MAX_RENDER_NODES = 1500;
 

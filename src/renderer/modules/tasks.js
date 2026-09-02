@@ -1,4 +1,4 @@
-// 4T-0498 (Epic 3E-0090): Renderer-Verwaltung der Erweiterung "Aufgaben".
+// 4T-000498 (Epic 3E-000090): Renderer-Verwaltung der Erweiterung "Aufgaben".
 //
 // Aufgaben des Moduls:
 // - Konfiguration (Store-Key `tasksConfig`: Global Filter, Ausblende-
@@ -39,16 +39,16 @@ export const TASKS_CONFIG_DEFAULTS = {
   autoDone: true,
   autoCancelled: true,
   recurrenceInsert: 'above',
-  // 4T-0505 (Epic 3E-0096): globale Abfrage — FROM-/WHERE-Vorgabe, die
+  // 4T-000505 (Epic 3E-000096): globale Abfrage — FROM-/WHERE-Vorgabe, die
   // jeder TASKS-Abfrage implizit vorangestellt wird (Auswertung im Main).
   globalQuery: '',
-  // 4T-0507 (Epic 3E-0096): Task-Zeilen-Vervollstaendigung — Mindest-
+  // 4T-000507 (Epic 3E-000096): Task-Zeilen-Vervollstaendigung — Mindest-
   // Tipplaenge des Trigger-Worts und maximale Vorschlagszahl.
   autocompleteMinLength: 2,
   autocompleteMaxSuggestions: 6,
 };
 
-// 4T-0507: Zahl-Einstellung auf einen ganzzahligen Bereich klemmen
+// 4T-000507: Zahl-Einstellung auf einen ganzzahligen Bereich klemmen
 // (Fehleingaben konstruktionsbedingt unmoeglich, Rest faellt auf den
 // Default zurueck).
 function clampInt(raw, min, max, fallback) {
@@ -128,7 +128,7 @@ export function todayIsoDate(now = new Date()) {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-// 4T-0499 (Epic 3E-0090): Einhak-Punkt der Wiederholung. Wird beim
+// 4T-000499 (Epic 3E-000090): Einhak-Punkt der Wiederholung. Wird beim
 // DONE-Uebergang mit dem fertig datierten Modell aufgerufen und liefert
 // den Zeilen-Text der neuen Instanz oder null.
 let recurrenceInstanceBuilder = null;
@@ -171,7 +171,7 @@ export function taskToggleAugmenter(lineText, toggle) {
       dated = true;
     }
   }
-  // Wiederholung (4T-0499): nur der echte Abschluss erzeugt die naechste
+  // Wiederholung (4T-000499): nur der echte Abschluss erzeugt die naechste
   // Instanz; der Builder arbeitet auf dem bereits datierten Modell.
   let insert = null;
   if (becameDone && model.recurrence && recurrenceInstanceBuilder) {
@@ -203,7 +203,7 @@ export function withCreatedDate(lineText) {
 }
 
 // App-Start: Store lesen, anwenden, Augmenter und Wiederholungs-Builder
-// registrieren (4T-0499: Instanz-Erzeugung im Marker-Kern; Abschluss-Tag
+// registrieren (4T-000499: Instanz-Erzeugung im Marker-Kern; Abschluss-Tag
 // und Erstellt-Automatik kommen aus dem aktuellen Konfigurations-Stand).
 export async function initTasks() {
   let stored = null;

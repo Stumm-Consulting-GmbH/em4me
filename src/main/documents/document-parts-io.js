@@ -1,4 +1,4 @@
-// 4T-1290 (Epic 3E-0224): Datei-Ebene des Lese-Wegs geteilter Dokumente.
+// 4T-001290 (Epic 3E-000224): Datei-Ebene des Lese-Wegs geteilter Dokumente.
 // Findet die Teile eines Dokuments im Verzeichnis, liest sie und lässt sie
 // von src/shared/document-assembly.js zu einem Dokument zusammensetzen; der
 // Katalog in der Begleitdatei des ersten Teils dient als Beschleuniger.
@@ -24,11 +24,11 @@ const {
   getCatalog,
   setCatalog,
 } = require('../../shared/document-assembly.js');
-// 4T-1291: die Schreib-Reihenfolge liegt im prozessneutralen Kern, weil sie
+// 4T-001291: die Schreib-Reihenfolge liegt im prozessneutralen Kern, weil sie
 // eine Regel ist und kein Datei-Zugriff.
 const { schreibReihenfolge } = require('../../shared/document-split.js');
 const { normalizeForCompare } = require('./save-guard');
-// 4T-1292: Lesen und Schreiben der Zuordnungs-Zeile für die Umbenennen-Kaskade.
+// 4T-001292: Lesen und Schreiben der Zuordnungs-Zeile für die Umbenennen-Kaskade.
 const { readPartLine, writePartLine, FIRST_PART_INDEX } = require('../../shared/document-parts.js');
 const mddStore = require('./mdd-store');
 
@@ -54,7 +54,7 @@ function ungeteilt(absolute, content) {
     path: absolute,
     text: content,
     parts: [{ index: 1, basename }],
-    // 4T-1291: dieselben Felder wie im geteilten Fall, damit der Schreib-Weg
+    // 4T-001291: dieselben Felder wie im geteilten Fall, damit der Schreib-Weg
     // beide Lagen gleich behandeln kann.
     teile: [{ index: 1, basename, pfad: absolute, content }],
     grenzen: [],
@@ -156,7 +156,7 @@ async function readAssembledDocument(absolute, content, opts = {}) {
   // Die Kopf-Datei bestimmt der Grundname aus der Zuordnungs-Zeile, nicht der
   // Name der geöffneten Datei: Sie kann selbst ein Folgeteil sein.
   const headName = dateien.get(pathCompareKey(info.base));
-  // 4T-1292: Zeigt der Grundname ins Leere, die geöffnete Datei trägt aber
+  // 4T-001292: Zeigt der Grundname ins Leere, die geöffnete Datei trägt aber
   // Position 1, dann IST sie die Kopf-Datei — jemand hat das Dokument außerhalb
   // der Anwendung umbenannt, ohne die Zuordnungs-Zeile nachzuziehen. Ohne
   // diesen Rückfall scheiterte das Öffnen mit einem nackten Dateifehler auf
@@ -175,7 +175,7 @@ async function readAssembledDocument(absolute, content, opts = {}) {
   const geordnet = orderPartFiles(headBasename, basenames, pathCompareKey);
   const katalog = await readCatalog(headPath);
   const stimmt = catalogAgrees(katalog, headBasename, geordnet.parts, pathCompareKey);
-  // 4T-1292 (Option A des Product Owners vom 2026-08-31): Die Lücken aus den
+  // 4T-001292 (Option A des Product Owners vom 2026-08-31): Die Lücken aus den
   // Dateinamen und die Vermisstenmeldung des Katalogs zusammengenommen.
   const fehlend = [
     ...new Set([...geordnet.luecken, ...fehlendeLautKatalog(katalog, geordnet.parts)]),
@@ -215,12 +215,12 @@ async function readAssembledDocument(absolute, content, opts = {}) {
   // und neu gebaut, nie repariert. Ein Fehlschlag beim Schreiben bleibt
   // folgenlos, weil er nur den nächsten Verzeichnis-Durchlauf kostet.
   //
-  // 4T-1291: `opts.ohneKatalog` unterdrückt das. Der Schreib-Weg liest die
+  // 4T-001291: `opts.ohneKatalog` unterdrückt das. Der Schreib-Weg liest die
   // Teile, um den Vergleichsstand des Konflikt-Schutzes zu bilden; ein
   // Katalog-Schreiben mitten in dieser Prüfung wäre ein Nebeneffekt an einer
   // Stelle, die nur lesen soll — und er wird ohnehin nach dem Schreiben neu
   // gebaut.
-  // 4T-1292: Bei einem vermissten Teil wird der Katalog NICHT nachgezogen. Er
+  // 4T-001292: Bei einem vermissten Teil wird der Katalog NICHT nachgezogen. Er
   // ist in diesem Fall der einzige Zeuge dafür, dass es den Teil je gab; ihn
   // hier zu überschreiben hieße, den Verdacht beim Öffnen selbst zu löschen —
   // beim zweiten Öffnen sähe das Dokument wieder vollständig aus. Das ist die
@@ -237,7 +237,7 @@ async function readAssembledDocument(absolute, content, opts = {}) {
     path: headPath,
     text: zusammen.text,
     parts: geordnet.parts,
-    // 4T-1291: Die gelesenen Teile mit Pfad und Inhalt, wie der Schreib-Weg sie
+    // 4T-001291: Die gelesenen Teile mit Pfad und Inhalt, wie der Schreib-Weg sie
     // braucht. Er bekommt damit genau die Menge und Ordnung, die der Lese-Weg
     // sieht; eine zweite Ermittlung wäre die Divergenz, die dieses Epic am
     // teuersten bezahlte.
@@ -245,7 +245,7 @@ async function readAssembledDocument(absolute, content, opts = {}) {
     grenzen: zusammen.grenzen,
     basisName: headBasename,
     luecken: geordnet.luecken,
-    // 4T-1292: alle vermissten Positionen, aus Dateinamen UND Katalog. Solange
+    // 4T-001292: alle vermissten Positionen, aus Dateinamen UND Katalog. Solange
     // sie nicht leer sind, öffnet das Dokument nur lesend und Speichern bleibt
     // gesperrt: Ein Schreiben aus dem unvollständigen Puffer verlöre den
     // fehlenden Teil endgültig — und ein Teil, der nur verspätet eintrifft
@@ -257,11 +257,11 @@ async function readAssembledDocument(absolute, content, opts = {}) {
 }
 
 /**
- * Liest den Platten-Stand eines Dokuments für den Schreib-Weg (4T-1291).
+ * Liest den Platten-Stand eines Dokuments für den Schreib-Weg (4T-001291).
  *
  * Bei einem geteilten Dokument ist das der ZUSAMMENGESETZTE Stand aller Teile,
  * nicht der Inhalt der Kopf-Datei. Das ist die Voraussetzung des
- * Konflikt-Schutzes: Der Reiter hält seit dem Lese-Weg aus 4T-1290 den
+ * Konflikt-Schutzes: Der Reiter hält seit dem Lese-Weg aus 4T-001290 den
  * Gesamt-Text, und ein Vergleich gegen die Kopf-Datei allein meldete bei jedem
  * geteilten Dokument einen Konflikt, den es nicht gibt.
  *
@@ -338,7 +338,7 @@ async function writeDocumentParts(headPath, teile, opts = {}) {
 }
 
 /**
- * Findet die FOLGETEILE eines Dokuments im selben Verzeichnis (4T-1292, AK3).
+ * Findet die FOLGETEILE eines Dokuments im selben Verzeichnis (4T-001292, AK3).
  *
  * Gesucht wird allein über den Namen: Die Teile eines Dokuments sind seine
  * Geschwister mit dem Trennzeichen und dem Grundnamen davor. Der Frontmatter
@@ -363,7 +363,7 @@ async function scanOwnParts(absolute) {
 
 /**
  * Zieht die Zuordnungs-Zeile einer Datei auf einen neuen Grundnamen nach
- * (4T-1292, AK3).
+ * (4T-001292, AK3).
  *
  * Nötig, weil die Zeile den Grundnamen trägt: Nach einem Umbenennen zeigten
  * die Teile sonst auf ein Dokument, das es nicht mehr gibt — und die Datei ist
@@ -402,7 +402,7 @@ async function rewritePartBase(pfade, neuerBase, opts = {}) {
 }
 
 /**
- * Vereint die Teile eines Dokuments wieder zu einer Datei (4T-1293, AK3).
+ * Vereint die Teile eines Dokuments wieder zu einer Datei (4T-001293, AK3).
  *
  * **Ausschließlich auf ausdrückliche Aktion des Anwenders** (O9). Ein
  * automatisches Zusammenführen ist ausgeschlossen: Es wäre Rebalancing, und die

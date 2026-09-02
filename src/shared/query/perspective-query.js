@@ -1,8 +1,8 @@
 'use strict';
 
-// 4T-0401 (Epic 3E-0076): Parser und Evaluator der Perspective-Query-Sprache
+// 4T-000401 (Epic 3E-000076): Parser und Evaluator der Perspective-Query-Sprache
 // (`perspective-query`-Fence). Hervorgegangen aus frontmatter-query.js
-// (4T-0354, Epic 3E-0065) und umbenannt, weil die Sprache seit dem Ausbau
+// (4T-000354, Epic 3E-000065) und umbenannt, weil die Sprache seit dem Ausbau
 // nicht mehr nur Frontmatter abfragt (Klauseln, implizite Datei-Felder,
 // Quellen). Prozess-neutral (kein Electron, kein Renderer-DOM): parseQuery
 // zerlegt den Fence-Body in einen Abfrage-AST oder einen strukturierten
@@ -17,10 +17,10 @@
 //   clause     := 'FROM' source | 'WHERE' boolExpr
 //              | 'SORT' sortKey ( ',' sortKey )* | 'LIMIT' number
 //              | 'COLUMNS' number
-//              | 'GROUP' 'BY' expr ( ',' expr )*        (4T-0503; LIST TASKS)
-//              | 'HIDE' element ( ',' element )*        (4T-0503; LIST TASKS)
-//              | 'SHOW' element ( ',' element )*        (4T-0503; LIST TASKS)
-//              | 'SHORT'                                (4T-0503; LIST TASKS)
+//              | 'GROUP' 'BY' expr ( ',' expr )*        (4T-000503; LIST TASKS)
+//              | 'HIDE' element ( ',' element )*        (4T-000503; LIST TASKS)
+//              | 'SHOW' element ( ',' element )*        (4T-000503; LIST TASKS)
+//              | 'SHORT'                                (4T-000503; LIST TASKS)
 //   sortKey    := expr [ 'ASC' | 'DESC' ]
 //   source     := srcAnd ( 'OR' srcAnd )*
 //   srcAnd     := srcUnary ( 'AND' srcUnary )*
@@ -28,10 +28,10 @@
 //   srcAtom    := string             (Ordner, relativ zur Abfrage-Wurzel)
 //              | tag                 (#tag)
 //              | link                ([[Datei]]: Dateien, die auf X verlinken;
-//                                     [[]] leer: auf die Träger-Datei, 4T-1070)
+//                                     [[]] leer: auf die Träger-Datei, 4T-001070)
 //              | 'outgoing' '(' link ')'  (Dateien, auf die X verlinkt;
 //                                     outgoing([[]]): auf die die Träger-Datei
-//                                     verlinkt, 4T-1070)
+//                                     verlinkt, 4T-001070)
 //
 // Grammatik (Ausdrucks-Ebene, Präzedenz NOT > AND > OR, Vergleich > Arithmetik):
 //   expr       := orExpr
@@ -69,14 +69,14 @@
 // Wort am Anfang eines Klausel-Ausdrucks stünde.
 //
 // Die Auswertung (Typ-System, implizite file.*-Felder, Funktions-Katalog,
-// FROM-Quellen) liegt seit 4T-0402 im Schwester-Modul perspective-query-eval.js.
+// FROM-Quellen) liegt seit 4T-000402 im Schwester-Modul perspective-query-eval.js.
 // Die Alt-Semantik (eq/neq/in/notin über Properties, case-insensitiv, Listen
 // als Mitgliedschaft) bleibt dort identisch erhalten.
 
 // --- Tokenizer ---------------------------------------------------------------
 
 const KEYWORDS = new Set(['AND', 'OR', 'NOT', 'IN']);
-// 4T-0503 (Epic 3E-0096): GROUP/HIDE/SHOW/SHORT sind Klausel-Schluesselwoerter
+// 4T-000503 (Epic 3E-000096): GROUP/HIDE/SHOW/SHORT sind Klausel-Schluesselwoerter
 // der Task-Ausgabe. Folge der bestehenden Kontext-Regel: gleichnamige Felder
 // sind am Anfang einer Klausel-Position nicht mehr erreichbar (dokumentierte
 // Einschraenkung, wie bei den uebrigen Klausel-Woertern).
@@ -94,9 +94,9 @@ const CLAUSE_KEYWORDS = new Set([
   'SHORT',
 ]);
 
-// 4T-0503 (Epic 3E-0096): kuratierter Element-Katalog der HIDE/SHOW-Klauseln
-// (Task-Layout). Marker-Elemente plus Ausgabe-Bausteine; 'urgency' (4T-0505)
-// sowie 'edit' und 'postpone' (4T-0504) sind bereits reserviert und werden
+// 4T-000503 (Epic 3E-000096): kuratierter Element-Katalog der HIDE/SHOW-Klauseln
+// (Task-Layout). Marker-Elemente plus Ausgabe-Bausteine; 'urgency' (4T-000505)
+// sowie 'edit' und 'postpone' (4T-000504) sind bereits reserviert und werden
 // mit ihren Tasks wirksam.
 const LAYOUT_ELEMENTS = new Set([
   'due',
@@ -133,7 +133,7 @@ const TAG_CHARS_RE = /[\p{L}\p{N}_/-]+/uy;
 // die Abfrage rechnet in lokaler Zeit der Datei-Zeitstempel.
 const DATE_CONTENT_RE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?)?$/;
 
-// 4T-0502 (Epic 3E-0096): relative Datums-Wörter der date(...)-Literale.
+// 4T-000502 (Epic 3E-000096): relative Datums-Wörter der date(...)-Literale.
 // Start-Wörter (today, tomorrow, yesterday, sow, som, soy) liefern 00:00
 // des Tages, End-Wörter (eow, eom, eoy) das Tages-Ende — Bereichs-Filter
 // wie `due <= date(eow)` schließen den letzten Tag damit vollständig ein.
@@ -188,7 +188,7 @@ const DUR_UNITS = new Map([
   ['years', 365 * 24 * 60 * 60 * 1000],
 ]);
 
-// 4T-0425 (Epic 3E-0080): Dauer-Inhalt ('7d', '1d 2h', '90 minutes') →
+// 4T-000425 (Epic 3E-000080): Dauer-Inhalt ('7d', '1d 2h', '90 minutes') →
 // Millisekunden oder null (ungültige Einheit, keine Gruppe, Fremd-Zeichen).
 // Gemeinsamer Kern des dur-Literals und der Datums-Offsets der Vorlagen-
 // Platzhalter (Architekturentscheidung 5 des Epics: der Einheiten-Katalog
@@ -393,14 +393,14 @@ function isWord(t, upper) {
 // Ausdruck) wird als LIST WHERE <ausdruck> geliefert. pos ist der 0-basierte
 // Zeichen-Offset im Body (-1 bei unerwartetem Ende).
 //
-// 4T-0409 (Epic 3E-0077): scope ist 'files' (Default) oder 'blocks' — das
+// 4T-000409 (Epic 3E-000077): scope ist 'files' (Default) oder 'blocks' — das
 // kontextuelle Wort BLOCKS direkt nach LIST/TABLE schaltet die Abfrage auf die
 // Block-Ebene um (Architekturentscheidung des Epics: gleicher Fence, gleiche
 // Sprache, Scope-Zusatz am Ausgabe-Typ). Folge der Kontext-Regel: ein
 // LIST-Zusatzfeld bzw. eine erste Spalte mit dem nackten Namen 'blocks' ist in
 // Scope-Position nicht erreichbar (dokumentierte Einschraenkung; als Ausweg
 // traegt z. B. ein umschliessender Ausdruck wie string(blocks)).
-// 4T-0502 (Epic 3E-0096): dritter Scope 'tasks' ueber das kontextuelle Wort
+// 4T-000502 (Epic 3E-000096): dritter Scope 'tasks' ueber das kontextuelle Wort
 // TASKS nach identischem Muster (Weg A des Konzept-Workshops: Task-Abfragen
 // als Scope der einen Sprache, keine zweite Abfrage-Sprache); dieselbe
 // Kontext-Einschraenkung gilt fuer den nackten Namen 'tasks'.
@@ -615,7 +615,7 @@ function parseQuery(input, opts) {
   }
 
   // Datums-Literal validieren. Erlaubt: relative Wörter (today, now sowie
-  // seit 4T-0502 tomorrow, yesterday und die Perioden-Grenzen sow/eow/som/
+  // seit 4T-000502 tomorrow, yesterday und die Perioden-Grenzen sow/eow/som/
   // eom/soy/eoy — Woche ab Montag, konsistent zur ISO-KW des Evaluators)
   // und JJJJ-MM-TT[THH:MM[:SS]]; ein umschließendes Anführungszeichen-Paar
   // wird toleriert (date("2026-01-01")).
@@ -635,7 +635,7 @@ function parseQuery(input, opts) {
 
   // Dauer-Literal validieren: eine oder mehrere "<Zahl> <Einheit>"-Gruppen.
   // Kern in parseDurationContent (gemeinsame Quelle mit den Datums-Offsets
-  // der Vorlagen-Platzhalter, 4T-0425).
+  // der Vorlagen-Platzhalter, 4T-000425).
   function parseDurLiteral(tok) {
     let content = tok.value;
     const quoted = /^"(.*)"$/.exec(content) || /^'(.*)'$/.exec(content);
@@ -699,7 +699,7 @@ function parseQuery(input, opts) {
     }
     if (t.type === 'link') {
       next();
-      // 4T-1070 (Epic 3E-0211): Der LEERE Wiki-Link ist die Selbstbezugs-
+      // 4T-001070 (Epic 3E-000211): Der LEERE Wiki-Link ist die Selbstbezugs-
       // Quelle — 'Dateien, die auf die Traeger-Datei verlinken'. Die Form war
       // bis hierher ein Syntaxfehler und ist damit frei; sie ist zugleich der
       // Wortlaut des Bestands, aus dem konvertiert wird (Konzept-Entscheid E2).
@@ -720,7 +720,7 @@ function parseQuery(input, opts) {
         return fail('expectedParen', 'Fehlende schließende Klammer nach outgoing(…)');
       }
       next();
-      // 4T-1070 (Epic 3E-0211): outgoing([[]]) ist die Gegenrichtung des
+      // 4T-001070 (Epic 3E-000211): outgoing([[]]) ist die Gegenrichtung des
       // Selbstbezugs — 'Dateien, auf die die Traeger-Datei verlinkt'.
       if (!linkTok.value) return { type: 'srcSelf', mode: 'out' };
       return { type: 'srcLink', target: linkTok.value, mode: 'out' };
@@ -728,7 +728,7 @@ function parseQuery(input, opts) {
     return fail('expectedSource', `Ungültige Quelle '${describeToken(t)}' in FROM`, t.pos);
   }
 
-  // 4T-0421 (Epic 3E-0079): Ausdrucks-Modus — parst den Body als EINEN
+  // 4T-000421 (Epic 3E-000079): Ausdrucks-Modus — parst den Body als EINEN
   // Wert-Ausdruck (Spalten-Formeln der Perspective Datatable). Gleiches
   // Token-, AST- und Fehler-Modell wie die Abfrage; kein Klausel-Parsing,
   // nackte Felder und Arithmetik erlaubt (Wert-Position).
@@ -753,7 +753,7 @@ function parseQuery(input, opts) {
   // --- Klausel-Ebene ---
   const query = {
     type: 'list',
-    // 4T-0409/4T-0502: Auswertungs-Ebene 'files' | 'blocks' | 'tasks'.
+    // 4T-000409/4T-000502: Auswertungs-Ebene 'files' | 'blocks' | 'tasks'.
     scope: 'files',
     fields: [],
     withoutId: false,
@@ -762,7 +762,7 @@ function parseQuery(input, opts) {
     sort: [],
     limit: null,
     layoutColumns: null,
-    // 4T-0503 (Epic 3E-0096): Gruppierung und Task-Layout (LIST TASKS).
+    // 4T-000503 (Epic 3E-000096): Gruppierung und Task-Layout (LIST TASKS).
     groupBy: [],
     hide: [],
     show: [],
@@ -823,8 +823,8 @@ function parseQuery(input, opts) {
 
     if (clause === 'LIST') {
       query.type = 'list';
-      // 4T-0409 (Epic 3E-0077): Scope-Zusatz BLOCKS (kontextuelles Wort).
-      // 4T-0502 (Epic 3E-0096): Scope-Zusatz TASKS nach demselben Muster.
+      // 4T-000409 (Epic 3E-000077): Scope-Zusatz BLOCKS (kontextuelles Wort).
+      // 4T-000502 (Epic 3E-000096): Scope-Zusatz TASKS nach demselben Muster.
       if (!atEnd() && isWord(peek(), 'BLOCKS')) {
         next();
         query.scope = 'blocks';
@@ -840,8 +840,8 @@ function parseQuery(input, opts) {
       }
     } else if (clause === 'TABLE') {
       query.type = 'table';
-      // 4T-0409 (Epic 3E-0077): Scope-Zusatz BLOCKS vor WITHOUT ID.
-      // 4T-0502 (Epic 3E-0096): Scope-Zusatz TASKS nach demselben Muster.
+      // 4T-000409 (Epic 3E-000077): Scope-Zusatz BLOCKS vor WITHOUT ID.
+      // 4T-000502 (Epic 3E-000096): Scope-Zusatz TASKS nach demselben Muster.
       if (!atEnd() && isWord(peek(), 'BLOCKS')) {
         next();
         query.scope = 'blocks';
@@ -930,7 +930,7 @@ function parseQuery(input, opts) {
       }
       query.layoutColumns = numTok.value;
     } else if (clause === 'GROUP') {
-      // 4T-0503 (Epic 3E-0096): GROUP BY expr (, expr)* — mehrstufige
+      // 4T-000503 (Epic 3E-000096): GROUP BY expr (, expr)* — mehrstufige
       // Gruppierung (verschachtelte Gruppen-Ueberschriften). Generisch
       // geparst; die Aktivierungs-Grenze (nur LIST TASKS in dieser Stufe)
       // liegt bewusst in der Auswertung, damit die Klausel spaeter auch
@@ -953,7 +953,7 @@ function parseQuery(input, opts) {
       }
       if (error) break;
     } else if (clause === 'HIDE' || clause === 'SHOW') {
-      // 4T-0503: Element-Liste aus dem kuratierten Layout-Katalog.
+      // 4T-000503: Element-Liste aus dem kuratierten Layout-Katalog.
       const target = clause === 'HIDE' ? query.hide : query.show;
       for (;;) {
         if (atEnd() || peek().type !== 'field' || clauseKeywordOf(peek())) {
@@ -974,7 +974,7 @@ function parseQuery(input, opts) {
       }
       if (error) break;
     } else if (clause === 'SHORT') {
-      // 4T-0503: Kurz-Modus ohne Argumente.
+      // 4T-000503: Kurz-Modus ohne Argumente.
       query.short = true;
     }
   }
@@ -984,23 +984,23 @@ function parseQuery(input, opts) {
 
 // --- Evaluator ---------------------------------------------------------------
 
-// 4T-0402 (Epic 3E-0076): Typ-System, Funktions-Katalog und Kontext-Auflösung
+// 4T-000402 (Epic 3E-000076): Typ-System, Funktions-Katalog und Kontext-Auflösung
 // liegen im Schwester-Modul perspective-query-eval.js (eigenes Thema, eigener
 // Leitwert-Rahmen). evaluateQuery wird hier für die Alt-Aufrufer re-exportiert
 // (WHERE-Auswertung gegen eine reine Properties-Map, Alt-Semantik unverändert).
 const { evaluateQuery } = require('./perspective-query-eval.js');
 
-// 4T-0421 (Epic 3E-0079): Ausdrucks-Einstieg für die Spalten-Formeln der
+// 4T-000421 (Epic 3E-000079): Ausdrucks-Einstieg für die Spalten-Formeln der
 // Perspective Datatable (ein Wert-Ausdruck, kein Klausel-Parsing).
 function parseExpression(input) {
   return parseQuery(input, { expression: true });
 }
 
-// 4T-1183 (Epic 3E-0221): Feld-Bezüge eines Ausdrucks-AST einsammeln
+// 4T-001183 (Epic 3E-000221): Feld-Bezüge eines Ausdrucks-AST einsammeln
 // (lowercase, in Vorkommens-Reihenfolge, Doppelte bleiben).
 //
 // **Hier verortet und nicht bei seinem ersten Aufrufer.** Der Helfer stammt
-// aus 4T-0421 und lag in `markdown/perspective-datatable-computed.js`, weil
+// aus 4T-000421 und lag in `markdown/perspective-datatable-computed.js`, weil
 // die Spalten-Formeln ihn als Erste brauchten. Mit den Formel-Feldern der
 // Eigenschafts-Profile hat er einen zweiten Aufrufer, und der liegt in einer
 // anderen Familie: Ein Profil-Modul, das die Datatable lädt, um an einen

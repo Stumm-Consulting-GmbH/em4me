@@ -1,15 +1,15 @@
 // Postbuild-Aufgabe nach `npm run build`:
 //   Versions-EXEs aus dist/ nach releases/ verschieben (Versions-Archiv)
 //   und die Release-Notes der gebauten Version nach releases/ kopieren
-//   (X-10, 4T-0182; auf die gebaute Version begrenzt seit 4T-0683).
+//   (X-10, 4T-000182; auf die gebaute Version begrenzt seit 4T-000683).
 // dist/ bleibt damit reiner Build-Output von electron-builder mit nur dem
 // aktuellen Build; releases/ sammelt die Setup- und Portable-EXEs ueber alle
 // Releases hinweg. Beide Ordner sind gitignored.
 //
-// X-01 (4T-0182): Tag-Guard. Existiert fuer die Version im EXE-Namen bereits
+// X-01 (4T-000182): Tag-Guard. Existiert fuer die Version im EXE-Namen bereits
 // ein lokaler Release-Tag v<version>, wird NICHT ueberschrieben (Exit 1):
 // das faengt den vergessenen Versions-Bump ab, der zweimal offizielle
-// Release-EXEs zerstoert hat (4T-0049, 4T-0054). Test-Iterationen derselben
+// Release-EXEs zerstoert hat (4T-000049, 4T-000054). Test-Iterationen derselben
 // noch ungetaggten Zielversion ueberschreiben weiterhin.
 'use strict';
 
@@ -17,14 +17,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execSync } = require('node:child_process');
-// 4T-0375 (Epic 3E-0070): Build-Nummer-Guard — reine Vergleichslogik.
+// 4T-000375 (Epic 3E-000070): Build-Nummer-Guard — reine Vergleichslogik.
 const { buildNumberGuardError } = require('../src/shared/build-version');
 
 const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const RELEASES = path.join(ROOT, 'releases');
 
-// 4T-1223: Die Artefakt-Namensmuster sind in scripts/artefakt-muster.js
+// 4T-001223: Die Artefakt-Namensmuster sind in scripts/artefakt-muster.js
 // herausgeschnitten (Datei-Groessen-Budget); die Re-Exporte unten bleiben, weil
 // die Muster fachlich zur Archiv-Strecke gehoeren und dort erwartet werden.
 const {
@@ -37,7 +37,7 @@ const {
   tempStempel,
 } = require('./artefakt-muster');
 
-// 4T-0683: Version aus package.json, fuer den Notes-Filter. Ohne lesbare
+// 4T-000683: Version aus package.json, fuer den Notes-Filter. Ohne lesbare
 // package.json gibt es keinen Build und damit auch keine Notes-Kopie.
 function pkgVersionAusDatei() {
   try {
@@ -59,7 +59,7 @@ function gitTagExists(version) {
   }
 }
 
-// 4T-0375: Build-Nummer-Guard. Vergleicht die in build-info.json geschriebene
+// 4T-000375: Build-Nummer-Guard. Vergleicht die in build-info.json geschriebene
 // Nummer mit der realen Commit-Anzahl des HEAD. Greift nur, wenn die
 // Build-Info zur package.json-Version gehoert (Release-Fenster); in der
 // laufenden Entwicklung (Versions-Mismatch oder Fallback-Zustand) steigt die
@@ -84,7 +84,7 @@ function defaultGuardBuildNumber() {
   return buildNumberGuardError(info, pkgVersion, gitCount);
 }
 
-// Verschiebt eine EXE; X-03 (4T-0182): Fehler pro Datei abfangen (typisch:
+// Verschiebt eine EXE; X-03 (4T-000182): Fehler pro Datei abfangen (typisch:
 // Ziel-EXE laeuft gerade), gesammelt als Exit-Code melden statt halbfertig
 // hart abzubrechen.
 function moveFile(name, _opts) {
@@ -92,7 +92,7 @@ function moveFile(name, _opts) {
   const to = path.join(RELEASES, name);
   if (!fs.existsSync(from)) return true;
   try {
-    // K-05 (4T-0309): copy-then-delete statt delete-then-rename. Schlaegt der
+    // K-05 (4T-000309): copy-then-delete statt delete-then-rename. Schlaegt der
     // Transfer fehl, bleibt die vorher archivierte EXE erhalten (delete-then-
     // rename haette sie schon geloescht, bevor renameSync fehlschlug).
     // copyFileSync ueberschreibt ein vorhandenes Ziel.
@@ -108,7 +108,7 @@ function moveFile(name, _opts) {
   }
 }
 
-// 4T-0658: SHA256 einer bereits archivierten EXE. Die Prüfsumme entsteht im
+// 4T-000658: SHA256 einer bereits archivierten EXE. Die Prüfsumme entsteht im
 // Bau-Schritt und nicht am Ablage-Ort, weil sie die Datei beschreiben soll,
 // die den Bau-Rechner verlässt; am Ziel gebildet bestätigte sie nur, dass eine
 // Datei mit sich selbst identisch ist. Fehlende Datei liefert null (wie
@@ -119,14 +119,14 @@ function sha256OfArchived(name) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
-// 4T-0658: Schreibt je Version eine Sammel-Datei mit den Prüfsummen der
+// 4T-000658: Schreibt je Version eine Sammel-Datei mit den Prüfsummen der
 // archivierten EXEs. Ohne Code-Signatur ist sie der einzige Integritäts-
 // Nachweis für den Anwender und zugleich Pflichtangabe für eine spätere
 // Aufnahme in eine Paketverwaltung. Sammel- statt Einzeldatei, weil ein
 // Release beide Varianten trägt und der Inhalt am Stück in den Herkunfts-
 // Nachweis am Quellcode-Host übernommen wird. Zeilenformat wie sha256sum:
 // Hash, zwei Leerzeichen, Dateiname.
-// 4T-1223: Die Artefaktsätze einer Version entstehen seit den Linux-Zielen in
+// 4T-001223: Die Artefaktsätze einer Version entstehen seit den Linux-Zielen in
 // getrennten Bau-Läufen (Windows-Bau, Container-Bau). Eine vorhandene
 // Sammel-Datei wird deshalb fortgeschrieben statt ersetzt: Zeilen fremder
 // Dateinamen bleiben stehen, Zeilen der eben archivierten werden erneuert.
@@ -147,7 +147,7 @@ function writeChecksumFiles(names, deps = {}) {
   for (const [version, files] of byVersion) {
     // Produktnamen-Präfix aus dem Artefakt-Namen übernehmen, damit die Datei
     // neben ihren Artefakten steht; das Muster erlaubt auch die drei Altnamen.
-    // 4T-1205: Schnitt an `-<version>` statt `-<version>-`, weil Formate ohne
+    // 4T-001205: Schnitt an `-<version>` statt `-<version>-`, weil Formate ohne
     // Varianten-Zusatz (AppImage/DMG) direkt nach der Version enden; fuer die
     // Windows-Namen ist die Schnittstelle identisch.
     const prefix = files[0].slice(0, files[0].indexOf(`-${version}`));
@@ -192,7 +192,7 @@ function writeChecksumFiles(names, deps = {}) {
   return ok;
 }
 
-// 4T-0921: Erinnert an den Ablage-Ort eines temporaeren Baus. Steht bewusst am
+// 4T-000921: Erinnert an den Ablage-Ort eines temporaeren Baus. Steht bewusst am
 // Ende des Archivierungs-Schritts und damit am Ende von `npm run build`: Es ist
 // das Letzte, was nach einem Bau auf dem Schirm steht.
 //
@@ -221,7 +221,7 @@ function meldeTemporaere(namen, log = console.log) {
 }
 
 /**
- * 4T-0921: Raeumt verwaiste Blockmaps weg (Anordnung des Product Owners vom
+ * 4T-000921: Raeumt verwaiste Blockmaps weg (Anordnung des Product Owners vom
  * 2026-08-07). Eine Blockmap ist eine Beigabe des Setup-Baus; ohne ihre
  * Programmdatei in `dist/` gehoert sie zu einem Bau, den es dort nicht mehr
  * gibt. Genau daran haengt die Regel: **Waise heisst entfernen**, ohne
@@ -240,14 +240,14 @@ function raeumeWaisenBlockmaps(verbleibend, deps = {}) {
   const entfernen = deps.entfernen || ((name) => fs.rmSync(path.join(DIST, name)));
   const log = deps.log || console.log;
   const vorhanden = new Set(verbleibend);
-  // 4T-0957: Dieselbe Regel gilt fuer die Release-Hinweise (Entscheidung des
+  // 4T-000957: Dieselbe Regel gilt fuer die Release-Hinweise (Entscheidung des
   // Product Owners vom 2026-08-11, Nebenpunkt zu Befund B-06). Ihre Version
   // steht im Dateinamen; kommt sie in keiner verbliebenen Programmdatei vor,
   // gehoert die Datei zu einem Bau, den es hier nicht mehr gibt. Das Muster
   // deckt Release-Bau und temporaeren Bau gleichermassen ab, weil beide ihre
   // Version im Namen fuehren. Im Versions-Archiv gilt weiter der
   // Vollstaendigkeits-Grundsatz; dort wird nichts entfernt.
-  // 4T-1205: Programmdateien aller Formate zaehlen (Release- wie T-Bauten);
+  // 4T-001205: Programmdateien aller Formate zaehlen (Release- wie T-Bauten);
   // die Version steht bei beiden im Namen.
   const gebauteVersionen = new Set(
     verbleibend
@@ -289,7 +289,7 @@ function raeumeWaisenBlockmaps(verbleibend, deps = {}) {
 }
 
 /**
- * 4T-0921: Raeumt ueberholte temporaere Bauten weg (Anordnung des Product
+ * 4T-000921: Raeumt ueberholte temporaere Bauten weg (Anordnung des Product
  * Owners vom 2026-08-07). `dist/` traegt laut Konvention nur den aktuellen Bau;
  * weil ein temporaerer Bau nicht archiviert wird, sammelte er sich hier
  * dennoch an — je Bau rund 170 MB, und beim Testen die Frage, welche der
@@ -355,9 +355,9 @@ function archiveBuild(entries, deps = {}) {
       }
     });
 
-  // 4T-1205: alle Release-Artefakte (Windows-EXEs plus vorbereitete Formate).
+  // 4T-001205: alle Release-Artefakte (Windows-EXEs plus vorbereitete Formate).
   const exes = entries.filter((name) => matchArtefakt(name) !== null);
-  // 4T-0683: Nur die Notes der gebauten Version. In dist/ sammeln sich die
+  // 4T-000683: Nur die Notes der gebauten Version. In dist/ sammeln sich die
   // Notes-Dateien aller Releases; pauschales Kopieren hat am 2026-07-22 eine
   // Archiv-Fassung mit einer aelteren Probe-Fassung ueberschrieben. Die
   // Release-Strecke beschreibt seit jeher dieses Soll ("die zur
@@ -367,7 +367,7 @@ function archiveBuild(entries, deps = {}) {
     const treffer = name.match(NOTES_PATTERN);
     return treffer !== null && treffer[1] === pkgVersion;
   });
-  // 4T-0921: Ein temporaerer Bau ruehrt das Versions-Archiv ueberhaupt nicht
+  // 4T-000921: Ein temporaerer Bau ruehrt das Versions-Archiv ueberhaupt nicht
   // an — auch nicht mit einer Notes-Kopie. Der erste echte Lauf am 2026-08-07
   // zeigte, warum das ausdruecklich stehen muss: Die EXEs blieben zwar liegen,
   // die Notes-Kopie lief aber weiter und schrieb `release-notes-<version>.md`
@@ -376,7 +376,7 @@ function archiveBuild(entries, deps = {}) {
   // Regel lautet dennoch: In `releases/` steht ausschliesslich, was
   // ausgeliefert wurde.
   //
-  // 4T-1028: Ob der Lauf ein temporaerer Bau ist, entscheidet seit der
+  // 4T-001028: Ob der Lauf ein temporaerer Bau ist, entscheidet seit der
   // Release-Vorbereitung 1.107.0 (2026-08-13) nicht mehr der Datei-Bestand in
   // dist/, sondern derselbe Umstand, der auch den Bau selbst dazu macht: eine
   // bereits ausgelieferte Versions-Angabe (build-app.js ueber bauAngaben, das
@@ -428,7 +428,7 @@ function archiveBuild(entries, deps = {}) {
     }
   }
 
-  // 4T-0375: Build-Nummer-Guard — Abweichung zwischen build-info.json und der
+  // 4T-000375: Build-Nummer-Guard — Abweichung zwischen build-info.json und der
   // realen Commit-Anzahl (Amend/Nachzuegler) machte die archivierte EXE-Nummer
   // falsch, deshalb Abbruch vor dem Verschieben.
   if (exes.length > 0) {
@@ -441,7 +441,7 @@ function archiveBuild(entries, deps = {}) {
 
   fs.mkdirSync(RELEASES, { recursive: true });
   let ok = true;
-  // 4T-0658: nur tatsächlich archivierte EXEs bekommen eine Prüfsumme. Eine
+  // 4T-000658: nur tatsächlich archivierte EXEs bekommen eine Prüfsumme. Eine
   // fehlgeschlagene Verschiebung darf keinen Nachweis über eine Datei
   // hinterlassen, die so nicht im Versions-Archiv liegt.
   const archived = [];

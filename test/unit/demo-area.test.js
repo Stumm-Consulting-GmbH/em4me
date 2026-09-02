@@ -1,4 +1,4 @@
-// 4T-0632 (Epic 3E-0102): Unit-Tests für das Demo-Area-Erstell-Modul
+// 4T-000632 (Epic 3E-000102): Unit-Tests für das Demo-Area-Erstell-Modul
 // (src/main/area/demo-area.js). Geprüft werden ein Manifest-Wächter über die
 // mitgelieferten Demo-Inhalte (src/demo — beide Richtungen), die reine
 // Leer-Prüfung isEmptyDirListing und createDemoAreaAt gegen echte Temp-
@@ -24,7 +24,7 @@ const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
 // unter src/demo, Forward-Slashes). Ein Zuwachs oder Wegfall im Bestand muss
 // diese Liste bewusst nachziehen.
 const EXPECTED_FILES = [
-  // 4T-1366 (Epic 3E-0171): Bereichsdatei der Demo-Area. Sie traegt allein die
+  // 4T-001366 (Epic 3E-000171): Bereichsdatei der Demo-Area. Sie traegt allein die
   // Start-Seiten-Festlegung auf „00 Welcome.md", damit die mitgelieferte Demo
   // die Funktion vorfuehrt statt sie nur zu beschreiben: Wer die Demo-Area
   // oeffnet, landet auf ihrer Willkommens-Seite.
@@ -41,7 +41,7 @@ const EXPECTED_FILES = [
   '09 Diagrams and Formulas.md',
   '10 Attachments.md',
   '11 Templates.md',
-  // 4T-0645 (Epic 3E-0127): astronomischer Themenbereich als vierstufige
+  // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit
   // dem Unterseiten-Trennzeichen U+2215 (Division Slash), NICHT die
@@ -55,7 +55,7 @@ const EXPECTED_FILES = [
   'Milky Way∕Sun∕Earth.md',
   'Milky Way∕Sun∕Earth∕Moon.md',
   'Milky Way∕Sun∕Mars.md',
-  // 4T-0850 (Epic 3E-0147): das Demo-Buch (Buch-Ordner mit Begleitdatei,
+  // 4T-000850 (Epic 3E-000147): das Demo-Buch (Buch-Ordner mit Begleitdatei,
   // Buch-Datei, vier Kapiteln über zwei Ordner und einer bewusst nicht
   // eingehängten Datei). Bewusst OHNE eigene Seite im Wurzelverzeichnis: die
   // E2E-Demo-Spec zählt dort die Markdown-Seiten und die #demo-Treffer der
@@ -69,7 +69,7 @@ const EXPECTED_FILES = [
   'Bookshelf/Demo Book/Notes to Self.md',
   'Bookshelf/Demo Book/Parts/02 The Harbour.md',
   'Bookshelf/Demo Book/Parts/03 Storms and Detours.md',
-  // 4T-0871 (Buch = Bereich): Das Cover liegt IM Buch-Ordner, weil die
+  // 4T-000871 (Buch = Bereich): Das Cover liegt IM Buch-Ordner, weil die
   // Bereichs-Grenze der Buch-Applikation nichts ausserhalb laedt.
   'Bookshelf/Demo Book/cover.png',
   'Bookshelf/Field Notes/01 Observations.md',
@@ -95,7 +95,7 @@ function listFilesRecursive(root) {
   return out.sort();
 }
 
-describe('Demo-Area: Manifest-Wächter über src/demo (4T-0632)', () => {
+describe('Demo-Area: Manifest-Wächter über src/demo (4T-000632)', () => {
   it('src/demo trägt exakt die erwarteten Dateien (beide Richtungen)', () => {
     const actual = listFilesRecursive(DEMO_DIR);
     const expected = [...EXPECTED_FILES].sort();
@@ -110,7 +110,7 @@ describe('Demo-Area: Manifest-Wächter über src/demo (4T-0632)', () => {
   });
 });
 
-describe('isEmptyDirListing (4T-0632)', () => {
+describe('isEmptyDirListing (4T-000632)', () => {
   it('leeres Array ist leer', () => {
     expect(isEmptyDirListing([])).toBe(true);
   });
@@ -124,7 +124,7 @@ describe('isEmptyDirListing (4T-0632)', () => {
   });
 });
 
-describe('createDemoAreaAt gegen echte Temp-Ordner (4T-0632)', () => {
+describe('createDemoAreaAt gegen echte Temp-Ordner (4T-000632)', () => {
   const temps = [];
   const mkTemp = () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-unit-'));

@@ -1,4 +1,4 @@
-// 4T-0176: Regressionstests fuer die Sicherheits-Haertung des Render-Pfads:
+// 4T-000176: Regressionstests fuer die Sicherheits-Haertung des Render-Pfads:
 // (a) P-02 Portable-HTML-Whitelist, (b) P-03 Bild-Containment,
 // (c) P-07 javascript:-Wiki-Links. M-17 (will-navigate) ist eine
 // Main-Prozess-Sperre ohne bekannten Ausloesepfad — Code-Review genuegt.
@@ -59,7 +59,7 @@ test.describe('P-02: Portable-Marker rendert nur die Tabellen-Whitelist', () => 
   });
 });
 
-// 4T-0788 (Epic 3E-0125): Die Grenze des Bild-Resolvers hat ihre Wurzel
+// 4T-000788 (Epic 3E-000125): Die Grenze des Bild-Resolvers hat ihre Wurzel
 // gewechselt, nicht ihre Härte. OHNE gebundenen Bereich gilt unverändert der
 // Ordner des Dokuments — das ist der Fall unmittelbar unten und der
 // ursprüngliche P-03-Regressionsfall. MIT gebundenem Bereich ist die Wurzel
@@ -100,7 +100,7 @@ test.describe('P-03: Bild-Resolver respektiert seine Wurzel', () => {
     }
   });
 
-  // 4T-0788 (Epic 3E-0125): Beide Seiten der aufgeweiteten Wurzel in EINEM
+  // 4T-000788 (Epic 3E-000125): Beide Seiten der aufgeweiteten Wurzel in EINEM
   // Lauf, damit die Grenze als Paar geprueft ist. Aufbau: Bereich mit einem
   // zentralen Anlagen-Ordner, das Dokument liegt in einem Unterordner und
   // verweist mit '../' hinein — genau die Konstellation, die unter der reinen

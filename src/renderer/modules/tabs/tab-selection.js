@@ -1,4 +1,4 @@
-// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl in der Reiterleiste — reine Helfer
+// 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl in der Reiterleiste — reine Helfer
 // ohne DOM und ohne IPC (Muster tab-groups.js).
 //
 // Die Auswahl ist Bedien-Zustand und keine Struktur: Sie gehört zur einzelnen
@@ -101,7 +101,7 @@ export function extendSelection(pane, tabIdx, groupsActive = true) {
     if (groupsActive && !isTabVisible(pane, i)) continue;
     sel.push(pane.tabs[i]);
   }
-  // Der aktive Reiter darf seit 4T-0767 selbst verborgen sein; Invariante 2
+  // Der aktive Reiter darf seit 4T-000767 selbst verborgen sein; Invariante 2
   // gilt trotzdem.
   const active = pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
   if (active && !sel.includes(active)) sel.push(active);

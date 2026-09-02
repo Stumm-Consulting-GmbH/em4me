@@ -1,4 +1,4 @@
-// 4T-0372 (Epic 3E-0069): Optionen-Modell und Rechen-Kern der Uhr-Erweiterung.
+// 4T-000372 (Epic 3E-000069): Optionen-Modell und Rechen-Kern der Uhr-Erweiterung.
 //
 // Prozessneutral (CJS, reine Daten und reine Funktionen, kein DOM, kein
 // Electron) und damit unit-testbar ohne jsdom — Muster src/shared/
@@ -11,7 +11,7 @@
 // haengen transitiv an shared/markdown/link-scan.js, das im Preload-Kontext
 // lebt und im Renderer-Bundle nichts zu suchen hat. Die ISO-Kalenderwoche
 // steht deshalb als geschlossene Kurz-Funktion hier (isoWeekNumber) statt
-// als Import. Einzige Ausnahme seit 4T-0636/4T-0637: das ebenso
+// als Import. Einzige Ausnahme seit 4T-000636/4T-000637: das ebenso
 // prozessneutrale und abhaengigkeitsfreie Wecker-Modul liefert die
 // Klemmung der Schlummer-Dauer (eine Quelle statt zweier Grenzwert-Paare).
 'use strict';
@@ -23,11 +23,11 @@ const { normalizeSnoozeMinutes, DEFAULT_SNOOZE_MINUTES } = require('./clock-alar
 // allen Panels an eigenen Keys (clockPanel.visibleColumn0/1).
 const CLOCK_OPTIONS_KEY = 'clock.options';
 
-// 4T-0636 (Epic 3E-0069): Anzeige-Modus des Panels. Bedien- und nicht
+// 4T-000636 (Epic 3E-000069): Anzeige-Modus des Panels. Bedien- und nicht
 // Konfigurations-Zustand, deshalb bewusst NEBEN dem Optionen-Objekt und
 // pro Sidebar-Spalte persistiert (PO-Festlegung 2026-07-20) — Muster der
 // Sichtbarkeits-Keys clockPanel.visibleColumn0/1.
-// 4T-0752 (Epic 3E-0146): 'calendar' als fuenfter Modus (Monatskalender zum
+// 4T-000752 (Epic 3E-000146): 'calendar' als fuenfter Modus (Monatskalender zum
 // Nachschlagen). Er haengt hinten an, damit die Reihenfolge der vier
 // bestehenden Modus-Tasten unveraendert bleibt.
 const CLOCK_MODES = ['clock', 'alarm', 'timer', 'stopwatch', 'calendar'];
@@ -46,7 +46,7 @@ const DATE_FORMATS = ['long', 'medium', 'short', 'iso'];
 // Uhr nicht abschneidet.
 const ANALOG_SIZE_PX = { small: 88, medium: 128, large: 176 };
 
-// 4T-0679 (Epic 3E-0139): Schrift-Faktor der digitalen Anzeige je Stufe.
+// 4T-000679 (Epic 3E-000139): Schrift-Faktor der digitalen Anzeige je Stufe.
 // Die Stufe bemisst damit Zifferblatt UND Schrift; zuvor wirkte sie nur auf
 // das Zifferblatt, waehrend die Textzeilen feste Pixelwerte trugen.
 //
@@ -75,10 +75,10 @@ const DEFAULT_CLOCK_OPTIONS = {
   hourFormat: 24,
   showSeconds: true,
   dateFormat: 'long',
-  // 4T-0637: Schlummer-Dauer des Weckers in Minuten. Konfiguration und
+  // 4T-000637: Schlummer-Dauer des Weckers in Minuten. Konfiguration und
   // damit hier statt im Bedien-Zustand.
   snoozeMinutes: DEFAULT_SNOOZE_MINUTES,
-  // 4T-0752 (Epic 3E-0146): Kalenderwochen-Spalte des Monatskalenders.
+  // 4T-000752 (Epic 3E-000146): Kalenderwochen-Spalte des Monatskalenders.
   // Bewusst eine EIGENE Option neben showWeek: showWeek steuert die
   // Textzeile unter der Uhrzeit, und beides ist getrennt gewollt.
   showCalendarWeek: true,
@@ -119,13 +119,13 @@ function normalizeClockOptions(raw) {
   };
 }
 
-// 4T-0636: Modus-Wert bereinigen. Unbekannte, fehlende oder defekte Staende
+// 4T-000636: Modus-Wert bereinigen. Unbekannte, fehlende oder defekte Staende
 // fallen auf 'clock' zurueck (erste Position, wie bei den Auswahl-Optionen).
 function normalizeClockMode(raw) {
   return pickFrom(raw, CLOCK_MODES);
 }
 
-// 4T-0636: Store-Schluessel des Modus einer Spalte. Ausserhalb des gueltigen
+// 4T-000636: Store-Schluessel des Modus einer Spalte. Ausserhalb des gueltigen
 // Bereichs liefert die Funktion null, damit Aufrufer nicht versehentlich in
 // einen erfundenen Key schreiben.
 function clockModeKey(paneIdx) {
@@ -147,7 +147,7 @@ function analogSizePx(options) {
   return ANALOG_SIZE_PX[normalizeClockOptions(options).analogSize];
 }
 
-// 4T-0679: Schrift-Faktor der digitalen Anzeige. Das Panel setzt ihn als
+// 4T-000679: Schrift-Faktor der digitalen Anzeige. Das Panel setzt ihn als
 // CSS-Variable am Panel-Koerper, die drei Textzeilen leiten ihre Groesse
 // daraus ab.
 function clockScale(options) {
@@ -227,7 +227,7 @@ function formatClockDate(date, options, lang = 'de') {
   }
 }
 
-// --- Monatskalender: Ansichts-Zustand und Navigation (4T-0752) -------------
+// --- Monatskalender: Ansichts-Zustand und Navigation (4T-000752) -------------
 //
 // Der angezeigte Monat ist Bedien- und nicht Konfigurations-Zustand; hier
 // steht nur seine Arithmetik, damit sie ohne DOM pruefbar bleibt.

@@ -1,5 +1,5 @@
 // Lesezeichen: Aufbau des Panel-Baums (beide Abschnitte).
-// 4T-0991 (Epic 3E-0196): aus bookmarks.js in den Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): aus bookmarks.js in den Ordner bookmarks/
 // ausgezogen. Baut ueber dem Datenmodell (bookmarks-tree.js) auf.
 // Laufzeit-Zyklus innerhalb des Ordners: Der Baum-Aufbau haengt die Handler
 // von Drag-and-Drop, Inline-Edit und Aktionen ein, und dieselben Handler
@@ -52,7 +52,7 @@ export function cssEscape(s) {
   return String(s).replace(/(["\\])/g, '\\$1');
 }
 
-// 4T-0612: Rendert beide Abschnitte in das Panel. Der Bereichs-Abschnitt und
+// 4T-000612: Rendert beide Abschnitte in das Panel. Der Bereichs-Abschnitt und
 // die Abschnitts-Koepfe erscheinen nur bei geoeffnetem Bereich; die
 // Reihenfolge steuert state.bookmarks.areaFirst.
 export function renderBookmarks(paneIdx) {
@@ -80,7 +80,7 @@ export function renderBookmarks(paneIdx) {
   renderSectionInto(els, paneIdx, bookmarkSection(SECTION_GENERAL));
 }
 
-// 4T-0612: Rendert den Baum EINES Abschnitts in dessen Tree-Container. Bindet
+// 4T-000612: Rendert den Baum EINES Abschnitts in dessen Tree-Container. Bindet
 // Kontextmenue und Root-Drag-and-Drop einmal pro Gruppe (die Abschnitts-
 // Objekt-Methoden lesen den State live, ein einmal gebundenes Objekt bleibt
 // gueltig). Existenz-Pruefung mit dem aufgeloesten absoluten Pfad als
@@ -94,7 +94,7 @@ function renderSectionInto(els, paneIdx, section) {
   treeEl.innerHTML = '';
   const isEmpty = !tree || tree.length === 0;
   if (emptyEl) emptyEl.hidden = !isEmpty;
-  // 4T-0078: Rechtsklick auf den leeren Gruppen-Bereich zeigt "Neuer Ordner".
+  // 4T-000078: Rechtsklick auf den leeren Gruppen-Bereich zeigt "Neuer Ordner".
   if (groupEl && !groupEl.dataset.contextBound) {
     groupEl.addEventListener('contextmenu', (ev) => {
       if (ev.target.closest && ev.target.closest('.bookmark-node')) return;
@@ -104,7 +104,7 @@ function renderSectionInto(els, paneIdx, section) {
     });
     groupEl.dataset.contextBound = '1';
   }
-  // 4T-0079: Drop auf den leeren Gruppen-Bereich legt am Ende des Roots ab.
+  // 4T-000079: Drop auf den leeren Gruppen-Bereich legt am Ende des Roots ab.
   if (groupEl && !groupEl.dataset.dndBound) {
     groupEl.addEventListener('dragover', (ev) => handleBookmarkDragOverRoot(ev, groupEl, section));
     groupEl.addEventListener('drop', (ev) => {
@@ -117,7 +117,7 @@ function renderSectionInto(els, paneIdx, section) {
     groupEl.dataset.dndBound = '1';
   }
   if (isEmpty) return;
-  // 4T-0079: Render iteriert in Daten-Reihenfolge (kein Render-Sort mehr).
+  // 4T-000079: Render iteriert in Daten-Reihenfolge (kein Render-Sort mehr).
   for (const node of tree) {
     const li = renderBookmarkNode(node, 0, section);
     if (li) treeEl.appendChild(li);
@@ -177,7 +177,7 @@ export function renderBookmarkNode(node, depth, section) {
   row.style.paddingLeft = depth * 16 + 6 + 'px';
   li.appendChild(row);
 
-  // 4T-0079: HTML5-Drag-and-Drop am Row-Element. draggable nur, wenn nicht
+  // 4T-000079: HTML5-Drag-and-Drop am Row-Element. draggable nur, wenn nicht
   // im Inline-Edit-Modus (sonst stoert Drag das Tippen).
   if (!isEditing) {
     row.draggable = true;
@@ -204,7 +204,7 @@ export function renderBookmarkNode(node, depth, section) {
     row.appendChild(icon);
 
     if (isEditing) {
-      // 4T-0078: Inline-Edit fuer Ordner-Name.
+      // 4T-000078: Inline-Edit fuer Ordner-Name.
       appendBookmarkInlineEditInput(
         row,
         node.id,
@@ -234,7 +234,7 @@ export function renderBookmarkNode(node, depth, section) {
     if (expanded && Array.isArray(node.children) && node.children.length > 0) {
       const childUl = document.createElement('ul');
       childUl.className = 'bookmark-children';
-      // 4T-0079: Daten-Reihenfolge respektieren (kein Render-Sort).
+      // 4T-000079: Daten-Reihenfolge respektieren (kein Render-Sort).
       for (const child of node.children) {
         const childLi = renderBookmarkNode(child, depth + 1, sec);
         if (childLi) childUl.appendChild(childLi);
@@ -243,7 +243,7 @@ export function renderBookmarkNode(node, depth, section) {
     }
   } else {
     // file
-    // 4T-0079: Spacer in Chevron-Breite, damit das File-Icon auf der gleichen
+    // 4T-000079: Spacer in Chevron-Breite, damit das File-Icon auf der gleichen
     // X-Position wie ein Folder-Icon derselben Ebene landet (sonst rueckt das
     // File-Icon zu weit links und die Hierarchie wirkt unklar).
     const spacer = document.createElement('span');
@@ -256,14 +256,14 @@ export function renderBookmarkNode(node, depth, section) {
     row.appendChild(icon);
 
     if (isEditing) {
-      // 4T-0078: Inline-Edit fuer Bookmark-DisplayName.
+      // 4T-000078: Inline-Edit fuer Bookmark-DisplayName.
       const initial = node.displayName || (node.filePath ? api.basename(node.filePath) : '');
       appendBookmarkInlineEditInput(row, node.id, initial);
     } else {
       const label = document.createElement('span');
       label.className = 'bookmark-label';
       label.textContent = node.displayName || (node.filePath ? api.basename(node.filePath) : '');
-      // 4T-0612: Tooltip zeigt den aufgeloesten absoluten Pfad (Bereichs-Ziele
+      // 4T-000612: Tooltip zeigt den aufgeloesten absoluten Pfad (Bereichs-Ziele
       // eingeschlossen); ohne Bereich der Rohpfad.
       label.title = resolveBookmarkPath(sec, node) || node.filePath || '';
       row.appendChild(label);

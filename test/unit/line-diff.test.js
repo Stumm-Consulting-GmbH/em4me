@@ -1,4 +1,4 @@
-// 4T-0331 (Epic 3E-0060): Unit-Tests für den zeilenbasierten Diff der
+// 4T-000331 (Epic 3E-000060): Unit-Tests für den zeilenbasierten Diff der
 // Dokument-Historie (src/shared/line-diff.js). Kern-Eigenschaft ist der
 // Roundtrip: applyOps(base, diffLines(base, neu)) === neu — darauf steht
 // die gesamte Delta-Rekonstruktion der .mdd-Historie.
@@ -24,7 +24,7 @@ function mulberry32(seed) {
   };
 }
 
-describe('diffLines/applyOps Roundtrip (4T-0331)', () => {
+describe('diffLines/applyOps Roundtrip (4T-000331)', () => {
   const cases = [
     ['', ''],
     ['', 'a'],
@@ -76,7 +76,7 @@ describe('diffLines/applyOps Roundtrip (4T-0331)', () => {
   });
 });
 
-describe('applyOps-Validierung (4T-0331)', () => {
+describe('applyOps-Validierung (4T-000331)', () => {
   it('wirft bei Delta, das nicht zum Basistext passt', () => {
     const ops = diffLines('a\nb\nc', 'a\nX\nc');
     expect(() => applyOps('a\nANDERS\nc', ops)).toThrow(/passt nicht/);
@@ -87,7 +87,7 @@ describe('applyOps-Validierung (4T-0331)', () => {
   });
 });
 
-describe('buildDiffRows (4T-0333)', () => {
+describe('buildDiffRows (4T-000333)', () => {
   it('baut Hunks mit Kontext und Auslassungs-Markern', () => {
     const base = ['k1', 'k2', 'k3', 'alt', 'k4', 'k5', 'k6', 'k7', 'k8'].join('\n');
     const neu = ['k1', 'k2', 'k3', 'neu', 'k4', 'k5', 'k6', 'k7', 'k8'].join('\n');
@@ -118,7 +118,7 @@ describe('buildDiffRows (4T-0333)', () => {
   });
 });
 
-describe('countChanges und splitLines (4T-0331)', () => {
+describe('countChanges und splitLines (4T-000331)', () => {
   it('zählt eingefügte und entfernte Zeilen', () => {
     const ops = diffLines('a\nb\nc', 'a\nX\nY');
     const { added, removed } = countChanges(ops);

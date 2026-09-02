@@ -1,4 +1,4 @@
-// 4T-1277 (Epic 3E-0232, Befund B3): Kurzform-Verweise von einer Unterseite aus.
+// 4T-001277 (Epic 3E-000232, Befund B3): Kurzform-Verweise von einer Unterseite aus.
 //
 // **Der Befund.** Auf der Demo-Seite `Milky Way∕Sun` sind [[/Earth]] und
 // [[/Mars]] unter Linux als unaufgeloest markiert, obwohl die Ziel-Dateien
@@ -6,7 +6,7 @@
 // Eltern-Verweis [[..]] und der gewoehnliche Verweis [[Light Speed]] auch unter
 // Linux auf.
 //
-// **Warum eine eigene Datei.** Der 4T-0336-Block in backlinks.test.js prueft
+// **Warum eine eigene Datei.** Der 4T-000336-Block in backlinks.test.js prueft
 // [[/Name]] bereits und ist unter Linux gruen — dort traegt die **aktive** Datei
 // aber keinen Unterseiten-Trenner (`Prozess-A.md` verweist auf
 // `Prozess-A∕Entwurf.md`). Im Befund ist die aktive Datei selbst schon eine
@@ -103,7 +103,7 @@ function dreiEbenen() {
 
 // --- Die Leiter -------------------------------------------------------------
 
-describe('4T-1277: Kurzform-Verweise von einer Unterseite aus (Befund B3)', () => {
+describe('4T-001277: Kurzform-Verweise von einer Unterseite aus (Befund B3)', () => {
   it('Stufe 1: der Index kennt die Unterseite dritter Ebene unter ihrem vollen Namen', async () => {
     const { sonne, erde } = dreiEbenen();
     await indexFor(sonne);

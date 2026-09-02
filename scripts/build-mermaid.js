@@ -1,4 +1,4 @@
-// 4T-0021: bundlet src/renderer/mermaid-entry.js zu src/renderer/mermaid.bundle.js.
+// 4T-000021: bundlet src/renderer/mermaid-entry.js zu src/renderer/mermaid.bundle.js.
 // Wird vor dem Renderer-Bundle aufgerufen, ist aber bewusst vom Haupt-Bundle
 // getrennt — der Renderer laedt diesen Bundle erst per dynamischem import(),
 // wenn ein Dokument mindestens einen mermaid-Code-Block enthaelt.

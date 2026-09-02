@@ -1,7 +1,7 @@
 // Lesezeichen-Panel: Sichtbarkeit, Panel-Registrierung und Sprung-Helfer.
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
-// 4T-0991 (Epic 3E-0196): in den Feature-Ordner bookmarks/ geteilt. Hier
+// 4T-000991 (Epic 3E-000196): in den Feature-Ordner bookmarks/ geteilt. Hier
 // bleiben die Panel-Seite (Sichtbarkeit, Statusbar-Zustand, Registrierung),
 // das Nachladen der Baeume ueber die Fenster-Grenze und die beiden
 // Bestands-Exporte openOrJumpToPath/placeCursorAtLine, die andere Bereiche
@@ -14,13 +14,13 @@ import { EditorView } from '@codemirror/view';
 
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
-// 4T-0294 (Epic 3E-0052): Lesezeichen sind eine Werkzeug-Erweiterung.
+// 4T-000294 (Epic 3E-000052): Lesezeichen sind eine Werkzeug-Erweiterung.
 // Abschalten meldet nur die UI ab — der persistierte Bookmark-Baum
 // bleibt erhalten und kehrt beim Einschalten zurueck (Daten-Schonung).
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { paneEditors } from '../editor/editor.js';
 import { applySidebarVisibility } from '../panels/panels.js';
-// 4T-0287/4T-0288 (Epic 3E-0051): Panel-Registry — Bookmarks registriert
+// 4T-000287/4T-000288 (Epic 3E-000051): Panel-Registry — Bookmarks registriert
 // sich am Modul-Ende; Einblenden aktiviert den Gruppen-Reiter.
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import {
@@ -45,7 +45,7 @@ import {
   persistBookmarksTree,
 } from './bookmarks-tree.js';
 
-// 4T-0612 (Epic 3E-0115): Bereichs-Lesezeichen aus der Bereichsdatei laden
+// 4T-000612 (Epic 3E-000115): Bereichs-Lesezeichen aus der Bereichsdatei laden
 // (leer ohne Bereich). Wird beim App-Start, beim Bereichs-Wechsel (app-init)
 // und beim Aenderungs-Broadcast eines anderen Fensters aufgerufen.
 export async function loadAreaBookmarks() {
@@ -61,7 +61,7 @@ export async function loadAreaBookmarks() {
   for (let p = 0; p < state.panes.length; p++) applyBookmarksVisibility(p);
 }
 
-// 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Mehr-Fenster-Konsistenz
+// 4T-000612 (Epic 3E-000115, PO-Testbefund EXE 0.91.0.919): Mehr-Fenster-Konsistenz
 // der ALLGEMEINEN Lesezeichen. Der globale Baum liegt im electron-store
 // (settings-Key bookmarksTree); ein Schreibvorgang in einem Fenster meldet
 // 'bookmarksTree:changed' an die uebrigen Fenster (Main als Verteiler, ohne das
@@ -76,10 +76,10 @@ export function reloadGeneralBookmarksTree(tree) {
   updateEmptyState();
 }
 
-// 4T-0339 (Epic 3E-0061): Datei-Umbenennen — gespeicherte Lesezeichen-Pfade
+// 4T-000339 (Epic 3E-000061): Datei-Umbenennen — gespeicherte Lesezeichen-Pfade
 // nachziehen. Der Anzeigename wird nur mitgezogen, wenn er dem alten
 // Dateinamen entspricht (vom Nutzer umbenannte Lesezeichen bleiben).
-// 4T-0612 (Epic 3E-0115): zusaetzlich der Bereichs-Baum. Dessen Ziele sind
+// 4T-000612 (Epic 3E-000115): zusaetzlich der Bereichs-Baum. Dessen Ziele sind
 // wurzel-relativ; ein Umbenennen von Dateien UND Ordnern innerhalb des
 // Bereichs zieht die relativen Pfade nach (Datei: exakter Match, Ordner:
 // Praefix-Ersatz fuer alle darunter liegenden Ziele). Das globale Modell
@@ -138,7 +138,7 @@ export async function updateBookmarkPathsForRename(oldPath, newPath) {
   return changed || areaChanged;
 }
 
-// 4T-0612 (Epic 3E-0115): Reihenfolge-Schalter aus den Einstellungen. Wirkt
+// 4T-000612 (Epic 3E-000115): Reihenfolge-Schalter aus den Einstellungen. Wirkt
 // sofort (Panel neu rendern) und persistiert global.
 export async function setBookmarksAreaFirst(value) {
   const next = value !== false;
@@ -150,12 +150,12 @@ export async function setBookmarksAreaFirst(value) {
 export function applyBookmarksVisibility(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.bookmarksSection) return;
-  // 4T-0075: Im Empty-State sichtbar, wenn mindestens ein Bookmark existiert —
+  // 4T-000075: Im Empty-State sichtbar, wenn mindestens ein Bookmark existiert —
   // damit der Nutzer beim App-Start direkt eine gemerkte Datei anklicken kann.
-  // 4T-0330 (PO-Testbefund): der Statusbar-Schalter gilt dabei auch im
+  // 4T-000330 (PO-Testbefund): der Statusbar-Schalter gilt dabei auch im
   // Empty-State — eine ausgeschaltete Sektion wird nicht mehr erzwungen
   // eingeblendet (der fruehere Override zeigte sie am Schalter vorbei).
-  // 4T-0612: "hat Lesezeichen" umfasst beide Abschnitte.
+  // 4T-000612: "hat Lesezeichen" umfasst beide Abschnitte.
   const allEmpty = isAllEmpty();
   const visible =
     isExtensionActive('bookmarks') &&
@@ -182,13 +182,13 @@ export async function toggleBookmarksPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.bookmarks.visibleByPane[paneIdx];
   state.bookmarks.visibleByPane[paneIdx] = next;
-  // R3-08 (4T-0180): Einblenden verwirft den Existenz-Cache — der Nutzer
+  // R3-08 (4T-000180): Einblenden verwirft den Existenz-Cache — der Nutzer
   // erwartet beim bewussten Oeffnen der Sektion einen frischen Stand.
   if (next) clearBookmarkExistsCache();
-  // 4T-0288: Einblenden aktiviert den Reiter in einer Gruppe.
+  // 4T-000288: Einblenden aktiviert den Reiter in einer Gruppe.
   if (next) await ensurePanelTabActive('bookmarks', paneIdx);
   applyBookmarksVisibility(paneIdx);
-  // 4T-0330: im Empty-State haengt die Pane-Container-Sichtbarkeit an den
+  // 4T-000330: im Empty-State haengt die Pane-Container-Sichtbarkeit an den
   // Panel-Praeferenzen — nachziehen, damit der Schalter dort sichtbar wirkt.
   updateEmptyState();
   await persistBookmarksSettings();
@@ -197,7 +197,7 @@ export async function toggleBookmarksPanel(paneIdx) {
   }
 }
 
-// 4T-0015: Tab finden und Cursor auf Zeile setzen — Helper fuer Backlinks-
+// 4T-000015: Tab finden und Cursor auf Zeile setzen — Helper fuer Backlinks-
 // Sprung, kapselt findTabAcrossPanes plus Tab-/Pane-Aktivierung und Cursor-
 // Sprung. Wenn der Tab in keiner Pane offen ist, wird er in der aktiven Spalte
 // geoeffnet.
@@ -219,10 +219,10 @@ export async function openOrJumpToPath(targetPath, lineNumber) {
   placeCursorAtLine(state.activePaneIndex, lineNumber);
 }
 
-// === 4T-0287 (Epic 3E-0051): Panel-Registrierung =============================
+// === 4T-000287 (Epic 3E-000051): Panel-Registrierung =============================
 // getVisible spiegelt die effektive Sichtbarkeits-Logik aus
 // applyBookmarksVisibility: im Empty-State erzwungen sichtbar, sobald
-// mindestens ein Bookmark existiert (4T-0075). 4T-0612: beide Abschnitte.
+// mindestens ein Bookmark existiert (4T-000075). 4T-000612: beide Abschnitte.
 
 registerSidebarPanel({
   id: 'bookmarks',
@@ -231,7 +231,7 @@ registerSidebarPanel({
   sectionClass: 'sidebar-bookmarks',
   getVisible: (paneIdx) => {
     if (!isExtensionActive('bookmarks')) return false;
-    // 4T-0330 (PO-Testbefund): Schalter gilt auch im Empty-State (siehe
+    // 4T-000330 (PO-Testbefund): Schalter gilt auch im Empty-State (siehe
     // applyBookmarksVisibility).
     return !!state.bookmarks.visibleByPane[paneIdx] && (!isAllEmpty() || hasAnyBookmarks());
   },
@@ -239,7 +239,7 @@ registerSidebarPanel({
   toggle: toggleBookmarksPanel,
 });
 
-// 4T-0612 (Epic 3E-0115): Mehr-Fenster-Konsistenz. Schreibt ein anderes Fenster
+// 4T-000612 (Epic 3E-000115): Mehr-Fenster-Konsistenz. Schreibt ein anderes Fenster
 // desselben Bereichs die bookmarks-Sektion, laedt dieses Fenster den Bereichs-
 // Baum neu (Filter auf die eigene Bereichs-Wurzel; der Broadcast geht an alle
 // Fenster). Der eigene Schreibvorgang loest den Broadcast ebenfalls aus; das
@@ -256,7 +256,7 @@ export function placeCursorAtLine(paneIdx, lineNumber) {
   if (!view) return;
   const ln = parseInt(lineNumber, 10);
   if (!Number.isFinite(ln) || ln < 1) return;
-  // R3-03 (4T-0186): Im Reading-Modus ist der Editor unsichtbar — der
+  // R3-03 (4T-000186): Im Reading-Modus ist der Editor unsichtbar — der
   // Cursor-Sprung verpuffte im versteckten Pane. Stattdessen das Render-
   // Pane zur naechstgelegenen data-source-line-Stelle scrollen.
   const pane = state.panes[paneIdx];

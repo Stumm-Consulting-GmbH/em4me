@@ -1,4 +1,4 @@
-// 4T-0504 (Epic 3E-0096): zeilen-genaue Ersetzung fuer das Rueckschreiben
+// 4T-000504 (Epic 3E-000096): zeilen-genaue Ersetzung fuer das Rueckschreiben
 // aus der Abfrage-Ansicht (Status-Toggle, Termin-Verschieben, Dialog) in
 // nicht geoeffnete Quelldateien.
 //
@@ -8,7 +8,7 @@
 // unit-testbar (Task-Vorgabe: Konflikt-Faelle mit Hinweis statt
 // Blind-Schreiben).
 //
-// Format-Treue wie beim Link-Update (3E-0062): EOL-Stil und BOM des
+// Format-Treue wie beim Link-Update (3E-000062): EOL-Stil und BOM des
 // Original-Stands bleiben byte-genau erhalten — es wird ausschliesslich
 // die Ziel-Zeile ersetzt bzw. eine Zeile eingefuegt, nie normalisiert.
 //

@@ -1,7 +1,7 @@
-// 4T-0984 (Epic 3E-0196): Ansichts-Schicht der Ereignisse — aus
+// 4T-000984 (Epic 3E-000196): Ansichts-Schicht der Ereignisse — aus
 // `events-core.js` ausgezogen, Funktions-Rümpfe unverändert: Sortierung
-// und Filter (4T-0513), Aufbereitung für Dashboard, Kalender und Timeline
-// (4T-0514), Gantt-Ansicht (4T-0722); durchweg reine Funktionen über der
+// und Filter (4T-000513), Aufbereitung für Dashboard, Kalender und Timeline
+// (4T-000514), Gantt-Ansicht (4T-000722); durchweg reine Funktionen über der
 // gefilterten Index-Menge. Geladen wird allein der Kern `events-core.js`,
 // nie ein Schwester-Modul; prozess-neutral wie er (kein Electron, kein DOM).
 'use strict';
@@ -21,10 +21,10 @@ const {
   utcMs,
 } = require('./events-core.js');
 
-// --- Sortierung und Filter (4T-0513) --------------------------------------------------
+// --- Sortierung und Filter (4T-000513) --------------------------------------------------
 // Reine Ansichts-Funktionen über den geparsten Einträgen; die Oberfläche
-// (events-editor.js), die Zusatz-Ansichten (4T-0514) und die Aggregation
-// (4T-0515) arbeiten auf derselben Logik.
+// (events-editor.js), die Zusatz-Ansichten (4T-000514) und die Aggregation
+// (4T-000515) arbeiten auf derselben Logik.
 
 const EVENT_SORT_KEYS = ['date', 'end', 'text', 'category'];
 
@@ -162,9 +162,9 @@ function eventFilterActiveCount(spec) {
   return n;
 }
 
-// --- Ansichts-Datenaufbereitung (4T-0514) ----------------------------------------------
+// --- Ansichts-Datenaufbereitung (4T-000514) ----------------------------------------------
 // Reine Funktionen für Dashboard, Kalender und Timeline; arbeiten auf der
-// gefilterten Index-Menge aus 4T-0513 (Filter wirken in allen Ansichten).
+// gefilterten Index-Menge aus 4T-000513 (Filter wirken in allen Ansichten).
 
 // Anstehende Ereignisse: zukünftige Zeitpunkte direkt, zurückliegende
 // wiederkehrende über ihr nächstes Jahres-Vorkommen. Sortiert nach
@@ -327,7 +327,7 @@ function calendarDayMap(entries, indices, fromIso, toIso_) {
   return map;
 }
 
-// --- Gantt-Ansicht (4T-0722) -----------------------------------------------------------
+// --- Gantt-Ansicht (4T-000722) -----------------------------------------------------------
 // Die Darstellung (perspective-events.js) rechnet selbst nichts, sie setzt
 // nur die hier gelieferten Prozent-Werte; damit bleibt die Mathematik ohne
 // DOM testbar (die Pipeline läuft im Preload-Kontext und kann nichts messen).
@@ -476,7 +476,7 @@ function ganttOffsets(axis, startIso, endIso) {
 }
 
 module.exports = {
-  // Sortierung und Filter (4T-0513)
+  // Sortierung und Filter (4T-000513)
   EVENT_SORT_KEYS,
   EVENT_DATE_PRESETS,
   sortEventIndices,
@@ -484,13 +484,13 @@ module.exports = {
   matchesEventFilter,
   filterEventIndices,
   eventFilterActiveCount,
-  // Ansichts-Datenaufbereitung (4T-0514)
+  // Ansichts-Datenaufbereitung (4T-000514)
   upcomingEventOccurrences,
   upcomingEventMilestones,
   categoryCounts,
   timelineGroups,
   calendarDayMap,
-  // Gantt-Ansicht (4T-0722)
+  // Gantt-Ansicht (4T-000722)
   GANTT_DAY_LIMIT,
   GANTT_WEEK_LIMIT,
   GANTT_MAX_TICKS,

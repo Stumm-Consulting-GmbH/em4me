@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Link-Graph und Abfrage-Kontext, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Link-Graph und Abfrage-Kontext, herausgelöst aus
 // src/main/backlinks.js. Der Graph (ausgehende und eingehende Links je Datei)
 // ist die gemeinsame Grundlage der Abfrage-Felder file.inlinks/file.outlinks,
 // der FROM-Link-Quellen, der Graphenansicht und der Bereichs-Statistik;
@@ -11,13 +11,13 @@ const path = require('node:path');
 const { toLogicalName } = require('../../shared/subpages.js');
 const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
-// 4T-1276 (Epic 3E-0232, Befund B1): Ziel-Pfade sind Datei-Identität.
+// 4T-001276 (Epic 3E-000232, Befund B1): Ziel-Pfade sind Datei-Identität.
 // Diese Datei stand NICHT in der Altbestands-Liste des Wächters — sie ist beim
 // Umstellen von query-sources.js aufgefallen, weil beide Seiten desselben
 // Mengen-Vergleichs gleich normalisieren müssen.
 const { pathCompareKey } = require('../../shared/platform.js');
 
-// 4T-0402 (Epic 3E-0076): Link-Graph der Wurzel (ausgehende und eingehende
+// 4T-000402 (Epic 3E-000076): Link-Graph der Wurzel (ausgehende und eingehende
 // Links pro Datei, als absolute Pfade). Wiki-Ziele werden wie im Backlinks-
 // Pfad aufgeloest (Namens-Map, Pfad-/Unterseiten-Form, Alias-Fallback);
 // Markdown-Links zaehlen nur, wenn das Ziel im Index liegt (Best-Effort-
@@ -56,7 +56,7 @@ function buildLinkGraph(entry) {
   return { outMap, inMap };
 }
 
-// 4T-0402 (Epic 3E-0076): Aufloesung eines FROM-Link-Ziels ([[X]] bzw.
+// 4T-000402 (Epic 3E-000076): Aufloesung eines FROM-Link-Ziels ([[X]] bzw.
 // outgoing([[X]])) zu einer Menge absoluter Pfade (Vergleichs-
 // Schluessel). Alias- und Anker-/Label-Teile werden wie beim Klick-Pfad
 // abgeschnitten; pro Abfrage-Lauf memoisiert.
@@ -85,13 +85,13 @@ function relPortable(root, absPath) {
   return path.relative(root, absPath).split(path.sep).join('/');
 }
 
-// 4T-0402 (Epic 3E-0076): Kontext-Struktur einer Datei fuer den Evaluator
+// 4T-000402 (Epic 3E-000076): Kontext-Struktur einer Datei fuer den Evaluator
 // (Werte-Vertrag siehe perspective-query-eval.js). linkGraph darf null sein
 // (Abfrage ohne Link-Bezug); inlinks/outlinks sind dann leere Listen.
-// 4T-1070 (Epic 3E-0211): `root` kommt mit in den Kontext. Grund ist der
+// 4T-001070 (Epic 3E-000211): `root` kommt mit in den Kontext. Grund ist der
 // Pfad-Bruch des Werte-Modells: Link-Werte tragen den ABSOLUTEN Index-Pfad,
 // file.path/file.folder dagegen den wurzel-relativen. Wer beide Seiten
-// vergleicht (infolder, 4T-1073), braucht die Wurzel zum Relativieren;
+// vergleicht (infolder, 4T-001073), braucht die Wurzel zum Relativieren;
 // ohne sie liefert eine solche Funktion still die leere Liste.
 function buildQueryContext(entry, root, absPath, linkGraph, now, resolveLinkTarget) {
   const stats = entry.fileStats.get(absPath) || {};

@@ -1,4 +1,4 @@
-// 4T-0435 (Epic 3E-0081): Journal-Navigations-Block — Renderer-seitige
+// 4T-000435 (Epic 3E-000081): Journal-Navigations-Block — Renderer-seitige
 // Befüllung des perspective-journal-nav-Fence (Muster frontmatter-query-view).
 //
 // Der Fence rendert (markdown.js) als leerer Platzhalter
@@ -10,7 +10,7 @@
 // übergeordneten Perioden desselben Regals (Monat, Quartal, Jahr — soweit
 // als Journal vorhanden, Lücken werden ausgelassen) und Pfeile zu voriger/
 // nächster Periode (an den Journal-Grenzen gekappt). Alle Klicks laufen
-// über den gemeinsamen Öffnen-/Anlage-Pfad aus 4T-0433; fehlende Einträge
+// über den gemeinsamen Öffnen-/Anlage-Pfad aus 4T-000433; fehlende Einträge
 // werden angelegt.
 //
 // Modus-agnostisch: derselbe Füll-Lauf hängt an applyRenderPipeline
@@ -24,7 +24,7 @@
 
 import { getLanguage, t } from '../../i18n.js';
 import { api } from '../app/api.js';
-// 4T-1326 (Epic 3E-0236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
+// 4T-001326 (Epic 3E-000236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
 import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
 import {
   findPeriodForPath,
@@ -117,12 +117,12 @@ function parentTargets(config, journal, period) {
 // journals -> templates -> views zur Lade-Zeit zu vermeiden.
 async function openTarget(journal, period) {
   const { openJournalEntry } = await import('./journals.js');
-  // 4T-0631 (Epic 3E-0102): der Navigations-Block liegt im Dokument-Inhalt —
+  // 4T-000631 (Epic 3E-000102): der Navigations-Block liegt im Dokument-Inhalt —
   // der geöffnete Eintrag erbt die Tab-Gruppe des Quell-Dokuments.
   await openJournalEntry(journal, period, { inheritGroup: true });
 }
 
-// 4T-1311 (Epic 3E-0235): Blättern mit den Pfeilen. Der Nachbar-Eintrag löst
+// 4T-001311 (Epic 3E-000235): Blättern mit den Pfeilen. Der Nachbar-Eintrag löst
 // den bisherigen im selben Reiter ab, statt einen weiteren zu öffnen; der
 // Reiter behält dabei seinen Ansichts- und Änderungs-Modus.
 //
@@ -173,7 +173,7 @@ async function fillJournalNav(el, basePath) {
   }
   const { journal, period } = context;
 
-  // 4T-1326 (Epic 3E-0236): Spricht der Block über den Eintrag, in dem er
+  // 4T-001326 (Epic 3E-000236): Spricht der Block über den Eintrag, in dem er
   // steht? Erst danach wird gebaut — eine falsche Navigation ist schlimmer als
   // keine, weil sie plausibel aussieht und deshalb geglaubt wird.
   const rel = api.relative(result.rootPath, basePath);

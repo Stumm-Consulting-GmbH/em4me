@@ -1,10 +1,10 @@
-// 4T-0591 (Epic 3E-0109): Reine Syntax-Helfer der Perspective Table, aus
+// 4T-000591 (Epic 3E-000109): Reine Syntax-Helfer der Perspective Table, aus
 // perspective-table.js hierher verschoben. Grund: das Bearbeitungs-Modul
 // perspective-table-edit.js braucht dieselbe Attribut- und Status-Grammatik,
 // darf perspective-table.js aber nicht laden — dessen lazy
 // require('./markdown.js') würde esbuild statisch ins Renderer-Bundle
 // ziehen (markdown.js läuft im Preload-Kontext, dokumentierte Falle aus
-// 4T-0546). Dieses Modul ist abhängigkeitsfrei; perspective-table.js
+// 4T-000546). Dieses Modul ist abhängigkeitsfrei; perspective-table.js
 // bezieht die Helfer von hier, das Verhalten bleibt identisch.
 'use strict';
 
@@ -42,12 +42,12 @@ function parsePerspectiveTableCellAttrs(rawText) {
   return { attrs, content: tail };
 }
 
-// 4T-0044 (Epic 3E-0009): Status-Hervorhebung mit semantischen Klassen.
+// 4T-000044 (Epic 3E-000009): Status-Hervorhebung mit semantischen Klassen.
 // Whitelist auf fuenf Werte. Punkt-Notation am Zell-/Zeilen-Marker:
 // |.error Inhalt, |-.warn etc.
 const PERSPECTIVE_STATUS_CLASSES = new Set(['error', 'warn', 'ok', 'info', 'neutral']);
 
-// 4T-0044: Erkennt am Anfang eines Marker-Folge-Texts eine Status-Klasse
+// 4T-000044: Erkennt am Anfang eines Marker-Folge-Texts eine Status-Klasse
 // in Punkt-Notation (z.B. '.error '). Whitelist-Filter: nur die fuenf
 // definierten Werte. Gibt { status, rest } zurueck; bei keinem Match ist
 // status=null und rest=text.
@@ -59,10 +59,10 @@ function extractPerspectiveTableStatusClass(text) {
   return { status: null, rest: text };
 }
 
-// 4T-0045/4T-0046 (Epic 3E-0009): Tabellen-Header-Attribute auf der {|-Zeile.
+// 4T-000045/4T-000046 (Epic 3E-000009): Tabellen-Header-Attribute auf der {|-Zeile.
 // Aktuell unterstuetzt:
-//   +cols="left center right"   -> Spalten-Default-Ausrichtung (4T-0045)
-//   +sortable                   -> Tabelle sortierbar (4T-0046)
+//   +cols="left center right"   -> Spalten-Default-Ausrichtung (4T-000045)
+//   +sortable                   -> Tabelle sortierbar (4T-000046)
 // Ungueltige Werte werden auf null abgebildet (kein Default fuer diese Spalte).
 function parsePerspectiveTableHeaderAttrs(headerLine) {
   const result = { columnDefaults: [], sortable: false };

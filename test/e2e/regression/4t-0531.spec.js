@@ -1,4 +1,4 @@
-// 4T-0531 (Epic 3E-0088): Start-Wiederherstellung der Panel-Sichtbarkeit.
+// 4T-000531 (Epic 3E-000088): Start-Wiederherstellung der Panel-Sichtbarkeit.
 // Die Init-Schleife in applyAllLayouts (views/pane-render.js) kannte nur die sieben
 // älteren Panels; ein als sichtbar persistiertes Kalender-, Block-
 // Eigenschaften-, Datei-Graph-, Bereichs- oder Unterseiten-Panel blieb nach
@@ -29,9 +29,9 @@ async function waitForTab(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
-test.describe('4T-0531: persistierte Panel-Sichtbarkeit beim Start', () => {
+test.describe('4T-000531: persistierte Panel-Sichtbarkeit beim Start', () => {
   test('Kalender- und Block-Eigenschaften-Panel sind nach dem Start sichtbar', async () => {
-    // 4T-0563 (Epic 3E-0102): explizites flaches Layout, damit calendar und
+    // 4T-000563 (Epic 3E-000102): explizites flaches Layout, damit calendar und
     // blockprops als Einzel-Slots links liegen (der neue Standard legt
     // blockprops rechts) — dieser Test prüft die Sichtbarkeits-
     // Wiederherstellung beim Start, nicht die Standard-Anordnung.

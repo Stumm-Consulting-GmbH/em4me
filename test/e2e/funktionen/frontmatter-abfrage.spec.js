@@ -1,8 +1,8 @@
-// 4T-0355 (Epic 3E-0065): E2E-Funktions-Suite Frontmatter-Abfrage
+// 4T-000355 (Epic 3E-000065): E2E-Funktions-Suite Frontmatter-Abfrage
 // (perspective-query). Prüft die dynamische, klickbare Datei-Liste in der
 // Render-Pane, die Live-Aktualisierung bei neuer passender Datei und die
 // Parität im Live-Modus. describe-Titel tragen die Matrix-IDs (Eintrag in
-// test/abdeckungs-matrix.json erfolgt mit dem Funktions-Katalog in 4T-0356).
+// test/abdeckungs-matrix.json erfolgt mit dem Funktions-Katalog in 4T-000356).
 'use strict';
 
 const path = require('node:path');
@@ -72,7 +72,7 @@ test.describe('FQ-01: Frontmatter-Abfrage — Liste, Klick, Live-Aktualisierung 
   });
 });
 
-// 4T-0404 (Epic 3E-0076): Tabellen-Ausgabe mit Sortierung (4T-0403). Eigene
+// 4T-000404 (Epic 3E-000076): Tabellen-Ausgabe mit Sortierung (4T-000403). Eigene
 // Fixture mit TABLE-Fence und prio-Feldern; die Sortierung DESC muss die
 // Zeilen-Reihenfolge bestimmen, der Datei-Link der ersten Spalte öffnet das Ziel.
 const TABLE_FENCE = [
@@ -134,7 +134,7 @@ test.describe('FQ-03: Perspective-Abfrage — Tabellen-Ausgabe mit Sortierung', 
   });
 });
 
-// 4T-0405 (Epic 3E-0076): Mehrspalten-Layout der Ergebnis-Liste (COLUMNS n)
+// 4T-000405 (Epic 3E-000076): Mehrspalten-Layout der Ergebnis-Liste (COLUMNS n)
 // plus Hinweis-Pfad (COLUMNS bei TABLE ignoriert).
 test.describe('FQ-04: Perspective-Abfrage — Mehrspalten-Layout und COLUMNS-Hinweis', () => {
   test('COLUMNS 3 setzt data-fm-columns und column-count; TABLE mit COLUMNS zeigt den Hinweis', async () => {

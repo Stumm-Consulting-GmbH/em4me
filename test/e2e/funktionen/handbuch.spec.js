@@ -1,8 +1,8 @@
-// 4T-0213 (Epic 3E-0042): Handbuch-Infrastruktur (HB-01 bis HB-06).
+// 4T-000213 (Epic 3E-000042): Handbuch-Infrastruktur (HB-01 bis HB-06).
 //
 // Handbuch-Seiten oeffnen als pfadlose read-only Tabs im Tab-System.
 // Geoeffnet wird ueber die Verdrahtungs-Schnittstelle
-// 'scg:open-manual-page' (CustomEvent; ab 4T-0216 haengt der Hilfe-
+// 'scg:open-manual-page' (CustomEvent; ab 4T-000216 haengt der Hilfe-
 // Einstieg F1/Menue am selben Pfad). Die Sprache wird zu Test-Beginn
 // deterministisch auf Deutsch gestellt (frisches Profil startet sonst
 // mit der OS-Locale).
@@ -11,7 +11,7 @@
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
-// 4T-0360 (Epic 3E-0066): Seiten-Registry als Quelle der Pruefliste (siehe BUNDLED_PAGES).
+// 4T-000360 (Epic 3E-000066): Seiten-Registry als Quelle der Pruefliste (siehe BUNDLED_PAGES).
 const { MANUAL_PAGES } = require('../../../src/shared/manual/manual-pages');
 
 async function openManualPage(page, pageId) {
@@ -53,7 +53,7 @@ test.describe('HB-01: Handbuch-Seite öffnen', () => {
       await openManualPage(page, 'overview');
       const tabs = page.locator(SEL.tabs0);
       await expect(tabs).toHaveCount(1);
-      // 4T-0216: Hilfe im leeren App-Zustand verlaesst den Empty-State
+      // 4T-000216: Hilfe im leeren App-Zustand verlaesst den Empty-State
       // (gewollt — die Seite oeffnet als normaler Tab).
       await expect(page.locator(SEL.emptyState)).toBeHidden();
       await expect(page.locator(SEL.activeTab0).locator('.tab-title')).toHaveText('Handbuch');
@@ -187,7 +187,7 @@ test.describe('HB-06: Schließen ohne Rückfrage', () => {
   });
 });
 
-// 4T-0212: generierte Seiten — Funktions-Tabelle und Tastenkuerzel.
+// 4T-000212: generierte Seiten — Funktions-Tabelle und Tastenkuerzel.
 
 test.describe('HB-07: Generierte Funktions-Seite', () => {
   test('fünf Gruppen-Tabellen mit Kurznamen in der ersten Spalte', async () => {
@@ -216,10 +216,10 @@ test.describe('HB-07: Generierte Funktions-Seite', () => {
   });
 });
 
-// 4T-0214/4T-0215: gebuendelte Seiten in allen fuenf Sprachen — jede Seite
+// 4T-000214/4T-000215: gebuendelte Seiten in allen fuenf Sprachen — jede Seite
 // laedt (kein Fallback-/Fehlertext), traegt ein H1 und ist in der
 // Quellcode-Ansicht linter-sauber (keine Marker).
-// 4T-0360 (Epic 3E-0066): dynamisch aus der Seiten-Registry statt fester
+// 4T-000360 (Epic 3E-000066): dynamisch aus der Seiten-Registry statt fester
 // Aufzaehlung — jede gebuendelte Seite wird geprueft, neue Seiten ziehen
 // automatisch nach (schliesst die zuvor unvollstaendige Liste, z.B. history,
 // sidebar, subpages, context-menu, notes).
@@ -262,7 +262,7 @@ test.describe('HB-09: Themen-Seiten laden linter-sauber (fünf Sprachen)', () =>
   });
 });
 
-// 4T-0215: Sprachwechsel bei offenem Tab — Titel und Inhalt wechseln in
+// 4T-000215: Sprachwechsel bei offenem Tab — Titel und Inhalt wechseln in
 // jede Sprache; der interne Ueberblicks-Link funktioniert pro Fassung.
 test.describe('HB-10: Sprachfassungen und interne Links', () => {
   const TITLES = { en: 'Manual', fr: 'Manuel', es: 'Manual', it: 'Manuale', de: 'Handbuch' };
@@ -308,7 +308,7 @@ test.describe('HB-08: Generierte Tastenkürzel-Seite', () => {
 
       // Binding ueber die Einstellungs-Seite aendern (Muster HK-01):
       // search.open auf Strg+Alt+F — die offene Handbuch-Seite generiert
-      // sich nach dem hotkeys-Broadcast neu. 4T-0279: die Einstellungen
+      // sich nach dem hotkeys-Broadcast neu. 4T-000279: die Einstellungen
       // sind ein eigener Tab (Shortcuts-Tab wandert in den Hintergrund);
       // OK schliesst den Einstellungs-Tab, der Shortcuts-Tab wird wieder
       // aktiv und zeigt den regenerierten Stand.
@@ -336,7 +336,7 @@ test.describe('HB-08: Generierte Tastenkürzel-Seite', () => {
   });
 });
 
-// 4T-0649 (Epic 3E-0126): Die Ueberblicksseite fuehrt die Bildmarke. Sie
+// 4T-000649 (Epic 3E-000126): Die Ueberblicksseite fuehrt die Bildmarke. Sie
 // haengt an einem relativen Pfad, der gegen das Renderer-Verzeichnis
 // aufloest — Handbuch-Tabs sind pfadlos. Ein gebrochener Pfad faellt sonst
 // nirgends auf: Der Markdown-Linter meldet fehlende Bild-Ziele nicht, und
@@ -361,7 +361,7 @@ test.describe('HB-11: Bildmarke auf der Überblicksseite', () => {
       expect(breite).toBeGreaterThan(80);
       expect(breite).toBeLessThan(120);
 
-      // 4T-0643: Unter dem Logo steht der ausgeschriebene Claim — und NICHT
+      // 4T-000643: Unter dem Logo steht der ausgeschriebene Claim — und NICHT
       // zusaetzlich der Alt-Text als Bildunterschrift. Die Erweiterung
       // „Figuren" wuerde ihn dort sonst wiederholen (PO-Befund).
       const body = page.locator(SEL.markdownBody0);
@@ -378,7 +378,7 @@ test.describe('HB-11: Bildmarke auf der Überblicksseite', () => {
   });
 });
 
-// 4T-0758 (Epic 3E-0142): Sammel-Abruf aller gebuendelten Seiten. Grundlage
+// 4T-000758 (Epic 3E-000142): Sammel-Abruf aller gebuendelten Seiten. Grundlage
 // der Suche ueber das ganze Handbuch; im Unit-Test ist der IPC gestellt,
 // hier laeuft er real ueber Preload und Main.
 test.describe('HB-12: Sammel-Abruf aller Handbuch-Seiten', () => {

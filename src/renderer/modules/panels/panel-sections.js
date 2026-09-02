@@ -1,5 +1,5 @@
 // Sidebar-Panels: Zugriff auf die Sektions-Elemente und Kopf-Darstellung.
-// 4T-0990 (Epic 3E-0196): aus panels.js ausgezogenes Blatt-Modul des Ordners
+// 4T-000990 (Epic 3E-000196): aus panels.js ausgezogenes Blatt-Modul des Ordners
 // panels/. Kern (Mounting), Höhen-Modell und Drag-and-Drop brauchen dieselben
 // Helfer; als eigenes Blatt ohne Rück-Import bleibt der Import-Graph des
 // Ordners azyklisch.
@@ -12,14 +12,14 @@ import { sidebarPanelById } from '../sidebar-layout.js';
 
 // Sektion-Element eines Panels in dieser Pane: bevorzugt die memoisierten
 // getPaneEls-Referenzen (outlineSection, tagsSection, …); Fallback über die
-// registrierte Klasse (künftige Erweiterungs-Panels, 3E-0052/3E-0053).
+// registrierte Klasse (künftige Erweiterungs-Panels, 3E-000052/3E-000053).
 export function sectionElFor(els, id, def) {
   const cached = els[id + 'Section'];
   if (cached) return cached;
   return def && def.sectionClass ? els.root.querySelector('.' + def.sectionClass) : null;
 }
 
-// 4T-0475 (Epic 3E-0088): Sektions-Element eines Panels in einer bestimmten
+// 4T-000475 (Epic 3E-000088): Sektions-Element eines Panels in einer bestimmten
 // Pane (für die Höhen-Anwendung über beide Panes hinweg während eines Drags).
 export function panelSectionEl(paneIdx, panelId) {
   const paneEls = getPaneEls(paneIdx);
@@ -28,7 +28,7 @@ export function panelSectionEl(paneIdx, panelId) {
   return sectionElFor(paneEls, panelId, def);
 }
 
-// === 4T-0639 (Epic 3E-0069): Panel-Überschriften als Icon ====================
+// === 4T-000639 (Epic 3E-000069): Panel-Überschriften als Icon ====================
 // Das Symbol kommt aus dem zugehörigen Statusbar-Button. Bewusst keine
 // zweite Icon-Quelle im Panel-Modell: der Paritäts-Wächter erzwingt bereits,
 // dass jedes Panel einen Statusbar-Button führt, und alle vierzehn tragen

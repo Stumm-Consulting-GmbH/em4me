@@ -1,6 +1,6 @@
-// 4T-0167: E2E-Smoke-Suite ueber die Kernablaeufe (SM-01 bis SM-09).
+// 4T-000167: E2E-Smoke-Suite ueber die Kernablaeufe (SM-01 bis SM-09).
 // Pflicht-Gate bei Renderer-/Main-Aenderungen im Review-Programm; die
-// Szenario-IDs werden von der Abdeckungs-Matrix (4T-0195) referenziert.
+// Szenario-IDs werden von der Abdeckungs-Matrix (4T-000195) referenziert.
 //
 // Menue-gebundene Aktionen ohne sichtbares UI-Element (Speichern) werden
 // ueber den IPC-Kanal des Menue-Eintrags ausgeloest (webContents.send),
@@ -39,7 +39,7 @@ async function waitForTab(page) {
 
 test.describe('SM-01: Start und Fenster', () => {
   test('App startet, Titel und Statusbar da, keine Konsolen-Errors', async () => {
-    // 4T-0901: Die frueher hier aufgebaute Konsolen-Pruefung ist entfallen.
+    // 4T-000901: Die frueher hier aufgebaute Konsolen-Pruefung ist entfallen.
     // Sie registrierte ihren Zuhoerer erst NACH dem Hochfahren und sah damit
     // keine Meldung der Start-Phase — ein waehrend des Starts ausgeloester
     // Fehler liess diesen Fall gruen. Der zentrale Waechter in helpers/app.js
@@ -190,7 +190,7 @@ test.describe('SM-06: Suche', () => {
 });
 
 test.describe('SM-07: Hilfe öffnet das Handbuch', () => {
-  // 4T-0216 (Epic 3E-0042): Das Hilfe-Modal ist durch das Handbuch im
+  // 4T-000216 (Epic 3E-000042): Das Hilfe-Modal ist durch das Handbuch im
   // Tab-System ersetzt — F1/Hilfe-Menue oeffnen die Ueberblicksseite als
   // read-only Tab (Einfach-Instanz: zweiter Aufruf aktiviert statt
   // dupliziert). Sprachneutrale Asserts (Tab-Anzahl, H1, Modus).

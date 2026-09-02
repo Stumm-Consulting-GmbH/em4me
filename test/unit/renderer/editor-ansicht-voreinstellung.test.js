@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0572 (Epic 3E-0105): Voreinstellung der Editor-Ansicht-Schalter —
+// 4T-000572 (Epic 3E-000105): Voreinstellung der Editor-Ansicht-Schalter —
 // Ebenen-Aufloesung (Frontmatter → Tab-Settings → globale Voreinstellung →
 // Konstante) und Frontmatter-Schreiben beim Umschalten (Content-
 // Transformation buildEditorViewFrontmatterUpdate).

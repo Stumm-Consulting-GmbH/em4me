@@ -1,4 +1,4 @@
-// 4T-0436 (Epic 3E-0081): Bereich „Journale" — Regal- und Journal-
+// 4T-000436 (Epic 3E-000081): Bereich „Journale" — Regal- und Journal-
 // Verwaltung der journals-Sektion der Bereichsdatei (Übersicht, Detail,
 // Validierung, Persistenz). Der Journal-Editor liegt im Nachbar-Modul
 // settings-journals-editor.js.
@@ -28,9 +28,9 @@ export function dirtyJournalsSection(draft) {
   return !jsonEqual(journalsPersistForm(values), draft.journalsSnapshot);
 }
 
-// --- Bereich Journale (4T-0436, Epic 3E-0081) ------------------------------------
+// --- Bereich Journale (4T-000436, Epic 3E-000081) ------------------------------------
 // Regale und Journal-Definitionen der journals-Sektion der Bereichsdatei
-// (Datenpfad aus 4T-0431); nur bei Fenstern mit Bereich (Architektur-
+// (Datenpfad aus 4T-000431); nur bei Fenstern mit Bereich (Architektur-
 // entscheidung 2 des Epics). Entwurfs-Semantik der Seite: persistiert wird
 // erst bei Anwenden/OK; der Schreib-Pfad broadcastet journals:changed,
 // Kalender-Panel und Kommandos ziehen ohne Neustart nach.

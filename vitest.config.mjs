@@ -1,4 +1,4 @@
-// 4T-0166: Vitest-Konfiguration fuer Unit- und Snapshot-Tests.
+// 4T-000166: Vitest-Konfiguration fuer Unit- und Snapshot-Tests.
 // E2E-Tests laufen separat ueber Playwright (playwright.config.js).
 //
 // .mjs, weil Vitest 4 ESM-only ist und das Projekt selbst CommonJS bleibt
@@ -11,12 +11,12 @@ export default defineConfig({
   test: {
     include: ['test/unit/**/*.test.js'],
     environment: 'node',
-    // 4T-1191: Der Pflicht-Zugang ist der einzige Weg fuer einen Voll-Lauf.
+    // 4T-001191: Der Pflicht-Zugang ist der einzige Weg fuer einen Voll-Lauf.
     // Ein Aufruf mit Datei- oder Muster-Argument gilt als freie
     // Entwicklungs-Iteration und laeuft unveraendert durch; Begruendung und
     // Abgrenzung stehen in scripts/gate-zugang.js.
     globalSetup: ['./scripts/gate-zugang.js'],
-    // 4T-0782 (Epic 3E-0156): Zusaetzlich zum Konsolen-Bericht ein
+    // 4T-000782 (Epic 3E-000156): Zusaetzlich zum Konsolen-Bericht ein
     // Maschinen-Bericht, aus dem scripts/test-kennzahlen.js die Zahl der
     // tatsaechlich ausgefuehrten Faelle liest. Die statische Quelltext-
     // Zaehlung der Webseiten-Kennzahl konnte das nicht leisten, weil
@@ -30,7 +30,7 @@ export default defineConfig({
     // .only-Schutz: vergessene Fokus-Marker lassen `npm test` fehlschlagen.
     // Fokussiertes Entwickeln laeuft ueber `npm run test:watch` (--allowOnly).
     allowOnly: false,
-    // 4T-0356: Datei-Parallelitaet begrenzen. Ohne Limit startet Vitest bis zu
+    // 4T-000356: Datei-Parallelitaet begrenzen. Ohne Limit startet Vitest bis zu
     // CPU-viele Fork-Worker gleichzeitig (hier 32 logische Prozessoren). Die
     // dadurch erzeugte CPU- und Datei-I/O-Last liess unter Voll-Last den
     // I/O-intensiven Backlinks-Cap-Test (2001 Dateien) sein Zeitbudget reissen

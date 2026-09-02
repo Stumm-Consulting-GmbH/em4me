@@ -1,8 +1,8 @@
-// 4T-0359 / 4T-0398 (Epic 3E-0066): Notizen-Panel — editierbares Sidebar-Panel
+// 4T-000359 / 4T-000398 (Epic 3E-000066): Notizen-Panel — editierbares Sidebar-Panel
 // fuer die Dokument-Notiz (eine Notiz pro Dokument, gespeichert in der .mdd-
-// Sektion `notes`, Datenpfad aus 4T-0358 ueber api.readNote/writeNote/onNoteChanged).
+// Sektion `notes`, Datenpfad aus 4T-000358 ueber api.readNote/writeNote/onNoteChanged).
 //
-// Das Editier-Feld ist eine schlanke CodeMirror-Instanz (4T-0398, createNotesEditorState
+// Das Editier-Feld ist eine schlanke CodeMirror-Instanz (4T-000398, createNotesEditorState
 // in editor.js), damit im Notiz-Feld dasselbe Rechtsklick-Kontextmenue und
 // dieselben Formatierungs-Kuerzel (Strg+B usw.) wie im Haupt-Editor wirken. Pro
 // Spalte eine Instanz in notesEditors[paneIdx] (Muster paneEditors).
@@ -53,7 +53,7 @@ export function setNotesPreviewByDefault(value) {
 // Eine CodeMirror-Instanz pro Spalte (Muster paneEditors).
 const notesEditors = [];
 
-// 4T-0581 (Epic 3E-0107): Schalter der Rechtschreibpruefung auch in den
+// 4T-000581 (Epic 3E-000107): Schalter der Rechtschreibpruefung auch in den
 // Notiz-Feldern nachziehen. Der Anstoss kommt als Dokument-Ereignis aus
 // editor.js (Muster scg:taskstates-changed); ein direkter Aufruf von dort
 // waere ein Modul-Zyklus, weil dieses Modul aus editor.js liest.
@@ -104,7 +104,7 @@ function ensureNotesEditor(paneIdx) {
     parent: els.notesEditor,
   });
   notesEditors[paneIdx] = view;
-  // Editor-Kontextmenue (3E-0071) und Blur-Flush wie im Haupt-Editor.
+  // Editor-Kontextmenue (3E-000071) und Blur-Flush wie im Haupt-Editor.
   view.dom.addEventListener('contextmenu', (e) => showEditorContextMenu(e, view));
   view.contentDOM.addEventListener('blur', () => flushPendingNotesSave(paneIdx));
   return view;
@@ -257,7 +257,7 @@ async function saveNotesFromPane(paneIdx, targetTab) {
 
 export function handleNoteChanged(payload) {
   if (!payload || typeof payload.path !== 'string') return;
-  // 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+  // 4T-001276 (Epic 3E-000232, Befund B1): Pfad-Identität über die zentrale Auskunft.
   const incomingPath = pathCompareKey(payload.path);
   const incoming = payload.note && typeof payload.note.text === 'string' ? payload.note.text : '';
   for (let p = 0; p < state.panes.length; p++) {

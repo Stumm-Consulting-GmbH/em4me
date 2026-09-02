@@ -1,4 +1,4 @@
-// 4T-0986 (Epic 3E-0196): Perspective Datatable — berechnete Spalten.
+// 4T-000986 (Epic 3E-000196): Perspective Datatable — berechnete Spalten.
 // Aus perspective-datatable.js herausgelöst: Validierung der Spalten-
 // Formeln (Syntax, Funktions-Katalog, Verweis- und Kreis-Regel) und deren
 // Auswertung je Zeile. Prozess-neutral (kein Electron, kein DOM).
@@ -11,10 +11,10 @@
 // Familie kreisfrei, statt sie zu duplizieren.
 'use strict';
 
-// Ausdrucks-Parser und -Evaluator der Perspective-Query-Sprache (3E-0076):
+// Ausdrucks-Parser und -Evaluator der Perspective-Query-Sprache (3E-000076):
 // Spalten-Formeln nutzen denselben Funktions-Katalog und dasselbe
 // Typ-System wie die Abfrage (Epic-Entscheidung C2).
-// 4T-0987 (Epic 3E-0196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
+// 4T-000987 (Epic 3E-000196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
 const { parseExpression, collectFieldRefs } = require('../query/perspective-query.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
 const { validateQuery } = require('../query/query-functions.js');
@@ -52,10 +52,10 @@ function pad2(n) {
   return String(n).padStart(2, '0');
 }
 
-// --- Ausdrucks-Validierung (4T-0421) --------------------------------------------
+// --- Ausdrucks-Validierung (4T-000421) --------------------------------------------
 
 // Feld-Verweise eines Ausdrucks-AST einsammeln (lowercase).
-// 4T-1183 (Epic 3E-0221): Der Helfer liegt seit dem zweiten Aufrufer — den
+// 4T-001183 (Epic 3E-000221): Der Helfer liegt seit dem zweiten Aufrufer — den
 // Formel-Feldern der Eigenschafts-Profile — bei der Abfrage-Sprache, wo der
 // AST entsteht (Begründung dort). Hier bleibt der Re-Export, damit die
 // Aufrufer dieses Moduls unverändert bleiben.
@@ -126,7 +126,7 @@ function validateComputedColumns(columns, line, errors) {
   }
 }
 
-// --- Auswertung (4T-0421) --------------------------------------------------------
+// --- Auswertung (4T-000421) --------------------------------------------------------
 
 // Abfrage-Wert -> Zell-Wert gemäß deklariertem Spalten-Typ. null bleibt
 // leer (weiche Fehler der Abfrage-Semantik); Typ-Abweichungen werden

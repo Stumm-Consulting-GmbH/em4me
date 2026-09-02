@@ -1,4 +1,4 @@
-// 4T-0456 (Epic 3E-0084): Datei-Graph-Panel — das Link-Umfeld der aktiven
+// 4T-000456 (Epic 3E-000084): Datei-Graph-Panel — das Link-Umfeld der aktiven
 // Datei als Sidebar-Sektion (Panel-Registry, links/rechts andockbar).
 // Steuerung im Panel-Kopf: Tiefe 1 bis 5 und Richtung (eingehend/ausgehend/
 // beide) — Sitzungs-Zustand ohne Persistenz (Task-Entscheidung). Das Panel
@@ -9,7 +9,7 @@
 // Best-Effort-Suchraum der Ordner-Wurzel mit dezentem Hinweis
 // (Epic-Architekturentscheidung 4).
 //
-// Gehört zur Erweiterung 'graph-view' (4T-0456): deaktiviert ist die
+// Gehört zur Erweiterung 'graph-view' (4T-000456): deaktiviert ist die
 // Sektion ausgeblendet (Muster der wiki-links-Panels); die Sichtbarkeits-
 // Preference bleibt persistiert und greift beim Wiedereinschalten.
 'use strict';
@@ -22,7 +22,7 @@ import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js'
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { isAllEmpty, persistSetting } from './views/views.js';
 import { openOrJumpToPath } from './bookmarks/bookmarks.js';
-// 4T-0568 (Epic 3E-0104): Haekchen im Panel-Untermenue folgt dem Toggle
+// 4T-000568 (Epic 3E-000104): Haekchen im Panel-Untermenue folgt dem Toggle
 // (Laufzeit-Zyklus tabs <-> file-graph-panel, Muster panels.js).
 import { reportMenuStateNow } from './tabs/tabs.js';
 import {
@@ -149,7 +149,7 @@ export function applyFileGraphVisibility(paneIdx) {
   updateFileGraphToggleButton();
 }
 
-// 4T-0567 (Epic 3E-0104): Active-State des neuen Statusbar-Buttons
+// 4T-000567 (Epic 3E-000104): Active-State des neuen Statusbar-Buttons
 // (Muster updateOutgoingToggleButton in panels.js).
 export function updateFileGraphToggleButton() {
   const btn = document.getElementById('btn-filegraph');
@@ -166,7 +166,7 @@ export async function toggleFileGraphPanel(paneIdx) {
   if (next) await ensurePanelTabActive('filegraph', paneIdx);
   applyFileGraphVisibility(paneIdx);
   await persistFileGraphSettings();
-  // 4T-0568 (Epic 3E-0104): Menue-Haekchen nachziehen (Muster panels.js).
+  // 4T-000568 (Epic 3E-000104): Menue-Haekchen nachziehen (Muster panels.js).
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
     reportMenuStateNow();
   }
@@ -227,7 +227,7 @@ export function initFileGraphPanel() {
 registerSidebarPanel({
   id: 'filegraph',
   titleKey: 'graph.panelTitle',
-  // 4T-0567 (Epic 3E-0104): Statusbar-Button (Zugangs-Symmetrie).
+  // 4T-000567 (Epic 3E-000104): Statusbar-Button (Zugangs-Symmetrie).
   buttonId: 'btn-filegraph',
   sectionClass: 'sidebar-filegraph',
   getVisible: (paneIdx) =>

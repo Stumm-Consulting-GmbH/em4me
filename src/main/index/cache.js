@@ -1,7 +1,7 @@
-// 4T-0977 (Epic 3E-0196): Bereichs-Index-Persistenz, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Bereichs-Index-Persistenz, herausgelöst aus
 // src/main/backlinks.js.
 //
-// --- 4T-0348 (Epic 3E-0062): Bereichs-Index-Persistenz (Area_Cache.mdda) ------
+// --- 4T-000348 (Epic 3E-000062): Bereichs-Index-Persistenz (Area_Cache.mdda) ------
 // Der In-Memory-Index bleibt die Quelle der Wahrheit; die Cache-Datei ist ein
 // regenerierbares Maschinen-Artefakt. Persistiert wird pro Datei { mtimeMs,
 // size, hash, parsed }, Schluessel ist der wurzel-relative Pfad (Umzugs-
@@ -12,7 +12,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-// 4T-0348 (Epic 3E-0062): Cache-Container-Format fuer die Index-Persistenz
+// 4T-000348 (Epic 3E-000062): Cache-Container-Format fuer die Index-Persistenz
 // (Area_Cache.mdda). mdd-store bleibt path-frei; die wurzel-relative
 // Transformation der md-Link-Ziele passiert hier im Index-Subsystem.
 const {
@@ -22,7 +22,7 @@ const {
 } = require('../documents/mdd-store.js');
 const { selfWrite } = require('./store.js');
 
-// 4T-0348 (Epic 3E-0062): Wartezeit nach der letzten Aenderung, bevor der
+// 4T-000348 (Epic 3E-000062): Wartezeit nach der letzten Aenderung, bevor der
 // Bereichs-Index-Cache (Area_Cache.mdda) geschrieben wird (debounced).
 const CACHE_DEBOUNCE_MS = 3000;
 
@@ -62,9 +62,9 @@ function reconstructParsed(entry, absPath) {
     headings: anchors ? [...anchors.headings] : [],
     blockIds: anchors ? [...anchors.blockIds] : [],
     tags: entry.tagsPerFile.get(absPath) || [],
-    // 4T-0354 (Epic 3E-0065): Properties für den Cache mit rekonstruieren.
+    // 4T-000354 (Epic 3E-000065): Properties für den Cache mit rekonstruieren.
     properties: entry.propertiesPerFile.get(absPath) || {},
-    // 4T-0502 (Epic 3E-0096): Task-Zeilen für den Cache mit rekonstruieren.
+    // 4T-000502 (Epic 3E-000096): Task-Zeilen für den Cache mit rekonstruieren.
     tasks: entry.tasksPerFile.get(absPath) || [],
   };
 }
@@ -96,12 +96,12 @@ async function loadAreaCache(cachePath, wurzel) {
         headings: Array.isArray(p.headings) ? p.headings : [],
         blockIds: Array.isArray(p.blockIds) ? p.blockIds : [],
         tags: Array.isArray(p.tags) ? p.tags : [],
-        // 4T-0354 (Epic 3E-0065): Properties-Map (Objekt) aus dem Cache lesen.
+        // 4T-000354 (Epic 3E-000065): Properties-Map (Objekt) aus dem Cache lesen.
         properties:
           p.properties && typeof p.properties === 'object' && !Array.isArray(p.properties)
             ? p.properties
             : {},
-        // 4T-0502 (Epic 3E-0096): Task-Zeilen aus dem Cache lesen (Schema-
+        // 4T-000502 (Epic 3E-000096): Task-Zeilen aus dem Cache lesen (Schema-
         // Version 3; Alt-Caches verwirft parseCacheContainer ueber die Version).
         tasks: Array.isArray(p.tasks) ? p.tasks : [],
       },
@@ -131,9 +131,9 @@ async function writeAreaCache(entry) {
         headings: parsed.headings,
         blockIds: parsed.blockIds,
         tags: parsed.tags,
-        // 4T-0354 (Epic 3E-0065): Properties-Map mit persistieren.
+        // 4T-000354 (Epic 3E-000065): Properties-Map mit persistieren.
         properties: parsed.properties || {},
-        // 4T-0502 (Epic 3E-0096): Task-Zeilen mit persistieren.
+        // 4T-000502 (Epic 3E-000096): Task-Zeilen mit persistieren.
         tasks: parsed.tasks || [],
       },
     };

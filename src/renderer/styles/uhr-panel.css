@@ -1,10 +1,10 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 17 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 17 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Uhr-Panel samt Kalender-Modus, Wecker, Timer und Stoppuhr. */
 
-/* 4T-0372 (Epic 3E-0069): Uhr-Panel. Alle Farben kommen aus Theme-
+/* 4T-000372 (Epic 3E-000069): Uhr-Panel. Alle Farben kommen aus Theme-
    Variablen, damit der Hell/Dunkel-Wechsel ohne Neuzeichnen mitgeht. */
 .clock-body {
   display: flex;
@@ -54,7 +54,7 @@
 .clock-center {
   fill: var(--accent);
 }
-/* 4T-0679 (Epic 3E-0139): Die drei Textzeilen folgen der Groessen-Stufe
+/* 4T-000679 (Epic 3E-000139): Die drei Textzeilen folgen der Groessen-Stufe
    ueber den Faktor --clock-scale, den clock-panel.js am Panel-Koerper setzt
    (Werte in shared/clock/clock-options.js). Die Pixelzahlen hier sind die
    Basiswerte der kleinen Stufe, also das Schriftbild vor diesem Epic.
@@ -92,11 +92,11 @@
   color: var(--fg-muted);
 }
 
-/* 4T-0636 (Epic 3E-0069): Leiste der Modus-Tasten. Sie sitzt zwischen
+/* 4T-000636 (Epic 3E-000069): Leiste der Modus-Tasten. Sie sitzt zwischen
    Sektions-Header und Body, weil der Header in einer Reiter-Gruppe
    ausgeblendet ist und der Body scrollt; so bleibt sie in jeder Anordnung
    sichtbar und fest. Zentriert wie der uebrige Uhr-Inhalt (PO-Festlegung
-   2026-07-20). 4T-0752: mit dem Kalender sind es fuenf Tasten a 28 px, also
+   2026-07-20). 4T-000752: mit dem Kalender sind es fuenf Tasten a 28 px, also
    5*28 + 4*4 Abstand + 12 Innenabstand = 168 px; die schmalste Sidebar misst
    180 px, die Leiste passt damit weiterhin ohne Umbruch. */
 .clock-modes {
@@ -132,7 +132,7 @@
 .clock-mode-btn svg {
   display: block;
 }
-/* Platzhalter der noch nicht ausgebauten Modi (4T-0638) und leerer
+/* Platzhalter der noch nicht ausgebauten Modi (4T-000638) und leerer
    Wecker-Liste. */
 .clock-placeholder {
   padding: 12px 14px;
@@ -142,14 +142,14 @@
   text-align: center;
 }
 
-/* 4T-0752 (Epic 3E-0146): Kalender-Modus der Uhr. Das Gitter selbst nutzt die
+/* 4T-000752 (Epic 3E-000146): Kalender-Modus der Uhr. Das Gitter selbst nutzt die
    Klassen des Journal-Kalenders (.calendar-grid, .calendar-cell), damit beide
    Darstellungen nicht auseinanderlaufen; hier stehen nur Navigation,
    Jahres-Eingabe und die abschaltbare Kalenderwochen-Spalte.
    Anders als die Uhr-Anzeige folgt der Kalender NICHT dem Schrift-Faktor der
    Groessen-Stufe: Ein Gitter aus acht Spalten wuerde in Stufe "Gross" seitlich
    beschnitten, und ein beschnittenes Gitter ist unbrauchbar statt nur klein
-   (Grundsatz aus 3E-0139 gilt fuer einzeilige Anzeigen). */
+   (Grundsatz aus 3E-000139 gilt fuer einzeilige Anzeigen). */
 .clock-calendar {
   width: 100%;
   padding: 4px 4px 8px;
@@ -199,7 +199,7 @@
 }
 /* Die Jahres-Eingabe wird per hidden-Attribut zugeklappt; das display: flex
    oben schlaegt sonst die [hidden]-UA-Regel (Muster der Statusbar-Buttons
-   aus 4T-0295). Ohne diesen Guard blieb sie nach dem Uebernehmen stehen. */
+   aus 4T-000295). Ohne diesen Guard blieb sie nach dem Uebernehmen stehen. */
 .clock-cal-year[hidden] {
   display: none;
 }
@@ -239,7 +239,7 @@
   margin: 6px auto 0;
 }
 
-/* 4T-0637 (Epic 3E-0069): Wecker-Liste im Panel. Die Zeile bleibt bis zur
+/* 4T-000637 (Epic 3E-000069): Wecker-Liste im Panel. Die Zeile bleibt bis zur
    Sidebar-Mindestbreite lesbar: Schalter und Menue-Knopf sind fest, die
    Mitte schrumpft und kuerzt ihre zweite Zeile mit Auslassungspunkten. */
 .alarm-list {
@@ -342,7 +342,7 @@
   background: var(--hover);
 }
 
-/* 4T-0637: Anlege-Dialog. Feld-Zeilen mit fester Label-Spalte, damit
+/* 4T-000637: Anlege-Dialog. Feld-Zeilen mit fester Label-Spalte, damit
    Uhrzeit, Bezeichnung und Wiederholung buendig stehen. */
 .alarm-field {
   display: flex;
@@ -393,7 +393,7 @@
   border-color: var(--accent);
 }
 
-/* 4T-0637: Faelligkeits-Dialog — bewusst schlank, ohne Datei-Bezug. */
+/* 4T-000637: Faelligkeits-Dialog — bewusst schlank, ohne Datei-Bezug. */
 .alarm-due-list {
   margin: 12px 0;
 }
@@ -419,7 +419,7 @@
   overflow-wrap: anywhere;
 }
 
-/* 4T-0638 (Epic 3E-0069): Timer-Liste. Restzeit, Fortschrittsbalken und
+/* 4T-000638 (Epic 3E-000069): Timer-Liste. Restzeit, Fortschrittsbalken und
    drei Aktionen je Zeile; die Zeile bleibt bis zur Sidebar-Mindestbreite
    bedienbar, weil die beiden Text-Knoepfe sich die Breite teilen. */
 .timer-row {
@@ -520,7 +520,7 @@
   background: var(--hover);
 }
 
-/* 4T-0638: Stoppuhr — eine einzige, gross gesetzt, mit Rundenliste. */
+/* 4T-000638: Stoppuhr — eine einzige, gross gesetzt, mit Rundenliste. */
 .stopwatch-view {
   padding: 6px 0 0;
 }
@@ -566,7 +566,7 @@
   color: var(--fg);
 }
 
-/* 4T-0638: Segment-Steuerung der Dauer (Stunden, Minuten, Sekunden).
+/* 4T-000638: Segment-Steuerung der Dauer (Stunden, Minuten, Sekunden).
    Optik der vorhandenen Uhrzeit-Steuerung; eine eigene braucht es, weil
    jene HH:mm mit Uhrzeit-Semantik abbildet und keine Sekunden kennt. */
 .timer-duration {
@@ -606,7 +606,7 @@
   line-height: 1.2;
 }
 
-/* 4T-0372: Untergruppen-Ueberschrift innerhalb eines Einstellungs-Bereichs
+/* 4T-000372: Untergruppen-Ueberschrift innerhalb eines Einstellungs-Bereichs
    (Optik der Sidebar-Gruppen-Koepfe, ohne deren Rahmen). */
 .settings-subhead {
   margin: 16px 0 4px;

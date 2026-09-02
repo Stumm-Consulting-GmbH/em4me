@@ -2,7 +2,7 @@
 // Wiederauslosung der Erinnerungen, die zuschaltbare System-Benachrichtigung
 // und das Bestaetigen bzw. Schlummern eines Weckers.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: reminders:*,
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: reminders:*,
 // notify:system, alarm:*.
 //
 // Eigener Zustand: keiner; der Session-Zustand liegt in den beiden Pruefern
@@ -32,7 +32,7 @@ function registerRemindersIpc(handle, deps) {
     alarmChecker,
   } = deps;
 
-  // 4T-0525 (Epic 3E-0095): Erinnerungs-IPC — Panel-Daten, Muting und
+  // 4T-000525 (Epic 3E-000095): Erinnerungs-IPC — Panel-Daten, Muting und
   // Wiederauslosung gegen den Session-Zustand des Pruefers; der Bereich
   // kommt aus dem aufrufenden Fenster (bereichslos gibt es keinen
   // Erinnerungs-Suchraum, siehe Epic-Abgrenzung).
@@ -49,13 +49,13 @@ function registerRemindersIpc(handle, deps) {
     const areaRoot = areaRootForEvent(event);
     if (areaRoot) reminderChecker.retrigger(areaRoot, keys);
   });
-  // 4T-0526 (Epic 3E-0095): zuschaltbare System-Notification — erste
+  // 4T-000526 (Epic 3E-000095): zuschaltbare System-Notification — erste
   // Nutzung nativer Benachrichtigungen. Titel und Body kommen lokalisiert
   // aus dem Renderer; der Klick holt das aufrufende Fenster in den
   // Vordergrund (Muster second-instance), der In-App-Dialog ist dort
   // bereits offen. Das Schliessen der Notification hat bewusst keine
   // Muting-Wirkung (einheitliche Muting-Quelle ist der In-App-Dialog).
-  // 4T-0637 (Epic 3E-0069): Die Anzeige-Logik ist inhaltlich generisch
+  // 4T-000637 (Epic 3E-000069): Die Anzeige-Logik ist inhaltlich generisch
   // (Titel und Text kommen lokalisiert aus dem Renderer) und wird seit dem
   // Wecker von zwei Kanaelen genutzt. Der Erinnerungs-Kanal bleibt
   // unveraendert bestehen, der neutrale kommt daneben.
@@ -75,7 +75,7 @@ function registerRemindersIpc(handle, deps) {
   handle('reminders:systemNotify', showSystemNotification);
   handle('notify:system', showSystemNotification);
 
-  // 4T-0637 (Epic 3E-0069): Wecker — Bestaetigen und Schlummern gegen den
+  // 4T-000637 (Epic 3E-000069): Wecker — Bestaetigen und Schlummern gegen den
   // Session-Zustand des Pruefers. Der gespeicherte Wecker bleibt dabei
   // unveraendert; geschlummert wird nur die Meldung.
   handle('alarm:snooze', (event, payload) => {

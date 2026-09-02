@@ -1,11 +1,11 @@
-// 4T-1214 (Epic 3E-0225): Ausfall des Anzeige-Prozesses erkennen und melden.
+// 4T-001214 (Epic 3E-000225): Ausfall des Anzeige-Prozesses erkennen und melden.
 //
 // Die vorhandenen Auffang-Ebenen (app/auffang-ebene.js und ihr Gegenstueck im
 // Anzeige-Prozess) fangen unbehandelte Ausnahmen und Ablehnungen. Beide setzen
 // einen LEBENDEN Ausfuehrungs-Kontext voraus. Faellt der Anzeige-Prozess selbst
 // aus, ist niemand mehr da, der protokolliert: kein Absturz, keine Meldung,
 // keine Spur, und fuer den Anwender sieht es aus, als sei die Anwendung grundlos
-// verschwunden. Genau diesen Fall liess die Zusage von 3F-0149 offen.
+// verschwunden. Genau diesen Fall liess die Zusage von 3F-000149 offen.
 //
 // **Es sind zwei Faelle, nicht einer**, und sie beschreiben verschiedene
 // Zustaende:
@@ -23,17 +23,17 @@
 // 2026-08-26) — protokollieren, melden, und der Anwender waehlt zwischen
 // Neuladen (Vorgabe) und Schliessen. Das Neuladen ist konstruktiv bereits
 // vorgesehen: Der did-finish-load-Haken der Fenster-Verwaltung liefert beim
-// ERNEUTEN Laden den zuletzt gemeldeten Reiter-Stand aus (M-13 aus 4T-0173), die
+// ERNEUTEN Laden den zuletzt gemeldeten Reiter-Stand aus (M-13 aus 4T-000173), die
 // Reiter kommen also zurueck. Was es nicht zurueckholt, naemlich ungespeicherte
 // Aenderungen, lag im Speicher des ausgefallenen Prozesses und ist ohnehin fort.
 //
 // **Zweiter Ausfall desselben Fensters in kurzer Folge** bietet nur noch das
 // Schliessen an (Teil derselben Entscheidung). Sonst baut ein Dokument, das den
 // Anzeige-Prozess zuverlaessig umbringt, eine Endlosschleife aus Absturz und
-// Neuladen; genau diese Konstellation loest erst 3E-0224 auf.
+// Neuladen; genau diese Konstellation loest erst 3E-000224 auf.
 //
 // **Wer schon meldet, meldet allein.** Laeuft fuer ein Fenster bereits eine
-// Schliess-Anfrage, so haelt der Rueckfall aus 4T-1213 die Wache und zeigt bei
+// Schliess-Anfrage, so haelt der Rueckfall aus 4T-001213 die Wache und zeigt bei
 // Bedarf seinen eigenen Hinweis; diese Ebene schweigt dann. Ohne diese Kopplung
 // stuenden im Beenden-Fall zwei Dialoge fuer dasselbe Fenster uebereinander.
 // Sie ersetzt zugleich einen Beenden-Merker: Beim Beenden laeuft je Fenster
@@ -69,7 +69,7 @@ const HARMLOS = 'clean-exit';
  * @param {(win: object) => void} deps.schliesse Fenster schliessen.
  * @param {(fensterId: number) => boolean} [deps.schliessenLaeuft] Laeuft fuer
  *   dieses Fenster bereits eine Schliess-Anfrage? Dann meldet der Rueckfall aus
- *   4T-1213, und diese Ebene schweigt.
+ *   4T-001213, und diese Ebene schweigt.
  * @param {number} [deps.stilleFristMs] Frist des Nicht-Antwortens.
  * @param {number} [deps.wiederholungMs] Spanne des Wiederholungs-Falls.
  * @param {(fn: Function, ms: number) => any} [deps.setTimer] Zeitgeber setzen.

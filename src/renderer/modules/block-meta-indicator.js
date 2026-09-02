@@ -1,6 +1,6 @@
-// 4T-0365 (Epic 3E-0067): Block-Metadaten-Indikator — dezenter Marker an Blöcken,
+// 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator — dezenter Marker an Blöcken,
 // deren Block-Anker (`^id`) Metadaten in der .mdd tragen (blockData-Sektion,
-// Datenpfad aus 4T-0363). Sichtbarkeit-only-Umfang der Konzept-Entscheidung 4
+// Datenpfad aus 4T-000363). Sichtbarkeit-only-Umfang der Konzept-Entscheidung 4
 // (4A2): Hover zeigt die Schlüssel-Wert-Liste (title), Klick öffnet das Panel
 // „Block-Eigenschaften" mit dem Anker als Kontext. KEINE Abfrage-Syntax (vertagt
 // auf das Query-Ausbau-Konzept I-12).
@@ -34,7 +34,7 @@ import { extractBlockAnchors } from '../../shared/block-anchors.js';
 // nicht-leeren Werten. Speist Render-Pane und Live-Modus aus einer Quelle.
 const metaByPath = new Map();
 
-// 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+// 4T-001276 (Epic 3E-000232, Befund B1): Pfad-Identität über die zentrale Auskunft.
 function pathKey(p) {
   return pathCompareKey(String(p || ''));
 }

@@ -1,4 +1,4 @@
-// 4T-0450 (Epic 3E-0083): Bereich „Eigenschafts-Profile" (Profil-Ordner,
+// 4T-000450 (Epic 3E-000083): Bereich „Eigenschafts-Profile" (Profil-Ordner,
 // Zuordnungs-Feld, Standard-Profil und Profil-Liste der Bereichsdatei).
 'use strict';
 
@@ -10,7 +10,7 @@ import { openOrJumpToPath } from '../bookmarks/bookmarks.js';
 import { showStatusbarHint } from '../views/views.js';
 import { refreshSettingsButtons, renderActiveSection } from './settings-mount.js';
 import { buildSettingsRow, jsonEqual, pageState } from './settings-shared.js';
-// 4T-1160 (Epic 3E-0219, E13): Die Bindungs-Liste der Zuordnungs-Wege liegt
+// 4T-001160 (Epic 3E-000219, E13): Die Bindungs-Liste der Zuordnungs-Wege liegt
 // in einem eigenen Modul (Datei-Budget); der Bereich bleibt einer.
 import { renderBindungen } from './settings-profil-bindungen.js';
 
@@ -28,12 +28,12 @@ export function dirtyProfilesSection(draft) {
   return !jsonEqual(out, draft.profilesSnapshot);
 }
 
-// --- Bereich Eigenschafts-Profile (4T-0450, Epic 3E-0083) -------------------------
+// --- Bereich Eigenschafts-Profile (4T-000450, Epic 3E-000083) -------------------------
 // propertyProfiles-Sektion der Bereichsdatei (Profil-Ordner, Zuordnungs-
 // Feldname, Standard-Profil) plus Liste der erkannten Profile mit
 // Definitions-Anzahl und Validierungs-Hinweisen. Nur bei Fenstern mit
 // Bereich; persistiert wird bei Anwenden/OK über profiles:setAreaConfig,
-// dessen Broadcast die Editoren ohne Neustart nachzieht (4T-0448/4T-0449).
+// dessen Broadcast die Editoren ohne Neustart nachzieht (4T-000448/4T-000449).
 
 export async function readProfilesFromConfig() {
   let result;
@@ -47,7 +47,7 @@ export async function readProfilesFromConfig() {
     folder: config && config.folder ? config.folder : '',
     assignField: config ? config.assignField : '',
     defaultProfile: config && config.defaultProfile ? config.defaultProfile : '',
-    // 4T-1160: Bindungen als eigene Kopie in den Entwurf — die Zeilen
+    // 4T-001160: Bindungen als eigene Kopie in den Entwurf — die Zeilen
     // mutieren sie, und der Snapshot muss davon unberührt bleiben.
     bindings:
       config && Array.isArray(config.bindings)
@@ -70,7 +70,7 @@ export async function readProfilesFromConfig() {
   };
 }
 
-// 4T-1143 (Epic 3E-0218, E4): Lokalisierter Text eines Validierungs-
+// 4T-001143 (Epic 3E-000218, E4): Lokalisierter Text eines Validierungs-
 // Hinweises. Die Meldung je Code ist ein ganzer Satz mit {ort} und, wo eine
 // konkrete Erwartung besteht, {expected}; der Ort entsteht aus zwei eigenen
 // Schlüsseln (oberste Ebene bzw. Kind-Definition mit ihrem Pfad zum
@@ -170,7 +170,7 @@ export function renderProfilesSection(container, draft) {
     }
     values.folder = value;
     folderInput.value = value;
-    // Mutation nach dem await — Dirty-Erkennung explizit nachziehen (4T-0554).
+    // Mutation nach dem await — Dirty-Erkennung explizit nachziehen (4T-000554).
     refreshSettingsButtons();
   });
   const folderRow = document.createElement('div');
@@ -203,7 +203,7 @@ export function renderProfilesSection(container, draft) {
   noneOpt.value = '';
   noneOpt.textContent = t('settings.profiles.defaultProfileNone');
   defaultSelect.appendChild(noneOpt);
-  // 4T-0517: interne Profile (Ereignis) stehen nicht zur Wahl als
+  // 4T-000517: interne Profile (Ereignis) stehen nicht zur Wahl als
   // bereichsweites Standard-Profil — sie sind an ihr Zuordnungs-Feld
   // gebunden (PO-Freigabe 2026-07-15).
   const names = values.list.filter((p) => !p.internal).map((p) => p.name);
@@ -228,7 +228,7 @@ export function renderProfilesSection(container, draft) {
   });
   container.appendChild(buildSettingsRow('settings.profiles.defaultProfileLabel', defaultSelect));
 
-  // 4T-1160 (E13): Bindungen an Schlagwort und Ordner. Sie stehen zwischen
+  // 4T-001160 (E13): Bindungen an Schlagwort und Ordner. Sie stehen zwischen
   // der Grund-Konfiguration und der Profil-Liste, weil sie zur Konfiguration
   // gehören und die Liste den angewendeten Stand zeigt.
   renderBindungen(container, values);
@@ -249,7 +249,7 @@ export function renderProfilesSection(container, draft) {
   refreshBtn.textContent = t('settings.profiles.listRefresh');
   refreshBtn.addEventListener('click', () => void refreshProfilesList(values));
   container.appendChild(refreshBtn);
-  // 4T-0517: interne Profile erscheinen auch ohne (oder bei fehlendem)
+  // 4T-000517: interne Profile erscheinen auch ohne (oder bei fehlendem)
   // Profil-Ordner — die Hinweise bleiben, die Liste rendert trotzdem,
   // sobald sie Einträge hat.
   if (values.folderMissing) {
@@ -303,7 +303,7 @@ export function renderProfilesSection(container, draft) {
     if (profile.errors.length > 0) meta.classList.add('has-errors');
     row.appendChild(meta);
     list.appendChild(row);
-    // 4T-1143 (E4): Hinweise stehen ausgeschrieben unter ihrem Profil, in
+    // 4T-001143 (E4): Hinweise stehen ausgeschrieben unter ihrem Profil, in
     // der Reihenfolge der Definitionen; die Kurzinfo entfällt, weil der
     // Text sichtbar ist. Zähler und Hervorhebung der Zeile bleiben.
     if (profile.errors.length > 0) {

@@ -1,6 +1,6 @@
 // Lesezeichen: Modale Dialoge — Entfernen-Bestaetigung und Ziel-Wahl beim
 // Verschieben.
-// 4T-0991 (Epic 3E-0196): aus bookmarks.js in den Ordner bookmarks/
+// 4T-000991 (Epic 3E-000196): aus bookmarks.js in den Ordner bookmarks/
 // ausgezogen. Der Dialog-Zustand liegt unveraendert im Renderer-State
 // (state.bookmarks.moveDialog), weil ihn die Esc-Kaskade und die
 // Bestaetigungs-Handler aus app-init lesen.
@@ -37,7 +37,7 @@ export function openBookmarkConfirmRemoveDialog(node, counts, section) {
       .replace('{subcount}', String(counts.folders));
   }
   modal.dataset.targetId = node.id;
-  // 4T-0612: Abschnitt merken, damit die Bestaetigung im richtigen Baum loescht.
+  // 4T-000612: Abschnitt merken, damit die Bestaetigung im richtigen Baum loescht.
   modal.dataset.section = (section || bookmarkSection(SECTION_GENERAL)).kind;
   modal.hidden = false;
   const okBtn = document.getElementById('btn-bookmark-confirm-remove-ok');
@@ -63,7 +63,7 @@ export async function confirmBookmarkConfirmRemove() {
 }
 
 // === Modal-Picker "In Ordner verschieben..." ===============================
-// 4T-0612: das Verschieben bleibt innerhalb DESSELBEN Abschnitts (der Picker
+// 4T-000612: das Verschieben bleibt innerhalb DESSELBEN Abschnitts (der Picker
 // listet nur Ordner dieses Abschnitts). Ein Wechsel zwischen den Abschnitten
 // laeuft ueber "umwandeln".
 export function openBookmarkMoveDialog(sourceId, section) {
@@ -92,7 +92,7 @@ export function openBookmarkMoveDialog(sourceId, section) {
   renderBookmarkMoveTree();
   updateBookmarkMoveConfirmButton();
   modal.hidden = false;
-  // S-11 (4T-0188): initialen Fokus setzen wie bei den uebrigen Modals
+  // S-11 (4T-000188): initialen Fokus setzen wie bei den uebrigen Modals
   // (Cancel-Button als sichere Default-Aktion); vorher blieb der Fokus
   // hinter dem Modal und die Zielwahl war nur per Maus moeglich.
   const cancelBtn = document.getElementById('btn-bookmark-move-cancel');
@@ -110,7 +110,7 @@ export function closeBookmarkMoveDialog() {
   };
 }
 
-// S-11 (4T-0188): gemeinsame Zielwahl fuer Klick UND Tastatur (Enter/
+// S-11 (4T-000188): gemeinsame Zielwahl fuer Klick UND Tastatur (Enter/
 // Leertaste auf fokussierter Zeile). Das Re-Render baut die Zeilen neu —
 // der Fokus wird auf die gewaehlte Zeile zurueckgesetzt, damit die
 // Tastatur-Bedienung nicht abreisst.
@@ -207,7 +207,7 @@ export async function confirmBookmarkMove() {
   if (!loc) return;
   const node = loc.container.splice(loc.index, 1)[0];
   if (!targetFolderId) {
-    // 4T-0078: ans Ende der entsprechenden Gruppe im Root.
+    // 4T-000078: ans Ende der entsprechenden Gruppe im Root.
     insertAtEndOfGroup(tree, node);
   } else {
     const targetLoc = findNodeLocation(tree, targetFolderId);

@@ -2,7 +2,7 @@
 // Bereich mit den Feldern, die die Profile definieren und das Dokument noch
 // nicht trägt.
 //
-// 4T-1172 (Epic 3E-0220, E5): Das Eigenschaften-Panel zeigte bisher allein den
+// 4T-001172 (Epic 3E-000220, E5): Das Eigenschaften-Panel zeigte bisher allein den
 // Ist-Zustand — die Schlüssel des Metadaten-Blocks. Ein Feld, das ein
 // zugeordnetes Profil definiert und das Dokument noch nicht ausgefüllt hat,
 // erschien nirgends, und die Herkunft der sichtbaren Felder gar nicht. Beides
@@ -44,7 +44,7 @@ const HERKUNFT_RUECKFALL = '◆';
 // Setzen und Auswerten dieselbe Quelle haben.
 export const MARKE_NICHT_IM_DOKUMENT = 'is-nicht-im-dokument';
 
-// 4T-1179 (Epic 3E-0220): Ist dieses Angebot unberührt, hat der Anwender also
+// 4T-001179 (Epic 3E-000220): Ist dieses Angebot unberührt, hat der Anwender also
 // nichts eingetragen?
 //
 // Gemessen wird am **Bedienelement**, nicht am typisierten Wert. Der Grund ist
@@ -93,7 +93,7 @@ export function markiereAngebot(fieldEl) {
   fieldEl.addEventListener('change', beruehrt);
 }
 
-// 4T-1172 (AK5): Bleibt dieses Feld beim Speichern draußen?
+// 4T-001172 (AK5): Bleibt dieses Feld beim Speichern draußen?
 //
 // Die Regel gehört zur Fachlichkeit des Formulars und nicht zum Schreibweg:
 // Ein nur definiertes Feld ist ein Angebot, kein Inhalt. Erst ein Wert macht
@@ -101,7 +101,7 @@ export function markiereAngebot(fieldEl) {
 // Ohne diese Regel schriebe das bloße Aufklappen des Bereichs sämtliche
 // Profil-Felder in den Metadaten-Block.
 //
-// 4T-1179: Die Entscheidung liegt jetzt bei `istAngebotUnberuehrt`; der
+// 4T-001179: Die Entscheidung liegt jetzt bei `istAngebotUnberuehrt`; der
 // frühere Weg über den typisierten Wert trug den Fehler, den die Begründung
 // dort beschreibt.
 export function bleibtAusDemDokument(fieldEl) {
@@ -120,7 +120,7 @@ function kettenEintrag(chain, profilName) {
   return liste.find((e) => String(e.profile || '').toLowerCase() === gesucht) || null;
 }
 
-// 4T-1172 (AK3): Herkunfts-Zeichen eines definierten Feldes — Symbol des
+// 4T-001172 (AK3): Herkunfts-Zeichen eines definierten Feldes — Symbol des
 // Profils mit dem vollständigen Satz im Tooltip.
 //
 // Kompakt und nicht als eigene Spalte: Die Sektion ist eine Sidebar-Spalte,
@@ -149,7 +149,7 @@ export function baueHerkunftsZeichen(def, chain) {
   return el;
 }
 
-// 4T-1172 (AK6, AK7 und AK9): Bekommt dieses Dokument überhaupt einen
+// 4T-001172 (AK6, AK7 und AK9): Bekommt dieses Dokument überhaupt einen
 // Formular-Bereich?
 //
 // Drei Nein-Fälle, und keiner davon ist ein Sonderfall:
@@ -170,7 +170,7 @@ export function zeigtFeldFormular(aufloesung, { parseError = false } = {}) {
   return !!(aufloesung && Array.isArray(aufloesung.chain) && aufloesung.chain.length > 0);
 }
 
-// 4T-1172 (AK1/AK4): Die Definitionen, die das Dokument noch nicht trägt — in
+// 4T-001172 (AK1/AK4): Die Definitionen, die das Dokument noch nicht trägt — in
 // der Reihenfolge der Auflösung, damit sie der Profil-Ordnung folgen und
 // nicht der Zufalls-Ordnung des Metadaten-Blocks.
 export function fehlendeDefinitionen(fields, data) {
@@ -180,10 +180,10 @@ export function fehlendeDefinitionen(fields, data) {
   );
 }
 
-// 4T-1173 (AK2): Die fehlenden Felder EINER Ketten-Ebene.
+// 4T-001173 (AK2): Die fehlenden Felder EINER Ketten-Ebene.
 //
 // Eine Ebene ist ein Profil der Kette, und ihre Felder sind die, die aus
-// diesem Profil stammen — die Auflösung hat sie seit 4T-1171 mit `profile`
+// diesem Profil stammen — die Auflösung hat sie seit 4T-001171 mit `profile`
 // beschriftet. Gefiltert wird also nicht neu aufgelöst, sondern aus dem
 // vorliegenden Ergebnis ausgewählt.
 export function fehlendeDefinitionenDerEbene(fields, data, profilName) {
@@ -196,18 +196,18 @@ export function fehlendeDefinitionenDerEbene(fields, data, profilName) {
   );
 }
 
-// 4T-1172 (AK1/AK4/AK6): Der Ausklapp-Bereich unter den vorhandenen Feldern.
+// 4T-001172 (AK1/AK4/AK6): Der Ausklapp-Bereich unter den vorhandenen Feldern.
 //
 // `baueFeld(def)` liefert die fertige Feld-Zeile — hereingereicht, weil sie in
 // properties-fields.js liegt und dieses Modul ein Blatt bleiben soll.
 // Rückgabe ist das Bereichs-Element, damit der Aufrufer es öffnen kann (das
-// Kommando aus 4T-1174 tut genau das).
+// Kommando aus 4T-001174 tut genau das).
 // **Kein Aufruf ohne Profil** (AK6 und AK9): Gilt für das Dokument kein
 // Profil — sei es, weil keines zugeordnet ist, sei es, weil die Erweiterung
 // aus ist —, entsteht der Bereich gar nicht erst. Die Prüfung liegt beim
 // Aufrufer und nicht hier, weil sonst ein Bereich mit einem Erklär-Satz
 // entstünde: genau der leere Bereich, den AK6 ausschließt.
-// 4T-1173 (AK1 bis AK4): Die Kette der beteiligten Profile, je Ebene mit der
+// 4T-001173 (AK1 bis AK4): Die Kette der beteiligten Profile, je Ebene mit der
 // Übernahme ihrer fehlenden Felder.
 //
 // `fehlendeJeEbene(profilName)` sagt, was auf dieser Ebene fehlt;
@@ -281,7 +281,7 @@ export function baueFeldFormular(
 ) {
   const details = document.createElement('details');
   details.className = 'properties-all-fields';
-  // 4T-1173: Der Bereich wird bei jedem Render neu gebaut. Ohne den
+  // 4T-001173: Der Bereich wird bei jedem Render neu gebaut. Ohne den
   // hereingereichten Zustand klappte er dabei jedes Mal zu — auch mitten in
   // einer Eingabe, weil der Debounce-Save ein Render ausloest.
   details.open = !!offen;
@@ -298,7 +298,7 @@ export function baueFeldFormular(
   body.className = 'properties-all-fields-body';
   details.appendChild(body);
 
-  // 4T-1173 (AK1): Die Kette steht ÜBER den fehlenden Feldern, weil sie die
+  // 4T-001173 (AK1): Die Kette steht ÜBER den fehlenden Feldern, weil sie die
   // Frage beantwortet, aus der die Felder folgen: welche Profile gelten hier
   // eigentlich, und warum.
   if (Array.isArray(kette) && kette.length > 0) {
@@ -327,7 +327,7 @@ export function baueFeldFormular(
     // Die Markierung hält das leere Feld aus dem Metadaten-Block heraus,
     // solange niemand einen Wert einträgt (Begründung im Kopf dieser Datei).
     feldEl.classList.add(MARKE_NICHT_IM_DOKUMENT);
-    // 4T-1179: und die zweite Markierung hält fest, dass noch niemand etwas
+    // 4T-001179: und die zweite Markierung hält fest, dass noch niemand etwas
     // eingetragen hat — am vorbelegten Wert allein wäre das nicht erkennbar.
     markiereAngebot(feldEl);
     body.appendChild(feldEl);

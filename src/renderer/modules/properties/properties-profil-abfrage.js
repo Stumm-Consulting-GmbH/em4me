@@ -1,4 +1,4 @@
-// 4T-1176 (Epic 3E-0220, E7): Kommando «Profil-Abfrage einfügen» — Profil
+// 4T-001176 (Epic 3E-000220, E7): Kommando «Profil-Abfrage einfügen» — Profil
 // wählen, Abfrage erzeugen, an der Cursor-Position einfügen.
 //
 // Der erzeugte TEXT entsteht prozess-neutral in

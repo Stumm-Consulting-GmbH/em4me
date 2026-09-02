@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0854 (Epic 3E-0164): Drift-Wächter der Sidebar-Mindesthöhe.
+// 4T-000854 (Epic 3E-000164): Drift-Wächter der Sidebar-Mindesthöhe.
 //
 // Das Rollen einer überlaufenden Seitenleisten-Spalte hängt an zwei Stellen,
 // die dieselbe Zahl tragen müssen: der Untergrenze des Zieh-Griffs
@@ -24,7 +24,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..', '..');
 const RENDERER = path.join(ROOT, 'src', 'renderer');
 
-// 4T-0992: Das Renderer-Stilblatt liegt in zusammenhängenden Scheiben
+// 4T-000992: Das Renderer-Stilblatt liegt in zusammenhängenden Scheiben
 // (styles.css plus src/renderer/styles/*.css). Der Wächter liest den ganzen
 // Bestand in Kaskaden-Reihenfolge, damit er unabhängig davon bleibt, in welcher
 // Scheibe die Sidebar-Regeln gerade stehen. Maßgeblich für die Reihenfolge sind
@@ -65,7 +65,7 @@ describe('Sidebar-Mindesthöhe: Kopplung von CSS und Layout-Modul', () => {
 
   it('die Mindesthöhe ist größer als null', () => {
     // Der eigentliche Regressions-Schutz: min-height: 0 war der Zustand vor
-    // 4T-0854 und ließ verdrängte Panels auf Höhe 0 zusammenfallen.
+    // 4T-000854 und ließ verdrängte Panels auf Höhe 0 zusammenfallen.
     expect(MIN_PANEL_HEIGHT).toBeGreaterThan(0);
   });
 });

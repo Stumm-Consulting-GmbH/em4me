@@ -1,4 +1,4 @@
-// 4T-0945 (Story 4S-0786, Befund B-12): Stand-Pruefung vor dem Ueberschreiben.
+// 4T-000945 (Story 4S-000786, Befund B-12): Stand-Pruefung vor dem Ueberschreiben.
 //
 // Der einzige Konflikt-Schutz hing bis hierher an der Datei-Beobachtung. Die
 // ist ein bestes Bemuehen und keine Zusage: Auf Netz-Freigaben schweigt sie

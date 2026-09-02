@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-// 4T-0194: Sicherheits-Snapshots des Portable-Render-Pfads MIT echtem
+// 4T-000194: Sicherheits-Snapshots des Portable-Render-Pfads MIT echtem
 // DOMParser (jsdom) — der P-02-Block-Sanitizer nutzt DOMParser und faellt
 // in purem Node auf Voll-Escaping zurueck; erst diese Umgebung prueft die
-// produktive Tag-/Attribut-Whitelist aus 4T-0176.
+// produktive Tag-/Attribut-Whitelist aus 4T-000176.
 import { describe, it, expect } from 'vitest';
 import { renderMarkdown } from '../../../src/shared/markdown/markdown.js';
 

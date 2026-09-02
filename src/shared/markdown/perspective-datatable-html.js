@@ -1,4 +1,4 @@
-// 4T-0986 (Epic 3E-0196): Perspective Datatable — HTML-Bausteine.
+// 4T-000986 (Epic 3E-000196): Perspective Datatable — HTML-Bausteine.
 // Aus perspective-datatable.js herausgelöst: Grid-HTML des Viewers
 // (Fehler-Liste, Tabelle) und die statische Tabelle des Portable-Exports.
 // Prozess-neutral (kein Electron, kein DOM — reine String-Erzeugung).
@@ -17,11 +17,11 @@ const { formatCellDisplay, formatAggregateDisplay } = require('./perspective-dat
 
 // Ober-Grenze der gerenderten Datenzeilen: darüber zeigt das Grid nur Kopf
 // und Aggregate mit lokalisiertem Hinweis (bewusste dokumentierte Grenze
-// statt virtuellem Scrolling; PO-Vorschlag 1000 aus 4T-0418). Aggregate
+// statt virtuellem Scrolling; PO-Vorschlag 1000 aus 4T-000418). Aggregate
 // rechnen weiterhin über ALLE Zeilen.
 const MAX_RENDER_ROWS = 1000;
 
-// --- Viewer-HTML (4T-0418) ----------------------------------------------------------
+// --- Viewer-HTML (4T-000418) ----------------------------------------------------------
 
 // Fehler-Liste als Platzhalter-Knoten: der Renderer lokalisiert die Texte
 // über data-dt-code/-line/-detail (applyPerspectiveDatatablesIfPresent);
@@ -50,7 +50,7 @@ function buildErrorsHtml(errors) {
 function buildCellHtml(col, colIdx, cell, editable) {
   const cls = ['pdt-cell', `pdt-type-${col.type}`];
   const attrs = [`data-dt-col="${colIdx}"`];
-  // 4T-0419: editierbare Zellen sind fokussierbar (F2/Enter öffnet die
+  // 4T-000419: editierbare Zellen sind fokussierbar (F2/Enter öffnet die
   // Bearbeitung; die Handler prüfen den Modus zur Laufzeit).
   if (editable) attrs.push('tabindex="0"');
   let inner;
@@ -67,7 +67,7 @@ function buildCellHtml(col, colIdx, cell, editable) {
 }
 
 // Zelle einer berechneten Spalte: read-only (kein tabindex), visuell
-// abgesetzt; Typ-Abweichungen als Fehler-Zelle mit Tooltip (4T-0421).
+// abgesetzt; Typ-Abweichungen als Fehler-Zelle mit Tooltip (4T-000421).
 function buildComputedCellHtml(col, colIdx, comp) {
   const cls = ['pdt-cell', 'pdt-computed', `pdt-type-${col.type}`];
   const attrs = [`data-dt-col="${colIdx}"`];
@@ -95,7 +95,7 @@ function buildDatatableTableHtml(model, computed, aggs) {
   const dataIdx = dataIndexByColumn(columns);
   const hasAgg = (model.aggregates || []).some((a) => a && a.length > 0);
   const truncated = model.rows.length > MAX_RENDER_ROWS;
-  // 4T-0419: Editier-Affordanzen (Lösch-Spalte, Zeile-hinzufügen-Knopf,
+  // 4T-000419: Editier-Affordanzen (Lösch-Spalte, Zeile-hinzufügen-Knopf,
   // fokussierbare Zellen) nur bei struktur-fehlerfreier Tabelle — der
   // Grid-Editor blockiert das Rückschreiben sonst ohnehin. Sichtbar werden
   // die Affordanzen nur in editierbaren Kontexten (CSS über die View-
@@ -105,14 +105,14 @@ function buildDatatableTableHtml(model, computed, aggs) {
 
   out.push('<thead><tr>');
   if (editable && !truncated) out.push('<th class="pdt-row-del" aria-hidden="true"></th>');
-  // 4T-1313 (Epic 3E-0235): Ohne `types`-Zeile im Block gilt die Anzeige.
+  // 4T-001313 (Epic 3E-000235): Ohne `types`-Zeile im Block gilt die Anzeige.
   const zeigeTypen = model.showTypes !== false;
   columns.forEach((col, i) => {
     const cls = ['pdt-col', `pdt-type-${col.type}`];
     if (col.expr != null) cls.push('pdt-computed');
     // Ausdruck als Tooltip am Kopf der berechneten Spalte (Syntax, kein
     // übersetzbarer Text).
-    // 4T-1313: Trägt die Spalte einen Anzeigetext, nennt der Merkzettel
+    // 4T-001313: Trägt die Spalte einen Anzeigetext, nennt der Merkzettel
     // zusätzlich ihre Kennung — beim Schreiben eines Ausdrucks oder einer
     // Aggregat-Angabe wird sie gebraucht und stünde sonst nirgends.
     const merkzettelTeile = [];
@@ -166,7 +166,7 @@ function buildDatatableTableHtml(model, computed, aggs) {
             `<span class="pdt-agg-value">${escapeHtml(formatAggregateDisplay(col, entry))}</span></span>`,
         )
         .join('');
-      // data-dt-col: die Ansichts-Funktionen (4T-0420) aktualisieren die
+      // data-dt-col: die Ansichts-Funktionen (4T-000420) aktualisieren die
       // Aggregat-Werte bei gefilterter Ansicht zellgenau im DOM.
       out.push(`<td class="pdt-cell pdt-type-${col.type}" data-dt-col="${i}">${inner}</td>`);
     });
@@ -193,7 +193,7 @@ function buildDatatableTableHtml(model, computed, aggs) {
   return out.join('');
 }
 
-// --- Portable-HTML (4T-0418) --------------------------------------------------------
+// --- Portable-HTML (4T-000418) --------------------------------------------------------
 
 // Statische HTML-Tabelle mit Inline-Styles für den Portable-Export.
 // Sprachneutral (Aggregat-Beschriftung = Funktions-Schlüsselwort, wie die
@@ -213,7 +213,7 @@ function buildPortableDatatableHtml(model, computed, aggs) {
   out.push('<thead><tr>');
   for (const col of columns) {
     const style = alignStyle(col);
-    // 4T-1313 (Epic 3E-0235): Auch die weitergegebene Fassung trägt den
+    // 4T-001313 (Epic 3E-000235): Auch die weitergegebene Fassung trägt den
     // Anzeigetext. Der Empfänger hat die Kennung sonst vor sich, während der
     // Absender die Beschriftung sieht.
     out.push(
@@ -227,7 +227,7 @@ function buildPortableDatatableHtml(model, computed, aggs) {
       out.push('<tr>');
       columns.forEach((col, i) => {
         const di = dataIdx[i];
-        // 4T-0421: berechnete Spalten liefern ihren gerechneten Wert
+        // 4T-000421: berechnete Spalten liefern ihren gerechneten Wert
         // (Zellen-Sicht identisch zu Daten-Zellen; error/value/text).
         let cell = di == null ? null : row[di];
         if (di == null) {

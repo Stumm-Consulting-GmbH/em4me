@@ -1,4 +1,4 @@
-// 4T-0375 (Epic 3E-0070): Build-Wrapper um electron-builder. Liest die
+// 4T-000375 (Epic 3E-000070): Build-Wrapper um electron-builder. Liest die
 // Build-Nummer aus src/shared/build-info.json und übergibt sie als
 // Umgebungsvariable BUILD_NUMBER. electron-builder setzt damit die Windows-
 // FileVersion vierstellig (version.BUILD_NUMBER; siehe app-builder-lib
@@ -8,15 +8,15 @@
 // Default-Version. Die electron-builder-Argumente (Targets) reicht der
 // Wrapper unverändert durch.
 //
-// 4T-1205 (Epic 3E-0121): Der Wrapper ist ziel-neutral — die Plattform kommt
+// 4T-001205 (Epic 3E-000121): Der Wrapper ist ziel-neutral — die Plattform kommt
 // als durchgereichtes Argument (npm-Skripte geben heute `--win` vor; weitere
 // Targets ergänzen die Plattform-Epics als eigene Skript-Einträge). Die
 // Build-Nummer ist je Release GEMEINSAM für alle Artefakt-Sätze
 // (PO-Entscheidung vom 2026-08-25): Sie ist die Commit-Anzahl des
 // Release-Commits und damit plattformunabhängig; die vierstellige FileVersion
 // ist lediglich ihre Windows-Ausprägung. Die artifactName-Zusätze des
-// temporären Baus unten kennzeichnen die Windows-Targets und seit 4T-1223
-// (Epic 3E-0122) die Linux-Formate; macOS ergänzt seine Kennzeichnung an
+// temporären Baus unten kennzeichnen die Windows-Targets und seit 4T-001223
+// (Epic 3E-000122) die Linux-Formate; macOS ergänzt seine Kennzeichnung an
 // derselben Stelle.
 'use strict';
 
@@ -34,7 +34,7 @@ function loadBuildInfo() {
   }
 }
 
-// 4T-0921: Vorhandene Release-Marken. null heisst „nicht zu ermitteln"; der
+// 4T-000921: Vorhandene Release-Marken. null heisst „nicht zu ermitteln"; der
 // Aufrufer bricht dann ab (fail closed), weil ohne die Marken nicht
 // entscheidbar ist, ob die Versions-Angabe bereits veroeffentlicht ist. Eine
 // leere Liste ist dagegen eine gueltige Auskunft (Erst-Release).
@@ -60,7 +60,7 @@ function main() {
   const env = { ...process.env };
   const zusatz = [];
   if (angaben.temporaer) {
-    // 4T-0921: Die Marke T steht in Dateiname und Anzeige an erster Stelle,
+    // 4T-000921: Die Marke T steht in Dateiname und Anzeige an erster Stelle,
     // in der technischen Versions-Angabe dagegen hinter der Basis-Version,
     // weil beide Windows-Versions-Felder vorne eine Ziffer verlangen.
     // Bewusst OHNE Build-Nummer: die vierte numerische Stelle bleibt damit 0,
@@ -71,7 +71,7 @@ function main() {
     zusatz.push(`-c.extraMetadata.version=${angaben.version}`);
     zusatz.push(`-c.portable.artifactName=\${productName}-${kern}-Portable.\${ext}`);
     zusatz.push(`-c.nsis.artifactName=\${productName}-${kern}-Setup.\${ext}`);
-    // 4T-1223 (Epic 3E-0122): dieselbe Kennzeichnung fuer die Linux-Formate
+    // 4T-001223 (Epic 3E-000122): dieselbe Kennzeichnung fuer die Linux-Formate
     // (AppImage und deb teilen sich den variantenfreien linux.artifactName).
     zusatz.push(`-c.linux.artifactName=\${productName}-${kern}.\${ext}`);
     console.log(
@@ -83,7 +83,7 @@ function main() {
     if (value) env.BUILD_NUMBER = value;
   }
 
-  // 4T-1223: Die Zusatz-Argumente tragen electron-builder-Platzhalter wie
+  // 4T-001223: Die Zusatz-Argumente tragen electron-builder-Platzhalter wie
   // `${productName}`, die die Shell NICHT expandieren darf. Windows-cmd laesst
   // sie in doppelten Quotes literal stehen, eine POSIX-Shell (Container-Bau)
   // expandiert sie dort zu Leerstrings — deshalb je Plattform das Quote-Zeichen,

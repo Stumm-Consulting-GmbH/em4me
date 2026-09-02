@@ -1,6 +1,6 @@
 // Feld-DOM der Properties-Sidebar: Sektion rendern und Feld-Zeilen bauen.
-// 4T-0981 (Epic 3E-0196): Auszug aus properties-tags.js.
-// 4T-1172 (Epic 3E-0220): Die Wert-Editoren und der Typ-Wechsel sind nach
+// 4T-000981 (Epic 3E-000196): Auszug aus properties-tags.js.
+// 4T-001172 (Epic 3E-000220): Die Wert-Editoren und der Typ-Wechsel sind nach
 // properties-wert-editor.js gezogen (Datei-Größen-Budget; Begründung dort).
 'use strict';
 
@@ -8,14 +8,14 @@ import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { isAllEmpty } from '../views/views.js';
-// 4T-1156: Öffnen eines Verweis-Ziels über den Wiki-Link-Weg.
+// 4T-001156: Öffnen eines Verweis-Ziels über den Wiki-Link-Weg.
 import { activateLink } from '../views/link-navigation.js';
 import {
   buildProfileFillMap,
   emptyValueForDefinition,
   fieldDefinitionHint,
 } from '../../../shared/property-profiles.js';
-// 4T-1172 (Epic 3E-0220): Feld-Formular über alle Felder samt Herkunft.
+// 4T-001172 (Epic 3E-000220): Feld-Formular über alle Felder samt Herkunft.
 import {
   baueFeldFormular,
   baueHerkunftsZeichen,
@@ -33,7 +33,7 @@ import {
   refreshProfileResolution,
   renderTypeFor,
 } from './properties-types.js';
-// 4T-1185 (Epic 3E-0221): die abgeleiteten Felder der geltenden Profile;
+// 4T-001185 (Epic 3E-000221): die abgeleiteten Felder der geltenden Profile;
 // der Zeilen-Bau kommt von hier als Parameter herein (Begruendung dort).
 import { baueAbgeleiteteFelder } from './properties-abgeleitet.js';
 import { flushPendingPropertiesSave, scheduleSavePropertiesFromPane } from './properties-save.js';
@@ -43,7 +43,7 @@ import {
   setzeWertEditorUmgebung,
 } from './properties-wert-editor.js';
 
-// 4T-0051: Rendert die Properties-Sidebar-Sektion fuer eine Spalte neu.
+// 4T-000051: Rendert die Properties-Sidebar-Sektion fuer eine Spalte neu.
 // Wird gerufen bei Toggle-on, Tab-Wechsel, View-Mode-Wechsel und externer
 // Datei-Aenderung. Bewusst synchron: api.getFrontmatter ist im Preload als
 // sync-Funktion exposed. Wuerde renderProperties async sein, oeffnet ein
@@ -53,10 +53,10 @@ import {
 export function renderProperties(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.propertiesSection) return;
-  // R5-03 (4T-0172): pending Debounce-Save des bisherigen Tabs flushen,
+  // R5-03 (4T-000172): pending Debounce-Save des bisherigen Tabs flushen,
   // BEVOR die Feld-DOM ersetzt wird — sonst ist die Eingabe still verloren.
   flushPendingPropertiesSave(paneIdx);
-  // 4T-0448: Profil-Auflösung asynchron nachziehen (re-rendert nur bei
+  // 4T-000448: Profil-Auflösung asynchron nachziehen (re-rendert nur bei
   // tatsächlicher Änderung); dieser Durchlauf nutzt den gecachten Stand.
   void refreshProfileResolution(paneIdx);
   const pane = state.panes[paneIdx];
@@ -73,7 +73,7 @@ export function renderProperties(paneIdx) {
     return;
   }
 
-  // 4T-0213 (Epic 3E-0042): Handbuch-Tabs sind read-only — die Sektion
+  // 4T-000213 (Epic 3E-000042): Handbuch-Tabs sind read-only — die Sektion
   // zeigt den Leer-Hinweis, und "Feld hinzufuegen" bleibt deaktiviert
   // (der Debounce-Save wuerde sonst in das Handbuch-Doc schreiben).
   if (tab.manualPage) {
@@ -100,7 +100,7 @@ export function renderProperties(paneIdx) {
       fm.parseError,
     );
   }
-  // R5-02 (4T-0172): Bei defektem YAML kein "Feld hinzufuegen" — der
+  // R5-02 (4T-000172): Bei defektem YAML kein "Feld hinzufuegen" — der
   // erste Debounce-Save wuerde das gesamte Frontmatter durch die leeren
   // Sidebar-Felder ersetzen. Tooltip nennt den Grund.
   if (els.propertiesAddBtn) {
@@ -117,7 +117,7 @@ export function renderProperties(paneIdx) {
   }
   for (const key of keys) {
     const value = data[key];
-    // 4T-0448: definierte Felder nutzen den Definitions-Typ statt der
+    // 4T-000448: definierte Felder nutzen den Definitions-Typ statt der
     // Inferenz; undefinierte Felder verhalten sich unverändert.
     const def = profileDefFor(paneIdx, key);
     const type = def ? renderTypeFor(def, value) : inferType(value);
@@ -125,7 +125,7 @@ export function renderProperties(paneIdx) {
     els.propertiesFields.appendChild(fieldEl);
   }
 
-  // 4T-1185 (Epic 3E-0221, E1): die abgeleiteten Felder der geltenden Profile.
+  // 4T-001185 (Epic 3E-000221, E1): die abgeleiteten Felder der geltenden Profile.
   // Sie stehen NICHT in `data` — genau das ist die sichtbare Folge von E1 —
   // und müssen deshalb zusätzlich gebaut werden.
   //
@@ -141,7 +141,7 @@ export function renderProperties(paneIdx) {
       buildPropertyFieldDom(paneIdx, def.name, wert, def.type, def, hinweis),
   });
 
-  // 4T-1172 (Epic 3E-0220, E5): Der Ausklapp-Bereich mit den Feldern, die die
+  // 4T-001172 (Epic 3E-000220, E5): Der Ausklapp-Bereich mit den Feldern, die die
   // Profile definieren und das Dokument noch nicht trägt. Er hängt IM selben
   // Container wie die übrigen Felder — dadurch sammelt ihn der vorhandene
   // Save-Weg von selbst ein, und ein zweiter Schreibweg entsteht nicht.
@@ -151,11 +151,11 @@ export function renderProperties(paneIdx) {
   if (zeigtFeldFormular(aufloesung, { parseError: !!fm.parseError })) {
     baueFeldFormular(els.propertiesFields, {
       fehlende: fehlendeDefinitionen(aufloesung.fields, data),
-      // 4T-1173: die Kette der beteiligten Profile samt Übernahme je Ebene.
+      // 4T-001173: die Kette der beteiligten Profile samt Übernahme je Ebene.
       kette: aufloesung.chain,
       fehlendeJeEbene: (profil) => fehlendeDefinitionenDerEbene(aufloesung.fields, data, profil),
       uebernehmen: (profil) => uebernimmEbene(paneIdx, aufloesung.fields, data, profil),
-      // 4T-1173: Auf-Zustand ueber das Neu-Rendern hinweg halten.
+      // 4T-001173: Auf-Zustand ueber das Neu-Rendern hinweg halten.
       offen: !!state.properties.feldFormularOffenByPane[paneIdx],
       merkeZustand: (auf) => {
         state.properties.feldFormularOffenByPane[paneIdx] = auf;
@@ -166,10 +166,10 @@ export function renderProperties(paneIdx) {
   }
 }
 
-// 4T-0051: Baut die DOM-Komponente fuer ein Property-Feld in der Sidebar-
+// 4T-000051: Baut die DOM-Komponente fuer ein Property-Feld in der Sidebar-
 // Sektion. Layout zweizeilig: Head (Key | Type | Hint | Delete) ueber Value.
 // Hooks fuer Live-Save: jedes input/change-Event triggert Debounce-Save.
-// 4T-0448: optionaler def-Parameter (aufgelöste Profil-Definition) — dann
+// 4T-000448: optionaler def-Parameter (aufgelöste Profil-Definition) — dann
 // dezente Kennzeichnung, Typ-Sperre (solange der Wert dem Typ entspricht),
 // weicher Hinweis und ggf. Auswahl-Listen im Wert-Editor.
 export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hinweis = null) {
@@ -179,7 +179,7 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hin
   wrap.dataset.originalKey = key;
   wrap.dataset.currentType = type;
   wrap.dataset.paneIdx = String(paneIdx);
-  // 4T-0448: Definition am Element hinterlegen (Hinweis-Aktualisierung beim
+  // 4T-000448: Definition am Element hinterlegen (Hinweis-Aktualisierung beim
   // Save und Rückkehr zur Auswahl-Liste nach einem Typ-Wechsel).
   wrap._profileDef = def || null;
   const hintCode = def ? fieldDefinitionHint(def, value) : null;
@@ -201,13 +201,13 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hin
   const typeSelect = document.createElement('select');
   typeSelect.className = 'properties-field-type';
   for (const tname of PROPERTY_TYPES) {
-    // 4T-0051: 'readonly' ist ein interner Fallback-Typ fuer verschachtelte
+    // 4T-000051: 'readonly' ist ein interner Fallback-Typ fuer verschachtelte
     // YAML-Strukturen (Objekte, Arrays mit Objekten). Im Dropdown nur
     // sichtbar, wenn das Feld ohnehin bereits readonly ist — dann ist der
     // Dropdown disabled, also keine Aktion. Bei nicht-readonly-Feldern
     // verbergen, damit der Nutzer ihn nicht versehentlich waehlt und sich
     // selbst in eine Sackgasse manoevriert.
-    // 4T-1185: dieselbe Regel gilt seit der Stufe 4 auch für die beiden
+    // 4T-001185: dieselbe Regel gilt seit der Stufe 4 auch für die beiden
     // abgeleiteten Typen (Liste in properties-types.js).
     if (NICHT_WAEHLBARE_TYPEN.includes(tname) && tname !== type) continue;
     const opt = document.createElement('option');
@@ -217,7 +217,7 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hin
   }
   typeSelect.value = type;
   if (type === 'readonly') typeSelect.disabled = true;
-  // 4T-0448: definierte Felder zeigen den Definitions-Typ, der Wechsler ist
+  // 4T-000448: definierte Felder zeigen den Definitions-Typ, der Wechsler ist
   // gesperrt (Tooltip nennt das Profil). Ausnahme Typ-Abweichung: dann bleibt
   // der Wechsler frei, damit der Wert per Koerzierung auf den Definitions-Typ
   // gebracht werden KANN (keine Sackgasse) — der Hinweis nennt den Soll-Typ.
@@ -229,7 +229,7 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hin
   typeSelect.addEventListener('change', () => onTypeChange(wrap, typeSelect.value));
   head.appendChild(typeSelect);
 
-  // 4T-0448: weicher Validierungs-Hinweis (Icon plus Tooltip) — keine
+  // 4T-000448: weicher Validierungs-Hinweis (Icon plus Tooltip) — keine
   // Blockade, keine Wert-Änderung. Wird beim Save live nachgezogen.
   const hintEl = document.createElement('span');
   hintEl.className = 'properties-field-hint';
@@ -237,7 +237,7 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hin
   applyFieldHint(hintEl, def, hintCode);
   head.appendChild(hintEl);
 
-  // 4T-1172 (Epic 3E-0220, AK3): Herkunft des Feldes — aus welchem Profil es
+  // 4T-001172 (Epic 3E-000220, AK3): Herkunft des Feldes — aus welchem Profil es
   // stammt, über welchen Weg dieses Profil gilt und auf welcher
   // Vererbungs-Ebene es steht. Undefinierte Felder tragen nichts.
   const aufloesung = state.properties.profileByPane[paneIdx];
@@ -277,11 +277,11 @@ export function buildPropertyFieldDom(paneIdx, key, value, type, def = null, hin
   return wrap;
 }
 
-// 4T-1173 (Epic 3E-0220, AK2/AK3/AK5): Übernahme der fehlenden Felder EINER
+// 4T-001173 (Epic 3E-000220, AK2/AK3/AK5): Übernahme der fehlenden Felder EINER
 // Ketten-Ebene.
 //
 // Sie geht über `applyProfileFill` — denselben Weg, den die vorhandene
-// Komplett-Übernahme seit 4T-0491 nimmt: ein einziger writeFrontmatter-Aufruf,
+// Komplett-Übernahme seit 4T-000491 nimmt: ein einziger writeFrontmatter-Aufruf,
 // eine isolierte Undo-Einheit, gesperrt bei defektem Metadaten-Block. Der
 // Unterschied ist allein die Feld-Menge, und die baut `buildProfileFillMap`
 // aus den Definitionen dieser einen Ebene. Bestehende Werte bleiben dabei
@@ -303,7 +303,7 @@ async function uebernimmEbene(paneIdx, fields, data, profilName) {
   applyProfileFill(paneIdx, { map });
 }
 
-// 4T-1156: Pfad der aktiven Datei einer Spalte — er bestimmt den Suchraum
+// 4T-001156: Pfad der aktiven Datei einer Spalte — er bestimmt den Suchraum
 // der Ziel-Vorschläge eines Verweis-Feldes (derselbe Suchraum, den die
 // Wiki-Link-Vervollständigung des Editors nutzt).
 function aktiverPfad(paneIdx) {
@@ -312,7 +312,7 @@ function aktiverPfad(paneIdx) {
   return tab && tab.path ? tab.path : null;
 }
 
-// 4T-1172 (Epic 3E-0220): Umgebung der Wert-Editoren einreichen. Sie steht
+// 4T-001172 (Epic 3E-000220): Umgebung der Wert-Editoren einreichen. Sie steht
 // hier und nicht dort, weil diese drei Zugriffe in die Renderer-Komponente
 // zurückzeigen und das Blatt-Modul sonst in die eingefrorene Bestands-
 // Komponente des Ordner-Import-Wächters geriete (Begründung dort).
@@ -322,7 +322,7 @@ setzeWertEditorUmgebung({
   oeffneVerweis: (paneIdx, name) => void activateLink(paneIdx, name, true),
 });
 
-// 4T-0981 (Epic 3E-0196): Nachziehen der Sektion bei geänderter Profil-
+// 4T-000981 (Epic 3E-000196): Nachziehen der Sektion bei geänderter Profil-
 // Auflösung. Vor dem Schnitt stand dieser Aufruf mit derselben Bedingung
 // inline in refreshProfileResolution. Die Anmeldung im Modul-Rumpf hält die
 // Reihenfolge unverändert, weil sie vor jeder Laufzeit-Anmeldung liegt (das

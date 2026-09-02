@@ -1,8 +1,8 @@
-// --- Outline-Sidebar (4T-0014) ---------------------------------------------
-// 4T-0990 (Epic 3E-0196): aus panels.js in den Ordner panels/ ausgezogen,
+// --- Outline-Sidebar (4T-000014) ---------------------------------------------
+// 4T-000990 (Epic 3E-000196): aus panels.js in den Ordner panels/ ausgezogen,
 // samt eigener Panel-Registrierung am Modul-Ende.
 // Persistente Inhaltsverzeichnis-Sicht pro Pane. Quelle ist das foldStructure-
-// Field aus 4T-0013 (gleicher syntaxTree wie das Code-Folding). Klick auf den
+// Field aus 4T-000013 (gleicher syntaxTree wie das Code-Folding). Klick auf den
 // Heading-Text springt im Editor zur Zeile oder scrollt im Render-Pane zum
 // Anker; Klick auf den Falt-Indikator toggelt nur die Editor-Region. Aktive
 // Sektion folgt der Cursor-Zeile (Edit/Geteilt) bzw. der Scroll-Position
@@ -19,7 +19,7 @@ import {
   paneEditors,
   unfoldHeadingRegion,
 } from '../editor/editor.js';
-// 4T-0471 (Epic 3E-0087): Gliederungs-Nummerierung in der Outline. Der Kern
+// 4T-000471 (Epic 3E-000087): Gliederungs-Nummerierung in der Outline. Der Kern
 // liefert die Nummern, der Renderer-Zustand den effektiven Dokument-Kontext.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { foldStructureField } from '../editor/folding.js';
@@ -34,9 +34,9 @@ import { applySidebarVisibility } from './panels.js';
 
 export const OUTLINE_RENDER_DEBOUNCE_MS = 200;
 export const OUTLINE_ACTIVE_DEBOUNCE_MS = 100;
-// 4T-0183 (Knip-Zusatzfund): OUTLINE_DEFAULT_WIDTH entfernt — ungenutzt,
+// 4T-000183 (Knip-Zusatzfund): OUTLINE_DEFAULT_WIDTH entfernt — ungenutzt,
 // die initiale Sidebar-Breite kommt aus CSS bzw. den Settings.
-// 4T-0288: OUTLINE_MIN/MAX_WIDTH entfernt — Breiten-Grenzen leben jetzt
+// 4T-000288: OUTLINE_MIN/MAX_WIDTH entfernt — Breiten-Grenzen leben jetzt
 // seitengetrennt in sidebar-layout.js (SIDEBAR_MIN/MAX_WIDTH).
 export const OUTLINE_INDENT_PX = 12;
 
@@ -70,7 +70,7 @@ export function renderOutline(paneIdx) {
   if (els.outlineEmpty) els.outlineEmpty.hidden = true;
   const view = paneEditors[paneIdx];
   const doc = view ? view.state.doc : null;
-  // 4T-0471 (Epic 3E-0087): Nummern aus dem Kern, wenn die Erweiterung aktiv
+  // 4T-000471 (Epic 3E-000087): Nummern aus dem Kern, wenn die Erweiterung aktiv
   // ist. Die Marker-Erkennung braucht den Roh-Titel (mit {-}/{+}); der
   // angezeigte Titel bleibt der bereinigte extractHeadingText.
   let numberByLine = null;
@@ -131,7 +131,7 @@ export function extractHeadingText(doc, lineNumber) {
   if (lineNumber < 1 || lineNumber > doc.lines) return '';
   const lineObj = doc.line(lineNumber);
   let raw = lineObj.text;
-  // 4T-0202: trailing Attribut-Block ({#id}/{.klasse}, markdown-it-attrs)
+  // 4T-000202: trailing Attribut-Block ({#id}/{.klasse}, markdown-it-attrs)
   // gehoert nicht in den Outline-Titel — der Render strippt ihn ebenso.
   raw = raw.replace(/\{[^\s{}][^{}]*\}[ \t]*$/, '');
   const atx = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(raw);
@@ -139,7 +139,7 @@ export function extractHeadingText(doc, lineNumber) {
   return raw.trim();
 }
 
-// 4T-0471 (Epic 3E-0087): Roh-Titel einer Heading-Zeile OHNE Attribut-/
+// 4T-000471 (Epic 3E-000087): Roh-Titel einer Heading-Zeile OHNE Attribut-/
 // Marker-Strip — die Marker-Erkennung des Nummerierungs-Kerns braucht das
 // unveraenderte Zeilenende (`{-}`/`{+}`). Nur der `#`-Praefix wird entfernt.
 function extractRawHeadingTitle(doc, lineNumber) {
@@ -150,7 +150,7 @@ function extractRawHeadingTitle(doc, lineNumber) {
   return raw.trim();
 }
 
-// 4T-0471 (Epic 3E-0087): Frontmatter-Daten und Block-Endzeile des Dokuments.
+// 4T-000471 (Epic 3E-000087): Frontmatter-Daten und Block-Endzeile des Dokuments.
 // Nur die ersten Zeilen lesen (Frontmatter steht am Datei-Anfang); das haelt
 // den Outline-Aufbau billig. endLine dient dem Ausschluss der Pseudo-
 // Ueberschriften, die Lezer aus `schluessel: wert` + `---` (Setext) bildet.
@@ -244,7 +244,7 @@ export function computeActiveLineFromRender(paneIdx, headings) {
   const scrollEl = els.renderedEl;
   if (!scrollEl) return headings[0].fromLine;
   const scrollRect = scrollEl.getBoundingClientRect();
-  // R3-04 (4T-0174): Headings aus Markdown-Embeds ausschliessen — sie
+  // R3-04 (4T-000174): Headings aus Markdown-Embeds ausschliessen — sie
   // kommen im Quelltext nicht vor und verschieben sonst das indexbasierte
   // Mapping (Outline-Highlight verrutscht).
   const hElements = Array.from(els.renderedHtml.querySelectorAll('h1, h2, h3, h4, h5, h6')).filter(
@@ -262,7 +262,7 @@ export function computeActiveLineFromRender(paneIdx, headings) {
   return headings[activeIdx].fromLine;
 }
 
-// 4T-0183 (Knip-Zusatzfund): applyOutlineFoldIndicator entfernt — ohne
+// 4T-000183 (Knip-Zusatzfund): applyOutlineFoldIndicator entfernt — ohne
 // Aufrufer; Einzel-Indikator-Updates laufen seit jeher ueber den
 // Voll-Refresh (refreshAllOutlineFoldIndicators bzw. renderOutline).
 
@@ -308,7 +308,7 @@ export function jumpToHeading(paneIdx, lineNumber) {
         typeof api.slugifyHeading === 'function'
           ? api.slugifyHeading(text)
           : text.toLowerCase().replace(/\s+/g, '-');
-      // R3-05 (4T-0186): markdown-it-anchor dedupliziert gleichnamige
+      // R3-05 (4T-000186): markdown-it-anchor dedupliziert gleichnamige
       // Headings (slug, slug-1, slug-2 …). Zaehlen, das wievielte
       // Vorkommen dieses Slugs die Ziel-Zeile ist, und die tatsaechliche
       // DOM-id ansteuern — vorher landete der Klick immer beim ersten.
@@ -363,7 +363,7 @@ export function bindOutlineEvents(paneIdx) {
 export function applyOutlineVisibility(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.sidebarLeft) return;
-  // 4T-0075: Outline ergibt im Empty-State keinen Sinn (keine Headings ohne
+  // 4T-000075: Outline ergibt im Empty-State keinen Sinn (keine Headings ohne
   // aktive Datei). Zwangsweise unsichtbar, persistierte Preference bleibt
   // unveraendert und greift wieder, sobald ein Tab offen ist.
   const outlineVisible = !isAllEmpty() && !!state.outline.visibleByPane[paneIdx];
@@ -389,7 +389,7 @@ export async function toggleOutlinePanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   const next = !state.outline.visibleByPane[paneIdx];
   state.outline.visibleByPane[paneIdx] = next;
-  // 4T-0288: das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
+  // 4T-000288: das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
   if (next) await ensurePanelTabActive('outline', paneIdx);
   applyOutlineVisibility(paneIdx);
   await persistOutlineSettings();
@@ -402,7 +402,7 @@ export async function toggleOutlinePanel(paneIdx) {
 export async function persistOutlineSettings() {
   await persistSetting('outline.visibleColumn0', !!state.outline.visibleByPane[0]);
   await persistSetting('outline.visibleColumn1', !!state.outline.visibleByPane[1]);
-  // 4T-0288: outline.width wird nicht mehr geschrieben — die Breite lebt
+  // 4T-000288: outline.width wird nicht mehr geschrieben — die Breite lebt
   // seitengetrennt in sidebar-layout.js (der Legacy-Key bleibt als
   // Migrations-Quelle unangetastet).
 }
@@ -414,9 +414,9 @@ export async function loadOutlineSettings() {
   state.outline.visibleByPane[1] = !!v1;
 }
 
-// === 4T-0287 (Epic 3E-0051): Panel-Registrierung =============================
+// === 4T-000287 (Epic 3E-000051): Panel-Registrierung =============================
 // Import-Seiteneffekt: getVisible spiegelt die effektive Sichtbarkeits-Logik
-// aus applyOutlineVisibility inklusive Empty-State-Override (4T-0075).
+// aus applyOutlineVisibility inklusive Empty-State-Override (4T-000075).
 registerSidebarPanel({
   id: 'outline',
   titleKey: 'outline.title',

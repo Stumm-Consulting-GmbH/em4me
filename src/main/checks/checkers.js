@@ -4,7 +4,7 @@
 // Pruef-Kerne selbst liegen in den Nachbar-Modulen dieses Ordners; hier
 // entsteht ihre Umgebung — Suchraum, Gates, Ziel-Fenster und Rueckschreiben.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Rolle: Aufbau-Funktion ohne
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Rolle: Aufbau-Funktion ohne
 // Lade-Zeit-Seiteneffekte; der Takt startet erst mit dem Start-Ablauf.
 'use strict';
 
@@ -30,11 +30,11 @@ const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.
  */
 function createCheckers(deps) {
   const { appRegistry, getStore, windows, backlinks, broadcast } = deps;
-  // 4T-0525 (Epic 3E-0095): Erinnerungs-Pruefer. Die Umgebung wird pro Lauf
+  // 4T-000525 (Epic 3E-000095): Erinnerungs-Pruefer. Die Umgebung wird pro Lauf
   // frisch aus dem Store gebaut (Muster frontmatterQuery:run) — Einstellungs-
   // und Erweiterungs-Aenderungen wirken ohne eigenen Listener sofort.
   // Doppel-Gate tasks UND reminders: robust unabhaengig davon, ob die
-  // Erweiterungs-Registrierung (4T-0528) schon ausgeliefert ist.
+  // Erweiterungs-Registrierung (4T-000528) schon ausgeliefert ist.
   const reminderChecker = createReminderChecker({
     areas() {
       const roots = new Set();
@@ -78,7 +78,7 @@ function createCheckers(deps) {
     now: () => new Date(),
   });
 
-  // 4T-0637 (Epic 3E-0069): Wecker-Pruefer. Anders als die Erinnerungen sind
+  // 4T-000637 (Epic 3E-000069): Wecker-Pruefer. Anders als die Erinnerungen sind
   // Wecker app-weit (kein Bereich, keine Datei), deshalb entfaellt hier die
   // Bereichs-Aufzaehlung und die Meldung geht an genau EIN Fenster — sonst
   // erschiene derselbe Wecker in jedem offenen Fenster.
@@ -112,7 +112,7 @@ function createCheckers(deps) {
     now: () => new Date(),
   });
 
-  // 4T-0638 (Epic 3E-0069): Timer-Pruefer. Kein Polling: der naechste Ablauf
+  // 4T-000638 (Epic 3E-000069): Timer-Pruefer. Kein Polling: der naechste Ablauf
   // bekommt einen gezielten Weckruf, der bei jeder Listen-Aenderung neu
   // gerechnet wird. Das Ziel-Fenster bestimmt derselbe Weg wie beim Wecker.
   const timerChecker = createTimerChecker({

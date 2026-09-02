@@ -1,4 +1,4 @@
-// 4T-0585 (Epic 3E-0108): Titelzeile („Zeile 0") im Renderer.
+// 4T-000585 (Epic 3E-000108): Titelzeile („Zeile 0") im Renderer.
 //
 // Zeigt pro Pane den Dateinamen ohne Endung in kompakter Überschrift-1-Optik
 // scroll-fest über dem Dokument, ohne Zeilennummer und ohne Bestandteil des
@@ -15,7 +15,7 @@
 // den Unbenannt-Platzhalter. Erweiterung 'title-line': im Aus-Zustand
 // verschwindet die Zeile vollständig (heutiges Bild ohne Titelzeile).
 //
-// 4T-0586: Direkt-Umbenennen über die Titelzeile. Klick (oder Enter/F2 auf
+// 4T-000586: Direkt-Umbenennen über die Titelzeile. Klick (oder Enter/F2 auf
 // der fokussierten Zeile) macht den Titel contenteditable; Enter oder
 // Fokusverlust bestätigt, Escape verwirft, unveränderter Text beendet
 // still. Validierung (leer, unzulässige Zeichen) läuft vor dem Aufruf über
@@ -30,7 +30,7 @@
 // Tabs editierbar, der Dirty-Zustand bleibt unberührt (dirty Tabs werden
 // wie im Dialog-Fluss zuerst gespeichert).
 //
-// 4T-0646 (Epic 3E-0128): Bei einer Unterseite ist nur noch das eigene
+// 4T-000646 (Epic 3E-000128): Bei einer Unterseite ist nur noch das eigene
 // Namens-Segment editierbar. Die Zeile besteht dafür aus zwei Teilen: dem
 // Eltern-Anteil (`.title-line-prefix`, dauerhaft gedämpft, nie editierbar)
 // und dem eigenen Segment (`.title-line-segment`, contenteditable während
@@ -69,7 +69,7 @@ let editState = null;
 // Auto-Hide-Timer der Hinweis-Flächen pro Titelzeilen-Element.
 const hintTimers = new WeakMap();
 
-// 4T-0646: Anzeige-Teile der Titelzeile für einen Tab. `prefix` ist der
+// 4T-000646: Anzeige-Teile der Titelzeile für einen Tab. `prefix` ist der
 // Eltern-Anteil einer Unterseite samt abschließendem Schrägstrich (bei
 // Top-Level-Seiten und Unbenannt-Tabs leer), `segment` der editierbare
 // Rest. Unbenannt-Tabs zeigen den Platzhalter; null für Handbuch-/System-
@@ -124,7 +124,7 @@ export function updateTitleLineForPane(paneIdx) {
     textEl.title = t(tab.path ? 'titleLine.tooltip' : 'titleLine.tooltipUntitled');
     const { prefixEl, segmentEl } = titleLineParts(textEl);
     if (!prefixEl || !segmentEl) continue;
-    // Während einer laufenden Titel-Bearbeitung (4T-0586) den Editier-Stand
+    // Während einer laufenden Titel-Bearbeitung (4T-000586) den Editier-Stand
     // nicht überschreiben.
     if (segmentEl.isContentEditable) continue;
     if (prefixEl.textContent !== parts.prefix) prefixEl.textContent = parts.prefix;
@@ -140,7 +140,7 @@ export function updateAllTitleLines() {
   for (let i = 0; i < state.panes.length; i++) updateTitleLineForPane(i);
 }
 
-// --- Hinweis-Fläche (4T-0586) ----------------------------------------------------
+// --- Hinweis-Fläche (4T-000586) ----------------------------------------------------
 
 function showTitleLineHint(el, text, isError) {
   const hint = el.querySelector('.title-line-hint');
@@ -164,7 +164,7 @@ function hideTitleLineHint(el) {
   hint.hidden = true;
 }
 
-// --- Edit-Fluss (4T-0586) --------------------------------------------------------
+// --- Edit-Fluss (4T-000586) --------------------------------------------------------
 
 function paneIndexFor(el) {
   const group = el.closest('.pane-group');
@@ -178,7 +178,7 @@ function wireTitleLine(el) {
   el.dataset.editWired = '1';
   const textEl = el.querySelector('.title-line-text');
   if (!textEl) return;
-  // 4T-0646: Editiert wird ausschließlich das Segment-Element; Klick und
+  // 4T-000646: Editiert wird ausschließlich das Segment-Element; Klick und
   // Tastatur-Zugang liegen weiterhin auf der ganzen Zeile, damit auch ein
   // Klick auf den Eltern-Anteil die Bearbeitung des Segments startet.
   const { segmentEl } = titleLineParts(textEl);
@@ -284,7 +284,7 @@ async function commitEdit() {
     finishEdit(s, s.original);
     return;
   }
-  // 4T-0646: Validierung nach Lage der Seite. Bei einer Unterseite trägt die
+  // 4T-000646: Validierung nach Lage der Seite. Bei einer Unterseite trägt die
   // Eingabe nur das eigene Segment; der Schrägstrich ist dort abgelehnt, weil
   // die Seite sonst still ihren Ast verlassen würde. Bei einer Top-Level-Seite
   // (und bei Unbenannt-Tabs) bleibt es beim bisherigen Verhalten: Die Eingabe

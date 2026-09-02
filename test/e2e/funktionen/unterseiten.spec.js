@@ -1,4 +1,4 @@
-// 4T-0336/4T-0337/4T-0338/4T-0341 (Epic 3E-0061): E2E-Funktions-Suite
+// 4T-000336/4T-000337/4T-000338/4T-000341 (Epic 3E-000061): E2E-Funktions-Suite
 // Unterseiten — Klick-Aufloesung der Slash-Schreibweise, relative Links,
 // Anlage-Kommando, Breadcrumb und Panel-Liste.
 // describe-Titel tragen die Matrix-IDs aus test/abdeckungs-matrix.json.
@@ -140,7 +140,7 @@ test.describe('US-04: Datei umbenennen (Grundfunktion)', () => {
     const { app, page, userData } = await launchApp({ args: [file] });
     try {
       await waitForTab(page);
-      // 4T-0346 (Epic 3E-0062): Grundfunktions-Test ohne Link-Update (der
+      // 4T-000346 (Epic 3E-000062): Grundfunktions-Test ohne Link-Update (der
       // Vorschau-/Bericht-Flow ist in link-update.spec.js abgedeckt).
       await page.evaluate(() => window.api.setSetting('renameUpdateLinks', false));
       await app.evaluate(({ BrowserWindow }) => {
@@ -201,7 +201,7 @@ test.describe('US-05: Umbenennen-Kaskade fuer Unterseiten-Baeume', () => {
     };
     try {
       await waitForTab(page);
-      // 4T-0346 (Epic 3E-0062): Grundfunktions-Test ohne Link-Update (der
+      // 4T-000346 (Epic 3E-000062): Grundfunktions-Test ohne Link-Update (der
       // Vorschau-/Bericht-Flow ist in link-update.spec.js abgedeckt).
       await page.evaluate(() => window.api.setSetting('renameUpdateLinks', false));
       // Eltern-Seite umbenennen: Dialog zeigt den vollen Namen und den
@@ -213,7 +213,7 @@ test.describe('US-05: Umbenennen-Kaskade fuer Unterseiten-Baeume', () => {
       await page.locator('#btn-name-input-ok').click();
       await expect(page.locator('#name-input-modal')).toBeHidden();
       await expect(page.locator(SEL.activeTab0)).toContainText('Prozess-Z.md');
-      // 4T-0874: Der Reiter-Titel steht bereits, wenn die ERSTE Datei der
+      // 4T-000874: Der Reiter-Titel steht bereits, wenn die ERSTE Datei der
       // Kaskade umbenannt ist (der Main meldet jede Umbenennung einzeln per
       // 'file:renamed'); die Nachfahren folgen danach. Auf die Dateien wird
       // deshalb gewartet statt sofort gelesen (Stabilitätsregel 12).
@@ -331,7 +331,7 @@ test.describe('US-02: Unterseiten-Embeds (Slash-Schreibweise und relativ)', () =
   });
 });
 
-// 4T-0646 (Epic 3E-0128): Der Vollname-Schalter des Umbenennen-Dialogs gibt
+// 4T-000646 (Epic 3E-000128): Der Vollname-Schalter des Umbenennen-Dialogs gibt
 // bei einer Unterseite den Eltern-Anteil frei; ohne ihn bleibt es beim
 // eigenen Segment, und der Schraegstrich ist dort abgelehnt.
 test.describe('US-07: Vollname-Schalter im Umbenennen-Dialog', () => {
@@ -390,7 +390,7 @@ test.describe('US-07: Vollname-Schalter im Umbenennen-Dialog', () => {
   });
 });
 
-// 4T-0774 (Epic 3E-0128): Loesen einer Unterseite — eigene Unterseiten wandern
+// 4T-000774 (Epic 3E-000128): Loesen einer Unterseite — eigene Unterseiten wandern
 // mit, eingehende Verweise werden nachgefuehrt, eine Kollision auf der
 // Zielebene laesst den Bestand unveraendert.
 test.describe('US-08: Unterseite von der uebergeordneten Seite loesen', () => {
@@ -425,7 +425,7 @@ test.describe('US-08: Unterseite von der uebergeordneten Seite loesen', () => {
       await expect
         .poll(() => fs.existsSync(path.join(dir, 'Entwurf.md')), { timeout: 5000 })
         .toBe(true);
-      // 4T-0874: zweite Datei der Kaskade — ebenfalls wartend prüfen, sonst
+      // 4T-000874: zweite Datei der Kaskade — ebenfalls wartend prüfen, sonst
       // liest der Fall einen Zwischenstand (Stabilitätsregel 12).
       await expect
         .poll(() => fs.existsSync(path.join(dir, `Entwurf${SEP}Tief.md`)), { timeout: 5000 })

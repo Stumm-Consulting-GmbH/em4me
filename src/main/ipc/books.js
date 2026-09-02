@@ -2,7 +2,7 @@
 // Kapitel als Reiter, Struktur-Pflege des Kapitel-Baums, das physische
 // Verschieben einer Kapitel-Datei und die Reparatur fehlender Kapitel.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: books:*.
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: books:*.
 //
 // Eigener Zustand: keiner; die Buch-Applikationen und die Umbenennen-Kaskade
 // kommen als Deps. Die Block-Helfer moveBookChapterFile und
@@ -55,7 +55,7 @@ function registerBooksIpc(handle, deps) {
     applyLinkUpdatesForRename,
   } = deps;
 
-  // --- 4T-0843 (Epic 3E-0147): Buecher ----------------------------------------
+  // --- 4T-000843 (Epic 3E-000147): Buecher ----------------------------------------
   // Ein Namensraum `books` in der Preload-API; alle Handler beziehen sich auf
   // das aktive Buch der APPLIKATION des aufrufenden Fensters.
 
@@ -117,7 +117,7 @@ function registerBooksIpc(handle, deps) {
     return { ok: true, path: target };
   });
 
-  // --- 4T-0845 (Story 4S-0754): Struktur-Pflege des Kapitel-Baums -------------
+  // --- 4T-000845 (Story 4S-000754): Struktur-Pflege des Kapitel-Baums -------------
   // Beide Handler aendern ausschliesslich die Deklaration in der Begleitdatei;
   // keine Kapitel-Datei wird bewegt oder umbenannt. Nach einer erfolgreichen
   // Aenderung meldet sendBookState den frisch von der Platte gelesenen Zustand
@@ -136,14 +136,14 @@ function registerBooksIpc(handle, deps) {
     return { ok: true };
   });
 
-  // --- 4T-0847 (Story 4S-0756): Kapitel-Datei physisch verschieben -----------
+  // --- 4T-000847 (Story 4S-000756): Kapitel-Datei physisch verschieben -----------
   //
   // Die Bewegung läuft über DIESELBE Strecke wie das Umbenennen: für die
   // bestehende Kaskade ist ein Verschieben ein Pfadwechsel. renameSingleFile
   // bewegt die Datei samt Watcher, Begleit-.mdd, offenen Historien-Paketen und
   // Zuletzt-Liste und führt dabei den Kapitel-Baum-Eintrag nach;
   // applyLinkUpdatesForRename schreibt anschließend die eingehenden Links um
-  // (4T-0345). Ein zweiter Rewrite-Weg entsteht dadurch nicht.
+  // (4T-000345). Ein zweiter Rewrite-Weg entsteht dadurch nicht.
   //
   // Ergebnis { ok: true, relPath, path, linkUpdate } bzw.
   // { ok: false, error } mit den Kennungen aus books.planChapterFileMove plus
@@ -208,7 +208,7 @@ function registerBooksIpc(handle, deps) {
     ),
   );
 
-  // --- 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel -------------------
+  // --- 4T-000848 (Story 4S-000757): Reparatur fehlender Kapitel -------------------
   //
   // Beide Handler aendern hoechstens die Deklaration; keine Datei wird bewegt,
   // angelegt oder geloescht. Der Suchraum und die Grenze des Ziels sind der

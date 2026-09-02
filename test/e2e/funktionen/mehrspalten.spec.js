@@ -1,7 +1,7 @@
-// 4T-0382 (Epic 3E-0072): Mehrspalten-Container — Render der Spaltenzahl,
+// 4T-000382 (Epic 3E-000072): Mehrspalten-Container — Render der Spaltenzahl,
 // Umbruch-Marker, Rueckfall bei ungueltiger Zahl, Reading-Paritaet.
 // describe-Titel tragen die Funktions-IDs (MC-01 …); die Abdeckungs-Matrix-
-// Eintraege liefert der Hilfe-/Handbuch-Task 4T-0384.
+// Eintraege liefert der Hilfe-/Handbuch-Task 4T-000384.
 'use strict';
 
 const path = require('node:path');

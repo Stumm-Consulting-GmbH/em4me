@@ -1,4 +1,4 @@
-// 4T-0166: Spike Playwright-Electron — startet die echte App (Dev-Stand),
+// 4T-000166: Spike Playwright-Electron — startet die echte App (Dev-Stand),
 // prueft das erste Fenster und schliesst sauber. Bleibt als dauerhafte
 // Smoke-Basis liegen; die breitere Smoke-Suite liegt unter test/e2e/smoke/.
 'use strict';

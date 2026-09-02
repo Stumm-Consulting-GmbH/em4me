@@ -1,4 +1,4 @@
-// 4T-0866 (Epic 3E-0162): Kern-Modell des Bücherregals
+// 4T-000866 (Epic 3E-000162): Kern-Modell des Bücherregals
 // (src/shared/books/shelf-core.js) — Format der Begleitdatei, Erkennung ohne
 // Rückverweis, Buch-Zuordnung samt Invariante und Abgleich mit dem
 // Ordner-Bestand. Reine Funktionen, direkter Import (Muster
@@ -99,7 +99,7 @@ describe('shelf-core: Begleitdatei', () => {
   });
 });
 
-// 4T-1276 (Epic 3E-0232, Befund B1): Die Zuordnungs- und Erkennungs-Fälle der
+// 4T-001276 (Epic 3E-000232, Befund B1): Die Zuordnungs- und Erkennungs-Fälle der
 // beiden folgenden Blöcke prüfen eine Schreibweisen-Toleranz, die bis dahin
 // als plattform-unabhängige Zusicherung gebaut war — sie stammt aus einer Zeit,
 // in der Windows die einzige Plattform war, und dort ist «tolerant» dasselbe
@@ -233,7 +233,7 @@ describe('shelf-core: Buch-Liste und Zuordnung', () => {
 });
 
 describe('shelf-core: Abgleich mit dem Ordner-Bestand', () => {
-  // 4T-1276: wie in den Blöcken oben — der Bestands-Fall prüft das Verhalten der
+  // 4T-001276: wie in den Blöcken oben — der Bestands-Fall prüft das Verhalten der
   // Haupt-Plattform und setzt sie deshalb; das Linux-Gegenstück steht am Ende.
   beforeEach(() => setPlatformForTests('win32'));
   afterEach(() => setPlatformForTests(undefined));
@@ -256,7 +256,7 @@ describe('shelf-core: Abgleich mit dem Ordner-Bestand', () => {
     expect(diffBookDirs(null, null)).toEqual({ unassigned: [], missing: [] });
   });
 
-  // 4T-1276 (Epic 3E-0232, Befund B1): Dies ist der Prüffall der ZWEITEN,
+  // 4T-001276 (Epic 3E-000232, Befund B1): Dies ist der Prüffall der ZWEITEN,
   // stillen Wirkung des Befunds. Vorher galt hier `unassigned: []` als richtig,
   // egal auf welcher Plattform: `diffBookDirs` übersprang jeden Ordner, dessen
   // Schlüssel schon gesehen war, und der nur anders geschriebene Ordner

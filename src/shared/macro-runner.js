@@ -1,4 +1,4 @@
-// 4T-0522 (Epic 3E-0094): Ausführungs-Kern der Makros — strikt
+// 4T-000522 (Epic 3E-000094): Ausführungs-Kern der Makros — strikt
 // sequenziell mit await pro Schritt. Reine Funktion ohne DOM-/Electron-
 // Abhängigkeit: alle Wirkungen kommen über deps herein (Node-testbar,
 // Muster command-palette-filter.js). Fehler-Semantik (PO-Festlegung):

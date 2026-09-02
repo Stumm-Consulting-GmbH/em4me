@@ -1,13 +1,13 @@
 // Icon-Zeichnung fuer Menue-Eintraege des Fenster-Menues.
 //
-// 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Farbpunkte. Native Menues koennen
+// 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Farbpunkte. Native Menues koennen
 // Haekchen und Icon nicht kombinieren; das Farbpunkt-Icon traegt daher beide
 // Informationen (PO-Freigabe der Plan-Runde): gefuellter Kreis = offen, Ring =
 // geschlossen, jeweils in der Arbeitsbereichs-Farbe. Gezeichnet als rohe
 // BGRA-Bitmap (premultiplied Alpha, weiche Kante), 16 px plus
 // 32-px-Repraesentation fuer HiDPI; pro (Farbe, Zustand) gecacht.
 //
-// 4T-0887 (Epic 3E-0168): aus menu.js herausgeloest. Die Bitmap-Zeichnung ist
+// 4T-000887 (Epic 3E-000168): aus menu.js herausgeloest. Die Bitmap-Zeichnung ist
 // eine eigene Fachlichkeit neben dem Menue-Baum und hat dort nur mitgewohnt.
 'use strict';
 

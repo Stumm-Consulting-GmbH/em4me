@@ -1,4 +1,4 @@
-// 4T-0195: Vollstaendigkeits-Meta-Test der Abdeckungs-Matrix.
+// 4T-000195: Vollstaendigkeits-Meta-Test der Abdeckungs-Matrix.
 //
 // Der kuratierte Funktions-Katalog sind die help.feature.*- und
 // help.shortcut.*-Keys aus src/i18n/de.json (import-frei lesbar, keine
@@ -6,7 +6,7 @@
 // einen Matrix-Eintrag mit Testart und existierenden Testdateien oder
 // eine Ausnahme (ipc/manuell) mit Begruendung — ein neuer Hilfe-Dialog-
 // Eintrag ohne Matrix-Pflege laesst `npm test` fehlschlagen. Damit ist
-// die Test-Pflege-Konvention aus 3E-0041 technisch durchgesetzt.
+// die Test-Pflege-Konvention aus 3E-000041 technisch durchgesetzt.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,7 +24,7 @@ const katalog = Object.keys(de).filter(
 );
 const TESTARTEN = ['e2e', 'unit', 'snapshot', 'ipc', 'manuell'];
 
-describe('Abdeckungs-Matrix (Meta-Test, 4T-0195)', () => {
+describe('Abdeckungs-Matrix (Meta-Test, 4T-000195)', () => {
   it('jeder Hilfe-Katalog-Key hat genau einen Matrix-Eintrag', () => {
     const matrixKeys = matrix.eintraege.map((e) => e.key);
     const fehlend = katalog.filter((k) => !matrixKeys.includes(k));

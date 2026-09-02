@@ -1,17 +1,17 @@
 // Kern der dynamischen Sidebar: Slot-Mounting, Reiter-Gruppen und Splitter.
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
-// 4T-0990 (Epic 3E-0196): in den Feature-Ordner panels/ geteilt. Hier bleibt,
+// 4T-000990 (Epic 3E-000196): in den Feature-Ordner panels/ geteilt. Hier bleibt,
 // was die Spalte aufbaut; die vier Panels (Outline, Backlinks, Outgoing,
 // Unterseiten), das Höhen-Modell, das Drag-and-Drop und der Spalten-Kollaps
 // liegen in den Nachbar-Modulen des Ordners.
 'use strict';
 
 import { getPaneEls, isSidebarCollapsed, state } from '../app/app-state.js';
-// 4T-0697 (Epic 3E-0141): der Spalten-Kollaps ist eine Erweiterung; im
+// 4T-000697 (Epic 3E-000141): der Spalten-Kollaps ist eine Erweiterung; im
 // Aus-Zustand bleibt die Spalte sichtbar.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
-// 4T-0287/4T-0288 (Epic 3E-0051): Panel-Registry und Layout-Modell — das
+// 4T-000287/4T-000288 (Epic 3E-000051): Panel-Registry und Layout-Modell — das
 // Slot-Mounting (renderSidebarForPane) liest beide.
 import {
   SIDEBAR_SIDES,
@@ -35,18 +35,18 @@ import {
 } from './sidebar-dnd.js';
 import { buildPanelResizer, heightRefForSlot, readHeightRef } from './sidebar-heights.js';
 
-// 4T-0014/4T-0015/4T-0288: Gemeinsame Sidebar-Sichtbarkeit. Seit 4T-0288
-// (Epic 3E-0051) delegiert die Funktion an das Slot-Mounting der dynamischen
+// 4T-000014/4T-000015/4T-000288: Gemeinsame Sidebar-Sichtbarkeit. Seit 4T-000288
+// (Epic 3E-000051) delegiert die Funktion an das Slot-Mounting der dynamischen
 // Sidebar: beide Container der Pane werden gemäß Layout-Modell bestückt; ein
 // Container (samt Splitter) ist nur sichtbar, wenn mindestens ein dort
 // zugeordnetes Panel in dieser Pane sichtbar ist. Die effektive Sichtbarkeit
-// je Panel (inklusive Empty-State-Overrides aus 4T-0075) liefert die
+// je Panel (inklusive Empty-State-Overrides aus 4T-000075) liefert die
 // Registry über getVisible.
 export function applySidebarVisibility(paneIdx) {
   renderSidebarForPane(paneIdx);
 }
 
-// 4T-0288: Slot-Mounting — hängt die bestehenden Panel-DOM-Strukturen
+// 4T-000288: Slot-Mounting — hängt die bestehenden Panel-DOM-Strukturen
 // (.sidebar-section) gemäß Layout-Modell in die Container der richtigen
 // Seite und Reihenfolge um. Die inneren Strukturen bleiben unverändert,
 // Selektoren und Event-Bindungen der Panel-Module überleben das Umhängen.
@@ -62,7 +62,7 @@ export function renderSidebarForPane(paneIdx) {
   }
 }
 
-// 4T-0697 (Epic 3E-0141): Alle Sidebars beider Panes neu rendern. renderAllPanes
+// 4T-000697 (Epic 3E-000141): Alle Sidebars beider Panes neu rendern. renderAllPanes
 // (views.js) rendert nur Reiterleiste und Pane-Inhalt, nicht die Sidebar-Slots;
 // diese Wrapper-Funktion schließt genau diese Lücke für die Laufzeit-Hooks der
 // Kollaps-Erweiterung und das Aufheben des Kollaps-Zustands.
@@ -77,33 +77,33 @@ function renderSidebarSide(paneIdx, els, layout, side) {
   // Reiterleisten werden pro Durchlauf neu gebaut (kleine, seltene DOM-
   // Arbeit; nur bei Layout-/Sichtbarkeits-Änderungen, nie pro Tastendruck).
   container.querySelectorAll('.sidebar-slot-tabs').forEach((el) => el.remove());
-  // 4T-0475 (Epic 3E-0088): Höhen-Griffe werden ebenfalls pro Durchlauf neu
+  // 4T-000475 (Epic 3E-000088): Höhen-Griffe werden ebenfalls pro Durchlauf neu
   // gebaut (Listener hängen direkt am erzeugten Element) — alte zuerst weg.
   container.querySelectorAll('.sidebar-panel-resizer').forEach((el) => el.remove());
-  // 4T-0698 (Epic 3E-0141): Kopf-Toggle und Strich-Button je Durchlauf neu
+  // 4T-000698 (Epic 3E-000141): Kopf-Toggle und Strich-Button je Durchlauf neu
   // aufbauen (frische Tooltips bei Sprachwechsel; Muster Reiterleiste).
   container
     .querySelectorAll('.sidebar-collapse-toggle, .sidebar-collapse-strip')
     .forEach((el) => el.remove());
   let anyVisible = false;
-  // 4T-0698 (Epic 3E-0141): Kopf des obersten sichtbaren Slots — dort zieht
+  // 4T-000698 (Epic 3E-000141): Kopf des obersten sichtbaren Slots — dort zieht
   // das Toggle-Icon ein. Bei einer Reiter-Gruppe die Reiterleiste, sonst der
   // Sektions-Header. Wird beim ersten sichtbaren Slot einmalig gesetzt.
   let topHeadEl = null;
-  // 4T-0475: governing Panel-ID des zuletzt gerenderten sichtbaren Blocks.
+  // 4T-000475: governing Panel-ID des zuletzt gerenderten sichtbaren Blocks.
   // Sobald der nächste sichtbare Block folgt, entsteht dazwischen ein Griff,
   // der die Höhe des Blocks DARÜBER (= prevGoverningId) steuert. Der letzte
   // sichtbare Block der Seite bleibt ohne Griff (kein Folge-Block).
   let prevGoverningId = null;
-  // 4T-0855 (Epic 3E-0164): Bezugsgröße des zuletzt gerenderten sichtbaren
+  // 4T-000855 (Epic 3E-000164): Bezugsgröße des zuletzt gerenderten sichtbaren
   // Blocks. Der Griff darunter schreibt in diesen Speicher — im Gruppen-Modus
   // also in die Gruppen-Höhe statt in die des aktiven Reiters.
   let prevRef = null;
-  // 4T-0682 (Epic 3E-0139): Sektion des zuletzt gerenderten sichtbaren
+  // 4T-000682 (Epic 3E-000139): Sektion des zuletzt gerenderten sichtbaren
   // Blocks. Nach der Schleife ist das der letzte Block der Seite — der
   // einzige ohne Höhen-Griff (siehe Nachbehandlung unten).
   let lastGoverningSection = null;
-  // 4T-0639: einmal je Seite lesen, für Köpfe und Reiter derselbe Zustand.
+  // 4T-000639: einmal je Seite lesen, für Köpfe und Reiter derselbe Zustand.
   const useIconHeadings = getIconHeadings();
   for (const slot of layout[side] || []) {
     const isGroup = slot.panels.length > 1;
@@ -116,21 +116,21 @@ function renderSidebarSide(paneIdx, els, layout, side) {
     if (entries.length === 0) continue;
     const visibleIds = entries.filter((e) => e.def.getVisible(paneIdx)).map((e) => e.id);
     const slotVisible = visibleIds.length > 0;
-    // 4T-0942 (Befund B-07): der aktive Reiter gilt je Spalte; der
+    // 4T-000942 (Befund B-07): der aktive Reiter gilt je Spalte; der
     // Layout-Wert ist nur noch die Vorgabe (activePanelInSlot).
     const slotActive = activePanelInSlot(slot, paneIdx);
     const effectiveActive = visibleIds.includes(slotActive) ? slotActive : visibleIds[0] || null;
-    // 4T-0475: governing Panel dieses Blocks — bei einer Reiter-Gruppe der
+    // 4T-000475: governing Panel dieses Blocks — bei einer Reiter-Gruppe der
     // aktive Reiter, sonst die Einzel-Sektion. Dessen Höhe steuert der Griff.
     const governingId = effectiveActive;
-    // 4T-0855: Bezugsgröße dieses Blocks (Panel oder Gruppe, je nach Modell).
+    // 4T-000855: Bezugsgröße dieses Blocks (Panel oder Gruppe, je nach Modell).
     const heightRef = heightRefForSlot(slot, governingId);
-    // 4T-0475: Vor jedem sichtbaren Block außer dem ersten einen Höhen-Griff
+    // 4T-000475: Vor jedem sichtbaren Block außer dem ersten einen Höhen-Griff
     // einschieben, der die Höhe des vorherigen sichtbaren Blocks steuert.
     if (slotVisible && prevGoverningId) {
       container.appendChild(buildPanelResizer(paneIdx, prevGoverningId, prevRef));
     }
-    // 4T-0698: Referenz auf die Reiterleiste dieses Slots (Kopf einer Gruppe),
+    // 4T-000698: Referenz auf die Reiterleiste dieses Slots (Kopf einer Gruppe),
     // damit sie unten als oberster sichtbarer Kopf verfügbar ist.
     let slotTabbar = null;
     if (isGroup && slotVisible) {
@@ -147,7 +147,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
       container.appendChild(e.sectionEl);
       e.sectionEl.classList.toggle('in-tab-group', isGroup);
       e.sectionEl.classList.toggle('tab-hidden', isGroup && e.id !== effectiveActive);
-      // 4T-0639: Kopf-Darstellung je Durchlauf nachziehen. In Gruppen ist
+      // 4T-000639: Kopf-Darstellung je Durchlauf nachziehen. In Gruppen ist
       // der Kopf ausgeblendet (die Reiterleiste ersetzt ihn), die Pflege
       // schadet dort aber nicht und hält den Zustand konsistent, falls das
       // Panel die Gruppe später verlässt.
@@ -157,10 +157,10 @@ function renderSidebarSide(paneIdx, els, layout, side) {
         'sidebar-sep',
         !isGroup && anyVisible && slotVisible && e.def.getVisible(paneIdx),
       );
-      // 4T-0475: fixierte Höhe nur auf die governing-Sektion des sichtbaren
+      // 4T-000475: fixierte Höhe nur auf die governing-Sektion des sichtbaren
       // Blocks anwenden; alle übrigen Sektionen auf Automatik zurücksetzen
       // (idempotent bei jedem Render).
-      // 4T-0855: Der Wert kommt aus der Bezugsgröße des Blocks; im
+      // 4T-000855: Der Wert kommt aus der Bezugsgröße des Blocks; im
       // Gruppen-Modus ist das die Gruppen-Höhe, sodass der Reiter-Wechsel die
       // Blockhöhe nicht mehr verändert.
       const fixedH = slotVisible && e.id === governingId ? readHeightRef(heightRef) : null;
@@ -173,7 +173,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
       }
     }
     if (slotVisible) {
-      // 4T-0698: oberster sichtbarer Kopf — Reiterleiste bei einer Gruppe,
+      // 4T-000698: oberster sichtbarer Kopf — Reiterleiste bei einer Gruppe,
       // sonst der Sektions-Header des sichtbaren Einzel-Panels. Nur beim
       // ersten sichtbaren Slot festhalten.
       if (!topHeadEl) {
@@ -189,7 +189,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
       lastGoverningSection = entries.find((e) => e.id === governingId)?.sectionEl ?? null;
     }
   }
-  // 4T-0682 (Epic 3E-0139): Der letzte sichtbare Block einer Seite läuft
+  // 4T-000682 (Epic 3E-000139): Der letzte sichtbare Block einer Seite läuft
   // immer auf Automatik und nimmt damit genau seine Inhaltshöhe. Grund: Ein
   // Griff steuert stets den Block DARÜBER, hinter dem letzten folgt keiner
   // mehr, also hat er keinen. Eine fixierte Höhe wäre dort eine Sackgasse —
@@ -205,7 +205,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
     lastGoverningSection.classList.remove('has-fixed-height');
   }
   container.hidden = !anyVisible;
-  // 4T-0697 (Epic 3E-0141): Kollaps-Zustand der Spalte über eine eigene
+  // 4T-000697 (Epic 3E-000141): Kollaps-Zustand der Spalte über eine eigene
   // Klasse, strikt getrennt vom Sichtbarkeits-hidden oben. Er greift nur bei
   // sichtbaren Panels (eine panel-leere Spalte kollabiert weiterhin über
   // container.hidden) und nur bei aktiver Erweiterung — im Aus-Zustand bleibt
@@ -213,7 +213,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
   const extActive = isExtensionActive('sidebar-collapse');
   const collapsed = anyVisible && extActive && isSidebarCollapsed(paneIdx, side);
   container.classList.toggle('collapsed', collapsed);
-  // 4T-0698 (Epic 3E-0141): Bedien-Ort in der Spalte. Kopf-Toggle in den
+  // 4T-000698 (Epic 3E-000141): Bedien-Ort in der Spalte. Kopf-Toggle in den
   // obersten sichtbaren Kopf einhängen (im Kollaps über die Klasse mit-
   // ausgeblendet, dort übernimmt der Strich-Button). Der Strich-Button lebt
   // als direkter Container-Kind unabhängig von den Slots und ist per CSS nur
@@ -228,7 +228,7 @@ function renderSidebarSide(paneIdx, els, layout, side) {
   if (anyVisible && !collapsed) {
     container.style.width = getSidebarWidth(side) + 'px';
   } else if (collapsed) {
-    // 4T-0698: Die Laufzeit-Breite (Inline-style aus dem letzten ausgeklappten
+    // 4T-000698: Die Laufzeit-Breite (Inline-style aus dem letzten ausgeklappten
     // Render) aktiv räumen, damit die schmale Strich-Breite aus der CSS-Klasse
     // .pane-sidebar.collapsed greift (Inline-width schlägt sonst die Klasse).
     container.style.width = '';
@@ -237,13 +237,13 @@ function renderSidebarSide(paneIdx, els, layout, side) {
 
 // Reiterleiste eines Gruppen-Slots: ein Reiter je sichtbarem Panel,
 // lokalisierter Panel-Titel, Klick aktiviert den Reiter in DIESER Spalte
-// (4T-0942; zuvor im fensterweiten Layout, wodurch die andere Spalte
+// (4T-000942; zuvor im fensterweiten Layout, wodurch die andere Spalte
 // mitsprang).
 function buildSlotTabbar(entries, visibleIds, effectiveActive, paneIdx) {
   const bar = document.createElement('div');
   bar.className = 'sidebar-slot-tabs';
   bar.setAttribute('role', 'tablist');
-  // 4T-0639: Reiter folgen demselben Zustand wie die Sektions-Köpfe — nie
+  // 4T-000639: Reiter folgen demselben Zustand wie die Sektions-Köpfe — nie
   // gemischt Text und Icon.
   const useIcon = getIconHeadings();
   for (const e of entries) {
@@ -258,17 +258,17 @@ function buildSlotTabbar(entries, visibleIds, effectiveActive, paneIdx) {
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-selected', active ? 'true' : 'false');
     btn.addEventListener('click', () => {
-      // 4T-0942: Der Klick wirkt in der Spalte, in der die Leiste steht.
+      // 4T-000942: Der Klick wirkt in der Spalte, in der die Leiste steht.
       void setActivePanelForColumn(e.id, paneIdx);
     });
-    // 4T-0289: Reiter sind Drag-Quelle fuer gruppierte Panels (die
+    // 4T-000289: Reiter sind Drag-Quelle fuer gruppierte Panels (die
     // Sektions-Header sind in Gruppen ausgeblendet).
     btn.draggable = true;
     btn.addEventListener('dragstart', (ev) => handlePanelDragStart(ev, e.id));
     btn.addEventListener('dragend', cancelPanelDrag);
     bar.appendChild(btn);
   }
-  // 4T-0289: Drop auf die Reiterleiste erweitert die Gruppe; das erste
+  // 4T-000289: Drop auf die Reiterleiste erweitert die Gruppe; das erste
   // Panel des Slots identifiziert die Gruppe stabil.
   const anchorId = entries[0].id;
   bar.addEventListener('dragover', (ev) => handlePanelDragOverTabbar(ev, anchorId, bar));
@@ -276,7 +276,7 @@ function buildSlotTabbar(entries, visibleIds, effectiveActive, paneIdx) {
   return bar;
 }
 
-// Splitter-Logik der Sidebars (Drag horizontal). 4T-0288: verallgemeinert
+// Splitter-Logik der Sidebars (Drag horizontal). 4T-000288: verallgemeinert
 // auf beide Seiten — jede Seite hat eine eigene, global persistierte Breite
 // (sidebar.widthLeft/widthRight); der rechte Splitter arbeitet gespiegelt
 // (Ziehen nach links vergrößert die rechte Sidebar).

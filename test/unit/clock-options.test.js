@@ -1,4 +1,4 @@
-// 4T-0372 (Epic 3E-0069): Rechen-Kern der Uhr-Erweiterung.
+// 4T-000372 (Epic 3E-000069): Rechen-Kern der Uhr-Erweiterung.
 //
 // Prueft die prozessneutralen Funktionen aus src/shared/clock/clock-options.js:
 // Normalisierung defekter Store-Staende, Timer-Takt (Energie-Ruecksicht),
@@ -30,9 +30,9 @@ import {
   shiftMonthView,
 } from '../../src/shared/clock/clock-options.js';
 
-// 4T-0636 (Epic 3E-0069): Modus-Modell der Umschaltleiste.
-describe('normalizeClockMode und clockModeKey (4T-0636)', () => {
-  // 4T-0752 (Epic 3E-0146): Der Kalender haengt hinten an, die Reihenfolge
+// 4T-000636 (Epic 3E-000069): Modus-Modell der Umschaltleiste.
+describe('normalizeClockMode und clockModeKey (4T-000636)', () => {
+  // 4T-000752 (Epic 3E-000146): Der Kalender haengt hinten an, die Reihenfolge
   // der vier bestehenden Tasten bleibt unveraendert.
   it('kennt genau die fuenf Modi in der Leisten-Reihenfolge', () => {
     expect(CLOCK_MODES).toEqual(['clock', 'alarm', 'timer', 'stopwatch', 'calendar']);
@@ -58,7 +58,7 @@ describe('normalizeClockMode und clockModeKey (4T-0636)', () => {
   });
 });
 
-describe('normalizeClockOptions (4T-0372)', () => {
+describe('normalizeClockOptions (4T-000372)', () => {
   it('liefert die Defaults fuer fehlende und defekte Staende', () => {
     expect(normalizeClockOptions(null)).toEqual(DEFAULT_CLOCK_OPTIONS);
     expect(normalizeClockOptions(undefined)).toEqual(DEFAULT_CLOCK_OPTIONS);
@@ -79,10 +79,10 @@ describe('normalizeClockOptions (4T-0372)', () => {
       hourFormat: 12,
       showSeconds: false,
       dateFormat: 'iso',
-      // 4T-0637: Schlummer-Dauer des Weckers gehoert seither zum Optionen-
+      // 4T-000637: Schlummer-Dauer des Weckers gehoert seither zum Optionen-
       // Objekt (Konfiguration, nicht Bedien-Zustand).
       snoozeMinutes: 12,
-      // 4T-0752: Kalenderwochen-Spalte des Monatskalenders.
+      // 4T-000752: Kalenderwochen-Spalte des Monatskalenders.
       showCalendarWeek: false,
     };
     expect(normalizeClockOptions(raw)).toEqual(raw);
@@ -115,7 +115,7 @@ describe('normalizeClockOptions (4T-0372)', () => {
   });
 });
 
-describe('needsSecondTick — Timer-Disziplin (4T-0372)', () => {
+describe('needsSecondTick — Timer-Disziplin (4T-000372)', () => {
   it('Sekunden-Takt bei sichtbarem Sekundenzeiger', () => {
     expect(needsSecondTick({ showAnalog: true, secondHand: true, showDigital: false })).toBe(true);
   });
@@ -148,7 +148,7 @@ describe('needsSecondTick — Timer-Disziplin (4T-0372)', () => {
   });
 });
 
-describe('analogSizePx (4T-0372)', () => {
+describe('analogSizePx (4T-000372)', () => {
   it('liefert je Stufe eine feste Kantenlaenge, aufsteigend', () => {
     const s = analogSizePx({ analogSize: 'small' });
     const m = analogSizePx({ analogSize: 'medium' });
@@ -159,9 +159,9 @@ describe('analogSizePx (4T-0372)', () => {
   });
 });
 
-// 4T-0679 (Epic 3E-0139): Schrift-Faktor der digitalen Anzeige. Die
+// 4T-000679 (Epic 3E-000139): Schrift-Faktor der digitalen Anzeige. Die
 // Basiswerte in Pixeln stehen in styles.css, hier steht nur der Faktor.
-describe('clockScale (4T-0679)', () => {
+describe('clockScale (4T-000679)', () => {
   it('die kleine Stufe traegt unveraendert das bisherige Schriftbild', () => {
     // Faktor 1 heisst 17 / 12 / 11,5 px wie vor dem Epic. Haelt die
     // PO-Festlegung vom 2026-07-22 fest: nicht die Default-Stufe 'medium'
@@ -190,7 +190,7 @@ describe('clockScale (4T-0679)', () => {
   });
 });
 
-describe('handAngles (4T-0372)', () => {
+describe('handAngles (4T-000372)', () => {
   it('12:00:00 stellt alle Zeiger auf 0 Grad', () => {
     const a = handAngles(new Date(2026, 6, 19, 12, 0, 0), { secondMotion: 'step' });
     expect(a.hour).toBe(0);
@@ -225,7 +225,7 @@ describe('handAngles (4T-0372)', () => {
   });
 });
 
-describe('formatClockTime (4T-0372)', () => {
+describe('formatClockTime (4T-000372)', () => {
   const abends = new Date(2026, 6, 19, 18, 5, 9);
   const mitternacht = new Date(2026, 6, 19, 0, 5, 9);
   const mittag = new Date(2026, 6, 19, 12, 5, 9);
@@ -250,7 +250,7 @@ describe('formatClockTime (4T-0372)', () => {
   });
 });
 
-describe('isoWeekNumber (4T-0372)', () => {
+describe('isoWeekNumber (4T-000372)', () => {
   it('rechnet bekannte ISO-Wochen korrekt', () => {
     // 2026-01-01 ist ein Donnerstag und gehoert damit in KW 1.
     expect(isoWeekNumber(new Date(2026, 0, 1))).toBe(1);
@@ -262,7 +262,7 @@ describe('isoWeekNumber (4T-0372)', () => {
   });
 });
 
-describe('formatClockDate (4T-0372)', () => {
+describe('formatClockDate (4T-000372)', () => {
   const d = new Date(2026, 6, 19);
 
   it('ISO bleibt sprachneutral', () => {
@@ -293,9 +293,9 @@ describe('formatClockDate (4T-0372)', () => {
   });
 });
 
-// 4T-0752 (Epic 3E-0146): Ansichts-Zustand und Navigation des Monatskalenders.
+// 4T-000752 (Epic 3E-000146): Ansichts-Zustand und Navigation des Monatskalenders.
 // Rein rechnend, deshalb hier und nicht in einer E2E-Spec.
-describe('Monatskalender: Sicht und Navigation (4T-0752)', () => {
+describe('Monatskalender: Sicht und Navigation (4T-000752)', () => {
   it('normalisiert eine fehlende oder defekte Sicht auf gueltige Werte', () => {
     const jetzt = new Date(2026, 6, 27);
     expect(normalizeMonthView(null, jetzt)).toEqual(currentMonthView(jetzt));

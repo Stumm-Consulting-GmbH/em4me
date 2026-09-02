@@ -1,4 +1,4 @@
-// 4T-0331 (Epic 3E-0060): Unit-Tests für den Kern der Dokument-Historie
+// 4T-000331 (Epic 3E-000060): Unit-Tests für den Kern der Dokument-Historie
 // (src/main/documents/mdd-store.js): Container-Roundtrip mit unbekannten Sektionen,
 // Paket-Bildung (Coalescing über injizierte Uhr), Hash-Abgleich mit
 // external-Paketen, Anker-Kadenz und Revisions-Rekonstruktion.
@@ -38,11 +38,11 @@ function save(container, state, previousText, newText, nowMs) {
   return r.openPacket;
 }
 
-describe('Container parse/serialize (4T-0331)', () => {
+describe('Container parse/serialize (4T-000331)', () => {
   it('Roundtrip erhält unbekannte Sektionen (Vorwärts-Kompatibilität)', () => {
     const c = emptyContainer();
     // Beliebige künftige Sektion, die dieses Schema noch nicht kennt: bleibt
-    // beim Serialisieren/Parsen erhalten. `notes` ist seit 4T-0358 real und
+    // beim Serialisieren/Parsen erhalten. `notes` ist seit 4T-000358 real und
     // hat eigene Tests weiter unten.
     c.futureSection = [{ ts: '2026-07-03T12:00:00Z', value: 42 }];
     const raw = serializeContainer(c);
@@ -62,7 +62,7 @@ describe('Container parse/serialize (4T-0331)', () => {
   });
 });
 
-describe('recordSave: erster Anker und Pakete (4T-0331)', () => {
+describe('recordSave: erster Anker und Pakete (4T-000331)', () => {
   it('erste Speicherung legt Anker (Ausgangsstand) plus Paket an', () => {
     const c = emptyContainer();
     save(c, null, 'alt\nText', 'neu\nText', T0);
@@ -91,7 +91,7 @@ describe('recordSave: erster Anker und Pakete (4T-0331)', () => {
   });
 });
 
-describe('recordSave: Coalescing über die zwei Zeitparameter (4T-0331)', () => {
+describe('recordSave: Coalescing über die zwei Zeitparameter (4T-000331)', () => {
   it('Folge-Speicherungen im Fenster mergen in ein Paket', () => {
     const c = emptyContainer();
     let s = save(c, null, 'a', 'a\nb', T0);
@@ -131,7 +131,7 @@ describe('recordSave: Coalescing über die zwei Zeitparameter (4T-0331)', () => 
   });
 });
 
-describe('Hash-Abgleich und external-Pakete (4T-0331)', () => {
+describe('Hash-Abgleich und external-Pakete (4T-000331)', () => {
   it('Fremd-Änderung vor dem Speichern erzeugt ein external-Paket', () => {
     const c = emptyContainer();
     const s = save(c, null, 'a', 'a\nb', T0);
@@ -153,7 +153,7 @@ describe('Hash-Abgleich und external-Pakete (4T-0331)', () => {
   });
 });
 
-describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-0332)', () => {
+describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-000332)', () => {
   it('Settings-Container: Roundtrip und Ablehnung defekter Formen', () => {
     expect(MDDA_FILENAME).toBe('Area_Settings.mdda');
     expect(LEGACY_MDDB_FILENAME).toBe('Area_Settings.mddb');
@@ -167,7 +167,7 @@ describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-0332)', () => {
     expect(parseSettingsContainer('{"schemaVersion":2,"settings":{}}').ok).toBe(false);
   });
 
-  // 4T-0543 (Epic 3E-0097): calendarSystems-Sektion im Settings-Container —
+  // 4T-000543 (Epic 3E-000097): calendarSystems-Sektion im Settings-Container —
   // Roundtrip neben bestehenden Sektionen (bestehende bleiben unberührt).
   it('Settings-Container: calendarSystems überlebt den Roundtrip neben anderen Sektionen', () => {
     const c = emptySettingsContainer();
@@ -197,7 +197,7 @@ describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-0332)', () => {
     expect(parsed.container.settings.journals).toEqual(c.settings.journals);
   });
 
-  // 4T-0625 (Epic 3E-0119): sidebarLayouts-Sektion (Bereichs-Varianten der
+  // 4T-000625 (Epic 3E-000119): sidebarLayouts-Sektion (Bereichs-Varianten der
   // Sidebar) im Settings-Container — Roundtrip neben bestehenden Sektionen.
   it('Settings-Container: sidebarLayouts überlebt den Roundtrip neben anderen Sektionen', () => {
     const c = emptySettingsContainer();
@@ -218,7 +218,7 @@ describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-0332)', () => {
     expect(parsed.container.settings.journals).toEqual(c.settings.journals);
   });
 
-  // 4T-0611 (Epic 3E-0115): bookmarks-Sektion (Bereichs-Lesezeichen, Baum aus
+  // 4T-000611 (Epic 3E-000115): bookmarks-Sektion (Bereichs-Lesezeichen, Baum aus
   // Datei- und Ordner-Knoten mit wurzel-relativen Zielen) im Settings-Container
   // — Roundtrip neben bestehenden Sektionen (bestehende bleiben unberührt).
   it('Settings-Container: bookmarks überlebt den Roundtrip neben anderen Sektionen', () => {
@@ -276,7 +276,7 @@ describe('Bereichsdatei und Drei-Ebenen-Auflösung (4T-0332)', () => {
   });
 });
 
-describe('Anker-Kadenz und lange Historien (4T-0331)', () => {
+describe('Anker-Kadenz und lange Historien (4T-000331)', () => {
   it(`setzt alle ${ANCHOR_EVERY} finalen Pakete einen Anker und rekonstruiert exakt`, () => {
     const c = emptyContainer();
     let s = null;
@@ -298,7 +298,7 @@ describe('Anker-Kadenz und lange Historien (4T-0331)', () => {
   });
 });
 
-describe('Notizen-Sektion (4T-0358)', () => {
+describe('Notizen-Sektion (4T-000358)', () => {
   it('leerer Container hat keine Notiz', () => {
     expect(getNote(emptyContainer())).toBeNull();
   });
@@ -369,7 +369,7 @@ describe('Notizen-Sektion (4T-0358)', () => {
   });
 });
 
-describe('Block-Metadaten-Sektion (4T-0363)', () => {
+describe('Block-Metadaten-Sektion (4T-000363)', () => {
   it('leerer Container hat keine Block-Daten', () => {
     const c = emptyContainer();
     expect(getBlockData(c, 'x')).toBeNull();

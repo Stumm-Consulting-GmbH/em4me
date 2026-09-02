@@ -1,4 +1,4 @@
-// 4T-0644 (Epic 3E-0127): E2E-Funktions-Suite — geführte Produkt-Tour (S-136).
+// 4T-000644 (Epic 3E-000127): E2E-Funktions-Suite — geführte Produkt-Tour (S-136).
 //
 // Der Prüfgegenstand ist genau das, was nur die gebaute Anwendung zeigt: dass
 // die Tour beim echten Erststart von selbst anläuft, dass ein Abbruch sie

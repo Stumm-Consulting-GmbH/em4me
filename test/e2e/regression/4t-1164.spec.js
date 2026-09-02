@@ -1,4 +1,4 @@
-// PP-12 (4T-1164, Epic 3E-0219, Story 4S-0831): Das Profil-Symbol bleibt
+// PP-12 (4T-001164, Epic 3E-000219, Story 4S-000831): Das Profil-Symbol bleibt
 // sichtbar, wenn das Eigenschaften-Panel in einer Reiter-Gruppe liegt.
 //
 // Gemeldeter Ablauf (Release-Abnahme 1.116.0 am 2026-08-24): Der Product
@@ -10,11 +10,11 @@
 // mit dem Kopf weg.
 //
 // Warum dieser Fall noetig ist, obwohl vier Pruefungen die Funktion
-// abdeckten: Die vier aus 4T-1161 lesen ausschliesslich Quelltext als
+// abdeckten: Die vier aus 4T-001161 lesen ausschliesslich Quelltext als
 // Zeichenkette (steht das Element im HTML, steht der Selektor in
 // app-state.js, haengt die Anzeige hinter dem Erweiterungs-Gate). Sie
 // belegen die VERDRAHTUNG, nicht die SICHTBARKEIT, und waren waehrend des
-// gesamten Befunds gruen. Die allgemeine Lehre daraus ist als 4T-1167
+// gesamten Befunds gruen. Die allgemeine Lehre daraus ist als 4T-001167
 // verortet.
 //
 // Der Fall stellt die Lage her, in der der Fehler auftrat, statt eines
@@ -97,7 +97,7 @@ function cleanupDir(dir) {
   }
 }
 
-test.describe('PP-12: Profil-Symbol in der Reiter-Gruppe (4T-1164)', () => {
+test.describe('PP-12: Profil-Symbol in der Reiter-Gruppe (4T-001164)', () => {
   test('Symbol sichtbar, obwohl der Sektions-Kopf der Gruppe ausgeblendet ist', async () => {
     const areaRoot = makeArea();
     const { app, page, userData } = await launchApp({

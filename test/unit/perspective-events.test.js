@@ -1,4 +1,4 @@
-// 4T-0512 (Epic 3E-0092): Unit-Tests für die HTML-Bausteine des Ereignis-
+// 4T-000512 (Epic 3E-000092): Unit-Tests für die HTML-Bausteine des Ereignis-
 // Fence — interaktive Tabelle (Struktur, Badges, Hinweise, Formular,
 // Fehler-Liste, Art-2-Platzhalter, Zeilen-Limit), statische Portable-
 // Tabelle (Labels, Staffelung, Meilensteine, Wiederkehr) und die
@@ -129,7 +129,7 @@ describe('perspective-events — Viewer-HTML', () => {
     expect(html).not.toContain('pev-add-form');
   });
 
-  it('rendert die Aggregations-Art als Platzhalter (Art 2, 4T-0515)', () => {
+  it('rendert die Aggregations-Art als Platzhalter (Art 2, 4T-000515)', () => {
     const html = renderPerspectiveEventsViewer('query: WHERE event-category = geburtstag');
     expect(html).toContain('class="pev-aggregation"');
     expect(html).toContain('data-ev-query="WHERE event-category = geburtstag"');
@@ -200,9 +200,9 @@ describe('perspective-events — Stichtag', () => {
   });
 });
 
-// --- 4T-0514: Zusatz-Ansichten ---------------------------------------------------------
+// --- 4T-000514: Zusatz-Ansichten ---------------------------------------------------------
 
-describe('perspective-events — Zusatz-Ansichten (4T-0514)', () => {
+describe('perspective-events — Zusatz-Ansichten (4T-000514)', () => {
   const VIEW_LABELS = {
     ...LABELS,
     'events.dashboard.upcoming': 'Anstehende Ereignisse',
@@ -309,9 +309,9 @@ describe('perspective-events — Zusatz-Ansichten (4T-0514)', () => {
   });
 });
 
-// --- 4T-0722: Gantt-Ansicht -------------------------------------------------------------
+// --- 4T-000722: Gantt-Ansicht -------------------------------------------------------------
 
-describe('perspective-events — Gantt-Ansicht (4T-0722)', () => {
+describe('perspective-events — Gantt-Ansicht (4T-000722)', () => {
   const GANTT_LABELS = {
     ...LABELS,
     'events.view.empty': 'Keine Ereignisse in dieser Ansicht',
@@ -411,9 +411,9 @@ describe('perspective-events — Gantt-Ansicht (4T-0722)', () => {
   });
 });
 
-// --- 4T-0515: Aggregations-Tabelle ------------------------------------------------------
+// --- 4T-000515: Aggregations-Tabelle ------------------------------------------------------
 
-describe('perspective-events — Aggregations-Tabelle (4T-0515)', () => {
+describe('perspective-events — Aggregations-Tabelle (4T-000515)', () => {
   it('Quell-Zeile, Titel-Fallback kursiv, nur Bearbeiten, kein Formular', () => {
     const aggModel = {
       view: null,
@@ -466,9 +466,9 @@ describe('perspective-events — Aggregations-Tabelle (4T-0515)', () => {
   });
 });
 
-// --- 4T-0516: Verknüpfungs-Indikator -----------------------------------------------------
+// --- 4T-000516: Verknüpfungs-Indikator -----------------------------------------------------
 
-describe('perspective-events — Verknüpfungs-Indikator (4T-0516)', () => {
+describe('perspective-events — Verknüpfungs-Indikator (4T-000516)', () => {
   it('zeigt den Indikator mit Anzahl nur bei verknüpften Einträgen', () => {
     const html = renderPerspectiveEventsViewer(
       [

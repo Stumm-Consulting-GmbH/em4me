@@ -1,8 +1,8 @@
-// 4T-1339 (Epic 3E-0238): Ergebnisse der Vervollstaendigung — der
+// 4T-001339 (Epic 3E-000238): Ergebnisse der Vervollstaendigung — der
 // Editor-seitige Teil dessen, was die Auswahl-Regeln unter src/shared/
 // prozessneutral entscheiden.
 //
-// **Eine Mechanik, zwei Quellen** (4T-1357): Verweis-Ziele nach `[[` und
+// **Eine Mechanik, zwei Quellen** (4T-001357): Verweis-Ziele nach `[[` und
 // Schlagworte nach `#` haben verschiedene Auswahl-Regeln, aber denselben Weg
 // an die Vervollstaendigungs-Bibliothek. Der Weg steht deshalb genau einmal
 // hier; die Quellen liefern nur, wie aus einem Eintrag eine Zeile wird.
@@ -17,10 +17,10 @@ import {
   klammerSchluss,
   schreibmarkeNachUebernahme,
 } from '../../../shared/wiki-vorschlaege.js';
-// 4T-1357 (Epic 3E-0238): Auswahl-Regel der Schlagworte, dieselbe Bauart.
+// 4T-001357 (Epic 3E-000238): Auswahl-Regel der Schlagworte, dieselbe Bauart.
 import { waehleSchlagworte } from '../../../shared/schlagwort-vorschlaege.js';
 
-// 4T-1307: Uebernahme eines Verweis-Vorschlags. Sie schreibt die fehlenden
+// 4T-001307: Uebernahme eines Verweis-Vorschlags. Sie schreibt die fehlenden
 // schliessenden Klammern mit und setzt die Schreibmarke dahinter, statt den
 // Anwender beides von Hand nachtragen zu lassen. Die Entscheidung, was fehlt,
 // liegt im geteilten Modul; hier steht nur der Editor-Griff.
@@ -33,16 +33,16 @@ export function uebernimmWikiZiel(view, completion, from, to) {
   });
 }
 
-// 4T-1339: Was noch als Fortsetzung derselben Eingabe zaehlt. Bis dahin stand
+// 4T-001339: Was noch als Fortsetzung derselben Eingabe zaehlt. Bis dahin stand
 // dasselbe Muster als `validFor` am Ergebnis; neben `filter: false` darf es
 // dort nicht mehr stehen (Vertrag der Bibliothek). Es entscheidet jetzt in
 // `update`, ob die Liste weitergerechnet wird oder die Quelle neu laufen muss
 // — etwa weil ein `#` hinter `[[` den Anker-Modus oeffnet.
 const NAME_FORTSETZUNG = /^[\p{L}\p{N}_-]*$/u;
-// 4T-1357: Schlagworte duerfen zusaetzlich Schraegstriche tragen (Hierarchie).
+// 4T-001357: Schlagworte duerfen zusaetzlich Schraegstriche tragen (Hierarchie).
 const SCHLAGWORT_FORTSETZUNG = /^[\p{L}\p{N}_/-]*$/u;
 
-// 4T-1339 (Epic 3E-0238): Der gemeinsame Ergebnis-Bau beider Quellen.
+// 4T-001339 (Epic 3E-000238): Der gemeinsame Ergebnis-Bau beider Quellen.
 //
 // **`filter: false` bestellt die Eigensortierung der Bibliothek ab.** Ohne das
 // ordnet sie die uebergebene Liste nach ihrem eigenen Treffer-Vergleich; der
@@ -63,7 +63,7 @@ const SCHLAGWORT_FORTSETZUNG = /^[\p{L}\p{N}_/-]*$/u;
 //     sie ohne eigenen Filter-Lauf nicht mehr selbst ausrechnet.
 //
 // Nebenwirkung, die eine zweite Luecke schliesst: `update` filtert ueber die
-// **vollstaendige** Vorschlagsmenge. Bis 4T-1339 filterte die Bibliothek nur
+// **vollstaendige** Vorschlagsmenge. Bis 4T-001339 filterte die Bibliothek nur
 // innerhalb der bereits gekuerzten Liste; ein Ziel ausserhalb davon war durch
 // Tippen nicht erreichbar.
 //
@@ -87,7 +87,7 @@ function baueErgebnis(quelle, eingabe, von) {
   };
 }
 
-// 4T-1339: Ergebnis der Basename-Vervollstaendigung nach `[[`.
+// 4T-001339: Ergebnis der Basename-Vervollstaendigung nach `[[`.
 export function baueWikiErgebnis(alle, eingabe, von) {
   return baueErgebnis(
     {
@@ -109,7 +109,7 @@ export function baueWikiErgebnis(alle, eingabe, von) {
   );
 }
 
-// 4T-1357 (Epic 3E-0238): Ergebnis der Schlagwort-Vervollstaendigung nach `#`.
+// 4T-001357 (Epic 3E-000238): Ergebnis der Schlagwort-Vervollstaendigung nach `#`.
 // Dieselbe Mechanik, andere Auswahl-Regel: Ohne Eingabe fuehrt die Haeufigkeit
 // statt der Aenderungszeit. Die Anzahl steht wie bisher im Zusatztext der
 // Zeile, damit die Ordnung nachvollziehbar ist.

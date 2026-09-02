@@ -1,4 +1,4 @@
-// 4T-0292 (Epic 3E-0052): Renderer-Lebenszyklus des Erweiterungs-Systems.
+// 4T-000292 (Epic 3E-000052): Renderer-Lebenszyklus des Erweiterungs-Systems.
 //
 // Hält den Schalt-Zustand der internen Erweiterungen im Fenster (rohe
 // Disabled-Liste aus dem Store plus daraus berechneter effektiver
@@ -21,7 +21,7 @@
 
 import { api } from '../app/api.js';
 import { EXTENSIONS_DISABLED_KEY, isExtensionId } from '../../../shared/extensions/extensions.js';
-// 4T-0993: Ableitungen aus der Disabled-Liste.
+// 4T-000993: Ableitungen aus der Disabled-Liste.
 import {
   effectiveDisabledSet,
   normalizeDisabledIds,
@@ -67,7 +67,7 @@ const runtimeHooks = new Map(); // id -> { activate?, deactivate? }
 
 export function attachExtensionRuntime(id, hooks) {
   if (typeof id !== 'string' || !hooks || typeof hooks !== 'object') return;
-  // 4T-0900 (Register-Paar 12): Eine unbekannte Kennung fiel bisher still
+  // 4T-000900 (Register-Paar 12): Eine unbekannte Kennung fiel bisher still
   // durch. Der Hook landet in der Map, wird aber nie gerufen, weil das
   // Umschalten ueber die Registry laeuft — das Feature reagiert dann nicht mehr
   // auf das Ab- und Anschalten seiner Erweiterung (etwa ein Panel, das sichtbar
@@ -76,7 +76,7 @@ export function attachExtensionRuntime(id, hooks) {
   //
   // Gemeldet statt abgewiesen: Das bisherige Verhalten bleibt unveraendert,
   // der Fehler wird nur sichtbar. Scharf wird die Meldung ueber den
-  // Konsolen-Waechter der Ablauf-Laeufe (4T-0901), der jeden Konsolen-Fehler
+  // Konsolen-Waechter der Ablauf-Laeufe (4T-000901), der jeden Konsolen-Fehler
   // den betroffenen Fall scheitern laesst.
   if (!isExtensionId(id)) {
     console.error(

@@ -1,4 +1,4 @@
-// 4T-0179 (Epic 3E-0039): aus src/main/preload.js extrahiert.
+// 4T-000179 (Epic 3E-000039): aus src/main/preload.js extrahiert.
 // Perspective Table: Parser, Viewer-Renderer und Portable-HTML-Renderer.
 // Electron-frei. md/mdPortable werden LAZY aus markdown.js geholt
 // (CJS-Zyklus: markdown.js laedt dieses Modul zuerst).
@@ -15,7 +15,7 @@ function convertMarkdownPortable(text, addMarker) {
   return require('./markdown.js').convertMarkdownPortable(text, addMarker);
 }
 
-// 4T-0591 (Epic 3E-0109): Die reinen Syntax-Helfer (Zell-Attribute,
+// 4T-000591 (Epic 3E-000109): Die reinen Syntax-Helfer (Zell-Attribute,
 // Status-Klassen, Header-Attribute) leben im abhängigkeitsfreien Modul
 // perspective-table-syntax.js, damit das Bearbeitungs-Modul
 // perspective-table-edit.js sie ohne den markdown.js-Bezug dieses Moduls
@@ -37,11 +37,11 @@ const PERSPECTIVE_STATUS_INLINE_COLORS = {
   neutral: { bg: '#f5f5f5', fg: '#424242' },
 };
 
-// 4T-0037: Baut den HTML-Attribut-String fuer eine Zelle aus dem
+// 4T-000037: Baut den HTML-Attribut-String fuer eine Zelle aus dem
 // gefilterten attrs-Object plus scope-Setzung fuer Header-Zellen.
-// 4T-0044: Optional eine Status-Klasse, die als CSS-Klasse status-<value>
+// 4T-000044: Optional eine Status-Klasse, die als CSS-Klasse status-<value>
 // an die Zelle gehaengt wird.
-// 4T-0045: Optional ein Spalten-Default-align (vom Tabellen-Header
+// 4T-000045: Optional ein Spalten-Default-align (vom Tabellen-Header
 // `+cols="..."`), das greift, wenn die Zelle keinen eigenen align hat.
 function buildPerspectiveTableCellAttrs(attrs, cellType, isHeaderRow, statusClass, columnDefault) {
   const parts = [];
@@ -62,7 +62,7 @@ function buildPerspectiveTableCellAttrs(attrs, cellType, isHeaderRow, statusClas
   return parts.length > 0 ? ' ' + parts.join(' ') : '';
 }
 
-// 4T-0040 (Epic 3E-0008, Stufe 3): Rekursionstiefen-Schutz fuer verschachtelte
+// 4T-000040 (Epic 3E-000008, Stufe 3): Rekursionstiefen-Schutz fuer verschachtelte
 // perspective-tables. Counter wird beim Eintritt in renderPerspectiveTable inkrementiert und
 // beim Verlassen dekrementiert (try/finally). Beim Erreichen des Limits gibt
 // die Funktion null zurueck und der Override im fence-Renderer faellt auf
@@ -72,7 +72,7 @@ function buildPerspectiveTableCellAttrs(attrs, cellType, isHeaderRow, statusClas
 let perspectiveTableRecursionDepth = 0;
 const PERSPECTIVE_TABLE_MAX_DEPTH = 3;
 
-// 4T-0041 (Epic 3E-0008): Parser-Logik aus renderPerspectiveTable ausgelagert, damit
+// 4T-000041 (Epic 3E-000008): Parser-Logik aus renderPerspectiveTable ausgelagert, damit
 // Viewer-Renderer und HTML-Konverter dieselbe Parser-Logik teilen. Liefert
 // { caption, rows } oder null bei beschaedigtem Block (kein '{|'-Anfang).
 // Tiefen-Schutz bleibt in den jeweiligen Aufrufern (renderPerspectiveTable,
@@ -85,7 +85,7 @@ function parsePerspectiveTableBlock(content) {
   if (i >= lines.length || !lines[i].trimStart().startsWith('{|')) {
     return null;
   }
-  // 4T-0045: Tabellen-Header-Attribute auf der {| - Zeile parsen (z.B. +cols).
+  // 4T-000045: Tabellen-Header-Attribute auf der {| - Zeile parsen (z.B. +cols).
   const headerAttrs = parsePerspectiveTableHeaderAttrs(lines[i].trimStart());
   i++;
 
@@ -93,8 +93,8 @@ function parsePerspectiveTableBlock(content) {
   const rows = [];
   let currentRow = null;
   let currentCell = null;
-  // 4T-0040: fenceInProgress haelt die oeffnende Fence-Sequenz; siehe Detail-
-  // Kommentar in 4T-0040-Implementierung.
+  // 4T-000040: fenceInProgress haelt die oeffnende Fence-Sequenz; siehe Detail-
+  // Kommentar in 4T-000040-Implementierung.
   let fenceInProgress = null;
 
   const commitCell = () => {
@@ -110,12 +110,12 @@ function parsePerspectiveTableBlock(content) {
     }
     currentRow = null;
   };
-  // 4T-0044: startRow nimmt eine optionale Status-Klasse fuer die ganze Zeile.
+  // 4T-000044: startRow nimmt eine optionale Status-Klasse fuer die ganze Zeile.
   const startRow = (statusClass) => {
     commitRow();
     currentRow = { cells: [], statusClass: statusClass || null };
   };
-  // 4T-0044: startCell nimmt zusaetzlich einen statusClass-Parameter fuer
+  // 4T-000044: startCell nimmt zusaetzlich einen statusClass-Parameter fuer
   // die einzelne Zelle (gewinnt gegen den Zeilen-Status).
   const startCell = (type, initial, attrs, statusClass) => {
     commitCell();
@@ -161,7 +161,7 @@ function parsePerspectiveTableBlock(content) {
       break;
     }
     if (trimmed.startsWith('|-')) {
-      // 4T-0044: Optional Status-Klasse direkt nach '|-' (z.B. '|-.error').
+      // 4T-000044: Optional Status-Klasse direkt nach '|-' (z.B. '|-.error').
       const afterMarker = trimmed.slice(2).trimStart();
       const { status } = extractPerspectiveTableStatusClass(afterMarker);
       startRow(status);
@@ -172,7 +172,7 @@ function parsePerspectiveTableBlock(content) {
       continue;
     }
     if (trimmed.startsWith('!')) {
-      // 4T-0044: Optional Status-Klasse direkt nach '!' (z.B. '!.warn').
+      // 4T-000044: Optional Status-Klasse direkt nach '!' (z.B. '!.warn').
       const afterMarker = trimmed.slice(1).trimStart();
       const { status, rest } = extractPerspectiveTableStatusClass(afterMarker);
       const { attrs, content: cellContent } = parsePerspectiveTableCellAttrs(rest);
@@ -181,7 +181,7 @@ function parsePerspectiveTableBlock(content) {
       continue;
     }
     if (trimmed.startsWith('|')) {
-      // 4T-0044: Optional Status-Klasse direkt nach '|' (z.B. '|.error').
+      // 4T-000044: Optional Status-Klasse direkt nach '|' (z.B. '|.error').
       const afterMarker = trimmed.slice(1).trimStart();
       const { status, rest } = extractPerspectiveTableStatusClass(afterMarker);
       const { attrs, content: cellContent } = parsePerspectiveTableCellAttrs(rest);
@@ -231,7 +231,7 @@ function buildPerspectiveTableHtml(caption, rows, columnDefaults, sortable) {
     theadRow = rows[0];
     bodyRows = rows.slice(1);
   }
-  // 4T-0046: Sortierung deaktivieren, wenn irgendeine Zelle colspan oder
+  // 4T-000046: Sortierung deaktivieren, wenn irgendeine Zelle colspan oder
   // rowspan hat. Layout-Risiko zu hoch, daher sicherer Default.
   let hasSpans = false;
   for (const row of rows) {
@@ -251,14 +251,14 @@ function buildPerspectiveTableHtml(caption, rows, columnDefaults, sortable) {
   }
   if (theadRow) {
     out.push('<thead>');
-    // 4T-0037: isHeaderRow=true -> th bekommt scope="col".
+    // 4T-000037: isHeaderRow=true -> th bekommt scope="col".
     out.push(renderPerspectiveTableRow(theadRow, true, columnDefaults));
     out.push('</thead>');
   }
   if (bodyRows.length > 0) {
     out.push('<tbody>');
     for (const row of bodyRows) {
-      // 4T-0037: isHeaderRow=false -> th bekommt scope="row".
+      // 4T-000037: isHeaderRow=false -> th bekommt scope="row".
       out.push(renderPerspectiveTableRow(row, false, columnDefaults));
     }
     out.push('</tbody>');
@@ -272,10 +272,10 @@ function renderPerspectiveTableRow(row, isHeaderRow, columnDefaults) {
   let colIdx = 0;
   for (const cell of row.cells) {
     const tag = cell.type === 'th' ? 'th' : 'td';
-    // 4T-0044: Zell-Status gewinnt gegen Zeilen-Status. Beide werden als
+    // 4T-000044: Zell-Status gewinnt gegen Zeilen-Status. Beide werden als
     // CSS-Klasse status-<value> via buildPerspectiveTableCellAttrs gesetzt.
     const effectiveStatus = cell.statusClass || row.statusClass || null;
-    // 4T-0045: Spalten-Default-Ausrichtung greift, wenn die Zelle keinen
+    // 4T-000045: Spalten-Default-Ausrichtung greift, wenn die Zelle keinen
     // eigenen align hat. Bei colspan > 1 wird kein Default angewendet
     // (Zelle ueberspannt mehrere Spalten mit ggf. unterschiedlichen
     // Defaults; eindeutige Wahl nicht moeglich).
@@ -304,7 +304,7 @@ function renderPerspectiveTableRow(row, isHeaderRow, columnDefaults) {
   return out.join('');
 }
 
-// 4T-0041 (Epic 3E-0008): Konverter perspective-table → inline HTML-Tabelle fuer
+// 4T-000041 (Epic 3E-000008): Konverter perspective-table → inline HTML-Tabelle fuer
 // Export-Datei. Findet im Markdown-Text alle perspective-table-Codeblocks und ersetzt
 // sie durch HTML-Tabellen mit Inline-Styles. Innere perspective-table-Bloecke in
 // Zellinhalten werden rekursiv mitkonvertiert (eigener Tiefen-Counter
@@ -361,10 +361,10 @@ function renderPerspectiveTablePortableRow(row, isHeaderRow, columnDefaults) {
   let colIdx = 0;
   for (const cell of row.cells) {
     const tag = cell.type === 'th' ? 'th' : 'td';
-    // 4T-0044: Zell-Status gewinnt gegen Zeilen-Status; im Portable als
+    // 4T-000044: Zell-Status gewinnt gegen Zeilen-Status; im Portable als
     // Inline-Style mit Light-Theme-Farben (PERSPECTIVE_STATUS_INLINE_COLORS).
     const effectiveStatus = cell.statusClass || row.statusClass || null;
-    // 4T-0045: Spalten-Default-Ausrichtung greift, wenn die Zelle keinen
+    // 4T-000045: Spalten-Default-Ausrichtung greift, wenn die Zelle keinen
     // eigenen align hat und kein colspan ueber mehrere Spalten reicht.
     const span = parseInt((cell.attrs && cell.attrs.colspan) || '1', 10) || 1;
     const colDefault = span > 1 ? null : (columnDefaults && columnDefaults[colIdx]) || null;
@@ -393,16 +393,16 @@ function buildPerspectiveTablePortableCellAttrs(
   const parts = [];
   if (attrs.colspan) parts.push(`colspan="${attrs.colspan}"`);
   if (attrs.rowspan) parts.push(`rowspan="${attrs.rowspan}"`);
-  // 4T-0041: Ausrichtung als Inline-Style (HTML5-konform), nicht als CSS-
+  // 4T-000041: Ausrichtung als Inline-Style (HTML5-konform), nicht als CSS-
   // Klasse. Damit funktioniert die Ausrichtung auch in fremden Renderern,
   // die unsere App-CSS nicht kennen.
-  // 4T-0045: Wenn die Zelle keine eigene align hat, greift der Spalten-
+  // 4T-000045: Wenn die Zelle keine eigene align hat, greift der Spalten-
   // Default; bei colspan > 1 wurde colDefault im Renderer auf null gesetzt.
   const styles = [];
   const effectiveAlign = attrs.align || columnDefault || null;
   if (effectiveAlign) styles.push(`text-align: ${effectiveAlign}`);
   if (attrs.valign) styles.push(`vertical-align: ${attrs.valign}`);
-  // 4T-0044: Status-Hintergrund/Vordergrund als Inline-Style aus der
+  // 4T-000044: Status-Hintergrund/Vordergrund als Inline-Style aus der
   // Farb-Map. Externe Renderer kennen unsere status-*-CSS-Klassen nicht.
   if (statusClass && PERSPECTIVE_STATUS_INLINE_COLORS[statusClass]) {
     const c = PERSPECTIVE_STATUS_INLINE_COLORS[statusClass];
@@ -419,7 +419,7 @@ function buildPerspectiveTablePortableCellAttrs(
 function renderPerspectiveTableCellForPortable(content) {
   const trimmed = String(content || '').trim();
   if (trimmed === '') return '';
-  // 4T-0041: Zweistufige Konvertierung.
+  // 4T-000041: Zweistufige Konvertierung.
   // 1. Innere perspective-table-Codeblocks rekursiv durch HTML-Tabellen ersetzen.
   //    addMarker=false: der Marker steht nur einmal am Datei-Anfang, nicht
   //    in jeder Zelle.

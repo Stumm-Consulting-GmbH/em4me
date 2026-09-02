@@ -1,4 +1,4 @@
-// 4T-0464 (Epic 3E-0086): Slot-Modell und Schema-Verwaltung.
+// 4T-000464 (Epic 3E-000086): Slot-Modell und Schema-Verwaltung.
 // Prüft Slot-Integrität, Gleichheit der Basis-Paletten mit styles.css
 // (Drift-Wächter), Schema-Auflösung, Variablen-Berechnung und die reinen
 // Verwaltungs-Funktionen.
@@ -103,11 +103,11 @@ describe('color-schemes: Slot-Integrität', () => {
   });
 });
 
-// 4T-0578 (Epic 3E-0106): Wächter über die mitgelieferten Vorlagen. Deckt
+// 4T-000578 (Epic 3E-000106): Wächter über die mitgelieferten Vorlagen. Deckt
 // Struktur (IDs, Basis, nameKey, bekannte Slots, gültige Hex-Werte) und
 // Lesbarkeit (Kontrast-Mindestwerte) ab, damit neue Vorlagen nicht mit
 // unbekannten Slots, ungültigen Werten oder unlesbaren Paaren einziehen.
-describe('color-schemes: mitgelieferte Vorlagen (4T-0578)', () => {
+describe('color-schemes: mitgelieferte Vorlagen (4T-000578)', () => {
   const de = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'i18n', 'de.json'), 'utf8'));
 
   it('IDs sind eindeutig, Basis und nameKey gesetzt, Slots und Werte gültig', () => {
@@ -151,7 +151,7 @@ describe('color-schemes: mitgelieferte Vorlagen (4T-0578)', () => {
     ['linterWarn', 'bg', 2.8],
   ];
 
-  // 4T-1314 (Epic 3E-0235): Die elf Editor-Textfarben tragen Text und müssen
+  // 4T-001314 (Epic 3E-000235): Die elf Editor-Textfarben tragen Text und müssen
   // deshalb alle über derselben Schwelle liegen. 4,5 ist die Grenze für
   // Fließtext und zugleich der schwächste Wert der Grundpalette (Code auf
   // hellem Grund, 4,57); eine höhere Schwelle würde den ausgelieferten Stand
@@ -196,7 +196,7 @@ describe('color-schemes: mitgelieferte Vorlagen (4T-0578)', () => {
     }
   });
 
-  // 4T-1314 (Epic 3E-0235): Die Editor-Textfarben entstehen je Vorlage aus
+  // 4T-001314 (Epic 3E-000235): Die Editor-Textfarben entstehen je Vorlage aus
   // einer Ableitungs-Regel (Farbton aus dem Akzent bzw. feste Farbfamilie,
   // Helligkeit auf den Hintergrund gerechnet). Die Regel sichert die
   // Lesbarkeit nicht von selbst — deshalb dieser Wächter über das Ergebnis.
@@ -270,7 +270,7 @@ describe('color-schemes: Auflösung und Variablen-Berechnung', () => {
       border: '#9a9a9a',
       borderStrong: '#6a6a6a',
       accent: '#0a4da8',
-      // 4T-1314 (Epic 3E-0235): die elf Editor-Textfarben der Vorlage.
+      // 4T-001314 (Epic 3E-000235): die elf Editor-Textfarben der Vorlage.
       syntaxHeading: '#0a4da8',
       syntaxLink: '#0a4da8',
       syntaxUrl: '#3a3a3a',
@@ -401,11 +401,11 @@ describe('color-schemes: normalizeState', () => {
   });
 });
 
-// 4T-0751 (Epic 3E-0146): Auslieferungs-Voreinstellung und der Einmal-Schritt
+// 4T-000751 (Epic 3E-000146): Auslieferungs-Voreinstellung und der Einmal-Schritt
 // beim Start. Die IDs stehen hier bewusst als Literale und nicht nur über die
 // Konstanten: Sonst prüfte der Test die Konstante gegen sich selbst und ein
 // stiller Wert-Drift bliebe unbemerkt.
-describe('color-schemes: Auslieferungs-Voreinstellung (4T-0751)', () => {
+describe('color-schemes: Auslieferungs-Voreinstellung (4T-000751)', () => {
   it('Voreinstellung und Rückfall zeigen auf Bernstein', () => {
     expect(DEFAULT_LIGHT_ID).toBe('amber-light');
     expect(DEFAULT_DARK_ID).toBe('amber-dark');

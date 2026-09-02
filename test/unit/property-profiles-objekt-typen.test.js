@@ -1,7 +1,7 @@
-// 4T-1186 (Epic 3E-0221, E11): Unit-Tests der beiden strukturierten Feld-Typen
+// 4T-001186 (Epic 3E-000221, E11): Unit-Tests der beiden strukturierten Feld-Typen
 // — Definitions-Format, Wert-Prüfung und die Rückschrift in den Metadaten-Block.
 //
-// Eigene Datei nach dem Muster von 4T-1183: Die STRUKTURIERTEN TYPEN sind ein
+// Eigene Datei nach dem Muster von 4T-001183: Die STRUKTURIERTEN TYPEN sind ein
 // eigener Gegenstand neben dem übrigen Definitions-Format, und
 // `property-profiles.test.js` steht mit knapp 500 Zeilen nah am Budget.
 //
@@ -42,7 +42,7 @@ const TEILNEHMER = {
 };
 const ADRESSE = { ...TEILNEHMER, name: 'adresse', type: 'object' };
 
-describe('Definitions-Format der Objekt-Typen (4T-1186)', () => {
+describe('Definitions-Format der Objekt-Typen (4T-001186)', () => {
   it('AK1: beide Typen gehören zum Satz und sind als Objekt-Typen erkennbar', () => {
     expect(PROFILE_FIELD_TYPES).toContain('object');
     expect(PROFILE_FIELD_TYPES).toContain('objectlist');
@@ -106,7 +106,7 @@ describe('Definitions-Format der Objekt-Typen (4T-1186)', () => {
   });
 
   it('AK5: `fields` an einem Typ ohne Kind-Bedienung bleibt hinweisfrei zulässig', () => {
-    // **Die Zusage der Stufe 1 gilt weiter** (4T-1141): «`fields` an einem
+    // **Die Zusage der Stufe 1 gilt weiter** (4T-001141): «`fields` an einem
     // Eintrag ist kein Fehler, auch wenn sein Typ keine Kinder kennt — sonst
     // wäre eine für Stufe 4 vorbereitete Datei heute ungültig.» Mit der
     // Stufe 4 BEDIENEN die beiden Objekt-Typen die Kind-Definitionen; zulässig
@@ -187,7 +187,7 @@ describe('Definitions-Format der Objekt-Typen (4T-1186)', () => {
   });
 });
 
-describe('Wert-Prüfung der Objekt-Typen (4T-1186)', () => {
+describe('Wert-Prüfung der Objekt-Typen (4T-001186)', () => {
   it('AK7: die Gestalt entscheidet — Objekt gegen Liste von Objekten', () => {
     expect(valueMatchesType({ ort: 'Berlin' }, 'object')).toBe(true);
     expect(valueMatchesType([], 'object')).toBe(false);
@@ -262,7 +262,7 @@ describe('Wert-Prüfung der Objekt-Typen (4T-1186)', () => {
   });
 });
 
-describe('AK3: Rückschrift in den Metadaten-Block (4T-1186)', () => {
+describe('AK3: Rückschrift in den Metadaten-Block (4T-001186)', () => {
   // Der Nachweis am geschriebenen Text, nicht am Wert-Objekt im Speicher:
   // AK3 verlangt, dass die Struktur auch OHNE die Anwendung lesbar ist.
   const AUSGANG = '---\nclass: Sitzung\n---\n\nText.\n';
@@ -307,7 +307,7 @@ describe('AK3: Rückschrift in den Metadaten-Block (4T-1186)', () => {
   });
 });
 
-describe('4T-1187, AK6/AK7: die Grenzen des Block-Schreibwegs', () => {
+describe('4T-001187, AK6/AK7: die Grenzen des Block-Schreibwegs', () => {
   // Zwei Filter liegen zwischen einem strukturierten Wert und der
   // Begleitdatei, und die Entscheidung vom 2026-08-25 behandelt sie
   // verschieden: Der SCHREIBWEG lässt verschachtelte Werte durch, der INDEX
@@ -379,7 +379,7 @@ describe('4T-1187, AK6/AK7: die Grenzen des Block-Schreibwegs', () => {
   });
 });
 
-describe('AK8: Rückwärts-Verträglichkeit (4T-1186)', () => {
+describe('AK8: Rückwärts-Verträglichkeit (4T-001186)', () => {
   it('eine Bestands-Definition liefert exakt dasselbe Objekt wie zuvor', () => {
     const { fields, errors } = parseProfileFields({
       fields: [

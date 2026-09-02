@@ -1,11 +1,11 @@
-// 4T-0377 (Epic 3E-0071): Editor-Kontextmenü.
+// 4T-000377 (Epic 3E-000071): Editor-Kontextmenü.
 //
 // Rechtsklick im CodeMirror-Editor (Quelltext- und Live-Modus, dieselbe
 // EditorView) öffnet ein Kontextmenü über die gemeinsame Infrastruktur aus
 // dialogs.js (gleiche Optik und Viewport-Klemmung wie Tab- und Panel-Menüs).
 // Dieser Grundgerüst-Task liefert den Klipboard-Block und die Andockpunkte
-// für die Format-/Absatz-/Einfüge-Aktionen der Folge-Tasks (4T-0378 füllt
-// Link + Format, 4T-0379 Absatz + Einfügen). Die Klipboard-Aktionen laufen
+// für die Format-/Absatz-/Einfüge-Aktionen der Folge-Tasks (4T-000378 füllt
+// Link + Format, 4T-000379 Absatz + Einfügen). Die Klipboard-Aktionen laufen
 // synchron über die Electron-Klipboard-Brücke (api.clipboard*), nicht über
 // navigator.clipboard: kein Permission-Prompt, kein Fokus-Verlust.
 'use strict';
@@ -14,24 +14,24 @@ import { api } from '../app/api.js';
 import { contextMenu } from '../app/app-state.js';
 import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
 import { computeClipboardMenuState } from '../../../shared/editor-menu.js';
-// 4T-0378 (Epic 3E-0071): Format-/Link-Kommandos — ein Ausführungs-Pfad mit
+// 4T-000378 (Epic 3E-000071): Format-/Link-Kommandos — ein Ausführungs-Pfad mit
 // dem Hotkey (siehe editor-format.js).
 import { FORMAT_COMMANDS, getParagraphState } from './editor-format.js';
-// 4T-0426 (Epic 3E-0080): „Vorlage einfügen" im Einfügen-Submenü — derselbe
+// 4T-000426 (Epic 3E-000080): „Vorlage einfügen" im Einfügen-Submenü — derselbe
 // Ausführungs-Pfad wie das Registry-Kommando; verschwindet mit deaktivierter
 // templates-Erweiterung (Kommando-Filterung der Erweiterungs-Registry).
 import { insertTemplateCommand } from '../templates.js';
 import { disabledCommandIdSet } from '../../../shared/extensions/extensions-core.js';
 import { getDisabledExtensionIds } from '../extensions/extension-lifecycle.js';
-// 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog im Einfuegen-Submenü —
+// 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog im Einfuegen-Submenü —
 // derselbe Ausfuehrungs-Pfad wie das Registry-Kommando task.editDialog.
 import { runTaskEditDialogCommand } from '../task-dialog.js';
-// 4T-0887 (Befund L-04 des Struktur-Reviews): drei Kommandos ohne Bedienort im
+// 4T-000887 (Befund L-04 des Struktur-Reviews): drei Kommandos ohne Bedienort im
 // Menü bekommen hier einen; Ausführungs-Pfad wie insertTemplateCommand.
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
 import { insertEventsBlock } from '../events/events-editor.js';
 import { runListSelectSubtree } from './editor-list-tools.js';
-// 4T-0521 (Epic 3E-0094): nutzerdefinierte Sektion am Menü-Ende. Die
+// 4T-000521 (Epic 3E-000094): nutzerdefinierte Sektion am Menü-Ende. Die
 // Imports werden ausschließlich zur Laufzeit (Menü-Aufbau beim
 // Rechtsklick) genutzt — der Modul-Zyklus über command-palette/editor ist
 // damit unkritisch (Muster des dokumentierten Laufzeit-Zyklus
@@ -47,7 +47,7 @@ import { getCommandPlacement } from '../command-placement.js';
 import { executeCommandById, isCommandIdAvailable } from '../command-palette.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { paneEditors } from './editor.js';
-// 4T-0590 (Epic 3E-0109): Untermenü „Tabelle" — Menü-Zustand und Ausführung
+// 4T-000590 (Epic 3E-000109): Untermenü „Tabelle" — Menü-Zustand und Ausführung
 // aus dem Tabellen-Backend (Nutzung nur beim Menü-Aufbau, Laufzeit-Zyklus
 // unkritisch wie oben).
 import { getTableMenuState, runTableCommand } from './editor-table-tools.js';
@@ -98,14 +98,14 @@ export function selectAllInEditor(view) {
   view.focus();
 }
 
-// 4T-0887: Menü-Eintrag zu einem Registry-Kommando (Label über command.<id>).
+// 4T-000887: Menü-Eintrag zu einem Registry-Kommando (Label über command.<id>).
 const kmd = (id, dataId, action) => ({ key: `command.${id}`, dataId, action });
 
 // --- Andockpunkte für die Folge-Tasks --------------------------------------
 // Jede Funktion liefert eine (möglicherweise leere) Liste von Menü-Items.
 // Leere Sektionen werden im Menü-Aufbau samt zugehörigem Trenner weggelassen,
-// sodass 4T-0378/4T-0379 hier nur die Rümpfe füllen.
-// Link-Aktionen oben im Menü (4T-0378). Im Read-only-Editor abgemeldet.
+// sodass 4T-000378/4T-000379 hier nur die Rümpfe füllen.
+// Link-Aktionen oben im Menü (4T-000378). Im Read-only-Editor abgemeldet.
 function buildLinkItems(view) {
   if (view.state.readOnly) return [];
   return [
@@ -148,7 +148,7 @@ function buildFormatItems(view) {
     },
   ];
 }
-// Absatz-Submenü mit Zustands-Häkchen (4T-0379): Listen, Überschrift 1–6 plus
+// Absatz-Submenü mit Zustands-Häkchen (4T-000379): Listen, Überschrift 1–6 plus
 // „Keine Überschrift", Zitat. Das Häkchen zeigt den Zustand der Cursor-Zeile.
 function buildParagraphItems(view) {
   if (view.state.readOnly) return [];
@@ -168,7 +168,7 @@ function buildParagraphItems(view) {
     para('orderedList', 'paragraph-ordered', st.list === 'ordered'),
     para('taskList', 'paragraph-task', st.list === 'task'),
   ];
-  // 4T-0887 (Befund L-04): „Teilbaum auswählen" schließt die Listen-Gruppe ab
+  // 4T-000887 (Befund L-04): „Teilbaum auswählen" schließt die Listen-Gruppe ab
   // (Auswahl statt Umschaltung); entfällt mit der outliner-Erweiterung.
   if (!disabledCommandIdSet(getDisabledExtensionIds()).has('list.selectSubtree')) {
     listen.push(kmd('list.selectSubtree', 'list-subtree', () => runListSelectSubtree(view)));
@@ -188,7 +188,7 @@ function buildParagraphItems(view) {
     },
   ];
 }
-// Einfügen-Submenü (4T-0379): Fußnote, Tabelle, Hinweisblock, Horizontale
+// Einfügen-Submenü (4T-000379): Fußnote, Tabelle, Hinweisblock, Horizontale
 // Linie, Quelltext-Block.
 function buildInsertItems(view) {
   if (view.state.readOnly) return [];
@@ -205,14 +205,14 @@ function buildInsertItems(view) {
     ins('horizontalRule', 'insert-hr'),
     ins('codeBlock', 'insert-codeblock'),
   ];
-  // 4T-1309 (Epic 3E-0235): Das Geruest der Perspective-Tabelle steht neben der
+  // 4T-001309 (Epic 3E-000235): Das Geruest der Perspective-Tabelle steht neben der
   // einfachen Tabelle, erscheint aber nur bei aktiver Erweiterung — deshalb
   // nicht in der festen Liste oben, sondern wie die uebrigen gegateten
   // Eintraege ueber die Menge der abgeschalteten Kommandos.
   if (!aus.has('insert.perspectiveTable')) {
     submenu.splice(2, 0, ins('perspectiveTable', 'insert-perspective-table'));
   }
-  // 4T-0887 (Befund L-04): Ereignis-Block und Kalender-Datum fügen ebenfalls an
+  // 4T-000887 (Befund L-04): Ereignis-Block und Kalender-Datum fügen ebenfalls an
   // der Cursor-Position ein und stehen deshalb in derselben Gruppe. Der
   // Ereignis-Block schreibt in den Haupt-Editor der aktiven Spalte statt in die
   // angeklickte View und bleibt vom Notiz-Feld aus weg (Muster buildCustomItems).
@@ -224,13 +224,13 @@ function buildInsertItems(view) {
       kmd('calendar.insertValue', 'insert-calendar', () => openCalendarPickerAtSelection(view)),
     );
   }
-  // 4T-0426: Vorlage an der Cursor-Position (nach einem Trenner, weil der
+  // 4T-000426: Vorlage an der Cursor-Position (nach einem Trenner, weil der
   // Eintrag eine Dialog-Kette startet statt direkt einzufügen).
   if (!aus.has('edit.insertTemplate')) {
     submenu.push({ separator: true });
     submenu.push(kmd('edit.insertTemplate', 'insert-template', () => insertTemplateCommand(view)));
   }
-  // 4T-0506 (Epic 3E-0096): Task-Bearbeitungs-Dialog (Task-Zeile bearbeiten,
+  // 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog (Task-Zeile bearbeiten,
   // leere Zeile anlegen) — entfaellt bei deaktivierter Erweiterung.
   if (!aus.has('task.editDialog')) {
     submenu.push({ separator: true });
@@ -245,7 +245,7 @@ function buildInsertItems(view) {
   ];
 }
 
-// --- Tabellen-Untermenü (4T-0590, Epic 3E-0109) ------------------------------
+// --- Tabellen-Untermenü (4T-000590, Epic 3E-000109) ------------------------------
 // Untermenü „Tabelle" mit den table.*-Operationen, sichtbar nur, wenn der
 // Cursor in einer Tabelle steht (leere Sektion entfällt samt Trenner —
 // Architekturentscheidung 4 des Epics: kein neuer Menü-Mechanismus).
@@ -290,7 +290,7 @@ function buildTableItems(view) {
   ];
 }
 
-// --- Rechtschreib-Vorschläge (4T-0582, Epic 3E-0107) -------------------------
+// --- Rechtschreib-Vorschläge (4T-000582, Epic 3E-000107) -------------------------
 // Chromium meldet das falsch geschriebene Wort und seine Korrektur-Vorschläge
 // ausschließlich im Main-Prozess (webContents 'context-menu'). Der Ablauf pro
 // Rechtsklick ist deshalb zweistufig: Der DOM-Handler baut das Menü sofort,
@@ -392,7 +392,7 @@ function buildClipboardItems(view) {
   });
 }
 
-// --- Nutzerdefinierte Sektion (4T-0521, Epic 3E-0094) ------------------------
+// --- Nutzerdefinierte Sektion (4T-000521, Epic 3E-000094) ------------------------
 // Einträge aus der Kommando-Platzierung am Menü-Ende (Quelltext- und
 // Live-Modus, auch read-only — die Kommandos wirken app-weit, nicht auf
 // den Editor-Inhalt). Nur der Haupt-Editor führt die Sektion: der
@@ -426,12 +426,12 @@ function buildCustomItems(view) {
 
 // --- Menü-Aufbau ------------------------------------------------------------
 // Sektionen in Hardcopy-Reihenfolge: Link, Format, Absatz, Einfügen,
-// Tabelle (nur in Tabellen, 4T-0590), Klipboard, nutzerdefinierte Sektion.
+// Tabelle (nur in Tabellen, 4T-000590), Klipboard, nutzerdefinierte Sektion.
 // Leere Sektionen entfallen; zwischen nicht-leeren Sektionen steht ein
 // Trenner. Exportiert für Unit-nahe Nutzung und die Folge-Tasks.
 export function buildEditorContextMenuItems(view) {
   const sections = [
-    // 4T-0582 (Epic 3E-0107): Rechtschreib-Vorschläge ganz oben, weil sie sich
+    // 4T-000582 (Epic 3E-000107): Rechtschreib-Vorschläge ganz oben, weil sie sich
     // auf das Wort unter dem Zeiger beziehen und damit die unmittelbarste
     // Antwort auf den Rechtsklick sind. Ohne Tippfehler ist die Sektion leer
     // und entfällt samt Trenner.
@@ -455,7 +455,7 @@ export function buildEditorContextMenuItems(view) {
 // Baut das Menü in das globale #context-menu und setzt es an die Position.
 // Eigene Funktion, weil der Aufbau zweimal pro Rechtsklick laufen kann: einmal
 // sofort und einmal, sobald die Rechtschreib-Daten aus dem Main-Prozess
-// eintreffen (4T-0582).
+// eintreffen (4T-000582).
 function renderEditorContextMenu(view, x, y) {
   contextMenu.innerHTML = '';
   for (const item of buildEditorContextMenuItems(view)) {
@@ -470,7 +470,7 @@ function renderEditorContextMenu(view, x, y) {
 // #context-menu wird vom Esc-/Outside-Click-Handler in app-init.js
 // automatisch geschlossen.
 //
-// 4T-0582 (Epic 3E-0107): Das frühere preventDefault ist entfallen. Es hatte
+// 4T-000582 (Epic 3E-000107): Das frühere preventDefault ist entfallen. Es hatte
 // das native Menü unterdrücken sollen, das Electron ohnehin nicht anbietet,
 // unterdrückte aber zugleich das context-menu-Ereignis des Main-Prozesses und
 // damit die einzige Quelle der Korrektur-Vorschläge (gemessen am 2026-08-02).

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0498 (Epic 3E-0090): Renderer-Verwaltung der Erweiterung "Aufgaben" —
+// 4T-000498 (Epic 3E-000090): Renderer-Verwaltung der Erweiterung "Aufgaben" —
 // Normalisierung der Konfiguration, der Ketten-Augmenter (Automatik-Daten
 // beim Statuswechsel, Global Filter, Aus-Zustand der Erweiterung) und die
 // Erstellt-Automatik. Der Aktiv-/Inaktiv-Zustand der Erweiterung wird ueber
@@ -20,7 +20,7 @@ beforeEach(() => {
   tasks.applyTasksConfig(null);
 });
 
-describe('normalizeTasksConfig (4T-0498)', () => {
+describe('normalizeTasksConfig (4T-000498)', () => {
   it('liefert die Defaults bei null/undefined', () => {
     const expected = {
       globalFilter: '',
@@ -29,9 +29,9 @@ describe('normalizeTasksConfig (4T-0498)', () => {
       autoDone: true,
       autoCancelled: true,
       recurrenceInsert: 'above',
-      // 4T-0505 (Epic 3E-0096): globale Task-Abfrage (Default leer).
+      // 4T-000505 (Epic 3E-000096): globale Task-Abfrage (Default leer).
       globalQuery: '',
-      // 4T-0507 (Epic 3E-0096): Task-Zeilen-Vervollstaendigung — Mindest-
+      // 4T-000507 (Epic 3E-000096): Task-Zeilen-Vervollstaendigung — Mindest-
       // Tipplaenge (Default 2) und maximale Vorschlagszahl (Default 6).
       autocompleteMinLength: 2,
       autocompleteMaxSuggestions: 6,
@@ -40,7 +40,7 @@ describe('normalizeTasksConfig (4T-0498)', () => {
     expect(tasks.normalizeTasksConfig(undefined)).toEqual(expected);
   });
 
-  it('klemmt autocompleteMinLength auf 1..5, rundet und faellt bei Nicht-Zahl auf 2 (4T-0507)', () => {
+  it('klemmt autocompleteMinLength auf 1..5, rundet und faellt bei Nicht-Zahl auf 2 (4T-000507)', () => {
     // Untere/obere Grenze, Rundung, Fallback (clampInt: Number->round->clamp,
     // Fallback bei NaN).
     expect(tasks.normalizeTasksConfig({ autocompleteMinLength: 0 }).autocompleteMinLength).toBe(1);
@@ -53,7 +53,7 @@ describe('normalizeTasksConfig (4T-0498)', () => {
     );
   });
 
-  it('klemmt autocompleteMaxSuggestions auf 3..12, rundet und faellt bei Nicht-Zahl auf 6 (4T-0507)', () => {
+  it('klemmt autocompleteMaxSuggestions auf 3..12, rundet und faellt bei Nicht-Zahl auf 6 (4T-000507)', () => {
     expect(
       tasks.normalizeTasksConfig({ autocompleteMaxSuggestions: 0 }).autocompleteMaxSuggestions,
     ).toBe(3);
@@ -77,7 +77,7 @@ describe('normalizeTasksConfig (4T-0498)', () => {
     expect(cfg.recurrenceInsert).toBe('below');
   });
 
-  it('trimmt die globale Abfrage; Nicht-Strings fallen auf leer zurueck (4T-0505)', () => {
+  it('trimmt die globale Abfrage; Nicht-Strings fallen auf leer zurueck (4T-000505)', () => {
     expect(
       tasks.normalizeTasksConfig({ globalQuery: '  WHERE status.type = "TODO"  ' }).globalQuery,
     ).toBe('WHERE status.type = "TODO"');
@@ -91,7 +91,7 @@ describe('normalizeTasksConfig (4T-0498)', () => {
   });
 });
 
-describe('taskToggleAugmenter (4T-0498)', () => {
+describe('taskToggleAugmenter (4T-000498)', () => {
   it('TODO->DONE haengt das Erledigt-Datum an und setzt [x]', () => {
     const res = tasks.taskToggleAugmenter('- [ ] Task 📅 2099-01-01', {
       fromChar: ' ',
@@ -184,7 +184,7 @@ describe('taskToggleAugmenter (4T-0498)', () => {
   });
 });
 
-describe('withCreatedDate (4T-0498)', () => {
+describe('withCreatedDate (4T-000498)', () => {
   it('haengt bei aktivem Schalter das Erstellt-Datum an', () => {
     tasks.applyTasksConfig({ autoCreated: true });
     const out = tasks.withCreatedDate('- [ ] Neue Aufgabe');

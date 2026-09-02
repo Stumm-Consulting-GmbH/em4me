@@ -1,7 +1,7 @@
 // Markdown-Linter des Editors: Regex-Katalog, Regel-Tabelle, Kontext-Filter,
 // Lint-Lauf und Hover-Tooltip.
 //
-// Auszug aus editor.js, 4T-1002 (Epic 3E-0196). lintField und
+// Auszug aus editor.js, 4T-001002 (Epic 3E-000196). lintField und
 // setLintDecorations sind einmalige Identitaeten und leben ausschliesslich
 // hier; der Kern bindet sie unveraendert an ihrer bisherigen Stelle der
 // Extension-Liste ein.
@@ -11,7 +11,7 @@ import { StateEffect, StateField } from '@codemirror/state';
 import { Decoration, EditorView, hoverTooltip } from '@codemirror/view';
 import { ensureSyntaxTree, syntaxTree } from '@codemirror/language';
 import { CALLOUT_TYPES } from '../../../shared/callouts.js';
-// 4T-1277 (Epic 3E-0232, Befund B3): Erkennung der relativen Wiki-Formen aus
+// 4T-001277 (Epic 3E-000232, Befund B3): Erkennung der relativen Wiki-Formen aus
 // der einen Quelle der Unterseiten-Semantik, statt den Schraegstrich hier ein
 // zweites Mal zu deuten.
 import { isRelativeTarget } from '../../../shared/subpages.js';
@@ -20,15 +20,15 @@ import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { computeCommentRanges, detectFrontmatterLines } from '../live/live-marker-fields.js';
 import { api, getDocText } from '../app/api.js';
 import { state } from '../app/app-state.js';
-// 4T-0324 (Epic 3E-0058): Außen-Link-Warnung — Ziel-Auflösung für die
+// 4T-000324 (Epic 3E-000058): Außen-Link-Warnung — Ziel-Auflösung für die
 // Linter-Regel outsideAreaLink (der Render-Pane-Marker läuft über die
 // Render-Pipeline in render-mermaid.js).
 import { isOutsideActiveArea, resolveLocalTarget } from '../area.js';
-// 4T-1002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
+// 4T-001002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
 // Funktionskoerpern gelesen.
 import { paneEditors } from './editor.js';
 
-// 4T-0020: Markdown-Linter-Light. Vier Regeln (bare-url, empty-link-text,
+// 4T-000020: Markdown-Linter-Light. Vier Regeln (bare-url, empty-link-text,
 // missing-alt-text, broken-wiki-link), Erkennung per Regex auf den Dokument-
 // Text mit syntaxTree-Schutz gegen Code-Bloecke und Markdown-Link-Knoten.
 // Decorations werden als CodeMirror-StateField gehalten; ein UpdateListener
@@ -48,15 +48,15 @@ export const LINT_BARE_URL_RE = /\b(?:https?:\/\/|mailto:)[^\s<>"`[\]()]+/g;
 // Referenz-Form `[][ref]`.
 export const LINT_EMPTY_LINK_RE = /(!?)\[\]\((\s*[^\s)]+[^)]*?)\)|(!?)\[\]\[([^\]]+)\]/g;
 // Regel 4: Wiki-Link [[Ziel]] oder [[Ziel|Anzeige]].
-// 4T-0068 (Epic 3E-0012): Negative-Lookbehind `(?<!!)` schliesst Embeds
+// 4T-000068 (Epic 3E-000012): Negative-Lookbehind `(?<!!)` schliesst Embeds
 // `![[...]]` aus. Sonst markiert der Wiki-Link-Linter Embed-Targets wie
 // Bilder oder PDFs faelschlich als broken-wiki-link, weil das Backlinks-
 // Index nur Markdown-Dateien kennt. Broken-Embed-Detection als eigene
-// Linter-Regel ist Folge-Thema fuer das 1.0.0-Epic 3E-0016.
+// Linter-Regel ist Folge-Thema fuer das 1.0.0-Epic 3E-000016.
 export const LINT_WIKI_RE = /(?<!!)\[\[([^\]\n|]+?)(?:\|[^\]\n]*)?\]\]/g;
-// 4T-0324 (Epic 3E-0058): lokaler Markdown-Link [text](ziel) — Ziel-Extraktion
+// 4T-000324 (Epic 3E-000058): lokaler Markdown-Link [text](ziel) — Ziel-Extraktion
 // fuer die Bereichs-Pruefung; URLs und reine Anker werden im Lauf uebersprungen.
-// 4T-0476 (Epic 3E-0088): die <…>-Form als eigene Alternative (Gruppe 1), damit
+// 4T-000476 (Epic 3E-000088): die <…>-Form als eigene Alternative (Gruppe 1), damit
 // Ziele mit Leerzeichen vollständig erfasst werden statt am Blank abzubrechen;
 // Gruppe 2 = klammerlose Form. %-Kodierung dekodiert resolveLocalTarget.
 export const LINT_MD_LINK_RE = /(?<!!)\[[^\]\n]*\]\(\s*(?:<([^<>\n]+)>|([^)\s>]+))[^)\n]*\)/g;
@@ -80,7 +80,7 @@ export const lintField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0061 (Epic 3E-0012): Callout-Typ-Whitelist. W-10 (4T-0310): aus der
+// 4T-000061 (Epic 3E-000012): Callout-Typ-Whitelist. W-10 (4T-000310): aus der
 // gemeinsamen Registry CALLOUT_TYPES (src/shared/callouts.js) abgeleitet
 // statt hartkodierte Kopie — Single Source of Truth.
 export const CALLOUT_TYPE_WHITELIST = new Set(Object.keys(CALLOUT_TYPES));
@@ -91,27 +91,27 @@ export const LINT_RULES = {
   emptyLinkText: { className: 'cm-linter-mark cm-linter-empty-link-text' },
   missingAltText: { className: 'cm-linter-mark cm-linter-missing-alt-text' },
   brokenWikiLink: { className: 'cm-linter-mark cm-linter-broken-wiki-link' },
-  // 4T-0054 (Epic 3E-0011): broken Heading-/Block-Anker im Wiki-Link.
+  // 4T-000054 (Epic 3E-000011): broken Heading-/Block-Anker im Wiki-Link.
   // Selbe Decoration-CSS-Klasse wie brokenWikiLink (visuell identisch),
   // eigener Regel-Identifier fuer den Tooltip (unterscheidet 'Datei
   // existiert nicht' von 'Datei existiert, Anker nicht').
   brokenWikiAnchor: { className: 'cm-linter-mark cm-linter-broken-wiki-link' },
-  // 4T-0336 (Epic 3E-0061): Ordner-Pfad-Form und Unterseiten-Form zeigen
+  // 4T-000336 (Epic 3E-000061): Ordner-Pfad-Form und Unterseiten-Form zeigen
   // auf verschiedene Dateien. Selbe Decoration-CSS-Klasse wie
   // brokenWikiLink (visuell identisch), eigener Regel-Identifier fuer den
   // Tooltip.
   ambiguousWikiTarget: { className: 'cm-linter-mark cm-linter-broken-wiki-link' },
-  // 4T-0061 (Epic 3E-0012): Unbekannter Callout-Typ ausserhalb der Whitelist.
+  // 4T-000061 (Epic 3E-000012): Unbekannter Callout-Typ ausserhalb der Whitelist.
   unknownCalloutType: { className: 'cm-linter-mark cm-linter-unknown-callout-type' },
-  // 4T-0324 (Epic 3E-0058): Link-Ziel ausserhalb des aktiven Bereichs.
+  // 4T-000324 (Epic 3E-000058): Link-Ziel ausserhalb des aktiven Bereichs.
   outsideAreaLink: { className: 'cm-linter-mark cm-linter-outside-area-link' },
-  // 4T-0533 (Epic 3E-0089): unpaariger %%-Kommentar-Marker (wirkt bis
+  // 4T-000533 (Epic 3E-000089): unpaariger %%-Kommentar-Marker (wirkt bis
   // Dokument-Ende). Generische Wellenlinie ueber cm-linter-mark; eigener
   // Regel-Identifier fuer den Tooltip.
   unpairedCommentMarker: { className: 'cm-linter-mark cm-linter-unpaired-comment' },
 };
 
-// detail (optional): Zusatz-Info fuer den Tooltip (4T-0324: der aufgeloeste
+// detail (optional): Zusatz-Info fuer den Tooltip (4T-000324: der aufgeloeste
 // Ziel-Pfad des Aussen-Links).
 export function makeLintMark(ruleId, detail) {
   const attributes = { 'data-lint-rule': ruleId };
@@ -148,13 +148,13 @@ export function lintIsInLinkContext(state, pos) {
   return false;
 }
 
-// 4T-0049: Pruefung, ob die Position innerhalb des YAML-Frontmatter-Blocks
+// 4T-000049: Pruefung, ob die Position innerhalb des YAML-Frontmatter-Blocks
 // am Datei-Anfang liegt. Frontmatter ist YAML, nicht Markdown — die Linter-
 // Regeln 1-4 duerfen darin nicht greifen. Beispiel: `aliases: [foo]` darf
 // nicht als 'leere Wiki-Link' gemeldet werden, eine URL im 'website:'-Wert
 // darf nicht als bare-url markiert werden.
 export function lintIsInFrontmatter(state, pos, precomputedRange) {
-  // K-04 (4T-0310): den Frontmatter-Bereich optional durchreichen (runLint
+  // K-04 (4T-000310): den Frontmatter-Bereich optional durchreichen (runLint
   // ermittelt ihn einmal pro Lauf statt pro Treffer).
   const range =
     precomputedRange !== undefined ? precomputedRange : detectFrontmatterLines(state.doc);
@@ -199,11 +199,11 @@ export async function runLint(view) {
   if (!pane || pane.activeIndex < 0) return;
   const tab = pane.tabs[pane.activeIndex];
   if (!tab) return;
-  // R2-14 (4T-0180): Im Reading-Modus ist der Editor unsichtbar — Voll-Lint
+  // R2-14 (4T-000180): Im Reading-Modus ist der Editor unsichtbar — Voll-Lint
   // inkl. IPC-Roundtrip lohnt nicht. Der Nachhol-Lauf beim Wechsel in einen
   // Editor-Modus wird in syncEditorForPane angestossen.
   if (tab.viewMode === 'rendered') return;
-  // 4T-0294: deaktivierte Linter-Erweiterung — bestehende Marker raeumen
+  // 4T-000294: deaktivierte Linter-Erweiterung — bestehende Marker raeumen
   // (das Umschalten stoesst scheduleLint an) und keinen Lauf starten.
   if (!isExtensionActive('linter')) {
     view.dispatch({ effects: setLintDecorations.of(Decoration.none) });
@@ -214,7 +214,7 @@ export async function runLint(view) {
   // Snapshot der Doc-Laenge fuer Stale-Check beim spaeten Dispatch.
   const docLengthAtStart = stateAtStart.doc.length;
 
-  // R2-08 (4T-0174): Syntax-Baum moeglichst vollstaendig parsen (50-ms-
+  // R2-08 (4T-000174): Syntax-Baum moeglichst vollstaendig parsen (50-ms-
   // Budget). Bei grossen Dateien ist der Baum sonst unvollstaendig und die
   // Kontext-Pruefungen (Code-Block, Frontmatter) liefern False-Positives
   // in spaeten Dokument-Teilen. Bleibt der Baum unvollstaendig, werden
@@ -223,7 +223,7 @@ export async function runLint(view) {
   const tree = ensureSyntaxTree(stateAtStart, docLengthAtStart, 50);
   const parsedUpTo = tree ? docLengthAtStart : syntaxTree(stateAtStart).length;
 
-  // K-04 (4T-0310): Frontmatter-Bereich einmal pro Lauf ermitteln und an die
+  // K-04 (4T-000310): Frontmatter-Bereich einmal pro Lauf ermitteln und an die
   // Treffer-Pruefungen durchreichen (statt pro Regex-Treffer neu zu scannen).
   const fmRange = detectFrontmatterLines(stateAtStart.doc);
   const ranges = [];
@@ -257,10 +257,10 @@ export async function runLint(view) {
   // Regel 4 + 5: broken-wiki-link und broken-wiki-anchor. Erst alle Wiki-
   // Link-Matches im Dokument sammeln, dann genau einen IPC-Roundtrip an
   // den Main schicken, dort gegen den Backlinks-Index pruefen.
-  // 4T-0054: targets enthalten jetzt auch Anker (z.B. 'Datei#Heading'
+  // 4T-000054: targets enthalten jetzt auch Anker (z.B. 'Datei#Heading'
   // oder 'Datei#^block-id'). Main trennt sie selbst und prueft sowohl
   // Datei-Existenz als auch Heading-Slug bzw. Block-ID.
-  // 4T-0294: Wiki-Regeln nur bei aktiver Wiki-Link-Erweiterung — ohne sie
+  // 4T-000294: Wiki-Regeln nur bei aktiver Wiki-Link-Erweiterung — ohne sie
   // ist `[[Ziel]]` regulaerer Text, ein Broken-Link-Marker waere falsch.
   const wikiMatches = [];
   if (isExtensionActive('wiki-links'))
@@ -269,7 +269,7 @@ export async function runLint(view) {
       const to = from + m[0].length;
       if (lintIsInCodeContext(stateAtStart, from)) continue;
       if (lintIsInFrontmatter(stateAtStart, from, fmRange)) continue;
-      // 4T-0067 (Epic 3E-0012): In Tabellen-Zellen muss das Pipe als `\|`
+      // 4T-000067 (Epic 3E-000012): In Tabellen-Zellen muss das Pipe als `\|`
       // escapet werden, damit der Tabellen-Parser es nicht als Spaltentrenner
       // sieht. Der Original-Regex stoppt am ersten Pipe und nimmt das
       // Backslash davor mit ins Target — das wird hier wieder abgeschnitten.
@@ -277,7 +277,7 @@ export async function runLint(view) {
       if (!target) continue;
       wikiMatches.push({ from, to, target });
     }
-  // Regel 7 (4T-0324, Epic 3E-0058): Link-Ziele ausserhalb des Bereichs
+  // Regel 7 (4T-000324, Epic 3E-000058): Link-Ziele ausserhalb des Bereichs
   // (nur in Bereichs-Apps). Wiki-Links werden doc-relativ aufgeloest
   // (Index-/Alias-Fallbacks zielen in den Dokument-Baum und bleiben aussen
   // vor); Markdown-Links relativ oder absolut. Aussen markierte Wiki-Spans
@@ -287,7 +287,7 @@ export async function runLint(view) {
     for (const w of wikiMatches) {
       const filePart = w.target.split('#')[0].trim();
       if (!filePart) continue;
-      // 4T-1277 (Befund B3): Die relativen Wiki-Formen sind keine Pfade.
+      // 4T-001277 (Befund B3): Die relativen Wiki-Formen sind keine Pfade.
       // `/Name` bezeichnet eine Unterseite der aktuellen Seite und `..` ihre
       // Elternseite; beide koennen den Bereich bauartbedingt nicht verlassen.
       // Ohne diese Ausnahme wurde `[[/Earth]]` zu `/Earth.md` und damit unter
@@ -303,7 +303,7 @@ export async function runLint(view) {
       }
     }
     for (const m of text.matchAll(LINT_MD_LINK_RE)) {
-      // 4T-0476: Gruppe 1 = <…>-Form (Leerzeichen erlaubt), Gruppe 2 = klammerlos.
+      // 4T-000476: Gruppe 1 = <…>-Form (Leerzeichen erlaubt), Gruppe 2 = klammerlos.
       const target = ((m[1] !== undefined ? m[1] : m[2]) || '').trim();
       if (!target || target.startsWith('#') || /^[a-z]{2,}:/i.test(target)) continue;
       const from = m.index;
@@ -324,7 +324,7 @@ export async function runLint(view) {
       if (result && result.status === 'ready') {
         const existingSet = new Set(result.existing || []);
         const brokenAnchorSet = new Set(result.brokenAnchor || []);
-        // 4T-0336 (Epic 3E-0061): mehrdeutige Ziele (Ordner-Pfad- und
+        // 4T-000336 (Epic 3E-000061): mehrdeutige Ziele (Ordner-Pfad- und
         // Unterseiten-Form treffen verschiedene Dateien).
         const ambiguousSet = new Set(result.ambiguous || []);
         for (const w of wikiMatches) {
@@ -335,7 +335,7 @@ export async function runLint(view) {
           }
           if (existingSet.has(w.target)) continue;
           if (brokenAnchorSet.has(w.target)) {
-            // 4T-0054: Datei existiert, aber Heading-/Block-Anker nicht.
+            // 4T-000054: Datei existiert, aber Heading-/Block-Anker nicht.
             pushRange(w.from, w.to, 'brokenWikiAnchor');
           } else {
             pushRange(w.from, w.to, 'brokenWikiLink');
@@ -349,10 +349,10 @@ export async function runLint(view) {
     }
   }
 
-  // Regel 6 (4T-0061): unbekannter Callout-Typ. Header-Regex matcht den Typ-
+  // Regel 6 (4T-000061): unbekannter Callout-Typ. Header-Regex matcht den Typ-
   // Slug aus `> [!type]`; wenn der Typ nicht in der Whitelist steht, wird der
   // Slug-Bereich markiert. Wird in Code- und Frontmatter-Kontext unterdrueckt.
-  // 4T-0294: nur bei aktiver Callout-Erweiterung — ohne sie ist der
+  // 4T-000294: nur bei aktiver Callout-Erweiterung — ohne sie ist der
   // Header regulaerer Blockquote-Text, ein Typ-Marker waere falsch.
   LINT_CALLOUT_HEADER_RE.lastIndex = 0;
   if (isExtensionActive('callouts'))
@@ -367,7 +367,7 @@ export async function runLint(view) {
       pushRange(slugFrom, slugTo, 'unknownCalloutType');
     }
 
-  // Regel 8 (4T-0533, Epic 3E-0089): unpaariger %%-Kommentar-Marker. Ein
+  // Regel 8 (4T-000533, Epic 3E-000089): unpaariger %%-Kommentar-Marker. Ein
   // oeffnendes %% ohne Schliessung blendet den gesamten Dokument-Rest aus
   // allen Ansichten und Exporten aus — der Hinweis sitzt am Entstehungsort
   // (nur die zwei Marker-Zeichen). Bereiche kommen aus dem geteilten,
@@ -384,7 +384,7 @@ export async function runLint(view) {
   // Stale-Check: wenn das Dokument inzwischen veraendert wurde, sind die
   // gesammelten Positionen ggf. ungueltig. Dann verwerfen wir das Ergebnis;
   // ein neuer Lauf ist eh schon ueber den UpdateListener angestossen.
-  // R2-09 (4T-0174): Doc-Identitaet statt Laenge — CM6-Docs sind immutabel,
+  // R2-09 (4T-000174): Doc-Identitaet statt Laenge — CM6-Docs sind immutabel,
   // jede Aenderung erzeugt eine neue Instanz. Der Laengen-Vergleich liess
   // laengengleiche Aenderungen waehrend des IPC-awaits durch (falsch
   // platzierte Marker).
@@ -410,7 +410,7 @@ export const lintHoverTooltip = hoverTooltip((view, pos) => {
   decoSet.between(Math.max(0, pos - 1), pos + 1, (from, to, value) => {
     const ruleId = value.spec && value.spec.attributes && value.spec.attributes['data-lint-rule'];
     if (!ruleId) return;
-    // 4T-0324: optionale Zusatz-Info (aufgeloester Ziel-Pfad).
+    // 4T-000324: optionale Zusatz-Info (aufgeloester Ziel-Pfad).
     const detail = value.spec && value.spec.attributes && value.spec.attributes['data-lint-detail'];
     hit = { from, to, ruleId, detail };
     return false;
@@ -458,7 +458,7 @@ export function buildLintTooltipDom(ruleId, target, detail) {
   } else if (ruleId === 'unknownCalloutType') {
     text = text.replace('{type}', target);
   } else if (ruleId === 'outsideAreaLink') {
-    // 4T-0324: voller aufgeloester Ziel-Pfad aus dem Marker-Detail.
+    // 4T-000324: voller aufgeloester Ziel-Pfad aus dem Marker-Detail.
     text = text.replace('{target}', detail || target);
   }
   desc.textContent = text;

@@ -1,11 +1,11 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 3 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 3 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Sidebar (dynamische Container links und rechts). */
 
-/* === Sidebar (dynamische Container links/rechts, 4T-0288) ================= */
-/* 4T-0854 (Epic 3E-0164): Die Spalte rollt senkrecht, sobald die Hoehen ihrer
+/* === Sidebar (dynamische Container links/rechts, 4T-000288) ================= */
+/* 4T-000854 (Epic 3E-000164): Die Spalte rollt senkrecht, sobald die Hoehen ihrer
    Bloecke mehr Platz verlangen, als sie hat. Waagerecht bleibt es bei hidden:
    ein Ueberlauf zur Seite entsteht durch keine Bedienung, und eine waagerechte
    Leiste kostete nur Hoehe. Wirksam wird das Rollen erst zusammen mit der
@@ -25,7 +25,7 @@
   overflow-x: hidden;
   overflow-y: auto;
 }
-/* 4T-0288: Trenn-Border zum Inhalt je nach Seite. */
+/* 4T-000288: Trenn-Border zum Inhalt je nach Seite. */
 .pane-sidebar-left {
   border-right: 1px solid var(--border);
 }
@@ -35,10 +35,10 @@
 .pane-sidebar[hidden] {
   display: none;
 }
-/* 4T-0697 (Epic 3E-0141): Kollaps-Zustand einer Spalte — eigene Klasse,
+/* 4T-000697 (Epic 3E-000141): Kollaps-Zustand einer Spalte — eigene Klasse,
    strikt getrennt vom hidden-Attribut (das renderSidebarSide für panel-leere
    Spalten setzt).
-   4T-0698: Die eingeklappte Spalte bleibt als schmaler Strich am Fensterrand
+   4T-000698: Die eingeklappte Spalte bleibt als schmaler Strich am Fensterrand
    sichtbar (statt der früheren display:none-Ausblendung). Die Breite steht
    hier verbindlich; renderSidebarSide räumt beim Kollaps die Inline-width, die
    diese Klassen-Breite sonst überstimmen würde. overflow:visible lässt den
@@ -53,7 +53,7 @@
   position: relative;
   cursor: pointer;
 }
-/* 4T-0698: Im Kollaps sind die Panel-Inhalte ausgeblendet — sichtbar bleibt
+/* 4T-000698: Im Kollaps sind die Panel-Inhalte ausgeblendet — sichtbar bleibt
    nur der Strich (Container-Hintergrund plus Seiten-Border) und, beim
    Überfahren, der Icon-Button. */
 .pane-sidebar.collapsed > .sidebar-section,
@@ -61,7 +61,7 @@
 .pane-sidebar.collapsed > .sidebar-panel-resizer {
   display: none;
 }
-/* 4T-0698: Kopf-Toggle am inneren Rand (eingeblendeter Zustand). Optik an den
+/* 4T-000698: Kopf-Toggle am inneren Rand (eingeblendeter Zustand). Optik an den
    Sektions-Header-Icons orientiert (currentColor, dezent, Hover kräftiger). */
 .sidebar-collapse-toggle {
   flex: 0 0 auto;
@@ -83,7 +83,7 @@
 .pane-sidebar-left .sidebar-collapse-toggle {
   margin-left: auto;
 }
-/* 4T-0698 (Epic 3E-0141): PO-Befund vom 2026-07-23 — In der rechten Spalte
+/* 4T-000698 (Epic 3E-000141): PO-Befund vom 2026-07-23 — In der rechten Spalte
    sitzt das Kopf-Toggle als erstes Kind vor dem Inhalt (Panel-Titel als Text
    oder Icon-Reihe) und klebte ohne Abstand am nachfolgenden Element. Ein
    Abstand nach innen setzt es sichtbar ab (Maßstab an den Header-Paddings von
@@ -93,13 +93,13 @@
 .pane-sidebar-right .sidebar-collapse-toggle {
   margin-right: 8px;
 }
-/* 4T-0698: Sidebar-Symbol der rechten Spalte gespiegelt (gefüllte Fläche zur
+/* 4T-000698: Sidebar-Symbol der rechten Spalte gespiegelt (gefüllte Fläche zur
    rechten Seite). Gilt für Kopf-Toggle und Strich-Button. */
 .pane-sidebar-right .sidebar-collapse-toggle svg,
 .pane-sidebar-right .sidebar-collapse-strip svg {
   transform: scaleX(-1);
 }
-/* 4T-0698: Strich-Button (eingeklappter Zustand). Außerhalb des Kollaps ganz
+/* 4T-000698: Strich-Button (eingeklappter Zustand). Außerhalb des Kollaps ganz
    entfernt aus dem Layout; im Kollaps absolut am inneren Rand, unsichtbar bis
    zum Überfahren des Strichs (kein Layout-Shift, keine Animation — PO-
    Entscheidung 8). Erscheint als kleiner, gerahmter Knopf, der leicht in den
@@ -139,7 +139,7 @@
 .pane-sidebar.collapsed > .sidebar-collapse-strip:hover {
   color: var(--fg);
 }
-/* 4T-0288: Reiterleiste eines Gruppen-Slots — gestaltet wie ein Sektions-
+/* 4T-000288: Reiterleiste eines Gruppen-Slots — gestaltet wie ein Sektions-
    Header; sie ersetzt die (per .in-tab-group ausgeblendeten) Header der
    gruppierten Sektionen. */
 .sidebar-slot-tabs {
@@ -176,24 +176,24 @@
   background: var(--bg-alt);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
-/* 4T-0288: inaktive Reiter-Panels einer Gruppe — getrennt vom hidden-
+/* 4T-000288: inaktive Reiter-Panels einer Gruppe — getrennt vom hidden-
    Attribut der Panel-Sichtbarkeit (das die Panel-Module verwalten). */
 .sidebar-section.tab-hidden {
   display: none;
 }
-/* 4T-0288: in Gruppen ersetzt die Reiterleiste den Sektions-Header. */
+/* 4T-000288: in Gruppen ersetzt die Reiterleiste den Sektions-Header. */
 .sidebar-section.in-tab-group > .sidebar-section-header {
   display: none;
 }
-/* 4T-0288: positionsbasierter Block-Trenner (vom Slot-Mounting je Durchlauf
+/* 4T-000288: positionsbasierter Block-Trenner (vom Slot-Mounting je Durchlauf
    gesetzt) — ersetzt die frueheren panel-gebundenen border-top-Regeln von
    Outgoing/Backlinks/Bookmarks, die bei freier Reihenfolge an falscher
    Stelle saessen. */
 .pane-sidebar .sidebar-sep {
   border-top: 1px solid var(--border);
 }
-/* 4T-0289: Drag-and-Drop der Panels — Ziel-Zonen-Markierung nach dem
-   Bookmarks-Muster (4T-0079): before/after als 2px-Strich, into als
+/* 4T-000289: Drag-and-Drop der Panels — Ziel-Zonen-Markierung nach dem
+   Bookmarks-Muster (4T-000079): before/after als 2px-Strich, into als
    Rahmen, append als Innen-Rahmen des Containers. */
 .sidebar-section-header[draggable='true'],
 .sidebar-slot-tab[draggable='true'] {
@@ -213,7 +213,7 @@
 .pane-sidebar.is-panel-drop-append {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
-/* 4T-0289: waehrend eines Panel-Drags werden leere (versteckte) Container
+/* 4T-000289: waehrend eines Panel-Drags werden leere (versteckte) Container
    als schmale Drop-Streifen eingeblendet, damit „in einen leeren
    Container ziehen" moeglich ist. Uebersteuert bewusst das
    hidden-Attribut und die Breiten-Grenzen der .pane-sidebar. */
@@ -223,7 +223,7 @@ body.panel-dragging .pane-sidebar[hidden] {
   min-width: 36px;
   background: var(--hover);
 }
-/* 4T-0854 (Epic 3E-0164): Mindesthoehe statt der frueheren 0. Sie ist der
+/* 4T-000854 (Epic 3E-000164): Mindesthoehe statt der frueheren 0. Sie ist der
    Kern des Ueberlauf-Rollens: Mit min-height: 0 schrumpft der
    Flex-Algorithmus jeden nicht fixierten Block bis auf die Hoehe 0, damit
    alles in die Spalte passt. Ein verdraengtes Panel war dadurch selbst dann
@@ -242,7 +242,7 @@ body.panel-dragging .pane-sidebar[hidden] {
   flex-direction: column;
   min-height: 60px;
 }
-/* Pre-existing-Bugfix (aufgefallen waehrend Test 4T-0031): das hidden-
+/* Pre-existing-Bugfix (aufgefallen waehrend Test 4T-000031): das hidden-
    Attribut, das applyOutlineVisibility/applyBacklinksVisibility pro Sektion
    setzen, wurde vom obigen 'display: flex' ueberschrieben (gleiche Spezifitaet,
    spaetere Quellreihenfolge gewinnt). Konsequenz: Beim Ein-/Ausblenden einer
@@ -251,14 +251,14 @@ body.panel-dragging .pane-sidebar[hidden] {
 .sidebar-section[hidden] {
   display: none;
 }
-/* 4T-0475 (Epic 3E-0088): manuell fixierte Panel-Höhe (per Zieh-Griff
-   eingestellt). 4T-0634 (Epic 3E-0119): flex: 0 0 auto — die fixierte Höhe
+/* 4T-000475 (Epic 3E-000088): manuell fixierte Panel-Höhe (per Zieh-Griff
+   eingestellt). 4T-000634 (Epic 3E-000119): flex: 0 0 auto — die fixierte Höhe
    gilt exakt, der Flex-Algorithmus staucht sie nicht mehr zurück (sonst
    folgte das gezogene Panel der Maus nicht 1:1 und Nachbar-Panels
    schrumpften mit). Der Sektions-Body (.sidebar-section-body) scrollt
    bereits über sein overflow: auto, sodass der Inhalt bei fixierter Höhe
    erreichbar bleibt.
-   4T-0854 (Epic 3E-0164): Übersteigt die Höhen-Summe den Platz, kappt der
+   4T-000854 (Epic 3E-000164): Übersteigt die Höhen-Summe den Platz, kappt der
    Sidebar-Container die unteren Blöcke nicht mehr, sondern rollt (siehe
    .pane-sidebar und die Mindesthöhe an .sidebar-section). Verkleinern und
    der Doppelklick-Reset bleiben daneben die Wege zurück zur Automatik. */
@@ -266,7 +266,7 @@ body.panel-dragging .pane-sidebar[hidden] {
   flex: 0 0 auto;
   overflow: hidden;
 }
-/* 4T-0475 (Epic 3E-0088): horizontaler Zieh-Griff zwischen gestapelten
+/* 4T-000475 (Epic 3E-000088): horizontaler Zieh-Griff zwischen gestapelten
    Panels — schmale Griff-Zone mit row-resize-Cursor, dezente Hover-
    Hervorhebung analog zum vertikalen .sidebar-splitter. */
 .sidebar-panel-resizer {
@@ -295,7 +295,7 @@ body.panel-dragging .pane-sidebar[hidden] {
   letter-spacing: 0.04em;
   color: var(--fg-muted);
 }
-/* 4T-0639 (Epic 3E-0069): Panel-Ueberschriften als Icon. Das Symbol steht
+/* 4T-000639 (Epic 3E-000069): Panel-Ueberschriften als Icon. Das Symbol steht
    linksbuendig dort, wo im Text-Zustand das erste Zeichen sitzt (PO-
    Festlegung 2026-07-20) — beim Umschalten springt nichts. */
 .sidebar-section-title.icon-heading,

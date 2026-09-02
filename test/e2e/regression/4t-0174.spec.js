@@ -1,4 +1,4 @@
-// 4T-0174: Regressionstests fuer Render-Pipeline-, Live-Modus- und
+// 4T-000174: Regressionstests fuer Render-Pipeline-, Live-Modus- und
 // Editor-Fixes: (a) R1-01 mehrzeiliges Bild im Live-Modus, (b) P-01
 // Prozent im Embed-Bildnamen, (c) R2-02 Link-Aufloesung in MD-Embeds.
 // Die uebrigen Befunde sind Code-Korrekturen mit bestehender Suite bzw.

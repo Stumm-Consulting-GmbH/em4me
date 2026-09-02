@@ -1,4 +1,4 @@
-// 4T-1357 (Epic 3E-0238): Reihenfolge der Schlagwort-Vorschläge.
+// 4T-001357 (Epic 3E-000238): Reihenfolge der Schlagwort-Vorschläge.
 //
 // Gemessen wird an der **angezeigten** Liste, nicht an der Auswahl-Regel
 // dahinter — dieselbe Ebene wie bei den Verweis-Zielen in
@@ -50,7 +50,7 @@ async function enterEditSource(app, page) {
   await page.keyboard.press('Control+End');
 }
 
-// B-18 (4T-0187): Der erste Trigger stößt den Index-Aufbau an und liefert noch
+// B-18 (4T-000187): Der erste Trigger stößt den Index-Aufbau an und liefert noch
 // 'indexing'. Nachtriggern, bis Vorschläge erscheinen; danach ist die Zeile
 // wieder leer und der eigentliche Ablauf beginnt gegen einen fertigen Index.
 async function waermeIndexAuf(page) {
@@ -85,7 +85,7 @@ test.describe('SV-01: Schlagwort-Vorschlaege folgen der Haeufigkeit (F-040)', ()
       await expect(page.locator(TOOLTIP).first()).toBeVisible({ timeout: 10000 });
 
       // Erwartet ist die Häufigkeits-Folge. Stünde hier «bau-aaa» zuerst,
-      // hätte die Bibliothek wieder selbst sortiert — der Befund aus 4T-1339.
+      // hätte die Bibliothek wieder selbst sortiert — der Befund aus 4T-001339.
       const beschriftungen = await page.locator(LABEL).allTextContents();
       expect(beschriftungen.slice(0, 2)).toEqual(['bau-zzz', 'bau-aaa']);
     } finally {

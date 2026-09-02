@@ -1,7 +1,7 @@
-// 4T-0303 (Epic 3E-0054): E2E-Funktions-Suite — PDF-Export (PD-01 bis
-// PD-06); 4T-0311 (Epic 3E-0055) ergaenzt den Quelltext-Export (PD-07,
+// 4T-000303 (Epic 3E-000054): E2E-Funktions-Suite — PDF-Export (PD-01 bis
+// PD-06); 4T-000311 (Epic 3E-000055) ergaenzt den Quelltext-Export (PD-07,
 // PD-08). PD-01/PD-04/PD-05 sind zugleich der Spike gegen die drei
-// dokumentierten Fehlerbilder aus 4T-0024: Dark-Theme-Reste trotz
+// dokumentierten Fehlerbilder aus 4T-000024: Dark-Theme-Reste trotz
 // Print-Setup (PD-01: Farb-Marker im PDF), nur erste Seite wegen
 // height:100%/overflow:hidden (PD-01: Seitenzahl; PD-05: Layout-Reset)
 // und sichtbares Source-Pane durch Selektor-Kollision (PD-04/PD-05).
@@ -96,7 +96,7 @@ function pdfMediaBox(buffer) {
   return m ? [parseFloat(m[1]), parseFloat(m[2])] : null;
 }
 
-// 4T-0751 (Epic 3E-0146): Die Auslieferungs-Voreinstellung ist seither
+// 4T-000751 (Epic 3E-000146): Die Auslieferungs-Voreinstellung ist seither
 // Bernstein, und der Druck folgt dem aktiven HELL-Schema. Die Positiv-
 // Kontrolle unten haengt an der Textfarbe des Standard-Schemas (#1f1f1f),
 // deshalb setzt dieser Fall das Schema ausdruecklich. Geprueft wird hier der
@@ -120,7 +120,7 @@ test.describe('PD-01: Export aus dem Dark-Theme (mehrseitig, ohne Dark-Reste)', 
       await expect(page.locator(`${SEL.markdownBody0} .mermaid-block svg`)).toBeVisible({
         timeout: 20000,
       });
-      // Dark-Theme erzwingen (Fehlerbild 1 aus 4T-0024 entstand im Dark-Export).
+      // Dark-Theme erzwingen (Fehlerbild 1 aus 4T-000024 entstand im Dark-Export).
       await page.evaluate(() => window.api.setThemePref('dark'));
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
@@ -234,7 +234,7 @@ test.describe('PD-04: Export aus dem Quelltext-Modus mit Modus-Wiederherstellung
   });
 });
 
-test.describe('PD-05: Print-Layout-Regeln (DOM-Spike gegen die 4T-0024-Fehlerbilder)', () => {
+test.describe('PD-05: Print-Layout-Regeln (DOM-Spike gegen die 4T-000024-Fehlerbilder)', () => {
   test('printing-Zustand versteckt UI und loest die Hoehen-/Overflow-Kappung', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
@@ -292,7 +292,7 @@ test.describe('PD-05: Print-Layout-Regeln (DOM-Spike gegen die 4T-0024-Fehlerbil
   });
 });
 
-// 4T-0304 (Epic 3E-0054): Export-Einstellungen — Defaults im Bereich
+// 4T-000304 (Epic 3E-000054): Export-Einstellungen — Defaults im Bereich
 // Export, Querformat-Aenderung wirkt auf den naechsten Export und ist
 // persistiert (Store-Wert; derselbe Wert traegt die Neustart-Persistenz).
 test.describe('PD-06: Export-Einstellungen (Bereich Export, Querformat)', () => {
@@ -347,7 +347,7 @@ test.describe('PD-06: Export-Einstellungen (Bereich Export, Querformat)', () => 
   });
 });
 
-// 4T-0311 (Epic 3E-0055): Quelltext-Ansicht im PDF-Export — der Export
+// 4T-000311 (Epic 3E-000055): Quelltext-Ansicht im PDF-Export — der Export
 // folgt der aktiven Ansicht; der Quelltext-Modus druckt den Roh-Quelltext
 // ueber den dedizierten Print-Block (CodeMirror ist virtualisiert und
 // nicht druckbar).

@@ -1,4 +1,4 @@
-// S-09 (4T-0185): i18n-Synchronitaets-Waechter als Unit-Test. Bindet
+// S-09 (4T-000185): i18n-Synchronitaets-Waechter als Unit-Test. Bindet
 // scripts/check-i18n.js ein und schlaegt fehl, sobald die fuenf
 // Sprachdateien auseinanderlaufen (fehlende/ueberzaehlige Keys, leere
 // Werte, abweichende {placeholder}-Mengen). Laeuft in `npm test` und
@@ -23,7 +23,7 @@ describe('i18n-Synchronitaet (S-09)', () => {
   });
 });
 
-// 4T-1279 (Epic 3E-0232, Befund B4): Kein Produktname eines Datei-Managers in
+// 4T-001279 (Epic 3E-000232, Befund B4): Kein Produktname eines Datei-Managers in
 // nutzer-sichtbaren Texten.
 //
 // Anlass: Zwei Katalog-Schluessel nannten den Windows-Datei-Manager beim
@@ -40,7 +40,7 @@ describe('i18n-Synchronitaet (S-09)', () => {
 // «setzt Windows 11 voraus» bei der farbigen Fenster-Titelleiste); falsch ist
 // allein, eine plattform-uebergreifende Funktion nach einem Produkt zu
 // benennen, das es nur auf einer Plattform gibt.
-describe('Keine Datei-Manager-Produktnamen in den Sprachdateien (4T-1279)', () => {
+describe('Keine Datei-Manager-Produktnamen in den Sprachdateien (4T-001279)', () => {
   const VERBOTEN = [
     'Explorer', // Windows, deutsche und englische Fassung
     'Explorateur', // franzoesisch
@@ -94,7 +94,7 @@ describe('Keine Datei-Manager-Produktnamen in den Sprachdateien (4T-1279)', () =
   });
 });
 
-describe('Bereitschaft des Woerterbuchs (4T-1044)', () => {
+describe('Bereitschaft des Woerterbuchs (4T-001044)', () => {
   // Anlass: Beim Start des gepackten Baus trifft die Anzeige-Info des Main
   // ein, bevor loadTranslations durch ist. t() liefert dann den Schluessel
   // unveraendert zurueck; im Fenstertitel stand dadurch kurz
@@ -107,7 +107,7 @@ describe('Bereitschaft des Woerterbuchs (4T-1044)', () => {
     // Gegenprobe zum zurueckgezogenen Nebenbefund der Diagnose: t() gibt den
     // Schluessel zurueck, meldet ihn im Vor-Lade-Zustand aber NICHT als
     // Konsolen-Fehler — meldeFehlendenSchluessel schweigt bei leerem
-    // Woerterbuch (Guard aus 4T-0900).
+    // Woerterbuch (Guard aus 4T-000900).
     const fehler = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(i18n.t('window.title.workspace')).toBe('window.title.workspace');
     expect(fehler).not.toHaveBeenCalled();
@@ -128,11 +128,11 @@ describe('Bereitschaft des Woerterbuchs (4T-1044)', () => {
   });
 });
 
-describe('Main-seitige Lokalisierung (M-09, M-10 / 4T-0185)', () => {
+describe('Main-seitige Lokalisierung (M-09, M-10 / 4T-000185)', () => {
   it('tForLocale liefert Dialog- und Menue-Strings lokalisiert', () => {
     expect(tForLocale('en', 'open.dialogTitle')).toBe('Open Markdown file');
     expect(tForLocale('en', 'dialog.filterAll')).toBe('All files');
-    // 4T-0927: Stand des Menue-Labels statt der frueheren DevTools-Probe —
+    // 4T-000927: Stand des Menue-Labels statt der frueheren DevTools-Probe —
     // deren Schluessel ist mit dem Menueeintrag entfallen.
     expect(tForLocale('en', 'menu.view.commandPalette')).toBe('Command palette');
     expect(tForLocale('de', 'open.dialogTitle')).toBe('Markdown-Datei öffnen');

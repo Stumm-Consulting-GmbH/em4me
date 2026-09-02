@@ -1,7 +1,7 @@
 // Gliederungs-Nummerierung des Live-Modus: Nummern-Widget vor der
 // Überschrift-Zeile und die viewport-unabhängige Nummern-Map aus der
 // Falt-Struktur.
-// 4T-0996 (Epic 3E-0196): aus live-widgets.js herausgelöst; der Lezer-Pass
+// 4T-000996 (Epic 3E-000196): aus live-widgets.js herausgelöst; der Lezer-Pass
 // verbraucht das Widget, die Kernfunktion die Map (einmal je Build).
 'use strict';
 
@@ -13,7 +13,7 @@ import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { foldStructureField } from '../editor/folding.js';
 import { resolveHeadingNumberingForDoc } from '../heading-numbering.js';
 
-// 4T-0471 (Epic 3E-0087): Nummern-Praefix einer Ueberschrift im Live-Modus
+// 4T-000471 (Epic 3E-000087): Nummern-Praefix einer Ueberschrift im Live-Modus
 // (Inline-Widget vor der Zeile; Vorbild CalloutIconWidget). Reines Text-
 // Widget, das keine Editor-Events schluckt.
 export class HeadingNumberWidget extends WidgetType {
@@ -35,7 +35,7 @@ export class HeadingNumberWidget extends WidgetType {
   }
 }
 
-// 4T-0471: Roh-Titel einer Heading-Zeile OHNE Marker-/Attribut-Strip fuer die
+// 4T-000471: Roh-Titel einer Heading-Zeile OHNE Marker-/Attribut-Strip fuer die
 // Marker-Erkennung des Kerns (nur der #-Praefix wird entfernt).
 function liveRawHeadingTitle(doc, lineNumber) {
   if (lineNumber < 1 || lineNumber > doc.lines) return '';
@@ -45,7 +45,7 @@ function liveRawHeadingTitle(doc, lineNumber) {
   return raw.trim();
 }
 
-// 4T-0471: Nummern-Map (fromLine -> Nummer) fuer den aktuellen Zustand. Nutzt
+// 4T-000471: Nummern-Map (fromLine -> Nummer) fuer den aktuellen Zustand. Nutzt
 // die volle Heading-Liste aus der foldStructure (die Zaehlung muss auch
 // ausserhalb des Viewports stimmen). null, wenn die Erweiterung aus ist oder
 // es keine Ueberschriften gibt.

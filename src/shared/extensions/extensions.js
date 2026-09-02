@@ -1,4 +1,4 @@
-// 4T-0292 (Epic 3E-0052): Erweiterungs-Registry mit Manifest-Modell.
+// 4T-000292 (Epic 3E-000052): Erweiterungs-Registry mit Manifest-Modell.
 //
 // Single Source of Truth für die internen Erweiterungen der App: jede
 // abschaltbare Bestands-Funktion beschreibt sich hier deklarativ (ID,
@@ -30,7 +30,7 @@
 // ausgeschlossen, dass die App in einen funktionsunfähigen Zustand
 // geschaltet wird.
 //
-// 4T-0993 (Epic 3E-0196): Die Ableitungen aus der Disabled-Liste
+// 4T-000993 (Epic 3E-000196): Die Ableitungen aus der Disabled-Liste
 // (normalizeDisabledIds, effectiveDisabledSet, isExtensionEnabled und die
 // drei Filter-Mengen) liegen in src/shared/extensions/extensions-core.js und lesen die
 // Registry über allExtensions(); die Import-Richtung ist einseitig
@@ -38,7 +38,7 @@
 // die Laufzeit-Registrierung externer Erweiterungen samt ihrem live mutierten
 // Array und die Zugriffs-Funktionen. Die Datei ist damit eine begründete
 // Ausnahme des Datei-Größen-Budgets (Entscheidung E2 der Bestandsaufnahme
-// 4T-0964). Bewusst hier geblieben ist validateExtensionRegistry: Sie ist die
+// 4T-000964). Bewusst hier geblieben ist validateExtensionRegistry: Sie ist die
 // Validierung von registerExternalExtension, das als Mutations-Funktion des
 // Laufzeit-Arrays hier bleibt; ein Auszug hätte einen Zyklus zwischen beiden
 // Dateien erzwungen. Die Selbst-Validierung des Manifests bleibt aus demselben
@@ -55,10 +55,10 @@ const EXTENSIONS_DISABLED_KEY = 'extensions.disabled';
 // Kategorien in Anzeige-Reihenfolge des Einstellungs-Bereichs. Betrifft
 // nur interne Erweiterungen; externe tragen die eigene Kategorie
 // EXTERNAL_CATEGORY und erscheinen ausschließlich im Bereich
-// „Erweiterungen (extern)" (4T-0300).
+// „Erweiterungen (extern)" (4T-000300).
 const EXTENSION_CATEGORIES = ['render', 'linking', 'tools'];
 
-// 4T-0299 (Epic 3E-0053): Kategorie- und Herkunfts-Kennzeichnung externer
+// 4T-000299 (Epic 3E-000053): Kategorie- und Herkunfts-Kennzeichnung externer
 // Erweiterungen. Sie registrieren sich zur Laufzeit an derselben Registry
 // und demselben Lebenszyklus wie die internen (Epic-Architekturentscheidung);
 // der Unterschied liegt im Laden (fremder Code aus dem Dateisystem, Host in
@@ -82,13 +82,13 @@ const EXTERNAL_CATEGORY = 'external';
 //                 (help.feature.*), die diese Erweiterung trägt. Nötig nur
 //                 bei gebündelten Erweiterungen mit eigenen extension.*-Texten;
 //                 wo der descKey selbst ein Katalog-Schlüssel ist, ergibt sich
-//                 die Zuordnung daraus (4T-0941, Grundlage der Kennzeichnung
+//                 die Zuordnung daraus (4T-000941, Grundlage der Kennzeichnung
 //                 auf der generierten Funktions-Seite).
 //   settingsSections  optionale Liste von Bereichs-IDs der Einstellungs-
 //                 Seite (settings-page.js), die zu dieser Erweiterung
 //                 gehören: sie erscheinen nur bei aktiver Erweiterung in
 //                 der Bereichsnavigation; ihre persistierten Werte bleiben
-//                 beim Abschalten erhalten (4T-0295).
+//                 beim Abschalten erhalten (4T-000295).
 //
 // Die Reihenfolge innerhalb einer Kategorie bestimmt die Zeilen-Reihenfolge
 // im Einstellungs-Bereich.
@@ -99,7 +99,7 @@ const EXTERNAL_CATEGORY = 'external';
 // gebündelte Erweiterungen ohne 1:1-Eintrag erhalten eigene
 // extension.*-Keys.
 //
-// Zuschnitt der Render-Erweiterungen (4T-0293): pro Katalog-Funktion eine
+// Zuschnitt der Render-Erweiterungen (4T-000293): pro Katalog-Funktion eine
 // Erweiterung; gebündelt sind nur (a) 'figures' (Bild-Größen und Implicit
 // Figures — beide verändern die Bild-Darstellung und greifen ineinander:
 // das Größen-Suffix sitzt am selben Bild, das die Figure wrappt),
@@ -109,7 +109,7 @@ const EXTERNAL_CATEGORY = 'external';
 // hängen technisch am selben attrs-Plugin und sind nicht unabhängig
 // schaltbar). 'task-states' (erweiterte Task-Status) ist EINE Erweiterung
 // für Rendering und Verwaltung (der Einstellungs-Bereich Task-Status
-// docken in 4T-0295 hier an); die Basis-Checkboxen `[ ]`/`[x]` bleiben
+// docken in 4T-000295 hier an); die Basis-Checkboxen `[ ]`/`[x]` bleiben
 // Kern.
 const INTERNAL_EXTENSIONS = [
   {
@@ -194,7 +194,7 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.criticMarkup',
   },
   {
-    // 4T-0479 (Epic 3E-0089): %%-Kommentare — privater Text zwischen
+    // 4T-000479 (Epic 3E-000089): %%-Kommentare — privater Text zwischen
     // %%-Markern, in keiner Ansicht und keinem Export sichtbar. Aus-
     // Zustand: %% bleibt Literal (kein Strippen, keine Editor-Einfaerbung).
     id: 'comments',
@@ -203,12 +203,12 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.comments',
   },
   {
-    // 4T-0470 (Epic 3E-0087): Gliederungs-Nummerierung — automatische
+    // 4T-000470 (Epic 3E-000087): Gliederungs-Nummerierung — automatische
     // Ueberschriften-Nummern als Anzeige-Praefix samt Zeilenende-Markern
     // {-}/{+}. Aus-Zustand (Erweiterungs-Pruefschritt 2026-07-12): keine
     // Nummern, Marker bleiben Literal-Text (Plugin nicht registriert, kein
     // Strip in Render/Live/Portable); der Einstellungs-Bereich
-    // "headingNumbering" (4T-0471) blendet sich mit aus.
+    // "headingNumbering" (4T-000471) blendet sich mit aus.
     id: 'heading-numbering',
     category: 'render',
     nameKey: 'help.featureName.headingNumbering',
@@ -220,7 +220,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'render',
     nameKey: 'help.featureName.taskStates',
     descKey: 'help.feature.taskStates',
-    // 4T-0295: der bestehende Einstellungs-Bereich Task-Status ist der
+    // 4T-000295: der bestehende Einstellungs-Bereich Task-Status ist der
     // erste erweiterungs-eigene Bereich (Epic-Architekturentscheidung).
     settingsSections: ['taskStates'],
   },
@@ -229,12 +229,12 @@ const INTERNAL_EXTENSIONS = [
     category: 'render',
     nameKey: 'help.featureName.perspectiveTable',
     descKey: 'help.feature.perspectiveTable',
-    // 4T-1309 (Epic 3E-0235): Das Einfuege-Geruest gehoert zum Konstrukt. Ist
+    // 4T-001309 (Epic 3E-000235): Das Einfuege-Geruest gehoert zum Konstrukt. Ist
     // die Erweiterung aus, gibt es nichts einzufuegen, und das Kommando
     // verschwindet aus Leiste, Palette, Kontextmenue und Tastenkuerzel-Seite.
     commands: ['insert.perspectiveTable'],
   },
-  // 4T-0417 (Epic 3E-0079): Perspective Datatable als schaltbare Render-
+  // 4T-000417 (Epic 3E-000079): Perspective Datatable als schaltbare Render-
   // Erweiterung (PO-Festlegung aus der Test-Iteration vom 2026-07-09;
   // zugleich Anlass für den Erweiterungs-Prüfschritt in der CLAUDE.md).
   {
@@ -243,7 +243,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.datatable',
     descKey: 'help.feature.datatable',
   },
-  // 4T-0595 (Epic 3E-0111): Inline-Berechnungen `{= Ausdruck =}` — neues
+  // 4T-000595 (Epic 3E-000111): Inline-Berechnungen `{= Ausdruck =}` — neues
   // Markdown-Konstrukt, damit schaltbar (Erweiterungs-Prüfschritt). Aus-
   // Zustand: die Marker bleiben regulärer Fließtext in allen Ansichten und
   // Exporten (Plugin nicht registriert). Direkt hinter der Datatable, weil
@@ -272,7 +272,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.codeHighlight',
     descKey: 'help.feature.codeHighlight',
   },
-  // Vernetzungs-Erweiterungen (4T-0294). 'wiki-links' umfasst die
+  // Vernetzungs-Erweiterungen (4T-000294). 'wiki-links' umfasst die
   // Link-Syntax samt Ankern, Block-Ankern und die beiden Panels
   // Ausgehende Links/Backlinks (deren Auswertung ist Wiki-Syntax-
   // Auswertung); 'wiki-embeds' ist getrennt schaltbar und haengt an
@@ -291,8 +291,8 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.outgoingLinks',
       'help.feature.backlinks',
     ],
-    // 4T-0567 (Epic 3E-0104): view.toggleSubpages gehoert zur Wiki-Link-
-    // Auswertung (Panel-getVisible prueft wiki-links seit 4T-0341) — vorher
+    // 4T-000567 (Epic 3E-000104): view.toggleSubpages gehoert zur Wiki-Link-
+    // Auswertung (Panel-getVisible prueft wiki-links seit 4T-000341) — vorher
     // lief das unless()-Gate des Menue-Eintrags ins Leere und Menue/Palette
     // boten das Panel auch bei deaktivierter Erweiterung an.
     commands: ['view.toggleOutgoingLinks', 'view.toggleBacklinks', 'view.toggleSubpages'],
@@ -317,7 +317,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.autocomplete',
     descKey: 'help.feature.autocomplete',
   },
-  // 4T-0456 (Epic 3E-0084): Graphenansicht als schaltbare Vernetzungs-
+  // 4T-000456 (Epic 3E-000084): Graphenansicht als schaltbare Vernetzungs-
   // Erweiterung (Erweiterungs-Pruefschritt vom 2026-07-10, dokumentiert im
   // Epic). Buendelt Bereichs-Graph-Tab und Datei-Graph-Panel — gebuendelte
   // Erweiterung mit eigenen extension.*-Keys (kein 1:1-Katalog-Eintrag).
@@ -334,7 +334,7 @@ const INTERNAL_EXTENSIONS = [
     featureKeys: ['help.feature.areaGraph', 'help.feature.fileGraph'],
     commands: ['graph.openArea', 'view.toggleGraphPanel'],
   },
-  // 4T-1047 (Epic 3E-0151): Mindmap-Ansicht als fuenfter Ansichts-Modus.
+  // 4T-001047 (Epic 3E-000151): Mindmap-Ansicht als fuenfter Ansichts-Modus.
   // Erweiterungs-Pruefschritt des Epics: abgrenzbare Zusatz-Funktion, von
   // der kein Kern-Teil abhaengt; Leitlinie "im Zweifel schaltbar". Im
   // Aus-Zustand entfaellt das Kommando (Menue, Palette, Dispatcher), und
@@ -349,7 +349,7 @@ const INTERNAL_EXTENSIONS = [
     commands: ['view.modeMindmap'],
     settingsSections: ['mindmap'],
   },
-  // Werkzeug-Erweiterungen (4T-0294). 'focus-mode' buendelt Fokus-Modus
+  // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).
   {
     id: 'linter',
@@ -357,7 +357,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.linter',
     descKey: 'help.feature.linter',
   },
-  // 4T-0581 (Epic 3E-0107): Rechtschreibpruefung des Betriebssystems
+  // 4T-000581 (Epic 3E-000107): Rechtschreibpruefung des Betriebssystems
   // (Erweiterungs-Pruefschritt des Epics: abgrenzbare Zusatz-Funktion,
   // Leitlinie "im Zweifel schaltbar"). Direkt hinter dem Linter, weil beide
   // Maengel im Editor markieren. Ohne commands-Liste: die Funktion wirkt
@@ -373,7 +373,7 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.spellcheck',
     settingsSections: ['spellcheck'],
   },
-  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als schaltbares Zusatz-
+  // 4T-000620 (Epic 3E-000117): Bereichs-Statistik als schaltbares Zusatz-
   // Werkzeug (Erweiterungs-Pruefschritt des Epics). Ein Katalog-Eintrag
   // steht ihr gegenueber, deshalb die help.*-Keys statt eigener
   // extension.*-Keys (Muster linter, bookmarks). Im Aus-Zustand entfallen
@@ -393,8 +393,8 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.bookmarks',
     commands: ['file.bookmarkAdd', 'view.toggleBookmarks'],
   },
-  // 4T-0849 (Epic 3E-0147): Bücher als schaltbare Werkzeug-Erweiterung
-  // (Entscheidung 7 des Konzept-Protokolls vom 2026-08-03, Story 4S-0758).
+  // 4T-000849 (Epic 3E-000147): Bücher als schaltbare Werkzeug-Erweiterung
+  // (Entscheidung 7 des Konzept-Protokolls vom 2026-08-03, Story 4S-000758).
   // Ab Werk eingeschaltet wie jede interne Erweiterung (Default ist die leere
   // Disabled-Liste). Direkt hinter den Lesezeichen, weil beide eine Ordnung
   // über bestehenden Dateien führen und ihr Panel zur selben Gruppe der
@@ -409,7 +409,7 @@ const INTERNAL_EXTENSIONS = [
   // Erweiterungs-Gate des Panel-Zugangs-Modells (extensionId 'books' in
   // panel-access.js) zusätzlich Statusbar-Button und Untermenü-Eintrag des
   // Inhaltsverzeichnisses, und im Main die Buch-Erkennung beim Öffnen —
-  // Buch-Dateien öffnen dann wie gewöhnliche Markdown-Dateien (Story 4S-0758,
+  // Buch-Dateien öffnen dann wie gewöhnliche Markdown-Dateien (Story 4S-000758,
   // AK2). Ohne settingsSections: einen eigenen Einstellungs-Bereich hat die
   // Erweiterung nicht. Daten-neutral: Buch-Datei, Begleitdatei und Kapitel
   // bleiben unangetastet, das Wieder-Einschalten bringt den Stand unverändert
@@ -427,7 +427,7 @@ const INTERNAL_EXTENSIONS = [
       'book.previousChapter',
       'book.moveChapterFile',
       'view.toggleBookPanel',
-      // 4T-0867 (Epic 3E-0162): Buecherregale sind eine Stufe desselben
+      // 4T-000867 (Epic 3E-000162): Buecherregale sind eine Stufe desselben
       // Funktionsblocks und laufen unter demselben Schalter (Epic-Entscheidung;
       // ein eigener Schalter erzeugte den Zustand "Regal an, Buecher aus").
       'shelf.open',
@@ -443,7 +443,7 @@ const INTERNAL_EXTENSIONS = [
     featureKeys: ['help.feature.focusMode', 'help.feature.typewriterScroll'],
     commands: ['view.toggleFocusMode', 'view.toggleTypewriterScroll'],
   },
-  // 4T-0697 (Epic 3E-0141): Sidebar-Spalten ein-/ausklappen als schaltbare
+  // 4T-000697 (Epic 3E-000141): Sidebar-Spalten ein-/ausklappen als schaltbare
   // Werkzeug-Erweiterung (Erweiterungs-Prüfschritt des Epics: abgrenzbare
   // Komfort-Funktion, Leitlinie „im Zweifel schaltbar", direktes Vorbild
   // Fokus-Modus ist ebenfalls schaltbar). Gebündelte Erweiterung mit eigenen
@@ -459,7 +459,7 @@ const INTERNAL_EXTENSIONS = [
     featureKeys: ['help.feature.sidebarCollapse'],
     commands: ['view.toggleSidebarLeft', 'view.toggleSidebarRight'],
   },
-  // 4T-0599 (Epic 3E-0112): Struktur-Bearbeitung von Listen als schaltbare
+  // 4T-000599 (Epic 3E-000112): Struktur-Bearbeitung von Listen als schaltbare
   // Werkzeug-Erweiterung (Erweiterungs-Prüfschritt). Gebündelte Erweiterung
   // mit eigenen extension.*-Keys, weil sie mehrere Katalog-Funktionen
   // zusammenfasst. Im Aus-Zustand entfallen die beiden Verschiebe-Kommandos
@@ -474,10 +474,10 @@ const INTERNAL_EXTENSIONS = [
     featureKeys: ['help.feature.listOutline'],
     commands: ['list.moveUp', 'list.moveDown', 'list.selectSubtree'],
   },
-  // 4T-0426 (Epic 3E-0080): Vorlagen als schaltbare Werkzeug-Erweiterung
+  // 4T-000426 (Epic 3E-000080): Vorlagen als schaltbare Werkzeug-Erweiterung
   // (Architekturentscheidung 6 des Epics). Im Aus-Zustand entfallen beide
   // Kommandos (Menü, Dispatcher, Kontextmenü); der Einstellungs-Bereich
-  // (4T-0428) und der Ordner-Regel-Trigger (4T-0427) docken hier an — die
+  // (4T-000428) und der Ordner-Regel-Trigger (4T-000427) docken hier an — die
   // Ordner-Regeln sind Teil derselben Erweiterung, kein eigener Schalter.
   {
     id: 'templates',
@@ -485,16 +485,16 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.templates',
     descKey: 'help.feature.templates',
     commands: ['file.newFromTemplate', 'edit.insertTemplate'],
-    // 4T-0428: der Einstellungs-Bereich "Vorlagen" gehört zur Erweiterung
+    // 4T-000428: der Einstellungs-Bereich "Vorlagen" gehört zur Erweiterung
     // und erscheint nur bei aktivem Schalter (Muster taskStates).
-    // 4T-0555 (Epic 3E-0100): dazu die abgespaltene Bereichs-Sektion.
+    // 4T-000555 (Epic 3E-000100): dazu die abgespaltene Bereichs-Sektion.
     settingsSections: ['templates', 'templatesArea'],
   },
-  // 4T-0433 (Epic 3E-0081): Journale als schaltbare Werkzeug-Erweiterung
+  // 4T-000433 (Epic 3E-000081): Journale als schaltbare Werkzeug-Erweiterung
   // (Architekturentscheidung 6 des Epics, Erweiterungs-Prüfschritt vom
   // 2026-07-09). Im Aus-Zustand entfallen beide Kommandos (Menü,
-  // Dispatcher); Kalender-Panel (4T-0434), Navigations-Fence (4T-0435)
-  // und Einstellungs-Bereich (4T-0436) docken hier an. Bewusst OHNE
+  // Dispatcher); Kalender-Panel (4T-000434), Navigations-Fence (4T-000435)
+  // und Einstellungs-Bereich (4T-000436) docken hier an. Bewusst OHNE
   // Abhängigkeit auf 'templates': die Vorlagen-Kopplung der Journale
   // liegt auf Daten-Ebene (konfigurierte Journal-Vorlage), nicht auf
   // Kommando-Ebene.
@@ -504,11 +504,11 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.journals',
     descKey: 'help.feature.journals',
     commands: ['journal.openToday', 'journal.openForDate'],
-    // 4T-0436: der Einstellungs-Bereich "Journale" gehört zur Erweiterung
+    // 4T-000436: der Einstellungs-Bereich "Journale" gehört zur Erweiterung
     // und erscheint nur bei aktivem Schalter (Muster templates).
     settingsSections: ['journals'],
   },
-  // 4T-0604 (Epic 3E-0113): Erstellungs- und Änderungszeitpunkt als schaltbare
+  // 4T-000604 (Epic 3E-000113): Erstellungs- und Änderungszeitpunkt als schaltbare
   // Werkzeug-Erweiterung (Erweiterungs-Prüfschritt, PO-Festlegung vom
   // 2026-07-19). Bewusst abschaltbar, weil die Automatik beim Speichern das
   // Dokument verändert. Im Aus-Zustand läuft der Speicher-Hook nicht und der
@@ -522,7 +522,7 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.frontmatterTimestamps',
     settingsSections: ['frontmatterTimestamps'],
   },
-  // 4T-0546 (Epic 3E-0097): Kalender-Systeme als schaltbare Werkzeug-
+  // 4T-000546 (Epic 3E-000097): Kalender-Systeme als schaltbare Werkzeug-
   // Erweiterung (Workshop-Punkt 7). Gebündelte Erweiterung mit eigenen
   // extension.*-Keys (Einstellungs-Sektion, Picker, Wert-Syntax). Bewusst
   // OHNE Abhängigkeit auf 'date-picker': die Popup-Bausteine werden nur
@@ -540,17 +540,17 @@ const INTERNAL_EXTENSIONS = [
     commands: ['calendar.insertValue'],
     settingsSections: ['calendarSystems'],
   },
-  // 4T-0448 (Epic 3E-0083): Eigenschafts-Profile als schaltbare Werkzeug-
+  // 4T-000448 (Epic 3E-000083): Eigenschafts-Profile als schaltbare Werkzeug-
   // Erweiterung (Architekturentscheidung 6 des Epics, Erweiterungs-
   // Prüfschritt vom 2026-07-09). Im Aus-Zustand verhalten sich Properties-
   // Editor und Block-Panel exakt wie ohne Konfiguration (Inferenz und
   // Heuristik; der Renderer prüft isExtensionActive vor der Auflösung);
-  // Der Einstellungs-Bereich (4T-0450) dockt hier an (Muster
+  // Der Einstellungs-Bereich (4T-000450) dockt hier an (Muster
   // templates/journals).
-  // 4T-1174 (Epic 3E-0220): Bis Stufe 2 stand hier «Kommandos gibt es keine» —
+  // 4T-001174 (Epic 3E-000220): Bis Stufe 2 stand hier «Kommandos gibt es keine» —
   // WIDERRUFEN, nicht ergaenzt: Aus E5 und E7 folgen zwei Kommandos, die im
-  // Aus-Zustand entfallen muessen (Story 4S-0225, wiedereroeffnet).
-  // 4T-1176 (Epic 3E-0220, E7): das zweite der beiden — die erzeugte Abfrage
+  // Aus-Zustand entfallen muessen (Story 4S-000225, wiedereroeffnet).
+  // 4T-001176 (Epic 3E-000220, E7): das zweite der beiden — die erzeugte Abfrage
   // je Profil. Damit ist die Liste vollstaendig.
   {
     id: 'property-profiles',
@@ -559,12 +559,12 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.propertyProfiles',
     settingsSections: ['propertyProfiles'],
     commands: ['view.openFieldForm', 'edit.insertProfileQuery'],
-    // 4T-1177 (Epic 3E-0220): Die Katalog-Zeilen dieser Erweiterung muessen im
+    // 4T-001177 (Epic 3E-000220): Die Katalog-Zeilen dieser Erweiterung muessen im
     // Aus-Zustand gekennzeichnet sein, sonst behauptet die Funktions-Seite
     // Funktionen, die es dann nicht gibt. Der descKey traegt weiterhin die
     // Grundzeile.
-    // 4T-1180 (Epic 3E-0221): um die vier aelteren Zeilen vervollstaendigt, die
-    // seit 4T-1177 als Befund offen standen — Vererbung, Komplett-Uebernahme,
+    // 4T-001180 (Epic 3E-000221): um die vier aelteren Zeilen vervollstaendigt, die
+    // seit 4T-001177 als Befund offen standen — Vererbung, Komplett-Uebernahme,
     // Wertevorrats-Quellen und die Zuordnungs-Bindungen. Dass sie im
     // Aus-Zustand wirklich entfallen, ist geprueft: Die Aufloesung im Renderer
     // haengt am Gate (isExtensionActive in properties-types.js), ebenso die
@@ -578,12 +578,12 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.profileBulkFill',
       'help.feature.profileValueSources',
       'help.feature.profileBindings',
-      // 4T-1188 (Epic 3E-0221): die beiden Zeilen der Stufe 4.
+      // 4T-001188 (Epic 3E-000221): die beiden Zeilen der Stufe 4.
       'help.feature.profileDerivedFields',
       'help.feature.profileStructuredFields',
     ],
   },
-  // 4T-1340 (Epic 3E-0238): Werte-Vorschläge aus dem vorhandenen Bestand als
+  // 4T-001340 (Epic 3E-000238): Werte-Vorschläge aus dem vorhandenen Bestand als
   // schaltbare Werkzeug-Erweiterung (Erweiterungs-Prüfschritt, Ergebnis im
   // Task). Bewusst OHNE Abhängigkeit auf 'property-profiles': Die Werte kommen
   // aus dem Bereichs-Index und helfen gerade dort, wo kein Profil einen
@@ -595,7 +595,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.propertyValueSuggestions',
     descKey: 'help.feature.propertyValueSuggestions',
   },
-  // 4T-0461 (Epic 3E-0085): Tab-Gruppen als schaltbare Werkzeug-Erweiterung
+  // 4T-000461 (Epic 3E-000085): Tab-Gruppen als schaltbare Werkzeug-Erweiterung
   // (Erweiterungs-Prüfschritt vom 2026-07-10, dokumentiert im Epic). Keine
   // Registry-Kommandos: die Verwaltung läuft über Tab- und Kopf-Kontextmenü
   // (bei deaktivierter Erweiterung ausgeblendet); der Tab-Streifen rendert
@@ -607,7 +607,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.tabGroups',
     descKey: 'help.feature.tabGroups',
   },
-  // 4T-0498 (Epic 3E-0090): Aufgaben als schaltbare Werkzeug-Erweiterung
+  // 4T-000498 (Epic 3E-000090): Aufgaben als schaltbare Werkzeug-Erweiterung
   // (Querschnitt C des Konzept-Workshops vom 2026-07-10). Buendelt die
   // Task-Marker-Darstellung (Termine/Prioritaet/Wiederholung als Badges
   // in Render-Pane, Live-Modus und Portable-Export), die Automatik-Daten
@@ -629,11 +629,11 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.taskDialog',
     ],
     settingsSections: ['tasks'],
-    // 4T-0506 (Epic 3E-0096): der Task-Bearbeitungs-Dialog entfaellt im
+    // 4T-000506 (Epic 3E-000096): der Task-Bearbeitungs-Dialog entfaellt im
     // Aus-Zustand (Dispatcher, Palette, Kontextmenue, Hilfe-Seiten).
     commands: ['task.editDialog'],
   },
-  // 4T-0528 (Epic 3E-0095): Erinnerungen als schaltbare Werkzeug-Erweiterung
+  // 4T-000528 (Epic 3E-000095): Erinnerungen als schaltbare Werkzeug-Erweiterung
   // (Workshop-Punkt 8) mit Abhaengigkeit zur Erweiterung "Aufgaben" (die
   // Anker sind Task-Marker; zweiter Nutzer der dependencies-Mechanik nach
   // wiki-embeds). Buendelt ⏰-Marker-Funktion, Pruefer/Benachrichtigungen
@@ -656,7 +656,7 @@ const INTERNAL_EXTENSIONS = [
     commands: ['task.setReminder', 'view.toggleReminders'],
     settingsSections: ['reminders'],
   },
-  // 4T-0512 (Epic 3E-0092): Ereignisse als schaltbare Werkzeug-Erweiterung
+  // 4T-000512 (Epic 3E-000092): Ereignisse als schaltbare Werkzeug-Erweiterung
   // (Workshop-Punkt 8 vom 2026-07-10) mit Abhaengigkeit zu den Eigenschafts-
   // Profilen (das feste interne Profil "Ereignis" ist ein Profil-Konstrukt;
   // dritter Nutzer der dependencies-Mechanik). Buendelt den perspective-
@@ -666,7 +666,7 @@ const INTERNAL_EXTENSIONS = [
   // Im Aus-Zustand (eigener Schalter oder transitiv ueber die Profile):
   // Fences bleiben neutrale Code-Blöcke (Render, Live, Portable), das
   // Kommando ist gefiltert, das interne Profil verschwindet aus Aufloesung
-  // und Profil-Liste (4T-0517).
+  // und Profil-Liste (4T-000517).
   {
     id: 'events',
     category: 'tools',
@@ -680,7 +680,7 @@ const INTERNAL_EXTENSIONS = [
     dependencies: ['property-profiles'],
     commands: ['edit.insertEvents'],
   },
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereiche als schaltbare Werkzeug-
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereiche als schaltbare Werkzeug-
   // Erweiterung (Workshop-Punkt 8 vom 2026-07-11), ohne Abhaengigkeiten.
   // Im Aus-Zustand entfallen die vier Kommandos (Menue-Block, Palette,
   // Dispatcher, Verwaltungs-Dialog) und der Arbeitsbereichs-Teil des
@@ -694,7 +694,7 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.workspaces',
     commands: ['workspace.saveAs', 'workspace.create', 'workspace.close', 'workspace.manage'],
   },
-  // 4T-0632 (Epic 3E-0102): mitgelieferte Demo-Area (Erweiterungs-
+  // 4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area (Erweiterungs-
   // Pruefschritt des Epics: abgrenzbare Einstiegs-Funktion ohne Kern-
   // Abhaengigkeiten). Im Aus-Zustand entfallen Menuepunkt und Palette-
   // Kommando; bereits erstellte Demo-Ordner sind normale Bereiche und
@@ -706,11 +706,11 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.demoArea',
     commands: ['area.createDemo'],
   },
-  // 4T-0486 (Epic 3E-0091): Datums- und Uhrzeit-Eingabe als schaltbare
+  // 4T-000486 (Epic 3E-000091): Datums- und Uhrzeit-Eingabe als schaltbare
   // Werkzeug-Erweiterung (Erweiterungs-Pruefschritt des Epics: abgrenzbare
   // Komfort-Funktion ohne Kern-Abhaengigkeiten). Im Aus-Zustand entfallen
   // die drei Kommandos (Dispatcher, Palette, Hilfe) und der Schreib-
-  // Trigger "\\"; ab 4T-0487 auch die Klick-Dekoration der Datums-Werte.
+  // Trigger "\\"; ab 4T-000487 auch die Klick-Dekoration der Datums-Werte.
   // Eingefuegte Werte bleiben reiner Text.
   {
     id: 'date-picker',
@@ -725,7 +725,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.wordCount',
     descKey: 'help.feature.wordCount',
   },
-  // 4T-0372 (Epic 3E-0069): Uhr — analoge und digitale Zeit plus Datum in
+  // 4T-000372 (Epic 3E-000069): Uhr — analoge und digitale Zeit plus Datum in
   // einem Sidebar-Panel (Erweiterungs-Pruefschritt des Epics: abgrenzbare
   // Anzeige-Funktion ohne Kern-Abhaengigkeiten, Default an). Im Aus-Zustand
   // entfallen Panel, Statusbar-Button, Toggle-Kommando (Menue, Palette,
@@ -745,7 +745,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.codeCopyButton',
     descKey: 'help.feature.codeCopyButton',
   },
-  // 4T-0520 (Epic 3E-0094): Kommando-Platzierung als schaltbare Werkzeug-
+  // 4T-000520 (Epic 3E-000094): Kommando-Platzierung als schaltbare Werkzeug-
   // Erweiterung (Querschnitt B des Konzept-Workshops vom 2026-07-10).
   // Buendelt die nutzerdefinierten Statusbar-Kommando-Buttons, die
   // Hide-Liste der Standard-Statusbar-Elemente, die Kontextmenue-Sektion
@@ -769,7 +769,7 @@ const INTERNAL_EXTENSIONS = [
     ],
     settingsSections: ['commandPlacement'],
   },
-  // 4T-0607 (Epic 3E-0114): Format-Toolbar als schaltbare Werkzeug-
+  // 4T-000607 (Epic 3E-000114): Format-Toolbar als schaltbare Werkzeug-
   // Erweiterung (eigenständige UI-Fläche, Erweiterungs-Prüfschritt des
   // Epics). Im Aus-Zustand verschwindet die Leiste vollständig (heutiges
   // Bild ohne Toolbar); die Belegungs-Konfiguration bleibt gespeichert
@@ -782,7 +782,7 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.formatToolbar',
     settingsSections: ['formatToolbar'],
   },
-  // 4T-0585 (Epic 3E-0108): Titelzeile — Dateiname als „Zeile 0" über dem
+  // 4T-000585 (Epic 3E-000108): Titelzeile — Dateiname als „Zeile 0" über dem
   // Dokument mit Direkt-Umbenennen (Erweiterungs-Prüfschritt des Epics:
   // abgrenzbare Zusatz-Fläche). Eigenständige UI-Fläche ohne eigene
   // Konfiguration (Minimal-Form, Muster code-copy); im Aus-Zustand
@@ -795,7 +795,7 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.titleLine',
     descKey: 'help.feature.titleLine',
   },
-  // 4T-0590 (Epic 3E-0109): Tabellen-Werkzeuge — Kontextmenü-Untermenü
+  // 4T-000590 (Epic 3E-000109): Tabellen-Werkzeuge — Kontextmenü-Untermenü
   // „Tabelle" mit Bearbeitungs-Operationen für beide Tabellenarten
   // (Pipe-Tabelle und Perspective Table). Erweiterungs-Prüfschritt des
   // Epics: abgrenzbares Werkzeug-Paket; im Aus-Zustand entfallen Untermenü
@@ -844,7 +844,7 @@ function validateExtensionRegistry(list) {
     }
     if (ids.has(id)) errors.push(`Doppelte Erweiterungs-ID: ${id}`);
     ids.add(id);
-    // 4T-0299: externe Einträge (origin 'external') tragen die Kategorie
+    // 4T-000299: externe Einträge (origin 'external') tragen die Kategorie
     // EXTERNAL_CATEGORY und einen Klartext-Namen statt i18n-Keys.
     const isExternal = m.origin === 'external';
     if (isExternal) {
@@ -910,7 +910,7 @@ function validateExtensionRegistry(list) {
   }
 }
 
-// --- Externe Erweiterungen (4T-0299, Epic 3E-0053) --------------------------------
+// --- Externe Erweiterungen (4T-000299, Epic 3E-000053) --------------------------------
 // Zur Laufzeit registrierte externe Manifeste (origin 'external'). Der
 // Renderer-Host registriert sie nach dem Verzeichnis-Scan; die übrigen
 // Registry-Funktionen (effectiveDisabledSet, isExtensionEnabled,

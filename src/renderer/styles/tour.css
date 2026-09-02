@@ -1,4 +1,4 @@
-/* 4T-0644: Theme-Anpassung der geführten Produkt-Tour (driver.js 1.8.0).
+/* 4T-000644: Theme-Anpassung der geführten Produkt-Tour (driver.js 1.8.0).
    Das Vendor-Stilblatt driverjs/driver.css kennt die Farb-Token der App nicht
    und setzt seine Flächen hart auf Weiß-/Grauwerte; hier werden die Popover-
    Teile auf die Token aus styles.css umgestellt. Die Datei ist versioniert und

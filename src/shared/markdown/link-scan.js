@@ -1,4 +1,4 @@
-// 4T-0344 (Epic 3E-0062): Gemeinsame Erkennungs-Quelle fuer Wiki-Links und
+// 4T-000344 (Epic 3E-000062): Gemeinsame Erkennungs-Quelle fuer Wiki-Links und
 // relative Markdown-Links. Single Source of Truth fuer die Link-Regexe, die
 // Inline-Code-Maskierung, die Frontmatter-Grenze und die Namens-Normalisierung.
 // Backlinks-Index (src/main/backlinks.js) UND Rewrite-Kern
@@ -32,7 +32,7 @@ function createWikiLinkRegex() {
 
 // Relative Markdown-Links: [Text](pfad.md) oder (pfad.md#anker). Nur .md-artige
 // Endungen; externe Schemata (http:, mailto:, data:) faengt das Muster nicht.
-// 4T-0476 (Epic 3E-0088): zusätzlich die CommonMark-Destination in spitzen
+// 4T-000476 (Epic 3E-000088): zusätzlich die CommonMark-Destination in spitzen
 // Klammern ([Text](<Mein Ziel.md>) bzw. (<Mein Ziel.md#anker>)), die
 // Leerzeichen im Ziel erlaubt. Gruppen 1/2 = Ziel/Anker der <…>-Form,
 // Gruppen 3/4 = Ziel/Anker der klammerlosen Form; Konsumenten lesen über
@@ -55,9 +55,9 @@ function mdLinkTargetFromMatch(m) {
 // koennen NFD-dekomponiert sein; Index, Linter, Klick-Pfad und Rewrite muessen
 // gleich entscheiden.
 //
-// 4T-1275 (Epic 3E-0232): Die Faltung bleibt hier bewusst plattform-unabhaengig
+// 4T-001275 (Epic 3E-000232): Die Faltung bleibt hier bewusst plattform-unabhaengig
 // und fragt src/shared/platform.js NICHT. Sie ist keine Aussage ueber das
-// Dateisystem — der Beleg dafuer steht in resolve.js (B-04/B-23 aus 4T-0175:
+// Dateisystem — der Beleg dafuer steht in resolve.js (B-04/B-23 aus 4T-000175:
 // der Linter meldete [[readme]] als gebrochen, obwohl der Klick README.md
 // oeffnete) und in der NFC-Normalisierung eine Zeile weiter, die mit der
 // Plattform nichts zu tun hat. Der frueher hier stehende Verweis auf NTFS war

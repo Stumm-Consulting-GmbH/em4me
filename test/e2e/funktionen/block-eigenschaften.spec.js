@@ -1,9 +1,9 @@
-// 4T-0364 (Epic 3E-0067): E2E-Suite Block-Eigenschaften-Panel. Deckt das Oeffnen
+// 4T-000364 (Epic 3E-000067): E2E-Suite Block-Eigenschaften-Panel. Deckt das Oeffnen
 // ueber das Ansicht-Menue, das Anker-Dropdown, das Anlegen eines Ankers fuer einen
 // Block ohne Anker samt Persistenz einer Eigenschaft in die .mdd sowie die
 // Verwaisten-Anzeige (Daten ohne Anker im Text) ab. Der Datenpfad selbst ist in
 // test/unit/mdd-store.test.js und test/unit/block-anchors.test.js getestet.
-// 4T-0365: zusaetzlich der Block-Metadaten-Indikator — Erscheinen im Render-Pane
+// 4T-000365: zusaetzlich der Block-Metadaten-Indikator — Erscheinen im Render-Pane
 // (BP-04), Nachziehen ueber den blockData:changed-Broadcast beim Anlegen/Loeschen
 // von Eigenschaften (BP-05) und die Live-Modus-Variante samt Klick-Pfad (BP-06).
 'use strict';
@@ -33,7 +33,7 @@ const NO_ANCHOR = `${SEC} .block-props-no-anchor`;
 const FIELDS = `${SEC} .block-props-fields`;
 const ADD_BTN = `${SEC} .block-props-add-btn`;
 const ORPHANS = `${SEC} .block-props-orphans`;
-// 4T-0365: Indikator im Render-Pane (Post-Prozessor) und im Live-Modus (Widget).
+// 4T-000365: Indikator im Render-Pane (Post-Prozessor) und im Live-Modus (Widget).
 const RENDER_INDICATOR = `${PANE0} .pane-rendered .markdown-body .block-meta-indicator`;
 const LIVE_INDICATOR = `${PANE0} .pane-source .cm-block-meta-indicator`;
 
@@ -170,7 +170,7 @@ test.describe('BP-03: Verwaiste Daten anzeigen', () => {
   });
 });
 
-test.describe('BP-04: Indikator im Render-Pane (4T-0365)', () => {
+test.describe('BP-04: Indikator im Render-Pane (4T-000365)', () => {
   test('Indikator erscheint am Block mit Daten; Hover-Title; Klick oeffnet das Panel', async () => {
     const { workDir, workFile } = makeWorkFile(
       'pmpp-blockprops-bp04-',
@@ -200,7 +200,7 @@ test.describe('BP-04: Indikator im Render-Pane (4T-0365)', () => {
   });
 });
 
-test.describe('BP-05: Indikator folgt den Daten (Broadcast, 4T-0365)', () => {
+test.describe('BP-05: Indikator folgt den Daten (Broadcast, 4T-000365)', () => {
   test('Eigenschaft anlegen laesst den Indikator erscheinen, Loeschen entfernt ihn', async () => {
     const { workDir, workFile } = makeWorkFile(
       'pmpp-blockprops-bp05-',
@@ -233,7 +233,7 @@ test.describe('BP-05: Indikator folgt den Daten (Broadcast, 4T-0365)', () => {
   });
 });
 
-test.describe('BP-06: Indikator im Live-Modus (4T-0365)', () => {
+test.describe('BP-06: Indikator im Live-Modus (4T-000365)', () => {
   test('Live-Widget erscheint an der Anker-Zeile; Klick oeffnet das Panel', async () => {
     const { workDir, workFile } = makeWorkFile(
       'pmpp-blockprops-bp06-',

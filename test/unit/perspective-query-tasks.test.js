@@ -1,8 +1,8 @@
-// 4T-0972 (Datei-Größen-Budget): Schnitt aus perspective-query-index.test.js —
+// 4T-000972 (Datei-Größen-Budget): Schnitt aus perspective-query-index.test.js —
 // die Task-Blöcke der Perspective-Abfrage gegen den echten Backlinks-Index:
-// TASKS-Scope (4T-0502), Gruppierung und Task-Layout (4T-0503), Default-
-// Sortierung/urgency/globale Abfrage (4T-0505), Abhängigkeiten (4T-0508) und
-// areaTaskLines (4T-0525). Jeder Block baut seine eigene Root-Fixture; der
+// TASKS-Scope (4T-000502), Gruppierung und Task-Layout (4T-000503), Default-
+// Sortierung/urgency/globale Abfrage (4T-000505), Abhängigkeiten (4T-000508) und
+// areaTaskLines (4T-000525). Jeder Block baut seine eigene Root-Fixture; der
 // Infrastruktur-Kopf (makeRoot, write, indexFor, afterEach) ist nach
 // etablierter Konvention je Datei dupliziert.
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
@@ -14,10 +14,10 @@ import {
   frontmatterQueryFor,
   releaseRoot,
   rootForActiveFile,
-  // 4T-0525 (Epic 3E-0095): Roh-Task-Zeilen-Lesepfad des Erinnerungs-Pruefers.
+  // 4T-000525 (Epic 3E-000095): Roh-Task-Zeilen-Lesepfad des Erinnerungs-Pruefers.
   areaTaskLines,
 } from '../../src/main/backlinks.js';
-// 4T-0502 (Epic 3E-0096): Status-Typ-Resolver (Task-Umgebung) und Marker-Kern
+// 4T-000502 (Epic 3E-000096): Status-Typ-Resolver (Task-Umgebung) und Marker-Kern
 // (Beschreibungen aus dem taskText der Treffer) fuer die TASKS-Scope-Tests.
 import { createTaskStatusTypeResolver } from '../../src/shared/markdown/plugins.js';
 import { parseTaskLine } from '../../src/shared/tasks/task-markers.js';
@@ -73,7 +73,7 @@ afterEach(() => {
   tmpDirs = [];
 });
 
-// --- 4T-0502 (Epic 3E-0096): Task-Ebene (TASKS-Scope) --------------------------
+// --- 4T-000502 (Epic 3E-000096): Task-Ebene (TASKS-Scope) --------------------------
 // Eigene Fixture (kein Bezug zur Block-Fixture oben): zwei Task-Dateien mit
 // Checkbox-Zeilen unter Ueberschriften, eine davon mit einer Task-Zeile in
 // einem Fenced-Code-Block (darf nicht zaehlen). Datums-Werte in 2099 (Stabilitaet).
@@ -144,7 +144,7 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
     expect(res.status).toBe('ready');
     expect(res.queryScope).toBe('tasks');
-    // 4T-0505: Default-Sortierung Status-Typ -> Dringlichkeit (absteigend) ->
+    // 4T-000505: Default-Sortierung Status-Typ -> Dringlichkeit (absteigend) ->
     // Faelligkeit -> Prioritaet -> Pfad -> Zeile. Review (IN_PROGRESS) zuerst;
     // innerhalb TODO Konzept (highest, urgency 11.4), dann die normalen 2099er
     // nach Faelligkeit (Modul 03 < Notiz 04 < Ohne 05); Kickoff (DONE) zuletzt.
@@ -201,7 +201,7 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
       undefined,
       env(),
     );
-    // 4T-0505: Default-Sortierung — Review (IN_PROGRESS) vor Modul (TODO).
+    // 4T-000505: Default-Sortierung — Review (IN_PROGRESS) vor Modul (TODO).
     expect(taskKeys(res)).toEqual(['Review', 'Modul']);
   });
 
@@ -224,7 +224,7 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
       undefined,
       env({ globalFilter: '#task' }),
     );
-    // 'Ohne Filter' traegt kein #task -> faellt raus. 4T-0505: die Restmenge
+    // 'Ohne Filter' traegt kein #task -> faellt raus. 4T-000505: die Restmenge
     // folgt der Default-Sortierung (Review IP, dann TODO nach Dringlichkeit/
     // Faelligkeit, Kickoff DONE zuletzt).
     expect(taskKeys(res)).toEqual(['Review', 'Konzept', 'Modul', 'Notiz', 'Kickoff']);
@@ -241,12 +241,12 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
   });
 });
 
-// --- 4T-0503 (Epic 3E-0096): GROUP BY und Task-Layout (LIST TASKS) -------------
+// --- 4T-000503 (Epic 3E-000096): GROUP BY und Task-Layout (LIST TASKS) -------------
 // Eigene Fixture mit voller Kontrolle ueber Ueberschriften, Prioritaet und eine
 // Task-Zeile OHNE Ueberschrift (vor jeder Heading -> heading null), damit die
 // Wert-lose Gruppe (label null) am Ende deterministisch pruefbar ist. Datums-
 // Werte in 2099 (Stabilitaet).
-describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-0503)', () => {
+describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-000503)', () => {
   const DUE = '\u{1F4C5}'; // Kalender (faellig)
   const HIGH = '\u{1F53A}'; // rotes Dreieck (Prioritaet hoechste)
 
@@ -333,7 +333,7 @@ describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-050
     // Werte-Ordnung locale-bewusst (Alpha < Beta), Wert-lose Gruppe (label null)
     // als letzte.
     expect(res.groups.map((g) => g.label)).toEqual(['Alpha', 'Beta', null]);
-    // 4T-0505: items-Reihenfolge folgt der Default-Sortierung der Pipeline —
+    // 4T-000505: items-Reihenfolge folgt der Default-Sortierung der Pipeline —
     // A-frueh und A-spaet (beide highest) vor A-normal, bei gleicher
     // Dringlichkeit die fruehere Faelligkeit zuerst (A-frueh 01 < A-spaet 02).
     expect(itemKeys(res.groups[0].items)).toEqual(['A-frueh', 'A-spaet', 'A-normal']);
@@ -381,14 +381,14 @@ describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-050
   });
 });
 
-// --- 4T-0505 (Epic 3E-0096): Default-Sortierung, urgency-Feld, globale Abfrage --
+// --- 4T-000505 (Epic 3E-000096): Default-Sortierung, urgency-Feld, globale Abfrage --
 // Eigene Fixture mit gemischten Status-Typen (IN_PROGRESS/TODO/DONE), Prioritaeten
 // und Faelligkeiten. Termine bewusst in 2099 (Zukunft, Faelligkeits-Komponente
 // stabil +2.4) bzw. 2020 (Vergangenheit, +12.0), damit der reale Bezugstag des
 // Index-Laufs (Date.now) die erwartete Ordnung nicht verschiebt. Aufgaben.md
 // traegt das Frontmatter-Tag 'arbeit' (FROM-Quelle der globalen Abfrage),
 // Sonstiges.md nicht.
-describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T-0505)', () => {
+describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T-000505)', () => {
   const DUE = '\u{1F4C5}'; // Kalender (faellig)
   const HIGHEST = '\u{1F53A}'; // rotes Dreieck (Prioritaet hoechste)
   const LOWEST = '\u{23EC}'; // Doppelpfeil nach unten (Prioritaet niedrigste)
@@ -555,13 +555,13 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
   });
 });
 
-// --- 4T-0508 (Epic 3E-0096): Abhaengigkeiten (blocked/blocking/id.*) ------------
+// --- 4T-000508 (Epic 3E-000096): Abhaengigkeiten (blocked/blocking/id.*) ------------
 // Fixture ueber ZWEI Dateien, damit die datei-uebergreifende Sicht von
 // computeDependencyFlags mitgeprueft wird: A (🆔 a1, offen), B (⛔ a1, offen),
 // C (🆔 a1, offen — Duplikat von A), D (erledigt, 🆔 d1), E (⛔ d1, offen).
 // Erwartung: B blockiert (offener Vorgaenger a1), A und C blockierend und
 // Duplikat, E NICHT blockiert (Vorgaenger d1 erledigt).
-describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-0508)', () => {
+describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-000508)', () => {
   const ID = '\u{1F194}'; // ID-Zeichen (🆔)
   const DEP = '⛔'; // Zufahrt-verboten (⛔, Vorgaenger-Bezug)
 
@@ -651,12 +651,12 @@ describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-0508)', () => {
   });
 });
 
-// --- 4T-0525 (Epic 3E-0095): Roh-Task-Zeilen des Erinnerungs-Pruefers -----------
+// --- 4T-000525 (Epic 3E-000095): Roh-Task-Zeilen des Erinnerungs-Pruefers -----------
 // areaTaskLines liest tasksPerFile des Index (schlanker Lesepfad ohne Query-
 // Auswertung) und liefert pro Task-Zeile { path, zeile, text }. Fixture: eine
 // Datei mit zwei Checkbox-Zeilen (eine mit ⏰-Anker), eine Datei ohne Tasks.
 // Datumswerte in 2099 (Stabilitaet).
-describe('areaTaskLines — Roh-Task-Zeilen des Bereichs (4T-0525)', () => {
+describe('areaTaskLines — Roh-Task-Zeilen des Bereichs (4T-000525)', () => {
   const REM = '\u{23F0}'; // Wecker (Erinnerung)
   const DUE = '\u{1F4C5}'; // Kalender (faellig)
 

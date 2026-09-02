@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0507 (Epic 3E-0096): Unit-Tests der dritten Autocomplete-Quelle
+// 4T-000507 (Epic 3E-000096): Unit-Tests der dritten Autocomplete-Quelle
 // taskMarkerCompletionSource (autocomplete-help.js) — Trigger-Logik und
 // Options-Aufbau auf Task-Zeilen. Der api-Stub (Muster
 // task-query-actions.test.js) stellt window.api und das minimale DOM-Geruest
@@ -38,7 +38,7 @@ beforeEach(() => {
   tasks.applyTasksConfig(null);
 });
 
-describe('taskMarkerCompletionSource: Trigger-Logik (4T-0507)', () => {
+describe('taskMarkerCompletionSource: Trigger-Logik (4T-000507)', () => {
   it('(a) liefert null auf einer Nicht-Task-Zeile', () => {
     expect(ach.taskMarkerCompletionSource(ctx('Alpha prio'))).toBeNull();
   });

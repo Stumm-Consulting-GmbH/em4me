@@ -1,17 +1,17 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Callout-Gruppe: Blockquote-Callouts (`> [!note]`) und Custom Containers
 // (`::: warning`, `::: columns`) samt gemeinsamem Box-HTML. Electron-frei;
 // die Instanz-Registrierung macht markdown.js in der Original-Reihenfolge.
 'use strict';
 
 const { escapeHtml } = require('../slug.js');
-// 4T-0087 (Epic 3E-0014): CALLOUT_TYPES und calloutIcon 2026-05-24 nach
+// 4T-000087 (Epic 3E-000014): CALLOUT_TYPES und calloutIcon 2026-05-24 nach
 // src/shared/callouts.js extrahiert, damit der Renderer-Prozess sie fuer
 // den Live-Modus ebenfalls importieren kann. Single Source of Truth.
 const { CALLOUT_TYPES } = require('../../callouts');
 const markdownItContainer = require('markdown-it-container');
 
-// 4T-0061 (Epic 3E-0012): Callouts — Obsidian-Style Block-Hinweisboxen.
+// 4T-000061 (Epic 3E-000012): Callouts — Obsidian-Style Block-Hinweisboxen.
 // Syntax als erste Zeile eines Blockquotes:
 //   > [!note] Optionaler Titel        — statisch, kein Klappen
 //   > [!note]+ Titel                  — klappbar, default ausgeklappt
@@ -27,7 +27,7 @@ const markdownItContainer = require('markdown-it-container');
 // `inline.children`), weil unser Ruler nach 'block' aber vor 'inline' laeuft —
 // die Children werden anschliessend aus dem bereinigten Content geparst.
 
-// 4T-0087 (Epic 3E-0014): CALLOUT_TYPES und calloutIcon 2026-05-24 nach
+// 4T-000087 (Epic 3E-000014): CALLOUT_TYPES und calloutIcon 2026-05-24 nach
 // src/shared/callouts.js extrahiert, damit der Renderer-Prozess sie fuer
 // den Live-Modus ebenfalls importieren kann. Single Source of Truth.
 
@@ -219,7 +219,7 @@ function calloutsPlugin(mdInstance, options) {
   };
 }
 
-// 4T-0200 (Epic 3E-0017): Callout-Box-HTML als gemeinsame Helper-Funktionen
+// 4T-000200 (Epic 3E-000017): Callout-Box-HTML als gemeinsame Helper-Funktionen
 // (aus calloutsPlugin.renderHeaderHtml extrahiert, Logik unveraendert).
 // Custom Containers (`::: warning`) rendern darueber in identischer
 // Callout-Optik — Viewer-Variante (data-i18n-Titel) und Portable-Variante
@@ -271,7 +271,7 @@ function calloutBoxCloseHtml(isDetails) {
   return `</div></${isDetails ? 'details' : 'div'}>`;
 }
 
-// 4T-0200 (Epic 3E-0017): Custom Containers / Fenced Divs (Pandoc/
+// 4T-000200 (Epic 3E-000017): Custom Containers / Fenced Divs (Pandoc/
 // markdown-it-container):
 //
 //   ::: warning              — bekannter Callout-Typ -> Callout-Optik
@@ -290,7 +290,7 @@ function calloutBoxCloseHtml(isDetails) {
 
 const CONTAINER_INFO_RE = /^([a-z][a-z0-9-]*)(?:\s+(.*?))?\s*$/;
 
-// 4T-0382 (Epic 3E-0072): Spaltenzahl aus dem Info-String-Rest eines
+// 4T-000382 (Epic 3E-000072): Spaltenzahl aus dem Info-String-Rest eines
 // `::: columns <n>`-Containers. Gueltig sind strikt die ganzen Zahlen 2 bis 5
 // (PO-Vorgabe); fehlend, nicht-numerisch, 1 oder 6+ liefern null und fallen
 // im Renderer auf die neutrale Container-Box zurueck (kein Fehler).
@@ -325,7 +325,7 @@ function customContainersPlugin(mdInstance, options) {
           });
         }
         if (meta.kind === 'columns') {
-          // 4T-0382: CSS-Mehrspaltigkeit. Viewer ueber styles.css-Klassen;
+          // 4T-000382: CSS-Mehrspaltigkeit. Viewer ueber styles.css-Klassen;
           // Portable mit Inline-Styles (kein Stylesheet beim Empfaenger).
           const n = meta.count;
           const colsCls = `md-columns md-columns-${n}`;
@@ -358,7 +358,7 @@ function customContainersPlugin(mdInstance, options) {
         if (CALLOUT_TYPES[slug]) {
           meta = { kind: 'callout', slug, title: rest };
         } else if (slug === 'columns') {
-          // 4T-0382 (Epic 3E-0072): gueltige Spaltenzahl (2 bis 5) ergibt den
+          // 4T-000382 (Epic 3E-000072): gueltige Spaltenzahl (2 bis 5) ergibt den
           // Mehrspalten-Block; sonst neutrale Container-Box (Rueckfall).
           const count = parseColumnsCount(rest);
           meta = count ? { kind: 'columns', slug, count } : { kind: 'plain', slug, title: rest };
@@ -373,7 +373,7 @@ function customContainersPlugin(mdInstance, options) {
     }
   });
 
-  // 4T-0382 (Epic 3E-0072): Spalten-Umbruch-Marker `+++` auf eigener Zeile.
+  // 4T-000382 (Epic 3E-000072): Spalten-Umbruch-Marker `+++` auf eigener Zeile.
   // Innerhalb eines `::: columns`-Blocks erzwingt der emittierte
   // <div class="md-column-break"> per CSS `break-before: column` den
   // Spaltenwechsel; ausserhalb ist er wirkungslos (break-before ohne

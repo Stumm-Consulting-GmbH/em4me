@@ -1,7 +1,7 @@
 // IPC-Kanal-Gruppe Handbuch: Loader der gebuendelten Handbuch-Seiten, einzeln
 // und als Sammel-Abruf einer Sprache fuer die Handbuch-Suche.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: help:*.
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: help:*.
 //
 // Eigener Zustand: keiner, und keine Deps: Der Sicherheits-Kontrakt haengt
 // allein an der Seiten-Registry (Whitelist statt Pfad aus Renderer-Input).
@@ -19,18 +19,18 @@ const { MANUAL_PAGES, manualPageById } = require('../../shared/manual/manual-pag
  * @param {object} _deps Abhaengigkeiten aus main.js (dieses Modul braucht keine).
  */
 function registerHelpIpc(handle, _deps) {
-  // 4T-0213 (Epic 3E-0042): Generischer Handbuch-Seiten-Loader. Liefert
+  // 4T-000213 (Epic 3E-000042): Generischer Handbuch-Seiten-Loader. Liefert
   // die gebuendelte Seite src/i18n/help/<pageId>.<locale>.md — pageId
   // strikt gegen die Seiten-Registry geprueft (Whitelist statt Pfad aus
-  // Renderer-Input), Locale-Sanitizing und Fallback Englisch. Mit 4T-0216
-  // ist der fruehere Spezial-Loader fuer die Tabellen-Hilfeseite (4T-0036)
+  // Renderer-Input), Locale-Sanitizing und Fallback Englisch. Mit 4T-000216
+  // ist der fruehere Spezial-Loader fuer die Tabellen-Hilfeseite (4T-000036)
   // hierin aufgegangen.
-  // X-05 (4T-0182): Das fs-Lesen hier funktioniert auch IN der asar
+  // X-05 (4T-000182): Das fs-Lesen hier funktioniert auch IN der asar
   // (Electron patcht fs transparent). Der asarUnpack-Eintrag fuer
   // src/i18n/**/* in package.json existiert fuer den RENDERER, der seine
   // Sprachdateien per fetch('../i18n/<lang>.json') laedt (i18n.js) —
   // fetch kann nicht in die asar greifen.
-  // 4T-0758 (Epic 3E-0142): Die Datei-Aufloesung liegt in einem Helfer,
+  // 4T-000758 (Epic 3E-000142): Die Datei-Aufloesung liegt in einem Helfer,
   // weil sie seither zwei Aufrufer hat (Einzel-Seite und Sammel-Abruf der
   // Suche). Zwei Fassungen wuerden beim naechsten Eingriff auseinander
   // laufen, etwa beim Fallback-Verhalten.
@@ -55,7 +55,7 @@ function registerHelpIpc(handle, _deps) {
     ladeGebuendelteSeite(manualPageById(pageId), locale),
   );
 
-  // 4T-0758 (Epic 3E-0142): Alle gebuendelten Seiten einer Sprache in einem
+  // 4T-000758 (Epic 3E-000142): Alle gebuendelten Seiten einer Sprache in einem
   // Zug, fuer die Suche ueber das ganze Handbuch. Die generierten Seiten
   // entstehen im Renderer und sind hier bewusst nicht enthalten; der
   // Sicherheits-Kontrakt bleibt unveraendert, weil ueber die Registry

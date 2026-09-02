@@ -1,11 +1,11 @@
-// 4T-0213 (Epic 3E-0042): Handbuch im Tab-System.
+// 4T-000213 (Epic 3E-000042): Handbuch im Tab-System.
 //
 // Handbuch-Seiten oeffnen als pfadlose read-only Tabs (tab.manualPage =
 // Seiten-ID). Die Seiten-Registry liegt in src/shared/manual/manual-pages.js
 // (gemeinsame Quelle mit dem Main-seitigen Loader help:getManualPage).
 // Gebuendelte Seiten kommen per IPC aus src/i18n/help/<id>.<lang>.md
 // (Fallback Englisch im Main); generierte Seiten liefern die Generator-
-// Funktionen in diesem Modul (4T-0212: Funktions-Tabelle, Tastenkuerzel).
+// Funktionen in diesem Modul (4T-000212: Funktions-Tabelle, Tastenkuerzel).
 //
 // Pfadlose Tabs sind ohne Sonderbehandlung von Session-Persistenz
 // (buildPanesSnapshot filtert path-lose Tabs), Auto-Save (uebergeht Tabs
@@ -19,7 +19,7 @@ import { t } from '../i18n.js';
 import { api } from './app/api.js';
 import { MANUAL_PAGES, manualPageById } from '../../shared/manual/manual-pages.js';
 import { createTab, state } from './app/app-state.js';
-// 4T-0716 (Epic 3E-0137): Die prozessneutrale Erzeugungs-Logik der beiden
+// 4T-000716 (Epic 3E-000137): Die prozessneutrale Erzeugungs-Logik der beiden
 // generierten Seiten liegt im geteilten Modul (gemeinsam mit dem Web-Bau).
 // Hier werden nur die Laufzeit-Anteile eingereicht: die effektiven Bindings
 // (inkl. Nutzer-Overrides) und die aus den Erweiterungen deaktivierten
@@ -38,18 +38,18 @@ import { activatePane, activateTab } from './tabs/tabs.js';
 import { applyAllLayouts, invalidatePaneRenderCache } from './views/pane-render.js';
 import { persistState } from './views/views.js';
 
-// --- Generatoren der 'generated'-Seiten (4T-0212, 4T-0716) ------------------
+// --- Generatoren der 'generated'-Seiten (4T-000212, 4T-000716) ------------------
 // Beide Seiten entstehen zur Laufzeit als Markdown, damit alle vier View-Modi
 // inklusive Quellcode-Ansicht sauber funktionieren und keine Doppelpflege zu
 // den kanonischen Quellen (help.feature.*-Keys bzw. Kommando-Registry)
-// entsteht. Die Erzeugung selbst liegt seit 4T-0716 im geteilten Modul
+// entsteht. Die Erzeugung selbst liegt seit 4T-000716 im geteilten Modul
 // src/shared/manual/manual-generated.js (gemeinsam mit dem Web-Bau); hier werden nur
 // die Renderer-Uebersetzung t und die Laufzeit-Anteile eingereicht: die
 // effektiven Bindings inklusive Nutzer-Overrides und die aus den Erweiterungen
 // deaktivierten Kommandos. Das erzeugte Markdown bleibt Zeichen fuer Zeichen
 // dasselbe wie zuvor (verhaltensneutral).
 export function generateFunctionsPage() {
-  // 4T-0941: Der Zustand der Erweiterungen geht als Laufzeit-Anteil mit; der
+  // 4T-000941: Der Zustand der Erweiterungen geht als Laufzeit-Anteil mit; der
   // Erzeuger kennzeichnet die betroffenen Zeilen, statt sie wegzulassen.
   return buildFunctionsPage(t, {
     disabledFeatureKeys: disabledFeatureKeySet(getDisabledExtensionIds()),
@@ -133,7 +133,7 @@ export function resolveManualHref(href) {
 
 // Offene Handbuch-Tabs neu laden bzw. generieren — beim Sprachwechsel
 // (Inhalt und Tab-Titel wechseln mit) und bei Daten-Aenderungen, die
-// generierte Seiten betreffen (4T-0212: Hotkey-Overrides). Das Neu-
+// generierte Seiten betreffen (4T-000212: Hotkey-Overrides). Das Neu-
 // Zeichnen uebernimmt der Aufrufer (renderAllPanes laeuft in
 // applyLanguageChange ohnehin).
 export async function refreshOpenManualTabs() {
@@ -154,7 +154,7 @@ export async function refreshOpenManualTabs() {
 
 // Verdrahtungs-Schnittstelle zum Oeffnen einer Seite ohne direkten
 // Modul-Import (Muster scg:taskstates-changed): genutzt von der E2E-Suite
-// und ab 4T-0216 vom Hilfe-Einstieg (menu:openHelp -> Ueberblicksseite).
+// und ab 4T-000216 vom Hilfe-Einstieg (menu:openHelp -> Ueberblicksseite).
 document.addEventListener('scg:open-manual-page', (ev) => {
   const pageId = ev && ev.detail && ev.detail.pageId;
   if (pageId) openManualPage(pageId);

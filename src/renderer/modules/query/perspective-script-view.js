@@ -1,6 +1,6 @@
 'use strict';
 
-// 4T-0412 (Epic 3E-0078): Renderer-seitige Laufzeit der Skript-Blöcke
+// 4T-000412 (Epic 3E-000078): Renderer-seitige Laufzeit der Skript-Blöcke
 // (perspective-script). Der Fence rendert (markdown.js) als Platzhalter
 // <div class="perspective-script" data-script-source="…">. Dieses Modul
 // entscheidet über die Ausführung (Einstellung, Default aus), startet pro
@@ -8,7 +8,7 @@
 // <iframe sandbox="allow-scripts"> ohne allow-same-origin — opake Origin,
 // kein Parent-DOM, kein Preload, kein Netz dank eigener CSP), kommuniziert
 // ausschließlich über einen MessageChannel und übersetzt die serialisierte
-// Ausgabe-Beschreibung kontrolliert in DOM (Element-Whitelist, 4T-0413).
+// Ausgabe-Beschreibung kontrolliert in DOM (Element-Whitelist, 4T-000413).
 //
 // Muster frontmatter-query-view.js: modus-agnostisch (Render-Pane, Reading,
 // Live-Block-Widget), Generations-Token pro Container gegen veraltete
@@ -23,8 +23,8 @@ import { t } from '../../i18n.js';
 export const SCRIPT_RUN_TIMEOUT_MS = 5000;
 
 // --- Schalt-Zustand -----------------------------------------------------------
-// 4T-0412: internes Flag hinter dem Store-Key scripts.run (Default aus, nur
-// explizites true aktiviert). 4T-0414 ersetzt das Flag durch die echte
+// 4T-000412: internes Flag hinter dem Store-Key scripts.run (Default aus, nur
+// explizites true aktiviert). 4T-000414 ersetzt das Flag durch die echte
 // Einstellung (UI, Warntext, Broadcast); der Lese-Pfad hier bleibt derselbe.
 let scriptsEnabled = false;
 
@@ -46,7 +46,7 @@ export async function initPerspectiveScriptsFromStore() {
   setPerspectiveScriptsEnabled(stored === true);
 }
 
-// 4T-0414: Zustand anwenden und alle sichtbaren Skript-Blöcke neu aufbauen
+// 4T-000414: Zustand anwenden und alle sichtbaren Skript-Blöcke neu aufbauen
 // (Ausführung bzw. Quelltext-Rückfall) — ohne Neustart, modus-agnostisch
 // über die Platzhalter im DOM. Idempotent: läuft lokal beim Anwenden der
 // Einstellung und beim Multi-Window-Broadcast (auch im Sender-Fenster);
@@ -105,7 +105,7 @@ function errorNode(text) {
 }
 
 // Quelltext-Darstellung (Einstellung aus): Hinweis-Banner mit Verweis auf
-// die Einstellung (4T-0414) plus Code-Block wie der Default-Fence-Renderer,
+// die Einstellung (4T-000414) plus Code-Block wie der Default-Fence-Renderer,
 // damit der Block-Inhalt sichtbar bleibt. Exportiert für den jsdom-Unit-Test.
 export function renderSourceFallback(el, source, tFn) {
   const translate = typeof tFn === 'function' ? tFn : t;
@@ -127,7 +127,7 @@ export function renderSourceFallback(el, source, tFn) {
 // Positiv-Liste von Elementen und Attributen (Entwicklungsrichtlinien,
 // Sicherheits-Kapitel: Whitelists statt Blacklists); alles andere wird
 // verworfen. Interne Links laufen über den bestehenden data-fm-path-
-// Klick-Pfad der Abfrage-Treffer. 4T-0413 baut den Umfang aus (md-Knoten,
+// Klick-Pfad der Abfrage-Treffer. 4T-000413 baut den Umfang aus (md-Knoten,
 // Link-Auflösung gegen den Index); exportiert für den jsdom-Unit-Test.
 const ALLOWED_TAGS = new Set([
   'div',
@@ -182,7 +182,7 @@ const MAX_OUTPUT_DEPTH = 32;
 export function buildScriptOutputDom(output, basePath, tFn) {
   const translate = typeof tFn === 'function' ? tFn : t;
   const frag = document.createDocumentFragment();
-  // 4T-0413: basePath wandert im Budget-Objekt mit (md-Knoten rendern über
+  // 4T-000413: basePath wandert im Budget-Objekt mit (md-Knoten rendern über
   // die Pipeline mit Bild-/Link-Auflösung relativ zur Dokument-Basis).
   const budget = { nodes: 0, truncated: false, basePath: basePath || '' };
   appendNodes(frag, Array.isArray(output) ? output : [], 0, budget);
@@ -259,7 +259,7 @@ function appendNode(parent, node, depth, budget) {
     a.textContent = String(node.label || '') || path;
     a.title = path;
     a.dataset.fmPath = path;
-    // 4T-0413: Block-Ziele tragen den Anker — der Klick-Pfad springt nach
+    // 4T-000413: Block-Ziele tragen den Anker — der Klick-Pfad springt nach
     // dem Öffnen zum Block (bestehende Anker-Sprung-Mechanik der Abfrage).
     if (typeof node.anchor === 'string' && node.anchor) {
       a.dataset.fmAnchor = '^' + node.anchor;
@@ -276,7 +276,7 @@ function appendNode(parent, node, depth, budget) {
     return;
   }
   if (node.kind === 'md') {
-    // 4T-0413: Markdown-Ausgabe über die bestehende Render-Pipeline (kein
+    // 4T-000413: Markdown-Ausgabe über die bestehende Render-Pipeline (kein
     // Roh-HTML: die Pipeline rendert mit html:false und escapt selbst).
     // Dynamische Platzhalter (Skript-/Abfrage-Blöcke) werden entfernt —
     // keine rekursive Ausführung aus Skript-Ausgaben heraus.
@@ -415,7 +415,7 @@ export function renderScriptResult(el, msg, basePath, tFn) {
 
 // Startet den Lauf eines Skript-Block-Containers. Nicht async, damit
 // runStarted() synchron läuft und die Idle-Barriere den Lauf sicher erfasst.
-// 4T-0413: vor dem Sandbox-Start holt der Renderer den Daten-Snapshot über
+// 4T-000413: vor dem Sandbox-Start holt der Renderer den Daten-Snapshot über
 // das Abfrage-IPC und sendet ihn einmalig mit dem Run-Auftrag; ohne
 // basePath (Unbenannt-Tab) läuft das Skript ohne Index-Daten.
 function runOneScriptContainer(el, basePath) {
@@ -476,7 +476,7 @@ function renderIndexStatus(el, snapshot) {
   el.appendChild(errorNode(t('script.indexError')));
 }
 
-// 4T-0416-Befund (PO-Test-Iteration 0.53.0): Skript-Läufe pro Fenster
+// 4T-000416-Befund (PO-Test-Iteration 0.53.0): Skript-Läufe pro Fenster
 // SERIALISIEREN. Die Sandbox-iframes eines Fensters teilen sich einen
 // Renderer-Prozess; ein Endlos-Skript blockiert dessen Event-Loop und ließe
 // parallel gestartete Geschwister-Blöcke in deren Zeit-Limit laufen, obwohl
@@ -568,7 +568,7 @@ function executeInSandbox(el, token, source, snapshot, basePath, onDone) {
 // Findet alle perspective-script-Platzhalter im Container und führt sie aus.
 // Aufgerufen aus der Render-Pipeline (Render-Pane/Reading) und aus dem
 // Live-Block-Widget. basePath darf leer sein (Unbenannt-Tab): das Skript
-// läuft dann ohne Index-Daten (pq-Datenfunktionen liefern leer, 4T-0413).
+// läuft dann ohne Index-Daten (pq-Datenfunktionen liefern leer, 4T-000413).
 export function applyPerspectiveScriptsIfPresent(container, basePath) {
   if (!container || typeof container.querySelectorAll !== 'function') return;
   const els = container.querySelectorAll('.perspective-script[data-script-source]');
@@ -578,7 +578,7 @@ export function applyPerspectiveScriptsIfPresent(container, basePath) {
 // --- Live-Aktualisierung über die Index-Invalidierung ------------------------
 // Debounced-Neustart aller sichtbaren Skript-Blöcke, modus-agnostisch über
 // data-script-base (Muster refreshVisibleFrontmatterQueries). Wirksam ab dem
-// Daten-Snapshot aus 4T-0413 (Skripte lesen Index-Daten).
+// Daten-Snapshot aus 4T-000413 (Skripte lesen Index-Daten).
 let refreshTimer = null;
 
 export function refreshVisiblePerspectiveScripts() {

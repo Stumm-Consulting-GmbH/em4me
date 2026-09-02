@@ -1,4 +1,4 @@
-// 4T-0986 (Epic 3E-0196): Perspective Datatable — Ansicht.
+// 4T-000986 (Epic 3E-000196): Perspective Datatable — Ansicht.
 // Aus perspective-datatable.js herausgelöst: Anzeige-Formatierung der
 // Zell- und Aggregat-Werte, typ-gerechter Vergleich, Ansichts-Sortierung
 // und Zeilen-Filter sowie die Fence-Suche im Markdown-Quelltext.
@@ -12,11 +12,11 @@ const {
   makeCellValueResolver,
 } = require('./perspective-datatable-computed.js');
 
-// --- Anzeige-Formatierung (4T-0418) ------------------------------------------------
+// --- Anzeige-Formatierung (4T-000418) ------------------------------------------------
 
 // Wert -> Anzeige-Text. Bewusst ohne Locale-Umformatung (v1): Zahl in
 // Punkt-Dezimal gemäß Spalten-Format, Datum/Uhrzeit kanonisch — Anzeige
-// und Speicherform bleiben identisch lesbar (Task-Entscheidung 4T-0418).
+// und Speicherform bleiben identisch lesbar (Task-Entscheidung 4T-000418).
 function formatCellDisplay(col, value) {
   if (value == null) return '';
   if (col.type === 'number' && typeof value === 'number') {
@@ -31,7 +31,7 @@ function formatAggregateDisplay(col, entry) {
   return formatCellDisplay(col, entry.value);
 }
 
-// --- Ansichts-Sortierung und Filter (4T-0420) ---------------------------------------
+// --- Ansichts-Sortierung und Filter (4T-000420) ---------------------------------------
 
 // Typ-gerechter Vergleich zweier Zell-Werte: Zahl numerisch, Datum/Uhrzeit
 // chronologisch (kanonische Strings sind lexikographisch chronologisch),
@@ -52,7 +52,7 @@ function compareCellValues(type, a, b) {
 // Stabile Sortier-Reihenfolge der Zeilen-Indizes nach einer Spalte.
 // dir = 1 (aufsteigend) oder -1 (absteigend); fehlende Werte immer am
 // Ende. computed (optional, aus computeComputedCells) liefert die Werte
-// berechneter Spalten (4T-0421).
+// berechneter Spalten (4T-000421).
 function sortDatatableRows(model, colIdx, dir, computed) {
   const col = model.columns[colIdx];
   if (!col) return model.rows.map((row, i) => i);
@@ -73,7 +73,7 @@ function sortDatatableRows(model, colIdx, dir, computed) {
 // je Eintrag null (kein Filter), { text } (Enthaltensuche, case-insensitiv,
 // auf dem Anzeige-Text bzw. dem Rohtext von Fehler-Zellen) oder { bool }
 // (Dreifach-Umschalter: true/false). computed (optional) liefert die Werte
-// berechneter Spalten (4T-0421). Liefert die Indizes der sichtbaren Zeilen.
+// berechneter Spalten (4T-000421). Liefert die Indizes der sichtbaren Zeilen.
 function filterDatatableRows(model, filters, computed) {
   const dataIdx = dataIndexByColumn(model.columns);
   const active = [];
@@ -114,7 +114,7 @@ function filterDatatableRows(model, filters, computed) {
   return indices;
 }
 
-// --- Fence-Suche im Quelltext (4T-0419) ---------------------------------------------
+// --- Fence-Suche im Quelltext (4T-000419) ---------------------------------------------
 
 // Findet alle perspective-datatable-Fences auf oberster Ebene eines
 // Markdown-Texts (Zeilen-Scan mit Fence-Zustand: innerhalb eines fremden

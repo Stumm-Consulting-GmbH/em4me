@@ -2,7 +2,7 @@
 // Schnappschuss einer Applikation und das Schreiben der Store-Schluessel
 // 'apps' und 'workspaces'.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Bewusst neben der
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Bewusst neben der
 // Fenster-Verwaltung und nicht in ihr: Erzeugung und Lebenszyklus eines
 // Fensters einerseits, sein persistierter Abdruck andererseits sind zwei
 // Verantwortlichkeiten, und zusammen rissen sie das Datei-Budget.
@@ -59,7 +59,7 @@ function createWindowPersistence(deps) {
 
   function saveBoundsForWindow(win) {
     if (!win || win.isDestroyed()) return null;
-    // M-07 (4T-0173): minimiert liefert getNormalBounds die Restore-Bounds.
+    // M-07 (4T-000173): minimiert liefert getNormalBounds die Restore-Bounds.
     // Vorher returnte der Pfad null und persistAllWindows ueberschrieb die
     // gespeicherten Bounds mit null (naechster Start mit Default-Groesse).
     // Nur Fullscreen bleibt ausgeschlossen (in dieser App ohne UI-Pfad).
@@ -94,7 +94,7 @@ function createWindowPersistence(deps) {
 
   // Live-Snapshot einer App im Persistenz-Format (Bounds und letzte vom
   // Renderer gemeldete Pane-Struktur pro Fenster). null ohne lebende Fenster.
-  // 4T-0537: aus persistAllWindows extrahiert, weil workspace:saveAs denselben
+  // 4T-000537: aus persistAllWindows extrahiert, weil workspace:saveAs denselben
   // Snapshot als Erst-Stand des neuen Arbeitsbereichs braucht.
   function liveAppSnapshot(appId) {
     const winEntries = [];
@@ -110,12 +110,12 @@ function createWindowPersistence(deps) {
     }
     if (winEntries.length === 0) return null;
     const area = appRegistry.getArea(appId);
-    // 4T-0843 (Epic 3E-0147): aktives Buch der App mitfuehren, damit die
-    // Sitzungs-Wiederherstellung es zurueckbringt (Story 4S-0752, AK4). Das
+    // 4T-000843 (Epic 3E-000147): aktives Buch der App mitfuehren, damit die
+    // Sitzungs-Wiederherstellung es zurueckbringt (Story 4S-000752, AK4). Das
     // Feld entsteht nur bei geoeffnetem Buch (Schema-Kommentar in
     // session-schema.js).
     const bookDir = activeBooks().get(appId);
-    // 4T-0867 (Epic 3E-0162): aktives Regal ebenso mitfuehren (Story 4S-0760,
+    // 4T-000867 (Epic 3E-000162): aktives Regal ebenso mitfuehren (Story 4S-000760,
     // AK5); das Feld entsteht nur bei geoeffnetem Regal.
     const shelfDir = activeShelves().get(appId);
     return {
@@ -129,10 +129,10 @@ function createWindowPersistence(deps) {
   // Persistiert den aktuellen Stand ALLER Fenster (Bounds und letzte vom Renderer
   // gemeldete Pane-Struktur) in den Store. Wird bei Bounds-Aenderungen, beim
   // Wechsel des Maximiert-Status und beim App-Quit aufgerufen.
-  // 4T-0320: Schema ueber logische Applikationen (Store-Key 'apps'): pro App
+  // 4T-000320: Schema ueber logische Applikationen (Store-Key 'apps'): pro App
   // Bereichs-Bindung plus Fenster-Liste. Der Bereichsname wird nicht
   // persistiert (beim Restore aus rootPath abgeleitet).
-  // 4T-0537: Apps mit Arbeitsbereichs-Zuordnung landen im app-Feld ihres
+  // 4T-000537: Apps mit Arbeitsbereichs-Zuordnung landen im app-Feld ihres
   // 'workspaces'-Eintrags statt in 'apps'; eingefrorene (geschlossene)
   // Arbeitsbereiche bleiben unangetastet. Beide Keys gehen in EINEM
   // store.set-Aufruf raus (ein Dateischreibvorgang, kein Zwischenzustand).

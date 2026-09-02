@@ -1,4 +1,4 @@
-// 4T-0603 / 4T-0604 (Epic 3E-0113): E2E-Suite fuer die Eingabe-Automatiken.
+// 4T-000603 / 4T-000604 (Epic 3E-000113): E2E-Suite fuer die Eingabe-Automatiken.
 //
 // EA-01 bis EA-07: Link-Einfuegen in die Auswahl (Paste-Handler). Die reinen
 // Erkennungs- und Klammer-Regeln sind in den Unit-Tests bewiesen
@@ -197,7 +197,7 @@ test.describe('EA-06: Undo nimmt die Umwandlung in einem Schritt zurueck', () =>
 });
 
 test.describe('EA-07: Strg+Umschalt+V bleibt reines Einfuegen', () => {
-  // Befund PO-Test 4T-0603: das paste-Ereignis kennt den Umschalt-Zustand
+  // Befund PO-Test 4T-000603: das paste-Ereignis kennt den Umschalt-Zustand
   // nicht, der Handler merkt ihn sich ueber den vorausgehenden keydown.
   test('mit Umschalt entsteht kein Link, danach greift Strg+V wieder', async () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
@@ -230,7 +230,7 @@ test.describe('EA-07: Strg+Umschalt+V bleibt reines Einfuegen', () => {
   });
 });
 
-// --- 4T-0604: Erstellungs- und Aenderungszeitpunkt beim Speichern ------------
+// --- 4T-000604: Erstellungs- und Aenderungszeitpunkt beim Speichern ------------
 
 const TS_ON = {
   createdEnabled: true,

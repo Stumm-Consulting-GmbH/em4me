@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-// 4T-1054 (Epic 3E-0151): Wächter der Ansichts-Klassenliste.
+// 4T-001054 (Epic 3E-000151): Wächter der Ansichts-Klassenliste.
 //
 // **Anlass.** Die Liste der zu entfernenden Modus-Klassen stand an fünf
 // Stellen im Code (Modus-Umschaltung, System-Seiten- und Normal-Pfad des
 // Pane-Renderns, zweimal der PDF-Export, Wechsel in den Bearbeiten-Modus).
-// Der fünfte Modus wurde in 4T-1047 nur an einer davon nachgezogen; die
+// Der fünfte Modus wurde in 4T-001047 nur an einer davon nachgezogen; die
 // Mindmap blieb deshalb über der Einstellungs-Seite stehen. Seither gibt es
 // genau eine Liste, und dieser Wächter hält sie vollständig.
 //
@@ -31,7 +31,7 @@ const AUFRUFER = [
   'src/renderer/modules/views/pdf-export.js',
 ];
 
-describe('Ansichts-Klassen: eine Quelle (4T-1054)', () => {
+describe('Ansichts-Klassen: eine Quelle (4T-001054)', () => {
   it('jeder bekannte Modus hat genau eine Klasse', () => {
     expect(VIEW_MODE_CLASSES).toHaveLength(VIEW_MODES.length);
     for (const modus of VIEW_MODES) {
@@ -65,9 +65,9 @@ describe('Ansichts-Klassen: eine Quelle (4T-1054)', () => {
   });
 });
 
-describe('Ansichts-Schaltflächen der Statusleiste (4T-1055)', () => {
-  // **Anlass.** Der Mindmap-Modus kam in 4T-1047 in Menü und Befehlspalette
-  // an, nicht aber in die Statusleiste, obwohl Story 4S-0804 (AK1) alle drei
+describe('Ansichts-Schaltflächen der Statusleiste (4T-001055)', () => {
+  // **Anlass.** Der Mindmap-Modus kam in 4T-001047 in Menü und Befehlspalette
+  // an, nicht aber in die Statusleiste, obwohl Story 4S-000804 (AK1) alle drei
   // Wege verlangt. Der Befund fiel erst beim Struktur-Prüfschritt des
   // Hilfe-Tasks auf. Dieser Wächter hält Schaltflächen-Satz und Modus-Liste
   // zusammen, damit ein weiterer Modus nicht wieder ohne Schaltfläche bleibt.
@@ -99,7 +99,7 @@ describe('Ansichts-Schaltflächen der Statusleiste (4T-1055)', () => {
   });
 });
 
-describe('Ansichts-Klassen: Verhalten der gemeinsamen Funktion (4T-1054)', () => {
+describe('Ansichts-Klassen: Verhalten der gemeinsamen Funktion (4T-001054)', () => {
   const baueElement = () => {
     const el = document.createElement('div');
     el.className = 'content';

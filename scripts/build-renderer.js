@@ -11,22 +11,22 @@ const root = path.join(__dirname, '..');
 const entry = path.join(root, 'src', 'renderer', 'renderer.js');
 const outfile = path.join(root, 'src', 'renderer', 'renderer.bundle.js');
 
-// 4T-0023: highlight.js-Themes vor dem Bundle bauen. Erzeugt
+// 4T-000023: highlight.js-Themes vor dem Bundle bauen. Erzeugt
 // src/renderer/hljs-themes.css aus den GitHub-Light/Dark-Themes.
 const { buildHljsThemes } = require('./build-hljs-themes.js');
 buildHljsThemes();
 
-// 4T-0022: KaTeX-Assets (CSS + woff2-Fonts) nach src/renderer/katex/ kopieren.
+// 4T-000022: KaTeX-Assets (CSS + woff2-Fonts) nach src/renderer/katex/ kopieren.
 const { buildKatexAssets } = require('./build-katex-assets.js');
 buildKatexAssets();
 
-// 4T-0644: Overlay-CSS von driver.js nach src/renderer/driverjs/ kopieren
+// 4T-000644: Overlay-CSS von driver.js nach src/renderer/driverjs/ kopieren
 // (geführte Produkt-Tour). Die Theme-Anpassung dazu ist versioniert und liegt
 // in src/renderer/styles/tour.css.
 const { buildTourAssets } = require('./build-tour-assets.js');
 buildTourAssets();
 
-// 4T-0021: separater Mermaid-Bundle, der vom Renderer lazy geladen wird.
+// 4T-000021: separater Mermaid-Bundle, der vom Renderer lazy geladen wird.
 // Wird hier synchron gebaut, damit das Ergebnis bereits liegt, bevor das
 // Haupt-Renderer-Bundle gebaut wird.
 const { buildMermaid } = require('./build-mermaid.js');
@@ -42,14 +42,14 @@ const buildOptions = {
   target: ['chrome120'],
   sourcemap: false,
   legalComments: 'none',
-  // X-06 (4T-0182): minifizieren wie der Mermaid-Bundle; Debug laeuft im
+  // X-06 (4T-000182): minifizieren wie der Mermaid-Bundle; Debug laeuft im
   // Dev-Modus ueber die Quelle, nicht ueber den Bundle.
   minify: true,
   logLevel: 'info',
 };
 
 async function main() {
-  // 4T-0021: Mermaid-Bundle vor dem Haupt-Renderer-Bundle bauen.
+  // 4T-000021: Mermaid-Bundle vor dem Haupt-Renderer-Bundle bauen.
   await buildMermaid();
   if (watch) {
     const ctx = await esbuild.context(buildOptions);

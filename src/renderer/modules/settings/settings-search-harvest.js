@@ -1,4 +1,4 @@
-// 4T-0761 (Epic 3E-0142), ausgezogen mit 4T-0988 (Epic 3E-0196):
+// 4T-000761 (Epic 3E-000142), ausgezogen mit 4T-000988 (Epic 3E-000196):
 // erntbarer Text der Einstellungs-Bereiche für die Suche.
 //
 // Einziger Verbraucher ist die Such-Sektion (settings-search.js); Ernte und
@@ -12,7 +12,7 @@ import { buildDraft } from './settings-draft.js';
 import { activateSection, settingsPageEls } from './settings-mount.js';
 import { pageState } from './settings-shared.js';
 
-// 4T-0761 (Epic 3E-0142): Erntbarer Text aller Einstellungs-Bereiche fuer
+// 4T-000761 (Epic 3E-000142): Erntbarer Text aller Einstellungs-Bereiche fuer
 // die Suche.
 //
 // Der Text entsteht, indem jeder Bereich einmal in einen ABGEKOPPELTEN
@@ -31,7 +31,7 @@ import { pageState } from './settings-shared.js';
 // Rueckgabe je Bereich: { id, titel, gruppe, zeilen: [Text, ...] }. Die
 // Zeilen-Reihenfolge ist zugleich die Sprung-Adresse (Zeile 0 = Titel).
 //
-// 4T-0872 (PO-Befund vom 2026-08-04, Story 4S-0457 AK2): Ernte und Sprung
+// 4T-000872 (PO-Befund vom 2026-08-04, Story 4S-000457 AK2): Ernte und Sprung
 // teilen sich EINEN Selektor, damit Zeilen-Index und Sprung-Ziel nie
 // auseinanderlaufen. Neben den drei Standard-Klassen erfasst er die
 // Bereiche mit eigenem Markup: die Erweiterungs-Zeilen (interne und
@@ -82,7 +82,7 @@ export function erntbareBereiche() {
   return ergebnis;
 }
 
-// 4T-0761: Bereich aktivieren und eine Zeile hervorheben (Sprung-Ziel der
+// 4T-000761: Bereich aktivieren und eine Zeile hervorheben (Sprung-Ziel der
 // Suche). Der Entwurf bleibt unberuehrt; ein Bereichswechsel speichert
 // nichts.
 export function springeZuBereich(sectionId, zeilenIndex) {

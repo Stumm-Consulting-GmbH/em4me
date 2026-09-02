@@ -2,7 +2,7 @@
 // Ordner-Listing und Datei-Anlage innerhalb der Bereichs-Grenze, dazu die
 // Anlage der mitgelieferten Demo-Area.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: area:*,
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: area:*,
 // demoArea:*.
 //
 // Eigener Zustand: keiner; Bereichs-Bindung und Applikations-Registry kommen
@@ -12,10 +12,10 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { createDemoAreaAt } = require('../area/demo-area.js');
-// 4T-0645 (Epic 3E-0127): Zustands-Vorlage der Beispiel-Sammlung.
+// 4T-000645 (Epic 3E-000127): Zustands-Vorlage der Beispiel-Sammlung.
 const { loadDemoWorkspaces } = require('../area/demo-workspace.js');
 const { isInsideArea, sortedAreaListing, sanitizeNewFileName } = require('../area/area-path');
-// 4T-1293 (Epic 3E-0224): Teil-Dateien bleiben aus der Ordner-Liste heraus.
+// 4T-001293 (Epic 3E-000224): Teil-Dateien bleiben aus der Ordner-Liste heraus.
 const { isPartBasename } = require('../../shared/document-parts');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
@@ -52,19 +52,19 @@ function registerAreasIpc(handle, deps) {
     openAreaPath,
     closeAreaApp,
     isMarkdownPath,
-    // 4T-0645 (Epic 3E-0127): Ablage der Arbeitsbereiche fuer die
+    // 4T-000645 (Epic 3E-000127): Ablage der Arbeitsbereiche fuer die
     // Zustands-Vorlage der Beispiel-Sammlung.
     getStore,
     workspacesState,
     setWorkspacesState,
     workspacesChanged,
-    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs.
+    // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs.
     resolveAreaStartPage,
     writeAreaStartPage,
     startPageRelative,
   } = deps;
 
-  // 4T-0645 (Epic 3E-0127): Die Beispiel-Sammlung bringt ihren Fenster- und
+  // 4T-000645 (Epic 3E-000127): Die Beispiel-Sammlung bringt ihren Fenster- und
   // Gruppen-Zustand als Vorlage mit; hier wird sie nach dem Kopieren zu
   // benannten Arbeitsbereichen. Die reine Bau-Logik liegt in
   // area/demo-workspace.js, dieses Stueck traegt sie in die Ablage ein.
@@ -140,7 +140,7 @@ function registerAreasIpc(handle, deps) {
     }
   }
 
-  // --- 4T-0322 (Epic 3E-0058): Bereiche ---------------------------------------
+  // --- 4T-000322 (Epic 3E-000058): Bereiche ---------------------------------------
   // "Bereich oeffnen..." mit Ordner-Dialog.
   handle('area:open', async (event) => {
     const owner = senderWindow(event);
@@ -154,7 +154,7 @@ function registerAreasIpc(handle, deps) {
     return openAreaPath(result.filePaths[0], owner);
   });
 
-  // --- 4T-0632 (Epic 3E-0102): Demo-Area --------------------------------------
+  // --- 4T-000632 (Epic 3E-000102): Demo-Area --------------------------------------
   // "Demo-Area erstellen..." mit Ordner-Dialog: mitgelieferte Demo-Inhalte
   // in einen LEEREN Zielordner kopieren und direkt als Bereich oeffnen.
   // Nicht-leerer Zielordner: lokalisierter Hinweis, es wird niemals
@@ -210,7 +210,7 @@ function registerAreasIpc(handle, deps) {
     return openAreaPath(rootPath, senderWindow(event));
   });
 
-  // --- 4T-0327 (Epic 3E-0059): Bereichs-Panel ---------------------------------
+  // --- 4T-000327 (Epic 3E-000059): Bereichs-Panel ---------------------------------
   // Listet Unterordner und Markdown-Dateien EINES Ordners innerhalb des
   // Bereichs der aufrufenden App (lazy pro aufgeklapptem Ordner). Lese-
   // Fehler einzelner Ordner liefern leere Listen statt eines Abbruchs
@@ -227,7 +227,7 @@ function registerAreasIpc(handle, deps) {
         entries.map((e) => ({ name: e.name, isDir: e.isDirectory() })),
         isMarkdownPath,
       );
-      // 4T-1293 (Epic 3E-0224, Entscheidung des Product Owners vom
+      // 4T-001293 (Epic 3E-000224, Entscheidung des Product Owners vom
       // 2026-08-31): Teil-Dateien erscheinen nicht in der Ordner-Liste. Sie
       // sind keine eigenen Dokumente, und ein Klick auf einen Teil oeffnet
       // ohnehin dasselbe Gesamt-Dokument — der Eintrag waere redundant und
@@ -245,7 +245,7 @@ function registerAreasIpc(handle, deps) {
     }
   });
 
-  // 4T-0328: "Neue Datei in diesem Ordner" — legt eine leere Markdown-Datei
+  // 4T-000328: "Neue Datei in diesem Ordner" — legt eine leere Markdown-Datei
   // im (bereichs-internen) Ordner an. Namens-Validierung ueber
   // sanitizeNewFileName; bestehende Dateien werden nicht ueberschrieben.
   handle('area:createFile', async (event, params) => {
@@ -277,7 +277,7 @@ function registerAreasIpc(handle, deps) {
     return closeAreaApp(appId);
   });
 
-  // --- 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs -----------------------
+  // --- 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs -----------------------
 
   // Aktuelle Festlegung des Bereichs melden. { hasArea: false } ohne Bereich;
   // sonst { hasArea: true, path } mit dem absoluten Pfad bzw. null.
@@ -290,7 +290,7 @@ function registerAreasIpc(handle, deps) {
 
   // Start-Seite setzen (absoluter Pfad einer Datei im Bereich) oder entfernen
   // (filePath = null). Gespeichert wird ein WURZEL-RELATIVER Pfad, damit die
-  // Festlegung den Umzug des Bereichs ueberlebt (4T-1363, Invariante I2).
+  // Festlegung den Umzug des Bereichs ueberlebt (4T-001363, Invariante I2).
   //
   // Muster history:setAreaDefault: Die Bereichsdatei entsteht erst beim ersten
   // tatsaechlichen Setzen, und eine defekte Bereichsdatei wird nie

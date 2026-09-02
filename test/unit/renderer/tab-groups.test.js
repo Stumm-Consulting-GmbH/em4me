@@ -1,4 +1,4 @@
-// 4T-0459 (Epic 3E-0085): Tab-Gruppen-Modell — Invarianten-Helfer und
+// 4T-000459 (Epic 3E-000085): Tab-Gruppen-Modell — Invarianten-Helfer und
 // Sitzungs-Persistenz (reines Modul, kein DOM/IPC noetig).
 import { describe, it, expect } from 'vitest';
 import {
@@ -26,7 +26,7 @@ import {
   removeTabsFromGroup,
   restoreGroupsIntoPane,
 } from '../../../src/renderer/modules/tabs/tab-groups.js';
-// 4T-0461: Registrierung der Erweiterung tab-groups (Aus-Zustand wird in
+// 4T-000461: Registrierung der Erweiterung tab-groups (Aus-Zustand wird in
 // TG-08 der E2E-Spec tab-gruppen.spec.js geprueft; hier die Registry-Seite).
 import { extensionById, isExtensionId } from '../../../src/shared/extensions/extensions.js';
 import { disabledCommandIdSet } from '../../../src/shared/extensions/extensions-core.js';
@@ -44,7 +44,7 @@ function names(p) {
   return p.tabs.map((t) => t.path);
 }
 
-describe('Tab-Gruppen: Basis-Helfer (4T-0459)', () => {
+describe('Tab-Gruppen: Basis-Helfer (4T-000459)', () => {
   it('Palette hat genau acht eindeutige Schluessel', () => {
     expect(TAB_GROUP_COLOR_KEYS).toHaveLength(8);
     expect(new Set(TAB_GROUP_COLOR_KEYS).size).toBe(8);
@@ -84,7 +84,7 @@ describe('Tab-Gruppen: Basis-Helfer (4T-0459)', () => {
   });
 });
 
-describe('Tab-Gruppen: Mitgliedschaft und Zusammenhang (4T-0459)', () => {
+describe('Tab-Gruppen: Mitgliedschaft und Zusammenhang (4T-000459)', () => {
   it('addTabToGroup verschiebt einen spaeteren Tab ans Block-Ende', () => {
     const p = pane([tab('a'), tab('b'), tab('c'), tab('d')], 3);
     const g = createTabGroup(p, 0, {});
@@ -145,7 +145,7 @@ describe('Tab-Gruppen: Mitgliedschaft und Zusammenhang (4T-0459)', () => {
   });
 });
 
-describe('Tab-Gruppen: Einfuege-Semantik (4T-0459)', () => {
+describe('Tab-Gruppen: Einfuege-Semantik (4T-000459)', () => {
   // Streifen: a [b c] d (Gruppe tgX)
   function stripe() {
     const p = pane([tab('a'), tab('b'), tab('c'), tab('d')]);
@@ -180,11 +180,11 @@ describe('Tab-Gruppen: Einfuege-Semantik (4T-0459)', () => {
   });
 });
 
-// 4T-0766 (Epic 3E-0158): Mengen-Fassungen der drei Einzel-Operationen. Die
+// 4T-000766 (Epic 3E-000158): Mengen-Fassungen der drei Einzel-Operationen. Die
 // Menge tritt am Block-ENDE bei (PO-Entscheidung vom 2026-07-28), verlaesst
 // die Gruppe hinter ihrem Block und bildet eine neue Gruppe an der Stelle des
 // ersten Ausgewaehlten.
-describe('Tab-Gruppen: Mengen-Operationen (4T-0766)', () => {
+describe('Tab-Gruppen: Mengen-Operationen (4T-000766)', () => {
   it('addTabsToGroup haengt die Menge in Streifen-Reihenfolge ans Block-Ende', () => {
     const p = pane([tab('x'), tab('a'), tab('y'), tab('z')], 0);
     const g = createTabGroup(p, 1, {});
@@ -260,10 +260,10 @@ describe('Tab-Gruppen: Mengen-Operationen (4T-0766)', () => {
   });
 });
 
-// 4T-0648 (Epic 3E-0130): Ein Reiter, der aus einem anderen heraus entsteht,
+// 4T-000648 (Epic 3E-000130): Ein Reiter, der aus einem anderen heraus entsteht,
 // liegt unmittelbar rechts neben diesem Herkunfts-Reiter. Loest die
-// Einfuegung am Gruppen-Ende aus 4T-0631 ab. 'h' steht fuer den Folge-Reiter.
-describe('Tab-Gruppen: Platzierung neben dem Herkunfts-Reiter (4T-0648)', () => {
+// Einfuegung am Gruppen-Ende aus 4T-000631 ab. 'h' steht fuer den Folge-Reiter.
+describe('Tab-Gruppen: Platzierung neben dem Herkunfts-Reiter (4T-000648)', () => {
   it('insertTabNextTo fuegt hinter dem Herkunfts-Reiter ein', () => {
     const p = pane([tab('a'), tab('b'), tab('c')]);
     const idx = insertTabNextTo(p, tab('h'), 1);
@@ -378,7 +378,7 @@ describe('Tab-Gruppen: Platzierung neben dem Herkunfts-Reiter (4T-0648)', () => 
   });
 });
 
-describe('Tab-Gruppen: Klapp-Zustand (4T-0459)', () => {
+describe('Tab-Gruppen: Klapp-Zustand (4T-000459)', () => {
   it('isTabVisible respektiert collapsed', () => {
     const p = pane([tab('a'), tab('b'), tab('c'), tab('d')]);
     const g = createTabGroup(p, 1, {});
@@ -390,10 +390,10 @@ describe('Tab-Gruppen: Klapp-Zustand (4T-0459)', () => {
     expect(isTabVisible(p, 3)).toBe(true);
   });
 
-  // 4T-0767 (Epic 3E-0158): Die Sichtbarkeits-Garantie des aktiven Reiters ist
+  // 4T-000767 (Epic 3E-000158): Die Sichtbarkeits-Garantie des aktiven Reiters ist
   // entfallen; eine zugeklappte Gruppe darf ihn enthalten. Die frueheren
   // Faelle zu expandGroupOfTab, nextVisibleTabIndex und ensureActiveTabVisible
-  // (4T-0460) sind mit diesen Helfern entfallen.
+  // (4T-000460) sind mit diesen Helfern entfallen.
   it('ein verborgener Reiter darf der aktive sein', () => {
     const p = pane([tab('a'), tab('b')], 0);
     const g = createTabGroup(p, 0, {});
@@ -404,7 +404,7 @@ describe('Tab-Gruppen: Klapp-Zustand (4T-0459)', () => {
   });
 });
 
-describe('Tab-Gruppen: Block-Verschiebung (4T-0460)', () => {
+describe('Tab-Gruppen: Block-Verschiebung (4T-000460)', () => {
   it('moveGroupWithinPane verschiebt den Block und haelt den aktiven Tab', () => {
     // Streifen: [a b] c d, aktiv 'c'; Gruppe ans Ende ziehen.
     const p = pane([tab('a'), tab('b'), tab('c'), tab('d')], 2);
@@ -440,7 +440,7 @@ describe('Tab-Gruppen: Block-Verschiebung (4T-0460)', () => {
   });
 });
 
-describe('Tab-Gruppen: Normalisierung (4T-0459)', () => {
+describe('Tab-Gruppen: Normalisierung (4T-000459)', () => {
   it('repariert Nicht-Zusammenhang durch stabile Umordnung', () => {
     const p = pane([tab('a', 'tg1'), tab('x'), tab('b', 'tg1'), tab('y')], 1);
     p.groups = [{ id: 'tg1', name: 'G', color: 'blue', collapsed: false }];
@@ -470,7 +470,7 @@ describe('Tab-Gruppen: Normalisierung (4T-0459)', () => {
   });
 });
 
-describe('Erweiterung tab-groups (4T-0461)', () => {
+describe('Erweiterung tab-groups (4T-000461)', () => {
   it('ist als Werkzeug-Erweiterung registriert und traegt keine Kommandos', () => {
     expect(isExtensionId('tab-groups')).toBe(true);
     const manifest = extensionById('tab-groups');
@@ -483,7 +483,7 @@ describe('Erweiterung tab-groups (4T-0461)', () => {
   });
 });
 
-describe('Tab-Gruppen: Sitzungs-Persistenz (4T-0459)', () => {
+describe('Tab-Gruppen: Sitzungs-Persistenz (4T-000459)', () => {
   it('buildGroupsSnapshot arbeitet auf den gefilterten Indizes', () => {
     // Streifen: a [b (System) c] d — der pfadlose System-Tab faellt aus
     // der Sitzung, die Gruppe bleibt mit 'c' erhalten.

@@ -2,7 +2,7 @@
 // Existenz- und Zeitstempel-Abfragen, Ende der Beobachtung sowie die beiden
 // Schreib-Wege (Speichern und Speichern unter).
 //
-// Auszug aus main.js, 4T-0999 (Epic 3E-0196). Kanal-Gruppe: file:*.
+// Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: file:*.
 //
 // Eigener Zustand: keiner. Electron-Werte kommen ueber das Deps-Objekt, damit
 // das Modul zur Lade-Zeit ohne Electron ladbar bleibt.
@@ -12,8 +12,8 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('../documents/self-write');
-// 4T-1290 (Epic 3E-0224): Zusammensetzen geteilter Dokumente beim Lesen.
-// 4T-1291: Zerlegen beim Schreiben.
+// 4T-001290 (Epic 3E-000224): Zusammensetzen geteilter Dokumente beim Lesen.
+// 4T-001291: Zerlegen beim Schreiben.
 const {
   readAssembledDocument,
   readStateForSave,
@@ -23,7 +23,7 @@ const {
 const { planeZerlegung, ueberSchwelle, DOKUMENT_SCHWELLE } = require('../../shared/document-split');
 const { assembleParts } = require('../../shared/document-assembly');
 
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
@@ -67,11 +67,11 @@ function registerFilesIpc(handle, deps) {
 
   handle('file:openDialog', async (event) => {
     const owner = senderWindow(event);
-    // 4T-0323 (Epic 3E-0058): in Bereichs-Apps startet der Dialog im Bereich;
+    // 4T-000323 (Epic 3E-000058): in Bereichs-Apps startet der Dialog im Bereich;
     // die Vorbelegung allein ist keine Grenze — nach der Auswahl wird geprueft
     // und ausserhalb liegende Auswahl mit Meldung abgewiesen.
     const area = areaOfWindow(owner);
-    // M-09 (4T-0185): Titel und Filter-Namen lokalisiert (vorher
+    // M-09 (4T-000185): Titel und Filter-Namen lokalisiert (vorher
     // hartkodiert deutsch in allen Sprachen).
     const result = await dialog.showOpenDialog(owner || undefined, {
       title: tForWindow(owner, 'open.dialogTitle'),
@@ -103,18 +103,18 @@ function registerFilesIpc(handle, deps) {
   });
 
   handle('file:read', async (event, filePath) => {
-    // W-01 (4T-0309): defensiver Typ-Guard und {ok,error}-Rueckgabe statt
+    // W-01 (4T-000309): defensiver Typ-Guard und {ok,error}-Rueckgabe statt
     // Exception ueber die IPC-Grenze (Entwicklungsrichtlinien §3).
     if (typeof filePath !== 'string' || !filePath) {
       return { ok: false, error: 'invalid path' };
     }
-    // 4T-0331 (Epic 3E-0060): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind keine
+    // 4T-000331 (Epic 3E-000060): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind keine
     // Dokumente — Direkt-Oeffnen wird abgelehnt. Autoritative zweite Linie
     // hinter dem Renderer-Hinweis in openInPane.
     if (isMddPath(filePath)) {
       return { ok: false, error: 'mdd-file' };
     }
-    // 4T-0323 (Epic 3E-0058): harte Bereichs-Grenze als zweite Linie hinter
+    // 4T-000323 (Epic 3E-000058): harte Bereichs-Grenze als zweite Linie hinter
     // den UI-Pfaden — Bereichs-Apps lesen keine Dateien ausserhalb des
     // Bereichs, egal ueber welchen Weg der Pfad hereinkommt.
     const ownerArea = areaOfWindow(senderWindow(event));
@@ -124,17 +124,17 @@ function registerFilesIpc(handle, deps) {
     try {
       const absolute = path.resolve(filePath);
       const raw = await fs.readFile(absolute, 'utf8');
-      // M-04 (4T-0173): UTF-8-BOM entfernen. markdown-it normalisiert kein
+      // M-04 (4T-000173): UTF-8-BOM entfernen. markdown-it normalisiert kein
       // BOM — ein '# Heading' in Zeile 1 wuerde nicht als Heading erkannt,
       // und die Frontmatter-Erkennung ('---' an Zeilenanfang) schluege fehl.
-      // 4T-0069 (Epic 3E-0012): Zeilenenden auf LF normalisieren, damit der
+      // 4T-000069 (Epic 3E-000012): Zeilenenden auf LF normalisieren, damit der
       // Lese-Pfad symmetrisch zu file:save ist (das ebenfalls CRLF zu LF
       // konvertiert). Hintergrund: CodeMirror normalisiert beim
       // EditorState.create() intern auf LF, und der dirty-Flag-Vergleich
       // gegen tab.originalContent schlug bei CRLF-Dateien sonst sofort an —
       // selbst ohne User-Aenderung wurde der Tab als geaendert markiert.
       const content = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
-      // 4T-1290 (Epic 3E-0224): Ist das Dokument geteilt, wird es HIER zu
+      // 4T-001290 (Epic 3E-000224): Ist das Dokument geteilt, wird es HIER zu
       // einem Dokument zusammengesetzt. Dies ist die einzige Lese-Stelle der
       // Anwendung; alles dahinter — Editor, Historie, Beobachtung, Suche —
       // sieht deshalb nur ein vollstaendiges Dokument und muss von Teilen
@@ -152,7 +152,7 @@ function registerFilesIpc(handle, deps) {
       // (Sitzungs-Restore, Auto-Reload). Aktives Oeffnen meldet sich separat
       // ueber recent:push aus dem Renderer.
       watchFile(docPath, event.sender.id);
-      // 4T-0331 (Epic 3E-0060): Hash-Abgleich beim Oeffnen — Fremd-
+      // 4T-000331 (Epic 3E-000060): Hash-Abgleich beim Oeffnen — Fremd-
       // Aenderungen landen sofort als external-Paket in der .mdd.
       // Fire-and-forget: das Oeffnen wartet nicht auf die Historie.
       const readOwner = senderWindow(event);
@@ -160,7 +160,7 @@ function registerFilesIpc(handle, deps) {
         const resolved = await resolveHistoryFor(readOwner, docPath, docText);
         if (resolved.effective) await recordMddExternalOnOpen(readOwner, docPath, docText);
       })();
-      // 4T-1292: Fehlt ein Teil, oeffnet das Dokument NUR LESEND und nennt die
+      // 4T-001292: Fehlt ein Teil, oeffnet das Dokument NUR LESEND und nennt die
       // fehlenden Positionen. Der Anwender sieht damit, dass er ein
       // unvollstaendiges Dokument vor sich hat, statt es fuer ein kuerzeres zu
       // halten; Speichern sperrt zusaetzlich der Schreib-Weg selbst.
@@ -178,7 +178,7 @@ function registerFilesIpc(handle, deps) {
   });
 
   handle('file:resolveLink', async (_event, basePath, target) => {
-    // M-05 (4T-0173): defensive Behandlung. decodeURI wirft bei '%' im
+    // M-05 (4T-000173): defensive Behandlung. decodeURI wirft bei '%' im
     // Link (URIError), path.dirname(null) bei pfadlosem Tab (TypeError);
     // beides liess den Klick mit unhandled rejection verpuffen. Muster
     // analog zum Schwester-Handler embed:read: validieren, try/catch,
@@ -206,7 +206,7 @@ function registerFilesIpc(handle, deps) {
     }
   });
 
-  // 4T-0604 (Epic 3E-0113): Dateisystem-Zeitstempel für die Automatik der
+  // 4T-000604 (Epic 3E-000113): Dateisystem-Zeitstempel für die Automatik der
   // created/updated-Frontmatter-Felder. fs.stat gibt es nur im Main, der
   // Speicher-Hook läuft im Renderer. birthtimeMs ist auf manchen Dateisystemen
   // 0 oder fehlt; dann dient ctimeMs als Näherung, und der Aufrufer fällt
@@ -226,7 +226,7 @@ function registerFilesIpc(handle, deps) {
 
   // Datei speichern (Inhalt nach UTF-8/LF, kein BOM). Markiert den Pfad als
   // Eigen-Schreibvorgang, damit der Watcher nicht meldet.
-  // 4T-0945 (Story 4S-0786): opts = { expected, force }. Die beiden Angaben
+  // 4T-000945 (Story 4S-000786): opts = { expected, force }. Die beiden Angaben
   // sind unabhaengig und lassen sich kombinieren:
   //   `expected` — Stand, den der Aufrufer zuletzt gelesen oder geschrieben
   //     hat. Weicht die Datei davon ab, wird NICHT geschrieben, sondern der
@@ -238,7 +238,7 @@ function registerFilesIpc(handle, deps) {
   // Nachlade-Dialog «eigene behalten» gewaehlt; dann wird gegen genau den
   // Stand geprueft, gegen den er entschieden hat, und dabei gesichert.
   handle('file:save', async (event, filePath, content, opts) => {
-    // W-02 (4T-0309): Typ-Guard und {ok,error}-Rueckgabe statt throw ueber die
+    // W-02 (4T-000309): Typ-Guard und {ok,error}-Rueckgabe statt throw ueber die
     // IPC-Grenze (Entwicklungsrichtlinien §3).
     if (typeof filePath !== 'string' || !filePath) {
       return { ok: false, error: 'file:save ohne Pfad aufgerufen' };
@@ -248,14 +248,14 @@ function registerFilesIpc(handle, deps) {
       const normalized = String(content || '').replace(/\r\n/g, '\n');
       const expected = opts && typeof opts.expected === 'string' ? opts.expected : null;
       const force = !!(opts && opts.force);
-      // 4T-0331 (Epic 3E-0060): Basis fuer das Aenderungsprotokoll VOR dem
+      // 4T-000331 (Epic 3E-000060): Basis fuer das Aenderungsprotokoll VOR dem
       // Ueberschreiben lesen (nur bei aktiver Historisierung; Aufloesung
-      // Datei > Bereich > App aus 4T-0332).
+      // Datei > Bereich > App aus 4T-000332).
       const owner = senderWindow(event);
       const recordHistory = (await resolveHistoryFor(owner, absolute, normalized)).effective;
       // Ein Lesevorgang deckt alle Zwecke ab: Aenderungsprotokoll,
       // Konflikt-Pruefung, Sicherung der ueberschriebenen Fassung und seit
-      // 4T-1291 (Epic 3E-0224) den Bestand der Teile eines geteilten Dokuments.
+      // 4T-001291 (Epic 3E-000224) den Bestand der Teile eines geteilten Dokuments.
       //
       // Er laeuft jetzt IMMER, nicht mehr nur bei einem der drei ersten
       // Gruende: Ob ein Dokument geteilt ist, steht in seiner Datei, und wer
@@ -270,7 +270,7 @@ function registerFilesIpc(handle, deps) {
         return { ok: false, error: stand.error };
       }
       const previousText = stand.ok ? stand.text : null;
-      // 4T-1292 (Epic 3E-0224): Fehlt ein Teil, wird NICHT geschrieben. Ein
+      // 4T-001292 (Epic 3E-000224): Fehlt ein Teil, wird NICHT geschrieben. Ein
       // Schreiben aus dem unvollstaendigen Puffer verloere den fehlenden Teil
       // endgueltig, und ein nur verspaetet eintreffender Teil (Synchronisation)
       // ergaebe hinterher einen Mischtext. Die Sperre sitzt hier im
@@ -366,7 +366,7 @@ function registerFilesIpc(handle, deps) {
     }
   });
 
-  // 4T-1293 (Epic 3E-0224): Die Teile eines Dokuments wieder vereinen.
+  // 4T-001293 (Epic 3E-000224): Die Teile eines Dokuments wieder vereinen.
   // Ausschliesslich auf ausdrueckliche Aktion des Anwenders (O9); es gibt
   // keinen Weg hierher, den nicht er selbst ausloest.
   handle('parts:rejoin', async (event, filePath) => {
@@ -408,7 +408,7 @@ function registerFilesIpc(handle, deps) {
     return rejoinDocument(absolute, { markSelfWriting });
   });
 
-  // Ankuendigung des ersten Teilens (4T-1291, Auflage aus dem Epic).
+  // Ankuendigung des ersten Teilens (4T-001291, Auflage aus dem Epic).
   // Liefert 'split' oder 'readOnly'; Abbruch und Escape fallen bewusst auf
   // 'readOnly', weil die zurueckhaltende Antwort keine Dateien anlegt.
   async function frageTeilung(owner, filePath) {
@@ -430,7 +430,7 @@ function registerFilesIpc(handle, deps) {
   // oder null, wenn der Nutzer abgebrochen hat.
   handle('file:saveAs', async (event, suggestedPath, content) => {
     const owner = senderWindow(event);
-    // 4T-0323 (Epic 3E-0058): in Bereichs-Apps liegt die Vorbelegung im
+    // 4T-000323 (Epic 3E-000058): in Bereichs-Apps liegt die Vorbelegung im
     // Bereich; ein Ziel ausserhalb wird gemeldet und der Dialog erneut
     // geoeffnet (harte Grenze auch beim Speichern).
     const area = areaOfWindow(owner);
@@ -448,7 +448,7 @@ function registerFilesIpc(handle, deps) {
       const dlgResult = await dialog.showSaveDialog(owner || undefined, {
         title: tForWindow(owner, 'save.saveAsTitle'),
         defaultPath,
-        // M-09 (4T-0185): Filter-Namen lokalisiert.
+        // M-09 (4T-000185): Filter-Namen lokalisiert.
         filters: [
           {
             name: tForWindow(owner, 'dialog.filterMarkdown'),
@@ -457,7 +457,7 @@ function registerFilesIpc(handle, deps) {
           { name: tForWindow(owner, 'dialog.filterAll'), extensions: ['*'] },
         ],
       });
-      // W-03 (4T-0309): Abbruch als {ok:false, canceled} statt null; Schreib-
+      // W-03 (4T-000309): Abbruch als {ok:false, canceled} statt null; Schreib-
       // fehler als {ok:false, error} statt throw (Entwicklungsrichtlinien §3).
       if (dlgResult.canceled || !dlgResult.filePath) return { ok: false, canceled: true };
       const absolute = path.resolve(dlgResult.filePath);
@@ -474,7 +474,7 @@ function registerFilesIpc(handle, deps) {
       }
       try {
         const normalized = String(content || '').replace(/\r\n/g, '\n');
-        // 4T-0331 (Epic 3E-0060): Protokoll-Basis vor dem Ueberschreiben.
+        // 4T-000331 (Epic 3E-000060): Protokoll-Basis vor dem Ueberschreiben.
         const recordHistory = (await resolveHistoryFor(owner, absolute, normalized)).effective;
         const previousText = recordHistory ? await readPreviousTextFor(absolute) : null;
         markSelfWriting(absolute, normalized);

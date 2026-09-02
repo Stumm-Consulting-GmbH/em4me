@@ -1,4 +1,4 @@
-// 4T-0204: Bereich „Task-Status" — Verwaltung der Status-Zeichen, ihrer
+// 4T-000204: Bereich „Task-Status" — Verwaltung der Status-Zeichen, ihrer
 // Typen und Folge-Zustände samt Validierung und Anwenden.
 'use strict';
 
@@ -23,16 +23,16 @@ export function dirtyTaskStatesSection(draft) {
   );
 }
 
-// --- Bereich Task-Status (4T-0204) -----------------------------------------------
+// --- Bereich Task-Status (4T-000204) -----------------------------------------------
 // Arbeitskopie des aufgeloesten Sets fuer die Seiten-Sitzung. Default-
 // Eintraege: Zeichen und Bezeichnung readonly (Label kommt aus i18n),
 // Farbe und Aktiv-Haken aenderbar. Custom-Eintraege: alles aenderbar
 // plus Entfernen-Button.
-// 4T-0497 (Epic 3E-0090): zusaetzlich pro Zeile Typ (Semantik) und
+// 4T-000497 (Epic 3E-000090): zusaetzlich pro Zeile Typ (Semantik) und
 // Folge-Symbol (Ketten-Toggle), beide auch fuer builtin-Zeilen editierbar
 // (freie Typ-Zuordnung ist PO-Anforderung, z.B. '*' = DONE).
 
-// Typ-Konstante -> i18n-Key des Anzeige-Labels (Mapping 4T-0497).
+// Typ-Konstante -> i18n-Key des Anzeige-Labels (Mapping 4T-000497).
 const TASK_STATE_TYPE_LABEL_KEYS = {
   TODO: 'taskState.type.todo',
   IN_PROGRESS: 'taskState.type.inProgress',
@@ -42,7 +42,7 @@ const TASK_STATE_TYPE_LABEL_KEYS = {
   NON_TASK: 'taskState.type.nonTask',
 };
 
-// 4T-0497: mehrfach belegte Zeichen (in Reihenfolge des ersten Auftretens).
+// 4T-000497: mehrfach belegte Zeichen (in Reihenfolge des ersten Auftretens).
 // Grundlage der Live-Warnung und der spezifischen Sektions-Fehlermeldung.
 export function duplicateTaskStateChars(taskStates) {
   const counts = new Map();
@@ -59,7 +59,7 @@ export function duplicateTaskStateChars(taskStates) {
   return order.filter((ch) => counts.get(ch) > 1);
 }
 
-// 4T-0497: Live-Warnung unter der Liste pflegen (unsichtbar ohne Duplikate).
+// 4T-000497: Live-Warnung unter der Liste pflegen (unsichtbar ohne Duplikate).
 function updateTaskStatesWarning(warningEl, draft) {
   if (!warningEl) return;
   const dups = duplicateTaskStateChars(draft.taskStates);
@@ -99,7 +99,7 @@ function renderTaskStatesEditor(listEl, draft) {
     else
       charInput.addEventListener('input', () => {
         s.char = charInput.value;
-        // 4T-0497: Duplikat-Warnung folgt jeder Zeichen-Aenderung live.
+        // 4T-000497: Duplikat-Warnung folgt jeder Zeichen-Aenderung live.
         updateTaskStatesWarning(
           listEl.parentElement && listEl.parentElement.querySelector('.task-states-warning'),
           draft,
@@ -124,7 +124,7 @@ function renderTaskStatesEditor(listEl, draft) {
       s.color = colorInput.value;
     });
 
-    // 4T-0497: Typ-Auswahl (auch bei builtin editierbar).
+    // 4T-000497: Typ-Auswahl (auch bei builtin editierbar).
     const typeSelect = document.createElement('select');
     typeSelect.className = 'settings-input ts-type';
     for (const type of TASK_STATE_TYPES) {
@@ -138,7 +138,7 @@ function renderTaskStatesEditor(listEl, draft) {
       s.type = typeSelect.value;
     });
 
-    // 4T-0497: Folge-Symbol des Ketten-Toggles (Einzelzeichen, Default 'x').
+    // 4T-000497: Folge-Symbol des Ketten-Toggles (Einzelzeichen, Default 'x').
     const nextInput = document.createElement('input');
     nextInput.type = 'text';
     nextInput.className = 'settings-input ts-next';
@@ -165,7 +165,7 @@ function renderTaskStatesEditor(listEl, draft) {
     row.append(enabled, charInput, labelInput, colorInput, typeSelect, nextInput, remove);
     listEl.appendChild(row);
   });
-  // 4T-0497: Warnung nach jedem Neuaufbau der Liste aktualisieren.
+  // 4T-000497: Warnung nach jedem Neuaufbau der Liste aktualisieren.
   updateTaskStatesWarning(
     listEl.parentElement && listEl.parentElement.querySelector('.task-states-warning'),
     draft,
@@ -195,7 +195,7 @@ export function renderTaskStatesSection(container, draft) {
   list.className = 'task-states-list';
   container.appendChild(list);
 
-  // 4T-0497: Duplikat-Warnung unter der Liste (vor dem Editor-Lauf anlegen,
+  // 4T-000497: Duplikat-Warnung unter der Liste (vor dem Editor-Lauf anlegen,
   // damit renderTaskStatesEditor sie beim ersten Aufbau schon findet).
   const warning = document.createElement('div');
   warning.id = 'settings-task-states-warning';
@@ -244,7 +244,7 @@ export function validateTaskStatesDraft(taskStates) {
 }
 
 export function validateTaskStatesSection(draft) {
-  // 4T-0497: Duplikate zuerst mit spezifischer Meldung (welche Zeichen);
+  // 4T-000497: Duplikate zuerst mit spezifischer Meldung (welche Zeichen);
   // sonstige Fehler (leer, verbotenes Zeichen) fallen auf die bestehende
   // generische Meldung zurueck.
   const dups = duplicateTaskStateChars(draft.taskStates);
@@ -254,7 +254,7 @@ export function validateTaskStatesSection(draft) {
   return validateTaskStatesDraft(draft.taskStates) ? null : t('settings.taskStates.invalid');
 }
 
-// 4T-0497: Typ-/Folge-Symbol-Normalisierung beim Anwenden (Muster der
+// 4T-000497: Typ-/Folge-Symbol-Normalisierung beim Anwenden (Muster der
 // normalize-Helfer in task-states.js). Ungueltiger Typ -> 'TODO';
 // Folge-Symbol kein Einzelzeichen oder syntaxbrechend -> 'x'.
 function normalizeApplyType(type) {
@@ -268,7 +268,7 @@ function normalizeApplyNext(next) {
 }
 
 // Aufgelöste Anwenden-Form des Task-Status-Entwurfs (gemeinsame Basis von
-// applyTaskStatesSection und der Dirty-Erkennung, 4T-0554).
+// applyTaskStatesSection und der Dirty-Erkennung, 4T-000554).
 function resolvedTaskStatesFromDraft(draft) {
   return draft.taskStates.map((s) => ({
     ...s,

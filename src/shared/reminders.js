@@ -1,4 +1,4 @@
-// 4T-0525 (Epic 3E-0095): Erinnerungs-Kern — reine Faelligkeits-,
+// 4T-000525 (Epic 3E-000095): Erinnerungs-Kern — reine Faelligkeits-,
 // Gruppen- und Snooze-Logik des Erinnerungs-Systems.
 //
 // Aufgaben des Moduls:

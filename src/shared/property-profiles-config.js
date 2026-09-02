@@ -1,9 +1,9 @@
-// 4T-1159 (Epic 3E-0219, E13): Bereichs-Konfiguration der Eigenschafts-Profile
+// 4T-001159 (Epic 3E-000219, E13): Bereichs-Konfiguration der Eigenschafts-Profile
 // — die `propertyProfiles`-Sektion der Bereichsdatei.
 //
 // Eigene Datei seit der Zuordnung über Schlagwort und Ordner: Bis dahin war
 // die Sektion drei Zeilen im Format-Modul; mit den Bindungen wird sie eine
-// eigene Fachlichkeit mit eigener Normalisierung. Der Schnitt war in 4T-1155
+// eigene Fachlichkeit mit eigener Normalisierung. Der Schnitt war in 4T-001155
 // bereits als die zweite tragfähige Naht benannt — hier liegt, was den
 // BEREICH konfiguriert, im Format-Modul, was eine Profil-DATEI liest.
 //
@@ -13,7 +13,7 @@
 //     folder          Profil-Ordner relativ zur Bereichs-Wurzel
 //     assignField     Zuordnungs-Feldname im Frontmatter (Default 'class')
 //     defaultProfile  Profil-Name des Standard-Profils oder null
-//     bindings        optional (4T-1159): Liste der zusätzlichen
+//     bindings        optional (4T-001159): Liste der zusätzlichen
 //                     Zuordnungs-Wege, je Eintrag { profile, tags, folders }
 //
 // **Warum die Bindungen hier stehen und nicht in der Profil-Datei.** Der

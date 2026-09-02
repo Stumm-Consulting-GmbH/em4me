@@ -1,4 +1,4 @@
-// 4T-0352 (Epic 3E-0064): Stille Einmal-Migration der Bereichsdatei von der
+// 4T-000352 (Epic 3E-000064): Stille Einmal-Migration der Bereichsdatei von der
 // Alt-Endung .mddb auf .mdda ("Markdown Data Area"). Die IO-Operationen
 // (Lesen, Umbenennen) kommen als injizierte deps herein, damit die vier Fälle
 // (mdda vorhanden, nur mddb, beide, Umbenennen-Fehlschlag) unit-testbar
@@ -31,10 +31,10 @@ async function readAreaSettingsRaw({ mddaPath, mddbPath, readFile, rename, markS
   try {
     if (typeof markSelfWriting === 'function') markSelfWriting(mddaPath, legacyRaw);
     await rename(mddbPath, mddaPath);
-    out.log(`[3E-0064] Bereichsdatei migriert: ${mddbPath} -> ${mddaPath}`);
+    out.log(`[3E-000064] Bereichsdatei migriert: ${mddbPath} -> ${mddaPath}`);
   } catch (err) {
     out.warn(
-      `[3E-0064] Migration der Bereichsdatei fehlgeschlagen (${
+      `[3E-000064] Migration der Bereichsdatei fehlgeschlagen (${
         err && err.message ? err.message : err
       }); lese .mddb weiter.`,
     );

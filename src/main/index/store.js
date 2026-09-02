@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): zentraler Zustand des Backlinks-Index-Subsystems,
+// 4T-000977 (Epic 3E-000196): zentraler Zustand des Backlinks-Index-Subsystems,
 // herausgelöst aus src/main/backlinks.js. Dieses Modul hält die beiden
 // Zustands-Maps (Index-Einträge je Wurzel, Puffer-Overlays je Datei) sowie
 // die aus main.js injizierten Funktionen (Broadcast, Selbst-Schreib-
@@ -12,7 +12,7 @@
 'use strict';
 
 const path = require('node:path');
-// 4T-0347 (Epic 3E-0062): isInsideArea ist die kanonische, reine Innerhalb-
+// 4T-000347 (Epic 3E-000062): isInsideArea ist die kanonische, reine Innerhalb-
 // Pruefung des Bereichs-Konzepts (case-insensitiv, ..-sicher). Bereichs-
 // Applikationen indexieren den gesamten Bereichs-Baum als eine Wurzel; die
 // Grenze ist dieselbe wie fuer alle uebrigen Bereichs-Pfade der App.
@@ -29,7 +29,7 @@ const { isInsideArea } = require('../area/area-path.js');
 // }
 const indexes = new Map();
 
-// Puffer-Overlay-Schicht (4T-0935, Befund B-08): je Datei-Pfad optional der
+// Puffer-Overlay-Schicht (4T-000935, Befund B-08): je Datei-Pfad optional der
 // Parse plus Roh-Text des geschriebenen Stands. Die Schicht selbst (Setzen,
 // Löschen, Sichten) liegt in overlay.js; hier wohnt nur die Map.
 const bufferOverlays = new Map(); // absPath -> { parsed, text }
@@ -42,7 +42,7 @@ function attachBroadcast(fn) {
   broadcastFn = fn;
 }
 
-// 4T-1158 (Epic 3E-0219, E12): Änderungs-Stand je Wurzel. Eine Zahl, die
+// 4T-001158 (Epic 3E-000219, E12): Änderungs-Stand je Wurzel. Eine Zahl, die
 // hochzählt, sobald der Index einer Wurzel sich als geändert meldet — die
 // Bezugsgröße für Zwischenspeicher, die «gegen den Stand des Bereichs-Index»
 // gültig bleiben sollen (Wertevorrat aus einer Abfrage).
@@ -67,7 +67,7 @@ function indexStand(wurzel) {
 // solange keiner verdrahtet ist (z. B. Unit-Test) — dieselbe Wirkung wie das
 // frühere `if (broadcastFn) broadcastFn(…)` an jeder Aufruf-Stelle.
 function broadcast(channel, payload) {
-  // 4T-1158: Der Stand zählt auch ohne verdrahteten Broadcast hoch (Unit-
+  // 4T-001158: Der Stand zählt auch ohne verdrahteten Broadcast hoch (Unit-
   // Tests, kopflose Läufe) — er beschreibt den Index, nicht die Fenster.
   if (channel === 'backlinks:invalidated' && payload && payload.wurzel) {
     const key = String(payload.wurzel);
@@ -76,7 +76,7 @@ function broadcast(channel, payload) {
   if (broadcastFn) broadcastFn(channel, payload);
 }
 
-// 4T-0348 (Epic 3E-0062): markSelfWriting aus main.js, damit das Schreiben der
+// 4T-000348 (Epic 3E-000062): markSelfWriting aus main.js, damit das Schreiben der
 // Cache-Datei nicht als Fremd-Aenderung zaehlt (Konsistenz zum Area_Settings.mdda-
 // Schreibpfad; die Cache-Datei selbst ist nie ein Tab). null = kein Writer
 // verdrahtet (z.B. Unit-Test) -> Schreiben laeuft ohne Selbst-Markierung.
@@ -115,7 +115,7 @@ function rootFor(filePath) {
   }
 }
 
-// 4T-0347 (Epic 3E-0062): Index-Wurzel bereichsbewusst bestimmen. Fuer Dateien
+// 4T-000347 (Epic 3E-000062): Index-Wurzel bereichsbewusst bestimmen. Fuer Dateien
 // innerhalb einer Bereichs-Applikation ist die Wurzel der Bereichs-Wurzelordner
 // (voller Bereichs-Baum, keine Tiefen-Grenze, keine Caps); ohne Bereich bleibt
 // es bei rootFor (Ordner der Datei plus SCAN_DEPTH, mit Caps). areaRoot liefert
@@ -131,7 +131,7 @@ function resolveRootInfo(filePath, areaRoot) {
 
 // Liefert den aktuellen Wurzel-Pfad fuer eine Datei (fuer Refcount-Release).
 function rootForActiveFile(filePath, areaRoot) {
-  // 4T-0347 (Epic 3E-0062): dieselbe bereichsbewusste Wurzel wie backlinksFor,
+  // 4T-000347 (Epic 3E-000062): dieselbe bereichsbewusste Wurzel wie backlinksFor,
   // damit backlinks:release exakt den Owner freigibt, den backlinks:request
   // registriert hat (sonst Owner-Leak in Bereichs-Apps).
   return resolveRootInfo(filePath, areaRoot).root;
@@ -145,7 +145,7 @@ module.exports = {
   attachSelfWriter,
   selfWrite,
   scheduleInvalidate,
-  // 4T-1158: Änderungs-Stand einer Wurzel für Zwischenspeicher.
+  // 4T-001158: Änderungs-Stand einer Wurzel für Zwischenspeicher.
   indexStand,
   resolveRootInfo,
   rootForActiveFile,

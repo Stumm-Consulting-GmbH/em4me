@@ -1,8 +1,8 @@
-// 4T-0299 (Epic 3E-0053): externe markdown-it-Plugins in der Pipeline —
+// 4T-000299 (Epic 3E-000053): externe markdown-it-Plugins in der Pipeline —
 // Registrierung über configureExternalMarkdownPlugins, No-op-Verhalten
 // und Fehler-Isolation beim Instanz-Aufbau. Das Referenz-Plugin wird wie
 // im Preload-Loader per node:vm aus dem Fixture-Quelltext evaluiert
-// (leerer Sandbox-Kontext, kein require/process — Spike 4T-0298).
+// (leerer Sandbox-Kontext, kein require/process — Spike 4T-000298).
 import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,7 +13,7 @@ import {
   configureExternalMarkdownPlugins,
 } from '../../../src/shared/markdown/markdown.js';
 
-// 4T-0826 (Epic 3E-0103): Quelle ist das real ausgelieferte Referenz-Paket
+// 4T-000826 (Epic 3E-000103): Quelle ist das real ausgelieferte Referenz-Paket
 // aus addon_examples/, nicht mehr eine Attrappe unter test/fixtures.
 const BEISPIEL_PLUGIN = path.join(
   __dirname,
@@ -36,7 +36,7 @@ afterEach(() => {
   configureExternalMarkdownPlugins([]);
 });
 
-describe('externe Markdown-Plugins (4T-0299)', () => {
+describe('externe Markdown-Plugins (4T-000299)', () => {
   it('vm-evaluiertes Referenz-Plugin wirkt in Viewer- und Portable-Instanz', () => {
     const plugin = evalPluginSource(fs.readFileSync(BEISPIEL_PLUGIN, 'utf8'));
     expect(typeof plugin).toBe('function');

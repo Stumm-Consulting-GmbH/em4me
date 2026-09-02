@@ -1,11 +1,11 @@
-// 4T-0459 (Epic 3E-0085): Tab-Gruppen-Modell — reine Helfer ohne DOM/IPC.
+// 4T-000459 (Epic 3E-000085): Tab-Gruppen-Modell — reine Helfer ohne DOM/IPC.
 //
 // Gruppen sind Anzeige-Struktur des Tab-Streifens (Epic-Architektur-
 // entscheidung 3): das Tab-Modell (Reihenfolge, aktiver Tab) bleibt
 // fuehrend; Gruppen referenzieren Tabs ueber tab.groupId, nie umgekehrt.
 // Eine Pane traegt pane.groups = [{ id, name, color, collapsed }];
 // color ist ein Palette-SCHLUESSEL (TAB_GROUP_COLOR_KEYS), die konkreten
-// Farbwerte liegen als CSS-Variablen in styles.css (4T-0460).
+// Farbwerte liegen als CSS-Variablen in styles.css (4T-000460).
 //
 // Invarianten (von den Helfern hergestellt bzw. erhalten):
 //   1. Mitglieder einer Gruppe liegen zusammenhaengend im Streifen.
@@ -16,7 +16,7 @@
 // und sind damit direkt unit-testbar (test/unit/renderer/tab-groups.test.js).
 'use strict';
 
-// Feste Acht-Farben-Palette — seit 4T-0537 (Epic 3E-0098) als Shared-
+// Feste Acht-Farben-Palette — seit 4T-000537 (Epic 3E-000098) als Shared-
 // Konstante in src/shared/tab-group-colors.js (auch die Arbeitsbereichs-
 // Ablage nutzt sie); hier re-exportiert, Bestands-Importe bleiben gueltig.
 import { TAB_GROUP_COLOR_KEYS } from '../../../shared/tab-group-colors.js';
@@ -92,7 +92,7 @@ function moveTabKeepActive(pane, fromIdx, toIdx) {
   if (activeObj) pane.activeIndex = pane.tabs.indexOf(activeObj);
 }
 
-// 4T-0766 (Epic 3E-0158): Index-Liste einer Mehrfach-Auswahl normieren —
+// 4T-000766 (Epic 3E-000158): Index-Liste einer Mehrfach-Auswahl normieren —
 // doppelte und ungueltige Eintraege fallen weg, der Rest steht in
 // Streifen-Reihenfolge. Alle Mengen-Helfer unten beginnen damit, weil ihre
 // Ergebnisse sonst von der Klick-Reihenfolge des Anwenders abhingen.
@@ -108,7 +108,7 @@ export function createTabGroup(pane, tabIdx, opts = {}) {
   return createTabGroupFromTabs(pane, [tabIdx], opts);
 }
 
-// 4T-0766: Neue Gruppe aus einer Menge. Die Mitglieder ruecken an der Stelle
+// 4T-000766: Neue Gruppe aus einer Menge. Die Mitglieder ruecken an der Stelle
 // des ERSTEN Ausgewaehlten zu einem zusammenhaengenden Block zusammen
 // (Invariante 1); bestehende Mitgliedschaften enden dabei.
 export function createTabGroupFromTabs(pane, tabIdxList, { name = '', color } = {}) {
@@ -152,7 +152,7 @@ export function addTabToGroup(pane, tabIdx, groupId) {
   return true;
 }
 
-// 4T-0766 (Epic 3E-0158): Menge in eine Gruppe aufnehmen. Sie haengt sich in
+// 4T-000766 (Epic 3E-000158): Menge in eine Gruppe aufnehmen. Sie haengt sich in
 // Streifen-Reihenfolge ans ENDE des Gruppen-Blocks (Entscheidung des Product
 // Owners vom 2026-07-28, gleiches Ergebnis fuer Menue-Aufruf und Ziehen).
 // Bereits zugehoerige Reiter bleiben, wo sie sind.
@@ -175,7 +175,7 @@ export function addTabsToGroup(pane, tabIdxList, groupId) {
   return true;
 }
 
-// 4T-0766: Menge aus ihrer Gruppe entlassen. Die Reiter stehen danach
+// 4T-000766: Menge aus ihrer Gruppe entlassen. Die Reiter stehen danach
 // unmittelbar hinter dem Block ihrer bisherigen Gruppe (Muster
 // removeTabFromGroup); stammt die Menge aus mehreren Gruppen, gilt das je
 // Gruppe. Verlaesst die letzte Gruppe ihre Mitglieder vollstaendig, bleiben
@@ -200,7 +200,7 @@ export function removeTabsFromGroup(pane, tabIdxList) {
   return true;
 }
 
-// 4T-0648 (Epic 3E-0130): Ein Reiter, der aus einem anderen Reiter heraus
+// 4T-000648 (Epic 3E-000130): Ein Reiter, der aus einem anderen Reiter heraus
 // entsteht (Klick im Dokument, dokument-gebundene Folge-Ansicht), liegt
 // unmittelbar rechts neben diesem Herkunfts-Reiter. Beide Helfer setzen
 // tab.groupId auf die Gruppe der Herkunft — ein fremder Reiter zwischen zwei
@@ -210,9 +210,9 @@ export function removeTabsFromGroup(pane, tabIdxList) {
 // der Erweiterung tab-groups: beim Einfuegen mitten in den Streifen kann
 // „nichts tun" die Invariante nicht halten.
 //
-// Sie loesen den Vorgaenger insertTabAtGroupEnd (4T-0631) ab, der neue Tabs
+// Sie loesen den Vorgaenger insertTabAtGroupEnd (4T-000631) ab, der neue Tabs
 // ans Gruppen-Ende haengte: bei mehreren Mitgliedern lag das Ziel dort weit
-// von seiner Herkunft entfernt. Die Gruppen-Vererbung von 4T-0631 bleibt
+// von seiner Herkunft entfernt. Die Gruppen-Vererbung von 4T-000631 bleibt
 // erhalten, nur der Einfuege-Ort wandert an die Herkunft.
 
 // Neuen (noch nicht eingehaengten) Reiter unmittelbar hinter refIdx
@@ -314,15 +314,15 @@ export function isTabVisible(pane, tabIdx) {
   return !group || !group.collapsed;
 }
 
-// 4T-0767 (Epic 3E-0158): Die Sichtbarkeits-Garantie des aktiven Reiters ist
+// 4T-000767 (Epic 3E-000158): Die Sichtbarkeits-Garantie des aktiven Reiters ist
 // entfallen. Eine zugeklappte Gruppe darf ihn enthalten; sein Inhalt bleibt im
 // Pane sichtbar, in der Leiste zeigt sich nur der Kopf mit seiner
 // Aktiv-Kennzeichnung. Damit fielen expandGroupOfTab, nextVisibleTabIndex und
-// ensureActiveTabVisible (alle 4T-0460) ohne Aufrufer aus; sie sind entfernt
+// ensureActiveTabVisible (alle 4T-000460) ohne Aufrufer aus; sie sind entfernt
 // statt als toter Code stehen zu bleiben. isTabVisible bleibt: Es steuert das
 // Rendern der Leiste und die Spanne der Mehrfach-Auswahl.
 
-// 4T-0460: Kopf-Ziehen verschiebt die ganze Gruppe. insertIdx ist der
+// 4T-000460: Kopf-Ziehen verschiebt die ganze Gruppe. insertIdx ist der
 // Einfuege-Index in Tab-Koordinaten VOR dem Entfernen des Blocks (wie bei
 // den Tab-Drop-Zonen). Faellt der Zielpunkt strikt in einen fremden
 // Gruppen-Block, schnappt der Block dahinter (fremde Gruppen werden nie
@@ -388,7 +388,7 @@ export function normalizePaneGroups(pane) {
   return pane;
 }
 
-// --- Sitzungs-Persistenz (4T-0459) --------------------------------------------
+// --- Sitzungs-Persistenz (4T-000459) --------------------------------------------
 // Der Panes-Snapshot filtert pfadlose Tabs (System-Seiten, Handbuch,
 // Unbenannt) heraus; die Gruppen-Struktur muss auf den GEFILTERTEN
 // Indizes ausgedrueckt werden. Persistiert wird pro Pane additiv:

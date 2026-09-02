@@ -1,6 +1,6 @@
-// 4T-0061 (Epic 3E-0012): Callout-Typen-Definition.
+// 4T-000061 (Epic 3E-000012): Callout-Typen-Definition.
 //
-// Wurde 2026-05-24 mit 4T-0087 (Epic 3E-0014) aus src/main/preload.js
+// Wurde 2026-05-24 mit 4T-000087 (Epic 3E-000014) aus src/main/preload.js
 // extrahiert, damit der Renderer-Prozess die Definition ebenfalls
 // importieren kann (Live-Modus-Callouts brauchen Icon-SVG und i18n-
 // Titel-Keys). Single Source of Truth fuer beide Konsumenten.

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Portable-Export-Snapshots > brennt Inline-Berechnungen als Ergebnis-Spans ein (4T-0596) 1`] = `
+exports[`Portable-Export-Snapshots > brennt Inline-Berechnungen als Ergebnis-Spans ein (4T-000596) 1`] = `
 "<!-- perspective-portable -->
 
 Summe <span class="inline-calc" style="background:rgba(0,0,0,0.06);border-radius:3px;padding:0 0.2em;" title="2+3*4">14</span> und Datum <span class="inline-calc" style="background:rgba(0,0,0,0.06);border-radius:3px;padding:0 0.2em;" title="date(2026-01-01) + dur(30d)">2026-01-31</span>.
@@ -9,7 +9,7 @@ Fehler bleibt roh: {= 2+ =}, Code bleibt roh: \`{= 1+1 =}\`.
 "
 `;
 
-exports[`Portable-Export-Snapshots > konvertiert Ereignis-Blöcke zu statischen Tabellen (4T-0512) 1`] = `
+exports[`Portable-Export-Snapshots > konvertiert Ereignis-Blöcke zu statischen Tabellen (4T-000512) 1`] = `
 "<!-- perspective-portable -->
 
 # Ereignis-Fence
@@ -31,7 +31,7 @@ query: FROM "Personen" WHERE event-category = 'geburtstag'
 "
 `;
 
-exports[`Portable-Export-Snapshots > konvertiert Perspective-Datatables zu statischen Tabellen (4T-0418) 1`] = `
+exports[`Portable-Export-Snapshots > konvertiert Perspective-Datatables zu statischen Tabellen (4T-000418) 1`] = `
 "<!-- perspective-portable -->
 
 # Perspective Datatable
@@ -64,10 +64,10 @@ titel: Export
 </td></tr><tr><td>Innen</td></tr></tbody></table>"
 `;
 
-exports[`Portable-Export-Snapshots > konvertiert Task-Marker zu Badges mit Inline-Styles (4T-0498) 1`] = `
+exports[`Portable-Export-Snapshots > konvertiert Task-Marker zu Badges mit Inline-Styles (4T-000498) 1`] = `
 "&lt;!-- perspective-portable --&gt;
 <h1 id="task-marker">Task-Marker</h1>
-<p>Fixture der Erweiterung „Aufgaben&quot; (4T-0498, Epic 3E-0090). Alle Datums-Werte
+<p>Fixture der Erweiterung „Aufgaben&quot; (4T-000498, Epic 3E-000090). Alle Datums-Werte
 sind bewusst stabil: 2020-01-01 ist immer ueberfaellig, 2099-12-31 nie. Keine
 Daten nahe heute, damit der Snapshot maschinen- und zeitunabhaengig bleibt.</p>
 <h2 id="termine">Termine</h2>
@@ -529,7 +529,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert inline-calc.md stabil
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert journal-nav.md stabil 1`] = `
-"<h1 id="journal-navigations-block-4t-0435" data-source-line="1">Journal-Navigations-Block (4T-0435)</h1>
+"<h1 id="journal-navigations-block-4t-000435" data-source-line="1">Journal-Navigations-Block (4T-000435)</h1>
 <p data-source-line="3">Der Fence rendert als leerer Platzhalter-Container; die Navigation baut der
 Renderer aus dem Datei-Kontext.</p>
 <div class="perspective-journal-nav"></div>
@@ -538,7 +538,7 @@ Renderer aus dem Datei-Kontext.</p>
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert journal-timeline.md stabil 1`] = `
-"<h1 id="journal-timeline-block-4t-1064" data-source-line="1">Journal-Timeline-Block (4T-1064)</h1>
+"<h1 id="journal-timeline-block-4t-001064" data-source-line="1">Journal-Timeline-Block (4T-001064)</h1>
 <p data-source-line="3">Der Fence rendert als Platzhalter-Container mit dem Fence-Körper als Attribut;
 Modus-Auswertung, Kontext und Gitter baut der Renderer.</p>
 <div class="perspective-journal-timeline" data-jt-source="mode: month
@@ -690,7 +690,7 @@ SORT file.mtime DESC, file.name
 LIMIT 20"></div>
 <p data-source-line="38">Mehrspaltige Ergebnis-Liste:</p>
 <div class="perspective-query" data-fm-query="LIST FROM #lesezeichen COLUMNS 3"></div>
-<p data-source-line="44">Block-Ebene (Scope-Zusatz BLOCKS, 3E-0077):</p>
+<p data-source-line="44">Block-Ebene (Scope-Zusatz BLOCKS, 3E-000077):</p>
 <div class="perspective-query" data-fm-query="LIST BLOCKS WHERE status = &quot;offen&quot; SORT updated DESC"></div>
 <div class="perspective-query" data-fm-query="TABLE BLOCKS status AS &quot;Status&quot;, updated
 FROM &quot;Projekte&quot;
@@ -818,7 +818,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert tags.md stabil 1`] = 
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert task-marker.md stabil 1`] = `
 "<h1 id="task-marker" data-source-line="1">Task-Marker</h1>
-<p data-source-line="3">Fixture der Erweiterung „Aufgaben&quot; (4T-0498, Epic 3E-0090). Alle Datums-Werte
+<p data-source-line="3">Fixture der Erweiterung „Aufgaben&quot; (4T-000498, Epic 3E-000090). Alle Datums-Werte
 sind bewusst stabil: 2020-01-01 ist immer ueberfaellig, 2099-12-31 nie. Keine
 Daten nahe heute, damit der Snapshot maschinen- und zeitunabhaengig bleibt.</p>
 <h2 id="termine" data-source-line="7">Termine</h2>
@@ -886,7 +886,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert task-states.md stabil
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-embeds.md stabil 1`] = `
-"<h1 id="unterseiten-embeds-4t-0337" data-source-line="1">Unterseiten-Embeds (4T-0337)</h1>
+"<h1 id="unterseiten-embeds-4t-000337" data-source-line="1">Unterseiten-Embeds (4T-000337)</h1>
 <p data-source-line="3">Embed in Slash-Schreibweise: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md"></span></p>
 <p data-source-line="5">Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md" data-embed-anchor="Abschnitt"></span></p>
 <p data-source-line="7">Relatives Kind-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="/Entwurf.md"></span></p>
@@ -895,7 +895,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-embeds.md
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-links.md stabil 1`] = `
-"<h1 id="unterseiten-links-4t-0336" data-source-line="1">Unterseiten-Links (4T-0336)</h1>
+"<h1 id="unterseiten-links-4t-000336" data-source-line="1">Unterseiten-Links (4T-000336)</h1>
 <p data-source-line="3">Unterseite in Slash-Schreibweise: <a href="Prozess-A/Entwurf.md" class="wikilink">Prozess-A/Entwurf</a></p>
 <p data-source-line="5">Mit Alias: <a href="Prozess-A/Entwurf.md" class="wikilink">Der Entwurf</a></p>
 <p data-source-line="7">Mit Heading-Anker: <a href="Prozess-A/Entwurf.md#abschnitt" class="wikilink">Prozess-A/Entwurf#Abschnitt</a></p>

@@ -1,4 +1,4 @@
-// 4T-0377 (Epic 3E-0071): Reine Zustandslogik für das Editor-Kontextmenü.
+// 4T-000377 (Epic 3E-000071): Reine Zustandslogik für das Editor-Kontextmenü.
 //
 // Electron- und DOM-frei (CJS, wie src/shared/commands/commands.js), damit die
 // Auswahl-Regeln des Klipboard-Blocks unit-testbar sind. Der Renderer

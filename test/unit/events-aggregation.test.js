@@ -1,4 +1,4 @@
-// 4T-0515 (Epic 3E-0092): Integrations-Tests der Ereignis-Aggregation
+// 4T-000515 (Epic 3E-000092): Integrations-Tests der Ereignis-Aggregation
 // gegen den echten Backlinks-Index (Temp-Verzeichnis-Fixtures, Muster
 // perspective-query-index.test.js): Grundmenge über das Zuordnungs-Feld,
 // WHERE-Verfeinerung, Feld-Extraktion mit mtime, Fehler-Pfade.
@@ -96,7 +96,7 @@ async function makeFixture() {
   return { root, start };
 }
 
-describe('events-aggregation — Grundmenge und Verfeinerung (4T-0515)', () => {
+describe('events-aggregation — Grundmenge und Verfeinerung (4T-000515)', () => {
   it('liefert alle Dateien mit Ereignis-Profil-Zuordnung samt Feldern und mtime', async () => {
     const { root, start } = await makeFixture();
     const all = eventsForQuery(start, '', root, OPTS);

@@ -1,4 +1,4 @@
-// 4T-0497 (Epic 3E-0090): Ketten-Toggle-Kern der Task-States im Shared-
+// 4T-000497 (Epic 3E-000090): Ketten-Toggle-Kern der Task-States im Shared-
 // Modul plugins.js — Normalisierung (configureTaskStates), Typ-Aufloesung
 // (taskStatusType), Folge-Symbol-Kette (taskToggleTarget) und die
 // verhaltensneutralen Defaults (TASK_STATE_DEFAULTS). Elektronfrei, damit
@@ -17,7 +17,7 @@ afterEach(() => {
   configureTaskStates(TASK_STATE_DEFAULTS);
 });
 
-describe('configureTaskStates normalisiert Typ und Folge-Symbol (4T-0497)', () => {
+describe('configureTaskStates normalisiert Typ und Folge-Symbol (4T-000497)', () => {
   it('unbekannter Typ faellt auf TODO, gueltiger bleibt', () => {
     configureTaskStates([
       { char: '/', enabled: true, type: 'BOGUS', next: 'x' },
@@ -44,7 +44,7 @@ describe('configureTaskStates normalisiert Typ und Folge-Symbol (4T-0497)', () =
   });
 });
 
-describe('taskStatusType (4T-0497)', () => {
+describe('taskStatusType (4T-000497)', () => {
   it('Basis-Zustaende fest, konfigurierte liefern ihren Typ, unbekannte null', () => {
     configureTaskStates([{ char: '/', enabled: true, type: 'IN_PROGRESS', next: 'x' }]);
     expect(taskStatusType(' ')).toBe('TODO');
@@ -55,7 +55,7 @@ describe('taskStatusType (4T-0497)', () => {
   });
 });
 
-describe('taskToggleTarget (4T-0497)', () => {
+describe('taskToggleTarget (4T-000497)', () => {
   it('Basis toggelt fest, konfiguriertes Folge-Symbol wird gefolgt, unbekannt null', () => {
     configureTaskStates([
       { char: '/', enabled: true, type: 'IN_PROGRESS', next: '-' },
@@ -71,7 +71,7 @@ describe('taskToggleTarget (4T-0497)', () => {
   });
 });
 
-describe('TASK_STATE_DEFAULTS sind verhaltensneutral (4T-0497)', () => {
+describe('TASK_STATE_DEFAULTS sind verhaltensneutral (4T-000497)', () => {
   it('alle Folge-Symbole x, Typen wie spezifiziert', () => {
     expect(TASK_STATE_DEFAULTS.every((s) => s.next === 'x')).toBe(true);
     const byChar = new Map(TASK_STATE_DEFAULTS.map((s) => [s.char, s]));

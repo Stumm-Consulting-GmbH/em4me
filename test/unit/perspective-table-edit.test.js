@@ -1,4 +1,4 @@
-// 4T-0591 (Epic 3E-0109): Unit-Matrix für die Perspective-Table-Operationen
+// 4T-000591 (Epic 3E-000109): Unit-Matrix für die Perspective-Table-Operationen
 // (src/shared/markdown/perspective-table-edit.js). Deckt den zeilenbasierten
 // Scan (Abschnitte, Zell-Blöcke, mehrzeilige Zellen, eingebettete Fences),
 // die Span-Erkennung, alle Zeilen-Operationen mit byte-genauem Roh-Erhalt,

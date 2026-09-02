@@ -1,4 +1,4 @@
-// 4T-0568 (Epic 3E-0104): E2E-Funktions-Suite — vereinheitlichte
+// 4T-000568 (Epic 3E-000104): E2E-Funktions-Suite — vereinheitlichte
 // Panel-Zugänge (PZ-01 bis PZ-04). Deckt das Panel-Untermenü des
 // Ansichtsmenüs (alle Panels des Zugangs-Modells in Modell-Reihenfolge,
 // keine Einzel-Panel-Einträge mehr auf Hauptmenü-Ebene), die identische
@@ -34,7 +34,7 @@ const BUTTON_ORDER = DEFAULT_PANEL_TOGGLE_ORDER.map(
   (id) => PANEL_ACCESS.find((p) => p.id === id).buttonId,
 );
 
-// 4T-0844 (Epic 3E-0147): Panel-Menge aus dem Zugangs-Modell abgeleitet statt
+// 4T-000844 (Epic 3E-000147): Panel-Menge aus dem Zugangs-Modell abgeleitet statt
 // hart gezählt. Jedes neue Panel (zuletzt das Inhaltsverzeichnis des Buches)
 // hätte sonst drei Zahlen in dieser Datei still veralten lassen; die
 // Prüf-Aussage bleibt dieselbe, weil die Reihenfolge-Zusicherung darunter
@@ -51,7 +51,7 @@ function panelCountWithoutExtensions(disabledIds) {
 // Panel-Untermenü ({label, type, checked} je Eintrag) plus alle übrigen Labels
 // des Ansichtsmenüs global ab.
 //
-// 4T-0887 (Epic 3E-0168): Seit der Menü-Neuordnung liegt das Panel-Untermenü
+// 4T-000887 (Epic 3E-000168): Seit der Menü-Neuordnung liegt das Panel-Untermenü
 // nicht mehr direkt im Ansichtsmenü, sondern im Untermenü „Sidebar". Die
 // Prüf-Aussage bleibt dieselbe und wird strukturunabhängig gefasst:
 // viewLabels sammelt den GANZEN Teilbaum des Ansichtsmenüs, ausgenommen die
@@ -136,7 +136,7 @@ test.describe('PZ-01: Panel-Untermenü bündelt alle Panels in Modell-Reihenfolg
       for (const entry of submenu) expect(entry.type).toBe('checkbox');
 
       // Übriges Ansichtsmenü: die Editor-Toggles bleiben erreichbar
-      // (Gliederung, seit 4T-0887 im Untermenü „Editor-Darstellung"), und
+      // (Gliederung, seit 4T-000887 im Untermenü „Editor-Darstellung"), und
       // außerhalb des Panel-Untermenüs steht kein einziger Panel-Eintrag.
       expect(viewLabels).not.toBeNull();
       expect(viewLabels.some((l) => FOLD_GUTTER_LABELS.has(l))).toBe(true);
@@ -163,7 +163,7 @@ test.describe('PZ-02: Statusbar-Leiste folgt derselben Reihenfolge', () => {
         ),
       );
       expect(ids).toEqual(BUTTON_ORDER);
-      // 4T-0576 (Epic 3E-0106): die drei Editor-Toggles sitzen seither in der
+      // 4T-000576 (Epic 3E-000106): die drei Editor-Toggles sitzen seither in der
       // mittleren Statusbar-Zone, nicht mehr am Ende des Panel-Segments.
       const centerIds = await page.evaluate(() =>
         Array.from(
@@ -254,8 +254,8 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
       }
       // Untermenü: dieselben fünf Panels entfallen; die Rest-Menge kommt aus
       // dem Zugangs-Modell und nicht aus einer gepflegten Zahl.
-      // 4T-0372 (Epic 3E-0069): das Uhr-Panel bleibt, seine Erweiterung ist
-      // in diesem Fall nicht deaktiviert. 4T-0844 (Epic 3E-0147): ebenso das
+      // 4T-000372 (Epic 3E-000069): das Uhr-Panel bleibt, seine Erweiterung ist
+      // in diesem Fall nicht deaktiviert. 4T-000844 (Epic 3E-000147): ebenso das
       // Inhaltsverzeichnis des Buches, dessen Erweiterung hier an bleibt.
       await expect
         .poll(async () => {
@@ -276,7 +276,7 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
   });
 });
 
-// 4T-0569 (Epic 3E-0104): Einstellungs-Bereich „Panel-Reihenfolge".
+// 4T-000569 (Epic 3E-000104): Einstellungs-Bereich „Panel-Reihenfolge".
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 async function openPanelOrderSection(page) {
@@ -361,7 +361,7 @@ test.describe('PZ-05: Einstellungs-Bereich Panel-Reihenfolge', () => {
   });
 });
 
-// 4T-0887 (PO-Befund der Test-Iteration 0.105.0): Das Suchergebnisse-Panel
+// 4T-000887 (PO-Befund der Test-Iteration 0.105.0): Das Suchergebnisse-Panel
 // zeigte nie ein Häkchen, weil sein Getter in der Roh-Sichtbarkeits-Tabelle
 // des Renderers fehlte (unbekannte IDs liefern false). Der Fall prüft die
 // Häkchen-Kopplung systematisch für JEDES Panel des Zugangs-Modells: Toggle

@@ -1,10 +1,10 @@
 'use strict';
 
-// 4T-0512 (Epic 3E-0092): Kern des Ereignis-Fence-Editors — Bindung der
+// 4T-000512 (Epic 3E-000092): Kern des Ereignis-Fence-Editors — Bindung der
 // delegierten Wurzel-Listener, Kontext- und Fence-Zuordnung, Rückschreiben
 // (writeBody) und das Einfüge-Kommando für einen leeren Block. Formularzeile
 // und Inline-Zeilen-Bearbeitung, Filter und Ansichten, Aggregation und
-// Verknüpfungen liegen seit 4T-1003 in den Nachbar-Modulen dieses Ordners.
+// Verknüpfungen liegen seit 4T-001003 in den Nachbar-Modulen dieses Ordners.
 //
 // Architektur wie der Datatable-Grid-Editor (perspective-datatable-editor.js):
 // Der Quelltext bleibt die eine Datenquelle. Jede Übernahme lokalisiert den
@@ -24,7 +24,7 @@
 // Kategorie Geburtstag/Todestag/Jahrestag aktiviert die Wiederkehr
 // automatisch; ein gesetztes Ende deaktiviert sie (Checkbox gesperrt).
 //
-// 4T-1003 (Epic 3E-0196): Kern der Familie im Ordner events/. Anlage und
+// 4T-001003 (Epic 3E-000196): Kern der Familie im Ordner events/. Anlage und
 // Zeilen-Bearbeitung, Filter-Leiste, Ansichts-Zustand, Aggregation und das
 // Verknuepfungs-Popup liegen in den Nachbar-Modulen events-row-edit.js,
 // events-filter-bar.js, events-view-state.js, events-aggregation.js und
@@ -42,13 +42,13 @@ import { getDocText } from '../app/api.js';
 // (im Event-Handler) erfolgen.
 import { renderPaneContent } from '../views/pane-render.js';
 import { showStatusbarHint } from '../views/views.js';
-// 4T-0515: Zeilen-Klick der Aggregation öffnet die Quell-Datei.
+// 4T-000515: Zeilen-Klick der Aggregation öffnet die Quell-Datei.
 import { openInPane } from '../tabs/tabs.js';
 import {
   serializePerspectiveEvents,
   findPerspectiveEventsFences,
 } from '../../../shared/events/events-fence.js';
-// 4T-1003: Laufzeit-Zyklen mit den fuenf Auszuegen. Die Wurzel-Handler rufen
+// 4T-001003: Laufzeit-Zyklen mit den fuenf Auszuegen. Die Wurzel-Handler rufen
 // sie ausschliesslich im Funktionskoerper auf; im Gegenzug lesen die Auszuege
 // Kontext-Aufloesung, Fence-Zuordnung und Rueckschreiben aus diesem Modul.
 import {
@@ -113,7 +113,7 @@ export function resolveContext(el) {
     ? tab.viewMode === 'live'
     : tab.viewMode === 'split' || tab.viewMode === 'rendered';
   const blocked = !!container.querySelector('.pev-errors');
-  // 4T-0515: Aggregations-Art (Art 2) — anfangs am Pipeline-Platzhalter
+  // 4T-000515: Aggregations-Art (Art 2) — anfangs am Pipeline-Platzhalter
   // erkennbar, nach dem client-seitigen Aufbau am Container-Marker.
   const aggregation =
     container.dataset.evAgg === '1' || !!container.querySelector('.pev-aggregation');
@@ -181,7 +181,7 @@ export function writeBody(ctx, fence, model) {
   ctx.container.dataset.evSource = newBody + '\n';
   if (!ctx.live) {
     renderPaneContent(ctx.paneIdx);
-    // 4T-0653: Der Dispatch oben hat ueber den Dokument-Listener bereits
+    // 4T-000653: Der Dispatch oben hat ueber den Dokument-Listener bereits
     // einen verzoegerten Vorschau-Aufbau geplant. Nach dem synchronen Render
     // hier ist er redundant — und schaedlich, weil er verzoegert in die
     // naechste Bedienung faellt und ihr das DOM entzieht.
@@ -259,7 +259,7 @@ function onRootClick(e) {
   }
   const ctx = resolveContext(e.target);
   if (!ctx) return;
-  // 4T-0513/4T-0514: Ansichts-Funktionen (Sortieren, Filter, Umschalter,
+  // 4T-000513/4T-000514: Ansichts-Funktionen (Sortieren, Filter, Umschalter,
   // Kalender-Navigation, Ereignis-Sprung) wirken in allen Kontexten —
   // nur der Umschalter persistiert im editierbaren Kontext die Direktive.
   if (filterToggle) {
@@ -286,7 +286,7 @@ function onRootClick(e) {
     jumpToTableRow(ctx, parseInt(jumpChip.dataset.evJump, 10));
     return;
   }
-  // 4T-0516: Verknüpfungs-Popup (Indikator und 🔗) — Anzeige in allen
+  // 4T-000516: Verknüpfungs-Popup (Indikator und 🔗) — Anzeige in allen
   // Kontexten, die Toggle-Knöpfe erscheinen nur im editierbaren.
   if (linkBtn) {
     e.preventDefault();
@@ -294,7 +294,7 @@ function onRootClick(e) {
     if (linkTr && !getActiveRowEdit()) openLinkPopup(ctx, linkTr, linkBtn);
     return;
   }
-  // 4T-0515: Zeilen-Klick der Aggregation öffnet die Quell-Datei
+  // 4T-000515: Zeilen-Klick der Aggregation öffnet die Quell-Datei
   // (Workshop-Punkt 5); Klicks auf Bedien-Elemente und während einer
   // offenen Bearbeitung bleiben davon unberührt.
   if (
@@ -307,7 +307,7 @@ function onRootClick(e) {
     !e.target.closest('button, input, select, textarea')
   ) {
     e.preventDefault();
-    // 4T-0631 (Epic 3E-0102): Zeilen-Klick im Ereignis-Widget des Dokuments
+    // 4T-000631 (Epic 3E-000102): Zeilen-Klick im Ereignis-Widget des Dokuments
     // erbt die Gruppe.
     void openInPane(ctx.paneIdx, [aggRow.dataset.evSource], { inheritGroup: true });
     return;

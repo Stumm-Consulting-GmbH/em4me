@@ -1,11 +1,11 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 16 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 16 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Zusatz-Ansichten der Ereignisse (Dashboard, Kalender, Timeline, Gantt),
    Aggregation, Verknuepfungen. */
 
-/* 4T-0514 (Epic 3E-0092): Zusatz-Ansichten — Umschalter, Dashboard,
+/* 4T-000514 (Epic 3E-000092): Zusatz-Ansichten — Umschalter, Dashboard,
    Monats-/Wochen-Kalender, Timeline und der Ereignis-Sprung zur Tabelle. */
 .markdown-body .pev-switcher {
   display: flex;
@@ -263,7 +263,7 @@
   font-size: 0.9em;
   white-space: nowrap;
 }
-/* 4T-0722 (Epic 3E-0150): Gantt-Ansicht. Label-Spalte und Zeit-Fläche
+/* 4T-000722 (Epic 3E-000150): Gantt-Ansicht. Label-Spalte und Zeit-Fläche
    liegen in einem Zwei-Spalten-Raster ohne Spalten-Abstand, damit das
    Linien-Overlay mit derselben Spaltenbreite ansetzen kann. Zeilen haben
    feste Höhe: die Abhängigkeits-Linien rechnen ihre Y-Position aus dem
@@ -379,7 +379,7 @@
   stroke-width: 1;
   opacity: 0.7;
 }
-/* 4T-0515 (Epic 3E-0092): Aggregation — Status-Anzeige, Quell-Zeile,
+/* 4T-000515 (Epic 3E-000092): Aggregation — Status-Anzeige, Quell-Zeile,
    Titel-Fallback und Zeilen-Klick-Affordanz. */
 .markdown-body .pev-agg-status {
   color: var(--fg-muted);
@@ -404,7 +404,7 @@
   cursor: default;
 }
 
-/* 4T-0516 (Epic 3E-0092): Verknüpfungen — Indikator in der Zeitpunkt-
+/* 4T-000516 (Epic 3E-000092): Verknüpfungen — Indikator in der Zeitpunkt-
    Spalte (immer sichtbar) und das Verknüpfungs-Popup mit Suche,
    Vorgänger-/Nachfolger-Toggles und Sprung-Zielen. */
 .markdown-body .pev-link-ind {

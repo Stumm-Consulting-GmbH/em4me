@@ -1,10 +1,10 @@
-// 4T-0426 (Epic 3E-0080): Anwendungs-Kommandos der Vorlagen.
+// 4T-000426 (Epic 3E-000080): Anwendungs-Kommandos der Vorlagen.
 //
 // Die beiden Nutzer-Wege zur Vorlage: „Neue Datei aus Vorlage" (Auswahl-
 // Popup, Dateiname mit Unterseiten-Schreibweise, Datei-Anlage über
 // templates:createFile) und „Vorlage einfügen" an der Cursor-Position (eine
 // Editor-Transaktion, Undo in einem Schritt). Beide Wege laufen über die
-// Zwei-Phasen-Engine (4T-0425): analysieren, Dialog-Kette sequenziell
+// Zwei-Phasen-Engine (4T-000425): analysieren, Dialog-Kette sequenziell
 // erheben, füllen. Ein Abbruch irgendeines Dialogs bricht das GESAMTE
 // Anwenden ab — es entsteht keine Datei und kein Einfüge-Text (Epic-Risiko
 // „Dialog-Kette", Abbruch-Semantik). Engine-Fehler erscheinen lokalisiert
@@ -21,7 +21,7 @@ import { showNameInputDialog } from './dialogs/dialogs.js';
 import { activeNotesEditorView } from './panels/notes-panel.js';
 import { analyzeTemplate, fillTemplate } from '../../shared/template-engine.js';
 import { segmentValidationError, toFileBasename, toLogicalName } from '../../shared/subpages.js';
-// 4T-0427: Erweiterungs-Gate des Ordner-Regel-Triggers (dieselbe Filterung
+// 4T-000427: Erweiterungs-Gate des Ordner-Regel-Triggers (dieselbe Filterung
 // wie Dispatcher und Menü).
 import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
 import { getDisabledExtensionIds } from './extensions/extension-lifecycle.js';
@@ -234,7 +234,7 @@ async function pickTemplateEntry() {
 }
 
 // Engine-Fehler lokalisiert in der Statusbar zeigen ({ code, name, offset }).
-// 4T-0433 (Epic 3E-0081): exportiert — der Journal-Anlage-Pfad nutzt
+// 4T-000433 (Epic 3E-000081): exportiert — der Journal-Anlage-Pfad nutzt
 // dieselbe Fehler-Anzeige.
 export function showTemplateError(error) {
   const code = error && error.code;
@@ -255,7 +255,7 @@ export function showTemplateError(error) {
 
 // Dialog-Kette der interaktiven Platzhalter, streng sequenziell in der
 // Reihenfolge des ersten Vorkommens. null = Abbruch (irgendein Dialog).
-// 4T-0433 (Epic 3E-0081): exportiert — der Journal-Anlage-Pfad erhebt
+// 4T-000433 (Epic 3E-000081): exportiert — der Journal-Anlage-Pfad erhebt
 // die Antworten seiner Vorlage ueber dieselbe Kette.
 export async function collectAnswers(inputs) {
   const answers = {};
@@ -289,7 +289,7 @@ function folderDisplayFor(dirPath) {
 
 // Vorlage lesen, analysieren, Dialog-Kette erheben und füllen. Rückgabe:
 // { text, cursorOffsets } bei Erfolg, { cancelled: true } bei Dialog-Abbruch
-// (die Aufrufer entscheiden über den Hinweis; 4T-0427 nutzt das für den
+// (die Aufrufer entscheiden über den Hinweis; 4T-000427 nutzt das für den
 // Leer-Anlage-Hinweis der Ordner-Regel), null bei Fehler (Hinweis gezeigt).
 async function resolveFilledTemplate(relPath, contextBase) {
   let read;
@@ -312,7 +312,7 @@ async function resolveFilledTemplate(relPath, contextBase) {
   const filled = fillTemplate(analysis, {
     ...contextBase,
     nowMs: Date.now(),
-    // 4T-1057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache.
+    // 4T-001057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache.
     locale: getLanguage(),
     clipboard: typeof api.clipboardReadText === 'function' ? api.clipboardReadText() : '',
     answers,
@@ -408,10 +408,10 @@ export async function newFileFromTemplate() {
 // Cursor-Sprung nach dem Öffnen der neuen Datei: Edit-Modus sicherstellen
 // (toggleEditMode deckt auch den Fall der Lese-Ansicht ab, aus der es in eine
 // Bearbeitungs-Ansicht wechselt) und die Selektion auf das Ziel-Offset setzen.
-// 4T-1341 (Epic 3E-0238): welche das ist, entscheidet seither die Einstellung
+// 4T-001341 (Epic 3E-000238): welche das ist, entscheidet seither die Einstellung
 // und nicht mehr die feste Verdrahtung auf „geteilt"; für diesen Weg ändert
 // sich nichts, weil er nur den Editor braucht.
-// 4T-0433 (Epic 3E-0081): exportiert — der Journal-Anlage-Pfad springt auf
+// 4T-000433 (Epic 3E-000081): exportiert — der Journal-Anlage-Pfad springt auf
 // dasselbe Cursor-Ziel.
 export function jumpToOffsetInActiveTab(offset) {
   const tab = activeTab();
@@ -424,7 +424,7 @@ export function jumpToOffsetInActiveTab(offset) {
   view.focus();
 }
 
-// --- 4T-0427: Ordner-Regel-Trigger -----------------------------------------------
+// --- 4T-000427: Ordner-Regel-Trigger -----------------------------------------------
 
 // Gemeinsamer Einhak-Punkt aller Datei-Anlagen über die App (Bereichs-Panel,
 // Unterseiten-Anlage): Ordner-Regel auflösen und die Vorlage in die frisch
@@ -458,7 +458,7 @@ async function applyFolderRuleToCreatedFile(filePath) {
   }
   let write;
   try {
-    // 4T-0945 (Story 4S-0786): Die Datei wurde gerade angelegt und ist leer.
+    // 4T-000945 (Story 4S-000786): Die Datei wurde gerade angelegt und ist leer.
     // Die Erwartung schuetzt zusaetzlich: Hat sie wider Erwarten Inhalt,
     // ueberschreibt die Ordner-Regel ihn nicht, sondern meldet den Konflikt
     // ueber den vorhandenen Fehler-Zweig.

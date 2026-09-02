@@ -1,4 +1,4 @@
-// 4T-0525 (Epic 3E-0095): Erinnerungs-Pruefer im Main-Prozess.
+// 4T-000525 (Epic 3E-000095): Erinnerungs-Pruefer im Main-Prozess.
 //
 // Fester 30-Sekunden-Takt auf dem bereichsweiten Index (Workshop-Punkt 7):
 // pro Tick und Bereichs-App werden die faelligen, noch nicht gemeldeten

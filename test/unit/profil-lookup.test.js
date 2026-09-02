@@ -1,8 +1,8 @@
-// 4T-1184 (Epic 3E-0221, E1): Unit-Tests des Lookup-Feldes — die Dokumente,
+// 4T-001184 (Epic 3E-000221, E1): Unit-Tests des Lookup-Feldes — die Dokumente,
 // die über ein benanntes Feld auf das eigene verweisen.
 //
 // Zwei Schwerpunkte. Erstens die **Begrenzung**, aus demselben Grund wie beim
-// Wertevorrat (4T-1158): Ein zu früh oder zu oft ausgewertetes Feld fällt in
+// Wertevorrat (4T-001158): Ein zu früh oder zu oft ausgewertetes Feld fällt in
 // keinem Test auf, der mit zehn Dokumenten läuft, und schlägt im echten Bestand
 // sofort durch. Gezählt werden deshalb die Auswertungen, nicht die Laufzeit.
 //
@@ -98,7 +98,7 @@ async function bestand() {
 
 const opt = (o) => ({ from: 'FROM "Artikel"', relatedField: 'projekt', ...o });
 
-describe('lookupTreffer — Sammeln der verweisenden Dokumente (4T-1184)', () => {
+describe('lookupTreffer — Sammeln der verweisenden Dokumente (4T-001184)', () => {
   it('AK1: sammelt die Dokumente, die über das benannte Feld verweisen', async () => {
     const { ziel } = await bestand();
     const { status, values } = lookupTreffer(ziel, null, opt());
@@ -153,7 +153,7 @@ describe('lookupTreffer — Sammeln der verweisenden Dokumente (4T-1184)', () =>
   });
 });
 
-describe('Vergleichs-Regel der Verweis-Werte (4T-1184)', () => {
+describe('Vergleichs-Regel der Verweis-Werte (4T-001184)', () => {
   // Die Regel als reine Funktion, unabhängig vom Index — sie ist der Grund für
   // dieses Modul und soll ohne Temp-Verzeichnis nachlesbar sein.
   it('die drei Schreibweisen eines Verweises meinen dasselbe Ziel', () => {
@@ -181,7 +181,7 @@ describe('Vergleichs-Regel der Verweis-Werte (4T-1184)', () => {
   });
 });
 
-describe('Begrenzung der Auswertung (4T-1184)', () => {
+describe('Begrenzung der Auswertung (4T-001184)', () => {
   it('AK3: die Profil-Auflösung allein wertet nichts aus', async () => {
     const vorher = lookupAuswertungsZaehler();
     await bestand();
@@ -226,7 +226,7 @@ describe('Begrenzung der Auswertung (4T-1184)', () => {
   });
 });
 
-describe('Weiche Fehler-Fälle (4T-1184)', () => {
+describe('Weiche Fehler-Fälle (4T-001184)', () => {
   it('AK6: eine fehlerhafte Quelle ergibt ein leeres Ergebnis, keinen Wurf', async () => {
     const { ziel } = await bestand();
     const { values } = lookupTreffer(ziel, null, opt({ from: 'FROM ((( kaputt' }));
@@ -259,9 +259,9 @@ describe('Weiche Fehler-Fälle (4T-1184)', () => {
 // Der Watcher meldet im Unit-Umfeld keine zweite Index-Änderung, der Stand
 // bliebe bei 1, und ein Test darüber wäre eine Behauptung statt eines
 // Nachweises. Eingespeist werden deshalb `stand` und `auswerten` — dasselbe
-// Mittel wie in 4T-1158. Die eingespeisten Treffer tragen ECHTE Pfade des
+// Mittel wie in 4T-001158. Die eingespeisten Treffer tragen ECHTE Pfade des
 // Test-Bestands, weil der Verweis-Vergleich die Properties aus dem Index liest.
-describe('Invalidierung gegen den Index-Stand (4T-1184)', () => {
+describe('Invalidierung gegen den Index-Stand (4T-001184)', () => {
   function umgebung(root, pfadeJeLauf) {
     let stand = 1;
     let laeufe = 0;
@@ -325,7 +325,7 @@ describe('Invalidierung gegen den Index-Stand (4T-1184)', () => {
   });
 });
 
-// 4T-1275 (Epic 3E-0232, Befund B1): Pfad-Identität des Lookup-Feldes.
+// 4T-001275 (Epic 3E-000232, Befund B1): Pfad-Identität des Lookup-Feldes.
 //
 // `lookupTreffer` faltet den absoluten Pfad an zwei Stellen fest klein, statt
 // die zentrale Auskunft in src/shared/platform.js zu fragen: im Schlüssel des
@@ -341,7 +341,7 @@ describe('Invalidierung gegen den Index-Stand (4T-1184)', () => {
 // nebeneinander anlegen, weshalb der Fall dort übersprungen wird — der
 // verbindliche Nachweis dieses Epics läuft ohnehin unter Linux
 // (`node scripts/test-linux-docker.js`).
-describe('Pfad-Identität und Schreibweise (4T-1275)', () => {
+describe('Pfad-Identität und Schreibweise (4T-001275)', () => {
   it.skipIf(isFilesystemCaseInsensitive())(
     'schließt nur das eigene Dokument aus, nicht sein schreibweisen-gleiches Geschwister',
     async () => {

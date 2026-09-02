@@ -1,7 +1,7 @@
-// 4T-0221 (Epic 3E-0042): Stil-Waechter der nutzer-sichtbaren Hilfetexte.
+// 4T-000221 (Epic 3E-000042): Stil-Waechter der nutzer-sichtbaren Hilfetexte.
 //
 // Sichert die beiden Befunde der Gesamtabnahme 0.29.0 dauerhaft ab
-// (Hotfixes 4T-0219/0.29.1 und 4T-0220/0.29.2): Handbuch-Seiten und
+// (Hotfixes 4T-000219/0.29.1 und 4T-000220/0.29.2): Handbuch-Seiten und
 // i18n-Kataloge enthalten keine Fremdprodukt-Verweise als Herkunfts-
 // oder Stil-Referenz und keine Versions-Historie ("Ab Version 0.13.0
 // ..."). Einzige Ausnahme: die Emoji-Seiten duerfen "GitHub" nennen
@@ -41,7 +41,7 @@ function treffer(text, regex) {
   return zeilen;
 }
 
-describe('Stil-Waechter Hilfetexte (4T-0221)', () => {
+describe('Stil-Waechter Hilfetexte (4T-000221)', () => {
   it('Handbuch-Seiten enthalten keine Fremdprodukt-Verweise', () => {
     const funde = [];
     for (const file of helpFiles()) {

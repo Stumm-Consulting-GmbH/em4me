@@ -1,4 +1,4 @@
-// 4T-1159 (Epic 3E-0219, E13): Unit-Tests der Zuordnung über Schlagwort und
+// 4T-001159 (Epic 3E-000219, E13): Unit-Tests der Zuordnung über Schlagwort und
 // Ordner — die Bindungen der Bereichs-Sektion, der Ordner-Vergleich und die
 // vierstufige Auflösungs-Folge.
 //
@@ -16,12 +16,12 @@ import {
   resolveProfileFields,
 } from '../../src/shared/property-profiles.js';
 
-// --- 4T-1159 (Epic 3E-0219, E13): die vierstufige Auflösungs-Folge ---------
+// --- 4T-001159 (Epic 3E-000219, E13): die vierstufige Auflösungs-Folge ---------
 // Zuordnung über Schlagwort und Ordner. Die drei Konstellationen aus Kapitel
 // 6.13 des Konzepts haben je einen eigenen Prüffall, weil sie die Zusage
 // tragen: Die Folge bleibt EINE geordnete Folge, die Wege kumulieren, und
 // ein Weg auf ein bereits erreichtes Profil fügt nichts hinzu.
-describe('normalizeBindings (4T-1159)', () => {
+describe('normalizeBindings (4T-001159)', () => {
   it('normalisiert Profil, Schlagworte und Ordner', () => {
     expect(
       normalizeBindings([
@@ -60,7 +60,7 @@ describe('normalizeBindings (4T-1159)', () => {
   });
 });
 
-describe('normalizeProfilesConfig mit Bindungen (4T-1159)', () => {
+describe('normalizeProfilesConfig mit Bindungen (4T-001159)', () => {
   it('führt bindings nur, wenn die Sektion sie trägt', () => {
     const ohne = normalizeProfilesConfig({ folder: 'P' });
     expect('bindings' in ohne).toBe(false);
@@ -86,7 +86,7 @@ describe('normalizeProfilesConfig mit Bindungen (4T-1159)', () => {
   });
 });
 
-describe('ordnerTrifft (4T-1159)', () => {
+describe('ordnerTrifft (4T-001159)', () => {
   it('trifft den Ordner und seine Unterordner', () => {
     expect(ordnerTrifft('10 Projekte', '10 Projekte')).toBe(true);
     expect(ordnerTrifft('10 Projekte', '10 Projekte/Alt')).toBe(true);
@@ -115,7 +115,7 @@ describe('ordnerTrifft (4T-1159)', () => {
   });
 });
 
-describe('resolveProfileFields — vierstufige Folge (4T-1159)', () => {
+describe('resolveProfileFields — vierstufige Folge (4T-001159)', () => {
   // Ein Bestand, an dem sich alle drei Konstellationen zeigen lassen.
   const profile = [
     { name: 'Artikel', fields: [{ name: 'autor' }], parent: 'Projekt' },
@@ -261,7 +261,7 @@ describe('resolveProfileFields — vierstufige Folge (4T-1159)', () => {
   });
 });
 
-describe('AK7: Rückwärts-Verträglichkeit des Schreibwegs (4T-1160)', () => {
+describe('AK7: Rückwärts-Verträglichkeit des Schreibwegs (4T-001160)', () => {
   it('eine Konfiguration ohne Bindungen bleibt ohne bindings-Angabe', () => {
     const ohne = normalizeProfilesConfig({
       folder: 'Profile',
@@ -296,12 +296,12 @@ describe('AK7: Rückwärts-Verträglichkeit des Schreibwegs (4T-1160)', () => {
   });
 });
 
-// --- 4T-1161 (Epic 3E-0219, E5): Profil-Symbol am Dokument -----------------
+// --- 4T-001161 (Epic 3E-000219, E5): Profil-Symbol am Dokument -----------------
 // Das Symbol ist die Bedingung der neuen Zuordnungs-Wege und keine Zugabe:
 // Ohne es hätte ein Dokument, das seine Felder aus Ordner-Regel und
 // Standard-Profil bezieht, Felder ohne ablesbare Herkunft (Konzept 6.13,
 // dritte Konstellation).
-describe('Symbol-Angabe eines Profils (4T-1161)', () => {
+describe('Symbol-Angabe eines Profils (4T-001161)', () => {
   it('AK1: ein Profil kann ein Symbol führen', () => {
     expect(parseProfileHeritage({ icon: '📅' }).icon).toBe('📅');
     expect(parseProfileHeritage({ icon: ' 📅 ' }).icon).toBe('📅');
@@ -336,7 +336,7 @@ describe('Symbol-Angabe eines Profils (4T-1161)', () => {
   });
 });
 
-describe('resolveProfileFields — führendes Profil für das Symbol (4T-1161)', () => {
+describe('resolveProfileFields — führendes Profil für das Symbol (4T-001161)', () => {
   const profile = [
     { name: 'Artikel', fields: [{ name: 'autor' }], parent: 'Projekt', icon: '📄' },
     { name: 'Projekt', fields: [{ name: 'budget' }], icon: '🏗' },

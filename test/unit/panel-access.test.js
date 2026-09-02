@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0567 (Epic 3E-0104): Paritäts-Wächter über das Panel-Zugangs-Modell
+// 4T-000567 (Epic 3E-000104): Paritäts-Wächter über das Panel-Zugangs-Modell
 // (src/shared/panel-access.js). Erzwingt für jedes eingebaute Sidebar-Panel
 // beide Zugänge — Statusbar-Button (real in index.html vorhanden, real in
 // einer registerSidebarPanel-Definition genannt) und Kommando-Zugang
@@ -33,10 +33,10 @@ const DE_JSON = JSON.parse(
   fs.readFileSync(path.resolve(HERE, '..', '..', 'src', 'i18n', 'de.json'), 'utf8'),
 );
 
-describe('Paritäts-Wächter Panel-Zugänge (4T-0567)', () => {
-  // 4T-0372 (Epic 3E-0069): 13 -> 14 durch das Uhr-Panel.
-  // 4T-0759 (Epic 3E-0142): 14 -> 15 durch das Suchergebnis-Panel.
-  // 4T-0844 (Epic 3E-0147): 15 -> 16 durch das Inhaltsverzeichnis des Buches.
+describe('Paritäts-Wächter Panel-Zugänge (4T-000567)', () => {
+  // 4T-000372 (Epic 3E-000069): 13 -> 14 durch das Uhr-Panel.
+  // 4T-000759 (Epic 3E-000142): 14 -> 15 durch das Suchergebnis-Panel.
+  // 4T-000844 (Epic 3E-000147): 15 -> 16 durch das Inhaltsverzeichnis des Buches.
   it('Modell und Renderer-Registry führen dieselbe 16er-ID-Menge', () => {
     const modelIds = PANEL_ACCESS.map((p) => p.id);
     expect(modelIds.length).toBe(16);
@@ -59,7 +59,7 @@ describe('Paritäts-Wächter Panel-Zugänge (4T-0567)', () => {
     }
   });
 
-  // 4T-0639 (Epic 3E-0069): Die Icon-Überschriften klonen ihr Symbol aus dem
+  // 4T-000639 (Epic 3E-000069): Die Icon-Überschriften klonen ihr Symbol aus dem
   // Statusbar-Button. Dieser Wächter sichert die dafür nötige Voraussetzung:
   // JEDER Panel-Button trägt ein Inline-SVG. Fehlt es einem künftigen Panel,
   // fiele dessen Kopf im Icon-Zustand auf den Text zurück — das soll
@@ -82,7 +82,7 @@ describe('Paritäts-Wächter Panel-Zugänge (4T-0567)', () => {
     // müssen den buttonId führen (Active-State-Sync und künftige dynamische
     // Anordnung hängen daran).
     const modulesDir = path.resolve(HERE, '..', '..', 'src', 'renderer', 'modules');
-    // 4T-0980 (Epic 3E-0196): rekursiv statt flach. Die Panel-Module ziehen im
+    // 4T-000980 (Epic 3E-000196): rekursiv statt flach. Die Panel-Module ziehen im
     // Zuge des Datei-Größen-Epics in Feature-Ordner (books/, tabs/, panels/);
     // eine flache Lesung übersähe ihre Registrierung und meldete einen
     // Fehlalarm. Die Prüfung selbst ist unverändert.
@@ -132,9 +132,9 @@ describe('Paritäts-Wächter Panel-Zugänge (4T-0567)', () => {
   });
 });
 
-// 4T-0569 (Epic 3E-0104): Normalisierung des Reihenfolge-Settings — robust
+// 4T-000569 (Epic 3E-000104): Normalisierung des Reihenfolge-Settings — robust
 // gegen unbekannte, doppelte und fehlende IDs (Muster normalizeSidebarLayout).
-describe('normalizePanelToggleOrder (4T-0569)', () => {
+describe('normalizePanelToggleOrder (4T-000569)', () => {
   it('übernimmt eine gültige Permutation unverändert', () => {
     const reversed = [...DEFAULT_PANEL_TOGGLE_ORDER].reverse();
     expect(normalizePanelToggleOrder(reversed)).toEqual(reversed);

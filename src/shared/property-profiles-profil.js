@@ -1,4 +1,4 @@
-// 4T-1186 (Epic 3E-0221): Profil-Ebene einer Profil-Datei — was ein Profil
+// 4T-001186 (Epic 3E-000221): Profil-Ebene einer Profil-Datei — was ein Profil
 // ÜBER SICH sagt: sein Eltern-Profil (`extends`), die von der Vererbung
 // ausgenommenen Feldnamen (`exclude`) und sein Symbol (`icon`).
 //
@@ -34,13 +34,13 @@ function scalarToString(v) {
   return null;
 }
 
-// 4T-1142 (Epic 3E-0218): Profil-Ebene der Vererbung (E2). `extends` nennt
+// 4T-001142 (Epic 3E-000218): Profil-Ebene der Vererbung (E2). `extends` nennt
 // höchstens ein Eltern-Profil; eine Liste mit mehr als einem Eintrag ist der
 // Hinweis-Fall extendsMultiple und keine Mehrfach-Vererbung (tolerant zählt
 // der erste Eintrag). `exclude` nennt Feldnamen, die aus der geerbten Kette
 // nicht übernommen werden (Skalar oder Liste; nicht verwertbare Einträge
-// entfallen still, wie in einer Werte-Liste). Hinweis-Texte: 4T-1143.
-// 4T-1161 (Epic 3E-0219, E5): Symbol-Angabe eines Profils normalisieren.
+// entfallen still, wie in einer Werte-Liste). Hinweis-Texte: 4T-001143.
+// 4T-001161 (Epic 3E-000219, E5): Symbol-Angabe eines Profils normalisieren.
 // Genau EIN Graphem; alles andere entfällt mit Hinweis, das Profil bleibt
 // wirksam (weiche Linie). `Intl.Segmenter` zählt Graphem-Cluster und liegt
 // damit richtig bei Emoji aus mehreren Code-Punkten; ohne die Schnittstelle
@@ -67,7 +67,7 @@ function normalizeIcon(raw, errors) {
 function parseProfileHeritage(data) {
   const errors = [];
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    // 4T-1161: dieselbe Objekt-Form wie der normale Weg — ein früher
+    // 4T-001161: dieselbe Objekt-Form wie der normale Weg — ein früher
     // Ausstieg, der eine andere Gestalt liefert, ist eine Falle für jeden
     // Verbraucher, der die Schlüssel-Menge liest.
     return { parent: null, exclude: [], icon: null, errors };
@@ -94,7 +94,7 @@ function parseProfileHeritage(data) {
   const rawExclude = data.exclude;
   if (Array.isArray(rawExclude)) rawExclude.forEach(pushExclude);
   else if (rawExclude !== undefined && rawExclude !== null) pushExclude(rawExclude);
-  // 4T-1161 (Epic 3E-0219, E5): Symbol des Profils (`icon`). Ein freies
+  // 4T-001161 (Epic 3E-000219, E5): Symbol des Profils (`icon`). Ein freies
   // Zeichen und keine ID aus dem internen Icon-Satz — der ist auf Kommandos
   // zugeschnitten und führt für Dokument-Arten wie Person, Sitzung oder Buch
   // keine Entsprechung (PO-Entscheidung vom 2026-08-23, gekennzeichnete

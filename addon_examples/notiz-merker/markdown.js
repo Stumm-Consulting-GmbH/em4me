@@ -1,5 +1,5 @@
 'use strict';
-// Beispiel-Erweiterung „Notiz-Merker" (4T-0826, Epic 3E-0103): Render-Beitrag.
+// Beispiel-Erweiterung „Notiz-Merker" (4T-000826, Epic 3E-000103): Render-Beitrag.
 //
 // Diese Datei wird vom Loader der Anwendung in einer eigenen, leeren
 // Umgebung ausgewertet: es gibt module und exports, aber kein require,

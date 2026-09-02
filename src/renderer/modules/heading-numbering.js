@@ -1,4 +1,4 @@
-// 4T-0471 (Epic 3E-0087): Renderer-seitiger Zustand der Gliederungs-
+// 4T-000471 (Epic 3E-000087): Renderer-seitiger Zustand der Gliederungs-
 // Nummerierung — globale Einstellung "Ueberschriften nummerieren" plus
 // Start-Ebene.
 //

@@ -1,4 +1,4 @@
-// 4T-0537 (Epic 3E-0098): Acht-Farben-Palette der Tab-Gruppen als
+// 4T-000537 (Epic 3E-000098): Acht-Farben-Palette der Tab-Gruppen als
 // Shared-Konstante (CJS, Muster src/shared/commands/commands.js) — aus
 // src/renderer/modules/tabs/tab-groups.js hierher gezogen, damit Renderer
 // (Tab-Gruppen-UI, Arbeitsbereichs-UI) und Main (Schema-Normalisierung
@@ -11,7 +11,7 @@
 
 const TAB_GROUP_COLOR_KEYS = ['blue', 'red', 'green', 'yellow', 'purple', 'orange', 'cyan', 'pink'];
 
-// 4T-0538: Hex-Werte der Palette fuer Main-seitige Zeichnungen (Farbpunkt-
+// 4T-000538: Hex-Werte der Palette fuer Main-seitige Zeichnungen (Farbpunkt-
 // Icons im Arbeitsbereichs-Untermenue), geeicht an den Light-Theme-Werten
 // der CSS-Variablen --tab-group-<key> in src/renderer/styles.css (dort
 // steht der Rueck-Verweis; bei Farb-Aenderungen beide Stellen pflegen).
@@ -26,7 +26,7 @@ const TAB_GROUP_COLOR_VALUES = {
   pink: '#d01884',
 };
 
-// 4T-0630 (Epic 3E-0102): Dark-Werte und Text-Farben beider Themes fuer die
+// 4T-000630 (Epic 3E-000102): Dark-Werte und Text-Farben beider Themes fuer die
 // Main-seitige Titelleisten-Faerbung nach Arbeitsbereichs-Farbe — geeicht an
 // den Theme-Bloecken der CSS-Variablen --tab-group-<key>/-fg in
 // src/renderer/styles.css (dort steht der Rueck-Verweis; bei Farb-

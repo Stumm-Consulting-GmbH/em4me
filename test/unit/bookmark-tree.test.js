@@ -1,4 +1,4 @@
-// 4T-0611 (Epic 3E-0115): Datenmodell der Bereichs-Lesezeichen
+// 4T-000611 (Epic 3E-000115): Datenmodell der Bereichs-Lesezeichen
 // (src/shared/bookmark-tree.js) — wurzel-relative Pfad-Normalisierung,
 // Relativ<->Absolut-Umrechnung, Roh-Pfad-Sammlung und tolerante
 // Baum-Sanitisierung. Reine Funktionen, direkter Import (Muster

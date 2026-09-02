@@ -1,6 +1,6 @@
-// 4T-0615 (Epic 3E-0116): Bereichs-Suchraum im Hauptprozess.
+// 4T-000615 (Epic 3E-000116): Bereichs-Suchraum im Hauptprozess.
 //
-// Die Suche der Anwendung kennt seit 3E-0142 einen Raum jenseits des aktiven
+// Die Suche der Anwendung kennt seit 3E-000142 einen Raum jenseits des aktiven
 // Dokuments (src/shared/search-scope.js). Handbuch und Einstellungen liefern
 // ihre Texte im Renderer; ein Bereich kann das nicht, weil seine Dateien auf
 // Platte liegen und ihre Zahl unbegrenzt ist. Dateizugriff gehoert in den
@@ -40,7 +40,7 @@ const path = require('node:path');
 const backlinks = require('../backlinks.js');
 const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const { sucheInTexten } = require('../../shared/search-scope.js');
-// 4T-1293 (Epic 3E-0224): Volltext-Cache und Zusammenfuehrung geteilter
+// 4T-001293 (Epic 3E-000224): Volltext-Cache und Zusammenfuehrung geteilter
 // Dokumente liegen in eigenen Modulen; hier bleibt die Suche selbst.
 const {
   konfiguriereCache,
@@ -72,7 +72,7 @@ const vorraete = new Map();
 // feststellt, dass eine neuere Anfrage laeuft, bricht ab.
 const generationen = new Map();
 
-// 4T-1293: Der Volltext-Cache liegt in area-search-cache.js; hier bleibt nur
+// 4T-001293: Der Volltext-Cache liegt in area-search-cache.js; hier bleibt nur
 // die Durchreiche der Konfiguration.
 function konfiguriereBereichsSuche(optionen) {
   konfiguriereCache(optionen);
@@ -215,7 +215,7 @@ async function baueVorrat(wurzel, generation) {
     await schreibeCache(wurzel, texte);
   }
 
-  // 4T-1293: Der Cache haelt die Teil-Dateien einzeln, wie sie auf der Platte
+  // 4T-001293: Der Cache haelt die Teil-Dateien einzeln, wie sie auf der Platte
   // liegen; zusammengefuehrt wird erst danach. So bleibt der Cache-Abgleich
   // ueber Aenderungszeit und Groesse Datei fuer Datei gueltig.
   return fasseTeileZusammen({
@@ -264,7 +264,7 @@ function dateiReihenfolge(bekannt, ankerRel, aktivRel) {
   return ankerRel ? [ankerRel, ...rest] : rest;
 }
 
-// 4T-0949 (Befund E-02, Story 4S-0787): Der geschriebene Stand eines offenen
+// 4T-000949 (Befund E-02, Story 4S-000787): Der geschriebene Stand eines offenen
 // Dokuments, das nicht das aktive ist. Bis hierher kannte die Suche allein den
 // mitgeschickten Stand der aktiven Datei, waehrend jeder weitere Reiter, die
 // zweite Spalte und jedes andere Fenster im Stand ihrer letzten Speicherung
@@ -320,7 +320,7 @@ async function sucheDirekt(zustand, regex, wurzel, generation, { ankerRel, aktiv
   for (let i = 0; i < reihenfolge.length; i += LESE_BREITE) {
     const welle = reihenfolge.slice(i, i + LESE_BREITE);
     // Die offene Datei wird nicht gelesen; ihr Editor-Stand liegt bereits vor.
-    // 4T-0949: Dasselbe gilt fuer jedes andere offene Dokument ueber seinen
+    // 4T-000949: Dasselbe gilt fuer jedes andere offene Dokument ueber seinen
     // Puffer-Stand — auch hier oberhalb des Deckels, sonst haengt die Zusage
     // an der Groesse des Bereichs.
     const inhalte = await Promise.all(
@@ -336,7 +336,7 @@ async function sucheDirekt(zustand, regex, wurzel, generation, { ankerRel, aktiv
     const eintraege = [];
     for (let k = 0; k < welle.length; k++) {
       if (!inhalte[k]) continue;
-      // 4T-1293: Oberhalb des Deckels wird nur der NAME auf die Kopf-Datei
+      // 4T-001293: Oberhalb des Deckels wird nur der NAME auf die Kopf-Datei
       // gezogen, nicht der Text zusammengesetzt (Begruendung in
       // area-search-teile.js). Der Treffer erscheint damit unter dem richtigen
       // Dokument und der Sprung oeffnet es; nur mehrere Teile bleiben mehrere
@@ -442,7 +442,7 @@ module.exports = {
   sucheImBereich,
   gibBereichsVorratFrei,
   MAX_VORRAT_BYTES,
-  // 4T-1293: Die Cache-Version lebt jetzt in area-search-cache.js und wird
+  // 4T-001293: Die Cache-Version lebt jetzt in area-search-cache.js und wird
   // hier weitergereicht, damit die bestehenden Aufrufer unveraendert bleiben.
   CACHE_SCHEMA_VERSION,
 };

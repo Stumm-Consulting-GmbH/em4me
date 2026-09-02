@@ -1,4 +1,4 @@
-// 4T-0470 (Epic 3E-0087): Render-Anbindung der Gliederungs-Nummerierung.
+// 4T-000470 (Epic 3E-000087): Render-Anbindung der Gliederungs-Nummerierung.
 //
 // Deckt die Anwendung des Nummerierungs-Kerns in der Markdown-Pipeline ab:
 // Nummern als eigenes Span im Render-Pane, Marker-Entfernung (auch bei
@@ -19,7 +19,7 @@ afterEach(() => {
   configureExtensions([]);
 });
 
-describe('Gliederungs-Nummerierung — Render-Pane (4T-0470)', () => {
+describe('Gliederungs-Nummerierung — Render-Pane (4T-000470)', () => {
   it('GN-01: stellt hierarchische Nummern als eigenes Span voran', () => {
     configureHeadingNumbering({ enabled: true, startLevel: 1 });
     const html = renderMarkdown('# A\n## B\n### C\n## D\n# E', 'de');
@@ -92,7 +92,7 @@ describe('Gliederungs-Nummerierung — Render-Pane (4T-0470)', () => {
   });
 });
 
-describe('Gliederungs-Nummerierung — Frontmatter-Schalter (4T-0470)', () => {
+describe('Gliederungs-Nummerierung — Frontmatter-Schalter (4T-000470)', () => {
   it('numbered-headings: true aktiviert bei globaler Deaktivierung', () => {
     configureHeadingNumbering({ enabled: false, startLevel: 1 });
     const html = renderMarkdown('---\nnumbered-headings: true\n---\n# A', 'de', {
@@ -111,7 +111,7 @@ describe('Gliederungs-Nummerierung — Frontmatter-Schalter (4T-0470)', () => {
   });
 });
 
-describe('Gliederungs-Nummerierung — Portable-Export (4T-0470)', () => {
+describe('Gliederungs-Nummerierung — Portable-Export (4T-000470)', () => {
   it('entfernt die Marker, ohne Nummern einzubrennen (PO-Entscheidung)', () => {
     const out = convertMarkdownPortable('# Alpha {-}\n## Beta\n### Gamma {+}', false);
     expect(out).not.toContain('{-}');
@@ -133,7 +133,7 @@ describe('Gliederungs-Nummerierung — Portable-Export (4T-0470)', () => {
   });
 });
 
-describe('Gliederungs-Nummerierung — Aus-Zustand der Erweiterung (4T-0470)', () => {
+describe('Gliederungs-Nummerierung — Aus-Zustand der Erweiterung (4T-000470)', () => {
   it('deaktiviert bleibt der Marker Literal-Text und es gibt keine Nummern', () => {
     configureHeadingNumbering({ enabled: true, startLevel: 1 });
     // Auch die Attribut-Erweiterung aus: {-}/{+} teilen die Curly-Syntax mit

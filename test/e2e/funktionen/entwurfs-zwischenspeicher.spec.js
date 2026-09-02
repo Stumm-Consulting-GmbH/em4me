@@ -1,4 +1,4 @@
-// 4T-0368 (Epic 3E-0068): Entwurfs-Zwischenspeicher — nie gespeicherte
+// 4T-000368 (Epic 3E-000068): Entwurfs-Zwischenspeicher — nie gespeicherte
 // Unbenannt-Tabs mit Inhalt ueberleben das App-Ende und kehren beim Neustart
 // als dirty Unbenannt-Tabs zurueck; der Draft-Ordner ist danach leer. Getestet
 // wird der gemischte Fall (eine geoeffnete Datei plus Entwuerfe), damit
@@ -77,7 +77,7 @@ function closeDialogCalls(app) {
   return app.evaluate(() => globalThis.__closeDialogCalls || 0);
 }
 
-test.describe('DR-01: Entwurf ueberlebt Beenden und Neustart (4T-0368)', () => {
+test.describe('DR-01: Entwurf ueberlebt Beenden und Neustart (4T-000368)', () => {
   test('Unbenannt-Tab mit Inhalt kehrt als dirty Tab zurueck, Ordner danach leer', async () => {
     const first = await launchApp({ args: [BASIS] });
     const userData = first.userData;
@@ -114,7 +114,7 @@ test.describe('DR-01: Entwurf ueberlebt Beenden und Neustart (4T-0368)', () => {
   });
 });
 
-test.describe('DR-02: Mehrere Entwuerfe kehren zurueck (4T-0368)', () => {
+test.describe('DR-02: Mehrere Entwuerfe kehren zurueck (4T-000368)', () => {
   test('zwei Unbenannt-Tabs mit Inhalt sind nach dem Neustart inhaltsgleich da', async () => {
     const first = await launchApp({ args: [BASIS] });
     const userData = first.userData;
@@ -147,7 +147,7 @@ test.describe('DR-02: Mehrere Entwuerfe kehren zurueck (4T-0368)', () => {
   });
 });
 
-test.describe('DR-03: Einstellung aus haelt das heutige Verhalten (4T-0369)', () => {
+test.describe('DR-03: Einstellung aus haelt das heutige Verhalten (4T-000369)', () => {
   test('bei ausgeschalteter Einstellung zeigt das App-Ende den Dialog, kein Entwurf entsteht', async () => {
     const first = await launchApp({ args: [BASIS] });
     const userData = first.userData;
@@ -170,7 +170,7 @@ test.describe('DR-03: Einstellung aus haelt das heutige Verhalten (4T-0369)', ()
   });
 });
 
-test.describe('DR-04: bestehende Datei behaelt den Dialog (4T-0369)', () => {
+test.describe('DR-04: bestehende Datei behaelt den Dialog (4T-000369)', () => {
   test('mit aktiver Einstellung loest eine dirty bestehende Datei beim Beenden den Dialog aus', async () => {
     const first = await launchApp({ args: [BASIS] });
     const userData = first.userData;

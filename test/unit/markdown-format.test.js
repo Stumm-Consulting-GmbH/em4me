@@ -1,4 +1,4 @@
-// 4T-0378 (Epic 3E-0071): Unit-Matrix für den Toggle-Kern der Zeichen-
+// 4T-000378 (Epic 3E-000071): Unit-Matrix für den Toggle-Kern der Zeichen-
 // Format-Kommandos (src/shared/markdown-format.js). Deckt pro Format setzen
 // und entfernen, Wort unter Cursor, leeres Paar, Whitespace-Trim,
 // Verschachtelung, „Formatierung entfernen", die Link-Aktionen und den
@@ -28,7 +28,7 @@ import {
   insertHorizontalRule,
   insertCodeBlock,
 } from '../../src/shared/markdown-format.js';
-// 4T-1309: Gegenprobe des eingefuegten Geruests am Parser des Konstrukts.
+// 4T-001309: Gegenprobe des eingefuegten Geruests am Parser des Konstrukts.
 import { parsePerspectiveTableBlock } from '../../src/shared/markdown/perspective-table.js';
 
 // Wendet ein Änderungs-Ergebnis auf den Text an (wie CodeMirror dispatch).
@@ -182,7 +182,7 @@ describe('Link-Aktionen', () => {
   });
 });
 
-describe('detectPasteUrl (4T-0603)', () => {
+describe('detectPasteUrl (4T-000603)', () => {
   it('erkennt http(s)- und file-URLs unverändert', () => {
     expect(detectPasteUrl('https://example.org')).toBe('https://example.org');
     expect(detectPasteUrl('http://a.b/c')).toBe('http://a.b/c');
@@ -236,7 +236,7 @@ describe('isProtectedForFormatting', () => {
   });
 });
 
-describe('toggleListType (4T-0379)', () => {
+describe('toggleListType (4T-000379)', () => {
   it('Aufzählung setzen und als Toggle wieder entfernen', () => {
     expect(toggleListType(['a', 'b'], 'bullet')).toEqual(['- a', '- b']);
     expect(toggleListType(['- a', '- b'], 'bullet')).toEqual(['a', 'b']);
@@ -260,7 +260,7 @@ describe('toggleListType (4T-0379)', () => {
   });
 });
 
-describe('setHeadingLevel (4T-0379)', () => {
+describe('setHeadingLevel (4T-000379)', () => {
   it('Überschrift setzen und als Toggle entfernen', () => {
     expect(setHeadingLevel(['Titel'], 1)).toEqual(['# Titel']);
     expect(setHeadingLevel(['# Titel'], 1)).toEqual(['Titel']);
@@ -273,14 +273,14 @@ describe('setHeadingLevel (4T-0379)', () => {
   });
 });
 
-describe('toggleQuote (4T-0379)', () => {
+describe('toggleQuote (4T-000379)', () => {
   it('Zitat setzen und entfernen', () => {
     expect(toggleQuote(['a', 'b'])).toEqual(['> a', '> b']);
     expect(toggleQuote(['> a', '> b'])).toEqual(['a', 'b']);
   });
 });
 
-describe('detectParagraphState (4T-0379)', () => {
+describe('detectParagraphState (4T-000379)', () => {
   it('erkennt Überschrift, Listen-Typen und Zitat', () => {
     expect(detectParagraphState('# t')).toEqual({ list: null, heading: 1, quote: false });
     expect(detectParagraphState('- i')).toEqual({ list: 'bullet', heading: 0, quote: false });
@@ -291,7 +291,7 @@ describe('detectParagraphState (4T-0379)', () => {
   });
 });
 
-describe('Einfüge-Schablonen (4T-0379)', () => {
+describe('Einfüge-Schablonen (4T-000379)', () => {
   // Bildet CodeMirrors Mehrfach-Änderung nach: Änderungen mit Original-
   // Positionen, bei gleicher Position in Array-Reihenfolge.
   function applyChanges(text, changes) {
@@ -324,7 +324,7 @@ describe('Einfüge-Schablonen (4T-0379)', () => {
     expect(applyChanges('', r.changes)).toBe('|  |  |\n| --- | --- |\n|  |  |');
     expect(r.selFrom).toBe(2);
   });
-  // 4T-1309 (Epic 3E-0235): Geruest der Perspective-Tabelle. Geprueft wird das
+  // 4T-001309 (Epic 3E-000235): Geruest der Perspective-Tabelle. Geprueft wird das
   // Ergebnis als Ganzes und nicht nur die Zeilen-Zahl: Der Block muss der
   // Notation der Perspective-Tabelle folgen, sonst rendert er nicht.
   it('Perspective-Tabelle, Cursor in der ersten Kopfzelle', () => {
@@ -368,7 +368,7 @@ describe('Einfüge-Schablonen (4T-0379)', () => {
   });
 });
 
-// 4T-0607 (Epic 3E-0114): Zustands-Erkennung der Format-Toolbar. Ein
+// 4T-000607 (Epic 3E-000114): Zustands-Erkennung der Format-Toolbar. Ein
 // Format gilt als aktiv, wenn applyInlineFormat es an derselben Selektion
 // entfernen wuerde — Anzeige und Toggle-Wirkung bleiben deckungsgleich.
 describe('detectInlineFormats: aktive Zeichen-Formate', () => {
@@ -398,7 +398,7 @@ describe('detectInlineFormats: aktive Zeichen-Formate', () => {
   });
 });
 
-// 4T-0608 (Epic 3E-0114): Raster-Picker-Geometrie der Pipe-Tabellen.
+// 4T-000608 (Epic 3E-000114): Raster-Picker-Geometrie der Pipe-Tabellen.
 // rows zaehlt inklusive Kopfzeile (Raster-Semantik "r x c").
 describe('insertTableOfSize: Raster-Tabellen', () => {
   function applyChanges(text, changes) {

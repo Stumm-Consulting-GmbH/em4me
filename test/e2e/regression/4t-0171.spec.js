@@ -1,6 +1,6 @@
-// 4T-0171: Regressionstests fuer die Suchen/Ersetzen-Fixes (R5-01, R5-04,
+// 4T-000171: Regressionstests fuer die Suchen/Ersetzen-Fixes (R5-01, R5-04,
 // R5-09). R5-05/R5-06 (KaTeX-/SVG-Filter im TreeWalker) sind reine
-// Filter-Erweiterungen und ueber den Snapshot-/Render-Pfad in 3E-0041
+// Filter-Erweiterungen und ueber den Snapshot-/Render-Pfad in 3E-000041
 // breiter abgedeckt; hier zaehlt der Korruptions- und UI-Zustands-Schutz.
 'use strict';
 

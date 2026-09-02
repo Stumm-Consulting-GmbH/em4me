@@ -1,4 +1,4 @@
-// 4T-0282 (Epic 3E-0050): Frontmatter-Zeile im Gerenderten.
+// 4T-000282 (Epic 3E-000050): Frontmatter-Zeile im Gerenderten.
 // Prüft die Markup-Erzeugung des vorangestellten Frontmatter-Blocks
 // (zusammengeklappte Zeile plus Klartext-YAML), das Escaping, den
 // Schalter (configureFrontmatterDisplay) und die data-source-line-
@@ -16,7 +16,7 @@ afterEach(() => {
   configureFrontmatterDisplay(true);
 });
 
-describe('Frontmatter-Block im Render-HTML (4T-0282)', () => {
+describe('Frontmatter-Block im Render-HTML (4T-000282)', () => {
   it('stellt bei Frontmatter einen zusammengeklappten Block voran', () => {
     const html = renderMarkdown(DOC, 'de');
     expect(html).toContain('class="frontmatter-block"');
@@ -67,7 +67,7 @@ describe('Frontmatter-Block im Render-HTML (4T-0282)', () => {
   });
 });
 
-describe('data-source-line bei Frontmatter-Dokumenten (Scroll-Sync, 4T-0282)', () => {
+describe('data-source-line bei Frontmatter-Dokumenten (Scroll-Sync, 4T-000282)', () => {
   it('Body-Elemente tragen Dokument-Zeilen, nicht Body-relative Zeilen', () => {
     // Regressionstest: vor dem Fix zählte data-source-line ab Body-Anfang
     // (Frontmatter-Zeilen fehlten im Offset) — Scroll-Sync und Checkbox-

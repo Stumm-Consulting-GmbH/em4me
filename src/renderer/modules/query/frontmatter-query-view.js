@@ -1,7 +1,7 @@
 'use strict';
 
-// 4T-0355 (Epic 3E-0065): Renderer-seitige Anzeige der Frontmatter-Abfrage.
-// Der perspective-query-Fence rendert (aus 4T-0354) als leerer Platzhalter
+// 4T-000355 (Epic 3E-000065): Renderer-seitige Anzeige der Frontmatter-Abfrage.
+// Der perspective-query-Fence rendert (aus 4T-000354) als leerer Platzhalter
 // <div class="perspective-query" data-fm-query="…">. Dieses Modul befüllt den
 // Platzhalter asynchron über das Abfrage-IPC mit der klickbaren Datei-Liste,
 // hält sie über die Index-Invalidierung aktuell und stellt die Idle-Barriere
@@ -15,7 +15,7 @@
 
 import { api } from '../app/api.js';
 import { t, getLanguage } from '../../i18n.js';
-// 4T-0502 (Epic 3E-0096): Task-Treffer des TASKS-Scopes — die View parst die
+// 4T-000502 (Epic 3E-000096): Task-Treffer des TASKS-Scopes — die View parst die
 // Roh-Zeile des Payloads mit dem Marker-Kern und baut die Task-Optik aus der
 // gemeinsamen Badge-Spec (Paritaet zu Render-Pane/Live-Modus). Bewusst nur
 // shared-Importe (kein Renderer-Modul), damit der jsdom-Unit-Test der reinen
@@ -29,7 +29,7 @@ import { taskMarkerBadgeSpec, getTaskMarkersConfig } from '../../../shared/markd
 // NICHT angezeigt (i18n-Regel); der Code bestimmt den lokalisierten Text, die
 // Position füllt {pos} (bzw. {clause}/{name} für Klausel- und Funktions-Fehler).
 // Unbekannte Codes fallen auf den generischen Text zurück.
-// 4T-0401 (Epic 3E-0076): Codes der Klausel-Grammatik ergänzt; die bereits
+// 4T-000401 (Epic 3E-000076): Codes der Klausel-Grammatik ergänzt; die bereits
 // bestehenden Parser-Codes (expectedOperator, expectedValue, …) erhalten dabei
 // eigene Texte statt des generischen Fallbacks.
 const SYNTAX_ERROR_KEYS = {
@@ -59,27 +59,27 @@ const SYNTAX_ERROR_KEYS = {
   expectedSource: 'query.syntax.expectedSource',
   invalidDate: 'query.syntax.invalidDate',
   invalidDuration: 'query.syntax.invalidDuration',
-  // 4T-0402 (Epic 3E-0076): Funktions-Validierung (seit 4T-0987 in
+  // 4T-000402 (Epic 3E-000076): Funktions-Validierung (seit 4T-000987 in
   // src/shared/query/query-functions.js) laeuft ueber denselben
   // queryError-Pfad wie die Parser-Codes.
   unknownFunction: 'query.syntax.unknownFunction',
   functionArity: 'query.syntax.functionArity',
-  // 4T-0502 (Epic 3E-0096): TASKS-Scope bei deaktivierter Erweiterung
+  // 4T-000502 (Epic 3E-000096): TASKS-Scope bei deaktivierter Erweiterung
   // "Aufgaben" (Gate im Main-Query-Pfad, kein Parser-Fehler).
   tasksScopeDisabled: 'query.syntax.tasksScopeDisabled',
-  // 4T-0503 (Epic 3E-0096): Gruppierung und Task-Layout (GROUP BY, HIDE/
+  // 4T-000503 (Epic 3E-000096): Gruppierung und Task-Layout (GROUP BY, HIDE/
   // SHOW/SHORT) — Parser-Codes plus Aktivierungs-Grenze des Main-Pfads.
   expectedBy: 'query.syntax.expectedBy',
   expectedElement: 'query.syntax.expectedElement',
   unknownLayoutElement: 'query.syntax.unknownLayoutElement',
   groupByTasksOnly: 'query.syntax.groupByTasksOnly',
   layoutTasksOnly: 'query.syntax.layoutTasksOnly',
-  // 4T-0505 (Epic 3E-0096): fehlerhafte globale Abfrage (Einstellungen) —
+  // 4T-000505 (Epic 3E-000096): fehlerhafte globale Abfrage (Einstellungen) —
   // eigener Code, damit die Anzeige global von lokal unterscheidet.
   globalQueryInvalid: 'query.syntax.globalQueryInvalid',
 };
 
-// 4T-0405 (Epic 3E-0076): Hinweis-Codes des Main-Payloads (payload.hint) auf
+// 4T-000405 (Epic 3E-000076): Hinweis-Codes des Main-Payloads (payload.hint) auf
 // i18n-Keys abgebildet — Linter-artige Hinweise, keine Fehler.
 const HINT_KEYS = {
   columnsIgnored: 'query.hint.columnsIgnored',
@@ -120,7 +120,7 @@ export function buildQueryListDom(payload, tFn) {
   }
 
   // ready: zuerst der Query-Syntaxfehler (leere Liste), dann Leer-Fall, dann
-  // Liste bzw. Tabelle (4T-0404).
+  // Liste bzw. Tabelle (4T-000404).
   if (payload && payload.queryError) {
     const node = statusNode(null, translate);
     node.classList.add('perspective-query-error');
@@ -128,7 +128,7 @@ export function buildQueryListDom(payload, tFn) {
     return append(frag, node);
   }
   const files = payload && Array.isArray(payload.files) ? payload.files : [];
-  // 4T-0503 (Epic 3E-0096): gruppierte Task-Ausgabe (GROUP BY) — die Treffer
+  // 4T-000503 (Epic 3E-000096): gruppierte Task-Ausgabe (GROUP BY) — die Treffer
   // liegen dann in payload.groups statt in der flachen files-Liste.
   const taskGroups =
     payload && payload.queryScope === 'tasks' && Array.isArray(payload.groups)
@@ -138,7 +138,7 @@ export function buildQueryListDom(payload, tFn) {
     return append(frag, statusNode('query.empty', translate));
   }
 
-  // 4T-0405 (Epic 3E-0076): Linter-artiger Hinweis oberhalb des Ergebnisses
+  // 4T-000405 (Epic 3E-000076): Linter-artiger Hinweis oberhalb des Ergebnisses
   // (aktuell: COLUMNS bei TABLE ignoriert). Kein Fehler, Ergebnis folgt darunter.
   if (payload.hint && HINT_KEYS[payload.hint]) {
     const hint = document.createElement('div');
@@ -147,15 +147,15 @@ export function buildQueryListDom(payload, tFn) {
     frag.appendChild(hint);
   }
 
-  // 4T-0404 (Epic 3E-0076): TABLE-Ausgabe als eigene Bau-Funktion; die Liste
+  // 4T-000404 (Epic 3E-000076): TABLE-Ausgabe als eigene Bau-Funktion; die Liste
   // bleibt der Default (Alt-Payloads ohne queryType rendern unverändert).
   if (payload.queryType === 'table' && payload.table) {
     return append(frag, buildQueryTableDom(payload.table, translate));
   }
 
-  // 4T-0502 (Epic 3E-0096): Task-Treffer des TASKS-Scopes als eigene Liste
+  // 4T-000502 (Epic 3E-000096): Task-Treffer des TASKS-Scopes als eigene Liste
   // (Status-Box, klickbare Beschreibung mit Zeilen-Sprung, Marker-Badges).
-  // 4T-0503: optional gruppiert (GROUP BY), mit Layout-Optionen (HIDE/SHOW/
+  // 4T-000503: optional gruppiert (GROUP BY), mit Layout-Optionen (HIDE/SHOW/
   // SHORT) und Treffer-Zähler (Element 'count', per HIDE abschaltbar).
   if (payload.queryScope === 'tasks') {
     const layout = normalizeTaskLayout(payload.taskLayout);
@@ -175,7 +175,7 @@ export function buildQueryListDom(payload, tFn) {
 
   const list = document.createElement('ul');
   list.className = 'perspective-query-list';
-  // 4T-0405 (Epic 3E-0076): Mehrspalten-Layout der Ergebnis-Liste. Reines
+  // 4T-000405 (Epic 3E-000076): Mehrspalten-Layout der Ergebnis-Liste. Reines
   // Anzeige-Attribut; die column-count-Regeln (2–8) liegen in styles.css.
   if (
     typeof payload.layoutColumns === 'number' &&
@@ -194,13 +194,13 @@ export function buildQueryListDom(payload, tFn) {
     // Absoluter Index-Pfad; der zentrale Klick-Handler öffnet darüber die
     // exakte Zieldatei (openInPane), ohne erneute Namensauflösung.
     a.dataset.fmPath = file.path;
-    // 4T-0409 (Epic 3E-0077): Block-Treffer tragen den Anker; der Klick-Pfad
+    // 4T-000409 (Epic 3E-000077): Block-Treffer tragen den Anker; der Klick-Pfad
     // springt nach dem Öffnen zum Block (bestehende Anker-Sprung-Mechanik).
     if (typeof file.anchor === 'string' && file.anchor) {
       a.dataset.fmAnchor = '^' + file.anchor;
     }
     li.appendChild(a);
-    // 4T-0404: LIST-Zusatzfeld — ausgewerteter Ausdruck als gedämpfter
+    // 4T-000404: LIST-Zusatzfeld — ausgewerteter Ausdruck als gedämpfter
     // Anhang hinter dem Datei-Link (Segmente, Links bleiben klickbar).
     if (Array.isArray(file.extra) && file.extra.length > 0) {
       const span = document.createElement('span');
@@ -214,9 +214,9 @@ export function buildQueryListDom(payload, tFn) {
   return frag;
 }
 
-// 4T-0503 (Epic 3E-0096): normalisiertes Task-Layout der Ausgabe (HIDE/SHOW/
+// 4T-000503 (Epic 3E-000096): normalisiertes Task-Layout der Ausgabe (HIDE/SHOW/
 // SHORT). Sichtbarkeits-Regel: HIDE gewinnt; standardmäßig verborgene
-// Elemente (aktuell 'urgency', wirksam ab 4T-0505) erscheinen nur über SHOW.
+// Elemente (aktuell 'urgency', wirksam ab 4T-000505) erscheinen nur über SHOW.
 const DEFAULT_HIDDEN_ELEMENTS = new Set(['urgency']);
 
 function normalizeTaskLayout(raw) {
@@ -232,7 +232,7 @@ function normalizeTaskLayout(raw) {
   };
 }
 
-// 4T-0503: Layout-Element eines Marker-Segments (HIDE/SHOW-Filterung);
+// 4T-000503: Layout-Element eines Marker-Segments (HIDE/SHOW-Filterung);
 // Toleranz-Marker (kind 'unknown') haben kein Element und bleiben sichtbar.
 function segmentElement(seg) {
   if (seg.kind === 'date') return seg.field;
@@ -243,7 +243,7 @@ function segmentElement(seg) {
   return null;
 }
 
-// 4T-0503: Inline-Tags aus der Beschreibung entfernen (HIDE tags) —
+// 4T-000503: Inline-Tags aus der Beschreibung entfernen (HIDE tags) —
 // dieselbe Tag-Form wie der Index-Scan; Rest-Weißraum kollabiert.
 function stripInlineTags(description) {
   return description
@@ -252,7 +252,7 @@ function stripInlineTags(description) {
     .trim();
 }
 
-// 4T-0502 (Epic 3E-0096): Gruppen-Rendering der Task-Ausgabe (4T-0503):
+// 4T-000502 (Epic 3E-000096): Gruppen-Rendering der Task-Ausgabe (4T-000503):
 // pro Gruppe eine Überschrift (Ebene über data-level, Optik in styles.css)
 // und darunter rekursiv Untergruppen bzw. die Task-Liste. label null steht
 // für Treffer ohne Gruppen-Wert (lokalisierte Beschriftung).
@@ -263,7 +263,7 @@ function appendTaskGroups(parent, groups, level, layout, translate) {
     wrap.dataset.level = String(level);
     const title = document.createElement('div');
     title.className = 'perspective-query-group-title';
-    // 4T-1074 (Epic 3E-0211): Trägt der Gruppen-Wert Anzeige-Segmente, werden
+    // 4T-001074 (Epic 3E-000211): Trägt der Gruppen-Wert Anzeige-Segmente, werden
     // sie gebaut (nur so überlebt eine Hervorhebung bis in den Titel); ohne
     // Segmente bleibt es beim reinen Text wie bisher.
     if (group.label !== null && Array.isArray(group.labelSegs) && group.labelSegs.length > 0) {
@@ -281,13 +281,13 @@ function appendTaskGroups(parent, groups, level, layout, translate) {
   }
 }
 
-// 4T-0502 (Epic 3E-0096): Task-Trefferliste des TASKS-Scopes. Pro Treffer
-// eine Zeile aus Status-Box (Darstellung; interaktiv ab 4T-0504), klickbarer
+// 4T-000502 (Epic 3E-000096): Task-Trefferliste des TASKS-Scopes. Pro Treffer
+// eine Zeile aus Status-Box (Darstellung; interaktiv ab 4T-000504), klickbarer
 // Beschreibung (data-fm-path plus data-fm-line für den Zeilen-Sprung),
 // Marker-Badges aus der gemeinsamen Badge-Spec und gedämpftem Datei-Namen.
 // Globaler-Filter-Text wird gemäß Ausblende-Option der Erweiterung entfernt
 // (getTaskMarkersConfig — dieselbe Quelle wie Render-Pane und Live-Modus).
-// 4T-0503: layout steuert Element-Sichtbarkeit (HIDE/SHOW) und Kurz-Modus
+// 4T-000503: layout steuert Element-Sichtbarkeit (HIDE/SHOW) und Kurz-Modus
 // (SHORT: Badges nur als Symbol, voller Wert am Tooltip); ohne layout bleibt
 // alles sichtbar. Exportiert für den jsdom-Unit-Test.
 export function buildQueryTaskListDom(files, layout) {
@@ -306,7 +306,7 @@ export function buildQueryTaskListDom(files, layout) {
       list.appendChild(li);
       continue;
     }
-    // 4T-0504 (Epic 3E-0096): Treffer-Identitaet fuer die Rueckschreib-
+    // 4T-000504 (Epic 3E-000096): Treffer-Identitaet fuer die Rueckschreib-
     // Aktionen (task-query-actions.js liest sie im Klick-Dispatch).
     li.dataset.taskPath = file.path;
     if (typeof file.line === 'number') li.dataset.taskLine = String(file.line);
@@ -314,7 +314,7 @@ export function buildQueryTaskListDom(files, layout) {
     const status = document.createElement('span');
     status.className = 'perspective-query-task-status';
     status.dataset.statusChar = model.statusChar;
-    // 4T-0504: klickbare Status-Box (Ketten-Toggle mit Quelldatei-Schreibweg).
+    // 4T-000504: klickbare Status-Box (Ketten-Toggle mit Quelldatei-Schreibweg).
     status.dataset.taskAction = 'toggle';
     status.title = t('taskQuery.toggle');
     const isDone = model.statusChar === 'x' || model.statusChar === 'X';
@@ -348,7 +348,7 @@ export function buildQueryTaskListDom(files, layout) {
       }
       li.appendChild(badge);
     }
-    // 4T-0505 (Epic 3E-0096): einblendbarer Dringlichkeits-Score
+    // 4T-000505 (Epic 3E-000096): einblendbarer Dringlichkeits-Score
     // (SHOW urgency; standardmäßig verborgen, Wert vom Main gerundet).
     if (lay.visible('urgency') && typeof file.urgency === 'number') {
       const badge = document.createElement('span');
@@ -357,7 +357,7 @@ export function buildQueryTaskListDom(files, layout) {
       badge.textContent = `⚡ ${file.urgency.toFixed(2)}`;
       li.appendChild(badge);
     }
-    // 4T-0508 (Epic 3E-0096): dezente Kennzeichnungen — blockiert durch
+    // 4T-000508 (Epic 3E-000096): dezente Kennzeichnungen — blockiert durch
     // offene Vorgänger bzw. mehrfach vergebene ID (Eindeutigkeits-Prüfung).
     if (file.blocked === true) {
       const badge = document.createElement('span');
@@ -374,7 +374,7 @@ export function buildQueryTaskListDom(files, layout) {
       badge.textContent = '⚠';
       li.appendChild(badge);
     }
-    // 4T-0504 (Epic 3E-0096): Aktions-Knoepfe pro Treffer — Verschieben nur
+    // 4T-000504 (Epic 3E-000096): Aktions-Knoepfe pro Treffer — Verschieben nur
     // bei verwertbarem Termin-Feld (Layout-Elemente 'postpone' und 'edit').
     if (lay.visible('postpone') && primaryDateField(model)) {
       li.appendChild(taskActionButton('postpone', '⇥', t('taskQuery.postpone')));
@@ -399,7 +399,7 @@ export function buildQueryTaskListDom(files, layout) {
   return list;
 }
 
-// 4T-0504 (Epic 3E-0096): Aktions-Knopf eines Task-Treffers (Verschieben,
+// 4T-000504 (Epic 3E-000096): Aktions-Knopf eines Task-Treffers (Verschieben,
 // Bearbeiten) — die Klick-Behandlung liegt im zentralen Dispatch
 // (task-query-actions.js), hier nur Darstellung und data-Attribut.
 function taskActionButton(action, glyph, title) {
@@ -425,13 +425,13 @@ function taskItemLink(file, text) {
   return a;
 }
 
-// 4T-0404 (Epic 3E-0076): Segment-Renderer für Tabellen-Zellen und das
+// 4T-000404 (Epic 3E-000076): Segment-Renderer für Tabellen-Zellen und das
 // LIST-Zusatzfeld. { text } wird Text-Knoten, { link } ein Link über den
 // bestehenden data-fm-path-Klick-Pfad (zentrale Klick-Handler, wie die
 // Datei-Liste selbst). Defensive Prüfung, weil die Segmente über IPC kommen.
 function appendSegments(el, segments) {
   for (const seg of segments || []) {
-    // 4T-1074 (Epic 3E-0211): Ein ausgezeichnetes Segment kommt in ein
+    // 4T-001074 (Epic 3E-000211): Ein ausgezeichnetes Segment kommt in ein
     // <strong>; alles andere bleibt unverändert. Die Marke sitzt am Segment
     // und nicht an seiner Art, deshalb gilt sie für Text- und Link-Segmente
     // gleichermaßen, und der Link bleibt ein klickbarer Link.
@@ -451,7 +451,7 @@ function appendSegments(el, segments) {
   }
 }
 
-// 4T-0404 (Epic 3E-0076): Tabellen-DOM der TABLE-Ausgabe. Erste Spalte ist der
+// 4T-000404 (Epic 3E-000076): Tabellen-DOM der TABLE-Ausgabe. Erste Spalte ist der
 // klickbare Datei-Link (entfällt bei WITHOUT ID), danach je Spalten-Ausdruck
 // eine Zelle aus Segmenten; Kopfzeile aus Alias bzw. Ausdrucks-Quelltext (vom
 // Main geliefert). Die Optik erbt von .markdown-body table; die Zusatz-Klasse
@@ -485,11 +485,11 @@ export function buildQueryTableDom(table, tFn) {
       a.textContent = row.name;
       a.title = row.path;
       a.dataset.fmPath = row.path;
-      // 4T-0409 (Epic 3E-0077): Anker der Block-Treffer (wie die Liste).
+      // 4T-000409 (Epic 3E-000077): Anker der Block-Treffer (wie die Liste).
       if (typeof row.anchor === 'string' && row.anchor) {
         a.dataset.fmAnchor = '^' + row.anchor;
       }
-      // 4T-0502 (Epic 3E-0096): Zeilen-Sprung der Task-Treffer (TABLE TASKS).
+      // 4T-000502 (Epic 3E-000096): Zeilen-Sprung der Task-Treffer (TABLE TASKS).
       if (typeof row.line === 'number') {
         a.dataset.fmLine = String(row.line);
       }
@@ -582,7 +582,7 @@ function fillOneQueryContainer(el, basePath, showLoading) {
   if (showLoading) renderPayload(el, { status: 'loading' });
   fillStarted();
   api
-    // 4T-1072 (Epic 3E-0211): eingestellte Programmsprache mitgeben — die
+    // 4T-001072 (Epic 3E-000211): eingestellte Programmsprache mitgeben — die
     // Formatierer der Abfrage folgen ihr statt der Betriebssystem-Sprache.
     .runFrontmatterQuery(basePath, query, getLanguage())
     .then((payload) => {

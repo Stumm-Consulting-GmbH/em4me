@@ -1,5 +1,5 @@
-// --- Scroll-Sync (4T-0070, Epic 3E-0012) ------------------------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// --- Scroll-Sync (4T-000070, Epic 3E-000012) ------------------------------------
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -52,14 +52,14 @@ export function syncScrollFrom(paneIdx, source) {
   });
 }
 
-// 4T-0070: Anchor-basierte Sync. Jedes Block-Open-Token traegt im Render-DOM
+// 4T-000070: Anchor-basierte Sync. Jedes Block-Open-Token traegt im Render-DOM
 // ein data-source-line-Attribut (1-basierte Quell-Zeile, gesetzt vom
 // sourceLineMapperPlugin im Preload). Beim Scrollen einer Pane wird die
 // sichtbare Top-Zeile in der Quelle ermittelt; in der Ziel-Pane wird das
 // Element gesucht, das diese Zeile (oder die naechste davor) abdeckt, und
 // zum Top des Viewports gescrollt. Damit landet beim "Akzeptanzkriterien"-
 // Heading tatsaechlich in beiden Panes dieselbe Stelle oben.
-// R4-14 (4T-0180): Die [data-source-line]-Elemente samt geparster Zeile
+// R4-14 (4T-000180): Die [data-source-line]-Elemente samt geparster Zeile
 // werden pro Render-DOM gecacht statt pro Scroll-Frame frisch per
 // querySelectorAll + parseInt ermittelt. Invalidierung implizit: nach
 // einem innerHTML-Ersatz sind die gecachten Elemente disconnected
@@ -120,7 +120,7 @@ export function syncRenderToSource(view, renderEl) {
 // "groesste Zeile <= line" — d.h. wir nehmen das Element, an dem der Block
 // startet, der die gesuchte Zeile enthaelt. Wenn alle Elemente NACH der
 // Zeile liegen (Edge-Case: ganz oben), nimm das erste.
-// R4-14 (4T-0180): binaere Suche auf der gecachten, nach Dokument-
+// R4-14 (4T-000180): binaere Suche auf der gecachten, nach Dokument-
 // Reihenfolge (= aufsteigender Quell-Zeile) sortierten Liste.
 export function findRenderElementForLine(renderEl, line) {
   const entries = getSourceLineEntries(renderEl);

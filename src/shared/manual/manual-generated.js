@@ -1,4 +1,4 @@
-// 4T-0716 (Epic 3E-0137): Geteilte Erzeugung der generierten Handbuch-Seiten.
+// 4T-000716 (Epic 3E-000137): Geteilte Erzeugung der generierten Handbuch-Seiten.
 //
 // Prozessneutrales CommonJS-Modul (Muster src/shared/manual/manual-pages.js): reine
 // Daten und reine Funktionen ohne DOM- und ohne Electron-Abhängigkeit, damit
@@ -17,11 +17,11 @@
 
 // COMMANDS liefert die Kommando-Reihenfolge, bindingToDisplayString den
 // deutschen Anzeige-String eines Bindings (Muster wie zuvor im Renderer).
-// 4T-0993: Die Anzeige-Konvertierung liegt in command-bindings.js.
+// 4T-000993: Die Anzeige-Konvertierung liegt in command-bindings.js.
 const { COMMANDS } = require('../commands/commands.js');
 const { bindingToDisplayString } = require('../commands/command-bindings.js');
 
-// Die Gruppen-Tabelle liegt seit 4T-1075 in ihrem eigenen Modul (Registry,
+// Die Gruppen-Tabelle liegt seit 4T-001075 in ihrem eigenen Modul (Registry,
 // waechst mit jedem Katalog-Eintrag); sie wird hier gebraucht und zugleich
 // weiter exportiert, damit die Importeure eine Anlaufstelle behalten.
 const { HELP_FEATURE_GROUPS } = require('./manual-feature-groups.js');
@@ -34,7 +34,7 @@ const STATIC_HELP_SHORTCUTS = [
   { keys: ['Tab', 'Umschalt+Tab'], descKey: 'help.shortcut.tabIndent' },
   { keys: ['Mittlere Maustaste'], descKey: 'help.shortcut.middleClickClose' },
   { keys: ['Enter', 'Umschalt+Enter'], descKey: 'help.shortcut.searchNavEnter' },
-  // K-16 (4T-0191): "Alle ersetzen" im Ersetzen-Feld.
+  // K-16 (4T-000191): "Alle ersetzen" im Ersetzen-Feld.
   { keys: ['Umschalt+Enter', 'Alt+Enter'], descKey: 'help.shortcut.replaceAll' },
   { keys: ['Esc'], descKey: 'help.shortcut.escape' },
   { keys: ['Alt'], descKey: 'help.shortcut.menuBar' },
@@ -51,9 +51,9 @@ const KEY_LABEL_KEY = {
   Enter: 'help.key.enter',
   Esc: 'help.key.esc',
   'Mittlere Maustaste': 'help.key.middleClick',
-  // 4T-0027: Mausrad als eigene "Taste" fuer den Zoom-per-Mausrad-Shortcut.
+  // 4T-000027: Mausrad als eigene "Taste" fuer den Zoom-per-Mausrad-Shortcut.
   Mausrad: 'help.key.mouseWheel',
-  // 4T-0850 (Epic 3E-0147): Bild-Tasten der Leseführung. Die deutschen
+  // 4T-000850 (Epic 3E-000147): Bild-Tasten der Leseführung. Die deutschen
   // Anzeige-Tokens liefert DISPLAY_KEY_MAP in src/shared/commands/commands.js; ohne
   // Eintrag hier blieben sie in allen Sprachen deutsch stehen.
   'Bild auf': 'help.key.pageUp',
@@ -92,7 +92,7 @@ function escapeTableCell(value) {
 // plus statischer Rest-Liste. Kommandos ohne descKey und deaktivierte
 // Kommandos entfallen; Einträge mit gleichem descKey bündeln in eine Zeile.
 function buildHelpShortcutRows({ effectiveBindings, disabledCommandIds }) {
-  // 4T-0294: Kommandos effektiv deaktivierter Erweiterungen erscheinen
+  // 4T-000294: Kommandos effektiv deaktivierter Erweiterungen erscheinen
   // nicht (die generierte Handbuch-Seite zeigt keine toten Kuerzel).
   const disabled = disabledCommandIds || new Set();
   const rows = [];
@@ -119,7 +119,7 @@ function buildHelpShortcutRows({ effectiveBindings, disabledCommandIds }) {
 // Funktions-Seite: H2 pro Gruppe aus HELP_FEATURE_GROUPS, darunter eine
 // dreispaltige Pipe-Tabelle (Funktion, Beschreibung, Zugang).
 //
-// 4T-0941: Anders als die Tastenkürzel-Seite LÄSST die Funktions-Seite nichts
+// 4T-000941: Anders als die Tastenkürzel-Seite LÄSST die Funktions-Seite nichts
 // weg, wenn eine Erweiterung abgeschaltet ist, sondern kennzeichnet die Zeile
 // (Entscheidung des Product Owners vom 2026-08-10). Begründung: Wer eine
 // vermisste Funktion sucht, braucht gerade dann ihre Beschreibung und den Weg

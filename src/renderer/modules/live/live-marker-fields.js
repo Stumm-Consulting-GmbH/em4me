@@ -1,7 +1,7 @@
 // StateFields der Quelltext-Einfaerbung: Such-Treffer, Frontmatter-Zeilen und
 // die konstrukt-spezifischen Marker-Felder (Callout, Highlight, Kommentar,
 // Fussnote, Inline-Berechnung).
-// 4T-0982 (Epic 3E-0196): aus live-deco.js herausgelöst; die Felder wirken in
+// 4T-000982 (Epic 3E-000196): aus live-deco.js herausgelöst; die Felder wirken in
 // Quelltext- UND Live-Modus und hängen nur an api, der Erweiterungs-Schaltung
 // und den geteilten Scannern.
 'use strict';
@@ -10,21 +10,21 @@ import { EditorView, Decoration } from '@codemirror/view';
 import { StateField, StateEffect } from '@codemirror/state';
 
 import { getDocText } from '../app/api.js';
-// 4T-0479 (Epic 3E-0089): geteilter Kommentar-Scanner — dieselbe Quelle wie
+// 4T-000479 (Epic 3E-000089): geteilter Kommentar-Scanner — dieselbe Quelle wie
 // das Render-Strippen in markdown.js (CJS-Modul, esbuild loest den Import).
 import { findPercentCommentRanges } from '../../../shared/markdown/plugins.js';
-// 4T-0596 (Epic 3E-0111): geteilter Spannen-Scanner der Inline-Berechnungen —
+// 4T-000596 (Epic 3E-000111): geteilter Spannen-Scanner der Inline-Berechnungen —
 // dieselbe Quelle wie die Render-Pipeline (Paritaet per Konstruktion; das
 // Modul ist bewusst markdown.js-frei und damit Bundle-tauglich).
 import { findInlineCalcSpans } from '../../../shared/markdown/inline-calc.js';
-// 4T-0293 (Epic 3E-0052): Schalt-Zustand der Render-Erweiterungen als Guard
+// 4T-000293 (Epic 3E-000052): Schalt-Zustand der Render-Erweiterungen als Guard
 // fuer die konstrukt-spezifischen Marker-Felder (zyklenfrei: importiert nur
 // api und die shared Registry). Der Umschalt-Pfad dispatcht den
 // liveRebuildEffect, damit die Felder auch ohne Doc-Aenderung neu bauen.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { liveRebuildEffect } from './live-shared.js';
 
-// CodeMirror-Such-Decorations (4T-0007): aktive Such-Treffer im Source-Pane
+// CodeMirror-Such-Decorations (4T-000007): aktive Such-Treffer im Source-Pane
 // werden ueber ein StateField/Decoration-Set gerendert und ueberleben CM-Re-
 // Renders. setSearchDecorations setzt das Decoration-Set, clearSearchDecorations
 // loescht es. Bei jeder Doc-Aenderung werden alte Decorations verworfen, weil
@@ -58,7 +58,7 @@ export const searchHighlightField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0049 (Epic 3E-0010): Frontmatter-Decoration. Wenn der Doc-Anfang ein
+// 4T-000049 (Epic 3E-000010): Frontmatter-Decoration. Wenn der Doc-Anfang ein
 // YAML-Frontmatter-Block ('---' bis '---' bzw. '...') ist, bekommen alle
 // Zeilen des Blocks (inklusive der beiden Marker-Zeilen) eine Line-
 // Decoration mit dezenter Hintergrundfarbe. Erkennung anhand des Doc-Texts;
@@ -103,7 +103,7 @@ export const frontmatterField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0061 (Epic 3E-0012): Editor-Highlighting fuer den `[!type][+-]?`-Marker
+// 4T-000061 (Epic 3E-000012): Editor-Highlighting fuer den `[!type][+-]?`-Marker
 // in der ersten Zeile eines Callout-Blockquotes. Decoration.mark mit der
 // Klasse cm-callout-marker (theme-konforme Akzentfarbe in styles.css). Keine
 // Code-/Frontmatter-Kontext-Pruefung — kosmetische Markierung, im seltenen
@@ -112,9 +112,9 @@ export const calloutMarkerDecoration = Decoration.mark({ class: 'cm-callout-mark
 export const EDITOR_CALLOUT_HEADER_RE = /^>\s+(\[!([a-z]+)\][+-]?)/gm;
 
 export function buildCalloutMarkerDecorations(doc) {
-  // 4T-0293: bei deaktivierter Callout-Erweiterung bleibt der Header roh.
+  // 4T-000293: bei deaktivierter Callout-Erweiterung bleibt der Header roh.
   if (!isExtensionActive('callouts')) return Decoration.none;
-  // R1-06 (4T-0180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
+  // R1-06 (4T-000180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
   const text = getDocText(doc);
   const ranges = [];
   for (const m of text.matchAll(EDITOR_CALLOUT_HEADER_RE)) {
@@ -130,7 +130,7 @@ export const calloutMarkerField = StateField.define({
     return buildCalloutMarkerDecorations(state.doc);
   },
   update(deco, tr) {
-    // 4T-0293: Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung.
+    // 4T-000293: Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung.
     for (const e of tr.effects) {
       if (e.is(liveRebuildEffect)) return buildCalloutMarkerDecorations(tr.state.doc);
     }
@@ -140,7 +140,7 @@ export const calloutMarkerField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0062 (Epic 3E-0012): Editor-Highlighting fuer `==Text==` im Source-Pane.
+// 4T-000062 (Epic 3E-000012): Editor-Highlighting fuer `==Text==` im Source-Pane.
 // Decoration wird nur auf den Inhalt zwischen den `==`-Delimitern gesetzt;
 // die Delimiter selbst bleiben unmarkiert. Escape `\==` wird uebersprungen,
 // kein Match ueber Zeilenumbruch hinaus. Klasse cm-mark-marker (gelbes
@@ -149,9 +149,9 @@ export const markMarkerDecoration = Decoration.mark({ class: 'cm-mark-marker' })
 export const EDITOR_MARK_RE = /(?<!\\)==([^=\n][^\n]*?)(?<!\\)==/g;
 
 export function buildMarkMarkerDecorations(doc) {
-  // 4T-0293: bei deaktivierter Highlight-Erweiterung bleibt `==…==` roh.
+  // 4T-000293: bei deaktivierter Highlight-Erweiterung bleibt `==…==` roh.
   if (!isExtensionActive('highlight')) return Decoration.none;
-  // R1-06 (4T-0180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
+  // R1-06 (4T-000180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
   const text = getDocText(doc);
   const ranges = [];
   for (const m of text.matchAll(EDITOR_MARK_RE)) {
@@ -169,7 +169,7 @@ export const markMarkerField = StateField.define({
     return buildMarkMarkerDecorations(state.doc);
   },
   update(deco, tr) {
-    // 4T-0293: Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung.
+    // 4T-000293: Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung.
     for (const e of tr.effects) {
       if (e.is(liveRebuildEffect)) return buildMarkMarkerDecorations(tr.state.doc);
     }
@@ -179,7 +179,7 @@ export const markMarkerField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0479 (Epic 3E-0089): %%-Kommentar-Bereiche im Quelltext- und Live-Modus
+// 4T-000479 (Epic 3E-000089): %%-Kommentar-Bereiche im Quelltext- und Live-Modus
 // dezent einfaerben. Die Bereiche kommen aus findPercentCommentRanges
 // (shared/markdown/plugins.js) — demselben Scanner, der das Render-Strippen
 // speist; Editor-Faerbung und Render-Entfernung sind damit per Konstruktion
@@ -197,7 +197,7 @@ export function computeCommentRanges(doc) {
   const ranges = findPercentCommentRanges(text.slice(startOffset)).map((r) => ({
     from: r.from + startOffset,
     to: r.to + startOffset,
-    // 4T-0533: unpaarige Marker fuer den Linter-Hinweis durchreichen.
+    // 4T-000533: unpaarige Marker fuer den Linter-Hinweis durchreichen.
     closed: r.closed,
   }));
   commentRangeCache.set(doc, ranges);
@@ -221,7 +221,7 @@ export const commentMarkerField = StateField.define({
     return buildCommentMarkerDecorations(state.doc);
   },
   update(deco, tr) {
-    // Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung (Muster 4T-0293).
+    // Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung (Muster 4T-000293).
     for (const e of tr.effects) {
       if (e.is(liveRebuildEffect)) return buildCommentMarkerDecorations(tr.state.doc);
     }
@@ -231,16 +231,16 @@ export const commentMarkerField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0063 (Epic 3E-0012): Editor-Highlighting fuer Footnotes. Markiert sowohl
+// 4T-000063 (Epic 3E-000012): Editor-Highlighting fuer Footnotes. Markiert sowohl
 // `[^id]`-Referenzen und `[^id]:`-Definitionen (klassische Footnotes) als auch
 // `^[Inline-Text]` (Inline-Footnotes) mit der Klasse cm-footnote-marker.
 export const footnoteMarkerDecoration = Decoration.mark({ class: 'cm-footnote-marker' });
 export const EDITOR_FOOTNOTE_RE = /\[\^[\w-]+\]:?|\^\[[^\]\n]+\]/g;
 
 export function buildFootnoteMarkerDecorations(doc) {
-  // 4T-0293: bei deaktivierter Fussnoten-Erweiterung bleiben `[^id]` roh.
+  // 4T-000293: bei deaktivierter Fussnoten-Erweiterung bleiben `[^id]` roh.
   if (!isExtensionActive('footnotes')) return Decoration.none;
-  // R1-06 (4T-0180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
+  // R1-06 (4T-000180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
   const text = getDocText(doc);
   const ranges = [];
   for (const m of text.matchAll(EDITOR_FOOTNOTE_RE)) {
@@ -254,7 +254,7 @@ export const footnoteMarkerField = StateField.define({
     return buildFootnoteMarkerDecorations(state.doc);
   },
   update(deco, tr) {
-    // 4T-0293: Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung.
+    // 4T-000293: Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung.
     for (const e of tr.effects) {
       if (e.is(liveRebuildEffect)) return buildFootnoteMarkerDecorations(tr.state.doc);
     }
@@ -264,7 +264,7 @@ export const footnoteMarkerField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-0596 (Epic 3E-0111): Inline-Berechnungen im Quelltext- und Live-Modus
+// 4T-000596 (Epic 3E-000111): Inline-Berechnungen im Quelltext- und Live-Modus
 // dezent einfaerben (ganzes Konstrukt inklusive Marker, Klasse
 // cm-inline-calc-marker). Die Spannen kommen aus findInlineCalcSpans —
 // demselben Scanner wie Render-Pipeline und Live-Widget (Paritaet per
@@ -275,7 +275,7 @@ export const inlineCalcMarkerDecoration = Decoration.mark({ class: 'cm-inline-ca
 export function buildInlineCalcMarkerDecorations(doc) {
   // Bei deaktivierter Erweiterung bleibt {= … =} roh (kein Styling).
   if (!isExtensionActive('inline-calc')) return Decoration.none;
-  // R1-06 (4T-0180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
+  // R1-06 (4T-000180): geteilte Serialisierung statt eigener Voll-Doc-Kopie.
   const text = getDocText(doc);
   const ranges = [];
   for (const s of findInlineCalcSpans(text)) {
@@ -289,7 +289,7 @@ export const inlineCalcMarkerField = StateField.define({
     return buildInlineCalcMarkerDecorations(state.doc);
   },
   update(deco, tr) {
-    // Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung (Muster 4T-0293).
+    // Erweiterungs-Umschalten rebuildet ohne Doc-Aenderung (Muster 4T-000293).
     for (const e of tr.effects) {
       if (e.is(liveRebuildEffect)) return buildInlineCalcMarkerDecorations(tr.state.doc);
     }

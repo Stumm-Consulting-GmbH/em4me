@@ -1,16 +1,16 @@
-// 4T-0977 (Epic 3E-0196): Block-Daten der .mdd-Begleitdatei, herausgelöst
-// aus src/main/backlinks.js (dort Abschnitt 4T-0408). Reine Leser ohne
+// 4T-000977 (Epic 3E-000196): Block-Daten der .mdd-Begleitdatei, herausgelöst
+// aus src/main/backlinks.js (dort Abschnitt 4T-000408). Reine Leser ohne
 // Index-Zustand; die Eintrags-Pflege übernehmen build.js (Aufbau- und
 // Watcher-Pfad) und lifecycle.js (updateBlockDataForFile).
 //
-// --- 4T-0408 (Epic 3E-0077): Block-Daten aus der .mdd-Begleitdatei ------------
+// --- 4T-000408 (Epic 3E-000077): Block-Daten aus der .mdd-Begleitdatei ------------
 // Datengrundlage der Block-Abfrage: die blockData-Sektion der .mdd wird beim
 // Index-Aufbau pro Markdown-Datei mitgelesen (die .mdd liegt ausserhalb des
 // Markdown-Watchers; Aenderungen ueber das Panel invalidieren per
 // updateBlockDataForFile in lifecycle.js). Bewusst NICHT in Area_Cache.mdda
 // persistiert: der komplette Zusatz-Pass kostet auch im pessimistischen
 // Szenario (2000 Dateien, 300 .mdd a 100 KB) nur ~0,36 s einmalig pro
-// Index-Aufbau (Messung 4T-0408); eine Cache-Aufnahme braeuchte dagegen
+// Index-Aufbau (Messung 4T-000408); eine Cache-Aufnahme braeuchte dagegen
 // eigene .mdd-mtime-Verfolgung plus Schema-Bump. Fehler-Isolation: eine
 // defekte .mdd setzt nur die Block-Ebene dieser Datei aus (null), nie den
 // uebrigen Index.

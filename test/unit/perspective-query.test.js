@@ -1,8 +1,8 @@
-// 4T-0354 (Epic 3E-0065): Unit-Tests für Parser und Evaluator der Perspective-
+// 4T-000354 (Epic 3E-000065): Unit-Tests für Parser und Evaluator der Perspective-
 // Query-Sprache (perspective-query-Fence). Prozess-neutral, ohne Temp-FS: die
 // reine String -> AST -> boolean-Kette wird hier erschöpfend geprüft; die
 // Integration mit dem Index liegt in backlinks.test.js.
-// 4T-0401 (Epic 3E-0076): Klausel-Grammatik (LIST/TABLE/FROM/WHERE/SORT/
+// 4T-000401 (Epic 3E-000076): Klausel-Grammatik (LIST/TABLE/FROM/WHERE/SORT/
 // LIMIT/COLUMNS), Literale und Abwärtskompatibilitäts-Fälle ergänzt; Modul
 // umbenannt (frontmatter-query.js -> perspective-query.js).
 import { describe, it, expect } from 'vitest';
@@ -150,7 +150,7 @@ describe('frontmatter-query — tokenize', () => {
   });
 });
 
-// --- 4T-0401 (Epic 3E-0076): Klausel-Grammatik ------------------------------
+// --- 4T-000401 (Epic 3E-000076): Klausel-Grammatik ------------------------------
 
 // Parst und liefert den Abfrage-Knoten; wirft bei Parse-Fehler.
 function parseOk(query) {
@@ -241,7 +241,7 @@ describe('perspective-query — Klausel-Struktur', () => {
   });
 });
 
-// 4T-0409 (Epic 3E-0077): Scope-Zusatz BLOCKS am Ausgabe-Typ.
+// 4T-000409 (Epic 3E-000077): Scope-Zusatz BLOCKS am Ausgabe-Typ.
 describe('perspective-query — BLOCKS-Scope', () => {
   it('Default-Scope ist files (Klausel-Form und Alt-Body)', () => {
     expect(parseOk('LIST').scope).toBe('files');
@@ -291,8 +291,8 @@ describe('perspective-query — BLOCKS-Scope', () => {
   });
 });
 
-// 4T-0502 (Epic 3E-0096): Scope-Zusatz TASKS am Ausgabe-Typ (Muster BLOCKS).
-describe('perspective-query — TASKS-Scope (4T-0502, Epic 3E-0096)', () => {
+// 4T-000502 (Epic 3E-000096): Scope-Zusatz TASKS am Ausgabe-Typ (Muster BLOCKS).
+describe('perspective-query — TASKS-Scope (4T-000502, Epic 3E-000096)', () => {
   it('LIST TASKS und TABLE TASKS schalten auf die Task-Ebene um', () => {
     const list = parseOk('LIST TASKS');
     expect(list.type).toBe('list');
@@ -344,10 +344,10 @@ describe('perspective-query — TASKS-Scope (4T-0502, Epic 3E-0096)', () => {
   });
 });
 
-// 4T-0503 (Epic 3E-0096): GROUP BY und Task-Layout-Klauseln (HIDE/SHOW/SHORT).
+// 4T-000503 (Epic 3E-000096): GROUP BY und Task-Layout-Klauseln (HIDE/SHOW/SHORT).
 // Reine Parser-Ebene: die Aktivierungs-Grenze (nur LIST TASKS) liegt in der
 // Auswertung und wird im Index-Test geprueft.
-describe('perspective-query — GROUP BY und Layout-Klauseln (4T-0503, Epic 3E-0096)', () => {
+describe('perspective-query — GROUP BY und Layout-Klauseln (4T-000503, Epic 3E-000096)', () => {
   it('GROUP BY: einfacher und mehrstufiger Ausdruck landet in ast.groupBy', () => {
     const one = parseOk('LIST TASKS GROUP BY heading');
     expect(one.groupBy).toEqual([{ type: 'field', name: 'heading' }]);
@@ -435,7 +435,7 @@ describe('perspective-query — FROM-Quellen', () => {
     expect(parseQuery('FROM outgoing(#tag)').error.code).toBe('expectedSource');
   });
 
-  // 4T-1070 (Epic 3E-0211): Der leere Wiki-Link war bis hierher ein
+  // 4T-001070 (Epic 3E-000211): Der leere Wiki-Link war bis hierher ein
   // Syntaxfehler (expectedSource) und trägt jetzt den Selbstbezug.
   it('leerer Wiki-Link ist die Selbstbezugs-Quelle', () => {
     expect(parseOk('FROM [[]]').source).toEqual({ type: 'srcSelf', mode: 'in' });
@@ -480,7 +480,7 @@ describe('perspective-query — Literale und Ausdrücke', () => {
     expect(parseQuery('WHERE d = date(2026-7-8)').error.code).toBe('invalidDate');
   });
 
-  it('date(): neue relative Woerter (4T-0502) parsen; ungueltige melden invalidDate', () => {
+  it('date(): neue relative Woerter (4T-000502) parsen; ungueltige melden invalidDate', () => {
     for (const w of ['tomorrow', 'yesterday', 'sow', 'eow', 'som', 'eom', 'soy', 'eoy']) {
       expect(parseOk(`WHERE d = date(${w})`).where.right, w).toEqual({ type: 'date', value: w });
     }

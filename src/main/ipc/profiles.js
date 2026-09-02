@@ -2,7 +2,7 @@
 // Schreiben der Profil-Sektion, die aufgeloeste Definitions-Liste einer Datei,
 // die Profil-Liste des Einstellungs-Bereichs und die Ordner-Auswahl.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: profiles:*.
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: profiles:*.
 //
 // Eigener Zustand: der mtime-validierte Katalog-Cache des Profil-Ordners. Er
 // gehoert genau hierher, weil ihn allein diese beiden Handler verbrauchen.
@@ -21,20 +21,20 @@ const {
 } = require('../../shared/property-profiles');
 const { injectEventProfile } = require('../../shared/events/events-core.js');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
-// 4T-1159 (Epic 3E-0219, E13): Schlagwort-Erkennung aus DERSELBEN Quelle wie
+// 4T-001159 (Epic 3E-000219, E13): Schlagwort-Erkennung aus DERSELBEN Quelle wie
 // der Bereichs-Index — sonst liefen Index und Zuordnung auseinander.
 const { TAG_RE, isValidTag } = require('../index/parse');
 const { createProfileCatalogCache, loadProfileCatalog } = require('../documents/profile-catalog');
 const selbstSchreib = require('../documents/self-write');
 
-// 4T-0447: Profil-Katalog des Profil-Ordners mit mtime-validiertem Cache
+// 4T-000447: Profil-Katalog des Profil-Ordners mit mtime-validiertem Cache
 // pro Profil-Datei (electron-frei, unit-getestet; fs wird hier gebunden).
 const profileCatalogCache = createProfileCatalogCache();
-// 4T-0947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
+// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
-// 4T-1159 (Epic 3E-0219, E13): Schlagworte eines Dokuments aus seinem Text.
+// 4T-001159 (Epic 3E-000219, E13): Schlagworte eines Dokuments aus seinem Text.
 //
 // **Frontmatter- UND Inline-Schlagworte** (PO-Entscheidung vom 2026-08-23):
 // Der Bereichs-Index führt beide in einem Satz, und für den Anwender ist ein
@@ -70,7 +70,7 @@ function schlagworteAus(text, frontmatterDaten) {
   return [...treffer];
 }
 
-// 4T-1159: Bereichs-relativer Ordner eines Dokuments, mit "/" normalisiert;
+// 4T-001159: Bereichs-relativer Ordner eines Dokuments, mit "/" normalisiert;
 // "" für eine Datei direkt in der Bereichs-Wurzel. null, wenn der Pfad
 // fehlt oder ausserhalb des Bereichs liegt (harte Grenze wie überall).
 function ordnerVon(areaRoot, filePath) {
@@ -106,14 +106,14 @@ function registerProfilesIpc(handle, deps) {
     broadcast,
     mddStore,
     readAreaProfilesConfig,
-    // 4T-1156: Index-Sichten für die Ziel-Liste der Verweis-Felder.
+    // 4T-001156: Index-Sichten für die Ziel-Liste der Verweis-Felder.
     backlinks,
   } = deps;
-  // 4T-0999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
+  // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
 
-  // --- 4T-0446 (Epic 3E-0083): Profil-Konfiguration (propertyProfiles-Sektion) --
+  // --- 4T-000446 (Epic 3E-000083): Profil-Konfiguration (propertyProfiles-Sektion) --
 
   // Konfigurations-Stand des Bereichs, normalisiert. Eigenschafts-Profile
   // existieren nur pro Bereich (Profil-Ordner und Standard-Profil leben in
@@ -171,7 +171,7 @@ function registerProfilesIpc(handle, deps) {
     }
   });
 
-  // 4T-0447 (Epic 3E-0083): aufgelöste Definitions-Liste für eine Datei —
+  // 4T-000447 (Epic 3E-000083): aufgelöste Definitions-Liste für eine Datei —
   // Standard-Profil des Bereichs plus die über das Zuordnungs-Feld
   // zugeordneten Profile (Konflikt-Regeln in resolveProfileFields; Blöcke
   // der Datei erben dieselbe Auflösung). Die Zuordnungs-Werte liefert der
@@ -188,12 +188,12 @@ function registerProfilesIpc(handle, deps) {
       fields: [],
       missing: [],
       leading: null,
-      // 4T-1171 (Epic 3E-0220): Ohne Konfiguration gibt es keine Kette.
+      // 4T-001171 (Epic 3E-000220): Ohne Konfiguration gibt es keine Kette.
       chain: [],
     };
     const area = areaOfWindow(senderWindow(event));
     if (!area) return none;
-    // 4T-0517: bei aktiver Ereignis-Erweiterung läuft die Auflösung auch
+    // 4T-000517: bei aktiver Ereignis-Erweiterung läuft die Auflösung auch
     // ohne konfigurierten Profil-Ordner weiter — das interne Profil
     // „Ereignis" wirkt dann allein, mit dem Default-Zuordnungs-Feld.
     const eventsOn = isExtensionEnabled('events', store ? store.get('extensions.disabled') : []);
@@ -206,7 +206,7 @@ function registerProfilesIpc(handle, deps) {
           folderAbs,
           fsp: fs,
           cache: profileCatalogCache,
-          // 4T-1157: Werte-Notizen liegen bereichs-relativ, nicht im Profil-Ordner.
+          // 4T-001157: Werte-Notizen liegen bereichs-relativ, nicht im Profil-Ordner.
           areaRoot: area.rootPath,
         })
       : { profiles: [], missingFolder: false };
@@ -214,7 +214,7 @@ function registerProfilesIpc(handle, deps) {
     let assigned = Array.isArray(params && params.assigned)
       ? params.assigned.filter((s) => typeof s === 'string')
       : null;
-    // 4T-0448: die Editoren übergeben das Live-Frontmatter des Tabs; die
+    // 4T-000448: die Editoren übergeben das Live-Frontmatter des Tabs; die
     // Auswertung des Zuordnungs-Felds (Feldname aus der Konfiguration)
     // bleibt damit auf einer Seite (Main kennt assignField).
     if (
@@ -241,7 +241,7 @@ function registerProfilesIpc(handle, deps) {
         }
       }
     }
-    // 4T-1159 (E13): die beiden neuen Eingangsgrössen der Folge. Schlagworte
+    // 4T-001159 (E13): die beiden neuen Eingangsgrössen der Folge. Schlagworte
     // aus dem Live-Text (params.text, vom Renderer), Ordner aus dem Pfad;
     // ohne Bindungen kostet beides nichts, weil gebundeneProfile dann sofort
     // eine leere Liste liefert.
@@ -268,19 +268,19 @@ function registerProfilesIpc(handle, deps) {
       folderMissing: catalog.missingFolder,
       fields,
       missing,
-      // 4T-1161 (E5): das zuerst aufgelöste Profil für das Symbol am Dokument.
+      // 4T-001161 (E5): das zuerst aufgelöste Profil für das Symbol am Dokument.
       leading,
-      // 4T-1171 (Epic 3E-0220): die geordnete Kette der beteiligten Profile.
+      // 4T-001171 (Epic 3E-000220): die geordnete Kette der beteiligten Profile.
       // Sie endet sonst an der Prozess-Grenze, und das Feld-Formular der
       // Stufe 3 sitzt auf der anderen Seite.
       chain,
     };
   });
 
-  // 4T-0450 (Epic 3E-0083): Profil-Liste für den Einstellungs-Bereich —
+  // 4T-000450 (Epic 3E-000083): Profil-Liste für den Einstellungs-Bereich —
   // erkannte Profil-Dateien des konfigurierten Ordners mit Definitions-
   // Anzahl und Validierungs-Hinweisen (aus dem Katalog, mtime-frisch).
-  // 4T-0517: bei aktiver Ereignis-Erweiterung steht das interne Profil
+  // 4T-000517: bei aktiver Ereignis-Erweiterung steht das interne Profil
   // „Ereignis" (datei-los, nicht änderbar) vor den Katalog-Profilen —
   // auch ohne konfigurierten oder bei fehlendem Profil-Ordner.
   handle('profiles:list', async (event) => {
@@ -295,7 +295,7 @@ function registerProfilesIpc(handle, deps) {
     };
     if (!area) return base;
     const eventsOn = isExtensionEnabled('events', store ? store.get('extensions.disabled') : []);
-    // 4T-1142: Zyklus- und Fehlt-Hinweise der Vererbung hängen am Profil und
+    // 4T-001142: Zyklus- und Fehlt-Hinweise der Vererbung hängen am Profil und
     // entstehen ordnerweit (attachHeritageHints, geteiltes Modul); hier wird
     // nur durchgereicht.
     const rows = (profiles, folderAbs) =>
@@ -327,7 +327,7 @@ function registerProfilesIpc(handle, deps) {
     };
   });
 
-  // 4T-0450: Ordner-Auswahl für den Profil-Ordner (der Renderer speichert
+  // 4T-000450: Ordner-Auswahl für den Profil-Ordner (der Renderer speichert
   // Auswahlen innerhalb des Bereichs wurzel-relativ, Muster templates).
   handle('profiles:chooseFolder', async (event) => {
     const owner = senderWindow(event);
@@ -341,7 +341,7 @@ function registerProfilesIpc(handle, deps) {
     return { ok: true, path: result.filePaths[0] };
   });
 
-  // 4T-1156 (Epic 3E-0219): Ziel-Liste eines Verweis-Feldes. Der Renderer
+  // 4T-001156 (Epic 3E-000219): Ziel-Liste eines Verweis-Feldes. Der Renderer
   // reicht die typ-eigenen Angaben des Feldes durch (`restrictTo`, `display`,
   // `sort`); angewandt werden sie im Main, wo der Index liegt — die volle
   // Liste zu übertragen, nur um sie im Renderer zu filtern, widerspräche dem
@@ -374,7 +374,7 @@ function registerProfilesIpc(handle, deps) {
     return { ok: true, status, targets };
   });
 
-  // 4T-1158 (Epic 3E-0219, E12): Wertevorrat eines Feldes aus seiner
+  // 4T-001158 (Epic 3E-000219, E12): Wertevorrat eines Feldes aus seiner
   // Abfrage-Quelle. Ein eigener Kanal und nicht Teil von `profiles:resolve`,
   // weil genau darin die Zusage «auf Verlangen» steckt: Die Auflösung bleibt
   // so billig wie bisher, und gerechnet wird erst, wenn ein Bedienelement den
@@ -396,7 +396,7 @@ function registerProfilesIpc(handle, deps) {
     return { ok: true, status, values };
   });
 
-  // 4T-1340 (Epic 3E-0238): Die im Bereich bereits vergebenen Werte einer
+  // 4T-001340 (Epic 3E-000238): Die im Bereich bereits vergebenen Werte einer
   // Eigenschaft — die zweite Werte-Quelle der Feld-Bedienelemente, neben dem
   // definierten Wertevorrat darüber. Sie steht hier und nicht bei den
   // Index-Sichten, weil beide Kanäle dieselbe Frage beantworten: Was kann
@@ -423,7 +423,7 @@ function registerProfilesIpc(handle, deps) {
     return backlinks.eigenschaftsWerteFuerFeld(abs, feld, area.rootPath);
   });
 
-  // 4T-1184 (Epic 3E-0221, E1): Treffer eines Lookup-Feldes — die Dokumente,
+  // 4T-001184 (Epic 3E-000221, E1): Treffer eines Lookup-Feldes — die Dokumente,
   // die über ein benanntes Feld auf das eigene verweisen. Eigener Kanal neben
   // `profiles:fieldValues` und aus demselben Grund: Genau darin steckt die
   // Zusage «auf Verlangen». Die Auflösung eines Profils bleibt so billig wie

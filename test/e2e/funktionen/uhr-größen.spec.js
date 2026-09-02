@@ -1,4 +1,4 @@
-// 4T-0679 (Epic 3E-0139): E2E-Funktions-Suite Uhr-Größen — die digitale
+// 4T-000679 (Epic 3E-000139): E2E-Funktions-Suite Uhr-Größen — die digitale
 // Anzeige folgt der Größen-Stufe.
 //
 // Die Faktoren selbst prüft test/unit/clock-options.test.js, das Setzen der
@@ -80,7 +80,7 @@ test.describe('UG-01: Größen-Auswahl im Block „Anzeige"', () => {
       // Zifferblatt abschalten; der Bereich rendert neu.
       await page.locator('#settings-clock-analog').uncheck();
       await expect(page.locator('#settings-clock-dial')).toHaveCount(0);
-      // Die Größen-Auswahl gehört seit 4T-0679 nicht mehr zum Analog-Block
+      // Die Größen-Auswahl gehört seit 4T-000679 nicht mehr zum Analog-Block
       // und muss deshalb stehen bleiben — sie bemisst auch die Schrift.
       await expect(page.locator('#settings-clock-size')).toBeVisible();
     } finally {

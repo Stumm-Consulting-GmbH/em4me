@@ -1,4 +1,4 @@
-// 4T-0318 (Epic 3E-0057): Unit-Tests für den gestuften Titel-Suffix und die
+// 4T-000318 (Epic 3E-000057): Unit-Tests für den gestuften Titel-Suffix und die
 // Fenster-Ziel-Labels (src/renderer/modules/app/window-title.js). Die gestufte
 // Systematik ist eine PO-Entscheidung: App-Teil nur bei mehreren nummerierten
 // Apps, Bereichsname immer, Fenster-Teil nur bei mehreren Fenstern der App.
@@ -18,7 +18,7 @@ const DICT = {
 };
 const t = (key) => DICT[key] || key;
 
-describe('buildTitleSuffix (4T-0318)', () => {
+describe('buildTitleSuffix (4T-000318)', () => {
   it('ein Fenster, eine App: kein Suffix', () => {
     expect(
       buildTitleSuffix(
@@ -109,10 +109,10 @@ describe('buildTitleSuffix (4T-0318)', () => {
     ).toBe(' (Bereich Notizen, Fenster 2)');
   });
 
-  // 4T-0538 (Epic 3E-0098): der Arbeitsbereichs-Name tritt an die Stelle
+  // 4T-000538 (Epic 3E-000098): der Arbeitsbereichs-Name tritt an die Stelle
   // der App-Nummer; bei gebundenem Bereich kombiniert; der Fenster-Teil
   // folgt der bestehenden Stufung.
-  it('Arbeitsbereichs-App: Name statt App-Nummer, auch solo (4T-0538)', () => {
+  it('Arbeitsbereichs-App: Name statt App-Nummer, auch solo (4T-000538)', () => {
     expect(
       buildTitleSuffix(
         {
@@ -128,7 +128,7 @@ describe('buildTitleSuffix (4T-0318)', () => {
     ).toBe(' (Arbeitsbereich Projekt Alpha)');
   });
 
-  it('Arbeitsbereich mit Bereich und mehreren Fenstern: kombiniert (4T-0538)', () => {
+  it('Arbeitsbereich mit Bereich und mehreren Fenstern: kombiniert (4T-000538)', () => {
     expect(
       buildTitleSuffix(
         {
@@ -145,7 +145,7 @@ describe('buildTitleSuffix (4T-0318)', () => {
   });
 });
 
-describe('buildWindowTargetLabel (4T-0318)', () => {
+describe('buildWindowTargetLabel (4T-000318)', () => {
   it('eine App: nur Fenster-Label wie bisher', () => {
     expect(buildWindowTargetLabel({ displayNumber: 2, appNumber: 1, appCount: 1 }, t)).toBe(
       'Fenster 2',
@@ -158,9 +158,9 @@ describe('buildWindowTargetLabel (4T-0318)', () => {
     );
   });
 
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-App als Ziel ist ueber ihren
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-App als Ziel ist ueber ihren
   // Namen adressiert (analog Bereichs-Apps).
-  it('Arbeitsbereichs-App als Ziel: Arbeitsbereichs-Name (4T-0538)', () => {
+  it('Arbeitsbereichs-App als Ziel: Arbeitsbereichs-Name (4T-000538)', () => {
     expect(
       buildWindowTargetLabel(
         { displayNumber: 1, appNumber: 0, appCount: 2, workspaceName: 'Projekt Alpha' },

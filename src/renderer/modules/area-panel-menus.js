@@ -1,4 +1,4 @@
-// 4T-1365 (Epic 3E-0171): Kontextmenues des Bereichs-Panels — die panel-weiten
+// 4T-001365 (Epic 3E-000171): Kontextmenues des Bereichs-Panels — die panel-weiten
 // Eintraege (Bereichs-Graph, Bereichs-Statistik) und das Menue einer
 // Datei-Zeile (Start-Seite, Bereichs-Lesezeichen, dazu dieselben panel-weiten
 // Eintraege).
@@ -28,17 +28,17 @@ import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { addAreaBookmarkForPath } from './bookmarks/bookmarks-actions.js';
 import { appendStartPageItem, startSeiteVerfuegbar } from './area-start-page.js';
 
-// Trenner-Element; seit 4T-1365 an drei Stellen gebraucht.
+// Trenner-Element; seit 4T-001365 an drei Stellen gebraucht.
 function appendSeparator(menu) {
   const sep = document.createElement('div');
   sep.className = 'context-menu-separator';
   menu.appendChild(sep);
 }
 
-// 4T-0455 (Epic 3E-0084): panel-weite Eintraege — der Einstieg zum
+// 4T-000455 (Epic 3E-000084): panel-weite Eintraege — der Einstieg zum
 // Bereichs-Graph. Ausgelagert, weil sie sowohl auf freier Panel-Flaeche als
 // auch auf Datei-Zeilen erreichbar bleiben muessen.
-// 4T-0620 (Epic 3E-0117): seither zwei unabhaengige Einstiege — Bereichs-Graph
+// 4T-000620 (Epic 3E-000117): seither zwei unabhaengige Einstiege — Bereichs-Graph
 // und Bereichs-Statistik — mit je eigener Erweiterung. Das Menue erscheint,
 // sobald MINDESTENS EINE der beiden aktiv ist, und zeigt genau die aktiven.
 function areaPanelEntries() {
@@ -85,11 +85,11 @@ function appendAreaPanelItems(menu) {
 /**
  * Kontextmenue einer Datei-Zeile im Bereichs-Panel.
  *
- * Zeigt EIN kombiniertes Menue: die Start-Seiten-Handlung (4T-1365, haengt an
- * keiner Erweiterung), darunter "Als Bereichs-Lesezeichen" (4T-0612, nur bei
+ * Zeigt EIN kombiniertes Menue: die Start-Seiten-Handlung (4T-001365, haengt an
+ * keiner Erweiterung), darunter "Als Bereichs-Lesezeichen" (4T-000612, nur bei
  * aktiver Lesezeichen-Erweiterung; die Datei liegt per Definition im Bereich),
  * darunter durch Trenner abgesetzt die panel-weiten Eintraege. So bleiben die
- * Panel-Eintraege auch auf Datei-Zeilen erreichbar (Bestand vor 4T-0612; sonst
+ * Panel-Eintraege auch auf Datei-Zeilen erreichbar (Bestand vor 4T-000612; sonst
  * fing das Datei-Menue den Rechtsklick ab und verdeckte den Graph-Eintrag).
  * Traegt keine Gruppe etwas bei, uebernimmt kein Eintrag und das Ereignis
  * blubbert zum Sektions-Menue durch (dort greift dieselbe Pruefung).

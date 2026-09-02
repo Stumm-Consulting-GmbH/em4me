@@ -1,4 +1,4 @@
-// 4T-0295 (Epic 3E-0052): E2E-Funktions-Suite — Erweiterungs-System
+// 4T-000295 (Epic 3E-000052): E2E-Funktions-Suite — Erweiterungs-System
 // (EW-01 bis EW-03). Deckt den Bereich „Erweiterungen" der Einstellungs-
 // Seite (Schalten mit sofortiger Wirkung und Persistenz), die dynamischen
 // erweiterungs-eigenen Bereiche (Task-Status verschwindet und kehrt
@@ -148,11 +148,11 @@ test.describe('EW-03: Abschalten nimmt Panel, Button und Kommando sauber mit', (
   });
 });
 
-// 4T-0517 (Epic 3E-0092): events haengt an property-profiles — die Zeile
+// 4T-000517 (Epic 3E-000092): events haengt an property-profiles — die Zeile
 // der Ereignis-Erweiterung zeigt bei deaktivierter Voraussetzung den
 // generischen Abhaengigkeits-Hinweis mit gesperrtem Schalter und kehrt
 // mit der Voraussetzung zurueck (Draft-Ebene, ohne Anwenden).
-test.describe('EW-04: Abhängigkeits-Hinweis events → property-profiles (4T-0517)', () => {
+test.describe('EW-04: Abhängigkeits-Hinweis events → property-profiles (4T-000517)', () => {
   test('property-profiles aus sperrt events mit Hinweis; Zustand kehrt zurück', async () => {
     const { app, page, userData } = await launchApp();
     try {

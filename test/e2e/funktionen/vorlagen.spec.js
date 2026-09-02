@@ -1,4 +1,4 @@
-// 4T-0426 (Epic 3E-0080): E2E-Funktions-Suite Vorlagen — Anwendungs-Kommandos
+// 4T-000426 (Epic 3E-000080): E2E-Funktions-Suite Vorlagen — Anwendungs-Kommandos
 // mit Dialog-Kette. VL-01: neue Datei aus Vorlage (Auswahl-Popup, Dateiname,
 // prompt/select, Platzhalter gefüllt, Cursor-Sprung in den Edit-Modus);
 // VL-02: Abbruch in der Dialog-Kette erzeugt KEINE Datei (Epic-Risiko
@@ -15,7 +15,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
-// Profil mit globalem Vorlagen-Ordner, optionalen Ordner-Regeln (4T-0427)
+// Profil mit globalem Vorlagen-Ordner, optionalen Ordner-Regeln (4T-000427)
 // und belegten Kürzeln für die beiden Kommandos (electron-store liest
 // config.json; Muster skript-bloecke.spec.js).
 function makeUserData(templatesFolder, rules) {
@@ -66,7 +66,7 @@ async function openPickerViaHotkey(page, key) {
     .toBe(true);
 }
 
-// 4T-0427: Unterseiten-Anlage anstoßen (Menue-IPC mit Poll wie oben) und den
+// 4T-000427: Unterseiten-Anlage anstoßen (Menue-IPC mit Poll wie oben) und den
 // Namen bestätigen — der Rückweg für die Ordner-Regel-Tests.
 async function createSubpageNamed(app, page, segment) {
   const nameModal = page.locator('#name-input-modal');
@@ -250,7 +250,7 @@ test.describe('VL-04: Ohne Vorlagen-Ordner — lokalisierter Hinweis (F-101)', (
   });
 });
 
-// --- 4T-0427 (Epic 3E-0080): Ordner-Regeln --------------------------------------
+// --- 4T-000427 (Epic 3E-000080): Ordner-Regeln --------------------------------------
 
 test.describe('VL-05: Ordner-Regel — Anlage im Regel-Ordner erhält die Vorlage (F-101)', () => {
   test('Unterseiten-Anlage füllt die Datei über die Regel und springt zum Cursor-Ziel', async () => {
@@ -357,7 +357,7 @@ test.describe('VL-08: Ordner-Regel — Dialog-Abbruch legt die Datei leer an, mi
   });
 });
 
-// --- 4T-0428 (Epic 3E-0080): Einstellungs-Bereich und Bereichs-Anbindung --------
+// --- 4T-000428 (Epic 3E-000080): Einstellungs-Bereich und Bereichs-Anbindung --------
 
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
@@ -436,7 +436,7 @@ test.describe('VL-10: Einstellungen — Bereichs-Konfiguration übersteuert glob
           return !!(result && result.ok !== false);
         })
         .toBe(true);
-      // 4T-0555 (Epic 3E-0100): die Bereichs-Konfiguration lebt in der
+      // 4T-000555 (Epic 3E-000100): die Bereichs-Konfiguration lebt in der
       // eigenen Sektion templatesArea (Navigations-Gruppe „Aktueller
       // Bereich"), nicht mehr im globalen Vorlagen-Bereich.
       await expect

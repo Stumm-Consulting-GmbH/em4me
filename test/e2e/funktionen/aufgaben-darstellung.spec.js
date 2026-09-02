@@ -1,8 +1,8 @@
-// 4T-1354 und 4T-1355 (Epic 3E-0240): Darstellung der Aufgaben-Zeilen im
+// 4T-001354 und 4T-001355 (Epic 3E-000240): Darstellung der Aufgaben-Zeilen im
 // Live-Modus. Regressionstests zu zwei Befunden des Product Owners vom
 // 2026-09-01 an seinem taeglichen Arbeits-Dokument.
 //
-// **Eine Ursache, zwei Befunde.** Der haengende Einzug aus `4T-1312` setzt auf
+// **Eine Ursache, zwei Befunde.** Der haengende Einzug aus `4T-001312` setzt auf
 // jeder Listen-Zeile einen negativen Erst-Zeilen-Einzug. `text-indent` vererbt
 // sich und wirkt auf jedem Block-Container — also auch auf den eingebetteten
 // inline-block-Kaesten der Zeile. Die Marker-Plakette schrieb ihr Datum
@@ -130,8 +130,8 @@ test.describe('AD-01: Marker-Plakette am Ende der Aufgaben-Zeile', () => {
   });
 });
 
-// 4T-1355: Die zweite Wirkung derselben Ursache. Der Eingriff liegt in
-// 4T-1354; hier steht seine Absicherung am Status-Kaestchen.
+// 4T-001355: Die zweite Wirkung derselben Ursache. Der Eingriff liegt in
+// 4T-001354; hier steht seine Absicherung am Status-Kaestchen.
 //
 // Gemessen wird der geerbte Einzug am Kasten selbst und nicht die Lage seines
 // Zeichens: Das Zeichen ist Inhalt eines Pseudo-Elements und hat im DOM kein

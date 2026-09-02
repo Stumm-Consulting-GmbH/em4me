@@ -1,4 +1,4 @@
-// 4T-1291/4T-1292/4T-1293 (Epic 3E-0224): Tests der Datei-Ebene des
+// 4T-001291/4T-001292/4T-001293 (Epic 3E-000224): Tests der Datei-Ebene des
 // SCHREIB-Wegs geteilter Dokumente
 // (src/main/documents/document-parts-io.js): Vergleichsstand des
 // Konflikt-Schutzes, Schreiben der Teile, Abbruch mittendrin, fehlender und
@@ -7,7 +7,7 @@
 // Verzeichnis-Durchlauf, Begleitdatei und Zusammensetzen der Gegenstand ist;
 // die reine Logik prüft test/unit/document-split.test.js ohne Dateisystem.
 //
-// Geschnitten von document-parts-io.test.js am 2026-08-31 (4T-1293), als jene
+// Geschnitten von document-parts-io.test.js am 2026-08-31 (4T-001293), als jene
 // Datei ihr Zeilen-Budget erreichte. Der Schnitt folgt der Fachlichkeit: dort
 // das Lesen, hier das Schreiben — dieselbe Grenze wie zwischen den Paketen 2
 // und 3 des Epics.
@@ -273,10 +273,10 @@ describe('document-parts-io: Abbruch mitten im Schreiben (AK6)', () => {
   });
 });
 
-describe('document-parts-io: von aussen geaenderter Teil (4T-1292 AK2)', () => {
+describe('document-parts-io: von aussen geaenderter Teil (4T-001292 AK2)', () => {
   it('sieht die Aenderung an einem FOLGETEIL im Vergleichsstand', async () => {
     // Der Konflikt-Schutz vergleicht den erwarteten Stand des Reiters gegen
-    // den Platten-Stand. Weil dieser seit 4T-1291 der zusammengesetzte Stand
+    // den Platten-Stand. Weil dieser seit 4T-001291 der zusammengesetzte Stand
     // ALLER Teile ist, schlaegt er auch bei einer Aenderung an einem
     // Folgeteil an — die Ausweitung aus O8 faellt damit an der Stelle an, an
     // der der Vergleichsstand gebildet wird, und nicht als eigener Mechanismus.
@@ -302,13 +302,13 @@ describe('document-parts-io: von aussen geaenderter Teil (4T-1292 AK2)', () => {
     fs.rmSync(path.join(w, `${teilName('Notizen', 2)}.md`));
     const stand = await readStateForSave(kopfPfad);
     // Der Teil fehlt, das Lesen gelingt trotzdem — die Luecke wird erhoben,
-    // ihre Behandlung entscheidet 4T-1292.
+    // ihre Behandlung entscheidet 4T-001292.
     expect(stand.ok).toBe(true);
     expect(stand.text).not.toContain('# Zwei');
   });
 });
 
-describe('document-parts-io: fehlender Teil (4T-1292 AK1, Option A)', () => {
+describe('document-parts-io: fehlender Teil (4T-001292 AK1, Option A)', () => {
   // Legt ein geteiltes Dokument an, schreibt seinen Katalog und entfernt
   // danach einen Teil. Genau so sieht es aus, wenn jemand ausserhalb der
   // Anwendung eine Datei loescht oder eine Synchronisation sie noch nicht
@@ -408,7 +408,7 @@ describe('document-parts-io: fehlender Teil (4T-1292 AK1, Option A)', () => {
   });
 });
 
-describe('document-parts-io: Umbenennen-Kaskade (4T-1292 AK3, AK4)', () => {
+describe('document-parts-io: Umbenennen-Kaskade (4T-001292 AK3, AK4)', () => {
   it('findet die eigenen Folgeteile eines Dokuments', async () => {
     const { kopfPfad } = legeGeteiltesDokument('Notizen', [
       '# Eins\nA\n',
@@ -504,7 +504,7 @@ describe('document-parts-io: Umbenennen-Kaskade (4T-1292 AK3, AK4)', () => {
   });
 });
 
-describe('document-parts-io: von aussen umbenanntes Dokument (4T-1292)', () => {
+describe('document-parts-io: von aussen umbenanntes Dokument (4T-001292)', () => {
   it('oeffnet die Kopf-Datei, auch wenn ihre Zuordnungs-Zeile auf den alten Namen zeigt', async () => {
     // Der Fall entsteht, wenn jemand ausserhalb der Anwendung umbenennt. Ohne
     // Rueckfall scheiterte das Oeffnen mit einem nackten Dateifehler auf einen
@@ -547,7 +547,7 @@ describe('document-parts-io: von aussen umbenanntes Dokument (4T-1292)', () => {
   });
 });
 
-describe('document-parts-io: Wiedervereinen (4T-1293 AK3, AK5)', () => {
+describe('document-parts-io: Wiedervereinen (4T-001293 AK3, AK5)', () => {
   it('macht aus den Teilen wieder eine Datei und loescht die Folgeteile', async () => {
     const { w, kopfPfad } = legeGeteiltesDokument('Notizen', [
       '# Eins\nA\n',

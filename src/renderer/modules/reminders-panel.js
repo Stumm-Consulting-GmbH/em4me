@@ -1,4 +1,4 @@
-// 4T-0527 (Epic 3E-0095): Erinnerungs-Panel — die Übersicht aller
+// 4T-000527 (Epic 3E-000095): Erinnerungs-Panel — die Übersicht aller
 // Erinnerungs-Anker des Bereichs in der Sidebar (Workshop-Punkt 5).
 //
 // Aufbau: Fälligkeits-Gruppen überfällig / heute / morgen / später
@@ -6,7 +6,7 @@
 // Sektion enthält abgelaufene UND gemutete Einträge; gemutete sind
 // gekennzeichnet und über „Erneut auslösen" wieder scharf schaltbar
 // (reminders:retrigger — der Main-Prüfer liefert sie sofort erneut an
-// den Dialog aus 4T-0526). Direkt-Aktionen pro Eintrag: Erledigt
+// den Dialog aus 4T-000526). Direkt-Aktionen pro Eintrag: Erledigt
 // (Toggling-Kette) und Snooze (gemeinsames Menü mit dem Dialog); Klick
 // auf den Eintrag öffnet die Quelle an der Zeile.
 //
@@ -144,7 +144,7 @@ export async function renderRemindersPanel(paneIdx) {
 
 // --- Sichtbarkeit, Toggle, Persistenz (Muster Kalender-/Bereichs-Panel) -----------
 
-// 4T-0527 (PO-Testbefund 2026-07-11): Erinnerungen sind bereichsweit, nicht
+// 4T-000527 (PO-Testbefund 2026-07-11): Erinnerungen sind bereichsweit, nicht
 // datei-spezifisch. Das Panel ist sichtbar, wenn eine Datei offen ist ODER ein
 // Bereich geoeffnet ist (auch ohne offene Datei — Muster Bereichs-Panel:
 // getVisible haengt nicht an isAllEmpty). Ohne Bereich und ohne offene Datei

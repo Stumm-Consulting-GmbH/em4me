@@ -1,4 +1,4 @@
-// 4T-0299 (Epic 3E-0053): Manifest-Modell und API-Versionierung der
+// 4T-000299 (Epic 3E-000053): Manifest-Modell und API-Versionierung der
 // externen Erweiterungen (src/shared/extensions/extensions-external.js) plus die
 // dynamische Registrierung an der Erweiterungs-Registry
 // (src/shared/extensions/extensions.js, Herkunfts-Kennzeichnung 'external').
@@ -20,7 +20,7 @@ import {
   registerExternalExtension,
   unregisterExternalExtension,
 } from '../../src/shared/extensions/extensions.js';
-// 4T-0993: Aktiv-Zustand aus der Ableitungs-Schicht.
+// 4T-000993: Aktiv-Zustand aus der Ableitungs-Schicht.
 import { isExtensionEnabled } from '../../src/shared/extensions/extensions-core.js';
 
 const VALID_MANIFEST = {
@@ -32,7 +32,7 @@ const VALID_MANIFEST = {
   markdownPlugin: 'markdown.js',
 };
 
-describe('extensions-external: Versionierung (4T-0299)', () => {
+describe('extensions-external: Versionierung (4T-000299)', () => {
   it('parseVersion akzeptiert major[.minor[.patch]]', () => {
     expect(parseVersion('1')).toEqual({ major: 1, minor: 0, patch: 0 });
     expect(parseVersion('1.2')).toEqual({ major: 1, minor: 2, patch: 0 });
@@ -56,7 +56,7 @@ describe('extensions-external: Versionierung (4T-0299)', () => {
     expect(isApiVersionCompatible(EXTENSION_API_VERSION)).toBe(true);
   });
 
-  // 4T-0825 (Epic 3E-0103): Der Schritt auf 1.1 ist reiner Zugewinn und
+  // 4T-000825 (Epic 3E-000103): Der Schritt auf 1.1 ist reiner Zugewinn und
   // darf kein bestehendes Paket aussperren.
   it('Pakete gegen die Vorgänger-Minor bleiben auf der aktuellen App gültig', () => {
     const { major } = parseVersion(EXTENSION_API_VERSION);
@@ -67,7 +67,7 @@ describe('extensions-external: Versionierung (4T-0299)', () => {
   });
 });
 
-describe('extensions-external: Manifest-Validierung (4T-0299)', () => {
+describe('extensions-external: Manifest-Validierung (4T-000299)', () => {
   it('gültiges Manifest passiert ohne Fehler', () => {
     expect(validateExternalManifest(VALID_MANIFEST, 'beispiel')).toEqual([]);
   });
@@ -105,7 +105,7 @@ describe('extensions-external: Manifest-Validierung (4T-0299)', () => {
   });
 });
 
-describe('extensions-external: Zustands-Normalisierung und Status (4T-0299)', () => {
+describe('extensions-external: Zustands-Normalisierung und Status (4T-000299)', () => {
   it('normalizeEnabledIds verwirft Fremdes und Duplikate', () => {
     expect(normalizeEnabledIds(['a', 'a', 'B', 7, 'b-c'])).toEqual(['a', 'b-c']);
     expect(normalizeEnabledIds('quatsch')).toEqual([]);
@@ -136,7 +136,7 @@ describe('extensions-external: Zustands-Normalisierung und Status (4T-0299)', ()
   });
 });
 
-describe('Registry-Anbindung externer Erweiterungen (4T-0299)', () => {
+describe('Registry-Anbindung externer Erweiterungen (4T-000299)', () => {
   afterEach(() => {
     unregisterExternalExtension('beispiel');
   });

@@ -1,4 +1,4 @@
-// 4T-0431 (Epic 3E-0081): Journal-Modell — Definitions-Schema der
+// 4T-000431 (Epic 3E-000081): Journal-Modell — Definitions-Schema der
 // journals-Sektion der Bereichsdatei und ihre tolerante Normalisierung.
 //
 // Ein Journal ist eine definierte Serie periodischer Dokumente EINER
@@ -37,7 +37,7 @@
 // Prozess-neutral (kein Electron, kein DOM): Main (Datenpfad, Anlage) und
 // Renderer (Panel, Einstellungen) laden dasselbe Modul.
 //
-// 4T-0432 (Epic 3E-0081): Perioden-Kern — Perioden-Arithmetik für die fünf
+// 4T-000432 (Epic 3E-000081): Perioden-Kern — Perioden-Arithmetik für die fünf
 // Granularitäten fest nach ISO 8601 (Montag-Start, KW mit Donnerstags-Regel;
 // Architekturentscheidung 3), Schema-Auflösung der Eintrags-Pfade über die
 // Vorlagen-Engine und Eintrags-Ermittlung mit injizierbarem Existenz-Check.
@@ -47,10 +47,10 @@
 'use strict';
 
 const { analyzeTemplate, fillTemplate } = require('./template-engine');
-// 4T-0987 (Epic 3E-0196): Format-Kern der Abfrage-Sprache, seit dem Schnitt
+// 4T-000987 (Epic 3E-000196): Format-Kern der Abfrage-Sprache, seit dem Schnitt
 // in src/shared/query/query-format.js.
 const { formatDateMs, isoWeekOf } = require('./query/query-format.js');
-// 4T-1276 (Epic 3E-0232, Befund B1): Pfad-Identität über die zentrale Auskunft.
+// 4T-001276 (Epic 3E-000232, Befund B1): Pfad-Identität über die zentrale Auskunft.
 const { pathCompareKey } = require('./platform.js');
 const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter');
 
@@ -142,7 +142,7 @@ function normalizeJournalsConfig(value) {
   return { shelves, journals };
 }
 
-// --- 4T-0432: Perioden-Rechnung -------------------------------------------------
+// --- 4T-000432: Perioden-Rechnung -------------------------------------------------
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -271,7 +271,7 @@ function prevPeriod(journal, period) {
 // Übergeordnete Perioden: alle gröberen Granularitäten, bestimmt über den
 // PERIODEN-START (deterministisch auch für Jahreswechsel-Wochen: die Woche
 // 2026-W01 mit Start 2025-12-29 gehört zu Monat 2025-12). Reihenfolge fein
-// nach grob; der Navigations-Block (4T-0435) filtert auf die im Regal
+// nach grob; der Navigations-Block (4T-000435) filtert auf die im Regal
 // vorhandenen Journale (Lücken werden ausgelassen).
 function parentPeriods(period) {
   const idx = JOURNAL_GRANULARITIES.indexOf(period.granularity);
@@ -279,11 +279,11 @@ function parentPeriods(period) {
   return JOURNAL_GRANULARITIES.slice(idx + 1).map((g) => periodOf(period.startMs, g));
 }
 
-// --- 4T-0432: Schema-Auflösung ---------------------------------------------------
+// --- 4T-000432: Schema-Auflösung ---------------------------------------------------
 
 // Windows-verbotene Zeichen in Datei-/Ordnernamen (plus Steuerzeichen);
 // '/' ist im Ordner-Schema als Trenner erlaubt und wird getrennt geprüft.
-// 4T-1203 (Epic 3E-0121): Die strenge Windows-Menge gilt bewusst auf ALLEN
+// 4T-001203 (Epic 3E-000121): Die strenge Windows-Menge gilt bewusst auf ALLEN
 // Plattformen — eine unter Linux erlaubte Datei mit ':' wäre unter Windows
 // unlesbar, und Bereiche sollen plattformübergreifend austauschbar bleiben.
 // eslint-disable-next-line no-control-regex
@@ -342,7 +342,7 @@ function resolveEntryPath(journal, period) {
   return { ok: true, relPath };
 }
 
-// --- 4T-0435: Kontext-Ermittlung des Navigations-Blocks ----------------------------
+// --- 4T-000435: Kontext-Ermittlung des Navigations-Blocks ----------------------------
 
 // Such-Fenster der Rück-Richtung pro Granularität: [Perioden zurück,
 // Perioden voraus] um den Bezugs-Zeitpunkt (ca. drei Jahre zurück, gut ein
@@ -405,9 +405,9 @@ function replaceJournalNavFences(text, replacement) {
   return source.replace(NAV_FENCE_RE, () => String(replacement == null ? '' : replacement));
 }
 
-// --- 4T-0434: Monats-Gitter der Kalender-Ansicht -----------------------------------
+// --- 4T-000434: Monats-Gitter der Kalender-Ansicht -----------------------------------
 
-// 4T-1063 (Epic 3E-0212): EINE Wochen-Zeile (Montag-Start) um einen
+// 4T-001063 (Epic 3E-000212): EINE Wochen-Zeile (Montag-Start) um einen
 // Zeitpunkt, im selben Format, das monthGrid je Zeile liefert:
 // { week: { key, week, year, startMs }, days: [{ ms, iso, day, inMonth } × 7] }.
 // Der Wochen-Modus des Journal-Timeline-Blocks braucht genau eine solche
@@ -459,7 +459,7 @@ function monthGrid(year, monthIndex) {
   return rows;
 }
 
-// --- 4T-0433: Frontmatter-Datums-Properties ---------------------------------------
+// --- 4T-000433: Frontmatter-Datums-Properties ---------------------------------------
 
 // Automatische Datums-Properties eines Eintrags (Feldnamen aus der
 // Journal-Definition): Tages-Journale tragen nur das Datum, mehrtägige
@@ -531,7 +531,7 @@ module.exports = {
   DEFAULT_START_PROP,
   DEFAULT_END_PROP,
   normalizeJournalsConfig,
-  // 4T-0432: Perioden-Kern.
+  // 4T-000432: Perioden-Kern.
   isoDateToMs,
   msToIsoDate,
   periodOf,
@@ -542,14 +542,14 @@ module.exports = {
   parentPeriods,
   resolveEntryPath,
   entriesInRange,
-  // 4T-0433: Frontmatter-Datums-Properties des Anlage-Pfads.
+  // 4T-000433: Frontmatter-Datums-Properties des Anlage-Pfads.
   journalProperties,
   applyJournalProperties,
-  // 4T-0434: Monats-Gitter der Kalender-Ansicht.
+  // 4T-000434: Monats-Gitter der Kalender-Ansicht.
   monthGrid,
-  // 4T-1063 (Epic 3E-0212): einzelne Wochen-Zeile, Basis von monthGrid.
+  // 4T-001063 (Epic 3E-000212): einzelne Wochen-Zeile, Basis von monthGrid.
   weekRow,
-  // 4T-0435: Kontext-Ermittlung des Navigations-Blocks (Pfad -> Periode)
+  // 4T-000435: Kontext-Ermittlung des Navigations-Blocks (Pfad -> Periode)
   // und Fence-Ersetzung des Portable-Exports.
   findPeriodForPath,
   replaceJournalNavFences,

@@ -1,4 +1,4 @@
-// 4T-0372 (Epic 3E-0069): Bereich „Uhr" der Einstellungs-Seite
+// 4T-000372 (Epic 3E-000069): Bereich „Uhr" der Einstellungs-Seite
 // (erweiterungs-gebunden über settingsSections der Erweiterung clock;
 // dynamische Registrierung nach dem Muster format-toolbar-settings.js).
 //
@@ -23,7 +23,7 @@ import {
   SECOND_MOTIONS,
   normalizeClockOptions,
 } from '../../../shared/clock/clock-options.js';
-// 4T-0637 (Epic 3E-0069): Grenzen und Klemmung der Schlummer-Dauer.
+// 4T-000637 (Epic 3E-000069): Grenzen und Klemmung der Schlummer-Dauer.
 import {
   SNOOZE_MAX_MINUTES,
   SNOOZE_MIN_MINUTES,
@@ -155,7 +155,7 @@ function buildInto(body, draft, rerender) {
       set({ showWeek: v }),
     ),
   );
-  // 4T-0679 (Epic 3E-0139): Die Groessen-Auswahl steht im Block „Anzeige"
+  // 4T-000679 (Epic 3E-000139): Die Groessen-Auswahl steht im Block „Anzeige"
   // und nicht mehr unter „Analoge Uhr". Sie bemisst seit diesem Task
   // Zifferblatt UND digitale Anzeige; im Analog-Block waere sie fuer jeden
   // unsichtbar, der die Uhr ohne Zifferblatt betreibt. Platz hinter den vier
@@ -238,10 +238,10 @@ function buildInto(body, draft, rerender) {
     );
   }
 
-  // 4T-0637 (Epic 3E-0069): Wecker-Block. Anders als die vier Blöcke darüber
+  // 4T-000637 (Epic 3E-000069): Wecker-Block. Anders als die vier Blöcke darüber
   // hängt er nicht an einem Anzeige-Bestandteil, sondern am Wecker-Modus des
   // Panels und steht deshalb immer.
-  // 4T-0752 (Epic 3E-0146): Kalender-Modus. Eigener Block, weil die Option
+  // 4T-000752 (Epic 3E-000146): Kalender-Modus. Eigener Block, weil die Option
   // den Monatskalender betrifft und nicht die Uhr-Anzeige; showWeek im Block
   // "Anzeige" steuert weiterhin die Textzeile unter der Uhrzeit.
   body.appendChild(subhead('settings.clock.group.calendar'));

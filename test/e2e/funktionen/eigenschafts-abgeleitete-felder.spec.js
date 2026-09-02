@@ -1,11 +1,11 @@
-// 4T-1185 (Epic 3E-0221, E1): E2E-Funktions-Suite der abgeleiteten Felder.
+// 4T-001185 (Epic 3E-000221, E1): E2E-Funktions-Suite der abgeleiteten Felder.
 //
 // **Warum diese Fälle E2E laufen und nicht als Unit-Prüfung genügen.** Die
 // tragende Zusage aus E1 lautet: Das Öffnen eines Dokuments verändert es nicht.
 // Ob sie hält, entscheidet sich nicht am DOM, sondern an der Datei — und die
 // Kette dorthin führt über Debounce-Save, `writeFrontmatter` und den
 // Block-Schreibweg in die `.mdd`. Genau dieses Muster hat in Stufe 3 einen
-// Fehler getragen (4T-1179: ungefragt geschriebene Metadaten-Felder), den die
+// Fehler getragen (4T-001179: ungefragt geschriebene Metadaten-Felder), den die
 // Unit-Ebene nicht gefunden hat. Die Fälle prüfen deshalb den Datei-Inhalt.
 //
 // PP-12: Dokument-Panel — Formel-Wert sichtbar, nicht bearbeitbar, nicht in der

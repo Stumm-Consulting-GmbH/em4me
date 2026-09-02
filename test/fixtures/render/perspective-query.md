@@ -41,7 +41,7 @@ Mehrspaltige Ergebnis-Liste:
 LIST FROM #lesezeichen COLUMNS 3
 ```
 
-Block-Ebene (Scope-Zusatz BLOCKS, 3E-0077):
+Block-Ebene (Scope-Zusatz BLOCKS, 3E-000077):
 
 ```perspective-query
 LIST BLOCKS WHERE status = "offen" SORT updated DESC

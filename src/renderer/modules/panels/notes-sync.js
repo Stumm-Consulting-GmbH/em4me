@@ -1,4 +1,4 @@
-// 4T-0359 (Epic 3E-0066): reine Entscheidungslogik fuer die Notiz-Synchronisation
+// 4T-000359 (Epic 3E-000066): reine Entscheidungslogik fuer die Notiz-Synchronisation
 // bei einem note:changed-Broadcast. Bewusst abhaengigkeitsfrei (kein DOM, kein
 // state), damit sie ohne Renderer-Umgebung unit-testbar ist.
 'use strict';

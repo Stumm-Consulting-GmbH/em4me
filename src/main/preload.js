@@ -1,5 +1,5 @@
 // Preload-Bridge: contextBridge-API fuer den Renderer plus fs-nahe Helfer.
-// 4T-0179 (Epic 3E-0039): Die komplette Markdown-Pipeline (markdown-it-
+// 4T-000179 (Epic 3E-000039): Die komplette Markdown-Pipeline (markdown-it-
 // Konfiguration, eigene Plugins, Frontmatter, Perspective Table, Portable-Konverter)
 // ist nach src/shared/markdown/** extrahiert und dort Electron-frei testbar.
 // Hier verbleiben nur die Bridge (IPC), Pfad-Helfer und der fs-abhaengige Bild-Resolver.
@@ -12,7 +12,7 @@ const fs = require('node:fs');
 
 const { githubLikeSlug } = require('../shared/markdown/slug.js');
 const { extractFrontmatter, writeFrontmatter } = require('../shared/markdown/frontmatter.js');
-// 4T-1045 (Epic 3E-0151): Mindmap-Kern; die Markdown-Instanz bekommt er hier
+// 4T-001045 (Epic 3E-000151): Mindmap-Kern; die Markdown-Instanz bekommt er hier
 // gereicht. Modul-Objekt statt destrukturiertem md, weil configureExtensions
 // module.exports.md beim Schalten einer Erweiterung NEU zuweist.
 const { mindmapAusDokument } = require('../shared/mindmap-core.js');
@@ -23,23 +23,23 @@ const {
   configureExtensions,
   configureFrontmatterDisplay,
   configureHeadingNumbering,
-  // 4T-0546 (Epic 3E-0097): Kalender-Konfiguration der Wert-Badges in der
+  // 4T-000546 (Epic 3E-000097): Kalender-Konfiguration der Wert-Badges in der
   // Preload-Pipeline (das Renderer-Bundle haelt seinen eigenen Zustand in
   // calendar-config.js — fuer Render-Pane und Portable-Export zaehlt die
   // hiesige Instanz).
   setCalendarConfig,
 } = require('../shared/markdown/markdown.js');
-// 4T-0204: Task-Status-Konfiguration der Preload-Pipeline (das Renderer-
+// 4T-000204: Task-Status-Konfiguration der Preload-Pipeline (das Renderer-
 // Bundle haelt eine EIGENE plugins.js-Instanz — fuer Render-Pane und
 // Portable-Export zaehlt die hiesige).
-// 4T-0498 (Epic 3E-0090): dazu die Task-Marker-Konfiguration der
+// 4T-000498 (Epic 3E-000090): dazu die Task-Marker-Konfiguration der
 // Erweiterung "Aufgaben" (Global Filter, Ausblende-Option, Labels).
 const { configureTaskStates, configureTaskMarkers } = require('../shared/markdown/plugins.js');
-// 4T-0298 (Epic 3E-0053): Loader der externen Markdown-Plugins (vm-
+// 4T-000298 (Epic 3E-000053): Loader der externen Markdown-Plugins (vm-
 // Evaluierung im Preload-Kontext, siehe Kopf-Kommentar des Moduls).
 const { configureExternalExtensions } = require('./extensions/extension-loader.js');
 
-// 4T-0017: Electron-Standard-Zoom (Strg + +/-/0, Strg + Mausrad) komplett
+// 4T-000017: Electron-Standard-Zoom (Strg + +/-/0, Strg + Mausrad) komplett
 // abschalten. Der Renderer implementiert einen eigenen, pro-Tab gehaltenen
 // Zoom ueber CSS auf den Inhalts-Containern. Ohne diese Limits wuerde
 // Electron zusaetzlich auf webContents-Ebene zoomen — doppelt skaliert und
@@ -60,7 +60,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// 4T-0788 (Epic 3E-0125): Wurzel der Bild-Auflösung, fensterlokal gesetzt.
+// 4T-000788 (Epic 3E-000125): Wurzel der Bild-Auflösung, fensterlokal gesetzt.
 // Bei gebundenem Bereich ist das dessen Wurzelordner, sonst null. Der Wert
 // kommt über configureAttachmentArea vom Renderer (Muster
 // configureFrontmatterDisplay); als Parameter der Render-Signatur wäre er an
@@ -91,7 +91,7 @@ function liegtInWurzel(wurzel, ziel) {
 function resolveImagesForBase(html, basePath) {
   if (!basePath) return html;
   const baseDir = path.dirname(basePath);
-  // 4T-0788 (Epic 3E-0125): Die Containment-Wurzel ist bei gebundenem Bereich
+  // 4T-000788 (Epic 3E-000125): Die Containment-Wurzel ist bei gebundenem Bereich
   // dessen Wurzel, sonst der Ordner des Dokuments. Damit wird ein zentraler
   // Anlagen-Ordner des Bereichs auch aus einem Unterordner heraus sichtbar,
   // was er unter der reinen Dokument-Ordner-Grenze nie war. Die Prüfung bleibt
@@ -104,20 +104,20 @@ function resolveImagesForBase(html, basePath) {
     bildAufloesungsWurzel && liegtInWurzel(bildAufloesungsWurzel, baseDir)
       ? path.resolve(bildAufloesungsWurzel)
       : baseDir;
-  // P-03 (4T-0176): nur echte Bild-Formate mit bekanntem MIME-Typ einbetten.
+  // P-03 (4T-000176): nur echte Bild-Formate mit bekanntem MIME-Typ einbetten.
   const IMAGE_EXT_WHITELIST = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp']);
   const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20 MB
   return html.replace(/<img\s+([^>]*?)src="([^"]+)"([^>]*)>/gi, (match, pre, src, post) => {
     if (/^(https?:|data:|file:)/i.test(src)) return match;
-    // P-01 (4T-0174): decodeURI INNERHALB des try — ein literales '%' im
+    // P-01 (4T-000174): decodeURI INNERHALB des try — ein literales '%' im
     // Bildnamen (z.B. aus unkodiertem Wiki-Embed-src) wirft sonst einen
     // URIError und bricht den gesamten Voll-Render des Dokuments ab.
     try {
       const abs = path.resolve(baseDir, decodeURI(src));
-      // P-03 (4T-0176): Containment — der Resolver folgt sonst '../' und
+      // P-03 (4T-000176): Containment — der Resolver folgt sonst '../' und
       // absoluten Pfaden und liest beliebige lokale Dateien ins DOM.
       // Bilder ausserhalb der Wurzel bleiben unaufgeloest (Browser zeigt das
-      // Bild nicht; bewusster Trade-off, im Task dokumentiert). 4T-0788: Die
+      // Bild nicht; bewusster Trade-off, im Task dokumentiert). 4T-000788: Die
       // Wurzel ist bei gebundenem Bereich dessen Wurzelordner, sonst wie bisher
       // der Ordner des Dokuments.
       if (!liegtInWurzel(wurzel, abs)) return match;
@@ -127,7 +127,7 @@ function resolveImagesForBase(html, basePath) {
       if (fs.statSync(abs).size > MAX_IMAGE_BYTES) return match;
       const mime = mimeForImage(ext);
       const data = fs.readFileSync(abs).toString('base64');
-      // 4T-0790 (Epic 3E-0125): Original-Quelle als Attribut erhalten. Nach der
+      // 4T-000790 (Epic 3E-000125): Original-Quelle als Attribut erhalten. Nach der
       // Ersetzung steht in `src` ein data:-URI, aus dem sich kein Pfad mehr
       // ableiten laesst; der Klick-Pfad braucht ihn aber, um die Anlage in der
       // Standardanwendung zu oeffnen. Der Wert stammt aus dem src-Attribut des
@@ -160,17 +160,17 @@ function mimeForImage(ext) {
 }
 
 contextBridge.exposeInMainWorld('api', {
-  plattform: process.platform, // 4T-1202: fuer plattformabhaengige Renderer-Voreinstellungen
+  plattform: process.platform, // 4T-001202: fuer plattformabhaengige Renderer-Voreinstellungen
   // Datei-Operationen
   openDialog: () => ipcRenderer.invoke('file:openDialog'),
   readFile: (p) => ipcRenderer.invoke('file:read', p),
-  // 4T-0945 (Story 4S-0786): opts = { expected, force } — Stand-Pruefung vor
+  // 4T-000945 (Story 4S-000786): opts = { expected, force } — Stand-Pruefung vor
   // dem Ueberschreiben; ohne opts unveraendertes Verhalten.
   saveFile: (p, content, opts) => ipcRenderer.invoke('file:save', p, content, opts),
   saveFileAs: (suggested, content) => ipcRenderer.invoke('file:saveAs', suggested, content),
   pushRecent: (p) => ipcRenderer.invoke('recent:push', p),
 
-  // 4T-0303 (Epic 3E-0054): PDF-Export. Zielpfad-Dialog und Druck sind
+  // 4T-000303 (Epic 3E-000054): PDF-Export. Zielpfad-Dialog und Druck sind
   // getrennte Endpunkte, damit der Renderer den Print-Zustand erst nach
   // dem Dialog aufbaut (Begruendung am Handler in main.js).
   choosePdfExportTarget: (params) => ipcRenderer.invoke('pdf:chooseTarget', params),
@@ -178,9 +178,9 @@ contextBridge.exposeInMainWorld('api', {
 
   // Dialog-Helfer fuer Dirty-State und Konflikt-Strategie
   confirmCloseDirty: (opts) => ipcRenderer.invoke('dialog:confirmCloseDirty', opts),
-  // 4T-0512 (Epic 3E-0092): Lösch-Bestätigung eines Ereignis-Eintrags.
+  // 4T-000512 (Epic 3E-000092): Lösch-Bestätigung eines Ereignis-Eintrags.
   eventsConfirmDelete: (entryText) => ipcRenderer.invoke('events:confirmDelete', entryText),
-  // 4T-0515 (Epic 3E-0092): Ereignis-Aggregation (Index-Abfrage) und
+  // 4T-000515 (Epic 3E-000092): Ereignis-Aggregation (Index-Abfrage) und
   // Frontmatter-Rueckschreiben in nicht geoeffnete Quell-Dateien.
   eventsQuery: (query) => ipcRenderer.invoke('events:query', query),
   eventsApplyFrontmatterEdit: (params) => ipcRenderer.invoke('events:applyFrontmatterEdit', params),
@@ -193,7 +193,7 @@ contextBridge.exposeInMainWorld('api', {
   resolveLink: (basePath, target) => ipcRenderer.invoke('file:resolveLink', basePath, target),
   isMarkdownPath: (p) => ipcRenderer.invoke('file:isMarkdown', p),
   fileExists: (p) => ipcRenderer.invoke('file:exists', p),
-  // 4T-0604 (Epic 3E-0113): Dateisystem-Zeitstempel (birthtime/mtime) für die
+  // 4T-000604 (Epic 3E-000113): Dateisystem-Zeitstempel (birthtime/mtime) für die
   // Zeitstempel-Automatik beim Speichern; liefert null, wenn die Datei (noch)
   // nicht lesbar ist.
   getFileTimes: (p) => ipcRenderer.invoke('file:getTimes', p),
@@ -203,32 +203,32 @@ contextBridge.exposeInMainWorld('api', {
   // Pfad-Helfer (Dateinamen ohne Verzeichnis)
   basename: (p) => path.basename(p),
   dirname: (p) => path.dirname(p),
-  // 4T-0347 (Epic 3E-0062): relativer Pfad fuer die bereichsrelative Ordner-
+  // 4T-000347 (Epic 3E-000062): relativer Pfad fuer die bereichsrelative Ordner-
   // Anzeige in Backlinks- und Tag-Panel (Ordner ab der Index-Wurzel).
   relative: (from, to) => path.relative(from, to),
 
   // Drag-&-Drop: seit Electron 32 ist File.path weg, daher webUtils.
   getPathForFile: (file) => webUtils.getPathForFile(file),
 
-  // 4T-0787 (Epic 3E-0125): Anlage ablegen und Verweis-Pfad erhalten. Der eine
+  // 4T-000787 (Epic 3E-000125): Anlage ablegen und Verweis-Pfad erhalten. Der eine
   // Kanal beider Eingabewege. Das Parameter-Objekt wird als GANZES gereicht und
   // nicht feldweise kopiert; ein feldweises Nachbauen an dieser Naht hat sich
   // als stille Falle erwiesen, sobald der Vertrag um ein Feld waechst
   // (Entwicklungsrichtlinien, Abschnitt „Prozess- und Modul-Schnitt").
   storeAttachment: (params) => ipcRenderer.invoke('attachment:store', params),
 
-  // 4T-0790 (Epic 3E-0125): Anlage in der Standardanwendung öffnen. Eigener
+  // 4T-000790 (Epic 3E-000125): Anlage in der Standardanwendung öffnen. Eigener
   // Kanal mit shell.openPath; die Beschränkung von openExternal auf http/https
   // bleibt unangetastet, weil sie einen anderen Weg schützt.
   openAttachment: (params) => ipcRenderer.invoke('attachment:open', params),
 
-  // 4T-0791 (Epic 3E-0125): Anlagen-Einstellung lesen und schreiben (global
+  // 4T-000791 (Epic 3E-000125): Anlagen-Einstellung lesen und schreiben (global
   // und je Bereich, Muster templates:getConfig/setAreaConfig).
   attachmentsGetConfig: () => ipcRenderer.invoke('attachments:getConfig'),
   attachmentsSetGlobalConfig: (config) => ipcRenderer.invoke('attachments:setGlobalConfig', config),
   attachmentsSetAreaConfig: (config) => ipcRenderer.invoke('attachments:setAreaConfig', config),
 
-  // 4T-0788 (Epic 3E-0125): Wurzel der Bild-Auflösung setzen (Muster
+  // 4T-000788 (Epic 3E-000125): Wurzel der Bild-Auflösung setzen (Muster
   // configureFrontmatterDisplay). Fensterlokal, weil jedes Fenster einen
   // eigenen Bereich tragen kann; beim App-Start und bei jedem Bereichs-Wechsel
   // aufzurufen, mit null beim Schließen des Bereichs.
@@ -238,7 +238,7 @@ contextBridge.exposeInMainWorld('api', {
   getSetting: (key) => ipcRenderer.invoke('settings:get', key),
   setSetting: (key, value) => ipcRenderer.invoke('settings:set', key, value),
 
-  // 4T-0581/4T-0582 (Epic 3E-0107): Rechtschreibpruefung. Das falsch
+  // 4T-000581/4T-000582 (Epic 3E-000107): Rechtschreibpruefung. Das falsch
   // geschriebene Wort samt Vorschlaegen meldet ausschliesslich der
   // Main-Prozess (webContents 'context-menu'); Ersetzen und Woerterbuch
   // brauchen ebenfalls Main-Zugriff. Der Schalter-Broadcast erreicht alle
@@ -250,20 +250,20 @@ contextBridge.exposeInMainWorld('api', {
   spellcheckRemoveWord: (word) => ipcRenderer.invoke('spellcheck:removeWord', word),
   spellcheckListWords: () => ipcRenderer.invoke('spellcheck:listWords'),
 
-  // 4T-0204: aktives Task-Status-Set der Render-Pipeline setzen (Aufruf
+  // 4T-000204: aktives Task-Status-Set der Render-Pipeline setzen (Aufruf
   // beim App-Start und bei jedem taskStates-Broadcast; Labels kommen
   // bereits lokalisiert aus dem Renderer).
   configureTaskStates: (states) => configureTaskStates(states),
-  // 4T-0498 (Epic 3E-0090): Task-Marker-Konfiguration der Render-Pipeline
+  // 4T-000498 (Epic 3E-000090): Task-Marker-Konfiguration der Render-Pipeline
   // (Muster configureTaskStates; Aufruf beim App-Start und bei jedem
   // tasksConfig-Broadcast; Labels kommen lokalisiert aus dem Renderer).
   configureTaskMarkers: (cfg) => configureTaskMarkers(cfg),
-  // 4T-0498: Multi-Window-Broadcast bei tasksConfig-Aenderung.
+  // 4T-000498: Multi-Window-Broadcast bei tasksConfig-Aenderung.
   onTasksConfigChanged: (cb) => ipcRenderer.on('tasksConfig:changed', (_e, cfg) => cb(cfg)),
-  // 4T-0204: Multi-Window-Broadcast bei taskStates-Aenderung.
+  // 4T-000204: Multi-Window-Broadcast bei taskStates-Aenderung.
   onTaskStatesChanged: (cb) => ipcRenderer.on('taskStates:changed', (_e, states) => cb(states)),
 
-  // 4T-0526 (Epic 3E-0095): Erinnerungen — Zustellung faelliger Anker vom
+  // 4T-000526 (Epic 3E-000095): Erinnerungen — Zustellung faelliger Anker vom
   // Main-Pruefer, Panel-Daten, Muting/Wiederausloesung und die zuschaltbare
   // System-Notification (Anzeige im Main, Klick holt das Fenster nach vorn).
   onRemindersDue: (cb) => ipcRenderer.on('reminders:due', (_e, payload) => cb(payload)),
@@ -272,10 +272,10 @@ contextBridge.exposeInMainWorld('api', {
   remindersMute: (keys) => ipcRenderer.invoke('reminders:mute', keys),
   remindersRetrigger: (keys) => ipcRenderer.invoke('reminders:retrigger', keys),
   remindersSystemNotify: (payload) => ipcRenderer.invoke('reminders:systemNotify', payload),
-  // 4T-0528 (Epic 3E-0095): Multi-Window-Broadcast bei remindersConfig-Aenderung.
+  // 4T-000528 (Epic 3E-000095): Multi-Window-Broadcast bei remindersConfig-Aenderung.
   onRemindersConfigChanged: (cb) => ipcRenderer.on('remindersConfig:changed', (_e, cfg) => cb(cfg)),
 
-  // 4T-0637 (Epic 3E-0069): Wecker — Zustellung faelliger Wecker vom
+  // 4T-000637 (Epic 3E-000069): Wecker — Zustellung faelliger Wecker vom
   // Main-Pruefer (an genau ein Fenster), Bestaetigen und Schlummern gegen
   // dessen Session-Zustand, Multi-Window-Broadcast der Wecker-Liste. Die
   // System-Benachrichtigung laeuft ueber den neutralen Kanal notify:system
@@ -286,15 +286,15 @@ contextBridge.exposeInMainWorld('api', {
   alarmConfirm: (key) => ipcRenderer.invoke('alarm:confirm', { key }),
   systemNotify: (payload) => ipcRenderer.invoke('notify:system', payload),
 
-  // 4T-0638 (Epic 3E-0069): Timer und Stoppuhr — Zustellung abgelaufener
+  // 4T-000638 (Epic 3E-000069): Timer und Stoppuhr — Zustellung abgelaufener
   // Timer vom Main-Pruefer (an genau ein Fenster) und die Multi-Window-
   // Broadcasts beider Listen. Start, Pause und Zuruecksetzen laufen ueber
   // den normalen Einstellungs-Weg (setSetting), weil der Zustand im Store
   // liegt; ein eigener Kanal waere doppelte Verdrahtung.
-  // 4T-0639 (Epic 3E-0069): Multi-Window-Broadcast der Panel-Ueberschriften.
+  // 4T-000639 (Epic 3E-000069): Multi-Window-Broadcast der Panel-Ueberschriften.
   onSidebarIconHeadingsChanged: (cb) =>
     ipcRenderer.on('sidebarIconHeadings:changed', (_e, value) => cb(value)),
-  // 4T-0855 (Epic 3E-0164): Multi-Window-Broadcast des Hoehen-Modells.
+  // 4T-000855 (Epic 3E-000164): Multi-Window-Broadcast des Hoehen-Modells.
   onSidebarHeightModeChanged: (cb) =>
     ipcRenderer.on('sidebarHeightMode:changed', (_e, value) => cb(value)),
 
@@ -302,7 +302,7 @@ contextBridge.exposeInMainWorld('api', {
   onClockTimersChanged: (cb) => ipcRenderer.on('clockTimers:changed', (_e, list) => cb(list)),
   onClockStopwatchChanged: (cb) => ipcRenderer.on('clockStopwatch:changed', (_e, sw) => cb(sw)),
 
-  // 4T-0208: Multi-Window-Broadcast bei Hotkey-Override-Aenderung (Menue
+  // 4T-000208: Multi-Window-Broadcast bei Hotkey-Override-Aenderung (Menue
   // baut der Main selbst neu; der Renderer zieht Dispatcher-Map,
   // Editor-Keymap und Hilfe-Tabelle nach).
   onHotkeysChanged: (cb) => ipcRenderer.on('hotkeys:changed', (_e, overrides) => cb(overrides)),
@@ -311,12 +311,12 @@ contextBridge.exposeInMainWorld('api', {
   getLocale: () => ipcRenderer.invoke('app:locale'),
   getVersion: () => ipcRenderer.invoke('app:version'),
   getTheme: () => ipcRenderer.invoke('theme:current'),
-  // 4T-0030: Theme-Vorzug ('light' | 'dark' | 'system'). 'system' folgt dem
+  // 4T-000030: Theme-Vorzug ('light' | 'dark' | 'system'). 'system' folgt dem
   // OS-Theme (alte Logik), die anderen erzwingen das jeweilige Theme.
   getThemePref: () => ipcRenderer.invoke('theme:getPref'),
   setThemePref: (value) => ipcRenderer.invoke('theme:setPref', value),
 
-  // 4T-0377 (Epic 3E-0071): Klipboard-Zugriff für das Editor-Kontextmenü.
+  // 4T-000377 (Epic 3E-000071): Klipboard-Zugriff für das Editor-Kontextmenü.
   // Electron-Klipboard (synchron, kein Permission-Prompt wie navigator.
   // clipboard, kein Fokus-Verlust). Nur Text — das Kontextmenü arbeitet auf
   // Markdown-Quelltext.
@@ -324,52 +324,52 @@ contextBridge.exposeInMainWorld('api', {
   clipboardWriteText: (text) => electron.clipboard.writeText(text == null ? '' : String(text)),
 
   // Markdown-Rendering
-  // 4T-0282: opts wird an den Kern-Render durchgereicht (frontmatterBlock:
+  // 4T-000282: opts wird an den Kern-Render durchgereicht (frontmatterBlock:
   // false unterdrueckt die Frontmatter-Zeile, z.B. in Markdown-Embeds).
   renderMarkdown: (text, basePath, opts) => {
-    // 4T-0179: Kern-Render in src/shared/markdown/markdown.js (inkl.
+    // 4T-000179: Kern-Render in src/shared/markdown/markdown.js (inkl.
     // perspective-portable-Weiche und Frontmatter-Strip); hier nur der DOM-nahe
     // lang-Kontext und der fs-abhaengige Bild-Resolver.
     const lang = (document.documentElement.lang || 'de').split('-')[0].toLowerCase();
     const html = renderMarkdown(text, lang, opts);
     return resolveImagesForBase(html, basePath);
   },
-  // 4T-1045 (Epic 3E-0151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
+  // 4T-001045 (Epic 3E-000151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
   // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil
   // sie eine echte Textmessung braucht.
   buildMindmap: (text, opts) => mindmapAusDokument(text, markdownModul.md, opts || {}),
-  // 4T-0282/4T-0284: Frontmatter-Zeile der Preload-Pipeline schalten
+  // 4T-000282/4T-000284: Frontmatter-Zeile der Preload-Pipeline schalten
   // (Muster configureTaskStates; Aufruf beim App-Start und bei jedem
   // Settings-Broadcast).
   configureFrontmatterDisplay: (enabled) => configureFrontmatterDisplay(enabled),
-  // 4T-0546 (Epic 3E-0097): calendarSystems-Konfiguration in die Render-
+  // 4T-000546 (Epic 3E-000097): calendarSystems-Konfiguration in die Render-
   // Pipeline schalten (Muster configureFrontmatterDisplay).
   calendarConfigureRender: (config) => setCalendarConfig(config),
-  // 4T-0284: Multi-Window-Broadcast bei Aenderung von render.showFrontmatter.
+  // 4T-000284: Multi-Window-Broadcast bei Aenderung von render.showFrontmatter.
   onFrontmatterDisplayChanged: (cb) =>
     ipcRenderer.on('frontmatterDisplay:changed', (_e, enabled) => cb(enabled)),
-  // 4T-0471 (Epic 3E-0087): Nummerierungs-Zustand der Preload-Pipeline
+  // 4T-000471 (Epic 3E-000087): Nummerierungs-Zustand der Preload-Pipeline
   // schalten (Muster configureFrontmatterDisplay) und Multi-Window-Broadcast
   // bei Aenderung von render.headingNumbering.
   configureHeadingNumbering: (cfg) => configureHeadingNumbering(cfg),
   onHeadingNumberingChanged: (cb) =>
     ipcRenderer.on('headingNumbering:changed', (_e, cfg) => cb(cfg)),
-  // 4T-0312 (Epic 3E-0055): Multi-Window-Broadcast bei Aenderung von
+  // 4T-000312 (Epic 3E-000055): Multi-Window-Broadcast bei Aenderung von
   // render.frontmatterExpanded (dauerhaft ausgeklappte Darstellung).
   onFrontmatterExpandedChanged: (cb) =>
     ipcRenderer.on('frontmatterExpanded:changed', (_e, expanded) => cb(expanded)),
-  // 4T-0414 (Epic 3E-0078): Multi-Window-Broadcast bei Aenderung von
+  // 4T-000414 (Epic 3E-000078): Multi-Window-Broadcast bei Aenderung von
   // scripts.run (Skript-Bloecke ausfuehren).
   onPerspectiveScriptsChanged: (cb) =>
     ipcRenderer.on('perspectiveScripts:changed', (_e, enabled) => cb(enabled)),
-  // 4T-0292 (Epic 3E-0052): Erweiterungs-Schalt-Zustand der Preload-
+  // 4T-000292 (Epic 3E-000052): Erweiterungs-Schalt-Zustand der Preload-
   // Pipeline setzen — baut beide markdown-it-Instanzen mit dem aktiven
   // Plugin-Satz neu auf (Muster configureTaskStates; Aufruf beim App-Start
   // und bei jedem extensions:changed-Broadcast).
   configureExtensions: (disabledIds) => configureExtensions(disabledIds),
-  // 4T-0292: Multi-Window-Broadcast bei Aenderung von extensions.disabled.
+  // 4T-000292: Multi-Window-Broadcast bei Aenderung von extensions.disabled.
   onExtensionsChanged: (cb) => ipcRenderer.on('extensions:changed', (_e, ids) => cb(ids)),
-  // --- 4T-0298 (Epic 3E-0053): externe Erweiterungen -------------------------
+  // --- 4T-000298 (Epic 3E-000053): externe Erweiterungen -------------------------
   // Verzeichnis-Scan, Vertrauens-Dialog, Entfernen und Explorer-Zugang
   // laufen im Main (IDs statt Pfade, Whitelist gegen den Scan-Stand);
   // die Markdown-Plugin-Konfiguration evaluiert der Preload-Loader.
@@ -377,7 +377,7 @@ contextBridge.exposeInMainWorld('api', {
   confirmExternalExtensionTrust: (id) => ipcRenderer.invoke('extensions:confirmTrust', id),
   removeExternalExtension: (id) => ipcRenderer.invoke('extensions:removeExternal', id),
   openExternalExtensionsDir: () => ipcRenderer.invoke('extensions:openDir'),
-  // 4T-0927 (Epic 3E-0016): Zugang zu den Entwickler-Werkzeugen, seit dem
+  // 4T-000927 (Epic 3E-000016): Zugang zu den Entwickler-Werkzeugen, seit dem
   // Entfall des Menueeintrags der einzige. Das Umschalten ist eine Faehigkeit
   // des Hauptprozesses und braucht deshalb den Weg ueber die Prozess-Grenze;
   // der Handler trifft genau das Fenster, aus dem der Aufruf kommt.
@@ -385,142 +385,142 @@ contextBridge.exposeInMainWorld('api', {
   configureExternalMarkdownPlugins: (descriptors) => configureExternalExtensions(descriptors),
   // Multi-Window-Broadcast bei Aenderung von extensionsExternal.enabled.
   onExternalExtensionsChanged: (cb) => ipcRenderer.on('extensionsExternal:changed', () => cb()),
-  // 4T-0289 (Epic 3E-0051): Multi-Window-Broadcast bei Aenderung des
+  // 4T-000289 (Epic 3E-000051): Multi-Window-Broadcast bei Aenderung des
   // Sidebar-Layouts (sidebar.layout).
   onSidebarLayoutChanged: (cb) =>
     ipcRenderer.on('sidebarLayout:changed', (_e, layout) => cb(layout)),
-  // 4T-0624 (Epic 3E-0119): Multi-Window-Broadcast bei Aenderung der
+  // 4T-000624 (Epic 3E-000119): Multi-Window-Broadcast bei Aenderung der
   // globalen Sidebar-Varianten (sidebar.layoutVariants).
   onSidebarLayoutVariantsChanged: (cb) =>
     ipcRenderer.on('sidebarLayoutVariants:changed', (_e, variants) => cb(variants)),
-  // 4T-0049: Frontmatter-Daten fuer Renderer-Konsumenten. Wird in 4T-0050
-  // (Aliases) und 4T-0051 (Properties-Editor) genutzt. Liefert
+  // 4T-000049: Frontmatter-Daten fuer Renderer-Konsumenten. Wird in 4T-000050
+  // (Aliases) und 4T-000051 (Properties-Editor) genutzt. Liefert
   // { raw, data, body, parseError, endOffset } analog extractFrontmatter.
   getFrontmatter: (text) => extractFrontmatter(text),
-  // 4T-0051: Round-Trip-Schreiben von Frontmatter-Feldern. Liefert den
+  // 4T-000051: Round-Trip-Schreiben von Frontmatter-Feldern. Liefert den
   // neuen Datei-Text zurueck (Renderer ruft danach api.saveFile auf).
   // Erhaltung von Kommentaren und Stil fuer nicht-geaenderte Felder.
   writeFrontmatter: (text, newData, options) => writeFrontmatter(text, newData, options),
-  // 4T-0014: Slug-Berechnung im Renderer-Modul verfuegbar machen,
+  // 4T-000014: Slug-Berechnung im Renderer-Modul verfuegbar machen,
   // damit das Outline-Panel im Render-Modus den passenden DOM-Anker findet.
   slugifyHeading: (text) => githubLikeSlug(String(text || '')),
 
-  // 4T-0041: Konverter perspective-table → inline HTML-Tabelle. Liefert den
+  // 4T-000041: Konverter perspective-table → inline HTML-Tabelle. Liefert den
   // konvertierten Markdown-Text fuer den Export 'Portables Markdown'.
-  // 4T-0512 (Epic 3E-0092): lang fuer die lokalisierten Texte der
+  // 4T-000512 (Epic 3E-000092): lang fuer die lokalisierten Texte der
   // statischen Ereignis-Tabelle im Export (Default 'de').
   convertMarkdownPortable: (text, lang) => convertMarkdownPortable(text, true, lang),
 
-  // 4T-0213 (Epic 3E-0042): gebuendelte Handbuch-Seite aus dem Main holen
+  // 4T-000213 (Epic 3E-000042): gebuendelte Handbuch-Seite aus dem Main holen
   // (Markdown-Quelltext; pageId wird im Main gegen die Registry geprueft).
-  // Der fruehere perspective-table-Spezialweg (4T-0036) ist mit 4T-0216 hierin
+  // Der fruehere perspective-table-Spezialweg (4T-000036) ist mit 4T-000216 hierin
   // aufgegangen.
   getManualPageContent: (pageId, locale) =>
     ipcRenderer.invoke('help:getManualPage', pageId, locale),
 
-  // 4T-0758 (Epic 3E-0142): alle gebuendelten Handbuch-Seiten einer Sprache
+  // 4T-000758 (Epic 3E-000142): alle gebuendelten Handbuch-Seiten einer Sprache
   // in einem Zug, fuer die Suche ueber das ganze Handbuch. Ein Einzel-Abruf
   // je Seite waere hier sinnlos, weil die Suche immer alle Seiten braucht,
   // und kostete rund drei Dutzend Prozess-Grenzen je Suchlauf.
   getAllManualPages: (locale) => ipcRenderer.invoke('help:getAllManualPages', locale),
 
-  // 4T-0015: Backlinks. requestBacklinks registriert den Owner (Fenster +
-  // Pane) auf der Wurzel, releaseBacklinks gibt ihn frei (B-01, 4T-0175).
+  // 4T-000015: Backlinks. requestBacklinks registriert den Owner (Fenster +
+  // Pane) auf der Wurzel, releaseBacklinks gibt ihn frei (B-01, 4T-000175).
   // onBacklinksInvalidated meldet Watcher-Updates aus dem Main.
   requestBacklinks: (filePath, paneIdx) =>
     ipcRenderer.invoke('backlinks:request', { filePath, paneIdx }),
   releaseBacklinks: (filePath, paneIdx) =>
     ipcRenderer.invoke('backlinks:release', { filePath, paneIdx }),
-  // B-13 (4T-0175): Klick-Fallback ueber den Backlinks-Index, wenn das
+  // B-13 (4T-000175): Klick-Fallback ueber den Backlinks-Index, wenn das
   // dokument-relative Wiki-Ziel nicht existiert.
   resolveWikiTargetInIndex: (filePath, basename) =>
     ipcRenderer.invoke('wikiLink:resolveInIndex', { filePath, basename }),
-  // 4T-0020: Batch-Lookup fuer den Markdown-Linter (broken-wiki-link).
+  // 4T-000020: Batch-Lookup fuer den Markdown-Linter (broken-wiki-link).
   resolveWikiTargets: (filePath, basenames) =>
     ipcRenderer.invoke('linter:resolveWikiTargets', { filePath, basenames }),
-  // 4T-0050: Wiki-Link-Klick mit Alias-Fallback. Renderer ruft das auf,
+  // 4T-000050: Wiki-Link-Klick mit Alias-Fallback. Renderer ruft das auf,
   // wenn die direkte Datei nicht existiert; Antwort enthaelt Kandidaten-
   // Liste und optional den aufloesenden Alias-Text.
   resolveWikiTargetByAlias: (filePath, basename) =>
     ipcRenderer.invoke('wikiLink:resolveByAlias', { filePath, basename }),
-  // 4T-0055: Wiki-Embed-Datei lesen (mit optionaler Anker-Extraktion).
+  // 4T-000055: Wiki-Embed-Datei lesen (mit optionaler Anker-Extraktion).
   // Wird vom Renderer-Postprocessing fuer Markdown-Embeds aufgerufen.
   // Antwort: { ok, path, displayPath, content } oder { ok: false, error }.
   readEmbedFile: (basePath, embedPath, anchor) =>
     ipcRenderer.invoke('embed:read', { basePath, embedPath, anchor }),
-  // 4T-0056: Tag-System. Liefert Tag-Liste der Wurzel (sortiert nach
+  // 4T-000056: Tag-System. Liefert Tag-Liste der Wurzel (sortiert nach
   // Haeufigkeit) und optional Datei-Liste fuer einen Filter-Tag.
   requestTags: (filePath, filterTag) =>
     ipcRenderer.invoke('tags:request', { filePath, filterTag: filterTag || null }),
-  // 4T-0354 (Epic 3E-0065): Frontmatter-Abfrage (perspective-query). Auswertung
-  // im Main; lang ist die Programmsprache der Formatierer (4T-1072).
+  // 4T-000354 (Epic 3E-000065): Frontmatter-Abfrage (perspective-query). Auswertung
+  // im Main; lang ist die Programmsprache der Formatierer (4T-001072).
   runFrontmatterQuery: (filePath, query, lang) =>
     ipcRenderer.invoke('frontmatterQuery:run', { filePath, query: query || '', lang }),
-  // 4T-0935 (Befund B-08): geschriebenen Stand einer offenen Datei an den
+  // 4T-000935 (Befund B-08): geschriebenen Stand einer offenen Datei an den
   // Index-Overlay melden bzw. ihn zuruecknehmen (Speichern, Verwerfen,
   // Schliessen). Die gerenderte Ansicht zeigt damit auch in eingebetteten
   // Konstrukten den Stand des Editors und nicht den der Platte.
   setIndexOverlay: (filePath, content) =>
     ipcRenderer.invoke('index:overlay', { filePath, content }),
   clearIndexOverlay: (filePath) => ipcRenderer.invoke('index:overlay', { filePath, content: null }),
-  // 4T-0504 (Epic 3E-0096): Rueckschreiben aus der Abfrage-Ansicht — zeilen-
+  // 4T-000504 (Epic 3E-000096): Rueckschreiben aus der Abfrage-Ansicht — zeilen-
   // genaue Ersetzung in einer nicht im Fenster geoeffneten Quelldatei
   // (Konflikt-Antwort { ok:false, reason } statt Blind-Schreiben).
   applyTaskLineEdit: (params) => ipcRenderer.invoke('task:applyLineEdit', params),
-  // 4T-0413 (Epic 3E-0078): Daten-Snapshot fuer Skript-Bloecke — der
+  // 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke — der
   // Renderer reicht ihn mit dem Run-Auftrag in die Sandbox (kein Live-Kanal).
   getPerspectiveScriptData: (filePath) =>
     ipcRenderer.invoke('perspectiveScript:data', { filePath }),
-  // 4T-0453 (Epic 3E-0084): Graph-Daten (Knoten plus Link-Kanten) fuer die
+  // 4T-000453 (Epic 3E-000084): Graph-Daten (Knoten plus Link-Kanten) fuer die
   // Graphenansicht; filePath null = Bereichs-Graph des Fenster-Bereichs.
   getGraphEdges: (filePath) => ipcRenderer.invoke('graph:edges', { filePath: filePath || null }),
-  // 4T-0619 (Epic 3E-0117): Kennzahlen des Fenster-Bereichs fuer die
+  // 4T-000619 (Epic 3E-000117): Kennzahlen des Fenster-Bereichs fuer die
   // Statistik-Seite (Index-Anteil plus ergaenzender Ordner-Scan).
   collectAreaStats: () => ipcRenderer.invoke('areaStats:collect'),
-  // 4T-0615 (Epic 3E-0116): Bereichs-Suchlauf ueber alle Markdown-Dateien des
+  // 4T-000615 (Epic 3E-000116): Bereichs-Suchlauf ueber alle Markdown-Dateien des
   // Fenster-Bereichs. `aktiv` traegt Pfad und Editor-Stand der offenen Datei;
   // ihre Treffer stehen als erste Gruppe, und der Platten-Stand derselben
   // Datei wird dafuer ausgespart.
   searchArea: (params) => ipcRenderer.invoke('areaSearch:run', params),
   releaseAreaSearch: () => ipcRenderer.invoke('areaSearch:release'),
-  // 4T-0057: Autocomplete-Suggestions fuer Wiki-Link- und Tag-Trigger.
+  // 4T-000057: Autocomplete-Suggestions fuer Wiki-Link- und Tag-Trigger.
   autocompleteWikiTargets: (filePath) =>
     ipcRenderer.invoke('autocomplete:wikiTargets', { filePath }),
   autocompleteAnchors: (filePath, basename, anchorType) =>
     ipcRenderer.invoke('autocomplete:anchors', { filePath, basename, anchorType }),
   autocompleteTags: (filePath) => ipcRenderer.invoke('autocomplete:tags', { filePath }),
-  // 4T-1340 (Epic 3E-0238): die im Bereich vergebenen Werte einer Eigenschaft.
+  // 4T-001340 (Epic 3E-000238): die im Bereich vergebenen Werte einer Eigenschaft.
   propertiesUsedValues: (params) => ipcRenderer.invoke('properties:usedValues', params),
   onBacklinksInvalidated: (cb) =>
     ipcRenderer.on('backlinks:invalidated', (_e, payload) => cb(payload)),
 
   // Multi-Window
-  // R4-03 (4T-0170): optionaler zweiter Parameter — Tab-Payload mit
+  // R4-03 (4T-000170): optionaler zweiter Parameter — Tab-Payload mit
   // content/dirty fuer den verlustfreien "In neues Fenster verschieben"-Pfad.
   openNewWindow: (initialTabs, initialTabPayload) =>
     ipcRenderer.invoke('window:openNew', initialTabs, initialTabPayload),
-  // 4T-0319 (Epic 3E-0057): neue logische Applikation mit leerem Fenster.
+  // 4T-000319 (Epic 3E-000057): neue logische Applikation mit leerem Fenster.
   newApplication: () => ipcRenderer.invoke('app:newApplication'),
-  // 4T-0322 (Epic 3E-0058): Bereich oeffnen (Ordner-Dialog bzw. direkter
+  // 4T-000322 (Epic 3E-000058): Bereich oeffnen (Ordner-Dialog bzw. direkter
   // Pfad) und Bereich schliessen (alle Fenster der Bereichs-App).
   openArea: () => ipcRenderer.invoke('area:open'),
   openAreaPath: (rootPath) => ipcRenderer.invoke('area:openPath', rootPath),
-  // 4T-0632 (Epic 3E-0102): Demo-Area erstellen (Dialog-Weg) bzw. direkter
+  // 4T-000632 (Epic 3E-000102): Demo-Area erstellen (Dialog-Weg) bzw. direkter
   // Pfad-Einstieg ohne Dialog (Tests; Muster openAreaPath).
   createDemoArea: () => ipcRenderer.invoke('demoArea:create'),
   createDemoAreaAt: (targetDir) => ipcRenderer.invoke('demoArea:createAt', targetDir),
   closeArea: () => ipcRenderer.invoke('area:close'),
-  // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs; null entfernt sie.
+  // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs; null entfernt sie.
   getAreaStartPage: () => ipcRenderer.invoke('area:getStartPage'),
   setAreaStartPage: (filePath) => ipcRenderer.invoke('area:setStartPage', filePath),
-  // 4T-0843 (Epic 3E-0147): Buecher. Eigener Namensraum statt flacher
+  // 4T-000843 (Epic 3E-000147): Buecher. Eigener Namensraum statt flacher
   // book*-Namen, weil der Block als Ganzes zu einer schaltbaren Erweiterung
   // gehoert und der Renderer ihn an EINER Stelle greift.
   //
   // getState liefert { active: null | { bookDir, bookFileName, tree,
   // readingOrder, unlinked, missing, missingSuggestions } } fuer die
   // Applikation des Fensters; `missingSuggestions` bildet einen fehlenden
-  // Kapitel-Pfad auf seine namensgleichen Funde ab (4T-0848, nur Eintraege
+  // Kapitel-Pfad auf seine namensgleichen Funde ab (4T-000848, nur Eintraege
   // mit Fund). `tree` ist der Kapitel-Baum aus { path, children }-Knoten mit
   // buch-relativen Pfaden. onStateChanged meldet jedes Oeffnen, Schliessen,
   // Anlegen und die Sitzungs-Wiederherstellung an alle Fenster der App.
@@ -537,7 +537,7 @@ contextBridge.exposeInMainWorld('api', {
     // sind.
     openPath: (bookDir) => ipcRenderer.invoke('books:openPath', bookDir),
     createAt: (parentDir, name) => ipcRenderer.invoke('books:createAt', { parentDir, name }),
-    // 4T-0845 (Story 4S-0754): Struktur-Pflege. EINE Baum-Operation je Aufruf;
+    // 4T-000845 (Story 4S-000754): Struktur-Pflege. EINE Baum-Operation je Aufruf;
     // waehrend eines Zuges wird nichts geschrieben, erst die Ablage loest
     // genau einen applyTreeOp aus. Op-Formen (`parentPath: null` = oberste
     // Ebene, `index: null` = ans Ende der Ziel-Ebene):
@@ -554,7 +554,7 @@ contextBridge.exposeInMainWorld('api', {
     applyTreeOp: (op) => ipcRenderer.invoke('books:applyTreeOp', op),
     createChapter: (parentPath, name) =>
       ipcRenderer.invoke('books:createChapter', { parentPath, name }),
-    // 4T-0847 (Story 4S-0756): Kapitel-Datei physisch innerhalb des
+    // 4T-000847 (Story 4S-000756): Kapitel-Datei physisch innerhalb des
     // Buch-Ordners verschieben. Der Ordner-Dialog läuft im Main, das Ziel
     // MUSS im Buch-Ordner liegen; die Links des Bestands und der
     // Kapitel-Baum-Eintrag der Begleitdatei ziehen im selben Zug nach.
@@ -564,7 +564,7 @@ contextBridge.exposeInMainWorld('api', {
     moveChapterFile: (relPath) => ipcRenderer.invoke('books:moveChapterFile', relPath),
     moveChapterFileTo: (relPath, targetDir) =>
       ipcRenderer.invoke('books:moveChapterFileTo', { relPath, targetDir }),
-    // 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel. suggestMissing
+    // 4T-000848 (Story 4S-000757): Reparatur fehlender Kapitel. suggestMissing
     // liefert { ok: true, suggestions: [buch-relative Pfade] } — namensgleiche
     // Dateien an anderer Stelle des Buch-Ordners, nie automatisch uebernommen.
     // reassignChapter ordnet dem Baum-Eintrag eine andere Datei zu (`newPath`
@@ -578,13 +578,13 @@ contextBridge.exposeInMainWorld('api', {
     reassignChapterDialog: (missingPath) =>
       ipcRenderer.invoke('books:reassignChapterDialog', missingPath),
   },
-  // 4T-0867 (Epic 3E-0162): Buecherregale — Zustand des aktiven Regals,
+  // 4T-000867 (Epic 3E-000162): Buecherregale — Zustand des aktiven Regals,
   // beide Oeffnungswege, Neuanlage, Schliessen und die Zuordnung. Die
   // dialog-freien Pfad-Einstiege (openPath, createAt) spiegeln das
   // books-Muster und tragen die automatisierte Pruefung.
   shelves: {
     getState: () => ipcRenderer.invoke('shelves:getState'),
-    // 4T-0868: Anzeige-Daten der Regal-Ansicht und das Oeffnen der Seite
+    // 4T-000868: Anzeige-Daten der Regal-Ansicht und das Oeffnen der Seite
     // (der Main meldet es bei jedem Regal-Oeffnen-Weg).
     getViewData: () => ipcRenderer.invoke('shelves:getViewData'),
     onOpenPage: (cb) => ipcRenderer.on('shelves:openPage', () => cb()),
@@ -597,25 +597,25 @@ contextBridge.exposeInMainWorld('api', {
     assignBook: (dirName) => ipcRenderer.invoke('shelves:assignBook', dirName),
     unassignBook: (dirName) => ipcRenderer.invoke('shelves:unassignBook', dirName),
   },
-  // 4T-0327 (Epic 3E-0059): Verzeichnis-Listing fuer das Bereichs-Panel.
+  // 4T-000327 (Epic 3E-000059): Verzeichnis-Listing fuer das Bereichs-Panel.
   areaListDir: (dirPath) => ipcRenderer.invoke('area:listDir', dirPath),
-  // 4T-0328: neue Markdown-Datei im Bereichs-Ordner anlegen; Struktur-
+  // 4T-000328: neue Markdown-Datei im Bereichs-Ordner anlegen; Struktur-
   // Aenderungen im Bereich meldet der Main-Watcher debounced.
   areaCreateFile: (dirPath, name) => ipcRenderer.invoke('area:createFile', { dirPath, name }),
   onAreaChanged: (cb) => ipcRenderer.on('area:changed', () => cb()),
   reportPanes: (panes) => ipcRenderer.invoke('window:reportPanes', panes),
-  // 4T-0368 (Epic 3E-0068): Unbenannt-Tabs mit Inhalt beim Schliessen als
+  // 4T-000368 (Epic 3E-000068): Unbenannt-Tabs mit Inhalt beim Schliessen als
   // Entwurf sichern (additiv im Main). Payload: [{ content, tabSettings, order }].
   saveDrafts: (drafts) => ipcRenderer.invoke('drafts:save', drafts),
   reportMenuState: (state) => ipcRenderer.invoke('window:reportMenuState', state),
-  // 4T-0012: Tab in bestehendes Fenster verschieben/kopieren und Titel-Suffix
+  // 4T-000012: Tab in bestehendes Fenster verschieben/kopieren und Titel-Suffix
   notifyWindowMeta: (meta) => ipcRenderer.invoke('window:metaChanged', meta),
   listWindows: () => ipcRenderer.invoke('window:list'),
   appendTabToWindow: (targetWindowId, payload) =>
     ipcRenderer.invoke('tab:appendToWindow', { targetWindowId, payload }),
-  // 4T-0537 (Epic 3E-0098): Arbeitsbereichs-Lebenszyklus — benannte logische
+  // 4T-000537 (Epic 3E-000098): Arbeitsbereichs-Lebenszyklus — benannte logische
   // Applikationen mit Ablage im Store-Key 'workspaces'. onWorkspacesChanged
-  // meldet jede Ablage-Aenderung an alle Fenster (UI-Nachzug in 4T-0538).
+  // meldet jede Ablage-Aenderung an alle Fenster (UI-Nachzug in 4T-000538).
   workspacesList: () => ipcRenderer.invoke('workspace:list'),
   workspaceSaveAs: (params) => ipcRenderer.invoke('workspace:saveAs', params),
   workspaceCreate: (params) => ipcRenderer.invoke('workspace:create', params),
@@ -630,25 +630,25 @@ contextBridge.exposeInMainWorld('api', {
   // Events vom Main-Prozess
   onFileChanged: (cb) => ipcRenderer.on('file:changed', (_e, p) => cb(p)),
   onFileRemoved: (cb) => ipcRenderer.on('file:removed', (_e, p) => cb(p)),
-  // 4T-0331 (Epic 3E-0060): Main meldet eine defekte .mdd (Protokollierung
+  // 4T-000331 (Epic 3E-000060): Main meldet eine defekte .mdd (Protokollierung
   // fuer das Dokument ausgesetzt); der Renderer zeigt den Statusbar-Hinweis.
   onMddDefect: (cb) => ipcRenderer.on('mdd:defect', (_e, info) => cb(info)),
-  // 4T-0332 (Epic 3E-0060): Historisierungs-Schaltung — Statusbar-Zustand
+  // 4T-000332 (Epic 3E-000060): Historisierungs-Schaltung — Statusbar-Zustand
   // (wirksame Einstellung, Herkunft, .mdd vorhanden) und Bereichs-Default
   // aus der Bereichsdatei Area_Settings.mdda.
   getHistoryState: (p, content) => ipcRenderer.invoke('history:getState', p, content),
   getHistoryAreaDefault: () => ipcRenderer.invoke('history:getAreaDefault'),
   setHistoryAreaDefault: (value) => ipcRenderer.invoke('history:setAreaDefault', value),
-  // 4T-0333 (Epic 3E-0060): Historien-Ansicht — Revisionsliste und
+  // 4T-000333 (Epic 3E-000060): Historien-Ansicht — Revisionsliste und
   // rekonstruierte Staende.
   getHistoryList: (p) => ipcRenderer.invoke('history:list', p),
   getHistoryRevision: (p, seq) => ipcRenderer.invoke('history:getRevision', p, seq),
-  // 4T-0358 (Epic 3E-0066): Dokument-Notiz lesen/schreiben (.mdd notes-Sektion);
+  // 4T-000358 (Epic 3E-000066): Dokument-Notiz lesen/schreiben (.mdd notes-Sektion);
   // onNoteChanged meldet den Broadcast nach dem Schreiben an alle Fenster.
   readNote: (p) => ipcRenderer.invoke('note:read', p),
   writeNote: (p, text) => ipcRenderer.invoke('note:write', p, text),
   onNoteChanged: (cb) => ipcRenderer.on('note:changed', (_e, payload) => cb(payload)),
-  // 4T-0363 (Epic 3E-0067): Block-Metadaten pro Block-Anker (.mdd blockData-
+  // 4T-000363 (Epic 3E-000067): Block-Metadaten pro Block-Anker (.mdd blockData-
   // Sektion). readBlockData liefert die Anker->{values,updated}-Map;
   // writeBlockData setzt die values eines Ankers (leeres Objekt entfernt den
   // Eintrag); renameBlockAnchor benennt einen Anker-Schluessel um (Umbenennen/
@@ -660,14 +660,14 @@ contextBridge.exposeInMainWorld('api', {
   renameBlockAnchor: (p, fromId, toId) => ipcRenderer.invoke('blockData:rename', p, fromId, toId),
   onBlockDataChanged: (cb) => ipcRenderer.on('blockData:changed', (_e, payload) => cb(payload)),
   onOpenExternal: (cb) => ipcRenderer.on('file:openExternal', (_e, files) => cb(files)),
-  // 4T-0871 (Buch = Bereich): Main zieht eine in der falschen Applikation
+  // 4T-000871 (Buch = Bereich): Main zieht eine in der falschen Applikation
   // geoeffnete Buch-Datei zurueck; der Reiter wandert in die Buch-Applikation.
   onCloseExternal: (cb) => ipcRenderer.on('file:closeExternal', (_e, files) => cb(files)),
   onThemeChanged: (cb) => ipcRenderer.on('theme:changed', (_e, theme) => cb(theme)),
-  // 4T-0030: Theme-Pref-Aenderung wird von Main an alle Renderer gebrodcastet,
+  // 4T-000030: Theme-Pref-Aenderung wird von Main an alle Renderer gebrodcastet,
   // damit Statusbar-Icon und Tooltip auch in anderen Fenstern synchron ziehen.
   onThemePrefChanged: (cb) => ipcRenderer.on('theme:prefChanged', (_e, pref) => cb(pref)),
-  // 4T-0465 (Epic 3E-0086): Farbschema-Zustand (Objekt { custom, activeLight,
+  // 4T-000465 (Epic 3E-000086): Farbschema-Zustand (Objekt { custom, activeLight,
   // activeDark }) wird von Main an alle Renderer gebrodcastet (Store-Key
   // colorSchemes), damit eigene Schemas sofort in allen Fenstern greifen.
   onColorSchemeChanged: (cb) => ipcRenderer.on('colorScheme:changed', (_e, s) => cb(s)),
@@ -675,52 +675,52 @@ contextBridge.exposeInMainWorld('api', {
 
   // Menue-Events vom Main an den Renderer
   onMenuNew: (cb) => ipcRenderer.on('menu:new', () => cb()),
-  // 4T-0319 (Epic 3E-0057): Menue-Eintrag 'Datei -> Neue Applikation'.
+  // 4T-000319 (Epic 3E-000057): Menue-Eintrag 'Datei -> Neue Applikation'.
   onMenuNewApplication: (cb) => ipcRenderer.on('menu:newApplication', () => cb()),
-  // 4T-0322 (Epic 3E-0058): Menue-Eintraege 'Bereich oeffnen...'/'Bereich schliessen'.
+  // 4T-000322 (Epic 3E-000058): Menue-Eintraege 'Bereich oeffnen...'/'Bereich schliessen'.
   onMenuOpenArea: (cb) => ipcRenderer.on('menu:openArea', () => cb()),
   onMenuCloseArea: (cb) => ipcRenderer.on('menu:closeArea', () => cb()),
-  // 4T-0632 (Epic 3E-0102): Menue-Eintrag 'Datei -> Demo-Area erstellen...'.
+  // 4T-000632 (Epic 3E-000102): Menue-Eintrag 'Datei -> Demo-Area erstellen...'.
   onMenuCreateDemoArea: (cb) => ipcRenderer.on('menu:createDemoArea', () => cb()),
-  // 4T-0887 (Befund L-04): Menue-Eintrag 'Datei -> Buch und Buecherregal ->
+  // 4T-000887 (Befund L-04): Menue-Eintrag 'Datei -> Buch und Buecherregal ->
   // Kapitel-Datei verschieben...'. Anders als Oeffnen/Anlegen/Schliessen der
   // Buecher laeuft er ueber den Renderer, weil dort entschieden wird, welche
   // Datei gemeint ist (gerade gelesenes Kapitel der aktiven Spalte).
   onMenuMoveChapterFile: (cb) => ipcRenderer.on('menu:moveChapterFile', () => cb()),
-  // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Aktionen des Datei-Menues
+  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Aktionen des Datei-Menues
   // (Dialoge laufen im Renderer, das Schliessen geht zurueck an den Main).
   onMenuWorkspaceSaveAs: (cb) => ipcRenderer.on('menu:workspaceSaveAs', () => cb()),
   onMenuWorkspaceCreate: (cb) => ipcRenderer.on('menu:workspaceCreate', () => cb()),
   onMenuWorkspaceClose: (cb) => ipcRenderer.on('menu:workspaceClose', () => cb()),
   onMenuWorkspaceManage: (cb) => ipcRenderer.on('menu:workspaceManage', () => cb()),
   onMenuOpenFile: (cb) => ipcRenderer.on('menu:openFile', () => cb()),
-  // 4T-0338 (Epic 3E-0061): 'Datei -> Neue Unterseite...' plus Anlage-IPC.
+  // 4T-000338 (Epic 3E-000061): 'Datei -> Neue Unterseite...' plus Anlage-IPC.
   onMenuNewSubpage: (cb) => ipcRenderer.on('menu:newSubpage', () => cb()),
   createSubpage: (basePath, segment) => ipcRenderer.invoke('subpage:create', { basePath, segment }),
-  // 4T-0424 (Epic 3E-0080): Vorlagen-Quellen — Liste des aufgeloesten
+  // 4T-000424 (Epic 3E-000080): Vorlagen-Quellen — Liste des aufgeloesten
   // Vorlagen-Ordners (Bereich vor global) und Vorlagen-Inhalt; die
-  // Anwendungs-Kommandos (4T-0426) und Ordner-Regeln (4T-0427) bauen darauf.
+  // Anwendungs-Kommandos (4T-000426) und Ordner-Regeln (4T-000427) bauen darauf.
   templatesList: () => ipcRenderer.invoke('templates:list'),
   templatesRead: (relPath) => ipcRenderer.invoke('templates:read', { relPath }),
-  // 4T-0426 (Epic 3E-0080): Datei mit gefuelltem Vorlagen-Inhalt anlegen
+  // 4T-000426 (Epic 3E-000080): Datei mit gefuelltem Vorlagen-Inhalt anlegen
   // plus Menue-Event 'Datei -> Neue Datei aus Vorlage...'.
   templatesCreateFile: (dirPath, name, content) =>
     ipcRenderer.invoke('templates:createFile', { dirPath, name, content }),
   onMenuNewFromTemplate: (cb) => ipcRenderer.on('menu:newFromTemplate', () => cb()),
-  // 4T-0427 (Epic 3E-0080): Ordner-Regel fuer eine neu angelegte Datei.
+  // 4T-000427 (Epic 3E-000080): Ordner-Regel fuer eine neu angelegte Datei.
   templatesRuleFor: (filePath) => ipcRenderer.invoke('templates:ruleFor', { filePath }),
-  // 4T-0428 (Epic 3E-0080): Einstellungs-Bereich "Vorlagen" — Konfigurations-
+  // 4T-000428 (Epic 3E-000080): Einstellungs-Bereich "Vorlagen" — Konfigurations-
   // Stand lesen, Bereichs-Sektion schreiben, Ordner-Auswahl-Dialog.
   templatesGetConfig: () => ipcRenderer.invoke('templates:getConfig'),
   templatesSetAreaConfig: (config) => ipcRenderer.invoke('templates:setAreaConfig', config),
   templatesChooseFolder: (purpose) => ipcRenderer.invoke('templates:chooseFolder', { purpose }),
-  // 4T-0431 (Epic 3E-0081): Journal-Konfiguration des Bereichs (journals-
+  // 4T-000431 (Epic 3E-000081): Journal-Konfiguration des Bereichs (journals-
   // Sektion der Bereichsdatei) lesen/schreiben; onJournalsChanged meldet den
   // Broadcast nach dem Schreiben an alle Fenster (Payload { rootPath }).
   journalsGetConfig: () => ipcRenderer.invoke('journals:getConfig'),
   journalsSetAreaConfig: (config) => ipcRenderer.invoke('journals:setAreaConfig', config),
   onJournalsChanged: (cb) => ipcRenderer.on('journals:changed', (_e, payload) => cb(payload)),
-  // 4T-0433 (Epic 3E-0081): Anlage-/Oeffnungs-Pfad der Journal-Eintraege
+  // 4T-000433 (Epic 3E-000081): Anlage-/Oeffnungs-Pfad der Journal-Eintraege
   // (Existenz-Check und Anlage mit Ordner-Kette) plus Menue-Events der
   // beiden Journal-Kommandos.
   journalsStatEntry: (relPath) => ipcRenderer.invoke('journals:statEntry', { relPath }),
@@ -728,26 +728,26 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('journals:createEntry', { relPath, content }),
   onMenuJournalToday: (cb) => ipcRenderer.on('menu:journalToday', () => cb()),
   onMenuJournalForDate: (cb) => ipcRenderer.on('menu:journalForDate', () => cb()),
-  // 4T-0434 (Epic 3E-0081): Existenz-Batch fuer die Kalender-Punkte.
+  // 4T-000434 (Epic 3E-000081): Existenz-Batch fuer die Kalender-Punkte.
   journalsEntriesExist: (relPaths) => ipcRenderer.invoke('journals:entriesExist', { relPaths }),
-  // 4T-0543 (Epic 3E-0097): Kalender-System-Konfiguration des Bereichs
+  // 4T-000543 (Epic 3E-000097): Kalender-System-Konfiguration des Bereichs
   // (calendarSystems-Sektion der Bereichsdatei) lesen/schreiben;
   // onCalendarChanged meldet den Broadcast nach dem Schreiben an alle
   // Fenster (Payload { rootPath }).
   calendarGetConfig: () => ipcRenderer.invoke('calendar:getConfig'),
   calendarSetAreaConfig: (config) => ipcRenderer.invoke('calendar:setAreaConfig', config),
-  // 4T-0747: Schutz der abgeleiteten Zeitrechnungen (Bestätigung bzw. Sperre).
+  // 4T-000747: Schutz der abgeleiteten Zeitrechnungen (Bestätigung bzw. Sperre).
   calendarConfirmDependents: (names) => ipcRenderer.invoke('calendar:confirmDependents', names),
   calendarBlockedDelete: (names) => ipcRenderer.invoke('calendar:blockedDelete', names),
   onCalendarChanged: (cb) => ipcRenderer.on('calendar:changed', (_e, payload) => cb(payload)),
-  // 4T-0446 (Epic 3E-0083): Profil-Konfiguration des Bereichs
+  // 4T-000446 (Epic 3E-000083): Profil-Konfiguration des Bereichs
   // (propertyProfiles-Sektion der Bereichsdatei) lesen/schreiben;
   // onProfilesChanged meldet den Broadcast nach dem Schreiben an alle
   // Fenster (Payload { rootPath }).
   profilesGetConfig: () => ipcRenderer.invoke('profiles:getConfig'),
   profilesSetAreaConfig: (config) => ipcRenderer.invoke('profiles:setAreaConfig', config),
   onProfilesChanged: (cb) => ipcRenderer.on('profiles:changed', (_e, payload) => cb(payload)),
-  // 4T-0625 (Epic 3E-0119): Bereichs-Varianten der Sidebar
+  // 4T-000625 (Epic 3E-000119): Bereichs-Varianten der Sidebar
   // (sidebarLayouts-Sektion der Bereichsdatei) lesen/schreiben;
   // onSidebarVariantsChanged meldet den Broadcast nach dem Schreiben an
   // alle Fenster (Payload { rootPath }).
@@ -756,17 +756,17 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('sidebarVariants:setAreaConfig', config),
   onSidebarVariantsChanged: (cb) =>
     ipcRenderer.on('sidebarVariants:changed', (_e, payload) => cb(payload)),
-  // 4T-0611 (Epic 3E-0115): Bereichs-Lesezeichen (bookmarks-Sektion der
+  // 4T-000611 (Epic 3E-000115): Bereichs-Lesezeichen (bookmarks-Sektion der
   // Bereichsdatei) lesen/schreiben; onBookmarksChanged meldet den Broadcast
   // nach dem Schreiben an alle Fenster (Payload { rootPath }).
   bookmarksGetConfig: () => ipcRenderer.invoke('bookmarks:getConfig'),
   bookmarksSetAreaConfig: (config) => ipcRenderer.invoke('bookmarks:setAreaConfig', config),
   onBookmarksChanged: (cb) => ipcRenderer.on('bookmarks:changed', (_e, payload) => cb(payload)),
-  // 4T-0612 (Epic 3E-0115): Mehr-Fenster-Konsistenz der ALLGEMEINEN Lesezeichen.
+  // 4T-000612 (Epic 3E-000115): Mehr-Fenster-Konsistenz der ALLGEMEINEN Lesezeichen.
   // Der globale Baum liegt im Store; ein Schreibvorgang in einem Fenster meldet
   // 'bookmarksTree:changed' (Payload = der neue Baum) an die uebrigen Fenster.
   onBookmarksTreeChanged: (cb) => ipcRenderer.on('bookmarksTree:changed', (_e, value) => cb(value)),
-  // Eigenschafts-Profile (3E-0083: 4T-0447/4T-0450; 3E-0219: 4T-1156/4T-1158):
+  // Eigenschafts-Profile (3E-000083: 4T-000447/4T-000450; 3E-000219: 4T-001156/4T-001158):
   // Definitions-Liste (assigned = Live-Frontmatter vor path = Disk-Fallback),
   // Profil-Liste, Ordner-Auswahl, Verweis-Ziele, Wertevorrat aus einer Abfrage.
   profilesResolve: (params) => ipcRenderer.invoke('profiles:resolve', params),
@@ -775,138 +775,138 @@ contextBridge.exposeInMainWorld('api', {
   profilesLinkTargets: (params) => ipcRenderer.invoke('profiles:linkTargets', params),
   profilesFieldValues: (params) => ipcRenderer.invoke('profiles:fieldValues', params),
   profilesLookup: (params) => ipcRenderer.invoke('profiles:lookup', params),
-  // 4T-0339 (Epic 3E-0061): Datei umbenennen plus Nachzug-Broadcast an alle
+  // 4T-000339 (Epic 3E-000061): Datei umbenennen plus Nachzug-Broadcast an alle
   // Fenster (Tabs, Lesezeichen, Sitzungs-Pfade).
   onMenuRenameFile: (cb) => ipcRenderer.on('menu:renameFile', () => cb()),
-  // 4T-0774 (Epic 3E-0128): Unterseite loesen — nutzt denselben Umbenennungs-
+  // 4T-000774 (Epic 3E-000128): Unterseite loesen — nutzt denselben Umbenennungs-
   // Pfad (renameFile) und braucht deshalb keinen eigenen Kanal zum Main.
   onMenuDetachSubpage: (cb) => ipcRenderer.on('menu:detachSubpage', () => cb()),
   onMenuRejoinParts: (cb) => ipcRenderer.on('menu:rejoinParts', () => cb()),
-  // 4T-0345 (Epic 3E-0062): updateLinks steuert das automatische Link-Update
-  // (Standard aktiv; false schaltet es ab, gesetzt vom Dialog aus 4T-0346).
+  // 4T-000345 (Epic 3E-000062): updateLinks steuert das automatische Link-Update
+  // (Standard aktiv; false schaltet es ab, gesetzt vom Dialog aus 4T-000346).
   renameFile: (oldPath, newBasename, updateLinks) =>
     ipcRenderer.invoke('file:rename', { oldPath, newBasename, updateLinks }),
   onFileRenamed: (cb) => ipcRenderer.on('file:renamed', (_e, payload) => cb(payload)),
-  // 4T-0345 (Epic 3E-0062): Vorschau-Trefferzahl (Dry-Run vor dem Umbenennen)
+  // 4T-000345 (Epic 3E-000062): Vorschau-Trefferzahl (Dry-Run vor dem Umbenennen)
   // und Broadcast nach angewendetem Link-Update (Tabs nachziehen bzw. Buffer-Fix).
   renameLinkUpdatePreview: (oldPath, newBasename) =>
     ipcRenderer.invoke('rename:linkUpdatePreview', { oldPath, newBasename }),
   onLinkUpdateApplied: (cb) => ipcRenderer.on('linkUpdate:applied', (_e, payload) => cb(payload)),
-  // 4T-0340 (Epic 3E-0061): Nachfahren-Liste fuer den Kaskaden-Hinweis.
+  // 4T-000340 (Epic 3E-000061): Nachfahren-Liste fuer den Kaskaden-Hinweis.
   subpageDescendants: (p) => ipcRenderer.invoke('subpage:descendants', p),
-  // 4T-1293 (Epic 3E-0224): Teile eines geteilten Dokuments wieder vereinen.
+  // 4T-001293 (Epic 3E-000224): Teile eines geteilten Dokuments wieder vereinen.
   rejoinParts: (p) => ipcRenderer.invoke('parts:rejoin', p),
-  // 4T-0341 (Epic 3E-0061): 'Ansicht -> Unterseiten'.
+  // 4T-000341 (Epic 3E-000061): 'Ansicht -> Unterseiten'.
   onMenuToggleSubpages: (cb) => ipcRenderer.on('menu:toggleSubpages', () => cb()),
   onMenuViewChange: (cb) => ipcRenderer.on('menu:viewChange', (_e, mode) => cb(mode)),
   onMenuToggleLineNumbers: (cb) => ipcRenderer.on('menu:toggleLineNumbers', () => cb()),
   onMenuToggleWordWrap: (cb) => ipcRenderer.on('menu:toggleWordWrap', () => cb()),
   onMenuSave: (cb) => ipcRenderer.on('menu:save', () => cb()),
   onMenuSaveAs: (cb) => ipcRenderer.on('menu:saveAs', () => cb()),
-  // 4T-0041: Menu-Event 'Datei -> Exportieren -> Portables Markdown...'
+  // 4T-000041: Menu-Event 'Datei -> Exportieren -> Portables Markdown...'
   onMenuExportPortable: (cb) => ipcRenderer.on('menu:exportPortable', () => cb()),
-  // 4T-0303 (Epic 3E-0054): Menu-Event 'Datei -> Als PDF exportieren...'
+  // 4T-000303 (Epic 3E-000054): Menu-Event 'Datei -> Als PDF exportieren...'
   onMenuExportPdf: (cb) => ipcRenderer.on('menu:exportPdf', () => cb()),
   onMenuToggleAutoSave: (cb) => ipcRenderer.on('menu:toggleAutoSave', () => cb()),
-  // 4T-0013: Menue-Eintrag "Ansicht -> Gliederung" sendet diesen Event;
+  // 4T-000013: Menue-Eintrag "Ansicht -> Gliederung" sendet diesen Event;
   // Renderer toggelt die Sichtbarkeit der Folding-Spuren im aktiven Tab.
   onMenuToggleFoldGutter: (cb) => ipcRenderer.on('menu:toggleFoldGutter', () => cb()),
-  // 4T-0014: Menue-Eintrag "Ansicht -> Inhaltsverzeichnis" sendet diesen
+  // 4T-000014: Menue-Eintrag "Ansicht -> Inhaltsverzeichnis" sendet diesen
   // Event; Renderer toggelt die Outline-Sichtbarkeit der aktiven Spalte.
   onMenuToggleOutline: (cb) => ipcRenderer.on('menu:toggleOutline', () => cb()),
-  // 4T-0015: Menue-Eintrag "Ansicht -> Backlinks" toggelt die Backlinks-
+  // 4T-000015: Menue-Eintrag "Ansicht -> Backlinks" toggelt die Backlinks-
   // Sichtbarkeit der aktiven Spalte.
   onMenuToggleBacklinks: (cb) => ipcRenderer.on('menu:toggleBacklinks', () => cb()),
-  // 4T-0073 (Epic 3E-0013): Menue-Eintrag "Ansicht -> Outgoing-Links" toggelt
+  // 4T-000073 (Epic 3E-000013): Menue-Eintrag "Ansicht -> Outgoing-Links" toggelt
   // die Outgoing-Links-Sektion der aktiven Spalte.
   onMenuToggleOutgoingLinks: (cb) => ipcRenderer.on('menu:toggleOutgoingLinks', () => cb()),
-  // 4T-0075 (Epic 3E-0013): "Datei -> Lesezeichen -> Aktive Datei merken"
+  // 4T-000075 (Epic 3E-000013): "Datei -> Lesezeichen -> Aktive Datei merken"
   // sowie der Ansichts-Menue-Toggle fuer die Lesezeichen-Sektion.
   onMenuBookmarkAdd: (cb) => ipcRenderer.on('menu:bookmarkAdd', () => cb()),
   onMenuToggleBookmarks: (cb) => ipcRenderer.on('menu:toggleBookmarks', () => cb()),
-  // 4T-0019: Menue-Eintraege "Ansicht -> Fokus-Modus" und "-> Typewriter-Scroll".
+  // 4T-000019: Menue-Eintraege "Ansicht -> Fokus-Modus" und "-> Typewriter-Scroll".
   onMenuToggleFocusMode: (cb) => ipcRenderer.on('menu:toggleFocusMode', () => cb()),
   onMenuToggleTypewriterScroll: (cb) => ipcRenderer.on('menu:toggleTypewriterScroll', () => cb()),
-  // 4T-0697 (Epic 3E-0141): Menue-Eintraege "Ansicht -> Linke/Rechte Sidebar
+  // 4T-000697 (Epic 3E-000141): Menue-Eintraege "Ansicht -> Linke/Rechte Sidebar
   // einklappen" — toggeln die jeweilige Sidebar-Spalte der aktiven Pane-Group.
   onMenuToggleSidebarLeft: (cb) => ipcRenderer.on('menu:toggleSidebarLeft', () => cb()),
   onMenuToggleSidebarRight: (cb) => ipcRenderer.on('menu:toggleSidebarRight', () => cb()),
-  // 4T-0019: Menue-Eintrag "Ansicht -> Bearbeiten" (Strg+E). Ersetzt den
+  // 4T-000019: Menue-Eintrag "Ansicht -> Bearbeiten" (Strg+E). Ersetzt den
   // bisherigen Renderer-only-Tastenkuerzel.
   onMenuToggleEdit: (cb) => ipcRenderer.on('menu:toggleEdit', () => cb()),
-  // 4T-0070: Scroll-Synchronisation toggeln (Menue-Klick).
+  // 4T-000070: Scroll-Synchronisation toggeln (Menue-Klick).
   onMenuToggleScrollSync: (cb) => ipcRenderer.on('menu:toggleScrollSync', () => cb()),
   onMenuOpenHelp: (cb) => ipcRenderer.on('menu:openHelp', () => cb()),
   onMenuOpenAbout: (cb) => ipcRenderer.on('menu:openAbout', () => cb()),
-  // 4T-0644 (Epic 3E-0127): Menü-Eintrag „Hilfe -> Produkt-Tour" startet die
+  // 4T-000644 (Epic 3E-000127): Menü-Eintrag „Hilfe -> Produkt-Tour" startet die
   // geführte Tour im Renderer (manueller Start, ohne Nutzlast).
   onMenuStartTour: (cb) => ipcRenderer.on('menu:startTour', () => cb()),
-  // 4T-0018: Settings-Dialog ueber Menue-Eintrag Datei -> Einstellungen.
+  // 4T-000018: Settings-Dialog ueber Menue-Eintrag Datei -> Einstellungen.
   onMenuOpenSettings: (cb) => ipcRenderer.on('menu:openSettings', () => cb()),
-  // 4T-0333 (Epic 3E-0060): Historien-Ansicht des aktiven Dokuments.
+  // 4T-000333 (Epic 3E-000060): Historien-Ansicht des aktiven Dokuments.
   onMenuOpenHistory: (cb) => ipcRenderer.on('menu:openHistory', () => cb()),
-  // 4T-0455 (Epic 3E-0084): Bereichs-Graph als read-only Tab.
+  // 4T-000455 (Epic 3E-000084): Bereichs-Graph als read-only Tab.
   onMenuOpenAreaGraph: (cb) => ipcRenderer.on('menu:openAreaGraph', () => cb()),
-  // 4T-0620 (Epic 3E-0117): Bereichs-Statistik als read-only Tab.
+  // 4T-000620 (Epic 3E-000117): Bereichs-Statistik als read-only Tab.
   onMenuOpenAreaStats: (cb) => ipcRenderer.on('menu:openAreaStats', () => cb()),
-  // 4T-0480 (Epic 3E-0089): Kommando-Palette ueber Menue-Eintrag Ansicht.
+  // 4T-000480 (Epic 3E-000089): Kommando-Palette ueber Menue-Eintrag Ansicht.
   onMenuOpenCommandPalette: (cb) => ipcRenderer.on('menu:openCommandPalette', () => cb()),
-  // 4T-0456 (Epic 3E-0084): Datei-Graph-Sidebar-Sektion toggeln.
+  // 4T-000456 (Epic 3E-000084): Datei-Graph-Sidebar-Sektion toggeln.
   onMenuToggleFileGraph: (cb) => ipcRenderer.on('menu:toggleFileGraph', () => cb()),
-  // 4T-0568 (Epic 3E-0104): zentraler Toggle-Kanal des Panel-Untermenues
+  // 4T-000568 (Epic 3E-000104): zentraler Toggle-Kanal des Panel-Untermenues
   // (Payload = Panel-ID aus dem shared Modell); die Einzel-Kanaele oben
   // bleiben fuer Alt-Sender bestehen.
   onMenuTogglePanel: (cb) => ipcRenderer.on('menu:togglePanel', (_e, id) => cb(id)),
-  // 4T-0626 (Epic 3E-0119): Untermenue „Sidebar-Anordnungen" — Standard-
+  // 4T-000626 (Epic 3E-000119): Untermenue „Sidebar-Anordnungen" — Standard-
   // Anordnung wiederherstellen, Variante anwenden (Payload
   // { scope: 'global'|'area', id }), aktuelle Anordnung speichern.
   onMenuResetSidebarLayout: (cb) => ipcRenderer.on('menu:resetSidebarLayout', () => cb()),
   onMenuApplySidebarVariant: (cb) =>
     ipcRenderer.on('menu:applySidebarVariant', (_e, payload) => cb(payload)),
   onMenuSaveSidebarVariant: (cb) => ipcRenderer.on('menu:saveSidebarVariant', () => cb()),
-  // 4T-0569 (Epic 3E-0104): Fenster-Broadcast der Panel-Toggle-Reihenfolge
+  // 4T-000569 (Epic 3E-000104): Fenster-Broadcast der Panel-Toggle-Reihenfolge
   // (Muster onSidebarLayoutChanged).
   onPanelToggleOrderChanged: (cb) =>
     ipcRenderer.on('panelToggleOrder:changed', (_e, order) => cb(order)),
-  // 4T-0520 (Epic 3E-0094): Fenster-Broadcast der Kommando-Platzierung
+  // 4T-000520 (Epic 3E-000094): Fenster-Broadcast der Kommando-Platzierung
   // (Muster onPanelToggleOrderChanged).
   onCommandPlacementChanged: (cb) =>
     ipcRenderer.on('commandPlacement:changed', (_e, value) => cb(value)),
-  // 4T-0607 (Epic 3E-0114): Fenster-Broadcast der Format-Toolbar-Belegung
+  // 4T-000607 (Epic 3E-000114): Fenster-Broadcast der Format-Toolbar-Belegung
   // (Muster onCommandPlacementChanged).
   onFormatToolbarChanged: (cb) => ipcRenderer.on('formatToolbar:changed', (_e, value) => cb(value)),
-  // 4T-0372 (Epic 3E-0069): Fenster-Broadcast der Uhr-Anzeige-Optionen.
+  // 4T-000372 (Epic 3E-000069): Fenster-Broadcast der Uhr-Anzeige-Optionen.
   onClockOptionsChanged: (cb) => ipcRenderer.on('clock:changed', (_e, value) => cb(value)),
-  // 4T-0527 (Epic 3E-0095): Erinnerungs-Sidebar-Sektion toggeln.
+  // 4T-000527 (Epic 3E-000095): Erinnerungs-Sidebar-Sektion toggeln.
   onMenuToggleReminders: (cb) => ipcRenderer.on('menu:toggleReminders', () => cb()),
-  // 4T-0051: Properties-Sidebar-Sektion ueber Menue-Eintrag Ansicht -> Properties.
+  // 4T-000051: Properties-Sidebar-Sektion ueber Menue-Eintrag Ansicht -> Properties.
   onMenuToggleProperties: (cb) => ipcRenderer.on('menu:toggleProperties', () => cb()),
-  // 4T-0359 (Epic 3E-0066): Notizen-Sidebar-Sektion ueber Menue-Eintrag Ansicht -> Notizen.
+  // 4T-000359 (Epic 3E-000066): Notizen-Sidebar-Sektion ueber Menue-Eintrag Ansicht -> Notizen.
   onMenuToggleNotes: (cb) => ipcRenderer.on('menu:toggleNotes', () => cb()),
-  // 4T-0364 (Epic 3E-0067): Block-Eigenschaften-Sidebar-Sektion ueber Menue.
+  // 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Sidebar-Sektion ueber Menue.
   onMenuToggleBlockProps: (cb) => ipcRenderer.on('menu:toggleBlockProps', () => cb()),
-  // 4T-0056: Tag-Sidebar-Sektion ueber Menue-Eintrag Ansicht -> Tags.
+  // 4T-000056: Tag-Sidebar-Sektion ueber Menue-Eintrag Ansicht -> Tags.
   onMenuToggleTags: (cb) => ipcRenderer.on('menu:toggleTags', () => cb()),
-  // 4T-0018: Multi-Window-Broadcast bei appearance.*-Aenderung.
+  // 4T-000018: Multi-Window-Broadcast bei appearance.*-Aenderung.
   onAppearanceChanged: (cb) => ipcRenderer.on('appearance:changed', (_e, payload) => cb(payload)),
-  // M-08 (4T-0185): Multi-Window-Broadcast bei Sprachwechsel.
+  // M-08 (4T-000185): Multi-Window-Broadcast bei Sprachwechsel.
   onLanguageChanged: (cb) => ipcRenderer.on('language:changed', (_e, lang) => cb(lang)),
   onMenuToggleRestoreSession: (cb) => ipcRenderer.on('menu:toggleRestoreSession', () => cb()),
-  // 4T-0030: Menue-Eintrag 'Ansicht -> Theme -> Hell/Dunkel/System' sendet den
+  // 4T-000030: Menue-Eintrag 'Ansicht -> Theme -> Hell/Dunkel/System' sendet den
   // gewaehlten Wert; der Renderer ruft daraufhin setThemePref.
   onMenuSetTheme: (cb) => ipcRenderer.on('menu:setTheme', (_e, value) => cb(value)),
 
   // Window-Close-Anfrage: Main fragt nach Bestaetigung; Renderer prueft
   // Dirty-Tabs und ruft confirmClose() zurueck.
   onWindowRequestClose: (cb) => ipcRenderer.on('window:requestClose', () => cb()),
-  // M-01 (4T-0173): Nutzer hat Schliessen/Beenden abgebrochen — Main setzt
+  // M-01 (4T-000173): Nutzer hat Schliessen/Beenden abgebrochen — Main setzt
   // isQuitting zurueck, damit die Session-Persistenz wieder greift.
   cancelWindowClose: () => ipcRenderer.invoke('window:cancelClose'),
 
-  // 4T-0012: Display-Nummer und Gesamtzahl der Fenster — wird bei jedem
+  // 4T-000012: Display-Nummer und Gesamtzahl der Fenster — wird bei jedem
   // Open/Close vom Main gepusht, bestimmt den `(Fenster N)`-Suffix im Titel.
   onWindowDisplayInfo: (cb) => ipcRenderer.on('window:displayInfo', (_e, info) => cb(info)),
-  // 4T-0012: Tab-Append-Event vom Main, ausgeloest durch Verschieben/Kopieren
+  // 4T-000012: Tab-Append-Event vom Main, ausgeloest durch Verschieben/Kopieren
   // aus einem anderen Fenster. Payload = { path, content, dirty, settings,
   // untitledIndex }.
   onAppendTabFromOtherWindow: (cb) =>

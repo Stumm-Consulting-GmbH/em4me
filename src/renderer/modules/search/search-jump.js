@@ -1,4 +1,4 @@
-// 4T-0760 (Epic 3E-0142): Sprung zu einem Treffer der Raum-Suche.
+// 4T-000760 (Epic 3E-000142): Sprung zu einem Treffer der Raum-Suche.
 //
 // Ein Treffer der Handbuch- oder Einstellungs-Suche liegt in aller Regel
 // NICHT auf dem gerade sichtbaren Inhalt: Die Seite ist nicht geöffnet, der
@@ -51,7 +51,7 @@ function hebeHervorUndScrolle(els, nummerInGruppe, regex) {
 }
 
 // Sprung-Weg je Herkunft. Das Handbuch trägt sich unten selbst ein, die
-// Einstellungen tun das in 4T-0761. Registrierung statt fester Verzweigung,
+// Einstellungen tun das in 4T-000761. Registrierung statt fester Verzweigung,
 // damit eine neue Quelle (später die bereichsweite Dokument-Suche) ohne
 // Eingriff an dieser Stelle andocken kann.
 const SPRUNG_WEGE = new Map();
@@ -86,7 +86,7 @@ async function springeZuHandbuchSeite(treffer) {
 registriereSprungWeg('manual', springeZuHandbuchSeite);
 
 // Markier-Weg je Raum. Wie bei den Sprung-Wegen trägt sich jede Quelle selbst
-// ein; der Bereich tut das in search-area.js (4T-0616). Registrierung statt
+// ein; der Bereich tut das in search-area.js (4T-000616). Registrierung statt
 // fester Verzweigung, weil die Bereichs-Markierung den Editor-Pfad braucht
 // und dieses Modul sonst dessen Module kennen müsste.
 const MARKIER_WEGE = new Map();
@@ -105,7 +105,7 @@ export function registriereMarkierWeg(raum, fn) {
 // verschwände die eben gesetzte Markierung unmittelbar wieder — der Sprung
 // landete sichtbar im Nichts.
 //
-// 4T-0616: Für andere Räume übernimmt ein registrierter Markier-Weg. Die
+// 4T-000616: Für andere Räume übernimmt ein registrierter Markier-Weg. Die
 // Aufgabe ist dieselbe, der Weg zum Text nicht: Eine Bereichs-Datei kann im
 // Bearbeiten-Modus stehen, wo nicht der DOM markiert wird, sondern der Editor.
 export function markiereOffeneRaumSeite() {

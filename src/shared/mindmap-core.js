@@ -1,4 +1,4 @@
-// 4T-1045 (Epic 3E-0151): Mindmap-Kern — Knoten-Baum aus einem Markdown-
+// 4T-001045 (Epic 3E-000151): Mindmap-Kern — Knoten-Baum aus einem Markdown-
 // Dokument.
 //
 // Prozessneutral (CJS, reine Funktionen, kein Electron, kein DOM, Muster
@@ -9,14 +9,14 @@
 // und der Aufrufer bestimmt, woher der Token-Strom kommt.
 //
 // Abbildungs-Modell (Konzept-Entscheidung des Product Owners vom 2026-08-14,
-// Herleitung in 4T-0725): Überschriften und Listen werden Knoten, Fließtext
+// Herleitung in 4T-000725): Überschriften und Listen werden Knoten, Fließtext
 // und Blöcke werden **Notiz** ihres übergeordneten Knotens. Das ist der
 // bewusste Unterschied zur Referenz markmap, die jeden Absatz zum eigenen
 // Blatt-Knoten macht. Nebeneffekt: Deren Sonderregel «Blöcke verdrängen
 // Listen derselben Ebene» entfällt ersatzlos, weil die Konkurrenz zwischen
 // Absatz-Knoten und Listen-Knoten hier nicht besteht.
 //
-// Die **Anordnung** liegt seit 4T-1049 in der Nachbardatei
+// Die **Anordnung** liegt seit 4T-001049 in der Nachbardatei
 // mindmap-anordnung.js; dieser Kern trägt die Baum-Abbildung und reicht sie
 // durch.
 'use strict';
@@ -25,14 +25,14 @@
 // Renderer-Bundle nutzbar (belegt durch panel-outline.js), also ohne Wirkung
 // auf die Ladbarkeit dieses Moduls.
 const { extractFrontmatter } = require('./markdown/frontmatter.js');
-// Die Anordnung liegt seit 4T-1049 in einer eigenen Datei. Sie wird hier
+// Die Anordnung liegt seit 4T-001049 in einer eigenen Datei. Sie wird hier
 // durchgereicht, damit Aufrufer weiterhin **einen** Einstieg haben.
 const { layoutMindmap, teileWurzelKinder, LAYOUT_VORGABEN } = require('./mindmap-anordnung.js');
 
 // Obergrenze der Knoten-Zahl. Oberhalb liefert der Kern einen gekappten Baum
 // mit gesetztem `gekappt`-Vermerk, damit die Ansicht einen Hinweis zeigen
 // kann, statt an einem unbedienbaren Bild zu hängen (Muster der
-// Knoten-Obergrenze des Graph-Renderers). Der Wert ist die in 4T-1045
+// Knoten-Obergrenze des Graph-Renderers). Der Wert ist die in 4T-001045
 // gemessene Grenze und steht als Konstante an genau einer Stelle.
 const KNOTEN_OBERGRENZE = 3000;
 
@@ -96,7 +96,7 @@ function buildMindmapTree(tokens, opts = {}) {
 
   // Überschriften erster Ebene zählen: Genau eine wird selbst zur Wurzel,
   // sonst trägt der Dateiname die Wurzel und alle H1 werden ihre Kinder
-  // (Wurzel-Regel der Story 4S-0802, AK5).
+  // (Wurzel-Regel der Story 4S-000802, AK5).
   const h1Zahl = liste.filter((t) => t.type === 'heading_open' && t.tag === 'h1').length;
   const h1IstWurzel = h1Zahl === 1;
 
@@ -280,7 +280,7 @@ function mindmapAusMarkdown(text, md, opts = {}) {
  *
  * Trennt den Kopfbereich ab und verrechnet seinen Zeilen-Umfang als Versatz,
  * damit die Quellzeile eines Knotens auf die echte Datei zeigt und nicht auf
- * den Rumpf (Story 4S-0802, AK6). Die Rechnung liegt hier statt in der
+ * den Rumpf (Story 4S-000802, AK6). Die Rechnung liegt hier statt in der
  * Preload-Brücke, weil sie so unmittelbar geprüft wird statt im Test nur
  * nachgebildet zu werden.
  *

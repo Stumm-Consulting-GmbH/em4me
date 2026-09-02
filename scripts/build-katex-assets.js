@@ -1,4 +1,4 @@
-// 4T-0022: kopiert die KaTeX-Assets aus node_modules nach src/renderer/katex/,
+// 4T-000022: kopiert die KaTeX-Assets aus node_modules nach src/renderer/katex/,
 // damit der Renderer die CSS per <link> und die Fonts per url(fonts/*) laden
 // kann. Nur woff2 wird kopiert; die CSS wird im selben Lauf so umgeschrieben,
 // dass sie nur noch woff2 referenziert (Chromium unterstuetzt woff2 nativ —
@@ -34,7 +34,7 @@ function buildKatexAssets() {
   // CSS: nur woff2 referenzieren.
   const css = fs.readFileSync(cssSrc, 'utf8');
   const stripped = stripNonWoff2Sources(css);
-  // X-09 (4T-0182): Output-Validierung — nach dem Strip duerfen keine
+  // X-09 (4T-000182): Output-Validierung — nach dem Strip duerfen keine
   // woff-/ttf-Referenzen uebrig sein und die woff2-Quellen muessen noch da
   // sein; sonst hat sich das KaTeX-CSS-Format geaendert (laut scheitern).
   if (/\.(woff|ttf)\)/.test(stripped) || !stripped.includes('.woff2')) {

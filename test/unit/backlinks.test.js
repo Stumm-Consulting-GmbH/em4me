@@ -1,4 +1,4 @@
-// 4T-0168: Unit-Tests fuer src/main/backlinks.js ueber die oeffentliche API
+// 4T-000168: Unit-Tests fuer src/main/backlinks.js ueber die oeffentliche API
 // mit Temp-Verzeichnis-Fixtures (Muster siehe test/README.md).
 //
 // Teardown-Muster: backlinksFor() baut den Index auf (refCount 1, Watcher).
@@ -7,7 +7,7 @@
 // Fake-Timer-Advance, damit watcher.close() synchron im Test laeuft und
 // keine Watcher offen bleiben.
 //
-// Regressionstests fuer die 4T-0175-Fixes sind im hinteren Teil der Datei
+// Regressionstests fuer die 4T-000175-Fixes sind im hinteren Teil der Datei
 // gebuendelt (Befund-IDs in den describe-Titeln).
 // Bewusste Auslassung: Watcher-abhaengige Index-Updates (awaitWriteFinish
 // 200 ms + Debounce) bleiben als Integrations-Luecke dokumentiert, nicht
@@ -50,7 +50,7 @@ function write(root, rel, content) {
 }
 
 // Baut den Index fuer die aktive Datei auf und merkt die Wurzel fuer
-// Teardown. B-14 (4T-0181): der Aufbau ist asynchron — der erste Aufruf
+// Teardown. B-14 (4T-000181): der Aufbau ist asynchron — der erste Aufruf
 // liefert 'indexing'; hier wird bis zum Endzustand (ready/oversized)
 // gepollt, weil die Tests den fertigen Index pruefen.
 async function indexFor(activeFile, ownerKey) {
@@ -209,7 +209,7 @@ describe('backlinks.js — Scan-Tiefe', () => {
 });
 
 describe('backlinks.js — Caps-Verhalten', () => {
-  // 4T-0287 (Nebenbefund): explizites Timeout — die 2001 Datei-Anlagen
+  // 4T-000287 (Nebenbefund): explizites Timeout — die 2001 Datei-Anlagen
   // brauchen unter Voll-Suite-Parallellast (alle Worker gleichzeitig auf
   // dem Datenträger) reproduzierbar mehr als die 5-s-Default-Grenze,
   // isoliert läuft der Test in unter 3 s.
@@ -229,10 +229,10 @@ describe('backlinks.js — Caps-Verhalten', () => {
   );
 });
 
-// === Regressionstests 4T-0181 ===============================================
+// === Regressionstests 4T-000181 ===============================================
 
 describe('B-14: Asynchroner Index-Aufbau blockiert den Prozess nicht', () => {
-  // 4T-0287 (Nebenbefund): explizites Timeout wie beim Caps-Test — die
+  // 4T-000287 (Nebenbefund): explizites Timeout wie beim Caps-Test — die
   // 500 Datei-Anlagen plus Index-Lauf überschreiten unter Parallellast
   // gelegentlich die 5-s-Default-Grenze.
   it(
@@ -274,7 +274,7 @@ describe('B-16: Tag-Display-Casing aus der Index-Pflege', () => {
   });
 });
 
-// === Regressionstests 4T-0175 ===============================================
+// === Regressionstests 4T-000175 ===============================================
 
 describe('B-01/B-02: Owner-Modell des Index-Lifecycles', () => {
   it('Mehrfach-Requests desselben Owners leaken nicht; Release baut ab', async () => {
@@ -337,11 +337,11 @@ describe('B-05: %-kodierte Markdown-Link-Ziele', () => {
   });
 });
 
-// 4T-0476 (Epic 3E-0088): CommonMark-Destination in spitzen Klammern
+// 4T-000476 (Epic 3E-000088): CommonMark-Destination in spitzen Klammern
 // ([Text](<Mein Ziel.md>)) erlaubt Leerzeichen im Ziel. Der Backlinks-Index
 // liest Ziel/Anker ueber mdLinkTargetFromMatch und muss die <…>-Form aufloesen;
 // ein rohes Leerzeichen ohne Klammern ist dagegen kein gueltiges CommonMark-Ziel.
-describe('4T-0476: <…>-Destination mit Leerzeichen im Ziel', () => {
+describe('4T-000476: <…>-Destination mit Leerzeichen im Ziel', () => {
   it('[Text](<Meine Notiz.md>) erzeugt einen Backlink auf die Datei', async () => {
     const root = makeRoot();
     const ziel = write(root, 'Meine Notiz.md', '# Notiz\n');
@@ -443,9 +443,9 @@ describe('B-10: Anker-Index wie der Renderer', () => {
   });
 });
 
-// === Unterseiten (4T-0336, Epic 3E-0061) =====================================
+// === Unterseiten (4T-000336, Epic 3E-000061) =====================================
 
-describe('4T-0336: Unterseiten-Aufloesung (U+2215) und relative Links', () => {
+describe('4T-000336: Unterseiten-Aufloesung (U+2215) und relative Links', () => {
   const SEP = '∕'; // U+2215
 
   it('[[A/B]] loest auf die Unterseiten-Datei A∕B.md auf (Index, Linter, Backlinks)', async () => {
@@ -524,7 +524,7 @@ describe('4T-0336: Unterseiten-Aufloesung (U+2215) und relative Links', () => {
     expect(resolveWikiTargetInIndex(quelle, 'Prozess-A/Entwurf').candidates).toEqual([ziel]);
   });
 
-  // 4T-0337: Autocomplete-Paritaet.
+  // 4T-000337: Autocomplete-Paritaet.
   it('Autocomplete-Vorschlaege zeigen Unterseiten in Slash-Schreibweise', async () => {
     const root = makeRoot();
     const quelle = write(root, 'Prozess-A.md', '# A\n');
@@ -537,7 +537,7 @@ describe('4T-0336: Unterseiten-Aufloesung (U+2215) und relative Links', () => {
     expect(names.some((n) => n.includes(SEP))).toBe(false);
   });
 
-  // 4T-1307 (Epic 3E-0235): Die Vorschlaege tragen die Aenderungszeit ihrer
+  // 4T-001307 (Epic 3E-000235): Die Vorschlaege tragen die Aenderungszeit ihrer
   // Datei, damit der Renderer die zuletzt bearbeiteten zuerst anbieten kann.
   it('Autocomplete-Vorschlaege tragen die Aenderungszeit ihrer Datei', async () => {
     const root = makeRoot();
@@ -558,7 +558,7 @@ describe('4T-0336: Unterseiten-Aufloesung (U+2215) und relative Links', () => {
     expect(zeitVon('Neu')).toBeGreaterThan(zeitVon('Alt'));
   });
 
-  // 4T-1307: Waehrend des Aufbaus bleibt die Liste stumm statt leer — der
+  // 4T-001307: Waehrend des Aufbaus bleibt die Liste stumm statt leer — der
   // Renderer unterdrueckt das Dropdown dann, statt "keine Treffer" zu zeigen.
   it('Autocomplete meldet waehrend des Index-Aufbaus indexing statt einer leeren Liste', async () => {
     const root = makeRoot();
@@ -625,11 +625,11 @@ describe('B-13: Pfad-Ziele und Index-Klick-Fallback', () => {
   });
 });
 
-// 4T-0347 (Epic 3E-0062): Bereichsweiter Index. Fuer Dateien in einer Bereichs-
+// 4T-000347 (Epic 3E-000062): Bereichsweiter Index. Fuer Dateien in einer Bereichs-
 // Applikation ist die Wurzel der Bereichs-Wurzelordner (voller Baum, keine
 // Tiefen-Grenze, keine Caps) statt des Ordners der aktiven Datei plus
 // SCAN_DEPTH. Der areaRoot-Parameter kommt in der App vom IPC-Handler.
-describe('backlinks.js — Bereichsweiter Index (4T-0347)', () => {
+describe('backlinks.js — Bereichsweiter Index (4T-000347)', () => {
   // Poll-Variante mit Bereichs-Wurzel. Ohne ownerKey, damit das Standard-
   // Teardown im afterEach (releaseRoot ohne Key -> Soft-Timer) greift.
   async function indexForArea(activeFile, areaRoot) {
@@ -696,7 +696,7 @@ describe('backlinks.js — Bereichsweiter Index (4T-0347)', () => {
   });
 });
 
-describe('backlinks.js — Frontmatter-Abfrage (4T-0354)', () => {
+describe('backlinks.js — Frontmatter-Abfrage (4T-000354)', () => {
   // Legt einen kleinen Suchraum an und baut den Index auf. frontmatterQueryFor
   // liest wie tagsFor nur den fertigen Index (kein eigener Scan).
   async function buildRoot(files) {

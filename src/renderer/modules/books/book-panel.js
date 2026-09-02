@@ -1,4 +1,4 @@
-// 4T-0844 (Epic 3E-0147): Inhaltsverzeichnis-Panel des Buches (Story 4S-0753).
+// 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Panel des Buches (Story 4S-000753).
 //
 // Zeigt den Kapitel-Baum des aktiven Buches in der erklärten Reihenfolge,
 // hebt das gerade gelesene Kapitel hervor und öffnet ein Kapitel per Klick.
@@ -6,7 +6,7 @@
 // Markdown-Dateien des Buch-Ordners außerhalb des Baums; ein deklariertes
 // Kapitel ohne Datei erscheint markiert. Im Kopf führen zwei Knöpfe eine
 // Position vor bzw. zurück durch die Lese-Ordnung (die vollständige
-// Leseführung über Kapitel-Grenzen trägt 4T-0846).
+// Leseführung über Kapitel-Grenzen trägt 4T-000846).
 //
 // Dieses Modul zeigt an und wählt aus; es liest und schreibt keine Datei.
 // Der Buch-Zustand kommt ausschließlich über den Preload-Namensraum `books`
@@ -18,9 +18,9 @@
 // eigenen Kapitel-Baum: jede Operation geht als eine Meldung an den
 // Main-Prozess, der schreibt und den neuen Zustand zurückmeldet.
 //
-// 4T-0980 (Epic 3E-0196): Der Kern ist auf Anzeige, Leseführung, Sichtbarkeit
-// und Verdrahtung zurückgeschnitten. Die Struktur-Pflege (4T-0845) liegt in
-// book-structure.js, das Verschieben und die Reparatur (4T-0847, 4T-0848) in
+// 4T-000980 (Epic 3E-000196): Der Kern ist auf Anzeige, Leseführung, Sichtbarkeit
+// und Verdrahtung zurückgeschnitten. Die Struktur-Pflege (4T-000845) liegt in
+// book-structure.js, das Verschieben und die Reparatur (4T-000847, 4T-000848) in
 // book-repair.js, die reinen Helfer in book-helpers.js und der geteilte
 // Zustand in book-state.js.
 'use strict';
@@ -65,12 +65,12 @@ import {
 // Tooltip. Ein fehlendes Kapitel ist markiert und nicht anklickbar — es gibt
 // keine Datei zu öffnen, die Reparatur läuft über das Kontextmenü.
 //
-// 4T-0845: Die Zeile ist fokussierbar (tabindex, Muster der Baum-Zeilen im
+// 4T-000845: Die Zeile ist fokussierbar (tabindex, Muster der Baum-Zeilen im
 // Verschiebe-Dialog der Lesezeichen) und trägt damit die Tastatur-Gesten;
 // gezogen wird ausschließlich am Marker, nicht an der ganzen Zeile, weil ein
 // Klick auf die Zeile das Kapitel öffnet.
 //
-// 4T-0848: Gibt es zu einem fehlenden Kapitel einen namensgleichen Fund, trägt
+// 4T-000848: Gibt es zu einem fehlenden Kapitel einen namensgleichen Fund, trägt
 // die Zeile ein zweites, dezentes Zeichen mit Tooltip. Der Vorschlag ist damit
 // sichtbar, ohne das Kontextmenü zu öffnen — ausgeführt wird er nie von selbst
 // (AK3).
@@ -208,7 +208,7 @@ export function renderBookPanel(paneIdx) {
   restorePendingFocus(paneIdx, els);
 }
 
-// 4T-0845: Jede Struktur-Änderung baut die Zeilen neu auf, und der Fokus läge
+// 4T-000845: Jede Struktur-Änderung baut die Zeilen neu auf, und der Fokus läge
 // danach beim Dokument. Ohne Rückgabe an das bewegte Kapitel risse die
 // Tastatur-Bedienung nach dem ERSTEN Schritt ab (Muster
 // selectBookmarkMoveTarget im Verschiebe-Dialog der Lesezeichen).
@@ -238,7 +238,7 @@ function updateBookNavButtons(paneIdx) {
   if (els.bookNextBtn) els.bookNextBtn.disabled = navTarget(paneIdx, 1) === null;
 }
 
-// 4T-0846 (Story 4S-0755): Ein Schritt durch die Lese-Ordnung des aktiven
+// 4T-000846 (Story 4S-000755): Ein Schritt durch die Lese-Ordnung des aktiven
 // Buches. Am Anfang und am Ende gibt es KEINEN Umlauf, sondern eine
 // Rückmeldung in der Hinweis-Zeile (AK3) — ein stiller Nicht-Sprung ließe den
 // Anwender im Unklaren, ob das Kommando überhaupt ankam. Die Knöpfe im
@@ -284,7 +284,7 @@ export async function loadBookState() {
 // --- Sichtbarkeit, Toggle, Persistenz (Muster Suchergebnis-Panel) -------------
 
 export function getBookPanelVisible(paneIdx) {
-  // 4T-0849 (Story 4S-0758): Panel-Sichtbarkeit folgt dem Schalt-Zustand der
+  // 4T-000849 (Story 4S-000758): Panel-Sichtbarkeit folgt dem Schalt-Zustand der
   // Buecher-Erweiterung (Muster Uhr-Panel).
   return (
     isExtensionActive('books') && !!(state.bookPanel && state.bookPanel.visibleByPane[paneIdx])
@@ -348,7 +348,7 @@ export function initBookPanel() {
     if (!els) continue;
     if (els.bookPrevBtn) els.bookPrevBtn.addEventListener('click', () => stepReading(i, -1));
     if (els.bookNextBtn) els.bookNextBtn.addEventListener('click', () => stepReading(i, 1));
-    // 4T-0845: Der Baum-Container ist beständig (nur seine Zeilen entstehen
+    // 4T-000845: Der Baum-Container ist beständig (nur seine Zeilen entstehen
     // neu) und trägt deshalb die Ablage auf freier Fläche.
     if (els.bookTree) {
       els.bookTree.addEventListener('dragover', (ev) => treeDragOver(ev, els.bookTree));

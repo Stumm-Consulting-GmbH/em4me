@@ -1,4 +1,4 @@
-// 4T-0993 (Epic 3E-0196): Ableitungen des Erweiterungs-Zustands.
+// 4T-000993 (Epic 3E-000196): Ableitungen des Erweiterungs-Zustands.
 //
 // Funktions-Auszug aus src/shared/extensions/extensions.js: die reinen Ableitungen aus
 // der persistierten Disabled-Liste — Bereinigung des Store-Werts, transitive
@@ -6,7 +6,7 @@
 // drei Filter-Mengen für Funktions-Katalog, Kommandos und Einstellungs-
 // Bereiche. Das deklarative Manifest bleibt in extensions.js als dokumentierte
 // einzige Quelle und begründete Ausnahme des Datei-Größen-Budgets
-// (Entscheidung E2 der Bestandsaufnahme 4T-0964).
+// (Entscheidung E2 der Bestandsaufnahme 4T-000964).
 //
 // Import-Richtung einseitig extensions-core.js -> extensions.js und damit
 // zyklenfrei: Die Registry-Liste kommt über die Zugriffs-Funktion
@@ -74,7 +74,7 @@ function isExtensionEnabled(id, rawDisabled, list = allExtensions()) {
   return !effectiveDisabledSet(rawDisabled, list).has(id);
 }
 
-// 4T-0941: Katalog-Schlüssel aller effektiv deaktivierten Erweiterungen —
+// 4T-000941: Katalog-Schlüssel aller effektiv deaktivierten Erweiterungen —
 // Grundlage der Kennzeichnung auf der generierten Funktions-Seite.
 //
 // Zwei Quellen, beide am Manifest: Bei den meisten Erweiterungen IST der
@@ -105,7 +105,7 @@ function disabledCommandIdSet(rawDisabled, list = allExtensions()) {
 }
 
 // Bereichs-IDs der Einstellungs-Seite, deren Erweiterung effektiv
-// deaktiviert ist — die Bereichsnavigation blendet sie aus (4T-0295).
+// deaktiviert ist — die Bereichsnavigation blendet sie aus (4T-000295).
 function disabledSettingsSectionIdSet(rawDisabled, list = allExtensions()) {
   const disabled = effectiveDisabledSet(rawDisabled, list);
   const sections = new Set();

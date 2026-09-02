@@ -1,4 +1,4 @@
-// 4T-0298 (Epic 3E-0053): E2E-Funktions-Suite — externe Erweiterungen,
+// 4T-000298 (Epic 3E-000053): E2E-Funktions-Suite — externe Erweiterungen,
 // Lade- und Vertrauensmodell (EX-01 bis EX-03). Der Test-Helper legt die
 // Fixture-Pakete vor dem App-Start in <userData>/extensions/ und seeded
 // den Store-Zustand (enabled/trusted) direkt in config.json — der native
@@ -17,7 +17,7 @@ const { SEL } = require('../helpers/selectors');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 
 const EXT_FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'extensions');
-// 4T-0826 (Epic 3E-0103): Das Referenz-Paket ist das real ausgelieferte
+// 4T-000826 (Epic 3E-000103): Das Referenz-Paket ist das real ausgelieferte
 // Beispiel aus addon_examples/, keine Attrappe im Test-Ordner. Bricht die
 // API, bricht sichtbar das veroeffentlichte Beispiel. Die Fehlerfall-Pakete
 // bleiben Fixtures — sie sollen absichtlich kaputt sein.
@@ -35,7 +35,7 @@ const MD_FIXTURE = path.resolve(
   'erweiterungen-extern.md',
 );
 
-// 4T-0703 (Epic 3E-0101): Nicht fs.cpSync(..., { recursive: true }) verwenden —
+// 4T-000703 (Epic 3E-000101): Nicht fs.cpSync(..., { recursive: true }) verwenden —
 // Node v22.18.0 stürzt unter Windows bei einem Nicht-ASCII-QUELLpfad hart und
 // unfangbar im Prozess ab. Der öffentliche Klon liegt im Umlaut-Verzeichnis
 // 0012_EM4me_Veröffentlichung, wodurch EXT_FIXTURES den Umlaut trägt. Die eigene
@@ -97,7 +97,7 @@ test.describe('EX-01: aktivierte, bestätigte Erweiterung wird geladen und wirkt
     }
   });
 
-  // 4T-0826: Das Panel koppelt über den Render-Andockpunkt der API v1.1 an
+  // 4T-000826: Das Panel koppelt über den Render-Andockpunkt der API v1.1 an
   // das Dokument. Der Klick-Weg und das Nachziehen der Liste sind der Kern
   // des Beispiels und damit der eigentliche Härtetest des Andockpunkts.
   test('Panel-Klick springt zur Stelle; die Liste zieht beim Ansichts-Wechsel nach', async () => {
@@ -181,7 +181,7 @@ test.describe('EX-03: Fehler-Isolation und Kompatibilitätsprüfung', () => {
   });
 });
 
-// 4T-0300: Verwaltungs-Bereich „Erweiterungen (extern)" der Einstellungs-
+// 4T-000300: Verwaltungs-Bereich „Erweiterungen (extern)" der Einstellungs-
 // Seite. Der Aktivieren-Pfad läuft über den nativen Warn-Dialog und ist
 // per E2E nicht klickbar (Unit-Tests plus manueller Test); hier die
 // dialog-freien Flüsse: Liste mit Status/Fehlertext und Deaktivieren mit
@@ -230,7 +230,7 @@ test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => 
     }
   });
 
-  // 4T-0927 (Epic 3E-0016): Der Diagnose-Zugang ist seit dem Entfall des
+  // 4T-000927 (Epic 3E-000016): Der Diagnose-Zugang ist seit dem Entfall des
   // Menueeintrags samt F12 der einzige Weg zu den Entwickler-Werkzeugen.
   // Geprueft wird beides zusammen, weil erst die Kombination die Zusicherung
   // traegt: Menue frei von Debug-Werkzeug, Zugang am neuen Ort wirksam.

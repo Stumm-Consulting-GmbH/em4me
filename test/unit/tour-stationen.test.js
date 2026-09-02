@@ -1,4 +1,4 @@
-// 4T-0644 (Epic 3E-0127): Alterungs-Schutz der geführten Produkt-Tour.
+// 4T-000644 (Epic 3E-000127): Alterungs-Schutz der geführten Produkt-Tour.
 //
 // Die Stationen-Folge (src/renderer/modules/tour/tour-stationen.js) ist die
 // führende Quelle; ihre beiden Bezüge nach außen sind statisch prüfbar und
@@ -53,7 +53,7 @@ function fehlendeSprachen(key) {
   });
 }
 
-describe('Tour-Stationen: Folge und Identität (4T-0644)', () => {
+describe('Tour-Stationen: Folge und Identität (4T-000644)', () => {
   it('führt genau zehn Stationen mit eindeutigen IDs', () => {
     expect(Array.isArray(TOUR_STATIONEN)).toBe(true);
     expect(TOUR_STATIONEN.length).toBe(10);
@@ -75,7 +75,7 @@ describe('Tour-Stationen: Folge und Identität (4T-0644)', () => {
   });
 });
 
-describe('Tour-Stationen: Anker gegen index.html, beide Richtungen (4T-0644)', () => {
+describe('Tour-Stationen: Anker gegen index.html, beide Richtungen (4T-000644)', () => {
   it('jeder genannte Anker existiert als data-tour-Attribut in index.html', () => {
     const fehlend = TOUR_STATIONEN.filter(
       (s) => typeof s.anker === 'string' && !HTML_ANKER.includes(s.anker),
@@ -103,7 +103,7 @@ describe('Tour-Stationen: Anker gegen index.html, beide Richtungen (4T-0644)', (
   });
 });
 
-describe('Tour-Stationen: Texte in allen fünf Sprachen (4T-0644)', () => {
+describe('Tour-Stationen: Texte in allen fünf Sprachen (4T-000644)', () => {
   it('zu jeder Station existieren title und text in allen fünf Sprachdateien', () => {
     const fehlend = [];
     for (const station of TOUR_STATIONEN)

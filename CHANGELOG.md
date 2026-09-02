@@ -14,12 +14,73 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.127.1.2229] - 2026-09-02 — Sechsstellige Kennungen
+
+Epic 3E-000241: Internes technisches Release ohne Funktions-Änderung. Die
+Nummern beider Achsen des Projektmanagements wachsen von vier auf sechs Stellen
+(`4T-1331` wurde zu `4T-001331`). 2.420 Objekt-Dateien wurden umbenannt und
+3.466 Dateien mit rund 78.000 Kennungs-Nennungen mechanisch nachgezogen; die
+Nummern selbst blieben unverändert, Lücken bleiben stehen. Anlass ist der
+absehbare Aufbrauch des vierstelligen Raums: Bei gemessenen rund 360 neuen
+Vorgängen im Monat wäre `4T-9999` um Mitte 2028 erreicht gewesen. Der
+Programm-Anteil beschränkt sich auf Kommentar-Kennungen unter `src/**`; das
+Verhalten der Anwendung ändert sich nicht.
+
+**Kennungen aus der Zeit davor bleiben zuzuordnen**, ohne dass es ein
+Verzeichnis braucht: Aufgefüllt wurde mit zwei Nullen, die Nummer selbst blieb.
+Wer in einer Commit-Message, einem Zweignamen oder einem älteren Block dieses
+Änderungsprotokolls einer vierstelligen Kennung begegnet, streicht gedanklich
+zwei Nullen ein. Git-Historie und Zweignamen sind bewusst nicht umgeschrieben
+worden.
+
+Umsetzungs-Vorgänge des Epics: 4T-001370, 4T-001371, 4T-001372, 4T-001373,
+4T-001374; Release-Vorgang 4T-001375.
+
+### Geändert
+
+- **Breiten-Modus des Migrations-Werkzeugs** (4T-001370):
+  `scripts/kennungs-migration.js` trägt neben der Präfix-Ersetzung von 1.114.1
+  eine zweite Betriebsart, die dieselbe Nummer auf sechs Stellen auffüllt —
+  mit Trockenlauf, Apply in einem Zug, Umkehrung und Ledger-Modus. Die Mechanik
+  der Breite und die Darstellung des Befunds liegen als eigene Module daneben.
+  Der Umkehr-Lauf schützt dabei die Dokumente mit Fremd-Projekt-Kennungen: Nach
+  der Welle sind eigene und fremde sechsstellige Kennungen nicht mehr zu
+  unterscheiden, und eine Rückrichtung würde sie verstümmeln.
+- **Werkzeuge auf die sechsstellige Breite angepasst** (4T-001371): 49
+  musterführende Stellen in 31 Dateien, dazu ein Wächter, der eine feste
+  Vier-Ziffern-Annahme im versionierten Quelltext meldet. Belegt durch eine
+  vollständige Wellenprobe in einem Wegwerf-Clone, in der alle sieben
+  PM-Wächter und fünf Sichten-Generatoren auf dem migrierten Bestand grün
+  liefen.
+- **Fremd-Projekt-Kennungen ausdrücklich gekennzeichnet** (4T-001372): 146
+  Fundstellen in zehn Analyse-Dokumenten. Bis zu dieser Welle war die
+  Stellenzahl selbst die Auskunft «sechsstellig heißt fremd»; die Kennzeichnung
+  ersetzt das verlorene Merkmal.
+- **Welle durchgeführt und Übergangs-Toleranz zurückgebaut** (4T-001373):
+  Umbenennung und Ersetzung in einem Zug, Nebenbestände am gemeinsamen
+  Ablage-Ort mitgezogen. Der Rückbau ist selektiv: 50 Stellen kennen nur noch
+  sechs Stellen, fünf bleiben tolerant, weil ihre Eingabe dauerhaft vierstellig
+  bleibt — Zweignamen, Commit-Subjects und das Koordinations-Register.
+- **Normative Dokumente fortgeschrieben** (4T-001374): kanonische Story,
+  beide Schablonen, Projektmanagement-README, Anforderungs-README und die
+  Leitdatei, dazu 90 Format-Platzhalter. Die Festlegung «Vierstellige IDs
+  bleiben» aus 3E-000022 ist als abgelöst gekennzeichnet, ihr Wortlaut bleibt
+  lesbar.
+
+### Behoben
+
+- **Falsche Nummern-Kollisionsmeldung** (4T-001373): Die Prüfung verglich den
+  ganzen Dateinamen, obwohl die Nummer bereits ihr Schlüssel ist. Während der
+  Welle meldete sie deshalb eine Kollision für Objekte, die keine hatten — und
+  die mitgelieferte Regel hätte dazu geführt, ein Objekt umzunummerieren.
+  Verglichen wird jetzt der Kurztext.
+
 ## [1.127.0.2215] - 2026-09-02 — Start-Seite eines Bereichs
 
-Epic 3E-0171
-(4T-1363, 4T-1364, 4T-1365, 4T-1366, Sammeltask 4T-1367 und 4T-1369), das erste
+Epic 3E-000171
+(4T-001363, 4T-001364, 4T-001365, 4T-001366, Sammeltask 4T-001367 und 4T-001369), das erste
 Vorhaben des Arbeitspakets
-2A-0029.
+2A-000029.
 Ein Bereich war bisher eine Menge von Dateien ohne ausgezeichneten Einstieg; wer
 ihn öffnete, landete dort, wo die Sitzungs-Wiederherstellung ihn zuletzt
 verlassen hatte, oder im Leeren. Eine benannte Start-Seite gibt ihm einen Anfang
@@ -28,12 +89,12 @@ steht jedem Bereich offen und ist an keinen Verwendungszweck gebunden.
 
 ### Neu
 
-- **Ein Bereich kann eine seiner Dateien als Start-Seite führen** (4T-1364).
+- **Ein Bereich kann eine seiner Dateien als Start-Seite führen** (4T-001364).
   Sie öffnet sich beim Öffnen des Bereichs von selbst. Die Festlegung liegt in
   der Bereichsdatei und wandert mit dem Ordner; gespeichert wird ein
   wurzel-relativer Pfad, damit sie den Umzug des Bereichs übersteht. Ein Bereich
   ohne Festlegung verhält sich unverändert.
-- **Die Sitzungs-Wiederherstellung hat Vorrang** (4T-1364). Kommt beim
+- **Die Sitzungs-Wiederherstellung hat Vorrang** (4T-001364). Kommt beim
   Programmstart eine Bereichs-Applikation mit ihren zuvor geöffneten Dokumenten
   zurück, bleibt die Start-Seite zu — der ausdrückliche Wunsch, dort
   weiterzumachen, wo man aufgehört hat, schlägt den automatischen Einstieg. Sie
@@ -41,29 +102,29 @@ steht jedem Bereich offen und ist an keinen Verwendungszweck gebunden.
   laufenden Betrieb und beim Programmstart einer Bereichs-Applikation ohne
   gespeicherte Dokumente. Der Sprung in einen bereits laufenden Bereich öffnet
   ihn nicht neu und lässt die Start-Seite unangetastet.
-- **Festlegen und Entfernen über das Bereichs-Panel** (4T-1365). Der Rechtsklick
+- **Festlegen und Entfernen über das Bereichs-Panel** (4T-001365). Der Rechtsklick
   auf eine Datei-Zeile bietet die Festlegung an; bei der festgelegten Datei
   heißt derselbe Eintrag „entfernen", sodass das Entfernen nie dort erscheint,
   wo es nichts zu entfernen gibt. Die festgelegte Datei ist in der Liste an
   einem vorangestellten Zeichen und halbfetter Schrift erkennbar.
-- **Eine ungültige Festlegung verhindert das Öffnen nie** (4T-1364). Zeigt sie
+- **Eine ungültige Festlegung verhindert das Öffnen nie** (4T-001364). Zeigt sie
   auf eine gelöschte oder verschobene Datei, öffnet der Bereich unverändert und
   weist darauf hin. Wird die Datei innerhalb der Anwendung umbenannt oder
   verschoben, zieht die Festlegung mit; verlässt sie den Bereich, entfällt sie.
 
 ### Geändert
 
-- **Die mitgelieferte Demo-Area führt die Funktion vor** (4T-1366). Sie trägt
+- **Die mitgelieferte Demo-Area führt die Funktion vor** (4T-001366). Sie trägt
   ihre Willkommens-Seite als Start-Seite; wer die Demo-Area anlegt und öffnet,
   landet unmittelbar darauf.
-- **Innere Struktur des Bereichs-Panels geschnitten** (4T-1365). Die
+- **Innere Struktur des Bereichs-Panels geschnitten** (4T-001365). Die
   Kontextmenüs des Panels und die Start-Seiten-Fachlichkeit liegen in eigenen
   Modulen. Ohne Wirkung auf die Bedienung; das Panel-Modul ist dadurch kleiner
   als vor dem Vorhaben.
 
 ### Dokumentation
 
-- **Handbuch und Funktions-Katalog** (4T-1366). Die Seite zu Applikationen,
+- **Handbuch und Funktions-Katalog** (4T-001366). Die Seite zu Applikationen,
   Fenstern und Bereichen trägt einen neuen Abschnitt zur Start-Seite mit
   Vorrang-Regel und Verhalten bei fehlendem Ziel; der Funktions-Katalog führt
   sie mit Kurzname, Beschreibung und Zugang. Beides in allen fünf
@@ -77,9 +138,9 @@ steht jedem Bereich offen und ist an keinen Verwendungszweck gebunden.
 
 ## [1.126.0.2198] - 2026-09-02 — Dokumente ohne Größengrenze
 
-Epic 3E-0224
-(4T-1289, 4T-1290, 4T-1291, 4T-1292, 4T-1293, Handbuch 4T-1294, Sammeltask
-4T-1295), entstanden aus einem Befund des Product Owners vom 2026-08-25: Ein
+Epic 3E-000224
+(4T-001289, 4T-001290, 4T-001291, 4T-001292, 4T-001293, Handbuch 4T-001294, Sammeltask
+4T-001295), entstanden aus einem Befund des Product Owners vom 2026-08-25: Ein
 Dokument jenseits einer bestimmten Größe machte den Wechsel in den
 Änderungsmodus unbedienbar, und was in **anderen** Reitern ungespeichert war,
 ging dabei verloren. Statt eine Größengrenze zu setzen, teilt die Anwendung ein
@@ -89,7 +150,7 @@ wieder als eines. Jede Teil-Datei bleibt eine gewöhnliche Markdown-Datei.
 ### Neu
 
 - **Sehr große Dokumente werden beim Speichern geteilt und beim Öffnen wieder
-  zusammengesetzt** (4T-1289, 4T-1290, 4T-1291). Die Schwelle liegt bei einem
+  zusammengesetzt** (4T-001289, 4T-001290, 4T-001291). Die Schwelle liegt bei einem
   Megabyte, gemessen in Byte; das Anzeigen und Lesen ist nie betroffen.
   Geschnitten wird ausschließlich vor einer Überschrift der obersten zwei Ebenen
   an Spalte 0 — damit liegt nie ein Konstrukt über einer Grenze, ohne dass eine
@@ -101,59 +162,59 @@ wieder als eines. Jede Teil-Datei bleibt eine gewöhnliche Markdown-Datei.
   Datei und ist damit die Wahrheit, nicht der Dateiname. Das erste Teilen wird
   angekündigt und lässt sich mit «nur lesen» ablehnen; im Hintergrund-Speichern
   wird nie ungefragt geteilt.
-- **Ein geteiltes Dokument behält beim Wachsen seine Grenzen** (4T-1291). Ein
+- **Ein geteiltes Dokument behält beim Wachsen seine Grenzen** (4T-001291). Ein
   gewöhnliches Speichern schreibt genau **eine** Teil-Datei neu, weil die
   bestehenden Grenzen erhalten bleiben; ein neuer Teil entsteht nur am Ende.
   Ohne diese Regel verschöbe jede kleine Einfügung sämtliche folgenden Grenzen,
   und jedes Speichern schriebe das ganze Dokument neu.
-- **Die Teile wieder vereinen** (4T-1293) über «Datei → Weitere Datei-Funktionen
+- **Die Teile wieder vereinen** (4T-001293) über «Datei → Weitere Datei-Funktionen
   → Teile wieder vereinen…». Der Befehl läuft ausschließlich auf diese
   Anforderung hin, nie von selbst. Liegt das Ergebnis über der Schwelle, warnt
   er vorher, dass beim nächsten Speichern erneut geteilt wird.
 
 ### Geändert
 
-- **Die Suche führt ein geteiltes Dokument als eines** (4T-1293). Ein Treffer in
+- **Die Suche führt ein geteiltes Dokument als eines** (4T-001293). Ein Treffer in
   einem hinteren Teil erscheint als Treffer des Gesamt-Dokuments, ohne Teil-Angabe
   im Namen, und der Sprung öffnet es an der Fundstelle. Zusammengeführt wird im
   Volltext-Vorrat der Bereichs-Suche; oberhalb ihres Speicher-Deckels von 50 MB
   wird nur der Name gezogen.
-- **Die Teile erscheinen in keiner Datei-Liste der Anwendung** (4T-1292,
-  4T-1293), weder in der Unterseiten-Sektion noch in der Ordner-Liste des
+- **Die Teile erscheinen in keiner Datei-Liste der Anwendung** (4T-001292,
+  4T-001293), weder in der Unterseiten-Sektion noch in der Ordner-Liste des
   Bereichs-Panels. Im Dateimanager des Betriebssystems bleiben sie sichtbar.
-- **Der Konflikt-Schutz des Schreibwegs vergleicht gegen alle Teile** (4T-1291).
+- **Der Konflikt-Schutz des Schreibwegs vergleicht gegen alle Teile** (4T-001291).
   Zuvor verglich er gegen die Kopf-Datei, während der Reiter den
   zusammengesetzten Text hält; bei einem geteilten Dokument meldete deshalb jedes
   Speichern einen Konflikt, den es nicht gab.
 
 ### Behoben
 
-- **Fehlt ein Teil, öffnet das Dokument nur lesend** (4T-1292) und nennt die
+- **Fehlt ein Teil, öffnet das Dokument nur lesend** (4T-001292) und nennt die
   fehlende Position; Speichern bleibt gesperrt, weil ein Schreiben aus dem
   unvollständigen Text den fehlenden Teil endgültig verlöre. Ein zurückgelegter
   Teil gibt den Reiter ohne Zutun wieder frei. Ein fehlender **letzter** Teil ist
   dabei nur am Verzeichnis der Teile in der Begleitdatei erkennbar — keine Datei
   kennt sonst die Soll-Anzahl.
 - **Ein von außen umbenanntes geteiltes Dokument ließ sich gar nicht mehr
-  öffnen** (4T-1292). Der Lese-Weg suchte die Kopf-Datei unter dem Namen aus der
+  öffnen** (4T-001292). Der Lese-Weg suchte die Kopf-Datei unter dem Namen aus der
   Zuordnungs-Zeile und scheiterte mit einem Dateifehler auf einen Namen, den der
   Anwender längst geändert hatte. Jetzt gilt: Zeigt der Name ins Leere, die
   geöffnete Datei trägt aber Position 1, dann ist sie die Kopf-Datei.
-- **Umbenennen nimmt die Teile mit** (4T-1292), samt Nachzug ihrer
+- **Umbenennen nimmt die Teile mit** (4T-001292), samt Nachzug ihrer
   Zuordnungs-Zeile in jeder Datei.
 
 ### Doku
 
 - **Neue Handbuch-Seite «Teilung großer Dokumente»** in fünf Sprachfassungen
-  (4T-1294), im Block «Vernetzen und organisieren» hinter den Unterseiten; beide
+  (4T-001294), im Block «Vernetzen und organisieren» hinter den Unterseiten; beide
   Seiten grenzen sich wechselseitig ab, weil die Trennzeichen `∕` und `•` die
   naheliegendste Verwechslung sind. Zwei neue Einträge im Funktions-Katalog
   (Teilung und Wiedervereinen), die Nutzen-Darstellung in Handbuch und Webseite
   um einen Abschnitt ergänzt, dazu 21 neue Übersetzungs-Schlüssel je Sprache.
 ## [1.125.1.2179] - 2026-09-01 — Darstellung der Aufgaben-Zeilen im Live-Modus
 
-Epic 3E-0240
-(4T-1354, 4T-1355, Sammeltask 4T-1356), entstanden aus zwei Befunden des Product
+Epic 3E-000240
+(4T-001354, 4T-001355, Sammeltask 4T-001356), entstanden aus zwei Befunden des Product
 Owners vom 2026-09-01 an seinem täglichen Arbeits-Dokument. Beide Befunde hatten
 **eine** Ursache: Der hängende Einzug umgebrochener Zeilen aus 1.122.0 legt auf
 jede Listen-Zeile einen negativen Erst-Zeilen-Einzug, und diese Eigenschaft
@@ -165,13 +226,13 @@ dritte Stelle.
 ### Behoben
 
 - **Das Erledigt-Datum steht wieder hinter dem Zeilen-Text und nicht in ihm**
-  (4T-1354). Bei einer abgehakten Aufgabe erschien die Plakette mit dem Datum
+  (4T-001354). Bei einer abgehakten Aufgabe erschien die Plakette mit dem Datum
   mitten im Wort, und der Text darunter war nicht mehr zu lesen; der Versatz
   entsprach genau der Breite des hängenden Einzugs. Betroffen war jede Fassung
   ab 1.122.0. Die Positions-Rechnung der Plakette war dabei nie falsch —
   verschoben war allein ihr Inhalt gegenüber der eigenen Box.
 - **Ein erweitertes Status-Zeichen steht wieder im Kästchen und nicht daneben**
-  (4T-1355). Dieselbe Vererbung schob das Zeichen aus seinem Kästchen nach
+  (4T-001355). Dieselbe Vererbung schob das Zeichen aus seinem Kästchen nach
   links, sodass ein leeres Kästchen zurückblieb und die Status-Farbe ihre
   Bedeutung verlor. Betroffen waren nummerierte Listen und Aufzählungen
   gleichermaßen, mit unterschiedlich großem Versatz je Listen-Art.
@@ -179,15 +240,15 @@ dritte Stelle.
 ### Geändert
 
 - **Der hängende Einzug wirkt nur noch auf die Zeile selbst, nicht auf ihre
-  eingebetteten Kästen** (4T-1354). Der Einzug bleibt in vollem Umfang erhalten;
+  eingebetteten Kästen** (4T-001354). Der Einzug bleibt in vollem Umfang erhalten;
   neu ist, dass eingebettete Elemente ihn nicht mehr erben. Das gilt über die
   beiden gemeldeten Stellen hinaus für jedes künftige eingebettete Element einer
   Editor-Zeile.
 
 ## [1.125.0.2163] - 2026-09-01 — Vorschläge, die die Anzeige erreichen
 
-Epic 3E-0238
-(4T-1339, 4T-1341, 4T-1340, 4T-1357, Handbuch 4T-1342, Sammeltask 4T-1343),
+Epic 3E-000238
+(4T-001339, 4T-001341, 4T-001340, 4T-001357, Handbuch 4T-001342, Sammeltask 4T-001343),
 entstanden aus drei Punkten einer Liste des Product Owners vom 2026-09-01 aus dem
 Alltagsbetrieb. Der erste war eine Fehlerbehebung: Die mit 1.122.0 zugesagte
 Reihenfolge der Verweis-Vorschläge — ohne Eingabe führt die zuletzt geänderte
@@ -200,7 +261,7 @@ gefiltert, sodass ein Ziel außerhalb der jüngsten Dateien nicht erreichbar war
 ### Neu
 
 - **Ein Klick in ein Wert-Feld der Eigenschaften bietet die im Bereich bereits
-  vergebenen Werte an** (4T-1340), alphabetisch geordnet und mit jedem getippten
+  vergebenen Werte an** (4T-001340), alphabetisch geordnet und mit jedem getippten
   Zeichen kleiner werdend; ein eigener Wert bleibt frei eingebbar. Gibt ein
   Eigenschafts-Profil einen Wertevorrat vor, erscheinen beide Herkünfte gemeinsam
   und bleiben unterscheidbar. Kommt die Eigenschaft im Bereich nirgends vor,
@@ -208,13 +269,13 @@ gefiltert, sodass ein Ziel außerhalb der jüngsten Dateien nicht erreichbar war
   Bereichs-Index, ohne dass eine Datei erneut gelesen wird; an einem Bereich mit
   15 000 Dateien kostet die Ermittlung im Median eine Millisekunde. Als
   Erweiterung «Werte-Vorschläge aus dem Bestand» abschaltbar.
-- **Die Ansicht beim Wechsel in den Bearbeiten-Modus ist einstellbar** (4T-1341).
+- **Die Ansicht beim Wechsel in den Bearbeiten-Modus ist einstellbar** (4T-001341).
   Der Stift führte aus der Lese-Ansicht fest in die geteilte Ansicht; wer
   überwiegend in der Live-Ansicht arbeitet, schaltete danach jedes Mal von Hand
   weiter. Wählbar sind Geteilt, Quellcode und Live, voreingestellt bleibt
   Geteilt. In den drei Bearbeitungs-Ansichten wechselt der Stift wie bisher keine
   Ansicht.
-- **Die Schlagwort-Vorschläge folgen der Häufigkeit** (4T-1357). Ohne Eingabe
+- **Die Schlagwort-Vorschläge folgen der Häufigkeit** (4T-001357). Ohne Eingabe
   stehen die im Bereich häufiger vergebenen Schlagworte oben, mit Eingabe führt
   die Treffer-Güte und die Häufigkeit entscheidet zwischen Gleichrangigen. Die
   Sortierung war im Programm angelegt, hatte aber nie eine Wirkung und war
@@ -222,13 +283,13 @@ gefiltert, sodass ein Ziel außerhalb der jüngsten Dateien nicht erreichbar war
 
 ### Behoben
 
-- **Die Reihenfolge der Verweis-Vorschläge erreicht die Anzeige** (4T-1339). Ohne
+- **Die Reihenfolge der Verweis-Vorschläge erreicht die Anzeige** (4T-001339). Ohne
   Eingabe steht nach `[[` wieder die zuletzt geänderte Datei oben, wie mit 1.122.0
   zugesagt. Die Vervollständigungs-Bibliothek sortierte die übergebene Liste neu,
   solange die Quelle das nicht ausdrücklich abbestellte; bei leerer Eingabe fiel
   ihr Gleichstand ans Alphabet — genau in der Lage, für die die Änderungszeit
   eingeführt worden war.
-- **Die Vorschlagsliste verkleinert sich auf alle passenden Ziele** (4T-1339).
+- **Die Vorschlagsliste verkleinert sich auf alle passenden Ziele** (4T-001339).
   Bis dahin filterte die Bibliothek beim Tippen nur innerhalb der bereits auf 30
   Einträge gekürzten Liste; ein Ziel außerhalb der 30 jüngsten Dateien war durch
   Eingabe nicht mehr erreichbar. Dieselbe Ursache, mit derselben Änderung
@@ -237,7 +298,7 @@ gefiltert, sodass ein Ziel außerhalb der jüngsten Dateien nicht erreichbar war
 ### Doku
 
 - **Funktions-Katalog und Handbuch in allen fünf Sprachfassungen nachgezogen**
-  (4T-1342). Der Katalog trägt die Werte-Vorschläge als eigenen Eintrag; die
+  (4T-001342). Der Katalog trägt die Werte-Vorschläge als eigenen Eintrag; die
   Beschreibung des Bearbeiten-Modus nannte die feste geteilte Ansicht und war
   damit falsch geworden. Die Handbuch-Seiten «Ansichten und Darstellung»,
   «Verweise» und «Frontmatter und Properties» beschreiben die drei Funktionen an
@@ -245,9 +306,9 @@ gefiltert, sodass ein Ziel außerhalb der jüngsten Dateien nicht erreichbar war
 
 ## [1.124.0.2143] - 2026-09-01 — Datums-Werte in der Zeile mit dem Cursor
 
-Epic 3E-0197
-(4T-0943, Sammeltask 4T-1338), entstanden aus einem Befund des Product Owners in
-der Test-Iteration zu 4T-0937 am 2026-08-10: Steht der Cursor in einer Zeile, war
+Epic 3E-000197
+(4T-000943, Sammeltask 4T-001338), entstanden aus einem Befund des Product Owners in
+der Test-Iteration zu 4T-000937 am 2026-08-10: Steht der Cursor in einer Zeile, war
 der Datums-Wert dort nicht mehr anklickbar — und zwar in genau dem Moment, in dem
 man ihn am ehesten braucht, weil man ohnehin in dieser Zeile arbeitet. Der
 Ausschluss war beabsichtigt und schützte das Setzen des Cursors im Wert; zugesagt
@@ -256,27 +317,27 @@ war er nirgends, weder in der Anforderung noch im Handbuch.
 ### Neu
 
 - **Der Datums-Wähler ist jetzt auch in der Zeile mit dem Cursor erreichbar, über
-  Strg-Klick** (4T-0943). Der einfache Klick setzt dort weiterhin den Cursor, auch
+  Strg-Klick** (4T-000943). Der einfache Klick setzt dort weiterhin den Cursor, auch
   mitten im Wert; erst der Klick mit gedrückter Strg-Taste öffnet den Wähler
   vorbelegt. Klick-Zugang und Cursor-Setzen teilen sich damit nicht mehr dieselbe
   Geste, statt dass eines von beiden dem anderen weichen muss. Der Zugang gilt für
   die ISO-Datums- und Uhrzeit-Werte ebenso wie für die Werte benutzerdefinierter
   Kalender.
 - **Die Klick-Optik erscheint in dieser Zeile erst mit der gedrückten Taste**
-  (4T-0943). Solange Strg nicht gehalten wird, bleibt der Wert dort ohne
+  (4T-000943). Solange Strg nicht gehalten wird, bleibt der Wert dort ohne
   Unterstreichung und ohne Hand-Zeiger; sonst verspräche er eine Reaktion, die der
   einfache Klick nicht einlöst.
 
 ### Geändert
 
-- **Die Klick-Dekoration überspringt die aktive Zeile nicht mehr** (4T-0943). Sie
+- **Die Klick-Dekoration überspringt die aktive Zeile nicht mehr** (4T-000943). Sie
   erzeugt dort eine eigene Marken-Variante, weil es ohne Marke gar kein Klick-Ziel
   gäbe. Die übrigen Ausschlüsse bleiben unberührt: Code, Formeln, Frontmatter,
   schreibgeschützte Ansichten und Wiki-Link-Ziele.
 
 ### Doku
 
-- **Handbuch in allen fünf Sprachfassungen nachgezogen** (4T-0943). Die Seite
+- **Handbuch in allen fünf Sprachfassungen nachgezogen** (4T-000943). Die Seite
   «Werkzeuge» beschreibt den Strg-Zugang statt des früheren Ausschlusses, die Seite
   der benutzerdefinierten Kalender trägt denselben Hinweis am Bearbeiten-Punkt.
   Beide Anforderungen nennen den Zugang jetzt ausdrücklich und benennen erstmals
@@ -284,8 +345,8 @@ war er nirgends, weder in der Anforderung noch im Handbuch.
 
 ## [1.123.0.2123] - 2026-08-31 — Verlässliche Journal-Blöcke
 
-Epic 3E-0236
-(4T-1325 bis 4T-1327, Sammeltask 4T-1328),
+Epic 3E-000236
+(4T-001325 bis 4T-001327, Sammeltask 4T-001328),
 entstanden aus einem Befund des Product Owners an der ausgelieferten 1.122.0
 am Morgen nach ihrer Auslieferung: Der Journal-Navigations-Block seines
 Eintrags vom 30. August zeigte durchgängig den 31. August samt Kalenderwoche 36
@@ -296,7 +357,7 @@ nur, weil der Product Owner das Datum seines Eintrags kannte.
 ### Behoben
 
 - **Block-Elemente im Live-Modus binden sich jetzt verlässlich an das Dokument,
-  in dem sie stehen** (4T-1325). Beim Wechsel zwischen Reitern erhielten sie
+  in dem sie stehen** (4T-001325). Beim Wechsel zwischen Reitern erhielten sie
   bisher den Dateipfad des vorherigen Reiters: Der Reiter-Abgleich tauschte
   Inhalt und Pfad in zwei getrennten Schritten, und der Neuaufbau der Blöcke
   lief im ersten davon. Betroffen war nicht nur der Journal-Navigations-Block,
@@ -311,7 +372,7 @@ nur, weil der Product Owner das Datum seines Eintrags kannte.
 ### Neu
 
 - **Die beiden Journal-Blöcke prüfen jetzt, ob sie über den angezeigten Eintrag
-  sprechen** (4T-1326). Navigations- und Zeitleisten-Block machen aus einem
+  sprechen** (4T-001326). Navigations- und Zeitleisten-Block machen aus einem
   Dateipfad eine Aussage über die Zeit, und eine falsche solche Aussage ist
   nicht als falsch erkennbar — ein Datum sieht wie ein Datum aus. Vor der
   Anzeige gleichen beide Blöcke ihren Pfad gegen den aktiven Reiter ihrer
@@ -324,13 +385,13 @@ nur, weil der Product Owner das Datum seines Eintrags kannte.
 ### Dokumentation
 
 - Die Handbuch-Seite der Journale erklärt die neue Meldung und ihren Grund, in
-  allen fünf Sprachfassungen (4T-1327).
+  allen fünf Sprachfassungen (4T-001327).
 
 ## [1.122.0.2106] - 2026-08-30 — Feinschliff im täglichen Gebrauch
 
-Epic 3E-0235,
-acht Punkte aus dem Alltagsbetrieb des Product Owners (4T-1307 bis 4T-1315,
-Sammeltask 4T-1316). Keiner davon ist ein Programmfehler im engeren Sinn, und
+Epic 3E-000235,
+acht Punkte aus dem Alltagsbetrieb des Product Owners (4T-001307 bis 4T-001315,
+Sammeltask 4T-001316). Keiner davon ist ein Programmfehler im engeren Sinn, und
 keiner allein hätte ein Release getragen; zusammen sind es die Stellen, an denen
 das tägliche Arbeiten hakte, weil eine Funktion einen Schritt zu umständlich war
 oder eine Darstellung nicht das zeigte, was der Text meint.
@@ -338,14 +399,14 @@ oder eine Darstellung nicht das zeigte, was der Text meint.
 ### Neu
 
 - **Die Werkzeugleiste des Änderungs-Modus fügt jetzt auch eine
-  Perspective-Tabelle ein** (4T-1309). Neben der Schaltfläche für das
+  Perspective-Tabelle ein** (4T-001309). Neben der Schaltfläche für das
   Tabellen-Raster steht eine zweite für den Block mit mehrzeiligen Zellen; sie
   hat bewusst kein Raster, weil die Zeilen-Zahl dort nicht vorab feststeht. Das
   Kommando ist ebenso über Kommando-Palette und Kontextmenü erreichbar, setzt
   die Schreibmarke in die erste Kopfzelle und lässt sich in einem Schritt
   zurücknehmen.
 - **Die Farbschemas erreichen jetzt auch die Textfarben des Editors**
-  (4T-1314). Eine sechste Slot-Gruppe stellt elf Farben ein, die bisher fest
+  (4T-001314). Eine sechste Slot-Gruppe stellt elf Farben ein, die bisher fest
   verdrahtet waren: Überschrift, Verweis, Adresse, Code im Fließtext,
   Auszeichnungs-Zeichen, Listen-Marke, Zitat, Kommentar, Schlüsselwort,
   Zeichenkette und Zahl. Alle elf mitgelieferten Nicht-Standard-Schemas haben
@@ -354,14 +415,14 @@ oder eine Darstellung nicht das zeigte, was der Text meint.
   jeweiligen Hintergrund. Die beiden Standard-Schemas stellen den bisherigen
   Zustand unverändert her.
 - **Der Spaltenkopf einer Datentabelle trägt jetzt einen eigenen Anzeigetext**
-  (4T-1313). Die Kennung einer Spalte muss kurz bleiben, weil Aggregate und
+  (4T-001313). Die Kennung einer Spalte muss kurz bleiben, weil Aggregate und
   berechnete Spalten sie ansprechen; für den Kopf steht jetzt in doppelten
   Anführungszeichen dahinter der Text, den der Leser sehen soll. Die neue
   Kopfzeile `types: hidden` blendet zusätzlich die Typangabe unter den
   Überschriften aus. Beides ist freiwillig, und ohne die Angaben verhält sich
   eine bestehende Tabelle unverändert.
 - **Aus der Liste einer zugeklappten Reiter-Gruppe lässt sich eine Datei jetzt
-  auch schließen** (4T-1308). Jeder Eintrag trägt am rechten Rand ein
+  auch schließen** (4T-001308). Jeder Eintrag trägt am rechten Rand ein
   Schließen-Kreuz; die Liste bleibt danach offen und zeigt die übrigen Dateien,
   und bei ungesicherten Änderungen erscheint dieselbe Rückfrage wie beim
   Schließen eines Reiters.
@@ -369,7 +430,7 @@ oder eine Darstellung nicht das zeigte, was der Text meint.
 ### Geändert
 
 - **Die Pfeile des Journal-Navigations-Blocks blättern jetzt im selben Reiter**
-  (4T-1311). Bisher öffnete jeder Klick einen weiteren Reiter, und der neue
+  (4T-001311). Bisher öffnete jeder Klick einen weiteren Reiter, und der neue
   Eintrag begann in der Voreinstellung. Jetzt weicht der bisherige Eintrag dem
   neuen, und der Reiter behält Ansichts-Modus, Änderungs-Modus, Vergrößerung,
   Zeilenumbruch, Zeilennummern, Gruppe und Position im Streifen. Ist der
@@ -378,7 +439,7 @@ oder eine Darstellung nicht das zeigte, was der Text meint.
   Verweise auf die übergeordneten Perioden öffnen unverändert einen eigenen
   Reiter, weil sie die Ebene wechseln statt zu blättern.
 - **Die Vorschlags-Liste der Verweise ordnet jetzt nach der letzten Änderung**
-  (4T-1307). Wer `[[` tippt, sieht oben die Dateien, an denen zuletzt gearbeitet
+  (4T-001307). Wer `[[` tippt, sieht oben die Dateien, an denen zuletzt gearbeitet
   wurde, statt einer rein alphabetischen Liste; die Treffer-Güte bleibt das
   erste Kriterium und die Änderungszeit das zweite. Beim Übernehmen eines
   Eintrags werden außerdem die schließenden Klammern gesetzt und die
@@ -387,13 +448,13 @@ oder eine Darstellung nicht das zeigte, was der Text meint.
 ### Behoben
 
 - **Umgebrochene Listen- und Nummernzeilen beginnen im Editor nicht mehr am
-  linken Rand** (4T-1312). Die Fortsetzung einer zu langen Zeile setzt jetzt
+  linken Rand** (4T-001312). Die Fortsetzung einer zu langen Zeile setzt jetzt
   unter dem Text an und nicht unter der Listenmarke, in Quellcode-, geteilter
   und Live-Ansicht. Der Einzug rechnet in Zeichenbreiten und folgt damit
   Schriftgröße und Vergrößerung; er greift für Aufzählungen, Nummerierungen,
   Aufgabenzeilen und eingerückte Unterpunkte.
 - **Frontmatter-Zeile und Journal-Block sitzen im Änderungs-Modus nicht mehr in
-  großen Leerräumen** (4T-1310). Um jede Block-Darstellung des Editors lagen
+  großen Leerräumen** (4T-001310). Um jede Block-Darstellung des Editors lagen
   rund 42 Pixel zusätzlicher Abstand, weil ein Block-Element in einer
   Zeilen-Ersetzung anonyme Block-Boxen erzeugte; unter der Frontmatter-Zeile
   kamen 24 weitere durch einen leeren Text-Knoten hinzu. Gemessen an der
@@ -406,16 +467,16 @@ oder eine Darstellung nicht das zeigte, was der Text meint.
 ### i18n
 
 - **Funktions-Katalog, Handbuch und Beispiel-Sammlung sind nachgezogen**
-  (4T-1315). Sieben Katalog-Einträge und sieben Handbuch-Seiten beschreiben die
+  (4T-001315). Sieben Katalog-Einträge und sieben Handbuch-Seiten beschreiben die
   neuen Wege, je in allen fünf Sprachfassungen; die Tabellen-Seite der
   mitgelieferten Beispiel-Sammlung zeigt zusätzlich eine Datentabelle mit
   Anzeige-Überschriften und abgeschalteter Typangabe.
 
 ## [1.121.3.2081] - 2026-08-30 — Gleiches Verhalten auf beiden Systemen
 
-Epic 3E-0232,
-Fehler-Bündel mit sechs Vorgängen (4T-1275, 4T-1276, 4T-1277, 4T-1278, 4T-1279,
-4T-1286; Sammeltask 4T-1280, Release-Strecke 4T-1304). Die erste Linux-Ausgabe
+Epic 3E-000232,
+Fehler-Bündel mit sechs Vorgängen (4T-001275, 4T-001276, 4T-001277, 4T-001278, 4T-001279,
+4T-001286; Sammeltask 4T-001280, Release-Strecke 4T-001304). Die erste Linux-Ausgabe
 1.121.0 hat den Funktionsumfang mitgebracht und dabei vier Annahmen im
 Programm-Code sichtbar gemacht, die unter Windows folgenlos blieben und unter
 Linux nicht stimmen. Dieses Release behebt sie.
@@ -429,8 +490,8 @@ Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
 
 ### Behoben
 
-- **Bücher und Regale verlieren unter Linux keine Kapitel mehr** (4T-1275,
-  4T-1276). Dreizehn Stellen bildeten ihren Vergleichs-Schlüssel für Pfade
+- **Bücher und Regale verlieren unter Linux keine Kapitel mehr** (4T-001275,
+  4T-001276). Dreizehn Stellen bildeten ihren Vergleichs-Schlüssel für Pfade
   selbst, statt ihn aus der zentralen Auskunft `src/shared/platform.js` zu
   beziehen; unter Linux galten damit `Teil 1/Aufbruch.md` und
   `teil 1/aufbruch.md` fälschlich als dieselbe Datei. Die Wirkung reichte vom
@@ -445,7 +506,7 @@ Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
   Ordner auch unter Linux als Buch erkannt wird; die Absicht steht jetzt am
   Code statt zwischen den Zeilen.
 - **Die Gantt-Ansicht der Ereignis-Liste ist unter Linux wieder erreichbar**
-  (4T-1278). Der Filter-Umschalter schwebte absolut positioniert an der rechten
+  (4T-001278). Der Filter-Umschalter schwebte absolut positioniert an der rechten
   oberen Ecke, während die Ansichts-Leiste darunter im Fluss nach rechts wuchs.
   Der Überlapp bestand **auch unter Windows** — dort vier Pixel und folgenlos,
   weil die Klick-Mitte des Gantt-Knopfs noch daneben lag; unter Linux setzt die
@@ -455,7 +516,7 @@ Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
   Überlapp ist damit per Konstruktion ausgeschlossen statt durch eine Messung
   ausgeschlossen worden zu sein.
 - **Kurzform-Verweise auf Unterseiten gelten nicht mehr als Verweise aus dem
-  Bereich hinaus** (4T-1277). Die Außen-Prüfung hängte einem Wiki-Ziel ohne
+  Bereich hinaus** (4T-001277). Die Außen-Prüfung hängte einem Wiki-Ziel ohne
   Endung ein `.md` an und schickte das Ergebnis durch den Pfad-Resolver: Aus
   `[[/Earth]]` wurde `/Earth.md`, unter Linux ein absoluter Pfad an der Wurzel
   des Dateisystems und damit außerhalb jedes Bereichs. Die Verweise lösten dabei
@@ -466,7 +527,7 @@ Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
   unangetastet: Für einen echten Markdown-Link mit absolutem Ziel ist der
   führende Schrägstrich weiterhin ein Pfad-Anfang.
 - **Der Filter-Umschalter der Tabellen-Ansicht setzt in der Schrift seiner
-  Umgebung** (4T-1286). Ein `<button>` erbt die Oberflächen-Schrift nicht von
+  Umgebung** (4T-001286). Ein `<button>` erbt die Oberflächen-Schrift nicht von
   selbst und fiel auf die Vorgabe der Anzeige-Umgebung zurück, während die
   Tabelle daneben anders setzte. Die zunächst vermutete Überlappung mit dem
   rechtesten Spaltenkopf hat die Messung **nicht** bestätigt — auf keiner der
@@ -475,7 +536,7 @@ Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
 ### i18n
 
 - **Der Funktions-Katalog nennt den Datei-Manager beim Gattungsnamen**
-  (4T-1279). Zwei Einträge sprachen in allen fünf Sprachfassungen vom
+  (4T-001279). Zwei Einträge sprachen in allen fünf Sprachfassungen vom
   Windows-Produktnamen; unter Linux heißt das Programm anders, und der
   beschriebene Bedien-Weg lief ins Leere, obwohl er stimmte. Ein Prüffall in
   `test/unit/i18n.test.js` verbietet acht Datei-Manager-Produktnamen künftig
@@ -485,18 +546,18 @@ Befunde ziehen diese Grenze neu, jeweils in die Richtung, in die sie gehört.
 
 ## [1.121.2.2050] - 2026-08-30 — Flüssige Bedienung großer Bereiche
 
-Epic 3E-0233,
-Fehler-Bündel mit einem Vorgang (4T-1288, Sammeltask 4T-1296). Nach dem Umzug
+Epic 3E-000233,
+Fehler-Bündel mit einem Vorgang (4T-001288, Sammeltask 4T-001296). Nach dem Umzug
 eines großen Obsidian-Bestands (6483 Dateien) in einen Bereich wurde die
 Anwendung mit sichtbarem Backlinks-Panel unbenutzbar langsam: Jede Eingabe in
-jedem Fenster wartete Sekunden. Die Analyse (4T-1287) belegte die Ursache mit
+jedem Fenster wartete Sekunden. Die Analyse (4T-001287) belegte die Ursache mit
 CPU-Profil des Hauptprozesses; dieses Release behebt sie.
 
 ### Behoben
 
 - **Wiki-Links in Pfad-Form (`[[Ordner/Name]]`) lösen jetzt über eine
   vorberechnete Suffix-Map auf** statt linear über alle Dateien des Index
-  (4T-1288). Vorher zahlte jede Backlinks-Anfrage, also jeder Datei-Wechsel
+  (4T-001288). Vorher zahlte jede Backlinks-Anfrage, also jeder Datei-Wechsel
   mit sichtbarem Panel, für jeden der 879 Pfad-Links einen vollen Scan über
   6483 Dateien, rund 5,7 Millionen Normalisierungen sekundenlang im
   UI-Thread des Hauptprozesses; dort staute sich die OS-Eingabe-Zustellung
@@ -511,8 +572,8 @@ CPU-Profil des Hauptprozesses; dieses Release behebt sie.
 
 ## [1.121.1.1940] - 2026-08-27 — Texte ohne Windows-Bindung
 
-Epic 3E-0122, Fehlerbehebung nach der Auslieferung von 1.121.0 (Vorgänge 4T-1242,
-4T-1243 und 4T-1244). Die erste Linux-Ausgabe hat den Funktionsumfang mitgebracht,
+Epic 3E-000122, Fehlerbehebung nach der Auslieferung von 1.121.0 (Vorgänge 4T-001242,
+4T-001243 und 4T-001244). Die erste Linux-Ausgabe hat den Funktionsumfang mitgebracht,
 aber nicht jeden Text: An vier Stellen sprach das Programm weiter so, als liefe es
 nur unter Windows. Keine davon ist ein Programmfehler, und keine ändert das
 Verhalten; sie erklären eine plattformübergreifende Sache mit einer Plattform und
@@ -554,7 +615,7 @@ brauchte die Korrektur eine eigene Version statt eines Nachreichens.
 
 ## [1.121.0.1928] - 2026-08-27 — EM4me für Linux
 
-Epic 3E-0122: Die erste Auslieferung für Linux. Das Programm lief bisher
+Epic 3E-000122: Die erste Auslieferung für Linux. Das Programm lief bisher
 ausschließlich unter Windows; mit dieser Ausgabe gibt es zwei zusätzliche
 Bezugs-Formen, ein eigenständig lauffähiges Anwendungs-Abbild und ein
 Debian-Paket für die reguläre Installation, beide für 64-Bit-Systeme. Beide
@@ -578,36 +639,36 @@ ihre Namen und der Funktionsumfang bleiben unverändert; die Anpassungen im
 Programm betreffen ausschließlich Entscheidungen, die unter Windows schon
 vorher so ausfielen.
 
-Umsetzungs-Vorgänge des Epics: 4T-1222, 4T-1223, 4T-1224, 4T-1225, 4T-1226;
-Release-Vorgang 4T-1227.
+Umsetzungs-Vorgänge des Epics: 4T-001222, 4T-001223, 4T-001224, 4T-001225, 4T-001226;
+Release-Vorgang 4T-001227.
 
 ### Neu
 
-- **Linux-Fassung, zwei Bezugs-Formen** (4T-1223): Ein eigenständig
+- **Linux-Fassung, zwei Bezugs-Formen** (4T-001223): Ein eigenständig
   lauffähiges Anwendungs-Abbild (AppImage), das ohne Installation startet und
   dem portablen Modell der Windows-Fassung entspricht, und ein Debian-Paket
   (deb) für die reguläre Installation. Beide für 64-Bit-Systeme, beide mit
   Prüfsumme als Integritäts-Nachweis, beide aus derselben Versions- und
   Bau-Nummer wie die Windows-Artefakte.
-- **Einbindung in die Arbeitsumgebung** (4T-1224): Eintrag im Anwendungs-Menü,
+- **Einbindung in die Arbeitsumgebung** (4T-001224): Eintrag im Anwendungs-Menü,
   Anwendungs-Symbol und die Zuordnung der vier unterstützten Markdown-Endungen
   auf den Typ `text/markdown`, identisch zur Windows-Datei-Zuordnung. Das Paket
   richtet sie über die Paket-Mechanik ein, das Abbild trägt dieselben Angaben
   eingebettet.
 - **Bezugs-Bereich der Produkt-Webseite nach Plattformen gegliedert**
-  (4T-1226): zwei Gruppen zu je zwei Wegen, dazu die Systemvoraussetzungen
+  (4T-001226): zwei Gruppen zu je zwei Wegen, dazu die Systemvoraussetzungen
   beider Plattformen und die Referenz-Angabe der geprüften Linux-Konstellation.
 
 ### Geändert
 
-- **Pfad-Entscheidungen der Oberfläche folgen der Plattform** (4T-1225): Die
+- **Pfad-Entscheidungen der Oberfläche folgen der Plattform** (4T-001225): Die
   Zusammensetzung und der Vergleich von Pfaden in der Anzeige fragen jetzt das
   gemeinsame Plattform-Modul, statt Windows-Annahmen fest einzubauen. Unter
   Windows fallen alle Entscheidungen wie zuvor aus: Groß- und Kleinschreibung
   bleibt dort unerheblich, und beide Trenner bleiben Trenner — auch unter
   Linux, damit unter Windows geschriebene Verweise nach einem Umzug weiter
   funktionieren.
-- **Bau- und Archiv-Strecke tragen zwei Artefaktsätze** (4T-1222, 4T-1223):
+- **Bau- und Archiv-Strecke tragen zwei Artefaktsätze** (4T-001222, 4T-001223):
   Der Linux-Bau läuft über eine Container-Umgebung, und die Prüfsummen-Datei
   einer Version wird fortgeschrieben statt ersetzt, weil die beiden
   Artefaktsätze in getrennten Läufen entstehen.
@@ -615,24 +676,24 @@ Release-Vorgang 4T-1227.
 ### Behoben
 
 - Keine Fehlerbehebung an der ausgelieferten Fassung. Die drei Befunde des
-  Lauffähigkeits-Nachweises (4T-1225) betrafen ausschließlich Code, der in
+  Lauffähigkeits-Nachweises (4T-001225) betrafen ausschließlich Code, der in
   diesem Epic entstanden ist, und haben nie eine ausgelieferte Version
   erreicht.
 
 ### Doku und i18n
 
-- **Plattform-Grenzen im Handbuch benannt** (4T-1226), in allen fünf
+- **Plattform-Grenzen im Handbuch benannt** (4T-001226), in allen fünf
   Sprachfassungen und jeweils an der Funktion, die sie betreffen: die
   Hell/Dunkel-Erkennung des Systems, die System-Benachrichtigung der
   Erinnerungen und die Färbung der Fenster-Titelleiste.
 - **Acht neue Inhalts-Schlüssel je Sprachfassung** für den Bezugs-Bereich der
-  Produkt-Webseite (4T-1226); keine neuen Schlüssel im Funktions-Katalog der
+  Produkt-Webseite (4T-001226); keine neuen Schlüssel im Funktions-Katalog der
   Anwendung, weil das Epic keine neue Funktion, sondern eine neue Plattform
   bringt.
 
 ## [1.120.0.1869] - 2026-08-26 — Fenster-Schluss und Ausfall-Erkennung
 
-Epic 3E-0225: Fehlerbehebung an zwei Mängeln der Absturz-Sicherheit, die jeden
+Epic 3E-000225: Fehlerbehebung an zwei Mängeln der Absturz-Sicherheit, die jeden
 Ausfall des Anzeige-Prozesses teuer machten. Ein Fenster, dessen Anzeige nicht
 mehr antwortete, ließ sich bisher nicht mehr schließen, weil der Schließ-Weg auf
 eine Quittung wartete, die nie kam; wer die Anwendung beenden wollte, musste sie
@@ -643,21 +704,21 @@ Erklärung und ohne Handlungsangebot. Beide Mängel sind behoben.
 
 Die beiden Behebungen greifen ineinander, ohne sich in die Quere zu kommen:
 Läuft für ein Fenster bereits eine Schließ-Anfrage, so führt der Rückfall aus
-4T-1213 die Sache zu Ende und die Ausfall-Erkennung schweigt. Ohne diese
+4T-001213 die Sache zu Ende und die Ausfall-Erkennung schweigt. Ohne diese
 Kopplung stünden im Beenden-Fall zwei Dialoge für dasselbe Fenster übereinander.
 
-Umsetzungs-Vorgänge des Epics: 4T-1213, 4T-1214; Release-Vorgang 4T-1215. Dazu
-kommt 4T-1231 aus dem Epic 3E-0228, ein interner Umbau ohne
+Umsetzungs-Vorgänge des Epics: 4T-001213, 4T-001214; Release-Vorgang 4T-001215. Dazu
+kommt 4T-001231 aus dem Epic 3E-000228, ein interner Umbau ohne
 Verhaltens-Änderung, den dieses Release ausgelöst hat und deshalb mitträgt.
 Mit
 dem Release erreichen zusätzlich die Anlage des Epics samt seiner Stories und
-die des Nachfolge-Epics 3E-0228 sowie die Fortschreibung von 4T-1165 den
+die des Nachfolge-Epics 3E-000228 sowie die Fortschreibung von 4T-001165 den
 Hauptzweig; sie tragen keinen Anteil am Programm.
 
 ### Behoben
 
 - **Fenster bleibt schließbar, wenn die Anzeige nicht mehr antwortet**
-  (4T-1213): Der Schließ-Weg hat einen Rückfall bekommen. Bleibt der
+  (4T-001213): Der Schließ-Weg hat einen Rückfall bekommen. Bleibt der
   Anzeige-Prozess 20 Sekunden still, erscheint ein Hinweis mit der Wahl zwischen
   «Trotzdem schließen» (Vorgabe) und «Weiter warten»; die zweite Wahl setzt die
   Frist neu, sodass bei einem zurückkehrenden Anzeige-Prozess der reguläre Weg
@@ -671,10 +732,10 @@ Hauptzweig; sie tragen keinen Anteil am Programm.
   geschrieben wird und die Reiter-Anordnung erhalten bleibt. Neu ist das Modul
   `src/main/app/schliess-rueckfall.js`; die Verdrahtung sitzt in `main.js`,
   `window-manager.js`, `ipc/windows.js` und `app/wiring.js`.
-- **Hängende Schließ-Kaskaden** (4T-1213, mitgeheilt): «Bereich schließen» und
+- **Hängende Schließ-Kaskaden** (4T-001213, mitgeheilt): «Bereich schließen» und
   «Arbeitsbereich schließen» warteten bei einem stummen Anzeige-Prozess für
   immer, weil sie auf ein Ereignis warteten, das ohne den Rückfall nie eintrat.
-- **Ausfall des Anzeige-Prozesses wird erkannt und gemeldet** (4T-1214): Die
+- **Ausfall des Anzeige-Prozesses wird erkannt und gemeldet** (4T-001214): Die
   Anwendung behandelt jetzt die beiden Ereignisse, die die Plattform dafür
   anbietet, und zwar bewusst verschieden. Stirbt der Anzeige-Prozess, meldet sie
   das sofort und schreibt Grund und Beendigungs-Code ins Protokoll; das
@@ -690,10 +751,10 @@ Hauptzweig; sie tragen keinen Anteil am Programm.
 
 ### Geändert
 
-- **Schließ-Kaskade aus der Fenster-Verwaltung ausgezogen** (4T-1231, Epic
-  3E-0228): Interner Umbau ohne Verhaltens-Änderung und ohne Wirkung auf die
+- **Schließ-Kaskade aus der Fenster-Verwaltung ausgezogen** (4T-001231, Epic
+  3E-000228): Interner Umbau ohne Verhaltens-Änderung und ohne Wirkung auf die
   Bedienung. `src/main/window-manager.js` hatte durch das Zusammentreffen der
-  Plattform-Gates aus 4T-1202 mit der Verdrahtung aus 4T-1213 das
+  Plattform-Gates aus 4T-001202 mit der Verdrahtung aus 4T-001213 das
   Größen-Budget von 500 Zeilen gerissen (501). Die Schließ-Kaskade
   (`closeWindowAndWait`, `closeAppWindows`, `closeAreaApp`, `cancelCascade`)
   liegt jetzt in `src/main/app/schliess-kaskade.js`, und die Datei steht bei
@@ -704,12 +765,12 @@ Hauptzweig; sie tragen keinen Anteil am Programm.
 ### i18n
 
 - Elf neue Schlüssel in allen fünf Sprachfassungen: fünf `window.unresponsive*`
-  für den Hinweis des Schließ-Rückfalls (4T-1213) und sechs `window.crash*` für
-  die Ausfall-Meldung samt eigenem Text des Wiederholungs-Falls (4T-1214).
+  für den Hinweis des Schließ-Rückfalls (4T-001213) und sechs `window.crash*` für
+  die Ausfall-Meldung samt eigenem Text des Wiederholungs-Falls (4T-001214).
 
 ## [1.119.0.1850] - 2026-08-26 — Plattform-Entkopplung im Code
 
-Epic 3E-0121: Internes technisches Release ohne Funktions-Änderung. Die
+Epic 3E-000121: Internes technisches Release ohne Funktions-Änderung. Die
 Codebasis löst sich von der Annahme, dass Windows die einzige Plattform ist.
 Windows-eigene Funktionen stehen jetzt hinter ausdrücklichen
 Plattform-Bedingungen statt hinter abgefangenen Fehlern, die Pfad- und
@@ -734,12 +795,12 @@ ungetestete Vorratsarbeit zu entstehen. Und die Build-Nummer bleibt eine
 gemeinsame je Release, weil sie die Commit-Anzahl des Release-Commits ist und
 damit ohnehin nicht zur Plattform gehört.
 
-Umsetzungs-Vorgänge des Epics: 4T-1202, 4T-1203, 4T-1204, 4T-1205;
-Release-Vorgang 4T-1206.
+Umsetzungs-Vorgänge des Epics: 4T-001202, 4T-001203, 4T-001204, 4T-001205;
+Release-Vorgang 4T-001206.
 
 ### Geändert
 
-- **Plattform-Gates statt stiller Fehlerpfade** (4T-1202): Die
+- **Plattform-Gates statt stiller Fehlerpfade** (4T-001202): Die
   Titelleisten-Färbung (`src/main/app/caption-color.js`) prüft die Plattform,
   bevor sie die Windows-Systembibliothek lädt; der bisherige Fehlerpfad bleibt
   daneben bestehen, weil er innerhalb von Windows weiter gebraucht wird. Das
@@ -750,7 +811,7 @@ Release-Vorgang 4T-1206.
   Windows-Standard gilt. Die Netzpfad-Erkennung
   (`src/main/documents/network-paths.js`) trägt ihre Plattform-Lücke jetzt als
   Vermerk im Kopf, statt sie unausgesprochen zu lassen.
-- **Pfad- und Dateisystem-Annahmen fragen die Plattform** (4T-1203): Neues
+- **Pfad- und Dateisystem-Annahmen fragen die Plattform** (4T-001203): Neues
   Modul `src/shared/platform.js` mit der Eigenschaft, ob das Dateisystem Groß-
   und Kleinschreibung unterscheidet, und einem daraus abgeleiteten
   Vergleichs-Schlüssel für Pfade. Daran hängen die Grenzprüfung der Bereiche
@@ -760,14 +821,14 @@ Release-Vorgang 4T-1206.
   einen Eintrag zusammengezogen hätten. Die Prüfung auf verbotene Zeichen in
   Dateinamen bleibt dagegen bewusst überall streng nach Windows-Regel, damit
   Bereiche zwischen den Plattformen austauschbar bleiben.
-- **Icon-Erzeugung auf die Zielformate erweitert** (4T-1204):
+- **Icon-Erzeugung auf die Zielformate erweitert** (4T-001204):
   `scripts/build-icon.js` erzeugt aus derselben Quell-Grafik zusätzlich
   `icon-512.png` als Linux-Grundlage und `icon.icns` mit sieben Einträgen von
   16 bis 1024 px als macOS-Grundlage. Der ICNS-Container ist im Werkzeug selbst
   geschrieben, ohne neue Fremd-Abhängigkeit; die beiden bisherigen Ausgaben
   bleiben byte-gleich, und die neuen Dateien sind vom Windows-Paket
   ausgeschlossen.
-- **Bau-Wrapper und Versions-Archiv plattformfähig** (4T-1205): Die
+- **Bau-Wrapper und Versions-Archiv plattformfähig** (4T-001205): Die
   Artefakt-Erkennung des Archiv-Schritts (`scripts/archive-build.js`) läuft
   über eine einzige Stelle, die neben den Windows-Namen auch Formate ohne
   Varianten-Zusatz trägt; Prüfsummen-Präfix, Waisen-Räumung und die
@@ -778,7 +839,7 @@ Release-Vorgang 4T-1206.
 
 ## [1.118.0.1809] - 2026-08-25 — Metadaten-Modell Stufe 4: Abgeleitete Werte und Objekt-Typen
 
-Epic 3E-0221: Die letzte der vier Umsetzungs-Stufen und die beiden teuersten
+Epic 3E-000221: Die letzte der vier Umsetzungs-Stufen und die beiden teuersten
 Teile des Vorhabens, beide am 2026-07-08 vertagt und jetzt nachgeholt. Felder,
 die ihren Wert nicht tragen, sondern beim Ansehen bekommen — und Felder, die
 eine Struktur tragen statt eines einzelnen Werts. Damit ist der Typ-Satz des
@@ -801,9 +862,9 @@ Typen, und ein strukturierter Wert an einem Absatz landet in der Begleitdatei.
 Bewusst nicht mitentschieden ist seine Abfragbarkeit: Im Bereichs-Index
 erscheint er nicht, dieselbe Linie wie bei den abgeleiteten Werten.
 
-Umsetzungs-Vorgänge des Epics: 4T-1183, 4T-1184, 4T-1185, 4T-1186, 4T-1187;
-Nachtrag aus Stufe 3: 4T-1180; Hilfe- und Handbuch-Vorgang 4T-1188,
-Release-Vorgang 4T-1189. Vier Fehler entstanden und verschwanden innerhalb
+Umsetzungs-Vorgänge des Epics: 4T-001183, 4T-001184, 4T-001185, 4T-001186, 4T-001187;
+Nachtrag aus Stufe 3: 4T-001180; Hilfe- und Handbuch-Vorgang 4T-001188,
+Release-Vorgang 4T-001189. Vier Fehler entstanden und verschwanden innerhalb
 dieser Stufe und bekommen deshalb wie in den Stufen 2 und 3 keinen eigenen
 Anwender-Text: eine Auslese, die aus einer Teilnehmer-Liste einen einzelnen Wert
 machte und die Struktur damit zerstörte, ein Block-Schreibweg, der den Feld-Typ
@@ -814,7 +875,7 @@ stehenblieb. Die ersten beiden fand erst der Lauf an der gebauten Anwendung.
 
 ### Neu
 
-- **Abgeleitete Felder** (4T-1183, 4T-1184, 4T-1185): Ein Profil kann Felder
+- **Abgeleitete Felder** (4T-001183, 4T-001184, 4T-001185): Ein Profil kann Felder
   erklären, die ihren Wert beim Anzeigen bekommen. Ein **Formel-Feld**
   (`type: formula` mit `options.expression`) rechnet über die anderen Felder
   desselben Dokuments — mit derselben Sprache und demselben Funktions-Vorrat wie
@@ -828,7 +889,7 @@ stehenblieb. Die ersten beiden fand erst der Lauf an der gebauten Anwendung.
   Kreis aufeinander, nennt eine Rechenvorschrift ein nicht vorhandenes Feld, ist
   der Ausdruck nicht auswertbar oder fehlt die Vorschrift ganz, bleibt der Wert
   leer und trägt einen Hinweis — blockiert wird nie etwas.
-- **Strukturierte Felder** (4T-1186, 4T-1187): Ein Feld kann ein Objekt mit
+- **Strukturierte Felder** (4T-001186, 4T-001187): Ein Feld kann ein Objekt mit
   benannten Kind-Feldern tragen (`type: object`) oder eine Liste gleichartiger
   Objekte (`type: objectlist`); die Kind-Definitionen stehen verschachtelt unter
   `fields` und können jeden Typ führen, auch wieder ein Objekt. Damit braucht
@@ -844,20 +905,20 @@ stehenblieb. Die ersten beiden fand erst der Lauf an der gebauten Anwendung.
 
 ### Geändert
 
-- **Der Feld-Typ-Satz der Profile umfasst jetzt zwölf Typen** (4T-1183, 4T-1184,
-  4T-1186): zu den acht bisherigen kommen `formula`, `lookup`, `object` und
+- **Der Feld-Typ-Satz der Profile umfasst jetzt zwölf Typen** (4T-001183, 4T-001184,
+  4T-001186): zu den acht bisherigen kommen `formula`, `lookup`, `object` und
   `objectlist`. Jede bestehende Profil-Datei bleibt unverändert gültig, und
   keine bestehende Definition ändert ihre Bedeutung. Verschachtelte
   Kind-Definitionen waren seit Stufe 1 Teil des Formats und ohne Wirkung; sie
   werden jetzt von den beiden Objekt-Typen bedient und bleiben an jedem anderen
   Typ weiterhin zulässig.
-- **Block-Eigenschaften tragen verschachtelte Werte** (4T-1187): Die
+- **Block-Eigenschaften tragen verschachtelte Werte** (4T-001187): Die
   Begleitdatei speichert sie, und beide Panels bedienen sie gleich. Im
   Bereichs-Index erscheinen sie bewusst nicht — eine Block-Abfrage kann einen
   strukturierten Wert deshalb nicht als Bedingung nutzen, anders als die
   einfachen Werte.
 - **Die Funktions-Seite kennzeichnet jetzt alle Zeilen der Eigenschafts-Profile**
-  im Aus-Zustand (4T-1180). Vier ältere Zeilen — Vererbung, Komplett-Übernahme,
+  im Aus-Zustand (4T-001180). Vier ältere Zeilen — Vererbung, Komplett-Übernahme,
   Wertevorrats-Quellen und Zuordnungs-Bindungen — blieben bisher ungekennzeichnet
   und behaupteten damit Funktionen, die bei abgeschalteter Erweiterung nicht
   vorhanden sind.
@@ -879,7 +940,7 @@ stehenblieb. Die ersten beiden fand erst der Lauf an der gebauten Anwendung.
 
 ## [1.117.0.1788] - 2026-08-24 — Metadaten-Modell Stufe 3: Bedienung und Sicht
 
-Epic 3E-0220: Die dritte der vier Umsetzungs-Stufen und die, die den Zugang am
+Epic 3E-000220: Die dritte der vier Umsetzungs-Stufen und die, die den Zugang am
 Dokument nachzieht. Nach den beiden ersten Stufen trägt ein Profil eine
 Vererbungs-Kette, mehr Typen und Zuordnungen von außerhalb des Dokuments — die
 Frage «was trägt dieses Dokument und warum» in zwei Panels zusammenzusuchen ist
@@ -891,21 +952,21 @@ Ansicht für etwas zu bauen, das die Abfrage-Sprache bereits kann. Ein zweiter
 Schreibweg entsteht nicht: Das Formular lebt in derselben Sektion wie die
 Eigenschafts-Felder und benutzt deren Schreibpfad.
 
-Umsetzungs-Vorgänge des Epics: 4T-1171, 4T-1172, 4T-1173, 4T-1174, 4T-1175,
-4T-1176; Hilfe- und Handbuch-Vorgang 4T-1177, Release-Vorgang 4T-1178,
-Nachbesserung 4T-1179. Drei Fehler entstanden und verschwanden innerhalb dieser
+Umsetzungs-Vorgänge des Epics: 4T-001171, 4T-001172, 4T-001173, 4T-001174, 4T-001175,
+4T-001176; Hilfe- und Handbuch-Vorgang 4T-001177, Release-Vorgang 4T-001178,
+Nachbesserung 4T-001179. Drei Fehler entstanden und verschwanden innerhalb dieser
 Stufe und bekommen deshalb wie bei Stufe 2 keinen eigenen Anwender-Text. Der
 Formular-Bereich klappte bei jedem Neu-Rendern wieder zu, also bei jedem
 Reiter-Wechsel und mitten in der Eingabe; der Auf-Zustand liegt jetzt je Spalte
-im Sitzungs-Zustand (4T-1173, gefunden vom E2E-Fall aus 4T-1175). Und die Felder,
+im Sitzungs-Zustand (4T-001173, gefunden vom E2E-Fall aus 4T-001175). Und die Felder,
 die der neue Bereich anbietet, waren von den Feldern des Dokuments nicht sauber
 getrennt: Das Vorschlags-Menü des Hinzufügen-Knopfes verlor dadurch seine
 Profil-Einträge, und ein leer angebotenes Zahlen-Feld konnte ungefragt in den
-Metadaten-Block geraten (4T-1179, beides gefunden von der Release-Abnahme).
+Metadaten-Block geraten (4T-001179, beides gefunden von der Release-Abnahme).
 
 ### Neu
 
-- **Feld-Formular des Dokuments** (4T-1171, 4T-1172, 4T-1173): Die
+- **Feld-Formular des Dokuments** (4T-001171, 4T-001172, 4T-001173): Die
   Eigenschaften-Sektion zeigt unter den Feldern des Dokuments einen
   Ausklapp-Bereich «Alle Felder dieses Dokuments» mit den Feldern, die die
   geltenden Profile definieren und das Dokument noch nicht trägt. Jedes Feld
@@ -917,14 +978,14 @@ Metadaten-Block geraten (4T-1179, beides gefunden von der Release-Abnahme).
   Werte anzurühren und als eine einzige Rückgängig-Einheit. Ein noch nicht
   übernommenes Feld bleibt aus dem Metadaten-Block, solange es leer ist; das
   bloße Aufklappen schreibt nichts.
-- **Zwei Zugänge zum Formular** (4T-1174, 4T-1175): das Kommando
+- **Zwei Zugänge zum Formular** (4T-001174, 4T-001175): das Kommando
   «Feld-Formular des Dokuments öffnen» und der Eintrag «Feld-Formular öffnen»
   im Kontextmenü des Reiters. Beide machen die Sektion sichtbar, falls sie
   verborgen ist, klappen den Bereich auf und rücken ihn in den sichtbaren
   Ausschnitt; der Kontextmenü-Eintrag meint den angeklickten Reiter und
   aktiviert ihn zuvor. Ein neuer Menü-Block entsteht nicht, ein Vorgabe-Kürzel
   ebenso wenig.
-- **Sicht je Profil als erzeugte Abfrage** (4T-1176): Das Kommando
+- **Sicht je Profil als erzeugte Abfrage** (4T-001176): Das Kommando
   «Profil-Abfrage einfügen» schreibt zu einem Profil die Abfrage über seine
   Dokumente an der Cursor-Position hin. Sie erfasst alle drei ausdrücklichen
   Zuordnungs-Wege — Zuordnungs-Feld, Schlagwort- und Ordner-Bindungen —, und
@@ -941,17 +1002,17 @@ Metadaten-Block geraten (4T-1179, beides gefunden von der Release-Abnahme).
 
 - Die Erweiterung «Eigenschafts-Profile» bringt erstmals **eigene Kommandos**
   mit; beide entfallen in ihrem Aus-Zustand, ebenso der Kontextmenü-Eintrag und
-  der Formular-Bereich (4T-1174, 4T-1175, 4T-1176).
+  der Formular-Bereich (4T-001174, 4T-001175, 4T-001176).
 - Die Profil-Auflösung gibt ihre Ordnung nach außen: Je Feld kommen der Weg und
   die Vererbungs-Tiefe mit, dazu die Kette der beteiligten Profile. Die
-  bisherigen Angaben bleiben unverändert daneben stehen (4T-1171).
+  bisherigen Angaben bleiben unverändert daneben stehen (4T-001171).
 - Funktions-Katalog und Handbuch-Seite «Eigenschafts-Profile» sind um die Stufe
   erweitert, in allen fünf Sprachfassungen; die Demo-Area nennt die beiden
-  neuen Zugänge (4T-1177).
+  neuen Zugänge (4T-001177).
 
 ## [1.116.0.1769] - 2026-08-24 — Metadaten-Modell Stufe 2: Typen, Wertevorräte und Zuordnung
 
-Epic 3E-0219: Die zweite der vier Umsetzungs-Stufen und die, die den Ausbau für
+Epic 3E-000219: Die zweite der vier Umsetzungs-Stufen und die, die den Ausbau für
 Anwender spürbar macht. Der Typ-Satz wächst um Verweis und Uhrzeit und trägt
 typ-eigene Optionen, Wertevorräte folgen dem Bestand statt von Hand gepflegt zu
 werden, und Dokumente finden ihr Profil auch über Schlagwort und Ordner —
@@ -960,9 +1021,9 @@ wird damit bedient; erfunden wurde nichts hinzu. Die Rückwärts-Verträglichkei
 bleibt tragende Auflage: Der Feldname ist weiterhin die einzige Pflichtangabe,
 und ohne Bindungen ändert sich für kein Dokument etwas.
 
-Umsetzungs-Vorgänge des Epics: 4T-1155, 4T-1156, 4T-1157, 4T-1158, 4T-1159,
-4T-1160, 4T-1161; Hilfe- und Handbuch-Vorgang 4T-1162, Release-Vorgang 4T-1163,
-Nachbesserung aus der Test-Iteration 4T-1164 (das Profil-Symbol saß im Kopf der
+Umsetzungs-Vorgänge des Epics: 4T-001155, 4T-001156, 4T-001157, 4T-001158, 4T-001159,
+4T-001160, 4T-001161; Hilfe- und Handbuch-Vorgang 4T-001162, Release-Vorgang 4T-001163,
+Nachbesserung aus der Test-Iteration 4T-001164 (das Profil-Symbol saß im Kopf der
 Eigenschaften-Sektion und war damit unsichtbar, sobald das Panel mit einem
 anderen in einer Reiter-Gruppe liegt; es steht jetzt im Körper der Sektion).
 Der Fehler entstand und verschwand innerhalb dieser Stufe, war also nie
@@ -970,7 +1031,7 @@ ausgeliefert und bekommt deshalb keinen eigenen Anwender-Text.
 
 ### Neu
 
-- **Zuordnung über Schlagwort und Ordner** (4T-1159, 4T-1160): Ein Dokument
+- **Zuordnung über Schlagwort und Ordner** (4T-001159, 4T-001160): Ein Dokument
   findet sein Profil zusätzlich über ein Schlagwort oder seinen Ordner, ohne
   dass in ihm ein Zuordnungs-Feld stehen muss. Die Bindungen werden je Bereich
   unter Einstellungen → Eigenschafts-Profile eingerichtet; ein gebundener
@@ -981,7 +1042,7 @@ ausgeliefert und bekommt deshalb keinen eigenen Anwender-Text.
   Standard-Profil. Die Wege ergänzen einander, bei gleichem Feldnamen gilt der
   erste Treffer, und ein Weg auf ein bereits erreichtes Profil fügt nichts
   hinzu.
-- **Wertevorräte aus Notiz und Abfrage** (4T-1157, 4T-1158): Der zulässige
+- **Wertevorräte aus Notiz und Abfrage** (4T-001157, 4T-001158): Der zulässige
   Wertevorrat eines Auswahl-Feldes kommt wahlweise aus der festen Liste, aus
   einer gewöhnlichen Notiz mit einem Wert je Zeile oder aus einer Abfrage über
   den Bestand. Eine Werte-Notiz wird wie eine Profil-Datei nachgezogen und
@@ -990,7 +1051,7 @@ ausgeliefert und bekommt deshalb keinen eigenen Anwender-Text.
   Bereichs-Index gemerkt; vorab über den Gesamtbestand wird nichts gerechnet.
   Fehlt eine Quelle, bleibt das Feld bedienbar, der Vorrat ist leer, und ein
   Hinweis steht am Feld.
-- **Neue Feld-Typen und typ-eigene Optionen** (4T-1155, 4T-1156): Der Typ-Satz
+- **Neue Feld-Typen und typ-eigene Optionen** (4T-001155, 4T-001156): Der Typ-Satz
   trägt `link` (Verweis auf eine Datei, mit Vervollständigung, Existenz-Prüfung
   und Klick-Pfad) und `time` (Uhrzeit). Zahl, Datum, Verweis und Auswahl tragen
   Optionen im Unterobjekt `options`: `step`, `min`, `max`, `shift`,
@@ -999,7 +1060,7 @@ ausgeliefert und bekommt deshalb keinen eigenen Anwender-Text.
   Wert zu ändern. Der Mehrfach-Modus gilt jetzt für jeden Typ, bei dem mehrere
   Werte sinnvoll sind; nur `boolean` und `multiline` bleiben ausgenommen. Alle
   neuen Typen und Optionen wirken in beiden Eigenschafts-Editoren gleich.
-- **Profil-Symbol am Dokument** (4T-1161): Ein Profil kann mit `icon` ein
+- **Profil-Symbol am Dokument** (4T-001161): Ein Profil kann mit `icon` ein
   Zeichen führen; der Kopf der Eigenschaften-Sektion zeigt das Symbol des
   zuerst aufgelösten Profils, und der Tooltip nennt Profil und Fund-Stufe.
   Damit bleibt ablesbar, warum ein Dokument seine Felder hat, auch wenn in ihm
@@ -1009,15 +1070,15 @@ ausgeliefert und bekommt deshalb keinen eigenen Anwender-Text.
 
 - Die Profil-Liste der Einstellungen meldet zwei weitere Fälle ausgeschrieben:
   eine unbekannte und eine unpassend belegte Options-Angabe. Beide entfallen
-  einzeln; Feld und übrige Angaben bleiben wirksam (4T-1155).
+  einzeln; Feld und übrige Angaben bleiben wirksam (4T-001155).
 - Der Hinweis am Feld nennt jetzt auch den Fall, dass eine Wertevorrats-Quelle
-  gesetzt ist, aber nichts liefert (4T-1157).
+  gesetzt ist, aber nichts liefert (4T-001157).
 - Funktions-Katalog und Handbuch-Seite «Eigenschafts-Profile» sind um die
-  Stufe erweitert, in allen fünf Sprachfassungen (4T-1162).
+  Stufe erweitert, in allen fünf Sprachfassungen (4T-001162).
 
 ## [1.115.0.1749] - 2026-08-23 — Metadaten-Modell Stufe 1: Format, Vererbung und Diagnose
 
-Epic 3E-0218: Erste der vier Umsetzungs-Stufen des Metadaten-Modells. Das
+Epic 3E-000218: Erste der vier Umsetzungs-Stufen des Metadaten-Modells. Das
 Definitions-Format der Eigenschafts-Profile steht vollständig (typ-eigene
 Optionen, Wertevorrats-Quellen, verschachtelte Kind-Definitionen, entkoppelter
 Mehrfach-Modus), Profile erben voneinander, und fehlerhafte Definitionen werden
@@ -1025,12 +1086,12 @@ genau benannt statt nur gezählt. Tragende Auflage der Stufe ist die
 Rückwärts-Verträglichkeit: Der Feldname bleibt die einzige Pflichtangabe, und
 jede bestehende Profil-Datei bleibt unverändert gültig.
 
-Umsetzungs-Vorgänge des Epics: 4T-1141, 4T-1142, 4T-1143; Hilfe- und
-Handbuch-Vorgang 4T-1144, Release-Vorgang 4T-1145.
+Umsetzungs-Vorgänge des Epics: 4T-001141, 4T-001142, 4T-001143; Hilfe- und
+Handbuch-Vorgang 4T-001144, Release-Vorgang 4T-001145.
 
 ### Neu
 
-- **Vererbung zwischen Profilen** (4T-1142): Ein Profil nennt mit `extends`
+- **Vererbung zwischen Profilen** (4T-001142): Ein Profil nennt mit `extends`
   höchstens ein Eltern-Profil und übernimmt dessen Feld-Definitionen; Ketten
   über mehrere Ebenen sind möglich. `exclude` schließt geerbte Felder aus und
   wirkt in der Vererbungs-Kette, in der es steht, nicht für das ganze Dokument;
@@ -1041,7 +1102,7 @@ Handbuch-Vorgang 4T-1144, Release-Vorgang 4T-1145.
   bisherigen Vorrang-Regeln gelten unverändert weiter. Ein Zyklus oder ein
   nicht vorhandenes Eltern-Profil beendet nur die betroffene Kette und erzeugt
   einen Hinweis am Profil.
-- **Erweitertes Definitions-Format** (4T-1141): Eine Feld-Definition trägt
+- **Erweitertes Definitions-Format** (4T-001141): Eine Feld-Definition trägt
   typ-eigene Angaben im Unterobjekt `options`, die Quelle des Wertevorrats als
   `valuesFrom` (`note` und/oder `query`) auf der oberen Ebene und
   verschachtelte Kind-Definitionen unter `fields`, rekursiv nach demselben
@@ -1051,7 +1112,7 @@ Handbuch-Vorgang 4T-1144, Release-Vorgang 4T-1145.
   entkoppelt: `multiple: true` ohne `values` ist jetzt gültig (der frühere
   Fehler-Fall entfällt ersatzlos), die Typ-Regel zu `multistring` bleibt bis
   zum Typ-Ausbau bestehen.
-- **Ortsbezogene Diagnose fehlerhafter Definitionen** (4T-1143): Die
+- **Ortsbezogene Diagnose fehlerhafter Definitionen** (4T-001143): Die
   Profil-Liste der Einstellungen zeigt die Hinweise ausgeschrieben unter ihrem
   Profil, in der Reihenfolge der Definitionen. Jede Meldung nennt die
   betroffene Definition, die fehlerhafte Angabe und was an ihrer Stelle
@@ -1067,12 +1128,12 @@ Handbuch-Vorgang 4T-1144, Release-Vorgang 4T-1145.
   ganzer Satz mit Orts-Platzhalter, dazu zwei Orts-Schlüssel (oberste Ebene
   und Kind-Definition mit Pfad), vier neue Hinweis-Texte der neuen Angaben und
   drei Meldungen der Vererbungs-Fälle, in allen fünf Sprachfassungen
-  (4T-1141 bis 4T-1143); der Schlüssel des entfallenen Fehler-Falls
+  (4T-001141 bis 4T-001143); der Schlüssel des entfallenen Fehler-Falls
   `multiple` ohne `values` ist entfernt.
 - Neuer Funktions-Katalog-Eintrag «Profil-Vererbung» mit Beschreibung,
   Kurzname und Zugang in allen fünf Sprachfassungen, eingeordnet direkt hinter
   den Eigenschafts-Profilen; deren Katalog-Text ist um das erweiterte Format
-  und die genaue Fehler-Benennung fortgeschrieben (4T-1144).
+  und die genaue Fehler-Benennung fortgeschrieben (4T-001144).
 
 ### Dokumentation
 
@@ -1080,12 +1141,12 @@ Handbuch-Vorgang 4T-1144, Release-Vorgang 4T-1145.
   Sprachfassungen das erweiterte Format (Attribut-Tabelle samt der Zusage zur
   einzigen Pflichtangabe), einen neuen Abschnitt «Vererbung», die Auflösung
   als eine geordnete Folge mit dem durchgespielten Beispiel und die Grenzen
-  der Stufe (4T-1144). Die Überblicksseite nennt die Vererbung, die Demo-Seite
+  der Stufe (4T-001144). Die Überblicksseite nennt die Vererbung, die Demo-Seite
   der Profile erklärt sie in einem Satz.
 
 ## [1.114.1.1730] - 2026-08-22 — Kennungs-Migration der Anforderungsachse
 
-Epic 3E-0222: Internes technisches Release ohne Funktions-Änderung. Die
+Epic 3E-000222: Internes technisches Release ohne Funktions-Änderung. Die
 Anforderungsachse des Projektmanagements wechselt vom zweistufigen Schema
 `F-NNNN`/`S-NNNN` auf das einheitliche Kennungs-Schema beider Achsen
 (`3F-NNNN` für Features, `4S-NNNN` für Stories; die Ebenen `1G` Gebiet und
@@ -1095,37 +1156,37 @@ mechanisch nachgezogen; die Nummern selbst blieben unverändert, Lücken bleiben
 stehen. Der Programm-Anteil beschränkt sich auf Kommentar-Kennungen unter
 `src/**`; das Verhalten der Anwendung ändert sich nicht.
 
-Umsetzungs-Vorgänge des Epics: 4T-1146, 4T-1147, 4T-1148, 4T-1149;
-Release-Vorgang 4T-1150.
+Umsetzungs-Vorgänge des Epics: 4T-001146, 4T-001147, 4T-001148, 4T-001149;
+Release-Vorgang 4T-001150.
 
 ### Geändert
 
-- **Migrations-Werkzeug der Kennungs-Welle** (4T-1146):
+- **Migrations-Werkzeug der Kennungs-Welle** (4T-001146):
   `scripts/kennungs-migration.js` mit striktem Trockenlauf samt
   Treffer-Bericht, Apply in einem Zug (`git mv` plus Ersetzung mit
   Vier-Ziffern-Anker), mechanischer Umkehrung und Ledger-Modus für die
   Nebenbestände am gemeinsamen Ablage-Ort; abgesichert durch neun
   Wächter-Testfälle gegen ein echtes Wegwerf-Repositorium (Roundtrip,
   Idempotenz, Ausschluss des dreistelligen Katalog-Namensraums `F-\d{3}`).
-- **Werkzeuge auf die neuen Präfixe angepasst** (4T-1147): die
+- **Werkzeuge auf die neuen Präfixe angepasst** (4T-001147): die
   Muster-tragenden Skripte der Anforderungs- und PM-Wächter-Familie samt
   `PRAEFIXE`-Whitelist der Nummern-Reservierung (`1P/2A/3E/4T/1G/2B/3F/4S`).
   Dazu der Kollisions-Schutz: Überall, wo `[0-9][A-Z]-\d{4}` bisher
   «Aufgaben-ID» bedeutete, stehen die Arbeitsachsen-Präfixe seither explizit
   aufgezählt, weil `3F`/`4S` sonst als Arbeitsebene gelesen würden (auch in
   der Vorgangs-Erkennung des Änderungs-Verlaufs im PM-Dashboard).
-- **Umbenennungs-Welle am Ruhepunkt gefahren** (4T-1148): Apply nach
+- **Umbenennungs-Welle am Ruhepunkt gefahren** (4T-001148): Apply nach
   PO-Sichtung des Trockenlauf-Berichts unter belegter Release-Sperre,
   Rest-Treffer null, Reservierungs-Ledger am Ablage-Ort migriert, volle Gates
   grün.
-- **Konzepte fortgeschrieben** (4T-1149): Anforderungs-README samt
+- **Konzepte fortgeschrieben** (4T-001149): Anforderungs-README samt
   Historie-Satz (bis 2026-08 lauteten die Kennungen `F-`/`S-`), Template,
   CLAUDE.md-Auszug, PM-README-Kapitel, Dashboard-Vorspann und Verteiltes
   Arbeitsmodell auf das vierstufige Modell.
 
 ## [1.114.0.1663] - 2026-08-19 — Produkt-Tour und Demo-Ausbau
 
-Epic 3E-0127: Der Erstkontakt mit der Anwendung bekommt zwei Stützen. Eine
+Epic 3E-000127: Der Erstkontakt mit der Anwendung bekommt zwei Stützen. Eine
 geführte Tour zeigt in zehn Stationen am laufenden Programm, was die Anwendung
 von einem gewöhnlichen Editor unterscheidet, und läuft beim ersten Start von
 selbst an. Die mitgelieferte Beispiel-Sammlung wächst dafür zu einem Bestand
@@ -1134,12 +1195,12 @@ Applikationen mit mehreren Fenstern und gruppierten Reitern und ein
 astronomischer Themenbereich, der die Unterseiten-Hierarchie über vier Stufen
 führt.
 
-Umsetzungs-Vorgänge des Epics: 4T-0644 und 4T-0645; Konzept-Stufe 4T-1089,
-Hilfe- und Handbuch-Vorgang 4T-1090, Release-Vorgang 4T-1091.
+Umsetzungs-Vorgänge des Epics: 4T-000644 und 4T-000645; Konzept-Stufe 4T-001089,
+Hilfe- und Handbuch-Vorgang 4T-001090, Release-Vorgang 4T-001091.
 
 ### Neu
 
-- **Geführte Produkt-Tour** (4T-0644): Zehn Stationen führen durch die
+- **Geführte Produkt-Tour** (4T-000644): Zehn Stationen führen durch die
   tragenden Konzepte und zeigen dabei auf das jeweilige Bedienelement in der
   laufenden Oberfläche, statt es nur zu beschreiben. Behandelt werden die
   Ansichten, die Reiter samt Gruppen, die Seitenleisten-Bereiche, Fenster und
@@ -1152,13 +1213,13 @@ Hilfe- und Handbuch-Vorgang 4T-1090, Release-Vorgang 4T-1091.
   Der Zugang liegt im Hilfe-Menü zwischen Handbuch und Über und ist zusätzlich
   über die Kommando-Palette erreichbar. Die Tour ist fester Bestandteil des
   Programms und über keinen Schalter zu entfernen.
-- **Ausgebaute Beispiel-Sammlung** (4T-0645): Die Demo-Area bringt jetzt einen
+- **Ausgebaute Beispiel-Sammlung** (4T-000645): Die Demo-Area bringt jetzt einen
   astronomischen Themenbereich mit, dessen Unterseiten über vier Stufen von der
   Galaxie über den Stern und den Planeten bis zum Mond reichen; die Hierarchie
   entsteht dabei allein über den Dateinamen und nicht über Ordner. Dazu kommen
   Themenseiten zu Lichtgeschwindigkeit, Entfernungen und Alter, die
   untereinander und in den Themenbereich verlinkt sind.
-- **Zwei mitgelieferte Arbeitsbereiche** (4T-0645): Das Anlegen der
+- **Zwei mitgelieferte Arbeitsbereiche** (4T-000645): Das Anlegen der
   Beispiel-Sammlung erzeugt zusätzlich zwei benannte Arbeitsbereiche, einen mit
   zwei Fenstern und zwei farbigen Reiter-Gruppen zum Themenbereich und einen für
   den Einstieg. Sie entstehen als Einträge unter «Datei → Arbeitsbereiche», ohne
@@ -1169,22 +1230,22 @@ Hilfe- und Handbuch-Vorgang 4T-1090, Release-Vorgang 4T-1091.
 ### i18n
 
 - 26 neue Schlüssel je Sprachdatei für die Tour, in allen fünf
-  Sprachfassungen (4T-0644): zehn Stationen mit Titel und Text, die
+  Sprachfassungen (4T-000644): zehn Stationen mit Titel und Text, die
   Bedien-Beschriftungen, das Menü-Label und die Kommando-Beschreibung. Die
   Anrede folgt je Sprache dem Bestand.
 - Drei Katalog-Einträge der Tour mit Beschreibung, Kurzname und Zugang, in
-  allen fünf Sprachfassungen (4T-1090), eingeordnet in die Gruppe «Allgemein»
+  allen fünf Sprachfassungen (4T-001090), eingeordnet in die Gruppe «Allgemein»
   direkt hinter dem Handbuch-Eintrag.
 
 ### Dokumentation
 
 - Die Handbuch-Überblicksseite nennt die Tour in allen fünf Sprachfassungen
-  gleich hinter der Begrüßung (4T-1090), mit Anlauf beim ersten Start, erneutem
+  gleich hinter der Begrüßung (4T-001090), mit Anlauf beim ersten Start, erneutem
   Start über das Menü und der Abgrenzung zum Handbuch. Eine eigene Themen-Seite
   entsteht bewusst nicht, weil ihr Inhalt die Tour nacherzählte und mit ihr
   altern würde.
 - Die Seite «Applikationen, Fenster und Bereiche» beschreibt in allen fünf
-  Sprachfassungen den Ausbau der Beispiel-Sammlung (4T-1090): die beiden
+  Sprachfassungen den Ausbau der Beispiel-Sammlung (4T-001090): die beiden
   Arbeitsbereiche samt ihrer Reiter-Gruppen, ihr Entstehen ohne Selbst-Öffnen
   und die vierstufige Unterseiten-Hierarchie. Der Katalog-Eintrag der Demo-Area
   ist im selben Zug nachgezogen.
@@ -1192,33 +1253,33 @@ Hilfe- und Handbuch-Vorgang 4T-1090, Release-Vorgang 4T-1091.
 ### Intern
 
 - **Neue Bundle-Abhängigkeit `driver.js`** (Version 1.8.0, MIT-Lizenz) für die
-  überlagernden Hinweise der Tour (4T-0644). Ihr Stilblatt wird nach dem Muster
+  überlagernden Hinweise der Tour (4T-000644). Ihr Stilblatt wird nach dem Muster
   der KaTeX-Beigabe über einen eigenen Bau-Schritt kopiert statt gebündelt; ein
   versioniertes Anpassungs-Blatt stellt die Popover auf die Farb-Token der
   Anwendung um.
-- **Wächter über die Stations-Ziele** (4T-0644): Jede Anker-Kennung der Tour
+- **Wächter über die Stations-Ziele** (4T-000644): Jede Anker-Kennung der Tour
   wird in beide Richtungen gegen die Oberfläche geprüft, dazu die
   Fünf-Sprachen-Vollständigkeit der Tour-Schlüssel. An Bedienelemente gebundene
   Stationen brächen sonst bei einem Oberflächen-Umbau still. Ergänzend prüft ein
   Wächter, dass jeder in der Zustands-Vorlage der Beispiel-Sammlung genannte
-  Pfad wirklich existiert (4T-0645), und ein zweiter löst jeden Wiki-Link der
+  Pfad wirklich existiert (4T-000645), und ein zweiter löst jeden Wiki-Link der
   Sammlung mit den Bestands-Helfern auf.
 
 ## [1.113.0.1639] - 2026-08-18 — Abfrage-Kontext und Sprach-Bausteine
 
-Epic 3E-0211: Eine Abfrage kann sich auf die Datei beziehen, in der sie steht,
+Epic 3E-000211: Eine Abfrage kann sich auf die Datei beziehen, in der sie steht,
 und ihre Ergebnis-Spalten aus mehreren Werten zusammensetzen. Dazu kommen ein
 Datums-Feld aus dem Dateinamen, die Tages-Rechnung, lokalisierte Zahlen- und
 Währungs-Formate, ein Ordner-Filter für Link-Listen und eine Hervorhebung. Dritte
 Stufe des Standard-Ausbaus aus der EM4me-Vault-Analyse, mit eigenem Nutzwert
 unabhängig von der Übernahme.
 
-Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
-4T-1075; Konzept-Stufe 4T-1060, Release-Vorgang 4T-1076.
+Umsetzungs-Vorgänge des Epics: 4T-001070, 4T-001071, 4T-001072, 4T-001073, 4T-001074 und
+4T-001075; Konzept-Stufe 4T-001060, Release-Vorgang 4T-001076.
 
 ### Neu
 
-- **Selbstbezug auf die Träger-Datei** (4T-1070): Das Präfix `this.` löst
+- **Selbstbezug auf die Träger-Datei** (4T-001070): Das Präfix `this.` löst
   gegen die Datei auf, in der die Abfrage steht, statt gegen die jeweilige
   Treffer-Datei — sowohl für Datei-Felder (`this.file.link`) als auch für
   Frontmatter-Eigenschaften (`this.bereich`), in allen drei Ebenen Datei, Block
@@ -1228,21 +1289,21 @@ Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
   auflösbare Träger-Datei ergeben die Zugriffe einen leeren Wert und die Quelle
   die leere Menge, damit ein unvollständiger Kontext nie zu einem zu großen
   Ergebnis führt.
-- **Datum aus dem Dateinamen und Tage aus einer Dauer** (4T-1071): Das
+- **Datum aus dem Dateinamen und Tage aus einer Dauer** (4T-001071): Das
   implizite Feld `file.day` liest das ISO-Präfix eines Dateinamens
   (`2026-04-18 Besprechung`) als Datums-Wert; ohne Präfix bleibt es leer. Die
   Funktion `days(dauer)` liefert die Zahl ganzer Tage, kaufmännisch gerundet,
   damit eine Zeitumstellung die Spanne nicht um einen Tag verkürzt.
-- **Zahlen- und Währungs-Format** (4T-1072): `numberformat(wert[, stellen])`
+- **Zahlen- und Währungs-Format** (4T-001072): `numberformat(wert[, stellen])`
   und `currencyformat(wert[, währung])` stellen Zahlen und Beträge lokalisiert
   dar; ohne Währungs-Angabe gilt Euro. Ein unbekannter Währungs-Code fällt auf
   die unformatierte Zahl zurück, statt die Spalte leer zu lassen.
-- **Link-Listen-Filter über Ordner** (4T-1073): `infolder(liste, "Ordner")`
+- **Link-Listen-Filter über Ordner** (4T-001073): `infolder(liste, "Ordner")`
   liefert die Teilliste der Link-Werte, deren Ziel im Ordner oder darunter
   liegt. Zusammen mit `length()` findet das die Dateien ohne eingehenden Link
   aus einem bestimmten Ordner. Der Ordner-Vergleich ist derselbe wie in der
   `FROM`-Ordner-Quelle.
-- **Hervorhebung in Ergebnis-Spalten** (4T-1074): `bold(wert)` stellt einen
+- **Hervorhebung in Ergebnis-Spalten** (4T-001074): `bold(wert)` stellt einen
   Wert hervorgehoben dar, in Tabellen-Zellen, im Zusatzfeld der Liste und im
   Gruppen-Titel. Die Auszeichnung übersteht die Verkettung, kann also einen
   Teil eines zusammengesetzten Ausdrucks einfassen. Vergleich, Sortierung und
@@ -1251,14 +1312,14 @@ Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
 
 ### Geändert
 
-- **Verkettung von Text mit Nicht-Text-Werten** (4T-1071): Geht das
+- **Verkettung von Text mit Nicht-Text-Werten** (4T-001071): Geht das
   Pluszeichen nicht numerisch auf und ist eine Seite eine Zeichenkette,
   verbindet es die Anzeige-Formen beider Seiten. Damit lassen sich Datums-,
   Dauer-, Zahl- und Link-Werte mit Text zu einer Spalte zusammensetzen, wo
   bisher ein leerer Wert entstand. Rein numerische Additionen bleiben
   numerisch, und ein fehlender Wert bleibt fehlend.
 - **Datums-, Zahlen- und Währungs-Formate folgen der Programmsprache**
-  (4T-1072): Die drei Formatierer der Abfrage nutzen die in den Einstellungen
+  (4T-001072): Die drei Formatierer der Abfrage nutzen die in den Einstellungen
   gewählte Programmsprache statt der Sprache des Betriebssystems. Das ändert
   das Verhalten von `dateformat` mit Monats- und Wochentagsnamen: In einem
   englisch eingestellten Programm auf einem deutschen Betriebssystem erscheinen
@@ -1269,7 +1330,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
 ### i18n
 
 - Drei Katalog-Einträge der neuen Sprach-Bausteine mit je Beschreibung,
-  Kurzname und Zugang, in allen fünf Sprachfassungen (4T-1075): Selbstbezug,
+  Kurzname und Zugang, in allen fünf Sprachfassungen (4T-001075): Selbstbezug,
   Wert-Bausteine und Hervorhebung. Die Bausteine selbst brauchen keine eigenen
   Übersetzungen, weil sie über die Standard-Schnittstelle der Laufzeit
   lokalisieren.
@@ -1279,7 +1340,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
 - Die Handbuch-Seite «Perspective-Abfrage» beschreibt in allen fünf
   Sprachfassungen den Selbstbezug, das Feld `file.day`, die Text-Verkettung,
   die vier neuen Funktionen und die Hervorhebung, dazu ein durchgerechnetes
-  Beispiel «Letzter Kontakt», das die Bausteine zusammenführt (4T-1075). Die
+  Beispiel «Letzter Kontakt», das die Bausteine zusammenführt (4T-001075). Die
   Seite «Inline-Konstrukte» nennt die drei dort wirksamen neuen Funktionen. Die
   mitgelieferte Demo-Area zeigt Selbstbezug und Hervorhebung als lauffähige
   Abfragen.
@@ -1287,23 +1348,23 @@ Umsetzungs-Vorgänge des Epics: 4T-1070, 4T-1071, 4T-1072, 4T-1073, 4T-1074 und
 ### Intern
 
 - Drei Modul-Schnitte, jeder vom Datei-Größen-Budget erzwungen: die
-  Quellen-Ebene der Abfrage und die Task-Helfer des Index (4T-1070) sowie die
-  Registry der Funktions-Gruppen des Handbuchs (4T-1075). Die
+  Quellen-Ebene der Abfrage und die Task-Helfer des Index (4T-001070) sowie die
+  Registry der Funktions-Gruppen des Handbuchs (4T-001075). Die
   Ausnahmeliste des Größen-Budgets ist dabei um einen Eintrag geschrumpft.
 
 ## [1.112.0.1619] - 2026-08-18 — Nutzen und Arbeitsweise
 
-Epic 3E-0194: Je eine Seite im Handbuch und auf der Produkt-Webseite zeigt den
+Epic 3E-000194: Je eine Seite im Handbuch und auf der Produkt-Webseite zeigt den
 Nutzen der Anwendung aus Anwender-Sicht statt als Funktions-Liste, in zehn
 Abschnitten und fünf Sprachfassungen. Dazu ein neuer Prüfschritt, der die
 Darstellung dauerhaft am Funktionsumfang hält.
 
-Umsetzungs-Vorgänge des Epics: 4T-1078, 4T-1079 und 4T-1080; Konzept-Stufe
-4T-1077, Release-Vorgang 4T-1081.
+Umsetzungs-Vorgänge des Epics: 4T-001078, 4T-001079 und 4T-001080; Konzept-Stufe
+4T-001077, Release-Vorgang 4T-001081.
 
 ### Neu
 
-- **Handbuch-Seite «Nutzen und Arbeitsweise»** (4T-1078): Neue gebündelte Seite
+- **Handbuch-Seite «Nutzen und Arbeitsweise»** (4T-001078): Neue gebündelte Seite
   `benefits` mit Registry-Eintrag, Titel-Key in fünf Sprachen und Verlinkung als
   erster Eintrag des Überblicks-Blocks «Nachschlagen». Zehn Abschnitte in zwei
   Hälften: die Arbeitsformen von den fünf Ansichten über Reiter, Gruppen und
@@ -1312,7 +1373,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1078, 4T-1079 und 4T-1080; Konzept-Stufe
   Table, Perspective Datatable, Perspective-Abfrage und Skript-Blöcke sowie einem
   Abschluss über die übrigen Erweiterungen. Jeder Abschnitt endet mit dem Verweis
   auf die zuständige Themen-Seite; Syntax und Bedien-Wege bleiben dort.
-- **Web-Seite «Nutzen»** (4T-1079): Neue Seite unter dem Pfad `nutzen` im
+- **Web-Seite «Nutzen»** (4T-001079): Neue Seite unter dem Pfad `nutzen` im
   Webseiten-Bau, in allen fünf Sprachen, mit Navigations-Schlüssel `navNutzen` in
   Kopfleiste und schmaler Navigation. Gleiche Gliederung wie die Handbuch-Fassung,
   anderer Ton (ohne die Voraussetzung, dass der Leser die Anwendung hat), mit
@@ -1321,7 +1382,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1078, 4T-1079 und 4T-1080; Konzept-Stufe
 
 ### Geändert
 
-- **Nutzen-Prüfschritt im Regelwerk verankert** (4T-1080): Vor jedem Release mit
+- **Nutzen-Prüfschritt im Regelwerk verankert** (4T-001080): Vor jedem Release mit
   nutzersichtbaren Änderungen wird geprüft, ob das Release etwas hervorgebracht
   hat, das in die Nutzen-Darstellung gehört. Der Prüfschritt ist ausdrücklich eine
   Frage und keine Ergänzungs-Pflicht; Maßstab ist die Bedeutung für den Anwender
@@ -1337,18 +1398,18 @@ Umsetzungs-Vorgänge des Epics: 4T-1078, 4T-1079 und 4T-1080; Konzept-Stufe
 
 ## [1.111.0.1601] - 2026-08-17 — Journal-Zeitleiste
 
-Epic 3E-0212: Ein neuer Block zeigt im Journal-Eintrag die Perioden-Übersicht
+Epic 3E-000212: Ein neuer Block zeigt im Journal-Eintrag die Perioden-Übersicht
 als Kalender, in vier Modi von der Wochen-Zeile bis zum Jahres-Raster. Jedes
 Element führt in seine Periode und legt fehlende Einträge an. Zweite Stufe des
 Standard-Ausbaus aus der EM4me-Vault-Analyse, mit eigenem Nutzwert unabhängig
 von der Übernahme.
 
-Umsetzungs-Vorgänge des Epics: 4T-1063, 4T-1064, 4T-1065, 4T-1066 und 4T-1067;
-Konzept-Stufe 4T-1061, Release-Vorgang 4T-1068.
+Umsetzungs-Vorgänge des Epics: 4T-001063, 4T-001064, 4T-001065, 4T-001066 und 4T-001067;
+Konzept-Stufe 4T-001061, Release-Vorgang 4T-001068.
 
 ### Neu
 
-- **Journal-Zeitleiste als Block** (4T-1064): Der Code-Block
+- **Journal-Zeitleiste als Block** (4T-001064): Der Code-Block
   `perspective-journal-timeline` zeigt im Journal-Eintrag eine Perioden-Übersicht
   in vier Modi, gesteuert über die Angabe `mode:` — `week` als einzelne
   Wochen-Zeile, `month` als Monatskalender, `quarter` als drei Monatskalender
@@ -1358,7 +1419,7 @@ Konzept-Stufe 4T-1061, Release-Vorgang 4T-1068.
   Wochentags-Kopf ab Montag und in der Kopfzeile die Perioden oberhalb der
   Kalender-Ebene, wobei die Ebene des Modus hervorgehoben ist. Maßgeblich ist
   die Periode des Eintrags, in dem der Block steht, nicht der heutige Tag.
-- **Punkte, Klick-Ziele und Anlage** (4T-1065): Tage mit vorhandenem Eintrag
+- **Punkte, Klick-Ziele und Anlage** (4T-001065): Tage mit vorhandenem Eintrag
   tragen einen Punkt, der heutige Tag ist hervorgehoben. Jedes Element führt in
   seine Perioden-Ebene und legt fehlende Einträge an: der Tag in den
   Tages-Eintrag, die Kalenderwoche in den Wochen-Eintrag, Monatsname und
@@ -1367,7 +1428,7 @@ Konzept-Stufe 4T-1061, Release-Vorgang 4T-1068.
   bleibt die Beschriftung reine Anzeige. Außerhalb der Datums-Grenzen eines
   Journals entsteht kein Eintrag. Die Punkte ziehen bei Konfigurations- und
   Struktur-Änderungen nach.
-- **Export-Verhalten der Zeitleiste** (4T-1066): Der PDF-Export druckt den
+- **Export-Verhalten der Zeitleiste** (4T-001066): Der PDF-Export druckt den
   fertigen Kalender statt eines leeren Platzhalters. Der Portable-Export
   ersetzt den Block durch eine Tabelle je Monat, mit einem Punkt-Zeichen an
   Tagen mit Eintrag und ohne Anlage-Links; außerhalb eines Journal-Eintrags
@@ -1375,12 +1436,12 @@ Konzept-Stufe 4T-1061, Release-Vorgang 4T-1068.
 
 ### Geändert
 
-- **Gemeinsamer Gitter-Baustein trägt jetzt einzelne Wochen** (4T-1063): Der
+- **Gemeinsamer Gitter-Baustein trägt jetzt einzelne Wochen** (4T-001063): Der
   von Kalender-Panel, Datums-Eingabe und Uhr-Kalender geteilte Monatsgitter-
   Baustein kann eine einzelne Wochen-Zeile zeichnen; das Monatsgitter ist
   darauf zurückgeführt. Die Darstellung der drei Bestands-Stellen bleibt
   unverändert.
-- **Existenz-Prüfung der Journal-Einträge fasst mehr Pfade** (4T-1065): Die
+- **Existenz-Prüfung der Journal-Einträge fasst mehr Pfade** (4T-001065): Die
   Kappung des Sammel-Aufrufs steigt von 500 auf 1000 Pfade. Der Jahres-Modus
   fragt in einem Aufruf 371 Tage ab und lag damit ohne Reserve unter der alten
   Grenze; eine greifende Kappung hätte still fehlende Punkte erzeugt.
@@ -1389,31 +1450,31 @@ Konzept-Stufe 4T-1061, Release-Vorgang 4T-1068.
 
 - Vier neue Schlüssel für Hinweis- und Fehlertexte der Zeitleiste sowie drei
   Katalog-Schlüssel der neuen Funktion, jeweils in allen fünf Sprachfassungen
-  (4T-1064, 4T-1067). Die Perioden-Beschriftungen nutzen die bestehenden
+  (4T-001064, 4T-001067). Die Perioden-Beschriftungen nutzen die bestehenden
   Schlüssel des Navigations-Blocks weiter.
 
 ### Dokumentation
 
-- **Handbuch-Seite «Journale»** (4T-1067): neuer Abschnitt «Timeline-Block» in
+- **Handbuch-Seite «Journale»** (4T-001067): neuer Abschnitt «Timeline-Block» in
   allen fünf Sprachfassungen, mit Modus-Tabelle, Aufbau, Klick- und
   Anlage-Verhalten und Export. Die Demo-Area zeigt den Block als Beispiel.
-- **Drei Datei-Schnitte** (4T-1067): Die Modus-Sprache der Zeitleiste, ihre
+- **Drei Datei-Schnitte** (4T-001067): Die Modus-Sprache der Zeitleiste, ihre
   Datenschicht und die Stilregeln beider Journal-Blöcke liegen in eigenen
   Modulen, weil das Datei-Größen-Budget sonst gerissen wäre.
 
 ## [1.110.0.1588] - 2026-08-17 — Datums-Formate mit Namen
 
-Epic 3E-0210: Der gemeinsame Datums-Formatierer von Vorlagen, Journalen und
+Epic 3E-000210: Der gemeinsame Datums-Formatierer von Vorlagen, Journalen und
 Abfragen kennt jetzt Monats- und Wochentagsnamen, Tag und Monat ohne führende
 Null und einen Literal-Schutz für Fließtext in Format-Angaben. Erste Stufe des
 Standard-Ausbaus aus der EM4me-Vault-Analyse, mit eigenem Nutzwert unabhängig
 von der Übernahme.
 
-Umsetzungs-Vorgänge des Epics: 4T-1057 und 4T-1058; Release-Vorgang 4T-1059.
+Umsetzungs-Vorgänge des Epics: 4T-001057 und 4T-001058; Release-Vorgang 4T-001059.
 
 ### Neu
 
-- **Monats- und Wochentagsnamen als Format-Token** (4T-1057): `MMMM`/`MMM`
+- **Monats- und Wochentagsnamen als Format-Token** (4T-001057): `MMMM`/`MMM`
   liefern den Monatsnamen lang und kurz, `EEEE`/`EEE` den Wochentagsnamen, dazu
   `d` und `M` für Tag und Monat ohne führende Null. In Vorlagen und
   Journal-Einträgen folgen die Namen der Oberflächen-Sprache (alle fünf
@@ -1421,7 +1482,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1057 und 4T-1058; Release-Vorgang 4T-1059.
   Laufzeit), in der Abfrage-Funktion `dateformat` der System-Sprache.
   Journal-Einträge behalten den Perioden-Start als Datums-Anker; rückwirkend
   angelegte Einträge zeigen das Perioden-Datum.
-- **Literal-Schutz in Format-Angaben** (4T-1057): Eckige Klammern halten Text
+- **Literal-Schutz in Format-Angaben** (4T-001057): Eckige Klammern halten Text
   wörtlich — `{{date::EEEE[, der] d. MMMM yyyy}}` ergibt «Montag, der
   17. August 2026», ohne dass Buchstaben wie `d` als Token ersetzt werden. Die
   Erkennung wertet längere Token vor kürzeren aus; ein Monatsname zerfällt nie
@@ -1429,13 +1490,13 @@ Umsetzungs-Vorgänge des Epics: 4T-1057 und 4T-1058; Release-Vorgang 4T-1059.
 
 ### Geändert
 
-- **Handbuch** (4T-1058): Die Seiten «Vorlagen» und «Perspective-Abfrage»
+- **Handbuch** (4T-001058): Die Seiten «Vorlagen» und «Perspective-Abfrage»
   dokumentieren die neuen Token und den Literal-Schutz in allen fünf
   Sprachfassungen mit sprach-eigenen Beispielen.
 
 ## [1.109.0.1571] - 2026-08-16 — Die Mindmap-Ansicht
 
-Epic 3E-0151: Ein Dokument lässt sich als Mindmap lesen. Überschriften und
+Epic 3E-000151: Ein Dokument lässt sich als Mindmap lesen. Überschriften und
 Listenpunkte werden zu Knoten eines Baums, der Fließtext darunter wird zur Notiz
 seines Knotens, und die Karte ist ein fünfter Ansichts-Modus je Reiter neben
 Quellcode, Geteilt, Gerendert und Live. Die Lage der Wurzel ist in fünf
@@ -1443,13 +1504,13 @@ Richtungen wählbar, anwendungsweit als Vorgabe und je Dokument im Kopfbereich.
 Die gesamte Anordnung ist Eigenleistung ohne Fremd-Bibliothek, nach dem Muster
 der Graphenansicht.
 
-Umsetzungs-Vorgänge des Epics: 4T-0725, 4T-1045, 4T-1046, 4T-1047, 4T-1048,
-4T-1049, 4T-1050, 4T-1054 und 4T-1055. Mitgefahren sind das Fehler-Bündel 3E-0208 mit 4T-1044 und der
-Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
+Umsetzungs-Vorgänge des Epics: 4T-000725, 4T-001045, 4T-001046, 4T-001047, 4T-001048,
+4T-001049, 4T-001050, 4T-001054 und 4T-001055. Mitgefahren sind das Fehler-Bündel 3E-000208 mit 4T-001044 und der
+Roadmap-Umbau 3E-000209 mit 4T-001056; beide brauchen keine eigene Release-Strecke.
 
 ### Neu
 
-- **Mindmap-Ansicht als fünfter Ansichts-Modus** (4T-1045 bis 4T-1047): Der
+- **Mindmap-Ansicht als fünfter Ansichts-Modus** (4T-001045 bis 4T-001047): Der
   Modus zeigt Überschriften-Hierarchie und hierarchische Listen eines Dokuments
   als Baum; Absätze, Tabellen, Code-Blöcke und Bilder werden Notiz ihres
   übergeordneten Knotens und öffnen sich auf Klick am Zettel-Symbol. Teilbäume
@@ -1460,13 +1521,13 @@ Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
   Der Modus ist eine schaltbare interne Erweiterung; ist sie aus, entfällt er
   in Menü, Statusleiste und Befehlspalette, und ein so gespeicherter Reiter
   öffnet in der Lese-Ansicht.
-- **Lage der Wurzel in fünf Richtungen** (4T-1049): links, mittig, rechts, oben
+- **Lage der Wurzel in fünf Richtungen** (4T-001049): links, mittig, rechts, oben
   und unten. Alle fünf sind dieselbe Anordnung, auf eine andere Achse abgebildet;
   der Knotentext bleibt in jeder Lage waagerecht. Bei mittiger Lage bleiben die
   Hauptäste in Dokument-Reihenfolge und werden dort geteilt, wo beide Seiten
   möglichst gleich hoch werden, sodass dasselbe Dokument stets dasselbe Bild
   ergibt.
-- **Darstellung der Mindmap einstellbar** (4T-1048): Lage der Wurzel,
+- **Darstellung der Mindmap einstellbar** (4T-001048): Lage der Wurzel,
   geschwungene oder gerade Linienführung, Ebene des Farb-Einfrierens, anfangs
   ausgeklappte Tiefe und Höchstbreite eines Knotens. Die Einstellungen sind die
   Vorgabe für alle Dokumente; jedes Dokument übersteuert sie für sich im
@@ -1476,21 +1537,21 @@ Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
 ### Geändert
 
 - **Die mittlere Statusleisten-Gruppe trennt ihre beiden Hälften sichtbar**
-  (4T-1055): Zwischen den drei Editor-Ansicht-Schaltern und den jetzt fünf
+  (4T-001055): Zwischen den drei Editor-Ansicht-Schaltern und den jetzt fünf
   Ansichts-Umschaltern liegt ein deutlicher Abstand, damit die Reihe nicht als
   eine einzige Leiste gelesen wird. Die Gruppe bleibt insgesamt mittig.
 
 ### Behoben
 
-- **Der Fenstertitel zeigt beim Start keinen rohen Schlüssel mehr** (4T-1044,
-  Epic 3E-0208): Zwischen dem Öffnen des Fensters und dem geladenen Wörterbuch
+- **Der Fenstertitel zeigt beim Start keinen rohen Schlüssel mehr** (4T-001044,
+  Epic 3E-000208): Zwischen dem Öffnen des Fensters und dem geladenen Wörterbuch
   stand im Titel kurz die unübersetzte Kennung des Titel-Zusatzes. Der Zusatz
   erscheint jetzt erst, sobald seine Übersetzung vorliegt.
-- **Die Mindmap-Schaltfläche fehlte in der Statusleiste** (4T-1055): Der Modus
+- **Die Mindmap-Schaltfläche fehlte in der Statusleiste** (4T-001055): Der Modus
   war über Menü und Befehlspalette erreichbar, nicht aber über die
   Modus-Umschaltung, obwohl die Anforderung alle drei Wege nennt. Ein Wächter
   hält den Satz der Schaltflächen jetzt gegen die Modus-Liste.
-- **Zwei Befunde der ersten Test-Iteration der Mindmap** (4T-1054): Der Sprung
+- **Zwei Befunde der ersten Test-Iteration der Mindmap** (4T-001054): Der Sprung
   zur Quellzeile blieb unsichtbar, weil er den Cursor in einem ausgeblendeten
   Editor setzte; er wechselt jetzt in die geteilte Ansicht. Das Notiz-Symbol war
   zu klein zum Treffen und verdeckte die Unterstreichung; es ist jetzt ein
@@ -1498,8 +1559,8 @@ Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
 
 ### Webseite
 
-- **Der Ausgeliefert-Bereich der öffentlichen Roadmap ist begrenzt** (4T-1056,
-  Epic 3E-0209): Er zeigt nur noch die fünf jüngsten Einträge unter der
+- **Der Ausgeliefert-Bereich der öffentlichen Roadmap ist begrenzt** (4T-001056,
+  Epic 3E-000209): Er zeigt nur noch die fünf jüngsten Einträge unter der
   Überschrift „Zuletzt ausgeliefert" und verweist darunter auf das
   Änderungsprotokoll, das alle Versionen trägt. Gewachsen war er auf 20
   Einträge und damit auf fast die Hälfte der Seite, ohne Information zu tragen,
@@ -1512,7 +1573,7 @@ Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
 
 ### Doku und i18n
 
-- **Handbuch und Funktions-Katalog nachgezogen** (4T-1050): Eine neue Seite
+- **Handbuch und Funktions-Katalog nachgezogen** (4T-001050): Eine neue Seite
   „Mindmap-Ansicht" in allen fünf Sprachfassungen, dazu erweitert die Seiten
   „Ansichten und Darstellung" (fünf statt vier Modi), „Frontmatter und
   Properties" (der Mindmap-Block je Dokument) und die Überblicksseite. Im
@@ -1521,18 +1582,18 @@ Roadmap-Umbau 3E-0209 mit 4T-1056; beide brauchen keine eigene Release-Strecke.
 
 ## [1.108.0.1538] - 2026-08-14 — Regale wieder erreichbar, unerwartete Fehler definiert aufgefangen
 
-Epic 3E-0207: ein kleines Bündel aus zwei Stabilitäts-Vorhaben. Das erste behebt
+Epic 3E-000207: ein kleines Bündel aus zwei Stabilitäts-Vorhaben. Das erste behebt
 einen Fehler der ausgelieferten Fassung, bei dem ein geschlossenes Bücherregal
 bis zum Neustart nicht mehr zu öffnen war. Das zweite löst eine Zusage der
 Entwicklungsrichtlinien ein, die der Bestand bisher nicht trug: Jede
 Prozess-Seite hat jetzt eine letzte Auffang-Ebene für unerwartete Fehler, statt
 das Verhalten der Plattform-Voreinstellung zu überlassen.
 
-Umsetzungs-Vorgänge des Epics: 4T-1031, 4T-0971 und 4T-1035.
+Umsetzungs-Vorgänge des Epics: 4T-001031, 4T-000971 und 4T-001035.
 
 ### Behoben
 
-- **Ein geschlossenes Bücherregal lässt sich wieder öffnen** (4T-1031): Wer ein
+- **Ein geschlossenes Bücherregal lässt sich wieder öffnen** (4T-001031): Wer ein
   Regal öffnete, sein Fenster schloss und dasselbe Regal danach erneut öffnete,
   bekam nichts, kein Fenster und keine Meldung; erreichbar war es erst nach
   einem Neustart der Anwendung. Ursache war ein Eintrag in der Verwaltung der
@@ -1545,7 +1606,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1031, 4T-0971 und 4T-1035.
 ### Geändert
 
 - **Unerwartete Fehler laufen jetzt in eine definierte Auffang-Ebene**
-  (4T-0971): Haupt-Prozess und Fenster fangen unbehandelte Ausnahmen und
+  (4T-000971): Haupt-Prozess und Fenster fangen unbehandelte Ausnahmen und
   unbehandelte Promise-Ablehnungen ab, protokollieren sie mit Kontext und
   reagieren daten-schonend. Im Fenster werden ungespeicherte Inhalte über den
   bestehenden Entwurfs-Weg gesichert, und die Sitzung läuft weiter; im
@@ -1558,7 +1619,7 @@ Umsetzungs-Vorgänge des Epics: 4T-1031, 4T-0971 und 4T-1035.
 
 ## [1.107.0.1503] - 2026-08-13 — Innere Struktur: der Bestand auf das Größen-Budget geschnitten
 
-Epic 3E-0196: ein Release **ohne nutzersichtbare Änderung**. Es schneidet den
+Epic 3E-000196: ein Release **ohne nutzersichtbare Änderung**. Es schneidet den
 historisch gewachsenen Bestand großer Quelldateien auf das seit dem 2026-08-05
 geltende Größen-Budget zu, in 32 Schnitt- und Umzugs-Tasks entlang einer vorab
 begründeten Reihenfolge. Die Zusage jedes einzelnen Schnitts war
@@ -1569,15 +1630,15 @@ von 73 auf 52 Einträge gefallen, davon nur noch sieben über 1000 Zeilen, und
 jeder verbliebene Eintrag trägt jetzt eine Begründung statt bloß seiner
 Herkunft.
 
-Umsetzungs-Vorgänge des Epics: 4T-0964, 4T-0972, 4T-0973, 4T-0974, 4T-0975,
-4T-0976, 4T-0977, 4T-0978, 4T-0979, 4T-0980, 4T-0981, 4T-0982, 4T-0983,
-4T-0984, 4T-0985, 4T-0986, 4T-0987, 4T-0988, 4T-0989, 4T-0990, 4T-0991,
-4T-0992, 4T-0993, 4T-0994, 4T-0995, 4T-0996, 4T-0997, 4T-0998, 4T-0999,
-4T-1000, 4T-1001, 4T-1002, 4T-1003, 4T-0965 und 4T-0966.
+Umsetzungs-Vorgänge des Epics: 4T-000964, 4T-000972, 4T-000973, 4T-000974, 4T-000975,
+4T-000976, 4T-000977, 4T-000978, 4T-000979, 4T-000980, 4T-000981, 4T-000982, 4T-000983,
+4T-000984, 4T-000985, 4T-000986, 4T-000987, 4T-000988, 4T-000989, 4T-000990, 4T-000991,
+4T-000992, 4T-000993, 4T-000994, 4T-000995, 4T-000996, 4T-000997, 4T-000998, 4T-000999,
+4T-001000, 4T-001001, 4T-001002, 4T-001003, 4T-000965 und 4T-000966.
 
 ### Geändert
 
-- **Der Main-Prozess ist zerlegt** (4T-0998 bis 4T-1000): `main.js` fällt von
+- **Der Main-Prozess ist zerlegt** (4T-000998 bis 4T-001000): `main.js` fällt von
   6908 auf 306 Zeilen. Dreizehn Logik- und Fenster-Module entstehen als
   Factories mit übergebenen Abhängigkeiten, die 156 IPC-Registrierungen wandern
   in siebzehn Kanal-Gruppen-Module unter `src/main/ipc/`. Grundlage ist die
@@ -1586,13 +1647,13 @@ Umsetzungs-Vorgänge des Epics: 4T-0964, 4T-0972, 4T-0973, 4T-0974, 4T-0975,
   bisherige Regel «nur `main.js` registriert» ist damit abgelöst. Nachgewiesen
   ist der Schnitt über die Kanal-Invariante, 156 Kanäle vor wie nach dem
   Schnitt.
-- **Renderer-Start, Editor und Ereignis-Bearbeitung** (4T-1001 bis 4T-1003): Die
+- **Renderer-Start, Editor und Ereignis-Bearbeitung** (4T-001001 bis 4T-001003): Die
   App-Initialisierung fällt von 3123 auf 760 Zeilen (neun Module,
   Listener-Invariante 94), der Editor-Kern von 1860 auf 761 und die
   Ereignis-Bearbeitung von 1935 auf 401 Zeilen. Editor und Ereignisse ziehen in
   eigene Feature-Ordner um und nehmen ihre Bestands-Dateien mit; die
   Reihenfolge der Editor-Erweiterungen bleibt dabei byte-gleich.
-- **Die großen Renderer-Bausteine** (4T-0985 bis 4T-0997): Die
+- **Die großen Renderer-Bausteine** (4T-000985 bis 4T-000997): Die
   Einstellungs-Seite fällt von 7266 Zeilen auf 24 Module mit einem Kern von 569
   Zeilen, die Ansichten auf zwölf, die Panels auf neun und die Lesezeichen auf
   sieben Module; der Live-Modus ist in zwei Stufen auf Pass-Module zerlegt, die
@@ -1600,13 +1661,13 @@ Umsetzungs-Vorgänge des Epics: 4T-0964, 4T-0972, 4T-0973, 4T-0974, 4T-0975,
   unveränderter Export-Fläche, und das Stilblatt des Renderers verteilt sich auf
   18 Scheiben, deren Verkettung byte-gleich zum Original ist. Das Stilblatt war
   mit 10271 Zeilen der größte Ratschen-Eintrag des Bestands.
-- **Die Kern-Module der ersten Tranche** (4T-0977 bis 4T-0984): Der
+- **Die Kern-Module der ersten Tranche** (4T-000977 bis 4T-000984): Der
   Backlinks-Index wird zur 88-Zeilen-Fassade über 14 Untermodulen, dazu kommen
   die Schnitte an Dialogen, Block-Eigenschaften, Buch-Panel, Properties-Tags,
   Aufgaben-Markern und dem Ereignis-Kern. Diese Tranche hat die Muster gesetzt,
   denen die späteren Schnitte folgen.
 - **Feature-Ordner statt flacher Modul-Listen** (Entscheidung E3, Sammel-Umzug
-  4T-0997): Der Main-Prozess führt 82 Module in neun Feature-Ordnern plus
+  4T-000997): Der Main-Prozess führt 82 Module in neun Feature-Ordnern plus
   `ipc/`, der Renderer 185 Module in achtzehn Feature-Ordnern. Der Sammel-Umzug
   allein hat 83 Module verschoben, neun deutsch benannte Bestands-Dateien
   englisch umbenannt und 720 Import-Spezifizierer in 224 Dateien nachgezogen.
@@ -1615,38 +1676,38 @@ Umsetzungs-Vorgänge des Epics: 4T-0964, 4T-0972, 4T-0973, 4T-0974, 4T-0975,
 
 ### Intern
 
-- **Werkzeuge, Tests und Web-Bau vorab geschnitten** (4T-0972 bis 4T-0976): Der
+- **Werkzeuge, Tests und Web-Bau vorab geschnitten** (4T-000972 bis 4T-000976): Der
   PM-Linter liegt als Fassade über fünf Regelgruppen-Modulen bei byte-gleicher
   Baseline, der Web-Bau als Fassade über fünf Bau-Modulen mit allen 61
   Export-Namen, das Web-Stilblatt als drei Scheiben in erhaltener
   Kaskaden-Reihenfolge, und zwei über 1000 Zeilen lange Specs sind bei
   unveränderter Testfall-Bilanz geteilt. Dieser Strang trägt keinen
   Produkt-Code-Anteil und ist deshalb fortlaufend integriert worden.
-- **Ausnahmen-Liste der Größen-Ratsche begründet** (4T-0965): 39 der 52
+- **Ausnahmen-Liste der Größen-Ratsche begründet** (4T-000965): 39 der 52
   Einträge haben eine faktenbasierte Begründung bekommen, 13 trugen sie bereits.
   Die Verzichts-Gründe sind benannt (geschlossene Fachlichkeit ohne tragfähige
   Naht, Schablonen- oder Registry-Charakter, Zeilenzahl nah am Budget), und fünf
   Einträge stehen ausdrücklich als «Naht vorhanden, Schnitt bewusst
   zurückgestellt». Eine überholte Schnitt-Zusage im Bestand ist aufgelöst.
-- **Pfad-Nachzug nach den Umzügen** (4T-0965): 133 Ersetzungen in 92 Dateien,
+- **Pfad-Nachzug nach den Umzügen** (4T-000965): 133 Ersetzungen in 92 Dateien,
   ausschließlich in Kommentaren, in der Ausnahmen-Liste und in drei
   Anforderungs-Dateien. Kein ausführbarer Code ist dabei berührt worden; 36
   bewusst belassene Stellen sind synthetische Fixture-Pfade.
 
 ### Dokumentation
 
-- **Bestandsaufnahme vor dem ersten Schnitt** (4T-0964): 31 Dateien über 1000
+- **Bestandsaufnahme vor dem ersten Schnitt** (4T-000964): 31 Dateien über 1000
   Zeilen sind mit Schnitt-Vorschlag, erwartetem Gewinn und Risiko vermessen
   worden; daraus entstanden die freigegebene Reihenfolge, die Ziel-Ordner-
   Landkarte und die Entscheidungen E1 bis E4 samt der übergeordneten Direktive,
   die Struktur auf Jahre von Zusatzfunktionalität auszulegen.
 - **Drei neue Regeln im Modul-Schnitt-Kapitel der Entwicklungsrichtlinien**
-  (4T-0965): Ein gerissenes Budget führt zum Nachschnitt an der fachlichen Naht
+  (4T-000965): Ein gerissenes Budget führt zum Nachschnitt an der fachlichen Naht
   und nicht zur neuen Ausnahme; beim Teilen einer Datei bekommt jeder geteilte
   Zustand genau ein Eigentümer-Modul mit Zugriffs-Funktionen; eine Zerlegung
   ohne Verhaltens-Änderung wird über byte-gleiche Rumpf-Verschiebung,
   Abdeckungs-Prüfung und maschinellen Invarianten-Abgleich nachgewiesen.
-- **Architektur fortgeschrieben** (Architektur-Prüfschritt des Epics, 4T-0965):
+- **Architektur fortgeschrieben** (Architektur-Prüfschritt des Epics, 4T-000965):
   Das Kapitel zur Code-Struktur ist am realen Baum neu geschrieben, neu sind die
   Sektionen zum Main-Prozess-Schnitt mit der Registrier-Regel nach E1 und zu den
   Struktur-Invarianten des Modul-Schnitts, dazu Erweiterungen am
@@ -1654,7 +1715,7 @@ Umsetzungs-Vorgänge des Epics: 4T-0964, 4T-0972, 4T-0973, 4T-0974, 4T-0975,
 
 ## [1.106.0.1407] - 2026-08-11 — Hauptrelease 1: Reife und der geschriebene Stand
 
-Epic 3E-0016: die Reife-Klammer vor dem Hauptversions-Sprung. Sie hat den Bestand
+Epic 3E-000016: die Reife-Klammer vor dem Hauptversions-Sprung. Sie hat den Bestand
 zum ersten Mal **methodisch** geprüft statt punktuell (sechs Kontext-Prüf-Runden
 über 89 Funktionen), die dabei gefundenen Befunde behoben und eine Zusage
 eingelöst, die vorher nur für die gerenderte Ansicht galt: **Jede Funktion
@@ -1662,50 +1723,50 @@ arbeitet auf dem geschriebenen Stand des offenen Dokuments**, nicht auf seinem
 zuletzt gespeicherten.
 
 Die erste Stelle der Version springt damit auf 1, die zweite läuft fort (Schema
-seit 4T-0898); aus 0.105.0 wird 1.106.0 und nicht 1.0.0.
+seit 4T-000898); aus 0.105.0 wird 1.106.0 und nicht 1.0.0.
 
 ### Neu
 
-- **Konflikt-Schutz beim Speichern** (4T-0945, Befund B-12): Das Speichern prüft
+- **Konflikt-Schutz beim Speichern** (4T-000945, Befund B-12): Das Speichern prüft
   vor dem Schreiben den Stand der Datei. Wurde sie zwischenzeitlich von außen
   geändert, meldet die Anwendung den Konflikt, statt die fremde Änderung still zu
   überschreiben; beim erzwungenen Schreiben wird die überschriebene Fassung
   gesichert. Anlass war eine Messung mit nachgewiesenem Datenverlust auf einer
   geteilten Ablage.
-- **Dateien auf Netz-Freigaben werden wieder überwacht** (4T-0946, Befund B-12):
+- **Dateien auf Netz-Freigaben werden wieder überwacht** (4T-000946, Befund B-12):
   Das automatische Neuladen greift dort über einen erkennungsabhängigen
   Abfrage-Betrieb (UNC-Pfad und gemapptes Laufwerk). Zuvor blieb eine fremde
   Änderung auf einer Freigabe unbemerkt. Der eigene Schreibvorgang wird dabei am
-  Inhalt erkannt und nicht mehr an einer Zeitsperre (4T-0947): Traf die Meldung
+  Inhalt erkannt und nicht mehr an einer Zeitsperre (4T-000947): Traf die Meldung
   später ein, erschien zuvor ein Konflikt-Dialog ohne Konflikt.
-- **Die Funktions-Seite kennzeichnet abgeschaltete Erweiterungen** (4T-0941):
+- **Die Funktions-Seite kennzeichnet abgeschaltete Erweiterungen** (4T-000941):
   Der Katalog bleibt vollständig, Einträge abgeschalteter Erweiterungen tragen
   einen Hinweis, wie sie sich einschalten lassen.
 
 ### Geändert
 
 - **Funktionen arbeiten auf dem geschriebenen Stand** (Anordnung des Product
-  Owners vom 2026-08-08, Story 4S-0787): Eingebettete Abfragen, Skript-Blöcke und
-  Ereignis-Aggregationen (4T-0935), die Tag-Liste samt Panel (4T-0950), der
-  Erinnerungs-Prüfer (4T-0951), die Wiki-Einbettung (4T-0948) und die
-  Bereichs-Suche (4T-0949) verwenden den Stand, der im Editor steht, ohne dass
-  gespeichert werden muss. Eine vollständige Erhebung (4T-0936) hat neun
+  Owners vom 2026-08-08, Story 4S-000787): Eingebettete Abfragen, Skript-Blöcke und
+  Ereignis-Aggregationen (4T-000935), die Tag-Liste samt Panel (4T-000950), der
+  Erinnerungs-Prüfer (4T-000951), die Wiki-Einbettung (4T-000948) und die
+  Bereichs-Suche (4T-000949) verwenden den Stand, der im Editor steht, ohne dass
+  gespeichert werden muss. Eine vollständige Erhebung (4T-000936) hat neun
   betroffene Stellen vermessen; die restlichen fünf folgen nach diesem Release.
 - **Der aktive Reiter einer Sidebar-Gruppe gilt je Spalte und je Fenster**
-  (4T-0942, Befund B-07): Zuvor wirkte ein Reiter-Wechsel in einer Spalte auf
+  (4T-000942, Befund B-07): Zuvor wirkte ein Reiter-Wechsel in einer Spalte auf
   beide. Anordnung und Gruppierung der Panels bleiben gemeinsam, die Panel-Höhen
   ebenfalls.
-- **Jeder Datums-Wert einer Aufgaben-Zeile ist anklickbar** (4T-0937, Befund
+- **Jeder Datums-Wert einer Aufgaben-Zeile ist anklickbar** (4T-000937, Befund
   B-09): Bisher öffnete allein der Erinnerungs-Wert den Datums-Wähler, die
   übrigen sechs Marker nicht.
 - **Die Entwickler-Werkzeuge sind aus dem Ansichtsmenü in den
-  Erweiterungs-Bereich der Einstellungen gewandert** (4T-0927), wo sie zur
+  Erweiterungs-Bereich der Einstellungen gewandert** (4T-000927), wo sie zur
   Diagnose eigener Erweiterungen gebraucht werden.
 
 ### Behoben
 
 Die folgenden Befunde stammen aus dem Charter-Durchgang und sind im
-Fehler-Durchgang (4T-0904) behoben, jeder mit Regressionstest und
+Fehler-Durchgang (4T-000904) behoben, jeder mit Regressionstest und
 Befund-Kennung am Test.
 
 - **Die Suche brach still ab**, wenn Treffer-Liste und Geltungsbereich
@@ -1726,35 +1787,35 @@ Befund-Kennung am Test.
   (Befund B-02); die Demo-Seite nennt jetzt den Ordner und beschreibt zutreffend,
   wie Bild-Einbettungen aufgelöst werden.
 - **Die Einstellungs-Seite schloss beim Bestätigen eine inzwischen frisch
-  geöffnete Seite** (4T-0701), und **ein früh gebundener Bereich verschluckte den
-  Nachhol-Dialog fälliger Erinnerungen** (4T-0635).
+  geöffnete Seite** (4T-000701), und **ein früh gebundener Bereich verschluckte den
+  Nachhol-Dialog fälliger Erinnerungen** (4T-000635).
 
 ### Dokumentation und Werkzeuge
 
-- **Methodischer Durchgang statt Stichprobe** (4T-0899): sechs Prüf-Runden
+- **Methodischer Durchgang statt Stichprobe** (4T-000899): sechs Prüf-Runden
   entlang der Kontext-Lagen (zweite Spalte, zweites Fenster, gerenderte Ansicht,
   ohne Bereich, mit abgeschalteten Erweiterungen, Wiederherstellung), 89
   geprüfte Funktionen, sechs Befunde. Ergänzt um das Kopplungs-Audit der
-  UI-Register (4T-0900), den scharfen Konsolen-Wächter in allen
-  End-zu-End-Läufen (4T-0901) und die abschließende Leistungs-Messung (4T-0903).
-- **Zur Code-Signatur bleibt es beim begründeten Verzicht** (4T-0902); der
+  UI-Register (4T-000900), den scharfen Konsolen-Wächter in allen
+  End-zu-End-Läufen (4T-000901) und die abschließende Leistungs-Messung (4T-000903).
+- **Zur Code-Signatur bleibt es beim begründeten Verzicht** (4T-000902); der
   Prüfsummen-Weg samt zweitem, unabhängigem Anker bleibt der Integritäts-Nachweis.
-- **Lizenz-Beigaben und Identitäts-Angaben konsolidiert** (4T-0905), die
+- **Lizenz-Beigaben und Identitäts-Angaben konsolidiert** (4T-000905), die
   Produkt-Beschreibung an drei Stellen auf den heutigen Funktionsumfang gebracht
   (Befund B-04).
 - **Handbuch-Seite zu eigenen Erweiterungen berichtigt und ergänzt**, in allen
   fünf Sprachfassungen: zwei Angaben stimmten nicht mit der Umsetzung überein
-  (Auszeichnungs-Syntax und Versions-Format, 4T-0924), und neu beschrieben sind
+  (Auszeichnungs-Syntax und Versions-Format, 4T-000924), und neu beschrieben sind
   der Diagnose-Weg über die Entwickler-Werkzeuge sowie der Änderungs-Zyklus, also
-  welcher Handgriff eine Änderung am eigenen Paket wirksam macht (4T-0925, am
+  welcher Handgriff eine Änderung am eigenen Paket wirksam macht (4T-000925, am
   laufenden Programm gemessen statt aus dem Code geschlossen).
-- **Bauten zwischen zwei Releases kennzeichnen sich selbst** (4T-0921), und der
+- **Bauten zwischen zwei Releases kennzeichnen sich selbst** (4T-000921), und der
   Bau-Ausgabe-Ordner trägt nur noch den aktuellen Bau: verwaiste Blockmaps
-  (Befund B-06) und Release-Hinweise fremder Versionen (4T-0957) werden entfernt.
+  (Befund B-06) und Release-Hinweise fremder Versionen (4T-000957) werden entfernt.
 
 ## [0.105.0.1235] - 2026-08-06 — Feinschliff an Menüs, Einstellungen und Handbuch
 
-Epic 3E-0168: das Feinschliff-Paket aus dem Funktions-Lücken-Review vor 1.0.0 —
+Epic 3E-000168: das Feinschliff-Paket aus dem Funktions-Lücken-Review vor 1.0.0 —
 die vier vom Product Owner per Mockup-Iteration beschlossenen Ziel-Strukturen
 (Datei-Menü Variante C, Ansicht-Menü Variante V2, Einstellungs-Navigation in
 vier Blöcken, Handbuch-Überblick in sechs Blöcken) plus die entschiedenen
@@ -1763,7 +1824,7 @@ Zuletzt-Listen für Bücher und Bücherregale.
 
 ### Neu
 
-- **Zuletzt geöffnete Bücher und Bücherregale** (4T-0888): zwei Listen im
+- **Zuletzt geöffnete Bücher und Bücherregale** (4T-000888): zwei Listen im
   Untermenü „Buch und Bücherregal" nach dem Muster der Bereichs-Liste (jüngste
   zuerst, ohne Dubletten, gekappt auf 10, Leer-Eintrag, „Liste löschen" mit
   Rückfrage), gepflegt an allen Öffnungs- und Anlage-Pfaden und persistent über
@@ -1772,15 +1833,15 @@ Zuletzt-Listen für Bücher und Bücherregale.
   `recent-lists.js` (Factory-Muster) und der Untermenü-Aufbau in das
   Electron-freie, erstmals unit-testbare `menu-recent.js`; die eingefrorenen
   Größen-Werte von `main.js` und `menu.js` wurden gemäß Ratsche gesenkt.
-- **Portabler Export als Kommando** (4T-0890, Befund L-05): neues
+- **Portabler Export als Kommando** (4T-000890, Befund L-05): neues
   Registry-Kommando `file.exportPortable` nach dem Muster des PDF-Exports; der
   Export ist damit in Kommando-Palette und Kürzel-Belegung verfügbar, der
   Menü-Eintrag läuft über das Kommando.
-- **Menü-Zugänge für vier Palette-only-Kommandos** (4T-0887, Befund L-04):
+- **Menü-Zugänge für vier Palette-only-Kommandos** (4T-000887, Befund L-04):
   Kalender-Wert und Ereignis-Block in der Einfügen-Gruppe des
   Editor-Kontextmenüs, „Teilbaum auswählen" am Ende von dessen Listen-Gruppe,
   „Kapitel-Datei verschieben…" als Menü-Eintrag im Buch-Untermenü.
-- **Handbuch-Seite „Ansichten und Darstellung"** (4T-0892, Befund L-09) in
+- **Handbuch-Seite „Ansichten und Darstellung"** (4T-000892, Befund L-09) in
   fünf Sprachen: Ansichts-Modi mit Kürzeln, Editor-Darstellung,
   Erscheinungsbild, Fenster-Zustand, Wort-Statistik, Einstellungs-Zugang,
   Sprache und Menüleiste (mit dem dokumentierten F12-Entscheid aus Befund
@@ -1788,30 +1849,30 @@ Zuletzt-Listen für Bücher und Bücherregale.
 
 ### Geändert
 
-- **Datei-Menü in Variante C** (4T-0887): oberste Ebene mit den vier
+- **Datei-Menü in Variante C** (4T-000887): oberste Ebene mit den vier
   Kern-Einträgen, den Untermenüs „Weitere Datei-Funktionen", „Bereich", „Buch
   und Bücherregal" und „Arbeitsbereiche" sowie dem Applikations-Block (Neue
   Applikation, Einstellungen…) über „Beenden" unten; kein Eintrag entfallen,
   Kontext-Deaktivierungen unverändert.
-- **Ansicht-Menü in Variante V2** (4T-0887): die vier Ansichts-Radios plus
+- **Ansicht-Menü in Variante V2** (4T-000887): die vier Ansichts-Radios plus
   „Bearbeiten" oben, darunter die Untermenüs „Editor-Darstellung", „Sidebar"
   und „Erscheinungsbild" (Fokus-Modus und Theme-Radios direkt), dann
   Dokument-Historie, Bereichs-Graph, Bereichs-Statistik, Kommando-Palette und
   Entwickler-Tools. Die Arbeitsbereichs-Farbpunkte liegen jetzt im neuen
   Main-Modul `menu-icons.js`.
-- **Einstellungs-Navigation in vier Blöcken** (4T-0889): Allgemein (Kern, endet
+- **Einstellungs-Navigation in vier Blöcken** (4T-000889): Allgemein (Kern, endet
   mit den beiden Verwaltungs-Sektionen), Aktueller Bereich (unverändert alles
   Bereichsgebundene), Erweiterungen (intern) alphabetisch nach lokalisiertem
   Titel, Erweiterungen (extern) nur bei installierten externen Erweiterungen.
   Herkunfts-Quelle ist allein die Erweiterungs-Registry; leere Blöcke
   entfallen.
-- **Handbuch-Überblick in sechs Themen-Blöcken** (4T-0892), bestehende
+- **Handbuch-Überblick in sechs Themen-Blöcken** (4T-000892), bestehende
   Link-Beschreibungen verlustfrei umsortiert; das Export-Kapitel der Seite
   „Mathematik und Diagramme" dokumentiert die Export-Grenze (Befund L-01: PDF
   als Vektorgrafik, portables Markdown lässt den Diagramm-Block als
   Quelltext); 38 Zugangs-Texte des Funktions-Katalogs und 14 Handbuch-Seiten je
   Sprache auf die neuen Untermenü-Pfade nachgezogen.
-- **Kürzel-Anzeige der sieben Editor-Umschalter** (4T-0890, Befunde L-06 und
+- **Kürzel-Anzeige der sieben Editor-Umschalter** (4T-000890, Befunde L-06 und
   L-08): belegte Registry-Kürzel erscheinen jetzt an den Menü-Einträgen (die
   Kürzel selbst wirkten schon); die Kommandos tragen Beschreibungen auf der
   generierten Tastenkürzel-Seite. Bei den vier zustands-geführten Einträgen
@@ -1819,13 +1880,13 @@ Zuletzt-Listen für Bücher und Bücherregale.
 
 ### Behoben
 
-- **Wiki-Embeds im portablen Export** (4T-0891, Befund L-02): Ein exportiertes Dokument
+- **Wiki-Embeds im portablen Export** (4T-000891, Befund L-02): Ein exportiertes Dokument
   zeigte für eingebettete Dateien eine leere Stelle; jetzt steht dort ein
   Verweis in Wiki-Link-Optik mit derselben Ziel-Adresse, die auch der
   Wiki-Link bilden würde. Eine wieder in der App geöffnete portable Datei
   bleibt voll aufgelöst, weil der Verweis innerhalb des Platzhalter-Spans
   liegt.
-- **Menü-Häkchen der Sidebar-Panels** (4T-0887, PO-Befund der
+- **Menü-Häkchen der Sidebar-Panels** (4T-000887, PO-Befund der
   Test-Iteration): Das Suchergebnisse-Panel trug im Panel-Untermenü nie ein
   Häkchen (fehlender Eintrag in der Roh-Sichtbarkeits-Tabelle), und die
   Menü-State-Meldung hing an den einzelnen Panel-Pfaden, von denen nicht alle
@@ -1842,7 +1903,7 @@ Zuletzt-Listen für Bücher und Bücherregale.
 
 ## [0.104.0.1191] - 2026-08-04 — Bücherregale, und Bücher als eigener Arbeitsraum
 
-Epic 3E-0162: Bücher lassen sich zu **Bücherregalen** gruppieren — ein Ordner
+Epic 3E-000162: Bücher lassen sich zu **Bücherregalen** gruppieren — ein Ordner
 über Buch-Ordnern mit eigener Regal-Datei, Begleitdatei und einer Ansicht aus
 Kacheln oder Zeilen. Aus dem Test des Regal-Standes folgte die
 Grundsatz-Entscheidung des Product Owners vom 2026-08-04, Buch und Regal
@@ -1852,18 +1913,18 @@ teilen sich nie ein Fenster.
 
 ### Neu
 
-- **Regal-Modell und Begleitdatei** (4T-0866): Ein Bücherregal ist ein Ordner
+- **Regal-Modell und Begleitdatei** (4T-000866): Ein Bücherregal ist ein Ordner
   mit Regal-Datei und Begleitdatei `Shelf_Settings.mdda`, die die Regal-Datei
   benennt und die zugeordneten Bücher in ihrer Reihenfolge führt; die Bücher
   liegen als Buch-Ordner unmittelbar darunter. Die Erkennung läuft wie beim
   Buch allein über die Begleitdatei, ohne Rückverweis in der Markdown-Datei.
-- **Regal öffnen, anlegen und Bücher zuordnen** (4T-0867): Datei →
+- **Regal öffnen, anlegen und Bücher zuordnen** (4T-000867): Datei →
   Bücherregal öffnen…/Neues Bücherregal…/Bücherregal schließen; das Öffnen
   der Regal-Datei selbst erkennt das Regal. Buch-Ordner unterhalb des Regals,
   die noch nicht zugeordnet sind, erscheinen als „nicht zugeordnet" und lassen
   sich von dort aufnehmen; ein geöffnetes Regal übersteht die
   Sitzungs-Wiederherstellung.
-- **Regal-Ansicht mit Kacheln und Zeilen** (4T-0868): Das Regal erscheint als
+- **Regal-Ansicht mit Kacheln und Zeilen** (4T-000868): Das Regal erscheint als
   eigene Seite im Reiter-System. Kacheln zeigen die Buch-Bilder als Raster
   (ohne Bild-Verweis eine Platzhalter-Kachel mit dem Buch-Titel), Zeilen
   zeigen Bild, Name, Kapitel-Anzahl, Autor und Beschreibung; der gewählte
@@ -1871,7 +1932,7 @@ teilen sich nie ein Fenster.
 
 ### Geändert
 
-- **Ein Buch ist ein eigener Arbeitsraum** (4T-0871): „Buch öffnen" folgt dem
+- **Ein Buch ist ein eigener Arbeitsraum** (4T-000871): „Buch öffnen" folgt dem
   Muster des Bereichs — läuft das Buch schon, springt die Anwendung in sein
   Fenster; eine freie Applikation wird gebunden, sonst entsteht eine neue mit
   eigenem Fenster. Die Buch-Applikation ist an den Buch-Ordner gebunden
@@ -1880,7 +1941,7 @@ teilen sich nie ein Fenster.
   schließt die Applikation samt Fenstern. Damit zeigt jedes Fenster immer die
   Kapitel genau eines Buches. Bilder und Anlagen eines Buches gehören in den
   Buch-Ordner; die mitgelieferte Demo-Ablage ist entsprechend umgestellt.
-- **Ein Regal ebenso** (4T-0873): Regale öffnen nach demselben Muster als
+- **Ein Regal ebenso** (4T-000873): Regale öffnen nach demselben Muster als
   eigene Applikation mit dem Regal-Ordner als Grenze und dem Regal-Namen im
   Fenstertitel; „Bücherregal schließen" schließt die Applikation. Das
   Regal-Fenster hält ausschließlich die Regal-Ebene: Jeder Griff in ein Buch,
@@ -1889,16 +1950,16 @@ teilen sich nie ein Fenster.
 
 ### Behoben
 
-- **«Bereich schließen» war in Buch- und Regal-Fenstern aktiv** (4T-0881):
+- **«Bereich schließen» war in Buch- und Regal-Fenstern aktiv** (4T-000881):
   Der Menü-Zustand fragte nur die intern vorhandene Bereichs-Bindung; jetzt
   folgt der Menüpunkt dem Fenster-Kontext und bleibt Buch- und Regal-Fenstern
   ihren eigenen Schließen-Punkten überlassen. Dabei behoben: «Bücherregal
   schließen» war im Menü durchgängig deaktiviert, weil der Regal-Zustand
   nicht an den Menü-Bau durchgereicht wurde.
-- **Wiederhergestelltes Regal-Fenster blieb leer** (4T-0882): Die
+- **Wiederhergestelltes Regal-Fenster blieb leer** (4T-000882): Die
   Sitzungs-Wiederherstellung stellte nur die Regal-Bindung her, ohne die
   Regal-Seite zu öffnen; jetzt erscheint die Seite wie beim regulären Öffnen.
-- **Einstellungs-Suche fand die Erweiterungen nicht** (4T-0872, Epic 3E-0161):
+- **Einstellungs-Suche fand die Erweiterungen nicht** (4T-000872, Epic 3E-000161):
   Die Suche in den Einstellungen erntete nur Zeilen mit dem Standard-Markup;
   Namen und Beschreibungen der Erweiterungen sowie zahlreiche
   Gruppen-Überschriften fehlten damit vollständig im Suchraum. Ernte und
@@ -1906,8 +1967,8 @@ teilen sich nie ein Fenster.
 
 ### Dokumentation
 
-- **Handbuch, Funktions-Katalog und Demo-Regal** (4T-0869, mit 4T-0871 und
-  4T-0873 fortgeschrieben): Die Bücher-Seite des Handbuchs trägt in allen fünf
+- **Handbuch, Funktions-Katalog und Demo-Regal** (4T-000869, mit 4T-000871 und
+  4T-000873 fortgeschrieben): Die Bücher-Seite des Handbuchs trägt in allen fünf
   Sprachen ein Regal-Kapitel und beschreibt das Fenster-Modell beider Ebenen;
   der Funktions-Katalog erhielt die Einträge „Bücherregal" und „Regal-Ansicht"
   (je drei Schlüssel in fünf Sprachen). Die Demo-Ablage gruppiert ihre Bücher
@@ -1916,7 +1977,7 @@ teilen sich nie ein Fenster.
 
 ## [0.103.0.1141] - 2026-08-03 — Bücher
 
-Epic 3E-0147: Mehrere Markdown-Dateien lassen sich zu einem **Buch** mit
+Epic 3E-000147: Mehrere Markdown-Dateien lassen sich zu einem **Buch** mit
 erklärter Lese-Ordnung bündeln — ein Kontext auf derselben Ebene wie Bereich
 und Arbeitsbereich. Die Kapitel bleiben gewöhnliche, einzeln lesbare Dateien;
 die Struktur liegt in einer Begleitdatei je Buch-Ordner, nicht im Dateinamen
@@ -1924,7 +1985,7 @@ und nicht in der Ordner-Lage.
 
 ### Neu
 
-- **Buch-Modell und Erkennung** (4T-0842, 4T-0843): Ein Buch ist ein Ordner
+- **Buch-Modell und Erkennung** (4T-000842, 4T-000843): Ein Buch ist ein Ordner
   mit Buch-Datei und Begleitdatei `Book_Settings.mdda` (Kapitel-Baum als
   Sektion, Verweise relativ zum Buch-Ordner; Vorbild ist der Lesezeichen-Baum
   der Bereichsdatei). Datei → Buch öffnen…/Neues Buch…/Buch schließen; das
@@ -1932,37 +1993,37 @@ und nicht in der Ordner-Lage.
   Rückverweis in der Markdown-Datei. Je Applikation ist ein Buch aktiv, die
   Sitzungs-Wiederherstellung bringt es zurück; Kapitel-Dateien öffnen wie
   gewöhnliche Dateien.
-- **Inhaltsverzeichnis-Panel** (4T-0844): Kapitel-Baum in Lese-Reihenfolge mit
+- **Inhaltsverzeichnis-Panel** (4T-000844): Kapitel-Baum in Lese-Reihenfolge mit
   Lese-Markierung, Sprung per Klick, Anfasser-Markern, Abschnitt „nicht
   eingehängt" und Vor/Zurück-Knöpfen; verankert an beiden Bedienorten
   (Statusbar-Button, Ansichtsmenü).
-- **Struktur-Pflege** (4T-0845): Ziehen am Anfasser verschiebt ein Kapitel
+- **Struktur-Pflege** (4T-000845): Ziehen am Anfasser verschiebt ein Kapitel
   samt Unterkapiteln in der Ebene und über Ebenen; gleichwertig Alt+Pfeile am
   fokussierten Eintrag; Kontextmenü mit „Neues Kapitel" (legt die Datei an und
   hängt sie ein), „Einhängen" und „Aushängen". Jede Operation schreibt nur die
   Begleitdatei, nie das Dateisystem.
-- **Leseführung** (4T-0846): `book.nextChapter`/`book.previousChapter`
+- **Leseführung** (4T-000846): `book.nextChapter`/`book.previousChapter`
   (Standard `Strg+Alt+Bild ab`/`Bild auf`, umbelegbar) folgen der Lese-Ordnung
   über Datei-Grenzen; an Anfang und Ende meldet die Statusbar die Grenze statt
   umzulaufen.
-- **Kapitel-Datei verschieben mit Nachführung** (4T-0847): eigenes Kommando
+- **Kapitel-Datei verschieben mit Nachführung** (4T-000847): eigenes Kommando
   samt Kontextmenü-Eintrag, Ziel nur innerhalb des Buch-Ordners; Wiki-Links,
   relative Markdown-Links und der Kapitel-Baum-Eintrag ziehen nach. Das
   Umbenennen führt die Begleitdatei ebenfalls nach, unabhängig davon, ob das
   Buch geöffnet ist.
-- **Reparatur fehlender Kapitel** (4T-0848): Baum-Einträge ohne Datei sind
+- **Reparatur fehlender Kapitel** (4T-000848): Baum-Einträge ohne Datei sind
   markiert; ein namensgleicher Fund im Buch-Ordner wird sichtbar vorgeschlagen,
   „Neu zuordnen…" (vorbelegt, Liste oder Datei-Wahl) und „Aushängen" heilen den
   Baum per Klick, nie automatisch.
-- **Bücher als interne Erweiterung** (4T-0849): der gesamte Block ist
+- **Bücher als interne Erweiterung** (4T-000849): der gesamte Block ist
   schaltbar (ab Werk an); im Aus-Zustand verschwinden Menüpunkte, Kommandos,
   Panel und Erkennung, alle Dateien bleiben unangetastet.
-- **Demo-Buch** in der Demo-Area (4T-0850): vollständiges Beispiel-Buch mit
+- **Demo-Buch** in der Demo-Area (4T-000850): vollständiges Beispiel-Buch mit
   Unterordner-Kapitel und bewusst nicht eingehängter Datei.
 
 ### Geändert
 
-- **Verweis-Nachführung bei Verzeichniswechsel** (4T-0847): relative
+- **Verweis-Nachführung bei Verzeichniswechsel** (4T-000847): relative
   Markdown-Links werden jetzt auch dann korrekt nachgeführt, wenn die
   Zieldatei das Verzeichnis wechselt (der Bestand kannte nur das Umbenennen am
   Ort und ersetzte allein den Datei-Namen). Textgleiche Nachführungen werden
@@ -1983,17 +2044,17 @@ Die folgenden Inhalte sind Teil dieser Version, fehlten aber bei der
 Veröffentlichung in diesem Protokoll: Sie waren vor dem Release-Tag nach
 `main` integriert und gingen mit der parallel laufenden Release-Strecke der
 Bücher mit, ohne dass deren Checkliste sie erfasste. Sie stammen aus dem Epic
-3E-0164 (Side-Panel-Verhalten) und zwei Pflege-Tasks; die strukturelle
+3E-000164 (Side-Panel-Verhalten) und zwei Pflege-Tasks; die strukturelle
 Ursache behebt der Umbau des Integrationsmodells auf Feature-Branches.
 
 #### Neu
 
-- **Seitenleiste rollt bei Überlauf** (3E-0164, 4T-0854): Verlangen die per
+- **Seitenleiste rollt bei Überlauf** (3E-000164, 4T-000854): Verlangen die per
   Zieh-Griff eingestellten Panel-Höhen zusammen mehr Platz, als die Spalte
   hat, wird die Spalte senkrecht rollbar. Verdrängte Panels verschwinden
   nicht mehr unsichtbar, jedes behält mindestens seine Kopfzeile; ohne
   Überlauf ändert sich nichts, die eingeklappte Spalte bleibt unberührt.
-- **Höhen-Modell der Panel-Blöcke umschaltbar** (3E-0164, 4T-0855): Neue
+- **Höhen-Modell der Panel-Blöcke umschaltbar** (3E-000164, 4T-000855): Neue
   Einstellung (Einstellungen → Sidebar) mit den Werten „Höhe je Panel"
   (Vorgabe, Bestandsverhalten) und „feste Höhe je Gruppe" — eine
   Reiter-Gruppe behält beim Durchblättern ihre Höhe, darunter liegende
@@ -2005,7 +2066,7 @@ Ursache behebt der Umbau des Integrationsmodells auf Feature-Branches.
 
 - **Kommando „Zuletzt geöffnete Sitzung wiederherstellen"** in der
   Kommando-Palette der Gruppe zugeordnet, die sein Menü-Ort erwarten lässt
-  (4T-0836); dazu ein veralteter Zähler im Kopf-Kommentar des
+  (4T-000836); dazu ein veralteter Zähler im Kopf-Kommentar des
   Panel-Zugangs-Modells korrigiert.
 
 #### i18n und Doku
@@ -2013,17 +2074,17 @@ Ursache behebt der Umbau des Integrationsmodells auf Feature-Branches.
 - Sieben neue Übersetzungs-Schlüssel in allen fünf Sprachen (Einstellung
   samt Werten und Hinweis, Funktions-Katalog-Eintrag des Höhen-Modells);
   der Katalog-Eintrag der Panel-Höhen um das Überlauf-Verhalten ergänzt
-  (4T-0855, 4T-0856).
+  (4T-000855, 4T-000856).
 - Handbuch-Seite „Sidebar" in fünf Sprachfassungen um das Rollen bei
   Überlauf und den Abschnitt „Höhe je Panel oder je Gruppe" erweitert
-  (4T-0856).
+  (4T-000856).
 - Schriftart und Schriftgröße von Editor und Lese-Ansicht in Funktions-
   Katalog und Handbuch aufgenommen; die Funktion war ausgeliefert, aber
-  nicht auffindbar dokumentiert (4T-0837).
+  nicht auffindbar dokumentiert (4T-000837).
 
 ## [0.102.0.1111] - 2026-08-02 — Erweiterungs-API v1.1 und Referenz-Beispiel
 
-Epic 3E-0103: Wer eine eigene Erweiterung schreibt, kann ihr Panel jetzt an das
+Epic 3E-000103: Wer eine eigene Erweiterung schreibt, kann ihr Panel jetzt an das
 angezeigte Dokument koppeln, und es gibt ein vollständiges Beispiel zum
 Nachbauen. Der Anlass war ein Befund aus dem Bau des Beispiels selbst: Die
 öffentliche Erweiterungs-API bot keinen Zugriff auf die gerenderte Ansicht,
@@ -2032,14 +2093,14 @@ Dokument binden konnte.
 
 ### Neu
 
-- **Render-Andockpunkt der Erweiterungs-API** (4T-0825): `ctx.getRenderRoot`
+- **Render-Andockpunkt der Erweiterungs-API** (4T-000825): `ctx.getRenderRoot`
   liefert den Container der gerenderten Ansicht einer Spalte,
   `ctx.onRenderUpdated` meldet jeden Neuaufbau und jeden Wechsel der Ansicht.
   Die API-Version steht damit auf 1.1; Pakete mit `apiVersion: "1.0"` laufen
   unverändert weiter. Die Verteilung übernimmt ein Beobachter im Erweiterungs-
   Host, nicht ein Aufruf in den acht Stellen, die die gerenderte Ansicht
   schreiben — ein künftiger neunter Schreibweg bräche die Zusage sonst still.
-- **Referenz-Erweiterung „Notiz-Merker"** (4T-0826) unter
+- **Referenz-Erweiterung „Notiz-Merker"** (4T-000826) unter
   `addon_examples/notiz-merker/`: `>>Text<<` markiert eine Stelle als Merker,
   ein Sidebar-Panel sammelt die Merker des Dokuments als anspringbare Liste und
   bietet darunter eine dauerhafte Notizfläche, `Strg`+`Alt`+`M` geht die Merker
@@ -2050,7 +2111,7 @@ Dokument binden konnte.
 ### Geändert
 
 - **Die Test-Abdeckung der externen Erweiterungen läuft gegen das reale Paket**
-  (4T-0826): Die bisherige Attrappe `test/fixtures/extensions/beispiel` entfällt;
+  (4T-000826): Die bisherige Attrappe `test/fixtures/extensions/beispiel` entfällt;
   Paket-Scan, Render-Plugin-Test und die E2E-Spec laden `addon_examples/`. Bricht
   die API, bricht damit sichtbar das veröffentlichte Beispiel. Die Fehlerfall-
   Pakete `defekt` und `inkompatibel` bleiben Fixtures.
@@ -2061,7 +2122,7 @@ Dokument binden konnte.
 ### Doku
 
 - **Handbuch-Seite „Erweiterungen erstellen"** in allen fünf Sprachen erweitert
-  (4T-0827): die beiden neuen `ctx`-Mitglieder in der Referenz-Tabelle, ein
+  (4T-000827): die beiden neuen `ctx`-Mitglieder in der Referenz-Tabelle, ein
   eigener Abschnitt „Render-Andockpunkt" mit lauffähigem Beispiel, die
   API-Version 1.1 samt Bedeutung des Minor-Schritts und drei Punkte zur eigenen
   Syntax. Der wichtigste davon war bisher nirgends dokumentiert: **Das
@@ -2081,7 +2142,7 @@ Dokument binden konnte.
 
 ## [0.101.0.1103] - 2026-08-02 — Rechtschreibprüfung
 
-Epic 3E-0107: Der Editor markiert falsch geschriebene Wörter und bietet im
+Epic 3E-000107: Der Editor markiert falsch geschriebene Wörter und bietet im
 Kontextmenü die Korrektur an. Geprüft wird ausschließlich mit dem Prüfer des
 Betriebssystems; die Anwendung bringt kein eigenes Wörterbuch mit, lädt keines
 nach und setzt keine Prüfsprache. Die Prüfung ist ab Werk aus und als
@@ -2089,20 +2150,20 @@ Erweiterung schaltbar.
 
 ### Neu
 
-- **Rechtschreibprüfung im Editor** (4T-0581): Tippfehler erscheinen in der
+- **Rechtschreibprüfung im Editor** (4T-000581): Tippfehler erscheinen in der
   Quelltext- und der Live-Ansicht unterringelt, das Notizfeld folgt demselben
   Schalter. Neuer Einstellungs-Bereich „Rechtschreibprüfung" mit dem Schalter
   (ab Werk aus) und neue schaltbare Erweiterung `spellcheck` in der Kategorie
   Werkzeuge. Neues geteiltes Modul `src/shared/spellcheck.js` mit Store-
   Schlüssel und den reinen Helfern.
-- **Korrektur-Vorschläge und Wörterbuch** (4T-0582): Rechtsklick auf ein
+- **Korrektur-Vorschläge und Wörterbuch** (4T-000582): Rechtsklick auf ein
   markiertes Wort zeigt bis zu fünf Vorschläge ganz oben im Editor-Kontextmenü,
   darunter „Zum Wörterbuch hinzufügen". Die eigenen Wörterbuch-Einträge stehen
   im Einstellungs-Bereich als Liste und lassen sich einzeln entfernen.
 
 ### Geändert
 
-- **Kein `preventDefault` mehr am Editor-Kontextmenü** (4T-0582): Der Abbruch
+- **Kein `preventDefault` mehr am Editor-Kontextmenü** (4T-000582): Der Abbruch
   des DOM-Ereignisses unterdrückte das `context-menu`-Ereignis des
   Main-Prozesses und damit die einzige Quelle der Korrektur-Vorschläge. Er war
   ohnehin wirkungslos, weil Electron von sich aus kein Kontextmenü anbietet.
@@ -2112,7 +2173,7 @@ Erweiterung schaltbar.
 ### Doku
 
 - **Handbuch-Seite „Werkzeuge"** um einen Abschnitt zur Rechtschreibprüfung
-  erweitert, in allen fünf Sprachen (4T-0583): Einschalten, Herkunft der
+  erweitert, in allen fünf Sprachen (4T-000583): Einschalten, Herkunft der
   Prüfsprache, Korrigieren, Grenzen, Erweiterung. Dazu ein neuer
   Funktions-Katalog-Eintrag und zehn neue i18n-Schlüssel je Sprache.
 
@@ -2126,7 +2187,7 @@ Erweiterung schaltbar.
 
 ## [0.100.0.1061] - 2026-07-29 — Anlagen einfügen
 
-Epic 3E-0125: Eine Datei, die zu einem Dokument gehört, muss nicht mehr von
+Epic 3E-000125: Eine Datei, die zu einem Dokument gehört, muss nicht mehr von
 Hand gespeichert und verlinkt werden. Wer sie einfügt oder in das Dokument
 zieht, bekommt beides in einem Schritt: Die Datei wird an einem einstellbaren
 Ort abgelegt, und im Text entsteht der passende Verweis. Damit ist der
@@ -2135,7 +2196,7 @@ versprochen hatte.
 
 ### Neu
 
-- **Anlagen ablegen und verlinken** (4T-0787, 4T-0642, 4T-0789): `Strg+V` fügt
+- **Anlagen ablegen und verlinken** (4T-000787, 4T-000642, 4T-000789): `Strg+V` fügt
   eine Datei oder ein Bild aus der Zwischenablage ein; alternativ lässt sich
   eine Datei aus dem Dateimanager auf die Editor-Fläche oder die Render-Ansicht
   ziehen. Bilder erhalten einen Bild-Verweis, andere Dateien einen Link, jeweils
@@ -2144,14 +2205,14 @@ versprochen hatte.
   Dokument-Flächen entsteht eine Anlage, auf Reiterleiste und Seitenbereich wird
   die Datei wie bisher geöffnet. Ein Einfügen oder Ziehen ist ein einzelner
   Rückgängig-Schritt.
-- **Vier Ablage-Formen, einstellbar** (4T-0791): neben dem Dokument, fester
+- **Vier Ablage-Formen, einstellbar** (4T-000791): neben dem Dokument, fester
   Unterordner, Ordner mit dem Namen des Dokuments (Voreinstellung) und, bei
   geöffnetem Arbeitsbereich, ein zentraler Ordner des Bereichs. Die Einstellung
   gibt es global und je Bereich; die Bereichs-Einstellung übersteuert die
   globale und lässt sich mit „Wie allgemein" wieder abgeben. Ein vorhandener
   Dateiname wird nie überschrieben, sondern um einen Zähler ergänzt; Anlagen
   ohne eigenen Namen werden nach Dokument und Zeitpunkt benannt.
-- **Anlagen aus dem Dokument heraus öffnen** (4T-0790): Ein Klick auf den
+- **Anlagen aus dem Dokument heraus öffnen** (4T-000790): Ein Klick auf den
   Verweis öffnet die Anlage im zuständigen Programm des Betriebssystems, bei
   eingebetteten Bildern in der Render-Ansicht per einfachem Klick und im Editor
   per Doppelklick, damit der einfache Klick dort weiter die Schreibmarke setzt.
@@ -2161,7 +2222,7 @@ versprochen hatte.
 
 ### Geändert
 
-- **Bilder eines Arbeitsbereichs sind bereichsweit sichtbar** (4T-0788): Die
+- **Bilder eines Arbeitsbereichs sind bereichsweit sichtbar** (4T-000788): Die
   Auflösung relativer Bild-Pfade endet bei geöffnetem Bereich an dessen Wurzel
   statt am Ordner der Datei. Erst dadurch ist ein zentraler Anlagen-Ordner
   nutzbar, denn ein Dokument in einem Unterordner verweist mit `../` in ihn
@@ -2172,7 +2233,7 @@ versprochen hatte.
 
 ### Behoben
 
-- **Klick auf einen eingebetteten Wiki-Embed einer sonstigen Datei** (4T-0790):
+- **Klick auf einen eingebetteten Wiki-Embed einer sonstigen Datei** (4T-000790):
   Der Klick war wirkungslos, weil der zugrunde liegende Kanal ausschließlich
   Netz-Adressen durchließ und eine lokale Datei still verwarf. Er nutzt jetzt
   denselben Weg wie die übrigen Anlagen und unterliegt denselben beiden
@@ -2180,7 +2241,7 @@ versprochen hatte.
 
 ### Dokumentation
 
-- **Neue Handbuch-Seite „Anlagen"** in fünf Sprachen (4T-0792), verlinkt von der
+- **Neue Handbuch-Seite „Anlagen"** in fünf Sprachen (4T-000792), verlinkt von der
   Überblicksseite, dazu zwei neue Einträge im Funktions-Katalog (30 neue
   Übersetzungs-Schlüssel). Die Seite „Bilder" ist in allen fünf Fassungen
   berichtigt: Ihre Aussage zur Auflösungs-Grenze galt nach der Änderung oben
@@ -2189,7 +2250,7 @@ versprochen hatte.
 
 ## [0.99.0.1041] - 2026-07-29 — Bereichs-Suche
 
-Epic 3E-0116: Ein geöffneter Bereich wird zum Suchraum. `Strg+F` in einer
+Epic 3E-000116: Ein geöffneter Bereich wird zum Suchraum. `Strg+F` in einer
 seiner Dateien durchsucht nicht mehr nur diese Datei, sondern alle
 Markdown-Dateien des Bereichs; die Treffer erscheinen nach Dateien gruppiert
 im vorhandenen Suchergebnis-Panel. Damit ist die zweite Hälfte des
@@ -2198,7 +2259,7 @@ die Bereichs-Statistik in 0.98.0 gebracht hat.
 
 ### Neu
 
-- **Bereichsweite Volltext-Suche** (4T-0616): Der Suchbereich folgt weiter dem
+- **Bereichsweite Volltext-Suche** (4T-000616): Der Suchbereich folgt weiter dem
   Reiter, in dem gesucht wird — neu kommt der Fall „Datei in einem geöffneten
   Bereich" hinzu, der den ganzen Bereich umfasst. Welcher Bereich gilt, steht
   links in der Suchleiste. Die Trefferliste ist nach Dateien gruppiert, `F3`
@@ -2207,12 +2268,12 @@ die Bereichs-Statistik in 0.98.0 gebracht hat.
   die Trefferliste, die mit 0.95.0 für Handbuch und Einstellungen entstanden
   ist, als dritten Lieferanten.
 - **Die offene Datei führt die Liste an, mit ihrem ungespeicherten Stand**
-  (4T-0616): Was gerade im Editor steht, wird gefunden, auch vor dem Speichern;
+  (4T-000616): Was gerade im Editor steht, wird gefunden, auch vor dem Speichern;
   für die übrigen Dateien gilt der Stand auf der Festplatte. Die Datei, in der
   die Suche geöffnet wurde, bleibt für die Dauer der Such-Sitzung an erster
   Stelle, damit die Liste über Sprünge hinweg stehen bleibt und der Zähler über
   alle Treffer des Bereichs läuft.
-- **Suchraum im Hauptprozess** (4T-0615): neues Modul `area-search.js` mit
+- **Suchraum im Hauptprozess** (4T-000615): neues Modul `area-search.js` mit
   Verzeichnis-Scan nach den Regeln des Bereichs-Index, Speicher-Vorrat für die
   Dauer der geöffneten Suchleiste und einem Cache je Bereich im
   Nutzerdaten-Verzeichnis. Der Cache liegt bewusst nicht im Bereich des
@@ -2222,11 +2283,11 @@ die Bereichs-Statistik in 0.98.0 gebracht hat.
 
 ### Geändert
 
-- **Die Markierung im Dokument bleibt** (4T-0616): Der Bereichs-Raum ersetzt
+- **Die Markierung im Dokument bleibt** (4T-000616): Der Bereichs-Raum ersetzt
   die gewohnten Marken im Text nicht, er ergänzt sie um die Liste. Im
   Bearbeiten-Modus setzt der Decorations-Weg die Treffer, in der Lese-Ansicht
   der bekannte Marken-Weg.
-- **Ersetzen bleibt an das Dokument gebunden** (4T-0616): `Strg+H` schaltet den
+- **Ersetzen bleibt an das Dokument gebunden** (4T-000616): `Strg+H` schaltet den
   Suchbereich auf die aktive Datei zurück. Ohne das wäre Suchen und Ersetzen
   gesperrt, solange ein Bereich offen ist.
 
@@ -2240,17 +2301,17 @@ die Bereichs-Statistik in 0.98.0 gebracht hat.
 
 ### Dokumentation
 
-- **Handbuch-Seite Werkzeuge** (4T-0617): Der Abschnitt „Suche in Handbuch und
+- **Handbuch-Seite Werkzeuge** (4T-000617): Der Abschnitt „Suche in Handbuch und
   Einstellungen" ist zu „Wo gesucht wird" umgebaut, mit einer vierzeiligen
   Tabelle der Suchräume und zwei Unterabschnitten zum Bereich und zu Handbuch
   und Einstellungen. Neu ist die Abgrenzung gegenüber der Perspective-Abfrage:
   Sie filtert Eigenschaften, die Suche findet Text. Fünf Sprachfassungen.
-- **Demo-Area** (4T-0617): Die Willkommensseite weist auf die Bereichs-Suche
+- **Demo-Area** (4T-000617): Die Willkommensseite weist auf die Bereichs-Suche
   hin, mit zwei Suchbegriffen, die in der Demo-Area mehrfach vorkommen.
 
 ## [0.98.0.1032] - 2026-07-28 — Bereichs-Statistik
 
-Epic 3E-0117: Für den geöffneten Bereich lässt sich eine Kennzahlen-Seite als
+Epic 3E-000117: Für den geöffneten Bereich lässt sich eine Kennzahlen-Seite als
 eigener, nicht änderbarer Reiter öffnen. Sie beantwortet Fragen, die bisher nur
 über den Datei-Explorer und Handarbeit zu beantworten waren: Wie viel liegt in
 diesem Bereich, wie oft sind Eigenschaften und Tags in Gebrauch, wie viele
@@ -2258,7 +2319,7 @@ Aufgaben stehen offen, und welche Dateien fallen aus dem Rahmen.
 
 ### Neu
 
-- **Bereichs-Statistik als eigener Reiter** (4T-0620): Zugang über Ansicht →
+- **Bereichs-Statistik als eigener Reiter** (4T-000620): Zugang über Ansicht →
   Bereichs-Statistik, das Kontextmenü des Bereichs-Panels und das Kommando
   `stats.openArea` (ohne Standard-Kürzel, über die Einstellungen belegbar).
   Sechs Abschnitte: Dateien und Speicher, Eigenschaften, Tags, Begleitdateien,
@@ -2266,7 +2327,7 @@ Aufgaben stehen offen, und welche Dateien fallen aus dem Rahmen.
   Anzahl sortierbar und zeigen zunächst 25 Zeilen; die Dateinamen der drei
   Top-Listen öffnen die Datei per Klick. Eine Instanz pro Fenster, erneutes
   Öffnen aktiviert den bestehenden Reiter und erhebt neu.
-- **Kennzahlen-Erhebung im Hauptprozess** (4T-0619): `statsFor` im Bereichs-
+- **Kennzahlen-Erhebung im Hauptprozess** (4T-000619): `statsFor` im Bereichs-
   Index liefert alles, was der Index ohnehin führt (Markdown-Zahlen, Tags,
   Eigenschaften, Aufgaben nach Zustand, Verweise, Aliase, Datei-Zeiten); das
   neue Modul `src/main/area-stats.js` ergänzt per Ordner-Scan, was der Index
@@ -2274,19 +2335,19 @@ Aufgaben stehen offen, und welche Dateien fallen aus dem Rahmen.
   Sonstigem, `.mdd`- und `.mdda`-Begleitdateien) und führt beides zusammen.
   Der Scan läuft asynchron in Häppchen und nur auf Anforderung; die Zahlen
   tragen einen Stand-Zeitstempel.
-- **Erweiterung „Bereichs-Statistik"** (4T-0620): abschaltbar in den
+- **Erweiterung „Bereichs-Statistik"** (4T-000620): abschaltbar in den
   Einstellungen unter „Werkzeuge"; im Aus-Zustand entfallen Kommando,
   Menü-Eintrag und Kontextmenü-Eintrag.
 
 ### Geändert
 
 - **Kontextmenü des Bereichs-Panels trägt zwei unabhängige Einträge**
-  (4T-0620): Bereichs-Graph und Bereichs-Statistik erscheinen je nach Zustand
+  (4T-000620): Bereichs-Graph und Bereichs-Statistik erscheinen je nach Zustand
   ihrer eigenen Erweiterung; bisher hing das Menü an genau einer.
 
 ### Dokumentation
 
-- **Hilfe-Inhalte erweitert** (4T-0620, 4T-0621): 54 neue Übersetzungs-Schlüssel
+- **Hilfe-Inhalte erweitert** (4T-000620, 4T-000621): 54 neue Übersetzungs-Schlüssel
   in je fünf Sprachen (50 für die Seite selbst, dazu Menü-Eintrag,
   Kommando-Beschreibung, Katalog-Name und Zugang), ein neuer Eintrag im
   Funktions-Katalog in der Navigations-Gruppe und der neue Abschnitt
@@ -2301,21 +2362,21 @@ Aufgaben stehen offen, und welche Dateien fallen aus dem Rahmen.
 
 ## [0.97.0.1021] - 2026-07-28 — Unterseiten umbenennen und lösen
 
-Epic 3E-0128: Beim Umbenennen einer Unterseite ist nur noch ihr eigener
+Epic 3E-000128: Beim Umbenennen einer Unterseite ist nur noch ihr eigener
 Namensteil im Zugriff, und eine Unterseite lässt sich als benannte Handlung von
 ihrer übergeordneten Seite lösen. Beides schließt die Fuge zwischen den Epics
-3E-0061 (Unterseiten samt Umbenennungs-Kaskade) und 3E-0108 (Titelzeile).
+3E-000061 (Unterseiten samt Umbenennungs-Kaskade) und 3E-000108 (Titelzeile).
 
 ### Neu
 
-- **Unterseite von der übergeordneten Seite lösen** (4T-0774): Neues Kommando
+- **Unterseite von der übergeordneten Seite lösen** (4T-000774): Neues Kommando
   `file.detachSubpage` im Datei-Menü, in der Kommando-Palette und im
   Tab-Kontextmenü einer Unterseite. Ein Dialog nennt vorab das Ziel und die
   Anzahl der eigenen Unterseiten, die mitwandern; der Ziel-Name ist änderbar,
   falls auf der Zielebene bereits eine Datei so heißt. Verweise werden über den
   bestehenden Weg des Umbenennens nachgeführt, samt Vorschau und Bericht. Das
   Kommando hat kein Standard-Kürzel und ist über die Einstellungen belegbar.
-- **Schalter „Vollständigen Namen ändern"** im Umbenennen-Dialog (4T-0646): Er
+- **Schalter „Vollständigen Namen ändern"** im Umbenennen-Dialog (4T-000646): Er
   erscheint nur bei einer Unterseite, ist standardmäßig aus und gibt die
   übergeordneten Namensteile frei. Im eingeschalteten Zustand zeigt und
   akzeptiert das Feld die logische Schrägstrich-Schreibweise.
@@ -2323,12 +2384,12 @@ ihrer übergeordneten Seite lösen. Beides schließt die Fuge zwischen den Epics
 ### Geändert
 
 - **Titelzeile beschränkt sich bei Unterseiten auf das eigene Segment**
-  (4T-0646): Der übergeordnete Anteil steht gedämpft und unveränderlich vor dem
+  (4T-000646): Der übergeordnete Anteil steht gedämpft und unveränderlich vor dem
   editierbaren Segment; ein Schrägstrich wird dort abgelehnt. Bisher war der
   ganze Name editierbar, und eine Änderung am Eltern-Anteil ließ die Unterseite
   samt eigenen Nachfahren still ihren Ast verlassen. An einer Seite ohne
   übergeordnete Seite macht ein Schrägstrich sie unverändert zur Unterseite.
-- **Namens-Zerlegung an einer Stelle** (4T-0646): `splitDisplayTitle` in
+- **Namens-Zerlegung an einer Stelle** (4T-000646): `splitDisplayTitle` in
   `src/shared/subpages.js` trennt Eltern-Anteil und eigenes Segment; Titelzeile
   und Umbenennen-Dialog ziehen ihre Grenze aus derselben Funktion. Der
   Namens-Eingabe-Dialog kennt dafür zwei neue, generische Möglichkeiten: einen
@@ -2336,7 +2397,7 @@ ihrer übergeordneten Seite lösen. Beides schließt die Fuge zwischen den Epics
 
 ### Dokumentation
 
-- **Hilfe-Inhalte erweitert** (4T-0775): Vier neue Übersetzungs-Schlüssel für
+- **Hilfe-Inhalte erweitert** (4T-000775): Vier neue Übersetzungs-Schlüssel für
   den Funktions-Katalog und die Kommando-Beschreibung in je fünf Sprachen, zwei
   überarbeitete Katalog-Einträge (Titelzeile, Datei umbenennen), das neue
   Handbuch-Kapitel „Lösen" auf der Seite „Unterseiten" und ein nachgezogener
@@ -2351,47 +2412,47 @@ ihrer übergeordneten Seite lösen. Beides schließt die Fuge zwischen den Epics
 
 ## [0.96.0.1011] - 2026-07-28 — Reiter-Gruppen erweitern
 
-Epic 3E-0158: Reiter lassen sich in Mengen bewegen statt nur einzeln, und eine
+Epic 3E-000158: Reiter lassen sich in Mengen bewegen statt nur einzeln, und eine
 zugeklappte Gruppe bleibt bedienbar, auch wenn der aktive Reiter in ihr liegt.
 Beides sind Reibungspunkte im täglichen Gebrauch der vorhandenen Gruppen-
 Funktion, keine neuen Bausteine.
 
 ### Neu
 
-- **Mehrfach-Auswahl in der Reiterleiste** (4T-0765): Strg und Klick nimmt
+- **Mehrfach-Auswahl in der Reiterleiste** (4T-000765): Strg und Klick nimmt
   einzelne Reiter auf und wieder heraus, Umschalt und Klick wählt die Spanne ab
   dem aktiven Reiter. Ausgewählte Reiter sind farbig hinterlegt, sobald die
   Auswahl mindestens zwei Mitglieder hat. Das Modell liegt als reines Modul in
   `src/renderer/modules/tab-selection.js`; die Auswahl gehört zur einzelnen
   Leiste und wird nicht persistiert.
-- **Mengen-Operationen auf Gruppen** (4T-0766): Die Auswahl tritt in einem
+- **Mengen-Operationen auf Gruppen** (4T-000766): Die Auswahl tritt in einem
   Schritt einer Gruppe bei, wechselt die Gruppe oder verlässt sie, über das
   Kontextmenü und über das Ziehen auf den Gruppen-Kopf. Sie hängt sich in
   Streifen-Reihenfolge ans Ende des Gruppen-Blocks; beim Austritt steht sie
   unmittelbar dahinter. Drei neue Mengen-Helfer im Gruppen-Modell halten dabei
   die Zusammenhangs-Invariante.
-- **Aufklapp-Menü beim Überfahren einer zugeklappten Gruppe** (4T-0768): Zeigen
+- **Aufklapp-Menü beim Überfahren einer zugeklappten Gruppe** (4T-000768): Zeigen
   auf den Kopf listet nach kurzer Verzögerung die Reiter der Gruppe, ein Klick
   wechselt zur Datei, ohne aufzuklappen. Der aktive Reiter ist markiert,
   ungespeicherte Dateien tragen ihren Änderungs-Punkt.
 
 ### Geändert
 
-- **Zuklappen mit aktivem Reiter darin** (4T-0767): Die Sichtbarkeits-Garantie
+- **Zuklappen mit aktivem Reiter darin** (4T-000767): Die Sichtbarkeits-Garantie
   des aktiven Reiters aus 0.58.0 ist entfallen. Eine zugeklappte Gruppe darf den
   aktiven Reiter enthalten; er bleibt aktiv, sein Inhalt bleibt im Fenster, und
   der Gruppen-Kopf trägt die Aktiv-Kennzeichnung. Eine Aktivierung von außen
   (Wiki-Link, Kommando-Palette, Reiter-Wechsel per Tastatur) klappt die Gruppe
   nicht mehr auf; der Zustand der Leiste ändert sich damit nie von selbst. Die
   drei Helfer der alten Regel sind entfernt statt stillgelegt.
-- **Kontextmenü des Reiters** (4T-0766): Die drei Gruppen-Einträge tragen bei
+- **Kontextmenü des Reiters** (4T-000766): Die drei Gruppen-Einträge tragen bei
   einer Mehrfach-Auswahl die Mehrzahl-Beschriftung und wirken auf die Menge.
   Einträge, die genau eine Datei meinen (Umbenennen, Lesezeichen, Fenster-
   Transfer), und der Mittelklick zum Schließen bleiben beim angeklickten Reiter.
 
 ### Dokumentation
 
-- **Hilfe und Handbuch** (4T-0769): drei neue Funktions-Katalog-Schlüssel für
+- **Hilfe und Handbuch** (4T-000769): drei neue Funktions-Katalog-Schlüssel für
   die Mehrfach-Auswahl in fünf Sprachen, überarbeiteter Katalog-Eintrag zu den
   Tab-Gruppen und die Handbuch-Seite „Applikationen, Fenster, Reiter" in allen
   fünf Fassungen (neuer Abschnitt zur Mehrfach-Auswahl, umgeschriebener
@@ -2406,28 +2467,28 @@ Funktion, keine neuen Bausteine.
 
 ## [0.95.0.998] - 2026-07-27 — Suche in Handbuch und Einstellungen
 
-Epic 3E-0142: Die Suche greift jetzt auch dort, wo nachgeschlagen wird. Der
+Epic 3E-000142: Die Suche greift jetzt auch dort, wo nachgeschlagen wird. Der
 Suchbereich folgt dem aktiven Reiter und schließt die drei Bereiche gegeneinander
 aus: im Dokument wie bisher, in einer Handbuch-Seite über alle Handbuch-Seiten,
 in den Einstellungen über alle Bereiche.
 
 ### Neu
 
-- **Suchraum-Kern** (`src/shared/such-raum.js`, 4T-0758): prozess-neutrale
+- **Suchraum-Kern** (`src/shared/such-raum.js`, 4T-000758): prozess-neutrale
   Trefferstruktur mit Gruppe, Sprung-Angabe, Kontext-Ausschnitt und den Offsets
   des Fundes innerhalb dieses Ausschnitts, dazu zwei Obergrenzen (gesamt und je
   Gruppe) mit Meldung, wenn eine davon greift.
-- **Handbuch als Such-Quelle** (4T-0758): neuer Sammel-IPC
+- **Handbuch als Such-Quelle** (4T-000758): neuer Sammel-IPC
   `help:getAllManualPages` liefert alle gebündelten Seiten einer Sprache in einem
   Zug; die beiden generierten Seiten entstehen bei jedem Lauf frisch und brauchen
   deshalb keine Invalidierung.
-- **Sidebar-Panel «Suchergebnisse»** (4T-0759): gruppierte Trefferliste mit
+- **Sidebar-Panel «Suchergebnisse»** (4T-000759): gruppierte Trefferliste mit
   Trefferzahl je Gruppe, Auswahl per Maus und Pfeiltasten, vollständige
   Paritäts-Zugänge (Statusbar-Schalter, Ansichtsmenü, Toggle-Kommando).
-- **Suchraum nach Reiter-Typ samt Sprung und Grenz-Durchlauf** (4T-0760):
+- **Suchraum nach Reiter-Typ samt Sprung und Grenz-Durchlauf** (4T-000760):
   Zähler über den ganzen Raum, eigenes Scope-Label, Sprung öffnet die Zielseite
   ohne Duplikat, F3 läuft über Seiten- und Bereichsgrenzen.
-- **Einstellungen als zweite Such-Quelle** (4T-0761): die durchsuchbaren Texte
+- **Einstellungen als zweite Such-Quelle** (4T-000761): die durchsuchbaren Texte
   entstehen, indem jeder Bereich einmal in einen abgekoppelten Container
   gerendert wird — dieselbe Funktion wie die Anzeige, deshalb ohne Möglichkeit
   zu divergieren. Der Sprung aktiviert den Bereich und hebt die Zeile hervor,
@@ -2449,7 +2510,7 @@ in den Einstellungen über alle Bereiche.
 - Funktions-Katalog um `help.feature.searchScopes` samt Kurzname und Zugang
   erweitert (drei Schlüssel in fünf Sprachen), Handbuch-Seite «Werkzeuge» um den
   Abschnitt «Suche in Handbuch und Einstellungen» in fünf Sprachfassungen,
-  einschließlich der Abgrenzung zur Kommando-Palette (4T-0762).
+  einschließlich der Abgrenzung zur Kommando-Palette (4T-000762).
 - i18n: zwölf neue Schlüssel in fünf Sprachen (Panel-Titel, Schalter, Trefferzahl
   mit Platzhaltern, drei Leerzustände, Kürzungs-Hinweis, Menü-Label,
   Kommando-Beschreibung, zwei Scope-Label).
@@ -2465,235 +2526,235 @@ in den Einstellungen über alle Bereiche.
 
 ## [0.94.0.987] - 2026-07-27 — Gantt-Ansicht für Ereignisse
 
-Epic 3E-0150 (Ereignisse als Gantt-Diagramm): Der Ereignis-Block bekommt als sechste Ansicht ein Gantt-Diagramm. Ereignisse mit Ende erscheinen als Balken auf einer gemeinsamen Zeitachse, Ereignisse ohne Ende als Raute, und die Vorgänger-/Nachfolger-Verknüpfungen werden als Linien sichtbar. Das Datenmodell bleibt unverändert: Die Ansicht zeigt, was das interne Ereignis-Profil ohnehin trägt.
+Epic 3E-000150 (Ereignisse als Gantt-Diagramm): Der Ereignis-Block bekommt als sechste Ansicht ein Gantt-Diagramm. Ereignisse mit Ende erscheinen als Balken auf einer gemeinsamen Zeitachse, Ereignisse ohne Ende als Raute, und die Vorgänger-/Nachfolger-Verknüpfungen werden als Linien sichtbar. Das Datenmodell bleibt unverändert: Die Ansicht zeigt, was das interne Ereignis-Profil ohnehin trägt.
 
 ### Neu
 
-- **Gantt als sechste Ansicht des Ereignis-Blocks** (4T-0722): Der Ansichts-Umschalter und die gespeicherte `view:`-Direktive kennen den Wert `gantt`. Je Ereignis entsteht eine Zeile aus Label-Spalte und Zeit-Fläche, sortiert nach Zeitpunkt; ein Eintrag mit gültigem Ende wird zum Balken über seine Dauer, jeder andere zur Raute an seinem Zeitpunkt, beide in der Farbe ihrer Kategorie. Eine senkrechte Linie markiert den heutigen Tag, gestrichelte Linien verbinden Vorgänger und Nachfolger vom Balken-Ende zum nächsten Balken-Anfang. Die Gliederung der Achse ergibt sich aus der Spanne der angezeigten Ereignisse: bis 62 Tage in Tagen, bis 730 Tage in Wochen, darüber in Monaten, mit Grenzen auf Wochen- beziehungsweise Monats-Raster. Wiederkehrende Ereignisse stehen an ihrem nächsten Vorkommen und tragen das Zeichen ↻, damit ein Geburtstag aus den Sechzigern die Achse nicht über Jahrzehnte aufzieht; ein vorhandenes Ende wandert um dieselbe Jahres-Zahl mit, sodass die Dauer erhalten bleibt. Neben dem Namen zeigen ★ einen erreichten Zeit-Meilenstein und ⛓ die Zahl der Verknüpfungen. Gespeicherte Filter wirken wie in den übrigen Ansichten, und ein Klick auf Balken oder Raute springt zur Tabellen-Zeile mit ihren Bearbeiten-Aktionen. Balken lassen sich bewusst nicht ziehen; Zeitpunkte ändert weiterhin die Tabelle.
+- **Gantt als sechste Ansicht des Ereignis-Blocks** (4T-000722): Der Ansichts-Umschalter und die gespeicherte `view:`-Direktive kennen den Wert `gantt`. Je Ereignis entsteht eine Zeile aus Label-Spalte und Zeit-Fläche, sortiert nach Zeitpunkt; ein Eintrag mit gültigem Ende wird zum Balken über seine Dauer, jeder andere zur Raute an seinem Zeitpunkt, beide in der Farbe ihrer Kategorie. Eine senkrechte Linie markiert den heutigen Tag, gestrichelte Linien verbinden Vorgänger und Nachfolger vom Balken-Ende zum nächsten Balken-Anfang. Die Gliederung der Achse ergibt sich aus der Spanne der angezeigten Ereignisse: bis 62 Tage in Tagen, bis 730 Tage in Wochen, darüber in Monaten, mit Grenzen auf Wochen- beziehungsweise Monats-Raster. Wiederkehrende Ereignisse stehen an ihrem nächsten Vorkommen und tragen das Zeichen ↻, damit ein Geburtstag aus den Sechzigern die Achse nicht über Jahrzehnte aufzieht; ein vorhandenes Ende wandert um dieselbe Jahres-Zahl mit, sodass die Dauer erhalten bleibt. Neben dem Namen zeigen ★ einen erreichten Zeit-Meilenstein und ⛓ die Zahl der Verknüpfungen. Gespeicherte Filter wirken wie in den übrigen Ansichten, und ein Klick auf Balken oder Raute springt zur Tabellen-Zeile mit ihren Bearbeiten-Aktionen. Balken lassen sich bewusst nicht ziehen; Zeitpunkte ändert weiterhin die Tabelle.
 
 ### Dokumentation
 
-- **Handbuch, Funktions-Katalog und Demo-Umgebung** (4T-0723): Die Handbuch-Seite „Ereignisse" hat in allen fünf Sprachen einen Abschnitt „Gantt" mit selbst-demonstrierendem Block; die Ansichts-Aufzählung und die Einleitung derselben Seite sind mitgezogen. Der Funktions-Katalog nennt das Gantt-Diagramm in der bestehenden Ereignis-Beschreibung statt in einem zweiten Eintrag, weil er die Ansichten dort bündelt. Die Demo-Umgebung zeigt die Ansicht in „Events and Journals" mit zwei verketteten Balken und einer Raute. Zwei neue i18n-Schlüssel je Sprache aus diesem Epic.
+- **Handbuch, Funktions-Katalog und Demo-Umgebung** (4T-000723): Die Handbuch-Seite „Ereignisse" hat in allen fünf Sprachen einen Abschnitt „Gantt" mit selbst-demonstrierendem Block; die Ansichts-Aufzählung und die Einleitung derselben Seite sind mitgezogen. Der Funktions-Katalog nennt das Gantt-Diagramm in der bestehenden Ereignis-Beschreibung statt in einem zweiten Eintrag, weil er die Ansichten dort bündelt. Die Demo-Umgebung zeigt die Ansicht in „Events and Journals" mit zwei verketteten Balken und einer Raute. Zwei neue i18n-Schlüssel je Sprache aus diesem Epic.
 
 ## [0.93.0.978] - 2026-07-27 — Auslieferungs-Voreinstellungen und Monatskalender
 
-Epic 3E-0146 (Voreinstellungs- und Uhr-Bündel): Die Anwendung startet im Auslieferungszustand englisch und in Bernstein, und die Uhr kann zusätzlich als Monatskalender dienen. Beide Voreinstellungen treffen ausschließlich frisch eingerichtete Installationen; ein bestehender Stand behält Sprache und Farbschema.
+Epic 3E-000146 (Voreinstellungs- und Uhr-Bündel): Die Anwendung startet im Auslieferungszustand englisch und in Bernstein, und die Uhr kann zusätzlich als Monatskalender dienen. Beide Voreinstellungen treffen ausschließlich frisch eingerichtete Installationen; ein bestehender Stand behält Sprache und Farbschema.
 
 ### Neu
 
-- **Monatskalender in der Uhr** (4T-0752): Das Uhr-Panel hat einen fünften Modus. Er zeigt einen Monat als Gitter mit Wochentags-Kopf, hervorgehobenem heutigem Tag und abschaltbarer Kalenderwochen-Spalte (Einstellungen → Uhr → Kalender). Einfache Pfeile blättern einen Monat, doppelte ein Jahr, „Heute" kehrt zum laufenden Monat zurück, und ein Klick auf die Monats-Bezeichnung öffnet die Jahres-Eingabe als vier Ziffern-Stellen mit Pfeiltasten, Stellen-Wechsel und Direkteingabe; ein ungültiges Jahr ist dabei nicht eingebbar. Die Untergrenze liegt bei Jahr 100, weil zweistellige Jahre in der Datums-Rechnung auf 1900 + Jahr abgebildet würden. Die Tage sind reine Anzeige: Der Kalender dient dem Nachschlagen und führt nicht in Journale oder Termine. Der angezeigte Monat gilt je Sidebar-Spalte; der Modus taktet minütlich mit und zeichnet allein beim Tages-Wechsel neu, damit ein über Mitternacht offenes Panel nicht den falschen Tag als heute zeigt.
+- **Monatskalender in der Uhr** (4T-000752): Das Uhr-Panel hat einen fünften Modus. Er zeigt einen Monat als Gitter mit Wochentags-Kopf, hervorgehobenem heutigem Tag und abschaltbarer Kalenderwochen-Spalte (Einstellungen → Uhr → Kalender). Einfache Pfeile blättern einen Monat, doppelte ein Jahr, „Heute" kehrt zum laufenden Monat zurück, und ein Klick auf die Monats-Bezeichnung öffnet die Jahres-Eingabe als vier Ziffern-Stellen mit Pfeiltasten, Stellen-Wechsel und Direkteingabe; ein ungültiges Jahr ist dabei nicht eingebbar. Die Untergrenze liegt bei Jahr 100, weil zweistellige Jahre in der Datums-Rechnung auf 1900 + Jahr abgebildet würden. Die Tage sind reine Anzeige: Der Kalender dient dem Nachschlagen und führt nicht in Journale oder Termine. Der angezeigte Monat gilt je Sidebar-Spalte; der Modus taktet minütlich mit und zeichnet allein beim Tages-Wechsel neu, damit ein über Mitternacht offenes Panel nicht den falschen Tag als heute zeigt.
 
 ### Geändert
 
-- **Englisch als Auslieferungs-Sprache** (4T-0751): Eine frisch eingerichtete Installation startet mit englischer Oberfläche, statt die Sprache aus dem Betriebssystem abzuleiten. Ein bestehender Stand behält seine bisherige Ableitung, weil sein gespeicherter Wert den neuen Vorgabewert überstimmt.
-- **Bernstein als Auslieferungs-Farbschema** (4T-0751): Voreingestellt sind Bernstein Hell und Bernstein Dunkel; derselbe Wert dient als Rückfall, wenn ein gespeicherter Schema-Verweis unbekannt ist oder nicht zur Hell-Dunkel-Lage passt. Damit eine bestehende Installation nicht mitwandert, schreibt die Anwendung beim ersten Start ohne gespeicherten Schema-Stand die bisherigen Standard-Schemas fest, sobald sie Spuren früherer Nutzung findet; geschrieben wird in jedem Fall, sodass der Schritt genau einmal läuft und eine frische Installation beim zweiten Start nicht nachträglich als Bestand gilt.
-- **Ein Monatsgitter für drei Stellen** (4T-0752): Kalender-Panel der Journale, Datums-Eingabe und der neue Uhr-Kalender bauen ihr Gitter über ein gemeinsames Modul statt über drei eigene Schleifen. Die Darstellung der beiden bestehenden Stellen bleibt unverändert.
+- **Englisch als Auslieferungs-Sprache** (4T-000751): Eine frisch eingerichtete Installation startet mit englischer Oberfläche, statt die Sprache aus dem Betriebssystem abzuleiten. Ein bestehender Stand behält seine bisherige Ableitung, weil sein gespeicherter Wert den neuen Vorgabewert überstimmt.
+- **Bernstein als Auslieferungs-Farbschema** (4T-000751): Voreingestellt sind Bernstein Hell und Bernstein Dunkel; derselbe Wert dient als Rückfall, wenn ein gespeicherter Schema-Verweis unbekannt ist oder nicht zur Hell-Dunkel-Lage passt. Damit eine bestehende Installation nicht mitwandert, schreibt die Anwendung beim ersten Start ohne gespeicherten Schema-Stand die bisherigen Standard-Schemas fest, sobald sie Spuren früherer Nutzung findet; geschrieben wird in jedem Fall, sodass der Schritt genau einmal läuft und eine frische Installation beim zweiten Start nicht nachträglich als Bestand gilt.
+- **Ein Monatsgitter für drei Stellen** (4T-000752): Kalender-Panel der Journale, Datums-Eingabe und der neue Uhr-Kalender bauen ihr Gitter über ein gemeinsames Modul statt über drei eigene Schleifen. Die Darstellung der beiden bestehenden Stellen bleibt unverändert.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0753): ein neuer Katalog-Eintrag „Monatskalender" mit Beschreibung, Kurzname und Zugang sowie ein neuer Abschnitt auf der Handbuch-Seite „Werkzeuge", beides in allen fünf Sprachen; insgesamt 14 neue i18n-Schlüssel je Sprache aus diesem Epic. Berichtigt ist außerdem die Handbuch-Aussage zum Rückfall beim Löschen eines eigenen Farbschemas: Er zeigt auf das voreingestellte Schema. Die Demo-Umgebung bleibt unverändert, weil sie Dokument-Inhalte zeigt und kein Sidebar-Panel ohne Dokument-Bezug.
+- **Funktions-Katalog und Handbuch** (4T-000753): ein neuer Katalog-Eintrag „Monatskalender" mit Beschreibung, Kurzname und Zugang sowie ein neuer Abschnitt auf der Handbuch-Seite „Werkzeuge", beides in allen fünf Sprachen; insgesamt 14 neue i18n-Schlüssel je Sprache aus diesem Epic. Berichtigt ist außerdem die Handbuch-Aussage zum Rückfall beim Löschen eines eigenen Farbschemas: Er zeigt auf das voreingestellte Schema. Die Demo-Umgebung bleibt unverändert, weil sie Dokument-Inhalte zeigt und kein Sidebar-Panel ohne Dokument-Bezug.
 
 ## [0.92.0.969] - 2026-07-26 — Zeitrechnungen mit eigenem Nullpunkt
 
-Epic 3E-0138 (Zeitrechnung mit Bezugs-Kalender und Zeitspannen): Eine Zeitrechnung kann sich jetzt auf eine bestehende stützen und nur noch ihren eigenen Nullpunkt angeben. Ihre Werte erscheinen als gestaffelte Zeitspanne ab diesem Punkt, in beide Richtungen und in wählbarer Tiefe. Als Bezug dient ein Kalender desselben Blocks oder die eingebaute Standard-Zeitrechnung, sodass ein Countdown auf einen Termin ohne eigenen Kalender auskommt.
+Epic 3E-000138 (Zeitrechnung mit Bezugs-Kalender und Zeitspannen): Eine Zeitrechnung kann sich jetzt auf eine bestehende stützen und nur noch ihren eigenen Nullpunkt angeben. Ihre Werte erscheinen als gestaffelte Zeitspanne ab diesem Punkt, in beide Richtungen und in wählbarer Tiefe. Als Bezug dient ein Kalender desselben Blocks oder die eingebaute Standard-Zeitrechnung, sodass ein Countdown auf einen Termin ohne eigenen Kalender auskommt.
 
 ### Neu
 
-- **Abgeleitete Zeitrechnungen im Kern** (4T-0746): Eine Ableitung speichert Bezug, Nullpunkt und Gliederungs-Tiefe statt einer Abschrift und wird beim Laden aufgelöst, unabhängig von der Reihenfolge der Definitionen. Sie entsteht als **Phasenverschiebung** ihres Bezugs: Die Grenzen der Einheiten liegen auf dem Nullpunkt und seinen Wiederkehr-Punkten, die Namens-Listen wandern mit, und ein Nullpunkt jenseits des kürzesten Monats wird auf dessen letzten Tag geklemmt. Damit erbt jede Einheit die Länge ihres Vorbilds, und der Schalttag fällt von selbst in das richtige Jahr; die naive Neu-Verankerung driftet dagegen messbar um einen Tag je Schaltjahr. Neu sind außerdem die Staffelungs-Funktion über Ebenen, Zyklen und Gruppierungen sowie `convertBetween` und `baseCalendarOf` für die Umrechnung zu einem Bezug, der nicht im Block steht.
-- **Anlage über die Einstellungen** (4T-0747): Der Bereich „Kalender-Systeme" hat den Knopf „Abgeleitete Zeitrechnung hinzufügen" und ein kurzes Formular mit Bezugs-Auswahl, Nullpunkt (wahlweise über den Picker), Gliederungs-Tiefe und den beiden Richtungs-Kürzeln; Ebenen-, Zyklus-, Gruppen- und Epochen-Editoren entfallen, weil nichts davon überschreibbar ist. Die Live-Vorschau zeigt kanonischen Wert, Zeitspanne und den entsprechenden Zeitpunkt der Bezugs-Zeitrechnung.
-- **Zeitspanne im Dokument** (4T-0748): Werte einer abgeleiteten Zeitrechnung erscheinen in Render-Pane, Live-Modus und Portable-Export als gestaffelte Zeitspanne ohne Bestandteile der Länge null; der Kurzhinweis nennt zusätzlich den kanonischen Wert und das Bezugs-Datum. Steht die Ableitung auf der Standard-Zeitrechnung, erscheinen die Einheiten in Ein- und Mehrzahl.
-- **Picker in Bezugs-Notation** (4T-0748): Für eine Ableitung zeigt der Picker das Gitter ihres Bezugs; gewählt wird ein gewöhnliches Datum, eingefügt die Zählung. „Zum Anker" springt dabei auf den Nullpunkt.
-- **Schutz bestehender Zählungen** (4T-0747): Der Editor einer Zeitrechnung mit Ableitungen weist dauerhaft auf sie hin und verlangt beim Anwenden einer wirksamen Änderung eine Bestätigung; das Löschen ist gesperrt, solange Ableitungen bestehen. Anzeige-Name und Epochen des Bezugs lösen keine Meldung aus, weil sie in einer Ableitung nicht durchschlagen.
+- **Abgeleitete Zeitrechnungen im Kern** (4T-000746): Eine Ableitung speichert Bezug, Nullpunkt und Gliederungs-Tiefe statt einer Abschrift und wird beim Laden aufgelöst, unabhängig von der Reihenfolge der Definitionen. Sie entsteht als **Phasenverschiebung** ihres Bezugs: Die Grenzen der Einheiten liegen auf dem Nullpunkt und seinen Wiederkehr-Punkten, die Namens-Listen wandern mit, und ein Nullpunkt jenseits des kürzesten Monats wird auf dessen letzten Tag geklemmt. Damit erbt jede Einheit die Länge ihres Vorbilds, und der Schalttag fällt von selbst in das richtige Jahr; die naive Neu-Verankerung driftet dagegen messbar um einen Tag je Schaltjahr. Neu sind außerdem die Staffelungs-Funktion über Ebenen, Zyklen und Gruppierungen sowie `convertBetween` und `baseCalendarOf` für die Umrechnung zu einem Bezug, der nicht im Block steht.
+- **Anlage über die Einstellungen** (4T-000747): Der Bereich „Kalender-Systeme" hat den Knopf „Abgeleitete Zeitrechnung hinzufügen" und ein kurzes Formular mit Bezugs-Auswahl, Nullpunkt (wahlweise über den Picker), Gliederungs-Tiefe und den beiden Richtungs-Kürzeln; Ebenen-, Zyklus-, Gruppen- und Epochen-Editoren entfallen, weil nichts davon überschreibbar ist. Die Live-Vorschau zeigt kanonischen Wert, Zeitspanne und den entsprechenden Zeitpunkt der Bezugs-Zeitrechnung.
+- **Zeitspanne im Dokument** (4T-000748): Werte einer abgeleiteten Zeitrechnung erscheinen in Render-Pane, Live-Modus und Portable-Export als gestaffelte Zeitspanne ohne Bestandteile der Länge null; der Kurzhinweis nennt zusätzlich den kanonischen Wert und das Bezugs-Datum. Steht die Ableitung auf der Standard-Zeitrechnung, erscheinen die Einheiten in Ein- und Mehrzahl.
+- **Picker in Bezugs-Notation** (4T-000748): Für eine Ableitung zeigt der Picker das Gitter ihres Bezugs; gewählt wird ein gewöhnliches Datum, eingefügt die Zählung. „Zum Anker" springt dabei auf den Nullpunkt.
+- **Schutz bestehender Zählungen** (4T-000747): Der Editor einer Zeitrechnung mit Ableitungen weist dauerhaft auf sie hin und verlangt beim Anwenden einer wirksamen Änderung eine Bestätigung; das Löschen ist gesperrt, solange Ableitungen bestehen. Anzeige-Name und Epochen des Bezugs lösen keine Meldung aus, weil sie in einer Ableitung nicht durchschlagen.
 
 ### Geändert
 
-- **Ablage der Kalender-Sektion behält die kurze Form** (4T-0747): Der Schreibweg der Bereichsdatei legte bisher ausschließlich die normalisierte Konfiguration ab. Für eine Ableitung wäre das die aufgelöste Abschrift ihres Bezugs gewesen, womit die Verbindung beim nächsten Laden verloren wäre. Eigenständige Kalender werden weiterhin normalisiert abgelegt, Ableitungen in ihrer kurzen Form aus Bezug und Nullpunkt.
+- **Ablage der Kalender-Sektion behält die kurze Form** (4T-000747): Der Schreibweg der Bereichsdatei legte bisher ausschließlich die normalisierte Konfiguration ab. Für eine Ableitung wäre das die aufgelöste Abschrift ihres Bezugs gewesen, womit die Verbindung beim nächsten Laden verloren wäre. Eigenständige Kalender werden weiterhin normalisiert abgelegt, Ableitungen in ihrer kurzen Form aus Bezug und Nullpunkt.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0749): ein neuer Katalog-Eintrag „Abgeleitete Zeitrechnungen" mit Beschreibung, Kurzname und Zugang sowie ein neuer Abschnitt auf der Handbuch-Seite „Kalender-Systeme", beides in allen fünf Sprachen; insgesamt 31 neue i18n-Schlüssel aus diesem Epic. Die Demo-Umgebung bleibt unverändert, weil eine abgeleitete Zeitrechnung wie die Kalender-Systeme selbst eine Bereichs-Konfiguration braucht, die eine mitgelieferte Datei nicht mitbringen kann.
+- **Funktions-Katalog und Handbuch** (4T-000749): ein neuer Katalog-Eintrag „Abgeleitete Zeitrechnungen" mit Beschreibung, Kurzname und Zugang sowie ein neuer Abschnitt auf der Handbuch-Seite „Kalender-Systeme", beides in allen fünf Sprachen; insgesamt 31 neue i18n-Schlüssel aus diesem Epic. Die Demo-Umgebung bleibt unverändert, weil eine abgeleitete Zeitrechnung wie die Kalender-Systeme selbst eine Bereichs-Konfiguration braucht, die eine mitgelieferte Datei nicht mitbringen kann.
 
 ## [0.91.0.926] - 2026-07-24 — Bereichs-Lesezeichen
 
-Epic 3E-0115 (Bereichs-Lesezeichen): Das Lesezeichen-Panel ist zweigeteilt. Neben den allgemeinen Lesezeichen führt es Bereichs-Lesezeichen, die zum gerade geöffneten Bereich gehören, in dessen `Area_Settings.mdda` gespeichert sind und ihre Ziele wurzel-relativ ablegen, sodass ein Verschieben des Bereichs-Ordners sie nicht bricht. Aus den Test-Runden kamen zwei davon unabhängige Bestands-Lücken hinzu, die im selben Epic behoben sind.
+Epic 3E-000115 (Bereichs-Lesezeichen): Das Lesezeichen-Panel ist zweigeteilt. Neben den allgemeinen Lesezeichen führt es Bereichs-Lesezeichen, die zum gerade geöffneten Bereich gehören, in dessen `Area_Settings.mdda` gespeichert sind und ihre Ziele wurzel-relativ ablegen, sodass ein Verschieben des Bereichs-Ordners sie nicht bricht. Aus den Test-Runden kamen zwei davon unabhängige Bestands-Lücken hinzu, die im selben Epic behoben sind.
 
 ### Neu
 
-- **Bereichs-Lesezeichen im geteilten Panel** (4T-0611, 4T-0612): Das Lesezeichen-Panel ist in zwei Abschnitte zerlegt, „Bereichs-Lesezeichen" und „Lesezeichen". Der Bereichs-Abschnitt und die Abschnitts-Köpfe erscheinen nur bei geöffnetem Bereich; ohne Bereich bleibt das gewohnte Ein-Abschnitts-Bild. Bereichs-Lesezeichen liegen in der Bereichs-Datei `Area_Settings.mdda` (Sektion `settings.bookmarks`) und speichern ihre Ziele wurzel-relativ zur Bereichs-Wurzel, sodass ein Verschieben des Bereichs-Ordners die Lesezeichen nicht bricht; Ziele außerhalb des Bereichs werden abgelehnt. Das prozess-neutrale `src/shared/bookmark-tree.js` und die IPC-Brücken (`bookmarks:getConfig`/`bookmarks:setAreaConfig`) tragen die Relativierung und die Grenz-Prüfung.
-- **Anlegen und Umwandeln** (4T-0612): Bei geöffnetem Bereich und einer Datei innerhalb erscheint bei `Strg+D` ein Ziel-Wahl-Menü „Allgemeines Lesezeichen" / „Bereichs-Lesezeichen", oben bei der Menüleiste verankert; außerhalb oder ohne Bereich wird ohne Nachfrage allgemein angelegt. Zusätzlich legen das Kontextmenü der Datei-Zeile im Bereichs-Panel und das Tab-Kontextmenü ein Bereichs-Lesezeichen direkt an. Ein bestehendes Lesezeichen lässt sich über sein Kontextmenü in beide Richtungen umwandeln, auch ein Ordner mit seinem Unterbaum; ein Ziel außerhalb des Bereichs lehnt den ganzen Vorgang ab.
-- **Reihenfolge, Rename-Nachzug und Mehr-Fenster-Abgleich** (4T-0612): Eine Einstellung „Bereichs-Lesezeichen oben" im Bereich „Verhalten" bestimmt, ob der Bereichs-Abschnitt über oder unter den allgemeinen Lesezeichen steht; sie ist standardmäßig an und wirkt sofort. Drag-and-Drop ordnet strikt innerhalb eines Abschnitts, ohne Wechsel über die Grenze. Das Umbenennen von Dateien und Ordnern innerhalb des Bereichs zieht die relativen Ziele nach, und mehrere Fenster gleichen ihre Bereichs-Lesezeichen über den Broadcast `bookmarks:changed` ab.
+- **Bereichs-Lesezeichen im geteilten Panel** (4T-000611, 4T-000612): Das Lesezeichen-Panel ist in zwei Abschnitte zerlegt, „Bereichs-Lesezeichen" und „Lesezeichen". Der Bereichs-Abschnitt und die Abschnitts-Köpfe erscheinen nur bei geöffnetem Bereich; ohne Bereich bleibt das gewohnte Ein-Abschnitts-Bild. Bereichs-Lesezeichen liegen in der Bereichs-Datei `Area_Settings.mdda` (Sektion `settings.bookmarks`) und speichern ihre Ziele wurzel-relativ zur Bereichs-Wurzel, sodass ein Verschieben des Bereichs-Ordners die Lesezeichen nicht bricht; Ziele außerhalb des Bereichs werden abgelehnt. Das prozess-neutrale `src/shared/bookmark-tree.js` und die IPC-Brücken (`bookmarks:getConfig`/`bookmarks:setAreaConfig`) tragen die Relativierung und die Grenz-Prüfung.
+- **Anlegen und Umwandeln** (4T-000612): Bei geöffnetem Bereich und einer Datei innerhalb erscheint bei `Strg+D` ein Ziel-Wahl-Menü „Allgemeines Lesezeichen" / „Bereichs-Lesezeichen", oben bei der Menüleiste verankert; außerhalb oder ohne Bereich wird ohne Nachfrage allgemein angelegt. Zusätzlich legen das Kontextmenü der Datei-Zeile im Bereichs-Panel und das Tab-Kontextmenü ein Bereichs-Lesezeichen direkt an. Ein bestehendes Lesezeichen lässt sich über sein Kontextmenü in beide Richtungen umwandeln, auch ein Ordner mit seinem Unterbaum; ein Ziel außerhalb des Bereichs lehnt den ganzen Vorgang ab.
+- **Reihenfolge, Rename-Nachzug und Mehr-Fenster-Abgleich** (4T-000612): Eine Einstellung „Bereichs-Lesezeichen oben" im Bereich „Verhalten" bestimmt, ob der Bereichs-Abschnitt über oder unter den allgemeinen Lesezeichen steht; sie ist standardmäßig an und wirkt sofort. Drag-and-Drop ordnet strikt innerhalb eines Abschnitts, ohne Wechsel über die Grenze. Das Umbenennen von Dateien und Ordnern innerhalb des Bereichs zieht die relativen Ziele nach, und mehrere Fenster gleichen ihre Bereichs-Lesezeichen über den Broadcast `bookmarks:changed` ab.
 
 ### Behoben
 
-- **Allgemeine Lesezeichen glichen sich nicht zwischen Fenstern ab** (4T-0612): Der globale Lesezeichen-Baum wird über `settings:set` im Einstellungs-Store abgelegt, dessen Broadcast an andere Fenster den Schlüssel `bookmarksTree` bisher nicht mitführte. Ein in einem Fenster gesetztes allgemeines Lesezeichen erschien deshalb in anderen offenen Fenstern nicht. Der `settings:set`-Handler sendet den neuen Baum jetzt als `bookmarksTree:changed` an die übrigen Fenster, die ihn übernehmen und den allgemeinen Abschnitt neu zeichnen. Bestands-Lücke, durch das zweigeteilte Panel sichtbar geworden.
-- **Bereichs-Panel baute seine Ordner-Liste sporadisch doppelt** (4T-0612): `renderAreaPanel` leerte den Baum-Container früh, hängte die Zeilen aber über mehrere `await`-Punkte hinweg an. Zwei überlappende Läufe derselben Pane beim Fenster-Start, Bereichs-Wechsel-Push und Start-Sequenz, bauten so beide ihre Zeilen an, und die Ordner-Struktur erschien doppelt. Der Aufbau läuft jetzt atomar: Jeder Lauf baut Baum und Dateiliste in ein losgelöstes `DocumentFragment` und setzt es nach einer Token-Prüfung in einem Zug ein, ein überholter Lauf verwirft sein Ergebnis. Latente Renn-Bedingung seit Einführung des Bereichs-Panels.
+- **Allgemeine Lesezeichen glichen sich nicht zwischen Fenstern ab** (4T-000612): Der globale Lesezeichen-Baum wird über `settings:set` im Einstellungs-Store abgelegt, dessen Broadcast an andere Fenster den Schlüssel `bookmarksTree` bisher nicht mitführte. Ein in einem Fenster gesetztes allgemeines Lesezeichen erschien deshalb in anderen offenen Fenstern nicht. Der `settings:set`-Handler sendet den neuen Baum jetzt als `bookmarksTree:changed` an die übrigen Fenster, die ihn übernehmen und den allgemeinen Abschnitt neu zeichnen. Bestands-Lücke, durch das zweigeteilte Panel sichtbar geworden.
+- **Bereichs-Panel baute seine Ordner-Liste sporadisch doppelt** (4T-000612): `renderAreaPanel` leerte den Baum-Container früh, hängte die Zeilen aber über mehrere `await`-Punkte hinweg an. Zwei überlappende Läufe derselben Pane beim Fenster-Start, Bereichs-Wechsel-Push und Start-Sequenz, bauten so beide ihre Zeilen an, und die Ordner-Struktur erschien doppelt. Der Aufbau läuft jetzt atomar: Jeder Lauf baut Baum und Dateiliste in ein losgelöstes `DocumentFragment` und setzt es nach einer Token-Prüfung in einem Zug ein, ein überholter Lauf verwirft sein Ergebnis. Latente Renn-Bedingung seit Einführung des Bereichs-Panels.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0613): vier neue i18n-Keys in allen fünf Sprachen (der Katalog-Eintrag „Bereichs-Lesezeichen" mit Beschreibung, Kurzname und Zugang in der Gruppe Navigation sowie der Titel der neuen Handbuch-Seite) und eine neue Handbuch-Seite „Lesezeichen" in fünf Sprachfassungen, die allgemeine und bereichsgebundene Lesezeichen erklärt und in der Überblicksseite verlinkt ist. Die Demo-Umgebung bleibt unverändert, weil Bereichs-Lesezeichen ein reines Bedien-Feature der Oberfläche ohne Dokument-Syntax sind.
+- **Funktions-Katalog und Handbuch** (4T-000613): vier neue i18n-Keys in allen fünf Sprachen (der Katalog-Eintrag „Bereichs-Lesezeichen" mit Beschreibung, Kurzname und Zugang in der Gruppe Navigation sowie der Titel der neuen Handbuch-Seite) und eine neue Handbuch-Seite „Lesezeichen" in fünf Sprachfassungen, die allgemeine und bereichsgebundene Lesezeichen erklärt und in der Überblicksseite verlinkt ist. Die Demo-Umgebung bleibt unverändert, weil Bereichs-Lesezeichen ein reines Bedien-Feature der Oberfläche ohne Dokument-Syntax sind.
 
 ## [0.90.0.914] - 2026-07-24 — Das Handbuch im Web
 
-Epic 3E-0137 (Handbuch im Web): Das vollständige App-Handbuch erscheint zusätzlich als statische Web-Fassung auf der Produkt-Webseite unter `/manual/` (Englisch an der Wurzel, DE/FR/ES/IT als Sprach-Ordner), in allen fünf Sprachen und über dieselbe Markdown-Pipeline gerendert wie in der Anwendung. Die App-Seite bleibt unverändert; der Web-Bau erzeugt die Fassung bei jedem `npm run web:build` mit.
+Epic 3E-000137 (Handbuch im Web): Das vollständige App-Handbuch erscheint zusätzlich als statische Web-Fassung auf der Produkt-Webseite unter `/manual/` (Englisch an der Wurzel, DE/FR/ES/IT als Sprach-Ordner), in allen fünf Sprachen und über dieselbe Markdown-Pipeline gerendert wie in der Anwendung. Die App-Seite bleibt unverändert; der Web-Bau erzeugt die Fassung bei jedem `npm run web:build` mit.
 
 ### Neu
 
-- **Web-Fassung des Handbuchs** (4T-0714, 4T-0715): Der Web-Generator (`scripts/build-web.js`) rendert jede gebündelte Handbuch-Seite in fünf Sprachen über dieselbe Pipeline wie die Anwendung (`renderMarkdown` aus `src/shared/markdown/markdown.js`) und legt sie unter dem einheitlichen Segment `manual` ab: Englisch als `/manual/<id>/`, die übrigen Sprachen als `/de|fr|es|it/manual/<id>/`, die Überblicksseite als `/manual/`. Der Viewer-Stil wird bauzeitlich aus `src/renderer/styles.css` gewonnen (ein Quellbestand, keine gepflegte Kopie), sodass die Seiten aussehen wie in der App, inklusive KaTeX-Formeln als statisches HTML. Interne `<id>.md`-Verweise werden registry-validiert auf die Web-Adresse der Zielseite umgeschrieben; ein unbekanntes Ziel bricht den Bau ab. Die Handbuch-Vorlage trägt eine Seitenleiste mit allen Seiten in Registry-Reihenfolge, ein Inhaltsverzeichnis je Seite aus den H2/H3-Überschriften und ein Vor-/Zurück-Blättern; Menü und Fußbereich der Webseite führen den Zugang „Handbuch". `hreflang`-Block, Sprachwechsler und Seitenkarte tragen die Handbuch-Adressen vollständig.
-- **Generierte Seiten im Web-Bau** (4T-0716): Die zwei generierten Handbuch-Seiten (Funktions-Tabelle und Tastenkürzel) entstehen beim Web-Bau aus denselben Datenquellen wie in der App über das neue geteilte Modul `src/shared/manual-generated.js`. Der Web-Bau ruft es mit den Default-Bindings aus `src/shared/commands.js` und allen Erweiterungen aktiv auf; illustrative Wiki-Link-Beispiele der Funktions-Seite werden im statischen Web zu nicht verweisendem Text neutralisiert. Die Seitenkarte trägt jetzt alle Handbuch-Adressen (gebündelte und generierte Seiten je Sprache).
-- **Mermaid-Diagramme als vorab gerendertes SVG** (4T-0717): `scripts/web-mermaid.js` rendert jeden `language-mermaid`-Block des Handbuchs bauzeitlich über einen einmaligen Playwright/Chromium-Lauf zu Inline-SVG, je Diagramm in einer hellen und einer dunklen Fassung; die Sichtbarkeit steuert CSS über die vorhandenen Theme-Variablen `--shot-light`/`--shot-dark`. Auf den ausgelieferten Seiten läuft kein Mermaid-Client-Skript. Der Diagramm-Quelltext bleibt in einem Aufklapper erhalten. Fehlt der Browser, bricht der Bau mit Installations-Hinweis ab.
-- **Volltext-Suche im Web-Handbuch** (4T-0718): Der Bau erzeugt je Sprache einen Suchindex (`<lang>/manual/manual-suchindex.json`) aus dem gerenderten HTML, mit Seiten-Titel, Abschnitts-Ankern und Klartext. Ein eigenes Client-Skript (`web/statisch/manual-search.js`, keine fremde Bibliothek) blendet ein Suchfeld in die Seitenleiste, lädt den Index erst bei Nutzung und sucht tokenbasiert und akzent-normalisiert (NFD, kombinierende Zeichen entfernt); die Trefferliste zeigt Seite, Abschnitt und Text-Schnipsel und führt per Klick auf die Fundstelle. Ohne Skript bleibt das Handbuch über die Seitenleiste voll navigierbar.
+- **Web-Fassung des Handbuchs** (4T-000714, 4T-000715): Der Web-Generator (`scripts/build-web.js`) rendert jede gebündelte Handbuch-Seite in fünf Sprachen über dieselbe Pipeline wie die Anwendung (`renderMarkdown` aus `src/shared/markdown/markdown.js`) und legt sie unter dem einheitlichen Segment `manual` ab: Englisch als `/manual/<id>/`, die übrigen Sprachen als `/de|fr|es|it/manual/<id>/`, die Überblicksseite als `/manual/`. Der Viewer-Stil wird bauzeitlich aus `src/renderer/styles.css` gewonnen (ein Quellbestand, keine gepflegte Kopie), sodass die Seiten aussehen wie in der App, inklusive KaTeX-Formeln als statisches HTML. Interne `<id>.md`-Verweise werden registry-validiert auf die Web-Adresse der Zielseite umgeschrieben; ein unbekanntes Ziel bricht den Bau ab. Die Handbuch-Vorlage trägt eine Seitenleiste mit allen Seiten in Registry-Reihenfolge, ein Inhaltsverzeichnis je Seite aus den H2/H3-Überschriften und ein Vor-/Zurück-Blättern; Menü und Fußbereich der Webseite führen den Zugang „Handbuch". `hreflang`-Block, Sprachwechsler und Seitenkarte tragen die Handbuch-Adressen vollständig.
+- **Generierte Seiten im Web-Bau** (4T-000716): Die zwei generierten Handbuch-Seiten (Funktions-Tabelle und Tastenkürzel) entstehen beim Web-Bau aus denselben Datenquellen wie in der App über das neue geteilte Modul `src/shared/manual-generated.js`. Der Web-Bau ruft es mit den Default-Bindings aus `src/shared/commands.js` und allen Erweiterungen aktiv auf; illustrative Wiki-Link-Beispiele der Funktions-Seite werden im statischen Web zu nicht verweisendem Text neutralisiert. Die Seitenkarte trägt jetzt alle Handbuch-Adressen (gebündelte und generierte Seiten je Sprache).
+- **Mermaid-Diagramme als vorab gerendertes SVG** (4T-000717): `scripts/web-mermaid.js` rendert jeden `language-mermaid`-Block des Handbuchs bauzeitlich über einen einmaligen Playwright/Chromium-Lauf zu Inline-SVG, je Diagramm in einer hellen und einer dunklen Fassung; die Sichtbarkeit steuert CSS über die vorhandenen Theme-Variablen `--shot-light`/`--shot-dark`. Auf den ausgelieferten Seiten läuft kein Mermaid-Client-Skript. Der Diagramm-Quelltext bleibt in einem Aufklapper erhalten. Fehlt der Browser, bricht der Bau mit Installations-Hinweis ab.
+- **Volltext-Suche im Web-Handbuch** (4T-000718): Der Bau erzeugt je Sprache einen Suchindex (`<lang>/manual/manual-suchindex.json`) aus dem gerenderten HTML, mit Seiten-Titel, Abschnitts-Ankern und Klartext. Ein eigenes Client-Skript (`web/statisch/manual-search.js`, keine fremde Bibliothek) blendet ein Suchfeld in die Seitenleiste, lädt den Index erst bei Nutzung und sucht tokenbasiert und akzent-normalisiert (NFD, kombinierende Zeichen entfernt); die Trefferliste zeigt Seite, Abschnitt und Text-Schnipsel und führt per Klick auf die Fundstelle. Ohne Skript bleibt das Handbuch über die Seitenleiste voll navigierbar.
 
 ### Geändert
 
-- **Erzeugung der Funktions- und Tastenkürzel-Seite in ein geteiltes Modul ausgelagert** (4T-0716): `src/renderer/modules/manual.js` und `autocomplete-help.js` beziehen die beiden Seiten jetzt aus dem prozess-neutralen `src/shared/manual-generated.js` und reichen die Laufzeit-Werte (Nutzer-Hotkeys, deaktivierte Erweiterungen) hinein. Für die Anwendung ist das ein reines Refactoring ohne Verhaltensänderung; das erzeugte Markdown ist Zeichen für Zeichen dasselbe.
-- **Web-Generator: Leerung des Ausgabe-Ordners gehärtet** (4T-0716): `baueWebseite` leert jetzt den Inhalt von `web/ergebnis`, statt den Ordner selbst zu entfernen und neu anzulegen. Ein offenes Handle auf dem Ordner (Explorer, Vorschau-Server) ließ das bisherige Vorgehen unter Windows mit `EBUSY` scheitern.
+- **Erzeugung der Funktions- und Tastenkürzel-Seite in ein geteiltes Modul ausgelagert** (4T-000716): `src/renderer/modules/manual.js` und `autocomplete-help.js` beziehen die beiden Seiten jetzt aus dem prozess-neutralen `src/shared/manual-generated.js` und reichen die Laufzeit-Werte (Nutzer-Hotkeys, deaktivierte Erweiterungen) hinein. Für die Anwendung ist das ein reines Refactoring ohne Verhaltensänderung; das erzeugte Markdown ist Zeichen für Zeichen dasselbe.
+- **Web-Generator: Leerung des Ausgabe-Ordners gehärtet** (4T-000716): `baueWebseite` leert jetzt den Inhalt von `web/ergebnis`, statt den Ordner selbst zu entfernen und neu anzulegen. Ein offenes Handle auf dem Ordner (Explorer, Vorschau-Server) ließ das bisherige Vorgehen unter Windows mit `EBUSY` scheitern.
 
 ## [0.89.0.885] - 2026-07-23 — Die Sidebar am Rand einklappen
 
-Epic 3E-0141 (Sidebar-Spalten am Rand ein- und ausklappen): Die linke und die rechte Sidebar-Spalte lassen sich als Ganzes einklappen, über ein Symbol am inneren Rand jeder Spalte; das Ausklappen stellt die vorherige Panel-Sichtbarkeit verlustfrei wieder her. Dazu wird die Umstellung der Projektlizenz von MIT auf Apache 2.0 nachgetragen, die seit ihrer Einführung noch in keinem Versions-Block vermerkt war.
+Epic 3E-000141 (Sidebar-Spalten am Rand ein- und ausklappen): Die linke und die rechte Sidebar-Spalte lassen sich als Ganzes einklappen, über ein Symbol am inneren Rand jeder Spalte; das Ausklappen stellt die vorherige Panel-Sichtbarkeit verlustfrei wieder her. Dazu wird die Umstellung der Projektlizenz von MIT auf Apache 2.0 nachgetragen, die seit ihrer Einführung noch in keinem Versions-Block vermerkt war.
 
 ### Neu
 
-- **Sidebar-Spalten als Ganzes einklappen** (4T-0697, 4T-0698): Ein Klick auf das Symbol in der obersten Kopfzeile am inneren Rand klappt die ganze Spalte ein; eine eingeklappte Spalte bleibt als schmaler Strich am Fensterrand stehen, der beim Überfahren das Symbol zeigt und auf Klick wieder ausklappt. Der Kollaps legt sich als eigener Zustand über die Panel-Sichtbarkeiten, statt sie abzuschalten, sodass das Ausklappen exakt den vorherigen Stand wiederherstellt. Linke und rechte Spalte schalten unabhängig, in der geteilten Ansicht jede Editor-Spalte für sich; der Zustand wird global gespeichert und gilt beim nächsten Start weiter. Zusätzlich zum Rand-Symbol steht die Funktion als zwei direkte Einträge im Ansichtsmenü und als zwei belegbare Kommandos in der Kommando-Palette bereit. Sie ist als interne Erweiterung „Sidebar-Spalten einklappen" abschaltbar; im Aus-Zustand verschwinden Symbol und Kommandos, und ein gespeicherter Kollaps-Zustand wird aufgehoben.
+- **Sidebar-Spalten als Ganzes einklappen** (4T-000697, 4T-000698): Ein Klick auf das Symbol in der obersten Kopfzeile am inneren Rand klappt die ganze Spalte ein; eine eingeklappte Spalte bleibt als schmaler Strich am Fensterrand stehen, der beim Überfahren das Symbol zeigt und auf Klick wieder ausklappt. Der Kollaps legt sich als eigener Zustand über die Panel-Sichtbarkeiten, statt sie abzuschalten, sodass das Ausklappen exakt den vorherigen Stand wiederherstellt. Linke und rechte Spalte schalten unabhängig, in der geteilten Ansicht jede Editor-Spalte für sich; der Zustand wird global gespeichert und gilt beim nächsten Start weiter. Zusätzlich zum Rand-Symbol steht die Funktion als zwei direkte Einträge im Ansichtsmenü und als zwei belegbare Kommandos in der Kommando-Palette bereit. Sie ist als interne Erweiterung „Sidebar-Spalten einklappen" abschaltbar; im Aus-Zustand verschwinden Symbol und Kommandos, und ein gespeicherter Kollaps-Zustand wird aufgehoben.
 
 ### Geändert
 
-- **Quellcode erstmals öffentlich** (4T-0562, Epic 3E-0101): Der Quellcode-Stand dieses Release ist seit dem 2026-07-23 öffentlich auf [github.com/Stumm-Consulting-GmbH/em4me](https://github.com/Stumm-Consulting-GmbH/em4me) verfügbar — je Release ein Commit samt Tag, dazu der Release-Eintrag mit den Prüfsummen der ausgelieferten Programme als zweiter Anker des Herkunfts-Nachweises. Veröffentlicht wird ausschließlich der kuratierte Export über die Positivliste; das interne Repositorium bleibt privat. Nachgetragen am Tag der Public-Umstellung.
-- **Projektlizenz auf Apache 2.0** (4T-0558): Das Repositorium steht jetzt unter der Apache-Lizenz 2.0 statt unter der MIT-Lizenz, mit der Stumm-Consulting GmbH als Rechteinhaberin. Eine neue `NOTICE`-Datei liegt im Repo-Root, und die gebauten Programm-Dateien tragen den entsprechenden Copyright-Vermerk. Nutzung, Modifikation, Verbreitung und kommerzielle Weiterverwendung bleiben erlaubt; die Apache-Lizenz ergänzt eine ausdrückliche Patentlizenz und verlangt bei Weitergabe den Erhalt von Lizenztext, `NOTICE` und Änderungsvermerken. Markenrechte am Produktnamen bleiben ausgenommen. Die Umstellung war seit ihrer Einführung in keinem Versions-Block vermerkt und wird hier nachgetragen.
+- **Quellcode erstmals öffentlich** (4T-000562, Epic 3E-000101): Der Quellcode-Stand dieses Release ist seit dem 2026-07-23 öffentlich auf [github.com/Stumm-Consulting-GmbH/em4me](https://github.com/Stumm-Consulting-GmbH/em4me) verfügbar — je Release ein Commit samt Tag, dazu der Release-Eintrag mit den Prüfsummen der ausgelieferten Programme als zweiter Anker des Herkunfts-Nachweises. Veröffentlicht wird ausschließlich der kuratierte Export über die Positivliste; das interne Repositorium bleibt privat. Nachgetragen am Tag der Public-Umstellung.
+- **Projektlizenz auf Apache 2.0** (4T-000558): Das Repositorium steht jetzt unter der Apache-Lizenz 2.0 statt unter der MIT-Lizenz, mit der Stumm-Consulting GmbH als Rechteinhaberin. Eine neue `NOTICE`-Datei liegt im Repo-Root, und die gebauten Programm-Dateien tragen den entsprechenden Copyright-Vermerk. Nutzung, Modifikation, Verbreitung und kommerzielle Weiterverwendung bleiben erlaubt; die Apache-Lizenz ergänzt eine ausdrückliche Patentlizenz und verlangt bei Weitergabe den Erhalt von Lizenztext, `NOTICE` und Änderungsvermerken. Markenrechte am Produktnamen bleiben ausgenommen. Die Umstellung war seit ihrer Einführung in keinem Versions-Block vermerkt und wird hier nachgetragen.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0699): fünf neue i18n-Keys in allen fünf Sprachen (der Katalog-Eintrag „Sidebar-Spalten einklappen" mit Beschreibung, Kurzname und Zugang sowie zwei Tastenkürzel-Beschreibungen für die belegbaren Kommandos), und die Handbuch-Seite „Sidebar" in fünf Sprachen um einen Abschnitt zum Ein- und Ausklappen der Spalten ergänzt. Die Demo-Umgebung bleibt unverändert, weil das Ein- und Ausklappen eine reine Bedien-Funktion der Oberfläche ohne Dokument-Syntax ist.
+- **Funktions-Katalog und Handbuch** (4T-000699): fünf neue i18n-Keys in allen fünf Sprachen (der Katalog-Eintrag „Sidebar-Spalten einklappen" mit Beschreibung, Kurzname und Zugang sowie zwei Tastenkürzel-Beschreibungen für die belegbaren Kommandos), und die Handbuch-Seite „Sidebar" in fünf Sprachen um einen Abschnitt zum Ein- und Ausklappen der Spalten ergänzt. Die Demo-Umgebung bleibt unverändert, weil das Ein- und Ausklappen eine reine Bedien-Funktion der Oberfläche ohne Dokument-Syntax ist.
 
 ## [0.88.0.846] - 2026-07-22 — Die Uhr in drei Größen
 
-Epic 3E-0139 (Digitale Uhr in mehreren Größen): Die Größen-Einstellung des Uhr-Panels bemisst jetzt Zifferblatt und Schrift gemeinsam. Aus der Test-Runde kam ein zweiter, davon unabhängiger Befund am Sidebar-Höhen-System, der im selben Epic behoben ist.
+Epic 3E-000139 (Digitale Uhr in mehreren Größen): Die Größen-Einstellung des Uhr-Panels bemisst jetzt Zifferblatt und Schrift gemeinsam. Aus der Test-Runde kam ein zweiter, davon unabhängiger Befund am Sidebar-Höhen-System, der im selben Epic behoben ist.
 
 ### Geändert
 
-- **Größen-Stufe bemisst auch die digitale Anzeige** (4T-0679): Bisher wirkte die Einstellung nur auf das Zifferblatt, während Uhrzeit, Datumszeile und Kalenderwoche feste Schriftgrößen trugen. Jetzt folgen alle drei Zeilen der Stufe und behalten dabei ihr Größenverhältnis. Die kleine Stufe entspricht exakt dem bisherigen Schriftbild; mittel und groß kommen darüber dazu. Wer die Standard-Stufe „mittel" nutzt, bekommt damit eine größere Uhrzeit als zuvor — bewusste Festlegung, weil die Idee genau darauf zielt.
-- **Größen-Auswahl im Block „Anzeige"** (4T-0679): Sie stand unter „Analoge Uhr" und war damit für jeden unsichtbar, der die Uhr ohne Zifferblatt betreibt. Jetzt steht sie hinter den vier Sichtbarkeits-Schaltern und gilt auch für die reine Digitalanzeige.
-- **Überbreite Zeilen werden beschnitten statt umgebrochen** (4T-0679): Passt eine Zeile nicht in die Sidebar-Spalte, ragt sie über beide Ränder hinaus und wird dort gekappt; die Mitte bleibt lesbar. Die große Stufe ist damit ausdrücklich für eine breit gezogene Spalte gedacht und nicht an der Mindestbreite bemessen.
-- **Unterstes Sidebar-Panel folgt seinem Inhalt** (4T-0682): Der Höhen-Griff steuert immer das Panel darüber, das unterste hat also keinen. Bisher bekam es beim Ziehen eines beliebigen anderen Griffs trotzdem eine feste Höhe mit und stand danach dauerhaft auf dieser Höhe, ohne jede Möglichkeit, sie zu ändern; es rollte, obwohl darunter Platz frei war. Jetzt läuft es immer auf automatischer Höhe, und beim Ziehen entsteht für es kein gespeicherter Wert mehr. Ein Rollbalken erscheint dort nur noch, wenn der Platz für den Inhalt wirklich nicht reicht.
+- **Größen-Stufe bemisst auch die digitale Anzeige** (4T-000679): Bisher wirkte die Einstellung nur auf das Zifferblatt, während Uhrzeit, Datumszeile und Kalenderwoche feste Schriftgrößen trugen. Jetzt folgen alle drei Zeilen der Stufe und behalten dabei ihr Größenverhältnis. Die kleine Stufe entspricht exakt dem bisherigen Schriftbild; mittel und groß kommen darüber dazu. Wer die Standard-Stufe „mittel" nutzt, bekommt damit eine größere Uhrzeit als zuvor — bewusste Festlegung, weil die Idee genau darauf zielt.
+- **Größen-Auswahl im Block „Anzeige"** (4T-000679): Sie stand unter „Analoge Uhr" und war damit für jeden unsichtbar, der die Uhr ohne Zifferblatt betreibt. Jetzt steht sie hinter den vier Sichtbarkeits-Schaltern und gilt auch für die reine Digitalanzeige.
+- **Überbreite Zeilen werden beschnitten statt umgebrochen** (4T-000679): Passt eine Zeile nicht in die Sidebar-Spalte, ragt sie über beide Ränder hinaus und wird dort gekappt; die Mitte bleibt lesbar. Die große Stufe ist damit ausdrücklich für eine breit gezogene Spalte gedacht und nicht an der Mindestbreite bemessen.
+- **Unterstes Sidebar-Panel folgt seinem Inhalt** (4T-000682): Der Höhen-Griff steuert immer das Panel darüber, das unterste hat also keinen. Bisher bekam es beim Ziehen eines beliebigen anderen Griffs trotzdem eine feste Höhe mit und stand danach dauerhaft auf dieser Höhe, ohne jede Möglichkeit, sie zu ändern; es rollte, obwohl darunter Platz frei war. Jetzt läuft es immer auf automatischer Höhe, und beim Ziehen entsteht für es kein gespeicherter Wert mehr. Ein Rollbalken erscheint dort nur noch, wenn der Platz für den Inhalt wirklich nicht reicht.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0680): Die Uhr-Beschreibung nennt die Größen-Stufe jetzt als eigene Aussage statt als Teil der Zifferblatt-Aufzählung. Der Katalog-Text zu den Panel-Höhen behauptete, die Höhe **jedes** Panels sei am Griff einstellbar; er nennt jetzt die tatsächliche Regel samt untersten Panel. Neuer Abschnitt „Größe" auf der Handbuch-Seite zu den Werkzeugen und ein ergänzter Absatz auf der Sidebar-Seite, beides in allen fünf Sprachen.
+- **Funktions-Katalog und Handbuch** (4T-000680): Die Uhr-Beschreibung nennt die Größen-Stufe jetzt als eigene Aussage statt als Teil der Zifferblatt-Aufzählung. Der Katalog-Text zu den Panel-Höhen behauptete, die Höhe **jedes** Panels sei am Griff einstellbar; er nennt jetzt die tatsächliche Regel samt untersten Panel. Neuer Abschnitt „Größe" auf der Handbuch-Seite zu den Werkzeugen und ein ergänzter Absatz auf der Sidebar-Seite, beides in allen fünf Sprachen.
 
 ## [0.87.0.832] - 2026-07-22 — Reiter neben ihrer Herkunft
 
-Epic 3E-0130 (Tab-Position von Folge-Ansichten): Ein Reiter, der aus einem anderen heraus entsteht, öffnet sich nicht mehr am Ende der Leiste, sondern unmittelbar rechts neben seiner Herkunft.
+Epic 3E-000130 (Tab-Position von Folge-Ansichten): Ein Reiter, der aus einem anderen heraus entsteht, öffnet sich nicht mehr am Ende der Leiste, sondern unmittelbar rechts neben seiner Herkunft.
 
 ### Geändert
 
-- **Position neuer Reiter** (4T-0648): Jeder Klick im Inhalt eines Dokuments — Wiki-Link, Treffer einer Abfrage, Ereignis-Quelle, Journal-Navigation, Diagramm-Link — öffnet das Ziel unmittelbar rechts neben dem Reiter, aus dem geklickt wurde. Öffnet ein Aufruf mehrere Dateien, stehen sie in ihrer Reihenfolge dahinter. Öffnungen ohne Herkunft (Datei-Dialog, Kommando-Palette, Lesezeichen, Panels, Handbuch, Einstellungen) hängen unverändert ans Ende der Leiste, und eine bereits offene Datei wird weiterhin nur aktiviert, ohne die Reihenfolge zu ändern.
-- **Verhalten in Reiter-Gruppen** (4T-0648): Bisher trat eine so geöffnete Datei der Gruppe am **Gruppen-Ende** bei. Bei mehr als einem Mitglied lag sie damit weit von ihrer Herkunft entfernt. Jetzt tritt sie derselben Gruppe an ihrer Position neben der Herkunft bei; der Gruppen-Block bleibt dabei zusammenhängend. Die Positions-Regel gilt unabhängig davon, ob die Erweiterung „Tab-Gruppen" eingeschaltet ist.
-- **Dokument-Historie neben ihrem Dokument** (4T-0648): Ihr Reiter erscheint neben dem Reiter des Dokuments, zu dem sie gehört, und wandert mit, sobald sie für ein anderes Dokument geöffnet wird. Ist das Dokument nicht in derselben Spalte offen, bleibt es beim bisherigen Verhalten.
+- **Position neuer Reiter** (4T-000648): Jeder Klick im Inhalt eines Dokuments — Wiki-Link, Treffer einer Abfrage, Ereignis-Quelle, Journal-Navigation, Diagramm-Link — öffnet das Ziel unmittelbar rechts neben dem Reiter, aus dem geklickt wurde. Öffnet ein Aufruf mehrere Dateien, stehen sie in ihrer Reihenfolge dahinter. Öffnungen ohne Herkunft (Datei-Dialog, Kommando-Palette, Lesezeichen, Panels, Handbuch, Einstellungen) hängen unverändert ans Ende der Leiste, und eine bereits offene Datei wird weiterhin nur aktiviert, ohne die Reihenfolge zu ändern.
+- **Verhalten in Reiter-Gruppen** (4T-000648): Bisher trat eine so geöffnete Datei der Gruppe am **Gruppen-Ende** bei. Bei mehr als einem Mitglied lag sie damit weit von ihrer Herkunft entfernt. Jetzt tritt sie derselben Gruppe an ihrer Position neben der Herkunft bei; der Gruppen-Block bleibt dabei zusammenhängend. Die Positions-Regel gilt unabhängig davon, ob die Erweiterung „Tab-Gruppen" eingeschaltet ist.
+- **Dokument-Historie neben ihrem Dokument** (4T-000648): Ihr Reiter erscheint neben dem Reiter des Dokuments, zu dem sie gehört, und wandert mit, sobald sie für ein anderes Dokument geöffnet wird. Ist das Dokument nicht in derselben Spalte offen, bleibt es beim bisherigen Verhalten.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0676): ein neuer Katalog-Eintrag „Position neuer Tabs" mit Beschreibung, Kurzname und Zugang in fünf Sprachen, dazu zwei nachgezogene Bestands-Einträge (Tab-Gruppen, Historien-Ansicht). Die Handbuch-Seite „Applikationen, Fenster und Bereiche" hat in fünf Sprachen einen neuen Abschnitt „Position neuer Tabs" bekommen; die Seiten zu den Tab-Gruppen und zur Dokument-Historie sind nachgezogen.
+- **Funktions-Katalog und Handbuch** (4T-000676): ein neuer Katalog-Eintrag „Position neuer Tabs" mit Beschreibung, Kurzname und Zugang in fünf Sprachen, dazu zwei nachgezogene Bestands-Einträge (Tab-Gruppen, Historien-Ansicht). Die Handbuch-Seite „Applikationen, Fenster und Bereiche" hat in fünf Sprachen einen neuen Abschnitt „Position neuer Tabs" bekommen; die Seiten zu den Tab-Gruppen und zur Dokument-Historie sind nachgezogen.
 
 ## [0.86.0.819] - 2026-07-21 — Listen als Gliederung
 
-Epic 3E-0112 (Listen-Outliner): Listen lassen sich strukturell bearbeiten statt nur zeilenweise. Aus dem Epic mit ursprünglich vier Tasks sind neun geworden; vier davon entstanden erst in den Test-Runden des Product Owners, weil sich zeigte, dass mehrere Annahmen über das Verhalten von Markdown-Listen nicht zutrafen.
+Epic 3E-000112 (Listen-Outliner): Listen lassen sich strukturell bearbeiten statt nur zeilenweise. Aus dem Epic mit ursprünglich vier Tasks sind neun geworden; vier davon entstanden erst in den Test-Runden des Product Owners, weil sich zeigte, dass mehrere Annahmen über das Verhalten von Markdown-Listen nicht zutrafen.
 
 ### Neu
 
-- **Listenpunkte samt Unterpunkten verschieben** (4T-0599): `Alt+↑` und `Alt+↓` bewegen einen Punkt mit allem, was darunter hängt. Der Sprung geht immer über den ganzen Nachbar-Ast, die Ebene bleibt unverändert; ohne Nachbar in der Richtung passiert nichts. Außerhalb von Listen verschieben die Kürzel weiterhin die einzelne Zeile. Jede Operation ist ein Rückgängig-Schritt.
-- **Ein- und Ausrücken nimmt den Teilbaum mit** (4T-0599, 4T-0661): `Tab` und `Umschalt+Tab` verschieben den Punkt samt Unterpunkten, mit Cursor in einer Zeile ebenso wie bei einer Markierung über mehrere.
+- **Listenpunkte samt Unterpunkten verschieben** (4T-000599): `Alt+↑` und `Alt+↓` bewegen einen Punkt mit allem, was darunter hängt. Der Sprung geht immer über den ganzen Nachbar-Ast, die Ebene bleibt unverändert; ohne Nachbar in der Richtung passiert nichts. Außerhalb von Listen verschieben die Kürzel weiterhin die einzelne Zeile. Jede Operation ist ein Rückgängig-Schritt.
+- **Ein- und Ausrücken nimmt den Teilbaum mit** (4T-000599, 4T-000661): `Tab` und `Umschalt+Tab` verschieben den Punkt samt Unterpunkten, mit Cursor in einer Zeile ebenso wie bei einer Markierung über mehrere.
 - **Teilbaum auswählen**: neues Kommando (Kommando-Palette), markiert einen Punkt mit allem, was darunter hängt — Grundlage zum Kopieren oder Ausschneiden ganzer Äste.
-- **Automatische Nummerierung** (4T-0655): Nummerierte Listen zählen im Quelltext von selbst durch, sobald in ihnen gearbeitet wird, nicht nur nach den Struktur-Kommandos. Die Startnummer einer Liste bleibt erhalten. Korrektur und Bearbeitung bilden einen Rückgängig-Schritt; das bloße Öffnen einer Datei ändert nichts.
-- **Listen-Ausstieg** (4T-0600): Die Eingabetaste auf einem leeren Punkt der obersten Ebene beendet die Liste, statt eine Leerzeile und einen weiteren leeren Punkt zu hinterlassen.
-- **Tabulator außerhalb von Listen einstellbar** (4T-0656): Neuer Schalter im Bereich „Verhalten". Standardmäßig fügt die Taste dort eine Einrückung ein; abgeschaltet wandert der Eingabefokus weiter wie bisher.
+- **Automatische Nummerierung** (4T-000655): Nummerierte Listen zählen im Quelltext von selbst durch, sobald in ihnen gearbeitet wird, nicht nur nach den Struktur-Kommandos. Die Startnummer einer Liste bleibt erhalten. Korrektur und Bearbeitung bilden einen Rückgängig-Schritt; das bloße Öffnen einer Datei ändert nichts.
+- **Listen-Ausstieg** (4T-000600): Die Eingabetaste auf einem leeren Punkt der obersten Ebene beendet die Liste, statt eine Leerzeile und einen weiteren leeren Punkt zu hinterlassen.
+- **Tabulator außerhalb von Listen einstellbar** (4T-000656): Neuer Schalter im Bereich „Verhalten". Standardmäßig fügt die Taste dort eine Einrückung ein; abgeschaltet wandert der Eingabefokus weiter wie bisher.
 
 ### Geändert
 
-- **Eine Leerzeile trennt zwei nummerierte Listen** (4T-0660): Die zweite Liste beginnt wieder bei ihrer eigenen Nummer, in der Anzeige wie im Quelltext. Das weicht **bewusst von der Standard-Interpretation ab**, in der eine Leerzeile eine Liste nur weitläufig fortsetzt und die Zählung über sie hinweg durchläuft. Ein so geschriebenes Dokument sieht in anderen Markdown-Programmen deshalb anders aus, ebenso im portablen Export, der Markdown ausliefert. Wer das nicht will, schaltet die Erweiterung ab.
-- **Einrück-Tiefe folgt der Struktur** (4T-0660, 4T-0661): Eingerückt wird auf die Inhalts-Spalte des Punktes darüber statt um eine feste Schrittweite, und nur dort, wo es einen solchen Punkt gibt.
+- **Eine Leerzeile trennt zwei nummerierte Listen** (4T-000660): Die zweite Liste beginnt wieder bei ihrer eigenen Nummer, in der Anzeige wie im Quelltext. Das weicht **bewusst von der Standard-Interpretation ab**, in der eine Leerzeile eine Liste nur weitläufig fortsetzt und die Zählung über sie hinweg durchläuft. Ein so geschriebenes Dokument sieht in anderen Markdown-Programmen deshalb anders aus, ebenso im portablen Export, der Markdown ausliefert. Wer das nicht will, schaltet die Erweiterung ab.
+- **Einrück-Tiefe folgt der Struktur** (4T-000660, 4T-000661): Eingerückt wird auf die Inhalts-Spalte des Punktes darüber statt um eine feste Schrittweite, und nur dort, wo es einen solchen Punkt gibt.
 - **Neue schaltbare Erweiterung „Listen-Struktur"** (Bereich „Erweiterungen"): bündelt die Struktur-Kommandos, die automatische Nummerierung, den Listen-Ausstieg und die Leerzeilen-Trennung. Abgeschaltet verhält sich die Anwendung wie zuvor.
 
 ### Behoben
 
-- **Einrücken nummerierter Listen blieb ohne Wirkung auf die Anzeige** (4T-0660): Bislang rückte die Anwendung pauschal um zwei Zeichen ein. Unter einem nummerierten Punkt reicht das nicht: Ein Unterpunkt gilt erst ab der Inhalts-Spalte des Elternpunkts als Unterpunkt, unter `1. ` also ab drei Zeichen, unter `10. ` ab vier. Der Quelltext sah eingerückt aus, die Anzeige zeigte die Liste flach. Ein Bestandsfehler seit Einführung der Tab-Einrückung.
-- **Ausrücken zerriss die verbleibende Untergliederung** (4T-0661): Beim Ausrücken eines Punktes aus einer Untergliederung blieben seine ehemaligen Geschwister mit ihrer alten Nummer zurück. Da eine geordnete Liste einen Absatz nur unterbrechen kann, wenn sie mit 1 beginnt, zog die Anzeige die Zeile als Fortsetzungstext in den Punkt darüber und stellte beides einzeilig dar.
+- **Einrücken nummerierter Listen blieb ohne Wirkung auf die Anzeige** (4T-000660): Bislang rückte die Anwendung pauschal um zwei Zeichen ein. Unter einem nummerierten Punkt reicht das nicht: Ein Unterpunkt gilt erst ab der Inhalts-Spalte des Elternpunkts als Unterpunkt, unter `1. ` also ab drei Zeichen, unter `10. ` ab vier. Der Quelltext sah eingerückt aus, die Anzeige zeigte die Liste flach. Ein Bestandsfehler seit Einführung der Tab-Einrückung.
+- **Ausrücken zerriss die verbleibende Untergliederung** (4T-000661): Beim Ausrücken eines Punktes aus einer Untergliederung blieben seine ehemaligen Geschwister mit ihrer alten Nummer zurück. Da eine geordnete Liste einen Absatz nur unterbrechen kann, wenn sie mit 1 beginnt, zog die Anzeige die Zeile als Fortsetzungstext in den Punkt darüber und stellte beides einzeilig dar.
 
 ### Dokumentation
 
-- **Funktions-Katalog und Handbuch** (4T-0601): drei neue Katalog-Einträge (Listen-Struktur, automatische Nummerierung, Fortsetzen und Beenden) mit je Beschreibung, Kurzname und Zugang in fünf Sprachen, dazu ein überarbeiteter Eintrag zur Listen-Einrückung. Der Listen-Abschnitt der Handbuch-Grundlagen ist in fünf Sprachen um drei Unterabschnitte gewachsen; dabei wurde eine falsche Aussage zur Einrück-Tiefe korrigiert. Die Demo-Area zeigt eine korrekt verschachtelte nummerierte Liste.
+- **Funktions-Katalog und Handbuch** (4T-000601): drei neue Katalog-Einträge (Listen-Struktur, automatische Nummerierung, Fortsetzen und Beenden) mit je Beschreibung, Kurzname und Zugang in fünf Sprachen, dazu ein überarbeiteter Eintrag zur Listen-Einrückung. Der Listen-Abschnitt der Handbuch-Grundlagen ist in fünf Sprachen um drei Unterabschnitte gewachsen; dabei wurde eine falsche Aussage zur Einrück-Tiefe korrigiert. Die Demo-Area zeigt eine korrekt verschachtelte nummerierte Liste.
 
 ## [0.85.1.807] - 2026-07-20 — Bearbeitungs-Fehler und Doku-Nachzug
 
-Hotfix zum Epic 3E-0126 (Rebranding auf EM4me): Er liefert einen nutzersichtbaren Fehler nach, der bei der Untersuchung eines instabilen Testfalls sichtbar wurde, sowie den Nachzug des neuen Produktnamens in den lebenden Projekt-Dokumenten. Beide Vorgänge entstanden nach der Auslieferung der 0.85.0 (Tasks 4T-0653 und 4T-0652).
+Hotfix zum Epic 3E-000126 (Rebranding auf EM4me): Er liefert einen nutzersichtbaren Fehler nach, der bei der Untersuchung eines instabilen Testfalls sichtbar wurde, sowie den Nachzug des neuen Produktnamens in den lebenden Projekt-Dokumenten. Beide Vorgänge entstanden nach der Auslieferung der 0.85.0 (Tasks 4T-000653 und 4T-000652).
 
 ### Behoben
 
-- **Zeilen-Bearbeitung verlor ihr Eingabefeld** (4T-0653): In der geteilten Ansicht plant jede Dokument-Änderung einen verzögerten Neuaufbau der Vorschau, der deren Inhalt vollständig ersetzt. Das Bestätigen einer Ereignis-Zeile schreibt in den Block, ändert also das Dokument, und löste damit selbst den Aufbau aus, der kurz darauf zuschlug: Wer binnen dieser Frist die nächste Zeile zur Bearbeitung öffnete, verlor sie mitsamt der bereits getippten Eingabe. Der Aufbau war dabei überflüssig, weil das Rückschreiben die Vorschau bereits selbst aktualisiert. Er wird jetzt abbestellt; zusätzlich wird ein geplanter Aufbau aufgeschoben, solange eine Zeilen- oder Zellen-Bearbeitung offen ist. Das betrifft Ereignis-Tabellen und Datentabellen gleichermaßen. Ein neuer Testfall sichert das Verhalten ab.
+- **Zeilen-Bearbeitung verlor ihr Eingabefeld** (4T-000653): In der geteilten Ansicht plant jede Dokument-Änderung einen verzögerten Neuaufbau der Vorschau, der deren Inhalt vollständig ersetzt. Das Bestätigen einer Ereignis-Zeile schreibt in den Block, ändert also das Dokument, und löste damit selbst den Aufbau aus, der kurz darauf zuschlug: Wer binnen dieser Frist die nächste Zeile zur Bearbeitung öffnete, verlor sie mitsamt der bereits getippten Eingabe. Der Aufbau war dabei überflüssig, weil das Rückschreiben die Vorschau bereits selbst aktualisiert. Er wird jetzt abbestellt; zusätzlich wird ein geplanter Aufbau aufgeschoben, solange eine Zeilen- oder Zellen-Bearbeitung offen ist. Das betrifft Ereignis-Tabellen und Datentabellen gleichermaßen. Ein neuer Testfall sichert das Verhalten ab.
 
 ### Dokumentation
 
-- **Lebende Projekt-Dokumente auf EM4me nachgezogen** (4T-0652): technische Architektur-Sicht, Entwicklungsrichtlinien, Roadmap, Analysen des eigenen Vorgehens und die Referenz-Analysen. Historische Spur bleibt unverändert: abgeschlossene Vorgänge, ältere Änderungsprotokoll-Einträge und Versions-Chroniken nennen weiterhin den zeitgenössischen Namen. Neu ist ein Erkenntnis-Eintrag, der die Lehren aus drei Umbenennungen festhält.
+- **Lebende Projekt-Dokumente auf EM4me nachgezogen** (4T-000652): technische Architektur-Sicht, Entwicklungsrichtlinien, Roadmap, Analysen des eigenen Vorgehens und die Referenz-Analysen. Historische Spur bleibt unverändert: abgeschlossene Vorgänge, ältere Änderungsprotokoll-Einträge und Versions-Chroniken nennen weiterhin den zeitgenössischen Namen. Neu ist ein Erkenntnis-Eintrag, der die Lehren aus drei Umbenennungen festhält.
 
 ## [0.85.0.804] - 2026-07-20 — Rebranding auf EM4me
 
-Epic 3E-0126 (Rebranding auf EM4me): Das Produkt heißt jetzt **EM4me**, mit eigener Bildmarke und dem Claim „extended memory for me". Der Name ordnet das Werkzeug in eine Familie ein, zu der auch eine geplante Server-Komponente gehört. Es ist die dritte Umbenennung; sie folgt dem Zuschnitt der vorigen und lässt bestehende Installationen vollständig weiterarbeiten. Umgesetzt in drei Umsetzungs-Tasks (4T-0649, 4T-0643, 4T-0650).
+Epic 3E-000126 (Rebranding auf EM4me): Das Produkt heißt jetzt **EM4me**, mit eigener Bildmarke und dem Claim „extended memory for me". Der Name ordnet das Werkzeug in eine Familie ein, zu der auch eine geplante Server-Komponente gehört. Es ist die dritte Umbenennung; sie folgt dem Zuschnitt der vorigen und lässt bestehende Installationen vollständig weiterarbeiten. Umgesetzt in drei Umsetzungs-Tasks (4T-000649, 4T-000643, 4T-000650).
 
 ### Geändert
 
-- **Produktname durchgängig auf EM4me** (4T-0643): Fenstertitel, leerer Zustand, Über-Dialog und Menüs in allen fünf Sprachen, dazu Programm-Metadaten, Installations- und Verknüpfungs-Namen. Die erzeugten Programm-Dateien heißen `EM4me-<version>-Setup.exe` und `EM4me-<version>-Portable.exe`. **Bewusst unverändert** bleiben zwei technische Kennungen: die Anwendungs-Kennung (ein Wechsel würde die neue Installation neben die alte setzen statt an ihre Stelle) und die Registrierungs-Kennung der Datei-Zuordnung (ein Wechsel würde bestehende Zuordnungen ins Leere laufen lassen).
-- **Neue Bildmarke, gestaffelt ausgespielt** (4T-0649): Ein goldenes Plättchen mit großer Vier, umgeben von den Buchstaben E, M, m und e. Weil die Buchstaben bei 16 Pixeln zu Grau zerfallen, führt das Anwendungs-Symbol in den kleinen Stufen eine Kompaktmarke, die allein die Ziffer zeigt und die Buchstaben auf Punkte reduziert; ab 48 Pixeln erscheint die vollständige Marke. Titelleiste und Taskleiste bekommen damit ein lesbares Symbol, Desktop-Verknüpfung und Datei-Eigenschaften die volle Marke. Das Logo erscheint zusätzlich im Über-Dialog und im Handbuch-Kopf. Die frühere Bildmarke beruhte auf fremdem Material; die neue ist Eigengestaltung, die Fremd-Attribution entfällt.
-- **Marken-Claim** (4T-0643): „extended memory for me" steht unter dem Produktnamen im leeren Zustand, im Über-Dialog und unter dem Logo im Handbuch. Er lautet in allen Sprachen gleich, weil er als Auflösung des Namens Bestandteil der Marke ist.
+- **Produktname durchgängig auf EM4me** (4T-000643): Fenstertitel, leerer Zustand, Über-Dialog und Menüs in allen fünf Sprachen, dazu Programm-Metadaten, Installations- und Verknüpfungs-Namen. Die erzeugten Programm-Dateien heißen `EM4me-<version>-Setup.exe` und `EM4me-<version>-Portable.exe`. **Bewusst unverändert** bleiben zwei technische Kennungen: die Anwendungs-Kennung (ein Wechsel würde die neue Installation neben die alte setzen statt an ihre Stelle) und die Registrierungs-Kennung der Datei-Zuordnung (ein Wechsel würde bestehende Zuordnungen ins Leere laufen lassen).
+- **Neue Bildmarke, gestaffelt ausgespielt** (4T-000649): Ein goldenes Plättchen mit großer Vier, umgeben von den Buchstaben E, M, m und e. Weil die Buchstaben bei 16 Pixeln zu Grau zerfallen, führt das Anwendungs-Symbol in den kleinen Stufen eine Kompaktmarke, die allein die Ziffer zeigt und die Buchstaben auf Punkte reduziert; ab 48 Pixeln erscheint die vollständige Marke. Titelleiste und Taskleiste bekommen damit ein lesbares Symbol, Desktop-Verknüpfung und Datei-Eigenschaften die volle Marke. Das Logo erscheint zusätzlich im Über-Dialog und im Handbuch-Kopf. Die frühere Bildmarke beruhte auf fremdem Material; die neue ist Eigengestaltung, die Fremd-Attribution entfällt.
+- **Marken-Claim** (4T-000643): „extended memory for me" steht unter dem Produktnamen im leeren Zustand, im Über-Dialog und unter dem Logo im Handbuch. Er lautet in allen Sprachen gleich, weil er als Auflösung des Namens Bestandteil der Marke ist.
 
 ### Behoben
 
-- **Nutzerdaten gingen bei einer Umbenennung teilweise verloren** (4T-0643): Der Ordner für Nutzerdaten hängt am Produktnamen, weshalb jede Umbenennung auf einem leeren Profil startet. Die vorhandene Übernahme kopierte allein die Einstellungs-Datei. Nicht mitgenommen wurden die Entwürfe nie gespeicherter Tabs und die installierten externen Erweiterungen — beides Bestände, die es beim vorigen Rebranding noch nicht gab. Die Übernahme deckt jetzt alle drei ab; die Quell-Daten bleiben unangetastet liegen.
+- **Nutzerdaten gingen bei einer Umbenennung teilweise verloren** (4T-000643): Der Ordner für Nutzerdaten hängt am Produktnamen, weshalb jede Umbenennung auf einem leeren Profil startet. Die vorhandene Übernahme kopierte allein die Einstellungs-Datei. Nicht mitgenommen wurden die Entwürfe nie gespeicherter Tabs und die installierten externen Erweiterungen — beides Bestände, die es beim vorigen Rebranding noch nicht gab. Die Übernahme deckt jetzt alle drei ab; die Quell-Daten bleiben unangetastet liegen.
 
 ### i18n und Handbuch
 
-- **Dokumentation und Handbuch nachgezogen** (4T-0650): Projektbeschreibung, Projekt-Konventionen und Release-Vorlage tragen den neuen Namen; im Handbuch der Begrüßungssatz der Überblicksseite und ein Halbsatz auf der Seite „Perspective Table", je in allen fünf Sprachen. Das mitgelieferte Beispiel-PDF der Demo-Umgebung wurde neu erzeugt, weil es den Namen im eingebetteten Text führte. Ein neuer i18n-Schlüssel für den Claim in fünf Sprachen; der Schlüssel der bisherigen Icon-Herkunft und die Autoren-Zeile des Über-Dialogs sind entfallen.
+- **Dokumentation und Handbuch nachgezogen** (4T-000650): Projektbeschreibung, Projekt-Konventionen und Release-Vorlage tragen den neuen Namen; im Handbuch der Begrüßungssatz der Überblicksseite und ein Halbsatz auf der Seite „Perspective Table", je in allen fünf Sprachen. Das mitgelieferte Beispiel-PDF der Demo-Umgebung wurde neu erzeugt, weil es den Namen im eingebetteten Text führte. Ein neuer i18n-Schlüssel für den Claim in fünf Sprachen; der Schlüssel der bisherigen Icon-Herkunft und die Autoren-Zeile des Über-Dialogs sind entfallen.
 - **Die Funktionsnamen rund um „Perspective" bleiben unverändert**: Perspective Table, Perspective Datatable und Perspective-Abfrage behalten ihren Namen, ebenso die gleichlautenden Code-Block-Namen der Markdown-Syntax. Sie sind Bestandteil bestehender Dokumente; eine Umbenennung würde sie brechen. Produktname und Funktionsname sind ab dieser Version verschiedene Dinge.
 
 ## [0.84.0.796] - 2026-07-20 — Uhr-Ausbau und Bedien-Themen
 
-Epic 3E-0069 (Uhr-Ausbau, Panel-Darstellung und Fehlerbehebungen): Die mit dem Uhr-Kern begonnene Erweiterung wird zur vollständigen Zeit-Werkzeug-Sammlung mit Wecker, Timer und Stoppuhr. Dazu drei unabhängige Bedien-Themen aus dem Ideen-Backlog: umschaltbare Panel-Überschriften, ein behobener Schreibschutz-Fehler im Lesemodus und ein neuer Schreib-Trigger für die Datumseingabe. Umgesetzt in sechs Umsetzungs-Tasks (4T-0636 bis 4T-0641) plus Hilfe- und Handbuch-Task (4T-0373).
+Epic 3E-000069 (Uhr-Ausbau, Panel-Darstellung und Fehlerbehebungen): Die mit dem Uhr-Kern begonnene Erweiterung wird zur vollständigen Zeit-Werkzeug-Sammlung mit Wecker, Timer und Stoppuhr. Dazu drei unabhängige Bedien-Themen aus dem Ideen-Backlog: umschaltbare Panel-Überschriften, ein behobener Schreibschutz-Fehler im Lesemodus und ein neuer Schreib-Trigger für die Datumseingabe. Umgesetzt in sechs Umsetzungs-Tasks (4T-000636 bis 4T-000641) plus Hilfe- und Handbuch-Task (4T-000373).
 
 ### Neu
 
-- **Modus-Umschaltung im Uhr-Panel** (4T-0636): Eine Leiste aus vier Icon-Tasten über dem Panel-Inhalt schaltet zwischen Uhr, Wecker, Timer und Stoppuhr um. Die Wahl gilt je Sidebar-Spalte und überlebt den Neustart; links die Uhr und rechts der Timer sind damit gleichzeitig möglich. Der Anzeige-Takt läuft nur noch, wenn eine sichtbare Spalte tatsächlich die Uhr zeigt.
-- **Wecker** (4T-0637): Beliebig viele Wecker mit Uhrzeit, Bezeichnung und Wiederhol-Muster (einmalig, täglich oder an gewählten Wochentagen), jeder einzeln scharf schaltbar. Die Uhrzeit kommt über eine Ziffern-Auswahl, eine ungültige Eingabe ist damit unmöglich. Ein fälliger Wecker meldet sich mit Dialog und lässt sich bestätigen oder um eine einstellbare Dauer schlummern; bei nicht aktivem Fenster kommt eine System-Benachrichtigung dazu. Die Fälligkeit prüft ein eigener Takt im Hauptprozess, unabhängig davon, ob das Panel offen ist. Ein verstrichener Weckzeitpunkt wird bewusst nicht nachgeholt.
-- **Timer und Stoppuhr** (4T-0638): Beliebig viele rückwärts laufende Timer mit Restzeit und Fortschrittsbalken; drei Schnellwahl-Knöpfe starten sofort, eigene Dauern kommen über eine Steuerung für Stunden, Minuten und Sekunden. Die Restzeit wird aus Zeitstempeln gerechnet statt heruntergezählt und bleibt deshalb über Hintergrund, Ruhezustand und Neustart hinweg korrekt. Ein abgelaufener Timer meldet sich auf die Sekunde genau, weil der Prüfer einen gezielten Weckruf auf den nächsten Ablauf setzt statt zu pollen. Die Stoppuhr misst vorwärts, mit Hundertsteln, Pause und Rundenzeiten.
-- **Panel-Überschriften wahlweise als Symbol** (4T-0639): Ein Schalter im Bereich „Sidebar" ersetzt die Text-Überschriften der Panels durch ihr jeweiliges Symbol, in den Sektions-Köpfen wie in den Reitern gruppierter Panels. Das Symbol stammt aus dem zugehörigen Statusbar-Schalter, ist also konstruktionsbedingt dasselbe; der Panel-Name bleibt als Kurzhinweis und für Screenreader erhalten.
+- **Modus-Umschaltung im Uhr-Panel** (4T-000636): Eine Leiste aus vier Icon-Tasten über dem Panel-Inhalt schaltet zwischen Uhr, Wecker, Timer und Stoppuhr um. Die Wahl gilt je Sidebar-Spalte und überlebt den Neustart; links die Uhr und rechts der Timer sind damit gleichzeitig möglich. Der Anzeige-Takt läuft nur noch, wenn eine sichtbare Spalte tatsächlich die Uhr zeigt.
+- **Wecker** (4T-000637): Beliebig viele Wecker mit Uhrzeit, Bezeichnung und Wiederhol-Muster (einmalig, täglich oder an gewählten Wochentagen), jeder einzeln scharf schaltbar. Die Uhrzeit kommt über eine Ziffern-Auswahl, eine ungültige Eingabe ist damit unmöglich. Ein fälliger Wecker meldet sich mit Dialog und lässt sich bestätigen oder um eine einstellbare Dauer schlummern; bei nicht aktivem Fenster kommt eine System-Benachrichtigung dazu. Die Fälligkeit prüft ein eigener Takt im Hauptprozess, unabhängig davon, ob das Panel offen ist. Ein verstrichener Weckzeitpunkt wird bewusst nicht nachgeholt.
+- **Timer und Stoppuhr** (4T-000638): Beliebig viele rückwärts laufende Timer mit Restzeit und Fortschrittsbalken; drei Schnellwahl-Knöpfe starten sofort, eigene Dauern kommen über eine Steuerung für Stunden, Minuten und Sekunden. Die Restzeit wird aus Zeitstempeln gerechnet statt heruntergezählt und bleibt deshalb über Hintergrund, Ruhezustand und Neustart hinweg korrekt. Ein abgelaufener Timer meldet sich auf die Sekunde genau, weil der Prüfer einen gezielten Weckruf auf den nächsten Ablauf setzt statt zu pollen. Die Stoppuhr misst vorwärts, mit Hundertsteln, Pause und Rundenzeiten.
+- **Panel-Überschriften wahlweise als Symbol** (4T-000639): Ein Schalter im Bereich „Sidebar" ersetzt die Text-Überschriften der Panels durch ihr jeweiliges Symbol, in den Sektions-Köpfen wie in den Reitern gruppierter Panels. Das Symbol stammt aus dem zugehörigen Statusbar-Schalter, ist also konstruktionsbedingt dasselbe; der Panel-Name bleibt als Kurzhinweis und für Screenreader erhalten.
 
 ### Geändert
 
-- **Schreib-Trigger der Datumseingabe** (4T-0641): Die Zeichenfolge ist jetzt `;;` statt zweier Backslashes. Die bisherige Wahl kollidierte mit der Bedeutung des Backslash als Escape-Zeichen, denn `\\` ist die Schreibweise für einen literalen Backslash. Zusätzlich greift der Trigger nun in den Zellen der Perspective-Tabellen: Sie sind technisch Fenced-Code, für den Nutzer aber Tabellen mit Inhaltszellen. In gewöhnlichen Code-Blöcken, Formeln und im Frontmatter bleibt er ausgeschlossen.
+- **Schreib-Trigger der Datumseingabe** (4T-000641): Die Zeichenfolge ist jetzt `;;` statt zweier Backslashes. Die bisherige Wahl kollidierte mit der Bedeutung des Backslash als Escape-Zeichen, denn `\\` ist die Schreibweise für einen literalen Backslash. Zusätzlich greift der Trigger nun in den Zellen der Perspective-Tabellen: Sie sind technisch Fenced-Code, für den Nutzer aber Tabellen mit Inhaltszellen. In gewöhnlichen Code-Blöcken, Formeln und im Frontmatter bleibt er ausgeschlossen.
 
 ### Behoben
 
-- **Zeilenumbruch im Lesemodus setzte eine Listen-Nummer** (4T-0640): Die Eingabetaste am Ende einer nummerierten Liste erzeugte im reinen Lesemodus eine neue Zeile mit der nächsten Nummer und markierte das Dokument als geändert. Ursache war die eingekaufte Markdown-Tastenbelegung, deren Enter- und Backspace-Kommandos den Schreibschutz als einzige nicht prüfen. Eine Schreibschutz-Wache mit höchster Präzedenz fängt die schreibenden Tasten jetzt ab, solange der Schutz gilt; im Bearbeiten-Modus arbeitet die Listen-Fortsetzung unverändert.
+- **Zeilenumbruch im Lesemodus setzte eine Listen-Nummer** (4T-000640): Die Eingabetaste am Ende einer nummerierten Liste erzeugte im reinen Lesemodus eine neue Zeile mit der nächsten Nummer und markierte das Dokument als geändert. Ursache war die eingekaufte Markdown-Tastenbelegung, deren Enter- und Backspace-Kommandos den Schreibschutz als einzige nicht prüfen. Eine Schreibschutz-Wache mit höchster Präzedenz fängt die schreibenden Tasten jetzt ab, solange der Schutz gilt; im Bearbeiten-Modus arbeitet die Listen-Fortsetzung unverändert.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0373): drei neue Funktions-Katalog-Einträge (Abdeckungs-Matrix F-149 bis F-151), ein neuer Handbuch-Abschnitt „Uhr, Wecker, Timer und Stoppuhr" auf der Seite „Werkzeuge" samt Unterabschnitten zu Weckern, Timer und Stoppuhr sowie zur Grenze „meldet nur bei laufender App", dazu ein Abschnitt „Überschriften als Symbol" auf der Seite „Sidebar" — jeweils in allen fünf Sprachen. Rund 60 neue i18n-Keys pro Sprache (Modus-Beschriftungen, Wecker- und Timer-Bedienung, Einstellungs-Labels, drei Katalog-Trios).
+- **Hilfe-Inhalte erweitert** (4T-000373): drei neue Funktions-Katalog-Einträge (Abdeckungs-Matrix F-149 bis F-151), ein neuer Handbuch-Abschnitt „Uhr, Wecker, Timer und Stoppuhr" auf der Seite „Werkzeuge" samt Unterabschnitten zu Weckern, Timer und Stoppuhr sowie zur Grenze „meldet nur bei laufender App", dazu ein Abschnitt „Überschriften als Symbol" auf der Seite „Sidebar" — jeweils in allen fünf Sprachen. Rund 60 neue i18n-Keys pro Sprache (Modus-Beschriftungen, Wecker- und Timer-Bedienung, Einstellungs-Labels, drei Katalog-Trios).
 
 ## [0.83.0.782] - 2026-07-19 — Darstellungs-Bündel
 
-Epic 3E-0106 (Darstellungs-Bündel: Tab-Ecken, zentrierte Ansicht-Schalter, aktive Zeile und Farbschema-Vorlagen) aus dem Ideen-Backlog vom 2026-07-14 und 2026-07-15: Vier kleine Darstellungs-Themen in einem Release. Zwei neue Schalter im Bereich „Darstellung", eine ruhigere Anordnung der Statusleiste und acht zusätzliche Farbschema-Vorlagen. Umgesetzt in vier Umsetzungs-Tasks (4T-0575 bis 4T-0578) plus Hilfe- und Handbuch-Task (4T-0579).
+Epic 3E-000106 (Darstellungs-Bündel: Tab-Ecken, zentrierte Ansicht-Schalter, aktive Zeile und Farbschema-Vorlagen) aus dem Ideen-Backlog vom 2026-07-14 und 2026-07-15: Vier kleine Darstellungs-Themen in einem Release. Zwei neue Schalter im Bereich „Darstellung", eine ruhigere Anordnung der Statusleiste und acht zusätzliche Farbschema-Vorlagen. Umgesetzt in vier Umsetzungs-Tasks (4T-000575 bis 4T-000578) plus Hilfe- und Handbuch-Task (4T-000579).
 
 ### Neu
 
-- **Abgerundete Tab-Ecken** (4T-0575): Dokument-Reiter und Tab-Gruppen-Köpfe stehen wahlweise eckig oder mit abgerundeten oberen Ecken. Im abgerundeten Zustand ersetzt ein schmaler Abstand die senkrechte Trennlinie, sodass die Reiter als einzelne Flächen lesbar bleiben; Aktiv-Kennung, Gruppen-Farbstreifen und Drop-Indikatoren bleiben unverändert. Schalter im Bereich „Darstellung" (Vorgabe aus), mit Live-Vorschau und sofortiger Wirkung in allen offenen Fenstern.
-- **Hervorhebung der aktiven Zeile** (4T-0577): Die Zeile mit dem Cursor wird im Bearbeiten-Modus dezent hinterlegt, im Quelltext- wie im Live-Modus und samt Zeilennummern-Spalte. In der reinen Lese-Ansicht bleibt sie unmarkiert, weil dort kein Cursor steht. Die Tönung ist halbtransparent und liegt damit über jedem Farbschema; Auswahl, Suchtreffer und Linter-Markierungen bleiben darüber sichtbar. Schalter im Bereich „Darstellung" (Vorgabe an).
-- **Vier neue Farbschema-Paare** (4T-0578): Stahlblau (kühl), Waldgrün (gedämpftes Grün), Bernstein (warm) und Graphit (neutral-grau), jeweils in einer hellen und einer dunklen Fassung. Wie die bisherigen Vorlagen sind sie unveränderlich und dienen als Kopier-Grundlage für eigene Schemas. Bei Bernstein ist die Warnfarbe der Linter-Markierung ins Rot verschoben, weil sie sonst mit dem bernsteinfarbenen Akzent verschmelzen würde.
+- **Abgerundete Tab-Ecken** (4T-000575): Dokument-Reiter und Tab-Gruppen-Köpfe stehen wahlweise eckig oder mit abgerundeten oberen Ecken. Im abgerundeten Zustand ersetzt ein schmaler Abstand die senkrechte Trennlinie, sodass die Reiter als einzelne Flächen lesbar bleiben; Aktiv-Kennung, Gruppen-Farbstreifen und Drop-Indikatoren bleiben unverändert. Schalter im Bereich „Darstellung" (Vorgabe aus), mit Live-Vorschau und sofortiger Wirkung in allen offenen Fenstern.
+- **Hervorhebung der aktiven Zeile** (4T-000577): Die Zeile mit dem Cursor wird im Bearbeiten-Modus dezent hinterlegt, im Quelltext- wie im Live-Modus und samt Zeilennummern-Spalte. In der reinen Lese-Ansicht bleibt sie unmarkiert, weil dort kein Cursor steht. Die Tönung ist halbtransparent und liegt damit über jedem Farbschema; Auswahl, Suchtreffer und Linter-Markierungen bleiben darüber sichtbar. Schalter im Bereich „Darstellung" (Vorgabe an).
+- **Vier neue Farbschema-Paare** (4T-000578): Stahlblau (kühl), Waldgrün (gedämpftes Grün), Bernstein (warm) und Graphit (neutral-grau), jeweils in einer hellen und einer dunklen Fassung. Wie die bisherigen Vorlagen sind sie unveränderlich und dienen als Kopier-Grundlage für eigene Schemas. Bei Bernstein ist die Warnfarbe der Linter-Markierung ins Rot verschoben, weil sie sonst mit dem bernsteinfarbenen Akzent verschmelzen würde.
 
 ### Geändert
 
-- **Zentrierte Editor- und Ansicht-Schalter** (4T-0576): Die drei Editor-Ansicht-Schalter (Gliederung, Zeilennummern, Zeilenumbruch) und die vier Ansichts-Schalter (Live, Quellcode, Geteilt, Gerendert) bilden eine gemeinsame Gruppe in der Mitte der Statusleiste. Die Leiste ist dafür in drei Zonen geteilt; die Gruppe sitzt in der Fenster-Mitte und nicht in der Mitte des freien Platzes. Bei schmalen Fenstern weicht sie aus, statt von den Panel-Buttons überlagert zu werden. Bedienung, Tastenkürzel und die Reihenfolge der Panel-Buttons bleiben unverändert.
-- **Akzentlinie der aktiven Spalte** (4T-0575): Die Linie am oberen Rand der Reiter-Leiste war bisher größtenteils von den Reitern verdeckt und nur in den Randbereichen zu sehen. Sie läuft jetzt durchgehend über die volle Breite, in beiden Ecken-Formen.
+- **Zentrierte Editor- und Ansicht-Schalter** (4T-000576): Die drei Editor-Ansicht-Schalter (Gliederung, Zeilennummern, Zeilenumbruch) und die vier Ansichts-Schalter (Live, Quellcode, Geteilt, Gerendert) bilden eine gemeinsame Gruppe in der Mitte der Statusleiste. Die Leiste ist dafür in drei Zonen geteilt; die Gruppe sitzt in der Fenster-Mitte und nicht in der Mitte des freien Platzes. Bei schmalen Fenstern weicht sie aus, statt von den Panel-Buttons überlagert zu werden. Bedienung, Tastenkürzel und die Reihenfolge der Panel-Buttons bleiben unverändert.
+- **Akzentlinie der aktiven Spalte** (4T-000575): Die Linie am oberen Rand der Reiter-Leiste war bisher größtenteils von den Reitern verdeckt und nur in den Randbereichen zu sehen. Sie läuft jetzt durchgehend über die volle Breite, in beiden Ecken-Formen.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0579): zwei neue Funktions-Katalog-Einträge (Abdeckungs-Matrix F-146 und F-147), ein neuer Handbuch-Abschnitt „Form der Reiter" auf der Seite „Applikationen, Fenster und Bereiche" und die aktualisierte Vorlagen-Aufzählung auf der Seite „Farbschemas", jeweils in allen fünf Sprachen. Zehn neue i18n-Keys pro Sprache (zwei Katalog-Trios, zwei Einstellungs-Labels, acht Schema-Namen).
+- **Hilfe-Inhalte erweitert** (4T-000579): zwei neue Funktions-Katalog-Einträge (Abdeckungs-Matrix F-146 und F-147), ein neuer Handbuch-Abschnitt „Form der Reiter" auf der Seite „Applikationen, Fenster und Bereiche" und die aktualisierte Vorlagen-Aufzählung auf der Seite „Farbschemas", jeweils in allen fünf Sprachen. Zehn neue i18n-Keys pro Sprache (zwei Katalog-Trios, zwei Einstellungs-Labels, acht Schema-Namen).
 
 ### Intern
 
@@ -2706,17 +2767,17 @@ Epic 3E-0106 (Darstellungs-Bündel: Tab-Ecken, zentrierte Ansicht-Schalter, akti
 
 ## [0.82.0.775] - 2026-07-19 — Eingabe-Automatiken
 
-Epic 3E-0113 (Eingabe-Automatiken: Link-Einfügen in die Auswahl und automatischer Erstellungs- und Änderungszeitpunkt): Zwei Automatiken nehmen wiederkehrende Handgriffe ab. Eine Adresse aus der Zwischenablage wird beim Einfügen über markiertem Text zu einem Link, und zwei Frontmatter-Felder pflegen sich beim Speichern selbst aus den Dateisystem-Zeitstempeln. Umgesetzt in zwei Umsetzungs-Tasks (4T-0603, 4T-0604) plus Hilfe- und Handbuch-Task (4T-0605).
+Epic 3E-000113 (Eingabe-Automatiken: Link-Einfügen in die Auswahl und automatischer Erstellungs- und Änderungszeitpunkt): Zwei Automatiken nehmen wiederkehrende Handgriffe ab. Eine Adresse aus der Zwischenablage wird beim Einfügen über markiertem Text zu einem Link, und zwei Frontmatter-Felder pflegen sich beim Speichern selbst aus den Dateisystem-Zeitstempeln. Umgesetzt in zwei Umsetzungs-Tasks (4T-000603, 4T-000604) plus Hilfe- und Handbuch-Task (4T-000605).
 
 ### Neu
 
-- **Link-Einfügen in die Auswahl** (4T-0603): Ist Text markiert und die Zwischenablage enthält eine einzelne Adresse, entsteht beim Einfügen ein Link aus Auswahl und Adresse, statt die Auswahl zu ersetzen. Adressen mit Leerzeichen oder Klammern werden in die spitze Schreibweise gesetzt, `www.`-Adressen erhalten das `https://`-Präfix. Ohne Auswahl, bei nicht eindeutig als Adresse erkennbarem Zwischenablage-Inhalt und in Quelltext-Bereichen bleibt es beim normalen Einfügen; `Strg+Umschalt+V` fügt immer unverändert ein. Ein Rückgängig-Schritt nimmt die Umwandlung vollständig zurück. Schalter im Bereich „Verhalten" (Vorgabe an), wirksam im Haupt- und im Notiz-Editor.
-- **Erstellungs- und Änderungszeitpunkt** (4T-0604): Zwei Frontmatter-Felder lassen sich beim Speichern automatisch pflegen, der Erstellungszeitpunkt aus der Erstellungszeit der Datei und der Änderungszeitpunkt aus dem Speicherzeitpunkt. Beide Felder sind unabhängig zuschaltbar, ihre Namen frei wählbar, das Format wahlweise nur Datum oder Datum und Uhrzeit in lokaler Zeit. Ein vorhandener Erstellungszeitpunkt wird nie überschrieben; fehlende Felder entstehen nur mit der Anlage-Option, sonst bleibt das Dokument byte-identisch. Wirkt beim Speichern, beim Speichern unter und beim automatischen Speichern; Cursor und Scrollposition bleiben erhalten, weil nur der Frontmatter-Kopf ersetzt wird.
-- **Erweiterung „Erstellungs- und Änderungszeitpunkt"** (4T-0604): Die Automatik ist als Werkzeug-Erweiterung schaltbar; ihr Einstellungs-Bereich „Zeitstempel" erscheint nur bei aktiver Erweiterung. Im Aus-Zustand bleiben Dokumente beim Speichern unverändert.
+- **Link-Einfügen in die Auswahl** (4T-000603): Ist Text markiert und die Zwischenablage enthält eine einzelne Adresse, entsteht beim Einfügen ein Link aus Auswahl und Adresse, statt die Auswahl zu ersetzen. Adressen mit Leerzeichen oder Klammern werden in die spitze Schreibweise gesetzt, `www.`-Adressen erhalten das `https://`-Präfix. Ohne Auswahl, bei nicht eindeutig als Adresse erkennbarem Zwischenablage-Inhalt und in Quelltext-Bereichen bleibt es beim normalen Einfügen; `Strg+Umschalt+V` fügt immer unverändert ein. Ein Rückgängig-Schritt nimmt die Umwandlung vollständig zurück. Schalter im Bereich „Verhalten" (Vorgabe an), wirksam im Haupt- und im Notiz-Editor.
+- **Erstellungs- und Änderungszeitpunkt** (4T-000604): Zwei Frontmatter-Felder lassen sich beim Speichern automatisch pflegen, der Erstellungszeitpunkt aus der Erstellungszeit der Datei und der Änderungszeitpunkt aus dem Speicherzeitpunkt. Beide Felder sind unabhängig zuschaltbar, ihre Namen frei wählbar, das Format wahlweise nur Datum oder Datum und Uhrzeit in lokaler Zeit. Ein vorhandener Erstellungszeitpunkt wird nie überschrieben; fehlende Felder entstehen nur mit der Anlage-Option, sonst bleibt das Dokument byte-identisch. Wirkt beim Speichern, beim Speichern unter und beim automatischen Speichern; Cursor und Scrollposition bleiben erhalten, weil nur der Frontmatter-Kopf ersetzt wird.
+- **Erweiterung „Erstellungs- und Änderungszeitpunkt"** (4T-000604): Die Automatik ist als Werkzeug-Erweiterung schaltbar; ihr Einstellungs-Bereich „Zeitstempel" erscheint nur bei aktiver Erweiterung. Im Aus-Zustand bleiben Dokumente beim Speichern unverändert.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0605): zwei neue Funktions-Katalog-Einträge (Abdeckungs-Matrix F-144 und F-145) sowie je ein neuer Abschnitt auf den Handbuch-Seiten „Vernetzung" (Adresse in eine Auswahl einfügen) und „Frontmatter und Properties" (Erstellungs- und Änderungszeitpunkt), jeweils in allen fünf Sprachen. Achtzehn neue i18n-Keys pro Sprache (zwei Katalog-Trios, zehn Keys des Bereichs „Zeitstempel", zwei Keys des Verhalten-Schalters). Die Demo-Area blieb bewusst unverändert: beide Funktionen sind Verhaltens-Automatiken ohne eigene Syntax, die ein statisches Dokument nicht zeigen kann.
+- **Hilfe-Inhalte erweitert** (4T-000605): zwei neue Funktions-Katalog-Einträge (Abdeckungs-Matrix F-144 und F-145) sowie je ein neuer Abschnitt auf den Handbuch-Seiten „Vernetzung" (Adresse in eine Auswahl einfügen) und „Frontmatter und Properties" (Erstellungs- und Änderungszeitpunkt), jeweils in allen fünf Sprachen. Achtzehn neue i18n-Keys pro Sprache (zwei Katalog-Trios, zehn Keys des Bereichs „Zeitstempel", zwei Keys des Verhalten-Schalters). Die Demo-Area blieb bewusst unverändert: beide Funktionen sind Verhaltens-Automatiken ohne eigene Syntax, die ein statisches Dokument nicht zeigen kann.
 
 ### Intern
 
@@ -2727,17 +2788,17 @@ Epic 3E-0113 (Eingabe-Automatiken: Link-Einfügen in die Auswahl und automatisch
 
 ## [0.81.0.769] - 2026-07-18 — Inline-Berechnungen
 
-Epic 3E-0111 (Inline-Berechnungen: Rechenausdrücke im Fließtext) aus dem Ideen-Backlog vom 2026-07-15: An jeder Stelle im Fließtext lassen sich zwischen den Markern `{=` und `=}` Rechenausdrücke eingeben; die gerenderte Ansicht, der Live-Modus und die Exporte zeigen das Ergebnis, der Quelltext behält den Ausdruck. Die Auswertung nutzt die vorhandene Ausdrucks-Sprache der Perspective-Abfrage, es entsteht keine zweite Formel-Sprache. Umgesetzt in zwei Umsetzungs-Tasks (4T-0595, 4T-0596) plus Hilfe- und Handbuch-Task (4T-0597).
+Epic 3E-000111 (Inline-Berechnungen: Rechenausdrücke im Fließtext) aus dem Ideen-Backlog vom 2026-07-15: An jeder Stelle im Fließtext lassen sich zwischen den Markern `{=` und `=}` Rechenausdrücke eingeben; die gerenderte Ansicht, der Live-Modus und die Exporte zeigen das Ergebnis, der Quelltext behält den Ausdruck. Die Auswertung nutzt die vorhandene Ausdrucks-Sprache der Perspective-Abfrage, es entsteht keine zweite Formel-Sprache. Umgesetzt in zwei Umsetzungs-Tasks (4T-000595, 4T-000596) plus Hilfe- und Handbuch-Task (4T-000597).
 
 ### Neu
 
-- **Inline-Berechnungen** (4T-0595): Ein Rechenausdruck zwischen `{=` und `=}` wird im Render-Pane, im Live-Modus und in den Exporten durch sein formatiertes Ergebnis ersetzt; der Roh-Ausdruck erscheint als Tooltip. Gerechnet wird mit der Ausdrucks-Sprache der Perspective-Abfrage: Zahlen, Klammern und Punkt-vor-Strich, Vergleiche und Logik, Zeichenketten samt Verkettung, Datums- und Dauer-Werte (`date(...)`, `dur(...)`, Datum ± Dauer, Datum − Datum) sowie der Funktions-Katalog (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`). Ein nicht auswertbarer Ausdruck zeigt ein dezentes Fehler-Zeichen mit lokalisiertem Hinweis im Tooltip, ohne den Quelltext zu verändern. Feld-Zugriffe (z.B. `file.name`) werden in dieser Stufe bewusst nicht ausgewertet, sondern als eigener Fehler gemeldet. `\{=` ergibt ein wörtliches `{=` im Fließtext.
-- **Modus-Parität und Export** (4T-0596): Im Live-Modus zeigt jede Zeile außerhalb der Cursor-Zeile das Ergebnis als Widget; die Cursor-Zeile deckt den Roh-Ausdruck zum Bearbeiten auf, und ein Klick auf ein Ergebnis-Widget setzt den Cursor hinein. Im Quelltext-Modus ist das Konstrukt dezent eingefärbt (keine Ersetzung). Der Portable-Export brennt das Ergebnis als selbsttragenden Span ein (sichtbar auch in anderen Markdown-Programmen), der PDF-Export folgt der gerenderten Ansicht; fehlerhafte Ausdrücke bleiben im Export als Quelltext erhalten.
-- **Erweiterung „Inline-Berechnungen"** (4T-0595): Das Konstrukt ist als Render-Erweiterung schaltbar; im Aus-Zustand bleiben die Marker in allen Ansichten und Exporten gewöhnlicher Fließtext.
+- **Inline-Berechnungen** (4T-000595): Ein Rechenausdruck zwischen `{=` und `=}` wird im Render-Pane, im Live-Modus und in den Exporten durch sein formatiertes Ergebnis ersetzt; der Roh-Ausdruck erscheint als Tooltip. Gerechnet wird mit der Ausdrucks-Sprache der Perspective-Abfrage: Zahlen, Klammern und Punkt-vor-Strich, Vergleiche und Logik, Zeichenketten samt Verkettung, Datums- und Dauer-Werte (`date(...)`, `dur(...)`, Datum ± Dauer, Datum − Datum) sowie der Funktions-Katalog (`number`, `string`, `lower`, `upper`, `length`, `startswith`, `endswith`, `contains`, `default`, `choice`, `dateformat`, `sum`, `min`, `max`, `average`). Ein nicht auswertbarer Ausdruck zeigt ein dezentes Fehler-Zeichen mit lokalisiertem Hinweis im Tooltip, ohne den Quelltext zu verändern. Feld-Zugriffe (z.B. `file.name`) werden in dieser Stufe bewusst nicht ausgewertet, sondern als eigener Fehler gemeldet. `\{=` ergibt ein wörtliches `{=` im Fließtext.
+- **Modus-Parität und Export** (4T-000596): Im Live-Modus zeigt jede Zeile außerhalb der Cursor-Zeile das Ergebnis als Widget; die Cursor-Zeile deckt den Roh-Ausdruck zum Bearbeiten auf, und ein Klick auf ein Ergebnis-Widget setzt den Cursor hinein. Im Quelltext-Modus ist das Konstrukt dezent eingefärbt (keine Ersetzung). Der Portable-Export brennt das Ergebnis als selbsttragenden Span ein (sichtbar auch in anderen Markdown-Programmen), der PDF-Export folgt der gerenderten Ansicht; fehlerhafte Ausdrücke bleiben im Export als Quelltext erhalten.
+- **Erweiterung „Inline-Berechnungen"** (4T-000595): Das Konstrukt ist als Render-Erweiterung schaltbar; im Aus-Zustand bleiben die Marker in allen Ansichten und Exporten gewöhnlicher Fließtext.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0597): ein neuer Funktions-Katalog-Eintrag „Inline-Berechnungen" (Abdeckungs-Matrix F-143) und ein neuer selbst-demonstrierender Abschnitt auf der Handbuch-Seite „Inline-Konstrukte" (Syntax, Operator- und Funktions-Übersicht, Fehlerbild, Escape) in allen fünf Sprachen. Sieben neue i18n-Keys pro Sprache (Katalog-Trio plus vier Fehler-Meldungen); die Demo-Datei „02 Extended Syntax" zeigt das Konstrukt zusätzlich in der mitgelieferten Demo-Area.
+- **Hilfe-Inhalte erweitert** (4T-000597): ein neuer Funktions-Katalog-Eintrag „Inline-Berechnungen" (Abdeckungs-Matrix F-143) und ein neuer selbst-demonstrierender Abschnitt auf der Handbuch-Seite „Inline-Konstrukte" (Syntax, Operator- und Funktions-Übersicht, Fehlerbild, Escape) in allen fünf Sprachen. Sieben neue i18n-Keys pro Sprache (Katalog-Trio plus vier Fehler-Meldungen); die Demo-Datei „02 Extended Syntax" zeigt das Konstrukt zusätzlich in der mitgelieferten Demo-Area.
 
 ### Intern
 
@@ -2746,18 +2807,18 @@ Epic 3E-0111 (Inline-Berechnungen: Rechenausdrücke im Fließtext) aus dem Ideen
 
 ## [0.80.0.763] - 2026-07-18 — Tabellen-Kontextmenü
 
-Epic 3E-0109 (Tabellen-Kontextmenü: Bearbeitungs-Funktionen für beide Tabellenarten) aus dem Ideen-Backlog vom 2026-07-15: Das Editor-Kontextmenü erhält ein Untermenü „Tabelle", das nur erscheint, wenn der Cursor in einer Tabelle steht, und einen einheitlichen Operationen-Satz für beide Tabellenarten anbietet — Spalten-Ausrichtung, Zeilen und Spalten verschieben, einfügen und löschen sowie Transponieren; alle Operationen sind Registry-Kommandos und damit auch über die Kommando-Palette erreichbar und mit Kürzeln belegbar. Umgesetzt in drei Umsetzungs-Tasks (4T-0589 bis 4T-0591) plus Hilfe- und Handbuch-Task (4T-0592).
+Epic 3E-000109 (Tabellen-Kontextmenü: Bearbeitungs-Funktionen für beide Tabellenarten) aus dem Ideen-Backlog vom 2026-07-15: Das Editor-Kontextmenü erhält ein Untermenü „Tabelle", das nur erscheint, wenn der Cursor in einer Tabelle steht, und einen einheitlichen Operationen-Satz für beide Tabellenarten anbietet — Spalten-Ausrichtung, Zeilen und Spalten verschieben, einfügen und löschen sowie Transponieren; alle Operationen sind Registry-Kommandos und damit auch über die Kommando-Palette erreichbar und mit Kürzeln belegbar. Umgesetzt in drei Umsetzungs-Tasks (4T-000589 bis 4T-000591) plus Hilfe- und Handbuch-Task (4T-000592).
 
 ### Neu
 
-- **Untermenü „Tabelle" im Editor-Kontextmenü** (4T-0590): Neue Menü-Gruppe zwischen „Einfügen" und der Zwischenablage, sichtbar nur mit Cursor in einer Tabelle (außerhalb entfällt sie samt Trenner). Zwölf Operationen in vier Blöcken: Ausrichtung links/zentriert/rechts (mit Häkchen für die Ist-Ausrichtung der Cursor-Spalte), Zeile nach oben/unten verschieben, unterhalb einfügen und löschen, Spalte nach links/rechts verschieben, rechts einfügen und löschen, Transponieren. Jede Operation ist eine einzelne Editor-Transaktion und damit ein Undo-Schritt; der Cursor folgt seiner Zelle. Nicht mögliche Ziele erscheinen gedimmt (Kopf-/Trennzeile, Ränder, letzte Spalte); die Ausführung erkennt am Cursor-Kontext die Tabellenart und delegiert an das passende Backend (ein Operationen-Satz, zwei Backends — Architekturentscheidung des Epics). In der Kommando-Palette sind die zwölf `table`-Kommandos außerhalb von Tabellen gedimmt.
-- **Pipe-Tabellen-Backend** (4T-0589): Neues Tabellen-Modell liest die ganze Tabelle am Cursor (Kopf, Ausrichtungs-Zeile, Datenzeilen) und schreibt nach jeder Operation formatiert zurück — Rand-Pipe-Form, Spalten mit Leerzeichen auf die längste Zelle ausgerichtet, Ausrichtungs-Marker in voller Spaltenbreite. Randlose Tabellen werden dabei bewusst auf die Rand-Pipe-Form normalisiert, eine fehlende Trenn-Zeile wird ergänzt, ungleiche Zellen-Anzahlen werden aufgefüllt; escapte Pipes bleiben erhalten. Kopf- und Trennzeile sind gegen Verschieben und Löschen geschützt, die letzte Spalte gegen Löschen (Statusbar-Hinweis bei Ausführung über Palette oder Kürzel); Transponieren macht die Kopfzeile zur ersten Spalte und setzt die Ausrichtungen zurück.
-- **Perspective-Table-Backend** (4T-0591): Derselbe Operationen-Satz wirkt im `perspective-table`-Block. Zeilen-Operationen arbeiten auf den `|-`-Abschnitten und sind immer möglich — der Roh-Text der Zellen samt Attributen, Status-Klassen und mehrzeiligen Inhalten bleibt byte-genau erhalten. Spalten-Operationen und Transponieren bewegen ganze Zell-Blöcke und sind nur ohne `colspan`/`rowspan` verfügbar; mit Spans lehnt die Operation mit einem erklärenden Statusbar-Hinweis ab statt still falsch umzubauen (Architekturentscheidung des Epics). Die Ausrichtungs-Einträge setzen die Spalten-Default-Ausrichtung im `cols`-Attribut der `{|`-Zeile (Spalten ohne Vorgabe erhalten den Platzhalter `-`); `align`-Attribute einzelner Zellen bleiben unberührt.
-- **Erweiterung „Tabellen-Werkzeuge"** (4T-0590): Das Untermenü samt der zwölf Kommandos ist als Werkzeug-Erweiterung schaltbar; im Aus-Zustand verschwinden Menü-Gruppe, Paletten-Einträge und Kürzel-Wirkung (Kommando-Filterung), der Tabellen-Editor-Komfort (Tab/Enter) bleibt unberührt.
+- **Untermenü „Tabelle" im Editor-Kontextmenü** (4T-000590): Neue Menü-Gruppe zwischen „Einfügen" und der Zwischenablage, sichtbar nur mit Cursor in einer Tabelle (außerhalb entfällt sie samt Trenner). Zwölf Operationen in vier Blöcken: Ausrichtung links/zentriert/rechts (mit Häkchen für die Ist-Ausrichtung der Cursor-Spalte), Zeile nach oben/unten verschieben, unterhalb einfügen und löschen, Spalte nach links/rechts verschieben, rechts einfügen und löschen, Transponieren. Jede Operation ist eine einzelne Editor-Transaktion und damit ein Undo-Schritt; der Cursor folgt seiner Zelle. Nicht mögliche Ziele erscheinen gedimmt (Kopf-/Trennzeile, Ränder, letzte Spalte); die Ausführung erkennt am Cursor-Kontext die Tabellenart und delegiert an das passende Backend (ein Operationen-Satz, zwei Backends — Architekturentscheidung des Epics). In der Kommando-Palette sind die zwölf `table`-Kommandos außerhalb von Tabellen gedimmt.
+- **Pipe-Tabellen-Backend** (4T-000589): Neues Tabellen-Modell liest die ganze Tabelle am Cursor (Kopf, Ausrichtungs-Zeile, Datenzeilen) und schreibt nach jeder Operation formatiert zurück — Rand-Pipe-Form, Spalten mit Leerzeichen auf die längste Zelle ausgerichtet, Ausrichtungs-Marker in voller Spaltenbreite. Randlose Tabellen werden dabei bewusst auf die Rand-Pipe-Form normalisiert, eine fehlende Trenn-Zeile wird ergänzt, ungleiche Zellen-Anzahlen werden aufgefüllt; escapte Pipes bleiben erhalten. Kopf- und Trennzeile sind gegen Verschieben und Löschen geschützt, die letzte Spalte gegen Löschen (Statusbar-Hinweis bei Ausführung über Palette oder Kürzel); Transponieren macht die Kopfzeile zur ersten Spalte und setzt die Ausrichtungen zurück.
+- **Perspective-Table-Backend** (4T-000591): Derselbe Operationen-Satz wirkt im `perspective-table`-Block. Zeilen-Operationen arbeiten auf den `|-`-Abschnitten und sind immer möglich — der Roh-Text der Zellen samt Attributen, Status-Klassen und mehrzeiligen Inhalten bleibt byte-genau erhalten. Spalten-Operationen und Transponieren bewegen ganze Zell-Blöcke und sind nur ohne `colspan`/`rowspan` verfügbar; mit Spans lehnt die Operation mit einem erklärenden Statusbar-Hinweis ab statt still falsch umzubauen (Architekturentscheidung des Epics). Die Ausrichtungs-Einträge setzen die Spalten-Default-Ausrichtung im `cols`-Attribut der `{|`-Zeile (Spalten ohne Vorgabe erhalten den Platzhalter `-`); `align`-Attribute einzelner Zellen bleiben unberührt.
+- **Erweiterung „Tabellen-Werkzeuge"** (4T-000590): Das Untermenü samt der zwölf Kommandos ist als Werkzeug-Erweiterung schaltbar; im Aus-Zustand verschwinden Menü-Gruppe, Paletten-Einträge und Kürzel-Wirkung (Kommando-Filterung), der Tabellen-Editor-Komfort (Tab/Enter) bleibt unberührt.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0592): ein neuer Funktions-Katalog-Eintrag „Tabellen-Werkzeuge" (Abdeckungs-Matrix F-142) und zwölf Kommando-Beschreibungen (S-099 bis S-110); vier erweiterte Handbuch-Seiten in allen fünf Sprachen (Editor-Kontextmenü mit neuem Abschnitt „Untermenü Tabelle", Perspective Table mit neuem Abschnitt „Bearbeiten über das Kontextmenü", Verweis-Sätze in Markdown-Basis und Werkzeuge). 31 neue i18n-Keys pro Sprache (Untermenü-Titel, zwölf Kommando-Labels, zwölf Kürzel-Beschreibungen, Katalog-Trio, drei Statusbar-Hinweise); Demo-Area ohne Ergänzungsbedarf (keine neue Markdown-Syntax, die Demo-Datei „03 Tables" zeigt beide Tabellenarten).
+- **Hilfe-Inhalte erweitert** (4T-000592): ein neuer Funktions-Katalog-Eintrag „Tabellen-Werkzeuge" (Abdeckungs-Matrix F-142) und zwölf Kommando-Beschreibungen (S-099 bis S-110); vier erweiterte Handbuch-Seiten in allen fünf Sprachen (Editor-Kontextmenü mit neuem Abschnitt „Untermenü Tabelle", Perspective Table mit neuem Abschnitt „Bearbeiten über das Kontextmenü", Verweis-Sätze in Markdown-Basis und Werkzeuge). 31 neue i18n-Keys pro Sprache (Untermenü-Titel, zwölf Kommando-Labels, zwölf Kürzel-Beschreibungen, Katalog-Trio, drei Statusbar-Hinweise); Demo-Area ohne Ergänzungsbedarf (keine neue Markdown-Syntax, die Demo-Datei „03 Tables" zeigt beide Tabellenarten).
 
 ### Intern
 
@@ -2766,17 +2827,17 @@ Epic 3E-0109 (Tabellen-Kontextmenü: Bearbeitungs-Funktionen für beide Tabellen
 
 ## [0.79.0.756] - 2026-07-18 — Titelzeile
 
-Epic 3E-0108 (Dateiname als Titelzeile: anzeigen und direkt umbenennen) aus dem Ideen-Backlog vom 2026-07-15: Über der ersten Dokument-Zeile steht der Dateiname ohne Endung als „Zeile 0" in Überschrift-Optik — ohne Zeilennummer, scroll-fest, in allen vier Ansichten — und lässt sich dort per Klick direkt überschreiben; das Bestätigen benennt die Datei über den bestehenden Umbenennen-Mechanismus um. Umgesetzt in zwei Umsetzungs-Tasks (4T-0585, 4T-0586) plus Hilfe- und Handbuch-Task (4T-0587).
+Epic 3E-000108 (Dateiname als Titelzeile: anzeigen und direkt umbenennen) aus dem Ideen-Backlog vom 2026-07-15: Über der ersten Dokument-Zeile steht der Dateiname ohne Endung als „Zeile 0" in Überschrift-Optik — ohne Zeilennummer, scroll-fest, in allen vier Ansichten — und lässt sich dort per Klick direkt überschreiben; das Bestätigen benennt die Datei über den bestehenden Umbenennen-Mechanismus um. Umgesetzt in zwei Umsetzungs-Tasks (4T-000585, 4T-000586) plus Hilfe- und Handbuch-Task (4T-000587).
 
 ### Neu
 
-- **Titelzeile** (4T-0585): Pro Editor-Spalte erscheint der Dateiname ohne Endung als kompakte Titelzeile in Überschrift-1-Optik über dem Dokument — ohne Zeilennummer, scroll-fest (im Quelltext als fester Kopf über dem Editor, in der Lese-Ansicht haftend am oberen Rand der zentrierten Inhalts-Spalte) und in jedem Ansichts-Modus genau einmal (in der Geteilt-Ansicht über der Quelltext-Spalte). Unterseiten zeigen ihren vollen logischen Namen in Schrägstrich-Schreibweise, unbenannte Dokumente den Unbenannt-Platzhalter; Handbuch- und System-Seiten bleiben ohne Titelzeile, ebenso Fokus-Modus und PDF-Export. Tab-Wechsel, Öffnen, Speichern unter und externes Umbenennen aktualisieren den Titel automatisch; Zeilennummern, Historie, Suche und alle Text-Operationen bleiben unberührt (die Zeile ist kein Bestandteil des Editor-Texts).
-- **Direkt-Umbenennen über die Titelzeile** (4T-0586): Ein Klick auf den Titel (oder Enter/F2 auf der fokussierten Zeile) macht ihn editierbar; Enter oder Fokusverlust bestätigt, Esc verwirft, unveränderter Text beendet still. Das Bestätigen benennt die Datei über den bestehenden gehärteten Umbenennen-Pfad um — Links werden gemäß der Einstellung „Links in anderen Dateien anpassen" aktualisiert, die Begleitdatei wandert mit, eine Seite mit Unterseiten nimmt ihren Unterseiten-Baum mit; ungespeicherte Änderungen werden vorab gespeichert, der Änderungs-Zustand des Tabs bleibt unberührt. Ungültige Namen und Namens-Kollisionen erscheinen als Hinweis direkt an der Titelzeile (kein Dialog), die Datei bleibt dann unverändert. Bei unbenannten Dokumenten stößt das Bestätigen „Speichern unter" mit dem eingegebenen Namen als Vorbelegung an; der Umbenennen-Dialog mit Vorschau und Bericht bleibt unverändert bestehen. Die Titelzeile ist unabhängig vom Edit-Modus editierbar — Umbenennen ist eine Datei-, keine Inhalts-Operation.
-- **Erweiterung „Titelzeile"** (4T-0585): Die Zeile ist als Werkzeug-Erweiterung schaltbar; im Aus-Zustand verschwindet sie vollständig (bisheriges Bild ohne Titelzeile), Dateiname und Umbenennen bleiben über Tab-Titel, Fenster-Titel und den Dialog erreichbar.
+- **Titelzeile** (4T-000585): Pro Editor-Spalte erscheint der Dateiname ohne Endung als kompakte Titelzeile in Überschrift-1-Optik über dem Dokument — ohne Zeilennummer, scroll-fest (im Quelltext als fester Kopf über dem Editor, in der Lese-Ansicht haftend am oberen Rand der zentrierten Inhalts-Spalte) und in jedem Ansichts-Modus genau einmal (in der Geteilt-Ansicht über der Quelltext-Spalte). Unterseiten zeigen ihren vollen logischen Namen in Schrägstrich-Schreibweise, unbenannte Dokumente den Unbenannt-Platzhalter; Handbuch- und System-Seiten bleiben ohne Titelzeile, ebenso Fokus-Modus und PDF-Export. Tab-Wechsel, Öffnen, Speichern unter und externes Umbenennen aktualisieren den Titel automatisch; Zeilennummern, Historie, Suche und alle Text-Operationen bleiben unberührt (die Zeile ist kein Bestandteil des Editor-Texts).
+- **Direkt-Umbenennen über die Titelzeile** (4T-000586): Ein Klick auf den Titel (oder Enter/F2 auf der fokussierten Zeile) macht ihn editierbar; Enter oder Fokusverlust bestätigt, Esc verwirft, unveränderter Text beendet still. Das Bestätigen benennt die Datei über den bestehenden gehärteten Umbenennen-Pfad um — Links werden gemäß der Einstellung „Links in anderen Dateien anpassen" aktualisiert, die Begleitdatei wandert mit, eine Seite mit Unterseiten nimmt ihren Unterseiten-Baum mit; ungespeicherte Änderungen werden vorab gespeichert, der Änderungs-Zustand des Tabs bleibt unberührt. Ungültige Namen und Namens-Kollisionen erscheinen als Hinweis direkt an der Titelzeile (kein Dialog), die Datei bleibt dann unverändert. Bei unbenannten Dokumenten stößt das Bestätigen „Speichern unter" mit dem eingegebenen Namen als Vorbelegung an; der Umbenennen-Dialog mit Vorschau und Bericht bleibt unverändert bestehen. Die Titelzeile ist unabhängig vom Edit-Modus editierbar — Umbenennen ist eine Datei-, keine Inhalts-Operation.
+- **Erweiterung „Titelzeile"** (4T-000585): Die Zeile ist als Werkzeug-Erweiterung schaltbar; im Aus-Zustand verschwindet sie vollständig (bisheriges Bild ohne Titelzeile), Dateiname und Umbenennen bleiben über Tab-Titel, Fenster-Titel und den Dialog erreichbar.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0587): ein neuer Funktions-Katalog-Eintrag „Titelzeile" (Abdeckungs-Matrix F-141) und ein neuer Abschnitt „Titelzeile" auf der Handbuch-Seite „Werkzeuge" (Anzeige, Direkt-Umbenennen, Erweiterung) in allen fünf Sprachen. Fünf neue i18n-Keys pro Sprache (Katalog-Trio, zwei Tooltips); Demo-Area ohne Ergänzungsbedarf (keine neue Markdown-Syntax).
+- **Hilfe-Inhalte erweitert** (4T-000587): ein neuer Funktions-Katalog-Eintrag „Titelzeile" (Abdeckungs-Matrix F-141) und ein neuer Abschnitt „Titelzeile" auf der Handbuch-Seite „Werkzeuge" (Anzeige, Direkt-Umbenennen, Erweiterung) in allen fünf Sprachen. Fünf neue i18n-Keys pro Sprache (Katalog-Trio, zwei Tooltips); Demo-Area ohne Ergänzungsbedarf (keine neue Markdown-Syntax).
 
 ### Intern
 
@@ -2785,18 +2846,18 @@ Epic 3E-0108 (Dateiname als Titelzeile: anzeigen und direkt umbenennen) aus dem 
 
 ## [0.78.0.750] - 2026-07-17 — Format-Toolbar
 
-Epic 3E-0114 (Format-Toolbar im Edit-Modus) aus dem Ideen-Backlog vom 2026-07-15: Oberhalb des Editors erscheint im Edit-Modus eine Schaltflächen-Leiste für die häufigen Bearbeitungs-Funktionen — Zeichen-Formate, Überschriften, Listen, Zitat, Links und Tabellen-Einfügen über ein Zeilen-mal-Spalten-Raster; außerhalb des Edit-Modus ist sie unsichtbar, die Belegung ist konfigurierbar. Umgesetzt in zwei Umsetzungs-Tasks (4T-0607, 4T-0608) plus Hilfe- und Handbuch-Task (4T-0609).
+Epic 3E-000114 (Format-Toolbar im Edit-Modus) aus dem Ideen-Backlog vom 2026-07-15: Oberhalb des Editors erscheint im Edit-Modus eine Schaltflächen-Leiste für die häufigen Bearbeitungs-Funktionen — Zeichen-Formate, Überschriften, Listen, Zitat, Links und Tabellen-Einfügen über ein Zeilen-mal-Spalten-Raster; außerhalb des Edit-Modus ist sie unsichtbar, die Belegung ist konfigurierbar. Umgesetzt in zwei Umsetzungs-Tasks (4T-000607, 4T-000608) plus Hilfe- und Handbuch-Task (4T-000609).
 
 ### Neu
 
-- **Format-Toolbar** (4T-0607): Leiste pro Editor-Spalte oberhalb des Editors, sichtbar genau dann, wenn der aktive Tab im Edit-Modus steht und die Ansicht einen Editor zeigt (Quellcode-, Geteilt- und Live-Ansicht); in der Lese-Ansicht, auf Handbuch-/System-Seiten und im Fokus-Modus unsichtbar. Jede Schaltfläche löst ihr Registry-Kommando über den bestehenden Ausführungs-Pfad aus (dieselben Kommandos wie Kontextmenü, Kürzel und Palette); ein Klick in die Leiste der zweiten Spalte aktiviert diese zugleich. Kuratierte Standard-Belegung in Trenner-Gruppen: Fett, Kursiv, Durchgestrichen, Hervorheben, Code | Überschrift-Menü (Ebenen 1–6 plus „Keine Überschrift" als Dropdown mit Zustands-Häkchen) | Aufzählung, nummerierte Liste, Aufgaben-Liste | Zitat | Wiki-Link, externer Link | Tabelle. Gedrückte Schaltflächen zeigen den Zustand an der Cursor-Position (Absatz-Zustände über die Cursor-Zeile, Zeichen-Formate über die Selektion; gedrückt heißt: erneuter Klick entfernt das Format), Tooltips zeigen Kommando-Name und aktuell wirksames Kürzel. Bei schmalen Editor-Spalten wandern die hinteren Einträge in ein Mehr-Menü mit Icons, Zustands-Häkchen und Überschrift-Untermenü.
-- **Tabellen-Raster-Picker** (4T-0608): Der Tabellen-Button öffnet ein 8×8-Hover-Raster nach Textverarbeitungs-Vorbild — Überstreichen markiert Zeilen mal Spalten mit Live-Beschriftung („3 × 4", Zeilen inklusive Kopfzeile), Klick fügt die leere Pipe-Tabelle am Cursor ein (Cursor in der ersten Kopfzelle, Rückgängig entfernt sie in einem Schritt). Der Picker öffnet auch aus dem Überlauf-Mehr-Menü; an allen anderen Zugängen (Kontextmenü, Palette, Kürzel) fügt das Tabellen-Kommando unverändert seine kompakte 2×2-Schablone ein.
-- **Konfigurierbare Belegung** (4T-0608): Neuer Einstellungs-Bereich „Format-Toolbar" pflegt die Belegung als Liste — Einträge umsortieren, bearbeiten, entfernen; neue Kommandos über den Drei-Schritt-Dialog der Kommando-Platzierung (Kommando-Filter-Suche, Icon aus dem kuratierten Set, optionaler Anzeigename); Trenner und das Überschrift-Menü als eigene Eintrags-Typen (Überschrift-Menü höchstens einmal); „Auf Standard zurücksetzen". Änderungen wirken nach Anwenden sofort in allen Fenstern und überleben den Neustart; Einträge deaktivierter Erweiterungen erscheinen nicht in der Leiste, bleiben aber konfiguriert.
-- **Erweiterung „Format-Toolbar"** (4T-0607): Die Leiste ist als Werkzeug-Erweiterung schaltbar; im Aus-Zustand verschwindet sie vollständig (heutiges Bild ohne Leiste) und der Einstellungs-Bereich ist ausgeblendet, die Belegungs-Konfiguration bleibt gespeichert.
+- **Format-Toolbar** (4T-000607): Leiste pro Editor-Spalte oberhalb des Editors, sichtbar genau dann, wenn der aktive Tab im Edit-Modus steht und die Ansicht einen Editor zeigt (Quellcode-, Geteilt- und Live-Ansicht); in der Lese-Ansicht, auf Handbuch-/System-Seiten und im Fokus-Modus unsichtbar. Jede Schaltfläche löst ihr Registry-Kommando über den bestehenden Ausführungs-Pfad aus (dieselben Kommandos wie Kontextmenü, Kürzel und Palette); ein Klick in die Leiste der zweiten Spalte aktiviert diese zugleich. Kuratierte Standard-Belegung in Trenner-Gruppen: Fett, Kursiv, Durchgestrichen, Hervorheben, Code | Überschrift-Menü (Ebenen 1–6 plus „Keine Überschrift" als Dropdown mit Zustands-Häkchen) | Aufzählung, nummerierte Liste, Aufgaben-Liste | Zitat | Wiki-Link, externer Link | Tabelle. Gedrückte Schaltflächen zeigen den Zustand an der Cursor-Position (Absatz-Zustände über die Cursor-Zeile, Zeichen-Formate über die Selektion; gedrückt heißt: erneuter Klick entfernt das Format), Tooltips zeigen Kommando-Name und aktuell wirksames Kürzel. Bei schmalen Editor-Spalten wandern die hinteren Einträge in ein Mehr-Menü mit Icons, Zustands-Häkchen und Überschrift-Untermenü.
+- **Tabellen-Raster-Picker** (4T-000608): Der Tabellen-Button öffnet ein 8×8-Hover-Raster nach Textverarbeitungs-Vorbild — Überstreichen markiert Zeilen mal Spalten mit Live-Beschriftung („3 × 4", Zeilen inklusive Kopfzeile), Klick fügt die leere Pipe-Tabelle am Cursor ein (Cursor in der ersten Kopfzelle, Rückgängig entfernt sie in einem Schritt). Der Picker öffnet auch aus dem Überlauf-Mehr-Menü; an allen anderen Zugängen (Kontextmenü, Palette, Kürzel) fügt das Tabellen-Kommando unverändert seine kompakte 2×2-Schablone ein.
+- **Konfigurierbare Belegung** (4T-000608): Neuer Einstellungs-Bereich „Format-Toolbar" pflegt die Belegung als Liste — Einträge umsortieren, bearbeiten, entfernen; neue Kommandos über den Drei-Schritt-Dialog der Kommando-Platzierung (Kommando-Filter-Suche, Icon aus dem kuratierten Set, optionaler Anzeigename); Trenner und das Überschrift-Menü als eigene Eintrags-Typen (Überschrift-Menü höchstens einmal); „Auf Standard zurücksetzen". Änderungen wirken nach Anwenden sofort in allen Fenstern und überleben den Neustart; Einträge deaktivierter Erweiterungen erscheinen nicht in der Leiste, bleiben aber konfiguriert.
+- **Erweiterung „Format-Toolbar"** (4T-000607): Die Leiste ist als Werkzeug-Erweiterung schaltbar; im Aus-Zustand verschwindet sie vollständig (heutiges Bild ohne Leiste) und der Einstellungs-Bereich ist ausgeblendet, die Belegungs-Konfiguration bleibt gespeichert.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0609): ein neuer Funktions-Katalog-Eintrag „Format-Toolbar" (Abdeckungs-Matrix F-140) und die neue Handbuch-Seite „Format-Toolbar" in allen fünf Sprachen (Sichtbarkeit, Standard-Belegung mit Zustands-Anzeige, Überschrift-Menü, Tabellen-Raster, Überlauf, Belegungs-Pflege, Abgrenzung zu Statusbar-Buttons und Kommando-Palette, Aus-Zustand) samt Überblicks-Link. 17 neue i18n-Keys pro Sprache (Katalog-Trio, Leisten-Texte, Einstellungs-Bereich, Dialog-Titel, Seiten-Titel); Demo-Area ohne Ergänzungsbedarf (keine neue Markdown-Syntax).
+- **Hilfe-Inhalte erweitert** (4T-000609): ein neuer Funktions-Katalog-Eintrag „Format-Toolbar" (Abdeckungs-Matrix F-140) und die neue Handbuch-Seite „Format-Toolbar" in allen fünf Sprachen (Sichtbarkeit, Standard-Belegung mit Zustands-Anzeige, Überschrift-Menü, Tabellen-Raster, Überlauf, Belegungs-Pflege, Abgrenzung zu Statusbar-Buttons und Kommando-Palette, Aus-Zustand) samt Überblicks-Link. 17 neue i18n-Keys pro Sprache (Katalog-Trio, Leisten-Texte, Einstellungs-Bereich, Dialog-Titel, Seiten-Titel); Demo-Area ohne Ergänzungsbedarf (keine neue Markdown-Syntax).
 
 ### Intern
 
@@ -2806,21 +2867,21 @@ Epic 3E-0114 (Format-Toolbar im Edit-Modus) aus dem Ideen-Backlog vom 2026-07-15
 
 ## [0.77.0.744] - 2026-07-17 — Sidebar-Varianten
 
-Epic 3E-0119 (Sidebar-Varianten: benannte Sidebar-Anordnungen global und je Bereich) aus dem Ideen-Backlog vom 2026-07-15: Die Sidebar-Anordnung lässt sich beliebig oft als benannte Variante speichern und wechseln — global im Einstellungs-Store und bereichsgebunden in der Bereichsdatei, mit Verwaltungs-Zugang in den Einstellungen und einem Untermenü im Ansichtsmenü. Umgesetzt in drei Umsetzungs-Tasks (4T-0624 bis 4T-0626) plus Hilfe- und Handbuch-Task (4T-0627) und einem Bugfix-Task (4T-0634).
+Epic 3E-000119 (Sidebar-Varianten: benannte Sidebar-Anordnungen global und je Bereich) aus dem Ideen-Backlog vom 2026-07-15: Die Sidebar-Anordnung lässt sich beliebig oft als benannte Variante speichern und wechseln — global im Einstellungs-Store und bereichsgebunden in der Bereichsdatei, mit Verwaltungs-Zugang in den Einstellungen und einem Untermenü im Ansichtsmenü. Umgesetzt in drei Umsetzungs-Tasks (4T-000624 bis 4T-000626) plus Hilfe- und Handbuch-Task (4T-000627) und einem Bugfix-Task (4T-000634).
 
 ### Neu
 
-- **Sidebar-Varianten** (4T-0624): Die aktuelle Sidebar-Anordnung lässt sich als benannte Variante speichern — samt der Panel-Sichtbarkeit beider Spalten, also dem kompletten Aufbau (PO-Entscheidung). Anwenden ersetzt die aktuelle Anordnung sofort; spätere Umbauten ändern die Variante nicht, „Überschreiben" ist der explizite Rückweg. Die Verwaltung (Anwenden, Umbenennen, Überschreiben, Löschen plus „Aktuelle Anordnung als Variante speichern …") liegt im Einstellungs-Bereich „Sidebar", Abschnitt Varianten, und wirkt sofort. Zwei neue Registry-Kommandos: „Aktuelle Anordnung speichern …" (Namens-Dialog; Speichern unter vorhandenem Namen aktualisiert diese Variante) und „Sidebar-Variante anwenden …" (filterbares Auswahl-Popup); beide ohne Standard-Kürzel belegbar. Alte Varianten überleben Panel-Zu- und -Abgänge: das Anwenden normalisiert gegen die aktuelle Panel-Menge, kein Panel geht verloren.
-- **Bereichs-Varianten** (4T-0625): Varianten mit Ablage in der Bereichsdatei des geöffneten Bereichs (neue Sektion nach dem etablierten Muster; fremde Sektionen bleiben beim Schreiben erhalten, eine defekte Bereichsdatei wird nie überschrieben). Sie wandern mit dem Bereichs-Ordner und erscheinen nur bei geöffnetem Bereich; ihre Verwaltung samt eigenem Speichern-Knopf liegt in der eigenen Einstellungs-Sektion „Sidebar-Varianten" der Navigations-Gruppe „Aktueller Bereich", in Auswahl-Popup und Menü sind sie als eigene Gruppe „Bereich <Name>" von den globalen Varianten getrennt; Namens-Kollisionen zwischen beiden Geltungsbereichen sind erlaubt. Beim Speichern über Menü oder Kommando wählt eine Option im Dialog das Ziel (global oder Bereich); mehrere Fenster desselben Bereichs sehen Änderungen sofort konsistent.
-- **Ansichtsmenü-Untermenü „Sidebar-Anordnungen"** (4T-0626): Neues Untermenü direkt beim Panel-Untermenü mit „Standard-Anordnung" (stellt die mitgelieferte Verteilung wieder her — erstmals auch außerhalb der Einstellungen erreichbar), den globalen Varianten, der Bereichs-Gruppe (nur bei geöffnetem Bereich, Gruppen-Kopf mit Bereichs-Namen) und „Aktuelle Anordnung speichern …". Klick wendet die Variante an; Varianten-Änderungen und Bereichs-Wechsel aktualisieren das Menü ohne Neustart.
+- **Sidebar-Varianten** (4T-000624): Die aktuelle Sidebar-Anordnung lässt sich als benannte Variante speichern — samt der Panel-Sichtbarkeit beider Spalten, also dem kompletten Aufbau (PO-Entscheidung). Anwenden ersetzt die aktuelle Anordnung sofort; spätere Umbauten ändern die Variante nicht, „Überschreiben" ist der explizite Rückweg. Die Verwaltung (Anwenden, Umbenennen, Überschreiben, Löschen plus „Aktuelle Anordnung als Variante speichern …") liegt im Einstellungs-Bereich „Sidebar", Abschnitt Varianten, und wirkt sofort. Zwei neue Registry-Kommandos: „Aktuelle Anordnung speichern …" (Namens-Dialog; Speichern unter vorhandenem Namen aktualisiert diese Variante) und „Sidebar-Variante anwenden …" (filterbares Auswahl-Popup); beide ohne Standard-Kürzel belegbar. Alte Varianten überleben Panel-Zu- und -Abgänge: das Anwenden normalisiert gegen die aktuelle Panel-Menge, kein Panel geht verloren.
+- **Bereichs-Varianten** (4T-000625): Varianten mit Ablage in der Bereichsdatei des geöffneten Bereichs (neue Sektion nach dem etablierten Muster; fremde Sektionen bleiben beim Schreiben erhalten, eine defekte Bereichsdatei wird nie überschrieben). Sie wandern mit dem Bereichs-Ordner und erscheinen nur bei geöffnetem Bereich; ihre Verwaltung samt eigenem Speichern-Knopf liegt in der eigenen Einstellungs-Sektion „Sidebar-Varianten" der Navigations-Gruppe „Aktueller Bereich", in Auswahl-Popup und Menü sind sie als eigene Gruppe „Bereich <Name>" von den globalen Varianten getrennt; Namens-Kollisionen zwischen beiden Geltungsbereichen sind erlaubt. Beim Speichern über Menü oder Kommando wählt eine Option im Dialog das Ziel (global oder Bereich); mehrere Fenster desselben Bereichs sehen Änderungen sofort konsistent.
+- **Ansichtsmenü-Untermenü „Sidebar-Anordnungen"** (4T-000626): Neues Untermenü direkt beim Panel-Untermenü mit „Standard-Anordnung" (stellt die mitgelieferte Verteilung wieder her — erstmals auch außerhalb der Einstellungen erreichbar), den globalen Varianten, der Bereichs-Gruppe (nur bei geöffnetem Bereich, Gruppen-Kopf mit Bereichs-Namen) und „Aktuelle Anordnung speichern …". Klick wendet die Variante an; Varianten-Änderungen und Bereichs-Wechsel aktualisieren das Menü ohne Neustart.
 
 ### Behoben
 
-- **Panel-Höhen-Resize folgt der Maus** (4T-0634, PO-Befund): Beim Ziehen des Höhen-Griffs folgte das Panel der Maus nicht 1:1 (der Flex-Algorithmus staucht fixierte Höhen bei voller Sidebar zurück), und Nachbar-Panels änderten ihre Höhe mit. Jetzt gelten fixierte Höhen exakt, beim Drag-Start werden die übrigen sichtbaren Blöcke der Seite auf ihrer Ist-Höhe eingefroren: nur das gezogene Panel folgt der Maus, die Nachbarn bleiben stehen. Übersteigt die Höhen-Summe den Platz, kappt die Sidebar unten; Verkleinern oder der Doppelklick-Reset (unverändert: automatische Höhe) holt die Blöcke zurück.
+- **Panel-Höhen-Resize folgt der Maus** (4T-000634, PO-Befund): Beim Ziehen des Höhen-Griffs folgte das Panel der Maus nicht 1:1 (der Flex-Algorithmus staucht fixierte Höhen bei voller Sidebar zurück), und Nachbar-Panels änderten ihre Höhe mit. Jetzt gelten fixierte Höhen exakt, beim Drag-Start werden die übrigen sichtbaren Blöcke der Seite auf ihrer Ist-Höhe eingefroren: nur das gezogene Panel folgt der Maus, die Nachbarn bleiben stehen. Übersteigt die Höhen-Summe den Platz, kappt die Sidebar unten; Verkleinern oder der Doppelklick-Reset (unverändert: automatische Höhe) holt die Blöcke zurück.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0627): ein neuer Funktions-Katalog-Eintrag „Sidebar-Varianten" (Abdeckungs-Matrix F-139) und zwei Kommando-Beschreibungen (S-097/S-098); die Handbuch-Seite „Sidebar" erhält das Kapitel „Varianten" (Speichern, Anwenden, Verwalten, Bereichs-Varianten, Menü-Zugang, Abgrenzung zu den Arbeitsbereichen) in allen fünf Sprachen. 30 neue i18n-Keys pro Sprache (Einstellungs-Abschnitt und Bereichs-Sektion, Dialoge, Auswahl-Popup, Menü-Einträge, Kommando-Labels, Katalog).
+- **Hilfe-Inhalte erweitert** (4T-000627): ein neuer Funktions-Katalog-Eintrag „Sidebar-Varianten" (Abdeckungs-Matrix F-139) und zwei Kommando-Beschreibungen (S-097/S-098); die Handbuch-Seite „Sidebar" erhält das Kapitel „Varianten" (Speichern, Anwenden, Verwalten, Bereichs-Varianten, Menü-Zugang, Abgrenzung zu den Arbeitsbereichen) in allen fünf Sprachen. 30 neue i18n-Keys pro Sprache (Einstellungs-Abschnitt und Bereichs-Sektion, Dialoge, Auswahl-Popup, Menü-Einträge, Kommando-Labels, Katalog).
 
 ### Intern
 
@@ -2829,19 +2890,19 @@ Epic 3E-0119 (Sidebar-Varianten: benannte Sidebar-Anordnungen global und je Bere
 
 ## [0.76.0.735] - 2026-07-17 — Kommando-Platzierung
 
-Epic 3E-0094 (Kommando-Platzierung: konfigurierbare Kommando-Zugänge und Makros) aus dem Ideen-Programm 2026-07 (I-23, Konzept-Workshop vom 2026-07-10): Kommandos aus der zentralen Registry lassen sich als dauerhafte eigene Zugänge platzieren — Statusbar-Buttons, eine Ausblende-Liste für Standard-Buttons, eine nutzerdefinierte Kontextmenü-Sektion und Makros als Kommando-Sequenzen, gebündelt in der schaltbaren Erweiterung „Kommando-Platzierung". Umgesetzt in drei Umsetzungs-Tasks (4T-0520 bis 4T-0522) plus Hilfe- und Handbuch-Task (4T-0523).
+Epic 3E-000094 (Kommando-Platzierung: konfigurierbare Kommando-Zugänge und Makros) aus dem Ideen-Programm 2026-07 (I-23, Konzept-Workshop vom 2026-07-10): Kommandos aus der zentralen Registry lassen sich als dauerhafte eigene Zugänge platzieren — Statusbar-Buttons, eine Ausblende-Liste für Standard-Buttons, eine nutzerdefinierte Kontextmenü-Sektion und Makros als Kommando-Sequenzen, gebündelt in der schaltbaren Erweiterung „Kommando-Platzierung". Umgesetzt in drei Umsetzungs-Tasks (4T-000520 bis 4T-000522) plus Hilfe- und Handbuch-Task (4T-000523).
 
 ### Neu
 
-- **Statusbar-Kommando-Buttons** (4T-0520): Eigene Buttons erscheinen als eigenes Segment in der Statusleiste; die Anlage läuft im Drei-Schritt-Flow (Kommando per Filter-Suche, Icon aus einem kuratierten internen Set mit 30 Symbolen, optionaler Anzeigename). Der Tooltip zeigt Anzeigename plus Original-Kommando; Umordnen, Bearbeiten und Entfernen laufen über den neuen Einstellungs-Bereich „Kommando-Platzierung". Bei Platzmangel wandern überzählige Buttons von rechts in ein Mehr-Menü am Segment-Ende (automatisch bei Fenster-Verkleinerung nachgeführt).
-- **Standard-Buttons ausblendbar** (4T-0520): Jedes Standard-Element der Statusleiste (Panel-Schalter, Editor-Schalter, Ansichts-Buttons, rechte Seite) lässt sich einzeln über die Render-Logik ausblenden — nur die Hinweis-Zeile bleibt als einziger Warn-Kanal immer sichtbar. Ausgeblendete Funktionen bleiben über Menü, Kommandos und Kürzel erreichbar; ein Zurücksetzen-Knopf stellt die Standard-Statusleiste wieder her.
-- **Nutzerdefinierte Kontextmenü-Sektion** (4T-0521): Eigene Kommando-Einträge (gleiches Eintrag-Modell wie die Buttons, eigene Reihenfolge) erscheinen als Sektion am Ende des Editor-Kontextmenüs in Quelltext- und Live-Modus, mit Icon und Anzeigename. Im aktuellen Kontext nicht ausführbare Einträge sind deaktiviert statt versteckt; die Sektion gilt für den Haupt-Editor, das Notiz-Feld bleibt unverändert.
-- **Makros** (4T-0522): Kommando-Sequenzen mit Name, Icon und geordneten Schritten — „Kommando ausführen" und „Verzögerung" (null bis zehn Sekunden) —, strikt sequenziell ausgeführt. Ein fehlschlagender oder im Kontext nicht ausführbarer Schritt bricht mit einem Statusbar-Hinweis (Makro-Name, Schritt-Nummer) ab; Makro-in-Makro ist mit begrenzter Aufruf-Kette möglich, Auto-Start gibt es bewusst nicht. Jedes Makro ist als reguläres Kommando registriert und damit ohne Sonderbehandlung in der Kommando-Palette findbar, mit einem Kürzel belegbar und selbst platzierbar; der Schritt-Editor mit Testlauf-Knopf liegt im gemeinsamen Einstellungs-Bereich.
-- **Erweiterung „Kommando-Platzierung"** (4T-0520): Alle vier Funktionen bündeln sich in einer schaltbaren Werkzeug-Erweiterung mit gemeinsamem Einstellungs-Bereich (Statusbar-Liste, Kontextmenü-Liste, Makro-Editor, Ausblende-Liste). Im Aus-Zustand zeigt die App die Standard-Statusleiste ohne eigene Zugänge, die Makro-Kommandos sind abgemeldet; die Konfiguration bleibt gespeichert und kehrt mit dem Einschalten zurück.
+- **Statusbar-Kommando-Buttons** (4T-000520): Eigene Buttons erscheinen als eigenes Segment in der Statusleiste; die Anlage läuft im Drei-Schritt-Flow (Kommando per Filter-Suche, Icon aus einem kuratierten internen Set mit 30 Symbolen, optionaler Anzeigename). Der Tooltip zeigt Anzeigename plus Original-Kommando; Umordnen, Bearbeiten und Entfernen laufen über den neuen Einstellungs-Bereich „Kommando-Platzierung". Bei Platzmangel wandern überzählige Buttons von rechts in ein Mehr-Menü am Segment-Ende (automatisch bei Fenster-Verkleinerung nachgeführt).
+- **Standard-Buttons ausblendbar** (4T-000520): Jedes Standard-Element der Statusleiste (Panel-Schalter, Editor-Schalter, Ansichts-Buttons, rechte Seite) lässt sich einzeln über die Render-Logik ausblenden — nur die Hinweis-Zeile bleibt als einziger Warn-Kanal immer sichtbar. Ausgeblendete Funktionen bleiben über Menü, Kommandos und Kürzel erreichbar; ein Zurücksetzen-Knopf stellt die Standard-Statusleiste wieder her.
+- **Nutzerdefinierte Kontextmenü-Sektion** (4T-000521): Eigene Kommando-Einträge (gleiches Eintrag-Modell wie die Buttons, eigene Reihenfolge) erscheinen als Sektion am Ende des Editor-Kontextmenüs in Quelltext- und Live-Modus, mit Icon und Anzeigename. Im aktuellen Kontext nicht ausführbare Einträge sind deaktiviert statt versteckt; die Sektion gilt für den Haupt-Editor, das Notiz-Feld bleibt unverändert.
+- **Makros** (4T-000522): Kommando-Sequenzen mit Name, Icon und geordneten Schritten — „Kommando ausführen" und „Verzögerung" (null bis zehn Sekunden) —, strikt sequenziell ausgeführt. Ein fehlschlagender oder im Kontext nicht ausführbarer Schritt bricht mit einem Statusbar-Hinweis (Makro-Name, Schritt-Nummer) ab; Makro-in-Makro ist mit begrenzter Aufruf-Kette möglich, Auto-Start gibt es bewusst nicht. Jedes Makro ist als reguläres Kommando registriert und damit ohne Sonderbehandlung in der Kommando-Palette findbar, mit einem Kürzel belegbar und selbst platzierbar; der Schritt-Editor mit Testlauf-Knopf liegt im gemeinsamen Einstellungs-Bereich.
+- **Erweiterung „Kommando-Platzierung"** (4T-000520): Alle vier Funktionen bündeln sich in einer schaltbaren Werkzeug-Erweiterung mit gemeinsamem Einstellungs-Bereich (Statusbar-Liste, Kontextmenü-Liste, Makro-Editor, Ausblende-Liste). Im Aus-Zustand zeigt die App die Standard-Statusleiste ohne eigene Zugänge, die Makro-Kommandos sind abgemeldet; die Konfiguration bleibt gespeichert und kehrt mit dem Einschalten zurück.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0523): vier neue Funktions-Katalog-Einträge (Statusbar-Kommando-Buttons, Statusbar-Ausblende-Liste, Eigene Kontextmenü-Einträge, Makros; Abdeckungs-Matrix F-135 bis F-138) und die neue Handbuch-Seite „Kommando-Platzierung" in allen fünf Sprachen (Statusbar-Buttons, Ausblenden, Kontextmenü, Makros, Abgrenzung zur Kommando-Palette, Aus-Zustand); die Werkzeuge-Seite verweist im Palette-Abschnitt umgekehrt auf die neue Seite. 53 neue i18n-Keys pro Sprache (Erweiterung, Einstellungs-Bereich, Dialoge, Abbruch-Hinweise, Katalog, Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000523): vier neue Funktions-Katalog-Einträge (Statusbar-Kommando-Buttons, Statusbar-Ausblende-Liste, Eigene Kontextmenü-Einträge, Makros; Abdeckungs-Matrix F-135 bis F-138) und die neue Handbuch-Seite „Kommando-Platzierung" in allen fünf Sprachen (Statusbar-Buttons, Ausblenden, Kontextmenü, Makros, Abgrenzung zur Kommando-Palette, Aus-Zustand); die Werkzeuge-Seite verweist im Palette-Abschnitt umgekehrt auf die neue Seite. 53 neue i18n-Keys pro Sprache (Erweiterung, Einstellungs-Bereich, Dialoge, Abbruch-Hinweise, Katalog, Seiten-Titel).
 
 ### Intern
 
@@ -2850,20 +2911,20 @@ Epic 3E-0094 (Kommando-Platzierung: konfigurierbare Kommando-Zugänge und Makros
 
 ## [0.75.0.728] - 2026-07-17 — Editor-Ansicht pro Dokument
 
-Epic 3E-0105 (Voreinstellung der Editor-Ansicht-Schalter) aus dem PO-Auftrag vom 2026-07-13: Die drei Editor-Ansicht-Schalter (Gliederung, Zeilennummern, Zeilenumbruch) werden dokument-gebunden im YAML-Frontmatter gespeichert und reisen mit der Datei; eine globale Voreinstellung legt den Standard für Dateien ohne eigene Angabe fest. Umgesetzt im Umsetzungs-Task 4T-0572 plus Hilfe- und Handbuch-Task 4T-0573.
+Epic 3E-000105 (Voreinstellung der Editor-Ansicht-Schalter) aus dem PO-Auftrag vom 2026-07-13: Die drei Editor-Ansicht-Schalter (Gliederung, Zeilennummern, Zeilenumbruch) werden dokument-gebunden im YAML-Frontmatter gespeichert und reisen mit der Datei; eine globale Voreinstellung legt den Standard für Dateien ohne eigene Angabe fest. Umgesetzt im Umsetzungs-Task 4T-000572 plus Hilfe- und Handbuch-Task 4T-000573.
 
 ### Neu
 
-- **Editor-Ansicht pro Dokument im Frontmatter** (4T-0572): Die drei Schalter werden über die Frontmatter-Schlüssel `fold-gutter`, `line-numbers` und `word-wrap` pro Dokument gespeichert (nur echtes `true`/`false` wirkt) und bleiben damit beim Kopieren oder Öffnen auf einem anderen Rechner erhalten. Das Umschalten über Statusbar oder Ansichtsmenü schreibt den neuen Wert direkt in das Frontmatter der aktiven Datei und macht sie änderungsbedürftig (bewusste PO-Entscheidung, „Weg A", konsistent zum Frontmatter-Schalter der Überschriften-Nummerierung); frontmatter-lose Dokumente erhalten dabei einen Block. Sonderfälle: In Handbuch-Tabs, bei fehlenden Dateien und bei fehlerhaftem YAML (Statusbar-Hinweis) wirkt der Schalter flüchtig für die Sitzung; in Unbenannt-Tabs ebenfalls, beim ersten Speichern werden von der Voreinstellung abweichende Werte ins Frontmatter der neuen Datei übernommen.
-- **Globale Voreinstellung der Editor-Ansicht** (4T-0572): Drei neue Schalter im Einstellungs-Bereich „Darstellung" (Gliederung, Zeilennummern, Zeilenumbruch) legen den Standard für Dokumente ohne Frontmatter-Angabe fest; Auflösung in der Reihenfolge Frontmatter vor Voreinstellung vor eingebautem Standard. Die Startwerte entsprechen dem bisherigen Verhalten (Gliederung an, Zeilennummern an, Umbruch aus); die Voreinstellung wirkt beim Öffnen bzw. Erstellen von Tabs.
+- **Editor-Ansicht pro Dokument im Frontmatter** (4T-000572): Die drei Schalter werden über die Frontmatter-Schlüssel `fold-gutter`, `line-numbers` und `word-wrap` pro Dokument gespeichert (nur echtes `true`/`false` wirkt) und bleiben damit beim Kopieren oder Öffnen auf einem anderen Rechner erhalten. Das Umschalten über Statusbar oder Ansichtsmenü schreibt den neuen Wert direkt in das Frontmatter der aktiven Datei und macht sie änderungsbedürftig (bewusste PO-Entscheidung, „Weg A", konsistent zum Frontmatter-Schalter der Überschriften-Nummerierung); frontmatter-lose Dokumente erhalten dabei einen Block. Sonderfälle: In Handbuch-Tabs, bei fehlenden Dateien und bei fehlerhaftem YAML (Statusbar-Hinweis) wirkt der Schalter flüchtig für die Sitzung; in Unbenannt-Tabs ebenfalls, beim ersten Speichern werden von der Voreinstellung abweichende Werte ins Frontmatter der neuen Datei übernommen.
+- **Globale Voreinstellung der Editor-Ansicht** (4T-000572): Drei neue Schalter im Einstellungs-Bereich „Darstellung" (Gliederung, Zeilennummern, Zeilenumbruch) legen den Standard für Dokumente ohne Frontmatter-Angabe fest; Auflösung in der Reihenfolge Frontmatter vor Voreinstellung vor eingebautem Standard. Die Startwerte entsprechen dem bisherigen Verhalten (Gliederung an, Zeilennummern an, Umbruch aus); die Voreinstellung wirkt beim Öffnen bzw. Erstellen von Tabs.
 
 ### Geändert
 
-- **Pfad-basierte Ansichts-Persistenz abgelöst** (4T-0572): Die frühere Speicherung der drei Schalter pro Datei-Pfad im App-Settings-Store (`app.fileSettings`, gedeckelt auf 500 Einträge, nicht portabel) ist ersatzlos entfernt; bestehende Einträge werden beim Start gelöscht, nicht konvertiert (PO-Entscheidung — eine Konvertierung würde ungefragt fremde Dateien ändern). Ohne aktiven Tab zeigen Statusbar-Buttons und Menü-Häkchen jetzt die globale Voreinstellung statt hartkodierter Standardwerte.
+- **Pfad-basierte Ansichts-Persistenz abgelöst** (4T-000572): Die frühere Speicherung der drei Schalter pro Datei-Pfad im App-Settings-Store (`app.fileSettings`, gedeckelt auf 500 Einträge, nicht portabel) ist ersatzlos entfernt; bestehende Einträge werden beim Start gelöscht, nicht konvertiert (PO-Entscheidung — eine Konvertierung würde ungefragt fremde Dateien ändern). Ohne aktiven Tab zeigen Statusbar-Buttons und Menü-Häkchen jetzt die globale Voreinstellung statt hartkodierter Standardwerte.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0573): ein neuer Funktions-Katalog-Eintrag „Editor-Ansicht pro Dokument" (Abdeckungs-Matrix F-134) und drei neue Kommando-Einträge für die bisher beschreibungslosen Toggle-Kommandos (S-094 bis S-096, ohne Default-Kürzel über Einstellungen belegbar); der Katalog-Text des Gliederungs-Foldings ist von „pro Tab" auf „pro Dokument" umgestellt. Die Handbuch-Seite „Frontmatter und Properties" erhält die neue Sektion „Editor-Ansicht pro Dokument" (Schlüssel, Ebenen-Auflösung, Änderungs-Verhalten beim Umschalten, Sonderfälle) in allen fünf Sprachen; die Demo-Seite „Properties and Profiles" zeigt die Schlüssel als Beispiel. Zehn neue i18n-Keys pro Sprache (drei Einstellungs-Labels, ein Statusbar-Hinweis, drei Katalog- und drei Kürzel-Texte).
+- **Hilfe-Inhalte erweitert** (4T-000573): ein neuer Funktions-Katalog-Eintrag „Editor-Ansicht pro Dokument" (Abdeckungs-Matrix F-134) und drei neue Kommando-Einträge für die bisher beschreibungslosen Toggle-Kommandos (S-094 bis S-096, ohne Default-Kürzel über Einstellungen belegbar); der Katalog-Text des Gliederungs-Foldings ist von „pro Tab" auf „pro Dokument" umgestellt. Die Handbuch-Seite „Frontmatter und Properties" erhält die neue Sektion „Editor-Ansicht pro Dokument" (Schlüssel, Ebenen-Auflösung, Änderungs-Verhalten beim Umschalten, Sonderfälle) in allen fünf Sprachen; die Demo-Seite „Properties and Profiles" zeigt die Schlüssel als Beispiel. Zehn neue i18n-Keys pro Sprache (drei Einstellungs-Labels, ein Statusbar-Hinweis, drei Katalog- und drei Kürzel-Texte).
 
 ### Intern
 
@@ -2872,27 +2933,27 @@ Epic 3E-0105 (Voreinstellung der Editor-Ansicht-Schalter) aus dem PO-Auftrag vom
 
 ## [0.74.0.723] - 2026-07-17 — Panel-Zugänge
 
-Epic 3E-0104 (Panel-Zugänge in Menü und Statusbar vereinheitlichen) aus dem PO-Auftrag vom 2026-07-13: Die Ein-/Ausblende-Zugänge aller 13 Sidebar-Panels erscheinen an beiden Bedienorten deckungsgleich — als Untermenü im Ansichtsmenü und als Button-Leiste in der Statusbar, beide in identischer, frei einstellbarer Reihenfolge. Umgesetzt in drei Umsetzungs-Tasks (4T-0567 bis 4T-0569) plus Hilfe- und Handbuch-Task (4T-0570).
+Epic 3E-000104 (Panel-Zugänge in Menü und Statusbar vereinheitlichen) aus dem PO-Auftrag vom 2026-07-13: Die Ein-/Ausblende-Zugänge aller 13 Sidebar-Panels erscheinen an beiden Bedienorten deckungsgleich — als Untermenü im Ansichtsmenü und als Button-Leiste in der Statusbar, beide in identischer, frei einstellbarer Reihenfolge. Umgesetzt in drei Umsetzungs-Tasks (4T-000567 bis 4T-000569) plus Hilfe- und Handbuch-Task (4T-000570).
 
 ### Neu
 
-- **Panel-Untermenü im Ansichtsmenü** (4T-0568): Die bisher elf einzeln gelisteten Panel-Toggles sind durch das Untermenü „Panels" mit allen 13 Panels ersetzt; das Ansichtsmenü wird dadurch deutlich kürzer. Bereich und Kalender erscheinen erstmals im Menü, Häkchen-Zustände und Kürzel bleiben erhalten, deaktivierte Erweiterungs-Panels entfallen wie bisher. Die Editor-Toggles (Gliederung, Zeilennummern, Zeilenumbruch) bleiben unverändert im Hauptmenü.
-- **Statusbar-Buttons für Unterseiten und Datei-Graph** (4T-0567): Die zwei bisher button-losen Panels haben eigene Statusbar-Buttons; Bereich und Kalender erhalten Registry-Kommandos und sind damit auch über die Kommando-Palette und ein belegbares Kürzel erreichbar. Jedes der 13 Panels hat jetzt beide Zugänge.
-- **Einstellungs-Bereich „Panel-Reihenfolge"** (4T-0569): Die gemeinsame Reihenfolge der Panel-Zugänge ist über Hoch/Runter-Schaltflächen frei sortierbar (Zurücksetzen-Knopf inklusive) und wirkt gleichzeitig auf Untermenü und Statusbar-Leiste, sofort in allen Fenstern und über Neustarts hinweg. Auslieferungs-Reihenfolge ist die thematisch gruppierte Sidebar-Standard-Anordnung.
+- **Panel-Untermenü im Ansichtsmenü** (4T-000568): Die bisher elf einzeln gelisteten Panel-Toggles sind durch das Untermenü „Panels" mit allen 13 Panels ersetzt; das Ansichtsmenü wird dadurch deutlich kürzer. Bereich und Kalender erscheinen erstmals im Menü, Häkchen-Zustände und Kürzel bleiben erhalten, deaktivierte Erweiterungs-Panels entfallen wie bisher. Die Editor-Toggles (Gliederung, Zeilennummern, Zeilenumbruch) bleiben unverändert im Hauptmenü.
+- **Statusbar-Buttons für Unterseiten und Datei-Graph** (4T-000567): Die zwei bisher button-losen Panels haben eigene Statusbar-Buttons; Bereich und Kalender erhalten Registry-Kommandos und sind damit auch über die Kommando-Palette und ein belegbares Kürzel erreichbar. Jedes der 13 Panels hat jetzt beide Zugänge.
+- **Einstellungs-Bereich „Panel-Reihenfolge"** (4T-000569): Die gemeinsame Reihenfolge der Panel-Zugänge ist über Hoch/Runter-Schaltflächen frei sortierbar (Zurücksetzen-Knopf inklusive) und wirkt gleichzeitig auf Untermenü und Statusbar-Leiste, sofort in allen Fenstern und über Neustarts hinweg. Auslieferungs-Reihenfolge ist die thematisch gruppierte Sidebar-Standard-Anordnung.
 
 ### Geändert
 
-- **Statusbar-Leiste dynamisch angeordnet** (4T-0568): Die Panel-Buttons folgen der eingestellten Reihenfolge statt einer festen DOM-Reihenfolge; die Editor-Toggles bleiben als eigenes Segment am Ende. Menü und Statusbar lesen dieselbe Reihenfolge-Quelle (neues prozess-neutrales Panel-Zugangs-Modell in `src/shared/`).
+- **Statusbar-Leiste dynamisch angeordnet** (4T-000568): Die Panel-Buttons folgen der eingestellten Reihenfolge statt einer festen DOM-Reihenfolge; die Editor-Toggles bleiben als eigenes Segment am Ende. Menü und Statusbar lesen dieselbe Reihenfolge-Quelle (neues prozess-neutrales Panel-Zugangs-Modell in `src/shared/`).
 
 ### Behoben
 
-- **Vier Menü-Häkchen waren dauerhaft leer** (4T-0568): Die Häkchen von Notizen, Block-Eigenschaften, Datei-Graph und Erinnerungen im Ansichtsmenü spiegelten den Panel-Zustand nie (die Flags fielen bei der Menü-State-Normalisierung unter den Tisch); mit der Umstellung auf die gemeldete Panel-Liste zeigen alle 13 Häkchen den echten Zustand.
-- **Unterseiten-Zugang ignorierte die Erweiterung** (4T-0567): Menüeintrag und Palette boten Unterseiten auch bei deaktivierter Vernetzungs-Erweiterung an, obwohl das Panel gesperrt war; das Zugangs-Gate deckt sich jetzt mit der Panel-Sichtbarkeit.
-- **Toter Erinnerungen-Button** (4T-0568): Bei deaktivierter Erinnerungs-Erweiterung blieb der Statusbar-Button als einziges gebundenes Element sichtbar; er folgt jetzt dem Erweiterungs-Gate wie alle anderen.
+- **Vier Menü-Häkchen waren dauerhaft leer** (4T-000568): Die Häkchen von Notizen, Block-Eigenschaften, Datei-Graph und Erinnerungen im Ansichtsmenü spiegelten den Panel-Zustand nie (die Flags fielen bei der Menü-State-Normalisierung unter den Tisch); mit der Umstellung auf die gemeldete Panel-Liste zeigen alle 13 Häkchen den echten Zustand.
+- **Unterseiten-Zugang ignorierte die Erweiterung** (4T-000567): Menüeintrag und Palette boten Unterseiten auch bei deaktivierter Vernetzungs-Erweiterung an, obwohl das Panel gesperrt war; das Zugangs-Gate deckt sich jetzt mit der Panel-Sichtbarkeit.
+- **Toter Erinnerungen-Button** (4T-000568): Bei deaktivierter Erinnerungs-Erweiterung blieb der Statusbar-Button als einziges gebundenes Element sichtbar; er folgt jetzt dem Erweiterungs-Gate wie alle anderen.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0570): ein neuer Funktions-Katalog-Eintrag „Reihenfolge der Panel-Zugänge" (Abdeckungs-Matrix F-133) und zwei neue Kommando-Einträge (Bereichs-/Kalender-Panel, S-092/S-093); die 13 Panel-Zugangstexte des Katalogs nennen den neuen Untermenü-Pfad. Sieben Handbuch-Seiten in allen fünf Sprachen umgestellt (Sidebar-Seite inklusive einstellbarer Reihenfolge; Bereich, Notizen, Block-Eigenschaften, Datei-Graph, Erinnerungen, Unterseiten mit ihren neuen Zugängen). 16 neue i18n-Keys pro Sprache (Untermenü-Titel, Button-Tooltips, Einstellungs-Bereich, Katalog- und Kürzel-Texte).
+- **Hilfe-Inhalte erweitert** (4T-000570): ein neuer Funktions-Katalog-Eintrag „Reihenfolge der Panel-Zugänge" (Abdeckungs-Matrix F-133) und zwei neue Kommando-Einträge (Bereichs-/Kalender-Panel, S-092/S-093); die 13 Panel-Zugangstexte des Katalogs nennen den neuen Untermenü-Pfad. Sieben Handbuch-Seiten in allen fünf Sprachen umgestellt (Sidebar-Seite inklusive einstellbarer Reihenfolge; Bereich, Notizen, Block-Eigenschaften, Datei-Graph, Erinnerungen, Unterseiten mit ihren neuen Zugängen). 16 neue i18n-Keys pro Sprache (Untermenü-Titel, Button-Tooltips, Einstellungs-Bereich, Katalog- und Kürzel-Texte).
 
 ### Intern
 
@@ -2903,25 +2964,25 @@ Epic 3E-0104 (Panel-Zugänge in Menü und Statusbar vereinheitlichen) aus dem PO
 
 ## [0.73.0.714] - 2026-07-16 — Oberflächen-Bündel
 
-Epic 3E-0102 (Oberflächen-Bündel: Sidebar-Anordnung, Titelleisten-Farbe, Gruppen-Öffnen, Demo-Bereich) aus PO-Aufträgen vom 2026-07-12 und 2026-07-16: vier Oberflächen- und Einstiegs-Verbesserungen als Sammel-Release. Umgesetzt in vier Umsetzungs-Tasks (4T-0563, 4T-0630 bis 4T-0632) plus Hilfe- und Handbuch-Task (4T-0564) und einem Bugfix aus der Release-Test-Iteration (4T-0633).
+Epic 3E-000102 (Oberflächen-Bündel: Sidebar-Anordnung, Titelleisten-Farbe, Gruppen-Öffnen, Demo-Bereich) aus PO-Aufträgen vom 2026-07-12 und 2026-07-16: vier Oberflächen- und Einstiegs-Verbesserungen als Sammel-Release. Umgesetzt in vier Umsetzungs-Tasks (4T-000563, 4T-000630 bis 4T-000632) plus Hilfe- und Handbuch-Task (4T-000564) und einem Bugfix aus der Release-Test-Iteration (4T-000633).
 
 ### Neu
 
-- **Titelleisten-Farbe der Arbeitsbereiche** (4T-0630): Fenster eines geöffneten Arbeitsbereichs tragen dessen Paletten-Farbe in der nativen Fenster-Titelleiste, im hellen Theme kräftig, im dunklen pastellig, jeweils mit lesbarer Titel-Textfarbe. Die Färbung folgt dem vollen Lebenszyklus (Öffnen inklusive Sitzungs-Restore ohne Nachflackern, Farbwechsel in der Verwaltung, Löschen bzw. Degradieren, Theme-Wechsel, „Tab in neues Fenster") und entfällt mit dem Ausschalten der Erweiterung „Arbeitsbereiche". Technisch über die Windows-11-DWM-Fenster-Attribute per Direkt-Aufruf; auf Systemen ohne diese Attribute bleibt die Standard-Titelleiste (stiller Fallback, höchstens ein Log-Eintrag).
-- **Folge-Dateien in der Tab-Gruppe** (4T-0631): Öffnet ein Klick im Inhalt eines gruppierten Dokuments eine weitere Datei (Wiki-/Datei-Links samt Alias-Auflösung, Abfrage-Treffer, Aufgaben-Bearbeiten, Ereignis-Zeilen und Verknüpfungs-Popup, Embed-Kopf-Link, Journal-Navigations-Block — in Render- und Live-Modus), tritt der neue Tab am Gruppen-Ende derselben Gruppe bei und wird aktiviert. Öffnungen außerhalb des Dokument-Inhalts (Datei-Liste, Panels, Lesezeichen, Palette, Dialoge, Kalender-Panel, Journal-Kommandos) bleiben ungruppiert; bereits offene Ziel-Dateien werden wie bisher nur aktiviert. Umgesetzt als explizites Erbe-Flag der Aufrufer statt einer Pauschal-Heuristik.
-- **Demo-Area** (4T-0632): „Datei → Demo-Area erstellen…" (auch als Palette-Kommando) kopiert eine mitgelieferte, ausschließlich englischsprachige Beispiel-Sammlung in einen leeren Ordner und öffnet ihn direkt als Bereich: zwölf selbst-demonstrierende Markdown-Seiten (Grundlagen, erweiterte Syntax, Tabellen, Vernetzung, Properties, Aufgaben/Erinnerungen, Ereignisse/Journale, Abfragen mit echten Treffern über den Demo-Bestand, Diagramme/Formeln, Anlagen, Vorlagen), eine Beispiel-Vorlage sowie Bild- und PDF-Anlage. Nicht-leere Zielordner werden mit Hinweis abgelehnt, es wird niemals überschrieben. Sprachumfang und Name „Demo-Area" sind PO-Entscheidungen vom 2026-07-16.
+- **Titelleisten-Farbe der Arbeitsbereiche** (4T-000630): Fenster eines geöffneten Arbeitsbereichs tragen dessen Paletten-Farbe in der nativen Fenster-Titelleiste, im hellen Theme kräftig, im dunklen pastellig, jeweils mit lesbarer Titel-Textfarbe. Die Färbung folgt dem vollen Lebenszyklus (Öffnen inklusive Sitzungs-Restore ohne Nachflackern, Farbwechsel in der Verwaltung, Löschen bzw. Degradieren, Theme-Wechsel, „Tab in neues Fenster") und entfällt mit dem Ausschalten der Erweiterung „Arbeitsbereiche". Technisch über die Windows-11-DWM-Fenster-Attribute per Direkt-Aufruf; auf Systemen ohne diese Attribute bleibt die Standard-Titelleiste (stiller Fallback, höchstens ein Log-Eintrag).
+- **Folge-Dateien in der Tab-Gruppe** (4T-000631): Öffnet ein Klick im Inhalt eines gruppierten Dokuments eine weitere Datei (Wiki-/Datei-Links samt Alias-Auflösung, Abfrage-Treffer, Aufgaben-Bearbeiten, Ereignis-Zeilen und Verknüpfungs-Popup, Embed-Kopf-Link, Journal-Navigations-Block — in Render- und Live-Modus), tritt der neue Tab am Gruppen-Ende derselben Gruppe bei und wird aktiviert. Öffnungen außerhalb des Dokument-Inhalts (Datei-Liste, Panels, Lesezeichen, Palette, Dialoge, Kalender-Panel, Journal-Kommandos) bleiben ungruppiert; bereits offene Ziel-Dateien werden wie bisher nur aktiviert. Umgesetzt als explizites Erbe-Flag der Aufrufer statt einer Pauschal-Heuristik.
+- **Demo-Area** (4T-000632): „Datei → Demo-Area erstellen…" (auch als Palette-Kommando) kopiert eine mitgelieferte, ausschließlich englischsprachige Beispiel-Sammlung in einen leeren Ordner und öffnet ihn direkt als Bereich: zwölf selbst-demonstrierende Markdown-Seiten (Grundlagen, erweiterte Syntax, Tabellen, Vernetzung, Properties, Aufgaben/Erinnerungen, Ereignisse/Journale, Abfragen mit echten Treffern über den Demo-Bestand, Diagramme/Formeln, Anlagen, Vorlagen), eine Beispiel-Vorlage sowie Bild- und PDF-Anlage. Nicht-leere Zielordner werden mit Hinweis abgelehnt, es wird niemals überschrieben. Sprachumfang und Name „Demo-Area" sind PO-Entscheidungen vom 2026-07-16.
 
 ### Geändert
 
-- **Standard-Anordnung der Sidebar** (4T-0563): Der Standard-Ausgangszustand ist nicht mehr „alle Panels links, keine Gruppen", sondern die vom PO vorgegebene Verteilung auf beide Seiten mit thematischen Reiter-Gruppen: links Lesezeichen+Bereich, Inhaltsverzeichnis+Unterseiten+Datei-Graph und Kalender+Erinnerungen, rechts Notizen (einzeln), Properties+Tags+Block-Eigenschaften und Outgoing-Links+Backlinks. Gilt für die frische Installation und „Auf Standard-Anordnung zurücksetzen"; bestehende gespeicherte Layouts bleiben unangetastet. Das Unterseiten-Panel ist dabei in die kanonische Panel-Reihenfolge aufgenommen (fehlte zuvor); nicht in der Struktur genannte Erweiterungs-Panels werden weiterhin robust links angehängt.
+- **Standard-Anordnung der Sidebar** (4T-000563): Der Standard-Ausgangszustand ist nicht mehr „alle Panels links, keine Gruppen", sondern die vom PO vorgegebene Verteilung auf beide Seiten mit thematischen Reiter-Gruppen: links Lesezeichen+Bereich, Inhaltsverzeichnis+Unterseiten+Datei-Graph und Kalender+Erinnerungen, rechts Notizen (einzeln), Properties+Tags+Block-Eigenschaften und Outgoing-Links+Backlinks. Gilt für die frische Installation und „Auf Standard-Anordnung zurücksetzen"; bestehende gespeicherte Layouts bleiben unangetastet. Das Unterseiten-Panel ist dabei in die kanonische Panel-Reihenfolge aufgenommen (fehlte zuvor); nicht in der Struktur genannte Erweiterungs-Panels werden weiterhin robust links angehängt.
 
 ### Behoben
 
-- **Arbeitsbereichs-Dialog: „Umbenennen und Farbe…" war verdeckt** (4T-0633, PO-Befund der Release-Test-Iteration, Defekt seit der Einführung des Verwaltungs-Dialogs): Der aus „Arbeitsbereiche verwalten…" geöffnete Namens-und-Farb-Dialog erschien unter dem Verwaltungs-Dialog (gleiche Stapel-Ebene, späterer DOM-Knoten gewann) und war erst nach dessen Schließen erreichbar; er liegt jetzt als Zweit-Ebenen-Dialog immer oben. Mit Regressionstest (WS-06).
+- **Arbeitsbereichs-Dialog: „Umbenennen und Farbe…" war verdeckt** (4T-000633, PO-Befund der Release-Test-Iteration, Defekt seit der Einführung des Verwaltungs-Dialogs): Der aus „Arbeitsbereiche verwalten…" geöffnete Namens-und-Farb-Dialog erschien unter dem Verwaltungs-Dialog (gleiche Stapel-Ebene, späterer DOM-Knoten gewann) und war erst nach dessen Schließen erreichbar; er liegt jetzt als Zweit-Ebenen-Dialog immer oben. Mit Regressionstest (WS-06).
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0564): ein neuer Funktions-Katalog-Eintrag (Demo-Area, Abdeckungs-Matrix F-132, samt Kommando-Eintrag S-091) und drei erweiterte Katalog-Texte (Arbeitsbereiche, Tab-Gruppen, Sidebar-Anordnung); die Handbuch-Seite „Applikationen, Fenster und Bereiche" beschreibt Titelleisten-Farbe, Folge-Dateien und Demo-Area, die Sidebar-Seite die neue Standard-Anordnung (die veraltete harte Panel-Aufzählung ist durch eine neutrale Formulierung ersetzt). Acht neue i18n-Keys pro Sprache (Demo-Area: Menü, Dialog, Hinweis, Katalog), alles in allen fünf Sprachfassungen.
+- **Hilfe-Inhalte erweitert** (4T-000564): ein neuer Funktions-Katalog-Eintrag (Demo-Area, Abdeckungs-Matrix F-132, samt Kommando-Eintrag S-091) und drei erweiterte Katalog-Texte (Arbeitsbereiche, Tab-Gruppen, Sidebar-Anordnung); die Handbuch-Seite „Applikationen, Fenster und Bereiche" beschreibt Titelleisten-Farbe, Folge-Dateien und Demo-Area, die Sidebar-Seite die neue Standard-Anordnung (die veraltete harte Panel-Aufzählung ist durch eine neutrale Formulierung ersetzt). Acht neue i18n-Keys pro Sprache (Demo-Area: Menü, Dialog, Hinweis, Katalog), alles in allen fünf Sprachfassungen.
 
 ### Intern
 
@@ -2932,20 +2993,20 @@ Epic 3E-0102 (Oberflächen-Bündel: Sidebar-Anordnung, Titelleisten-Farbe, Grupp
 
 ## [0.72.0.706] - 2026-07-16 — Einstellungs-Seite
 
-Epic 3E-0100 (Einstellungs-Seite: Speicher-Status und Bereichs-Gliederung) aus zwei Ideen-Backlog-Einträgen des PO vom 2026-07-11 und 2026-07-12 (Tages-Ideen). Zwei Bedienbarkeits-Verbesserungen der Einstellungs-Seite: Die Schaltflächen „Anwenden" und „OK" zeigen über ihre Hervorhebung, ob es ungesicherte Änderungen gibt, und die bisher flache Bereichs-Navigation gliedert sich in app-weite und bereichsgebundene Sektionen. Umgesetzt in zwei Umsetzungs-Tasks (4T-0554, 4T-0555) plus Hilfe- und Handbuch-Task (4T-0556).
+Epic 3E-000100 (Einstellungs-Seite: Speicher-Status und Bereichs-Gliederung) aus zwei Ideen-Backlog-Einträgen des PO vom 2026-07-11 und 2026-07-12 (Tages-Ideen). Zwei Bedienbarkeits-Verbesserungen der Einstellungs-Seite: Die Schaltflächen „Anwenden" und „OK" zeigen über ihre Hervorhebung, ob es ungesicherte Änderungen gibt, und die bisher flache Bereichs-Navigation gliedert sich in app-weite und bereichsgebundene Sektionen. Umgesetzt in zwei Umsetzungs-Tasks (4T-000554, 4T-000555) plus Hilfe- und Handbuch-Task (4T-000556).
 
 ### Geändert
 
-- **Speicher-Status der Schaltflächen** (4T-0554): „Anwenden" und „OK" tragen die blaue Primary-Hervorhebung nur noch bei ungesicherten Änderungen; ohne Änderungen ist „Anwenden" deaktiviert, „OK" bleibt immer klickbar und schließt die Seite. Die Erkennung ist bereichsübergreifend: Jeder Einstellungs-Bereich meldet über einen neuen dirty-Hook der Bereichs-Registry, ob ein Anwenden etwas persistieren würde; Vergleichs-Basis sind die vorhandenen pro-Bereich-Snapshots bzw. der Laufzeit-Zustand. Der Status aktualisiert sich live bei jeder Wert-Änderung, auch aus Picker-Popups und OS-Ordner-Dialogen; nach Anwenden ist der gespeicherte Stand der neue Referenzpunkt.
-- **Zwei-Gruppen-Navigation der Bereiche** (4T-0555): Die bisher flache Bereichs-Navigation gliedert sich in zwei Gruppen mit Überschriften: „Allgemein" (app-weit gültig) und „Aktueller Bereich" (nur bei geöffnetem Bereich sichtbar; ohne Bereich entfällt die Gruppe vollständig, bereichsgebundene Sektionen sind dann nicht erreichbar). Unter „Aktueller Bereich" stehen Journale, Kalender-Systeme und Eigenschafts-Profile sowie die abgespaltenen Bereichs-Teile der bisherigen Misch-Bereiche: der Bereichs-Default der Dokument-Historie (bisher im Bereich „Verhalten") und die Bereichs-Konfiguration der Vorlagen (bisher im Bereich „Vorlagen") sind jetzt eigene Einträge „Dokument-Historie" und „Vorlagen" dieser Gruppe. Beim Binden eines Bereichs an ein offenes Einstellungs-Fenster erscheint die Gruppe sofort und die bereichsgebundenen Entwürfe laden für den neuen Bereich; dynamisch registrierte Sektionen landen ohne Angabe unter „Allgemein".
+- **Speicher-Status der Schaltflächen** (4T-000554): „Anwenden" und „OK" tragen die blaue Primary-Hervorhebung nur noch bei ungesicherten Änderungen; ohne Änderungen ist „Anwenden" deaktiviert, „OK" bleibt immer klickbar und schließt die Seite. Die Erkennung ist bereichsübergreifend: Jeder Einstellungs-Bereich meldet über einen neuen dirty-Hook der Bereichs-Registry, ob ein Anwenden etwas persistieren würde; Vergleichs-Basis sind die vorhandenen pro-Bereich-Snapshots bzw. der Laufzeit-Zustand. Der Status aktualisiert sich live bei jeder Wert-Änderung, auch aus Picker-Popups und OS-Ordner-Dialogen; nach Anwenden ist der gespeicherte Stand der neue Referenzpunkt.
+- **Zwei-Gruppen-Navigation der Bereiche** (4T-000555): Die bisher flache Bereichs-Navigation gliedert sich in zwei Gruppen mit Überschriften: „Allgemein" (app-weit gültig) und „Aktueller Bereich" (nur bei geöffnetem Bereich sichtbar; ohne Bereich entfällt die Gruppe vollständig, bereichsgebundene Sektionen sind dann nicht erreichbar). Unter „Aktueller Bereich" stehen Journale, Kalender-Systeme und Eigenschafts-Profile sowie die abgespaltenen Bereichs-Teile der bisherigen Misch-Bereiche: der Bereichs-Default der Dokument-Historie (bisher im Bereich „Verhalten") und die Bereichs-Konfiguration der Vorlagen (bisher im Bereich „Vorlagen") sind jetzt eigene Einträge „Dokument-Historie" und „Vorlagen" dieser Gruppe. Beim Binden eines Bereichs an ein offenes Einstellungs-Fenster erscheint die Gruppe sofort und die bereichsgebundenen Entwürfe laden für den neuen Bereich; dynamisch registrierte Sektionen landen ohne Angabe unter „Allgemein".
 
 ### Behoben
 
-- **Verlorene Darstellungs-Schalter direkt nach dem Öffnen** (4T-0554): Ein Anwenden oder OK unmittelbar nach dem Öffnen der Seite, bevor die Darstellungs-Werte aus dem Store geladen waren, verlor Änderungen an den drei Darstellungs-Schaltern (Frontmatter anzeigen, dauerhaft ausklappen, Notiz-Vorschau) still; die Schalter werden jetzt unabhängig vom Lade-Zustand angewendet.
+- **Verlorene Darstellungs-Schalter direkt nach dem Öffnen** (4T-000554): Ein Anwenden oder OK unmittelbar nach dem Öffnen der Seite, bevor die Darstellungs-Werte aus dem Store geladen waren, verlor Änderungen an den drei Darstellungs-Schaltern (Frontmatter anzeigen, dauerhaft ausklappen, Notiz-Vorschau) still; die Schalter werden jetzt unabhängig vom Lade-Zustand angewendet.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte aktualisiert** (4T-0556): kein neuer Funktions-Katalog-Eintrag und keine neue Handbuch-Seite; die Katalog-Beschreibung der Einstellungs-Seite (Abdeckungs-Matrix F-027) beschreibt jetzt Zwei-Gruppen-Navigation und Speicher-Status, die Handbuch-Seiten „Dokument-Historie" und „Vorlagen" nennen die neuen Orte des Bereichs-Defaults bzw. der Bereichs-Konfiguration, alles in allen fünf Sprachfassungen. Zwei neue i18n-Keys pro Sprache (die Gruppen-Titel `settings.navGroup.general` und `settings.navGroup.area`).
+- **Hilfe-Inhalte aktualisiert** (4T-000556): kein neuer Funktions-Katalog-Eintrag und keine neue Handbuch-Seite; die Katalog-Beschreibung der Einstellungs-Seite (Abdeckungs-Matrix F-027) beschreibt jetzt Zwei-Gruppen-Navigation und Speicher-Status, die Handbuch-Seiten „Dokument-Historie" und „Vorlagen" nennen die neuen Orte des Bereichs-Defaults bzw. der Bereichs-Konfiguration, alles in allen fünf Sprachfassungen. Zwei neue i18n-Keys pro Sprache (die Gruppen-Titel `settings.navGroup.general` und `settings.navGroup.area`).
 
 ### Intern
 
@@ -2955,18 +3016,18 @@ Epic 3E-0100 (Einstellungs-Seite: Speicher-Status und Bereichs-Gliederung) aus z
 
 ## [0.71.0.701] - 2026-07-16 — Kalender-Systeme
 
-Epic 3E-0097 (Flexible Kalender-Systeme) aus dem Ideen-Programm 2026-07 (Eintrag I-25). Bereiche erhalten frei definierbare Zeitrechnungen für Fantasie-Kalender und reale Nicht-West-Kalender: unabhängige Blöcke mit parallelen, ineinander umrechenbaren Kalendern aus Ebenen, Epochen und Zyklen, gepflegt in den Bereichs-Einstellungen, mit eigener Wert-Syntax im Dokument und generischem Picker. Die Standard-Funktionen (Aufgaben-Marker, Journale, Abfragen, Datentabellen) bleiben bewusst rein gregorianisch. Umgesetzt in fünf Umsetzungs-Tasks (4T-0542 bis 4T-0546) plus Hilfe- und Handbuch-Task (4T-0547) nach dem Konzept-Workshop 4T-0535.
+Epic 3E-000097 (Flexible Kalender-Systeme) aus dem Ideen-Programm 2026-07 (Eintrag I-25). Bereiche erhalten frei definierbare Zeitrechnungen für Fantasie-Kalender und reale Nicht-West-Kalender: unabhängige Blöcke mit parallelen, ineinander umrechenbaren Kalendern aus Ebenen, Epochen und Zyklen, gepflegt in den Bereichs-Einstellungen, mit eigener Wert-Syntax im Dokument und generischem Picker. Die Standard-Funktionen (Aufgaben-Marker, Journale, Abfragen, Datentabellen) bleiben bewusst rein gregorianisch. Umgesetzt in fünf Umsetzungs-Tasks (4T-000542 bis 4T-000546) plus Hilfe- und Handbuch-Task (4T-000547) nach dem Konzept-Workshop 4T-000535.
 
 ### Neu
 
-- **Kalender-Kern mit linearer Rechen-Achse** (4T-0542): prozess-neutrales Definitions-Modell — Kalender als geordnete Ebenen-Liste (kleinste zuerst) mit benannten Ebenen-Bereichen und fünf Beziehungs-Typen (fester Faktor, Längen-Tabelle mit Positions-Namen, Schalt-Regel als geschachtelte Zyklen mit verlängerter Einheit, eigenständiger Zyklus mit Anker und Nummerierungs-Regel, abgeleitete Gruppierung); Epochen offen/geschlossen/offen mit nahtlosen Grenzen auf Datums-Ebene, Zählung ab 1 ohne Jahr 0, Grenzen auch mitten im Jahr. Die Achsen-Arithmetik rechnet in BigInt exakt (Tupel ↔ Achse verlustfrei, geschlossene Formeln über den Schalt-Zyklus); die Umrechnung zwischen Parallel-Kalendern läuft über eine affine Block-Achse (Anker plus Skala als Bruch) mit einer einzigen deterministischen Abrundung. Der gregorianische Kalender ist als Tragfähigkeits-Testfall und mitgelieferte Vorlage vollständig mit diesen fünf Typen abgebildet.
-- **Bereichs-Ablage und Einstellungs-Sektion** (4T-0543, 4T-0544): Die Definitionen leben als Sektion `calendarSystems` der Bereichsdatei (Fehler-Isolation nach dem Journal-Muster, Broadcast an alle Fenster). Der neue Einstellungs-Bereich „Kalender-Systeme" pflegt sie zweistufig (Übersicht = Blöcke, Detail = Kalender-Formulare) mit typ-spezifischen Editoren für Ebenen (inklusive Umsortieren), Epochen (konstruktiv nahtlos: nur Beginn-Daten, Ende = nächster Beginn), Zyklen, Gruppierungen und Block-Achse; Segment-Eingaben als beschriftete Zahlen-Felder je Ebene. Der Knopf „Standard-Kalender als Vorlage einfügen" erzeugt die vollständige gregorianische Definition, die Live-Vorschau zeigt einen frei wählbaren Beispiel-Wert kanonisch und mit Namen; weiche Validierung im Entwurf, harte beim Anwenden (inklusive bereichsweiter Namens-Eindeutigkeit). Bearbeitung bewusst ohne Sperre: ungültig gewordene Dokument-Werte werden markiert, nie verändert.
-- **Picker für benutzerdefinierte Kalender** (4T-0545): cursor-verankertes Popup mit Block-, Kalender- und Epochen-Wahl (Auswahlen mit nur einem Eintrag entfallen), generischem Gitter aus der Ebenen-Struktur (Zyklus-Länge = Spalten-Zahl mit Positions-Namen und Nummern-Spalte, sonst fortlaufende Tages-Liste; Rand-Tage der Nachbar-Einheiten anwählbar), Navigation über Gitter- und größte Einheit, generischen Zeit-Segmenten (ungültige Werte konstruktionsbedingt nicht eingebbar) und „Zum Anker"-Sprung. Die Umrechnungs-Anzeige zeigt den gewählten Zeitpunkt in allen Parallel-Kalendern des Blocks; ein Klick wechselt den aktiven Kalender dorthin. Ein Kalender-Wechsel rechnet die Auswahl um, ein Block-Wechsel springt bewusst zum Anker (Blöcke sind nicht umrechenbar).
-- **Wert-Syntax im Dokument** (4T-0546): Inline-Form `@{Kalendername: Wert}` mit numerisch-kanonischem Wert (Segmente groß nach klein, optionales Epochen-Kürzel, optionaler Zeit-Teil); die Kollisions-Prüfung gegen die bestehende Syntax-Landschaft bestätigte das Zeichen-Gespann ohne Anpassung. Werte erscheinen in gerenderter Ansicht, Live-Modus und Portable-Export als Badge mit der Namens-Formatierung des Kalenders; unbekannte Kalender und ungültige Werte werden sichtbar markiert und bleiben unverändert erhalten, Code-Kontexte bleiben literal. Werte sind im Quelltext- und Live-Modus klickbar (vorbelegter Picker, Ersetzen an Ort und Stelle in einem Undo-Schritt); das umbelegbare Kommando „Kalender-Datum einfügen" (Palette, aktiv bei Bereich mit mindestens einem Kalender) fügt den kanonischen Wert am Cursor ein.
+- **Kalender-Kern mit linearer Rechen-Achse** (4T-000542): prozess-neutrales Definitions-Modell — Kalender als geordnete Ebenen-Liste (kleinste zuerst) mit benannten Ebenen-Bereichen und fünf Beziehungs-Typen (fester Faktor, Längen-Tabelle mit Positions-Namen, Schalt-Regel als geschachtelte Zyklen mit verlängerter Einheit, eigenständiger Zyklus mit Anker und Nummerierungs-Regel, abgeleitete Gruppierung); Epochen offen/geschlossen/offen mit nahtlosen Grenzen auf Datums-Ebene, Zählung ab 1 ohne Jahr 0, Grenzen auch mitten im Jahr. Die Achsen-Arithmetik rechnet in BigInt exakt (Tupel ↔ Achse verlustfrei, geschlossene Formeln über den Schalt-Zyklus); die Umrechnung zwischen Parallel-Kalendern läuft über eine affine Block-Achse (Anker plus Skala als Bruch) mit einer einzigen deterministischen Abrundung. Der gregorianische Kalender ist als Tragfähigkeits-Testfall und mitgelieferte Vorlage vollständig mit diesen fünf Typen abgebildet.
+- **Bereichs-Ablage und Einstellungs-Sektion** (4T-000543, 4T-000544): Die Definitionen leben als Sektion `calendarSystems` der Bereichsdatei (Fehler-Isolation nach dem Journal-Muster, Broadcast an alle Fenster). Der neue Einstellungs-Bereich „Kalender-Systeme" pflegt sie zweistufig (Übersicht = Blöcke, Detail = Kalender-Formulare) mit typ-spezifischen Editoren für Ebenen (inklusive Umsortieren), Epochen (konstruktiv nahtlos: nur Beginn-Daten, Ende = nächster Beginn), Zyklen, Gruppierungen und Block-Achse; Segment-Eingaben als beschriftete Zahlen-Felder je Ebene. Der Knopf „Standard-Kalender als Vorlage einfügen" erzeugt die vollständige gregorianische Definition, die Live-Vorschau zeigt einen frei wählbaren Beispiel-Wert kanonisch und mit Namen; weiche Validierung im Entwurf, harte beim Anwenden (inklusive bereichsweiter Namens-Eindeutigkeit). Bearbeitung bewusst ohne Sperre: ungültig gewordene Dokument-Werte werden markiert, nie verändert.
+- **Picker für benutzerdefinierte Kalender** (4T-000545): cursor-verankertes Popup mit Block-, Kalender- und Epochen-Wahl (Auswahlen mit nur einem Eintrag entfallen), generischem Gitter aus der Ebenen-Struktur (Zyklus-Länge = Spalten-Zahl mit Positions-Namen und Nummern-Spalte, sonst fortlaufende Tages-Liste; Rand-Tage der Nachbar-Einheiten anwählbar), Navigation über Gitter- und größte Einheit, generischen Zeit-Segmenten (ungültige Werte konstruktionsbedingt nicht eingebbar) und „Zum Anker"-Sprung. Die Umrechnungs-Anzeige zeigt den gewählten Zeitpunkt in allen Parallel-Kalendern des Blocks; ein Klick wechselt den aktiven Kalender dorthin. Ein Kalender-Wechsel rechnet die Auswahl um, ein Block-Wechsel springt bewusst zum Anker (Blöcke sind nicht umrechenbar).
+- **Wert-Syntax im Dokument** (4T-000546): Inline-Form `@{Kalendername: Wert}` mit numerisch-kanonischem Wert (Segmente groß nach klein, optionales Epochen-Kürzel, optionaler Zeit-Teil); die Kollisions-Prüfung gegen die bestehende Syntax-Landschaft bestätigte das Zeichen-Gespann ohne Anpassung. Werte erscheinen in gerenderter Ansicht, Live-Modus und Portable-Export als Badge mit der Namens-Formatierung des Kalenders; unbekannte Kalender und ungültige Werte werden sichtbar markiert und bleiben unverändert erhalten, Code-Kontexte bleiben literal. Werte sind im Quelltext- und Live-Modus klickbar (vorbelegter Picker, Ersetzen an Ort und Stelle in einem Undo-Schritt); das umbelegbare Kommando „Kalender-Datum einfügen" (Palette, aktiv bei Bereich mit mindestens einem Kalender) fügt den kanonischen Wert am Cursor ein.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0547): ein neuer Funktions-Katalog-Eintrag (Kalender-Systeme, Abdeckungs-Matrix F-131) und eine neue Handbuch-Seite „Kalender-Systeme" (Konzept, Einstellungs-Pflege, Wert-Syntax mit selbst-demonstrierender Ungültig-Markierung, Picker und Umrechnung) in allen fünf Sprachfassungen, verlinkt aus der Überblicksseite. Insgesamt 116 neue i18n-Keys pro Sprache im Epic (98 Einstellungs-, 10 Picker-, vier Kommando- und Erweiterungs-, vier Katalog- und Titel-Keys).
+- **Hilfe-Inhalte erweitert** (4T-000547): ein neuer Funktions-Katalog-Eintrag (Kalender-Systeme, Abdeckungs-Matrix F-131) und eine neue Handbuch-Seite „Kalender-Systeme" (Konzept, Einstellungs-Pflege, Wert-Syntax mit selbst-demonstrierender Ungültig-Markierung, Picker und Umrechnung) in allen fünf Sprachfassungen, verlinkt aus der Überblicksseite. Insgesamt 116 neue i18n-Keys pro Sprache im Epic (98 Einstellungs-, 10 Picker-, vier Kommando- und Erweiterungs-, vier Katalog- und Titel-Keys).
 
 ### Intern
 
@@ -2976,22 +3037,22 @@ Epic 3E-0097 (Flexible Kalender-Systeme) aus dem Ideen-Programm 2026-07 (Eintrag
 
 ## [0.70.0.691] - 2026-07-15 — Arbeitsbereiche
 
-Epic 3E-0098 (Arbeitsbereiche) aus dem Ideen-Programm 2026-07 (Eintrag I-26). Benannte Arbeitsbereiche machen die logischen Applikationen dauerhaft: Ein Arbeitsbereich speichert eine Applikation samt aller Fenster, Tabs, Tab-Gruppen, Bereichs-Bindung und ungespeicherter Entwürfe unter einem Namen, hält sich beim Arbeiten automatisch aktuell und stellt beim Öffnen exakt den letzten Stand wieder her. Umgesetzt in drei Umsetzungs-Tasks (4T-0537 bis 4T-0539) plus Hilfe- und Handbuch-Task (4T-0540), mit einer Zwischen-Sichtung des PO während der Umsetzung.
+Epic 3E-000098 (Arbeitsbereiche) aus dem Ideen-Programm 2026-07 (Eintrag I-26). Benannte Arbeitsbereiche machen die logischen Applikationen dauerhaft: Ein Arbeitsbereich speichert eine Applikation samt aller Fenster, Tabs, Tab-Gruppen, Bereichs-Bindung und ungespeicherter Entwürfe unter einem Namen, hält sich beim Arbeiten automatisch aktuell und stellt beim Öffnen exakt den letzten Stand wieder her. Umgesetzt in drei Umsetzungs-Tasks (4T-000537 bis 4T-000539) plus Hilfe- und Handbuch-Task (4T-000540), mit einer Zwischen-Sichtung des PO während der Umsetzung.
 
 ### Neu
 
-- **Arbeitsbereiche mit vollem Lebenszyklus** (4T-0537, 4T-0538): „Als Arbeitsbereich speichern…" benennt die laufende Applikation samt aller Fenster, „Neuer Arbeitsbereich…" startet leer; Öffnen stellt alle Fenster mit Geometrie, Panes, Tabs samt Ansichts-Einstellungen, Tab-Gruppen und Bereichs-Bindung am letzten Stand her, erneutes Öffnen fokussiert statt zu duplizieren; Schließen (Kommando oder letztes Fenster) friert den Stand ein, ungespeicherte Änderungen laufen über den bestehenden Speichern-Dialog; Umbenennen und Farbkennung (Acht-Farben-Palette der Tab-Gruppen) jederzeit; Löschen entfernt nach Bestätigung nur die Ablage und degradiert einen offenen Arbeitsbereich zur unbenannten Applikation. Ein geöffneter Arbeitsbereich aktualisiert seine Ablage laufend automatisch; die Sitzungs-Wiederherstellung bringt zusätzlich alle beim Beenden offenen Arbeitsbereiche zurück (additiv im neuen Store-Schlüssel `workspaces`, ohne Migration).
-- **Untermenü, Verwaltungs-Dialog und Fenster-Titel** (4T-0538): Untermenü „Datei → Arbeitsbereiche" mit der Liste aller Arbeitsbereiche (der Farbpunkt zeigt den Zustand: gefüllt = geöffnet, Ring = geschlossen; Klick öffnet bzw. fokussiert) und den vier Aktionen, auch als umbelegbare Kommandos in der Palette (mit Verfügbarkeits-Dimmung); Verwaltungs-Dialog mit Farbpunkt, Zustand, Zeitpunkt des letzten Öffnens und den Aktionen Öffnen, Umbenennen und Farbe, Löschen; der Fenster-Titel zeigt den Arbeitsbereichs-Namen an der Stelle der App-Nummer, bei gebundenem Bereich kombiniert (`(Arbeitsbereich Alpha, Bereich Notizen, Fenster 2)`).
-- **Vier-Block-Gliederung des Datei-Menüs** (4T-0538): Der obere Menü-Abschnitt ist dauerhaft in vier Blöcke gegliedert — Dateien, Bereiche, Applikation, Arbeitsbereiche; „Neue Applikation" steht als eigener Mini-Block, „Zuletzt geöffnete Bereiche" rückt zu den Bereichen.
-- **Unbenannt-Entwürfe im Arbeitsbereich** (4T-0539): Ungespeicherte Unbenannt-Tabs gehören zum Arbeitsbereichs-Zustand; sie wandern beim Schließen ohne Nachfrage in die Ablage, bleiben beim normalen App-Start liegen und kehren erst mit dem Öffnen ihres Arbeitsbereichs zurück. Beim Löschen eines Arbeitsbereichs gehen seine Entwürfe verlustfrei in den allgemeinen Entwurfs-Zwischenspeicher über.
+- **Arbeitsbereiche mit vollem Lebenszyklus** (4T-000537, 4T-000538): „Als Arbeitsbereich speichern…" benennt die laufende Applikation samt aller Fenster, „Neuer Arbeitsbereich…" startet leer; Öffnen stellt alle Fenster mit Geometrie, Panes, Tabs samt Ansichts-Einstellungen, Tab-Gruppen und Bereichs-Bindung am letzten Stand her, erneutes Öffnen fokussiert statt zu duplizieren; Schließen (Kommando oder letztes Fenster) friert den Stand ein, ungespeicherte Änderungen laufen über den bestehenden Speichern-Dialog; Umbenennen und Farbkennung (Acht-Farben-Palette der Tab-Gruppen) jederzeit; Löschen entfernt nach Bestätigung nur die Ablage und degradiert einen offenen Arbeitsbereich zur unbenannten Applikation. Ein geöffneter Arbeitsbereich aktualisiert seine Ablage laufend automatisch; die Sitzungs-Wiederherstellung bringt zusätzlich alle beim Beenden offenen Arbeitsbereiche zurück (additiv im neuen Store-Schlüssel `workspaces`, ohne Migration).
+- **Untermenü, Verwaltungs-Dialog und Fenster-Titel** (4T-000538): Untermenü „Datei → Arbeitsbereiche" mit der Liste aller Arbeitsbereiche (der Farbpunkt zeigt den Zustand: gefüllt = geöffnet, Ring = geschlossen; Klick öffnet bzw. fokussiert) und den vier Aktionen, auch als umbelegbare Kommandos in der Palette (mit Verfügbarkeits-Dimmung); Verwaltungs-Dialog mit Farbpunkt, Zustand, Zeitpunkt des letzten Öffnens und den Aktionen Öffnen, Umbenennen und Farbe, Löschen; der Fenster-Titel zeigt den Arbeitsbereichs-Namen an der Stelle der App-Nummer, bei gebundenem Bereich kombiniert (`(Arbeitsbereich Alpha, Bereich Notizen, Fenster 2)`).
+- **Vier-Block-Gliederung des Datei-Menüs** (4T-000538): Der obere Menü-Abschnitt ist dauerhaft in vier Blöcke gegliedert — Dateien, Bereiche, Applikation, Arbeitsbereiche; „Neue Applikation" steht als eigener Mini-Block, „Zuletzt geöffnete Bereiche" rückt zu den Bereichen.
+- **Unbenannt-Entwürfe im Arbeitsbereich** (4T-000539): Ungespeicherte Unbenannt-Tabs gehören zum Arbeitsbereichs-Zustand; sie wandern beim Schließen ohne Nachfrage in die Ablage, bleiben beim normalen App-Start liegen und kehren erst mit dem Öffnen ihres Arbeitsbereichs zurück. Beim Löschen eines Arbeitsbereichs gehen seine Entwürfe verlustfrei in den allgemeinen Entwurfs-Zwischenspeicher über.
 
 ### Behoben
 
-- **Erweiterungs-Schaltung in der Fenster-Startphase** (4T-0539): Ein Erweiterungs-Schalt-Broadcast, der ein Fenster während seiner Initialisierung erreichte, ging in diesem Fenster endgültig verloren; solche Wechsel werden jetzt gemerkt und am Ende der Initialisierung angewendet.
+- **Erweiterungs-Schaltung in der Fenster-Startphase** (4T-000539): Ein Erweiterungs-Schalt-Broadcast, der ein Fenster während seiner Initialisierung erreichte, ging in diesem Fenster endgültig verloren; solche Wechsel werden jetzt gemerkt und am Ende der Initialisierung angewendet.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0540): ein neuer Funktions-Katalog-Eintrag (Arbeitsbereiche, Abdeckungs-Matrix F-130) und vier Kommando-Beschreibungen; die Handbuch-Seite „Applikationen, Fenster und Bereiche" erhält in allen fünf Sprachfassungen den Abschnitt „Arbeitsbereiche" mit dem Abgrenzungs-Absatz Bereich (Ordner-Arbeitsraum) versus Arbeitsbereich (benannte Fenster-Sammlung), die erweiterte Titel-Systematik-Tabelle und die Grenzfälle. 31 neue i18n-Keys pro Sprache (sechs Menü-, ein Titel-, 16 Dialog- und Bestätigungs-Keys, sieben Katalog- und Kommando-Keys, ein generischer Dialog-Key).
+- **Hilfe-Inhalte erweitert** (4T-000540): ein neuer Funktions-Katalog-Eintrag (Arbeitsbereiche, Abdeckungs-Matrix F-130) und vier Kommando-Beschreibungen; die Handbuch-Seite „Applikationen, Fenster und Bereiche" erhält in allen fünf Sprachfassungen den Abschnitt „Arbeitsbereiche" mit dem Abgrenzungs-Absatz Bereich (Ordner-Arbeitsraum) versus Arbeitsbereich (benannte Fenster-Sammlung), die erweiterte Titel-Systematik-Tabelle und die Grenzfälle. 31 neue i18n-Keys pro Sprache (sechs Menü-, ein Titel-, 16 Dialog- und Bestätigungs-Keys, sieben Katalog- und Kommando-Keys, ein generischer Dialog-Key).
 
 ### Intern
 
@@ -3001,20 +3062,20 @@ Epic 3E-0098 (Arbeitsbereiche) aus dem Ideen-Programm 2026-07 (Eintrag I-26). Be
 
 ## [0.69.0.685] - 2026-07-15 — Ereignisse
 
-Epic 3E-0092 (Ereignisse) aus dem Ideen-Programm 2026-07 (Eintrag I-21). Termine, Geburtstage, Jahrestage und Projekt-Daten leben direkt im Dokument: als eingebetteter `perspective-events`-Block mit eigenen Datenzeilen oder als Aggregation über Frontmatter-Eigenschaften aus den Dateien des Bereichs, auf Basis eines festen internen Eigenschafts-Profils „Ereignis". Umgesetzt in sieben Umsetzungs-Tasks (4T-0511 bis 4T-0517) plus Hilfe- und Handbuch-Task (4T-0518), mit zwei Zwischen-Sichtungen des PO während der Umsetzung.
+Epic 3E-000092 (Ereignisse) aus dem Ideen-Programm 2026-07 (Eintrag I-21). Termine, Geburtstage, Jahrestage und Projekt-Daten leben direkt im Dokument: als eingebetteter `perspective-events`-Block mit eigenen Datenzeilen oder als Aggregation über Frontmatter-Eigenschaften aus den Dateien des Bereichs, auf Basis eines festen internen Eigenschafts-Profils „Ereignis". Umgesetzt in sieben Umsetzungs-Tasks (4T-000511 bis 4T-000517) plus Hilfe- und Handbuch-Task (4T-000518), mit zwei Zwischen-Sichtungen des PO während der Umsetzung.
 
 ### Neu
 
-- **Ereignis-Block mit Tabelle und Pflege** (4T-0511, 4T-0512): Code-Block `perspective-events` mit neun-spaltigen Datenzeilen; die gerenderte Tabelle zeigt Kategorie-Badges (acht feste Kategorien mit Farbzuordnung) und die Zeitdifferenz zum heutigen Tag in vier Staffelungen (Jahre, Monate, Wochen, Tage, kalender-genau), dazu Meilensteine (1000er-Tage, 100er-Wochen/-Monate, volle Jahre, Jubiläums-Jahre), Jahres-Wiederkehr mit Countdown und Spannen-Dauer. Anlage über die Formularzeile mit Kalender-Picker, Bearbeiten, Duplizieren (ohne Verknüpfungen) und Löschen mit Bestätigung, direkt in geteilter Ansicht, Live-Modus und Lese-Ansicht, je Übernahme ein Undo-Schritt. Einfüge-Kommando „Ereignis-Block einfügen" über die Kommando-Palette.
-- **Sortierung, Filter und gespeicherte Filter** (4T-0513): Kopf-Klick-Sortierung (Zeitpunkt, Ende, Ereignis, Kategorie; Standard Zeitpunkt absteigend), Filter-Leiste mit Text-Suche, Kategorie-Auswahl, Zeitraum-Presets und den Flags „nur mit Notizen"/„nur wiederkehrend"/„nur mit Zeitspanne"; benannte Filter werden als `filter:`-Direktiven im Block gespeichert und über die Leiste angewendet.
-- **Vier Zusatz-Ansichten** (4T-0514): Umschalter über dem Block (schreibt die `view:`-Direktive) zwischen Tabelle, Dashboard (anstehende Ereignisse, Meilensteine, Kategorie-Verteilung), Monats- und Wochen-Kalender mit Heute-Markierung und Navigation sowie Timeline; ein Klick auf ein Ereignis springt zur Tabellen-Zeile.
-- **Aggregation über Frontmatter** (4T-0515): eine `query:`-Direktive sammelt die Ereignisse aus den Bereichs-Dateien mit Ereignis-Profil; die Klausel-Sprache der Perspective-Abfrage verfeinert die Auswahl, der Datei-Titel dient als Fallback für den Ereignis-Text. Bearbeitungen schreiben ins Frontmatter der Quell-Dateien zurück (auch nicht geöffneter, mit Konflikt-Schutz), ein Zeilen-Klick öffnet die Quelle; Anlegen und Löschen bleiben den Quell-Dateien vorbehalten.
-- **Verknüpfungen** (4T-0516): Ereignisse verketten sich als Vorgänger/Nachfolger, im Block über automatisch vergebene Kennungen, in der Aggregation als Datei-Verweise mit Gegenrichtungs-Pflege. Verknüpfungs-Indikator mit Popup (Suche, Umschalter, Sprung zum Ziel), Lösch-Bereinigung beider Seiten, verwaiste Verweise als weicher Hinweis.
-- **Internes Profil in der Profil-Maschinerie** (4T-0517): das Profil „Ereignis" (acht `event-*`-Felder) steht automatisch in der Profil-Auflösung und in der Profil-Liste der Einstellungen, gekennzeichnet als internes Profil, ohne Öffnen-/Lösch-Affordanzen und nicht als Standard-Profil wählbar; es wirkt auch ohne konfigurierten Profil-Ordner (Zuordnungs-Feld-Default `class`).
+- **Ereignis-Block mit Tabelle und Pflege** (4T-000511, 4T-000512): Code-Block `perspective-events` mit neun-spaltigen Datenzeilen; die gerenderte Tabelle zeigt Kategorie-Badges (acht feste Kategorien mit Farbzuordnung) und die Zeitdifferenz zum heutigen Tag in vier Staffelungen (Jahre, Monate, Wochen, Tage, kalender-genau), dazu Meilensteine (1000er-Tage, 100er-Wochen/-Monate, volle Jahre, Jubiläums-Jahre), Jahres-Wiederkehr mit Countdown und Spannen-Dauer. Anlage über die Formularzeile mit Kalender-Picker, Bearbeiten, Duplizieren (ohne Verknüpfungen) und Löschen mit Bestätigung, direkt in geteilter Ansicht, Live-Modus und Lese-Ansicht, je Übernahme ein Undo-Schritt. Einfüge-Kommando „Ereignis-Block einfügen" über die Kommando-Palette.
+- **Sortierung, Filter und gespeicherte Filter** (4T-000513): Kopf-Klick-Sortierung (Zeitpunkt, Ende, Ereignis, Kategorie; Standard Zeitpunkt absteigend), Filter-Leiste mit Text-Suche, Kategorie-Auswahl, Zeitraum-Presets und den Flags „nur mit Notizen"/„nur wiederkehrend"/„nur mit Zeitspanne"; benannte Filter werden als `filter:`-Direktiven im Block gespeichert und über die Leiste angewendet.
+- **Vier Zusatz-Ansichten** (4T-000514): Umschalter über dem Block (schreibt die `view:`-Direktive) zwischen Tabelle, Dashboard (anstehende Ereignisse, Meilensteine, Kategorie-Verteilung), Monats- und Wochen-Kalender mit Heute-Markierung und Navigation sowie Timeline; ein Klick auf ein Ereignis springt zur Tabellen-Zeile.
+- **Aggregation über Frontmatter** (4T-000515): eine `query:`-Direktive sammelt die Ereignisse aus den Bereichs-Dateien mit Ereignis-Profil; die Klausel-Sprache der Perspective-Abfrage verfeinert die Auswahl, der Datei-Titel dient als Fallback für den Ereignis-Text. Bearbeitungen schreiben ins Frontmatter der Quell-Dateien zurück (auch nicht geöffneter, mit Konflikt-Schutz), ein Zeilen-Klick öffnet die Quelle; Anlegen und Löschen bleiben den Quell-Dateien vorbehalten.
+- **Verknüpfungen** (4T-000516): Ereignisse verketten sich als Vorgänger/Nachfolger, im Block über automatisch vergebene Kennungen, in der Aggregation als Datei-Verweise mit Gegenrichtungs-Pflege. Verknüpfungs-Indikator mit Popup (Suche, Umschalter, Sprung zum Ziel), Lösch-Bereinigung beider Seiten, verwaiste Verweise als weicher Hinweis.
+- **Internes Profil in der Profil-Maschinerie** (4T-000517): das Profil „Ereignis" (acht `event-*`-Felder) steht automatisch in der Profil-Auflösung und in der Profil-Liste der Einstellungen, gekennzeichnet als internes Profil, ohne Öffnen-/Lösch-Affordanzen und nicht als Standard-Profil wählbar; es wirkt auch ohne konfigurierten Profil-Ordner (Zuordnungs-Feld-Default `class`).
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0518): drei neue Funktions-Katalog-Einträge (Ereignis-Verwaltung, Ereignis-Aggregation, Ereignis-Verknüpfungen; Abdeckungs-Matrix F-127 bis F-129) und eine neue Handbuch-Seite „Ereignisse" (selbst-demonstrierend mit Live-Beispielen) in allen fünf Sprachfassungen, verlinkt aus der Überblicksseite; die Seite „Eigenschafts-Profile" erhält den Abschnitt „Internes Profil". Insgesamt 147 neue i18n-Keys pro Sprache im Epic (134 Funktions- und Erweiterungs-Keys, ein Kommando-, ein Einstellungs-Key, elf Katalog- und Titel-Keys).
+- **Hilfe-Inhalte erweitert** (4T-000518): drei neue Funktions-Katalog-Einträge (Ereignis-Verwaltung, Ereignis-Aggregation, Ereignis-Verknüpfungen; Abdeckungs-Matrix F-127 bis F-129) und eine neue Handbuch-Seite „Ereignisse" (selbst-demonstrierend mit Live-Beispielen) in allen fünf Sprachfassungen, verlinkt aus der Überblicksseite; die Seite „Eigenschafts-Profile" erhält den Abschnitt „Internes Profil". Insgesamt 147 neue i18n-Keys pro Sprache im Epic (134 Funktions- und Erweiterungs-Keys, ein Kommando-, ein Einstellungs-Key, elf Katalog- und Titel-Keys).
 
 ### Intern
 
@@ -3024,20 +3085,20 @@ Epic 3E-0092 (Ereignisse) aus dem Ideen-Programm 2026-07 (Eintrag I-21). Termine
 
 ## [0.68.0.670] - 2026-07-13 — Farbschemas
 
-Epic 3E-0086 (Farbschemas) aus dem Ideen-Programm 2026-07 (Eintrag I-13). Die Farben der App werden einstellbar: ein Farbschema ist ein benanntes Set von Farbwerten über eine kuratierte Liste benannter Farb-Slots, die die bestehenden Theme-Variablen speisen. Je Modus (hell, dunkel) ist ein Schema aktiv; eigene Schemas entstehen als Kopie mitgelieferter, unveränderlicher Vorlagen. Umgesetzt in drei Umsetzungs-Tasks (4T-0464 bis 4T-0466) plus Hilfe- und Handbuch-Task (4T-0467).
+Epic 3E-000086 (Farbschemas) aus dem Ideen-Programm 2026-07 (Eintrag I-13). Die Farben der App werden einstellbar: ein Farbschema ist ein benanntes Set von Farbwerten über eine kuratierte Liste benannter Farb-Slots, die die bestehenden Theme-Variablen speisen. Je Modus (hell, dunkel) ist ein Schema aktiv; eigene Schemas entstehen als Kopie mitgelieferter, unveränderlicher Vorlagen. Umgesetzt in drei Umsetzungs-Tasks (4T-000464 bis 4T-000466) plus Hilfe- und Handbuch-Task (4T-000467).
 
 ### Neu
 
-- **Farbschemas über kuratierte Slots** (4T-0464, 4T-0465): 14 benannte Farb-Slots in fünf Gruppen (Flächen, Text, Akzent und Rahmen, Tabs, Inhalt) speisen die Theme-Variablen; der gerenderte Inhalt folgt automatisch mit (Links tragen den Akzent, Überschriften den Haupttext, Zitat-Balken den kräftigen Rahmen). Je Modus ist ein Schema aktiv, der bestehende Hell/Dunkel-Umschalter wechselt zwischen beiden. Änderungen wirken sofort in allen Fenstern. Ohne eigenes Schema bleibt das Erscheinungsbild unverändert.
-- **Einstellungs-Bereich „Farbschemas"** (4T-0466): Modus-Zuordnung (Schema für Hell, Schema für Dunkel), Verwaltung (Neu aus Vorlage, Duplizieren, Umbenennen, Löschen mit Rückfall auf Standard) und ein gruppierter Slot-Editor mit nativen Farbwählern und „Zurücksetzen" je Slot. Die Änderungen wirken als Live-Vorschau; die mitgelieferten Schemas (Standard Hell, Standard Dunkel, Kontrastreich Hell, Kontrastreich Dunkel, Sepia) sind unveränderlich und dienen als Vorlage.
+- **Farbschemas über kuratierte Slots** (4T-000464, 4T-000465): 14 benannte Farb-Slots in fünf Gruppen (Flächen, Text, Akzent und Rahmen, Tabs, Inhalt) speisen die Theme-Variablen; der gerenderte Inhalt folgt automatisch mit (Links tragen den Akzent, Überschriften den Haupttext, Zitat-Balken den kräftigen Rahmen). Je Modus ist ein Schema aktiv, der bestehende Hell/Dunkel-Umschalter wechselt zwischen beiden. Änderungen wirken sofort in allen Fenstern. Ohne eigenes Schema bleibt das Erscheinungsbild unverändert.
+- **Einstellungs-Bereich „Farbschemas"** (4T-000466): Modus-Zuordnung (Schema für Hell, Schema für Dunkel), Verwaltung (Neu aus Vorlage, Duplizieren, Umbenennen, Löschen mit Rückfall auf Standard) und ein gruppierter Slot-Editor mit nativen Farbwählern und „Zurücksetzen" je Slot. Die Änderungen wirken als Live-Vorschau; die mitgelieferten Schemas (Standard Hell, Standard Dunkel, Kontrastreich Hell, Kontrastreich Dunkel, Sepia) sind unveränderlich und dienen als Vorlage.
 
 ### Geändert
 
-- **PDF-Export folgt dem aktiven Hell-Schema** (4T-0465): Der PDF-Druck bleibt hell und übernimmt jetzt die Farben des aktiven Hell-Schemas statt einer festen Light-Palette; eigene helle Schemas werden farbtreu gedruckt, dunkle Schemas gehen nie ins PDF. Der Portable-Export bleibt themen-neutrales Markdown.
+- **PDF-Export folgt dem aktiven Hell-Schema** (4T-000465): Der PDF-Druck bleibt hell und übernimmt jetzt die Farben des aktiven Hell-Schemas statt einer festen Light-Palette; eigene helle Schemas werden farbtreu gedruckt, dunkle Schemas gehen nie ins PDF. Der Portable-Export bleibt themen-neutrales Markdown.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0467): ein neuer Funktions-Katalog-Eintrag (Farbschemas, Abdeckungs-Matrix F-126) und eine neue Handbuch-Seite „Farbschemas" (Slot-Modell, Pflege, Modus-Zuordnung, Kontrast-Grenzen) in allen fünf Sprachfassungen. 44 neue i18n-Keys pro Sprache (40 Bereichs-, Slot- und Schema-Keys plus vier Katalog- und Titel-Keys); zusätzlich erklärt ein Hinweis im Einstellungs-Bereich die Modus-Kopplung des Editors, die Handbuch-Seite führt sie ausführlicher aus.
+- **Hilfe-Inhalte erweitert** (4T-000467): ein neuer Funktions-Katalog-Eintrag (Farbschemas, Abdeckungs-Matrix F-126) und eine neue Handbuch-Seite „Farbschemas" (Slot-Modell, Pflege, Modus-Zuordnung, Kontrast-Grenzen) in allen fünf Sprachfassungen. 44 neue i18n-Keys pro Sprache (40 Bereichs-, Slot- und Schema-Keys plus vier Katalog- und Titel-Keys); zusätzlich erklärt ein Hinweis im Einstellungs-Bereich die Modus-Kopplung des Editors, die Handbuch-Seite führt sie ausführlicher aus.
 
 ### Intern
 
@@ -3046,16 +3107,16 @@ Epic 3E-0086 (Farbschemas) aus dem Ideen-Programm 2026-07 (Eintrag I-13). Die Fa
 
 ## [0.67.0.659] - 2026-07-12 — Gliederungs-Nummerierung
 
-Epic 3E-0087 (Gliederungs-Nummerierung) aus dem Ideen-Programm 2026-07 (Eintrag I-07). Überschriften lassen sich automatisch mit hierarchischen Nummern (1, 1.1, 1.2 und so weiter) versehen; die Nummern erscheinen im Render-Pane, im Live-Modus, in der Gliederung und in den Exporten, der Quelltext bleibt Standard-Markdown. Umgesetzt in drei Umsetzungs-Tasks (4T-0469 bis 4T-0471) plus Hilfe- und Handbuch-Task (4T-0472).
+Epic 3E-000087 (Gliederungs-Nummerierung) aus dem Ideen-Programm 2026-07 (Eintrag I-07). Überschriften lassen sich automatisch mit hierarchischen Nummern (1, 1.1, 1.2 und so weiter) versehen; die Nummern erscheinen im Render-Pane, im Live-Modus, in der Gliederung und in den Exporten, der Quelltext bleibt Standard-Markdown. Umgesetzt in drei Umsetzungs-Tasks (4T-000469 bis 4T-000471) plus Hilfe- und Handbuch-Task (4T-000472).
 
 ### Neu
 
-- **Automatische Überschriften-Nummerierung** (4T-0469, 4T-0470): berechnete Nummern als Anzeige-Präfix. Gesteuert auf drei Ebenen mit Vorrang Überschrift vor Dokument vor global. Ausgenommene Überschriften zählen nicht mit, übersprungene Ebenen zählen als eins, der Escape `\{-}` bleibt Literal. Die Nummern erscheinen konsistent in Render-Pane, Live-Modus, Gliederung und PDF-Export; die Marker `{-}`/`{+}` verschwinden aus jeder Ansicht und jedem Export, ohne dass Nummern in den Portable-Export eingebrannt werden.
-- **Einstellung, Frontmatter und Marker** (4T-0471): der Einstellungs-Bereich „Überschriften-Nummerierung" (Schalter plus Start-Ebene H1 oder H2) schaltet die Nummerierung global; der Frontmatter-Schlüssel `numbered-headings: true/false` übersteuert sie pro Dokument; die Zeilenende-Marker `{-}` (ausnehmen) und `{+}` (einbeziehen) wirken pro Überschrift. Änderungen wirken sofort in allen Fenstern.
+- **Automatische Überschriften-Nummerierung** (4T-000469, 4T-000470): berechnete Nummern als Anzeige-Präfix. Gesteuert auf drei Ebenen mit Vorrang Überschrift vor Dokument vor global. Ausgenommene Überschriften zählen nicht mit, übersprungene Ebenen zählen als eins, der Escape `\{-}` bleibt Literal. Die Nummern erscheinen konsistent in Render-Pane, Live-Modus, Gliederung und PDF-Export; die Marker `{-}`/`{+}` verschwinden aus jeder Ansicht und jedem Export, ohne dass Nummern in den Portable-Export eingebrannt werden.
+- **Einstellung, Frontmatter und Marker** (4T-000471): der Einstellungs-Bereich „Überschriften-Nummerierung" (Schalter plus Start-Ebene H1 oder H2) schaltet die Nummerierung global; der Frontmatter-Schlüssel `numbered-headings: true/false` übersteuert sie pro Dokument; die Zeilenende-Marker `{-}` (ausnehmen) und `{+}` (einbeziehen) wirken pro Überschrift. Änderungen wirken sofort in allen Fenstern.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0472): ein neuer Funktions-Katalog-Eintrag (Überschriften-Nummerierung, Abdeckungs-Matrix F-125) und ein neuer Abschnitt „Automatische Nummerierung" auf der Handbuch-Seite „Markdown-Basis" in allen fünf Sprachfassungen. Neun neue i18n-Keys pro Sprache (drei Katalog-, sechs Einstellungs-Keys).
+- **Hilfe-Inhalte erweitert** (4T-000472): ein neuer Funktions-Katalog-Eintrag (Überschriften-Nummerierung, Abdeckungs-Matrix F-125) und ein neuer Abschnitt „Automatische Nummerierung" auf der Handbuch-Seite „Markdown-Basis" in allen fünf Sprachfassungen. Neun neue i18n-Keys pro Sprache (drei Katalog-, sechs Einstellungs-Keys).
 
 ### Intern
 
@@ -3065,14 +3126,14 @@ Epic 3E-0087 (Gliederungs-Nummerierung) aus dem Ideen-Programm 2026-07 (Eintrag 
 
 ## [0.66.0.653] - 2026-07-11 — Erinnerungen
 
-Epic 3E-0095 (Erinnerungen) aus dem Ideen-Programm 2026-07 (Eintrag I-24). Aufgaben-Zeilen tragen einen **Erinnerungs-Marker** `⏰ <Datum> [<Uhrzeit>]` als Melde-Zeitpunkt (abgegrenzt vom Fälligkeits-Termin 📅). Bei laufender App mit geöffnetem Bereich überwacht ein Prüfer alle Bereichs-Dateien und meldet fällige Erinnerungen in einem Dialog mit „Erledigt" und „Später erinnern"; verpasste Fälligkeiten sammelt ein Nachhol-Dialog beim Start. Umgesetzt in vier Umsetzungs-Tasks (4T-0525 bis 4T-0528) plus Hilfe- und Handbuch-Task (4T-0529).
+Epic 3E-000095 (Erinnerungen) aus dem Ideen-Programm 2026-07 (Eintrag I-24). Aufgaben-Zeilen tragen einen **Erinnerungs-Marker** `⏰ <Datum> [<Uhrzeit>]` als Melde-Zeitpunkt (abgegrenzt vom Fälligkeits-Termin 📅). Bei laufender App mit geöffnetem Bereich überwacht ein Prüfer alle Bereichs-Dateien und meldet fällige Erinnerungen in einem Dialog mit „Erledigt" und „Später erinnern"; verpasste Fälligkeiten sammelt ein Nachhol-Dialog beim Start. Umgesetzt in vier Umsetzungs-Tasks (4T-000525 bis 4T-000528) plus Hilfe- und Handbuch-Task (4T-000529).
 
 ### Neu
 
-- **Erinnerungs-Marker** (4T-0525): `⏰ <Datum> [<Uhrzeit>]` als eigener Task-Marker mit verlustfreiem Round-Trip; ohne Uhrzeit-Anteil meldet der Anker zur einstellbaren Standard-Uhrzeit (Standard 09:00). Beim Abschluss einer wiederkehrenden Aufgabe wandert der Marker mit verschobenem Zeitpunkt in die Folge-Instanz. Ein 30-Sekunden-Prüfer im Hauptprozess überwacht den Bereichs-Index (nur bei laufender App mit geöffnetem Bereich).
-- **Benachrichtigungen mit Snooze** (4T-0526): fällige Erinnerungen erscheinen als Dialog mit Beschreibung und Datei-Link. „Erledigt" schaltet die Aufgabe über die Status-Kette weiter; „Später erinnern" verschiebt den Melde-Zeitpunkt (Optionen 10 Minuten, 1 Stunde, 4 Stunden, 1 Tag, 1 Woche oder freie Datums-Wahl) und schreibt ihn direkt in den Marker der Quelldatei. Wegklicken schaltet bis zum App-Neustart stumm. Beim App-Start sammelt ein Nachhol-Dialog alle verpassten Fälligkeiten. Eine zuschaltbare **System-Benachrichtigung** erscheint zusätzlich, wenn das Fenster nicht im Vordergrund steht (erste Nutzung nativer Benachrichtigungen).
-- **Erinnerungs-Liste** (4T-0527): ein Sidebar-Panel (Wecker-Symbol in der Statusleiste, Ansicht → Erinnerungen) bündelt alle Erinnerungen des Bereichs, gruppiert nach Überfällig, Heute, Morgen und Später. Direkt-Aktionen Erledigt und Später pro Eintrag; die Überfällig-Gruppe führt auch stummgeschaltete Erinnerungen und bietet „Erneut auslösen"; ein Klick öffnet die Quelldatei an der Zeile.
-- **Eingabe-Wege und Erweiterung** (4T-0528): Kommando „Erinnerung setzen" (Standard `Strg+Alt+R`, umbelegbar), Auto-Vervollständigungs-Eintrag „Erinnerung…", eine Erinnerungs-Zeile im Aufgaben-Bearbeitungs-Dialog und ein Klick auf den bestehenden ⏰-Wert öffnen jeweils den Datums-Picker. Der Einstellungs-Bereich „Erinnerungen" steuert Standard-Uhrzeit, Snooze-Optionen und System-Benachrichtigung. Erinnerungen sind eine schaltbare Erweiterung mit Abhängigkeit zur Erweiterung „Aufgaben".
+- **Erinnerungs-Marker** (4T-000525): `⏰ <Datum> [<Uhrzeit>]` als eigener Task-Marker mit verlustfreiem Round-Trip; ohne Uhrzeit-Anteil meldet der Anker zur einstellbaren Standard-Uhrzeit (Standard 09:00). Beim Abschluss einer wiederkehrenden Aufgabe wandert der Marker mit verschobenem Zeitpunkt in die Folge-Instanz. Ein 30-Sekunden-Prüfer im Hauptprozess überwacht den Bereichs-Index (nur bei laufender App mit geöffnetem Bereich).
+- **Benachrichtigungen mit Snooze** (4T-000526): fällige Erinnerungen erscheinen als Dialog mit Beschreibung und Datei-Link. „Erledigt" schaltet die Aufgabe über die Status-Kette weiter; „Später erinnern" verschiebt den Melde-Zeitpunkt (Optionen 10 Minuten, 1 Stunde, 4 Stunden, 1 Tag, 1 Woche oder freie Datums-Wahl) und schreibt ihn direkt in den Marker der Quelldatei. Wegklicken schaltet bis zum App-Neustart stumm. Beim App-Start sammelt ein Nachhol-Dialog alle verpassten Fälligkeiten. Eine zuschaltbare **System-Benachrichtigung** erscheint zusätzlich, wenn das Fenster nicht im Vordergrund steht (erste Nutzung nativer Benachrichtigungen).
+- **Erinnerungs-Liste** (4T-000527): ein Sidebar-Panel (Wecker-Symbol in der Statusleiste, Ansicht → Erinnerungen) bündelt alle Erinnerungen des Bereichs, gruppiert nach Überfällig, Heute, Morgen und Später. Direkt-Aktionen Erledigt und Später pro Eintrag; die Überfällig-Gruppe führt auch stummgeschaltete Erinnerungen und bietet „Erneut auslösen"; ein Klick öffnet die Quelldatei an der Zeile.
+- **Eingabe-Wege und Erweiterung** (4T-000528): Kommando „Erinnerung setzen" (Standard `Strg+Alt+R`, umbelegbar), Auto-Vervollständigungs-Eintrag „Erinnerung…", eine Erinnerungs-Zeile im Aufgaben-Bearbeitungs-Dialog und ein Klick auf den bestehenden ⏰-Wert öffnen jeweils den Datums-Picker. Der Einstellungs-Bereich „Erinnerungen" steuert Standard-Uhrzeit, Snooze-Optionen und System-Benachrichtigung. Erinnerungen sind eine schaltbare Erweiterung mit Abhängigkeit zur Erweiterung „Aufgaben".
 
 ### Behoben
 
@@ -3080,7 +3141,7 @@ Epic 3E-0095 (Erinnerungen) aus dem Ideen-Programm 2026-07 (Eintrag I-24). Aufga
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0529): drei neue Funktions-Katalog-Einträge (Erinnerungs-Marker, Benachrichtigungen, Erinnerungs-Liste; Abdeckungs-Matrix F-122 bis F-124) und zwei Kommando-Einträge (S-083, S-084). Neue Handbuch-Seite „Erinnerungen" in allen fünf Sprachfassungen, verlinkt aus der Überblicksseite und der Aufgaben-Seite, mit einem eigenen Abschnitt zur Grenze „nur bei laufender App". Insgesamt rund 60 neue i18n-Keys pro Sprache.
+- **Hilfe-Inhalte erweitert** (4T-000529): drei neue Funktions-Katalog-Einträge (Erinnerungs-Marker, Benachrichtigungen, Erinnerungs-Liste; Abdeckungs-Matrix F-122 bis F-124) und zwei Kommando-Einträge (S-083, S-084). Neue Handbuch-Seite „Erinnerungen" in allen fünf Sprachfassungen, verlinkt aus der Überblicksseite und der Aufgaben-Seite, mit einem eigenen Abschnitt zur Grenze „nur bei laufender App". Insgesamt rund 60 neue i18n-Keys pro Sprache.
 
 ### Intern
 
@@ -3090,42 +3151,42 @@ Epic 3E-0095 (Erinnerungen) aus dem Ideen-Programm 2026-07 (Eintrag I-24). Aufga
 
 ## [0.65.0.646] - 2026-07-11 — Profil-Komplett-Übernahme
 
-Epic 3E-0093 (Profil-Komplett-Übernahme) aus dem Ideen-Programm 2026-07 (Eintrag I-22). Die Eigenschafts-Profile erhalten eine **Komplett-Übernahme**: Alle noch fehlenden Felder eines Profils lassen sich in einem Schritt zu einem Dokument oder Block ergänzen, statt sie einzeln aus dem Vorschlags-Menü zu übernehmen. Umgesetzt in einem Umsetzungs-Task plus Hilfe- und Handbuch-Task (4T-0491, 4T-0492).
+Epic 3E-000093 (Profil-Komplett-Übernahme) aus dem Ideen-Programm 2026-07 (Eintrag I-22). Die Eigenschafts-Profile erhalten eine **Komplett-Übernahme**: Alle noch fehlenden Felder eines Profils lassen sich in einem Schritt zu einem Dokument oder Block ergänzen, statt sie einzeln aus dem Vorschlags-Menü zu übernehmen. Umgesetzt in einem Umsetzungs-Task plus Hilfe- und Handbuch-Task (4T-000491, 4T-000492).
 
 ### Neu
 
-- **Komplett-Übernahme der Profil-Felder** (4T-0491): Das Vorschlags-Menü des Hinzufügen-Knopfes ist nach Profilen gruppiert; ein Klick auf den Profil-Namen ergänzt alle noch fehlenden Felder dieses Profils mit ihrem Vorgabe-Wert, sonst typgerecht leer (Zahl `0`, Wahrheitswert `falsch`, Text, Datum und Liste leer, im Dokument-Frontmatter als reiner Schlüssel `feld:`); vorhandene Werte und die Feld-Reihenfolge bleiben unangetastet, und es entstehen keine Duplikate. Die gesamte Ergänzung ist ein einziger Undo-Schritt. Die Funktion gilt gleichermaßen im Properties-Editor und im Block-Eigenschaften-Panel und entfällt mit der ausgeschalteten Erweiterung „Eigenschafts-Profile".
+- **Komplett-Übernahme der Profil-Felder** (4T-000491): Das Vorschlags-Menü des Hinzufügen-Knopfes ist nach Profilen gruppiert; ein Klick auf den Profil-Namen ergänzt alle noch fehlenden Felder dieses Profils mit ihrem Vorgabe-Wert, sonst typgerecht leer (Zahl `0`, Wahrheitswert `falsch`, Text, Datum und Liste leer, im Dokument-Frontmatter als reiner Schlüssel `feld:`); vorhandene Werte und die Feld-Reihenfolge bleiben unangetastet, und es entstehen keine Duplikate. Die gesamte Ergänzung ist ein einziger Undo-Schritt. Die Funktion gilt gleichermaßen im Properties-Editor und im Block-Eigenschaften-Panel und entfällt mit der ausgeschalteten Erweiterung „Eigenschafts-Profile".
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0492): ein neuer Funktions-Katalog-Eintrag „Komplett-Übernahme der Profil-Felder" (drei Keys, Abdeckungs-Matrix F-121) sowie zwei neue Menü-Labels. Die Handbuch-Seite „Eigenschafts-Profile" erhält den Abschnitt „Komplett-Übernahme aller Felder" in allen fünf Sprachfassungen. Insgesamt fünf neue i18n-Keys pro Sprache (drei Katalog-Keys plus zwei Menü-Labels), 25 neue Übersetzungen über fünf Sprachen.
+- **Hilfe-Inhalte erweitert** (4T-000492): ein neuer Funktions-Katalog-Eintrag „Komplett-Übernahme der Profil-Felder" (drei Keys, Abdeckungs-Matrix F-121) sowie zwei neue Menü-Labels. Die Handbuch-Seite „Eigenschafts-Profile" erhält den Abschnitt „Komplett-Übernahme aller Felder" in allen fünf Sprachfassungen. Insgesamt fünf neue i18n-Keys pro Sprache (drei Katalog-Keys plus zwei Menü-Labels), 25 neue Übersetzungen über fünf Sprachen.
 
 ### Intern
 
 - Erweiterungs-Prüfschritt (im Epic): keine neue Erweiterung; die Funktion ist Teil von „Eigenschafts-Profile" und entfällt im Aus-Zustand mit dem profil-gestützten Vorschlags-Menü. Die Feld-Map-Erzeugung (`buildProfileFillMap`, `profileSuggestGroups`, `emptyValueForType`) liegt prozess-neutral in `property-profiles.js`.
-- Die Mehrfeld-Schreib-API `writeFrontmatter` erhielt einen opt-in-Parameter `emptyStubKeys`, der neu ergänzte Leer-Felder als bare YAML-Schlüssel schreibt (`null` plus `nullStr`), ohne die Leer-Feld-Churn-Vermeidung aus 4T-0069 anzutasten (empirisch verifiziert). Die Dokument-Übernahme setzt die Editor-Änderung als isolierte Undo-Einheit, damit ein Undo nicht über die Ergänzung hinaus zurückläuft.
+- Die Mehrfeld-Schreib-API `writeFrontmatter` erhielt einen opt-in-Parameter `emptyStubKeys`, der neu ergänzte Leer-Felder als bare YAML-Schlüssel schreibt (`null` plus `nullStr`), ohne die Leer-Feld-Churn-Vermeidung aus 4T-000069 anzutasten (empirisch verifiziert). Die Dokument-Übernahme setzt die Editor-Änderung als isolierte Undo-Einheit, damit ein Undo nicht über die Ergänzung hinaus zurückläuft.
 - Neue Test-Substanz: E2E PP-08 (Properties-Editor, ein Undo-Schritt) und PP-09 (Block-Panel, `.mdd`) in `eigenschafts-profile.spec.js`, Unit-Tests für `buildProfileFillMap`, `profileSuggestGroups` und `emptyValueForType` (`property-profiles.test.js`) sowie für den `emptyStubKeys`-Schreibpfad (`markdown-pipeline.test.js`); Abdeckungs-Matrix um F-121 erweitert.
 
 ## [0.64.0.643] - 2026-07-11 — Aufgaben-Abfragen und Komfort
 
-Epic 3E-0096 (Aufgaben-Ausbau Stufe 2: Abfragen und Komfort) aus dem Ideen-Programm 2026-07 (Eintrag I-19), zweite und abschließende Stufe des Aufgaben-Ausbaus. Sie macht Task-Zeilen abfragbar und die Treffer zur Arbeitsfläche: Der neue **`TASKS`-Scope der Perspective-Abfrage** (`LIST TASKS`, `TABLE TASKS`) filtert und sortiert über Task-Felder (Termine, Priorität, Status-Typ, Tags, Dringlichkeit, Abhängigkeiten) mit relativen Datums-Literalen und mehrstufiger **Gruppierung**; aus den Treffern lassen sich Status **umschalten**, Termine **verschieben** und ein **Bearbeitungs-Dialog** öffnen, auch in nicht geöffnete Dateien. Ein **Dringlichkeits-Score** sortiert Task-Listen ohne Handarbeit, eine **Auto-Vervollständigung** auf Task-Zeilen und der Dialog (`Strg+Alt+A`) setzen Marker ohne Symbol-Kenntnis, und **Abhängigkeiten** mit eindeutigen IDs kennzeichnen blockierte Aufgaben. Umgesetzt in sieben Umsetzungs-Tasks plus Hilfe-/Handbuch-Task (4T-0502 bis 4T-0509).
+Epic 3E-000096 (Aufgaben-Ausbau Stufe 2: Abfragen und Komfort) aus dem Ideen-Programm 2026-07 (Eintrag I-19), zweite und abschließende Stufe des Aufgaben-Ausbaus. Sie macht Task-Zeilen abfragbar und die Treffer zur Arbeitsfläche: Der neue **`TASKS`-Scope der Perspective-Abfrage** (`LIST TASKS`, `TABLE TASKS`) filtert und sortiert über Task-Felder (Termine, Priorität, Status-Typ, Tags, Dringlichkeit, Abhängigkeiten) mit relativen Datums-Literalen und mehrstufiger **Gruppierung**; aus den Treffern lassen sich Status **umschalten**, Termine **verschieben** und ein **Bearbeitungs-Dialog** öffnen, auch in nicht geöffnete Dateien. Ein **Dringlichkeits-Score** sortiert Task-Listen ohne Handarbeit, eine **Auto-Vervollständigung** auf Task-Zeilen und der Dialog (`Strg+Alt+A`) setzen Marker ohne Symbol-Kenntnis, und **Abhängigkeiten** mit eindeutigen IDs kennzeichnen blockierte Aufgaben. Umgesetzt in sieben Umsetzungs-Tasks plus Hilfe-/Handbuch-Task (4T-000502 bis 4T-000509).
 
 ### Neu
 
-- **`TASKS`-Scope der Perspective-Abfrage** (4T-0502): Der Ausgabe-Zusatz `TASKS` (`LIST TASKS …`, `TABLE TASKS …`) liefert Task-Zeilen statt Dateien als klickbare Treffer mit modusbewusstem Sprung zur Quell-Zeile. Der Evaluator kennt feste Task-Felder — die sechs Termine (`due`, `scheduled`, `start`, `created`, `done`, `cancelled` mit optionaler Uhrzeit), `happens` (frühestes aus Start/geplant/fällig), `priority` und `priority.rank`, `status` und `status.type`, `description`, `heading`, `tags`, `recurrence`, `id`, `dependson` sowie die Zusatz-Felder `<feld>.set`/`<feld>.invalid` — filter- und sortierbar über die bestehenden Vergleichs- und Booleschen Operatoren. Die `date(…)`-Literale akzeptieren neu die relativen Wörter `tomorrow`, `yesterday` und die Perioden-Grenzen `sow`/`eow`/`som`/`eom`/`soy`/`eoy` (Woche ab Montag; Start-Wörter 00:00, End-Wörter das Tages-Ende), sodass alle Komfort-Datumsfilter als gewöhnliche Vergleiche ausdrückbar sind. Die Treffer aktualisieren sich mit dem Index; im Aus-Zustand der Erweiterung „Aufgaben" meldet der Scope einen lokalisierten Hinweis statt einer stillen Leer-Liste.
-- **Gruppierung und Task-Layout-Optionen** (4T-0503): Die Abfrage-Sprache erhält die Klausel `GROUP BY ausdruck (, ausdruck)*` für mehrstufige, verschachtelte Gruppen-Überschriften (in dieser Stufe für den `TASKS`-Scope aktiv, außerhalb mit lokalisiertem Hinweis). Für Task-Listen steuern `HIDE element` und `SHOW element` die Sichtbarkeit einzelner Marker-Elemente (Termin-Arten, `priority`, `recurrence`, `id`, `dependson`, `tags`, `backlink`, `count`, `urgency`, `edit`, `postpone`), `SHORT` schaltet einen Kurz-Modus (nur Symbole, voller Wert am Tooltip), und ein Treffer-**Zähler** erscheint standardmäßig. Gruppen-Reihenfolge und Ausgabe sind deterministisch und identisch in Render-Pane und Live-Modus.
-- **Rückschreiben aus Abfrage-Treffern** (4T-0504): Jeder Task-Treffer ist Arbeitsfläche. Die **klickbare Status-Box** folgt der konfigurierten Toggling-Kette inklusive Automatik-Daten und Wiederholungs-Instanz; ein **Verschiebe-Menü** setzt den maßgeblichen Termin auf „morgen", „eine Woche später" oder einen frei über den Picker gewählten Tag (überfällige Termine ab heute, sonst ab dem bestehenden Termin, die Uhrzeit bleibt); ein **Bearbeiten-Knopf** öffnet den Dialog auf der Treffer-Zeile. Geschrieben wird zeilen-genau, byte-treu und mit **Konflikt-Schutz** (kein Blind-Schreiben bei verschobener oder verschwundener Zeile), auch in **nicht geöffnete Dateien** über den Main-Prozess; offene Tabs ziehen über den Editor-Zustand nach.
-- **Dringlichkeits-Score und globale Abfrage** (4T-0505): Ein rein funktionaler Score gewichtet Fälligkeit (gleitend nach Überfälligkeit), Priorität, Geplant-heute-Bonus und Start-in-der-Zukunft-Abwertung auf Tages-Basis (Uhrzeit ohne Score-Einfluss). Der `TASKS`-Scope sortiert ohne `SORT` standardmäßig nach Status-Typ, Dringlichkeit, Fälligkeit, Priorität und Pfad; das Feld `urgency` ist filter- und sortierbar und über `SHOW urgency` als Badge einblendbar. Eine **globale Abfrage** (Einstellung im Bereich „Aufgaben") stellt FROM-/WHERE-Anteile implizit jeder `TASKS`-Abfrage voran und unterscheidet im Fehlerfall global von lokal.
-- **Task-Bearbeitungs-Dialog** (4T-0506): Ein Dialog mit Feldern für Beschreibung, Status (aus der `task-states`-Konfiguration), Priorität, Wiederholungs-Regel (nicht-blockierender Validierungs-Hinweis), die drei manuellen Termine (Wert-Anzeige, Wählen-Knopf **ausschließlich über den Picker**, Entfernen-Knopf), die Anzeige der Automatik-Daten und die Abhängigkeits-Felder. Er bearbeitet auf einer Task-Zeile und legt auf einer leeren Zeile an, jede Anwendung ein Undo-Schritt über den verlustfreien Marker-Round-Trip. Zugänge: Registry-Kommando `task.editDialog` mit Standard-Kürzel `Strg+Alt+A` (umbelegbar), das Einfügen-Submenü des Editor-Kontextmenüs und der Bearbeiten-Knopf der Abfrage-Treffer.
-- **Auto-Vervollständigung auf Task-Zeilen** (4T-0507): Eine dritte Vervollständigungs-Quelle (neben Wiki-Links und Tags) schlägt auf Task-Zeilen Termine (öffnen den Picker), Prioritäts-Stufen, Wiederholungs-Vorlagen und Status-Wechsel vor und setzt den Marker in kanonischer Form am Zeilenende in einer Transaktion. **Mindest-Tipplänge** und **Vorschlagszahl** sind als Zahl-Steuerungen im Bereich „Aufgaben" einstellbar; die Quelle ist nur bei aktiven Erweiterungen „Auto-Vervollständigung" und „Aufgaben" aktiv und respektiert den Global Filter.
+- **`TASKS`-Scope der Perspective-Abfrage** (4T-000502): Der Ausgabe-Zusatz `TASKS` (`LIST TASKS …`, `TABLE TASKS …`) liefert Task-Zeilen statt Dateien als klickbare Treffer mit modusbewusstem Sprung zur Quell-Zeile. Der Evaluator kennt feste Task-Felder — die sechs Termine (`due`, `scheduled`, `start`, `created`, `done`, `cancelled` mit optionaler Uhrzeit), `happens` (frühestes aus Start/geplant/fällig), `priority` und `priority.rank`, `status` und `status.type`, `description`, `heading`, `tags`, `recurrence`, `id`, `dependson` sowie die Zusatz-Felder `<feld>.set`/`<feld>.invalid` — filter- und sortierbar über die bestehenden Vergleichs- und Booleschen Operatoren. Die `date(…)`-Literale akzeptieren neu die relativen Wörter `tomorrow`, `yesterday` und die Perioden-Grenzen `sow`/`eow`/`som`/`eom`/`soy`/`eoy` (Woche ab Montag; Start-Wörter 00:00, End-Wörter das Tages-Ende), sodass alle Komfort-Datumsfilter als gewöhnliche Vergleiche ausdrückbar sind. Die Treffer aktualisieren sich mit dem Index; im Aus-Zustand der Erweiterung „Aufgaben" meldet der Scope einen lokalisierten Hinweis statt einer stillen Leer-Liste.
+- **Gruppierung und Task-Layout-Optionen** (4T-000503): Die Abfrage-Sprache erhält die Klausel `GROUP BY ausdruck (, ausdruck)*` für mehrstufige, verschachtelte Gruppen-Überschriften (in dieser Stufe für den `TASKS`-Scope aktiv, außerhalb mit lokalisiertem Hinweis). Für Task-Listen steuern `HIDE element` und `SHOW element` die Sichtbarkeit einzelner Marker-Elemente (Termin-Arten, `priority`, `recurrence`, `id`, `dependson`, `tags`, `backlink`, `count`, `urgency`, `edit`, `postpone`), `SHORT` schaltet einen Kurz-Modus (nur Symbole, voller Wert am Tooltip), und ein Treffer-**Zähler** erscheint standardmäßig. Gruppen-Reihenfolge und Ausgabe sind deterministisch und identisch in Render-Pane und Live-Modus.
+- **Rückschreiben aus Abfrage-Treffern** (4T-000504): Jeder Task-Treffer ist Arbeitsfläche. Die **klickbare Status-Box** folgt der konfigurierten Toggling-Kette inklusive Automatik-Daten und Wiederholungs-Instanz; ein **Verschiebe-Menü** setzt den maßgeblichen Termin auf „morgen", „eine Woche später" oder einen frei über den Picker gewählten Tag (überfällige Termine ab heute, sonst ab dem bestehenden Termin, die Uhrzeit bleibt); ein **Bearbeiten-Knopf** öffnet den Dialog auf der Treffer-Zeile. Geschrieben wird zeilen-genau, byte-treu und mit **Konflikt-Schutz** (kein Blind-Schreiben bei verschobener oder verschwundener Zeile), auch in **nicht geöffnete Dateien** über den Main-Prozess; offene Tabs ziehen über den Editor-Zustand nach.
+- **Dringlichkeits-Score und globale Abfrage** (4T-000505): Ein rein funktionaler Score gewichtet Fälligkeit (gleitend nach Überfälligkeit), Priorität, Geplant-heute-Bonus und Start-in-der-Zukunft-Abwertung auf Tages-Basis (Uhrzeit ohne Score-Einfluss). Der `TASKS`-Scope sortiert ohne `SORT` standardmäßig nach Status-Typ, Dringlichkeit, Fälligkeit, Priorität und Pfad; das Feld `urgency` ist filter- und sortierbar und über `SHOW urgency` als Badge einblendbar. Eine **globale Abfrage** (Einstellung im Bereich „Aufgaben") stellt FROM-/WHERE-Anteile implizit jeder `TASKS`-Abfrage voran und unterscheidet im Fehlerfall global von lokal.
+- **Task-Bearbeitungs-Dialog** (4T-000506): Ein Dialog mit Feldern für Beschreibung, Status (aus der `task-states`-Konfiguration), Priorität, Wiederholungs-Regel (nicht-blockierender Validierungs-Hinweis), die drei manuellen Termine (Wert-Anzeige, Wählen-Knopf **ausschließlich über den Picker**, Entfernen-Knopf), die Anzeige der Automatik-Daten und die Abhängigkeits-Felder. Er bearbeitet auf einer Task-Zeile und legt auf einer leeren Zeile an, jede Anwendung ein Undo-Schritt über den verlustfreien Marker-Round-Trip. Zugänge: Registry-Kommando `task.editDialog` mit Standard-Kürzel `Strg+Alt+A` (umbelegbar), das Einfügen-Submenü des Editor-Kontextmenüs und der Bearbeiten-Knopf der Abfrage-Treffer.
+- **Auto-Vervollständigung auf Task-Zeilen** (4T-000507): Eine dritte Vervollständigungs-Quelle (neben Wiki-Links und Tags) schlägt auf Task-Zeilen Termine (öffnen den Picker), Prioritäts-Stufen, Wiederholungs-Vorlagen und Status-Wechsel vor und setzt den Marker in kanonischer Form am Zeilenende in einer Transaktion. **Mindest-Tipplänge** und **Vorschlagszahl** sind als Zahl-Steuerungen im Bereich „Aufgaben" einstellbar; die Quelle ist nur bei aktiven Erweiterungen „Auto-Vervollständigung" und „Aufgaben" aktiv und respektiert den Global Filter.
 
 ### Geändert
 
-- **Abhängigkeiten mit IDs und Blockiert-Filtern** (4T-0508): Die ID- und Vorgänger-Marker (🆔/⛔), die bislang nur tolerant gelesen und erhalten wurden, tragen jetzt Semantik. IDs werden auf Wunsch automatisch vergeben, mit **Eindeutigkeits-Prüfung** über den Bereich; eine Aufgabe gilt als blockiert, wenn sie mindestens einen offenen Vorgänger hat. Der `TASKS`-Scope kennt die Felder `blocked`, `blocking`, `id.set` („hat ID") und `id.duplicate` (Vergleich als String, etwa `WHERE blocked = "true"`), und die Treffer-Darstellung kennzeichnet blockierte Aufgaben und mehrfach vergebene IDs dezent mit Badge und Tooltip. Der Bearbeitungs-Dialog erhält Felder für **Vorgänger** und **Nachfolger** mit Task-Suche über den Bereich; ein Nachfolger-Eintrag schreibt den Vorgänger-Marker auf die Ziel-Zeile.
+- **Abhängigkeiten mit IDs und Blockiert-Filtern** (4T-000508): Die ID- und Vorgänger-Marker (🆔/⛔), die bislang nur tolerant gelesen und erhalten wurden, tragen jetzt Semantik. IDs werden auf Wunsch automatisch vergeben, mit **Eindeutigkeits-Prüfung** über den Bereich; eine Aufgabe gilt als blockiert, wenn sie mindestens einen offenen Vorgänger hat. Der `TASKS`-Scope kennt die Felder `blocked`, `blocking`, `id.set` („hat ID") und `id.duplicate` (Vergleich als String, etwa `WHERE blocked = "true"`), und die Treffer-Darstellung kennzeichnet blockierte Aufgaben und mehrfach vergebene IDs dezent mit Badge und Tooltip. Der Bearbeitungs-Dialog erhält Felder für **Vorgänger** und **Nachfolger** mit Task-Suche über den Bereich; ein Nachfolger-Eintrag schreibt den Vorgänger-Marker auf die Ziel-Zeile.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0509): sechs neue Funktions-Katalog-Einträge „Task-Abfragen", „Aktionen in Task-Treffern", „Task-Bearbeitungs-Dialog", „Auto-Vervollständigung für Aufgaben", „Task-Abhängigkeiten" und „Dringlichkeits-Score" (je drei Keys, Abdeckungs-Matrix F-115 bis F-120) sowie die Kürzel-Beschreibung des Dialog-Kommandos (S-082, bereits mit 4T-0506 angelegt). Die Handbuch-Seite „Perspective-Abfrage" erhält den Abschnitt „Task-Ebene (`TASKS`)" (Scope, Task-Feld-Tabelle, relative Datums-Literale, Default-Sortierung, `GROUP BY`, `HIDE`/`SHOW`/`SHORT`, globale Abfrage), die Seite „Aufgaben-Listen" vier neue Abschnitte (Bearbeitungs-Dialog, Auto-Vervollständigung, Task-Abfragen und Rückschreiben, Dringlichkeits-Score) plus die auf die volle Abhängigkeits-Semantik umgeschriebene Beschreibung, jeweils in allen fünf Sprachfassungen. Insgesamt 72 neue i18n-Keys pro Sprache (54 aus den Umsetzungs-Tasks plus 18 Katalog-Keys), 360 neue Übersetzungen über fünf Sprachen.
+- **Hilfe-Inhalte erweitert** (4T-000509): sechs neue Funktions-Katalog-Einträge „Task-Abfragen", „Aktionen in Task-Treffern", „Task-Bearbeitungs-Dialog", „Auto-Vervollständigung für Aufgaben", „Task-Abhängigkeiten" und „Dringlichkeits-Score" (je drei Keys, Abdeckungs-Matrix F-115 bis F-120) sowie die Kürzel-Beschreibung des Dialog-Kommandos (S-082, bereits mit 4T-000506 angelegt). Die Handbuch-Seite „Perspective-Abfrage" erhält den Abschnitt „Task-Ebene (`TASKS`)" (Scope, Task-Feld-Tabelle, relative Datums-Literale, Default-Sortierung, `GROUP BY`, `HIDE`/`SHOW`/`SHORT`, globale Abfrage), die Seite „Aufgaben-Listen" vier neue Abschnitte (Bearbeitungs-Dialog, Auto-Vervollständigung, Task-Abfragen und Rückschreiben, Dringlichkeits-Score) plus die auf die volle Abhängigkeits-Semantik umgeschriebene Beschreibung, jeweils in allen fünf Sprachfassungen. Insgesamt 72 neue i18n-Keys pro Sprache (54 aus den Umsetzungs-Tasks plus 18 Katalog-Keys), 360 neue Übersetzungen über fünf Sprachen.
 
 ### Intern
 
@@ -3135,17 +3196,17 @@ Epic 3E-0096 (Aufgaben-Ausbau Stufe 2: Abfragen und Komfort) aus dem Ideen-Progr
 
 ## [0.63.0.630] - 2026-07-10 — Datums- und Uhrzeit-Eingabe
 
-Epic 3E-0091 (Datums- und Uhrzeit-Eingabe) aus dem Ideen-Programm 2026-07 (Eintrag I-20). Ein cursor-verankertes **Picker-Popup** fügt Datum und Uhrzeit über eine Kalender-Monatsansicht und eine daneben liegende Uhrzeit-Eingabe ein; Datum und Uhrzeit sind einzeln zuschaltbar, drei Registry-Kommandos mit umbelegbaren Standard-Kürzeln decken die Kombination sowie die Nur-Datum- und Nur-Uhrzeit-Variante ab. Im Editor (Quelltext- und Live-Modus) sind eingefügte oder von Hand getippte Werte in den drei Formaten **klickbar** und öffnen den Picker mit vorbelegtem Wert. Der Umfang ist als interne Erweiterung „Datums- und Uhrzeit-Eingabe" schaltbar. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0486 bis 4T-0489).
+Epic 3E-000091 (Datums- und Uhrzeit-Eingabe) aus dem Ideen-Programm 2026-07 (Eintrag I-20). Ein cursor-verankertes **Picker-Popup** fügt Datum und Uhrzeit über eine Kalender-Monatsansicht und eine daneben liegende Uhrzeit-Eingabe ein; Datum und Uhrzeit sind einzeln zuschaltbar, drei Registry-Kommandos mit umbelegbaren Standard-Kürzeln decken die Kombination sowie die Nur-Datum- und Nur-Uhrzeit-Variante ab. Im Editor (Quelltext- und Live-Modus) sind eingefügte oder von Hand getippte Werte in den drei Formaten **klickbar** und öffnen den Picker mit vorbelegtem Wert. Der Umfang ist als interne Erweiterung „Datums- und Uhrzeit-Eingabe" schaltbar. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000486 bis 4T-000489).
 
 ### Neu
 
-- **Datums-/Uhrzeit-Picker und Einfüge-Kommandos** (4T-0486): neues Renderer-Modul (`src/renderer/modules/date-picker.js`) öffnet ein an der Cursor-Position verankertes Popup mit Kalender-Monatsansicht (Montag-Start, ISO-Kalenderwochen-Spalte, Heute-Knopf, Monats-Navigation) und einer digitalen Uhrzeit-Steuerung: vier einzeln einstellbare Stellen (Stunden und Minuten je Zehner und Einer), bedienbar per Klick auf die Stelle, Pfeil-Buttons bzw. Pfeiltasten mit Umlauf und Ziffern-Direkteingabe mit Weiterrücken, dazu ein Jetzt-Knopf; ungültige Uhrzeiten sind konstruktionsbedingt nicht eingebbar. Datum und Uhrzeit sind einzeln zuschaltbar, mindestens ein Teil bleibt aktiv. Volle Tastatur-Bedienung: Pfeile ±1 Tag/±1 Woche, Bild-auf/ab ±Monat, Enter übernimmt, Esc bricht ab, ein Klick außerhalb verwirft. Drei Registry-Kommandos mit umbelegbaren Standard-Kürzeln (`Strg+Alt+T` Datum und Uhrzeit, `Strg+Alt+D` nur Datum, `Strg+Alt+U` nur Uhrzeit) fügen an der Cursor-Position ein, auch im Notiz-Feld, in den Formaten `2026-07-10`, `14:30` und `2026-07-10 14:30` (identisch mit den Termin-Markern der Aufgaben-Listen). Zusätzlicher Schreib-Trigger: zwei Backslashes (`\\`) im Editor öffnen den kombinierten Picker (Übernehmen ersetzt sie, Esc lässt sie stehen); kein Trigger in Code, Formeln oder Frontmatter.
-- **Klickbare Datums-Werte im Editor** (4T-0487): Werte in den drei Formaten werden im Editor (Quelltext- und Live-Modus, im Edit-Modus) dezent gepunktet unterstrichen; ein Klick öffnet den Picker mit Wert und Schaltern vorbelegt, das Übernehmen ersetzt exakt den Wert an Ort und Stelle in einem einzigen Undo-Schritt. Auch von Hand getippte format-gleiche Werte sind klickbar. Nicht klickbar: Code, Formeln, Frontmatter, die aktive Cursor-Zeile, Wiki-Link-Ziele und die Termin-Marker-Badges der Aufgaben-Listen; in read-only Ansichten gibt es keine Dekoration.
+- **Datums-/Uhrzeit-Picker und Einfüge-Kommandos** (4T-000486): neues Renderer-Modul (`src/renderer/modules/date-picker.js`) öffnet ein an der Cursor-Position verankertes Popup mit Kalender-Monatsansicht (Montag-Start, ISO-Kalenderwochen-Spalte, Heute-Knopf, Monats-Navigation) und einer digitalen Uhrzeit-Steuerung: vier einzeln einstellbare Stellen (Stunden und Minuten je Zehner und Einer), bedienbar per Klick auf die Stelle, Pfeil-Buttons bzw. Pfeiltasten mit Umlauf und Ziffern-Direkteingabe mit Weiterrücken, dazu ein Jetzt-Knopf; ungültige Uhrzeiten sind konstruktionsbedingt nicht eingebbar. Datum und Uhrzeit sind einzeln zuschaltbar, mindestens ein Teil bleibt aktiv. Volle Tastatur-Bedienung: Pfeile ±1 Tag/±1 Woche, Bild-auf/ab ±Monat, Enter übernimmt, Esc bricht ab, ein Klick außerhalb verwirft. Drei Registry-Kommandos mit umbelegbaren Standard-Kürzeln (`Strg+Alt+T` Datum und Uhrzeit, `Strg+Alt+D` nur Datum, `Strg+Alt+U` nur Uhrzeit) fügen an der Cursor-Position ein, auch im Notiz-Feld, in den Formaten `2026-07-10`, `14:30` und `2026-07-10 14:30` (identisch mit den Termin-Markern der Aufgaben-Listen). Zusätzlicher Schreib-Trigger: zwei Backslashes (`\\`) im Editor öffnen den kombinierten Picker (Übernehmen ersetzt sie, Esc lässt sie stehen); kein Trigger in Code, Formeln oder Frontmatter.
+- **Klickbare Datums-Werte im Editor** (4T-000487): Werte in den drei Formaten werden im Editor (Quelltext- und Live-Modus, im Edit-Modus) dezent gepunktet unterstrichen; ein Klick öffnet den Picker mit Wert und Schaltern vorbelegt, das Übernehmen ersetzt exakt den Wert an Ort und Stelle in einem einzigen Undo-Schritt. Auch von Hand getippte format-gleiche Werte sind klickbar. Nicht klickbar: Code, Formeln, Frontmatter, die aktive Cursor-Zeile, Wiki-Link-Ziele und die Termin-Marker-Badges der Aufgaben-Listen; in read-only Ansichten gibt es keine Dekoration.
 - **Erweiterung „Datums- und Uhrzeit-Eingabe"**: neue interne Erweiterung (`date-picker`, Kategorie Werkzeuge). Im Aus-Zustand entfallen Kommandos, Schreib-Trigger und Klick-Dekoration; die Werte bleiben normaler Text.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0488): neuer Funktions-Katalog-Eintrag „Datums- und Uhrzeit-Eingabe" (Gruppe Bearbeiten, Abdeckungs-Matrix F-114) samt drei Shortcut-Beschreibungen; die Handbuch-Seite „Werkzeuge" erhält den Abschnitt „Datums- und Uhrzeit-Eingabe". Insgesamt 14 neue i18n-Keys pro Sprache (70 neue Übersetzungen über fünf Sprachen).
+- **Hilfe-Inhalte erweitert** (4T-000488): neuer Funktions-Katalog-Eintrag „Datums- und Uhrzeit-Eingabe" (Gruppe Bearbeiten, Abdeckungs-Matrix F-114) samt drei Shortcut-Beschreibungen; die Handbuch-Seite „Werkzeuge" erhält den Abschnitt „Datums- und Uhrzeit-Eingabe". Insgesamt 14 neue i18n-Keys pro Sprache (70 neue Übersetzungen über fünf Sprachen).
 
 ### Intern
 
@@ -3154,21 +3215,21 @@ Epic 3E-0091 (Datums- und Uhrzeit-Eingabe) aus dem Ideen-Programm 2026-07 (Eintr
 
 ## [0.62.0.623] - 2026-07-10 — Task-Fundament
 
-Epic 3E-0090 (Aufgaben-Ausbau Stufe 1: Task-Fundament) aus dem Ideen-Programm 2026-07 (Eintrag I-19). Erste von zwei Stufen des Aufgaben-Ausbaus: Task-Zeilen tragen **Symbol-Marker am Zeilenende** für Termine, Priorität und Wiederholung, die erweiterten Task-Status erhalten **Typ und Folge-Symbol** mit Ketten-Klick, und die neue interne Erweiterung **„Aufgaben"** bündelt Marker-Darstellung, Automatik-Daten, Wiederholung beim Abschluss und einen Global Filter. Der Datei-Bestand im Marker-Format funktioniert ohne Konvertierung, der Round-Trip ist verlustfrei. PO-Entscheidungen aus dem Konzept-Workshop vom 2026-07-10 (Querschnitte A bis D): Symbol-Marker als eigenes Format mit optionaler Uhrzeit-Erweiterung, neue Erweiterung „Aufgaben" plus Status-Typen-Ausbau in `task-states`, nur der Übergang auf einen Erledigt-Typ setzt das Erledigt-Datum und löst die Wiederholung aus, Zwei-Stufen-Staffelung (die Abfrage- und Komfort-Stufe folgt im Epic 3E-0096). Umgesetzt in vier Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0496 bis 4T-0501).
+Epic 3E-000090 (Aufgaben-Ausbau Stufe 1: Task-Fundament) aus dem Ideen-Programm 2026-07 (Eintrag I-19). Erste von zwei Stufen des Aufgaben-Ausbaus: Task-Zeilen tragen **Symbol-Marker am Zeilenende** für Termine, Priorität und Wiederholung, die erweiterten Task-Status erhalten **Typ und Folge-Symbol** mit Ketten-Klick, und die neue interne Erweiterung **„Aufgaben"** bündelt Marker-Darstellung, Automatik-Daten, Wiederholung beim Abschluss und einen Global Filter. Der Datei-Bestand im Marker-Format funktioniert ohne Konvertierung, der Round-Trip ist verlustfrei. PO-Entscheidungen aus dem Konzept-Workshop vom 2026-07-10 (Querschnitte A bis D): Symbol-Marker als eigenes Format mit optionaler Uhrzeit-Erweiterung, neue Erweiterung „Aufgaben" plus Status-Typen-Ausbau in `task-states`, nur der Übergang auf einen Erledigt-Typ setzt das Erledigt-Datum und löst die Wiederholung aus, Zwei-Stufen-Staffelung (die Abfrage- und Komfort-Stufe folgt im Epic 3E-000096). Umgesetzt in vier Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000496 bis 4T-000501).
 
 ### Neu
 
-- **Task-Marker-Kern** (4T-0496): neues prozess-neutrales Shared-Modul parst und serialisiert die Symbol-Marker am Zeilenende von Checkbox-Zeilen: Termine (fällig 📅, geplant ⏳, Start 🛫; automatisch erstellt ➕, erledigt ✅, abgebrochen ❌) mit festem Datum `JJJJ-MM-TT` und optionaler Uhrzeit `HH:mm` (eigene Format-Erweiterung), sechs Prioritäts-Stufen (🔺⏫🔼🔽⏬, „normal" ohne Marker) und eine Wiederholungs-Regel hinter 🔁. Der Round-Trip ist verlustfrei: Marker-Reihenfolge, Symbol-Varianten und unbekannte Marker bleiben byte-identisch erhalten, ID- und Abhängigkeits-Marker (🆔/⛔) werden gelesen und erhalten (ihre Funktion folgt in Stufe 2), ungültige Datums-Werte bleiben stehen und werden markiert.
-- **Erweiterung „Aufgaben"** (4T-0498): neue interne Erweiterung (`tasks`, Kategorie Werkzeuge) mit eigenem Einstellungs-Bereich. Die Marker erscheinen in Render-Pane, Live-Modus und Portable-Export als Badges (überfällige Fälligkeit rot, ungültige Werte durchgestrichen). Ein **Global Filter** entscheidet über einen konfigurierbaren Filter-Text, welche Checkbox-Zeilen als Aufgaben gelten (leer = alle), optional wird der Filter-Text in den Anzeigen ausgeblendet. Drei einzeln schaltbare **Automatik-Daten** schreiben das Erledigt- bzw. Abgebrochen-Datum beim Statuswechsel (und entfernen es auf dem Rückweg) sowie das Erstellt-Datum beim Aufgabenlisten-Kommando. Die Einfüge-Position der Wiederholungs-Instanz ist einstellbar. Im Aus-Zustand bleiben alle Marker reiner Text.
-- **Wiederholung beim Abschluss** (4T-0499): Der Abschluss einer wiederkehrenden Aufgabe erzeugt die nächste Instanz. Die Regel hinter 🔁 kennt die Formen every day, every N days, every weekday, every week (mit Wochentags-Liste), every month (am Tag N oder am Letzten) und every year, dazu den Zusatz when done (Rechnung ab dem Abschluss statt dem Soll-Termin). Rechen-Basis ist fällig vor geplant vor Start; die relativen Abstände mehrerer Datumsfelder bleiben erhalten, Uhrzeiten wandern mit, Monats- und Jahres-Zyklen ohne den Ziel-Tag werden übersprungen. Die neue Instanz entsteht oberhalb (Standard) oder unterhalb der erledigten Zeile, in einer Undo-Transaktion mit dem Status-Wechsel.
+- **Task-Marker-Kern** (4T-000496): neues prozess-neutrales Shared-Modul parst und serialisiert die Symbol-Marker am Zeilenende von Checkbox-Zeilen: Termine (fällig 📅, geplant ⏳, Start 🛫; automatisch erstellt ➕, erledigt ✅, abgebrochen ❌) mit festem Datum `JJJJ-MM-TT` und optionaler Uhrzeit `HH:mm` (eigene Format-Erweiterung), sechs Prioritäts-Stufen (🔺⏫🔼🔽⏬, „normal" ohne Marker) und eine Wiederholungs-Regel hinter 🔁. Der Round-Trip ist verlustfrei: Marker-Reihenfolge, Symbol-Varianten und unbekannte Marker bleiben byte-identisch erhalten, ID- und Abhängigkeits-Marker (🆔/⛔) werden gelesen und erhalten (ihre Funktion folgt in Stufe 2), ungültige Datums-Werte bleiben stehen und werden markiert.
+- **Erweiterung „Aufgaben"** (4T-000498): neue interne Erweiterung (`tasks`, Kategorie Werkzeuge) mit eigenem Einstellungs-Bereich. Die Marker erscheinen in Render-Pane, Live-Modus und Portable-Export als Badges (überfällige Fälligkeit rot, ungültige Werte durchgestrichen). Ein **Global Filter** entscheidet über einen konfigurierbaren Filter-Text, welche Checkbox-Zeilen als Aufgaben gelten (leer = alle), optional wird der Filter-Text in den Anzeigen ausgeblendet. Drei einzeln schaltbare **Automatik-Daten** schreiben das Erledigt- bzw. Abgebrochen-Datum beim Statuswechsel (und entfernen es auf dem Rückweg) sowie das Erstellt-Datum beim Aufgabenlisten-Kommando. Die Einfüge-Position der Wiederholungs-Instanz ist einstellbar. Im Aus-Zustand bleiben alle Marker reiner Text.
+- **Wiederholung beim Abschluss** (4T-000499): Der Abschluss einer wiederkehrenden Aufgabe erzeugt die nächste Instanz. Die Regel hinter 🔁 kennt die Formen every day, every N days, every weekday, every week (mit Wochentags-Liste), every month (am Tag N oder am Letzten) und every year, dazu den Zusatz when done (Rechnung ab dem Abschluss statt dem Soll-Termin). Rechen-Basis ist fällig vor geplant vor Start; die relativen Abstände mehrerer Datumsfelder bleiben erhalten, Uhrzeiten wandern mit, Monats- und Jahres-Zyklen ohne den Ziel-Tag werden übersprungen. Die neue Instanz entsteht oberhalb (Standard) oder unterhalb der erledigten Zeile, in einer Undo-Transaktion mit dem Status-Wechsel.
 
 ### Geändert
 
-- **Status-Typen und Toggling-Kette** (4T-0497): Jeder Task-Status trägt jetzt einen Typ (Offen, In Arbeit, Wartend, Erledigt, Abgebrochen, Keine Aufgabe) und ein Folge-Symbol. Der Klick auf eine Status-Box folgt jetzt der konfigurierten Kette, statt hart auf `[x]` abzuschließen; die Basis-Zustände `[ ]` und `[x]` bleiben als feste Umschaltung erhalten. Nur der Übergang auf den Typ Erledigt setzt das Erledigt-Datum und löst die Wiederholung aus. Der Einstellungs-Bereich warnt vor doppelt belegten Zeichen. Bestands-Konfigurationen verhalten sich unverändert (Migration mit Folge-Symbol `x`); ohne eigene Ketten-Konfiguration bleibt das bisherige Verhalten (Klick schließt ab) erhalten.
+- **Status-Typen und Toggling-Kette** (4T-000497): Jeder Task-Status trägt jetzt einen Typ (Offen, In Arbeit, Wartend, Erledigt, Abgebrochen, Keine Aufgabe) und ein Folge-Symbol. Der Klick auf eine Status-Box folgt jetzt der konfigurierten Kette, statt hart auf `[x]` abzuschließen; die Basis-Zustände `[ ]` und `[x]` bleiben als feste Umschaltung erhalten. Nur der Übergang auf den Typ Erledigt setzt das Erledigt-Datum und löst die Wiederholung aus. Der Einstellungs-Bereich warnt vor doppelt belegten Zeichen. Bestands-Konfigurationen verhalten sich unverändert (Migration mit Folge-Symbol `x`); ohne eigene Ketten-Konfiguration bleibt das bisherige Verhalten (Klick schließt ab) erhalten.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0500): zwei neue Funktions-Katalog-Einträge „Task-Marker" und „Global Filter" (je drei Keys, Abdeckungs-Matrix), der bestehende Katalog-Text der erweiterten Task-Status auf die neue Ketten-Semantik aktualisiert. Die Handbuch-Seite „Aufgaben-Listen" ist in allen fünf Sprachfassungen umfassend erweitert (Marker-Syntax selbst-demonstrierend, Typ und Folge-Symbol, Wiederholungs-Regeln, Automatik-Daten, Global Filter, ID und Abhängigkeiten). Insgesamt 41 neue i18n-Keys pro Sprache (Marker-Namen, Prioritäts-Stufen, Status-Typen, Einstellungs-Bereich, Erweiterungs-Bündel und Katalog), 205 neue Übersetzungen über fünf Sprachen; ein bestehender Katalog-Key (erweiterte Task-Status) inhaltlich angepasst.
+- **Hilfe-Inhalte erweitert** (4T-000500): zwei neue Funktions-Katalog-Einträge „Task-Marker" und „Global Filter" (je drei Keys, Abdeckungs-Matrix), der bestehende Katalog-Text der erweiterten Task-Status auf die neue Ketten-Semantik aktualisiert. Die Handbuch-Seite „Aufgaben-Listen" ist in allen fünf Sprachfassungen umfassend erweitert (Marker-Syntax selbst-demonstrierend, Typ und Folge-Symbol, Wiederholungs-Regeln, Automatik-Daten, Global Filter, ID und Abhängigkeiten). Insgesamt 41 neue i18n-Keys pro Sprache (Marker-Namen, Prioritäts-Stufen, Status-Typen, Einstellungs-Bereich, Erweiterungs-Bündel und Katalog), 205 neue Übersetzungen über fünf Sprachen; ein bestehender Katalog-Key (erweiterte Task-Status) inhaltlich angepasst.
 
 ### Intern
 
@@ -3178,11 +3239,11 @@ Epic 3E-0090 (Aufgaben-Ausbau Stufe 1: Task-Fundament) aus dem Ideen-Programm 20
 
 ## [0.61.0.616] - 2026-07-10 — Linter-Hinweis auf unpaarige `%%`-Kommentar-Marker
 
-Nachauslieferungs-Task 4T-0533 im Epic 3E-0089 (Komfort-Bündel). Anlass war der Doku-Befund nach dem `%%`-Kommentar-Release 0.60.0 (4T-0532): Ein unpaarig öffnendes `%%` wirkt bis zum Dokument-Ende und blendet den restlichen Text still aus jeder Ansicht und jedem Export aus, ohne bisher im Editor sichtbar zu sein. Der Linter erhält deshalb eine siebte Regel, die genau dieses öffnende `%%` markiert.
+Nachauslieferungs-Task 4T-000533 im Epic 3E-000089 (Komfort-Bündel). Anlass war der Doku-Befund nach dem `%%`-Kommentar-Release 0.60.0 (4T-000532): Ein unpaarig öffnendes `%%` wirkt bis zum Dokument-Ende und blendet den restlichen Text still aus jeder Ansicht und jedem Export aus, ohne bisher im Editor sichtbar zu sein. Der Linter erhält deshalb eine siebte Regel, die genau dieses öffnende `%%` markiert.
 
 ### Neu
 
-- **Linter-Regel „Unpaariger Kommentar-Marker"** (4T-0533): Die siebte Linter-Regel markiert das öffnende `%%` eines Kommentars, der bis zum Dokument-Ende nicht wieder geschlossen wird, mit einer dezenten Wellenlinie im Editor; der Hover-Tooltip erklärt, dass der Text bis zum Dokument-Ende in keiner Ansicht und keinem Export erscheint, und nennt die beiden Auswege (Kommentar mit `%%` schließen oder den Marker als `\%%` escapen). Die Regel greift nur bei aktiver Kommentar-Erweiterung; die Bereichs-Ermittlung nutzt den gemeinsamen Kommentar-Scanner (kein zweiter Parser).
+- **Linter-Regel „Unpaariger Kommentar-Marker"** (4T-000533): Die siebte Linter-Regel markiert das öffnende `%%` eines Kommentars, der bis zum Dokument-Ende nicht wieder geschlossen wird, mit einer dezenten Wellenlinie im Editor; der Hover-Tooltip erklärt, dass der Text bis zum Dokument-Ende in keiner Ansicht und keinem Export erscheint, und nennt die beiden Auswege (Kommentar mit `%%` schließen oder den Marker als `\%%` escapen). Die Regel greift nur bei aktiver Kommentar-Erweiterung; die Bereichs-Ermittlung nutzt den gemeinsamen Kommentar-Scanner (kein zweiter Parser).
 
 ### i18n und Handbuch
 
@@ -3190,16 +3251,16 @@ Nachauslieferungs-Task 4T-0533 im Epic 3E-0089 (Komfort-Bündel). Anlass war der
 
 ## [0.60.0.613] - 2026-07-10 — Komfort-Bündel: `%%`-Kommentare und Kommando-Palette
 
-Epic 3E-0089 (Komfort-Bündel) aus dem Ideen-Programm 2026-07 (Einträge I-10 und I-11). Zwei Komfort-Funktionen als gemeinsames Release: **`%%`-Kommentare** blenden privaten Text aus jeder gerenderten Ansicht und jedem Export aus, ohne ihn aus dem Quelltext zu entfernen; die **Kommando-Palette** öffnet ein filterbares Popup aller Registry-Kommandos für den schnellen Zugriff per Tastatur. Festlegungen: Kommentare sind an keiner Ausgabe beteiligt (alle Ansichten, alle Exporte; PO-Bestätigung vom 2026-07-08) und als interne Erweiterung `comments` schaltbar; die Palette ist Kern (Erweiterungs-Prüfschritt vom 2026-07-10) und setzt auf der bestehenden Kommando-Registry auf (keine zweite Kommando-Liste). Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0479 bis 4T-0482).
+Epic 3E-000089 (Komfort-Bündel) aus dem Ideen-Programm 2026-07 (Einträge I-10 und I-11). Zwei Komfort-Funktionen als gemeinsames Release: **`%%`-Kommentare** blenden privaten Text aus jeder gerenderten Ansicht und jedem Export aus, ohne ihn aus dem Quelltext zu entfernen; die **Kommando-Palette** öffnet ein filterbares Popup aller Registry-Kommandos für den schnellen Zugriff per Tastatur. Festlegungen: Kommentare sind an keiner Ausgabe beteiligt (alle Ansichten, alle Exporte; PO-Bestätigung vom 2026-07-08) und als interne Erweiterung `comments` schaltbar; die Palette ist Kern (Erweiterungs-Prüfschritt vom 2026-07-10) und setzt auf der bestehenden Kommando-Registry auf (keine zweite Kommando-Liste). Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000479 bis 4T-000482).
 
 ### Neu
 
-- **`%%`-Kommentare** (4T-0479): Text zwischen `%%`-Markern ist ein privater Kommentar. Er bleibt im Quelltext erhalten, erscheint aber in keiner gerenderten Ansicht (Gerendert, Live, Reading, PDF) und keinem Portable-Export. Kommentare wirken innerhalb einer Zeile und über mehrere Zeilen; in Code-Blöcken und Code-Spans bleibt `%%` gewöhnlicher Text, `\%%` schreibt ein wörtliches `%%`, ein unpaarig öffnendes `%%` wirkt bis zum Dokument-Ende. Die Entfernung ist zeilentreu, sodass die Scroll-Synchronisation korrekt bleibt. Der Editor färbt Kommentar-Bereiche dezent ein (Quelltext- und Live-Modus); im Live-Modus sind Kommentare auf inaktiven Zeilen ausgeblendet, ein vollständig auskommentierter Block (etwa eine Tabelle) wird nicht als Widget gerendert.
-- **Kommando-Palette** (4T-0480): neues Registry-Kommando „Kommando-Palette" (Standard `Strg+K`, umbelegbar; Menü Ansicht → Kommando-Palette) öffnet ein filterbares Popup aller Kommandos. Ein Teilstring-Filter über die lokalisierten Namen grenzt die Liste ein, Pfeiltasten navigieren, Enter oder Klick führt aus, Esc schließt. Die Liste zeigt die belegten Kürzel inklusive eigener Umbelegungen; im aktuellen Kontext nicht verfügbare Kommandos erscheinen gedimmt, Kommandos abgeschalteter Erweiterungen erscheinen gar nicht. Die Filter-Logik liegt als wiederverwendbares Shared-Modul vor.
+- **`%%`-Kommentare** (4T-000479): Text zwischen `%%`-Markern ist ein privater Kommentar. Er bleibt im Quelltext erhalten, erscheint aber in keiner gerenderten Ansicht (Gerendert, Live, Reading, PDF) und keinem Portable-Export. Kommentare wirken innerhalb einer Zeile und über mehrere Zeilen; in Code-Blöcken und Code-Spans bleibt `%%` gewöhnlicher Text, `\%%` schreibt ein wörtliches `%%`, ein unpaarig öffnendes `%%` wirkt bis zum Dokument-Ende. Die Entfernung ist zeilentreu, sodass die Scroll-Synchronisation korrekt bleibt. Der Editor färbt Kommentar-Bereiche dezent ein (Quelltext- und Live-Modus); im Live-Modus sind Kommentare auf inaktiven Zeilen ausgeblendet, ein vollständig auskommentierter Block (etwa eine Tabelle) wird nicht als Widget gerendert.
+- **Kommando-Palette** (4T-000480): neues Registry-Kommando „Kommando-Palette" (Standard `Strg+K`, umbelegbar; Menü Ansicht → Kommando-Palette) öffnet ein filterbares Popup aller Kommandos. Ein Teilstring-Filter über die lokalisierten Namen grenzt die Liste ein, Pfeiltasten navigieren, Enter oder Klick führt aus, Esc schließt. Die Liste zeigt die belegten Kürzel inklusive eigener Umbelegungen; im aktuellen Kontext nicht verfügbare Kommandos erscheinen gedimmt, Kommandos abgeschalteter Erweiterungen erscheinen gar nicht. Die Filter-Logik liegt als wiederverwendbares Shared-Modul vor.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0481): neuer Funktions-Katalog-Eintrag „Kommentare" (Abdeckungs-Matrix F-111), 3 Katalog-Keys pro Sprache; die Kommando-Palette bringt 5 weitere i18n-Keys pro Sprache (Menü-Eintrag, Popup-Titel, Filter-Platzhalter, Leer-Hinweis, Kürzel-Beschreibung). Insgesamt 40 neue Übersetzungen (8 Keys × 5 Sprachen). Das Handbuch erhält das Kapitel „Kommentare" auf der Seite „Inline-Konstrukte" und das Kapitel „Kommando-Palette" auf der Seite „Werkzeuge" (Intro von fünf auf sechs Helfer erweitert), jeweils in allen fünf Sprachfassungen.
+- **Hilfe-Inhalte erweitert** (4T-000481): neuer Funktions-Katalog-Eintrag „Kommentare" (Abdeckungs-Matrix F-111), 3 Katalog-Keys pro Sprache; die Kommando-Palette bringt 5 weitere i18n-Keys pro Sprache (Menü-Eintrag, Popup-Titel, Filter-Platzhalter, Leer-Hinweis, Kürzel-Beschreibung). Insgesamt 40 neue Übersetzungen (8 Keys × 5 Sprachen). Das Handbuch erhält das Kapitel „Kommentare" auf der Seite „Inline-Konstrukte" und das Kapitel „Kommando-Palette" auf der Seite „Werkzeuge" (Intro von fünf auf sechs Helfer erweitert), jeweils in allen fünf Sprachfassungen.
 
 ### Intern
 
@@ -3209,41 +3270,41 @@ Epic 3E-0089 (Komfort-Bündel) aus dem Ideen-Programm 2026-07 (Einträge I-10 un
 
 ## [0.59.0.609] - 2026-07-10 — Fix- und Konsistenz-Bündel: Blanks in Links, Panel-Höhen und Undo-Härtung
 
-Epic 3E-0088 (Fix- und Konsistenz-Bündel) aus dem Ideen-Programm 2026-07 (Einträge I-15, I-05 und I-18 sowie ein Undo-Befund aus der Datentabellen-Umsetzung). Vier kleine PO-Anliegen als gemeinsames Release: Der Datei-Menüpunkt „Zuletzt" heißt jetzt „Zuletzt geöffnete Dateien"; Markdown- und Bild-Links akzeptieren Dateinamen mit Leerzeichen über die CommonMark-Schreibweise in spitzen Klammern; die gestapelten Sidebar-Panels erhalten manuell einstellbare Höhen über einen Zieh-Griff zwischen den Sektionen, und Lesezeichen sowie Inhaltsverzeichnis tauschen ihre Standard-Reihenfolge; ein Undo nach einem Checkbox- oder Status-Box-Klick im Gerenderten nimmt genau diesen Toggle zurück statt das Dokument zu leeren. PO-Entscheidungen vom 2026-07-10: Die Panel-Bestandsaufnahme widerlegte die vermutete vertikale Zentrierung (alle Panels stehen oben-bündig), daher Zieh-Griffe für die Panel-Höhen statt einer festen CSS-Vereinheitlichung; alle vier Anliegen sind Kern und nicht als Erweiterung schaltbar, weil ein Aus-Zustand jeweils dem Fehler-Zustand vor der Korrektur entspräche. Umgesetzt in fünf Umsetzungs-Tasks (4T-0474 bis 4T-0476, 4T-0484 und 4T-0531) plus Hilfe-/Handbuch-Task und Sammeltask (4T-0477 und 4T-0478).
+Epic 3E-000088 (Fix- und Konsistenz-Bündel) aus dem Ideen-Programm 2026-07 (Einträge I-15, I-05 und I-18 sowie ein Undo-Befund aus der Datentabellen-Umsetzung). Vier kleine PO-Anliegen als gemeinsames Release: Der Datei-Menüpunkt „Zuletzt" heißt jetzt „Zuletzt geöffnete Dateien"; Markdown- und Bild-Links akzeptieren Dateinamen mit Leerzeichen über die CommonMark-Schreibweise in spitzen Klammern; die gestapelten Sidebar-Panels erhalten manuell einstellbare Höhen über einen Zieh-Griff zwischen den Sektionen, und Lesezeichen sowie Inhaltsverzeichnis tauschen ihre Standard-Reihenfolge; ein Undo nach einem Checkbox- oder Status-Box-Klick im Gerenderten nimmt genau diesen Toggle zurück statt das Dokument zu leeren. PO-Entscheidungen vom 2026-07-10: Die Panel-Bestandsaufnahme widerlegte die vermutete vertikale Zentrierung (alle Panels stehen oben-bündig), daher Zieh-Griffe für die Panel-Höhen statt einer festen CSS-Vereinheitlichung; alle vier Anliegen sind Kern und nicht als Erweiterung schaltbar, weil ein Aus-Zustand jeweils dem Fehler-Zustand vor der Korrektur entspräche. Umgesetzt in fünf Umsetzungs-Tasks (4T-000474 bis 4T-000476, 4T-000484 und 4T-000531) plus Hilfe-/Handbuch-Task und Sammeltask (4T-000477 und 4T-000478).
 
 ### Neu
 
-- **Manuell einstellbare Panel-Höhen** (4T-0475): Zwischen zwei gestapelten Sidebar-Panels liegt ein horizontaler Zieh-Griff; die Höhe des darüberliegenden Panels ist per Maus einstellbar und wird analog zur Sidebar-Breite persistiert, ein Doppelklick auf den Griff stellt die automatische Höhe wieder her. Das bisherige Layout bleibt Default bis zum ersten Ziehen. Grundlage war die Panel-Bestandsaufnahme mit Hardcopys für den PO: Sie widerlegte die vermutete vertikale Zentrierung (alle Panels oben-bündig); die reale Uneinheitlichkeit waren zwei Höhen-Klassen (Listen-Panels wachsen auf die volle Resthöhe, die übrigen stehen mit natürlicher Höhe).
-- **Leerzeichen in Dateinamen bei Markdown- und Bild-Links** (4T-0476): Markdown- und Bild-Links akzeptieren das Ziel zusätzlich zur `%20`-Kodierung in der CommonMark-Schreibweise mit spitzen Klammern (`[Text](<Meine Notiz.md>)`, `![Alt](<Bild 01.png>)`). Damit erfassen jetzt auch der Backlinks-Index, das Outgoing-Links-Panel, der Bereichs-Linter und das Link-Update beim Umbenennen solche Ziele. Wiki-Links trugen Leerzeichen schon immer nativ.
+- **Manuell einstellbare Panel-Höhen** (4T-000475): Zwischen zwei gestapelten Sidebar-Panels liegt ein horizontaler Zieh-Griff; die Höhe des darüberliegenden Panels ist per Maus einstellbar und wird analog zur Sidebar-Breite persistiert, ein Doppelklick auf den Griff stellt die automatische Höhe wieder her. Das bisherige Layout bleibt Default bis zum ersten Ziehen. Grundlage war die Panel-Bestandsaufnahme mit Hardcopys für den PO: Sie widerlegte die vermutete vertikale Zentrierung (alle Panels oben-bündig); die reale Uneinheitlichkeit waren zwei Höhen-Klassen (Listen-Panels wachsen auf die volle Resthöhe, die übrigen stehen mit natürlicher Höhe).
+- **Leerzeichen in Dateinamen bei Markdown- und Bild-Links** (4T-000476): Markdown- und Bild-Links akzeptieren das Ziel zusätzlich zur `%20`-Kodierung in der CommonMark-Schreibweise mit spitzen Klammern (`[Text](<Meine Notiz.md>)`, `![Alt](<Bild 01.png>)`). Damit erfassen jetzt auch der Backlinks-Index, das Outgoing-Links-Panel, der Bereichs-Linter und das Link-Update beim Umbenennen solche Ziele. Wiki-Links trugen Leerzeichen schon immer nativ.
 
 ### Geändert
 
-- **Menüpunkt „Zuletzt geöffnete Dateien"** (4T-0474): Der Datei-Menüpunkt „Zuletzt" ist in „Zuletzt geöffnete Dateien" umbenannt (englisch „Recent Files", entsprechend in Französisch, Spanisch und Italienisch); der Zugangs-Text im Funktions-Katalog ist nachgezogen.
-- **Standard-Reihenfolge von Lesezeichen und Inhaltsverzeichnis getauscht** (4T-0475): Im Default steht Lesezeichen jetzt vorn, das Inhaltsverzeichnis rückt an die frühere Lesezeichen-Position. Bestehende, selbst angepasste Sidebar-Layouts bleiben unverändert; nur die Werks-Anordnung ändert sich.
+- **Menüpunkt „Zuletzt geöffnete Dateien"** (4T-000474): Der Datei-Menüpunkt „Zuletzt" ist in „Zuletzt geöffnete Dateien" umbenannt (englisch „Recent Files", entsprechend in Französisch, Spanisch und Italienisch); der Zugangs-Text im Funktions-Katalog ist nachgezogen.
+- **Standard-Reihenfolge von Lesezeichen und Inhaltsverzeichnis getauscht** (4T-000475): Im Default steht Lesezeichen jetzt vorn, das Inhaltsverzeichnis rückt an die frühere Lesezeichen-Position. Bestehende, selbst angepasste Sidebar-Layouts bleiben unverändert; nur die Werks-Anordnung ändert sich.
 
 ### Behoben
 
-- **Klick auf `<…>`-Link im Live-Modus** (4T-0476): Ein Klick auf einen Markdown-Link in spitze-Klammern-Schreibweise lief im Live-Modus ins Leere; er öffnet jetzt das Ziel. Das Link-Update beim Umbenennen erzeugt für neue Namen mit Leerzeichen automatisch die `<…>`-Form, bereits `%`-kodierte Ziele behalten ihre Schreibweise.
-- **Undo nach Checkbox- oder Status-Box-Klick** (4T-0484): Ein `Strg+Z` direkt nach einem Checkbox- oder Status-Box-Klick im Gerenderten leerte das gesamte Dokument, weil die Toggle-Änderung in der Editor-Historie mit dem initialen Setzen des Dokument-Inhalts verschmolz; jetzt nimmt das Undo genau den Toggle zurück. Dieselbe Härtung gilt für den Task-Toggle im Live-Modus, „Anker anlegen" und das Anker-Umbenennen im Block-Eigenschaften-Panel sowie Suchen-Ersetzen; Regressionstest 4t-0484 mit drei Fällen.
-- **Panel-Sichtbarkeit beim Start** (4T-0531): Ein als sichtbar gespeichertes Kalender-, Block-Eigenschaften-, Datei-Graph-, Bereichs- oder Unterseiten-Panel blieb nach dem App-Start verborgen, bis sein Schalter einmal betätigt wurde. Die Wiederherstellung wendet die Sichtbarkeit jetzt generisch über die Panel-Registry an; künftige Panels sind automatisch abgedeckt (PO-Auftrag aus der Test-Iteration, Nebenbefund der Panel-Bestandsaufnahme).
+- **Klick auf `<…>`-Link im Live-Modus** (4T-000476): Ein Klick auf einen Markdown-Link in spitze-Klammern-Schreibweise lief im Live-Modus ins Leere; er öffnet jetzt das Ziel. Das Link-Update beim Umbenennen erzeugt für neue Namen mit Leerzeichen automatisch die `<…>`-Form, bereits `%`-kodierte Ziele behalten ihre Schreibweise.
+- **Undo nach Checkbox- oder Status-Box-Klick** (4T-000484): Ein `Strg+Z` direkt nach einem Checkbox- oder Status-Box-Klick im Gerenderten leerte das gesamte Dokument, weil die Toggle-Änderung in der Editor-Historie mit dem initialen Setzen des Dokument-Inhalts verschmolz; jetzt nimmt das Undo genau den Toggle zurück. Dieselbe Härtung gilt für den Task-Toggle im Live-Modus, „Anker anlegen" und das Anker-Umbenennen im Block-Eigenschaften-Panel sowie Suchen-Ersetzen; Regressionstest 4t-0484 mit drei Fällen.
+- **Panel-Sichtbarkeit beim Start** (4T-000531): Ein als sichtbar gespeichertes Kalender-, Block-Eigenschaften-, Datei-Graph-, Bereichs- oder Unterseiten-Panel blieb nach dem App-Start verborgen, bis sein Schalter einmal betätigt wurde. Die Wiederherstellung wendet die Sichtbarkeit jetzt generisch über die Panel-Registry an; künftige Panels sind automatisch abgedeckt (PO-Auftrag aus der Test-Iteration, Nebenbefund der Panel-Bestandsaufnahme).
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0477): neuer Funktions-Katalog-Eintrag „Panel-Höhen" (Abdeckungs-Matrix F-110), 3 neue i18n-Keys pro Sprache; der Katalog-Eintrag „Links" nennt zusätzlich die Leerzeichen-Schreibweisen, und der Menü-Text ändert bestehende Werte in fünf Sprachen. Die Handbuch-Seite „Verlinkung" erhält den Abschnitt „Dateinamen mit Leerzeichen", die Seite „Sidebar" den Abschnitt „Panel-Höhen" samt der auf elf Panels und die neue Reihenfolge aktualisierten Panel-Aufzählung, jeweils in allen fünf Sprachfassungen.
+- **Hilfe-Inhalte erweitert** (4T-000477): neuer Funktions-Katalog-Eintrag „Panel-Höhen" (Abdeckungs-Matrix F-110), 3 neue i18n-Keys pro Sprache; der Katalog-Eintrag „Links" nennt zusätzlich die Leerzeichen-Schreibweisen, und der Menü-Text ändert bestehende Werte in fünf Sprachen. Die Handbuch-Seite „Verlinkung" erhält den Abschnitt „Dateinamen mit Leerzeichen", die Seite „Sidebar" den Abschnitt „Panel-Höhen" samt der auf elf Panels und die neue Reihenfolge aktualisierten Panel-Aufzählung, jeweils in allen fünf Sprachfassungen.
 
 ## [0.58.0.600] - 2026-07-10 — Tab-Gruppen: benannte, farbige Gruppen im Tab-Streifen
 
-Epic 3E-0085 (Tab-Gruppen) aus dem Ideen-Programm 2026-07. Tabs lassen sich wie im Browser zu **benannten, farbigen Gruppen** zusammenfassen: Die Mitglieder stehen zusammenhängend hinter einem farbigen Gruppen-Kopf im Tab-Streifen, ihre Reiter tragen eine Unterstreichung in der Gruppen-Farbe; ein Klick auf den Kopf klappt die Gruppe zu und auf. Die Verwaltung läuft über Tab- und Kopf-Kontextmenü sowie die bestehende Tab-Zieh-Mechanik; Name, Farbe, Mitglieder und Klapp-Zustand überleben die Sitzungs-Wiederherstellung. PO-Entscheidungen vom 2026-07-08: Browser-Muster als Leitbild, feste Acht-Farben-Palette (theme-abgestimmt, keine freie Farbwahl in v1), Gruppen als Anzeige-Struktur des Tab-Streifens (das Tab-Modell bleibt führend). Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0459 bis 4T-0463).
+Epic 3E-000085 (Tab-Gruppen) aus dem Ideen-Programm 2026-07. Tabs lassen sich wie im Browser zu **benannten, farbigen Gruppen** zusammenfassen: Die Mitglieder stehen zusammenhängend hinter einem farbigen Gruppen-Kopf im Tab-Streifen, ihre Reiter tragen eine Unterstreichung in der Gruppen-Farbe; ein Klick auf den Kopf klappt die Gruppe zu und auf. Die Verwaltung läuft über Tab- und Kopf-Kontextmenü sowie die bestehende Tab-Zieh-Mechanik; Name, Farbe, Mitglieder und Klapp-Zustand überleben die Sitzungs-Wiederherstellung. PO-Entscheidungen vom 2026-07-08: Browser-Muster als Leitbild, feste Acht-Farben-Palette (theme-abgestimmt, keine freie Farbwahl in v1), Gruppen als Anzeige-Struktur des Tab-Streifens (das Tab-Modell bleibt führend). Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000459 bis 4T-000463).
 
 ### Neu
 
-- **Gruppen-Modell und Sitzungs-Persistenz** (4T-0459): Gruppen-Datenmodell je Tab-Leiste (Name, Farbe aus der Acht-Farben-Palette, Mitglieder über eine Gruppen-Kennung am Tab, Klapp-Zustand) mit reinen, unit-getesteten Invarianten-Helfern: Mitglieder liegen immer zusammenhängend, leere Gruppen entfallen, Tab-Operationen (schließen, verschieben, neu, Leisten-Wechsel) erhalten die Invarianten. Die Sitzung speichert Gruppen additiv und stellt sie beim Start wieder her; ältere Sitzungs-Stände ohne Gruppen laden unverändert.
-- **Tab-Streifen-UI mit Klappen und Ziehen** (4T-0460): Gruppen-Kopf mit Name auf Farbfläche vor dem ersten Mitglied, farbige Unterstreichung der Mitglieder-Reiter (der aktive Reiter übernimmt die Gruppen-Farbe), zugeklappt bleibt nur der Kopf mit Mitglieder-Zahl sichtbar. Kanten-Fälle bewusst festgelegt: Beim Zuklappen wechselt ein betroffener aktiver Tab zum nächsten sichtbaren Tab (gibt es keinen, bleibt die Gruppe offen); das Aktivieren eines verborgenen Mitglieds — etwa beim Datei-Öffnen — klappt die Gruppe auf; nach dem Schließen des letzten sichtbaren Tabs wird notfalls ein Tab einer zugeklappten Gruppe aktiviert und die Gruppe geöffnet. Ziehen mit Gruppen-Semantik: Ablegen strikt im Block-Inneren oder auf dem Kopf = Beitritt, Herausziehen aus dem Block = Austritt, die eigene Gruppe hält ihren Tab auch an den Block-Rändern; das Ziehen des Kopfs verschiebt die ganze Gruppe, fremde Blöcke werden nie gespalten. Die Palette ist auf helles und dunkles Theme abgestimmt (Light kräftig, Dark pastellig).
-- **Kontextmenü-Verwaltung mit Namens- und Farb-Dialog** (4T-0461): Tab-Kontextmenü mit „Neue Gruppe mit diesem Tab", „Zu Gruppe hinzufügen" (Untermenü der Gruppen der Leiste) und „Aus Gruppe entfernen"; Kopf-Kontextmenü mit „Umbenennen und Farbe…", „Gruppe auflösen" (Tabs bleiben offen) und „Gruppe schließen" (alle Mitglieder mit den üblichen Speichern-Dialogen; ein Abbruch stoppt den Vorgang). Der Neue-Gruppe-Fluss legt die Gruppe mit Standard-Name („Gruppe n") und nächster freier Palette-Farbe an und öffnet direkt den Dialog mit Namens-Feld und Acht-Farben-Auswahl.
+- **Gruppen-Modell und Sitzungs-Persistenz** (4T-000459): Gruppen-Datenmodell je Tab-Leiste (Name, Farbe aus der Acht-Farben-Palette, Mitglieder über eine Gruppen-Kennung am Tab, Klapp-Zustand) mit reinen, unit-getesteten Invarianten-Helfern: Mitglieder liegen immer zusammenhängend, leere Gruppen entfallen, Tab-Operationen (schließen, verschieben, neu, Leisten-Wechsel) erhalten die Invarianten. Die Sitzung speichert Gruppen additiv und stellt sie beim Start wieder her; ältere Sitzungs-Stände ohne Gruppen laden unverändert.
+- **Tab-Streifen-UI mit Klappen und Ziehen** (4T-000460): Gruppen-Kopf mit Name auf Farbfläche vor dem ersten Mitglied, farbige Unterstreichung der Mitglieder-Reiter (der aktive Reiter übernimmt die Gruppen-Farbe), zugeklappt bleibt nur der Kopf mit Mitglieder-Zahl sichtbar. Kanten-Fälle bewusst festgelegt: Beim Zuklappen wechselt ein betroffener aktiver Tab zum nächsten sichtbaren Tab (gibt es keinen, bleibt die Gruppe offen); das Aktivieren eines verborgenen Mitglieds — etwa beim Datei-Öffnen — klappt die Gruppe auf; nach dem Schließen des letzten sichtbaren Tabs wird notfalls ein Tab einer zugeklappten Gruppe aktiviert und die Gruppe geöffnet. Ziehen mit Gruppen-Semantik: Ablegen strikt im Block-Inneren oder auf dem Kopf = Beitritt, Herausziehen aus dem Block = Austritt, die eigene Gruppe hält ihren Tab auch an den Block-Rändern; das Ziehen des Kopfs verschiebt die ganze Gruppe, fremde Blöcke werden nie gespalten. Die Palette ist auf helles und dunkles Theme abgestimmt (Light kräftig, Dark pastellig).
+- **Kontextmenü-Verwaltung mit Namens- und Farb-Dialog** (4T-000461): Tab-Kontextmenü mit „Neue Gruppe mit diesem Tab", „Zu Gruppe hinzufügen" (Untermenü der Gruppen der Leiste) und „Aus Gruppe entfernen"; Kopf-Kontextmenü mit „Umbenennen und Farbe…", „Gruppe auflösen" (Tabs bleiben offen) und „Gruppe schließen" (alle Mitglieder mit den üblichen Speichern-Dialogen; ein Abbruch stoppt den Vorgang). Der Neue-Gruppe-Fluss legt die Gruppe mit Standard-Name („Gruppe n") und nächster freier Palette-Farbe an und öffnet direkt den Dialog mit Namens-Feld und Acht-Farben-Auswahl.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0462): neuer Funktions-Katalog-Eintrag „Tab-Gruppen" (Abdeckungs-Matrix F-109); die Handbuch-Seite „Applikationen, Fenster und Bereiche" erhält in allen fünf Sprachfassungen den Abschnitt „Tab-Gruppen" (Anlegen, Befüllen per Menü und Ziehen, Klappen, Verwalten, Leisten-Bindung, Sitzungs-Verhalten, Abschaltbarkeit). Insgesamt 23 neue i18n-Keys pro Sprache über das Epic (Menü-Einträge, Dialog, Farb-Namen, Kopf-Tooltip, Katalog).
+- **Hilfe-Inhalte erweitert** (4T-000462): neuer Funktions-Katalog-Eintrag „Tab-Gruppen" (Abdeckungs-Matrix F-109); die Handbuch-Seite „Applikationen, Fenster und Bereiche" erhält in allen fünf Sprachfassungen den Abschnitt „Tab-Gruppen" (Anlegen, Befüllen per Menü und Ziehen, Klappen, Verwalten, Leisten-Bindung, Sitzungs-Verhalten, Abschaltbarkeit). Insgesamt 23 neue i18n-Keys pro Sprache über das Epic (Menü-Einträge, Dialog, Farb-Namen, Kopf-Tooltip, Katalog).
 
 ### Intern
 
@@ -3253,22 +3314,22 @@ Epic 3E-0085 (Tab-Gruppen) aus dem Ideen-Programm 2026-07. Tabs lassen sich wie 
 
 ## [0.57.0.591] - 2026-07-10 — Graphenansicht: Link-Graph als Bereichs-Tab und Datei-Panel
 
-Epic 3E-0084 (Graphenansicht) aus dem Ideen-Programm 2026-07. Die Link-Beziehungen der Markdown-Dateien werden als **interaktiver Graph** sichtbar: jede Datei ein Knoten, jeder Link eine gerichtete Kante mit Pfeil vom verlinkenden zum verlinkten Dokument, beidseitige Verlinkung als Doppel-Pfeil. Zwei Formen auf demselben Kern und Renderer: der **Bereichs-Graph** als eigener read-only Tab über alle Dateien des Bereichs und der **Datei-Graph** als Sidebar-Panel für das Umfeld der aktiven Datei mit Tiefe 1 bis 5. PO-Entscheidungen vom 2026-07-08: zweigeteilter Ort (Tab plus Panel), Eigenbau ohne neue Dependency (SVG plus iteratives Kraft-Layout mit deterministischem Start), nur Markdown-Dateien als Knoten, Datenbasis ist der bestehende Bereichs-Link-Index. Umgesetzt in vier Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0453 bis 4T-0458).
+Epic 3E-000084 (Graphenansicht) aus dem Ideen-Programm 2026-07. Die Link-Beziehungen der Markdown-Dateien werden als **interaktiver Graph** sichtbar: jede Datei ein Knoten, jeder Link eine gerichtete Kante mit Pfeil vom verlinkenden zum verlinkten Dokument, beidseitige Verlinkung als Doppel-Pfeil. Zwei Formen auf demselben Kern und Renderer: der **Bereichs-Graph** als eigener read-only Tab über alle Dateien des Bereichs und der **Datei-Graph** als Sidebar-Panel für das Umfeld der aktiven Datei mit Tiefe 1 bis 5. PO-Entscheidungen vom 2026-07-08: zweigeteilter Ort (Tab plus Panel), Eigenbau ohne neue Dependency (SVG plus iteratives Kraft-Layout mit deterministischem Start), nur Markdown-Dateien als Knoten, Datenbasis ist der bestehende Bereichs-Link-Index. Umgesetzt in vier Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000453 bis 4T-000458).
 
 ### Neu
 
-- **Graph-Kern** (4T-0453): prozessneutrales Shared-Modul mit Knoten-/Kanten-Modell aus dem Link-Index (Dedup, Doppel-Pfeil-Verschmelzung gegenläufiger Link-Paare), Tiefen-Expansion per Breitensuche (Tiefe 1 bis 5, Richtungen eingehend/ausgehend/beide, zyklenfest, induzierter Teilgraph) und deterministischem Kraft-Layout: Start-Positionen aus einem Hash der Datei-Pfade statt Zufall, gleicher Graph sieht reproduzierbar gleich aus; beim Aktualisieren starten Bestands-Knoten an ihrer bisherigen Position (inkrementelles Nachfedern), die Abstoßung läuft über ein räumliches Gitter statt O(n²). Daten liefert der neue IPC-Endpunkt `graph:edges` aus dem Link-Graph-Cache des Bereichs-Index.
-- **Graph-Renderer mit Interaktion** (4T-0454): SVG-Komponente mit Knoten (Kreis plus Titel-Label), gerichteten Kanten mit Pfeilspitzen und Doppel-Pfeilen, Theme-konformen Farben (hell/dunkel) und hervorgehobener aktiver Datei. Zoom über das Mausrad um den Zeiger, Verschieben der Fläche, Knoten einzeln ziehbar (Position bleibt für die Sitzungs-Dauer, auch über Aktualisierungen), Hover hebt Knoten samt direkten Nachbarn und beteiligten Kanten hervor (Rest gedimmt), Klick öffnet die Datei bzw. springt zum offenen Tab; Tooltip mit Pfad bei Namens-Duplikaten. Ober-Grenze: ab 1500 Knoten rendert der Graph die am stärksten vernetzten plus lokalisierten Hinweis.
-- **Bereichs-Graph als Tab** (4T-0455): read-only System-Seite mit Titel „Graph: <Bereichs-Name>", ein Tab pro Fenster (erneutes Öffnen aktiviert den bestehenden). Steuerleiste mit Richtungs-Filter, Datei-Zähler und Neu-Anordnen-Knopf. Der Richtungs-Filter wirkt relativ zur aktiven Datei des Fensters: „Eingehend"/„Ausgehend" zeigen den von dort in beliebiger Tiefe erreichbaren Teilgraph; ohne aktive Datei bleibt der volle Graph mit Hinweis. Zugang über Ansicht → Bereichs-Graph (Registry-Kommando, Kürzel belegbar; ohne Bereich deaktiviert) und über das neue Kontextmenü des Bereichs-Panels. Index-Änderungen laden debounced nach, bestehende Knoten behalten ihre Position.
-- **Datei-Graph als Sidebar-Panel** (4T-0456): zwölftes Sidebar-Panel (links/rechts andockbar, Reiter-Gruppen-fähig) mit Tiefe 1 bis 5 und Richtungs-Filter im Panel-Kopf (Sitzungs-Zustand je Spalte). Das Panel folgt der aktiven Datei beim Tab-Wechsel; Dateien ohne Link-Beziehungen zeigen den Einzel-Knoten mit Hinweis; außerhalb eines Bereichs arbeitet das Panel über den Best-Effort-Suchraum der Ordner-Wurzel mit dezentem Hinweis. Zugang über Ansicht → Datei-Graph (Registry-Kommando, Kürzel belegbar).
+- **Graph-Kern** (4T-000453): prozessneutrales Shared-Modul mit Knoten-/Kanten-Modell aus dem Link-Index (Dedup, Doppel-Pfeil-Verschmelzung gegenläufiger Link-Paare), Tiefen-Expansion per Breitensuche (Tiefe 1 bis 5, Richtungen eingehend/ausgehend/beide, zyklenfest, induzierter Teilgraph) und deterministischem Kraft-Layout: Start-Positionen aus einem Hash der Datei-Pfade statt Zufall, gleicher Graph sieht reproduzierbar gleich aus; beim Aktualisieren starten Bestands-Knoten an ihrer bisherigen Position (inkrementelles Nachfedern), die Abstoßung läuft über ein räumliches Gitter statt O(n²). Daten liefert der neue IPC-Endpunkt `graph:edges` aus dem Link-Graph-Cache des Bereichs-Index.
+- **Graph-Renderer mit Interaktion** (4T-000454): SVG-Komponente mit Knoten (Kreis plus Titel-Label), gerichteten Kanten mit Pfeilspitzen und Doppel-Pfeilen, Theme-konformen Farben (hell/dunkel) und hervorgehobener aktiver Datei. Zoom über das Mausrad um den Zeiger, Verschieben der Fläche, Knoten einzeln ziehbar (Position bleibt für die Sitzungs-Dauer, auch über Aktualisierungen), Hover hebt Knoten samt direkten Nachbarn und beteiligten Kanten hervor (Rest gedimmt), Klick öffnet die Datei bzw. springt zum offenen Tab; Tooltip mit Pfad bei Namens-Duplikaten. Ober-Grenze: ab 1500 Knoten rendert der Graph die am stärksten vernetzten plus lokalisierten Hinweis.
+- **Bereichs-Graph als Tab** (4T-000455): read-only System-Seite mit Titel „Graph: <Bereichs-Name>", ein Tab pro Fenster (erneutes Öffnen aktiviert den bestehenden). Steuerleiste mit Richtungs-Filter, Datei-Zähler und Neu-Anordnen-Knopf. Der Richtungs-Filter wirkt relativ zur aktiven Datei des Fensters: „Eingehend"/„Ausgehend" zeigen den von dort in beliebiger Tiefe erreichbaren Teilgraph; ohne aktive Datei bleibt der volle Graph mit Hinweis. Zugang über Ansicht → Bereichs-Graph (Registry-Kommando, Kürzel belegbar; ohne Bereich deaktiviert) und über das neue Kontextmenü des Bereichs-Panels. Index-Änderungen laden debounced nach, bestehende Knoten behalten ihre Position.
+- **Datei-Graph als Sidebar-Panel** (4T-000456): zwölftes Sidebar-Panel (links/rechts andockbar, Reiter-Gruppen-fähig) mit Tiefe 1 bis 5 und Richtungs-Filter im Panel-Kopf (Sitzungs-Zustand je Spalte). Das Panel folgt der aktiven Datei beim Tab-Wechsel; Dateien ohne Link-Beziehungen zeigen den Einzel-Knoten mit Hinweis; außerhalb eines Bereichs arbeitet das Panel über den Best-Effort-Suchraum der Ordner-Wurzel mit dezentem Hinweis. Zugang über Ansicht → Datei-Graph (Registry-Kommando, Kürzel belegbar).
 
 ### Behoben
 
-- **Tab-Wechsel zwischen zwei System-Seiten** (PO-Befund der Release-Test-Iteration, unter 4T-0455): Teilten sich zwei System-Tabs eine Spalte (z.B. Bereichs-Graph und Einstellungen), zeigte der Tab-Wechsel die jeweils andere Seite weiter an — der Mount-Guard der System-Seiten prüfte den geteilten Container nicht auf Besitz. Bestands-Problem, das erst mit der zweiten koexistierenden System-Seite sichtbar wurde (Einstellungen und Historie waren gemeinsam ebenso betroffen); mit Regressionstest.
+- **Tab-Wechsel zwischen zwei System-Seiten** (PO-Befund der Release-Test-Iteration, unter 4T-000455): Teilten sich zwei System-Tabs eine Spalte (z.B. Bereichs-Graph und Einstellungen), zeigte der Tab-Wechsel die jeweils andere Seite weiter an — der Mount-Guard der System-Seiten prüfte den geteilten Container nicht auf Besitz. Bestands-Problem, das erst mit der zweiten koexistierenden System-Seite sichtbar wurde (Einstellungen und Historie waren gemeinsam ebenso betroffen); mit Regressionstest.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0457): zwei neue Funktions-Katalog-Einträge „Bereichs-Graph" und „Datei-Graph" (Abdeckungs-Matrix F-107/F-108, Kürzel-Einträge S-076/S-077); neue Handbuch-Seite „Graphenansicht" (beide Formen, Bedienung mit Zoom/Pan/Ziehen, Pfeil-Semantik inklusive Doppel-Pfeil, Tiefe und Richtung, Grenzen) in allen fünf Sprachfassungen; Überblicks-Links ergänzt. Insgesamt 30 neue i18n-Keys pro Sprache über das Epic (Menü, Steuerleisten, Hinweise, Katalog, Erweiterung, Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000457): zwei neue Funktions-Katalog-Einträge „Bereichs-Graph" und „Datei-Graph" (Abdeckungs-Matrix F-107/F-108, Kürzel-Einträge S-076/S-077); neue Handbuch-Seite „Graphenansicht" (beide Formen, Bedienung mit Zoom/Pan/Ziehen, Pfeil-Semantik inklusive Doppel-Pfeil, Tiefe und Richtung, Grenzen) in allen fünf Sprachfassungen; Überblicks-Links ergänzt. Insgesamt 30 neue i18n-Keys pro Sprache über das Epic (Menü, Steuerleisten, Hinweise, Katalog, Erweiterung, Seiten-Titel).
 
 ### Intern
 
@@ -3279,23 +3340,23 @@ Epic 3E-0084 (Graphenansicht) aus dem Ideen-Programm 2026-07. Die Link-Beziehung
 
 ## [0.56.0.582] - 2026-07-09 — Eigenschafts-Profile: zentrale Feld-Definitionen mit Wertebereichen
 
-Epic 3E-0083 (Eigenschafts-Profile) aus dem Ideen-Programm 2026-07. Eigenschaften lassen sich zentral definieren: Ein **Profil** ist eine normale Markdown-Datei im Profil-Ordner des Bereichs, deren Frontmatter pro Feld Name, Typ, optional einen festen Wertebereich (Einfach- oder Mehrfach-Auswahl) und einen Vorgabe-Wert festlegt. Dokumente ordnen sich über ein Frontmatter-Feld zu (Default `class`, pro Bereich umbenennbar); ein **Bereichs-Standard-Profil** gilt für alle Dateien. Properties-Editor und Block-Eigenschaften-Panel schlagen die definierten Felder vor, bedienen Wertebereiche als Auswahl-Listen, übernehmen den Typ aus der Definition und zeigen bei Abweichungen einen weichen Hinweis statt einer Blockade. PO-Entscheidungen vom 2026-07-08: Profile als Markdown-Dateien plus Bereichs-Standard-Profil, Zuordnungs-Feld `class`, Typ/Wertebereich/Default in v1 (Lookup- und Formel-Typen vertagt), weiche Validierung, Geltung für Dokument- UND Block-Eigenschaften (Einlösung der Vormerkung aus dem Block-Metadaten-Konzept). Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0446 bis 4T-0452).
+Epic 3E-000083 (Eigenschafts-Profile) aus dem Ideen-Programm 2026-07. Eigenschaften lassen sich zentral definieren: Ein **Profil** ist eine normale Markdown-Datei im Profil-Ordner des Bereichs, deren Frontmatter pro Feld Name, Typ, optional einen festen Wertebereich (Einfach- oder Mehrfach-Auswahl) und einen Vorgabe-Wert festlegt. Dokumente ordnen sich über ein Frontmatter-Feld zu (Default `class`, pro Bereich umbenennbar); ein **Bereichs-Standard-Profil** gilt für alle Dateien. Properties-Editor und Block-Eigenschaften-Panel schlagen die definierten Felder vor, bedienen Wertebereiche als Auswahl-Listen, übernehmen den Typ aus der Definition und zeigen bei Abweichungen einen weichen Hinweis statt einer Blockade. PO-Entscheidungen vom 2026-07-08: Profile als Markdown-Dateien plus Bereichs-Standard-Profil, Zuordnungs-Feld `class`, Typ/Wertebereich/Default in v1 (Lookup- und Formel-Typen vertagt), weiche Validierung, Geltung für Dokument- UND Block-Eigenschaften (Einlösung der Vormerkung aus dem Block-Metadaten-Konzept). Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000446 bis 4T-000452).
 
 ### Neu
 
-- **Profil-Modell und Bereichs-Konfiguration** (4T-0446): neue optionale `propertyProfiles`-Sektion der Bereichsdatei `Area_Settings.mdda` (Profil-Ordner, Zuordnungs-Feldname, Standard-Profil) nach dem Fehler-Isolations-Muster; Profil-Datei-Format mit `fields`-Liste im Frontmatter (Name, Typ `string`/`multistring`/`number`/`boolean`/`date`/`multiline`, Werte-Liste, Mehrfach-Auswahl, Default). Weiche Validierung auch hier: defekte Einzel-Definitionen (unbekannter Typ, Duplikat-Feldname, `multiple` ohne `values`) setzen nur sich selbst aus und werden als Hinweis gesammelt; ein unpassender Default entfällt, das Feld bleibt. Lese-/Schreib-IPC mit Broadcast für die sofortige Aktualisierung der Editoren.
-- **Definitions-Auflösung pro Datei und Block** (4T-0447): Vereinigung der Definitionen aus den zugeordneten Profilen (Frontmatter-Reihenfolge) plus Standard-Profil mit deterministischen Konflikt-Regeln — zugeordnetes Profil vor Standard-Profil, unter Zugeordneten gewinnt das zuerst genannte; Profil- und Feldnamen matchen case-insensitiv. Blöcke einer Datei erben die Datei-Auflösung. Der Profil-Katalog liest die Profil-Dateien mit mtime-validiertem Cache pro Datei: Profil-Änderungen wirken ohne Neustart, auch bei externen Edits; die Editoren liefern die Zuordnung aus dem Live-Frontmatter (ungespeicherte Änderungen am Zuordnungs-Feld wirken sofort).
-- **Properties-Editor-Anbindung** (4T-0448): „Eigenschaft hinzufügen" öffnet bei konfigurierten Profilen ein Vorschlags-Menü — zuerst die definierten, noch nicht gesetzten Felder (mit Profil-Kennzeichnung), danach die bisherigen Standard-Vorschläge, am Ende „Eigenes Feld"; die Auswahl legt das Feld mit Definitions-Typ und Default an. Wertebereichs-Felder rendern als Auswahl-Liste („Eigener Wert…" bleibt der freie Weg) bzw. als Chips-Leiste mit Werte-Vorschlägen; definierte Felder zeigen den Definitions-Typ (Typ-Wechsler gesperrt, Tooltip nennt das Profil) und eine dezente Kennzeichnung. Typ-Abweichung oder Wert außerhalb des Bereichs erzeugen ein Hinweis-Symbol mit lokalisiertem Tooltip — keine Blockade, keine Wert-Änderung; bei Typ-Abweichung bleibt der Wechsler frei, damit der Wert per Koerzierung auf den Definitions-Typ gebracht werden kann. Ohne Konfiguration bleibt das Verhalten exakt wie bisher.
-- **Block-Panel-Anbindung** (4T-0449): identisches Verhalten im Block-Eigenschaften-Panel (Vorschlags-Menü, Auswahl-Listen, Typ-Vorgabe, Hinweise) über dieselbe gemeinsame Logik — ein Verhalten, zwei Oberflächen. Die bestehenden Vorschläge aus den im Dokument verwendeten Block-Schlüsseln bleiben und rangieren hinter den Definitions-Feldern (Menü und Schlüssel-Vorschlagsliste).
-- **Einstellungs-Bereich „Eigenschafts-Profile"** (4T-0450): Profil-Ordner (wurzel-relativ, mit OS-Ordner-Auswahl), Zuordnungs-Feldname und Standard-Profil (Auswahl aus den erkannten Profilen); darunter die Profil-Liste mit Definitions-Anzahl und Validierungs-Hinweisen (Tooltip mit Einzel-Hinweisen inklusive YAML-Fehler), „Aktualisieren"-Button und Klick-Pfad in die Profil-Datei. Persistiert in der Bereichsdatei; Änderungen wirken sofort, ohne Neustart.
+- **Profil-Modell und Bereichs-Konfiguration** (4T-000446): neue optionale `propertyProfiles`-Sektion der Bereichsdatei `Area_Settings.mdda` (Profil-Ordner, Zuordnungs-Feldname, Standard-Profil) nach dem Fehler-Isolations-Muster; Profil-Datei-Format mit `fields`-Liste im Frontmatter (Name, Typ `string`/`multistring`/`number`/`boolean`/`date`/`multiline`, Werte-Liste, Mehrfach-Auswahl, Default). Weiche Validierung auch hier: defekte Einzel-Definitionen (unbekannter Typ, Duplikat-Feldname, `multiple` ohne `values`) setzen nur sich selbst aus und werden als Hinweis gesammelt; ein unpassender Default entfällt, das Feld bleibt. Lese-/Schreib-IPC mit Broadcast für die sofortige Aktualisierung der Editoren.
+- **Definitions-Auflösung pro Datei und Block** (4T-000447): Vereinigung der Definitionen aus den zugeordneten Profilen (Frontmatter-Reihenfolge) plus Standard-Profil mit deterministischen Konflikt-Regeln — zugeordnetes Profil vor Standard-Profil, unter Zugeordneten gewinnt das zuerst genannte; Profil- und Feldnamen matchen case-insensitiv. Blöcke einer Datei erben die Datei-Auflösung. Der Profil-Katalog liest die Profil-Dateien mit mtime-validiertem Cache pro Datei: Profil-Änderungen wirken ohne Neustart, auch bei externen Edits; die Editoren liefern die Zuordnung aus dem Live-Frontmatter (ungespeicherte Änderungen am Zuordnungs-Feld wirken sofort).
+- **Properties-Editor-Anbindung** (4T-000448): „Eigenschaft hinzufügen" öffnet bei konfigurierten Profilen ein Vorschlags-Menü — zuerst die definierten, noch nicht gesetzten Felder (mit Profil-Kennzeichnung), danach die bisherigen Standard-Vorschläge, am Ende „Eigenes Feld"; die Auswahl legt das Feld mit Definitions-Typ und Default an. Wertebereichs-Felder rendern als Auswahl-Liste („Eigener Wert…" bleibt der freie Weg) bzw. als Chips-Leiste mit Werte-Vorschlägen; definierte Felder zeigen den Definitions-Typ (Typ-Wechsler gesperrt, Tooltip nennt das Profil) und eine dezente Kennzeichnung. Typ-Abweichung oder Wert außerhalb des Bereichs erzeugen ein Hinweis-Symbol mit lokalisiertem Tooltip — keine Blockade, keine Wert-Änderung; bei Typ-Abweichung bleibt der Wechsler frei, damit der Wert per Koerzierung auf den Definitions-Typ gebracht werden kann. Ohne Konfiguration bleibt das Verhalten exakt wie bisher.
+- **Block-Panel-Anbindung** (4T-000449): identisches Verhalten im Block-Eigenschaften-Panel (Vorschlags-Menü, Auswahl-Listen, Typ-Vorgabe, Hinweise) über dieselbe gemeinsame Logik — ein Verhalten, zwei Oberflächen. Die bestehenden Vorschläge aus den im Dokument verwendeten Block-Schlüsseln bleiben und rangieren hinter den Definitions-Feldern (Menü und Schlüssel-Vorschlagsliste).
+- **Einstellungs-Bereich „Eigenschafts-Profile"** (4T-000450): Profil-Ordner (wurzel-relativ, mit OS-Ordner-Auswahl), Zuordnungs-Feldname und Standard-Profil (Auswahl aus den erkannten Profilen); darunter die Profil-Liste mit Definitions-Anzahl und Validierungs-Hinweisen (Tooltip mit Einzel-Hinweisen inklusive YAML-Fehler), „Aktualisieren"-Button und Klick-Pfad in die Profil-Datei. Persistiert in der Bereichsdatei; Änderungen wirken sofort, ohne Neustart.
 
 ### Geändert
 
-- **Listen-Felder: Direkt-Übernahme und keine Duplikate** (PO-Befunde der Release-Test-Iteration, unter 4T-0448): Die Übernahme eines Werts aus der Vorschlagsliste einer Mehrfach-Auswahl wird in beiden Eigenschafts-Editoren direkt zum Chip (ohne zusätzliches Enter; eigene Werte laufen weiter über Enter), und die Chips-Leiste der Listen-Felder übernimmt denselben Wert nicht mehr doppelt (bestehende Duplikate in Dateien bleiben unangetastet).
+- **Listen-Felder: Direkt-Übernahme und keine Duplikate** (PO-Befunde der Release-Test-Iteration, unter 4T-000448): Die Übernahme eines Werts aus der Vorschlagsliste einer Mehrfach-Auswahl wird in beiden Eigenschafts-Editoren direkt zum Chip (ohne zusätzliches Enter; eigene Werte laufen weiter über Enter), und die Chips-Leiste der Listen-Felder übernimmt denselben Wert nicht mehr doppelt (bestehende Duplikate in Dateien bleiben unangetastet).
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0451): neuer Funktions-Katalog-Eintrag „Eigenschafts-Profile" (Abdeckungs-Matrix F-106); neue Handbuch-Seite „Eigenschafts-Profile" (Profil-Dateien und Definitions-Format mit Beispiel-Frontmatter, Zuordnung und Standard-Profil, Konflikt-Regeln, Wirkung in beiden Editoren, weiche Validierung, Grenzen) in allen fünf Sprachfassungen; Überblicks-Links ergänzt. Insgesamt 43 neue i18n-Keys pro Sprache über das Epic (Editor-Texte, Einstellungs-Bereich mit elf Hinweis-Codes, Katalog, Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000451): neuer Funktions-Katalog-Eintrag „Eigenschafts-Profile" (Abdeckungs-Matrix F-106); neue Handbuch-Seite „Eigenschafts-Profile" (Profil-Dateien und Definitions-Format mit Beispiel-Frontmatter, Zuordnung und Standard-Profil, Konflikt-Regeln, Wirkung in beiden Editoren, weiche Validierung, Grenzen) in allen fünf Sprachfassungen; Überblicks-Links ergänzt. Insgesamt 43 neue i18n-Keys pro Sprache über das Epic (Editor-Texte, Einstellungs-Bereich mit elf Hinweis-Codes, Katalog, Seiten-Titel).
 
 ### Intern
 
@@ -3305,20 +3366,20 @@ Epic 3E-0083 (Eigenschafts-Profile) aus dem Ideen-Programm 2026-07. Eigenschafte
 
 ## [0.55.0.574] - 2026-07-09 — Journale: periodische Dokumente mit Kalender-Panel und Navigations-Block
 
-Epic 3E-0081 (Journale) aus dem Ideen-Programm 2026-07. Ein **Journal** ist eine definierte Serie periodischer Dokumente einer Granularität (Tag, Woche, Monat, Quartal, Jahr) mit Ordner- und Namens-Schema aus Datums-Platzhaltern, optionaler Vorlage und automatischen Frontmatter-Datums-Properties; **Regale** gruppieren mehrere Journale. Einträge werden über zwei Registry-Kommandos, das neue Kalender-Panel oder den Navigations-Block geöffnet bzw. beim ersten Zugriff angelegt. PO-Entscheidungen vom 2026-07-08: fünf Granularitäten mit Regalen, Kalender-Panel und Navigations-Block, Journale nur pro Bereich, Wochen fest nach ISO 8601; Nummerierung, Auto-Anlage und Dekorationen vertagt. Der Anlage-Pfad koppelt an die Vorlagen-Infrastruktur aus 0.54.0. Umgesetzt in sechs Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0431 bis 4T-0438).
+Epic 3E-000081 (Journale) aus dem Ideen-Programm 2026-07. Ein **Journal** ist eine definierte Serie periodischer Dokumente einer Granularität (Tag, Woche, Monat, Quartal, Jahr) mit Ordner- und Namens-Schema aus Datums-Platzhaltern, optionaler Vorlage und automatischen Frontmatter-Datums-Properties; **Regale** gruppieren mehrere Journale. Einträge werden über zwei Registry-Kommandos, das neue Kalender-Panel oder den Navigations-Block geöffnet bzw. beim ersten Zugriff angelegt. PO-Entscheidungen vom 2026-07-08: fünf Granularitäten mit Regalen, Kalender-Panel und Navigations-Block, Journale nur pro Bereich, Wochen fest nach ISO 8601; Nummerierung, Auto-Anlage und Dekorationen vertagt. Der Anlage-Pfad koppelt an die Vorlagen-Infrastruktur aus 0.54.0. Umgesetzt in sechs Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000431 bis 4T-000438).
 
 ### Neu
 
-- **Journal-Modell und Bereichs-Konfiguration** (4T-0431): neue optionale `journals`-Sektion der Bereichsdatei `Area_Settings.mdda` (Regale plus Journal-Definitionen: Name, Regal, Granularität, Ordner-/Namens-Schema, Vorlage, Start-/End-Datum, Property-Feldnamen) nach dem Fehler-Isolations-Muster: defekte Einzel-Einträge entfallen, eine defekte Sektion setzt nur die Journal-Funktion aus. Lese-/Schreib-IPC mit Broadcast für die sofortige Aktualisierung von Panel und Kommandos.
-- **Perioden-Kern mit ISO-KW-Rechnung** (4T-0432): prozess-neutrales Shared-Modul für Perioden-Arithmetik (Tag/Woche/Monat/Quartal/Jahr, fest nach ISO 8601 mit Montag-Start und Donnerstags-Regel), Schema-Auflösung der Eintrags-Pfade über die Vorlagen-Engine (nur Datums-Platzhalter; Pfad-Sicherung gegen Ausbrüche) und Eintrags-Ermittlung. Der gemeinsame Format-Kern kennt drei neue kuratierte Token `ww` (ISO-Kalenderwoche), `kkkk` (KW-Jahr) und `q` (Quartals-Nummer) — sie stehen damit auch der `dateformat`-Funktion der Abfrage-Sprache und den Datums-Platzhaltern der Vorlagen zur Verfügung (z.B. `kkkk-KWww` → `2026-KW28`, `yyyy-Qq` → `2026-Q3`).
-- **Journal-Kommandos und Anlage-Pfad** (4T-0433): „Heutiger Journal-Eintrag" und „Journal-Eintrag für Datum…" (Menü Datei, ohne Bereich deaktiviert; per Einstellungen mit Kürzeln belegbar; Auswahl-Popup bei mehreren Journalen, Datums-Dialog mit Vorbelegung). Der eine gemeinsame Öffnen-/Anlage-Pfad: existierende Einträge öffnen, fehlende entstehen mit Ordner-Kette, gefüllter Journal-Vorlage (volle Platzhalter-Engine inklusive Dialog-Kette; Datums-Platzhalter am Perioden-Start ausgewertet, `{{date}}` liefert das Perioden-Datum) und automatischen Datums-Properties (Tages-Journale nur Datum, mehrtägige Perioden Start und Ende; Feldnamen pro Journal). Dialog-Abbruch erzeugt keine Datei; die Journal-Vorlage übersteuert Ordner-Regeln; Start-/End-Datum kappen Anlage und Navigation.
-- **Kalender-Panel** (4T-0434): elftes Sidebar-Panel (links/rechts andockbar, Statusbar-Toggle) mit Monatsansicht: Wochentags-Kopf mit Montag-Start, ISO-KW-Spalte, Punkte an Tagen mit vorhandenem Eintrag, Heute-Hervorhebung, Monats-Blättern und Heute-Knopf, Filter über Regale und Journale. Tag-Klick öffnet bzw. legt den Tages-Eintrag an, KW-Klick den Wochen-Eintrag; die Existenz-Punkte lädt ein Batch-Abruf pro sichtbarem Monat (begrenzter Scan, kein Voll-Index).
-- **Journal-Navigations-Block** (4T-0435): neuer Fence `perspective-journal-nav` zeigt im Journal-Eintrag die aktuelle Periode groß (mit Zusatz-Zeile bei der aktuellen Periode), die übergeordneten Perioden desselben Regals (Lücken werden ausgelassen) und Pfeile zu voriger/nächster Periode; Klicks öffnen bzw. legen an. Kontext-Ermittlung über den Pfad-Abgleich mit der Schema-Auflösung (keine Pfad-Heuristik); identisch in Render-Pane, Live-Modus und Reading; der PDF-Export wartet die Befüllung ab, der Portable-Export ersetzt den Fence durch die statische Perioden-Beschriftung. Außerhalb eines Journal-Eintrags erscheint ein Hinweis.
-- **Einstellungs-Bereich „Journale"** (4T-0436): zweistufige Navigation (PO-Befund der Test-Iteration) — die Übersicht zeigt die Regale (anlegen, umbenennen mit Nachzug der Zuordnungen, löschen, Journal-Zähler); „Öffnen" an einem Regal führt zur Detailansicht mit den Journal-Editor-Formularen genau dieses Regals (plus Zeile „Ohne Regal"), „Regal schließen" zurück. Formulare mit Live-Vorschau des aufgelösten Beispiel-Pfads, Format-Prüfung über die Vorlagen-Engine, Vorlagen-Auswahl aus dem Vorlagen-Ordner, Warnung bei Schema-Änderung bestehender Journale (Dateien werden nicht umbenannt) und Datums-/Reihenfolge-Validierung. Änderungen wirken sofort, ohne Neustart.
+- **Journal-Modell und Bereichs-Konfiguration** (4T-000431): neue optionale `journals`-Sektion der Bereichsdatei `Area_Settings.mdda` (Regale plus Journal-Definitionen: Name, Regal, Granularität, Ordner-/Namens-Schema, Vorlage, Start-/End-Datum, Property-Feldnamen) nach dem Fehler-Isolations-Muster: defekte Einzel-Einträge entfallen, eine defekte Sektion setzt nur die Journal-Funktion aus. Lese-/Schreib-IPC mit Broadcast für die sofortige Aktualisierung von Panel und Kommandos.
+- **Perioden-Kern mit ISO-KW-Rechnung** (4T-000432): prozess-neutrales Shared-Modul für Perioden-Arithmetik (Tag/Woche/Monat/Quartal/Jahr, fest nach ISO 8601 mit Montag-Start und Donnerstags-Regel), Schema-Auflösung der Eintrags-Pfade über die Vorlagen-Engine (nur Datums-Platzhalter; Pfad-Sicherung gegen Ausbrüche) und Eintrags-Ermittlung. Der gemeinsame Format-Kern kennt drei neue kuratierte Token `ww` (ISO-Kalenderwoche), `kkkk` (KW-Jahr) und `q` (Quartals-Nummer) — sie stehen damit auch der `dateformat`-Funktion der Abfrage-Sprache und den Datums-Platzhaltern der Vorlagen zur Verfügung (z.B. `kkkk-KWww` → `2026-KW28`, `yyyy-Qq` → `2026-Q3`).
+- **Journal-Kommandos und Anlage-Pfad** (4T-000433): „Heutiger Journal-Eintrag" und „Journal-Eintrag für Datum…" (Menü Datei, ohne Bereich deaktiviert; per Einstellungen mit Kürzeln belegbar; Auswahl-Popup bei mehreren Journalen, Datums-Dialog mit Vorbelegung). Der eine gemeinsame Öffnen-/Anlage-Pfad: existierende Einträge öffnen, fehlende entstehen mit Ordner-Kette, gefüllter Journal-Vorlage (volle Platzhalter-Engine inklusive Dialog-Kette; Datums-Platzhalter am Perioden-Start ausgewertet, `{{date}}` liefert das Perioden-Datum) und automatischen Datums-Properties (Tages-Journale nur Datum, mehrtägige Perioden Start und Ende; Feldnamen pro Journal). Dialog-Abbruch erzeugt keine Datei; die Journal-Vorlage übersteuert Ordner-Regeln; Start-/End-Datum kappen Anlage und Navigation.
+- **Kalender-Panel** (4T-000434): elftes Sidebar-Panel (links/rechts andockbar, Statusbar-Toggle) mit Monatsansicht: Wochentags-Kopf mit Montag-Start, ISO-KW-Spalte, Punkte an Tagen mit vorhandenem Eintrag, Heute-Hervorhebung, Monats-Blättern und Heute-Knopf, Filter über Regale und Journale. Tag-Klick öffnet bzw. legt den Tages-Eintrag an, KW-Klick den Wochen-Eintrag; die Existenz-Punkte lädt ein Batch-Abruf pro sichtbarem Monat (begrenzter Scan, kein Voll-Index).
+- **Journal-Navigations-Block** (4T-000435): neuer Fence `perspective-journal-nav` zeigt im Journal-Eintrag die aktuelle Periode groß (mit Zusatz-Zeile bei der aktuellen Periode), die übergeordneten Perioden desselben Regals (Lücken werden ausgelassen) und Pfeile zu voriger/nächster Periode; Klicks öffnen bzw. legen an. Kontext-Ermittlung über den Pfad-Abgleich mit der Schema-Auflösung (keine Pfad-Heuristik); identisch in Render-Pane, Live-Modus und Reading; der PDF-Export wartet die Befüllung ab, der Portable-Export ersetzt den Fence durch die statische Perioden-Beschriftung. Außerhalb eines Journal-Eintrags erscheint ein Hinweis.
+- **Einstellungs-Bereich „Journale"** (4T-000436): zweistufige Navigation (PO-Befund der Test-Iteration) — die Übersicht zeigt die Regale (anlegen, umbenennen mit Nachzug der Zuordnungen, löschen, Journal-Zähler); „Öffnen" an einem Regal führt zur Detailansicht mit den Journal-Editor-Formularen genau dieses Regals (plus Zeile „Ohne Regal"), „Regal schließen" zurück. Formulare mit Live-Vorschau des aufgelösten Beispiel-Pfads, Format-Prüfung über die Vorlagen-Engine, Vorlagen-Auswahl aus dem Vorlagen-Ordner, Warnung bei Schema-Änderung bestehender Journale (Dateien werden nicht umbenannt) und Datums-/Reihenfolge-Validierung. Änderungen wirken sofort, ohne Neustart.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0437): drei neue Funktions-Katalog-Einträge „Journale", „Kalender-Panel" und „Journal-Navigation" (Abdeckungs-Matrix F-103 bis F-105, Kürzel-Einträge S-074/S-075); neue Handbuch-Seite „Journale" (Modell, Schemata mit KW-Jahres-Ordner-Beispiel, Kalender-Panel, Navigations-Block mit selbst-demonstrierendem Live-Block, ISO-Wochen-Regeln, Migrations-Hinweis für bestehende periodische Bestände) in allen fünf Sprachfassungen; Überblicks-Links ergänzt; die Format-Token-Listen der Seiten „Vorlagen" und „Perspective-Abfrage" nennen die neuen Token `ww`/`kkkk`. Insgesamt 88 neue i18n-Keys pro Sprache über das Epic (Kommandos, Dialoge, Hinweise, Kalender, Navigations-Block, Einstellungs-Bereich, Katalog, Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000437): drei neue Funktions-Katalog-Einträge „Journale", „Kalender-Panel" und „Journal-Navigation" (Abdeckungs-Matrix F-103 bis F-105, Kürzel-Einträge S-074/S-075); neue Handbuch-Seite „Journale" (Modell, Schemata mit KW-Jahres-Ordner-Beispiel, Kalender-Panel, Navigations-Block mit selbst-demonstrierendem Live-Block, ISO-Wochen-Regeln, Migrations-Hinweis für bestehende periodische Bestände) in allen fünf Sprachfassungen; Überblicks-Links ergänzt; die Format-Token-Listen der Seiten „Vorlagen" und „Perspective-Abfrage" nennen die neuen Token `ww`/`kkkk`. Insgesamt 88 neue i18n-Keys pro Sprache über das Epic (Kommandos, Dialoge, Hinweise, Kalender, Navigations-Block, Einstellungs-Bereich, Katalog, Seiten-Titel).
 
 ### Intern
 
@@ -3328,19 +3389,19 @@ Epic 3E-0081 (Journale) aus dem Ideen-Programm 2026-07. Ein **Journal** ist eine
 
 ## [0.54.0.564] - 2026-07-09 — Vorlagen: Platzhalter-Engine, Anwendungs-Kommandos und Ordner-Regeln
 
-Epic 3E-0080 (Vorlagen) aus dem Ideen-Programm 2026-07. Vorlagen sind gewöhnliche Markdown-Dateien in konfigurierbaren Vorlagen-Ordnern (pro Bereich in der Bereichsdatei, App-global als Fallback; Bereichs-Werte übersteuern vollständig). Beim Anwenden wertet eine Platzhalter-Engine kuratierte Platzhalter aus — Datum/Zeit mit Offset und Format, Titel und Ordner der Zieldatei, Eingabe- und Auswahl-Dialoge, Zwischenablage, Cursor-Ziel. PO-Entscheidungen: kuratierte Platzhalter statt freiem JavaScript (Skript-Stufe vertagt), Datums-Arithmetik und Formate über den Typ-Kern der Query-Sprache (keine zweite Datums-Bibliothek), Ordner-Regeln in v1, Vorlagen-Hotkeys vertagt. Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0424 bis 4T-0430).
+Epic 3E-000080 (Vorlagen) aus dem Ideen-Programm 2026-07. Vorlagen sind gewöhnliche Markdown-Dateien in konfigurierbaren Vorlagen-Ordnern (pro Bereich in der Bereichsdatei, App-global als Fallback; Bereichs-Werte übersteuern vollständig). Beim Anwenden wertet eine Platzhalter-Engine kuratierte Platzhalter aus — Datum/Zeit mit Offset und Format, Titel und Ordner der Zieldatei, Eingabe- und Auswahl-Dialoge, Zwischenablage, Cursor-Ziel. PO-Entscheidungen: kuratierte Platzhalter statt freiem JavaScript (Skript-Stufe vertagt), Datums-Arithmetik und Formate über den Typ-Kern der Query-Sprache (keine zweite Datums-Bibliothek), Ordner-Regeln in v1, Vorlagen-Hotkeys vertagt. Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000424 bis 4T-000430).
 
 ### Neu
 
-- **Vorlagen-Quellen und Datenpfad** (4T-0424): Auflösung des wirksamen Vorlagen-Ordners (Bereichs-Konfiguration übersteuert die globale vollständig; Bereichs-Ordner wurzel-relativ mit Toleranz für absolute Pfade), Vorlagen-Liste inklusive Unterordnern (frisch pro Aufruf, kein Watcher/Cache) und abgesicherter Lese-Pfad (Pfad-Normalisierung gegen `..`-Ausbrüche, Zugriffe nur innerhalb des Vorlagen-Ordners).
-- **Platzhalter-Engine** (4T-0425): prozess-neutrales Shared-Modul mit Zwei-Phasen-Schnittstelle (analysieren, dann füllen — interaktive Platzhalter beantwortet der Aufrufer per Dialog). Platzhalter-Satz v1: `{{date}}`/`{{time}}` mit Offset (Dauer-Einheiten der Query-Sprache) und Format (`dateformat`-Token), `{{title}}`, `{{folder}}`, `{{prompt:Frage[:Default]}}`, `{{select:Frage:a,b,…}}`, `{{clipboard}}`, `{{cursor}}`/`{{cursor:n}}` (nummerierte Ziel-Marker), Escape `\{{`. Identische Fragen werden nur einmal erhoben; Fehler brechen strukturiert mit Code und Position ab (keine halb gefüllte Datei).
-- **Anwendungs-Kommandos und Dialoge** (4T-0426): „Neue Datei aus Vorlage" (Menü Datei; filterbares Auswahl-Popup mit Unterordner-Gruppen und Pfeiltasten-Navigation, Dateiname mit Unterseiten-Schreibweise, sequenzielle Dialog-Kette, Datei entsteht gefüllt, Cursor springt auf das erste Ziel) und „Vorlage einfügen" (Editor-Kontextmenü → Einfügen; eine Editor-Transaktion, Undo in einem Schritt). Zielordner ist der Ordner der aktiven Datei bzw. die Bereichs-Wurzel; ohne beides fragt ein Ordner-Dialog nach dem Ziel (Befund der Release-Test-Iteration). Abbruch irgendeines Dialogs bricht das gesamte Anwenden ab; beide Kommandos sind über die Einstellungen mit Kürzeln belegbar.
-- **Ordner-Regeln** (4T-0427): Zuordnung Zielordner → Vorlage; neue Dateien über die App (Bereichs-Panel, Unterseiten-Anlage) erhalten automatisch die Vorlage samt Dialog-Kette und Cursor-Sprung. Tiefster Treffer gewinnt (leerer Ordner-Eintrag = Wurzel-Regel), der Vorlagen-Ordner ist ausgenommen, der explizite Vorlagen-Weg hat Vorrang; Dialog-Abbruch legt die Datei leer an (mit Hinweis). Extern angelegte Dateien durchlaufen den Trigger nicht (dokumentierte Grenze).
-- **Einstellungs-Bereich „Vorlagen"** (4T-0428): globaler Vorlagen-Ordner (mit OS-Ordner-Auswahl) und globale Regel-Tabelle; bei Bereichs-Fenstern zusätzlich die Bereichs-Konfiguration (Schalter, Ordner wurzel-relativ, eigene Regel-Tabelle), gespeichert in einer neuen optionalen `templates`-Sektion der Bereichsdatei `Area_Settings.mdda` (Fehler-Isolations-Muster; Datei entsteht erst beim ersten Setzen, defekte Datei wird nie überschrieben). Änderungen wirken sofort, ohne Neustart.
+- **Vorlagen-Quellen und Datenpfad** (4T-000424): Auflösung des wirksamen Vorlagen-Ordners (Bereichs-Konfiguration übersteuert die globale vollständig; Bereichs-Ordner wurzel-relativ mit Toleranz für absolute Pfade), Vorlagen-Liste inklusive Unterordnern (frisch pro Aufruf, kein Watcher/Cache) und abgesicherter Lese-Pfad (Pfad-Normalisierung gegen `..`-Ausbrüche, Zugriffe nur innerhalb des Vorlagen-Ordners).
+- **Platzhalter-Engine** (4T-000425): prozess-neutrales Shared-Modul mit Zwei-Phasen-Schnittstelle (analysieren, dann füllen — interaktive Platzhalter beantwortet der Aufrufer per Dialog). Platzhalter-Satz v1: `{{date}}`/`{{time}}` mit Offset (Dauer-Einheiten der Query-Sprache) und Format (`dateformat`-Token), `{{title}}`, `{{folder}}`, `{{prompt:Frage[:Default]}}`, `{{select:Frage:a,b,…}}`, `{{clipboard}}`, `{{cursor}}`/`{{cursor:n}}` (nummerierte Ziel-Marker), Escape `\{{`. Identische Fragen werden nur einmal erhoben; Fehler brechen strukturiert mit Code und Position ab (keine halb gefüllte Datei).
+- **Anwendungs-Kommandos und Dialoge** (4T-000426): „Neue Datei aus Vorlage" (Menü Datei; filterbares Auswahl-Popup mit Unterordner-Gruppen und Pfeiltasten-Navigation, Dateiname mit Unterseiten-Schreibweise, sequenzielle Dialog-Kette, Datei entsteht gefüllt, Cursor springt auf das erste Ziel) und „Vorlage einfügen" (Editor-Kontextmenü → Einfügen; eine Editor-Transaktion, Undo in einem Schritt). Zielordner ist der Ordner der aktiven Datei bzw. die Bereichs-Wurzel; ohne beides fragt ein Ordner-Dialog nach dem Ziel (Befund der Release-Test-Iteration). Abbruch irgendeines Dialogs bricht das gesamte Anwenden ab; beide Kommandos sind über die Einstellungen mit Kürzeln belegbar.
+- **Ordner-Regeln** (4T-000427): Zuordnung Zielordner → Vorlage; neue Dateien über die App (Bereichs-Panel, Unterseiten-Anlage) erhalten automatisch die Vorlage samt Dialog-Kette und Cursor-Sprung. Tiefster Treffer gewinnt (leerer Ordner-Eintrag = Wurzel-Regel), der Vorlagen-Ordner ist ausgenommen, der explizite Vorlagen-Weg hat Vorrang; Dialog-Abbruch legt die Datei leer an (mit Hinweis). Extern angelegte Dateien durchlaufen den Trigger nicht (dokumentierte Grenze).
+- **Einstellungs-Bereich „Vorlagen"** (4T-000428): globaler Vorlagen-Ordner (mit OS-Ordner-Auswahl) und globale Regel-Tabelle; bei Bereichs-Fenstern zusätzlich die Bereichs-Konfiguration (Schalter, Ordner wurzel-relativ, eigene Regel-Tabelle), gespeichert in einer neuen optionalen `templates`-Sektion der Bereichsdatei `Area_Settings.mdda` (Fehler-Isolations-Muster; Datei entsteht erst beim ersten Setzen, defekte Datei wird nie überschrieben). Änderungen wirken sofort, ohne Neustart.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0429): zwei neue Funktions-Katalog-Einträge „Vorlagen" und „Ordner-Regeln" (Abdeckungs-Matrix F-101/F-102, Kürzel-Einträge S-072/S-073); neue Handbuch-Seite „Vorlagen" mit Vorlagen-Ordner samt Bereichs-Übersteuerung, beiden Anwendungs-Wegen, vollständiger Platzhalter-Referenz mit Beispielen und Ordner-Regeln samt Grenzen, in allen fünf Sprachfassungen; Überblicks-Links ergänzt. Insgesamt 56 neue i18n-Keys pro Sprache über das Epic (Kommandos, Dialoge, Hinweise, Fehlertexte, Einstellungs-Bereich, Katalog, Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000429): zwei neue Funktions-Katalog-Einträge „Vorlagen" und „Ordner-Regeln" (Abdeckungs-Matrix F-101/F-102, Kürzel-Einträge S-072/S-073); neue Handbuch-Seite „Vorlagen" mit Vorlagen-Ordner samt Bereichs-Übersteuerung, beiden Anwendungs-Wegen, vollständiger Platzhalter-Referenz mit Beispielen und Ordner-Regeln samt Grenzen, in allen fünf Sprachfassungen; Überblicks-Links ergänzt. Insgesamt 56 neue i18n-Keys pro Sprache über das Epic (Kommandos, Dialoge, Hinweise, Fehlertexte, Einstellungs-Bereich, Katalog, Seiten-Titel).
 
 ### Intern
 
@@ -3350,17 +3411,17 @@ Epic 3E-0080 (Vorlagen) aus dem Ideen-Programm 2026-07. Vorlagen sind gewöhnlic
 
 ## [0.53.0.556] - 2026-07-09 — Perspective Query: Skript-Blöcke mit Sandbox-API
 
-Epic 3E-0078 (Perspective Query: Skript-Blöcke mit Sandbox-API) aus dem Ideen-Programm 2026-07, dritte und letzte Stufe des Query-Ausbaus. Ein neuer Fence-Typ `perspective-script` führt JavaScript aus Dokumenten aus und bettet das Ergebnis ins gerenderte Dokument ein; die lesende `pq`-API erschließt dieselben Index-Daten wie die Perspective-Abfrage (Dateien, Frontmatter, Block-Eigenschaften). Sicherheits-Modell „eingehegt statt Voll-Zugriff" (PO-Festlegung 2026-07-08): isolierte Sandbox ohne Datei-, Netz- und App-Zugriff plus Default-aus-Einstellung mit Warntext. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0412 bis 4T-0416).
+Epic 3E-000078 (Perspective Query: Skript-Blöcke mit Sandbox-API) aus dem Ideen-Programm 2026-07, dritte und letzte Stufe des Query-Ausbaus. Ein neuer Fence-Typ `perspective-script` führt JavaScript aus Dokumenten aus und bettet das Ergebnis ins gerenderte Dokument ein; die lesende `pq`-API erschließt dieselben Index-Daten wie die Perspective-Abfrage (Dateien, Frontmatter, Block-Eigenschaften). Sicherheits-Modell „eingehegt statt Voll-Zugriff" (PO-Festlegung 2026-07-08): isolierte Sandbox ohne Datei-, Netz- und App-Zugriff plus Default-aus-Einstellung mit Warntext. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000412 bis 4T-000416).
 
 ### Neu
 
-- **Skript-Sandbox-Laufzeit** (4T-0412): Der Fence `perspective-script` rendert als Platzhalter; die Ausführung übernimmt pro Block eine frische, isolierte Sandbox (`iframe sandbox="allow-scripts"` ohne `allow-same-origin`, eigenes Trägerdokument mit strikter CSP `default-src 'none'` — kein Netz, kein Datei-Nachladen, kein Parent-DOM, kein Preload). Das Nutzer-Skript läuft in einem Worker-Thread der Sandbox, ohne `window` und `document`; die Läufe eines Fensters sind serialisiert — ein Endlos-Skript blockiert weder die App noch nachfolgende Blöcke und wird beim Zeit-Limit zuverlässig terminiert (Befund aus der Release-Test-Iteration). Kommunikation ausschließlich über ein Schema-geprüftes postMessage-/MessagePort-Protokoll; Zeit-Limit 5 Sekunden mit lokalisiertem Abbruch-Hinweis, Fehler erscheinen mit Original-Meldung und Skript-Zeile am Block. Parität Render/Reading/Live; Idle-Barriere für den PDF-Export. Sicherheits-Nachweise als Tests verankert (Isolation, Netz-Sperre, Endlos-Skript ohne Renderer-Blockade und ohne Mitreißen von Nachbar-Blöcken).
-- **Lesende pq-Daten-API und kontrollierte Ausgabe** (4T-0413): `pq.pages([quelle])`, `pq.current()`, `pq.file(ref)` und `pq.blocks([quelle])` liefern einen Daten-Snapshot des Suchraums (Frontmatter-Felder flach plus `file.*` inklusive `inlinks`/`outlinks`; Quellen-Filter `#tag`, `[[Name]]`, Ordner-Präfix); Helfer `pq.date`/`pq.dur`/`pq.sort` kompatibel zum Typ-System der Abfrage-Sprache. Ausgabe über `pq.out`/`pq.list` (verschachtelbar)/`pq.table` plus Bau-Funktionen `pq.el`/`pq.link`/`pq.md`; der Renderer übersetzt die serialisierte Beschreibung über eine Element-Whitelist in DOM (keine rohe HTML-Injektion, Ausgabe-Deckel), interne Links samt Block-Anker-Sprung laufen über den bestehenden Klick-Pfad. Index-Änderungen starten sichtbare Blöcke automatisch neu. Der Referenz-Fall des PO (rekursiver Link-Baum über `outlinks` mit klickbaren Zielen) ist als E2E-Test verankert.
-- **Einstellung „Skript-Blöcke ausführen"** (4T-0414): Default aus, mit dauerhaft sichtbarem Warntext im Bereich Verhalten (Vertrauensmodell: Skripte stammen aus Dokumenten). Ohne Aktivierung zeigt der Block seinen Quelltext mit Hinweis-Banner, nachweislich ohne Sandbox-Instanz; das Umschalten wirkt sofort in allen Fenstern (Settings-Broadcast). PDF-Export druckt bei aktiver Einstellung das Skript-Ergebnis (Export wartet laufende Skripte ab), sonst die Quelltext-Darstellung; der Portable-Export lässt den Fence unverändert als Quelltext.
+- **Skript-Sandbox-Laufzeit** (4T-000412): Der Fence `perspective-script` rendert als Platzhalter; die Ausführung übernimmt pro Block eine frische, isolierte Sandbox (`iframe sandbox="allow-scripts"` ohne `allow-same-origin`, eigenes Trägerdokument mit strikter CSP `default-src 'none'` — kein Netz, kein Datei-Nachladen, kein Parent-DOM, kein Preload). Das Nutzer-Skript läuft in einem Worker-Thread der Sandbox, ohne `window` und `document`; die Läufe eines Fensters sind serialisiert — ein Endlos-Skript blockiert weder die App noch nachfolgende Blöcke und wird beim Zeit-Limit zuverlässig terminiert (Befund aus der Release-Test-Iteration). Kommunikation ausschließlich über ein Schema-geprüftes postMessage-/MessagePort-Protokoll; Zeit-Limit 5 Sekunden mit lokalisiertem Abbruch-Hinweis, Fehler erscheinen mit Original-Meldung und Skript-Zeile am Block. Parität Render/Reading/Live; Idle-Barriere für den PDF-Export. Sicherheits-Nachweise als Tests verankert (Isolation, Netz-Sperre, Endlos-Skript ohne Renderer-Blockade und ohne Mitreißen von Nachbar-Blöcken).
+- **Lesende pq-Daten-API und kontrollierte Ausgabe** (4T-000413): `pq.pages([quelle])`, `pq.current()`, `pq.file(ref)` und `pq.blocks([quelle])` liefern einen Daten-Snapshot des Suchraums (Frontmatter-Felder flach plus `file.*` inklusive `inlinks`/`outlinks`; Quellen-Filter `#tag`, `[[Name]]`, Ordner-Präfix); Helfer `pq.date`/`pq.dur`/`pq.sort` kompatibel zum Typ-System der Abfrage-Sprache. Ausgabe über `pq.out`/`pq.list` (verschachtelbar)/`pq.table` plus Bau-Funktionen `pq.el`/`pq.link`/`pq.md`; der Renderer übersetzt die serialisierte Beschreibung über eine Element-Whitelist in DOM (keine rohe HTML-Injektion, Ausgabe-Deckel), interne Links samt Block-Anker-Sprung laufen über den bestehenden Klick-Pfad. Index-Änderungen starten sichtbare Blöcke automatisch neu. Der Referenz-Fall des PO (rekursiver Link-Baum über `outlinks` mit klickbaren Zielen) ist als E2E-Test verankert.
+- **Einstellung „Skript-Blöcke ausführen"** (4T-000414): Default aus, mit dauerhaft sichtbarem Warntext im Bereich Verhalten (Vertrauensmodell: Skripte stammen aus Dokumenten). Ohne Aktivierung zeigt der Block seinen Quelltext mit Hinweis-Banner, nachweislich ohne Sandbox-Instanz; das Umschalten wirkt sofort in allen Fenstern (Settings-Broadcast). PDF-Export druckt bei aktiver Einstellung das Skript-Ergebnis (Export wartet laufende Skripte ab), sonst die Quelltext-Darstellung; der Portable-Export lässt den Fence unverändert als Quelltext.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0415): neuer Funktions-Katalog-Eintrag „Skript-Blöcke" (Abdeckungs-Matrix F-100); neue Handbuch-Seite „Skript-Blöcke" mit Aktivierung/Vertrauensmodell, Laufzeit-Grenzen und vollständiger pq-API-Referenz samt Referenz-Beispielen in allen fünf Sprachfassungen (Beispiele bewusst als Code-Blöcke, die Seite führt keine Skripte aus); Überblicks-Links und Querverweis von der Seite „Perspective-Abfrage". Insgesamt 16 neue i18n-Keys pro Sprache (Laufzeit-Status und Fehler, Einstellung mit Warntext, Banner, Katalog und Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000415): neuer Funktions-Katalog-Eintrag „Skript-Blöcke" (Abdeckungs-Matrix F-100); neue Handbuch-Seite „Skript-Blöcke" mit Aktivierung/Vertrauensmodell, Laufzeit-Grenzen und vollständiger pq-API-Referenz samt Referenz-Beispielen in allen fünf Sprachfassungen (Beispiele bewusst als Code-Blöcke, die Seite führt keine Skripte aus); Überblicks-Links und Querverweis von der Seite „Perspective-Abfrage". Insgesamt 16 neue i18n-Keys pro Sprache (Laufzeit-Status und Fehler, Einstellung mit Warntext, Banner, Katalog und Seiten-Titel).
 
 ### Intern
 
@@ -3369,20 +3430,20 @@ Epic 3E-0078 (Perspective Query: Skript-Blöcke mit Sandbox-API) aus dem Ideen-P
 
 ## [0.52.0.550] - 2026-07-09 — Perspective Query: Abfragen auf Block-Ebene
 
-Epic 3E-0077 (Perspective Query: Block-Ebene) aus dem Ideen-Programm 2026-07, zweite von drei Stufen des Query-Ausbaus. Die Perspective-Abfrage wertet jetzt auch die Block-Metadaten aus den `.mdd`-Begleitdateien aus: der Scope-Zusatz `BLOCKS` am Ausgabe-Typ liefert Blöcke statt Dateien als Treffer, dargestellt als klickbare `Datei#^anker`-Ziele mit Anker-Sprung. Damit ist die im Block-Metadaten-Konzept verankerte Pflicht-Dimension „auswertbar analog zur Frontmatter-Ebene" eingelöst. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0408 bis 4T-0411).
+Epic 3E-000077 (Perspective Query: Block-Ebene) aus dem Ideen-Programm 2026-07, zweite von drei Stufen des Query-Ausbaus. Die Perspective-Abfrage wertet jetzt auch die Block-Metadaten aus den `.mdd`-Begleitdateien aus: der Scope-Zusatz `BLOCKS` am Ausgabe-Typ liefert Blöcke statt Dateien als Treffer, dargestellt als klickbare `Datei#^anker`-Ziele mit Anker-Sprung. Damit ist die im Block-Metadaten-Konzept verankerte Pflicht-Dimension „auswertbar analog zur Frontmatter-Ebene" eingelöst. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000408 bis 4T-000411).
 
 ### Neu
 
-- **Block-Daten im Abfrage-Index** (4T-0408): Der Datei-Index liest beim Aufbau pro Markdown-Datei die `blockData`-Sektion der `.mdd`-Begleitdatei mit (Substring-Vorprüfung erspart den JSON-Parse großer History-Container ohne Block-Daten; defekte `.mdd` setzen nur die Block-Ebene der einen Datei aus). Da die `.mdd` außerhalb des Markdown-Watchers liegt, invalidiert jede Panel-Änderung über den `blockData:changed`-Schreibpfad zusätzlich den Block-Anteil des Index — sichtbare Abfragen aktualisieren sich ohne Neustart. Bewusst ohne Aufnahme in `Area_Cache.mdda`: der komplette Zusatz-Pass kostet auch im pessimistischen Szenario (2000 Dateien, 300 `.mdd` à 100 KB) nur rund 0,36 s einmalig pro Index-Aufbau (Messung im Task dokumentiert).
-- **BLOCKS-Scope in Sprache und Ausgabe** (4T-0409): `LIST BLOCKS …` und `TABLE BLOCKS …` (vor `WITHOUT ID`) schalten die Abfrage auf die Block-Ebene um; alle Klauseln (`FROM`, `WHERE`, `SORT`, `LIMIT`, `COLUMNS`) wirken unverändert. Nackte Feldnamen treffen zuerst die Block-Eigenschaften und fallen auf das Frontmatter der Träger-Datei zurück (der Block „erbt" seinen Datei-Kontext); `updated` steht als Datums-Meta-Feld für Vergleiche und Sortierung bereit, `file.*` und `FROM` bleiben die Träger-Datei. Treffer erscheinen in Liste und Tabellen-Ziel-Spalte als `Datei#^anker`; der Klick öffnet die Datei und springt modusbewusst zum Block. Nur aktive Anker zählen — verwaiste Einträge (Eigenschaften ohne Anker im Text) sind kein Treffer; Dokumente ohne Block-Daten liefern schlicht keine Treffer.
+- **Block-Daten im Abfrage-Index** (4T-000408): Der Datei-Index liest beim Aufbau pro Markdown-Datei die `blockData`-Sektion der `.mdd`-Begleitdatei mit (Substring-Vorprüfung erspart den JSON-Parse großer History-Container ohne Block-Daten; defekte `.mdd` setzen nur die Block-Ebene der einen Datei aus). Da die `.mdd` außerhalb des Markdown-Watchers liegt, invalidiert jede Panel-Änderung über den `blockData:changed`-Schreibpfad zusätzlich den Block-Anteil des Index — sichtbare Abfragen aktualisieren sich ohne Neustart. Bewusst ohne Aufnahme in `Area_Cache.mdda`: der komplette Zusatz-Pass kostet auch im pessimistischen Szenario (2000 Dateien, 300 `.mdd` à 100 KB) nur rund 0,36 s einmalig pro Index-Aufbau (Messung im Task dokumentiert).
+- **BLOCKS-Scope in Sprache und Ausgabe** (4T-000409): `LIST BLOCKS …` und `TABLE BLOCKS …` (vor `WITHOUT ID`) schalten die Abfrage auf die Block-Ebene um; alle Klauseln (`FROM`, `WHERE`, `SORT`, `LIMIT`, `COLUMNS`) wirken unverändert. Nackte Feldnamen treffen zuerst die Block-Eigenschaften und fallen auf das Frontmatter der Träger-Datei zurück (der Block „erbt" seinen Datei-Kontext); `updated` steht als Datums-Meta-Feld für Vergleiche und Sortierung bereit, `file.*` und `FROM` bleiben die Träger-Datei. Treffer erscheinen in Liste und Tabellen-Ziel-Spalte als `Datei#^anker`; der Klick öffnet die Datei und springt modusbewusst zum Block. Nur aktive Anker zählen — verwaiste Einträge (Eigenschaften ohne Anker im Text) sind kein Treffer; Dokumente ohne Block-Daten liefern schlicht keine Treffer.
 
 ### Behoben
 
-- **Klick auf Abfrage-Treffer im Live-Modus** (4T-0409): Klicks auf Treffer der Perspective-Abfrage im Live-Modus waren seit ihrer Einführung wirkungslos — die Treffer liegen dort in einem Block-Widget, dessen `ignoreEvent()` alle Events an den zentralen Editor-Klick-Handlern vorbeiführt. Der Klick-Pfad hängt jetzt direkt am Widget-Container (Muster des Frontmatter-Widgets) und öffnet die Zieldatei samt Anker-Sprung; Regressionstest BQ-03.
+- **Klick auf Abfrage-Treffer im Live-Modus** (4T-000409): Klicks auf Treffer der Perspective-Abfrage im Live-Modus waren seit ihrer Einführung wirkungslos — die Treffer liegen dort in einem Block-Widget, dessen `ignoreEvent()` alle Events an den zentralen Editor-Klick-Handlern vorbeiführt. Der Klick-Pfad hängt jetzt direkt am Widget-Container (Muster des Frontmatter-Widgets) und öffnet die Zieldatei samt Anker-Sprung; Regressionstest BQ-03.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0410): neuer Funktions-Katalog-Eintrag „Block-Abfrage" (3 neue i18n-Keys in fünf Sprachen, Gruppe hinter dem Abfrage-Cluster, Abdeckungs-Matrix F-099); Handbuch-Seite „Perspective-Abfrage" um die Sektion „Block-Ebene (BLOCKS)" erweitert (Syntax, Feld-Auflösung mit Frontmatter-Rückfall, `updated`, Tabellen-Form, Verwaisten-Regel) in allen fünf Sprachfassungen; Querverweis von der Seite „Block-Eigenschaften" auf die Abfrage-Seite.
+- **Hilfe-Inhalte erweitert** (4T-000410): neuer Funktions-Katalog-Eintrag „Block-Abfrage" (3 neue i18n-Keys in fünf Sprachen, Gruppe hinter dem Abfrage-Cluster, Abdeckungs-Matrix F-099); Handbuch-Seite „Perspective-Abfrage" um die Sektion „Block-Ebene (BLOCKS)" erweitert (Syntax, Feld-Auflösung mit Frontmatter-Rückfall, `updated`, Tabellen-Form, Verwaisten-Regel) in allen fünf Sprachfassungen; Querverweis von der Seite „Block-Eigenschaften" auf die Abfrage-Seite.
 
 ### Intern
 
@@ -3391,19 +3452,19 @@ Epic 3E-0077 (Perspective Query: Block-Ebene) aus dem Ideen-Programm 2026-07, zw
 
 ## [0.51.0.545] - 2026-07-09 — Perspective Datatable: typisierte Datentabelle mit Rechenfunktionen
 
-Epic 3E-0079 (Perspective Datatable) aus dem Ideen-Programm 2026-07. Ein neuer Fence-Typ `perspective-datatable` bringt eine typisierte Datentabelle in Markdown-Dokumente: Spalten mit festen Wertetypen und optionalem Anzeige-Format, live rechnende Aggregat-Zeile, berechnete Spalten über die Ausdrucks-Sprache der Perspective-Abfrage, Bearbeitung direkt im gerenderten Grid mit Typ-Zwang sowie Ansichts-Sortierung und Filter-Zeile. Alle Daten stehen als Klartext im Dokument (PO-Entscheidung A); umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0417 bis 4T-0423).
+Epic 3E-000079 (Perspective Datatable) aus dem Ideen-Programm 2026-07. Ein neuer Fence-Typ `perspective-datatable` bringt eine typisierte Datentabelle in Markdown-Dokumente: Spalten mit festen Wertetypen und optionalem Anzeige-Format, live rechnende Aggregat-Zeile, berechnete Spalten über die Ausdrucks-Sprache der Perspective-Abfrage, Bearbeitung direkt im gerenderten Grid mit Typ-Zwang sowie Ansichts-Sortierung und Filter-Zeile. Alle Daten stehen als Klartext im Dokument (PO-Entscheidung A); umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000417 bis 4T-000423).
 
 ### Neu
 
-- **Datentabellen-Format und Parser** (4T-0417): Fence `perspective-datatable` mit Kopf-Direktiven `columns:` (Typ-Satz `text`/`number`/`date`/`time`/`boolean`, Anzeige-Format `number(n)`, berechnete Spalten als `= ausdruck`) und `aggregate:` (je Spalte kombinierbar per `+`), darunter Datenzeilen in Pipe-Notation mit `\|`-Escape. Prozess-neutraler Parser mit typ-geparsten Zell-Werten und strukturierten, lokalisierten Fehlern (Rohtext bleibt bei Fehler-Zellen erhalten, kein Datenverlust); kanonischer Serialisierer mit stabiler Spalten-Ausrichtung als Grundlage des Grid-Rückschreibens. Die Datentabelle ist eine schaltbare interne Erweiterung (Einstellungen → Erweiterungen); deaktiviert bleibt der Block ein regulärer Code-Block (PO-Festlegung aus der Test-Iteration).
-- **Grid-Rendering mit Aggregat-Zeile** (4T-0418): Grid mit Typ-Symbolen im Kopf, typ-gerechter Ausrichtung, read-only Boolean-Checkboxen und markierten Fehler-Zellen (lokalisierter Tooltip); Aggregat-Zeile mit `sum`/`avg`/`min`/`max`/`count` (typ-gerecht, leere und fehlerhafte Zellen ausgenommen, `avg` rundet auf das Spalten-Format). Identisches Grid in gerenderter Ansicht, Lese-Ansicht und Live-Block-Widget; Portable-Export als statische HTML-Tabelle mit Aggregat-Fußzeile, PDF-Export über den gerenderten Stand. Bewusste Ober-Grenze: ab 1000 Zeilen nur Kopf und Aggregate mit Hinweis.
-- **Grid-Editor mit Typ-Zwang** (4T-0419): Zell-Bearbeitung direkt im Grid (Klick bzw. Enter/F2 bei Zell-Fokus; native Datums-/Zeit-Felder, Esc verwirft, Enter oder Fokus-Verlust übernimmt, Tab springt zur nächsten Zelle), ungültige Werte werden mit Hinweis abgewiesen; Boolean toggelt direkt per Klick. Zeile hinzufügen am Daten-Ende, Zeile löschen am Zeilenanfang. Jede Übernahme schreibt den kanonischen Fence-Body über den normalen Editor-Weg zurück (Dirty-Flag, Undo/Redo; mehrere Tabellen pro Dokument eindeutig über Fence-Index plus Quelltext-Abgleich); editierbar in geteilter Ansicht und Live-Modus, Lese-Ansicht und Handbuch bleiben read-only.
-- **Ansichts-Sortierung und Filter-Zeile** (4T-0420): Spaltenkopf-Klick sortiert typ-gerecht (aufsteigend, absteigend, aufgehoben; fehlende Werte ans Ende); einblendbare Filter-Zeile mit Enthaltensuche pro Spalte und Dreifach-Umschalter für Boolean, „n von m Zeilen"-Ausweis und gefilterten Aggregaten. Reiner Ansichts-Zustand pro Tab: nicht persistiert, nicht exportiert, der Quelltext bleibt byte-identisch; Bearbeiten in sortierter oder gefilterter Ansicht trifft die richtigen Zeilen.
-- **Berechnete Spalten** (4T-0421): Spalten-Formeln (`Gesamt:number = Preis * Menge`) werten pro Zeile über den Ausdrucks-Evaluator der Perspective-Abfrage aus (identischer Funktions-Katalog, gleiches Typ-System); Ergebnis-Typ gemäß Deklaration, Typ-Abweichungen als Fehler-Zelle. Formeln dürfen auf Daten-Spalten und andere berechnete Spalten in beliebiger Deklarations-Reihenfolge verweisen (die Auswertung löst die Abhängigkeiten auf; Kreis-Bezüge werden als Struktur-Fehler gemeldet); Ergebnisse werden nie persistiert, fließen aber in Aggregate, Sortierung, Filter und Export ein und aktualisieren live bei Eingaben.
+- **Datentabellen-Format und Parser** (4T-000417): Fence `perspective-datatable` mit Kopf-Direktiven `columns:` (Typ-Satz `text`/`number`/`date`/`time`/`boolean`, Anzeige-Format `number(n)`, berechnete Spalten als `= ausdruck`) und `aggregate:` (je Spalte kombinierbar per `+`), darunter Datenzeilen in Pipe-Notation mit `\|`-Escape. Prozess-neutraler Parser mit typ-geparsten Zell-Werten und strukturierten, lokalisierten Fehlern (Rohtext bleibt bei Fehler-Zellen erhalten, kein Datenverlust); kanonischer Serialisierer mit stabiler Spalten-Ausrichtung als Grundlage des Grid-Rückschreibens. Die Datentabelle ist eine schaltbare interne Erweiterung (Einstellungen → Erweiterungen); deaktiviert bleibt der Block ein regulärer Code-Block (PO-Festlegung aus der Test-Iteration).
+- **Grid-Rendering mit Aggregat-Zeile** (4T-000418): Grid mit Typ-Symbolen im Kopf, typ-gerechter Ausrichtung, read-only Boolean-Checkboxen und markierten Fehler-Zellen (lokalisierter Tooltip); Aggregat-Zeile mit `sum`/`avg`/`min`/`max`/`count` (typ-gerecht, leere und fehlerhafte Zellen ausgenommen, `avg` rundet auf das Spalten-Format). Identisches Grid in gerenderter Ansicht, Lese-Ansicht und Live-Block-Widget; Portable-Export als statische HTML-Tabelle mit Aggregat-Fußzeile, PDF-Export über den gerenderten Stand. Bewusste Ober-Grenze: ab 1000 Zeilen nur Kopf und Aggregate mit Hinweis.
+- **Grid-Editor mit Typ-Zwang** (4T-000419): Zell-Bearbeitung direkt im Grid (Klick bzw. Enter/F2 bei Zell-Fokus; native Datums-/Zeit-Felder, Esc verwirft, Enter oder Fokus-Verlust übernimmt, Tab springt zur nächsten Zelle), ungültige Werte werden mit Hinweis abgewiesen; Boolean toggelt direkt per Klick. Zeile hinzufügen am Daten-Ende, Zeile löschen am Zeilenanfang. Jede Übernahme schreibt den kanonischen Fence-Body über den normalen Editor-Weg zurück (Dirty-Flag, Undo/Redo; mehrere Tabellen pro Dokument eindeutig über Fence-Index plus Quelltext-Abgleich); editierbar in geteilter Ansicht und Live-Modus, Lese-Ansicht und Handbuch bleiben read-only.
+- **Ansichts-Sortierung und Filter-Zeile** (4T-000420): Spaltenkopf-Klick sortiert typ-gerecht (aufsteigend, absteigend, aufgehoben; fehlende Werte ans Ende); einblendbare Filter-Zeile mit Enthaltensuche pro Spalte und Dreifach-Umschalter für Boolean, „n von m Zeilen"-Ausweis und gefilterten Aggregaten. Reiner Ansichts-Zustand pro Tab: nicht persistiert, nicht exportiert, der Quelltext bleibt byte-identisch; Bearbeiten in sortierter oder gefilterter Ansicht trifft die richtigen Zeilen.
+- **Berechnete Spalten** (4T-000421): Spalten-Formeln (`Gesamt:number = Preis * Menge`) werten pro Zeile über den Ausdrucks-Evaluator der Perspective-Abfrage aus (identischer Funktions-Katalog, gleiches Typ-System); Ergebnis-Typ gemäß Deklaration, Typ-Abweichungen als Fehler-Zelle. Formeln dürfen auf Daten-Spalten und andere berechnete Spalten in beliebiger Deklarations-Reihenfolge verweisen (die Auswertung löst die Abhängigkeiten auf; Kreis-Bezüge werden als Struktur-Fehler gemeldet); Ergebnisse werden nie persistiert, fließen aber in Aggregate, Sortierung, Filter und Export ein und aktualisieren live bei Eingaben.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0422): neue Handbuch-Seite „Perspective Datatable" in fünf Sprachen (Format-Referenz, Aggregate, berechnete Spalten, Grid-Bedienung, Ansichts-Funktionen, Export und Grenzen; zwei selbst-demonstrierende Live-Beispiele) mit Registry-Eintrag und Überblicks-Link; drei neue Funktions-Katalog-Einträge (Konstrukt, Grid-Bearbeitung, Sortierung/Filter) samt Abdeckungs-Matrix F-096 bis F-098. Insgesamt 89 neue i18n-Keys in fünf Sprachen (43 UI-Keys der Tabelle plus 45 Katalog-Keys und der Seiten-Titel).
+- **Hilfe-Inhalte erweitert** (4T-000422): neue Handbuch-Seite „Perspective Datatable" in fünf Sprachen (Format-Referenz, Aggregate, berechnete Spalten, Grid-Bedienung, Ansichts-Funktionen, Export und Grenzen; zwei selbst-demonstrierende Live-Beispiele) mit Registry-Eintrag und Überblicks-Link; drei neue Funktions-Katalog-Einträge (Konstrukt, Grid-Bearbeitung, Sortierung/Filter) samt Abdeckungs-Matrix F-096 bis F-098. Insgesamt 89 neue i18n-Keys in fünf Sprachen (43 UI-Keys der Tabelle plus 45 Katalog-Keys und der Seiten-Titel).
 
 ### Intern
 
@@ -3415,20 +3476,20 @@ Epic 3E-0079 (Perspective Datatable) aus dem Ideen-Programm 2026-07. Ein neuer F
 
 ## [0.50.0.536] - 2026-07-08 — Render-Darstellung: Mehrspalten-Block und einstellbare Inhalts-Breite
 
-Epic 3E-0072 (Render-Darstellung: Mehrspaltigkeit und Inhalts-Breite) aus dem Ideen-Programm 2026-07, letztes Feature-Epic vor der Konsolidierung. Zwei Darstellungs-Erweiterungen der gerenderten Ansicht: Ein Mehrspalten-Block setzt eingeschlossene Inhalte zwei- bis fünfspaltig (reines Markdown mit Block-Markern und optionalem Spalten-Umbruch), und die genutzte Inhalts-Breite ist als freier Prozent-Wert einstellbar und löst die feste 920-px-Begrenzung ab. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0382 bis 4T-0385).
+Epic 3E-000072 (Render-Darstellung: Mehrspaltigkeit und Inhalts-Breite) aus dem Ideen-Programm 2026-07, letztes Feature-Epic vor der Konsolidierung. Zwei Darstellungs-Erweiterungen der gerenderten Ansicht: Ein Mehrspalten-Block setzt eingeschlossene Inhalte zwei- bis fünfspaltig (reines Markdown mit Block-Markern und optionalem Spalten-Umbruch), und die genutzte Inhalts-Breite ist als freier Prozent-Wert einstellbar und löst die feste 920-px-Begrenzung ab. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000382 bis 4T-000385).
 
 ### Neu
 
-- **Mehrspalten-Block** (4T-0382): Container `::: columns <n>` … `:::` setzt den eingeschlossenen Inhalt mehrspaltig (gültig sind 2 bis 5 Spalten); der Text fließt automatisch und ausgeglichen über CSS-Spalten, eine `+++`-Zeile erzwingt den Spaltenwechsel. Ungültige Spaltenzahlen (fehlend, 1, mehr als 5, nicht numerisch) fallen auf die neutrale Container-Box zurück; außerhalb eines Spalten-Blocks bleibt `+++` wirkungslos. Parität: die Lese-Ansicht nutzt denselben Render-Pfad, der Live-Modus zeigt den Block in neutraler Container-Optik mit editierbaren Marker-Zeilen, der PDF-Export druckt die Spalten mit, der portable Export trägt Inline-Styles. Der Block gehört zur Erweiterung „Custom Containers" und schaltet mit ihr.
-- **Inhalts-Breite in Prozent** (4T-0383): neues Feld „Inhalts-Breite (%)" im Einstellungs-Bereich Darstellung (20 bis 100, Standard 80) mit Live-Vorschau; wirkt sofort auf gerenderte und geteilte Ansicht aller Fenster und übersteht den Neustart. Werte unter 100 bleiben zentriert; der PDF-Export nutzt unabhängig davon die volle Druckbreite. Werte außerhalb des Bereichs werden auf die Grenzen geklemmt.
+- **Mehrspalten-Block** (4T-000382): Container `::: columns <n>` … `:::` setzt den eingeschlossenen Inhalt mehrspaltig (gültig sind 2 bis 5 Spalten); der Text fließt automatisch und ausgeglichen über CSS-Spalten, eine `+++`-Zeile erzwingt den Spaltenwechsel. Ungültige Spaltenzahlen (fehlend, 1, mehr als 5, nicht numerisch) fallen auf die neutrale Container-Box zurück; außerhalb eines Spalten-Blocks bleibt `+++` wirkungslos. Parität: die Lese-Ansicht nutzt denselben Render-Pfad, der Live-Modus zeigt den Block in neutraler Container-Optik mit editierbaren Marker-Zeilen, der PDF-Export druckt die Spalten mit, der portable Export trägt Inline-Styles. Der Block gehört zur Erweiterung „Custom Containers" und schaltet mit ihr.
+- **Inhalts-Breite in Prozent** (4T-000383): neues Feld „Inhalts-Breite (%)" im Einstellungs-Bereich Darstellung (20 bis 100, Standard 80) mit Live-Vorschau; wirkt sofort auf gerenderte und geteilte Ansicht aller Fenster und übersteht den Neustart. Werte unter 100 bleiben zentriert; der PDF-Export nutzt unabhängig davon die volle Druckbreite. Werte außerhalb des Bereichs werden auf die Grenzen geklemmt.
 
 ### Geändert
 
-- **Feste 920-px-Breite abgelöst** (4T-0383): Die gerenderte Ansicht begrenzte den Inhalt bisher fest auf 920 px zentriert; jetzt steuert der Prozent-Wert eine CSS-Variable. Der neue Standard-Look ist 80 Prozent der Ansichts-Breite (PO-Festlegung); der bisherige Pixel-Look ist über den Prozent-Wert nicht exakt abbildbar.
+- **Feste 920-px-Breite abgelöst** (4T-000383): Die gerenderte Ansicht begrenzte den Inhalt bisher fest auf 920 px zentriert; jetzt steuert der Prozent-Wert eine CSS-Variable. Der neue Standard-Look ist 80 Prozent der Ansichts-Breite (PO-Festlegung); der bisherige Pixel-Look ist über den Prozent-Wert nicht exakt abbildbar.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0384): Handbuch-Seite „Blöcke" um die selbst-demonstrierende Sektion „Mehrspalten-Block" erweitert (fünf Sprachen, mit lebendem Beispiel, Rückfall-Verhalten und dokumentierten Grenzen); zwei neue Funktions-Katalog-Einträge „Mehrspalten-Block" (Gruppe Bearbeitung) und „Inhalts-Breite" (Gruppe Ansicht) samt Abdeckungs-Matrix F-094/F-095. Die Inhalts-Breite wird bewusst nur über den Katalog dokumentiert (PO-Entscheidung; Muster der übrigen Darstellungs-Einstellungen). Insgesamt 7 neue i18n-Keys in fünf Sprachen.
+- **Hilfe-Inhalte erweitert** (4T-000384): Handbuch-Seite „Blöcke" um die selbst-demonstrierende Sektion „Mehrspalten-Block" erweitert (fünf Sprachen, mit lebendem Beispiel, Rückfall-Verhalten und dokumentierten Grenzen); zwei neue Funktions-Katalog-Einträge „Mehrspalten-Block" (Gruppe Bearbeitung) und „Inhalts-Breite" (Gruppe Ansicht) samt Abdeckungs-Matrix F-094/F-095. Die Inhalts-Breite wird bewusst nur über den Katalog dokumentiert (PO-Entscheidung; Muster der übrigen Darstellungs-Einstellungen). Insgesamt 7 neue i18n-Keys in fünf Sprachen.
 
 ### Intern
 
@@ -3437,17 +3498,17 @@ Epic 3E-0072 (Render-Darstellung: Mehrspaltigkeit und Inhalts-Breite) aus dem Id
 
 ## [0.49.0.530] - 2026-07-08 — Block-Metadaten: strukturierte Eigenschaften pro Block-Anker
 
-Epic 3E-0067 (Block-Metadaten: strukturierte Daten pro Block-Anker) aus dem Ideen-Programm 2026-07. Was das Frontmatter für das ganze Dokument leistet, gibt es jetzt pro Block: typisierte Schlüssel-Wert-Eigenschaften, verankert am Block-Anker `^id` und gespeichert in der `.mdd`-Begleitdatei (eigene Sektion neben Historie und Notizen), gepflegt über ein neues Sidebar-Panel mit Cursor-Folge und sichtbar über einen dezenten Indikator am Block. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0363 bis 4T-0367) auf Basis des PO-freigegebenen Konzepts (4T-0362).
+Epic 3E-000067 (Block-Metadaten: strukturierte Daten pro Block-Anker) aus dem Ideen-Programm 2026-07. Was das Frontmatter für das ganze Dokument leistet, gibt es jetzt pro Block: typisierte Schlüssel-Wert-Eigenschaften, verankert am Block-Anker `^id` und gespeichert in der `.mdd`-Begleitdatei (eigene Sektion neben Historie und Notizen), gepflegt über ein neues Sidebar-Panel mit Cursor-Folge und sichtbar über einen dezenten Indikator am Block. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000363 bis 4T-000367) auf Basis des PO-freigegebenen Konzepts (4T-000362).
 
 ### Neu
 
-- **Block-Metadaten in der Begleitdatei** (4T-0363): neue optionale `.mdd`-Sektion `blockData` mit 0 bis n Schlüssel-Wert-Einträgen pro Block-Anker und Zeitstempel je Anker; Fehler-Isolation nach dem Muster der Notizen-Sektion (eine defekte Sektion setzt nur die Block-Metadaten aus, nie Historie oder Notizen). Lese-/Schreib-/Umbenennen-IPC mit Mehrfenster-Broadcast; die Block-Anker-Erkennung liegt jetzt in einer gemeinsamen, prozess-neutralen Quelle (`src/shared/block-anchors.js`) für Backlinks-Index und Panel.
-- **Panel „Block-Eigenschaften"** (4T-0364): neues Sidebar-Panel direkt neben den Dokument-Properties, das dem Cursor folgt und die Eigenschaften des Blocks unter dem Cursor zeigt. Typisierte Eigenschafts-Zeilen wie im Properties-Editor (Text, Liste, Zahl, Wahr/Falsch, Datum, mehrzeilig), freie Schlüssel mit Vorschlägen aus dem Dokument-Bestand, automatisches Speichern ohne Tab-Dirty. Kopfzeile mit Anker-Dropdown, „Anker anlegen" (kurze Zufalls-ID) für Blöcke ohne Anker und Umbenennen-Kommando, das Text-Anker, `.mdd`-Schlüssel und eingehende Verweise im selben Dokument synchron mitzieht. Verwaiste Daten (Anker aus dem Text verschwunden) bleiben erhalten und lassen sich im Panel zuordnen oder löschen; Duplikat-Anker zeigen einen Hinweis. Zugang über Ansicht → Block-Eigenschaften und Statusbar-Symbol; read-only in Lese-Ansichten.
-- **Indikator am Block** (4T-0365): Blöcke mit Metadaten tragen im Gerenderten und im Live-Modus einen dezenten Marker am Blockende; Hover zeigt die Schlüssel-Wert-Liste, Klick öffnet das Panel mit dem Anker als Kontext. Änderungen (auch aus anderen Fenstern) ziehen live nach; im PDF-Export und im portablen Export erscheint der Indikator nicht. Eine eigene Abfrage-Syntax über Block-Metadaten ist bewusst nicht Teil dieses Releases (per Konzept-Entscheidung dem Query-Ausbau vorbehalten).
+- **Block-Metadaten in der Begleitdatei** (4T-000363): neue optionale `.mdd`-Sektion `blockData` mit 0 bis n Schlüssel-Wert-Einträgen pro Block-Anker und Zeitstempel je Anker; Fehler-Isolation nach dem Muster der Notizen-Sektion (eine defekte Sektion setzt nur die Block-Metadaten aus, nie Historie oder Notizen). Lese-/Schreib-/Umbenennen-IPC mit Mehrfenster-Broadcast; die Block-Anker-Erkennung liegt jetzt in einer gemeinsamen, prozess-neutralen Quelle (`src/shared/block-anchors.js`) für Backlinks-Index und Panel.
+- **Panel „Block-Eigenschaften"** (4T-000364): neues Sidebar-Panel direkt neben den Dokument-Properties, das dem Cursor folgt und die Eigenschaften des Blocks unter dem Cursor zeigt. Typisierte Eigenschafts-Zeilen wie im Properties-Editor (Text, Liste, Zahl, Wahr/Falsch, Datum, mehrzeilig), freie Schlüssel mit Vorschlägen aus dem Dokument-Bestand, automatisches Speichern ohne Tab-Dirty. Kopfzeile mit Anker-Dropdown, „Anker anlegen" (kurze Zufalls-ID) für Blöcke ohne Anker und Umbenennen-Kommando, das Text-Anker, `.mdd`-Schlüssel und eingehende Verweise im selben Dokument synchron mitzieht. Verwaiste Daten (Anker aus dem Text verschwunden) bleiben erhalten und lassen sich im Panel zuordnen oder löschen; Duplikat-Anker zeigen einen Hinweis. Zugang über Ansicht → Block-Eigenschaften und Statusbar-Symbol; read-only in Lese-Ansichten.
+- **Indikator am Block** (4T-000365): Blöcke mit Metadaten tragen im Gerenderten und im Live-Modus einen dezenten Marker am Blockende; Hover zeigt die Schlüssel-Wert-Liste, Klick öffnet das Panel mit dem Anker als Kontext. Änderungen (auch aus anderen Fenstern) ziehen live nach; im PDF-Export und im portablen Export erscheint der Indikator nicht. Eine eigene Abfrage-Syntax über Block-Metadaten ist bewusst nicht Teil dieses Releases (per Konzept-Entscheidung dem Query-Ausbau vorbehalten).
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0366): neue Handbuch-Seite „Block-Eigenschaften" in fünf Sprachen (Anker als Träger, Panel-Pflege, Umbenennen, verwaiste Daten, Indikator, Speicherort und Grenzen) samt Überblicks-Link; Funktions-Katalog-Eintrag „Block-Metadaten" in der Begleitdatei-Gruppe hinter der Dokument-Notiz (Abdeckungs-Matrix F-093). Insgesamt 21 neue i18n-Keys in fünf Sprachen (Panel-Texte, Menü-Eintrag, Kommando-Beschreibung, Katalog- und Seiten-Titel-Keys).
+- **Hilfe-Inhalte erweitert** (4T-000366): neue Handbuch-Seite „Block-Eigenschaften" in fünf Sprachen (Anker als Träger, Panel-Pflege, Umbenennen, verwaiste Daten, Indikator, Speicherort und Grenzen) samt Überblicks-Link; Funktions-Katalog-Eintrag „Block-Metadaten" in der Begleitdatei-Gruppe hinter der Dokument-Notiz (Abdeckungs-Matrix F-093). Insgesamt 21 neue i18n-Keys in fünf Sprachen (Panel-Texte, Menü-Eintrag, Kommando-Beschreibung, Katalog- und Seiten-Titel-Keys).
 
 ### Intern
 
@@ -3457,19 +3518,19 @@ Epic 3E-0067 (Block-Metadaten: strukturierte Daten pro Block-Anker) aus dem Idee
 
 ## [0.48.0.525] - 2026-07-08 — Perspective Query: Klausel-Sprache, Datei-Felder und Tabellen
 
-Epic 3E-0076 (Perspective Query: Sprache, Felder und Tabelle), erste von drei Stufen des Query-Ausbaus aus dem Ideen-Programm 2026-07. Die Perspective-Abfrage (`perspective-query`-Fence) wächst von der reinen Frontmatter-Filter-Liste zur vollwertigen Abfrage-Sprache mit Quellen-Auswahl, impliziten Datei-Feldern, Funktions-Katalog, Sortierung, Tabellen-Ausgabe und Mehrspalten-Layout; bestehende Abfragen bleiben unverändert gültig. Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0401 bis 4T-0407).
+Epic 3E-000076 (Perspective Query: Sprache, Felder und Tabelle), erste von drei Stufen des Query-Ausbaus aus dem Ideen-Programm 2026-07. Die Perspective-Abfrage (`perspective-query`-Fence) wächst von der reinen Frontmatter-Filter-Liste zur vollwertigen Abfrage-Sprache mit Quellen-Auswahl, impliziten Datei-Feldern, Funktions-Katalog, Sortierung, Tabellen-Ausgabe und Mehrspalten-Layout; bestehende Abfragen bleiben unverändert gültig. Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000401 bis 4T-000407).
 
 ### Neu
 
-- **Abfrage-Grammatik 2.0** (4T-0401): Klausel-Sprache mit `LIST` (optionales Zusatzfeld) bzw. `TABLE` als Ausgabe-Typ und je höchstens einmal `FROM`, `WHERE`, `SORT`, `LIMIT`, `COLUMNS` in freier Reihenfolge. Die Ausdrucks-Ebene kennt jetzt Ordnungs-Vergleiche (`<`, `<=`, `>`, `>=`), Arithmetik mit Punkt-vor-Strich, Funktions-Aufrufe, Zahl-Literale sowie Datums- und Dauer-Literale (`date(today)`, `date(2026-12-31)`, `dur(7 days)`; Monat/Jahr als fixe 30/365-Tage-Näherung). Eine nackte Bedingung ohne Klausel wird weiter als `LIST WHERE …` gelesen; Feldnamen wie `limit` bleiben in der Kurzform nutzbar. 21 neue lokalisierte Syntaxfehler-Texte (u.a. Klausel-Duplikate, Datums-/Dauer-Validierung), auch die bisherigen Parser-Codes zeigen jetzt eigene Texte statt des generischen Fallbacks.
-- **Feld-Auflösung und Typ-System** (4T-0402): implizite Datei-Felder unter `file.` (name, folder, path, ext, link, size, ctime, mtime, tags, aliases, inlinks, outlinks), Typ-System mit typ-gerechten Vergleichen (Zahl numerisch, auch als Zahl-String; Datum chronologisch inkl. ISO-Strings; Text case-insensitiv), Datum-±-Dauer-Rechnung und ein kuratierter Funktions-Katalog (`contains`, `icontains`, `length`, `lower`, `upper`, `startswith`, `endswith`, `default`, `choice`, `number`, `string`, `dateformat`, `sum`, `min`, `max`, `average`). `FROM`-Quellen: Ordner, Schlagwörter (hierarchisch), `[[Datei]]` und `outgoing([[Datei]])`, kombinierbar mit `AND`/`OR`/Klammern/`-`. Unbekannte Funktionen und falsche Stelligkeit erscheinen als lokalisierter Fehler am Fence.
-- **Sortierung und Limit** (4T-0403): `SORT feld [ASC|DESC], …` sortiert mehrstufig und typ-gerecht (Text locale-bewusst); fehlende Werte sortieren unabhängig von der Richtung ans Ende, letzter Tiebreaker ist der Datei-Pfad (deterministisch bei Live-Updates). `LIMIT n` schneidet nach der Sortierung; ohne `SORT` bleibt die alphabetische Ordnung.
-- **Tabellen-Ausgabe** (4T-0404): `TABLE spalte [AS "Titel"], …` rendert eine Tabelle mit klickbarer Datei-Spalte (per `WITHOUT ID` abschaltbar) und Zellen aus Feldern oder Ausdrücken; ohne Alias dient der Ausdrucks-Quelltext als Kopfzeile. Listen kommagetrennt, Daten im ISO-Format, Link-Werte klickbar; identisches DOM in Render-Pane, Reading und Live-Widget. Das optionale LIST-Zusatzfeld erscheint als gedämpfter Anhang hinter jedem Treffer.
-- **Mehrspalten-Layout** (4T-0405): `COLUMNS n` (1 bis 8) lässt Ergebnis-Listen über CSS-Spalten fließen; bei `TABLE` wird `COLUMNS` ignoriert und als lokalisierter Hinweis am Fence gemeldet.
+- **Abfrage-Grammatik 2.0** (4T-000401): Klausel-Sprache mit `LIST` (optionales Zusatzfeld) bzw. `TABLE` als Ausgabe-Typ und je höchstens einmal `FROM`, `WHERE`, `SORT`, `LIMIT`, `COLUMNS` in freier Reihenfolge. Die Ausdrucks-Ebene kennt jetzt Ordnungs-Vergleiche (`<`, `<=`, `>`, `>=`), Arithmetik mit Punkt-vor-Strich, Funktions-Aufrufe, Zahl-Literale sowie Datums- und Dauer-Literale (`date(today)`, `date(2026-12-31)`, `dur(7 days)`; Monat/Jahr als fixe 30/365-Tage-Näherung). Eine nackte Bedingung ohne Klausel wird weiter als `LIST WHERE …` gelesen; Feldnamen wie `limit` bleiben in der Kurzform nutzbar. 21 neue lokalisierte Syntaxfehler-Texte (u.a. Klausel-Duplikate, Datums-/Dauer-Validierung), auch die bisherigen Parser-Codes zeigen jetzt eigene Texte statt des generischen Fallbacks.
+- **Feld-Auflösung und Typ-System** (4T-000402): implizite Datei-Felder unter `file.` (name, folder, path, ext, link, size, ctime, mtime, tags, aliases, inlinks, outlinks), Typ-System mit typ-gerechten Vergleichen (Zahl numerisch, auch als Zahl-String; Datum chronologisch inkl. ISO-Strings; Text case-insensitiv), Datum-±-Dauer-Rechnung und ein kuratierter Funktions-Katalog (`contains`, `icontains`, `length`, `lower`, `upper`, `startswith`, `endswith`, `default`, `choice`, `number`, `string`, `dateformat`, `sum`, `min`, `max`, `average`). `FROM`-Quellen: Ordner, Schlagwörter (hierarchisch), `[[Datei]]` und `outgoing([[Datei]])`, kombinierbar mit `AND`/`OR`/Klammern/`-`. Unbekannte Funktionen und falsche Stelligkeit erscheinen als lokalisierter Fehler am Fence.
+- **Sortierung und Limit** (4T-000403): `SORT feld [ASC|DESC], …` sortiert mehrstufig und typ-gerecht (Text locale-bewusst); fehlende Werte sortieren unabhängig von der Richtung ans Ende, letzter Tiebreaker ist der Datei-Pfad (deterministisch bei Live-Updates). `LIMIT n` schneidet nach der Sortierung; ohne `SORT` bleibt die alphabetische Ordnung.
+- **Tabellen-Ausgabe** (4T-000404): `TABLE spalte [AS "Titel"], …` rendert eine Tabelle mit klickbarer Datei-Spalte (per `WITHOUT ID` abschaltbar) und Zellen aus Feldern oder Ausdrücken; ohne Alias dient der Ausdrucks-Quelltext als Kopfzeile. Listen kommagetrennt, Daten im ISO-Format, Link-Werte klickbar; identisches DOM in Render-Pane, Reading und Live-Widget. Das optionale LIST-Zusatzfeld erscheint als gedämpfter Anhang hinter jedem Treffer.
+- **Mehrspalten-Layout** (4T-000405): `COLUMNS n` (1 bis 8) lässt Ergebnis-Listen über CSS-Spalten fließen; bei `TABLE` wird `COLUMNS` ignoriert und als lokalisierter Hinweis am Fence gemeldet.
 
 ### i18n und Handbuch
 
-- **Hilfe-Inhalte erweitert** (4T-0406): Die Funktion heißt für den Nutzer jetzt **«Perspective-Abfrage»** (Titel-, Kurzname- und Überblicks-Keys in fünf Sprachen umbenannt; Seiten-ID und Dateinamen unverändert). Die Handbuch-Seite ist in allen fünf Sprachen zum vollständigen Sprach-Nachschlagewerk ausgebaut (Klauseln, Quellen, Felder, Literale, Funktions-Tabelle mit Beispielen, Sortierung, Mehrspalten). Drei neue Katalog-Einträge (Abfrage-Quellen, Abfrage-Tabelle, Abfrage-Sortierung und Mehrspaltigkeit) samt Abdeckungs-Matrix F-090 bis F-092. Insgesamt 34 neue i18n-Keys in fünf Sprachen (Fehler-/Hinweis-Texte, Tabellen-Spalte, Katalog-Einträge).
+- **Hilfe-Inhalte erweitert** (4T-000406): Die Funktion heißt für den Nutzer jetzt **«Perspective-Abfrage»** (Titel-, Kurzname- und Überblicks-Keys in fünf Sprachen umbenannt; Seiten-ID und Dateinamen unverändert). Die Handbuch-Seite ist in allen fünf Sprachen zum vollständigen Sprach-Nachschlagewerk ausgebaut (Klauseln, Quellen, Felder, Literale, Funktions-Tabelle mit Beispielen, Sortierung, Mehrspalten). Drei neue Katalog-Einträge (Abfrage-Quellen, Abfrage-Tabelle, Abfrage-Sortierung und Mehrspaltigkeit) samt Abdeckungs-Matrix F-090 bis F-092. Insgesamt 34 neue i18n-Keys in fünf Sprachen (Fehler-/Hinweis-Texte, Tabellen-Spalte, Katalog-Einträge).
 
 ### Intern
 
@@ -3479,16 +3540,16 @@ Epic 3E-0076 (Perspective Query: Sprache, Felder und Tabelle), erste von drei St
 
 ## [0.47.0.516] - 2026-07-08 — Entwurfs-Zwischenspeicher: neue Dokumente überleben das Beenden
 
-Epic 3E-0068 (Entwurfs-Zwischenspeicher für ungespeicherte neue Dokumente). Nie gespeicherte Dokumente (Unbenannt-Tabs) gehen beim Beenden der App nicht mehr durch einen Speichern-Dialog verloren: Ihre Inhalte werden zwischengespeichert und beim nächsten Start wieder als Unbenannt-Tabs geöffnet, unabhängig von der Sitzungs-Wiederherstellung und per Einstellung abschaltbar. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0368 bis 4T-0371).
+Epic 3E-000068 (Entwurfs-Zwischenspeicher für ungespeicherte neue Dokumente). Nie gespeicherte Dokumente (Unbenannt-Tabs) gehen beim Beenden der App nicht mehr durch einen Speichern-Dialog verloren: Ihre Inhalte werden zwischengespeichert und beim nächsten Start wieder als Unbenannt-Tabs geöffnet, unabhängig von der Sitzungs-Wiederherstellung und per Einstellung abschaltbar. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000368 bis 4T-000371).
 
 ### Neu
 
-- **Entwurfs-Zwischenspeicher** (4T-0368): Beim Beenden der App oder eines Fensters wandern Unbenannt-Tabs mit Inhalt ohne Dialog in einen Zwischenspeicher unter dem Benutzerprofil (`userData/drafts`, je Entwurf eine Datei plus Manifest) und werden beim nächsten Start wieder als geänderte Unbenannt-Tabs geöffnet. Die Wiederherstellung ist bereichs-treu (ein Entwurf kehrt in seine Ursprungs-Applikation zurück, sonst verlustfrei in das erste bereichslose Fenster) und unabhängig von der Sitzungs-Wiederherstellung. Reguläres Speichern oder einzelnes Verwerfen räumt den Entwurf aus dem Speicher; leere Unbenannt-Tabs hinterlassen keine Reste.
-- **Einstellung „Ungespeicherte neue Dokumente beim Beenden behalten"** (4T-0369): neuer Schalter im Bereich „Verhalten" der Einstellungs-Seite (Standard an), der den Zwischenspeicher steuert. Wirkt sofort und übersteht den Neustart.
+- **Entwurfs-Zwischenspeicher** (4T-000368): Beim Beenden der App oder eines Fensters wandern Unbenannt-Tabs mit Inhalt ohne Dialog in einen Zwischenspeicher unter dem Benutzerprofil (`userData/drafts`, je Entwurf eine Datei plus Manifest) und werden beim nächsten Start wieder als geänderte Unbenannt-Tabs geöffnet. Die Wiederherstellung ist bereichs-treu (ein Entwurf kehrt in seine Ursprungs-Applikation zurück, sonst verlustfrei in das erste bereichslose Fenster) und unabhängig von der Sitzungs-Wiederherstellung. Reguläres Speichern oder einzelnes Verwerfen räumt den Entwurf aus dem Speicher; leere Unbenannt-Tabs hinterlassen keine Reste.
+- **Einstellung „Ungespeicherte neue Dokumente beim Beenden behalten"** (4T-000369): neuer Schalter im Bereich „Verhalten" der Einstellungs-Seite (Standard an), der den Zwischenspeicher steuert. Wirkt sofort und übersteht den Neustart.
 
 ### Geändert
 
-- **Dialog-Verhalten beim App-Ende** (4T-0369): Bei aktivem Zwischenspeicher erscheint beim Beenden kein Speichern/Verwerfen-Dialog mehr für Unbenannt-Tabs; sie werden ohne Nachfrage gesichert. Dirty bestehende Dateien behalten ihren Speichern-Dialog, und das einzelne Schließen eines Unbenannt-Tabs (Strg+W) fragt weiterhin nach. Bei ausgeschalteter Einstellung bleibt das bisherige Verhalten vollständig erhalten.
+- **Dialog-Verhalten beim App-Ende** (4T-000369): Bei aktivem Zwischenspeicher erscheint beim Beenden kein Speichern/Verwerfen-Dialog mehr für Unbenannt-Tabs; sie werden ohne Nachfrage gesichert. Dirty bestehende Dateien behalten ihren Speichern-Dialog, und das einzelne Schließen eines Unbenannt-Tabs (Strg+W) fragt weiterhin nach. Bei ausgeschalteter Einstellung bleibt das bisherige Verhalten vollständig erhalten.
 
 ### Intern
 
@@ -3502,13 +3563,13 @@ Epic 3E-0068 (Entwurfs-Zwischenspeicher für ungespeicherte neue Dokumente). Nie
 
 ## [0.46.0.498] - 2026-07-08 — Dokument-Notizen: eine Notiz je Dokument
 
-Epic 3E-0066 (Dokument-Notizen in der Markdown-Data-Datei). Zu jedem Dokument lässt sich eine einzelne Notiz führen, getrennt vom Dokument-Inhalt und in der `.mdd`-Begleitdatei gespeichert (eigene Sektion `notes` neben der Historie). Gepflegt wird sie in einem eigenen, editierbaren Sidebar-Panel mit umschaltbarer Vorschau, den Formatier-Funktionen des Haupt-Editors und automatischem Speichern; anders als die Historie ohne Revisionen und Wiederherstellung. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0358 bis 4T-0361, inklusive der Nachforderung 4T-0398).
+Epic 3E-000066 (Dokument-Notizen in der Markdown-Data-Datei). Zu jedem Dokument lässt sich eine einzelne Notiz führen, getrennt vom Dokument-Inhalt und in der `.mdd`-Begleitdatei gespeichert (eigene Sektion `notes` neben der Historie). Gepflegt wird sie in einem eigenen, editierbaren Sidebar-Panel mit umschaltbarer Vorschau, den Formatier-Funktionen des Haupt-Editors und automatischem Speichern; anders als die Historie ohne Revisionen und Wiederherstellung. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000358 bis 4T-000361, inklusive der Nachforderung 4T-000398).
 
 ### Neu
 
-- **Notiz-Sektion in der `.mdd`** (4T-0358): Der Markdown-Data-Container trägt neben der Historie eine optionale Sektion `notes` mit einer einzelnen Notiz je Dokument (`{ text, updated }`, Zeitstempel UTC-sekundengenau). Der Lese-/Schreib-Pfad legt die Begleitdatei bei der ersten Notiz auch ohne bestehende `.mdd` an, überschreibt den Stand ersatzlos (bewusst keine Historie) und lässt Historie und Notiz unabhängig koexistieren; eine defekte Begleitdatei setzt nur die Notiz aus, nie die Historie. Ein Broadcast hält Panels desselben Dokuments in anderen Fenstern aktuell.
-- **Notizen-Panel** (4T-0359): ein neues, editierbares Sidebar-Panel zeigt die Notiz der aktiven Datei. Ein Umschalter im Panel-Kopf wechselt zwischen Bearbeiten und gerenderter Vorschau; der Startzustand folgt der neuen Einstellung „Notiz-Vorschau standardmäßig anzeigen" (Bereich Darstellung, ab Werk an). Gespeichert wird implizit (kurz nach dem Tippen sowie bei Fokus-Verlust, Datei-Wechsel und Fenster-Schließen), ohne Speichern-Schaltfläche und ohne Dirty-Marker am Tab. Ein unbenanntes Dokument und eine beschädigte Begleitdatei zeigen einen Hinweis statt eines Eingabefelds; bei Bearbeitung desselben Dokuments in mehreren Fenstern zieht eine fremde Änderung still nach, ein eigener ungespeicherter Stand löst einen Konflikt-Hinweis aus. Zugang über Menü Ansicht → Notizen, ein Statusbar-Symbol und das belegbare Kommando `view.toggleNotes`.
-- **Formatieren im Notiz-Feld** (4T-0398): Das Notiz-Feld trägt das Rechtsklick-Kontextmenü und die Formatierungs-Kürzel des Haupt-Editors (Fett `Strg + B`, Kursiv `Strg + I`, Zeitstempel `Strg + Umschalt + D` sowie die übrigen belegbaren Format-, Absatz- und Einfüge-Aktionen). Das Zeitstempel-Kürzel trifft jetzt den fokussierten Editor, also auch das Notiz-Feld.
+- **Notiz-Sektion in der `.mdd`** (4T-000358): Der Markdown-Data-Container trägt neben der Historie eine optionale Sektion `notes` mit einer einzelnen Notiz je Dokument (`{ text, updated }`, Zeitstempel UTC-sekundengenau). Der Lese-/Schreib-Pfad legt die Begleitdatei bei der ersten Notiz auch ohne bestehende `.mdd` an, überschreibt den Stand ersatzlos (bewusst keine Historie) und lässt Historie und Notiz unabhängig koexistieren; eine defekte Begleitdatei setzt nur die Notiz aus, nie die Historie. Ein Broadcast hält Panels desselben Dokuments in anderen Fenstern aktuell.
+- **Notizen-Panel** (4T-000359): ein neues, editierbares Sidebar-Panel zeigt die Notiz der aktiven Datei. Ein Umschalter im Panel-Kopf wechselt zwischen Bearbeiten und gerenderter Vorschau; der Startzustand folgt der neuen Einstellung „Notiz-Vorschau standardmäßig anzeigen" (Bereich Darstellung, ab Werk an). Gespeichert wird implizit (kurz nach dem Tippen sowie bei Fokus-Verlust, Datei-Wechsel und Fenster-Schließen), ohne Speichern-Schaltfläche und ohne Dirty-Marker am Tab. Ein unbenanntes Dokument und eine beschädigte Begleitdatei zeigen einen Hinweis statt eines Eingabefelds; bei Bearbeitung desselben Dokuments in mehreren Fenstern zieht eine fremde Änderung still nach, ein eigener ungespeicherter Stand löst einen Konflikt-Hinweis aus. Zugang über Menü Ansicht → Notizen, ein Statusbar-Symbol und das belegbare Kommando `view.toggleNotes`.
+- **Formatieren im Notiz-Feld** (4T-000398): Das Notiz-Feld trägt das Rechtsklick-Kontextmenü und die Formatierungs-Kürzel des Haupt-Editors (Fett `Strg + B`, Kursiv `Strg + I`, Zeitstempel `Strg + Umschalt + D` sowie die übrigen belegbaren Format-, Absatz- und Einfüge-Aktionen). Das Zeitstempel-Kürzel trifft jetzt den fokussierten Editor, also auch das Notiz-Feld.
 
 ### Intern
 
@@ -3519,16 +3580,16 @@ Epic 3E-0066 (Dokument-Notizen in der Markdown-Data-Datei). Zu jedem Dokument l�
 ### i18n
 
 - **Neue Keys** in allen fünf Sprachen: die Panel-Texte (`notes.*`: Titel, Umschalter, Platzhalter und Hinweise), der Menü-Eintrag `menu.view.notes`, das Kürzel `help.shortcut.toggleNotes`, die Einstellung `settings.notesPreviewByDefault` sowie der Funktions-Katalog-Eintrag `documentNotes` (Beschreibung, Kurzname, Zugang).
-- **Handbuch** (4T-0360): neue Themen-Seite „Dokument-Notizen" (Panel und Zugang, Schreiben und Vorschau, Formatieren wie im Editor, automatisches Speichern, Speicherort und Abgrenzung zur Historie, mehrere Fenster) in fünf Sprachfassungen; Verweis in der Überblicksseite, Panel-Liste der Sidebar-Seite ergänzt, bidirektionale Abgrenzung auf der Historien-Seite. Die Handbuch-Linter-Prüfliste zieht nun automatisch aus der Seiten-Registry.
+- **Handbuch** (4T-000360): neue Themen-Seite „Dokument-Notizen" (Panel und Zugang, Schreiben und Vorschau, Formatieren wie im Editor, automatisches Speichern, Speicherort und Abgrenzung zur Historie, mehrere Fenster) in fünf Sprachfassungen; Verweis in der Überblicksseite, Panel-Liste der Sidebar-Seite ergänzt, bidirektionale Abgrenzung auf der Historien-Seite. Die Handbuch-Linter-Prüfliste zieht nun automatisch aus der Seiten-Registry.
 
 ## [0.45.0.489] - 2026-07-07 — Frontmatter-Abfrage: dynamische Datei-Listen im Dokument
 
-Epic 3E-0065 (Frontmatter-Abfrage: dynamische Datei-Listen im Dokument). Ein Code-Block mit dem Sprach-Tag `perspective-query` bettet eine boolesche Filter-Abfrage über Frontmatter-Felder ein; gerendert erscheint an dieser Stelle eine dynamische, klickbare Liste aller passenden Dateien des Suchraums, die sich mit dem Index aktuell hält. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0354 bis 4T-0357).
+Epic 3E-000065 (Frontmatter-Abfrage: dynamische Datei-Listen im Dokument). Ein Code-Block mit dem Sprach-Tag `perspective-query` bettet eine boolesche Filter-Abfrage über Frontmatter-Felder ein; gerendert erscheint an dieser Stelle eine dynamische, klickbare Liste aller passenden Dateien des Suchraums, die sich mit dem Index aktuell hält. Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000354 bis 4T-000357).
 
 ### Neu
 
-- **Abfrage-Syntax und Properties-Index** (4T-0354): Der Fenced-Code-Block mit Sprach-Tag `perspective-query` nimmt einen logischen Ausdruck über Frontmatter-Felder auf: Wert-Gleichheit und -Ungleichheit (`=`, `!=`), Mengen-Operatoren (`IN`, `NOT IN`), Verknüpfungen (`AND`, `OR`, `NOT`) und Klammern, mit Präzedenz `NOT` vor `AND` vor `OR`. Feldnamen und Werte werden ohne Beachtung der Groß-/Kleinschreibung verglichen, Listen-Felder als Mitgliedschaft beziehungsweise Schnittmenge. Der Link-Index trägt dazu die Frontmatter-Properties jeder Datei und beantwortet die Abfragen über den gesamten Suchraum. Parser und Evaluator liegen prozess-neutral in `src/shared/` und werten ausschließlich über einen eigenen AST-Evaluator aus.
-- **Dynamische Datei-Liste** (4T-0355): Der Abfrage-Block rendert in allen Ansichten (Gerendert, Geteilt, Live) als alphabetisch sortierte, klickbare Liste; ein Klick öffnet die Zieldatei wie ein Wiki-Link. Neue, geänderte und gelöschte Dateien schlagen ohne manuelles Neuladen auf sichtbare Listen durch (Live-Aktualisierung über die Index-Invalidierung). Leeres Ergebnis, Syntaxfehler mit Positionsangabe und die Index-Zustände (Aufbau, kein Suchraum, zu groß) zeigen lokalisierte Hinweise. Der PDF-Export druckt den statischen Stand des Render-Zeitpunkts; der Portable-Markdown-Export lässt den Abfrage-Block als Quelltext stehen.
+- **Abfrage-Syntax und Properties-Index** (4T-000354): Der Fenced-Code-Block mit Sprach-Tag `perspective-query` nimmt einen logischen Ausdruck über Frontmatter-Felder auf: Wert-Gleichheit und -Ungleichheit (`=`, `!=`), Mengen-Operatoren (`IN`, `NOT IN`), Verknüpfungen (`AND`, `OR`, `NOT`) und Klammern, mit Präzedenz `NOT` vor `AND` vor `OR`. Feldnamen und Werte werden ohne Beachtung der Groß-/Kleinschreibung verglichen, Listen-Felder als Mitgliedschaft beziehungsweise Schnittmenge. Der Link-Index trägt dazu die Frontmatter-Properties jeder Datei und beantwortet die Abfragen über den gesamten Suchraum. Parser und Evaluator liegen prozess-neutral in `src/shared/` und werten ausschließlich über einen eigenen AST-Evaluator aus.
+- **Dynamische Datei-Liste** (4T-000355): Der Abfrage-Block rendert in allen Ansichten (Gerendert, Geteilt, Live) als alphabetisch sortierte, klickbare Liste; ein Klick öffnet die Zieldatei wie ein Wiki-Link. Neue, geänderte und gelöschte Dateien schlagen ohne manuelles Neuladen auf sichtbare Listen durch (Live-Aktualisierung über die Index-Invalidierung). Leeres Ergebnis, Syntaxfehler mit Positionsangabe und die Index-Zustände (Aufbau, kein Suchraum, zu groß) zeigen lokalisierte Hinweise. Der PDF-Export druckt den statischen Stand des Render-Zeitpunkts; der Portable-Markdown-Export lässt den Abfrage-Block als Quelltext stehen.
 
 ### Geändert
 
@@ -3543,18 +3604,18 @@ Epic 3E-0065 (Frontmatter-Abfrage: dynamische Datei-Listen im Dokument). Ein Cod
 ### i18n
 
 - **Neue Keys** in allen fünf Sprachen: die Status- und Syntaxfehler-Hinweise der Abfrage (`query.*`) sowie der Funktions-Katalog-Eintrag `frontmatterQuery` (Beschreibung, Kurzname, Zugang).
-- **Handbuch** (4T-0356): neue Themen-Seite „Frontmatter-Abfrage" (Syntax, Operatoren, Werte-Semantik, Anzeige und Interaktion, Suchraum, Export) in fünf Sprachfassungen; Verweis in der Überblicksseite.
+- **Handbuch** (4T-000356): neue Themen-Seite „Frontmatter-Abfrage" (Syntax, Operatoren, Werte-Semantik, Anzeige und Interaktion, Suchraum, Export) in fünf Sprachfassungen; Verweis in der Überblicksseite.
 
 ## [0.44.0.482] - 2026-07-06 — Editor-Kontextmenü mit Formatierungs-Funktionen
 
-Epic 3E-0071 (Editor-Kontextmenü mit Formatierungs-Funktionen). Ein Rechtsklick im Editor öffnet ein Kontextmenü, das Link-, Format-, Absatz- und Einfüge-Aktionen sowie die Befehle der Zwischenablage direkt am Text zugänglich macht. Die Format-Aktionen entstehen als Kommandos der zentralen Registry und sind damit zugleich per Tastenkürzel bedienbar. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0377 bis 4T-0381).
+Epic 3E-000071 (Editor-Kontextmenü mit Formatierungs-Funktionen). Ein Rechtsklick im Editor öffnet ein Kontextmenü, das Link-, Format-, Absatz- und Einfüge-Aktionen sowie die Befehle der Zwischenablage direkt am Text zugänglich macht. Die Format-Aktionen entstehen als Kommandos der zentralen Registry und sind damit zugleich per Tastenkürzel bedienbar. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000377 bis 4T-000381).
 
 ### Neu
 
-- **Editor-Kontextmenü** (4T-0377): Rechtsklick im Editor (Quelltext- und Live-Modus) öffnet ein Kontextmenü über die bestehende Menü-Infrastruktur. Der Zwischenablage-Block (Ausschneiden, Kopieren, Einfügen, Alles auswählen) trägt korrekte Aktiv-Zustände; im schreibgeschützten Editor bleiben nur Kopieren und Alles auswählen.
-- **Zeichen-Formate** (4T-0378): Fett, Kursiv, Durchgestrichen, Hervorheben, Quelltext, Mathe und Kommentar als Umschalter auf die Markierung, das Wort unter dem Cursor oder ein leeres Marker-Paar, dazu „Formatierung entfernen". Fett und Kursiv tragen die Standard-Kürzel Strg+B und Strg+I, die übrigen sind über die Einstellungen belegbar. Ebenso Wiki-Link und externer Link. Innerhalb eines Wiki-Link-Ziels und von Inline-Quelltext greifen die Format-Aktionen bewusst nicht.
-- **Absatz-Aktionen** (4T-0379): Aufzählung, nummerierte Liste, Aufgabenliste, Überschrift 1 bis 6, Keine Überschrift und Zitat als zeilenweise Umschalter; ein Häkchen im Absatz-Untermenü zeigt den aktiven Zustand der Cursor-Zeile.
-- **Einfügen** (4T-0379): Schablonen für Fußnote (mit fortlaufender Nummer und Definition am Dokument-Ende), Tabelle, Hinweisblock, horizontale Linie und Quelltext-Block, jeweils mit sinnvoller Cursor-Endposition.
+- **Editor-Kontextmenü** (4T-000377): Rechtsklick im Editor (Quelltext- und Live-Modus) öffnet ein Kontextmenü über die bestehende Menü-Infrastruktur. Der Zwischenablage-Block (Ausschneiden, Kopieren, Einfügen, Alles auswählen) trägt korrekte Aktiv-Zustände; im schreibgeschützten Editor bleiben nur Kopieren und Alles auswählen.
+- **Zeichen-Formate** (4T-000378): Fett, Kursiv, Durchgestrichen, Hervorheben, Quelltext, Mathe und Kommentar als Umschalter auf die Markierung, das Wort unter dem Cursor oder ein leeres Marker-Paar, dazu „Formatierung entfernen". Fett und Kursiv tragen die Standard-Kürzel Strg+B und Strg+I, die übrigen sind über die Einstellungen belegbar. Ebenso Wiki-Link und externer Link. Innerhalb eines Wiki-Link-Ziels und von Inline-Quelltext greifen die Format-Aktionen bewusst nicht.
+- **Absatz-Aktionen** (4T-000379): Aufzählung, nummerierte Liste, Aufgabenliste, Überschrift 1 bis 6, Keine Überschrift und Zitat als zeilenweise Umschalter; ein Häkchen im Absatz-Untermenü zeigt den aktiven Zustand der Cursor-Zeile.
+- **Einfügen** (4T-000379): Schablonen für Fußnote (mit fortlaufender Nummer und Definition am Dokument-Ende), Tabelle, Hinweisblock, horizontale Linie und Quelltext-Block, jeweils mit sinnvoller Cursor-Endposition.
 
 ### Intern
 
@@ -3565,18 +3626,18 @@ Epic 3E-0071 (Editor-Kontextmenü mit Formatierungs-Funktionen). Ein Rechtsklick
 ### i18n
 
 - **Neue Keys** in allen fünf Sprachen: Kontextmenü- und Zwischenablage-Labels, 26 Format-, Absatz- und Einfüge-Kommandonamen mit Kürzel-Beschreibungen, zwei Submenü-Titel und der Funktions-Katalog-Eintrag `editorContextMenu`.
-- **Handbuch** (4T-0380): neue Themen-Seite „Editor-Kontextmenü" (Aufbau, Selektions-Semantik, Umschalter mit Häkchen, Schutz in Links und Quelltext, Read-only) in fünf Sprachfassungen; Verweis in der Überblicksseite.
+- **Handbuch** (4T-000380): neue Themen-Seite „Editor-Kontextmenü" (Aufbau, Selektions-Semantik, Umschalter mit Häkchen, Schutz in Links und Quelltext, Read-only) in fünf Sprachfassungen; Verweis in der Überblicksseite.
 
 ## [0.43.0.477] - 2026-07-06 — Link-Update beim Umbenennen und bereichsweiter Index
 
-Epic 3E-0062 (Link-Update beim Umbenennen und persistenter Bereichs-Index). Beim Umbenennen einer Datei werden eingehende Verweise aus anderen Dateien automatisch mit angepasst; der Link-Index arbeitet in einem Bereich jetzt über den gesamten Bereich und wird in einer Cache-Datei persistiert. Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0344 bis 4T-0350).
+Epic 3E-000062 (Link-Update beim Umbenennen und persistenter Bereichs-Index). Beim Umbenennen einer Datei werden eingehende Verweise aus anderen Dateien automatisch mit angepasst; der Link-Index arbeitet in einem Bereich jetzt über den gesamten Bereich und wird in einer Cache-Datei persistiert. Umgesetzt in fünf Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000344 bis 4T-000350).
 
 ### Neu
 
-- **Link-Update beim Umbenennen** (4T-0345, 4T-0346): Beim Umbenennen einer Datei werden eingehende Wiki-Links, Embeds und relative Markdown-Links aus anderen Dateien auf den neuen Namen umgeschrieben, bei der Kaskade auch die Verweise auf jede mit-umbenannte Unterseite. Ein Kontrollkästchen im Umbenennen-Dialog steuert es pro Vorgang, eine optionale Vorschau zeigt die betroffenen Dateien mit Fundstellen-Anzahl vorab, ein Bericht fasst umbenannte, angepasste und nicht anpassbare Dateien danach zusammen. Unverändert offene Dokumente ziehen nach; ein Dokument mit ungespeicherten Änderungen erhält den Fix im Editor als eigenen Rückgängig-Schritt, auf der Festplatte nur auf dem zuletzt gespeicherten Stand. Bei aktivierter Dokument-Historie ist jede Anpassung als Revision nachvollziehbar und zurücknehmbar.
-- **Zwei Einstellungen** (4T-0346) im Einstellungs-Bereich „Verhalten" unter „Links beim Umbenennen": die Vorbelegung des Link-Updates (an/aus) und der Vorschau (an/aus), beide im Auslieferungszustand aktiv.
-- **Bereichsweiter Link-Index** (4T-0347): In einer Bereichs-Applikation umfassen Backlinks, Tags, Autovervollständigung und Linter den gesamten Bereich statt nur des Ordners der aktiven Datei plus zwei Ebenen. Backlinks- und Tag-Panel zeigen die Quelldatei zweizeilig (Dateiname, darunter der Ordner relativ zur Bereichs-Wurzel), sodass gleichnamige Dateien aus verschiedenen Ordnern unterscheidbar sind.
-- **Index-Persistenz** (4T-0348): Der Bereichs-Index wird beim Öffnen des Bereichs aufgebaut und in der Datei `Area_Cache.mdda` im Bereichs-Wurzelordner zwischengespeichert; beim erneuten Öffnen werden unveränderte Dateien über Prüfdaten (mtime, Größe) übernommen statt neu gelesen. Die Cache-Datei ist reiner Zwischenspeicher, erscheint nicht im Bereichs-Panel und kann gefahrlos gelöscht werden.
+- **Link-Update beim Umbenennen** (4T-000345, 4T-000346): Beim Umbenennen einer Datei werden eingehende Wiki-Links, Embeds und relative Markdown-Links aus anderen Dateien auf den neuen Namen umgeschrieben, bei der Kaskade auch die Verweise auf jede mit-umbenannte Unterseite. Ein Kontrollkästchen im Umbenennen-Dialog steuert es pro Vorgang, eine optionale Vorschau zeigt die betroffenen Dateien mit Fundstellen-Anzahl vorab, ein Bericht fasst umbenannte, angepasste und nicht anpassbare Dateien danach zusammen. Unverändert offene Dokumente ziehen nach; ein Dokument mit ungespeicherten Änderungen erhält den Fix im Editor als eigenen Rückgängig-Schritt, auf der Festplatte nur auf dem zuletzt gespeicherten Stand. Bei aktivierter Dokument-Historie ist jede Anpassung als Revision nachvollziehbar und zurücknehmbar.
+- **Zwei Einstellungen** (4T-000346) im Einstellungs-Bereich „Verhalten" unter „Links beim Umbenennen": die Vorbelegung des Link-Updates (an/aus) und der Vorschau (an/aus), beide im Auslieferungszustand aktiv.
+- **Bereichsweiter Link-Index** (4T-000347): In einer Bereichs-Applikation umfassen Backlinks, Tags, Autovervollständigung und Linter den gesamten Bereich statt nur des Ordners der aktiven Datei plus zwei Ebenen. Backlinks- und Tag-Panel zeigen die Quelldatei zweizeilig (Dateiname, darunter der Ordner relativ zur Bereichs-Wurzel), sodass gleichnamige Dateien aus verschiedenen Ordnern unterscheidbar sind.
+- **Index-Persistenz** (4T-000348): Der Bereichs-Index wird beim Öffnen des Bereichs aufgebaut und in der Datei `Area_Cache.mdda` im Bereichs-Wurzelordner zwischengespeichert; beim erneuten Öffnen werden unveränderte Dateien über Prüfdaten (mtime, Größe) übernommen statt neu gelesen. Die Cache-Datei ist reiner Zwischenspeicher, erscheint nicht im Bereichs-Panel und kann gefahrlos gelöscht werden.
 
 ### Geändert
 
@@ -3584,18 +3645,18 @@ Epic 3E-0062 (Link-Update beim Umbenennen und persistenter Bereichs-Index). Beim
 
 ### Intern
 
-- **Neue Module**: `src/shared/link-rewrite.js` (Rewrite-Kern, unit-testbar) und die gemeinsame Erkennungsquelle `src/shared/markdown/link-scan.js` (4T-0344), damit Index, Linter und Rewrite dieselben Stellen als Link erkennen; Renderer-Helfer `src/renderer/modules/path-format.js` für die bereichsrelative Ordner-Anzeige.
+- **Neue Module**: `src/shared/link-rewrite.js` (Rewrite-Kern, unit-testbar) und die gemeinsame Erkennungsquelle `src/shared/markdown/link-scan.js` (4T-000344), damit Index, Linter und Rewrite dieselben Stellen als Link erkennen; Renderer-Helfer `src/renderer/modules/path-format.js` für die bereichsrelative Ordner-Anzeige.
 - **Test-Ausbau**: neue E2E-Specs `link-update.spec.js` (LU-01 bis LU-08) und `bereichs-index-cache.spec.js` (BIC-01); neues Unit-Modul `link-index-cache.test.js`; Backlinks- und Bereichs-Panel-Tests erweitert; Abdeckungs-Matrix-Eintrag F-085.
 - **Versions-Bump** 0.42.1 → 0.43.0 ([package.json](package.json)).
 
 ### i18n
 
 - **20 neue Keys** in allen fünf Sprachen (Umbenennen-Dialog-Kontrollkästchen, Vorschau- und Bericht-Dialog, zwei Einstellungen unter „Links beim Umbenennen", Funktions-Katalog-Eintrag `renameLinkUpdate`).
-- **Handbuch** (4T-0349): die Umbenennen-Sektion der Seite „Unterseiten" um das Link-Update erweitert, die Seite „Applikationen, Fenster und Bereiche" um den Abschnitt „Suchraum und Index" (bereichsweiter Suchraum, Cache-Datei) ergänzt, jeweils in fünf Sprachfassungen.
+- **Handbuch** (4T-000349): die Umbenennen-Sektion der Seite „Unterseiten" um das Link-Update erweitert, die Seite „Applikationen, Fenster und Bereiche" um den Abschnitt „Suchraum und Index" (bereichsweiter Suchraum, Cache-Datei) ergänzt, jeweils in fünf Sprachfassungen.
 
 ## [0.42.1.466] - 2026-07-05 — Hotfix: Build-Nummer-Guard
 
-Hotfix zu Epic 3E-0070 (4T-0396). Kein nutzersichtbares App-Verhalten geändert; die Korrektur betrifft nur den Build-Prozess.
+Hotfix zu Epic 3E-000070 (4T-000396). Kein nutzersichtbares App-Verhalten geändert; die Korrektur betrifft nur den Build-Prozess.
 
 ### Behoben
 
@@ -3603,19 +3664,19 @@ Hotfix zu Epic 3E-0070 (4T-0396). Kein nutzersichtbares App-Verhalten geändert;
 
 ## [0.42.0.465] - 2026-07-05 — Render-Fix, Build-Nummer und Bereichsdatei-Endung mdda
 
-Gemeinsames Release der Epics 3E-0063 (Render-Aktualisierung aus der Quelltext-Ansicht), 3E-0070 (erweiterte Versionsnummer) und 3E-0064 (Bereichsdatei-Endung mddb auf mdda). Die Versionsnummer erhält eine vierte Stelle `.465`, die Commit-Anzahl zum Release-Commit; sie erscheint im About-Modal, in der CHANGELOG-Überschrift, in den Release-Notes und in den Windows-Datei-Eigenschaften der EXE. Git-Tag, EXE-Dateinamen und die `version` in `package.json` bleiben dreiteilig.
+Gemeinsames Release der Epics 3E-000063 (Render-Aktualisierung aus der Quelltext-Ansicht), 3E-000070 (erweiterte Versionsnummer) und 3E-000064 (Bereichsdatei-Endung mddb auf mdda). Die Versionsnummer erhält eine vierte Stelle `.465`, die Commit-Anzahl zum Release-Commit; sie erscheint im About-Modal, in der CHANGELOG-Überschrift, in den Release-Notes und in den Windows-Datei-Eigenschaften der EXE. Git-Tag, EXE-Dateinamen und die `version` in `package.json` bleiben dreiteilig.
 
 ### Neu
 
-- **Vierstellige Versionsnummer** (3E-0070): Die Versionsnummer trägt als vierte Stelle die laufende Commit-Anzahl zum Release-Commit (`X.Y.Z.N`). Sie macht jeden Release-Stand eindeutig und chronologisch einordenbar. Die Nummer wird beim Release über `scripts/set-build-number.js` gesetzt, in einer versionierten Build-Info-Datei abgelegt und über die Windows-FileVersion in die EXE übernommen.
+- **Vierstellige Versionsnummer** (3E-000070): Die Versionsnummer trägt als vierte Stelle die laufende Commit-Anzahl zum Release-Commit (`X.Y.Z.N`). Sie macht jeden Release-Stand eindeutig und chronologisch einordenbar. Die Nummer wird beim Release über `scripts/set-build-number.js` gesetzt, in einer versionierten Build-Info-Datei abgelegt und über die Windows-FileVersion in die EXE übernommen.
 
 ### Behoben
 
-- **Quelltext-Änderungen im Wechsel zur gerenderten Ansicht** (3E-0063): In der reinen Quelltext-Ansicht eingegebene Änderungen wurden beim Wechsel in die gerenderte Ansicht nicht angezeigt, weil der Moduswechsel das Render-Pane nicht neu aufbaute. Der Wechsel in die Ansichten „Gerendert" und „Geteilt" rendert jetzt den aktuellen Stand.
+- **Quelltext-Änderungen im Wechsel zur gerenderten Ansicht** (3E-000063): In der reinen Quelltext-Ansicht eingegebene Änderungen wurden beim Wechsel in die gerenderte Ansicht nicht angezeigt, weil der Moduswechsel das Render-Pane nicht neu aufbaute. Der Wechsel in die Ansichten „Gerendert" und „Geteilt" rendert jetzt den aktuellen Stand.
 
 ### Geändert
 
-- **Bereichsdatei-Endung `.mdda`** (3E-0064): Die Bereichsdatei heißt jetzt `Area_Settings.mdda` („Markdown Data Area") statt `Area_Settings.mddb`. Bestehende Bereiche werden beim Öffnen still migriert, indem die alte Datei einmalig umbenannt wird; die dreistufige Historisierungs-Schaltung wirkt vor und nach der Migration unverändert.
+- **Bereichsdatei-Endung `.mdda`** (3E-000064): Die Bereichsdatei heißt jetzt `Area_Settings.mdda` („Markdown Data Area") statt `Area_Settings.mddb`. Bestehende Bereiche werden beim Öffnen still migriert, indem die alte Datei einmalig umbenannt wird; die dreistufige Historisierungs-Schaltung wirkt vor und nach der Migration unverändert.
 
 ### i18n
 
@@ -3623,18 +3684,18 @@ Gemeinsames Release der Epics 3E-0063 (Render-Aktualisierung aus der Quelltext-A
 
 ## [0.41.0] - 2026-07-03 — Unterseiten und Datei-Umbenennen
 
-Epic 3E-0061 (Unterseiten: logische Seiten-Hierarchie und Datei-Umbenennen). Seiten können **Unterseiten in beliebiger Tiefe** haben, als logische Hierarchie unabhängig von der Ordnerstruktur: Träger ist der Dateiname mit dem Trennzeichen `∕` (Unicode U+2215), in Links wird der normale Schrägstrich geschrieben. Dazu kommen relative Unterseiten-Links, ein Anlage-Kommando, Breadcrumb und Unterseiten-Sektion sowie **Datei umbenennen** als neue Grundfunktion mit Kaskade über Unterseiten-Bäume. Umgesetzt in sechs Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0336 bis 4T-0343).
+Epic 3E-000061 (Unterseiten: logische Seiten-Hierarchie und Datei-Umbenennen). Seiten können **Unterseiten in beliebiger Tiefe** haben, als logische Hierarchie unabhängig von der Ordnerstruktur: Träger ist der Dateiname mit dem Trennzeichen `∕` (Unicode U+2215), in Links wird der normale Schrägstrich geschrieben. Dazu kommen relative Unterseiten-Links, ein Anlage-Kommando, Breadcrumb und Unterseiten-Sektion sowie **Datei umbenennen** als neue Grundfunktion mit Kaskade über Unterseiten-Bäume. Umgesetzt in sechs Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000336 bis 4T-000343).
 
 ### Neu
 
-- **Unterseiten mit U+2215-Namens-Konvention** (4T-0336): `Prozess-A∕Entwurf.md` ist die Unterseite `Entwurf` von `Prozess-A`, beliebig tief schachtelbar und unabhängig davon, in welchem Ordner des Suchraums die Datei liegt. In Wiki-Links gilt die Schrägstrich-Schreibweise `[[Prozess-A/Entwurf]]`; die bestehende Ordner-Pfad-Auflösung hat Vorrang, Konflikte meldet der Linter als mehrdeutig. Gleichnamige Unterseiten unter verschiedenen Seiten kollidieren nicht.
-- **Relative Unterseiten-Links** (4T-0336): `[[/Entwurf]]` verweist auf die Unterseite der aktuellen Seite, `[[..]]` auf die Elternseite; beide funktionieren ohne Kenntnis des eigenen Seiten-Namens (Grundlage für künftige Vorlagen).
-- **Parität über alle Konsumenten** (4T-0337): Autocomplete schlägt Unterseiten in Schrägstrich-Schreibweise vor (nach `[[/` die der aktuellen Seite), Wiki-Embeds `![[Prozess-A/Entwurf]]` und `![[/Entwurf]]` betten Unterseiten ein, Outgoing-Panel und Live-Modus lösen identisch zum Klick-Pfad auf.
-- **Unterseite anlegen** (4T-0338): „Datei → Neue Unterseite…" fragt den Namen ab (mit Validierung), legt die Datei im Ordner der aktiven Datei an und öffnet sie als Tab; das Trennzeichen muss nie getippt werden. Existiert die Unterseite, wird sie geöffnet statt überschrieben.
-- **Datei umbenennen** (4T-0339): neue Grundfunktion über „Datei → Umbenennen…" und das Tab-Kontextmenü. Offene Tabs (in allen Fenstern), Lesezeichen, die Zuletzt-geöffnet-Liste, die Sitzungs-Wiederherstellung und die Historien-Begleitdatei `.mdd` ziehen mit; Namens-Kollisionen werden vor der Umbenennung abgelehnt.
-- **Umbenennen-Kaskade** (4T-0340): eine Seite mit Unterseiten nimmt beim Umbenennen ihren gesamten Unterseiten-Baum mit (der Dialog nennt die Anzahl vorab); eine Unterseite ändert nur ihr eigenes Namens-Segment. Kollisionen werden über alle Ziele geprüft, bevor die erste Datei umbenannt wird; Teilfehler stoppen die Kaskade mit Bericht. Wiki-Links aus anderen Dateien werden nicht umgeschrieben, gebrochene Ziele zeigt der Linter.
-- **Breadcrumb und Unterseiten-Sektion** (4T-0341): über dem Dokument (Lese-, Geteilt- und Live-Ansicht) zeigt ein Breadcrumb die Eltern-Kette der aktiven Unterseite mit klickbaren Ebenen, fehlende Zwischen-Ebenen gekennzeichnet; die neue Sidebar-Sektion „Unterseiten" (Ansicht → Unterseiten) listet die direkten Unterseiten der aktiven Datei.
-- **Hilfe und Handbuch** (4T-0342): neue Handbuch-Seite „Unterseiten" in allen fünf Sprachfassungen mit expliziter Verankerung des Trennzeichens `∕` (U+2215, zum Kopieren); Funktions-Katalog um vier Einträge erweitert, Überblicksseiten nachgezogen.
+- **Unterseiten mit U+2215-Namens-Konvention** (4T-000336): `Prozess-A∕Entwurf.md` ist die Unterseite `Entwurf` von `Prozess-A`, beliebig tief schachtelbar und unabhängig davon, in welchem Ordner des Suchraums die Datei liegt. In Wiki-Links gilt die Schrägstrich-Schreibweise `[[Prozess-A/Entwurf]]`; die bestehende Ordner-Pfad-Auflösung hat Vorrang, Konflikte meldet der Linter als mehrdeutig. Gleichnamige Unterseiten unter verschiedenen Seiten kollidieren nicht.
+- **Relative Unterseiten-Links** (4T-000336): `[[/Entwurf]]` verweist auf die Unterseite der aktuellen Seite, `[[..]]` auf die Elternseite; beide funktionieren ohne Kenntnis des eigenen Seiten-Namens (Grundlage für künftige Vorlagen).
+- **Parität über alle Konsumenten** (4T-000337): Autocomplete schlägt Unterseiten in Schrägstrich-Schreibweise vor (nach `[[/` die der aktuellen Seite), Wiki-Embeds `![[Prozess-A/Entwurf]]` und `![[/Entwurf]]` betten Unterseiten ein, Outgoing-Panel und Live-Modus lösen identisch zum Klick-Pfad auf.
+- **Unterseite anlegen** (4T-000338): „Datei → Neue Unterseite…" fragt den Namen ab (mit Validierung), legt die Datei im Ordner der aktiven Datei an und öffnet sie als Tab; das Trennzeichen muss nie getippt werden. Existiert die Unterseite, wird sie geöffnet statt überschrieben.
+- **Datei umbenennen** (4T-000339): neue Grundfunktion über „Datei → Umbenennen…" und das Tab-Kontextmenü. Offene Tabs (in allen Fenstern), Lesezeichen, die Zuletzt-geöffnet-Liste, die Sitzungs-Wiederherstellung und die Historien-Begleitdatei `.mdd` ziehen mit; Namens-Kollisionen werden vor der Umbenennung abgelehnt.
+- **Umbenennen-Kaskade** (4T-000340): eine Seite mit Unterseiten nimmt beim Umbenennen ihren gesamten Unterseiten-Baum mit (der Dialog nennt die Anzahl vorab); eine Unterseite ändert nur ihr eigenes Namens-Segment. Kollisionen werden über alle Ziele geprüft, bevor die erste Datei umbenannt wird; Teilfehler stoppen die Kaskade mit Bericht. Wiki-Links aus anderen Dateien werden nicht umgeschrieben, gebrochene Ziele zeigt der Linter.
+- **Breadcrumb und Unterseiten-Sektion** (4T-000341): über dem Dokument (Lese-, Geteilt- und Live-Ansicht) zeigt ein Breadcrumb die Eltern-Kette der aktiven Unterseite mit klickbaren Ebenen, fehlende Zwischen-Ebenen gekennzeichnet; die neue Sidebar-Sektion „Unterseiten" (Ansicht → Unterseiten) listet die direkten Unterseiten der aktiven Datei.
+- **Hilfe und Handbuch** (4T-000342): neue Handbuch-Seite „Unterseiten" in allen fünf Sprachfassungen mit expliziter Verankerung des Trennzeichens `∕` (U+2215, zum Kopieren); Funktions-Katalog um vier Einträge erweitert, Überblicksseiten nachgezogen.
 
 ### Geändert
 
@@ -3654,15 +3715,15 @@ Epic 3E-0061 (Unterseiten: logische Seiten-Hierarchie und Datei-Umbenennen). Sei
 
 ## [0.40.0] - 2026-07-03 — Dokument-Historie
 
-Epic 3E-0060 (Dokument-Historie: Änderungsprotokoll in Markdown-Data-Dateien). Die App protokolliert Änderungen eines Dokuments auf Wunsch als **Revisions-Historie** in einer Begleitdatei `<name>.mdd` („Markdown-Data") neben dem Dokument: zeilenbasierte Änderungspakete mit Zeitstempeln, Hash-Absicherung und Anker-Snapshots, geschaltet auf drei Ebenen (App, Bereich, Dokument), sichtbar in der Statusbar und auswertbar in einer Historien-Ansicht mit Versions-Vergleich und Wiederherstellen. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-0331 bis 4T-0335).
+Epic 3E-000060 (Dokument-Historie: Änderungsprotokoll in Markdown-Data-Dateien). Die App protokolliert Änderungen eines Dokuments auf Wunsch als **Revisions-Historie** in einer Begleitdatei `<name>.mdd` („Markdown-Data") neben dem Dokument: zeilenbasierte Änderungspakete mit Zeitstempeln, Hash-Absicherung und Anker-Snapshots, geschaltet auf drei Ebenen (App, Bereich, Dokument), sichtbar in der Statusbar und auswertbar in einer Historien-Ansicht mit Versions-Vergleich und Wiederherstellen. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe-/Handbuch-Task und Sammeltask (4T-000331 bis 4T-000335).
 
 ### Neu
 
-- **Änderungsprotokoll in Markdown-Data-Dateien** (4T-0331): bei aktiver Historisierung entsteht neben dem Dokument die Begleitdatei `<name>.mdd` (JSON-Container mit versioniertem Schema, offen für spätere Inhalte). Aufeinanderfolgende Speicherungen werden über zwei Zeitfenster zu Änderungspaketen zusammengefasst (maximale Paket-Dauer, Vorgabe 5 Minuten; Inaktivitäts-Schluss, Vorgabe 2 Minuten); jedes Paket trägt UTC-Zeitstempel, Auslöser und den Hash des Nachher-Stands, in Abständen sichern Anker-Snapshots volle Zwischenstände. Außerhalb der App vorgenommene Änderungen werden beim Öffnen und vor jedem Speichern am Hash erkannt und als eigenes Paket („extern") nachgetragen, die Historie bricht nicht. Eine defekte `.mdd` wird nie überschrieben; die Protokollierung pausiert mit Statusbar-Hinweis.
-- **Historisierung auf drei Ebenen** (4T-0332): Dokument (YAML-Eigenschaft `history` im Frontmatter) schlägt Bereich (Bereichsdatei `Area_Settings.mddb` im Bereichs-Wurzelordner) schlägt App-Einstellung (Einstellungen → Verhalten, ab Werk aus); nicht gesetzte Ebenen erben. Die Bereichsdatei entsteht erst beim ersten Setzen des Bereichs-Defaults. Abschalten pausiert nur, vorhandene Historie bleibt erhalten und wird beim Wiedereinschalten lückenlos fortgesetzt.
-- **Statusbar-Anzeige** (4T-0332): neues Uhr-Symbol mit drei Zuständen (aktiv, pausiert, inaktiv) und Herkunfts-Tooltip (Datei-, Bereichs- oder App-Einstellung); das Klick-Menü öffnet die Historien-Ansicht und setzt den Dokument-Schalter (aktivieren, deaktivieren, Erbwert), geschrieben als Frontmatter-Round-Trip in den Editor.
-- **Historien-Ansicht mit Vergleich und Wiederherstellen** (4T-0333): „Ansicht → Dokument-Historie" (Registry-Kommando `history.open`, ohne Default-Kürzel) öffnet die Revisionsliste als schreibgeschützten Tab: Zeitpunkt, Auslöser und Änderungsumfang (+/− Zeilen) pro Revision, Ausgangsstand und aktueller Stand eingeschlossen. Jede Revision ist einsehbar, zwei Stände sind zeilenweise vergleichbar (Hunk-Darstellung mit Kontext und Auslassungs-Markern), und ein alter Stand lässt sich in den Editor zurückholen; das Speichern erzeugt dann eine neue Revision, Historie wird nie gelöscht.
-- **Hilfe und Handbuch** (4T-0334): neue Handbuch-Seite „Dokument-Historie" in allen fünf Sprachfassungen (Konzept, Begleitdatei, drei Ebenen, Änderungspakete, Statusbar, Historien-Ansicht); Funktions-Katalog um drei Einträge erweitert, Überblicksseiten nachgezogen.
+- **Änderungsprotokoll in Markdown-Data-Dateien** (4T-000331): bei aktiver Historisierung entsteht neben dem Dokument die Begleitdatei `<name>.mdd` (JSON-Container mit versioniertem Schema, offen für spätere Inhalte). Aufeinanderfolgende Speicherungen werden über zwei Zeitfenster zu Änderungspaketen zusammengefasst (maximale Paket-Dauer, Vorgabe 5 Minuten; Inaktivitäts-Schluss, Vorgabe 2 Minuten); jedes Paket trägt UTC-Zeitstempel, Auslöser und den Hash des Nachher-Stands, in Abständen sichern Anker-Snapshots volle Zwischenstände. Außerhalb der App vorgenommene Änderungen werden beim Öffnen und vor jedem Speichern am Hash erkannt und als eigenes Paket („extern") nachgetragen, die Historie bricht nicht. Eine defekte `.mdd` wird nie überschrieben; die Protokollierung pausiert mit Statusbar-Hinweis.
+- **Historisierung auf drei Ebenen** (4T-000332): Dokument (YAML-Eigenschaft `history` im Frontmatter) schlägt Bereich (Bereichsdatei `Area_Settings.mddb` im Bereichs-Wurzelordner) schlägt App-Einstellung (Einstellungen → Verhalten, ab Werk aus); nicht gesetzte Ebenen erben. Die Bereichsdatei entsteht erst beim ersten Setzen des Bereichs-Defaults. Abschalten pausiert nur, vorhandene Historie bleibt erhalten und wird beim Wiedereinschalten lückenlos fortgesetzt.
+- **Statusbar-Anzeige** (4T-000332): neues Uhr-Symbol mit drei Zuständen (aktiv, pausiert, inaktiv) und Herkunfts-Tooltip (Datei-, Bereichs- oder App-Einstellung); das Klick-Menü öffnet die Historien-Ansicht und setzt den Dokument-Schalter (aktivieren, deaktivieren, Erbwert), geschrieben als Frontmatter-Round-Trip in den Editor.
+- **Historien-Ansicht mit Vergleich und Wiederherstellen** (4T-000333): „Ansicht → Dokument-Historie" (Registry-Kommando `history.open`, ohne Default-Kürzel) öffnet die Revisionsliste als schreibgeschützten Tab: Zeitpunkt, Auslöser und Änderungsumfang (+/− Zeilen) pro Revision, Ausgangsstand und aktueller Stand eingeschlossen. Jede Revision ist einsehbar, zwei Stände sind zeilenweise vergleichbar (Hunk-Darstellung mit Kontext und Auslassungs-Markern), und ein alter Stand lässt sich in den Editor zurückholen; das Speichern erzeugt dann eine neue Revision, Historie wird nie gelöscht.
+- **Hilfe und Handbuch** (4T-000334): neue Handbuch-Seite „Dokument-Historie" in allen fünf Sprachfassungen (Konzept, Begleitdatei, drei Ebenen, Änderungspakete, Statusbar, Historien-Ansicht); Funktions-Katalog um drei Einträge erweitert, Überblicksseiten nachgezogen.
 
 ### Geändert
 
@@ -3681,30 +3742,30 @@ Epic 3E-0060 (Dokument-Historie: Änderungsprotokoll in Markdown-Data-Dateien). 
 
 ## [0.39.0] - 2026-07-03 — Applikationen und Bereiche
 
-Drei Epics mit gemeinsamem Release: 3E-0057 (Logische Applikationen und Mehrfachstart), 3E-0058 (Bereichs-Konzept) und 3E-0059 (Bereichs-Panel). Das Programm kann jetzt mehrfach gestartet werden — jeder weitere Start legt eine **logische Applikation** als eigenständigen Arbeitskontext an (Weg-B-Architektur: ein Prozess, der Single-Instance-Lock bleibt). Eine Applikation kann an einen **Bereich** gebunden werden (ein Ordner samt Unterordnern als ausschließlicher Arbeitsraum mit harten Grenzen), und ein neues **Sidebar-Panel** zeigt den Bereich als Ordnerstruktur mit Dateiliste. Umgesetzt in neun Umsetzungs-Tasks plus drei Hilfe-/Handbuch-Tasks und Sammeltask (4T-0318 bis 4T-0330).
+Drei Epics mit gemeinsamem Release: 3E-000057 (Logische Applikationen und Mehrfachstart), 3E-000058 (Bereichs-Konzept) und 3E-000059 (Bereichs-Panel). Das Programm kann jetzt mehrfach gestartet werden — jeder weitere Start legt eine **logische Applikation** als eigenständigen Arbeitskontext an (Weg-B-Architektur: ein Prozess, der Single-Instance-Lock bleibt). Eine Applikation kann an einen **Bereich** gebunden werden (ein Ordner samt Unterordnern als ausschließlicher Arbeitsraum mit harten Grenzen), und ein neues **Sidebar-Panel** zeigt den Bereich als Ordnerstruktur mit Dateiliste. Umgesetzt in neun Umsetzungs-Tasks plus drei Hilfe-/Handbuch-Tasks und Sammeltask (4T-000318 bis 4T-000330).
 
 ### Neu
 
-- **Mehrfachstart und logische Applikationen** (4T-0318, 4T-0319): jeder weitere Start der EXE (oder „Datei → Neue Applikation") legt eine neue logische Applikation mit eigenen Fenstern und eigener Fenster-Nummerierung an. Der Fenstertitel zeigt gestuft nur so viel wie nötig: `(Fenster 2)` bei mehreren Fenstern einer Applikation, `(App 2)` bei mehreren Applikationen, kombiniert `(App 2, Fenster 3)`; Nummern rücken beim Schließen lückenlos nach. Das Tab-Kontextmenü nennt Ziel-Fenster bei mehreren Applikationen mit App-Kontext.
-- **Sitzungs-Wiederherstellung über Applikationen** (4T-0320): die Sitzung persistiert seither die App-Struktur (Applikationen → Fenster → Panes, inklusive Bereichs-Bindung); Bestands-Sitzungen im alten Format werden verlustfrei als eine Applikation übernommen.
-- **Bereiche** (4T-0322, 4T-0323): „Datei → Bereich öffnen…" bindet eine Applikation an einen Ordner (inklusive Unterordner) als ausschließlichen Arbeitsraum; der Titel zeigt `(Bereich <Name>)` statt der App-Nummer. Hat die Applikation bereits eine geöffnete Datei, entsteht automatisch eine neue Applikation; derselbe Bereich läuft nie doppelt (Sprung in das laufende Fenster). Die Grenzen sind hart: Öffnen-Dialog, Zuletzt-geöffnet-Liste, Speichern unter, Drag & Drop und alle internen Öffnen-Pfade bleiben im Bereich; Explorer-Doppelklicks landen immer in einer Applikation ohne Bereich. „Bereich schließen" schließt alle Fenster der Bereichs-Applikation mit den üblichen Speichern-Nachfragen.
-- **Außen-Link-Warnung** (4T-0324): Links auf Ziele außerhalb des Bereichs werden in allen Ansichten mit einer Warn-Unterstreichung markiert (Tooltip mit dem vollen Ziel-Pfad); der Klick öffnet nicht und meldet den Grund in der Statusbar. Eingebettete Bilder von außerhalb werden weiterhin gerendert (die Grenze gilt für das Öffnen, nicht für das Rendern).
-- **Zuletzt geöffnete Bereiche** (4T-0325): eigenes Datei-Menü-Submenü für den schnellen Wiedereinstieg (jüngste zuerst, maximal zehn, voller Pfad als Tooltip, „Liste löschen" mit Bestätigung); ein Eintrag öffnet den Bereich mit den üblichen Regeln, fehlende Ordner werden gemeldet und ausgetragen.
-- **Bereichs-Panel** (4T-0327, 4T-0328): siebtes Sidebar-Panel (links/rechts andockbar, Statusbar-Ordner-Icon als Schalter) mit Ordnerbaum oben und der Markdown-Dateiliste des ausgewählten Ordners darunter; Einfachklick öffnet als Tab, alle Einträge zeigen den vollen Pfad als Tooltip. Externe Änderungen erscheinen automatisch (Verzeichnis-Watcher, debounced); der „+"-Knopf legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
-- **Handbuch-Seite „Applikationen, Fenster und Bereiche"** (4T-0321, 4T-0326, 4T-0329): neue Themen-Seite in allen fünf Sprachfassungen (Ebenen-Modell, Mehrfachstart, Titel-Systematik, Bereiche mit harten Grenzen, Bereichs-Panel, zuletzt geöffnete Bereiche); Funktions-Katalog um vier Einträge erweitert, Sidebar-Seite auf sieben Panels nachgezogen.
+- **Mehrfachstart und logische Applikationen** (4T-000318, 4T-000319): jeder weitere Start der EXE (oder „Datei → Neue Applikation") legt eine neue logische Applikation mit eigenen Fenstern und eigener Fenster-Nummerierung an. Der Fenstertitel zeigt gestuft nur so viel wie nötig: `(Fenster 2)` bei mehreren Fenstern einer Applikation, `(App 2)` bei mehreren Applikationen, kombiniert `(App 2, Fenster 3)`; Nummern rücken beim Schließen lückenlos nach. Das Tab-Kontextmenü nennt Ziel-Fenster bei mehreren Applikationen mit App-Kontext.
+- **Sitzungs-Wiederherstellung über Applikationen** (4T-000320): die Sitzung persistiert seither die App-Struktur (Applikationen → Fenster → Panes, inklusive Bereichs-Bindung); Bestands-Sitzungen im alten Format werden verlustfrei als eine Applikation übernommen.
+- **Bereiche** (4T-000322, 4T-000323): „Datei → Bereich öffnen…" bindet eine Applikation an einen Ordner (inklusive Unterordner) als ausschließlichen Arbeitsraum; der Titel zeigt `(Bereich <Name>)` statt der App-Nummer. Hat die Applikation bereits eine geöffnete Datei, entsteht automatisch eine neue Applikation; derselbe Bereich läuft nie doppelt (Sprung in das laufende Fenster). Die Grenzen sind hart: Öffnen-Dialog, Zuletzt-geöffnet-Liste, Speichern unter, Drag & Drop und alle internen Öffnen-Pfade bleiben im Bereich; Explorer-Doppelklicks landen immer in einer Applikation ohne Bereich. „Bereich schließen" schließt alle Fenster der Bereichs-Applikation mit den üblichen Speichern-Nachfragen.
+- **Außen-Link-Warnung** (4T-000324): Links auf Ziele außerhalb des Bereichs werden in allen Ansichten mit einer Warn-Unterstreichung markiert (Tooltip mit dem vollen Ziel-Pfad); der Klick öffnet nicht und meldet den Grund in der Statusbar. Eingebettete Bilder von außerhalb werden weiterhin gerendert (die Grenze gilt für das Öffnen, nicht für das Rendern).
+- **Zuletzt geöffnete Bereiche** (4T-000325): eigenes Datei-Menü-Submenü für den schnellen Wiedereinstieg (jüngste zuerst, maximal zehn, voller Pfad als Tooltip, „Liste löschen" mit Bestätigung); ein Eintrag öffnet den Bereich mit den üblichen Regeln, fehlende Ordner werden gemeldet und ausgetragen.
+- **Bereichs-Panel** (4T-000327, 4T-000328): siebtes Sidebar-Panel (links/rechts andockbar, Statusbar-Ordner-Icon als Schalter) mit Ordnerbaum oben und der Markdown-Dateiliste des ausgewählten Ordners darunter; Einfachklick öffnet als Tab, alle Einträge zeigen den vollen Pfad als Tooltip. Externe Änderungen erscheinen automatisch (Verzeichnis-Watcher, debounced); der „+"-Knopf legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
+- **Handbuch-Seite „Applikationen, Fenster und Bereiche"** (4T-000321, 4T-000326, 4T-000329): neue Themen-Seite in allen fünf Sprachfassungen (Ebenen-Modell, Mehrfachstart, Titel-Systematik, Bereiche mit harten Grenzen, Bereichs-Panel, zuletzt geöffnete Bereiche); Funktions-Katalog um vier Einträge erweitert, Sidebar-Seite auf sieben Panels nachgezogen.
 
 ### Geändert
 
 - **Fenstertitel-Systematik**: der bisherige Suffix `(Fenster N)` ist seither app-lokal und wird bei mehreren Applikationen um `App N` bzw. den Bereichsnamen ergänzt; bei einer Applikation mit einem Fenster bleibt der Titel unverändert ohne Suffix.
 - **Explorer-/CLI-Routing**: per „Öffnen mit"/Doppelklick übergebene Dateien landen in der zuletzt fokussierten Applikation ohne Bereich; laufen nur Bereichs-Applikationen, entsteht dafür automatisch eine neue bereichslose Applikation.
-- **Menü-Labels eindeutiger benannt** (PO-Testbefund aus 4T-0330): „Neu" → „Neue Datei" und „Öffnen…" → „Datei öffnen…" im Datei-Menü (alle fünf Sprachen), zur klaren Unterscheidung von „Neue Applikation" und „Bereich öffnen…"; die Zugangs-Angaben des Funktions-Katalogs und die README ziehen nach.
-- **Panel-Schalter gelten auch ohne offene Datei** (PO-Testbefund aus 4T-0330): das Bereichs-Panel und die Lesezeichen-Sektion wurden im Empty-State erzwungen eingeblendet, am Statusbar-Schalter vorbei — der Bereichs-Schalter ließ sich nicht ausschalten, und eine ausgeschaltete Lesezeichen-Sektion erschien trotzdem. Beide respektieren jetzt auch im Empty-State den Schalter (die Lesezeichen-Auto-Anzeige beim ersten angelegten Bookmark bleibt, weil sie den Schalter mit setzt). Regressionstests `test/e2e/regression/4t-0330.spec.js`.
+- **Menü-Labels eindeutiger benannt** (PO-Testbefund aus 4T-000330): „Neu" → „Neue Datei" und „Öffnen…" → „Datei öffnen…" im Datei-Menü (alle fünf Sprachen), zur klaren Unterscheidung von „Neue Applikation" und „Bereich öffnen…"; die Zugangs-Angaben des Funktions-Katalogs und die README ziehen nach.
+- **Panel-Schalter gelten auch ohne offene Datei** (PO-Testbefund aus 4T-000330): das Bereichs-Panel und die Lesezeichen-Sektion wurden im Empty-State erzwungen eingeblendet, am Statusbar-Schalter vorbei — der Bereichs-Schalter ließ sich nicht ausschalten, und eine ausgeschaltete Lesezeichen-Sektion erschien trotzdem. Beide respektieren jetzt auch im Empty-State den Schalter (die Lesezeichen-Auto-Anzeige beim ersten angelegten Bookmark bleibt, weil sie den Schalter mit setzt). Regressionstests `test/e2e/regression/4t-0330.spec.js`.
 - **Migration ohne Verhaltensänderung**: ohne Nutzung der neuen Funktionen verhält sich die App wie 0.38.1 (ein Start = eine Applikation, kein Bereich, unveränderte Titel bei einem Fenster); die Sitzung wird beim ersten Start einmalig in das App-Schema überführt.
 
 ### Behoben
 
-- **Beenden direkt nach dem Öffnen eines frischen Fensters** (Nebenbefund aus 4T-0320): der Close-Bestätigungs-Listener des Renderers wurde erst spät registriert — ein Quit unmittelbar nach dem Fenster-Öffnen konnte die Schließen-Anfrage verlieren, das Fenster schloss nie und das Beenden hing. Die Registrierung läuft jetzt synchron beim Modul-Laden.
-- **Portable-EXE beim Mehrfachstart** (EXE-Test-Befunde aus 4T-0330): der Portable-Launcher entpackte bei jedem Start in denselben build-deterministischen Temp-Ordner und löschte ihn nach dem Beenden seines Kind-Prozesses — der Zweitstart (der sich wegen des Single-Instance-Locks sofort beendet) riss damit die entpackten App-Dateien unter der laufenden ersten Instanz weg, deren neue Fenster die Sprachdateien nicht mehr laden konnten (roher Titel-Key, halb-initialisierte Fenster). Die Portable-Konfiguration nutzt jetzt pro Start ein eigenes Entpack-Verzeichnis (`portable.unpackDirName: true`); zusätzlich setzt der Renderer den Fenstertitel nach dem Laden der Übersetzungen erneut, damit ein früher DisplayInfo-Push nie einen rohen Key im Titel hinterlässt.
+- **Beenden direkt nach dem Öffnen eines frischen Fensters** (Nebenbefund aus 4T-000320): der Close-Bestätigungs-Listener des Renderers wurde erst spät registriert — ein Quit unmittelbar nach dem Fenster-Öffnen konnte die Schließen-Anfrage verlieren, das Fenster schloss nie und das Beenden hing. Die Registrierung läuft jetzt synchron beim Modul-Laden.
+- **Portable-EXE beim Mehrfachstart** (EXE-Test-Befunde aus 4T-000330): der Portable-Launcher entpackte bei jedem Start in denselben build-deterministischen Temp-Ordner und löschte ihn nach dem Beenden seines Kind-Prozesses — der Zweitstart (der sich wegen des Single-Instance-Locks sofort beendet) riss damit die entpackten App-Dateien unter der laufenden ersten Instanz weg, deren neue Fenster die Sprachdateien nicht mehr laden konnten (roher Titel-Key, halb-initialisierte Fenster). Die Portable-Konfiguration nutzt jetzt pro Start ein eigenes Entpack-Verzeichnis (`portable.unpackDirName: true`); zusätzlich setzt der Renderer den Fenstertitel nach dem Laden der Übersetzungen erneut, damit ein früher DisplayInfo-Push nie einen rohen Key im Titel hinterlässt.
 
 ### Intern
 
@@ -3719,30 +3780,30 @@ Drei Epics mit gemeinsamem Release: 3E-0057 (Logische Applikationen und Mehrfach
 
 ## [0.38.1] - 2026-07-03 — Fehlerbehebung Tab-Kontextmenü
 
-Epic 3E-0056 (Fehlerbehebungen: Tab-Kontextmenü am Fensterrand und Multi-Window-Sitzung): Bugfix-Release zu einem vom Product Owner gemeldeten Altbestand-Fehler. Der zweite gemeldete Punkt (Sitzungs-Wiederherstellung bei sequenziellem Fenster-Schließen) wurde nach Rückfrage ohne Code-Änderung verworfen — Datei → Beenden sichert bereits alle Fenster; die README stellt das jetzt klar (4T-0316, verworfen). Umgesetzt in 4T-0315 (Fix) und 4T-0317 (Release).
+Epic 3E-000056 (Fehlerbehebungen: Tab-Kontextmenü am Fensterrand und Multi-Window-Sitzung): Bugfix-Release zu einem vom Product Owner gemeldeten Altbestand-Fehler. Der zweite gemeldete Punkt (Sitzungs-Wiederherstellung bei sequenziellem Fenster-Schließen) wurde nach Rückfrage ohne Code-Änderung verworfen — Datei → Beenden sichert bereits alle Fenster; die README stellt das jetzt klar (4T-000316, verworfen). Umgesetzt in 4T-000315 (Fix) und 4T-000317 (Release).
 
 ### Behoben
 
-- **Tab-Kontextmenü-Submenü am Fensterrand** (4T-0315): die Submenüs „Verschieben in" / „Kopieren in" öffneten stur rechts vom Menü-Eintrag und lagen bei Tabs nahe dem rechten Fensterrand außerhalb des Fensters — ein Tab ließ sich von dort nicht in ein anderes Fenster verschieben. Die Submenüs messen jetzt beim Öffnen und weichen bei Platzmangel nach links aus; bei Überlauf nach unten werden sie vertikal geklemmt. Regressionstest `test/e2e/regression/4t-0315.spec.js`.
+- **Tab-Kontextmenü-Submenü am Fensterrand** (4T-000315): die Submenüs „Verschieben in" / „Kopieren in" öffneten stur rechts vom Menü-Eintrag und lagen bei Tabs nahe dem rechten Fensterrand außerhalb des Fensters — ein Tab ließ sich von dort nicht in ein anderes Fenster verschieben. Die Submenüs messen jetzt beim Öffnen und weichen bei Platzmangel nach links aus; bei Überlauf nach unten werden sie vertikal geklemmt. Regressionstest `test/e2e/regression/4t-0315.spec.js`.
 
 ### Geändert
 
-- **README-Klarstellung zur Multi-Fenster-Sitzung** (4T-0316, verworfen): die Sektion „Multi-Window und Sitzung" dokumentiert jetzt, dass Datei → Beenden die komplette Multi-Fenster-Sitzung sichert, während beim einzelnen Schließen aller Fenster nur das zuletzt geschlossene wiederhergestellt wird (bewusst beibehaltenes Verhalten, Product-Owner-Entscheidung).
+- **README-Klarstellung zur Multi-Fenster-Sitzung** (4T-000316, verworfen): die Sektion „Multi-Window und Sitzung" dokumentiert jetzt, dass Datei → Beenden die komplette Multi-Fenster-Sitzung sichert, während beim einzelnen Schließen aller Fenster nur das zuletzt geschlossene wiederhergestellt wird (bewusst beibehaltenes Verhalten, Product-Owner-Entscheidung).
 - **Versions-Bump** 0.38.0 → 0.38.1 ([package.json](package.json)).
 
 ## [0.38.0] - 2026-07-03 — PDF-Export-Erweiterungen
 
-Epic 3E-0055 (PDF-Export-Erweiterungen): zwei Erweiterungs-Wünsche des Product Owners zum frisch ausgelieferten PDF-Export — der Export folgt jetzt der aktiven Ansicht (die Quelltext-Ansicht druckt das Roh-Markdown, inklusive Zeilennummern gemäß Tab-Einstellung), und ein neuer Darstellungs-Schalter hält das Frontmatter dauerhaft ausgeklappt, was damit auch im PDF wirkt. Umgesetzt in zwei Umsetzungs-Tasks plus Handbuch- und Sammeltask: 4T-0311 (Quelltext-Export), 4T-0312 (Frontmatter ausgeklappt), 4T-0313 (Hilfe/Handbuch), 4T-0314 (Release).
+Epic 3E-000055 (PDF-Export-Erweiterungen): zwei Erweiterungs-Wünsche des Product Owners zum frisch ausgelieferten PDF-Export — der Export folgt jetzt der aktiven Ansicht (die Quelltext-Ansicht druckt das Roh-Markdown, inklusive Zeilennummern gemäß Tab-Einstellung), und ein neuer Darstellungs-Schalter hält das Frontmatter dauerhaft ausgeklappt, was damit auch im PDF wirkt. Umgesetzt in zwei Umsetzungs-Tasks plus Handbuch- und Sammeltask: 4T-000311 (Quelltext-Export), 4T-000312 (Frontmatter ausgeklappt), 4T-000313 (Hilfe/Handbuch), 4T-000314 (Release).
 
 ### Neu
 
-- **Quelltext-Ansicht im PDF-Export** (4T-0311): der Export folgt der aktiven Ansicht — die Quelltext-Ansicht druckt das Roh-Markdown mit Syntax-Hervorhebung (highlight.js-Markdown-Grammatik, immer hell), inklusive Zeilennummern, wenn sie im Tab eingeschaltet sind; lange Zeilen brechen weich um, nur die erste Druckzeile trägt die Nummer. Gerendert, Geteilt und Live drucken wie bisher das formatierte Dokument. Technisch über einen dedizierten Print-Block aus dem Dokumenttext, weil der virtualisierte Editor (nur sichtbare Zeilen im DOM) nicht druckbar ist.
-- **Frontmatter dauerhaft ausgeklappt** (4T-0312): neuer Schalter „Frontmatter ausgeklappt anzeigen" im Bereich Darstellung (Default aus, nur wirksam bei aktiver Frontmatter-Anzeige) — hält das Klartext-YAML in der gerenderten Ansicht und im Live-Modus dauerhaft offen und druckt es damit auch im PDF vollständig mit (ohne die Höhen-Grenze der Hover-Darstellung). Bei inaktivem Schalter bleibt die bisherige Hover-/Pin-Mechanik unverändert.
+- **Quelltext-Ansicht im PDF-Export** (4T-000311): der Export folgt der aktiven Ansicht — die Quelltext-Ansicht druckt das Roh-Markdown mit Syntax-Hervorhebung (highlight.js-Markdown-Grammatik, immer hell), inklusive Zeilennummern, wenn sie im Tab eingeschaltet sind; lange Zeilen brechen weich um, nur die erste Druckzeile trägt die Nummer. Gerendert, Geteilt und Live drucken wie bisher das formatierte Dokument. Technisch über einen dedizierten Print-Block aus dem Dokumenttext, weil der virtualisierte Editor (nur sichtbare Zeilen im DOM) nicht druckbar ist.
+- **Frontmatter dauerhaft ausgeklappt** (4T-000312): neuer Schalter „Frontmatter ausgeklappt anzeigen" im Bereich Darstellung (Default aus, nur wirksam bei aktiver Frontmatter-Anzeige) — hält das Klartext-YAML in der gerenderten Ansicht und im Live-Modus dauerhaft offen und druckt es damit auch im PDF vollständig mit (ohne die Höhen-Grenze der Hover-Darstellung). Bei inaktivem Schalter bleibt die bisherige Hover-/Pin-Mechanik unverändert.
 
 ### Geändert
 
 - **Migration ohne Verhaltensänderung**: ohne Nutzung der neuen Funktionen verhält sich die App exakt wie 0.37.0 (Frontmatter-Schalter startet aus; der Export aus Gerendert/Geteilt/Live ist unverändert, nur die Quelltext-Ansicht druckt jetzt Quelltext statt des gerenderten Inhalts).
-- **Handbuch** (4T-0313): Seite „Werkzeuge" (PDF-Export je Ansicht) und Seite „Frontmatter und Properties" (Ausklapp-Schalter) in allen fünf Sprachfassungen nachgezogen; Funktions-Katalog-Einträge aktualisiert.
+- **Handbuch** (4T-000313): Seite „Werkzeuge" (PDF-Export je Ansicht) und Seite „Frontmatter und Properties" (Ausklapp-Schalter) in allen fünf Sprachfassungen nachgezogen; Funktions-Katalog-Einträge aktualisiert.
 
 ### Intern
 
@@ -3756,22 +3817,22 @@ Epic 3E-0055 (PDF-Export-Erweiterungen): zwei Erweiterungs-Wünsche des Product 
 
 ## [0.37.0] - 2026-07-03 — PDF-Export
 
-Epic 3E-0054 (PDF-Export): Der seit dem ersten Anlauf zurückgestellte PDF-Export (4T-0024) ist umgesetzt — „Datei → Als PDF exportieren…" (Standard Strg+Umschalt+P) druckt den gerenderten Inhalt des aktiven Tabs in eine PDF-Datei, immer hell, unabhängig von Theme und Ansichts-Modus. Die Variante B+ (Theme-Variablen-Override) bestand den Spike gegen alle drei dokumentierten Fehlerbilder des ersten Anlaufs; Seitenformat, Ausrichtung und Ränder konfiguriert der neue Einstellungs-Bereich „Export". Umgesetzt in zwei Umsetzungs-Tasks plus Handbuch- und Sammeltask: 4T-0303 (Export-Kern), 4T-0304 (Export-Einstellungen), 4T-0305 (Hilfe/Handbuch), 4T-0306 (Release).
+Epic 3E-000054 (PDF-Export): Der seit dem ersten Anlauf zurückgestellte PDF-Export (4T-000024) ist umgesetzt — „Datei → Als PDF exportieren…" (Standard Strg+Umschalt+P) druckt den gerenderten Inhalt des aktiven Tabs in eine PDF-Datei, immer hell, unabhängig von Theme und Ansichts-Modus. Die Variante B+ (Theme-Variablen-Override) bestand den Spike gegen alle drei dokumentierten Fehlerbilder des ersten Anlaufs; Seitenformat, Ausrichtung und Ränder konfiguriert der neue Einstellungs-Bereich „Export". Umgesetzt in zwei Umsetzungs-Tasks plus Handbuch- und Sammeltask: 4T-000303 (Export-Kern), 4T-000304 (Export-Einstellungen), 4T-000305 (Hilfe/Handbuch), 4T-000306 (Release).
 
 ### Neu
 
-- **PDF-Export** (4T-0303): Menüpunkt „Datei → Als PDF exportieren…" direkt nach „Speichern unter…" plus Registry-Kommando mit Standard-Kürzel Strg+Umschalt+P (umbelegbar). Save-Dialog mit sinnvollem Default-Namen (`<basename>.pdf` neben der Quelldatei; bei pfadlosen Tabs der Anzeigename im Home-Verzeichnis). Gedruckt wird immer der gerenderte Inhalt des aktiven Panes — Quelltext- und Live-Modus wechseln für den Druck intern auf die gerenderte Ansicht und stellen den Modus danach wieder her. Statusbar-Feedback für Erfolg und Fehler; Abbruch im Dialog bleibt still. Handbuch-Tabs sind exportierbar, der Einstellungs-Tab ist ausgenommen (Menüpunkt deaktiviert).
-- **Immer helles PDF nach Variante B+** (4T-0303): für die Druckdauer werden die CSS-Theme-Variablen per JS auf die Light-Werte gesetzt, `data-theme` auf hell gezwungen und Mermaid-Diagramme hell neu gerendert (bleiben Vektorgrafik); KaTeX-Formeln, Code-Hervorhebung, Callouts, Custom Containers und Perspective-Tabellen erscheinen wie in der Vorschau. Seitenumbruch-Regeln halten Code-Blöcke, Tabellen, Diagramme, Formeln, Callouts und Embeds nach Möglichkeit zusammen; Überschriften stehen nicht allein am Seitenende.
-- **Einstellungs-Bereich „Export"** (4T-0304): achter Bereich der Einstellungs-Seite (hinter „Verhalten") mit Seitenformat (A4 Default; zusätzlich A3, A5, Letter, Legal), Ausrichtung (Hochformat Default, Querformat) und Rändern (schmal/normal/breit, entspricht etwa 1/2/3 cm; normal Default). Normale Entwurf-/Anwenden-Logik; die Werte wirken auf den nächsten Export, gelten in allen Fenstern und überleben Neustarts; ungültige oder fehlende Werte fallen auf die Defaults zurück.
+- **PDF-Export** (4T-000303): Menüpunkt „Datei → Als PDF exportieren…" direkt nach „Speichern unter…" plus Registry-Kommando mit Standard-Kürzel Strg+Umschalt+P (umbelegbar). Save-Dialog mit sinnvollem Default-Namen (`<basename>.pdf` neben der Quelldatei; bei pfadlosen Tabs der Anzeigename im Home-Verzeichnis). Gedruckt wird immer der gerenderte Inhalt des aktiven Panes — Quelltext- und Live-Modus wechseln für den Druck intern auf die gerenderte Ansicht und stellen den Modus danach wieder her. Statusbar-Feedback für Erfolg und Fehler; Abbruch im Dialog bleibt still. Handbuch-Tabs sind exportierbar, der Einstellungs-Tab ist ausgenommen (Menüpunkt deaktiviert).
+- **Immer helles PDF nach Variante B+** (4T-000303): für die Druckdauer werden die CSS-Theme-Variablen per JS auf die Light-Werte gesetzt, `data-theme` auf hell gezwungen und Mermaid-Diagramme hell neu gerendert (bleiben Vektorgrafik); KaTeX-Formeln, Code-Hervorhebung, Callouts, Custom Containers und Perspective-Tabellen erscheinen wie in der Vorschau. Seitenumbruch-Regeln halten Code-Blöcke, Tabellen, Diagramme, Formeln, Callouts und Embeds nach Möglichkeit zusammen; Überschriften stehen nicht allein am Seitenende.
+- **Einstellungs-Bereich „Export"** (4T-000304): achter Bereich der Einstellungs-Seite (hinter „Verhalten") mit Seitenformat (A4 Default; zusätzlich A3, A5, Letter, Legal), Ausrichtung (Hochformat Default, Querformat) und Rändern (schmal/normal/breit, entspricht etwa 1/2/3 cm; normal Default). Normale Entwurf-/Anwenden-Logik; die Werte wirken auf den nächsten Export, gelten in allen Fenstern und überleben Neustarts; ungültige oder fehlende Werte fallen auf die Defaults zurück.
 
 ### Geändert
 
 - **Migration ohne Verhaltensänderung**: ohne Export-Aufruf verhält sich die App exakt wie 0.36.0; die Export-Einstellungen starten mit den Defaults A4/Hochformat/normal.
-- **Handbuch-Seite „Werkzeuge"** (4T-0305): neue Sektion „PDF-Export" in allen fünf Sprachfassungen; Funktions-Katalog um den Eintrag PDF-Export in der Datei-Gruppe ergänzt (die generierten Funktions- und Tastenkürzel-Seiten ziehen automatisch nach).
+- **Handbuch-Seite „Werkzeuge"** (4T-000305): neue Sektion „PDF-Export" in allen fünf Sprachfassungen; Funktions-Katalog um den Eintrag PDF-Export in der Datei-Gruppe ergänzt (die generierten Funktions- und Tastenkürzel-Seiten ziehen automatisch nach).
 
 ### Intern
 
-- **Spike gegen die Fehlerbilder des ersten Anlaufs** (4T-0303): E2E-verprobt vor dem Commitment — Dark-Theme-Reste (Farb-Marker-Analyse der entpackten PDF-Content-Streams), Nur-erste-Seite (Seitenzahl-Prüfung plus Layout-Reset-Checks) und sichtbares Source-Pane (eigenständige Versteck-Selektoren statt der früheren Kollision). Dabei viertes Fehlerbild gefunden und behoben: Chromium malt die Fenster-Hintergrundfarbe als Seiten-Grund unter die Druckränder (im Dark-Theme ein dunkler Rahmen um jede Seite); der Druck-Endpunkt stellt sie für die Druckdauer auf Weiß.
+- **Spike gegen die Fehlerbilder des ersten Anlaufs** (4T-000303): E2E-verprobt vor dem Commitment — Dark-Theme-Reste (Farb-Marker-Analyse der entpackten PDF-Content-Streams), Nur-erste-Seite (Seitenzahl-Prüfung plus Layout-Reset-Checks) und sichtbares Source-Pane (eigenständige Versteck-Selektoren statt der früheren Kollision). Dabei viertes Fehlerbild gefunden und behoben: Chromium malt die Fenster-Hintergrundfarbe als Seiten-Grund unter die Druckränder (im Dark-Theme ein dunkler Rahmen um jede Seite); der Druck-Endpunkt stellt sie für die Druckdauer auf Weiß.
 - **Architektur**: IPC in zwei Endpunkten (`pdf:chooseTarget` vor dem Print-Zustand, `pdf:print` mit Store-Werten), Options-Mapping electron-frei in `src/shared/pdf-options.js` (gemeinsame Quelle für Main und Einstellungs-Bereich, unit-getestet), Print-Regeln am `printing`-Klassen-Hook mit generischer Streuner-Regel gegen Body-Level-Fremd-DOM und deterministischem Druck des aktiven Panes, Mermaid-Queue-Barriere als Nachfolger des früheren Promise-Syncs. Architektur.md um die Sektion „PDF-Export" fortgeschrieben.
 - **Test-Ausbau**: neue E2E-Spec `pdf-export.spec.js` (PD-01 bis PD-06: Dark-Export mehrseitig ohne Dark-Füllfarben, Abbruch, Fehlerpfad, Modus-Wiederherstellung, Print-Layout-Regeln, Export-Einstellungen mit Querformat; Save-Dialog im Test gestubbt), neue Unit-Tests `pdf-options.test.js`, ES-05 auf acht Bereiche angepasst, Abdeckungs-Matrix-Einträge F-073 und S-036.
 - **Versions-Bump** 0.36.0 → 0.37.0 ([package.json](package.json)).
@@ -3783,16 +3844,16 @@ Epic 3E-0054 (PDF-Export): Der seit dem ersten Anlauf zurückgestellte PDF-Expor
 
 ## [0.36.0] - 2026-07-02 — Externe Erweiterungen
 
-Epic 3E-0053 (Externe Erweiterungen): Die App lädt jetzt von Nutzern installierte Erweiterungs-Pakete, die über die neue, versionierte Erweiterungs-API v1 Rendering und Oberfläche erweitern — mit explizitem Vertrauens-Ablauf (Warn-Dialog je Erweiterung und Version, keine Sandbox als bewusste Product-Owner-Entscheidung), Fehler-Isolation mit automatischer Deaktivierung, eigenem Verwaltungs-Bereich in den Einstellungen und einer ausführlichen Entwickler-Handbuch-Seite in fünf Sprachen. Ohne installierte Pakete verhält sich die App exakt wie zuvor. Umgesetzt in drei Umsetzungs-Tasks plus Handbuch- und Sammeltask: 4T-0299 (API v1), 4T-0298 (Lade- und Vertrauensmodell), 4T-0300 (Verwaltungs-Bereich), 4T-0301 (Entwickler-Handbuch), 4T-0302 (Release).
+Epic 3E-000053 (Externe Erweiterungen): Die App lädt jetzt von Nutzern installierte Erweiterungs-Pakete, die über die neue, versionierte Erweiterungs-API v1 Rendering und Oberfläche erweitern — mit explizitem Vertrauens-Ablauf (Warn-Dialog je Erweiterung und Version, keine Sandbox als bewusste Product-Owner-Entscheidung), Fehler-Isolation mit automatischer Deaktivierung, eigenem Verwaltungs-Bereich in den Einstellungen und einer ausführlichen Entwickler-Handbuch-Seite in fünf Sprachen. Ohne installierte Pakete verhält sich die App exakt wie zuvor. Umgesetzt in drei Umsetzungs-Tasks plus Handbuch- und Sammeltask: 4T-000299 (API v1), 4T-000298 (Lade- und Vertrauensmodell), 4T-000300 (Verwaltungs-Bereich), 4T-000301 (Entwickler-Handbuch), 4T-000302 (Release).
 
 ### Neu
 
-- **Externe Erweiterungs-Pakete** (4T-0298): Installation durch Ablegen eines Paket-Ordners (`manifest.json` plus Code-Dateien) im Erweiterungs-Verzeichnis des Nutzerprofils; Erkennung beim Start, per Broadcast und über die Aktualisieren-Aktion. Ungültige Manifeste werden mit Diagnose-Details gelistet und nie geladen.
-- **Vertrauens-Ablauf** (4T-0298): neu erkannte Pakete sind deaktiviert; die Aktivierung verlangt einen deutlichen Warn-Dialog (fremder Code, voller Zugriff auf Dokumente und App, keine Sandbox; Abbrechen ist Default). Die Bestätigung wird je Erweiterung und Version gespeichert — ein Versions-Wechsel erfordert eine erneute Bestätigung, Deaktivieren nimmt sie nicht zurück.
-- **Erweiterungs-API v1** (4T-0299): versionierte, dokumentierte Oberfläche mit sechs Beitrags-Arten — markdown-it-Plugin (wirkt in Anzeige und portablem Export), Sidebar-Panel (voll integriert in Layout, Drag-and-Drop und Persistenz), Kommando mit optionalem Standard-Kürzel (umbelegbar im Tastenkürzel-Editor), eigener Einstellungs-Bereich, Lese-Zugriff auf Theme-Variablen/Theme/Sprache sowie eigene Übersetzungen mit Fallback auf die Standard-Sprache der Erweiterung; dazu ein Persistenz-Namensraum je Erweiterung. Semantische `apiVersion`-Prüfung: inkompatible Pakete werden nie geladen und klar gekennzeichnet.
-- **Fehler-Isolation** (4T-0298): eine beim Laden werfende Erweiterung wird vollständig zurückgerollt, automatisch deaktiviert und mit persistiertem Fehlertext angezeigt; werfende Markdown-Plugins fliegen isoliert aus dem Pipeline-Aufbau; Laufzeit-Fehler in Kommandos oder Panels brechen die App nicht ab.
-- **Einstellungs-Bereich „Erweiterungen (extern)"** (4T-0300): siebter Bereich der Einstellungs-Seite, klar getrennt vom internen Bereich — Liste mit Name, Version, Beschreibung, Herkunfts-Pfad und Status (Aktiv, Nicht aktiviert, Bestätigung nötig, Fehler mit Fehlertext, Ungültiges Manifest, Inkompatible API-Version); Aktionen Aktivieren (mit Warn-Dialog), Deaktivieren, Entfernen (löscht das Verzeichnis nach eigener Bestätigung), Aktualisieren und „Ordner öffnen". Aktionen wirken sofort, unabhängig von Anwenden/OK.
-- **Handbuch-Seite „Erweiterungen erstellen"** (4T-0301): ausführliche Entwickler-Seite in fünf Sprachen — Paket-Aufbau, Manifest-Referenz, komplette ctx-Referenz der API v1 mit Code-Beispielen je Beitrags-Art, Installations- und Vertrauens-Ablauf, Versionierungs-Regeln mit Stabilitäts-Zusage, Fehler-Diagnose, Qualitäts-Hinweise und unmissverständlicher Sicherheits-Hinweis; die Referenz-Erweiterung dient als lauffähige Vorlage.
+- **Externe Erweiterungs-Pakete** (4T-000298): Installation durch Ablegen eines Paket-Ordners (`manifest.json` plus Code-Dateien) im Erweiterungs-Verzeichnis des Nutzerprofils; Erkennung beim Start, per Broadcast und über die Aktualisieren-Aktion. Ungültige Manifeste werden mit Diagnose-Details gelistet und nie geladen.
+- **Vertrauens-Ablauf** (4T-000298): neu erkannte Pakete sind deaktiviert; die Aktivierung verlangt einen deutlichen Warn-Dialog (fremder Code, voller Zugriff auf Dokumente und App, keine Sandbox; Abbrechen ist Default). Die Bestätigung wird je Erweiterung und Version gespeichert — ein Versions-Wechsel erfordert eine erneute Bestätigung, Deaktivieren nimmt sie nicht zurück.
+- **Erweiterungs-API v1** (4T-000299): versionierte, dokumentierte Oberfläche mit sechs Beitrags-Arten — markdown-it-Plugin (wirkt in Anzeige und portablem Export), Sidebar-Panel (voll integriert in Layout, Drag-and-Drop und Persistenz), Kommando mit optionalem Standard-Kürzel (umbelegbar im Tastenkürzel-Editor), eigener Einstellungs-Bereich, Lese-Zugriff auf Theme-Variablen/Theme/Sprache sowie eigene Übersetzungen mit Fallback auf die Standard-Sprache der Erweiterung; dazu ein Persistenz-Namensraum je Erweiterung. Semantische `apiVersion`-Prüfung: inkompatible Pakete werden nie geladen und klar gekennzeichnet.
+- **Fehler-Isolation** (4T-000298): eine beim Laden werfende Erweiterung wird vollständig zurückgerollt, automatisch deaktiviert und mit persistiertem Fehlertext angezeigt; werfende Markdown-Plugins fliegen isoliert aus dem Pipeline-Aufbau; Laufzeit-Fehler in Kommandos oder Panels brechen die App nicht ab.
+- **Einstellungs-Bereich „Erweiterungen (extern)"** (4T-000300): siebter Bereich der Einstellungs-Seite, klar getrennt vom internen Bereich — Liste mit Name, Version, Beschreibung, Herkunfts-Pfad und Status (Aktiv, Nicht aktiviert, Bestätigung nötig, Fehler mit Fehlertext, Ungültiges Manifest, Inkompatible API-Version); Aktionen Aktivieren (mit Warn-Dialog), Deaktivieren, Entfernen (löscht das Verzeichnis nach eigener Bestätigung), Aktualisieren und „Ordner öffnen". Aktionen wirken sofort, unabhängig von Anwenden/OK.
+- **Handbuch-Seite „Erweiterungen erstellen"** (4T-000301): ausführliche Entwickler-Seite in fünf Sprachen — Paket-Aufbau, Manifest-Referenz, komplette ctx-Referenz der API v1 mit Code-Beispielen je Beitrags-Art, Installations- und Vertrauens-Ablauf, Versionierungs-Regeln mit Stabilitäts-Zusage, Fehler-Diagnose, Qualitäts-Hinweise und unmissverständlicher Sicherheits-Hinweis; die Referenz-Erweiterung dient als lauffähige Vorlage.
 
 ### Geändert
 
@@ -3801,8 +3862,8 @@ Epic 3E-0053 (Externe Erweiterungen): Die App lädt jetzt von Nutzern installier
 
 ### Intern
 
-- **Ausführungs-Spike und zweigeteilte Ausführung** (4T-0298): UI-Einstiegspunkte laden als ES-Module per dynamischem `import()` ihrer file://-URL im Renderer (CSP `script-src 'self'` erlaubt file→file-Modul-Importe, eval/blob bleiben blockiert); Markdown-Plugins evaluiert der Preload per `node:vm` in leerem Sandbox-Kontext (kein require/process — „kein Node-API-Zugriff" technisch eingehalten, mit Lade-Timeout). Main-seitiger Verzeichnis-Scan mit ID-Whitelist (der Renderer reicht nie Pfade herein, Muster des Handbuch-Seiten-Loaders); Vertrauens-Persistenz in eigenen Store-Schlüsseln (`extensionsExternal.enabled`/`.trusted`/`.lastError`) mit invertiertem Default gegenüber `extensions.disabled`.
-- **Host und Registry-Anschluss** (4T-0299): neue Module `src/shared/extensions-external.js` (Manifest-Modell, API-Versionierung, Status-Logik), `src/renderer/modules/extension-host.js` (ctx-Fassade, Aktivierungs-Zustandsmaschine, Rollback-Tracker) und `src/main/extension-packages.js`/`extension-loader.js`; dynamische Registrierung an der Erweiterungs-Registry (Herkunft `external`, ID-Kollisionsschutz), dynamische Kommandos im `ext.`-Namensraum, Erweiterungs-Übersetzungen als i18n-Zusatz-Tabellen. Referenz-Erweiterung `beispiel` plus absichtlich defekte und inkompatible Test-Pakete als Fixtures. Architektur.md fortgeschrieben.
+- **Ausführungs-Spike und zweigeteilte Ausführung** (4T-000298): UI-Einstiegspunkte laden als ES-Module per dynamischem `import()` ihrer file://-URL im Renderer (CSP `script-src 'self'` erlaubt file→file-Modul-Importe, eval/blob bleiben blockiert); Markdown-Plugins evaluiert der Preload per `node:vm` in leerem Sandbox-Kontext (kein require/process — „kein Node-API-Zugriff" technisch eingehalten, mit Lade-Timeout). Main-seitiger Verzeichnis-Scan mit ID-Whitelist (der Renderer reicht nie Pfade herein, Muster des Handbuch-Seiten-Loaders); Vertrauens-Persistenz in eigenen Store-Schlüsseln (`extensionsExternal.enabled`/`.trusted`/`.lastError`) mit invertiertem Default gegenüber `extensions.disabled`.
+- **Host und Registry-Anschluss** (4T-000299): neue Module `src/shared/extensions-external.js` (Manifest-Modell, API-Versionierung, Status-Logik), `src/renderer/modules/extension-host.js` (ctx-Fassade, Aktivierungs-Zustandsmaschine, Rollback-Tracker) und `src/main/extension-packages.js`/`extension-loader.js`; dynamische Registrierung an der Erweiterungs-Registry (Herkunft `external`, ID-Kollisionsschutz), dynamische Kommandos im `ext.`-Namensraum, Erweiterungs-Übersetzungen als i18n-Zusatz-Tabellen. Referenz-Erweiterung `beispiel` plus absichtlich defekte und inkompatible Test-Pakete als Fixtures. Architektur.md fortgeschrieben.
 - **Test-Ausbau**: neue E2E-Spec `erweiterungen-extern.spec.js` (EX-01 bis EX-04: Laden und Wirken, keine Ausführung ohne Aktivierung, Fehler-Isolation, Verwaltungs-Bereich; Helper installiert Fixture-Pakete ins Temp-Profil); neue Unit-Tests `extensions-external.test.js`, `extension-packages.test.js`, `commands-dynamic.test.js`, `markdown-external-plugins.test.js`, `extension-host.test.js` und `settings-extensions-external.test.js`; ES-05 auf sieben Bereiche angepasst; Abdeckungs-Matrix-Eintrag F-072.
 - **Versions-Bump** 0.35.0 → 0.36.0 ([package.json](package.json)).
 
@@ -3813,151 +3874,151 @@ Epic 3E-0053 (Externe Erweiterungen): Die App lädt jetzt von Nutzern installier
 
 ## [0.35.0] - 2026-07-02 — Interne Erweiterungen
 
-Epic 3E-0052 (Interne Erweiterungen): Die App erhält ein Erweiterungs-System — 27 Bestands-Funktionen sind jetzt interne Erweiterungen und lassen sich im neuen Einstellungs-Bereich „Erweiterungen" einzeln ein- und ausschalten, mit deklarierten Abhängigkeiten, dynamischen erweiterungs-eigenen Einstellungs-Bereichen und vollständigem Daten-Erhalt. Der Default bleibt alles eingeschaltet; ohne eigene Konfiguration verhält sich die App exakt wie zuvor. Dieselbe Registry, derselbe Lebenszyklus und dieselben Hook-Punkte sind die Grundlage des externen Erweiterungs-Systems (3E-0053). Umgesetzt in vier Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-0292 (Registry und Lebenszyklus), 4T-0293 (Render-Erweiterungen), 4T-0294 (Vernetzung und Werkzeuge), 4T-0295 (Einstellungs-Bereiche), 4T-0296 (Hilfe/Handbuch), 4T-0297 (Release).
+Epic 3E-000052 (Interne Erweiterungen): Die App erhält ein Erweiterungs-System — 27 Bestands-Funktionen sind jetzt interne Erweiterungen und lassen sich im neuen Einstellungs-Bereich „Erweiterungen" einzeln ein- und ausschalten, mit deklarierten Abhängigkeiten, dynamischen erweiterungs-eigenen Einstellungs-Bereichen und vollständigem Daten-Erhalt. Der Default bleibt alles eingeschaltet; ohne eigene Konfiguration verhält sich die App exakt wie zuvor. Dieselbe Registry, derselbe Lebenszyklus und dieselben Hook-Punkte sind die Grundlage des externen Erweiterungs-Systems (3E-000053). Umgesetzt in vier Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-000292 (Registry und Lebenszyklus), 4T-000293 (Render-Erweiterungen), 4T-000294 (Vernetzung und Werkzeuge), 4T-000295 (Einstellungs-Bereiche), 4T-000296 (Hilfe/Handbuch), 4T-000297 (Release).
 
 ### Neu
 
-- **Einstellungs-Bereich „Erweiterungen"** (4T-0295): sechster Bereich der Einstellungs-Seite mit allen 27 internen Erweiterungen in drei Kategorien (Rendering, Vernetzung, Werkzeuge), je Zeile Schalter, Name und Kurzbeschreibung; Wirkung bei Anwenden/OK — sofort, ohne Neustart, in allen Fenstern und Modi (Render-Pane, Live-Modus, Portable-Export).
-- **18 schaltbare Render-Erweiterungen** (4T-0293): Callouts, Custom Containers, Highlight, Fußnoten, Emoji-Shortcodes, Abkürzungen, Bild-Größen und Bildunterschriften, Definitionslisten, Line Blocks, Typografie (Tief-/Hochstellen, Unterstreichen), Attribute (Spans, Überschrift-IDs), Spoiler, Critic Markup, erweiterte Task-Status, Perspective-Tabellen, KaTeX-Formeln, Mermaid-Diagramme und Syntax-Highlighting. Abgeschaltete Syntax erscheint als Klartext bzw. Standard-Markdown, kein Fehler-Rendering.
-- **9 schaltbare Vernetzungs- und Werkzeug-Erweiterungen** (4T-0294): Wiki-Links (mit Ankern, Block-Ankern und den Panels für ausgehende Links und Backlinks), Wiki-Embeds, Tags und Autocomplete sowie Markdown-Linter, Lesezeichen, Fokus-Modus mit Typewriter-Scroll, Wort-Statistik und Code-Copy-Button. Abschalten nimmt Panels, Statusbar-Buttons, Menü-Einträge und Tastenkürzel sauber mit; ohne Konsumenten entsteht keine Index-Last.
-- **Abhängigkeits-Kopplung** (4T-0292, 4T-0295): abhängige Erweiterungen deaktivieren sich deklarativ mit (Wiki-Embeds mit Wiki-Links); der Bereich zeigt den Hinweis „Über Abhängigkeit deaktiviert", der eigene Schalter der abhängigen Erweiterung bleibt erhalten und greift beim Wiedereinschalten der Grundlage.
-- **Erweiterungs-eigene Einstellungs-Bereiche** (4T-0295): im Manifest deklarierte Bereiche erscheinen nur bei aktiver Erweiterung in der Bereichsnavigation; erster Anwendungsfall ist der Bereich Task-Status als Bereich der Task-Status-Erweiterung. Verschwindet der gerade offene Bereich, fällt die Seite auf den Bereich „Erweiterungen" zurück; persistierte Werte bleiben erhalten.
+- **Einstellungs-Bereich „Erweiterungen"** (4T-000295): sechster Bereich der Einstellungs-Seite mit allen 27 internen Erweiterungen in drei Kategorien (Rendering, Vernetzung, Werkzeuge), je Zeile Schalter, Name und Kurzbeschreibung; Wirkung bei Anwenden/OK — sofort, ohne Neustart, in allen Fenstern und Modi (Render-Pane, Live-Modus, Portable-Export).
+- **18 schaltbare Render-Erweiterungen** (4T-000293): Callouts, Custom Containers, Highlight, Fußnoten, Emoji-Shortcodes, Abkürzungen, Bild-Größen und Bildunterschriften, Definitionslisten, Line Blocks, Typografie (Tief-/Hochstellen, Unterstreichen), Attribute (Spans, Überschrift-IDs), Spoiler, Critic Markup, erweiterte Task-Status, Perspective-Tabellen, KaTeX-Formeln, Mermaid-Diagramme und Syntax-Highlighting. Abgeschaltete Syntax erscheint als Klartext bzw. Standard-Markdown, kein Fehler-Rendering.
+- **9 schaltbare Vernetzungs- und Werkzeug-Erweiterungen** (4T-000294): Wiki-Links (mit Ankern, Block-Ankern und den Panels für ausgehende Links und Backlinks), Wiki-Embeds, Tags und Autocomplete sowie Markdown-Linter, Lesezeichen, Fokus-Modus mit Typewriter-Scroll, Wort-Statistik und Code-Copy-Button. Abschalten nimmt Panels, Statusbar-Buttons, Menü-Einträge und Tastenkürzel sauber mit; ohne Konsumenten entsteht keine Index-Last.
+- **Abhängigkeits-Kopplung** (4T-000292, 4T-000295): abhängige Erweiterungen deaktivieren sich deklarativ mit (Wiki-Embeds mit Wiki-Links); der Bereich zeigt den Hinweis „Über Abhängigkeit deaktiviert", der eigene Schalter der abhängigen Erweiterung bleibt erhalten und greift beim Wiedereinschalten der Grundlage.
+- **Erweiterungs-eigene Einstellungs-Bereiche** (4T-000295): im Manifest deklarierte Bereiche erscheinen nur bei aktiver Erweiterung in der Bereichsnavigation; erster Anwendungsfall ist der Bereich Task-Status als Bereich der Task-Status-Erweiterung. Verschwindet der gerade offene Bereich, fällt die Seite auf den Bereich „Erweiterungen" zurück; persistierte Werte bleiben erhalten.
 - **Daten-Erhalt beim Abschalten**: Lesezeichen-Baum, Task-Status-Definitionen, Panel-Sichtbarkeiten, eigene Tastenkürzel und Fokus-/Typewriter-Präferenzen bleiben gespeichert und kehren beim Einschalten zurück.
 
 ### Geändert
 
-- **Migration ohne Verhaltensänderung** (4T-0292): Default ist die leere Disabled-Liste (`extensions.disabled`), alle Erweiterungen eingeschaltet; bestehende Einstellungen bleiben gültig, der Default-Zustand rendert byte-identisch zum Stand vor dem Umbau (Snapshot-Suite unverändert).
+- **Migration ohne Verhaltensänderung** (4T-000292): Default ist die leere Disabled-Liste (`extensions.disabled`), alle Erweiterungen eingeschaltet; bestehende Einstellungen bleiben gültig, der Default-Zustand rendert byte-identisch zum Stand vor dem Umbau (Snapshot-Suite unverändert).
 
 ### Behoben
 
-- **Statusbar-Icon-Buttons ignorierten das hidden-Attribut** (4T-0295): die Icon-Button-Regel überstimmte mit `display:inline-flex` die Browser-`[hidden]`-Regel; beim Ausblenden der Buttons deaktivierter Erweiterungen aufgefallen und mit einer expliziten `[hidden]`-Regel behoben (Regressionstest EW-03).
+- **Statusbar-Icon-Buttons ignorierten das hidden-Attribut** (4T-000295): die Icon-Button-Regel überstimmte mit `display:inline-flex` die Browser-`[hidden]`-Regel; beim Ausblenden der Buttons deaktivierter Erweiterungen aufgefallen und mit einer expliziten `[hidden]`-Regel behoben (Regressionstest EW-03).
 
 ### Intern
 
-- **Erweiterungs-Registry und Lebenszyklus** (4T-0292): neues Shared-Modul `src/shared/extensions.js` (deklaratives Manifest-Modell mit ID, Kategorie, i18n-Keys, Abhängigkeiten, Kommando- und Bereichs-Zuordnung; Validierung inklusive Zyklen-Erkennung; Kern-Abgrenzung technisch: Unregistriertes ist immer aktiv) und Renderer-Lebenszyklus-Modul `extension-lifecycle.js` (Zustand, Laufzeit-Hooks im attach-Muster, Broadcast-Empfang). Pipeline-Aufbau in `markdown.js` parametrisiert: Umschalten baut beide markdown-it-Instanzen (Viewer und Portable) mit dem aktiven Plugin-Satz neu auf; Kommando-Filterung wirkt auf Dispatcher, Editor-Keymap, Menü, Tastenkürzel-Editor und die generierte Tastenkürzel-Seite. Architektur.md fortgeschrieben.
+- **Erweiterungs-Registry und Lebenszyklus** (4T-000292): neues Shared-Modul `src/shared/extensions.js` (deklaratives Manifest-Modell mit ID, Kategorie, i18n-Keys, Abhängigkeiten, Kommando- und Bereichs-Zuordnung; Validierung inklusive Zyklen-Erkennung; Kern-Abgrenzung technisch: Unregistriertes ist immer aktiv) und Renderer-Lebenszyklus-Modul `extension-lifecycle.js` (Zustand, Laufzeit-Hooks im attach-Muster, Broadcast-Empfang). Pipeline-Aufbau in `markdown.js` parametrisiert: Umschalten baut beide markdown-it-Instanzen (Viewer und Portable) mit dem aktiven Plugin-Satz neu auf; Kommando-Filterung wirkt auf Dispatcher, Editor-Keymap, Menü, Tastenkürzel-Editor und die generierte Tastenkürzel-Seite. Architektur.md fortgeschrieben.
 - **Test-Ausbau**: neue E2E-Spec `erweiterungen.spec.js` (EW-01 bis EW-03: Schalten mit Sofort-Wirkung und Persistenz, dynamischer Bereich mit Rückfall, UI-Konsistenz); neue Unit-Tests `extensions.test.js`, `extension-lifecycle.test.js`, `settings-extensions.test.js`, `mermaid-aus.test.js` und `extensions-aus.test.js` (pro Erweiterung genau ein Aus-Zustand-Test gemäß Epic-Test-Pragmatik; die Voll-Suite läuft weiter mit dem Default alles an); Abdeckungs-Matrix-Eintrag F-071.
 - **Versions-Bump** 0.34.0 → 0.35.0 ([package.json](package.json)).
 
 ### i18n
 
-- Zwanzig neue Keys in allen fünf Sprachen: Einstellungs-Bereich (`settings.extensions.*`, 6 Keys), Namen und Beschreibungen der gebündelten Erweiterungen (`extension.*`, 10 Keys), Funktions-Katalog (`help.feature.extensions`, `help.featureName.extensions`, `help.featureAccess.extensions`) und Handbuch-Seitentitel (`manual.page.extensions.title`); die übrigen Erweiterungen referenzieren ihre bestehenden Katalog-Keys ohne Duplikate (4T-0293 bis 4T-0296).
-- Neue Handbuch-Themen-Seite „Erweiterungen" (Konzept und Kern-Abgrenzung, Schalten, Wirkung des Aus-Zustands, Abhängigkeiten, Daten-Erhalt) in allen fünf Sprachfassungen, verlinkt von der Überblicksseite (4T-0296).
+- Zwanzig neue Keys in allen fünf Sprachen: Einstellungs-Bereich (`settings.extensions.*`, 6 Keys), Namen und Beschreibungen der gebündelten Erweiterungen (`extension.*`, 10 Keys), Funktions-Katalog (`help.feature.extensions`, `help.featureName.extensions`, `help.featureAccess.extensions`) und Handbuch-Seitentitel (`manual.page.extensions.title`); die übrigen Erweiterungen referenzieren ihre bestehenden Katalog-Keys ohne Duplikate (4T-000293 bis 4T-000296).
+- Neue Handbuch-Themen-Seite „Erweiterungen" (Konzept und Kern-Abgrenzung, Schalten, Wirkung des Aus-Zustands, Abhängigkeiten, Daten-Erhalt) in allen fünf Sprachfassungen, verlinkt von der Überblicksseite (4T-000296).
 
 ## [0.34.0] - 2026-07-02 — Dynamische Sidebar
 
-Epic 3E-0051 (Dynamische Sidebar): Die Sidebar ist frei anordenbar — jede Spalte hat eine Sidebar-Fläche links und rechts, jedes der sechs Panels (Inhaltsverzeichnis, Properties, Tags, Outgoing-Links, Backlinks, Lesezeichen) kann auf beiden Seiten in wählbarer Reihenfolge stehen, mehrere Panels bündeln sich an einer Position als Reiter-Gruppe. Konfiguration per Drag-and-Drop direkt in der Sidebar und über den neuen Einstellungs-Bereich „Sidebar"; die Anordnung gilt global für die App, die Sichtbarkeit bleibt pro Spalte schaltbar. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-0287 (Registry und Layout-Modell), 4T-0288 (Rendering-Umbau), 4T-0289 (Konfiguration), 4T-0290 (Hilfe/Handbuch), 4T-0291 (Release).
+Epic 3E-000051 (Dynamische Sidebar): Die Sidebar ist frei anordenbar — jede Spalte hat eine Sidebar-Fläche links und rechts, jedes der sechs Panels (Inhaltsverzeichnis, Properties, Tags, Outgoing-Links, Backlinks, Lesezeichen) kann auf beiden Seiten in wählbarer Reihenfolge stehen, mehrere Panels bündeln sich an einer Position als Reiter-Gruppe. Konfiguration per Drag-and-Drop direkt in der Sidebar und über den neuen Einstellungs-Bereich „Sidebar"; die Anordnung gilt global für die App, die Sichtbarkeit bleibt pro Spalte schaltbar. Umgesetzt in drei Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-000287 (Registry und Layout-Modell), 4T-000288 (Rendering-Umbau), 4T-000289 (Konfiguration), 4T-000290 (Hilfe/Handbuch), 4T-000291 (Release).
 
 ### Neu
 
-- **Zwei Sidebars je Spalte** (4T-0288): links und rechts vom Inhalt je ein Sidebar-Container mit eigenem Splitter; ein Container erscheint nur, wenn dort mindestens ein Panel in dieser Spalte sichtbar ist. Beide Seiten haben eigene, unabhängig ziehbare und persistierte Breiten (180 bis 500 Pixel, je Seite gemeinsam für beide Spalten).
-- **Freie Anordnung der Panels** (4T-0287, 4T-0288): Seite und Reihenfolge jedes Panels sind frei wählbar; das Layout ist eine globale Einstellung und wirkt in allen Spalten und Fenstern. Die Sichtbarkeit je Panel bleibt wie bisher pro Spalte schaltbar (Statusbar, Menü, Kürzel unverändert).
-- **Reiter-Gruppen** (4T-0288): mehrere Panels an derselben Position teilen sich den Platz als Gruppe mit Reiterleiste; sichtbar ist das aktive Panel, der aktive Reiter wird gemerkt. Das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
-- **Drag-and-Drop-Konfiguration** (4T-0289): Panel-Titel (bei Gruppen die Reiter) sind ziehbar — oberes/unteres Drittel eines Panels sortiert davor/dahinter, die Mitte bildet eine Gruppe, die Freifläche einer Sidebar hängt an; beim Ziehen erscheint auf einer leeren Seite ein schmaler Ablage-Streifen. Ziel-Zonen sind farblich markiert, Esc bricht ab, Änderungen wirken sofort in allen Fenstern.
-- **Einstellungs-Bereich „Sidebar"** (4T-0289): fünfter Bereich der Einstellungs-Seite (erster Nutzer des Bereichs-Registry-Andockpunkts aus 0.32.0) mit beiden Seiten als Listen, Aktionen zum Verschieben, Seitenwechsel, Gruppieren, Lösen und Auflösen sowie Zurücksetzen auf die Standard-Anordnung; Wirkung bei Anwenden/OK gemäß Entwurfs-Logik der Seite.
+- **Zwei Sidebars je Spalte** (4T-000288): links und rechts vom Inhalt je ein Sidebar-Container mit eigenem Splitter; ein Container erscheint nur, wenn dort mindestens ein Panel in dieser Spalte sichtbar ist. Beide Seiten haben eigene, unabhängig ziehbare und persistierte Breiten (180 bis 500 Pixel, je Seite gemeinsam für beide Spalten).
+- **Freie Anordnung der Panels** (4T-000287, 4T-000288): Seite und Reihenfolge jedes Panels sind frei wählbar; das Layout ist eine globale Einstellung und wirkt in allen Spalten und Fenstern. Die Sichtbarkeit je Panel bleibt wie bisher pro Spalte schaltbar (Statusbar, Menü, Kürzel unverändert).
+- **Reiter-Gruppen** (4T-000288): mehrere Panels an derselben Position teilen sich den Platz als Gruppe mit Reiterleiste; sichtbar ist das aktive Panel, der aktive Reiter wird gemerkt. Das Einblenden eines gruppierten Panels aktiviert dessen Reiter.
+- **Drag-and-Drop-Konfiguration** (4T-000289): Panel-Titel (bei Gruppen die Reiter) sind ziehbar — oberes/unteres Drittel eines Panels sortiert davor/dahinter, die Mitte bildet eine Gruppe, die Freifläche einer Sidebar hängt an; beim Ziehen erscheint auf einer leeren Seite ein schmaler Ablage-Streifen. Ziel-Zonen sind farblich markiert, Esc bricht ab, Änderungen wirken sofort in allen Fenstern.
+- **Einstellungs-Bereich „Sidebar"** (4T-000289): fünfter Bereich der Einstellungs-Seite (erster Nutzer des Bereichs-Registry-Andockpunkts aus 0.32.0) mit beiden Seiten als Listen, Aktionen zum Verschieben, Seitenwechsel, Gruppieren, Lösen und Auflösen sowie Zurücksetzen auf die Standard-Anordnung; Wirkung bei Anwenden/OK gemäß Entwurfs-Logik der Seite.
 
 ### Geändert
 
-- **Migration ohne Funktionsverlust** (4T-0287): das Default-Layout entspricht exakt dem bisherigen Zustand (alle sechs Panels links in bisheriger Reihenfolge, keine Gruppen); bestehende Sichtbarkeits-Einstellungen bleiben gültig, die bisherige gemeinsame Sidebar-Breite wird als Startbreite der linken Seite übernommen. Nutzer ohne eigene Anordnung erleben keine Änderung.
+- **Migration ohne Funktionsverlust** (4T-000287): das Default-Layout entspricht exakt dem bisherigen Zustand (alle sechs Panels links in bisheriger Reihenfolge, keine Gruppen); bestehende Sichtbarkeits-Einstellungen bleiben gültig, die bisherige gemeinsame Sidebar-Breite wird als Startbreite der linken Seite übernommen. Nutzer ohne eigene Anordnung erleben keine Änderung.
 
 ### Intern
 
-- **Panel-Registry und Layout-Modell** (4T-0287): neues Modul `sidebar-layout.js` (Panel-Definitionen der sechs Bestands-Panels, reine Layout-Operationen, Persistenz, Breiten-Migration) — zugleich Andockpunkt für spätere Erweiterungs-Panels; Rendering per DOM-Umhängen der bestehenden Panel-Strukturen (Selektoren und Event-Bindungen der Panel-Module bleiben unberührt); Multi-Window-Broadcast über den `settings:set`-Kanal; neues Modul `sidebar-settings.js` (Einstellungs-Bereich). Architektur.md fortgeschrieben.
+- **Panel-Registry und Layout-Modell** (4T-000287): neues Modul `sidebar-layout.js` (Panel-Definitionen der sechs Bestands-Panels, reine Layout-Operationen, Persistenz, Breiten-Migration) — zugleich Andockpunkt für spätere Erweiterungs-Panels; Rendering per DOM-Umhängen der bestehenden Panel-Strukturen (Selektoren und Event-Bindungen der Panel-Module bleiben unberührt); Multi-Window-Broadcast über den `settings:set`-Kanal; neues Modul `sidebar-settings.js` (Einstellungs-Bereich). Architektur.md fortgeschrieben.
 - **Test-Ausbau**: neue E2E-Spec `sidebar-layout.spec.js` (SL-01 bis SL-09: Default-Layout und Migration, Panels rechts, Reihenfolge, Reiter-Gruppen, Toggles pro Spalte, unabhängige Breiten, Drag-and-Drop mit Ziel-Zonen, Fenster-Broadcast), `einstellungen-seite.spec.js` um ES-10 erweitert; neuer Unit-Test `sidebar-layout.test.js` (Modell, Validierung, Operationen, Migration); Abdeckungs-Matrix-Eintrag F-070; Stabilitäts-Fix: explizite Timeouts an zwei lastabhängigen Backlinks-Unit-Tests.
 - **Versions-Bump** 0.33.0 → 0.34.0 ([package.json](package.json)).
 
 ### i18n
 
-- Siebzehn neue Keys in allen fünf Sprachen: Einstellungs-Bereich (`settings.sidebar.*`, 13 Keys), Funktions-Katalog (`help.feature.sidebarLayout`, `help.featureName.sidebarLayout`, `help.featureAccess.sidebarLayout`) und Handbuch-Seitentitel (`manual.page.sidebar.title`) (4T-0289, 4T-0290).
-- Neue Handbuch-Themen-Seite „Sidebar" (Panels ein-/ausblenden, Anordnung, Reiter-Gruppen, Breiten) in allen fünf Sprachfassungen, verlinkt von der Überblicksseite (4T-0290).
+- Siebzehn neue Keys in allen fünf Sprachen: Einstellungs-Bereich (`settings.sidebar.*`, 13 Keys), Funktions-Katalog (`help.feature.sidebarLayout`, `help.featureName.sidebarLayout`, `help.featureAccess.sidebarLayout`) und Handbuch-Seitentitel (`manual.page.sidebar.title`) (4T-000289, 4T-000290).
+- Neue Handbuch-Themen-Seite „Sidebar" (Panels ein-/ausblenden, Anordnung, Reiter-Gruppen, Breiten) in allen fünf Sprachfassungen, verlinkt von der Überblicksseite (4T-000290).
 
 ## [0.33.0] - 2026-07-02 — Frontmatter-Anzeige im Gerenderten
 
-Epic 3E-0050 (YAML-Anzeige im Gerenderten): Der YAML-Frontmatter-Block ist im Gerenderten nicht länger unsichtbar — er erscheint als dezente, zusammengeklappte Zeile mit Feldanzahl, die beim Überfahren als Klartext-YAML aufklappt und per Klick feststellbar ist, mit Parität in Render-Pane und Live-Modus und einem Einstellungs-Schalter (Default an). Umgesetzt in drei Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-0282 (Render-Pane), 4T-0283 (Live-Modus), 4T-0284 (Einstellungs-Schalter), 4T-0285 (Hilfe/Handbuch), 4T-0286 (Release).
+Epic 3E-000050 (YAML-Anzeige im Gerenderten): Der YAML-Frontmatter-Block ist im Gerenderten nicht länger unsichtbar — er erscheint als dezente, zusammengeklappte Zeile mit Feldanzahl, die beim Überfahren als Klartext-YAML aufklappt und per Klick feststellbar ist, mit Parität in Render-Pane und Live-Modus und einem Einstellungs-Schalter (Default an). Umgesetzt in drei Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-000282 (Render-Pane), 4T-000283 (Live-Modus), 4T-000284 (Einstellungs-Schalter), 4T-000285 (Hilfe/Handbuch), 4T-000286 (Release).
 
 ### Neu
 
-- **Frontmatter-Zeile im Gerenderten** (4T-0282): Dokumente mit YAML-Frontmatter zeigen am Anfang der gerenderten Ansicht (geteilte Ansicht, reine Render-Ansicht, Lese-Modus) eine dezente, zusammengeklappte Zeile mit Feldanzahl. Überfahren mit der Maus klappt das Klartext-YAML auf (originalgetreu inklusive Kommentaren, mit YAML-Syntax-Färbung), Wegbewegen klappt mit kurzer Verzögerung zu, ein Klick stellt die Zeile fest. Tastatur-Bedienung über Fokus plus Enter/Leertaste; bei YAML-Parse-Fehlern erscheint der Roh-Text ohne Feldanzahl. Die Zeile ist reine Anzeige, der Editor bleibt die Properties-Sidebar. Markdown-Embeds zeigen weiterhin nur den Inhalt der eingebetteten Datei; der Portable-Export bleibt unverändert (Frontmatter als Text am Dateianfang, bewusste Nicht-Änderung).
-- **Frontmatter-Block-Widget im Live-Modus** (4T-0283): Im Live-Modus ersetzt dieselbe Zeile die YAML-Quelltext-Zeilen, solange der Cursor außerhalb steht — identisches Markup und Verhalten wie im Render-Pane (eine Erzeugungs-Quelle in der Pipeline). Cursor-Eintritt per Pfeiltasten oder Klick in das aufgeklappte YAML wechselt zum editierbaren Quelltext mit der bekannten Zeilen-Hinterlegung, Verlassen klappt wieder zusammen. Der frisch geöffnete Tab zeigt die Zeile auch dann, wenn der Cursor initial am Dokumentanfang steht.
-- **Einstellungs-Schalter für die Frontmatter-Anzeige** (4T-0284): Neue Checkbox „Frontmatter im Gerenderten anzeigen" im Bereich Darstellung der Einstellungs-Seite (Default eingeschaltet, auch für Bestands-Nutzer). Folgt der Entwurf-/OK-/Anwenden-Logik, wirkt nach Anwenden sofort in allen Panes, Modi und Fenstern und persistiert über Neustarts.
+- **Frontmatter-Zeile im Gerenderten** (4T-000282): Dokumente mit YAML-Frontmatter zeigen am Anfang der gerenderten Ansicht (geteilte Ansicht, reine Render-Ansicht, Lese-Modus) eine dezente, zusammengeklappte Zeile mit Feldanzahl. Überfahren mit der Maus klappt das Klartext-YAML auf (originalgetreu inklusive Kommentaren, mit YAML-Syntax-Färbung), Wegbewegen klappt mit kurzer Verzögerung zu, ein Klick stellt die Zeile fest. Tastatur-Bedienung über Fokus plus Enter/Leertaste; bei YAML-Parse-Fehlern erscheint der Roh-Text ohne Feldanzahl. Die Zeile ist reine Anzeige, der Editor bleibt die Properties-Sidebar. Markdown-Embeds zeigen weiterhin nur den Inhalt der eingebetteten Datei; der Portable-Export bleibt unverändert (Frontmatter als Text am Dateianfang, bewusste Nicht-Änderung).
+- **Frontmatter-Block-Widget im Live-Modus** (4T-000283): Im Live-Modus ersetzt dieselbe Zeile die YAML-Quelltext-Zeilen, solange der Cursor außerhalb steht — identisches Markup und Verhalten wie im Render-Pane (eine Erzeugungs-Quelle in der Pipeline). Cursor-Eintritt per Pfeiltasten oder Klick in das aufgeklappte YAML wechselt zum editierbaren Quelltext mit der bekannten Zeilen-Hinterlegung, Verlassen klappt wieder zusammen. Der frisch geöffnete Tab zeigt die Zeile auch dann, wenn der Cursor initial am Dokumentanfang steht.
+- **Einstellungs-Schalter für die Frontmatter-Anzeige** (4T-000284): Neue Checkbox „Frontmatter im Gerenderten anzeigen" im Bereich Darstellung der Einstellungs-Seite (Default eingeschaltet, auch für Bestands-Nutzer). Folgt der Entwurf-/OK-/Anwenden-Logik, wirkt nach Anwenden sofort in allen Panes, Modi und Fenstern und persistiert über Neustarts.
 
 ### Behoben
 
-- **Scroll-Sync-Versatz bei Frontmatter-Dokumenten** (4T-0282): Bei Dokumenten mit Frontmatter zählten die Quell-Zeilen-Anker des Gerenderten ab Body-Anfang statt ab Dokument-Anfang — die Scroll-Synchronisation der geteilten Ansicht und der Checkbox-Toggle aus dem Render-Pane trafen die um die Frontmatter-Länge falsche Editor-Zeile. Die Zeilen-Zuordnung rechnet den Frontmatter-Versatz jetzt ein; mit Regressionstest.
+- **Scroll-Sync-Versatz bei Frontmatter-Dokumenten** (4T-000282): Bei Dokumenten mit Frontmatter zählten die Quell-Zeilen-Anker des Gerenderten ab Body-Anfang statt ab Dokument-Anfang — die Scroll-Synchronisation der geteilten Ansicht und der Checkbox-Toggle aus dem Render-Pane trafen die um die Frontmatter-Länge falsche Editor-Zeile. Die Zeilen-Zuordnung rechnet den Frontmatter-Versatz jetzt ein; mit Regressionstest.
 
 ### Intern
 
-- **Schalter-Infrastruktur** (4T-0283/4T-0284): neues Renderer-Modul `frontmatter-display.js` (Zustand, Store-Init, Anwenden mit Cache-Invalidierung und Live-Rebuild); Pipeline-Konfiguration nach dem Muster der Task-Status (`configureFrontmatterDisplay` in beiden Instanzen, Multi-Window-Broadcast über den `settings:set`-Kanal).
+- **Schalter-Infrastruktur** (4T-000283/4T-000284): neues Renderer-Modul `frontmatter-display.js` (Zustand, Store-Init, Anwenden mit Cache-Invalidierung und Live-Rebuild); Pipeline-Konfiguration nach dem Muster der Task-Status (`configureFrontmatterDisplay` in beiden Instanzen, Multi-Window-Broadcast über den `settings:set`-Kanal).
 - **Test-Ausbau**: neue E2E-Spec `frontmatter-anzeige.spec.js` (FM-01/FM-02: Zeile, Pin, Zeilen-Anker, Live-Maskierung und Demaskierung, Paritäts-Markup), `einstellungen-seite.spec.js` um ES-09 (Schalter-Roundtrip, Neustart-Persistenz) erweitert; neue Unit-Tests `frontmatter-anzeige.test.js` (Markup, Escaping, Zeilen-Offset-Regression) und `frontmatter-display.test.js` (Default-Logik); Snapshot-Fixture `frontmatter-anzeige.md` (erweitert aus `frontmatter-ausschluss.md`); Abdeckungs-Matrix-Eintrag F-069.
 - **Versions-Bump** 0.32.0 → 0.33.0 ([package.json](package.json)).
 
 ### i18n
 
-- Sieben neue Keys in allen fünf Sprachen: Frontmatter-Zeile (`frontmatter.line.label`, `frontmatter.line.fieldCount`, `frontmatter.line.fieldCountOne`), Einstellungs-Schalter (`settings.showFrontmatter`) und Funktions-Katalog (`help.feature.frontmatterDisplay`, `help.featureName.frontmatterDisplay`, `help.featureAccess.frontmatterDisplay`); `help.feature.frontmatter` vom Render-Ausschluss auf den neuen Ist-Stand umformuliert (4T-0285).
-- Handbuch-Seite „Frontmatter und Properties" um die Sektion „Anzeige im Gerenderten" erweitert, in allen fünf Sprachfassungen (4T-0285).
+- Sieben neue Keys in allen fünf Sprachen: Frontmatter-Zeile (`frontmatter.line.label`, `frontmatter.line.fieldCount`, `frontmatter.line.fieldCountOne`), Einstellungs-Schalter (`settings.showFrontmatter`) und Funktions-Katalog (`help.feature.frontmatterDisplay`, `help.featureName.frontmatterDisplay`, `help.featureAccess.frontmatterDisplay`); `help.feature.frontmatter` vom Render-Ausschluss auf den neuen Ist-Stand umformuliert (4T-000285).
+- Handbuch-Seite „Frontmatter und Properties" um die Sektion „Anzeige im Gerenderten" erweitert, in allen fünf Sprachfassungen (4T-000285).
 
 ## [0.32.0] - 2026-07-02 — Einstellungen als Seite
 
-Epic 3E-0049 (Einstellungen als Seite): Der modale Einstellungs-Dialog ist durch eine vollwertige Einstellungs-Seite im Tab-System ersetzt — links eine Bereichsnavigation, rechts der gewählte Bereich, mit der bewährten Entwurf-/OK-/Anwenden-Logik. Die Seite ist zugleich Infrastruktur für kommende Einstellungs-Bereiche (YAML-Anzeige, Erweiterungen, Export). Umgesetzt in drei Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-0277 (Tab-Infrastruktur), 4T-0278 (Registry und Layout), 4T-0279 (Migration und Ablösung), 4T-0280 (Hilfe/Handbuch), 4T-0281 (Release).
+Epic 3E-000049 (Einstellungen als Seite): Der modale Einstellungs-Dialog ist durch eine vollwertige Einstellungs-Seite im Tab-System ersetzt — links eine Bereichsnavigation, rechts der gewählte Bereich, mit der bewährten Entwurf-/OK-/Anwenden-Logik. Die Seite ist zugleich Infrastruktur für kommende Einstellungs-Bereiche (YAML-Anzeige, Erweiterungen, Export). Umgesetzt in drei Umsetzungs-Tasks plus Hilfe- und Sammeltask: 4T-000277 (Tab-Infrastruktur), 4T-000278 (Registry und Layout), 4T-000279 (Migration und Ablösung), 4T-000280 (Hilfe/Handbuch), 4T-000281 (Release).
 
 ### Neu
 
-- **Einstellungs-Seite im Tab-System** (4T-0277, 4T-0278): Datei → Einstellungen… bzw. `Strg+,` öffnet die Einstellungen als eigenen Tab in voller Programmgröße — mit Bereichsnavigation links (Darstellung, Verhalten, Task-Status, Tastenkürzel) und dem gewählten Bereich rechts; die Tastenkürzel-Tabelle hat damit erstmals ausreichend Platz. Maximal eine Seite pro Fenster (erneutes Öffnen aktiviert den bestehenden Tab), verschiebbar in die zweite Spalte und in andere Fenster, ohne Sitzungs-Persistenz. Bereichswechsel erhält den Entwurf; Validierungsfehler markieren den Bereich in der Navigation und blockieren Anwenden/OK seitenweit.
-- **Entwurfs-Semantik wie im bisherigen Dialog** (4T-0279): Snapshot beim Öffnen, Live-Vorschau der Darstellungs-Werte, Persistierung erst bei Anwenden/OK — neu gilt zusätzlich: Schließen des Tabs ohne Anwenden (Tab-X, `Strg+W`) wirkt als Abbrechen und verwirft die Vorschau. Alle vier Bereiche verhalten sich funktional identisch zu den früheren Dialog-Sektionen (Live-Vorschau, Task-Status-Validierung, Tastenkürzel-Capture mit Konflikt-Erkennung und Gesamt-Reset, Mehrfenster-Broadcast).
+- **Einstellungs-Seite im Tab-System** (4T-000277, 4T-000278): Datei → Einstellungen… bzw. `Strg+,` öffnet die Einstellungen als eigenen Tab in voller Programmgröße — mit Bereichsnavigation links (Darstellung, Verhalten, Task-Status, Tastenkürzel) und dem gewählten Bereich rechts; die Tastenkürzel-Tabelle hat damit erstmals ausreichend Platz. Maximal eine Seite pro Fenster (erneutes Öffnen aktiviert den bestehenden Tab), verschiebbar in die zweite Spalte und in andere Fenster, ohne Sitzungs-Persistenz. Bereichswechsel erhält den Entwurf; Validierungsfehler markieren den Bereich in der Navigation und blockieren Anwenden/OK seitenweit.
+- **Entwurfs-Semantik wie im bisherigen Dialog** (4T-000279): Snapshot beim Öffnen, Live-Vorschau der Darstellungs-Werte, Persistierung erst bei Anwenden/OK — neu gilt zusätzlich: Schließen des Tabs ohne Anwenden (Tab-X, `Strg+W`) wirkt als Abbrechen und verwirft die Vorschau. Alle vier Bereiche verhalten sich funktional identisch zu den früheren Dialog-Sektionen (Live-Vorschau, Task-Status-Validierung, Tastenkürzel-Capture mit Konflikt-Erkennung und Gesamt-Reset, Mehrfenster-Broadcast).
 
 ### Geändert
 
-- **Zugänge zeigen auf die Seite** (4T-0277): Kommando `Strg+,` (umbelegbar) und der Menü-Eintrag Datei → Einstellungen… öffnen die Seite statt des Modals. Für den Einstellungs-Tab sind Bearbeiten, Speichern, Export und die Ansichts-Modi deaktiviert (Statusbar, Menü und Tastatur konsistent); Esc schließt den Tab bewusst nicht mehr (kein Modal).
+- **Zugänge zeigen auf die Seite** (4T-000277): Kommando `Strg+,` (umbelegbar) und der Menü-Eintrag Datei → Einstellungen… öffnen die Seite statt des Modals. Für den Einstellungs-Tab sind Bearbeiten, Speichern, Export und die Ansichts-Modi deaktiviert (Statusbar, Menü und Tastatur konsistent); Esc schließt den Tab bewusst nicht mehr (kein Modal).
 
 ### Entfernt
 
-- **Modaler Einstellungs-Dialog** (4T-0279): Dialog-Markup, Styles, Bindings und der Esc-Kaskaden-Eintrag sind restlos zurückgebaut; es gibt keine Übergangs-Koexistenz.
+- **Modaler Einstellungs-Dialog** (4T-000279): Dialog-Markup, Styles, Bindings und der Esc-Kaskaden-Eintrag sind restlos zurückgebaut; es gibt keine Übergangs-Koexistenz.
 
 ### Behoben
 
-- **Menü ignorierte Read-only-Tabs** (4T-0277): Der Renderer meldete seit 0.29.0 für Handbuch-Tabs den Read-only-Stand an den Hauptprozess, der Menü-Aufbau reichte das Feld aber nicht durch — die Menü-Einträge Speichern, Speichern unter und Bearbeiten blieben bei aktivem Handbuch-Tab fälschlich anklickbar (der Klick war wirkungslos). Jetzt durchgereicht und deaktiviert; mit Regressionstest.
+- **Menü ignorierte Read-only-Tabs** (4T-000277): Der Renderer meldete seit 0.29.0 für Handbuch-Tabs den Read-only-Stand an den Hauptprozess, der Menü-Aufbau reichte das Feld aber nicht durch — die Menü-Einträge Speichern, Speichern unter und Bearbeiten blieben bei aktivem Handbuch-Tab fälschlich anklickbar (der Klick war wirkungslos). Jetzt durchgereicht und deaktiviert; mit Regressionstest.
 
 ### Intern
 
-- **System-Seiten-Infrastruktur** (4T-0277, 4T-0278): generischer Tab-Typ für interaktive Seiten mit eigenem DOM (`system-pages.js`: Registry, Einfach-Instanz, Mount-Tracking, onOpen/onClose-Lebenszyklus), verallgemeinert aus dem Handbuch-Muster. Die Bereichs-Registry der Einstellungs-Seite nimmt dynamische Bereiche auf — der Andockpunkt für die kommenden Epics (YAML-Anzeige, Erweiterungen, Export-Einstellungen).
-- **Modul-Schnitt bereinigt** (4T-0279): der Doppel-Zweck von `settings-search.js` ist aufgelöst — die Einstellungs-Logik lebt in `settings-page.js`, die Such-/Ersetzen-Implementierung im umbenannten Modul `search.js`; Menü-State-Normalisierung electron-frei in `menu-state.js` (unit-testbar).
+- **System-Seiten-Infrastruktur** (4T-000277, 4T-000278): generischer Tab-Typ für interaktive Seiten mit eigenem DOM (`system-pages.js`: Registry, Einfach-Instanz, Mount-Tracking, onOpen/onClose-Lebenszyklus), verallgemeinert aus dem Handbuch-Muster. Die Bereichs-Registry der Einstellungs-Seite nimmt dynamische Bereiche auf — der Andockpunkt für die kommenden Epics (YAML-Anzeige, Erweiterungen, Export-Einstellungen).
+- **Modul-Schnitt bereinigt** (4T-000279): der Doppel-Zweck von `settings-search.js` ist aufgelöst — die Einstellungs-Logik lebt in `settings-page.js`, die Such-/Ersetzen-Implementierung im umbenannten Modul `search.js`; Menü-State-Normalisierung electron-frei in `menu-state.js` (unit-testbar).
 - **Versions-Bump** 0.31.0 → 0.32.0 ([package.json](package.json)).
 
 ### i18n
 
-- Zwei Katalog-Texte auf die Seite umgestellt (`help.feature.settings` beschreibt Bereichsnavigation und Entwurfs-Semantik, `help.feature.viewModes` verweist auf den Bereich „Verhalten") und die Handbuch-Seite „Aufgaben-Listen" angepasst (Bereich statt Sektion), jeweils in allen fünf Sprachen (4T-0280); keine neuen Keys nötig.
+- Zwei Katalog-Texte auf die Seite umgestellt (`help.feature.settings` beschreibt Bereichsnavigation und Entwurfs-Semantik, `help.feature.viewModes` verweist auf den Bereich „Verhalten") und die Handbuch-Seite „Aufgaben-Listen" angepasst (Bereich statt Sektion), jeweils in allen fünf Sprachen (4T-000280); keine neuen Keys nötig.
 
 ## [0.31.0] - 2026-07-02 — Entwicklungsrichtlinien und Code-Audit
 
-Reines Qualitäts-Release ohne sichtbare Funktionsänderung. Epic 3E-0048 (Entwicklungsrichtlinien und Code-Audit): verbindliche Entwicklungsrichtlinien geschaffen und maschinell durchgesetzt (ESLint, Prettier, erweiterte pre-commit-Gates), die Architektur-Doku auf den Ist-Stand gebracht und den gesamten Bestandscode dagegen auditiert. Der Audit fand drei Sicherheits-/Datenverlust-Blocker und rund zwanzig weitere Befunde, die über vier thematisch gebündelte Korrektur-Tasks behoben wurden. Umgesetzt in fünf Umsetzungs-Tasks plus vier Korrektur-Tasks und Sammeltask: 4T-0272 (Architektur-Doku), 4T-0273 (Richtlinien), 4T-0274 (ESLint/Prettier), 4T-0275 (Audit), 4T-0307 bis 4T-0310 (Korrekturen), 4T-0276 (Release).
+Reines Qualitäts-Release ohne sichtbare Funktionsänderung. Epic 3E-000048 (Entwicklungsrichtlinien und Code-Audit): verbindliche Entwicklungsrichtlinien geschaffen und maschinell durchgesetzt (ESLint, Prettier, erweiterte pre-commit-Gates), die Architektur-Doku auf den Ist-Stand gebracht und den gesamten Bestandscode dagegen auditiert. Der Audit fand drei Sicherheits-/Datenverlust-Blocker und rund zwanzig weitere Befunde, die über vier thematisch gebündelte Korrektur-Tasks behoben wurden. Umgesetzt in fünf Umsetzungs-Tasks plus vier Korrektur-Tasks und Sammeltask: 4T-000272 (Architektur-Doku), 4T-000273 (Richtlinien), 4T-000274 (ESLint/Prettier), 4T-000275 (Audit), 4T-000307 bis 4T-000310 (Korrekturen), 4T-000276 (Release).
 
 ### Behoben
 
-- **Attribut-Injection im Portable-Export** (4T-0307): Ein einfach-gequoteter HTML-Attributwert mit eingebettetem `"` konnte im Portable-Export aus seinem Attribut ausbrechen und einen Event-Handler einschleusen (`<a title='x" onmouseover="…'>`). Der Inline-Sanitizer escapt den Wert jetzt beim Wiedereinbau.
-- **Datei-Einbettung ohne Grenzen** (4T-0307): Der Handler für Markdown-Embeds (`![[Datei]]`) löste Pfade ohne Containment auf und konnte per `../`-Kette beliebige lokale Dateien lesen. Jetzt mit Beschränkung auf den Dokument-Ordner-Teilbaum, Markdown-Endungs-Whitelist und Größen-Limit.
-- **Datenverlust beim Tab-Transfer und Session-Restore** (4T-0308): Ein ungespeicherter Tab, der bei nicht lesbarer Zieldatei in ein anderes Fenster verschoben wurde, verlor seinen Inhalt in beiden Fenstern; er bleibt jetzt als „fehlend"-markierter Tab erhalten. Der Transfer auf einen bereits ungespeicherten Ziel-Tab fragt per Konflikt-Dialog statt still zu überschreiben. Nicht lesbare Dateien bei der Sitzungswiederherstellung werden nicht mehr still verworfen (bleiben als fehlend-Tab, Statusbar-Hinweis), und eine Sidebar-Eingabe geht beim schnellen Tab-Schließen nicht mehr verloren.
-- **Fehlerbehandlung und Nutzer-Feedback** (4T-0309): Datei-Lese-/Schreib-Fehler laufen über ein einheitliches Ergebnis-Objekt statt als Exception über die IPC-Grenze; ein Datei-Watcher-Fehler kann den Hauptprozess nicht mehr abbrechen; ein fehlerhafter Backlinks-Index wird nicht mehr als gültig behandelt (verhinderte falsche „defekter Wiki-Link"-Markierungen); Outgoing-Link-Klicks auf fehlende Ziele, fehlgeschlagene Bookmark-Persistenz und Diagramm-Fehler beim Theme-Wechsel geben jetzt sichtbares Feedback bzw. werden protokolliert.
+- **Attribut-Injection im Portable-Export** (4T-000307): Ein einfach-gequoteter HTML-Attributwert mit eingebettetem `"` konnte im Portable-Export aus seinem Attribut ausbrechen und einen Event-Handler einschleusen (`<a title='x" onmouseover="…'>`). Der Inline-Sanitizer escapt den Wert jetzt beim Wiedereinbau.
+- **Datei-Einbettung ohne Grenzen** (4T-000307): Der Handler für Markdown-Embeds (`![[Datei]]`) löste Pfade ohne Containment auf und konnte per `../`-Kette beliebige lokale Dateien lesen. Jetzt mit Beschränkung auf den Dokument-Ordner-Teilbaum, Markdown-Endungs-Whitelist und Größen-Limit.
+- **Datenverlust beim Tab-Transfer und Session-Restore** (4T-000308): Ein ungespeicherter Tab, der bei nicht lesbarer Zieldatei in ein anderes Fenster verschoben wurde, verlor seinen Inhalt in beiden Fenstern; er bleibt jetzt als „fehlend"-markierter Tab erhalten. Der Transfer auf einen bereits ungespeicherten Ziel-Tab fragt per Konflikt-Dialog statt still zu überschreiben. Nicht lesbare Dateien bei der Sitzungswiederherstellung werden nicht mehr still verworfen (bleiben als fehlend-Tab, Statusbar-Hinweis), und eine Sidebar-Eingabe geht beim schnellen Tab-Schließen nicht mehr verloren.
+- **Fehlerbehandlung und Nutzer-Feedback** (4T-000309): Datei-Lese-/Schreib-Fehler laufen über ein einheitliches Ergebnis-Objekt statt als Exception über die IPC-Grenze; ein Datei-Watcher-Fehler kann den Hauptprozess nicht mehr abbrechen; ein fehlerhafter Backlinks-Index wird nicht mehr als gültig behandelt (verhinderte falsche „defekter Wiki-Link"-Markierungen); Outgoing-Link-Klicks auf fehlende Ziele, fehlgeschlagene Bookmark-Persistenz und Diagramm-Fehler beim Theme-Wechsel geben jetzt sichtbares Feedback bzw. werden protokolliert.
 
 ### Intern
 
-- **Entwicklungsrichtlinien** (4T-0273): neues Konzept-Dokument `Projektmanagement/Dokumentation/Konzepte/Entwicklungsrichtlinien.md` (Prozess- und Modul-Schnitt, Code-Style, Fehlerbehandlung, Logging, Performance, Sicherheit, Dependency-Politik) mit verbindlicher Verankerung in der CLAUDE.md; maschinell prüfbare Regeln gekennzeichnet.
-- **ESLint und Prettier** (4T-0274): flat-config-ESLint (umgebungsgetrennt für Main/Preload/Renderer/Skripte/Tests) und Prettier neu eingeführt, npm-Skripte `lint`/`format`/`format:check`, der pre-commit-Hook führt jetzt Format-Check und Lint vor `npm test` aus. Der gesamte Bestand ist einmalig durchformatiert; der Lint-Stand ist grün ohne dauerhafte Baseline.
-- **Architektur-Doku aktualisiert** (4T-0272): `Architektur.md` vom Stand v0.20.0 auf den Ist-Stand fortgeschrieben (Renderer-Modul-Schnitt, Markdown-Pipeline, Registries, Sicherheits- und Qualitäts-Kapitel).
-- **Voll-Audit des Bestandscodes** (4T-0275): alle Module unter `src/` und `scripts/` gegen die Richtlinien geprüft, Befund-Katalog mit Schwereklassen, vier gebündelte Korrektur-Tasks abgeleitet. Größere Modul-Zerlegungen bewusst zurückgestellt (dem Product Owner als eigenes Vorhaben vorgelegt).
-- **Code-Bereinigung** (4T-0310): rund 270 ungenutzte Import-/Deklarations-Reste des mechanischen Renderer-Modul-Schnitts entfernt, zwei tote Exporte beseitigt, Registry-Kopien (Heading-Slug, Callout-Typen) auf die gemeinsame Quelle umgestellt, kleinere Performance-Redundanzen (Voll-Text-Cache in der Suche, Regex-Kompilierung, doppelter Tabbar-Render) behoben, veraltete Kommentare und tote Fallback-Literale bereinigt. `no-unused-vars`, `no-useless-escape` und `no-useless-assignment` stehen jetzt als Fehler.
+- **Entwicklungsrichtlinien** (4T-000273): neues Konzept-Dokument `Projektmanagement/Dokumentation/Konzepte/Entwicklungsrichtlinien.md` (Prozess- und Modul-Schnitt, Code-Style, Fehlerbehandlung, Logging, Performance, Sicherheit, Dependency-Politik) mit verbindlicher Verankerung in der CLAUDE.md; maschinell prüfbare Regeln gekennzeichnet.
+- **ESLint und Prettier** (4T-000274): flat-config-ESLint (umgebungsgetrennt für Main/Preload/Renderer/Skripte/Tests) und Prettier neu eingeführt, npm-Skripte `lint`/`format`/`format:check`, der pre-commit-Hook führt jetzt Format-Check und Lint vor `npm test` aus. Der gesamte Bestand ist einmalig durchformatiert; der Lint-Stand ist grün ohne dauerhafte Baseline.
+- **Architektur-Doku aktualisiert** (4T-000272): `Architektur.md` vom Stand v0.20.0 auf den Ist-Stand fortgeschrieben (Renderer-Modul-Schnitt, Markdown-Pipeline, Registries, Sicherheits- und Qualitäts-Kapitel).
+- **Voll-Audit des Bestandscodes** (4T-000275): alle Module unter `src/` und `scripts/` gegen die Richtlinien geprüft, Befund-Katalog mit Schwereklassen, vier gebündelte Korrektur-Tasks abgeleitet. Größere Modul-Zerlegungen bewusst zurückgestellt (dem Product Owner als eigenes Vorhaben vorgelegt).
+- **Code-Bereinigung** (4T-000310): rund 270 ungenutzte Import-/Deklarations-Reste des mechanischen Renderer-Modul-Schnitts entfernt, zwei tote Exporte beseitigt, Registry-Kopien (Heading-Slug, Callout-Typen) auf die gemeinsame Quelle umgestellt, kleinere Performance-Redundanzen (Voll-Text-Cache in der Suche, Regex-Kompilierung, doppelter Tabbar-Render) behoben, veraltete Kommentare und tote Fallback-Literale bereinigt. `no-unused-vars`, `no-useless-escape` und `no-useless-assignment` stehen jetzt als Fehler.
 - **Versions-Bump** 0.30.0 → 0.31.0 ([package.json](package.json)).
 
 ## [0.30.0] - 2026-06-15 — Rebranding auf Perspective Markdown++
 
-Epic 3E-0047 (Rebranding auf Perspective Markdown++): Produktname und die proprietäre Tabellen-Funktion werden durchgängig vom Firmenkürzel „SCG" auf die eigenständige Marke umgestellt. Umsetzung in 4T-0247, Release in 4T-0248.
+Epic 3E-000047 (Rebranding auf Perspective Markdown++): Produktname und die proprietäre Tabellen-Funktion werden durchgängig vom Firmenkürzel „SCG" auf die eigenständige Marke umgestellt. Umsetzung in 4T-000247, Release in 4T-000248.
 
 ### Geändert
 
-- **Produktname „SCG Markdown" → „Perspective Markdown++"** (4T-0247): Fenstertitel, Über-Dialog, Empty-State, Installer (Startmenü- und Desktop-Verknüpfung, Datei-Assoziations-Dialog) und Handbuch-Einstieg tragen den neuen Namen. In der Build-Konfiguration: `package.json` `name` → `perspective-markdown`, `productName` → `Perspective Markdown++`, `appId` → `net.stumm.perspective-markdown`; die EXE-Dateinamen lauten `Perspective Markdown++-<version>-Setup.exe` und `-Portable.exe`. Bestehende Einstellungen übernimmt der erste Start aus dem alten Profilpfad (Migrationskette `Markdown Viewer` → `SCG Markdown` → `Perspective Markdown++`); die alten Profilverzeichnisse bleiben defensiv erhalten.
-- **Tabellen-Funktion „SCG-Table" → „Perspective Table"** (4T-0247): durchgängig umbenannt, einschließlich Fence-Sprach-Tag (` ```perspective-table `), CSS-Klassen, interner Code-Bezeichner, i18n-Schlüssel und der fünfsprachigen Handbuch-Seite „Perspective Table". Der interne `scg`-Namespace ohne Bezug zur Tabelle (Folding-Gutter, DOM-Events) bleibt unverändert.
+- **Produktname „SCG Markdown" → „Perspective Markdown++"** (4T-000247): Fenstertitel, Über-Dialog, Empty-State, Installer (Startmenü- und Desktop-Verknüpfung, Datei-Assoziations-Dialog) und Handbuch-Einstieg tragen den neuen Namen. In der Build-Konfiguration: `package.json` `name` → `perspective-markdown`, `productName` → `Perspective Markdown++`, `appId` → `net.stumm.perspective-markdown`; die EXE-Dateinamen lauten `Perspective Markdown++-<version>-Setup.exe` und `-Portable.exe`. Bestehende Einstellungen übernimmt der erste Start aus dem alten Profilpfad (Migrationskette `Markdown Viewer` → `SCG Markdown` → `Perspective Markdown++`); die alten Profilverzeichnisse bleiben defensiv erhalten.
+- **Tabellen-Funktion „SCG-Table" → „Perspective Table"** (4T-000247): durchgängig umbenannt, einschließlich Fence-Sprach-Tag (` ```perspective-table `), CSS-Klassen, interner Code-Bezeichner, i18n-Schlüssel und der fünfsprachigen Handbuch-Seite „Perspective Table". Der interne `scg`-Namespace ohne Bezug zur Tabelle (Folding-Gutter, DOM-Events) bleibt unverändert.
 
 ### Entfernt
 
-- **Alte SCG-Syntaxmarken ohne Abwärtskompatibilität** (4T-0247): Das alte Fence-Tag ` ```scg-table ` und der alte Portable-Marker `<!-- scg-portable -->` werden nicht mehr erkannt. Bestehende Dokumente mit alter Tabellen-Syntax und ältere Portable-Exporte rendern nicht mehr als Tabelle und sind neu zu erzeugen (bewusster harter Schnitt).
+- **Alte SCG-Syntaxmarken ohne Abwärtskompatibilität** (4T-000247): Das alte Fence-Tag ` ```scg-table ` und der alte Portable-Marker `<!-- scg-portable -->` werden nicht mehr erkannt. Bestehende Dokumente mit alter Tabellen-Syntax und ältere Portable-Exporte rendern nicht mehr als Tabelle und sind neu zu erzeugen (bewusster harter Schnitt).
 
 ### i18n
 
@@ -3965,43 +4026,43 @@ Epic 3E-0047 (Rebranding auf Perspective Markdown++): Produktname und die propri
 
 ## [0.29.2] - 2026-06-12 — Hotfix Versions-Historie in Hilfetexten
 
-Hotfix zum Epic 3E-0042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch), zweiter Befund aus der Gesamtabnahme; Task 4T-0220.
+Hotfix zum Epic 3E-000042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch), zweiter Befund aus der Gesamtabnahme; Task 4T-000220.
 
 ### Geändert
 
-- **Versions-Historie aus den Hilfetexten entfernt** (4T-0220): Angaben der Form „Ab Version 0.13.0 lassen sich …" und „Erweiterungen, die in Version 0.14.0 dazugekommen sind" (Handbuch-Seite SCG Table, vier Stellen in je fünf Sprachen, inklusive Rückbezug „wie bisher") sind gestrichen; die Kapitel beschreiben die Funktion direkt. Im README sind die „seit 0.x"-Annotationen aus den Funktionsbeschreibungen entfernt (elf Stellen); die Versions-Chronik im Status-Kapitel bleibt als bewusste Release-Geschichte erhalten, ebenso CHANGELOG und Release-Notes als genuin versionsbezogene Dokumente.
+- **Versions-Historie aus den Hilfetexten entfernt** (4T-000220): Angaben der Form „Ab Version 0.13.0 lassen sich …" und „Erweiterungen, die in Version 0.14.0 dazugekommen sind" (Handbuch-Seite SCG Table, vier Stellen in je fünf Sprachen, inklusive Rückbezug „wie bisher") sind gestrichen; die Kapitel beschreiben die Funktion direkt. Im README sind die „seit 0.x"-Annotationen aus den Funktionsbeschreibungen entfernt (elf Stellen); die Versions-Chronik im Status-Kapitel bleibt als bewusste Release-Geschichte erhalten, ebenso CHANGELOG und Release-Notes als genuin versionsbezogene Dokumente.
 
 ## [0.29.1] - 2026-06-12 — Hotfix Fremdprodukt-Verweise
 
-Hotfix zum Epic 3E-0042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch), Befund aus der Gesamtabnahme 0.29.0; Task 4T-0219.
+Hotfix zum Epic 3E-000042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch), Befund aus der Gesamtabnahme 0.29.0; Task 4T-000219.
 
 ### Geändert
 
-- **Fremdprodukt-Verweise aus den nutzer-sichtbaren Texten entfernt** (4T-0219): Handbuch-Seiten, Funktions-Katalog und README beschreiben alle Konstrukte jetzt aus sich heraus, ohne Herkunfts- und Stil-Attributionen (zuvor z.B. „Pandoc-Single-Caret", „Obsidian-Muster", „MediaWiki-nah", „GFM-Kern") und ohne Fremdprodukt-Beispiellisten in Interop-Aussagen (jetzt neutral „andere Markdown-Programme"); Demo-Links in Beispielen zeigen auf example.org, die Abkürzungs-Demo nutzt `HTML` statt `GFM`. Betroffen: acht Handbuch-Seiten und vier Katalog-Keys in je fünf Sprachen sowie das README. Bewusst unverändert: CommonMark als Spezifikations-Name, die eingesetzten Engines (KaTeX, Mermaid, highlight.js, markdown-it), Syntax-Eigennamen (Critic Markup, Setext, YAML), die Emoji-Referenz (GitHub-Emoji-Set als Datenbasis samt Link auf die Shortcode-Liste, Festlegung aus dem Epic-Auftrag) und die Lizenz-Credits.
+- **Fremdprodukt-Verweise aus den nutzer-sichtbaren Texten entfernt** (4T-000219): Handbuch-Seiten, Funktions-Katalog und README beschreiben alle Konstrukte jetzt aus sich heraus, ohne Herkunfts- und Stil-Attributionen (zuvor z.B. „Pandoc-Single-Caret", „Obsidian-Muster", „MediaWiki-nah", „GFM-Kern") und ohne Fremdprodukt-Beispiellisten in Interop-Aussagen (jetzt neutral „andere Markdown-Programme"); Demo-Links in Beispielen zeigen auf example.org, die Abkürzungs-Demo nutzt `HTML` statt `GFM`. Betroffen: acht Handbuch-Seiten und vier Katalog-Keys in je fünf Sprachen sowie das README. Bewusst unverändert: CommonMark als Spezifikations-Name, die eingesetzten Engines (KaTeX, Mermaid, highlight.js, markdown-it), Syntax-Eigennamen (Critic Markup, Setext, YAML), die Emoji-Referenz (GitHub-Emoji-Set als Datenbasis samt Link auf die Shortcode-Liste, Festlegung aus dem Epic-Auftrag) und die Lizenz-Credits.
 
 ## [0.29.0] - 2026-06-12 — Handbuch im Tab-System
 
-Epic 3E-0042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch): Das Hilfe-Popup ist vollständig durch ein Handbuch im Tab-System ersetzt. `F1` bzw. Hilfe → Hilfe öffnet eine Überblicksseite als read-only Tab; von dort führen Links auf generierte Seiten (Funktions-Tabelle, Tastenkürzel) und Themen-Seiten mit Syntax-Beispielen in fünf Sprachen, die SCG-Table-Doku ist als Handbuch-Seite integriert. Umgesetzt in fünf Umsetzungs-Tasks plus Konventions- und Sammeltask: 4T-0213 (Infrastruktur), 4T-0212 (generierte Seiten), 4T-0214/4T-0215 (Inhalte und Übersetzungen), 4T-0216 (Umschaltung und Rückbau), 4T-0218 (Pflege-Konvention), 4T-0217 (Release).
+Epic 3E-000042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch): Das Hilfe-Popup ist vollständig durch ein Handbuch im Tab-System ersetzt. `F1` bzw. Hilfe → Hilfe öffnet eine Überblicksseite als read-only Tab; von dort führen Links auf generierte Seiten (Funktions-Tabelle, Tastenkürzel) und Themen-Seiten mit Syntax-Beispielen in fünf Sprachen, die SCG-Table-Doku ist als Handbuch-Seite integriert. Umgesetzt in fünf Umsetzungs-Tasks plus Konventions- und Sammeltask: 4T-000213 (Infrastruktur), 4T-000212 (generierte Seiten), 4T-000214/4T-000215 (Inhalte und Übersetzungen), 4T-000216 (Umschaltung und Rückbau), 4T-000218 (Pflege-Konvention), 4T-000217 (Release).
 
 ### Neu
 
-- **Handbuch im Tab-System** (4T-0213, 4T-0214, 4T-0215): Hilfe-Seiten öffnen als eigene schreibgeschützte Tabs in voller Programmgröße — mit allen vier Ansichten (Gerendert, Geteilt, Quellcode, Live), Outline-Sidebar als Kapitel-Navigation, Volltextsuche, Zoom und Theme; verschiebbar in die zweite Spalte und damit neben der eigenen Arbeit nutzbar. Zwölf gebündelte Seiten in fünf Sprachen: Überblick (Wegweiser), Markdown-Basis, Block- und Inline-Konstrukte, Aufgaben-Listen, Bilder, Mathematik und Diagramme, Vernetzung, Frontmatter und Properties, Werkzeuge, SCG Table sowie eine kuratierte Emoji-Referenz (74 Codes in sechs Kategorien plus Link auf das vollständige GitHub-Set). Syntax-Kapitel sind selbst-demonstrierend (Code-Block plus gerendertes Konstrukt direkt darunter, in der geteilten Ansicht nebeneinander); interne Links öffnen die Ziel-Seite als Tab bzw. aktivieren sie (keine Duplikate), Sprachwechsel wechselt offene Seiten samt Tab-Titel sofort mit. Handbuch-Tabs sind strikt read-only (Stift deaktiviert, Speichern wirkungslos, Task-Klicks inert), tauchen nicht in Sitzung, Auto-Save oder „Zuletzt geöffnet" auf und lassen sich in andere Fenster verschieben oder kopieren.
-- **Generierte Funktions-Tabelle** (4T-0212): die Handbuch-Seite „Funktionen" entsteht zur Laufzeit aus dem Funktions-Katalog als dreispaltige Tabelle (Funktion, Beschreibung, Zugang) in den fünf bekannten Gruppen — statt der bisherigen Bullet-Listen bei 68 Einträgen deutlich besser scanbar. Die Zugang-Spalte nennt Menüpfade, Statusbar-Elemente oder Syntax; umbelegbare Kürzel sind als Standard-Belegung gekennzeichnet („Standard …"), die aktuell wirksamen Kürzel zeigt die Tastenkürzel-Seite.
-- **Generierte Tastenkürzel-Seite** (4T-0212): entsteht wie der bisherige Reiter aus der Kommando-Registry, zeigt also automatisch die aktuell konfigurierten Bindings inklusive eigener Umbelegungen — und generiert sich bei Binding-Änderungen über die Einstellungen sofort neu.
+- **Handbuch im Tab-System** (4T-000213, 4T-000214, 4T-000215): Hilfe-Seiten öffnen als eigene schreibgeschützte Tabs in voller Programmgröße — mit allen vier Ansichten (Gerendert, Geteilt, Quellcode, Live), Outline-Sidebar als Kapitel-Navigation, Volltextsuche, Zoom und Theme; verschiebbar in die zweite Spalte und damit neben der eigenen Arbeit nutzbar. Zwölf gebündelte Seiten in fünf Sprachen: Überblick (Wegweiser), Markdown-Basis, Block- und Inline-Konstrukte, Aufgaben-Listen, Bilder, Mathematik und Diagramme, Vernetzung, Frontmatter und Properties, Werkzeuge, SCG Table sowie eine kuratierte Emoji-Referenz (74 Codes in sechs Kategorien plus Link auf das vollständige GitHub-Set). Syntax-Kapitel sind selbst-demonstrierend (Code-Block plus gerendertes Konstrukt direkt darunter, in der geteilten Ansicht nebeneinander); interne Links öffnen die Ziel-Seite als Tab bzw. aktivieren sie (keine Duplikate), Sprachwechsel wechselt offene Seiten samt Tab-Titel sofort mit. Handbuch-Tabs sind strikt read-only (Stift deaktiviert, Speichern wirkungslos, Task-Klicks inert), tauchen nicht in Sitzung, Auto-Save oder „Zuletzt geöffnet" auf und lassen sich in andere Fenster verschieben oder kopieren.
+- **Generierte Funktions-Tabelle** (4T-000212): die Handbuch-Seite „Funktionen" entsteht zur Laufzeit aus dem Funktions-Katalog als dreispaltige Tabelle (Funktion, Beschreibung, Zugang) in den fünf bekannten Gruppen — statt der bisherigen Bullet-Listen bei 68 Einträgen deutlich besser scanbar. Die Zugang-Spalte nennt Menüpfade, Statusbar-Elemente oder Syntax; umbelegbare Kürzel sind als Standard-Belegung gekennzeichnet („Standard …"), die aktuell wirksamen Kürzel zeigt die Tastenkürzel-Seite.
+- **Generierte Tastenkürzel-Seite** (4T-000212): entsteht wie der bisherige Reiter aus der Kommando-Registry, zeigt also automatisch die aktuell konfigurierten Bindings inklusive eigener Umbelegungen — und generiert sich bei Binding-Änderungen über die Einstellungen sofort neu.
 
 ### Geändert
 
-- **`F1` und Hilfe → Hilfe öffnen die Handbuch-Überblicksseite** (4T-0216): das Kommando `help.open` behält Binding und Menüplatz, wechselt nur sein Ziel; im leeren App-Zustand verlässt die Hilfe damit den Leer-Zustand (öffnet einen Tab). Die Shortcut-Beschreibung heißt jetzt „Handbuch öffnen".
-- **SCG-Table-Doku als Handbuch-Seite** (4T-0216): der bisherige Modal-Reiter und sein Lade-Sonderweg (`help:getScgTableContent`) entfallen; die fünfsprachige Doku lebt unverändert als Seite im Handbuch, geladen über den generischen Seiten-Loader. Drei Katalog-Texte verweisen statt auf den „Hilfe-Tab" auf die Handbuch-Seite.
-- **Funktions-Beschreibungen gestrafft** (4T-0212): Kürzel- und Menüpfad-Nennungen sind aus 25 Katalog-Beschreibungen in die Zugang-Spalte gewandert (keine Redundanz); die KaTeX-Beschreibung trägt ihre `$…$`-Syntax jetzt in Code-Spans.
+- **`F1` und Hilfe → Hilfe öffnen die Handbuch-Überblicksseite** (4T-000216): das Kommando `help.open` behält Binding und Menüplatz, wechselt nur sein Ziel; im leeren App-Zustand verlässt die Hilfe damit den Leer-Zustand (öffnet einen Tab). Die Shortcut-Beschreibung heißt jetzt „Handbuch öffnen".
+- **SCG-Table-Doku als Handbuch-Seite** (4T-000216): der bisherige Modal-Reiter und sein Lade-Sonderweg (`help:getScgTableContent`) entfallen; die fünfsprachige Doku lebt unverändert als Seite im Handbuch, geladen über den generischen Seiten-Loader. Drei Katalog-Texte verweisen statt auf den „Hilfe-Tab" auf die Handbuch-Seite.
+- **Funktions-Beschreibungen gestrafft** (4T-000212): Kürzel- und Menüpfad-Nennungen sind aus 25 Katalog-Beschreibungen in die Zugang-Spalte gewandert (keine Redundanz); die KaTeX-Beschreibung trägt ihre `$…$`-Syntax jetzt in Code-Spans.
 
 ### Entfernt
 
-- **Hilfe-Modal** (4T-0216): Dialog-DOM, Styles, Renderer-Logik (Modal-Öffnen/Schließen, Tab-Wechsel, Listen-Render), Esc-Kaskaden-Eintrag und der SCG-Lade-IPC sind restlos zurückgebaut (netto −282 Zeilen); die Katalog-Quellen (`HELP_FEATURE_GROUPS`, Registry-Shortcut-Zeilen, Tasten-Lokalisierung) leben als Generator-Quellen weiter.
+- **Hilfe-Modal** (4T-000216): Dialog-DOM, Styles, Renderer-Logik (Modal-Öffnen/Schließen, Tab-Wechsel, Listen-Render), Esc-Kaskaden-Eintrag und der SCG-Lade-IPC sind restlos zurückgebaut (netto −282 Zeilen); die Katalog-Quellen (`HELP_FEATURE_GROUPS`, Registry-Shortcut-Zeilen, Tasten-Lokalisierung) leben als Generator-Quellen weiter.
 
 ### Hilfe und Handbuch
 
-- Neuer Katalog-Eintrag „Handbuch" (Gruppe Allgemein) mit Matrix-Eintrag F-068; die Pflege-Konvention in der CLAUDE.md ist auf die neue Architektur umgeschrieben und um den verbindlichen Handbuch-Prüfschritt erweitert: jedes Epic mit nutzersichtbaren Funktionen pflegt die Themen-Seiten in allen fünf Sprachen im selben Epic (4T-0218).
+- Neuer Katalog-Eintrag „Handbuch" (Gruppe Allgemein) mit Matrix-Eintrag F-068; die Pflege-Konvention in der CLAUDE.md ist auf die neue Architektur umgeschrieben und um den verbindlichen Handbuch-Prüfschritt erweitert: jedes Epic mit nutzersichtbaren Funktionen pflegt die Themen-Seiten in allen fünf Sprachen im selben Epic (4T-000218).
 
 ### i18n
 
@@ -4015,32 +4076,32 @@ Epic 3E-0042 (Hilfe-Ausbau: Funktions-Tabelle und Handbuch): Das Hilfe-Popup ist
 
 ## [0.28.1] - 2026-06-12 — Hotfix Tastenkürzel-Reset
 
-Hotfix zum Epic 3E-0015 (Konfigurierbare Tastenkürzel), Befund aus der Gesamtabnahme 0.28.0; Task 4T-0211.
+Hotfix zum Epic 3E-000015 (Konfigurierbare Tastenkürzel), Befund aus der Gesamtabnahme 0.28.0; Task 4T-000211.
 
 ### Behoben
 
-- **Einzel-Reset konnte ein doppelt vergebenes Tastenkürzel erzeugen** (4T-0211): Wurde ein Default per „Überschreiben" an ein anderes Kommando vergeben (z.B. „Automatisch speichern" auf `Strg+N`, „Neu" freigeräumt), setzte der ⟲-Reset des freigeräumten Kommandos seinen Default ohne Konfliktprüfung zurück — dieselbe Kombination stand danach an zwei Zeilen. Der Reset läuft jetzt durch dieselbe Konflikt-Logik wie das Capture (Inline-Warnung mit „Überschreiben"/„Abbrechen"); zusätzlich validiert Anwenden/OK den gesamten Entwurf als Sicherheitsnetz und blockiert doppelt vergebene Bindings mit lokalisiertem Hinweis (1 neuer i18n-Key je Sprache, 455 synchron). Regressionstests: Unit-Tests für die Duplikat-Erkennung, E2E-Test HK-06 mit der Original-Klickfolge (Suite jetzt 163 Unit-/Snapshot- und 73 E2E-Tests).
+- **Einzel-Reset konnte ein doppelt vergebenes Tastenkürzel erzeugen** (4T-000211): Wurde ein Default per „Überschreiben" an ein anderes Kommando vergeben (z.B. „Automatisch speichern" auf `Strg+N`, „Neu" freigeräumt), setzte der ⟲-Reset des freigeräumten Kommandos seinen Default ohne Konfliktprüfung zurück — dieselbe Kombination stand danach an zwei Zeilen. Der Reset läuft jetzt durch dieselbe Konflikt-Logik wie das Capture (Inline-Warnung mit „Überschreiben"/„Abbrechen"); zusätzlich validiert Anwenden/OK den gesamten Entwurf als Sicherheitsnetz und blockiert doppelt vergebene Bindings mit lokalisiertem Hinweis (1 neuer i18n-Key je Sprache, 455 synchron). Regressionstests: Unit-Tests für die Duplikat-Erkennung, E2E-Test HK-06 mit der Original-Klickfolge (Suite jetzt 163 Unit-/Snapshot- und 73 E2E-Tests).
 
 ## [0.28.0] - 2026-06-12 — Konfigurierbare Tastenkürzel
 
-Epic 3E-0015 (Konfigurierbare Tastenkürzel): alle Tastenkürzel der App laufen über eine zentrale Kommando-Registry statt hart kodierter Bindings und sind in den Einstellungen frei konfigurierbar, mit Hotkey-Capture, Konflikt-Erkennung und Reset. Dazu kommt das neue Kommando „Timestamp einfügen". Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-Dialog- und Sammeltask: 4T-0207 (Registry und Migration), 4T-0208 (Settings-UI), 4T-0209 (Hilfe), 4T-0210 (Release).
+Epic 3E-000015 (Konfigurierbare Tastenkürzel): alle Tastenkürzel der App laufen über eine zentrale Kommando-Registry statt hart kodierter Bindings und sind in den Einstellungen frei konfigurierbar, mit Hotkey-Capture, Konflikt-Erkennung und Reset. Dazu kommt das neue Kommando „Timestamp einfügen". Umgesetzt in zwei Umsetzungs-Tasks plus Hilfe-Dialog- und Sammeltask: 4T-000207 (Registry und Migration), 4T-000208 (Settings-UI), 4T-000209 (Hilfe), 4T-000210 (Release).
 
 ### Neu
 
-- **Konfigurierbare Tastenkürzel** (4T-0208): neue Settings-Sektion „Tastenkürzel" mit allen Kommandos in den fünf Hilfe-Gruppen. Klick auf „Ändern" erfasst die nächste Tastenkombination (Modifier-Zwischenstand, Esc bricht ab, Tab wird als Taste erfasst); Konflikte mit anderen Kommandos werden erkannt und sind per „Überschreiben" auflösbar (das andere Kommando verliert sein Binding), fest belegte Kombinationen (Tab-Indent, Such-Enter, Esc) sind nur abbrechbar; Kombinationen ohne Strg/Alt sind außer F-Tasten gesperrt (würden das Tippen kapern). Bindings lassen sich entfernen („—"), pro Kommando oder gesamt zurücksetzen; Änderungen greifen erst mit Anwenden/OK, wirken dann sofort in Menü, Tastatur-Dispatcher, Editor-Keymap und allen offenen Fenstern und überleben den Neustart (Store-Key `hotkeys`, nur Abweichungen vom Default; Bestands-Profile bleiben unverändert).
-- **Kommando „Timestamp einfügen"** (4T-0207): `Strg+Umschalt+D` (Default, umbelegbar) fügt den aktuellen Lokalzeit-Zeitstempel im Format `jjjj-mm-tt hh:mm` an der Cursor-Position ein; eine aktive Markierung wird ersetzt. Aktiv in den editierbaren Ansichten (Quellcode/Geteilt/Live im Edit-Modus), im Reading-Modus bewusst wirkungslos.
+- **Konfigurierbare Tastenkürzel** (4T-000208): neue Settings-Sektion „Tastenkürzel" mit allen Kommandos in den fünf Hilfe-Gruppen. Klick auf „Ändern" erfasst die nächste Tastenkombination (Modifier-Zwischenstand, Esc bricht ab, Tab wird als Taste erfasst); Konflikte mit anderen Kommandos werden erkannt und sind per „Überschreiben" auflösbar (das andere Kommando verliert sein Binding), fest belegte Kombinationen (Tab-Indent, Such-Enter, Esc) sind nur abbrechbar; Kombinationen ohne Strg/Alt sind außer F-Tasten gesperrt (würden das Tippen kapern). Bindings lassen sich entfernen („—"), pro Kommando oder gesamt zurücksetzen; Änderungen greifen erst mit Anwenden/OK, wirken dann sofort in Menü, Tastatur-Dispatcher, Editor-Keymap und allen offenen Fenstern und überleben den Neustart (Store-Key `hotkeys`, nur Abweichungen vom Default; Bestands-Profile bleiben unverändert).
+- **Kommando „Timestamp einfügen"** (4T-000207): `Strg+Umschalt+D` (Default, umbelegbar) fügt den aktuellen Lokalzeit-Zeitstempel im Format `jjjj-mm-tt hh:mm` an der Cursor-Position ein; eine aktive Markierung wird ersetzt. Aktiv in den editierbaren Ansichten (Quellcode/Geteilt/Live im Edit-Modus), im Reading-Modus bewusst wirkungslos.
 
 ### Geändert
 
-- **Hotkey-Architektur auf zentrale Kommando-Registry** (4T-0207): 44 Kommandos (inkl. sieben binding-loser Menü-Kommandos wie AutoSave oder Scroll-Sync, die damit bindbar werden) liegen als reine Daten in [src/shared/commands.js](src/shared/commands.js); Menü-Accelerators, Renderer-Tastatur-Dispatcher (O(1)-Map-Lookup statt verstreuter Vergleiche), CodeMirror-Fold-Keymap und Hilfe-Tabelle lesen dieselbe Quelle. Der Hilfe-Tab „Tastenkürzel" wird aus der Registry mit den aktuell konfigurierten Bindings generiert (statischer Rest für Esc/Alt/Tab-Indent/Maus/Such-Enter steht jetzt am Tabellen-Ende); der Renderer-Fallback deckt neu auch `Strg+;` (Properties) ab. Drei undokumentierte Nebeneffekte toleranter Tasten-Guards entfallen durch exaktes Modifier-Matching: `Strg+Umschalt+W` schließt nicht mehr den Tab, `Strg+Alt+Tab` wechselt nicht mehr den Tab, `Strg+F3` springt nicht mehr zum Treffer (die dokumentierten Kürzel wirken unverändert; die frei gewordenen Kombinationen sind bindbar).
+- **Hotkey-Architektur auf zentrale Kommando-Registry** (4T-000207): 44 Kommandos (inkl. sieben binding-loser Menü-Kommandos wie AutoSave oder Scroll-Sync, die damit bindbar werden) liegen als reine Daten in [src/shared/commands.js](src/shared/commands.js); Menü-Accelerators, Renderer-Tastatur-Dispatcher (O(1)-Map-Lookup statt verstreuter Vergleiche), CodeMirror-Fold-Keymap und Hilfe-Tabelle lesen dieselbe Quelle. Der Hilfe-Tab „Tastenkürzel" wird aus der Registry mit den aktuell konfigurierten Bindings generiert (statischer Rest für Esc/Alt/Tab-Indent/Maus/Such-Enter steht jetzt am Tabellen-Ende); der Renderer-Fallback deckt neu auch `Strg+;` (Properties) ab. Drei undokumentierte Nebeneffekte toleranter Tasten-Guards entfallen durch exaktes Modifier-Matching: `Strg+Umschalt+W` schließt nicht mehr den Tab, `Strg+Alt+Tab` wechselt nicht mehr den Tab, `Strg+F3` springt nicht mehr zum Treffer (die dokumentierten Kürzel wirken unverändert; die frei gewordenen Kombinationen sind bindbar).
 
 ### Hilfe-Dialog
 
-- Zwei neue Funktions-Einträge — „Zeitstempel einfügen" (Gruppe Bearbeitung) und „Tastenkürzel konfigurierbar" (Gruppe Allgemein) — plus eine Hinweis-Zeile oberhalb der Tastenkürzel-Tabelle, dass sie die aktuell konfigurierten Bindings zeigt; Abdeckungs-Matrix um S-035, F-066 und F-067 ergänzt (4T-0209). Neue Shortcut-Zeile `Strg+Umschalt+D` (Timestamp).
+- Zwei neue Funktions-Einträge — „Zeitstempel einfügen" (Gruppe Bearbeitung) und „Tastenkürzel konfigurierbar" (Gruppe Allgemein) — plus eine Hinweis-Zeile oberhalb der Tastenkürzel-Tabelle, dass sie die aktuell konfigurierten Bindings zeigt; Abdeckungs-Matrix um S-035, F-066 und F-067 ergänzt (4T-000209). Neue Shortcut-Zeile `Strg+Umschalt+D` (Timestamp).
 
 ### i18n
 
-- 34 neue Keys je Sprache (DE/EN/FR/ES/IT): 17 Kommando-Labels (`command.*`) und `help.shortcut.insertTimestamp` aus 4T-0207, 13 Settings-Strings (`settings.hotkeys.*`) aus 4T-0208, 3 Hilfe-Keys aus 4T-0209; alle fünf Dateien schlüsselgleich (454 Keys, Wächter grün).
+- 34 neue Keys je Sprache (DE/EN/FR/ES/IT): 17 Kommando-Labels (`command.*`) und `help.shortcut.insertTimestamp` aus 4T-000207, 13 Settings-Strings (`settings.hotkeys.*`) aus 4T-000208, 3 Hilfe-Keys aus 4T-000209; alle fünf Dateien schlüsselgleich (454 Keys, Wächter grün).
 
 ### Intern
 
@@ -4050,27 +4111,27 @@ Epic 3E-0015 (Konfigurierbare Tastenkürzel): alle Tastenkürzel der App laufen 
 
 ## [0.27.0] - 2026-06-12 — Markdown-Erweiterungen
 
-Epic 3E-0017 (Markdown-Erweiterungs-Review): Nach dem Entscheidungs-Workshop vom 2026-06-11 zieht die App 15 im Standard-Ökosystem (Pandoc, Obsidian, GFM, populäre markdown-it-Plugins) etablierte Markdown-Konstrukte plus konfigurierbare Task-Status nach. Jedes Konstrukt wirkt in Render-Pane, Live-Modus und Portable-Export (Paritäts-Checkliste) und ist per Snapshot-Fixture eingefroren. Umgesetzt in acht Umsetzungs-Tasks plus Hilfe-Dialog- und Sammeltask: 4T-0197 bis 4T-0204, 4T-0205 (Hilfe), 4T-0206 (Release).
+Epic 3E-000017 (Markdown-Erweiterungs-Review): Nach dem Entscheidungs-Workshop vom 2026-06-11 zieht die App 15 im Standard-Ökosystem (Pandoc, Obsidian, GFM, populäre markdown-it-Plugins) etablierte Markdown-Konstrukte plus konfigurierbare Task-Status nach. Jedes Konstrukt wirkt in Render-Pane, Live-Modus und Portable-Export (Paritäts-Checkliste) und ist per Snapshot-Fixture eingefroren. Umgesetzt in acht Umsetzungs-Tasks plus Hilfe-Dialog- und Sammeltask: 4T-000197 bis 4T-000204, 4T-000205 (Hilfe), 4T-000206 (Release).
 
 ### Neu
 
-- **Emoji-Shortcodes und Abbreviations** (4T-0197): `:smile:`/`:+1:` rendern als Unicode-Emoji (GitHub-kompatibles full-Set; Emoticon-Kurzformen wie `:)` bleiben bewusst Text); Abkürzungs-Definitionen `*[HTML]: Langtext` erzeugen gepunktet unterstrichene Vorkommen mit Tooltip, im Live-Modus mit Hover-Tooltip.
-- **Implicit Figures und Bild-Größen** (4T-0198): Ein allein im Absatz stehendes Bild wird zur `<figure>` mit dem alt-Text als zentrierter Caption (alt-Text bleibt erhalten); `![Alt](bild.png =300x200)` setzt Breite/Höhe als HTML-Attribute (auch `=300x`/`=x200`); Kombination ergibt eine größen-annotierte Figure. Wiki-Embeds behalten ihre eigene Darstellung.
-- **Definition Lists und Line Blocks** (4T-0199): Pandoc-Definitionslisten (`Begriff` + `: Definition`, auch `~`-Marker, mehrere Definitionen pro Begriff) rendern als `<dl>`; Line Blocks (`| Zeile`) erhalten Zeilenumbrüche und führende Leerzeichen (Adressen, Gedichte) über ein eigenes Block-Plugin. Beide erscheinen im Live-Modus als gerenderte Block-Widgets.
-- **Custom Containers** (4T-0200): `::: typ … :::`-Blöcke (Pandoc/markdown-it-container); die zehn bekannten Callout-Typen rendern in identischer Callout-Optik (gemeinsame Render-Helper, gleiche Icons/Farben/lokalisierte Titel, Override-Titel möglich), unbekannte Namen als neutrale Box mit `container-<slug>`-Klasse; Verschachtelung über längere Marker.
-- **Subscript, Superscript und Unterstreichen** (4T-0201): `H~2~O` tiefgestellt, `x^^2^^` hochgestellt (Doppel-Caret als bewusste Abweichung von Pandoc, weil das einzelne `^` durch Fußnoten und Block-Anker belegt ist; eigenes Plugin mit mark-Mechanik), `++Text++` unterstrichen; Fußnoten, Block-Anker und `~~Strikethrough~~` nachweislich unverändert.
-- **Bracketed Spans und Heading-Attribute** (4T-0202): `# Titel {#eigene-id}` setzt die explizite DOM-ID (gewinnt gegen den automatischen Anker-Slug; `[[#eigene-id]]`-Sprünge funktionieren), `[Text]{.klasse #id}` erzeugt Spans; aus Sicherheitsgründen sind ausschließlich `id` und `class` erlaubt (`style`/`onclick` u.a. werden verworfen). Outline-Titel erscheinen ohne `{…}`-Rest.
-- **Spoiler und Critic Markup** (4T-0203): `||verborgener Text||` rendert verdeckt und deckt per Hover/Tastatur-Fokus auf (CSS-only; in Pipe-Tabellen-Zellen funktioniert der Spoiler mit `\|`-escapten Pipes — unescapte trennt der Tabellen-Parser GFM-konform als Zellen-Grenzen; im Portable-Export hilft Text-Selektion); Critic Markup mit allen fünf Formen `{++neu++}`, `{--alt--}`, `{~~alt~>neu~~}`, `{==markiert==}`, `{>>Kommentar<<}` als eigene Plugins, koexistent mit `==Highlight==` und `~~Strikethrough~~`.
-- **Erweiterte Task-Status mit Einstellungs-Verwaltung** (4T-0204): Sechs vorbelegte Status (`[/]` In Arbeit, `[-]` Abgebrochen, `[>]` Delegiert, `[?]` Frage, `[!]` Wichtig, `[*]` Markiert) rendern als farbige Status-Boxen mit dem Marker-Zeichen als Glyph und lokalisiertem Tooltip; neue Settings-Sektion „Task-Status" (aktivieren/deaktivieren, Farben ändern, eigene Status mit Zeichen, Farbe und Bezeichnung anlegen, Validierung gegen ungültige oder doppelte Zeichen); Klick auf eine Status-Box schließt die Aufgabe ab (`[x]`), `[ ]`/`[x]` bleiben unverändert; Änderungen wirken sofort in allen Fenstern (Broadcast) und überleben den Neustart (electron-store).
+- **Emoji-Shortcodes und Abbreviations** (4T-000197): `:smile:`/`:+1:` rendern als Unicode-Emoji (GitHub-kompatibles full-Set; Emoticon-Kurzformen wie `:)` bleiben bewusst Text); Abkürzungs-Definitionen `*[HTML]: Langtext` erzeugen gepunktet unterstrichene Vorkommen mit Tooltip, im Live-Modus mit Hover-Tooltip.
+- **Implicit Figures und Bild-Größen** (4T-000198): Ein allein im Absatz stehendes Bild wird zur `<figure>` mit dem alt-Text als zentrierter Caption (alt-Text bleibt erhalten); `![Alt](bild.png =300x200)` setzt Breite/Höhe als HTML-Attribute (auch `=300x`/`=x200`); Kombination ergibt eine größen-annotierte Figure. Wiki-Embeds behalten ihre eigene Darstellung.
+- **Definition Lists und Line Blocks** (4T-000199): Pandoc-Definitionslisten (`Begriff` + `: Definition`, auch `~`-Marker, mehrere Definitionen pro Begriff) rendern als `<dl>`; Line Blocks (`| Zeile`) erhalten Zeilenumbrüche und führende Leerzeichen (Adressen, Gedichte) über ein eigenes Block-Plugin. Beide erscheinen im Live-Modus als gerenderte Block-Widgets.
+- **Custom Containers** (4T-000200): `::: typ … :::`-Blöcke (Pandoc/markdown-it-container); die zehn bekannten Callout-Typen rendern in identischer Callout-Optik (gemeinsame Render-Helper, gleiche Icons/Farben/lokalisierte Titel, Override-Titel möglich), unbekannte Namen als neutrale Box mit `container-<slug>`-Klasse; Verschachtelung über längere Marker.
+- **Subscript, Superscript und Unterstreichen** (4T-000201): `H~2~O` tiefgestellt, `x^^2^^` hochgestellt (Doppel-Caret als bewusste Abweichung von Pandoc, weil das einzelne `^` durch Fußnoten und Block-Anker belegt ist; eigenes Plugin mit mark-Mechanik), `++Text++` unterstrichen; Fußnoten, Block-Anker und `~~Strikethrough~~` nachweislich unverändert.
+- **Bracketed Spans und Heading-Attribute** (4T-000202): `# Titel {#eigene-id}` setzt die explizite DOM-ID (gewinnt gegen den automatischen Anker-Slug; `[[#eigene-id]]`-Sprünge funktionieren), `[Text]{.klasse #id}` erzeugt Spans; aus Sicherheitsgründen sind ausschließlich `id` und `class` erlaubt (`style`/`onclick` u.a. werden verworfen). Outline-Titel erscheinen ohne `{…}`-Rest.
+- **Spoiler und Critic Markup** (4T-000203): `||verborgener Text||` rendert verdeckt und deckt per Hover/Tastatur-Fokus auf (CSS-only; in Pipe-Tabellen-Zellen funktioniert der Spoiler mit `\|`-escapten Pipes — unescapte trennt der Tabellen-Parser GFM-konform als Zellen-Grenzen; im Portable-Export hilft Text-Selektion); Critic Markup mit allen fünf Formen `{++neu++}`, `{--alt--}`, `{~~alt~>neu~~}`, `{==markiert==}`, `{>>Kommentar<<}` als eigene Plugins, koexistent mit `==Highlight==` und `~~Strikethrough~~`.
+- **Erweiterte Task-Status mit Einstellungs-Verwaltung** (4T-000204): Sechs vorbelegte Status (`[/]` In Arbeit, `[-]` Abgebrochen, `[>]` Delegiert, `[?]` Frage, `[!]` Wichtig, `[*]` Markiert) rendern als farbige Status-Boxen mit dem Marker-Zeichen als Glyph und lokalisiertem Tooltip; neue Settings-Sektion „Task-Status" (aktivieren/deaktivieren, Farben ändern, eigene Status mit Zeichen, Farbe und Bezeichnung anlegen, Validierung gegen ungültige oder doppelte Zeichen); Klick auf eine Status-Box schließt die Aufgabe ab (`[x]`), `[ ]`/`[x]` bleiben unverändert; Änderungen wirken sofort in allen Fenstern (Broadcast) und überleben den Neustart (electron-store).
 
 ### Geändert
 
-- **Tag-Erkennung**: `#wort` innerhalb von `{…}`-Attribut-Blöcken ist eine ID-Angabe und kein Tag mehr (konsistent in Render-Pane, Tag-Index und Live-Modus; 4T-0202).
-- **Bild-Höhen**: explizite `height`-Attribute (Bild-Größen-Syntax) setzen sich gegen das pauschale `height: auto` der responsiven Bild-Regel durch (4T-0198).
+- **Tag-Erkennung**: `#wort` innerhalb von `{…}`-Attribut-Blöcken ist eine ID-Angabe und kein Tag mehr (konsistent in Render-Pane, Tag-Index und Live-Modus; 4T-000202).
+- **Bild-Höhen**: explizite `height`-Attribute (Bild-Größen-Syntax) setzen sich gegen das pauschale `height: auto` der responsiven Bild-Regel durch (4T-000198).
 
 ### Hilfe-Dialog
 
-- 13 neue Funktions-Einträge in der Gruppe „Bearbeitung" (ein Eintrag pro Konstrukt-Familie, `help.feature.emoji` bis `help.feature.taskStates`), in allen fünf Sprachen; Abdeckungs-Matrix um F-053 bis F-065 ergänzt (4T-0205). Keine neuen Tastenkürzel.
+- 13 neue Funktions-Einträge in der Gruppe „Bearbeitung" (ein Eintrag pro Konstrukt-Familie, `help.feature.emoji` bis `help.feature.taskStates`), in allen fünf Sprachen; Abdeckungs-Matrix um F-053 bis F-065 ergänzt (4T-000205). Keine neuen Tastenkürzel.
 
 ### i18n
 
@@ -4079,44 +4140,44 @@ Epic 3E-0017 (Markdown-Erweiterungs-Review): Nach dem Entscheidungs-Workshop vom
 ### Intern
 
 - Neue Dependencies: `markdown-it-emoji`, `markdown-it-abbr`, `markdown-it-imsize`, `markdown-it-implicit-figures`, `markdown-it-deflist`, `markdown-it-container`, `markdown-it-sub`, `markdown-it-ins`, `markdown-it-attrs`, `markdown-it-bracketed-spans`. Eigene Plugins für Superscript, Spoiler, Critic Markup, Line Blocks, Custom Containers und Task-Status in [src/shared/markdown/plugins.js](src/shared/markdown/plugins.js); gemeinsamer, kommentierter Erweiterungs-Block in [src/shared/markdown/markdown.js](src/shared/markdown/markdown.js) hält die Plugin-Reihenfolge für Viewer- und Portable-Instanz identisch.
-- Plugin-Wahl Bild-Größen: `markdown-it-imsize` statt `@mdit/plugin-img-size` — dessen exports-Map löst unter Electrons Node 20 per `require()` auf den ESM-Build auf (`ERR_REQUIRE_ESM`, Preload-Abbruch); der E2E-Smoke hat den Befund gefangen (4T-0198).
+- Plugin-Wahl Bild-Größen: `markdown-it-imsize` statt `@mdit/plugin-img-size` — dessen exports-Map löst unter Electrons Node 20 per `require()` auf den ESM-Build auf (`ERR_REQUIRE_ESM`, Preload-Abbruch); der E2E-Smoke hat den Befund gefangen (4T-000198).
 - Neue Snapshot-Fixtures für alle Konstrukt-Familien (emoji, abbreviations, implicit-figures, image-size, definition-lists, line-blocks, custom-containers inkl. Portable-Variante, sub-sup-ins, attributes-spans, spoiler, critic-markup, task-states); neuer E2E-Spec `test/e2e/funktionen/task-states.spec.js` (TS-01 bis TS-04). Suite jetzt 123 Unit-/Snapshot-Tests und 65 E2E-Tests.
 - **Versions-Bump** 0.26.0 → 0.27.0 ([package.json](package.json)).
 
 ## [0.26.0] - 2026-06-11 — Test-Vollausbau
 
-Fünftes und letztes Epic des Review-Programms: Epic 3E-0041 baut die Test-Abdeckung von der Schutz-Suite (0.22.0) auf den vollen Funktionsumfang aus. Keine Funktionsänderung an der App; jede im Hilfe-Dialog beschriebene Funktion ist jetzt durch automatisierte Tests abgedeckt oder trägt eine begründete manuelle Ausnahme. Umgesetzt in drei Tasks plus Sammeltask: 4T-0193 (Unit Renderer), 4T-0194 (Snapshots), 4T-0195 (E2E-Funktions-Suite und Abdeckungs-Matrix), 4T-0196 (Release).
+Fünftes und letztes Epic des Review-Programms: Epic 3E-000041 baut die Test-Abdeckung von der Schutz-Suite (0.22.0) auf den vollen Funktionsumfang aus. Keine Funktionsänderung an der App; jede im Hilfe-Dialog beschriebene Funktion ist jetzt durch automatisierte Tests abgedeckt oder trägt eine begründete manuelle Ausnahme. Umgesetzt in drei Tasks plus Sammeltask: 4T-000193 (Unit Renderer), 4T-000194 (Snapshots), 4T-000195 (E2E-Funktions-Suite und Abdeckungs-Matrix), 4T-000196 (Release).
 
 ### Intern
 
-- **Snapshot-Tests der Render-Pipeline** (4T-0194): 14 Konstrukt-Fixtures unter `test/fixtures/render/` frieren das Render-Verhalten aller unterstützten Markdown-Konstrukte als Vitest-Snapshots ein (CommonMark, GFM, Wiki-Links/-Embeds, Tags, Callouts, Highlight, Footnotes, KaTeX, Mermaid-Container, SCG-Tabellen, Frontmatter, Grenz- und Sicherheits-Fälle); dazu Portable-Export-Snapshots, Frontmatter-API-Tests und Sicherheits-Tests des P-02-Sanitizers mit echtem DOMParser (neue devDependency jsdom). Das ist das Regressionsnetz für das Markdown-Erweiterungs-Epic 3E-0017.
-- **Unit-Tests der Renderer-Module** (4T-0193): 34 Tests über Tabellen-Zell-Logik, Word-Count-Statistik, Caches, Fold-Struktur, Outgoing-Extraktion, Snippets, Anker-Normalisierung, Zeilen-Mapping, Pane-Snapshot-Logik, Bookmark-Tree-Helfer, Such-Regex und Shortcut-Labels — ohne Änderungen am Produktiv-Code.
-- **E2E-Funktions-Suite und Abdeckungs-Matrix** (4T-0195): 22 neue Funktions-Tests unter `test/e2e/funktionen/` (Bearbeitung, Ansicht, Navigation, Datei/Sitzung, Hotkey-Durchläufe). `test/abdeckungs-matrix.json` ordnet allen 86 Hilfe-Dialog-Einträgen (52 Funktionen, 34 Kürzel) Testart und Testdateien zu; ein Vollständigkeits-Meta-Test erzwingt die Pflege in `npm test` — neue Hilfe-Einträge ohne Matrix-Eintrag brechen den Commit. Menü-Accelerator-Kürzel sind über ihre IPC-Pfade getestet und als solche markiert; sieben begründete manuelle Prüfpunkte (OS-Dialoge, native Menüleiste u.a.) sind deklariert statt ausgelassen.
+- **Snapshot-Tests der Render-Pipeline** (4T-000194): 14 Konstrukt-Fixtures unter `test/fixtures/render/` frieren das Render-Verhalten aller unterstützten Markdown-Konstrukte als Vitest-Snapshots ein (CommonMark, GFM, Wiki-Links/-Embeds, Tags, Callouts, Highlight, Footnotes, KaTeX, Mermaid-Container, SCG-Tabellen, Frontmatter, Grenz- und Sicherheits-Fälle); dazu Portable-Export-Snapshots, Frontmatter-API-Tests und Sicherheits-Tests des P-02-Sanitizers mit echtem DOMParser (neue devDependency jsdom). Das ist das Regressionsnetz für das Markdown-Erweiterungs-Epic 3E-000017.
+- **Unit-Tests der Renderer-Module** (4T-000193): 34 Tests über Tabellen-Zell-Logik, Word-Count-Statistik, Caches, Fold-Struktur, Outgoing-Extraktion, Snippets, Anker-Normalisierung, Zeilen-Mapping, Pane-Snapshot-Logik, Bookmark-Tree-Helfer, Such-Regex und Shortcut-Labels — ohne Änderungen am Produktiv-Code.
+- **E2E-Funktions-Suite und Abdeckungs-Matrix** (4T-000195): 22 neue Funktions-Tests unter `test/e2e/funktionen/` (Bearbeitung, Ansicht, Navigation, Datei/Sitzung, Hotkey-Durchläufe). `test/abdeckungs-matrix.json` ordnet allen 86 Hilfe-Dialog-Einträgen (52 Funktionen, 34 Kürzel) Testart und Testdateien zu; ein Vollständigkeits-Meta-Test erzwingt die Pflege in `npm test` — neue Hilfe-Einträge ohne Matrix-Eintrag brechen den Commit. Menü-Accelerator-Kürzel sind über ihre IPC-Pfade getestet und als solche markiert; sieben begründete manuelle Prüfpunkte (OS-Dialoge, native Menüleiste u.a.) sind deklariert statt ausgelassen.
 - **Test-Bilanz**: 110 Unit-/Snapshot-Tests (~7 s) und 61 E2E-Tests (~2,6 min), dreifach stabil; die Smoke-Suite bleibt der schnelle Pflicht-Lauf pro Commit.
 - **Test-Konventionen verankert**: neuer CLAUDE.md-Abschnitt „Automatisierte Tests" (Pflicht-Gates pro Commit/Task/Release, Regressionstest-Pflicht pro Bugfix, Test-Pflege-Schritt pro Epic, Paritäts-Checkliste für neue Render-Funktionen); `test/README.md` um Snapshot-Politik und Matrix-Pflege erweitert.
 - **Versions-Bump** 0.25.0 → 0.26.0 ([package.json](package.json)).
 
 ## [0.25.0] - 2026-06-11 — Konsistenz-Lücken geschlossen
 
-Viertes Epic des Review-Programms: Epic 3E-0040 schließt die im Gesamt-Code-Review vom 2026-06-10 belegten Konsistenz-Lücken im bestehenden Funktionsumfang — Features, die an einer Stelle wirkten und an einer vergleichbaren fehlten, hartkodierte UI-Strings, verschluckte Fehlzustände, Export-Brüche und Doku-Abweichungen. Umgesetzt in sieben Tasks plus Sammeltask: 4T-0185 bis 4T-0191, 4T-0192 (Release).
+Viertes Epic des Review-Programms: Epic 3E-000040 schließt die im Gesamt-Code-Review vom 2026-06-10 belegten Konsistenz-Lücken im bestehenden Funktionsumfang — Features, die an einer Stelle wirkten und an einer vergleichbaren fehlten, hartkodierte UI-Strings, verschluckte Fehlzustände, Export-Brüche und Doku-Abweichungen. Umgesetzt in sieben Tasks plus Sammeltask: 4T-000185 bis 4T-000191, 4T-000192 (Release).
 
 ### Geändert
 
-- **Modus-Konsistenz Live/Render/Reading** (4T-0186): Anker- und Zeilen-Sprünge wirken jetzt in jedem Ansichts-Modus — In-Dokument-Anker springen im Live-/Quellcode-Modus zur Heading- bzw. Block-Anker-Zeile im Editor (mit markdown-it-anchor-konformer Slug-Deduplizierung), Backlink-/Bookmark-/Outgoing-Sprünge scrollen im Reading-Modus das Render-Pane zur Zielstelle, Anker-Nachläufe folgen der tatsächlichen Ziel-Spalte, der Outline-Klick trifft bei gleichnamigen Überschriften das richtige Vorkommen, und das Outgoing-Panel übergibt Anker normalisiert. Feature-Parität: Tags sind im Live-Modus klickbar (filtern die Tag-Sidebar; `#…` innerhalb von `[[…]]` zählt dabei wie im Render-Pfad nicht als Tag), Task-Checkboxen sind im Reading-Modus klickbar und toggeln den Quelltext, Live-Block-Widgets erhalten Copy-Buttons, übersetzte Callout-Titel und SCG-Sortierung, einzeiliges `$$x$$` rendert auch im Live-Modus, der Callout-Pre-Pass folgt den markdown-it-Regeln (kein Pflicht-Leerzeichen nach `>`, maximal drei Spaces Einrückung), Theme-Wechsel färbt Live-Mermaid-Widgets sofort um, der aktive Such-Treffer klappt Block-Widgets auf, Frontmatter-Zeilen bleiben in allen Live-Pässen undekoriert, und der Tabellen-Editor-Komfort (Tab/Enter) funktioniert auch in randlosen GFM-Tabellen.
-- **Backlinks-/Tag-Index entkoppelt** (4T-0187): Der Index entsteht jetzt bei jedem Bedarf (Tag-Sidebar, Wiki-/Tag-Autocomplete, Linter, Alias-Klick) — vorher ausschließlich über das standardmäßig ausgeblendete Backlinks-Panel, ohne das vier beworbene Features still funktionslos blieben. Die Tag-Sidebar aktualisiert sich bei Index-Updates mit, und nach Index-Fertigstellung läuft der Linter nach.
-- **Portabler Export rundlauffähig** (4T-0189): Der `scg-portable`-Marker steht jetzt nach dem YAML-Frontmatter statt davor — Exporte beginnen wieder mit `---` in Zeile 1 (GitHub/Obsidian parsen das YAML, die Properties-Sidebar füllt sich beim Wiederöffnen); Alt-Exporte werden weiterhin erkannt. KaTeX-Formeln in SCG-Zellen bleiben beim Export als Formel-Quelltext erhalten statt als stylesheet-abhängiges HTML.
-- **Sprachwechsel wirkt überall** (4T-0185): Ein Sprachwechsel erreicht jetzt alle offenen Fenster sofort (vorher nur das auslösende).
+- **Modus-Konsistenz Live/Render/Reading** (4T-000186): Anker- und Zeilen-Sprünge wirken jetzt in jedem Ansichts-Modus — In-Dokument-Anker springen im Live-/Quellcode-Modus zur Heading- bzw. Block-Anker-Zeile im Editor (mit markdown-it-anchor-konformer Slug-Deduplizierung), Backlink-/Bookmark-/Outgoing-Sprünge scrollen im Reading-Modus das Render-Pane zur Zielstelle, Anker-Nachläufe folgen der tatsächlichen Ziel-Spalte, der Outline-Klick trifft bei gleichnamigen Überschriften das richtige Vorkommen, und das Outgoing-Panel übergibt Anker normalisiert. Feature-Parität: Tags sind im Live-Modus klickbar (filtern die Tag-Sidebar; `#…` innerhalb von `[[…]]` zählt dabei wie im Render-Pfad nicht als Tag), Task-Checkboxen sind im Reading-Modus klickbar und toggeln den Quelltext, Live-Block-Widgets erhalten Copy-Buttons, übersetzte Callout-Titel und SCG-Sortierung, einzeiliges `$$x$$` rendert auch im Live-Modus, der Callout-Pre-Pass folgt den markdown-it-Regeln (kein Pflicht-Leerzeichen nach `>`, maximal drei Spaces Einrückung), Theme-Wechsel färbt Live-Mermaid-Widgets sofort um, der aktive Such-Treffer klappt Block-Widgets auf, Frontmatter-Zeilen bleiben in allen Live-Pässen undekoriert, und der Tabellen-Editor-Komfort (Tab/Enter) funktioniert auch in randlosen GFM-Tabellen.
+- **Backlinks-/Tag-Index entkoppelt** (4T-000187): Der Index entsteht jetzt bei jedem Bedarf (Tag-Sidebar, Wiki-/Tag-Autocomplete, Linter, Alias-Klick) — vorher ausschließlich über das standardmäßig ausgeblendete Backlinks-Panel, ohne das vier beworbene Features still funktionslos blieben. Die Tag-Sidebar aktualisiert sich bei Index-Updates mit, und nach Index-Fertigstellung läuft der Linter nach.
+- **Portabler Export rundlauffähig** (4T-000189): Der `scg-portable`-Marker steht jetzt nach dem YAML-Frontmatter statt davor — Exporte beginnen wieder mit `---` in Zeile 1 (GitHub/Obsidian parsen das YAML, die Properties-Sidebar füllt sich beim Wiederöffnen); Alt-Exporte werden weiterhin erkannt. KaTeX-Formeln in SCG-Zellen bleiben beim Export als Formel-Quelltext erhalten statt als stylesheet-abhängiges HTML.
+- **Sprachwechsel wirkt überall** (4T-000185): Ein Sprachwechsel erreicht jetzt alle offenen Fenster sofort (vorher nur das auslösende).
 
 ### Behoben
 
-- **Hartkodiert deutsche UI-Stellen** (4T-0185): Open-Dialog-Titel und Datei-Filter, der Entwickler-Tools-Menüpunkt, Mermaid-Lade-/Fehlertexte im Live-Widget und im Render-Pane sowie das Backlinks-Zeilen-Label erscheinen jetzt in der gewählten Sprache; der Lesezeichen-Tooltip nennt seinen Hotkey.
-- **Nutzer-Feedback und Sidebar-Lücken** (4T-0187): Fehlgeschlagenes Datei-Öffnen zeigt einen Statusbar-Hinweis; Other-Embeds auf fehlende Dateien nutzen die Broken-Darstellung; ein fehlgeschlagener SCG-Hilfe-Tab zeigt einen Fehlertext statt leer zu bleiben; Watcher-Fehler des Index führen zu einem sichtbaren Status mit Backoff statt einer stillen Scan-Schleife; unlesbare Ordner werden gezählt und im Panel gemeldet; das Bookmark-Kontextmenü bleibt im Fenster; das erste Bookmark erscheint in beiden Spalten; Session-Restore aktiviert nach gelöschten Dateien den richtigen Tab; Inline-Edit fokussiert die auslösende Spalte; Properties-/Tags-Statusbar-Toggles folgen dem Spalten-Wechsel; das Tag-Autocomplete öffnet nicht mehr beim ersten `#` einer Überschrift.
-- **Visuelle Konsistenz und Zugänglichkeit** (4T-0188): Dark-Theme-Overrides für Mermaid-Fehler im Render-Pane, Such-Fehlerfarben und Properties-Pillen; Drag-Ziel-Tönungen über die Theme-Variable; Fokus-Indikator für das Multistring-Feld; das Bookmark-Move-Modal setzt initialen Fokus und ist per Tastatur bedienbar; CodeMirror-Tooltips liegen nicht mehr unter der Suchleiste; irreführende `role="tree"`-Zusagen ohne Tastatur-Pattern entfernt.
+- **Hartkodiert deutsche UI-Stellen** (4T-000185): Open-Dialog-Titel und Datei-Filter, der Entwickler-Tools-Menüpunkt, Mermaid-Lade-/Fehlertexte im Live-Widget und im Render-Pane sowie das Backlinks-Zeilen-Label erscheinen jetzt in der gewählten Sprache; der Lesezeichen-Tooltip nennt seinen Hotkey.
+- **Nutzer-Feedback und Sidebar-Lücken** (4T-000187): Fehlgeschlagenes Datei-Öffnen zeigt einen Statusbar-Hinweis; Other-Embeds auf fehlende Dateien nutzen die Broken-Darstellung; ein fehlgeschlagener SCG-Hilfe-Tab zeigt einen Fehlertext statt leer zu bleiben; Watcher-Fehler des Index führen zu einem sichtbaren Status mit Backoff statt einer stillen Scan-Schleife; unlesbare Ordner werden gezählt und im Panel gemeldet; das Bookmark-Kontextmenü bleibt im Fenster; das erste Bookmark erscheint in beiden Spalten; Session-Restore aktiviert nach gelöschten Dateien den richtigen Tab; Inline-Edit fokussiert die auslösende Spalte; Properties-/Tags-Statusbar-Toggles folgen dem Spalten-Wechsel; das Tag-Autocomplete öffnet nicht mehr beim ersten `#` einer Überschrift.
+- **Visuelle Konsistenz und Zugänglichkeit** (4T-000188): Dark-Theme-Overrides für Mermaid-Fehler im Render-Pane, Such-Fehlerfarben und Properties-Pillen; Drag-Ziel-Tönungen über die Theme-Variable; Fokus-Indikator für das Multistring-Feld; das Bookmark-Move-Modal setzt initialen Fokus und ist per Tastatur bedienbar; CodeMirror-Tooltips liegen nicht mehr unter der Suchleiste; irreführende `role="tree"`-Zusagen ohne Tastatur-Pattern entfernt.
 
 ### Doku
 
-- **README** (4T-0190): Menü-Kapitel vollständig auf den realen Stand (Lesezeichen merken, Exportieren, Einstellungen, Bearbeiten, Fokus-Modus, Typewriter-Scroll, Entwickler-Tools), neuer Abschnitt „Editor-Komfort" (Linter mit sechs Regeln, Fokus-Modus, Typewriter-Scroll, Zoom, Schriftarten, Tabellen-Komfort), Statusbar-Beschreibung ohne fiktive „Mitte" und mit Zoom-Indikator, Tastenkürzel-Tabelle um foldAll/unfoldAll, „Alle ersetzen" und den Tabellen-Zellsprung ergänzt; CLAUDE.md nennt die drei Hilfe-Tabs und die Notes-Ablage in `releases/`.
-- **Hilfe-Dialog** (4T-0191): Vier veraltete Funktions-Texte korrigiert (Edit-Modus inkl. Live, View-Modus pro Tab, Linter mit sechs Regeln, Settings-Sektion „Verhalten"), Tag-Klickbarkeit dokumentiert, KaTeX-Export-Hinweis in den fünf SCG-Table-Hilfedateien; F12 bleibt als Debug-Werkzeug bewusst undokumentiert.
+- **README** (4T-000190): Menü-Kapitel vollständig auf den realen Stand (Lesezeichen merken, Exportieren, Einstellungen, Bearbeiten, Fokus-Modus, Typewriter-Scroll, Entwickler-Tools), neuer Abschnitt „Editor-Komfort" (Linter mit sechs Regeln, Fokus-Modus, Typewriter-Scroll, Zoom, Schriftarten, Tabellen-Komfort), Statusbar-Beschreibung ohne fiktive „Mitte" und mit Zoom-Indikator, Tastenkürzel-Tabelle um foldAll/unfoldAll, „Alle ersetzen" und den Tabellen-Zellsprung ergänzt; CLAUDE.md nennt die drei Hilfe-Tabs und die Notes-Ablage in `releases/`.
+- **Hilfe-Dialog** (4T-000191): Vier veraltete Funktions-Texte korrigiert (Edit-Modus inkl. Live, View-Modus pro Tab, Linter mit sechs Regeln, Settings-Sektion „Verhalten"), Tag-Klickbarkeit dokumentiert, KaTeX-Export-Hinweis in den fünf SCG-Table-Hilfedateien; F12 bleibt als Debug-Werkzeug bewusst undokumentiert.
 
 ### i18n
 
@@ -4129,41 +4190,41 @@ Viertes Epic des Review-Programms: Epic 3E-0040 schließt die im Gesamt-Code-Rev
 
 ## [0.24.0] - 2026-06-11 — Optimierung und Modularisierung
 
-Drittes Epic des Review-Programms: Epic 3E-0039 setzt die Optimierungs-Befunde des Gesamt-Code-Reviews vom 2026-06-10 um und macht die Code-Struktur für den Test-Vollausbau (0.26.0) testbar: Renderer und Markdown-Pipeline sind modularisiert, die Performance-Hotspots behoben, der Backlinks-Index läuft asynchron, die EXE ist deutlich kleiner und tote Code-Pfade sind bereinigt. Umgesetzt in fünf Tasks plus Sammeltask: 4T-0179 bis 4T-0183, 4T-0184 (Release).
+Drittes Epic des Review-Programms: Epic 3E-000039 setzt die Optimierungs-Befunde des Gesamt-Code-Reviews vom 2026-06-10 um und macht die Code-Struktur für den Test-Vollausbau (0.26.0) testbar: Renderer und Markdown-Pipeline sind modularisiert, die Performance-Hotspots behoben, der Backlinks-Index läuft asynchron, die EXE ist deutlich kleiner und tote Code-Pfade sind bereinigt. Umgesetzt in fünf Tasks plus Sammeltask: 4T-000179 bis 4T-000183, 4T-000184 (Release).
 
 ### Geändert
 
-- **Renderer modularisiert** (4T-0179): Die 10.406-Zeilen-Datei `renderer.js` ist in 16 ES-Module unter `src/renderer/modules/` zerlegt (größtes Modul 1.168 Zeilen, Entry 23 Zeilen); die Markdown-Pipeline (markdown-it-Konfiguration, eigene Plugins, Frontmatter, SCG-Tabellen) ist aus `preload.js` in Electron-freie Module unter `src/shared/markdown/` extrahiert und damit ohne Electron unit-testbar, `preload.js` ist auf eine 264-Zeilen-Bridge geschrumpft. Zwei deklarierte Logik-Änderungen: die dreifach divergierte Render-Nachverarbeitung ist zu `applyRenderPipeline` vereinheitlicht (der stellenweise fehlende Such-Refresh ist der gewollte Fix), und `getPaneEls` ist memoisiert (vorher rund 30 DOM-Queries pro Aufruf bei jedem Tastendruck).
-- **Renderer-Performance** (4T-0180): Alle 14 Performance-Befunde des Reviews behoben. Kernpunkte: genau eine Voll-Text-Serialisierung pro Dokument-Version statt bis zu sechs pro Tastendruck (geteilter WeakMap-Cache für Marker-Felder, Live-Pässe, Linter und Dirty-Vergleich); ein Render-Skip-Cache entkoppelt die Tab-Wechsel-Kaskade (eine statt zwei bis drei vollständige markdown-it-Durchläufe, die jeweils andere Spalte wird gar nicht mehr neu gerendert, Mermaid-Flackern entfällt; Tab-Wechsel auf einer 5.200-Zeilen-Fixture von 815/688 ms auf 536/455 ms, rund −34 %); Fold-Struktur in O(n) statt O(n²); Word-Count-, Linter-, Persistenz-, Scroll-Sync-, Tag- und Bookmark-Pfade mit Caches bzw. Debounces entlastet. Spürbare Nebeneffekte: die Split-Vorschau rendert bei großen Dokumenten seltener (adaptiver Debounce), eingebettete PDFs laden beim Tippen nicht mehr neu.
-- **Backlinks-Index asynchron** (4T-0181): Der Index-Aufbau läuft in Batches mit Yield statt synchron (der Main-Prozess fror bei großen Suchräumen für die gesamte Scan-Dauer ein, B-14); Status `indexing` wird an die Panels gemeldet und beim Fertigwerden per Broadcast aufgelöst. Datenstruktur-Optimierungen: inverse Namens-Map für die Wiki-Link-Auflösung, Tag-Anzeige-Namen und Datei-Größen-Kappung im Index.
-- **EXE deutlich kleiner** (4T-0182): Mermaid und die CodeMirror-Pakete sind reine Bundle-Zeit-Abhängigkeiten und wandern nach devDependencies; die asar schrumpft von rund 74 MB auf 17,7 MB (−76 %), die Portable-EXE von 95,7 MB auf 81,7 MB. Das Renderer-Bundle wird minifiziert ausgeliefert.
+- **Renderer modularisiert** (4T-000179): Die 10.406-Zeilen-Datei `renderer.js` ist in 16 ES-Module unter `src/renderer/modules/` zerlegt (größtes Modul 1.168 Zeilen, Entry 23 Zeilen); die Markdown-Pipeline (markdown-it-Konfiguration, eigene Plugins, Frontmatter, SCG-Tabellen) ist aus `preload.js` in Electron-freie Module unter `src/shared/markdown/` extrahiert und damit ohne Electron unit-testbar, `preload.js` ist auf eine 264-Zeilen-Bridge geschrumpft. Zwei deklarierte Logik-Änderungen: die dreifach divergierte Render-Nachverarbeitung ist zu `applyRenderPipeline` vereinheitlicht (der stellenweise fehlende Such-Refresh ist der gewollte Fix), und `getPaneEls` ist memoisiert (vorher rund 30 DOM-Queries pro Aufruf bei jedem Tastendruck).
+- **Renderer-Performance** (4T-000180): Alle 14 Performance-Befunde des Reviews behoben. Kernpunkte: genau eine Voll-Text-Serialisierung pro Dokument-Version statt bis zu sechs pro Tastendruck (geteilter WeakMap-Cache für Marker-Felder, Live-Pässe, Linter und Dirty-Vergleich); ein Render-Skip-Cache entkoppelt die Tab-Wechsel-Kaskade (eine statt zwei bis drei vollständige markdown-it-Durchläufe, die jeweils andere Spalte wird gar nicht mehr neu gerendert, Mermaid-Flackern entfällt; Tab-Wechsel auf einer 5.200-Zeilen-Fixture von 815/688 ms auf 536/455 ms, rund −34 %); Fold-Struktur in O(n) statt O(n²); Word-Count-, Linter-, Persistenz-, Scroll-Sync-, Tag- und Bookmark-Pfade mit Caches bzw. Debounces entlastet. Spürbare Nebeneffekte: die Split-Vorschau rendert bei großen Dokumenten seltener (adaptiver Debounce), eingebettete PDFs laden beim Tippen nicht mehr neu.
+- **Backlinks-Index asynchron** (4T-000181): Der Index-Aufbau läuft in Batches mit Yield statt synchron (der Main-Prozess fror bei großen Suchräumen für die gesamte Scan-Dauer ein, B-14); Status `indexing` wird an die Panels gemeldet und beim Fertigwerden per Broadcast aufgelöst. Datenstruktur-Optimierungen: inverse Namens-Map für die Wiki-Link-Auflösung, Tag-Anzeige-Namen und Datei-Größen-Kappung im Index.
+- **EXE deutlich kleiner** (4T-000182): Mermaid und die CodeMirror-Pakete sind reine Bundle-Zeit-Abhängigkeiten und wandern nach devDependencies; die asar schrumpft von rund 74 MB auf 17,7 MB (−76 %), die Portable-EXE von 95,7 MB auf 81,7 MB. Das Renderer-Bundle wird minifiziert ausgeliefert.
 
 ### Behoben
 
-- **Build-Schutz vor EXE-Überschreiben** (4T-0182): `npm run build` bricht ab, wenn der Release-Tag der Zielversion bereits existiert. Das verhindert die wiederholt aufgetretene Falle, dass ein Build mit vergessenem Versions-Bump die offiziellen EXEs der Vorgängerversion in `releases/` überschreibt. Außerdem kopiert der Build die Release-Notes der Version mit nach `releases/`, und `archive-build.js` ist testbar geschnitten (eigene Unit-Tests).
-- **Uninstaller-Registry** (4T-0182): Der Uninstaller entfernt nur noch den eigenen Registry-Value statt eines ganzen Keys (X-04); fremde Werte unter demselben Key bleiben unangetastet.
-- **Sichtbarkeit kleiner UI-Reaktionen** (4T-0183): Sortierbare SCG-Tabellen-Header zeigen beim Überfahren jetzt sichtbares Hover-Feedback (vorher wirkungslos, weil dieselbe Farbe wie der Grundzustand gesetzt wurde); Outgoing-Links-Snippets zentrieren das Textfenster um den Link (vorher zeigten lange Zeilen den Link nicht); Klicks auf Embed-Links laufen nicht mehr doppelt durch die Link-Verarbeitung.
+- **Build-Schutz vor EXE-Überschreiben** (4T-000182): `npm run build` bricht ab, wenn der Release-Tag der Zielversion bereits existiert. Das verhindert die wiederholt aufgetretene Falle, dass ein Build mit vergessenem Versions-Bump die offiziellen EXEs der Vorgängerversion in `releases/` überschreibt. Außerdem kopiert der Build die Release-Notes der Version mit nach `releases/`, und `archive-build.js` ist testbar geschnitten (eigene Unit-Tests).
+- **Uninstaller-Registry** (4T-000182): Der Uninstaller entfernt nur noch den eigenen Registry-Value statt eines ganzen Keys (X-04); fremde Werte unter demselben Key bleiben unangetastet.
+- **Sichtbarkeit kleiner UI-Reaktionen** (4T-000183): Sortierbare SCG-Tabellen-Header zeigen beim Überfahren jetzt sichtbares Hover-Feedback (vorher wirkungslos, weil dieselbe Farbe wie der Grundzustand gesetzt wurde); Outgoing-Links-Snippets zentrieren das Textfenster um den Link (vorher zeigten lange Zeilen den Link nicht); Klicks auf Embed-Links laufen nicht mehr doppelt durch die Link-Verarbeitung.
 
 ### Intern
 
-- **Tote Code-Pfade und Duplikate bereinigt** (4T-0183): Alle zwölf Bereinigungs-Befunde des Reviews umgesetzt (ungenutzte Exporte in Main und Backlinks, redundante Verzweigung der Anker-Bildung, irreführende Kommentare, tote CSS-Selektoren, doppelte CSS-Definition, toter Such-Zweig, Fence-Erkennung der Outgoing-Extraktion mit Marker-Merken). Zusätzlich ist [Knip](https://knip.dev/) als manueller Qualitäts-Check eingerichtet (`npm run knip`, Konfiguration versioniert); der Einrichtungs-Lauf fand vier weitere tote Exporte (entfernt), eine ungenutzte devDependency (`@codemirror/search`, entfernt) und zwei nicht deklarierte Direkt-Importe (`@lezer/highlight`, `@lezer/markdown`, nachdeklariert); der Abschluss-Lauf ist ohne Befund.
+- **Tote Code-Pfade und Duplikate bereinigt** (4T-000183): Alle zwölf Bereinigungs-Befunde des Reviews umgesetzt (ungenutzte Exporte in Main und Backlinks, redundante Verzweigung der Anker-Bildung, irreführende Kommentare, tote CSS-Selektoren, doppelte CSS-Definition, toter Such-Zweig, Fence-Erkennung der Outgoing-Extraktion mit Marker-Merken). Zusätzlich ist [Knip](https://knip.dev/) als manueller Qualitäts-Check eingerichtet (`npm run knip`, Konfiguration versioniert); der Einrichtungs-Lauf fand vier weitere tote Exporte (entfernt), eine ungenutzte devDependency (`@codemirror/search`, entfernt) und zwei nicht deklarierte Direkt-Importe (`@lezer/highlight`, `@lezer/markdown`, nachdeklariert); der Abschluss-Lauf ist ohne Befund.
 - **Performance-Mess-Suite**: vier neue E2E-Tests (P-01 bis P-04) mit einer 5.200-Zeilen-Fixture messen Tab-Wechsel-Dauer und Live-Tippen, beweisen den Render-Skip über Knoten-Identität und prüfen den Fold-Gutter auf der großen Datei. Die Suite umfasst jetzt 33 Unit- und 33 E2E-Tests.
 - **Versions-Bump** 0.23.0 → 0.24.0 ([package.json](package.json)).
 
 ## [0.23.0] - 2026-06-11 — Fehlerbehebung aus dem Code-Review
 
-Reines Bugfix-Release. Zweites Epic des Review-Programms: Epic 3E-0038 behebt alle Fehler-Befunde des Gesamt-Code-Reviews vom 2026-06-10, darunter sieben verifizierte Datenverlust- bzw. Crash-Bugs. Alle Befunde wurden vor dem Fix am aktuellen Code re-verifiziert und bestätigt; pro bestätigtem Fix gibt es, wo automatisierbar, einen Regressionstest (15 neue E2E-Tests, 9 neue Unit-Tests). Umgesetzt in acht Fix-Tasks plus Sammeltask: 4T-0170 bis 4T-0177, 4T-0178 (Release).
+Reines Bugfix-Release. Zweites Epic des Review-Programms: Epic 3E-000038 behebt alle Fehler-Befunde des Gesamt-Code-Reviews vom 2026-06-10, darunter sieben verifizierte Datenverlust- bzw. Crash-Bugs. Alle Befunde wurden vor dem Fix am aktuellen Code re-verifiziert und bestätigt; pro bestätigtem Fix gibt es, wo automatisierbar, einen Regressionstest (15 neue E2E-Tests, 9 neue Unit-Tests). Umgesetzt in acht Fix-Tasks plus Sammeltask: 4T-000170 bis 4T-000177, 4T-000178 (Release).
 
 ### Behoben
 
-- **Tab- und Fenster-Management** (4T-0170): Der Tab-Transfer aus einem anderen Fenster überschrieb still den Inhalt des gerade aktiven Tabs, wenn die Zieldatei als Hintergrund-Tab offen war (R4-01). Ein Unbenannt-Tab verschwand samt Inhalt beim Verschieben in eine Pane mit einem weiteren Unbenannt-Tab (R4-02). „In neues Fenster verschieben" verlor ungespeicherte Inhalte und Unbenannt-Tabs komplett; der Transfer läuft jetzt über den Buffer-tragenden Payload-Mechanismus, und transferierte Unbenannt-Inhalte behalten ihren Dirty-Schutz (R4-03). Tab-Drags tragen eine Fenster-Kennung, Drops aus fremden Fenstern werden verworfen (R4-04). „Speichern unter" entwatcht den alten Pfad nur noch, wenn ihn kein anderer Tab mehr nutzt (M-14), und schließt Duplikat-Tabs desselben Zielpfads (R4-11). Auto-Reload überschreibt keine Eingaben mehr, die während des Datei-Lesens getippt wurden (Konflikt-Dialog statt stiller Ersetzung, R4-08).
-- **Suchen und Ersetzen** (4T-0171): Ersetzen nach zwischenzeitlichem Tippen nutzte veraltete Treffer-Offsets und korrumpierte Text an falschen Positionen; Doc-Änderungen invalidieren jetzt die Treffer, und jeder Replace verifiziert den Treffer-Text vor dem Eingriff (R5-01). Der Such-Debounce überlebte das Schließen der Leiste (nachlaufende Highlights, R5-04). Die Reading-Suche zählte unsichtbare KaTeX-MathML-Treffer doppelt (R5-05) und ließ Mermaid-Beschriftungen durch `<mark>`-Einfügung in SVG verschwinden (R5-06). Die Ersetzen-Bedienelemente sind außerhalb von Quellcode-Ansicht + Bearbeiten-Modus jetzt sichtbar deaktiviert statt still funktionslos (R5-09).
-- **Properties-Editor und Frontmatter** (4T-0172): Bei defektem YAML ersetzte „Feld hinzufügen" das gesamte Frontmatter; der Add-Button ist bei Parse-Fehler deaktiviert und kein Save-Pfad schreibt mehr über defektes YAML (R5-02). Eine Eingabe ging verloren, wenn innerhalb des Speicher-Debounce der Tab gewechselt wurde; pending Saves werden jetzt vor dem Felder-Austausch geflusht und schreiben den richtigen Tab (R5-03). Doppelte Eigenschafts-Namen werden markiert und nicht mehr still zusammengelegt (R5-10).
-- **Main-Prozess** (4T-0173): Nach einem abgebrochenen Beenden fiel die Sitzungs-Persistenz dauerhaft aus (M-01). Dateien aus einer zweiten Instanz gingen während der Startphase verloren (M-02) und relative Pfade wurden gegen das falsche Arbeitsverzeichnis aufgelöst (M-03). UTF-8-BOM-Dateien brachen Heading und Frontmatter in Zeile 1 (M-04, auch im Backlinks-Index). `file:resolveLink` warf bei `%` im Link und pfadlosem Tab (M-05). Schließen mit minimiertem Fenster überschrieb die gespeicherte Fenster-Größe (M-07). `&` in Dateinamen wurde im Recent-Menü als Mnemonic verschluckt (M-12). Nach einem Renderer-Reload (F12/Strg+R) blieb das Fenster dauerhaft leer (M-13). Der Auto-Save-Schutz unterdrückt externe Änderungen nur noch, wenn der Datei-Stand dem eigenen Schreiben entspricht (Inhalts-Hash statt 1,5-s-Blindfenster, M-15). Tab-/Pane-Änderungen erreichen den Sitzungs-Store jetzt debounced auch ohne Fenster-Bewegung (M-16).
-- **Render-Pipeline, Live-Modus und Editor** (4T-0174): Ein mehrzeiliges Markdown-Bild machte den Live-Modus durch eine Exception-Dauerschleife unbenutzbar (R1-01). Block-Widgets fehlten nach dem asynchronen Parser-Nachlauf in großen Dateien (R1-02). Alle Mermaid-Renderläufe sind jetzt über eine gemeinsame Queue serialisiert (R1-03, R2-04), und ein fehlgeschlagener Mermaid-Import blockiert nicht mehr die ganze Sitzung (R1-04). Ein literales `%` in einem Embed-Bildnamen brach den kompletten Voll-Render ab (P-01). Die Split-Vorschau hat jetzt einen Debounce pro Pane (R2-01). Links in Markdown-Embeds lösen gegen die Embed-Datei auf statt gegen den Pane-Tab (R2-02). Der Dialog-Schutz für Auto-Save ist reentrant (R2-03). `file:///`-URLs für PDF-/Datei-Embeds sind gegen `#`, `?`, `%` und Leerzeichen im Namen gefestigt (R2-07). Der Markdown-Linter prüft gegen den vollständig geparsten Syntax-Baum und verwirft veraltete Läufe über Doc-Identität (R2-08, R2-09). Der Tabellen-Ausstieg per Enter erzeugt mitten im Dokument eine echte leere Absatzzeile (R2-06). Das Outline-Aktiv-Highlight verrutscht nicht mehr bei Embeds mit Überschriften (R3-04). Ein Fehler in der Renderer-Initialisierung lässt das Fenster nicht mehr stumm hängen (R3-07).
-- **Backlinks-/Tag-Index** (4T-0175): Das Referenz-Zählen war asymmetrisch und das Index-Teardown lief nie (Owner-Modell pro Fenster + Pane, B-01); Fenster-Schließen gibt seine Indexe jetzt frei (B-02). Initial-Scan und Watcher nutzen dieselben Ignore-Regeln, `node_modules` und Punkt-Ordner bleiben draußen (B-03, B-12). Wiki-Link-Auflösung, Linter und Klick-Pfad entscheiden einheitlich case-insensitiv und Unicode-normalisiert (B-04, B-23). `%20`-kodierte Markdown-Links erzeugen Backlinks (B-05). Block-Anker auf eigener Zeile werden indexiert (B-06). Links in Inline-Code erzeugen keine falschen Backlinks (B-07), `[[#Anker]]` ist kein Tag mehr (B-08), escapte Pipes in Tabellen-Wiki-Links funktionieren (B-09). Der Anker-Index folgt dem Renderer bei Slug-Duplikaten, Setext-Überschriften und Links in Überschriften (B-10). Ein Lesefehler beim Datei-Update löscht keine Index-Daten mehr (B-11). Pfad-Ziele wie `[[sub/Datei]]` werden aufgelöst, und der Klick-Pfad hat einen Suchraum-Fallback über den Index (B-13).
-- **Sicherheits-Härtung des Render-Pfads** (4T-0176): Rohes HTML im Portable-Modus läuft durch eine enge Tag-/Attribut-Whitelist (eigene Export-Tabellen rendern, eingeschleustes UI-/Spoofing-HTML nicht, P-02). Der Bild-Resolver bettet nur noch Bilder aus dem Dokument-Ordner ein (Containment, Bild-Extension-Whitelist, 20-MB-Limit, P-03). Wiki-Links mit `javascript:`-/`data:`-Schema werden nicht mehr als Links gerendert (P-07). `will-navigate` ist als Defense-in-Depth-Sperre blockiert (M-17).
-- **UI-Details** (4T-0177): Die CSS-Variable `--bg-muted` war an fünf Stellen verwendet, aber nie definiert (S-01); der Tastatur-Fokus im Alias-Dialog war dadurch komplett unsichtbar und hat jetzt eine Akzent-Outline (S-02). Properties-Add-Button und Tags-Filter der zweiten Spalte waren nie verkabelt (R4-05). Strg+Umschalt+F löst nicht mehr zusätzlich die Suche aus (M-06). Schriftart-Änderungen aus einem anderen Fenster überleben jetzt ein „Abbrechen" im offenen Einstellungs-Dialog (R5-08).
+- **Tab- und Fenster-Management** (4T-000170): Der Tab-Transfer aus einem anderen Fenster überschrieb still den Inhalt des gerade aktiven Tabs, wenn die Zieldatei als Hintergrund-Tab offen war (R4-01). Ein Unbenannt-Tab verschwand samt Inhalt beim Verschieben in eine Pane mit einem weiteren Unbenannt-Tab (R4-02). „In neues Fenster verschieben" verlor ungespeicherte Inhalte und Unbenannt-Tabs komplett; der Transfer läuft jetzt über den Buffer-tragenden Payload-Mechanismus, und transferierte Unbenannt-Inhalte behalten ihren Dirty-Schutz (R4-03). Tab-Drags tragen eine Fenster-Kennung, Drops aus fremden Fenstern werden verworfen (R4-04). „Speichern unter" entwatcht den alten Pfad nur noch, wenn ihn kein anderer Tab mehr nutzt (M-14), und schließt Duplikat-Tabs desselben Zielpfads (R4-11). Auto-Reload überschreibt keine Eingaben mehr, die während des Datei-Lesens getippt wurden (Konflikt-Dialog statt stiller Ersetzung, R4-08).
+- **Suchen und Ersetzen** (4T-000171): Ersetzen nach zwischenzeitlichem Tippen nutzte veraltete Treffer-Offsets und korrumpierte Text an falschen Positionen; Doc-Änderungen invalidieren jetzt die Treffer, und jeder Replace verifiziert den Treffer-Text vor dem Eingriff (R5-01). Der Such-Debounce überlebte das Schließen der Leiste (nachlaufende Highlights, R5-04). Die Reading-Suche zählte unsichtbare KaTeX-MathML-Treffer doppelt (R5-05) und ließ Mermaid-Beschriftungen durch `<mark>`-Einfügung in SVG verschwinden (R5-06). Die Ersetzen-Bedienelemente sind außerhalb von Quellcode-Ansicht + Bearbeiten-Modus jetzt sichtbar deaktiviert statt still funktionslos (R5-09).
+- **Properties-Editor und Frontmatter** (4T-000172): Bei defektem YAML ersetzte „Feld hinzufügen" das gesamte Frontmatter; der Add-Button ist bei Parse-Fehler deaktiviert und kein Save-Pfad schreibt mehr über defektes YAML (R5-02). Eine Eingabe ging verloren, wenn innerhalb des Speicher-Debounce der Tab gewechselt wurde; pending Saves werden jetzt vor dem Felder-Austausch geflusht und schreiben den richtigen Tab (R5-03). Doppelte Eigenschafts-Namen werden markiert und nicht mehr still zusammengelegt (R5-10).
+- **Main-Prozess** (4T-000173): Nach einem abgebrochenen Beenden fiel die Sitzungs-Persistenz dauerhaft aus (M-01). Dateien aus einer zweiten Instanz gingen während der Startphase verloren (M-02) und relative Pfade wurden gegen das falsche Arbeitsverzeichnis aufgelöst (M-03). UTF-8-BOM-Dateien brachen Heading und Frontmatter in Zeile 1 (M-04, auch im Backlinks-Index). `file:resolveLink` warf bei `%` im Link und pfadlosem Tab (M-05). Schließen mit minimiertem Fenster überschrieb die gespeicherte Fenster-Größe (M-07). `&` in Dateinamen wurde im Recent-Menü als Mnemonic verschluckt (M-12). Nach einem Renderer-Reload (F12/Strg+R) blieb das Fenster dauerhaft leer (M-13). Der Auto-Save-Schutz unterdrückt externe Änderungen nur noch, wenn der Datei-Stand dem eigenen Schreiben entspricht (Inhalts-Hash statt 1,5-s-Blindfenster, M-15). Tab-/Pane-Änderungen erreichen den Sitzungs-Store jetzt debounced auch ohne Fenster-Bewegung (M-16).
+- **Render-Pipeline, Live-Modus und Editor** (4T-000174): Ein mehrzeiliges Markdown-Bild machte den Live-Modus durch eine Exception-Dauerschleife unbenutzbar (R1-01). Block-Widgets fehlten nach dem asynchronen Parser-Nachlauf in großen Dateien (R1-02). Alle Mermaid-Renderläufe sind jetzt über eine gemeinsame Queue serialisiert (R1-03, R2-04), und ein fehlgeschlagener Mermaid-Import blockiert nicht mehr die ganze Sitzung (R1-04). Ein literales `%` in einem Embed-Bildnamen brach den kompletten Voll-Render ab (P-01). Die Split-Vorschau hat jetzt einen Debounce pro Pane (R2-01). Links in Markdown-Embeds lösen gegen die Embed-Datei auf statt gegen den Pane-Tab (R2-02). Der Dialog-Schutz für Auto-Save ist reentrant (R2-03). `file:///`-URLs für PDF-/Datei-Embeds sind gegen `#`, `?`, `%` und Leerzeichen im Namen gefestigt (R2-07). Der Markdown-Linter prüft gegen den vollständig geparsten Syntax-Baum und verwirft veraltete Läufe über Doc-Identität (R2-08, R2-09). Der Tabellen-Ausstieg per Enter erzeugt mitten im Dokument eine echte leere Absatzzeile (R2-06). Das Outline-Aktiv-Highlight verrutscht nicht mehr bei Embeds mit Überschriften (R3-04). Ein Fehler in der Renderer-Initialisierung lässt das Fenster nicht mehr stumm hängen (R3-07).
+- **Backlinks-/Tag-Index** (4T-000175): Das Referenz-Zählen war asymmetrisch und das Index-Teardown lief nie (Owner-Modell pro Fenster + Pane, B-01); Fenster-Schließen gibt seine Indexe jetzt frei (B-02). Initial-Scan und Watcher nutzen dieselben Ignore-Regeln, `node_modules` und Punkt-Ordner bleiben draußen (B-03, B-12). Wiki-Link-Auflösung, Linter und Klick-Pfad entscheiden einheitlich case-insensitiv und Unicode-normalisiert (B-04, B-23). `%20`-kodierte Markdown-Links erzeugen Backlinks (B-05). Block-Anker auf eigener Zeile werden indexiert (B-06). Links in Inline-Code erzeugen keine falschen Backlinks (B-07), `[[#Anker]]` ist kein Tag mehr (B-08), escapte Pipes in Tabellen-Wiki-Links funktionieren (B-09). Der Anker-Index folgt dem Renderer bei Slug-Duplikaten, Setext-Überschriften und Links in Überschriften (B-10). Ein Lesefehler beim Datei-Update löscht keine Index-Daten mehr (B-11). Pfad-Ziele wie `[[sub/Datei]]` werden aufgelöst, und der Klick-Pfad hat einen Suchraum-Fallback über den Index (B-13).
+- **Sicherheits-Härtung des Render-Pfads** (4T-000176): Rohes HTML im Portable-Modus läuft durch eine enge Tag-/Attribut-Whitelist (eigene Export-Tabellen rendern, eingeschleustes UI-/Spoofing-HTML nicht, P-02). Der Bild-Resolver bettet nur noch Bilder aus dem Dokument-Ordner ein (Containment, Bild-Extension-Whitelist, 20-MB-Limit, P-03). Wiki-Links mit `javascript:`-/`data:`-Schema werden nicht mehr als Links gerendert (P-07). `will-navigate` ist als Defense-in-Depth-Sperre blockiert (M-17).
+- **UI-Details** (4T-000177): Die CSS-Variable `--bg-muted` war an fünf Stellen verwendet, aber nie definiert (S-01); der Tastatur-Fokus im Alias-Dialog war dadurch komplett unsichtbar und hat jetzt eine Akzent-Outline (S-02). Properties-Add-Button und Tags-Filter der zweiten Spalte waren nie verkabelt (R4-05). Strg+Umschalt+F löst nicht mehr zusätzlich die Suche aus (M-06). Schriftart-Änderungen aus einem anderen Fenster überleben jetzt ein „Abbrechen" im offenen Einstellungs-Dialog (R5-08).
 
 ### Intern
 
@@ -4173,99 +4234,99 @@ Reines Bugfix-Release. Zweites Epic des Review-Programms: Epic 3E-0038 behebt al
 
 ## [0.22.0] - 2026-06-11 — Test-Fundament
 
-Reines Qualitäts-Release ohne sichtbare Funktionsänderungen. Erstes Epic des Review-Programms aus dem Gesamt-Code-Review vom 2026-06-10 (fünf Epics, 0.22.0 bis 0.26.0): Epic 3E-0037 baut die automatisierte Test-Infrastruktur auf, die als Sicherheitsnetz für die Folge-Epics (Fehlerbehebung, Modularisierung, Lückenschließung, Test-Vollausbau) dient. Umgesetzt in drei Tasks plus Sammeltask: 4T-0166 (Infrastruktur), 4T-0167 (E2E-Smoke-Suite), 4T-0168 (Unit-Tests Main-Logik), 4T-0169 (Release).
+Reines Qualitäts-Release ohne sichtbare Funktionsänderungen. Erstes Epic des Review-Programms aus dem Gesamt-Code-Review vom 2026-06-10 (fünf Epics, 0.22.0 bis 0.26.0): Epic 3E-000037 baut die automatisierte Test-Infrastruktur auf, die als Sicherheitsnetz für die Folge-Epics (Fehlerbehebung, Modularisierung, Lückenschließung, Test-Vollausbau) dient. Umgesetzt in drei Tasks plus Sammeltask: 4T-000166 (Infrastruktur), 4T-000167 (E2E-Smoke-Suite), 4T-000168 (Unit-Tests Main-Logik), 4T-000169 (Release).
 
 ### Neu
 
-- **Test-Infrastruktur** (4T-0166): Vitest 4 für Unit-/Snapshot-Tests (`npm test`, `npm run test:watch`), Playwright mit Electron-Treiber für End-to-End-Tests gegen die echte App (`npm run test:e2e`, baut vorab das Renderer-Bundle). Neue Ordnerstruktur `test/unit/`, `test/e2e/`, `test/fixtures/` (versioniert, getrennt vom gitignorierten manuellen `Tests/`-Ordner) und `test/README.md` als zentrales Testkonventionen-Dokument. Der Playwright-Electron-Spike lief mit Electron 33 auf Anhieb; der WebdriverIO-Fallback wurde nicht gebraucht.
-- **Versionierter pre-commit-Hook** (4T-0166): `.githooks/pre-commit` führt `npm test` aus und verweigert den Commit bei rotem Ergebnis (Aktivierung pro Klon: `git config core.hooksPath .githooks`). `.only`-Schutz auf beiden Ebenen (`allowOnly: false` in Vitest, `forbidOnly: true` in Playwright), damit der Hook nie mit einer fokussierten Teil-Suite grün wird.
-- **E2E-Smoke-Suite SM-01 bis SM-09** (4T-0167): neun Szenarien über die Kernabläufe (Start/Fenster, Datei öffnen und rendern, Modi-Wechsel, Editieren und Speichern, Tabs, Suche, Hilfe-Dialog, Theme-Toggle, Session-Restore) mit stabilen Szenario-IDs, zentralen Selektor-Konstanten und gemeinsamen App-Start-Helpers; Laufzeit rund 23 Sekunden, Diagnose-Artefakte (Screenshot, Trace) nur im Fehlerfall.
-- **Unit-Tests für Main-Prozess-Logik** (4T-0168): elf Tests für `src/shared/callouts.js` (Typen-Katalog, Icon-Wrapper) und `src/main/backlinks.js` über die öffentliche API mit Temp-Verzeichnis-Fixtures: Wiki-Link-Varianten, Markdown-Links, Embeds, Frontmatter-Aliases und -Tags, Tag-Counts mit Maskierungs-Ausschlüssen, Heading-/Block-Anker, Scan-Tiefe (Wurzel + 2 Ebenen) und Caps-Verhalten (oversized ab 2001 Dateien).
+- **Test-Infrastruktur** (4T-000166): Vitest 4 für Unit-/Snapshot-Tests (`npm test`, `npm run test:watch`), Playwright mit Electron-Treiber für End-to-End-Tests gegen die echte App (`npm run test:e2e`, baut vorab das Renderer-Bundle). Neue Ordnerstruktur `test/unit/`, `test/e2e/`, `test/fixtures/` (versioniert, getrennt vom gitignorierten manuellen `Tests/`-Ordner) und `test/README.md` als zentrales Testkonventionen-Dokument. Der Playwright-Electron-Spike lief mit Electron 33 auf Anhieb; der WebdriverIO-Fallback wurde nicht gebraucht.
+- **Versionierter pre-commit-Hook** (4T-000166): `.githooks/pre-commit` führt `npm test` aus und verweigert den Commit bei rotem Ergebnis (Aktivierung pro Klon: `git config core.hooksPath .githooks`). `.only`-Schutz auf beiden Ebenen (`allowOnly: false` in Vitest, `forbidOnly: true` in Playwright), damit der Hook nie mit einer fokussierten Teil-Suite grün wird.
+- **E2E-Smoke-Suite SM-01 bis SM-09** (4T-000167): neun Szenarien über die Kernabläufe (Start/Fenster, Datei öffnen und rendern, Modi-Wechsel, Editieren und Speichern, Tabs, Suche, Hilfe-Dialog, Theme-Toggle, Session-Restore) mit stabilen Szenario-IDs, zentralen Selektor-Konstanten und gemeinsamen App-Start-Helpers; Laufzeit rund 23 Sekunden, Diagnose-Artefakte (Screenshot, Trace) nur im Fehlerfall.
+- **Unit-Tests für Main-Prozess-Logik** (4T-000168): elf Tests für `src/shared/callouts.js` (Typen-Katalog, Icon-Wrapper) und `src/main/backlinks.js` über die öffentliche API mit Temp-Verzeichnis-Fixtures: Wiki-Link-Varianten, Markdown-Links, Embeds, Frontmatter-Aliases und -Tags, Tag-Counts mit Maskierungs-Ausschlüssen, Heading-/Block-Anker, Scan-Tiefe (Wurzel + 2 Ebenen) und Caps-Verhalten (oversized ab 2001 Dateien).
 
 ### Intern
 
-- **userData-Test-Hook in `main.js`** (4T-0166): Die Umgebungsvariable `SCG_TEST_USER_DATA` setzt früh `app.setPath('userData', …)`, bewusst vor dem Single-Instance-Lock. E2E-Läufe verwenden damit ein isoliertes Temp-Profil pro Lauf, berühren nie das echte Nutzer-Profil unter `%APPDATA%` und kollidieren nicht mit einer parallel laufenden App-Instanz. Einzige Code-Änderung an der App in diesem Release.
+- **userData-Test-Hook in `main.js`** (4T-000166): Die Umgebungsvariable `SCG_TEST_USER_DATA` setzt früh `app.setPath('userData', …)`, bewusst vor dem Single-Instance-Lock. E2E-Läufe verwenden damit ein isoliertes Temp-Profil pro Lauf, berühren nie das echte Nutzer-Profil unter `%APPDATA%` und kollidieren nicht mit einer parallel laufenden App-Instanz. Einzige Code-Änderung an der App in diesem Release.
 - **.gitignore**: Playwright-Artefakt-Ordner `test-results/` und `playwright-report/` ergänzt.
 - **Versions-Bump** 0.21.0 → 0.22.0 ([package.json](package.json)).
 
 ## [0.21.0] - 2026-06-08 — Loslösung von GitHub
 
-Erstes Release nach der Ablösung von GitHub als Code-Host. Für die laufende Entwicklung trägt künftig allein das lokale Git die Versionskontrolle. Epic 3E-0031 entfernt die einzige funktionale GitHub-Laufzeitbindung der App (die Auto-Update-Erkennung), macht Build- und Release-Prozess GitHub-frei, bereinigt die GitHub-Bezüge der lebenden Dokumentation und kappt den Git-Remote. Umgesetzt in fünf Tasks: 4T-0143 (Auto-Update-Ausbau), 4T-0144 (Build- und Release-Prozess), 4T-0145 (Doku-Bereinigung), 4T-0142 (Remote-Kappung) und Abschluss-Sammeltask 4T-0146.
+Erstes Release nach der Ablösung von GitHub als Code-Host. Für die laufende Entwicklung trägt künftig allein das lokale Git die Versionskontrolle. Epic 3E-000031 entfernt die einzige funktionale GitHub-Laufzeitbindung der App (die Auto-Update-Erkennung), macht Build- und Release-Prozess GitHub-frei, bereinigt die GitHub-Bezüge der lebenden Dokumentation und kappt den Git-Remote. Umgesetzt in fünf Tasks: 4T-000143 (Auto-Update-Ausbau), 4T-000144 (Build- und Release-Prozess), 4T-000145 (Doku-Bereinigung), 4T-000142 (Remote-Kappung) und Abschluss-Sammeltask 4T-000146.
 
 ### Entfernt
 
-- **Auto-Update-Funktion vollständig** (4T-0143): Der Menüpunkt „Hilfe → Auf Updates prüfen…", der automatische Hintergrund-Check (45 Sekunden nach Start, danach alle 24 Stunden), die drei Update-Dialoge (Update verfügbar, kein Update, Fehler), der Hilfe-Dialog-Funktionseintrag, der IPC-Handler `update:check` und der Datei-Logger wurden entfernt. Die Dependency `electron-updater` ist aus `package.json` raus. Hintergrund: Ohne GitHub-Release gibt es keinen Server mehr, gegen den die Prüfung laufen könnte; stehengelassener Code würde nur in API-Fehler und tote Links laufen. Der persistierte Store-Key `update.skippedVersion` bleibt bei bestehenden Installationen als harmloser verwaister Wert liegen.
+- **Auto-Update-Funktion vollständig** (4T-000143): Der Menüpunkt „Hilfe → Auf Updates prüfen…", der automatische Hintergrund-Check (45 Sekunden nach Start, danach alle 24 Stunden), die drei Update-Dialoge (Update verfügbar, kein Update, Fehler), der Hilfe-Dialog-Funktionseintrag, der IPC-Handler `update:check` und der Datei-Logger wurden entfernt. Die Dependency `electron-updater` ist aus `package.json` raus. Hintergrund: Ohne GitHub-Release gibt es keinen Server mehr, gegen den die Prüfung laufen könnte; stehengelassener Code würde nur in API-Fehler und tote Links laufen. Der persistierte Store-Key `update.skippedVersion` bleibt bei bestehenden Installationen als harmloser verwaister Wert liegen.
 
 ### Geändert
 
-- **Code-Hosting auf lokal umgestellt** (4T-0142): Der Git-Remote `origin` wurde gekappt; die Versionskontrolle läuft künftig rein lokal über Git.
-- **Build- und Release-Prozess GitHub-frei** (4T-0144): `electron-builder` erzeugt kein `latest.yml` und keine Blockmaps mehr (`publish: null` statt GitHub-Provider-Block), `scripts/archive-build.js` verschiebt nur noch die Setup- und Portable-EXE nach `releases/`, und der Release läuft über einen lokalen `git tag` ohne `git push` und ohne `gh release create`. Release-Notes-Vorlage und der Release-Prozess in `CLAUDE.md` sind auf den lokalen Ablauf umgeschrieben.
-- **GitHub-Bezüge der lebenden Dokumentation bereinigt** (4T-0145): Die beiden aktiven Issue-Links in der `CLAUDE.md` wurden in reinen Text umgewandelt. Inhaltliche GitHub-Begriffe (GitHub Flavored Markdown, highlight.js-Palette) und historische CHANGELOG-Einträge bleiben unverändert.
+- **Code-Hosting auf lokal umgestellt** (4T-000142): Der Git-Remote `origin` wurde gekappt; die Versionskontrolle läuft künftig rein lokal über Git.
+- **Build- und Release-Prozess GitHub-frei** (4T-000144): `electron-builder` erzeugt kein `latest.yml` und keine Blockmaps mehr (`publish: null` statt GitHub-Provider-Block), `scripts/archive-build.js` verschiebt nur noch die Setup- und Portable-EXE nach `releases/`, und der Release läuft über einen lokalen `git tag` ohne `git push` und ohne `gh release create`. Release-Notes-Vorlage und der Release-Prozess in `CLAUDE.md` sind auf den lokalen Ablauf umgeschrieben.
+- **GitHub-Bezüge der lebenden Dokumentation bereinigt** (4T-000145): Die beiden aktiven Issue-Links in der `CLAUDE.md` wurden in reinen Text umgewandelt. Inhaltliche GitHub-Begriffe (GitHub Flavored Markdown, highlight.js-Palette) und historische CHANGELOG-Einträge bleiben unverändert.
 - **Versions-Bump** 0.20.0 → 0.21.0 ([package.json](package.json)).
 
 ### i18n
 
-- 12 Keys je Sprache (DE/EN/FR/ES/IT) entfernt (4T-0143): `menu.help.checkForUpdates`, die zehn `update.*`-Keys (Dialog-Titel, -Texte, Buttons, Status- und Fehlermeldungen) und `help.feature.updateCheck`. Alle fünf Sprachdateien bleiben schlüsselgleich (je 375 Keys).
+- 12 Keys je Sprache (DE/EN/FR/ES/IT) entfernt (4T-000143): `menu.help.checkForUpdates`, die zehn `update.*`-Keys (Dialog-Titel, -Texte, Buttons, Status- und Fehlermeldungen) und `help.feature.updateCheck`. Alle fünf Sprachdateien bleiben schlüsselgleich (je 375 Keys).
 
 ## [0.20.0] - 2026-05-24 — Inline Live Preview
 
-Feature-Release. Fünftes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0) und strukturell die tiefgreifendste Erweiterung der Reihe: der Editor selbst rendert Markdown jetzt im Live-Modus, sodass der Wechsel zwischen Quellcode-Pane und Render-Pane nicht mehr nötig ist, wenn man im natürlichen Lesebild schreiben will. Epic 3E-0014 umgesetzt in zehn Tasks plus einem während der View-Modus-Tests entdeckten Persistenz-Fix: 4T-0080 Architektur-Spike, 4T-0081 Inline-Markup, 4T-0082 Inline-Links, 4T-0083 Block-Markup ohne Callouts, 4T-0087 Callouts mit preload-Refactor, 4T-0084 Bilder/Math/Embeds, 4T-0088 Tabellen und Fenced-Code mit Cache, 4T-0089 Mermaid mit Theme-Hook, 4T-0085 View-Modus-Integration, 4T-0090 Per-Datei-Persistenz für Tab-Settings und Abschluss-Sammeltask 4T-0086.
+Feature-Release. Fünftes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0) und strukturell die tiefgreifendste Erweiterung der Reihe: der Editor selbst rendert Markdown jetzt im Live-Modus, sodass der Wechsel zwischen Quellcode-Pane und Render-Pane nicht mehr nötig ist, wenn man im natürlichen Lesebild schreiben will. Epic 3E-000014 umgesetzt in zehn Tasks plus einem während der View-Modus-Tests entdeckten Persistenz-Fix: 4T-000080 Architektur-Spike, 4T-000081 Inline-Markup, 4T-000082 Inline-Links, 4T-000083 Block-Markup ohne Callouts, 4T-000087 Callouts mit preload-Refactor, 4T-000084 Bilder/Math/Embeds, 4T-000088 Tabellen und Fenced-Code mit Cache, 4T-000089 Mermaid mit Theme-Hook, 4T-000085 View-Modus-Integration, 4T-000090 Per-Datei-Persistenz für Tab-Settings und Abschluss-Sammeltask 4T-000086.
 
 ### Neu
 
-- **Inline Live Preview als vierter View-Modus** (4T-0080 bis 4T-0085): Vierter Ansichts-Modus „Live" neben Gerendert, Geteilt und Quellcode. Im Live-Modus rendert CodeMirror Markdown direkt im Editor: fett, kursiv, durchgestrichen, hervorgehoben, Inline-Code, Links und Wiki-Links als formatierte Anker, Headings groß, Listen mit Bullets oder Nummern, Task-Listen mit Klick-Toggle, Blockquotes mit Einrückung und Akzent-Balken, horizontale Trennlinien, Callouts als Box, Tabellen und Fenced-Code als gerendertes Widget, KaTeX-Inline und -Block, Bilder, Wiki-Embeds und Mermaid-Diagramme. Cursor-bewusste Demaskierung: in der Zeile, in der der Cursor steht, bleibt die Markdown-Quelle sichtbar; alle anderen Zeilen zeigen das gerenderte Bild. Source-Modus bleibt unverändert für Power-Use erhalten.
-- **Statusbar-Button, Menü und Hotkey für Live** (4T-0085): Vier View-Buttons in der Statusbar in der Reihenfolge `[Live]` `[Quellcode]` `[Split]` `[Gerendert]` (Live-Button mit Lucide `wand-2`-Icon). Vierter Radio-Eintrag „Live" im Ansicht-Menü nach „Quellcode". Hotkey `Strg+4` parallel zur bestehenden Reihe `Strg+1`/`+2`/`+3`. Häkchen-Synchronisation über den bestehenden View-Mode-Broadcast.
-- **Settings-Default für die Standard-Ansicht neuer Tabs** (4T-0085): Neue Sektion „Verhalten" im Einstellungs-Dialog mit Dropdown „Standard-Ansicht für neue Tabs" (vier Optionen Gerendert/Geteilt/Quellcode/Live). Wird beim `Strg+N` und beim ersten Öffnen einer Datei ohne persistierten Tab-Stand angewendet. Persistiert als `app.defaultViewMode`. Default bleibt „Gerendert" für bestehende Sessions ohne Anpassung.
-- **Per-Datei-Persistenz für Wrap/Numbers/Folding** (4T-0090): Zeilenumbruch, Zeilennummern und Gliederungsspur überleben jetzt Tab-Schließen-und-Wiederöffnen sowie App-Neustart mit deaktivierter Sitzungswiederherstellung. Map von absolutem Pfad auf die drei Booleans, persistiert als eigener Store-Key `app.fileSettings`, getrennt vom `windows`-Store. Greift damit unabhängig vom Sitzungs-Wiederherstellungs-Flag. Der View-Modus wird bewusst nicht pro Datei persistiert; beim Wiederöffnen greift der Settings-Default „Standard-Ansicht für neue Tabs". Der Bug bestand für alle drei Settings, war bei Numbers und Folding aber unsichtbar, weil ihre Defaults (`true`) dem üblichen Nutzerverhalten entsprechen.
-- **Hilfe-Dialog erweitert** (4T-0085): Neuer Funktions-Eintrag in der Gruppe „Ansicht" beschreibt den Live-Modus inklusive der Cursor-bewussten Demaskierung. Neuer Tastenkürzel-Eintrag für `Strg+4`. Bestehender Funktions-Eintrag zu den View-Modi auf vier Ansichten aktualisiert.
+- **Inline Live Preview als vierter View-Modus** (4T-000080 bis 4T-000085): Vierter Ansichts-Modus „Live" neben Gerendert, Geteilt und Quellcode. Im Live-Modus rendert CodeMirror Markdown direkt im Editor: fett, kursiv, durchgestrichen, hervorgehoben, Inline-Code, Links und Wiki-Links als formatierte Anker, Headings groß, Listen mit Bullets oder Nummern, Task-Listen mit Klick-Toggle, Blockquotes mit Einrückung und Akzent-Balken, horizontale Trennlinien, Callouts als Box, Tabellen und Fenced-Code als gerendertes Widget, KaTeX-Inline und -Block, Bilder, Wiki-Embeds und Mermaid-Diagramme. Cursor-bewusste Demaskierung: in der Zeile, in der der Cursor steht, bleibt die Markdown-Quelle sichtbar; alle anderen Zeilen zeigen das gerenderte Bild. Source-Modus bleibt unverändert für Power-Use erhalten.
+- **Statusbar-Button, Menü und Hotkey für Live** (4T-000085): Vier View-Buttons in der Statusbar in der Reihenfolge `[Live]` `[Quellcode]` `[Split]` `[Gerendert]` (Live-Button mit Lucide `wand-2`-Icon). Vierter Radio-Eintrag „Live" im Ansicht-Menü nach „Quellcode". Hotkey `Strg+4` parallel zur bestehenden Reihe `Strg+1`/`+2`/`+3`. Häkchen-Synchronisation über den bestehenden View-Mode-Broadcast.
+- **Settings-Default für die Standard-Ansicht neuer Tabs** (4T-000085): Neue Sektion „Verhalten" im Einstellungs-Dialog mit Dropdown „Standard-Ansicht für neue Tabs" (vier Optionen Gerendert/Geteilt/Quellcode/Live). Wird beim `Strg+N` und beim ersten Öffnen einer Datei ohne persistierten Tab-Stand angewendet. Persistiert als `app.defaultViewMode`. Default bleibt „Gerendert" für bestehende Sessions ohne Anpassung.
+- **Per-Datei-Persistenz für Wrap/Numbers/Folding** (4T-000090): Zeilenumbruch, Zeilennummern und Gliederungsspur überleben jetzt Tab-Schließen-und-Wiederöffnen sowie App-Neustart mit deaktivierter Sitzungswiederherstellung. Map von absolutem Pfad auf die drei Booleans, persistiert als eigener Store-Key `app.fileSettings`, getrennt vom `windows`-Store. Greift damit unabhängig vom Sitzungs-Wiederherstellungs-Flag. Der View-Modus wird bewusst nicht pro Datei persistiert; beim Wiederöffnen greift der Settings-Default „Standard-Ansicht für neue Tabs". Der Bug bestand für alle drei Settings, war bei Numbers und Folding aber unsichtbar, weil ihre Defaults (`true`) dem üblichen Nutzerverhalten entsprechen.
+- **Hilfe-Dialog erweitert** (4T-000085): Neuer Funktions-Eintrag in der Gruppe „Ansicht" beschreibt den Live-Modus inklusive der Cursor-bewussten Demaskierung. Neuer Tastenkürzel-Eintrag für `Strg+4`. Bestehender Funktions-Eintrag zu den View-Modi auf vier Ansichten aktualisiert.
 
 ### Geändert
 
 - **Versions-Bump** 0.19.0 → 0.20.0 ([package.json](package.json)).
-- **Spike-Code entfernt** (4T-0085): Der globale `livePreviewActive`-State, der Debug-Hotkey `Strg+Umschalt+P` und der `[Spike 4T-0080]`-Konsolenlog aus der Architektur-Spike-Phase wurden vollständig entfernt. Der Live-Modus wird jetzt pro Tab über `tab.viewMode === 'live'` rekonfiguriert.
-- **Edit-Modus beim View-Wechsel** (4T-0085): Live verhält sich beim Wechsel analog zu Source und Split — Edit-Modus wird nicht automatisch eingeschaltet. Nur der Wechsel zu Gerendert deaktiviert ihn zwingend. So bleibt die Entscheidung „bearbeiten" beim Nutzer.
-- **Statusbar-Lücke zwischen Bookmark-Stern und Folding-Gutter-Icon** (4T-0085): Kleine optische Trennung (8 px) zwischen den beiden visuell zusammenhanglosen Icons, damit die Statusbar-Icon-Reihe leichter zu lesen ist.
-- **preload-Refactor**: `CALLOUT_TYPES` von `src/main/preload.js` nach `src/shared/callouts.js` ausgelagert (4T-0087). Damit teilen Preload (Render-Pane) und Renderer (Live-Modus) eine einzige Quelle der Wahrheit für die zehn Callout-Typen und ihre Default-Titel-i18n-Keys.
-- **Lezer-Markdown-Extensions**: Das CodeMirror-Markdown-Sprachpaket bekommt jetzt die `Table`-Extension aus `@lezer/markdown` explizit mitgegeben (4T-0088). Ohne sie erkennt der Lezer-AST Pipe-Tabellen nicht als Block-Konstrukt, der Live-Modus konnte dann keine Tabellen-Widgets bauen.
-- **Mermaid-Render-Pipeline** (4T-0089): `mermaid.run`-Aufrufe werden im Live-Modus über eine modul-lokale Promise-Queue serialisiert. Hintergrund war ein globaler Counter-State in Mermaid v11: parallele Aufrufe vermischten Diagramm-Output oder warfen Phantom-Syntax-Fehler. Theme-Wechsel triggert über einen `liveRebuildEffect`-Dispatch pro Pane-View einen Re-Render aller Mermaid-Widgets mit neuem Theme im Cache-Key.
+- **Spike-Code entfernt** (4T-000085): Der globale `livePreviewActive`-State, der Debug-Hotkey `Strg+Umschalt+P` und der `[Spike 4T-000080]`-Konsolenlog aus der Architektur-Spike-Phase wurden vollständig entfernt. Der Live-Modus wird jetzt pro Tab über `tab.viewMode === 'live'` rekonfiguriert.
+- **Edit-Modus beim View-Wechsel** (4T-000085): Live verhält sich beim Wechsel analog zu Source und Split — Edit-Modus wird nicht automatisch eingeschaltet. Nur der Wechsel zu Gerendert deaktiviert ihn zwingend. So bleibt die Entscheidung „bearbeiten" beim Nutzer.
+- **Statusbar-Lücke zwischen Bookmark-Stern und Folding-Gutter-Icon** (4T-000085): Kleine optische Trennung (8 px) zwischen den beiden visuell zusammenhanglosen Icons, damit die Statusbar-Icon-Reihe leichter zu lesen ist.
+- **preload-Refactor**: `CALLOUT_TYPES` von `src/main/preload.js` nach `src/shared/callouts.js` ausgelagert (4T-000087). Damit teilen Preload (Render-Pane) und Renderer (Live-Modus) eine einzige Quelle der Wahrheit für die zehn Callout-Typen und ihre Default-Titel-i18n-Keys.
+- **Lezer-Markdown-Extensions**: Das CodeMirror-Markdown-Sprachpaket bekommt jetzt die `Table`-Extension aus `@lezer/markdown` explizit mitgegeben (4T-000088). Ohne sie erkennt der Lezer-AST Pipe-Tabellen nicht als Block-Konstrukt, der Live-Modus konnte dann keine Tabellen-Widgets bauen.
+- **Mermaid-Render-Pipeline** (4T-000089): `mermaid.run`-Aufrufe werden im Live-Modus über eine modul-lokale Promise-Queue serialisiert. Hintergrund war ein globaler Counter-State in Mermaid v11: parallele Aufrufe vermischten Diagramm-Output oder warfen Phantom-Syntax-Fehler. Theme-Wechsel triggert über einen `liveRebuildEffect`-Dispatch pro Pane-View einen Re-Render aller Mermaid-Widgets mit neuem Theme im Cache-Key.
 
 ### Behoben
 
-- **Tab-Settings überlebten Tab-Schließen-und-Wiederöffnen nicht** (4T-0090): Wer eine Datei öffnete, den Zeilenumbruch einschaltete, den Tab schloss und die Datei wieder öffnete, fand den Zeilenumbruch wieder aus. Ursache: `closeTab` führte keinen Per-Datei-Cache der Tab-Settings. Fix wie unter „Neu" beschrieben.
-- **Mermaid-Bomb-SVG landete im Cache** (4T-0089): Im Live-Modus rendert Mermaid mit `suppressErrors:false`, sodass Syntax-Fehler einen Throw auslösen und in einer eigenen `cm-live-mermaid-error`-Box mit Quelltext landen. Vorher rendert Mermaid sein internes Bomb-SVG in den Container, das wurde im Widget-Cache zwischengespeichert und triggerte zusätzlich einen SVG-Render-Bug (`translate(undefined, NaN)`).
-- **Cursor-in-Widget bei Mermaid** (4T-0089): Klick in ein Mermaid-Widget setzt den Cursor jetzt zuverlässig auf den Anfang der Quell-Zeile, nicht ins SVG hinein. Realisiert über `ignoreEvent` und `_destroyed`-Flag der Widget-Klasse.
+- **Tab-Settings überlebten Tab-Schließen-und-Wiederöffnen nicht** (4T-000090): Wer eine Datei öffnete, den Zeilenumbruch einschaltete, den Tab schloss und die Datei wieder öffnete, fand den Zeilenumbruch wieder aus. Ursache: `closeTab` führte keinen Per-Datei-Cache der Tab-Settings. Fix wie unter „Neu" beschrieben.
+- **Mermaid-Bomb-SVG landete im Cache** (4T-000089): Im Live-Modus rendert Mermaid mit `suppressErrors:false`, sodass Syntax-Fehler einen Throw auslösen und in einer eigenen `cm-live-mermaid-error`-Box mit Quelltext landen. Vorher rendert Mermaid sein internes Bomb-SVG in den Container, das wurde im Widget-Cache zwischengespeichert und triggerte zusätzlich einen SVG-Render-Bug (`translate(undefined, NaN)`).
+- **Cursor-in-Widget bei Mermaid** (4T-000089): Klick in ein Mermaid-Widget setzt den Cursor jetzt zuverlässig auf den Anfang der Quell-Zeile, nicht ins SVG hinein. Realisiert über `ignoreEvent` und `_destroyed`-Flag der Widget-Klasse.
 
 ### i18n
 
-- 10 neue JSON-Keys über fünf Sprachen (DE/EN/FR/ES/IT), alle in 4T-0085: `view.live` (Statusbar-Tooltip), `menu.view.live` (Menü-Eintrag), `help.feature.livePreview` (Funktions-Eintrag), `help.shortcut.livePreview` (Tastenkürzel-Eintrag), `settings.behavior` (Settings-Sektions-Header) und `settings.defaultViewMode.label` plus die vier Dropdown-Optionen `.rendered`/`.split`/`.source`/`.live`.
+- 10 neue JSON-Keys über fünf Sprachen (DE/EN/FR/ES/IT), alle in 4T-000085: `view.live` (Statusbar-Tooltip), `menu.view.live` (Menü-Eintrag), `help.feature.livePreview` (Funktions-Eintrag), `help.shortcut.livePreview` (Tastenkürzel-Eintrag), `settings.behavior` (Settings-Sektions-Header) und `settings.defaultViewMode.label` plus die vier Dropdown-Optionen `.rendered`/`.split`/`.source`/`.live`.
 - Update an `help.feature.viewModes` in allen fünf Sprachen: erwähnt jetzt vier Ansichten statt drei.
 - Live-Übersetzungen: Live (DE/EN/IT), Direct (FR), En vivo (ES).
 
 ## [0.19.0] - 2026-05-22 — Reading- und Sidebar-Komfort
 
-Feature-Release. Viertes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-0013 bündelt fünf Komfort-Verbesserungen, die in Summe einen wahrnehmbaren UX-Schub geben: 4T-0071 Code-Block Copy-Button, 4T-0072 Word Count in der Statusbar, 4T-0073 Outgoing-Links-Sidebar plus Hotkey-Umzug, 4T-0074 Tabellen-Editor-Komfort, sowie das in drei Stufen umgesetzte Lesezeichen-System aus 4T-0075 (Basis), 4T-0078 (Ordner-Operationen) und 4T-0079 (Drag-and-Drop). Dazu 4T-0076 Hilfe-Dialog-Erweiterung und Abschluss-Sammeltask 4T-0077.
+Feature-Release. Viertes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-000013 bündelt fünf Komfort-Verbesserungen, die in Summe einen wahrnehmbaren UX-Schub geben: 4T-000071 Code-Block Copy-Button, 4T-000072 Word Count in der Statusbar, 4T-000073 Outgoing-Links-Sidebar plus Hotkey-Umzug, 4T-000074 Tabellen-Editor-Komfort, sowie das in drei Stufen umgesetzte Lesezeichen-System aus 4T-000075 (Basis), 4T-000078 (Ordner-Operationen) und 4T-000079 (Drag-and-Drop). Dazu 4T-000076 Hilfe-Dialog-Erweiterung und Abschluss-Sammeltask 4T-000077.
 
 ### Neu
 
-- **Code-Block Copy-Button** (4T-0071): Jeder Fenced-Code-Block im Render-Pane bekommt einen Copy-Button rechts oben (Default unsichtbar, sichtbar bei Hover). Klick kopiert den Code-Inhalt vollständig in die Zwischenablage, kurzes visuelles „Kopiert"-Feedback mit Check-Symbol und Akzentfarbe. Wirkt für alle `<pre>`-Blöcke (mit und ohne Sprach-Tag, Highlight-Blöcke, SCG-Tabellen-Quelltexte) sowie rekursiv in Wiki-Embeds. Inline-Code und Mermaid-Blöcke (werden zu SVG) sind bewusst ausgeschlossen. `@media print` blendet den Button aus.
-- **Word Count in der Statusbar** (4T-0072): Neue Statusbar-Anzeige zeigt Wörter, Zeichen und Lesezeit (200 wpm) der aktiven Datei. Bei Editor-Selektion wechselt die Anzeige auf die Auswahl. Klick öffnet einen Detail-Dialog mit Wörtern, Zeichen mit/ohne Leerzeichen, Lesezeit, Absätzen, Sätzen und Headings je Ebene (H1 bis H6). Frontmatter, Fenced-Code-Blöcke, Inline-Code und KaTeX-Math (Inline und Display) werden nicht mitgezählt. Live-Update mit 150 ms Debounce, Selektions-Wechsel synchron. Zahlen-Formatierung folgt der aktiven UI-Sprache via `Intl.NumberFormat` (DE `1.234`, EN `1,234`, FR `1 234`).
-- **Outgoing-Links-Sidebar** (4T-0073): Dritte Sidebar-Sektion zwischen Tags und Backlinks zeigt alle Wiki-Links, Markdown-Links und Wiki-Embeds der aktiven Datei in Dokument-Reihenfolge. Pro Eintrag: Type-Badge (W/M/E), Ziel inklusive Heading- oder Block-Anker, Zeile und Snippet. Klick öffnet das Ziel über die bestehende Wiki-Link-Auflösung (inklusive Alias-Fallback und Anker-Sprung). Externe `http(s)://`-Links, `mailto:`, `tel:`, In-Page-Anker `#…` und Markdown-Image-Syntax `![alt](…)` werden ausgespart. Toggle über Statusbar-Icon (Lucide `external-link`), Menüpunkt „Ansicht → Outgoing-Links" oder neuer Hotkey `Strg+Umschalt+O`.
-- **Tabellen-Editor-Komfort** (4T-0074): In klassischen Pipe-Tabellen springen `Tab` und `Umschalt+Tab` zwischen Zellen einer Zeile oder zur nächsten/vorherigen Tabellenzeile. `Tab` am Ende der letzten Zelle der letzten Tabellenzeile erzeugt eine neue Tabellenzeile mit derselben Spaltenanzahl. `Enter` am Zeilenende einer Tabellenzeile erzeugt ebenfalls eine neue Zeile; zweimal `Enter` in einer leeren Tabellenzeile verlässt die Tabelle. Escape-Pipes (`\|`) werden über Backslash-Count erkannt und nicht als Zell-Trenner gewertet. Konflikt-Reihenfolge mit dem Listen-Indent aus 4T-0016: Tabellen-Kontext greift zuerst, dann Liste, dann Default-Tab. In Fenced-Code-Blöcken (auch SCG-Tabellen) bleibt der Default-Tab.
-- **Lesezeichen-Sidebar** (4T-0075 Basis, 4T-0078 Ordner-Operationen, 4T-0079 Drag-and-Drop): Persistente Lesezeichen auf Datei-Ebene mit Browser-Style verschachtelten Ordnern. `Strg+D` merkt die aktive Datei; mit selektiertem Ordner landet sie darin, mit selektiertem Bookmark auf gleicher Ebene daneben, sonst im Root. Rechtsklick-Kontextmenü mit „Neuer Ordner / Neuer Unterordner / Umbenennen / In Ordner verschieben … / Entfernen"; nicht-leere Ordner zeigen einen Bestätigungs-Dialog mit Anzahl der enthaltenen Bookmarks und Unterordner. Inline-Edit für Namen mit Enter/Esc/Blur-Verhalten. Modal-Picker für „In Ordner verschieben" mit Zyklus-Schutz (gesperrte Ziele ausgegraut). Drag-and-Drop für freie Sortierung: drei Drop-Zonen pro Knoten (oberes Drittel davor, mittleres in den Folder hinein, unteres dahinter), Bookmarks haben nur zwei Zonen. Visueller Indikator pro Zone (Akzent-Strich oder Rahmen), Esc bricht den Drag-Vorgang ab. Persistenz via `electron-store` mit Folder-First-Insert-Logik und einmaliger Migration bestehender Daten. Statusbar-Stern (Lucide `star`) toggelt die Sektion und zeigt mit ausgefüllter Variante an, dass die aktive Datei als Bookmark vorkommt. Hotkey-Toggle `Strg+Umschalt+L`. Im leeren App-Zustand bleibt die Sektion sichtbar, sobald mindestens ein Bookmark existiert, damit gemerkte Dateien direkt beim App-Start erreichbar sind; Tabbar, Source-Pane und Render-Pane werden in dem Zustand über die Klasse `.is-empty-with-bookmarks` ausgeblendet.
-- **Hilfe-Dialog erweitert** (4T-0076): Fünf neue Funktions-Einträge in den Gruppen Bearbeitung (Tabellen-Editor-Komfort, Code-Block Copy-Button), Ansicht (Word Count) und Navigation (Outgoing-Links, Lesezeichen). Drei neue Tastenkürzel-Einträge (`Strg+D` für Lesezeichen merken, `Strg+Umschalt+O` für Outgoing-Links, `Strg+Umschalt+L` für Lesezeichen-Toggle) plus aktualisierter Inhaltsverzeichnis-Eintrag auf `Strg+Umschalt+I`.
+- **Code-Block Copy-Button** (4T-000071): Jeder Fenced-Code-Block im Render-Pane bekommt einen Copy-Button rechts oben (Default unsichtbar, sichtbar bei Hover). Klick kopiert den Code-Inhalt vollständig in die Zwischenablage, kurzes visuelles „Kopiert"-Feedback mit Check-Symbol und Akzentfarbe. Wirkt für alle `<pre>`-Blöcke (mit und ohne Sprach-Tag, Highlight-Blöcke, SCG-Tabellen-Quelltexte) sowie rekursiv in Wiki-Embeds. Inline-Code und Mermaid-Blöcke (werden zu SVG) sind bewusst ausgeschlossen. `@media print` blendet den Button aus.
+- **Word Count in der Statusbar** (4T-000072): Neue Statusbar-Anzeige zeigt Wörter, Zeichen und Lesezeit (200 wpm) der aktiven Datei. Bei Editor-Selektion wechselt die Anzeige auf die Auswahl. Klick öffnet einen Detail-Dialog mit Wörtern, Zeichen mit/ohne Leerzeichen, Lesezeit, Absätzen, Sätzen und Headings je Ebene (H1 bis H6). Frontmatter, Fenced-Code-Blöcke, Inline-Code und KaTeX-Math (Inline und Display) werden nicht mitgezählt. Live-Update mit 150 ms Debounce, Selektions-Wechsel synchron. Zahlen-Formatierung folgt der aktiven UI-Sprache via `Intl.NumberFormat` (DE `1.234`, EN `1,234`, FR `1 234`).
+- **Outgoing-Links-Sidebar** (4T-000073): Dritte Sidebar-Sektion zwischen Tags und Backlinks zeigt alle Wiki-Links, Markdown-Links und Wiki-Embeds der aktiven Datei in Dokument-Reihenfolge. Pro Eintrag: Type-Badge (W/M/E), Ziel inklusive Heading- oder Block-Anker, Zeile und Snippet. Klick öffnet das Ziel über die bestehende Wiki-Link-Auflösung (inklusive Alias-Fallback und Anker-Sprung). Externe `http(s)://`-Links, `mailto:`, `tel:`, In-Page-Anker `#…` und Markdown-Image-Syntax `![alt](…)` werden ausgespart. Toggle über Statusbar-Icon (Lucide `external-link`), Menüpunkt „Ansicht → Outgoing-Links" oder neuer Hotkey `Strg+Umschalt+O`.
+- **Tabellen-Editor-Komfort** (4T-000074): In klassischen Pipe-Tabellen springen `Tab` und `Umschalt+Tab` zwischen Zellen einer Zeile oder zur nächsten/vorherigen Tabellenzeile. `Tab` am Ende der letzten Zelle der letzten Tabellenzeile erzeugt eine neue Tabellenzeile mit derselben Spaltenanzahl. `Enter` am Zeilenende einer Tabellenzeile erzeugt ebenfalls eine neue Zeile; zweimal `Enter` in einer leeren Tabellenzeile verlässt die Tabelle. Escape-Pipes (`\|`) werden über Backslash-Count erkannt und nicht als Zell-Trenner gewertet. Konflikt-Reihenfolge mit dem Listen-Indent aus 4T-000016: Tabellen-Kontext greift zuerst, dann Liste, dann Default-Tab. In Fenced-Code-Blöcken (auch SCG-Tabellen) bleibt der Default-Tab.
+- **Lesezeichen-Sidebar** (4T-000075 Basis, 4T-000078 Ordner-Operationen, 4T-000079 Drag-and-Drop): Persistente Lesezeichen auf Datei-Ebene mit Browser-Style verschachtelten Ordnern. `Strg+D` merkt die aktive Datei; mit selektiertem Ordner landet sie darin, mit selektiertem Bookmark auf gleicher Ebene daneben, sonst im Root. Rechtsklick-Kontextmenü mit „Neuer Ordner / Neuer Unterordner / Umbenennen / In Ordner verschieben … / Entfernen"; nicht-leere Ordner zeigen einen Bestätigungs-Dialog mit Anzahl der enthaltenen Bookmarks und Unterordner. Inline-Edit für Namen mit Enter/Esc/Blur-Verhalten. Modal-Picker für „In Ordner verschieben" mit Zyklus-Schutz (gesperrte Ziele ausgegraut). Drag-and-Drop für freie Sortierung: drei Drop-Zonen pro Knoten (oberes Drittel davor, mittleres in den Folder hinein, unteres dahinter), Bookmarks haben nur zwei Zonen. Visueller Indikator pro Zone (Akzent-Strich oder Rahmen), Esc bricht den Drag-Vorgang ab. Persistenz via `electron-store` mit Folder-First-Insert-Logik und einmaliger Migration bestehender Daten. Statusbar-Stern (Lucide `star`) toggelt die Sektion und zeigt mit ausgefüllter Variante an, dass die aktive Datei als Bookmark vorkommt. Hotkey-Toggle `Strg+Umschalt+L`. Im leeren App-Zustand bleibt die Sektion sichtbar, sobald mindestens ein Bookmark existiert, damit gemerkte Dateien direkt beim App-Start erreichbar sind; Tabbar, Source-Pane und Render-Pane werden in dem Zustand über die Klasse `.is-empty-with-bookmarks` ausgeblendet.
+- **Hilfe-Dialog erweitert** (4T-000076): Fünf neue Funktions-Einträge in den Gruppen Bearbeitung (Tabellen-Editor-Komfort, Code-Block Copy-Button), Ansicht (Word Count) und Navigation (Outgoing-Links, Lesezeichen). Drei neue Tastenkürzel-Einträge (`Strg+D` für Lesezeichen merken, `Strg+Umschalt+O` für Outgoing-Links, `Strg+Umschalt+L` für Lesezeichen-Toggle) plus aktualisierter Inhaltsverzeichnis-Eintrag auf `Strg+Umschalt+I`.
 
 ### Geändert
 
 - **Versions-Bump** 0.18.0 → 0.19.0 ([package.json](package.json)).
-- **Inhaltsverzeichnis-Hotkey umgezogen** (4T-0073): Von `Strg+Umschalt+O` auf `Strg+Umschalt+I` (I für „Inhalt" / „Index"). Damit wird `Strg+Umschalt+O` für das neue Outgoing-Links-Panel frei. Angepasst in `src/main/menu.js`, `src/renderer/renderer.js` (Renderer-Keydown-Listener und `HELP_SHORTCUTS`) sowie in den `outline.toggleTitle`-Tooltips aller fünf Sprachen.
-- **Bookmark-Tree-Persistenz-Key umgezogen** (4T-0079): Der Lesezeichen-Baum wandert vom Setting-Key `bookmarks` (Array) auf den eigenen Key `bookmarksTree`. Hintergrund war ein Key-Konflikt in `electron-store`: das Schreiben von `bookmarks` als Array hat das parallel verwendete Object-Format `bookmarks.visibleColumn0/1/sortMigrationDone` überschrieben, sodass die Sichtbarkeits-Preference nach App-Neustart verloren ging. Bestehende Daten unter `bookmarks` werden beim ersten Laden auf den neuen Key migriert; der alte Key wird auf `null` gesetzt.
-- **Render-Sort der Bookmark-Liste entfernt** (4T-0079): Damit Drag-and-Drop die manuelle Reihenfolge frei bestimmen kann, wird im Render kein Folder-First-Sort mehr erzwungen. Daten-Reihenfolge ist die Quelle der Wahrheit. Der Folder-First-Default wird über die Insert-Funktionen (neue Ordner ans Ende der Folder-Gruppe, neue Bookmarks ans Ende der File-Gruppe) und eine einmalige Migration bestehender Daten gesichert (Migration via Setting `bookmarks.sortMigrationDone`).
-- **Empty-State-Logik** (4T-0075): `updateEmptyState` lässt den Pane-Container im leeren Zustand sichtbar, wenn mindestens ein Bookmark vorhanden ist, und blendet über die neue CSS-Klasse `.is-empty-with-bookmarks` Tabbar, Source-Pane, Render-Pane und Inner-Splitter aus. Andere Sidebar-Sektionen (Outline, Backlinks, Properties, Tags, Outgoing-Links) werden im Empty-State zwangsweise unsichtbar geschaltet, weil sie ohne aktive Datei eh keinen sinnvollen Inhalt zeigen. Die persistierten Sichtbarkeits-Preferences bleiben dabei unverändert und greifen wieder, sobald ein Tab geöffnet ist.
+- **Inhaltsverzeichnis-Hotkey umgezogen** (4T-000073): Von `Strg+Umschalt+O` auf `Strg+Umschalt+I` (I für „Inhalt" / „Index"). Damit wird `Strg+Umschalt+O` für das neue Outgoing-Links-Panel frei. Angepasst in `src/main/menu.js`, `src/renderer/renderer.js` (Renderer-Keydown-Listener und `HELP_SHORTCUTS`) sowie in den `outline.toggleTitle`-Tooltips aller fünf Sprachen.
+- **Bookmark-Tree-Persistenz-Key umgezogen** (4T-000079): Der Lesezeichen-Baum wandert vom Setting-Key `bookmarks` (Array) auf den eigenen Key `bookmarksTree`. Hintergrund war ein Key-Konflikt in `electron-store`: das Schreiben von `bookmarks` als Array hat das parallel verwendete Object-Format `bookmarks.visibleColumn0/1/sortMigrationDone` überschrieben, sodass die Sichtbarkeits-Preference nach App-Neustart verloren ging. Bestehende Daten unter `bookmarks` werden beim ersten Laden auf den neuen Key migriert; der alte Key wird auf `null` gesetzt.
+- **Render-Sort der Bookmark-Liste entfernt** (4T-000079): Damit Drag-and-Drop die manuelle Reihenfolge frei bestimmen kann, wird im Render kein Folder-First-Sort mehr erzwungen. Daten-Reihenfolge ist die Quelle der Wahrheit. Der Folder-First-Default wird über die Insert-Funktionen (neue Ordner ans Ende der Folder-Gruppe, neue Bookmarks ans Ende der File-Gruppe) und eine einmalige Migration bestehender Daten gesichert (Migration via Setting `bookmarks.sortMigrationDone`).
+- **Empty-State-Logik** (4T-000075): `updateEmptyState` lässt den Pane-Container im leeren Zustand sichtbar, wenn mindestens ein Bookmark vorhanden ist, und blendet über die neue CSS-Klasse `.is-empty-with-bookmarks` Tabbar, Source-Pane, Render-Pane und Inner-Splitter aus. Andere Sidebar-Sektionen (Outline, Backlinks, Properties, Tags, Outgoing-Links) werden im Empty-State zwangsweise unsichtbar geschaltet, weil sie ohne aktive Datei eh keinen sinnvollen Inhalt zeigen. Die persistierten Sichtbarkeits-Preferences bleiben dabei unverändert und greifen wieder, sobald ein Tab geöffnet ist.
 
 ### Behoben
 
-- **Persistenz der Lesezeichen-Sektions-Sichtbarkeit** (4T-0079): Statusbar-Stern und Sektions-Zustand sind jetzt persistent über App-Neustart. Ursache war der oben unter „Geändert" beschriebene Key-Konflikt in `electron-store` — der Fix bringt die Persistenz zum funktionieren.
-- **Datei-Drag-and-Drop wieder funktionsfähig** (4T-0079): Der DnD-Handler für die Lesezeichen-Sortierung hatte `preventDefault()` und `stopPropagation()` unbedingt aufgerufen, ohne zuerst zu prüfen, ob ein interner Bookmark-Drag aktiv ist. Damit blockierte er den App-globalen `window.drop`-Handler, der `.md`-Dateien aus dem Explorer übernimmt. Fix: Source-Check zuerst, bei externem Datei-Drag laufen die Event-Methoden nicht.
+- **Persistenz der Lesezeichen-Sektions-Sichtbarkeit** (4T-000079): Statusbar-Stern und Sektions-Zustand sind jetzt persistent über App-Neustart. Ursache war der oben unter „Geändert" beschriebene Key-Konflikt in `electron-store` — der Fix bringt die Persistenz zum funktionieren.
+- **Datei-Drag-and-Drop wieder funktionsfähig** (4T-000079): Der DnD-Handler für die Lesezeichen-Sortierung hatte `preventDefault()` und `stopPropagation()` unbedingt aufgerufen, ohne zuerst zu prüfen, ob ein interner Bookmark-Drag aktiv ist. Damit blockierte er den App-globalen `window.drop`-Handler, der `.md`-Dateien aus dem Explorer übernimmt. Fix: Source-Check zuerst, bei externem Datei-Drag laufen die Event-Methoden nicht.
 
 ### i18n
 
@@ -4273,31 +4334,31 @@ Feature-Release. Viertes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadma
 
 ## [0.18.0] - 2026-05-21 — Markdown-Syntax-Erweiterungen und Scroll-Sync
 
-Feature-Release. Drittes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-0012 umgesetzt in zehn Tasks: 4T-0061 Callouts, 4T-0062 Highlight, 4T-0063 Footnotes, 4T-0064 Block-Embed-Erweiterung, 4T-0067 Wiki-Link-Pipe-Escape-Fix, 4T-0068 Embed-Linter-Präzisierung, 4T-0069 CRLF-Dirty-Fix, 4T-0070 Scroll-Synchronisation, 4T-0065 Hilfe-Dialog und Abschluss-Sammeltask 4T-0066.
+Feature-Release. Drittes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-000012 umgesetzt in zehn Tasks: 4T-000061 Callouts, 4T-000062 Highlight, 4T-000063 Footnotes, 4T-000064 Block-Embed-Erweiterung, 4T-000067 Wiki-Link-Pipe-Escape-Fix, 4T-000068 Embed-Linter-Präzisierung, 4T-000069 CRLF-Dirty-Fix, 4T-000070 Scroll-Synchronisation, 4T-000065 Hilfe-Dialog und Abschluss-Sammeltask 4T-000066.
 
 ### Neu
 
-- **Callouts** (4T-0061): Obsidian-Style Block-Hinweisboxen mit `> [!type] Titel` als erste Zeile eines Blockquote-Blocks. Zehn Whitelist-Typen (`note`, `info`, `tip`, `success`, `question`, `warning`, `failure`, `danger`, `example`, `quote`) mit eigenem Lucide-Icon, theme-konformer Akzentfarbe und Default-Titel in fünf Sprachen. Klappbare Varianten via `+` (default offen) oder `-` (default eingeklappt), realisiert über native `<details>`/`<summary>` ohne JavaScript. Unbekannte Typen werden als normaler Blockquote gerendert; der Markdown-Linter markiert den unbekannten Typ-Slug mit Wellenlinie und Hover-Tooltip. Eigener Editor-Marker (`cm-callout-marker`) hebt das `[!type][+-]?`-Pattern im Source-Pane farblich ab.
-- **Highlight** (4T-0062): Pandoc- und Obsidian-Konvention `==Text==` rendert als `<mark>`-Element mit gelbem Hintergrund. Im Dunkelmodus gedämpfter Gelbton für lesbaren Kontrast. Escape `\==` bleibt Klartext. Kein Konflikt mit `==` innerhalb von KaTeX-Math-Blöcken, weil das KaTeX-Plugin im Inline-Ruler vorausgeht. Eigener Editor-Marker (`cm-mark-marker`) hebt den Inhalt zwischen den Delimitern im Source-Pane gelb hinterlegt ab.
-- **Footnotes** (4T-0063): Fußnoten als `[^id]`-Verweis im Fließtext mit `[^id]: Definition` am Datei-Ende sowie Inline-Variante `^[Direkt-Text]`. Im Render erscheinen hochgestellte Zahlen mit Anchor-Link; am Datei-Ende sammelt die `markdown-it-footnote`-Library die Definitionen in einer `<section class="footnotes">` mit Backlink-Pfeilen. Theme-konformer Trenner und Accent-Farbe für Verweise. Eigener Editor-Marker (`cm-footnote-marker`) hebt klassische und Inline-Footnotes im Source-Pane ab.
-- **Block-Embed-Erweiterung** (4T-0064): Nachzieher aus 0.17.0. Bei `![[Datei#^id]]` wird jetzt das vollständige umschließende Block-Konstrukt eingebettet — mehrzeilige Listen-Items inkl. Sub-Listen, Fenced-Code-Blöcke, Tabellen-Zeilen, mehrzeilige Blockquotes, Paragraphs. Vorher wurde nur die Marker-Zeile zurückgegeben. Realisiert über AST-basierte Block-Range-Erkennung mit markdown-it im Main-Prozess (Container-Tokens haben Vorrang vor inneren Paragraphen). Marker `^id` darf auch auf einer eigenen Zeile nach einem Fenced-Code-Block stehen — der Algorithmus mappt einen „Marker-only"-Paragraph auf den direkt vorhergehenden Container zurück.
-- **Scroll-Synchronisation in der geteilten Ansicht** (4T-0070): Beim Scrollen im Source-Pane folgt das Render-Pane inhaltlich, und umgekehrt. Anchor-basiert über ein neues `sourceLineMapperPlugin`, das jedem Block-Open-Token im Render-DOM ein `data-source-line`-Attribut aus `token.map[0]` mitgibt. Damit landet beim „Akzeptanzkriterien"-Heading in beiden Panes tatsächlich derselbe Anker oben (statt prozentual zu driften). Pro Tab umschaltbar über ein neues Statusbar-Icon (Lucide `arrow-down-up`) oder über `Ansicht → Scroll-Synchronisation`. Default „aus" für neue Tabs, Zustand pro Tab in der Sitzungswiederherstellung erhalten.
-- **Hilfe-Dialog erweitert** (4T-0065): Drei neue Funktions-Einträge in der Gruppe Bearbeitung (Callouts, Highlight, Footnotes), ein neuer Eintrag in der Gruppe Ansicht (Scroll-Synchronisation). Aktualisierter Wiki-Embed-Eintrag in der Gruppe Navigation erwähnt die vollständige Block-Range bei Block-Ankern.
+- **Callouts** (4T-000061): Obsidian-Style Block-Hinweisboxen mit `> [!type] Titel` als erste Zeile eines Blockquote-Blocks. Zehn Whitelist-Typen (`note`, `info`, `tip`, `success`, `question`, `warning`, `failure`, `danger`, `example`, `quote`) mit eigenem Lucide-Icon, theme-konformer Akzentfarbe und Default-Titel in fünf Sprachen. Klappbare Varianten via `+` (default offen) oder `-` (default eingeklappt), realisiert über native `<details>`/`<summary>` ohne JavaScript. Unbekannte Typen werden als normaler Blockquote gerendert; der Markdown-Linter markiert den unbekannten Typ-Slug mit Wellenlinie und Hover-Tooltip. Eigener Editor-Marker (`cm-callout-marker`) hebt das `[!type][+-]?`-Pattern im Source-Pane farblich ab.
+- **Highlight** (4T-000062): Pandoc- und Obsidian-Konvention `==Text==` rendert als `<mark>`-Element mit gelbem Hintergrund. Im Dunkelmodus gedämpfter Gelbton für lesbaren Kontrast. Escape `\==` bleibt Klartext. Kein Konflikt mit `==` innerhalb von KaTeX-Math-Blöcken, weil das KaTeX-Plugin im Inline-Ruler vorausgeht. Eigener Editor-Marker (`cm-mark-marker`) hebt den Inhalt zwischen den Delimitern im Source-Pane gelb hinterlegt ab.
+- **Footnotes** (4T-000063): Fußnoten als `[^id]`-Verweis im Fließtext mit `[^id]: Definition` am Datei-Ende sowie Inline-Variante `^[Direkt-Text]`. Im Render erscheinen hochgestellte Zahlen mit Anchor-Link; am Datei-Ende sammelt die `markdown-it-footnote`-Library die Definitionen in einer `<section class="footnotes">` mit Backlink-Pfeilen. Theme-konformer Trenner und Accent-Farbe für Verweise. Eigener Editor-Marker (`cm-footnote-marker`) hebt klassische und Inline-Footnotes im Source-Pane ab.
+- **Block-Embed-Erweiterung** (4T-000064): Nachzieher aus 0.17.0. Bei `![[Datei#^id]]` wird jetzt das vollständige umschließende Block-Konstrukt eingebettet — mehrzeilige Listen-Items inkl. Sub-Listen, Fenced-Code-Blöcke, Tabellen-Zeilen, mehrzeilige Blockquotes, Paragraphs. Vorher wurde nur die Marker-Zeile zurückgegeben. Realisiert über AST-basierte Block-Range-Erkennung mit markdown-it im Main-Prozess (Container-Tokens haben Vorrang vor inneren Paragraphen). Marker `^id` darf auch auf einer eigenen Zeile nach einem Fenced-Code-Block stehen — der Algorithmus mappt einen „Marker-only"-Paragraph auf den direkt vorhergehenden Container zurück.
+- **Scroll-Synchronisation in der geteilten Ansicht** (4T-000070): Beim Scrollen im Source-Pane folgt das Render-Pane inhaltlich, und umgekehrt. Anchor-basiert über ein neues `sourceLineMapperPlugin`, das jedem Block-Open-Token im Render-DOM ein `data-source-line`-Attribut aus `token.map[0]` mitgibt. Damit landet beim „Akzeptanzkriterien"-Heading in beiden Panes tatsächlich derselbe Anker oben (statt prozentual zu driften). Pro Tab umschaltbar über ein neues Statusbar-Icon (Lucide `arrow-down-up`) oder über `Ansicht → Scroll-Synchronisation`. Default „aus" für neue Tabs, Zustand pro Tab in der Sitzungswiederherstellung erhalten.
+- **Hilfe-Dialog erweitert** (4T-000065): Drei neue Funktions-Einträge in der Gruppe Bearbeitung (Callouts, Highlight, Footnotes), ein neuer Eintrag in der Gruppe Ansicht (Scroll-Synchronisation). Aktualisierter Wiki-Embed-Eintrag in der Gruppe Navigation erwähnt die vollständige Block-Range bei Block-Ankern.
 
 ### Geändert
 
 - **Versions-Bump** 0.17.1 → 0.18.0 ([package.json](package.json)).
 - **Neue Dependencies**: `markdown-it-mark@^4.0.0` für Highlight, `markdown-it-footnote@^4.0.0` für Footnotes. Beide MIT, klein, gepflegt.
-- **`file:read` normalisiert CRLF → LF beim Lesen** (4T-0069): die App nutzt LF als kanonisches Format. Symmetrisch zur bestehenden Normalisierung in `file:save` (war schon vorher LF-only beim Schreiben). Damit ist die Pipeline konsistent, CodeMirrors interne LF-Normalisierung führt nicht mehr zu Phantom-dirty-Flags bei CRLF-Dateien. Bestehende CRLF-Dateien werden beim ersten echten Speichern zu LF — das passierte schon vor 4T-0069, nur war der dirty-Flag inkorrekt zu früh aktiv.
-- **`writeFrontmatter` mit Leer-Äquivalenz** (4T-0069): `null`, `undefined`, `''` und `[]` werden im Frontmatter-Diff als äquivalent behandelt, damit der Initial-Auto-Save aus der Properties-Sidebar leere YAML-Werte (`Tätigkeit:`, `aliases:`) nicht auf leeren String mit Anführungszeichen (`Tätigkeit: ""`) umschreibt. Zusätzlich erhält die Funktion jetzt die EOL-Konvention der Quelle (CRLF vs. LF) und die Anzahl der Leerzeilen zwischen Frontmatter und Body.
-- **`sourceLineMapperPlugin`** (4T-0070): markdown-it-Core-Ruler-Pass, der jedem Block-Open-Token ein `data-source-line`-Attribut für die Scroll-Sync mitgibt. Greift nur in der `md`-Instanz (Render-Pane), nicht in `mdPortable`.
+- **`file:read` normalisiert CRLF → LF beim Lesen** (4T-000069): die App nutzt LF als kanonisches Format. Symmetrisch zur bestehenden Normalisierung in `file:save` (war schon vorher LF-only beim Schreiben). Damit ist die Pipeline konsistent, CodeMirrors interne LF-Normalisierung führt nicht mehr zu Phantom-dirty-Flags bei CRLF-Dateien. Bestehende CRLF-Dateien werden beim ersten echten Speichern zu LF — das passierte schon vor 4T-000069, nur war der dirty-Flag inkorrekt zu früh aktiv.
+- **`writeFrontmatter` mit Leer-Äquivalenz** (4T-000069): `null`, `undefined`, `''` und `[]` werden im Frontmatter-Diff als äquivalent behandelt, damit der Initial-Auto-Save aus der Properties-Sidebar leere YAML-Werte (`Tätigkeit:`, `aliases:`) nicht auf leeren String mit Anführungszeichen (`Tätigkeit: ""`) umschreibt. Zusätzlich erhält die Funktion jetzt die EOL-Konvention der Quelle (CRLF vs. LF) und die Anzahl der Leerzeilen zwischen Frontmatter und Body.
+- **`sourceLineMapperPlugin`** (4T-000070): markdown-it-Core-Ruler-Pass, der jedem Block-Open-Token ein `data-source-line`-Attribut für die Scroll-Sync mitgibt. Greift nur in der `md`-Instanz (Render-Pane), nicht in `mdPortable`.
 
 ### Behoben
 
-- **Wiki-Link mit escaptem Pipe in Tabellen-Zellen** (4T-0067): In Markdown-Tabellen-Zellen muss der Pipe als `\|` escaped werden, damit der Tabellen-Parser ihn nicht als Spaltentrenner liest. Der Wiki-Link-Linter und die Wiki-Link-/Wiki-Embed-Parser im Preload haben den so escapten Pipe bisher als Teil des Targets gewertet — z.B. landete bei `[[Datei\|Label]]` das Backslash am Target-Ende, der Backlinks-Lookup schlug fehl, der Link wurde fälschlich als broken markiert. Fix: nach `indexOf('|')` wird der End-Backslash mit `replace(/\\$/, '')` abgeschnitten. Symmetrisch in renderer.js und preload.js.
-- **Embed-Linter ignoriert `!`-Embeds** (4T-0068): Der Wiki-Link-Linter-Regex prüfte nicht auf den `!`-Präfix und behandelte Embeds wie Wiki-Links. Bild-, PDF- und Other-Embeds wurden konsequent als broken markiert, weil das Backlinks-Index nur Markdown-Dateien kennt. Fix: Negative-Lookbehind `(?<!!)` im `LINT_WIKI_RE`-Regex schließt Embeds aus. Eine eigene broken-embed-Regel bleibt offen für das 1.0.0-Konsolidierungs-Epic.
-- **CRLF-Datei beim Öffnen nicht mehr als dirty markiert** (4T-0069): Beim Doppelklick-Öffnen einer CRLF-Datei mit sichtbarer Properties-Sidebar wurde der Tab sofort als geändert markiert, obwohl der Nutzer nichts angefasst hat. Drei kombinierende Ursachen, alle gefixt: `file:read` normalisiert jetzt symmetrisch zu `file:save`; `writeFrontmatter` ist CRLF-aware; Leer-Äquivalenz im YAML-Diff verhindert das `Tätigkeit: ""`-Pattern beim Initial-Auto-Save.
-- **Doppelter Trenner unter dem Footnote-Block** (4T-0063): `markdown-it-footnote` rendert per Default ein `<hr class="footnotes-sep">` vor der Footnote-Section. Zusammen mit dem eigenen `border-top` auf `.footnotes` ergab das zwei Trenner direkt übereinander. Fix: `hr.footnotes-sep { display: none }` im Render-Pane und im Portable-Export-Pfad das `<hr>` ebenfalls weglassen.
+- **Wiki-Link mit escaptem Pipe in Tabellen-Zellen** (4T-000067): In Markdown-Tabellen-Zellen muss der Pipe als `\|` escaped werden, damit der Tabellen-Parser ihn nicht als Spaltentrenner liest. Der Wiki-Link-Linter und die Wiki-Link-/Wiki-Embed-Parser im Preload haben den so escapten Pipe bisher als Teil des Targets gewertet — z.B. landete bei `[[Datei\|Label]]` das Backslash am Target-Ende, der Backlinks-Lookup schlug fehl, der Link wurde fälschlich als broken markiert. Fix: nach `indexOf('|')` wird der End-Backslash mit `replace(/\\$/, '')` abgeschnitten. Symmetrisch in renderer.js und preload.js.
+- **Embed-Linter ignoriert `!`-Embeds** (4T-000068): Der Wiki-Link-Linter-Regex prüfte nicht auf den `!`-Präfix und behandelte Embeds wie Wiki-Links. Bild-, PDF- und Other-Embeds wurden konsequent als broken markiert, weil das Backlinks-Index nur Markdown-Dateien kennt. Fix: Negative-Lookbehind `(?<!!)` im `LINT_WIKI_RE`-Regex schließt Embeds aus. Eine eigene broken-embed-Regel bleibt offen für das 1.0.0-Konsolidierungs-Epic.
+- **CRLF-Datei beim Öffnen nicht mehr als dirty markiert** (4T-000069): Beim Doppelklick-Öffnen einer CRLF-Datei mit sichtbarer Properties-Sidebar wurde der Tab sofort als geändert markiert, obwohl der Nutzer nichts angefasst hat. Drei kombinierende Ursachen, alle gefixt: `file:read` normalisiert jetzt symmetrisch zu `file:save`; `writeFrontmatter` ist CRLF-aware; Leer-Äquivalenz im YAML-Diff verhindert das `Tätigkeit: ""`-Pattern beim Initial-Auto-Save.
+- **Doppelter Trenner unter dem Footnote-Block** (4T-000063): `markdown-it-footnote` rendert per Default ein `<hr class="footnotes-sep">` vor der Footnote-Section. Zusammen mit dem eigenen `border-top` auf `.footnotes` ergab das zwei Trenner direkt übereinander. Fix: `hr.footnotes-sep { display: none }` im Render-Pane und im Portable-Export-Pfad das `<hr>` ebenfalls weglassen.
 
 ### i18n
 
@@ -4306,15 +4367,15 @@ Feature-Release. Drittes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadma
 
 ## [0.17.1] - 2026-05-20 — Tag-Parser-Hotfix
 
-Bugfix-Release. Direkt nach Auslieferung von 0.17.0 wurden im Praxis-Einsatz mehrere Klassen von Fehlpositiven in der Tag-Sidebar sichtbar: Hex-Farbcodes, reine Zahlen, Markdown-Anker-Link-Ziele und CSS-/HTML-Selektor-Beispiele in Inline-Code wurden als Tag indexiert. Umgesetzt als Hotfix-Task 4T-0060 im Epic 3E-0011.
+Bugfix-Release. Direkt nach Auslieferung von 0.17.0 wurden im Praxis-Einsatz mehrere Klassen von Fehlpositiven in der Tag-Sidebar sichtbar: Hex-Farbcodes, reine Zahlen, Markdown-Anker-Link-Ziele und CSS-/HTML-Selektor-Beispiele in Inline-Code wurden als Tag indexiert. Umgesetzt als Hotfix-Task 4T-000060 im Epic 3E-000011.
 
 ### Behoben
 
-- **Hex-Farbcodes werden nicht mehr als Tag indexiert** (4T-0060): 3-, 4-, 6- und 8-stellige reine Hex-Sequenzen (`#fff`, `#ffff`, `#ffffff`, `#ffffffff`) werden vom Tag-Parser verworfen. Schließt CSS-Farb-Notationen wie `#c0392b`, `#ff7b72`, `#ffeeee` aus dem Tag-Index aus.
-- **Reine Zahlen sind keine Tags mehr** (4T-0060): Tag-Texte ohne mindestens einen Buchstaben werden verworfen. Schließt Issue-Referenzen (`#16444`), Fußnoten (`#2`) und Zeilennummern (`#31999`) aus. Verhalten ist konsistent zur Obsidian-Konvention.
-- **Markdown-Anker-Link-Ziele werden nicht mehr als Tag indexiert** (4T-0060): Ein zusätzlicher negativer Look-behind `(?<!\]\()` im Tag-Pattern schließt `[Text](#anker)`-Notationen aus. Bisher wurden alle solchen Vorkommen vom zeilenweisen Index-Parser fälschlich als Tag erfasst, weil der Look-behind das `(` als nicht-Wort-Zeichen passieren ließ.
-- **Inline-Code-Tags werden nicht mehr als Tag indexiert** (4T-0060): Inline-Code-Spans mit Single- und Doppel-Backticks (`` `#btn-open` `` und `` `` `#help-modal` `` ``) werden vor dem Tag-Match aus der Zeile maskiert. Im Render-Pane übernahm markdown-it den Schutz, im Backlinks-Index fehlte er bisher. Betraf besonders PM-Doku-Dateien mit CSS-/HTML-Selektor-Beispielen.
-- **Gleiche Filter im Render-Pane** (4T-0060): Der `tagsPlugin` in [src/main/preload.js](src/main/preload.js) wendet die drei Tag-Filter (Buchstabe, Hex, Markdown-Anker) ebenfalls an. Inline-Code ist im Render-Pane ohnehin durch markdown-it abgedeckt.
+- **Hex-Farbcodes werden nicht mehr als Tag indexiert** (4T-000060): 3-, 4-, 6- und 8-stellige reine Hex-Sequenzen (`#fff`, `#ffff`, `#ffffff`, `#ffffffff`) werden vom Tag-Parser verworfen. Schließt CSS-Farb-Notationen wie `#c0392b`, `#ff7b72`, `#ffeeee` aus dem Tag-Index aus.
+- **Reine Zahlen sind keine Tags mehr** (4T-000060): Tag-Texte ohne mindestens einen Buchstaben werden verworfen. Schließt Issue-Referenzen (`#16444`), Fußnoten (`#2`) und Zeilennummern (`#31999`) aus. Verhalten ist konsistent zur Obsidian-Konvention.
+- **Markdown-Anker-Link-Ziele werden nicht mehr als Tag indexiert** (4T-000060): Ein zusätzlicher negativer Look-behind `(?<!\]\()` im Tag-Pattern schließt `[Text](#anker)`-Notationen aus. Bisher wurden alle solchen Vorkommen vom zeilenweisen Index-Parser fälschlich als Tag erfasst, weil der Look-behind das `(` als nicht-Wort-Zeichen passieren ließ.
+- **Inline-Code-Tags werden nicht mehr als Tag indexiert** (4T-000060): Inline-Code-Spans mit Single- und Doppel-Backticks (`` `#btn-open` `` und `` `` `#help-modal` `` ``) werden vor dem Tag-Match aus der Zeile maskiert. Im Render-Pane übernahm markdown-it den Schutz, im Backlinks-Index fehlte er bisher. Betraf besonders PM-Doku-Dateien mit CSS-/HTML-Selektor-Beispielen.
+- **Gleiche Filter im Render-Pane** (4T-000060): Der `tagsPlugin` in [src/main/preload.js](src/main/preload.js) wendet die drei Tag-Filter (Buchstabe, Hex, Markdown-Anker) ebenfalls an. Inline-Code ist im Render-Pane ohnehin durch markdown-it abgedeckt.
 
 ### Konvention zur Tag-Erkennung
 
@@ -4327,23 +4388,23 @@ Ab 0.17.1 gilt:
 
 ## [0.17.0] - 2026-05-20 — Wiki-Link-Ausbau und Tag-System
 
-Feature-Release. Zweites Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-0011 umgesetzt in den Tasks 4T-0054 (Wiki-Link-Anker und Linter), 4T-0055 (Wiki-Embeds), 4T-0056 (Tag-System), 4T-0057 (Autocomplete), 4T-0058 (Hilfe-Dialog) und Abschluss-Sammeltask 4T-0059.
+Feature-Release. Zweites Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-000011 umgesetzt in den Tasks 4T-000054 (Wiki-Link-Anker und Linter), 4T-000055 (Wiki-Embeds), 4T-000056 (Tag-System), 4T-000057 (Autocomplete), 4T-000058 (Hilfe-Dialog) und Abschluss-Sammeltask 4T-000059.
 
 ### Neu
 
-- **Wiki-Link-Heading- und Block-Anker** (4T-0054): `[[Datei#Heading]]` springt zum Heading der Ziel-Datei, `[[Datei#^id]]` zum benannten Block-Anker. Block-Anker werden mit der Syntax `^id` am Ende einer Zeile gesetzt und auf den umschließenden Block (Absatz, Listen-Eintrag, Tabellen-Zeile, Code-Block) registriert. Der Markdown-Linter aus 4T-0020 prüft beide Anker-Arten und markiert defekte Ziele mit einem eigenen Hinweistext. Backlinks erfassen Anker-Bezüge ohne sie aufzulösen, das Sprung-Verhalten passiert beim Klick im Render-Pane oder im Editor-Modus.
-- **Wiki-Embeds `![[…]]`** (4T-0055): Eingebettete Inhalte direkt im Render-Pane. Drei Embed-Typen werden unterstützt:
+- **Wiki-Link-Heading- und Block-Anker** (4T-000054): `[[Datei#Heading]]` springt zum Heading der Ziel-Datei, `[[Datei#^id]]` zum benannten Block-Anker. Block-Anker werden mit der Syntax `^id` am Ende einer Zeile gesetzt und auf den umschließenden Block (Absatz, Listen-Eintrag, Tabellen-Zeile, Code-Block) registriert. Der Markdown-Linter aus 4T-000020 prüft beide Anker-Arten und markiert defekte Ziele mit einem eigenen Hinweistext. Backlinks erfassen Anker-Bezüge ohne sie aufzulösen, das Sprung-Verhalten passiert beim Klick im Render-Pane oder im Editor-Modus.
+- **Wiki-Embeds `![[…]]`** (4T-000055): Eingebettete Inhalte direkt im Render-Pane. Drei Embed-Typen werden unterstützt:
   - **Bilder** (PNG, JPG, GIF, SVG, WebP) als inline `<img>` mit Größen-Modifikator `|breite` oder `|breitexhoehe`.
   - **Markdown-Dateien** als gerenderter Block. Anker (`![[Datei#Heading]]`, `![[Datei#^id]]`) blenden gezielt Teilausschnitte ein, sonst die ganze Datei.
   - **PDFs** als interaktiver Viewer (PDF.js) mit Blätter-Steuerung und Zoom.
   Embed-Tiefe ist auf zwei Ebenen begrenzt, um Endlos-Schleifen zu verhindern. Nicht gefundene Ziele zeigen einen Platzhalter mit Fehlerhinweis.
-- **Tag-System** (4T-0056): `#projekt/x` im Fließtext und das Frontmatter-Feld `tags:` werden als Tags erkannt. Tag-Klick im Render-Pane öffnet eine vorgefilterte Suche. Neue **Tag-Sidebar** als vierte Sektion neben Inhaltsverzeichnis, Backlinks und Properties: Liste aller Tags im Suchraum mit Häufigkeitszahl, Filter-Eingabe, Klick filtert die Tag-Trefferliste pro Datei. Toggle über `Ansicht → Tags`, Statusbar-Icon oder `Strg+Umschalt+T`. Tag-Index wird im Main-Prozess gepflegt und über den File-Watcher live aktualisiert.
-- **Autocomplete-Framework** (4T-0057): Dropdown-Vorschläge beim Tippen im Editor.
+- **Tag-System** (4T-000056): `#projekt/x` im Fließtext und das Frontmatter-Feld `tags:` werden als Tags erkannt. Tag-Klick im Render-Pane öffnet eine vorgefilterte Suche. Neue **Tag-Sidebar** als vierte Sektion neben Inhaltsverzeichnis, Backlinks und Properties: Liste aller Tags im Suchraum mit Häufigkeitszahl, Filter-Eingabe, Klick filtert die Tag-Trefferliste pro Datei. Toggle über `Ansicht → Tags`, Statusbar-Icon oder `Strg+Umschalt+T`. Tag-Index wird im Main-Prozess gepflegt und über den File-Watcher live aktualisiert.
+- **Autocomplete-Framework** (4T-000057): Dropdown-Vorschläge beim Tippen im Editor.
   - `[` schlägt Dateinamen und Aliases aus dem Backlinks-Suchraum vor.
   - `[[Datei#` schlägt Heading-Anker der Ziel-Datei vor, `[[Datei#^` Block-IDs.
   - `#` im Fließtext schlägt Tags vor (mit Hierarchie und Häufigkeits-Sortierung), Heading-Marker am Zeilenanfang werden ausgeschlossen.
   Sortierung: Prefix-Treffer zuerst, dann Häufigkeit oder Datei-vor-Alias, dann alphabetisch. Vorschlagsliste auf 30 Einträge begrenzt. Pfeil-Tasten navigieren, Enter/Tab wählt, Esc schließt.
-- **Hilfe-Dialog erweitert** ([4T-0058): Fünf neue Funktions-Einträge (Block-Anker, Autocomplete in der Gruppe Bearbeitung; Wiki-Link-Anker, Wiki-Embeds, Tags in der Gruppe Navigation) und ein neuer Tastenkürzel-Eintrag für `Strg+Umschalt+T`. In allen fünf Sprachen.
+- **Hilfe-Dialog erweitert** ([4T-000058): Fünf neue Funktions-Einträge (Block-Anker, Autocomplete in der Gruppe Bearbeitung; Wiki-Link-Anker, Wiki-Embeds, Tags in der Gruppe Navigation) und ein neuer Tastenkürzel-Eintrag für `Strg+Umschalt+T`. In allen fünf Sprachen.
 
 ### Geändert
 
@@ -4351,13 +4412,13 @@ Feature-Release. Zweites Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadma
 - **Neue Dependency**: `@codemirror/autocomplete@^6.20.2` für das Autocomplete-Framework.
 - **Wiki-Link-Parser** in [src/main/preload.js](src/main/preload.js): erkennt zusätzlich Heading- und Block-Anker (`#Heading`, `#^id`). Tokenisierung trennt Pfad, Anker und Label sauber. Neuer `blockAnchorsPlugin` für `^id` am Zeilenende, neuer `wikiEmbedsPlugin` für `![[…]]`, neuer `tagsPlugin` für `#tag`.
 - **Backlinks-Index** ([src/main/backlinks.js](src/main/backlinks.js)): `parseFile` liefert jetzt `{ hits, aliases, headings, blockIds, tags }`. Neue Maps `anchorsPerFile`, `tagsPerFile` und inverse `tagMap` pro Wurzel; Watcher pflegt sie bei add/change/unlink. Drei neue Lookup-Funktionen für das Autocomplete (Wiki-Targets, Anker, Tags).
-- **Markdown-Linter aus 4T-0020**: prüft zusätzlich Wiki-Link-Anker-Ziele (Heading-Slugs und Block-IDs der Ziel-Datei).
+- **Markdown-Linter aus 4T-000020**: prüft zusätzlich Wiki-Link-Anker-Ziele (Heading-Slugs und Block-IDs der Ziel-Datei).
 - **Tag-Sidebar mit Token-basierter Race-Abwehr**: bei mehrfachen parallelen Render-Triggern (Tab-Wechsel, Toggle, Auto-Reload, IPC-Antwort) wird nur das jeweils letzte Render-Ergebnis übernommen.
 
 ### Behoben
 
-- **Race in der Tag-Sidebar-Render-Pipeline** (4T-0056): bei mehrfachen parallelen Triggern wurden Tags doppelt bis vierfach gerendert. Ursache: async-Render zwischen Container-leeren und Listen-Anhängen. Fix: Token-basierte Validierung im async-Pfad, IPC-Antworten verworfen, wenn der Render-Token zwischenzeitlich gewechselt hat.
-- **Pseudo-Hierarchie-Einrückung in der Tag-Sidebar** (4T-0056): Tags mit `/` wurden visuell als verschachtelte Liste eingerückt, was bei mehreren Top-Level-Tags zu uneinheitlichen ersten Tags führte. Fix: flache Darstellung, Hierarchie nur über den Tag-Text sichtbar.
+- **Race in der Tag-Sidebar-Render-Pipeline** (4T-000056): bei mehrfachen parallelen Triggern wurden Tags doppelt bis vierfach gerendert. Ursache: async-Render zwischen Container-leeren und Listen-Anhängen. Fix: Token-basierte Validierung im async-Pfad, IPC-Antworten verworfen, wenn der Render-Token zwischenzeitlich gewechselt hat.
+- **Pseudo-Hierarchie-Einrückung in der Tag-Sidebar** (4T-000056): Tags mit `/` wurden visuell als verschachtelte Liste eingerückt, was bei mehreren Top-Level-Tags zu uneinheitlichen ersten Tags führte. Fix: flache Darstellung, Hierarchie nur über den Tag-Text sichtbar.
 
 ### i18n
 
@@ -4370,27 +4431,27 @@ Feature-Release. Zweites Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadma
 
 ## [0.16.0] - 2026-05-20 — Frontmatter, Aliases und Properties
 
-Feature-Release. Erstes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-0010 umgesetzt in den Tasks 4T-0049 (Frontmatter-Erkennung), 4T-0050 (Aliases-Auflösung), 4T-0051 (Properties-Sidebar), 4T-0052 (Hilfe-Dialog) und Abschluss-Sammeltask 4T-0053.
+Feature-Release. Erstes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap" (sieben Sub-Epics, 0.16.0 bis 1.0.0). Epic 3E-000010 umgesetzt in den Tasks 4T-000049 (Frontmatter-Erkennung), 4T-000050 (Aliases-Auflösung), 4T-000051 (Properties-Sidebar), 4T-000052 (Hilfe-Dialog) und Abschluss-Sammeltask 4T-000053.
 
 ### Neu
 
-- **YAML-Frontmatter-Erkennung** (4T-0049): Der `---`-Block am Datei-Anfang wird als Metadaten erkannt und nicht mehr als horizontale Trennlinie gerendert. Im Source-Pane ist der Block dezent bläulich unterlegt. Sonderfälle (keine Frontmatter, unvollständiger Block, ungültiges YAML, `---` mitten im Dokument) verhalten sich robust ohne Crash. Der Markdown-Linter aus 4T-0020 prüft Frontmatter-Zeilen nicht mehr auf Markdown-Regeln.
-- **Aliases-Auflösung in Wiki-Links und Backlinks** (4T-0050): `aliases:`-Einträge im Frontmatter machen eine Datei unter mehreren Namen per `[[Alias]]` verlinkbar. Case-insensitiver Lookup über eine inverse Alias-Map. Backlinks-Sidebar findet Quellen auch über Aliases und kennzeichnet Treffer mit einem dezenten „via Alias"-Tag. Bei mehrdeutigen Aliases (mehrere Dateien führen denselben Alias) erscheint ein Disambiguation-Dialog mit Datei-Name und Verzeichnis zur Auswahl. Der Markdown-Linter zählt Alias-Treffer als gültige Wiki-Links.
-- **Properties-Sidebar** (4T-0051): Dritte Sidebar-Sektion neben Inhaltsverzeichnis und Backlinks. Live-editierbare Frontmatter-Felder mit Typ-Inferenz (Text, Liste, Datum, Zahl, Wahr/Falsch, Mehrzeilig). Verschachtelte YAML-Strukturen werden read-only mit JSON-Vorschau angezeigt. Round-Trip-Schreiben über die `yaml`-Library (Eemeli): unveränderte Felder bleiben byte-genau, Kommentare und Schlüsselreihenfolge erhalten. Live-Save folgt dem globalen Auto-Save-Setting: bei Auto-Save aus wird der Tab dirty markiert und mit Strg+S manuell gespeichert; bei Auto-Save an läuft der 2-Sekunden-Timer wie bei Editor-Änderungen. Toggle über Menü `Ansicht → Properties`, Statusbar-Icon oder Hotkey `Strg+;`. Multistring-Pillen mit Enter/Komma-Hinzufügen und Backspace-Entfernen. Persistenz pro Spalte. Konzept-Iteration: ursprünglich als modaler Dialog geplant, im Test-Feedback auf Sidebar-Sektion umgestellt.
-- **Hilfe-Dialog erweitert** (4T-0052): Drei neue Funktions-Einträge (Frontmatter, Properties, Aliases) und ein neuer Tastenkürzel-Eintrag für `Strg+;`. In allen fünf Sprachen.
+- **YAML-Frontmatter-Erkennung** (4T-000049): Der `---`-Block am Datei-Anfang wird als Metadaten erkannt und nicht mehr als horizontale Trennlinie gerendert. Im Source-Pane ist der Block dezent bläulich unterlegt. Sonderfälle (keine Frontmatter, unvollständiger Block, ungültiges YAML, `---` mitten im Dokument) verhalten sich robust ohne Crash. Der Markdown-Linter aus 4T-000020 prüft Frontmatter-Zeilen nicht mehr auf Markdown-Regeln.
+- **Aliases-Auflösung in Wiki-Links und Backlinks** (4T-000050): `aliases:`-Einträge im Frontmatter machen eine Datei unter mehreren Namen per `[[Alias]]` verlinkbar. Case-insensitiver Lookup über eine inverse Alias-Map. Backlinks-Sidebar findet Quellen auch über Aliases und kennzeichnet Treffer mit einem dezenten „via Alias"-Tag. Bei mehrdeutigen Aliases (mehrere Dateien führen denselben Alias) erscheint ein Disambiguation-Dialog mit Datei-Name und Verzeichnis zur Auswahl. Der Markdown-Linter zählt Alias-Treffer als gültige Wiki-Links.
+- **Properties-Sidebar** (4T-000051): Dritte Sidebar-Sektion neben Inhaltsverzeichnis und Backlinks. Live-editierbare Frontmatter-Felder mit Typ-Inferenz (Text, Liste, Datum, Zahl, Wahr/Falsch, Mehrzeilig). Verschachtelte YAML-Strukturen werden read-only mit JSON-Vorschau angezeigt. Round-Trip-Schreiben über die `yaml`-Library (Eemeli): unveränderte Felder bleiben byte-genau, Kommentare und Schlüsselreihenfolge erhalten. Live-Save folgt dem globalen Auto-Save-Setting: bei Auto-Save aus wird der Tab dirty markiert und mit Strg+S manuell gespeichert; bei Auto-Save an läuft der 2-Sekunden-Timer wie bei Editor-Änderungen. Toggle über Menü `Ansicht → Properties`, Statusbar-Icon oder Hotkey `Strg+;`. Multistring-Pillen mit Enter/Komma-Hinzufügen und Backspace-Entfernen. Persistenz pro Spalte. Konzept-Iteration: ursprünglich als modaler Dialog geplant, im Test-Feedback auf Sidebar-Sektion umgestellt.
+- **Hilfe-Dialog erweitert** (4T-000052): Drei neue Funktions-Einträge (Frontmatter, Properties, Aliases) und ein neuer Tastenkürzel-Eintrag für `Strg+;`. In allen fünf Sprachen.
 
 ### Geändert
 
 - **Versions-Bump** 0.15.0 → 0.16.0 ([package.json](package.json)).
 - **Neue Dependencies**: `js-yaml@^4.1.1` für das Lesen, `yaml@^2.9.0` (Eemeli) für Round-Trip-Schreiben. `js-yaml` war transitiv schon vorhanden, jetzt direkt gepflegt.
 - **Backlinks-Index** ([src/main/backlinks.js](src/main/backlinks.js)): `parseFile` liefert jetzt `{ hits, aliases }`. Wiki- und Markdown-Link-Scan überspringt Frontmatter-Zeilen, damit YAML-Inhalte nicht als ausgehende Links indexiert werden. Neue `aliasesPerFile`-Map und inverse `aliasMap` pro Wurzel; Watcher pflegt beide bei add/change/unlink.
-- **Markdown-Linter aus 4T-0020**: drei Regel-Pfade (bareUrl, emptyLink, brokenWikiLink) überspringen Frontmatter-Zeilen. Wiki-Links auf gültige Aliases werden nicht mehr als broken markiert.
+- **Markdown-Linter aus 4T-000020**: drei Regel-Pfade (bareUrl, emptyLink, brokenWikiLink) überspringen Frontmatter-Zeilen. Wiki-Links auf gültige Aliases werden nicht mehr als broken markiert.
 
 ### Behoben
 
-- **Race in der Properties-Sidebar-Render-Pipeline** (4T-0051): bei mehrfachen parallelen Triggern (Initial-Load, Tab-Wechsel, Toggle, View-Mode-Wechsel, Auto-Reload) wurden Properties doppelt bis vierfach gerendert. Ursache war ein `await` zwischen Container-leeren und Feld-Anhängen. Fix: `renderProperties` synchron, weil `api.getFrontmatter` im Preload als sync exposed ist.
-- **Auto-Save-Inkonsistenz in der Properties-Sidebar** (4T-0051): Property-Änderung schrieb sofort auf Disk, auch wenn Auto-Save global ausgeschaltet war. Fix: Save-Pfad nutzt jetzt `scheduleAutoSave()` analog zum Editor.
-- **Fehlendes Menü-Häkchen für Properties** (4T-0051): `getMenuState` in [src/main/main.js](src/main/main.js) reichte `propertiesVisible` nicht durch. Fix: Feld in die Liste der durchgereichten Menü-State-Felder ergänzt.
+- **Race in der Properties-Sidebar-Render-Pipeline** (4T-000051): bei mehrfachen parallelen Triggern (Initial-Load, Tab-Wechsel, Toggle, View-Mode-Wechsel, Auto-Reload) wurden Properties doppelt bis vierfach gerendert. Ursache war ein `await` zwischen Container-leeren und Feld-Anhängen. Fix: `renderProperties` synchron, weil `api.getFrontmatter` im Preload als sync exposed ist.
+- **Auto-Save-Inkonsistenz in der Properties-Sidebar** (4T-000051): Property-Änderung schrieb sofort auf Disk, auch wenn Auto-Save global ausgeschaltet war. Fix: Save-Pfad nutzt jetzt `scheduleAutoSave()` analog zum Editor.
+- **Fehlendes Menü-Häkchen für Properties** (4T-000051): `getMenuState` in [src/main/main.js](src/main/main.js) reichte `propertiesVisible` nicht durch. Fix: Feld in die Liste der durchgereichten Menü-State-Felder ergänzt.
 
 ### i18n
 
@@ -4402,14 +4463,14 @@ Feature-Release. Erstes Etappenziel aus dem Meta-Plan „Obsidian-Parity-Roadmap
 
 ## [0.15.0] - 2026-05-19 — SCG Table: Sortierung, Status-Hervorhebung und Spalten-Default
 
-Feature-Release. Schließt das SCG-Table-Funktionspaket ab mit drei häufig genutzten Erweiterungen aus dem MediaWiki-Umfeld. Umgesetzt als Epic 3E-0009 in den Tasks 4T-0044 (Status-Hervorhebung), 4T-0045 (Spalten-Default), 4T-0046 (Sortierbare Tabellen), 4T-0047 (Hilfe-Tab) und Abschluss-Sammeltask 4T-0048.
+Feature-Release. Schließt das SCG-Table-Funktionspaket ab mit drei häufig genutzten Erweiterungen aus dem MediaWiki-Umfeld. Umgesetzt als Epic 3E-000009 in den Tasks 4T-000044 (Status-Hervorhebung), 4T-000045 (Spalten-Default), 4T-000046 (Sortierbare Tabellen), 4T-000047 (Hilfe-Tab) und Abschluss-Sammeltask 4T-000048.
 
 ### Neu
 
-- **Status-Hervorhebung in SCG-Tabellen** (4T-0044): Semantische Klassen `error`, `warn`, `ok`, `info`, `neutral` über Punkt-Notation am Zell-/Zeilen-Marker (`|.error Inhalt`, `|-.warn`). Zell-Status gewinnt gegen Zeilen-Status. Whitelist verhindert beliebige CSS-Klassen. Light- und Dark-Theme-Farben mit WCAG-AA-Kontrast. Im portablen Export als Inline-Style.
-- **Spalten-Default-Ausrichtung** (4T-0045): `{|+cols="left right right"` in der Tabellen-Header-Zeile setzt eine Default-Ausrichtung pro Spalte. Zell-`align`-Attribut aus Stufe 2 überschreibt. Bei `colspan` wird kein Default angewendet. Mismatch-tolerant (fehlende/überzählige Werte).
-- **Sortierbare Tabellen** (4T-0046): `{|+sortable` aktiviert Klick-Sortierung pro Spalte. Drei Zustände zyklisch (aufsteigend → absteigend → reset). Sort-Heuristik: numerisch zuerst (`Number()`), sonst lexikographisch mit Locale (`localeCompare`, korrekt für Umlaute und ähnliches). Mehrzeilige Zellen werden nach der ersten Zeile sortiert. Sort-Indikator-Icons im Lucide-Stil. Bei `colspan`/`rowspan` automatisch deaktiviert. Im portablen Export nicht enthalten (kein JavaScript in fremden Renderern).
-- **Hilfe-Tab um die drei Funktionen erweitert** (4T-0047): Neue Sektion „Sortierung, Status-Hervorhebung und Spalten-Default" mit Beispielen. Funktions-Eintrag `help.feature.scgTableExtended` in der Gruppe „Bearbeitung". Ausblick-Block durch „Stand der Funktionen" ersetzt (Funktionsumfang abgeschlossen).
+- **Status-Hervorhebung in SCG-Tabellen** (4T-000044): Semantische Klassen `error`, `warn`, `ok`, `info`, `neutral` über Punkt-Notation am Zell-/Zeilen-Marker (`|.error Inhalt`, `|-.warn`). Zell-Status gewinnt gegen Zeilen-Status. Whitelist verhindert beliebige CSS-Klassen. Light- und Dark-Theme-Farben mit WCAG-AA-Kontrast. Im portablen Export als Inline-Style.
+- **Spalten-Default-Ausrichtung** (4T-000045): `{|+cols="left right right"` in der Tabellen-Header-Zeile setzt eine Default-Ausrichtung pro Spalte. Zell-`align`-Attribut aus Stufe 2 überschreibt. Bei `colspan` wird kein Default angewendet. Mismatch-tolerant (fehlende/überzählige Werte).
+- **Sortierbare Tabellen** (4T-000046): `{|+sortable` aktiviert Klick-Sortierung pro Spalte. Drei Zustände zyklisch (aufsteigend → absteigend → reset). Sort-Heuristik: numerisch zuerst (`Number()`), sonst lexikographisch mit Locale (`localeCompare`, korrekt für Umlaute und ähnliches). Mehrzeilige Zellen werden nach der ersten Zeile sortiert. Sort-Indikator-Icons im Lucide-Stil. Bei `colspan`/`rowspan` automatisch deaktiviert. Im portablen Export nicht enthalten (kein JavaScript in fremden Renderern).
+- **Hilfe-Tab um die drei Funktionen erweitert** (4T-000047): Neue Sektion „Sortierung, Status-Hervorhebung und Spalten-Default" mit Beispielen. Funktions-Eintrag `help.feature.scgTableExtended` in der Gruppe „Bearbeitung". Ausblick-Block durch „Stand der Funktionen" ersetzt (Funktionsumfang abgeschlossen).
 
 ### Geändert
 
@@ -4424,15 +4485,15 @@ Feature-Release. Schließt das SCG-Table-Funktionspaket ab mit drei häufig genu
 
 ## [0.14.0] - 2026-05-19 — SCG Table: Verschachtelung und HTML-Export
 
-Feature-Release. Erweitert SCG-Tabellen (eingeführt in 3E-0006, Spans/Ausrichtung in 3E-0007) um Verschachtelung bis drei Ebenen tief und einen HTML-Konverter für externe Markdown-Renderer. Umgesetzt als Epic 3E-0008 in den Tasks 4T-0040 (Verschachtelung), 4T-0041 (HTML-Konverter), 4T-0042 (Hilfe-Tab) und Abschluss-Sammeltask 4T-0043.
+Feature-Release. Erweitert SCG-Tabellen (eingeführt in 3E-000006, Spans/Ausrichtung in 3E-000007) um Verschachtelung bis drei Ebenen tief und einen HTML-Konverter für externe Markdown-Renderer. Umgesetzt als Epic 3E-000008 in den Tasks 4T-000040 (Verschachtelung), 4T-000041 (HTML-Konverter), 4T-000042 (Hilfe-Tab) und Abschluss-Sammeltask 4T-000043.
 
 ### Neu
 
-- **Verschachtelte SCG-Tabellen** (4T-0040): Eine Zelle kann selbst eine SCG-Tabelle enthalten, bis zu drei Ebenen tief. CommonMark-konforme Fence-Längen-Regel (jede äußere Fence mindestens eine Backtick mehr als die nächste innere). Rekursionstiefen-Counter mit Limit 3 schützt vor pathologischen Eingaben; ab der vierten Ebene fällt die innerste Tabelle auf Code-Block-Render zurück. **Bonus-Wirkung**: Fence-Tracking im Parser repariert latent eine Stufe-1-Schwäche, bei der ein Code-Block in einer Zelle mit scg-table-ähnlichen Markern zerrissen wurde.
-- **HTML-Export „Datei → Exportieren → Portables Markdown…"** (4T-0041): Konvertiert SCG-Tabellen in einer `.md`-Datei zu inline HTML-Tabellen, sodass sie auch in fremden Markdown-Renderern (GitHub-Vorschau, VS Code, andere Editoren) als echte Tabellen erscheinen. Save-As-Dialog mit Vorbelegung `<basename>-portable.md`. HTML-Output ist HTML5-konform: `colspan`/`rowspan`/`scope` als Attribute, Ausrichtung als `style="text-align: …; vertical-align: …"`, `<caption>` für Tabellen-Beschriftung. Inline-Formatierung in Zellen wird über eine zweite markdown-it-Instanz (`html: true`) zu HTML konvertiert. Original-Datei bleibt unverändert.
+- **Verschachtelte SCG-Tabellen** (4T-000040): Eine Zelle kann selbst eine SCG-Tabelle enthalten, bis zu drei Ebenen tief. CommonMark-konforme Fence-Längen-Regel (jede äußere Fence mindestens eine Backtick mehr als die nächste innere). Rekursionstiefen-Counter mit Limit 3 schützt vor pathologischen Eingaben; ab der vierten Ebene fällt die innerste Tabelle auf Code-Block-Render zurück. **Bonus-Wirkung**: Fence-Tracking im Parser repariert latent eine Stufe-1-Schwäche, bei der ein Code-Block in einer Zelle mit scg-table-ähnlichen Markern zerrissen wurde.
+- **HTML-Export „Datei → Exportieren → Portables Markdown…"** (4T-000041): Konvertiert SCG-Tabellen in einer `.md`-Datei zu inline HTML-Tabellen, sodass sie auch in fremden Markdown-Renderern (GitHub-Vorschau, VS Code, andere Editoren) als echte Tabellen erscheinen. Save-As-Dialog mit Vorbelegung `<basename>-portable.md`. HTML-Output ist HTML5-konform: `colspan`/`rowspan`/`scope` als Attribute, Ausrichtung als `style="text-align: …; vertical-align: …"`, `<caption>` für Tabellen-Beschriftung. Inline-Formatierung in Zellen wird über eine zweite markdown-it-Instanz (`html: true`) zu HTML konvertiert. Original-Datei bleibt unverändert.
 - **Marker `<!-- scg-portable -->`** für die Viewer-Anzeige der exportierten Datei: der Konverter fügt den Marker am Datei-Anfang ein, der Viewer erkennt ihn und schaltet die Datei in einen HTML-fähigen Render-Modus. Damit rendert die exportierte Datei auch im eigenen Viewer als Tabelle. Reguläre `.md`-Dateien rendern unverändert mit `html: false` — kein Sicherheitsrisiko-Anstieg.
-- **Hilfe-Tab um Sektion „Verschachtelte Tabellen und HTML-Export" erweitert** (4T-0042): Fence-Längen-Tabelle, gerendetes Verschachtelungs-Beispiel, Bedienungs-Beschreibung des Konverters, Marker-Mechanismus mit Sicherheits-Hinweis. In allen fünf Sprachen.
-- **Funktions-Eintrag im Hilfe-Dialog** (4T-0042, Scope-Erweiterung im Test): neuer Eintrag `help.feature.exportPortable` in der Gruppe „Datei und Sitzung" mit Querverweis auf den SCG-Table-Tab.
+- **Hilfe-Tab um Sektion „Verschachtelte Tabellen und HTML-Export" erweitert** (4T-000042): Fence-Längen-Tabelle, gerendetes Verschachtelungs-Beispiel, Bedienungs-Beschreibung des Konverters, Marker-Mechanismus mit Sicherheits-Hinweis. In allen fünf Sprachen.
+- **Funktions-Eintrag im Hilfe-Dialog** (4T-000042, Scope-Erweiterung im Test): neuer Eintrag `help.feature.exportPortable` in der Gruppe „Datei und Sitzung" mit Querverweis auf den SCG-Table-Tab.
 
 ### Geändert
 
@@ -4450,13 +4511,13 @@ Feature-Release. Erweitert SCG-Tabellen (eingeführt in 3E-0006, Spans/Ausrichtu
 
 ## [0.13.0] - 2026-05-19 — SCG Table: Spans, Ausrichtung und Accessibility
 
-Feature-Release. Erweitert SCG-Tabellen (eingeführt in 3E-0006) um Zell-Attribute für Layout-Steuerung. Umgesetzt als Epic 3E-0007 in den Tasks 4T-0037 (Parser- und Renderer-Erweiterung), 4T-0038 (Hilfe-Tab erweitert) und Abschluss-Sammeltask 4T-0039.
+Feature-Release. Erweitert SCG-Tabellen (eingeführt in 3E-000006) um Zell-Attribute für Layout-Steuerung. Umgesetzt als Epic 3E-000007 in den Tasks 4T-000037 (Parser- und Renderer-Erweiterung), 4T-000038 (Hilfe-Tab erweitert) und Abschluss-Sammeltask 4T-000039.
 
 ### Neu
 
-- **Zell-Attribute in SCG-Tabellen** (4T-0037): `colspan`, `rowspan`, `align` (`left`/`center`/`right`) und `valign` (`top`/`middle`/`bottom`) als Whitelist-Attribute am Zellenanfang (`| attr="val" attr="val" | Inhalt`). Strikte Wert-Validierung; freie `style="…"`-, `class="…"`- oder `onclick="…"`-Attribute werden stillschweigend ignoriert (kein XSS-Risiko aus dem Quelltext). `align`/`valign` werden auf CSS-Klassen (`.align-*`/`.valign-*`) gemappt, nicht auf das deprecated HTML4-`align`-Attribut, damit die CSS-Hoheit beim App-Stylesheet bleibt.
-- **Accessibility-Verbesserung für Header-Zellen** (4T-0037): `<th>` in der Header-Zeile bekommt automatisch `scope="col"`, `<th>` als Zeilen-Header (`!` am Anfang einer Datenzeile) bekommt `scope="row"`. Damit verbinden Screen-Reader Datenzellen mit ihren Headern.
-- **Hilfe-Tab um Spans-und-Ausrichtung-Sektion erweitert** (4T-0038): Neue Sektion „Spans und Ausrichtung" im Tab „SCG Table" mit Übersichts-Tabelle der vier Attribute, Beispiel „Aufwandsschätzung" mit gerenderter Tabelle, Tipps-Subblock und Accessibility-Hinweis. In allen fünf Sprachen.
+- **Zell-Attribute in SCG-Tabellen** (4T-000037): `colspan`, `rowspan`, `align` (`left`/`center`/`right`) und `valign` (`top`/`middle`/`bottom`) als Whitelist-Attribute am Zellenanfang (`| attr="val" attr="val" | Inhalt`). Strikte Wert-Validierung; freie `style="…"`-, `class="…"`- oder `onclick="…"`-Attribute werden stillschweigend ignoriert (kein XSS-Risiko aus dem Quelltext). `align`/`valign` werden auf CSS-Klassen (`.align-*`/`.valign-*`) gemappt, nicht auf das deprecated HTML4-`align`-Attribut, damit die CSS-Hoheit beim App-Stylesheet bleibt.
+- **Accessibility-Verbesserung für Header-Zellen** (4T-000037): `<th>` in der Header-Zeile bekommt automatisch `scope="col"`, `<th>` als Zeilen-Header (`!` am Anfang einer Datenzeile) bekommt `scope="row"`. Damit verbinden Screen-Reader Datenzellen mit ihren Headern.
+- **Hilfe-Tab um Spans-und-Ausrichtung-Sektion erweitert** (4T-000038): Neue Sektion „Spans und Ausrichtung" im Tab „SCG Table" mit Übersichts-Tabelle der vier Attribute, Beispiel „Aufwandsschätzung" mit gerenderter Tabelle, Tipps-Subblock und Accessibility-Hinweis. In allen fünf Sprachen.
 
 ### Geändert
 
@@ -4469,13 +4530,13 @@ Feature-Release. Erweitert SCG-Tabellen (eingeführt in 3E-0006) um Zell-Attribu
 
 ## [0.12.0] - 2026-05-19 — SCG Table: mehrzeilige Block-Zellen in Tabellen
 
-Feature-Release, der eine Markdown-Erweiterung für Tabellen mit mehrzeiligen Block-Zellen einführt. Umgesetzt als Epic 3E-0006 in den Tasks 4T-0034 (Parser und Renderer), 4T-0036 (Hilfe-Tab mit ausführlicher Doku) und Abschluss-Sammeltask 4T-0035. Stufe 1 des Epics; `colspan`/`rowspan`/Ausrichtung und ein HTML-Konverter für externe Renderer folgen in späteren Folge-Epics.
+Feature-Release, der eine Markdown-Erweiterung für Tabellen mit mehrzeiligen Block-Zellen einführt. Umgesetzt als Epic 3E-000006 in den Tasks 4T-000034 (Parser und Renderer), 4T-000036 (Hilfe-Tab mit ausführlicher Doku) und Abschluss-Sammeltask 4T-000035. Stufe 1 des Epics; `colspan`/`rowspan`/Ausrichtung und ein HTML-Konverter für externe Renderer folgen in späteren Folge-Epics.
 
 ### Neu
 
-- **SCG-Tabellen mit mehrzeiligen Block-Zellen** (4T-0034): Markdown-Pipe-Tabellen sind zeilenbasiert und können keine geschachtelten Listen, mehrere Absätze oder Code-Blöcke in einer Zelle abbilden. SCG-Tabellen schließen diese Lücke über einen Fenced-Code-Block mit Sprach-Tag `scg-table`. Inhalt zwischen `{|` und `|}` wird als HTML-Tabelle gerendert; in fremden Markdown-Renderern bleibt der Block als lesbarer Code-Block sichtbar (Graceful Degradation). Syntax orientiert sich an MediaWiki: `{|` öffnet, `|}` schließt, `|-` trennt Zeilen, `|` startet eine Datenzelle, `!` eine Header-Zelle, `|+` setzt eine Caption. Zelleninhalt wird rekursiv durch markdown-it gerendert, sodass Listen (auch geschachtelt), nummerierte Listen, Codeblöcke (mit Vier-Backtick-Außenfence), Inline-Formatierung, Wiki-Links und Bilder in Zellen funktionieren. Integration über Override von `md.renderer.rules.fence` in `preload.js` mit Delegation an den Default-Renderer für alle anderen Sprach-Tags, sodass Code-Highlighting unangetastet bleibt.
-- **Hilfe-Tab „SCG Table"** (4T-0036): Dritter Tab im Hilfe-Dialog neben „Funktionen" und „Tastenkürzel". Inhalt pro Sprache als Markdown-Datei in `src/i18n/help/scg-table.<locale>.md`, asynchron vom Main geladen und durch dieselbe markdown-it-Instanz wie der Viewer-Inhalt gerendert. Die Hilfe demonstriert sich selbst, weil die Beispiele echte scg-table-Blöcke enthalten, die der scg-table-Renderer verarbeitet. Inhalt: Einleitung, Syntax-Übersicht, Minimal- und erweitertes Beispiel mit Code-Block in der Zelle, fünf Tipps (`|-`-Pflicht zwischen Zeilen prominent als erster Punkt), Portabilitäts-Hinweis, Stufen-Ausblick. Lazy-Loading mit Locale-Cache; Sprachwechsel triggert Reload, wenn der Tab sichtbar ist.
-- **Hilfe-Dialog um den scg-table-Eintrag erweitert** (4T-0035): `help.feature.scgTable` in der Gruppe „Bearbeitung" mit Querverweis auf den ausführlichen Hilfe-Tab.
+- **SCG-Tabellen mit mehrzeiligen Block-Zellen** (4T-000034): Markdown-Pipe-Tabellen sind zeilenbasiert und können keine geschachtelten Listen, mehrere Absätze oder Code-Blöcke in einer Zelle abbilden. SCG-Tabellen schließen diese Lücke über einen Fenced-Code-Block mit Sprach-Tag `scg-table`. Inhalt zwischen `{|` und `|}` wird als HTML-Tabelle gerendert; in fremden Markdown-Renderern bleibt der Block als lesbarer Code-Block sichtbar (Graceful Degradation). Syntax orientiert sich an MediaWiki: `{|` öffnet, `|}` schließt, `|-` trennt Zeilen, `|` startet eine Datenzelle, `!` eine Header-Zelle, `|+` setzt eine Caption. Zelleninhalt wird rekursiv durch markdown-it gerendert, sodass Listen (auch geschachtelt), nummerierte Listen, Codeblöcke (mit Vier-Backtick-Außenfence), Inline-Formatierung, Wiki-Links und Bilder in Zellen funktionieren. Integration über Override von `md.renderer.rules.fence` in `preload.js` mit Delegation an den Default-Renderer für alle anderen Sprach-Tags, sodass Code-Highlighting unangetastet bleibt.
+- **Hilfe-Tab „SCG Table"** (4T-000036): Dritter Tab im Hilfe-Dialog neben „Funktionen" und „Tastenkürzel". Inhalt pro Sprache als Markdown-Datei in `src/i18n/help/scg-table.<locale>.md`, asynchron vom Main geladen und durch dieselbe markdown-it-Instanz wie der Viewer-Inhalt gerendert. Die Hilfe demonstriert sich selbst, weil die Beispiele echte scg-table-Blöcke enthalten, die der scg-table-Renderer verarbeitet. Inhalt: Einleitung, Syntax-Übersicht, Minimal- und erweitertes Beispiel mit Code-Block in der Zelle, fünf Tipps (`|-`-Pflicht zwischen Zeilen prominent als erster Punkt), Portabilitäts-Hinweis, Stufen-Ausblick. Lazy-Loading mit Locale-Cache; Sprachwechsel triggert Reload, wenn der Tab sichtbar ist.
+- **Hilfe-Dialog um den scg-table-Eintrag erweitert** (4T-000035): `help.feature.scgTable` in der Gruppe „Bearbeitung" mit Querverweis auf den ausführlichen Hilfe-Tab.
 
 ### Geändert
 
@@ -4491,14 +4552,14 @@ Feature-Release, der eine Markdown-Erweiterung für Tabellen mit mehrzeiligen Bl
 
 ## [0.11.0] - 2026-05-19 — Theme-Wahl, Statusbar-Icons und Update-Erkennung
 
-Feature-Release, das die App um drei eigenständige Komfort-Verbesserungen erweitert. Umgesetzt als Epic 3E-0005 in den Tasks 4T-0030 (Theme-Umschalter), 4T-0031 (Statusbar-Icons) und 4T-0029 (Update-Erkennung), inklusive Abschluss-Sammeltask 4T-0033. Der Auto-Install-Pfad (4T-0032) wurde wegen SmartScreen-Risiken bei unsigniertem Installer zurückgestellt, bis ein Code-Signing-Zertifikat vorliegt.
+Feature-Release, das die App um drei eigenständige Komfort-Verbesserungen erweitert. Umgesetzt als Epic 3E-000005 in den Tasks 4T-000030 (Theme-Umschalter), 4T-000031 (Statusbar-Icons) und 4T-000029 (Update-Erkennung), inklusive Abschluss-Sammeltask 4T-000033. Der Auto-Install-Pfad (4T-000032) wurde wegen SmartScreen-Risiken bei unsigniertem Installer zurückgestellt, bis ein Code-Signing-Zertifikat vorliegt.
 
 ### Neu
 
-- **Theme-Umschalter Hell / Dunkel / System** (4T-0030): Drei-Wege-Wahl statt der bisherigen rein systemgesteuerten Theme-Logik. Auswahl an zwei Stellen: Menü `Ansicht → Theme` mit drei Radio-Items und ein Statusbar-Icon (Sonne / Mond / Monitor) zwischen Edit-Stift und Sprach-Wahl, das per Klick zyklisch Hell → Dunkel → System → Hell durchschaltet. Persistenz in `electron-store` (Schlüssel `themePref`, Default `system`), sodass die Wahl App-Neustarts überlebt. Multi-Window-Sync über zwei Broadcast-Kanäle: Statusbar-Icon und Menü-Radio bleiben in allen Fenstern synchron. Mermaid-Diagramme und Syntax-Highlighting passen sich beim Theme-Wechsel ohne Reload an. Native System-Dialoge folgen über `nativeTheme.themeSource` ebenfalls dem gewählten Theme.
-- **Statusbar-Buttons als Icons** (4T-0031): Die acht Wort-Buttons unten links (Inhalt, Backlinks, Gliederung, Nummern, Umbruch, Quellcode, Geteilt, Gerendert) werden durch Inline-SVG-Icons aus [Lucide](https://lucide.dev) (ISC-Lizenz) ersetzt. Konzept-Phase mit visuellem Mockup für die Icon-Auswahl unter Projektmanagement/Mockups/4T-0031-icon-mockup.html. Finale Auswahl: `list-tree`, `link-2`, `chevrons-down-up`, `list-ordered`, `wrap-text`, `code`, `columns-2`, `eye`. Keine NPM-Dependency, kein Runtime-CDN, kein Netzwerk-Zugriff. Tooltips bei Hover und `aria-label`-Beschriftungen für Screen-Reader sind in allen fünf Sprachen lokalisiert (`data-i18n-aria-label`-Erweiterung in `i18n.js`). Statusbar-Reihe links unten ist dadurch deutlich schmaler, rechte Statusbar-Sektion bekommt entsprechend mehr Platz.
-- **Update-Erkennung mit Link zur GitHub-Release-Seite** (4T-0029): Die App prüft im Hintergrund auf neue Versionen, **erstmaliger Check 45 Sekunden nach App-Start**, danach alle 24 Stunden. Manueller Trigger über Menü `Hilfe → Auf Updates prüfen…`. Bei verfügbarem Update öffnet sich ein Dialog mit drei Optionen: „Zum Download öffnen" (öffnet die GitHub-Release-Seite im Standard-Browser), „Später erinnern" und „Diese Version überspringen" (persistiert in `electron-store` unter `update.skippedVersion`; manueller Check ignoriert die Skip-Liste). Setup- und Portable-EXE werden einheitlich behandelt — kein automatischer Download, keine automatische Installation. Beim Hintergrund-Check stille Fehler-Behandlung; beim manuellen Check Fehler-Dialog mit Heuristik für Netzwerk-Fehler. Diagnose-Logger schreibt nach `%APPDATA%/SCG Markdown/logs/update.log`.
-- **Hilfe-Dialog um den Update-Eintrag erweitert** (4T-0033): `help.feature.updateCheck` in der Gruppe „Allgemein". Der bestehende `help.feature.theme`-Eintrag wurde inhaltlich auf die Drei-Wege-Wahl angepasst.
+- **Theme-Umschalter Hell / Dunkel / System** (4T-000030): Drei-Wege-Wahl statt der bisherigen rein systemgesteuerten Theme-Logik. Auswahl an zwei Stellen: Menü `Ansicht → Theme` mit drei Radio-Items und ein Statusbar-Icon (Sonne / Mond / Monitor) zwischen Edit-Stift und Sprach-Wahl, das per Klick zyklisch Hell → Dunkel → System → Hell durchschaltet. Persistenz in `electron-store` (Schlüssel `themePref`, Default `system`), sodass die Wahl App-Neustarts überlebt. Multi-Window-Sync über zwei Broadcast-Kanäle: Statusbar-Icon und Menü-Radio bleiben in allen Fenstern synchron. Mermaid-Diagramme und Syntax-Highlighting passen sich beim Theme-Wechsel ohne Reload an. Native System-Dialoge folgen über `nativeTheme.themeSource` ebenfalls dem gewählten Theme.
+- **Statusbar-Buttons als Icons** (4T-000031): Die acht Wort-Buttons unten links (Inhalt, Backlinks, Gliederung, Nummern, Umbruch, Quellcode, Geteilt, Gerendert) werden durch Inline-SVG-Icons aus [Lucide](https://lucide.dev) (ISC-Lizenz) ersetzt. Konzept-Phase mit visuellem Mockup für die Icon-Auswahl unter Projektmanagement/Mockups/4T-000031-icon-mockup.html. Finale Auswahl: `list-tree`, `link-2`, `chevrons-down-up`, `list-ordered`, `wrap-text`, `code`, `columns-2`, `eye`. Keine NPM-Dependency, kein Runtime-CDN, kein Netzwerk-Zugriff. Tooltips bei Hover und `aria-label`-Beschriftungen für Screen-Reader sind in allen fünf Sprachen lokalisiert (`data-i18n-aria-label`-Erweiterung in `i18n.js`). Statusbar-Reihe links unten ist dadurch deutlich schmaler, rechte Statusbar-Sektion bekommt entsprechend mehr Platz.
+- **Update-Erkennung mit Link zur GitHub-Release-Seite** (4T-000029): Die App prüft im Hintergrund auf neue Versionen, **erstmaliger Check 45 Sekunden nach App-Start**, danach alle 24 Stunden. Manueller Trigger über Menü `Hilfe → Auf Updates prüfen…`. Bei verfügbarem Update öffnet sich ein Dialog mit drei Optionen: „Zum Download öffnen" (öffnet die GitHub-Release-Seite im Standard-Browser), „Später erinnern" und „Diese Version überspringen" (persistiert in `electron-store` unter `update.skippedVersion`; manueller Check ignoriert die Skip-Liste). Setup- und Portable-EXE werden einheitlich behandelt — kein automatischer Download, keine automatische Installation. Beim Hintergrund-Check stille Fehler-Behandlung; beim manuellen Check Fehler-Dialog mit Heuristik für Netzwerk-Fehler. Diagnose-Logger schreibt nach `%APPDATA%/SCG Markdown/logs/update.log`.
+- **Hilfe-Dialog um den Update-Eintrag erweitert** (4T-000033): `help.feature.updateCheck` in der Gruppe „Allgemein". Der bestehende `help.feature.theme`-Eintrag wurde inhaltlich auf die Drei-Wege-Wahl angepasst.
 
 ### Geändert
 
@@ -4509,11 +4570,11 @@ Feature-Release, das die App um drei eigenständige Komfort-Verbesserungen erwei
 
 ### Behoben
 
-- **Sidebar-Sektionen lassen sich wieder unabhängig ein-/ausblenden** (Pre-existing-Bugfix aus 4T-0014/4T-0015, Commit `8f7da17`): Die CSS-Regel `.sidebar-section { display: flex; }` überschrieb seit der Einführung von Outline und Backlinks die User-Agent-Default `[hidden] { display: none; }` (gleiche Spezifität, spätere Quellreihenfolge gewinnt). Eine spezifischere Regel `.sidebar-section[hidden] { display: none; }` stellt das erwartete Verhalten wieder her. Aufgefallen während des Tests von 4T-0031.
+- **Sidebar-Sektionen lassen sich wieder unabhängig ein-/ausblenden** (Pre-existing-Bugfix aus 4T-000014/4T-000015, Commit `8f7da17`): Die CSS-Regel `.sidebar-section { display: flex; }` überschrieb seit der Einführung von Outline und Backlinks die User-Agent-Default `[hidden] { display: none; }` (gleiche Spezifität, spätere Quellreihenfolge gewinnt). Eine spezifischere Regel `.sidebar-section[hidden] { display: none; }` stellt das erwartete Verhalten wieder her. Aufgefallen während des Tests von 4T-000031.
 
 ### Zurückgestellt
 
-- **Auto-Download und Auto-Installation des Updates** (4T-0032): Ursprünglich Teil des Update-Tasks; wegen SmartScreen-Risiken bei unsigniertem Setup-Installer (Auto-Install kann je nach Windows-Version, Sicherheitsstufe und Hash-Reputation stillschweigend zulassen, mit Warnung zulassen oder vollständig blockieren) in einen eigenen, zurückgestellten Task ausgelagert. Voraussetzung für den Wiederanlauf: Code-Signing-Zertifikat (OV oder EV) für die Setup-EXE. Die in 4T-0029 etablierte Infrastruktur (electron-updater, GitHub-Provider, `latest.yml`, Dialog-Struktur) wird dort nahtlos weiterverwendet.
+- **Auto-Download und Auto-Installation des Updates** (4T-000032): Ursprünglich Teil des Update-Tasks; wegen SmartScreen-Risiken bei unsigniertem Setup-Installer (Auto-Install kann je nach Windows-Version, Sicherheitsstufe und Hash-Reputation stillschweigend zulassen, mit Warnung zulassen oder vollständig blockieren) in einen eigenen, zurückgestellten Task ausgelagert. Voraussetzung für den Wiederanlauf: Code-Signing-Zertifikat (OV oder EV) für die Setup-EXE. Die in 4T-000029 etablierte Infrastruktur (electron-updater, GitHub-Provider, `latest.yml`, Dialog-Struktur) wird dort nahtlos weiterverwendet.
 
 ### i18n
 
@@ -4525,24 +4586,24 @@ Feature-Release, das die App um drei eigenständige Komfort-Verbesserungen erwei
 
 ## [0.10.0] - 2026-05-19 — Render-Lift: Syntax-Highlighting, KaTeX-Mathematik und Mermaid-Diagramme
 
-Feature-Release, das den Render-Pane auf das Niveau hebt, das Nutzer von GitHub und ähnlichen Tools kennen. Umgesetzt als Epic 3E-0004 in den Tasks 4T-0023 (Syntax-Highlighting), 4T-0022 (KaTeX) und 4T-0021 (Mermaid), inklusive Abschluss-Sammeltask 4T-0028.
+Feature-Release, das den Render-Pane auf das Niveau hebt, das Nutzer von GitHub und ähnlichen Tools kennen. Umgesetzt als Epic 3E-000004 in den Tasks 4T-000023 (Syntax-Highlighting), 4T-000022 (KaTeX) und 4T-000021 (Mermaid), inklusive Abschluss-Sammeltask 4T-000028.
 
 ### Neu
 
-- **Syntax-Highlighting für Code-Blöcke im Render-Pane** (4T-0023): Fenced-Code-Blöcke mit Sprach-Tag werden im Render-Pane farbig dargestellt. `highlight.js` in der Core-Variante mit kuratierter Sprachliste (JavaScript, TypeScript, Python, Java, C#, C++, Go, Rust, Bash, SQL, JSON, YAML, XML, CSS, Markdown, Plaintext, plus die üblichen Alias-Tags). GitHub-Light- und Dark-Theme werden über ein generiertes Stylesheet (`scripts/build-hljs-themes.js` → `src/renderer/hljs-themes.css`) parallel geladen und über das `data-theme`-Attribut am `<html>` ohne Re-Render umgeschaltet. Unbekannte Sprach-Tags fallen still auf einen Plain-Block zurück, ohne Fehlermeldung. Inline-Code bleibt unangetastet.
-- **KaTeX-Mathematik im Render-Pane** (4T-0022): Mathematische Formeln werden mit KaTeX gesetzt — Inline `$…$` und Block `$$…$$`. `@vscode/markdown-it-katex` als markdown-it-Plugin sorgt dafür, dass Dollar-Beträge im Fließtext (`Das kostet $5 bis $10`) durch die Whitespace-Heuristik unverändert bleiben. Backslash-Escape `\$` ebenfalls. Syntaxfehler in Formeln erscheinen rot inline, ohne den Render-Pane abzuschießen. KaTeX-CSS und 20 woff2-Schnitte werden per `scripts/build-katex-assets.js` aus `node_modules/katex` nach `src/renderer/katex/` kopiert, mit Filter auf woff2 (Chromium unterstützt das nativ; woff und ttf wären nur unnötiger Ballast im Bundle).
-- **Mermaid-Diagramme im Render-Pane** (4T-0021): Fenced-Code-Blöcke mit Sprach-Tag `mermaid` werden als SVG-Diagramme gerendert (Flowchart, Sequence, Gantt, Class und weitere Mermaid-Typen). Mermaid sitzt in einem separaten esbuild-Bundle (`scripts/build-mermaid.js` → `src/renderer/mermaid.bundle.js`, ~3 MB minified) und wird per dynamischem `import()` lazy geladen — Dokumente ohne Mermaid-Blöcke holen den Bundle gar nicht erst. Theme-Wechsel zur Laufzeit rendert alle vorhandenen Diagramme in der neuen Palette neu. Cache-Schicht (FNV-1a-Hash pro Quelltext+Theme) verhindert teure Re-Renders beim Live-Tippen. Syntax-Fehler werden in einem dezenten eigenen Fehler-Block mit Quelltext und Meldung dargestellt, ohne dass Mermaid-DOM-Leftovers am `<body>` hängen bleiben.
-- **Hilfe-Dialog um drei neue Feature-Einträge erweitert** (4T-0028): `help.feature.codeHighlight`, `help.feature.katex`, `help.feature.mermaid` in der Gruppe „Ansicht". Keine neuen Tastenkürzel im Release.
+- **Syntax-Highlighting für Code-Blöcke im Render-Pane** (4T-000023): Fenced-Code-Blöcke mit Sprach-Tag werden im Render-Pane farbig dargestellt. `highlight.js` in der Core-Variante mit kuratierter Sprachliste (JavaScript, TypeScript, Python, Java, C#, C++, Go, Rust, Bash, SQL, JSON, YAML, XML, CSS, Markdown, Plaintext, plus die üblichen Alias-Tags). GitHub-Light- und Dark-Theme werden über ein generiertes Stylesheet (`scripts/build-hljs-themes.js` → `src/renderer/hljs-themes.css`) parallel geladen und über das `data-theme`-Attribut am `<html>` ohne Re-Render umgeschaltet. Unbekannte Sprach-Tags fallen still auf einen Plain-Block zurück, ohne Fehlermeldung. Inline-Code bleibt unangetastet.
+- **KaTeX-Mathematik im Render-Pane** (4T-000022): Mathematische Formeln werden mit KaTeX gesetzt — Inline `$…$` und Block `$$…$$`. `@vscode/markdown-it-katex` als markdown-it-Plugin sorgt dafür, dass Dollar-Beträge im Fließtext (`Das kostet $5 bis $10`) durch die Whitespace-Heuristik unverändert bleiben. Backslash-Escape `\$` ebenfalls. Syntaxfehler in Formeln erscheinen rot inline, ohne den Render-Pane abzuschießen. KaTeX-CSS und 20 woff2-Schnitte werden per `scripts/build-katex-assets.js` aus `node_modules/katex` nach `src/renderer/katex/` kopiert, mit Filter auf woff2 (Chromium unterstützt das nativ; woff und ttf wären nur unnötiger Ballast im Bundle).
+- **Mermaid-Diagramme im Render-Pane** (4T-000021): Fenced-Code-Blöcke mit Sprach-Tag `mermaid` werden als SVG-Diagramme gerendert (Flowchart, Sequence, Gantt, Class und weitere Mermaid-Typen). Mermaid sitzt in einem separaten esbuild-Bundle (`scripts/build-mermaid.js` → `src/renderer/mermaid.bundle.js`, ~3 MB minified) und wird per dynamischem `import()` lazy geladen — Dokumente ohne Mermaid-Blöcke holen den Bundle gar nicht erst. Theme-Wechsel zur Laufzeit rendert alle vorhandenen Diagramme in der neuen Palette neu. Cache-Schicht (FNV-1a-Hash pro Quelltext+Theme) verhindert teure Re-Renders beim Live-Tippen. Syntax-Fehler werden in einem dezenten eigenen Fehler-Block mit Quelltext und Meldung dargestellt, ohne dass Mermaid-DOM-Leftovers am `<body>` hängen bleiben.
+- **Hilfe-Dialog um drei neue Feature-Einträge erweitert** (4T-000028): `help.feature.codeHighlight`, `help.feature.katex`, `help.feature.mermaid` in der Gruppe „Ansicht". Keine neuen Tastenkürzel im Release.
 
 ### Geändert
 
 - **Versions-Bump** 0.9.0 → 0.10.0 ([package.json](package.json)).
-- **markdown-it-Pipeline im Preload erweitert** (4T-0021/22/23): `highlight.js/lib/core` mit selektiver Sprach-Registrierung als `highlight`-Callback in markdown-it, `@vscode/markdown-it-katex` als zusätzliches Plugin. Bei unbekannten Sprach-Tags schreibt der Highlight-Callback weiterhin die `language-<tag>`-Klasse mit, damit das Renderer-seitige Post-Processing (Mermaid) den Block zuverlässig per Klassennamen findet.
+- **markdown-it-Pipeline im Preload erweitert** (4T-000021/22/23): `highlight.js/lib/core` mit selektiver Sprach-Registrierung als `highlight`-Callback in markdown-it, `@vscode/markdown-it-katex` als zusätzliches Plugin. Bei unbekannten Sprach-Tags schreibt der Highlight-Callback weiterhin die `language-<tag>`-Klasse mit, damit das Renderer-seitige Post-Processing (Mermaid) den Block zuverlässig per Klassennamen findet.
 - **Renderer-Build-Pipeline um drei Pre-Steps erweitert** ([scripts/build-renderer.js](scripts/build-renderer.js)): vor dem Haupt-Bundle baut esbuild jetzt die hljs-Themes, KaTeX-Assets und den Mermaid-Bundle.
 
 ### Zurückgestellt
 
-- **PDF-Export** (4T-0024): Der ursprünglich für 0.10.0 vorgesehene PDF-Export per `webContents.printToPDF` wurde während der Umsetzung zurückgestellt. Theme- und Container-Konflikte im Print-Modus konnten innerhalb des Releases nicht zufriedenstellend gelöst werden. Der Code-Stand wurde vollständig zurückgebaut; der Versuch ist im Task mit Problemen, Teil-Lösungen und drei Wiederanlauf-Varianten (A, B, B+) ausführlich dokumentiert. Das Feature kommt in einem späteren Release zurück.
+- **PDF-Export** (4T-000024): Der ursprünglich für 0.10.0 vorgesehene PDF-Export per `webContents.printToPDF` wurde während der Umsetzung zurückgestellt. Theme- und Container-Konflikte im Print-Modus konnten innerhalb des Releases nicht zufriedenstellend gelöst werden. Der Code-Stand wurde vollständig zurückgebaut; der Versuch ist im Task mit Problemen, Teil-Lösungen und drei Wiederanlauf-Varianten (A, B, B+) ausführlich dokumentiert. Das Feature kommt in einem späteren Release zurück.
 
 ### i18n
 
@@ -4550,24 +4611,24 @@ Feature-Release, das den Render-Pane auf das Niveau hebt, das Nutzer von GitHub 
 
 ## [0.9.0] - 2026-05-18 — Editor-UX und -Komfort: Listen-Indent, Zoom, Schriftart, Fokus-Modus und Markdown-Linter
 
-Feature-Release, das im Alltag spürbare Verbesserungen am Schreib- und Leseerlebnis bündelt. Umgesetzt als Epic 3E-0003 in den Tasks 4T-0016 bis 4T-0020, inklusive Abschluss-Sammeltask 4T-0027. Der Hilfe-Dialog ist in diesem Release strukturell überarbeitet, weil die kumulierte Funktions- und Tastenkürzel-Liste über die Releases hinweg unübersichtlich geworden war.
+Feature-Release, das im Alltag spürbare Verbesserungen am Schreib- und Leseerlebnis bündelt. Umgesetzt als Epic 3E-000003 in den Tasks 4T-000016 bis 4T-000020, inklusive Abschluss-Sammeltask 4T-000027. Der Hilfe-Dialog ist in diesem Release strukturell überarbeitet, weil die kumulierte Funktions- und Tastenkürzel-Liste über die Releases hinweg unübersichtlich geworden war.
 
 ### Neu
 
-- **Tab und Umschalt+Tab in Markdown-Listen** (4T-0016): Rückt Listenelemente eine Ebene ein bzw. aus, in zwei Leerzeichen pro Stufe. Erkannt werden ungeordnete (`-`, `*`, `+`), geordnete (`1.`) und Task-Listen (`- [ ]` / `- [x]`); geordnete Listen werden beim Einrücken auf `1.` zurückgesetzt, ungeordnete und Task-Listen behalten ihren Marker. Mehrzeilen-Selektion wird in einer Transaktion ausgeführt (`Strg+Z` macht die Operation als Ganzes rückgängig). In Code-Blöcken und außerhalb von Listen bleibt das CodeMirror-Default-Tab-Verhalten erhalten.
-- **Zoom pro Tab** (4T-0017): `Strg + +`, `Strg + -`, `Strg + 0` und `Strg + Mausrad` zoomen den Inhalt des aktiven Tabs in 10-%-Schritten zwischen 50 % und 300 %. Der Faktor wirkt nur auf Editor- und Render-Pane (UI bleibt unverändert) und wird pro Tab gehalten, sodass mehrere Tabs unterschiedliche Zooms zeigen können. Indikator rechts in der Statusbar bei Abweichung von 100 %, Klick darauf setzt zurück. Beim Tab-Transfer in ein anderes Fenster wandert der Zoom mit. Sitzungswiederherstellung startet bewusst bei 100 %.
-- **Einstellungen-Dialog mit konfigurierbarer Schriftart und -größe** (4T-0018): Neuer modaler Dialog `Datei → Einstellungen` (auch `Strg + ,`) mit Sektion „Darstellung". Editor- und Render-Schriftart sowie -größe sind getrennt einstellbar. Schriftart als kombiniertes Auswahl- und Freitext-Feld mit kuratierten Windows-Vorschlägen (Editor monospace: Consolas, Cascadia Code, Cascadia Mono, JetBrains Mono, Fira Code, Source Code Pro, Courier New; Render proportional: Segoe UI, Calibri, Arial, Helvetica, Georgia, Times New Roman, Verdana). Schriftgröße 8 bis 32, Default 14 (Editor) / 15 (Render). Live-Vorschau im Dialog, OK / Anwenden / Abbrechen. Werte persistent und über Multi-Window-Broadcast in allen offenen Fenstern aktiv. Code-Blöcke im Render-Pane nutzen die Editor-Schriftart für konsistente Darstellung.
-- **Fokus-Modus** (4T-0019): `Strg + Umschalt + F` oder `Ansicht → Fokus-Modus` blendet Tab-Leisten, Statusbar und Sidebar-Panels aus für ablenkungsfreies Schreiben. Editor- und Render-Pane bleiben sichtbar, die native Menüleiste ist über Alt erreichbar. Esc verlässt den Modus, sofern kein Overlay mit Vorrang offen ist (Regex-Hilfe, Suchbar, Modale, Kontextmenü). Persistent, wirkt pro Fenster.
-- **Typewriter-Scroll** (4T-0019): `Ansicht → Typewriter-Scroll` hält die Cursor-Zeile im Editor vertikal zentriert, sobald der Cursor bewegt wird. Wirkt nur im Edit-Modus, nur im Editor-Pane. Persistent, global.
-- **Markdown-Linter-Light** (4T-0020): Vier feste Regeln markieren typische Mängel im Editor als dezente Wellen-Unterstreichung — bare URLs (ohne Markdown-Link-Syntax), leere Link-Texte (`[](url)`), fehlende Alt-Texte (`![](pfad)`) und Wiki-Links, deren Ziel im Suchraum aus 0.8.0 nicht gefunden wird. Hover zeigt lokalisierte Erklärung. Code-Blöcke, Inline-Code, Markdown-Links und Autolinks sind korrekt ausgenommen. Regel 4 (Wiki-Link-Ziel) greift nur, wenn der Backlinks-Index der Pane aktiv ist (Backlinks-Panel mindestens einmal geöffnet).
-- **Bearbeiten-Toggle im Ansicht-Menü** (4T-0019, Test-Feedback): `Ansicht → Bearbeiten` mit Häkchen und Accelerator `Strg + E`. Notwendig, weil der bisherige Toolbar-Button im Fokus-Modus ausgeblendet ist; Modus bleibt damit auch dort jederzeit erreichbar.
-- **Hilfe-Dialog mit zwei Reitern und gruppierten Funktionen** (4T-0027): Funktionen und Tastenkürzel sind in zwei Tabs getrennt; Funktionen gliedern sich in fünf Gruppen (Datei und Sitzung, Bearbeitung, Ansicht, Navigation, Allgemein). Beim Öffnen ist der Funktionen-Tab aktiv.
+- **Tab und Umschalt+Tab in Markdown-Listen** (4T-000016): Rückt Listenelemente eine Ebene ein bzw. aus, in zwei Leerzeichen pro Stufe. Erkannt werden ungeordnete (`-`, `*`, `+`), geordnete (`1.`) und Task-Listen (`- [ ]` / `- [x]`); geordnete Listen werden beim Einrücken auf `1.` zurückgesetzt, ungeordnete und Task-Listen behalten ihren Marker. Mehrzeilen-Selektion wird in einer Transaktion ausgeführt (`Strg+Z` macht die Operation als Ganzes rückgängig). In Code-Blöcken und außerhalb von Listen bleibt das CodeMirror-Default-Tab-Verhalten erhalten.
+- **Zoom pro Tab** (4T-000017): `Strg + +`, `Strg + -`, `Strg + 0` und `Strg + Mausrad` zoomen den Inhalt des aktiven Tabs in 10-%-Schritten zwischen 50 % und 300 %. Der Faktor wirkt nur auf Editor- und Render-Pane (UI bleibt unverändert) und wird pro Tab gehalten, sodass mehrere Tabs unterschiedliche Zooms zeigen können. Indikator rechts in der Statusbar bei Abweichung von 100 %, Klick darauf setzt zurück. Beim Tab-Transfer in ein anderes Fenster wandert der Zoom mit. Sitzungswiederherstellung startet bewusst bei 100 %.
+- **Einstellungen-Dialog mit konfigurierbarer Schriftart und -größe** (4T-000018): Neuer modaler Dialog `Datei → Einstellungen` (auch `Strg + ,`) mit Sektion „Darstellung". Editor- und Render-Schriftart sowie -größe sind getrennt einstellbar. Schriftart als kombiniertes Auswahl- und Freitext-Feld mit kuratierten Windows-Vorschlägen (Editor monospace: Consolas, Cascadia Code, Cascadia Mono, JetBrains Mono, Fira Code, Source Code Pro, Courier New; Render proportional: Segoe UI, Calibri, Arial, Helvetica, Georgia, Times New Roman, Verdana). Schriftgröße 8 bis 32, Default 14 (Editor) / 15 (Render). Live-Vorschau im Dialog, OK / Anwenden / Abbrechen. Werte persistent und über Multi-Window-Broadcast in allen offenen Fenstern aktiv. Code-Blöcke im Render-Pane nutzen die Editor-Schriftart für konsistente Darstellung.
+- **Fokus-Modus** (4T-000019): `Strg + Umschalt + F` oder `Ansicht → Fokus-Modus` blendet Tab-Leisten, Statusbar und Sidebar-Panels aus für ablenkungsfreies Schreiben. Editor- und Render-Pane bleiben sichtbar, die native Menüleiste ist über Alt erreichbar. Esc verlässt den Modus, sofern kein Overlay mit Vorrang offen ist (Regex-Hilfe, Suchbar, Modale, Kontextmenü). Persistent, wirkt pro Fenster.
+- **Typewriter-Scroll** (4T-000019): `Ansicht → Typewriter-Scroll` hält die Cursor-Zeile im Editor vertikal zentriert, sobald der Cursor bewegt wird. Wirkt nur im Edit-Modus, nur im Editor-Pane. Persistent, global.
+- **Markdown-Linter-Light** (4T-000020): Vier feste Regeln markieren typische Mängel im Editor als dezente Wellen-Unterstreichung — bare URLs (ohne Markdown-Link-Syntax), leere Link-Texte (`[](url)`), fehlende Alt-Texte (`![](pfad)`) und Wiki-Links, deren Ziel im Suchraum aus 0.8.0 nicht gefunden wird. Hover zeigt lokalisierte Erklärung. Code-Blöcke, Inline-Code, Markdown-Links und Autolinks sind korrekt ausgenommen. Regel 4 (Wiki-Link-Ziel) greift nur, wenn der Backlinks-Index der Pane aktiv ist (Backlinks-Panel mindestens einmal geöffnet).
+- **Bearbeiten-Toggle im Ansicht-Menü** (4T-000019, Test-Feedback): `Ansicht → Bearbeiten` mit Häkchen und Accelerator `Strg + E`. Notwendig, weil der bisherige Toolbar-Button im Fokus-Modus ausgeblendet ist; Modus bleibt damit auch dort jederzeit erreichbar.
+- **Hilfe-Dialog mit zwei Reitern und gruppierten Funktionen** (4T-000027): Funktionen und Tastenkürzel sind in zwei Tabs getrennt; Funktionen gliedern sich in fünf Gruppen (Datei und Sitzung, Bearbeitung, Ansicht, Navigation, Allgemein). Beim Öffnen ist der Funktionen-Tab aktiv.
 
 ### Geändert
 
-- **Editor- und Render-Pane nutzen CSS-Variablen für Schrift** (4T-0018): Neue `:root`-Variablen `--editor-font-family`, `--editor-font-size`, `--render-font-family`, `--render-font-size` ersetzen die vorher fix gesetzten Werte. UI-Elemente (Tabbar, Statusbar, Sidebar, Menü, Dialoge) bleiben auf `--font-ui` und reagieren nicht auf die Schriftart-Einstellung.
-- **`Strg + E` ist jetzt Menü-Accelerator** (4T-0019): Der bisherige Renderer-only-Tastenkürzel-Handler entfällt; das Routing läuft über den neuen Menü-Eintrag „Bearbeiten". Funktionsverhalten unverändert.
-- **CodeMirror-Tooltips theme-konform** (4T-0020): `.cm-tooltip` erhält explizit theme-konformen Hintergrund, Border und Schatten (vorher war der Default-Hintergrund im Dark-Theme zu hell und der Tooltip-Text schwer lesbar).
+- **Editor- und Render-Pane nutzen CSS-Variablen für Schrift** (4T-000018): Neue `:root`-Variablen `--editor-font-family`, `--editor-font-size`, `--render-font-family`, `--render-font-size` ersetzen die vorher fix gesetzten Werte. UI-Elemente (Tabbar, Statusbar, Sidebar, Menü, Dialoge) bleiben auf `--font-ui` und reagieren nicht auf die Schriftart-Einstellung.
+- **`Strg + E` ist jetzt Menü-Accelerator** (4T-000019): Der bisherige Renderer-only-Tastenkürzel-Handler entfällt; das Routing läuft über den neuen Menü-Eintrag „Bearbeiten". Funktionsverhalten unverändert.
+- **CodeMirror-Tooltips theme-konform** (4T-000020): `.cm-tooltip` erhält explizit theme-konformen Hintergrund, Border und Schatten (vorher war der Default-Hintergrund im Dark-Theme zu hell und der Tooltip-Text schwer lesbar).
 
 ### Behoben
 
@@ -4579,24 +4640,24 @@ Feature-Release, das im Alltag spürbare Verbesserungen am Schreib- und Leseerle
 
 ## [0.8.0] - 2026-05-18 — Strukturnavigation: Folding, Inhaltsverzeichnis und Backlinks
 
-Großes Feature-Release rund um die Strukturnavigation langer Markdown-Dokumente und ihre Vernetzung untereinander. Umgesetzt als Epic 3E-0002 in den Tasks 4T-0013, 4T-0014 und 4T-0015, inklusive Abschluss-Sammeltask 4T-0026.
+Großes Feature-Release rund um die Strukturnavigation langer Markdown-Dokumente und ihre Vernetzung untereinander. Umgesetzt als Epic 3E-000002 in den Tasks 4T-000013, 4T-000014 und 4T-000015, inklusive Abschluss-Sammeltask 4T-000026.
 
 ### Neu
 
-- **Heading- und Block-Folding mit Hierarchie-Spuren im Quellcode** (4T-0013): Eigener Gutter am linken Rand des Quellcode-Pane mit einer 10-px-Spur pro tatsächlich vorkommender Heading-Ebene und Block-Verschachtelungstiefe. Auf der Start-Zeile sitzt ein klickbarer Pfeil (`⌄` offen, `›` zugeklappt); darunter zeigt eine senkrechte Linie die Reichweite der Region. Faltbar sind ATX- und Setext-Überschriften sowie mehrzeilige Listen, Blockquotes, Fenced-Code-Blöcke, HTML-Blöcke und Tabellen. Tastenkürzel `Strg+Umschalt+[` (Einklappen) und `Strg+Umschalt+]` (Entfalten) wirken am Cursor und funktionieren auch bei ausgeblendeter Spalte. Die Spurenanzahl wächst dynamisch mit der Datei mit; die Folding-Region selbst kommt aus dem CodeMirror-Markdown-Sprachpaket.
-- **Statusbar-Button und Menüpunkt „Gliederung"** (4T-0013): pro Tab umschaltbar, persistent. Default ist eingeblendet.
-- **Inhaltsverzeichnis-Sidebar pro Spalte** (4T-0014): linke Sidebar mit klickbarem Heading-Baum, der die Heading-Stufen 1 bis 6 als Einrückung abbildet. Klick auf den Heading-Text setzt den Cursor in die zugehörige Zeile und entfaltet die Region falls nötig; im Render-Modus scrollt der Render-Pane zum Anker. Klick auf den Falt-Indikator links davon toggelt nur das Folding, ohne den Cursor zu bewegen. Die aktuell sichtbare Sektion wird optisch hervorgehoben — im Edit/Geteilt-Modus folgt sie der Cursor-Zeile, im Render-Modus dem obersten vollständig sichtbaren Heading. Toggle per Statusbar-Button „Inhalt", Menüpunkt `Ansicht → Inhaltsverzeichnis` oder `Strg+Umschalt+O`. Default versteckt; einmal eingeblendet bleibt der Status pro Spalte persistent.
-- **Backlinks-Sidebar pro Spalte** (4T-0015): zweite Sektion in der linken Sidebar, zeigt eingehende `[[Wiki-Links]]` und relative Markdown-Links auf die aktive Datei, gruppiert pro Quelldatei mit Zeile, optionalem Anker und Text-Snippet. Suchraum ist der Ordner der aktiven Datei plus zwei zusätzliche Unterordner-Ebenen; Watcher per `chokidar` hält den Index live, neue Links erscheinen innerhalb weniger Sekunden ohne Zutun. Klick auf einen Treffer öffnet die Quelldatei (oder aktiviert den existierenden Tab, wenn schon offen) und setzt den Cursor auf die Trefferzeile. Hard-Cap bei mehr als 2000 Markdown-Dateien oder 50 MB Gesamtgröße im Suchraum, mit lokalisiertem Hinweis. Toggle per Statusbar-Button „Backlinks", Menüpunkt `Ansicht → Backlinks` oder `Strg+Umschalt+B`. Default versteckt, Status pro Spalte persistent.
-- **Hilfe-Dialog** (4T-0026): vier neue Funktions-Einträge (Heading-/Block-Folding, Inhaltsverzeichnis, Backlinks, dokument-interne Anker-Links) und vier neue Tastenkürzel (Strg+Umschalt+`[`/`]`/`O`/`B`).
+- **Heading- und Block-Folding mit Hierarchie-Spuren im Quellcode** (4T-000013): Eigener Gutter am linken Rand des Quellcode-Pane mit einer 10-px-Spur pro tatsächlich vorkommender Heading-Ebene und Block-Verschachtelungstiefe. Auf der Start-Zeile sitzt ein klickbarer Pfeil (`⌄` offen, `›` zugeklappt); darunter zeigt eine senkrechte Linie die Reichweite der Region. Faltbar sind ATX- und Setext-Überschriften sowie mehrzeilige Listen, Blockquotes, Fenced-Code-Blöcke, HTML-Blöcke und Tabellen. Tastenkürzel `Strg+Umschalt+[` (Einklappen) und `Strg+Umschalt+]` (Entfalten) wirken am Cursor und funktionieren auch bei ausgeblendeter Spalte. Die Spurenanzahl wächst dynamisch mit der Datei mit; die Folding-Region selbst kommt aus dem CodeMirror-Markdown-Sprachpaket.
+- **Statusbar-Button und Menüpunkt „Gliederung"** (4T-000013): pro Tab umschaltbar, persistent. Default ist eingeblendet.
+- **Inhaltsverzeichnis-Sidebar pro Spalte** (4T-000014): linke Sidebar mit klickbarem Heading-Baum, der die Heading-Stufen 1 bis 6 als Einrückung abbildet. Klick auf den Heading-Text setzt den Cursor in die zugehörige Zeile und entfaltet die Region falls nötig; im Render-Modus scrollt der Render-Pane zum Anker. Klick auf den Falt-Indikator links davon toggelt nur das Folding, ohne den Cursor zu bewegen. Die aktuell sichtbare Sektion wird optisch hervorgehoben — im Edit/Geteilt-Modus folgt sie der Cursor-Zeile, im Render-Modus dem obersten vollständig sichtbaren Heading. Toggle per Statusbar-Button „Inhalt", Menüpunkt `Ansicht → Inhaltsverzeichnis` oder `Strg+Umschalt+O`. Default versteckt; einmal eingeblendet bleibt der Status pro Spalte persistent.
+- **Backlinks-Sidebar pro Spalte** (4T-000015): zweite Sektion in der linken Sidebar, zeigt eingehende `[[Wiki-Links]]` und relative Markdown-Links auf die aktive Datei, gruppiert pro Quelldatei mit Zeile, optionalem Anker und Text-Snippet. Suchraum ist der Ordner der aktiven Datei plus zwei zusätzliche Unterordner-Ebenen; Watcher per `chokidar` hält den Index live, neue Links erscheinen innerhalb weniger Sekunden ohne Zutun. Klick auf einen Treffer öffnet die Quelldatei (oder aktiviert den existierenden Tab, wenn schon offen) und setzt den Cursor auf die Trefferzeile. Hard-Cap bei mehr als 2000 Markdown-Dateien oder 50 MB Gesamtgröße im Suchraum, mit lokalisiertem Hinweis. Toggle per Statusbar-Button „Backlinks", Menüpunkt `Ansicht → Backlinks` oder `Strg+Umschalt+B`. Default versteckt, Status pro Spalte persistent.
+- **Hilfe-Dialog** (4T-000026): vier neue Funktions-Einträge (Heading-/Block-Folding, Inhaltsverzeichnis, Backlinks, dokument-interne Anker-Links) und vier neue Tastenkürzel (Strg+Umschalt+`[`/`]`/`O`/`B`).
 
 ### Geändert
 
-- **Ansicht-Menü neu sortiert** (4T-0014, 4T-0026): Im Block unter den View-Modi steht nun in dieser Reihenfolge Inhaltsverzeichnis, Backlinks, Gliederung, Zeilennummern, Zeilenumbruch. Statusbar-Toggles links der View-Modi folgen derselben Reihenfolge: Inhalt, Backlinks, Gliederung, Nummern, Umbruch.
-- **Sidebar-Sichtbarkeit ist gemeinsame Logik** (4T-0014, 4T-0015): Sobald mindestens eine der beiden Sektionen (Inhaltsverzeichnis oder Backlinks) eingeblendet ist, erscheint die Sidebar inklusive Splitter. Sind beide aus, verschwindet die Spalte komplett und der Editor-/Render-Bereich nutzt die volle Spaltenbreite.
+- **Ansicht-Menü neu sortiert** (4T-000014, 4T-000026): Im Block unter den View-Modi steht nun in dieser Reihenfolge Inhaltsverzeichnis, Backlinks, Gliederung, Zeilennummern, Zeilenumbruch. Statusbar-Toggles links der View-Modi folgen derselben Reihenfolge: Inhalt, Backlinks, Gliederung, Nummern, Umbruch.
+- **Sidebar-Sichtbarkeit ist gemeinsame Logik** (4T-000014, 4T-000015): Sobald mindestens eine der beiden Sektionen (Inhaltsverzeichnis oder Backlinks) eingeblendet ist, erscheint die Sidebar inklusive Splitter. Sind beide aus, verschwindet die Spalte komplett und der Editor-/Render-Bereich nutzt die volle Spaltenbreite.
 
 ### Behoben
 
-- **Anker-Links innerhalb eines Dokuments im Render-Pane** (4T-0014, Seiteneffekt der Einbindung von `markdown-it-anchor`): Links der Form `[Text](#abschnitt)` haben seit Release 0.1 nicht gescrollt, weil markdown-it ohne entsprechendes Plugin keine IDs auf `<h1>..<h6>` setzte. Mit der neuen Plugin-Einbindung bekommen Headings ab 0.8.0 GitHub-kompatible Slug-IDs, und Dokument-interne Anker-Links funktionieren erstmals erwartungsgemäß.
+- **Anker-Links innerhalb eines Dokuments im Render-Pane** (4T-000014, Seiteneffekt der Einbindung von `markdown-it-anchor`): Links der Form `[Text](#abschnitt)` haben seit Release 0.1 nicht gescrollt, weil markdown-it ohne entsprechendes Plugin keine IDs auf `<h1>..<h6>` setzte. Mit der neuen Plugin-Einbindung bekommen Headings ab 0.8.0 GitHub-kompatible Slug-IDs, und Dokument-interne Anker-Links funktionieren erstmals erwartungsgemäß.
 
 ### i18n
 
@@ -4604,26 +4665,26 @@ Großes Feature-Release rund um die Strukturnavigation langer Markdown-Dokumente
 
 ## [0.7.1] - 2026-05-18 — Fenster-Position und -Größe beim Schließen des letzten Fensters
 
-Bugfix-Release. Die seit 0.4.0 vorgesehene und in 0.6.0 dokumentierte Funktion „Fenster-Position und -Größe merken" hat seit dem Multi-Window-Umbau in 0.5.0 für den Sonderfall „letztes Fenster" nicht mehr funktioniert: SCG Markdown startete immer auf dem Hauptmonitor mit Default-Größe, unabhängig davon, wo das einzige offene Fenster zuletzt geschlossen wurde. Zusätzlich wurde während des Testens ein zweiter Bug aufgedeckt, der die wiederhergestellte Größe auf Multi-Monitor-Setups mit unterschiedlicher DPI-Skalierung um den Skalierungsfaktor verzerrt hat. Beide behoben als Task 4T-0025.
+Bugfix-Release. Die seit 0.4.0 vorgesehene und in 0.6.0 dokumentierte Funktion „Fenster-Position und -Größe merken" hat seit dem Multi-Window-Umbau in 0.5.0 für den Sonderfall „letztes Fenster" nicht mehr funktioniert: SCG Markdown startete immer auf dem Hauptmonitor mit Default-Größe, unabhängig davon, wo das einzige offene Fenster zuletzt geschlossen wurde. Zusätzlich wurde während des Testens ein zweiter Bug aufgedeckt, der die wiederhergestellte Größe auf Multi-Monitor-Setups mit unterschiedlicher DPI-Skalierung um den Skalierungsfaktor verzerrt hat. Beide behoben als Task 4T-000025.
 
 ### Behoben
 
-- **Fenster-Position und -Größe des letzten Fensters gehen nicht mehr verloren** (4T-0025): Das Schließen des letzten offenen Fensters überschrieb den persistierten Sitzungsstand mit einer leeren Liste, weil `persistAllWindows()` im `closed`-Handler über die bereits geleerte `windows`-Map iterierte. Beim nächsten Start hatte die App damit keine Bounds mehr und fiel auf die Default-Position (Hauptmonitor, 1200×800) zurück. Fix: die Bounds werden jetzt bereits im `close`-Handler persistiert, solange das Fenster noch in der Map steht und nicht destroyed ist. Der `closed`-Handler überschreibt nur noch dann, wenn nach dem Entfernen noch andere Fenster übrig sind. `before-quit` persistiert ebenfalls nur, wenn beim Quit noch Fenster offen sind. Multi-Window-Verhalten und Quit-via-Menü-Pfad bleiben unverändert.
-- **Korrekte Fenstergröße bei Multi-Monitor mit unterschiedlicher DPI-Skalierung** (4T-0025): Im Test der ersten Fix-Iteration zeigte sich, dass die Position zwar korrekt wiederhergestellt wurde, die Größe aber um den DPI-Skalierungsfaktor des Primärmonitors verzerrt erschien (z.B. um Faktor 0,8 bei einem Primärmonitor auf 125% und einem Sekundärmonitor auf 100%). Ursache: ein bekannter Electron-Bug ([electron/electron #10862](https://github.com/electron/electron/issues/10862), [#16444](https://github.com/electron/electron/issues/16444), [#31999](https://github.com/electron/electron/issues/31999)). Werden `x, y, width, height` direkt im `BrowserWindow`-Konstruktor gesetzt oder beim ersten `setBounds()`-Aufruf vor dem Monitor-Wechsel angewendet, interpretiert Electron sie in DIPs des Primär- bzw. Quellmonitors. Beim Restore auf einen Monitor mit abweichender Skalierung erscheint die Größe entsprechend verzerrt. Fix: Fenster mit Default-Optionen erstellen (landet auf Primärmonitor) und danach `win.setBounds()` **zweimal** hintereinander mit den Ziel-Bounds aufrufen. Der erste Aufruf verschiebt das Fenster auf den Zielmonitor und triggert die DPI-Erkennung, der zweite setzt dann mit der korrekten Ziel-DPI. Verifiziert auf einem Setup mit Primärmonitor 125% und Sekundärmonitor 100%.
+- **Fenster-Position und -Größe des letzten Fensters gehen nicht mehr verloren** (4T-000025): Das Schließen des letzten offenen Fensters überschrieb den persistierten Sitzungsstand mit einer leeren Liste, weil `persistAllWindows()` im `closed`-Handler über die bereits geleerte `windows`-Map iterierte. Beim nächsten Start hatte die App damit keine Bounds mehr und fiel auf die Default-Position (Hauptmonitor, 1200×800) zurück. Fix: die Bounds werden jetzt bereits im `close`-Handler persistiert, solange das Fenster noch in der Map steht und nicht destroyed ist. Der `closed`-Handler überschreibt nur noch dann, wenn nach dem Entfernen noch andere Fenster übrig sind. `before-quit` persistiert ebenfalls nur, wenn beim Quit noch Fenster offen sind. Multi-Window-Verhalten und Quit-via-Menü-Pfad bleiben unverändert.
+- **Korrekte Fenstergröße bei Multi-Monitor mit unterschiedlicher DPI-Skalierung** (4T-000025): Im Test der ersten Fix-Iteration zeigte sich, dass die Position zwar korrekt wiederhergestellt wurde, die Größe aber um den DPI-Skalierungsfaktor des Primärmonitors verzerrt erschien (z.B. um Faktor 0,8 bei einem Primärmonitor auf 125% und einem Sekundärmonitor auf 100%). Ursache: ein bekannter Electron-Bug ([electron/electron #10862](https://github.com/electron/electron/issues/10862), [#16444](https://github.com/electron/electron/issues/16444), [#31999](https://github.com/electron/electron/issues/31999)). Werden `x, y, width, height` direkt im `BrowserWindow`-Konstruktor gesetzt oder beim ersten `setBounds()`-Aufruf vor dem Monitor-Wechsel angewendet, interpretiert Electron sie in DIPs des Primär- bzw. Quellmonitors. Beim Restore auf einen Monitor mit abweichender Skalierung erscheint die Größe entsprechend verzerrt. Fix: Fenster mit Default-Optionen erstellen (landet auf Primärmonitor) und danach `win.setBounds()` **zweimal** hintereinander mit den Ziel-Bounds aufrufen. Der erste Aufruf verschiebt das Fenster auf den Zielmonitor und triggert die DPI-Erkennung, der zweite setzt dann mit der korrekten Ziel-DPI. Verifiziert auf einem Setup mit Primärmonitor 125% und Sekundärmonitor 100%.
 
 ## [0.7.0] - 2026-05-17 — Tab in bestehendes Fenster verschieben oder kopieren
 
-Punkt-Release mit einer Verbesserung an der Multi-Window-Bedienung: Tabs lassen sich per Rechtsklick nicht mehr nur in ein neues, sondern auch in ein bestehendes anderes Fenster verschieben oder kopieren. Damit Quell- und Zielfenster eindeutig benennbar bleiben, tragen alle Fenster bei mehr als einem offenen Fenster den Suffix `(Fenster N)` im Titel. Umgesetzt als Task 4T-0012.
+Punkt-Release mit einer Verbesserung an der Multi-Window-Bedienung: Tabs lassen sich per Rechtsklick nicht mehr nur in ein neues, sondern auch in ein bestehendes anderes Fenster verschieben oder kopieren. Damit Quell- und Zielfenster eindeutig benennbar bleiben, tragen alle Fenster bei mehr als einem offenen Fenster den Suffix `(Fenster N)` im Titel. Umgesetzt als Task 4T-000012.
 
 ### Neu
 
-- **Tab in bestehendes Fenster verschieben oder kopieren** (4T-0012): Rechtsklick auf einen Tab bietet bei mehreren offenen Fenstern jetzt die Untermenüs „Verschieben in" und „Kopieren in" mit den Einträgen „Neues Fenster" und jeweils einem Eintrag pro anderem offenen Fenster (Label `Fenster N`, Tooltip mit Dateinamen des dortigen aktiven Tabs, bei mehreren Tabs zusätzlich `(+N weitere)`). Bei nur einem Fenster bleibt die heutige flache Bedienung mit „In neues Fenster verschieben/kopieren" erhalten. Verschieben übergibt den Tab inklusive ungespeichertem Buffer ans Zielfenster und schließt ihn im Quellfenster ohne weiteren Speichern-Dialog; Kopieren lässt den Quell-Tab unverändert.
-- **Keine Duplikate beim Transfer** (4T-0012): Wenn die zu verschiebende Datei im Zielfenster bereits in einer beliebigen Pane geöffnet ist, wird dort der bestehende Tab aktiviert statt ein zweiter angelegt. Beim Verschieben wird der Quell-Tab dennoch geschlossen.
-- **Fenstertitel mit `(Fenster N)`-Suffix im Mehr-Fenster-Fall** (4T-0012): Sobald mehr als ein Fenster offen ist, hängt jedes Fenster den Suffix `(Fenster N)` an seinen Titel (auch in der Windows-Taskleiste sichtbar). Die Nummerierung 1..N folgt der Erzeugungsreihenfolge, rückt beim Schließen lückenlos nach und entfällt komplett, sobald nur noch ein Fenster offen ist. Damit sind Quell- und Zielfenster im Tab-Kontextmenü und in der Windows-Taskleiste eindeutig benennbar.
+- **Tab in bestehendes Fenster verschieben oder kopieren** (4T-000012): Rechtsklick auf einen Tab bietet bei mehreren offenen Fenstern jetzt die Untermenüs „Verschieben in" und „Kopieren in" mit den Einträgen „Neues Fenster" und jeweils einem Eintrag pro anderem offenen Fenster (Label `Fenster N`, Tooltip mit Dateinamen des dortigen aktiven Tabs, bei mehreren Tabs zusätzlich `(+N weitere)`). Bei nur einem Fenster bleibt die heutige flache Bedienung mit „In neues Fenster verschieben/kopieren" erhalten. Verschieben übergibt den Tab inklusive ungespeichertem Buffer ans Zielfenster und schließt ihn im Quellfenster ohne weiteren Speichern-Dialog; Kopieren lässt den Quell-Tab unverändert.
+- **Keine Duplikate beim Transfer** (4T-000012): Wenn die zu verschiebende Datei im Zielfenster bereits in einer beliebigen Pane geöffnet ist, wird dort der bestehende Tab aktiviert statt ein zweiter angelegt. Beim Verschieben wird der Quell-Tab dennoch geschlossen.
+- **Fenstertitel mit `(Fenster N)`-Suffix im Mehr-Fenster-Fall** (4T-000012): Sobald mehr als ein Fenster offen ist, hängt jedes Fenster den Suffix `(Fenster N)` an seinen Titel (auch in der Windows-Taskleiste sichtbar). Die Nummerierung 1..N folgt der Erzeugungsreihenfolge, rückt beim Schließen lückenlos nach und entfällt komplett, sobald nur noch ein Fenster offen ist. Damit sind Quell- und Zielfenster im Tab-Kontextmenü und in der Windows-Taskleiste eindeutig benennbar.
 
 ### Geändert
 
-- **Hilfe-Dialog** (4T-0012): Beschreibung der Multi-Window-Funktion in allen fünf Sprachen aktualisiert; erwähnt jetzt das Verschieben/Kopieren in bestehende Fenster und die Bedeutung des Titel-Suffixes.
+- **Hilfe-Dialog** (4T-000012): Beschreibung der Multi-Window-Funktion in allen fünf Sprachen aktualisiert; erwähnt jetzt das Verschieben/Kopieren in bestehende Fenster und die Bedeutung des Titel-Suffixes.
 
 ### i18n
 
@@ -4635,32 +4696,32 @@ Punkt-Release mit einer Verbesserung an der Multi-Window-Bedienung: Tabs lassen 
 
 ## [0.6.0] - 2026-05-16 — Edit-Modus, Statusbar-Layout und SCG-Markdown-Branding
 
-Das größte Update seit dem ersten Release: Der bisherige reine Reader bekommt einen vollwertigen Editor, eine native Menüleiste, eine Statusbar-Bedienung am unteren Rand und einen neuen Namen. Umgesetzt als Epic 3E-0001 mit 11 Tasks im neuen lokalen PM-System.
+Das größte Update seit dem ersten Release: Der bisherige reine Reader bekommt einen vollwertigen Editor, eine native Menüleiste, eine Statusbar-Bedienung am unteren Rand und einen neuen Namen. Umgesetzt als Epic 3E-000001 mit 11 Tasks im neuen lokalen PM-System.
 
 ### Neu
 
-- **Native Menüleiste mit Datei / Ansicht / Hilfe** (4T-0001): Pro Fenster eine eigene Menüleiste, ALT-Mnemonics, Akzeleratoren rechts neben den Einträgen. Strg+N, Strg+O, Strg+S, Strg+Umschalt+S, Strg+1/2/3, F1. Multi-Window-Synchronisation für Toggle-Einträge.
-- **CodeMirror-Editor mit Markdown-Syntax-Highlighting** (4T-0003): CodeMirror 6 ersetzt die bisherige `<pre><code>`-Anzeige. Themes für Light und Dark (GitHub-Palette), Zeilennummern und Umbruch als CodeMirror-Compartments. Edit-Modus pro Tab über den Stift in der Statusbar (Strg+E); Klick im Render-Modus wechselt automatisch in Geteilt und aktiviert den Editor.
-- **Speichern und Speichern unter** (4T-0004 Phase 1): Strg+S und Strg+Umschalt+S schreiben den Editor-Inhalt nach UTF-8/LF ohne BOM. Ungespeicherte Änderungen markiert ein `•` im Tab- und Fenstertitel. Schließen-Dialog mit Speichern / Verwerfen / Abbrechen pro Tab und beim Fenster-Schluss. Konflikt-Dialog bei externer Änderung mit Dirty-Buffer (Reload vs. eigene Version behalten). File-Watcher wird beim Eigen-Schreiben kurz stummgeschaltet, um Reload-Loops zu vermeiden.
-- **Auto-Save** (4T-0004 Phase 2): Opt-in im Datei-Menü. Speichert 2 Sekunden nach der letzten Eingabe oder bei Fenster-Fokusverlust. Tabs ohne Pfad („Unbenannt") werden nicht automatisch gespeichert. 1-Sekunden-Statusbar-Hinweis „Gespeichert" rechts neben dem Edit-Toggle, Schreibfehler werden 3 Sekunden in Rot angezeigt.
-- **Recent Files** (4T-0005): Submenü `Datei → Zuletzt` mit 10 Einträgen (vorher Toolbar-Dropdown). Dateiname als Label, voller Pfad als Tooltip, Disambiguator `(Ordner)` bei gleichnamigen Dateien. Klick öffnet die Datei als neuer Tab im aktiven Fenster (analog zu „Öffnen mit" im Explorer). Verwaiste Pfade werden beim Klick aus der Liste entfernt. Eintrag „Liste löschen" mit Bestätigungsdialog.
-- **Datei → Neu** (4T-0006): Strg+N öffnet einen leeren „Unbenannt N"-Tab im aktiven Fenster (View „Geteilt", Edit-Modus aktiv). Counter zählt pro Fenster hoch. Beim ersten Speichern öffnet sich Speichern unter.
-- **Suchen und Ersetzen im Edit-Modus** (4T-0007): Strg+H im Edit-Modus öffnet einen zweiten Eingabebereich „Ersetzen durch…" mit zwei Buttons (einzelner Treffer / alle Treffer). Backreferences `$1`, `$2`, … im Regex-Modus. „Alle ersetzen" als einzelne CodeMirror-Transaktion, sodass Strg+Z die Aktion als Ganzes rückgängig macht.
-- **Stabile Source-Suche** (4T-0007): Die Suche im Quellcode-Pane nutzt jetzt CodeMirror-Decorations via StateField; Treffer-Highlights überleben CM-Re-Renders. Vorher flackerten sie kurz, weil die `<mark>`-DOM-Manipulation vom CM-Editor überschrieben wurde.
+- **Native Menüleiste mit Datei / Ansicht / Hilfe** (4T-000001): Pro Fenster eine eigene Menüleiste, ALT-Mnemonics, Akzeleratoren rechts neben den Einträgen. Strg+N, Strg+O, Strg+S, Strg+Umschalt+S, Strg+1/2/3, F1. Multi-Window-Synchronisation für Toggle-Einträge.
+- **CodeMirror-Editor mit Markdown-Syntax-Highlighting** (4T-000003): CodeMirror 6 ersetzt die bisherige `<pre><code>`-Anzeige. Themes für Light und Dark (GitHub-Palette), Zeilennummern und Umbruch als CodeMirror-Compartments. Edit-Modus pro Tab über den Stift in der Statusbar (Strg+E); Klick im Render-Modus wechselt automatisch in Geteilt und aktiviert den Editor.
+- **Speichern und Speichern unter** (4T-000004 Phase 1): Strg+S und Strg+Umschalt+S schreiben den Editor-Inhalt nach UTF-8/LF ohne BOM. Ungespeicherte Änderungen markiert ein `•` im Tab- und Fenstertitel. Schließen-Dialog mit Speichern / Verwerfen / Abbrechen pro Tab und beim Fenster-Schluss. Konflikt-Dialog bei externer Änderung mit Dirty-Buffer (Reload vs. eigene Version behalten). File-Watcher wird beim Eigen-Schreiben kurz stummgeschaltet, um Reload-Loops zu vermeiden.
+- **Auto-Save** (4T-000004 Phase 2): Opt-in im Datei-Menü. Speichert 2 Sekunden nach der letzten Eingabe oder bei Fenster-Fokusverlust. Tabs ohne Pfad („Unbenannt") werden nicht automatisch gespeichert. 1-Sekunden-Statusbar-Hinweis „Gespeichert" rechts neben dem Edit-Toggle, Schreibfehler werden 3 Sekunden in Rot angezeigt.
+- **Recent Files** (4T-000005): Submenü `Datei → Zuletzt` mit 10 Einträgen (vorher Toolbar-Dropdown). Dateiname als Label, voller Pfad als Tooltip, Disambiguator `(Ordner)` bei gleichnamigen Dateien. Klick öffnet die Datei als neuer Tab im aktiven Fenster (analog zu „Öffnen mit" im Explorer). Verwaiste Pfade werden beim Klick aus der Liste entfernt. Eintrag „Liste löschen" mit Bestätigungsdialog.
+- **Datei → Neu** (4T-000006): Strg+N öffnet einen leeren „Unbenannt N"-Tab im aktiven Fenster (View „Geteilt", Edit-Modus aktiv). Counter zählt pro Fenster hoch. Beim ersten Speichern öffnet sich Speichern unter.
+- **Suchen und Ersetzen im Edit-Modus** (4T-000007): Strg+H im Edit-Modus öffnet einen zweiten Eingabebereich „Ersetzen durch…" mit zwei Buttons (einzelner Treffer / alle Treffer). Backreferences `$1`, `$2`, … im Regex-Modus. „Alle ersetzen" als einzelne CodeMirror-Transaktion, sodass Strg+Z die Aktion als Ganzes rückgängig macht.
+- **Stabile Source-Suche** (4T-000007): Die Suche im Quellcode-Pane nutzt jetzt CodeMirror-Decorations via StateField; Treffer-Highlights überleben CM-Re-Renders. Vorher flackerten sie kurz, weil die `<mark>`-DOM-Manipulation vom CM-Editor überschrieben wurde.
 
 ### Geändert
 
-- **Statusbar statt Toolbar** (4T-0002): Die Toolbar oben ist komplett entfernt. Quick-Toggles (Nummern, Umbruch, Quellcode, Geteilt, Gerendert) sitzen jetzt in einer Statusbar am unteren Rand. Rechts in der Statusbar: Edit-Toggle (Stift) und Sprach-Selektor. Die Suchleiste blendet sich weiter über die Statusbar ein, mit zusätzlicher Replace-Zeile im Edit-Modus.
-- **Sitzungswiederherstellung als Menü-Toggle** (4T-0008): Die Toolbar-Checkbox „Sitzung wiederherstellen" wandert in das Hilfe-Menü als Toggle-Eintrag mit Häkchen. Multi-Window-synchron via `applyMenuToAllWindows` bei jedem `settings:set` mit Key `restoreSession`.
-- **Rebranding auf „SCG Markdown"** (4T-0011): App-Name, `productName`, `appId`, NSIS-Display-Strings, Fenster-Titel, Über-Dialog, Empty-State und Dokumentation überall einheitlich auf „SCG Markdown" / `scg-markdown` / `net.stumm.scg-markdown`. Settings-Migration aus `%APPDATA%/Markdown Viewer/config.json` ins neue `%APPDATA%/SCG Markdown/config.json` läuft einmalig beim ersten Start unter neuem Namen. EXE-Dateinamen sind jetzt `SCG Markdown-<version>-Setup.exe` und `-Portable.exe`. Registry-ProgIDs (`MarkdownViewer.md`) bleiben absichtlich gleich, damit Updates aus 0.5.x-Installationen die Datei-Assoziation sauber überschreiben statt eine zweite ProgID anzulegen.
+- **Statusbar statt Toolbar** (4T-000002): Die Toolbar oben ist komplett entfernt. Quick-Toggles (Nummern, Umbruch, Quellcode, Geteilt, Gerendert) sitzen jetzt in einer Statusbar am unteren Rand. Rechts in der Statusbar: Edit-Toggle (Stift) und Sprach-Selektor. Die Suchleiste blendet sich weiter über die Statusbar ein, mit zusätzlicher Replace-Zeile im Edit-Modus.
+- **Sitzungswiederherstellung als Menü-Toggle** (4T-000008): Die Toolbar-Checkbox „Sitzung wiederherstellen" wandert in das Hilfe-Menü als Toggle-Eintrag mit Häkchen. Multi-Window-synchron via `applyMenuToAllWindows` bei jedem `settings:set` mit Key `restoreSession`.
+- **Rebranding auf „SCG Markdown"** (4T-000011): App-Name, `productName`, `appId`, NSIS-Display-Strings, Fenster-Titel, Über-Dialog, Empty-State und Dokumentation überall einheitlich auf „SCG Markdown" / `scg-markdown` / `net.stumm.scg-markdown`. Settings-Migration aus `%APPDATA%/Markdown Viewer/config.json` ins neue `%APPDATA%/SCG Markdown/config.json` läuft einmalig beim ersten Start unter neuem Namen. EXE-Dateinamen sind jetzt `SCG Markdown-<version>-Setup.exe` und `-Portable.exe`. Registry-ProgIDs (`MarkdownViewer.md`) bleiben absichtlich gleich, damit Updates aus 0.5.x-Installationen die Datei-Assoziation sauber überschreiben statt eine zweite ProgID anzulegen.
 - **Datei → Neu, Öffnen und Recent-Klick** öffnen jetzt einheitlich einen Tab im aktiven Fenster. Die ursprüngliche Konzept-Idee „Neu/Öffnen erzeugen ein neues Fenster" wurde während der Klärung mit dem Nutzer verworfen, weil sie zu Buffer-Verlust und inkonsistentem Verhalten zu „Öffnen mit" im Explorer geführt hätte.
-- **Hilfe-Dialog erweitert** (4T-0009): 6 neue Features (Datei-Neu, Edit-Modus, Speichern, Auto-Save, Suchen-Ersetzen, Menüleiste) und 7 neue Tastenkürzel (Strg+N, Strg+S, Strg+Umschalt+S, Strg+E, Strg+1/2/3, Strg+H, Alt). F1 öffnet jetzt das Hilfe-Modal statt den Über-Dialog. Veraltete Wording-Stellen („in der Toolbar") korrigiert auf den neuen Stand.
+- **Hilfe-Dialog erweitert** (4T-000009): 6 neue Features (Datei-Neu, Edit-Modus, Speichern, Auto-Save, Suchen-Ersetzen, Menüleiste) und 7 neue Tastenkürzel (Strg+N, Strg+S, Strg+Umschalt+S, Strg+E, Strg+1/2/3, Strg+H, Alt). F1 öffnet jetzt das Hilfe-Modal statt den Über-Dialog. Veraltete Wording-Stellen („in der Toolbar") korrigiert auf den neuen Stand.
 
 ### Build & Tooling
 
 - **`releases/`-Ordner als Versions-Archiv** (vorher `dist/`): `dist/` ist reiner Build-Output von electron-builder und enthält nur das aktuelle Build samt Zwischenprodukten (`win-unpacked/`, `builder-debug.yml`, `latest.yml`, aktuelle `*.blockmap`). Die fertigen EXEs werden per `postbuild`-Hook (`scripts/archive-build.js`) automatisch nach `releases/` verschoben, wo sich das Versions-Archiv über die Releases hinweg sammelt. Beide Ordner sind weiter gitignored. Ältere EXEs (v0.1.0 bis v0.5.1) wurden migriert.
 - **Alte `.blockmap`-Dateien werden automatisch aufgeräumt**: Das `postbuild`-Script entfernt `.blockmap`-Dateien aus früheren Builds, die nicht mehr zur aktuellen Version gehören.
-- **esbuild als Renderer-Bundler** (4T-0003): CodeMirror 6 verlangt einen Bundler, weil bare-imports (`@codemirror/state` etc.) nicht direkt im Renderer auflösbar sind. `scripts/build-renderer.js` bundelt `renderer.js` plus alle Imports zu `renderer.bundle.js`. npm-Scripts `start`, `dev`, `build` und die Build-Targets rufen den Bundler vorab.
+- **esbuild als Renderer-Bundler** (4T-000003): CodeMirror 6 verlangt einen Bundler, weil bare-imports (`@codemirror/state` etc.) nicht direkt im Renderer auflösbar sind. `scripts/build-renderer.js` bundelt `renderer.js` plus alle Imports zu `renderer.bundle.js`. npm-Scripts `start`, `dev`, `build` und die Build-Targets rufen den Bundler vorab.
 - **Lokales PM-System**: Epics und Tasks für 0.6.0 wurden in `Projektmanagement/Aufgaben/` als Markdown-Dateien geführt statt als GitHub-Issues. Begründung und Konventionen in der projekt-lokalen `CLAUDE.md` und `Projektmanagement/README.md`. Die bisherigen GitHub-Issues #1 und #2 bleiben als historische Spur erhalten.
 
 ### i18n

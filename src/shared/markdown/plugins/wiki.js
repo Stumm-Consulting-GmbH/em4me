@@ -1,4 +1,4 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Wiki-Gruppe der eigenen markdown-it-Plugins: Wiki-Links, Wiki-Embeds,
 // Tags und Block-Anker. Electron-frei; die Instanz-Registrierung
 // (md.use/mdPortable.use) macht markdown.js in der Original-Reihenfolge.
@@ -6,7 +6,7 @@
 
 const { escapeHtml, githubLikeSlug } = require('../slug.js');
 
-// 4T-0891 (Epic 3E-0168): Anker-Teil eines Wiki-Ziels als href-Fragment.
+// 4T-000891 (Epic 3E-000168): Anker-Teil eines Wiki-Ziels als href-Fragment.
 // Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
 // Slug-Validierung \p{L}\p{N}_-), sonst greift der Heading-Slug. Aus
 // wikiLinksPlugin herausgeloest, weil der Portable-Rueckfall der Wiki-Embeds
@@ -19,7 +19,7 @@ function wikiAnchorPart(anchorRaw) {
     // Bei ungueltiger Block-ID: Anker faellt weg, Link zeigt nur auf Datei.
     return /^[\p{L}\p{N}_-]+$/u.test(id) ? '#' + id : '';
   }
-  // P-05 (4T-0183): beide Zweige der frueheren Verzweigung waren
+  // P-05 (4T-000183): beide Zweige der frueheren Verzweigung waren
   // identisch — auf eine Zuweisung reduziert.
   const slug = githubLikeSlug(raw);
   return slug ? '#' + slug : '';
@@ -29,7 +29,7 @@ function wikiAnchorPart(anchorRaw) {
 // Wenn das Ziel bereits eine Endung hat, wird .md nicht doppelt angehängt.
 // Klick-Handling im Renderer ist identisch zu normalen Markdown-Links.
 //
-// 4T-0054 (Epic 3E-0011): Erweitert um Heading- und Block-Anker.
+// 4T-000054 (Epic 3E-000011): Erweitert um Heading- und Block-Anker.
 // Akzeptierte Formen:
 //   [[Datei]]                — Datei.md
 //   [[Datei|Label]]          — Datei.md mit eigenem Linktext
@@ -53,7 +53,7 @@ function wikiLinksPlugin(mdInstance) {
     const inner = state.src.slice(start + 2, end);
     if (inner.length === 0 || inner.includes('\n') || inner.includes('[')) return false;
 
-    // 4T-0067 (Epic 3E-0012): Pipe ist Label-Trenner. In Tabellen-Zellen
+    // 4T-000067 (Epic 3E-000012): Pipe ist Label-Trenner. In Tabellen-Zellen
     // wird er als `\|` escapet, damit der Tabellen-Parser ihn nicht als
     // Spaltentrenner sieht. `indexOf('|')` findet beide Varianten; ein
     // verbleibender Backslash am Target-Ende wird abgeschnitten.
@@ -62,7 +62,7 @@ function wikiLinksPlugin(mdInstance) {
     const labelRaw = (pipeIdx >= 0 ? inner.slice(pipeIdx + 1) : inner).trim();
     if (!targetRaw) return false;
 
-    // 4T-0054: Anker-Trennung. '#' direkt am Anfang -> reiner Anker.
+    // 4T-000054: Anker-Trennung. '#' direkt am Anfang -> reiner Anker.
     const hashIdx = targetRaw.indexOf('#');
     let pathPart = targetRaw;
     let anchorRaw = '';
@@ -71,7 +71,7 @@ function wikiLinksPlugin(mdInstance) {
       anchorRaw = targetRaw.slice(hashIdx + 1);
     }
 
-    // P-07 (4T-0176): gefaehrliche URL-Schemata gar nicht erst als Link
+    // P-07 (4T-000176): gefaehrliche URL-Schemata gar nicht erst als Link
     // rendern (Text bleibt roh sichtbar). Der Klick-Handler verwirft solche
     // hrefs zwar, aber Browser-Default-Pfade (z.B. mittlere Maustaste)
     // sollen sich nicht allein auf die CSP verlassen muessen.
@@ -83,7 +83,7 @@ function wikiLinksPlugin(mdInstance) {
     // Pfad: bei reinem Anker (kein Pfad-Teil) bleibt es nur beim Anker.
     let href;
     if (pathPart === '..' || pathPart === '../') {
-      // 4T-0336 (Epic 3E-0061): relativer Unterseiten-Link auf die Eltern-
+      // 4T-000336 (Epic 3E-000061): relativer Unterseiten-Link auf die Eltern-
       // seite. Kein '.md'-Suffix — der Klick-Pfad expandiert das Ziel
       // gegen den Basename der aktiven Datei.
       href = '..' + anchorPart;
@@ -114,7 +114,7 @@ function wikiLinksPlugin(mdInstance) {
   mdInstance.inline.ruler.before('link', 'wikilink', tokenize);
 }
 
-// 4T-0055 (Epic 3E-0011): Wiki-Embeds `![[Datei]]`.
+// 4T-000055 (Epic 3E-000011): Wiki-Embeds `![[Datei]]`.
 // Erweitert die Wiki-Link-Syntax um den `!`-Operator als Embed-Marker.
 // Akzeptierte Formen:
 //   ![[bild.png]]              — Bild-Embed (max-width: 100%)
@@ -133,7 +133,7 @@ function wikiLinksPlugin(mdInstance) {
 // als <img> ausgegeben, damit resolveImagesForBase sie zu data-URIs
 // konvertieren kann.
 //
-// 4T-0891 (Epic 3E-0168, Befund L-02): options.portable fuellt die
+// 4T-000891 (Epic 3E-000168, Befund L-02): options.portable fuellt die
 // Platzhalter-Spans der Nicht-Bild-Embeds mit einem sichtbaren Verweis auf
 // das Ziel (Details an der Render-Regel unten).
 function wikiEmbedsPlugin(mdInstance, options) {
@@ -153,7 +153,7 @@ function wikiEmbedsPlugin(mdInstance, options) {
     // Pipe-Trennung: bei Embeds ist '|<n>' bzw. '|<n>px' eine Groessen-
     // Angabe (Breite in Pixel). Sonstige Werte werden in dieser Stufe
     // ignoriert (kein Alt-Text-Support).
-    // 4T-0067 (Epic 3E-0012): Pipe-Escape `\|` in Tabellen-Zellen — Backslash
+    // 4T-000067 (Epic 3E-000012): Pipe-Escape `\|` in Tabellen-Zellen — Backslash
     // am Target-Ende wird abgeschnitten, analog zu wikiLinksPlugin.
     const pipeIdx = inner.indexOf('|');
     const targetRaw = (pipeIdx >= 0 ? inner.slice(0, pipeIdx) : inner).replace(/\\$/, '').trim();
@@ -179,7 +179,7 @@ function wikiEmbedsPlugin(mdInstance, options) {
 
     // Datei-Typ aus Extension ableiten. Ohne Extension wird '.md' angehaengt
     // (analog zu Wiki-Links).
-    // 4T-0337 (Epic 3E-0061): '![[..]]' ist ein Eltern-Embed — kein
+    // 4T-000337 (Epic 3E-000061): '![[..]]' ist ein Eltern-Embed — kein
     // '.md'-Suffix, der embed:read-Handler expandiert gegen die Basis-Datei.
     if (pathPart === '..' || pathPart === '../') {
       if (!silent) {
@@ -224,7 +224,7 @@ function wikiEmbedsPlugin(mdInstance, options) {
   // als <span class="wiki-embed-*">-Platzhalter ausgegeben; das Renderer-
   // Postprocessing baut das echte DOM.
   //
-  // 4T-0891 (Epic 3E-0168, Befund L-02): Im Portable-Zweig laeuft dieses
+  // 4T-000891 (Epic 3E-000168, Befund L-02): Im Portable-Zweig laeuft dieses
   // Postprocessing nicht — die Platzhalter blieben dort leere Spans, ein
   // Nicht-Bild-Embed war im exportierten Dokument also unsichtbar. Der
   // Platzhalter traegt deshalb einen sichtbaren Verweis auf das Ziel, in
@@ -251,7 +251,7 @@ function wikiEmbedsPlugin(mdInstance, options) {
     attrStr += ` data-embed-path="${escapeHtml(embedPath)}"`;
     if (anchor) attrStr += ` data-embed-anchor="${escapeHtml(anchor)}"`;
     if (width) attrStr += ` data-embed-width="${escapeHtml(width)}"`;
-    // 4T-0891: sichtbarer Rueckfall nur im Portable-Zweig; der Viewer-Zweig
+    // 4T-000891: sichtbarer Rueckfall nur im Portable-Zweig; der Viewer-Zweig
     // behaelt den leeren Platzhalter, den sein Postprocessing ohnehin fuellt.
     // Der Linktext nennt das Ziel so, wie der Embed es adressiert (Pfad und
     // roher Anker), die href folgt der Wiki-Link-Aufloesung (Anker als Slug
@@ -266,7 +266,7 @@ function wikiEmbedsPlugin(mdInstance, options) {
   };
 }
 
-// 4T-0056 (Epic 3E-0011): Tag-Inline-Rule. `#tag` im Fliesstext wird zu
+// 4T-000056 (Epic 3E-000011): Tag-Inline-Rule. `#tag` im Fliesstext wird zu
 // einem klickbaren <a class="tag-link" href="#tag:<name>">-Element. Tag-
 // Zeichen sind \p{L}\p{N}_- plus '/' fuer Hierarchien (z.B. #projekt/x).
 // Vor '#' muss Anfang der Zeile oder ein nicht-Wort-Zeichen stehen, sonst
@@ -276,10 +276,10 @@ function wikiEmbedsPlugin(mdInstance, options) {
 // laeuft. Code-Bloecke (Inline und Fenced) sind ebenfalls aussen vor —
 // markdown-it laesst Inline-Rules darin nicht laufen.
 function tagsPlugin(mdInstance) {
-  // 4T-0060: Hex-Farbcodes und reine Zahlen sind kein Tag.
+  // 4T-000060: Hex-Farbcodes und reine Zahlen sind kein Tag.
   const HEX_COLOR = /^[0-9a-f]{3,8}$/i;
   const HAS_LETTER = /[\p{L}]/u;
-  // 4T-0202: '#wort' innerhalb eines {...}-Attribut-Blocks (markdown-it-
+  // 4T-000202: '#wort' innerhalb eines {...}-Attribut-Blocks (markdown-it-
   // attrs) ist eine ID-Angabe, kein Tag. Der Tag-Tokenizer laeuft beim
   // Inline-Parsing VOR dem attrs-Core-Ruler und wuerde den Block sonst
   // zerschneiden ({#id} bliebe sichtbar, die ID ginge verloren).
@@ -313,9 +313,9 @@ function tagsPlugin(mdInstance) {
       const prevCh = state.src.charAt(start - 1);
       if (/[\p{L}\p{N}_#]/u.test(prevCh)) return false;
     }
-    // 4T-0202: ID-Angaben in Attribut-Bloecken ueberspringen.
+    // 4T-000202: ID-Angaben in Attribut-Bloecken ueberspringen.
     if (insideAttrBlock(state.src, start)) return false;
-    // 4T-0060: Markdown-Link-Ziel `](#anker)` ist kein Tag. Wenn die zwei
+    // 4T-000060: Markdown-Link-Ziel `](#anker)` ist kein Tag. Wenn die zwei
     // Zeichen vor '#' das Muster `](` zeigen, abbrechen. Der Render-Pfad
     // sieht das normalerweise nicht (link-Ruler konsumiert vorher), aber
     // konsistent zur Index-Logik.
@@ -334,9 +334,9 @@ function tagsPlugin(mdInstance) {
     if (!tagText) return false;
     // Hierarchie-Trenner '/' darf nicht am Anfang oder Ende stehen.
     if (tagText.startsWith('/') || tagText.endsWith('/')) return false;
-    // 4T-0060: Tag muss mindestens einen Buchstaben enthalten.
+    // 4T-000060: Tag muss mindestens einen Buchstaben enthalten.
     if (!HAS_LETTER.test(tagText)) return false;
-    // 4T-0060: Hex-Farbcodes (3-, 4-, 6- oder 8-stellig) ausschliessen.
+    // 4T-000060: Hex-Farbcodes (3-, 4-, 6- oder 8-stellig) ausschliessen.
     if (HEX_COLOR.test(tagText)) return false;
 
     if (!silent) {
@@ -354,7 +354,7 @@ function tagsPlugin(mdInstance) {
   mdInstance.inline.ruler.before('link', 'tag', tokenize);
 }
 
-// 4T-0054 (Epic 3E-0011): Block-Anker-Syntax `^block-id` am Zeilenende.
+// 4T-000054 (Epic 3E-000011): Block-Anker-Syntax `^block-id` am Zeilenende.
 // Hängt id-Attribut an das umschließende Block-Open-Token (paragraph_open,
 // blockquote_open, list_item_open, td_open, etc.) und entfernt das Marker-
 // Snippet aus dem sichtbaren Text. Slug-Validierung: \p{L}\p{N}_- (inkl.

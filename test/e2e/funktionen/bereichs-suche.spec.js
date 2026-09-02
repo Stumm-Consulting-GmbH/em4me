@@ -1,4 +1,4 @@
-// 4T-0616 (Epic 3E-0116): E2E-Funktions-Suite — Bereichs-Suche.
+// 4T-000616 (Epic 3E-000116): E2E-Funktions-Suite — Bereichs-Suche.
 //
 // Kern der Zusage: Wer in einer Datei eines geoeffneten Bereichs sucht,
 // findet auch, was in einer ANDEREN, nicht geoeffneten Datei desselben
@@ -111,12 +111,12 @@ test.describe('BS-01: Trefferraum ueber alle Bereichs-Dateien', () => {
   });
 });
 
-// B-01 (4T-0904): Dieser Fall ist zugleich der szenario-treue Regressionstest
+// B-01 (4T-000904): Dieser Fall ist zugleich der szenario-treue Regressionstest
 // zur stillen Ausnahme in setCurrentMatch. Er stellt genau die gemeldete Lage
 // her — geoeffneter Bereich (Geltungsbereich 'area') plus offene Datei im
 // Editor, deren Treffer ueber performSourceSearch als Editor-Positionen
 // entstehen. Rot wurde er nicht an einer eigenen Zusicherung, sondern ueber den
-// Konsolen-Waechter aus 4T-0901: Die Ausnahme brach die Markierung still ab.
+// Konsolen-Waechter aus 4T-000901: Die Ausnahme brach die Markierung still ab.
 test.describe('BS-02: offene Datei zuerst, mit ihrem Editor-Stand', () => {
   test('stellt die offene Datei voran und findet Ungespeichertes', async () => {
     test.setTimeout(120000);

@@ -1,4 +1,4 @@
-// B-09 (4T-0937, erhoben im Charter-Durchgang 4T-0899, Pruef-Runde 4): Jeder
+// B-09 (4T-000937, erhoben im Charter-Durchgang 4T-000899, Pruef-Runde 4): Jeder
 // Datums-Wert einer Aufgaben-Zeile ist anklickbar, nicht nur der hinter dem
 // Erinnerungs-Marker.
 //

@@ -1,4 +1,4 @@
-// 4T-0526/4T-0527/4T-0528 (Epic 3E-0095): E2E-Funktions-Suite Erinnerungen.
+// 4T-000526/4T-000527/4T-000528 (Epic 3E-000095): E2E-Funktions-Suite Erinnerungen.
 //
 // Das Erinnerungs-System meldet fällige ⏰-Anker auf Aufgaben-Zeilen der
 // GEÖFFNETEN Bereiche. Die Specs binden die App per area:openPath an einen
@@ -162,7 +162,7 @@ test.describe('ER-02: Erinnerungen — „Erledigt" schreibt [x] und entfernt de
 
 // --- ER-03: Später erinnern (Snooze) aus dem Dialog --------------------------------
 
-// 4T-0526 (Epic 3E-0095): Snooze AUS DEM DIALOG heraus, zugleich Regressions-
+// 4T-000526 (Epic 3E-000095): Snooze AUS DEM DIALOG heraus, zugleich Regressions-
 // test für den Stacking-Fix: das Snooze-Kontextmenü (`.context-menu`) muss
 // ÜBER dem Erinnerungs-Modal (`.bookmark-modal`, z-index 3000) liegen, sonst
 // trifft der Klick auf eine Snooze-Option den verdeckten Schließen-Button des
@@ -391,7 +391,7 @@ test.describe('ER-07: Erinnerungen — deaktivierte Erweiterung liefert weder Di
       await page.waitForTimeout(2000);
       await expect(page.locator(MODAL)).toBeHidden();
 
-      // 4T-0568 (Epic 3E-0104): der Statusbar-Button ist bei deaktivierter
+      // 4T-000568 (Epic 3E-000104): der Statusbar-Button ist bei deaktivierter
       // Erweiterung ausgeblendet (vorher sichtbar, aber wirkungslos); das
       // Panel bleibt aus.
       await expect(page.locator('#btn-reminders')).toBeHidden();
@@ -405,7 +405,7 @@ test.describe('ER-07: Erinnerungen — deaktivierte Erweiterung liefert weder Di
 
 // --- ER-08: Panel im Bereich OHNE offene Datei -------------------------------------
 
-// 4T-0527 (PO-Testbefund 2026-07-11): Erinnerungen sind bereichsweit; das Panel
+// 4T-000527 (PO-Testbefund 2026-07-11): Erinnerungen sind bereichsweit; das Panel
 // muss in einem geöffneten Bereich auch OHNE offene Datei anzeigbar sein (vorher
 // hing es an isAllEmpty und verschwand ohne Tab). Regressionstest: Bereich
 // binden, KEINE Datei öffnen, Panel über den Statusbar-Button einblenden.

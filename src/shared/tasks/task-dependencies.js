@@ -1,4 +1,4 @@
-// 4T-0983 (Epic 3E-0196): Kennungen und Abhängigkeiten der Task-Zeile —
+// 4T-000983 (Epic 3E-000196): Kennungen und Abhängigkeiten der Task-Zeile —
 // aus `task-markers.js` ausgezogen, Funktions-Rümpfe unverändert.
 //
 // Inhalt: Gültigkeit und Vergabe der Task-Kennung, die Mutatoren der
@@ -16,7 +16,7 @@
 
 const { DEPENDS_SYMBOL, ID_SYMBOL, findLastSegment, leadingWs } = require('./task-markers.js');
 
-// --- Abhaengigkeiten (4T-0508, Epic 3E-0096) -----------------------------------------
+// --- Abhaengigkeiten (4T-000508, Epic 3E-000096) -----------------------------------------
 
 // Gueltige Task-ID (Referenz-Format: a-z, A-Z, 0-9, '_', '-').
 const TASK_ID_RE = /^[A-Za-z0-9_-]+$/;

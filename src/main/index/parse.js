@@ -1,4 +1,4 @@
-// 4T-0977 (Epic 3E-0196): Datei-Parser des Backlinks-Index, herausgelöst aus
+// 4T-000977 (Epic 3E-000196): Datei-Parser des Backlinks-Index, herausgelöst aus
 // src/main/backlinks.js. Extrahiert aus einer Markdown-Datei die Link-Treffer,
 // Aliases, Heading-Slugs, Block-IDs, Tags, Frontmatter-Properties und
 // Task-Zeilen. Alle Funktionen sind zustandsfrei gegenüber dem Index (reine
@@ -9,17 +9,17 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-// 4T-0050 (Epic 3E-0010): js-yaml fuer Frontmatter-Aliases-Auswertung
+// 4T-000050 (Epic 3E-000010): js-yaml fuer Frontmatter-Aliases-Auswertung
 // (SAFE-Schema, kein Code-Eval).
 const yaml = require('js-yaml');
-// W-06 (4T-0310): Heading-Slug aus der gemeinsamen Quelle (Single Source),
+// W-06 (4T-000310): Heading-Slug aus der gemeinsamen Quelle (Single Source),
 // statt einer lokalen Kopie — verhindert Divergenz zwischen Backlinks-/
 // Autocomplete-Ankern und dem Render-Pfad.
 const { githubLikeSlug } = require('../../shared/markdown/slug.js');
-// 4T-0336 (Epic 3E-0061): Unterseiten-Namens-Logik (U+2215-Trennzeichen,
+// 4T-000336 (Epic 3E-000061): Unterseiten-Namens-Logik (U+2215-Trennzeichen,
 // Slash-Uebersetzung, Expansion relativer Ziele) aus der gemeinsamen Quelle.
 const { expandRelativeTarget, isRelativeTarget } = require('../../shared/subpages.js');
-// 4T-0344 (Epic 3E-0062): Erkennungs-Bausteine (Link-Regexe, Inline-Code-
+// 4T-000344 (Epic 3E-000062): Erkennungs-Bausteine (Link-Regexe, Inline-Code-
 // Maskierung, Frontmatter-Grenze, Namens-Normalisierung) aus der gemeinsamen
 // Quelle, damit Backlinks-Index und Rewrite-Kern dieselben Stellen als Link
 // erkennen (keine duplizierten Patterns).
@@ -32,29 +32,29 @@ const {
   maskInlineCode,
   frontmatterBodyStart,
 } = require('../../shared/markdown/link-scan.js');
-// 4T-0363 (Epic 3E-0067): Block-Anker-Regex aus der gemeinsamen, prozess-
+// 4T-000363 (Epic 3E-000067): Block-Anker-Regex aus der gemeinsamen, prozess-
 // neutralen Quelle (Single Source). Dieselbe Definition nutzt der Renderer-
 // Abgleich des Block-Metadaten-Panels, damit Index (`blockIds`) und Panel
 // dieselben Anker als Block-Anker erkennen.
 const { BLOCK_ANCHOR_RE } = require('../../shared/block-anchors.js');
-// 4T-0502 (Epic 3E-0096): Marker-Kern fuer den TASKS-Scope der Abfrage —
+// 4T-000502 (Epic 3E-000096): Marker-Kern fuer den TASKS-Scope der Abfrage —
 // Task-Zeilen werden beim Indexieren als Roh-Zeilen gesammelt und erst im
 // Query-Zweig zum Modell geparst (Index bleibt schlank, Re-Parse trivial).
 const { parseTaskLine } = require('../../shared/tasks/task-markers.js');
-// 4T-0348 (Epic 3E-0062): Hash fuer die Index-Persistenz (Cache-Absicherung
+// 4T-000348 (Epic 3E-000062): Hash fuer die Index-Persistenz (Cache-Absicherung
 // des Parse-Ergebnisses).
 const { hashText } = require('../documents/mdd-store.js');
 
-// B-19 (4T-0181): Einzeldatei-Limit — groessere Dateien werden nicht
+// B-19 (4T-000181): Einzeldatei-Limit — groessere Dateien werden nicht
 // geparst (Index bleibt funktionsfaehig, Datei traegt keine Links bei).
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 const SNIPPET_MAX = 120;
-// 4T-0344 (Epic 3E-0062): eine Instanz je Modul-Ladung; lastIndex wird pro Zeile
+// 4T-000344 (Epic 3E-000062): eine Instanz je Modul-Ladung; lastIndex wird pro Zeile
 // zurueckgesetzt (unveraendertes Verhalten der frueheren Modul-Konstante).
 // MD_EXT_RE und FRONTMATTER_END_LINE kommen jetzt aus der gemeinsamen Quelle.
 const WIKI_LINK_RE = createWikiLinkRegex();
 
-// B-10 (4T-0175): Heading-Text vor dem Sluggen um Link-Syntax reduzieren,
+// B-10 (4T-000175): Heading-Text vor dem Sluggen um Link-Syntax reduzieren,
 // wie es der Renderer ueber den Token-Text effektiv tut: [[Ziel|Label]] ->
 // Label, [[Ziel]] -> Ziel, [Text](url) -> Text.
 function reduceHeadingText(s) {
@@ -64,23 +64,23 @@ function reduceHeadingText(s) {
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
 }
 
-// 4T-0054: ATX-Heading-Erkennung (1-6 Hashes plus mind. ein Leerzeichen).
+// 4T-000054: ATX-Heading-Erkennung (1-6 Hashes plus mind. ein Leerzeichen).
 // Optionaler Trailing-Hash (`# Heading #`) wird abgeschnitten.
 const HEADING_RE = /^#{1,6}\s+(.+?)(?:\s+#{1,6})?\s*$/;
 
-// 4T-0056: Inline-Tags `#tag` im Body. Gleiches Pattern wie tagsPlugin in
+// 4T-000056: Inline-Tags `#tag` im Body. Gleiches Pattern wie tagsPlugin in
 // preload.js. Negativer Look-behind verhindert Treffer mitten in Woertern
 // (z.B. 'foo#bar'), nach `##` (Markdown-Heading-Doppelhash) und in
-// Markdown-Link-Zielen `](#anker)` (4T-0060).
+// Markdown-Link-Zielen `](#anker)` (4T-000060).
 const TAG_RE = /(?<![\p{L}\p{N}_#])(?<!\]\()#([\p{L}\p{N}_/-]+)/gu;
-// 4T-0060: Hex-Farbcodes (3-, 4-, 6- oder 8-stellig, alles Hex) sind kein
+// 4T-000060: Hex-Farbcodes (3-, 4-, 6- oder 8-stellig, alles Hex) sind kein
 // Tag. Schliesst CSS-Farb-Notationen wie #fff, #ffffff, #c0392b aus.
 const HEX_COLOR_RE = /^[0-9a-f]{3,8}$/i;
-// 4T-0060: Tags muessen mindestens einen Buchstaben enthalten, damit reine
+// 4T-000060: Tags muessen mindestens einen Buchstaben enthalten, damit reine
 // Zahlen (Issue-Referenzen, Fussnoten) nicht als Tag indexiert werden.
 const TAG_LETTER_RE = /[\p{L}]/u;
 
-// 4T-0060: Pruefung, ob ein Tag-Kandidat tatsaechlich ein Tag ist.
+// 4T-000060: Pruefung, ob ein Tag-Kandidat tatsaechlich ein Tag ist.
 function isValidTag(tag) {
   if (!tag) return false;
   if (tag.startsWith('/') || tag.endsWith('/')) return false;
@@ -89,7 +89,7 @@ function isValidTag(tag) {
   return true;
 }
 
-// 4T-0344 (Epic 3E-0062): MD_LINK_RE (relative Markdown-Links) aus der
+// 4T-000344 (Epic 3E-000062): MD_LINK_RE (relative Markdown-Links) aus der
 // gemeinsamen Quelle; eine Instanz je Modul-Ladung, lastIndex-Reset pro Zeile.
 const MD_LINK_RE = createMdLinkRegex();
 
@@ -97,14 +97,14 @@ const MD_LINK_RE = createMdLinkRegex();
 // Markdown-Link gegen das Datei-Verzeichnis aufgeloest und absolut gemacht.
 // Wiki-Links speichern den Basename als ziel-Erwartung (ohne .md), Aufloesung
 // passiert spaeter beim Lookup ueber die files-Map.
-// 4T-0050: Liefert zusaetzlich die Aliases aus dem YAML-Frontmatter (Feld
+// 4T-000050: Liefert zusaetzlich die Aliases aus dem YAML-Frontmatter (Feld
 // `aliases:`, Liste oder einzelner String). Wiki-Link- und Markdown-Link-
 // Scan ueberspringt Frontmatter-Zeilen, damit YAML-Inhalte nicht als
 // ausgehende Links indexiert werden.
 function parseFile(filePath) {
   let content;
   try {
-    // B-19 (4T-0181): Einzeldatei-Limit vor dem Lesen — uebergrosse
+    // B-19 (4T-000181): Einzeldatei-Limit vor dem Lesen — uebergrosse
     // Dateien werden nicht geparst (leeres Ergebnis statt Speicherlast).
     if (fs.statSync(filePath).size > MAX_FILE_BYTES) {
       return {
@@ -119,18 +119,18 @@ function parseFile(filePath) {
     }
     content = fs.readFileSync(filePath, 'utf8');
   } catch {
-    // B-11 (4T-0175): null = Lesefehler (Aufrufer behaelt bestehende
+    // B-11 (4T-000175): null = Lesefehler (Aufrufer behaelt bestehende
     // Index-Daten); eine leere Datei liefert dagegen ein leeres Ergebnis.
     return null;
   }
-  // 4T-0348 (Epic 3E-0062): SHA-256 des Roh-Inhalts als Cache-Absicherung
+  // 4T-000348 (Epic 3E-000062): SHA-256 des Roh-Inhalts als Cache-Absicherung
   // mitfuehren (die Abgleich-Entscheidung bleibt mtime+size).
   const parsed = parseContent(filePath, content);
   parsed.hash = hashText(content);
   return parsed;
 }
 
-// B-14 (4T-0181): Async-Variante fuer den Initial-Aufbau (kein Sync-IO im
+// B-14 (4T-000181): Async-Variante fuer den Initial-Aufbau (kein Sync-IO im
 // Main-Loop); der Parser-Kern ist mit dem Watcher-Pfad geteilt.
 async function parseFileAsync(filePath) {
   let content;
@@ -156,7 +156,7 @@ async function parseFileAsync(filePath) {
 }
 
 function parseContent(filePath, content) {
-  // M-04 (4T-0173): UTF-8-BOM entfernen — gleicher Fix wie in file:read
+  // M-04 (4T-000173): UTF-8-BOM entfernen — gleicher Fix wie in file:read
   // (main.js). Ohne Strip schluege die Frontmatter-Erkennung in Zeile 1
   // fehl und Aliases/Tags der Datei fehlten im Index. \uFEFF explizit
   // statt literalem BOM-Zeichen im Regex (unsichtbar, Lint-Befund).
@@ -164,12 +164,12 @@ function parseContent(filePath, content) {
   const dir = path.dirname(filePath);
   const lines = content.split(/\r?\n/);
 
-  // 4T-0050: Frontmatter erkennen. Heuristik wie in src/shared/markdown/frontmatter.js:
+  // 4T-000050: Frontmatter erkennen. Heuristik wie in src/shared/markdown/frontmatter.js:
   // Zeile 1 muss genau '---' sein, Schluss-Zeile '---' oder '...' an
   // exaktem Zeilenanfang. fmBodyStartLine ist die 0-basierte Index der
   // ersten Markdown-Zeile nach dem Frontmatter (oder 0, wenn kein
   // Frontmatter erkannt).
-  // 4T-0344 (Epic 3E-0062): Frontmatter-Grenze aus der gemeinsamen Quelle, damit
+  // 4T-000344 (Epic 3E-000062): Frontmatter-Grenze aus der gemeinsamen Quelle, damit
   // Backlinks-Parser und Rewrite-Kern dieselbe Body-Grenze sehen. Der YAML-Parse
   // (Aliases/Tags) bleibt Backlinks-spezifisch.
   const fmBodyStartLine = frontmatterBodyStart(lines);
@@ -183,9 +183,9 @@ function parseContent(filePath, content) {
       const parsed = yaml.load(yamlText, { schema: yaml.JSON_SCHEMA });
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         aliases = normalizeAliases(parsed.aliases);
-        // 4T-0354 (Epic 3E-0065): abfragbare Frontmatter-Properties mitnehmen.
+        // 4T-000354 (Epic 3E-000065): abfragbare Frontmatter-Properties mitnehmen.
         properties = extractProperties(parsed);
-        // 4T-0056: Frontmatter-Tags akzeptieren YAML-Liste, einzelnen String
+        // 4T-000056: Frontmatter-Tags akzeptieren YAML-Liste, einzelnen String
         // oder mehrzeilige Liste. Normalisierungs-Funktion wird mit Aliases
         // geteilt.
         const fmTags = normalizeAliases(parsed.tags);
@@ -204,13 +204,13 @@ function parseContent(filePath, content) {
   }
 
   const out = [];
-  // 4T-0054: Pro Datei zusaetzlich Heading-Slugs und Block-IDs sammeln,
+  // 4T-000054: Pro Datei zusaetzlich Heading-Slugs und Block-IDs sammeln,
   // damit existingWikiTargets Anker-Prueferungen machen kann. Fenced-
   // Code-Bloecke werden uebersprungen, damit Markdown-Beispiele im Code
   // nicht als echte Headings/Block-IDs zaehlen.
   const headings = [];
   const blockIds = [];
-  // 4T-0502 (Epic 3E-0096): Task-Zeilen fuer den TASKS-Scope der Abfrage —
+  // 4T-000502 (Epic 3E-000096): Task-Zeilen fuer den TASKS-Scope der Abfrage —
   // Roh-Zeile plus Zeilennummer plus Text der umgebenden Ueberschrift
   // (heading-Feld des Evaluators). Modell-Parsing erst im Query-Zweig.
   const tasks = [];
@@ -218,12 +218,12 @@ function parseContent(filePath, content) {
   let inFence = false;
   let fenceChar = null;
 
-  // B-10 (4T-0175): Slug-Deduplizierung wie markdown-it-anchor (x, x-1,
+  // B-10 (4T-000175): Slug-Deduplizierung wie markdown-it-anchor (x, x-1,
   // x-2 …), damit Linter und Autocomplete dieselben Anker sehen wie der
   // Renderer.
   const slugCounts = new Map();
   const pushHeadingSlug = (rawText) => {
-    // 4T-0502: laufender Ueberschrifts-Text fuer die Task-Zeilen-Zuordnung.
+    // 4T-000502: laufender Ueberschrifts-Text fuer die Task-Zeilen-Zuordnung.
     currentHeading = reduceHeadingText(rawText).trim() || null;
     const slug = githubLikeSlug(reduceHeadingText(rawText));
     if (!slug) return;
@@ -252,12 +252,12 @@ function parseContent(filePath, content) {
     }
     if (inFence) continue;
 
-    // 4T-0054: Heading-Erkennung (ATX).
+    // 4T-000054: Heading-Erkennung (ATX).
     const headingMatch = line.match(HEADING_RE);
     if (headingMatch) {
       pushHeadingSlug(headingMatch[1]);
     } else if (line.trim() !== '' && i + 1 < lines.length) {
-      // B-10 (4T-0175): Setext-Headings (Text-Zeile mit ===- bzw. ----
+      // B-10 (4T-000175): Setext-Headings (Text-Zeile mit ===- bzw. ----
       // Unterstreichung). Heuristik: '-'-Marker nur, wenn die Text-Zeile
       // nicht selbst Listen-/Quote-/Tabellen-Syntax ist (sonst waere es
       // ein Thematic Break bzw. eine Tabellen-Trennzeile).
@@ -267,13 +267,13 @@ function parseContent(filePath, content) {
       if (isEq || isDash) pushHeadingSlug(line);
     }
 
-    // 4T-0054: Block-Anker am Zeilenende.
+    // 4T-000054: Block-Anker am Zeilenende.
     const blockMatch = line.match(BLOCK_ANCHOR_RE);
     if (blockMatch) {
       blockIds.push(blockMatch[1]);
     }
 
-    // 4T-0502 (Epic 3E-0096): Task-Zeilen sammeln (Checkbox-Zeilen laut
+    // 4T-000502 (Epic 3E-000096): Task-Zeilen sammeln (Checkbox-Zeilen laut
     // Marker-Kern; der Global Filter wird bewusst erst im Query-Zweig
     // angewandt, damit eine Filter-Aenderung keinen Index-Neuaufbau braucht).
     // Schnelle Kandidaten-Vorpruefung vor dem vollen Zeilen-Parse.
@@ -281,14 +281,14 @@ function parseContent(filePath, content) {
       tasks.push({ zeile: lineNum, text: line, heading: currentHeading });
     }
 
-    // 4T-0060 / B-07 (4T-0175): Link- und Tag-Scans laufen auf der inline-code-
+    // 4T-000060 / B-07 (4T-000175): Link- und Tag-Scans laufen auf der inline-code-
     // maskierten Zeile (Offsets bleiben erhalten), damit `[[Beispiel]]` in
-    // Inline-Code keinen Backlink erzeugt. Maskierungs-Logik liegt seit 4T-0344
+    // Inline-Code keinen Backlink erzeugt. Maskierungs-Logik liegt seit 4T-000344
     // in der gemeinsamen Quelle (link-scan.js).
     const lineForLinks = maskInlineCode(line);
-    // B-08 (4T-0175): Wiki-Link-Spannen vor dem Tag-Scan maskieren, damit
+    // B-08 (4T-000175): Wiki-Link-Spannen vor dem Tag-Scan maskieren, damit
     // [[#Heading]] bzw. [[Ziel#Anker]] nicht als Tag indexiert wird.
-    // 4T-0202: ebenso {...}-Attribut-Bloecke (markdown-it-attrs) — '#id'
+    // 4T-000202: ebenso {...}-Attribut-Bloecke (markdown-it-attrs) — '#id'
     // darin ist eine ID-Angabe, kein Tag (Konsistenz zum
     // insideAttrBlock-Guard im tagsPlugin).
     const lineForTags = lineForLinks
@@ -298,7 +298,7 @@ function parseContent(filePath, content) {
     let tagMatch;
     while ((tagMatch = TAG_RE.exec(lineForTags)) !== null) {
       const tag = tagMatch[1];
-      // 4T-0060: Hex-Codes, reine Zahlen und Slash-Randlagen filtern.
+      // 4T-000060: Hex-Codes, reine Zahlen und Slash-Randlagen filtern.
       if (isValidTag(tag)) {
         tagsSet.add(tag);
       }
@@ -308,7 +308,7 @@ function parseContent(filePath, content) {
     WIKI_LINK_RE.lastIndex = 0;
     let m;
     while ((m = WIKI_LINK_RE.exec(lineForLinks)) !== null) {
-      // B-09 (4T-0175): escapte Pipe in Tabellen-Zellen ([[Ziel\|Label]])
+      // B-09 (4T-000175): escapte Pipe in Tabellen-Zellen ([[Ziel\|Label]])
       // laesst das Capture mit '\' enden — abschneiden wie im preload.
       const target = m[1].trim().replace(/\\$/, '');
       if (!target) continue;
@@ -323,8 +323,8 @@ function parseContent(filePath, content) {
         anker = target.slice(hashIdx + 1).trim() || null;
         ziel = target.slice(0, hashIdx).trim();
       }
-      if (!ziel) continue; // 4T-0054: reiner Anker — kein externer Backlink
-      // 4T-0336 (Epic 3E-0061): relative Unterseiten-Ziele ('/Name', '..')
+      if (!ziel) continue; // 4T-000054: reiner Anker — kein externer Backlink
+      // 4T-000336 (Epic 3E-000061): relative Unterseiten-Ziele ('/Name', '..')
       // gegen den eigenen Basename expandieren — der Index traegt dann die
       // aufgeloeste U+2215-Form, damit Backlinks auf Unterseiten entstehen.
       if (isRelativeTarget(ziel)) {
@@ -345,12 +345,12 @@ function parseContent(filePath, content) {
     // Markdown-Links
     MD_LINK_RE.lastIndex = 0;
     while ((m = MD_LINK_RE.exec(lineForLinks)) !== null) {
-      // 4T-0476 (Epic 3E-0088): Ziel/Anker über den Form-Helfer lesen — die
-      // Regex erfasst seit 4T-0476 auch die <…>-Form mit Leerzeichen im Ziel.
+      // 4T-000476 (Epic 3E-000088): Ziel/Anker über den Form-Helfer lesen — die
+      // Regex erfasst seit 4T-000476 auch die <…>-Form mit Leerzeichen im Ziel.
       const { target: linkTarget, anchor: anker } = mdLinkTargetFromMatch(m);
       // Externe Links rausfiltern, falls Regex doch mal greift.
       if (/^[a-z]+:\/\//i.test(linkTarget) || linkTarget.startsWith('//')) continue;
-      // B-05 (4T-0175): %-kodierte Ziele ([Text](Mein%20Ziel.md)) wie der
+      // B-05 (4T-000175): %-kodierte Ziele ([Text](Mein%20Ziel.md)) wie der
       // Klick-Pfad dekodieren, sonst entstehen fuer sie nie Backlinks.
       // Bei ungueltiger Kodierung unkodiert weiterverarbeiten.
       let decodedTarget = linkTarget;
@@ -378,11 +378,11 @@ function parseContent(filePath, content) {
   return { hits: out, aliases, headings, blockIds, tags: [...tagsSet], properties, tasks };
 }
 
-// 4T-0502 (Epic 3E-0096): schnelle Kandidaten-Vorpruefung fuer Task-Zeilen
+// 4T-000502 (Epic 3E-000096): schnelle Kandidaten-Vorpruefung fuer Task-Zeilen
 // (Aufzaehlungszeichen plus '['), bevor der volle Marker-Kern-Parse laeuft.
 const TASK_CANDIDATE_RE = /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[/;
 
-// 4T-0050: Normalisiert das aliases-Feld eines Frontmatter-Objekts zu einer
+// 4T-000050: Normalisiert das aliases-Feld eines Frontmatter-Objekts zu einer
 // Array<string>-Liste. Akzeptierte YAML-Formen:
 //   aliases: MV                    -> ['MV']
 //   aliases: [MV, Viewer]          -> ['MV', 'Viewer']
@@ -410,7 +410,7 @@ function normalizeAliases(raw) {
   return [];
 }
 
-// 4T-0354 (Epic 3E-0065): Frontmatter-Properties für die Abfrage extrahieren.
+// 4T-000354 (Epic 3E-000065): Frontmatter-Properties für die Abfrage extrahieren.
 // Ergebnis ist ein Objekt mit klein-normalisierten Schlüsseln auf Skalar-Strings
 // bzw. String-Listen. Nicht-Skalare (verschachtelte Objekte) sowie leere und
 // null-Werte sind in v1 nicht abfragbar und werden weggelassen.

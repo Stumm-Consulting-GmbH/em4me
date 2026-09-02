@@ -1,4 +1,4 @@
-// 4T-0476 (Epic 3E-0088): Regressionstest fuer Blanks in Dateinamen bei Links.
+// 4T-000476 (Epic 3E-000088): Regressionstest fuer Blanks in Dateinamen bei Links.
 // CommonMark erlaubt die Destination in spitzen Klammern ([B](<Mein Ziel.md>)),
 // damit Leerzeichen im Ziel zulaessig sind. Der Kern-Regressionsfall ist der
 // LIVE-Modus: der Lezer-URL-Knoten umfasst die Klammern selbst, sodass der
@@ -64,7 +64,7 @@ async function waitForTab(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
-test.describe('4T-0476: Blanks in Dateinamen bei Links', () => {
+test.describe('4T-000476: Blanks in Dateinamen bei Links', () => {
   test('Live-Modus: Klick auf den <…>-Link B oeffnet die Zieldatei (Kern-Fall)', async () => {
     const dir = makeWorkDir();
     const quelle = path.join(dir, 'quelle.md');

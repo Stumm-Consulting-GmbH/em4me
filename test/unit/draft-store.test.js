@@ -1,8 +1,8 @@
-// 4T-0368 (Epic 3E-0068): Unit-Tests für den Entwurfs-Zwischenspeicher
+// 4T-000368 (Epic 3E-000068): Unit-Tests für den Entwurfs-Zwischenspeicher
 // (src/main/documents/draft-store.js) — Manifest-Normalisierung, Verwaisten-Erkennung und
 // bereichs-treue Zuordnung der Entwürfe zu den beim Start wiederhergestellten
 // Applikationen. Reine Logik, ohne Electron und ohne Datei-Zugriff.
-// 4T-0539 (Epic 3E-0098): dazu die Arbeitsbereichs-Zuordnung (workspaceId
+// 4T-000539 (Epic 3E-000098): dazu die Arbeitsbereichs-Zuordnung (workspaceId
 // im Manifest, Targets statt rootPath-Liste, unassigned-Menge).
 import { describe, it, expect } from 'vitest';
 import {
@@ -14,7 +14,7 @@ import {
 // Einfacher Pfad-Vergleich für die Tests (case-insensitiv wie unter Windows).
 const samePath = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
 
-describe('normalizeManifest (4T-0368)', () => {
+describe('normalizeManifest (4T-000368)', () => {
   it('übernimmt gültige Einträge und füllt Defaults', () => {
     const raw = [
       {
@@ -37,7 +37,7 @@ describe('normalizeManifest (4T-0368)', () => {
       savedAt: '2026-07-08T10:00:00Z',
     });
     // Minimaleintrag: area/workspaceId null, order = Index, tabSettings {},
-    // savedAt '' — Bestands-Einträge ohne workspaceId bleiben gültig (4T-0539).
+    // savedAt '' — Bestands-Einträge ohne workspaceId bleiben gültig (4T-000539).
     expect(result[1]).toEqual({
       id: 'b',
       area: null,
@@ -48,8 +48,8 @@ describe('normalizeManifest (4T-0368)', () => {
     });
   });
 
-  // 4T-0539 (Epic 3E-0098): Arbeitsbereichs-Zuordnung im Manifest.
-  it('übernimmt workspaceId als nicht-leeren String, sonst null (4T-0539)', () => {
+  // 4T-000539 (Epic 3E-000098): Arbeitsbereichs-Zuordnung im Manifest.
+  it('übernimmt workspaceId als nicht-leeren String, sonst null (4T-000539)', () => {
     const result = normalizeManifest([
       { id: 'a', workspaceId: 'ws-1' },
       { id: 'b', workspaceId: '' },
@@ -81,7 +81,7 @@ describe('normalizeManifest (4T-0368)', () => {
   });
 });
 
-describe('findOrphans (4T-0368)', () => {
+describe('findOrphans (4T-000368)', () => {
   const asManifest = (ids) =>
     ids.map((id) => ({ id, area: null, order: 0, tabSettings: {}, savedAt: '' }));
 
@@ -96,7 +96,7 @@ describe('findOrphans (4T-0368)', () => {
   });
 });
 
-describe('assignDraftsToApps (4T-0368)', () => {
+describe('assignDraftsToApps (4T-000368)', () => {
   const draft = (id, area, workspaceId = null) => ({
     id,
     area,
@@ -105,7 +105,7 @@ describe('assignDraftsToApps (4T-0368)', () => {
     tabSettings: {},
     order: 0,
   });
-  // 4T-0539: Ziel-Apps als Targets { rootPath, workspaceId }.
+  // 4T-000539: Ziel-Apps als Targets { rootPath, workspaceId }.
   const target = (rootPath, workspaceId = null) => ({ rootPath, workspaceId });
 
   it('ordnet Bereichs-Entwürfe der App mit gleichem rootPath zu', () => {
@@ -155,8 +155,8 @@ describe('assignDraftsToApps (4T-0368)', () => {
     });
   });
 
-  // 4T-0539 (Epic 3E-0098): Arbeitsbereichs-Zuordnung.
-  it('4T-0539: Arbeitsbereichs-Entwürfe treffen ausschließlich ihren Arbeitsbereich', () => {
+  // 4T-000539 (Epic 3E-000098): Arbeitsbereichs-Zuordnung.
+  it('4T-000539: Arbeitsbereichs-Entwürfe treffen ausschließlich ihren Arbeitsbereich', () => {
     const drafts = [draft('a', null, 'ws-1'), draft('b', 'C:\\Notizen', 'ws-1')];
     const { byApp, leftover, unassigned } = assignDraftsToApps(
       drafts,
@@ -172,7 +172,7 @@ describe('assignDraftsToApps (4T-0368)', () => {
     expect(unassigned).toEqual([]);
   });
 
-  it('4T-0539: Entwürfe geschlossener Arbeitsbereiche bleiben unassigned liegen', () => {
+  it('4T-000539: Entwürfe geschlossener Arbeitsbereiche bleiben unassigned liegen', () => {
     const { byApp, leftover, unassigned } = assignDraftsToApps(
       [draft('a', null, 'ws-geschlossen')],
       [target(null), target('C:\\Notizen')],
@@ -184,7 +184,7 @@ describe('assignDraftsToApps (4T-0368)', () => {
     expect(unassigned.map((d) => d.id)).toEqual(['a']);
   });
 
-  it('4T-0539: globale Entwürfe landen nicht in bereichsgleichen Arbeitsbereichs-Apps', () => {
+  it('4T-000539: globale Entwürfe landen nicht in bereichsgleichen Arbeitsbereichs-Apps', () => {
     const { byApp, leftover } = assignDraftsToApps(
       [draft('a', 'C:\\Notizen')],
       [target('C:\\Notizen', 'ws-1'), target(null)],

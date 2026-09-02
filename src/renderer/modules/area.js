@@ -1,4 +1,4 @@
-// 4T-0323 (Epic 3E-0058): Renderer-seitige Bereichs-Vorprüfung.
+// 4T-000323 (Epic 3E-000058): Renderer-seitige Bereichs-Vorprüfung.
 //
 // Freundliche erste Linie der harten Bereichs-Grenze (lokalisierte
 // Statusbar-Meldung statt generischem Lesefehler); die autoritative
@@ -6,7 +6,7 @@
 // Dialoge, Tab-Transfer). Vergleich normalisiert: Kleinschreibung,
 // Backslashes, ohne Trailing-Separatoren.
 //
-// 4T-0324: dazu die Außen-Link-Warnung — lokale Link-Ziele werden
+// 4T-000324: dazu die Außen-Link-Warnung — lokale Link-Ziele werden
 // doc-relativ aufgelöst (reiner String-Resolver, kein fs) und außerhalb
 // liegende Ziele im Render-Pane markiert; die Editor-Marker setzt die
 // Linter-Regel outsideAreaLink (editor.js) mit demselben Resolver.
@@ -15,18 +15,18 @@
 import { t } from '../i18n.js';
 
 import { state } from './app/app-state.js';
-// 4T-1225 (Epic 3E-0122): Vergleichs- und Trenner-Verhalten aus der einen
-// Plattform-Quelle (Muster 4T-1203, auf den Renderer ausgeweitet).
+// 4T-001225 (Epic 3E-000122): Vergleichs- und Trenner-Verhalten aus der einen
+// Plattform-Quelle (Muster 4T-001203, auf den Renderer ausgeweitet).
 import { isFilesystemCaseInsensitive, pathSeparator } from '../../shared/platform.js';
-// 4T-1277 (Epic 3E-0232): Erkennung der relativen Wiki-Formen aus der einen
+// 4T-001277 (Epic 3E-000232): Erkennung der relativen Wiki-Formen aus der einen
 // Quelle der Unterseiten-Semantik.
 import { isRelativeTarget } from '../../shared/subpages.js';
 
-// 4T-0616 (Epic 3E-0116): exportiert, weil die Bereichs-Suche Pfade aus dem
+// 4T-000616 (Epic 3E-000116): exportiert, weil die Bereichs-Suche Pfade aus dem
 // Hauptprozess mit denen offener Reiter vergleicht. Zwei Normalisierungen
 // nebeneinander liefen bei Trenner- oder Schreibweisen-Unterschieden
 // auseinander, und der Fehler waere ein still ausbleibender Treffer.
-// 4T-1225 (Epic 3E-0122, Befund F2 des Linux-Nachweises): Kleinschreibung und
+// 4T-001225 (Epic 3E-000122, Befund F2 des Linux-Nachweises): Kleinschreibung und
 // Backslash-Normierung gelten nur auf case-insensitiven Dateisystemen; unter
 // Linux sind zwei nur in der Schreibweise verschiedene Pfade zwei Orte, und
 // der Backslash ist dort ein legales Namenszeichen.
@@ -49,11 +49,11 @@ export function isOutsideActiveArea(filePath) {
   return !(target === root || target.startsWith(root + pathSeparator()));
 }
 
-// 4T-0324: Löst ein lokales Link-Ziel gegen den Pfad des Dokuments auf
+// 4T-000324: Löst ein lokales Link-Ziel gegen den Pfad des Dokuments auf
 // (reiner String-Resolver: `.`/`..`-Segmente, gemischte Trenner, absolute
 // Windows-Pfade; URI-Encoding wird dekodiert). null für URLs, Anker und
 // leere Ziele.
-// 4T-1225 (Befund F2): Aufgelöst wird mit dem Trenner der Plattform statt
+// 4T-001225 (Befund F2): Aufgelöst wird mit dem Trenner der Plattform statt
 // hart mit Backslash. Beide Trenner gelten weiterhin als Trenner, damit unter
 // Windows geschriebene Links (`..\ordner\datei.md`) nach einem Umzug auf
 // Linux funktionieren; der Preis — ein Backslash als Namenszeichen wird als
@@ -95,7 +95,7 @@ export function resolveLocalTarget(basePath, target) {
   return stack.join(sep);
 }
 
-// 4T-0324: markiert im gerenderten DOM alle Links, deren lokales Ziel
+// 4T-000324: markiert im gerenderten DOM alle Links, deren lokales Ziel
 // außerhalb des aktiven Bereichs liegt (Warn-Klasse plus Tooltip mit dem
 // vollen Ziel-Pfad). Ohne aktiven Bereich ein No-op. Links innerhalb von
 // Markdown-Embeds lösen gegen die Embed-Datei auf (data-embed-base).
@@ -110,7 +110,7 @@ export function markOutsideAreaLinks(container, basePath) {
     if (a.classList.contains('wikilink')) {
       const file = href.split('#')[0];
       if (!file) continue;
-      // 4T-1277 (Epic 3E-0232, Befund B3): dieselbe Ausnahme wie in der
+      // 4T-001277 (Epic 3E-000232, Befund B3): dieselbe Ausnahme wie in der
       // Linter-Regel — die relativen Wiki-Formen sind keine Pfade und koennen
       // den Bereich nicht verlassen. Die Lese-Ansicht ging bis hierher
       // denselben Weg und markierte `[[/Name]]` unter Linux als Aussen-Link.

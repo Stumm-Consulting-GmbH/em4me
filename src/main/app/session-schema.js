@@ -1,4 +1,4 @@
-// 4T-0320 (Epic 3E-0057): Sitzungs-Schema ueber logische Applikationen.
+// 4T-000320 (Epic 3E-000057): Sitzungs-Schema ueber logische Applikationen.
 //
 // Persistiert wird der Store-Key 'apps' als Liste
 //   [{ area: null | { rootPath }, windows: [{ bounds, maximized, panes }] }]
@@ -7,24 +7,24 @@
 // Electron-frei (reine Funktionen), damit Migration und Normalisierung
 // unit-testbar sind; main.js verdrahtet sie mit dem Store.
 //
-// 4T-0537 (Epic 3E-0098): dazu der Store-Key 'workspaces' — benannte
+// 4T-000537 (Epic 3E-000098): dazu der Store-Key 'workspaces' — benannte
 // Arbeitsbereiche als Liste
 //   [{ id, name, color, open, lastOpenedAt, app: { area, windows } }]
 // mit exakt dem App-Snapshot-Format des 'apps'-Keys im app-Feld. Additiv
-// neben 'apps', keine Migration (Workshop-Punkt 6 in 4T-0536).
+// neben 'apps', keine Migration (Workshop-Punkt 6 in 4T-000536).
 //
-// 4T-0843 (Epic 3E-0147): der App-Snapshot trägt zusätzlich das aktive Buch
+// 4T-000843 (Epic 3E-000147): der App-Snapshot trägt zusätzlich das aktive Buch
 // als `book: { dir }`. Das Feld fehlt, solange kein Buch geöffnet ist, statt
 // als `null` dazustehen: ein Bestands-Snapshot bleibt so unverändert, und
 // die Ablage wächst nur, wo tatsächlich ein Buch offen war.
 //
-// 4T-0867 (Epic 3E-0162): nach demselben Muster das aktive Bücherregal als
+// 4T-000867 (Epic 3E-000162): nach demselben Muster das aktive Bücherregal als
 // `shelf: { dir }` — nur vorhanden, solange ein Regal geöffnet ist.
 'use strict';
 
 const { TAB_GROUP_COLOR_KEYS } = require('../../shared/tab-group-colors');
 
-// 4T-0843: Buch-Bindung eines persistierten App-Snapshots. Liefert das
+// 4T-000843: Buch-Bindung eines persistierten App-Snapshots. Liefert das
 // normalisierte Zusatz-Feld ({ book: { dir } }) oder ein leeres Objekt, das
 // beim Spread nichts hinzufügt.
 function bookField(entry) {
@@ -35,7 +35,7 @@ function bookField(entry) {
   return dir ? { book: { dir } } : {};
 }
 
-// 4T-0867: Regal-Bindung eines persistierten App-Snapshots (Muster bookField).
+// 4T-000867: Regal-Bindung eines persistierten App-Snapshots (Muster bookField).
 function shelfField(entry) {
   const dir =
     entry && entry.shelf && typeof entry.shelf.dir === 'string' && entry.shelf.dir
@@ -121,9 +121,9 @@ function normalizeSavedWorkspaces(saved) {
   return result;
 }
 
-// 4T-1364 (Epic 3E-0171): Hat eine wiederherzustellende Applikation ueberhaupt
+// 4T-001364 (Epic 3E-000171): Hat eine wiederherzustellende Applikation ueberhaupt
 // etwas wiederherzustellen? Die Frage traegt die Vorrang-Entscheidung aus
-// 4T-1363 — die Start-Seite eines Bereichs greift NUR, wo die Antwort nein
+// 4T-001363 — die Start-Seite eines Bereichs greift NUR, wo die Antwort nein
 // lautet, weil die Sitzungs-Wiederherstellung der ausdrueckliche Wunsch ist,
 // dort weiterzumachen, wo der Anwender aufgehoert hat.
 //

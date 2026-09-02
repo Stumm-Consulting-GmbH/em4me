@@ -1,4 +1,4 @@
-// 4T-0512 (Epic 3E-0092): Ereignis-Fence — Tabellen-Rendering mit Badges
+// 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-Rendering mit Badges
 // und Differenz-Spalte, CRUD über Formularzeile und Zeilen-Bearbeitung,
 // Löschen mit Bestätigung (IPC im Test auf "bestätigt" gestubbt), Read-only
 // in der Lese-Ansicht. describe-Titel tragen die Funktions-IDs (EV-01 …).
@@ -14,7 +14,7 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'ereignisse.md');
-// 4T-0722: eigene Fixture für die Gantt-Ansicht (zwei verkettete Spannen
+// 4T-000722: eigene Fixture für die Gantt-Ansicht (zwei verkettete Spannen
 // und ein Zeitpunkt ohne Ende; Spanne 2020 bis 2099, damit der Stichtag
 // des Laufs immer innerhalb der Achse liegt).
 const GANTT_FIXTURE = path.resolve(
@@ -196,7 +196,7 @@ test.describe('EV-04: Duplizieren und Löschen mit Bestätigung', () => {
   });
 });
 
-// 4T-0513 (Epic 3E-0092): Ansichts-Sortierung, Filter-Leiste und
+// 4T-000513 (Epic 3E-000092): Ansichts-Sortierung, Filter-Leiste und
 // gespeicherte Filter (filter:-Direktiven im Fence).
 test.describe('EV-05: Sortierung und Filter-Leiste', () => {
   test('Default Zeitpunkt absteigend; Kopf-Klick dreht; Filter verstecken Zeilen mit Zähler und Hervorhebung', async () => {
@@ -275,7 +275,7 @@ test.describe('EV-06: Gespeicherte Filter als filter:-Direktiven', () => {
   });
 });
 
-// 4T-0514 (Epic 3E-0092): Zusatz-Ansichten — Umschalter persistiert die
+// 4T-000514 (Epic 3E-000092): Zusatz-Ansichten — Umschalter persistiert die
 // view:-Direktive, Dashboard rendert die Sektionen, der Ereignis-Klick
 // springt transient zur Tabellen-Zeile (kein Dokument-Write).
 test.describe('EV-09: Ansichts-Umschalter und Dashboard', () => {
@@ -339,7 +339,7 @@ test.describe('EV-10: Monats-Kalender mit Navigation', () => {
   });
 });
 
-// 4T-0722 (Epic 3E-0150): Gantt-Ansicht — Umschalter persistiert die
+// 4T-000722 (Epic 3E-000150): Gantt-Ansicht — Umschalter persistiert die
 // Direktive, Balken und Raute sitzen auf der Achse, Abhängigkeits- und
 // Heute-Linie liegen als Overlay darüber, der Klick auf einen Balken
 // springt transient zur Tabellen-Zeile (kein Dokument-Write).
@@ -378,7 +378,7 @@ test.describe('EV-15: Gantt-Ansicht mit Balken, Raute und Abhängigkeits-Linie',
     }
   });
 
-  // 4T-1278 (Epic 3E-0232, Befund B2): Die Bedienelemente der Werkzeugleiste
+  // 4T-001278 (Epic 3E-000232, Befund B2): Die Bedienelemente der Werkzeugleiste
   // dürfen einander nicht überlappen.
   //
   // Der Befund: Unter Linux fängt der Filter-Umschalter die Klicks auf den
@@ -484,7 +484,7 @@ test.describe('EV-08: Kalender-Picker füllt den Formular-Zeitpunkt', () => {
   });
 });
 
-// Regressionstest zum PO-Befund C1 vom 2026-07-15 (4T-0513-Nachbesserung):
+// Regressionstest zum PO-Befund C1 vom 2026-07-15 (4T-000513-Nachbesserung):
 // Das Live-Block-Widget wählte nur die innere Tabelle statt des
 // .perspective-events-Wrappers — damit fehlten im Live-Modus die
 // data-ev-Attribute (Fence-Zuordnung, Stichtag), die Differenz-Spalte,
@@ -519,7 +519,7 @@ test.describe('EV-07: Live-Modus trägt den vollen Funktionsumfang', () => {
   });
 });
 
-// 4T-0515 (Epic 3E-0092): Aggregation über Frontmatter (Art 2) — realer
+// 4T-000515 (Epic 3E-000092): Aggregation über Frontmatter (Art 2) — realer
 // Pfad mit Bereichs-Fixture (Muster erinnerungen.spec.js): Quell-Dateien
 // mit Ereignis-Profil-Zuordnung, query:-Fence aggregiert, Titel-Fallback,
 // Inline-Änderung schreibt in die NICHT geöffnete Quelle, Zeilen-Klick
@@ -638,7 +638,7 @@ test.describe('EV-11: Aggregation über Frontmatter (Art 2)', () => {
   });
 });
 
-// 4T-0516 (Epic 3E-0092): Verknüpfungen — Art 1 (Fence-intern mit
+// 4T-000516 (Epic 3E-000092): Verknüpfungen — Art 1 (Fence-intern mit
 // Kennungs-Vergabe, bidirektionaler Pflege, Bereinigung beim Löschen)
 // und Art 2 (Datei-zu-Datei mit Gegenrichtungs-Schreiben).
 test.describe('EV-12: Verknüpfungen im Fence (Art 1)', () => {
@@ -719,7 +719,7 @@ test.describe('EV-13: Verknüpfungen der Aggregation (Art 2)', () => {
   });
 });
 
-// 4T-0653: Eine frisch geoeffnete Zeilen-Bearbeitung darf den nachlaufenden
+// 4T-000653: Eine frisch geoeffnete Zeilen-Bearbeitung darf den nachlaufenden
 // Vorschau-Aufbau ueberleben.
 //
 // Befund: In der geteilten Ansicht plant JEDE Dokument-Aenderung einen

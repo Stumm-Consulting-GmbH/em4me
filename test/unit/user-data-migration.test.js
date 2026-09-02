@@ -1,9 +1,9 @@
-// 4T-0643 (Epic 3E-0126): Uebernahme der Nutzerdaten beim Rebranding.
+// 4T-000643 (Epic 3E-000126): Uebernahme der Nutzerdaten beim Rebranding.
 //
-// Regressionstest zum Befund aus der Umsetzung: Bis 4T-0247 kopierte die
+// Regressionstest zum Befund aus der Umsetzung: Bis 4T-000247 kopierte die
 // Migration allein config.json. Inzwischen liegen im userData-Ordner auch die
-// Entwuerfe nie gespeicherter Tabs (4T-0369) und die externen Erweiterungen
-// (4T-0298). Beim Namenswechsel „Perspective Markdown++" → „EM4me" waeren
+// Entwuerfe nie gespeicherter Tabs (4T-000369) und die externen Erweiterungen
+// (4T-000298). Beim Namenswechsel „Perspective Markdown++" → „EM4me" waeren
 // beide zurueckgeblieben — ungesicherte Inhalte verloren, Erweiterungen neu
 // einzurichten. Der Fehler faellt im Betrieb erst auf, wenn es zu spaet ist,
 // deshalb hier gegen echte Temp-Ordner geprueft statt gegen Mocks.
@@ -59,7 +59,7 @@ afterEach(async () => {
   }
 });
 
-describe('Nutzerdaten-Migration beim Rebranding (4T-0643)', () => {
+describe('Nutzerdaten-Migration beim Rebranding (4T-000643)', () => {
   it('übernimmt Einstellungen, Entwürfe UND Erweiterungen aus dem Vorgänger', async () => {
     const appData = mkTemp();
     altesProfil(appData, 'Perspective Markdown++');

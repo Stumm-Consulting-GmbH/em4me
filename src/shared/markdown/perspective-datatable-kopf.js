@@ -1,4 +1,4 @@
-// 4T-1313 (Epic 3E-0235): Syntax der Kopf-Direktiven der typisierten
+// 4T-001313 (Epic 3E-000235): Syntax der Kopf-Direktiven der typisierten
 // Datentabelle — Spalten-Definition und Aggregat-Eintrag.
 //
 // Herausgelöst aus dem Kern der Modul-Familie (perspective-datatable.js), als
@@ -17,7 +17,7 @@ const AGGREGATE_FUNCS = new Set(['sum', 'avg', 'min', 'max', 'count']);
 // Anzeige-Format v1: nur Dezimalstellen bei number, begrenzt auf 0..10.
 const MAX_DECIMALS = 10;
 
-// 4T-1313 (Epic 3E-0235): Erste Stelle eines Zeichens AUSSERHALB von
+// 4T-001313 (Epic 3E-000235): Erste Stelle eines Zeichens AUSSERHALB von
 // Anführungszeichen.
 //
 // Die Zerlegung der Kopfzeile trennt an Doppelpunkt und Gleichheitszeichen.
@@ -35,7 +35,7 @@ function indexAusserhalbAnfuehrung(text, zeichen) {
   return -1;
 }
 
-// 4T-1313: Kennung und optionaler Anzeigetext aus dem Teil vor dem Doppelpunkt.
+// 4T-001313: Kennung und optionaler Anzeigetext aus dem Teil vor dem Doppelpunkt.
 // Form: `Kennung` oder `Kennung "Anzeigetext"`. Liefert null bei fehlerhafter
 // Anführung, damit der Aufrufer den Struktur-Fehler meldet.
 function parseSpaltenKennung(text) {
@@ -52,12 +52,12 @@ function parseSpaltenKennung(text) {
 }
 
 // Spalten-Definition `Name:typ`, `Name:typ(dez)`, `Name:typ = ausdruck`,
-// seit 4T-1313 mit optionalem Anzeigetext: `Name "Anzeigetext":typ`.
-// Der Ausdruck wird nur als Rohtext erfasst (Auswertung in 4T-0421).
+// seit 4T-001313 mit optionalem Anzeigetext: `Name "Anzeigetext":typ`.
+// Der Ausdruck wird nur als Rohtext erfasst (Auswertung in 4T-000421).
 function parseColumnDef(defText, line, errors) {
   const colonIdx = indexAusserhalbAnfuehrung(defText, ':');
   if (colonIdx <= 0) {
-    // 4T-1313: Steckt ein Anführungszeichen in der Definition, ist die nicht
+    // 4T-001313: Steckt ein Anführungszeichen in der Definition, ist die nicht
     // geschlossene Anführung die wahrscheinliche Ursache — der Doppelpunkt
     // fehlt dann nicht, er steht nur innerhalb der offenen Anführung. Die
     // genauere Meldung erspart die Suche.

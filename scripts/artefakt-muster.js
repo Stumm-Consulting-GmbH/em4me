@@ -1,4 +1,4 @@
-// 4T-1223 (Epic 3E-0122): Artefakt-Namensmuster der Bau- und Archiv-Strecke,
+// 4T-001223 (Epic 3E-000122): Artefakt-Namensmuster der Bau- und Archiv-Strecke,
 // aus scripts/archive-build.js herausgeschnitten (Datei-Groessen-Budget). Die
 // Muster sind eine eigene Fachlichkeit: Sie definieren, welche Dateinamen als
 // Release-Artefakt, Release-Hinweis oder temporaerer Bau gelten, unabhaengig
@@ -9,10 +9,10 @@
 const VERSION_RE = /\d+\.\d+\.\d+/;
 const PRODUKT_RE = 'EM4me|Perspective Markdown\\+\\+|SCG Markdown|Markdown Viewer';
 const EXE_PATTERN = new RegExp(`^(?:${PRODUKT_RE})-(${VERSION_RE.source})-(Setup|Portable)\\.exe$`);
-// 4T-1205 (Epic 3E-0121): weitere Artefakt-Formate, vorbereitet fuer die
+// 4T-001205 (Epic 3E-000121): weitere Artefakt-Formate, vorbereitet fuer die
 // Plattform-Epics — Linux (AppImage) und macOS (DMG) ohne Varianten-Zusatz.
 // Das Windows-Muster oben bleibt unveraendert (eigene Varianten Setup|Portable).
-// 4T-1223 (Epic 3E-0122): deb als zweites Linux-Format (PO-Entscheidung vom
+// 4T-001223 (Epic 3E-000122): deb als zweites Linux-Format (PO-Entscheidung vom
 // 2026-08-26), Namensschema wie AppImage ohne Varianten-Zusatz.
 const WEITERE_ARTEFAKT_RE = new RegExp(
   `^(?:${PRODUKT_RE})-(${VERSION_RE.source})\\.(?:AppImage|deb|dmg)$`,
@@ -22,11 +22,11 @@ function matchArtefakt(name) {
   return name.match(EXE_PATTERN) || name.match(WEITERE_ARTEFAKT_RE);
 }
 const NOTES_PATTERN = new RegExp(`^release-notes-(${VERSION_RE.source})\\.md$`);
-// 4T-0921: Dateiname eines temporaeren Baus zwischen zwei Releases
+// 4T-000921: Dateiname eines temporaeren Baus zwischen zwei Releases
 // (`EM4me-T-0.105.0-202608071130-Portable.exe`). Er wird bewusst NICHT
 // archiviert: `releases/` ist das Versions-Archiv der Releases.
 // Fanggruppe 1 ist der zwoelfstellige Zeitstempel.
-// 4T-1205/4T-1223: dieselbe Format-Erweiterung wie beim Release-Artefakt —
+// 4T-001205/4T-001223: dieselbe Format-Erweiterung wie beim Release-Artefakt —
 // die Windows-Varianten tragen ihren Zusatz, weitere Formate laufen ohne ihn.
 const TEMP_EXE_PATTERN = new RegExp(
   `^(?:${PRODUKT_RE})-T-${VERSION_RE.source}-(\\d{12})(?:-(?:Setup|Portable))?\\.(?:exe|AppImage|deb|dmg)$`,
@@ -43,7 +43,7 @@ function tempStempel(name) {
   return (String(name).match(TEMP_ARTEFAKT_PATTERN) || [])[1] || '';
 }
 
-// 4T-1318: Die freigegebenen Plattformen und der Artefaktsatz, den eine Version
+// 4T-001318: Die freigegebenen Plattformen und der Artefaktsatz, den eine Version
 // von ihnen tragen muss. Die Muster oben sagen, WELCHE Namen ein Artefakt sein
 // KANN; diese Menge sagt, welche eine Version HABEN MUSS — die Frage, die von
 // 1.121.0 bis 1.121.3 unbeantwortet blieb und ein Release mit halbem
@@ -89,7 +89,7 @@ function fehlendeArtefakte(produkt, version, dateien) {
   return erwarteteArtefakte(produkt, version).filter((name) => !vorhanden.has(name));
 }
 
-// 4T-1323 (Befund 3): Der Artefaktsatz-Waechter aus 4T-1318 beantwortet, ob
+// 4T-001323 (Befund 3): Der Artefaktsatz-Waechter aus 4T-001318 beantwortet, ob
 // alle Artefakte einer Version DA sind. Er beantwortet nicht, ob sie aus
 // DEMSELBEN Bau stammen — und am 2026-08-30 fielen beide Fragen auseinander:
 // Beim Neubau von 1.122.0 mit der Nummer 2106 lagen die beiden Windows-Ziele
@@ -109,7 +109,7 @@ function fehlendeArtefakte(produkt, version, dateien) {
 // `src/shared/build-info.json`. Diese Datei wird von `set-build-number.js` in
 // Schritt 2 geschrieben, also VOR dem Bau, und genau dann neu, wenn sich die
 // Nummer aendert — was der Wiederhol-Bau nach geaenderter Commit-Basis tut.
-// `pruefeFrische` benutzt denselben Vergleich seit 4T-0883 als notwendige
+// `pruefeFrische` benutzt denselben Vergleich seit 4T-000883 als notwendige
 // Bedingung neben dem Fingerabdruck.
 //
 // **Was der Vergleich nicht leistet, und das gehoert dazu:** Er ist notwendig

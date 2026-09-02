@@ -1,7 +1,7 @@
-// Struktur-Pflege des Kapitel-Baums (4T-0845, Story 4S-0754): Melden der einen
+// Struktur-Pflege des Kapitel-Baums (4T-000845, Story 4S-000754): Melden der einen
 // Baum-Operation, Ziehen am Anfasser, Tastatur-Gesten, Kontextmenüs und die
 // Anlage eines Kapitels.
-// 4T-0980 (Epic 3E-0196): aus modules/books/book-panel.js ausgezogen (reiner
+// 4T-000980 (Epic 3E-000196): aus modules/books/book-panel.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert).
 //
 // Der Renderer hält KEINEN eigenen Kapitel-Baum: Jede Operation geht als eine
@@ -19,12 +19,12 @@ import { BOOK_DND_MIME, dropTreeOp, dropZone, pathKey, subtreeKeys } from './boo
 import { activeBook, booksApi, missingKeys, openChapter, setPendingFocus } from './book-state.js';
 import { moveChapterFile, startReassign } from './book-repair.js';
 
-// 4T-0845: Laufender Zug am Anfasser ({ path, fromUnlinked, blocked }); null,
+// 4T-000845: Laufender Zug am Anfasser ({ path, fromUnlinked, blocked }); null,
 // solange nichts gezogen wird. Während des Zuges wird NICHTS geschrieben,
-// erst die Ablage löst genau eine Operation aus (Story 4S-0754).
+// erst die Ablage löst genau eine Operation aus (Story 4S-000754).
 let dragState = null;
 
-// --- Struktur-Pflege: Meldung der Operation (4T-0845) -------------------------
+// --- Struktur-Pflege: Meldung der Operation (4T-000845) -------------------------
 
 // Fehler-Kennungen des Kern-Moduls, die eine eigene Erklärung verdienen; alles
 // Übrige fällt auf den allgemeinen Hinweis zurück. Übersetzt wird erst hier,
@@ -76,7 +76,7 @@ export async function runTreeOp(op, focus) {
   return true;
 }
 
-// --- Struktur-Pflege: Ziehen am Anfasser (4T-0845) ----------------------------
+// --- Struktur-Pflege: Ziehen am Anfasser (4T-000845) ----------------------------
 
 export function clearDropIndicators() {
   document
@@ -174,7 +174,7 @@ export async function treeDrop(ev, paneIdx) {
   await runTreeOp(op, { paneIdx, path: drag.path });
 }
 
-// --- Struktur-Pflege: Tastatur (4T-0845) --------------------------------------
+// --- Struktur-Pflege: Tastatur (4T-000845) --------------------------------------
 
 // Bewusst fest verdrahtete Panel-Tasten und keine Registry-Kommandos: Sie
 // wirken allein auf den fokussierten Eintrag dieses Panels und hätten außerhalb
@@ -206,7 +206,7 @@ export function handleEntryKey(ev, relPath, { unlinked, missing }) {
   }
 }
 
-// --- Struktur-Pflege: Kontextmenü und Kapitel-Anlage (4T-0845) ----------------
+// --- Struktur-Pflege: Kontextmenü und Kapitel-Anlage (4T-000845) ----------------
 
 function addMenuItem(menu, labelKey, menuId, run) {
   const item = document.createElement('div');
@@ -232,13 +232,13 @@ function addMenuSeparator(menu) {
 // Abschnitt „nicht eingehängt"). Im Abschnitt „nicht eingehängt": Einhängen
 // ans Ende der obersten Ebene.
 //
-// 4T-0847 (Story 4S-0756): Beide Seiten tragen zusätzlich das physische
+// 4T-000847 (Story 4S-000756): Beide Seiten tragen zusätzlich das physische
 // Verschieben der Datei — auf Kapitel-Zeilen wie auf nicht eingehängten
 // Zeilen, weil die Ordner-Gliederung von der Deklaration unabhängig ist. Ein
 // deklariertes Kapitel ohne Datei bekommt den Eintrag nicht: es gibt nichts
 // zu bewegen.
 //
-// 4T-0848 (Story 4S-0757): Genau dieses Kapitel bekommt stattdessen „neu
+// 4T-000848 (Story 4S-000757): Genau dieses Kapitel bekommt stattdessen „neu
 // zuordnen"; „Aushängen" steht ihm wie jeder Kapitel-Zeile ohnehin zur
 // Verfügung (AK2). Die beiden Reparatur-Wege stehen damit unmittelbar am
 // betroffenen Eintrag.

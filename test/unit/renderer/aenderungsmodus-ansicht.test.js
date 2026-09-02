@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-// 4T-1341 (Epic 3E-0238): Ansicht beim Wechsel in den Bearbeiten-Modus.
+// 4T-001341 (Epic 3E-000238): Ansicht beim Wechsel in den Bearbeiten-Modus.
 //
-// Bis 4T-1341 führte der Stift aus der Lese-Ansicht fest in die geteilte
+// Bis 4T-001341 führte der Stift aus der Lese-Ansicht fest in die geteilte
 // Ansicht; wer überwiegend in der Live-Ansicht arbeitet, schaltete danach jedes
 // Mal von Hand weiter. Geprüft werden hier die Entscheidung (prozessneutral)
 // und der Aufbau der Einstellung; dass der Stift tatsächlich in die gewählte
-// Ansicht führt, misst die E2E-Ebene — die Lehre aus 4T-1339, wo eine grüne
+// Ansicht führt, misst die E2E-Ebene — die Lehre aus 4T-001339, wo eine grüne
 // Unit-Prüfung eine wirkungslose Funktion deckte.
 import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -43,7 +43,7 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('Ziel-Ansicht des Bearbeiten-Modus (4T-1341)', () => {
+describe('Ziel-Ansicht des Bearbeiten-Modus (4T-001341)', () => {
   it('gibt jede der drei Bearbeitungs-Ansichten unveraendert zurueck', () => {
     for (const modus of EDIT_VIEW_MODES) {
       expect(zielAnsichtDesAenderungsmodus(modus)).toBe(modus);
@@ -73,7 +73,7 @@ describe('Ziel-Ansicht des Bearbeiten-Modus (4T-1341)', () => {
   });
 });
 
-describe('Einstellung im Bereich Verhalten (4T-1341)', () => {
+describe('Einstellung im Bereich Verhalten (4T-001341)', () => {
   it('steht als Auswahlliste mit genau den drei Bearbeitungs-Ansichten', () => {
     const container = mountBehaviorSection();
     const select = container.querySelector('#settings-edit-view-mode');
@@ -107,9 +107,9 @@ describe('Einstellung im Bereich Verhalten (4T-1341)', () => {
   });
 });
 
-describe('Keine feste Verdrahtung mehr im Wechsel (4T-1341)', () => {
+describe('Keine feste Verdrahtung mehr im Wechsel (4T-001341)', () => {
   it('toggleEditMode setzt die Ansicht nicht mehr auf einen festen Wert', () => {
-    // Der Regressions-Wächter des Befunds: Vor 4T-1341 stand hier
+    // Der Regressions-Wächter des Befunds: Vor 4T-001341 stand hier
     // `tab.viewMode = 'split'`. Ein Rückfall darauf wäre unsichtbar, solange
     // die Voreinstellung ebenfalls „geteilt" ist — genau die Lage, in der ein
     // Fehler still in die Auslieferung geht.

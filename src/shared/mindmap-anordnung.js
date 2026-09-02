@@ -1,7 +1,7 @@
-// 4T-1049 (Epic 3E-0151): Anordnung der Mindmap — aus dem Knoten-Baum des
+// 4T-001049 (Epic 3E-000151): Anordnung der Mindmap — aus dem Knoten-Baum des
 // Kerns (mindmap-core.js) werden Positionen, in einer von fuenf Wurzel-Lagen.
 //
-// Eigene Datei seit 4T-1049: Baum-Abbildung und Anordnung sind zwei
+// Eigene Datei seit 4T-001049: Baum-Abbildung und Anordnung sind zwei
 // Fachlichkeiten, und mit den fuenf Lagen ueberschritt die gemeinsame Datei
 // das Zeilen-Budget. Der Schnitt laeuft an der Naht, die der Kern ohnehin
 // schon als Abschnitt fuehrte.
@@ -18,7 +18,7 @@
 // gerechnet; die Kompaktheit, die ein Kontur-Verfahren zusätzlich kauft, ist
 // bei breiten Text-Knoten gering und kostet eine eigene Fehlerklasse.
 //
-// Wurzel-Lage (4T-1049, Story 4S-0806): Alle fünf Lagen sind **dieselbe**
+// Wurzel-Lage (4T-001049, Story 4S-000806): Alle fünf Lagen sind **dieselbe**
 // Rechnung. Sie läuft in achsenfreien Koordinaten (Tiefe und Stapel), und erst
 // die Abbildung entscheidet, welche Bildschirm-Achse welche Rolle übernimmt
 // und ob sie gespiegelt wird. Die mittige Lage rechnet dieselbe Anordnung
@@ -33,11 +33,11 @@ const LAYOUT_VORGABEN = {
   // Lücke zwischen zwei Ebenen, **nicht** deren Rasterabstand: Die Spalte
   // einer Ebene ist so breit wie ihr breitester Knoten. Ein festes Raster
   // ließe einen Knoten, der breiter als das Raster ist, in die Spalte seiner
-  // Kinder ragen (in 4T-1045 an der Gegenprobe der Überlappungs-Prüfung
+  // Kinder ragen (in 4T-001045 an der Gegenprobe der Überlappungs-Prüfung
   // aufgefallen: hoechstBreite lag über dem damaligen Rasterabstand).
   spaltenAbstand: 60,
   zeilenAbstand: 8, // senkrechter Abstand zweier Geschwister-Blätter
-  // 4T-1049: Dieselben zwei Lücken für den senkrechten Wuchs. Sie sind
+  // 4T-001049: Dieselben zwei Lücken für den senkrechten Wuchs. Sie sind
   // eigene Werte und nicht dieselben Zahlen mit vertauschter Achse, weil die
   // Knoten quer zur Wuchsrichtung ihre **Breite** belegen: 8 Pixel zwischen
   // zwei nebeneinander stehenden Beschriftungen lesen sich als ein Wort, und
@@ -66,11 +66,11 @@ function masseSchaetzen(knoten, v) {
   return { breite, hoehe: v.knotenHoehe * zeilen };
 }
 
-// 4T-1049 (Epic 3E-0151): Wurzel-Lage. Der Wert benennt, wo die **Wurzel**
+// 4T-001049 (Epic 3E-000151): Wurzel-Lage. Der Wert benennt, wo die **Wurzel**
 // sitzt, nicht wohin der Baum wächst; die Wuchsrichtung ist die Gegenrichtung
 // (Lage «links» heißt: Wurzel links, Äste nach rechts). Ein unbekannter Wert
 // fällt auf «links» zurück, weil die Ansicht lieber ein anderes als gar kein
-// Bild zeigt (Story 4S-0806, AK7).
+// Bild zeigt (Story 4S-000806, AK7).
 function istSenkrecht(lage) {
   return lage === 'oben' || lage === 'unten';
 }
@@ -87,14 +87,14 @@ function blattZahl(knoten) {
 }
 
 /**
- * 4T-1049 (Epic 3E-0151): Verteilungs-Regel der mittigen Lage.
+ * 4T-001049 (Epic 3E-000151): Verteilungs-Regel der mittigen Lage.
  *
  * Die Kinder der Wurzel bleiben in Dokument-Reihenfolge und werden an genau
  * **einer** Stelle geteilt: Die vordere Gruppe geht auf die zuerst gelesene
  * (rechte) Seite, der Rest auf die linke. Die Schnittstelle ist die, bei der
  * sich die Blatt-Zahlen beider Seiten am wenigsten unterscheiden; bei
  * Gleichstand bekommt die vordere Seite den größeren Anteil, und die vordere
- * Gruppe ist nie leer (Story 4S-0806, AK8).
+ * Gruppe ist nie leer (Story 4S-000806, AK8).
  *
  * Gewogen wird in Blättern und nicht in gemessenen Pixeln: So hängt das Bild
  * nicht an Schriftart und Messumgebung, und dasselbe Dokument ergibt stets
@@ -129,7 +129,7 @@ function teileWurzelKinder(kinder) {
  * übernimmt, entscheidet erst die Abbildung; die Rechnung ist für alle fünf
  * Lagen dieselbe.
  *
- * Blatt-Stapel-Verfahren wie in 4T-1045, um eine Zusicherung erweitert: Jeder
+ * Blatt-Stapel-Verfahren wie in 4T-001045, um eine Zusicherung erweitert: Jeder
  * Teilbaum belegt ein eigenes Intervall der Stapel-Achse, das mindestens so
  * groß ist wie sein eigener Knoten, und jeder Knoten liegt vollständig in
  * seinem Intervall. Damit ist Überlappungsfreiheit auch dann garantiert, wenn
@@ -308,7 +308,7 @@ function layoutMitte(root, v, messen) {
 }
 
 /**
- * Rechnet Positionen für eine der fünf Wurzel-Lagen (Story 4S-0806).
+ * Rechnet Positionen für eine der fünf Wurzel-Lagen (Story 4S-000806).
  *
  * Blatt-Stapel-Verfahren: Blätter in Dokument-Reihenfolge gestapelt, innere
  * Knoten auf der Mitte ihrer Kinder. Überlappungsfrei per Konstruktion und

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Regressionstest gegen
+// 4T-000612 (Epic 3E-000115, PO-Testbefund EXE 0.91.0.919): Regressionstest gegen
 // die doppelte Ordner-Struktur im Bereichs-Panel. renderAreaPanel ist async und
 // haengte seine Baum-Zeilen ueber mehrere await-Punkte an; zwei ueberlappende
 // Laeufe derselben Pane (der Bereichs-Wechsel-Push refreshAreaPanels und das
@@ -45,7 +45,7 @@ beforeEach(() => {
   pane0.querySelector('.area-files').innerHTML = '';
 });
 
-describe('renderAreaPanel Concurrency (4T-0612)', () => {
+describe('renderAreaPanel Concurrency (4T-000612)', () => {
   it('zwei ueberlappende Laeufe verdoppeln die Baum-Liste nicht', async () => {
     const tree = pane0.querySelector('.area-tree');
     // Zwei Laeufe gleichzeitig starten (ohne Await dazwischen) — genau der
@@ -72,12 +72,12 @@ describe('renderAreaPanel Concurrency (4T-0612)', () => {
   });
 });
 
-// 4T-1225 (Epic 3E-0122, Befund F1 des Linux-Lauffaehigkeits-Nachweises):
+// 4T-001225 (Epic 3E-000122, Befund F1 des Linux-Lauffaehigkeits-Nachweises):
 // joinPath verkettete hart mit Backslash; unter Linux entstand fuer den
 // aufgeklappten Unterordner `/bereich\ordner`, dessen readdir im Main still
 // scheiterte — Baum und Dateiliste blieben leer («Keine Markdown-Dateien»).
 // Der Trenner kommt jetzt aus dem zentralen Plattform-Modul.
-describe('joinPath je Plattform (4T-1225)', () => {
+describe('joinPath je Plattform (4T-001225)', () => {
   it('fragt Unterordner unter Linux mit Schraegstrich an', async () => {
     setPlatformForTests('linux');
     const angefragt = [];

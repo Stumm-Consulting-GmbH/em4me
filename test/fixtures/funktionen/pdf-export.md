@@ -1,6 +1,6 @@
 # PDF-Export-Fixture
 
-Diese Datei ist das E2E-Fixture fuer den PDF-Export (4T-0303): mehrseitig,
+Diese Datei ist das E2E-Fixture fuer den PDF-Export (4T-000303): mehrseitig,
 mit KaTeX, Mermaid, Perspective Table, Callout und langem Code-Block.
 
 ## Formeln

@@ -1,4 +1,4 @@
-// 4T-0590/4T-0591 (Epic 3E-0109): E2E-Suite für das Tabellen-Kontextmenü.
+// 4T-000590/4T-000591 (Epic 3E-000109): E2E-Suite für das Tabellen-Kontextmenü.
 // TK-01: Untermenü „Tabelle" erscheint nur mit Cursor in einer Tabelle,
 // listet alle zwölf Operationen und dimmt geschützte Ziele und Ränder;
 // TK-02: Zeile verschieben wirkt auf den Editor-Inhalt, ein einzelner

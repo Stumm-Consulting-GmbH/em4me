@@ -1,9 +1,9 @@
-// 4T-0759 (Epic 3E-0142): Suchergebnis-Panel — beide Bedien-Zugaenge und
+// 4T-000759 (Epic 3E-000142): Suchergebnis-Panel — beide Bedien-Zugaenge und
 // die Leerzustaende.
 //
 // Geprueft wird hier das Panel als solches (Paritaets-Konvention: Statusbar
 // und Ansichtsmenue). Die Treffer selbst kommen mit der Anbindung an die
-// Suchleiste in 4T-0760 und werden dort geprueft.
+// Suchleiste in 4T-000760 und werden dort geprueft.
 'use strict';
 
 const fs = require('node:fs');

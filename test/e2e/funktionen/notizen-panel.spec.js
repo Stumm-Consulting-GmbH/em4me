@@ -1,10 +1,10 @@
-// 4T-0359 / 4T-0398 (Epic 3E-0066): E2E-Suite Notizen-Panel. Das Editier-Feld
-// ist eine schlanke CodeMirror-Instanz (4T-0398). Deckt Laden und impliziten Save
+// 4T-000359 / 4T-000398 (Epic 3E-000066): E2E-Suite Notizen-Panel. Das Editier-Feld
+// ist eine schlanke CodeMirror-Instanz (4T-000398). Deckt Laden und impliziten Save
 // in die .mdd, die Vorschau-Umschaltung, den Vorschau-Default, den Unbenannt-
 // Hinweis sowie Format-Kürzel und Kontextmenü im Notiz-Feld ab. NP-01 sichert
 // zusätzlich ab, dass das eigene note:changed-Echo bei nur einem Fenster keinen
 // Konflikt-Hinweis mehr auslöst. Der Datenpfad ist in notizen-datenpfad.spec.js
-// (4T-0358) getestet, die Konflikt-Entscheidung in test/unit/renderer/notes-sync.test.js.
+// (4T-000358) getestet, die Konflikt-Entscheidung in test/unit/renderer/notes-sync.test.js.
 'use strict';
 
 const fs = require('node:fs');
@@ -100,7 +100,7 @@ test.describe('NP-01: Notiz eingeben, speichern und wiederfinden', () => {
       await expect(page.locator(NOTES_CM)).toHaveText('Alt');
       await replaceNote(page, 'Neu');
       await expect.poll(() => readNoteText(workFile)).toBe('Neu');
-      // Regression (4T-0359): das eigene note:changed-Echo darf keinen Konflikt-
+      // Regression (4T-000359): das eigene note:changed-Echo darf keinen Konflikt-
       // Hinweis auslösen.
       await expect(page.locator(NOTES_CONFLICT)).toBeHidden();
 

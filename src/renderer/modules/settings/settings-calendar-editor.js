@@ -1,4 +1,4 @@
-// 4T-0544 (Epic 3E-0097): Editor eines Kalenders im Block-Detail
+// 4T-000544 (Epic 3E-000097): Editor eines Kalenders im Block-Detail
 // (Ebenen, Epochen, Zyklen, Gruppierungen, Achsen-Abbildung, Vorschau).
 'use strict';
 
@@ -37,7 +37,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   removeBtn.className = 'btn settings-calsys-cal-remove';
   removeBtn.textContent = t('settings.calendar.calRemove');
   removeBtn.addEventListener('click', () => {
-    // 4T-0747: Löschsperre, solange Ableitungen auf diesem Kalender stehen.
+    // 4T-000747: Löschsperre, solange Ableitungen auf diesem Kalender stehen.
     const dependents = calSysDependents(block, calDraft);
     if (dependents.length > 0) {
       api.calendarBlockedDelete(dependents);
@@ -49,7 +49,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   head.append(title, removeBtn);
   group.appendChild(head);
 
-  // 4T-0747: Dauerhafter Hinweis auf die Abhängigen, damit vor einer
+  // 4T-000747: Dauerhafter Hinweis auf die Abhängigen, damit vor einer
   // Änderung sichtbar ist, dass sie mitwandern.
   const dependents = calSysDependents(block, calDraft);
   if (dependents.length > 0) {

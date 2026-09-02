@@ -1,4 +1,4 @@
-// 4T-0632 (Epic 3E-0102): E2E-Funktions-Suite Demo-Area. Die mitgelieferten
+// 4T-000632 (Epic 3E-000102): E2E-Funktions-Suite Demo-Area. Die mitgelieferten
 // englischen Demo-Inhalte (src/demo) werden über den direkten Pfad-Einstieg
 // der Preload-Brücke (window.api.createDemoAreaAt, identische Strecke wie der
 // Menü-/Dialog-Weg ab der Ordner-Wahl) in einen leeren Ordner kopiert und als
@@ -21,10 +21,10 @@ const { SEL } = require('../helpers/selectors');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
-// 4T-1091 (Epic 3E-0127): Die Markdown-Seiten im Wurzelverzeichnis der
+// 4T-001091 (Epic 3E-000127): Die Markdown-Seiten im Wurzelverzeichnis der
 // Demo-Area werden aus dem BESTAND gelesen statt hier ein zweites Mal
 // aufgezählt. Grund ist der Befund dieses Vorgangs: Die frühere Kopie der
-// Liste war beim Ausbau der Sammlung (4T-0645) nicht mitgewachsen, und die
+// Liste war beim Ausbau der Sammlung (4T-000645) nicht mitgewachsen, und die
 // harte Erwartung «genau zwölf Zeilen» ließ DA-03 abbrechen, bevor die
 // Linter-Prüfung überhaupt lief. Damit blieben gerade die neuen Seiten
 // ungeprüft. Eine zweite Liste desselben Bestands läuft unweigerlich
@@ -195,7 +195,7 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
       const section = page.locator(AREA_SECTION);
       await expect(section).toBeVisible();
       await section.locator('.area-file-row', { hasText: '08 Queries.md' }).first().click();
-      // 4T-1366 (Epic 3E-0171): ZWEI Reiter, nicht einer — die Demo-Area traegt
+      // 4T-001366 (Epic 3E-000171): ZWEI Reiter, nicht einer — die Demo-Area traegt
       // seither eine Start-Seite (00 Welcome.md), die sich beim Oeffnen des
       // Bereichs von selbst zeigt; der Klick legt den zweiten daneben. Die
       // Zaehlung ist hier die Warte-Bedingung dafuer, dass die geklickte Datei
@@ -209,7 +209,7 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
       await expect.poll(() => table.locator('tbody tr').count(), { timeout: 30000 }).toBe(12);
 
       // Kein Abfrage-Syntaxfehler in der gesamten Seite (pinnt die Query-Syntax
-      // aller sieben Demo-Abfragen; 4T-1075 ergaenzte die Selbstbezugs-Quelle
+      // aller sieben Demo-Abfragen; 4T-001075 ergaenzte die Selbstbezugs-Quelle
       // FROM [[]] mit bold() und den this.-Praefix).
       await expect(page.locator(`${SEL.markdownBody0} .perspective-query-error`)).toHaveCount(0);
     } finally {

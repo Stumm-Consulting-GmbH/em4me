@@ -1,6 +1,6 @@
 'use strict';
 
-// 4T-0418 (Epic 3E-0079): Renderer-seitige Lokalisierung der Perspective
+// 4T-000418 (Epic 3E-000079): Renderer-seitige Lokalisierung der Perspective
 // Datatable. Das Grid-HTML kommt vollständig aus der Pipeline
 // (perspective-datatable.js); dieses Modul füllt nur die Texte, die
 // Platzhalter brauchen (Struktur-Fehler mit {line}/{detail}, Zeilen-
@@ -27,7 +27,7 @@ const ERROR_KEYS = {
   aggregateTypeMismatch: 'datatable.error.aggregateTypeMismatch',
   rowCellCount: 'datatable.error.rowCellCount',
   invalidLine: 'datatable.error.invalidLine',
-  // 4T-0421: Spalten-Formeln.
+  // 4T-000421: Spalten-Formeln.
   badExpr: 'datatable.error.badExpr',
   computedBadRef: 'datatable.error.computedBadRef',
   computedCycle: 'datatable.error.computedCycle',

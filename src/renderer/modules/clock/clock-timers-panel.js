@@ -1,4 +1,4 @@
-// 4T-0638 (Epic 3E-0069): Timer und Stoppuhr der Uhr-Erweiterung im
+// 4T-000638 (Epic 3E-000069): Timer und Stoppuhr der Uhr-Erweiterung im
 // Renderer.
 //
 // Aufgaben:
@@ -16,7 +16,7 @@
 // sekuendlich fuer laufende Timer, rund 50 Millisekunden fuer die laufende
 // Stoppuhr (Hundertstel). Er laeuft nur, solange eine der beiden Ansichten
 // sichtbar ist und tatsaechlich etwas laeuft; Panel schliessen, Modus-
-// Wechsel und verstecktes Fenster raeumen ihn ab (Timer-Disziplin 4T-0372).
+// Wechsel und verstecktes Fenster raeumen ihn ab (Timer-Disziplin 4T-000372).
 //
 // Die Faelligkeit selbst prueft der Main (timer-check.js) mit einem
 // gezielten Weckruf — unabhaengig davon, ob das Panel offen ist.

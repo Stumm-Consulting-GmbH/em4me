@@ -1,4 +1,4 @@
-// 4T-0424 (Epic 3E-0080): Unit-Tests der Vorlagen-Quellen — Auflösungs-
+// 4T-000424 (Epic 3E-000080): Unit-Tests der Vorlagen-Quellen — Auflösungs-
 // Reihenfolge (Bereich vor global, vollständige Übersteuerung, Leer-Fälle),
 // Konfigurations-Normalisierung, Pfad-Sicherung der Lese-Zugriffe und
 // Anzeige-Einträge der Auswahl-Liste.
@@ -12,7 +12,7 @@ import {
   matchFolderRule,
 } from '../../src/main/documents/templates.js';
 
-// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// 4T-001250 (Epic 3E-000124): Wirts-gerechter Pfad aus der gewachsenen
 // Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
 // die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
 // sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
@@ -158,7 +158,7 @@ describe('resolveTemplateFile — Pfad-Sicherung', () => {
   });
 
   it('weist Ausbrüche und ungültige Eingaben zurück', () => {
-    // 4T-1250: Der Rueckwaerts-Schraegstrich ist NUR unter Windows ein Trenner;
+    // 4T-001250: Der Rueckwaerts-Schraegstrich ist NUR unter Windows ein Trenner;
     // anderswo ist «..\Geheim.md» ein gewoehnlicher Dateiname und kein Ausbruch.
     // Der Ausbruch in der Schreibweise des Wirts steht in der naechsten Zeile und
     // wird ueberall geprueft.
@@ -174,7 +174,7 @@ describe('resolveTemplateFile — Pfad-Sicherung', () => {
   });
 
   it('Präfix-Nachbarn matchen nicht', () => {
-    // 4T-1250: Rueckwaerts-Schraegstrich als Trenner gibt es nur unter Windows;
+    // 4T-001250: Rueckwaerts-Schraegstrich als Trenner gibt es nur unter Windows;
     // anderswo ist das ein Dateiname. Der Praefix-Nachbar in Wirts-Schreibweise
     // ist durch den Ausbruch-Fall weiter oben abgedeckt.
     if (process.platform === 'win32') {
@@ -183,13 +183,13 @@ describe('resolveTemplateFile — Pfad-Sicherung', () => {
   });
 });
 
-// 4T-0427 (Epic 3E-0080): Tiefster-Treffer-Auflösung der Ordner-Regeln.
+// 4T-000427 (Epic 3E-000080): Tiefster-Treffer-Auflösung der Ordner-Regeln.
 describe('matchFolderRule — Tiefster-Treffer-Auflösung', () => {
   const BASE = P('C:\\Notizen');
   const RULES = [
     { folder: '', template: 'Standard.md' },
     { folder: 'GTD', template: 'GTD.md' },
-    // 4T-1250: Der Trenner der Ordner-Regel ist der des Wirts; als fester
+    // 4T-001250: Der Trenner der Ordner-Regel ist der des Wirts; als fester
     // Rueckwaerts-Schraegstrich waere die Regel anderswo ein Ordnername mit
     // Sonderzeichen und traefe nie.
     {

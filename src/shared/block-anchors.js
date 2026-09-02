@@ -1,8 +1,8 @@
-// 4T-0363 (Epic 3E-0067): Gemeinsame, prozess-neutrale Quelle fuer die Block-
+// 4T-000363 (Epic 3E-000067): Gemeinsame, prozess-neutrale Quelle fuer die Block-
 // Anker-Erkennung (`^id` am Blockende). Single Source of Truth fuer die Anker-
 // Regex und die Extraktion aus einem Dokument-Text: der Backlinks-Index
 // (src/main/backlinks.js, `blockIds`) UND der Renderer-Abgleich des Block-
-// Metadaten-Panels (Epic 3E-0067) lesen hieraus, damit "welche Zeichenfolge ist
+// Metadaten-Panels (Epic 3E-000067) lesen hieraus, damit "welche Zeichenfolge ist
 // ein Block-Anker" an genau einer Stelle definiert ist. Ohne gemeinsame Quelle
 // divergieren Index und Panel-Abgleich (aktive vs. verwaiste Anker).
 //

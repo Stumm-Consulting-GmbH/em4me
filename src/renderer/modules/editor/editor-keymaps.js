@@ -2,7 +2,7 @@
 // editorScoped-Kommandos, Listen-Komfort, Schreibschutz-Wache, Listen-Ausstieg
 // und Tabellen-Komfort.
 //
-// Auszug aus editor.js, 4T-1002 (Epic 3E-0196). Die Belegungen sind einmalige
+// Auszug aus editor.js, 4T-001002 (Epic 3E-000196). Die Belegungen sind einmalige
 // Extension-Werte und leben ausschliesslich hier; ihre Praezedenz-Zusagen
 // stehen unveraendert an der jeweiligen Belegung, die Reihenfolge des Einbaus
 // unveraendert in createEditorState.
@@ -12,11 +12,11 @@ import { Prec } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { foldAll, foldCode, syntaxTree, unfoldAll, unfoldCode } from '@codemirror/language';
 import { indentLess, indentMore } from '@codemirror/commands';
-// 4T-0207 (Epic 3E-0015): Editor-Keymap (Fold-Kommandos) aus der Kommando-
+// 4T-000207 (Epic 3E-000015): Editor-Keymap (Fold-Kommandos) aus der Kommando-
 // Registry statt des pauschalen foldKeymap; Bindings damit konfigurierbar.
 import { COMMANDS, mergeBindings } from '../../../shared/commands/commands.js';
 import { acceleratorToCmKey } from '../../../shared/commands/command-bindings.js';
-// 4T-0292 (Epic 3E-0052): Kommandos deaktivierter Erweiterungen auch aus
+// 4T-000292 (Epic 3E-000052): Kommandos deaktivierter Erweiterungen auch aus
 // der Editor-Keymap filtern (Muster der Dispatcher-Map in app-init.js).
 import { disabledCommandIdSet } from '../../../shared/extensions/extensions-core.js';
 import { getDisabledExtensionIds, isExtensionActive } from '../extensions/extension-lifecycle.js';
@@ -28,7 +28,7 @@ import {
   isTableLine,
   parseTableCells,
 } from '../../../shared/markdown/table-edit.js';
-// 4T-0599 (Epic 3E-0112): Struktur-Kern der Listen-Bearbeitung plus sein
+// 4T-000599 (Epic 3E-000112): Struktur-Kern der Listen-Bearbeitung plus sein
 // Laufzeit-Backend (Nutzung nur in Funktionskörpern).
 import { LIST_INDENT_STEP, LIST_LINE_RE } from '../../../shared/markdown/list-outline.js';
 import {
@@ -37,16 +37,16 @@ import {
   runListMove,
   runListSelectSubtree,
 } from './editor-list-tools.js';
-// 4T-0590 (Epic 3E-0109): Laufzeit-Backend der table.*-Kommandos (Nutzung
+// 4T-000590 (Epic 3E-000109): Laufzeit-Backend der table.*-Kommandos (Nutzung
 // nur in Funktionskörpern, Laufzeit-Zyklus unkritisch).
 import { runTableCommand } from './editor-table-tools.js';
-// 4T-0378 (Epic 3E-0071): Format-/Link-Kommando-Funktionen für die Editor-
+// 4T-000378 (Epic 3E-000071): Format-/Link-Kommando-Funktionen für die Editor-
 // Keymap (Hotkey-Pfad); dasselbe FORMAT_COMMANDS speist das Kontextmenü.
 // editor-format.js importiert nicht zurueck, der Spread unten darf deshalb
 // bereits zur Lade-Zeit lesen.
 import { FORMAT_COMMANDS } from './editor-format.js';
 
-// 4T-0590 (Epic 3E-0109): Tabellen-Kommandos (editorScoped) als dünne
+// 4T-000590 (Epic 3E-000109): Tabellen-Kommandos (editorScoped) als dünne
 // Wrapper auf das Laufzeit-Backend in editor-table-tools.js. Das Objekt
 // entsteht lokal (kein Top-Level-Zugriff auf das zyklisch geladene Modul);
 // runTableCommand wird erst beim Aufruf aufgelöst.
@@ -68,24 +68,24 @@ const TABLE_COMMAND_FUNCTIONS = Object.fromEntries(
   TABLE_OPS.map((op) => [`table.${op}`, (view) => runTableCommand(view, op)]),
 );
 
-// 4T-0207: CodeMirror-Funktionen der editorScoped-Kommandos. Die Bindings
+// 4T-000207: CodeMirror-Funktionen der editorScoped-Kommandos. Die Bindings
 // kommen aus der Registry (Defaults plus User-Overrides aus state).
 export const EDITOR_COMMAND_FUNCTIONS = {
   'editor.fold': foldCode,
   'editor.unfold': unfoldCode,
   'editor.foldAll': foldAll,
   'editor.unfoldAll': unfoldAll,
-  // 4T-0378: Zeichen-Format- und Link-Kommandos (editorScoped).
+  // 4T-000378: Zeichen-Format- und Link-Kommandos (editorScoped).
   ...FORMAT_COMMANDS,
-  // 4T-0590: Tabellen-Operationen des Kontextmenü-Untermenüs.
+  // 4T-000590: Tabellen-Operationen des Kontextmenü-Untermenüs.
   ...TABLE_COMMAND_FUNCTIONS,
-  // 4T-0599 (Epic 3E-0112): Listenpunkt samt Teilbaum verschieben. Liefert
+  // 4T-000599 (Epic 3E-000112): Listenpunkt samt Teilbaum verschieben. Liefert
   // der Handler false (keine Listenzeile), faellt der Tastendruck an den
   // defaultKeymap durch, der Alt+Pfeil auf moveLineUp/-Down bindet — das
   // Kuerzel bleibt damit ausserhalb von Listen wie bisher nuetzlich.
   'list.moveUp': (view) => runListMove(view, -1),
   'list.moveDown': (view) => runListMove(view, +1),
-  // 4T-0600 (Epic 3E-0112): Listenpunkt samt Teilbaum auswaehlen.
+  // 4T-000600 (Epic 3E-000112): Listenpunkt samt Teilbaum auswaehlen.
   'list.selectSubtree': (view) => runListSelectSubtree(view),
 };
 
@@ -98,7 +98,7 @@ export const EDITOR_COMMAND_FUNCTIONS = {
  */
 export function buildEditorCommandKeymap() {
   const effective = mergeBindings(state.hotkeyOverrides);
-  // 4T-0292: Kommandos effektiv deaktivierter Erweiterungen ohne Binding.
+  // 4T-000292: Kommandos effektiv deaktivierter Erweiterungen ohne Binding.
   const disabledCommands = disabledCommandIdSet(getDisabledExtensionIds());
   const entries = [];
   for (const cmd of COMMANDS) {
@@ -114,7 +114,7 @@ export function buildEditorCommandKeymap() {
   return keymap.of(entries);
 }
 
-// 4T-0016: Tab/Shift+Tab in Markdown-Listen rueckt Listen-Eintraege ein bzw.
+// 4T-000016: Tab/Shift+Tab in Markdown-Listen rueckt Listen-Eintraege ein bzw.
 // aus. Erkannt werden ungeordnete Marker (`-`, `*`, `+`, inkl. Task-Liste
 // `- [ ]` / `- [x]`) und geordnete Marker (`1.`, `2.`, ...). Die Variante
 // mit Klammer (`1)`) wird bewusst nicht unterstuetzt. Einrueck-Schrittweite
@@ -123,7 +123,7 @@ export function buildEditorCommandKeymap() {
 // die Nummer unveraendert. In Code-Bloecken (FencedCode / CodeBlock) greift
 // die Logik nicht, damit der Default-Tab dort erhalten bleibt.
 //
-// 4T-0599 (Epic 3E-0112): Regex und Schrittweite leben im Struktur-Kern
+// 4T-000599 (Epic 3E-000112): Regex und Schrittweite leben im Struktur-Kern
 // src/shared/markdown/list-outline.js (dort nutzen sie auch die reinen
 // Teilbaum-Operationen); hier bleiben sie als Re-Export fuer die Bestands-
 // Konsumenten stehen. Muster src/shared/markdown/table-edit.js.
@@ -170,7 +170,7 @@ export function selectionTouchesList(state) {
 export function applyListIndent(view, delta) {
   const state = view.state;
   if (state.readOnly) return false;
-  // 4T-0599 (Epic 3E-0112): Bei aktiver Erweiterung nimmt der Ein-Zeilen-Fall
+  // 4T-000599 (Epic 3E-000112): Bei aktiver Erweiterung nimmt der Ein-Zeilen-Fall
   // den Teilbaum mit und nummeriert danach neu. Der Handler liefert false,
   // wenn er nicht greift (mehrzeilige Auswahl, keine Listenzeile, Code-
   // Block) — dann laeuft unveraendert das zeilenweise Bestands-Verhalten.
@@ -241,7 +241,7 @@ export const listIndentKeymap = Prec.high(
   ]),
 );
 
-// 4T-0656 (Epic 3E-0112): Tabulator ausserhalb von Listen und Tabellen.
+// 4T-000656 (Epic 3E-000112): Tabulator ausserhalb von Listen und Tabellen.
 //
 // Ohne diese Belegung ist die Taste dort unbelegt (CodeMirror bindet sie im
 // Standard bewusst nicht), der Tastendruck erreicht die Anwendung und der
@@ -263,7 +263,7 @@ export const tabIndentKeymap = keymap.of([
   },
 ]);
 
-// === 4T-0640 (Epic 3E-0069): Schreibschutz-Wache der Tastenbelegung ==========
+// === 4T-000640 (Epic 3E-000069): Schreibschutz-Wache der Tastenbelegung ==========
 // EditorState.readOnly blockiert nur den DOM-Eingabepfad, nicht Kommandos aus
 // einer Tastenbelegung. Die Standard-Kommandos (@codemirror/commands) pruefen
 // den Schreibschutz deshalb selbst, ebenso alle App-eigenen Handler
@@ -286,7 +286,7 @@ export const readOnlyGuardKeymap = Prec.highest(
   keymap.of(READ_ONLY_GUARD_KEYS.map((key) => ({ key, run: (view) => view.state.readOnly }))),
 );
 
-// 4T-0600 (Epic 3E-0112): Listen-Ausstieg auf der obersten Ebene. Braucht
+// 4T-000600 (Epic 3E-000112): Listen-Ausstieg auf der obersten Ebene. Braucht
 // Prec.highest, weil die eingekaufte Markdown-Belegung mit Prec.high kommt
 // und Enter sonst vor diesem Handler behandelt. Steht in der Extension-Liste
 // NACH der Schreibschutz-Wache, damit die im Lesemodus zuerst greift; in
@@ -296,21 +296,21 @@ export const listExitKeymap = Prec.highest(
   keymap.of([{ key: 'Enter', run: (view) => runListExit(view) }]),
 );
 
-// === 4T-0074 (Epic 3E-0013): Tabellen-Editor-Komfort =========================
+// === 4T-000074 (Epic 3E-000013): Tabellen-Editor-Komfort =========================
 // Tab/Umschalt+Tab springen zwischen Zellen einer klassischen Pipe-Tabelle.
 // Enter am Zeilenende erzeugt eine neue Tabellenzeile mit derselben Spalten-
 // Anzahl. Trennerzeilen (|---|---|) und Kopfzeilen werden gleich behandelt
 // wie Inhaltszeilen — der Cursor springt einfach durch. Perspective-Tabellen
-// (`perspective-table`-Code-Bloecke aus 3E-0006/3E-0007/3E-0008) sind nicht betroffen,
+// (`perspective-table`-Code-Bloecke aus 3E-000006/3E-000007/3E-000008) sind nicht betroffen,
 // weil dort eine andere Syntax greift und der Cursor in einem CodeBlock-
 // Kontext steht (lineInsideCodeBlock liefert true, Handler bricht ab).
 //
-// Konflikt-Reihenfolge mit Listen-Indent (4T-0016): tableEditKeymap steht in
+// Konflikt-Reihenfolge mit Listen-Indent (4T-000016): tableEditKeymap steht in
 // der Extension-Liste VOR listIndentKeymap. Bei nicht-Tabellen-Zeilen liefert
 // der Tabellen-Handler false, und die Tab-/Shift+Tab-Taste faellt an
 // listIndentKeymap weiter.
 
-// R2-19 (4T-0186): Tabellen-Erkennung deckt auch randlose GFM-Tabellen ab
+// R2-19 (4T-000186): Tabellen-Erkennung deckt auch randlose GFM-Tabellen ab
 // (die Preview rendert sie laengst). Rand-Pipe-Zeilen wie bisher rein
 // textuell; Zeilen ohne Rand-Pipes nur dann, wenn der Lezer-Baum sie
 // tatsaechlich einer Table zuordnet — eine einzelne Pipe in Fliesstext
@@ -343,7 +343,7 @@ export function handleTableTab(view, direction) {
   const cursorPos = range.from;
   const line = state.doc.lineAt(cursorPos);
   const lineText = line.text;
-  // R2-19 (4T-0186): randlose GFM-Tabellen einschliessen.
+  // R2-19 (4T-000186): randlose GFM-Tabellen einschliessen.
   if (!isTableContextLine(state, line)) return false;
   if (lineInsideCodeBlock(state, line)) return false;
   const cells = parseTableCells(lineText);
@@ -428,7 +428,7 @@ export function handleTableEnter(view) {
   const cursorPos = range.from;
   const line = state.doc.lineAt(cursorPos);
   const lineText = line.text;
-  // R2-19 (4T-0186): randlose GFM-Tabellen einschliessen.
+  // R2-19 (4T-000186): randlose GFM-Tabellen einschliessen.
   if (!isTableContextLine(state, line)) return false;
   if (lineInsideCodeBlock(state, line)) return false;
   // Nur am Zeilenende greifen (nach dem Cursor folgt nur Whitespace bis
@@ -450,7 +450,7 @@ export function handleTableEnter(view) {
     // Auch das vorangehende Newline mit entfernen, sofern vorhanden, damit
     // die Tabelle nicht eine Leerzeile am Ende behaelt.
     const deleteFrom = lineFrom > 0 ? lineFrom - 1 : lineFrom;
-    // R2-06 (4T-0174): Mitten im Dokument braucht der Ausstieg ZWEI
+    // R2-06 (4T-000174): Mitten im Dokument braucht der Ausstieg ZWEI
     // Newlines (Cursor dazwischen = echte leere Absatzzeile vor dem
     // Folgetext); vorher landete der Cursor direkt am Anfang des
     // Folgetexts. Am Doc-Ende reicht eines (bisheriges Verhalten).

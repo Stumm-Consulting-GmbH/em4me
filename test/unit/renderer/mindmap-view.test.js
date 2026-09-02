@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1046 (Epic 3E-0151): Unit-Tests des Mindmap-Renderers — SVG-Struktur
+// 4T-001046 (Epic 3E-000151): Unit-Tests des Mindmap-Renderers — SVG-Struktur
 // (Knoten, Kanten, Anfasser, Notiz-Marker), Klappen einzeln und rekursiv,
 // Sprung zur Quellzeile, Notiz-Popover, Linienführung, Ast-Farben,
 // Leer-Hinweis, Kapp-Hinweis und das Abmelden der Fenster-Listener.
@@ -51,7 +51,7 @@ function baueAnsicht(text = QUELLE, options = {}) {
 const knotenGruppen = (c) => c.querySelectorAll('.mindmap-knoten-gruppe');
 const kanten = (c) => c.querySelectorAll('.mindmap-kante');
 
-describe('Mindmap-Renderer: Struktur (4T-1046)', () => {
+describe('Mindmap-Renderer: Struktur (4T-001046)', () => {
   it('AK1: zeichnet je sichtbarem Knoten eine Gruppe und je Kante einen Pfad', () => {
     const { container } = baueAnsicht();
     // Wurzel, zwei Äste, drei Blätter.
@@ -86,7 +86,7 @@ describe('Mindmap-Renderer: Struktur (4T-1046)', () => {
   });
 });
 
-describe('Mindmap-Renderer: Klappen (4T-1046)', () => {
+describe('Mindmap-Renderer: Klappen (4T-001046)', () => {
   it('AK6: ein Klick auf den Anfasser klappt den Teilbaum ein', () => {
     const { container, view } = baueAnsicht();
     const vorher = knotenGruppen(container).length;
@@ -146,7 +146,7 @@ describe('Mindmap-Renderer: Klappen (4T-1046)', () => {
   });
 });
 
-describe('Mindmap-Renderer: Bedienung (4T-1046)', () => {
+describe('Mindmap-Renderer: Bedienung (4T-001046)', () => {
   it('AK8: ein Klick auf den Titel meldet die Quellzeile', () => {
     const onJumpToLine = vi.fn();
     const { container } = baueAnsicht(QUELLE, { onJumpToLine });
@@ -201,7 +201,7 @@ describe('Mindmap-Renderer: Bedienung (4T-1046)', () => {
   });
 });
 
-describe('Mindmap-Renderer: Darstellungs-Optionen (4T-1046)', () => {
+describe('Mindmap-Renderer: Darstellungs-Optionen (4T-001046)', () => {
   it('AK4: die Linienführung schaltet zwischen Kurve und Gerade', () => {
     const geschwungen = baueAnsicht(QUELLE, {
       setTree: { darstellung: { linienfuehrung: 'geschwungen' } },
@@ -241,7 +241,7 @@ describe('Mindmap-Renderer: Darstellungs-Optionen (4T-1046)', () => {
   });
 });
 
-describe('Mindmap-Renderer: Wurzel-Lagen (4T-1049)', () => {
+describe('Mindmap-Renderer: Wurzel-Lagen (4T-001049)', () => {
   const mitLage = (layout, text = QUELLE, options = {}) =>
     baueAnsicht(text, { ...options, setTree: { darstellung: { layout }, ...options.setTree } });
 
@@ -376,7 +376,7 @@ describe('Mindmap-Renderer: Wurzel-Lagen (4T-1049)', () => {
   });
 });
 
-describe('Mindmap-Renderer: Ränder und Aufräumen (4T-1046)', () => {
+describe('Mindmap-Renderer: Ränder und Aufräumen (4T-001046)', () => {
   it('AK11: ein Dokument ohne Struktur zeigt den Leer-Hinweis', () => {
     const { container } = baueAnsicht('Nur ein Absatz.\n');
     expect(container.querySelector('.mindmap-hinweis').hidden).toBe(false);
@@ -405,7 +405,7 @@ describe('Mindmap-Renderer: Ränder und Aufräumen (4T-1046)', () => {
     abmelden.mockRestore();
   });
 
-  it('AK6 (4T-1054): der Notiz-Marker ist ein Zettel-Symbol mit Schreiblinien', () => {
+  it('AK6 (4T-001054): der Notiz-Marker ist ein Zettel-Symbol mit Schreiblinien', () => {
     const { container } = baueAnsicht();
     const marker = container.querySelector('.mindmap-notiz-marker');
     expect(marker.tagName.toLowerCase()).toBe('g');
@@ -421,7 +421,7 @@ describe('Mindmap-Renderer: Ränder und Aufräumen (4T-1046)', () => {
     expect(x).toBeGreaterThan(0);
   });
 
-  it('AK6 (4T-1054): die Trefferflaeche misst mindestens 16 Pixel', () => {
+  it('AK6 (4T-001054): die Trefferflaeche misst mindestens 16 Pixel', () => {
     const { container } = baueAnsicht();
     const treffer = container.querySelector('.mindmap-notiz-treffer');
     expect(Number(treffer.getAttribute('width'))).toBeGreaterThanOrEqual(16);

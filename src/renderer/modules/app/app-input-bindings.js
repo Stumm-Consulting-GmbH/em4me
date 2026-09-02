@@ -3,7 +3,7 @@
 // dazu die Auffrischung am Puffer-Overlay des Index und das Sichern bei
 // Fokusverlust.
 //
-// Auszug aus app-init.js, 4T-1001 (Epic 3E-0196).
+// Auszug aus app-init.js, 4T-001001 (Epic 3E-000196).
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -69,11 +69,11 @@ export function bindInputEvents() {
     if (!e.dataTransfer) return;
     if (Array.from(e.dataTransfer.types).includes(MIME_TAB)) return;
     dragCounter = Math.max(0, dragCounter - 1);
-    // 4T-0789: Hervorhebung mit zuruecksetzen, sonst traegt das Overlay sie
+    // 4T-000789: Hervorhebung mit zuruecksetzen, sonst traegt das Overlay sie
     // beim naechsten Ziehen ueber eine Nicht-Ablege-Zone noch.
     if (dragCounter === 0) schliesseDropUeberlagerung();
   });
-  // 4T-0789 (Epic 3E-0125): Ablege-Zone der Anlagen. Massgeblich ist der ORT,
+  // 4T-000789 (Epic 3E-000125): Ablege-Zone der Anlagen. Massgeblich ist der ORT,
   // nicht der Dateityp (Architekturentscheidung des Epics): Die beiden Flaechen
   // des geoeffneten Dokuments nehmen Anlagen entgegen, alles uebrige oeffnet
   // weiter wie bisher. Der Ort ist vor dem Loslassen sichtbar, und eine
@@ -101,7 +101,7 @@ export function bindInputEvents() {
     dropOverlay.classList.toggle('is-attachment', !!zone);
   });
 
-  // 4T-0789 (Epic 3E-0125), zweiter Befund des Product Owners: Das Aufraeumen
+  // 4T-000789 (Epic 3E-000125), zweiter Befund des Product Owners: Das Aufraeumen
   // der Ueberlagerung laeuft in der CAPTURE-Phase und damit unabhaengig davon,
   // ob ein Handler weiter unten die Weitergabe stoppt.
   //
@@ -127,7 +127,7 @@ export function bindInputEvents() {
     e.preventDefault();
     schliesseDropUeberlagerung();
 
-    // 4T-0789: Ablegen in der RENDER-Ansicht. Die Editor-Flaeche behandelt
+    // 4T-000789: Ablegen in der RENDER-Ansicht. Die Editor-Flaeche behandelt
     // ihren Drop selbst (drop-Handler in editor.js) und stoppt die Weitergabe,
     // weil das eingesetzte Editor-Modul sonst zusaetzlich den Datei-Inhalt als
     // Text einliest; hier kommen deshalb nur noch die uebrigen Flaechen an.
@@ -180,12 +180,12 @@ export function bindInputEvents() {
         closeSearchBar();
         return;
       }
-      // 4T-0019: Vor dem allgemeinen Hide-Block pruefen, ob etwas Sichtbares
+      // 4T-000019: Vor dem allgemeinen Hide-Block pruefen, ob etwas Sichtbares
       // mit Vorrang offen ist. Wenn ja, schliesst Esc nur dieses Element und
       // der Fokus-Modus bleibt unangetastet. Sonst verlaesst Esc den Fokus-
-      // Modus (sofern aktiv). 4T-0216: das Hilfe-Modal ist aus der Kaskade
+      // Modus (sofern aktiv). 4T-000216: das Hilfe-Modal ist aus der Kaskade
       // entfallen (Handbuch-Seiten sind normale Tabs ohne Esc-Semantik);
-      // 4T-0279: der Einstellungs-Dialog ebenso (Seite statt Modal, Esc
+      // 4T-000279: der Einstellungs-Dialog ebenso (Seite statt Modal, Esc
       // schliesst den Tab bewusst nicht).
       const wordcountModalEl = document.getElementById('wordcount-modal');
       const hasOpenOverlay =
@@ -195,21 +195,21 @@ export function bindInputEvents() {
         (wordcountModalEl && !wordcountModalEl.hidden);
       hideContextMenu();
       hideAbout();
-      // 4T-0072: Esc schliesst auch den Word-Count-Detail-Dialog.
+      // 4T-000072: Esc schliesst auch den Word-Count-Detail-Dialog.
       closeWordCountDialog();
-      // 4T-0078: Esc schliesst die Bookmark-Modals und bricht Inline-Edit ab.
+      // 4T-000078: Esc schliesst die Bookmark-Modals und bricht Inline-Edit ab.
       closeBookmarkConfirmRemoveDialog();
       closeBookmarkMoveDialog();
       if (state.bookmarks && state.bookmarks.editingId) cancelInlineEdit();
-      // 4T-0079: Esc bricht laufenden Drag-Vorgang ab (Indikatoren entfernen,
+      // 4T-000079: Esc bricht laufenden Drag-Vorgang ab (Indikatoren entfernen,
       // State leeren). Die Browser-DnD-API beendet den Drag-Vorgang
       // intern eh, wir raeumen den Visualisierungs-Zustand auf.
       if (state.bookmarks && state.bookmarks.dragging && state.bookmarks.dragging.sourceId) {
         handleBookmarkDragEnd();
       }
-      // 4T-0289: Esc raeumt analog einen laufenden Panel-Drag auf.
+      // 4T-000289: Esc raeumt analog einen laufenden Panel-Drag auf.
       cancelPanelDrag();
-      // 4T-0050: Esc bricht den Alias-Dialog ab; Resolver liefert null,
+      // 4T-000050: Esc bricht den Alias-Dialog ab; Resolver liefert null,
       // damit der wartende Klick-Handler sauber zuruecksetzt.
       if (!aliasModal.hidden) cancelAliasDialog();
       if (!hasOpenOverlay && state.focusMode) setFocusMode(false);
@@ -218,7 +218,7 @@ export function bindInputEvents() {
     // manueller Handler hier mehr noetig.
   });
 
-  // 4T-0207 (Epic 3E-0015): der zentrale Kommando-Dispatcher als zweiter
+  // 4T-000207 (Epic 3E-000015): der zentrale Kommando-Dispatcher als zweiter
   // window-keydown-Listener, bewusst NACH der Escape-Kaskade. Der Handler
   // selbst liegt bei der Kommando-Tabelle (app-commands.js).
   window.addEventListener('keydown', handleCommandKeydown);
@@ -230,13 +230,13 @@ export function bindInputEvents() {
  * Splitter).
  */
 export function bindOverlayAndBlurEvents() {
-  // 4T-0935 (Befund B-08): Der Puffer-Overlay des Index hat sich geändert
+  // 4T-000935 (Befund B-08): Der Puffer-Overlay des Index hat sich geändert
   // (Tippen im Editor, Speichern, Verwerfen, Schließen). Dieselben
   // Auffrisch-Wege wie bei einer Index-Invalidierung, und zwar für genau die
   // Verbraucher, die den Overlay lesen. Wer weiter am Platten-Stand hängt
   // (Graph, Rückverweise, Linter), wird hier bewusst nicht angestoßen.
   //
-  // 4T-0950 (Befund E-03): Das Tag-Panel gehört seit seiner Freischaltung
+  // 4T-000950 (Befund E-03): Das Tag-Panel gehört seit seiner Freischaltung
   // dazu. Ohne diesen Anstoß bliebe die Umstellung der Datenquelle wirkungslos,
   // weil das Panel sonst nur beim Reiter-Wechsel neu zeichnet — im Test des
   // Product Owners blieb es leer, obwohl die Quelle bereits richtig war.
@@ -247,14 +247,14 @@ export function bindOverlayAndBlurEvents() {
     for (let i = 0; i < state.panes.length; i++) {
       if (state.tags && state.tags.visibleByPane[i]) renderTags(i);
     }
-    // 4T-0948 (Befund E-01): Wiki-Einbettungen der gemeldeten Datei erneut
+    // 4T-000948 (Befund E-01): Wiki-Einbettungen der gemeldeten Datei erneut
     // aufloesen. Ohne diesen Anstoss bliebe der Kanal-Fix in der Lage
     // wirkungslos, in der Huelle und Quelle nebeneinander stehen: Text und
     // Pfad der Huelle aendern sich beim Tippen in der Quelle nicht, also
     // zeichnet ihre Spalte nicht neu. Die Einbettung der gerade bearbeiteten
     // Spalte ist mit erfasst, weil der Filter am Ziel haengt und nicht an
     // der Spalte.
-    // 4T-0949 (Befund E-02): Eine offene Suche laeuft erneut. Die Schicht
+    // 4T-000949 (Befund E-02): Eine offene Suche laeuft erneut. Die Schicht
     // meldet verzoegert; wer in den 300 ms danach sucht, bekaeme sonst den
     // Stand von vorhin und behielte ihn, weil kein weiterer Lauf folgt. Der
     // Aufruf ist billig, wenn keine Suchleiste offen ist (fruehes return).

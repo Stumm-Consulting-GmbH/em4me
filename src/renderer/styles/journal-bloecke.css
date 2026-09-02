@@ -1,17 +1,17 @@
-/* 4T-1067 (Epic 3E-0212): Journal-Bloecke im Dokument — Navigations-Block
+/* 4T-001067 (Epic 3E-000212): Journal-Bloecke im Dokument — Navigations-Block
    (perspective-journal-nav) und Timeline-Block (perspective-journal-timeline).
 
    Herausgeloest aus bereichs-panel.css: Beide Bloecke leben im Dokument-Fluss
    und nicht in der Sidebar; die Datei hatte mit dem Timeline-CSS ihr Budget
-   von 800 Zeilen gerissen (4T-0878). Die Gitter-Grundklassen bleiben bewusst
+   von 800 Zeilen gerissen (4T-000878). Die Gitter-Grundklassen bleiben bewusst
    in bereichs-panel.css beim Kalender-Panel, weil der Block sie ueberschreibt
    und nicht ersetzt — Panel und Block sollen nicht auseinanderlaufen. */
 
-/* 4T-0435 (Epic 3E-0081): Journal-Navigations-Block (perspective-journal-nav).
+/* 4T-000435 (Epic 3E-000081): Journal-Navigations-Block (perspective-journal-nav).
    Übergeordnete Perioden als Link-Zeile, aktuelle Periode groß mit
    Pfeilen zu voriger/nächster Periode. */
 .perspective-journal-nav {
-  /* 4T-1310 (Epic 3E-0235): Aussenabstand auf Absatz-Mass (0.6em wie
+  /* 4T-001310 (Epic 3E-000235): Aussenabstand auf Absatz-Mass (0.6em wie
      .markdown-body p), Innenabstand von 10 auf 6 px. Der Block soll sich
      absetzen, nicht den Textfluss auseinanderziehen; gemessen war er vorher
      bei 15 px Aussen- und 10 px Innenabstand fast dreimal so luftig wie ein
@@ -26,7 +26,7 @@
   font-size: 12px;
   color: var(--fg-muted);
 }
-/* 4T-1326 (Epic 3E-0236): Plausibilitaets-Meldung beider Journal-Bloecke.
+/* 4T-001326 (Epic 3E-000236): Plausibilitaets-Meldung beider Journal-Bloecke.
 
    Sie ist bewusst als Fehler gestaltet und nicht wie der neutrale Hinweis
    darueber (Entscheidung des Product Owners vom 2026-08-31). Grund: Der Befund
@@ -89,7 +89,7 @@
   color: var(--fg-muted);
 }
 
-/* 4T-1064 (Epic 3E-0212): Journal-Timeline-Block (perspective-journal-timeline).
+/* 4T-001064 (Epic 3E-000212): Journal-Timeline-Block (perspective-journal-timeline).
    Das Gitter selbst nutzt die Klassen des Journal-Kalenders weiter oben
    (.calendar-grid, .calendar-cell, .calendar-day-btn), damit Panel und Block
    nicht auseinanderlaufen; hier stehen nur die Dokument-Umgebung und die

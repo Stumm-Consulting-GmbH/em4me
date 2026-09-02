@@ -1,4 +1,4 @@
-// 4T-0581/4T-0582 (Epic 3E-0107): Rechtschreibprüfung.
+// 4T-000581/4T-000582 (Epic 3E-000107): Rechtschreibprüfung.
 //
 // Der Prüfer selbst gehört dem Betriebssystem und lässt sich im Testlauf nicht
 // nachstellen; geprüft werden deshalb die reinen Helfer und die drei
@@ -19,7 +19,7 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-// 4T-1328: Bestands-Leser ans benannte Limit (Riss im Linux-Container 2026-08-31).
+// 4T-001328: Bestands-Leser ans benannte Limit (Riss im Linux-Container 2026-08-31).
 import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
 import {
   SPELLCHECK_EXTENSION_ID,
@@ -34,7 +34,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..', '..', 'src');
 const lies = (...teile) => fs.readFileSync(path.join(SRC, ...teile), 'utf8');
 
-describe('Schalter-Auflösung (4T-0581)', () => {
+describe('Schalter-Auflösung (4T-000581)', () => {
   it('prüft nur bei gesetztem Schalter UND aktiver Erweiterung', () => {
     expect(spellcheckAttributeValue(true, true)).toBe('true');
     expect(spellcheckAttributeValue(true, false)).toBe('false');
@@ -60,7 +60,7 @@ describe('Schalter-Auflösung (4T-0581)', () => {
   });
 });
 
-describe('Wörterbuch-Liste (4T-0582)', () => {
+describe('Wörterbuch-Liste (4T-000582)', () => {
   it('trimmt, entdoppelt und sortiert gebietsschema-unabhängig', () => {
     expect(normalizeDictionaryWords(['Zeta', ' Alpha ', 'Alpha', 'beta'])).toEqual([
       'Alpha',
@@ -80,7 +80,7 @@ describe('Wörterbuch-Liste (4T-0582)', () => {
   });
 });
 
-describe('Erweiterungs-Registrierung (4T-0581)', () => {
+describe('Erweiterungs-Registrierung (4T-000581)', () => {
   it('ist als schaltbare Werkzeug-Erweiterung mit eigenem Bereich registriert', () => {
     const manifest = extensionById(SPELLCHECK_EXTENSION_ID);
     expect(manifest).not.toBeNull();
@@ -98,7 +98,7 @@ describe('Erweiterungs-Registrierung (4T-0581)', () => {
   });
 });
 
-describe('Wächter gegen stille Rücknahme (Epic 3E-0107)', () => {
+describe('Wächter gegen stille Rücknahme (Epic 3E-000107)', () => {
   it(
     'setzt nirgends im Auslieferungs-Code eine Prüfsprache',
     () => {
@@ -127,7 +127,7 @@ describe('Wächter gegen stille Rücknahme (Epic 3E-0107)', () => {
   );
 
   it('erzeugt Fenster fest mit spellcheck: true', () => {
-    // 4T-0998: createWindow liegt seit dem Main-Schnitt in window-manager.js;
+    // 4T-000998: createWindow liegt seit dem Main-Schnitt in window-manager.js;
     // der geprüfte Options-Block ist unverändert mitgereist.
     const main = lies('main', 'window-manager.js');
     const start = main.indexOf('webPreferences: {');

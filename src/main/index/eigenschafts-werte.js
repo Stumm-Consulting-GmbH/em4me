@@ -1,4 +1,4 @@
-// 4T-1340 (Epic 3E-0238): Die zu einer Eigenschaft im Bereich bereits
+// 4T-001340 (Epic 3E-000238): Die zu einer Eigenschaft im Bereich bereits
 // vergebenen Werte.
 //
 // **Die Werte liegen schon da.** Der Bereichs-Index führt für jede Datei ihre
@@ -65,7 +65,7 @@ function eigenschaftsWerteFuerFeld(filePath, feld, areaRoot, limit = MAX_WERTE) 
   const entry = indexes.get(root);
   if (!entry) return { status: 'unavailable', values: [] };
   if (entry.status === 'indexing') return { status: 'indexing', values: [] };
-  // W-07 (4T-0309): Fehler- und Übergroß-Status wie unavailable behandeln —
+  // W-07 (4T-000309): Fehler- und Übergroß-Status wie unavailable behandeln —
   // nicht den eingefrorenen Index eines toten Watchers als verbindlich ausgeben.
   if (entry.status === 'oversized' || entry.status === 'error') {
     return { status: 'unavailable', values: [] };

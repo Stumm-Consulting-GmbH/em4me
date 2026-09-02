@@ -1,7 +1,7 @@
 // Ereignis-Verdrahtung der Spalten (Pane): Klick- und Scroll-Wege, Sidebar-
 // Anteile, Reiterleisten-Ablage sowie die beiden Splitter.
 //
-// Auszug aus app-init.js, 4T-1001 (Epic 3E-0196).
+// Auszug aus app-init.js, 4T-001001 (Epic 3E-000196).
 'use strict';
 
 import {
@@ -32,7 +32,7 @@ export function bindPaneEvents() {
   paneRoots.forEach((root, idx) => {
     root.addEventListener('mousedown', () => activatePane(idx));
 
-    // 4T-0359 (Epic 3E-0066): spezifisch auf das Render-Pane (siehe buildPaneEls);
+    // 4T-000359 (Epic 3E-000066): spezifisch auf das Render-Pane (siehe buildPaneEls);
     // die Notizen-Vorschau traegt ebenfalls .markdown-body.
     const renderedHtml = root.querySelector('.pane-rendered .markdown-body');
     renderedHtml.addEventListener('click', (e) => handleRenderedClick(e, idx));
@@ -42,7 +42,7 @@ export function bindPaneEvents() {
     sourceEl.addEventListener('scroll', () => saveScroll(idx));
     renderedEl.addEventListener('scroll', () => {
       saveScroll(idx);
-      // 4T-0014: aktive Sektion folgt im Render-Modus dem Scroll-Stand.
+      // 4T-000014: aktive Sektion folgt im Render-Modus dem Scroll-Stand.
       if (state.outline.visibleByPane[idx]) {
         scheduleOutlineActiveUpdate(idx);
       }
@@ -50,7 +50,7 @@ export function bindPaneEvents() {
 
     bindOutlineEvents(idx);
     bindSidebarSplitters(idx);
-    // 4T-0289: Drag-and-Drop der Panel-Header und Container-Drop-Zonen.
+    // 4T-000289: Drag-and-Drop der Panel-Header und Container-Drop-Zonen.
     bindSidebarPanelDnd(idx);
 
     initInnerSplitter(idx);
@@ -72,7 +72,7 @@ export function bindPaneEvents() {
       tabbar.classList.remove('drag-target');
       const data = parseTabDrag(e);
       if (!data) return;
-      // 4T-0460 (Epic 3E-0085): Kopf-Ziehen auf die freie Tabbar-Flaeche —
+      // 4T-000460 (Epic 3E-000085): Kopf-Ziehen auf die freie Tabbar-Flaeche —
       // die ganze Gruppe ans Leisten-Ende (nur eigene Leiste).
       if (data.kind === 'group') {
         if (data.fromPane === idx) {
@@ -80,7 +80,7 @@ export function bindPaneEvents() {
         }
         return;
       }
-      // 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl auf die freie Flaeche — die
+      // 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl auf die freie Flaeche — die
       // ganze Menge ans Leisten-Ende (nur eigene Leiste).
       const menge = Array.isArray(data.tabIndices) ? data.tabIndices : [];
       if (menge.length > 1 && data.fromPane === idx) {

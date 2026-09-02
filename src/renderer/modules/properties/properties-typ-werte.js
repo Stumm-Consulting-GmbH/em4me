@@ -2,7 +2,7 @@
 // Umwandlung zwischen Typen, Leer-Wert je Typ, der weiche Validierungs-Hinweis
 // und das Auslesen eines Wertes aus der Feld-DOM.
 //
-// 4T-1172 (Epic 3E-0220): Auszug aus properties-types.js. Der Anlass war der
+// 4T-001172 (Epic 3E-000220): Auszug aus properties-types.js. Der Anlass war der
 // Ordner-Import-Wächter: Sein Bestands-Zyklus über die Renderer-Ordner ist mit
 // Ratsche eingefroren und darf technisch nicht wachsen, und properties-types.js
 // gehört dazu (sie liest Sitzungs-Zustand und ruft die Auflösung über IPC). Ein
@@ -21,21 +21,21 @@
 'use strict';
 
 import { t } from '../../i18n.js';
-// 4T-1187 (Epic 3E-0221): Typ-Menge und Auslese der gestapelten Bedienung.
+// 4T-001187 (Epic 3E-000221): Typ-Menge und Auslese der gestapelten Bedienung.
 import { OBJECT_TYPES } from '../../../shared/property-profiles.js';
 import { leseObjektWert } from './properties-objekt-felder.js';
 import {
-  // 4T-0491 (Epic 3E-0093): gemeinsame Leer-Wert-Quelle der Komplett-Übernahme.
+  // 4T-000491 (Epic 3E-000093): gemeinsame Leer-Wert-Quelle der Komplett-Übernahme.
   emptyValueForType,
-  // 4T-1157 (Epic 3E-0219): Hinweis zur Quelle eines Wertevorrats.
+  // 4T-001157 (Epic 3E-000219): Hinweis zur Quelle eines Wertevorrats.
   valueSourceHint,
 } from '../../../shared/property-profiles.js';
 
-// 4T-1156 (Epic 3E-0219): Uhrzeit im 24-Stunden-Format, Sekunden optional —
+// 4T-001156 (Epic 3E-000219): Uhrzeit im 24-Stunden-Format, Sekunden optional —
 // dieselbe Regel wie im Format-Modul (`property-profiles-format.js`).
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 
-// 4T-1156: `link` und `time` werden bewusst NICHT inferiert. Ein Verweis ist
+// 4T-001156: `link` und `time` werden bewusst NICHT inferiert. Ein Verweis ist
 // als Wert ein gewöhnlicher Text, und eine Uhrzeit steht in Anführungszeichen
 // wie jeder andere String; sie zu erraten hieße, jedes Textfeld mit `[[…]]`
 // oder `09:30` still zum Verweis- bzw. Zeit-Feld zu machen. Beide Typen
@@ -93,7 +93,7 @@ export function coerceValue(value, fromType, toType) {
     if (Array.isArray(value)) return value.join('\n');
     return String(value || '');
   }
-  // 4T-1156 (Epic 3E-0219): Ein Verweis ist beim Wechsel schlicht sein Text —
+  // 4T-001156 (Epic 3E-000219): Ein Verweis ist beim Wechsel schlicht sein Text —
   // die Wiki-Schreibweise bleibt erhalten, damit ein versehentlicher
   // Typ-Wechsel das Ziel nicht verliert. Eine Uhrzeit dagegen wird geprüft
   // wie ein Datum: Ein nicht darstellbarer Wert würde das Bedienelement
@@ -110,16 +110,16 @@ export function coerceValue(value, fromType, toType) {
 }
 
 // Liefert einen typgerechten Default-Wert fuer ein neu angelegtes Feld.
-// 4T-0491 (Epic 3E-0093): die sechs Profil-Typen kommen aus der gemeinsamen
+// 4T-000491 (Epic 3E-000093): die sechs Profil-Typen kommen aus der gemeinsamen
 // Quelle (emptyValueForType); nur der DOM-interne 'readonly'-Fall bleibt hier.
 export function defaultValueForType(type) {
   if (type === 'readonly') return null;
   return emptyValueForType(type);
 }
 
-// 4T-0448: Hinweis-Icon eines Felds setzen bzw. verbergen. code ist der
+// 4T-000448: Hinweis-Icon eines Felds setzen bzw. verbergen. code ist der
 // Hinweis-Code aus fieldDefinitionHint (null = konform). Exportiert für
-// das Block-Panel (4T-0449, gleiche Hinweis-Darstellung).
+// das Block-Panel (4T-000449, gleiche Hinweis-Darstellung).
 export function applyFieldHint(hintEl, def, code) {
   if (!hintEl) return;
   if (!def) {
@@ -127,7 +127,7 @@ export function applyFieldHint(hintEl, def, code) {
     hintEl.title = '';
     return;
   }
-  // 4T-1157 (Epic 3E-0219, E12): Fehlt die Quelle eines Wertevorrats oder
+  // 4T-001157 (Epic 3E-000219, E12): Fehlt die Quelle eines Wertevorrats oder
   // liefert sie nichts, bleibt das Feld bedienbar, der Vorrat ist leer, und
   // ein Hinweis steht am Feld (E12, letzte Festlegung). Er greift, wenn kein
   // Wert-Hinweis vorliegt: Ein Wert-Problem ist das konkretere und geht vor.
@@ -156,7 +156,7 @@ export function extractFieldValue(fieldEl, type, def = null) {
 /**
  * Denselben Wert aus einer bereits gefundenen Wert-Zelle lesen.
  *
- * 4T-1187 (Epic 3E-0221): Herausgeloest aus `extractFieldValue`, weil die
+ * 4T-001187 (Epic 3E-000221): Herausgeloest aus `extractFieldValue`, weil die
  * gestapelte Bedienung der Objekt-Typen ihre Kind-Werte aus Zellen liest, die
  * nicht `.properties-field-value` heissen — sie haengen eine Ebene tiefer im
  * Objekt-Rahmen. Der Rumpf ist unveraendert; hinzugekommen ist allein der
@@ -164,7 +164,7 @@ export function extractFieldValue(fieldEl, type, def = null) {
  */
 export function extractFromValueEl(valueEl, type, def = null) {
   if (!valueEl) return defaultValueForType(type);
-  // 4T-1187 (Epic 3E-0221, E11): gestapelte Objekt-Bedienung — ZUERST, vor
+  // 4T-001187 (Epic 3E-000221, E11): gestapelte Objekt-Bedienung — ZUERST, vor
   // jeder anderen Verzweigung.
   //
   // **Die Reihenfolge ist der Kern und war der Fehler dieses Tasks.** Alle
@@ -187,7 +187,7 @@ export function extractFromValueEl(valueEl, type, def = null) {
       return kindDef ? extractFromValueEl(zelle, kindDef.type, kindDef) : undefined;
     });
   }
-  // 4T-0448: Auswahl-Liste eines Wertebereichs-Felds (Einfach-Auswahl).
+  // 4T-000448: Auswahl-Liste eines Wertebereichs-Felds (Einfach-Auswahl).
   const select = valueEl.querySelector('select.properties-field-value-select');
   if (select) {
     if (type === 'number') {
@@ -196,7 +196,7 @@ export function extractFromValueEl(valueEl, type, def = null) {
     }
     return select.value;
   }
-  // 4T-1156 (Epic 3E-0219): Zyklus-Knopf und Chips-Leiste stehen vor der
+  // 4T-001156 (Epic 3E-000219): Zyklus-Knopf und Chips-Leiste stehen vor der
   // Typ-Verzweigung, weil beide seit der Entkopplung (E11) an jedem Typ
   // hängen können — der Typ-Name verrät die Vielzahl nicht mehr, und der
   // Zyklus ist ein Bedienelement der Auswahl, kein Typ.

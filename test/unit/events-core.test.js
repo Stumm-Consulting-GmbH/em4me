@@ -1,4 +1,4 @@
-// 4T-0511 (Epic 3E-0092): Unit-Tests für den Ereignis-Kern — internes
+// 4T-000511 (Epic 3E-000092): Unit-Tests für den Ereignis-Kern — internes
 // Profil, Rechen-Kern (Staffelung, Meilensteine, Wiederkehr, Spanne) und
 // Fence-Datenformat (Direktiven, Datenzeilen, Round-Trip, Fence-Suche).
 // Alle Rechen-Fälle laufen mit festem Stichtag (Determinismus).
@@ -108,7 +108,7 @@ describe('events-core — internes Profil', () => {
     expect(profile.errors).toEqual([]);
   });
 
-  // 4T-0517: Einspeisung vor die Katalog-Profile, nur bei aktiver
+  // 4T-000517: Einspeisung vor die Katalog-Profile, nur bei aktiver
   // Ereignis-Erweiterung (das Gating liefert der Aufrufer).
   it('injectEventProfile stellt das interne Profil voran (nur aktiv)', () => {
     const katalog = [{ name: 'Projekt', fileName: 'Projekt.md', fields: [], errors: [] }];
@@ -456,7 +456,7 @@ describe('events-core — Fence-Suche', () => {
   });
 });
 
-// --- 4T-0513: Sortierung, Filter und Presets -----------------------------------------
+// --- 4T-000513: Sortierung, Filter und Presets -----------------------------------------
 
 function mkEntry(over) {
   return {
@@ -474,7 +474,7 @@ function mkEntry(over) {
   };
 }
 
-describe('events-core — Ansichts-Sortierung (4T-0513)', () => {
+describe('events-core — Ansichts-Sortierung (4T-000513)', () => {
   const entries = [
     mkEntry({ date: '2020-05-01', text: 'Beta', category: 'projekt' }),
     mkEntry({ date: '2026-01-01', text: 'alpha', category: 'termin' }),
@@ -500,7 +500,7 @@ describe('events-core — Ansichts-Sortierung (4T-0513)', () => {
   });
 });
 
-describe('events-core — Datumsbereichs-Presets (4T-0513)', () => {
+describe('events-core — Datumsbereichs-Presets (4T-000513)', () => {
   // 2026-07-15 ist ein Mittwoch (Wochenstart Montag: 13.07. bis 19.07.).
   const TODAY = '2026-07-15';
 
@@ -533,7 +533,7 @@ describe('events-core — Datumsbereichs-Presets (4T-0513)', () => {
   });
 });
 
-describe('events-core — Filter-Logik (4T-0513)', () => {
+describe('events-core — Filter-Logik (4T-000513)', () => {
   const entries = [
     mkEntry({ date: '2026-07-10', text: 'Meilenstein-Review', category: 'projekt', notes: 'Q3' }),
     mkEntry({ date: '2026-07-20', end: '2026-07-25', text: 'Workshop', category: 'termin' }),
@@ -592,9 +592,9 @@ describe('events-core — Filter-Logik (4T-0513)', () => {
   });
 });
 
-// --- 4T-0514: Ansichts-Datenaufbereitung ----------------------------------------------
+// --- 4T-000514: Ansichts-Datenaufbereitung ----------------------------------------------
 
-describe('events-core — Ansichts-Datenaufbereitung (4T-0514)', () => {
+describe('events-core — Ansichts-Datenaufbereitung (4T-000514)', () => {
   const TODAY = '2026-07-15';
   const entries = [
     mkEntry({ date: '2026-07-20', text: 'Workshop', category: 'termin' }),
@@ -677,9 +677,9 @@ describe('events-core — Ansichts-Datenaufbereitung (4T-0514)', () => {
   });
 });
 
-// --- 4T-0516: Verknüpfungen ------------------------------------------------------------
+// --- 4T-000516: Verknüpfungen ------------------------------------------------------------
 
-describe('events-core — Verknüpfungen (4T-0516)', () => {
+describe('events-core — Verknüpfungen (4T-000516)', () => {
   it('vergibt die nächste freie Kennung deterministisch', () => {
     expect(nextEventId([])).toBe('e1');
     expect(nextEventId([mkEntry({ id: 'e1' }), mkEntry({ id: 'e3' })])).toBe('e2');
@@ -752,10 +752,10 @@ describe('events-core — Verknüpfungen (4T-0516)', () => {
   });
 });
 
-// 4T-0722 (Epic 3E-0150): Zeilen-Modell, Zeitachse und Positions-Rechnung
+// 4T-000722 (Epic 3E-000150): Zeilen-Modell, Zeitachse und Positions-Rechnung
 // der Gantt-Ansicht. Alle Fälle mit festem Stichtag, damit die
 // Wiederkehr-Verschiebung deterministisch bleibt.
-describe('events-core — Gantt-Ansicht (4T-0722)', () => {
+describe('events-core — Gantt-Ansicht (4T-000722)', () => {
   const TODAY = '2026-07-15';
 
   it('führt Gantt als sechste Ansicht', () => {

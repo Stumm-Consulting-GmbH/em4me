@@ -1,4 +1,4 @@
-// 4T-0649 (Epic 3E-0126): Waechter der Bildmarke.
+// 4T-000649 (Epic 3E-000126): Waechter der Bildmarke.
 //
 // Die Marke liegt in zwei Fassungen vor: em4me-logo.svg (vollstaendig, fuer
 // Ueber-Dialog, Handbuch und die grossen Icon-Stufen) und em4me-mark.svg
@@ -24,7 +24,7 @@ const LANGS = ['de', 'en', 'fr', 'es', 'it'];
 
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 
-describe('Bildmarke (4T-0649)', () => {
+describe('Bildmarke (4T-000649)', () => {
   it('beide Quell-SVG existieren', () => {
     for (const datei of ['em4me-logo.svg', 'em4me-mark.svg']) {
       expect(fs.existsSync(path.join(ASSETS, datei)), `${datei} fehlt`).toBe(true);
@@ -65,7 +65,7 @@ describe('Bildmarke (4T-0649)', () => {
     }
   });
 
-  // 4T-0643: Der Marken-Claim begleitet den Namen an drei Orten (leerer
+  // 4T-000643: Der Marken-Claim begleitet den Namen an drei Orten (leerer
   // Zustand, Ueber-Dialog, Handbuch-Ueberblick). Ein vergessener Ort faellt im
   // Betrieb kaum auf, weil jede Stelle fuer sich stimmig aussieht.
   it('der Marken-Claim steht an allen drei Orten', () => {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1143 (Epic 3E-0218, E4): Darstellung der Profil-Hinweise im
+// 4T-001143 (Epic 3E-000218, E4): Darstellung der Profil-Hinweise im
 // Einstellungs-Bereich «Eigenschafts-Profile» — die Hinweise stehen
 // ausgeschrieben unter ihrem Profil, ortsbezogen (Definition, Angabe,
 // Erwartung), Kind-Definitionen mit ihrem Pfad zum Eltern-Feld; ein Profil
@@ -41,7 +41,7 @@ const profil = (name, errors = []) => ({
   errors,
 });
 
-describe('Hinweis-Darstellung der Profil-Liste (4T-1143)', () => {
+describe('Hinweis-Darstellung der Profil-Liste (4T-001143)', () => {
   it('AK1/AK2: Hinweise stehen ausgeschrieben unter dem Profil und nennen Ort, Angabe und Erwartung', () => {
     const container = renderList([
       profil('Projekt', [

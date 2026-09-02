@@ -1,5 +1,5 @@
 // --- Reiterleiste (Tabbar) --------------------------------------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // Baut den Reiter-Streifen einer Pane samt Gruppen-Koepfen auf: Beschriftung,
 // Zustands-Klassen, Auswahl-Gesten, Kontextmenues und die Zieh-Gesten
 // (Reiter, Mengen, ganze Gruppen). Reines DOM — die Modell-Aenderungen
@@ -15,7 +15,7 @@ import {
   state,
   tabDisplayName,
 } from '../app/app-state.js';
-// 4T-0461 (Epic 3E-0085): bei deaktivierter Erweiterung tab-groups rendert
+// 4T-000461 (Epic 3E-000085): bei deaktivierter Erweiterung tab-groups rendert
 // der Streifen flach (keine Koepfe/Kennungen, alle Tabs sichtbar).
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
@@ -29,7 +29,7 @@ import {
   reorderTabsWithinPane,
   toggleGroupCollapsed,
 } from '../tabs/tabs.js';
-// 4T-0978 (Epic 3E-0196): Die Reiter- und Gruppen-Menues liegen seit dem
+// 4T-000978 (Epic 3E-000196): Die Reiter- und Gruppen-Menues liegen seit dem
 // Schnitt im Tab-Bereich.
 import { showTabContextMenu } from '../tabs/tab-context-menu.js';
 import {
@@ -38,10 +38,10 @@ import {
   schliesseGruppenMenueSofort,
   showGroupContextMenu,
 } from '../tabs/tab-group-menu.js';
-// 4T-0460 (Epic 3E-0085): groupById fuer den Tabbar-Aufbau (Koepfe,
+// 4T-000460 (Epic 3E-000085): groupById fuer den Tabbar-Aufbau (Koepfe,
 // Kennungen, Verbergen).
 import { groupById } from '../tabs/tab-groups.js';
-// 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl der Reiterleiste — Markierung,
+// 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl der Reiterleiste — Markierung,
 // Auswahl-Gesten und die Menge, die beim Ziehen mitwandert.
 import {
   extendSelection,
@@ -57,14 +57,14 @@ export function renderTabbar(paneIdx) {
   if (!pane) return;
   els.tabbar.innerHTML = '';
 
-  // 4T-0460 (Epic 3E-0085): Gruppen-Koepfe stehen vor dem ersten Mitglied;
+  // 4T-000460 (Epic 3E-000085): Gruppen-Koepfe stehen vor dem ersten Mitglied;
   // Mitglieder zugeklappter Gruppen sind verborgen (nur der Kopf bleibt).
-  // 4T-0461: bei deaktivierter Erweiterung rendert der Streifen flach —
+  // 4T-000461: bei deaktivierter Erweiterung rendert der Streifen flach —
   // Modell und Sitzungs-Daten bleiben erhalten (Wieder-Einschalten stellt
   // die Gruppen unveraendert zurueck).
   const groupsActive = isExtensionActive('tab-groups');
   const seenGroups = new Set();
-  // 4T-0765 (Epic 3E-0158): Die Markierung erscheint erst ab zwei Mitgliedern
+  // 4T-000765 (Epic 3E-000158): Die Markierung erscheint erst ab zwei Mitgliedern
   // — eine Auswahl aus einem Reiter ist der Normalfall und sieht aus wie
   // bisher.
   const mehrfachAuswahl = hasMultiSelection(pane);
@@ -85,7 +85,7 @@ export function renderTabbar(paneIdx) {
       (tab.dirty ? ' dirty' : '') +
       (group ? ' tab-grouped' : '') +
       (mehrfachAuswahl && isTabSelected(pane, idx) ? ' tab-selected' : '');
-    // 4T-0765: Der Streifen rendert nur sichtbare Reiter, der Index bleibt
+    // 4T-000765: Der Streifen rendert nur sichtbare Reiter, der Index bleibt
     // aber der Modell-Index — das Ziehen einer Menge markiert darueber ihre
     // Elemente.
     el.dataset.tabIndex = String(idx);
@@ -122,7 +122,7 @@ export function renderTabbar(paneIdx) {
     });
     el.addEventListener('click', (e) => {
       if (e.target === close) return;
-      // 4T-0765 (Epic 3E-0158): Auswahl-Gesten. Umschalt bildet die Spanne ab
+      // 4T-000765 (Epic 3E-000158): Auswahl-Gesten. Umschalt bildet die Spanne ab
       // dem aktiven Reiter, Strg nimmt einzeln auf und heraus; beide lassen
       // die Aktivierung unangetastet bzw. fuehren sie ohne Ruecksetzen der
       // Auswahl aus. Ein Klick ohne Zusatztaste setzt sie auf diesen Reiter.
@@ -147,7 +147,7 @@ export function renderTabbar(paneIdx) {
 
     el.addEventListener('dragstart', (e) => {
       e.dataTransfer.effectAllowed = 'move';
-      // 4T-0765 (Epic 3E-0158): Ist der gezogene Reiter Teil einer
+      // 4T-000765 (Epic 3E-000158): Ist der gezogene Reiter Teil einer
       // Mehrfach-Auswahl, wandert die ganze Menge. tabIndex bleibt als
       // Einzel-Feld erhalten, damit fremde Panes und Fenster den Payload
       // unveraendert lesen (dort zaehlt weiterhin der gezogene Reiter).
@@ -192,13 +192,13 @@ export function renderTabbar(paneIdx) {
       const rect = el.getBoundingClientRect();
       const isLeftHalf = e.clientX - rect.left < rect.width / 2;
       const insertIdx = isLeftHalf ? idx : idx + 1;
-      // 4T-0460: Kopf-Ziehen — die ganze Gruppe an die Drop-Position
+      // 4T-000460: Kopf-Ziehen — die ganze Gruppe an die Drop-Position
       // (nur innerhalb der eigenen Leiste; fremde Bloecke schnappen).
       if (data.kind === 'group') {
         if (data.fromPane === paneIdx) moveGroupInPane(paneIdx, data.groupId, insertIdx);
         return;
       }
-      // 4T-0765 (Epic 3E-0158): Mehrfach-Auswahl als Block bewegen, solange
+      // 4T-000765 (Epic 3E-000158): Mehrfach-Auswahl als Block bewegen, solange
       // sie in ihrer eigenen Leiste bleibt.
       const menge = Array.isArray(data.tabIndices) ? data.tabIndices : [];
       if (menge.length > 1 && data.fromPane === paneIdx) {
@@ -212,14 +212,14 @@ export function renderTabbar(paneIdx) {
   });
 }
 
-// 4T-0460 (Epic 3E-0085): Gruppen-Kopf im Tab-Streifen. Name auf Farbflaeche
+// 4T-000460 (Epic 3E-000085): Gruppen-Kopf im Tab-Streifen. Name auf Farbflaeche
 // (Palette-Variablen, theme-konform), Klick klappt zu/auf, Ziehen verschiebt
 // die ganze Gruppe, Drop eines Tabs auf den Kopf = Beitritt. Zugeklappt
 // zeigt der Kopf die Mitglieder-Zahl.
 function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
   const pane = state.panes[paneIdx];
   const head = document.createElement('div');
-  // 4T-0767 (Epic 3E-0158): Liegt der aktive Reiter in dieser Gruppe, traegt
+  // 4T-000767 (Epic 3E-000158): Liegt der aktive Reiter in dieser Gruppe, traegt
   // der Kopf die Aktiv-Kennzeichnung. Bei einer zugeklappten Gruppe ist das
   // die einzige Stelle, an der die Leiste den aktiven Reiter noch zeigt.
   const traegtAktiven = pane.activeIndex >= 0 && pane.tabs[pane.activeIndex]?.groupId === group.id;
@@ -247,17 +247,17 @@ function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
 
   head.addEventListener('mousedown', () => activatePane(paneIdx));
   head.addEventListener('click', () => {
-    // 4T-0768 (Epic 3E-0158): Das Aufklappen macht das Menue gegenstandslos.
+    // 4T-000768 (Epic 3E-000158): Das Aufklappen macht das Menue gegenstandslos.
     schliesseGruppenMenueSofort();
     toggleGroupCollapsed(paneIdx, group.id);
   });
-  // 4T-0768: Aufklapp-Menue beim Ueberfahren — nur bei zugeklappten Gruppen,
+  // 4T-000768: Aufklapp-Menue beim Ueberfahren — nur bei zugeklappten Gruppen,
   // eine aufgeklappte zeigt ihre Mitglieder ohnehin.
   if (group.collapsed) {
     head.addEventListener('mouseenter', () => planeGruppenMitgliederMenue(paneIdx, group.id, head));
     head.addEventListener('mouseleave', () => planeGruppenMenueSchliessen());
   }
-  // 4T-0461: Verwaltung ueber das Kopf-Kontextmenue (Umbenennen/Farbe,
+  // 4T-000461: Verwaltung ueber das Kopf-Kontextmenue (Umbenennen/Farbe,
   // Aufloesen, Schliessen).
   head.addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -265,7 +265,7 @@ function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
   });
 
   head.addEventListener('dragstart', (e) => {
-    // 4T-0768: Ein beginnendes Ziehen schliesst das Aufklapp-Menue.
+    // 4T-000768: Ein beginnendes Ziehen schliesst das Aufklapp-Menue.
     schliesseGruppenMenueSofort();
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData(
@@ -302,7 +302,7 @@ function buildGroupHeadEl(paneIdx, group, firstMemberIdx) {
       }
       return;
     }
-    // 4T-0766 (Epic 3E-0158): Eine Mehrfach-Auswahl tritt als Ganzes bei.
+    // 4T-000766 (Epic 3E-000158): Eine Mehrfach-Auswahl tritt als Ganzes bei.
     dropTabIntoGroup(data.fromPane, data.tabIndex, paneIdx, group.id, data.tabIndices);
   });
 

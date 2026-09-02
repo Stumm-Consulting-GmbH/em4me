@@ -1,11 +1,11 @@
-// 4T-1312 (Epic 3E-0235): Rechnung des hängenden Einzugs umgebrochener Zeilen.
+// 4T-001312 (Epic 3E-000235): Rechnung des hängenden Einzugs umgebrochener Zeilen.
 //
 // Die Rechnung liegt prozessneutral, damit sie ohne Editor prüfbar ist; die
 // Darstellung im Editor prüft der E2E-Fall ZU-01.
 import { describe, it, expect } from 'vitest';
 import { EINZUG_HOECHSTENS, haengenderEinzug } from '../../src/shared/haengender-einzug.js';
 
-describe('haengenderEinzug: Listen (4T-1312)', () => {
+describe('haengenderEinzug: Listen (4T-001312)', () => {
   it('Aufzählung: hinter der Marke', () => {
     // '- ' sind zwei Zeichen.
     expect(haengenderEinzug('- Text')).toBe(2);
@@ -47,7 +47,7 @@ describe('haengenderEinzug: Listen (4T-1312)', () => {
   });
 });
 
-describe('haengenderEinzug: übrige Zeilen (4T-1312)', () => {
+describe('haengenderEinzug: übrige Zeilen (4T-001312)', () => {
   it('eine Zeile ohne Einzug und ohne Marke bekommt keinen Einzug', () => {
     expect(haengenderEinzug('Ein gewöhnlicher Absatz.')).toBe(0);
     expect(haengenderEinzug('# Überschrift')).toBe(0);
@@ -78,7 +78,7 @@ describe('haengenderEinzug: übrige Zeilen (4T-1312)', () => {
   });
 });
 
-describe('haengenderEinzug: Obergrenze (4T-1312)', () => {
+describe('haengenderEinzug: Obergrenze (4T-001312)', () => {
   it('wächst nicht über die Obergrenze hinaus', () => {
     const tief = ' '.repeat(100) + '- Text';
     expect(haengenderEinzug(tief)).toBe(EINZUG_HOECHSTENS);

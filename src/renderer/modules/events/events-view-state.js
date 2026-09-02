@@ -3,7 +3,7 @@
 // Anwendung auf die Anzeige, dazu Ansichts-Umschalter, Kalender-Navigation,
 // Zeilen-Sprung und die gespeicherten Filter des Fence.
 //
-// Auszug aus events-editor.js, 4T-1003 (Epic 3E-0196). viewStates ist der
+// Auszug aus events-editor.js, 4T-001003 (Epic 3E-000196). viewStates ist der
 // eine Ansichts-Zustand und lebt ausschliesslich hier; die Filter-Leiste
 // arbeitet ueber viewStateFor darauf.
 'use strict';
@@ -32,11 +32,11 @@ import {
   buildEventsTimelineHtml,
   buildEventsGanttHtml,
 } from '../../../shared/markdown/perspective-events.js';
-// 4T-0514: Nachfüll-Pass (Differenz-Spalte, Hinweise) für client-seitig
+// 4T-000514: Nachfüll-Pass (Differenz-Spalte, Hinweise) für client-seitig
 // neu gebaute Tabellen (kein Zyklus: events-view importiert diesen Editor
 // nicht).
 import { applyPerspectiveEventsIfPresent } from './events-view.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung, Fence-Zuordnung
+// 4T-001003: Laufzeit-Zyklus mit dem Kern. Kontext-Aufloesung, Fence-Zuordnung
 // und Rueckschreiben werden ausschliesslich im Funktionskoerper aufgerufen.
 import {
   abortWithHint,
@@ -45,7 +45,7 @@ import {
   resolveContext,
   writeBody,
 } from './events-editor.js';
-// 4T-1003: Laufzeit-Zyklen mit Filter-Leiste, Aggregation und
+// 4T-001003: Laufzeit-Zyklen mit Filter-Leiste, Aggregation und
 // Zeilen-Bearbeitung. Der Einstieg baut die Filter-Leiste und stoesst den
 // Aggregations-Abruf an, die Anzeige-Anwendung liest beide Fremd-Zustaende
 // ueber ihre Zugriffs-Funktion.
@@ -53,8 +53,8 @@ import { ensureFilterUi } from './events-filter-bar.js';
 import { ensureAggregation, getAggState, renderAggStatus } from './events-aggregation.js';
 import { getActiveRowEdit } from './events-row-edit.js';
 
-// --- Ansichts-Sortierung und Filter (4T-0513) --------------------------------------
-// Reiner Ansichts-Zustand pro Tab und Fence (Muster Datatable 4T-0420):
+// --- Ansichts-Sortierung und Filter (4T-000513) --------------------------------------
+// Reiner Ansichts-Zustand pro Tab und Fence (Muster Datatable 4T-000420):
 // lebt in einer WeakMap auf dem Tab-Objekt, überlebt Re-Render und
 // Tab-Wechsel, stirbt mit dem Tab, wird nie persistiert. Sortieren und
 // Filtern ordnen bzw. verstecken nur DOM-Zeilen; der Quelltext bleibt
@@ -92,7 +92,7 @@ export function viewStateFor(ctx, create) {
   if (!st && create) {
     // viewOverride: transiente Ansicht (Ereignis-Klick-Sprung bzw.
     // Umschalten in nicht editierbaren Kontexten); calAnchor: Kalender-
-    // Navigation (4T-0514). Beides reiner Ansichts-Zustand.
+    // Navigation (4T-000514). Beides reiner Ansichts-Zustand.
     st = {
       sort: null,
       filtersOpen: false,
@@ -132,7 +132,7 @@ export function applyPerspectiveEventsViewStates(container, attempts = 3) {
     el.classList.toggle('pev-editable', !!(ctx && ctx.editable));
     if (!ctx) continue;
     if (el.querySelector('.pev-errors, .pev-limit')) continue;
-    // 4T-0515: Aggregations-Fences bauen ihre Anzeige client-seitig auf
+    // 4T-000515: Aggregations-Fences bauen ihre Anzeige client-seitig auf
     // (Umschalter + Wrapper) und holen die Treffer asynchron.
     if (ctx.aggregation) ensureAggregation(ctx);
     ensureFilterUi(ctx);
@@ -170,7 +170,7 @@ function setHighlightedText(el, text, needle) {
 
 // Ordnet und filtert die Anzeige gemäß Zustand: Tabelle über DOM-Zeilen
 // (Sortier-Indikatoren, Treffer-Hervorhebung), Zusatz-Ansichten über den
-// client-seitigen Neubau des Anzeige-Wrappers (4T-0514); dazu Umschalter-
+// client-seitigen Neubau des Anzeige-Wrappers (4T-000514); dazu Umschalter-
 // Zustand und Treffer-Zähler.
 export function applyEventsViewState(ctx) {
   const display = ctx.container.querySelector('.pev-display');
@@ -179,7 +179,7 @@ export function applyEventsViewState(ctx) {
   const parsed = parsePerspectiveEvents(normalizeBody(ctx.container.dataset.evSource));
   let model = parsed;
   if (ctx.aggregation) {
-    // 4T-0515: Einträge kommen aus dem Aggregations-Zustand; solange die
+    // 4T-000515: Einträge kommen aus dem Aggregations-Zustand; solange die
     // Daten fehlen, zeigt der Wrapper den Status statt einer Tabelle.
     const ag = getAggState(ctx.container);
     const effectiveNow = (st && st.viewOverride) || effectiveEventsView(parsed);
@@ -321,7 +321,7 @@ function renderClientView(ctx, display, model, visibleSet, effective, st) {
   display.dataset.evDisplay = effective;
 }
 
-// --- Ansichts-Umschalter, Kalender-Navigation und Ereignis-Sprung (4T-0514) ---------
+// --- Ansichts-Umschalter, Kalender-Navigation und Ereignis-Sprung (4T-000514) ---------
 
 // Umschalter: im editierbaren Kontext wird die view:-Direktive persistiert
 // (ein Undo-Schritt, Workshop-Punkt 7); in read-only Kontexten (Handbuch)

@@ -1,4 +1,4 @@
-// 4T-1291 (Epic 3E-0224): Zerlegen eines großen Dokuments beim Speichern.
+// 4T-001291 (Epic 3E-000224): Zerlegen eines großen Dokuments beim Speichern.
 // Gegenstück zu src/shared/document-assembly.js: Jenes fügt die Teile zu
 // einem Dokument zusammen, dieses schneidet ein Dokument in Teile.
 //

@@ -1,9 +1,9 @@
-// 4T-0298 (Epic 3E-0053): Preload-Loader der externen Markdown-Plugins.
+// 4T-000298 (Epic 3E-000053): Preload-Loader der externen Markdown-Plugins.
 //
 // Die markdown-it-Instanzen leben im Preload (markdown.js) — externe
 // Render-Beitraege muessen deshalb HIER evaluiert werden, nicht im
 // Renderer (contextBridge kann keine Plugin-Funktionen mit intakten
-// Objekt-Graphen durchreichen). Mechanismus laut Spike (4T-0298):
+// Objekt-Graphen durchreichen). Mechanismus laut Spike (4T-000298):
 // Quelltext per IPC aus dem Main (ID-Whitelist gegen den Scan-Stand),
 // Evaluierung per node:vm in einem leeren Sandbox-Kontext — der Code
 // sieht weder require noch process noch DOM, nur module/exports

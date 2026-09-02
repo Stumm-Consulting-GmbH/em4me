@@ -1,4 +1,4 @@
-// B-11 (4T-0904, Nebenbefund; erhoben im Charter-Durchgang 4T-0899,
+// B-11 (4T-000904, Nebenbefund; erhoben im Charter-Durchgang 4T-000899,
 // Pruef-Runde 4): Der Aufgaben-Dialog brach ohne bearbeitbaren Editor STILL
 // ab, waehrend er auf einer Nicht-Task-Zeile einen Hinweis zeigt. Dieselbe
 // Funktion schwieg also im einen Fall und erklaerte sich im anderen.
@@ -76,7 +76,7 @@ test.describe('B-11: der Aufgaben-Dialog erklaert sich statt zu schweigen', () =
   });
 });
 
-// B-13 (4T-0904, vom Product Owner in der Test-Iteration zu B-11 gemeldet):
+// B-13 (4T-000904, vom Product Owner in der Test-Iteration zu B-11 gemeldet):
 // Die fluechtige Meldung darf die Statusleiste weder verbreitern noch etwas in
 // ihr verdecken. Zwei Versuche innerhalb der Leiste sind daran gescheitert
 // (erst schob sie, dann verdeckte sie die Knoepfe der Mitte); die Entscheidung

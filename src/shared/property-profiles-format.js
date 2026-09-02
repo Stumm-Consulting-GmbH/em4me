@@ -1,8 +1,8 @@
-// 4T-0446 (Epic 3E-0083): Eigenschafts-Profile — Datei-Format der Profile,
+// 4T-000446 (Epic 3E-000083): Eigenschafts-Profile — Datei-Format der Profile,
 // Definitions-Parsing und Bereichs-Konfiguration.
 //
-// Eigene Datei seit dem Definitions-Ausbau der Stufe 1 (4T-1145, Epic
-// 3E-0218): Der Schnitt folgt der Naht, die der Gegenstand ohnehin führt.
+// Eigene Datei seit dem Definitions-Ausbau der Stufe 1 (4T-001145, Epic
+// 3E-000218): Der Schnitt folgt der Naht, die der Gegenstand ohnehin führt.
 // Hier liegt, was eine Profil-DATEI liest und normalisiert; die Auflösung
 // über mehrere Profile und die gemeinsame Editor-Logik bleiben in der
 // Fassade `property-profiles.js`, die alles Öffentliche weiterreicht. Alle
@@ -14,11 +14,11 @@
 // Datei-Inhalt ist freie Beschreibung. Profil-Name = Datei-Titel (Dateiname
 // ohne .md).
 //
-// Die Bereichsdatei-Sektion `propertyProfiles` liegt seit 4T-1159 in
+// Die Bereichsdatei-Sektion `propertyProfiles` liegt seit 4T-001159 in
 // property-profiles-config.js; von hier wird sie nur weitergereicht.
 //
 // Feld-Definition im Profil-Frontmatter (`fields`-Liste; erweitertes Format
-// 4T-1141/3E-0218, Typ-Ausbau 4T-1155/3E-0219 — der Feldname bleibt die
+// 4T-001141/3E-000218, Typ-Ausbau 4T-001155/3E-000219 — der Feldname bleibt die
 // einzige Pflichtangabe, jede bestehende Profil-Datei bleibt unverändert
 // gültig):
 //   { name       Feldname (Pflicht, eindeutig pro Definitions-Ebene)
@@ -30,18 +30,18 @@
 //                Wert; die beiden Objekt-Typen tragen Kind-Definitionen.
 //     values     optional: fester Wertebereich (Werte-Liste)
 //     valuesFrom optional: Quelle des Wertevorrats { note, query } — wird
-//                gelesen und geführt, ausgewertet wird sie in 4T-1157/1158;
+//                gelesen und geführt, ausgewertet wird sie in 4T-001157/1158;
 //                schließt values aus (values gewinnt, Hinweis)
-//     multiple   optional: mehrere Werte. Seit 4T-1155 für jeden Typ außer
+//     multiple   optional: mehrere Werte. Seit 4T-001155 für jeden Typ außer
 //                boolean und multiline; nur beim historischen Paar
 //                string/multistring wechselt dabei der Typ-Name, sonst
 //                trägt die Vielzahl allein dieses Flag
 //     default    optional: Vorbelegung beim Anlegen über den Editor
 //     options    optional: typ-eigene Angaben als Unterobjekt (E9); seit
-//                4T-1155 je Typ geprüft, Katalog in
+//                4T-001155 je Typ geprüft, Katalog in
 //                property-profiles-options.js
 //     fields     optional: verschachtelte Kind-Definitionen, rekursiv nach
-//                demselben Schema; seit 4T-1186 an die beiden Objekt-Typen
+//                demselben Schema; seit 4T-001186 an die beiden Objekt-Typen
 //                gebunden (an jedem anderen Typ entfallen sie mit Hinweis).
 //                Kind-Definitionen und ihre Hinweise tragen `path` (die
 //                Eltern-Feldnamen von außen nach innen) }
@@ -51,10 +51,10 @@
 // dieselben Objekte wie vor der Erweiterung (Rückwärts-Verträglichkeit,
 // tragende Auflage über alle vier Stufen).
 //
-// Profil-Ebene der Vererbung (4T-1142/3E-0218, E2): Der Metadaten-Block
+// Profil-Ebene der Vererbung (4T-001142/3E-000218, E2): Der Metadaten-Block
 // einer Profil-Datei kann neben `fields` die Angaben `extends` (höchstens
 // ein Eltern-Profil), `exclude` (Feldnamen, die aus der geerbten Kette nicht
-// übernommen werden) und `icon` tragen. Sie liegen seit 4T-1186 in
+// übernommen werden) und `icon` tragen. Sie liegen seit 4T-001186 in
 // `property-profiles-profil.js` — hier wird `parseProfileHeritage` nur noch
 // weitergereicht; die Kette selbst läuft in der Fassade.
 //
@@ -68,18 +68,18 @@
 // und Renderer (Editoren, Einstellungen) laden dieselbe Kette.
 'use strict';
 
-// 4T-1155 (Epic 3E-0219): der Katalog typ-eigener Angaben und ihre Prüfung
+// 4T-001155 (Epic 3E-000219): der Katalog typ-eigener Angaben und ihre Prüfung
 // liegen in einem eigenen Blatt-Modul; hier wird nur je Definition gefragt.
 const { normalizeOptions } = require('./property-profiles-options.js');
-// 4T-1159 (Epic 3E-0219): Die Bereichs-Sektion liegt seit den Bindungen im
+// 4T-001159 (Epic 3E-000219): Die Bereichs-Sektion liegt seit den Bindungen im
 // eigenen Modul; das Format-Modul reicht sie nur noch weiter (die Fassade
 // bleibt damit der eine Ort, an dem alle Verbraucher laden).
 const { DEFAULT_ASSIGN_FIELD, normalizeProfilesConfig } = require('./property-profiles-config.js');
-// 4T-1183 (Epic 3E-0221): Der Hinweis-Katalog samt Bauplan liegt seit dem
+// 4T-001183 (Epic 3E-000221): Der Hinweis-Katalog samt Bauplan liegt seit dem
 // Schnitt der Stufe 4 in seinem eigenen Blatt-Modul (Begruendung dort); das
 // Format-Modul reicht buildHint fuer die Fassade weiter.
 const { buildHint } = require('./property-profiles-hinweise.js');
-// 4T-1186 (Epic 3E-0221): Die Profil-Ebene (extends, exclude, icon) liegt seit
+// 4T-001186 (Epic 3E-000221): Die Profil-Ebene (extends, exclude, icon) liegt seit
 // dem zweiten Schnitt der Stufe 4 in ihrem eigenen Modul (Begruendung dort);
 // das Format-Modul reicht sie fuer die Fassade weiter.
 const { parseProfileHeritage } = require('./property-profiles-profil.js');
@@ -88,17 +88,17 @@ const { parseProfileHeritage } = require('./property-profiles-profil.js');
 // PROPERTY_TYPES des Properties-Editors ohne den internen 'readonly'-
 // Fallback (der ist Inferenz-Ergebnis verschachtelter YAML-Strukturen,
 // keine definierbare Vorgabe).
-// 4T-1155 (Epic 3E-0219, E11): um `link` (Verweis auf eine Datei) und `time`
+// 4T-001155 (Epic 3E-000219, E11): um `link` (Verweis auf eine Datei) und `time`
 // (Uhrzeit) erweitert. Die beiden Objekt-Typen bleiben Stufe 4 vorbehalten;
-// ihre Kind-Definitionen trägt das Format seit 4T-1141 bereits.
-// 4T-1183 (Epic 3E-0221, E1): um `formula` erweitert — ein abgeleitetes Feld,
+// ihre Kind-Definitionen trägt das Format seit 4T-001141 bereits.
+// 4T-001183 (Epic 3E-000221, E1): um `formula` erweitert — ein abgeleitetes Feld,
 // dessen Wert beim Lesen aus anderen Feldern desselben Dokuments entsteht und
 // nie geschrieben wird. Die Auswertung liegt in property-profiles-abgeleitet.js.
-// 4T-1184 (Epic 3E-0221, E1): um `lookup` erweitert — das zweite abgeleitete
+// 4T-001184 (Epic 3E-000221, E1): um `lookup` erweitert — das zweite abgeleitete
 // Feld, das die auf das eigene Dokument verweisenden Dokumente sammelt. Es
 // rechnet nicht lokal, sondern fragt den Bereichs-Index; die Auswertung liegt
 // deshalb im Main (src/main/index/profil-lookup.js) und nicht im shared-Modul.
-// 4T-1186 (Epic 3E-0221, E11): um die beiden Objekt-Typen erweitert — ein Feld,
+// 4T-001186 (Epic 3E-000221, E11): um die beiden Objekt-Typen erweitert — ein Feld,
 // das ein Objekt mit benannten Kind-Feldern traegt, und eines, das eine Liste
 // gleichartiger Objekte traegt. Damit ist der Typ-Satz des Vorhabens vollstaendig.
 const PROFILE_FIELD_TYPES = [
@@ -116,26 +116,26 @@ const PROFILE_FIELD_TYPES = [
   'objectlist',
 ];
 
-// 4T-1183 (Epic 3E-0221, E1): Typen ohne eigenen Wert. Ihr Inhalt entsteht bei
+// 4T-001183 (Epic 3E-000221, E1): Typen ohne eigenen Wert. Ihr Inhalt entsteht bei
 // der Anzeige und steht nie im Metadaten-Block; Vorgabe-Wert, Wertebereich und
 // Wertevorrats-Quelle sind an ihnen deshalb gegenstandslos und entfallen mit
 // Hinweis.
 const DERIVED_TYPES = ['formula', 'lookup'];
 
-// 4T-1186 (Epic 3E-0221, E11): Typen mit verschachtelten Kind-Definitionen.
-// Die Verschachtelung selbst traegt das Format seit 4T-1141 (Stufe 1, Auflage
+// 4T-001186 (Epic 3E-000221, E11): Typen mit verschachtelten Kind-Definitionen.
+// Die Verschachtelung selbst traegt das Format seit 4T-001141 (Stufe 1, Auflage
 // aus A2: ein zweimal geaendertes Format kostet zweimal Rueckwaerts-
 // Vertraeglichkeit); was hier hinzukommt, ist ihre BINDUNG an diese beiden
 // Typen. Bis dahin durfte jede Definition Kind-Felder tragen, auch ein
 // Text-Feld, fuer das sie sinnlos sind.
 const OBJECT_TYPES = ['object', 'objectlist'];
 
-// 4T-1155: Typen ohne sinnvolle Mehrfach-Darstellung. Seit der Entkopplung
+// 4T-001155: Typen ohne sinnvolle Mehrfach-Darstellung. Seit der Entkopplung
 // des Mehrfach-Modus vom festen Wertebereich (E11) gilt `multiple` für jeden
 // anderen Typ; nur diese beiden bleiben der Hinweis-Fall multipleType —
 // ein Wahrheitswert hat seine zwei Werte per Konstruktion, ein mehrzeiliger
 // Text ist Freitext.
-// 4T-1186 (Epic 3E-0221): um die beiden Objekt-Typen erweitert, und zwar aus
+// 4T-001186 (Epic 3E-000221): um die beiden Objekt-Typen erweitert, und zwar aus
 // demselben Grund wie die beiden ursprünglichen — die Vielzahl steckt schon im
 // Typ. `objectlist` IST die Mehrfach-Form von `object`; ein `multiple` daran
 // ergäbe eine Liste von Listen, eines an `object` genau `objectlist`. Anders
@@ -143,7 +143,7 @@ const OBJECT_TYPES = ['object', 'objectlist'];
 // richtige Aussage, und sie nennt mit `objectlist` sogar den Ausweg.
 const MULTIPLE_INCAPABLE_TYPES = ['boolean', 'multiline', 'object', 'objectlist'];
 
-// 4T-1155: Uhrzeit im 24-Stunden-Format, Sekunden optional. Gegenstück zur
+// 4T-001155: Uhrzeit im 24-Stunden-Format, Sekunden optional. Gegenstück zur
 // ISO-Prüfung des Datums; ein Zeit-Wert steht im Metadaten-Block in
 // Anführungszeichen, weil YAML `09:30` sonst als Sexagesimal-Zahl liest
 // (Konzept 6.12).
@@ -208,7 +208,7 @@ function normalizeDefault(raw, type) {
   // wäre im Editor nicht als Vorgabe verwendbar). Ein Verweis-Default bleibt
   // ungeprüfter Text: Die Schreibweise eines Ziels ist freie Nutzer-Eingabe,
   // und ein nicht auflösbares Ziel ist eine Frage des Bedienelements, keine
-  // des Formats (4T-1155).
+  // des Formats (4T-001155).
   const s = scalarToString(raw);
   if (s === null) return { ok: false };
   if (type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(s)) return { ok: false };
@@ -216,10 +216,10 @@ function normalizeDefault(raw, type) {
   return { ok: true, value: s };
 }
 
-// 4T-1141 (Epic 3E-0218): typ-eigene Angaben (`options`, E9). Muss ein
+// 4T-001141 (Epic 3E-000218): typ-eigene Angaben (`options`, E9). Muss ein
 // einfaches Objekt sein.
 //
-// 4T-1155 (Epic 3E-0219): Der Inhalt wird nicht mehr blind kopiert, sondern
+// 4T-001155 (Epic 3E-000219): Der Inhalt wird nicht mehr blind kopiert, sondern
 // je erklärtem Typ gegen den Katalog unten geprüft. Die weiche Linie bleibt
 // dabei unverändert und wird ausdrücklich NICHT verschärft: Eine unbekannte
 // oder unpassend belegte Option entfällt einzeln, das Feld bleibt wirksam,
@@ -230,7 +230,7 @@ function normalizeDefault(raw, type) {
 // Ein Prüfer liefert den normalisierten Wert oder null (= Wert nicht
 // bildbar, Hinweis-Code optionValue); `expected` ist die maschinen-lesbare
 // Erwartung für die Meldung.
-// 4T-1141 (Epic 3E-0218): Quelle des Wertevorrats (`valuesFrom`, E12).
+// 4T-001141 (Epic 3E-000218): Quelle des Wertevorrats (`valuesFrom`, E12).
 // Trägt `note` (Pfad einer Werte-Notiz) und/oder `query` (Abfrage-Text);
 // beides wird gelesen, nicht ausgewertet (das Lesen der Quellen ist Stufe 2).
 // null = kein Objekt oder keine verwendbare Unter-Angabe (Hinweis beim
@@ -291,15 +291,15 @@ function parseDefinitionList(rawList, path, errors) {
     if (name === '') return fail('name');
     if (seen.has(name.toLowerCase())) return fail('duplicate', name);
 
-    // 4T-1183: nicht mehr const — an einem abgeleiteten Feld entfällt die
+    // 4T-001183: nicht mehr const — an einem abgeleiteten Feld entfällt die
     // Angabe (siehe unten), und der Rest der Prüfung soll sie dann nicht sehen.
     let multiple = entry.multiple === true;
     const declaredType = cleanString(entry.type);
     let type = declaredType || (multiple ? 'multistring' : 'string');
     if (!PROFILE_FIELD_TYPES.includes(type)) return fail('type', name, PROFILE_FIELD_TYPES);
 
-    // 4T-1155 (E11): Der Mehrfach-Modus gilt jetzt für jeden Typ, bei dem
-    // mehrere Werte sinnvoll sind — die Typ-Regel aus 4T-1141 ist damit
+    // 4T-001155 (E11): Der Mehrfach-Modus gilt jetzt für jeden Typ, bei dem
+    // mehrere Werte sinnvoll sind — die Typ-Regel aus 4T-001141 ist damit
     // aufgelöst. Nur `boolean` und `multiline` bleiben der Hinweis-Fall.
     //
     // Das historische Paar string/multistring bleibt erhalten: Ein
@@ -307,7 +307,7 @@ function parseDefinitionList(rawList, path, errors) {
     // Profil-Datei und jeder Verbraucher unverändert gültig bleiben. Bei
     // allen anderen Typen trägt die Vielzahl das Flag, nicht der Typ-Name —
     // ein Verweis-Feld mit mehreren Zielen bleibt `link` mit multiple.
-    // 4T-1183 (E1): Ein abgeleitetes Feld hat keinen eigenen Wert. Wert-
+    // 4T-001183 (E1): Ein abgeleitetes Feld hat keinen eigenen Wert. Wert-
     // Vorgaben daran sind gegenstandslos und entfallen einzeln mit Hinweis —
     // die weiche Linie, nicht der Ausschluss des Feldes.
     //
@@ -326,7 +326,7 @@ function parseDefinitionList(rawList, path, errors) {
       return fail(
         'multipleType',
         name,
-        // 4T-1183: Abgeleitete Typen zählen hier NICHT als Alternative. Sie
+        // 4T-001183: Abgeleitete Typen zählen hier NICHT als Alternative. Sie
         // sind nicht mehrfach-unfähig — was ein Ausdruck liefert, kann sehr
         // wohl eine Liste sein —, aber `multiple` steuert daran nichts, und
         // eine Meldung, die sie als Ausweg anbietet, führte in die Irre.
@@ -335,7 +335,7 @@ function parseDefinitionList(rawList, path, errors) {
         ),
       );
     }
-    // 4T-1183: `multiple` ist an einem abgeleiteten Feld gegenstandslos wie
+    // 4T-001183: `multiple` ist an einem abgeleiteten Feld gegenstandslos wie
     // jede andere Wert-Vorgabe — die Gestalt des Ergebnisses bestimmt der
     // Ausdruck, nicht die Definition. Die Angabe entfällt mit Hinweis, das
     // Feld bleibt.
@@ -378,7 +378,7 @@ function parseDefinitionList(rawList, path, errors) {
     const def = { name, type, values, multiple: effectiveMultiple, default: defaultValue };
     if (path.length > 0) def.path = path;
 
-    // 4T-1155: Ein Feld hat einen Wertevorrat, wenn eine feste Liste oder
+    // 4T-001155: Ein Feld hat einen Wertevorrat, wenn eine feste Liste oder
     // eine brauchbare Quelle dasteht; davon hängt ab, ob die Optionen der
     // Auswahl gelten. Vorgezogen berechnet, weil die Options-Prüfung sie
     // braucht und der valuesFrom-Block weiter unten steht — die Reihenfolge
@@ -413,12 +413,12 @@ function parseDefinitionList(rawList, path, errors) {
     }
 
     if (entry.fields !== undefined && entry.fields !== null) {
-      // 4T-1186 (E11): Die beiden Objekt-Typen BEDIENEN die Kind-Definitionen
+      // 4T-001186 (E11): Die beiden Objekt-Typen BEDIENEN die Kind-Definitionen
       // seit dieser Stufe — zulässig sind sie aber weiterhin an jedem Typ.
       //
       // **Das ist bewusst so und war der erste Irrtum dieses Tasks.** Der
       // naheliegende Gedanke, `fields` jetzt an die beiden Typen zu binden,
-      // bricht eine ausdrückliche Zusage der Stufe 1 (4T-1141): «`fields` an
+      // bricht eine ausdrückliche Zusage der Stufe 1 (4T-001141): «`fields` an
       // einem Eintrag ist kein Fehler, auch wenn sein Typ keine Kinder kennt
       // — sonst wäre eine für Stufe 4 vorbereitete Datei heute ungültig.» Die
       // Auflage aus A2 gilt über alle vier Stufen: Was gültig war, bleibt

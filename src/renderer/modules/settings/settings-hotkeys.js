@@ -1,7 +1,7 @@
-// 4T-0208 (Epic 3E-0015): Bereich „Tastenkürzel" — Editor der Bindungen
+// 4T-000208 (Epic 3E-000015): Bereich „Tastenkürzel" — Editor der Bindungen
 // samt Tasten-Capture.
 //
-// 4T-0988 (Epic 3E-0196): Der Capture-Zustand ist modul-lokal; andere
+// 4T-000988 (Epic 3E-000196): Der Capture-Zustand ist modul-lokal; andere
 // Module erreichen ihn ausschließlich über die Zugriffs-Funktionen
 // (cancelHotkeyCapture, disarmHotkeysResetAll).
 'use strict';
@@ -33,11 +33,11 @@ export function dirtyHotkeysSection(draft) {
   return !jsonEqual(hotkeysDraftToOverrides(draft.hotkeys), state.hotkeyOverrides || {});
 }
 
-// --- Bereich Tastenkürzel (4T-0208, Epic 3E-0015) ---------------------------------
+// --- Bereich Tastenkürzel (4T-000208, Epic 3E-000015) ---------------------------------
 // Tabelle aller Registry-Kommandos in den fuenf Hilfe-Gruppen, Hotkey-
 // Capture pro Zeile, Konflikt-Erkennung gegen den Draft-Stand und die
 // fixen Bindings, Einzel- und Gesamt-Reset. Persistiert werden nur
-// Abweichungen vom Default (Store-Key 'hotkeys', siehe 4T-0207).
+// Abweichungen vom Default (Store-Key 'hotkeys', siehe 4T-000207).
 
 // Aktiver Capture-Zustand: { commandId, interim, warning } | null.
 // warning: { kind: 'notAllowed' } | { kind: 'fixed', descKey }
@@ -50,7 +50,7 @@ let hotkeysResetAllArmed = false;
 // gerade nicht montiert sein — dann entfallen Re-Renders einfach).
 let hotkeysListEl = null;
 
-// 4T-0988 (Epic 3E-0196): Entwaffnet den Gesamt-Reset. Die Entwurfs-Strecke
+// 4T-000988 (Epic 3E-000196): Entwaffnet den Gesamt-Reset. Die Entwurfs-Strecke
 // setzt den Zustand beim Neu-Öffnen und beim Schließen der Seite zurück und
 // erreicht ihn ausschließlich hierüber (kein beschreibbares Binding über
 // eine Modul-Grenze).
@@ -163,7 +163,7 @@ function buildHotkeyRow(cmd, hotkeysDraft) {
     resetBtn.disabled =
       normalizeBinding(hotkeysDraft[cmd.id] || '') === normalizeBinding(def || '');
     resetBtn.addEventListener('click', () => {
-      // 4T-0211 (Hotfix 0.28.1): Der Default kann inzwischen von einem
+      // 4T-000211 (Hotfix 0.28.1): Der Default kann inzwischen von einem
       // anderen Kommando belegt sein (z.B. nach "Ueberschreiben"). Dann
       // dieselbe Inline-Warnung wie beim Capture statt eines stillen
       // Setzens — sonst entsteht ein doppelt vergebenes Binding.
@@ -232,7 +232,7 @@ function buildHotkeyRow(cmd, hotkeysDraft) {
 function renderHotkeysEditor() {
   if (!hotkeysListEl || !hotkeysListEl.isConnected || !pageState.draft) return;
   const hotkeysDraft = pageState.draft.hotkeys;
-  // 4T-0294: Kommandos effektiv deaktivierter Erweiterungen ausblenden.
+  // 4T-000294: Kommandos effektiv deaktivierter Erweiterungen ausblenden.
   const disabledCommands = disabledCommandIdSet(getDisabledExtensionIds());
   hotkeysListEl.innerHTML = '';
   for (const categoryKey of COMMAND_CATEGORIES) {
@@ -384,7 +384,7 @@ export function renderHotkeysSection(container, draft) {
   container.appendChild(actions);
 }
 
-// 4T-0211 (Hotfix 0.28.1): Sicherheitsnetz — ein Draft mit doppelt
+// 4T-000211 (Hotfix 0.28.1): Sicherheitsnetz — ein Draft mit doppelt
 // vergebenen Bindings blockiert Anwenden/OK komplett mit lokalisiertem
 // Hinweis (Muster Task-Status-Validierung).
 export function validateHotkeysSection(draft) {

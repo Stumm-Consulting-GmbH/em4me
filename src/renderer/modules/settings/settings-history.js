@@ -1,4 +1,4 @@
-// 4T-0332 (Epic 3E-0060) und 4T-0555 (Epic 3E-0100): Dokument-Historie.
+// 4T-000332 (Epic 3E-000060) und 4T-000555 (Epic 3E-000100): Dokument-Historie.
 //
 // Der App-Teil (Schalter und Zeitparameter) erscheint im Bereich
 // „Verhalten", der Bereichs-Default als eigene Sektion der Gruppe
@@ -14,7 +14,7 @@ import { buildSettingsRow } from './settings-shared.js';
 
 // Spiegelt den app-weiten Teil von applyHistorySettings (Feld-Diffs gegen
 // den Snapshot; die Minuten-Werte in der geklemmten Persistenz-Form). Der
-// Bereichs-Default gehört zur Sektion historyArea (4T-0555).
+// Bereichs-Default gehört zur Sektion historyArea (4T-000555).
 export function dirtyHistorySettings(draft) {
   if (!draft.history) return false;
   const snap = draft.historySnapshot || {};
@@ -27,14 +27,14 @@ export function dirtyHistorySettings(draft) {
   );
 }
 
-// Spiegelt den Bereichs-Teil von applyHistorySettings (4T-0555).
+// Spiegelt den Bereichs-Teil von applyHistorySettings (4T-000555).
 export function dirtyHistoryAreaSection(draft) {
   if (!draft.history) return false;
   const snap = draft.historySnapshot || {};
   return !!(draft.history.hasArea && draft.history.areaValue !== snap.areaValue);
 }
 
-// --- 4T-0332 (Epic 3E-0060): Dokument-Historie im Bereich Verhalten ----------
+// --- 4T-000332 (Epic 3E-000060): Dokument-Historie im Bereich Verhalten ----------
 // App-Schalter (Default aus, PO-Entscheidung), die zwei Zeitparameter der
 // Paket-Bildung und — nur bei aktivem Bereich — der Bereichs-Default aus
 // der Bereichsdatei Area_Settings.mdda (dreistufig: erben/an/aus).
@@ -122,12 +122,12 @@ export function renderHistorySettings(container, draft) {
     ),
   );
 
-  // 4T-0555 (Epic 3E-0100): Der Bereichs-Default lebt als eigene Sektion
+  // 4T-000555 (Epic 3E-000100): Der Bereichs-Default lebt als eigene Sektion
   // „Dokument-Historie" in der Navigations-Gruppe „Aktueller Bereich"
   // (renderHistoryAreaSection) — hier bleibt der app-weite Teil.
 }
 
-// --- 4T-0555 (Epic 3E-0100): Bereichs-Sektion Dokument-Historie ---------------
+// --- 4T-000555 (Epic 3E-000100): Bereichs-Sektion Dokument-Historie ---------------
 // Bereichs-Default (erben/an/aus) aus der Bereichsdatei; vormals ein
 // hasArea-Block innerhalb des Bereichs „Verhalten" (PO-Entscheidung E3:
 // hybride Bereiche aufteilen). Liest und schreibt denselben draft.history;

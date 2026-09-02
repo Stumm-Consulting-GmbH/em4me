@@ -2,7 +2,7 @@
 // Quelltext-Zugriff ueber die ID-Whitelist, die beiden Bestaetigungs-Dialoge
 // (Vertrauen und Entfernen) und der Zugang zum Verzeichnis im Datei-Explorer.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Kanal-Gruppe: extensions:*.
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: extensions:*.
 //
 // Eigener Zustand: keiner; der Helfer extensionsRoot bildet den Wurzelpfad
 // unter <userData> und ist der einzige Ort, an dem er entsteht.
@@ -30,7 +30,7 @@ const {
 function registerExtensionsIpc(handle, deps) {
   const { app, dialog, shell, senderWindow, tForWindow } = deps;
 
-  // --- 4T-0298 (Epic 3E-0053): externe Erweiterungen ---------------------------
+  // --- 4T-000298 (Epic 3E-000053): externe Erweiterungen ---------------------------
   // Sicherheits-Kontrakt: der Renderer reicht nur IDs herein; alle Pfade
   // entstehen main-seitig aus <userData>/extensions plus validierten
   // Scan-Eintraegen (Whitelist-Muster wie help:getManualPage).

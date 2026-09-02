@@ -1,4 +1,4 @@
-// 4T-0465 (Epic 3E-0086): Renderer-seitige Anwendung der Farbschemas.
+// 4T-000465 (Epic 3E-000086): Renderer-seitige Anwendung der Farbschemas.
 //
 // Setzt die abweichenden Slot-Variablen des aktiven Schemas inline auf das
 // Wurzel-Element (document.documentElement) und räumt die nicht abweichenden,

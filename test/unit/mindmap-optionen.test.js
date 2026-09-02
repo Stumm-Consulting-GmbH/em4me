@@ -1,4 +1,4 @@
-// 4T-1048 (Epic 3E-0151): Unit-Tests der Options-Auflösung — Voreinstellung,
+// 4T-001048 (Epic 3E-000151): Unit-Tests der Options-Auflösung — Voreinstellung,
 // Übersteuerung je Dokument, stiller Rückfall bei unzulässigen Angaben und
 // die Grenzen der Zahl-Optionen.
 import { describe, it, expect } from 'vitest';
@@ -10,7 +10,7 @@ import {
   resolveMindmapOptionen,
 } from '../../src/shared/mindmap-optionen.js';
 
-describe('Mindmap-Optionen: Auflösung (4T-1048)', () => {
+describe('Mindmap-Optionen: Auflösung (4T-001048)', () => {
   it('AK3: ohne jede Angabe gilt die Voreinstellung', () => {
     expect(resolveMindmapOptionen(null, null)).toEqual(MINDMAP_VORGABEN);
   });
@@ -55,7 +55,7 @@ describe('Mindmap-Optionen: Auflösung (4T-1048)', () => {
   });
 });
 
-describe('Mindmap-Optionen: Grenzen der Zahl-Werte (4T-1048)', () => {
+describe('Mindmap-Optionen: Grenzen der Zahl-Werte (4T-001048)', () => {
   it('nimmt Ganzzahlen innerhalb der Grenzen an', () => {
     const eff = resolveMindmapOptionen(null, {
       mindmap: { farbEinfrierEbene: 3, anfangsTiefe: 2, hoechstBreite: 400 },
@@ -92,7 +92,7 @@ describe('Mindmap-Optionen: Grenzen der Zahl-Werte (4T-1048)', () => {
   });
 });
 
-describe('Mindmap-Optionen: Normalisierung (4T-1048)', () => {
+describe('Mindmap-Optionen: Normalisierung (4T-001048)', () => {
   it('liefert für unbrauchbare Eingänge eine leere Menge', () => {
     for (const unsinn of [null, undefined, 'text', 7, [], true]) {
       expect(normalisiereMindmapOptionen(unsinn)).toEqual({});
@@ -105,7 +105,7 @@ describe('Mindmap-Optionen: Normalisierung (4T-1048)', () => {
   });
 
   it('kennt genau die dokumentierten Aufzählungs-Werte', () => {
-    // 4T-1049: fünf Wurzel-Lagen statt der beiden Layout-Namen der ersten
+    // 4T-001049: fünf Wurzel-Lagen statt der beiden Layout-Namen der ersten
     // Fassung; die Reihenfolge ist die des Einstellungs-Menüs.
     expect(MINDMAP_LAYOUTS).toEqual(['links', 'mitte', 'rechts', 'oben', 'unten']);
     expect(MINDMAP_LINIENFUEHRUNGEN).toEqual(['geschwungen', 'gerade']);

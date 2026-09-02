@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0758 (Epic 3E-0142): Handbuch als Lieferant durchsuchbarer Texte.
+// 4T-000758 (Epic 3E-000142): Handbuch als Lieferant durchsuchbarer Texte.
 //
 // Geprüft wird, was die Suche über das ganze Handbuch braucht: alle Seiten
 // der Registry (auch die generierten, die kein Gegenstück auf der Platte
@@ -27,7 +27,7 @@ const { handbuchEintraege, verwirfHandbuchVorrat } =
   await import('../../../src/renderer/modules/search/search-manual.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
-describe('such-handbuch (4T-0758)', () => {
+describe('such-handbuch (4T-000758)', () => {
   beforeEach(() => {
     abrufe = [];
     verwirfHandbuchVorrat();

@@ -1,13 +1,13 @@
-// 4T-0417 (Epic 3E-0079): Unit-Tests für Parser und Serialisierer der
+// 4T-000417 (Epic 3E-000079): Unit-Tests für Parser und Serialisierer der
 // Perspective Datatable (Fence `perspective-datatable`). Prozess-neutral:
 // die reine String -> Datenmodell -> String-Kette wird hier erschöpfend
-// geprüft; Rendering/Aggregate folgen in 4T-0418.
-// 4T-0418 (Epic 3E-0079): Aggregat-Rechnung, Anzeige-Formatierung und die
+// geprüft; Rendering/Aggregate folgen in 4T-000418.
+// 4T-000418 (Epic 3E-000079): Aggregat-Rechnung, Anzeige-Formatierung und die
 // HTML-Bausteine (Viewer-Grid, Portable-Tabelle) ergänzt.
-// 4T-0420 (Epic 3E-0079): typ-gerechte Vergleicher, Ansichts-Sortierung
+// 4T-000420 (Epic 3E-000079): typ-gerechte Vergleicher, Ansichts-Sortierung
 // und Zeilen-Filter (gefilterte Aggregate) ergänzt.
 import { describe, it, expect } from 'vitest';
-// 4T-0986 (Epic 3E-0196): Modul-Familie geschnitten; die Namen kommen
+// 4T-000986 (Epic 3E-000196): Modul-Familie geschnitten; die Namen kommen
 // direkt aus dem jeweiligen Modul (Kern, berechnete Spalten, Ansicht,
 // HTML). Die geprüften Fälle bleiben unverändert.
 import {
@@ -62,7 +62,7 @@ describe('perspective-datatable — Spalten-Definitionen', () => {
     const model = parseOk('columns: Voller Name:TEXT, Betrag netto:Number(0)');
     expect(model.columns[0]).toEqual({
       name: 'Voller Name',
-      // 4T-1313 (Epic 3E-0235): Anzeige-Überschrift, ohne Angabe leer.
+      // 4T-001313 (Epic 3E-000235): Anzeige-Überschrift, ohne Angabe leer.
       label: null,
       type: 'text',
       decimals: null,
@@ -290,7 +290,7 @@ describe('perspective-datatable — Serialisierer und Roundtrip', () => {
   });
 });
 
-describe('perspective-datatable — Aggregat-Rechnung (4T-0418)', () => {
+describe('perspective-datatable — Aggregat-Rechnung (4T-000418)', () => {
   it('sum/avg/min/max über gültige Zahlen; leere und Fehler-Zellen fließen nicht ein', () => {
     const model = parseOk(
       'columns: N:number(2)\naggregate: N:sum+avg+min+max+count\n| 10 |\n| 2.5 |\n|  |\n| 3 |',
@@ -343,14 +343,14 @@ describe('perspective-datatable — Aggregat-Rechnung (4T-0418)', () => {
     expect(computeAggregates(noise)[0]).toEqual([{ func: 'sum', value: 0.3 }]);
   });
 
-  it('rechnet über eine übergebene Zeilen-Teilmenge (Basis für 4T-0420)', () => {
+  it('rechnet über eine übergebene Zeilen-Teilmenge (Basis für 4T-000420)', () => {
     const model = parseOk('columns: N:number\naggregate: N:sum\n| 1 |\n| 2 |\n| 4 |');
     const [aggs] = computeAggregates(model, model.rows.slice(0, 2));
     expect(aggs).toEqual([{ func: 'sum', value: 3 }]);
   });
 });
 
-describe('perspective-datatable — Anzeige-Formatierung (4T-0418)', () => {
+describe('perspective-datatable — Anzeige-Formatierung (4T-000418)', () => {
   it('number folgt dem Spalten-Format, ohne Format kanonisch; andere Typen unverändert', () => {
     expect(formatCellDisplay({ type: 'number', decimals: 2 }, 12.5)).toBe('12.50');
     expect(formatCellDisplay({ type: 'number', decimals: 0 }, 12.5)).toBe('13');
@@ -360,7 +360,7 @@ describe('perspective-datatable — Anzeige-Formatierung (4T-0418)', () => {
   });
 });
 
-describe('perspective-datatable — Viewer-HTML (4T-0418)', () => {
+describe('perspective-datatable — Viewer-HTML (4T-000418)', () => {
   const BODY =
     'columns: Name:text, Betrag:number(2), Erledigt:boolean, G:number = Betrag * 2\n' +
     'aggregate: Betrag:sum\n' +
@@ -408,7 +408,7 @@ describe('perspective-datatable — Viewer-HTML (4T-0418)', () => {
   });
 });
 
-describe('perspective-datatable — Portable-HTML (4T-0418)', () => {
+describe('perspective-datatable — Portable-HTML (4T-000418)', () => {
   it('erzeugt eine statische Tabelle mit Aggregat-Fußzeile und Ausrichtung', () => {
     const html = convertPerspectiveDatatableBlockToHtml(
       'columns: Name:text, Betrag:number(2), Erledigt:boolean\naggregate: Betrag:sum\n| Anna | 12.5 | x |',
@@ -429,7 +429,7 @@ describe('perspective-datatable — Portable-HTML (4T-0418)', () => {
   });
 });
 
-describe('perspective-datatable — Fence-Suche im Quelltext (4T-0419)', () => {
+describe('perspective-datatable — Fence-Suche im Quelltext (4T-000419)', () => {
   it('findet mehrere Fences mit korrekten Zeilenbereichen und Bodys', () => {
     const doc = [
       '# Titel', //                        1
@@ -483,7 +483,7 @@ describe('perspective-datatable — Fence-Suche im Quelltext (4T-0419)', () => {
   });
 });
 
-describe('perspective-datatable — Ansichts-Sortierung und Filter (4T-0420)', () => {
+describe('perspective-datatable — Ansichts-Sortierung und Filter (4T-000420)', () => {
   const BODY =
     'columns: Name:text, Datum:date, Betrag:number, Erledigt:boolean\n' +
     'aggregate: Betrag:sum, Erledigt:count\n' +
@@ -542,7 +542,7 @@ describe('perspective-datatable — Ansichts-Sortierung und Filter (4T-0420)', (
   });
 });
 
-describe('perspective-datatable — Berechnete Spalten (4T-0421)', () => {
+describe('perspective-datatable — Berechnete Spalten (4T-000421)', () => {
   it('wertet Arithmetik und Funktionen pro Zeile aus; spaetere Formeln sehen fruehere', () => {
     const model = parseOk(
       'columns: A:number, B:number, Summe:number = A + B, Doppelt:number(1) = Summe * 2, Urteil:text = choice(A > 2, "gross", "klein")\n' +
@@ -646,9 +646,9 @@ describe('perspective-datatable — Berechnete Spalten (4T-0421)', () => {
   });
 });
 
-// --- 4T-1313 (Epic 3E-0235): Spaltenkopf — Anzeigetext und Typangabe --------
+// --- 4T-001313 (Epic 3E-000235): Spaltenkopf — Anzeigetext und Typangabe --------
 
-describe('perspective-datatable — Anzeige-Überschrift der Spalte (4T-1313)', () => {
+describe('perspective-datatable — Anzeige-Überschrift der Spalte (4T-001313)', () => {
   it('liest den Anzeigetext hinter der Kennung', () => {
     const model = parseOk('columns: Gesamt "Gesamt (brutto)":number(2)\n| 1 |');
     expect(model.columns[0].name).toBe('Gesamt');
@@ -715,7 +715,7 @@ describe('perspective-datatable — Anzeige-Überschrift der Spalte (4T-1313)', 
   });
 });
 
-describe('perspective-datatable — abschaltbare Typangabe (4T-1313)', () => {
+describe('perspective-datatable — abschaltbare Typangabe (4T-001313)', () => {
   it('ohne Kopfzeile erscheint der Typ wie bisher', () => {
     const model = parseOk('columns: A:number\n| 1 |');
     expect(model.showTypes).toBeNull();

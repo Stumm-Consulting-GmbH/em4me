@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-1176 (Epic 3E-0220, E7): Was das Kommando in das Dokument schreibt —
+// 4T-001176 (Epic 3E-000220, E7): Was das Kommando in das Dokument schreibt —
 // geprüft am echten CodeMirror-State, nicht am Quelltext als Zeichenkette.
 //
 // Drei Zusagen der Story hängen hier: Der Block landet an der Cursor-Position
@@ -24,7 +24,7 @@ function stand(doc, cursor) {
 
 const ABFRAGE = erzeugeProfilAbfrage({ profil: 'Projekt' });
 
-describe('Einfügung an der Cursor-Position (4T-1176, AK1)', () => {
+describe('Einfügung an der Cursor-Position (4T-001176, AK1)', () => {
   it('fügt ohne führenden Umbruch ein, wenn der Cursor am Zeilenanfang steht', () => {
     const text = baueAbfrageEinfuegung(ABFRAGE.text, stand('Absatz\n\nEnde', 7));
     expect(text.startsWith('```perspective-query')).toBe(true);
@@ -50,7 +50,7 @@ describe('Einfügung an der Cursor-Position (4T-1176, AK1)', () => {
   });
 });
 
-describe('Das Eingefügte ist gewöhnlicher Inhalt (4T-1176, AK5/AK6)', () => {
+describe('Das Eingefügte ist gewöhnlicher Inhalt (4T-001176, AK5/AK6)', () => {
   const text = baueAbfrageEinfuegung(ABFRAGE.text, stand('', 0));
 
   it('ist ein geschlossener perspective-query-Fence und nichts sonst', () => {

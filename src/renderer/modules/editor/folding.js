@@ -1,4 +1,4 @@
-// 4T-0179 (Epic 3E-0039): aus renderer.js extrahiertes Modul (mechanischer
+// 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
 'use strict';
 
@@ -20,7 +20,7 @@ import {
   unfoldHeadingRegion,
 } from './editor.js';
 
-// 4T-0013: Folding-Struktur-Cache. Wird bei jeder Doc-Aenderung aus dem
+// 4T-000013: Folding-Struktur-Cache. Wird bei jeder Doc-Aenderung aus dem
 // CodeMirror-syntaxTree neu aufgebaut. Enthaelt:
 // - headings: pro Heading {kind:'heading', level, fromLine, toLine, track}.
 //   toLine ist die letzte Zeile der Heading-Region, track entspricht dem
@@ -76,7 +76,7 @@ export function computeFoldStructure(state) {
     },
   });
   const totalLines = state.doc.lines;
-  // R1-07 (4T-0180): Heading-Regionen-Enden per Rueckwaerts-Lauf in O(n)
+  // R1-07 (4T-000180): Heading-Regionen-Enden per Rueckwaerts-Lauf in O(n)
   // statt O(n^2). nextStart[l] haelt die fromLine des naechsten spaeteren
   // Headings mit exakt Level l; das Regionsende ist das Minimum ueber die
   // Levels 1..h.level (erstes spaeteres Heading mit Level <= h.level).
@@ -96,7 +96,7 @@ export function computeFoldStructure(state) {
   for (const h of headings) {
     if (h.level > maxHeadingLevel) maxHeadingLevel = h.level;
   }
-  // R1-07 (4T-0180): Block-Verschachtelungstiefe per Containment-Stack in
+  // R1-07 (4T-000180): Block-Verschachtelungstiefe per Containment-Stack in
   // O(n) statt O(n^2). blocks kommt aus syntaxTree.iterate in Pre-Order
   // (Eltern vor Kindern, Dokument-Reihenfolge); der Stack haelt die
   // aktuell umschliessenden Bloecke. Zeilen-identische Bloecke (z.B.
@@ -127,7 +127,7 @@ export function computeFoldStructure(state) {
     if (d > maxBlockDepth) maxBlockDepth = d;
   }
   const allRegions = headings.concat(blocks).sort((a, b) => a.fromLine - b.fromLine);
-  // R1-08 (4T-0180): Regionen pro Spur, sortiert nach fromLine. Innerhalb
+  // R1-08 (4T-000180): Regionen pro Spur, sortiert nach fromLine. Innerhalb
   // einer Spur sind Regionen disjunkt (gleiches Heading-Level bzw. gleiche
   // Block-Tiefe ueberlappen hoechstens an einer Randzeile) — der Gutter
   // kann damit pro Zeile und Spur binaer suchen statt alle Regionen linear
@@ -151,7 +151,7 @@ export function computeFoldStructure(state) {
   };
 }
 
-// R1-08 (4T-0180): Binaere Suche nach der letzten Region einer Spur mit
+// R1-08 (4T-000180): Binaere Suche nach der letzten Region einer Spur mit
 // fromLine <= lineNumber. Nur diese kann die Zeile abdecken oder dort
 // starten (Spur-Listen sind disjunkt und nach fromLine sortiert).
 export function findTrackRegionAtLine(list, lineNumber) {
@@ -187,7 +187,7 @@ export const foldStructureField = StateField.define({
   },
 });
 
-// 4T-0013: Eigener Folding-Gutter mit dynamischen Hierarchie-Spuren. Pro
+// 4T-000013: Eigener Folding-Gutter mit dynamischen Hierarchie-Spuren. Pro
 // tatsaechlich vorkommender Heading-Ebene UND pro Block-Verschachtelungstiefe
 // (Listen, Blockquotes, Code, Tables) eine eigene Spur. Heading-Spuren liegen
 // links, Block-Spuren direkt daneben rechts. Auf der Start-Zeile einer Region
@@ -302,7 +302,7 @@ export const headingFoldGutter = gutter({
     const lineNumber = view.state.doc.lineAt(line.from).number;
     const trackInfo = {};
     let hasContent = false;
-    // R1-08 (4T-0180): pro Spur binaere Suche statt Linear-Scan ueber alle
+    // R1-08 (4T-000180): pro Spur binaere Suche statt Linear-Scan ueber alle
     // Regionen pro sichtbarer Zeile. Pro Spur ist hoechstens eine Region
     // an einer Zeile relevant (Start dominiert "inside", wie zuvor).
     for (const list of struct.regionsByTrack.values()) {
@@ -384,7 +384,7 @@ export const headingFoldGutter = gutter({
   },
 });
 
-// 4T-0013: Setzt die Gutter-Breite direkt am .cm-headingGutter-DOM, basierend
+// 4T-000013: Setzt die Gutter-Breite direkt am .cm-headingGutter-DOM, basierend
 // auf der aktuellen Spurenanzahl im foldStructureField. Drittes Sicherheits-
 // netz neben Inline-Style am Marker-DOM und CSS-Variable, damit der Gutter
 // auch dann eine korrekte Breite hat, wenn CodeMirrors Spacer-Mechanismus die
@@ -413,9 +413,9 @@ export const foldGutterWidthSync = ViewPlugin.fromClass(
   },
 );
 
-// 4T-0013: Bei jeder Folding-Aenderung (Gutter, Tastenkuerzel, programmatisch)
+// 4T-000013: Bei jeder Folding-Aenderung (Gutter, Tastenkuerzel, programmatisch)
 // ein DOM-Custom-Event 'scg:foldchange' auf document feuern. Konsument ist das
-// Outline-Panel aus 4T-0014, das daraufhin seine Pfeil-Indikatoren auffrischt
+// Outline-Panel aus 4T-000014, das daraufhin seine Pfeil-Indikatoren auffrischt
 // (Abonnent: app-init.js, document-Listener auf 'scg:foldchange').
 export const foldChangeNotifier = ViewPlugin.fromClass(
   class {
@@ -441,9 +441,9 @@ export const foldChangeNotifier = ViewPlugin.fromClass(
   },
 );
 
-// 4T-0179: api nach modules/app/api.js umgezogen (zyklenfreies Basis-Modul).
+// 4T-000179: api nach modules/app/api.js umgezogen (zyklenfreies Basis-Modul).
 
-// 4T-0179: Extension-Bundle fuer die Gliederung — wird per Compartment
+// 4T-000179: Extension-Bundle fuer die Gliederung — wird per Compartment
 // ein-/ausgeschaltet (aus editor.js hierher verschoben: die Werte muessen
 // beim Einbetten initialisiert sein; foldStructureField bleibt bewusst
 // AUSSERHALB, weil das Outline-Panel seine Heading-Liste daraus liest).

@@ -1,4 +1,4 @@
-// 4T-1204 (Epic 3E-0121): Unit-Test des ICNS-Containers aus
+// 4T-001204 (Epic 3E-000121): Unit-Test des ICNS-Containers aus
 // scripts/build-icon.js — der Aufbau ist handgeschrieben (Typ + Laenge je
 // Eintrag, PNG-Inhalt) und hier gegenstaendlich geprueft, weil kein Wächter
 // sonst in die erzeugte Datei sieht.
@@ -13,7 +13,7 @@ function fakePng(len, fuellwert) {
   return Buffer.alloc(len, fuellwert);
 }
 
-describe('icnsFromPngs (4T-1204)', () => {
+describe('icnsFromPngs (4T-001204)', () => {
   it('schreibt Kopf-Kennung, Gesamtlaenge und je Eintrag Typ und Laenge', () => {
     const a = fakePng(10, 1);
     const b = fakePng(20, 2);

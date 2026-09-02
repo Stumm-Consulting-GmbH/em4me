@@ -1,4 +1,4 @@
-// 4T-0413 (Epic 3E-0078): Integrations-Test des Skript-Daten-Snapshots
+// 4T-000413 (Epic 3E-000078): Integrations-Test des Skript-Daten-Snapshots
 // (backlinks.scriptDataFor) gegen den echten Index (Temp-Verzeichnis-Fixture,
 // Setup-/Teardown-Muster aus perspective-query-index.test.js). Geprüft wird
 // der Werte-Vertrag der Sandbox-Daten: pages mit props plus file.*-Feldern
@@ -84,7 +84,7 @@ beforeEach(async () => {
   await indexFor(start);
 });
 
-describe('scriptDataFor — Daten-Snapshot der Skript-Blöcke (4T-0413)', () => {
+describe('scriptDataFor — Daten-Snapshot der Skript-Blöcke (4T-000413)', () => {
   it('pages tragen props und file.*-Felder inklusive Link-Graph', () => {
     const snap = scriptDataFor(start, null);
     expect(snap.status).toBe('ready');

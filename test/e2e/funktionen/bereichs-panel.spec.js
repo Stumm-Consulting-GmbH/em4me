@@ -1,15 +1,15 @@
-// Epic 3E-0059: Bereichs-Panel — Ordnerbaum und Dateiliste.
+// Epic 3E-000059: Bereichs-Panel — Ordnerbaum und Dateiliste.
 //
-// BP-01 (4T-0327): In einer leeren Bereichs-App zeigt sich das Panel
+// BP-01 (4T-000327): In einer leeren Bereichs-App zeigt sich das Panel
 //        automatisch; der Baum zeigt Wurzel und Unterordner, die Dateiliste
 //        die Markdown-Dateien des gewählten Ordners (voller Pfad als
 //        Tooltip); Ordner-Klick wechselt die Dateiliste; Datei-Klick öffnet
 //        den Tab; der Statusbar-Toggle blendet das Panel aus und ein.
-// BP-02 (4T-0328): extern angelegte Dateien erscheinen über den
+// BP-02 (4T-000328): extern angelegte Dateien erscheinen über den
 //        Verzeichnis-Watcher automatisch im Panel.
-// BP-03 (4T-0328): "Neue Datei in diesem Ordner" legt an und öffnet den
+// BP-03 (4T-000328): "Neue Datei in diesem Ordner" legt an und öffnet den
 //        Tab; Namens-Kollision wird gemeldet statt zu überschreiben.
-// BP-04 (4T-0347): In einer Bereichs-App findet das Backlinks-Panel Verweise
+// BP-04 (4T-000347): In einer Bereichs-App findet das Backlinks-Panel Verweise
 //        aus dem gesamten Bereichs-Baum (auch aus anderen Ordnern jenseits der
 //        bisherigen Tiefen-Grenze); die Quelldatei zeigt den Ordner relativ
 //        zur Bereichs-Wurzel als zweite Zeile.
@@ -39,7 +39,7 @@ function removeDir(dir) {
   }
 }
 
-test.describe('BP-01: Bereichs-Panel (4T-0327)', () => {
+test.describe('BP-01: Bereichs-Panel (4T-000327)', () => {
   test('Baum, Dateiliste, Öffnen per Klick, Tooltip und Toggle', async () => {
     const { app, page, userData } = await launchApp();
     const dir = makeAreaTree();
@@ -91,7 +91,7 @@ test.describe('BP-01: Bereichs-Panel (4T-0327)', () => {
   });
 });
 
-test.describe('BP-02/BP-03: Watcher-Aktualisierung und neue Datei (4T-0328)', () => {
+test.describe('BP-02/BP-03: Watcher-Aktualisierung und neue Datei (4T-000328)', () => {
   test('externe Anlage erscheint automatisch; neue Datei anlegen und öffnen', async () => {
     const { app, page, userData } = await launchApp();
     const dir = makeAreaTree();
@@ -132,7 +132,7 @@ test.describe('BP-02/BP-03: Watcher-Aktualisierung und neue Datei (4T-0328)', ()
   });
 });
 
-test.describe('BP-04: Bereichsweiter Link-Index (4T-0347)', () => {
+test.describe('BP-04: Bereichsweiter Link-Index (4T-000347)', () => {
   test('Backlink aus anderem Ordner erscheint, Ordner relativ zur Wurzel', async () => {
     const { app, page, userData } = await launchApp();
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-bi-'));

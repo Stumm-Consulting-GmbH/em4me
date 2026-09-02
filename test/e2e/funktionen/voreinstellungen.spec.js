@@ -1,4 +1,4 @@
-// 4T-0751 (Epic 3E-0146): E2E-Funktions-Suite — Auslieferungs-Voreinstellungen.
+// 4T-000751 (Epic 3E-000146): E2E-Funktions-Suite — Auslieferungs-Voreinstellungen.
 // Deckt den Zustand ab, den ein Erstbenutzer vorfindet: englische Oberfläche
 // und Bernstein als Farbschema. Die Specs starten deshalb bewusst OHNE die
 // Vorbelegung des Start-Helfers (settings: null); alle übrigen Specs laufen
@@ -8,7 +8,7 @@
 // mit Nutzungsspuren gilt als Bestand und wird auf die bisherigen
 // Standard-Schemas festgeschrieben, damit die Umstellung sie nicht mitzieht.
 //
-// 4T-0644 (Epic 3E-0127): Genau weil hier ohne Vorbelegung gestartet wird,
+// 4T-000644 (Epic 3E-000127): Genau weil hier ohne Vorbelegung gestartet wird,
 // erleben diese beiden Fälle als einzige den echten Erststart und damit die
 // automatisch anlaufende Produkt-Tour. Sie wird unmittelbar nach dem Start
 // geschlossen; den Merker mitzugeben verbietet sich, weil er die frische
@@ -58,7 +58,7 @@ test.describe('VE-01: frische Installation', () => {
   test('startet englisch und in Bernstein', async () => {
     const { app, page, userData } = await launchApp({ settings: null });
     try {
-      // 4T-0644: echter Erststart, also läuft die Produkt-Tour an; wegräumen,
+      // 4T-000644: echter Erststart, also läuft die Produkt-Tour an; wegräumen,
       // bevor ihr Overlay die Prüfungen der Oberfläche verdeckt.
       await schliesseTour(page);
       // Sprache: das Dokument trägt das Sprach-Kürzel der geladenen
@@ -94,7 +94,7 @@ test.describe('VE-02: bestehende Installation', () => {
     );
     const { app, page } = await launchApp({ userData, settings: null });
     try {
-      // 4T-0644: Ein vor der Tour angelegtes Profil kennt den Merker nicht,
+      // 4T-000644: Ein vor der Tour angelegtes Profil kennt den Merker nicht,
       // die Tour läuft also auch hier an.
       await schliesseTour(page);
       // Kein inline gesetzter Akzent: Standard entspricht der Basis-Palette.

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0292 (Epic 3E-0052): Renderer-Lebenszyklus des Erweiterungs-Systems —
+// 4T-000292 (Epic 3E-000052): Renderer-Lebenszyklus des Erweiterungs-Systems —
 // Zustands-Uebergaenge, Laufzeit-Hooks (attach-Muster), Konsumenten-Event
 // und Persistenz-Verhalten (persist:false beim Broadcast-Empfang).
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -8,7 +8,7 @@ import { EXTENSIONS_DISABLED_KEY } from '../../../src/shared/extensions/extensio
 
 const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
 
-describe('extension-lifecycle (4T-0292)', () => {
+describe('extension-lifecycle (4T-000292)', () => {
   beforeEach(() => {
     lifecycle.resetExtensionStateForTests();
   });

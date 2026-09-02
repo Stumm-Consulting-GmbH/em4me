@@ -1,7 +1,7 @@
 // Typ-Satz und Profil-Auflösung des Properties-Editors.
-// 4T-0981 (Epic 3E-0196): Auszug aus properties-tags.js.
+// 4T-000981 (Epic 3E-000196): Auszug aus properties-tags.js.
 //
-// 4T-1172 (Epic 3E-0220): Die zustandsfreien Typ- und Wert-Hilfen sind nach
+// 4T-001172 (Epic 3E-000220): Die zustandsfreien Typ- und Wert-Hilfen sind nach
 // properties-typ-werte.js gezogen und werden von hier weitergereicht
 // (Begründung dort). Was bleibt, ist der zustandsbehaftete Teil: die
 // Profil-Auflösung einer Spalte samt ihrem Cache, ihrer Listener-Registry und
@@ -11,26 +11,26 @@
 
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
-// 4T-0294 (Epic 3E-0052): Tag-Panel gehoert zur Tag-Erweiterung.
+// 4T-000294 (Epic 3E-000052): Tag-Panel gehoert zur Tag-Erweiterung.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { getPaneEls, state } from '../app/app-state.js';
-// 4T-0448 (Epic 3E-0083): Eigenschafts-Profile — gemeinsame Editor-Logik
+// 4T-000448 (Epic 3E-000083): Eigenschafts-Profile — gemeinsame Editor-Logik
 // (Vorschläge, weiche Hinweise) aus dem Shared-Modul; die Auflösung liefert
-// profiles:resolve (4T-0447) und wird pro Pane in state.properties gecacht.
+// profiles:resolve (4T-000447) und wird pro Pane in state.properties gecacht.
 import { fieldDefinitionHint, isEmptyPropertyValue } from '../../../shared/property-profiles.js';
-// 4T-1172 (Epic 3E-0220): Typ-Ableitung aus dem Blatt-Modul — renderTypeFor
+// 4T-001172 (Epic 3E-000220): Typ-Ableitung aus dem Blatt-Modul — renderTypeFor
 // braucht sie, die Fassade unten reicht sie weiter.
 import { inferType } from './properties-typ-werte.js';
 
-// 4T-1155/4T-1156 (Epic 3E-0219): um 'link' und 'time' erweitert, in
+// 4T-001155/4T-001156 (Epic 3E-000219): um 'link' und 'time' erweitert, in
 // derselben Reihenfolge wie PROFILE_FIELD_TYPES des Format-Moduls; 'readonly'
 // bleibt der DOM-interne Fallback am Ende.
-// 4T-1185 (Epic 3E-0221, E1): um 'formula' und 'lookup' erweitert. Beide
+// 4T-001185 (Epic 3E-000221, E1): um 'formula' und 'lookup' erweitert. Beide
 // erscheinen im Typ-Wechsler nur an einem Feld, das sie ohnehin trägt — genau
 // wie der interne 'readonly'-Fallback und aus demselben Grund: Ein Anwender
 // legt kein abgeleitetes Feld an, indem er einen Typ wählt; es entsteht durch
 // eine Profil-Definition. Der Wechsler ist an solchen Feldern gesperrt.
-// 4T-1187 (Epic 3E-0221, E11): um die beiden Objekt-Typen erweitert, und zwar
+// 4T-001187 (Epic 3E-000221, E11): um die beiden Objekt-Typen erweitert, und zwar
 // aus demselben Grund und mit derselben Folge — ein strukturiertes Feld
 // entsteht aus einer Profil-Definition mit Kind-Feldern, nicht aus einer
 // Typ-Wahl. **Sie MÜSSEN in dieser Liste stehen**, auch wenn sie nicht wählbar
@@ -53,7 +53,7 @@ export const PROPERTY_TYPES = [
   'readonly',
 ];
 
-// 4T-1185/4T-1187: Typen, die im Wechsler nur am eigenen Feld erscheinen.
+// 4T-001185/4T-001187: Typen, die im Wechsler nur am eigenen Feld erscheinen.
 // 'readonly' ist der DOM-interne Rückfall verschachtelter Strukturen, zwei
 // sind abgeleitet, zwei strukturiert — keiner der fünf ist eine Vorgabe, die
 // man wählt; alle entstehen aus einer Definition oder aus dem Wert selbst.
@@ -76,8 +76,8 @@ export const FIELD_TYPE_HINTS = {
   published: 'boolean',
 };
 
-// --- 4T-0448 (Epic 3E-0083): Profil-Auflösung der aktiven Datei ---------------
-// Die Auflösung (profiles:resolve, 4T-0447) läuft asynchron und wird pro
+// --- 4T-000448 (Epic 3E-000083): Profil-Auflösung der aktiven Datei ---------------
+// Die Auflösung (profiles:resolve, 4T-000447) läuft asynchron und wird pro
 // Pane gecacht, damit renderProperties synchron bleiben kann (Begründung am
 // renderProperties-Kommentar). Neu aufgelöst wird beim Rendern, nach jedem
 // Properties-Save (das Zuordnungs-Feld kann sich geändert haben) und beim
@@ -85,7 +85,7 @@ export const FIELD_TYPE_HINTS = {
 // tatsächlich geändert hat (JSON-Vergleich — laufende Eingaben behalten
 // sonst ihren Fokus).
 
-// 4T-1161 (Epic 3E-0219, E5): Symbol des aufgelösten Profils im Kopf der
+// 4T-001161 (Epic 3E-000219, E5): Symbol des aufgelösten Profils im Kopf der
 // Eigenschaften-Sektion.
 //
 // **Warum hier und nicht am Reiter** (PO-Entscheidung vom 2026-08-23): Der
@@ -135,7 +135,7 @@ export async function refreshProfileResolution(paneIdx) {
     const token = ++state.properties.profileTokens[paneIdx];
     let result;
     try {
-      // 4T-1159 (Epic 3E-0219, E13): `text` kommt dazu — aus ihm liest der
+      // 4T-001159 (Epic 3E-000219, E13): `text` kommt dazu — aus ihm liest der
       // Main die Schlagworte des Dokuments (Frontmatter und Inline). Der
       // LIVE-Inhalt und nicht der Index, damit eine ungespeicherte
       // Schlagwort-Änderung sofort wirkt, so wie beim Zuordnungs-Feld.
@@ -152,9 +152,9 @@ export async function refreshProfileResolution(paneIdx) {
       next = {
         assignField: result.assignField,
         fields: result.fields,
-        // 4T-1161 (E5): das zuerst aufgelöste Profil samt Symbol und Fund-Stufe.
+        // 4T-001161 (E5): das zuerst aufgelöste Profil samt Symbol und Fund-Stufe.
         leading: result.leading || null,
-        // 4T-1171 (Epic 3E-0220): die geordnete Profil-Kette für das
+        // 4T-001171 (Epic 3E-000220): die geordnete Profil-Kette für das
         // Feld-Formular der Stufe 3.
         chain: Array.isArray(result.chain) ? result.chain : [],
       };
@@ -169,13 +169,13 @@ export async function refreshProfileResolution(paneIdx) {
   if (els && els.propertiesSection) {
     els.propertiesSection.dataset.profiles = next ? 'on' : 'off';
   }
-  // 4T-1161 (Epic 3E-0219, E5): Symbol des aufgelösten Profils am Dokument.
+  // 4T-001161 (Epic 3E-000219, E5): Symbol des aufgelösten Profils am Dokument.
   applyProfileBadge(els, next);
   const prev = state.properties.profileByPane[paneIdx];
   if (JSON.stringify(prev) === JSON.stringify(next)) return;
   state.properties.profileByPane[paneIdx] = next;
-  // 4T-0449: weitere Konsumenten der Auflösung (Block-Panel) nachziehen.
-  // 4T-0981: Auch das Nachziehen der Properties-Sektion selbst läuft über
+  // 4T-000449: weitere Konsumenten der Auflösung (Block-Panel) nachziehen.
+  // 4T-000981: Auch das Nachziehen der Properties-Sektion selbst läuft über
   // diese Registry. properties-fields.js meldet sich dafür im Modul-Rumpf an
   // und steht damit vor jeder Laufzeit-Anmeldung (das Block-Panel meldet sich
   // erst in initBlockPropsPanel an); Bedingung und Reihenfolge des früheren
@@ -183,7 +183,7 @@ export async function refreshProfileResolution(paneIdx) {
   for (const listener of profileResolutionListeners) listener(paneIdx);
 }
 
-// 4T-0449: Listener für Auflösungs-Änderungen (das Block-Panel registriert
+// 4T-000449: Listener für Auflösungs-Änderungen (das Block-Panel registriert
 // sich hier — bewusst als Callback-Registry statt Import, um den Zyklus
 // properties-tags <-> block-props-panel zu vermeiden).
 const profileResolutionListeners = [];
@@ -199,7 +199,7 @@ export function handleProfilesChanged() {
 
 // Definition eines Feldnamens aus der gecachten Auflösung (case-insensitiv);
 // null ohne Konfiguration oder für nicht definierte Felder. Exportiert für
-// das Block-Panel (4T-0449: Blöcke erben die Datei-Auflösung).
+// das Block-Panel (4T-000449: Blöcke erben die Datei-Auflösung).
 export function profileDefFor(paneIdx, key) {
   const resolution = state.properties.profileByPane[paneIdx];
   if (!resolution || !Array.isArray(resolution.fields)) return null;
@@ -218,7 +218,7 @@ export function renderTypeFor(def, value) {
   return fieldDefinitionHint(def, value) === 'typeMismatch' ? inferType(value) : def.type;
 }
 
-// 4T-1172 (Epic 3E-0220): Die zustandsfreien Typ- und Wert-Hilfen liegen seit
+// 4T-001172 (Epic 3E-000220): Die zustandsfreien Typ- und Wert-Hilfen liegen seit
 // dem Schnitt in properties-typ-werte.js und werden von hier weitergereicht.
 // Die Fassade bleibt der eine Ort, an dem die Verbraucher laden — dasselbe
 // Muster, mit dem property-profiles.js seine Format- und Editor-Ebene führt.

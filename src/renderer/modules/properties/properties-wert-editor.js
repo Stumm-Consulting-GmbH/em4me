@@ -2,7 +2,7 @@
 // Feldes, die Auswahl-Liste eines Wertebereichs, die Chips-Leiste des
 // Mehrfach-Modus und der Typ-Wechsel.
 //
-// 4T-1172 (Epic 3E-0220): Auszug aus properties-fields.js, erzwungen vom
+// 4T-001172 (Epic 3E-000220): Auszug aus properties-fields.js, erzwungen vom
 // Datei-Größen-Budget (die Datei stand bei genau 500 Zeilen, und das
 // Feld-Formular der Stufe 3 braucht dort Platz). Der Schnitt folgt der
 // Fachlichkeit und nicht der Zeilenzahl: Eine FELD-ZEILE zu bauen (Name, Typ,
@@ -22,7 +22,7 @@ import {
   extractFieldValue,
   inferType,
 } from './properties-typ-werte.js';
-// 4T-1156 (Epic 3E-0219): Bedienelemente der neuen Typen und Optionen — eine
+// 4T-001156 (Epic 3E-000219): Bedienelemente der neuen Typen und Optionen — eine
 // gemeinsame Quelle für beide Panels (Paritäts-Auflage, Konzept 7.3).
 import {
   applyDateOptions,
@@ -36,21 +36,21 @@ import {
   renderLinkField,
   renderTimeField,
 } from './properties-neue-typen.js';
-// 4T-1185/4T-1187 (Epic 3E-0221): Die Typ-Mengen der abgeleiteten und der
+// 4T-001185/4T-001187 (Epic 3E-000221): Die Typ-Mengen der abgeleiteten und der
 // strukturierten Felder kommen aus dem geteilten Format-Modul, damit Renderer
 // und Datenseite dieselbe Quelle haben.
 import { DERIVED_TYPES, OBJECT_TYPES } from '../../../shared/property-profiles.js';
-// 4T-1187: gestapelte Bedienung der Objekt-Typen — gemeinsame Quelle beider
+// 4T-001187: gestapelte Bedienung der Objekt-Typen — gemeinsame Quelle beider
 // Panels, der Bau der Kind-Editoren kommt als Parameter herein.
 import { kindDefinitionen, renderObjektFeld } from './properties-objekt-felder.js';
-// 4T-1340 (Epic 3E-0238): zweite Werte-Quelle — die im Bereich vergebenen Werte.
+// 4T-001340 (Epic 3E-000238): zweite Werte-Quelle — die im Bereich vergebenen Werte.
 import { attachBestandsWerte } from './properties-bestandswerte.js';
 
 function istAbgeleiteterTyp(type) {
   return DERIVED_TYPES.includes(type);
 }
 
-// 4T-1172 (Epic 3E-0220): Drei Zugriffe dieses Moduls zeigen zurück in die
+// 4T-001172 (Epic 3E-000220): Drei Zugriffe dieses Moduls zeigen zurück in die
 // Renderer-Komponente — der Sitzungs-Zustand für den aktiven Pfad, der
 // Debounce-Save und das Öffnen eines Verweis-Ziels. Als Importe würden sie
 // dieses Modul in die eingefrorene Bestands-Komponente des Ordner-Import-
@@ -70,11 +70,11 @@ export function setzeWertEditorUmgebung(teile) {
   umgebung = { ...umgebung, ...teile };
 }
 
-// 4T-0448: laufende Nummer für eindeutige datalist-IDs der Wertebereichs-
+// 4T-000448: laufende Nummer für eindeutige datalist-IDs der Wertebereichs-
 // Eingaben (Mehrfach-Auswahl).
 let valueListSeq = 0;
 
-// 4T-0448: Einfach-Auswahl eines Wertebereichs-Felds — Auswahl-Liste mit
+// 4T-000448: Einfach-Auswahl eines Wertebereichs-Felds — Auswahl-Liste mit
 // den definierten Werten plus „Eigener Wert…" (freie Eingabe bleibt möglich,
 // weiche Haltung; ein Wert außerhalb erzeugt den Hinweis beim Save). Ein
 // gesetzter Wert außerhalb des Bereichs erscheint als eigene Option, damit
@@ -87,7 +87,7 @@ function renderValueSelect(container, def, value, paneIdx) {
   emptyOpt.value = '';
   emptyOpt.textContent = '—';
   select.appendChild(emptyOpt);
-  // 4T-1158: Mit Abfrage-Quelle kommt das Feld ohne feste Werte hierher.
+  // 4T-001158: Mit Abfrage-Quelle kommt das Feld ohne feste Werte hierher.
   const known = (Array.isArray(def.values) ? def.values : []).map((v) => String(v));
   for (const v of known) {
     const opt = document.createElement('option');
@@ -120,7 +120,7 @@ function renderValueSelect(container, def, value, paneIdx) {
   container.appendChild(select);
 }
 
-// 4T-1340 (Epic 3E-0238): Name der Eigenschaft, zu der dieses Bedienelement
+// 4T-001340 (Epic 3E-000238): Name der Eigenschaft, zu der dieses Bedienelement
 // gehört. Er steht im Schlüssel-Feld desselben Rahmens und nicht in der
 // Definition: Ein Feld ohne Profil hat keine Definition, und genau dort hilft
 // die Bestands-Quelle am meisten. Gelesen wird das Feld statt eines
@@ -143,7 +143,7 @@ function haengeBestandsWerte(container, el, paneIdx, input = null) {
 
 export function renderValueEditor(container, type, value, paneIdx, def = null, hinweis = null) {
   container.innerHTML = '';
-  // 4T-1185 (Epic 3E-0221, E1): Abgeleitete Felder zuerst — vor jeder anderen
+  // 4T-001185 (Epic 3E-000221, E1): Abgeleitete Felder zuerst — vor jeder anderen
   // Verzweigung, weil an ihnen kein Bedienelement entstehen darf. `value`
   // trägt den bereits errechneten Wert; der Lookup-Wert kommt über
   // `attachLookupWerte` nach, und genau darin steckt die Zusage «nur
@@ -155,10 +155,10 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     }
     return;
   }
-  // 4T-1187 (Epic 3E-0221, E11): gestapelte Bedienung der Objekt-Typen.
+  // 4T-001187 (Epic 3E-000221, E11): gestapelte Bedienung der Objekt-Typen.
   //
   // **Nur mit erklärten Kind-Feldern.** Ein Objekt-Typ ohne `fields` ist
-  // zulässig (4T-1186), hat aber nichts zu stapeln; er fällt auf die
+  // zulässig (4T-001186), hat aber nichts zu stapeln; er fällt auf die
   // vorhandene nur lesende Anzeige verschachtelter Strukturen zurück — genau
   // der Rückfall, den Konzept 6.8 dafür vorsieht.
   if (OBJECT_TYPES.includes(type) && kindDefinitionen(def).length > 0) {
@@ -169,10 +169,10 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     });
     return;
   }
-  // 4T-0448: Wertebereichs-Felder — Einfach-Auswahl als Auswahl-Liste,
+  // 4T-000448: Wertebereichs-Felder — Einfach-Auswahl als Auswahl-Liste,
   // Mehrfach-Auswahl über die Chips-Leiste mit Werte-Vorschlägen (datalist).
   if (hatAuswahl(def) && !def.multiple) {
-    // 4T-1156 (E11): Zyklus — anderes Bedienelement, gleicher Wert.
+    // 4T-001156 (E11): Zyklus — anderes Bedienelement, gleicher Wert.
     if (def.options && def.options.control === 'cycle') {
       renderCycleField(container, def, value, {
         onChange: () => umgebung.speichern(paneIdx),
@@ -180,14 +180,14 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
       return;
     }
     renderValueSelect(container, def, value, paneIdx);
-    // 4T-1158: Abfrage-Werte kommen nach — auf Verlangen, erst hier.
+    // 4T-001158: Abfrage-Werte kommen nach — auf Verlangen, erst hier.
     const select = container.querySelector('select.properties-field-value-select');
     if (select) attachQueryValues(select, { def, filePath: umgebung.aktiverPfad(paneIdx) });
-    // 4T-1340: die zweite Herkunft, als eigene Gruppe hinter dem Vorrat.
+    // 4T-001340: die zweite Herkunft, als eigene Gruppe hinter dem Vorrat.
     if (select) haengeBestandsWerte(container, select, paneIdx);
     return;
   }
-  // 4T-1156: Verweis im Einzel-Modus; der Mehrfach-Fall läuft über die
+  // 4T-001156: Verweis im Einzel-Modus; der Mehrfach-Fall läuft über die
   // Chips-Leiste weiter unten.
   if (type === 'link' && !(def && def.multiple)) {
     renderLinkField(container, value, {
@@ -222,9 +222,9 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     input.type = type === 'date' ? 'date' : 'text';
     input.className = 'properties-field-value-input';
     input.value = typeof value === 'string' ? value : value == null ? '' : String(value);
-    if (type === 'date') applyDateOptions(input, def); // 4T-1156: shift
+    if (type === 'date') applyDateOptions(input, def); // 4T-001156: shift
     container.appendChild(input);
-    // 4T-1340: Werte-Vorschläge aus dem Bestand. Nur am Text-Feld — ein
+    // 4T-001340: Werte-Vorschläge aus dem Bestand. Nur am Text-Feld — ein
     // Datums-Feld hat sein eigenes Bedienelement, und eine Vorschlagsliste
     // daneben wäre ein zweiter Weg zur selben Angabe.
     if (type === 'string') haengeBestandsWerte(container, container, paneIdx, input);
@@ -242,7 +242,7 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     input.type = 'number';
     input.className = 'properties-field-value-input';
     input.value = typeof value === 'number' ? String(value) : value == null ? '' : String(value);
-    applyNumberOptions(input, def); // 4T-1156: step, min, max
+    applyNumberOptions(input, def); // 4T-001156: step, min, max
     container.appendChild(input);
     return;
   }
@@ -256,7 +256,7 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
     container.appendChild(wrap);
     return;
   }
-  // 4T-1156 (E11): Chips-Leiste für JEDES Mehrfach-Feld — seit der
+  // 4T-001156 (E11): Chips-Leiste für JEDES Mehrfach-Feld — seit der
   // Entkopplung verrät der Typ-Name die Vielzahl nicht mehr.
   if (type === 'multistring' || (def && def.multiple === true)) {
     const list = document.createElement('div');
@@ -280,10 +280,10 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
       input.value = '';
       return !exists;
     };
-    // 4T-1158: Vorschlags-Lage — gesetzt unten, ausgewertet einmal.
+    // 4T-001158: Vorschlags-Lage — gesetzt unten, ausgewertet einmal.
     let erlaubt = null;
     let hatVorschlaege = false;
-    // 4T-0448: Mehrfach-Auswahl eines Wertebereichs — die definierten Werte
+    // 4T-000448: Mehrfach-Auswahl eines Wertebereichs — die definierten Werte
     // als Eingabe-Vorschläge (datalist); freie Eingabe bleibt möglich
     // (weiche Haltung) und erzeugt den Hinweis beim Save.
     if (def && def.multiple && Array.isArray(def.values) && def.values.length > 0) {
@@ -305,13 +305,13 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
       // wie bisher frei formulierbar sind.
       erlaubt = def.values.map((v) => String(v));
     }
-    // 4T-1158: Abfrage-Quelle — die Werte kommen nach.
+    // 4T-001158: Abfrage-Quelle — die Werte kommen nach.
     if (def && def.multiple && def.valuesFrom && def.valuesFrom.query) {
       attachQueryValues(list, { def, filePath: umgebung.aktiverPfad(paneIdx), input });
       hatVorschlaege = true;
       erlaubt = null;
     }
-    // 4T-1340 (Epic 3E-0238): Werte-Vorschläge aus dem Bestand — auch hier,
+    // 4T-001340 (Epic 3E-000238): Werte-Vorschläge aus dem Bestand — auch hier,
     // weil eine Mehrfach-Eigenschaft dieselbe Frage stellt wie eine einfache.
     // Der Verweis-Fall bleibt draußen: Dort sind die Vorschläge Ziele und
     // keine Werte, und die Bestands-Werte wären dieselben Namen ein zweites
@@ -327,13 +327,13 @@ export function renderValueEditor(container, type, value, paneIdx, def = null, h
       hatVorschlaege = true;
       erlaubt = null;
     }
-    // 4T-1156: Verweis-Feld — dieselbe Leiste, Ziele statt Werte.
+    // 4T-001156: Verweis-Feld — dieselbe Leiste, Ziele statt Werte.
     if (type === 'link') {
       attachLinkSuggestions(list, input, { def, filePath: umgebung.aktiverPfad(paneIdx) });
       hatVorschlaege = true;
       erlaubt = null;
     }
-    // 4T-1158: EIN Übernahme-Listener für alle drei Quellen — verschieden ist
+    // 4T-001158: EIN Übernahme-Listener für alle drei Quellen — verschieden ist
     // nur, WOHER die Vorschläge kommen (Regel: PO-Befund 0.56.0, oben).
     // `erlaubt` prüft feste Werte, null lässt jeden Vorschlag zu.
     if (hatVorschlaege) {
@@ -389,7 +389,7 @@ export function onTypeChange(wrap, newType) {
   const current = extractFieldValue(wrap, oldType);
   const coerced = coerceValue(current, oldType, newType);
   const paneIdx = parseInt(wrap.dataset.paneIdx || '0', 10);
-  // 4T-0448: kehrt ein definiertes Feld (Typ-Abweichung, Wechsler frei) per
+  // 4T-000448: kehrt ein definiertes Feld (Typ-Abweichung, Wechsler frei) per
   // Koerzierung zum Definitions-Typ zurück, greifen Auswahl-Liste, Sperre
   // und Hinweis-Abgleich wieder.
   const def = wrap._profileDef || null;

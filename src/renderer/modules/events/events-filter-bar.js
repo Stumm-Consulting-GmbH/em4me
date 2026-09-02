@@ -3,7 +3,7 @@
 // Presets, Zusatzfilter, gespeicherte Filter und die aktiven Kriterien als
 // entfernbare Chips.
 //
-// Auszug aus events-editor.js, 4T-1003 (Epic 3E-0196). Die Leiste baut nur
+// Auszug aus events-editor.js, 4T-001003 (Epic 3E-000196). Die Leiste baut nur
 // DOM; der Zustand, auf dem sie arbeitet, gehoert events-view-state.js.
 'use strict';
 
@@ -17,10 +17,10 @@ import {
   datePresetRange,
 } from '../../../shared/events/events-views.js';
 import { localTodayIso } from '../../../shared/markdown/perspective-events.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Kern. normalizeBody wird erst im
+// 4T-001003: Laufzeit-Zyklus mit dem Kern. normalizeBody wird erst im
 // Funktionskoerper gelesen.
 import { normalizeBody } from './events-editor.js';
-// 4T-1003: Laufzeit-Zyklus mit dem Ansichts-Zustand. Die Leiste liest und
+// 4T-001003: Laufzeit-Zyklus mit dem Ansichts-Zustand. Die Leiste liest und
 // setzt ihn und stoesst die Anzeige an, alles in Funktionskoerpern.
 import {
   DEFAULT_SORT,
@@ -64,7 +64,7 @@ export function ensureFilterUi(ctx) {
     btn.title = t('events.filter.show');
     btn.setAttribute('aria-label', t('events.filter.show'));
     btn.textContent = '▽';
-    // 4T-1278 (Epic 3E-0232, Befund B2): Der Knopf gehoert IN die
+    // 4T-001278 (Epic 3E-000232, Befund B2): Der Knopf gehoert IN die
     // Ansichts-Leiste, nicht als absolut verankertes Element darueber.
     // Zuvor schwebte er am rechten Rand des Containers und ueberlappte den
     // letzten Ansichts-Knopf; unter Linux setzt die Leiste breiter, die

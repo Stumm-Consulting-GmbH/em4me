@@ -1,33 +1,33 @@
-// Epic 3E-0147 (4T-0842 bis 4T-0849): E2E-Funktions-Suite „Bücher" — ein Buch
+// Epic 3E-000147 (4T-000842 bis 4T-000849): E2E-Funktions-Suite „Bücher" — ein Buch
 // als erklärte Lese-Ordnung über gewöhnlichen Markdown-Dateien.
 //
-// BU-01 (4T-0843): Buch anlegen — Ordner, Buch-Datei und Begleitdatei
+// BU-01 (4T-000843): Buch anlegen — Ordner, Buch-Datei und Begleitdatei
 //        entstehen, das Panel zeigt das leere Buch, der Statusbar-Button ist
 //        aktiv.
-// BU-02 (4T-0844): Buch öffnen — das Inhaltsverzeichnis zeigt den Kapitel-Baum
+// BU-02 (4T-000844): Buch öffnen — das Inhaltsverzeichnis zeigt den Kapitel-Baum
 //        in Lese-Reihenfolge samt Einrückung und den Abschnitt „nicht
 //        eingehängt".
-// BU-03 (4T-0844): Kapitel-Klick öffnet die Datei als Reiter, die
+// BU-03 (4T-000844): Kapitel-Klick öffnet die Datei als Reiter, die
 //        Lese-Markierung wandert mit dem aktiven Reiter.
-// BU-04 (4T-0846): Leseführung folgt der Baum-Ordnung über Ordner-Grenzen; am
+// BU-04 (4T-000846): Leseführung folgt der Baum-Ordnung über Ordner-Grenzen; am
 //        Ende gibt es eine Rückmeldung statt eines Umlaufs.
-// BU-05 (4T-0845): Struktur-Pflege über die Baum-Operation und über die
+// BU-05 (4T-000845): Struktur-Pflege über die Baum-Operation und über die
 //        Tastatur — Panel und Begleitdatei ziehen nach, keine Datei bewegt sich.
-// BU-06 (4T-0847): Kapitel-Datei physisch verschieben — Baum-Eintrag und
+// BU-06 (4T-000847): Kapitel-Datei physisch verschieben — Baum-Eintrag und
 //        eingehende Links einer dritten Datei ziehen nach.
-// BU-07 (4T-0848): Am Dateisystem umbenanntes Kapitel wird als fehlend
+// BU-07 (4T-000848): Am Dateisystem umbenanntes Kapitel wird als fehlend
 //        markiert; die Neu-Zuordnung heilt den Baum.
-// BU-08 (4T-0843): Eine Kapitel-Datei direkt zu öffnen macht kein Buch aktiv
+// BU-08 (4T-000843): Eine Kapitel-Datei direkt zu öffnen macht kein Buch aktiv
 //        (Erkennung allein über die Buch-Datei, Epic-Entscheidung 9).
-// BU-09 (4T-0849): Erweiterung „Bücher" aus — Menü-Einträge, Statusbar-Button
+// BU-09 (4T-000849): Erweiterung „Bücher" aus — Menü-Einträge, Statusbar-Button
 //        und Panel entfallen, eine Buch-Datei öffnet gewöhnlich; das
 //        Wiedereinschalten stellt alles her.
-// BU-10 (4T-0871): Buch als Bereich — das zweite Buch öffnet als eigene
+// BU-10 (4T-000871): Buch als Bereich — das zweite Buch öffnet als eigene
 //        Applikation mit eigenem Fenster, jedes Fenster zeigt sein Buch,
 //        erneutes Öffnen fokussiert, „Buch schließen" schließt die
 //        Applikation, der Fenstertitel trägt den Buchnamen.
 //
-// Seit 4T-0871 gilt das Applikations-Modell (Buch = Bereich): «Buch öffnen»
+// Seit 4T-000871 gilt das Applikations-Modell (Buch = Bereich): «Buch öffnen»
 // bindet eine freie Applikation oder öffnet eine neue; die Fälle BU-01 bis
 // BU-07 starten deshalb ohne Start-Datei, damit die leere Start-Applikation
 // zur Buch-Applikation wird und die Prüfungen im selben Fenster bleiben.
@@ -87,7 +87,7 @@ function bookStateOf(page) {
 // Inhaltsverzeichnis einblenden. Der Statusbar-Button ist ein Umschalter,
 // deshalb genau EIN Klick und danach auf die Sektion warten (die Wiederhol-
 // Regel für Tastendrucke gilt für Umschalter ausdrücklich nicht).
-// 4T-1190 (2026-08-25): Nicht auf Verdacht klicken. Der Umschalter entscheidet
+// 4T-001190 (2026-08-25): Nicht auf Verdacht klicken. Der Umschalter entscheidet
 // am Schalt-Zustand (getBookPanelVisible), isVisible() dagegen an einer
 // Momentaufnahme des DOM. Im frisch geöffneten zweiten Fenster läuft das
 // Rendern der Sidebar dem bereits geladenen Zustand hinterher; ein Klick in
@@ -223,7 +223,7 @@ async function openExternally(app, page, filePath) {
 
 // --- BU-01 --------------------------------------------------------------------
 
-test.describe('BU-01: Buch anlegen (4T-0843)', () => {
+test.describe('BU-01: Buch anlegen (4T-000843)', () => {
   test('Ordner, Buch-Datei und Begleitdatei entstehen; Panel und Statusbar folgen', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -246,7 +246,7 @@ test.describe('BU-01: Buch anlegen (4T-0843)', () => {
       });
 
       // Die Buch-Datei öffnet als Reiter; die freie Start-Applikation wurde
-      // zur Buch-Applikation (4T-0871).
+      // zur Buch-Applikation (4T-000871).
       await waitForTab(page);
       await expect(page.locator(`${SEL.tabs0} .tab-title`)).toContainText(['Chronik']);
       await expect.poll(() => page.title()).toContain('(Buch Chronik)');
@@ -272,7 +272,7 @@ test.describe('BU-01: Buch anlegen (4T-0843)', () => {
 
 // --- BU-02 --------------------------------------------------------------------
 
-test.describe('BU-02: Buch öffnen zeigt das Inhaltsverzeichnis (4T-0844)', () => {
+test.describe('BU-02: Buch öffnen zeigt das Inhaltsverzeichnis (4T-000844)', () => {
   test('Kapitel-Baum in Lese-Reihenfolge samt Einrückung und Abschnitt „nicht eingehängt"', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -319,7 +319,7 @@ test.describe('BU-02: Buch öffnen zeigt das Inhaltsverzeichnis (4T-0844)', () =
 
 // --- BU-03 --------------------------------------------------------------------
 
-test.describe('BU-03: Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert (4T-0844)', () => {
+test.describe('BU-03: Kapitel-Klick öffnet den Reiter, die Lese-Markierung wandert (4T-000844)', () => {
   test('Klick öffnet die Kapitel-Datei; die markierte Zeile folgt dem aktiven Reiter', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -357,7 +357,7 @@ test.describe('BU-03: Kapitel-Klick öffnet den Reiter, die Lese-Markierung wand
 
 // --- BU-04 --------------------------------------------------------------------
 
-test.describe('BU-04: Leseführung über Kapitel-Grenzen (4T-0846)', () => {
+test.describe('BU-04: Leseführung über Kapitel-Grenzen (4T-000846)', () => {
   test('Vor und zurück folgen der Baum-Ordnung; am Ende gibt es eine Rückmeldung statt Umlauf', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -405,7 +405,7 @@ test.describe('BU-04: Leseführung über Kapitel-Grenzen (4T-0846)', () => {
 
 // --- BU-05 --------------------------------------------------------------------
 
-test.describe('BU-05: Struktur-Pflege ändert nur die Deklaration (4T-0845)', () => {
+test.describe('BU-05: Struktur-Pflege ändert nur die Deklaration (4T-000845)', () => {
   test('Baum-Operation und Alt+Pfeil wirken auf Panel und Begleitdatei; keine Datei bewegt sich', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -463,7 +463,7 @@ test.describe('BU-05: Struktur-Pflege ändert nur die Deklaration (4T-0845)', ()
 
 // --- BU-06 --------------------------------------------------------------------
 
-test.describe('BU-06: Kapitel-Datei verschieben führt Baum und Links nach (4T-0847)', () => {
+test.describe('BU-06: Kapitel-Datei verschieben führt Baum und Links nach (4T-000847)', () => {
   test('Datei liegt physisch neu, der Baum-Eintrag folgt, Wiki- und Markdown-Link bleiben gültig', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -476,7 +476,7 @@ test.describe('BU-06: Kapitel-Datei verschieben führt Baum und Links nach (4T-0
       'utf8',
     );
     try {
-      // Der Suchraum des Link-Updates ist der Bereich der App. Seit 4T-0871
+      // Der Suchraum des Link-Updates ist der Bereich der App. Seit 4T-000871
       // ist die Buch-Applikation selbst auf den Buch-Ordner gebunden — der
       // Suchraum ist damit der ganze Buch-Baum samt Quellen.md.
       await openBook(page, bookDir);
@@ -522,7 +522,7 @@ test.describe('BU-06: Kapitel-Datei verschieben führt Baum und Links nach (4T-0
 
 // --- BU-07 --------------------------------------------------------------------
 
-test.describe('BU-07: Reparatur eines fehlenden Kapitels (4T-0848)', () => {
+test.describe('BU-07: Reparatur eines fehlenden Kapitels (4T-000848)', () => {
   test('Am Dateisystem umbenanntes Kapitel ist markiert; die Neu-Zuordnung heilt den Baum', async () => {
     const { app, page, userData } = await launchApp();
     const parent = makeTempDir();
@@ -571,7 +571,7 @@ test.describe('BU-07: Reparatur eines fehlenden Kapitels (4T-0848)', () => {
 
 // --- BU-08 --------------------------------------------------------------------
 
-test.describe('BU-08: Kapitel-Datei direkt öffnen macht kein Buch aktiv (4T-0843)', () => {
+test.describe('BU-08: Kapitel-Datei direkt öffnen macht kein Buch aktiv (4T-000843)', () => {
   test('Ein Kapitel öffnet gewöhnlich; erst die Buch-Datei bindet das Buch', async () => {
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
@@ -608,7 +608,7 @@ test.describe('BU-08: Kapitel-Datei direkt öffnen macht kein Buch aktiv (4T-084
 
 // --- BU-09 --------------------------------------------------------------------
 
-test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
+test.describe('BU-09: Erweiterung „Bücher" schalten (4T-000849)', () => {
   test('Aus: Menü, Button und Panel entfallen, die Buch-Datei öffnet gewöhnlich; Ein stellt alles her', async () => {
     const parent = makeTempDir();
     const bookDir = makeBook(parent);
@@ -634,7 +634,7 @@ test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
       const labelsAus = await capturedMenuLabels(app);
       expect(labelsAus).not.toContain('Neues Buch…');
       expect(labelsAus).not.toContain('Buch schließen');
-      // 4T-0888 (Epic 3E-0168): Die beiden Zuletzt-Listen tragen keine eigene
+      // 4T-000888 (Epic 3E-000168): Die beiden Zuletzt-Listen tragen keine eigene
       // Kommando-ID und hängen im Menü am Öffnen-Kommando — im Aus-Zustand
       // verschwinden sie deshalb mit den übrigen Einträgen.
       expect(labelsAus).not.toContain('Zuletzt geöffnete Bücher');
@@ -652,12 +652,12 @@ test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
 
       await expect(page.locator('#btn-book')).toBeVisible();
       await expect.poll(() => capturedMenuLabels(app)).toContain('Buch öffnen…');
-      // 4T-0888: mit dem Einschalten sind auch die beiden Zuletzt-Listen zurück.
+      // 4T-000888: mit dem Einschalten sind auch die beiden Zuletzt-Listen zurück.
       const labelsEin = await capturedMenuLabels(app);
       expect(labelsEin).toContain('Zuletzt geöffnete Bücher');
       expect(labelsEin).toContain('Zuletzt geöffnete Bücherregale');
 
-      // Das Buch öffnet jetzt wieder als Buch — seit 4T-0871 als eigene
+      // Das Buch öffnet jetzt wieder als Buch — seit 4T-000871 als eigene
       // Applikation mit eigenem Fenster, weil diese App fremde Reiter trägt.
       // Das Panel des neuen Fensters zeigt den unveränderten Kapitel-Baum:
       // die Daten blieben unangetastet.
@@ -682,7 +682,7 @@ test.describe('BU-09: Erweiterung „Bücher" schalten (4T-0849)', () => {
 
 // --- BU-10 --------------------------------------------------------------------
 
-test.describe('BU-10: Buch als Bereich — eigene Applikation je Buch (4T-0871)', () => {
+test.describe('BU-10: Buch als Bereich — eigene Applikation je Buch (4T-000871)', () => {
   test('Zweites Buch öffnet eigenes Fenster, jedes zeigt sein Buch; Schließen schließt die Applikation', async () => {
     // Regressionstest zum PO-Befund vom 2026-08-04 (EXE 0.104.0.1169): Nach
     // dem Öffnen zweier Bücher zeigte das eine Panel die Kapitel des anderen

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0486 (Epic 3E-0091): Unit-Tests des Datums-/Uhrzeit-Pickers
+// 4T-000486 (Epic 3E-000091): Unit-Tests des Datums-/Uhrzeit-Pickers
 // (src/renderer/modules/calendar/date-picker.js) — Wert-Parsing und -Komposition,
 // Uhrzeit-Normalisierung, Datums-/Monats-Arithmetik ueber Grenzen, die
 // Trigger-Ausschluss-Kontexte (Code/Formel/Frontmatter) sowie die
@@ -30,7 +30,7 @@ function mdState(doc) {
   return state;
 }
 
-describe('parseDateTimeValue: Trefferformen (4T-0486)', () => {
+describe('parseDateTimeValue: Trefferformen (4T-000486)', () => {
   it('erkennt alle drei Einfuege-Formen', () => {
     expect(dp.parseDateTimeValue('2026-07-10')).toEqual({ date: '2026-07-10', time: null });
     expect(dp.parseDateTimeValue('09:05')).toEqual({ date: null, time: '09:05' });
@@ -41,7 +41,7 @@ describe('parseDateTimeValue: Trefferformen (4T-0486)', () => {
   });
 });
 
-describe('parseDateTimeValue: Ablehnung (4T-0486)', () => {
+describe('parseDateTimeValue: Ablehnung (4T-000486)', () => {
   it('weist fremde Formen ab', () => {
     // Deutsches Format, ungepaddete Teile, umgebender Text.
     expect(dp.parseDateTimeValue('10.07.2026')).toBeNull();
@@ -61,7 +61,7 @@ describe('parseDateTimeValue: Ablehnung (4T-0486)', () => {
   });
 });
 
-describe('composeDateTimeText (4T-0486)', () => {
+describe('composeDateTimeText (4T-000486)', () => {
   it('komponiert alle Kombinationen und den Leerfall', () => {
     expect(dp.composeDateTimeText('2026-07-10', '09:05')).toBe('2026-07-10 09:05');
     expect(dp.composeDateTimeText('2026-07-10', null)).toBe('2026-07-10');
@@ -70,7 +70,7 @@ describe('composeDateTimeText (4T-0486)', () => {
   });
 });
 
-describe('normalizeTimeInput (4T-0486)', () => {
+describe('normalizeTimeInput (4T-000486)', () => {
   it('padded einstellige Stunden und akzeptiert gueltige Zeiten', () => {
     expect(dp.normalizeTimeInput('9:05')).toBe('09:05');
     expect(dp.normalizeTimeInput('09:05')).toBe('09:05');
@@ -87,7 +87,7 @@ describe('normalizeTimeInput (4T-0486)', () => {
   });
 });
 
-describe('shiftIsoDate: Grenzen (4T-0486)', () => {
+describe('shiftIsoDate: Grenzen (4T-000486)', () => {
   it('schreitet ueber Monats-, Jahres- und Schaltjahr-Grenzen', () => {
     // Schaltjahr 2020: 28. Februar + 1 = 29. Februar.
     expect(dp.shiftIsoDate('2020-02-28', 1)).toBe('2020-02-29');
@@ -100,7 +100,7 @@ describe('shiftIsoDate: Grenzen (4T-0486)', () => {
   });
 });
 
-describe('shiftIsoMonth: Tages-Klemmung (4T-0486)', () => {
+describe('shiftIsoMonth: Tages-Klemmung (4T-000486)', () => {
   it('klemmt den Tag auf den letzten gueltigen Tag des Zielmonats', () => {
     // 31. Januar + 1 Monat -> Februar hat nur 29 Tage (Schaltjahr 2020).
     expect(dp.shiftIsoMonth('2020-01-31', 1)).toBe('2020-02-29');
@@ -113,7 +113,7 @@ describe('shiftIsoMonth: Tages-Klemmung (4T-0486)', () => {
   });
 });
 
-describe('isDateTriggerExcludedAt: Kontexte (4T-0486)', () => {
+describe('isDateTriggerExcludedAt: Kontexte (4T-000486)', () => {
   // Frontmatter, Fliesstext, Inline-Code, Fenced-Code, Block-Math und
   // Inline-Math in einem Dokument; Positionen ueber eindeutige Marker.
   const doc = [
@@ -135,7 +135,7 @@ describe('isDateTriggerExcludedAt: Kontexte (4T-0486)', () => {
     '',
     'Eine $YMATH=2$ Formel.',
     '',
-    // 4T-0641 (Epic 3E-0069): Perspective-Fences sind technisch Code, fuer
+    // 4T-000641 (Epic 3E-000069): Perspective-Fences sind technisch Code, fuer
     // den Nutzer aber Tabellen mit Inhaltszellen — sie sind vom
     // Code-Ausschluss ausgenommen.
     '```perspective-table',
@@ -175,7 +175,7 @@ describe('isDateTriggerExcludedAt: Kontexte (4T-0486)', () => {
     expect(dp.isDateTriggerExcludedAt(state, at('NORMALTEXT'))).toBe(false);
   });
 
-  // 4T-0641 (Epic 3E-0069): Ausnahme vom Code-Ausschluss fuer die beiden
+  // 4T-000641 (Epic 3E-000069): Ausnahme vom Code-Ausschluss fuer die beiden
   // Perspective-Fences; gewoehnlicher Fenced-Code bleibt gesperrt (Fall
   // oben). Die Meldung des Product Owners betraf genau diesen Fall.
   it('false im perspective-table-Fence', () => {
@@ -187,7 +187,7 @@ describe('isDateTriggerExcludedAt: Kontexte (4T-0486)', () => {
   });
 });
 
-describe('Erweiterungs-Manifest date-picker (4T-0486)', () => {
+describe('Erweiterungs-Manifest date-picker (4T-000486)', () => {
   it('ist als Werkzeug-Erweiterung mit den drei Kommandos registriert', () => {
     const manifest = extensionById('date-picker');
     expect(manifest).toBeTruthy();
@@ -202,7 +202,7 @@ describe('Erweiterungs-Manifest date-picker (4T-0486)', () => {
   });
 });
 
-describe('Kommando-Registry: Picker-Kommandos (4T-0486)', () => {
+describe('Kommando-Registry: Picker-Kommandos (4T-000486)', () => {
   const byId = (id) => COMMANDS.find((c) => c.id === id);
 
   it('die drei Kommandos tragen die Default-Bindings Strg+Alt+T/D/U und sind nicht editorScoped', () => {
@@ -220,7 +220,7 @@ describe('Kommando-Registry: Picker-Kommandos (4T-0486)', () => {
   });
 });
 
-describe('findDateValueRanges: Fliesstext-Treffer (4T-0487)', () => {
+describe('findDateValueRanges: Fliesstext-Treffer (4T-000487)', () => {
   it('liefert alle drei Formen mit korrekten Offsets; Kombi ist EIN Treffer', () => {
     // 'x 2026-07-10 y 09:05 z 2026-07-10 09:05 w' — Datum ab 2, Uhrzeit ab
     // 15, Kombi ab 23 (16 Zeichen, ein Leerzeichen als Trenner).
@@ -255,7 +255,7 @@ describe('findDateValueRanges: Fliesstext-Treffer (4T-0487)', () => {
   });
 });
 
-describe('taskLineDescriptionEnd: Beschreibungs-Ende einer Checkbox-Zeile (4T-0487)', () => {
+describe('taskLineDescriptionEnd: Beschreibungs-Ende einer Checkbox-Zeile (4T-000487)', () => {
   it('liefert null fuer eine Nicht-Task-Zeile', () => {
     expect(dp.taskLineDescriptionEnd('Kein Task 2026-03-05 im Text.')).toBeNull();
   });
@@ -281,7 +281,7 @@ describe('taskLineDescriptionEnd: Beschreibungs-Ende einer Checkbox-Zeile (4T-04
   });
 });
 
-describe('showDateTimePicker: DOM-Popup (4T-0486)', () => {
+describe('showDateTimePicker: DOM-Popup (4T-000486)', () => {
   it('oeffnet das Popup, uebernimmt Tag-Klick und injiziertes now', async () => {
     // Referenz-Zeitpunkt injiziert: 15.01.2099 09:30. Kein new Date() ohne
     // Argumente, damit der Test unabhaengig vom Tagesdatum ist.
@@ -306,7 +306,7 @@ describe('showDateTimePicker: DOM-Popup (4T-0486)', () => {
   });
 });
 
-describe('showDateTimePicker: Uhrzeit-Segment-Steuerung (4T-0487)', () => {
+describe('showDateTimePicker: Uhrzeit-Segment-Steuerung (4T-000487)', () => {
   it('klemmt den Stunden-Einer beim Zehner-Sprung auf 2 und laeuft am Minuten-Einer um', async () => {
     // PO-Befund Runde 1: Segment-Steuerung statt Freitext — ungueltige
     // Uhrzeiten sind konstruktionsbedingt nicht eingebbar. Referenz-

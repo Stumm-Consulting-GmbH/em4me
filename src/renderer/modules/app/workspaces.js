@@ -1,7 +1,7 @@
-// 4T-0538 (Epic 3E-0098): Arbeitsbereichs-UI im Renderer — Namens-und-
+// 4T-000538 (Epic 3E-000098): Arbeitsbereichs-UI im Renderer — Namens-und-
 // Farb-Dialog (Muster showTabGroupDialog in dialogs.js) und Verwaltungs-
 // Dialog. Die Lebenszyklus-Operationen selbst liegen im Main
-// (workspace:*-IPC, 4T-0537); dieses Modul liefert die Dialoge und ruft
+// (workspace:*-IPC, 4T-000537); dieses Modul liefert die Dialoge und ruft
 // die Preload-Bruecke. Begriffs-Disziplin (Workshop-Punkt 2): in allen
 // Texten immer voll "Arbeitsbereich".
 'use strict';

@@ -1,4 +1,4 @@
-// 4T-0179: Abhaengigkeitsfreies Basis-Modul fuer die contextBridge-API.
+// 4T-000179: Abhaengigkeitsfreies Basis-Modul fuer die contextBridge-API.
 // Bewusst ohne weitere Imports: esbuild platziert es dadurch im Bundle vor
 // allen Konsumenten, auch innerhalb der Modul-Zyklen des mechanischen
 // Schnitts (zyklische const-Exporte haetten sonst var-Hoisting-Semantik
@@ -11,7 +11,7 @@ export const api = window.api;
 // (der Generator behandelt $-Namen wegen des Regex-Wortzeichensatzes nicht).
 export const $ = (sel) => document.querySelector(sel);
 
-// R1-05/R1-06/R2-11 (4T-0180): Geteilte Voll-Text-Serialisierung pro
+// R1-05/R1-06/R2-11 (4T-000180): Geteilte Voll-Text-Serialisierung pro
 // Doc-Version. CodeMirror-Text-Objekte sind immutabel — jede Aenderung
 // erzeugt eine neue Instanz, unveraenderte Versionen behalten ihre
 // Identitaet. Die WeakMap teilt deshalb genau eine toString()-Kopie

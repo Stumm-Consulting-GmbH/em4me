@@ -1,7 +1,7 @@
 // Konfigurations-Sektionen der Bereichsdatei (Area_Settings.mdda): die acht
 // strukturgleichen Leser samt der beiden Aufloeser fuer Anlagen und Vorlagen.
 //
-// Auszug aus main.js, 4T-0998 (Epic 3E-0196). Alle Leser teilen denselben
+// Auszug aus main.js, 4T-000998 (Epic 3E-000196). Alle Leser teilen denselben
 // Migrations-Lese-Pfad (readAreaSettingsRaw zieht eine vorhandene Alt-Datei
 // .mddb still auf .mdda) und dieselbe Fehler-Regel: eine fehlende oder defekte
 // Bereichsdatei wirkt wie "nicht konfiguriert" und wird nie ueberschrieben.
@@ -17,7 +17,7 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { readAreaSettingsRaw } = require('./area-migration');
-// 4T-1364 (Epic 3E-0171): Bereichs-Grenze der Start-Seiten-Aufloesung.
+// 4T-001364 (Epic 3E-000171): Bereichs-Grenze der Start-Seiten-Aufloesung.
 // area-path.js ist ein Blatt ohne Rueckimport aus area/ — kein Ordner-Zyklus.
 const { isInsideArea } = require('./area-path');
 
@@ -37,11 +37,11 @@ function createAreaConfig(deps) {
   const { getStore, areaOfWindow, markSelfWriting, mddStore, attachmentPath } = deps;
   const { resolveTemplatesConfig } = deps;
 
-  // 4T-0332: Bereichs-Default aus der Bereichsdatei Area_Settings.mdda im
+  // 4T-000332: Bereichs-Default aus der Bereichsdatei Area_Settings.mdda im
   // Bereichs-Wurzelordner. undefined = kein Default gesetzt (erben); eine
   // defekte Bereichsdatei wirkt wie nicht gesetzt (und wird nie ueberschrieben,
-  // der Schreib-Pfad in history:setAreaDefault lehnt dann ab). 4T-0352 (Epic
-  // 3E-0064): das Lesen migriert eine vorhandene Alt-Datei .mddb still auf .mdda.
+  // der Schreib-Pfad in history:setAreaDefault lehnt dann ab). 4T-000352 (Epic
+  // 3E-000064): das Lesen migriert eine vorhandene Alt-Datei .mddb still auf .mdda.
   async function readAreaHistoryDefault(rootPath) {
     const raw = await readAreaSettingsRaw({
       mddaPath: path.join(rootPath, mddStore.MDDA_FILENAME),
@@ -57,7 +57,7 @@ function createAreaConfig(deps) {
     return typeof value === 'boolean' ? value : undefined;
   }
 
-  // 4T-0424 (Epic 3E-0080): templates-Sektion der Bereichsdatei lesen.
+  // 4T-000424 (Epic 3E-000080): templates-Sektion der Bereichsdatei lesen.
   // undefined = keine Sektion oder Bereichsdatei fehlt/ist defekt (wirkt wie
   // nicht konfiguriert; die Normalisierung uebernimmt resolveTemplatesConfig).
   // Das Lesen laeuft ueber denselben Migrations-Pfad wie der Historien-Default.
@@ -75,7 +75,7 @@ function createAreaConfig(deps) {
     return parsed.container.settings.templates;
   }
 
-  // 4T-0787 (Epic 3E-0125): attachments-Sektion der Bereichsdatei lesen.
+  // 4T-000787 (Epic 3E-000125): attachments-Sektion der Bereichsdatei lesen.
   // undefined = keine Sektion oder Bereichsdatei fehlt/ist defekt; das wirkt wie
   // "Wie allgemein" und faellt damit auf die globale Einstellung zurueck.
   // Gleicher Migrations-Lese-Pfad wie templates-Sektion und Historien-Default.
@@ -93,7 +93,7 @@ function createAreaConfig(deps) {
     return parsed.container.settings.attachments;
   }
 
-  // 4T-0787: wirksame Anlagen-Konfiguration eines Fensters. Die Bereichs-Sektion
+  // 4T-000787: wirksame Anlagen-Konfiguration eines Fensters. Die Bereichs-Sektion
   // uebersteuert die globale; fehlt sie oder traegt sie keine Form, gilt die
   // globale ("Wie allgemein"). Der zentrale Bereichs-Ordner ist nur mit
   // gebundenem Bereich sinnvoll und wird ohne ihn verworfen, damit eine aus einem
@@ -118,7 +118,7 @@ function createAreaConfig(deps) {
     return normalisiert;
   }
 
-  // 4T-0787 (Epic 3E-0125): Dateiname einer mitgebrachten Anlage. Der Renderer
+  // 4T-000787 (Epic 3E-000125): Dateiname einer mitgebrachten Anlage. Der Renderer
   // darf den Namen vorgeben (File.name der Zwischenablage bzw. des Ziehens);
   // faellt er aus, dient der Basisname des Quell-Pfads als Rueckfall. Liefert
   // null, wenn beides unbrauchbar ist — dann erzeugt der Aufrufer einen Namen.
@@ -130,7 +130,7 @@ function createAreaConfig(deps) {
     );
   }
 
-  // 4T-0431 (Epic 3E-0081): journals-Sektion der Bereichsdatei lesen.
+  // 4T-000431 (Epic 3E-000081): journals-Sektion der Bereichsdatei lesen.
   // undefined = keine Sektion oder Bereichsdatei fehlt/ist defekt (wirkt wie
   // nicht konfiguriert; die Normalisierung uebernimmt normalizeJournalsConfig).
   // Gleicher Migrations-Lese-Pfad wie Historien-Default und templates-Sektion;
@@ -149,7 +149,7 @@ function createAreaConfig(deps) {
     return parsed.container.settings.journals;
   }
 
-  // 4T-0446 (Epic 3E-0083): propertyProfiles-Sektion der Bereichsdatei lesen.
+  // 4T-000446 (Epic 3E-000083): propertyProfiles-Sektion der Bereichsdatei lesen.
   // undefined = keine Sektion oder Bereichsdatei fehlt/ist defekt (wirkt wie
   // nicht konfiguriert; die Normalisierung übernimmt normalizeProfilesConfig).
   // Gleicher Migrations-Lese-Pfad wie Historien-Default und templates-Sektion;
@@ -168,7 +168,7 @@ function createAreaConfig(deps) {
     return parsed.container.settings.propertyProfiles;
   }
 
-  // 4T-0543 (Epic 3E-0097): calendarSystems-Sektion der Bereichsdatei lesen.
+  // 4T-000543 (Epic 3E-000097): calendarSystems-Sektion der Bereichsdatei lesen.
   // undefined = keine Sektion oder Bereichsdatei fehlt/ist defekt (wirkt wie
   // nicht konfiguriert; die Normalisierung uebernimmt normalizeCalendarConfig).
   // Gleicher Migrations-Lese-Pfad wie Historien-Default und templates-Sektion;
@@ -187,7 +187,7 @@ function createAreaConfig(deps) {
     return parsed.container.settings.calendarSystems;
   }
 
-  // 4T-0625 (Epic 3E-0119): sidebarLayouts-Sektion der Bereichsdatei lesen
+  // 4T-000625 (Epic 3E-000119): sidebarLayouts-Sektion der Bereichsdatei lesen
   // (Bereichs-Varianten der Sidebar). undefined = keine Sektion oder
   // Bereichsdatei fehlt/ist defekt (wirkt wie keine Bereichs-Varianten);
   // die Normalisierung übernimmt normalizeSidebarVariantList.
@@ -205,7 +205,7 @@ function createAreaConfig(deps) {
     return parsed.container.settings.sidebarLayouts;
   }
 
-  // 4T-0611 (Epic 3E-0115): bookmarks-Sektion der Bereichsdatei lesen
+  // 4T-000611 (Epic 3E-000115): bookmarks-Sektion der Bereichsdatei lesen
   // (Bereichs-Lesezeichen). undefined = keine Sektion oder Bereichsdatei
   // fehlt/ist defekt (wirkt wie keine Bereichs-Lesezeichen); die
   // Sanitisierung uebernimmt normalizeBookmarksTree. Gleicher Migrations-
@@ -224,14 +224,14 @@ function createAreaConfig(deps) {
     return parsed.container.settings.bookmarks;
   }
 
-  // 4T-1364 (Epic 3E-0171): startPage-Sektion der Bereichsdatei lesen
+  // 4T-001364 (Epic 3E-000171): startPage-Sektion der Bereichsdatei lesen
   // (Start-Seite des Bereichs). undefined = keine Sektion oder Bereichsdatei
   // fehlt/ist defekt (wirkt wie keine Start-Seite). Gleicher Migrations-Lese-
   // Pfad wie die uebrigen Sektionen.
   //
   // Der Wert ist ein WURZEL-RELATIVER Pfad, kein absoluter: Die Bereichsdatei
   // wandert mit dem Ordner, ein absoluter Pfad ueberlebte den Umzug des
-  // Bereichs nicht (Invariante I2 der Ablage-Regel; Entscheidung in 4T-1363,
+  // Bereichs nicht (Invariante I2 der Ablage-Regel; Entscheidung in 4T-001363,
   // gleiche Ueberlegung wie bei den wurzel-relativen Schluesseln des
   // Bereichs-Index-Cache). Nicht-String-Werte wirken wie nicht gesetzt.
   async function readAreaStartPage(rootPath) {
@@ -249,11 +249,11 @@ function createAreaConfig(deps) {
     return typeof value === 'string' && value ? value : undefined;
   }
 
-  // 4T-1364: Start-Seite eines Bereichs als absoluten Pfad aufloesen, aber nur
+  // 4T-001364: Start-Seite eines Bereichs als absoluten Pfad aufloesen, aber nur
   // wenn sie noch existiert und innerhalb der Bereichs-Grenze liegt. null =
   // keine Festlegung; { path, missing: true } = Festlegung zeigt ins Leere.
   //
-  // Die Unterscheidung traegt die Entscheidung aus 4T-1363: Eine ungueltige
+  // Die Unterscheidung traegt die Entscheidung aus 4T-001363: Eine ungueltige
   // Festlegung darf das Oeffnen NIE verhindern, der Anwender wird nur
   // hingewiesen. Deshalb liefert der Aufloeser den Fehlerfall als Wert und
   // wirft nicht.
@@ -262,7 +262,7 @@ function createAreaConfig(deps) {
     if (relative === undefined) return null;
     const absolute = path.resolve(rootPath, relative);
     // Bereichs-Grenze: eine Festlegung, die aus dem Bereich hinauszeigt, gilt
-    // als ungueltig (harte Bereichsgrenzen, 4S-0252).
+    // als ungueltig (harte Bereichsgrenzen, 4S-000252).
     if (!isInsideArea(rootPath, absolute)) return { path: absolute, missing: true };
     try {
       const stat = await fs.stat(absolute);
@@ -273,7 +273,7 @@ function createAreaConfig(deps) {
     return { path: absolute, missing: false };
   }
 
-  // 4T-1364: Start-Seiten-Festlegung schreiben oder entfernen (relative = null).
+  // 4T-001364: Start-Seiten-Festlegung schreiben oder entfernen (relative = null).
   // Erwartet einen bereits wurzel-relativen Pfad mit POSIX-Trennern.
   //
   // Muster history:setAreaDefault: Die Bereichsdatei entsteht erst beim ersten
@@ -303,7 +303,7 @@ function createAreaConfig(deps) {
     return { ok: true };
   }
 
-  // 4T-1364: absoluten Pfad in die gespeicherte Form bringen (wurzel-relativ,
+  // 4T-001364: absoluten Pfad in die gespeicherte Form bringen (wurzel-relativ,
   // POSIX-Trenner). Liefert null, wenn der Pfad ausserhalb des Bereichs liegt.
   function startPageRelative(rootPath, absolutePath) {
     const absolute = path.resolve(absolutePath);
@@ -311,7 +311,7 @@ function createAreaConfig(deps) {
     return path.relative(rootPath, absolute).split(path.sep).join('/');
   }
 
-  // 4T-0424: wirksame Vorlagen-Konfiguration eines Fensters. Bereichs-Sektion
+  // 4T-000424: wirksame Vorlagen-Konfiguration eines Fensters. Bereichs-Sektion
   // (falls das Fenster einen Bereich hat) uebersteuert die globalen
   // Einstellungs-Werte vollstaendig; Details in src/main/documents/templates.js.
   async function resolveTemplatesForWindow(win) {

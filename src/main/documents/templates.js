@@ -1,11 +1,11 @@
-// 4T-0424 (Epic 3E-0080): Vorlagen-Quellen — Auflösung des wirksamen
+// 4T-000424 (Epic 3E-000080): Vorlagen-Quellen — Auflösung des wirksamen
 // Vorlagen-Ordners (Bereich vor global), Normalisierung der Konfigurations-
 // Werte aus Bereichsdatei bzw. App-Einstellungen und die Pfad-Sicherung der
 // Lese-Zugriffe (kein Ausbruch aus dem Vorlagen-Ordner).
 //
 // Electron-frei und rein (unit-testbar, Vorbild area-path.js); den Datei-
 // Zugriff (Ordner-Scan, Vorlagen-Lesen) übernimmt main.js. Die Ordner-Regeln
-// (4T-0427) docken später an derselben Konfigurations-Struktur an.
+// (4T-000427) docken später an derselben Konfigurations-Struktur an.
 'use strict';
 
 const path = require('node:path');
@@ -111,7 +111,7 @@ function sortedTemplateEntries(entries) {
   });
 }
 
-// 4T-0427 (Epic 3E-0080): Ordner-Regel-Auflösung für eine neu angelegte
+// 4T-000427 (Epic 3E-000080): Ordner-Regel-Auflösung für eine neu angelegte
 // Datei. Regel-Modell { folder, template }: folder relativ zur Auflösungs-
 // Basis (Bereichs-Wurzel; '' = Wurzel-Regel) bzw. absolut bei globaler
 // Konfiguration (relative globale Einträge sind wirkungslos, es gibt keine

@@ -1,4 +1,4 @@
-// 4T-1172 bis 4T-1175 (Epic 3E-0220, E5): E2E-Suite des Feld-Formulars —
+// 4T-001172 bis 4T-001175 (Epic 3E-000220, E5): E2E-Suite des Feld-Formulars —
 // alle Felder eines Dokuments samt Herkunft, die Profil-Kette und der Zugang
 // über das Reiter-Kontextmenü. describe-Titel tragen die Matrix-ID (F-106).
 //
@@ -22,12 +22,12 @@ const {
   cleanupDir,
 } = require('../helpers/profil-bereich');
 
-// --- 4T-1172 bis 4T-1175 (Epic 3E-0220, E5): Feld-Formular des Dokuments ----
+// --- 4T-001172 bis 4T-001175 (Epic 3E-000220, E5): Feld-Formular des Dokuments ----
 // PP-13 und PP-14 prüfen, was die Unit-Ebene nicht zeigen kann: dass Herkunft,
 // fehlende Felder und Kette am gebauten Fenster wirklich erscheinen, und dass
 // der Zugang über das Reiter-Kontextmenü dort ankommt. Genau diese Lücke hat
-// beim Profil-Symbol von 1.116.0 einen Abnahme-Befund gekostet (4T-1164,
-// Lehre verortet als 4T-1167): vier grüne Verdrahtungs-Prüfungen, und die
+// beim Profil-Symbol von 1.116.0 einen Abnahme-Befund gekostet (4T-001164,
+// Lehre verortet als 4T-001167): vier grüne Verdrahtungs-Prüfungen, und die
 // Funktion war unsichtbar.
 
 const ALL_FIELDS = `${PANEL} .properties-all-fields`;
@@ -80,7 +80,7 @@ test.describe('PP-13: Feld-Formular zeigt alle Felder samt Herkunft (F-106)', ()
       await expect(classField.locator('.properties-field-origin')).toHaveCount(0);
 
       // Das bloße Vorhandensein des Bereichs schreibt nichts in das Dokument:
-      // Die leeren Angebote bleiben draußen (4T-1172, AK5).
+      // Die leeren Angebote bleiben draußen (4T-001172, AK5).
       await editorContains(page, 'class: Projekt');
       const text = await page.locator(SEL.editorContent0).innerText();
       expect(text).not.toContain('budget:');
@@ -100,7 +100,7 @@ test.describe('PP-14: Zugang zum Feld-Formular über das Reiter-Kontextmenü (F-
     try {
       await bindAreaAndOpen(app, page, areaRoot, doc);
       // Das Panel bleibt bewusst verborgen: Der Eintrag muss es öffnen
-      // (4T-1174, AK2 — der Fall, den die Unit-Ebene nicht abdeckt).
+      // (4T-001174, AK2 — der Fall, den die Unit-Ebene nicht abdeckt).
       await expect(page.locator(PANEL)).toBeHidden();
 
       await page.locator(SEL.tabs0).first().click({ button: 'right' });
@@ -121,7 +121,7 @@ test.describe('PP-14: Zugang zum Feld-Formular über das Reiter-Kontextmenü (F-
 });
 
 test.describe('PP-15: Feld-Formular und Vorschlags-Menü nebeneinander (F-106)', () => {
-  // 4T-1179 (Epic 3E-0220): Regressionstest zur Regression aus der
+  // 4T-001179 (Epic 3E-000220): Regressionstest zur Regression aus der
   // Release-Abnahme 1.117.0. Die Felder des Formulars hängen bewusst im
   // selben Container wie die Felder des Dokuments; das Vorschlags-Menü zählte
   // sie dadurch als bereits vorhanden und ließ sämtliche Profil-Vorschläge
@@ -169,8 +169,8 @@ test.describe('PP-15: Feld-Formular und Vorschlags-Menü nebeneinander (F-106)',
 });
 
 test.describe('PP-16: Angebote gelangen nicht ungefragt in das Dokument (F-106)', () => {
-  // 4T-1179 (Epic 3E-0220): Zweiter Regressionstest der Release-Abnahme
-  // 1.117.0. Die Zusage aus 4T-1172 (AK5) war für Zahlen- und Ja/Nein-Felder
+  // 4T-001179 (Epic 3E-000220): Zweiter Regressionstest der Release-Abnahme
+  // 1.117.0. Die Zusage aus 4T-001172 (AK5) war für Zahlen- und Ja/Nein-Felder
   // gebrochen: Ein leeres Zahlenfeld wird als 0 gelesen, galt damit als Wert
   // und wurde geschrieben, sobald IRGENDEIN Feld einen Save auslöste. PP-13
   // konnte das nicht fangen, weil dort nie gespeichert wird — genau diese

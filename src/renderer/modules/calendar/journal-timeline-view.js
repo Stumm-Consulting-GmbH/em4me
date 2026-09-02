@@ -1,4 +1,4 @@
-// 4T-1064 (Epic 3E-0212): Journal-Timeline-Block — Renderer-seitige
+// 4T-001064 (Epic 3E-000212): Journal-Timeline-Block — Renderer-seitige
 // Befüllung des perspective-journal-timeline-Fence (Muster
 // journal-nav-view.js).
 //
@@ -25,7 +25,7 @@
 // applyRenderPipeline (Render-Pane, Reading, Notizen-Vorschau) und am
 // Live-Block-Widget (_enhance, Aufbau pro Mount).
 //
-// 4T-1065 (Epic 3E-0212) ergänzt drei Dinge, die alle am Regal des Träger-
+// 4T-001065 (Epic 3E-000212) ergänzt drei Dinge, die alle am Regal des Träger-
 // Eintrags hängen (Konzept-Entscheide E5 bis E7): die Punkt-Markierung aus
 // dem Tages-Journal des Regals (EIN Existenz-Batch je Block, zwischen-
 // gespeichert und an die Broadcasts journals:changed und area:changed
@@ -51,7 +51,7 @@ import {
   replaceJournalTimelineFences,
 } from '../../../shared/journal-timeline-core.js';
 import { createDayCell, renderGridRows, weekdayLabels } from './month-grid-view.js';
-// 4T-1067: Kontext, Ziel-Journal und Punkte kommen aus der Datenschicht;
+// 4T-001067: Kontext, Ziel-Journal und Punkte kommen aus der Datenschicht;
 // dieses Modul baut daraus die Anzeige und den statischen Export.
 import {
   clearDotsCache,
@@ -59,7 +59,7 @@ import {
   journalOfLevel,
   loadDots,
 } from './journal-timeline-daten.js';
-// 4T-1326 (Epic 3E-0236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
+// 4T-001326 (Epic 3E-000236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
 import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
 
 // --- Beschriftungen -----------------------------------------------------------------
@@ -113,7 +113,7 @@ function buildHead(mode, anchorMs) {
     if (index === 0) el.classList.add('modus-ebene');
     el.textContent = levelLabel(period);
     // Ebene, Perioden-Schlüssel und Perioden-Start als data-Attribute: der
-    // eine Klick-Listener am Block liest daraus sein Ziel (4T-1065).
+    // eine Klick-Listener am Block liest daraus sein Ziel (4T-001065).
     el.dataset.jtLevel = granularity;
     el.dataset.jtKey = period.key;
     el.dataset.jtMs = String(period.startMs);
@@ -172,7 +172,7 @@ function dayCellFor(day, todayIso, dots) {
   btn.dataset.jtKey = day.iso;
   btn.dataset.jtMs = String(day.ms);
   // Punkt-Markierung: derselbe Klassen-Name wie im Kalender-Panel, damit
-  // Panel und Block nicht auseinanderlaufen (4T-1065).
+  // Panel und Block nicht auseinanderlaufen (4T-001065).
   if (dots && dots.has(day.iso)) btn.classList.add('has-entry');
   return btn;
 }
@@ -217,9 +217,9 @@ function buildGrids(mode, anchorMs, todayIso, dots) {
   return feld;
 }
 
-// --- 4T-1065: Klick-Ziele ------------------------------------------------------------
+// --- 4T-001065: Klick-Ziele ------------------------------------------------------------
 
-// Klick-Ziel: gemeinsamer Öffnen-/Anlage-Pfad aus 4T-0433. Zur Laufzeit
+// Klick-Ziel: gemeinsamer Öffnen-/Anlage-Pfad aus 4T-000433. Zur Laufzeit
 // importiert (dynamic import), um denselben Modul-Zyklus zu vermeiden, den
 // der Navigations-Block umgeht.
 async function openTarget(journal, period) {
@@ -306,7 +306,7 @@ async function fillTimeline(el, basePath) {
     return;
   }
 
-  // 4T-1326 (Epic 3E-0236): dieselbe Plausibilitäts-Prüfung wie beim
+  // 4T-001326 (Epic 3E-000236): dieselbe Plausibilitäts-Prüfung wie beim
   // Navigations-Block. Die Zeitleiste leitet ihre Bezugs-Periode aus demselben
   // Dateipfad ab und trägt damit dieselbe Anfälligkeit für eine plausible
   // Falschaussage; geprüft wird deshalb an derselben Stelle mit derselben
@@ -354,7 +354,7 @@ export function applyJournalTimelineIfPresent(container, basePath) {
   for (const el of blocks) track(fillTimeline(el, basePath || ''));
 }
 
-// 4T-1065: Alle eingehängten Blöcke neu aufbauen. Angebunden an den
+// 4T-001065: Alle eingehängten Blöcke neu aufbauen. Angebunden an den
 // Konfigurations-Broadcast (journals:changed) und den Struktur-Watcher des
 // Bereichs (area:changed), wie es das Kalender-Panel über
 // refreshCalendarPanels tut. Ohne das trüge ein offener Journal-Eintrag
@@ -386,7 +386,7 @@ export async function waitForJournalTimelineIdle() {
   }
 }
 
-// --- 4T-1066: Portable-Export ---------------------------------------------------------
+// --- 4T-001066: Portable-Export ---------------------------------------------------------
 
 // Der Portable-Export ersetzt Konstrukte durch ihre informationserhaltende
 // statische Entsprechung (Perspective-Table und Datatable werden zu

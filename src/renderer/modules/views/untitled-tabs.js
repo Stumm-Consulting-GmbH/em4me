@@ -1,5 +1,5 @@
 // --- Unbenannt-Tabs und Entwurfs-Zwischenspeicher ---------------------------
-// 4T-0989 (Epic 3E-0196): aus views.js in den Ordner views/ ausgezogen.
+// 4T-000989 (Epic 3E-000196): aus views.js in den Ordner views/ ausgezogen.
 // Anlage eines leeren Reiters (Datei -> Neu) sowie das Einsammeln und
 // Wiederherstellen ungespeicherter Entwuerfe ueber das App-Ende hinweg.
 'use strict';
@@ -31,7 +31,7 @@ export function newUntitledTab() {
   if (view) setTimeout(() => view.focus(), 0);
 }
 
-// 4T-0368 (Epic 3E-0068): Unbenannt-Tabs mit Inhalt fuer den Entwurfs-
+// 4T-000368 (Epic 3E-000068): Unbenannt-Tabs mit Inhalt fuer den Entwurfs-
 // Zwischenspeicher einsammeln. Nur echte Nutzer-Entwuerfe (kein Pfad, keine
 // read-only System-/Handbuch-Seite) mit nicht-leerem Inhalt; leere Tabs bleiben
 // aussen vor. `order` haelt die Pane-/Tab-Reihenfolge fuer die Wiederherstellung.
@@ -60,7 +60,7 @@ export function collectUnsavedDrafts() {
   return drafts;
 }
 
-// 4T-0368: wiederhergestellte Entwuerfe als dirty Unbenannt-Tabs im ersten Pane
+// 4T-000368: wiederhergestellte Entwuerfe als dirty Unbenannt-Tabs im ersten Pane
 // oeffnen (PO: erste Pane). originalContent bleibt leer, damit der Tab wie ein
 // nie gespeicherter Entwurf dirty ist; leert der Nutzer ihn, wird er wieder
 // non-dirty und beim naechsten App-Ende verworfen.

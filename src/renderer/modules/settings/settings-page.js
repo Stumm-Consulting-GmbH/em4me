@@ -1,10 +1,10 @@
-// 4T-0277/4T-0278/4T-0279 (Epic 3E-0049): Einstellungs-Seite als System-Tab.
+// 4T-000277/4T-000278/4T-000279 (Epic 3E-000049): Einstellungs-Seite als System-Tab.
 //
-// Ersetzt den modalen Einstellungs-Dialog: 4T-0277 lieferte die
-// Tab-Infrastruktur, 4T-0278 das Seiten-Layout (Bereichsnavigation links,
+// Ersetzt den modalen Einstellungs-Dialog: 4T-000277 lieferte die
+// Tab-Infrastruktur, 4T-000278 das Seiten-Layout (Bereichsnavigation links,
 // Bereichs-Inhalt rechts, seitenweite Button-Leiste) samt Bereichs-Registry
-// mit Andockpunkt für dynamische Bereiche (YAML-Schalter aus 3E-0050,
-// Erweiterungs-Bereiche aus 3E-0052/3E-0053), 4T-0279 die vier migrierten
+// mit Andockpunkt für dynamische Bereiche (YAML-Schalter aus 3E-000050,
+// Erweiterungs-Bereiche aus 3E-000052/3E-000053), 4T-000279 die vier migrierten
 // Bereiche Darstellung, Verhalten, Task-Status und Tastenkürzel.
 //
 // Entwurfs-Semantik wie im früheren Dialog: Snapshot beim Öffnen,
@@ -12,7 +12,7 @@
 // Persistierung erst bei Anwenden/OK; Abbrechen bzw. Schließen des Tabs
 // ohne Anwenden verwirft (onClose-Haken revertiert die Live-Vorschau).
 //
-// 4T-0988 (Epic 3E-0196): Der Kern trägt die Bereichs-Registry, die
+// 4T-000988 (Epic 3E-000196): Der Kern trägt die Bereichs-Registry, die
 // seitenweiten Aktionen (Anwenden/OK/Abbrechen) und die Lade-Seiteneffekte
 // (Dokument-Listener, Anmeldung der System-Seite); die Bereiche selbst, der
 // Entwurf und das Seiten-DOM leben in den Nachbar-Modulen dieses Ordners.
@@ -141,7 +141,7 @@ function closeSettingsTab() {
   if (found) closeTab(found.paneIdx, found.tabIdx);
 }
 
-// --- Bereichs-Registry (4T-0278) ---------------------------------------------
+// --- Bereichs-Registry (4T-000278) ---------------------------------------------
 // Bereichs-Definition:
 //   id        stabile Bereichs-Kennung (zugleich Navigations-Anker).
 //   titleKey  i18n-Key des Bereichs-Titels (Navigation und Inhalts-Kopf).
@@ -154,19 +154,19 @@ function closeSettingsTab() {
 //   apply     optional; persistiert den Bereichs-Entwurf (läuft erst,
 //             wenn ALLE Bereiche validiert sind — ein halber Apply wäre
 //             verwirrender als ein abgelehnter, Muster des Modals).
-//   dirty     optional (4T-0554, Epic 3E-0100); meldet, ob der Bereichs-
+//   dirty     optional (4T-000554, Epic 3E-000100); meldet, ob der Bereichs-
 //             Entwurf ungesicherte Änderungen trägt. Spiegelt exakt die
 //             Änderungs-Prüfung des apply-Hooks (Snapshot-Diff bzw.
 //             Live-Getter-Vergleich): true genau dann, wenn ein Anwenden
 //             mindestens einen Wert persistieren würde. Bereiche ohne
 //             Entwurfs-Logik (Sofort-Wirkung) lassen den Hook weg.
-//   group     optional (4T-0555, Epic 3E-0100); 'area' für bereichs-
+//   group     optional (4T-000555, Epic 3E-000100); 'area' für bereichs-
 //             gebundene Sektionen — sie erscheinen in der Navigations-
 //             Gruppe „Aktueller Bereich" und nur bei gebundenem Bereich
 //             (state.areaPath). Ohne Angabe gilt 'general' (Gruppe
 //             „Allgemein", immer sichtbar); das ist auch der Default für
 //             dynamisch registrierte Sektionen.
-//   origin    optional (4T-0889, Epic 3E-0168); 'external' kennzeichnet den
+//   origin    optional (4T-000889, Epic 3E-000168); 'external' kennzeichnet den
 //             Beitrag einer EXTERNEN Erweiterung. Gesetzt wird die Marke
 //             allein vom Erweiterungs-Host beim Durchreichen des Beitrags
 //             (extension-host.js); die Navigation sammelt diese Sektionen
@@ -182,7 +182,7 @@ const FIXED_SECTIONS = [
     apply: applyAppearanceSection,
     dirty: dirtyAppearanceSection,
   },
-  // 4T-0466 (Epic 3E-0086): Farbschemas (kuratierte Slots, Live-Vorschau).
+  // 4T-000466 (Epic 3E-000086): Farbschemas (kuratierte Slots, Live-Vorschau).
   // Position direkt hinter „Darstellung": beide gestalten das Erscheinungsbild.
   // Kern-Bereich (keine settingsSections-Kopplung), immer sichtbar.
   {
@@ -199,7 +199,7 @@ const FIXED_SECTIONS = [
     apply: applyBehaviorSection,
     dirty: dirtyBehaviorSection,
   },
-  // 4T-0604 (Epic 3E-0113): Zeitstempel-Automatik (created/updated im
+  // 4T-000604 (Epic 3E-000113): Zeitstempel-Automatik (created/updated im
   // Frontmatter). Erweiterungs-eigener Bereich der Erweiterung
   // 'frontmatter-timestamps' (settingsSections-Eintrag in
   // src/shared/extensions/extensions.js) — erscheint nur bei aktiver Erweiterung.
@@ -210,7 +210,7 @@ const FIXED_SECTIONS = [
     apply: applyFrontmatterTimestampsSection,
     dirty: dirtyFrontmatterTimestampsSection,
   },
-  // 4T-0581 (Epic 3E-0107): Rechtschreibprüfung (Schalter und Liste der
+  // 4T-000581 (Epic 3E-000107): Rechtschreibprüfung (Schalter und Liste der
   // eigenen Wörterbuch-Einträge). Erweiterungs-eigener Bereich der
   // Erweiterung 'spellcheck' (settingsSections-Eintrag in
   // src/shared/extensions/extensions.js) — erscheint nur bei aktiver Erweiterung.
@@ -221,7 +221,7 @@ const FIXED_SECTIONS = [
     apply: applySpellcheckSection,
     dirty: dirtySpellcheckSection,
   },
-  // 4T-0555 (Epic 3E-0100): Bereichs-Default der Dokument-Historie als
+  // 4T-000555 (Epic 3E-000100): Bereichs-Default der Dokument-Historie als
   // eigene Sektion der Gruppe „Aktueller Bereich" (PO-Entscheidung E3:
   // hybride Bereiche aufteilen). Teilt draft.history mit „Verhalten";
   // persistiert wird über dessen apply-Hook (applyHistorySettings), ein
@@ -233,7 +233,7 @@ const FIXED_SECTIONS = [
     render: renderHistoryAreaSection,
     dirty: dirtyHistoryAreaSection,
   },
-  // 4T-0791 (Epic 3E-0125): Anlagen (Ablage-Form und Ordnername beim Einfügen
+  // 4T-000791 (Epic 3E-000125): Anlagen (Ablage-Form und Ordnername beim Einfügen
   // und Ziehen). Kern-Bereich ohne Erweiterungs-Kopplung, weil die Funktion
   // nach PO-Festlegung Kern ist. Position hinter „Verhalten": beide
   // konfigurieren, was beim Arbeiten am Dokument geschieht.
@@ -245,7 +245,7 @@ const FIXED_SECTIONS = [
     apply: applyAttachmentsSection,
     dirty: dirtyAttachmentsSection,
   },
-  // 4T-0791: Bereichs-Übersteuerung als eigene Sektion der Gruppe „Aktueller
+  // 4T-000791: Bereichs-Übersteuerung als eigene Sektion der Gruppe „Aktueller
   // Bereich" (Muster templatesArea). Teilt draft.attachments mit „Anlagen";
   // persistiert wird über dessen apply-Hook, ein eigener schriebe doppelt.
   {
@@ -256,7 +256,7 @@ const FIXED_SECTIONS = [
     validate: validateAttachmentsAreaSection,
     dirty: dirtyAttachmentsSection,
   },
-  // 4T-0304 (Epic 3E-0054): Export-Einstellungen (PDF: Seitenformat,
+  // 4T-000304 (Epic 3E-000054): Export-Einstellungen (PDF: Seitenformat,
   // Ausrichtung, Raender). Position direkt hinter "Verhalten": beide
   // konfigurieren generelles App-/Dokument-Verhalten, waehrend die
   // spezielleren Bereiche (Task-Status, Tastenkuerzel) und der
@@ -269,7 +269,7 @@ const FIXED_SECTIONS = [
     apply: applyExportSection,
     dirty: dirtyExportSection,
   },
-  // 4T-0428 (Epic 3E-0080): Vorlagen (globaler Ordner und Regeln, Bereichs-
+  // 4T-000428 (Epic 3E-000080): Vorlagen (globaler Ordner und Regeln, Bereichs-
   // Übersteuerung). Erweiterungs-eigener Bereich der templates-Erweiterung
   // (settingsSections-Eintrag in src/shared/extensions/extensions.js, Muster taskStates):
   // erscheint nur bei aktiver Erweiterung.
@@ -281,7 +281,7 @@ const FIXED_SECTIONS = [
     apply: applyTemplatesSection,
     dirty: dirtyTemplatesSection,
   },
-  // 4T-0555 (Epic 3E-0100): Bereichs-Konfiguration der Vorlagen als eigene
+  // 4T-000555 (Epic 3E-000100): Bereichs-Konfiguration der Vorlagen als eigene
   // Sektion der Gruppe „Aktueller Bereich" (PO-Entscheidung E3). Teilt
   // draft.templates mit „Vorlagen"; persistiert wird über dessen
   // apply-Hook (applyTemplatesSection, dort hasArea-gesichert).
@@ -293,7 +293,7 @@ const FIXED_SECTIONS = [
     validate: validateTemplatesAreaSection,
     dirty: dirtyTemplatesAreaSection,
   },
-  // 4T-0436 (Epic 3E-0081): Journale (Regale und Journal-Definitionen der
+  // 4T-000436 (Epic 3E-000081): Journale (Regale und Journal-Definitionen der
   // Bereichsdatei). Erweiterungs-eigener Bereich der journals-Erweiterung
   // (settingsSections-Eintrag in src/shared/extensions/extensions.js).
   {
@@ -305,10 +305,10 @@ const FIXED_SECTIONS = [
     apply: applyJournalsSection,
     dirty: dirtyJournalsSection,
   },
-  // 4T-0544 (Epic 3E-0097): Kalender-Systeme (calendarSystems-Sektion der
+  // 4T-000544 (Epic 3E-000097): Kalender-Systeme (calendarSystems-Sektion der
   // Bereichsdatei: Blöcke mit parallelen Kalender-Definitionen). Erweiterungs-
   // eigener Bereich der custom-calendars-Erweiterung (settingsSections-
-  // Eintrag in src/shared/extensions/extensions.js, Registrierung in 4T-0546).
+  // Eintrag in src/shared/extensions/extensions.js, Registrierung in 4T-000546).
   {
     id: 'calendarSystems',
     titleKey: 'settings.calendar.title',
@@ -318,7 +318,7 @@ const FIXED_SECTIONS = [
     apply: applyCalendarSection,
     dirty: dirtyCalendarSection,
   },
-  // 4T-0450 (Epic 3E-0083): Eigenschafts-Profile (propertyProfiles-Sektion
+  // 4T-000450 (Epic 3E-000083): Eigenschafts-Profile (propertyProfiles-Sektion
   // der Bereichsdatei: Profil-Ordner, Zuordnungs-Feldname, Standard-Profil,
   // Profil-Liste). Erweiterungs-eigener Bereich der property-profiles-
   // Erweiterung (settingsSections-Eintrag in src/shared/extensions/extensions.js).
@@ -338,7 +338,7 @@ const FIXED_SECTIONS = [
     apply: applyTaskStatesSection,
     dirty: dirtyTaskStatesSection,
   },
-  // 4T-0498 (Epic 3E-0090): Aufgaben (Global Filter, Automatik-Schalter,
+  // 4T-000498 (Epic 3E-000090): Aufgaben (Global Filter, Automatik-Schalter,
   // Wiederholungs-Einfüge-Position). Erweiterungs-eigener Bereich der
   // tasks-Erweiterung (settingsSections-Eintrag in src/shared/extensions/extensions.js):
   // erscheint nur bei aktiver Erweiterung (Muster taskStates/templates).
@@ -349,7 +349,7 @@ const FIXED_SECTIONS = [
     apply: applyTasksSection,
     dirty: dirtyTasksSection,
   },
-  // 4T-0528 (Epic 3E-0095): Erinnerungen (Default-Uhrzeit, Snooze-Optionen,
+  // 4T-000528 (Epic 3E-000095): Erinnerungen (Default-Uhrzeit, Snooze-Optionen,
   // System-Notification). Erweiterungs-eigener Bereich der reminders-
   // Erweiterung (settingsSections-Eintrag in src/shared/extensions/extensions.js):
   // erscheint nur bei aktiver Erweiterung (Muster tasks/templates).
@@ -360,7 +360,7 @@ const FIXED_SECTIONS = [
     apply: applyRemindersSection,
     dirty: dirtyRemindersSection,
   },
-  // 4T-0471 (Epic 3E-0087): Ueberschriften-Nummerierung (Schalter plus
+  // 4T-000471 (Epic 3E-000087): Ueberschriften-Nummerierung (Schalter plus
   // Start-Ebene). Erweiterungs-eigener Bereich der heading-numbering-
   // Erweiterung (settingsSections-Eintrag in src/shared/extensions/extensions.js):
   // erscheint nur bei aktiver Erweiterung (Muster taskStates/reminders).
@@ -379,7 +379,7 @@ const FIXED_SECTIONS = [
     apply: applyHotkeysSection,
     dirty: dirtyHotkeysSection,
   },
-  // 4T-0295 (Epic 3E-0052): Schalter der internen Erweiterungen.
+  // 4T-000295 (Epic 3E-000052): Schalter der internen Erweiterungen.
   {
     id: 'extensions',
     titleKey: 'settings.extensions.title',
@@ -387,7 +387,7 @@ const FIXED_SECTIONS = [
     apply: applyExtensionsSection,
     dirty: dirtyExtensionsSection,
   },
-  // 4T-0300 (Epic 3E-0053): Verwaltung der EXTERNEN Erweiterungen. Bewusst
+  // 4T-000300 (Epic 3E-000053): Verwaltung der EXTERNEN Erweiterungen. Bewusst
   // ohne apply-Hook: Aktivieren/Deaktivieren wirken wegen des Warn-Dialogs
   // sofort und sind nicht Teil der Entwurf-/Anwenden-Logik (der Intro-Text
   // macht das sichtbar). Deshalb auch ohne dirty-Hook.
@@ -398,7 +398,7 @@ const FIXED_SECTIONS = [
   },
 ];
 
-// Dynamische Bereiche (Andockpunkt für 3E-0050 und 3E-0052/3E-0053):
+// Dynamische Bereiche (Andockpunkt für 3E-000050 und 3E-000052/3E-000053):
 // erscheinen nach den festen Bereichen, in Registrierungs-Reihenfolge.
 const dynamicSections = [];
 
@@ -413,7 +413,7 @@ export function registerSettingsSection(def) {
   else dynamicSections.push(def);
 }
 
-// 4T-0299 (Epic 3E-0053): Abmeldung fuer Bereiche externer Erweiterungen
+// 4T-000299 (Epic 3E-000053): Abmeldung fuer Bereiche externer Erweiterungen
 // (Rollback beim Deaktivieren). Die Bereichsnavigation zieht ueber den
 // scg:extensions-changed-Listener nach; persistierte Werte des Bereichs
 // bleiben unangetastet.
@@ -424,7 +424,7 @@ export function unregisterSettingsSection(id) {
 }
 
 export function settingsSections() {
-  // 4T-0295: Bereiche effektiv deaktivierter Erweiterungen erscheinen
+  // 4T-000295: Bereiche effektiv deaktivierter Erweiterungen erscheinen
   // nicht (die persistierten Werte des Bereichs bleiben erhalten).
   const disabledSections = disabledSettingsSectionIdSet(getDisabledExtensionIds());
   return [...FIXED_SECTIONS, ...dynamicSections].filter((s) => !disabledSections.has(s.id));
@@ -434,7 +434,7 @@ export function sectionById(id) {
   return settingsSections().find((s) => s.id === id) || null;
 }
 
-// 4T-0988 (Epic 3E-0196): ungefilterte Bereichs-Menge (feste plus
+// 4T-000988 (Epic 3E-000196): ungefilterte Bereichs-Menge (feste plus
 // dynamische). Sie ist die Prüf-Grundlage der Erweiterungs-Ansprüche in der
 // Navigation: settingsSections() blendet die Bereiche abgeschalteter
 // Erweiterungen aus und hätte dort einen Fehlalarm ausgelöst. Als Funktion
@@ -444,7 +444,7 @@ export function allSettingsSections() {
   return [...FIXED_SECTIONS, ...dynamicSections];
 }
 
-// --- Speicher-Status (4T-0554, Epic 3E-0100) -----------------------------------
+// --- Speicher-Status (4T-000554, Epic 3E-000100) -----------------------------------
 // Bereichsübergreifende Änderungs-Erkennung für die Schaltflächen-Leiste.
 // Jeder dirty-Hook spiegelt exakt die Änderungs-Prüfung seines apply-Hooks
 // (dort dokumentiert): true genau dann, wenn ein Anwenden mindestens einen
@@ -480,13 +480,13 @@ export async function applySettingsPage() {
   for (const section of settingsSections()) {
     if (typeof section.apply === 'function') await section.apply(pageState.draft);
   }
-  // 4T-0554: Die apply-Hooks haben Snapshots bzw. Laufzeit-Zustand auf den
+  // 4T-000554: Die apply-Hooks haben Snapshots bzw. Laufzeit-Zustand auf den
   // neuen Referenzstand gezogen — Schaltflächen zurück auf „nicht dirty".
   refreshSettingsButtons();
   return true;
 }
 
-// 4T-0701 (Epic 3E-0161): OK ist ein asynchroner Zyklus — der Klick kehrt
+// 4T-000701 (Epic 3E-000161): OK ist ein asynchroner Zyklus — der Klick kehrt
 // zurueck, waehrend applySettingsPage noch auf den apply-Hooks steht. In
 // diesem Fenster kann eine neue Oeffnungs-Anforderung eintreffen (Kuerzel,
 // Menue, Kommando-Palette), und weil die Seite bis zum Schluss offen ist,
@@ -514,7 +514,7 @@ export function cancelSettingsPage() {
   closeSettingsTab();
 }
 
-// 4T-0295: Erweiterungs-Umschalten (eigener Apply oder Broadcast eines
+// 4T-000295: Erweiterungs-Umschalten (eigener Apply oder Broadcast eines
 // anderen Fensters) zieht die Bereichsnavigation einer offenen Seite nach;
 // renderActiveSection enthält den Rückfall auf den Bereich „Erweiterungen",
 // falls der offene Bereich weggefallen ist. Der Entwurf übernimmt den
@@ -528,7 +528,7 @@ document.addEventListener('scg:extensions-changed', () => {
   renderActiveSection();
 });
 
-// 4T-0554: Dirty-Neubewertung über delegierte Dokument-Listener statt pro
+// 4T-000554: Dirty-Neubewertung über delegierte Dokument-Listener statt pro
 // Kontroll-Element — die weit über hundert Wert-Handler der Bereiche
 // schreiben direkt in den Entwurf, und jede Nutzer-Interaktion (Eingabe,
 // Auswahl, Klick, Tasten-Capture) läuft danach hier durch. Ziel-Handler
@@ -553,7 +553,7 @@ registerSystemPage({
   onClose: handleSettingsPageClose,
 });
 
-// 4T-0988 (Epic 3E-0196): Die Seite bleibt für ihre Verbraucher außerhalb
+// 4T-000988 (Epic 3E-000196): Die Seite bleibt für ihre Verbraucher außerhalb
 // des Ordners ein Modul. Weitergereicht wird ausschließlich, was app-init.js
 // und die Unit-Tests der Seite brauchen; alles Übrige beziehen die Module
 // des Ordners direkt voneinander.

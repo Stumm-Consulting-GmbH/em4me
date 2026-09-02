@@ -1,9 +1,9 @@
-// 4T-0331 (Epic 3E-0060): E2E-Suite Dokument-Historie (DH-01 bis DH-09).
+// 4T-000331 (Epic 3E-000060): E2E-Suite Dokument-Historie (DH-01 bis DH-09).
 // Speichern erzeugt und erweitert die .mdd-Begleitdatei (Anker + Pakete,
 // Coalescing), Fremd-Aenderungen werden als external-Paket protokolliert,
 // Markdown-Data-Dateien lassen sich nicht als Dokument oeffnen, und ohne
 // aktivierte Historisierung (App-Default: aus) entsteht keine .mdd.
-// 4T-0648 (Epic 3E-0130): DH-09 prueft die Platzierung des Historien-Reiters
+// 4T-000648 (Epic 3E-000130): DH-09 prueft die Platzierung des Historien-Reiters
 // neben seinem Bezugsdokument.
 'use strict';
 
@@ -56,7 +56,7 @@ function readMdd(workFile) {
   return JSON.parse(fs.readFileSync(mddPathOf(workFile), 'utf8'));
 }
 
-// 4T-0757: Die Historien-Datei entsteht vor ihrem Inhalt; gewartet wird
+// 4T-000757: Die Historien-Datei entsteht vor ihrem Inhalt; gewartet wird
 // deshalb auf einen parsebaren Stand (Begruendung im Helfer).
 async function waitForMdd(workFile) {
   return warteAufJson(mddPathOf(workFile));
@@ -149,7 +149,7 @@ test.describe('DH-03: Markdown-Data-Dateien öffnen wird abgelehnt', () => {
     const { workDir, workFile } = makeWorkFile('scg-md-dh03-');
     const mddFile = mddPathOf(workFile);
     fs.writeFileSync(mddFile, '{"schemaVersion":1,"history":{"anchors":[],"packets":[]}}');
-    // 4T-0352 (Epic 3E-0064): die neue .mdda-Endung und die Alt-Endung .mddb
+    // 4T-000352 (Epic 3E-000064): die neue .mdda-Endung und die Alt-Endung .mddb
     // werden ebenso als Markdown-Data-Datei abgelehnt.
     const mddaFile = path.join(workDir, 'Area_Settings.mdda');
     fs.writeFileSync(mddaFile, '{"schemaVersion":1,"settings":{}}');
@@ -172,7 +172,7 @@ test.describe('DH-03: Markdown-Data-Dateien öffnen wird abgelehnt', () => {
   });
 });
 
-// 4T-0332 (Epic 3E-0060): Drei-Ebenen-Schaltung und Statusbar.
+// 4T-000332 (Epic 3E-000060): Drei-Ebenen-Schaltung und Statusbar.
 
 test.describe('DH-05: YAML-Eigenschaft history schlägt die App-Einstellung', () => {
   test('history: false unterdrückt die Protokollierung trotz aktivem App-Schalter', async () => {
@@ -203,7 +203,7 @@ test.describe('DH-06: Bereichs-Default aus Area_Settings.mdda (Migration von .md
     const areaDir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-dh06-'));
     const workFile = path.join(areaDir, 'arbeit.md');
     fs.copyFileSync(BASIS, workFile);
-    // 4T-0352 (Epic 3E-0064): Bereich mit der Alt-Datei .mddb anlegen; beim
+    // 4T-000352 (Epic 3E-000064): Bereich mit der Alt-Datei .mddb anlegen; beim
     // Bereichs-Oeffnen wird sie still auf .mdda migriert.
     fs.writeFileSync(
       path.join(areaDir, 'Area_Settings.mddb'),
@@ -225,7 +225,7 @@ test.describe('DH-06: Bereichs-Default aus Area_Settings.mdda (Migration von .md
       expect(saved.ok).toBe(true);
       const mdd = await waitForMdd(workFile);
       expect(mdd.history.packets.length).toBeGreaterThan(0);
-      // 4T-0352: die Alt-Datei wurde beim Bereichs-Oeffnen still auf .mdda
+      // 4T-000352: die Alt-Datei wurde beim Bereichs-Oeffnen still auf .mdda
       // migriert (Datei heisst jetzt .mdda, die .mddb ist verschwunden).
       await expect.poll(() => fs.existsSync(path.join(areaDir, 'Area_Settings.mdda'))).toBe(true);
       expect(fs.existsSync(path.join(areaDir, 'Area_Settings.mddb'))).toBe(false);
@@ -277,7 +277,7 @@ test.describe('DH-07: Statusbar-Zustand und Datei-Schalter-Menü', () => {
   });
 });
 
-// 4T-0333 (Epic 3E-0060): Historien-Ansicht.
+// 4T-000333 (Epic 3E-000060): Historien-Ansicht.
 
 test.describe('DH-08: Historien-Ansicht mit Vergleich und Wiederherstellen', () => {
   test('Revisionsliste, Diff-Zeilen und Wiederherstellen in den Editor', async () => {
@@ -324,7 +324,7 @@ test.describe('DH-08: Historien-Ansicht mit Vergleich und Wiederherstellen', () 
   });
 });
 
-// 4T-0648 (Epic 3E-0130): Platzierung des Historien-Reiters.
+// 4T-000648 (Epic 3E-000130): Platzierung des Historien-Reiters.
 
 test.describe('DH-09: Historien-Reiter liegt neben seinem Bezugsdokument', () => {
   test('oeffnet rechts neben dem Dokument und wandert beim Umbinden mit', async () => {

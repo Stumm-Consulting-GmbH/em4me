@@ -1,4 +1,4 @@
-// 4T-0599 (Epic 3E-0112): Struktur-Kern der Listen-Bearbeitung.
+// 4T-000599 (Epic 3E-000112): Struktur-Kern der Listen-Bearbeitung.
 //
 // Reine Text-Operationen auf einem Zeilen-Array: Teilbaum eines Listenpunkts
 // bestimmen, Punkt samt Teilbaum verschieben, ein- und ausrücken, nummerierte
@@ -8,7 +8,7 @@
 // LIST_INDENT_STEP sind aus editor.js hierher gewandert; editor.js
 // re-exportiert sie für die Bestands-Konsumenten.
 //
-// Festlegungen des Product Owners (2026-07-21, Herleitung in 4T-0599):
+// Festlegungen des Product Owners (2026-07-21, Herleitung in 4T-000599):
 // - Eine Leerzeile trennt: Listen-Block und Teilbaum enden dort.
 // - Einrücken ohne vorhergehendes Geschwister bleibt erlaubt.
 // - Neu-Nummerierung fortlaufend je Ebene, beginnend bei der Startnummer der
@@ -32,7 +32,7 @@
 
 // Listen-Marker am Zeilenanfang: ungeordnet (`-`, `*`, `+`, inklusive
 // Aufgaben-Zeilen `- [ ]`) und geordnet (`1.`). Die Klammer-Variante `1)`
-// wird bewusst nicht unterstützt (Bestands-Entscheidung aus 4T-0016).
+// wird bewusst nicht unterstützt (Bestands-Entscheidung aus 4T-000016).
 const LIST_LINE_RE = /^(\s*)((?:[-*+]|\d+\.)\s)/;
 const LIST_INDENT_STEP = 2;
 
@@ -339,7 +339,7 @@ function outdentTarget(lines, index, item, opts) {
 // Beim Ausrücken bleiben die ehemaligen Geschwister hinter dem verschobenen
 // Punkt als eigene Teilliste zurück, und zwar direkt unter ihm. Sie muss bei
 // 1 beginnen: Eine geordnete Liste kann einen Absatz nur unterbrechen, wenn
-// ihre erste Nummer 1 ist (an der Render-Pipeline verifiziert, 4T-0661).
+// ihre erste Nummer 1 ist (an der Render-Pipeline verifiziert, 4T-000661).
 // Bliebe dort die alte Nummer stehen, zöge der Renderer die Zeile als
 // Fortsetzungstext in den Punkt darüber — sie erschiene einzeilig.
 function startFollowerAtOne(lines, index, item, opts) {
@@ -390,7 +390,7 @@ function shiftSubtree(lines, index, delta, opts) {
   };
 }
 
-// 4T-0661: Einrückung eines markierten Zeilen-Bereichs. Die Verschiebung wird
+// 4T-000661: Einrückung eines markierten Zeilen-Bereichs. Die Verschiebung wird
 // einmal aus der ersten betroffenen Listenzeile bestimmt (dieselbe Rechnung
 // wie beim Cursor-Fall) und auf alle Zeilen des Bereichs angewendet: Die
 // erste landet damit auf einer gültigen Ebene, und die relative Struktur der

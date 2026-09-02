@@ -1,4 +1,4 @@
-// 4T-0347 (Epic 3E-0062): Bereichsrelative Ordner-Anzeige. Fuer Listen, die
+// 4T-000347 (Epic 3E-000062): Bereichsrelative Ordner-Anzeige. Fuer Listen, die
 // Dateien aus dem gesamten Bereichs-Baum zeigen (Backlinks-Panel, Tag-Datei-
 // Liste), macht der blosse Basename gleichnamige Dateien aus verschiedenen
 // Ordnern ununterscheidbar. relativeDirFromRoot liefert den Ordner-Pfad einer

@@ -1,6 +1,6 @@
-// 4T-0843 (Epic 3E-0147): Unit-Tests der Datei-Ebene des Buches
+// 4T-000843 (Epic 3E-000147): Unit-Tests der Datei-Ebene des Buches
 // (src/main/books/books.js) gegen echte Temp-Ordner — Erkennung ohne Rückverweis
-// (Story 4S-0752, AK2 und AK5), Zustands-Aufbau für die Preload-API,
+// (Story 4S-000752, AK2 und AK5), Zustands-Aufbau für die Preload-API,
 // Namens-Prüfung und Neuanlage (AK3). Setup-Muster der benachbarten
 // Main-Tests (test/unit/demo-area.test.js: mkdtemp je Fall, Aufräumen im
 // afterEach).
@@ -58,7 +58,7 @@ afterEach(() => {
   tmpDirs = [];
 });
 
-describe('readBookSettings (4T-0843)', () => {
+describe('readBookSettings (4T-000843)', () => {
   it('liest die Begleitdatei und liefert ihren Pfad', async () => {
     const dir = makeDir();
     makeBook(dir, 'Reise nach Ithaka.md', []);
@@ -89,14 +89,14 @@ describe('readBookSettings (4T-0843)', () => {
   });
 });
 
-describe('detectBookDirFor (4T-0843)', () => {
+describe('detectBookDirFor (4T-000843)', () => {
   it('erkennt die benannte Buch-Datei am Ordner-Umfeld', async () => {
     const dir = makeDir();
     makeBook(dir, 'Reise nach Ithaka.md', []);
     expect(await detectBookDirFor(path.join(dir, 'Reise nach Ithaka.md'))).toBe(dir);
   });
 
-  // 4T-1276 (Epic 3E-0232, Befund B1): Der Fall arbeitet an ECHTEN Dateien und
+  // 4T-001276 (Epic 3E-000232, Befund B1): Der Fall arbeitet an ECHTEN Dateien und
   // prüft die Toleranz des Dateisystems selbst — auf einem case-sensitiven
   // System gibt es die abweichend geschriebene Datei gar nicht, und die
   // Erkennung liefert dort folgerichtig null. Er gilt deshalb nur, wo das
@@ -131,7 +131,7 @@ describe('detectBookDirFor (4T-0843)', () => {
   });
 });
 
-describe('collectMarkdownPaths (4T-0843)', () => {
+describe('collectMarkdownPaths (4T-000843)', () => {
   it('sammelt Markdown-Dateien rekursiv als buch-relative Pfade', async () => {
     const dir = makeDir();
     makeBook(dir, 'Buch.md', []);
@@ -151,7 +151,7 @@ describe('collectMarkdownPaths (4T-0843)', () => {
   });
 });
 
-describe('buildBookState (4T-0843)', () => {
+describe('buildBookState (4T-000843)', () => {
   it('liefert Baum, Lese-Ordnung und den Abgleich mit dem Datei-Bestand', async () => {
     const dir = makeDir();
     makeBook(dir, 'Buch.md', [
@@ -191,7 +191,7 @@ describe('buildBookState (4T-0843)', () => {
   });
 });
 
-describe('bookFileExists (4T-0843)', () => {
+describe('bookFileExists (4T-000843)', () => {
   it('trennt vorhandene Buch-Datei, fehlende Datei und Ordner', async () => {
     const dir = makeDir();
     makeBook(dir, 'Buch.md', []);
@@ -203,7 +203,7 @@ describe('bookFileExists (4T-0843)', () => {
   });
 });
 
-describe('sanitizeBookName (4T-0843)', () => {
+describe('sanitizeBookName (4T-000843)', () => {
   it('nimmt gewöhnliche Namen und trimmt Rand-Leerraum und -Punkte', () => {
     expect(sanitizeBookName('Reise nach Ithaka')).toBe('Reise nach Ithaka');
     expect(sanitizeBookName('  Reise nach Ithaka  ')).toBe('Reise nach Ithaka');
@@ -222,7 +222,7 @@ describe('sanitizeBookName (4T-0843)', () => {
   });
 });
 
-describe('createBook (4T-0843)', () => {
+describe('createBook (4T-000843)', () => {
   it('AK3: legt Buch-Ordner, leere Buch-Datei und Begleitdatei an', async () => {
     const parent = makeDir();
     const created = await createBook(parent, 'Reise nach Ithaka');
@@ -265,7 +265,7 @@ describe('createBook (4T-0843)', () => {
   });
 });
 
-// --- 4T-0845 (Story 4S-0754): Struktur-Pflege ---------------------------------
+// --- 4T-000845 (Story 4S-000754): Struktur-Pflege ---------------------------------
 
 // Kapitel-Baum aus der Begleitdatei eines Buch-Ordners lesen.
 function leseBaum(dir) {
@@ -280,7 +280,7 @@ function baumMitZweiTeilen() {
   ];
 }
 
-describe('applyChapterOp (4T-0845)', () => {
+describe('applyChapterOp (4T-000845)', () => {
   it('bildet alle sechs Op-Formen auf die Kern-Operationen ab', () => {
     const baum = baumMitZweiTeilen();
     expect(
@@ -358,7 +358,7 @@ describe('applyChapterOp (4T-0845)', () => {
   });
 });
 
-describe('applyTreeOp (4T-0845)', () => {
+describe('applyTreeOp (4T-000845)', () => {
   it('AK1: schreibt die neue Ordnung in die Begleitdatei', async () => {
     const dir = makeDir();
     makeBook(dir, 'Buch.md', baumMitZweiTeilen());
@@ -455,7 +455,7 @@ describe('applyTreeOp (4T-0845)', () => {
   });
 });
 
-describe('createChapter (4T-0845)', () => {
+describe('createChapter (4T-000845)', () => {
   it('legt die Datei im Buch-Ordner an und hängt sie unten ein', async () => {
     const dir = makeDir();
     makeBook(dir, 'Buch.md', baumMitZweiTeilen());
@@ -508,7 +508,7 @@ describe('createChapter (4T-0845)', () => {
   });
 });
 
-// --- 4T-0847 (Story 4S-0756): Verschieben und Umbenennen mit Nachführung ------
+// --- 4T-000847 (Story 4S-000756): Verschieben und Umbenennen mit Nachführung ------
 
 // Buch mit vorhandenen Kapitel-Dateien (der Verschiebe-Weg fasst echte
 // Dateien an, nicht nur die Deklaration).
@@ -519,7 +519,7 @@ function makeBookMitDateien(root, bookFileName, chapters) {
   write(root, 'Teil 2/Heimkehr.md', '# Heimkehr\n');
 }
 
-describe('findBookForFile (4T-0847)', () => {
+describe('findBookForFile (4T-000847)', () => {
   it('findet das Buch einer Kapitel-Datei über die Aufwärts-Suche', async () => {
     const dir = makeDir();
     makeBookMitDateien(dir, 'Buch.md', baumMitZweiTeilen());
@@ -555,7 +555,7 @@ describe('findBookForFile (4T-0847)', () => {
   });
 });
 
-describe('followChapterFileMove (4T-0847)', () => {
+describe('followChapterFileMove (4T-000847)', () => {
   it('AK3: führt den Baum-Eintrag nach und lässt die Baum-Position unberührt', async () => {
     const dir = makeDir();
     makeBookMitDateien(dir, 'Buch.md', baumMitZweiTeilen());
@@ -631,7 +631,7 @@ describe('followChapterFileMove (4T-0847)', () => {
   });
 });
 
-describe('planChapterFileMove (4T-0847)', () => {
+describe('planChapterFileMove (4T-000847)', () => {
   it('AK1: plant die Bewegung in einen anderen Ordner des Buch-Ordners', async () => {
     const dir = makeDir();
     makeBookMitDateien(dir, 'Buch.md', baumMitZweiTeilen());
@@ -733,7 +733,7 @@ describe('planChapterFileMove (4T-0847)', () => {
   });
 });
 
-// --- 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel ---------------------
+// --- 4T-000848 (Story 4S-000757): Reparatur fehlender Kapitel ---------------------
 
 // Buch, dessen Kapitel „Teil 1/Hafen.md" deklariert, aber nicht vorhanden ist;
 // die namensgleiche Datei liegt an anderer Stelle des Buch-Ordners (der Fall
@@ -745,7 +745,7 @@ function makeBuchMitFehlendemKapitel(root) {
   write(root, 'Archiv/Hafen.md', '# Hafen\n');
 }
 
-describe('suggestMissingChapters (4T-0848)', () => {
+describe('suggestMissingChapters (4T-000848)', () => {
   it('AK3: findet die namensgleiche Datei an anderer Stelle des Buch-Ordners', async () => {
     const dir = makeDir();
     makeBuchMitFehlendemKapitel(dir);
@@ -755,7 +755,7 @@ describe('suggestMissingChapters (4T-0848)', () => {
     });
   });
 
-  // 4T-1276 (Epic 3E-0232, Befund B1): wie oben ein Fall an echten Dateien;
+  // 4T-001276 (Epic 3E-000232, Befund B1): wie oben ein Fall an echten Dateien;
   // der Basename-Vergleich folgt seit der Umstellung dem Dateisystem.
   it.skipIf(!isFilesystemCaseInsensitive())(
     'vergleicht den Basenamen ohne Rücksicht auf die Schreibweise',
@@ -819,7 +819,7 @@ describe('suggestMissingChapters (4T-0848)', () => {
   });
 });
 
-describe('buildBookState mit Vorschlägen (4T-0848)', () => {
+describe('buildBookState mit Vorschlägen (4T-000848)', () => {
   it('legt dem Zustand die Funde je fehlendem Kapitel bei', async () => {
     const dir = makeDir();
     makeBuchMitFehlendemKapitel(dir);
@@ -837,7 +837,7 @@ describe('buildBookState mit Vorschlägen (4T-0848)', () => {
   });
 });
 
-describe('reassignChapter (4T-0848)', () => {
+describe('reassignChapter (4T-000848)', () => {
   it('AK2/AK4: ordnet die Datei zu und lässt die Baum-Position unberührt', async () => {
     const dir = makeDir();
     makeBuchMitFehlendemKapitel(dir);

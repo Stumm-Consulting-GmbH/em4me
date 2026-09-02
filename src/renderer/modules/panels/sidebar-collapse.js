@@ -1,5 +1,5 @@
-// === 4T-0697/4T-0698 (Epic 3E-0141): Kollaps der Sidebar-Spalten ============
-// 4T-0990 (Epic 3E-0196): aus panels.js in den Ordner panels/ ausgezogen.
+// === 4T-000697/4T-000698 (Epic 3E-000141): Kollaps der Sidebar-Spalten ============
+// 4T-000990 (Epic 3E-000196): aus panels.js in den Ordner panels/ ausgezogen.
 // Zwei Teile in einem Modul, weil sie dieselbe Bedienung tragen: der
 // Zustand der Spalte (Setter, Toggle, Aufhebung) und die beiden Bedien-Orte
 // (Kopf-Toggle im obersten sichtbaren Kopf, Strich-Button am eingeklappten
@@ -101,7 +101,7 @@ export function buildCollapseStrip(paneIdx, side) {
   return btn;
 }
 
-// === 4T-0697 (Epic 3E-0141): Kollaps-Zustand der Sidebar-Spalten ===========
+// === 4T-000697 (Epic 3E-000141): Kollaps-Zustand der Sidebar-Spalten ===========
 // Setter/Toggle des Spalten-Kollaps je Editor-Spalte (Pane-Group) und Seite.
 // Verhaltensmuster setFocusMode/toggleFocusMode: Zustand setzen, Rendern der
 // betroffenen Spalte anstoßen, api.setSetting schreiben, Menü-Häkchen der
@@ -130,7 +130,7 @@ export function toggleSidebarCollapse(paneIdx, side) {
   setSidebarCollapsed(paneIdx, side, !arr[paneIdx]);
 }
 
-// 4T-0697: Aus-Zustand der Erweiterung — gespeicherten Kollaps-Zustand
+// 4T-000697: Aus-Zustand der Erweiterung — gespeicherten Kollaps-Zustand
 // vollständig aufheben, damit keine Spalte unbedienbar eingeklappt
 // zurückbleibt (im Aus-Zustand gibt es weder Kommando noch Icon zum
 // Ausklappen). No-op, wenn ohnehin alles ausgeklappt ist (kein überflüssiger

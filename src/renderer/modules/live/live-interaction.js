@@ -1,7 +1,7 @@
 // Interaktion des Live-Modus: Klick-Pfade (Links, Fussnoten, Aufgaben-Kästchen,
 // Treffer der Abfrage-Widgets), Hover-Tooltips und die Rebuild-Auslöser an
 // document.
-// 4T-0982 (Epic 3E-0196): aus live-widgets.js herausgelöst. Das Modul trägt
+// 4T-000982 (Epic 3E-000196): aus live-widgets.js herausgelöst. Das Modul trägt
 // Seiteneffekte: die vier document-Listener registrieren sich beim Laden. Es
 // muss deshalb im Import-Graph erreichbar bleiben (live-widgets.js zieht es
 // über livePreviewExtensions), sonst fallen Sprach- und Einstellungs-Refreshes
@@ -13,7 +13,7 @@ import { EditorView, hoverTooltip } from '@codemirror/view';
 import { state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import { openInPane } from '../tabs/tabs.js';
-// 4T-0409 (Epic 3E-0077): scrollToAnchorAfterOpen/normalizedAnchorId fuer den
+// 4T-000409 (Epic 3E-000077): scrollToAnchorAfterOpen/normalizedAnchorId fuer den
 // Anker-Sprung der Block-Treffer der Perspective-Abfrage.
 import {
   normalizedAnchorId,
@@ -21,16 +21,16 @@ import {
   scrollToLineAfterOpen,
 } from '../views/anchor-navigation.js';
 import { activateLink } from '../views/link-navigation.js';
-// 4T-0504 (Epic 3E-0096): Rueckschreib-Aktionen der Task-Abfrage-Treffer
+// 4T-000504 (Epic 3E-000096): Rueckschreib-Aktionen der Task-Abfrage-Treffer
 // (Status-Toggle, Verschieben, Bearbeiten) — zentraler Klick-Dispatch.
 import { handleTaskQueryAction } from '../task-query-actions.js';
-// 4T-0204: Toggling-Kette des Aufgaben-Status (task-states.js ist zyklenfrei:
+// 4T-000204: Toggling-Kette des Aufgaben-Status (task-states.js ist zyklenfrei:
 // importiert nur api/i18n/shared).
 import { performStatusToggle } from '../task-states.js';
 import { liveRebuildEffect } from './live-shared.js';
 import { findFootnoteDefinitionRange, findFootnoteDefinitionText } from './live-scans.js';
 
-// 4T-0087: i18n-Refresh-Hook. Wenn die App-Sprache zur Laufzeit umgeschaltet
+// 4T-000087: i18n-Refresh-Hook. Wenn die App-Sprache zur Laufzeit umgeschaltet
 // wird, dispatcht der Sprach-Wechsel-Handler ein 'i18n-language-changed'-
 // Event auf document. Wir loesen dann fuer jeden offenen Editor einen
 // Live-Plugin-Re-Build aus, damit Callout-Default-Titel-Widgets mit dem
@@ -43,7 +43,7 @@ document.addEventListener('i18n-language-changed', () => {
   }
 });
 
-// 4T-0204: Task-Status-Aenderungen (Settings-Apply oder Multi-Window-
+// 4T-000204: Task-Status-Aenderungen (Settings-Apply oder Multi-Window-
 // Broadcast) bauen die Live-Decorations ebenfalls neu — Marker-Pattern
 // und State-Decos haengen am aktiven Set.
 document.addEventListener('scg:taskstates-changed', () => {
@@ -53,7 +53,7 @@ document.addEventListener('scg:taskstates-changed', () => {
   }
 });
 
-// 4T-0498 (Epic 3E-0090): Aufgaben-Konfigurations-Aenderungen (Global
+// 4T-000498 (Epic 3E-000090): Aufgaben-Konfigurations-Aenderungen (Global
 // Filter, Ausblende-Option, Labels) bauen die Live-Decorations ebenfalls
 // neu — Badges und Filter-Ausblendung haengen daran (Muster taskStates).
 document.addEventListener('scg:tasks-changed', () => {
@@ -63,7 +63,7 @@ document.addEventListener('scg:tasks-changed', () => {
   }
 });
 
-// 4T-0471 (Epic 3E-0087): Nummerierungs-Aenderungen (Settings-Apply oder
+// 4T-000471 (Epic 3E-000087): Nummerierungs-Aenderungen (Settings-Apply oder
 // Multi-Window-Broadcast) bauen die Live-Decorations neu — Nummer-Widgets und
 // Marker-Ausblendung haengen am aktiven Zustand (Muster taskStates).
 document.addEventListener('scg:heading-numbering-changed', () => {
@@ -73,7 +73,7 @@ document.addEventListener('scg:heading-numbering-changed', () => {
   }
 });
 
-// 4T-0409 (Epic 3E-0077): Klick-Pfad der Abfrage-Treffer INNERHALB der Live-
+// 4T-000409 (Epic 3E-000077): Klick-Pfad der Abfrage-Treffer INNERHALB der Live-
 // Block-Widgets. MarkdownBlockWidget.ignoreEvent() laesst CodeMirror alle
 // Events aus dem Widget ignorieren — der fm-Zweig des livePreviewClickHandler
 // unten feuert dort nie (eventBelongsToEditor prueft widget.ignoreEvent).
@@ -87,7 +87,7 @@ export function bindFrontmatterQueryClicks(container) {
     if (event.button !== 0) return;
     const tgt = event.target;
     if (!(tgt instanceof Element)) return;
-    // 4T-0504 (Epic 3E-0096): Rueckschreib-Aktionen der Task-Treffer laufen
+    // 4T-000504 (Epic 3E-000096): Rueckschreib-Aktionen der Task-Treffer laufen
     // auch im Widget ueber den zentralen Dispatch (vor dem Treffer-Link).
     if (handleTaskQueryAction(tgt)) {
       event.preventDefault();
@@ -101,9 +101,9 @@ export function bindFrontmatterQueryClicks(container) {
     if (paneIdx < 0) return;
     event.preventDefault();
     const fmAnchor = fmItem.dataset.fmAnchor || '';
-    // 4T-0502 (Epic 3E-0096): Task-Treffer springen zur Quell-Zeile.
+    // 4T-000502 (Epic 3E-000096): Task-Treffer springen zur Quell-Zeile.
     const fmLine = parseInt(fmItem.dataset.fmLine || '', 10);
-    // 4T-0631 (Epic 3E-0102): Abfrage-Treffer-Klick im Dokument erbt die Gruppe.
+    // 4T-000631 (Epic 3E-000102): Abfrage-Treffer-Klick im Dokument erbt die Gruppe.
     Promise.resolve(openInPane(paneIdx, [fmItem.dataset.fmPath], { inheritGroup: true })).then(
       (realPane) => {
         if (fmAnchor) scrollToAnchorAfterOpen(realPane, normalizedAnchorId(fmAnchor));
@@ -113,7 +113,7 @@ export function bindFrontmatterQueryClicks(container) {
   });
 }
 
-// 4T-0082: Klick-Handler fuer Live-Modus-Links und Footnote-Verweise.
+// 4T-000082: Klick-Handler fuer Live-Modus-Links und Footnote-Verweise.
 // Aktiv nur wenn das Live-Compartment den Plugin-Stack enthaelt; wird mit
 // dem Plugin zusammen ein-/ausgeschaltet.
 //
@@ -127,7 +127,7 @@ export const livePreviewClickHandler = EditorView.domEventHandlers({
     if (event.button !== 0) return false;
     const tgt = event.target;
     if (!(tgt instanceof Element)) return false;
-    // 4T-0409 (Epic 3E-0077): Der fruehere [data-fm-path]-Zweig (4T-0355) ist
+    // 4T-000409 (Epic 3E-000077): Der fruehere [data-fm-path]-Zweig (4T-000355) ist
     // hierher nie durchgedrungen — Abfrage-Treffer liegen im Live-Modus stets
     // in einem Block-Widget mit ignoreEvent() -> true, dessen Events CodeMirror
     // gar nicht erst an diese Handler gibt. Der Klick-Pfad laeuft jetzt ueber
@@ -156,17 +156,17 @@ export const livePreviewClickHandler = EditorView.domEventHandlers({
       });
       return true;
     }
-    // 4T-0487 (Epic 3E-0091): Der Klick-Pfad der Datums-/Uhrzeit-Werte
+    // 4T-000487 (Epic 3E-000091): Der Klick-Pfad der Datums-/Uhrzeit-Werte
     // haengt am dateValuePlugin (date-picker.js, Basis-Extension) und
     // gilt damit auch im Quelltext-Modus.
-    // 4T-0083: Task-Box-Toggle im Live-Modus. Klick auf das gerenderte
+    // 4T-000083: Task-Box-Toggle im Live-Modus. Klick auf das gerenderte
     // Checkbox-Symbol (Mark-Decoration mit data-live-task-from) toggelt
     // den Marker `[ ]` <-> `[x]` im Doc. Aktive Cursor-Zeile zeigt die
     // rohe Quelle ohne Marker-Decoration — dort kein Toggle-Klick, normale
     // Cursor-Setzung greift.
     const taskEl = tgt.closest('[data-live-task-from]');
     if (taskEl) {
-      // 4T-0213 (Epic 3E-0042): im read-only Handbuch-Tab bleibt der
+      // 4T-000213 (Epic 3E-000042): im read-only Handbuch-Tab bleibt der
       // Task-Klick inert — der dispatch unten wuerde das Doc trotz
       // EditorState.readOnly aendern (programmatische Dispatches sind
       // davon nicht blockiert).
@@ -178,9 +178,9 @@ export const livePreviewClickHandler = EditorView.domEventHandlers({
       const fromStr = taskEl.getAttribute('data-live-task-from');
       const from = parseInt(fromStr, 10);
       if (Number.isNaN(from) || from < 0 || from > view.state.doc.length) return false;
-      // 4T-0497: der Klick folgt der konfigurierten Toggling-Kette —
+      // 4T-000497: der Klick folgt der konfigurierten Toggling-Kette —
       // gemeinsame Funktion mit dem Render-Toggle (views.js), inklusive
-      // der Undo-Haertung aus 4T-0484 (userEvent-Annotation). Die Zeile
+      // der Undo-Haertung aus 4T-000484 (userEvent-Annotation). Die Zeile
       // wird frisch gelesen; eine veraltete Decoration toggelt damit den
       // aktuellen Zeilen-Stand oder gar nichts.
       const toggled = performStatusToggle(view, view.state.doc.lineAt(from).number);
@@ -192,9 +192,9 @@ export const livePreviewClickHandler = EditorView.domEventHandlers({
   },
 });
 
-// 4T-0082: Hover-Tooltip fuer Footnote-Verweise. Zeigt die Definition aus
+// 4T-000082: Hover-Tooltip fuer Footnote-Verweise. Zeigt die Definition aus
 // dem Doc-Body als kleinen Tooltip; nutzt CodeMirrors hoverTooltip-API
-// (gleiche Infrastruktur wie der Linter-Tooltip aus 4T-0020).
+// (gleiche Infrastruktur wie der Linter-Tooltip aus 4T-000020).
 export const liveFootnoteHoverTooltip = hoverTooltip((view, pos) => {
   const domAt = view.domAtPos(pos);
   let el = domAt && domAt.node;
@@ -216,7 +216,7 @@ export const liveFootnoteHoverTooltip = hoverTooltip((view, pos) => {
   };
 });
 
-// 4T-0197: Hover-Tooltip fuer Abbreviation-Vorkommen. Zeigt den Langtext
+// 4T-000197: Hover-Tooltip fuer Abbreviation-Vorkommen. Zeigt den Langtext
 // aus der Definitionszeile; gleiche Infrastruktur wie der Footnote-
 // Tooltip (data-Attribut der Mark-Decoration traegt den Text bereits).
 export const liveAbbrHoverTooltip = hoverTooltip((view, pos) => {

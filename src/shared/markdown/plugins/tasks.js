@@ -1,4 +1,4 @@
-// 4T-0985 (Epic 3E-0196): aus src/shared/markdown/plugins.js geschnitten.
+// 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
 // Aufgaben-Gruppe: erweiterte Task-Zustaende und Task-Marker-Badges.
 //
 // Beide konfigurierbaren Zustands-Container des Plugin-Satzes
@@ -15,11 +15,11 @@
 'use strict';
 
 const { escapeHtml } = require('../slug.js');
-// 4T-0498 (Epic 3E-0090): Marker-Kern der Task-Zeilen (Parsing der
+// 4T-000498 (Epic 3E-000090): Marker-Kern der Task-Zeilen (Parsing der
 // Symbol-Marker fuer die Badge-Darstellung und den Global Filter).
 const taskMarkers = require('../../tasks/task-markers.js');
 
-// 4T-0204 (Epic 3E-0017): Erweiterte Task-States. Heute kennt die App
+// 4T-000204 (Epic 3E-000017): Erweiterte Task-States. Heute kennt die App
 // `[ ]`/`[x]` (markdown-it-task-lists); zusaetzliche Status-Marker wie
 // `[/]` (in Arbeit) oder `[!]` (wichtig) rendern als farbige Status-Box
 // mit dem Marker-Zeichen als Glyph (Obsidian-Minimal-Stil — skaliert
@@ -32,7 +32,7 @@ const taskMarkers = require('../../tasks/task-markers.js');
 // Snapshot-Tests laufen deterministisch ohne Store. Die Basis-Zustaende
 // ` `/`x`/`X` bleiben fest beim task-lists-Plugin und sind nicht
 // konfigurierbar.
-// 4T-0497 (Epic 3E-0090): jeder Status traegt zusaetzlich einen Typ
+// 4T-000497 (Epic 3E-000090): jeder Status traegt zusaetzlich einen Typ
 // (Semantik fuer Erledigt-Automatik und Wiederholung) und ein Folge-
 // Symbol (Ketten-Toggle beim Checkbox-Klick). Defaults verhaltensneutral
 // zum Bestand: alle Folge-Symbole 'x' (Klick schliesst ab, wie bisher
@@ -106,7 +106,7 @@ const TASK_STATE_DEFAULTS = [
 // Syntax-brechende Zeichen.
 const TASK_STATE_FORBIDDEN_CHARS = new Set([' ', 'x', 'X', '[', ']', '\\']);
 
-// 4T-0497: die sechs Status-Typen der Referenz-Semantik. Die Zuordnung
+// 4T-000497: die sechs Status-Typen der Referenz-Semantik. Die Zuordnung
 // ist frei (auch '*' = DONE ist legitim, belegte PO-Nutzung); 'not done'
 // im Sinne der Referenz sind TODO, IN_PROGRESS und ON_HOLD.
 const TASK_STATE_TYPES = ['TODO', 'IN_PROGRESS', 'ON_HOLD', 'DONE', 'CANCELLED', 'NON_TASK'];
@@ -148,7 +148,7 @@ function getActiveTaskStates() {
   return activeTaskStates;
 }
 
-// 4T-0497: Typ eines Status-Zeichens. Basis-Zustaende sind fest
+// 4T-000497: Typ eines Status-Zeichens. Basis-Zustaende sind fest
 // (' ' TODO, 'x'/'X' DONE, nicht konfigurierbar); unbekannte Zeichen
 // liefern null (keine Status-Semantik).
 function taskStatusType(ch) {
@@ -158,7 +158,7 @@ function taskStatusType(ch) {
   return def ? def.type : null;
 }
 
-// 4T-0497: Folge-Symbol der Toggling-Kette. Basis bleibt fest
+// 4T-000497: Folge-Symbol der Toggling-Kette. Basis bleibt fest
 // (' ' -> 'x' -> ' '); erweiterte Status folgen ihrem konfigurierten
 // Folge-Symbol (Default 'x' = Abschliessen, verhaltensgleich zum
 // Bestand). null fuer unbekannte Zeichen.
@@ -169,7 +169,7 @@ function taskToggleTarget(ch) {
   return def ? def.next : null;
 }
 
-// 4T-0502 (Epic 3E-0096): Status-Typ-Resolver aus der Persistenz-Form des
+// 4T-000502 (Epic 3E-000096): Status-Typ-Resolver aus der Persistenz-Form des
 // taskStates-Stores (toStoredTaskStates in task-states.js) — fuer den Main-
 // Query-Pfad des TASKS-Scopes, der nicht an der konfigurierten Pipeline-
 // Instanz (activeTaskStates) haengt. Merge-Regeln wie der Renderer
@@ -204,7 +204,7 @@ function createTaskStatusTypeResolver(stored) {
   };
 }
 
-// K-06 (4T-0307): Task-Status-Farben stammen aus den Nutzer-Settings, nicht
+// K-06 (4T-000307): Task-Status-Farben stammen aus den Nutzer-Settings, nicht
 // aus fremdem Markdown, fliessen aber in einen Inline-Style. Defense-in-Depth:
 // nur Hex, rgb()/rgba() und benannte Farben zulassen; sonst auf currentColor
 // zurueckfallen, damit ein Wert wie 'red;<property>' keine weiteren CSS-
@@ -261,7 +261,7 @@ function extendedTaskStatesPlugin(mdInstance, options) {
 }
 
 // ---------------------------------------------------------------------------
-// 4T-0498 (Epic 3E-0090): Task-Marker-Darstellung der Erweiterung
+// 4T-000498 (Epic 3E-000090): Task-Marker-Darstellung der Erweiterung
 // "Aufgaben". Symbol-Marker am Zeilenende von Task-Zeilen (Termine,
 // Prioritaet, Wiederholung, ID/Abhaengigkeiten) rendern als dezente
 // Badges statt Roh-Text. Ein Core-Ruler per push — er laeuft nach
@@ -367,7 +367,7 @@ function taskMarkerBadgeSpec(seg, labels) {
     title = String(labels.dependsOn || '');
     text = `${taskMarkers.DEPENDS_SYMBOL} ${seg.ids.join(', ')}`;
   } else if (seg.kind === 'reminder') {
-    // 4T-0525 (Epic 3E-0095): Erinnerungs-Badge in kanonischer Form
+    // 4T-000525 (Epic 3E-000095): Erinnerungs-Badge in kanonischer Form
     // (Melde-Zeitpunkt; bewusst ohne Ueberfaellig-Faerbung — Ueberfaellig-
     // Behandlung ist Sache des Erinnerungs-Systems, nicht der Anzeige).
     cls += ' task-marker-reminder';

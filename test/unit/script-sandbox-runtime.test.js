@@ -1,7 +1,7 @@
-// 4T-0412 (Epic 3E-0078): Laufzeit der Skript-Sandbox (Inline-Skript in
+// 4T-000412 (Epic 3E-000078): Laufzeit der Skript-Sandbox (Inline-Skript in
 // src/renderer/script-sandbox.html). Der Test extrahiert das Skript aus dem
 // Trägerdokument und führt es gegen Stubs aus (window plus Worker/Blob/URL —
-// die Ausführung lebt seit dem 4T-0416-Befund in einem Blob-Worker, der
+// die Ausführung lebt seit dem 4T-000416-Befund in einem Blob-Worker, der
 // Fake-Worker evaluiert dessen Quelltext im Test-Prozess) — geprüft werden
 // Protokoll-Validierung (Schema, Port-Pflicht, Einmaligkeit), Ausführung,
 // pq-Ausgabe-Normalisierung und der Fehler-Pfad mit Zeilennummer. Die echte
@@ -81,7 +81,7 @@ async function settle() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe('script-sandbox Laufzeit — Protokoll-Validierung (4T-0412)', () => {
+describe('script-sandbox Laufzeit — Protokoll-Validierung (4T-000412)', () => {
   it('führt einen gültigen Run-Auftrag aus und liefert die Ausgabe über den Port', async () => {
     const { deliver, port, received } = createRuntime();
     deliver({ type: 'pm-script-run', script: 'pq.out("Hallo " + (1 + 2));', data: null }, [port]);
@@ -153,7 +153,7 @@ describe('script-sandbox Laufzeit — Protokoll-Validierung (4T-0412)', () => {
   });
 });
 
-describe('script-sandbox Laufzeit — pq-Ausgabe-Normalisierung (4T-0412)', () => {
+describe('script-sandbox Laufzeit — pq-Ausgabe-Normalisierung (4T-000412)', () => {
   async function runScript(script) {
     const { deliver, port, received } = createRuntime();
     deliver({ type: 'pm-script-run', script, data: null }, [port]);
@@ -228,9 +228,9 @@ describe('script-sandbox Laufzeit — pq-Ausgabe-Normalisierung (4T-0412)', () =
   });
 });
 
-// 4T-0413 (Epic 3E-0078): Daten-Seite der pq-API gegen einen fixen Snapshot
+// 4T-000413 (Epic 3E-000078): Daten-Seite der pq-API gegen einen fixen Snapshot
 // (Form wie backlinks.scriptDataFor: pages mit props/file, blocks, current).
-describe('script-sandbox Laufzeit — pq-Daten-API (4T-0413)', () => {
+describe('script-sandbox Laufzeit — pq-Daten-API (4T-000413)', () => {
   const SNAPSHOT = {
     status: 'ready',
     current: 'C:/raum/Start.md',

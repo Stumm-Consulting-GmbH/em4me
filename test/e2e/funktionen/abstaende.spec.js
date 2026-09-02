@@ -1,4 +1,4 @@
-// 4T-1310 (Epic 3E-0235): Abstände um die Frontmatter-Zeile und um den
+// 4T-001310 (Epic 3E-000235): Abstände um die Frontmatter-Zeile und um den
 // Journal-Navigations-Block.
 //
 // Der Befund des Product Owners war „zu viel Leerraum". Damit daraus ein

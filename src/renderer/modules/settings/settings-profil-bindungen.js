@@ -1,4 +1,4 @@
-// 4T-1160 (Epic 3E-0219, E13): Die Bindungs-Liste des Einstellungs-Bereichs
+// 4T-001160 (Epic 3E-000219, E13): Die Bindungs-Liste des Einstellungs-Bereichs
 // «Eigenschafts-Profile» — je Zeile ein Profil mit seinen Schlagworten und
 // Ordner-Pfaden.
 //
@@ -111,7 +111,7 @@ function baueZeile(bindung, values, neuRendern) {
     if (!liste.includes(wert)) liste.push(wert);
     ordnerInput.value = liste.join(', ');
     bindung.folders = liste;
-    // Mutation nach dem await — Dirty-Erkennung explizit nachziehen (4T-0554).
+    // Mutation nach dem await — Dirty-Erkennung explizit nachziehen (4T-000554).
     refreshSettingsButtons();
   });
 

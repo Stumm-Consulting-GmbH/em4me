@@ -1,4 +1,4 @@
-// 4T-1047 (Epic 3E-0151): Einbettung der Mindmap-Ansicht in die Pane.
+// 4T-001047 (Epic 3E-000151): Einbettung der Mindmap-Ansicht in die Pane.
 //
 // Hält je Spalte genau eine Ansichts-Instanz, versorgt sie mit dem Baum aus
 // der Preload-Brücke und aktualisiert sie verzögert nach Dokument-Änderungen
@@ -30,7 +30,7 @@ const timer = []; // paneIdx -> Zeitgeber
 
 // Springt zur Quellzeile und macht sie sichtbar.
 //
-// 4T-1054: Der Sprung **wechselt in die geteilte Ansicht** (Entscheidung des
+// 4T-001054: Der Sprung **wechselt in die geteilte Ansicht** (Entscheidung des
 // Product Owners vom 2026-08-16). Vorher setzte er nur den Cursor, und zwar im
 // Editor der Mindmap-Ansicht, die den Editor gerade ausblendet: Für den Nutzer
 // passierte sichtbar nichts. Ein Sprung, den man nicht sieht, ist kein Sprung.
@@ -38,7 +38,7 @@ const timer = []; // paneIdx -> Zeitgeber
 // Der Moduswechsel läuft über ein Ereignis statt über einen Import von
 // views.js. Grund ist der Zyklus: views.js importiert dieses Modul bereits für
 // das Zeichnen, und die Gegenrichtung zöge die Ansichts-Ebene in die
-// Lade-Kette der Mindmap. Nach dem Vorfall in 4T-1047 wird diese Richtung
+// Lade-Kette der Mindmap. Nach dem Vorfall in 4T-001047 wird diese Richtung
 // bewusst über eine Meldung entkoppelt.
 export const MINDMAP_JUMP_EVENT = 'scg:mindmap-jump';
 
@@ -100,7 +100,7 @@ export function renderMindmap(paneIdx) {
   } catch {
     ergebnis = null;
   }
-  // 4T-1048: Effektive Optionen aus Voreinstellung und Kopfbereich des
+  // 4T-001048: Effektive Optionen aus Voreinstellung und Kopfbereich des
   // Dokuments. Der Kopfbereich wird hier gelesen und nicht in der Brücke,
   // weil dort der Baum entsteht und nicht die Darstellung.
   let fmData;
@@ -148,8 +148,8 @@ export function destroyMindmap(paneIdx) {
   }
 }
 
-// 4T-1048 (Epic 3E-0151): Eine geänderte Voreinstellung wirkt ohne Neustart
-// auf offene Karten (Story 4S-0805, AK5). Das Ereignis kommt aus
+// 4T-001048 (Epic 3E-000151): Eine geänderte Voreinstellung wirkt ohne Neustart
+// auf offene Karten (Story 4S-000805, AK5). Das Ereignis kommt aus
 // mindmap-einstellungen.js, sobald der Nutzer den Bereich anwendet.
 document.addEventListener('scg:mindmap-optionen-changed', () => {
   for (let paneIdx = 0; paneIdx < state.panes.length; paneIdx++) renderMindmap(paneIdx);

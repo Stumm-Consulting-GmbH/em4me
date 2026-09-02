@@ -1,4 +1,4 @@
-// 4T-0842 (Epic 3E-0147): Kern-Modell des Buches (src/shared/books/book-core.js) —
+// 4T-000842 (Epic 3E-000147): Kern-Modell des Buches (src/shared/books/book-core.js) —
 // Format der Begleitdatei, Erkennung ohne Rückverweis, Kapitel-Baum samt
 // Invariante, Lese-Ordnung, Abgleich mit dem Datei-Bestand und
 // Pfad-Nachführung. Reine Funktionen, direkter Import (Muster
@@ -147,7 +147,7 @@ describe('Erkennung ohne Rückverweis', () => {
     expect(findBookSettingsEntry(null)).toBeNull();
   });
 
-  // 4T-1276 (Epic 3E-0232): Die Schreibweisen-Toleranz gilt seither nur noch da,
+  // 4T-001276 (Epic 3E-000232): Die Schreibweisen-Toleranz gilt seither nur noch da,
   // wo das Dateisystem selbst tolerant ist — die Plattform wird deshalb gesetzt.
   it('erklärt genau die benannte Markdown-Datei zur Buch-Datei', () => {
     setPlatformForTests('win32');
@@ -192,7 +192,7 @@ describe('Kapitel-Baum: Normalisierung', () => {
     expect(normalizeChapterTree(roh)).toEqual([{ path: 'Kapitel.md', children: [] }]);
   });
 
-  // 4T-1276 (Epic 3E-0232): Der Fall lief bis dahin auf der realen Plattform und
+  // 4T-001276 (Epic 3E-000232): Der Fall lief bis dahin auf der realen Plattform und
   // schrieb damit die Windows-Antwort als die einzige fest. Seit der Vergleichs-
   // Schlüssel die zentrale Auskunft fragt, ist die Antwort plattformabhängig —
   // geprüft wird sie deshalb als Paar mit injizierter Plattform (Muster
@@ -236,7 +236,7 @@ describe('Kapitel-Baum: Normalisierung', () => {
     expect(eingabe).toEqual(kopie);
   });
 
-  // 4T-1276 (Epic 3E-0232): Der Trenner wird plattformfrei vereinheitlicht, die
+  // 4T-001276 (Epic 3E-000232): Der Trenner wird plattformfrei vereinheitlicht, die
   // Schreibweise folgt dem Dateisystem — deshalb die gesetzte Plattform. Die
   // Aussagen über unbekannte und unzulässige Pfade gelten unverändert überall
   // und stehen bewusst ausserhalb der Setzung.
@@ -282,7 +282,7 @@ describe('Einhängen', () => {
   });
 
   it('lehnt doppelte Kapitel, unbekannte Eltern und unzulässige Pfade ab', () => {
-    // 4T-1276: Ob eine abweichende Schreibweise ein Doppel ist, entscheidet
+    // 4T-001276: Ob eine abweichende Schreibweise ein Doppel ist, entscheidet
     // seither das Dateisystem; der Linux-Fall steht im eigenen Block weiter unten.
     setPlatformForTests('win32');
     expect(insertChapter(baum(), 'Teil 1/DER HAFEN.md')).toEqual({
@@ -463,7 +463,7 @@ describe('Lese-Ordnung', () => {
     expect(nextChapterPath(baum(), 'Teil 1/Die Fähre.md')).toBe('Teil 2/Heimkehr.md');
     expect(previousChapterPath(baum(), 'Teil 2/Heimkehr.md')).toBe('Teil 1/Die Fähre.md');
     expect(previousChapterPath(baum(), 'Teil 1/Der Hafen.md')).toBe('Teil 1/Aufbruch.md');
-    // 4T-1276: Die Leseführung findet ihr Kapitel über denselben Schlüssel; die
+    // 4T-001276: Die Leseführung findet ihr Kapitel über denselben Schlüssel; die
     // Schreibweisen-Toleranz gilt seither dort, wo das Dateisystem sie kennt.
     setPlatformForTests('win32');
     expect(nextChapterPath(baum(), 'teil 1\\der hafen.md')).toBe('Teil 1/Die Fähre.md');
@@ -504,7 +504,7 @@ describe('Abgleich mit dem Datei-Bestand', () => {
     expect(eingehaengt).toEqual({ unlinked: [], missing: [] });
   });
 
-  // 4T-1276 (Epic 3E-0232): Der Pfad-TRENNER wird unverändert plattformfrei
+  // 4T-001276 (Epic 3E-000232): Der Pfad-TRENNER wird unverändert plattformfrei
   // vereinheitlicht; die SCHREIBWEISE folgt seit der Umstellung dem
   // Dateisystem. Als Paar geprüft — vorher stand hier nur die Windows-Antwort.
   it('vergleicht ohne Rücksicht auf Schreibweise und Pfad-Trenner', () => {
@@ -583,7 +583,7 @@ describe('Pfad-Nachführung', () => {
   });
 });
 
-// 4T-1275 (Epic 3E-0232, Befund B1): Datei-Identität und Schreibweise.
+// 4T-001275 (Epic 3E-000232, Befund B1): Datei-Identität und Schreibweise.
 //
 // `fileKey()` in book-core.js bildet den Vergleichs-Schlüssel für Kapitel-Pfade
 // und faltet die Schreibung fest, statt die zentrale Auskunft in
@@ -594,7 +594,7 @@ describe('Pfad-Nachführung', () => {
 // Der Fall prüft die Logik über die INJIZIERTE Plattform und nicht über das
 // Dateisystem des Prüfrechners; er ist deshalb auf jeder Plattform
 // aussagekräftig und deckt beide Verhaltensweisen ab (AK8 der Anforderung).
-describe('Datei-Identität und Schreibweise (4T-1275)', () => {
+describe('Datei-Identität und Schreibweise (4T-001275)', () => {
   afterEach(() => setPlatformForTests(undefined));
 
   it('unterscheidet zwei Kapitel gleicher Schreibweise auf case-sensitivem Dateisystem', () => {

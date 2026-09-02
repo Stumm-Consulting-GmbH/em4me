@@ -1,4 +1,4 @@
-// 4T-0207 (Epic 3E-0015): Unit-Tests der Kommando-Registry
+// 4T-000207 (Epic 3E-000015): Unit-Tests der Kommando-Registry
 // (src/shared/commands/commands.js) und ihrer Binding-Schicht
 // (src/shared/commands/command-bindings.js) — Registry-Invarianten, Binding-
 // Normalisierung, Merge-Logik, Anzeige-/CodeMirror-Konvertierung und
@@ -14,7 +14,7 @@ import {
   findBindingConflict,
   findDuplicateBindings,
 } from '../../src/shared/commands/commands.js';
-// 4T-0993 (Epic 3E-0196): Die registry-freie Binding-Schicht liegt seit dem
+// 4T-000993 (Epic 3E-000196): Die registry-freie Binding-Schicht liegt seit dem
 // Funktions-Auszug in src/shared/commands/command-bindings.js.
 import {
   FIXED_BINDINGS,
@@ -36,7 +36,7 @@ describe('Registry-Invarianten', () => {
     const ids = COMMANDS.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) {
-      // 4T-0379: Ziffern im Namen erlaubt (z.B. paragraph.heading1).
+      // 4T-000379: Ziffern im Namen erlaubt (z.B. paragraph.heading1).
       expect(id).toMatch(/^[a-z]+\.[a-zA-Z0-9]+$/);
     }
   });
@@ -87,11 +87,11 @@ describe('Registry-Invarianten', () => {
     }
   });
 
-  // 4T-0378/4T-0379 (Epic 3E-0071): editorScoped umfasst neben den Fold-
+  // 4T-000378/4T-000379 (Epic 3E-000071): editorScoped umfasst neben den Fold-
   // Kommandos die Zeichen-Format-, Link-, Absatz- und Einfüge-Kommandos
-  // (wirken als CodeMirror-Keymap im Editor). 4T-0590 (Epic 3E-0109):
+  // (wirken als CodeMirror-Keymap im Editor). 4T-000590 (Epic 3E-000109):
   // plus die zwölf Tabellen-Operationen des Kontextmenü-Untermenüs.
-  // 4T-0599 (Epic 3E-0112): plus die beiden Listen-Verschiebe-Kommandos.
+  // 4T-000599 (Epic 3E-000112): plus die beiden Listen-Verschiebe-Kommandos.
   it('editorScoped-Kommandos sind Fold, Format/Link, Absatz, Einfügen, Tabelle und Liste', () => {
     const scoped = COMMANDS.filter((c) => c.editorScoped)
       .map((c) => c.id)
@@ -303,7 +303,7 @@ describe('acceleratorToCmKey', () => {
   });
 });
 
-// --- 4T-0208: Capture-Regeln und Konflikt-Erkennung ---------------------------
+// --- 4T-000208: Capture-Regeln und Konflikt-Erkennung ---------------------------
 
 describe('isBindingCapturable (Sperr-Regel)', () => {
   it('Strg- oder Alt-Kombinationen sind zulaessig', () => {
@@ -418,7 +418,7 @@ describe('findBindingConflict', () => {
   });
 });
 
-// 4T-0211 (Hotfix 0.28.1): Apply-Sicherheitsnetz gegen doppelt vergebene
+// 4T-000211 (Hotfix 0.28.1): Apply-Sicherheitsnetz gegen doppelt vergebene
 // Bindings — der Einzel-Reset konnte den Default auf eine inzwischen
 // anderweitig belegte Kombination zuruecksetzen (Nutzer-Befund aus der
 // Gesamtabnahme 0.28.0: AutoSave auf Strg+N, Neu freigeraeumt, Reset
@@ -467,7 +467,7 @@ describe('formatTimestamp', () => {
   });
 });
 
-// 4T-1174 (Epic 3E-0220, E5): Das Kommando des Feld-Formulars — seine
+// 4T-001174 (Epic 3E-000220, E5): Das Kommando des Feld-Formulars — seine
 // Registrierung und seine Bindung an das Erweiterungs-Gate.
 //
 // Geprüft wird hier die Registry-Seite, weil sie das ist, was diese Datei
@@ -477,7 +477,7 @@ describe('formatTimestamp', () => {
 // Abnahme an der gebauten Programmdatei; eine Quelltext-Prüfung dafür wäre
 // genau die Art Nachweis, die beim Profil-Symbol von 1.116.0 grün blieb,
 // während die Funktion unsichtbar war.
-describe('Kommando des Feld-Formulars (4T-1174)', () => {
+describe('Kommando des Feld-Formulars (4T-001174)', () => {
   const cmd = COMMANDS.find((c) => c.id === 'view.openFieldForm');
 
   it('ist in der Registry angelegt', () => {
@@ -513,12 +513,12 @@ describe('Kommando des Feld-Formulars (4T-1174)', () => {
   });
 });
 
-// 4T-1176 (Epic 3E-0220, E7): Das Kommando der erzeugten Profil-Abfrage.
+// 4T-001176 (Epic 3E-000220, E7): Das Kommando der erzeugten Profil-Abfrage.
 // Dieselbe Registry-Prüfung wie beim Feld-Formular und aus demselben Grund:
 // Was der erzeugte Text enthält, prüft `property-profiles-abfrage.test.js` an
 // der Fachlichkeit; hier steht nur, dass das Kommando existiert, kein Kürzel
 // belegt, keinen Menü-Block aufmacht und einen Dispatch-Eintrag hat.
-describe('Kommando der erzeugten Profil-Abfrage (4T-1176)', () => {
+describe('Kommando der erzeugten Profil-Abfrage (4T-001176)', () => {
   const cmd = COMMANDS.find((c) => c.id === 'edit.insertProfileQuery');
 
   it('ist in der Registry angelegt', () => {

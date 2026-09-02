@@ -1,4 +1,4 @@
-// 4T-0637 (Epic 3E-0069): Unit-Tests der Scheduler-Factory
+// 4T-000637 (Epic 3E-000069): Unit-Tests der Scheduler-Factory
 // createAlarmChecker (src/main/checks/alarm-check.js) mit vollstaendig injizierten
 // Fake-Abhaengigkeiten (kein Electron): Faelligkeits-Fenster statt
 // „Zeitpunkt erreicht", kein Doppel-Feuern, verpasste Zeitpunkte nach
@@ -52,7 +52,7 @@ function makeHarness(init = {}) {
   };
 }
 
-describe('Wecker-Pruefer: Faelligkeit (4T-0637)', () => {
+describe('Wecker-Pruefer: Faelligkeit (4T-000637)', () => {
   it('meldet den Wecker im Lauf nach seinem Zeitpunkt', () => {
     const h = makeHarness();
     h.checker.start();
@@ -127,7 +127,7 @@ describe('Wecker-Pruefer: Faelligkeit (4T-0637)', () => {
   });
 });
 
-describe('Wecker-Pruefer: Schlummern (4T-0637)', () => {
+describe('Wecker-Pruefer: Schlummern (4T-000637)', () => {
   it('meldet nach der Schlummer-Dauer erneut', () => {
     const h = makeHarness();
     h.checker.start();
@@ -178,7 +178,7 @@ describe('Wecker-Pruefer: Schlummern (4T-0637)', () => {
   });
 });
 
-describe('Wecker-Pruefer: Gates und Robustheit (4T-0637)', () => {
+describe('Wecker-Pruefer: Gates und Robustheit (4T-000637)', () => {
   it('meldet nichts, solange die Erweiterung aus ist', () => {
     const h = makeHarness({ enabled: false });
     h.checker.start();

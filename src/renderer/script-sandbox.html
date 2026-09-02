@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  4T-0412 (Epic 3E-0078): Sandbox-Trägerdokument der perspective-script-Blöcke.
+  4T-000412 (Epic 3E-000078): Sandbox-Trägerdokument der perspective-script-Blöcke.
 
   Sicherheits-Modell (Epic-Festlegung „eingehegt statt Voll-Zugriff"):
   - Geladen als <iframe sandbox="allow-scripts"> OHNE allow-same-origin —
@@ -16,7 +16,7 @@
     new Function; worker-src blob: erlaubt den Ausführungs-Worker (er erbt
     diese CSP — auch im Worker kein Netz, keine externen Skripte). Externe
     Skript-URLs bleiben blockiert (keine Host-/Scheme-Quelle in script-src).
-  - Das Nutzer-Skript läuft in einem WORKER-Thread (4T-0416-Befund der
+  - Das Nutzer-Skript läuft in einem WORKER-Thread (4T-000416-Befund der
     PO-Test-Iteration): Sandbox-iframes eines Fensters teilen sich einen
     Renderer-Prozess; liefe das Skript im iframe-Haupt-Thread, würde ein
     Endlos-Skript den gemeinsamen Event-Loop blockieren, Geschwister-Blöcke
@@ -110,7 +110,7 @@
             return out;
           }
 
-          // --- Daten-Helfer (4T-0413) -------------------------------------------
+          // --- Daten-Helfer (4T-000413) -------------------------------------------
           // Namens-Normalisierung wie die Wiki-Auflösung (NFC + lowercase).
           function norm(s) {
             return String(s === undefined || s === null ? '' : s)
@@ -261,8 +261,8 @@
           }
 
           // --- pq-API -----------------------------------------------------------
-          // 4T-0412: Ausgabe-Gerüst (out/el/list/table/md/link).
-          // 4T-0413: Daten-Seite (pages/current/file/blocks plus Helfer) aus dem
+          // 4T-000412: Ausgabe-Gerüst (out/el/list/table/md/link).
+          // 4T-000413: Daten-Seite (pages/current/file/blocks plus Helfer) aus dem
           // Daten-Snapshot des Run-Auftrags (rein lesend, kein Live-Kanal).
           function buildPq(data, output) {
             var snapshot = data && typeof data === 'object' ? data : null;
@@ -400,7 +400,7 @@
               }
               return node;
             };
-            // 4T-0413: akzeptiert Seiten-/file-/Block-Objekte oder Strings;
+            // 4T-000413: akzeptiert Seiten-/file-/Block-Objekte oder Strings;
             // Block-Ziele tragen ihren Anker automatisch (Sprung-Mechanik der
             // Abfrage-Treffer). Ohne Label wird der logische Name verwendet.
             pq.link = function (ziel, label, anchor) {

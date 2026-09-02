@@ -1,4 +1,4 @@
-// 4T-0322 (Epic 3E-0058): Unit-Tests für die Bereichs-Pfad-Logik
+// 4T-000322 (Epic 3E-000058): Unit-Tests für die Bereichs-Pfad-Logik
 // (src/main/area/area-path.js). Die Innerhalb-Prüfung ist die eine Grenze aller
 // Bereichs-Pfade; Windows-Fälle (Groß/Klein, gemischte Trenner, `..`,
 // Präfix-Nachbarn) sind hier abgesichert.
@@ -15,12 +15,12 @@ import {
 } from '../../src/main/area/area-path.js';
 import { createRequire } from 'node:module';
 
-// 4T-1203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
+// 4T-001203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
 // gesetzt, die area-path.js benutzt. Vitest fuehrt fuer 'import' und
 // 'require' getrennte Instanzen (Muster area-search.test.js).
 const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 
-// 4T-1250 (Epic 3E-0124): Wirts-gerechter Pfad aus der gewachsenen
+// 4T-001250 (Epic 3E-000124): Wirts-gerechter Pfad aus der gewachsenen
 // Windows-Schreibweise. Die Faelle dieser Datei pruefen Fach-Logik und NICHT
 // die Windows-Pfad-Syntax; mit fest verdrahteten Laufwerksbuchstaben liefen
 // sie trotzdem nur unter Windows, weil path.resolve 'C:\...' auf anderen
@@ -42,7 +42,7 @@ const P = (w) =>
 
 const ROOT = P('C:\\Daten\\Notizen');
 
-// 4T-1250 (Epic 3E-0124): Die Faelle ausserhalb der Paar-Tests pruefen die
+// 4T-001250 (Epic 3E-000124): Die Faelle ausserhalb der Paar-Tests pruefen die
 // case-INSENSITIVE Pfad-Identitaet — dass abweichende Schreibung und
 // gemischte Trenner denselben Ort meinen. Das ist eine Eigenschaft von
 // Windows und macOS, nicht von Linux, und sie hing bisher stillschweigend an
@@ -56,11 +56,11 @@ afterEach(() => {
   setPlatformForTests(undefined);
 });
 
-// 4T-1203 (Epic 3E-0121): Paar-Tests beider Dateisystem-Verhaltensweisen —
+// 4T-001203 (Epic 3E-000121): Paar-Tests beider Dateisystem-Verhaltensweisen —
 // dieselbe Grenz-Entscheidung, einmal case-insensitiv (Windows/macOS), einmal
 // case-sensitiv (Linux). Die uebrigen Faelle dieser Datei laufen auf der
 // realen Plattform (Windows) und belegen das unveraenderte Bestands-Verhalten.
-describe('Bereichs-Grenze je Dateisystem-Verhalten (4T-1203)', () => {
+describe('Bereichs-Grenze je Dateisystem-Verhalten (4T-001203)', () => {
   it('linux: abweichende Schreibung liegt AUSSERHALB, exakte innerhalb', () => {
     setPlatformForTests('linux');
     expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\Sub\\a.md'))).toBe(true);
@@ -76,7 +76,7 @@ describe('Bereichs-Grenze je Dateisystem-Verhalten (4T-1203)', () => {
   });
 });
 
-describe('isInsideArea (4T-0322)', () => {
+describe('isInsideArea (4T-000322)', () => {
   it('Dateien im Bereich und in Unterordnern liegen innerhalb', () => {
     expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\a.md'))).toBe(true);
     expect(isInsideArea(ROOT, P('C:\\Daten\\Notizen\\Sub\\Tiefer\\b.md'))).toBe(true);
@@ -114,7 +114,7 @@ describe('isInsideArea (4T-0322)', () => {
   });
 });
 
-describe('isSamePath (4T-0322)', () => {
+describe('isSamePath (4T-000322)', () => {
   it('erkennt denselben Ordner über Schreibweisen hinweg', () => {
     expect(isSamePath(ROOT, P('c:/daten/notizen/'))).toBe(true);
     expect(isSamePath(ROOT, P('C:\\Daten\\Notizen\\Sub'))).toBe(false);
@@ -122,7 +122,7 @@ describe('isSamePath (4T-0322)', () => {
   });
 });
 
-describe('updatedRecentAreas (4T-0325)', () => {
+describe('updatedRecentAreas (4T-000325)', () => {
   it('setzt den jüngsten Bereich nach vorn und dedupliziert über Pfad-Gleichheit', () => {
     const list = [P('C:\\A'), P('C:\\B')];
     expect(updatedRecentAreas(list, P('C:\\C'))).toEqual([P('C:\\C'), P('C:\\A'), P('C:\\B')]);
@@ -144,12 +144,12 @@ describe('updatedRecentAreas (4T-0325)', () => {
   });
 });
 
-// 4T-0888 (Epic 3E-0168): Derselbe Listen-Aufbau trägt seit dem
+// 4T-000888 (Epic 3E-000168): Derselbe Listen-Aufbau trägt seit dem
 // Konsistenz-Auftrag auch die Listen „Zuletzt geöffnete Bücher" und „Zuletzt
 // geöffnete Bücherregale" (Store-Schlüssel 'recentBooks'/'recentShelves').
-describe('updatedRecentPaths (4T-0888)', () => {
+describe('updatedRecentPaths (4T-000888)', () => {
   it('setzt den jüngsten Ordner nach vorn und dedupliziert über Pfad-Gleichheit', () => {
-    // 4T-0888
+    // 4T-000888
     expect(updatedRecentPaths([P('C:\\Buch1'), P('C:\\Buch2')], P('C:\\Buch3'))).toEqual([
       P('C:\\Buch3'),
       P('C:\\Buch1'),
@@ -164,7 +164,7 @@ describe('updatedRecentPaths (4T-0888)', () => {
   });
 
   it('kappt auf die Maximal-Länge und toleriert kaputte Eingaben', () => {
-    // 4T-0888
+    // 4T-000888
     const list = Array.from({ length: 10 }, (_, i) => P(`C:\\Regal${i}`));
     const result = updatedRecentPaths(list, P('C:\\Neu'));
     expect(result).toHaveLength(10);
@@ -181,9 +181,9 @@ describe('updatedRecentPaths (4T-0888)', () => {
   });
 });
 
-describe('withoutRecentPath (4T-0888)', () => {
+describe('withoutRecentPath (4T-000888)', () => {
   it('trägt genau den angegebenen Eintrag aus (Ziel existiert nicht mehr)', () => {
-    // 4T-0888
+    // 4T-000888
     const list = [P('C:\\Buch1'), P('C:\\Buch2'), P('C:\\Buch3')];
     expect(withoutRecentPath(list, P('C:\\Buch2'))).toEqual([P('C:\\Buch1'), P('C:\\Buch3')]);
     // Pfad-Gleichheit statt String-Gleichheit (Schreibweise, Trenner).
@@ -196,7 +196,7 @@ describe('withoutRecentPath (4T-0888)', () => {
   });
 });
 
-describe('sortedAreaListing (4T-0327)', () => {
+describe('sortedAreaListing (4T-000327)', () => {
   const isMd = (n) => n.toLowerCase().endsWith('.md');
 
   it('trennt Ordner und Markdown-Dateien, sortiert locale-bewusst und numerisch', () => {
@@ -223,7 +223,7 @@ describe('sortedAreaListing (4T-0327)', () => {
   });
 });
 
-describe('sanitizeNewFileName (4T-0328)', () => {
+describe('sanitizeNewFileName (4T-000328)', () => {
   it('ergänzt die Markdown-Endung und trimmt', () => {
     expect(sanitizeNewFileName('Notiz')).toBe('Notiz.md');
     expect(sanitizeNewFileName('  Plan.md  ')).toBe('Plan.md');
@@ -243,7 +243,7 @@ describe('sanitizeNewFileName (4T-0328)', () => {
   });
 });
 
-describe('areaFromRootPath (4T-0322)', () => {
+describe('areaFromRootPath (4T-000322)', () => {
   it('leitet den Bereichsnamen aus dem Ordnernamen ab', () => {
     expect(areaFromRootPath(P('C:\\Daten\\Notizen\\'))).toEqual({
       rootPath: P('C:\\Daten\\Notizen'),

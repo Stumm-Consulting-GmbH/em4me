@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-// 4T-0900 (Epic 3E-0016), Register-Paar 7: Vollstaendigkeits-Waechter ueber
+// 4T-000900 (Epic 3E-000016), Register-Paar 7: Vollstaendigkeits-Waechter ueber
 // EDITOR_COMMAND_FUNCTIONS in src/renderer/modules/editor/editor-keymaps.js
-// (4T-1002, Epic 3E-0196: die Tabelle zog mit dem Keymap-Auszug aus editor.js
+// (4T-001002, Epic 3E-000196: die Tabelle zog mit dem Keymap-Auszug aus editor.js
 // dorthin um).
 //
 // Die Registry markiert 45 Kommandos als editorScoped; ausgefuehrt werden sie
@@ -32,7 +32,7 @@ const { EDITOR_COMMAND_FUNCTIONS } = keymaps;
 const editorKommandos = COMMANDS.filter((c) => c.editorScoped).map((c) => c.id);
 const hinterlegt = Object.keys(EDITOR_COMMAND_FUNCTIONS);
 
-describe('Editor-Kommando-Funktionen: Vollständigkeit (4T-0900)', () => {
+describe('Editor-Kommando-Funktionen: Vollständigkeit (4T-000900)', () => {
   it('jedes editorScoped-Kommando hat eine hinterlegte Funktion', () => {
     // Untere Schranke gegen ein stilles Leerlaufen beider Mengen.
     expect(editorKommandos.length).toBeGreaterThan(40);

@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
-// 4T-0844 (Epic 3E-0147): Unit-Tests des Inhaltsverzeichnis-Panels (Story
-// 4S-0753). Geprüft werden die reinen Helfer (Pfad-Zuordnung des gelesenen
+// 4T-000844 (Epic 3E-000147): Unit-Tests des Inhaltsverzeichnis-Panels (Story
+// 4S-000753). Geprüft werden die reinen Helfer (Pfad-Zuordnung des gelesenen
 // Kapitels, Schrittweite der Leseführung, Beschriftung) und das Rendering
 // gegen einen gemockten Buch-Zustand: Baum in erklärter Reihenfolge,
 // Hervorhebung des gelesenen Kapitels, Anfasser-Marker an jedem Eintrag,
 // Markierung fehlender Kapitel, Abschnitt „nicht eingehängt" und der
-// Leer-Hinweis ohne aktives Buch. Dazu kommen die Struktur-Pflege (4T-0845),
-// das Verschieben der Kapitel-Datei (4T-0847) und die Reparatur fehlender
-// Kapitel (4T-0848).
+// Leer-Hinweis ohne aktives Buch. Dazu kommen die Struktur-Pflege (4T-000845),
+// das Verschieben der Kapitel-Datei (4T-000847) und die Reparatur fehlender
+// Kapitel (4T-000848).
 //
 // Der Preload-Namensraum `books` ist gemockt (Muster area-panel-render.test.js:
 // window.api-Stub plus Pane-Markup VOR dem Modul-Import, weil getPaneEls die
@@ -36,21 +36,21 @@ pane0.innerHTML = `
   </section>
 `;
 
-// 4T-0845: Kontextmenü-Container (dialogs.js greift ihn über die ID) und die
+// 4T-000845: Kontextmenü-Container (dialogs.js greift ihn über die ID) und die
 // Statusbar-Hinweiszeile stehen im Bestands-Markup der App; im Unit-Kontext
 // werden sie hier nachgestellt.
 document.body.insertAdjacentHTML('beforeend', '<div id="context-menu" hidden></div>');
 
 // Geöffnete Kapitel sammeln statt zu öffnen — der Klick-Weg ist damit prüfbar,
-// ohne den Main-Prozess zu brauchen. 4T-0845: dasselbe für die Struktur-
+// ohne den Main-Prozess zu brauchen. 4T-000845: dasselbe für die Struktur-
 // Operationen; `opAntwort` steuert den Fehlerfall.
 const geoeffnet = [];
 const gemeldeteOps = [];
 const angelegteKapitel = [];
-// 4T-0847: gemeldete Verschiebe-Aufrufe; `moveAntwort` steuert den Fehlerfall
+// 4T-000847: gemeldete Verschiebe-Aufrufe; `moveAntwort` steuert den Fehlerfall
 // (der Ordner-Dialog selbst läuft im Main und bleibt manueller Test).
 const verschoben = [];
-// 4T-0848: Vorschlags-Abrufe, gemeldete Zuordnungen und Datei-Dialog-Aufrufe;
+// 4T-000848: Vorschlags-Abrufe, gemeldete Zuordnungen und Datei-Dialog-Aufrufe;
 // `suggestAntwort` und `reassignAntwort` steuern Fund-Lage und Fehlerfall.
 const vorschlagsAbrufe = [];
 const zugeordnet = [];
@@ -92,7 +92,7 @@ window.api.books = {
   },
 };
 
-// 4T-0980 (Epic 3E-0196): book-panel.js ist in den Feature-Ordner books/
+// 4T-000980 (Epic 3E-000196): book-panel.js ist in den Feature-Ordner books/
 // geschnitten. Die reinen Helfer liegen in book-helpers.js, das Verschieben der
 // Kapitel-Datei in book-repair.js, Anzeige und Verdrahtung im Kern. Die
 // Testfälle selbst sind unverändert; nur die Bezugsquellen ziehen mit.
@@ -130,7 +130,7 @@ function buchStand() {
       readingOrder: ['Teil 1/Aufbruch.md', 'Teil 1/Der Hafen.md', 'Teil 2/Heimkehr.md'],
       unlinked: ['Notizen/Skizze.md'],
       missing: ['Teil 2/Heimkehr.md'],
-      // 4T-0848: namensgleicher Fund zum fehlenden Kapitel (der Main-Prozess
+      // 4T-000848: namensgleicher Fund zum fehlenden Kapitel (der Main-Prozess
       // legt ihn dem Zustand bei).
       missingSuggestions: { 'Teil 2/Heimkehr.md': ['Archiv/Heimkehr.md'] },
     },
@@ -160,7 +160,7 @@ const hinweis = () => document.getElementById('statusbar-hint');
 // Operation asynchron an die (gemockte) Preload-Brücke.
 const abwarten = () => new Promise((r) => setTimeout(r, 0));
 
-// 4T-0845: Die Ablage auf freier Fläche und das Kontextmenü der Panel-Fläche
+// 4T-000845: Die Ablage auf freier Fläche und das Kontextmenü der Panel-Fläche
 // hängen am beständigen Markup und werden einmalig in initBookPanel gebunden.
 initBookPanel();
 await abwarten();
@@ -216,8 +216,8 @@ beforeEach(() => {
   pane0.querySelectorAll('.book-reassign').forEach((el) => el.remove());
 });
 
-describe('Reine Helfer (4T-0844)', () => {
-  // 4T-1276 (Epic 3E-0232): Trenner und Schluss-Trenner vereinheitlicht `pathKey`
+describe('Reine Helfer (4T-000844)', () => {
+  // 4T-001276 (Epic 3E-000232): Trenner und Schluss-Trenner vereinheitlicht `pathKey`
   // unverändert selbst; die SCHREIBWEISE kommt seither von der zentralen
   // Plattform-Auskunft und ist damit plattformabhängig. Als Paar geprüft.
   it('pathKey vereinheitlicht Trenner, Schluss-Trenner und Schreibweise', () => {
@@ -238,7 +238,7 @@ describe('Reine Helfer (4T-0844)', () => {
     );
   });
 
-  // 4T-1276 (Epic 3E-0232): Die Grenzprüfung «liegt die Datei im Buch-Ordner»
+  // 4T-001276 (Epic 3E-000232): Die Grenzprüfung «liegt die Datei im Buch-Ordner»
   // fragt seither die zentrale Plattform-Auskunft. Ob eine abweichend
   // geschriebene Ordner-Angabe denselben Ordner meint, ist damit eine Frage an
   // das Dateisystem und keine Konstante — geprüft als Paar mit injizierter
@@ -295,7 +295,7 @@ describe('Reine Helfer (4T-0844)', () => {
   });
 });
 
-describe('Rendering des Inhaltsverzeichnisses (4T-0844)', () => {
+describe('Rendering des Inhaltsverzeichnisses (4T-000844)', () => {
   it('ohne aktives Buch bleibt der Leer-Hinweis stehen', () => {
     renderBookPanel(0);
     expect(pane0.querySelector('.book-empty').hidden).toBe(false);
@@ -381,7 +381,7 @@ describe('Rendering des Inhaltsverzeichnisses (4T-0844)', () => {
   });
 });
 
-describe('Lesefuehrung im Panel-Kopf (4T-0844)', () => {
+describe('Lesefuehrung im Panel-Kopf (4T-000844)', () => {
   it('ohne gelesenes Kapitel fuehrt vor zum ersten Kapitel, zurueck ist gesperrt', () => {
     setzeReiter(`${BOOK_DIR}\\Reise nach Ithaka.md`);
     setBookState(buchStand());
@@ -410,9 +410,9 @@ describe('Lesefuehrung im Panel-Kopf (4T-0844)', () => {
   });
 });
 
-// --- 4T-0846 (Story 4S-0755): Leseführung über Kapitel-Grenzen --------------
+// --- 4T-000846 (Story 4S-000755): Leseführung über Kapitel-Grenzen --------------
 
-describe('Leseführung über Kapitel-Grenzen (4T-0846)', () => {
+describe('Leseführung über Kapitel-Grenzen (4T-000846)', () => {
   it('AK1: der Schritt folgt der Lese-Ordnung über Datei- und Ebenen-Grenzen', () => {
     // Von einem Kapitel in sein Unterkapitel, von dort in den nächsten Teil:
     // ein Kapitel steht vor seinen Unterkapiteln, danach die Geschwister.
@@ -461,9 +461,9 @@ describe('Leseführung über Kapitel-Grenzen (4T-0846)', () => {
   });
 });
 
-// --- 4T-0847 (Story 4S-0756): Kapitel-Datei verschieben -----------------------
+// --- 4T-000847 (Story 4S-000756): Kapitel-Datei verschieben -----------------------
 
-describe('Kapitel-Datei verschieben (4T-0847)', () => {
+describe('Kapitel-Datei verschieben (4T-000847)', () => {
   it('das Kontextmenü trägt den Eintrag auf Kapitel- und auf losen Zeilen', () => {
     setBookState(buchStand());
     rechtsklick(zeileMit('Teil 1/Aufbruch.md'));
@@ -543,11 +543,11 @@ describe('Kapitel-Datei verschieben (4T-0847)', () => {
   });
 });
 
-// --- 4T-0845 (Story 4S-0754): Struktur-Pflege ---------------------------------
+// --- 4T-000845 (Story 4S-000754): Struktur-Pflege ---------------------------------
 
 const BAUM = buchStand().active.tree;
 
-describe('Ziel-Berechnung der Ablage (4T-0845)', () => {
+describe('Ziel-Berechnung der Ablage (4T-000845)', () => {
   it('dropZone drittelt die Zeile in davor, hinein und dahinter', () => {
     expect(dropZone(2, 30)).toBe('before');
     expect(dropZone(15, 30)).toBe('into');
@@ -556,7 +556,7 @@ describe('Ziel-Berechnung der Ablage (4T-0845)', () => {
     expect(dropZone(0, 0)).toBe('into');
   });
 
-  // 4T-1276 (Epic 3E-0232): Die Schlüssel kommen aus `pathKey`, das seit der
+  // 4T-001276 (Epic 3E-000232): Die Schlüssel kommen aus `pathKey`, das seit der
   // Umstellung die zentrale Plattform-Auskunft fragt. Ihre Schreibweise ist
   // damit plattformabhängig, und die frühere Erwartung fest kleingeschriebener
   // Schlüssel galt nur unter Windows — unter Linux war der Fall rot. Geprüft
@@ -636,7 +636,7 @@ describe('Ziel-Berechnung der Ablage (4T-0845)', () => {
   });
 });
 
-describe('Drag and Drop im Panel (4T-0845)', () => {
+describe('Drag and Drop im Panel (4T-000845)', () => {
   it('AK1: die Ablage in der Mitte meldet genau eine Operation', async () => {
     setBookState(buchStand());
     await ziehen(zeileMit('Teil 2/Heimkehr.md'), zeileMit('Teil 1/Aufbruch.md'), 15);
@@ -686,7 +686,7 @@ describe('Drag and Drop im Panel (4T-0845)', () => {
   });
 });
 
-describe('Tastatur-Gesten am Eintrag (4T-0845)', () => {
+describe('Tastatur-Gesten am Eintrag (4T-000845)', () => {
   it('AK2: Alt und die Pfeiltasten decken alle vier Verschiebungen ab', async () => {
     setBookState(buchStand());
     const zeile = zeileMit('Teil 2/Heimkehr.md');
@@ -730,7 +730,7 @@ describe('Tastatur-Gesten am Eintrag (4T-0845)', () => {
   });
 });
 
-describe('Kontextmenü des Inhaltsverzeichnisses (4T-0845)', () => {
+describe('Kontextmenü des Inhaltsverzeichnisses (4T-000845)', () => {
   it('AK3: eine Baum-Zeile bietet neues Kapitel und Aushängen', async () => {
     setBookState(buchStand());
     rechtsklick(zeileMit('Teil 1/Aufbruch.md'));
@@ -787,7 +787,7 @@ describe('Kontextmenü des Inhaltsverzeichnisses (4T-0845)', () => {
   });
 });
 
-// --- 4T-0848 (Story 4S-0757): Reparatur fehlender Kapitel ---------------------
+// --- 4T-000848 (Story 4S-000757): Reparatur fehlender Kapitel ---------------------
 
 const zuordnung = () => pane0.querySelector('.book-reassign');
 const zuordnungsOptionen = () => [...pane0.querySelectorAll('.book-reassign-option')];
@@ -799,7 +799,7 @@ async function starteZuordnung() {
   await abwarten();
 }
 
-describe('Reparatur fehlender Kapitel (4T-0848)', () => {
+describe('Reparatur fehlender Kapitel (4T-000848)', () => {
   it('AK1: der Fund wird am fehlenden Eintrag angezeigt, ohne das Menü zu öffnen', () => {
     setBookState(buchStand());
     const fehlt = zeileMit('Teil 2/Heimkehr.md');
@@ -942,7 +942,7 @@ describe('Reparatur fehlender Kapitel (4T-0848)', () => {
   });
 });
 
-describe('Rückmeldung abgelehnter Operationen (4T-0845)', () => {
+describe('Rückmeldung abgelehnter Operationen (4T-000845)', () => {
   it('eine abgelehnte Operation erklärt sich in der Statuszeile', async () => {
     setBookState(buchStand());
     opAntwort = { ok: false, error: 'cycle' };

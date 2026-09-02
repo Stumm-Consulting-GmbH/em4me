@@ -1,4 +1,4 @@
-// 4T-1048 (Epic 3E-0151): Auflösung der Mindmap-Darstellungs-Optionen.
+// 4T-001048 (Epic 3E-000151): Auflösung der Mindmap-Darstellungs-Optionen.
 //
 // Zwei Ebenen (Konzept-Entscheidung des Product Owners vom 2026-08-14, als
 // Abweichung vom dreistufigen Ideen-Text gekennzeichnet): eine anwendungsweite
@@ -17,7 +17,7 @@
 // Erlaubte Werte der Aufzählungs-Optionen. Sie stehen hier und nicht in der
 // Ansicht, damit Einstellungs-Bereich, Auflösung und Prüfung dieselbe Quelle
 // lesen.
-// 4T-1049: Die Werte benennen die **Lage der Wurzel**, nicht die
+// 4T-001049: Die Werte benennen die **Lage der Wurzel**, nicht die
 // Wuchsrichtung: «links» heißt Wurzel links und Äste nach rechts. Die
 // Reihenfolge ist die des Einstellungs-Menüs und folgt der Anschauung
 // (waagerecht von links über die Mitte nach rechts, dann senkrecht).

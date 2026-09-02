@@ -1,11 +1,11 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 5 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 5 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Backlinks-Sektion, Lesezeichen-Sektion. */
 
-/* === Backlinks-Sektion (4T-0015) ========================================= */
-/* 4T-0288: border-top entfernt — Block-Trenner setzt das Slot-Mounting
+/* === Backlinks-Sektion (4T-000015) ========================================= */
+/* 4T-000288: border-top entfernt — Block-Trenner setzt das Slot-Mounting
    positionsbasiert (.sidebar-sep). */
 .sidebar-backlinks {
   flex: 1 1 auto;
@@ -44,7 +44,7 @@
   display: flex;
   flex-direction: column;
 }
-/* S-05 (4T-0183): nie matchender Sibling-Selektor entfernt — der Status
+/* S-05 (4T-000183): nie matchender Sibling-Selektor entfernt — der Status
    steht im DOM vor den Results; die generische [hidden]-Regel oben genuegt. */
 .backlinks-group {
   border-bottom: 1px solid var(--border);
@@ -63,7 +63,7 @@
   background: var(--hover);
   color: var(--accent);
 }
-/* 4T-0347 (Epic 3E-0062): zweizeiliger Header — Basename prominent, darunter
+/* 4T-000347 (Epic 3E-000062): zweizeiliger Header — Basename prominent, darunter
    der Ordner relativ zur Index-Wurzel (Muster der Tag-Datei-Liste). Ellipsis
    pro Zeile, da name/dir eigene Block-Elemente sind. */
 .backlinks-group-name {
@@ -102,8 +102,8 @@
   font-size: 11px;
 }
 
-/* === Bookmarks-Sektion (4T-0075) ========================================== */
-/* 4T-0288: border-top entfernt — Block-Trenner via .sidebar-sep. */
+/* === Bookmarks-Sektion (4T-000075) ========================================== */
+/* 4T-000288: border-top entfernt — Block-Trenner via .sidebar-sep. */
 .sidebar-bookmarks {
   flex: 1 1 auto;
   min-height: 100px;
@@ -119,7 +119,7 @@
 .bookmarks-area-empty[hidden] {
   display: none;
 }
-/* 4T-0612 (Epic 3E-0115): Abschnitts-Gruppen und ihre Koepfe. Die Koepfe
+/* 4T-000612 (Epic 3E-000115): Abschnitts-Gruppen und ihre Koepfe. Die Koepfe
    erscheinen nur bei geoeffnetem Bereich (Renderer setzt hidden), damit das
    Panel ohne Bereich wie bisher als ein einziger Abschnitt wirkt. */
 .bookmarks-group[hidden] {
@@ -175,7 +175,7 @@
 .bookmark-chevron.is-open {
   transform: rotate(90deg);
 }
-/* 4T-0079: Spacer fuer File-Knoten in der Bookmark-Sidebar, damit das
+/* 4T-000079: Spacer fuer File-Knoten in der Bookmark-Sidebar, damit das
    File-Icon auf der gleichen X-Position wie das Folder-Icon derselben
    Ebene landet. Gleiche Breite wie .bookmark-chevron. */
 .bookmark-chevron-spacer {
@@ -205,7 +205,7 @@
   fill: currentColor;
 }
 
-/* 4T-0079: Drag-and-Drop-Indikatoren.
+/* 4T-000079: Drag-and-Drop-Indikatoren.
    - before/after: horizontaler 2px-Strich am oberen bzw. unteren Rand.
    - into: Rahmen-Highlight am ganzen Folder-Knoten plus leichte Toenung.
    - is-drop-root: dezenter Strich am unteren Rand der ganzen Sektion. */
@@ -233,7 +233,7 @@
   outline-offset: -1px;
   background: var(--hover);
 }
-/* 4T-0612 (Epic 3E-0115): Root-Drop-Indikator pro Abschnitt (der Drop legt am
+/* 4T-000612 (Epic 3E-000115): Root-Drop-Indikator pro Abschnitt (der Drop legt am
    Ende der Wurzel des jeweiligen Abschnitts ab; Drag-and-Drop bleibt strikt
    innerhalb des eigenen Abschnitts). */
 .bookmarks-group.is-drop-root {
@@ -246,7 +246,7 @@
   cursor: grabbing;
 }
 
-/* 4T-0078: Inline-Edit-Input fuer Bookmark-/Folder-Namen. */
+/* 4T-000078: Inline-Edit-Input fuer Bookmark-/Folder-Namen. */
 .bookmark-inline-edit-input {
   flex: 1 1 auto;
   min-width: 0;
@@ -260,14 +260,14 @@
   outline: none;
 }
 
-/* 4T-0078: destruktive Kontext-Menue-Variante. (S-06/4T-0183: die hier
+/* 4T-000078: destruktive Kontext-Menue-Variante. (S-06/4T-000183: die hier
    doppelt vorhandene .context-menu-separator-Definition ist entfernt;
    die Heimat ist der Kontextmenue-Block weiter unten.) */
 .context-menu-item-danger {
   color: var(--linter-warn);
 }
 
-/* 4T-0078: Bookmark-Modals (Bestaetigungs-Dialog und Move-Picker). */
+/* 4T-000078: Bookmark-Modals (Bestaetigungs-Dialog und Move-Picker). */
 .bookmark-modal {
   position: fixed;
   inset: 0;
@@ -279,7 +279,7 @@
 .bookmark-modal[hidden] {
   display: none;
 }
-/* 4T-0633 (Epic 3E-0102): Der Namens-und-Farb-Dialog der Arbeitsbereiche
+/* 4T-000633 (Epic 3E-000102): Der Namens-und-Farb-Dialog der Arbeitsbereiche
    oeffnet auch AUS dem Verwaltungs-Dialog heraus ("Umbenennen und Farbe...").
    Beide teilen sich .bookmark-modal (z-index 3000); der Verwaltungs-Dialog
    steht spaeter im DOM und ueberdeckte den Dialog deshalb. Eine Stufe
@@ -332,7 +332,7 @@
   filter: brightness(1.08);
 }
 
-/* 4T-0341 (Epic 3E-0061): Unterseiten-Breadcrumb ueber dem Dokument.
+/* 4T-000341 (Epic 3E-000061): Unterseiten-Breadcrumb ueber dem Dokument.
    Zwei Instanzen pro Pane (Render-/Source-Pane, data-host); Theming ueber
    die bestehenden Variablen, im Druck (PDF-Export) ausgeblendet. */
 .subpage-breadcrumb {
@@ -374,7 +374,7 @@
   }
 }
 
-/* 4T-0607 (Epic 3E-0114): Format-Toolbar oberhalb des Editors (pro Pane,
+/* 4T-000607 (Epic 3E-000114): Format-Toolbar oberhalb des Editors (pro Pane,
    erstes Kind von .pane-source). Sichtbarkeit schaltet format-toolbar.js
    ueber das hidden-Attribut; overflow:hidden traegt die Ueberlauf-Messung
    (scrollWidth > clientWidth, Muster Statusbar-Segment). */
@@ -398,7 +398,7 @@
   flex: 0 0 auto;
 }
 
-/* 4T-0585 (Epic 3E-0108): Titelzeile („Zeile 0") — Dateiname in kompakter
+/* 4T-000585 (Epic 3E-000108): Titelzeile („Zeile 0") — Dateiname in kompakter
    Ueberschrift-1-Optik ueber dem Dokument, ohne Zeilennummer. Zwei
    Instanzen pro Pane (data-host wie beim Subpage-Breadcrumb): im
    Source-Pane scroll-festes Flex-Kind ueber .pane-source-editor, im
@@ -426,14 +426,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   outline: none;
-  /* 4T-0586: Klick macht den Titel editierbar. */
+  /* 4T-000586: Klick macht den Titel editierbar. */
   cursor: text;
 }
 .title-line-text:focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
 }
-/* 4T-0646 (Epic 3E-0128): Der Eltern-Anteil einer Unterseite ist dauerhaft
+/* 4T-000646 (Epic 3E-000128): Der Eltern-Anteil einer Unterseite ist dauerhaft
    gedaempft und nie editierbar; das eigene Segment traegt die normale
    Vordergrund-Farbe. Die Grenze ist damit sichtbar, bevor jemand klickt. */
 .title-line-prefix {
@@ -495,7 +495,7 @@
   flex: 0 0 auto;
 }
 
-/* 4T-0608 (Epic 3E-0114): Tabellen-Raster-Picker der Format-Toolbar
+/* 4T-000608 (Epic 3E-000114): Tabellen-Raster-Picker der Format-Toolbar
    (Popup-Optik des Kontextmenues, 8x8-Hover-Raster mit Live-
    Beschriftung). */
 .table-grid-picker {
@@ -537,7 +537,7 @@
   color: var(--fg-muted);
 }
 
-/* 4T-0341: Unterseiten-Sektion in der Sidebar (Zeilen wie die Bereichs-
+/* 4T-000341: Unterseiten-Sektion in der Sidebar (Zeilen wie die Bereichs-
    Dateiliste). */
 .subpages-entry {
   padding: 3px 10px;
@@ -556,7 +556,7 @@
   font-size: 0.9em;
 }
 
-/* 4T-0338 (Epic 3E-0061): generischer Namens-Eingabe-Dialog. */
+/* 4T-000338 (Epic 3E-000061): generischer Namens-Eingabe-Dialog. */
 .name-input-field {
   width: 100%;
   box-sizing: border-box;
@@ -577,7 +577,7 @@
   margin: 8px 0 0;
 }
 
-/* 4T-0426 (Epic 3E-0080): Vorlagen-Auswahl-Popup und select-Dialog —
+/* 4T-000426 (Epic 3E-000080): Vorlagen-Auswahl-Popup und select-Dialog —
    Listen-Optik nach dem Muster .alias-candidates, plus Gruppen-Zeilen
    (Unterordner) und aktiver Pfeiltasten-Eintrag. */
 .template-picker-list {
@@ -624,7 +624,7 @@
   padding: 8px 2px;
 }
 
-/* 4T-0480 (Epic 3E-0089): Kommando-Palette. Erbt Listen-Grundgeruest vom
+/* 4T-000480 (Epic 3E-000089): Kommando-Palette. Erbt Listen-Grundgeruest vom
    Vorlagen-Picker; Items zeigen Name links und Kuerzel rechts, im Kontext
    nicht verfuegbare Kommandos erscheinen gedimmt und ohne Klick-Wirkung. */
 .command-palette-list button.command-palette-item {
@@ -656,7 +656,7 @@
   background: transparent;
 }
 
-/* 4T-0346 (Epic 3E-0062): Link-Update-Checkboxen im Umbenennen-Dialog. */
+/* 4T-000346 (Epic 3E-000062): Link-Update-Checkboxen im Umbenennen-Dialog. */
 .name-input-checkboxes {
   display: flex;
   flex-direction: column;
@@ -675,7 +675,7 @@
   color: var(--fg-muted);
 }
 
-/* 4T-0346: Vorschau- und Bericht-Dialog des Link-Updates. */
+/* 4T-000346: Vorschau- und Bericht-Dialog des Link-Updates. */
 .link-update-modal {
   min-width: 480px;
 }
@@ -723,7 +723,7 @@
   color: var(--fg-muted);
 }
 
-/* 4T-0078: Move-Picker-Tree. */
+/* 4T-000078: Move-Picker-Tree. */
 .bookmark-move-source {
   font-size: 0.9em;
   color: var(--fg-muted);

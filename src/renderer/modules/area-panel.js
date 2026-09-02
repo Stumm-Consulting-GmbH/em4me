@@ -1,4 +1,4 @@
-// 4T-0327 (Epic 3E-0059): Bereichs-Panel — Ordnerbaum des Bereichs oben,
+// 4T-000327 (Epic 3E-000059): Bereichs-Panel — Ordnerbaum des Bereichs oben,
 // Markdown-Dateiliste des ausgewaehlten Ordners darunter. Registriert sich
 // als siebtes Panel an der Sidebar-Registry (links/rechts andockbar,
 // Reiter-Gruppen-faehig); ohne aktiven Bereich zeigt der Body einen
@@ -15,26 +15,26 @@ import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js'
 // Sichtbarkeits-Anwendung laeuft ueber das Slot-Mounting der dynamischen
 // Sidebar (Muster der Bestands-Panels in panels.js).
 import { applySidebarVisibility } from './panels/panels.js';
-// 4T-0568 (Epic 3E-0104): reportMenuStateNow — Haekchen im Panel-Untermenue
+// 4T-000568 (Epic 3E-000104): reportMenuStateNow — Haekchen im Panel-Untermenue
 // folgt dem Toggle (Muster panels.js).
 import { openInPane, reportMenuStateNow } from './tabs/tabs.js';
 import { persistSetting, showStatusbarHint, updateEmptyState } from './views/views.js';
-// 4T-0427 (Epic 3E-0080): Ordner-Regel-Trigger für "Neue Datei in diesem
+// 4T-000427 (Epic 3E-000080): Ordner-Regel-Trigger für "Neue Datei in diesem
 // Ordner" (gemeinsamer Einhak-Punkt der App-Anlagen).
 import { openCreatedFileWithRule } from './templates.js';
-// 4T-1365 (Epic 3E-0171): Start-Seite (Merker, Kennzeichnung) und die
+// 4T-001365 (Epic 3E-000171): Start-Seite (Merker, Kennzeichnung) und die
 // Kontextmenues des Panels als eigene Module; beide Abhaengigkeiten laufen nur
 // in diese Richtung.
 import { ladeStartSeite, markiereStartSeite } from './area-start-page.js';
 import { showAreaFileContextMenu, showAreaPanelContextMenu } from './area-panel-menus.js';
-// 4T-1225 (Epic 3E-0122, Befund F1 des Linux-Nachweises): Pfad-Trenner und
+// 4T-001225 (Epic 3E-000122, Befund F1 des Linux-Nachweises): Pfad-Trenner und
 // Vergleichs-Verhalten kommen aus dem zentralen Plattform-Modul; der frueher
 // hart verdrahtete Backslash liess unter Linux Pfade wie `/bereich\ordner`
 // entstehen, deren Listing still leer blieb.
 import { isFilesystemCaseInsensitive, pathSeparator } from '../../shared/platform.js';
 
 // Listing-Cache pro Ordner-Pfad ({ dirs, files }). Wird beim Bereichs-
-// Wechsel und bei Watcher-Ereignissen (4T-0328) verworfen.
+// Wechsel und bei Watcher-Ereignissen (4T-000328) verworfen.
 const listingCache = new Map();
 
 export function invalidateAreaListings() {
@@ -114,7 +114,7 @@ function buildDirRow(paneIdx, dirPath, name, depth, hasChildren) {
 }
 
 // Vergleich fuer die Selektions-Hervorhebung — lokale Kopie ohne Import-Kette
-// zu area.js. 4T-1225: Kleinschreibung und Backslash-Normierung gelten nur auf
+// zu area.js. 4T-001225: Kleinschreibung und Backslash-Normierung gelten nur auf
 // case-insensitiven Dateisystemen (zentrale Plattform-Auskunft); unter Linux
 // sind zwei nur in der Schreibweise verschiedene Pfade zwei Orte, und der
 // Backslash ist dort ein legales Namenszeichen.
@@ -139,7 +139,7 @@ async function renderDirInto(container, paneIdx, dirPath, name, depth) {
   }
 }
 
-// 4T-0612 (Epic 3E-0115, PO-Testbefund): Dateiliste eines Ordners in ein
+// 4T-000612 (Epic 3E-000115, PO-Testbefund): Dateiliste eines Ordners in ein
 // losgeloestes Fragment bauen statt direkt in den Live-Container zu haengen.
 // Der Aufrufer (renderAreaPanel) setzt das Fragment token-geschuetzt ein, damit
 // ueberlappende Render-Laeufe sich nicht ins Gehege kommen.
@@ -159,11 +159,11 @@ async function buildFilesFragment(paneIdx, dirPath) {
     row.className = 'area-file-row';
     row.textContent = name;
     row.title = full;
-    markiereStartSeite(row, full); // 4T-1365 (Epic 3E-0171)
+    markiereStartSeite(row, full); // 4T-001365 (Epic 3E-000171)
     row.addEventListener('click', () => {
       openInPane(paneIdx, [full]);
     });
-    // 4T-0612 (Epic 3E-0115): Rechtsklick auf eine Datei-Zeile bietet "Als
+    // 4T-000612 (Epic 3E-000115): Rechtsklick auf eine Datei-Zeile bietet "Als
     // Bereichs-Lesezeichen" an (nur bei aktiver Lesezeichen-Erweiterung).
     row.addEventListener('contextmenu', (ev) =>
       showAreaFileContextMenu(ev, full, refreshSichtbareAreaPanels),
@@ -173,7 +173,7 @@ async function buildFilesFragment(paneIdx, dirPath) {
   return frag;
 }
 
-// 4T-1365 (Epic 3E-0171): Neuaufbau aller sichtbaren Bereichs-Panels; als
+// 4T-001365 (Epic 3E-000171): Neuaufbau aller sichtbaren Bereichs-Panels; als
 // Rueckruf an die Kontextmenues gereicht, damit dort kein Rueckgriff auf dieses
 // Modul noetig ist (kein Zyklus).
 function refreshSichtbareAreaPanels() {
@@ -182,7 +182,7 @@ function refreshSichtbareAreaPanels() {
   }
 }
 
-// 4T-0328: Inline-Eingabe fuer "Neue Datei in diesem Ordner" — erscheint am
+// 4T-000328: Inline-Eingabe fuer "Neue Datei in diesem Ordner" — erscheint am
 // Kopf der Dateiliste; Enter legt an und oeffnet, Escape bricht ab.
 function showNewFileInput(paneIdx) {
   const els = getPaneEls(paneIdx);
@@ -209,7 +209,7 @@ function showNewFileInput(paneIdx) {
       input.remove();
       listingCache.delete(dir);
       await renderAreaPanel(paneIdx);
-      // 4T-0427 (Epic 3E-0080): Datei-Anlage über die App durchläuft den
+      // 4T-000427 (Epic 3E-000080): Datei-Anlage über die App durchläuft den
       // Ordner-Regel-Trigger (Vorlage füllen, öffnen, Cursor-Sprung).
       await openCreatedFileWithRule(paneIdx, result.path);
       return;
@@ -222,7 +222,7 @@ function showNewFileInput(paneIdx) {
   input.focus();
 }
 
-// 4T-0612 (Epic 3E-0115, PO-Testbefund EXE 0.91.0.919): Concurrency-Token pro
+// 4T-000612 (Epic 3E-000115, PO-Testbefund EXE 0.91.0.919): Concurrency-Token pro
 // Pane gegen doppelte Baum-Listen. renderAreaPanel ist async und haengt seine
 // Zeilen ueber mehrere await-Punkte hinweg an; zwei ueberlappende Laeufe
 // derselben Pane (etwa der Bereichs-Wechsel-Push refreshAreaPanels und das
@@ -244,7 +244,7 @@ export async function renderAreaPanel(paneIdx) {
 
   const token = ++areaRenderToken[paneIdx];
   const root = state.areaPath;
-  // 4T-1365 (Epic 3E-0171): Start-Seite vor dem Aufbau lesen, damit die
+  // 4T-001365 (Epic 3E-000171): Start-Seite vor dem Aufbau lesen, damit die
   // Kennzeichnung der Datei-Zeilen synchron entscheidbar bleibt.
   await ladeStartSeite();
   if (token !== areaRenderToken[paneIdx]) return;
@@ -276,7 +276,7 @@ export async function renderAreaPanel(paneIdx) {
 export function getAreaPanelVisible(paneIdx) {
   // Dreiwertige Praeferenz (app-state.js): Default sichtbar in Spalte 0
   // einer Bereichs-App — auch im Empty-State (dort ist das Panel der
-  // Einstieg zur ersten Datei). 4T-0330 (PO-Testbefund): KEIN erzwungenes
+  // Einstieg zur ersten Datei). 4T-000330 (PO-Testbefund): KEIN erzwungenes
   // Sichtbar mehr am Schalter vorbei; der Statusbar-Toggle gilt auch ohne
   // offene Datei.
   return areaPanelVisiblePref(paneIdx);
@@ -306,11 +306,11 @@ export async function toggleAreaPanel(paneIdx) {
   state.areaPanel.visibleByPane[paneIdx] = next;
   if (next) await ensurePanelTabActive('area', paneIdx);
   applyAreaPanelVisibility(paneIdx);
-  // 4T-0330: im Empty-State haengt die Pane-Container-Sichtbarkeit an den
+  // 4T-000330: im Empty-State haengt die Pane-Container-Sichtbarkeit an den
   // Panel-Praeferenzen — nachziehen, damit Aus-Schalten die Sidebar ausblendet.
   updateEmptyState();
   await persistAreaPanelSettings();
-  // 4T-0568 (Epic 3E-0104): Menue-Haekchen nachziehen (Muster panels.js).
+  // 4T-000568 (Epic 3E-000104): Menue-Haekchen nachziehen (Muster panels.js).
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
     reportMenuStateNow();
   }
@@ -346,7 +346,7 @@ export function refreshAreaPanels() {
   }
 }
 
-// 4T-0328: Struktur-Aenderungen im Bereich (Main-Watcher, debounced) —
+// 4T-000328: Struktur-Aenderungen im Bereich (Main-Watcher, debounced) —
 // Listings neu lesen, sichtbare Panels unter Erhalt von Aufklapp- und
 // Auswahl-Zustand neu rendern. Synchron beim Modul-Laden registriert.
 if (typeof api.onAreaChanged === 'function') {
@@ -358,10 +358,10 @@ if (typeof api.onAreaChanged === 'function') {
   });
 }
 
-// 4T-0455 (Epic 3E-0084): Kontextmenü des Bereichs-Panels auf freier Fläche.
+// 4T-000455 (Epic 3E-000084): Kontextmenü des Bereichs-Panels auf freier Fläche.
 // Listener auf die ganze Sektion (Muster Bookmarks-Sektion); Rechtsklicks auf
 // Datei-Zeilen fängt showAreaFileContextMenu vorher ab (stopPropagation) und
-// nimmt die Panel-Einträge dort mit auf. Beide Menüs liegen seit 4T-1365 in
+// nimmt die Panel-Einträge dort mit auf. Beide Menüs liegen seit 4T-001365 in
 // area-panel-menus.js.
 for (let i = 0; i < 2; i++) {
   const els = getPaneEls(i);
@@ -370,7 +370,7 @@ for (let i = 0; i < 2; i++) {
   }
 }
 
-// 4T-0328: "+"-Buttons am Dateilisten-Kopf beider Panes verdrahten (statisches
+// 4T-000328: "+"-Buttons am Dateilisten-Kopf beider Panes verdrahten (statisches
 // Markup, einmalige Bindung beim Modul-Laden).
 for (let i = 0; i < 2; i++) {
   const els = getPaneEls(i);
@@ -379,7 +379,7 @@ for (let i = 0; i < 2; i++) {
   }
 }
 
-// 4T-0330 (PO-Testbefund-Nachlauf): Statusbar-Toggle synchron beim Modul-
+// 4T-000330 (PO-Testbefund-Nachlauf): Statusbar-Toggle synchron beim Modul-
 // Laden binden statt in init() — das Panel ist ueber den fruehen
 // DisplayInfo-Push schon sichtbar, bevor init() durch ist; ein Klick in
 // dieser Phase verpuffte sonst wirkungslos.

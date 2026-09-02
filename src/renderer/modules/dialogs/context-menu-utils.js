@@ -1,6 +1,6 @@
 // Generische Kontextmenue-Helfer: Aufbau der Eintraege, viewport-feste
 // Platzierung von Menue und Submenue, Schliessen.
-// 4T-0978 (Epic 3E-0196): aus modules/dialogs/dialogs.js ausgezogen (reiner
+// 4T-000978 (Epic 3E-000196): aus modules/dialogs/dialogs.js ausgezogen (reiner
 // Struktur-Schnitt, Funktions-Ruempfe unveraendert). Das Modul ist bewusst
 // frei von Fach-Bezuegen — es kennt weder Reiter noch Lesezeichen und darf
 // deshalb von jedem Bereich importiert werden, ohne Zyklen zu erzeugen.
@@ -12,7 +12,7 @@ import { contextMenu } from '../app/app-state.js';
 
 // Schließ-Haken: Wer eigenen Zustand an das gemeinsame #context-menu bindet,
 // meldet hier eine Aufräum-Funktion an, die hideContextMenu mitruft.
-// 4T-0978: Vorher setzte hideContextMenu die Gruppen-Menü-Besitzkennung
+// 4T-000978: Vorher setzte hideContextMenu die Gruppen-Menü-Besitzkennung
 // direkt zurück. Nach dem Schnitt liegt dieser Zustand in tabs/, weshalb der
 // generische Helfer ihn nicht mehr sehen darf; die Anmeldung dreht die
 // Abhängigkeit um (tabs meldet sich bei dialogs an) und hält den
@@ -23,7 +23,7 @@ export function registerContextMenuCloseHook(fn) {
   if (typeof fn === 'function') schliessHaken.push(fn);
 }
 
-// R3-10 (4T-0187): gemeinsame Viewport-Klemmung fuer alle Kontextmenues
+// R3-10 (4T-000187): gemeinsame Viewport-Klemmung fuer alle Kontextmenues
 // (Tab-Menue und Bookmark-Menue) — vorher klemmte nur das Tab-Menue und
 // das Bookmark-Menue konnte unten/rechts aus dem Fenster ragen.
 export function placeContextMenuAt(menu, clientX, clientY) {
@@ -39,7 +39,7 @@ export function placeContextMenuAt(menu, clientX, clientY) {
   menu.style.top = `${y}px`;
 }
 
-// 4T-0012: Baut ein Kontextmenue-Item (oder Submenu-Item). Unterstuetzt drei
+// 4T-000012: Baut ein Kontextmenue-Item (oder Submenu-Item). Unterstuetzt drei
 // Formen: Separator (`{separator: true}`), normaler Eintrag (`{key|label, action}`),
 // Submenu-Eintrag (`{key|label, submenu: [...]}`). Submenus sind DOM-Kinder
 // des Wrappers, damit der globale Outside-Click-Handler sie nicht abwuergt.
@@ -54,7 +54,7 @@ export function appendContextMenuItem(parent, item) {
   if (Array.isArray(item.submenu) && item.submenu.length > 0) {
     const wrapper = document.createElement('div');
     wrapper.className = 'context-menu-item context-menu-item-submenu';
-    // 4T-0378: optionale Selektor-Kennung auch am Submenü-Wrapper (z.B. Format).
+    // 4T-000378: optionale Selektor-Kennung auch am Submenü-Wrapper (z.B. Format).
     if (item.dataId) wrapper.dataset.menuId = item.dataId;
     const lbl = document.createElement('span');
     lbl.className = 'context-menu-item-label';
@@ -97,9 +97,9 @@ export function appendContextMenuItem(parent, item) {
   const div = document.createElement('div');
   div.className = 'context-menu-item';
   div.textContent = label;
-  // 4T-0377: optionale Test-/Selektor-Kennung (z.B. Klipboard-Aktionen).
+  // 4T-000377: optionale Test-/Selektor-Kennung (z.B. Klipboard-Aktionen).
   if (item.dataId) div.dataset.menuId = item.dataId;
-  // 4T-0379: optionales Zustands-Häkchen (Absatz-Submenü). checked === false
+  // 4T-000379: optionales Zustands-Häkchen (Absatz-Submenü). checked === false
   // reserviert die Häkchen-Spalte fürs Alignment, checked === true zeigt ✓.
   if (item.checked !== undefined) {
     div.classList.add('context-menu-item-checkable');
@@ -110,7 +110,7 @@ export function appendContextMenuItem(parent, item) {
     div.prepend(check);
   }
   if (item.tooltip) div.title = item.tooltip;
-  // 4T-0521 (Epic 3E-0094): optionales Icon (Inline-SVG-String aus dem
+  // 4T-000521 (Epic 3E-000094): optionales Icon (Inline-SVG-String aus dem
   // kuratierten Set) vor dem Label — genutzt von der nutzerdefinierten
   // Kontextmenü-Sektion der Kommando-Platzierung.
   if (item.icon) {
@@ -119,7 +119,7 @@ export function appendContextMenuItem(parent, item) {
     iconSpan.innerHTML = item.icon;
     div.prepend(iconSpan);
   }
-  // 4T-0377: deaktivierter Eintrag (z.B. Ausschneiden ohne Selektion) — grau
+  // 4T-000377: deaktivierter Eintrag (z.B. Ausschneiden ohne Selektion) — grau
   // über die bestehende CSS-Klasse .disabled, ohne Click-Handler.
   if (item.disabled) {
     div.classList.add('disabled');
@@ -130,7 +130,7 @@ export function appendContextMenuItem(parent, item) {
       item.action();
     });
   }
-  // 4T-1308 (Epic 3E-0235): optionale Nachlauf-Schaltflaeche am Zeilenende
+  // 4T-001308 (Epic 3E-000235): optionale Nachlauf-Schaltflaeche am Zeilenende
   // ({ text, tooltip, action }). Sie traegt eine zweite Handlung am selben
   // Eintrag und loest die Haupt-Aktion ausdruecklich NICHT aus; das Menue
   // bleibt dabei offen, weil ihr Zweck gerade die Folge mehrerer Griffe ist
@@ -157,7 +157,7 @@ export function appendContextMenuItem(parent, item) {
   parent.appendChild(div);
 }
 
-// 4T-0315 (Epic 3E-0056): viewport-feste Platzierung der Submenues. Die
+// 4T-000315 (Epic 3E-000056): viewport-feste Platzierung der Submenues. Die
 // Submenues oeffnen per CSS rechts vom Eintrag (left: 100%); bei Tabs nahe
 // dem rechten Fensterrand lag das Submenue damit ausserhalb des Fensters
 // und war nicht bedienbar (nur das Hauptmenue wird seit R3-10 geklemmt).
@@ -187,7 +187,7 @@ export function placeSubmenu(wrapper, sub) {
 export function hideContextMenu() {
   contextMenu.hidden = true;
   contextMenu.innerHTML = '';
-  // 4T-0768 (Epic 3E-0158): Das Aufklapp-Menue der Gruppen teilt sich dieses
+  // 4T-000768 (Epic 3E-000158): Das Aufklapp-Menue der Gruppen teilt sich dieses
   // Element. Wer es schliesst (Klick auf einen Eintrag, Klick ausserhalb,
   // Escape), beendet damit auch dessen Besitz — sonst zoege eine spaetere
   // Schliess-Verzoegerung ein inzwischen fremdes Menue weg.

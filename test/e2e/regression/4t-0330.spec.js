@@ -1,4 +1,4 @@
-// 4T-0330 (Epic 3E-0059): Regressionstests zu den PO-Testbefunden der
+// 4T-000330 (Epic 3E-000059): Regressionstests zu den PO-Testbefunden der
 // Release-Test-Iteration 0.39.0 — die Panel-Statusbar-Schalter gelten auch
 // im Empty-State (keine Datei offen):
 //
@@ -62,7 +62,7 @@ test.describe('R30-02: Lesezeichen-Schalter im Empty-State', () => {
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       // Lesezeichen anlegen — das erste Bookmark schaltet die Sektion
-      // bewusst ein (4T-0075-Design).
+      // bewusst ein (4T-000075-Design).
       await sendMenuChannel(app, 'menu:bookmarkAdd');
       const section = page.locator('.pane-group[data-pane="0"] .sidebar-bookmarks');
       await expect(section).toBeVisible();

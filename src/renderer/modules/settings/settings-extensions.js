@@ -1,4 +1,4 @@
-// 4T-0295 (Epic 3E-0052) und 4T-0300 (Epic 3E-0053): die beiden
+// 4T-000295 (Epic 3E-000052) und 4T-000300 (Epic 3E-000053): die beiden
 // Verwaltungs-Bereiche der Erweiterungen — Schalter der internen
 // Erweiterungen und Vertrauens-Verwaltung der externen.
 'use strict';
@@ -31,7 +31,7 @@ export function dirtyExtensionsSection(draft) {
   return !jsonEqual([...draft.extensionsDisabled].sort(), [...getDisabledExtensionIds()].sort());
 }
 
-// --- Bereich Erweiterungen (4T-0295, Epic 3E-0052) --------------------------------
+// --- Bereich Erweiterungen (4T-000295, Epic 3E-000052) --------------------------------
 // Liste der internen Erweiterungen, gruppiert nach Kategorie (Render,
 // Vernetzung, Werkzeuge), je Zeile Schalter, Name und Kurzbeschreibung.
 // Abhaengig mit-deaktivierte Erweiterungen zeigen einen Hinweis und einen
@@ -126,7 +126,7 @@ export async function applyExtensionsSection(draft) {
   await applyExtensionsState(draft.extensionsDisabled);
 }
 
-// --- Bereich Erweiterungen (extern) (4T-0300, Epic 3E-0053) -----------------------
+// --- Bereich Erweiterungen (extern) (4T-000300, Epic 3E-000053) -----------------------
 // Verwaltungs-Oberfläche des Vertrauensmodells. Die Liste kommt aus dem
 // Host (Scan-Einträge plus Status); Aktionen laufen asynchron über den
 // Host (Warn-Dialog und Entfernen-Bestätigung zeigt der Main lokalisiert).
@@ -299,7 +299,7 @@ export function renderExternalExtensionsSection(container) {
   );
   container.appendChild(footer);
 
-  // 4T-0927 (Epic 3E-0016): Zugang zu den Entwickler-Werkzeugen, seit dem
+  // 4T-000927 (Epic 3E-000016): Zugang zu den Entwickler-Werkzeugen, seit dem
   // Entfall des Menueeintrags samt F12 der einzige. Er steht bewusst am Ende
   // und abgesetzt in einem eigenen Block: Er betrifft kein einzelnes Paket,
   // sondern die Diagnose aller, und ist ein Werkzeug und keine Bedien-Funktion

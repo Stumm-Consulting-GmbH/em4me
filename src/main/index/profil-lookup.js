@@ -1,7 +1,7 @@
-// 4T-1184 (Epic 3E-0221, E1): Auswertung eines Lookup-Feldes — die Dokumente,
+// 4T-001184 (Epic 3E-000221, E1): Auswertung eines Lookup-Feldes — die Dokumente,
 // die über ein benanntes Feld auf das eigene verweisen.
 //
-// Zwillings-Modul zu `profil-wertevorrat.js` (4T-1158) und nach demselben
+// Zwillings-Modul zu `profil-wertevorrat.js` (4T-001158) und nach demselben
 // Muster gebaut, weil es dieselben beiden Zusagen aus E8/E12 trägt:
 //
 // **Auswertung auf Verlangen.** Nichts wird vorab über den Gesamtbestand
@@ -43,7 +43,7 @@ const { pathCompareKey } = require('../../shared/platform.js');
 // Vergleichs-Schlüssel eines absoluten Datei-Pfades. Bewusst als benannte
 // Funktion und nicht inline: So ist die Stelle über die injizierte Plattform
 // prüfbar, statt nur unter einem echten case-sensitiven Dateisystem
-// (4T-1276, Epic 3E-0232, Befund B1 — die Empfehlung stammt aus 4T-1275).
+// (4T-001276, Epic 3E-000232, Befund B1 — die Empfehlung stammt aus 4T-001275).
 //
 // Nicht zu verwechseln mit normalizeNameKey aus link-scan.js: Jener vergleicht
 // WIKI-NAMEN und faltet bewusst plattform-unabhängig; dieser hier entscheidet
@@ -129,7 +129,7 @@ function eigeneKennzeichen(entry, absPath) {
  * @param {string} [optionen.from] Abfrage-Quelle, die die Kandidaten eingrenzt;
  *   fehlt sie, gilt der ganze Bereich.
  * @param {string} optionen.relatedField Feld, über das verwiesen wird.
- * @param {object} [deps] Einspeisbare Abhängigkeiten (Vorbild 4T-1158):
+ * @param {object} [deps] Einspeisbare Abhängigkeiten (Vorbild 4T-001158):
  *   `stand(root)` liefert den Änderungs-Stand, `auswerten(datei, abfrage, root)`
  *   das Abfrage-Ergebnis. Im Betrieb greifen die echten; die Prüfung speist sie
  *   ein, weil sich eine zweite Index-Meldung im Unit-Umfeld nicht auslösen lässt

@@ -1,5 +1,5 @@
 // Höhen-Modell der Sidebar-Blöcke: Bezugsgröße, Einfrieren und Zieh-Griff.
-// 4T-0990 (Epic 3E-0196): aus panels.js ausgezogen. Der Kern verdrahtet die
+// 4T-000990 (Epic 3E-000196): aus panels.js ausgezogen. Der Kern verdrahtet die
 // Griffe beim Aufbau einer Spalte; hier liegt, woher die Höhe eines Blocks
 // kommt, wohin sie geschrieben wird und wie sie am Drag hängt. Eigener
 // Zustand entsteht dabei nicht — gespeichert wird ausschließlich über die
@@ -24,7 +24,7 @@ import {
 
 import { panelSectionEl } from './panel-sections.js';
 
-// 4T-0855 (Epic 3E-0164): Bezugsgröße der Höhe eines Blocks. Im Panel-Modus
+// 4T-000855 (Epic 3E-000164): Bezugsgröße der Höhe eines Blocks. Im Panel-Modus
 // (Vorgabe) ist es das governing Panel, also der aktive Reiter einer Gruppe
 // beziehungsweise das Einzel-Panel; im Gruppen-Modus ist es bei einer
 // Reiter-Gruppe die Gruppe selbst. Ein Slot mit nur einem Panel verhält sich
@@ -51,7 +51,7 @@ export function writeHeightRef(ref, value, opts) {
   return ref.group ? setGroupHeight(ref.key, value, opts) : setPanelHeight(ref.key, value, opts);
 }
 
-// 4T-0634 (Epic 3E-0119): Alle sichtbaren Blöcke derselben Sidebar-Seite,
+// 4T-000634 (Epic 3E-000119): Alle sichtbaren Blöcke derselben Sidebar-Seite,
 // die noch keine fixierte Höhe haben, auf ihrer aktuellen Ist-Höhe
 // einfrieren (Messung in der Pane des Griffs, Anwendung in allen Panes).
 // Erst alles messen, dann fixieren — das Fixieren löst Reflows aus, die
@@ -63,7 +63,7 @@ function freezeSidePanelHeights(paneIdx, dragPanelId) {
   const layout = getSidebarLayout();
   const pos = findPanelInLayout(layout, dragPanelId);
   if (!pos) return;
-  // 4T-0855 (Epic 3E-0164): Eingefroren wird je Block seine Bezugsgröße —
+  // 4T-000855 (Epic 3E-000164): Eingefroren wird je Block seine Bezugsgröße —
   // im Gruppen-Modus also die Gruppen-Höhe und nicht die des aktiven Reiters.
   // Gemessen wird unverändert an der Sektion des governing Panels, weil nur
   // sie sichtbar ist.
@@ -74,12 +74,12 @@ function freezeSidePanelHeights(paneIdx, dragPanelId) {
       return def && def.getVisible(paneIdx);
     });
     if (visible.length === 0) continue;
-    // 4T-0942: dieselbe spaltenweise Wahl wie beim Rendern.
+    // 4T-000942: dieselbe spaltenweise Wahl wie beim Rendern.
     const slotActive = activePanelInSlot(slot, paneIdx);
     const governingId = visible.includes(slotActive) ? slotActive : visible[0];
     bloecke.push({ governingId, ref: heightRefForSlot(slot, governingId) });
   }
-  // 4T-0682 (Epic 3E-0139): Den letzten sichtbaren Block nicht einfrieren.
+  // 4T-000682 (Epic 3E-000139): Den letzten sichtbaren Block nicht einfrieren.
   // Er hat keinen eigenen Griff (der Griff steuert immer den Block darüber),
   // und ein Store-Eintrag für ihn liesse sich danach nie wieder ändern.
   // renderSidebarSide nimmt ihm die fixierte Höhe ohnehin wieder ab; ihn
@@ -106,19 +106,19 @@ function freezeSidePanelHeights(paneIdx, dragPanelId) {
   }
 }
 
-// 4T-0475 (Epic 3E-0088): horizontaler Zieh-Griff zwischen zwei gestapelten
+// 4T-000475 (Epic 3E-000088): horizontaler Zieh-Griff zwischen zwei gestapelten
 // Blöcken. Steuert die Höhe des Panels DARÜBER (panelId, in Gruppen der
 // aktive Reiter). Drag-Muster wie bindSidebarSplitters: Starthöhe aus der
 // Bounding-Box der EIGENEN Pane des Griffs (die Sichtbarkeit ist pro Pane —
 // die aktive Pane könnte das Panel versteckt haben und Höhe 0 liefern),
 // mousemove klemmt und wendet direkt auf die passende Sektion in BEIDEN
 // Panes an (Höhe gilt global pro Panel-ID), einmaliges Persistieren am
-// mouseup. Doppelklick setzt die Höhe auf Automatik zurück. 4T-0634:
+// mouseup. Doppelklick setzt die Höhe auf Automatik zurück. 4T-000634:
 // die erste Bewegung friert zusätzlich die übrigen sichtbaren Blöcke der
 // Seite ein (ein reiner Klick ohne Bewegung ändert nichts); der eine
 // Persist-Aufruf am mouseup schreibt das gesamte Höhen-Objekt inklusive
 // der eingefrorenen Werte.
-// 4T-0855 (Epic 3E-0164): `ref` bestimmt, WOHIN die gezogene Höhe geschrieben
+// 4T-000855 (Epic 3E-000164): `ref` bestimmt, WOHIN die gezogene Höhe geschrieben
 // wird (Panel oder Gruppe); `panelId` bleibt das governing Panel und damit die
 // Sektion, an der gemessen und auf die angewendet wird.
 export function buildPanelResizer(paneIdx, panelId, ref) {
@@ -171,7 +171,7 @@ export function buildPanelResizer(paneIdx, panelId, ref) {
         sec.classList.remove('has-fixed-height');
       }
     }
-    // 4T-0855: Im Gruppen-Modus setzt der Doppelklick die ganze Gruppe auf
+    // 4T-000855: Im Gruppen-Modus setzt der Doppelklick die ganze Gruppe auf
     // Automatik zurück, weil der Eintrag der Gruppe gilt und nicht dem
     // gerade sichtbaren Reiter.
     writeHeightRef(ref, null);

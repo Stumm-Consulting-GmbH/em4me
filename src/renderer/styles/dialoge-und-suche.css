@@ -1,4 +1,4 @@
-/* 4T-0992 (Epic 3E-0196): Scheibe 8 von 18 des Renderer-Stilblatts,
+/* 4T-000992 (Epic 3E-000196): Scheibe 8 von 18 des Renderer-Stilblatts,
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
@@ -32,7 +32,7 @@
 .empty-state-inner p {
   margin: 0 0 20px;
 }
-/* 4T-0643 (Epic 3E-0126): Marken-Claim unter dem Produktnamen. Dezent
+/* 4T-000643 (Epic 3E-000126): Marken-Claim unter dem Produktnamen. Dezent
    gehalten, er begleitet den Namen und konkurriert nicht mit ihm. Im leeren
    Zustand ruecken Claim und Hinweis dichter zusammen als der Hinweis allein. */
 .app-claim {
@@ -51,7 +51,7 @@
 .drop-overlay {
   position: fixed;
   inset: 0;
-  /* S-15 (4T-0188): Theme-Variable statt hartem Light-Accent-Blau. */
+  /* S-15 (4T-000188): Theme-Variable statt hartem Light-Accent-Blau. */
   background: var(--accent-soft);
   border: 3px dashed var(--accent);
   z-index: 1000;
@@ -63,7 +63,7 @@
 .drop-overlay[hidden] {
   display: none;
 }
-/* 4T-0789 (Epic 3E-0125): Ziehen ueber eine Dokument-Flaeche legt die Datei als
+/* 4T-000789 (Epic 3E-000125): Ziehen ueber eine Dokument-Flaeche legt die Datei als
    Anlage ab, statt sie zu oeffnen. Die kraeftigere Rahmung macht den
    Unterschied sichtbar, bevor losgelassen wird; der Text im Inneren nennt ihn. */
 .drop-overlay.is-attachment {
@@ -108,7 +108,7 @@
   max-width: 520px;
   text-align: center;
 }
-/* 4T-0649 (Epic 3E-0126): Bildmarke ueber dem Produktnamen. Feste Groesse in
+/* 4T-000649 (Epic 3E-000126): Bildmarke ueber dem Produktnamen. Feste Groesse in
    px statt em, damit sie nicht mit der Schriftgroesse des Dialogs wandert. */
 .about-modal-content .about-logo {
   display: block;
@@ -126,7 +126,7 @@
   color: var(--fg-muted);
   font-size: 0.95em;
 }
-/* 4T-0674 (Epic 3E-0135): Rückverweis-Zeile. Sitzt dicht unter der Version
+/* 4T-000674 (Epic 3E-000135): Rückverweis-Zeile. Sitzt dicht unter der Version
    (deren Abstand deshalb verkleinert ist) und trägt den Abstand zu den
    Credits. Der Link folgt der Akzent-Farbe wie andere Verweise. */
 .about-modal-content .about-website {
@@ -150,7 +150,7 @@
   min-width: 100px;
 }
 
-/* 4T-0072: Word-Count-Detail-Dialog. Stil-Familie analog about-modal. */
+/* 4T-000072: Word-Count-Detail-Dialog. Stil-Familie analog about-modal. */
 .wordcount-modal {
   position: fixed;
   inset: 0;
@@ -211,7 +211,7 @@
   margin-right: auto;
 }
 
-/* 4T-0050 (Epic 3E-0010): Alias-Disambiguation-Dialog. Erscheint, wenn ein
+/* 4T-000050 (Epic 3E-000010): Alias-Disambiguation-Dialog. Erscheint, wenn ein
    Wiki-Link auf einen Alias zeigt, den mehrere Dateien fuehren. Stil-Familie
    wie about-modal, eigener Listen-Container fuer die Kandidaten-Buttons. */
 .alias-modal {
@@ -278,7 +278,7 @@
 .alias-candidates button:hover {
   background: var(--hover);
 }
-/* S-02 (4T-0177): Tastatur-Fokus sichtbar machen — vorher outline: none
+/* S-02 (4T-000177): Tastatur-Fokus sichtbar machen — vorher outline: none
    plus (undefinierte) Hintergrund-Toenung = komplett unsichtbarer Fokus. */
 .alias-candidates button:focus-visible {
   background: var(--bg-muted);
@@ -301,7 +301,7 @@
   gap: 8px;
 }
 
-/* 4T-0050: 'via Alias'-Hinweis-Tag in der Backlinks-Sidebar. Klein, dezent,
+/* 4T-000050: 'via Alias'-Hinweis-Tag in der Backlinks-Sidebar. Klein, dezent,
    theme-konform; klärt, dass der Backlink über einen Alias zustandekommt. */
 .backlink-via-alias {
   display: inline-block;
@@ -346,7 +346,7 @@
   display: none;
 }
 
-/* CodeMirror-Such-Decorations (4T-0007). Werden ueber StateField gerendert
+/* CodeMirror-Such-Decorations (4T-000007). Werden ueber StateField gerendert
    und ueberleben CM-Re-Renders. Aktiver Treffer in Orange wie im Render-Pane. */
 .cm-search-match {
   background: rgba(255, 235, 59, 0.4);
@@ -361,7 +361,7 @@
   background: rgba(255, 152, 0, 0.45);
 }
 
-/* 4T-0049 (Epic 3E-0010): YAML-Frontmatter-Block im Source-Pane. Dezenter
+/* 4T-000049 (Epic 3E-000010): YAML-Frontmatter-Block im Source-Pane. Dezenter
    Hintergrund grenzt den Metadaten-Block vom Markdown-Inhalt visuell ab,
    ohne abzulenken. Wirkt auf alle Zeilen von '---' bis '---' bzw. '...'. */
 .cm-editor .cm-frontmatter-line {
@@ -399,7 +399,7 @@
   border-color: #c0392b;
   background: rgba(192, 57, 43, 0.08);
 }
-/* S-04 (4T-0188): Dark-Overrides analog zum Statusbar-Hint (#ff7b72). */
+/* S-04 (4T-000188): Dark-Overrides analog zum Statusbar-Hint (#ff7b72). */
 [data-theme='dark'] .search-input.invalid {
   border-color: #ff7b72;
   background: rgba(255, 123, 114, 0.1);
@@ -427,7 +427,7 @@
   min-width: 28px;
   font-size: 13px;
 }
-/* R5-09 (4T-0171): Replace-Bedienelemente sind ausserhalb von
+/* R5-09 (4T-000171): Replace-Bedienelemente sind ausserhalb von
    Quellcode-Scope + Edit-Modus deaktiviert (Tooltip nennt den Grund). */
 .search-bar button:disabled,
 .search-bar input:disabled {
@@ -515,7 +515,7 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
-/* === Markdown-Linter-Light (4T-0020) ==================================== */
+/* === Markdown-Linter-Light (4T-000020) ==================================== */
 /* Wellen-Unterstreichung dezent in Warn-Farbe. CSS-Variable wird vom Theme
    gesetzt; Light- und Dark-Mode haben jeweils eigene Werte. */
 .cm-editor .cm-linter-mark {
@@ -550,7 +550,7 @@
 .cm-linter-tooltip-desc {
   color: var(--fg);
 }
-/* 4T-0324 (Epic 3E-0058): Aussen-Link-Warnung im Render-Pane — gleiche
+/* 4T-000324 (Epic 3E-000058): Aussen-Link-Warnung im Render-Pane — gleiche
    Warn-Welle wie die Editor-Linter-Marker; Tooltip kommt als title-Attribut. */
 .markdown-body a.outside-area-link {
   text-decoration: underline wavy var(--linter-warn);
@@ -558,7 +558,7 @@
   text-underline-offset: 2px;
 }
 
-/* === Fokus-Modus (4T-0019) ============================================== */
+/* === Fokus-Modus (4T-000019) ============================================== */
 /* Ausgeblendet: Tabbar (beide Spalten), Statusbar, Sidebar-Panels und
    Sidebar-Splitter. Sichtbar bleiben Editor- und Render-Pane sowie der
    Inner-Splitter zwischen ihnen. Native Menueleiste ist nicht im DOM und
@@ -569,20 +569,20 @@ body.focus-mode .pane-sidebar,
 body.focus-mode .splitter.sidebar-splitter {
   display: none !important;
 }
-/* 4T-0607 (Epic 3E-0114): Die Format-Toolbar ist Rahmen-Chrome wie Tabbar
+/* 4T-000607 (Epic 3E-000114): Die Format-Toolbar ist Rahmen-Chrome wie Tabbar
    und Statusbar und verschwindet im Fokus-Modus mit. */
 body.focus-mode .format-toolbar {
   display: none !important;
 }
-/* 4T-0585 (Epic 3E-0108): Die Titelzeile zaehlt wie die Format-Toolbar als
+/* 4T-000585 (Epic 3E-000108): Die Titelzeile zaehlt wie die Format-Toolbar als
    Rahmen-Chrome und verschwindet im Fokus-Modus mit — der Fokus-Modus
    reduziert auf den reinen Dokument-Inhalt. */
 body.focus-mode .title-line {
   display: none !important;
 }
 
-/* === Settings-Modal (4T-0018) =========================================== */
-/* 4T-0279 (Epic 3E-0049): Die Modal-Bloecke (.settings-modal*) sind mit
+/* === Settings-Modal (4T-000018) =========================================== */
+/* 4T-000279 (Epic 3E-000049): Die Modal-Bloecke (.settings-modal*) sind mit
    dem Dialog entfallen; settings-row/-input teilen sich Seite und
    fruehere Sektions-Editoren (Task-Status, Tastenkuerzel). */
 .settings-row {

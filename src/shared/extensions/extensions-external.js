@@ -1,4 +1,4 @@
-// 4T-0299 (Epic 3E-0053): Externe Erweiterungen — Manifest-Modell,
+// 4T-000299 (Epic 3E-000053): Externe Erweiterungen — Manifest-Modell,
 // API-Versionierung und Store-Schlüssel.
 //
 // Prozessneutral (CJS, reine Daten und reine Funktionen, kein Electron,
@@ -16,7 +16,7 @@
 //                  die API, der Name identifiziert das Paket).
 //   version        Pflicht. Paket-Version: ein bis drei durch Punkte
 //                  getrennte Zahlen (major[.minor[.patch]], siehe
-//                  VERSION_RE — 4T-0924: die frueher hier genannte Form
+//                  VERSION_RE — 4T-000924: die frueher hier genannte Form
 //                  major.minor[.patch] las sich, als sei die zweite
 //                  Stelle Pflicht); die
 //                  Vertrauens-Bestaetigung gilt je Erweiterung UND
@@ -34,7 +34,7 @@
 //                  (module.exports = function (md) { ... }), die der
 //                  Preload per node:vm in einem leeren Sandbox-Kontext
 //                  evaluiert und in beide markdown-it-Instanzen
-//                  einbaut (Spike-Ergebnis in 4T-0298).
+//                  einbaut (Spike-Ergebnis in 4T-000298).
 //   description    Optional. Kurzbeschreibung (Klartext) fuer den
 //                  Einstellungs-Bereich.
 // Mindestens eines von entry/markdownPlugin ist Pflicht.
@@ -45,7 +45,7 @@
 // derselben Major-Version stabil; alles nicht Dokumentierte ist
 // ausdrücklich nicht-öffentlich und kann sich jederzeit ändern.
 //
-// 1.1.0 (4T-0825, Epic 3E-0103): Render-Andockpunkt getRenderRoot und
+// 1.1.0 (4T-000825, Epic 3E-000103): Render-Andockpunkt getRenderRoot und
 // onRenderUpdated. Reiner Zugewinn, deshalb ein Minor-Schritt — Pakete mit
 // apiVersion "1.0" bleiben gültig, ein Paket mit "1.1" wird von einer
 // älteren App nie geladen (siehe isApiVersionCompatible).

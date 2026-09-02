@@ -1,11 +1,11 @@
-// 4T-0434 (Epic 3E-0081): Kalender-Panel — Monatsansicht der Journale in
+// 4T-000434 (Epic 3E-000081): Kalender-Panel — Monatsansicht der Journale in
 // der Sidebar. Wochentags-Kopf (Montag zuerst), ISO-KW-Spalte links,
 // Monats-Blättern und Heute-Knopf; Kopf mit Regal-/Journal-Filter (Default:
 // alle Journale des Bereichs). Tage mit vorhandenem Tages-Journal-Eintrag
 // im gewählten Filter tragen einen Punkt; Heute ist theme-konform
 // hervorgehoben. Klick auf einen Tag zielt auf das Tages-Journal, Klick auf
 // die KW-Zelle auf das Wochen-Journal (bei mehreren Treffern Auswahl-Popup);
-// beides läuft über den gemeinsamen Öffnen-/Anlage-Pfad aus 4T-0433.
+// beides läuft über den gemeinsamen Öffnen-/Anlage-Pfad aus 4T-000433.
 //
 // Daten-Beschaffung: Konfiguration frisch pro Render (journals:getConfig),
 // Existenz-Punkte als EIN Batch-IPC pro sichtbarem Monat
@@ -22,7 +22,7 @@ import { applySidebarVisibility } from '../panels/panels.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { isAllEmpty, persistSetting, showStatusbarHint } from '../views/views.js';
 import { openJournalEntry, pickJournal } from './journals.js';
-// 4T-0568 (Epic 3E-0104): Haekchen im Panel-Untermenue folgt dem Toggle
+// 4T-000568 (Epic 3E-000104): Haekchen im Panel-Untermenue folgt dem Toggle
 // (Muster panels.js).
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import {
@@ -31,7 +31,7 @@ import {
   periodOf,
   resolveEntryPath,
 } from '../../../shared/journal-core.js';
-// 4T-0752 (Epic 3E-0146): gemeinsamer Gitter-Aufbau (Kopfzeile, Zeilen,
+// 4T-000752 (Epic 3E-000146): gemeinsamer Gitter-Aufbau (Kopfzeile, Zeilen,
 // Basis-Zelle eines Tages) — geteilt mit Datums-Eingabe und Uhr-Kalender.
 import { createDayCell, monthLabel, renderMonthGrid } from './month-grid-view.js';
 
@@ -199,7 +199,7 @@ export async function renderCalendarPanel(paneIdx) {
 
   const todayIso = msToIsoDate(Date.now());
 
-  // 4T-0752 (Epic 3E-0146): Kopfzeile und Zeilen-Durchlauf kommen aus dem
+  // 4T-000752 (Epic 3E-000146): Kopfzeile und Zeilen-Durchlauf kommen aus dem
   // gemeinsamen Gitter-Modul; journal-spezifisch bleiben die Zell-Inhalte,
   // also die klickbare Kalenderwoche und der Eintrags-Punkt am Tag.
   renderMonthGrid(els.calendarGrid, {
@@ -256,7 +256,7 @@ export async function toggleCalendarPanel(paneIdx) {
   if (next) await ensurePanelTabActive('calendar', paneIdx);
   applyCalendarVisibility(paneIdx);
   await persistCalendarSettings();
-  // 4T-0568 (Epic 3E-0104): Menue-Haekchen nachziehen (Muster panels.js).
+  // 4T-000568 (Epic 3E-000104): Menue-Haekchen nachziehen (Muster panels.js).
   if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
     reportMenuStateNow();
   }

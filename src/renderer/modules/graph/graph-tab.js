@@ -1,9 +1,9 @@
-// 4T-0455 (Epic 3E-0084): Bereichs-Graph als read-only System-Seite —
+// 4T-000455 (Epic 3E-000084): Bereichs-Graph als read-only System-Seite —
 // der Link-Graph des gesamten Bereichs in einem eigenen Tab (Muster
 // Historien-Seite: eine Instanz pro Fenster, erneutes Öffnen aktiviert den
 // bestehenden Tab). Steuerleiste mit Richtungs-Filter, Knoten-Zähler und
-// Neu-Layout-Knopf; die Graph-Komponente kommt aus graph-view.js (4T-0454),
-// Modell und Erreichbarkeits-Filter aus dem Graph-Kern (4T-0453).
+// Neu-Layout-Knopf; die Graph-Komponente kommt aus graph-view.js (4T-000454),
+// Modell und Erreichbarkeits-Filter aus dem Graph-Kern (4T-000453).
 //
 // Richtungs-Filter des Bereichs-Graphen: „eingehend"/„ausgehend" wirken
 // relativ zur Referenz-Datei — der beim Öffnen bzw. Aktualisieren aktiven
@@ -242,7 +242,7 @@ export function initGraphTab() {
   });
 
   // Index-Invalidierung (Watcher, Initial-Aufbau fertig) lädt debounced
-  // nach; das inkrementelle Layout erhält bestehende Positionen (4T-0453).
+  // nach; das inkrementelle Layout erhält bestehende Positionen (4T-000453).
   if (typeof api.onBacklinksInvalidated === 'function') {
     api.onBacklinksInvalidated(() => {
       if (!pageState.container || !findSystemTabAcrossPanes(GRAPH_PAGE_ID)) return;

@@ -1,4 +1,4 @@
-// 4T-0195: E2E-Funktions-Suite — Gruppen Navigation sowie Datei/Sitzung.
+// 4T-000195: E2E-Funktions-Suite — Gruppen Navigation sowie Datei/Sitzung.
 // describe-Titel tragen die Matrix-IDs aus test/abdeckungs-matrix.json.
 'use strict';
 
@@ -40,8 +40,8 @@ test.describe('FN-01: Outline-Sidebar (Toggle, Klick springt)', () => {
       await entries.nth(1).locator('.outline-label').click();
       await expect
         .poll(() =>
-          // 4T-0361: '.pane-source' -> Haupt-Editor; die Notiz-CodeMirror-
-          // Instanz (3E-0066/4T-0398) steht sonst als erster '.cm-scroller'
+          // 4T-000361: '.pane-source' -> Haupt-Editor; die Notiz-CodeMirror-
+          // Instanz (3E-000066/4T-000398) steht sonst als erster '.cm-scroller'
           // im DOM und scrollt nie.
           page.evaluate(() => {
             const sc = document.querySelector(

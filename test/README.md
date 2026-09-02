@@ -102,13 +102,13 @@ wurde.
 | `npm run build:renderer` | Baut das Renderer-Bundle. Vorbedingung jedes direkten Playwright-Aufrufs und eigenes Gate für Renderer-Importe (Abschnitt „E2E-Praxis"). |
 | `node scripts/test-kennzahlen.js` | Schreibt die Zahl der Prüffälle beider Suiten nach `test/lauf-kennzahlen.json`, ermittelt aus deren Auflistung ohne Ausführung (rund eine Minute). Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand jederzeit möglich, weil kein Test-Lauf vorausgehen muss. |
 
-**Die Kennzahl hängt an keinem Lauf.** Sie entsteht seit 4T-0831 aus der Auflistung beider Werkzeuge (`vitest list`, `playwright test --list`) und nicht mehr aus den Maschinen-Berichten eines Voll-Laufs. Damit ist gleichgültig, welcher Lauf zuletzt gefahren ist und mit welchem Reporter; die JSON-Berichte unter `test-berichte/` dürfen von jedem Teillauf überschrieben werden. Zuvor galt das Gegenteil, und daraus entstand ein Zielkonflikt mit der Wiederhol-Regel: Der isolierte Nachweis eines Flakes zerstörte den Bericht, aus dem die Kennzahl entstehen sollte. **Davon unberührt ist der Beleg eines roten Laufs** (4T-0934): Er hat einen anderen Zweck als die Kennzahl, nämlich die Diagnose eines Fehlschlags, und liegt deshalb als eigene Kopie unter `test-berichte/rot/` statt die Überschreib-Freiheit des Normalfalls einzuschränken (siehe „Belege roter Gate-Läufe" im Abschnitt „Rote Läufe einordnen").
+**Die Kennzahl hängt an keinem Lauf.** Sie entsteht seit 4T-000831 aus der Auflistung beider Werkzeuge (`vitest list`, `playwright test --list`) und nicht mehr aus den Maschinen-Berichten eines Voll-Laufs. Damit ist gleichgültig, welcher Lauf zuletzt gefahren ist und mit welchem Reporter; die JSON-Berichte unter `test-berichte/` dürfen von jedem Teillauf überschrieben werden. Zuvor galt das Gegenteil, und daraus entstand ein Zielkonflikt mit der Wiederhol-Regel: Der isolierte Nachweis eines Flakes zerstörte den Bericht, aus dem die Kennzahl entstehen sollte. **Davon unberührt ist der Beleg eines roten Laufs** (4T-000934): Er hat einen anderen Zweck als die Kennzahl, nämlich die Diagnose eines Fehlschlags, und liegt deshalb als eigene Kopie unter `test-berichte/rot/` statt die Überschreib-Freiheit des Normalfalls einzuschränken (siehe „Belege roter Gate-Läufe" im Abschnitt „Rote Läufe einordnen").
 
 ### Drei Regeln zum Umgang mit Läufen in der Release-Strecke
 
 Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll-Suite in einer Release-Strecke zweimal lief, ohne dass der zweite Lauf einen zusätzlichen Nachweis brachte.
 
-1. **Die E2E-Voll-Suite läuft pro Release genau einmal**, als Pflicht-Gate vor Build und Tag (Festlegung des Product Owners vom 2026-07-29). Sie kostet rund eine halbe Stunde; ein zweiter Lauf ohne Erkenntnisgewinn verstößt gegen den Effizienz-Maßstab des Projekts. Ein Lauf allein für die Kennzahl kommt nicht in Betracht und ist seit 4T-0831 auch nicht mehr denkbar: Die Kennzahl entsteht ohne Lauf.
+1. **Die E2E-Voll-Suite läuft pro Release genau einmal**, als Pflicht-Gate vor Build und Tag (Festlegung des Product Owners vom 2026-07-29). Sie kostet rund eine halbe Stunde; ein zweiter Lauf ohne Erkenntnisgewinn verstößt gegen den Effizienz-Maßstab des Projekts. Ein Lauf allein für die Kennzahl kommt nicht in Betracht und ist seit 4T-000831 auch nicht mehr denkbar: Die Kennzahl entsteht ohne Lauf.
 2. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert.
 3. **Ein laufender Suite-Lauf wird nicht per Prozess-Abbruch gestoppt.** Er läuft durch, oder der Abbruch wird verifiziert, bevor er als erledigt gemeldet wird. Ein halber Abbruch ist der schlechteste Zustand: Die volle Laufzeit fällt trotzdem an, und das Beenden der Prozesse mitten im Lauf erzeugt rote Fälle, die es ohne den Eingriff nicht gäbe. Sie sind von echten Befunden nicht zu unterscheiden und kosten die nächste Diagnose-Runde.
 
@@ -164,7 +164,7 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
    vergangen wie 2020, weit zukünftig wie 2099), nie mit dem
    Kalendertag des Laufs.
 10. **Ein teurer Prüf-Fall trägt ein Zeitlimit, und dessen Wert steht
-    zentral** (4T-0944). Teuer ist ein Fall aus drei belegten Gründen:
+    zentral** (4T-000944). Teuer ist ein Fall aus drei belegten Gründen:
     Er **startet einen realen Prozess** (git, node, npm), er **liest den
     vollen Repositoriums-Bestand**, oder er **baut ein Erzeugnis**
     komplett (Webseite, Handbuch). Alle drei sprengen das
@@ -216,19 +216,19 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     danach nicht liest oder gerade ihre Unverändertheit prüft.
 
     **Eine Rückmeldung der Oberfläche belegt nicht den Abschluss einer
-    Kaskade** (4T-0874). Wirkt eine Aktion auf mehrere Dateien, meldet
+    Kaskade** (4T-000874). Wirkt eine Aktion auf mehrere Dateien, meldet
     der Main jede einzeln (`file:renamed`), und die Oberfläche zieht
     schon beim ersten Ereignis nach: Der Reiter-Titel steht, während die
     Nachfahren noch wandern. Wer danach mit `expect(fs.existsSync(…))`
     liest statt mit `expect.poll`, prüft einen Zwischenstand. Das
     Zeitfenster ist klein und der Fehler damit latent — er kippte erst,
-    als 4T-0847 die Umbenennen-Strecke um den Kapitel-Baum-Nachzug
+    als 4T-000847 die Umbenennen-Strecke um den Kapitel-Baum-Nachzug
     erweiterte und jede Einzel-Umbenennung dadurch länger brauchte.
     **Merkregel:** Warte auf das, was die Aktion bewirken soll, nicht
     auf das erste Zeichen, dass sie begonnen hat.
 
     **Eine feste Pause ist nie die Bedingung, auf die man wartet**
-    (4T-1086). Das gilt auch für Zwischenschritte, die nur aufräumen
+    (4T-001086). Das gilt auch für Zwischenschritte, die nur aufräumen
     sollen: `keyboard.press('Escape')` gefolgt von
     `waitForTimeout(300)` sieht harmlos aus, ist aber eine geratene
     Zahl. Reicht sie unter Last nicht, steht das Kontextmenü beim
@@ -239,8 +239,8 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     `await expect(page.locator('#context-menu')).toBeHidden()` (Muster
     aus `tab-gruppen.spec.js` und `4t-0315.spec.js`).
 
-    Das ist der **dritte** Rennfall an derselben Stelle nach 4T-0875
-    (zweiter Rechtsklick traf das offene Menü) und 4T-0874
+    Das ist der **dritte** Rennfall an derselben Stelle nach 4T-000875
+    (zweiter Rechtsklick traf das offene Menü) und 4T-000874
     (Escape-Vorlauf ergänzt), und deshalb steht er hier als Regel statt
     als Einzelfix. Belegt am 2026-08-19 durch Nachstellen: Unter einer
     zweiten, parallel laufenden Electron-Instanz war der Fall zwei von
@@ -293,7 +293,7 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
 15. **Ab zwei Fenstern wird das Ziel-Fenster benannt, nicht abgezählt.**
     `BrowserWindow.getAllWindows()` liefert **nicht** die
     Erzeugungsreihenfolge, sondern die Z-Order: Im Diagnose-Lauf zu
-    4T-0873 stand das zuletzt geöffnete Fenster an Position 0. Der
+    4T-000873 stand das zuletzt geöffnete Fenster an Position 0. Der
     verbreitete Helfer `getAllWindows()[0]` trifft damit ab zwei
     Fenstern das falsche Ziel (dort unkritisch, solange eine Spec nur
     ein Fenster öffnet). Wer in einer Mehr-Fenster-Spec etwas an ein
@@ -304,7 +304,7 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Betrifft ein gemeldeter Befund eine Funktion, die es in mehreren
     Ansichts-Modi gibt (Quelltext, Geteilt, Live, Gerendert), fährt der
     Regressionstest **alle** einschlägigen Modi und nicht den einen, den
-    die Session zufällig gewählt hat. Anlass ist B-10 (4T-0904): Ein
+    die Session zufällig gewählt hat. Anlass ist B-10 (4T-000904): Ein
     Fix schloss den Weg über den verzögerten Such-Neuaufbau, während
     dieselbe Doc-Änderung im geteilten Modus zusätzlich über die
     Render-Pipeline der Vorschau lief. Der Test prüfte nur den
@@ -316,7 +316,7 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
 17. **Ein Selektor ohne Spalten-Qualifizierung misst die erste Spalte.**
     In Zwei-Spalten-Szenarien immer über `SEL.pane(idx)` qualifizieren;
     ein unqualifizierter Treffer sieht die zweite Spalte nie und misst
-    still die falsche. Im Probelauf zu 4T-0899 kostete das beinahe eine
+    still die falsche. Im Probelauf zu 4T-000899 kostete das beinahe eine
     PO-Entscheidungsrunde über ein Verhalten, das es nicht gibt: Der
     vermeintliche Befund war ein Spalten-Verwechsler des Tests. Gilt
     auch für Panel-Sichtbarkeit, die an Schlüsseln **je Spalte** hängt
@@ -324,14 +324,14 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
 
 18. **Eine eigene `settings`-Vorbelegung in `launchApp` ersetzt die
     Standard-Vorbelegung vollständig.** Die Sprach-Festlegung aus
-    4T-0751 gehört dann mit hinein, sonst startet die App englisch und
-    sprachabhängige Erwartungen brechen (Fund aus 4T-0899, Stufe A).
+    4T-000751 gehört dann mit hinein, sonst startet die App englisch und
+    sprachabhängige Erwartungen brechen (Fund aus 4T-000899, Stufe A).
 
 19. **Brückenfunktionen am Modulkopf brauchen die gemeinsame
     Attrappe.** Wer einen Preload-Zugriff aus einer Funktion an den
     Modulkopf zieht, ergänzt `test/unit/renderer/api-stub.js`; sonst
     brechen Unit-Dateien schon am Import statt an einer Erwartung
-    (Fund aus 4T-0635: drei Test-Dateien auf einmal).
+    (Fund aus 4T-000635: drei Test-Dateien auf einmal).
 
 20. **Positions-Regeln von Tab-Gruppen an Gruppen mit mindestens zwei
     Mitgliedern prüfen.** `insertTabNextTo`/`moveTabNextTo`
@@ -339,14 +339,14 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Herkunfts-Reiter; wer eine Positions-Regel testet, stellt die
     Herkunft bewusst **vor** ein weiteres Gruppen-Mitglied (Muster
     TG-13), weil Ein-Element-Gruppen Positions-Fehler maskieren
-    (aus 3E-0130/v0.87.0).
+    (aus 3E-000130/v0.87.0).
 
 21. **Was eine Zusicherung abschaltet, um ihren Fall herzustellen, gehört
     als eigener Fall wieder herein.** Schaltet ein Test eine
     Umgebungs-Eigenschaft ab, damit die geprüfte Lage überhaupt
     entsteht, deckt er genau den Zustand nicht ab, in dem diese
     Eigenschaft wirkt — und das ist im Alltag oft der häufigere. Anlass
-    ist 4T-0945: Alle Fälle des Konflikt-Schutzes schalteten die
+    ist 4T-000945: Alle Fälle des Konflikt-Schutzes schalteten die
     Datei-Beobachtung stumm, weil sie sonst den Nachlade-Dialog
     ausgelöst hätte und der Speicher-Weg nie erreicht worden wäre. Der
     Product Owner testete den lokalen Fall mit meldender Beobachtung,
@@ -359,9 +359,9 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Schicht.** Wo eine Funktion über mehrere Stationen läuft (Datenquelle
     → Auslöser → Anzeige), prüft ein Fall, der eine Station unmittelbar
     aufruft, genau die Strecken nicht, auf denen der Fehler meistens
-    sitzt. Zweimal am 2026-08-10 belegt: Bei 4T-0945 wies ein Fall nach,
+    sitzt. Zweimal am 2026-08-10 belegt: Bei 4T-000945 wies ein Fall nach,
     dass die Sicherung **entsteht**, nicht dass der Anwender an sie
-    **herankommt**; bei 4T-0950 rief ein Fall die Tag-Schicht unmittelbar
+    **herankommt**; bei 4T-000950 rief ein Fall die Tag-Schicht unmittelbar
     auf und war grün, während das Panel beim Product Owner leer blieb,
     weil niemand es neu zeichnen ließ. In beiden Fällen war die
     Datenquelle bereits richtig und die Zusicherung trotzdem wertlos.
@@ -380,7 +380,7 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     daneben kippt.
 
     Dreimal am 2026-08-25 belegt, alle beim Typ-Ausbau der
-    Eigenschafts-Profile (4T-1183 bis 4T-1185): Drei Unit-Fälle und der
+    Eigenschafts-Profile (4T-001183 bis 4T-001185): Drei Unit-Fälle und der
     E2E-Fall PP-11 hatten `lookup` als Beispiel für einen unbekannten Typ
     gewählt — also ausgerechnet den Namen des Typs, der in derselben
     Stufe hinzukam. Alle vier wurden auf `gibtsnicht` umgestellt, der
@@ -401,13 +401,13 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Verschiedenes — und der Klick, der einschalten sollte, schaltet
     **aus**.
 
-    Belegt am 2026-08-25 (4T-1190): Der Helfer `showBookPanel` klickte im
+    Belegt am 2026-08-25 (4T-001190): Der Helfer `showBookPanel` klickte im
     frisch geöffneten zweiten Fenster auf ein Panel, das laut Zustand
     schon an war und nur noch nicht gezeichnet. Der Fall BU-09 wurde
     dadurch reproduzierbar rot und blockierte eine Release-Vorbereitung.
     Die Falle wächst mit dem Produkt: Der Helfer stammte aus der Zeit mit
     genau einem Fenster, und erst das Applikations-Modell des Buches
-    (4T-0871) brachte das zweite, dessen Sidebar später rendert. **Ein
+    (4T-000871) brachte das zweite, dessen Sidebar später rendert. **Ein
     maschineller Wächter ist nicht vorgesehen** — ob ein Ausdruck eine
     Momentaufnahme ist, hat kein sicheres Merkmal im Quelltext (dieselbe
     Lage wie bei Regel 19).
@@ -489,7 +489,7 @@ Jeder Konsolen-Eintrag vom Typ `error` und jede unbehandelte Ausnahme des Render
 
 Drei Eigenschaften, die beim Ändern zu erhalten sind:
 
-- **Der Zuhörer steht vor `firstWindow()`.** Wird er erst danach registriert, entgehen ihm sämtliche Meldungen der Start-Phase — also der Phase, in der Initialisierungs-Fehler entstehen. Genau das war der Zustand bis 4T-0901: Ein während des Starts gemeldeter Fehler ließ den damaligen Smoke-Fall grün.
+- **Der Zuhörer steht vor `firstWindow()`.** Wird er erst danach registriert, entgehen ihm sämtliche Meldungen der Start-Phase — also der Phase, in der Initialisierungs-Fehler entstehen. Genau das war der Zustand bis 4T-000901: Ein während des Starts gemeldeter Fehler ließ den damaligen Smoke-Fall grün.
 - **Warnungen bleiben außen vor.** Nur `error`. Das Rauschen der Warnungen würde den Wächter entwerten.
 - **Die Auswertung verdeckt keinen echten Fehlschlag.** Ist der Fall bereits aus eigenem Grund rot, wird die Konsolen-Meldung nur als Anmerkung angehängt statt geworfen; ein Wurf aus dem `finally`-Block hätte sonst die ursprüngliche Diagnose überschrieben.
 
@@ -499,7 +499,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
 
 **Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). Aus der Quarantäne-Liste wird wiederholt Auffälliges zum Testfehler-Vorgang befördert und lange Unauffälliges gestrichen; **angesehen wird sie als Schritt 6 der Sammeltask-Checkliste** (Release-Strecke, gemeinsam mit dem Fehlerklassen-Register), nicht nach einer Regel an dieser Stelle.
 
-- **Den Beleg sichern, bevor wiederholt wird** (4T-0934, Vorfall vom
+- **Den Beleg sichern, bevor wiederholt wird** (4T-000934, Vorfall vom
   2026-08-08). Die Ausgabe eines Gate-Laufs wird **ungefiltert** gelesen; wo
   eine Filterung bequem ist, wird die volle Ausgabe zusätzlich in eine Datei
   geleitet (`… > lauf.log 2>&1`, danach hineinsehen). Nach einem roten Lauf
@@ -512,7 +512,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   dieser Ablauf: gefilterte Ausgabe, blinder Wiederholungslauf, überschriebener
   Bericht, Ursache endgültig weg. Diese Sorgfalt nimmt `scripts/gate-lauf.js`
   ab (siehe „Belege roter Gate-Läufe" unten), und zwar nicht mehr nur der
-  Merge-Queue: Ein einzelner Lauf geht seit 4T-1087 über seinen
+  Merge-Queue: Ein einzelner Lauf geht seit 4T-001087 über seinen
   Kommandozeilen-Zugang `node scripts/gate-lauf.js <gate>` (oder `alle` für die
   volle Liste), der dasselbe Kommando fährt wie das gleichnamige Gate der
   Integration, dessen Rückgabewert unverändert weiterreicht und den Beleg
@@ -528,7 +528,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Entwicklungs-Iteration an einzelnen Prüfdateien, solange ihr Ausgang nicht
   berichtet wird.
 
-  **Seit dem 2026-08-30 ist die Pflicht maschinell gedeckt** (4T-1191): Der
+  **Seit dem 2026-08-30 ist die Pflicht maschinell gedeckt** (4T-001191): Der
   Pflicht-Zugang ist nicht mehr die vorgeschriebene, sondern die **einzige**
   Möglichkeit, einen Voll-Lauf zu starten. Beide Test-Konfigurationen rufen
   `scripts/gate-zugang.js` als `globalSetup`; es weist einen Voll-Lauf ohne die
@@ -548,8 +548,8 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   nicht das Prinzip. Der gewählte Ort deckt zudem mehr, weil auch der direkte
   Aufruf des Test-Programms an ihm vorbei müsste.
 
-- **Der Rückgabewert gehört dem Werkzeug, nicht der Kommandozeile** (4T-1178,
-  Vorfall vom 2026-08-24; seit 4T-1165 für **beide** Pflicht-Zugänge). Der
+- **Der Rückgabewert gehört dem Werkzeug, nicht der Kommandozeile** (4T-001178,
+  Vorfall vom 2026-08-24; seit 4T-001165 für **beide** Pflicht-Zugänge). Der
   Zugang reicht den Rückgabewert unverfälscht weiter, aber nur bis zum Rand
   seines eigenen Prozesses. Wer ihn in eine Shell-Kette hängt, deren letztes
   Glied den Status bestimmt, bekommt den Wert dieses letzten Glieds: `node
@@ -561,11 +561,11 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   deshalb allein**, besonders im Hintergrund, wo allein der Prozess-Status
   zurückkommt; die Ausgabe wird danach gelesen und nicht im selben Kommando
   quittiert. Anlass war die dritte Wiederholung der Klasse L3 binnen eines
-  Tages, diesmal an der Verkettung statt an der Pipe: Die Maßnahme 4T-1116
+  Tages, diesmal an der Verkettung statt an der Pipe: Die Maßnahme 4T-001116
   deckte den Beleg, nicht den Rückgabewert.
 
   **Die Regel gilt für zwei Werkzeuge, nicht nur für den Gate-Zugang** (seit
-  dem 2026-08-29, Entscheidung des Product Owners in 4T-1165). Die Grenze
+  dem 2026-08-29, Entscheidung des Product Owners in 4T-001165). Die Grenze
   verläuft nicht am Gate-Zugang, sondern an der Eigenschaft «der Rückgabewert
   trägt ein Urteil»; davon gibt es zwei:
 
@@ -580,7 +580,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Rückgabewert von `grep` und meldete «ERFOLG», während in derselben Ausgabe
   «FEHLGESCHLAGEN — Queue belegt» stand.
 
-  **Zwei Maßnahmen decken die Regel seither maschinell** (4T-1165), und sie
+  **Zwei Maßnahmen decken die Regel seither maschinell** (4T-001165), und sie
   ersetzen einander nicht:
 
   1. **Die Frühwarnung weist die Pipe ab.** `scripts/mandat-fruehwarnung.js`
@@ -599,7 +599,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Damit überlebt das Urteil jede Kürzung, die das Ende erhält: `… > lauf.log
   2>&1`, danach die letzte Zeile lesen, ist der vollständige Weg.
 
-- **Belege roter Gate-Läufe** (4T-0934, seit 4T-1087 auch für den Einzel-Lauf).
+- **Belege roter Gate-Läufe** (4T-000934, seit 4T-001087 auch für den Einzel-Lauf).
   Bricht ein Gate ab, gleich ob in der Merge-Queue oder über den
   Kommandozeilen-Zugang,
   legt `scripts/gate-lauf.js` den Beleg selbsttätig unter
@@ -611,13 +611,13 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   ein Fehlschlag der Sicherung verdrängt nie die Meldung des eigentlichen
   Fehlschlags.
 
-  **Für E2E-Läufe gilt das seit 4T-1099 ebenso, aber nur über den Zugang:**
+  **Für E2E-Läufe gilt das seit 4T-001099 ebenso, aber nur über den Zugang:**
   `node scripts/gate-lauf.js e2e` sichert im roten Fall zusätzlich den Bericht
   `test-berichte/e2e.json` **und die Artefakte** aus `test-results/`, also
   Traces und Bildschirmfotos, als Ordner `…-artefakte`. Das ist nötig, weil
   Playwright `test-results/` **zu Beginn jedes Laufs leert**: Ohne die Kopie
   ist der Trace eines roten Falls beim nächsten Lauf weg, und genau das ist am
-  2026-08-19 passiert, als der Beleg für 4T-1086 gebraucht wurde. Wer E2E
+  2026-08-19 passiert, als der Beleg für 4T-001086 gebraucht wurde. Wer E2E
   direkt über `npm run test:e2e` fährt, bekommt die Sicherung nicht — für die
   Release-Abnahme ist deshalb der Zugang der vorgesehene Aufruf. Die Queue
   fährt weiterhin **kein** E2E-Gate, und `alle` schließt es nicht ein.
@@ -727,7 +727,7 @@ einzelne Commit muss deshalb für sich regelkonform sein.
 
 **Zwei nicht blockierende Hinweise laufen davor** (PO-Staffelung vom
 2026-08-20, erweitert am 2026-08-26): die Rückstands-Warnung
-(`scripts/frische.js --warnung-pm`) und seit 4T-1194 der
+(`scripts/frische.js --warnung-pm`) und seit 4T-001194 der
 Datei-Größen-Hinweis (`scripts/lint-datei-groessen.js --warnung`). Beide
 melden auf stderr und enden immer mit 0; der Commit läuft weiter.
 Der Größen-Hinweis misst wie das Gate den **Arbeitsbaum** — genau deshalb
@@ -746,7 +746,7 @@ Pflicht-Gate ist der Queue-Lauf. Bewusst ist die Suite nicht mehr Teil
 des Hooks: Sie kostet pro Commit zu viel Zeit, und am Integrationsstand
 ist ihre Aussage stärker als am Arbeitsbaum einer einzelnen Sitzung.
 
-**Produkt-Code-Wächter der Queue** (4T-0860, Release-Isolation): Vor der
+**Produkt-Code-Wächter der Queue** (4T-000860, Release-Isolation): Vor der
 Gate-Strecke, unmittelbar nach dem Rebase, weist die Queue jeden Branch
 ab, dessen Diff gegen den Integrationsstand `src/**`, `package.json` oder
 `package-lock.json` berührt und der nicht mit `--release` integriert;
@@ -754,7 +754,7 @@ ein nicht ermittelbarer Diff wird abgewiesen statt durchgelassen (fail
 closed). Produkt-Code erreicht `main` damit ausschließlich über die
 Release-Strecke (Epic-Zweig, Konzept „Verteiltes Arbeitsmodell"). Das
 zweite Netz ist der **Vollständigkeits-Abgleich** der Release-Vorbereitung
-(4T-0861): Vor ihrem ersten Schritt müssen die Vorgangs-Kennungen jedes
+(4T-000861): Vor ihrem ersten Schritt müssen die Vorgangs-Kennungen jedes
 Commits mit Produkt-Code-Anteil seit dem letzten Release-Tag im
 Änderungsprotokoll-Block der Ziel-Version stehen (Ausnahmen: der
 Release-Commit selbst und Commits, deren Produkt-Anteil allein
@@ -965,7 +965,7 @@ grüner Teil-Lauf nicht als grüner Voll-Lauf gelesen werden kann.
 Entschieden wurde die Scharfschaltung auf einer Auswertung aller 439
 Integrations-Vorgänge seit Beginn des Schattenbetriebs: kein einziger
 unbekannter Pfad, und die erkannten Klassen entsprachen dem realen
-Änderungs-Umfang (4T-0744).
+Änderungs-Umfang (4T-000744).
 
 **Not-Aus.** `node scripts/merge-queue.js <branch> --volle-gates` erzwingt
 Format, Lint und die vollständige Suite ohne Code-Änderung und ohne
@@ -977,7 +977,7 @@ die Rückfallebene, falls die Auswahl im Betrieb auffällig wird.
 Kalendertages fährt unabhängig von der Klasse die vollen Gates; ebenso
 jede Release-Integration (`--release`). Verglichen werden Kalendertage und
 nicht Datei-Zeiten gegen die Uhr, weil ein mtime-Vergleich gegen
-`Date.now()` unter Windows nachweislich brüchig ist (Befund aus 4T-0729).
+`Date.now()` unter Windows nachweislich brüchig ist (Befund aus 4T-000729).
 Der Vermerk liegt unversioniert im `.git`-Verzeichnis des
 Integrations-Clones; ist er nicht lesbar, gilt der Voll-Lauf als fällig.
 
@@ -985,7 +985,7 @@ Integrations-Clones; ist er nicht lesbar, gilt der Voll-Lauf als fällig.
 
 **Diese Festlegung und die Änderungsklassen oben gehören zusammen gelesen.** Die Klasse beantwortet, **welcher Ausschnitt** der Suite ein Vorgang braucht; dieser Abschnitt beantwortet, **auf welcher Plattform** er läuft. Beide Fragen sind unabhängig: Ein Ä1-Vorgang bleibt Ä1, gleich wo er geprüft wird.
 
-Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-1251), auf der Grundlage **gemessener** Werte aus dem ersten Linux-Betrieb und nicht aus Schätzungen.
+Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-001251), auf der Grundlage **gemessener** Werte aus dem ersten Linux-Betrieb und nicht aus Schätzungen.
 
 ### Die vier Größen
 
@@ -1099,7 +1099,7 @@ und Protokoll scheiden damit aus, und der Unterschied liegt allein darin, dass
 der Zweitrechner die Folgezugriffe aus dem Zwischenspeicher bedient und der
 Stamm-Rechner nicht.
 
-**Die Messreihe vom 2026-09-01 hat das widerlegt** (`4T-1331`, Zahlen unten):
+**Die Messreihe vom 2026-09-01 hat das widerlegt** (`4T-001331`, Zahlen unten):
 Auf **beiden** Rechnern greift die Zwischenspeicherung nicht, und der
 Zweitrechner ist schon im **kalten** Durchlauf rund zehnmal schneller. Der
 zweite und dritte Wert seiner Spalte oben (1,255 und 1,351 s) sind seine
@@ -1131,7 +1131,7 @@ hier keine Schlussfolgerung.
 
 #### Das Messverfahren (`scripts/mess-bruecke.js`)
 
-Seit dem 2026-09-01 (`4T-1331`) steht die Messreihe als Werkzeug zur Verfügung
+Seit dem 2026-09-01 (`4T-001331`) steht die Messreihe als Werkzeug zur Verfügung
 statt als Handgriff-Folge. Sie liest eine feste Datei-Menge mehrfach
 hintereinander, fährt mehrere Läufe und weist die Streuung aus:
 
@@ -1337,6 +1337,6 @@ oder geänderte Dokumente, die eine Regel verletzen, stehen nicht in der Baselin
 und lassen den Lauf fehlschlagen. Je Regelgruppe belegt eine Negativ-Probe im
 Test, dass die Regel anschlägt. Die Fälle der Hierarchie-Gruppe (E1/E2,
 E4 sowie das Regel-Paar E5/E6 um den Bearbeitungs-Zustand eines Bündels) liegen
-seit 4T-1104 in `test/unit/pm-hierarchie.test.js`, weil die Sammel-Datei am
+seit 4T-001104 in `test/unit/pm-hierarchie.test.js`, weil die Sammel-Datei am
 800-Zeilen-Budget stand; der Schnitt folgt der Modul-Naht des Linters aus
-4T-0973.
+4T-000973.

@@ -1,4 +1,4 @@
-// 4T-0760 (Epic 3E-0142): Suche über das ganze Handbuch.
+// 4T-000760 (Epic 3E-000142): Suche über das ganze Handbuch.
 //
 // Kern der Zusage: Wer in einer Handbuch-Seite sucht, findet auch, was auf
 // einer ANDEREN, nicht geöffneten Seite steht. Geprüft werden der

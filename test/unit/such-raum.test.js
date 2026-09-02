@@ -1,4 +1,4 @@
-// 4T-0758 (Epic 3E-0142): Kern der Suche über mehrere Texte hinweg.
+// 4T-000758 (Epic 3E-000142): Kern der Suche über mehrere Texte hinweg.
 //
 // Geprüft werden die Zusagen, auf die sich Trefferliste und Sprung später
 // verlassen: Reihenfolge über Gruppen, Kontext-Ausschnitt samt der Offsets
@@ -15,7 +15,7 @@ import {
 // Muster der Dokument-Suche (buildRegex erzeugt 'gm' bzw. 'gmi').
 const rx = (muster, flags = 'gm') => new RegExp(muster, flags);
 
-describe('sucheInTexten (4T-0758)', () => {
+describe('sucheInTexten (4T-000758)', () => {
   it('liefert Treffer in Eintrags-Reihenfolge und zählt je Gruppe', () => {
     const eintraege = [
       {

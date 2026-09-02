@@ -1,10 +1,10 @@
-// 4T-0412 (Epic 3E-0078): E2E-Funktions-Suite Skript-Blöcke
+// 4T-000412 (Epic 3E-000078): E2E-Funktions-Suite Skript-Blöcke
 // (perspective-script). Prüft die Sandbox-Ausführung in der Render-Pane,
 // den Default-aus-Zustand (Quelltext statt Ausführung) und die
 // Sicherheits-Nachweise des Epics: kein Zugriff auf Parent-DOM und
 // Preload-Brücke, kein Netz, Endlos-Skripte blockieren den Renderer nicht
 // (Zeit-Limit greift, Ausführung asynchron). describe-Titel tragen die
-// Matrix-IDs (Eintrag in test/abdeckungs-matrix.json mit 4T-0415).
+// Matrix-IDs (Eintrag in test/abdeckungs-matrix.json mit 4T-000415).
 'use strict';
 
 const path = require('node:path');
@@ -92,7 +92,7 @@ test.describe('SK-02: Skript-Block — Default aus (Quelltext statt Ausführung)
       // Quelltext sichtbar als Code-Block, Ergebnis nirgends, keine Sandbox.
       await expect(block.locator('pre code')).toContainText("pq.out('DARF NICHT LAUFEN');");
       await expect(block.locator('.perspective-script-frame')).toHaveCount(0);
-      // 4T-0414: Hinweis-Banner mit Verweis auf die Einstellung.
+      // 4T-000414: Hinweis-Banner mit Verweis auf die Einstellung.
       await expect(block.locator('.perspective-script-banner')).toContainText(
         'Skript-Ausführung ist deaktiviert',
       );
@@ -149,7 +149,7 @@ test.describe('SK-03: Skript-Sandbox — Isolation (kein Parent-DOM, kein Preloa
   });
 });
 
-// 4T-0413 (Epic 3E-0078): Referenz-Fall des PO — rekursiver Link-Baum über
+// 4T-000413 (Epic 3E-000078): Referenz-Fall des PO — rekursiver Link-Baum über
 // pq.pages/outlinks mit verschachtelter Listen-Ausgabe und klickbaren Zielen.
 test.describe('SK-05: pq-API — rekursiver Link-Baum mit klickbaren Zielen', () => {
   test('Baum über outlinks als verschachtelte Liste; Klick öffnet das Ziel', async () => {
@@ -260,7 +260,7 @@ test.describe('SK-07: Skript-Block — Parität im Live-Modus', () => {
   });
 });
 
-// 4T-0414 (Epic 3E-0078): Einstellung „Skript-Blöcke ausführen" — Umschalten
+// 4T-000414 (Epic 3E-000078): Einstellung „Skript-Blöcke ausführen" — Umschalten
 // wirkt ohne Neustart in beide Richtungen (Re-Run bzw. Quelltext-Rückfall).
 test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
   test('Aktivieren führt den Block aus, Deaktivieren zeigt wieder den Quelltext', async () => {
@@ -315,7 +315,7 @@ test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
   });
 });
 
-// 4T-0416-Befund (PO-Test-Iteration 0.53.0): Sandbox-iframes eines Fensters
+// 4T-000416-Befund (PO-Test-Iteration 0.53.0): Sandbox-iframes eines Fensters
 // teilen sich einen Renderer-Prozess; ein Endlos-Skript ließ parallel
 // gestartete, harmlose Geschwister-Blöcke in deren Zeit-Limit laufen. Die
 // Läufe sind seither serialisiert: jeder Block bekommt sein volles

@@ -1,4 +1,4 @@
-// 4T-0607 (Epic 3E-0114): E2E-Suite der Format-Toolbar. Prüft die
+// 4T-000607 (Epic 3E-000114): E2E-Suite der Format-Toolbar. Prüft die
 // Sichtbarkeits-Logik (nur Edit-Modus), die Kommando-Ausführung mit
 // Gedrückt-Zustand (Zeichen-Format und Absatz), das Überschrift-Menü,
 // den Überlauf bei schmalen Panes und den Aus-Zustand der Erweiterung
@@ -174,7 +174,7 @@ test.describe('FT-05: Überlauf bei schmaler Pane', () => {
       // Mindestens ein Eintrag ist eingelagert (hidden).
       await expect(page.locator(`${TOOLBAR} .format-toolbar-item[hidden]`).first()).toHaveCount(1);
       // Der Tabellen-Eintrag (letzter der Standard-Belegung) liegt im
-      // Mehr-Menü und öffnet dort den Raster-Picker (4T-0608); die
+      // Mehr-Menü und öffnet dort den Raster-Picker (4T-000608); die
       // Auswahl fügt die Tabelle ein.
       const editor = page.locator(SEL.editorContent0);
       await editor.click();

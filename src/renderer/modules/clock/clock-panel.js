@@ -1,4 +1,4 @@
-// 4T-0372 (Epic 3E-0069): Uhr-Panel — analoge Uhr, digitale Zeit, Datum und
+// 4T-000372 (Epic 3E-000069): Uhr-Panel — analoge Uhr, digitale Zeit, Datum und
 // optional die Kalenderwoche in der Sidebar.
 //
 // Aufbau pro Pane: eine SVG-Zeichnung (Zifferblatt aus Theme-Variablen,
@@ -43,15 +43,15 @@ import {
   normalizeMonthView,
   shiftMonthView,
 } from '../../../shared/clock/clock-options.js';
-// 4T-0752 (Epic 3E-0146): gemeinsamer Gitter-Aufbau, geteilt mit dem
+// 4T-000752 (Epic 3E-000146): gemeinsamer Gitter-Aufbau, geteilt mit dem
 // Kalender-Panel der Journale und der Datums-Eingabe.
 import { createDayCell, monthLabel, renderMonthGrid } from '../calendar/month-grid-view.js';
 import { msToIsoDate } from '../../../shared/journal-core.js';
 import { COMMAND_ICONS } from '../../../shared/commands/command-icons.js';
-// 4T-0637 (Epic 3E-0069): Wecker-Modus. Einseitiger Import — das Wecker-
+// 4T-000637 (Epic 3E-000069): Wecker-Modus. Einseitiger Import — das Wecker-
 // Modul kennt clock-panel.js nicht (Options-Zugriff wird angehaengt).
 import { attachClockOptions, buildAlarmsView, initClockAlarms } from './clock-alarms-panel.js';
-// 4T-0638 (Epic 3E-0069): Timer- und Stoppuhr-Modus. Ebenfalls einseitig;
+// 4T-000638 (Epic 3E-000069): Timer- und Stoppuhr-Modus. Ebenfalls einseitig;
 // das Modul haelt seinen eigenen Anzeige-Takt.
 import {
   buildStopwatchView,
@@ -62,7 +62,7 @@ import {
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-// 4T-0636 (Epic 3E-0069): Icon der Modus-Taste. Uhr und Wecker greifen auf
+// 4T-000636 (Epic 3E-000069): Icon der Modus-Taste. Uhr und Wecker greifen auf
 // vorhandene Eintraege zurueck, Timer und Stoppuhr auf die beiden mit diesem
 // Task ergaenzten. Das Wecker-Symbol ist bewusst die Glocke und nicht die
 // Weckuhr — letztere ist bereits das Statusbar-Icon der Erinnerungen.
@@ -71,7 +71,7 @@ const MODE_ICONS = {
   alarm: 'bell',
   timer: 'hourglass',
   stopwatch: 'stopwatch',
-  // 4T-0752 (Epic 3E-0146): Monatskalender. Das Kalender-Symbol ist im
+  // 4T-000752 (Epic 3E-000146): Monatskalender. Das Kalender-Symbol ist im
   // kuratierten Satz vorhanden und wird sonst nirgends im Panel benutzt.
   calendar: 'calendar',
 };
@@ -113,7 +113,7 @@ export async function setClockOptions(next, opts = {}) {
   return getClockOptions();
 }
 
-// --- Modus-Zustand (4T-0636) ------------------------------------------------------
+// --- Modus-Zustand (4T-000636) ------------------------------------------------------
 // Der Modus gilt pro Sidebar-Spalte (PO-Festlegung 2026-07-20): links die Uhr
 // und rechts der Timer sind damit gleichzeitig moeglich. Laufzeit-Wahrheit ist
 // state.clock.modeByPane, Persistenz laeuft ueber clockPanel.modeColumn0/1.
@@ -198,7 +198,7 @@ function buildDial(svg, options) {
   }
 }
 
-// 4T-0636: Leiste der vier Modus-Tasten. Wird bei jedem Panel-Aufbau frisch
+// 4T-000636: Leiste der vier Modus-Tasten. Wird bei jedem Panel-Aufbau frisch
 // erzeugt (vier Knoepfe sind billig) — damit ziehen Sprach-Wechsel und
 // Modus-Wechsel ohne getrennten Aktualisierungs-Pfad mit. Ohne Text-Label
 // sind Tooltip und aria-label Pflicht.
@@ -231,7 +231,7 @@ function buildModeBar(paneIdx) {
 // Baut die gesamte Panel-Struktur neu auf (Options-Aenderung, Modus-Wechsel,
 // Sprach-Wechsel, erstes Einblenden) und liefert die Referenzen fuer die
 // Ticks. Je Modus eine Aufbau-Funktion; die drei Modi ausserhalb der Uhr
-// zeigen bis zu ihrer Umsetzung (4T-0637, 4T-0638) einen neutralen Hinweis.
+// zeigen bis zu ihrer Umsetzung (4T-000637, 4T-000638) einen neutralen Hinweis.
 function buildClock(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.clockBody) return null;
@@ -239,7 +239,7 @@ function buildClock(paneIdx) {
   const mode = getClockMode(paneIdx);
   const body = els.clockBody;
   body.innerHTML = '';
-  // 4T-0679 (Epic 3E-0139): Schrift-Faktor der Groessen-Stufe am
+  // 4T-000679 (Epic 3E-000139): Schrift-Faktor der Groessen-Stufe am
   // Panel-Koerper. Steht vor den Modus-Verzweigungen, damit der Wert in
   // jedem Modus aktuell ist; ausgewertet wird er nur von den drei
   // Textzeilen der Uhr (styles.css).
@@ -249,11 +249,11 @@ function buildClock(paneIdx) {
   const refs = { options, mode, hour: null, minute: null, second: null, digital: null, date: null };
   refs.week = null;
 
-  // 4T-0638: Referenzen des Timer-/Stoppuhr-Moduls fuer diese Pane
+  // 4T-000638: Referenzen des Timer-/Stoppuhr-Moduls fuer diese Pane
   // freigeben — der dortige Anzeige-Takt haengt daran.
   clearTimerViews(paneIdx);
   if (mode === 'alarm') {
-    // 4T-0637: Wecker-Liste samt Anlege-Knopf; die Faelligkeits-Pruefung
+    // 4T-000637: Wecker-Liste samt Anlege-Knopf; die Faelligkeits-Pruefung
     // laeuft unabhaengig davon im Main weiter.
     buildAlarmsView(body, getLanguage());
     rendered[paneIdx] = refs;
@@ -270,7 +270,7 @@ function buildClock(paneIdx) {
     return refs;
   }
   if (mode === 'calendar') {
-    // 4T-0752: Monatskalender zum Nachschlagen. Der angezeigte Tag wird beim
+    // 4T-000752: Monatskalender zum Nachschlagen. Der angezeigte Tag wird beim
     // Takt gegen den heutigen geprueft (siehe paintCalendar), deshalb haelt
     // refs den gezeichneten Stand.
     refs.calendar = buildCalendarView(body, paneIdx);
@@ -346,7 +346,7 @@ function buildClock(paneIdx) {
   return refs;
 }
 
-// --- Kalender-Modus (4T-0752) -----------------------------------------------------
+// --- Kalender-Modus (4T-000752) -----------------------------------------------------
 //
 // Angezeigter Monat je Sidebar-Spalte als Bedien-Zustand ohne Persistenz
 // (Muster state.calendar.monthByPane des Journal-Kalenders): Beim Oeffnen
@@ -568,8 +568,8 @@ function buildCalendarView(body, paneIdx) {
 }
 
 // Ein Tick: nur Zeiger-Transformationen und Textinhalte. In den uebrigen
-// Modi gibt es nichts zu zeichnen (4T-0636), ausser dem Tages-Wechsel des
-// Kalenders (4T-0752).
+// Modi gibt es nichts zu zeichnen (4T-000636), ausser dem Tages-Wechsel des
+// Kalenders (4T-000752).
 function paintClock(paneIdx, now) {
   const refs = rendered[paneIdx];
   if (!refs) return;
@@ -631,9 +631,9 @@ function rebuildAllClockPanels() {
 let timerId = null;
 let timerMode = null; // 'second' | 'minute'
 
-// 4T-0636: Getaktet wird nur fuer sichtbare Panels im Uhr-Modus. Steht die
+// 4T-000636: Getaktet wird nur fuer sichtbare Panels im Uhr-Modus. Steht die
 // einzige sichtbare Spalte auf Wecker, Timer oder Stoppuhr, laeuft kein Timer.
-// 4T-0752: Der Kalender-Modus taktet mit, aber nur minuetlich — er braucht den
+// 4T-000752: Der Kalender-Modus taktet mit, aber nur minuetlich — er braucht den
 // Takt allein fuer den Tages-Wechsel um Mitternacht.
 function anyClockTicking() {
   for (let i = 0; i < state.panes.length; i++) {
@@ -745,7 +745,7 @@ export async function loadClockSettings() {
   const v1 = await api.getSetting('clockPanel.visibleColumn1');
   state.clock.visibleByPane[0] = !!v0;
   state.clock.visibleByPane[1] = !!v1;
-  // 4T-0636: Modus je Spalte. Fehlende oder defekte Staende fallen ueber die
+  // 4T-000636: Modus je Spalte. Fehlende oder defekte Staende fallen ueber die
   // Normalisierung auf 'clock' zurueck.
   for (let i = 0; i < state.clock.modeByPane.length; i++) {
     const key = clockModeKey(i);
@@ -771,10 +771,10 @@ export function initClockPanel() {
   });
   // Sprach-Wechsel aendert Datumszeile und AM/PM-Kuerzel.
   document.addEventListener('i18n-language-changed', () => rebuildAllClockPanels());
-  // 4T-0637: Wecker-Liste geaendert (eigene Bedienung oder Fenster-
+  // 4T-000637: Wecker-Liste geaendert (eigene Bedienung oder Fenster-
   // Broadcast) — sichtbare Wecker-Ansichten neu aufbauen.
   document.addEventListener('scg:clock-alarms-changed', () => rebuildAllClockPanels());
-  // 4T-0638: Timer-Liste geaendert (eigene Bedienung oder Broadcast) und
+  // 4T-000638: Timer-Liste geaendert (eigene Bedienung oder Broadcast) und
   // Stoppuhr-Broadcast aus einem anderen Fenster.
   document.addEventListener('scg:clock-timers-changed', () => rebuildAllClockPanels());
   document.addEventListener('scg:clock-stopwatch-changed', () => rebuildAllClockPanels());

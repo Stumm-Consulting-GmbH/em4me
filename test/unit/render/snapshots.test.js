@@ -1,8 +1,8 @@
-// 4T-0194: Snapshot-Tests der Markdown-Render-Pipeline.
+// 4T-000194: Snapshot-Tests der Markdown-Render-Pipeline.
 //
 // Jede Fixture unter test/fixtures/render/ wird durch renderMarkdown
 // geschickt und das HTML als Vitest-Snapshot eingefroren — das praezise
-// Regressionsnetz fuer das Markdown-Erweiterungs-Epic 3E-0017.
+// Regressionsnetz fuer das Markdown-Erweiterungs-Epic 3E-000017.
 // Snapshots sind maschinenunabhaengig: renderMarkdown arbeitet ohne
 // Pfad-Aufloesung (die fs-nahe Bild-Einbettung liegt im Preload) und die
 // Pipeline erzeugt keine Zufalls-IDs. Snapshot-Updates sind ein bewusster
@@ -17,13 +17,13 @@ import {
   setCalendarConfig,
 } from '../../../src/shared/markdown/markdown.js';
 import { extractFrontmatter, writeFrontmatter } from '../../../src/shared/markdown/frontmatter.js';
-// 4T-0546 (Epic 3E-0097): Demo-Konfiguration für die Kalender-Wert-Fixture.
+// 4T-000546 (Epic 3E-000097): Demo-Konfiguration für die Kalender-Wert-Fixture.
 import { normalizeCalendarConfig } from '../../../src/shared/calendar/calendar-config.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_DIR = path.resolve(HERE, '..', '..', 'fixtures', 'render');
 
-// 4T-0512 (Epic 3E-0092): fester Stichtag für die zeitabhängigen Teile des
+// 4T-000512 (Epic 3E-000092): fester Stichtag für die zeitabhängigen Teile des
 // Ereignis-Fence (Container-Attribut data-ev-today, Staffelungs-Texte im
 // Portable-Export) — sonst kippten die Snapshots täglich. Mittag lokal,
 // damit der Kalendertag in jeder Zeitzone stabil bleibt; die übrigen
@@ -31,7 +31,7 @@ const FIXTURE_DIR = path.resolve(HERE, '..', '..', 'fixtures', 'render');
 beforeAll(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2026, 6, 15, 12, 0, 0));
-  // 4T-0546 (Epic 3E-0097): deterministische Kalender-Konfiguration für
+  // 4T-000546 (Epic 3E-000097): deterministische Kalender-Konfiguration für
   // kalender-werte.md (Fantasie-Kalender „Dreimond" mit Namens-Listen,
   // Schalt-Regel und Epochen — dieselbe Struktur wie in calendar-core.test.js).
   setCalendarConfig(
@@ -68,7 +68,7 @@ beforeAll(() => {
                 { name: 'Dritte Zeit', abbr: 'DZ', start: [500, 2, 10] },
               ],
             },
-            // 4T-0748 (Epic 3E-0138): abgeleitete Zeitrechnungen — einmal auf
+            // 4T-000748 (Epic 3E-000138): abgeleitete Zeitrechnungen — einmal auf
             // die eingebaute Standard-Zeitrechnung (Einheiten-Namen aus der
             // i18n samt Mehrzahl) und einmal auf den Fantasie-Kalender
             // (Namen der Definition, weil dort keine Mehrzahl bekannt ist).
@@ -122,7 +122,7 @@ describe('Render-Pipeline-Snapshots (Viewer-Pfad)', () => {
     expect(c).toBe(a);
   });
 
-  it('leere Datei rendert leer; Nur-Frontmatter rendert genau den Frontmatter-Block (4T-0282)', () => {
+  it('leere Datei rendert leer; Nur-Frontmatter rendert genau den Frontmatter-Block (4T-000282)', () => {
     expect(renderMarkdown('', 'de')).toBe('');
     const onlyFm = renderMarkdown('---\ntitel: x\n---\n', 'de');
     expect(onlyFm).toContain('frontmatter-block');
@@ -145,7 +145,7 @@ describe('Portable-Export-Snapshots', () => {
     expect(convertMarkdownPortable(withFm, true)).toMatchSnapshot();
   });
 
-  it('konvertiert Perspective-Datatables zu statischen Tabellen (4T-0418)', () => {
+  it('konvertiert Perspective-Datatables zu statischen Tabellen (4T-000418)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'datentabelle.md'), 'utf8');
     const out = convertMarkdownPortable(src, true);
     expect(out).toMatchSnapshot();
@@ -153,10 +153,10 @@ describe('Portable-Export-Snapshots', () => {
     expect(out).toContain('columns: A:zahl');
   });
 
-  // 4T-0512 (Epic 3E-0092): Art 1 wird zur statischen Tabelle (Staffelung
+  // 4T-000512 (Epic 3E-000092): Art 1 wird zur statischen Tabelle (Staffelung
   // zum eingefrorenen Stichtag, lokalisierte Labels aus de.json); der
   // Fehler-Fence und die Aggregations-Art (query:) bleiben unveraendert.
-  it('konvertiert Ereignis-Blöcke zu statischen Tabellen (4T-0512)', () => {
+  it('konvertiert Ereignis-Blöcke zu statischen Tabellen (4T-000512)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'ereignisse.md'), 'utf8');
     const out = convertMarkdownPortable(src, true, 'de');
     expect(out).toMatchSnapshot();
@@ -171,12 +171,12 @@ describe('Portable-Export-Snapshots', () => {
     expect(renderMarkdown(portable, 'de')).toMatchSnapshot();
   });
 
-  // 4T-0498 (Epic 3E-0090): Task-Marker-Badges im Portable-Export tragen
+  // 4T-000498 (Epic 3E-000090): Task-Marker-Badges im Portable-Export tragen
   // vollstaendige Inline-Styles (Muster Status-Box); der Portable-HTML-Pfad
   // laeuft ueber renderMarkdown mit vorangestelltem perspective-portable-
   // Marker. Stabile Datums-Werte (2020 ueberfaellig, 2099 nie) machen den
   // Snapshot zeitunabhaengig.
-  it('konvertiert Task-Marker zu Badges mit Inline-Styles (4T-0498)', () => {
+  it('konvertiert Task-Marker zu Badges mit Inline-Styles (4T-000498)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'task-marker.md'), 'utf8');
     const portable = `<!-- perspective-portable -->\n\n${src}`;
     const html = renderMarkdown(portable, 'de');
@@ -191,13 +191,13 @@ describe('Portable-Export-Snapshots', () => {
     expect(html).toContain('border-color:#dc3545');
   });
 
-  // 4T-0891 (Epic 3E-0168, Befund L-02): Nicht-Bild-Embeds (PDF, Markdown,
+  // 4T-000891 (Epic 3E-000168, Befund L-02): Nicht-Bild-Embeds (PDF, Markdown,
   // Sonstiges) erschienen im Portable-Output als leere Span-Elemente, weil
   // das Renderer-Postprocessing dort nicht läuft. Sie tragen jetzt einen
   // sichtbaren Verweis auf das Ziel in der Optik eines gewöhnlichen
   // Wiki-Links; Bild-Embeds bleiben unverändert. Der Viewer-Pfad behält
   // seinen leeren Platzhalter (sein Postprocessing füllt ihn).
-  it('zeigt Nicht-Bild-Embeds im Portable-Pfad als sichtbaren Verweis (4T-0891)', () => {
+  it('zeigt Nicht-Bild-Embeds im Portable-Pfad als sichtbaren Verweis (4T-000891)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'wiki-embeds-portable.md'), 'utf8');
     const html = renderMarkdown(src, 'de');
     // Kein Platzhalter bleibt leer.
@@ -225,10 +225,10 @@ describe('Portable-Export-Snapshots', () => {
     expect(viewer).not.toContain('class="wikilink"');
   });
 
-  // 4T-0596 (Epic 3E-0111): Inline-Berechnungen werden beim Export als
+  // 4T-000596 (Epic 3E-000111): Inline-Berechnungen werden beim Export als
   // selbsttragende Ergebnis-Spans eingebrannt; Fehler-Konstrukte bleiben
   // roh und rendern in der Portable-Ansicht das Fehlerbild.
-  it('brennt Inline-Berechnungen als Ergebnis-Spans ein (4T-0596)', () => {
+  it('brennt Inline-Berechnungen als Ergebnis-Spans ein (4T-000596)', () => {
     const src =
       'Summe {= 2+3*4 =} und Datum {= date(2026-01-01) + dur(30d) =}.\n\n' +
       'Fehler bleibt roh: {= 2+ =}, Code bleibt roh: `{= 1+1 =}`.\n';

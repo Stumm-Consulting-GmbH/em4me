@@ -1,6 +1,6 @@
 'use strict';
 
-// 4T-0419 (Epic 3E-0079): Grid-Editor der Perspective Datatable — typ-
+// 4T-000419 (Epic 3E-000079): Grid-Editor der Perspective Datatable — typ-
 // validierte Zell-Eingabe, Boolean-Toggle, Zeilen-Aktionen und das
 // Rückschreiben in den Fence-Quelltext.
 //
@@ -39,7 +39,7 @@ import { getDocText } from '../app/api.js';
 // Unkritisch, weil alle Zugriffe erst zur Laufzeit (im Event-Handler) erfolgen.
 import { renderPaneContent } from '../views/pane-render.js';
 import { showStatusbarHint } from '../views/views.js';
-// 4T-0986: die Datatable-Familie ist geschnitten; die Namen kommen direkt
+// 4T-000986: die Datatable-Familie ist geschnitten; die Namen kommen direkt
 // aus dem jeweiligen Modul (Kern, berechnete Spalten, Ansicht).
 import {
   parsePerspectiveDatatable,
@@ -166,7 +166,7 @@ function writeBody(ctx, fence, model) {
   // neu. Muster: Status-Marker-Toggle in toggleTaskFromRendered.
   if (!ctx.live) {
     renderPaneContent(ctx.paneIdx);
-    // 4T-0653: Das Tipp-Debounce, auf das hier bewusst nicht gewartet wird,
+    // 4T-000653: Das Tipp-Debounce, auf das hier bewusst nicht gewartet wird,
     // läuft trotzdem an (Dokument-Listener) und würde die Pane kurz darauf
     // ein zweites Mal aufbauen — mitten in die nächste Bedienung hinein.
     cancelPendingPreviewUpdate(ctx.paneIdx);
@@ -414,7 +414,7 @@ function deleteRow(ctx, btn) {
   writeBody(ctx, fence, model);
 }
 
-// --- Ansichts-Sortierung und Filter (4T-0420) --------------------------------------
+// --- Ansichts-Sortierung und Filter (4T-000420) --------------------------------------
 // Reiner Ansichts-Zustand pro Tab und Fence: lebt in einer WeakMap auf dem
 // Tab-Objekt (überlebt Re-Render und Tab-Wechsel, stirbt mit dem Tab, wird
 // nie persistiert oder exportiert). Sortieren und Filtern ordnen bzw.
@@ -518,7 +518,7 @@ function ensureViewUi(ctx) {
   model.columns.forEach((col, colIdx) => {
     const cell = document.createElement('td');
     cell.dataset.dtCol = String(colIdx);
-    // 4T-0421: auch berechnete Spalten sind filterbar (über ihre
+    // 4T-000421: auch berechnete Spalten sind filterbar (über ihre
     // gerechneten Anzeige-Werte).
     if (col.type === 'boolean') {
       // Dreifach-Umschalter alle -> ja -> nein.
@@ -579,7 +579,7 @@ function applyViewState(ctx) {
   if (!table || !tbody) return;
   const st = viewStateFor(ctx, false);
   const model = parsePerspectiveDatatable(normalizeBody(ctx.container.dataset.dtSource));
-  // 4T-0421: berechnete Werte fließen in Sortierung, Filter und Aggregate ein.
+  // 4T-000421: berechnete Werte fließen in Sortierung, Filter und Aggregate ein.
   const computed = computeComputedCells(model);
 
   const hasFilter = !!(st && st.filters.some((f) => f));
@@ -683,7 +683,7 @@ function onRootClick(e) {
   if (!delBtn && !addBtn && !td && !sortTh && !filterToggle) return;
   const ctx = resolveContext(e.target);
   if (!ctx) return;
-  // 4T-0420: Ansichts-Funktionen (Sortieren, Filter-Umschalter) wirken in
+  // 4T-000420: Ansichts-Funktionen (Sortieren, Filter-Umschalter) wirken in
   // allen Kontexten — sie ändern den Quelltext nicht.
   if (filterToggle) {
     e.preventDefault();

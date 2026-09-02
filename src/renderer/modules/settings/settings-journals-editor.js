@@ -1,4 +1,4 @@
-// 4T-0436 (Epic 3E-0081): Editor eines einzelnen Journals im Regal-Detail
+// 4T-000436 (Epic 3E-000081): Editor eines einzelnen Journals im Regal-Detail
 // des Bereichs „Journale" (Felder, Pfad-Vorschau, Kennungs-Vergabe).
 'use strict';
 

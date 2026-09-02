@@ -1,4 +1,4 @@
-// 4T-0375 (Epic 3E-0070): Schreibt die Build-Nummer (vierte Versionsstelle)
+// 4T-000375 (Epic 3E-000070): Schreibt die Build-Nummer (vierte Versionsstelle)
 // nach src/shared/build-info.json. Aufruf als expliziter Schritt vor dem
 // Release-Commit (Prozess im Konzept "Release-Strecke"); der Release-Commit
 // trägt damit seine eigene Nummer. Die Nummer ist die Anzahl der
@@ -15,7 +15,7 @@ const { hasBuildNumberFor, nextBuildNumber } = require('../src/shared/build-vers
 const ROOT = path.join(__dirname, '..');
 const INFO_PATH = path.join(ROOT, 'src', 'shared', 'build-info.json');
 
-// 4T-1232: Setz-Kriterium der Build-Nummer. Die Soll-Nummer gehoert dem
+// 4T-001232: Setz-Kriterium der Build-Nummer. Die Soll-Nummer gehoert dem
 // Werkzeug, das sie schreibt; die Setz-Entscheidung der Release-Vorbereitung
 // fragt deshalb hier nach, statt sich eine zweite Meinung zu bilden. Vorher
 // entschied dort der Bau-Guard, und zwei Mechanismen beantworteten dieselbe

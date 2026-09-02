@@ -1,4 +1,4 @@
-// 4T-1203 (Epic 3E-0121): Zentrale Plattform-Eigenschaften des Dateisystems.
+// 4T-001203 (Epic 3E-000121): Zentrale Plattform-Eigenschaften des Dateisystems.
 //
 // EINE Quelle statt verstreuter process.platform-Deutungen: Wer wissen will,
 // ob das Dateisystem die Schreibung unterscheidet, fragt hier — Windows und
@@ -10,13 +10,13 @@
 // Electron-frei und rein (unit-testbar); Tests injizieren die Plattform ueber
 // setPlatformForTests (Muster setDwmCallForTests in caption-color.js).
 //
-// 4T-1225 (Epic 3E-0122, Befund F3 des Linux-Nachweises): Das Modul laeuft
+// 4T-001225 (Epic 3E-000122, Befund F3 des Linux-Nachweises): Das Modul laeuft
 // seither auch im Renderer-Bundle, und der sandboxed Renderer hat KEIN
 // `process` — der nackte Zugriff brach dort die gesamte Modul-Initialisierung
 // des Bundles (Uncaught ReferenceError beim Start, auf allen Plattformen).
 // Die Plattform kommt deshalb kontext-abhaengig: im Node-Kontext (Main,
 // Werkzeuge, Unit-Tests) aus process.platform, im Renderer aus der vom
-// Preload exponierten Auskunft `api.plattform` (4T-1202).
+// Preload exponierten Auskunft `api.plattform` (4T-001202).
 'use strict';
 
 function ermitteltePlattform() {
@@ -40,7 +40,7 @@ function pathCompareKey(p) {
   return isFilesystemCaseInsensitive() ? s.toLowerCase() : s;
 }
 
-// 4T-1225 (Epic 3E-0122): Pfad-Trenner der Plattform. Fuer Code ohne Zugriff
+// 4T-001225 (Epic 3E-000122): Pfad-Trenner der Plattform. Fuer Code ohne Zugriff
 // auf node:path (Renderer); ein hart verdrahteter Backslash liess unter Linux
 // zusammengesetzte Pfade wie `/bereich\ordner` entstehen, deren readdir still
 // scheiterte (Befund F1 des Linux-Lauffaehigkeits-Nachweises).

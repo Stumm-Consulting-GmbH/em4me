@@ -1,6 +1,6 @@
 // Lezer-Baum-Pass des Live-Modus: Betonung, Inline-Code, Links, ATX- und
 // Setext-Überschriften, Blockquotes, Listen-Einstieg und Bilder.
-// 4T-0996 (Epic 3E-0196): erster Pass der zerlegten Kernfunktion aus
+// 4T-000996 (Epic 3E-000196): erster Pass der zerlegten Kernfunktion aus
 // live-widgets.js. Rumpf unverändert übernommen; der Kontext kommt als
 // Objekt statt über Closures. Der Listen-/Aufgaben-Zweig liegt wegen des
 // Datei-Budgets in live-pass-tasks.js.
@@ -32,7 +32,7 @@ import {
 import { nodeInsideCode } from './live-shared.js';
 import { ImageWidget } from './live-widget-render.js';
 
-// 4T-0996: Lezer-Pass eines Sichtbereichs. Der Kontext trägt die einmal je
+// 4T-000996: Lezer-Pass eines Sichtbereichs. Der Kontext trägt die einmal je
 // Build ermittelten Werte; die Knoten-Verzweigungen darunter sind
 // unverändert aus der früheren Kernfunktion übernommen.
 export function runLezerPass(ctx) {
@@ -43,7 +43,7 @@ export function runLezerPass(ctx) {
     from,
     to,
     enter(node) {
-      // W-12 (4T-0309): Fehler-Isolation pro Knoten. Wirft die Verarbeitung
+      // W-12 (4T-000309): Fehler-Isolation pro Knoten. Wirft die Verarbeitung
       // eines einzelnen Konstrukts (komplexes Kind-Walking), soll nur dieser
       // Knoten uebersprungen werden — nicht der gesamte Live-Decoration-Build
       // scheitern (sonst faellt der Live-Modus fuer das ganze Update auf
@@ -53,7 +53,7 @@ export function runLezerPass(ctx) {
         if (name === 'StrongEmphasis' || name === 'Emphasis' || name === 'Strikethrough') {
           if (nodeInsideCode(node)) return;
           const lineNo = state.doc.lineAt(node.from).number;
-          // R1-11 (4T-0186): Frontmatter-Zeilen nicht dekorieren (Parity
+          // R1-11 (4T-000186): Frontmatter-Zeilen nicht dekorieren (Parity
           // zum markdown-it-Pfad, der den Block separat verarbeitet).
           if (lineNo <= frontmatterEndLine) return;
           if (activeLines.has(lineNo)) return;
@@ -82,7 +82,7 @@ export function runLezerPass(ctx) {
         if (name === 'InlineCode') {
           if (nodeInsideCode(node)) return;
           const lineNo = state.doc.lineAt(node.from).number;
-          // R1-11 (4T-0186): Frontmatter ausklammern.
+          // R1-11 (4T-000186): Frontmatter ausklammern.
           if (lineNo <= frontmatterEndLine) return;
           if (activeLines.has(lineNo)) return;
           const markers = [];
@@ -101,14 +101,14 @@ export function runLezerPass(ctx) {
           return;
         }
         if (name === 'Link') {
-          // 4T-0082: Markdown-Link `[Text](url)`. Knoten-Kinder sind in
+          // 4T-000082: Markdown-Link `[Text](url)`. Knoten-Kinder sind in
           // Reihenfolge LinkMark `[`, Label-Inhalt, LinkMark `]`,
           // LinkMark `(`, URL, ggf. LinkTitle, LinkMark `)`. Wir
           // verstecken die vier LinkMarks und den (...)-Bereich, der
           // Inhalt zwischen `[` und `]` bekommt cm-live-link-Klasse.
           if (nodeInsideCode(node)) return;
           const lineNo = state.doc.lineAt(node.from).number;
-          // R1-11 (4T-0186): Frontmatter ausklammern.
+          // R1-11 (4T-000186): Frontmatter ausklammern.
           if (lineNo <= frontmatterEndLine) return;
           if (activeLines.has(lineNo)) return;
           const linkMarks = [];
@@ -139,7 +139,7 @@ export function runLezerPass(ctx) {
           );
           return;
         }
-        // 4T-0083: ATX-Headings (`# ... ` bis `###### ...`). Lezer-Knoten
+        // 4T-000083: ATX-Headings (`# ... ` bis `###### ...`). Lezer-Knoten
         // heisst ATXHeading1..ATXHeading6, Level steckt im Namen. Wir setzen
         // Decoration.line auf die Heading-Zeile (Font-Groesse via CSS) und
         // verstecken in Nicht-Cursor-Zeile den HeaderMark (`#`-Folge) plus
@@ -152,7 +152,7 @@ export function runLezerPass(ctx) {
           if (headingLine.number <= frontmatterEndLine) return;
           ranges.push(liveHeadingLineDecos[level - 1].range(headingLine.from));
           if (activeLines.has(headingLine.number)) return;
-          // 4T-0471 (Epic 3E-0087): berechnete Nummer als Inline-Widget vor
+          // 4T-000471 (Epic 3E-000087): berechnete Nummer als Inline-Widget vor
           // der Zeile (Vorbild CalloutIconWidget); nur auf inaktiven Zeilen.
           const headingNum = headingNumberByLine
             ? headingNumberByLine.get(headingLine.number)
@@ -179,11 +179,11 @@ export function runLezerPass(ctx) {
           const wsMatch = tail.match(/^[ \t]+/);
           const hideTo = headerMarkEnd + (wsMatch ? wsMatch[0].length : 0);
           ranges.push(liveMarkerHiddenDeco.range(node.from, hideTo));
-          // 4T-0202: trailing {#id}/{.klasse}-Attribut-Block ausblenden
-          // (der Render strippt ihn aus dem Heading-Text). 4T-0293: nur
+          // 4T-000202: trailing {#id}/{.klasse}-Attribut-Block ausblenden
+          // (der Render strippt ihn aus dem Heading-Text). 4T-000293: nur
           // bei aktiver attributes-Erweiterung.
           const headingText = state.doc.sliceString(headingLine.from, headingLine.to);
-          // 4T-0471 (Epic 3E-0087): echten {-}/{+}-Marker verstecken (wenn
+          // 4T-000471 (Epic 3E-000087): echten {-}/{+}-Marker verstecken (wenn
           // die Nummerierung aktiv ist); sonst wie bisher den Attribut-Block.
           // Bei beidem gewinnt der Marker am Zeilenende (Rand-Fall {#id} {-}).
           const markerMatch = isExtensionActive('heading-numbering')
@@ -200,7 +200,7 @@ export function runLezerPass(ctx) {
           }
           return;
         }
-        // 4T-0083: Setext-Headings (`Titel\n===` oder `Titel\n---`). Knoten
+        // 4T-000083: Setext-Headings (`Titel\n===` oder `Titel\n---`). Knoten
         // umfasst Titel-Zeile und Unterstreichungs-Zeile; HeaderMark-Child
         // markiert die Unterstreichung. Titel-Zeile bekommt cm-live-h1/h2,
         // Unterstreichungs-Zeile bekommt cm-live-setext-underline und wird
@@ -211,7 +211,7 @@ export function runLezerPass(ctx) {
           const titleLine = state.doc.lineAt(node.from);
           if (titleLine.number <= frontmatterEndLine) return;
           ranges.push(liveHeadingLineDecos[level - 1].range(titleLine.from));
-          // 4T-0471 (Epic 3E-0087): Nummer-Widget vor der Titel-Zeile (nur inaktiv).
+          // 4T-000471 (Epic 3E-000087): Nummer-Widget vor der Titel-Zeile (nur inaktiv).
           if (!activeLines.has(titleLine.number)) {
             const setextNum = headingNumberByLine
               ? headingNumberByLine.get(titleLine.number)
@@ -241,8 +241,8 @@ export function runLezerPass(ctx) {
           if (!activeLines.has(underlineLine.number)) {
             ranges.push(liveMarkerHiddenDeco.range(underlineFrom, underlineTo));
           }
-          // 4T-0202: trailing Attribut-Block der Titel-Zeile ausblenden
-          // (4T-0293: nur bei aktiver attributes-Erweiterung).
+          // 4T-000202: trailing Attribut-Block der Titel-Zeile ausblenden
+          // (4T-000293: nur bei aktiver attributes-Erweiterung).
           if (!activeLines.has(titleLine.number)) {
             const titleText = state.doc.sliceString(titleLine.from, titleLine.to);
             const markerMatch = isExtensionActive('heading-numbering')
@@ -260,7 +260,7 @@ export function runLezerPass(ctx) {
           }
           return;
         }
-        // 4T-0083: Blockquote. Callout-Blockquotes werden ueber das im
+        // 4T-000083: Blockquote. Callout-Blockquotes werden ueber das im
         // Pre-Pass aufgebaute calloutLines-Set uebersprungen — der Lezer
         // splittet Callout-Blocks gelegentlich in mehrere Blockquote-
         // Knoten, ein Test nur auf die erste Knoten-Zeile reicht nicht.
@@ -287,13 +287,13 @@ export function runLezerPass(ctx) {
           }
           return;
         }
-        // 4T-0996: Listen-Items samt Aufgaben-Badges liegen in
+        // 4T-000996: Listen-Items samt Aufgaben-Badges liegen in
         // live-pass-tasks.js; Position im Pass und Rückkehr unverändert.
         if (name === 'ListItem') {
           runListItemPass(ctx, node);
           return;
         }
-        // 4T-0084: Bilder. Lezer-Knoten Image umfasst `![alt](url)` und
+        // 4T-000084: Bilder. Lezer-Knoten Image umfasst `![alt](url)` und
         // hat URL als Kind. alt-Text extrahieren wir aus dem Roh-Text
         // zwischen `[` und `]` (Markdown-Inline-Markup im Alt wird im
         // Render-Pane sowieso plain ausgegeben). Inline-Replace ohne
@@ -304,7 +304,7 @@ export function runLezerPass(ctx) {
           const imgLine = state.doc.lineAt(node.from);
           if (imgLine.number <= frontmatterEndLine) return;
           if (activeLines.has(imgLine.number)) return;
-          // R1-01 (4T-0174): Mehrzeilige Images (legales CommonMark, z.B.
+          // R1-01 (4T-000174): Mehrzeilige Images (legales CommonMark, z.B.
           // Zeilenumbruch im alt-Text) NICHT inline ersetzen — ein Inline-
           // Replace ueber Zeilengrenzen laesst CM6 beim DocView-Emit
           // ausserhalb unseres try/catch werfen, bei jedem Update erneut
@@ -326,7 +326,7 @@ export function runLezerPass(ctx) {
           const fullText = state.doc.sliceString(node.from, node.to);
           const altMatch = fullText.match(/^!\[([^\]]*)\]/);
           const alt = altMatch ? altMatch[1] : '';
-          // 4T-0198: allein stehende Bilder rendern im Render-Pane als
+          // 4T-000198: allein stehende Bilder rendern im Render-Pane als
           // <figure> (implicit-figures) — das Widget zieht dann die
           // komplette Figure inkl. Caption nach.
           const standalone = imageIsStandalone(state, imgLine, fullText);

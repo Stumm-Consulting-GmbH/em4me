@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-// 4T-0372 (Epic 3E-0069): Uhr-Panel im Renderer — Registrierung an der
+// 4T-000372 (Epic 3E-000069): Uhr-Panel im Renderer — Registrierung an der
 // Panel-Registry, Aufbau der SVG- und Text-Bestandteile aus den Optionen,
 // Toggle samt Persistenz und der Aus-Zustand der Erweiterung inklusive
 // Timer-Disziplin (Muster test/unit/render/extensions-aus.test.js und
 // test/unit/renderer/extension-lifecycle.test.js).
 //
-// 4T-0636: dazu die Modus-Umschaltleiste — Aufbau der vier Tasten, Wechsel
+// 4T-000636: dazu die Modus-Umschaltleiste — Aufbau der vier Tasten, Wechsel
 // des Panel-Inhalts, Persistenz je Spalte und die verschaerfte Timer-Regel
 // (Takt nur im Uhr-Modus).
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -28,7 +28,7 @@ const clock = await import('../../../src/renderer/modules/clock/clock-panel.js')
 const { sidebarPanelById } = await import('../../../src/renderer/modules/sidebar-layout.js');
 const { createEmptyPane, state } = await import('../../../src/renderer/modules/app/app-state.js');
 const lifecycle = await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
-// 4T-0679: Erwartungswert des Schrift-Faktors aus derselben Quelle wie das
+// 4T-000679: Erwartungswert des Schrift-Faktors aus derselben Quelle wie das
 // Panel, damit eine spaetere Wert-Anpassung nicht doppelt zu pflegen ist.
 const { clockScale } = await import('../../../src/shared/clock/clock-options.js');
 
@@ -36,7 +36,7 @@ function body(paneIdx = 0) {
   return document.querySelectorAll('.pane-group')[paneIdx].querySelector('.clock-body');
 }
 
-// 4T-0636: Modus-Leiste der Spalte.
+// 4T-000636: Modus-Leiste der Spalte.
 function modeBar(paneIdx = 0) {
   return document.querySelectorAll('.pane-group')[paneIdx].querySelector('.clock-modes');
 }
@@ -47,21 +47,21 @@ async function show(paneIdx = 0) {
   clock.applyClockVisibility(paneIdx);
 }
 
-// 4T-0636: Modus beider Spalten auf den Standard zuruecksetzen. Der Modus
+// 4T-000636: Modus beider Spalten auf den Standard zuruecksetzen. Der Modus
 // ueberlebt sonst zwischen Testfaellen (Modul- und State-Zustand).
 function resetModes() {
   state.clock.modeByPane[0] = 'clock';
   state.clock.modeByPane[1] = 'clock';
 }
 
-// 4T-0636: Die zweite Spalte existiert erst nach dem Aufteilen (state.panes
+// 4T-000636: Die zweite Spalte existiert erst nach dem Aufteilen (state.panes
 // startet mit einer Pane). Wer sie im Test braucht, stellt sie her; das
 // Panel-Markup beider Spalten liegt oben bereits im DOM.
 function withSecondPane() {
   if (state.panes.length < 2) state.panes.push(createEmptyPane());
 }
 
-describe('Uhr-Panel: Registrierung und Zugang (4T-0372)', () => {
+describe('Uhr-Panel: Registrierung und Zugang (4T-000372)', () => {
   it('ist an der Panel-Registry mit Button und Toggle angemeldet', () => {
     const def = sidebarPanelById('clock');
     expect(def).toBeTruthy();
@@ -73,7 +73,7 @@ describe('Uhr-Panel: Registrierung und Zugang (4T-0372)', () => {
   });
 });
 
-describe('Uhr-Panel: Aufbau aus den Optionen (4T-0372)', () => {
+describe('Uhr-Panel: Aufbau aus den Optionen (4T-000372)', () => {
   beforeEach(async () => {
     lifecycle.resetExtensionStateForTests();
     resetModes();
@@ -160,7 +160,7 @@ describe('Uhr-Panel: Aufbau aus den Optionen (4T-0372)', () => {
     expect(gross).toBeGreaterThan(klein);
   });
 
-  // 4T-0679 (Epic 3E-0139): Dieselbe Stufe bemisst auch die Schrift. Das
+  // 4T-000679 (Epic 3E-000139): Dieselbe Stufe bemisst auch die Schrift. Das
   // Panel setzt dafuer nur die Variable; die Pixelwerte leitet styles.css
   // daraus ab, die Faktoren selbst deckt clock-options.test.js ab.
   it('die Groessen-Option setzt den Schrift-Faktor am Panel-Koerper', async () => {
@@ -191,7 +191,7 @@ describe('Uhr-Panel: Aufbau aus den Optionen (4T-0372)', () => {
   });
 });
 
-describe('Uhr-Panel: Toggle und Persistenz (4T-0372)', () => {
+describe('Uhr-Panel: Toggle und Persistenz (4T-000372)', () => {
   beforeEach(() => {
     lifecycle.resetExtensionStateForTests();
     resetModes();
@@ -207,7 +207,7 @@ describe('Uhr-Panel: Toggle und Persistenz (4T-0372)', () => {
     await clock.toggleClockPanel(0);
     expect(state.clock.visibleByPane[0]).toBe(true);
     expect(document.querySelector('.pane-group .sidebar-clock').hidden).toBe(false);
-    // 4T-0942 (Befund B-07): Das Einblenden aktiviert zusaetzlich den
+    // 4T-000942 (Befund B-07): Das Einblenden aktiviert zusaetzlich den
     // Gruppen-Reiter in DIESER Spalte; die Wahl liegt seither spaltenweise
     // neben dem Layout. Geprueft wird deshalb die Menge der Schluessel und
     // nicht mehr eine feste Reihenfolge.
@@ -248,7 +248,7 @@ describe('Uhr-Panel: Toggle und Persistenz (4T-0372)', () => {
   });
 });
 
-describe('Uhr-Panel: Aus-Zustand der Erweiterung und Timer (4T-0372)', () => {
+describe('Uhr-Panel: Aus-Zustand der Erweiterung und Timer (4T-000372)', () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     lifecycle.resetExtensionStateForTests();
@@ -322,7 +322,7 @@ describe('Uhr-Panel: Aus-Zustand der Erweiterung und Timer (4T-0372)', () => {
     expect(vi.getTimerCount()).toBe(1);
   });
 
-  // 4T-0636: Der Takt haengt jetzt zusaetzlich am Modus. Steht die einzige
+  // 4T-000636: Der Takt haengt jetzt zusaetzlich am Modus. Steht die einzige
   // sichtbare Spalte auf einem anderen Modus, laeuft kein Timer.
   it('ausserhalb des Uhr-Modus laeuft kein Timer', async () => {
     withSecondPane();
@@ -338,7 +338,7 @@ describe('Uhr-Panel: Aus-Zustand der Erweiterung und Timer (4T-0372)', () => {
   });
 });
 
-describe('Uhr-Panel: Modus-Umschaltung (4T-0636)', () => {
+describe('Uhr-Panel: Modus-Umschaltung (4T-000636)', () => {
   beforeEach(async () => {
     lifecycle.resetExtensionStateForTests();
     resetModes();
@@ -350,7 +350,7 @@ describe('Uhr-Panel: Modus-Umschaltung (4T-0636)', () => {
     await clock.setClockOptions(null, { persist: false });
   });
 
-  // 4T-0752 (Epic 3E-0146): Der Kalender ist als fuenfte Taste hinten
+  // 4T-000752 (Epic 3E-000146): Der Kalender ist als fuenfte Taste hinten
   // angehaengt; die Reihenfolge der vier bestehenden bleibt unveraendert.
   it('die Leiste traegt fuenf Tasten mit Icon, Beschriftung und Druck-Zustand', async () => {
     await show(0);
@@ -403,7 +403,7 @@ describe('Uhr-Panel: Modus-Umschaltung (4T-0636)', () => {
     expect(clock.getClockMode(0)).toBe('clock');
     expect(clock.getClockMode(1)).toBe('stopwatch');
     expect(body(0).querySelector('svg.clock-face')).toBeTruthy();
-    // 4T-0638: Spalte 1 zeigt die Stoppuhr, nicht mehr den Platzhalter.
+    // 4T-000638: Spalte 1 zeigt die Stoppuhr, nicht mehr den Platzhalter.
     expect(body(1).querySelector('svg.clock-face')).toBeNull();
     expect(body(1).querySelector('.stopwatch-view')).toBeTruthy();
     expect(writes).toEqual([['clockPanel.modeColumn1', 'stopwatch']]);

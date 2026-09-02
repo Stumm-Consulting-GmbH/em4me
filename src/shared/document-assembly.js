@@ -1,4 +1,4 @@
-// 4T-1290 (Epic 3E-0224): Zusammensetzen der Teile eines großen Dokuments.
+// 4T-001290 (Epic 3E-000224): Zusammensetzen der Teile eines großen Dokuments.
 // Gegenstück zu src/shared/document-parts.js: Jenes erkennt und benennt die
 // Teile, dieses ordnet sie und fügt sie zu einem Dokument zusammen.
 //
@@ -92,7 +92,7 @@ function orderPartFiles(headBasename, basenames, vergleich) {
 // Wer so schneidet, dass das schlichte Aneinanderhängen den Ausgangstext
 // ergibt, kann verlustfrei zerlegen und zusammensetzen.
 //
-// 4T-1291 (Paket 3): Zusätzlich zum Text kommen die `grenzen` zurück — die
+// 4T-001291 (Paket 3): Zusätzlich zum Text kommen die `grenzen` zurück — die
 // Offsets im zusammengesetzten Text, an denen der jeweils NÄCHSTE Teil
 // beginnt (also ein Eintrag weniger als Teile). Der Schreib-Weg braucht sie,
 // um die bestehenden Teil-Grenzen zu erhalten, statt das Dokument bei jedem
@@ -166,7 +166,7 @@ function partInfoOf(content) {
 }
 
 // Welche Positionen nennt der Katalog, die im Verzeichnis nicht (mehr) da
-// sind? (4T-1292, Entscheidung des Product Owners vom 2026-08-31, Option A.)
+// sind? (4T-001292, Entscheidung des Product Owners vom 2026-08-31, Option A.)
 //
 // Das ist die EINE Frage, für die der Katalog als Zeuge gilt, obwohl er sonst
 // nur Cache ist. Der Grund ist ein Loch in der Erkennung: Eine Lücke in der

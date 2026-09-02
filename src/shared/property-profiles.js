@@ -1,20 +1,20 @@
-// 4T-0447/4T-0448 (Epic 3E-0083): Eigenschafts-Profile — Auflösung über
+// 4T-000447/4T-000448 (Epic 3E-000083): Eigenschafts-Profile — Auflösung über
 // mehrere Profile und die gemeinsame Editor-Logik beider Panels.
 //
 // Diese Datei ist zugleich die **Fassade** der Eigenschafts-Profile: Alle
 // Verbraucher (Profil-Katalog, IPC, Editoren, Einstellungen, Tests) laden
 // sie und bekommen von hier auch das Datei-Format weitergereicht, das seit
 // dem Definitions-Ausbau der Stufe 1 in `property-profiles-format.js` liegt
-// (Schnitt in 4T-1145, Epic 3E-0218: dort das Lesen EINER Profil-Datei,
+// (Schnitt in 4T-001145, Epic 3E-000218: dort das Lesen EINER Profil-Datei,
 // hier das Zusammenführen MEHRERER und ihre Wirkung in den Editoren).
 //
-// Auflösung für eine Datei (4T-0447): Vereinigung der Feld-Definitionen aus
+// Auflösung für eine Datei (4T-000447): Vereinigung der Feld-Definitionen aus
 // den zugeordneten Profilen samt ihren Eltern-Ketten plus dem Standard-
 // Profil mit seiner Kette, als eine einzige geordnete Folge mit
 // deterministischen Konflikt-Regeln. Blöcke einer Datei erben dieselbe
 // Auflösung (PO-Entscheidung 4; keine eigene Block-Zuordnung in v1).
 //
-// Vererbung (4T-1142/3E-0218, E2): `resolveProfileFields` läuft die
+// Vererbung (4T-001142/3E-000218, E2): `resolveProfileFields` läuft die
 // Eltern-Ketten ab, `attachHeritageHints` liefert die Zyklus- und
 // Fehlt-Hinweise der Profil-Liste; die Angaben selbst liest das
 // Format-Modul (`parseProfileHeritage`).
@@ -35,7 +35,7 @@ const {
   cleanString,
   scalarToString,
 } = require('./property-profiles-format.js');
-// 4T-1183 (Epic 3E-0221, E1): Auswertung der abgeleiteten Felder. Eigene
+// 4T-001183 (Epic 3E-000221, E1): Auswertung der abgeleiteten Felder. Eigene
 // Fachlichkeit in eigener Datei — sie rechnet, während das Format-Modul liest;
 // die Fassade reicht sie weiter wie alles andere.
 const {
@@ -45,13 +45,13 @@ const {
   alsFeldWert,
   werteAbgeleiteteFelder,
 } = require('./property-profiles-abgeleitet.js');
-// 4T-1159 (Epic 3E-0219): Bindungen der Bereichs-Sektion.
+// 4T-001159 (Epic 3E-000219): Bindungen der Bereichs-Sektion.
 const { normalizeBindings } = require('./property-profiles-config.js');
-// 4T-1176 (Epic 3E-0220, E7): Erzeugung der Abfrage zu einem Profil. Eigene
+// 4T-001176 (Epic 3E-000220, E7): Erzeugung der Abfrage zu einem Profil. Eigene
 // Fachlichkeit in eigener Datei; die Fassade reicht sie weiter wie alles
 // andere.
 const { erzeugeProfilAbfrage } = require('./property-profiles-abfrage.js');
-// 4T-1161 (Epic 3E-0219): Die Editor-Logik liegt seit dem Datei-Schnitt im
+// 4T-001161 (Epic 3E-000219): Die Editor-Logik liegt seit dem Datei-Schnitt im
 // eigenen Modul; die Fassade reicht sie weiter (alle Verbraucher laden hier).
 const {
   isEmptyPropertyValue,
@@ -66,14 +66,14 @@ const {
   profileSuggestGroups,
 } = require('./property-profiles-editor.js');
 
-// 4T-1142: Vererbungs-Hinweise je Profil für die Profil-Liste der
+// 4T-001142: Vererbungs-Hinweise je Profil für die Profil-Liste der
 // Einstellungen — ein Zyklus in der Eltern-Beziehung (extendsCycle, benannt
 // mit dem Profil des ersten Wiedersehens) und ein nicht vorhandenes
 // Eltern-Profil (extendsMissing, benannt mit dem fehlenden Namen), beide
 // weich: Die Auflösung bricht die Kette nur ab. Liefert die Profil-Liste
 // mit den je Profil ergänzten Hinweisen in der Gestalt der
 // Definitions-Hinweise ({ code, index: -1, name }); Profile ohne Befund
-// bleiben dasselbe Objekt. Hinweis-Texte: 4T-1143.
+// bleiben dasselbe Objekt. Hinweis-Texte: 4T-001143.
 function attachHeritageHints(profiles) {
   const list = Array.isArray(profiles) ? profiles : [];
   const byName = new Map();
@@ -110,7 +110,7 @@ function attachHeritageHints(profiles) {
 // des Frontmatters (String oder Liste; Feldname case-insensitiv, weil die
 // Schreibweise im Frontmatter freie Nutzer-Eingabe ist). Reihenfolge bleibt
 // erhalten — sie trägt die Konflikt-Regel der Auflösung (zuerst genanntes
-// Profil gewinnt, 4T-0447).
+// Profil gewinnt, 4T-000447).
 function assignedProfileNames(frontmatterData, assignField) {
   if (!frontmatterData || typeof frontmatterData !== 'object' || Array.isArray(frontmatterData)) {
     return [];
@@ -133,7 +133,7 @@ function assignedProfileNames(frontmatterData, assignField) {
   return out;
 }
 
-// 4T-0447 (Epic 3E-0083): Definitions-Auflösung pro Datei. Vereinigung der
+// 4T-000447 (Epic 3E-000083): Definitions-Auflösung pro Datei. Vereinigung der
 // Feld-Definitionen aus den zugeordneten Profilen plus Standard-Profil mit
 // deterministischen Konflikt-Regeln (Task-Vorgabe, im Handbuch dokumentiert):
 // bei gleichem Feldnamen gewinnt das zugeordnete Profil vor dem Standard-
@@ -153,7 +153,7 @@ function assignedProfileNames(frontmatterData, assignField) {
 // Eltern-Profil gehört bewusst nicht hinein, sein Hinweis hängt über
 // attachHeritageHints am Profil).
 //
-// 4T-1142 (Epic 3E-0218, E2): Die Auflösung bleibt eine einzige geordnete
+// 4T-001142 (Epic 3E-000218, E2): Die Auflösung bleibt eine einzige geordnete
 // Folge. Je zugeordnetem Profil in Nennungs-Reihenfolge läuft seine
 // Eltern-Kette von unten nach oben, danach das Standard-Profil mit seiner
 // Kette. Jedes Profil wird genau einmal verarbeitet, über alle Ketten
@@ -165,7 +165,7 @@ function assignedProfileNames(frontmatterData, assignField) {
 // unterdrückt allein die gleichnamigen Felder der weiter oben liegenden
 // Profile dieser Kette; beim Wechsel auf die nächste Kette ist er zurückgesetzt.
 //
-// 4T-1159 (Epic 3E-0219, E13): Die Folge ist **vierstufig**, von der
+// 4T-001159 (Epic 3E-000219, E13): Die Folge ist **vierstufig**, von der
 // ausdrücklichsten zur allgemeinsten Aussage:
 //   1. Zuordnungs-Feld des Dokuments, in Nennungs-Reihenfolge
 //   2. Schlagwort des Dokuments   (Bindung aus der Bereichsdatei)
@@ -179,7 +179,7 @@ function assignedProfileNames(frontmatterData, assignField) {
 // wie vor der Erweiterung — das ist die Rückwärts-Verträglichkeits-Auflage
 // mitten in der laufenden Auflösung.
 
-// 4T-1159 (Epic 3E-0219, E13): Trifft ein Ordner-Pfad des Dokuments eine
+// 4T-001159 (Epic 3E-000219, E13): Trifft ein Ordner-Pfad des Dokuments eine
 // Bindung? Ein gebundener Pfad bindet den Ordner UND seine Unterordner —
 // sonst müsste jede Unterteilung nachgepflegt werden. Verglichen wird auf
 // dem bereichs-relativen Pfad, case-insensitiv wie alle Pfad-Vergleiche der
@@ -235,7 +235,7 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
   const ordered = [];
   const missing = [];
   const seenProfiles = new Set();
-  // 4T-1161 (Epic 3E-0219, E5): Welche Stufe der Folge gerade läuft — sie
+  // 4T-001161 (Epic 3E-000219, E5): Welche Stufe der Folge gerade läuft — sie
   // wird am zuerst erreichten Profil festgehalten, damit das Symbol sagen
   // kann, WARUM dieses Profil gilt (Nachvollziehbarkeit aus E13).
   let stufe = 'assigned';
@@ -251,7 +251,7 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
     }
     const chainExclude = new Set();
     let currentKey = startKey;
-    // 4T-1171 (Epic 3E-0220): Wie tief in der Eltern-Kette dieses Profil
+    // 4T-001171 (Epic 3E-000220): Wie tief in der Eltern-Kette dieses Profil
     // steht — 0 für das zugeordnete Profil selbst, 1 für dessen Eltern, und
     // so fort. Der Zähler läuft mit der Schleife, die es ohnehin gibt; ein
     // zweiter Durchlauf, der die Tiefe im Nachhinein rekonstruiert, wäre
@@ -272,7 +272,7 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
       tiefe += 1;
     }
   };
-  // 4T-1159 (Epic 3E-0219, E13): Die Folge wird vierstufig. Sie bleibt EINE
+  // 4T-001159 (Epic 3E-000219, E13): Die Folge wird vierstufig. Sie bleibt EINE
   // geordnete Folge — die neuen Wege gehen hinein, nicht daneben, und
   // bekommen deshalb auch keinen eigenen Mechanismus: `seenProfiles` sorgt
   // dafür, dass jedes Profil genau einmal verarbeitet wird, `seenFields`
@@ -290,7 +290,7 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
   walkChain(defaultProfile, true);
   const fields = [];
   const seenFields = new Set();
-  // 4T-1171 (Epic 3E-0220): Je Feld kommen Weg und Vererbungs-Tiefe mit. Sie
+  // 4T-001171 (Epic 3E-000220): Je Feld kommen Weg und Vererbungs-Tiefe mit. Sie
   // fallen hier ohne Zusatzaufwand an, weil `ordered` beide bereits trägt.
   // `fromDefault` bleibt daneben unverändert stehen, obwohl es inhaltlich
   // `stufe === 'default'` entspricht: Es hat eigene Verbraucher, und die
@@ -305,7 +305,7 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
       fields.push({ ...def, profile: profile.name, fromDefault, stufe: feldStufe, tiefe });
     }
   }
-  // 4T-1161 (E5): Das ZUERST aufgelöste Profil trägt das Symbol am Dokument
+  // 4T-001161 (E5): Das ZUERST aufgelöste Profil trägt das Symbol am Dokument
   // (AK3 der Story). Es ist das erste Element der Folge — kein Sonderfall,
   // sondern dieselbe Ordnung, die auch die Felder bestimmt. `stufe` sagt,
   // über welchen Weg es gefunden wurde, und speist den Tooltip.
@@ -313,12 +313,12 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
   const leading = fuehrend
     ? { profile: fuehrend.profile.name, icon: fuehrend.profile.icon || null, stufe: fuehrend.stufe }
     : null;
-  // 4T-1171 (Epic 3E-0220): Die beteiligten Profile als geordnete Kette, für
+  // 4T-001171 (Epic 3E-000220): Die beteiligten Profile als geordnete Kette, für
   // das Feld-Formular der Stufe 3 — es zeigt sie als Ebenen und bietet je
   // Ebene die fehlenden Felder zur Übernahme an. Dieselbe Ordnung wie oben,
   // nur ohne die internen Arbeits-Felder (`exclude`, das Profil-Objekt).
   // `leading` bleibt daneben stehen: Es ist zwar `chain[0]`, hat aber einen
-  // eigenen Verbraucher und eine eigene Zusicherung aus 4T-1161.
+  // eigenen Verbraucher und eine eigene Zusicherung aus 4T-001161.
   const chain = ordered.map(({ profile, fromDefault, stufe: kettenStufe, tiefe }) => ({
     profile: profile.name,
     icon: profile.icon || null,
@@ -330,12 +330,12 @@ function resolveProfileFields(profiles, { defaultProfile, assigned, bindings, ta
 }
 
 module.exports = {
-  // 4T-1145: aus property-profiles-format.js weitergereicht (Fassade).
+  // 4T-001145: aus property-profiles-format.js weitergereicht (Fassade).
   PROFILE_FIELD_TYPES,
-  // 4T-1183: abgeleitete Felder — Typ-Menge, Auswertung und ihre Hinweise
+  // 4T-001183: abgeleitete Felder — Typ-Menge, Auswertung und ihre Hinweise
   // (aus property-profiles-abgeleitet.js weitergereicht).
   DERIVED_TYPES,
-  // 4T-1186: Typen mit verschachtelten Kind-Definitionen.
+  // 4T-001186: Typen mit verschachtelten Kind-Definitionen.
   OBJECT_TYPES,
   DERIVED_HINTS,
   istAbgeleitet,
@@ -345,31 +345,31 @@ module.exports = {
   DEFAULT_ASSIGN_FIELD,
   normalizeProfilesConfig,
   parseProfileFields,
-  // 4T-1142: Vererbung zwischen Profilen.
+  // 4T-001142: Vererbung zwischen Profilen.
   parseProfileHeritage,
   attachHeritageHints,
   assignedProfileNames,
   resolveProfileFields,
-  // 4T-1159: Bindungen und ihre Auswertung in der Folge.
+  // 4T-001159: Bindungen und ihre Auswertung in der Folge.
   normalizeBindings,
   gebundeneProfile,
   ordnerTrifft,
-  // 4T-1176: Erzeugung der Abfrage zu einem Profil (aus
+  // 4T-001176: Erzeugung der Abfrage zu einem Profil (aus
   // property-profiles-abfrage.js weitergereicht).
   erzeugeProfilAbfrage,
-  // 4T-0448: gemeinsame Editor-Logik (4T-1161: aus
+  // 4T-000448: gemeinsame Editor-Logik (4T-001161: aus
   // property-profiles-editor.js weitergereicht — die Fassade bleibt der eine
   // Ort, an dem Verbraucher laden, und reicht deshalb alles weiter).
   isEmptyPropertyValue,
   valueMatchesType,
   valueMatchesDefinition,
   fieldDefinitionHint,
-  // 4T-1157: Hinweis zur Quelle eines Wertevorrats.
+  // 4T-001157: Hinweis zur Quelle eines Wertevorrats.
   valueSourceHint,
   profileFieldSuggestions,
-  // 4T-0491: Komplett-Übernahme.
+  // 4T-000491: Komplett-Übernahme.
   emptyValueForType,
-  // 4T-1156: Leer-Wert einer ganzen Definition (Mehrfach-Modus).
+  // 4T-001156: Leer-Wert einer ganzen Definition (Mehrfach-Modus).
   emptyValueForDefinition,
   buildProfileFillMap,
   profileSuggestGroups,

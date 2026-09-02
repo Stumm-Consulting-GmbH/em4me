@@ -1,4 +1,4 @@
-// 4T-0185: i18n-Luecken — Regressionstests.
+// 4T-000185: i18n-Luecken — Regressionstests.
 //
 // L-01: M-08 — Sprachwechsel-Broadcast erreicht ein zweites Fenster
 //       (vorher blieb es bis zum Neustart in der alten Sprache). Prueft

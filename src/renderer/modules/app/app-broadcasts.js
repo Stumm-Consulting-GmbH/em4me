@@ -2,7 +2,7 @@
 // Erweiterungs-Meldungen des Main-Prozesses, dazu die Kalender-Konfiguration
 // des Bereichs.
 //
-// Auszug aus app-init.js, 4T-1001 (Epic 3E-0196). Alle Registrierungen laufen
+// Auszug aus app-init.js, 4T-001001 (Epic 3E-000196). Alle Registrierungen laufen
 // synchron ueber registerAppBroadcasts, das app-init.js auf Modul-Ebene an der
 // Stelle des frueheren Blocks aufruft — Electron-IPC puffert nicht, eine erst
 // in init() registrierte Meldung ginge verloren.
@@ -21,7 +21,7 @@ import {
 import { buildEditorCommandKeymap } from '../editor/editor-keymaps.js';
 import { scheduleLint } from '../editor/editor-lint.js';
 import { normalizeSpellcheckSetting } from '../../../shared/spellcheck.js';
-// 4T-1225 (Epic 3E-0122): eine Pfad-Normierung fuer beide Vergleichs-Seiten.
+// 4T-001225 (Epic 3E-000122): eine Pfad-Normierung fuer beide Vergleichs-Seiten.
 import { normalizeForCompare } from '../area.js';
 import { handleSpellcheckContext } from '../editor/editor-context-menu.js';
 import { refreshAreaVariants } from '../sidebar-variants.js';
@@ -50,7 +50,7 @@ import { rebuildHotkeyDispatchMap } from './app-commands.js';
 import { applyLanguageChange } from './app-language.js';
 import { applyExtensionButtonVisibility, applyPanelButtonOrder } from './app-extension-runtime.js';
 
-// 4T-1001: Flag und Warteschlangen gehoeren app-init.js; eine Zuweisung an ein
+// 4T-001001: Flag und Warteschlangen gehoeren app-init.js; eine Zuweisung an ein
 // importiertes Binding waere in ESM ein TypeError, deshalb kommen Lesezugriff
 // und Schreibweg als Funktionen bzw. als Behaelter aus den Deps (Muster der
 // attach-Helfer im Bestand).
@@ -60,7 +60,7 @@ let pendingAppendPayloads = [];
 let setPendingLanguageChange = () => {};
 let setPendingExtensionsChange = () => {};
 
-// 4T-0871 (Buch = Bereich): Der Main zieht eine soeben in einer fremden
+// 4T-000871 (Buch = Bereich): Der Main zieht eine soeben in einer fremden
 // Applikation geoeffnete Buch-Datei zurueck — der Reiter wandert in die
 // Buch-Applikation, die die Datei selbst oeffnet. Synchron registrieren
 // (Electron-IPC puffert nicht); vor initDone genuegt das Streichen aus der
@@ -68,7 +68,7 @@ let setPendingExtensionsChange = () => {};
 // stehen (kein Fern-Schliessen ungespeicherter Aenderungen). Ein zweiter
 // Anlauf nach kurzer Frist faengt das Rennen mit einem noch laufenden
 // openInPane ab.
-// 4T-1225 (Epic 3E-0122, Befund F2): dieselbe Normierung wie die Bereichs-
+// 4T-001225 (Epic 3E-000122, Befund F2): dieselbe Normierung wie die Bereichs-
 // Vergleiche — plattformabhängig statt hart Windows-affin. Beide Seiten des
 // Vergleichs (Main-Ziele und Tab-Pfade) laufen durch diese eine Funktion.
 function normalisierterPfad(p) {
@@ -86,7 +86,7 @@ function schliesseZurueckgezogene(ziele) {
   }
 }
 
-// 4T-0546 (Epic 3E-0097): calendarSystems-Konfiguration des Bereichs in
+// 4T-000546 (Epic 3E-000097): calendarSystems-Konfiguration des Bereichs in
 // den Modul-Zustand der Pipeline laden (Wert-Badges, Klick-Pfad,
 // Kommando-Verfuegbarkeit) — frisch beim Start, bei Bereichs-Wechsel und
 // nach jedem calendar:changed-Broadcast. Danach offene Tabs neu rendern
@@ -126,9 +126,9 @@ export function registerAppBroadcasts(deps) {
   setPendingLanguageChange = deps.setPendingLanguageChange;
   setPendingExtensionsChange = deps.setPendingExtensionsChange;
 
-  // 4T-0012: Display-Info-Push vom Main. Synchron registrieren, weil der erste
+  // 4T-000012: Display-Info-Push vom Main. Synchron registrieren, weil der erste
   // Push direkt nach initialState feuert. Wenn der State sich aendert, Titel neu
-  // rendern, damit der Suffix sofort sichtbar wird. 4T-0318: zusaetzlich
+  // rendern, damit der Suffix sofort sichtbar wird. 4T-000318: zusaetzlich
   // App-Kontext (eigene Fenster-ID, App-Nummer, Bereichs-Daten) uebernehmen.
   api.onWindowDisplayInfo((info) => {
     if (!info) return;
@@ -141,42 +141,42 @@ export function registerAppBroadcasts(deps) {
     state.appCount = info.appCount || 1;
     state.areaName = info.areaName || null;
     state.areaPath = info.areaPath || null;
-    // 4T-0788 (Epic 3E-0125): Wurzel der Bild-Aufloesung fensterlokal nachziehen.
+    // 4T-000788 (Epic 3E-000125): Wurzel der Bild-Aufloesung fensterlokal nachziehen.
     // Bewusst bei JEDER Meldung und nicht nur im Wechsel-Zweig unten: Der Aufruf
     // ist idempotent und billig, und beim Start ist er der einzige Weg, mit dem
     // die Preload-Pipeline von einem gebundenen Bereich erfaehrt.
     if (typeof api.configureAttachmentArea === 'function') {
       api.configureAttachmentArea(state.areaPath);
     }
-    // 4T-0538 (Epic 3E-0098): Arbeitsbereichs-Name der eigenen App.
+    // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Name der eigenen App.
     state.workspaceName = info.workspaceName || null;
-    // 4T-0871 (Buch = Bereich): Buchname der eigenen App (Titel-Stufe "Buch").
+    // 4T-000871 (Buch = Bereich): Buchname der eigenen App (Titel-Stufe "Buch").
     state.bookName = info.bookName || null;
-    // 4T-0873 (Regal = Bereich): Regal-Name der eigenen App.
+    // 4T-000873 (Regal = Bereich): Regal-Name der eigenen App.
     state.shelfName = info.shelfName || null;
     updateWindowTitle();
-    // 4T-0327 (Epic 3E-0059): Bereichs-Wechsel (Bindung einer leeren App)
+    // 4T-000327 (Epic 3E-000059): Bereichs-Wechsel (Bindung einer leeren App)
     // baut die Bereichs-Panels frisch auf.
     if (prevAreaPath !== state.areaPath) {
       refreshAreaPanels();
-      // 4T-0612 (Epic 3E-0115): Bereichs-Lesezeichen sind bereichs-gebunden und
+      // 4T-000612 (Epic 3E-000115): Bereichs-Lesezeichen sind bereichs-gebunden und
       // ziehen beim Binding-Wechsel nach (Bereichs-Abschnitt neu laden bzw.
       // ausblenden).
       void loadAreaBookmarks();
-      // 4T-0434 (Epic 3E-0081): der Kalender haengt an der Journal-
+      // 4T-000434 (Epic 3E-000081): der Kalender haengt an der Journal-
       // Konfiguration des Bereichs und zieht mit.
       refreshCalendarPanels();
-      // 4T-0546 (Epic 3E-0097): die Kalender-System-Konfiguration ist
+      // 4T-000546 (Epic 3E-000097): die Kalender-System-Konfiguration ist
       // bereichs-gebunden und zieht beim Binding-Wechsel nach.
       void refreshCalendarSystems();
-      // 4T-0555 (Epic 3E-0100): eine offene Einstellungs-Seite baut ihre
+      // 4T-000555 (Epic 3E-000100): eine offene Einstellungs-Seite baut ihre
       // Navigations-Gruppe „Aktueller Bereich" und die bereichsgebundenen
       // Entwuerfe neu auf.
       refreshSettingsPageForAreaChange();
-      // 4T-0625 (Epic 3E-0119): Bereichs-Varianten der Sidebar sind
+      // 4T-000625 (Epic 3E-000119): Bereichs-Varianten der Sidebar sind
       // bereichs-gebunden und ziehen beim Binding-Wechsel nach.
       void refreshAreaVariants();
-      // 4T-0788 (Epic 3E-0125): Mit der Wurzel aendert sich, welche Bilder
+      // 4T-000788 (Epic 3E-000125): Mit der Wurzel aendert sich, welche Bilder
       // aufgeloest werden. Ein bereits offenes Dokument zeigte seine Anlagen
       // sonst erst nach einem manuellen Neu-Rendern.
       renderAllPanes();
@@ -187,7 +187,7 @@ export function registerAppBroadcasts(deps) {
   // diesem Fenster und fragen pro Tab nach (Speichern/Verwerfen/Abbrechen).
   // Wenn der Nutzer "Abbrechen" waehlt, wird das Schliessen abgebrochen,
   // sonst confirmClose() an Main melden.
-  // 4T-0320 (Epic 3E-0057): Registrierung synchron beim Modul-Laden statt in
+  // 4T-000320 (Epic 3E-000057): Registrierung synchron beim Modul-Laden statt in
   // init() — Electron-IPC puffert nicht, und ein Quit direkt nach dem Oeffnen
   // eines frischen Fensters (z.B. Beenden unmittelbar nach "Neue Applikation")
   // verlor die window:requestClose-Nachricht: das Fenster schloss nie, das
@@ -195,7 +195,7 @@ export function registerAppBroadcasts(deps) {
   // Handler ist dann ein direktes confirmClose.
   api.onWindowRequestClose(async () => {
     await withDialog(async () => {
-      // 4T-0368 (Epic 3E-0068): Bei aktiver Einstellung Unbenannt-Tabs mit Inhalt
+      // 4T-000368 (Epic 3E-000068): Bei aktiver Einstellung Unbenannt-Tabs mit Inhalt
       // ohne Dialog als Entwurf sichern; Dialoge nur noch fuer dirty bestehende
       // Dateien. Einzelnes Tab-Schliessen (closeTab) bleibt davon unberuehrt.
       const keepDrafts = (await api.getSetting('keepUnsavedDrafts')) !== false;
@@ -221,7 +221,7 @@ export function registerAppBroadcasts(deps) {
         const detail = d.tab.path || tabDisplayName(d.tab);
         const result = await api.confirmCloseDirty({ detail });
         if (result === 'cancel') {
-          // M-01 (4T-0173): Abbruch dem Main melden, sonst bleibt
+          // M-01 (4T-000173): Abbruch dem Main melden, sonst bleibt
           // isQuitting nach einem abgebrochenen Beenden dauerhaft true
           // und die Session-Persistenz faellt aus.
           api.cancelWindowClose();
@@ -256,7 +256,7 @@ export function registerAppBroadcasts(deps) {
     }
   });
 
-  // 4T-0012: Append-Tab-Event aus einem anderen Fenster. Synchron registrieren,
+  // 4T-000012: Append-Tab-Event aus einem anderen Fenster. Synchron registrieren,
   // damit kein Event verloren geht. Solange init() nicht durch ist, sammeln; im
   // Anschluss abarbeiten.
   api.onAppendTabFromOtherWindow((payload) => {
@@ -268,7 +268,7 @@ export function registerAppBroadcasts(deps) {
     handleAppendTabFromOtherWindow(payload);
   });
 
-  // 4T-0871 (Buch = Bereich): Rueckzug einer Datei in die Buch-Applikation;
+  // 4T-000871 (Buch = Bereich): Rueckzug einer Datei in die Buch-Applikation;
   // Helfer und Begruendung stehen oben im Modul.
   api.onCloseExternal?.((files) => {
     const ziele = (Array.isArray(files) ? files : []).map(normalisierterPfad).filter(Boolean);
@@ -285,7 +285,7 @@ export function registerAppBroadcasts(deps) {
     setTimeout(() => schliesseZurueckgezogene(ziele), 400);
   });
 
-  // M-08 (4T-0185): Sprachwechsel-Broadcast aus einem anderen Fenster.
+  // M-08 (4T-000185): Sprachwechsel-Broadcast aus einem anderen Fenster.
   // Synchron beim Modul-Laden registrieren (Electron-IPC puffert nicht);
   // vor initDone ankommende Wechsel werden gemerkt und am Ende von init()
   // angewendet — init() laedt die Sprache ohnehin frisch aus dem Store,
@@ -302,9 +302,9 @@ export function registerAppBroadcasts(deps) {
     applyLanguageChange(newLang, { persist: false });
   });
 
-  // 4T-0292: extensions-Broadcast (auch das ausloesende Fenster empfaengt
+  // 4T-000292: extensions-Broadcast (auch das ausloesende Fenster empfaengt
   // ihn — persist:false, und ein unveraenderter Zustand ist dort ein No-op).
-  // 4T-0539 (Epic 3E-0098): vor initDone eintreffende Broadcasts werden
+  // 4T-000539 (Epic 3E-000098): vor initDone eintreffende Broadcasts werden
   // gemerkt und am Ende von init() angewendet (Muster pendingLanguageChange)
   // — vorher gingen sie endgueltig verloren, wenn ein Fenster in seiner
   // Startphase einen Schalt-Broadcast empfing (aufgedeckt durch WS-05 der
@@ -322,7 +322,7 @@ export function registerAppBroadcasts(deps) {
     });
   }
 
-  // 4T-0582 (Epic 3E-0107): Vorschlags-Daten des Main-Prozesses an das
+  // 4T-000582 (Epic 3E-000107): Vorschlags-Daten des Main-Prozesses an das
   // Editor-Kontextmenue reichen. Die Meldung folgt jedem Rechtsklick, der das
   // DOM-Ereignis nicht abbricht; ohne Tippfehler unter dem Zeiger ist sie leer
   // und das Menue bleibt unveraendert.
@@ -330,7 +330,7 @@ export function registerAppBroadcasts(deps) {
     api.onSpellcheckContext((payload) => handleSpellcheckContext(payload));
   }
 
-  // 4T-0581 (Epic 3E-0107): Broadcast des Rechtschreib-Schalters (auch an das
+  // 4T-000581 (Epic 3E-000107): Broadcast des Rechtschreib-Schalters (auch an das
   // ausloesende Fenster — die Rekonfiguration der Compartments ist idempotent).
   // Vor dem Ende von init() genuegt das Setzen des Zustands: die Editor-Flaechen
   // entstehen erst danach und lesen ihn beim Aufbau.
@@ -341,7 +341,7 @@ export function registerAppBroadcasts(deps) {
     });
   }
 
-  // 4T-0298 (Epic 3E-0053): Broadcast der EXTERNEN Erweiterungen (auch das
+  // 4T-000298 (Epic 3E-000053): Broadcast der EXTERNEN Erweiterungen (auch das
   // ausloesende Fenster empfaengt ihn — der Host laedt Store und Scan neu
   // und gleicht idempotent an; ein unveraenderter Zustand ist ein No-op).
   if (typeof api.onExternalExtensionsChanged === 'function') {
@@ -351,7 +351,7 @@ export function registerAppBroadcasts(deps) {
     });
   }
 
-  // 4T-0208: hotkeys-Broadcast (auch das ausloesende Fenster empfaengt ihn —
+  // 4T-000208: hotkeys-Broadcast (auch das ausloesende Fenster empfaengt ihn —
   // Anwendung ist idempotent): Overrides uebernehmen, Dispatcher-Map neu
   // bauen und die Editor-Keymap aller Panes rekonfigurieren. Die Menue-
   // Accelerators baut der Main selbst neu; der Hilfe-Dialog rendert beim
@@ -368,13 +368,13 @@ export function registerAppBroadcasts(deps) {
           effects: editorCompartments.commandKeymap.reconfigure(buildEditorCommandKeymap()),
         });
       }
-      // 4T-0212: eine offene Tastenkuerzel-Seite des Handbuchs zeigt die
+      // 4T-000212: eine offene Tastenkuerzel-Seite des Handbuchs zeigt die
       // effektiven Bindings — nach Override-Aenderung neu generieren.
       if (await refreshOpenManualTabs()) renderAllPanes();
     });
   }
 
-  // 4T-0292/4T-0293: Nach jedem Erweiterungs-Umschalten offene Tabs neu
+  // 4T-000292/4T-000293: Nach jedem Erweiterungs-Umschalten offene Tabs neu
   // rendern (die Preload-Pipeline wurde vom Lebenszyklus bereits neu
   // aufgebaut; Render-Cache und Live-Block-Cache tragen Output des alten
   // Plugin-Satzes und werden invalidiert). Zusätzlich Kommando-Filterung
@@ -391,15 +391,15 @@ export function registerAppBroadcasts(deps) {
     clearLiveBlockRenderCache();
     rebuildHotkeyDispatchMap();
     applyExtensionButtonVisibility();
-    // 4T-0520 (Epic 3E-0094): platzierte Buttons folgen dem Schalt-Zustand
+    // 4T-000520 (Epic 3E-000094): platzierte Buttons folgen dem Schalt-Zustand
     // ihrer Kommando-Erweiterungen (Konsistenz zu Menue und Palette), das
     // Ein-/Ausblenden von Panel-Buttons aendert zudem die Ueberlauf-Lage.
     applyCommandPlacementUi();
-    // 4T-0607 (Epic 3E-0114): Toolbar-Buttons folgen ebenso dem Schalt-
+    // 4T-000607 (Epic 3E-000114): Toolbar-Buttons folgen ebenso dem Schalt-
     // Zustand ihrer Kommando-Erweiterungen; die Sichtbarkeit der Leiste
     // selbst zieht der syncEditorForPane-Lauf am Ende dieses Handlers nach.
     applyFormatToolbarUi();
-    // 4T-0568 (Epic 3E-0104): das Panel-Untermenue filtert nach dem
+    // 4T-000568 (Epic 3E-000104): das Panel-Untermenue filtert nach dem
     // Erweiterungs-Zustand der gemeldeten Liste — frisch melden.
     reportMenuStateNow();
     for (const view of paneEditors) {
@@ -413,14 +413,14 @@ export function registerAppBroadcasts(deps) {
       });
       scheduleLint(view);
     }
-    // 4T-0294: offene generierte Handbuch-Seiten (Tastenkuerzel) zeigen die
+    // 4T-000294: offene generierte Handbuch-Seiten (Tastenkuerzel) zeigen die
     // gefilterten Kommandos — vor dem Neuzeichnen aktualisieren.
     await refreshOpenManualTabs();
     renderAllPanes();
     for (let i = 0; i < state.panes.length; i++) syncEditorForPane(i);
   });
 
-  // 4T-0546 (Epic 3E-0097): Registrierung und Erstabruf bleiben ein Paar (die
+  // 4T-000546 (Epic 3E-000097): Registrierung und Erstabruf bleiben ein Paar (die
   // Begruendung steht oben bei refreshCalendarSystems).
   if (typeof api.onCalendarChanged === 'function') {
     api.onCalendarChanged(() => void refreshCalendarSystems());

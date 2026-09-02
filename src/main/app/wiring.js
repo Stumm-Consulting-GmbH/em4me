@@ -1,6 +1,6 @@
 // Verdrahtung der Logik- und Fenster-Module des Main-Prozesses.
 //
-// Die Logik-Cluster und die Fenster-Verwaltung liegen seit 4T-0998 in eigenen
+// Die Logik-Cluster und die Fenster-Verwaltung liegen seit 4T-000998 in eigenen
 // Modulen; hier entstehen sie und werden untereinander verbunden. Die Namen der
 // Destrukturierung sind bewusst die bisherigen, damit die Handler-Rumpfe in den
 // ipc-Modulen und im Lifecycle unveraendert bleiben.
@@ -10,7 +10,7 @@
 // Requires gibt es nicht. Ein Zustands-Behaelter kommt als Wert, wo sein
 // Eigentuemer-Modul frueher konstruiert wird, sonst als Getter.
 //
-// Auszug aus main.js, 4T-1000 (Epic 3E-0196). Rolle: Aufbau-Funktion ohne
+// Auszug aus main.js, 4T-001000 (Epic 3E-000196). Rolle: Aufbau-Funktion ohne
 // Lade-Zeit-Seiteneffekte; alles entsteht erst beim Aufruf.
 'use strict';
 
@@ -24,7 +24,7 @@ const books = require('../books/books');
 const { createRecentLists } = require('../recent-lists');
 const { createCheckers } = require('../checks/checkers');
 
-// 4T-0998 (Epic 3E-0196): die dreizehn Auszuege aus main.js — Logik-Cluster
+// 4T-000998 (Epic 3E-000196): die dreizehn Auszuege aus main.js — Logik-Cluster
 // hinter den Handlern und die Fenster-Verwaltung. Sie tragen keine Lade-Zeit-
 // Seiteneffekte; verdrahtet werden sie unten in createMainWiring.
 const { erstelleSchliessRueckfall, erstelleErzwungenenSchluss } = require('./schliess-rueckfall');
@@ -66,13 +66,13 @@ function createMainWiring(deps) {
   // Pfade, die wir gerade selbst schreiben (Save bzw. Auto-Save). Der Watcher
   // soll nach dem Eigen-Schreiben keinen Change-Event an den Renderer melden,
   // damit kein selbst ausgeloester Reload-Loop entsteht.
-  // M-15 (4T-0173): Statt einer pauschalen Zeitsperre wird der geschriebene
+  // M-15 (4T-000173): Statt einer pauschalen Zeitsperre wird der geschriebene
   // Inhalt als Hash gemerkt. Der Watcher unterdrueckt nur Events, deren
   // Datei-Stand dem Eigen-Schreiben entspricht; eine echte externe Aenderung
   // im Zeitfenster (z.B. direkt nach Blur-Auto-Save) laeuft durch und erreicht
   // den Konflikt-Dialog-Pfad.
   //
-  // 4T-0947: Die Mechanik liegt in src/main/documents/self-write.js, weil sie ohne
+  // 4T-000947: Die Mechanik liegt in src/main/documents/self-write.js, weil sie ohne
   // Electron pruefbar sein muss. Dort ist auch der Rest der Zeitsperre gefallen:
   // Ein Eintrag verfaellt nicht mehr nach 1500 ms, sondern erst mit dem naechsten
   // eigenen Schreibvorgang oder dem Ende der Beobachtung.
@@ -120,7 +120,7 @@ function createMainWiring(deps) {
     resolveHistoryFor,
     readPreviousTextFor,
     recordMddOnSave,
-    // 4T-0999: Bezuege von renameSingleFile. Die spaeter erzeugten Module
+    // 4T-000999: Bezuege von renameSingleFile. Die spaeter erzeugten Module
     // kommen als Wrapper, weil diese Fabrik frueher laeuft als sie.
     moveWatchEntry: (oldPath, newPath, performMove) =>
       moveWatchEntry(oldPath, newPath, performMove),
@@ -132,7 +132,7 @@ function createMainWiring(deps) {
     applyMenuToAllWindows: () => applyMenuToAllWindows(),
     broadcast: (channel, ...args) => broadcast(channel, ...args),
     books,
-    // 4T-1364 (Epic 3E-0171): Ist die bewegte Datei die Start-Seite eines
+    // 4T-001364 (Epic 3E-000171): Ist die bewegte Datei die Start-Seite eines
     // Bereichs, faehrt die Festlegung mit. Der Bereich wird ueber die laufenden
     // Bereichs-Apps bestimmt statt durch Hochlaufen des Verzeichnisbaums: Eine
     // Umbenennung geschieht immer in einer laufenden Anwendung, und ein
@@ -183,7 +183,7 @@ function createMainWiring(deps) {
     persistAllWindows,
   } = windowPersistence;
 
-  // 4T-1213 (Epic 3E-0225): Rueckfall im Schliess-Weg. Die Wache entsteht VOR
+  // 4T-001213 (Epic 3E-000225): Rueckfall im Schliess-Weg. Die Wache entsteht VOR
   // der Fenster-Verwaltung, weil diese sie im close-Handler startet; ihre
   // Handlung nach Ablauf greift umgekehrt auf die Fenster-Verwaltung zu und
   // ist deshalb spaet gebunden (Muster activeShelves weiter unten).
@@ -226,7 +226,7 @@ function createMainWiring(deps) {
     lastReportedPanes,
     menuStates: () => menuStates,
     activeBooks: () => activeBooks,
-    // 4T-1031: Der closed-Pfad loest auch die Regal-Bindung; wie activeBooks
+    // 4T-001031: Der closed-Pfad loest auch die Regal-Bindung; wie activeBooks
     // als Getter, weil das Regal-Modul erst weiter unten entsteht.
     activeShelves: () => activeShelves,
     workspacesState: () => workspacesState,
@@ -238,7 +238,7 @@ function createMainWiring(deps) {
     broadcastDisplayInfo: () => broadcastDisplayInfo(),
     unwatchAllForOwner,
     pendingSecondInstanceFiles,
-    // 4T-0525 (Epic 3E-0095): Der Erinnerungs-Pruefer entsteht erst weiter
+    // 4T-000525 (Epic 3E-000095): Der Erinnerungs-Pruefer entsteht erst weiter
     // unten; spaet gebunden, weil die TDZ des const sonst zuschluege.
     onBacklinksInvalidated: () => reminderChecker.tick(),
   });
@@ -252,7 +252,7 @@ function createMainWiring(deps) {
     closeAppWindows,
   } = windowManager;
 
-  // 4T-1214 (Epic 3E-0225): Ausfall-Erkennung des Anzeige-Prozesses. Weg N2
+  // 4T-001214 (Epic 3E-000225): Ausfall-Erkennung des Anzeige-Prozesses. Weg N2
   // (Entscheidung des Product Owners vom 2026-08-26): melden und den Anwender
   // waehlen lassen, Neuladen als Vorgabe. Beim zweiten Ausfall desselben
   // Fensters entfaellt das Neuladen — sonst baut ein Dokument, das die Anzeige
@@ -263,7 +263,7 @@ function createMainWiring(deps) {
     schliesse: (win) => {
       // Ueber den regulaeren Quittungs-Weg: Der Anzeige-Prozess kann die
       // Schliess-Quittung nicht mehr erteilen, und der close-Handler schreibt
-      // im quittierten Zweig den Sitzungs-Stand (Muster aus 4T-1213).
+      // im quittierten Zweig den Sitzungs-Stand (Muster aus 4T-001213).
       windowManager.confirmedClosings.add(win);
       win.close();
     },
@@ -286,7 +286,7 @@ function createMainWiring(deps) {
     },
   });
 
-  // 4T-0888 (Epic 3E-0168): Die Recent-Listen bekommen ihren Zustand injiziert
+  // 4T-000888 (Epic 3E-000168): Die Recent-Listen bekommen ihren Zustand injiziert
   // (Muster createAlarmChecker). Der Store kommt als Getter, weil er erst mit
   // loadStore entsteht; die Oeffnungs-Pfade sind Modul-Funktionen und stehen
   // zur Aufruf-Zeit bereit.
@@ -323,7 +323,7 @@ function createMainWiring(deps) {
     removeDraftsByIds,
     restoreBookForApp: (appId, dir) => restoreBookForApp(appId, dir),
     restoreShelfForApp: (appId, dir) => restoreShelfForApp(appId, dir),
-    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs; areaConfig entsteht
+    // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs; areaConfig entsteht
     // weiter oben und ist hier bereits gebunden.
     resolveAreaStartPage: (rootPath) => areaConfig.resolveAreaStartPage(rootPath),
   });
@@ -418,14 +418,14 @@ function createMainWiring(deps) {
   const { menuStates, broadcastDisplayInfo, applyMenuToWindow, applyMenuToAllWindows, tForWindow } =
     menuApply;
 
-  // 4T-0015: Backlinks-Modul mit dem Broadcast verdrahten, damit watcher-
+  // 4T-000015: Backlinks-Modul mit dem Broadcast verdrahten, damit watcher-
   // getriebene Aenderungen alle Fenster erreichen.
   backlinks.attachBroadcast(broadcast);
-  // 4T-0348 (Epic 3E-0062): markSelfWriting an den Bereichs-Index-Cache reichen,
+  // 4T-000348 (Epic 3E-000062): markSelfWriting an den Bereichs-Index-Cache reichen,
   // damit das Schreiben von Area_Cache.mdda nicht als Fremd-Aenderung zaehlt.
   backlinks.attachSelfWriter(markSelfWriting);
 
-  // 4T-1000 (Epic 3E-0196): die drei Pruefer liegen in checks/checkers.js;
+  // 4T-001000 (Epic 3E-000196): die drei Pruefer liegen in checks/checkers.js;
   // ihre Umgebung kommt von hier. Der Aufbau steht an derselben Stelle des
   // Ablaufs wie zuvor, weil die Fenster-Verwaltung den Erinnerungs-Pruefer
   // spaet gebunden anspricht (onBacklinksInvalidated).

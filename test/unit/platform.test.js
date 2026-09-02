@@ -1,4 +1,4 @@
-// 4T-1203 (Epic 3E-0121): Unit-Tests der zentralen Plattform-Eigenschaften
+// 4T-001203 (Epic 3E-000121): Unit-Tests der zentralen Plattform-Eigenschaften
 // (src/shared/platform.js) — die eine Quelle für die Frage, ob das
 // Dateisystem die Schreibung unterscheidet.
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -13,7 +13,7 @@ afterEach(() => {
   setPlatformForTests(undefined);
 });
 
-describe('isFilesystemCaseInsensitive (4T-1203)', () => {
+describe('isFilesystemCaseInsensitive (4T-001203)', () => {
   it('Windows und macOS unterscheiden die Schreibung nicht', () => {
     setPlatformForTests('win32');
     expect(isFilesystemCaseInsensitive()).toBe(true);
@@ -33,7 +33,7 @@ describe('isFilesystemCaseInsensitive (4T-1203)', () => {
   });
 });
 
-describe('pathCompareKey (4T-1203)', () => {
+describe('pathCompareKey (4T-001203)', () => {
   it('kleingeschrieben nur auf case-insensitiven Dateisystemen', () => {
     setPlatformForTests('win32');
     expect(pathCompareKey('C:\\Daten\\Notizen')).toBe('c:\\daten\\notizen');
@@ -44,10 +44,10 @@ describe('pathCompareKey (4T-1203)', () => {
   });
 });
 
-// 4T-1225 (Epic 3E-0122, Befund F1): Der Pfad-Trenner kommt aus der einen
+// 4T-001225 (Epic 3E-000122, Befund F1): Der Pfad-Trenner kommt aus der einen
 // Quelle; ein hart verdrahteter Backslash liess unter Linux Pfade wie
 // `/bereich\ordner` entstehen, deren Listing still leer blieb.
-describe('pathSeparator (4T-1225)', () => {
+describe('pathSeparator (4T-001225)', () => {
   it('Backslash nur auf Windows, sonst Schraegstrich', () => {
     setPlatformForTests('win32');
     expect(pathSeparator()).toBe('\\');
@@ -58,11 +58,11 @@ describe('pathSeparator (4T-1225)', () => {
   });
 });
 
-// 4T-1225 (Befund F3): Im sandboxed Renderer existiert kein `process`; der
+// 4T-001225 (Befund F3): Im sandboxed Renderer existiert kein `process`; der
 // nackte Zugriff bei der Modul-Initialisierung brach den gesamten
 // Renderer-Bundle-Start (auf allen Plattformen). Das Modul faellt dort auf
-// die vom Preload exponierte Auskunft `api.plattform` (4T-1202) zurueck.
-describe('Plattform-Ermittlung ohne process (4T-1225)', () => {
+// die vom Preload exponierte Auskunft `api.plattform` (4T-001202) zurueck.
+describe('Plattform-Ermittlung ohne process (4T-001225)', () => {
   it('faellt auf die Preload-Auskunft zurueck und wirft nicht', async () => {
     vi.resetModules();
     vi.stubGlobal('process', undefined);

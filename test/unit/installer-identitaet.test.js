@@ -1,7 +1,7 @@
-// 4T-1005: Wächter der Installer-Identität. Der Windows-Installer leitet
+// 4T-001005: Wächter der Installer-Identität. Der Windows-Installer leitet
 // seine Registrierungs-Identität per UUIDv5 aus der appId ab; eine geänderte
 // appId installiert parallel statt zu aktualisieren (realer Vorfall beim
-// Hauptrelease 1: appId-Wechsel in 4T-0905, die 0.105.0-Installation blieb
+// Hauptrelease 1: appId-Wechsel in 4T-000905, die 0.105.0-Installation blieb
 // als zweiter Eintrag stehen). appId und Produktname sind deshalb
 // eingefroren; eine bewusste Änderung braucht eine Product-Owner-Entscheidung
 // und einen Migrations-Pfad im Installer (Entwicklungsrichtlinien,
@@ -14,7 +14,7 @@ import path from 'node:path';
 const wurzel = path.resolve(__dirname, '..', '..');
 const pkg = JSON.parse(readFileSync(path.join(wurzel, 'package.json'), 'utf8'));
 
-describe('Installer-Identität (4T-1005)', () => {
+describe('Installer-Identität (4T-001005)', () => {
   it('appId ist eingefroren', () => {
     expect(pkg.build.appId).toBe('net.stumm.em4me');
   });

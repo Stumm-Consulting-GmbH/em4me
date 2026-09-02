@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 4T-0284 (Epic 3E-0050): Default-Logik der Frontmatter-Anzeige
+// 4T-000284 (Epic 3E-000050): Default-Logik der Frontmatter-Anzeige
 // (Setting render.showFrontmatter): Default an, nur explizites false
 // schaltet ab — auch für Bestands-Nutzer ohne gespeicherten Wert.
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -7,7 +7,7 @@ import './api-stub.js';
 
 const fmDisplay = await import('../../../src/renderer/modules/frontmatter-display.js');
 
-describe('frontmatter-display (4T-0284)', () => {
+describe('frontmatter-display (4T-000284)', () => {
   beforeEach(() => {
     fmDisplay.setFrontmatterDisplayEnabled(true);
   });
