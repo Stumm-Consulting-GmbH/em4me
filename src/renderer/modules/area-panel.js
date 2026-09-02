@@ -22,15 +22,11 @@ import { persistSetting, showStatusbarHint, updateEmptyState } from './views/vie
 // 4T-0427 (Epic 3E-0080): Ordner-Regel-Trigger für "Neue Datei in diesem
 // Ordner" (gemeinsamer Einhak-Punkt der App-Anlagen).
 import { openCreatedFileWithRule } from './templates.js';
-// 4T-0455 (Epic 3E-0084): Kontextmenü-Eintrag "Bereichs-Graph" am Panel.
-import { openAreaGraphTab } from './graph/graph-tab.js';
-// 4T-0620 (Epic 3E-0117): zweiter panel-weiter Einstieg — Bereichs-Statistik.
-import { openAreaStatsPage } from './area-stats-page.js';
-import { hideContextMenu, placeContextMenuAt } from './dialogs/context-menu-utils.js';
-import { isExtensionActive } from './extensions/extension-lifecycle.js';
-// 4T-0612 (Epic 3E-0115): "Als Bereichs-Lesezeichen" im Kontextmenue der
-// Datei-Zeilen des Bereichs-Panels (Dateien liegen per Definition im Bereich).
-import { addAreaBookmarkForPath } from './bookmarks/bookmarks-actions.js';
+// 4T-1365 (Epic 3E-0171): Start-Seite (Merker, Kennzeichnung) und die
+// Kontextmenues des Panels als eigene Module; beide Abhaengigkeiten laufen nur
+// in diese Richtung.
+import { ladeStartSeite, markiereStartSeite } from './area-start-page.js';
+import { showAreaFileContextMenu, showAreaPanelContextMenu } from './area-panel-menus.js';
 // 4T-1225 (Epic 3E-0122, Befund F1 des Linux-Nachweises): Pfad-Trenner und
 // Vergleichs-Verhalten kommen aus dem zentralen Plattform-Modul; der frueher
 // hart verdrahtete Backslash liess unter Linux Pfade wie `/bereich\ordner`
@@ -163,104 +159,27 @@ async function buildFilesFragment(paneIdx, dirPath) {
     row.className = 'area-file-row';
     row.textContent = name;
     row.title = full;
+    markiereStartSeite(row, full); // 4T-1365 (Epic 3E-0171)
     row.addEventListener('click', () => {
       openInPane(paneIdx, [full]);
     });
     // 4T-0612 (Epic 3E-0115): Rechtsklick auf eine Datei-Zeile bietet "Als
     // Bereichs-Lesezeichen" an (nur bei aktiver Lesezeichen-Erweiterung).
-    row.addEventListener('contextmenu', (ev) => showAreaFileContextMenu(ev, full));
+    row.addEventListener('contextmenu', (ev) =>
+      showAreaFileContextMenu(ev, full, refreshSichtbareAreaPanels),
+    );
     frag.appendChild(row);
   }
   return frag;
 }
 
-// 4T-0455 (Epic 3E-0084): Panel-weite Kontextmenue-Eintraege des Bereichs-
-// Panels — derzeit der Einstieg zum Bereichs-Graph. Ausgelagert, weil sie
-// sowohl auf freier Panel-Flaeche (showAreaPanelContextMenu) als auch auf
-// Datei-Zeilen (showAreaFileContextMenu) erreichbar bleiben muessen.
-// 4T-0620 (Epic 3E-0117): Die panel-weiten Eintraege sind seither zwei
-// unabhaengige Einstiege — Bereichs-Graph und Bereichs-Statistik — mit je
-// eigener Erweiterung. Das Menue erscheint, sobald MINDESTENS EINE der
-// beiden aktiv ist, und zeigt genau die aktiven Eintraege.
-function areaPanelEntries() {
-  if (!state.areaPath) return [];
-  const entries = [];
-  if (isExtensionActive('graph-view')) {
-    entries.push({
-      id: 'area-panel-graph',
-      labelKey: 'menu.view.areaGraph',
-      run: openAreaGraphTab,
-    });
+// 4T-1365 (Epic 3E-0171): Neuaufbau aller sichtbaren Bereichs-Panels; als
+// Rueckruf an die Kontextmenues gereicht, damit dort kein Rueckgriff auf dieses
+// Modul noetig ist (kein Zyklus).
+function refreshSichtbareAreaPanels() {
+  for (let i = 0; i < state.panes.length; i++) {
+    if (getAreaPanelVisible(i)) void renderAreaPanel(i);
   }
-  if (isExtensionActive('area-stats')) {
-    entries.push({
-      id: 'area-panel-stats',
-      labelKey: 'menu.view.areaStats',
-      run: openAreaStatsPage,
-    });
-  }
-  return entries;
-}
-
-function areaPanelItemsAvailable() {
-  return areaPanelEntries().length > 0;
-}
-
-// Haengt die panel-weiten Eintraege an ein Kontextmenue an (No-op ohne
-// Bereich oder mit beiden Erweiterungen im Aus-Zustand).
-function appendAreaPanelItems(menu) {
-  for (const entry of areaPanelEntries()) {
-    const item = document.createElement('div');
-    item.className = 'context-menu-item';
-    // Stabiler Anker fuer die E2E-Pruefung (Muster area-file-bookmark).
-    item.dataset.menuId = entry.id;
-    item.textContent = t(entry.labelKey);
-    item.addEventListener('click', () => {
-      hideContextMenu();
-      entry.run();
-    });
-    menu.appendChild(item);
-  }
-}
-
-// 4T-0612 (Epic 3E-0115): Kontextmenue einer Datei-Zeile im Bereichs-Panel.
-// Zeigt EIN kombiniertes Menue: oben der Datei-Eintrag "Als Bereichs-
-// Lesezeichen" (nur bei aktiver Lesezeichen-Erweiterung, die Datei liegt per
-// Definition im Bereich), darunter durch einen Trenner abgesetzt die panel-
-// weiten Eintraege (Bereichs-Graph). So bleiben die Panel-Eintraege auch auf
-// Datei-Zeilen erreichbar (Bestand vor 4T-0612; sonst fing das Datei-Menue
-// den Rechtsklick ab und verdeckte den Graph-Eintrag). Sind beide
-// Erweiterungen aus, uebernimmt kein Eintrag und das Ereignis blubbert zum
-// Sektions-Menue durch (dort greift dieselbe Graph-Pruefung).
-function showAreaFileContextMenu(ev, absPath) {
-  const menu = document.getElementById('context-menu');
-  if (!menu) return;
-  const bookmarksActive = isExtensionActive('bookmarks');
-  const panelAvailable = areaPanelItemsAvailable();
-  if (!bookmarksActive && !panelAvailable) return;
-  ev.preventDefault();
-  ev.stopPropagation();
-  menu.innerHTML = '';
-  if (bookmarksActive) {
-    const item = document.createElement('div');
-    item.className = 'context-menu-item';
-    item.dataset.menuId = 'area-file-bookmark';
-    item.textContent = t('bookmarks.addAsArea');
-    item.addEventListener('click', () => {
-      hideContextMenu();
-      addAreaBookmarkForPath(absPath);
-    });
-    menu.appendChild(item);
-  }
-  // Trenner nur zwischen zwei tatsaechlich vorhandenen Gruppen (Muster der
-  // uebrigen Kontextmenues, z.B. bookmarks.js).
-  if (bookmarksActive && panelAvailable) {
-    const sep = document.createElement('div');
-    sep.className = 'context-menu-separator';
-    menu.appendChild(sep);
-  }
-  appendAreaPanelItems(menu);
-  placeContextMenuAt(menu, ev.clientX, ev.clientY);
 }
 
 // 4T-0328: Inline-Eingabe fuer "Neue Datei in diesem Ordner" — erscheint am
@@ -325,6 +244,10 @@ export async function renderAreaPanel(paneIdx) {
 
   const token = ++areaRenderToken[paneIdx];
   const root = state.areaPath;
+  // 4T-1365 (Epic 3E-0171): Start-Seite vor dem Aufbau lesen, damit die
+  // Kennzeichnung der Datei-Zeilen synchron entscheidbar bleibt.
+  await ladeStartSeite();
+  if (token !== areaRenderToken[paneIdx]) return;
   // Wurzel ist immer aufgeklappt sichtbar.
   const dir = selectedDir(paneIdx);
   if (els.areaTree) {
@@ -435,22 +358,11 @@ if (typeof api.onAreaChanged === 'function') {
   });
 }
 
-// 4T-0455 (Epic 3E-0084): Kontextmenü des Bereichs-Panels auf freier Fläche —
-// Einstieg zum Bereichs-Graph (Task-Zugang neben dem Ansicht-Menü). Listener
-// auf die ganze Sektion (Muster Bookmarks-Sektion); bei deaktivierter graph-
-// view-Erweiterung erscheint kein Menü (kein toter Eintrag). Rechtsklicks auf
+// 4T-0455 (Epic 3E-0084): Kontextmenü des Bereichs-Panels auf freier Fläche.
+// Listener auf die ganze Sektion (Muster Bookmarks-Sektion); Rechtsklicks auf
 // Datei-Zeilen fängt showAreaFileContextMenu vorher ab (stopPropagation) und
-// nimmt die Panel-Einträge dort mit auf.
-function showAreaPanelContextMenu(ev) {
-  if (!areaPanelItemsAvailable()) return;
-  const menu = document.getElementById('context-menu');
-  if (!menu) return;
-  ev.preventDefault();
-  menu.innerHTML = '';
-  appendAreaPanelItems(menu);
-  placeContextMenuAt(menu, ev.clientX, ev.clientY);
-}
-
+// nimmt die Panel-Einträge dort mit auf. Beide Menüs liegen seit 4T-1365 in
+// area-panel-menus.js.
 for (let i = 0; i < 2; i++) {
   const els = getPaneEls(i);
   if (els && els.areaSection) {

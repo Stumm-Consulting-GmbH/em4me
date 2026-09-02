@@ -110,6 +110,14 @@ Les chiffres portent en haut un horodatage et sont calculés **à la demande**, 
 
 « Fichier → Zone → Zones récentes » liste les zones récemment ouvertes par leur nom de dossier. Un clic ouvre la zone selon les règles habituelles. Les zones sont restaurées avec la session ; si un dossier de zone manque au démarrage, l'application correspondante n'est pas restaurée et un avis s'affiche.
 
+### Page d'accueil d'une zone
+
+Une zone peut désigner l'un de ses fichiers comme **page d'accueil** : il s'ouvre de lui-même à l'ouverture de la zone, comme un livre s'ouvre à sa première page. Vous la définissez et la retirez depuis le menu contextuel d'un fichier dans le panneau de zone ; le fichier désigné y est reconnaissable à un symbole en tête et à une police semi-grasse.
+
+**La restauration de session est prioritaire** : si une application de zone revient au démarrage avec les documents que vous aviez ouverts, la page d'accueil reste fermée — vous reprenez là où vous vous étiez arrêté. Elle s'ouvre lorsqu'il n'y a rien à restaurer : à l'ouverture d'une zone en cours d'exécution, et au démarrage pour une application de zone sans documents enregistrés. La bascule vers une zone déjà ouverte ne la rouvre pas et laisse la page d'accueil intacte.
+
+La désignation appartient à la zone et voyage avec son dossier. Si le fichier est renommé ou déplacé dans l'application, la désignation suit ; s'il quitte la zone, elle est abandonnée. Si elle ne pointe nulle part, la zone s'ouvre normalement et l'application le signale — une zone sans page d'accueil se comporte comme auparavant.
+
 ## Espaces de travail
 
 Un **espace de travail** est une application nommée et enregistrée durablement : il comprend toutes ses fenêtres avec les volets, les onglets et leurs réglages d'affichage, les groupes d'onglets, une éventuelle liaison de zone et les brouillons non enregistrés. Un espace de travail ouvert maintient son état à jour **automatiquement**, sans étape d'enregistrement manuelle ; à la réouverture, le travail reprend exactement au dernier état. Accès : le sous-menu « Fichier → Espaces de travail » avec la liste de tous les espaces de travail (le point de couleur indique aussi l'état : plein = ouvert, anneau = fermé) et les quatre actions en dessous ; les mêmes actions sont disponibles comme commandes dans la palette de commandes.

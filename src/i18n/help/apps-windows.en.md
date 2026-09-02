@@ -110,6 +110,14 @@ The figures carry a timestamp at the top and are collected **on request**, not c
 
 "File → Area → Recent Areas" lists the recently opened areas by their folder name. A click opens the area with the usual rules. Areas are restored with the session; if an area folder is missing at startup, the corresponding application is not restored and a notice is shown.
 
+### Start page of an area
+
+An area can designate one of its files as a **start page**: it opens by itself when the area is opened, the way a book falls open at its first page. You set and remove it from the context menu of a file in the area panel; the designated file is marked there with a leading symbol and bold type.
+
+**Session restore takes precedence**: if an area application comes back at program start with the documents you had open, the start page stays closed — you continue where you left off. It opens where there is nothing to restore: when you open an area while the program is running, and at program start for an area application without saved documents. Jumping to an area that is already running does not reopen it and leaves the start page untouched.
+
+The designation belongs to the area and travels with its folder. If the file is renamed or moved inside the application, the designation follows; if the file leaves the area, the designation is dropped. If it points nowhere, the area opens unchanged and the application says so — an area without a start page behaves as before.
+
 ## Workspaces
 
 A **workspace** is a named, permanently stored application: it comprises all of its windows with panes, tabs including their view settings, tab groups, an optional area binding and the unsaved drafts. An open workspace keeps its state up to date **automatically**, without any manual save step; when you reopen it, work continues exactly where it left off. Access: the submenu "File → Workspaces" with the list of all workspaces (the color dot also shows the state: filled = open, ring = closed) and the four actions below it; the same actions are available as commands in the command palette.

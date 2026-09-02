@@ -110,6 +110,14 @@ Las cifras llevan arriba una marca de tiempo y se calculan **a petición**, no d
 
 «Archivo → Área → Áreas recientes» lista las áreas abiertas recientemente por su nombre de carpeta. Un clic abre el área con las reglas habituales. Las áreas se restauran con la sesión; si falta una carpeta de área al iniciar, la aplicación correspondiente no se restaura y se muestra un aviso.
 
+### Página de inicio de un área
+
+Un área puede designar uno de sus archivos como **página de inicio**: se abre por sí sola al abrir el área, como un libro se abre por su primera página. Se define y se quita desde el menú contextual de un archivo en el panel de área; allí el archivo designado se reconoce por un símbolo delante y una letra seminegrita.
+
+**La restauración de sesión tiene prioridad**: si al iniciar el programa una aplicación de área vuelve con los documentos que tenía abiertos, la página de inicio permanece cerrada: usted sigue donde lo dejó. Se abre cuando no hay nada que restaurar: al abrir un área con el programa en marcha y al iniciar una aplicación de área sin documentos guardados. Saltar a un área que ya está en ejecución no la vuelve a abrir y deja intacta la página de inicio.
+
+La designación pertenece al área y viaja con su carpeta. Si el archivo se renombra o se mueve dentro de la aplicación, la designación lo sigue; si el archivo sale del área, se descarta. Si no apunta a nada, el área se abre sin cambios y la aplicación lo indica: un área sin página de inicio se comporta como antes.
+
 ## Espacios de trabajo
 
 Un **espacio de trabajo** es una aplicación con nombre, guardada de forma permanente: comprende todas sus ventanas con paneles, pestañas con sus ajustes de vista, grupos de pestañas, una posible vinculación de área y los borradores sin guardar. Un espacio de trabajo abierto mantiene su estado al día **automáticamente**, sin paso manual de guardado; al reabrirlo, el trabajo continúa exactamente en el último estado. Acceso: el submenú «Archivo → Espacios de trabajo» con la lista de todos los espacios de trabajo (el punto de color muestra también el estado: relleno = abierto, anillo = cerrado) y las cuatro acciones debajo; las mismas acciones están disponibles como comandos en la paleta de comandos.

@@ -195,7 +195,12 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
       const section = page.locator(AREA_SECTION);
       await expect(section).toBeVisible();
       await section.locator('.area-file-row', { hasText: '08 Queries.md' }).first().click();
-      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      // 4T-1366 (Epic 3E-0171): ZWEI Reiter, nicht einer — die Demo-Area traegt
+      // seither eine Start-Seite (00 Welcome.md), die sich beim Oeffnen des
+      // Bereichs von selbst zeigt; der Klick legt den zweiten daneben. Die
+      // Zaehlung ist hier die Warte-Bedingung dafuer, dass die geklickte Datei
+      // offen ist, nicht der Pruef-Gegenstand dieses Falls.
+      await expect(page.locator(SEL.tabs0)).toHaveCount(2);
 
       // Erste perspective-query (TABLE ... FROM #demo SORT chapter): sobald der
       // Bereichs-Index steht, rendert die Tabelle eine Zeile je Demo-Seite.

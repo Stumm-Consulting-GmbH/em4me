@@ -26,6 +26,8 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   navigation through the periods.
 - **Areas keep projects apart** — bind a window to a folder and it becomes
   a closed workspace: file dialogs, recent files and search stay inside it.
+  An area can designate one of its files as a start page, so it opens where
+  you want to begin.
 - **No size limit on a document** — a document that grows beyond about a
   megabyte is split across several files when saving and joined back into
   one when opening: one continuous text, one undo history, one search hit.

@@ -132,6 +132,29 @@ function createMainWiring(deps) {
     applyMenuToAllWindows: () => applyMenuToAllWindows(),
     broadcast: (channel, ...args) => broadcast(channel, ...args),
     books,
+    // 4T-1364 (Epic 3E-0171): Ist die bewegte Datei die Start-Seite eines
+    // Bereichs, faehrt die Festlegung mit. Der Bereich wird ueber die laufenden
+    // Bereichs-Apps bestimmt statt durch Hochlaufen des Verzeichnisbaums: Eine
+    // Umbenennung geschieht immer in einer laufenden Anwendung, und ein
+    // stat-Lauf je Ebene bei jeder Umbenennung waere teuer fuer einen Fall,
+    // der selten eintritt.
+    followAreaStartPage: async (oldPath, newPath) => {
+      const wurzeln = new Set();
+      for (const appId of appRegistry.appIds()) {
+        const area = appRegistry.getArea(appId);
+        if (area && area.rootPath) wurzeln.add(area.rootPath);
+      }
+      for (const rootPath of wurzeln) {
+        const relativeAlt = areaConfig.startPageRelative(rootPath, oldPath);
+        if (relativeAlt === null) continue;
+        const gesetzt = await areaConfig.readAreaStartPage(rootPath);
+        if (gesetzt !== relativeAlt) continue;
+        // Wandert die Datei aus dem Bereich hinaus, wird die Festlegung
+        // entfernt statt auf einen unerreichbaren Pfad zu zeigen.
+        const relativeNeu = areaConfig.startPageRelative(rootPath, newPath);
+        await areaConfig.writeAreaStartPage(rootPath, relativeNeu);
+      }
+    },
   });
 
   const fileWatching = createFileWatching({
@@ -300,6 +323,9 @@ function createMainWiring(deps) {
     removeDraftsByIds,
     restoreBookForApp: (appId, dir) => restoreBookForApp(appId, dir),
     restoreShelfForApp: (appId, dir) => restoreShelfForApp(appId, dir),
+    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs; areaConfig entsteht
+    // weiter oben und ist hier bereits gebunden.
+    resolveAreaStartPage: (rootPath) => areaConfig.resolveAreaStartPage(rootPath),
   });
   const {
     workspacesState,

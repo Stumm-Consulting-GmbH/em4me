@@ -4,10 +4,12 @@
 // 4T-0537 (Epic 3E-0098): dazu die Normalisierung der Arbeitsbereichs-Ablage
 // (Store-Key 'workspaces').
 import { describe, it, expect } from 'vitest';
+// 4T-1364 (Epic 3E-0171): dazu die Vorrang-Regel der Start-Seite.
 import {
   migrateWindowsToApps,
   normalizeSavedApps,
   normalizeSavedWorkspaces,
+  sitzungHatPanes,
 } from '../../src/main/app/session-schema.js';
 
 const WIN = { bounds: { x: 0, y: 0, width: 800, height: 600 }, maximized: false, panes: [] };
@@ -140,5 +142,32 @@ describe('normalizeSavedWorkspaces (4T-0537)', () => {
     expect(result[0].app).toEqual({ area: null, windows: [] });
     expect(result[1].app).toEqual({ area: null, windows: [] });
     expect(result[2].app).toEqual({ area: null, windows: [WIN] });
+  });
+});
+
+// 4T-1364 (Epic 3E-0171): Die Vorrang-Regel der Start-Seite. Sie greift nur,
+// wo NICHTS wiederherzustellen ist (Entscheidung aus 4T-1363); dieser Test
+// haelt genau diese Bedingung fest.
+describe('sitzungHatPanes — Vorrang der Sitzung vor der Start-Seite', () => {
+  it('meldet true, sobald ein Fenster gespeicherte Panes traegt', () => {
+    expect(sitzungHatPanes([{ panes: [{ paths: ['/a.md'], activeIndex: 0 }] }])).toBe(true);
+  });
+
+  it('meldet true auch, wenn erst ein spaeteres Fenster Panes traegt', () => {
+    expect(sitzungHatPanes([{ panes: [] }, { panes: [{ paths: ['/a.md'] }] }])).toBe(true);
+  });
+
+  it('meldet false bei durchweg leeren Pane-Listen', () => {
+    expect(sitzungHatPanes([{ panes: [] }, { panes: [] }])).toBe(false);
+  });
+
+  it('meldet false ohne Fenster', () => {
+    expect(sitzungHatPanes([])).toBe(false);
+  });
+
+  it('meldet false bei fehlendem oder defektem Eingabewert', () => {
+    expect(sitzungHatPanes(undefined)).toBe(false);
+    expect(sitzungHatPanes(null)).toBe(false);
+    expect(sitzungHatPanes([{ panes: 'kaputt' }, null])).toBe(false);
   });
 });

@@ -510,6 +510,9 @@ contextBridge.exposeInMainWorld('api', {
   createDemoArea: () => ipcRenderer.invoke('demoArea:create'),
   createDemoAreaAt: (targetDir) => ipcRenderer.invoke('demoArea:createAt', targetDir),
   closeArea: () => ipcRenderer.invoke('area:close'),
+  // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs; null entfernt sie.
+  getAreaStartPage: () => ipcRenderer.invoke('area:getStartPage'),
+  setAreaStartPage: (filePath) => ipcRenderer.invoke('area:setStartPage', filePath),
   // 4T-0843 (Epic 3E-0147): Buecher. Eigener Namensraum statt flacher
   // book*-Namen, weil der Block als Ganzes zu einer schaltbaren Erweiterung
   // gehoert und der Renderer ihn an EINER Stelle greift.

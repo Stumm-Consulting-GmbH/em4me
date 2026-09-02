@@ -127,7 +127,10 @@ function createRecentLists(deps) {
       });
       return;
     }
-    deps.openAreaPath(rootPath, sourceWindow);
+    // 4T-1364 (Epic 3E-0171): openAreaPath ist asynchron geworden (die
+    // Start-Seite wird aus der Bereichsdatei gelesen). Der Menue-Klick wartet
+    // nicht auf das Ergebnis; Muster der uebrigen Nachzuegler.
+    void deps.openAreaPath(rootPath, sourceWindow);
   }
 
   // 4T-0888: Klick auf einen Eintrag im Submenue "Zuletzt geoeffnete Buecher".

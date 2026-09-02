@@ -110,6 +110,14 @@ I numeri portano in alto un riferimento temporale e vengono calcolati **su richi
 
 «File → Area → Aree recenti» elenca le aree aperte di recente con il nome della cartella. Un clic apre l'area con le consuete regole. Le aree vengono ripristinate con la sessione; se all'avvio manca una cartella di area, l'applicazione corrispondente non viene ripristinata e viene mostrato un avviso.
 
+### Pagina iniziale di un'area
+
+Un'area può designare uno dei suoi file come **pagina iniziale**: si apre da sola all'apertura dell'area, come un libro si apre alla sua prima pagina. La si imposta e la si rimuove dal menu contestuale di un file nel pannello dell'area; lì il file designato si riconosce da un simbolo iniziale e dal carattere semigrassetto.
+
+**Il ripristino della sessione ha la precedenza**: se all'avvio del programma un'applicazione dell'area torna con i documenti che erano aperti, la pagina iniziale resta chiusa: si riprende da dove si era interrotto. Si apre quando non c'è nulla da ripristinare: all'apertura di un'area a programma avviato e all'avvio di un'applicazione dell'area senza documenti salvati. Il passaggio a un'area già in esecuzione non la riapre e lascia intatta la pagina iniziale.
+
+La designazione appartiene all'area e viaggia con la sua cartella. Se il file viene rinominato o spostato all'interno dell'applicazione, la designazione lo segue; se il file esce dall'area, viene abbandonata. Se non punta a nulla, l'area si apre invariata e l'applicazione lo segnala: un'area senza pagina iniziale si comporta come prima.
+
 ## Spazi di lavoro
 
 Uno **spazio di lavoro** è un'applicazione con nome, salvata stabilmente: comprende tutte le sue finestre con i riquadri, le schede con le relative impostazioni di visualizzazione, i gruppi di schede, un eventuale collegamento a un'area e le bozze non salvate. Uno spazio di lavoro aperto mantiene il proprio stato aggiornato **automaticamente**, senza alcun passaggio manuale di salvataggio; alla riapertura il lavoro riprende esattamente dall'ultimo stato. Accesso: il sottomenu «File → Spazi di lavoro» con l'elenco di tutti gli spazi di lavoro (il punto colorato indica anche lo stato: pieno = aperto, anello = chiuso) e le quattro azioni sottostanti; le stesse azioni sono disponibili come comandi nella palette dei comandi.

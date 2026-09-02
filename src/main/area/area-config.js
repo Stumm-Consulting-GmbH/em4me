@@ -17,6 +17,9 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { readAreaSettingsRaw } = require('./area-migration');
+// 4T-1364 (Epic 3E-0171): Bereichs-Grenze der Start-Seiten-Aufloesung.
+// area-path.js ist ein Blatt ohne Rueckimport aus area/ — kein Ordner-Zyklus.
+const { isInsideArea } = require('./area-path');
 
 /**
  * Baut die Leser und Aufloeser der Bereichs-Konfiguration.
@@ -221,6 +224,93 @@ function createAreaConfig(deps) {
     return parsed.container.settings.bookmarks;
   }
 
+  // 4T-1364 (Epic 3E-0171): startPage-Sektion der Bereichsdatei lesen
+  // (Start-Seite des Bereichs). undefined = keine Sektion oder Bereichsdatei
+  // fehlt/ist defekt (wirkt wie keine Start-Seite). Gleicher Migrations-Lese-
+  // Pfad wie die uebrigen Sektionen.
+  //
+  // Der Wert ist ein WURZEL-RELATIVER Pfad, kein absoluter: Die Bereichsdatei
+  // wandert mit dem Ordner, ein absoluter Pfad ueberlebte den Umzug des
+  // Bereichs nicht (Invariante I2 der Ablage-Regel; Entscheidung in 4T-1363,
+  // gleiche Ueberlegung wie bei den wurzel-relativen Schluesseln des
+  // Bereichs-Index-Cache). Nicht-String-Werte wirken wie nicht gesetzt.
+  async function readAreaStartPage(rootPath) {
+    const raw = await readAreaSettingsRaw({
+      mddaPath: path.join(rootPath, mddStore.MDDA_FILENAME),
+      mddbPath: path.join(rootPath, mddStore.LEGACY_MDDB_FILENAME),
+      readFile: (p) => fs.readFile(p, 'utf8'),
+      rename: (from, to) => fs.rename(from, to),
+      markSelfWriting,
+    });
+    if (raw === undefined) return undefined;
+    const parsed = mddStore.parseSettingsContainer(raw);
+    if (!parsed.ok) return undefined;
+    const value = parsed.container.settings.startPage;
+    return typeof value === 'string' && value ? value : undefined;
+  }
+
+  // 4T-1364: Start-Seite eines Bereichs als absoluten Pfad aufloesen, aber nur
+  // wenn sie noch existiert und innerhalb der Bereichs-Grenze liegt. null =
+  // keine Festlegung; { path, missing: true } = Festlegung zeigt ins Leere.
+  //
+  // Die Unterscheidung traegt die Entscheidung aus 4T-1363: Eine ungueltige
+  // Festlegung darf das Oeffnen NIE verhindern, der Anwender wird nur
+  // hingewiesen. Deshalb liefert der Aufloeser den Fehlerfall als Wert und
+  // wirft nicht.
+  async function resolveAreaStartPage(rootPath) {
+    const relative = await readAreaStartPage(rootPath);
+    if (relative === undefined) return null;
+    const absolute = path.resolve(rootPath, relative);
+    // Bereichs-Grenze: eine Festlegung, die aus dem Bereich hinauszeigt, gilt
+    // als ungueltig (harte Bereichsgrenzen, 4S-0252).
+    if (!isInsideArea(rootPath, absolute)) return { path: absolute, missing: true };
+    try {
+      const stat = await fs.stat(absolute);
+      if (!stat.isFile()) return { path: absolute, missing: true };
+    } catch {
+      return { path: absolute, missing: true };
+    }
+    return { path: absolute, missing: false };
+  }
+
+  // 4T-1364: Start-Seiten-Festlegung schreiben oder entfernen (relative = null).
+  // Erwartet einen bereits wurzel-relativen Pfad mit POSIX-Trennern.
+  //
+  // Muster history:setAreaDefault: Die Bereichsdatei entsteht erst beim ersten
+  // tatsaechlichen Setzen, eine defekte Bereichsdatei wird nie ueberschrieben.
+  // Die Funktion liegt hier und nicht im IPC-Handler, weil sie zwei Aufrufer
+  // hat — das Setzen durch den Anwender und die Nachfuehrung beim Umbenennen.
+  async function writeAreaStartPage(rootPath, relative) {
+    const mddaPath = path.join(rootPath, mddStore.MDDA_FILENAME);
+    let container = mddStore.emptySettingsContainer();
+    let raw = null;
+    try {
+      raw = await fs.readFile(mddaPath, 'utf8');
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') throw err;
+    }
+    if (raw !== null) {
+      const parsed = mddStore.parseSettingsContainer(raw);
+      if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
+      container = parsed.container;
+    }
+    if (relative) container.settings.startPage = relative;
+    else delete container.settings.startPage;
+    if (raw === null && !relative) return { ok: true }; // nichts anzulegen
+    const serialized = mddStore.serializeContainer(container);
+    markSelfWriting(mddaPath, serialized);
+    await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+    return { ok: true };
+  }
+
+  // 4T-1364: absoluten Pfad in die gespeicherte Form bringen (wurzel-relativ,
+  // POSIX-Trenner). Liefert null, wenn der Pfad ausserhalb des Bereichs liegt.
+  function startPageRelative(rootPath, absolutePath) {
+    const absolute = path.resolve(absolutePath);
+    if (!isInsideArea(rootPath, absolute)) return null;
+    return path.relative(rootPath, absolute).split(path.sep).join('/');
+  }
+
   // 4T-0424: wirksame Vorlagen-Konfiguration eines Fensters. Bereichs-Sektion
   // (falls das Fenster einen Bereich hat) uebersteuert die globalen
   // Einstellungs-Werte vollstaendig; Details in src/main/documents/templates.js.
@@ -249,6 +339,10 @@ function createAreaConfig(deps) {
     readAreaCalendarConfig,
     readAreaSidebarVariantsConfig,
     readAreaBookmarksConfig,
+    readAreaStartPage,
+    resolveAreaStartPage,
+    writeAreaStartPage,
+    startPageRelative,
     resolveTemplatesForWindow,
   };
 }

@@ -55,6 +55,7 @@ function utcNowSeconds() {
  * @param {Function} deps.removeDraftsByIds Entwuerfe selektiv entfernen.
  * @param {Function} deps.restoreBookForApp Aktives Buch wiederherstellen.
  * @param {Function} deps.restoreShelfForApp Aktives Regal wiederherstellen.
+ * @param {(rootPath: string) => Promise<object|null>} deps.resolveAreaStartPage Start-Seite des Bereichs.
  * @returns {object} Bereichs-API samt der Zustands-Behaelter dieses Moduls.
  */
 function createAreaApps(deps) {
@@ -78,6 +79,8 @@ function createAreaApps(deps) {
     removeDraftsByIds,
     restoreBookForApp,
     restoreShelfForApp,
+    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs aufloesen.
+    resolveAreaStartPage,
   } = deps;
 
   const workspacesState = [];
@@ -243,7 +246,42 @@ function createAreaApps(deps) {
   // - ausloesende App ist bereichslos und ohne geoeffnete Datei -> Bindung.
   // - sonst -> neue Applikation mit Bereich (PO-Regel: unabhaengig davon, wo
   //   die geoeffneten Dateien liegen).
-  function openAreaPath(rootPath, senderWin) {
+  // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs als Pane-Snapshot fuer ein
+  // neu entstehendes Fenster. Liefert [] wenn keine Festlegung besteht oder sie
+  // ins Leere zeigt; im zweiten Fall wird der Anwender hingewiesen, ohne dass
+  // das Oeffnen scheitert (Entscheidung aus 4T-1363: die Start-Seite ist eine
+  // Bequemlichkeit, kein Tor).
+  async function startPagePanes(rootPath, senderWin) {
+    if (!resolveAreaStartPage) return [];
+    let resolved;
+    try {
+      resolved = await resolveAreaStartPage(rootPath);
+    } catch {
+      return []; // defekte Bereichsdatei wirkt wie keine Festlegung
+    }
+    if (!resolved) return [];
+    if (resolved.missing) {
+      meldeFehlendeStartSeite(resolved.path, senderWin);
+      return [];
+    }
+    return [{ paths: [resolved.path], activeIndex: 0 }];
+  }
+
+  // Hinweis auf eine ins Leere zeigende Festlegung. Bewusst nicht-blockierend
+  // im Ablauf (kein await): der Bereich ist bereits offen, wenn der Anwender
+  // ihn wegklickt.
+  function meldeFehlendeStartSeite(zielPfad, senderWin) {
+    const win = senderWin && !senderWin.isDestroyed() ? senderWin : null;
+    void dialog.showMessageBox({
+      type: 'warning',
+      title: tForWindow(win, 'area.startPageMissingTitle'),
+      message: tForWindow(win, 'area.startPageMissingMessage'),
+      detail: zielPfad,
+      buttons: ['OK'],
+    });
+  }
+
+  async function openAreaPath(rootPath, senderWin) {
     const store = getStore();
     const area = areaFromRootPath(rootPath);
     if (!area) return { ok: false, error: 'invalid path' };
@@ -266,9 +304,19 @@ function createAreaApps(deps) {
       broadcastDisplayInfo();
       applyMenuToAllWindows();
       persistAllWindows();
+      // 4T-1364: Die App war leer und uebernimmt den Bereich — es gibt nichts
+      // wiederherzustellen, also greift die Start-Seite. Sie wird in das
+      // bereits laufende Fenster gereicht (Muster der Start-Dateien).
+      const panes = await startPagePanes(area.rootPath, senderWin);
+      if (panes.length > 0 && senderWin && !senderWin.isDestroyed()) {
+        senderWin.webContents.send('file:openExternal', panes[0].paths);
+      }
       return { ok: true, boundExisting: true };
     }
-    const win = createWindow({ area });
+    // 4T-1364: Neues Bereichs-Fenster — die Start-Seite reist als Pane-Snapshot
+    // mit, damit sie wie ein wiederhergestellter Tab entsteht.
+    const initialPanes = await startPagePanes(area.rootPath, senderWin);
+    const win = createWindow({ area, initialPanes });
     startAreaWatcher(appRegistry.appOf(win.webContents.id));
     return { ok: true, createdNew: true };
   }

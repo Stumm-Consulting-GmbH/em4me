@@ -24,6 +24,11 @@ const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
 // unter src/demo, Forward-Slashes). Ein Zuwachs oder Wegfall im Bestand muss
 // diese Liste bewusst nachziehen.
 const EXPECTED_FILES = [
+  // 4T-1366 (Epic 3E-0171): Bereichsdatei der Demo-Area. Sie traegt allein die
+  // Start-Seiten-Festlegung auf „00 Welcome.md", damit die mitgelieferte Demo
+  // die Funktion vorfuehrt statt sie nur zu beschreiben: Wer die Demo-Area
+  // oeffnet, landet auf ihrer Willkommens-Seite.
+  'Area_Settings.mdda',
   '00 Welcome.md',
   '01 Markdown Basics.md',
   '02 Extended Syntax.md',

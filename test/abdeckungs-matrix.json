@@ -1326,6 +1326,13 @@
       "hinweis": "BE-09 (4T-0325): Listen-Pflege (juengste zuerst, Dedupe, Sprung-Fall); der native Menue-Klick ist manueller Test."
     },
     {
+      "key": "help.feature.areaStartPage",
+      "id": "F-274",
+      "testart": "unit",
+      "tests": ["test/unit/area-start-page.test.js", "test/unit/session-schema.test.js"],
+      "hinweis": "4T-1364/4T-1365 (3E-0171): Ablage der Festlegung in der Bereichsdatei als wurzel-relativer Pfad, Rueckgabe bei fehlendem, ordner-artigem oder ausserhalb liegendem Ziel, Schutz einer defekten Bereichsdatei; die Vorrang-Regel gegenueber der Sitzungs-Wiederherstellung als eigene Pruefung (sitzungHatPanes). Das Setzen ueber das Kontextmenue und die Kennzeichnung der Datei-Zeile sind manueller Test an der EXE."
+    },
+    {
       "key": "help.feature.areaPanel",
       "id": "F-077",
       "testart": "e2e",

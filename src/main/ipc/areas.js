@@ -38,6 +38,9 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
  *   durch). setWorkspacesState mutiert genau dieses Array in-place.
  * @param {(list: Array) => void} deps.setWorkspacesState Ablage der Arbeitsbereiche ersetzen.
  * @param {() => void} deps.workspacesChanged Menue und Fenster ueber die Aenderung melden.
+ * @param {(rootPath: string) => Promise<object|null>} deps.resolveAreaStartPage Start-Seite aufloesen.
+ * @param {(rootPath: string, relative: string|null) => Promise<object>} deps.writeAreaStartPage Festlegung schreiben.
+ * @param {(rootPath: string, absolutePath: string) => string|null} deps.startPageRelative Pfad in die Speicherform bringen.
  */
 function registerAreasIpc(handle, deps) {
   const {
@@ -55,6 +58,10 @@ function registerAreasIpc(handle, deps) {
     workspacesState,
     setWorkspacesState,
     workspacesChanged,
+    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs.
+    resolveAreaStartPage,
+    writeAreaStartPage,
+    startPageRelative,
   } = deps;
 
   // 4T-0645 (Epic 3E-0127): Die Beispiel-Sammlung bringt ihren Fenster- und
@@ -268,6 +275,41 @@ function registerAreasIpc(handle, deps) {
     const appId = owner && !owner.isDestroyed() ? appRegistry.appOf(owner.webContents.id) : null;
     if (appId == null || !appRegistry.getArea(appId)) return { ok: false };
     return closeAreaApp(appId);
+  });
+
+  // --- 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs -----------------------
+
+  // Aktuelle Festlegung des Bereichs melden. { hasArea: false } ohne Bereich;
+  // sonst { hasArea: true, path } mit dem absoluten Pfad bzw. null.
+  handle('area:getStartPage', async (event) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { hasArea: false };
+    const resolved = await resolveAreaStartPage(area.rootPath);
+    return { hasArea: true, path: resolved ? resolved.path : null, missing: !!resolved?.missing };
+  });
+
+  // Start-Seite setzen (absoluter Pfad einer Datei im Bereich) oder entfernen
+  // (filePath = null). Gespeichert wird ein WURZEL-RELATIVER Pfad, damit die
+  // Festlegung den Umzug des Bereichs ueberlebt (4T-1363, Invariante I2).
+  //
+  // Muster history:setAreaDefault: Die Bereichsdatei entsteht erst beim ersten
+  // tatsaechlichen Setzen, und eine defekte Bereichsdatei wird nie
+  // ueberschrieben.
+  handle('area:setStartPage', async (event, filePath) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    let relative = null;
+    if (filePath !== null && filePath !== undefined) {
+      if (typeof filePath !== 'string' || !filePath) return { ok: false, error: 'invalid path' };
+      if (!isMarkdownPath(filePath)) return { ok: false, error: 'not a document' };
+      relative = startPageRelative(area.rootPath, filePath);
+      if (relative === null) return { ok: false, error: 'outside area' };
+    }
+    try {
+      return await writeAreaStartPage(area.rootPath, relative);
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
   });
 }
 

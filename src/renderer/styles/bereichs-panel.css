@@ -41,6 +41,18 @@
   background: var(--hover);
   box-shadow: inset 3px 0 0 var(--accent);
 }
+/* 4T-1365 (Epic 3E-0171): Start-Seite des Bereichs. Bewusst zurueckhaltend —
+   ein vorangestelltes Zeichen und halbfette Schrift statt einer Farbflaeche,
+   damit die Auswahl-Markierung der Ordner-Zeilen ihre Bedeutung behaelt. */
+.area-file-row.area-file-start-page {
+  font-weight: 600;
+}
+.area-file-row.area-file-start-page::before {
+  content: '▸';
+  flex: 0 0 auto;
+  margin-right: 4px;
+  color: var(--accent);
+}
 .area-dir-caret {
   flex: 0 0 14px;
   width: 14px;

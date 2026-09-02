@@ -19,7 +19,7 @@ const fs = require('node:fs/promises');
 const { app, dialog, nativeTheme } = require('electron');
 const { tForLocale } = require('../menu/menu');
 const { loadStore } = require('./settings-store');
-const { normalizeSavedApps } = require('./session-schema');
+const { normalizeSavedApps, sitzungHatPanes } = require('./session-schema');
 const { assignDraftsToApps } = require('../documents/draft-store');
 const { isSamePath, areaFromRootPath } = require('../area/area-path');
 const { konfiguriereBereichsSuche } = require('../area/area-search');
@@ -63,6 +63,7 @@ function gibWartendeZweitstartDateien() {
  * @param {Function} deps.restoreBookForApp Aktives Buch wiederherstellen.
  * @param {Function} deps.openShelfApp Regal als eigene Applikation oeffnen.
  * @param {Function} deps.restoreShelfForApp Aktives Regal wiederherstellen.
+ * @param {(rootPath: string) => Promise<object|null>} deps.resolveAreaStartPage Start-Seite des Bereichs.
  * @param {Function} deps.readAllDrafts Entwuerfe lesen.
  * @param {Function} deps.removeDraftsByIds Entwuerfe entfernen.
  * @param {Function} deps.draftsToPayload Entwuerfe als Fenster-Nutzlast.
@@ -90,6 +91,8 @@ function createStartup(deps) {
     restoreBookForApp,
     openShelfApp,
     restoreShelfForApp,
+    // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs.
+    resolveAreaStartPage,
     readAllDrafts,
     removeDraftsByIds,
     draftsToPayload,
@@ -355,12 +358,35 @@ function createStartup(deps) {
       // AK5), gleiches Fire-and-forget-Muster.
       if (t.shelfDir) void restoreShelfForApp(appId, t.shelfDir);
       const draftPayload = draftsToPayload(byApp[ai] || []);
+      // 4T-1364 (Epic 3E-0171): Start-Seite des Bereichs. Sie greift nur, wo
+      // NICHTS wiederherzustellen ist — die Sitzung hat Vorrang (Entscheidung
+      // aus 4T-1363). Traegt die Bereichs-App gespeicherte Panes, bleibt es bei
+      // ihnen; ist ihre Pane-Liste leer, tritt die Start-Seite an ihre Stelle.
+      // Eine ins Leere zeigende Festlegung wird hier still uebergangen: Der
+      // Programmstart hat mit den fehlenden Bereichs-Ordnern bereits eine
+      // Sammel-Meldung, und ein zweiter Warn-Dialog beim Hochfahren waere
+      // laestiger als nuetzlich.
+      let startPanes = null;
+      if (t.area && resolveAreaStartPage) {
+        if (!sitzungHatPanes(t.windows)) {
+          try {
+            const resolved = await resolveAreaStartPage(t.area.rootPath);
+            if (resolved && !resolved.missing)
+              startPanes = [{ paths: [resolved.path], activeIndex: 0 }];
+          } catch {
+            /* defekte Bereichsdatei wirkt wie keine Festlegung */
+          }
+        }
+      }
       for (let wi = 0; wi < t.windows.length; wi++) {
         const entry = t.windows[wi];
+        const gespeichertePanes = Array.isArray(entry?.panes) ? entry.panes : [];
         createWindow({
           bounds: entry?.bounds || null,
           maximized: !!entry?.maximized,
-          initialPanes: Array.isArray(entry?.panes) ? entry.panes : [],
+          // Die Start-Seite bekommt nur das ERSTE Fenster der App: Sie ist der
+          // Einstieg in den Bereich, nicht ein Tab je Fenster.
+          initialPanes: wi === 0 && startPanes ? startPanes : gespeichertePanes,
           initialDrafts: wi === 0 ? draftPayload : [],
           appId,
         });

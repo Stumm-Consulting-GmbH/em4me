@@ -110,6 +110,14 @@ Die Zahlen tragen oben einen Stand-Zeitstempel und werden **auf Anforderung** er
 
 „Datei → Bereich → Zuletzt geöffnete Bereiche" listet die zuletzt geöffneten Bereiche mit ihrem Ordnernamen. Ein Klick öffnet den Bereich nach den üblichen Regeln. Bereiche werden mit der Sitzung wiederhergestellt; fehlt ein Bereichs-Ordner beim Start, wird die zugehörige Applikation nicht wiederhergestellt und ein Hinweis gezeigt.
 
+### Start-Seite eines Bereichs
+
+Ein Bereich kann eine seiner Dateien als **Start-Seite** führen: Sie öffnet sich beim Öffnen des Bereichs von selbst, so wie ein Buch seine erste Seite aufschlägt. Festgelegt und wieder entfernt wird sie über das Kontextmenü einer Datei im Bereichs-Panel; die festgelegte Datei ist dort an einem vorangestellten Zeichen und halbfetter Schrift erkennbar.
+
+Die **Sitzungs-Wiederherstellung hat Vorrang**: Kommt beim Programmstart eine Bereichs-Applikation mit ihren zuvor geöffneten Dokumenten zurück, bleibt die Start-Seite zu — Sie arbeiten dort weiter, wo Sie aufgehört haben. Sie öffnet sich, wo es nichts wiederherzustellen gibt: beim Öffnen eines Bereichs im laufenden Betrieb und beim Programmstart einer Bereichs-Applikation ohne gespeicherte Dokumente. Der Sprung in einen bereits laufenden Bereich öffnet ihn nicht neu und lässt die Start-Seite unangetastet.
+
+Die Festlegung gehört zum Bereich und wandert mit seinem Ordner. Wird die Datei innerhalb der Anwendung umbenannt oder verschoben, zieht die Festlegung mit; verlässt die Datei den Bereich, entfällt sie. Zeigt die Festlegung ins Leere, öffnet der Bereich unverändert und die Anwendung weist darauf hin — ein Bereich ohne Start-Seite verhält sich wie zuvor.
+
 ## Arbeitsbereiche
 
 Ein **Arbeitsbereich** ist eine benannte, dauerhaft gespeicherte Applikation: Er umfasst alle ihre Fenster mit Panes, Tabs samt Ansichts-Einstellungen, Tab-Gruppen, einer eventuellen Bereichs-Bindung und den ungespeicherten Entwürfen. Ein geöffneter Arbeitsbereich hält seinen Stand **automatisch** aktuell, ohne manuellen Speicher-Schritt; beim erneuten Öffnen geht die Arbeit exakt am letzten Stand weiter. Zugang: das Untermenü „Datei → Arbeitsbereiche" mit der Liste aller Arbeitsbereiche (der Farbpunkt zeigt zugleich den Zustand: gefüllt = geöffnet, Ring = geschlossen) und den vier Aktionen darunter; dieselben Aktionen stehen als Kommandos in der Kommando-Palette bereit.

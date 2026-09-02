@@ -14,6 +14,67 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.127.0.2215] - 2026-09-02 — Start-Seite eines Bereichs
+
+Epic 3E-0171
+(4T-1363, 4T-1364, 4T-1365, 4T-1366, Sammeltask 4T-1367 und 4T-1369), das erste
+Vorhaben des Arbeitspakets
+2A-0029.
+Ein Bereich war bisher eine Menge von Dateien ohne ausgezeichneten Einstieg; wer
+ihn öffnete, landete dort, wo die Sitzungs-Wiederherstellung ihn zuletzt
+verlassen hatte, oder im Leeren. Eine benannte Start-Seite gibt ihm einen Anfang
+und macht ihn ohne Vorwissen begehbar. Die Fähigkeit ist bewusst generisch: Sie
+steht jedem Bereich offen und ist an keinen Verwendungszweck gebunden.
+
+### Neu
+
+- **Ein Bereich kann eine seiner Dateien als Start-Seite führen** (4T-1364).
+  Sie öffnet sich beim Öffnen des Bereichs von selbst. Die Festlegung liegt in
+  der Bereichsdatei und wandert mit dem Ordner; gespeichert wird ein
+  wurzel-relativer Pfad, damit sie den Umzug des Bereichs übersteht. Ein Bereich
+  ohne Festlegung verhält sich unverändert.
+- **Die Sitzungs-Wiederherstellung hat Vorrang** (4T-1364). Kommt beim
+  Programmstart eine Bereichs-Applikation mit ihren zuvor geöffneten Dokumenten
+  zurück, bleibt die Start-Seite zu — der ausdrückliche Wunsch, dort
+  weiterzumachen, wo man aufgehört hat, schlägt den automatischen Einstieg. Sie
+  öffnet, wo es nichts wiederherzustellen gibt: beim Öffnen eines Bereichs im
+  laufenden Betrieb und beim Programmstart einer Bereichs-Applikation ohne
+  gespeicherte Dokumente. Der Sprung in einen bereits laufenden Bereich öffnet
+  ihn nicht neu und lässt die Start-Seite unangetastet.
+- **Festlegen und Entfernen über das Bereichs-Panel** (4T-1365). Der Rechtsklick
+  auf eine Datei-Zeile bietet die Festlegung an; bei der festgelegten Datei
+  heißt derselbe Eintrag „entfernen", sodass das Entfernen nie dort erscheint,
+  wo es nichts zu entfernen gibt. Die festgelegte Datei ist in der Liste an
+  einem vorangestellten Zeichen und halbfetter Schrift erkennbar.
+- **Eine ungültige Festlegung verhindert das Öffnen nie** (4T-1364). Zeigt sie
+  auf eine gelöschte oder verschobene Datei, öffnet der Bereich unverändert und
+  weist darauf hin. Wird die Datei innerhalb der Anwendung umbenannt oder
+  verschoben, zieht die Festlegung mit; verlässt sie den Bereich, entfällt sie.
+
+### Geändert
+
+- **Die mitgelieferte Demo-Area führt die Funktion vor** (4T-1366). Sie trägt
+  ihre Willkommens-Seite als Start-Seite; wer die Demo-Area anlegt und öffnet,
+  landet unmittelbar darauf.
+- **Innere Struktur des Bereichs-Panels geschnitten** (4T-1365). Die
+  Kontextmenüs des Panels und die Start-Seiten-Fachlichkeit liegen in eigenen
+  Modulen. Ohne Wirkung auf die Bedienung; das Panel-Modul ist dadurch kleiner
+  als vor dem Vorhaben.
+
+### Dokumentation
+
+- **Handbuch und Funktions-Katalog** (4T-1366). Die Seite zu Applikationen,
+  Fenstern und Bereichen trägt einen neuen Abschnitt zur Start-Seite mit
+  Vorrang-Regel und Verhalten bei fehlendem Ziel; der Funktions-Katalog führt
+  sie mit Kurzname, Beschreibung und Zugang. Beides in allen fünf
+  Sprachfassungen.
+
+### i18n
+
+- Acht neue Schlüssel in allen fünf Sprachen (DE/EN/FR/ES/IT): zwei Meldungen
+  zur ungültigen Festlegung, sechs für Kontextmenü, Kennzeichnung und
+  Rückmeldungen des Bereichs-Panels, dazu die drei Katalog-Schlüssel.
+
 ## [1.126.0.2198] - 2026-09-02 — Dokumente ohne Größengrenze
 
 Epic 3E-0224

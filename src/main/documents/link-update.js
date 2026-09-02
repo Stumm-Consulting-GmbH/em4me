@@ -40,6 +40,7 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {() => void} deps.applyMenuToAllWindows Menues aller Fenster neu bauen.
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
  * @param {object} deps.books Datei-Ebene des Buches (Nachtrag im Kapitel-Baum).
+ * @param {(oldPath: string, newPath: string) => Promise<void>} deps.followAreaStartPage Nachtrag der Start-Seite.
  * @returns {object} Scan-, Vorschau-, Anwendungs- und Umbenennen-Funktionen.
  */
 function createLinkUpdate(deps) {
@@ -58,6 +59,8 @@ function createLinkUpdate(deps) {
     applyMenuToAllWindows,
     broadcast,
     books,
+    // 4T-1364 (Epic 3E-0171): Nachtrag der Start-Seiten-Festlegung.
+    followAreaStartPage,
   } = deps;
 
   // 4T-0345 (Epic 3E-0062): Suchraum fuer das Link-Update beim Umbenennen. In
@@ -261,6 +264,19 @@ function createLinkUpdate(deps) {
     } catch (err) {
       console.error(
         '[book-chapter] Nachtrag im Kapitel-Baum fehlgeschlagen:',
+        err && err.message ? err.message : err,
+      );
+    }
+    // 4T-1364 (Epic 3E-0171): Ist die bewegte Datei die Start-Seite ihres
+    // Bereichs, faehrt die Festlegung mit — gleiches Best-Effort-Muster wie der
+    // Kapitel-Baum darueber. Eine eigene Nachfuehrungs-Mechanik entsteht dafuer
+    // bewusst nicht (Entscheidung aus 4T-1363): Schlaegt der Nachtrag fehl,
+    // faengt der Ungueltig-Fall beim naechsten Oeffnen den Rest ab.
+    try {
+      if (followAreaStartPage) await followAreaStartPage(absolute, newPath);
+    } catch (err) {
+      console.error(
+        '[start-page] Nachtrag der Start-Seiten-Festlegung fehlgeschlagen:',
         err && err.message ? err.message : err,
       );
     }

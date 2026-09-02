@@ -121,4 +121,22 @@ function normalizeSavedWorkspaces(saved) {
   return result;
 }
 
-module.exports = { migrateWindowsToApps, normalizeSavedApps, normalizeSavedWorkspaces };
+// 4T-1364 (Epic 3E-0171): Hat eine wiederherzustellende Applikation ueberhaupt
+// etwas wiederherzustellen? Die Frage traegt die Vorrang-Entscheidung aus
+// 4T-1363 — die Start-Seite eines Bereichs greift NUR, wo die Antwort nein
+// lautet, weil die Sitzungs-Wiederherstellung der ausdrueckliche Wunsch ist,
+// dort weiterzumachen, wo der Anwender aufgehoert hat.
+//
+// Sie steht hier und nicht als Bedingung im Start-Ablauf, weil sie die
+// Kern-Regel des Epics ist und ohne Electron pruefbar sein soll.
+function sitzungHatPanes(windowsList) {
+  if (!Array.isArray(windowsList)) return false;
+  return windowsList.some((w) => Array.isArray(w?.panes) && w.panes.length > 0);
+}
+
+module.exports = {
+  migrateWindowsToApps,
+  normalizeSavedApps,
+  normalizeSavedWorkspaces,
+  sitzungHatPanes,
+};

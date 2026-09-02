@@ -386,6 +386,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-0326 (Epic 3E-0058): Bereiche und Zuletzt-geoeffnete-Bereiche.
       'help.feature.area',
       'help.feature.recentAreas',
+      // 4T-1366 (Epic 3E-0171): Start-Seite eines Bereichs, direkt hinter den
+      // Bereichs-Einstiegen — sie wirkt genau in dem Moment, den jene eroeffnen.
+      'help.feature.areaStartPage',
       // 4T-0632 (Epic 3E-0102): mitgelieferte Demo-Area, direkt hinter den
       // Bereichs-Einstiegen (sie erzeugt und oeffnet einen Bereich).
       'help.feature.demoArea',
