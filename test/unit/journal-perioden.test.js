@@ -251,29 +251,88 @@ describe('entriesInRange — Eintrags-Ermittlung', () => {
 
 // --- 4T-000433 (Epic 3E-000081): Frontmatter-Datums-Properties ------------------------
 
-describe('applyJournalProperties — automatische Datums-Properties', () => {
+describe('applyJournalProperties — automatische Journal-Properties', () => {
   const props = {
+    name: 'Wochenbuch',
+    nameProp: 'journal',
     dateProp: 'journal-date',
     startProp: 'journal-start-date',
     endProp: 'journal-end-date',
   };
 
-  it('Tages-Journal: nur das Datum, neuer Frontmatter-Block entsteht', () => {
+  // 4T-001405 (Epic 3E-000244): der Journal-Name als vierte Eigenschaft.
+  it('schreibt den Anzeige-Namen des Journals, nicht seine Kennung', () => {
+    const day = periodOf(ms('2026-07-09'), 'day');
+    const text = applyJournalProperties('', { ...props, id: 'wochenbuch-2024' }, day);
+    expect(text).toContain('journal: Wochenbuch');
+    expect(text).not.toContain('wochenbuch-2024');
+  });
+
+  it('fällt ohne Anzeige-Namen auf die Kennung zurück', () => {
+    const day = periodOf(ms('2026-07-09'), 'day');
+    const text = applyJournalProperties('', { ...props, name: '', id: 'tagebuch' }, day);
+    expect(text).toContain('journal: tagebuch');
+  });
+
+  it('der Feldname des Journal-Namens ist konfigurierbar', () => {
+    const week = periodOf(ms('2026-07-09'), 'week');
+    const text = applyJournalProperties('', { ...props, nameProp: 'serie' }, week);
+    expect(text).toContain('serie: Wochenbuch');
+  });
+
+  // 4T-001404 (Epic 3E-000244): Der Tages-Fall prüfte bis zum 2026-09-03 das
+  // ABWESEND-Sein der Perioden-Grenzen und schrieb damit den Fehler fest. Er ist
+  // umgedreht; die Gleichheit der drei Werte ist der eigentliche Prüfpunkt.
+  it('Tages-Journal: alle drei Felder, Datum gleich Start und Ende', () => {
     const day = periodOf(ms('2026-07-09'), 'day');
     const text = applyJournalProperties('# Heute\n', { ...props }, day);
     expect(text).toContain('journal-date: 2026-07-09');
-    expect(text).not.toContain('journal-start-date');
+    expect(text).toContain('journal-start-date: 2026-07-09');
+    expect(text).toContain('journal-end-date: 2026-07-09');
     expect(text).toContain('# Heute');
   });
 
-  it('mehrtägige Periode: Start und Ende, bestehende Felder bleiben', () => {
+  it('mehrtägige Periode: alle drei Felder, bestehende Felder bleiben', () => {
     const week = periodOf(ms('2026-07-09'), 'week');
     const source = '---\ntags: [wochenbuch]\n---\n\n# KW\n';
     const text = applyJournalProperties(source, { ...props }, week);
+    expect(text).toContain('journal-date: 2026-07-06');
     expect(text).toContain('journal-start-date: 2026-07-06');
     expect(text).toContain('journal-end-date: 2026-07-12');
     expect(text).toContain('tags:');
     expect(text).toContain('# KW');
+  });
+
+  // Regressionstest zum gemeldeten Fehler (Prio-A-Befund vom 2026-09-03): Ein
+  // Wochen-Eintrag trug das Perioden-Datum nicht. Der Wert ist der Montag der
+  // Woche, nicht der Tag der Anlage und nicht das Perioden-Ende.
+  it('Wochen-Eintrag trägt das Perioden-Datum als Montag der Woche', () => {
+    const week = periodOf(ms('2026-07-09'), 'week'); // Donnerstag
+    const text = applyJournalProperties('', { ...props }, week);
+    expect(text).toContain('journal-date: 2026-07-06');
+  });
+
+  // Alle fünf Granularitäten tragen den vollen Satz; die Werte je Periode prüft
+  // die Perioden-Arithmetik weiter oben, hier zählt die Vollständigkeit.
+  it.each(['day', 'week', 'month', 'quarter', 'year'])(
+    'Granularität %s trägt alle drei Felder',
+    (granularity) => {
+      const period = periodOf(ms('2026-07-09'), granularity);
+      const text = applyJournalProperties('', { ...props }, period);
+      expect(text).toContain('journal-date:');
+      expect(text).toContain('journal-start-date:');
+      expect(text).toContain('journal-end-date:');
+    },
+  );
+
+  it('Perioden-Datum ist der Perioden-Start, in jeder Granularität', () => {
+    for (const granularity of ['day', 'week', 'month', 'quarter', 'year']) {
+      const period = periodOf(ms('2026-07-09'), granularity);
+      const text = applyJournalProperties('', { ...props }, period);
+      const datum = /journal-date: (\S+)/.exec(text)?.[1];
+      const start = /journal-start-date: (\S+)/.exec(text)?.[1];
+      expect(datum).toBe(start);
+    }
   });
 
   it('gleichnamige Felder aus der Vorlage werden übersteuert', () => {

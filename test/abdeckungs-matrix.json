@@ -1,5 +1,5 @@
 {
-  "beschreibung": "Abdeckungs-Matrix 4T-000195: jeder help.feature.*- und help.shortcut.*-Key aus src/i18n/de.json braucht einen Eintrag. testart: e2e|unit|snapshot|ipc|manuell; bei ipc/manuell ist \"begruendung\" Pflicht. Der Meta-Test test/unit/abdeckungs-matrix.test.js erzwingt Vollstaendigkeit und Datei-Existenz.",
+  "beschreibung": "Abdeckungs-Matrix 4T-000195: jeder help.feature.*- und help.shortcut.*-Key aus src/i18n/de.json braucht einen Eintrag. testart: e2e|unit|snapshot|ipc|manuell; bei ipc/manuell ist \"begruendung\" Pflicht. Der Meta-Test test/unit/abdeckungs-matrix.test.js erzwingt Vollstaendigkeit und Datei-Existenz. Seit 4T-001167 traegt jeder Unit- und Snapshot-Eintrag das Feld \"sichtbarkeit\": eine Liste rendernder E2E-Specs, \"entfällt: <Grund>\" (kein dauerhaft sichtbares Bedienelement) oder \"offen: <Grund>\" (Altbestand-Luecke, gedeckelt). Seit 4T-001167 traegt jeder Unit- und Snapshot-Eintrag das Feld \"sichtbarkeit\": eine Liste rendernder E2E-Specs, \"entfällt: <Grund>\" (kein dauerhaft sichtbares Bedienelement) oder \"offen: <Grund>\" (Altbestand-Luecke, gedeckelt).",
   "stand": "0.26.0",
   "eintraege": [
     {
@@ -63,6 +63,7 @@
       "id": "F-008",
       "testart": "unit",
       "tests": ["test/unit/backlinks.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/sidebar-layout.spec.js"],
       "hinweis": "Index-Logik vollstaendig unit-getestet; Panel-Refresh-Mechanik indirekt ueber NF-01 (gleicher invalidated-Pfad), Panel-Optik in der Gesamtabnahme."
     },
     {
@@ -101,6 +102,7 @@
       "id": "F-013",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js", "test/e2e/regression/4t-0186.spec.js"],
+      "sichtbarkeit": ["test/e2e/regression/4t-0186.spec.js"],
       "hinweis": "Render der Link-Formen im Snapshot; Klick-Navigation in MK-01 (Anker) — externe http-Links oeffnen den OS-Browser (Gesamtabnahme)."
     },
     {
@@ -177,6 +179,7 @@
       "id": "F-021",
       "testart": "unit",
       "tests": ["test/unit/export-portable.test.js", "test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü (OS-UI der Gesamtabnahme), kein DOM-Bedienelement",
       "hinweis": "Konverter und Roundtrip vollstaendig unit-/snapshot-getestet; der Speichern-Dialog des Export-Menuepunkts ist OS-UI (Gesamtabnahme)."
     },
     {
@@ -257,6 +260,7 @@
       "id": "F-030",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "syntax-highlighting-Fixture."
     },
     {
@@ -264,6 +268,7 @@
       "id": "F-031",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js", "test/unit/export-portable.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "katex-Fixture (inline/block/einzeilig) plus Export-Degradation."
     },
     {
@@ -285,6 +290,7 @@
       "id": "F-249",
       "testart": "unit",
       "tests": ["test/unit/spellcheck.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
       "hinweis": "Schalter-Aufloesung, Woerterbuch-Normalisierung und der Waechter gegen setSpellCheckerLanguages. Der Pruefer selbst gehoert dem Betriebssystem und ist im Testlauf nicht nachstellbar; die Kette Rechtsklick bis Vorschlag ist am 2026-08-02 an Electron 33 gemessen (Belege im Epic 3E-000107)."
     },
     {
@@ -292,6 +298,7 @@
       "id": "F-034",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "perspective-tabellen-Fixture (Basis)."
     },
     {
@@ -299,6 +306,7 @@
       "id": "F-035",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js", "test/unit/render/sanitizer-dom.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Spans/Status/sortable/Verschachtelung im Snapshot; Export-HTML-Whitelist im jsdom-Sanitizer-Test."
     },
     {
@@ -306,6 +314,7 @@
       "id": "F-036",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Ausschluss vom Render plus extractFrontmatter/writeFrontmatter-API-Tests."
     },
     {
@@ -364,6 +373,7 @@
         "test/unit/profil-wertevorrat.test.js",
         "test/unit/property-profiles-aufloesung.test.js"
       ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; der Wertevorrat erscheint in der bestehenden Auswahl-Liste des Feld-Formulars (eigenschafts-feld-formular.spec.js)",
       "hinweis": "4T-001157 und 4T-001158 (Epic 3E-000219): Wertevorrat aus einer Notiz und aus einer Abfrage. Die Notiz-Quelle laeuft ueber den zweiten Eingang des mtime-Abgleichs im Profil-Katalog (Aenderung ohne Neustart, Bereichs-Grenze am Lese-Zaehler belegt); die Abfrage-Quelle wird auf Verlangen ausgewertet und gegen den Index-Stand gepuffert. Testart unit, weil die tragende Zusage die BEGRENZUNG ist: Gezaehlt werden Auswertungen und Datei-Zugriffe, was E2E nicht leisten kann."
     },
     {
@@ -397,6 +407,7 @@
         "test/unit/property-profiles-abfrage.test.js",
         "test/unit/renderer/profil-abfrage-einfuegen.test.js"
       ],
+      "sichtbarkeit": "entfällt: erzeugter Abfrage-Text; die Sicht ist die bestehende Ergebnis-Ausgabe der Abfrage-Sprache",
       "hinweis": "4T-001176 (Epic 3E-000220): erzeugte Abfrage je Profil. Der Gegenstand ist der erzeugte TEXT und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird. Kein E2E-Fall: Die Sicht selbst ist die vorhandene Ergebnis-Ausgabe der Abfrage-Sprache und dort bereits gedeckt; dass die Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 von 4T-001176 an der gebauten Programmdatei."
     },
     {
@@ -467,6 +478,7 @@
       "id": "F-038",
       "testart": "unit",
       "tests": ["test/unit/backlinks.test.js"],
+      "sichtbarkeit": ["test/e2e/regression/4t-0177.spec.js"],
       "hinweis": "Alias-Erkennung und -Aufloesung im Index; Alias-Auswahl-Dialog in der Gesamtabnahme."
     },
     {
@@ -474,6 +486,7 @@
       "id": "F-039",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js", "test/unit/backlinks.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Render-Snapshot plus Anker-Index-Units."
     },
     {
@@ -499,6 +512,7 @@
       "id": "F-042",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js", "test/unit/backlinks.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Embed-Platzhalter-Render; Anker-Snippet-Extraktion unit; PDF-/MD-Aufloesung braucht echte Dateien (Gesamtabnahme-Stichprobe)."
     },
     {
@@ -517,6 +531,7 @@
       "id": "F-044",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "callouts-Fixture (zehn Typen, Randfaelle nach R1-13)."
     },
     {
@@ -524,6 +539,7 @@
       "id": "F-045",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "highlight-footnotes-anker-Fixture."
     },
     {
@@ -531,6 +547,7 @@
       "id": "F-046",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Referenz- und Inline-Form."
     },
     {
@@ -580,6 +597,10 @@
         "test/e2e/funktionen/uhr-größen.spec.js",
         "test/e2e/funktionen/uhr-kalender.spec.js"
       ],
+      "sichtbarkeit": [
+        "test/e2e/funktionen/uhr-größen.spec.js",
+        "test/e2e/funktionen/uhr-kalender.spec.js"
+      ],
       "hinweis": "4T-000372 (Epic 3E-000069): Rechen-Kern (Normalisierung, Zeiger-Winkel, Zeit-/Datums-Format, Timer-Takt) als reine Unit-Tests, Panel-Aufbau und Aus-Zustand der Erweiterung als jsdom-Unit; die Zugangs-Paritaet deckt PZ-01/PZ-02 ueber panel-access.test.js und die Panel-Zugaenge-Spec ab. 4T-000636 ergaenzt die Modus-Umschaltleiste (Modell, Leisten-Aufbau, Persistenz je Spalte, Takt nur im Uhr-Modus). 4T-000679 (Epic 3E-000139) ergaenzt die Groessen-Stufe der digitalen Anzeige: Faktor-Tabelle und Setzen der CSS-Variable als Unit, wirksame Schriftgroesse und das beidseitige Beschneiden in der schmalsten Spalte als E2E (UG-01 bis UG-03). 4T-000752 (Epic 3E-000146) ergaenzt den Monatskalender als fuenften Modus: Ansichts-Zustand und Navigations-Rechnung als Unit (clock-options.test.js), der gemeinsame Gitter-Aufbau als jsdom-Unit (renderer/month-grid-view.test.js), Modus-Taste, Blaettern, Jahres-Eingabe und Kalenderwochen-Spalte als E2E (UK-01 bis UK-04)."
     },
     {
@@ -620,6 +641,7 @@
       "id": "F-051",
       "testart": "unit",
       "tests": ["test/unit/renderer/struktur-und-state.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/navigation-und-datei.spec.js"],
       "hinweis": "Extraktion (inkl. R3-14-Fences) unit; Panel-Toggle e2e in FH-01; Sprung-Normalisierung MK-Mechanik aus 4T-000186."
     },
     {
@@ -647,6 +669,7 @@
       "id": "F-053",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture emoji.md (4T-000197)."
     },
     {
@@ -654,6 +677,7 @@
       "id": "F-054",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture abbreviations.md (4T-000197)."
     },
     {
@@ -661,6 +685,7 @@
       "id": "F-055",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture implicit-figures.md (4T-000198)."
     },
     {
@@ -668,6 +693,7 @@
       "id": "F-056",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture image-size.md (4T-000198)."
     },
     {
@@ -675,6 +701,7 @@
       "id": "F-057",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture definition-lists.md (4T-000199)."
     },
     {
@@ -682,6 +709,7 @@
       "id": "F-058",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture line-blocks.md (4T-000199)."
     },
     {
@@ -689,6 +717,7 @@
       "id": "F-059",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixtures custom-containers.md und custom-containers-portable.md (4T-000200)."
     },
     {
@@ -696,6 +725,7 @@
       "id": "F-060",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture sub-sup-ins.md (4T-000201)."
     },
     {
@@ -703,6 +733,7 @@
       "id": "F-061",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture sub-sup-ins.md (4T-000201)."
     },
     {
@@ -710,6 +741,7 @@
       "id": "F-062",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture attributes-spans.md (4T-000202)."
     },
     {
@@ -717,6 +749,7 @@
       "id": "F-063",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture spoiler.md (4T-000203)."
     },
     {
@@ -724,6 +757,7 @@
       "id": "F-064",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
       "hinweis": "Fixture critic-markup.md (4T-000203)."
     },
     {
@@ -731,6 +765,7 @@
       "id": "F-111",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/prozent-kommentare.spec.js"],
       "hinweis": "Fixtures kommentare.md und kommentare-portable.md; Unit test/unit/render/prozent-kommentare.test.js und E2E test/e2e/funktionen/prozent-kommentare.spec.js (PK-01 bis PK-03, 4T-000479)."
     },
     {
@@ -738,6 +773,7 @@
       "id": "F-125",
       "testart": "snapshot",
       "tests": ["test/unit/render/snapshots.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/gliederungs-nummerierung.spec.js"],
       "hinweis": "Fixtures gliederungs-nummerierung.md und gliederungs-nummerierung-portable.md; Unit test/unit/render/gliederungs-nummerierung.test.js und E2E test/e2e/funktionen/gliederungs-nummerierung.spec.js (GN-01 bis GN-06, 4T-000470)."
     },
     {
@@ -748,6 +784,7 @@
         "test/unit/color-schemes.test.js",
         "test/unit/renderer/color-schemes-apply.test.js"
       ],
+      "sichtbarkeit": ["test/e2e/funktionen/farbschemas.spec.js"],
       "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-000466). Auslieferungs-Voreinstellung und der Einmal-Schritt beim Start: test/e2e/funktionen/voreinstellungen.spec.js (VE-01/VE-02, 4T-000751)."
     },
     {
@@ -762,6 +799,7 @@
       "id": "F-128",
       "testart": "unit",
       "tests": ["test/unit/events-aggregation.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/ereignisse.spec.js"],
       "hinweis": "4T-000518 (Epic 3E-000092): Grundmenge und Query-Verfeinerung (eventsForQuery), Frontmatter-Rueckschreiben mit mtime-Konflikt; E2E test/e2e/funktionen/ereignisse.spec.js (EV-11); internes Profil E2E eigenschafts-profile.spec.js (PP-10, 4T-000517)."
     },
     {
@@ -769,6 +807,7 @@
       "id": "F-129",
       "testart": "unit",
       "tests": ["test/unit/events-core.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/ereignisse.spec.js"],
       "hinweis": "4T-000518 (Epic 3E-000092): Kennungs-Vergabe, bidirektionaler Toggle, Loesch-Bereinigung und verwaiste Verweise (events-core.test.js); E2E test/e2e/funktionen/ereignisse.spec.js (EV-12/EV-13, beide Arten inkl. Gegenrichtungs-Schreiben)."
     },
     {
@@ -853,6 +892,7 @@
       "id": "F-120",
       "testart": "unit",
       "tests": ["test/unit/task-markers.test.js", "test/unit/perspective-query-tasks.test.js"],
+      "sichtbarkeit": "entfällt: berechneter Wert der Aufgaben-Abfrage ohne eigenes Bedienelement",
       "hinweis": "4T-000509 (Epic 3E-000096): Referenz-Formel mit injiziertem Bezugstag plus Default-Sortierung und urgency-Feld der Abfrage."
     },
     {
@@ -1046,6 +1086,7 @@
         "test/unit/renderer/profil-abfrage-einfuegen.test.js",
         "test/unit/commands.test.js"
       ],
+      "sichtbarkeit": "entfällt: Kommando ohne eigenes dauerhaftes Bedienelement; der Paletten-Eintrag ist mit der Palette als Ganzes gedeckt (kommando-palette.spec.js)",
       "begruendung": "4T-001176: Der erzeugte Abfrage-Text ist der Gegenstand und liegt prozess-neutral; property-profiles-abfrage.test.js prueft ihn zweifach — als Text (kein Weg fehlt, konfigurierter Feldname) und in der Wirkung, indem es ihn parst und gegen erfundene Dateien auswertet, mit der Ordner-Bedingung als Gegenprobe zu ordnerTrifft. profil-abfrage-einfuegen.test.js prueft am CodeMirror-State, was in das Dokument geschrieben wird: Cursor-Lage und ein gewoehnlicher Fence ohne jede Markierung. commands.test.js deckt Registrierung und Dispatch-Eintrag. Dass die erzeugte Abfrage ein Dokument ueber eine Ordner-Bindung findet, prueft AK10 an der gebauten Programmdatei."
     },
     {
@@ -1330,6 +1371,7 @@
       "id": "F-274",
       "testart": "unit",
       "tests": ["test/unit/area-start-page.test.js", "test/unit/session-schema.test.js"],
+      "sichtbarkeit": "offen: Kontextmenü-Eintrag und Zeilen-Kennzeichnung im Bereichs-Panel sind nur manuell an der Programmdatei geprüft (Altbestand-Lücke, Sichtung vom 2026-09-03)",
       "hinweis": "4T-001364/4T-001365 (3E-000171): Ablage der Festlegung in der Bereichsdatei als wurzel-relativer Pfad, Rueckgabe bei fehlendem, ordner-artigem oder ausserhalb liegendem Ziel, Schutz einer defekten Bereichsdatei; die Vorrang-Regel gegenueber der Sitzungs-Wiederherstellung als eigene Pruefung (sitzungHatPanes). Das Setzen ueber das Kontextmenue und die Kennzeichnung der Datei-Zeile sind manueller Test an der EXE."
     },
     {
@@ -1394,6 +1436,7 @@
       "id": "S-140",
       "testart": "unit",
       "tests": ["test/unit/document-parts-schreiben.test.js"],
+      "sichtbarkeit": "entfällt: Kommando ohne eigenes dauerhaftes Bedienelement; der Paletten-Eintrag ist mit der Palette als Ganzes gedeckt (kommando-palette.spec.js)",
       "hinweis": "4T-001293 (Epic 3E-000224): Wiedervereinen geteilter Dokumente auf der Datei-Ebene — Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments und die Verweigerung bei fehlendem Teil. Dazu der Negativ-Fall: Der Schreib-Weg vereint nie von selbst (AK5). Bestaetigung, Schwellen-Warnung und Menue-Weg sind manuell abgenommen."
     },
     {
@@ -1441,6 +1484,7 @@
         "test/unit/document-parts-schreiben.test.js",
         "test/unit/area-search-teile.test.js"
       ],
+      "sichtbarkeit": "offen: Ankündigungs-Dialog der Teilung und Wahl «nur lesen» sind nur manuell an der Programmdatei geprüft (Altbestand-Lücke, Sichtung vom 2026-09-03)",
       "hinweis": "4T-001291 bis 4T-001293 (Epic 3E-000224): Schwelle in Byte, Schnitt ausschliesslich an einer Ueberschrift der obersten zwei Ebenen ausserhalb von Code-Zaeunen, Zerlegung und Umkehr-Eigenschaft gegen das Zusammensetzen, Erhalt der Grenzen beim Wachsen, Schreib-Reihenfolge gegen Inhalts-Verlust bei Abbruch, fehlender Teil und Nur-Lesen, Umbenennen-Kaskade, Zusammenfuehrung in der Bereichs-Suche. Ankuendigung und Wahl «nur lesen» sind am gebauten Programm abgenommen."
     },
     {
@@ -1448,6 +1492,7 @@
       "id": "F-276",
       "testart": "unit",
       "tests": ["test/unit/document-parts-schreiben.test.js"],
+      "sichtbarkeit": "offen: Bestätigung und Schwellen-Warnung des Wiedervereinens sind nur manuell an der Programmdatei geprüft (Altbestand-Lücke, Sichtung vom 2026-09-03)",
       "hinweis": "4T-001293 (Epic 3E-000224): Zusammenfuehren samt Loeschen der Folgeteile, Entfernen von Zuordnungs-Zeile und Katalog, Abweisung eines ungeteilten Dokuments, Verweigerung bei fehlendem Teil, dazu der Negativ-Fall, dass der Schreib-Weg nie von selbst vereint. Bestaetigung und Schwellen-Warnung sind am gebauten Programm abgenommen."
     },
     {
@@ -1484,6 +1529,7 @@
       "id": "S-044",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern (setzen/entfernen/Wort/leeres Paar); Hotkey Strg+B und Menue-Weg zusaetzlich in editor-format.spec.js (EF-01)."
     },
     {
@@ -1491,6 +1537,7 @@
       "id": "S-045",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern; Hotkey Strg+I in editor-format.spec.js."
     },
     {
@@ -1498,6 +1545,7 @@
       "id": "S-046",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
     },
     {
@@ -1505,6 +1553,7 @@
       "id": "S-047",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
     },
     {
@@ -1512,6 +1561,7 @@
       "id": "S-048",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern; Zugang ueber Format-Submenue (kein Default-Binding)."
     },
     {
@@ -1519,6 +1569,7 @@
       "id": "S-049",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern inkl. avoid-Regel gegen $$-Bloecke; Zugang ueber Format-Submenue."
     },
     {
@@ -1526,6 +1577,7 @@
       "id": "S-050",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Toggle-Kern mit asymmetrischen Critic-Markern; Zugang ueber Format-Submenue."
     },
     {
@@ -1533,6 +1585,7 @@
       "id": "S-051",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Formatierung entfernen inkl. verschachtelter Marker; Link-Struktur bleibt erhalten."
     },
     {
@@ -1540,6 +1593,7 @@
       "id": "S-052",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: Wiki-Link um die Selektion bzw. leeres Paar; Menue-Weg in editor-format.spec.js."
     },
     {
@@ -1547,6 +1601,7 @@
       "id": "S-053",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000378: externer Link mit url-Platzhalter; Zugang ueber die Link-Aktionen im Kontextmenue."
     },
     {
@@ -1554,6 +1609,7 @@
       "id": "S-054",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Zeilen-Toggle Aufzaehlung; Menue-Weg in editor-format.spec.js (EF-06)."
     },
     {
@@ -1561,6 +1617,7 @@
       "id": "S-055",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Zeilen-Toggle nummerierte Liste (fortlaufend); Absatz-Submenue."
     },
     {
@@ -1568,6 +1625,7 @@
       "id": "S-056",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Zeilen-Toggle Aufgabenliste; Absatz-Submenue."
     },
     {
@@ -1575,6 +1633,7 @@
       "id": "S-057",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift 1 als Toggle; Haekchen-Pruefung in editor-format.spec.js (EF-07)."
     },
     {
@@ -1582,6 +1641,7 @@
       "id": "S-058",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift 2 als Toggle; Absatz-Submenue."
     },
     {
@@ -1589,6 +1649,7 @@
       "id": "S-059",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift 3 als Toggle; Absatz-Submenue."
     },
     {
@@ -1596,6 +1657,7 @@
       "id": "S-060",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift 4 als Toggle; Absatz-Submenue."
     },
     {
@@ -1603,6 +1665,7 @@
       "id": "S-061",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift 5 als Toggle; Absatz-Submenue."
     },
     {
@@ -1610,6 +1673,7 @@
       "id": "S-062",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift 6 als Toggle; Absatz-Submenue."
     },
     {
@@ -1617,6 +1681,7 @@
       "id": "S-063",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Ueberschrift der Zeile entfernen; Absatz-Submenue."
     },
     {
@@ -1624,6 +1689,7 @@
       "id": "S-064",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Zeilen-Toggle Zitat; Absatz-Submenue."
     },
     {
@@ -1635,6 +1701,7 @@
         "test/unit/extensions.test.js",
         "test/unit/renderer/listen-nummerierung.test.js"
       ],
+      "sichtbarkeit": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
       "hinweis": "4T-000599: Struktur-Kern (Teilbaum, Verschieben, Neu-Nummerierung) und Kommando-Filterung bei abgeschalteter Erweiterung. 4T-000655: Trigger-Bedingungen der Nummerierungs-Invariante. Tastenbedienung und Undo zusaetzlich in test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-09 bis FB-17)."
     },
     {
@@ -1642,6 +1709,7 @@
       "id": "F-234",
       "testart": "unit",
       "tests": ["test/unit/list-outline.test.js", "test/unit/extensions.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
       "hinweis": "4T-000599/4T-000600: Struktur-Kern (Teilbaum, Verschieben, Geschwister-Suche) und Kommando-Filterung; Tastenbedienung in test/e2e/funktionen/bearbeitung-und-ansicht.spec.js (FB-09 bis FB-11, FB-15)."
     },
     {
@@ -1652,6 +1720,7 @@
         "test/unit/renderer/listen-nummerierung.test.js",
         "test/unit/render/listen-neustart.test.js"
       ],
+      "sichtbarkeit": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
       "hinweis": "4T-000655/4T-000660: Trigger-Bedingungen der Nummerierungs-Invariante und der Nummern-Neustart in der Anzeige; Bedienung in FB-12 bis FB-14."
     },
     {
@@ -1666,6 +1735,7 @@
       "id": "S-113",
       "testart": "unit",
       "tests": ["test/unit/list-outline.test.js", "test/unit/commands.test.js"],
+      "sichtbarkeit": "entfällt: Kommando ohne eigenes dauerhaftes Bedienelement; der Paletten-Eintrag ist mit der Palette als Ganzes gedeckt (kommando-palette.spec.js)",
       "hinweis": "4T-000600: Teilbaum-Bestimmung im Struktur-Kern (subtreeRange) und Registrierung des Kommandos; die Auswahl selbst braucht eine EditorView und ist manuell geprueft."
     },
     {
@@ -1673,6 +1743,7 @@
       "id": "S-065",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Fussnote mit naechster freier Nummer und Definition am Doc-Ende."
     },
     {
@@ -1680,6 +1751,7 @@
       "id": "S-066",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Tabellen-Schablone; Menue-Weg in editor-format.spec.js (EF-08)."
     },
     {
@@ -1687,6 +1759,7 @@
       "id": "S-139",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js", "test/unit/format-toolbar.test.js"],
+      "sichtbarkeit": "offen: Schaltfläche in der Format-Leiste ohne E2E-Fall, nur die Registry-Bindung ist geprüft (Altbestand-Lücke, Sichtung vom 2026-09-03)",
       "hinweis": "4T-001309: Geruest der Perspective-Tabelle; Registry-, Leisten- und Erweiterungs-Bindung in commands.test.js, format-toolbar.test.js und extensions.test.js."
     },
     {
@@ -1694,6 +1767,7 @@
       "id": "S-067",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Hinweisblock-Schablone mit selektiertem Typ note."
     },
     {
@@ -1701,6 +1775,7 @@
       "id": "S-068",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Horizontale Linie mit Leerzeilen-Puffer (Setext-sicher)."
     },
     {
@@ -1708,6 +1783,7 @@
       "id": "S-069",
       "testart": "unit",
       "tests": ["test/unit/markdown-format.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/editor-format.spec.js"],
       "hinweis": "4T-000379: Quelltext-Block, Cursor auf der Sprach-Position."
     },
     {
@@ -1756,6 +1832,7 @@
         "test/unit/perspective-query-index.test.js",
         "test/unit/perspective-query-eval.test.js"
       ],
+      "sichtbarkeit": "entfällt: Abfrage-Sprache ohne eigenes Bedienelement; die Ergebnis-Ausgabe ist als Ganzes in frontmatter-abfrage.spec.js gedeckt",
       "hinweis": "4T-000402/4T-000406 (Epic 3E-000076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet."
     },
     {
@@ -1787,6 +1864,7 @@
         "test/unit/perspective-query-eval.test.js",
         "test/unit/perspective-query-index.test.js"
       ],
+      "sichtbarkeit": "entfällt: Abfrage-Sprache ohne eigenes Bedienelement; die Ergebnis-Ausgabe ist als Ganzes in frontmatter-abfrage.spec.js gedeckt",
       "hinweis": "4T-001070 (Epic 3E-000211): Bezug auf die Traeger-Datei — this.-Praefix in allen drei Scopes und Selbstbezugs-Quelle FROM [[]] / outgoing([[]]); Evaluator-Faelle mit und ohne ctx.self, Quellen-Faelle gegen den echten Link-Graphen samt Selbstverlinkungs-Ausschluss und weicher Degradation."
     },
     {
@@ -1797,6 +1875,7 @@
         "test/unit/perspective-query-eval.test.js",
         "test/unit/perspective-query-index.test.js"
       ],
+      "sichtbarkeit": "entfällt: Abfrage-Sprache ohne eigenes Bedienelement; die Ergebnis-Ausgabe ist als Ganzes in frontmatter-abfrage.spec.js gedeckt",
       "hinweis": "4T-001071 bis 4T-001073 (Epic 3E-000211): file.day (ISO-Praefix, unmoegliche Daten), days() mit Zeitumstellungs-Fall, Verkettungs-Rueckfall samt Regressions-Anker des numerischen Zweigs, numberformat/currencyformat mit Sprach-Bindung und beiden Rueckfall-Stufen, infolder gegen absolute Link-Pfade; Referenz-Muster «Letzter Kontakt» integriert gegen einen echten Index."
     },
     {
@@ -1807,6 +1886,7 @@
         "test/unit/perspective-query-eval.test.js",
         "test/unit/renderer/frontmatter-query-view.test.js"
       ],
+      "sichtbarkeit": "entfällt: Abfrage-Sprache ohne eigenes Bedienelement; die Ergebnis-Ausgabe ist als Ganzes in frontmatter-abfrage.spec.js gedeckt",
       "hinweis": "4T-001074 (Epic 3E-000211): bold() als Segment-Liste — Verkettung mischt markierte und unmarkierte Anteile, Sternchen im Text bleiben woertlich, Vergleich/Ordnung/Wahrheitswert verhalten sich wie ohne Marke; jsdom-Faelle fuer Tabellen-Zelle, Listen-Zusatzfeld und Gruppen-Titel. PDF-Ausgabe manuell an der EXE (Test-Iteration des Sammeltasks)."
     },
     {
@@ -2008,6 +2088,16 @@
       "hinweis": "4T-000433 (Epic 3E-000081): Datum-Kommando in JR-03 (Datums-Dialog, Journal-Auswahl)."
     },
     {
+      "key": "help.shortcut.journalNachtragen",
+      "id": "S-141",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/journal-nachpflege.spec.js",
+        "test/unit/journal-nachpflege.test.js"
+      ],
+      "hinweis": "4T-001407 (Epic 3E-000244): Massen-Nachpflege eines ganzen Journals in JR-15 (Auswahl, Vorschau mit Bestaetigung, Abbruch ohne Aenderung, Ergebnis-Meldung) plus die Unit-Faelle der Perioden-Zuordnung."
+    },
+    {
       "key": "help.feature.templateRules",
       "id": "F-102",
       "testart": "e2e",
@@ -2023,7 +2113,7 @@
         "test/unit/journal-core.test.js",
         "test/unit/journal-perioden.test.js"
       ],
-      "hinweis": "4T-000431 bis 4T-000433 (Epic 3E-000081): Journale — JR-01 bis JR-04 (Heute-Kommando legt an mit Vorlage und Properties, erneuter Aufruf oeffnet nur, Datum-Kommando, Grenze vor startDate mit Hinweis) plus Unit-Suiten des Modells und des Perioden-Kerns."
+      "hinweis": "4T-000431 bis 4T-000433 (Epic 3E-000081): Journale — JR-01 bis JR-04 (Heute-Kommando legt an mit Vorlage und Properties, erneuter Aufruf oeffnet nur, Datum-Kommando, Grenze vor startDate mit Hinweis) plus Unit-Suiten des Modells und des Perioden-Kerns. 4T-001404 bis 4T-001406 (Epic 3E-000244): vier Eigenschaften in jeder Granularitaet mit dem Perioden-Start als Datum, der Journal-Name als eigene Eigenschaft und die nur ergaenzende Nachpflege bestehender Eintraege beim Oeffnen (JR-14)."
     },
     {
       "key": "help.feature.journalCalendar",
@@ -2054,6 +2144,7 @@
         "test/unit/render/extensions-aus.test.js",
         "test/unit/render/snapshots.test.js"
       ],
+      "sichtbarkeit": "entfällt: inhaltsgesteuerter Render-Block ohne dauerhaftes Bedienelement; Aufbau und Klick-Ziele sind jsdom-geprüft",
       "hinweis": "4T-001064 bis 4T-001066 (Epic 3E-000212): Timeline-Block — Aufbau der vier Modi, Kopfzeile samt Hervorhebung, Punkt-Markierung aus dem Existenz-Batch, Klick-Ziele je Perioden-Ebene mit Anlage, Degradations-Faelle und Portable-Ersetzung als jsdom-Unit; Modus-Parser, Wochen-Zeile und Fence-Erkennung als reine Unit im Perioden-Kern; Aus-Zustand der journals-Erweiterung und Snapshot-Fixture journal-timeline.md. Die Zeit-Zusage des Jahres-Modus (unter 150 ms) prueft der Product Owner an der gebauten Programmdatei, weil jsdom die Zeit eines echten Browsers nicht misst."
     },
     {
@@ -2081,6 +2172,7 @@
         "test/unit/renderer/mindmap-pane.test.js",
         "test/unit/render/extensions-aus.test.js"
       ],
+      "sichtbarkeit": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
       "hinweis": "4T-001045 bis 4T-001049 (Epic 3E-000151): Mindmap-Ansicht — Baum-Abbildung und Anordnung im Kern samt der fuenf Wurzel-Lagen (44 Faelle: je Lage Wuchsrichtung, Ueberlappungsfreiheit, Determinismus, Klapp-Zustand und Rueckfall bei unbekanntem Wert, dazu die Verteilungs-Regel der mittigen Lage), Options-Aufloesung aus Voreinstellung und Kopfbereich (14), SVG-Ansicht mit Klappen, Zoom, Notiz-Popover, Sprung zur Quellzeile und der richtungs-abhaengigen Zeichnung (34), Rueckfall des Modus bei ausgeschalteter Erweiterung (5) sowie die Registry-Seite des Aus-Zustands. Der Bedienpfad an der gebauten Programmdatei kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
     },
     {
@@ -2093,6 +2185,7 @@
         "test/unit/renderer/mindmap-view.test.js",
         "test/unit/renderer/mindmap-pane.test.js"
       ],
+      "sichtbarkeit": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
       "hinweis": "4T-001048 und 4T-001049 (Epic 3E-000151): Darstellungs-Optionen der Mindmap — Aufloesung aus anwendungsweiter Voreinstellung und Kopfbereich des Dokuments samt stillem Rueckfall bei unzulaessigen Werten (14 Faelle), Wirkung der Wurzel-Lage in der Anordnung (44) und in der Zeichnung (34), Nachziehen offener Karten beim Aendern der Voreinstellung. Der Einstellungs-Bereich selbst kommt mit dem E2E-Anteil des Epic-Abschlusses hinzu."
     },
     {
@@ -2204,6 +2297,7 @@
       "id": "S-085",
       "testart": "unit",
       "tests": ["test/unit/perspective-events.test.js"],
+      "sichtbarkeit": "entfällt: Kommando ohne eigenes dauerhaftes Bedienelement; der Paletten-Eintrag ist mit der Palette als Ganzes gedeckt (kommando-palette.spec.js)",
       "hinweis": "4T-000512 (Epic 3E-000092): Einfuege-Kommando des Ereignis-Blocks; der eingefuegte Fence-Aufbau ist ueber Viewer-/Format-Unit-Tests abgesichert, der CRUD-Weg im realen Fence ueber test/e2e/funktionen/ereignisse.spec.js (EV-01 bis EV-04)."
     },
     {
@@ -2686,6 +2780,7 @@
         "test/unit/export-portable.test.js",
         "test/unit/renderer/kommando-dispatcher.test.js"
       ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü (OS-UI der Gesamtabnahme), kein DOM-Bedienelement",
       "hinweis": "4T-000890 (Epic 3E-000168, Befund L-05): der portable Export ist seither ein Registry-Kommando ohne Default-Kürzel (Menü-, Paletten- und Kürzel-Weg). Die Konverter-Strecke dahinter ist vollständig unit- und snapshot-getestet (F-021), der Vollständigkeits-Wächter der Dispatcher-Map hält fest, dass Palette und belegtes Kürzel wirklich ausführen statt ins Leere zu laufen; der Speichern-Dialog bleibt OS-UI der Gesamtabnahme."
     },
     {
@@ -2713,6 +2808,7 @@
       "id": "S-134",
       "testart": "unit",
       "tests": ["test/unit/renderer/kommando-dispatcher.test.js", "test/unit/commands.test.js"],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü (OS-UI der Gesamtabnahme), kein DOM-Bedienelement",
       "hinweis": "4T-000890 (Epic 3E-000168, Befund L-08): Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Schreibmaschinen-Scrollen». Geprüft wird der Kommando-Weg (Eintrag in der Dispatcher-Map, Registry-Invarianten samt Sprachdatei-Abgleich der Schlüssel); die Scroll-Zentrierung selbst bleibt aus den in F-029 genannten Gründen (DPI-/Viewport-abhängige Geometrie) Sache der Gesamtabnahme."
     },
     {

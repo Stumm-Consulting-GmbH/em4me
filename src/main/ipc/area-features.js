@@ -13,7 +13,8 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
-const { normalizeJournalsConfig } = require('../../shared/journal-core');
+// 4T-001407 (Epic 3E-000244): die Journal-Kanaele liegen seit dem Schnitt hier.
+const { registerJournalIpc } = require('./area-journals');
 const {
   normalizeCalendarConfig,
   configForPersist,
@@ -52,137 +53,14 @@ function registerAreaFeaturesIpc(handle, deps) {
     readAreaBookmarksConfig,
   } = deps;
 
-  // --- 4T-000431 (Epic 3E-000081): Journal-Konfiguration (journals-Sektion) -------
-
-  // Konfigurations-Stand des Bereichs, normalisiert. Journale existieren nur
-  // pro Bereich (Architekturentscheidung 2 des Epics): ohne Bereich liefert
-  // der Handler hasArea false und config null; die Aufrufer (Panel, Kommandos,
-  // Einstellungen) zeigen den lokalisierten Hinweis.
-  handle('journals:getConfig', async (event) => {
-    const area = areaOfWindow(senderWindow(event));
-    const raw = area ? await readAreaJournalsConfig(area.rootPath) : undefined;
-    return {
-      ok: true,
-      hasArea: !!area,
-      areaName: area ? area.name : null,
-      rootPath: area ? area.rootPath : null,
-      config: normalizeJournalsConfig(raw),
-    };
-  });
-
-  // journals-Sektion der Bereichsdatei schreiben (config = Objekt) bzw.
-  // entfernen (config = null). Muster templates:setAreaConfig: die
-  // Bereichsdatei entsteht erst beim ersten tatsaechlichen Setzen, eine
-  // defekte Bereichsdatei wird nie ueberschrieben. Nach dem Schreiben geht
-  // 'journals:changed' an alle Fenster (Payload rootPath; die Renderer
-  // desselben Bereichs ziehen Panel und Kommandos nach).
-  handle('journals:setAreaConfig', async (event, config) => {
-    const area = areaOfWindow(senderWindow(event));
-    if (!area) return { ok: false, error: 'no area' };
-    const mddaPath = path.join(area.rootPath, mddStore.MDDA_FILENAME);
-    try {
-      let container = mddStore.emptySettingsContainer();
-      let raw = null;
-      try {
-        raw = await fs.readFile(mddaPath, 'utf8');
-      } catch (err) {
-        if (err && err.code !== 'ENOENT') throw err;
-      }
-      if (raw !== null) {
-        const parsed = mddStore.parseSettingsContainer(raw);
-        if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
-        container = parsed.container;
-      }
-      const normalized = normalizeJournalsConfig(config);
-      if (normalized) container.settings.journals = normalized;
-      else delete container.settings.journals;
-      if (raw === null && !normalized) {
-        return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen
-      }
-      const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
-      broadcast('journals:changed', { rootPath: area.rootPath });
-      return { ok: true, config: normalized };
-    } catch (err) {
-      return { ok: false, error: err && err.message ? err.message : String(err) };
-    }
-  });
-
-  // 4T-000433 (Epic 3E-000081): Existenz eines aufgeloesten Eintrags-Pfads
-  // (bereichsrelativ). Die Aufloesung selbst macht der Renderer ueber den
-  // Perioden-Kern; hier nur Pfad-Sicherung (harte Bereichs-Grenze) und stat.
-  handle('journals:statEntry', async (event, params) => {
-    const area = areaOfWindow(senderWindow(event));
-    if (!area) return { ok: false, error: 'no area' };
-    const relPath = params && params.relPath;
-    if (typeof relPath !== 'string' || !relPath) return { ok: false, error: 'invalid path' };
-    const abs = path.resolve(area.rootPath, relPath);
-    if (!isInsideArea(area.rootPath, abs)) return { ok: false, error: 'outside-area' };
-    try {
-      const stat = await fs.stat(abs);
-      return { ok: true, path: abs, exists: stat.isFile() };
-    } catch {
-      return { ok: true, path: abs, exists: false };
-    }
-  });
-
-  // 4T-000433: Journal-Eintrag anlegen — Ordner-Kette erzeugen und die Datei
-  // mit dem fertig gefuellten Inhalt schreiben (Vorlagen-Dialoge laufen im
-  // Renderer VOR der Anlage; Abbruch dort erzeugt keine Datei). 'wx' statt
-  // Ueberschreiben: existiert die Datei inzwischen (Race), meldet existed
-  // und der Renderer oeffnet nur. Dieser Pfad ist bewusst getrennt von
-  // area:createFile und triggert keine Ordner-Regel (die Journal-Vorlage
-  // hat Vorrang, Task-Vorgabe Vorrang-Regel).
-  handle('journals:createEntry', async (event, params) => {
-    const area = areaOfWindow(senderWindow(event));
-    if (!area) return { ok: false, error: 'no area' };
-    const relPath = params && params.relPath;
-    const content = typeof (params && params.content) === 'string' ? params.content : '';
-    if (typeof relPath !== 'string' || !relPath) return { ok: false, error: 'invalid path' };
-    const abs = path.resolve(area.rootPath, relPath);
-    if (!isInsideArea(area.rootPath, abs)) return { ok: false, error: 'outside-area' };
-    try {
-      await fs.mkdir(path.dirname(abs), { recursive: true });
-      await fs.writeFile(abs, content, { encoding: 'utf8', flag: 'wx' });
-      return { ok: true, path: abs, existed: false };
-    } catch (err) {
-      if (err && err.code === 'EEXIST') return { ok: true, path: abs, existed: true };
-      return { ok: false, error: err && err.message ? err.message : String(err) };
-    }
-  });
-
-  // 4T-000434 (Epic 3E-000081): Existenz-Batch fuer die Kalender-Punkte — ein
-  // Aufruf pro sichtbarem Monat statt einem stat-IPC pro Tag (begrenzter
-  // Scan, Epic-Risiko Performance). Pfad-Sicherung pro Eintrag; unsichere
-  // Pfade entfallen still. Kappung als Schutz gegen entartete Aufrufer.
-  //
-  // 4T-001065 (Epic 3E-000212): Kappung von 500 auf 1000 angehoben. Der
-  // Jahres-Modus des Journal-Timeline-Blocks fragt bei einem Tages-Journal
-  // 371 Pfade in einem Aufruf ab (am Kalenderjahr 2026 ausgezaehlt: zwoelf
-  // Gitter mit 441 Zellen, davon 371 verschiedene Tage); mit 500 lag der
-  // Regelbetrieb ohne nennenswerte Reserve unter der Grenze, und eine
-  // greifende Kappung waere STILL — fehlende Punkte statt einer Meldung.
-  // Der Schutz gegen entartete Aufrufer bleibt, er sitzt nur nicht mehr
-  // dicht am realen Bedarf.
-  handle('journals:entriesExist', async (event, params) => {
-    const area = areaOfWindow(senderWindow(event));
-    if (!area) return { ok: false, error: 'no area' };
-    const relPaths = Array.isArray(params && params.relPaths) ? params.relPaths : [];
-    const exists = {};
-    await Promise.all(
-      relPaths.slice(0, 1000).map(async (relPath) => {
-        if (typeof relPath !== 'string' || !relPath) return;
-        const abs = path.resolve(area.rootPath, relPath);
-        if (!isInsideArea(area.rootPath, abs)) return;
-        try {
-          exists[relPath] = (await fs.stat(abs)).isFile();
-        } catch {
-          exists[relPath] = false;
-        }
-      }),
-    );
-    return { ok: true, exists };
+  // 4T-001407 (Epic 3E-000244): Journal-Kanaele aus dem Nachbar-Modul; die
+  // Abhaengigkeiten gehen unveraendert weiter.
+  registerJournalIpc(handle, {
+    senderWindow,
+    areaOfWindow,
+    broadcast,
+    mddStore,
+    readAreaJournalsConfig,
   });
 
   // --- 4T-000543 (Epic 3E-000097): Kalender-Systeme (calendarSystems-Sektion) -----

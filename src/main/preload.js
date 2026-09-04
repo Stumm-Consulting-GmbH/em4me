@@ -726,6 +726,14 @@ contextBridge.exposeInMainWorld('api', {
   journalsStatEntry: (relPath) => ipcRenderer.invoke('journals:statEntry', { relPath }),
   journalsCreateEntry: (relPath, content) =>
     ipcRenderer.invoke('journals:createEntry', { relPath, content }),
+  // 4T-001406 (Epic 3E-000244): fehlende Journal-Eigenschaften ergaenzen.
+  journalsErgaenzeProperties: (relPath, properties) =>
+    ipcRenderer.invoke('journals:ergaenzeProperties', { relPath, properties }),
+  // 4T-001407 (Epic 3E-000244): Massen-Nachpflege eines ganzen Journals.
+  journalsScanEintraege: (ordner) => ipcRenderer.invoke('journals:scanEintraege', { ordner }),
+  journalsErgaenzePropertiesBatch: (eintraege) =>
+    ipcRenderer.invoke('journals:ergaenzePropertiesBatch', { eintraege }),
+  journalsConfirmNachtragen: (opts) => ipcRenderer.invoke('journals:confirmNachtragen', opts),
   onMenuJournalToday: (cb) => ipcRenderer.on('menu:journalToday', () => cb()),
   onMenuJournalForDate: (cb) => ipcRenderer.on('menu:journalForDate', () => cb()),
   // 4T-000434 (Epic 3E-000081): Existenz-Batch fuer die Kalender-Punkte.

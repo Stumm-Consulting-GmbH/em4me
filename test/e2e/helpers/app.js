@@ -10,6 +10,8 @@ const os = require('node:os');
 const path = require('node:path');
 const { _electron: electron, test } = require('@playwright/test');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
+// 4T-001101: Zustands-Anteil der Profil-Vorbelegung aus der einen Quelle.
+const { schreibeProfilVorbelegung } = require('../../../scripts/profil-vorbelegung.js');
 
 // Projekt-Wurzel (test/e2e/helpers -> drei Ebenen hoch).
 const APP_ROOT = path.resolve(__dirname, '..', '..', '..');
@@ -76,24 +78,21 @@ async function waitForRendererInit(page) {
 // Faelle (pdf-export, zweite-spalte, 4t-0945-b12) haetten die Tour sonst
 // gesehen. Unberuehrt bleibt allein `settings: null` — das ist die bewusste
 // Aussage 'leerer Speicher, echter Erststart'.
-const TOUR_GESEHEN = { tourSeen: true };
-
-const DEFAULT_TEST_SETTINGS = { language: 'de', ...TOUR_GESEHEN };
+//
+// 4T-001101 (Epic 3E-000156): Der Zustands-Anteil (der Tour-Merker und jeder
+// kuenftige Erststart-Merker) lebt seither in scripts/profil-vorbelegung.js,
+// der einen Quelle aller App-startenden Werkzeuge; das Foto-Werkzeug der
+// Webseite hatte dieselbe Falle mit eigener Liste ein zweites Mal gestellt
+// (Auslieferung 1.114.0). Hier bleibt nur die aufrufer-eigene Darstellung.
+const DEFAULT_TEST_SETTINGS = { language: 'de' };
 
 // Schreibt die Vorbelegung in die config.json des Profils, bevor Electron
-// startet. conf legt fehlende Defaults beim Start selbst nach, hier stehen
+// startet: Zustands-Anteil aus der einen Quelle, darueber die Angabe des
+// Falls. conf legt fehlende Defaults beim Start selbst nach, hier stehen
 // deshalb nur die abweichenden Werte.
 function seedSettings(userData, settings) {
   if (!settings) return;
-  fs.mkdirSync(userData, { recursive: true });
-  const datei = path.join(userData, 'config.json');
-  let bestand;
-  try {
-    bestand = JSON.parse(fs.readFileSync(datei, 'utf8'));
-  } catch {
-    bestand = {};
-  }
-  fs.writeFileSync(datei, JSON.stringify({ ...bestand, ...settings }, null, 2), 'utf8');
+  schreibeProfilVorbelegung(userData, settings);
 }
 
 // 4T-000901 (Epic 3E-000016): Zentrale Beobachtung der Konsole. Ein Fehler in der
@@ -173,9 +172,10 @@ function beobachteKonsole(app) {
 async function launchApp(opts = {}) {
   const userData = opts.userData || fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-'));
   // 4T-000644: Tour-Merker als Unterlage jeder Vorbelegung (Begruendung an
-  // TOUR_GESEHEN); eine eigene Angabe des Falls liegt darueber und gewinnt.
+  // DEFAULT_TEST_SETTINGS); eine eigene Angabe des Falls liegt darueber und
+  // gewinnt. Die Unterlage legt seit 4T-001101 die eine Quelle bei.
   const vorbelegung = 'settings' in opts ? opts.settings : DEFAULT_TEST_SETTINGS;
-  seedSettings(userData, vorbelegung ? { ...TOUR_GESEHEN, ...vorbelegung } : vorbelegung);
+  seedSettings(userData, vorbelegung);
   const app = await electron.launch({
     args: ['.', ...(opts.args || [])],
     cwd: APP_ROOT,

@@ -182,6 +182,28 @@ function registerDialogsIpc(handle, deps) {
   // 4T-000512 (Epic 3E-000092): Lösch-Bestätigung eines Ereignis-Eintrags
   // (Referenz-Verhalten: Löschen nur mit Bestätigung; Abbrechen ist
   // Default und Escape-Ziel).
+  // 4T-001407 (Epic 3E-000244): Bestaetigung der Massen-Nachpflege. Der Dialog
+  // nennt die Zahlen VOR dem Lauf, weil er viele Dateien des Anwenders auf
+  // einmal aendert und die Aenderung nicht zurueckgenommen werden kann.
+  handle('journals:confirmNachtragen', async (event, params) => {
+    const owner = senderWindow(event);
+    const t = (k) => tForWindow(owner, k);
+    const zahl = (v) => String(Number.isFinite(v) ? v : 0);
+    const result = await dialog.showMessageBox(owner || undefined, {
+      type: 'question',
+      title: t('journal.nachtragen.confirm.title'),
+      message: t('journal.nachtragen.confirm.message')
+        .replace('{journal}', String((params && params.journal) || ''))
+        .replace('{geprueft}', zahl(params && params.geprueft))
+        .replace('{zuAendern}', zahl(params && params.zuAendern)),
+      buttons: [t('journal.nachtragen.confirm.ok'), t('journal.nachtragen.confirm.cancel')],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    });
+    return result.response === 0;
+  });
+
   handle('events:confirmDelete', async (event, entryText) => {
     const owner = senderWindow(event);
     const t = (k) => tForWindow(owner, k);

@@ -54,6 +54,7 @@ export function initCommandPalette({ executeCommand }) {
 const AREA_COMMANDS = new Set([
   'journal.openToday',
   'journal.openForDate',
+  'journal.nachtragen',
   'area.close',
   'graph.openArea',
   // 4T-000620 (Epic 3E-000117): Bereichs-Statistik braucht den abgegrenzten

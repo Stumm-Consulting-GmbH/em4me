@@ -190,6 +190,18 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-001407 (Epic 3E-000244): Eigenschaften eines ganzen Journals nachtragen.
+  // menu: false, weil die Menue-Einordnung im Struktur-Pruefschritt (4T-001408)
+  // beim Product Owner liegt; bis dahin ueber die Kommando-Verwaltung.
+  {
+    id: 'journal.nachtragen',
+    defaultBindings: [],
+    labelKey: 'menu.file.journalNachtragen',
+    descKey: 'help.shortcut.journalNachtragen',
+    categoryKey: 'help.group.file',
+    menu: false,
+    editorScoped: false,
+  },
   // 4T-000322 (Epic 3E-000058): Bereich oeffnen/schliessen. Ohne Default-
   // Bindings (Menue-Weg; Kuerzel per Einstellungen belegbar).
   {

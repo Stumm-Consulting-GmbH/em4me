@@ -6,12 +6,15 @@
 // Dazu die Zusage, dass der Aufruf ohne Zustand unverändert bleibt — daran
 // hängt der Web-Bau, der keinen Erweiterungs-Zustand kennt.
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
 import {
   generateFunctionsPage,
   HELP_FEATURE_GROUPS,
 } from '../../src/shared/manual/manual-generated.js';
 import { allExtensions } from '../../src/shared/extensions/extensions.js';
 import { disabledFeatureKeySet } from '../../src/shared/extensions/extensions-core.js';
+// 4T-001181: Positivliste des Kerns und die reine Zuordnungs-Prüfung.
+import { KERN_ZEILEN, zuordnungsBefunde } from './funktions-seite-kern.js';
 
 // Übersetzung, die den Schlüssel zurückgibt: So bleibt der Fall unabhängig von
 // den Texten und misst allein die Struktur.
@@ -74,6 +77,49 @@ describe('Funktions-Seite: Zuordnung Erweiterung zu Katalog-Zeile', () => {
       }
     }
     expect(unbekannt).toEqual([]);
+  });
+
+  // 4T-001098: die Gegenrichtung. Ein Katalog-Schlüssel ohne Gruppe erscheint
+  // nie auf der generierten Funktions-Seite — der Anwender sieht die Funktion
+  // im Handbuch nicht, obwohl sie ausgeliefert ist, und kein Gate meldet es.
+  // Die Prüfung als reine Funktion, damit die Gegenprobe darunter belegt, dass
+  // sie einen fehlenden und einen doppelten Schlüssel wirklich findet (L11).
+  function gruppenBefunde(schluessel, gruppen) {
+    const zaehlung = new Map();
+    for (const g of gruppen)
+      for (const f of g.features) zaehlung.set(f, (zaehlung.get(f) || 0) + 1);
+    return {
+      ohne: schluessel.filter((k) => !zaehlung.has(k)),
+      doppelt: [...zaehlung].filter(([, n]) => n > 1).map(([k]) => k),
+    };
+  }
+
+  it('findet einen fehlenden und einen doppelten Schlüssel (Gegenprobe der Erkennung)', () => {
+    const gruppen = [
+      { features: ['help.feature.a', 'help.feature.b'] },
+      { features: ['help.feature.b'] },
+    ];
+    const b = gruppenBefunde(['help.feature.a', 'help.feature.b', 'help.feature.c'], gruppen);
+    expect(b.ohne).toEqual(['help.feature.c']);
+    expect(b.doppelt).toEqual(['help.feature.b']);
+  });
+
+  it('jeder Katalog-Schlüssel des Wörterbuchs steht in genau einer Gruppe (4T-001098)', () => {
+    const dict = JSON.parse(
+      fs.readFileSync(new URL('../../src/i18n/de.json', import.meta.url), 'utf8'),
+    );
+    const schluessel = Object.keys(dict).filter((k) => k.startsWith('help.feature.'));
+    expect(schluessel.length).toBeGreaterThan(100);
+    const b = gruppenBefunde(schluessel, HELP_FEATURE_GROUPS);
+    expect(
+      b.ohne,
+      `Katalog-Schlüssel ohne Gruppe — in HELP_FEATURE_GROUPS ` +
+        `(src/shared/manual/manual-feature-groups.js) einer Gruppe zuordnen: ${b.ohne.join(', ')}`,
+    ).toEqual([]);
+    expect(
+      b.doppelt,
+      `Katalog-Schlüssel in mehr als einer Gruppe — jede Zeile genau einmal: ${b.doppelt.join(', ')}`,
+    ).toEqual([]);
   });
 
   it('eine abgeschaltete Erweiterung liefert die Schlüssel ihrer Zeilen', () => {
@@ -141,5 +187,57 @@ describe('Funktions-Seite: Zuordnung Erweiterung zu Katalog-Zeile', () => {
     for (const key of PROFIL_ZEILEN) {
       expect(zeileZu(seite, key)).not.toContain('manual.functions.disabledMark');
     }
+  });
+});
+
+// 4T-001181: Die Gegenrichtung als allgemeine Regel. Der Wächter oben prüft,
+// dass jede Erweiterung überhaupt eine Zeile nennt und jede genannte existiert;
+// er schweigt, wenn eine Erweiterung um Katalog-Zeilen wächst, ohne sie zu
+// nennen — genau so rutschten die vier Profil-Zeilen durch. Seither hat jede
+// Katalog-Zeile genau eine Antwort: eine Erweiterung oder der Kern
+// (Positivliste in funktions-seite-kern.js). Scharf ab dem ersten Lauf, weil
+// die Erst-Zuordnung der 196 Zeilen mit diesem Vorgang vollständig ist; eine
+// Grandfathering-Liste hätte nur das Vergessen vertagt.
+describe('Funktions-Seite: jede Katalog-Zeile hat genau eine Zuordnung (4T-001181)', () => {
+  const katalog = HELP_FEATURE_GROUPS.flatMap((g) => g.features);
+
+  it('Gegenprobe der Erkennung: ohne Antwort, zwei Antworten, veralteter Kern-Eintrag', () => {
+    const erweiterungen = [
+      { id: 'a', descKey: 'help.feature.a' },
+      { id: 'b', descKey: 'extension.b.description', featureKeys: ['help.feature.b'] },
+      { id: 'c', descKey: 'help.feature.b' },
+    ];
+    const b = zuordnungsBefunde(
+      ['help.feature.a', 'help.feature.b', 'help.feature.k', 'help.feature.x'],
+      erweiterungen,
+      ['help.feature.k', 'help.feature.b', 'help.feature.alt'],
+    );
+    expect(b.ohneAntwort).toEqual(['help.feature.x']);
+    expect(b.zweiAntworten).toEqual(['help.feature.b']);
+    expect(b.veraltet).toEqual(['help.feature.alt']);
+    expect(b.doppeltGedeckt).toEqual(['help.feature.b']);
+  });
+
+  it('AK1/AK2: keine Katalog-Zeile ohne Antwort, keine mit zwei, kein veralteter Kern-Eintrag', () => {
+    const b = zuordnungsBefunde(katalog, allExtensions(), KERN_ZEILEN);
+    expect(
+      b.ohneAntwort,
+      `Katalog-Zeilen ohne Zuordnung — in der Registry (featureKeys) nennen oder in ` +
+        `test/unit/funktions-seite-kern.js als Kern führen: ${b.ohneAntwort.join(', ')}`,
+    ).toEqual([]);
+    expect(
+      b.zweiAntworten,
+      `Katalog-Zeilen, die eine Erweiterung nennt UND die Kern-Liste führt: ${b.zweiAntworten.join(', ')}`,
+    ).toEqual([]);
+    expect(
+      b.veraltet,
+      `Kern-Einträge ohne Katalog-Zeile — aus funktions-seite-kern.js streichen: ${b.veraltet.join(', ')}`,
+    ).toEqual([]);
+    expect(b.doppeltGedeckt, 'eine Zeile gehört genau einer Erweiterung').toEqual([]);
+  });
+
+  it('die Kern-Liste ist dupliktfrei und trägt nur Katalog-Schlüssel', () => {
+    expect(new Set(KERN_ZEILEN).size).toBe(KERN_ZEILEN.length);
+    expect(KERN_ZEILEN.every((k) => k.startsWith('help.feature.'))).toBe(true);
   });
 });

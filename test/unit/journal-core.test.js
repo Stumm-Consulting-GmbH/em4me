@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   JOURNAL_GRANULARITIES,
+  DEFAULT_NAME_PROP,
   DEFAULT_DATE_PROP,
   DEFAULT_START_PROP,
   DEFAULT_END_PROP,
@@ -22,6 +23,7 @@ const WEEKLY = {
   template: 'Journal/Woche.md',
   startDate: '2024-01-01',
   endDate: null,
+  nameProp: 'journal',
   dateProp: 'journal-date',
   startProp: 'journal-start-date',
   endProp: 'journal-end-date',
@@ -83,6 +85,7 @@ describe('normalizeJournalsConfig — Normalisierung und Defaults', () => {
       template: null,
       startDate: null,
       endDate: null,
+      nameProp: DEFAULT_NAME_PROP,
       dateProp: DEFAULT_DATE_PROP,
       startProp: DEFAULT_START_PROP,
       endProp: DEFAULT_END_PROP,

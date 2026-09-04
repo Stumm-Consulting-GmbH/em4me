@@ -7,6 +7,7 @@
 import {
   DEFAULT_DATE_PROP,
   DEFAULT_END_PROP,
+  DEFAULT_NAME_PROP,
   DEFAULT_START_PROP,
   isoDateToMs,
   periodOf,
@@ -84,6 +85,7 @@ function journalsPersistForm(values) {
     template: String(j.template || '').trim() || null,
     startDate: String(j.startDate || '').trim() || null,
     endDate: String(j.endDate || '').trim() || null,
+    nameProp: String(j.nameProp || '').trim() || DEFAULT_NAME_PROP,
     dateProp: String(j.dateProp || '').trim() || DEFAULT_DATE_PROP,
     startProp: String(j.startProp || '').trim() || DEFAULT_START_PROP,
     endProp: String(j.endProp || '').trim() || DEFAULT_END_PROP,
@@ -283,6 +285,7 @@ function renderJournalsShelfDetail(container, draft, values) {
       template: null,
       startDate: '',
       endDate: '',
+      nameProp: DEFAULT_NAME_PROP,
       dateProp: DEFAULT_DATE_PROP,
       startProp: DEFAULT_START_PROP,
       endProp: DEFAULT_END_PROP,

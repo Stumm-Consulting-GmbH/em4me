@@ -503,7 +503,7 @@ const INTERNAL_EXTENSIONS = [
     category: 'tools',
     nameKey: 'help.featureName.journals',
     descKey: 'help.feature.journals',
-    commands: ['journal.openToday', 'journal.openForDate'],
+    commands: ['journal.openToday', 'journal.openForDate', 'journal.nachtragen'],
     // 4T-000436: der Einstellungs-Bereich "Journale" gehört zur Erweiterung
     // und erscheint nur bei aktivem Schalter (Muster templates).
     settingsSections: ['journals'],

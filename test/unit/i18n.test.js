@@ -6,6 +6,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import { checkI18n, LANGS } from '../../scripts/check-i18n.js';
+import { produktnamenIn } from './produktnamen-helfer.js';
 
 // menu.js zieht electron (Menu) im Modul-Kopf — fuer den reinen
 // tForLocale-Dict-Lookup genuegt ein leerer Mock.
@@ -40,33 +41,13 @@ describe('i18n-Synchronitaet (S-09)', () => {
 // «setzt Windows 11 voraus» bei der farbigen Fenster-Titelleiste); falsch ist
 // allein, eine plattform-uebergreifende Funktion nach einem Produkt zu
 // benennen, das es nur auf einer Plattform gibt.
+// 4T-001377: Liste und Erkennung liegen im geteilten Helfer, weil dieselbe
+// Regel auch Handbuch-Seiten und README trifft (hilfetext-stil.test.js). Die
+// Suche als reine Funktion, damit derselbe Code den Bestand prueft und im Fall
+// darunter an einem konstruierten Woerterbuch belegt, dass er einen Verstoss
+// auch wirklich findet — sonst waere der Waechter nur eingerichtet und nicht
+// nachweislich scharf (Fehlerklasse L11).
 describe('Keine Datei-Manager-Produktnamen in den Sprachdateien (4T-001279)', () => {
-  const VERBOTEN = [
-    'Explorer', // Windows, deutsche und englische Fassung
-    'Explorateur', // franzoesisch
-    'Explorador', // spanisch
-    'Esplora risorse', // italienisch
-    'Finder', // macOS
-    'Nautilus', // GNOME
-    'Thunar', // Xfce
-    'Dolphin', // KDE
-  ];
-
-  // Die Suche als reine Funktion, damit derselbe Code den Bestand prueft und
-  // im Fall darunter an einem konstruierten Woerterbuch belegt, dass er einen
-  // Verstoss auch wirklich findet. Ohne diesen zweiten Fall waere der Waechter
-  // nur eingerichtet und nicht nachweislich scharf (Fehlerklasse L11).
-  function produktnamenIn(dict, quelle) {
-    const funde = [];
-    for (const [key, wert] of Object.entries(dict)) {
-      if (typeof wert !== 'string') continue;
-      for (const name of VERBOTEN) {
-        if (wert.includes(name)) funde.push(`${quelle} / ${key}: "${name}"`);
-      }
-    }
-    return funde;
-  }
-
   it('findet einen Produktnamen, wenn einer dasteht (Gegenprobe der Erkennung)', () => {
     const kuenstlich = {
       'help.feature.beispiel': 'Dateien oeffnen per „Oeffnen mit“ im Explorer.',

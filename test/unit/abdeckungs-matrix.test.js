@@ -74,4 +74,58 @@ describe('Abdeckungs-Matrix (Meta-Test, 4T-000195)', () => {
     const manuell = matrix.eintraege.filter((e) => e.testart === 'manuell');
     expect(manuell.length).toBeLessThanOrEqual(8);
   });
+
+  // 4T-001167: Sichtbarkeit pruefen statt Verdrahtung. Ein Unit- oder
+  // Snapshot-Fall liest Quelltext oder Markup und kann nicht sehen, ob ein
+  // Bedienelement in der realen Anordnung sichtbar ist (Befund 1.116.0: vier
+  // gruene Faelle, Element durch eine fremde CSS-Regel unsichtbar). Deshalb
+  // traegt jeder Unit- und Snapshot-Eintrag das Feld "sichtbarkeit": eine
+  // Liste rendernder E2E-Specs, "entfällt: <Grund>" (kein dauerhaft
+  // sichtbares Bedienelement betroffen) oder "offen: <Grund>" fuer die
+  // gedeckelte Altbestand-Luecke. Regel: Entwicklungsrichtlinien, Kapitel 10.
+  describe('Sichtbarkeits-Nachweis (4T-001167)', () => {
+    const pflicht = matrix.eintraege.filter(
+      (e) => e.testart === 'unit' || e.testart === 'snapshot',
+    );
+
+    it('jeder Unit- und Snapshot-Eintrag traegt das Feld sichtbarkeit', () => {
+      const ohne = pflicht.filter((e) => e.sichtbarkeit === undefined).map((e) => e.key);
+      expect(
+        ohne,
+        `Ohne Feld "sichtbarkeit" (rendernde E2E-Specs oder "entfällt: <Grund>"): ${ohne.join(', ')}`,
+      ).toEqual([]);
+    });
+
+    it('das Feld nennt existierende E2E-Specs oder einen substanziellen Grund', () => {
+      const fehler = [];
+      for (const e of pflicht) {
+        const s = e.sichtbarkeit;
+        if (Array.isArray(s)) {
+          if (s.length === 0) fehler.push(`${e.key}: leere Nachweis-Liste`);
+          for (const t of s) {
+            if (!/^test\/e2e\/.+\.spec\.js$/.test(t)) fehler.push(`${e.key}: kein E2E-Spec: ${t}`);
+            else if (!fs.existsSync(path.join(ROOT, t))) fehler.push(`${e.key}: fehlt: ${t}`);
+          }
+        } else if (typeof s === 'string') {
+          const m = /^(entfällt|offen): (.+)$/.exec(s);
+          if (!m) fehler.push(`${e.key}: Form ist weder Liste noch "entfällt: …"/"offen: …"`);
+          else if (m[2].length <= 20) fehler.push(`${e.key}: Grund zu kurz`);
+        } else {
+          fehler.push(`${e.key}: unerwarteter Typ`);
+        }
+      }
+      expect(fehler, fehler.join('\n')).toEqual([]);
+    });
+
+    it('die Altbestand-Luecke waechst nicht: neue Bedienelemente bringen ihren E2E-Fall mit', () => {
+      const offen = pflicht.filter(
+        (e) => typeof e.sichtbarkeit === 'string' && e.sichtbarkeit.startsWith('offen:'),
+      );
+      // Stand der Sichtung vom 2026-09-03: F-274, F-275, F-276, S-139.
+      expect(
+        offen.map((e) => e.id),
+        'Ein neuer "offen:"-Eintrag ist kein Weg: Das Bedienelement braucht einen rendernden E2E-Fall.',
+      ).toEqual(['F-274', 'F-275', 'F-276', 'S-139']);
+    });
+  });
 });

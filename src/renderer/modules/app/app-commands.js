@@ -67,7 +67,7 @@ import {
 import { insertEventsBlock } from '../events/events-editor.js';
 import { openDatePickerAtSelection } from '../calendar/date-picker.js';
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
-import { openJournalEntryForDate, openTodayJournalEntry } from '../calendar/journals.js';
+import * as journale from '../calendar/journals.js';
 import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
@@ -260,10 +260,14 @@ export const commandHandlers = {
   },
   // 4T-000433 (Epic 3E-000081): Journal-Eintraege oeffnen bzw. anlegen.
   'journal.openToday': () => {
-    openTodayJournalEntry();
+    journale.openTodayJournalEntry();
   },
   'journal.openForDate': () => {
-    openJournalEntryForDate();
+    journale.openJournalEntryForDate();
+  },
+  // 4T-001407 (Epic 3E-000244): Eigenschaften eines ganzen Journals nachtragen.
+  'journal.nachtragen': () => {
+    void journale.trageJournalEigenschaftenNach();
   },
   // 4T-000546 (Epic 3E-000097): Kalender-Datum ueber den Picker einfuegen
   // (fokussierter Editor wie edit.insertTimestamp: Notiz-Feld hat Vorrang,

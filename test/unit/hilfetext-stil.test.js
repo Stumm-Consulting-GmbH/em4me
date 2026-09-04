@@ -12,6 +12,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { produktnamenImText, produktnamenInDatei } from './produktnamen-helfer.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -61,6 +62,82 @@ describe('Stil-Waechter Hilfetexte (4T-000221)', () => {
       for (const t of treffer(text, VERSIONS_HISTORIE)) funde.push(`${file} — ${t}`);
     }
     expect(funde, `Versions-Historie in Handbuch-Seiten:\n${funde.join('\n')}`).toEqual([]);
+  });
+
+  // 4T-001377: Stil-Regel 4 der Entwicklungsrichtlinien (Gattungsname statt
+  // Produktname des Datei-Managers) gilt laut Kapitel 13 auch für Handbuch-
+  // Seiten und README; geprüft wurden bis dahin allein die Sprachdateien. Am
+  // 2026-09-01 standen sechs Verstöße in Handbuch-Seiten, die Suite lief grün.
+  describe('Stil-Regel 4: Gattungsname statt Datei-Manager-Produktname (4T-001377)', () => {
+    // Bestands-Ausnahmen mit Ratsche (Stand 2026-09-03): 4T-001294 hat die
+    // sechs Fundstellen des Anlasses behoben, aber allein in den deutschen
+    // Fassungen und je einer weiteren Zeile; in vierzehn fremdsprachigen Seiten
+    // steht der Produktname weiter («file explorer», «Explorador»,
+    // «Explorateur», «Esplora risorse» und die Windows-10/11-Schreibung
+    // «Esplora file», die der Wächter aus 4T-001279 nicht kannte). Die Behebung
+    // ist Produkt-Text und läuft als 4T-001397 über die Release-Strecke; bis
+    // dahin meldet der Fall genau diese Seiten, und die Liste darf nur
+    // schrumpfen — eine Ausnahme ohne Fund ist ein Befund.
+    const BESTAND_AUSNAHMEN = new Set([
+      'apps-windows.en.md',
+      'apps-windows.es.md',
+      'apps-windows.fr.md',
+      'apps-windows.it.md',
+      'extensions-dev.en.md',
+      'extensions-dev.es.md',
+      'extensions-dev.fr.md',
+      'extensions-dev.it.md',
+      'subpages.es.md',
+      'subpages.fr.md',
+      'templates.en.md',
+      'templates.es.md',
+      'templates.fr.md',
+      'templates.it.md',
+    ]);
+
+    it('findet die historischen Fundstellen und schont Plattform-Bindung und Code (Gegenprobe)', () => {
+      const text = [
+        'Der Ordner öffnet sich im Datei-Explorer.',
+        'Opens the folder in the file explorer.',
+        'Apre la cartella in esplora risorse.',
+        'Die farbige Titelleiste setzt Windows 11 voraus.',
+        '```',
+        'C:\\Programme\\Explorer\\beispiel.txt',
+        '```',
+        'Dateien im Dateimanager öffnen.',
+      ].join('\n');
+      expect(produktnamenImText(text, 'probe')).toEqual([
+        'probe Zeile 1: "Explorer"',
+        'probe Zeile 2: "Explorer"',
+        'probe Zeile 3: "Esplora risorse"',
+      ]);
+    });
+
+    it('Handbuch-Seiten aller fünf Sprachfassungen nennen den Datei-Manager mit dem Gattungsnamen', () => {
+      const funde = [];
+      const ausnahmeOhneFund = [];
+      for (const file of helpFiles()) {
+        const f = produktnamenInDatei(path.join(HELP_DIR, file), file);
+        if (BESTAND_AUSNAHMEN.has(file)) {
+          if (f.length === 0) ausnahmeOhneFund.push(file);
+          continue;
+        }
+        funde.push(...f);
+      }
+      expect(
+        funde,
+        `Produktname eines Datei-Managers in Handbuch-Seiten — Gattungsnamen verwenden ` +
+          `(Dateimanager, file manager, gestionnaire de fichiers, gestor de archivos, gestore file):\n${funde.join('\n')}`,
+      ).toEqual([]);
+      expect(
+        ausnahmeOhneFund,
+        `Bestands-Ausnahme ohne Fund — aus BESTAND_AUSNAHMEN streichen (Ratsche): ${ausnahmeOhneFund.join(', ')}`,
+      ).toEqual([]);
+    });
+
+    it('das README nennt den Datei-Manager mit dem Gattungsnamen', () => {
+      expect(produktnamenInDatei(path.join(ROOT, 'README.md'), 'README.md')).toEqual([]);
+    });
   });
 
   it('i18n-Katalog-Texte sind frei von Fremdprodukt-Verweisen und Versions-Historie', () => {

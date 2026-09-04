@@ -64,6 +64,100 @@ an Subagenten die Sichtbarkeit ausdrücklich vorgeben. Bei einer Meldung
 „wird nicht angezeigt" zuerst automatisiert klären, ob das Produkt oder
 das Material die Ursache ist.
 
+### Einen neuen Stand neben der eigenen Arbeit prüfen (Übergangs-Lösung)
+
+**Übergangs-Lösung bis zur zweiten Ausprägung.** Der Ziel-Zustand ist eine
+zweite, eigenständig gebaute Ausprägung der Anwendung mit eigener Identität,
+eigenem Nutzerdaten-Verzeichnis und übernommenen Einstellungen; sie ist als
+Vorhaben angelegt und noch nicht gebaut. Bis dahin steht derselbe Effekt mit
+Bordmitteln zur Verfügung, und zwar über den Weg, den jeder
+Release-Smoke-Test benutzt: Die installationsfreie Programmdatei startet mit
+der Umgebungsvariablen `SCG_TEST_USER_DATA` auf ein eigenes Verzeichnis und
+bekommt damit ein eigenes Nutzerdaten-Verzeichnis **und** einen eigenen
+Einzel-Instanz-Lock, weil die Umleitung in `src/main/main.js` vor dem Lock
+steht. Die produktive Anwendung darf dabei weiterlaufen.
+
+Der Aufruf in PowerShell, mit dem Pfad der zu prüfenden Portable-EXE und
+einem frei gewählten, leeren Verzeichnis:
+
+```powershell
+$env:SCG_TEST_USER_DATA = "$env:LOCALAPPDATA\EM4me-Pruefstand"
+& "C:\Pfad\zu\EM4me-<version>-Portable.exe"
+```
+
+Erwartetes Ergebnis: Nach einigen Sekunden (der Selbstentpacker braucht
+Zeit) erscheint ein **zweites** Fenster der Anwendung mit dem neuen Stand,
+neben dem ersten; die produktive Anwendung bleibt unberührt. Erscheint kein
+zweites Fenster, fehlt die Variable in **dieser** Shell, oder es lief bereits
+eine Instanz mit demselben Verzeichnis. Die Variable gilt nur für die Shell,
+in der sie gesetzt wurde; ein Doppelklick im Explorer startet ohne sie und
+landet in der laufenden produktiven Instanz.
+
+**Drei Einschränkungen, die zum Weg gehören:**
+
+1. **Das Fenster verhält sich als Testlauf.** Dieselbe Variable setzt die
+   Testlauf-Kennung: Das Fenster erscheint ohne Fokus und wird nie von
+   selbst in den Vordergrund geholt. Bedienbar ist es vollständig, es kommt
+   nur nicht nach vorn.
+2. **Die Einrichtung ist leer.** Keine Einstellungen, keine Bereiche, keine
+   wiederhergestellte Sitzung; die Sprache ist die Auslieferungs-Vorgabe
+   (Englisch). Wer den eigenen Stand sehen will, richtet ihn in diesem
+   Verzeichnis einmal ein; das Verzeichnis bleibt zwischen zwei Starts
+   erhalten. Die Übernahme der produktiven Einrichtung beim ersten Start
+   kommt erst mit der zweiten Ausprägung.
+3. **Die Inhalte sind nicht getrennt.** Bereiche und Dokumente liegen im
+   Dateisystem, und die Bereichs-Konfiguration liegt im Bereichs-Ordner
+   selbst; beide Instanzen schreiben in dieselben Dateien, wenn sie denselben
+   Bereich öffnen. Deshalb gilt die **Bereichs-Kopie** als Arbeitsweise
+   (Entscheidung des Product Owners vom 2026-09-01): den zu prüfenden Bereich
+   vor dem Start kopieren und in der zweiten Instanz allein die Kopie
+   binden. Gegen Datenschäden durch einen ungeprüften Stand schützt nichts
+   anderes.
+
+Der Smoke-Test der Release-Strecke (Kapitel 5) benutzt denselben Mechanismus
+aus Sicht der Sitzung; Prozess-Messung und Aufräumen stehen dort und werden
+hier nicht wiederholt.
+
+### Einen blockierten Anzeige-Prozess prüfen: die Blockade-Hilfe
+
+**Zwei Erkennungs-Merkmale, bevor der Verdacht auf das Programm fällt.** Bei
+der Test-Iteration zu 1.120.0 blieb der Hinweis «Fenster antwortet nicht» über
+zwei Minuten aus, und der Verdacht fiel zuerst auf das Programm; die Ursache
+lag in der Entwickler-Konsole, die den eingetippten Befehl `while(true){}`
+noch nicht ausgeführt hatte (zweites Return nötig) und eingefügten Code bis
+zur einmaligen Eingabe von `allow pasting` verweigert. Ein wirklich
+blockierter Anzeige-Prozess **friert die Oberfläche ein**: kein Scrollen,
+kein Reiter-Wechsel, kein Tippen im Editor. Und `while(true){}` **liefert nie
+ein Ergebnis**, weshalb die Konsole eine laufende und eine nicht ausgeführte
+Eingabe gleich darstellt — ein Bildschirmfoto der Konsole unterscheidet die
+beiden Fälle nicht. Wer prüft, prüft die Oberfläche, nicht die Konsole.
+
+**Die Blockade-Hilfe setzt die Blockade von außen und liefert einen Beleg**
+statt einer Beobachtung (seit dem 2026-09-03, Windows):
+
+```bash
+node scripts/blockade-probe.js --exe "releases\EM4me-<version>-Portable.exe" --bestaetigen
+```
+
+Ohne `--exe` läuft der Entwicklungs-Stand (`electron .`, Renderer vorher mit
+`npm run build:renderer` gebaut). Das Werkzeug startet die Anwendung mit
+eigenem Nutzerdaten-Verzeichnis (Profil-Vorbelegung aus der einen Quelle,
+deutsche Oberfläche) und `--remote-debugging-port`, setzt über das
+Remote-Debugging-Protokoll `while(true){}` im Anzeige-Prozess ohne Zeitlimit
+(das die Schleife sonst nach einer Millisekunde abbräche), prüft mit einer
+zweiten Auswertung, dass der Prozess wirklich steht, schickt dem Hauptfenster
+`WM_CLOSE` (der Weg des X) und wartet auf den Hinweis-Dialog (Windows-Klasse
+`#32770` im eigenen Prozessbaum). Mit `--bestaetigen` löst es die erste
+Schaltfläche «Trotzdem schließen» über `WM_COMMAND` aus, sonst wartet es auf
+den Tester. Der Beleg unter `test-berichte/blockade-probe-<zeitstempel>.json`
+trägt die Zeitpunkte Start, Fenster sichtbar, Blockade gesetzt,
+Schließen-Befehl, Hinweis-Dialog, Bestätigung, Dialog geschlossen und Fenster
+geschlossen; gemessen am 2026-09-03 erscheint der Dialog nach 20,3 bis 20,7 s.
+Beendet wird nur der eigene Prozessbaum, nie pauschal nach Prozessname. Was das
+Werkzeug am 2026-09-03 zutage brachte — das Fenster bleibt nach «Trotzdem
+schließen» stehen —, ist als eigener Vorgang im Pflege-Gefäß der
+Fehlerbehebung verortet.
+
 ## Linux-Prüfumgebung im Container
 
 Die Prüfung der Linux-Artefakte braucht eine echte Desktop-Sitzung; sie entsteht als
@@ -109,7 +203,7 @@ wurde.
 Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll-Suite in einer Release-Strecke zweimal lief, ohne dass der zweite Lauf einen zusätzlichen Nachweis brachte.
 
 1. **Die E2E-Voll-Suite läuft pro Release genau einmal**, als Pflicht-Gate vor Build und Tag (Festlegung des Product Owners vom 2026-07-29). Sie kostet rund eine halbe Stunde; ein zweiter Lauf ohne Erkenntnisgewinn verstößt gegen den Effizienz-Maßstab des Projekts. Ein Lauf allein für die Kennzahl kommt nicht in Betracht und ist seit 4T-000831 auch nicht mehr denkbar: Die Kennzahl entsteht ohne Lauf.
-2. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert.
+2. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert. Dasselbe gilt für den Gate-Weg: `node scripts/gate-lauf.js test` puffert vollständig, die Ausgabe-Datei bleibt bis zum Schluss bei null Byte, und genau das sieht aus wie ein entgleister Lauf. **Was stattdessen trägt, ist die Prozess-Liste:** `Get-CimInstance Win32_Process -Filter "Name='node.exe'"` zeigt den Gate-Lauf, den `npm test`-Wrapper und die Vitest-Worker mit ihrer Startzeit; laufen Worker, läuft die Suite. Und das Budget dazu: Eine volle Suite braucht auf SC-026 gut sieben Minuten, ein Budget von fünf Minuten ist zu knapp und erzeugt eine Fehl-Meldung (Befund vom 2026-08-28, aus dem Koordinations-Register hierher verankert).
 3. **Ein laufender Suite-Lauf wird nicht per Prozess-Abbruch gestoppt.** Er läuft durch, oder der Abbruch wird verifiziert, bevor er als erledigt gemeldet wird. Ein halber Abbruch ist der schlechteste Zustand: Die volle Laufzeit fällt trotzdem an, und das Beenden der Prozesse mitten im Lauf erzeugt rote Fälle, die es ohne den Eingriff nicht gäbe. Sie sind von echten Befunden nicht zu unterscheiden und kosten die nächste Diagnose-Runde.
 
 ## Stabilitätsregeln
@@ -326,6 +420,15 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Standard-Vorbelegung vollständig.** Die Sprach-Festlegung aus
     4T-000751 gehört dann mit hinein, sonst startet die App englisch und
     sprachabhängige Erwartungen brechen (Fund aus 4T-000899, Stufe A).
+    Nicht ersetzt wird der **Zustands-Anteil** — die Erststart-Merker wie
+    `tourSeen`: Er kommt seit dem 2026-09-03 für jedes App-startende
+    Werkzeug aus der einen Quelle `scripts/profil-vorbelegung.js` und liegt
+    unter jeder Vorbelegung (allein `settings: null` bleibt der echte
+    Erststart). Wer ein Konstrukt mit Erststart-Wirkung baut, ergänzt den
+    Merker dort und nirgends sonst; der Wächter
+    `test/unit/profil-vorbelegung.test.js` meldet jede Stelle, die die
+    Anwendung mit `SCG_TEST_USER_DATA` startet, ohne das Modul zu laden
+    (Anlass: Auslieferung 1.114.0, neun von neun Motiven am Tour-Overlay).
 
 19. **Brückenfunktionen am Modulkopf brauchen die gemeinsame
     Attrappe.** Wer einen Preload-Zugriff aus einer Funktion an den
@@ -411,6 +514,47 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     maschineller Wächter ist nicht vorgesehen** — ob ein Ausdruck eine
     Momentaufnahme ist, hat kein sicheres Merkmal im Quelltext (dieselbe
     Lage wie bei Regel 19).
+22. **Ein Wächter-Marker ist kein gewöhnliches Wort der Sprache, die er
+    durchsucht — und er hat einmal nachweislich angeschlagen** (4T-001085).
+    Der Index-Wächter des Web-Handbuchs suchte die durchgereichte
+    MathML-Fassung einer Formel über das nackte Wort `annotation` im
+    rohen Suchindex. Das traf am 2026-08-18 einen gewöhnlichen englischen
+    Satz («… in the list annotation …») und färbte den Lauf rot, während
+    der Text, der die Ursache nennt, nicht zu sehen war; und es hätte den
+    Leck selbst nie gefunden, weil das Tag-Strippen des Index-Textes den
+    Tag-Namen ohnehin entfernt. Ein Marker, der nie anschlägt, ist
+    schlimmer als einer, der zu oft anschlägt. Deshalb: Der Marker misst
+    ein Merkmal des Gegenstands (hier die TeX-Quelle, die im Index nur aus
+    dem Markdown-Beispiel und nie aus der Annotation stammen darf), die
+    Gegenprobe führt den Fall an der reinen Funktion herbei, und der
+    Bestandsfall hält fest, dass der Gegenstand im Bestand vorkommt, damit
+    der Marker nicht ins Leere prüft.
+
+23. **Eine Prüf-Vorlage wird an ihrem Gegenstand gehalten, nicht an der
+    Erinnerung** (4T-001263, Register-Klasse L10 in ihrer zweiten Ausprägung).
+    Zwei Vorfälle vom 2026-08-28 teilten die Annahme «der Gegenstand ist so
+    gebaut, wie die Vorlage ihn baut»: Ein Werkzeug suchte das Eltern-Feld
+    eines Epics im Singular, alle 230 Epic-Dateien führen den Plural, und 92
+    grüne Fälle sagten nichts, weil keiner den realen Bestand berührte; ein
+    Hygiene-Wächter suchte Absätze, das Register führt Listenpunkte, dreizehn
+    Einträge blieben zwanzig Tage ungeprüft. Drei Regeln folgen daraus.
+    **Bestandsfall:** Ein Werkzeug, das einen realen Bestand auswertet, trägt
+    mindestens einen Prüffall gegen diesen Bestand. Der Wächter
+    `test/unit/bestandsfall.test.js` verlangt das für jedes Werkzeug unter
+    `scripts/`, das den PM- oder den Anforderungs-Parser selbst lädt; der
+    Bestandsfall darf über eine Fassade laufen, die das Werkzeug mitfährt
+    (der Bestandsfall des PM-Linters deckt seine Regelgruppen-Module). Eine
+    Ratsche nennt die Lücken mit Grund und darf nur schrumpfen. **Positiv-Kontrolle:** Aus dem
+    Schweigen eines Wächters wird nichts gefolgert, bevor er einmal
+    nachweislich gefeuert hat, an einem eingebauten Verstoß oder am echten
+    Fall; liegt der Gegenstand außerhalb des Repositoriums, ist die
+    Positiv-Kontrolle der Ersatz für den Bestandsfall. **Grundgesamtheit:**
+    Jede Erhebung über einen Bestand nennt ihre Grundgesamtheit — wie viele
+    Dateien gesehen, wie viele gezählt —, damit ein stilles Wegfiltern
+    auffällt; der dritte Beleg war eine Erhebung, die 892 von 1255 Dateien
+    sah, weil Git Pfade mit Umlauten quotiert. Wo eine Vorlage ein Schema
+    nachbildet, liest sie es aus der kanonischen Quelle (`scripts/pm-parse.js`)
+    statt es abzuschreiben.
 
 ## E2E-Praxis
 
@@ -497,7 +641,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
 
 ## Rote Läufe einordnen
 
-**Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). Aus der Quarantäne-Liste wird wiederholt Auffälliges zum Testfehler-Vorgang befördert und lange Unauffälliges gestrichen; **angesehen wird sie als Schritt 6 der Sammeltask-Checkliste** (Release-Strecke, gemeinsam mit dem Fehlerklassen-Register), nicht nach einer Regel an dieser Stelle.
+**Teststufen, E2E-Budget und Defekt-Klassen** (Kurzfassung; kanonisch im Konzept Test-Strategie und Qualitätssicherung): Die Prüfung folgt vier Stufen — Funktionstest je Task, Integrationstest je Task (Ä-Ausschnitt plus benannte Wechselwirkungen), Epic-Abschluss-Test als kumulierter Ausschnitt, Release-Abnahme; Eintritts-Kriterium jeder Stufe ist die grüne darunter. Der E2E-Voll-Lauf ist ausschließlich die Release-Abnahme und läuft **genau einmal je Release**; eine Wiederholung braucht die dokumentierte Freigabe des Product Owners, und beim zweiten unerwarteten Befund am Abnahme-Gate gilt Halt und Entscheidungsvorlage statt eines weiteren Laufs. Der Gate-Weg sagt das selbst: `node scripts/gate-lauf.js e2e` warnt seit dem 2026-09-03 vor einem Voll-Lauf außerhalb einer belegten Release-Sperre und bricht bewusst nicht ab, weil eine freigegebene Wiederholung legitim ist. Ein roter Fall ist zunächst ein unklassifizierter Befund: erst die Diagnose-Leiter unten, dann die Einstufung als **Produktfehler** (blockiert die Abnahme; Fix plus Regressionstest, Nachweis über gezielte Specs plus Smoke), **Testfehler** (Test-Fix als Vorgang im Test-Pflege-Gefäß) oder **Flake** (isoliert grün; Eintrag in die Quarantäne-Liste [flake-quarantäne.json](flake-quarantäne.json), blockiert keine Abnahme und löst keinen Voll-Lauf aus). **Ein Eintrag trägt die Pflichtfelder `spec`, `fall`, `datum` und `status`; das Feld `status` nimmt genau einen von drei Werten: `beobachtet`, `befoerdert` (dann mit dem Testfehler-Vorgang im Feld `vorgang`) oder `behoben`.** Prosa zum Sonderfall — die Bedingung einer späteren Beförderung, eine offene Umgebungs-Frage — steht im Feld `vermerk`, nie im Status: Maschinell gelesen wird allein der Status, und drei Sätze an seiner Stelle haben die Qualitäts-Kennzahl vom 2026-08-19 bis zum 2026-09-03 um zwei beobachtete Einträge zu niedrig gemeldet. Der Wächter `test/unit/flake-quarantaene.test.js` hält Wertebereich und Pflichtfelder fest, und die Qualitäts-Zählung meldet Wiederholungen je **Fall-Kennung** (das Kürzel vor dem Trenner, nicht der ganze Fall-Text), damit derselbe Fall in zwei Schreibweisen nicht als zwei Fälle durchgeht. Aus der Quarantäne-Liste wird wiederholt Auffälliges zum Testfehler-Vorgang befördert und lange Unauffälliges gestrichen; **angesehen wird sie als Schritt 6 der Sammeltask-Checkliste** (Release-Strecke, gemeinsam mit dem Fehlerklassen-Register), nicht nach einer Regel an dieser Stelle.
 
 - **Den Beleg sichern, bevor wiederholt wird** (4T-000934, Vorfall vom
   2026-08-08). Die Ausgabe eines Gate-Laufs wird **ungefiltert** gelesen; wo
@@ -671,6 +815,23 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Flakiness eher niedriger prüfen. Diagnose: einzelne Dateien mit
   `npx vitest run <datei>`, die Suite seriell mit
   `npx vitest run --no-file-parallelism`.
+- **Die teuren Bau-Fälle laufen als eigene Gruppe nach allen anderen, seriell**
+  (seit dem 2026-09-03, Weg B der Entscheidung des Product Owners). Ein
+  absolutes Zeitlimit skaliert nicht mit einer wachsenden Suite: Jede neue
+  Prüfdatei erhöht die Last für alle übrigen, und ein Bau-Fall, der isoliert
+  weit unter seiner Grenze liegt, riss sie im Voll-Lauf durch Verdrängung —
+  sieben Vorfälle seit dem 2026-07-25, jeder einzeln durch Anheben behandelt,
+  zuletzt am 2026-08-30 ausgelöst durch zwei neue Prüfdateien mit zusammen
+  217 ms Rechenzeit (Fehlerklasse L8). `vitest.config.mjs` führt deshalb
+  zwei Projekte mit Gruppen-Reihenfolge: `leicht` (alle übrigen Dateien,
+  parallel wie bisher) und `bau` (die Liste `TEURE_BAU_DATEIEN`, seriell,
+  nach dem ersten Projekt). Die absoluten Grenzen aus `test/zeitlimits.js`
+  bleiben unverändert scharf; sie messen jetzt wieder den Fall und nicht die
+  Nachbarn. Wer einen Fall mit `BAU_ZEITLIMIT` oder `VOLLBAU_ZEITLIMIT`
+  anlegt, trägt seine Datei in die Liste ein — der Wächter in
+  `test/unit/test-zeitlimits.test.js` hält beide Seiten gegeneinander. Der
+  Rückfall, falls die Mehrlaufzeit einmal ein Viertel übersteigt, ist Weg D
+  (Nebenläufigkeit deckeln); gemessen am 2026-09-03 auf SC-027.
 - **Den Rückgabewert eines Gate-Laufs nicht durch eine Pipe schicken.**
   Begründung und Vorgehen stehen in den
   Entwicklungsrichtlinien,
@@ -710,10 +871,34 @@ Commit, die Suite einmal zentral vor der Integration. **Wie viel davon
 läuft, hängt am geänderten Datei-Bestand** und nicht an der Absicht des
 Vorgangs (Abschnitt „Änderungsklassen und Prüf-Ausschnitt").
 
+**Prüfschritt bei der Einführung eines Wächters oder Registrier-Zwangs**
+(seit dem 2026-09-03, Ergebnis der L12-Analyse). Ein neuer Zwang wirkt an
+jedem Tor, das seinen Gegenstand durchläuft, und der einführende Vorgang
+durchläuft selten alle. Zwei von drei Vorfällen der Register-Klasse L12 nach
+dem 2026-08-30 stammen aus derselben Einführung, dem Zugangs-Wächter: Der
+Quellcode-Export brach ab, weil das neue Modul nicht auf der Positivliste
+stand, und die Release-Vorbereitung meldete «unplausibel wenige Fälle», weil
+der Wächter eine Auflistung (`vitest list`) für einen Lauf hielt. Deshalb
+beantwortet jeder Vorgang, der einen Wächter, einen Registrier-Zwang oder
+eine Zugangs-Sperre einführt, vor dem Abschluss die **Tore-Frage** und hält
+die Antwort im Lösungs-Kapitel fest: *Welche Tore laufen künftig durch diese
+Prüfung, und durchläuft der einführende Vorgang jedes davon?* Die Tore sind
+(1) der pre-commit-Hook, (2) der Prüf-Ausschnitt jeder Klasse — die
+Zuordnung gemessen, siehe oben —, (3) die Voll-Suite, (4) der Quellcode-Export
+samt der exportierten Suite im öffentlichen Repositorium, (5) die
+Release-Vorbereitung mit ihren eigenen Aufrufen (Kennzahl, Bau), (6) das
+Linux-Gate im Container, (7) die Auslieferung mit ihren Werkzeugen. Ein Tor,
+das der Vorgang nicht selbst durchläuft, wird benannt und einmal ausdrücklich
+gefahren oder als offen an den nächsten Durchlauf übergeben. Das ist ein
+Prosa-Prüfschritt (Register-Klasse L7, als solcher benannt): Welche Tore ein
+Zwang berührt, ist Beurteilung; maschinell ist allein die Zuordnungs-Messung.
+
 **Lokal, pro Commit.** Der versionierte Hook unter `.githooks/pre-commit`
 führt nacheinander `npm run format:check` (Prettier), `npm run lint`
-(ESLint) und den PM-Linter aus und verweigert den Commit, sobald ein
-Schritt rot ist. Einmalige Aktivierung pro Klon:
+(ESLint), den PM-Linter und seit dem 2026-09-03 die gedrosselte
+Zuordnungs-Messung der gestagten Prüfdateien (`scripts/zuordnung-pruefen.js`,
+Abschnitt «Änderungsklassen und Prüf-Ausschnitt») aus und verweigert den
+Commit, sobald ein Schritt rot ist. Einmalige Aktivierung pro Klon:
 
 ```bash
 git config core.hooksPath .githooks
@@ -752,7 +937,7 @@ ab, dessen Diff gegen den Integrationsstand `src/**`, `package.json` oder
 `package-lock.json` berührt und der nicht mit `--release` integriert;
 ein nicht ermittelbarer Diff wird abgewiesen statt durchgelassen (fail
 closed). Produkt-Code erreicht `main` damit ausschließlich über die
-Release-Strecke (Epic-Zweig, Konzept „Verteiltes Arbeitsmodell"). Das
+Release-Strecke (Zug-Zweig mit Epic-Zweigen darunter, Konzept „Verteiltes Arbeitsmodell"). Das
 zweite Netz ist der **Vollständigkeits-Abgleich** der Release-Vorbereitung
 (4T-000861): Vor ihrem ersten Schritt müssen die Vorgangs-Kennungen jedes
 Commits mit Produkt-Code-Anteil seit dem letzten Release-Tag im
@@ -815,6 +1000,24 @@ Paritäts-Wächter und `src/demo/**` die des Manifest-Wächters. Bei Ä3 ist
 die Auslassung auf E2E-Seite bewusst unvollständig: Einzelne Specs prüfen
 auf lokalisierte Texte, deshalb bleibt dort eine E2E-Pflicht.
 
+**Die Tabelle nennt die fachlich begründeten Kern-Wächter je Klasse; die
+gemessenen Nachzüge stehen in der Karte** (seit dem 2026-09-03, Ergebnis
+des ersten vollen Messdurchgangs von `scripts/zuordnung-pruefen.js`: 80
+Zuordnungen waren enger als die Messung). Nachgezogen wurden in der Karte
+unter anderem die jsdom-Render-Wächter, die `src/i18n/de.json` als Daten
+lesen (Ä3), die Struktur-Wächter, die Renderer-Module und Stil-Dateien als
+Text lesen (Ä4), die Werkzeug-Wächter mit einer JSON-Eingabe unter
+`scripts/` (Ä6) und die Wächter, die den Prüf-Bestand selbst lesen (Ä8).
+Wo eine Prüfdatei Pfade einer Klasse liest und dort **bewusst** nicht im
+Ausschnitt steht, trägt die Karte das Feld `bewusstAusserhalb` mit dem
+Grund je Klasse — der Export-Wächter kopiert den Baum, der Queue-Wächter
+kopiert Skripte als Fixture, die Web-Bau-Wächter lesen kopierte
+Stil-Dateien ohne Prüf-Aussage und aus `package.json` allein die
+Versions-Nummer, der Kennungs-Wächter sucht Kommentare im Quelltext. Das
+Werkzeug meldet diese Lagen als Hinweis, damit sie sichtbar bleiben, und
+jede neue Abweichung als Befund. Wer die Tabelle liest, liest den Kern;
+wer wissen will, was eine Klasse tatsächlich fährt, liest die Karte.
+
 **Warum in Ä8 drei Wächter stehen und nicht einer** (seit dem 2026-09-01).
 Die Klasse trägt zwei verschiedene Lagen unter einem Muster: eine
 **geänderte** Prüfdatei und eine **hinzugefügte**. Für die geänderte gilt
@@ -840,6 +1043,73 @@ Nachbar-Änderung die Wächter mit). Ein **Rückfall** auf die vollen Gates
 wäre das falsche Mittel gewesen, weil er die häufige Lage „Code-Änderung
 samt Regressionstest" mitträfe und der Abstufung vom 2026-08-14 ihren
 Gewinn nähme.
+
+**Drei Buchführungs-Wächter laufen in jedem Ausschnitt** (seit dem
+2026-09-03). `aenderungsklassen`, `abdeckungs-matrix` und `datei-groessen`
+prüfen nicht die geänderte Fachlichkeit, sondern die Buchführung über den
+Bestand: die Zuordnung jeder Prüfdatei in der Klassen-Karte, den Eintrag
+jedes Katalog-Schlüssels in der Abdeckungs-Matrix und die
+Datei-Größen-Budgets. Genau deshalb liegen sie regelmäßig außerhalb des
+Ausschnitts, den der Änderungs-Umfang auswählt — und ein Verstoß fiel
+viermal nicht beim Verursacher auf, sondern im nächsten Voll-Lauf: zweimal
+in einer fremden Sitzung (2026-08-20), zweimal auf der Release-Strecke der
+verursachenden Sitzung (2026-08-23, je rund eine Stunde). Die Gruppe steht
+in der Karte (Feld `immerImAusschnitt`), und die Auswahl mischt sie nach
+der Klassen-Vereinigung und nach der Leer-Prüfung ein. Damit greift sie an
+beiden Enden, im Queue-Lauf wie im lokalen Gate-Weg, weil beide dieselbe
+Auswahl fahren. Die Tabelle oben nennt die drei weiterhin dort, wo eine
+Klasse sie aus eigenem Grund braucht; die Gruppe ist die Heimat der
+klassen-unabhängigen Regel, und die Vereinigung dedupliziert. Preis: rund
+eine halbe Sekunde Prüfzeit (gemessen am 2026-09-03: 22 Fälle in 426 ms).
+
+**Die Zuordnung eines Wächters wird gemessen, nicht geraten** (seit dem
+2026-09-03, Ergebnis der L12-Analyse). Sechs Vorfälle in elf Tagen hatten zu
+fünf Sechsteln dieselbe Bauform: Die Zuordnung eines Wächters — sein
+Ausschnitt oder seine Ausnahme — nannte eine engere Eingabe als die, die er
+tatsächlich liest, und die Auswahl fuhr ihn in Klassen nicht, deren
+Änderungen er sieht. Gemessen am 2026-09-03 mit dem Lese-Hook
+`scripts/eingaben-spur.js`: Der Karten-Wächter liest den ganzen Test-Baum
+(247 Dateien), nicht nur die Karte; der Größen-Wächter alle vier
+Budget-Wurzeln (`src` 435, `test` 410, `scripts` 141, `web` 13); der
+Anforderungs-Wächter 752 Dateien unter `Projektmanagement/`, obwohl er als
+Werkzeug-Wächter geführt war. Deshalb gilt bei jeder neuen oder geänderten
+Zuordnung: einmal mit dem Hook laufen lassen und die Wurzel-Ordner der Spur
+gegen die Klassen-Muster halten, in deren Ausschnitt der Wächter steht — was
+er liest, muss ihn auslösen. Der Aufruf steht im Kopf des Hooks; er braucht
+`--pool=forks` und, weil er an einer einzelnen Prüfdatei läuft, keine
+Zugangs-Marke. Der sechste Vorfall passte nicht in die Bauform: Der
+Zugangs-Wächter hielt eine Auflistung für einen Lauf, ein Fehler der
+Einführung, nicht der Zuordnung — dafür steht der Prüfschritt im Abschnitt
+«Gates».
+
+**Seit dem 2026-09-03 prüft das ein Werkzeug, nicht die Aufmerksamkeit**
+(Entscheidung des Product Owners, PM-Pflege-Welle 4). Die Messregel oben
+hing an dem, der eine Zuordnung schreibt, und prüfte nur die eine, die
+gerade entstand; der Bestand, dessen Eingaben sich mit jedem Umbau
+verschieben, blieb ungemessen. `node scripts/zuordnung-pruefen.js` misst je
+Unit-Prüfdatei die gelesenen Pfade (Lese-Hook mit `FS_SPUR_NUR_WORKER=1`,
+also allein der Prüf-Prozess) und hält sie gegen die Karte: In jeder
+Klasse, deren Muster ein gelesener Pfad trifft, muss die Prüfdatei im
+Ausschnitt stehen — oder die Klasse deckt sie anders (Voll-Suite, feste
+Wächter-Gruppe, Selbst-Klasse, Modul-Graph über die statische
+Import-Kette). Alles andere ist ein **Befund**: eine Zuordnung, die enger
+ist als die Messung, die Bauform der fünf Fälle. Die Gegenrichtung, ein
+Ausschnitts-Eintrag ohne gemessene Eingabe der Klasse, ist ein **Hinweis**,
+weil sie Prüfzeit kostet und keine Deckung. Drei Zuschnitts-Entscheidungen:
+**prüfen statt herleiten**, damit die Begründungen der Karte stehen bleiben;
+**gedrosselt** im pre-commit-Hook für die gestagten Prüfdateien mit
+Inhalts-Hash je Datei im unversionierten Messstand
+`.git/em4me-zuordnung-messstand.json` (rund anderthalb Sekunden je Messung,
+eine bereits gemessene Fassung kostet nichts); und ein **voller Durchgang**
+(`--alle --bericht test-berichte/zuordnung-messung.json`) als dritter
+Sichtungs-Punkt in Schritt 6 der Release-Strecke, weil ein Umbau an
+Quell-Modulen die Eingaben einer ungeänderten Prüfdatei verschiebt. Außerhalb
+bleiben, was kein Datei-Zugriff zeigt (Require-Kette der
+Test-Konfigurationen, Umgebungsvariablen, Wegwerf-Repositorien) und die
+E2E-Specs, deren Messung ein laufendes Programm bräuchte. Die fünf Fälle aus
+der L12-Analyse sind als Regressions-Fälle in
+`test/unit/zuordnung-pruefen.test.js` am Stand vor ihrer Behebung
+nachgestellt.
 
 **Struktur-Schnitte nehmen die Regression- und Perf-Specs des berührten
 Reviers mit** (Erkenntnis der Release-Abnahme vom 2026-08-13). Verschiebt
@@ -991,7 +1261,7 @@ Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-001251), auf der Gr
 
 1. **Haupt-Plattform ist Windows.** Sie trägt die **vollständige** Suite ohne Ausnahme. Jede Prüfung, die irgendwo läuft, läuft hier.
 2. **Je weiterer freigegebener Plattform läuft der vollständige Ausschnitt**, also Unit-Suite **und** E2E-Suite. Die Beschränkung auf die Unit-Suite ist ausdrücklich **verworfen**: Alle drei Produkt-Befunde des ersten Linux-Laufs am 2026-08-28 lagen in der E2E-Suite, keiner in der Unit-Suite. Wer dort kürzt, prüft genau den Teil, der ohnehin plattformneutral ist.
-3. **Der manuelle Test bleibt für Windows die Regel und findet auf weiteren Plattformen nur bei Anlass statt** — wenn ein Release die Plattform-Einbindung berührt (Bau-Ziele, Datei-Zuordnung, Desktop-Einbindung) oder wenn der automatisierte Lauf einen Befund meldet, der eine Sicht-Prüfung braucht. Grund: Der gründliche manuelle Durchgang vom 2026-08-26 fand drei Befunde und **keinen** der drei, die die automatisierte Suite zwei Tage später fand. Beide Prüf-Arten sehen Verschiedenes; die manuelle ist die teurere und gehört dorthin, wo sie allein etwas leisten kann.
+3. **Der manuelle Test bleibt für Windows die Regel und findet auf weiteren Plattformen nur bei Anlass statt — und was ein Anlass ist, sagt ein benannter Auslöser-Katalog, nicht das Ermessen der Release-Sitzung** (Entscheidung des Product Owners vom 2026-09-03, Weg 3 aus `4T-001382`; bis dahin stand hier ein Prosa-Urteil, dem die Release-Strecke mit «eine Strecke je ausgelieferter Bezugs-Form» widersprach, und bei `1.125.1` entschied die Anordnung des Product Owners statt des Regelwerks). Ein Anlass liegt vor, sobald **einer** der folgenden Auslöser zutrifft: **(a)** Bau-Ziele und Bau-Konfiguration (`build/**`, `scripts/build-*.js`); **(b)** Datei-Zuordnung (Dateitypen, Protokoll-Registrierung); **(c)** Desktop-Einbindung (Menü- und Start-Einträge, Icons, Autostart); **(d)** Pfad- und Dateisystem-Verhalten des Haupt-Prozesses (plattformgebundene Zweige unter `src/main/**`, Groß-/Kleinschreibung, Symlinks, Berechtigungen); **(e)** jede Änderung am `build`-Block der `package.json`; dazu **(f)** ein Befund des automatisierten Laufs auf der Plattform, der eine Sicht-Prüfung braucht. Trifft keiner zu, genügt die Windows-Strecke, und der Sammeltask hält das mit dem geprüften Katalog fest («kein Auslöser, a bis f geprüft»). Fünf der sechs Auslöser sind am Release-Diff erkennbar; eine maschinelle Stütze ist deshalb möglich und bewusst noch nicht gebaut — erst wenn sich der Katalog an zwei Releases bewährt hat, lohnt ein Werkzeug, das die Auslöser aus dem Diff vorschlägt, und (f) bleibt ohnehin ein Urteil. Grund: Der gründliche manuelle Durchgang vom 2026-08-26 fand drei Befunde und **keinen** der drei, die die automatisierte Suite zwei Tage später fand. Beide Prüf-Arten sehen Verschiedenes; die manuelle ist die teurere und gehört dorthin, wo sie allein etwas leisten kann.
 4. **Ausgelöst wird der Lauf von jedem Release mit Produkt-Code-Anteil.** Ein Release ohne ihn kann die Plattform nicht brechen und löst deshalb keinen Lauf aus.
 
 ### Wie eine Plattform in die Menge kommt und sie verlässt
@@ -1277,6 +1547,23 @@ sichert `test/unit/hilfetext-stil.test.js` (keine Fremdprodukt-Verweise
 und keine Versions-Historie in Handbuch-Seiten und Katalog-Texten,
 Stil-Regeln aus den Entwicklungsrichtlinien,
 Kapitel 13).
+
+**Feld `sichtbarkeit` an Unit- und Snapshot-Einträgen** (seit dem
+2026-09-03, Regel in den Entwicklungsrichtlinien, Kapitel 10): Ein Unit-
+oder Snapshot-Fall liest Quelltext oder Markup und sieht nicht, ob ein
+Bedienelement in der realen Anordnung sichtbar ist. Deshalb trägt jeder
+Eintrag mit Testart `unit` oder `snapshot` das Feld `sichtbarkeit` in
+einer von drei Formen: eine Liste rendernder E2E-Specs (`test/e2e/…`),
+die das Bedienelement sichtbar machen; `entfällt: <Grund>`, wenn kein
+dauerhaft sichtbares Bedienelement betroffen ist (Markdown-Konstrukt,
+Abfrage-Ausgabe, Kommando ohne eigenes Element, Eintrag im nativen
+Anwendungsmenü); oder `offen: <Grund>` für die Altbestand-Lücke der
+Sichtung vom 2026-09-03. Der Meta-Test erzwingt das Feld, prüft die
+Existenz der Specs und deckelt die `offen:`-Einträge auf ihren Stand —
+ein neues Bedienelement bringt seinen E2E-Fall mit, ein weiterer
+`offen:`-Eintrag ist kein Weg. Wer ein Element ohne eigenen Katalog-Key
+einführt, hält dieselbe Regel über den Kopf-Kommentar seiner Prüfgruppe
+ein: Struktur-Prüfungen nennen den Fall, der die Wirkung nachweist.
 
 **Regressionstest-Pflicht pro Bugfix:** Jeder behobene Fehler erhält einen Regressionstest auf der passenden Ebene (Unit, Snapshot oder E2E), nach Möglichkeit zuerst als fehlschlagender Test, dann der Fix; die Befund- bzw. Task-ID steht als Kommentar am Test. **Szenario-Treue bei gemeldeten Befunden** (Retrospektive vom 2026-08-05): Der Regressionstest eines vom Product Owner oder aus dem Feld gemeldeten Befunds stellt den **gemeldeten Ablauf** nach (Fenster-, Sitzungs- und Daten-Lage der Meldung), nicht das Minimal-Szenario der diagnostizierten Ursache; die Diagnose bestimmt den Fix, die Meldung bestimmt den Test. Gegenüber dem Product Owner heißt ein gemeldeter Befund erst «behoben», wenn sein Ablauf nachgestellt grün ist; davor lautet die Rückmeldung «Fix umgesetzt, Nachweis im nachgestellten Szenario». Anlass: Ein Restore-Fix bestand das Minimal-Szenario (eine App, kleines Profil) und fiel am realen Mehr-Fenster-Profil durch.
 

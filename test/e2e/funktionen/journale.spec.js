@@ -756,6 +756,10 @@ test.describe('JR-03: Datum-Kommando — Datums-Dialog und Journal-Auswahl (F-10
         .toContain('journal-start-date: 2026-01-05');
       const content = fs.readFileSync(target, 'utf8');
       expect(content).toContain('journal-end-date: 2026-01-11');
+      // 4T-001404 (Epic 3E-000244): Der Wochen-Eintrag trägt auch das
+      // Perioden-Datum, und zwar den Montag der Woche. Genau das fehlte im
+      // gemeldeten Prio-A-Fall.
+      expect(content).toContain('journal-date: 2026-01-05');
       await expect(page.locator(SEL.activeTab0)).toContainText('2026-KW02');
     } finally {
       await closeApp(app, userData);

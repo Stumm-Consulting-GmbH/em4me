@@ -5,6 +5,7 @@
 import {
   DEFAULT_DATE_PROP,
   DEFAULT_END_PROP,
+  DEFAULT_NAME_PROP,
   DEFAULT_START_PROP,
   JOURNAL_GRANULARITIES,
   periodOf,
@@ -225,6 +226,19 @@ export function buildJournalEditor(container, values, journal, idx, snapshotById
     'JJJJ-MM-TT',
     (v) => {
       journal.endDate = v;
+    },
+  );
+  // 4T-001405 (Epic 3E-000244): Der Journal-Name ist die vierte Eigenschaft
+  // jedes Eintrags; sein Feldname steht vor den drei Datums-Feldnamen, weil er
+  // im Frontmatter des Bestands ebenfalls zuerst steht.
+  buildJournalInputRow(
+    group,
+    'settings.journals.namePropLabel',
+    `settings-journals-nameprop-${idx}`,
+    journal.nameProp,
+    DEFAULT_NAME_PROP,
+    (v) => {
+      journal.nameProp = v;
     },
   );
   buildJournalInputRow(

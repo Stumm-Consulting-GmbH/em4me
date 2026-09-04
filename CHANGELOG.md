@@ -14,6 +14,49 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.127.2.2315] - 2026-09-04 — Vollständige Journal-Eigenschaften
+
+Zug 3E-000245 mit dem Epic 3E-000244. **Reine Fehlerbehebung, deshalb die dritte
+Stelle** (Entscheidung des Product Owners vom 2026-09-04): Journal-Einträge
+trugen ihre Frontmatter-Eigenschaften seit der Auslieferung von 3E-000081
+unvollständig, je nach Granularität entweder das Perioden-Datum oder die beiden
+Perioden-Grenzen, nie beides, und den Namen des Journals überhaupt nicht. Alles
+Folgende stellt den zugesagten Zustand her, statt Funktionalität hinzuzufügen;
+auch die beiden Nachpflege-Wege sind Werkzeuge der Behebung, denn ohne sie
+bliebe der bereits entstandene Bestand fehlerhaft.
+
+### Behoben
+
+- **Journal-Eigenschaften vollständig schreiben** (4T-001404): Die Weiche, die je
+  nach Granularität entweder das Perioden-Datum oder die Perioden-Grenzen
+  schrieb, ist entfallen. Ein Eintrag trägt beides, und das Perioden-Datum ist
+  der Beginn der Periode; bei Tages-Einträgen stimmen deshalb alle drei
+  Datums-Angaben überein.
+- **Name des Journals wieder im Eintrag** (4T-001405): Die Eigenschaft war
+  vorgesehen und im Einstellungs-Bereich „Journale" auch benennbar, wurde aber
+  von keiner Stelle des Programms geschrieben. Jeder Eintrag nennt jetzt das
+  Journal, zu dem er gehört.
+- **Bestehende Einträge beim Öffnen berichtigen** (4T-001406): Ein vorhandener
+  Eintrag bekommt die fehlenden Eigenschaften ergänzt, sobald er über Kommando,
+  Kalender oder Navigations-Block geöffnet wird. Vorhandene Werte bleiben
+  unverändert, ein vollständiger Eintrag wird nicht angefasst.
+- **Einen ganzen Bestand auf einmal berichtigen** (4T-001407): Das Kommando
+  „Journal-Eigenschaften nachtragen…" bringt alle vorhandenen Einträge eines
+  Journals zugleich auf den zugesagten Stand, mit Vorschau und Bestätigung vor
+  dem Lauf. Es ist der Weg, den fehlerhaft entstandenen Bestand zu heilen, ohne
+  jeden Eintrag einzeln öffnen zu müssen.
+
+### Geändert
+
+- **Handbuch und Funktions-Katalog** (4T-001408): Der Journal-Abschnitt
+  beschreibt die vier Eigenschaften, beide Nachpflege-Wege und den Unterschied
+  zwischen Anlegen und Nachpflegen; in allen fünf Sprachfassungen.
+- **Modul-Schnitte ohne Verhaltens-Änderung** (4T-001413, 4T-001407): Das
+  Definitions-Modell der Journale liegt in `journal-model.js`, die Nachpflege in
+  `journal-nachpflege.js` und die Journal-Kanäle in `area-journals.js`. Der
+  Perioden-Kern hält damit sein Größen-Budget wieder ein und ist aus der
+  Ausnahmen-Liste gestrichen.
+
 ## [1.127.1.2229] - 2026-09-02 — Sechsstellige Kennungen
 
 Epic 3E-000241: Internes technisches Release ohne Funktions-Änderung. Die

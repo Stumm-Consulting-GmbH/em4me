@@ -32,9 +32,12 @@ import {
   showTemplateSelectDialog,
 } from '../templates.js';
 import { analyzeTemplate, fillTemplate } from '../../../shared/template-engine.js';
+// 4T-001407 (Epic 3E-000244): Zuordnung des Datei-Bestands zu den Perioden.
+import { ordneEintraegeZu, ordnerPraefix } from '../../../shared/journal-nachpflege.js';
 import {
   applyJournalProperties,
   isoDateToMs,
+  journalProperties,
   msToIsoDate,
   periodAllowed,
   periodOf,
@@ -144,6 +147,29 @@ async function buildEntryContent(journal, period, relPath) {
   return { text: withProps, cursorOffset };
 }
 
+// 4T-001406 (Epic 3E-000244): Nachpflege beim Öffnen. Ein bestehender Eintrag
+// bekommt fehlende Journal-Eigenschaften ergänzt; vorhandene bleiben unberührt
+// (Architekturentscheidung AE2 des Epics). Der Weg ist bewusst still: Er meldet
+// weder Erfolg noch Misserfolg, weil der Anwender einen Eintrag öffnen wollte
+// und keine Pflege-Aktion angestoßen hat.
+//
+// ZWEI Schutz-Bedingungen, beide aus der Vorsicht gegenüber fremden Dateien:
+// Erstens läuft die Pflege NUR, wenn die Datei in keinem Reiter offen ist —
+// sonst schriebe sie unter einem womöglich ungespeicherten Editor-Stand weg.
+// Zweitens läuft sie VOR dem Öffnen, damit der Anwender den fertigen Stand
+// sieht und keine Änderung unter seiner Schreibmarke erlebt.
+async function pflegeEigenschaftenNach(journal, period, relPath, absPath) {
+  try {
+    const { reiterFuerPfad } = await import('../tabs/tab-ersetzen.js');
+    if (reiterFuerPfad(absPath)) return;
+    if (typeof api.journalsErgaenzeProperties !== 'function') return;
+    await api.journalsErgaenzeProperties(relPath, journalProperties(journal, period));
+  } catch {
+    // Die Pflege ist eine Zugabe zum Öffnen; ihr Fehlschlag darf das Öffnen
+    // nicht verhindern und den Anwender nicht behelligen.
+  }
+}
+
 // --- Der gemeinsame Öffnen-/Anlage-Pfad ----------------------------------------------
 
 // Öffnet den Eintrag eines Journals für eine Periode bzw. legt ihn an.
@@ -192,6 +218,7 @@ export async function openJournalEntry(
     return false;
   }
   if (stat.exists) {
+    await pflegeEigenschaftenNach(journal, period, resolved.relPath, stat.path);
     return await zeige(stat.path);
   }
   const content = await buildEntryContent(journal, period, resolved.relPath);
@@ -212,6 +239,86 @@ export async function openJournalEntry(
     jumpToOffsetInActiveTab(content.cursorOffset);
   }
   return true;
+}
+
+// --- 4T-001407 (Epic 3E-000244): Massen-Nachpflege eines ganzen Journals ------------
+
+// „Journal-Eigenschaften nachtragen": alle vorhandenen Einträge EINES Journals
+// auf den vollständigen Eigenschaften-Satz bringen. Der Ablauf ist dreistufig —
+// Journal wählen, Vorschau mit Zahlen bestätigen, ausführen und melden —, weil
+// der Lauf viele Dateien des Anwenders auf einmal ändert und nicht
+// zurückgenommen werden kann. Es gilt dieselbe Ergänzungs-Regel wie beim Öffnen
+// (AE2 des Epics): vorhandene Werte bleiben stehen.
+export async function trageJournalEigenschaftenNach() {
+  const config = await journalsConfigOrHint();
+  if (!config) return;
+  if (config.journals.length === 0) {
+    showStatusbarHint('journal.noJournals', { duration: 3500, error: true });
+    return;
+  }
+  const journal = await pickJournal(config.journals, t('journal.nachtragen.pick'));
+  if (!journal) return;
+
+  // Schritt 1: den Datei-Bestand unter dem statischen Ordner-Präfix holen und
+  // den Perioden des Journals zuordnen. Fremde Dateien im selben Ordner bleiben
+  // dabei liegen und zählen nicht mit.
+  let scan;
+  try {
+    scan = await api.journalsScanEintraege(ordnerPraefix(journal));
+  } catch {
+    scan = null;
+  }
+  if (!scan || !scan.ok) {
+    showStatusbarHint('journal.nachtragen.failed', { duration: 3500, error: true });
+    return;
+  }
+  const { treffer } = ordneEintraegeZu(journal, scan.relPaths);
+  if (treffer.length === 0) {
+    showStatusbarHint('journal.nachtragen.keine', { duration: 3500 });
+    return;
+  }
+  const eintraege = treffer.map((t2) => ({
+    relPath: t2.relPath,
+    properties: journalProperties(journal, t2.period),
+  }));
+
+  // Schritt 2: Vorschau und Bestätigung. Die Zahl der wirklich zu ändernden
+  // Einträge steht erst nach dem Lesen fest; genannt wird deshalb die Zahl der
+  // geprüften Einträge und, als Obergrenze, dieselbe Zahl als „zu ändern".
+  let bestaetigt;
+  try {
+    bestaetigt = await api.journalsConfirmNachtragen({
+      journal: journal.name || journal.id,
+      geprueft: eintraege.length,
+      zuAendern: eintraege.length,
+    });
+  } catch {
+    bestaetigt = false;
+  }
+  if (!bestaetigt) return;
+
+  // Schritt 3: ausführen und das Ergebnis melden.
+  let ergebnis;
+  try {
+    ergebnis = await api.journalsErgaenzePropertiesBatch(eintraege);
+  } catch {
+    ergebnis = null;
+  }
+  if (!ergebnis || !ergebnis.ok) {
+    showStatusbarHint('journal.nachtragen.failed', { duration: 3500, error: true });
+    return;
+  }
+  // showStatusbarHint kennt keine Platzhalter, aber einen fertigen Text; die
+  // Ersetzung läuft deshalb hier.
+  const meldung = t('journal.nachtragen.fertig')
+    .replace('{geaendert}', String(ergebnis.geaendert))
+    .replace('{unveraendert}', String(ergebnis.unveraendert))
+    .replace('{fehler}', String(ergebnis.fehler));
+  showStatusbarHint('journal.nachtragen.fertig', {
+    duration: 6000,
+    error: ergebnis.fehler > 0,
+    text: meldung,
+  });
 }
 
 // --- Kommandos ---------------------------------------------------------------------
