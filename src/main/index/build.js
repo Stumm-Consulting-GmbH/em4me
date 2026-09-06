@@ -98,6 +98,21 @@ async function buildIndexAsync(rootPath, entry) {
       if (!stillCurrent()) return;
     }
   }
+  // 4T-001494 (Epic 3E-000199): Namens-Zuordnung der Nicht-Markdown-Dateien
+  // aufbauen. Kein Parsen, kein Lesen — nur Name auf Pfad, mit Yielding wie
+  // die Markdown-Schleife darueber.
+  if (Array.isArray(scan.assets)) {
+    let assetsSinceYield = 0;
+    for (const a of scan.assets) {
+      addToAssetNameMap(entry, a);
+      if (++assetsSinceYield >= BUILD_BATCH_SIZE) {
+        assetsSinceYield = 0;
+        await new Promise((resolve) => setImmediate(resolve));
+        if (!stillCurrent()) return;
+      }
+    }
+  }
+
   entry.status = 'ready';
 
   // Watcher starten. ignoreInitial: true, weil wir gerade selbst geparst
@@ -122,7 +137,10 @@ async function buildIndexAsync(rootPath, entry) {
         return false;
       }
       if (isIgnoredDirName(base)) return true;
-      return !MD_EXT_RE.test(base);
+      // 4T-001494 (Epic 3E-000199): Nicht-Markdown-Dateien werden mit
+      // beobachtet, damit ihre Namens-Zuordnung nachzieht. Sie werden
+      // weiterhin nicht geparst und nicht gelesen (siehe onWatcherChange).
+      return false;
     },
   });
   entry.watcher.on('add', (p) => onWatcherChange(entry, p, 'add'));
@@ -194,6 +212,44 @@ function nameKeyForFile(filePath) {
   return normalizeNameKey(path.basename(filePath).replace(MD_EXT_RE, ''));
 }
 
+// 4T-001494 (Epic 3E-000199): Schluessel einer Nicht-Markdown-Datei. Zwei
+// Formen, weil beide vorkommen: '![[bild.png]]' nennt die Endung, '![[bild]]'
+// meint dieselbe Datei ohne sie. Eine Datei ohne Endung liefert nur einen
+// Schluessel (beide Formen fielen zusammen).
+function assetNameKeysForFile(filePath) {
+  const base = path.basename(filePath);
+  const mitEndung = normalizeNameKey(base);
+  const ext = path.extname(base);
+  const ohneEndung = ext ? normalizeNameKey(base.slice(0, -ext.length)) : '';
+  const keys = [mitEndung];
+  if (ohneEndung && ohneEndung !== mitEndung) keys.push(ohneEndung);
+  return keys.filter(Boolean);
+}
+
+function addToAssetNameMap(entry, filePath) {
+  // Die Suffix-Map der Pfad-Form haengt an der Gesamt-Menge und wird
+  // invalidiert wie bei den Markdown-Dateien.
+  entry.pathSuffixMap = null;
+  for (const key of assetNameKeysForFile(filePath)) {
+    let set = entry.assetNameMap.get(key);
+    if (!set) {
+      set = new Set();
+      entry.assetNameMap.set(key, set);
+    }
+    set.add(filePath);
+  }
+}
+
+function removeFromAssetNameMap(entry, filePath) {
+  entry.pathSuffixMap = null;
+  for (const key of assetNameKeysForFile(filePath)) {
+    const set = entry.assetNameMap.get(key);
+    if (!set) continue;
+    set.delete(filePath);
+    if (set.size === 0) entry.assetNameMap.delete(key);
+  }
+}
+
 function addToNameMap(entry, filePath) {
   // 4T-001288: Die Pfad-Menge aendert sich — die lazy gebaute Suffix-Map der
   // Pfad-Form (resolve.js) ist damit ungueltig und wird beim naechsten
@@ -251,7 +307,15 @@ function removeFileFromIndex(entry, filePath) {
 }
 
 function onWatcherChange(entry, filePath, kind) {
-  if (!MD_EXT_RE.test(filePath)) return;
+  // 4T-001494 (Epic 3E-000199): Nicht-Markdown fuehrt nur die Namens-
+  // Zuordnung nach. 'change' ist dabei bedeutungslos — der NAME aendert sich
+  // nicht, und der Inhalt geht den Index nichts an. Ein Umbenennen erreicht
+  // uns als unlink plus add.
+  if (!MD_EXT_RE.test(filePath)) {
+    if (kind === 'add') addToAssetNameMap(entry, filePath);
+    else if (kind === 'unlink') removeFromAssetNameMap(entry, filePath);
+    return;
+  }
   if (kind === 'unlink') {
     if (entry.files.has(filePath)) {
       removeFileFromIndex(entry, filePath);
@@ -321,6 +385,7 @@ function markOversized(entry) {
   entry.status = 'oversized';
   entry.files.clear();
   entry.nameMap.clear();
+  entry.assetNameMap.clear();
   // 4T-001288: Suffix-Map der Pfad-Form haengt an der (jetzt leeren) Pfad-Menge.
   entry.pathSuffixMap = null;
   entry.aliasesPerFile.clear();

@@ -128,7 +128,7 @@ In dettaglio: [Blocchi di script](scripts.md).
 Oltre ai quattro grandi costrutti, il linguaggio porta più di cinquanta estensioni: riquadri di richiamo e note a piè di pagina per il testo, formule e diagrammi per la presentazione, collegamenti, etichette e incorporamenti per i nessi, attività, promemoria e appuntamenti per la giornata di lavoro, oltre a modelli e diari. Nulla di tutto questo è obbligatorio: ogni estensione ha il proprio interruttore, e ciò che è spento sparisce da menu, comandi e visualizzazione invece di intralciare.
 
 - **Estensioni di testo** per riquadri di richiamo, note a piè di pagina, evidenziazione e abbreviazioni.
-- **Presentazione** con formule, diagrammi e codice evidenziato.
+- **Presentazione** con formule, diagrammi e codice evidenziato; nell'esportazione portatile un diagramma viaggia come immagine finita ed è visibile anche dove EM4me non è installato.
 - **Nessi** tramite collegamenti, ancore, incorporamenti ed etichette.
 - **Giornata di lavoro** con attività, promemoria, appuntamenti, modelli e diari.
 - **Attivabili una per una** e aperto a estensioni proprie tramite un'interfaccia documentata.

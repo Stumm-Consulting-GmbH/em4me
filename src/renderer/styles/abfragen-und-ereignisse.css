@@ -186,9 +186,20 @@
 .cm-live-block .pdt-cell.pdt-type-boolean[tabindex] {
   cursor: pointer;
 }
-.markdown-body td.pdt-editing {
+/* 4T-001345 (Epic 3E-000239): Die Zell-Eingabe der Pipe-Tabellen in der
+   Live-Ansicht teilt sich diese Regeln mit dem Datatable-Grid, auf Entscheidung
+   des Product Owners vom 2026-09-04 — die App bekommt EINE visuelle Sprache für
+   „hier tippst du" statt zwei, die auseinanderdriften. Die Klassen stehen
+   deshalb als zweiter Selektor an derselben Regel und nicht als eigene Kopie in
+   einer anderen Datei. Das Nullen des Innenabstands ist dabei nicht Kosmetik,
+   sondern die Bedingung aus AK3: Ohne es schöbe der Rahmen des Eingabefelds die
+   Zelle beim Zellwechsel auf. */
+.markdown-body td.pdt-editing,
+.markdown-body th.cm-live-tabelle-bearbeitet,
+.markdown-body td.cm-live-tabelle-bearbeitet {
   padding: 0;
 }
+.markdown-body .cm-live-tabelle-eingabe,
 .markdown-body .pdt-cell-input {
   width: 100%;
   box-sizing: border-box;

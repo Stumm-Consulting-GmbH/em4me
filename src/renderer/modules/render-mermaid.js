@@ -11,6 +11,7 @@ import { enqueueMermaidRun } from './live/live-mermaid-widget.js';
 import { api } from './app/api.js';
 // 4T-000293 (Epic 3E-000052): Mermaid ist eine schaltbare Render-Erweiterung —
 // deaktiviert bleibt der ```mermaid-Block ein regulaerer Code-Block.
+import { istFehlerSvg } from '../../shared/mermaid-fence.js';
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { activeTab, state } from './app/app-state.js';
 // 4T-000324 (Epic 3E-000058): Aussen-Link-Warnung der Bereichs-Apps als Teil
@@ -581,23 +582,90 @@ export function cleanupMermaidLeftovers() {
 // dezenter Hinweis-Block.
 export const WIKI_EMBED_MAX_DEPTH = 2;
 
+// 4T-001487 (Epic 3E-000199): Idle-Barriere der Einbettungen — die sechste
+// der Druck-Vorbereitung, neben Mermaid, Frontmatter-Abfragen,
+// Journal-Navigation, Journal-Timeline und Skript-Bloecken.
+//
+// **Anlass, am laufenden Programm gemessen:** Mit verzoegerter Aufloesung
+// druckte der PDF-Export weder das eingebettete Bild noch den Text einer
+// Markdown-Einbettung — er raster den leeren Platzhalter. Fuer Bilder ist das
+// eine Folge von 4T-001486 (sie waren vorher synchron); fuer Markdown-
+// Einbettungen ist es ein Bestands-Fehler, der seit ihrer Einfuehrung besteht.
+//
+// Gezaehlt werden die LAUFENDEN Aufrufe von applyWikiEmbedsIfPresent.
+// Verschachtelte Einbettungen (WIKI_EMBED_MAX_DEPTH) zaehlen mit, weil sie
+// durch dieselbe Funktion gehen; der Live-Modus ebenso, obwohl er sie ohne
+// await startet.
+let laufendeEmbedAufloesungen = 0;
+const embedIdleWarter = [];
+// Zeit-Grenze wie bei den Geschwister-Barrieren: Ein haengendes Ziel darf die
+// Ausgabe verzoegern, aber nicht verhindern.
+export const EMBED_IDLE_TIMEOUT_MS = 5000;
+
+function embedLaufBeginnt() {
+  laufendeEmbedAufloesungen += 1;
+}
+
+function embedLaufEndet() {
+  laufendeEmbedAufloesungen = Math.max(0, laufendeEmbedAufloesungen - 1);
+  if (laufendeEmbedAufloesungen === 0) {
+    while (embedIdleWarter.length > 0) embedIdleWarter.shift()();
+  }
+}
+
+// Nur fuer Tests und Diagnose.
+export function laufendeEmbedAufloesungenCount() {
+  return laufendeEmbedAufloesungen;
+}
+
+export function waitForWikiEmbedsIdle(timeoutMs = EMBED_IDLE_TIMEOUT_MS) {
+  if (laufendeEmbedAufloesungen === 0) return Promise.resolve();
+  return new Promise((resolve) => {
+    let erledigt = false;
+    const fertig = () => {
+      if (erledigt) return;
+      erledigt = true;
+      resolve();
+    };
+    embedIdleWarter.push(fertig);
+    setTimeout(fertig, timeoutMs);
+  });
+}
+
 export async function applyWikiEmbedsIfPresent(container, basePath, depth = 0) {
   if (!container || !basePath) return;
-  // 'wiki-embed-image' ueberspringen: schon als <img> im preload erzeugt.
+  embedLaufBeginnt();
+  try {
+    await applyWikiEmbedsInner(container, basePath, depth);
+  } finally {
+    embedLaufEndet();
+  }
+}
+
+async function applyWikiEmbedsInner(container, basePath, depth) {
   // 'wiki-embed-processed' markiert bereits verarbeitete Platzhalter,
   // damit ein erneuter Aufruf nicht doppelt expandiert (z.B. nach Re-
   // Render im selben Pane).
-  const embeds = container.querySelectorAll(
-    '.wiki-embed:not(.wiki-embed-image):not(.wiki-embed-processed)',
-  );
+  //
+  // 4T-001486 (Epic 3E-000199): Bild-Embeds sind NICHT mehr ausgenommen. Sie
+  // kamen bis dahin fertig als <img> aus dem Preload und wurden hier
+  // uebersprungen; seit dem Wechsel auf den Platzhalter-Weg laufen sie durch
+  // dieselbe Strecke wie jede andere Art. Ein <img> im Portable-Zweig traegt
+  // die Klasse zwar weiterhin, wird dort aber nie postprocessed.
+  const embeds = container.querySelectorAll('.wiki-embed:not(.wiki-embed-processed)');
   if (embeds.length === 0) return;
   for (const span of embeds) {
+    // Das <img> des Portable-Zweigs ist kein Platzhalter und hat keine
+    // data-embed-Angaben; es bleibt unangetastet.
+    if (span.tagName === 'IMG') continue;
     span.classList.add('wiki-embed-processed');
     const kind = span.dataset.embedKind || 'other';
     const embedPath = span.dataset.embedPath || '';
     const anchor = span.dataset.embedAnchor || '';
     const widthAttr = span.dataset.embedWidth || '';
-    if (kind === 'pdf') {
+    if (kind === 'image') {
+      await renderImageEmbed(span, basePath, embedPath, widthAttr);
+    } else if (kind === 'pdf') {
       await renderPdfEmbed(span, basePath, embedPath, widthAttr);
     } else if (kind === 'md') {
       await renderMarkdownEmbed(span, basePath, embedPath, anchor, depth);
@@ -669,10 +737,52 @@ export function fileUrlFor(absolutePath) {
   );
 }
 
+// 4T-001486 (Epic 3E-000199): Bild-Einbettung ueber den Platzhalter-Weg.
+//
+// Bis dahin gab das Wiki-Plugin Bild-Ziele unmittelbar als <img> mit dem rohen
+// Pfad aus; aufgeloest wurden sie synchron im Preload — EINE Stufe, ohne
+// Unterseiten-Schreibweise und ohne Namens-Suche. Jetzt gehen sie denselben
+// dreistufigen Weg wie jede andere Art.
+//
+// Der Inhalt kommt als Daten-Adresse und nicht als file://-Pfad: Die
+// Inhalts-Sicherheits-Regel der Anwendung erlaubt Bild-Quellen nur aus 'self'
+// und 'data:'. Der PDF-Zweig darunter kommt mit file:// aus, weil ein <embed>
+// keine Bild-Quelle ist.
+export async function renderImageEmbed(span, basePath, embedPath, widthAttr) {
+  let result;
+  try {
+    result = await api.readEmbedImage(basePath, embedPath);
+  } catch (err) {
+    result = { ok: false, error: err && err.message ? err.message : String(err) };
+  }
+  if (!result || !result.ok || !result.dataUrl) {
+    renderBrokenEmbed(span, embedPath, result && result.error);
+    return;
+  }
+  span.innerHTML = '';
+  const img = document.createElement('img');
+  img.className = 'wiki-embed-image';
+  img.alt = '';
+  // 4T-000790 (Epic 3E-000125): Original-Quelle erhalten — nach der Ersetzung
+  // steht in src eine Daten-Adresse, aus der sich kein Pfad mehr ableiten
+  // laesst; der Klick-Pfad braucht ihn, um die Anlage zu oeffnen. Hier ist es
+  // der AUFGELOESTE Pfad und nicht der geschriebene: Nach der Namens-Suche
+  // sind beide verschieden, und gemeint ist die gefundene Datei.
+  img.dataset.srcOriginal = result.path || embedPath;
+  if (widthAttr) img.style.maxWidth = `${widthAttr}px`;
+  img.src = result.dataUrl;
+  span.appendChild(img);
+}
+
 export async function renderPdfEmbed(span, basePath, embedPath, widthAttr) {
   let resolved;
   try {
-    resolved = await api.resolveLink(basePath, embedPath);
+    // 4T-001486 (Epic 3E-000199): derselbe dreistufige Weg mit Containment wie
+    // bei den uebrigen Arten. Vorher lief das ueber api.resolveLink — nichts
+    // als path.resolve, ohne Grenze; ein '![[../../datei.pdf]]' lud damit eine
+    // Datei ausserhalb des Bereichs in den Viewer.
+    const r = await api.resolveEmbedTarget(basePath, embedPath, 'pdf');
+    resolved = r && r.ok ? r.path : null;
   } catch {
     resolved = null;
   }
@@ -773,7 +883,12 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
 export async function renderOtherEmbed(span, basePath, embedPath) {
   let resolved;
   try {
-    resolved = await api.resolveLink(basePath, embedPath);
+    // 4T-001486 (Epic 3E-000199): wie beim PDF-Zweig — dreistufiger Weg mit
+    // Containment statt des grenzenlosen api.resolveLink. Fuer diese Art gilt
+    // keine Endungs-Beschraenkung (es entsteht nur ein Klick-Link), wohl aber
+    // die Bereichs-Grenze.
+    const r = await api.resolveEmbedTarget(basePath, embedPath, 'other');
+    resolved = r && r.ok ? r.path : null;
   } catch {
     resolved = null;
   }
@@ -836,6 +951,97 @@ export function waitForMermaidIdle() {
   return enqueueMermaidRun(async () => {});
 }
 
+// 4T-001471 (Epic 3E-000178): Dritter Mermaid-Render-Weg neben der Anzeige
+// (applyMermaidIfPresent) und dem Theme-Wechsel (rerenderAllMermaidBlocks):
+// Bilder fuer den portablen EXPORT. Er unterscheidet sich von beiden in zwei
+// Punkten — er geht vom Text aus statt von sichtbaren .mermaid-block-Knoten,
+// und er zeichnet immer hell (Epic-Entscheidung E4), unabhaengig vom Schema
+// der Anwendung.
+//
+// Der Weg ueber die sichtbaren Bloecke, den der PDF-Export geht, taugt hier
+// nicht: Er wuerde die Ansicht des Anwenders mitten im Vorgang umschalten,
+// und in der Quelltext-Ansicht gibt es keinen einzigen solchen Knoten.
+export const MERMAID_EXPORT_THEME = 'default';
+
+// Verborgener Zeichen-Platz. Mermaid MISST die Textbreiten und braucht dafuer
+// einen im Dokument haengenden Knoten; display:none oder ein Fragment liefern
+// Breite 0 und damit zerlaufene Diagramme.
+function baueVerborgenenPlatz() {
+  const platz = document.createElement('div');
+  platz.setAttribute('aria-hidden', 'true');
+  platz.style.position = 'fixed';
+  platz.style.left = '-10000px';
+  platz.style.top = '0';
+  platz.style.width = '1200px';
+  platz.style.pointerEvents = 'none';
+  document.body.appendChild(platz);
+  return platz;
+}
+
+// Zeichnet die genannten Quelltexte im Hell-Theme und liefert
+// Map<Quelltext, SVG-String>. Ein Quelltext, dessen Bild sich als Fehler
+// erkennt, fehlt in der Map — sein Fence bleibt dann stehen (E4). Doppelte
+// Quelltexte werden einmal gezeichnet: zwei gleiche Diagramme, ein Bild.
+export async function renderMermaidSvgsForExport(quelltexte) {
+  const ergebnis = new Map();
+  const offen = [];
+  for (const quelle of quelltexte) {
+    if (ergebnis.has(quelle) || offen.some((o) => o.quelle === quelle)) continue;
+    const cacheKey = mermaidCacheKey(MERMAID_EXPORT_THEME, quelle);
+    // Der Cache-Schluessel traegt das Theme; ein Treffer ist damit garantiert
+    // ein HELLES Bild und nie das dunkle derselben Quelle.
+    const treffer = mermaidRenderCache.get(cacheKey);
+    if (treffer) {
+      ergebnis.set(quelle, treffer);
+      continue;
+    }
+    offen.push({ quelle, cacheKey });
+  }
+  if (offen.length === 0) return ergebnis;
+  let mermaid;
+  try {
+    mermaid = await loadMermaid();
+  } catch (err) {
+    // Ohne Bibliothek gibt es keine Bilder; jeder Fence bleibt stehen.
+    console.warn('Mermaid konnte fuer den Export nicht geladen werden:', err);
+    return ergebnis;
+  }
+  const platz = baueVerborgenenPlatz();
+  try {
+    for (const eintrag of offen) {
+      const knoten = document.createElement('div');
+      knoten.className = 'mermaid';
+      knoten.textContent = eintrag.quelle;
+      platz.appendChild(knoten);
+      eintrag.knoten = knoten;
+    }
+    // Ueber dieselbe Warteschlange wie Anzeige und Theme-Wechsel, sonst kaeme
+    // die Theme-Umschaltung mitten in einen laufenden Anzeige-Render.
+    await enqueueMermaidRun(async () => {
+      resetMermaidConfiguredTheme();
+      ensureMermaidConfigured(mermaid, MERMAID_EXPORT_THEME);
+      try {
+        await mermaid.run({ nodes: offen.map((o) => o.knoten), suppressErrors: true });
+      } catch (err) {
+        console.warn('mermaid.run() schlug im Export fehl:', err);
+      }
+      for (const eintrag of offen) {
+        const svgHtml = eintrag.knoten.innerHTML;
+        if (istFehlerSvg(svgHtml)) continue;
+        ergebnis.set(eintrag.quelle, svgHtml);
+        mermaidCacheSet(eintrag.cacheKey, svgHtml);
+      }
+      // Die Anzeige soll nach dem Export wieder im Theme der Anwendung
+      // zeichnen. mermaidConfiguredTheme ist ein Modul-Singleton; ohne dieses
+      // Ruecksetzen hielte der naechste Anzeige-Render die Hell-Konfiguration
+      // fuer die aktuelle und zeichnete in falscher Palette.
+      resetMermaidConfiguredTheme();
+    });
+  } finally {
+    platz.remove();
+  }
+  return ergebnis;
+}
 export async function rerenderAllMermaidBlocks() {
   const blocks = document.querySelectorAll('.mermaid-block');
   if (blocks.length === 0) return;

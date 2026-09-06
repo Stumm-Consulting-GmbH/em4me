@@ -72,6 +72,10 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000042 (Epic 3E-000008): Export 'Portables Markdown...' fuer Perspective-Tabellen.
       'help.feature.exportPortable',
       // 4T-000305 (Epic 3E-000054): PDF-Export direkt neben dem Portable-Export.
+      // 4T-001480 (Epic 3E-000177): Drucken unmittelbar VOR dem PDF-Export —
+      // beide teilen Druck-Aufbereitung und Ansichts-Regel, und die
+      // Reihenfolge ist dieselbe wie im Datei-Menue.
+      'help.feature.print',
       'help.feature.exportPdf',
       'help.feature.autoReload',
       'help.feature.restoreSession',
@@ -121,6 +125,10 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.listExit',
       // 4T-000074 (Epic 3E-000013): Tabellen-Editor-Komfort (Tab/Shift+Tab/Enter).
       'help.feature.tableEditor',
+      // 4T-001346 (Epic 3E-000239): Tabellen-Bearbeitung in der Live-Ansicht,
+      // direkt hinter dem Tabellen-Editor-Komfort — dieselbe Funktions-Familie,
+      // andere Ansicht.
+      'help.feature.liveTableEdit',
       // 4T-000590 (Epic 3E-000109): Tabellen-Werkzeuge (Kontextmenü-Untermenü
       // „Tabelle") direkt hinter dem Tabellen-Editor-Komfort.
       'help.feature.tableTools',
@@ -212,6 +220,9 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.inlineCalc',
       // 4T-000058 (Epic 3E-000011): Block-Anker schreiben und Autocomplete fuer [[ und #.
       'help.feature.blockAnchors',
+      // 4T-001447 (Epic 3E-000176): Die Live-Darstellung des Ankers unmittelbar
+      // hinter dem Konstrukt selbst — dieselbe Sache in einer anderen Ansicht.
+      'help.feature.liveBlockAnchor',
       'help.feature.autocomplete',
       // 4T-000065 (Epic 3E-000012): Markdown-Syntax-Erweiterungen.
       'help.feature.callouts',
@@ -394,6 +405,12 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.demoArea',
       // 4T-000329 (Epic 3E-000059): Bereichs-Panel (Ordnerbaum plus Dateiliste).
       'help.feature.areaPanel',
+      // 4T-001352 (Epic 3E-000170): Anlegen sowie Umbenennen und Loeschen im
+      // Bereichs-Panel, direkt hinter dem Panel selbst — beide sind keine eigene
+      // Sicht, sondern das, was sich im gezeigten Bestand tun laesst. Der Schnitt
+      // in zwei Eintraege folgt dem Schnitt der beiden Stories.
+      'help.feature.areaFileCreate',
+      'help.feature.areaFileRenameDelete',
       // 4T-000437 (Epic 3E-000081): Kalender-Panel der Journale, direkt hinter
       // dem Bereichs-Panel (beide bereichsgebundene Einstiegs-Panels).
       'help.feature.journalCalendar',

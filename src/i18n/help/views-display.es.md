@@ -20,6 +20,8 @@ El cambio se hace con los botones de la barra de estado o por la parte superior 
 
 El modo en vivo renderiza el Markdown directamente en el editor: negrita y cursiva, enlaces, tablas, código, imágenes, fórmulas KaTeX y diagramas Mermaid aparecen tal como se ven en el resultado renderizado. Cuando el cursor está en una línea, justo esa línea muestra su fuente en bruto y sigue siendo editable. Así desaparece el ir y venir entre escribir y comprobar.
 
+**Las tablas están exentas de esta regla.** Permanecen compuestas aunque el cursor esté dentro: el clic acierta la celda, el tabulador y las flechas llevan de celda en celda, y lo que se escribe llega al lugar correcto de la fuente. Quien necesite la sintaxis en bruto de una tabla —la fila separadora con sus dos puntos de alineación, por ejemplo— cambia a la vista de código o a la vista dividida.
+
 ### Mapa mental
 
 El mapa mental muestra los títulos y las listas del documento como un árbol, y el texto corrido como nota en el nodo. Pertenece a la extensión del mismo nombre y desaparece con ella; estructura, manejo, las cinco posiciones de la raíz y el valor por documento se describen en la página [Vista de mapa mental](mindmap.md).

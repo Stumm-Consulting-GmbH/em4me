@@ -490,6 +490,16 @@
       "hinweis": "Render-Snapshot plus Anker-Index-Units."
     },
     {
+      "key": "help.feature.liveBlockAnchor",
+      "id": "F-278",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/block-anker-live.spec.js",
+        "test/unit/renderer/live-block-anker.test.js"
+      ],
+      "hinweis": "BA-01 bis BA-06 (Epic 3E-000176): Indikator statt Roh-Text, Aufklappen bei Schreibmarke, Kennung im Hinweis-Text, Klick ans Zeilenende, Reihenfolge mit dem Metadaten-Indikator und Rueckfall bei ausgeschalteter Erweiterung; die Grenzen des ersetzten Bereichs stehen als Unit-Faelle daneben."
+    },
+    {
       "key": "help.feature.autocomplete",
       "id": "F-040",
       "testart": "e2e",
@@ -576,6 +586,18 @@
         "test/unit/renderer/tabellen-und-wordcount.test.js"
       ],
       "hinweis": "FB-03 plus Zell-Parsing-Units (R2-19)."
+    },
+    {
+      "key": "help.feature.liveTableEdit",
+      "id": "F-277",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/tabellen-klick.spec.js",
+        "test/e2e/funktionen/tabellen-zelle.spec.js",
+        "test/e2e/funktionen/tabellen-zellsprung.spec.js",
+        "test/unit/renderer/live-tabellen-zelle.test.js"
+      ],
+      "hinweis": "Klick, Zell-Eingabe und Zellsprung (Epic 3E-000239)."
     },
     {
       "key": "help.feature.wordCount",
@@ -1191,6 +1213,13 @@
       "hinweis": "FB-07 (4T-000207): Einfuegen an Cursor-Position, Selektion-Ersetzen, wirkungslos im Reading-Modus."
     },
     {
+      "key": "help.shortcut.print",
+      "id": "S-142",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/drucken.spec.js", "test/unit/druck-menue-ort.test.js"],
+      "hinweis": "DR-01 bis DR-05 (4T-001479): Strg+P loest den Druck aus, auch mit der Schreibmarke im Editor (Messung zum Vorbehalt aus 4T-000024); der Unit-Waechter haelt Registry-Eintrag und Alleinstellung des Kuerzels."
+    },
+    {
       "key": "help.shortcut.exportPdf",
       "id": "S-036",
       "testart": "e2e",
@@ -1326,6 +1355,19 @@
       "hinweis": "EX-01 bis EX-04 (4T-000298/4T-000300): Laden und Wirken der Referenz-Erweiterung, keine Ausfuehrung ohne Aktivierung, Fehler-Isolation mit Auto-Deaktivierung, Verwaltungs-Bereich; Unit-Tests decken Manifest/Versionierung, Scan mit ID-Whitelist, dynamische Kommandos, externe Markdown-Plugins, Host-Fassade mit Vertrauens-Ablauf und den Einstellungs-Bereich (3E-000053). Der native Warn-Dialog selbst ist manueller Test."
     },
     {
+      "key": "help.feature.print",
+      "id": "F-281",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/drucken.spec.js",
+        "test/unit/druck-endpunkt.test.js",
+        "test/unit/druck-menue-ort.test.js",
+        "test/unit/renderer/drucken-ausloesen.test.js",
+        "test/unit/renderer/druck-vorbereitung.test.js"
+      ],
+      "hinweis": "DR-01 bis DR-05 (4T-001479): Druck aus gerenderter und aus Quelltext-Ansicht, Abbruch im Systemdialog ohne Fehlermeldung, echter Fehlschlag mit rotem Hinweis, Kuerzel im Editor-Fokus. Unit-Tests decken die print()-Options-Abbildung, die drei Callback-Ausgaenge, den Menue-Ort und die gemeinsame Druck-Vorbereitung. Der Systemdialog selbst ist gestubbt und bleibt manueller Test."
+    },
+    {
       "key": "help.feature.exportPdf",
       "id": "F-073",
       "testart": "e2e",
@@ -1380,6 +1422,25 @@
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereichs-panel.spec.js", "test/unit/area-path.test.js"],
       "hinweis": "BP-01 bis BP-03 (3E-000059): Auto-Anzeige, Baum und Dateiliste (nur Markdown), Oeffnen per Klick, Pfad-Tooltips, Statusbar-Toggle, Watcher-Aktualisierung, Neue-Datei-Anlage mit Kollisions-Meldung; Unit-Tests decken Listing-Sortierung und Namens-Validierung."
+    },
+    {
+      "key": "help.feature.areaFileCreate",
+      "id": "F-279",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/bereichs-panel.spec.js", "test/unit/area-anlage.test.js"],
+      "hinweis": "BP-05/BP-06 (3E-000170): Anlage von Unterordner und Datei im ANGEKLICKTEN Ordner statt im ausgewaehlten, Abbruch der Eingabe, Namens-Kollision und der Ordner-Regel-Durchlauf der neu angelegten Datei. Unit: Namens-Pruefung des Ordners und die Bereichs-Grenze beider Anlage-Wege am echten Handler, samt Ausbruch ueber Trenner-Zeichen."
+    },
+    {
+      "key": "help.feature.areaFileRenameDelete",
+      "id": "F-280",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/bereichs-panel.spec.js",
+        "test/unit/area-loeschen.test.js",
+        "test/unit/renderer/umbenennen-pfad-weg.test.js"
+      ],
+      "sichtbarkeit": "offen: dass die geloeschte Datei im Papierkorb des Betriebssystems ankommt und von dort wiederherstellbar ist, belegt nur die manuelle Pruefung je Plattform (4T-001351); automatisiert ist der Aufruf, nicht sein Ergebnis im System.",
+      "hinweis": "BP-07/BP-08 (3E-000170): Umbenennen einer NICHT geoeffneten Datei mit Vorschau, Verweis-Nachfuehrung und Index-Nachzug; Loeschen mit Rueckfrage unter Nennung des Namens, Reiter-Schluss und dem Abbruch der Speichern-Abfrage, der auch das Loeschen unterbindet. Unit: die Naht des Umbenennens ueber den Pfad (ohne Reiter, mit geaendertem Reiter) sowie der Loesch-Handler samt Bauart-Waechter gegen einen Rueckfall auf endgueltiges Loeschen (E2)."
     },
     {
       "key": "help.feature.history",

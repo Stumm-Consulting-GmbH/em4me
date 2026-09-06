@@ -1,6 +1,6 @@
 // IPC-Kanal-Gruppe Bereiche: Oeffnen und Schliessen einer Bereichs-App,
-// Ordner-Listing und Datei-Anlage innerhalb der Bereichs-Grenze, dazu die
-// Anlage der mitgelieferten Demo-Area.
+// Ordner-Listing sowie Anlegen und Loeschen innerhalb der Bereichs-Grenze,
+// dazu die Anlage der mitgelieferten Demo-Area.
 //
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: area:*,
 // demoArea:*.
@@ -14,7 +14,13 @@ const fs = require('node:fs/promises');
 const { createDemoAreaAt } = require('../area/demo-area.js');
 // 4T-000645 (Epic 3E-000127): Zustands-Vorlage der Beispiel-Sammlung.
 const { loadDemoWorkspaces } = require('../area/demo-workspace.js');
-const { isInsideArea, sortedAreaListing, sanitizeNewFileName } = require('../area/area-path');
+const {
+  isInsideArea,
+  sortedAreaListing,
+  sanitizeNewFileName,
+  // 4T-001349 (Epic 3E-000170): Namens-Pruefung der Ordner-Anlage.
+  sanitizeNewFolderName,
+} = require('../area/area-path');
 // 4T-001293 (Epic 3E-000224): Teil-Dateien bleiben aus der Ordner-Liste heraus.
 const { isPartBasename } = require('../../shared/document-parts');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
@@ -25,6 +31,7 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
  * @param {(channel: string, listener: Function) => void} handle Registrier-Funktion aus main.js.
  * @param {object} deps Abhaengigkeiten aus main.js.
  * @param {object} deps.dialog Electron-Dialog-Modul.
+ * @param {object} deps.shell Electron-Shell-Modul (Papierkorb).
  * @param {(event: object) => object|null} deps.senderWindow Fenster des Absenders.
  * @param {(win: object) => object|null} deps.areaOfWindow Bereichs-Bindung eines Fensters.
  * @param {(win: object, key: string) => string} deps.tForWindow Uebersetzung im Fenster-Kontext.
@@ -45,6 +52,8 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
 function registerAreasIpc(handle, deps) {
   const {
     dialog,
+    // 4T-001351 (Epic 3E-000170): Papierkorb des Betriebssystems.
+    shell,
     senderWindow,
     areaOfWindow,
     tForWindow,
@@ -265,6 +274,69 @@ function registerAreasIpc(handle, deps) {
       return { ok: true, path: target };
     } catch (err) {
       if (err && err.code === 'EEXIST') return { ok: false, error: 'exists' };
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // 4T-001349 (Epic 3E-000170): "Neuer Unterordner in diesem Ordner" — legt
+  // einen Ordner im (bereichs-internen) Ordner an. Aufbau und Prueffolge sind
+  // die des Datei-Wegs darueber: erst der Name, dann der Ziel-Ordner, dann das
+  // gebildete Ziel; die Bereichs-Grenze wird zweimal geprueft, weil ein Name
+  // aus dem Renderer den Ordner sonst ueber Trenner-Zeichen verlassen koennte.
+  // mkdir OHNE recursive: Ein bestehender Ordner meldet EEXIST, statt still
+  // als Erfolg durchzugehen, und ein fehlender Zwischen-Ordner entsteht nicht
+  // nebenbei mit.
+  handle('area:createFolder', async (event, params) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    const dirPath = params && params.dirPath;
+    const folderName = sanitizeNewFolderName(params && params.name);
+    if (!folderName) return { ok: false, error: 'invalid name' };
+    if (typeof dirPath !== 'string' || !dirPath || !isInsideArea(area.rootPath, dirPath)) {
+      return { ok: false, error: 'outside-area' };
+    }
+    const target = path.join(dirPath, folderName);
+    if (!isInsideArea(area.rootPath, target)) return { ok: false, error: 'outside-area' };
+    try {
+      await fs.mkdir(target);
+      return { ok: true, path: target };
+    } catch (err) {
+      if (err && err.code === 'EEXIST') return { ok: false, error: 'exists' };
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // 4T-001351 (Epic 3E-000170): "Loeschen" — verschiebt eine Datei des Bereichs
+  // in den Papierkorb des Betriebssystems.
+  //
+  // Entscheidung E2 des Epics (Product Owner, 2026-09-01): Papierkorb statt
+  // endgueltigem Loeschen, und **kein stiller Rueckfall**. Das ist hier keine
+  // Verzweigung, sondern die Bauart: `shell.trashItem` ist der EINZIGE
+  // Loesch-Aufruf dieses Handlers. Es gibt keinen `fs.unlink`-Zweig, auf den
+  // ein Fehlschlag ausweichen koennte — ein abgelehntes Versprechen wird
+  // gemeldet und sonst nichts. Wer diesen Handler spaeter erweitert, muss das
+  // wissen: Ein Rueckfall waere genau die Falle, die E2 vermeidet.
+  //
+  // `shell.trashItem` loest nach der Electron-Schnittstelle (33.2.0) bei JEDEM
+  // Fehler ab und unterscheidet den fehlenden Papierkorb nicht vom uebrigen
+  // Fehlschlag. Beide Faelle sind fuer den Anwender derselbe: Die Datei liegt
+  // noch da, und er erfaehrt es.
+  //
+  // Die Rueckfrage stellt der Renderer VOR diesem Aufruf ueber einen eigenen
+  // Kanal, weil zwischen Zustimmung und Loeschung noch die offenen Reiter
+  // geschlossen werden muessen; eine Rueckfrage in diesem Handler laege dafuer
+  // zu spaet.
+  handle('area:trashFile', async (event, filePath) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    if (typeof filePath !== 'string' || !filePath || !isInsideArea(area.rootPath, filePath)) {
+      return { ok: false, error: 'outside-area' };
+    }
+    if (!isMarkdownPath(filePath)) return { ok: false, error: 'not a document' };
+    try {
+      await shell.trashItem(path.resolve(filePath));
+      return { ok: true, path: filePath };
+    } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }
   });

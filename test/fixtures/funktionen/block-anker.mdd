@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "history": { "anchors": [], "packets": [] },
+  "blockData": {
+    "absatz1": {
+      "values": { "Status": "offen" },
+      "updated": "2026-09-05T06:00:00Z"
+    }
+  }
+}

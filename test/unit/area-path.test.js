@@ -12,6 +12,7 @@ import {
   withoutRecentPath,
   sortedAreaListing,
   sanitizeNewFileName,
+  sanitizeNewFolderName,
 } from '../../src/main/area/area-path.js';
 import { createRequire } from 'node:module';
 
@@ -240,6 +241,40 @@ describe('sanitizeNewFileName (4T-000328)', () => {
     expect(sanitizeNewFileName('')).toBeNull();
     expect(sanitizeNewFileName('   ')).toBeNull();
     expect(sanitizeNewFileName(null)).toBeNull();
+  });
+});
+
+// 4T-001349 (Epic 3E-000170, AK6/AK7): Der Ordner-Name folgt denselben Regeln
+// wie der Datei-Name, ergaenzt aber KEINE Endung — ein '.md' am Ende bliebe
+// sonst am Ordner haengen und liesse ihn wie ein Dokument aussehen.
+describe('sanitizeNewFolderName (4T-001349)', () => {
+  it('trimmt und laesst den Namen im Uebrigen unveraendert', () => {
+    expect(sanitizeNewFolderName('Projekte')).toBe('Projekte');
+    expect(sanitizeNewFolderName('  Archiv  ')).toBe('Archiv');
+    expect(sanitizeNewFolderName('Über Ärger')).toBe('Über Ärger');
+  });
+
+  it('ergänzt keine Markdown-Endung', () => {
+    expect(sanitizeNewFolderName('Notizen')).toBe('Notizen');
+    expect(sanitizeNewFolderName('Notizen.md')).toBe('Notizen.md');
+  });
+
+  it('weist Pfad-Segmente, verbotene Zeichen und Leeres ab', () => {
+    expect(sanitizeNewFolderName('a/b')).toBeNull();
+    expect(sanitizeNewFolderName('a\\b')).toBeNull();
+    expect(sanitizeNewFolderName('.')).toBeNull();
+    expect(sanitizeNewFolderName('..')).toBeNull();
+    expect(sanitizeNewFolderName('...')).toBeNull();
+    expect(sanitizeNewFolderName('a:b')).toBeNull();
+    expect(sanitizeNewFolderName('a?b')).toBeNull();
+    expect(sanitizeNewFolderName('a*b')).toBeNull();
+    expect(sanitizeNewFolderName('a"b')).toBeNull();
+    expect(sanitizeNewFolderName('a|b')).toBeNull();
+    expect(sanitizeNewFolderName('a<b')).toBeNull();
+    expect(sanitizeNewFolderName('')).toBeNull();
+    expect(sanitizeNewFolderName('   ')).toBeNull();
+    expect(sanitizeNewFolderName(null)).toBeNull();
+    expect(sanitizeNewFolderName(undefined)).toBeNull();
   });
 });
 

@@ -98,6 +98,22 @@ In un'applicazione di area, lo spazio di ricerca per backlink, tag, completament
 
 Il pannello «Area» mostra l'area come struttura di cartelle nella barra laterale (agganciabile a sinistra o a destra come ogni pannello; l'interruttore è l'icona della cartella nella barra di stato o Visualizza → Barra laterale → Pannelli → Area): l'albero delle cartelle in alto e sotto i file Markdown della cartella selezionata; gli altri tipi di file non compaiono. Un clic su un file lo apre come scheda, tutte le voci mostrano il percorso completo come suggerimento e le modifiche esterne (file creato, eliminato, rinominato) compaiono automaticamente. Il pulsante «+» in testa all'elenco crea un nuovo file Markdown nella cartella selezionata e lo apre. In un'applicazione di area appena aperta e ancora vuota il pannello è visibile automaticamente.
 
+### Gestione dei file nel pannello dell'area
+
+Il clic destro gestisce l'insieme dei file senza uscire dall'applicazione. Una **riga di cartella** offre due voci: **Nuova sottocartella…** e **Nuovo file Markdown…**. Entrambe chiedono il nome sul posto — il nome della cartella in una riga sotto la cartella su cui si è fatto clic, quello del file in cima all'elenco dei file — e creano l'elemento nella cartella **su cui si è fatto clic**, anche se al momento ne è selezionata un'altra. A un nome di file senza estensione viene aggiunta l'estensione Markdown; il nuovo file viene aperto e passa attraverso la regola di cartella dei modelli come ogni altra creazione. Un nome già assegnato, un nome non consentito dal file system e un nome vuoto vengono segnalati prima che venga creato qualcosa; Esc annulla e non lascia nulla.
+
+Una **riga di file** offre **Rinomina…** ed **Elimina…** in fondo al menu, separate dalle voci soprastanti.
+
+**Rinomina** segue lo stesso percorso del menu, con lo stesso adeguamento dei collegamenti interni e la stessa anteprima dei punti interessati. L'unica differenza sta in ciò su cui agisce: qui qualsiasi file dell'area, anche uno non aperto, e non soltanto quello aperto. Se il file è aperto e modificato, viene prima salvato; la sua scheda mostra poi il nuovo nome.
+
+**Elimina sposta il file nel cestino del sistema operativo** invece di cancellarlo definitivamente. Prima compare una richiesta di conferma che indica il nome del file. **Il ripristino avviene nel cestino del sistema operativo, non nell'applicazione**: l'applicazione non tiene un cestino proprio. Se non è disponibile alcun cestino o lo spostamento fallisce per un altro motivo, ciò viene segnalato e il file resta intatto; non viene mai cancellato definitivamente in sostituzione.
+
+Se il file è aperto, la sua scheda viene chiusa; le modifiche non salvate passano prima dalla consueta richiesta di salvataggio. **Annullare tale richiesta annulla anche l'eliminazione**: allora non è accaduto nulla.
+
+**I collegamenti a un file eliminato non vengono adeguati.** A differenza della rinomina non esiste una destinazione sostitutiva; i collegamenti restano e diventano collegamenti interrotti. È voluto e non un malfunzionamento: un collegamento interrotto mostra che lì c'era qualcosa e può essere risolto consapevolmente.
+
+Rinominare ed eliminare **cartelle** e spostare file non rientrano ancora nell'ambito; per questo resta il gestore file del sistema operativo.
+
 ### Statistiche dell'area
 
 «Visualizza → Statistiche dell'area» apre una pagina di indicatori dell'area aperta come scheda dedicata; lo stesso punto di accesso si trova nel menu contestuale del pannello dell'area. La pagina è di sola lettura e mostra sei sezioni: **File e spazio occupato** (file Markdown e non Markdown suddivisi in immagini, PDF e altri, numero di cartelle, spazio occupato con le sue quote), **Proprietà** e **Tag** (il numero di file per voce, ordinabile per nome o per numero), **File di accompagnamento** (il `.mdd` di ogni documento e i file dell'area `.mdda`), **Contenuto** (attività per stato, collegamenti wiki e Markdown, alias, file senza collegamenti in entrata) e **File notevoli** (i più grandi, i modificati più di recente e i più collegati). Un clic su un nome di file in queste ultime tre liste apre il file.

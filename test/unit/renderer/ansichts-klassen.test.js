@@ -25,10 +25,14 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const wurzel = path.join(dir, '../../..');
 
 // Die Stellen, die früher je eine eigene Liste führten.
+// 4T-001478 (Epic 3E-000177): Der PDF-Export hat seine beiden Aufrufe an die
+// gemeinsame Druck-Vorbereitung abgegeben, die seither auch der Druck benutzt.
+// Die Stelle ist damit von zwei Wegen aus erreichbar — der Waechter zaehlt
+// mehr, nicht weniger.
 const AUFRUFER = [
   'src/renderer/modules/views/views.js',
   'src/renderer/modules/views/pane-render.js',
-  'src/renderer/modules/views/pdf-export.js',
+  'src/renderer/modules/views/print-preparation.js',
 ];
 
 describe('Ansichts-Klassen: eine Quelle (4T-001054)', () => {

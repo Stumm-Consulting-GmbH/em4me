@@ -14,6 +14,155 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.129.0.2436] - 2026-09-06 — Ausgabe- und Editor-Feinschliff
+
+Zug 3E-000246
+mit sechs Epics:
+3E-000239
+(Tabellen in der Live-Ansicht),
+3E-000176
+(Block-Anker),
+3E-000178
+(Diagramme im Export),
+3E-000170
+(Datei-Verwaltung im Bereichs-Panel),
+3E-000177
+(Drucken) und
+3E-000199
+(Einbettungs-Auflösung). Gemeinsamer Nenner ist die Arbeit unmittelbar am
+Dokument: was der Editor zeigt, was sich darin bearbeiten lässt, und was beim
+Weitergeben, Drucken und Verwalten davon ankommt.
+
+> **Vorschlag zur Versions-Stelle: die zweite** (funktionales Release). Der Zug
+> bringt Funktionen, die es vorher nicht gab — die Bearbeitung einer Tabelle in
+> der Live-Ansicht, das Drucken über den Systemdialog, das Anlegen, Umbenennen
+> und Löschen im Bereichs-Panel, eingebrannte Diagramme im portablen Export.
+> Kein Anteil ist bloße Behebung eines Versprechens, das schon galt. Bestätigt
+> wird der Vorschlag im Stamm-Clone beim Ziehen der Nummer; er bindet bis dahin
+> nicht.
+
+### Neu
+
+- **Tabellen in der Live-Ansicht bearbeiten** (4T-001344, 4T-001345,
+  4T-001346): Eine Pipe-Tabelle bleibt in der Live-Ansicht gesetzt, auch wenn
+  die Schreibmarke in ihr steht — die Aufklapp-Regel des Live-Modus hat damit
+  ihre erste benannte Ausnahme. Ein Klick trifft die Zelle und die Stelle im
+  Zell-Text, die Zelle wird an Ort und Stelle beschrieben, und Tabulator wie
+  Pfeiltasten führen von Zelle zu Zelle; die Kopfzeile zählt mit, die
+  Trennzeile entfällt. Geschrieben wird genau der Inhalt der bearbeiteten Zelle
+  in den Markdown-Quelltext zurück, mit Undo und Redo als ein Schritt; ein
+  getipptes Pipe-Zeichen wird maskiert, und eine strukturell fehlerhafte
+  Tabelle bleibt dem Quelltext-Weg überlassen. Für die Roh-Syntax dient die
+  Quellcode- oder die geteilte Ansicht.
+- **Block-Anker in der Live-Ansicht** (4T-001423): Ein Block-Anker `^id`
+  erscheint in der Live-Ansicht nicht mehr als Quelltext, sondern als dezentes
+  Zeichen am Zeilenende. Zeigen darauf nennt die Kennung, ein Klick setzt die
+  Schreibmarke ans Zeilenende und klappt den Roh-Text zum Bearbeiten auf; steht
+  die Schreibmarke ohnehin in der Zeile, bleibt der Anker unverändert sichtbar.
+  Anker in Code-Blöcken und im Metadaten-Block bleiben Quelltext. Trägt
+  derselbe Block Eigenschaften, steht deren Zeichen daneben, der Anker davor.
+  Die gerenderte Ansicht blendet den Anker weiterhin ganz aus — der Live-Modus
+  zeigt bewusst mehr, weil ein Anker eine Adresse ist, auf die von außen
+  gezeigt wird. Ist die Erweiterung «Wiki-Links» ausgeschaltet, bleibt der
+  Anker Quelltext.
+- **Diagramme im portablen Export** (4T-001471): Der Export als portables
+  Markdown brennt Mermaid-Diagramme als Bild in die Datei ein, statt den
+  Quelltext weiterzugeben — der Empfänger sieht das Diagramm, ohne das Programm
+  zu besitzen. Gezeichnet wird immer hell, unabhängig vom Farbschema des
+  Absenders, und unabhängig davon, in welcher Ansicht die Datei gerade steht.
+  Ein Diagramm mit fehlerhaftem Quelltext bleibt unverändert als Code-Block
+  stehen; dasselbe gilt bei ausgeschalteter Erweiterung «Mermaid-Diagramme».
+- **Ordner und Datei im Bereichs-Panel anlegen** (4T-001349): Der Rechtsklick
+  auf einen Ordner legt dort einen Unterordner oder eine Markdown-Datei an. Der
+  Name wird an Ort und Stelle abgefragt, angelegt wird im angeklickten Ordner
+  und nicht im gerade ausgewählten, und die neue Datei öffnet sich und
+  durchläuft dabei die Ordner-Regel für Vorlagen wie jede andere Anlage. Ein
+  bereits vergebener, ein unzulässiger und ein leerer Name werden gemeldet,
+  bevor etwas entsteht.
+- **Datei im Bereichs-Panel umbenennen** (4T-001350): Der Rechtsklick auf eine
+  Datei benennt sie um — mit derselben Nachführung der internen Verweise und
+  derselben Vorschau wie über das Menü, aber für **jede** Datei des Bereichs
+  statt nur für die geöffnete. Ein geänderter Reiter wird vorher gesichert.
+- **Datei im Bereichs-Panel löschen** (4T-001351): Der Rechtsklick auf eine
+  Datei verschiebt sie nach Rückfrage in den Papierkorb des Betriebssystems;
+  die Rückfrage nennt den Namen. Ein offener Reiter wird geschlossen,
+  ungesicherte Änderungen laufen vorher durch die gewohnte Speichern-Abfrage,
+  und deren Abbruch bricht auch das Löschen ab. Steht kein Papierkorb zur
+  Verfügung, wird das gemeldet, statt ersatzweise endgültig zu löschen.
+  Verweise auf eine gelöschte Datei bleiben unverändert stehen und werden zu
+  gebrochenen Verweisen.
+- **Drucken** (4T-001479): Ein Dokument lässt sich unmittelbar auf Papier
+  ausgeben — «Datei → Weitere Datei-Funktionen → Drucken…», Standard `Strg+P`.
+  Es öffnet sich der Druckdialog des Betriebssystems; Drucker, Seitenbereich,
+  Kopien und Duplex wählt der Anwender dort, Papierformat, Ausrichtung und
+  Ränder sind aus dem Einstellungs-Bereich «Export» vorbelegt. Der Druck folgt
+  der aktiven Ansicht wie der PDF-Export: Quelltext-Ansicht druckt Roh-Markdown
+  mit Syntax-Hervorhebung, alle anderen Modi das formatierte Dokument; das
+  Druckbild ist immer hell. Ein Abbruch im Systemdialog lässt die Anwendung
+  unverändert zurück.
+- **Einbettungen finden ihr Ziel unabhängig von der Datei-Art** (4T-001486,
+  4T-001494): `![[bild.png]]` wird jetzt auf demselben Weg gesucht wie
+  `![[dokument.md]]` — erst am Pfad relativ zur eigenen Datei, dann in der
+  Unterseiten-Schreibweise, zuletzt über den bloßen **Namen** im ganzen
+  Bereich. Ein Bild, ein PDF oder eine Anlage muss also nicht mehr am
+  errechneten Pfad liegen. Dafür führt der Bereichs-Index seither auch die
+  Namen der Nicht-Markdown-Dateien; davon hat auch der **Klick** auf ein
+  solches Ziel etwas.
+
+### Geändert
+
+- **Eine Grenze für alle Einbettungs-Arten** (4T-001485, 4T-001486): Der
+  Suchraum endet für jede Art an der Bereichs-Wurzel. Die Einbettung eines
+  Dokuments reichte bisher nur bis zum eigenen Ordner, obwohl derselbe Klick
+  längst den ganzen Bereich öffnete; PDF- und sonstige Einbettungen kannten
+  **gar keine** Grenze und luden auch Dateien außerhalb. Ohne gebundenen
+  Bereich bleibt es beim Ordner der eigenen Datei.
+- **Die Ausgabe wartet auf ihre Einbettungen** (4T-001487): Druck und
+  PDF-Ausgabe geben eingebettete Inhalte jetzt zuverlässig mit aus. Bisher
+  konnte an ihrer Stelle eine leere Fläche stehen, wenn die Auflösung noch
+  lief — bei Markdown-Einbettungen seit jeher, nur selten sichtbar.
+- **Druck-Vorbereitung als gemeinsame Klammer** (4T-001478): Die Vorbereitungs-
+  und Rücknahme-Strecke des PDF-Exports liegt in einem eigenen Modul und
+  bedient beide Ausgabe-Wege; der Reentranz-Schutz wirkt seither über beide. Am
+  PDF-Export ändert sich nichts — außer dass sein Erfolgs-Hinweis in der
+  Statusleiste jetzt seine volle Anzeigedauer bekommt.
+- **Modul-Schnitte ohne Verhaltens-Änderung** (4T-001349, 4T-001351,
+  4T-001420): Die Anlage-Wege des Bereichs-Panels liegen in
+  `area-panel-anlage.js`, das Löschen in `views/file-trash.js`, und die
+  Einbettungs-Kanäle sind aus `index-views.js` nach `ipc/embeds.js`
+  herausgelöst. Alle Träger-Dateien halten damit ihr Größen-Budget ein; für den
+  Anwender ändert sich nichts.
+
+### i18n und Handbuch
+
+- **Tabellen-Bearbeitung im Live-Modus** (4T-001347): neuer Katalog-Eintrag in
+  allen fünf Sprachfassungen; die Handbuch-Seite zur Live-Ansicht nennt die
+  Tabellen-Ausnahme und den Weg zum Quelltext, die Demo-Seite zu Tabellen zeigt
+  die Bedienung.
+- **Block-Anker im Live-Modus** (4T-001447): neuer Katalog-Eintrag in allen
+  fünf Sprachfassungen; die Handbuch-Seite zur Verlinkung erklärt die
+  Darstellung in den Ansichten und benennt die Abweichung als Absicht, der
+  Demo-Bereich zeigt erstmals einen Block-Anker.
+- **Diagramme im Export** (4T-001472): Die mit Release 0.105.0 ausgelieferte
+  Aussage, der Export lasse Diagramme als Quelltext stehen, ist abgelöst; die
+  verbleibende Voraussetzung — ein Betrachter, der eingebettetes HTML und
+  Bilder mit eingebetteter Adresse darstellt — ist benannt.
+- **Datei-Verwaltung im Bereichs-Panel** (4T-001352): Zwei neue Katalog-Zeilen
+  und ein eigener Handbuch-Abschnitt beschreiben die Datei-Verwaltung, den Weg
+  der Wiederherstellung über den Papierkorb und das gewollte Verhalten der
+  Verweise nach einem Löschen; in allen fünf Sprachfassungen.
+- **Drucken** (4T-001480): Der Druck ist im Funktions-Katalog geführt und im
+  Handbuch auf der Seite «Werkzeuge» beschrieben, jeweils in allen fünf
+  Sprachfassungen.
+- **Ziel-Auflösung der Einbettungen** (4T-001488): Funktions-Katalog, Handbuch
+  und Demo-Ablage beschreiben, wo ein eingebettetes Ziel gesucht wird; fünf
+  Sprachfassungen.
+- **Nutzen-Seite des Handbuchs** (4T-001424): Der Darstellungs-Punkt nennt, dass
+  ein Diagramm beim portablen Export als fertiges Bild mitreist und auch dort zu
+  sehen ist, wo EM4me nicht installiert ist; in allen fünf Sprachfassungen. Die
+  gleichlautende Ergänzung der Nutzen-Seite auf der Produkt-Webseite gehört zum
+  selben Vorgang.
+
 ## [1.128.0.2384] - 2026-09-06 — Vorstufe der Datenbank
 
 Zug 3E-000271

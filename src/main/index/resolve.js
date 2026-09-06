@@ -54,8 +54,7 @@ function filesByAlias(entry, alias) {
 function ensurePathSuffixMap(entry) {
   if (entry.pathSuffixMap) return entry.pathSuffixMap;
   const map = new Map();
-  for (const f of entry.files.keys()) {
-    const fileKey = normalizeNameKey(f.replace(MD_EXT_RE, '')).replace(/\\/g, '/');
+  const eintragen = (f, fileKey) => {
     const segmente = fileKey.split('/');
     let suffix = '';
     for (let i = segmente.length - 1; i > 0; i -= 1) {
@@ -66,6 +65,26 @@ function ensurePathSuffixMap(entry) {
         map.set(suffix, set);
       }
       set.add(f);
+    }
+  };
+  for (const f of entry.files.keys()) {
+    eintragen(f, normalizeNameKey(f.replace(MD_EXT_RE, '')).replace(/\\/g, '/'));
+  }
+  // 4T-001494 (Epic 3E-000199): Nicht-Markdown-Dateien in der Pfad-Form, damit
+  // auch '![[anlagen/bild.png]]' aus einem anderen Ordner heraus traegt. Zwei
+  // Schluessel-Formen wie in der Namens-Zuordnung: mit und ohne Endung.
+  if (entry.assetNameMap) {
+    const gesehen = new Set();
+    for (const set of entry.assetNameMap.values()) {
+      for (const f of set) {
+        if (gesehen.has(f)) continue;
+        gesehen.add(f);
+        const roh = normalizeNameKey(f).replace(/\\/g, '/');
+        eintragen(f, roh);
+        const punkt = roh.lastIndexOf('.');
+        const schraeg = roh.lastIndexOf('/');
+        if (punkt > schraeg + 1) eintragen(f, roh.slice(0, punkt));
+      }
     }
   }
   entry.pathSuffixMap = map;
@@ -79,7 +98,20 @@ function resolveWikiLinkDetailed(entry, zielBasename) {
     // alle Dateien (vorher O(Hits x Dateien) in collectBacklinksFor).
     // Deckt auch bereits expandierte Unterseiten-Namen in U+2215-Form ab.
     const set = entry.nameMap.get(wanted);
-    return { nameMatches: set ? [...set] : [], pathMatches: [], subpageMatches: [] };
+    if (set && set.size > 0) {
+      return { nameMatches: [...set], pathMatches: [], subpageMatches: [] };
+    }
+    // 4T-001494 (Epic 3E-000199): erst danach die Nicht-Markdown-Dateien.
+    // Die Reihenfolge ist entschieden und nicht zufaellig: Die Markdown-Sicht
+    // ist die aeltere Zusicherung, und '[[bild]]' neben einer 'bild.md' meint
+    // weiterhin das Dokument. Der Schluessel wird hier zusaetzlich in der
+    // Roh-Form gesucht, weil 'wanted' oben die Markdown-Endung abgeschnitten
+    // hat — eine Datei 'notiz.md.bak' bliebe sonst unauffindbar.
+    const roh = normalizeNameKey(String(zielBasename)).replace(/\\/g, '/');
+    const assets = entry.assetNameMap
+      ? entry.assetNameMap.get(wanted) || entry.assetNameMap.get(roh)
+      : null;
+    return { nameMatches: assets ? [...assets] : [], pathMatches: [], subpageMatches: [] };
   }
   // Pfad-Form (B-13): seit 4T-001288 O(1) ueber die Suffix-Map (siehe oben);
   // Verhalten identisch zum frueheren endsWith('/' + wanted)-Scan.

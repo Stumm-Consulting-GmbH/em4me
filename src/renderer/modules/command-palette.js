@@ -75,7 +75,9 @@ const FILE_TAB_COMMANDS = new Set([
 // Kommandos auf einem Inhalts-Tab (Menue: hasActiveTab && !systemTab).
 // 4T-000890 (Befund L-05): der portable Export teilt die enabled-Regel des
 // Export-Untermenues mit dem PDF-Export und wird deshalb hier gespiegelt.
-const CONTENT_TAB_COMMANDS = new Set(['file.exportPdf', 'file.exportPortable']);
+// 4T-001479 (Epic 3E-000177): Drucken teilt die enabled-Regel beider
+// Export-Wege — jeder Inhalts-Tab, nur die Einstellungs-Seite nicht.
+const CONTENT_TAB_COMMANDS = new Set(['file.print', 'file.exportPdf', 'file.exportPortable']);
 // Kommandos, die irgendeinen aktiven Tab brauchen (Menue: hasActiveTab).
 const ANY_TAB_COMMANDS = new Set(['file.bookmarkAdd', 'tab.close', 'view.toggleScrollSync']);
 // Ansichtsmodi: auf System-Seiten deaktiviert (Menue: !systemTab).

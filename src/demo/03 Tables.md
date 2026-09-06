@@ -11,7 +11,10 @@ Three flavours, from simplest to most capable. Back to [[00 Welcome]].
 
 ## Pipe table
 
-Standard Markdown; the colons in the separator row set alignment.
+Standard Markdown; the colons in the separator row set alignment. In live view the table
+below stays laid out while you work in it: click a cell and type, then move on with Tab or
+the arrow keys. For the raw syntax — the separator row, for instance — switch to the source
+or the split view.
 
 ```markdown
 | Item   | Qty | Price |

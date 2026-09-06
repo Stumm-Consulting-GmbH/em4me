@@ -196,6 +196,39 @@ function locatePipeCell(lines, model, lineOffset, ch) {
   return { rowKind, rowIndex, col };
 }
 
+// Umkehrung von locatePipeCell: Aus der logischen Zelle (rowKind, rowIndex,
+// col) wird ihre Stelle im Block. Geliefert werden der Zeilen-Offset, der
+// Inhalts-Anfang der Zelle als Cursor-Spalte und zusaetzlich die beiden
+// Inhalts-Grenzen — Letztere, damit ein Aufrufer eine Stelle INNERHALB des
+// Zell-Textes bestimmen kann (4T-001344: die angeklickte Stelle in der
+// gerenderten Tabelle). Bei leerer Zelle fallen contentStart und contentEnd
+// zusammen; ch liegt dann im Padding, wie beim Bestands-Zellsprung
+// (4T-000074). Zeilen- und Spalten-Index werden geklemmt, damit ein Aufrufer
+// mit einer Zaehlung aus einer anderen Quelle — etwa dem gerenderten DOM —
+// nicht aus dem Block laeuft. `offset` ist dieselbe Stelle als Zeichen-Offset
+// im gesamten Block, damit ein Aufrufer sie ohne eigene Zeilen-Rechnung auf
+// eine Dokument-Position addieren kann.
+function locatePipeCellPosition(lines, model, pos) {
+  const rowKind = pos && pos.rowKind ? pos.rowKind : 'body';
+  const bodyStart = model && model.hasSeparator ? 2 : 1;
+  const rowIndex = pos && Number.isFinite(pos.rowIndex) ? Math.max(0, pos.rowIndex) : 0;
+  const lineOffset = rowKind === 'header' ? 0 : rowKind === 'separator' ? 1 : bodyStart + rowIndex;
+  const line = Math.max(0, Math.min(lineOffset, lines.length - 1));
+  const lineText = lines[line] || '';
+  let zeilenAnfang = 0;
+  for (let i = 0; i < line; i++) zeilenAnfang += lines[i].length + 1;
+  const cells = parseTableCells(lineText) || [];
+  if (cells.length === 0)
+    return { line, ch: 0, contentStart: 0, contentEnd: 0, offset: zeilenAnfang };
+  const wunsch = pos && Number.isFinite(pos.col) ? pos.col : 0;
+  const cell = cells[Math.max(0, Math.min(wunsch, cells.length - 1))];
+  // Inhalts-Anfang der Ziel-Zelle (Formel des Bestands-Zellsprungs aus
+  // 4T-000074; bei leerer Zelle das Zell-Ende im Padding).
+  const contentStart = Math.max(cell.contentStart, cell.start);
+  const contentEnd = Math.max(contentStart, cell.contentEnd);
+  return { line, ch: contentStart, contentStart, contentEnd, offset: zeilenAnfang + contentStart };
+}
+
 // === Operationen ============================================================
 
 // Verfügbarkeit der Operationen für eine Cursor-Position (Menü-Dimmung):
@@ -365,15 +398,13 @@ function editPipeTable(blockLines, cursor, op) {
   if (!result) return null;
   if (result.rejected) return result;
   const lines = serializePipeTable(result.model);
-  const c = result.cursor;
-  const lineOffset = c.rowKind === 'header' ? 0 : c.rowKind === 'separator' ? 1 : 2 + c.rowIndex;
-  const lineText = lines[Math.min(lineOffset, lines.length - 1)] || '';
-  const cells = parseTableCells(lineText) || [];
-  const cell = cells[Math.max(0, Math.min(c.col, cells.length - 1))] || null;
-  // Cursor an den Inhalts-Anfang der Ziel-Zelle (Formel des Bestands-
-  // Zellsprungs aus 4T-000074; bei leerer Zelle das Zell-Ende im Padding).
-  const ch = cell ? Math.max(cell.contentStart, cell.start) : 0;
-  return { lines, cursor: { line: lineOffset, ch } };
+  // 4T-001344: Die Umrechnung von der logischen Zelle auf ihre Stelle im Block
+  // steht jetzt in locatePipeCellPosition und wird hier mitbenutzt statt ein
+  // zweites Mal geschrieben. serializePipeTable legt die Trenn-Zeile immer an,
+  // deshalb rechnet die Umrechnung hier mit hasSeparator.
+  const modellMitTrennzeile = { ...result.model, hasSeparator: true };
+  const stelle = locatePipeCellPosition(lines, modellMitTrennzeile, result.cursor);
+  return { lines, cursor: { line: stelle.line, ch: stelle.ch } };
 }
 
 module.exports = {
@@ -386,6 +417,7 @@ module.exports = {
   parsePipeTable,
   serializePipeTable,
   locatePipeCell,
+  locatePipeCellPosition,
   pipeOpAvailability,
   applyPipeOp,
   editPipeTable,

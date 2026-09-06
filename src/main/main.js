@@ -66,6 +66,8 @@ const { registerAttachmentsIpc } = require('./ipc/attachments');
 const { registerBooksIpc } = require('./ipc/books');
 const { registerShelvesIpc } = require('./ipc/shelves');
 const { registerIndexViewsIpc } = require('./ipc/index-views');
+// 4T-001486 (Epic 3E-000199): Einbettungen als eigene Kanal-Gruppe.
+const { registerEmbedsIpc } = require('./ipc/embeds');
 const { registerRemindersIpc } = require('./ipc/reminders');
 const { registerTemplatesIpc } = require('./ipc/templates');
 const { registerAreaFeaturesIpc } = require('./ipc/area-features');
@@ -285,6 +287,7 @@ function registerIpc() {
   registerBooksIpc(registriere, ipcDeps);
   registerShelvesIpc(registriere, ipcDeps);
   registerIndexViewsIpc(registriere, ipcDeps);
+  registerEmbedsIpc(registriere, ipcDeps);
   registerRemindersIpc(registriere, ipcDeps);
   registerTemplatesIpc(registriere, ipcDeps);
   registerAreaFeaturesIpc(registriere, ipcDeps);

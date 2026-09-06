@@ -38,6 +38,10 @@ import {
   bindPerspectiveDatatableEditor,
   applyPerspectiveDatatableViewStates,
 } from '../query/perspective-datatable-editor.js';
+// 4T-001344 (Epic 3E-000239): Klick-Pfad der gerenderten Pipe-Tabelle
+// (Laufzeit-Aufruf in _enhance, zyklenfest — importiert nur den geteilten
+// Tabellen-Kern und die View-Aufloesung).
+import { bindLiveTableCellClicks } from './live-table-klick.js';
 import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 import { bindFrontmatterQueryClicks } from './live-interaction.js';
 
@@ -329,6 +333,13 @@ export class MarkdownBlockWidget extends WidgetType {
       applyCodeCopyButtons(container);
       applyTranslations(container);
       enhancePerspectiveTableSorting(container);
+      // 4T-001344 (Epic 3E-000239): Klick in eine gerenderte Pipe-Tabelle setzt
+      // die Schreibmarke in die getroffene Zelle. Nur fuer klassische
+      // Pipe-Tabellen — der Cache-Schluessel des Pre-Passes traegt die
+      // Unterscheidung gegen Perspective-Tabellen und Fenced-Code.
+      if (String(this.cacheKey || '').startsWith('table:')) {
+        bindLiveTableCellClicks(container, this.source);
+      }
       // 4T-000355: perspective-query-Platzhalter im Live-Modus befüllen. Läuft
       // bei jedem Einhängen (auch Cache-Klon), sodass die Liste aktuell ist;
       // No-op bei anderen Block-Widgets. basePath aus dem Widget.

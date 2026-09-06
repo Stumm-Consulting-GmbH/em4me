@@ -20,6 +20,8 @@ Il cambio avviene con i pulsanti della barra di stato o dalla parte alta del men
 
 La modalità live renderizza il Markdown direttamente nell'editor: grassetto e corsivo, collegamenti, tabelle, codice, immagini, formule KaTeX e diagrammi Mermaid appaiono come nel risultato renderizzato. Quando il cursore si trova in una riga, proprio quella riga mostra la sua sorgente grezza e resta modificabile. Così sparisce l'andirivieni tra scrivere e controllare.
 
+**Le tabelle fanno eccezione a questa regola.** Restano impaginate anche mentre il cursore si trova al loro interno: il clic colpisce la cella, il tabulatore e i tasti freccia portano di cella in cella, e ciò che si digita arriva al punto giusto del sorgente. Chi ha bisogno della sintassi grezza di una tabella — la riga separatrice con i due punti di allineamento, per esempio — passa alla vista sorgente o a quella divisa.
+
 ### Mappa mentale
 
 La mappa mentale mostra i titoli e gli elenchi del documento come albero e il testo corrente come nota sul nodo. Appartiene all'estensione omonima e scompare con essa; struttura, uso, le cinque posizioni della radice e il valore per documento sono descritti nella pagina [Vista mappa mentale](mindmap.md).

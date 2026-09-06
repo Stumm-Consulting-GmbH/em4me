@@ -133,7 +133,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert attributes-spans.md s
 <p data-source-line="8"><span class="mark-rot" id="fn-ziel">Hinweis</span> als Span mit Klasse und ID.</p>
 <p data-source-line="10">Verbotene Attribute werden gestrippt: <span class="ok">X</span></p>
 <p data-source-line="12">Gegenproben:</p>
-<p data-source-line="14">Wiki-Link <a href="Ziel.md" class="wikilink">Ziel</a> und Wiki-Embed <img class="wiki-embed wiki-embed-image" src="bild.png" alt=""> bleiben unverändert.</p>
+<p data-source-line="14">Wiki-Link <a href="Ziel.md" class="wikilink">Ziel</a> und Wiki-Embed <span class="wiki-embed wiki-embed-image" data-embed-kind="image" data-embed-path="bild.png"></span> bleiben unverändert.</p>
 <p data-source-line="16">Fußnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> bleibt Fußnote.</p>
 <p data-source-line="20">Markdown-Link <a href="ziel.md">Text</a> bleibt Link; [Text] ohne Block bleibt Klartext.</p>
 <p data-source-line="22">Fließtext mit { geschweiften Klammern } bleibt unangetastet.</p>
@@ -488,7 +488,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert implicit-figures.md s
 "<figure data-source-line="1"><img src="bild.png" alt="Eine Bildunterschrift"><figcaption>Eine Bildunterschrift</figcaption></figure>
 <figure data-source-line="3"><img src="ohne-alt.png" alt=""></figure>
 <p data-source-line="5">Im Fließtext bleibt <img src="inline.png" alt="Inline-Bild"> ein einfaches img-Element.</p>
-<p data-source-line="7"><img class="wiki-embed wiki-embed-image" src="embed.png" alt=""></p>
+<p data-source-line="7"><span class="wiki-embed wiki-embed-image" data-embed-kind="image" data-embed-path="embed.png"></span></p>
 <p data-source-line="9">Text nach dem Wiki-Embed als Absatz-Abschluss.</p>
 "
 `;
@@ -909,8 +909,8 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-links.md 
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-embeds.md stabil 1`] = `
-"<p data-source-line="1">Bild-Embed: <img class="wiki-embed wiki-embed-image" src="bild.png" alt=""></p>
-<p data-source-line="3">Bild mit Breite: <img class="wiki-embed wiki-embed-image" src="bild.png" alt="" style="max-width: 300px"></p>
+"<p data-source-line="1">Bild-Embed: <span class="wiki-embed wiki-embed-image" data-embed-kind="image" data-embed-path="bild.png"></span></p>
+<p data-source-line="3">Bild mit Breite: <span class="wiki-embed wiki-embed-image" data-embed-kind="image" data-embed-path="bild.png" data-embed-width="300"></span></p>
 <p data-source-line="5">Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md"></span></p>
 <p data-source-line="7">Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt"></span></p>
 <p data-source-line="9">PDF-Embed: <span class="wiki-embed wiki-embed-pdf" data-embed-kind="pdf" data-embed-path="dokument.pdf"></span></p>

@@ -128,7 +128,7 @@ En détail : [Blocs de script](scripts.md).
 Au-delà des quatre grandes constructions, le langage apporte plus de cinquante extensions : encadrés et notes de bas de page pour le texte, formules et diagrammes pour la présentation, liens, mots-clés et inclusions pour les rapprochements, tâches, rappels et rendez-vous pour la journée de travail, ainsi que modèles et journaux. Rien de tout cela n'est obligatoire : chaque extension a son propre interrupteur, et ce qui est désactivé disparaît des menus, des commandes et de l'affichage au lieu de gêner.
 
 - **Extensions de texte** pour encadrés, notes de bas de page, surlignage et abréviations.
-- **Présentation** avec formules, diagrammes et code mis en évidence.
+- **Présentation** avec formules, diagrammes et code mis en évidence ; lors d'un export portable, un diagramme voyage sous forme d'image finie et reste visible là où EM4me n'est pas installé.
 - **Rapprochements** par liens, ancres, inclusions et mots-clés.
 - **Journée de travail** avec tâches, rappels, rendez-vous, modèles et journaux.
 - **Activables une par une** et ouvert à vos propres extensions via une interface documentée.

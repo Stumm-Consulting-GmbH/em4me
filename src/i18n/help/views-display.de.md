@@ -20,6 +20,8 @@ Umgeschaltet wird über die Schaltflächen in der Statusleiste oder über den Ko
 
 Der Live-Modus rendert das Markdown unmittelbar im Editor: Fett und kursiv, Links, Tabellen, Code, Bilder, KaTeX-Formeln und Mermaid-Diagramme erscheinen so, wie sie im gerenderten Ergebnis aussehen. Steht der Cursor in einer Zeile, zeigt genau diese Zeile ihre rohe Quelle und bleibt damit bearbeitbar. So entfällt der Wechsel zwischen Schreiben und Nachsehen.
 
+**Tabellen sind von dieser Regel ausgenommen.** Sie bleiben gesetzt stehen, auch wenn die Schreibmarke in ihnen steht: Ein Klick trifft die Zelle, Tabulator und Pfeiltasten führen von Zelle zu Zelle, und Getipptes landet an der richtigen Stelle des Quelltextes. Wer die Roh-Syntax einer Tabelle braucht — die Trennerzeile mit ihren Ausrichtungs-Doppelpunkten etwa —, wechselt dafür in die Quellcode- oder die geteilte Ansicht.
+
 ### Mindmap
 
 Die Mindmap zeigt Überschriften und Listen des Dokuments als Baum, den Fließtext als Notiz am Knoten. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; Aufbau, Bedienung, die fünf Lagen der Wurzel und die Vorgabe je Dokument beschreibt die Seite [Mindmap-Ansicht](mindmap.md).

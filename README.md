@@ -27,7 +27,9 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
 - **Areas keep projects apart** — bind a window to a folder and it becomes
   a closed workspace: file dialogs, recent files and search stay inside it.
   An area can designate one of its files as a start page, so it opens where
-  you want to begin.
+  you want to begin, and its folder tree creates, renames and deletes files
+  without leaving the application — deletion goes to your system's recycle
+  bin, never straight to nowhere.
 - **No size limit on a document** — a document that grows beyond about a
   megabyte is split across several files when saving and joined back into
   one when opening: one continuous text, one undo history, one search hit.
@@ -43,6 +45,10 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   your document intact in its last complete state, never half-written; on
   network drives and in synchronisation folders the save retries rather than
   giving up at the first refusal.
+- **On paper and on its way out** — print a document straight from the file
+  menu through your system's print dialog, export it as PDF, or hand it on as
+  portable Markdown with diagrams burned in as images, so the recipient sees
+  them without owning the application.
 - **Only the features you want** — extra functions are extensions with a
   switch of their own; what you turn off disappears from menus, commands
   and rendering.

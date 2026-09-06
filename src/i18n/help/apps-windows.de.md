@@ -98,6 +98,22 @@ In einer Bereichs-Applikation umfasst der Suchraum für Backlinks, Tags, Autocom
 
 Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links oder rechts andockbar wie jedes Panel; Schalter ist das Ordner-Icon in der Statusbar oder Ansicht → Sidebar → Panels → Bereich): oben der Ordnerbaum, darunter die Markdown-Dateien des ausgewählten Ordners; andere Datei-Typen erscheinen nicht. Ein Klick auf eine Datei öffnet sie als Tab, alle Einträge zeigen den vollen Pfad als Tooltip, und externe Änderungen (Datei angelegt, gelöscht, umbenannt) erscheinen automatisch. Der Knopf „+" am Kopf der Dateiliste legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, noch leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
 
+### Datei-Verwaltung im Bereichs-Panel
+
+Der Rechtsklick verwaltet den Bestand, ohne dass Sie die Anwendung verlassen müssen. An einer **Ordner-Zeile** stehen zwei Einträge: **Neuer Unterordner…** und **Neue Markdown-Datei…**. Beide fragen den Namen an Ort und Stelle ab — der Ordner-Name in einer Zeile unter dem angeklickten Ordner, der Dateiname am Kopf der Dateiliste — und legen im **angeklickten** Ordner an, auch wenn gerade ein anderer ausgewählt ist. Einem Dateinamen ohne Endung wird die Markdown-Endung ergänzt; die neue Datei wird geöffnet und durchläuft dabei die Ordner-Regel für Vorlagen wie jede andere Anlage. Ein bereits vergebener, ein für das Dateisystem unzulässiger und ein leerer Name werden gemeldet, bevor etwas angelegt wird; Escape bricht ab und hinterlässt nichts.
+
+An einer **Datei-Zeile** stehen **Umbenennen…** und **Löschen…** am Ende des Menüs, abgesetzt von den Einträgen darüber.
+
+**Umbenennen** ist derselbe Weg wie über das Menü, mit derselben Nachführung der internen Verweise und derselben Vorschau der betroffenen Stellen. Der Unterschied liegt allein darin, worauf er wirkt: hier auf jede Datei des Bereichs, auch auf eine nicht geöffnete, statt nur auf die gerade offene. Ist die Datei geöffnet und geändert, wird sie vorher gesichert; ihr Reiter zeigt anschließend den neuen Namen.
+
+**Löschen verschiebt die Datei in den Papierkorb des Betriebssystems** und löscht sie nicht endgültig. Vorher erscheint eine Rückfrage, die den Namen der Datei nennt. **Wiederhergestellt wird die Datei im Papierkorb des Betriebssystems, nicht in der Anwendung** — die App führt keinen eigenen Papierkorb. Steht kein Papierkorb zur Verfügung oder scheitert das Verschieben aus einem anderen Grund, wird das gemeldet und die Datei bleibt unverändert liegen; ersatzweise endgültig gelöscht wird nie.
+
+Ist die Datei geöffnet, wird ihr Reiter geschlossen; ungesicherte Änderungen laufen vorher durch die gewohnte Speichern-Abfrage. **Ein Abbruch dieser Abfrage bricht auch das Löschen ab** — es ist dann nichts geschehen.
+
+**Verweise auf eine gelöschte Datei werden nicht angepasst.** Anders als beim Umbenennen gibt es kein Ersatz-Ziel; die Verweise bleiben stehen und werden zu gebrochenen Verweisen. Das ist so gewollt und keine Fehlfunktion: Der gebrochene Verweis zeigt, dass dort einmal etwas stand, und lässt sich gezielt auflösen.
+
+Umbenennen und Löschen von **Ordnern** sowie das Verschieben von Dateien gehören noch nicht zum Umfang; dafür bleibt der Datei-Manager des Betriebssystems.
+
 ### Bereichs-Statistik
 
 „Ansicht → Bereichs-Statistik" öffnet eine Kennzahlen-Seite des geöffneten Bereichs als eigenen Reiter; derselbe Einstieg liegt im Kontextmenü des Bereichs-Panels. Die Seite ist nicht änderbar und zeigt sechs Abschnitte: **Dateien und Speicher** (Markdown- und Nicht-Markdown-Dateien nach Bildern, PDF und Sonstigem, Ordner-Anzahl, belegter Speicher mit seinen Anteilen), **Eigenschaften** und **Tags** (je Eintrag die Zahl der Dateien, sortierbar nach Name oder Anzahl), **Begleitdateien** (die `.mdd` je Dokument und die Bereichs-Dateien `.mdda`), **Inhalte** (Aufgaben nach Zustand, Wiki- und Markdown-Verweise, Aliase, Dateien ohne eingehenden Verweis) und **Auffälligkeiten** (die größten, die zuletzt geänderten und die meistverlinkten Dateien). Ein Klick auf einen Dateinamen der letzten drei Listen öffnet die Datei.

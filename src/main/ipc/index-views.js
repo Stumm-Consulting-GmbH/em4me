@@ -2,22 +2,20 @@
 // (Rueckverweise, Tags, Frontmatter-Abfrage, Ereignisse, Graph, Kennzahlen,
 // Skript-Daten, Puffer-Overlay), das zeilen- und feldgenaue Rueckschreiben aus
 // Abfrage- und Ereignis-Ansicht, die Bereichs-Suche, die Autocomplete- und
-// Linter-Quellen sowie das Lesen einer Wiki-Einbettung.
+// Linter-Quellen. Die Wiki-Einbettungen sind mit 4T-001486 nach
+// src/main/ipc/embeds.js gezogen.
 //
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: backlinks:*,
 // wikiLink:*, tags:request, frontmatterQuery:run, task:applyLineEdit,
 // events:*, graph:edges, areaStats:collect, areaSearch:*, index:overlay,
-// perspectiveScript:data, autocomplete:*, linter:resolveWikiTargets,
-// embed:read.
+// perspectiveScript:data, autocomplete:*, linter:resolveWikiTargets.
 //
 // Eigener Zustand: keiner; der Index und der Suchraum gehoeren ihren Modulen
 // und kommen als Deps.
 'use strict';
 
-const path = require('node:path');
 const fs = require('node:fs/promises');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
-const { resolveContainedEmbedPath } = require('../documents/embed-path');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
 const { computeLineReplacement } = require('../documents/task-line-edit.js');
@@ -35,12 +33,9 @@ const { writeFrontmatter, extractFrontmatter } = require('../../shared/markdown/
  * @param {(event: object) => string|null} deps.areaRootForEvent Bereichs-Wurzel der Anfrage.
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (steht bei der Registrierung fest).
  * @param {object} deps.backlinks Bereichs-Index samt seiner Sichten.
- * @param {object} deps.subpages Unterseiten-Namens-Logik.
- * @param {object} deps.embedInhalt Inhalt einer Einbettung, Puffer vor Platte.
  * @param {Function} deps.collectAreaStats Kennzahlen-Erhebung des Bereichs.
  * @param {Function} deps.sucheImBereich Volltext-Suche ueber den Bereich.
  * @param {Function} deps.gibBereichsVorratFrei Speicher-Vorrat der Suche freigeben.
- * @param {number} deps.MAX_EMBED_BYTES Groessen-Limit fuer Markdown-Embeds.
  * @param {Function} deps.readAreaProfilesConfig Profil-Sektion der Bereichsdatei lesen.
  * @param {Function} deps.resolveHistoryFor Aufloesung der Historisierungs-Schaltung.
  * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Ueberschreiben.
@@ -53,12 +48,9 @@ function registerIndexViewsIpc(handle, deps) {
     areaRootForEvent,
     getStore,
     backlinks,
-    subpages,
-    embedInhalt,
     collectAreaStats,
     sucheImBereich,
     gibBereichsVorratFrei,
-    MAX_EMBED_BYTES,
     readAreaProfilesConfig,
     resolveHistoryFor,
     readPreviousTextFor,
@@ -402,97 +394,6 @@ function registerIndexViewsIpc(handle, deps) {
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     return backlinks.resolveWikiTargetByAlias(filePath, basename, areaRoot);
-  });
-
-  // 4T-000055 (Epic 3E-000011): Wiki-Embed-Datei lesen. Liest die Ziel-Datei
-  // und extrahiert ggf. Heading-Snippet oder Block-Element gemaess Anker.
-  // Wird vom Renderer fuer Markdown-Embeds aufgerufen (![[Datei]] /
-  // ![[Datei#Heading]] / ![[Datei#^id]]).
-  handle('embed:read', async (event, params) => {
-    const basePath = params && params.basePath;
-    let embedPath = params && params.embedPath;
-    const anchor = params && params.anchor;
-    // 4T-000337 (Epic 3E-000061): relative Unterseiten-Embeds ('![[/Name]]',
-    // '![[..]]') gegen den Basename der Basis-Datei expandieren; Ergebnis
-    // ist die U+2215-Form im selben Ordner.
-    if (typeof embedPath === 'string' && subpages.isRelativeTarget(embedPath)) {
-      const extMatch = embedPath.match(/\.[a-z0-9]{1,8}$/i);
-      const ext = extMatch ? extMatch[0] : '';
-      const noExt = ext ? embedPath.slice(0, -ext.length) : embedPath;
-      const ownBase = path
-        .basename(String(basePath || ''))
-        .replace(/\.(md|markdown|mdown|mkd)$/i, '');
-      const expanded = subpages.expandRelativeTarget(ownBase, noExt);
-      if (!expanded) return { ok: false, error: 'not found' };
-      embedPath = expanded + (ext || '.md');
-    }
-    // B-02 (4T-000307): Containment auf den Dokument-Ordner-Teilbaum plus
-    // Markdown-Extension-Whitelist, bevor gelesen wird — fremder Embed-Pfad
-    // gilt als nicht vertrauenswuerdig (Entwicklungsrichtlinien §6).
-    const guard = resolveContainedEmbedPath(basePath, embedPath);
-    if (!guard.ok) {
-      return { ok: false, error: guard.error };
-    }
-    let abs = guard.abs;
-    // 4T-000337: Unterseiten-/Suchraum-Fallback wie im Klick-Pfad (B-13),
-    // wenn die dokument-relative Datei fehlt. Kandidaten muessen im
-    // Dokument-Ordner-Teilbaum liegen (B-02-Containment bleibt gewahrt).
-    try {
-      await fs.access(abs);
-    } catch {
-      // Deterministischer Versuch ohne Index: Unterseiten liegen
-      // konventionell im Ordner des Dokuments — '/' -> U+2215 uebersetzen.
-      let found = false;
-      if (/[/\\]/.test(String(embedPath))) {
-        const translated = subpages.toFileBasename(String(embedPath).replace(/\\/g, '/'));
-        const g2 = resolveContainedEmbedPath(basePath, translated);
-        if (g2.ok) {
-          try {
-            await fs.access(g2.abs);
-            abs = g2.abs;
-            found = true;
-          } catch {
-            /* weiter zum Index-Fallback */
-          }
-        }
-      }
-      if (!found) {
-        const areaRoot = areaRootForEvent(event);
-        backlinks.ensureIndexForDemand(basePath, `${event.sender.id}:demand`, areaRoot);
-        const logical = String(embedPath)
-          .replace(/\.(md|markdown|mdown|mkd)$/i, '')
-          .replace(/\\/g, '/')
-          .replace(/^(\.\.?\/)+/, '');
-        const idx = backlinks.resolveWikiTargetInIndex(basePath, logical, areaRoot);
-        if (idx && idx.status === 'ready' && idx.candidates.length > 0) {
-          const dir = path.dirname(path.resolve(basePath));
-          const contained = idx.candidates.find((c) => c.startsWith(dir + path.sep));
-          if (contained) abs = contained;
-        }
-      }
-    }
-    try {
-      // 4T-000948 (Befund E-01): geschriebener Stand vor Platten-Stand (Wahl und
-      // Groessen-Limit in embed-content.js). Erst hier, weil der Ziel-Pfad nach
-      // Containment-Pruefung und Unterseiten-Rueckfall feststeht.
-      const puffer = backlinks.bufferTextFor(abs);
-      const gelesen = await embedInhalt.liesEmbedInhalt(abs, puffer, MAX_EMBED_BYTES);
-      if (!gelesen.ok) return { ok: false, error: gelesen.error };
-      let snippet = gelesen.content;
-      if (anchor) {
-        snippet = backlinks.extractEmbedSnippet(gelesen.content, anchor);
-        if (snippet == null) return { ok: false, error: 'anchor not found', path: abs };
-      }
-      return {
-        ok: true,
-        path: abs,
-        displayPath: path.basename(abs),
-        content: snippet,
-      };
-    } catch (err) {
-      const msg = err && err.message ? String(err.message) : String(err);
-      return { ok: false, error: msg };
-    }
   });
 }
 

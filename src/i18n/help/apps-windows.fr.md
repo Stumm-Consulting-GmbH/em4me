@@ -98,6 +98,22 @@ Dans une application de zone, l'espace de recherche des rétroliens, des tags, d
 
 Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre latérale (ancrable à gauche ou à droite comme tout panneau ; le commutateur est l'icône de dossier dans la barre d'état ou Affichage → Barre latérale → Panneaux → Zone) : l'arborescence en haut, en dessous les fichiers Markdown du dossier sélectionné ; les autres types de fichiers n'apparaissent pas. Un clic sur un fichier l'ouvre comme onglet, toutes les entrées affichent le chemin complet en info-bulle, et les modifications externes (fichier créé, supprimé, renommé) apparaissent automatiquement. Le bouton « + » en tête de la liste crée un nouveau fichier Markdown dans le dossier sélectionné et l'ouvre. Dans une application de zone fraîchement ouverte et encore vide, le panneau est visible automatiquement.
 
+### Gestion des fichiers dans le panneau de zone
+
+Le clic droit gère l'arborescence sans quitter l'application. Une **ligne de dossier** propose deux entrées : **Nouveau sous-dossier…** et **Nouveau fichier Markdown…**. Toutes deux demandent le nom sur place — le nom du dossier dans une ligne sous le dossier cliqué, le nom du fichier en tête de la liste des fichiers — et créent l'élément dans le dossier **sur lequel vous avez cliqué**, même si un autre est actuellement sélectionné. Un nom de fichier sans extension reçoit l'extension Markdown ; le nouveau fichier est ouvert et passe par la règle de dossier des modèles comme toute autre création. Un nom déjà pris, un nom que le système de fichiers n'autorise pas et un nom vide sont signalés avant que quoi que ce soit ne soit créé ; Échap annule et ne laisse rien.
+
+Une **ligne de fichier** propose **Renommer…** et **Supprimer…** à la fin du menu, séparés des entrées au-dessus.
+
+**Renommer** emprunte le même chemin que par le menu, avec la même adaptation des liens internes et le même aperçu des endroits concernés. La seule différence tient à ce sur quoi il s'applique : ici tout fichier de la zone, y compris un fichier non ouvert, et non le seul fichier ouvert. Si le fichier est ouvert et modifié, il est enregistré au préalable ; son onglet affiche ensuite le nouveau nom.
+
+**Supprimer déplace le fichier vers la corbeille du système d'exploitation** au lieu de le supprimer définitivement. Une demande de confirmation apparaît auparavant et nomme le fichier. **La restauration a lieu dans la corbeille du système d'exploitation, pas dans l'application** — l'application ne tient pas de corbeille propre. Si aucune corbeille n'est disponible ou si le déplacement échoue pour une autre raison, cela est signalé et le fichier reste intact ; il n'est jamais supprimé définitivement en remplacement.
+
+Si le fichier est ouvert, son onglet est fermé ; les modifications non enregistrées passent d'abord par la demande d'enregistrement habituelle. **Annuler cette demande annule aussi la suppression** — rien ne s'est alors produit.
+
+**Les liens vers un fichier supprimé ne sont pas adaptés.** Contrairement au renommage, il n'existe pas de cible de remplacement ; les liens subsistent et deviennent des liens rompus. C'est voulu et non un dysfonctionnement : un lien rompu montre qu'il y avait là quelque chose et peut être résolu en connaissance de cause.
+
+Renommer et supprimer des **dossiers** ainsi que déplacer des fichiers ne font pas encore partie du périmètre ; le gestionnaire de fichiers du système d'exploitation reste l'endroit pour cela.
+
 ### Statistiques de la zone
 
 « Affichage → Statistiques de la zone » ouvre une page d'indicateurs de la zone ouverte dans un onglet dédié ; le même point d'entrée se trouve dans le menu contextuel du panneau de zone. La page est en lecture seule et présente six sections : **Fichiers et espace occupé** (fichiers Markdown et non Markdown répartis en images, PDF et autres, nombre de dossiers, espace occupé avec ses parts), **Propriétés** et **Tags** (le nombre de fichiers par entrée, triable par nom ou par nombre), **Fichiers d'accompagnement** (le `.mdd` de chaque document et les fichiers de zone `.mdda`), **Contenu** (tâches par état, liens wiki et Markdown, alias, fichiers sans lien entrant) et **Fichiers remarquables** (les plus volumineux, les plus récemment modifiés et les plus liés). Un clic sur un nom de fichier dans ces trois dernières listes ouvre le fichier.

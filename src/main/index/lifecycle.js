@@ -108,6 +108,15 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // B-15 (4T-000181): inverse Namens-Map basenameKeyLower -> Set<Pfad>
     // fuer O(1)-Wiki-Aufloesung (traegt die B-04-Normalisierung strukturell).
     nameMap: new Map(),
+    // 4T-001494 (Epic 3E-000199): zweite, schlanke Namens-Zuordnung fuer
+    // NICHT-Markdown-Dateien (Bilder, PDF, Anlagen): Name -> Set<Pfad>, ohne
+    // Link-Parsing, ohne Inhalt, ohne Rueckverweise. Getrennt von nameMap
+    // gehalten, weil beide verschiedene Zusicherungen tragen: nameMap speist
+    // Rueckverweise, Tag-Listen und Abfragen, diese hier ausschliesslich die
+    // Namens-Suche der Einbettung und des Klick-Pfads. Je Datei stehen zwei
+    // Schluessel darin, mit und ohne Endung — 'bild.png' wird so geschrieben,
+    // 'bild' so gemeint.
+    assetNameMap: new Map(),
     // 4T-001288: Suffix-Map der Pfad-Form (normalisierter Segment-Suffix ->
     // Set<Pfad>), lazy beim ersten Pfad-Resolve gebaut (resolve.js). Sie
     // haengt allein an der PFAD-Menge des Index; jede Aenderung der Menge

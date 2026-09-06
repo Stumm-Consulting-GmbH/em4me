@@ -29,6 +29,8 @@ Le ancore di blocco si impostano con `^id` a fine riga e ancorano il blocco circ
 Questa decisione è vincolante. ^decisione-1
 ```
 
+L'ancora si presenta in modo diverso a seconda della vista. La vista renderizzata non la mostra affatto: lì il blocco è soltanto una destinazione di salto. La **modalità dal vivo** la sostituisce con un segno discreto a fine riga: passando il puntatore viene indicato l'identificativo e, con un clic, il cursore si porta a fine riga e il testo originale si apre per la modifica. Se il cursore si trova già in quella riga, l'ancora resta visibile come di consueto. Che la modalità dal vivo mostri più della vista renderizzata è voluto: un'ancora è un indirizzo verso cui puntano altri documenti e, riorganizzando un documento, deve restare visibile che esiste. Se lo stesso blocco porta [proprietà](block-properties.md), il loro segno compare accanto.
+
 Le destinazioni di ancora rotte vengono segnalate dal [linter Markdown](tools.md) nell'editor.
 
 ## Collegamenti Markdown a file
@@ -70,6 +72,10 @@ Uno spazio grezzo senza parentesi angolari termina la destinazione, per cui il c
 ```
 
 Con le ancore di blocco viene incorporato l'intero blocco circostante (voce di elenco con sotto-elenchi, blocco di codice, riga di tabella, citazione). Il Markdown incorporato si renderizza con la propria sorgente come base; i collegamenti al suo interno si risolvono rispetto al file incorporato.
+
+**Dove viene cercata la destinazione.** L'applicazione cerca in tre passaggi, allo stesso modo per ogni tipo di file: prima il percorso relativo al proprio file, poi la scrittura delle sottopagine, infine il semplice **nome** nell'intera area. Così `![[immagine.png]]` trova il file anche se si trova in un'altra cartella: non occorre indovinare il percorso. La ricerca termina alla radice dell'area: ciò che sta fuori non viene incorporato. Senza un'area collegata il limite resta la cartella del proprio file.
+
+Se un file Markdown porta lo stesso nome di un allegato, vince il file Markdown; scritto con la sua estensione (`![[immagine.png]]`) il caso è inequivocabile. Le immagini Markdown ordinarie `![](percorso.png)` non sono interessate: la loro scrittura indica un percorso e non un nome.
 
 ## Tag
 

@@ -288,6 +288,9 @@ const INTERNAL_EXTENSIONS = [
     featureKeys: [
       'help.feature.wikiLinkAnchors',
       'help.feature.blockAnchors',
+      // 4T-001447 (Epic 3E-000176): Die Live-Dekoration des Ankers haengt an
+      // derselben Erweiterung wie das Konstrukt; aus heisst Roh-Text.
+      'help.feature.liveBlockAnchor',
       'help.feature.outgoingLinks',
       'help.feature.backlinks',
     ],

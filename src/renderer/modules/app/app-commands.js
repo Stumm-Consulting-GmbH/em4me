@@ -42,6 +42,8 @@ import {
   renameActiveFile,
 } from '../views/file-actions.js';
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
+// 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog.
+import { printActiveTab } from '../views/print.js';
 import {
   exportCurrentTabAsPortable,
   saveCurrentTab,
@@ -305,6 +307,11 @@ export const commandHandlers = {
   // Einstellungs-Tab-Guard sitzt in exportActiveTabAsPdf selbst.
   'file.exportPdf': () => {
     exportActiveTabAsPdf();
+  },
+  // 4T-001479 (Epic 3E-000177): Drucken. Der Einstellungs-Tab-Guard sitzt
+  // wie beim PDF-Export in der gemeinsamen Druck-Vorbereitung.
+  'file.print': () => {
+    printActiveTab();
   },
   // 4T-000890 (Epic 3E-000168, Befund L-05): portabler Markdown-Export, jetzt
   // über dieselbe Registry-Strecke wie der PDF-Export daneben (Palette und

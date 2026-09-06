@@ -50,14 +50,20 @@ import {
   imageIsStandalone,
   positionInsideTable,
 } from './live-scans.js';
+import { blockAnkerInZeile } from './live-block-anker.js';
 import { positionInsideCode } from './live-shared.js';
-import { CalendarValueBadgeWidget, EmojiWidget, InlineCalcWidget } from './live-widget-inline.js';
+import {
+  BlockAnkerWidget,
+  CalendarValueBadgeWidget,
+  EmojiWidget,
+  InlineCalcWidget,
+} from './live-widget-inline.js';
 import { ImageWidget, MathInlineWidget, WikiEmbedWidget } from './live-widget-render.js';
 
 // 4T-000996: Zweiter Inline-Block eines Sichtbereichs.
 export function runLateInlinePasses(ctx) {
   const { state, ranges, activeLines, basePath, frontmatterEndLine } = ctx;
-  const { mathBlockRanges, text, from, criticSpans } = ctx;
+  const { mathBlockRanges, text, from, to, criticSpans } = ctx;
   // === 4T-000084: Regex-Pass Inline-Math ($x$) ===
   // Wird vor dem Footnote-Pass platziert, weil Math-Inhalt potenziell
   // `[^id]`-aehnliche Sequenzen enthalten koennte; mit Inline-Math als
@@ -367,6 +373,36 @@ export function runLateInlinePasses(ctx) {
       const contentEnd = contentStart + m[1].length;
       ranges.push(liveMarkerHiddenDeco.range(docPos, contentStart));
       ranges.push(liveMarkerHiddenDeco.range(contentEnd, fullEnd));
+    }
+  }
+
+  // === 4T-001423 (Epic 3E-000176): Block-Anker als Indikator ===
+  // Zeilenweise statt ueber den Sichtbereichs-Text, weil der Anker als
+  // letztes Element einer ZEILE definiert ist (BLOCK_ANCHOR_RE verankert auf
+  // $) — ein Regex-Lauf ueber den zusammenhaengenden Text traefe nur die
+  // letzte Zeile des Ausschnitts. Muster der HR-Erkennung oben.
+  //
+  // Unter der Erweiterung 'wiki-links': Block-Anker gehoeren dort hin
+  // (markdown.js haengt blockAnchorsPlugin unter enabled('wiki-links')). Im
+  // Aus-Zustand bleibt der Roh-Text stehen — dieselbe Wirkung wie in der
+  // gerenderten Ansicht, wo der Anker dann ebenfalls sichtbar bleibt.
+  if (isExtensionActive('wiki-links')) {
+    const vonZeile = state.doc.lineAt(from).number;
+    const bisZeile = state.doc.lineAt(to).number;
+    for (let lineNo = vonZeile; lineNo <= bisZeile; lineNo++) {
+      if (lineNo <= frontmatterEndLine) continue;
+      // Schreibmarke in der Zeile: Roh-Text stehen lassen (Aufklapp-Regel).
+      if (activeLines.has(lineNo)) continue;
+      const line = state.doc.line(lineNo);
+      if (positionInsideCode(state, line.from)) continue;
+      const treffer = blockAnkerInZeile(state.doc.sliceString(line.from, line.to));
+      if (!treffer) continue;
+      ranges.push(
+        Decoration.replace({ widget: new BlockAnkerWidget(treffer.id) }).range(
+          line.from + treffer.von,
+          line.from + treffer.bis,
+        ),
+      );
     }
   }
 }

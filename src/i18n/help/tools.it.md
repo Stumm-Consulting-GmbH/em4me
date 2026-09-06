@@ -1,6 +1,6 @@
 # Strumenti
 
-Dieci aiutanti per il lavoro quotidiano sul testo: linter, correzione ortografica, ricerca, trova e sostituisci, editor di tabelle, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
+Undici aiutanti per il lavoro quotidiano sul testo: linter, correzione ortografica, ricerca, trova e sostituisci, editor di tabelle, stampa, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
 
 ## Linter Markdown
 
@@ -102,6 +102,13 @@ Cambiare sezione nelle impostazioni non salva nulla, una bozza iniziata si conse
 ## Editor di tabelle
 
 Nelle tabelle pipe, `Tab` salta alla cella successiva e `Maiusc+Tab` alla precedente. Alla fine dell'ultima riga, `Tab` o `Invio` creano una nuova riga di tabella con lo stesso numero di colonne; due `Invio` su una riga vuota escono dalla tabella. Vengono riconosciute anche le tabelle senza bordi (senza pipe esterni). Le operazioni di struttura (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione) sono offerte dal sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md).
+
+## Stampa
+
+«File → Altre funzioni file → Stampa…» (predefinito `Ctrl+P`) stampa il contenuto della scheda attiva direttamente su una stampante, senza il giro attraverso un file PDF da aprire poi in un secondo programma. Si apre la finestra di stampa del sistema operativo: stampante, intervallo di pagine, numero di copie, fronte-retro e tutto il resto si scelgono lì, nell’interfaccia che conoscete da ogni altro programma. Formato pagina, orientamento e margini sono precompilati dalla sezione «Esportazione» delle impostazioni.
+
+La stampa segue la vista attiva, esattamente come l’esportazione PDF qui sotto: la vista codice sorgente stampa il Markdown grezzo con evidenziazione della sintassi; Renderizzata, Divisa e Live stampano il documento formattato. La stampa è sempre chiara, anche se l’applicazione gira con il tema scuro; per questo i diagrammi Mermaid vengono ridisegnati in chiaro. La scheda delle impostazioni non si stampa, quelle del manuale sì. Se annullate la finestra di sistema, non accade nulla.
+
 ## Esportazione PDF
 
 «File → Altre funzioni file → Esporta come PDF…» (predefinito `Ctrl+Maiusc+P`) stampa il contenuto della scheda attiva in un file PDF. L'esportazione segue la vista attiva: la vista codice sorgente stampa il Markdown grezzo con evidenziazione della sintassi, inclusi i numeri di riga se attivi nella scheda; le modalità renderizzata, divisa e live stampano il documento formattato (divisa e live passano internamente alla vista renderizzata per la stampa e poi ripristinano la vista). Il PDF è sempre chiaro, anche se l'applicazione usa il tema scuro; i diagrammi Mermaid vengono ridisegnati con colori chiari e restano grafica vettoriale. Formule, evidenziazione del codice, callout e tabelle perspective appaiono come nell'anteprima.

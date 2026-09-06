@@ -29,6 +29,8 @@ Las anclas de bloque se colocan con `^id` al final de la línea y anclan el bloq
 Esta decisión es vinculante. ^decision-1
 ```
 
+El ancla se presenta de forma distinta según la vista. La vista renderizada no la muestra en absoluto: allí el bloque es solo un destino de salto. El **modo en vivo** la sustituye por una marca discreta al final de la línea: al pasar el puntero se indica el identificador y, al hacer clic, el cursor se sitúa al final de la línea y se despliega el texto original para editarlo. Si el cursor ya está en esa línea, el ancla permanece visible como siempre. Que el modo en vivo muestre más que la vista renderizada es intencionado: un ancla es una dirección a la que apuntan otros documentos, y al reorganizar un documento conviene ver que existe. Si el mismo bloque tiene [propiedades](block-properties.md), su marca aparece al lado.
+
 Los destinos de ancla rotos los marca el [linter Markdown](tools.md) en el editor.
 
 ## Enlaces Markdown a archivos
@@ -70,6 +72,10 @@ Un espacio sin corchetes angulares termina el destino, de modo que el enlace no 
 ```
 
 Con anclas de bloque se incrusta el bloque envolvente completo (elemento de lista con sublistas, bloque de código, fila de tabla, cita). El Markdown incrustado se renderiza con su propia fuente como base; los enlaces internos se resuelven contra el archivo incrustado.
+
+**Dónde se busca el destino.** La aplicación busca en tres pasos, igual para cada tipo de archivo: primero la ruta relativa a su propio archivo, después la escritura de las subpáginas y por último el simple **nombre** en toda el área. Así `![[imagen.png]]` encuentra el archivo aunque esté en otra carpeta: no hace falta acertar la ruta. La búsqueda termina en la raíz del área: lo que quede fuera no se incrusta. Sin un área vinculada, el límite sigue siendo la carpeta del propio archivo.
+
+Si un archivo Markdown lleva el mismo nombre que un adjunto, gana el archivo Markdown; escrito con su extensión (`![[imagen.png]]`) el caso es inequívoco. Las imágenes Markdown corrientes `![](ruta.png)` no se ven afectadas: su escritura significa una ruta, no un nombre.
 
 ## Etiquetas
 

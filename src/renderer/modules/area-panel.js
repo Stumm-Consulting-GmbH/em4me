@@ -18,15 +18,17 @@ import { applySidebarVisibility } from './panels/panels.js';
 // 4T-000568 (Epic 3E-000104): reportMenuStateNow — Haekchen im Panel-Untermenue
 // folgt dem Toggle (Muster panels.js).
 import { openInPane, reportMenuStateNow } from './tabs/tabs.js';
-import { persistSetting, showStatusbarHint, updateEmptyState } from './views/views.js';
-// 4T-000427 (Epic 3E-000080): Ordner-Regel-Trigger für "Neue Datei in diesem
-// Ordner" (gemeinsamer Einhak-Punkt der App-Anlagen).
-import { openCreatedFileWithRule } from './templates.js';
+import { persistSetting, updateEmptyState } from './views/views.js';
 // 4T-001365 (Epic 3E-000171): Start-Seite (Merker, Kennzeichnung) und die
-// Kontextmenues des Panels als eigene Module; beide Abhaengigkeiten laufen nur
-// in diese Richtung.
+// Kontextmenues des Panels als eigene Module; 4T-001349 (Epic 3E-000170)
+// ergaenzt die Anlage-Wege. Alle Abhaengigkeiten laufen nur in diese Richtung.
 import { ladeStartSeite, markiereStartSeite } from './area-start-page.js';
-import { showAreaFileContextMenu, showAreaPanelContextMenu } from './area-panel-menus.js';
+import {
+  showAreaDirContextMenu,
+  showAreaFileContextMenu,
+  showAreaPanelContextMenu,
+} from './area-panel-menus.js';
+import { erstelleAnlageWege } from './area-panel-anlage.js';
 // 4T-001225 (Epic 3E-000122, Befund F1 des Linux-Nachweises): Pfad-Trenner und
 // Vergleichs-Verhalten kommen aus dem zentralen Plattform-Modul; der frueher
 // hart verdrahtete Backslash liess unter Linux Pfade wie `/bereich\ordner`
@@ -77,6 +79,19 @@ function selectedDir(paneIdx) {
   return state.areaPanel.selectedDirByPane[paneIdx] || state.areaPath;
 }
 
+// 4T-001349 (Epic 3E-000170): Die beiden Anlage-Wege liegen in einem eigenen
+// Modul und bekommen hier einmal die Bruecke zum Panel gereicht — Neuaufbau,
+// Listing-Verwerfung, Auswahl und Aufklapp-Zustand. Der Rueckruf-Weg vermeidet
+// den Import-Zyklus (Muster area-panel-menus.js).
+const anlageWege = erstelleAnlageWege({
+  render: (paneIdx) => renderAreaPanel(paneIdx),
+  listingVerwerfen: (dirPath) => listingCache.delete(dirPath),
+  ausgewaehlterOrdner: selectedDir,
+  istGleicherPfad: isSamePathRenderer,
+  istAufgeklappt: isExpanded,
+  setzeAufgeklappt: setExpanded,
+});
+
 // --- Rendering ---------------------------------------------------------------
 
 // Baut eine Baum-Zeile: Caret (nur klappbar), Ordnername; Klick auf den
@@ -110,6 +125,16 @@ function buildDirRow(paneIdx, dirPath, name, depth, hasChildren) {
     if (hasChildren && !isExpanded(paneIdx, dirPath)) setExpanded(paneIdx, dirPath, true);
     await renderAreaPanel(paneIdx);
   });
+  // 4T-001349 (Epic 3E-000170): Rechtsklick auf eine Ordner-Zeile bietet die
+  // Anlage von Unterordner und Markdown-Datei IN DIESEM Ordner an — nicht im
+  // gerade ausgewaehlten (AK8). Der Aufruf faengt das Ereignis ab, sonst
+  // uebernaehme das Sektions-Menue mit den panel-weiten Eintraegen.
+  row.addEventListener('contextmenu', (ev) =>
+    showAreaDirContextMenu(ev, dirPath, {
+      neuerOrdner: (d) => void anlageWege.neuerOrdner(paneIdx, d),
+      neueDatei: (d) => void anlageWege.neueDatei(paneIdx, d),
+    }),
+  );
   return row;
 }
 
@@ -180,46 +205,6 @@ function refreshSichtbareAreaPanels() {
   for (let i = 0; i < state.panes.length; i++) {
     if (getAreaPanelVisible(i)) void renderAreaPanel(i);
   }
-}
-
-// 4T-000328: Inline-Eingabe fuer "Neue Datei in diesem Ordner" — erscheint am
-// Kopf der Dateiliste; Enter legt an und oeffnet, Escape bricht ab.
-function showNewFileInput(paneIdx) {
-  const els = getPaneEls(paneIdx);
-  if (!els || !els.areaFiles || !state.areaPath) return;
-  if (els.areaFiles.querySelector('.area-new-file-input')) {
-    els.areaFiles.querySelector('.area-new-file-input').focus();
-    return;
-  }
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'area-new-file-input';
-  input.placeholder = t('areaPanel.newFilePlaceholder');
-  input.addEventListener('keydown', async (e) => {
-    if (e.key === 'Escape') {
-      input.remove();
-      return;
-    }
-    if (e.key !== 'Enter') return;
-    const name = input.value.trim();
-    if (!name) return;
-    const dir = selectedDir(paneIdx);
-    const result = await api.areaCreateFile(dir, name);
-    if (result && result.ok) {
-      input.remove();
-      listingCache.delete(dir);
-      await renderAreaPanel(paneIdx);
-      // 4T-000427 (Epic 3E-000080): Datei-Anlage über die App durchläuft den
-      // Ordner-Regel-Trigger (Vorlage füllen, öffnen, Cursor-Sprung).
-      await openCreatedFileWithRule(paneIdx, result.path);
-      return;
-    }
-    const key =
-      result && result.error === 'exists' ? 'areaPanel.newFileExists' : 'areaPanel.newFileError';
-    showStatusbarHint(key, { duration: 2500, error: true });
-  });
-  els.areaFiles.prepend(input);
-  input.focus();
 }
 
 // 4T-000612 (Epic 3E-000115, PO-Testbefund EXE 0.91.0.919): Concurrency-Token pro
@@ -375,7 +360,7 @@ for (let i = 0; i < 2; i++) {
 for (let i = 0; i < 2; i++) {
   const els = getPaneEls(i);
   if (els && els.areaNewFileBtn) {
-    els.areaNewFileBtn.addEventListener('click', () => showNewFileInput(i));
+    els.areaNewFileBtn.addEventListener('click', () => void anlageWege.neueDatei(i));
   }
 }
 

@@ -231,3 +231,49 @@ export class EmojiWidget extends WidgetType {
     return true;
   }
 }
+
+// 4T-001423 (Epic 3E-000176): Indikator des Block-Ankers. Ersetzt den Roh-Text
+// `^id` am Zeilenende durch ein dezentes Zeichen; die Schreibmarke in der Zeile
+// lässt den Pass die Dekoration auslassen, womit der Roh-Text auf dem gewohnten
+// Weg aufklappt (activeLines-Guard beim Aufbau).
+//
+// Die hohle Raute bildet mit der gefüllten Raute des Block-Metadaten-Indikators
+// (block-meta-indicator.js) ein Paar: gleiche Form, gefüllt heißt «trägt
+// Daten». Beide stehen am selben Zeilenende — der Anker zuerst, weil er im Text
+// weiter links steht und die Daten an ihm hängen (PO-Entscheidung 2026-09-05).
+//
+// ignoreEvent() liefert true: Die Klick-Behandlung liegt hier am DOM-Knoten und
+// soll nicht zusätzlich von CodeMirror auf eine Dokument-Position abgebildet
+// werden. Der Klick setzt die Schreibmarke an das Zeilenende, womit derselbe
+// Aufklapp-Weg greift wie beim Hineinfahren mit den Pfeiltasten — ein zweiter
+// Bearbeitungs-Pfad entsteht bewusst nicht.
+export class BlockAnkerWidget extends WidgetType {
+  constructor(id) {
+    super();
+    this.id = id;
+  }
+  eq(other) {
+    return other instanceof BlockAnkerWidget && other.id === this.id;
+  }
+  toDOM(view) {
+    const span = document.createElement('span');
+    span.className = 'cm-live-block-anker';
+    span.dataset.ankerId = this.id;
+    span.textContent = '◇';
+    const bezeichnung = t('live.blockAnchor.label');
+    span.title = `${bezeichnung} ^${this.id}`;
+    span.setAttribute('aria-label', bezeichnung);
+    span.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const pos = view.posAtDOM(span);
+      const zeile = view.state.doc.lineAt(pos);
+      view.dispatch({ selection: { anchor: zeile.to } });
+      view.focus();
+    });
+    return span;
+  }
+  ignoreEvent() {
+    return true;
+  }
+}

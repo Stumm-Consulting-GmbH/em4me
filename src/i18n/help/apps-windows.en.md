@@ -98,6 +98,22 @@ In an area application the search scope for backlinks, tags, autocomplete and th
 
 The "Area" panel shows the area as a folder structure in the sidebar (dockable left or right like any panel; the switch is the folder icon in the status bar or View → Sidebar → Panels → Area): the folder tree on top, below it the Markdown files of the selected folder; other file types do not appear. Clicking a file opens it as a tab, all entries show the full path as a tooltip, and external changes (file created, deleted, renamed) appear automatically. The "+" button at the head of the file list creates a new Markdown file in the selected folder and opens it. In a freshly opened, still empty area application the panel is visible automatically.
 
+### File management in the area panel
+
+The context menu manages the file tree without leaving the application. A **folder row** offers two entries: **New subfolder…** and **New Markdown file…**. Both ask for the name in place — the folder name in a row below the folder you clicked, the file name at the top of the file list — and create the item in the folder **you clicked**, even if a different one is currently selected. A file name without an extension gets the Markdown extension added; the new file is opened and passes through the folder rule for templates like any other creation. A name already taken, a name the file system does not allow and an empty name are reported before anything is created; Escape cancels and leaves nothing behind.
+
+A **file row** offers **Rename…** and **Delete…** at the end of the menu, set apart from the entries above.
+
+**Renaming** is the same path as through the menu, with the same update of internal links and the same preview of the affected places. The only difference is what it applies to: here any file of the area, including one that is not open, instead of only the open one. If the file is open and has unsaved changes, it is saved first; its tab then shows the new name.
+
+**Deleting moves the file to the operating system trash** rather than deleting it permanently. A confirmation appears first, naming the file. **The file is restored in the operating system trash, not in the application** — the app has no trash of its own. If no trash is available or the move fails for another reason, this is reported and the file stays untouched; it is never deleted permanently as a substitute.
+
+If the file is open, its tab is closed; unsaved changes go through the usual save prompt first. **Cancelling that prompt also cancels the deletion** — nothing has happened then.
+
+**Links pointing to a deleted file are not adjusted.** Unlike renaming, there is no replacement target; the links remain and become broken links. This is intended and not a malfunction: a broken link shows that something used to be there and can be resolved deliberately.
+
+Renaming and deleting **folders** as well as moving files are not part of the scope yet; the file manager of the operating system remains the place for that.
+
 ### Area statistics
 
 "View → Area statistics" opens a figures page for the open area as its own tab; the same entry point sits in the context menu of the area panel. The page is read-only and shows six sections: **Files and storage** (Markdown and non-Markdown files split into images, PDF and other, folder count, storage used with its shares), **Properties** and **Tags** (the number of files per entry, sortable by name or count), **Companion files** (the `.mdd` per document and the area files `.mdda`), **Content** (tasks by state, wiki and Markdown links, aliases, files without an incoming link) and **Notable files** (the largest, the most recently changed and the most linked ones). Clicking a file name in the last three lists opens that file.

@@ -11,9 +11,11 @@ Images and PDFs embed straight into the page. The binary files live in the `atta
 
 ## Embed an image
 
-`![[file]]` embeds a file; add a width after a pipe. Image embeds are resolved
-relative to the note, so name the folder when the image sits elsewhere — as it
-does here, in `attachments`.
+`![[file]]` embeds a file; add a width after a pipe. The target is looked for in
+three steps — the path relative to this note, the subpage spelling, and finally
+the plain name anywhere in the area. Naming the folder, as done here with
+`attachments`, is therefore the precise way, not the only one: `![[demo-image]]`
+finds the same file.
 
 ```markdown
 ![[attachments/demo-image.png]]

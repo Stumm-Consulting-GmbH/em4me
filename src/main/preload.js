@@ -175,6 +175,10 @@ contextBridge.exposeInMainWorld('api', {
   // dem Dialog aufbaut (Begruendung am Handler in main.js).
   choosePdfExportTarget: (params) => ipcRenderer.invoke('pdf:chooseTarget', params),
   printPdfToFile: (targetPath) => ipcRenderer.invoke('pdf:print', targetPath),
+  // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog. Kein Argument —
+  // Format, Ausrichtung und Raender liest der Hauptprozess aus dem Store,
+  // alles Uebrige waehlt der Anwender im Dialog des Betriebssystems.
+  printToSystemPrinter: () => ipcRenderer.invoke('print:system'),
 
   // Dialog-Helfer fuer Dirty-State und Konflikt-Strategie
   confirmCloseDirty: (opts) => ipcRenderer.invoke('dialog:confirmCloseDirty', opts),
@@ -448,6 +452,16 @@ contextBridge.exposeInMainWorld('api', {
   // Antwort: { ok, path, displayPath, content } oder { ok: false, error }.
   readEmbedFile: (basePath, embedPath, anchor) =>
     ipcRenderer.invoke('embed:read', { basePath, embedPath, anchor }),
+  // 4T-001486 (Epic 3E-000199): Ziel-Pfad einer Nicht-Markdown-Einbettung
+  // ueber dieselben drei Stufen und dieselbe Bereichs-Grenze wie eine
+  // Markdown-Einbettung. Antwort: { ok, path } oder { ok: false, error }.
+  resolveEmbedTarget: (basePath, embedPath, kind) =>
+    ipcRenderer.invoke('embed:resolveTarget', { basePath, embedPath, kind }),
+  // 4T-001486: Inhalt einer Bild-Einbettung als Daten-Adresse — die
+  // Inhalts-Sicherheits-Regel laesst fuer Bilder nur 'self' und 'data:' zu.
+  // Antwort: { ok, path, dataUrl } oder { ok: false, error }.
+  readEmbedImage: (basePath, embedPath) =>
+    ipcRenderer.invoke('embed:readImage', { basePath, embedPath }),
   // 4T-000056: Tag-System. Liefert Tag-Liste der Wurzel (sortiert nach
   // Haeufigkeit) und optional Datei-Liste fuer einen Filter-Tag.
   requestTags: (filePath, filterTag) =>
@@ -602,6 +616,11 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000328: neue Markdown-Datei im Bereichs-Ordner anlegen; Struktur-
   // Aenderungen im Bereich meldet der Main-Watcher debounced.
   areaCreateFile: (dirPath, name) => ipcRenderer.invoke('area:createFile', { dirPath, name }),
+  // 4T-001349 (Epic 3E-000170): neuen Unterordner im Bereichs-Ordner anlegen.
+  areaCreateFolder: (dirPath, name) => ipcRenderer.invoke('area:createFolder', { dirPath, name }),
+  // 4T-001351 (Epic 3E-000170): Rueckfrage und Verschieben in den Papierkorb.
+  areaConfirmTrashFile: (fileName) => ipcRenderer.invoke('area:confirmTrashFile', fileName),
+  areaTrashFile: (filePath) => ipcRenderer.invoke('area:trashFile', filePath),
   onAreaChanged: (cb) => ipcRenderer.on('area:changed', () => cb()),
   reportPanes: (panes) => ipcRenderer.invoke('window:reportPanes', panes),
   // 4T-000368 (Epic 3E-000068): Unbenannt-Tabs mit Inhalt beim Schliessen als
@@ -815,6 +834,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuExportPortable: (cb) => ipcRenderer.on('menu:exportPortable', () => cb()),
   // 4T-000303 (Epic 3E-000054): Menu-Event 'Datei -> Als PDF exportieren...'
   onMenuExportPdf: (cb) => ipcRenderer.on('menu:exportPdf', () => cb()),
+  // 4T-001479 (Epic 3E-000177): Menu-Event 'Datei -> Drucken...'
+  onMenuPrint: (cb) => ipcRenderer.on('menu:print', () => cb()),
   onMenuToggleAutoSave: (cb) => ipcRenderer.on('menu:toggleAutoSave', () => cb()),
   // 4T-000013: Menue-Eintrag "Ansicht -> Gliederung" sendet diesen Event;
   // Renderer toggelt die Sichtbarkeit der Folding-Spuren im aktiven Tab.

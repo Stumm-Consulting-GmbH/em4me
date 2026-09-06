@@ -6,13 +6,24 @@
 
 // 4T-000604 (Epic 3E-000113): History-Isolation fuer den Zeitstempel-Dispatch.
 import { isolateHistory } from '@codemirror/commands';
-import { getLanguage } from '../../i18n.js';
+import { getLanguage, t } from '../../i18n.js';
 
 import { api, getDocText } from '../app/api.js';
 // 4T-000435 (Epic 3E-000081): Export-Ersetzung des Journal-Navigations-Blocks.
 import { replaceJournalNavFencesForExport } from '../calendar/journal-nav-view.js';
 // 4T-001066 (Epic 3E-000212): Timeline-Fences werden zur statischen Pipe-Tabelle.
 import { replaceJournalTimelineFencesForExport } from '../calendar/journal-timeline-view.js';
+// 4T-001471 (Epic 3E-000178): dritte Fence-Ersetzung des portablen Exports.
+// Der Fence-Kern ist electron-frei und ohne DOM geprueft; das Zeichnen liegt
+// bei den uebrigen Mermaid-Render-Wegen.
+import {
+  collectMermaidSources,
+  hasMermaidFence,
+  mermaidSvgBlock,
+  replaceMermaidFences,
+} from '../../../shared/mermaid-fence.js';
+import { renderMermaidSvgsForExport } from '../render-mermaid.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { EDITOR_VIEW_FM_KEYS, getEditorViewDefaults, state, withDialog } from '../app/app-state.js';
 // 4T-000572 (Epic 3E-000105): Frontmatter-Lesen der dokument-gebundenen Editor-
 // Ansicht-Schalter. Direkter Import aus dem Electron-freien Shared-Modul
@@ -34,7 +45,6 @@ import { closeTab, meldeFehlendeTeile } from '../tabs/tabs.js';
 // 4T-000332 (Epic 3E-000060): Statusbar-Zustand der Dokument-Historie (Laufzeit-
 // Zyklus save-export <-> history-status, Muster 4T-000179).
 import { updateHistoryStatus } from './history-status.js';
-import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 
 import { invalidatePaneRenderCache, reloadFile } from './pane-render.js';
 import { renderTabbar } from './tabbar.js';
@@ -372,6 +382,26 @@ export function saveCurrentTabAs() {
 // perspective-table-Codebloecke im aktiven Tab durch inline HTML-Tabellen und
 // speichert das Ergebnis ueber den OS-Save-As-Dialog. Vorbelegung des
 // Dateinamens '<basename>-portable.md'. Der aktive Tab bleibt unveraendert.
+
+// 4T-001471 (Epic 3E-000178): Mermaid-Fences durch ihr eingebranntes Bild
+// ersetzen. Unveraendert bleibt der Fence in drei Faellen: die Erweiterung ist
+// ausgeschaltet (Gleichlauf zur gerenderten Ansicht, die den Block dann als
+// Code laesst), der Text traegt kein Diagramm, oder das Bild erkennt sich als
+// Fehler (Epic-Entscheidung E4).
+async function replaceMermaidFencesForExport(text) {
+  const source = String(text == null ? '' : text);
+  if (!isExtensionActive('mermaid')) return source;
+  if (!hasMermaidFence(source)) return source;
+  const bilder = await renderMermaidSvgsForExport(collectMermaidSources(source));
+  if (bilder.size === 0) return source;
+  // Die Ersetzung laeuft ueber eine Callback-Funktion, nie ueber einen
+  // Ersetzungs-TEXT, in dem Dollar-Folgen des SVG Sonderzeichen waeren
+  // (Fehlerklasse L7, Beleg 4T-001423).
+  return replaceMermaidFences(source, (body) => {
+    const svgHtml = bilder.get(body);
+    return svgHtml ? mermaidSvgBlock(svgHtml, t('export.mermaidAlt')) : null;
+  });
+}
 export async function exportCurrentTabAsPortable() {
   const pane = state.panes[state.activePaneIndex];
   if (!pane || pane.activeIndex < 0) return false;
@@ -389,6 +419,12 @@ export async function exportCurrentTabAsPortable() {
     // als Pipe-Tabelle (ohne Anlage-Links); außerhalb eines Journal-Eintrags
     // bleibt der Fence ebenfalls unverändert.
     portableText = await replaceJournalTimelineFencesForExport(portableText, tab.path || '');
+    // 4T-001471 (Epic 3E-000178): Mermaid-Fences werden als inline SVG
+    // eingebrannt, im Hell-Theme und unabhaengig vom Ansichts-Modus des Tabs;
+    // ein fehlerhaftes Diagramm und der Aus-Zustand der Erweiterung lassen den
+    // Fence stehen. Zuletzt in der Kette, weil die beiden Journal-Ersetzungen
+    // keine Diagramme erzeugen und die Reihenfolge damit frei ist.
+    portableText = await replaceMermaidFencesForExport(portableText);
     let suggestedPath = null;
     if (tab.path) {
       // '.md'-Suffix durch '-portable.md' ersetzen, falls vorhanden;

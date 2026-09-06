@@ -1,6 +1,6 @@
 # Tools
 
-Ten helpers for daily text work: linter, spell checking, search, search and replace, table editor, PDF export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
+Eleven helpers for daily text work: linter, spell checking, search, search and replace, table editor, printing, PDF export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
 
 ## Markdown linter
 
@@ -102,6 +102,13 @@ Switching sections in the settings saves nothing, a started draft is preserved. 
 ## Table editor
 
 In pipe tables `Tab` jumps to the next and `Shift+Tab` to the previous cell. At the end of the last row, `Tab` or `Enter` create a new table row with the same column count; pressing `Enter` twice on an empty row leaves the table. Borderless tables (without outer pipes) are recognised as well. Structural operations (moving, inserting and deleting rows and columns, alignment, transposing) are offered by the **Table** submenu in the [Editor context menu](context-menu.md).
+
+## Printing
+
+"File → More File Functions → Print…" (default `Ctrl+P`) prints the content of the active tab directly on a printer — without the detour via a PDF file that would then have to be opened in a second program. The print dialog of your operating system opens: printer, page range, number of copies, duplex and everything else are chosen there, in the interface you know from every other program. Page size, orientation and margins are pre-filled from the "Export" settings section.
+
+Printing follows the active view, exactly like the PDF export below: the source view prints raw Markdown with syntax highlighting; rendered, split and live print the formatted document. The printout is always light, even when the app runs in the dark theme; Mermaid diagrams are redrawn light for this. The settings tab cannot be printed, manual tabs can. If you cancel the system dialog, nothing happens.
+
 ## PDF export
 
 "File → More File Functions → Export as PDF…" (default `Ctrl+Shift+P`) prints the content of the active tab to a PDF file. The export follows the active view: the source view prints the raw Markdown with syntax highlighting, including line numbers when they are enabled in the tab; rendered, split and live mode print the formatted document (split and live switch internally to the rendered view for printing and restore the view afterwards). The PDF is always light, even when the app runs in the dark theme; Mermaid diagrams are redrawn in light colours and remain vector graphics. Formulas, code highlighting, callouts and perspective tables appear as in the preview.

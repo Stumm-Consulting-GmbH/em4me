@@ -29,6 +29,8 @@ Les ancres de bloc se posent avec `^id` en fin de ligne et ancrent le bloc englo
 Cette décision est contraignante. ^decision-1
 ```
 
+L'ancre ne se présente pas de la même façon selon la vue. La vue rendue ne l'affiche pas du tout — le bloc n'y est qu'une cible de saut. Le **mode direct** la remplace par un discret repère en fin de ligne : le survol indique l'identifiant, un clic place le curseur en fin de ligne et déplie le texte source pour l'édition. Si le curseur se trouve déjà dans la ligne, l'ancre reste visible comme d'habitude. Que le mode direct en montre plus que la vue rendue est voulu : une ancre est une adresse vers laquelle pointent d'autres documents, et lors d'une réorganisation il faut pouvoir voir qu'elle existe. Si le même bloc porte des [propriétés](block-properties.md), leur repère se place à côté.
+
 Les cibles d'ancres cassées sont signalées par le [linter Markdown](tools.md) dans l'éditeur.
 
 ## Liens Markdown vers des fichiers
@@ -70,6 +72,10 @@ Un espace brut sans chevrons met fin à la cible, de sorte que le lien n'est pas
 ```
 
 Pour les ancres de bloc, le bloc englobant complet est incorporé (élément de liste avec sous-listes, bloc de code, ligne de tableau, citation). Le Markdown incorporé se rend avec sa propre source comme base ; les liens à l'intérieur se résolvent contre le fichier incorporé.
+
+**Où la cible est cherchée.** L'application cherche en trois étapes, de la même manière pour chaque type de fichier : d'abord le chemin relatif à votre propre fichier, puis l'écriture des sous-pages, enfin le simple **nom** dans tout l'espace. Ainsi `![[image.png]]` trouve le fichier même s'il se trouve dans un autre dossier — le chemin n'a pas besoin d'être exact. La recherche s'arrête à la racine de l'espace : ce qui est en dehors n'est pas incorporé. Sans espace lié, la limite reste le dossier de votre propre fichier.
+
+Si un fichier Markdown porte le même nom qu'une pièce jointe, le fichier Markdown l'emporte ; écrit avec son extension (`![[image.png]]`), le cas est sans ambiguïté. Les images Markdown ordinaires `![](chemin.png)` ne sont pas concernées — leur écriture désigne un chemin et non un nom.
 
 ## Tags
 

@@ -45,6 +45,9 @@ const KERN_ZEILEN = [
   'help.feature.attachments',
   'help.feature.attachmentOpen',
   'help.feature.exportPortable',
+  // 4T-001480 (Epic 3E-000177, Entscheidung E6): Drucken ist Kern wie der
+  // PDF-Export — eine Ausgabe-Grundfunktion ohne sinnvollen Aus-Zustand.
+  'help.feature.print',
   'help.feature.exportPdf',
   'help.feature.autoReload',
   'help.feature.restoreSession',
@@ -63,6 +66,12 @@ const KERN_ZEILEN = [
   'help.feature.listNumbering',
   'help.feature.listExit',
   'help.feature.tableEditor',
+  // 4T-001347 (Epic 3E-000239): Die Tabellen-Bearbeitung im Live-Modus ist Kern
+  // und keine schaltbare Erweiterung (Entscheidung des Product Owners vom
+  // 2026-09-04): Sie ist kein neues Markdown-Konstrukt, sondern die
+  // Bedienbarkeit eines vorhandenen, und ihr Aus-Zustand waere der Defekt,
+  // den das Epic behebt.
+  'help.feature.liveTableEdit',
   'help.feature.insertTimestamp',
   'help.feature.search',
   'help.feature.searchReplace',
@@ -124,6 +133,14 @@ const KERN_ZEILEN = [
   'help.feature.recentAreas',
   'help.feature.areaStartPage',
   'help.feature.areaPanel',
+  // 4T-001352 (Epic 3E-000170), Ergebnis des Erweiterungs-Prüfschritts: Kern.
+  // Anlegen, Umbenennen und Löschen im Bereichs-Panel sind kein zuschaltbares
+  // Konstrukt, sondern der Umgang mit dem Bestand, den das Panel zeigt; ein
+  // Aus-Zustand ließe den Anwender vor einem Baum stehen, den er nur ansehen
+  // darf, und das Umbenennen bliebe über das Datei-Menü ohnehin erreichbar.
+  // Die Begründung steht im Lösungs-Kapitel von 4T-001352.
+  'help.feature.areaFileCreate',
+  'help.feature.areaFileRenameDelete',
   'help.feature.journalCalendar',
   'help.feature.outline',
   'help.feature.aliases',

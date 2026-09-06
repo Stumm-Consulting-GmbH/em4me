@@ -26,6 +26,8 @@ import {
 } from '../views/file-actions.js';
 import { handleLinkUpdateApplied } from '../views/link-update.js';
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
+// 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog.
+import { printActiveTab } from '../views/print.js';
 import {
   exportCurrentTabAsPortable,
   saveCurrentTab,
@@ -140,6 +142,10 @@ export function bindMenuEvents() {
   // 4T-000303 (Epic 3E-000054): Export 'Als PDF exportieren...'.
   if (typeof api.onMenuExportPdf === 'function') {
     api.onMenuExportPdf(() => exportActiveTabAsPdf());
+  }
+  // 4T-001479 (Epic 3E-000177): Menue-Eintrag 'Drucken...'.
+  if (typeof api.onMenuPrint === 'function') {
+    api.onMenuPrint(() => printActiveTab());
   }
   // 4T-000207: gemeinsamer Toggle-Pfad mit dem Kommando file.toggleAutoSave.
   api.onMenuToggleAutoSave(() => toggleAutoSaveSetting());

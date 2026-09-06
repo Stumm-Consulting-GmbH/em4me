@@ -106,13 +106,46 @@ export async function renameFileForTab(paneIdx, tabIdx) {
     showStatusbarHint('rename.noFile', { duration: 2500, error: true });
     return;
   }
-  // Ungespeicherte Aenderungen zuerst sichern — der Pfad wechselt, ein
-  // Dirty-Stand darf nicht am alten Namen haengen bleiben.
-  if (tab.dirty) {
-    const saved = await saveTab(paneIdx, tabIdx);
-    if (!saved) return;
+  await renameFileAtPath(tab.path);
+}
+
+// 4T-001350 (Epic 3E-000170): Sichert jeden geaenderten offenen Reiter dieser
+// Datei, bevor umbenannt wird — der Pfad wechselt, ein Dirty-Stand darf nicht
+// am alten Namen haengen bleiben. Ueber ALLE Panes, weil dieselbe Datei in
+// beiden Spalten offen sein kann; ein Abbruch der Speichern-Abfrage bricht den
+// ganzen Vorgang ab.
+async function sichereOffeneReiter(absPath) {
+  for (let p = 0; p < state.panes.length; p++) {
+    const tabs = state.panes[p].tabs;
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
+      if (tab.path !== absPath || !tab.dirty) continue;
+      if (!(await saveTab(p, i))) return false;
+    }
   }
-  const currentBase = api.basename(tab.path).replace(/\.(md|markdown|mdown|mkd)$/i, '');
+  return true;
+}
+
+/**
+ * 4T-001350 (Epic 3E-000170): Derselbe Umbenennen-Weg, adressiert ueber den
+ * PFAD statt ueber einen Reiter.
+ *
+ * Der Bedienweg im Bereichs-Panel trifft eine beliebige Datei des Bereichs,
+ * auch eine nicht geoeffnete; der Reiter-Weg oben ist seither nur noch die
+ * Adressierung ueber den aktiven Tab und laeuft in dieselbe Funktion. Die
+ * Verweis-Nachfuehrung samt Vorschau haengt ohnehin nicht am Reiter, sondern
+ * am Pfad — der Hauptprozess durchsucht den Bereich und nicht die offenen
+ * Puffer (Entscheidung E3 des Epics: wiederverwenden, nicht nachbauen).
+ *
+ * @param {string} absPath Absoluter Pfad der umzubenennenden Datei.
+ */
+export async function renameFileAtPath(absPath) {
+  if (typeof absPath !== 'string' || !absPath) {
+    showStatusbarHint('rename.noFile', { duration: 2500, error: true });
+    return;
+  }
+  if (!(await sichereOffeneReiter(absPath))) return;
+  const currentBase = api.basename(absPath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
   // 4T-000340: drei Ebenen-Faelle einheitlich als "eigenes Namens-Segment
   // aendern". Bei Unterseiten wird nur das letzte Segment editiert (die
   // Eltern-Kette bleibt), bei Top-Level-Seiten der ganze Basename. Der
@@ -120,7 +153,7 @@ export async function renameFileForTab(paneIdx, tabIdx) {
   const isSub = isSubpageBasename(currentBase);
   let descendantCount = 0;
   try {
-    const scan = await api.subpageDescendants(tab.path);
+    const scan = await api.subpageDescendants(absPath);
     if (scan && scan.ok && Array.isArray(scan.files)) descendantCount = scan.files.length;
   } catch {
     /* Scan-Fehler: Kaskade laeuft trotzdem, nur der Hinweis entfaellt */
@@ -207,7 +240,7 @@ export async function renameFileForTab(paneIdx, tabIdx) {
   const updateLinks = !!(input.checkboxes && input.checkboxes.updateLinks);
   const showPreview = updateLinks && !!(input.checkboxes && input.checkboxes.showPreview);
 
-  await applyRename(tab, newBase, updateLinks, showPreview);
+  await applyRename({ path: absPath }, newBase, updateLinks, showPreview);
 }
 
 // 4T-000774 (Epic 3E-000128): gemeinsamer Ausfuehrungs-Teil von Umbenennen und

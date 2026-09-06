@@ -389,6 +389,16 @@ function buildMenu(win, state, actions) {
           },
           { type: 'separator' },
           {
+            // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog, direkt
+            // vor dem PDF-Export (Entscheidung E5 des Epics). Dieselbe
+            // enabled-Regel: Handbuch-Tabs sind druckbar, nur der
+            // Einstellungs-Tab (systemTab) ist ausgenommen.
+            label: t('menu.file.print'),
+            accelerator: acc('file.print'),
+            enabled: !!(state && state.hasActiveTab) && !systemTab,
+            click: send('menu:print'),
+          },
+          {
             // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts.
             // Handbuch-Tabs sind exportierbar (gerenderter Inhalt vorhanden),
             // nur der Einstellungs-Tab (systemTab) ist ausgenommen.

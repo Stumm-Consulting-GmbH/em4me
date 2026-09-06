@@ -20,6 +20,8 @@ Le changement se fait par les boutons de la barre d'état ou par le haut du menu
 
 Le mode direct rend le Markdown directement dans l'éditeur : gras et italique, liens, tableaux, code, images, formules KaTeX et diagrammes Mermaid apparaissent tels qu'ils sont dans le résultat rendu. Lorsque le curseur se trouve dans une ligne, cette ligne précise montre sa source brute et reste modifiable. Le va-et-vient entre écrire et vérifier disparaît ainsi.
 
+**Les tableaux font exception à cette règle.** Ils restent mis en forme même lorsque le curseur s’y trouve : le clic atteint la cellule, la tabulation et les flèches mènent de cellule en cellule, et ce que vous saisissez arrive au bon endroit de la source. Si vous avez besoin de la syntaxe brute d’un tableau — la ligne de séparation avec ses deux-points d’alignement, par exemple —, passez à la vue code source ou à la vue partagée.
+
 ### Carte mentale
 
 La carte mentale montre les titres et les listes du document sous forme d'arbre, et le texte courant comme note sur le nœud. Elle appartient à l'extension du même nom et disparaît avec elle ; structure, manipulation, les cinq positions de la racine et la valeur par document sont décrites sur la page [Vue carte mentale](mindmap.md).

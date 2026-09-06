@@ -1,6 +1,6 @@
 # Herramientas
 
-Diez ayudantes para el trabajo diario con el texto: linter, corrección ortográfica, búsqueda, buscar y reemplazar, editor de tablas, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
+Once ayudantes para el trabajo diario con el texto: linter, corrección ortográfica, búsqueda, buscar y reemplazar, editor de tablas, impresión, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
 
 ## Linter Markdown
 
@@ -102,6 +102,13 @@ Cambiar de sección en los ajustes no guarda nada, un borrador empezado se conse
 ## Editor de tablas
 
 En tablas pipe, `Tab` salta a la celda siguiente y `Mayús+Tab` a la anterior. Al final de la última fila, `Tab` o `Intro` crean una nueva fila con el mismo número de columnas; dos `Intro` en una fila vacía salen de la tabla. También se reconocen tablas sin bordes (sin pipes exteriores). Las operaciones de estructura (mover, insertar y eliminar filas y columnas, alineación, transposición) las ofrece el submenú **Tabla** en el [Menú contextual del editor](context-menu.md).
+
+## Impresión
+
+«Archivo → Más funciones de archivo → Imprimir…» (predeterminado `Ctrl+P`) imprime el contenido de la pestaña activa directamente en una impresora, sin el rodeo de un archivo PDF que después habría que abrir en un segundo programa. Se abre el diálogo de impresión del sistema operativo: impresora, intervalo de páginas, número de copias, dúplex y todo lo demás se eligen allí, en la interfaz que conoce de cualquier otro programa. El tamaño de página, la orientación y los márgenes vienen rellenados desde la sección «Exportación» de la configuración.
+
+La impresión sigue la vista activa, igual que la exportación a PDF de más abajo: la vista de código fuente imprime el Markdown en bruto con resaltado de sintaxis; Renderizada, Dividida y En vivo imprimen el documento formateado. La impresión siempre es clara, aunque la aplicación funcione con el tema oscuro; para ello los diagramas Mermaid se redibujan en claro. La pestaña de configuración no se puede imprimir, las del manual sí. Si cancela el diálogo del sistema, no ocurre nada.
+
 ## Exportación a PDF
 
 «Archivo → Más funciones de archivo → Exportar como PDF…» (predeterminado `Ctrl+Mayús+P`) imprime el contenido de la pestaña activa en un archivo PDF. La exportación sigue la vista activa: la vista de código fuente imprime el Markdown en bruto con resaltado de sintaxis, incluidos los números de línea si están activados en la pestaña; los modos renderizado, dividido y en vivo imprimen el documento formateado (dividido y en vivo cambian internamente a la vista renderizada para imprimir y después restauran la vista). El PDF es siempre claro, incluso si la aplicación usa el tema oscuro; los diagramas Mermaid se redibujan en colores claros y siguen siendo gráficos vectoriales. Fórmulas, resaltado de código, avisos y tablas perspective aparecen como en la vista previa.

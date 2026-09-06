@@ -39,6 +39,10 @@ const PORTABLE_HTML_ALLOWED_TAGS = new Set([
   'br',
   'mark',
   'a',
+  // 4T-001471 (Epic 3E-000178): Die eingebrannten Diagramme des portablen
+  // Exports sind Bilder mit Data-Adresse. Der Zusatz ist bewusst schmal —
+  // ein Tag, zwei Attribute — und `src` traegt eine eigene Schranke unten.
+  'img',
 ]);
 const PORTABLE_HTML_ALLOWED_ATTRS = new Set([
   'colspan',
@@ -48,7 +52,18 @@ const PORTABLE_HTML_ALLOWED_ATTRS = new Set([
   'align',
   'href',
   'title',
+  'src',
+  'alt',
 ]);
+
+// 4T-001471 (Epic 3E-000178): Schranke fuer `src`. Erlaubt ist ausschliesslich
+// eine eingebettete Bild-Adresse. Eine freie Adresse waere ein Rueckkanal:
+// Eine fremde Datei mit dem Portable-Marker koennte ueber ein Bild mit
+// http-Adresse beim blossen Oeffnen die Adresse des Lesers melden. Bewusst
+// enger als die Zulassung des Tags selbst.
+function erlaubteBildAdresse(wert) {
+  return String(wert).trim().toLowerCase().startsWith('data:image/');
+}
 
 // Block-HTML (in sich geschlossene Fragmente): per DOMParser filtern.
 // Nicht erlaubte Elemente werden samt Inhalt entfernt (deckt <style>,
@@ -71,6 +86,8 @@ function sanitizePortableHtmlBlock(rawHtml) {
       if (!PORTABLE_HTML_ALLOWED_ATTRS.has(name)) {
         el.removeAttribute(attr.name);
       } else if (name === 'href' && /^\s*(javascript|data|vbscript):/i.test(attr.value)) {
+        el.removeAttribute(attr.name);
+      } else if (name === 'src' && !erlaubteBildAdresse(attr.value)) {
         el.removeAttribute(attr.name);
       }
     }
@@ -102,6 +119,7 @@ function sanitizePortableHtmlInline(src) {
     // zu zwei Attributen) und schleuste einen Event-Handler ein.
     const bare = /^["']/.test(value) ? value.slice(1, -1) : value;
     if (name === 'href' && /^\s*(javascript|data|vbscript):/i.test(bare)) continue;
+    if (name === 'src' && !erlaubteBildAdresse(bare)) continue;
     attrs.push(`${name}="${escapeHtml(bare)}"`);
   }
   return `<${tag}${attrs.length ? ' ' + attrs.join(' ') : ''}${m[4] ? ' /' : ''}>`;

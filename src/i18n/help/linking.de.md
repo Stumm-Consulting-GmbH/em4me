@@ -29,6 +29,8 @@ Block-Anker werden mit `^id` am Zeilenende gesetzt und ankern den umschließende
 Diese Entscheidung ist verbindlich. ^entscheidung-1
 ```
 
+In den Ansichten sieht der Anker verschieden aus. Die gerenderte Ansicht zeigt ihn gar nicht — der Block ist dort nur ein Sprungziel. Der **Live-Modus** ersetzt ihn durch ein dezentes Zeichen am Zeilenende: Zeigen darauf nennt die Kennung, ein Klick setzt die Schreibmarke ans Zeilenende und klappt den Roh-Text zum Bearbeiten auf. Steht die Schreibmarke ohnehin in der Zeile, ist der Anker unverändert sichtbar. Dass der Live-Modus mehr zeigt als die gerenderte Ansicht, ist Absicht: Ein Anker ist eine Adresse, auf die von außen gezeigt wird, und beim Umbauen eines Dokuments soll sichtbar bleiben, dass es sie gibt. Trägt derselbe Block [Eigenschaften](block-properties.md), steht deren Zeichen daneben.
+
 Defekte Anker-Ziele markiert der [Markdown-Linter](tools.md) im Editor.
 
 ## Markdown-Links auf Dateien
@@ -70,6 +72,10 @@ Ein rohes Leerzeichen ohne spitze Klammern beendet das Ziel, sodass der Link nic
 ```
 
 Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen-Eintrag mit Unterlisten, Fenced Code, Tabellen-Zeile, Blockquote). Eingebettetes Markdown rendert mit eigener Quelle als Basis; Links darin lösen gegen die eingebettete Datei auf.
+
+**Wo das Ziel gesucht wird.** Die Anwendung sucht in drei Schritten, und zwar für jede Datei-Art gleich: zuerst am Pfad relativ zur eigenen Datei, dann in der Schreibweise der Unterseiten, zuletzt über den bloßen **Namen** im ganzen Bereich. `![[bild.png]]` findet die Datei also auch dann, wenn sie in einem anderen Ordner liegt — der Pfad muss nicht getroffen werden. Der Suchraum endet an der Bereichs-Wurzel: Was außerhalb liegt, wird nicht eingebettet. Ohne gebundenen Bereich bleibt es beim Ordner der eigenen Datei.
+
+Trägt eine Markdown-Datei denselben Namen wie eine Anlage, gewinnt die Markdown-Datei; mit Endung geschrieben (`![[bild.png]]`) ist die Sache eindeutig. Gewöhnliche Markdown-Bilder `![](pfad.png)` bleiben davon unberührt — ihre Schreibweise meint einen Pfad und keinen Namen.
 
 ## Tags
 

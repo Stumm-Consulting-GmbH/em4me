@@ -44,3 +44,46 @@ describe('P-02-Sanitizer (Portable-Pfad, DOMParser aktiv)', () => {
     expect(html).not.toContain('href="javascript:');
   });
 });
+
+// 4T-001471 (Epic 3E-000178): Die Whitelist ist um genau ein Tag gewachsen,
+// weil die eingebrannten Diagramme des portablen Exports Bilder mit
+// Data-Adresse sind. Diese Faelle halten die Erweiterung eng: Das Bild bleibt,
+// die freie Adresse nicht.
+describe('P-02-Sanitizer: Bilder nur mit eingebetteter Adresse (4T-001471)', () => {
+  const bild = (quelle) => renderMarkdown(`${MARKER}\n\n<img alt="X" src="${quelle}">\n`, 'de');
+
+  it('ein eingebettetes Bild bleibt erhalten', () => {
+    const html = bild('data:image/svg+xml;base64,PHN2Zy8+');
+    expect(html).toContain('<img');
+    expect(html).toContain('data:image/svg+xml;base64,PHN2Zy8+');
+    expect(html).toContain('alt="X"');
+  });
+
+  it('eine fremde http-Adresse verliert ihre Quelle — kein Rueckkanal beim Oeffnen', () => {
+    const html = bild('http://tracker.example/pixel.png');
+    expect(html).not.toContain('tracker.example');
+  });
+
+  it('eine Datei-Adresse verliert ihre Quelle', () => {
+    const html = bild('file:///etc/passwd');
+    expect(html).not.toContain('etc/passwd');
+  });
+
+  it('eine javascript-Adresse verliert ihre Quelle', () => {
+    const html = bild('javascript:alert(1)');
+    expect(html).not.toContain('javascript:');
+  });
+
+  it('eine Data-Adresse, die kein Bild ist, verliert ihre Quelle', () => {
+    const html = bild('data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==');
+    expect(html).not.toContain('data:text/html');
+  });
+
+  it('Ereignis-Behandlungen am Bild werden weiterhin entfernt', () => {
+    const html = renderMarkdown(
+      `${MARKER}\n\n<img alt="X" src="data:image/png;base64,AA" onerror="alert(1)">\n`,
+      'de',
+    );
+    expect(html).not.toContain('onerror');
+  });
+});

@@ -128,7 +128,7 @@ En detalle: [Bloques de script](scripts.md).
 Más allá de las cuatro construcciones grandes, el lenguaje aporta más de cincuenta extensiones: bloques de aviso y notas al pie para el texto, fórmulas y diagramas para la presentación, enlaces, etiquetas e inserciones para las relaciones, tareas, recordatorios y citas para la jornada de trabajo, además de plantillas y diarios. Nada de esto es obligatorio: cada extensión tiene su propio interruptor, y lo que está apagado desaparece de menús, comandos y presentación en lugar de estorbar.
 
 - **Extensiones de texto** para bloques de aviso, notas al pie, resaltado y abreviaturas.
-- **Presentación** con fórmulas, diagramas y código resaltado.
+- **Presentación** con fórmulas, diagramas y código resaltado; en la exportación portátil un diagrama viaja como imagen terminada y se ve también donde EM4me no está instalado.
 - **Relaciones** mediante enlaces, anclas, inserciones y etiquetas.
 - **Jornada de trabajo** con tareas, recordatorios, citas, plantillas y diarios.
 - **Activables una a una** y abierto a extensiones propias mediante una interfaz documentada.

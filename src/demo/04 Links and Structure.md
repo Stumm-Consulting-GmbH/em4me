@@ -18,6 +18,18 @@ Wiki links weave the files into a network. Back to [[00 Welcome]].
 
 [[03 Tables]] links by file name, and [[03 Tables|the tables page]] shows custom text. An anchor jumps inside a file: [[01 Markdown Basics#Lists]].
 
+## Block anchors
+
+A caret at the end of a line anchors the whole block, so a link can point at one single statement instead of a whole file:
+
+```markdown
+This decision is binding. ^decision-1
+```
+
+This decision is binding. ^decision-1
+
+The link [[04 Links and Structure#^decision-1]] jumps straight to it. The rendered view hides the anchor entirely; the live view replaces it with a discreet marker at the end of the line — hover it to read the identifier, click it to edit the raw text. Anchors also carry [[05 Properties and Profiles|block properties]].
+
 ## Tags
 
 ```markdown

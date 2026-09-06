@@ -98,6 +98,22 @@ En una aplicación de área, el espacio de búsqueda de los retroenlaces, las et
 
 El panel «Área» muestra el área como estructura de carpetas en la barra lateral (acoplable a la izquierda o a la derecha como cualquier panel; el conmutador es el icono de carpeta de la barra de estado o Ver → Barra lateral → Paneles → Área): el árbol de carpetas arriba y debajo los archivos Markdown de la carpeta seleccionada; otros tipos de archivo no aparecen. Un clic en un archivo lo abre como pestaña, todas las entradas muestran la ruta completa como información sobre herramientas, y los cambios externos (archivo creado, borrado, renombrado) aparecen automáticamente. El botón «+» en la cabecera de la lista crea un nuevo archivo Markdown en la carpeta seleccionada y lo abre. En una aplicación de área recién abierta y todavía vacía, el panel es visible automáticamente.
 
+### Gestión de archivos en el panel del área
+
+El clic derecho gestiona el conjunto de archivos sin salir de la aplicación. Una **fila de carpeta** ofrece dos entradas: **Nueva subcarpeta…** y **Nuevo archivo Markdown…**. Ambas piden el nombre in situ —el nombre de la carpeta en una fila bajo la carpeta sobre la que se ha hecho clic, el del archivo en la cabecera de la lista de archivos— y crean el elemento en la carpeta **sobre la que se ha hecho clic**, aunque en ese momento esté seleccionada otra. A un nombre de archivo sin extensión se le añade la extensión Markdown; el archivo nuevo se abre y pasa por la regla de carpeta de las plantillas como cualquier otra creación. Un nombre ya usado, un nombre que el sistema de archivos no permite y un nombre vacío se comunican antes de crear nada; Escape cancela y no deja nada.
+
+Una **fila de archivo** ofrece **Cambiar el nombre…** y **Eliminar…** al final del menú, separados de las entradas superiores.
+
+**Cambiar el nombre** es el mismo camino que a través del menú, con la misma adaptación de los enlaces internos y la misma vista previa de los lugares afectados. La única diferencia está en aquello sobre lo que actúa: aquí cualquier archivo del área, también uno que no esté abierto, y no solo el abierto. Si el archivo está abierto y modificado, se guarda primero; su pestaña muestra después el nombre nuevo.
+
+**Eliminar mueve el archivo a la papelera del sistema operativo** en lugar de borrarlo definitivamente. Antes aparece una consulta que indica el nombre del archivo. **La restauración se realiza en la papelera del sistema operativo, no en la aplicación**: la aplicación no lleva una papelera propia. Si no hay papelera disponible o el movimiento falla por otro motivo, se comunica y el archivo permanece intacto; nunca se borra definitivamente como sustituto.
+
+Si el archivo está abierto, su pestaña se cierra; los cambios sin guardar pasan antes por la consulta de guardado habitual. **Cancelar esa consulta cancela también la eliminación**: entonces no ha ocurrido nada.
+
+**Los enlaces que apuntan a un archivo eliminado no se adaptan.** A diferencia del cambio de nombre, no hay destino de reemplazo; los enlaces permanecen y se convierten en enlaces rotos. Es intencionado y no un fallo: un enlace roto muestra que allí había algo y puede resolverse de forma consciente.
+
+Cambiar el nombre y eliminar **carpetas**, así como mover archivos, no forman parte todavía del alcance; para eso sigue estando el gestor de archivos del sistema operativo.
+
 ### Estadísticas del área
 
 «Ver → Estadísticas del área» abre una página de indicadores del área abierta como pestaña propia; el mismo punto de entrada está en el menú contextual del panel del área. La página es de solo lectura y muestra seis secciones: **Archivos y almacenamiento** (archivos Markdown y no Markdown repartidos en imágenes, PDF y otros, número de carpetas, almacenamiento ocupado con sus partes), **Propiedades** y **Etiquetas** (el número de archivos por entrada, ordenable por nombre o por número), **Archivos complementarios** (el `.mdd` de cada documento y los archivos del área `.mdda`), **Contenido** (tareas por estado, enlaces wiki y Markdown, alias, archivos sin enlace entrante) y **Archivos destacados** (los más grandes, los modificados más recientemente y los más enlazados). Un clic en un nombre de archivo de estas tres últimas listas abre el archivo.

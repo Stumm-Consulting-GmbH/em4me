@@ -11,6 +11,7 @@ import {
   parsePipeTable,
   serializePipeTable,
   locatePipeCell,
+  locatePipeCellPosition,
   pipeOpAvailability,
   applyPipeOp,
   editPipeTable,
@@ -108,6 +109,78 @@ describe('locatePipeCell', () => {
   it('klemmt Zeilen- und Spalten-Offsets an die Ränder', () => {
     expect(locatePipeCell(BASIC, m, 9, 0).rowIndex).toBe(1);
     expect(locatePipeCell(BASIC, m, 2, 999).col).toBe(2);
+  });
+});
+
+// 4T-001344 (Epic 3E-000239): Gegenrichtung der Lokalisierung. Sie traegt den
+// Klick in die gerenderte Tabelle — aus Zeilen-Art, Zeilen- und Spalten-Index
+// des angeklickten DOM-Elements wird die Stelle im Quelltext.
+describe('locatePipeCellPosition', () => {
+  const m = parsePipeTable(BASIC);
+  const quelle = BASIC.join('\n');
+
+  // Hilfsmittel: schneidet den Zell-Text ueber den gelieferten Offset aus dem
+  // Block heraus. Damit haengen die Faelle nicht an ausgerechneten Zahlen.
+  function zellText(stelle) {
+    const laenge = stelle.contentEnd - stelle.contentStart;
+    return quelle.slice(stelle.offset, stelle.offset + laenge);
+  }
+
+  it('trifft Kopf-Zellen (AK2)', () => {
+    const stelle = locatePipeCellPosition(BASIC, m, { rowKind: 'header', col: 1 });
+    expect(stelle.line).toBe(0);
+    expect(zellText(stelle)).toBe('B');
+  });
+
+  it('trifft Datenzellen (AK1)', () => {
+    const stelle = locatePipeCellPosition(BASIC, m, { rowKind: 'body', rowIndex: 1, col: 2 });
+    expect(stelle.line).toBe(3);
+    expect(zellText(stelle)).toBe('c2');
+  });
+
+  it('rechnet ohne Trenn-Zeile mit dem kuerzeren Vorlauf', () => {
+    const ohne = ['| A | B |', '| a | b |'];
+    const om = parsePipeTable(ohne);
+    expect(om.hasSeparator).toBe(false);
+    const stelle = locatePipeCellPosition(ohne, om, { rowKind: 'body', rowIndex: 0, col: 1 });
+    expect(stelle.line).toBe(1);
+    expect(ohne.join('\n').slice(stelle.offset, stelle.offset + 1)).toBe('b');
+  });
+
+  it('setzt die Marke in einer leeren Zelle ins Padding (AK4)', () => {
+    const leer = ['| A | B |', '| --- | --- |', '|  |  |'];
+    const lm = parsePipeTable(leer);
+    const stelle = locatePipeCellPosition(leer, lm, { rowKind: 'body', rowIndex: 0, col: 0 });
+    expect(stelle.line).toBe(2);
+    expect(stelle.contentStart).toBe(stelle.contentEnd);
+    expect(leer[2][stelle.ch]).toBe('|');
+  });
+
+  it('klemmt Zeilen- und Spalten-Index aus fremder Zaehlung', () => {
+    expect(locatePipeCellPosition(BASIC, m, { rowKind: 'body', rowIndex: 99, col: 0 }).line).toBe(
+      3,
+    );
+    const rechts = locatePipeCellPosition(BASIC, m, { rowKind: 'header', col: 99 });
+    expect(zellText(rechts)).toBe('C');
+  });
+
+  it('ist die Umkehrung von locatePipeCell', () => {
+    for (const pos of [
+      { rowKind: 'header', rowIndex: 0, col: 0 },
+      { rowKind: 'header', rowIndex: 0, col: 2 },
+      { rowKind: 'body', rowIndex: 0, col: 1 },
+      { rowKind: 'body', rowIndex: 1, col: 2 },
+    ]) {
+      const stelle = locatePipeCellPosition(BASIC, m, pos);
+      expect(locatePipeCell(BASIC, m, stelle.line, stelle.ch)).toEqual(pos);
+    }
+  });
+
+  it('liefert offset passend zu Zeile und Spalte', () => {
+    const stelle = locatePipeCellPosition(BASIC, m, { rowKind: 'body', rowIndex: 0, col: 0 });
+    let erwartet = stelle.ch;
+    for (let i = 0; i < stelle.line; i++) erwartet += BASIC[i].length + 1;
+    expect(stelle.offset).toBe(erwartet);
   });
 });
 

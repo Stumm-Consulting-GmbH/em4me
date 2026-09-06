@@ -21,7 +21,7 @@ import { isFrontmatterDisplayEnabled } from '../frontmatter-display.js';
 import { currentMermaidTheme, mermaidHash } from '../render-mermaid.js';
 import { activeLineSet, liveRebuildEffect, positionInsideCode } from './live-shared.js';
 import { computeCommentRanges, detectFrontmatterLines } from './live-marker-fields.js';
-import { blockIsActive, computeMathBlockRanges } from './live-deco.js';
+import { blockIsActive, blockKlapptAuf, computeMathBlockRanges } from './live-deco.js';
 import { computeDeflistLineBlockScan, positionInsideTable } from './live-scans.js';
 import { MarkdownBlockWidget, MathBlockWidget } from './live-widget-render.js';
 import { FrontmatterBlockWidget, MermaidBlockWidget } from './live-mermaid-widget.js';
@@ -60,6 +60,14 @@ export function blockActiveSignature(activeLines, spans) {
   const parts = [];
   for (const l of activeLines) {
     for (const s of spans) {
+      // 4T-001345 (Epic 3E-000239): Bloecke, die nie aufklappen — seit
+      // Entscheidung E2 die Tabellen —, gehoeren nicht in die Signatur. Ihre
+      // aktiven Zeilen aendern das Decoration-Ergebnis nicht mehr, und ein
+      // Rebuild wuerde nur das Widget-DOM austauschen. Das ist nicht bloss
+      // verschwendete Arbeit: Es reisst eine offene Zell-Bearbeitung mitsamt
+      // ihrem Eingabefeld aus dem Baum (gemessen am 2026-09-04), und der
+      // Klick, der die Schreibmarke setzt, verlaere sein eigenes Ziel.
+      if (s.klapptNie) continue;
       if (l >= s.fromLine && l <= s.toLine) {
         parts.push(l);
         break;
@@ -192,10 +200,18 @@ export function buildBlockWidgetValue(state) {
       if (fromLine.number <= frontmatterEndLine) return;
       // 4T-000479: kommentierte Bloecke nicht als Widget rendern.
       if (intersectsComment(node.from, node.to)) return;
-      spans.push({ fromLine: fromLine.number, toLine: toLine.number });
+      spans.push({
+        fromLine: fromLine.number,
+        toLine: toLine.number,
+        klapptNie: name === 'Table',
+      });
       // Validation gelockert: kein strikter Linien-Match wie bei block:true,
       // weil Inline-Replace robust mit Range-Variationen umgeht.
-      if (blockIsActive(activeLines, fromLine.number, toLine.number)) return;
+      //
+      // 4T-001345 (Epic 3E-000239): Die Aufklapp-Regel samt ihrer Tabellen-
+      // Ausnahme steht in blockKlapptAuf (live-deco.js), damit sie an einer
+      // Stelle lebt und ohne laufenden Editor pruefbar ist.
+      if (blockKlapptAuf(name, activeLines, fromLine.number, toLine.number)) return;
       const source = state.doc.sliceString(node.from, node.to);
       let cacheKey;
       if (name === 'Table') {

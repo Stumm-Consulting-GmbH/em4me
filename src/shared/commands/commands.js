@@ -441,6 +441,21 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog. Strg+P ist der
+  // etablierte Standard und hier frei — der PDF-Export war 2026 auf
+  // Strg+Umschalt+P ausgewichen, weil CodeMirror Strg+P im Edit-Modus greife
+  // (4T-000024). Die Annahme ist in diesem Task nachgemessen worden; das
+  // Ergebnis steht im Loesungs-Kapitel. Nicht editor-gebunden: Drucken gilt
+  // dem Reiter, nicht dem Editor.
+  {
+    id: 'file.print',
+    defaultBindings: ['CmdOrCtrl+P'],
+    labelKey: 'menu.file.print',
+    descKey: 'help.shortcut.print',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
   // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts. Umschalt-
   // Modifier, weil Strg+P im Edit-Modus von CodeMirror gegrabbt wird
   // (Begruendung aus 4T-000024 uebernommen).

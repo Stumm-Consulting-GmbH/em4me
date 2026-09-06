@@ -1,6 +1,6 @@
 # Outils
 
-Dix assistants pour le travail quotidien sur le texte : linter, correcteur orthographique, recherche, rechercher et remplacer, éditeur de tableaux, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
+Onze assistants pour le travail quotidien sur le texte : linter, correcteur orthographique, recherche, rechercher et remplacer, éditeur de tableaux, impression, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
 
 ## Linter Markdown
 
@@ -102,6 +102,13 @@ Changer de section dans les paramètres n’enregistre rien, un brouillon commen
 ## Éditeur de tableaux
 
 Dans les tableaux pipe, `Tab` saute à la cellule suivante et `Maj+Tab` à la précédente. À la fin de la dernière ligne, `Tab` ou `Entrée` créent une nouvelle ligne de tableau avec le même nombre de colonnes ; deux `Entrée` sur une ligne vide quittent le tableau. Les tableaux sans bordure (sans pipes extérieurs) sont aussi reconnus. Les opérations de structure (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition) sont proposées par le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md).
+
+## Impression
+
+« Fichier → Autres fonctions de fichier → Imprimer… » (défaut `Ctrl+P`) imprime le contenu de l'onglet actif directement sur une imprimante — sans passer par un fichier PDF qu'il faudrait ensuite ouvrir dans un second programme. La boîte de dialogue d'impression du système s'ouvre : imprimante, plage de pages, nombre de copies, recto verso et tout le reste s'y choisissent, dans l'interface que vous connaissez de tout autre programme. Format de page, orientation et marges sont préremplis depuis la section « Export » des paramètres.
+
+L'impression suit la vue active, exactement comme l'export PDF ci-dessous : la vue source imprime le Markdown brut avec coloration syntaxique ; Rendu, Partagé et Direct impriment le document mis en forme. L'impression est toujours claire, même si l'application tourne avec le thème sombre ; les diagrammes Mermaid sont pour cela redessinés en clair. L'onglet des paramètres ne s'imprime pas, les onglets du manuel si. Si vous annulez la boîte de dialogue du système, rien ne se passe.
+
 ## Export PDF
 
 « Fichier → Autres fonctions de fichier → Exporter en PDF… » (défaut `Ctrl+Maj+P`) imprime le contenu de l'onglet actif dans un fichier PDF. L'export suit la vue active : la vue source imprime le Markdown brut avec coloration syntaxique, numéros de ligne compris s'ils sont activés dans l'onglet ; les modes rendu, partagé et direct impriment le document mis en forme (partagé et direct basculent en interne vers la vue rendue pour l'impression, puis restaurent la vue). Le PDF est toujours clair, même si l'application utilise le thème sombre ; les diagrammes Mermaid sont redessinés en couleurs claires et restent vectoriels. Formules, coloration du code, encadrés et tableaux perspective apparaissent comme dans l'aperçu.

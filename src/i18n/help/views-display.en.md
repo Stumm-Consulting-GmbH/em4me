@@ -20,6 +20,8 @@ Switching happens via the buttons in the status bar or via the top of the View m
 
 Live mode renders the Markdown directly in the editor: bold and italic, links, tables, code, images, KaTeX formulas and Mermaid diagrams appear as they look in the rendered result. When the cursor sits in a line, exactly that line shows its raw source and stays editable. This removes the switch between writing and checking.
 
+**Tables are exempt from this rule.** They stay laid out even while the cursor sits in them: a click hits the cell, Tab and the arrow keys move from cell to cell, and what you type lands at the right place in the source. If you need a table’s raw syntax — the separator row with its alignment colons, say — switch to the source or the split view.
+
 ### Mind map
 
 The mind map shows the headings and lists of the document as a tree and the body text as a note on the node. It belongs to the extension of the same name and goes with it; structure, handling, the five root positions and the default per document are described on the page [Mind map view](mindmap.md).

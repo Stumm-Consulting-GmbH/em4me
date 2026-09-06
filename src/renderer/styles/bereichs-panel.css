@@ -131,6 +131,29 @@
   outline: 1px solid var(--accent);
   outline-offset: -1px;
 }
+/* 4T-001349 (Epic 3E-000170): Inline-Eingabe der Ordner-Anlage im Baum. Sie
+   steht in einer eigenen Zeile, deren Einrueckung der Renderer auf die
+   Kind-Ebene des angeklickten Ordners setzt; die Eingabe selbst fuellt die
+   Zeile aus und teilt sonst das Aussehen der Datei-Eingabe. */
+.area-new-folder-row {
+  padding-right: 8px;
+  margin: 2px 0;
+}
+.area-new-folder-input {
+  width: 100%;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.area-new-folder-input:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
 
 /* 4T-000434 (Epic 3E-000081): Kalender-Panel — Monatsansicht mit KW-Spalte.
    Gitter aus 8 Spalten (KW plus Mo–So); Tages-Zellen sind Buttons mit

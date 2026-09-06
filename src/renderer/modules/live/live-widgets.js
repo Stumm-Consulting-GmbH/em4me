@@ -31,6 +31,7 @@ import { runInlinePasses } from './live-pass-inline.js';
 import { runCalloutPasses } from './live-pass-callouts.js';
 import { runLateInlinePasses } from './live-pass-inline-late.js';
 import { liveBlockWidgetsField } from './live-block-field.js';
+import { liveTabellenZellFokus } from './live-table-zelle.js';
 import {
   liveAbbrHoverTooltip,
   liveFootnoteHoverTooltip,
@@ -196,4 +197,9 @@ export const livePreviewExtensions = [
   liveFootnoteHoverTooltip,
   liveAbbrHoverTooltip,
   liveBlockWidgetsField,
+  // 4T-001346 (Epic 3E-000239): Steht die Schreibmarke in einer gerenderten
+  // Tabelle, oeffnet dieser Beobachter deren Zelle zur Eingabe. Er bedient alle
+  // drei Wege hinein — Klick, Zellsprung und Pfeiltaste von ausserhalb —, weil
+  // alle drei damit enden, dass die Marke im Tabellen-Quelltext steht.
+  liveTabellenZellFokus,
 ];

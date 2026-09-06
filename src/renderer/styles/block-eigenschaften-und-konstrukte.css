@@ -175,6 +175,26 @@
   opacity: 1;
   color: var(--accent);
 }
+
+/* 4T-001423 (Epic 3E-000176): Indikator des Block-Ankers im Live-Modus. Bewusst
+   dieselbe Gestalt wie der Metadaten-Indikator daneben — gleiche Groesse, gleiche
+   Daempfung, gleiche Form-Familie; unterschieden wird allein ueber gefuellt
+   (traegt Daten) und hohl (nur Anker). Am selben Zeilenende steht der Anker
+   zuerst, die Daten danach. */
+.cm-live-block-anker {
+  display: inline-block;
+  margin-left: 0.4em;
+  color: var(--fg-muted);
+  font-size: 0.7em;
+  line-height: 1;
+  vertical-align: middle;
+  opacity: 0.45;
+  cursor: pointer;
+}
+.cm-live-block-anker:hover {
+  opacity: 1;
+  color: var(--accent);
+}
 .tags-tree {
   padding: 4px 6px 8px;
 }

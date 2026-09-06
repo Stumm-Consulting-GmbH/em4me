@@ -118,6 +118,22 @@ export function blockIsActive(activeLines, fromLine, toLine) {
   return false;
 }
 
+// 4T-001345 (Epic 3E-000239): Klappt dieser Block zur Quelle auf? Die Regel
+// oben mit ihrer einen benannten Ausnahme, als eigene Funktion, damit sie ohne
+// laufenden Editor prüfbar ist und die Ausnahme an genau einer Stelle steht.
+//
+// **Die Ausnahme: Tabellen** (Entscheidung E2 des Epics, Product Owner am
+// 2026-09-01). Für kurze Konstrukte ist das Aufklappen ein Blick auf die
+// Syntax; bei einer Tabelle ist es ein Wechsel des Mediums — aus dem gesetzten
+// Raster wird eine Folge von Pipe-Zeichen. Wer die Roh-Syntax braucht, wechselt
+// in die Quelltext-Ansicht (E3). `name` ist der Lezer-Knotenname, die Ausnahme
+// damit eng auf `Table` gefasst; FencedCode und alle übrigen Konstrukte
+// behalten ihr Verhalten.
+export function blockKlapptAuf(name, activeLines, fromLine, toLine) {
+  if (name === 'Table') return false;
+  return blockIsActive(activeLines, fromLine, toLine);
+}
+
 // 4T-000084: KaTeX-Block-Ranges aus einem State berechnen. Reine Funktion,
 // damit sowohl der Inline-Plugin (Konflikt-Check) als auch der separate
 // Block-StateField sie nutzen koennen. Block-Decorations duerfen in

@@ -113,6 +113,22 @@ function sanitizeNewFileName(name) {
   return /\.(md|markdown|mdown|mkd)$/i.test(trimmed) ? trimmed : `${trimmed}.md`;
 }
 
+// 4T-001349 (Epic 3E-000170): validiert den Namen fuer "Neuer Unterordner in
+// diesem Ordner". Dieselben Regeln wie sanitizeNewFileName, ohne die
+// Endungs-Ergaenzung — ein Ordner traegt keine Markdown-Endung. Der Aufbau
+// folgt bewusst dem Datei-Weg statt einer eigenen Zeichen-Menge, damit Datei
+// und Ordner desselben Bereichs nicht nach verschiedenen Massstaeben beurteilt
+// werden; die strenge Windows-Menge gilt aus demselben Grund wie oben auf
+// ALLEN Plattformen. Liefert den bereinigten Namen oder null.
+function sanitizeNewFolderName(name) {
+  if (typeof name !== 'string') return null;
+  const trimmed = name.trim();
+  if (trimmed === '' || trimmed === '.' || trimmed === '..') return null;
+  if (/[\\/<>:"|?*]/.test(trimmed)) return null;
+  if (/^\.+$/.test(trimmed)) return null;
+  return trimmed;
+}
+
 module.exports = {
   normalizeForCompare,
   isSamePath,
@@ -123,4 +139,5 @@ module.exports = {
   updatedRecentAreas,
   sortedAreaListing,
   sanitizeNewFileName,
+  sanitizeNewFolderName,
 };

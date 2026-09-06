@@ -1,6 +1,6 @@
 # Werkzeuge
 
-Zehn Helfer für die tägliche Arbeit am Text: Linter, Rechtschreibprüfung, Suche, Suchen und Ersetzen, Tabellen-Editor, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
+Elf Helfer für die tägliche Arbeit am Text: Linter, Rechtschreibprüfung, Suche, Suchen und Ersetzen, Tabellen-Editor, Drucken, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
 
 ## Markdown-Linter
 
@@ -102,6 +102,13 @@ Ein Bereichswechsel in den Einstellungen speichert nichts, ein begonnener Entwur
 ## Tabellen-Editor
 
 In Pipe-Tabellen springt `Tab` zur nächsten und `Umschalt+Tab` zur vorherigen Zelle. Am Ende der letzten Zeile erzeugen `Tab` oder `Enter` eine neue Tabellenzeile mit derselben Spalten-Anzahl; zweimal `Enter` in einer leeren Zeile verlässt die Tabelle. Auch randlose Tabellen (ohne äußere Pipes) werden erkannt. Struktur-Operationen (Zeilen und Spalten verschieben, einfügen und löschen, Ausrichtung, Transponieren) bietet das Untermenü **Tabelle** im [Editor-Kontextmenü](context-menu.md).
+
+## Drucken
+
+„Datei → Weitere Datei-Funktionen → Drucken…" (Standard `Strg+P`) druckt den Inhalt des aktiven Tabs unmittelbar auf einem Drucker — ohne den Umweg über eine PDF-Datei, die danach in einem zweiten Programm geöffnet werden müsste. Es öffnet sich der Druckdialog des Betriebssystems: Drucker, Seitenbereich, Anzahl der Kopien, Duplex und alles Weitere wählen Sie dort, in der Oberfläche, die Sie aus jedem anderen Programm kennen. Aus dem Einstellungs-Bereich „Export" sind Papierformat, Ausrichtung und Ränder vorbelegt.
+
+Der Druck folgt der aktiven Ansicht, genau wie der PDF-Export darunter: Die Quelltext-Ansicht druckt das Roh-Markdown mit Syntax-Hervorhebung, Gerendert, Geteilt und Live drucken das formatierte Dokument. Das Druckbild ist immer hell, auch wenn die App im dunklen Theme läuft; Mermaid-Diagramme werden dafür hell neu gezeichnet. Der Einstellungs-Tab lässt sich nicht drucken, Handbuch-Tabs schon. Brechen Sie den Systemdialog ab, geschieht nichts.
+
 ## PDF-Export
 
 „Datei → Weitere Datei-Funktionen → Als PDF exportieren…" (Standard `Strg+Umschalt+P`) druckt den Inhalt des aktiven Tabs in eine PDF-Datei. Der Export folgt der aktiven Ansicht: die Quelltext-Ansicht druckt das Roh-Markdown mit Syntax-Hervorhebung, inklusive Zeilennummern, wenn sie im Tab eingeschaltet sind; Gerendert, Geteilt und Live drucken das formatierte Dokument (Geteilt und Live wechseln für den Druck intern auf die gerenderte Darstellung und stellen die Ansicht danach wieder her). Das PDF ist immer hell, auch wenn die App im dunklen Theme läuft; Mermaid-Diagramme werden dafür hell neu gezeichnet und bleiben Vektorgrafik. Formeln, Code-Hervorhebung, Callouts und Perspective-Tabellen erscheinen wie in der Vorschau.

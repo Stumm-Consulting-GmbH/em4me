@@ -531,13 +531,17 @@ export async function bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts = {}) {
   return true; // 'discard'
 }
 
+// 4T-001351 (Epic 3E-000170): Rueckgabe true/false statt nichts — false, wenn
+// die Abfrage ueber den ungesicherten Stand abgebrochen wurde. Die Bestands-
+// Aufrufer werten sie nicht aus; der Loesch-Weg muss es, weil ein Abbruch dort
+// auch das Loeschen unterbinden muss (views/file-trash.js).
 export async function closeTab(paneIdx, tabIdx, opts = {}) {
   const pane = state.panes[paneIdx];
-  if (!pane) return;
+  if (!pane) return false;
   const tab = pane.tabs[tabIdx];
-  if (!tab) return;
+  if (!tab) return false;
 
-  if (!(await bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts))) return;
+  if (!(await bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts))) return false;
 
   const stillElsewhere = tab.path
     ? state.panes.some((p, pi) =>
@@ -590,6 +594,7 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
   // 4T-000075: Statusbar-Stern an den neuen Aktiv-Tab anpassen.
   updateBookmarksToggleButton();
   persistState();
+  return true;
 }
 
 export function collapseEmptyPanes() {

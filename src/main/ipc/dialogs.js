@@ -13,7 +13,7 @@
 
 const path = require('node:path');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
-const { printToPdfOptions } = require('../../shared/pdf-options');
+const { printToPdfOptions, printSystemOptions } = require('../../shared/pdf-options');
 
 /**
  * Registriert die Dialog- und Systemdienst-Kanaele.
@@ -142,6 +142,52 @@ function registerDialogsIpc(handle, deps) {
     }
   });
 
+  // 4T-001479 (Epic 3E-000177): Schwester zu 'pdf:print' — dieselbe
+  // Druck-Vorbereitung im Renderer, anderer Endpunkt. webContents.print()
+  // oeffnet den Druckdialog des Betriebssystems (Entscheidung E3); von dort
+  // kommen Drucker, Seitenbereich, Kopien und Duplex. Vorbelegt werden nur
+  // Format, Ausrichtung und Raender aus den Export-Einstellungen.
+  handle('print:system', async (event) => {
+    const owner = senderWindow(event);
+    if (!owner || owner.isDestroyed()) {
+      return { ok: false, error: 'Fenster nicht mehr verfuegbar' };
+    }
+    // Wie bei pdf:print: Chromium malt die Fenster-Hintergrundfarbe als
+    // Seiten-Grund unter die Druck-Raender; im Dark-Theme ergaebe das einen
+    // dunklen Rahmen um jede Seite (Spike-Befund 4T-000303).
+    const savedBackgroundColor = owner.getBackgroundColor();
+    try {
+      owner.setBackgroundColor('#ffffff');
+      const options = printSystemOptions({
+        pageSize: store?.get('export.pdf.pageSize'),
+        landscape: store?.get('export.pdf.landscape'),
+        margins: store?.get('export.pdf.margins'),
+      });
+      // print() ist Callback-basiert; failureReason 'cancelled' ist der
+      // Abbruch im Systemdialog und KEIN Fehler — er wird als canceled
+      // gemeldet, damit der Renderer schweigt statt zu warnen.
+      const result = await new Promise((resolve) => {
+        owner.webContents.print(options, (success, failureReason) => {
+          if (success) resolve({ ok: true });
+          else if (
+            String(failureReason || '')
+              .toLowerCase()
+              .includes('cancel')
+          )
+            resolve({ ok: false, canceled: true });
+          else resolve({ ok: false, error: failureReason || 'Druck fehlgeschlagen' });
+        });
+      });
+      return result;
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    } finally {
+      if (!owner.isDestroyed() && savedBackgroundColor) {
+        owner.setBackgroundColor(savedBackgroundColor);
+      }
+    }
+  });
+
   // Dirty-Tab-Schliessen-Dialog. Returnt 'save' | 'discard' | 'cancel'.
   handle('dialog:confirmCloseDirty', async (event, opts) => {
     const owner = senderWindow(event);
@@ -215,6 +261,37 @@ function registerDialogsIpc(handle, deps) {
         typeof entryText === 'string' ? entryText : '',
       ),
       buttons: [t('events.confirmDelete.confirm'), t('events.confirmDelete.cancel')],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    });
+    return result.response === 0;
+  });
+
+  // 4T-001351 (Epic 3E-000170): Rueckfrage vor dem Loeschen einer Datei des
+  // Bereichs (Muster events:confirmDelete). Sie NENNT DEN NAMEN: Ein
+  // Bestaetigungs-Dialog ohne Namen beantwortet die eine Frage nicht, auf die
+  // es ankommt — ob die richtige Datei getroffen ist.
+  //
+  // Der Detail-Text sagt beides zu, was der Anwender hier wissen muss: dass die
+  // Datei in den Papierkorb wandert und von dort wiederherstellbar ist, und
+  // dass Verweise auf sie NICHT nachgezogen werden (Entscheidung E4 des Epics —
+  // beim Loeschen gibt es kein Ersatz-Ziel).
+  //
+  // Vorbelegt und mit Escape belegt ist das Abbrechen; die Zustimmung ist ein
+  // bewusster Klick.
+  handle('area:confirmTrashFile', async (event, fileName) => {
+    const owner = senderWindow(event);
+    const t = (k) => tForWindow(owner, k);
+    const result = await dialog.showMessageBox(owner || undefined, {
+      type: 'warning',
+      title: t('areaPanel.deleteConfirmTitle'),
+      message: t('areaPanel.deleteConfirmMessage').replace(
+        '{name}',
+        typeof fileName === 'string' ? fileName : '',
+      ),
+      detail: t('areaPanel.deleteConfirmDetail'),
+      buttons: [t('areaPanel.deleteConfirmOk'), t('areaPanel.deleteConfirmCancel')],
       defaultId: 1,
       cancelId: 1,
       noLink: true,

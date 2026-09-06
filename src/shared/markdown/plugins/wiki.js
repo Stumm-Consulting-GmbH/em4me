@@ -241,7 +241,17 @@ function wikiEmbedsPlugin(mdInstance, options) {
     const anchor = token.attrGet('data-embed-anchor') || '';
     const width = token.attrGet('data-embed-width') || '';
 
-    if (kind === 'image') {
+    // 4T-001486 (Epic 3E-000199): Bild-Embeds gehen im Anzeige-Zweig ueber
+    // denselben Platzhalter wie jede andere Embed-Art und erben damit den
+    // dreistufigen Auflösungs-Weg samt Namens-Suche (Entscheidung E des
+    // Epics). Vorher stand hier unmittelbar ein <img> mit dem rohen Pfad,
+    // aufgeloest synchron im Preload — eine einzige Stufe ohne Index-Fallback.
+    //
+    // Der PORTABLE-Zweig behaelt das <img>: Dort laeuft kein Postprocessing
+    // (siehe 4T-000891 oben), ein Platzhalter bliebe im exportierten Dokument
+    // ein leerer Span. Die Aufloesung uebernimmt dort wie bisher
+    // resolveImagesForBase im Preload.
+    if (kind === 'image' && isPortable) {
       const widthStyle = width ? ` style="max-width: ${escapeHtml(width)}px"` : '';
       return `<img class="wiki-embed wiki-embed-image" src="${escapeHtml(embedPath)}" alt=""${widthStyle}>`;
     }

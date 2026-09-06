@@ -28,6 +28,13 @@ function isIgnoredDirName(name) {
 // waehrend des Scans grosser Wurzeln nicht blockiert.
 async function collectMarkdownFiles(root, isArea) {
   const files = [];
+  // 4T-001494 (Epic 3E-000199): Nicht-Markdown-Dateien derselben Wurzel, nur
+  // als Pfad-Liste. Sie werden nicht geparst, nicht gelesen und nicht
+  // gemessen — sie speisen allein die Namens-Zuordnung, ueber die eine
+  // Einbettung oder ein Klick ein Bild, ein PDF oder eine Anlage ueber ihren
+  // NAMEN findet. Vor diesem Task kannte der Index sie gar nicht, und die
+  // dritte Aufloesungs-Stufe lief fuer sie ins Leere.
+  const assets = [];
   const sizes = new Map();
   // 4T-000348 (Epic 3E-000062): mtime pro Datei fuer den Cache-Abgleich (der stat
   // wird ohnehin erhoben). Nur bei Bereichs-Wurzeln ausgewertet.
@@ -60,7 +67,10 @@ async function collectMarkdownFiles(root, isArea) {
         if (isIgnoredDirName(entry.name)) continue;
         // 4T-000347 (Epic 3E-000062): Bereichs-Wurzeln ohne Tiefen-Grenze.
         if (isArea || depth < SCAN_DEPTH) dirs.push({ dir: full, depth: depth + 1 });
-      } else if (entry.isFile() && MD_EXT_RE.test(entry.name)) {
+      } else if (entry.isFile() && !MD_EXT_RE.test(entry.name)) {
+        // 4T-001494: Nicht-Markdown — nur den Pfad merken, kein stat.
+        assets.push(full);
+      } else if (entry.isFile()) {
         let size = 0;
         let mtimeMs = 0;
         let ctimeMs = 0;
@@ -80,7 +90,13 @@ async function collectMarkdownFiles(root, isArea) {
         // 4T-000347 (Epic 3E-000062): Caps gelten nur fuer bereichslose Wurzeln;
         // eine Bereichs-Wurzel indexiert immer den gesamten Bereich.
         if (!isArea && (files.length > MAX_FILES || bytes > MAX_BYTES)) {
-          return { oversized: true, fileCount: files.length, byteSize: bytes, skippedDirs };
+          return {
+            oversized: true,
+            fileCount: files.length,
+            byteSize: bytes,
+            assetCount: assets.length,
+            skippedDirs,
+          };
         }
         if (++sinceYield >= BUILD_BATCH_SIZE) {
           sinceYield = 0;
@@ -93,7 +109,9 @@ async function collectMarkdownFiles(root, isArea) {
     oversized: false,
     fileCount: files.length,
     byteSize: bytes,
+    assetCount: assets.length,
     files,
+    assets,
     sizes,
     mtimes,
     ctimes,

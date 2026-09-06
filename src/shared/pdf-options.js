@@ -56,10 +56,32 @@ function printToPdfOptions(raw) {
   };
 }
 
+// 4T-001479 (Epic 3E-000177): Dieselben Einstellungen, anderer Endpunkt.
+// webContents.print() rechnet die Raender in PIXELN statt in Zoll und verlangt
+// einen marginType; Format und Ausrichtung heissen gleich. Alles Weitere —
+// Drucker, Seitenbereich, Kopien, Duplex — kommt vom Systemdialog und wird
+// hier bewusst NICHT gesetzt (Entscheidung E3 des Epics).
+const CSS_PIXEL_PRO_ZOLL = 96;
+
+function printSystemOptions(raw) {
+  const settings = normalizePdfExportSettings(raw);
+  const rand = Math.round(PDF_MARGIN_PRESETS[settings.margins] * CSS_PIXEL_PRO_ZOLL);
+  return {
+    // silent: false ist der Default und heisst: der Systemdialog oeffnet sich.
+    // Er wird ausdruecklich nicht gesetzt, damit er nicht versehentlich
+    // ueberschrieben wird, wenn hier je etwas hinzukommt.
+    pageSize: settings.pageSize,
+    landscape: settings.landscape,
+    printBackground: true,
+    margins: { marginType: 'custom', top: rand, bottom: rand, left: rand, right: rand },
+  };
+}
+
 module.exports = {
   PDF_PAGE_SIZES,
   PDF_MARGIN_PRESETS,
   PDF_EXPORT_DEFAULTS,
   normalizePdfExportSettings,
   printToPdfOptions,
+  printSystemOptions,
 };
