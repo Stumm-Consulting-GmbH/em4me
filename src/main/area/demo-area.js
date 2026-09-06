@@ -14,6 +14,7 @@
 'use strict';
 
 const fsp = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const path = require('node:path');
 
 // Quell-Ordner der Demo-Inhalte (wandert über die src/**-Packliste in die EXE).
@@ -36,7 +37,7 @@ async function copyDirRecursive(srcDir, destDir) {
       await fsp.mkdir(to, { recursive: true });
       await copyDirRecursive(from, to);
     } else {
-      await fsp.writeFile(to, await fsp.readFile(from));
+      await ersetzeDateiOderWirf(to, await fsp.readFile(from));
     }
   }
 }

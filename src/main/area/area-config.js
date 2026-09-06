@@ -16,6 +16,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { readAreaSettingsRaw } = require('./area-migration');
 // 4T-001364 (Epic 3E-000171): Bereichs-Grenze der Start-Seiten-Aufloesung.
 // area-path.js ist ein Blatt ohne Rueckimport aus area/ — kein Ordner-Zyklus.
@@ -298,8 +299,7 @@ function createAreaConfig(deps) {
     else delete container.settings.startPage;
     if (raw === null && !relative) return { ok: true }; // nichts anzulegen
     const serialized = mddStore.serializeContainer(container);
-    markSelfWriting(mddaPath, serialized);
-    await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+    await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
     return { ok: true };
   }
 

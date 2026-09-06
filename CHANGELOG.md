@@ -14,6 +14,74 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.128.0.2384] - 2026-09-06 — Vorstufe der Datenbank
+
+Zug 3E-000271
+mit den Epics
+3E-000248
+und
+3E-000231.
+Beide bereiten die Datenbank-Funktionalität vor und nützen bis dahin jedem
+gewöhnlichen Dokument.
+
+> **Vorschlag zur Versions-Stelle: die zweite** (funktionales Release). Beide
+> Anteile stehen jetzt hier, und damit ist der Charakter des Zuges entschieden:
+> Das erste Epic härtet eine bestehende Zusage, ohne sichtbare Funktion zu
+> ändern, und spräche für sich genommen für die dritte Stelle. Das zweite fügt
+> jedoch eine Angabe hinzu, die es vorher nicht gab — die Historie zeigt zwei
+> neue Spalten mit neuem Inhalt. Ein Zug mit einer «Neu»-Subsektion ist
+> funktional. Bestätigt wird der Vorschlag im Stamm-Clone beim Ziehen der
+> Nummer; er bindet bis dahin nicht.
+
+### Neu
+
+- **Herkunft einer Änderung: Benutzer und Rechner** (4T-001438, 4T-001439,
+  4T-001440): Jedes Änderungspaket der Dokument-Historie hält jetzt fest, unter
+  welchem Anmeldenamen und auf welchem Rechner es entstanden ist; die
+  Historien-Ansicht zeigt beides in zwei eigenen Spalten. Wer an mehreren
+  Rechnern arbeitet, sieht damit, wo eine Änderung entstand, und sobald ein
+  Bestand geteilt wird, auch von wem. Die Angabe ist eine Feststellung zum
+  Zeitpunkt der Änderung und kein verwaltetes Benutzerkonto: Sie wird abgelesen
+  statt vergeben, nie nachträglich umgeschrieben, und wo nichts zu ermitteln
+  war, bleibt die Spalte leer statt einen Ersatzwert zu erfinden. Sie hängt am
+  vorhandenen dreistufigen Historisierungs-Schalter — ohne Historie entsteht
+  auch keine Herkunft. Einträge aus der Zeit davor tragen keine Herkunft, und
+  eine von außen vorgenommene Änderung ebenfalls nicht, weil die Anwendung sie
+  nur bemerkt und nicht weiß, wer sie gemacht hat. Beim Weitergeben eines
+  Dokuments reist die Angabe mit; das Handbuch benennt die Folge ausdrücklich.
+
+### Geändert
+
+- **Jeder Schreibvorgang wirkt ganz oder gar nicht** (4T-001434, 4T-001435,
+  4T-001436): Die Anwendung schrieb bis hierher an keiner Stelle absturzsicher —
+  44 Schreibaufrufe im Haupt-Prozess gingen unmittelbar in die Zieldatei, und ein
+  Abbruch mitten im Schreiben hinterließ dort einen halben Inhalt. Alle 34
+  ersetzenden Aufrufe laufen jetzt über einen gemeinsamen Weg, der zuerst eine
+  Schattenkopie im selben Verzeichnis schreibt und diese anschließend auf den
+  Zielnamen umbenennt; die zehn Stellen, die eine Datei exklusiv **anlegen**,
+  bleiben unverändert, weil dort das Anlegen selbst schon die Zusicherung ist.
+  Ein Wächter hält den alten Weg künftig fern. Zurückgebliebene Schattenkopien
+  räumt der Schreibweg selbst weg, sobald er im selben Verzeichnis wieder
+  arbeitet; sie tragen einen führenden Punkt und erscheinen deshalb weder im
+  Index noch in abgeleiteten Sichten.
+- **Speichern auf Netz-Freigaben wiederholt sich, statt sofort aufzugeben**
+  (4T-001434): Eine Messung auf lokaler Platte, SMB-Freigabe und in einem
+  Synchronisations-Ordner hat gezeigt, dass das Umbenennen dort in bis zu 39
+  Prozent der Fälle beim ersten Versuch scheitert, und zwar auch ohne
+  gleichzeitigen Leser. Der Schreibweg wiederholt deshalb über rund drei
+  Sekunden mit wachsenden Abständen, aber nur bei Fehlern, bei denen ein fremder
+  Zugriff die Ursache ist; wo Warten nichts ändert, gibt er sofort auf und
+  meldet den Grund.
+
+### Dokumentation
+
+- **Messprotokoll zu zwei Dateisystem-Eigenschaften** (4T-001433): Umbenennen
+  und exklusives Anlegen sind auf drei Ablage-Orten gemessen statt angenommen.
+  Das Umbenennen wirkt in einem Zug — in 224 577 Leseversuchen unter laufender
+  Ersetzung sah kein Leser je einen halben oder fehlenden Inhalt. Das exklusive
+  Anlegen war in 700 Wettläufen ausnahmslos exklusiv; der Nachweis über zwei
+  Rechner hinweg steht noch aus und betrifft die spätere Sperr-Mechanik.
+
 ## [1.127.2.2315] - 2026-09-04 — Vollständige Journal-Eigenschaften
 
 Zug 3E-000245 mit dem Epic 3E-000244. **Reine Fehlerbehebung, deshalb die dritte

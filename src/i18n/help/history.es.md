@@ -44,6 +44,16 @@ Para que guardar con frecuencia (por ejemplo con el guardado automático) no inu
 
 Cada paquete lleva marcas de tiempo y el origen detectado: **Edición** (guardado en la aplicación) o **Externo** (el archivo fue cambiado por otro programa; la aplicación lo detecta al abrir y antes de cada guardado y anota la diferencia en lugar de dejar que el historial se rompa).
 
+## Origen de un cambio
+
+Cada paquete de cambios registra además **con qué nombre de inicio de sesión** y **en qué equipo** se originó. La vista del historial muestra ambos en dos columnas propias, de modo que la distinción entre persona y dispositivo siga siendo visible. Quien trabaja en varios equipos ve así dónde surgió un cambio; en cuanto un conjunto se comparte, también por quién.
+
+El dato es una **constatación en el momento del cambio**, no una cuenta de usuario gestionada. Se lee, no se asigna, y nunca se reescribe después: si más tarde se cambia el nombre de inicio de sesión, las entradas existentes permanecen igual. Si alguno de los dos valores no puede determinarse, la columna queda vacía en lugar de inventar un sustituto.
+
+Las entradas anteriores a esta función no llevan origen, y no puede añadirse después porque no es reconstruible. Un cambio realizado **fuera** de la aplicación tampoco lo lleva: la aplicación solo lo advierte y no sabe quién lo hizo.
+
+**Al transmitir un documento, el dato viaja con él.** Quien comparte el archivo acompañante junto al documento comparte también los nombres de inicio de sesión que contiene. No existe una vía propia para retirarlos antes; quien no lo desee, desactiva el historial (véanse los tres niveles arriba). Sin historial tampoco hay origen.
+
 ## Barra de estado
 
 El icono de reloj en la barra de estado muestra el estado del documento activo:

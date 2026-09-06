@@ -44,6 +44,16 @@ Pour que des enregistrements fréquents (par exemple avec l'enregistrement autom
 
 Chaque paquet porte des horodatages et l'origine détectée : **Édition** (enregistré dans l'application) ou **Externe** (le fichier a été modifié par un autre programme ; l'application le détecte à l'ouverture et avant chaque enregistrement et consigne la différence au lieu de laisser l'historique se rompre).
 
+## Origine d'une modification
+
+Chaque paquet de modifications retient en outre **sous quel nom de connexion** et **sur quel ordinateur** il est né. La vue de l'historique affiche les deux dans deux colonnes distinctes, afin que la distinction entre personne et appareil reste visible. Qui travaille sur plusieurs ordinateurs voit ainsi où une modification a eu lieu ; dès qu'un fonds est partagé, également par qui.
+
+L'indication est un **constat au moment de la modification**, non un compte utilisateur géré. Elle est relevée, pas attribuée, et elle n'est jamais réécrite après coup : si un nom de connexion est renommé plus tard, les entrées existantes restent inchangées. Si l'une des deux valeurs ne peut être déterminée, la colonne reste vide au lieu d'inventer une valeur de remplacement.
+
+Les entrées antérieures à cette fonction ne portent pas d'origine, et elle ne peut être ajoutée après coup car elle n'est pas reconstituable. Une modification effectuée **à l'extérieur** de l'application n'en porte pas non plus : l'application ne fait que la constater et ignore qui l'a faite.
+
+**En transmettant un document, l'indication voyage avec lui.** Qui transmet le fichier compagnon avec le document transmet aussi les noms de connexion qu'il contient. Il n'existe pas de voie distincte pour les retirer au préalable ; qui ne le souhaite pas désactive l'historique (voir les trois niveaux ci-dessus). Sans historique, pas d'origine non plus.
+
 ## Barre d'état
 
 L'icône horloge de la barre d'état montre l'état du document actif :

@@ -20,6 +20,7 @@ const {
   matchFolderRule,
 } = require('../documents/templates');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -188,8 +189,7 @@ function registerTemplatesIpc(handle, deps) {
         return { ok: true }; // nichts gesetzt und keine Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };

@@ -150,6 +150,12 @@ function renderContent() {
     'history.page.colTo',
     'history.page.colTime',
     'history.page.colTrigger',
+    // 4T-001439: Benutzer und Rechner in ZWEI Spalten, nicht in einer
+    // zusammengesetzten. «Alle Änderungen dieses Rechners» und «alle Änderungen
+    // dieser Person» sind zwei verschiedene Fragen, und die Ansicht soll die
+    // Unterscheidung zeigen statt sie einzuebnen.
+    'history.page.colUser',
+    'history.page.colMachine',
     'history.page.colChanges',
     null,
   ]) {
@@ -161,7 +167,7 @@ function renderContent() {
   table.appendChild(thead);
   const tbody = document.createElement('tbody');
 
-  const addRow = ({ seq, label, trigger, changes, canRestore }) => {
+  const addRow = ({ seq, label, trigger, benutzer, rechner, changes, canRestore }) => {
     const tr = document.createElement('tr');
     const tdA = document.createElement('td');
     const tdB = document.createElement('td');
@@ -193,6 +199,17 @@ function renderContent() {
     const tdTrigger = document.createElement('td');
     tdTrigger.textContent = trigger;
     tr.appendChild(tdTrigger);
+    // Fehlt die Angabe, bleibt die Zelle leer. Kein Platzhalter und kein
+    // «unbekannt»: Ein Eintrag aus der Zeit vor diesem Epic hat keine Herkunft,
+    // und ein erfundener Wert wäre eine falsche Feststellung.
+    const tdUser = document.createElement('td');
+    tdUser.className = 'history-origin';
+    tdUser.textContent = benutzer || '';
+    tr.appendChild(tdUser);
+    const tdMachine = document.createElement('td');
+    tdMachine.className = 'history-origin';
+    tdMachine.textContent = rechner || '';
+    tr.appendChild(tdMachine);
     const tdChanges = document.createElement('td');
     tdChanges.className = 'history-changes';
     tdChanges.textContent = changes;
@@ -228,6 +245,8 @@ function renderContent() {
       seq: rev.seq,
       label: localTimestamp(rev.tsEnd || rev.ts),
       trigger: t(rev.trigger === 'external' ? 'history.trigger.external' : 'history.trigger.edit'),
+      benutzer: rev.benutzer,
+      rechner: rev.rechner,
       changes: `+${rev.added} −${rev.removed}`,
       canRestore: true,
     });

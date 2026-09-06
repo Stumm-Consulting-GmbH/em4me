@@ -22,6 +22,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('./atomic-write');
 const crypto = require('node:crypto');
 const { normalizeManifest, findOrphans } = require('./draft-store');
 
@@ -118,7 +119,7 @@ function createDraftCache(deps) {
     for (let i = 0; i < list.length; i++) {
       const entry = list[i];
       const id = crypto.randomUUID();
-      await fs.writeFile(path.join(draftsDir(), `${id}.md`), entry.content, 'utf8');
+      await ersetzeDateiOderWirf(path.join(draftsDir(), `${id}.md`), entry.content);
       manifest.push({
         id,
         area: areaRootPath || null,
@@ -129,7 +130,7 @@ function createDraftCache(deps) {
         savedAt,
       });
     }
-    await fs.writeFile(draftManifestPath(), JSON.stringify(manifest, null, 2), 'utf8');
+    await ersetzeDateiOderWirf(draftManifestPath(), JSON.stringify(manifest, null, 2));
   }
 
   // Leert den Speicher vollstaendig (nach der Uebergabe an die Fenster beim
@@ -164,7 +165,7 @@ function createDraftCache(deps) {
         /* ignorieren */
       }
     }
-    await fs.writeFile(draftManifestPath(), JSON.stringify(remaining, null, 2), 'utf8');
+    await ersetzeDateiOderWirf(draftManifestPath(), JSON.stringify(remaining, null, 2));
   }
 
   // 4T-000539: Entwuerfe eines geloeschten Arbeitsbereichs wandern in den
@@ -182,7 +183,7 @@ function createDraftCache(deps) {
     }
     if (!changed) return;
     await fs.mkdir(draftsDir(), { recursive: true });
-    await fs.writeFile(draftManifestPath(), JSON.stringify(manifest, null, 2), 'utf8');
+    await ersetzeDateiOderWirf(draftManifestPath(), JSON.stringify(manifest, null, 2));
   }
 
   // Wandelt interne Entwuerfe in das Renderer-Payload (Inhalt + tabSettings, nach

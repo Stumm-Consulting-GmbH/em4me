@@ -15,6 +15,7 @@ const { isValidBlockAnchorId } = require('../../shared/block-anchors');
 const { countChanges } = require('../../shared/line-diff');
 const { sanitizeBlockValues } = require('../documents/block-data');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -112,8 +113,7 @@ function registerHistoryIpc(handle, deps) {
         return { ok: true }; // erben ohne bestehende Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
@@ -138,7 +138,19 @@ function registerHistoryIpc(handle, deps) {
       const initial = history.anchors.length > 0 ? { ts: history.anchors[0].ts } : null;
       const revisions = history.packets.map((p, i) => {
         const { added, removed } = countChanges(p.ops);
-        return { seq: i, ts: p.ts, tsEnd: p.tsEnd, trigger: p.trigger, added, removed };
+        // 4T-001439: Herkunft nur weiterreichen, wo sie im Paket steht. Pakete
+        // aus der Zeit vor diesem Epic und fremd ausgeloeste tragen sie nicht;
+        // die Ansicht zeigt die Zelle dann leer statt einer Ersatz-Angabe.
+        return {
+          seq: i,
+          ts: p.ts,
+          tsEnd: p.tsEnd,
+          trigger: p.trigger,
+          added,
+          removed,
+          benutzer: p.benutzer,
+          rechner: p.rechner,
+        };
       });
       return { ok: true, initial, revisions };
     } catch (err) {
@@ -231,8 +243,7 @@ function registerHistoryIpc(handle, deps) {
       }
       mddStore.setNote(container, text, Date.now());
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddPath, serialized);
-      await fs.writeFile(mddPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddPath, serialized, { markSelfWriting });
       const note = mddStore.getNote(container);
       broadcast('note:changed', { path: absolute, note });
       return { ok: true, note };

@@ -14,6 +14,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('./atomic-write');
 const { computeLinkRewrites } = require('../../shared/link-rewrite');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('./self-write');
@@ -149,8 +150,7 @@ function createLinkUpdate(deps) {
         const recordHistory = (await resolveHistoryFor(owner, filePath, result.newContent))
           .effective;
         const previousText = recordHistory ? await readPreviousTextFor(filePath) : null;
-        markSelfWriting(filePath, result.newContent);
-        await fs.writeFile(filePath, result.newContent, { encoding: 'utf8' });
+        await ersetzeDateiOderWirf(filePath, result.newContent, { markSelfWriting });
         if (recordHistory) {
           const newTextNorm = result.newContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
           await recordMddOnSave(owner, filePath, previousText, newTextNorm);

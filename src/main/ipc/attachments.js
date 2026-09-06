@@ -14,6 +14,7 @@ const fs = require('node:fs/promises');
 const attachmentPath = require('../documents/attachment-path');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -189,8 +190,7 @@ function registerAttachmentsIpc(handle, deps) {
       else delete container.settings.attachments;
       if (raw === null && !normalisiert) return { ok: true };
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };

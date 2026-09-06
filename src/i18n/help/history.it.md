@@ -44,6 +44,16 @@ Perché salvataggi frequenti (per esempio con il salvataggio automatico) non ino
 
 Ogni pacchetto porta marche temporali e l'origine rilevata: **Modifica** (salvato nell'app) oppure **Esterno** (il file è stato cambiato da un altro programma; l'app lo rileva all'apertura e prima di ogni salvataggio e annota la differenza invece di lasciare che la cronologia si spezzi).
 
+## Origine di una modifica
+
+Ogni pacchetto di modifiche registra inoltre **con quale nome di accesso** e **su quale computer** è nato. La vista della cronologia mostra entrambi in due colonne proprie, così che la distinzione tra persona e dispositivo resti visibile. Chi lavora su più computer vede così dove è nata una modifica; non appena un insieme viene condiviso, anche da chi.
+
+L'indicazione è una **constatazione al momento della modifica**, non un account utente gestito. Viene rilevata, non assegnata, e non viene mai riscritta in seguito: se un nome di accesso viene rinominato più tardi, le voci esistenti restano invariate. Se uno dei due valori non è determinabile, la colonna resta vuota invece di inventare un valore sostitutivo.
+
+Le voci precedenti a questa funzione non portano origine, e non è possibile aggiungerla in seguito perché non è ricostruibile. Anche una modifica eseguita **all'esterno** dell'applicazione non la porta: l'applicazione si limita a rilevarla e non sa chi l'ha fatta.
+
+**Trasmettendo un documento, l'indicazione viaggia con esso.** Chi condivide il file di accompagnamento insieme al documento condivide anche i nomi di accesso in esso contenuti. Non esiste una via propria per rimuoverli prima; chi non lo desidera disattiva la cronologia (vedi i tre livelli sopra). Senza cronologia non c'è nemmeno origine.
+
 ## Barra di stato
 
 L'icona a orologio nella barra di stato mostra lo stato del documento attivo:

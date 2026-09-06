@@ -14,6 +14,7 @@
 'use strict';
 
 const fs = require('node:fs');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
@@ -87,7 +88,7 @@ async function schreibeCache(wurzel, dateien) {
   }
   try {
     await fs.promises.mkdir(path.dirname(pfad), { recursive: true });
-    await fs.promises.writeFile(pfad, JSON.stringify(container), 'utf8');
+    await ersetzeDateiOderWirf(pfad, JSON.stringify(container));
   } catch (err) {
     console.warn('Bereichs-Suche: Cache schreiben fehlgeschlagen:', pfad, err && err.message);
   }

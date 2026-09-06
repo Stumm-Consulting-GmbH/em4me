@@ -15,6 +15,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 const {
   BOOK_SETTINGS_FILENAME,
@@ -258,11 +259,17 @@ async function createBook(parentDir, rawName) {
 // neue, leere Datei anlegt — das physische Verschieben und Umbenennen trägt
 // ein eigenes Kommando (Story 4S-000756).
 
-// Schreibt den Container zurück. Bewusst ohne Zwischendatei: die Begleitdatei
-// ist klein, und ein halb geschriebener Container fiele beim nächsten Lesen
-// als 'invalid' auf, statt still eine falsche Struktur zu behaupten.
+// Schreibt den Container zurück, über den gemeinsamen atomaren Weg.
+//
+// 4T-001435: Hier stand die Begründung, eine Zwischendatei sei entbehrlich,
+// weil die Begleitdatei klein sei und ein halb geschriebener Container beim
+// nächsten Lesen als 'invalid' auffiele. Der erste Teil trägt nicht mehr: Die
+// Zusicherung aus 3E-000248 gilt für jeden Schreibvorgang des Haupt-Prozesses,
+// unabhängig von der Größe der Datei. Der zweite Teil war nie ein Schutz vor
+// dem Schaden, sondern nur einer vor seiner stillen Fehldeutung — die Struktur
+// des Buches wäre trotzdem verloren gewesen.
 async function writeBookSettings(settingsPath, container) {
-  await fs.writeFile(settingsPath, serializeBookContainer(container), 'utf8');
+  await ersetzeDateiOderWirf(settingsPath, serializeBookContainer(container));
 }
 
 // Wendet EINE Baum-Operation auf einen Kapitel-Baum an. Rein (die Eingabe

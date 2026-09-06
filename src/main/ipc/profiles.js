@@ -26,6 +26,7 @@ const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
 const { TAG_RE, isValidTag } = require('../index/parse');
 const { createProfileCatalogCache, loadProfileCatalog } = require('../documents/profile-catalog');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 // 4T-000447: Profil-Katalog des Profil-Ordners mit mtime-validiertem Cache
 // pro Profil-Datei (electron-frei, unit-getestet; fs wird hier gebunden).
@@ -162,8 +163,7 @@ function registerProfilesIpc(handle, deps) {
         return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       broadcast('profiles:changed', { rootPath: area.rootPath });
       return { ok: true, config: normalized };
     } catch (err) {

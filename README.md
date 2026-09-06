@@ -35,7 +35,14 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   torn apart, and every part stays an ordinary Markdown file.
 - **Every change kept, if you want it** — optional per-document history
   recorded next to the file; compare versions line by line and restore any
-  of them.
+  of them. Each entry also records the login name and the machine it came
+  from, so a set of documents shared across devices or people stays
+  traceable.
+- **Saving is all or nothing** — a save writes a shadow copy next to the file
+  and only then puts it in place. A crash or power cut in the middle leaves
+  your document intact in its last complete state, never half-written; on
+  network drives and in synchronisation folders the save retries rather than
+  giving up at the first refusal.
 - **Only the features you want** — extra functions are extensions with a
   switch of their own; what you turn off disappears from menus, commands
   and rendering.

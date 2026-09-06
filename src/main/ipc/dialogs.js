@@ -12,7 +12,7 @@
 'use strict';
 
 const path = require('node:path');
-const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { printToPdfOptions } = require('../../shared/pdf-options');
 
 /**
@@ -131,7 +131,7 @@ function registerDialogsIpc(handle, deps) {
       });
       const buffer = await owner.webContents.printToPDF(options);
       const absolute = path.resolve(targetPath);
-      await fs.writeFile(absolute, buffer);
+      await ersetzeDateiOderWirf(absolute, buffer);
       return { ok: true, path: absolute };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };

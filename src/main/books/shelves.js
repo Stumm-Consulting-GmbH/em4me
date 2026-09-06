@@ -15,6 +15,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-001276 (Epic 3E-000232, Befund B1): Ordner-Identität über die zentrale Auskunft.
 const { pathCompareKey } = require('../../shared/platform.js');
 
@@ -232,7 +233,7 @@ async function createShelf(parentDir, rawName) {
 // books.js: eine halb geschriebene Datei fiele beim nächsten Lesen als
 // 'invalid' auf, statt still eine falsche Zuordnung zu behaupten).
 async function writeShelfSettings(settingsPath, container) {
-  await fs.writeFile(settingsPath, serializeShelfContainer(container), 'utf8');
+  await ersetzeDateiOderWirf(settingsPath, serializeShelfContainer(container));
 }
 
 // Ordnet einen Buch-Ordner dem Regal zu. Zugeordnet wird nur, was tatsächlich

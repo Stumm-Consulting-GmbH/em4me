@@ -15,6 +15,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('./atomic-write');
 const mddStore = require('./mdd-store');
 const backlinks = require('../backlinks');
 const selbstSchreib = require('./self-write');
@@ -128,8 +129,7 @@ function createBlockData(deps) {
       }
       mutate(container);
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddPath, serialized);
-      await fs.writeFile(mddPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddPath, serialized, { markSelfWriting });
       const blockData = mddStore.getAllBlockData(container);
       // 4T-000408 (Epic 3E-000077): Block-Ebene des Abfrage-Index nachziehen — die
       // .mdd liegt ausserhalb des Markdown-Watchers, dieser Schreibpfad ist ihr

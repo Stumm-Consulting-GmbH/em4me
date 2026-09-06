@@ -12,6 +12,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-000348 (Epic 3E-000062): Cache-Container-Format fuer die Index-Persistenz
 // (Area_Cache.mdda). mdd-store bleibt path-frei; die wurzel-relative
 // Transformation der md-Link-Ziele passiert hier im Index-Subsystem.
@@ -140,8 +141,7 @@ async function writeAreaCache(entry) {
   }
   const serialized = serializeCacheContainer(container);
   try {
-    selfWrite(entry.cachePath, serialized);
-    await fs.promises.writeFile(entry.cachePath, serialized, 'utf8');
+    await ersetzeDateiOderWirf(entry.cachePath, serialized, { markSelfWriting: selfWrite });
   } catch (err) {
     console.warn('Area_Cache schreiben fehlgeschlagen:', entry.cachePath, err && err.message);
   }

@@ -27,6 +27,9 @@
 
 const crypto = require('node:crypto');
 const { diffLines, applyOps } = require('../../shared/line-diff');
+// 4T-001439: Format-Regeln der Herkunft in eigenem Modul, weil die Historie nur
+// ihr erster Nutzer ist; der Aenderungsbeleg der Datenbank braucht dieselben.
+const { herkunftsFelder, gleicheHerkunft } = require('./mdd-herkunft');
 
 const MDD_SCHEMA_VERSION = 1;
 // Anker-Abstand: alle N Pakete ein voller Stand. Begrenzt Rekonstruktions-
@@ -234,6 +237,9 @@ function lastRecordedState(history) {
 // Inhalt ein Aufhol-Paket (`external`) an: Fremd-Aenderungen und Pausen
 // brechen die Kette nicht, sondern werden Teil der Historie. Liefert true,
 // wenn ein Paket entstanden ist.
+// 4T-001439: Ein fremd ausgeloestes Paket bekommt BEWUSST keine Herkunft. Wer
+// eine externe Aenderung nur bemerkt, hat sie nicht gemacht; die Angabe waere
+// eine falsche Feststellung. Der Auslöser `external` sagt ohnehin, woher sie kam.
 function recordExternalIfNeeded(container, diskText, nowMs) {
   const history = container.history;
   const last = lastRecordedState(history);
@@ -281,6 +287,9 @@ function maybeAddAnchor(history, stateAfterAllPackets, nowMs) {
 // der Container geschrieben werden muss.
 function recordSave(container, opts) {
   const { previousText, newText, nowMs, maxPacketMs, inactivityMs } = opts;
+  // 4T-001439: Die Herkunft kommt von aussen herein; dieses Modul bleibt ohne
+  // Zugriff auf das System (siehe Kopf) und damit voll unit-testbar.
+  const herkunft = herkunftsFelder(opts.herkunft);
   let openPacket = opts.openPacket || null;
   const history = container.history;
   let changed = false;
@@ -313,7 +322,11 @@ function recordSave(container, opts) {
     history.packets.length > 0 &&
     history.packets[history.packets.length - 1].trigger === 'edit' &&
     nowMs - openPacket.startedMs < maxPacketMs &&
-    nowMs - openPacket.lastMs < inactivityMs;
+    nowMs - openPacket.lastMs < inactivityMs &&
+    // 4T-001439: Nur in ein Paket derselben Herkunft weiterschreiben, sonst
+    // truege es die Person, die es begonnen hat, waehrend eine andere darin
+    // weiterschrieb. Bei einem Wechsel beginnt ein neues Paket.
+    gleicheHerkunft(history.packets[history.packets.length - 1], herkunft);
 
   if (canCoalesce) {
     const ops = diffLines(openPacket.baseText, newText);
@@ -348,7 +361,14 @@ function recordSave(container, opts) {
   }
   const ts = isoSeconds(nowMs);
   maybeAddAnchor(history, baseText, nowMs);
-  history.packets.push({ ts, tsEnd: ts, trigger: 'edit', ops, hashAfter: hashText(newText) });
+  history.packets.push({
+    ts,
+    tsEnd: ts,
+    trigger: 'edit',
+    ops,
+    hashAfter: hashText(newText),
+    ...herkunft,
+  });
   const seq = history.packets.length - 1;
   return {
     changed: true,

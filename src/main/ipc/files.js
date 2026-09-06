@@ -12,6 +12,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-001290 (Epic 3E-000224): Zusammensetzen geteilter Dokumente beim Lesen.
 // 4T-001291: Zerlegen beim Schreiben.
 const {
@@ -332,8 +333,7 @@ function registerFilesIpc(handle, deps) {
           plan.teile.map((t) => ({ index: t.index, content: t.text })),
         ).text;
       } else {
-        markSelfWriting(zielPfad, normalized);
-        await fs.writeFile(zielPfad, normalized, { encoding: 'utf8' });
+        await ersetzeDateiOderWirf(zielPfad, normalized, { markSelfWriting });
       }
       // Beim erzwungenen Schreiben wird die ueberschriebene fremde Fassung
       // auch dann in die Historie gelegt, wenn diese abgeschaltet ist (ab Werk
@@ -477,8 +477,7 @@ function registerFilesIpc(handle, deps) {
         // 4T-000331 (Epic 3E-000060): Protokoll-Basis vor dem Ueberschreiben.
         const recordHistory = (await resolveHistoryFor(owner, absolute, normalized)).effective;
         const previousText = recordHistory ? await readPreviousTextFor(absolute) : null;
-        markSelfWriting(absolute, normalized);
-        await fs.writeFile(absolute, normalized, { encoding: 'utf8' });
+        await ersetzeDateiOderWirf(absolute, normalized, { markSelfWriting });
         if (recordHistory) {
           await recordMddOnSave(owner, absolute, previousText, normalized);
         }

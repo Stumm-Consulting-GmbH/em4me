@@ -22,6 +22,7 @@ const {
 const { normalizeSidebarVariantList } = require('../../shared/sidebar-variants');
 const { normalizeBookmarksTree, collectBookmarkFilePaths } = require('../../shared/bookmark-tree');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -115,8 +116,7 @@ function registerAreaFeaturesIpc(handle, deps) {
         return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       broadcast('calendar:changed', { rootPath: area.rootPath });
       return { ok: true, config: normalized };
     } catch (err) {
@@ -172,8 +172,7 @@ function registerAreaFeaturesIpc(handle, deps) {
         return { ok: true, config: [] }; // nichts gesetzt und keine Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       broadcast('sidebarVariants:changed', { rootPath: area.rootPath });
       return { ok: true, config: normalized };
     } catch (err) {
@@ -239,8 +238,7 @@ function registerAreaFeaturesIpc(handle, deps) {
         return { ok: true, config: [] }; // nichts gesetzt und keine Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       broadcast('bookmarks:changed', { rootPath: area.rootPath });
       return { ok: true, config: normalized };
     } catch (err) {

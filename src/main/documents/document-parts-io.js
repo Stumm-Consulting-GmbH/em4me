@@ -13,6 +13,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('./atomic-write');
 const { pathCompareKey } = require('../../shared/platform.js');
 const {
   orderPartFiles,
@@ -101,8 +102,7 @@ async function writeCatalog(headPath, catalog, markSelfWriting) {
   setCatalog(container, catalog);
   const serialized = mddStore.serializeContainer(container);
   try {
-    if (typeof markSelfWriting === 'function') markSelfWriting(mddPath, serialized);
-    await fs.writeFile(mddPath, serialized, { encoding: 'utf8' });
+    await ersetzeDateiOderWirf(mddPath, serialized, { markSelfWriting });
     return true;
   } catch {
     return false;
@@ -312,8 +312,7 @@ async function writeDocumentParts(headPath, teile, opts = {}) {
     if (!teil.geaendert) continue;
     const pfad = teil.pfad || path.join(dir, `${teil.basename}${ext}`);
     try {
-      if (typeof opts.markSelfWriting === 'function') opts.markSelfWriting(pfad, teil.text);
-      await fs.writeFile(pfad, teil.text, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(pfad, teil.text, { markSelfWriting: opts.markSelfWriting });
       geschrieben.push(pfad);
     } catch (err) {
       return {
@@ -389,10 +388,7 @@ async function rewritePartBase(pfade, neuerBase, opts = {}) {
     const geschrieben = writePartLine(roh, { index: info.index, base: neuerBase });
     if (!geschrieben.ok) return { ok: false, error: geschrieben.error, pfad };
     try {
-      if (typeof opts.markSelfWriting === 'function') {
-        opts.markSelfWriting(pfad, geschrieben.text);
-      }
-      await fs.writeFile(pfad, geschrieben.text, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(pfad, geschrieben.text, { markSelfWriting: opts.markSelfWriting });
       geaendert++;
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err), pfad };
@@ -431,8 +427,7 @@ async function rejoinDocument(absolute, opts = {}) {
 
   const kopf = stand.headPath;
   try {
-    if (typeof opts.markSelfWriting === 'function') opts.markSelfWriting(kopf, vereint.text);
-    await fs.writeFile(kopf, vereint.text, { encoding: 'utf8' });
+    await ersetzeDateiOderWirf(kopf, vereint.text, { markSelfWriting: opts.markSelfWriting });
   } catch (err) {
     return { ok: false, error: err && err.message ? err.message : String(err) };
   }

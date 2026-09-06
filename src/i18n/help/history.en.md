@@ -44,6 +44,16 @@ So that frequent saving (for example with auto-save) does not flood the history 
 
 Each packet carries timestamps and the detected trigger: **Edit** (saved in the app) or **External** (the file was changed by another program; the app detects this on open and before each save and records the difference instead of letting the history break).
 
+## Origin of a change
+
+Every change packet also records **which login name** and **which machine** it originated from. The history view shows both in two separate columns, so the distinction between person and device stays visible. If you work on several machines, you can see where a change was made; once a body of documents is shared, also by whom.
+
+The entry is a **statement of fact at the time of the change**, not a managed user account. It is read, not assigned, and it is never rewritten afterwards: if a login name is renamed later, existing entries stay as they are. If either value cannot be determined, the column stays empty instead of inventing a substitute.
+
+Entries from before this feature carry no origin, and it cannot be added afterwards because it cannot be reconstructed. A change made **outside** the app likewise carries no origin: the app only notices it and does not know who made it.
+
+**When you pass a document on, the entry travels with it.** Anyone who shares the companion file along with the document also shares the login names it contains. There is no separate way to strip them beforehand; if you do not want this, switch document history off (see the three levels above). Without history there is no origin either.
+
 ## Statusbar
 
 The clock icon in the statusbar shows the state of the active document:

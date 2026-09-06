@@ -22,12 +22,14 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('./atomic-write');
 // 4T-001276 (Epic 3E-000232, Befund B1): Der Schlüssel der Historisierungs-Datei
 // entscheidet über Datei-Identität und fragt deshalb die zentrale Auskunft.
 const { pathCompareKey } = require('../../shared/platform.js');
 const mddStore = require('./mdd-store');
 const saveGuard = require('./save-guard');
 const selbstSchreib = require('./self-write');
+const { ermittleHerkunft } = require('../herkunft');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
 const { isInsideArea } = require('../area/area-path');
 
@@ -139,14 +141,18 @@ function createMddHistory(deps) {
         newText,
         nowMs: Date.now(),
         openPacket: mddOpenPackets.get(key) || null,
+        // 4T-001439: Wer hat gespeichert, und auf welchem Rechner? Ermittelt
+        // wird hier und nicht im Container-Modul, das bewusst ohne Zugriff auf
+        // das System auskommt. Abgelesen bei jedem Speichern statt einmal beim
+        // Start, damit ein Benutzer-Wechsel zur Laufzeit richtig ankommt.
+        herkunft: ermittleHerkunft(),
         ...historyTimingMs(),
       });
       if (result.openPacket) mddOpenPackets.set(key, result.openPacket);
       else mddOpenPackets.delete(key);
       if (result.changed) {
         const serialized = mddStore.serializeContainer(container);
-        markSelfWriting(mddPath, serialized);
-        await fs.writeFile(mddPath, serialized, { encoding: 'utf8' });
+        await ersetzeDateiOderWirf(mddPath, serialized, { markSelfWriting });
       }
     } catch (err) {
       // Unerwarteter Fehler (IO, defekte Delta-Kette): aussetzen statt bei
@@ -189,8 +195,7 @@ function createMddHistory(deps) {
       if (mddStore.recordExternalIfNeeded(parsed.container, currentText, Date.now())) {
         mddOpenPackets.delete(key);
         const serialized = mddStore.serializeContainer(parsed.container);
-        markSelfWriting(mddPath, serialized);
-        await fs.writeFile(mddPath, serialized, { encoding: 'utf8' });
+        await ersetzeDateiOderWirf(mddPath, serialized, { markSelfWriting });
       }
     } catch (err) {
       mddSuspendedPaths.add(key);

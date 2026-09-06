@@ -20,6 +20,7 @@ const { normalizeJournalsConfig } = require('../../shared/journal-core');
 // 4T-001406 (Epic 3E-000244): die Nachpflege-Regel liegt in einem eigenen Modul.
 const { ergaenzeJournalProperties } = require('../../shared/journal-nachpflege');
 const selbstSchreib = require('../documents/self-write');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
 const markSelfWriting = selbstSchreib.merke;
 
@@ -86,8 +87,7 @@ function registerJournalIpc(handle, deps) {
         return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen
       }
       const serialized = mddStore.serializeContainer(container);
-      markSelfWriting(mddaPath, serialized);
-      await fs.writeFile(mddaPath, serialized, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
       broadcast('journals:changed', { rootPath: area.rootPath });
       return { ok: true, config: normalized };
     } catch (err) {
@@ -170,8 +170,7 @@ function registerJournalIpc(handle, deps) {
       const vorher = await fs.readFile(abs, { encoding: 'utf8' });
       const { geaendert, text } = ergaenzeJournalProperties(vorher, properties);
       if (!geaendert) return { ok: true, geaendert: false };
-      markSelfWriting(abs, text);
-      await fs.writeFile(abs, text, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(abs, text, { markSelfWriting });
       return { ok: true, geaendert: true };
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
@@ -258,8 +257,7 @@ function registerJournalIpc(handle, deps) {
           unveraendert++;
           continue;
         }
-        markSelfWriting(abs, ergebnis.text);
-        await fs.writeFile(abs, ergebnis.text, { encoding: 'utf8' });
+        await ersetzeDateiOderWirf(abs, ergebnis.text, { markSelfWriting });
         geaendert++;
       } catch {
         fehler++;

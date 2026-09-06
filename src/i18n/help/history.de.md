@@ -44,6 +44,16 @@ Damit häufiges Speichern (etwa mit automatischem Speichern) die Historie nicht 
 
 Jedes Paket trägt Zeitstempel und den erkannten Auslöser: **Bearbeitung** (in der App gespeichert) oder **Extern** (die Datei wurde von einem anderen Programm geändert; die App erkennt das beim Öffnen und vor jedem Speichern und trägt die Differenz nach, statt die Historie brechen zu lassen).
 
+## Herkunft einer Änderung
+
+Jedes Änderungspaket hält außerdem fest, **unter welchem Anmeldenamen** und **auf welchem Rechner** es entstanden ist. Die Historien-Ansicht zeigt beides in zwei eigenen Spalten, damit die Unterscheidung zwischen Person und Gerät sichtbar bleibt. Wer an mehreren Rechnern arbeitet, sieht damit, wo eine Änderung entstand; sobald ein Bestand geteilt wird, auch von wem.
+
+Die Angabe ist eine **Feststellung zum Zeitpunkt der Änderung**, kein verwaltetes Benutzerkonto. Sie wird abgelesen, nicht vergeben, und sie wird nie nachträglich umgeschrieben: Wird ein Anmeldename später umbenannt, bleiben alte Einträge unverändert. Lässt sich eine der beiden Angaben nicht ermitteln, bleibt die Spalte leer, statt einen Ersatzwert zu erfinden.
+
+Einträge aus der Zeit vor dieser Funktion tragen keine Herkunft; nachträglich ergänzen lässt sie sich nicht, weil sie nicht rekonstruierbar ist. Eine **von außen** vorgenommene Änderung bekommt ebenfalls keine Herkunft, denn die App bemerkt sie nur und weiß nicht, wer sie gemacht hat.
+
+**Beim Weitergeben eines Dokuments reist die Angabe mit.** Wer die Begleitdatei zusammen mit dem Dokument weitergibt, gibt damit auch die Anmeldenamen weiter, die darin stehen. Einen eigenen Weg, sie vorher zu entfernen, gibt es nicht; wer das nicht möchte, schaltet die Historisierung ab (siehe oben, drei Ebenen). Ohne Historie entsteht auch keine Herkunft.
+
 ## Statusbar
 
 Das Uhr-Symbol in der Statusbar zeigt den Zustand des aktiven Dokuments:

@@ -16,6 +16,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { resolveContainedEmbedPath } = require('../documents/embed-path');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
@@ -178,7 +179,7 @@ function registerIndexViewsIpc(handle, deps) {
       const owner = senderWindow(event);
       const recordHistory = (await resolveHistoryFor(owner, filePath, result.newContent)).effective;
       const previousText = recordHistory ? await readPreviousTextFor(filePath) : null;
-      await fs.writeFile(filePath, result.newContent, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(filePath, result.newContent);
       if (recordHistory) {
         const newTextNorm = result.newContent.replace(BOM_RE, '').replace(/\r\n/g, '\n');
         await recordMddOnSave(owner, filePath, previousText, newTextNorm);
@@ -256,7 +257,7 @@ function registerIndexViewsIpc(handle, deps) {
       const owner = senderWindow(event);
       const recordHistory = (await resolveHistoryFor(owner, filePath, newContent)).effective;
       const previousText = recordHistory ? await readPreviousTextFor(filePath) : null;
-      await fs.writeFile(filePath, newContent, { encoding: 'utf8' });
+      await ersetzeDateiOderWirf(filePath, newContent);
       if (recordHistory) {
         const newTextNorm = newContent.replace(BOM_RE, '').replace(/\r\n/g, '\n');
         await recordMddOnSave(owner, filePath, previousText, newTextNorm);
