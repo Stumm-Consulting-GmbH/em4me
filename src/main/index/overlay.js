@@ -10,10 +10,16 @@
 //
 // Die Schicht wirkt NICHT von selbst. Nur wer sie ausdruecklich anfordert,
 // sieht sie — freigeschaltet sind in 4T-000935 die drei Verbraucher der
-// gerenderten Ansicht (frontmatterQueryFor, scriptDataFor, eventsForQuery).
-// Die uebrigen neun Index-Verbraucher (Backlinks, Tags, Graph, Autocomplete,
-// Ziel-Aufloesung samt Linter, Embeds) sehen weiter den Platten-Stand; ob sie
-// folgen sollen, erhebt 4T-000936 und entscheidet der Product Owner.
+// gerenderten Ansicht (frontmatterQueryFor, scriptDataFor, eventsForQuery),
+// in 4T-000950 und 4T-000951 das Tag-Panel und der Erinnerungs-Pruefer.
+// 4T-000952 (Epic 3E-000198, Befunde E-04, E-05 und E-08) nimmt die vier
+// uebrigen Index-Verbraucher dazu, die der Product Owner nach dem
+// Hauptrelease 1 verortet hat: Rueckverweise (backlinksFor), Graphenansicht
+// (graphFor) sowie die Vervollstaendigung von Ankern und Tags. Am
+// Platten-Stand bleiben damit noch die Ziel-Aufloesung samt Linter
+// (existingWikiTargets, resolveWikiTargetInIndex) und die Wiki-Ziel-
+// Vervollstaendigung — sie beantworten «welche Dateien gibt es», und daran
+// aendert ein ungespeicherter Puffer nichts.
 //
 // Sie liegt bewusst im Hauptprozess und gilt damit fensteruebergreifend: Der
 // gemeldete Fall hatte dieselbe Datei in zwei Fenstern offen. Melden zwei
@@ -31,18 +37,39 @@ const { isInsideArea } = require('../area/area-path.js');
 const { bufferOverlays } = require('./store.js');
 const { parseContent } = require('./parse.js');
 
+// 4T-000952 (Epic 3E-000198): Aenderungs-Stand der Overlay-Schicht, nach dem
+// Muster von indexStand in store.js. Eine Zahl, die bei jeder Aenderung der
+// Schicht hochzaehlt — die Bezugsgroesse fuer Zwischenspeicher, die ueber die
+// UEBERLAGERTE Sicht rechnen. indexStand allein genuegt dafuer nicht: Er
+// bewegt sich nur, wenn die Platte sich meldet, und beim Tippen tut sie das
+// gerade nicht.
+//
+// Sie zaehlt bewusst auch dann hoch, wenn dieselbe Datei denselben Text
+// erneut meldet. Ein Inhalts-Vergleich waere je Meldung ein Text-Vergleich
+// ueber das ganze Dokument, und die Meldung kommt ohnehin nur verzoegert
+// (300 ms) und nur bei tatsaechlicher Doc-Aenderung.
+let overlayZaehler = 0;
+
+function overlayStand() {
+  return overlayZaehler;
+}
+
 function setBufferOverlay(filePath, content) {
   if (typeof filePath !== 'string' || !filePath) return false;
   if (typeof content !== 'string') return false;
   bufferOverlays.set(filePath, { parsed: parseContent(filePath, content), text: content });
+  overlayZaehler += 1;
   return true;
 }
 
 function clearBufferOverlay(filePath) {
-  return bufferOverlays.delete(filePath);
+  const entfernt = bufferOverlays.delete(filePath);
+  if (entfernt) overlayZaehler += 1;
+  return entfernt;
 }
 
 function clearAllBufferOverlays() {
+  if (bufferOverlays.size > 0) overlayZaehler += 1;
   bufferOverlays.clear();
 }
 
@@ -101,9 +128,15 @@ function overlayView(base, patch) {
 // Bestaende, die aus dem Datei-Text stammen; Datei-Groesse und Zeitstempel
 // bleiben die der Platte, weil ein ungespeicherter Puffer keine hat (eine
 // Abfrage ueber file.mtimeMs sieht also weiter den Speicher-Zeitpunkt).
-// Ebenso bleibt der Link-Graph der der Platte: Er wird ueber alle Dateien
-// gebaut und gecacht; ein FROM-Link-Bezug auf einen erst geschriebenen Link
-// wirkt deshalb erst nach dem Speichern.
+// Ebenso bleibt der an dieser Sicht haengende Link-Graph der der Platte: Er
+// wird ueber alle Dateien gebaut und an entry.linkGraph gecacht; ein
+// FROM-Link-Bezug einer Abfrage auf einen erst geschriebenen Link wirkt
+// deshalb weiter erst nach dem Speichern.
+//
+// 4T-000952 (Epic 3E-000198): Die Graphenansicht braucht genau diese Kanten
+// und bekommt sie seither ueber einen ZWEITEN, eigenen Graphen (graphUeberlagert
+// in link-graph.js) mit eigenem Zwischenspeicher. entry.linkGraph bleibt
+// unangetastet, damit der Satz oben fuer die Abfrage-Verbraucher wahr bleibt.
 function entryWithOverlay(entry, overlays) {
   if (!overlays || overlays.size === 0) return entry;
   const patchOf = (feld, wandeln) => {
@@ -132,4 +165,6 @@ module.exports = {
   overlaysUnder,
   bufferTextFor,
   entryWithOverlay,
+  // 4T-000952: Aenderungs-Stand der Schicht fuer Zwischenspeicher darueber.
+  overlayStand,
 };

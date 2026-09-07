@@ -193,6 +193,8 @@ export const state = {
   numberedAppCount: 1,
   appCount: 1,
   areaName: null,
+  // 4T-001335: Kennzeichnung der zweiten Auspraegung ("Pruefstand") oder null.
+  auspraegung: null,
   // 4T-000871 (Buch = Bereich): Buchname der eigenen App (null ohne Buch).
   bookName: null,
   // 4T-000873 (Regal = Bereich): Regal-Name der eigenen App (null ohne Regal).

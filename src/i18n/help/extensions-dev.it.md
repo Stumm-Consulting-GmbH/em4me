@@ -7,7 +7,7 @@ Le estensioni esterne sono pacchetti creati da te che estendono il rendering e l
 
 ## Struttura del pacchetto
 
-Un pacchetto di estensione è una cartella nella directory delle estensioni del profilo utente. L'azione «Apri cartella» della sezione impostazioni Estensioni (esterne) apre la directory in Esplora file.
+Un pacchetto di estensione è una cartella nella directory delle estensioni del profilo utente. L'azione «Apri cartella» della sezione impostazioni Estensioni (esterne) apre la directory nel gestore file.
 
 ```text
 <profilo utente>/extensions/

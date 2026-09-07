@@ -14,6 +14,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   buildScriptOutputDom,
+  registriereTeilbaumSchritte,
   renderScriptResult,
   renderSourceFallback,
 } from '../../../src/renderer/modules/query/perspective-script-view.js';
@@ -278,6 +279,57 @@ describe('perspective-script-view renderScriptResult (4T-000412)', () => {
     expect(err).not.toBeNull();
     expect(err.textContent).toContain('5');
     expect(err.textContent).not.toContain('{seconds}');
+  });
+});
+
+// 4T-001130 (Epic 3E-000272): Die Ausgabe eines Skript-Blocks ist ein ERZEUGTER
+// TEILBAUM und durchlief bis hierher keinen einzigen Schritt der
+// Render-Pipeline; ein Mermaid-Block darin blieb Quelltext, obwohl das Handbuch
+// die normale Pipeline zusagt. Geprueft wird beides: dass der Schritt-Satz
+// laeuft (AK1) und dass er die eine dokumentierte Ausnahme mitfuehrt (AK3).
+describe('perspective-script-view: Schritt-Satz des erzeugten Teilbaums (4T-001130)', () => {
+  it('ruft den Schritt-Satz auf der Markdown-Ausgabe, mit dem Bezugs-Pfad (AK1)', () => {
+    const rufe = [];
+    registriereTeilbaumSchritte((el, basePath, opts) => rufe.push({ el, basePath, opts }));
+    window.api.renderMarkdown = (text) => `<h1>${text.replace(/^#s*/, '')}</h1>`;
+    let host;
+    try {
+      host = render([{ kind: 'md', text: '# Titel' }], '/pfad/zur/datei.md');
+    } finally {
+      delete window.api.renderMarkdown;
+    }
+    expect(rufe).toHaveLength(1);
+    expect(rufe[0].el).toBe(host.querySelector('.perspective-script-md'));
+    // Der Bezugs-Pfad ist da und wird durchgereicht — das Argument «geht nicht,
+    // weil kein Pfad vorliegt» traegt hier nicht.
+    expect(rufe[0].basePath).toBe('/pfad/zur/datei.md');
+    registriereTeilbaumSchritte(() => {});
+  });
+
+  it('fuehrt die dokumentierte Ausnahme mit: keine Abfrage- und Skript-Bloecke (AK3)', () => {
+    const rufe = [];
+    registriereTeilbaumSchritte((el, basePath, opts) => rufe.push(opts));
+    window.api.renderMarkdown = () => '<p>Text</p>';
+    try {
+      render([{ kind: 'md', text: 'Text' }], '/a.md');
+    } finally {
+      delete window.api.renderMarkdown;
+    }
+    expect(rufe[0]).toEqual({ dynamischeBloecke: false });
+    registriereTeilbaumSchritte(() => {});
+  });
+
+  it('ohne Registrierung bleibt die Ausgabe stehen, statt zu scheitern', () => {
+    // Der jsdom-Test laeuft ohne render-mermaid; eine fehlende Registrierung
+    // darf die Ausgabe nicht kosten.
+    window.api.renderMarkdown = () => '<h1>Titel</h1>';
+    let host;
+    try {
+      host = render([{ kind: 'md', text: '# Titel' }], '/a.md');
+    } finally {
+      delete window.api.renderMarkdown;
+    }
+    expect(host.querySelector('.perspective-script-md')).not.toBeNull();
   });
 });
 

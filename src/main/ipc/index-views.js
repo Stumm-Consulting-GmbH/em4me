@@ -22,6 +22,9 @@ const { computeLineReplacement } = require('../documents/task-line-edit.js');
 const { normalizeProfilesConfig, DEFAULT_ASSIGN_FIELD } = require('../../shared/property-profiles');
 const { EVENT_PROFILE_NAME } = require('../../shared/events/events-core.js');
 const { writeFrontmatter, extractFrontmatter } = require('../../shared/markdown/frontmatter');
+// 4T-001261 (Epic 3E-000272): Der Fremd-Aenderungs-Schutz hat eine Heimat, und
+// zwar dieselbe wie der des Speicher-Wegs.
+const { istFeldKonflikt } = require('../documents/save-guard.js');
 
 /**
  * Registriert die Kanaele der Index-Sichten, der Bereichs-Suche und der Embeds.
@@ -206,21 +209,22 @@ function registerIndexViewsIpc(handle, deps) {
   // Roh-Stand lesen (EOL/BOM bleiben erhalten), Mehrfeld-Update ueber
   // writeFrontmatter, Historie wie beim regulaeren Speichern, BEWUSST ohne
   // markSelfWriting (offene Tabs anderer Fenster gehen den file:changed-
-  // Weg). Konflikt-Erkennung ueber mtimeMs des Aggregations-Snapshots:
-  // hat sich die Datei seither veraendert, wird nicht blind geschrieben.
+  // Weg).
+  //
+  // 4T-001261 (Epic 3E-000272): Die Konflikt-Erkennung vergleicht den INHALT
+  // statt des Zeitstempels — die gelesenen Frontmatter-Werte, nicht die ganze
+  // Datei. Begruendung und Vergleichsform wohnen bei der Pruefung selbst
+  // (documents/save-guard.js), damit beide Schreibwege EINEN Ort haben; eine
+  // zweite Begruendung hier waere der Doppel-Mechanismus, den dieser Vorgang
+  // gerade behebt. `expectedFields` bleibt optional.
   handle('events:applyFrontmatterEdit', async (event, params) => {
     const BOM_RE = new RegExp('^\\uFEFF');
     const filePath = params && typeof params.filePath === 'string' ? params.filePath : '';
     if (!filePath) return { ok: false, error: 'no path' };
-    let stat;
     try {
-      stat = await fs.stat(filePath);
+      await fs.stat(filePath);
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
-    }
-    const expectedMtime = params && Number(params.expectedMtimeMs);
-    if (Number.isFinite(expectedMtime) && expectedMtime > 0 && stat.mtimeMs !== expectedMtime) {
-      return { ok: false, reason: 'conflict' };
     }
     let raw;
     try {
@@ -232,6 +236,15 @@ function registerIndexViewsIpc(handle, deps) {
     const text = hadBom ? raw.replace(BOM_RE, '') : raw;
     const fm = extractFrontmatter(text);
     if (fm.parseError) return { ok: false, reason: 'yaml' };
+    // 4T-001261: Der Vergleich sitzt HIER und nicht vor dem Lesen, weil er den
+    // geparsten Stand braucht. Geprueft wird je Feld, das der Schnappschuss
+    // gelesen hat; ein Feld, das seither hinzugekommen ist, ist kein Konflikt,
+    // weil die Operation es nicht anfasst.
+    const erwarteteFelder =
+      params && params.expectedFields && typeof params.expectedFields === 'object'
+        ? params.expectedFields
+        : null;
+    if (istFeldKonflikt(fm.data, erwarteteFelder)) return { ok: false, reason: 'conflict' };
     const newData = { ...(fm.data || {}) };
     const updates =
       params && params.updates && typeof params.updates === 'object' ? params.updates : {};

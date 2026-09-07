@@ -30,7 +30,10 @@ import { applyJournalNavIfPresent } from './calendar/journal-nav-view.js';
 import { applyJournalTimelineIfPresent } from './calendar/journal-timeline-view.js';
 // 4T-000412 (Epic 3E-000078): Skript-Blöcke (perspective-script) — Sandbox-
 // Ausführung bzw. Quelltext-Rückfall, analog zur Abfrage-Befüllung.
-import { applyPerspectiveScriptsIfPresent } from './query/perspective-script-view.js';
+import {
+  applyPerspectiveScriptsIfPresent,
+  registriereTeilbaumSchritte,
+} from './query/perspective-script-view.js';
 // 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator als Render-Nachverarbeitung.
 import { applyBlockMetaIndicators } from './block-meta-indicator.js';
 // 4T-000418 (Epic 3E-000079): Lokalisierung der Perspective-Datatable-Texte
@@ -867,16 +870,16 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
   body.innerHTML = api.renderMarkdown(result.content || '', result.path, {
     frontmatterBlock: false,
   });
-  // 4T-000071: Copy-Button-Wrapper VOR applyTranslations, damit die Button-Spans
-  // mit data-i18n vom selben Lauf mit-uebersetzt werden.
-  applyCodeCopyButtons(body);
-  // 4T-000061: Callout-Default-Titel aus data-i18n-Attributen aufloesen.
-  applyTranslations(body);
   span.appendChild(body);
-  // Rekursive Verarbeitung: Mermaid, perspective-table-Sortierung und weitere
-  // Wiki-Embeds im eingebetteten Inhalt. Tiefenzaehler wird inkrementiert.
-  applyMermaidIfPresent(body);
-  enhancePerspectiveTableSorting(body);
+  // 4T-001130: Der Schritt-Satz des erzeugten Teilbaums, mit dem Pfad der
+  // EINGEBETTETEN Datei als Bezug — die Abfragen und Journal-Bloecke des
+  // eingebetteten Dokuments beziehen sich auf dessen Ort, nicht auf den des
+  // offenen Reiters. Zuvor liefen hier fuenf der neunzehn Schritte von Hand
+  // nachgezogen; jeder spaeter hinzugekommene Schritt fehlte damit still.
+  applyTeilbaumSchritte(body, result.path);
+  // Die Einbettungen bleiben hier, weil dieser Aufrufer den Tiefenzaehler
+  // fuehrt: Der eingebettete Inhalt zaehlt eine Ebene hoeher (Grenze aus AK6
+  // der Story 4S-000207).
   await applyWikiEmbedsIfPresent(body, result.path, depth + 1);
 }
 
@@ -1152,44 +1155,102 @@ export function applyFrontmatterLine(container) {
   }
 }
 
-export function applyRenderPipeline(container, basePath) {
+// 4T-001130 (Epic 3E-000272): Der Schritt-Satz eines ERZEUGTEN TEILBAUMS.
+//
+// Ein Modul, das aus Markdown einen Teilbaum baut und ihn per `innerHTML`
+// einsetzt (Wiki-Einbettung, Ausgabe eines Skript-Blocks), zog die
+// Nachverarbeitung bisher nicht oder nur zum Teil nach: Die Einbettung fuehrte
+// fuenf der neunzehn Schritte aus, die Skript-Ausgabe keinen einzigen. Was die
+// Pipeline erst BEFUELLT, blieb dort leer, und was sie erst BEDIENBAR macht,
+// blieb stumm — fuer den Anwender unsichtbar, weil die Herkunft des Inhalts es
+// ist.
+//
+// Welche Schritte gelten, ist am 2026-09-05 vom Product Owner entschieden
+// worden (Vorlage mit vier Gruppen, gemessen am Bestand):
+//
+//   A Darstellung, ohne Bezugs-Pfad     -> immer
+//   B Befuellung, mit Bezugs-Pfad       -> immer; in der Skript-Ausgabe ohne
+//                                          Abfrage- und Skript-Bloecke
+//                                          (dokumentierte Ausnahme, help/scripts)
+//   C Bearbeitbarkeit                   -> NIE im Teilbaum
+//   D Kontext des offenen Dokuments     -> nur die Aussen-Link-Warnung
+//
+// Zu Gruppe C: Ein erzeugter Teilbaum ist eine Ansicht, keine
+// Bearbeitungsflaeche. Ein Klick auf eine Aufgaben-Checkbox oder eine
+// Datatable-Zelle im eingebetteten Dokument schriebe in eine FREMDE Datei, die
+// der Anwender nicht geoeffnet hat — ohne Reiter, ohne Aenderungsmarke, ohne
+// Rueckgaengig-Weg im offenen Dokument.
+//
+// Beide Einstiege laufen durch DIESELBE Folge, damit ein neuer Schritt nicht an
+// einer der Stellen vergessen werden kann; die Reihenfolge ist die der
+// Vollansicht und bleibt unveraendert, weil mehrere Schritte aufeinander
+// aufbauen (Copy-Knoepfe vor den Uebersetzungen, Lokalisieren vor dem Binden,
+// Binden vor dem Ansichts-Zustand).
+function wendeSchritteAn(container, basePath, lage) {
+  const { bearbeitbar, dynamischeBloecke, frontmatterZeile, einbettungen, suchLauf } = lage;
   applyCodeCopyButtons(container);
-  applyFrontmatterLine(container);
+  if (frontmatterZeile) applyFrontmatterLine(container);
   applyTranslations(container);
   applyMermaidIfPresent(container);
   enhancePerspectiveTableSorting(container);
-  enableTaskCheckboxes(container);
-  // 4T-000355: perspective-query-Listen asynchron befüllen (No-op ohne solchen
-  // Container). basePath auch leer möglich — der Resolver zeigt dann den
-  // 'unavailable'-Hinweis (pfadloser Tab).
-  applyFrontmatterQueriesIfPresent(container, basePath);
-  // 4T-000435 / 4T-001064: Journal-Blöcke befüllen (No-op ohne solchen Container).
+  if (bearbeitbar) enableTaskCheckboxes(container);
+  if (dynamischeBloecke) applyFrontmatterQueriesIfPresent(container, basePath);
   applyJournalNavIfPresent(container, basePath);
   applyJournalTimelineIfPresent(container, basePath);
-  // 4T-000412 (Epic 3E-000078): Skript-Blöcke ausführen bzw. als Quelltext
-  // zeigen (No-op ohne solchen Container).
-  applyPerspectiveScriptsIfPresent(container, basePath);
-  // 4T-000418: Platzhalter-Texte der Perspective Datatable lokalisieren
-  // (No-op ohne solchen Container).
+  if (dynamischeBloecke) applyPerspectiveScriptsIfPresent(container, basePath);
   applyPerspectiveDatatablesIfPresent(container);
-  // 4T-000419: Grid-Editor-Listener binden (einmalig pro Container; die
-  // Editierbarkeit prüfen die Handler zur Laufzeit über den View-Modus).
-  bindPerspectiveDatatableEditor(container);
-  // 4T-000420: Ansichts-Zustand (Sortierung/Filter) auf das frische DOM
-  // wiederanwenden (No-op ohne Zustand).
-  applyPerspectiveDatatableViewStates(container);
-  // 4T-000512 (Epic 3E-000092): Ereignis-Fence lokalisieren und Differenz-
-  // Spalte rechnen (No-op ohne solchen Container); Editor-Listener binden.
+  if (bearbeitbar) {
+    bindPerspectiveDatatableEditor(container);
+    applyPerspectiveDatatableViewStates(container);
+  }
   applyPerspectiveEventsIfPresent(container);
-  bindPerspectiveEventsEditor(container);
-  // 4T-000513: Ansichts-Zustand (Sortierung/Filter) samt Filter-Leiste auf
-  // das frische DOM wiederanwenden (Default-Sortierung Zeitpunkt absteigend).
-  applyPerspectiveEventsViewStates(container);
-  if (basePath) applyWikiEmbedsIfPresent(container, basePath);
-  // 4T-000324 (Epic 3E-000058): Aussen-Link-Warnung (No-op ohne aktiven Bereich).
+  if (bearbeitbar) {
+    bindPerspectiveEventsEditor(container);
+    applyPerspectiveEventsViewStates(container);
+  }
+  // Einbettungen bleiben beim Aufrufer, wo er den Tiefenzaehler fuehrt: Der
+  // Teilbaum einer Einbettung zaehlt eine Ebene hoeher (Grenze aus AK6 der
+  // Story 4S-000207).
+  if (einbettungen && basePath) applyWikiEmbedsIfPresent(container, basePath);
   if (basePath) markOutsideAreaLinks(container, basePath);
-  // 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator an Blöcken mit Daten
-  // (asynchron; lädt die .mdd-blockData der Datei und markiert die Anker-Blöcke).
   if (basePath) applyBlockMetaIndicators(container, basePath);
-  refreshSearchIfVisible();
+  if (suchLauf) refreshSearchIfVisible();
 }
+
+/**
+ * Der Schritt-Satz fuer einen erzeugten Teilbaum (4T-001130).
+ *
+ * @param {Element} container Der eingesetzte Teilbaum.
+ * @param {string} basePath Bezugs-Pfad des Teilbaum-INHALTS, nicht des offenen
+ *   Dokuments — bei der Einbettung der Pfad der eingebetteten Datei.
+ * @param {object} [opts]
+ * @param {boolean} [opts.dynamischeBloecke] Abfrage- und Skript-Bloecke
+ *   ausfuehren. `false` allein fuer die Ausgabe eines Skript-Blocks, deren
+ *   Rekursions-Sperre das Handbuch zusagt.
+ */
+export function applyTeilbaumSchritte(container, basePath, opts = {}) {
+  const { dynamischeBloecke = true } = opts;
+  wendeSchritteAn(container, basePath, {
+    bearbeitbar: false,
+    dynamischeBloecke,
+    frontmatterZeile: false,
+    einbettungen: false,
+    suchLauf: false,
+  });
+}
+
+export function applyRenderPipeline(container, basePath) {
+  wendeSchritteAn(container, basePath, {
+    bearbeitbar: true,
+    dynamischeBloecke: true,
+    frontmatterZeile: true,
+    einbettungen: true,
+    suchLauf: true,
+  });
+}
+
+// 4T-001130: Spaete Bindung des Teilbaum-Schritt-Satzes an die Skript-Ansicht.
+// Sie kann ihn nicht importieren, weil dieses Modul SIE importiert; die
+// Registrierung laeuft deshalb in dieser Richtung. Sie steht am Modul-Ende,
+// damit die Funktion beim Aufruf fertig definiert ist.
+registriereTeilbaumSchritte(applyTeilbaumSchritte);

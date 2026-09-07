@@ -7,7 +7,7 @@ Les extensions externes sont des paquets créés par vous-même qui étendent le
 
 ## Structure d'un paquet
 
-Un paquet d'extension est un dossier dans le répertoire des extensions du profil utilisateur. L'action « Ouvrir le dossier » de la section de paramètres Extensions (externes) ouvre le répertoire dans l'explorateur de fichiers.
+Un paquet d'extension est un dossier dans le répertoire des extensions du profil utilisateur. L'action « Ouvrir le dossier » de la section de paramètres Extensions (externes) ouvre le répertoire dans le gestionnaire de fichiers.
 
 ```text
 <profil utilisateur>/extensions/

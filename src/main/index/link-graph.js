@@ -11,6 +11,9 @@ const path = require('node:path');
 const { toLogicalName } = require('../../shared/subpages.js');
 const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
+// 4T-000952 (Epic 3E-000198): Puffer-Overlays fuer den ueberlagerten Graphen
+// der Graphenansicht.
+const { overlaysUnder, entryWithOverlay, overlayStand } = require('./overlay.js');
 // 4T-001276 (Epic 3E-000232, Befund B1): Ziel-Pfade sind Datei-Identität.
 // Diese Datei stand NICHT in der Altbestands-Liste des Wächters — sie ist beim
 // Umstellen von query-sources.js aufgefallen, weil beide Seiten desselben
@@ -24,17 +27,29 @@ const { pathCompareKey } = require('../../shared/platform.js');
 // Grenze des Suchraums, wie dokumentiert). Lazy gebaut und via
 // entry.linkGraph gecacht; jede Index-Aenderung invalidiert (applyParsedFile/
 // removeFileFromIndex), damit kein O(n)-Aufbau pro Abfrage-Lauf noetig ist.
-function buildLinkGraph(entry) {
+//
+// 4T-000952 (Epic 3E-000198): `sicht` trennt die beiden Rollen, die `entry`
+// bis dahin in einer Hand hatte. Aus der SICHT kommen die Link-QUELLEN
+// (welche Datei welche Links traegt) — dort wirkt ein Puffer-Overlay. Aus dem
+// EINTRAG kommt die Ziel-AUFLOESUNG (welche Datei es unter welchem Namen
+// gibt) — dort wirkt es nicht, denn ein ungespeicherter Puffer legt keine
+// Datei an und benennt keine um. Der Unterschied ist nicht nur fachlich:
+// resolveWikiLink haengt seine Suffix-Map lazy an das uebergebene Objekt
+// (ensurePathSuffixMap), und eine Sicht ist eine kurzlebige Kopie. Liefe die
+// Aufloesung ueber sie, entstuende die Map bei JEDEM Aufruf neu — genau der
+// Laufzeit-Einbruch, den 4T-001288 auf dem Bestand des Product Owners
+// beseitigt hat (879 Pfad-Links auf 6483 Dateien).
+function buildLinkGraph(entry, sicht = entry) {
   const outMap = new Map(); // absPath -> absPath[] (dedupliziert)
   const inMap = new Map(); // absPath -> absPath[] (dedupliziert)
-  for (const [src, hits] of entry.files) {
+  for (const [src, hits] of sicht.files) {
     const targets = new Map(); // lowercase -> Original-Pfad
     for (const h of hits) {
       let resolved = [];
       if (h.linkTyp === 'wiki' && h.zielBasename) {
         resolved = resolveWikiLink(entry, h.zielBasename);
         if (resolved.length === 0) resolved = filesByAlias(entry, h.zielBasename);
-      } else if (h.linkTyp === 'md' && h.zielAbsolut && entry.files.has(h.zielAbsolut)) {
+      } else if (h.linkTyp === 'md' && h.zielAbsolut && sicht.files.has(h.zielAbsolut)) {
         resolved = [h.zielAbsolut];
       }
       for (const t of resolved) {
@@ -120,8 +135,52 @@ function buildQueryContext(entry, root, absPath, linkGraph, now, resolveLinkTarg
   };
 }
 
+// 4T-000952 (Epic 3E-000198, Befund E-05): Link-Graph EINSCHLIESSLICH der
+// Puffer-Overlays einer Wurzel — die Grundlage der Graphenansicht, seit sie
+// frisch gesetzte und entfernte Verbindungen zeigen soll.
+//
+// Warum ein zweiter Graph statt entry.linkGraph: Der Eintrags-Graph gehoert
+// der Platte und wird von den Abfrage-Verbrauchern gelesen, die den Puffer
+// bewusst NICHT im Link-Bezug sehen (siehe overlay.js). Ihn zu ueberlagern
+// hiesse, deren dokumentierte Zusage still zu aendern.
+//
+// Warum ein Zwischenspeicher: Die Ansicht zeichnet bei jeder Overlay-Meldung
+// neu, also beim Tippen alle 300 ms, und der Aufbau laeuft ueber alle Dateien
+// der Wurzel.
+//
+// Er liegt am Index-Eintrag und nicht in einer eigenen Modul-Map, aus zwei
+// Gruenden. Erstens die Invalidierung: Er wird an genau denselben drei
+// Stellen genullt wie entry.linkGraph (build.js), also SYNCHRON mit der
+// Index-Aenderung. Der Aenderungs-Stand aus store.js taugte dafuer nicht, weil
+// er an der um 200 ms verzoegerten Invalidierungs-Meldung haengt und der Graph
+// in diesem Fenster veraltet waere. Zweitens die Lebensdauer: Mit der Wurzel
+// faellt der Eintrag und mit ihm der Zwischenspeicher; eine Modul-Map muesste
+// der Abbau-Pfad eigens raeumen, und lifecycle.js duerfte dieses Modul dafuer
+// nicht einmal laden (Zyklus ueber resolve.js).
+//
+// Der Overlay-Stand bleibt als zweite Haelfte des Schluessels noetig: Beim
+// Tippen aendert sich die Platte gerade NICHT, der Eintrag meldet also nichts.
+// Ohne Overlays gibt es nichts zu ueberlagern; dann gilt unveraendert der
+// Eintrags-Graph, und der zweite entsteht gar nicht.
+function graphUeberlagert(entry, root) {
+  const overlays = overlaysUnder(root);
+  if (!overlays) {
+    if (!entry.linkGraph) entry.linkGraph = buildLinkGraph(entry);
+    return entry.linkGraph;
+  }
+  const stand = overlayStand();
+  if (entry.linkGraphUeberlagert && entry.linkGraphUeberlagert.overlayStand === stand) {
+    return entry.linkGraphUeberlagert.graph;
+  }
+  const graph = buildLinkGraph(entry, entryWithOverlay(entry, overlays));
+  entry.linkGraphUeberlagert = { overlayStand: stand, graph };
+  return graph;
+}
+
 module.exports = {
   buildLinkGraph,
+  // 4T-000952: Graph mit Puffer-Overlays fuer die Graphenansicht.
+  graphUeberlagert,
   createTargetResolver,
   logicalNameFor,
   buildQueryContext,

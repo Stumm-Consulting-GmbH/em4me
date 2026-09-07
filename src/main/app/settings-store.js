@@ -11,7 +11,11 @@
 // Modul-Variable eines fremden Moduls zu setzen (Entwicklungsrichtlinien §1).
 'use strict';
 
-const { migrateUserData } = require('./user-data-migration.js');
+const {
+  migrateUserData,
+  PRODUKTIV_PROFIL,
+  AUSPRAEGUNG_USER_DATA,
+} = require('./user-data-migration.js');
 const { migrateWindowsToApps, normalizeSavedWorkspaces } = require('./session-schema');
 const { COLOR_SCHEMES_KEY, startupSchemeState } = require('../../shared/color-schemes.js');
 
@@ -19,6 +23,19 @@ const { COLOR_SCHEMES_KEY, startupSchemeState } = require('../../shared/color-sc
 // user-data-migration.js, damit die Unit-Tests denselben Pfad pruefen. Hier nur
 // die Bindung an die Electron-Pfade des Aufrufers.
 async function migrateSettingsFromPreviousName(dirs) {
+  // 4T-001336 (Epic 3E-000237): In der zweiten Auspraegung ist die Quelle die
+  // PRODUKTIVE Einrichtung und der Umfang enger — ohne die Entwuerfe. Die
+  // Rebrand-Kette der Vorgaengernamen entfaellt hier bewusst: Sie gehoert der
+  // produktiven Auspraegung, die sie fuer sich selbst schon durchlaufen hat.
+  if (dirs.auspraegung) {
+    await migrateUserData({
+      appDataDir: dirs.appDataDir,
+      userDataDir: dirs.userDataDir,
+      previousNames: [PRODUKTIV_PROFIL],
+      items: AUSPRAEGUNG_USER_DATA,
+    });
+    return;
+  }
   await migrateUserData({
     appDataDir: dirs.appDataDir,
     userDataDir: dirs.userDataDir,
@@ -89,6 +106,9 @@ function migrateLegacySettings(store) {
  * @param {object} dirs Verzeichnisse der App.
  * @param {string} dirs.appDataDir Uebergeordnetes Anwendungsdaten-Verzeichnis.
  * @param {string} dirs.userDataDir Nutzerdaten-Verzeichnis dieser App.
+ * @param {string|null} [dirs.auspraegung] 4T-001336: Kennzeichnung der zweiten
+ *   Auspraegung; gesetzt schaltet sie die Uebernahme auf die produktive
+ *   Einrichtung als Quelle um, null bzw. fehlend laesst die Rebrand-Kette laufen.
  * @returns {Promise<{store: object, workspaces: Array}>} Store und der
  *   normalisierte Arbeitsbereichs-Stand; der Aufrufer haelt beide.
  */

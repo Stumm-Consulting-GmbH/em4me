@@ -63,4 +63,4 @@ Las reglas de carpeta rellenan los archivos nuevos automáticamente: cada regla 
 - La **propia carpeta de plantillas queda excluida**: las plantillas nuevas permanecen vacías.
 - Si se elige explícitamente «Nuevo archivo desde plantilla», la plantilla elegida tiene prioridad; la regla no se aplica adicionalmente.
 - Cancelar un diálogo crea el archivo **vacío** (la creación en sí era deseada) y muestra un aviso.
-- Los archivos creados fuera de la aplicación (por ejemplo en el explorador de archivos) no pasan por las reglas.
+- Los archivos creados fuera de la aplicación (por ejemplo en el gestor de archivos) no pasan por las reglas.

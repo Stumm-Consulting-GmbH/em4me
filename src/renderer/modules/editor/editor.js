@@ -91,7 +91,7 @@ import { scheduleWordCountUpdate, updateWordCountStatusbar } from '../render-mer
 import { activeTab, editorActivity, getPaneEls, state, tabDisplayName } from '../app/app-state.js';
 // 4T-000318 (Epic 3E-000057): gestufter Titel-Suffix (App/Bereich/Fenster) als
 // reine Funktion.
-import { buildTitleSuffix } from '../app/window-title.js';
+import { buildTitleSuffix, buildAppName } from '../app/window-title.js';
 import { activateBacklinksFor } from '../panels/panel-backlinks.js';
 import { scheduleOutgoingRender } from '../panels/panel-outgoing.js';
 import {
@@ -741,7 +741,9 @@ export function unfoldHeadingRegion(view, line) {
 export function updateWindowTitle() {
   const tab = activeTab();
   const name = tab ? tabDisplayName(tab) : '';
-  const base = tab ? `${tab.dirty ? '• ' : ''}${name} — EM4me` : 'EM4me';
+  // 4T-001335: produktiv null und der Titel damit unveraendert (window-title.js).
+  const appName = buildAppName(state.auspraegung);
+  const base = tab ? `${tab.dirty ? '• ' : ''}${name} — ${appName}` : appName;
   const info = {
     // 4T-000538 (Epic 3E-000098): bei deaktivierter Erweiterung entfaellt der
     // Arbeitsbereichs-Teil (die App erscheint als normale Applikation).

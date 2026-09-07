@@ -21,6 +21,33 @@
 // mit deps.taskLines): Der Unit-Test baut seinen Fixture-Index ueber seine
 // eigene Modul-Instanz auf und reicht deren Leser herein. Ohne die Naht
 // laese die Erhebung aus einer zweiten Instanz, deren Index leer ist.
+//
+// --- Der Stand der Zahlen (4T-000953, Epic 3E-000198, Befund E-07) -----------
+// Diese Seite zeigt den GESPEICHERTEN Stand und sagt es. Das ist eine
+// Entscheidung des Product Owners vom 2026-09-06 gegen die Alternative, den
+// Editor-Puffer einzurechnen, wie es die sechs uebrigen Index-Sichten seit
+// 4T-000935 bis 4T-000952 tun.
+//
+// Der Grund liegt in der Sache: Ein Teil der Kennzahlen ist gar nicht
+// ueberlagerbar. Ein ungespeicherter Puffer hat keine Datei-Groesse und keine
+// Aenderungszeit — Speicher-Summen, «groesste Dateien» und «zuletzt geaendert»
+// koennten ihn nicht einrechnen, ohne Werte zu erfinden. Eine Seite, auf der
+// die Tag-Zahl den Puffer kennt und die Speicher-Zahl nicht, waere in sich
+// uneinheitlich und schwerer zu erklaeren als ein durchgehend gespeicherter
+// Stand mit Hinweis.
+//
+// Ausgewiesen wird beides: dass die Zahlen den gespeicherten Stand zeigen, und
+// wie viele offene Dokumente gerade ungespeicherte Aenderungen tragen. Die
+// zweite Zahl kommt aus der Puffer-Overlay-Schicht, die fuer genau diese
+// Dokumente einen Eintrag fuehrt und ihn beim Speichern, Verwerfen und
+// Schliessen zuruecknimmt; sie gilt fensteruebergreifend, wie die Schicht.
+//
+// Ihre eine Ungenauigkeit, benannt statt versteckt: Wer tippt und die Aenderung
+// von Hand wieder rueckgaengig macht, zaehlt weiter mit — der Reiter ist dann
+// nicht mehr geaendert, die Schicht traegt seinen Text aber noch. Der Main-
+// Prozess kennt den Aenderungs-Zustand der Reiter nicht; ihn dafuer einzuholen
+// waere ein eigener Kanal fuer eine Randlage, die den Hinweis nicht falsch
+// macht, sondern nur eine Anzeige zu viel liefert.
 'use strict';
 
 const fs = require('node:fs');
@@ -133,6 +160,16 @@ function standJetzt() {
   return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
+// 4T-000953: Zahl der offenen Dokumente mit ungespeicherten Aenderungen unter
+// einer Wurzel. Injizierbar aus demselben Grund wie der Index-Leser: Der
+// Unit-Test setzt seine Overlays ueber seine eigene Modul-Instanz.
+function leseUngespeicherte(wurzel, deps = {}) {
+  const lesen =
+    typeof deps.overlaysUnder === 'function' ? deps.overlaysUnder : backlinks.overlaysUnder;
+  const treffer = lesen(wurzel);
+  return treffer ? treffer.size : 0;
+}
+
 // Sammelt die Kennzahlen des Bereichs. env reicht den Status-Typ-Aufloeser
 // der Aufgaben-Zustaende an den Index-Anteil durch, deps.statsFor ersetzt
 // bei Bedarf den Index-Leser (siehe Kopf-Kommentar). Ist der Index nicht
@@ -189,6 +226,10 @@ async function collectAreaStats(areaRoot, env, deps = {}) {
     auffaelligkeiten: index.auffaelligkeiten,
     hinweise: {
       uebersprungeneOrdner: index.uebersprungeneOrdner + scan.uebersprungeneOrdner,
+      // 4T-000953 (Befund E-07): Zahl der offenen Dokumente dieses Bereichs mit
+      // ungespeicherten Aenderungen — die Grundlage des Stand-Hinweises auf der
+      // Seite. Begruendung im Kopf-Kommentar.
+      ungespeicherteDokumente: leseUngespeicherte(index.wurzel, deps),
     },
   };
 }

@@ -5,7 +5,8 @@
 // Aktualisieren nach einer neuen Datei zeigt die erhöhte Zahl; BS-04: ohne
 // Bereich lokalisierter Hinweis statt Seite; BS-05: Klick auf einen
 // Dateinamen der Auffälligkeiten öffnet die Datei; BS-06: Erweiterung aus
-// entfernt das Kommando. describe-Titel tragen die Matrix-ID
+// entfernt das Kommando; BS-07: der Stand-Ausweis bei ungespeicherten
+// Änderungen (4T-000953). describe-Titel tragen die Matrix-ID
 // (test/abdeckungs-matrix.json, S-118).
 'use strict';
 
@@ -244,6 +245,82 @@ test.describe('BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118)',
       await expect(page.locator('#context-menu [data-menu-id="area-panel-graph"]')).toBeVisible();
     } finally {
       await closeApp(app, userData);
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+// 4T-000953 (Epic 3E-000198, Befund E-07): Die Seite bleibt am gespeicherten
+// Stand — Entscheidung des Product Owners vom 2026-09-06 — und sagt es.
+// Geprüft wird der Ausweis am Weg des Anwenders: Seite öffnen, in einem
+// Dokument tippen ohne zu speichern, Seite neu erheben.
+//
+// Die Statistik-Seite ist ein eigener, read-only Tab. Nach dem Tippen wird
+// deshalb auf ihn zurückgewechselt und über ihren eigenen Knopf neu erhoben;
+// sie zieht bewusst nicht von selbst nach (der Stand-Zeitstempel ist die
+// Zusage, dass die Zahlen von genau diesem Zeitpunkt sind).
+test.describe('BS-07: Stand-Ausweis bei ungespeicherten Änderungen (S-118)', () => {
+  test('nennt den gespeicherten Stand und zählt die offenen Dokumente', async () => {
+    test.setTimeout(120000);
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp({
+      args: [path.join(areaRoot, 'Start.md')],
+    });
+    const hinweis = page.locator(`${STATS_PAGE} .area-stats-state`);
+    try {
+      await bindArea(page, areaRoot);
+      await openStatsAndWait(app, page);
+
+      // Anker: Der erste Satz steht immer, der zweite noch nicht — es gibt
+      // nichts auszuweisen.
+      await expect(hinweis).toContainText('gespeicherten Stand');
+      await expect(hinweis).not.toContainText('ungespeicherte Änderungen');
+
+      // In das offene Dokument schreiben, NICHT speichern.
+      await page.locator(SEL.tabs0, { hasText: 'Start' }).first().click();
+      await page.locator(SEL.viewBtn('source')).click();
+      const huelle = page.locator(SEL.paneSourceEditor0);
+      await expect(huelle).toBeVisible();
+      if (await huelle.evaluate((el) => el.classList.contains('read-only'))) {
+        await page.locator(SEL.btnEdit).click();
+      }
+      await page.locator(SEL.editorContent0).click();
+      await page.keyboard.press('Control+End');
+      await page.keyboard.type('\n\nFrisch getippt, nicht gespeichert.');
+      await expect(page.locator(SEL.dirtyTab0).first()).toBeVisible();
+
+      // Zurück auf die Statistik-Seite und neu erheben.
+      await page.locator(SEL.tabs0, { hasText: 'Bereichs-Statistik' }).first().click();
+      await expect(page.locator(STATS_PAGE)).toBeVisible();
+
+      // Erhoben wird im Poll, nicht mit einem einzelnen Klick: Die Seite
+      // zieht bewusst nicht von selbst nach (ihr Stand-Zeitstempel ist die
+      // Zusage, dass die Zahlen von genau diesem Zeitpunkt sind), und der
+      // geschriebene Stand erreicht den Hauptprozess erst verzögert — die
+      // Overlay-Schicht meldet gebündelt statt bei jedem Tastendruck. Ein
+      // einzelner Klick trifft dieses Fenster nicht zuverlässig; eine feste
+      // Pause davor wäre die Wartezeit-Variante desselben Fehlers.
+      const knopf = page.locator(`${STATS_PAGE} .area-stats-refresh`);
+      await expect
+        .poll(
+          async () => {
+            if (await knopf.isEnabled()) await knopf.click();
+            return (await hinweis.textContent()) || '';
+          },
+          { timeout: 30000, intervals: [1000] },
+        )
+        .toContain('Ein offenes Dokument');
+      await expect(hinweis).toContainText('gespeicherten Stand');
+
+      // Und die Zahlen selbst sind unverändert: Die Seite rechnet den
+      // Puffer nicht ein, sie weist ihn aus.
+      await expect(figure(page, 'Markdown-Dateien')).toContainText('3');
+    } finally {
+      // force: true, weil dieser Fall bewusst einen ungespeicherten Reiter
+      // hinterlaesst — ohne das Kennzeichen fragt das Fenster beim Schliessen
+      // nach dem Speichern, der Dialog bleibt stehen und der Worker laeuft in
+      // sein Teardown-Zeitlimit (Muster der Erhebungs-Spec 4t-0936).
+      await closeApp(app, userData, { force: true });
       cleanupDir(areaRoot);
     }
   });

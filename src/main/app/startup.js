@@ -27,6 +27,10 @@ const netzPfade = require('../documents/network-paths');
 const books = require('../books/books');
 const shelves = require('../books/shelves');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-001336 (Epic 3E-000237): Kennzeichnung der zweiten Auspraegung aus der
+// eingepackten package.json; produktiv fehlt das Feld und das Ergebnis ist null.
+const { auspraegungsKennzeichnung } = require('../../shared/build-version');
+const eigenePaketAngaben = require('../../../package.json');
 
 // M-02 (4T-000173): second-instance-Dateien, die ankommen, bevor das erste
 // Fenster ladefertig ist. Electron-IPC puffert nicht; ohne Queue verpufft
@@ -196,6 +200,9 @@ function createStartup(deps) {
     const geladen = await loadStore({
       appDataDir: app.getPath('appData'),
       userDataDir: app.getPath('userData'),
+      // 4T-001336 (Epic 3E-000237): gesetzt nur in der zweiten Auspraegung; sie
+      // uebernimmt die produktive Einrichtung beim ersten Start einmalig.
+      auspraegung: auspraegungsKennzeichnung(eigenePaketAngaben),
     });
     setStore(geladen.store);
     const store = getStore();

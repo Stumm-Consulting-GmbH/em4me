@@ -64,59 +64,67 @@ an Subagenten die Sichtbarkeit ausdrücklich vorgeben. Bei einer Meldung
 „wird nicht angezeigt" zuerst automatisiert klären, ob das Produkt oder
 das Material die Ursache ist.
 
-### Einen neuen Stand neben der eigenen Arbeit prüfen (Übergangs-Lösung)
+### Einen neuen Stand neben der eigenen Arbeit prüfen
 
-**Übergangs-Lösung bis zur zweiten Ausprägung.** Der Ziel-Zustand ist eine
-zweite, eigenständig gebaute Ausprägung der Anwendung mit eigener Identität,
-eigenem Nutzerdaten-Verzeichnis und übernommenen Einstellungen; sie ist als
-Vorhaben angelegt und noch nicht gebaut. Bis dahin steht derselbe Effekt mit
-Bordmitteln zur Verfügung, und zwar über den Weg, den jeder
-Release-Smoke-Test benutzt: Die installationsfreie Programmdatei startet mit
-der Umgebungsvariablen `SCG_TEST_USER_DATA` auf ein eigenes Verzeichnis und
-bekommt damit ein eigenes Nutzerdaten-Verzeichnis **und** einen eigenen
-Einzel-Instanz-Lock, weil die Umleitung in `src/main/main.js` vor dem Lock
-steht. Die produktive Anwendung darf dabei weiterlaufen.
+**Der Weg ist die zweite Ausprägung.** Sie ist dieselbe Anwendung mit einer
+eigenen Identität und deshalb neben der produktiv genutzten lauffähig: eigenes
+Nutzerdaten-Verzeichnis, eigener Einzel-Instanz-Lock, eigener Eintrag in der
+Taskleiste. Gebaut wird sie mit
 
-Der Aufruf in PowerShell, mit dem Pfad der zu prüfenden Portable-EXE und
-einem frei gewählten, leeren Verzeichnis:
-
-```powershell
-$env:SCG_TEST_USER_DATA = "$env:LOCALAPPDATA\EM4me-Pruefstand"
-& "C:\Pfad\zu\EM4me-<version>-Portable.exe"
+```bash
+npm run build:pruefstand
 ```
 
-Erwartetes Ergebnis: Nach einigen Sekunden (der Selbstentpacker braucht
-Zeit) erscheint ein **zweites** Fenster der Anwendung mit dem neuen Stand,
-neben dem ersten; die produktive Anwendung bleibt unberührt. Erscheint kein
-zweites Fenster, fehlt die Variable in **dieser** Shell, oder es lief bereits
-eine Instanz mit demselben Verzeichnis. Die Variable gilt nur für die Shell,
-in der sie gesetzt wurde; ein Doppelklick im Explorer startet ohne sie und
-landet in der laufenden produktiven Instanz.
+Das Ergebnis liegt als `EM4me-Pruefstand-<version>-Portable.exe` in `dist/` und
+wird per Doppelklick gestartet; eine laufende produktive Anwendung stört das
+nicht, und es braucht keine Umgebungsvariable und keine bestimmte Shell.
+Erkennbar ist sie an drei Stellen: am Fenstertitel `EM4me (Pruefstand)`, am
+blauen statt goldenen Symbol und am eigenen Eintrag der Taskleiste. Innerhalb
+der zweiten Ausprägung wirkt der Einzel-Instanz-Schutz unverändert — ein
+zweiter Start reicht sein Datei-Argument an das laufende Fenster weiter.
 
-**Drei Einschränkungen, die zum Weg gehören:**
+Sie ist **kein Release-Artefakt**: Sie wandert nicht ins Versions-Archiv, wird
+nicht ausgeliefert, und ausgeliefert wird ausschließlich die produktive
+Ausprägung.
 
-1. **Das Fenster verhält sich als Testlauf.** Dieselbe Variable setzt die
-   Testlauf-Kennung: Das Fenster erscheint ohne Fokus und wird nie von
-   selbst in den Vordergrund geholt. Bedienbar ist es vollständig, es kommt
-   nur nicht nach vorn.
-2. **Die Einrichtung ist leer.** Keine Einstellungen, keine Bereiche, keine
-   wiederhergestellte Sitzung; die Sprache ist die Auslieferungs-Vorgabe
-   (Englisch). Wer den eigenen Stand sehen will, richtet ihn in diesem
-   Verzeichnis einmal ein; das Verzeichnis bleibt zwischen zwei Starts
-   erhalten. Die Übernahme der produktiven Einrichtung beim ersten Start
-   kommt erst mit der zweiten Ausprägung.
-3. **Die Inhalte sind nicht getrennt.** Bereiche und Dokumente liegen im
+**Zwei Einschränkungen, die zum Weg gehören:**
+
+1. **Die Einrichtung ist zunächst leer.** Keine Einstellungen, keine Bereiche,
+   keine wiederhergestellte Sitzung; die Sprache ist die Auslieferungs-Vorgabe
+   (Englisch). Wer den eigenen Stand sehen will, richtet ihn einmal ein; das
+   Verzeichnis bleibt zwischen zwei Starts erhalten. Die einmalige Übernahme
+   der produktiven Einrichtung beim ersten Start ist als eigener Vorgang
+   angelegt und noch nicht gebaut.
+2. **Die Inhalte sind nicht getrennt.** Bereiche und Dokumente liegen im
    Dateisystem, und die Bereichs-Konfiguration liegt im Bereichs-Ordner
    selbst; beide Instanzen schreiben in dieselben Dateien, wenn sie denselben
    Bereich öffnen. Deshalb gilt die **Bereichs-Kopie** als Arbeitsweise
    (Entscheidung des Product Owners vom 2026-09-01): den zu prüfenden Bereich
-   vor dem Start kopieren und in der zweiten Instanz allein die Kopie
+   vor dem Start kopieren und in der zweiten Ausprägung allein die Kopie
    binden. Gegen Datenschäden durch einen ungeprüften Stand schützt nichts
-   anderes.
+   anderes — die Trennung der Ausprägungen erfasst die **Einrichtung**, nicht
+   den **Inhalt**.
 
-Der Smoke-Test der Release-Strecke (Kapitel 5) benutzt denselben Mechanismus
-aus Sicht der Sitzung; Prozess-Messung und Aufräumen stehen dort und werden
-hier nicht wiederholt.
+**Der Weg mit Bordmitteln bleibt daneben bestehen**, denn er trägt den
+Release-Smoke-Test: Die installationsfreie Programmdatei startet mit der
+Umgebungsvariablen `SCG_TEST_USER_DATA` auf ein eigenes Verzeichnis und
+bekommt damit ebenfalls ein eigenes Nutzerdaten-Verzeichnis und einen eigenen
+Lock, weil die Umleitung in `src/main/main.js` vor dem Lock steht.
+
+```powershell
+$env:SCG_TEST_USER_DATA = "$env:LOCALAPPDATA\EM4me-Pruefstand-Bordmittel"
+& "C:\Pfad\zu\EM4me-<version>-Portable.exe"
+```
+
+Für **manuelles Arbeiten** ist er der schlechtere der beiden Wege, und zwar
+aus einem Grund, den die zweite Ausprägung eigens vermeidet: Dieselbe Variable
+setzt die Testlauf-Kennung, das Fenster erscheint deshalb ohne Fokus und wird
+nie von selbst in den Vordergrund geholt. Bedienbar ist es vollständig, es
+kommt nur nicht nach vorn. Dazu gilt die Variable nur für die Shell, in der
+sie gesetzt wurde; ein Doppelklick im Explorer startet ohne sie und landet in
+der laufenden produktiven Instanz. Der Smoke-Test der Release-Strecke
+(Kapitel 5) benutzt denselben Mechanismus aus Sicht der Sitzung;
+Prozess-Messung und Aufräumen stehen dort und werden hier nicht wiederholt.
 
 ### Einen blockierten Anzeige-Prozess prüfen: die Blockade-Hilfe
 
@@ -556,6 +564,53 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     nachbildet, liest sie es aus der kanonischen Quelle (`scripts/pm-parse.js`)
     statt es abzuschreiben.
 
+24. **Ein E2E-Lauf misst nie ein veraltetes Renderer-Bündel** (4T-001481 und
+    4T-001475, Register-Klasse L9). Die Prüffälle starten die Anwendung gegen
+    das erzeugte `src/renderer/renderer.bundle.js` und nicht gegen die
+    Quellmodule. Gebaut wird es vom npm-Hook `pretest:e2e`, und der greift bei
+    `npm run test:e2e` und damit beim Gate-Weg — **nicht** aber bei einem
+    direkten `npx playwright test <datei>`, also genau bei der freien
+    Entwicklungs-Iteration, die der Pflicht-Zugang offen lässt (4T-001191).
+    Bis hierher war diese Falle lautlos: Der Lauf sah grün aus, gleich wie alt
+    sein Gegenstand war. Zwei Vorfälle vom 2026-09-05 belegen sie —
+    `4T-001478` meldete acht grüne Fälle, die den geänderten Code nie berührt
+    hatten, und `4T-001410` verbrannte rund fünfzehn Minuten und zwei
+    Hypothesen an einem Diagnose-Protokoll, das leer blieb, weil der
+    instrumentierte Quelltext gar nicht lief.
+
+    **Durchgesetzt wird die Regel am Tor, nicht im Gedächtnis.**
+    `scripts/bundle-frische.js` vergleicht die Änderungszeit des Bündels mit
+    der jüngsten Quelle unter `src/renderer/` und `src/shared/` (Erzeugtes wie
+    `mermaid.bundle.js`, `hljs-themes.css`, `katex/` und `driverjs/` zählt
+    nicht mit, ebenso wenig die nur vom Main-Prozess gelesene
+    `src/shared/build-info.json`). Der Helfer `test/e2e/helpers/app.js` ruft ihn
+    in `launchApp` vor `electron.launch` und **bricht ab**, statt zu warnen:
+    Eine Warnung stünde in der Ausgabe eines Laufs, den man erst am Ende liest,
+    und wäre damit dieselbe Prosa-Regel, die der Vorfall bereits gerissen hat.
+    Dass die Prüfung am Start hängt und nicht am Modulkopf, ist Absicht: Eine
+    Auflistung (`playwright test --list`) lädt jede Prüfdatei, startet aber
+    keine Anwendung, und aus ihr gewinnt `scripts/test-kennzahlen.js` die
+    Kennzahl «Automatische Prüfungen» — ein Wächter im Modulkopf hätte sie
+    eingefroren wie seinerzeit der Pflicht-Zugang (4T-001322). Ein
+    **fehlendes** Bündel gilt wie ein veraltetes. Der Wächter **baut nicht** und
+    schreibt nichts (E7/E8); die Meldung nennt beide Wege zum frischen Stand,
+    `node scripts/gate-lauf.js e2e` und `npm run build:renderer`. Über den
+    Gate-Weg bleibt er still, weil dessen `pre`-Kette unmittelbar davor gebaut
+    hat — eine Sonderbehandlung für ihn gibt es nicht.
+
+    **Gemessen statt angenommen: Änderungszeiten tragen, ein Inhalts-Hash wäre
+    hier der falsche Weg.** Ein Inhalts-Vergleich bräuchte einen Stempel der
+    Bau-Eingänge, also eine Schreib-Wirkung, die der Wächter nicht haben darf.
+    Der Zweifel gegen die Zeitstempel — nach einem `git checkout` springen sie —
+    trägt in die entlastende Richtung: Gemessen am 2026-09-06 schreibt
+    `git checkout` nur die Dateien neu, deren Inhalt sich unterscheidet, und
+    fasst das ungetrackte Bündel nie an. Ein Zeit-Sprung heißt also geänderter
+    Inhalt und damit ein wirklich veraltetes Bündel. Bleibt der
+    Hin-und-Zurück-Wechsel, nach dem der Inhalt wieder der des Baus ist: Er
+    kostet einen überflüssigen Bau von Sekunden. Der Irrtum geht damit immer auf
+    den Fehlalarm und nie auf den stillen Durchlass — dieselbe Richtung wie beim
+    Produkt-Code-Wächter und beim Pflicht-Zugang.
+
 ## E2E-Praxis
 
 Wiederkehrende Stolperstellen der Playwright-Suite. Jede hat mindestens
@@ -578,7 +633,13 @@ eine Debug-Runde gekostet.
   Bundle. Vor direkten Playwright-Aufrufen deshalb
   `npm run build:renderer`. Symptom: der Main-Anteil einer Änderung
   greift, die Renderer-Anzeige fehlt (neue CSS-Klasse oder DOM-Struktur
-  wird nicht gefunden).
+  wird nicht gefunden). **Seit 4T-001481 hängt das nicht mehr am
+  Gedächtnis:** `test/e2e/helpers/app.js` prüft die Frische über
+  `scripts/bundle-frische.js` und bricht ab, bevor die Anwendung startet
+  (Stabilitätsregel 24). Der Hinweis hier bleibt
+  trotzdem stehen — er nennt das Symptom, das der Wächter jetzt vorweg
+  abfängt, und gilt unverändert für jeden anderen Weg, der die Anwendung
+  ohne den Helfer startet.
 - **Der Renderer-Bau ist ein eigenes Gate.** Vitest löst fehlende
   Named-Exports lax zu `undefined` auf, esbuild bricht hart ab („No
   matching export"). Ein falsch gezogener Import läuft deshalb durch

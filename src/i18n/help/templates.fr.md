@@ -63,4 +63,4 @@ Les règles de dossier remplissent automatiquement les nouveaux fichiers : chaqu
 - Le **dossier de modèles lui-même est exclu** — les nouveaux modèles restent vides.
 - Si l'on choisit explicitement « Nouveau fichier à partir d'un modèle », le modèle choisi a la priorité ; la règle ne s'applique pas en plus.
 - L'annulation d'un dialogue crée le fichier **vide** (la création elle-même était voulue) et affiche un indice.
-- Les fichiers créés en dehors de l'application (par exemple dans l'explorateur de fichiers) ne passent pas par les règles.
+- Les fichiers créés en dehors de l'application (par exemple dans le gestionnaire de fichiers) ne passent pas par les règles.

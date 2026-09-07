@@ -120,7 +120,7 @@ Umbenennen und Löschen von **Ordnern** sowie das Verschieben von Dateien gehör
 
 Gezählt werden **Dateien, nicht Fundstellen**: Steht beim Tag `#projekt` die Zahl 180, tragen 180 Dateien diesen Tag; wie oft er in ihrem Text vorkommt, bleibt offen. Lange Listen zeigen zunächst 25 Zeilen und lassen sich vollständig aufklappen.
 
-Die Zahlen tragen oben einen Stand-Zeitstempel und werden **auf Anforderung** erhoben, nicht laufend: Der Knopf „Aktualisieren" erhebt neu, ebenso der erneute Aufruf des Menü-Eintrags. Ohne geöffneten Bereich gibt es keinen abgegrenzten Datei-Raum; der Eintrag ist dann ausgegraut. Die Funktion ist als Erweiterung „Bereichs-Statistik" abschaltbar.
+Die Zahlen tragen oben einen Stand-Zeitstempel und werden **auf Anforderung** erhoben, nicht laufend: Der Knopf „Aktualisieren" erhebt neu, ebenso der erneute Aufruf des Menü-Eintrags. Sie zeigen den **gespeicherten** Stand: Was in einem offenen Dokument geschrieben, aber noch nicht gespeichert ist, steckt nicht in den Zahlen. Die Seite sagt das über den Zahlen und nennt dabei, wie viele offene Dokumente gerade ungespeicherte Änderungen tragen. Ohne geöffneten Bereich gibt es keinen abgegrenzten Datei-Raum; der Eintrag ist dann ausgegraut. Die Funktion ist als Erweiterung „Bereichs-Statistik" abschaltbar.
 
 ### Zuletzt geöffnete Bereiche
 

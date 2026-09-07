@@ -86,7 +86,7 @@ Three rules apply when opening:
 
 ### Hard boundaries
 
-Within an area application the area is the boundary: the open dialog starts in the area and rejects selections outside it, "Recent" only shows area files, "Save As" only accepts targets inside the area, and no foreign file gets in via drag and drop either. Files from the file explorer always open in an application without an area.
+Within an area application the area is the boundary: the open dialog starts in the area and rejects selections outside it, "Recent" only shows area files, "Save As" only accepts targets inside the area, and no foreign file gets in via drag and drop either. Files from the file manager always open in an application without an area.
 
 Links whose target lies outside the area are marked with a warning underline; the tooltip shows the full target path. A click does not open the target but reports the reason in the status bar. Embedded images are still displayed even if they lie outside; the boundary applies to opening files, not to rendering.
 
@@ -120,7 +120,7 @@ Renaming and deleting **folders** as well as moving files are not part of the sc
 
 What is counted are **files, not occurrences**: if the tag `#project` shows 180, then 180 files carry that tag; how often it appears in their text is not stated. Long lists start with 25 rows and can be expanded in full.
 
-The figures carry a timestamp at the top and are collected **on request**, not continuously: the "Refresh" button collects them again, as does invoking the menu entry once more. Without an open area there is no bounded set of files, so the entry is greyed out. The feature can be switched off as the "Area statistics" extension.
+The figures carry a timestamp at the top and are collected **on request**, not continuously: the "Refresh" button collects them again, as does invoking the menu entry once more. They show the **saved** state: anything written in an open document but not yet saved is not part of the figures. The page says so above them and names how many open documents currently carry unsaved changes. Without an open area there is no bounded set of files, so the entry is greyed out. The feature can be switched off as the "Area statistics" extension.
 
 ### Recent areas
 

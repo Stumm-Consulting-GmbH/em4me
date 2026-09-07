@@ -86,7 +86,7 @@ Trois règles s'appliquent à l'ouverture :
 
 ### Limites strictes
 
-Au sein d'une application de zone, la zone est la limite : le dialogue d'ouverture démarre dans la zone et rejette une sélection extérieure, « Récents » n'affiche que les fichiers de la zone, « Enregistrer sous » n'accepte que des cibles dans la zone, et aucun fichier étranger n'entre par glisser-déposer. Les fichiers ouverts depuis l'explorateur s'ouvrent toujours dans une application sans zone.
+Au sein d'une application de zone, la zone est la limite : le dialogue d'ouverture démarre dans la zone et rejette une sélection extérieure, « Récents » n'affiche que les fichiers de la zone, « Enregistrer sous » n'accepte que des cibles dans la zone, et aucun fichier étranger n'entre par glisser-déposer. Les fichiers ouverts depuis le gestionnaire de fichiers s'ouvrent toujours dans une application sans zone.
 
 Les liens dont la cible se trouve hors de la zone sont marqués d'un soulignement d'avertissement ; l'info-bulle indique le chemin complet de la cible. Un clic n'ouvre pas la cible mais signale la raison dans la barre d'état. Les images intégrées restent affichées même si elles se trouvent à l'extérieur ; la limite concerne l'ouverture de fichiers, pas le rendu.
 
@@ -120,7 +120,7 @@ Renommer et supprimer des **dossiers** ainsi que déplacer des fichiers ne font 
 
 Ce sont les **fichiers qui sont comptés, non les occurrences** : si le tag `#projet` affiche 180, cela signifie que 180 fichiers portent ce tag ; sa fréquence dans le texte n'est pas indiquée. Les listes longues commencent par 25 lignes et se déplient entièrement.
 
-Les chiffres portent en haut un horodatage et sont calculés **à la demande**, non en continu : le bouton « Actualiser » les recalcule, tout comme un nouvel appel de l'entrée de menu. Sans zone ouverte, il n'y a pas d'ensemble de fichiers délimité ; l'entrée est alors grisée. La fonction peut être désactivée en tant qu'extension « Statistiques de la zone ».
+Les chiffres portent en haut un horodatage et sont calculés **à la demande**, non en continu : le bouton « Actualiser » les recalcule, tout comme un nouvel appel de l'entrée de menu. Ils indiquent l'état **enregistré** : ce qui est écrit dans un document ouvert sans avoir été enregistré n'entre pas dans les chiffres. La page le précise au-dessus d'eux et indique combien de documents ouverts comportent actuellement des modifications non enregistrées. Sans zone ouverte, il n'y a pas d'ensemble de fichiers délimité ; l'entrée est alors grisée. La fonction peut être désactivée en tant qu'extension « Statistiques de la zone ».
 
 ### Zones récentes
 

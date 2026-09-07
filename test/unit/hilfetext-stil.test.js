@@ -69,31 +69,19 @@ describe('Stil-Waechter Hilfetexte (4T-000221)', () => {
   // Seiten und README; geprüft wurden bis dahin allein die Sprachdateien. Am
   // 2026-09-01 standen sechs Verstöße in Handbuch-Seiten, die Suite lief grün.
   describe('Stil-Regel 4: Gattungsname statt Datei-Manager-Produktname (4T-001377)', () => {
-    // Bestands-Ausnahmen mit Ratsche (Stand 2026-09-03): 4T-001294 hat die
-    // sechs Fundstellen des Anlasses behoben, aber allein in den deutschen
-    // Fassungen und je einer weiteren Zeile; in vierzehn fremdsprachigen Seiten
-    // steht der Produktname weiter («file explorer», «Explorador»,
-    // «Explorateur», «Esplora risorse» und die Windows-10/11-Schreibung
-    // «Esplora file», die der Wächter aus 4T-001279 nicht kannte). Die Behebung
-    // ist Produkt-Text und läuft als 4T-001397 über die Release-Strecke; bis
-    // dahin meldet der Fall genau diese Seiten, und die Liste darf nur
-    // schrumpfen — eine Ausnahme ohne Fund ist ein Befund.
-    const BESTAND_AUSNAHMEN = new Set([
-      'apps-windows.en.md',
-      'apps-windows.es.md',
-      'apps-windows.fr.md',
-      'apps-windows.it.md',
-      'extensions-dev.en.md',
-      'extensions-dev.es.md',
-      'extensions-dev.fr.md',
-      'extensions-dev.it.md',
-      'subpages.es.md',
-      'subpages.fr.md',
-      'templates.en.md',
-      'templates.es.md',
-      'templates.fr.md',
-      'templates.it.md',
-    ]);
+    // 4T-001397 (Epic 3E-000272): Die Liste ist LEER, und das ist ihr Zweck.
+    //
+    // Am 2026-09-03 standen hier vierzehn fremdsprachige Seiten: 4T-001294
+    // hatte die Fundstellen des Anlasses behoben, aber allein in den deutschen
+    // Fassungen, und die uebrigen Sprachfassungen derselben Saetze blieben
+    // stehen. Am 2026-09-05 sind sie berichtigt worden («file manager»,
+    // «gestor de archivos», «gestionnaire de fichiers», «gestore file»).
+    //
+    // Die leere Menge bleibt als Konstante stehen statt zu verschwinden: Sie
+    // ist der Ort, an dem eine kuenftige Bestands-Ausnahme sichtbar wuerde,
+    // und die Regel daneben gilt unveraendert — die Liste darf nur schrumpfen,
+    // und eine Ausnahme ohne Fund ist ein Befund.
+    const BESTAND_AUSNAHMEN = new Set([]);
 
     it('findet die historischen Fundstellen und schont Plattform-Bindung und Code (Gegenprobe)', () => {
       const text = [

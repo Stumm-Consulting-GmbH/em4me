@@ -103,6 +103,23 @@ function bauAngaben(pkgVersion, marken, datum) {
   return { temporaer: true, version, kennzeichnung, basis: pkgVersion };
 }
 
+// 4T-001335 (Epic 3E-000237): Kennzeichnung einer zweiten Ausprägung.
+//
+// Die zweite Ausprägung entsteht ausschließlich über Bau-Zeit-Überschreibungen
+// (`-c.extraMetadata.*`), die electron-builder in die eingepackte package.json
+// mischt; die package.json des Repositoriums bleibt unangetastet, und der
+// Identitäts-Wächter bleibt damit ohne Anpassung grün. Das Feld `auspraegung`
+// ist der einzige Träger dieser Auskunft: Es fehlt in der produktiven
+// Ausprägung und im Entwicklungs-Lauf, und dann ist das Ergebnis null.
+//
+// Bewusst NICHT aus dem App-Namen abgeleitet: Der trägt mit `em4me-pruefstand`
+// eine technische Form, die im Fenstertitel nichts zu suchen hat, und eine
+// Ableitungs-Tabelle wäre eine zweite Wahrheit neben der Bau-Angabe.
+function auspraegungsKennzeichnung(pkg) {
+  const wert = pkg && typeof pkg.auspraegung === 'string' ? pkg.auspraegung.trim() : '';
+  return wert || null;
+}
+
 // Build-Nummer aus der Commit-Anzahl: der Release-Commit trägt seine eigene
 // Nummer, deshalb die Anzahl der Vorgänger-Commits plus 1.
 function nextBuildNumber(gitCount) {
@@ -150,4 +167,6 @@ module.exports = {
   temporaereKennzeichnung,
   zeitstempelFuerBau,
   bauAngaben,
+  // 4T-001335: Kennzeichnung der zweiten Ausprägung aus der Bau-Angabe.
+  auspraegungsKennzeichnung,
 };

@@ -86,7 +86,7 @@ All'apertura valgono tre regole:
 
 ### Limiti rigidi
 
-All'interno di un'applicazione di area, l'area è il confine: la finestra di apertura parte nell'area e respinge una selezione esterna, «Recenti» mostra solo file dell'area, «Salva con nome» accetta solo destinazioni nell'area, e nemmeno tramite trascinamento entra un file estraneo. I file aperti dall'esplora risorse si aprono sempre in un'applicazione senza area.
+All'interno di un'applicazione di area, l'area è il confine: la finestra di apertura parte nell'area e respinge una selezione esterna, «Recenti» mostra solo file dell'area, «Salva con nome» accetta solo destinazioni nell'area, e nemmeno tramite trascinamento entra un file estraneo. I file aperti dal gestore file si aprono sempre in un'applicazione senza area.
 
 I collegamenti la cui destinazione si trova fuori dall'area sono contrassegnati con una sottolineatura di avviso; il suggerimento mostra il percorso completo della destinazione. Un clic non apre la destinazione ma segnala il motivo nella barra di stato. Le immagini incorporate vengono comunque mostrate anche se si trovano all'esterno; il confine riguarda l'apertura dei file, non il rendering.
 
@@ -120,7 +120,7 @@ Rinominare ed eliminare **cartelle** e spostare file non rientrano ancora nell'a
 
 Si contano **file, non occorrenze**: se il tag `#progetto` mostra 180, allora 180 file portano quel tag; quante volte compaia nel loro testo non viene indicato. Gli elenchi lunghi iniziano con 25 righe e si possono espandere per intero.
 
-I numeri portano in alto un riferimento temporale e vengono calcolati **su richiesta**, non di continuo: il pulsante «Aggiorna» li ricalcola, così come una nuova chiamata della voce di menu. Senza un'area aperta non esiste un insieme di file delimitato; la voce è allora disattivata. La funzione si può disattivare come estensione «Statistiche dell'area».
+I numeri portano in alto un riferimento temporale e vengono calcolati **su richiesta**, non di continuo: il pulsante «Aggiorna» li ricalcola, così come una nuova chiamata della voce di menu. Mostrano lo stato **salvato**: ciò che è stato scritto in un documento aperto ma non ancora salvato non rientra nei numeri. La pagina lo dichiara sopra di essi e indica quanti documenti aperti hanno in quel momento modifiche non salvate. Senza un'area aperta non esiste un insieme di file delimitato; la voce è allora disattivata. La funzione si può disattivare come estensione «Statistiche dell'area».
 
 ### Aree recenti
 

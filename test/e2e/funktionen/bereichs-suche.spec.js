@@ -17,6 +17,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { pressNachfassend } = require('../helpers/eingabe');
 
 const PANE = '.pane-group[data-pane="0"]';
 const PANEL = `${PANE} .sidebar-searchresults`;
@@ -238,14 +239,15 @@ test.describe('BS-05: Durchlauf ueber die Datei-Grenze', () => {
 
       const zaehler = page.locator('#search-count');
       await expect(zaehler).toHaveText('1 / 4');
+      // 4T-001410: Der Druck wird zugestellt, nicht bloss abgeschickt. Gemessen
+      // am 2026-09-05 geht unter Last ein F3 verloren, ohne dass die Anwendung
+      // eine Bedingung dafuer setzt; `pressUntil` scheidet aus, weil F3 den
+      // Zeiger je Druck weiterrueckt. Erwartet wird deshalb der GENAUE
+      // Zielstand: Ein doppelt zugestellter Druck faellt damit auf, statt sich
+      // in einer weichen Bedingung zu verstecken.
       const gesehen = ['1 / 4'];
-      for (let i = 0; i < 3; i++) {
-        await page.keyboard.press('F3');
-        await expect
-          .poll(async () => (await zaehler.textContent()) !== gesehen[gesehen.length - 1], {
-            timeout: 15000,
-          })
-          .toBe(true);
+      for (const ziel of ['2 / 4', '3 / 4', '4 / 4']) {
+        await pressNachfassend(page, 'F3', async () => (await zaehler.textContent()) === ziel);
         gesehen.push((await zaehler.textContent()).trim());
       }
       expect(gesehen).toEqual(['1 / 4', '2 / 4', '3 / 4', '4 / 4']);

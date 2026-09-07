@@ -19,6 +19,19 @@
 // ihren Namen an der Stelle des Bereichsnamens ("Buch {name}",
 // "Buecherregal {name}"); die Bereichs-Bindung einer solchen App ist der
 // Buch- bzw. Regal-Ordner selbst und erscheint nicht doppelt.
+// 4T-001335 (Epic 3E-000237): App-Name im Fenstertitel. Die produktive
+// Auspraegung traegt "EM4me", die zweite haengt ihre Kennzeichnung an
+// ("EM4me (Pruefstand)"). Ohne diesen Unterschied ist der Parallelbetrieb eine
+// Fehlerquelle, weil im Alt-Tab-Wechsel nicht mehr feststeht, in welchem
+// Programm getippt wird — das Symbol allein traegt diese Auskunft nicht.
+//
+// Bewusst NICHT uebersetzt: Der Name ist ein Eigenname, und die Kennzeichnung
+// kommt als fertige Zeichenkette aus der Bau-Angabe.
+export function buildAppName(auspraegung) {
+  const zusatz = typeof auspraegung === 'string' ? auspraegung.trim() : '';
+  return zusatz ? `EM4me (${zusatz})` : 'EM4me';
+}
+
 export function buildTitleSuffixParts(info, t) {
   const parts = [];
   const kontext = info.bookName

@@ -323,3 +323,67 @@ describe('Bereichs-Suche: geschriebener Stand nicht-aktiver Dokumente', () => {
     expect(fs.readFileSync(path.join(root, 'zweite.md'), 'utf8')).toContain('Quittenbrot');
   });
 });
+
+// 4T-001260 (Epic 3E-000272): Die Obergrenze je einzelner Datei.
+//
+// Der Mangel: Der 50-MB-Deckel galt fuer den ganzen Bereich, also traf eine
+// einzige sehr grosse Datei jedes andere Dokument mit. Gemessen am 2026-09-05:
+// 200 Prosa-Dokumente (7,8 MB) brauchten allein 33 ms je Suchlauf, neben einer
+// 53-MB-Datei 192 ms, weil der ganze Bereich in den Direkt-Modus fiel. Nach der
+// Behebung bleibt derselbe Bestand im Vorrats-Modus und braucht 112 ms.
+//
+// Ein Test mit echten 10 MB waere teuer und langsam; geprueft wird deshalb die
+// Mechanik an der Grenze selbst, mit einer Datei knapp darueber. Die Groesse
+// entsteht aus Fuelltext, nicht aus einer Fixture-Datei.
+describe('Bereichs-Suchraum: Obergrenze je Datei (4T-001260)', () => {
+  // Knapp ueber MAX_DATEI_BYTES (10 MB). Der Fuelltext traegt den Suchbegriff
+  // genau einmal, damit die Trefferzahl eindeutig bleibt.
+  function schreibeRiesen(root, rel) {
+    const block = 'Fuellmaterial ohne Fundstelle. '.repeat(1000);
+    const teile = [];
+    for (let i = 0; i < 340; i++) teile.push(block);
+    teile.push('Hier steht ein Treffer im Riesen.');
+    write(root, rel, teile.join('\n\n'));
+  }
+
+  it('haelt den Bereich im Vorrats-Modus, obwohl eine Datei den Deckel spraenge', async () => {
+    const root = fixture();
+    schreibeRiesen(root, 'riese.md');
+    const res = await suche(root);
+    // Der Kern der Behebung: Vor ihr fiel der ganze Bereich auf 'direkt',
+    // sobald eine einzelne Datei den gemeinsamen Deckel aufbrauchte.
+    expect(res.vorratModus).toBe('vorrat');
+  });
+
+  it('findet trotzdem in der grossen Datei', async () => {
+    const root = fixture();
+    schreibeRiesen(root, 'riese.md');
+    const res = await suche(root);
+    // Die Datei ist nicht im Vorrat, wird aber je Lauf gelesen — sie faellt aus
+    // dem Speicher, nicht aus dem Trefferraum.
+    expect(res.gruppen.map((g) => g.gruppe)).toContain('riese.md');
+  });
+
+  it('laesst die uebrigen Dateien unberuehrt', async () => {
+    const root = fixture();
+    schreibeRiesen(root, 'riese.md');
+    const res = await suche(root);
+    const gruppen = res.gruppen.map((g) => g.gruppe);
+    for (const erwartet of ['alpha.md', 'unter/beta.md', 'zeta.md']) {
+      expect(gruppen).toContain(erwartet);
+    }
+  });
+
+  it('nimmt den Puffer-Stand der grossen Datei vor dem Platten-Stand', async () => {
+    // Die Zusage «gefunden wird auch Ungespeichertes» darf nicht an der
+    // Dateigroesse haengen: Auch die nachgelesene Riesen-Datei kommt aus dem
+    // Puffer, wenn einer vorliegt.
+    const root = fixture();
+    schreibeRiesen(root, 'riese.md');
+    setBufferOverlay(path.join(root, 'riese.md'), 'Nur ein Treffer aus dem Puffer.');
+    const res = await suche(root);
+    const gruppe = res.gruppen.find((g) => g.gruppe === 'riese.md');
+    expect(gruppe).toBeTruthy();
+    expect(gruppe.anzahl).toBe(1);
+  });
+});

@@ -314,6 +314,8 @@ contextBridge.exposeInMainWorld('api', {
   // System
   getLocale: () => ipcRenderer.invoke('app:locale'),
   getVersion: () => ipcRenderer.invoke('app:version'),
+  // 4T-001335 (Epic 3E-000237): Kennzeichnung der zweiten Auspraegung oder null.
+  getAuspraegung: () => ipcRenderer.invoke('app:auspraegung'),
   getTheme: () => ipcRenderer.invoke('theme:current'),
   // 4T-000030: Theme-Vorzug ('light' | 'dark' | 'system'). 'system' folgt dem
   // OS-Theme (alte Logik), die anderen erzwingen das jeweilige Theme.

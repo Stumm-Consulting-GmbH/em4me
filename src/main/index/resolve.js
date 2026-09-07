@@ -12,6 +12,8 @@ const { SUBPAGE_SEP, expandRelativeTarget, isRelativeTarget } = require('../../s
 const { MD_EXT_RE, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 const { ensureIndex } = require('./lifecycle.js');
+// 4T-000952 (Epic 3E-000198, Befund E-04): Puffer-Overlay der Rueckverweise.
+const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
 
 // 4T-000050: Liefert alle Dateien im Index, die den gegebenen Alias fuehren.
 // Case-insensitive Lookup. Leeres Array bei keinem Treffer.
@@ -134,15 +136,23 @@ function resolveWikiLink(entry, zielBasename) {
 //   (a) die aktive Datei den Basename 'MV' hat, oder
 //   (b) die aktive Datei einen Alias 'MV' im Frontmatter fuehrt.
 // Im Treffer wird viaAlias='MV' gesetzt, wenn (b) zutrifft; sonst null.
-function collectBacklinksFor(activeFile, entry) {
+//
+// 4T-000952 (Epic 3E-000198, Befund E-04): `sicht` traegt die Puffer-Overlays
+// und liefert die LINKS und die Zweitnamen der aktiven Datei — beides steht im
+// Datei-Text und aendert sich beim Tippen. Die Ziel-AUFLOESUNG laeuft weiter
+// ueber `entry`, aus demselben Grund wie in buildLinkGraph: Sie beantwortet
+// «welche Datei gibt es unter diesem Namen», daran aendert ein ungespeicherter
+// Puffer nichts, und ihre Suffix-Map ist ein Cache am Eintrag, den eine
+// kurzlebige Sicht bei jedem Aufruf neu aufbauen wuerde (4T-001288).
+function collectBacklinksFor(activeFile, entry, sicht = entry) {
   const activeAbs = path.resolve(activeFile);
   // 4T-000050: Aliases der aktiven Datei (case-insensitive Vergleich gegen
   // Wiki-Link-Basenames der Quelldateien).
-  const activeAliases = entry.aliasesPerFile.get(activeAbs) || [];
+  const activeAliases = sicht.aliasesPerFile.get(activeAbs) || [];
   const activeAliasesLower = new Set(activeAliases.map((a) => normalizeNameKey(a.trim())));
   const activeBasenameLower = normalizeNameKey(path.basename(activeAbs).replace(MD_EXT_RE, ''));
   const groups = new Map(); // quelldatei -> Array<{zeile, anker, snippet, linkTyp, viaAlias}>
-  for (const [src, hits] of entry.files) {
+  for (const [src, hits] of sicht.files) {
     if (src === activeAbs) continue; // Eigen-Referenz ueberspringen
     for (const h of hits) {
       let isMatch = false;
@@ -221,7 +231,14 @@ function backlinksFor(filePath, ownerKey, areaRoot) {
   if (entry.status === 'error') {
     return { status: 'error', meta: { wurzel: root } };
   }
-  const results = collectBacklinksFor(filePath, entry);
+  // 4T-000952 (Epic 3E-000198, Befund E-04): Puffer-Overlay freigeschaltet. Ein
+  // Verweis, der in einem anderen offenen Dokument gerade entsteht, erscheint
+  // damit hier; ein dort geloeschter verschwindet.
+  const results = collectBacklinksFor(
+    filePath,
+    entry,
+    entryWithOverlay(entry, overlaysUnder(root)),
+  );
   return {
     status: 'ready',
     // B-22 (4T-000187): skippedDirs fuer den Panel-Hinweis.

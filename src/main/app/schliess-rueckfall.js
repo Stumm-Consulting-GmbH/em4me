@@ -39,6 +39,14 @@
 
 const FRIST_MS = 20000;
 
+// Frist der ZWEITEN Stufe des erzwungenen Schlusses: Entscheidung des Product
+// Owners vom 2026-09-05 (4T-001409). Drei Sekunden decken allein den seltenen
+// Fall, dass der Anzeige-Prozess zwischen Fristablauf und `close()` zurueckkommt
+// und noch sauber herunterfaehrt; er ist in diesem Zweig per Definition seit 20
+// Sekunden stumm. Fuer den Anwender, der bereits die volle Frist gewartet hat,
+// sind drei weitere Sekunden nicht spuerbar.
+const HART_FRIST_MS = 3000;
+
 /**
  * Baut die Stille-Wache des Schliess-Wegs.
  *
@@ -175,12 +183,27 @@ function erstelleSchliessRueckfall(deps = {}) {
  * Baut die Handlung nach Ablauf der Frist: fragen, dann schliessen oder weiter
  * warten (Entscheidung des Product Owners vom 2026-08-26).
  *
- * Der Schluss laeuft ueber den REGULAEREN Quittungs-Weg, also Quittung setzen
- * und `close()` rufen, und nicht ueber ein hartes `destroy()`. Das ist der
- * Grund, aus dem der Sitzungs-Stand dabei erhalten bleibt: Der close-Handler
- * schreibt ihn im quittierten Zweig ohnehin, aus Haupt-Prozess-Daten, die den
- * ausgefallenen Anzeige-Prozess nicht brauchen. Entscheidung E3 ist damit
- * konstruktiv erfuellt und nicht als Zusatz angeflanscht.
+ * Der Schluss laeuft ZWEISTUFIG (Entscheidung des Product Owners vom
+ * 2026-09-05, 4T-001409). Erste Stufe ist unveraendert der REGULAERE
+ * Quittungs-Weg, also Quittung setzen und `close()` rufen; zweite Stufe ist nach
+ * einer Frist `destroy()`, falls das Fenster dann noch existiert.
+ *
+ * Warum es die zweite Stufe braucht: `close()` allein reicht nicht. Gemessen am
+ * 2026-09-05 mit der Blockade-Hilfe laeuft der quittierte Zweig des
+ * close-Handlers zwar vollstaendig durch, doch danach wartet Electron auf
+ * `beforeunload`/`unload` im Anzeige-Prozess — und genau der ist blockiert.
+ * `close()` kehrt sofort zurueck, `closed` feuert nie, das Fenster bleibt
+ * stehen. Der Rueckfall tat also alles Zugesagte, und die Plattform fuehrte es
+ * nicht aus.
+ *
+ * Warum die erste Stufe trotzdem bleibt: Der close-Handler schreibt im
+ * quittierten Zweig den Sitzungs-Stand, aus Haupt-Prozess-Daten, die den
+ * ausgefallenen Anzeige-Prozess nicht brauchen — und er tut das SYNCHRON im
+ * `close()`-Aufruf, also lange vor Ablauf der Frist. Ein sofortiges `destroy()`
+ * statt `close()` loeste dagegen gar kein close-Ereignis aus und muesste die
+ * Persistenz an einem zweiten Ort wiederholen. Entscheidung E3 vom 2026-08-26
+ * bleibt damit konstruktiv erfuellt, und der antwortende Anzeige-Prozess merkt
+ * von der zweiten Stufe nichts: Er ist bei Ablauf der Frist bereits zerstoert.
  *
  * @param {object} deps Alle Aussenwirkungen injiziert, damit die Handlung ohne
  *   Elektron pruefbar bleibt.
@@ -189,6 +212,8 @@ function erstelleSchliessRueckfall(deps = {}) {
  *   Hinweis mit Wahl; `true` heisst schliessen, `false` weiter warten.
  * @param {(win: object) => void} deps.quittiere Schliess-Quittung setzen.
  * @param {object} deps.wache Die Stille-Wache aus `erstelleSchliessRueckfall`.
+ * @param {number} [deps.hartFristMs] Frist bis zur zweiten Stufe.
+ * @param {(fn: Function, ms: number) => any} [deps.setTimer] Zeitgeber setzen.
  * @param {(text: string) => void} [deps.log] Protokoll-Ausgabe.
  * @returns {(fensterId: number, befund: object) => Promise<string>} Die
  *   Handlung; sie liefert ihren Ausgang zurueck, damit die Pruefung ihn sieht.
@@ -199,6 +224,11 @@ function erstelleErzwungenenSchluss(deps = {}) {
   const quittiere = deps.quittiere || (() => {});
   const wache = deps.wache;
   const log = deps.log || ((text) => console.error(text));
+  const hartFristMs =
+    typeof deps.hartFristMs === 'number' && deps.hartFristMs >= 0
+      ? deps.hartFristMs
+      : HART_FRIST_MS;
+  const setTimer = deps.setTimer || ((fn, ms) => setTimeout(fn, ms));
 
   return async function behandleAblauf(fensterId, befund) {
     const win = fensterVon(fensterId);
@@ -242,8 +272,42 @@ function erstelleErzwungenenSchluss(deps = {}) {
     if (typeof win.isDestroyed === 'function' && win.isDestroyed()) return 'fort';
     quittiere(win);
     win.close();
+
+    // Zweite Stufe. Sie greift nur, wenn `close()` folgenlos geblieben ist; der
+    // antwortende Anzeige-Prozess ist bei Ablauf der Frist laengst zerstoert,
+    // und dann passiert hier nichts. Kein Zeitgeber wird aufgehoben: Er laeuft
+    // einmal, prueft und ist fertig.
+    if (typeof win.isDestroyed === 'function' && win.isDestroyed()) return 'geschlossen';
+    setTimer(() => {
+      if (typeof win.isDestroyed === 'function' && win.isDestroyed()) return;
+      try {
+        log(
+          `[main] Fenster ${fensterId} nach ${hartFristMs} ms noch offen: der Anzeige-Prozess ` +
+            `beantwortet den Schliess-Weg nicht, es wird hart geschlossen.`,
+        );
+      } catch {
+        /* bewusst folgenlos: ohne Protokoll bleibt der harte Schluss wirksam */
+      }
+      try {
+        win.destroy();
+      } catch (err) {
+        try {
+          log(
+            `[main] Harter Schluss von Fenster ${fensterId} gescheitert: ` +
+              `${err && err.message ? err.message : err}`,
+          );
+        } catch {
+          /* bewusst folgenlos */
+        }
+      }
+    }, hartFristMs);
     return 'geschlossen';
   };
 }
 
-module.exports = { erstelleSchliessRueckfall, erstelleErzwungenenSchluss, FRIST_MS };
+module.exports = {
+  erstelleSchliessRueckfall,
+  erstelleErzwungenenSchluss,
+  FRIST_MS,
+  HART_FRIST_MS,
+};

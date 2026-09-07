@@ -18,6 +18,16 @@
 // temporären Baus unten kennzeichnen die Windows-Targets und seit 4T-001223
 // (Epic 3E-000122) die Linux-Formate; macOS ergänzt seine Kennzeichnung an
 // derselben Stelle.
+//
+// 4T-001335 (Epic 3E-000237): Zweite Auspraegung. Der Schalter `--pruefstand`
+// baut dieselbe Anwendung mit einer ZUSAETZLICHEN Identitaet, damit sie neben
+// der produktiv genutzten laufen kann. Umgesetzt ausschliesslich ueber
+// electron-builder-Ueberschreibungen — die package.json des Repositoriums
+// bleibt unangetastet, und der Identitaets-Waechter
+// (test/unit/installer-identitaet.test.js) bleibt ohne Anpassung gruen.
+// Tragend ist `extraMetadata.name`: Electron leitet daraus den userData-Pfad
+// ab, und an dem haengt der Einzel-Instanz-Lock (siehe src/main/main.js, wo
+// die Test-Isolation genau deshalb vor requestSingleInstanceLock() steht).
 'use strict';
 
 const path = require('node:path');
@@ -49,7 +59,53 @@ function releaseMarken() {
   }
 }
 
+// 4T-001335: Identitaet der zweiten Auspraegung. Rein und ohne Datei- oder
+// Git-Zugriff, damit ein Waechter die Werte festhalten kann.
+//
+// Alle Angaben sind bewusst ASCII: Die Argumente laufen als Kommandozeile
+// durch execSync, und ein Umlaut haengt dort an der Codepage der jeweiligen
+// Shell. Der Fenstertitel zeigt deshalb "Pruefstand" ohne Umlaut — eine
+// bewusste Ausnahme von der Umlaut-Konvention, begruendet im Bau-Weg.
+const AUSPRAEGUNG_PRUEFSTAND = {
+  // Traegt den userData-Pfad und damit den Einzel-Instanz-Lock.
+  name: 'em4me-pruefstand',
+  // Eigene Windows-Identitaet: getrennte Taskleisten-Gruppe. Die produktive
+  // appId (net.stumm.em4me) bleibt unberuehrt.
+  appId: 'net.stumm.em4me.pruefstand',
+  // Datei- und Anzeige-Name der Programmdatei.
+  produktName: 'EM4me-Pruefstand',
+  // Kennzeichnung im Fenstertitel (src/shared/build-version.js).
+  kennzeichnung: 'Pruefstand',
+  // Eigenes Symbol, mechanisch aus den vorhandenen Quellen abgeleitet
+  // (scripts/build-icon.js).
+  icon: 'src/assets/icon-pruefstand.ico',
+};
+
+/**
+ * 4T-001335: electron-builder-Ueberschreibungen der zweiten Auspraegung.
+ *
+ * Bewusst OHNE eigenen artifactName: Sowohl die Vorgabe in package.json als
+ * auch die Kennzeichnung des temporaeren Baus setzen dort den Platzhalter
+ * ${productName} ein, und der ist hier bereits ueberschrieben. Beide Namen
+ * entstehen damit von selbst richtig, und es gibt keine zweite Stelle, an der
+ * die Benennung auseinanderlaufen koennte.
+ */
+function auspraegungsArgumente(a = AUSPRAEGUNG_PRUEFSTAND) {
+  return [
+    `-c.extraMetadata.name=${a.name}`,
+    `-c.extraMetadata.auspraegung=${a.kennzeichnung}`,
+    `-c.appId=${a.appId}`,
+    `-c.productName=${a.produktName}`,
+    `-c.win.icon=${a.icon}`,
+  ];
+}
+
 function main() {
+  // 4T-001335: eigener Schalter, der NICHT an electron-builder durchgereicht
+  // wird; er waehlt die zweite Auspraegung.
+  const rohArgumente = process.argv.slice(2);
+  const pruefstand = rohArgumente.includes('--pruefstand');
+  const durchgereicht = rohArgumente.filter((a) => a !== '--pruefstand');
   const pkg = require(path.join(ROOT, 'package.json'));
   const angaben = bauAngaben(pkg.version, releaseMarken(), new Date());
   if (angaben.befund) {
@@ -59,6 +115,12 @@ function main() {
 
   const env = { ...process.env };
   const zusatz = [];
+  if (pruefstand) {
+    zusatz.push(...auspraegungsArgumente());
+    console.log(
+      'build-app: zweite Auspraegung (Pruefstand) — eigene Identitaet, eigenes Nutzerdaten-Verzeichnis.',
+    );
+  }
   if (angaben.temporaer) {
     // 4T-000921: Die Marke T steht in Dateiname und Anzeige an erster Stelle,
     // in der technischen Versions-Angabe dagegen hinter der Basis-Version,
@@ -89,7 +151,7 @@ function main() {
   // expandiert sie dort zu Leerstrings — deshalb je Plattform das Quote-Zeichen,
   // das die jeweilige Shell literal haelt.
   const quote = process.platform === 'win32' ? '"' : "'";
-  const args = [...process.argv.slice(2), ...zusatz.map((z) => `${quote}${z}${quote}`)].join(' ');
+  const args = [...durchgereicht, ...zusatz.map((z) => `${quote}${z}${quote}`)].join(' ');
   execSync(`electron-builder ${args}`, { cwd: ROOT, stdio: 'inherit', env });
 }
 
@@ -97,4 +159,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { main };
+module.exports = { main, auspraegungsArgumente, AUSPRAEGUNG_PRUEFSTAND };

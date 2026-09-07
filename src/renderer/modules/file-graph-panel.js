@@ -32,6 +32,8 @@ import {
   neighborhood,
 } from '../../shared/graph-core.js';
 import { createGraphView } from './graph/graph-view.js';
+// 4T-000952 (Epic 3E-000198, Befund E-05): Meldung der Puffer-Overlay-Schicht.
+import { INDEX_OVERLAY_EVENT } from './editor/editor.js';
 
 // Graph-Instanz pro Spalte (lazy beim ersten Render; hält die Knoten-
 // Positionen für die Sitzungs-Dauer).
@@ -212,14 +214,26 @@ export function initFileGraphPanel() {
   // Index-Invalidierung (Watcher, Initial-Aufbau) zieht sichtbare Panels
   // debounced nach; das inkrementelle Layout erhält die Positionen.
   if (typeof api.onBacklinksInvalidated === 'function') {
-    api.onBacklinksInvalidated(() => {
-      if (reloadTimer) clearTimeout(reloadTimer);
-      reloadTimer = setTimeout(() => {
-        reloadTimer = null;
-        refreshFileGraphPanels();
-      }, 250);
-    });
+    api.onBacklinksInvalidated(() => planeNachladen());
   }
+  // 4T-000952 (Epic 3E-000198, Befund E-05): Derselbe Weg fuer den Puffer-
+  // Overlay. Der Graph liest ihn seit diesem Vorgang, und ohne den Anstoss
+  // bliebe die Umstellung wirkungslos — die Platte meldet beim Tippen nichts,
+  // also zeichnete das Panel erst beim naechsten Speichern neu. Der gemeldete
+  // Pfad wird bewusst nicht gefiltert: Eine Verbindung entsteht in der einen
+  // Datei und ist eine Kante zwischen zweien.
+  document.addEventListener(INDEX_OVERLAY_EVENT, () => planeNachladen());
+}
+
+// Gemeinsamer Nachlade-Takt beider Anstoesse (4T-000952). Zusammengefasst,
+// damit Index-Meldung und Overlay-Meldung sich denselben Timer teilen statt
+// zweimal kurz hintereinander zu zeichnen.
+function planeNachladen() {
+  if (reloadTimer) clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(() => {
+    reloadTimer = null;
+    refreshFileGraphPanels();
+  }, 250);
 }
 
 // --- Registrierung ------------------------------------------------------------

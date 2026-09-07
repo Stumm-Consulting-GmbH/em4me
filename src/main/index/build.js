@@ -205,6 +205,8 @@ function applyParsedFile(entry, filePath, parsed) {
   }
   // 4T-000402 (Epic 3E-000076): geaenderte Links machen den Link-Graphen ungueltig.
   entry.linkGraph = null;
+  // 4T-000952 (Epic 3E-000198): und mit ihm den ueberlagerten der Graphenansicht.
+  entry.linkGraphUeberlagert = null;
 }
 
 // B-15 (4T-000181): Pflege der inversen Namens-Map.
@@ -303,6 +305,8 @@ function removeFileFromIndex(entry, filePath) {
   // 4T-000402 (Epic 3E-000076): Datei-Zeiten und Link-Graph mit austragen.
   entry.fileStats.delete(filePath);
   entry.linkGraph = null;
+  // 4T-000952 (Epic 3E-000198): und mit ihm den ueberlagerten der Graphenansicht.
+  entry.linkGraphUeberlagert = null;
   entry.fileCount = entry.files.size;
 }
 
@@ -401,6 +405,8 @@ function markOversized(entry) {
   // 4T-000402 (Epic 3E-000076): Datei-Zeiten und Link-Graph mit leeren.
   entry.fileStats.clear();
   entry.linkGraph = null;
+  // 4T-000952 (Epic 3E-000198): und mit ihm den ueberlagerten der Graphenansicht.
+  entry.linkGraphUeberlagert = null;
   if (entry.watcher) {
     try {
       entry.watcher.close();

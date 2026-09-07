@@ -7,7 +7,7 @@ Las extensiones externas son paquetes creados por ti que amplían el renderizado
 
 ## Estructura del paquete
 
-Un paquete de extensión es una carpeta dentro del directorio de extensiones del perfil de usuario. La acción «Abrir carpeta» de la sección de configuración Extensiones (externas) abre el directorio en el explorador de archivos.
+Un paquete de extensión es una carpeta dentro del directorio de extensiones del perfil de usuario. La acción «Abrir carpeta» de la sección de configuración Extensiones (externas) abre el directorio en el gestor de archivos.
 
 ```text
 <perfil de usuario>/extensions/

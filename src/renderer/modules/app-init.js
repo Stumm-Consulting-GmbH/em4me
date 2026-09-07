@@ -311,6 +311,10 @@ async function init() {
     });
   });
 
+  // 4T-001335 (Epic 3E-000237): einmal geholt, weil konstant; der Titel liest sie
+  // danach synchron. Faellt sie aus, bleibt es beim produktiven Titel.
+  state.auspraegung = await Promise.resolve(api.getAuspraegung()).catch(() => null);
+
   // Sprache
   let lang = await api.getSetting('language');
   if (!lang) {

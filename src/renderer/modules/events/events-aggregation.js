@@ -72,7 +72,25 @@ function mapAggregatedEvent(hit) {
     predecessors: aggList(hit.fields.predecessors),
     successors: aggList(hit.fields.successors),
     line: 0,
-    source: { path: hit.path, name: hit.name, mtimeMs: hit.mtimeMs || 0 },
+    source: {
+      path: hit.path,
+      name: hit.name,
+      mtimeMs: hit.mtimeMs || 0,
+      // 4T-001261 (Epic 3E-000272): Der Schnappschuss fuehrt die GELESENEN
+      // Frontmatter-Werte mit, damit das Rueckschreiben eine Fremd-Aenderung am
+      // Inhalt erkennt statt am Zeitstempel. Die Schluessel sind die der Datei,
+      // nicht die der Ansicht — der Haupt-Prozess vergleicht sie unmittelbar
+      // gegen das frisch geparste Frontmatter. Es sind die Rohwerte des Index,
+      // ohne die Aufbereitung, die `mapAggregatedEvent` fuer die Anzeige macht.
+      fields: {
+        'event-date': hit.fields.date,
+        'event-end': hit.fields.end,
+        'event-text': hit.fields.text,
+        'event-category': hit.fields.category,
+        'event-notes': hit.fields.notes,
+        'event-recurring': hit.fields.recurring,
+      },
+    },
   };
 }
 
@@ -234,7 +252,10 @@ export async function writeSourceFields(source, updates) {
   try {
     res = await api.eventsApplyFrontmatterEdit({
       filePath: source.path,
-      expectedMtimeMs: source.mtimeMs,
+      // 4T-001261: Inhalt statt Zeitstempel. Der Zeitstempel bleibt bewusst
+      // NICHT als zweites Kriterium daneben stehen: Er wuerde genau die
+      // Fehlalarme wieder einbringen, wegen derer er ersetzt wurde.
+      expectedFields: source.fields || null,
       updates,
     });
   } catch {

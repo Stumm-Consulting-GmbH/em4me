@@ -86,7 +86,7 @@ Al abrir se aplican tres reglas:
 
 ### Límites estrictos
 
-Dentro de una aplicación de área, el área es el límite: el diálogo de apertura empieza en el área y rechaza una selección externa, «Recientes» solo muestra archivos del área, «Guardar como» solo acepta destinos dentro del área, y tampoco entra ningún archivo ajeno por arrastrar y soltar. Los archivos del explorador se abren siempre en una aplicación sin área.
+Dentro de una aplicación de área, el área es el límite: el diálogo de apertura empieza en el área y rechaza una selección externa, «Recientes» solo muestra archivos del área, «Guardar como» solo acepta destinos dentro del área, y tampoco entra ningún archivo ajeno por arrastrar y soltar. Los archivos del gestor de archivos se abren siempre en una aplicación sin área.
 
 Los enlaces cuyo destino está fuera del área se marcan con un subrayado de advertencia; la información sobre herramientas muestra la ruta completa del destino. Un clic no abre el destino, sino que informa del motivo en la barra de estado. Las imágenes incrustadas se siguen mostrando aunque estén fuera; el límite se aplica a la apertura de archivos, no al renderizado.
 
@@ -120,7 +120,7 @@ Cambiar el nombre y eliminar **carpetas**, así como mover archivos, no forman p
 
 Se cuentan **archivos, no apariciones**: si la etiqueta `#proyecto` muestra 180, entonces 180 archivos llevan esa etiqueta; con qué frecuencia aparece en su texto no se indica. Las listas largas empiezan con 25 filas y se pueden desplegar por completo.
 
-Las cifras llevan arriba una marca de tiempo y se calculan **a petición**, no de forma continua: el botón «Actualizar» las vuelve a calcular, igual que una nueva llamada de la entrada de menú. Sin un área abierta no hay un conjunto de archivos delimitado; la entrada aparece entonces atenuada. La función se puede desactivar como extensión «Estadísticas del área».
+Las cifras llevan arriba una marca de tiempo y se calculan **a petición**, no de forma continua: el botón «Actualizar» las vuelve a calcular, igual que una nueva llamada de la entrada de menú. Muestran el estado **guardado**: lo que se ha escrito en un documento abierto pero aún no se ha guardado no entra en las cifras. La página lo indica encima de ellas y señala cuántos documentos abiertos tienen cambios sin guardar en ese momento. Sin un área abierta no hay un conjunto de archivos delimitado; la entrada aparece entonces atenuada. La función se puede desactivar como extensión «Estadísticas del área».
 
 ### Áreas recientes
 

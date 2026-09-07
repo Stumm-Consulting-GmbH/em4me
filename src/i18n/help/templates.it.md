@@ -63,4 +63,4 @@ Le regole di cartella riempiono automaticamente i nuovi file: ogni regola assegn
 - La **cartella dei modelli stessa è esclusa** — i nuovi modelli restano vuoti.
 - Scegliendo esplicitamente «Nuovo file da modello», il modello scelto ha la precedenza; la regola non si applica in aggiunta.
 - L'annullamento di un dialogo crea il file **vuoto** (la creazione stessa era voluta) e mostra un avviso.
-- I file creati fuori dall'app (per esempio in Esplora file) non passano per le regole.
+- I file creati fuori dall'app (per esempio nel gestore file) non passano per le regole.

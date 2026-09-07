@@ -26,6 +26,8 @@ import { api } from '../app/api.js';
 import { state } from '../app/app-state.js';
 import { buildGraphModel, neighborhood } from '../../../shared/graph-core.js';
 import { createGraphView } from './graph-view.js';
+// 4T-000952 (Epic 3E-000198, Befund E-05): Meldung der Puffer-Overlay-Schicht.
+import { INDEX_OVERLAY_EVENT } from '../editor/editor.js';
 import { openOrJumpToPath } from '../bookmarks/bookmarks.js';
 import {
   registerSystemPage,
@@ -244,13 +246,22 @@ export function initGraphTab() {
   // Index-Invalidierung (Watcher, Initial-Aufbau fertig) lädt debounced
   // nach; das inkrementelle Layout erhält bestehende Positionen (4T-000453).
   if (typeof api.onBacklinksInvalidated === 'function') {
-    api.onBacklinksInvalidated(() => {
-      if (!pageState.container || !findSystemTabAcrossPanes(GRAPH_PAGE_ID)) return;
-      if (reloadTimer) clearTimeout(reloadTimer);
-      reloadTimer = setTimeout(() => {
-        reloadTimer = null;
-        void loadAndRender();
-      }, 250);
-    });
+    api.onBacklinksInvalidated(() => planeNachladen());
   }
+  // 4T-000952 (Epic 3E-000198, Befund E-05): Derselbe Weg fuer den Puffer-
+  // Overlay. Der Graph liest ihn seit diesem Vorgang, und ohne den Anstoss
+  // bliebe die Umstellung wirkungslos — die Platte meldet beim Tippen nichts,
+  // also zeichnete der Reiter erst beim naechsten Speichern neu.
+  document.addEventListener(INDEX_OVERLAY_EVENT, () => planeNachladen());
+}
+
+// Gemeinsamer Nachlade-Takt beider Anstoesse (4T-000952). Die Vorpruefung
+// bleibt vor dem Timer: Ohne offenen Graph-Reiter wird gar nichts geplant.
+function planeNachladen() {
+  if (!pageState.container || !findSystemTabAcrossPanes(GRAPH_PAGE_ID)) return;
+  if (reloadTimer) clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(() => {
+    reloadTimer = null;
+    void loadAndRender();
+  }, 250);
 }

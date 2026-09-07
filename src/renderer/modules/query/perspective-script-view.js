@@ -17,6 +17,18 @@
 import { api } from '../app/api.js';
 import { t } from '../../i18n.js';
 
+// 4T-001130 (Epic 3E-000272): Der Schritt-Satz des erzeugten Teilbaums wohnt in
+// render-mermaid.js, und jenes Modul importiert dieses hier (Skript-Bloecke sind
+// ein Schritt der Pipeline). Ein Rueck-Import waere ein Zirkel; deshalb reicht
+// render-mermaid die Funktion beim Laden herein — Muster von
+// `registriereLieferant` in search-run.js. Ohne Registrierung bleibt die
+// Ausgabe unverarbeitet statt zu scheitern: Der Aufrufer ist auch der
+// jsdom-Unit-Test, der ohne Preload laeuft.
+let teilbaumSchritte = null;
+export function registriereTeilbaumSchritte(fn) {
+  if (typeof fn === 'function') teilbaumSchritte = fn;
+}
+
 // Zeit-Limit pro Lauf (Design-Punkt des Epics): bei Überschreitung wird das
 // iframe entsorgt und der Block zeigt den lokalisierten Timeout-Hinweis.
 // Konfigurierbarer Default auf Modul-Ebene (bewusst ohne UI in v1).
@@ -292,6 +304,12 @@ function appendNode(parent, node, depth, budget) {
       for (const nested of div.querySelectorAll('.perspective-script, .perspective-query')) {
         nested.remove();
       }
+      // 4T-001130: Der Schritt-Satz des erzeugten Teilbaums. Das Handbuch sagt
+      // fuer diese Ausgabe die normale Render-Pipeline zu und nennt genau EINE
+      // Ausnahme, die eben entfernten Abfrage- und Skript-Bloecke; bis hierher
+      // lief gar kein Schritt, und ein Mermaid-Block blieb Quelltext.
+      // `dynamischeBloecke: false` haelt die zugesagte Ausnahme.
+      if (teilbaumSchritte) teilbaumSchritte(div, budget.basePath, { dynamischeBloecke: false });
     }
     parent.appendChild(div);
     return;

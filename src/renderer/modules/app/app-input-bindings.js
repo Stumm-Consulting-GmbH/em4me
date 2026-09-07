@@ -47,6 +47,8 @@ import {
 } from '../search/search.js';
 import { handleCommandKeydown } from './app-commands.js';
 import { paneIndexAtPoint } from './app-pane-bindings.js';
+// 4T-000952 (Epic 3E-000198, Befund E-04): Rueckverweise am Puffer-Overlay.
+import { activateBacklinksFor } from '../panels/panel-backlinks.js';
 
 /**
  * Registriert die fensterweiten Eingabe-Listener (zweiter Teil der
@@ -233,19 +235,32 @@ export function bindOverlayAndBlurEvents() {
   // 4T-000935 (Befund B-08): Der Puffer-Overlay des Index hat sich geändert
   // (Tippen im Editor, Speichern, Verwerfen, Schließen). Dieselben
   // Auffrisch-Wege wie bei einer Index-Invalidierung, und zwar für genau die
-  // Verbraucher, die den Overlay lesen. Wer weiter am Platten-Stand hängt
-  // (Graph, Rückverweise, Linter), wird hier bewusst nicht angestoßen.
+  // Verbraucher, die den Overlay lesen. Wer weiter am Platten-Stand hängt,
+  // wird hier bewusst nicht angestoßen.
   //
   // 4T-000950 (Befund E-03): Das Tag-Panel gehört seit seiner Freischaltung
   // dazu. Ohne diesen Anstoß bliebe die Umstellung der Datenquelle wirkungslos,
   // weil das Panel sonst nur beim Reiter-Wechsel neu zeichnet — im Test des
   // Product Owners blieb es leer, obwohl die Quelle bereits richtig war.
+  //
+  // 4T-000952 (Epic 3E-000198, Befund E-04): Die Rückverweise kommen dazu.
+  // Angestoßen werden nur SICHTBARE Sektionen, und zwar für die im Panel
+  // gerade geführte Datei — nicht für die gemeldete: Ein Verweis entsteht in
+  // der einen Datei und erscheint bei der anderen, das Panel des Ziels muss
+  // also auch dann neu fragen, wenn die Meldung von woanders kam. Die beiden
+  // Graphen-Verbraucher hören selbst (graph-tab.js, file-graph-panel.js), weil
+  // dort ihr Nachlade-Takt und ihre Sichtbarkeits-Prüfung sitzen.
   document.addEventListener(INDEX_OVERLAY_EVENT, (ev) => {
     refreshVisibleFrontmatterQueries();
     refreshVisiblePerspectiveScripts();
     refreshVisibleEventsAggregations();
     for (let i = 0; i < state.panes.length; i++) {
       if (state.tags && state.tags.visibleByPane[i]) renderTags(i);
+      if (state.backlinks && state.backlinks.visibleByPane[i]) {
+        const pane = state.panes[i];
+        const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+        void activateBacklinksFor(i, tab && tab.path ? tab.path : null);
+      }
     }
     // 4T-000948 (Befund E-01): Wiki-Einbettungen der gemeldeten Datei erneut
     // aufloesen. Ohne diesen Anstoss bliebe der Kanal-Fix in der Lage

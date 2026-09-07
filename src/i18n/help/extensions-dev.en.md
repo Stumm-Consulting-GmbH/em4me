@@ -7,7 +7,7 @@ External extensions are self-built packages that extend the app's rendering and 
 
 ## Package layout
 
-An extension package is a folder inside the extensions directory of your user profile. The "Open folder" action in the Extensions (external) settings section opens the directory in the file explorer.
+An extension package is a folder inside the extensions directory of your user profile. The "Open folder" action in the Extensions (external) settings section opens the directory in the file manager.
 
 ```text
 <user profile>/extensions/

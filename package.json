@@ -1,6 +1,6 @@
 {
   "name": "em4me",
-  "version": "1.129.0",
+  "version": "1.129.1",
   "description": "Lokaler Markdown-Editor für Windows 11 mit Bereichen, Verweisen und Volltextsuche.",
   "homepage": "https://em4me.ch",
   "main": "src/main/main.js",
@@ -12,6 +12,7 @@
     "build": "npm run build:renderer && node scripts/build-app.js --win",
     "build:installer": "npm run build:renderer && node scripts/build-app.js --win nsis",
     "build:portable": "npm run build:renderer && node scripts/build-app.js --win portable",
+    "build:pruefstand": "npm run build:renderer && node scripts/build-app.js --win portable --pruefstand",
     "build:linux": "node scripts/build-linux-docker.js",
     "postbuild:linux": "node scripts/archive-build.js",
     "postbuild": "node scripts/archive-build.js",
@@ -97,6 +98,7 @@
       "!src/assets/em4me-mark.svg",
       "!src/assets/icon-512.png",
       "!src/assets/icon.icns",
+      "!src/assets/icon-pruefstand.ico",
       "!src/renderer/renderer.js",
       "!src/renderer/i18n.js",
       "!src/renderer/mermaid-entry.js",

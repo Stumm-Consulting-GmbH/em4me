@@ -34,6 +34,19 @@ const PNG_PATH = path.join(ASSETS, 'icon.png');
 const PNG512_PATH = path.join(ASSETS, 'icon-512.png');
 const ICNS_PATH = path.join(ASSETS, 'icon.icns');
 
+// 4T-001335 (Epic 3E-000237): Symbol der zweiten Auspraegung. Es entsteht
+// NICHT als eigene Bildmarke, sondern als mechanische Ableitung aus denselben
+// beiden Quell-SVG: eine Farbtonverschiebung um 180 Grad. Das goldene
+// Plaettchen wird damit blau, waehrend die grauen Buchstaben unberuehrt
+// bleiben (eine Farbtonverschiebung greift nur an gesaettigten Farben). Der
+// Unterschied ist dadurch schon bei 16 px in der Taskleiste eindeutig, und es
+// gibt keinen zweiten Gestaltungs-Bestand, der mit den Quellen auseinander-
+// laufen koennte.
+//
+// Entscheidung des Product Owners vom 2026-09-06 auf Vorlage der Session.
+const PRUEFSTAND_ICO_PATH = path.join(ASSETS, 'icon-pruefstand.ico');
+const PRUEFSTAND_FARBDREHUNG = 180;
+
 // Ab dieser Kantenlaenge traegt das Icon die volle Bildmarke. Darunter waeren
 // die vier Buchstaben nur noch Grau-Matsch, deshalb die Kompaktmarke.
 const FULL_LOGO_FROM = 48;
@@ -54,6 +67,11 @@ const ICNS_TYPES = [
 // Quadratisches PNG in der gewuenschten Kantenlaenge aus einem SVG-Puffer.
 async function renderSized(svg, size) {
   return sharp(svg).resize(size, size).png().toBuffer();
+}
+
+// 4T-001335: dasselbe in der Faerbung der zweiten Auspraegung.
+async function renderSizedPruefstand(svg, size) {
+  return sharp(svg).resize(size, size).modulate({ hue: PRUEFSTAND_FARBDREHUNG }).png().toBuffer();
 }
 
 // Baut den ICNS-Container aus PNG-Eintraegen: 8-Byte-Kopf ('icns' +
@@ -98,12 +116,22 @@ async function main() {
   }
   const icns = icnsFromPngs(icnsEintraege);
   await fs.writeFile(ICNS_PATH, icns);
+  // 4T-001335: Symbol der zweiten Auspraegung, gleiche Staffelung.
+  const pruefstandPngs = [];
+  for (const size of SIZES) {
+    pruefstandPngs.push(await renderSizedPruefstand(size >= FULL_LOGO_FROM ? logo : mark, size));
+  }
+  const pruefstandIco = await toIco(pruefstandPngs);
+  await fs.writeFile(PRUEFSTAND_ICO_PATH, pruefstandIco);
   const small = SIZES.filter((s) => s < FULL_LOGO_FROM).join('/');
   const large = SIZES.filter((s) => s >= FULL_LOGO_FROM).join('/');
   console.log(`Icon erzeugt: ${ICO_PATH} (${ico.length} Bytes)`);
   console.log(`  Kompaktmarke: ${small} px, volle Bildmarke: ${large} px`);
   console.log(`PNG erzeugt:  ${PNG_PATH}`);
   console.log(`PNG erzeugt:  ${PNG512_PATH} (Linux-Build-Grundlage)`);
+  console.log(
+    `ICO erzeugt:  ${PRUEFSTAND_ICO_PATH} (${pruefstandIco.length} Bytes, zweite Auspraegung, Farbton +${PRUEFSTAND_FARBDREHUNG} Grad)`,
+  );
   console.log(
     `ICNS erzeugt: ${ICNS_PATH} (${icns.length} Bytes, ${ICNS_TYPES.map(([, s]) => s).join('/')} px)`,
   );
@@ -116,4 +144,10 @@ if (require.main === module) {
   });
 }
 
-module.exports = { icnsFromPngs, ICNS_TYPES };
+module.exports = {
+  icnsFromPngs,
+  ICNS_TYPES,
+  // 4T-001335: Symbol der zweiten Auspraegung.
+  PRUEFSTAND_ICO_PATH,
+  PRUEFSTAND_FARBDREHUNG,
+};

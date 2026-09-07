@@ -137,6 +137,11 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // und FROM-Link-Quellen: { outMap, inMap } (Map<absPath, absPath[]>),
     // lazy beim ersten Bedarf gebaut, bei jeder Index-Aenderung invalidiert.
     linkGraph: null,
+    // 4T-000952 (Epic 3E-000198): Zwischenspeicher des Link-Graphen MIT den
+    // Puffer-Overlays, den allein die Graphenansicht liest:
+    // { overlayStand, graph }. Er wird an denselben Stellen genullt wie
+    // linkGraph; die Begruendung des zweiten Graphen steht in link-graph.js.
+    linkGraphUeberlagert: null,
     // 4T-000348 (Epic 3E-000062): Cache-Metadaten pro Datei (mtimeMs, size, hash)
     // fuer den Warmstart-Abgleich; nur bei Bereichs-Wurzeln gefuellt. Das
     // Parse-Ergebnis selbst wird beim Schreiben aus den Index-Maps rekonstruiert

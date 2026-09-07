@@ -49,6 +49,9 @@ const {
   CACHE_SCHEMA_VERSION,
 } = require('./area-search-cache.js');
 const { fasseTeileZusammen, kopfRelPfad } = require('./area-search-teile.js');
+// 4T-001260 (Epic 3E-000272): Dateien oberhalb der Einzelgrenze bleiben aus dem
+// Vorrat und werden je Lauf gelesen; die Fachlichkeit steht daneben.
+const { MAX_DATEI_BYTES, lieseGrosseDateien } = require('./area-search-gross.js');
 
 // Verzeichnis-Eintraege zwischen zwei Yields (Muster BUILD_BATCH_SIZE des
 // Index-Aufbaus und SCAN_BATCH_SIZE der Statistik-Erhebung).
@@ -164,15 +167,23 @@ async function scanneBereich(wurzel) {
 // Bereichs-Index vergleicht. Ein Inhalts-Hash waere strenger, verlangte aber
 // genau den Lesevorgang, den der Cache einspart.
 async function baueVorrat(wurzel, generation) {
-  const { dateien, uebersprungeneOrdner } = await scanneBereich(wurzel);
+  const { dateien: alle, uebersprungeneOrdner } = await scanneBereich(wurzel);
   if (generationen.get(wurzel) !== generation) return null;
+
+  // 4T-001260: Erst die einzelnen Riesen aussortieren, dann den Deckel pruefen.
+  // Die Reihenfolge ist der Kern der Behebung: Gemessen wird der Deckel an dem,
+  // was tatsaechlich in den Vorrat soll, statt am ganzen Bestand.
+  const dateien = alle.filter((d) => d.size <= MAX_DATEI_BYTES);
+  const grosse = alle.filter((d) => d.size > MAX_DATEI_BYTES);
 
   const gesamtBytes = dateien.reduce((s, d) => s + d.size, 0);
   if (gesamtBytes > MAX_VORRAT_BYTES) {
     // Kein Vorrat und kein Cache oberhalb des Deckels: Beides waere Speicher
     // bzw. Platte in einer Groessenordnung, die der Anwender nicht bestellt
     // hat. Die Suche laeuft dann je Lauf ueber die Platte.
-    return { modus: 'direkt', dateien, bytes: gesamtBytes, uebersprungeneOrdner };
+    // Oberhalb des Deckels laeuft ohnehin alles direkt; die Trennung zwischen
+    // kleinen und grossen Dateien spielt dort keine Rolle mehr.
+    return { modus: 'direkt', dateien: alle, bytes: gesamtBytes, uebersprungeneOrdner };
   }
 
   const cache = await ladeCache(wurzel);
@@ -218,13 +229,18 @@ async function baueVorrat(wurzel, generation) {
   // 4T-001293: Der Cache haelt die Teil-Dateien einzeln, wie sie auf der Platte
   // liegen; zusammengefuehrt wird erst danach. So bleibt der Cache-Abgleich
   // ueber Aenderungszeit und Groesse Datei fuer Datei gueltig.
-  return fasseTeileZusammen({
+  const vorrat = fasseTeileZusammen({
     modus: 'vorrat',
     texte,
     reihenfolge: dateien.map((d) => d.rel),
     bytes: gesamtBytes,
     uebersprungeneOrdner,
   });
+  // 4T-001260: Die Riesen reisen neben dem Vorrat mit, ohne Text und ohne
+  // Cache-Eintrag. Sie stehen bewusst NICHT in der Reihenfolge des Vorrats: Die
+  // Teil-Datei-Zusammenfuehrung arbeitet ueber die Text-Map, und ein Kopf-Pfad
+  // ohne Text gaelte ihr als «nicht im Bereich».
+  return { ...vorrat, grosse };
 }
 
 // --- Suche ------------------------------------------------------------------
@@ -283,21 +299,26 @@ function geschriebenerStand(wurzel, rel) {
 // die Pfad-Logik des Hauptprozesses ein zweites Mal zu fuehren). Das Feld
 // `kennung` ist im Suchraum-Kern genau dafuer vorgesehen und landet als
 // `sprung.kennung` am Treffer.
-function eintraegeAusVorrat(vorrat, wurzel, { ankerRel, aktivRel, aktivText }) {
+function eintraegeAusVorrat(vorrat, wurzel, { ankerRel, aktivRel, aktivText }, grosseTexte) {
   const hatEditorStand = !!aktivRel && typeof aktivText === 'string';
   const eintraege = [];
-  for (const rel of dateiReihenfolge(
-    vorrat.reihenfolge,
-    ankerRel,
-    hatEditorStand ? aktivRel : null,
-  )) {
+  // 4T-001260: Die Riesen stehen in derselben Reihenfolge-Berechnung wie der
+  // Vorrat, damit Anker und offene Datei auch dann vorn stehen, wenn sie gross
+  // sind — die Reihenfolge ist die der Trefferliste.
+  const alleRel =
+    grosseTexte && grosseTexte.size > 0
+      ? [...vorrat.reihenfolge, ...grosseTexte.keys()]
+      : vorrat.reihenfolge;
+  for (const rel of dateiReihenfolge(alleRel, ankerRel, hatEditorStand ? aktivRel : null)) {
     // Die offene Datei steuert ihren Editor-Stand bei; der Platten-Stand
     // derselben Datei bleibt damit aussen vor.
     // '??' statt '||': Ein geleerter Puffer ist ein gueltiger Stand.
     const text =
       hatEditorStand && rel === aktivRel
         ? aktivText
-        : (geschriebenerStand(wurzel, rel) ?? (vorrat.texte.get(rel) || {}).text);
+        : (geschriebenerStand(wurzel, rel) ??
+          (grosseTexte && grosseTexte.get(rel)) ??
+          (vorrat.texte.get(rel) || {}).text);
     if (!text) continue;
     eintraege.push(eintrag(wurzel, rel, text));
   }
@@ -415,10 +436,24 @@ async function sucheImBereich(wurzel, optionen = {}) {
   }
 
   const opt = { ankerRel, aktivRel, aktivText };
+  // 4T-001260: Im Vorrats-Modus kommen die Dateien oberhalb der Einzelgrenze je
+  // Lauf von der Platte dazu. Der Regelfall ist ein Bereich ganz ohne solche
+  // Dateien; er kostet nichts, weil die Liste dann leer ist.
+  const grosseTexte =
+    zustand.modus === 'direkt'
+      ? null
+      : await lieseGrosseDateien(zustand.grosse, {
+          leseBreite: LESE_BREITE,
+          pufferStand: (rel) => geschriebenerStand(wurzel, rel),
+          aktivRel: opt.aktivRel,
+          aktivText: opt.aktivText,
+        });
+  if (generationen.get(wurzel) !== generation)
+    return { ...leer, generation, vorratModus: 'ueberholt' };
   const ergebnis =
     zustand.modus === 'direkt'
       ? await sucheDirekt(zustand, regex, wurzel, generation, opt)
-      : sucheInTexten(eintraegeAusVorrat(zustand, wurzel, opt), regex);
+      : sucheInTexten(eintraegeAusVorrat(zustand, wurzel, opt, grosseTexte), regex);
   if (!ergebnis) return { ...leer, generation, vorratModus: 'ueberholt' };
 
   return { ...ergebnis, generation, vorratModus: zustand.modus };

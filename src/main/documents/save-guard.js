@@ -61,4 +61,68 @@ function istKonflikt(diskText, expected) {
   return normalizeForCompare(diskText) !== erwartet;
 }
 
-module.exports = { normalizeForCompare, istKonflikt, readDiskState };
+// 4T-001261 (Epic 3E-000272): Derselbe Schutz fuer einen Schreibweg, der nicht
+// den ganzen Text ersetzt, sondern einzelne Frontmatter-Felder.
+//
+// Die Ereignis-Aggregation schrieb bis hierher in eine nicht geoeffnete fremde
+// Datei und erkannte eine Fremd-Aenderung am ZEITSTEMPEL — also mit genau dem
+// Merkmal, das dieses Modul oben aus guten Gruenden verworfen hat. Zwei Stellen
+// des Bestands schuetzten damit verschieden gegen dieselbe Gefahr, und die
+// juengere hatte die aeltere fachlich widerlegt, ohne sie abzuloesen. Seit dem
+// 2026-09-05 haben beide Wege ihre Heimat hier.
+//
+// Verglichen werden nur die GELESENEN Felder, nicht die ganze Datei: Ein
+// Schreibweg, der ausschliesslich Frontmatter-Felder aendert, hat an einer
+// Aenderung im Fliesstext kein Interesse — ein Voll-Text-Vergleich melde te dort
+// genau die Fehlalarme, wegen derer der Zeitstempel gewichen ist. Dasselbe
+// Muster traegt die Datenbank-Sperre mit dem Inhalt der gelesenen
+// Datensatz-Zeile (E9.3).
+
+/**
+ * Vergleichsform eines Frontmatter-Werts.
+ *
+ * Ein Schnappschuss reist ueber die Prozess-Grenze und kommt in JSON zurueck;
+ * ein Datum ist dort eine Zeichenkette, in der frisch geparsten Datei kann
+ * derselbe Wert ein Date-Objekt sein. Ohne gemeinsame Form meldete jede Datei
+ * mit Datums-Feld einen Dauer-Konflikt — dieselbe Falle, die
+ * `normalizeForCompare` fuer BOM und Zeilenenden loest.
+ *
+ * Listen werden der Reihe nach verglichen, weil ihre Reihenfolge im Frontmatter
+ * bedeutungstragend ist (etwa Vorgaenger und Nachfolger eines Ereignisses).
+ */
+function feldVergleichsForm(wert) {
+  if (wert === null || wert === undefined) return '';
+  if (wert instanceof Date) return wert.toISOString();
+  if (Array.isArray(wert)) return JSON.stringify(wert.map((e) => feldVergleichsForm(e)));
+  if (typeof wert === 'object') return JSON.stringify(wert);
+  return String(wert);
+}
+
+/**
+ * Weicht mindestens eines der gelesenen Felder vom aktuellen Stand ab?
+ *
+ * @param {object} jetzt     Frisch geparstes Frontmatter der Datei.
+ * @param {*} erwartet       Die Felder, die der Aufrufer gelesen hat. Fehlt es,
+ *                           wird nicht geprueft — dieselbe Zusage wie bei
+ *                           `istKonflikt`, damit Aufrufer ohne Schnappschuss
+ *                           entkoppelt bleiben.
+ * @returns {boolean}
+ */
+function istFeldKonflikt(jetzt, erwartet) {
+  if (!erwartet || typeof erwartet !== 'object') return false;
+  const aktuell = jetzt && typeof jetzt === 'object' ? jetzt : {};
+  for (const [key, wert] of Object.entries(erwartet)) {
+    // Ein Feld, das seither hinzugekommen ist, ist kein Konflikt: Der
+    // Schnappschuss hat es nicht gelesen, und die Operation fasst es nicht an.
+    if (feldVergleichsForm(aktuell[key]) !== feldVergleichsForm(wert)) return true;
+  }
+  return false;
+}
+
+module.exports = {
+  normalizeForCompare,
+  istKonflikt,
+  readDiskState,
+  feldVergleichsForm,
+  istFeldKonflikt,
+};

@@ -4,16 +4,25 @@
 //
 // Geprueft wird die Schicht selbst gegen den echten Index (Temp-Verzeichnis,
 // Setup-Muster aus perspective-query-index.test.js): Vorrang vor der Platte,
-// Ruecknahme, Wirkung auf die drei freigeschalteten Verbraucher und — als
-// Gegenstueck — die unveraenderte Platten-Sicht der uebrigen Verbraucher.
+// Ruecknahme, Wirkung auf die freigeschalteten Verbraucher und — als
+// Gegenstueck — die unveraenderte Platten-Sicht der uebrigen.
+//
+// 4T-000952 (Epic 3E-000198): Die Trennlinie ist gewandert. Freigeschaltet sind
+// seither auch Rueckverweise, Graphenansicht und die Vervollstaendigung von
+// Ankern und Tags (Befunde E-04, E-05 und E-08); am Platten-Stand bleibt, was
+// «welche Dateien gibt es» beantwortet — die Ziel-Aufloesung des Linters.
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import {
+  anchorAutocompleteSuggestions,
   backlinksFor,
   bufferTextFor,
+  existingWikiTargets,
+  graphFor,
+  tagAutocompleteSuggestions,
   clearAllBufferOverlays,
   clearBufferOverlay,
   eventsForQuery,
@@ -28,7 +37,12 @@ import {
 
 // 4T-001203: Die Plattform-Eigenschaft wird ueber DIESELBE Modul-Instanz
 // gesetzt, die overlay.js benutzt (Muster area-search.test.js).
-const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
+const require_ = createRequire(import.meta.url);
+const { setPlatformForTests } = require_('../../src/shared/platform.js');
+// 4T-000952: Der Zwischenspeicher des ueberlagerten Graphen haengt am
+// Index-Eintrag. Fuer seinen Nachweis wird derselbe Eintrag gelesen, den die
+// Sichten benutzen — ueber dieselbe Modul-Instanz wie oben.
+const { indexes } = require_('../../src/main/index/store.js');
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -282,20 +296,143 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     }
   });
 
-  // Die Trennlinie besteht weiter, sie verläuft nur woanders: Verbraucher,
-  // die den Product Owner erst nach dem Hauptrelease 1 beschäftigen, lesen
-  // unverändert den Platten-Stand.
-  it('laesst die noch nicht freigeschalteten Verbraucher am Platten-Stand', async () => {
+  // 4T-000952 (Befund E-04): Die Rückverweise lesen den geschriebenen Stand.
+  // Beide Richtungen in einem Fall, weil sie dieselbe Umstellung prüfen: Ein im
+  // Puffer entstandener Verweis erscheint, ein dort entfernter verschwindet.
+  it('zeigt den Rückverweisen den geschriebenen Stand', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n\n[[Ziel]]\n');
+    write(root, 'Ziel.md', '# Ziel\n');
+    write(root, 'Andere.md', '# Andere\n');
+    const ziel = path.join(root, 'Ziel.md');
+    await indexFor(start);
+
+    // Anker: der gespeicherte Verweis kommt an.
+    expect(JSON.stringify(backlinksFor(ziel, null))).toContain('Start.md');
+
+    // Der Verweis wird im Puffer entfernt und zugleich in einer anderen,
+    // ebenfalls offenen Datei gesetzt — beides ohne Speichern.
+    setBufferOverlay(path.join(root, 'Start.md'), '# Start\n');
+    setBufferOverlay(path.join(root, 'Andere.md'), '# Andere\n\n[[Ziel]]\n');
+
+    const nachher = JSON.stringify(backlinksFor(ziel, null));
+    expect(nachher).toContain('Andere.md');
+    expect(nachher).not.toContain('Start.md');
+
+    // Die Platte bleibt unberührt: nach der Rücknahme gilt wieder ihr Stand.
+    clearBufferOverlay(path.join(root, 'Start.md'));
+    clearBufferOverlay(path.join(root, 'Andere.md'));
+    const zurueck = JSON.stringify(backlinksFor(ziel, null));
+    expect(zurueck).toContain('Start.md');
+    expect(zurueck).not.toContain('Andere.md');
+  });
+
+  // 4T-000952 (Befund E-05): Die Graphenansicht zeigt frisch gesetzte und
+  // entfernte Verbindungen. Anders als bei den übrigen Sichten genügt die
+  // Overlay-Sicht auf die Index-Maps hier nicht — die Kanten sind eine eigene,
+  // gecachte Ableitung (graphUeberlagert in link-graph.js).
+  it('zeigt der Graphenansicht frisch gesetzte und entfernte Verbindungen', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n\n[[Ziel]]\n');
+    write(root, 'Ziel.md', '# Ziel\n');
+    await indexFor(start);
+    const kanten = (r) =>
+      (r.edges || []).map((k) => path.basename(k.from) + '->' + path.basename(k.to));
+
+    // Anker: die gespeicherte Kante steht im Graphen.
+    expect(kanten(graphFor(start, null))).toContain('Start.md->Ziel.md');
+
+    // Verbindung im Puffer umgehängt: Start -> Ziel weg, Ziel -> Start neu.
+    setBufferOverlay(start, '# Start\n');
+    setBufferOverlay(path.join(root, 'Ziel.md'), '# Ziel\n\n[[Start]]\n');
+
+    const nachher = kanten(graphFor(start, null));
+    expect(nachher).toContain('Ziel.md->Start.md');
+    expect(nachher).not.toContain('Start.md->Ziel.md');
+  });
+
+  // 4T-000952 (Befund E-08), erste Hälfte: eine soeben getippte Überschrift
+  // steht als Anker-Vorschlag bereit. Die Kandidaten-Suche läuft dabei weiter
+  // über den Eintrag — die Datei gibt es, nur ihre Anker sind neu.
+  it('bietet eine soeben getippte Überschrift als Anker an', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const notiz = write(root, 'Notiz.md', '# Notiz\n\n## Alter Abschnitt\n');
+    await indexFor(start);
+
+    const vorher = anchorAutocompleteSuggestions(start, 'Notiz', 'heading', null);
+    expect(vorher.suggestions).toContain('alter-abschnitt');
+
+    setBufferOverlay(notiz, '# Notiz\n\n## Frisch getippt\n');
+
+    const nachher = anchorAutocompleteSuggestions(start, 'Notiz', 'heading', null);
+    expect(nachher.status).toBe('ready');
+    expect(nachher.suggestions).toContain('frisch-getippt');
+    expect(nachher.suggestions).not.toContain('alter-abschnitt');
+  });
+
+  // 4T-000952 (Befund E-08), zweite Hälfte: derselbe Stand für die Tag-
+  // Vervollständigung. Das Tag-PANEL sah ihn seit 4T-000950, der Vorschlag
+  // beim Tippen nicht — beide lesen jetzt dieselbe Quelle.
+  it('schlägt einen soeben getippten Tag vor', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    write(root, 'Notiz.md', '# Notiz\n\n#platte\n');
+    await indexFor(start);
+    const namen = (r) => (r.suggestions || []).map((x) => x.tag);
+
+    expect(namen(tagAutocompleteSuggestions(start, null))).toContain('platte');
+
+    setBufferOverlay(path.join(root, 'Notiz.md'), '# Notiz\n\n#puffer\n');
+
+    const nachher = namen(tagAutocompleteSuggestions(start, null));
+    expect(nachher).toContain('puffer');
+    expect(nachher).not.toContain('platte');
+  });
+
+  // 4T-000952: Laufzeit-Blick, den das Epic für diesen Vorgang verlangt hat.
+  // Der überlagerte Graph läuft über alle Dateien der Wurzel und wird bei
+  // jeder Overlay-Meldung angefragt, beim Tippen also alle 300 ms. Er darf
+  // deshalb nur dann neu entstehen, wenn sich wirklich etwas bewegt hat.
+  // Geprüft wird an der Objekt-Identität: derselbe Graph = kein Neuaufbau.
+  it('baut den überlagerten Graphen nur bei geänderter Overlay-Lage neu', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n\n[[Ziel]]\n');
+    write(root, 'Ziel.md', '# Ziel\n');
+    await indexFor(start);
+    const eintrag = indexes.get(root);
+
+    // Ohne Overlay entsteht der zweite Graph gar nicht erst.
+    graphFor(start, null);
+    expect(eintrag.linkGraphUeberlagert).toBe(null);
+
+    setBufferOverlay(start, '# Start\n\n[[Ziel]]\n\n[[Andere]]\n');
+    graphFor(start, null);
+    const erster = eintrag.linkGraphUeberlagert;
+    expect(erster).toBeTruthy();
+
+    // Zweite Anfrage ohne Änderung: derselbe Graph, kein Neuaufbau.
+    graphFor(start, null);
+    expect(eintrag.linkGraphUeberlagert).toBe(erster);
+
+    // Neue Overlay-Meldung: neuer Graph.
+    setBufferOverlay(start, '# Start\n');
+    graphFor(start, null);
+    expect(eintrag.linkGraphUeberlagert).not.toBe(erster);
+  });
+
+  // 4T-000952: Die Trennlinie besteht weiter, sie verläuft nur woanders. Die
+  // Ziel-Auflösung des Linters beantwortet «welche Dateien gibt es» — daran
+  // ändert ein ungespeicherter Puffer nichts, und ihre Caches hängen am
+  // Index-Eintrag.
+  it('laesst die Ziel-Aufloesung des Linters am Platten-Stand', async () => {
     const root = makeRoot();
     const start = write(root, 'Start.md', '# Start\n\n[[Ziel]]\n');
     write(root, 'Ziel.md', '# Ziel\n');
     await indexFor(start);
 
-    setBufferOverlay(path.join(root, 'Start.md'), '# Start\n');
-
-    // Rückverweise (Befund E-04, verortet nach dem Release): Der im Puffer
-    // entfernte Verweis steht weiterhin.
-    const rueck = backlinksFor(path.join(root, 'Ziel.md'), null);
-    expect(JSON.stringify(rueck)).toContain('Start.md');
+    // Ein Puffer, der die Zieldatei leert, nimmt ihr nicht die Existenz.
+    setBufferOverlay(path.join(root, 'Ziel.md'), '');
+    expect(existingWikiTargets(start, ['Ziel'], null).existing).toContain('Ziel');
   });
 });

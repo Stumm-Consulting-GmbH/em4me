@@ -16,6 +16,45 @@ const { schreibeProfilVorbelegung } = require('../../../scripts/profil-vorbelegu
 // Projekt-Wurzel (test/e2e/helpers -> drei Ebenen hoch).
 const APP_ROOT = path.resolve(__dirname, '..', '..', '..');
 
+// 4T-001481 / 4T-001475: Frische-Tor des Renderer-Bündels.
+//
+// Die Prüffälle starten die Anwendung gegen das erzeugte
+// `src/renderer/renderer.bundle.js`. Gebaut wird es vom npm-Hook `pretest:e2e`,
+// der bei `npm run test:e2e` und damit beim Gate-Weg greift — nicht aber bei
+// einem direkten `npx playwright test <datei>`. Dort lief die Suite bis hierher
+// lautlos gegen ein beliebig altes Bündel (Fehlerklasse L9, Belege 4T-001478 und
+// 4T-001410).
+//
+// **Warum der Aufruf in launchApp steht und nicht im Modulkopf.** Ein Wurf beim
+// Laden des Moduls träfe auch `playwright test --list`: Die Auflistung lädt
+// jede Prüfdatei und durchläuft die Registrierungs-Phase, führt aber keinen Fall
+// aus. `scripts/test-kennzahlen.js` gewinnt die Kennzahl «Automatische
+// Prüfungen» genau daraus (4T-000831), und ein Wächter im Modulkopf hätte sie
+// erneut eingefroren — derselbe Vorfall, den 4T-001322 für den Pflicht-Zugang
+// bereits einmal aufräumen musste. In `launchApp` stellt sich die Frage nicht:
+// Eine Auflistung startet keine Anwendung, also fragt sie auch nicht nach dem
+// Bündel. Geprüft wird vor dem Start und damit vor jeder Wartezeit; das Ergebnis
+// wird je Worker einmal ermittelt.
+//
+// Über den Gate-Weg bleibt der Wächter still, weil dessen `pre`-Kette
+// unmittelbar davor gebaut hat — es gibt keine Sonderbehandlung für ihn, die
+// Stille ist die Folge des frischen Bündels. Der Wächter selbst baut nicht: Ein
+// Werkzeug, das den Arbeitsbaum ändert, ist ausgeschlossen (E7/E8).
+//
+// Dieser Helfer ist die einzige Stelle des Projekts, die Electron für die
+// E2E-Suite startet (nachgesehen an `test/e2e/**`, nicht angenommen); ein Fall,
+// der am Tor vorbeikäme, existiert nicht.
+const { fordereFrischesBuendel } = require('../../../scripts/bundle-frische.js');
+
+let buendelGeprueft = false;
+function pruefeBuendelEinmal() {
+  // Der Befund selbst wird bei jedem Fall geworfen — er soll keinen Lauf
+  // durchlassen —, der Datei-Durchlauf läuft nur beim ersten Start je Worker.
+  if (buendelGeprueft) return;
+  fordereFrischesBuendel(APP_ROOT);
+  buendelGeprueft = true;
+}
+
 // 4T-000372 (Epic 3E-000069): Bereitschafts-Marker der Renderer-Init.
 // applyPanelButtonOrder() sortiert die Statusbar-Panel-Buttons ganz am Ende
 // von init() in die Modell-Reihenfolge; statisch steht in index.html ein
@@ -170,6 +209,8 @@ function beobachteKonsole(app) {
  *                     userData: string }>}
  */
 async function launchApp(opts = {}) {
+  // 4T-001481: Frische-Tor vor jedem Start — Begründung am Helfer oben.
+  pruefeBuendelEinmal();
   const userData = opts.userData || fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-'));
   // 4T-000644: Tour-Merker als Unterlage jeder Vorbelegung (Begruendung an
   // DEFAULT_TEST_SETTINGS); eine eigene Angabe des Falls liegt darueber und

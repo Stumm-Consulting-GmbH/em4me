@@ -63,4 +63,4 @@ Folder rules fill new files automatically: each rule maps a **target folder** to
 - The **templates folder itself is excluded** — new templates stay empty.
 - If you explicitly choose "New File from Template", the chosen template takes precedence; the rule does not apply additionally.
 - Cancelling a dialog creates the file **empty** (the creation itself was intended) and shows a hint.
-- Files created outside the app (for example in the file explorer) do not pass through the rules.
+- Files created outside the app (for example in the file manager) do not pass through the rules.

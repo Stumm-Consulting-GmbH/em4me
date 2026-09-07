@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildTitleSuffix,
   buildWindowTargetLabel,
+  buildAppName,
 } from '../../../src/renderer/modules/app/window-title.js';
 
 // Deutsche Werte der echten i18n-Keys als Fixture.
@@ -176,5 +177,21 @@ describe('buildWindowTargetLabel (4T-000318)', () => {
         t,
       ),
     ).toBe('Bereich Notizen, Fenster 2');
+  });
+});
+
+// 4T-001335 (Epic 3E-000237): App-Name im Titel. Der produktive Fall ist der
+// wichtigere der beiden Fälle — er belegt, dass die zweite Ausprägung den
+// Titel der produktiven nicht anfasst (AK11).
+describe('buildAppName', () => {
+  it('lässt den produktiven Titel unverändert', () => {
+    expect(buildAppName(null)).toBe('EM4me');
+    expect(buildAppName(undefined)).toBe('EM4me');
+    expect(buildAppName('')).toBe('EM4me');
+    expect(buildAppName('   ')).toBe('EM4me');
+  });
+
+  it('hängt die Kennzeichnung der zweiten Ausprägung an', () => {
+    expect(buildAppName('Pruefstand')).toBe('EM4me (Pruefstand)');
   });
 });

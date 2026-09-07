@@ -14,6 +14,13 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { isInsideArea } = require('../area/area-path');
 const { TAB_GROUP_COLOR_KEYS } = require('../../shared/tab-group-colors');
+// 4T-001335 (Epic 3E-000237): Kennzeichnung einer zweiten Auspraegung. Sie steht
+// im Feld `auspraegung` der eingepackten package.json, das der Bau-Wrapper per
+// `-c.extraMetadata.auspraegung` setzt; produktiv und im Entwicklungs-Lauf fehlt
+// es. Bewusst OHNE deps-Eintrag: Die Auskunft haengt an keiner Verdrahtung, und
+// so bleibt src/main/main.js von diesem Vorgang unberuehrt.
+const { auspraegungsKennzeichnung } = require('../../shared/build-version');
+const eigenePaketAngaben = require('../../../package.json');
 
 /**
  * Registriert die Fenster-, Applikations- und Arbeitsbereichs-Kanaele.
@@ -299,6 +306,9 @@ function registerWindowsIpc(handle, deps) {
 
   handle('app:locale', () => app.getLocale());
   handle('app:version', () => fullVersion());
+  // 4T-001335: null in der produktiven Auspraegung, sonst die Kennzeichnung
+  // ("Pruefstand"), die der Renderer an den Fenstertitel haengt.
+  handle('app:auspraegung', () => auspraegungsKennzeichnung(eigenePaketAngaben));
 
   // 4T-000319 (Epic 3E-000057): "Neue Applikation" — neue logische App mit
   // leerem Fenster, ohne die EXE zu bemuehen (Menuepunkt bzw. Kommando).

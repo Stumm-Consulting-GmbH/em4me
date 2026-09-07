@@ -14,6 +14,110 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.129.1.2478] - 2026-09-06 — Prozess-Qualität
+
+Zug 3E-000273.
+Mitglied 1: 3E-000272,
+ein Bündel aus sechs Fehlerbehebungen. Mitglied 2:
+3E-000198,
+die verbliebenen Befunde der Erhebung zum ungespeicherten Stand; die vier
+häufigeren derselben Erhebung sind mit 1.106.0 ausgeliefert worden. Mitglied 3:
+3E-000237,
+eine zweite Ausprägung der Anwendung für den Parallelbetrieb — sie ändert als
+einziges Mitglied die **Bau-Konfiguration**, lässt die ausgelieferte Ausprägung
+aber unverändert.
+
+### Behoben
+
+- **Erzwungener Schluss wirkt jetzt auch bei blockiertem Anzeige-Prozess**
+  (`4T-001409`). Nach «Trotzdem schließen» blieb das Fenster stehen: Der
+  Rückfall lief vollständig durch und schrieb den Sitzungs-Stand, doch Electron
+  wartete danach auf den blockierten Anzeige-Prozess, und `close()` blieb
+  folgenlos. Der Schluss ist jetzt zweistufig — dem regulären Quittungs-Weg
+  folgt nach drei Sekunden ein harter Schluss, falls das Fenster dann noch
+  existiert. Der Sitzungs-Stand bleibt konstruktiv erhalten, weil der quittierte
+  Zweig ihn synchron vor der Frist schreibt.
+- **Erzeugte Teilbäume durchlaufen den entschiedenen Schritt-Satz der
+  Render-Pipeline** (`4T-001130`). Wiki-Einbettung, Skript-Ausgabe und
+  Notiz-Vorschau zogen die Nachverarbeitung nicht oder nur zum Teil nach: Ein
+  Mermaid-Diagramm blieb dort Quelltext, eine Abfrage leer. Darstellung und
+  Befüllung gelten jetzt in allen dreien, die Bearbeitbarkeit bewusst nicht.
+- **Der Suchraum-Deckel begrenzt je Datei statt je Bereich** (`4T-001260`). Eine
+  einzige sehr große Datei brauchte den 50-MB-Deckel für den ganzen Bereich auf,
+  und danach lief die Suche über jedes gewöhnliche Dokument über die Platte
+  (gemessen: 200 Prosa-Dokumente von 33 auf 192 ms). Dateien über 10 MB bleiben
+  jetzt allein aus dem Vorrat.
+- **Die Ereignis-Aggregation erkennt eine Fremd-Änderung am Inhalt**
+  (`4T-001261`) statt am Zeitstempel, der auch dann anschlägt, wenn ein
+  Synchronisations-Werkzeug eine Datei unverändert neu schreibt. Verglichen
+  werden die gelesenen Frontmatter-Werte; beide Schreibwege teilen sich seither
+  eine Prüfung.
+- **Der Trefferzähler der Bereichs-Suche läuft zuverlässig über die
+  Datei-Grenze** (`4T-001410`). Der Prüffall war unter Last wiederholt rot; die
+  Messung zeigte, dass ein Tastendruck den Anzeige-Prozess gar nicht erreicht,
+  während Suchraum, Zeiger und Fokus unverändert bleiben. Die Zustellung ist
+  jetzt abgesichert.
+- **Rückverweise, Graphenansicht und die Vervollständigung von Ankern und
+  Tags lesen den geschriebenen Stand** (`4T-000952`, Befunde E-04, E-05 und
+  E-08 der Erhebung `4T-000936`). Ein Verweis, der in einem anderen offenen
+  Dokument gerade entsteht, erschien nicht in den Rückverweisen seines Ziels;
+  frisch gesetzte Verbindungen fehlten im Graphen; eine soeben getippte
+  Überschrift stand nicht als Vorschlag bereit. Alle vier lesen den
+  Bereichs-Index jetzt über die Puffer-Sicht, und die drei Anzeigen frischen
+  auf, sobald der geschriebene Stand gemeldet wird. Die Graphenansicht
+  bekommt dafür einen eigenen, zwischengespeicherten Link-Graphen; der Graph
+  der Abfrage-Felder bleibt unverändert der des gespeicherten Standes.
+- **Die Bereichs-Statistik nennt den Stand ihrer Zahlen** (`4T-000953`,
+  Befund E-07). Sie zeigt weiterhin den gespeicherten Stand — ein
+  ungespeicherter Puffer hat weder Dateigröße noch Änderungszeit, eine
+  teilweise überlagerte Seite wäre in sich uneinheitlich — sagt es jetzt aber
+  über den Zahlen und nennt dabei, wie viele offene Dokumente gerade
+  ungespeicherte Änderungen tragen.
+
+- **Eine abgebrochene Übernahme der Nutzerdaten gilt nicht mehr als
+  vollständig** (`4T-001336`). Beim Wechsel des Produktnamens übernimmt die
+  Anwendung Einstellungen, Entwürfe und Erweiterungen aus dem alten Profil, und
+  sie erkennt am Vorhandensein der Einstellungs-Datei, dass das bereits
+  geschehen ist. Genau diese Datei wanderte als **erste**: Brach der erste Start
+  danach ab, galt die Übernahme dauerhaft als erledigt, und Entwürfe wie
+  Erweiterungen blieben für immer zurück. Die Einstellungs-Datei wandert jetzt
+  als letzte, und zwar erzwungen statt nach Absprache — ein abgebrochener Start
+  wird beim nächsten Mal vollständig nachgeholt.
+
+Zum selben Epic gehört ein Vorgang **ohne** Änderung am Programm: Die Messung
+zu `4T-000954` (Befund E-09) hat ergeben, dass die Block-Eigenschaften eines
+frisch gesetzten Ankers bereits ohne Speichern erscheinen. Der Befund stammte
+aus einer Bewertung am Quelltext ohne Messung; er ist als solcher
+zurückgenommen und durch zwei Prüffälle ersetzt.
+
+### Intern
+
+- **Eine zweite Ausprägung der Anwendung für den Parallelbetrieb**
+  (`4T-001335`, `4T-001336`). `npm run build:pruefstand` erzeugt dieselbe
+  Anwendung mit einer **zusätzlichen** Identität: eigenes
+  Nutzerdaten-Verzeichnis, eigener Einzel-Instanz-Schutz, eigener Eintrag in der
+  Taskleiste, erkennbar am Fenstertitel `EM4me (Pruefstand)` und am blau statt
+  golden eingefärbten Symbol. Damit lässt sich ein neuer Stand prüfen, ohne die
+  produktiv genutzte Anwendung zu schließen. Beim ersten Start übernimmt sie
+  Einstellungen und Erweiterungen aus der produktiven Einrichtung einmalig und
+  einseitig; die Entwürfe bewusst nicht, weil sie Inhalt sind und eine
+  einseitige Kopie unweigerlich auseinanderliefe.
+- **Die Bau-Konfiguration ist dafür geändert worden**, und zwar ausschließlich
+  additiv: Die zweite Ausprägung entsteht aus Überschreibungen zur Bau-Zeit im
+  vorhandenen Bau-Wrapper, `package.json` bleibt unangetastet, und die
+  eingefrorene Identität der ausgelieferten Ausprägung ist unverändert (der
+  bestehende Identitäts-Wächter läuft ohne Anpassung). Die zweite Ausprägung ist
+  **kein Release-Artefakt**: Sie wird nicht ausgeliefert und nicht ins
+  Versions-Archiv aufgenommen.
+
+### i18n
+
+- **Vierzehn fremdsprachige Handbuch-Seiten nennen den Datei-Manager beim
+  Gattungsnamen** (`4T-001397`), wie es die Stil-Regel seit dem Linux-Betrieb
+  verlangt: «file manager», «gestor de archivos», «gestionnaire de fichiers»,
+  «gestore file». Die deutschen Fassungen waren am 2026-09-01 berichtigt worden,
+  die übrigen Sprachfassungen derselben Sätze blieben stehen.
+
 ## [1.129.0.2436] - 2026-09-06 — Ausgabe- und Editor-Feinschliff
 
 Zug 3E-000246

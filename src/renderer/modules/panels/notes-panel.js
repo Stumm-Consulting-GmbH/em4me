@@ -24,6 +24,8 @@ import { t } from '../../i18n.js';
 import { EditorView } from '@codemirror/view';
 import { api, getDocText } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
+// 4T-001130: Schritt-Satz des erzeugten Teilbaums.
+import { applyTeilbaumSchritte } from '../render-mermaid.js';
 import { applySidebarVisibility } from './panels.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
@@ -184,6 +186,14 @@ function renderNotesPreview(paneIdx, text) {
   if (!els || !els.notesPreview) return;
   const path = state.notes.currentFileByPane[paneIdx] || '';
   els.notesPreview.innerHTML = text ? api.renderMarkdown(text, path) : '';
+  // 4T-001130 (Epic 3E-000272): Dritte Fundstelle derselben Mechanik, gefunden
+  // vom Waechter dieses Vorgangs und am 2026-09-05 vom Product Owner in den
+  // Zuschnitt genommen. Eine Notiz ist ein Markdown-Dokument; ohne diesen Aufruf
+  // blieb ein Mermaid-Block darin Quelltext und eine Abfrage leer. Bezug ist der
+  // Pfad der Notiz-Datei, und die Bearbeitbarkeit bleibt aussen vor: Die
+  // Vorschau ist die Ansichts-Haelfte des Panel-Umschalters, bearbeitet wird
+  // links im Editor.
+  if (text) applyTeilbaumSchritte(els.notesPreview, path);
 }
 
 function applyNotesPreviewMode(paneIdx) {

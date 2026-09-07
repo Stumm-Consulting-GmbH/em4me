@@ -19,7 +19,10 @@ const { parseTaskLine } = require('../../shared/tasks/task-markers.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
-const { buildLinkGraph, logicalNameFor } = require('./link-graph.js');
+// 4T-000952 (Epic 3E-000198): graphUeberlagert ist der Link-Graph MIT den
+// Puffer-Overlays; buildLinkGraph bleibt fuer den Platten-Graphen der
+// Bereichs-Statistik (statsFor).
+const { buildLinkGraph, graphUeberlagert, logicalNameFor } = require('./link-graph.js');
 
 // 4T-000950 (Befund E-03): Tag-Zuordnung aus einer Sicht ableiten, statt die im
 // Index gepflegten Umkehr-Abbildungen zu lesen.
@@ -181,9 +184,15 @@ function anchorAutocompleteSuggestions(activeFile, basename, anchorType, areaRoo
   }
   if (candidates.length === 0) return { status: 'ready', suggestions: [] };
 
+  // 4T-000952 (Epic 3E-000198, Befund E-08): Puffer-Overlay freigeschaltet. Die
+  // KANDIDATEN sucht weiter der Eintrag (welche Datei heisst so — daran aendert
+  // ein ungespeicherter Puffer nichts, und die Aufloesung haengt an Caches des
+  // Eintrags); die ANKER kommen aus der Sicht, denn eine soeben getippte
+  // Ueberschrift steht nur dort.
+  const sicht = entryWithOverlay(entry, overlaysUnder(root));
   const seen = new Set();
   for (const candPath of candidates) {
-    const meta = entry.anchorsPerFile.get(candPath);
+    const meta = sicht.anchorsPerFile.get(candPath);
     if (!meta) continue;
     const collection = anchorType === 'block' ? meta.blockIds : meta.headings;
     for (const a of collection) seen.add(a);
@@ -205,7 +214,13 @@ function tagAutocompleteSuggestions(activeFile, areaRoot) {
   // W-07 (4T-000309): Fehler-Status wie unavailable behandeln — nicht den
   // eingefrorenen Index eines toten Watchers als verbindlich ausgeben.
   if (entry.status === 'error') return { status: 'unavailable', suggestions: [] };
-  return { status: 'ready', suggestions: getAllTagsWithCounts(entry) };
+  // 4T-000952 (Epic 3E-000198, Befund E-08): Puffer-Overlay freigeschaltet —
+  // derselbe Weg wie beim Tag-Panel (tagsFor), damit ein soeben getippter Tag
+  // sich auch vorschlagen laesst und nicht nur in der Seitenleiste steht. Ohne
+  // Overlays bleibt es bei den im Index gepflegten Abbildungen.
+  const overlays = overlaysUnder(root);
+  const maps = overlays ? tagMapsAusSicht(entryWithOverlay(entry, overlays)) : entry;
+  return { status: 'ready', suggestions: getAllTagsWithCounts(maps) };
 }
 
 // 4T-000056: High-level-API fuer Renderer. Liefert Tag-Liste mit Counts
@@ -283,13 +298,22 @@ function graphFor(filePath, areaRoot) {
   }
   if (entry.status === 'indexing') return { status: 'indexing', meta: { wurzel: root } };
   if (entry.status === 'error') return { status: 'error', meta: { wurzel: root } };
-  if (!entry.linkGraph) entry.linkGraph = buildLinkGraph(entry);
+  // 4T-000952 (Epic 3E-000198, Befund E-05): Puffer-Overlay freigeschaltet.
+  // Frisch gesetzte und entfernte Verbindungen erscheinen damit im Graphen,
+  // ohne dass gespeichert werden muss. Anders als bei den uebrigen Sichten
+  // genuegt hier die Overlay-Sicht auf die Index-Maps NICHT: Der Graph ist
+  // eine eigene, gecachte Ableitung ueber alle Dateien, und die Kanten sind
+  // genau das, was die Ansicht zeigt. graphUeberlagert baut ihn dafuer ueber
+  // der Sicht auf, mit eigenem Zwischenspeicher; entry.linkGraph bleibt der
+  // Graph der Platte fuer die Abfrage-Verbraucher (Begruendung link-graph.js).
+  const linkGraph = graphUeberlagert(entry, root);
+  const sicht = entryWithOverlay(entry, overlaysUnder(root));
   const nodes = [];
-  for (const absPath of entry.files.keys()) {
+  for (const absPath of sicht.files.keys()) {
     nodes.push({ path: absPath, name: logicalNameFor(absPath) });
   }
   const edges = [];
-  for (const [src, outs] of entry.linkGraph.outMap) {
+  for (const [src, outs] of linkGraph.outMap) {
     for (const target of outs) edges.push({ from: src, to: target });
   }
   return {

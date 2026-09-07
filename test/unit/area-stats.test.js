@@ -10,8 +10,11 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   backlinksFor,
+  clearAllBufferOverlays,
+  overlaysUnder,
   releaseRoot,
   rootForActiveFile,
+  setBufferOverlay,
   statsFor,
 } from '../../src/main/backlinks.js';
 import { collectAreaStats } from '../../src/main/area/area-stats.js';
@@ -237,5 +240,55 @@ describe('collectAreaStats — Zusammenfuehrung mit dem Ordner-Scan (4T-000619)'
     const stats = await collectAreaStats(null, { statusTypeOf }, { statsFor });
     expect(stats.status).toBe('unavailable');
     expect(stats.dateien).toBeUndefined();
+  });
+});
+
+// 4T-000953 (Epic 3E-000198, Befund E-07): Die Seite zeigt den GESPEICHERTEN
+// Stand und weist ihn aus. Geprüft wird deshalb zweierlei: dass die Zahlen
+// sich durch einen Puffer NICHT bewegen (das ist die Entscheidung des Product
+// Owners vom 2026-09-06, kein Versehen), und dass die Zahl der offenen
+// Dokumente mit ungespeicherten Änderungen stimmt (das ist der Hinweis, der
+// die Entscheidung trägt).
+describe('collectAreaStats — Stand-Ausweis bei ungespeicherten Änderungen (4T-000953)', () => {
+  afterEach(() => {
+    clearAllBufferOverlays();
+  });
+
+  it('meldet die Zahl der offenen Dokumente mit ungespeicherten Änderungen', async () => {
+    const { root, start } = makeFixture();
+    await indexFor(start, 'test:stats-ungespeichert', root);
+
+    // Anker: ohne Puffer meldet die Seite nichts auszuweisen.
+    const ohne = await collectAreaStats(root, { statusTypeOf }, { statsFor, overlaysUnder });
+    expect(ohne.hinweise.ungespeicherteDokumente).toBe(0);
+
+    setBufferOverlay(start, '# Start\n\n#frisch\n');
+    const eins = await collectAreaStats(root, { statusTypeOf }, { statsFor, overlaysUnder });
+    expect(eins.hinweise.ungespeicherteDokumente).toBe(1);
+
+    // Ein zweites offenes Dokument desselben Bereichs zählt mit; eines
+    // AUSSERHALB der Wurzel nicht — die Zahl gehört zu diesem Bereich.
+    setBufferOverlay(path.join(root, 'Unter', 'Tief.md'), '# Tief\n');
+    setBufferOverlay(path.join(os.tmpdir(), 'em4me-fremd-Datei.md'), '# Fremd\n');
+    const zwei = await collectAreaStats(root, { statusTypeOf }, { statsFor, overlaysUnder });
+    expect(zwei.hinweise.ungespeicherteDokumente).toBe(2);
+  });
+
+  it('lässt die Kennzahlen selbst unberührt — die Seite bleibt am gespeicherten Stand', async () => {
+    const { root, start } = makeFixture();
+    await indexFor(start, 'test:stats-unveraendert', root);
+    const vorher = await collectAreaStats(root, { statusTypeOf }, { statsFor, overlaysUnder });
+
+    // Ein Puffer, der einen Tag hinzufügt und den Text verlängert. Beides
+    // würde sich in den Zahlen zeigen, wenn die Seite ihn einrechnete.
+    setBufferOverlay(start, '# Start\n\n#ganzfrischertag\n\nVerlaengerung.\n');
+    const nachher = await collectAreaStats(root, { statusTypeOf }, { statsFor, overlaysUnder });
+
+    expect(nachher.tags).toEqual(vorher.tags);
+    expect(nachher.speicher).toEqual(vorher.speicher);
+    expect(nachher.dateien).toEqual(vorher.dateien);
+    expect(nachher.inhalte).toEqual(vorher.inhalte);
+    // … und der Hinweis sagt genau das aus, was die Zahlen verschweigen.
+    expect(nachher.hinweise.ungespeicherteDokumente).toBe(1);
   });
 });

@@ -23,6 +23,7 @@ import {
   erstelleSchliessRueckfall,
   erstelleErzwungenenSchluss,
   FRIST_MS,
+  HART_FRIST_MS,
 } from '../../src/main/app/schliess-rueckfall.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -210,14 +211,22 @@ describe('Handlung nach Ablauf: Hinweis mit Wahl (Entscheidung vom 2026-08-26)',
     const win = zusatz.win || { close: vi.fn(), isDestroyed: () => false, webContents: { id: 7 } };
     const quittiert = [];
     const frage = zusatz.frage || vi.fn(async () => true);
+    // Zeitgeber der zweiten Stufe: injiziert, damit kein echter Timer stehen
+    // bleibt und die Prüfung den Ablauf der Frist selbst auslöst (4T-001409).
+    const harteTimer = [];
     const handle = erstelleErzwungenenSchluss({
       wache,
       fensterVon: (id) => (zusatz.ohneFenster ? null : id === 7 ? win : null),
       quittiere: (w) => quittiert.push(w),
       frage,
       log: () => {},
+      setTimer: (fn, ms) => {
+        harteTimer.push({ fn, ms });
+        return harteTimer.length;
+      },
     });
-    return { wache, zeit, abgelaufen, win, quittiert, frage, handle };
+    const feuereHart = () => harteTimer.splice(0).forEach((t) => t.fn());
+    return { wache, zeit, abgelaufen, win, quittiert, frage, handle, harteTimer, feuereHart };
   }
 
   it('schließt das Fenster über den regulären Quittungs-Weg (AK1, AK4)', async () => {
@@ -230,6 +239,82 @@ describe('Handlung nach Ablauf: Hinweis mit Wahl (Entscheidung vom 2026-08-26)',
     expect(quittiert).toEqual([win]);
     expect(win.close).toHaveBeenCalledTimes(1);
     expect(wache.istAktiv(7)).toBe(false);
+  });
+
+  // 4T-001409: Die zweite Stufe. Der Fall, an dem der Rückfall bis zum
+  // 2026-09-05 scheiterte, ist genau dieser: `close()` kehrt zurück, ohne dass
+  // das Fenster verschwindet, weil Electron auf den blockierten Anzeige-Prozess
+  // wartet. Gemessen wurde er mit der Blockade-Hilfe; hier steht er als
+  // Prüffall, damit eine stille Rücknahme der zweiten Stufe auffällt.
+  it('schließt hart, wenn close() folgenlos bleibt (AK5)', async () => {
+    // Ein Fenster, dessen close() nichts bewirkt: der blockierte Fall.
+    const win = {
+      close: vi.fn(),
+      destroy: vi.fn(),
+      isDestroyed: () => false,
+      webContents: { id: 7 },
+    };
+    const { handle, quittiert, harteTimer, feuereHart } = baueSchluss({ win });
+    const ausgang = await handle(7, { stilleMs: 20000 });
+    expect(ausgang).toBe('geschlossen');
+    // Erst der reguläre Weg — nur er schreibt den Sitzungs-Stand (E3) —,
+    // und das Harte kommt danach, nicht statt dessen.
+    expect(quittiert).toEqual([win]);
+    expect(win.close).toHaveBeenCalledTimes(1);
+    expect(win.destroy).not.toHaveBeenCalled();
+    expect(harteTimer).toHaveLength(1);
+    expect(harteTimer[0].ms).toBe(HART_FRIST_MS);
+    feuereHart();
+    expect(win.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('lässt das bereits geschlossene Fenster in Ruhe (kein destroy nach close)', async () => {
+    // Der antwortende Anzeige-Prozess: close() zerstört das Fenster sofort.
+    let zerstoert = false;
+    const win = {
+      close: vi.fn(() => {
+        zerstoert = true;
+      }),
+      destroy: vi.fn(),
+      isDestroyed: () => zerstoert,
+      webContents: { id: 7 },
+    };
+    const { handle, harteTimer } = baueSchluss({ win });
+    await handle(7, { stilleMs: 20000 });
+    // Gar kein Zeitgeber: Was schon zu ist, braucht keine zweite Stufe.
+    expect(harteTimer).toHaveLength(0);
+    expect(win.destroy).not.toHaveBeenCalled();
+  });
+
+  it('lässt ein Fenster in Ruhe, das zwischen close() und Frist verschwindet', async () => {
+    let zerstoert = false;
+    const win = {
+      close: vi.fn(),
+      destroy: vi.fn(),
+      isDestroyed: () => zerstoert,
+      webContents: { id: 7 },
+    };
+    const { handle, harteTimer, feuereHart } = baueSchluss({ win });
+    await handle(7, { stilleMs: 20000 });
+    expect(harteTimer).toHaveLength(1);
+    // Der Anzeige-Prozess kommt zurück und fährt selbst herunter.
+    zerstoert = true;
+    feuereHart();
+    expect(win.destroy).not.toHaveBeenCalled();
+  });
+
+  it('ein gescheitertes destroy() reißt den Haupt-Prozess nicht mit', async () => {
+    const win = {
+      close: vi.fn(),
+      destroy: vi.fn(() => {
+        throw new Error('Fenster schon fort');
+      }),
+      isDestroyed: () => false,
+      webContents: { id: 7 },
+    };
+    const { handle, feuereHart } = baueSchluss({ win });
+    await handle(7, { stilleMs: 20000 });
+    expect(() => feuereHart()).not.toThrow();
   });
 
   it('nennt dem Anwender die Dauer der Stille in Sekunden (AK3)', async () => {

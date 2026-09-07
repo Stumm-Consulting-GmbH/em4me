@@ -259,6 +259,14 @@ function zeichne() {
   container.innerHTML = '';
   const root = el('div', 'area-stats-page');
 
+  // 4T-000953 (Epic 3E-000198, Befund E-07): Der Stand-Hinweis. Er steht im
+  // KOPF und nicht am Fuss unter den Zahlen, weil er sie einordnet — wer die
+  // Seite liest, soll wissen, worauf er sieht, bevor er die erste Zahl liest.
+  //
+  // Die zweite Zeile erscheint nur, wenn es wirklich etwas auszuweisen gibt.
+  // Ein dauerhafter Hinweis auf null ungespeicherte Dokumente waere Rauschen
+  // und wuerde im Ernstfall ueberlesen; der erste Satz gilt dagegen immer,
+  // weil er die Lesart der ganzen Seite festlegt.
   const kopf = el('div', 'area-stats-head');
   const titel = state.areaName
     ? `${t('stats.pageTitle')} — ${state.areaName}`
@@ -281,6 +289,17 @@ function zeichne() {
   rechts.appendChild(knopf);
   kopf.appendChild(rechts);
   root.appendChild(kopf);
+
+  if (pageState.daten) {
+    const hinweise = pageState.daten.hinweise || {};
+    const offen = hinweise.ungespeicherteDokumente || 0;
+    const saetze = [t('stats.savedState')];
+    if (offen > 0) {
+      const key = offen === 1 ? 'stats.unsavedDocs.one' : 'stats.unsavedDocs.other';
+      saetze.push(t(key).replace('{count}', zahl(offen)));
+    }
+    root.appendChild(el('p', 'area-stats-note area-stats-state', saetze.join(' ')));
+  }
 
   if (pageState.laden) root.appendChild(el('p', 'area-stats-note', t('stats.loading')));
   if (pageState.fehler) {

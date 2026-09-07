@@ -71,6 +71,9 @@ module.exports = {
   clearAllBufferOverlays: overlay.clearAllBufferOverlays,
   // 4T-000948 (Befund E-01): Roh-Text der Schicht fuer die Wiki-Einbettung.
   bufferTextFor: overlay.bufferTextFor,
+  // 4T-000953 (Epic 3E-000198): Overlays einer Wurzel — die offenen Dokumente
+  // mit ungespeicherten Aenderungen, fuer den Stand-Hinweis der Bereichs-Statistik.
+  overlaysUnder: overlay.overlaysUnder,
   // 4T-000515 (Epic 3E-000092): Ereignis-Aggregation ueber das Frontmatter.
   eventsForQuery: queryData.eventsForQuery,
   // 4T-000525 (Epic 3E-000095): Roh-Task-Zeilen fuer den Erinnerungs-Pruefer.
