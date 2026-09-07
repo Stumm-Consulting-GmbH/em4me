@@ -22,6 +22,8 @@ const { dialog, nativeTheme } = require('electron');
 const chokidar = require('chokidar');
 const backlinks = require('../backlinks');
 const { isSamePath, areaFromRootPath, updatedRecentAreas } = require('./area-path');
+// 4T-001453 (Epic 3E-000190): Befund-Einordnung der Verknuepfungen.
+const { pruefeVerknuepfungen } = require('./area-link-resolve');
 // 4T-000630 (Epic 3E-000102): Titelleisten-Faerbung nach Arbeitsbereichs-Farbe
 // (DWM-Fenster-Attribute via koffi; Windows-10-Fallback: stiller No-op).
 const { applyCaptionColor } = require('../app/caption-color.js');
@@ -81,6 +83,8 @@ function createAreaApps(deps) {
     restoreShelfForApp,
     // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs aufloesen.
     resolveAreaStartPage,
+    // 4T-001453 (Epic 3E-000190): Verknuepfungen des Bereichs lesen.
+    readAreaLinks,
   } = deps;
 
   const workspacesState = [];
@@ -281,6 +285,47 @@ function createAreaApps(deps) {
     });
   }
 
+  // 4T-001453 (Epic 3E-000190): Verknuepfungen des Bereichs beim Oeffnen pruefen.
+  // Muster meldeFehlendeStartSeite: nicht-blockierend (kein await) und ohne
+  // Einfluss auf das Oeffnen — der Bereich ist bereits offen, wenn der Anwender
+  // den Hinweis wegklickt. Zwei getrennte Meldungen, weil sie Gegenteiliges
+  // sagen: Der verschobene Ordner bittet um Handlung und macht die Links
+  // ungueltig, das getrennte Laufwerk warnt nur (Entscheidung E4).
+  async function pruefeVerknuepfungenBeimOeffnen(rootPath, senderWin) {
+    if (!readAreaLinks) return [];
+    // 4T-001457 (Epic 3E-000190): Im Aus-Zustand unterbleibt die Pruefung
+    // ganz — keine Meldung, kein Datei-Zugriff. Die Verknuepfungen bleiben in
+    // der Bereichsdatei stehen (Entscheidung E7).
+    const store = getStore();
+    if (!isExtensionEnabled('area-links', store ? store.get('extensions.disabled') : null)) {
+      return [];
+    }
+    let befunde;
+    try {
+      befunde = await pruefeVerknuepfungen(await readAreaLinks(rootPath));
+    } catch {
+      return []; // defekte Bereichsdatei wirkt wie keine Verknuepfung
+    }
+    const verschoben = befunde.filter((b) => b.befund === 'verschoben');
+    const offline = befunde.filter((b) => b.befund === 'offline');
+    const win = senderWin && !senderWin.isDestroyed() ? senderWin : null;
+    const zeige = (art, titelKey, textKey, liste) =>
+      void dialog.showMessageBox({
+        type: art,
+        title: tForWindow(win, titelKey),
+        message: tForWindow(win, textKey),
+        detail: liste.map((b) => `@${b.prefix}: ${b.path}`).join('\n'),
+        buttons: ['OK'],
+      });
+    if (verschoben.length > 0) {
+      zeige('warning', 'area.linkMovedTitle', 'area.linkMovedMessage', verschoben);
+    }
+    if (offline.length > 0) {
+      zeige('info', 'area.linkOfflineTitle', 'area.linkOfflineMessage', offline);
+    }
+    return befunde;
+  }
+
   async function openAreaPath(rootPath, senderWin) {
     const store = getStore();
     const area = areaFromRootPath(rootPath);
@@ -307,6 +352,7 @@ function createAreaApps(deps) {
       // 4T-001364: Die App war leer und uebernimmt den Bereich — es gibt nichts
       // wiederherzustellen, also greift die Start-Seite. Sie wird in das
       // bereits laufende Fenster gereicht (Muster der Start-Dateien).
+      void pruefeVerknuepfungenBeimOeffnen(area.rootPath, senderWin);
       const panes = await startPagePanes(area.rootPath, senderWin);
       if (panes.length > 0 && senderWin && !senderWin.isDestroyed()) {
         senderWin.webContents.send('file:openExternal', panes[0].paths);
@@ -315,6 +361,7 @@ function createAreaApps(deps) {
     }
     // 4T-001364: Neues Bereichs-Fenster — die Start-Seite reist als Pane-Snapshot
     // mit, damit sie wie ein wiederhergestellter Tab entsteht.
+    void pruefeVerknuepfungenBeimOeffnen(area.rootPath, senderWin);
     const initialPanes = await startPagePanes(area.rootPath, senderWin);
     const win = createWindow({ area, initialPanes });
     startAreaWatcher(appRegistry.appOf(win.webContents.id));

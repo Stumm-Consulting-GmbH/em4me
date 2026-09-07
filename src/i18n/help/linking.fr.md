@@ -76,6 +76,45 @@ Pour les ancres de bloc, le bloc englobant complet est incorporé (élément de 
 **Où la cible est cherchée.** L'application cherche en trois étapes, de la même manière pour chaque type de fichier : d'abord le chemin relatif à votre propre fichier, puis l'écriture des sous-pages, enfin le simple **nom** dans tout l'espace. Ainsi `![[image.png]]` trouve le fichier même s'il se trouve dans un autre dossier — le chemin n'a pas besoin d'être exact. La recherche s'arrête à la racine de l'espace : ce qui est en dehors n'est pas incorporé. Sans espace lié, la limite reste le dossier de votre propre fichier.
 
 Si un fichier Markdown porte le même nom qu'une pièce jointe, le fichier Markdown l'emporte ; écrit avec son extension (`![[image.png]]`), le cas est sans ambiguïté. Les images Markdown ordinaires `![](chemin.png)` ne sont pas concernées — leur écriture désigne un chemin et non un nom.
+## Liens entre zones
+
+Deux zones peuvent être liées afin qu'une référence franchisse la frontière de zone. Cela se configure sous **Paramètres → Zone actuelle → Liens entre zones** : on y indique le dossier de l'autre zone et un **préfixe** par lequel cette zone sera désignée.
+
+Le préfixe ne vaut **que dans cette zone et que dans ce sens**. La façon dont l'autre zone désigne celle-ci se règle là-bas et peut différer. Lettres, chiffres, tiret et tiret bas sont autorisés ; la casse n'a pas d'importance.
+
+Dans le texte, le préfixe précède la cible :
+
+```markdown
+[[@zt:Note]]             fichier « Note » dans la zone liée « zt »
+[[@zt:Dossier/Note]]     cible par son chemin dans la zone liée
+[[@zt:Note#Chapitre]]    avec une ancre, comme pour tout lien wiki
+[[@zt:Note|Libellé]]     avec un texte affiché différent
+```
+
+La cible est d'abord cherchée au chemin indiqué puis, si rien ne s'y trouve, par son nom dans toute la zone liée — comme un lien wiki ordinaire dans votre propre zone. Un clic ouvre la cible dans la même fenêtre.
+
+**Les modèles de la zone liée** peuvent être proposés à côté des vôtres ; un interrupteur existe par lien. La sélection de modèles montre alors les deux ensembles, et chaque entrée externe indique son origine. Sans cet interrupteur, un lien ne change pas l'ensemble des modèles.
+
+### Lorsqu'une zone liée est introuvable
+
+À l'ouverture, une zone vérifie ses liens, et un constat n'empêche jamais l'ouverture :
+
+- **Le dossier a été déplacé** — son emplacement parent est accessible, le dossier lui-même non. Un message demande le nouveau chemin. Tant qu'il manque, les références utilisant ce préfixe sont considérées comme non valides et signalées dans l'éditeur.
+- **L'emplacement de stockage est inaccessible**, par exemple parce qu'un lecteur est déconnecté. Seul un avis apparaît alors : le lien est conservé et **rien** n'est marqué comme non valide. Un lecteur déconnecté ne détruit jamais un lien.
+
+Le nouveau chemin se saisit à l'endroit même où le lien est défini.
+
+### Ce qui ne franchit pas la frontière
+
+Un lien entre zones mène **là-bas**, pas en retour. Ne franchissent délibérément pas la frontière :
+
+- les **rétroliens** — ils ne montrent que les références internes à votre zone,
+- l'indicateur **« fichiers sans référence entrante »** des statistiques de zone,
+- la **vue en graphe**,
+- la **recherche à l'échelle de la zone**,
+- et la **mise à jour des liens lors d'un renommage** : lorsqu'un fichier est renommé, les références venant d'une zone liée restent inchangées. L'éditeur les signale ensuite comme non valides — c'est le filet qui les rend visibles.
+
+Les liens entre zones sont une [extension](extensions.md) et peuvent être désactivés. Une référence préfixée reste alors non résolue, la vérification à l'ouverture n'a pas lieu, et les liens saisis subsistent — ce qui est désactivé, c'est l'effet, pas la saisie.
 
 ## Tags
 

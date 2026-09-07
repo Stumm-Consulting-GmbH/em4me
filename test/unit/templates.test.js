@@ -2,10 +2,12 @@
 // Reihenfolge (Bereich vor global, vollständige Übersteuerung, Leer-Fälle),
 // Konfigurations-Normalisierung, Pfad-Sicherung der Lese-Zugriffe und
 // Anzeige-Einträge der Auswahl-Liste.
+import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import {
   normalizeTemplatesConfig,
   resolveTemplatesConfig,
+  findTemplateSource,
   resolveTemplateFile,
   templateEntryFromRelPath,
   sortedTemplateEntries,
@@ -80,6 +82,10 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     expect(resolved.source).toBe('area');
     expect(resolved.folder).toBe(P('C:\\Notizen\\Vorlagen'));
     expect(resolved.baseDir).toBe(P('C:\\Notizen'));
+    // 4T-001456: ohne Verknuepfungen ist die Kette die eigene Quelle allein.
+    expect(resolved.sources).toEqual([
+      { key: '', folder: P('C:\\Notizen\\Vorlagen'), prefix: null, name: null },
+    ]);
   });
 
   it('toleriert absolute Bereichs-Ordner', () => {
@@ -89,6 +95,8 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
       globalConfig: null,
     });
     expect(resolved.folder).toBe(P('D:\\Anderswo\\Vorlagen'));
+    // 4T-001456: der absolute Ordner ist auch als Ketten-Glied der eigene.
+    expect(resolved.sources.map((q) => q.folder)).toEqual([P('D:\\Anderswo\\Vorlagen')]);
   });
 
   it('Bereichs-Sektion übersteuert vollständig: globale Regeln zählen nicht mit', () => {
@@ -102,6 +110,11 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     });
     expect(resolved.source).toBe('area');
     expect(resolved.rules).toEqual([]);
+    // 4T-001456: die Uebersteuerung bleibt — der globale Ordner ist auch kein
+    // Ketten-Glied. Die Kette entsteht aus Verknuepfungen, nicht aus der
+    // globalen Konfiguration.
+    expect(resolved.sources).toHaveLength(1);
+    expect(resolved.sources[0].folder).toBe(P('C:\\Notizen\\Vorlagen'));
   });
 
   it('ohne Bereichs-Sektion greift die globale Konfiguration', () => {
@@ -113,6 +126,11 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     expect(resolved.source).toBe('global');
     expect(resolved.folder).toBe(P('C:\\Global\\Templates'));
     expect(resolved.baseDir).toBeNull();
+    // 4T-001456: auch die globale Quelle steht als Kette da, damit die
+    // Aufrufer keinen Sonderfall fuehren muessen.
+    expect(resolved.sources).toEqual([
+      { key: '', folder: P('C:\\Global\\Templates'), prefix: null, name: null },
+    ]);
   });
 
   it('ohne Bereich zählt nur die globale Konfiguration', () => {
@@ -122,6 +140,9 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
       globalConfig: { folder: P('C:\\Global\\Templates') },
     });
     expect(resolved.source).toBe('global');
+    // 4T-001456: ohne Bereich gibt es keine Verknuepfungen — die Kette ist die
+    // globale Quelle allein, selbst wenn linkedSources uebergeben wuerde.
+    expect(resolved.sources).toHaveLength(1);
   });
 
   it('beide leer: source none ohne Ordner', () => {
@@ -130,7 +151,14 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
       areaConfig: undefined,
       globalConfig: undefined,
     });
-    expect(resolved).toEqual({ source: 'none', folder: null, rules: [], baseDir: null });
+    expect(resolved).toEqual({
+      source: 'none',
+      folder: null,
+      rules: [],
+      baseDir: null,
+      // 4T-001456: nichts konfiguriert heisst auch keine Kette.
+      sources: [],
+    });
   });
 
   it('Bereichs-Sektion nur mit Regeln: source area, Ordner bleibt null', () => {
@@ -142,6 +170,9 @@ describe('resolveTemplatesConfig — Auflösungs-Reihenfolge', () => {
     expect(resolved.source).toBe('area');
     expect(resolved.folder).toBeNull();
     expect(resolved.rules).toEqual([{ folder: 'GTD', template: 'GTD.md' }]);
+    // 4T-001456: ohne eigenen Ordner bleibt die Kette leer — ein Ketten-Glied
+    // ohne Ordner waere fuer jeden Aufrufer nur eine Fallunterscheidung mehr.
+    expect(resolved.sources).toEqual([]);
   });
 });
 
@@ -286,5 +317,106 @@ describe('templateEntryFromRelPath und sortedTemplateEntries', () => {
       { relPath: 'A/a.md', group: 'A', name: 'a' },
     ]);
     expect(sorted.map((e) => e.relPath)).toEqual(['a2.md', 'a10.md', 'A/a.md', 'A/z.md', 'Z/b.md']);
+  });
+});
+describe('Quellen-Kette der Vorlagen (4T-001456, Architekturentscheidung 4)', () => {
+  const ZENTRAL = P('C:\\Zentral\\Vorlagen');
+  const ARCHIV = P('D:\\Archiv\\Muster');
+
+  function mitKette(linkedSources) {
+    return resolveTemplatesConfig({
+      areaRootPath: AREA,
+      areaConfig: { folder: 'Vorlagen' },
+      globalConfig: { folder: P('C:\\Global\\Templates') },
+      linkedSources,
+    });
+  }
+
+  it('reiht den eigenen Ordner zuerst, danach die Verknuepfungen in ihrer Reihenfolge (AK7)', () => {
+    const resolved = mitKette([
+      { prefix: 'zt', folder: ZENTRAL, name: 'Zentral' },
+      { prefix: 'ar', folder: ARCHIV, name: 'Archiv' },
+    ]);
+    expect(resolved.sources.map((q) => q.key)).toEqual(['', 'zt', 'ar']);
+    expect(resolved.sources.map((q) => q.folder)).toEqual([
+      P('C:\\Notizen\\Vorlagen'),
+      ZENTRAL,
+      ARCHIV,
+    ]);
+    // Der eigene Ordner bleibt daneben als 'folder' stehen: Die Ordner-Regeln
+    // gehoeren dem eigenen Bereich, ein verknuepfter steuert nur Vorlagen bei.
+    expect(resolved.folder).toBe(P('C:\\Notizen\\Vorlagen'));
+    expect(resolved.baseDir).toBe(P('C:\\Notizen'));
+  });
+
+  it('laesst eine Verknuepfung ohne Ordner und ohne Kuerzel weg', () => {
+    const resolved = mitKette([
+      { prefix: 'zt', folder: ZENTRAL, name: 'Zentral' },
+      { prefix: 'leer', folder: '' },
+      { prefix: '', folder: ARCHIV },
+      null,
+    ]);
+    expect(resolved.sources.map((q) => q.key)).toEqual(['', 'zt']);
+  });
+
+  it('traegt Kuerzel und Namen je Quelle mit', () => {
+    const resolved = mitKette([{ prefix: 'zt', folder: ZENTRAL, name: 'Zentral' }]);
+    expect(resolved.sources[1]).toEqual({
+      key: 'zt',
+      folder: ZENTRAL,
+      prefix: 'zt',
+      name: 'Zentral',
+    });
+    // Die eigene Quelle traegt kein Kuerzel — daran erkennt die Oberflaeche,
+    // dass sie keine Herkunfts-Marke setzen soll.
+    expect(resolved.sources[0].prefix).toBeNull();
+  });
+});
+
+describe('findTemplateSource — Zugriff auf ein Ketten-Glied (4T-001456)', () => {
+  const kette = [
+    { key: '', folder: P('C:\\Notizen\\Vorlagen'), prefix: null, name: null },
+    { key: 'zt', folder: P('C:\\Zentral\\Vorlagen'), prefix: 'zt', name: 'Zentral' },
+  ];
+
+  it('findet die Quelle an ihrem Schluessel', () => {
+    expect(findTemplateSource(kette, 'zt').folder).toBe(P('C:\\Zentral\\Vorlagen'));
+  });
+
+  it('faellt ohne Schluessel auf die erste Quelle zurueck', () => {
+    // Das ist zugleich die Rangfolge bei Namensgleichheit und der Rueckfall
+    // fuer eine Ordner-Regel ohne Qualifizierung.
+    for (const key of [undefined, null, '']) {
+      expect(findTemplateSource(kette, key).key).toBe('');
+    }
+  });
+
+  it('liefert null fuer eine unbekannte oder leere Kette', () => {
+    expect(findTemplateSource(kette, 'weg')).toBeNull();
+    expect(findTemplateSource([], 'zt')).toBeNull();
+    expect(findTemplateSource(null, 'zt')).toBeNull();
+  });
+});
+
+describe('Einschliessung je Quelle (4T-001456, AK3)', () => {
+  const kette = [
+    { key: '', folder: P('C:\\Notizen\\Vorlagen'), prefix: null, name: null },
+    { key: 'zt', folder: P('C:\\Zentral\\Vorlagen'), prefix: 'zt', name: 'Zentral' },
+  ];
+
+  it('schliesst in die BENANNTE Quelle ein, nicht in irgendeine der Kette', () => {
+    const zentral = findTemplateSource(kette, 'zt');
+    expect(resolveTemplateFile(zentral.folder, 'Muster.md')).toBe(
+      P('C:\\Zentral\\Vorlagen\\Muster.md'),
+    );
+    // Ein Ausbruch nach oben bleibt verwehrt — je Quelle, wie zuvor fuer den
+    // einen Ordner. Der Trenner kommt aus path.join und nicht als literaler
+    // Backslash: Unter Linux ist ein Backslash KEIN Pfad-Trenner, der
+    // Ausdruck war dort ein gewoehnlicher Dateiname im Ordner, und der Fall
+    // prueft so das Gegenteil seiner Absicht (belegt im Linux-Lauf zu 1.130.0).
+    expect(resolveTemplateFile(zentral.folder, path.join('..', 'geheim.md'))).toBeNull();
+    // Und der Ordner der ANDEREN Quelle ist von hier aus nicht erreichbar,
+    // obwohl er in derselben Kette steht.
+    expect(resolveTemplateFile(zentral.folder, P('C:\\Notizen\\Vorlagen\\X.md'))).toBeNull();
   });
 });

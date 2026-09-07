@@ -38,11 +38,23 @@ Ausführlich: [Applikationen, Fenster und Bereiche](apps-windows.md).
 
 Zwei verschiedene Formen von Ordnung stehen bereit, und der Unterschied lohnt sich zu kennen. Ein **Bereich** bindet eine Applikation an einen Ordner und macht ihn zur Grenze: Öffnen-Dialog, Zuletzt-Liste, Speichern und Suche bleiben darin, sodass ein vertrauliches Projekt nicht versehentlich in ein anderes ausfranst. Ein **Arbeitsbereich** dagegen merkt sich einen Zustand: alle Fenster, Reiter, Gruppen und Entwürfe unter einem Namen, ohne Speicher-Schritt aktuell gehalten. Wer ihn Wochen später öffnet, sitzt wieder genau dort, wo er aufgehört hat. Beides lässt sich verbinden.
 
-- **Bereich** heißt Ordner-Grenze: Was außerhalb liegt, kommt nicht herein.
+- **Bereich** heißt Ordner-Grenze: Was außerhalb liegt, kommt nicht herein — mit genau einer Ausnahme, die Sie selbst setzen.
 - **Arbeitsbereich** heißt gespeicherter Arbeitszustand, benannt und farbig gekennzeichnet.
 - **Beides zusammen** ergibt einen benannten Arbeitszustand mit fester Ordner-Grenze.
+- **Verknüpfte Bereiche** sind diese Ausnahme: ein eingetragenes Kürzel, eine Richtung, ein Verweis, der hinüberträgt. Eine Tür, keine offene Grenze.
 
 Ausführlich: [Applikationen, Fenster und Bereiche](apps-windows.md).
+
+## Ein Netz statt einer Ablage
+
+Wissen wächst selten in Ordnern. Es wächst in Verbindungen: Eine Notiz verweist auf eine zweite, die dritte greift beide auf, und nach einem Jahr trägt der Bestand mehr Zusammenhang, als eine Ordner-Struktur je abbilden könnte. Dieser Zusammenhang wird mitgeführt und ist von zwei Seiten lesbar — als Fläche, die zeigt, was womit zusammenhängt, und als Baum, der zeigt, was von einem Einstieg aus in welcher Tiefe darunter hängt.
+
+- **Verweise in beide Richtungen**: was dieses Dokument nennt, und wer dieses Dokument nennt.
+- **Das Netz** zeigt die Umgebung eines Dokuments, **der Baum** ab einer wählbaren Wurzel die Ordnung darunter.
+- **Jede Datei genau einmal** im Baum, auf ihrem kürzesten Weg zur Wurzel; ein Klick öffnet sie.
+- **Was niemand verweist**, bleibt nicht verborgen: Die Bereichs-Statistik nennt diese Dateien beim Namen.
+
+Ausführlich: [Vernetzung](linking.md) und [Graphenansicht](graph.md).
 
 ## Aus Dateien wird ein Buch
 
@@ -129,7 +141,7 @@ Ausführlich: [Skript-Blöcke](scripts.md).
 
 - **Text-Erweiterungen** für Hinweisblöcke, Fußnoten, Hervorhebungen und Abkürzungen.
 - **Darstellung** mit Formeln, Diagrammen und hervorgehobenem Code; beim portablen Export reist ein Diagramm als fertiges Bild mit und ist auch dort zu sehen, wo EM4me nicht installiert ist.
-- **Zusammenhang** über Verweise, Anker, Einbettungen und Schlagwörter.
+- **Bezug im Text** über Anker, Einbettungen und Schlagwörter.
 - **Arbeit am Tag** mit Aufgaben, Erinnerungen, Terminen, Vorlagen und Journalen.
 - **Einzeln schaltbar** und offen für eigene Erweiterungen über eine dokumentierte Schnittstelle.
 

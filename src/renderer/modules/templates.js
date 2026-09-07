@@ -71,7 +71,12 @@ export function showTemplatePickerDialog(templates) {
         (e) =>
           needle === '' ||
           e.name.toLowerCase().includes(needle) ||
-          e.group.toLowerCase().includes(needle),
+          e.group.toLowerCase().includes(needle) ||
+          // 4T-001456: nach der Herkunft filtern — «alle Vorlagen des
+          // zentralen Bereichs» ist eine Frage, die der Anwender stellt.
+          String(e.sourceName || e.sourceKey || '')
+            .toLowerCase()
+            .includes(needle),
       );
       list.innerHTML = '';
       let lastGroup = null;
@@ -87,6 +92,15 @@ export function showTemplatePickerDialog(templates) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.textContent = entry.name;
+        // 4T-001456: Herkunft je Eintrag — Träger der Vorhersagbarkeit, die
+        // früher aus dem einen Ordner folgte. Die eigene Quelle bleibt
+        // unbeschriftet; die Marke soll das Fremde zeigen.
+        if (entry.sourceKey) {
+          const herkunft = document.createElement('span');
+          herkunft.className = 'template-picker-source';
+          herkunft.textContent = entry.sourceName || entry.sourceKey;
+          btn.appendChild(herkunft);
+        }
         btn.addEventListener('click', () => finish(entry));
         btn.addEventListener('mousemove', () => setActive(idx));
         li.appendChild(btn);
@@ -291,10 +305,10 @@ function folderDisplayFor(dirPath) {
 // { text, cursorOffsets } bei Erfolg, { cancelled: true } bei Dialog-Abbruch
 // (die Aufrufer entscheiden über den Hinweis; 4T-000427 nutzt das für den
 // Leer-Anlage-Hinweis der Ordner-Regel), null bei Fehler (Hinweis gezeigt).
-async function resolveFilledTemplate(relPath, contextBase) {
+async function resolveFilledTemplate(relPath, contextBase, sourceKey) {
   let read;
   try {
-    read = await api.templatesRead(relPath);
+    read = await api.templatesRead(relPath, sourceKey);
   } catch {
     read = null;
   }
@@ -382,10 +396,11 @@ export async function newFileFromTemplate() {
     },
   });
   if (!name) return;
-  const filled = await resolveFilledTemplate(entry.relPath, {
-    title: name,
-    folder: folderDisplayFor(dirPath),
-  });
+  const filled = await resolveFilledTemplate(
+    entry.relPath,
+    { title: name, folder: folderDisplayFor(dirPath) },
+    entry.sourceKey,
+  );
   if (!filled || filled.cancelled) return;
   let result;
   try {
@@ -446,10 +461,11 @@ async function applyFolderRuleToCreatedFile(filePath) {
   }
   if (!rule || !rule.ok || !rule.template) return null;
   const title = toLogicalName(api.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, ''));
-  const filled = await resolveFilledTemplate(rule.template, {
-    title,
-    folder: folderDisplayFor(api.dirname(filePath)),
-  });
+  const filled = await resolveFilledTemplate(
+    rule.template,
+    { title, folder: folderDisplayFor(api.dirname(filePath)) },
+    rule.sourceKey,
+  );
   if (!filled || filled.cancelled) {
     if (filled && filled.cancelled) {
       showStatusbarHint('templates.rule.cancelled', { duration: 3500 });
@@ -521,10 +537,11 @@ async function runInsertFlow(view) {
   const title = targetPath
     ? toLogicalName(api.basename(targetPath).replace(/\.(md|markdown|mdown|mkd)$/i, ''))
     : '';
-  const filled = await resolveFilledTemplate(entry.relPath, {
-    title,
-    folder: targetPath ? folderDisplayFor(api.dirname(targetPath)) : '',
-  });
+  const filled = await resolveFilledTemplate(
+    entry.relPath,
+    { title, folder: targetPath ? folderDisplayFor(api.dirname(targetPath)) : '' },
+    entry.sourceKey,
+  );
   if (!filled || filled.cancelled) return;
   const range = view.state.selection.main;
   const anchor =

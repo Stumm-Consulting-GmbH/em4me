@@ -547,7 +547,7 @@ test.describe('ES-12: Speicher-Status von Anwenden/OK', () => {
 // (Historie-Bereichs-Default und Vorlagen-Bereichsteil abgespalten,
 // PO-Entscheidung E3) hinter der Gruppe „Allgemein".
 test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', () => {
-  test('zweite Gruppe mit sieben Bereichs-Sektionen; Historie-Default und Vorlagen-Bereichsteil erreichbar', async () => {
+  test('zweite Gruppe mit acht Bereichs-Sektionen; Historie-Default und Vorlagen-Bereichsteil erreichbar', async () => {
     const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-settings-area-'));
     const { app, page, userData } = await launchApp();
     try {
@@ -572,16 +572,18 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       await expect(groups.nth(0).locator('.settings-nav-group-title')).toBeVisible();
       await expect(groups.nth(1).locator('.settings-nav-group-title')).toBeVisible();
       await expect(groups.nth(2).locator('.settings-nav-group-title')).toBeVisible();
-      // Bereichs-Gruppe: die sieben bereichsgebundenen Sektionen in
-      // Registry-Reihenfolge (sechs feste plus die dynamisch registrierten
+      // Bereichs-Gruppe: die acht bereichsgebundenen Sektionen in
+      // Registry-Reihenfolge (sieben feste plus die dynamisch registrierten
       // Sidebar-Varianten aus 4T-000625, Epic 3E-000119). „attachmentsArea"
-      // kam mit 4T-000791 (Epic 3E-000125) hinzu.
+      // kam mit 4T-000791 (Epic 3E-000125) hinzu, „areaLinks" mit 4T-001455
+      // (Epic 3E-000190) hinter „templatesArea".
       const areaEntries = groups.nth(1).locator('.settings-nav-entry');
-      await expect(areaEntries).toHaveCount(7);
+      await expect(areaEntries).toHaveCount(8);
       for (const [idx, id] of [
         'historyArea',
         'attachmentsArea',
         'templatesArea',
+        'areaLinks',
         'journals',
         'calendarSystems',
         'propertyProfiles',

@@ -13,12 +13,16 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea, sanitizeNewFileName } = require('../area/area-path');
 const {
+  EIGENE_QUELLE,
+  findTemplateSource,
   normalizeTemplatesConfig,
   resolveTemplateFile,
   templateEntryFromRelPath,
   sortedTemplateEntries,
   matchFolderRule,
 } = require('../documents/templates');
+// 4T-001456 (Epic 3E-000190): Qualifizierung der Vorlage einer Ordner-Regel.
+const { splitAreaLink } = require('../../shared/area-link-syntax');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 
@@ -70,28 +74,41 @@ function registerTemplatesIpc(handle, deps) {
   // (Entwicklungsrichtlinien: Fehler pro Knoten).
   handle('templates:list', async (event) => {
     const resolved = await resolveTemplatesForWindow(senderWindow(event));
-    if (!resolved.folder) {
+    const quellen = resolved.sources || [];
+    if (quellen.length === 0) {
       return { ok: true, source: resolved.source, folder: null, missing: false, templates: [] };
     }
+    // 4T-001456 (Epic 3E-000190): jede Quelle der Kette wird gelesen, und jeder
+    // Eintrag traegt den Schluessel seiner Quelle. Das Paar aus Quelle und
+    // relativem Pfad spricht eine Vorlage eindeutig an — gleichnamige Vorlagen
+    // zweier Quellen kollidieren deshalb nicht, sie stehen nebeneinander.
+    // 'missing' meldet weiterhin den Fall, dass die EIGENE Quelle konfiguriert,
+    // aber nicht lesbar ist; eine unlesbare verknuepfte Quelle entfaellt still,
+    // weil ein getrenntes Laufwerk kein Fehler des eigenen Bereichs ist.
     const entries = [];
     let missing = false;
-    const queue = [resolved.folder];
-    while (queue.length > 0) {
-      const dir = queue.shift();
-      let dirents;
-      try {
-        dirents = await fs.readdir(dir, { withFileTypes: true });
-      } catch {
-        if (dir === resolved.folder) missing = true;
-        continue;
-      }
-      for (const entry of dirents) {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
-          queue.push(full);
-        } else if (entry.isFile() && isMarkdownPath(entry.name)) {
-          entries.push(templateEntryFromRelPath(path.relative(resolved.folder, full)));
+    for (const quelle of quellen) {
+      const queue = [quelle.folder];
+      while (queue.length > 0) {
+        const dir = queue.shift();
+        let dirents;
+        try {
+          dirents = await fs.readdir(dir, { withFileTypes: true });
+        } catch {
+          if (dir === quelle.folder && quelle.key === EIGENE_QUELLE) missing = true;
+          continue;
+        }
+        for (const entry of dirents) {
+          const full = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+            queue.push(full);
+          } else if (entry.isFile() && isMarkdownPath(entry.name)) {
+            const eintrag = templateEntryFromRelPath(path.relative(quelle.folder, full));
+            eintrag.sourceKey = quelle.key;
+            eintrag.sourceName = quelle.name;
+            entries.push(eintrag);
+          }
         }
       }
     }
@@ -99,6 +116,7 @@ function registerTemplatesIpc(handle, deps) {
       ok: true,
       source: resolved.source,
       folder: resolved.folder,
+      sources: quellen.map((q) => ({ key: q.key, name: q.name })),
       missing,
       templates: sortedTemplateEntries(entries),
     };
@@ -111,8 +129,12 @@ function registerTemplatesIpc(handle, deps) {
   // zu file:read; Groessen-Limit wie embed:read (Vorlagen sind Markdown-Text).
   handle('templates:read', async (event, params) => {
     const resolved = await resolveTemplatesForWindow(senderWindow(event));
-    if (!resolved.folder) return { ok: false, error: 'no-folder' };
-    const abs = resolveTemplateFile(resolved.folder, params && params.relPath);
+    // 4T-001456: Aufgeloest wird gegen die BENANNTE Quelle; ohne Schluessel
+    // gilt die erste der Kette. Die Einschliessung bleibt unveraendert — sie
+    // gilt jetzt je Quelle statt fuer einen einzigen Ordner.
+    const quelle = findTemplateSource(resolved.sources, params && params.sourceKey);
+    if (!quelle) return { ok: false, error: 'no-folder' };
+    const abs = resolveTemplateFile(quelle.folder, params && params.relPath);
     if (!abs) return { ok: false, error: 'outside-folder' };
     try {
       const stat = await fs.stat(abs);
@@ -139,7 +161,17 @@ function registerTemplatesIpc(handle, deps) {
       baseDir: resolved.baseDir,
       templatesFolder: resolved.folder,
     });
-    return { ok: true, template };
+    // 4T-001456 (Epic 3E-000190): Eine Ordner-Regel benennt ihre Vorlage ueber
+    // den Namen und braucht deshalb als einzige eine Rangfolge. Sie darf die
+    // Quelle qualifizieren ('@kuerzel:Pfad'); ohne Qualifizierung gilt die
+    // erste Quelle der Kette. Aufgeteilt wird hier, damit der Renderer die
+    // Vorlage unveraendert ueber templates:read holen kann.
+    const geteilt = splitAreaLink(template || '');
+    return {
+      ok: true,
+      template: template ? geteilt.target : null,
+      sourceKey: template && geteilt.prefix ? geteilt.prefix : EIGENE_QUELLE,
+    };
   });
 
   // 4T-000428 (Epic 3E-000080): Konfigurations-Stand fuer den Einstellungs-
@@ -202,10 +234,15 @@ function registerTemplatesIpc(handle, deps) {
   // "Neue Datei aus Vorlage" im Fenster ohne Datei-/Bereichs-Kontext.
   handle('templates:chooseFolder', async (event, params) => {
     const owner = senderWindow(event);
+    // 4T-001455 (Epic 3E-000190): Zuordnung statt Ternaer — der Kanal waehlt
+    // seinen Titel nach dem Zweck und traegt seit 4T-000426 ohnehin mehr als
+    // den Vorlagen-Fall. Ein unbekannter Zweck faellt auf den Vorlagen-Titel.
+    const TITEL_JE_ZWECK = {
+      target: 'templates.newFile.chooseTargetTitle',
+      areaLink: 'settings.areaLinks.chooseFolderTitle',
+    };
     const titleKey =
-      params && params.purpose === 'target'
-        ? 'templates.newFile.chooseTargetTitle'
-        : 'settings.templates.chooseFolderTitle';
+      TITEL_JE_ZWECK[params && params.purpose] || 'settings.templates.chooseFolderTitle';
     const result = await dialog.showOpenDialog(owner || undefined, {
       title: tForWindow(owner, titleKey),
       properties: ['openDirectory'],

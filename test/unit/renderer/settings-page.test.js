@@ -43,8 +43,10 @@ describe('Bereichs-Registry (settings-page.js, 4T-000278)', () => {
     // „historyArea", also im Block der dokument-nahen Einstellungen.
     // 4T-000581 (Epic 3E-000107): Bereich „Rechtschreibprüfung" hinter
     // „Zeitstempel" (erweiterungs-eigener Bereich der Erweiterung spellcheck).
+    // 4T-001455 (Epic 3E-000190): Bereich „Bereichs-Verknüpfungen" hinter
+    // „templatesArea" — die Verknüpfung trägt das Opt-in für die Vorlagen-Kette.
     const ids = settingsPage.settingsSections().map((s) => s.id);
-    expect(ids.slice(0, 19)).toEqual([
+    expect(ids.slice(0, 20)).toEqual([
       'appearance',
       'colorSchemes',
       'behavior',
@@ -56,6 +58,7 @@ describe('Bereichs-Registry (settings-page.js, 4T-000278)', () => {
       'export',
       'templates',
       'templatesArea',
+      'areaLinks',
       'journals',
       'calendarSystems',
       'propertyProfiles',
@@ -301,6 +304,8 @@ describe('Bereichs-Gliederung der Navigation (4T-000555, Epic 3E-000100)', () =>
     // 4T-000791 (Epic 3E-000125): Bereichs-Uebersteuerung der Anlagen-Ablage.
     'attachmentsArea',
     'templatesArea',
+    // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs.
+    'areaLinks',
     'journals',
     'calendarSystems',
     'propertyProfiles',

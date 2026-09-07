@@ -40,6 +40,7 @@ const { istFeldKonflikt } = require('../documents/save-guard.js');
  * @param {Function} deps.sucheImBereich Volltext-Suche ueber den Bereich.
  * @param {Function} deps.gibBereichsVorratFrei Speicher-Vorrat der Suche freigeben.
  * @param {Function} deps.readAreaProfilesConfig Profil-Sektion der Bereichsdatei lesen.
+ * @param {Function} deps.resolveAreaStartPage Start-Seite des Bereichs als absoluter Pfad.
  * @param {Function} deps.resolveHistoryFor Aufloesung der Historisierungs-Schaltung.
  * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Ueberschreiben.
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
@@ -55,6 +56,7 @@ function registerIndexViewsIpc(handle, deps) {
     sucheImBereich,
     gibBereichsVorratFrei,
     readAreaProfilesConfig,
+    resolveAreaStartPage,
     resolveHistoryFor,
     readPreviousTextFor,
     recordMddOnSave,
@@ -292,10 +294,20 @@ function registerIndexViewsIpc(handle, deps) {
   // damit den Status 'unavailable'. Der Status-Typ-Aufloeser wird pro Lauf
   // frisch gebaut (Muster frontmatterQuery:run), damit geaenderte
   // Aufgaben-Zustaende sofort wirken.
+  // 4T-001516 (Epic 3E-000172): Die Start-Seite loest DIESER Handler auf und
+  // reicht sie als Option weiter; die Erhebung selbst liest die Bereichsdatei
+  // nicht. Eine Festlegung, die ins Leere zeigt, kommt gar nicht erst an —
+  // sie steht ohnehin in keinem Index.
   handle('areaStats:collect', async (event) => {
     const areaRoot = areaRootForEvent(event);
+    let startPage = null;
+    if (areaRoot && typeof resolveAreaStartPage === 'function') {
+      const treffer = await resolveAreaStartPage(areaRoot);
+      if (treffer && !treffer.missing) startPage = treffer.path;
+    }
     return collectAreaStats(areaRoot, {
       statusTypeOf: createTaskStatusTypeResolver(store ? store.get('taskStates') : null),
+      startPage,
     });
   });
 

@@ -76,6 +76,45 @@ Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen
 **Wo das Ziel gesucht wird.** Die Anwendung sucht in drei Schritten, und zwar für jede Datei-Art gleich: zuerst am Pfad relativ zur eigenen Datei, dann in der Schreibweise der Unterseiten, zuletzt über den bloßen **Namen** im ganzen Bereich. `![[bild.png]]` findet die Datei also auch dann, wenn sie in einem anderen Ordner liegt — der Pfad muss nicht getroffen werden. Der Suchraum endet an der Bereichs-Wurzel: Was außerhalb liegt, wird nicht eingebettet. Ohne gebundenen Bereich bleibt es beim Ordner der eigenen Datei.
 
 Trägt eine Markdown-Datei denselben Namen wie eine Anlage, gewinnt die Markdown-Datei; mit Endung geschrieben (`![[bild.png]]`) ist die Sache eindeutig. Gewöhnliche Markdown-Bilder `![](pfad.png)` bleiben davon unberührt — ihre Schreibweise meint einen Pfad und keinen Namen.
+## Bereichs-Verknüpfungen
+
+Zwei Bereiche lassen sich verknüpfen, damit ein Verweis über die Bereichs-Grenze führt. Eingerichtet wird das unter **Einstellungen → Aktueller Bereich → Bereichs-Verknüpfungen**: Dort stehen der Ordner des anderen Bereichs und ein **Kürzel**, unter dem dieser Bereich künftig angesprochen wird.
+
+Das Kürzel gilt **nur in diesem Bereich und nur in dieser Richtung**. Wie der andere Bereich umgekehrt auf diesen verweist, wird dort eingetragen und darf anders lauten. Erlaubt sind Buchstaben, Ziffern, Bindestrich und Unterstrich; Groß- und Kleinschreibung spielt keine Rolle.
+
+Im Text steht das Kürzel vor dem Ziel:
+
+```markdown
+[[@zt:Notiz]]            Datei «Notiz» im verknüpften Bereich «zt»
+[[@zt:Ordner/Notiz]]     Ziel über seinen Pfad im verknüpften Bereich
+[[@zt:Notiz#Kapitel]]    mit Anker, wie bei jedem Wiki-Link
+[[@zt:Notiz|Anzeige]]    mit abweichendem Anzeige-Text
+```
+
+Gesucht wird zuerst am angegebenen Pfad und, falls dort nichts liegt, über den Namen im ganzen verknüpften Bereich — wie ein gewöhnlicher Wiki-Link im eigenen Bereich. Der Klick öffnet das Ziel im selben Fenster.
+
+**Vorlagen des verknüpften Bereichs** lassen sich zusätzlich zu den eigenen anbieten; dafür gibt es je Verknüpfung einen Schalter. In der Vorlagen-Auswahl erscheinen dann beide Bestände, und jeder fremde Eintrag nennt seine Herkunft. Ohne den Schalter ändert eine Verknüpfung den Vorlagen-Bestand nicht.
+
+### Wenn ein verknüpfter Bereich nicht auffindbar ist
+
+Beim Öffnen prüft ein Bereich seine Verknüpfungen, und ein Befund verhindert das Öffnen nie:
+
+- **Der Ordner ist verschoben** — der übergeordnete Ablage-Ort ist erreichbar, der Ordner selbst nicht. Ein Hinweis bittet um den neuen Pfad. Solange er fehlt, gelten Verweise über dieses Kürzel als ungültig und werden im Editor markiert.
+- **Der Ablage-Ort ist nicht erreichbar**, etwa weil ein Laufwerk getrennt ist. Dann erscheint nur ein Hinweis: Die Verknüpfung bleibt bestehen, und **nichts** wird als ungültig markiert. Ein getrenntes Laufwerk zerstört keine Verknüpfung.
+
+Den neuen Pfad tragen Sie an derselben Stelle ein, an der die Verknüpfung steht.
+
+### Was nicht über die Grenze trägt
+
+Ein Verknüpfungs-Link führt **hin**, nicht zurück. Bewusst nicht über die Bereichs-Grenze tragen:
+
+- die **Backlinks** — sie zeigen nur Verweise aus dem eigenen Bereich,
+- die Kennzahl **«Dateien ohne eingehenden Verweis»** der Bereichs-Statistik,
+- die **Graphenansicht**,
+- die **bereichsweite Suche**,
+- und die **Nachführung beim Umbenennen**: Wird eine Datei umbenannt, bleiben Verweise aus einem verknüpften Bereich unverändert. Der Editor markiert sie danach als ungültig — das ist das Netz, das sie sichtbar macht.
+
+Die Bereichs-Verknüpfungen sind eine [Erweiterung](extensions.md) und lassen sich abschalten. Dann bleibt ein Kürzel-Verweis unaufgelöst, die Prüfung beim Öffnen unterbleibt, und die eingetragenen Verknüpfungen bleiben erhalten — abgeschaltet wird die Wirkung, nicht die Angabe.
 
 ## Tags
 

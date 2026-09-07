@@ -1,0 +1,322 @@
+/* 4T-001537 (Epic 3E-000173): Graphenansicht — Netz-Darstellung, Bereichs-
+   Graph-Seite mit ihren ZWEI Formen (Netz und Baum) und das Datei-Graph-Panel.
+
+   Herausgeloest aus bereichs-panel.css nach dem Muster von journal-bloecke.css
+   (4T-001067): Die Quelldatei hatte mit dem Baum-CSS ihr Budget von 800 Zeilen
+   gerissen, und die Graphenansicht ist ein zusammenhaengendes Thema, das mit
+   dem Bereichs-Panel nur den Ort teilte. Der Link-Tag steht in index.html
+   unmittelbar hinter dem der Quelldatei; die Kaskade ist damit unveraendert. */
+/* 4T-000454 (Epic 3E-000084): Graphenansicht — Farben ausschließlich über
+   Theme-Variablen (hell/dunkel); Hover dimmt den Rest der Fläche und hebt
+   die Nachbarschaft an, die aktive Datei trägt den Akzent. */
+.graph-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  background: var(--bg);
+}
+.graph-view.graph-dragging .graph-svg {
+  cursor: grabbing;
+}
+.graph-edge {
+  stroke: var(--border-strong);
+  stroke-width: 1.2;
+}
+.graph-edge-two-way {
+  stroke-width: 1.6;
+}
+.graph-arrow path {
+  fill: var(--border-strong);
+}
+.graph-node circle {
+  fill: var(--fg-muted);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+.graph-node:hover circle {
+  fill: var(--accent);
+}
+.graph-node-active circle {
+  fill: var(--accent);
+  stroke: var(--accent-soft);
+  stroke-width: 4;
+}
+.graph-label {
+  fill: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+}
+/* Hover-Hervorhebung: alles dimmen, Fokus-Knoten samt Nachbarn und deren
+   Kanten wieder anheben. */
+.graph-hovering .graph-node,
+.graph-hovering .graph-edge {
+  opacity: 0.25;
+}
+.graph-hovering .graph-node.graph-focus,
+.graph-hovering .graph-node.graph-neighbor,
+.graph-hovering .graph-edge.graph-edge-active {
+  opacity: 1;
+}
+.graph-hovering .graph-edge.graph-edge-active {
+  stroke: var(--accent);
+}
+.graph-node.graph-focus circle {
+  fill: var(--accent);
+}
+/* 4T-000455 (Epic 3E-000084): Bereichs-Graph-Seite — Steuerleiste oben,
+   Graph-Fläche füllt den Rest der Pane. */
+.graph-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.graph-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-toolbar);
+  font-size: 12px;
+  color: var(--fg);
+}
+.graph-direction-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.graph-toolbar select {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+.graph-node-count {
+  color: var(--fg-muted);
+}
+.graph-reference-hint {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.graph-toolbar .graph-relayout {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.graph-toolbar .graph-relayout:hover {
+  background: var(--hover);
+}
+.graph-canvas {
+  flex: 1;
+  min-height: 0;
+}
+.graph-canvas.graph-canvas-hidden {
+  display: none;
+}
+/* 4T-001537 (Epic 3E-000173): Die Steuerleiste traegt zwei Gruppen, je eine
+   Form. Der Form-Umschalter steht davor und bleibt in beiden sichtbar; die
+   Gruppen fuellen den Rest, damit ihr letzter Knopf rechts sitzt (Muster der
+   bisherigen margin-left:auto des Neu-Anordnen-Knopfs). */
+.graph-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.graph-form-label,
+.graph-tree-root-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+/* 4T-001538: Die Wurzel-Anzeige ist ein Knopf; sie soll aber wie Text
+   aussehen und nicht wie ein zweiter Aktions-Knopf neben Auf und Zu. */
+.graph-tree-root {
+  font: inherit;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 24ch;
+}
+.graph-tree-root:hover {
+  text-decoration: underline;
+}
+.graph-toolbar .graph-tree-expand-all {
+  margin-left: auto;
+}
+.graph-toolbar .graph-tree-expand-all,
+.graph-toolbar .graph-tree-collapse-all {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.graph-toolbar .graph-tree-expand-all:hover,
+.graph-toolbar .graph-tree-collapse-all:hover {
+  background: var(--hover);
+}
+
+/* Die Baum-Flaeche tritt an die Stelle der Graph-Flaeche und rollt selbst;
+   ein tiefer Baum darf die Seite nicht in die Breite ziehen. */
+.graph-tree-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 10px;
+}
+.graph-tree,
+.graph-tree-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* Die Einrueckung je Ebene entsteht an der Kinder-Liste, nicht an der Zeile:
+   So bleibt die Zeile in voller Breite klickbar. */
+.graph-tree-children {
+  padding-left: 18px;
+  border-left: 1px solid var(--border);
+  margin-left: 7px;
+}
+.graph-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 0;
+}
+.graph-tree-toggle,
+.graph-tree-toggle-space {
+  width: 16px;
+  flex: 0 0 16px;
+  text-align: center;
+}
+.graph-tree-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.graph-tree-toggle:hover {
+  color: var(--fg);
+}
+.graph-tree-file {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+.graph-tree-file:hover {
+  text-decoration: underline;
+}
+.graph-tree-count {
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+.graph-tree-footer {
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+.graph-tree-footer[hidden],
+.graph-tree-wrap[hidden],
+.graph-toolbar-group[hidden] {
+  display: none;
+}
+.graph-status {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+}
+.graph-status[hidden] {
+  display: none;
+}
+
+.graph-hint {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* 4T-000456 (Epic 3E-000084): Datei-Graph-Panel — Steuerung im Kopf, darunter
+   die Graph-Fläche mit fester Höhe (Sidebar scrollt den Rest). */
+.filegraph-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.filegraph-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.filegraph-controls select {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+.filegraph-status,
+.filegraph-note,
+.filegraph-scope-hint,
+.filegraph-empty {
+  color: var(--fg-muted);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.filegraph-canvas {
+  height: 260px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}

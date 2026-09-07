@@ -25,6 +25,13 @@
 const KERN_ZEILEN = [
   // help.group.file — Dateien, Speichern, Historie, Anhaenge, Export, Buecher
   'help.feature.openFiles',
+  // 4T-001502 (Epic 3E-000174): Datei ueber ihren Namen oeffnen. Kern und
+  // nicht schaltbar (Entscheidung E6 des Product Owners vom 2026-09-06): Die
+  // Trennlinie des Bestands laeuft zwischen Funktionen, die Inhalt erzeugen,
+  // rendern oder eine eigene Oberflaeche hinzufuegen, und reinen
+  // Zugangs-Wegen; das Overlay, das diesen traegt, steht folgerichtig selbst
+  // nicht in der Erweiterungs-Registry.
+  'help.feature.quickOpen',
   'help.feature.newTab',
   'help.feature.subpageCreate',
   'help.feature.renameFile',

@@ -76,6 +76,45 @@ For block anchors the full surrounding block is embedded (list item with sub-lis
 **Where the target is looked for.** The app searches in three steps, the same way for every file type: first the path relative to your own file, then the subpage spelling, finally the plain **name** across the whole area. So `![[image.png]]` finds the file even when it sits in a different folder — you do not have to get the path right. The search ends at the area root: anything outside is not embedded. Without a bound area, the folder of your own file remains the limit.
 
 If a Markdown file carries the same name as an attachment, the Markdown file wins; written with its extension (`![[image.png]]`) the case is unambiguous. Plain Markdown images `![](path.png)` are unaffected — their spelling means a path, not a name.
+## Area links
+
+Two areas can be linked so that a reference leads across the area boundary. This is set up under **Settings → Current area → Area links**: it holds the folder of the other area and a **prefix** under which that area is addressed from now on.
+
+The prefix applies **only in this area and only in this direction**. How the other area refers back to this one is set there and may differ. Letters, digits, hyphen and underscore are allowed; upper and lower case make no difference.
+
+In text the prefix precedes the target:
+
+```markdown
+[[@zt:Note]]             file “Note” in the linked area “zt”
+[[@zt:Folder/Note]]      target by its path in the linked area
+[[@zt:Note#Chapter]]     with an anchor, as with any wiki link
+[[@zt:Note|Label]]       with a different display text
+```
+
+The target is looked up at the given path first and, if nothing is there, by name across the whole linked area — just like an ordinary wiki link within your own area. Clicking opens the target in the same window.
+
+**Templates of the linked area** can be offered alongside your own; there is a switch per link. The template picker then shows both sets, and every entry from elsewhere names its origin. Without the switch a link does not change the set of templates.
+
+### When a linked area cannot be found
+
+When an area is opened it checks its links, and a finding never prevents it from opening:
+
+- **The folder has moved** — its parent location is reachable, the folder itself is not. A message asks for the new path. Until it is given, references using that prefix count as invalid and are marked in the editor.
+- **The storage location is unavailable**, for example because a drive is disconnected. Then only a note appears: the link remains in place and **nothing** is marked invalid. A disconnected drive never destroys a link.
+
+You enter the new path in the same place where the link is defined.
+
+### What does not cross the boundary
+
+An area link leads **there**, not back. Deliberately not carried across the area boundary:
+
+- **backlinks** — they only show references from within your own area,
+- the metric **“files without incoming references”** of the area statistics,
+- the **graph view**,
+- the **area-wide search**,
+- and **link updating on rename**: when a file is renamed, references from a linked area stay unchanged. The editor marks them as invalid afterwards — that is the net which makes them visible.
+
+Area links are an [extension](extensions.md) and can be switched off. A prefixed reference is then left unresolved, the check on opening does not run, and the links you entered remain — what is switched off is the effect, not the entry.
 
 ## Tags
 

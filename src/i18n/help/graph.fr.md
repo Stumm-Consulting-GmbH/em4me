@@ -1,6 +1,6 @@
 # Vue graphe
 
-La vue graphe rend visibles les relations de liens des fichiers Markdown : chaque fichier est un nœud, chaque lien une arête orientée. Il existe deux formes avec la même interaction : le **graphe de l'espace** dans son propre onglet pour l'espace entier, et le **graphe du fichier** dans un panneau latéral pour le voisinage du fichier actif.
+La vue graphe rend visibles les relations de liens des fichiers Markdown : chaque fichier est un nœud, chaque lien une arête orientée. Il existe deux points d'entrée avec la même interaction : le **graphe de l'espace** dans son propre onglet pour l'espace entier, et le **graphe du fichier** dans un panneau latéral pour le voisinage du fichier actif. Le graphe de l'espace présente ses données au choix sous forme de **réseau** ou d'**arbre**.
 
 Les deux formes appartiennent à l'extension **Vue graphe** et peuvent être désactivées ensemble sous Paramètres → Extensions.
 
@@ -10,9 +10,22 @@ Le graphe de l'espace montre tous les fichiers Markdown de l'espace ouvert avec 
 
 La barre d'outils en tête de l'onglet propose :
 
+- **Affichage** — bascule entre **réseau** et **arbre**. Le choix vaut pour l'onglet ouvert ; à la prochaine ouverture il repart du réseau. La direction et « Réorganiser » ne valent que pour le réseau.
 - **Direction** — « Les deux directions » montre le graphe complet. « Entrants » ou « Sortants » limitent l'affichage aux fichiers accessibles depuis le fichier actif via des liens de la direction choisie (à n'importe quelle profondeur). Si aucun fichier n'est actif, le graphe montre toutes les arêtes et l'indique.
 - **Compteur de fichiers** — le nombre de nœuds actuellement affichés.
 - **Réorganiser** — recalcule la disposition et abandonne les positions déplacées à la main.
+
+### Arbre des liens
+
+L'arbre répond à la question de l'**ordre** que le réseau laisse ouverte : ce qui pend sous un point d'entrée, et à quelle profondeur. Il montre les mêmes données — les mêmes fichiers, les mêmes liens, la même frontière de zone —, seulement orientées depuis une racine et dépliables.
+
+**La racine** est d'abord la page de démarrage de la zone ; si aucune n'est définie, l'arbre s'enracine dans le fichier qui était actif à l'ouverture de la vue. Elle se change de deux façons : par l'affichage de la racine dans la barre d'outils, qui ouvre la même sélection par nom que « Ouvrir un fichier par son nom », ou par l'entrée « Comme racine de l'arbre des liens » dans le menu contextuel d'un fichier du panneau de zone. La racine choisie vaut pour l'onglet ouvert ; la page de démarrage n'en est pas affectée.
+
+**Chaque fichier apparaît exactement une fois.** S'il est accessible par plusieurs chemins, il se place sur son chemin **le plus court** vers la racine ; à longueur égale, le parent alphabétiquement premier l'emporte. Un fichier que vous ne trouvez pas là où vous l'attendez se trouve donc plus haut. Les cycles n'entraînent aucune répétition.
+
+**Le dépliage est progressif :** à l'ouverture, le premier niveau est visible, les niveaux plus profonds sur un clic sur le triangle ; « Tout déplier » et « Tout replier » agissent sur l'arbre entier. Le nombre après un nom indique ses enfants. Un clic sur le nom ouvre le fichier.
+
+**Le pied de page** indique le nombre de fichiers qui ne sont **pas** accessibles depuis cette racine. Ce n'est pas une erreur mais une propriété de votre fonds : l'arbre montre ce qui pend sous la racine, pas la zone entière. S'il n'y a aucun fichier de ce type, la ligne disparaît.
 
 ## Graphe du fichier (panneau)
 
@@ -41,5 +54,5 @@ Les arêtes sont orientées : la flèche pointe du document liant vers le docume
 ## Limites
 
 - Les nœuds sont exclusivement des **fichiers Markdown** ; les tags, pièces jointes ou blocs individuels n'apparaissent pas dans le graphe.
-- Pour les très grands espaces (plus de 1500 fichiers), le graphe montre les nœuds les plus connectés et signale ceux qui sont masqués.
+- Pour les très grands espaces (plus de 1500 fichiers), **le réseau** montre les nœuds les plus connectés et signale ceux qui sont masqués. L'arbre ne connaît pas cette limite : il ne dessine que les branches dépliées et reste donc complet.
 - Le graphe de l'espace nécessite un espace ouvert ; le panneau du fichier fonctionne aussi sans espace, alors avec un espace de recherche limité.

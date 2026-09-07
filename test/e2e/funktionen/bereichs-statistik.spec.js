@@ -6,6 +6,11 @@
 // Bereich lokalisierter Hinweis statt Seite; BS-05: Klick auf einen
 // Dateinamen der Auffälligkeiten öffnet die Datei; BS-06: Erweiterung aus
 // entfernt das Kommando; BS-07: der Stand-Ausweis bei ungespeicherten
+//
+// 4T-001517 (Epic 3E-000172): BS-08 die vierte Auffälligkeits-Liste nennt
+// die Dateien ohne eingehenden Verweis, deckt sich mit der Kennzahl und ist
+// über deren Wert erreichbar.
+//
 // Änderungen (4T-000953). describe-Titel tragen die Matrix-ID
 // (test/abdeckungs-matrix.json, S-118).
 'use strict';
@@ -321,6 +326,49 @@ test.describe('BS-07: Stand-Ausweis bei ungespeicherten Änderungen (S-118)', ()
       // nach dem Speichern, der Dialog bleibt stehen und der Worker laeuft in
       // sein Teardown-Zeitlimit (Muster der Erhebungs-Spec 4t-0936).
       await closeApp(app, userData, { force: true });
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+// 4T-001517 (Epic 3E-000172): Der Fixture-Bereich hat genau zwei Waisen —
+// Start.md (auf das niemand verweist) und Solo.md. Diese Zahl steht hier von
+// Hand nachgerechnet, die Deckung von Liste und Kennzahl prueft der Fall
+// jedoch gegeneinander und nicht gegen sie.
+test.describe('BS-08: Liste der Dateien ohne eingehenden Verweis (S-118)', () => {
+  test('nennt die Waisen, deckt sich mit der Kennzahl und ist ueber deren Wert erreichbar', async () => {
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      await openStatsAndWait(app, page);
+
+      const block = page.locator(`${STATS_PAGE} #area-stats-waisen`);
+      await expect(block).toBeVisible();
+      const namen = block.locator('.area-stats-file');
+      await expect(namen).toHaveCount(2);
+      await expect(namen.nth(0)).toHaveText('Solo');
+      await expect(namen.nth(1)).toHaveText('Start');
+
+      // Die Kennzahl nennt dieselbe Zahl und traegt sie als Knopf.
+      const knopf = figure(page, 'Dateien ohne eingehenden Verweis').locator('.area-stats-jump');
+      await expect(knopf).toHaveText('2');
+      // Einspaltig: der Wert waere in jeder Zeile die Null.
+      await expect(block.locator('thead th')).toHaveCount(1);
+
+      // Der Sprung ist mit der Tastatur erreichbar und laeuft ohne Fehler.
+      await knopf.focus();
+      await expect(knopf).toBeFocused();
+      await knopf.press('Enter');
+      await expect(block).toBeVisible();
+
+      // Ein Eintrag der Liste oeffnet seine Datei wie in den drei Nachbarn.
+      const tabCount = await page.locator(SEL.tabs0).count();
+      await namen.nth(0).click();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(tabCount + 1);
+      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toContainText('Solo');
+    } finally {
+      await closeApp(app, userData);
       cleanupDir(areaRoot);
     }
   });

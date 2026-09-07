@@ -121,6 +121,12 @@ Formato pagina, orientamento e margini si impostano nella sezione «Esportazione
 
 La palette è l'accesso fugace da tastiera al registro dei comandi; per accessi propri permanenti — pulsanti della barra di stato, voci del menu contestuale e macro — vedere la pagina [Posizionamento dei comandi](command-placement.md).
 
+## Apri file per nome
+
+«File → Apri file per nome…» (predefinito `Ctrl+T`) apre la stessa finestra della palette dei comandi, ma con i file al posto dei comandi. Digitando si filtra l'elenco per sottostringa sui nomi; i tasti freccia spostano la selezione, `Invio` o un clic apre il file nel riquadro attivo e chiude la finestra, `Esc` annulla. A destra di ogni nome compare la sua provenienza: per un file la sua cartella, per un nome secondario il file a cui rimanda.
+
+La ricerca considera i nomi dei file **e** i nomi secondari del frontmatter, mai il contenuto: a questo serve la ricerca a testo pieno. Senza digitazione compare in cima il file modificato più di recente; appena si digita qualcosa, precedono i nomi che iniziano con essa e la data di modifica ordina i restanti. Lo spazio di ricerca è lo stesso del completamento dei collegamenti interni: l'area aperta e, in sua assenza, le vicinanze del file attivo. Se due cartelle contengono un file con lo stesso nome, una scelta chiede quale si intende.
+
 ## Inserimento di data e ora
 
 Una finestra a comparsa di calendario inserisce una data e un'ora alla posizione del cursore, anche nel campo nota. Tre comandi la aprono: predefinito `Ctrl+Alt+T` per data e ora, predefinito `Ctrl+Alt+D` per la sola data, predefinito `Ctrl+Alt+U` per la sola ora. I formati inseriti sono `2026-07-10`, `14:30` oppure combinato `2026-07-10 14:30`.

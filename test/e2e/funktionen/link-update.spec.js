@@ -289,3 +289,56 @@ test.describe('LU-08: Einstellung steuert die Checkbox-Vorbelegung', () => {
     }
   });
 });
+
+test.describe('LU-09: Suchraum endet an der Bereichs-Grenze (4T-001458)', () => {
+  test('eine verweisende Datei ausserhalb des Bereichs bleibt beim Umbenennen unberuehrt', async () => {
+    // 4T-001458 (Epic 3E-000190): Absicherung der Annahme aus Entscheidung E5
+    // der Konzept-Stufe — die Nachfuehrung traegt NICHT ueber die Bereichs-
+    // Grenze. Der Fall haelt den heutigen Zustand fest; er aendert nichts.
+    //
+    // Die Datei draussen verweist mit derselben Schreibweise wie die drinnen.
+    // Waere der Suchraum weiter, wuerde sie mitgezogen — genau das darf nicht
+    // geschehen, und genau deshalb bleibt der Linter «das Netz».
+    const bereich = makeDir();
+    const draussen = makeDir();
+    const drinnen = path.join(bereich, 'Drinnen.md');
+    const ziel = path.join(bereich, 'B.md');
+    const aussen = path.join(draussen, 'Aussen.md');
+    fs.writeFileSync(drinnen, '# Drinnen\n\nWiki: [[B]]\n', 'utf8');
+    fs.writeFileSync(ziel, '# B\n\nInhalt.\n', 'utf8');
+    fs.writeFileSync(aussen, '# Aussen\n\nWiki: [[B]]\n', 'utf8');
+    const aussenVorher = fs.readFileSync(aussen, 'utf8');
+
+    const { app, page, userData } = await launchApp();
+    try {
+      // Bereich binden, danach die Ziel-Datei im Bereichs-Fenster oeffnen.
+      await expect
+        .poll(async () => {
+          const r = await page.evaluate((d) => window.api.openAreaPath(d), bereich);
+          return !!(r && r.ok !== false);
+        })
+        .toBe(true);
+      await app.evaluate(({ BrowserWindow }, f) => {
+        BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [f]);
+      }, ziel);
+      await waitForTab(page);
+
+      await openRenameDialog(app, page);
+      await page.locator('#name-input-field').fill('C');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      await continuePreviewAndReport(page);
+
+      // Drinnen ist nachgezogen ...
+      await expect
+        .poll(() => fs.readFileSync(drinnen, 'utf8'), { timeout: 5000 })
+        .toContain('[[C]]');
+      // ... draussen ist byte-genau unveraendert, und kein Fehler ist entstanden.
+      expect(fs.readFileSync(aussen, 'utf8')).toBe(aussenVorher);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(bereich);
+      cleanupDir(draussen);
+    }
+  });
+});

@@ -129,6 +129,14 @@ import {
   validateTemplatesAreaSection,
   validateTemplatesSection,
 } from './settings-templates.js';
+// 4T-001455 (Epic 3E-000190): Bereichs-Verknuepfungen als eigene Sektion der
+// Gruppe 'Aktueller Bereich'.
+import {
+  renderAreaLinksSection,
+  validateAreaLinksSection,
+  dirtyAreaLinksSection,
+  applyAreaLinksSection,
+} from './settings-area-links.js';
 
 export const SETTINGS_PAGE_ID = 'settings';
 
@@ -292,6 +300,19 @@ const FIXED_SECTIONS = [
     render: renderTemplatesAreaSection,
     validate: validateTemplatesAreaSection,
     dirty: dirtyTemplatesAreaSection,
+  },
+  // 4T-001455 (Epic 3E-000190): Bereichs-Verknuepfungen. Sie stehen direkt
+  // hinter der Bereichs-Vorlagen-Sektion, weil die Verknuepfung das Opt-in
+  // fuer die Vorlagen-Kette traegt (Architekturentscheidung 4 des Epics) —
+  // wer das eine sucht, findet das andere daneben.
+  {
+    id: 'areaLinks',
+    titleKey: 'settings.areaLinks.title',
+    group: 'area',
+    render: renderAreaLinksSection,
+    validate: validateAreaLinksSection,
+    dirty: dirtyAreaLinksSection,
+    apply: applyAreaLinksSection,
   },
   // 4T-000436 (Epic 3E-000081): Journale (Regale und Journal-Definitionen der
   // Bereichsdatei). Erweiterungs-eigener Bereich der journals-Erweiterung

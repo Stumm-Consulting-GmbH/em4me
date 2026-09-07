@@ -12,6 +12,11 @@ const path = require('node:path');
 const { isInsideArea, isSamePath, normalizeForCompare } = require('../area/area-path');
 const { toLogicalName } = require('../../shared/subpages');
 
+// 4T-001456 (Epic 3E-000190): Schlüssel der eigenen Quelle in der Kette.
+// Ein fester Wert statt null, damit jeder Eintrag der Auswahl-Liste einen
+// Schlüssel trägt und die Kanäle keinen Sonderfall führen müssen.
+const EIGENE_QUELLE = '';
+
 // Normalisiert eine Vorlagen-Konfiguration (templates-Sektion der Bereichs-
 // datei bzw. globale Einstellungs-Werte) auf { folder, rules }. Tolerant nach
 // dem Fehler-Isolations-Muster der Bereichsdatei: defekte oder fehlende Teile
@@ -36,37 +41,101 @@ function normalizeTemplatesConfig(value) {
   return { folder, rules };
 }
 
-// Die eine Auflösung der Vorlagen-Quelle eines Fensters (Architektur-
-// entscheidung 2 des Epics): Die Bereichs-Konfiguration übersteuert die
-// globale VOLLSTÄNDIG (keine Misch-Auflösung) — liegt eine Bereichs-Sektion
-// vor, zählen ausschließlich deren Ordner und Regeln. Ohne Bereich oder ohne
-// Bereichs-Sektion greift die globale Konfiguration aus den App-Einstellungen.
+// Die Auflösung der Vorlagen-Quellen eines Fensters.
+//
+// **Ursprünglich eine einzige Quelle** (Architekturentscheidung 2 des Epics
+// 3E-000080): Die Bereichs-Konfiguration übersteuerte die globale vollständig,
+// pro Fenster war genau ein Vorlagen-Ordner wirksam, «keine Misch-Auflösung».
+//
+// **Seit 4T-001456 (Epic 3E-000190) eine geordnete KETTE** (Architektur-
+// entscheidung 4 jenes Epics, Entscheidung des Product Owners vom 2026-09-05):
+// der eigene Ordner zuerst, danach je verknüpftem Bereich mit gesetztem Opt-in
+// dessen Vorlagen-Ordner. Die Zusage «genau ein Ordner» ist damit nicht
+// bewahrt, sondern ERSETZT durch «eine geordnete Kette sichtbar benannter
+// Quellen»: Die Vorhersagbarkeit, um derer willen sie gegeben wurde, trägt
+// jetzt die sichtbare Herkunft je Eintrag plus die konfigurierte Reihenfolge.
+//
+// Was sich NICHT geändert hat: Die Übersteuerung der globalen Konfiguration
+// durch die Bereichs-Sektion, die Herkunft der Regeln (sie gehören dem eigenen
+// Bereich; ein verknüpfter Bereich steuert Vorlagen bei, keine Ordner-Regeln)
+// und die Einschließung des Lese-Zugriffs — sie gilt jetzt je Quelle.
 //
 // Bereichs-Ordner sind relativ zur Bereichs-Wurzel notiert (absolute Angaben
 // werden toleriert, path.resolve deckt beide Formen ab); der globale Ordner
 // ist absolut. Liefert { source: 'area'|'global'|'none', folder, rules,
-// baseDir } — folder absolut oder null (nicht konfiguriert), baseDir ist die
-// Auflösungs-Basis der Regel-Ordner (Bereichs-Wurzel bzw. null für global).
-function resolveTemplatesConfig({ areaRootPath, areaConfig, globalConfig }) {
+// baseDir, sources } — `folder` ist unverändert der EIGENE Ordner (absolut
+// oder null), `baseDir` die Auflösungs-Basis der Regel-Ordner, und `sources`
+// die ganze Kette als { key, folder, prefix, name }. Der Schlüssel `key` ist
+// das, was die Kanäle durchreichen; `prefix` ist null für die eigene Quelle.
+//
+// `linkedSources` reicht der Aufrufer fertig herein — die Ordner der
+// verknüpften Bereiche stehen in DEREN Bereichsdateien und sind nur mit
+// Datei-Zugriff zu ermitteln, der hier nicht hingehört (area-config.js).
+function resolveTemplatesConfig({ areaRootPath, areaConfig, globalConfig, linkedSources }) {
   const area = normalizeTemplatesConfig(areaConfig);
   if (area && typeof areaRootPath === 'string' && areaRootPath !== '') {
+    const eigener = area.folder ? path.resolve(areaRootPath, area.folder) : null;
     return {
       source: 'area',
-      folder: area.folder ? path.resolve(areaRootPath, area.folder) : null,
+      folder: eigener,
       rules: area.rules,
       baseDir: path.resolve(areaRootPath),
+      sources: kette(eigener, linkedSources),
     };
   }
   const global = normalizeTemplatesConfig(globalConfig);
   if (global) {
+    const globalerOrdner = global.folder ? path.resolve(global.folder) : null;
+    // Ohne Bereichs-Sektion gibt es keine Verknüpfungen, die zählen könnten:
+    // Die Kette ist dann die globale Quelle allein.
     return {
       source: 'global',
-      folder: global.folder ? path.resolve(global.folder) : null,
+      folder: globalerOrdner,
       rules: global.rules,
       baseDir: null,
+      sources: kette(globalerOrdner, null),
     };
   }
-  return { source: 'none', folder: null, rules: [], baseDir: null };
+  return { source: 'none', folder: null, rules: [], baseDir: null, sources: [] };
+}
+
+// Baut die geordnete Kette: der eigene Ordner zuerst, danach die verknüpften
+// in der Reihenfolge ihrer Einträge. Ein Eintrag ohne Ordner entfällt — ein
+// verknüpfter Bereich ohne eigene Vorlagen steuert nichts bei, und ein leerer
+// Kettenglied-Platz wäre für jeden Aufrufer nur eine Fallunterscheidung mehr.
+function kette(eigenerOrdner, linkedSources) {
+  const sources = [];
+  if (eigenerOrdner)
+    sources.push({ key: EIGENE_QUELLE, folder: eigenerOrdner, prefix: null, name: null });
+  for (const quelle of linkedSources || []) {
+    if (!quelle || typeof quelle.folder !== 'string' || quelle.folder === '') continue;
+    if (!quelle.prefix) continue;
+    sources.push({
+      key: quelle.prefix,
+      folder: path.resolve(quelle.folder),
+      prefix: quelle.prefix,
+      name: quelle.name || null,
+    });
+  }
+  return sources;
+}
+
+/**
+ * Sucht eine Quelle der Kette an ihrem Schlüssel.
+ *
+ * Ohne Schlüssel gilt die ERSTE Quelle — das ist der Rückfall für Aufrufer aus
+ * der Zeit vor der Kette (etwa eine Ordner-Regel ohne Qualifizierung) und
+ * zugleich die Vorrang-Regel bei Namensgleichheit.
+ *
+ * @param {Array} sources Kette aus resolveTemplatesConfig.
+ * @param {*} key Schlüssel der gesuchten Quelle.
+ * @returns {object|null} Die Quelle oder null.
+ */
+function findTemplateSource(sources, key) {
+  const liste = sources || [];
+  if (liste.length === 0) return null;
+  if (key === undefined || key === null || key === '') return liste[0];
+  return liste.find((q) => q.key === key) || null;
 }
 
 // Absoluter Pfad einer Vorlage aus dem aufgelösten Ordner plus relativem
@@ -146,8 +215,10 @@ function matchFolderRule({ filePath, rules, baseDir, templatesFolder }) {
 }
 
 module.exports = {
+  EIGENE_QUELLE,
   normalizeTemplatesConfig,
   resolveTemplatesConfig,
+  findTemplateSource,
   resolveTemplateFile,
   templateEntryFromRelPath,
   sortedTemplateEntries,

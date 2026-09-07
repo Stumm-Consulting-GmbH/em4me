@@ -307,6 +307,18 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.wikiEmbeds',
     dependencies: ['wiki-links'],
   },
+  // 4T-001457 (Epic 3E-000190): Bereichs-Verknuepfungen, schaltbar nach E7.
+  // Aus-Zustand: Das Kuerzel bleibt unaufgeloest, die Pruefung beim Oeffnen
+  // unterbleibt, die Eintraege bleiben stehen — abgeschaltet wird die Wirkung,
+  // nicht die Angabe.
+  {
+    id: 'area-links',
+    category: 'linking',
+    nameKey: 'help.featureName.areaLinks',
+    descKey: 'help.feature.areaLinks',
+    dependencies: ['wiki-links'],
+    settingsSections: ['areaLinks'],
+  },
   {
     id: 'tags',
     category: 'linking',

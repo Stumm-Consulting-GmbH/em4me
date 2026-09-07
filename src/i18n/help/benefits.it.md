@@ -38,11 +38,23 @@ In dettaglio: [Applicazioni, finestre e aree](apps-windows.md).
 
 Sono disponibili due forme di ordine diverse, e vale la pena conoscerne la differenza. Un'**area** lega un'applicazione a una cartella e la trasforma in un confine: finestra di apertura, elenco dei recenti, salvataggio e ricerca restano al suo interno, così un progetto riservato non sconfina mai per sbaglio in un altro. Uno **spazio di lavoro**, invece, ricorda uno stato: tutte le finestre, le schede, i gruppi e le bozze sotto un nome, tenuti aggiornati senza un passaggio di salvataggio. Aprendolo settimane dopo ci si ritrova esattamente dove si era smesso. I due si possono combinare.
 
-- **Area** significa confine di cartella: ciò che sta fuori non entra.
+- **Area** significa confine di cartella: ciò che sta fuori non entra — con una sola eccezione, che imposta lei.
 - **Spazio di lavoro** significa stato di lavoro salvato, con nome e contrassegno di colore.
 - **I due insieme** danno uno stato di lavoro con nome e un confine di cartella fisso.
+- **Le aree collegate** sono questa eccezione: un prefisso che lei inserisce, un senso, un collegamento che varca. Una porta, non un confine aperto.
 
 In dettaglio: [Applicazioni, finestre e aree](apps-windows.md).
+
+## Una rete invece di un archivio
+
+La conoscenza cresce di rado nelle cartelle. Cresce nei collegamenti: una nota rimanda a una seconda, una terza riprende entrambe, e dopo un anno il suo materiale porta più nessi di quanti una struttura di cartelle potrebbe rappresentare. Questi nessi vengono conservati e si leggono da due lati — come superficie che mostra che cosa è collegato a che cosa, e come albero che mostra che cosa pende sotto un punto di ingresso e a quale profondità.
+
+- **Collegamenti in entrambi i sensi**: che cosa nomina questo documento e chi nomina questo documento.
+- **La rete** mostra l'intorno di un documento, **l'albero** da una radice scelta l'ordine che vi pende sotto.
+- **Ogni file esattamente una volta** nell'albero, sulla sua via più breve verso la radice; un clic lo apre.
+- **Ciò che nessuno collega** non resta nascosto: le statistiche dell’area nominano questi file.
+
+In dettaglio: [Collegamenti](linking.md) e [Vista grafo](graph.md).
 
 ## Dai file nasce un libro
 
@@ -129,7 +141,7 @@ Oltre ai quattro grandi costrutti, il linguaggio porta più di cinquanta estensi
 
 - **Estensioni di testo** per riquadri di richiamo, note a piè di pagina, evidenziazione e abbreviazioni.
 - **Presentazione** con formule, diagrammi e codice evidenziato; nell'esportazione portatile un diagramma viaggia come immagine finita ed è visibile anche dove EM4me non è installato.
-- **Nessi** tramite collegamenti, ancore, incorporamenti ed etichette.
+- **Rimandi all'interno del testo** tramite ancore, incorporamenti ed etichette.
 - **Giornata di lavoro** con attività, promemoria, appuntamenti, modelli e diari.
 - **Attivabili una per una** e aperto a estensioni proprie tramite un'interfaccia documentata.
 

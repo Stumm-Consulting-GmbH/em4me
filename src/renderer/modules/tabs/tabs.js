@@ -146,7 +146,8 @@ export function meldeFehlendeTeile(fehlend) {
   });
 }
 
-export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } = {}) {
+export async function openInPane(targetPaneIdx, paths, optionen = {}) {
+  const { inheritGroup = false, ausserhalbErlaubt = false } = optionen;
   // R4-09 (4T-000186): tatsaechliche Ziel-Pane zurueckgeben — wenn die Datei
   // bereits in der anderen Spalte offen ist, landet die Aktivierung dort,
   // und Anker-/Zeilen-Sprünge der Aufrufer muessen dieser Pane folgen.
@@ -166,7 +167,8 @@ export async function openInPane(targetPaneIdx, paths, { inheritGroup = false } 
     // Bereichs werden nicht geoeffnet (Drag & Drop, Links, Lesezeichen etc.);
     // lokalisierte Meldung statt des generischen Lesefehlers. Die
     // autoritative zweite Linie sitzt main-seitig in file:read.
-    if (isOutsideActiveArea(p)) {
+    // 4T-001452: ausserhalbErlaubt setzt allein der Klick-Weg eines aufgeloesten Verknuepfungs-Links (P2).
+    if (!ausserhalbErlaubt && isOutsideActiveArea(p)) {
       showStatusbarHint('statusbar.outsideAreaFile', { duration: 3000, error: true });
       continue;
     }

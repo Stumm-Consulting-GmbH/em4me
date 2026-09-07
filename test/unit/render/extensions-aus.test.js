@@ -15,6 +15,7 @@ import {
 import { extensionById, internalExtensions } from '../../../src/shared/extensions/extensions.js';
 import {
   disabledCommandIdSet,
+  disabledFeatureKeySet,
   effectiveDisabledSet,
   isExtensionEnabled,
 } from '../../../src/shared/extensions/extensions-core.js';
@@ -460,5 +461,57 @@ describe('Erweiterung mindmap: Registry und Aus-Zustand (4T-001047)', () => {
     for (const m of internalExtensions()) {
       expect((m.dependencies || []).includes('mindmap'), `${m.id} hängt an mindmap`).toBe(false);
     }
+  });
+});
+describe('area-links: Aus-Zustand der Bereichs-Verknuepfungen (4T-001457)', () => {
+  it('an: der Kuerzel-Link traegt Marke und Herkunft', () => {
+    // Nicht-Vakuitaets-Probe: ohne sie belegt der Aus-Fall nichts.
+    const html = renderMarkdown('[[@zt:Datei]]', 'de');
+    expect(html).toContain('data-area-prefix="zt"');
+    expect(html).toContain('arealink');
+    expect(html).toContain('href="@zt:Datei.md"');
+  });
+
+  it('aus: der Link bleibt ein gewoehnlicher, unaufgeloester Wiki-Link (AK2)', () => {
+    const html = renderOff('area-links', '[[@zt:Datei]]');
+    // Die Marke ist weg — und das Ziel ist NICHT verschwunden, sondern zum
+    // gewoehnlichen Datei-Namen geworden. Abgeschaltet wird die Wirkung, nicht
+    // die Angabe (Entscheidung E7).
+    expect(html).not.toContain('data-area-prefix');
+    expect(html).not.toContain('arealink');
+    expect(html).toContain('wikilink');
+    expect(html).toContain('href="@zt:Datei.md"');
+  });
+
+  it('aus: auch die Einbettung traegt kein Kuerzel mehr', () => {
+    const html = renderOff('area-links', '![[@zt:Notiz]]');
+    expect(html).not.toContain('data-area-prefix');
+  });
+
+  it('aus: ein gewoehnlicher Wiki-Link bleibt unberuehrt', () => {
+    const html = renderOff('area-links', '[[Datei]]');
+    expect(html).toContain('href="Datei.md"');
+    expect(html).toContain('wikilink');
+  });
+
+  it('haengt deklarativ an wiki-links und faellt mit ihm (AK5)', () => {
+    const eintrag = extensionById('area-links');
+    expect(eintrag).toBeTruthy();
+    expect(eintrag.dependencies).toEqual(['wiki-links']);
+    // Die Kaskade ist die Zusicherung: Ohne Wiki-Link gibt es keinen
+    // Verknuepfungs-Link, und das muss niemand zusaetzlich pruefen.
+    expect(effectiveDisabledSet(['wiki-links']).has('area-links')).toBe(true);
+    expect(isExtensionEnabled('area-links', ['wiki-links'])).toBe(false);
+    // Umgekehrt nicht: area-links abzuschalten laesst den Wiki-Link stehen.
+    expect(isExtensionEnabled('wiki-links', ['area-links'])).toBe(true);
+  });
+
+  it('nennt Katalog-Schluessel statt eigener Uebersetzungen (AK1)', () => {
+    const eintrag = extensionById('area-links');
+    expect(eintrag.nameKey).toBe('help.featureName.areaLinks');
+    expect(eintrag.descKey).toBe('help.feature.areaLinks');
+    // Der descKey IST die Katalog-Zeile; im Aus-Zustand wird genau sie
+    // gekennzeichnet.
+    expect(disabledFeatureKeySet(['area-links']).has('help.feature.areaLinks')).toBe(true);
   });
 });

@@ -55,6 +55,7 @@ import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 import { showCommandPalette } from '../command-palette.js';
+import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
 import { renderTags } from '../editor/autocomplete-help.js';
 import { openManualPage } from '../manual.js';
@@ -178,6 +179,10 @@ export function bindMenuEvents() {
   // 4T-000480 (Epic 3E-000089): Ansicht -> Kommando-Palette oeffnet das Popup.
   if (typeof api.onMenuOpenCommandPalette === 'function') {
     api.onMenuOpenCommandPalette(() => void showCommandPalette());
+  }
+  // 4T-001501 (Epic 3E-000174): Datei -> Datei ueber Namen oeffnen.
+  if (typeof api.onMenuQuickOpen === 'function') {
+    api.onMenuQuickOpen(() => void zeigeDateiOeffnen());
   }
   // 4T-000019: Fokus-Modus und Typewriter-Scroll ueber Menue toggeln.
   if (typeof api.onMenuToggleFocusMode === 'function') {

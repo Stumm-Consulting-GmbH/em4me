@@ -22,7 +22,7 @@
 
 import { t } from '../i18n.js';
 import { state } from './app/app-state.js';
-import { openAreaGraphTab } from './graph/graph-tab.js';
+import { openAreaGraphTab, setzeBaumWurzel } from './graph/graph-tab.js';
 import { openAreaStatsPage } from './area-stats-page.js';
 import { hideContextMenu, placeContextMenuAt } from './dialogs/context-menu-utils.js';
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
@@ -136,6 +136,18 @@ export function showAreaFileContextMenu(ev, absPath, aufRefresh) {
     gruppen.push(() =>
       appendItem(menu, 'area-file-bookmark', t('bookmarks.addAsArea'), () =>
         addAreaBookmarkForPath(absPath),
+      ),
+    );
+  }
+  // 4T-001538 (Epic 3E-000173): «Als Wurzel des Verweis-Baums» — datei-bezogen
+  // und deshalb NICHT bei den panel-weiten Eintraegen. Er steht neben der
+  // Start-Seiten-Handlung, weil beide dieselbe Frage stellen: Was ist der
+  // Einstieg? Die Start-Seite beantwortet sie dauerhaft fuer den Bereich, die
+  // Wurzel voruebergehend fuer diese eine Sicht.
+  if (isExtensionActive('graph-view')) {
+    gruppen.push(() =>
+      appendItem(menu, 'area-file-graph-root', t('areaPanel.menuGraphRoot'), () =>
+        setzeBaumWurzel(absPath),
       ),
     );
   }

@@ -456,6 +456,13 @@ test.describe('VL-10: Einstellungen — Bereichs-Konfiguration übersteuert glob
       await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
 
       // Vollständige Übersteuerung: nur die Bereichs-Vorlage erscheint.
+      //
+      // 4T-001456 (Epic 3E-000190): Diese Zusicherung gilt unverändert weiter.
+      // Was sich mit der Quellen-Kette geändert hat, ist etwas anderes: Neben
+      // den eigenen Ordner treten die Vorlagen-Ordner VERKNÜPFTER Bereiche mit
+      // gesetztem Opt-in. Die globale Konfiguration bleibt übersteuert und
+      // wird nie zum Ketten-Glied — genau das prüft dieser Fall. Den
+      // Ketten-Fall selbst prüft BV-05 in bereichs-verknuepfungen.spec.js.
       await openPickerViaHotkey(page, 'Control+Alt+9');
       await expect(
         page.locator('#template-picker-list button', { hasText: 'AreaVorlage' }),

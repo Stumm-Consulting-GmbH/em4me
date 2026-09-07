@@ -1,5 +1,6 @@
 // Konfigurations-Sektionen der Bereichsdatei (Area_Settings.mdda): die acht
-// strukturgleichen Leser samt der beiden Aufloeser fuer Anlagen und Vorlagen.
+// strukturgleichen Leser samt der beiden Aufloeser fuer Anlagen und Vorlagen,
+// dazu die Schreib-Wege der Start-Seite und der Bereichs-Verknuepfungen.
 //
 // Auszug aus main.js, 4T-000998 (Epic 3E-000196). Alle Leser teilen denselben
 // Migrations-Lese-Pfad (readAreaSettingsRaw zieht eine vorhandene Alt-Datei
@@ -21,6 +22,11 @@ const { readAreaSettingsRaw } = require('./area-migration');
 // 4T-001364 (Epic 3E-000171): Bereichs-Grenze der Start-Seiten-Aufloesung.
 // area-path.js ist ein Blatt ohne Rueckimport aus area/ — kein Ordner-Zyklus.
 const { isInsideArea } = require('./area-path');
+// 4T-001450 (Epic 3E-000190): Verknuepfungs-Modell der Bereiche. area-links.js
+// ist wie area-path.js ein Blatt ohne Rueckimport — kein Ordner-Zyklus.
+const { normalizeAreaLinks } = require('./area-links');
+// 4T-001457 (Epic 3E-000190): Aus-Zustand der Erweiterung area-links.
+const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
 /**
  * Baut die Leser und Aufloeser der Bereichs-Konfiguration.
@@ -32,11 +38,12 @@ const { isInsideArea } = require('./area-path');
  * @param {object} deps.mddStore Container-Format der Markdown-Data-Dateien.
  * @param {object} deps.attachmentPath Ablage-Kern der Anlagen.
  * @param {Function} deps.resolveTemplatesConfig Aufloesung der Vorlagen-Konfiguration.
- * @returns {object} Die elf Zugriffs-Funktionen unter ihren bisherigen Namen.
+ * @returns {object} Die Zugriffs-Funktionen der Bereichs-Konfiguration unter
+ *   ihren bisherigen Namen.
  */
 function createAreaConfig(deps) {
   const { getStore, areaOfWindow, markSelfWriting, mddStore, attachmentPath } = deps;
-  const { resolveTemplatesConfig } = deps;
+  const { resolveTemplatesConfig, normalizeTemplatesConfig } = deps;
 
   // 4T-000332: Bereichs-Default aus der Bereichsdatei Area_Settings.mdda im
   // Bereichs-Wurzelordner. undefined = kein Default gesetzt (erben); eine
@@ -311,13 +318,124 @@ function createAreaConfig(deps) {
     return path.relative(rootPath, absolute).split(path.sep).join('/');
   }
 
+  // 4T-001450 (Epic 3E-000190): areaLinks-Sektion der Bereichsdatei lesen
+  // (Verknuepfungen zu anderen Bereichen). Liefert stets eine LISTE, nie
+  // undefined: Eine fehlende Sektion, eine fehlende oder defekte Bereichsdatei
+  // und eine Sektion ohne einen einzigen gueltigen Eintrag sind fuer den
+  // Aufrufer derselbe Fall — "dieser Bereich ist mit keinem anderen
+  // verknuepft". Gleicher Migrations-Lese-Pfad wie die uebrigen Sektionen.
+  //
+  // Anders als die uebrigen Leser gibt dieser den Rohwert NICHT weiter,
+  // sondern normalisiert ihn hier: Die Sektion ist eine Liste, und ein
+  // einzelner defekter Eintrag darf die uebrigen nicht mitreissen (Details und
+  // Verwerfungs-Regeln in area-links.js). Die eigene Wurzel geht als selfRoot
+  // mit, damit die Verknuepfung eines Bereichs mit sich selbst gar nicht erst
+  // entsteht.
+  async function readAreaLinks(rootPath) {
+    const raw = await readAreaSettingsRaw({
+      mddaPath: path.join(rootPath, mddStore.MDDA_FILENAME),
+      mddbPath: path.join(rootPath, mddStore.LEGACY_MDDB_FILENAME),
+      readFile: (p) => fs.readFile(p, 'utf8'),
+      rename: (from, to) => fs.rename(from, to),
+      markSelfWriting,
+    });
+    if (raw === undefined) return [];
+    const parsed = mddStore.parseSettingsContainer(raw);
+    if (!parsed.ok) return [];
+    return normalizeAreaLinks(parsed.container.settings.areaLinks, { selfRoot: rootPath });
+  }
+
+  // 4T-001450: Verknuepfungen eines Bereichs schreiben. Die Liste wird vor dem
+  // Schreiben normalisiert; eine leere Liste entfernt die Sektion, statt sie
+  // als leeres Feld stehen zu lassen (Muster writeAreaStartPage mit null).
+  //
+  // Muster history:setAreaDefault: Die Bereichsdatei entsteht erst beim ersten
+  // tatsaechlichen Setzen, eine defekte Bereichsdatei wird nie ueberschrieben,
+  // und unbekannte Sektionen ueberleben, weil der ganze Container gelesen und
+  // zurueckgeschrieben wird.
+  async function writeAreaLinks(rootPath, links) {
+    const eintraege = normalizeAreaLinks(links, { selfRoot: rootPath });
+    const mddaPath = path.join(rootPath, mddStore.MDDA_FILENAME);
+    let container = mddStore.emptySettingsContainer();
+    let raw = null;
+    try {
+      raw = await fs.readFile(mddaPath, 'utf8');
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') throw err;
+    }
+    if (raw !== null) {
+      const parsed = mddStore.parseSettingsContainer(raw);
+      if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
+      container = parsed.container;
+    }
+    if (eintraege.length > 0) container.settings.areaLinks = eintraege;
+    else delete container.settings.areaLinks;
+    if (raw === null && eintraege.length === 0) return { ok: true }; // nichts anzulegen
+    const serialized = mddStore.serializeContainer(container);
+    // 3E-000274: ueber den gemeinsamen Schreibweg statt direkt, wie der
+    // Schwester-Schreiber der Start-Seite eine Ebene hoeher. Die Stelle entstand
+    // am 2026-09-05 in diesem Zug-Zweig, eine Stunde bevor 4T-001435 den damals
+    // sichtbaren Bestand auf das absturzsichere Ersetzen umstellte; keine der
+    // beiden Seiten konnte die andere sehen. Gefunden hat sie der Waechter
+    // jener Umstellung im ersten Lauf nach dem Rebase auf 1.129.0.
+    await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
+    return { ok: true };
+  }
+
+  // 4T-001456 (Epic 3E-000190): Vorlagen-Ordner der verknuepften Bereiche
+  // sammeln — die Kette der Architekturentscheidung 4.
+  //
+  // Der Ordner eines verknuepften Bereichs steht in DESSEN Bereichsdatei und
+  // nicht in unserer: Der zentrale Bereich bestimmt selbst, wo seine Vorlagen
+  // liegen. Ein verknuepfter Bereich ohne eigene Vorlagen-Sektion steuert
+  // deshalb nichts bei, und das ist kein Fehler, sondern der Normalfall eines
+  // Bereichs, der keine Vorlagen fuehrt.
+  //
+  // Gelesen wird nur bei gesetztem Opt-in: Eine Verknuepfung ohne es kostet
+  // keinen Datei-Zugriff und aendert den wirksamen Vorlagen-Satz nicht.
+  async function verknuepfteVorlagenQuellen(areaRootPath) {
+    // 4T-001457 (Epic 3E-000190): Im Aus-Zustand bleibt die Kette der eigene
+    // Ordner allein — eine abgeschaltete Verknuepfung traegt auch keine
+    // Vorlagen bei.
+    const store = getStore();
+    if (!isExtensionEnabled('area-links', store ? store.get('extensions.disabled') : null)) {
+      return [];
+    }
+    let links;
+    try {
+      links = await readAreaLinks(areaRootPath);
+    } catch {
+      return [];
+    }
+    const quellen = [];
+    for (const link of links) {
+      if (!link.templates) continue;
+      let fremdeConfig;
+      try {
+        fremdeConfig = await readAreaTemplatesConfig(link.path);
+      } catch {
+        continue; // nicht erreichbarer oder defekter Bereich: still uebergehen
+      }
+      const normalisiert = normalizeTemplatesConfig(fremdeConfig);
+      if (!normalisiert || !normalisiert.folder) continue;
+      quellen.push({
+        prefix: link.prefix,
+        folder: path.resolve(link.path, normalisiert.folder),
+        name: path.basename(link.path),
+      });
+    }
+    return quellen;
+  }
+
   // 4T-000424: wirksame Vorlagen-Konfiguration eines Fensters. Bereichs-Sektion
   // (falls das Fenster einen Bereich hat) uebersteuert die globalen
   // Einstellungs-Werte vollstaendig; Details in src/main/documents/templates.js.
+  // 4T-001456: dazu die Kette der verknuepften Quellen.
   async function resolveTemplatesForWindow(win) {
     const store = getStore();
     const area = areaOfWindow(win);
     const areaConfig = area ? await readAreaTemplatesConfig(area.rootPath) : undefined;
+    const linkedSources = area ? await verknuepfteVorlagenQuellen(area.rootPath) : [];
     return resolveTemplatesConfig({
       areaRootPath: area ? area.rootPath : null,
       areaConfig,
@@ -325,6 +443,7 @@ function createAreaConfig(deps) {
         folder: store ? store.get('templates.folder') : null,
         rules: store ? store.get('templates.rules') : null,
       },
+      linkedSources,
     });
   }
 
@@ -343,6 +462,8 @@ function createAreaConfig(deps) {
     resolveAreaStartPage,
     writeAreaStartPage,
     startPageRelative,
+    readAreaLinks,
+    writeAreaLinks,
     resolveTemplatesForWindow,
   };
 }

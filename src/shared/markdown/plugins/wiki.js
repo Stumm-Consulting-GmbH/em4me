@@ -5,6 +5,8 @@
 'use strict';
 
 const { escapeHtml, githubLikeSlug } = require('../slug.js');
+// 4T-001451 (Epic 3E-000190): Kuerzel-Syntax der Bereichs-Verknuepfung.
+const { splitAreaLink, joinAreaLink } = require('../../area-link-syntax.js');
 
 // 4T-000891 (Epic 3E-000168): Anker-Teil eines Wiki-Ziels als href-Fragment.
 // Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
@@ -41,7 +43,10 @@ function wikiAnchorPart(anchorRaw) {
 //   - mit '^' am Anfang  -> Block-Anker, ID wird direkt verwendet
 //     (Slug-Validierung: \p{L}\p{N}_- inkl. Umlaute).
 //   - sonst              -> Heading-Anker, ueber githubLikeSlug normalisiert.
-function wikiLinksPlugin(mdInstance) {
+function wikiLinksPlugin(mdInstance, options) {
+  // 4T-001457 (Epic 3E-000190): Im Aus-Zustand der Erweiterung area-links wird
+  // das Kuerzel nicht abgetrennt; der Link bleibt ein gewoehnlicher Wiki-Link.
+  const areaLinksAn = !options || options.areaLinks !== false;
   function tokenize(state, silent) {
     const start = state.pos;
     if (state.src.charCodeAt(start) !== 0x5b /* [ */) return false;
@@ -62,13 +67,23 @@ function wikiLinksPlugin(mdInstance) {
     const labelRaw = (pipeIdx >= 0 ? inner.slice(pipeIdx + 1) : inner).trim();
     if (!targetRaw) return false;
 
+    // 4T-001451 (Epic 3E-000190): Kuerzel der Bereichs-Verknuepfung abtrennen,
+    // BEVOR Anker, Eltern-Form und Endungs-Ergaenzung greifen. Sie arbeiten
+    // danach auf dem blossen Ziel und verhalten sich bei '[[@zt:Datei#Kapitel]]'
+    // genau wie bei '[[Datei#Kapitel]]'. Ohne die Vorab-Trennung waere
+    // '@zt:..' keine Eltern-Form mehr und '@zt:Bild.png' truege die Endung des
+    // Kuerzel-Praefixes im Vergleich.
+    const { prefix: areaPrefix, target: areaTarget } = areaLinksAn
+      ? splitAreaLink(targetRaw)
+      : { prefix: null, target: targetRaw };
+
     // 4T-000054: Anker-Trennung. '#' direkt am Anfang -> reiner Anker.
-    const hashIdx = targetRaw.indexOf('#');
-    let pathPart = targetRaw;
+    const hashIdx = areaTarget.indexOf('#');
+    let pathPart = areaTarget;
     let anchorRaw = '';
     if (hashIdx >= 0) {
-      pathPart = targetRaw.slice(0, hashIdx);
-      anchorRaw = targetRaw.slice(hashIdx + 1);
+      pathPart = areaTarget.slice(0, hashIdx);
+      anchorRaw = areaTarget.slice(hashIdx + 1);
     }
 
     // P-07 (4T-000176): gefaehrliche URL-Schemata gar nicht erst als Link
@@ -99,10 +114,17 @@ function wikiLinksPlugin(mdInstance) {
       return false;
     }
 
+    // 4T-001451: Das Kuerzel wandert vor den fertigen href zurueck. Der
+    // Klick-Weg loest es in 4T-001452 auf; hier zaehlt, dass die Marke erhalten
+    // bleibt und die beiden Schema-Waechter sie NICHT als Schema lesen — ihr
+    // Muster verlangt einen Buchstaben am Anfang, und dort steht das At-Zeichen.
+    if (areaPrefix) href = joinAreaLink(areaPrefix, href);
+
     if (!silent) {
       const open = state.push('link_open', 'a', 1);
       open.attrSet('href', href);
-      open.attrSet('class', 'wikilink');
+      open.attrSet('class', areaPrefix ? 'wikilink arealink' : 'wikilink');
+      if (areaPrefix) open.attrSet('data-area-prefix', areaPrefix);
       const text = state.push('text', '', 0);
       text.content = labelRaw;
       state.push('link_close', 'a', -1);
@@ -138,6 +160,8 @@ function wikiLinksPlugin(mdInstance) {
 // das Ziel (Details an der Render-Regel unten).
 function wikiEmbedsPlugin(mdInstance, options) {
   const isPortable = !!(options && options.portable);
+  // 4T-001457: Gate wie im Link-Zweig.
+  const areaLinksAn = !options || options.areaLinks !== false;
   function tokenize(state, silent) {
     const start = state.pos;
     if (state.src.charCodeAt(start) !== 0x21 /* ! */) return false;
@@ -160,13 +184,20 @@ function wikiEmbedsPlugin(mdInstance, options) {
     const modRaw = (pipeIdx >= 0 ? inner.slice(pipeIdx + 1) : '').trim();
     if (!targetRaw) return false;
 
+    // 4T-001451 (Epic 3E-000190): Kuerzel abtrennen wie im Link-Zweig, damit
+    // Anker, Eltern-Form und Datei-Typ-Erkennung auf dem blossen Ziel arbeiten;
+    // sonst bestimmte das Kuerzel-Praefix die Endung mit.
+    const { prefix: areaPrefix, target: areaTarget } = areaLinksAn
+      ? splitAreaLink(targetRaw)
+      : { prefix: null, target: targetRaw };
+
     // Pfad und Anker trennen (analog zu wikiLinksPlugin).
-    let pathPart = targetRaw;
+    let pathPart = areaTarget;
     let anchorRaw = '';
-    const hashIdx = targetRaw.indexOf('#');
+    const hashIdx = areaTarget.indexOf('#');
     if (hashIdx >= 0) {
-      pathPart = targetRaw.slice(0, hashIdx);
-      anchorRaw = targetRaw.slice(hashIdx + 1).trim();
+      pathPart = areaTarget.slice(0, hashIdx);
+      anchorRaw = areaTarget.slice(hashIdx + 1).trim();
     }
     if (!pathPart) return false; // Reine Anker-Embeds nicht unterstuetzt.
 
@@ -185,7 +216,8 @@ function wikiEmbedsPlugin(mdInstance, options) {
       if (!silent) {
         const token = state.push('wikiembed', '', 0);
         token.attrSet('data-embed-kind', 'md');
-        token.attrSet('data-embed-path', '..');
+        token.attrSet('data-embed-path', joinAreaLink(areaPrefix, '..'));
+        if (areaPrefix) token.attrSet('data-area-prefix', areaPrefix);
         if (anchorRaw) token.attrSet('data-embed-anchor', anchorRaw);
       }
       state.pos = end + 2;
@@ -209,7 +241,8 @@ function wikiEmbedsPlugin(mdInstance, options) {
     if (!silent) {
       const token = state.push('wikiembed', '', 0);
       token.attrSet('data-embed-kind', kind);
-      token.attrSet('data-embed-path', finalPath);
+      token.attrSet('data-embed-path', joinAreaLink(areaPrefix, finalPath));
+      if (areaPrefix) token.attrSet('data-area-prefix', areaPrefix);
       if (anchorRaw) token.attrSet('data-embed-anchor', anchorRaw);
       if (width != null) token.attrSet('data-embed-width', String(width));
     }

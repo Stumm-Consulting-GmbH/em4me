@@ -292,3 +292,66 @@ describe('collectAreaStats — Stand-Ausweis bei ungespeicherten Änderungen (4T
     expect(nachher.hinweise.ungespeicherteDokumente).toBe(1);
   });
 });
+
+// 4T-001516 (Epic 3E-000172): Die Waisen-Liste und der Ausschluss der
+// Start-Seite. Beide entstehen an derselben Zeile der Erhebung; die Tests
+// pruefen deshalb durchgehend Liste UND Kennzahl gegeneinander, statt eine
+// von beiden zu glauben.
+describe('statsFor — Dateien ohne eingehenden Verweis (4T-001516)', () => {
+  it('nennt die Waisen namentlich, nach Namen sortiert, und deckt sich mit der Kennzahl', async () => {
+    const { root, start } = makeFixture();
+    await indexFor(start, 'test:stats-waisen', root);
+
+    const { verweise, auffaelligkeiten } = statsFor(root, { statusTypeOf });
+    // Ziel und Unter/Tief werden verwiesen; Start und Verwaist nicht.
+    expect(auffaelligkeiten.unverlinkt.map((e) => e.name)).toEqual(['Start', 'Verwaist']);
+    expect(auffaelligkeiten.unverlinkt).toHaveLength(verweise.ohneEingehende);
+  });
+
+  it('laesst eine festgelegte Start-Seite aus Liste UND Kennzahl heraus', async () => {
+    const { root, start } = makeFixture();
+    await indexFor(start, 'test:stats-startseite', root);
+
+    const mit = statsFor(root, { statusTypeOf, startPage: path.join(root, 'Start.md') });
+    expect(mit.auffaelligkeiten.unverlinkt.map((e) => e.name)).toEqual(['Verwaist']);
+    expect(mit.verweise.ohneEingehende).toBe(1);
+  });
+
+  it('verhaelt sich ohne Start-Seiten-Option wie bisher', async () => {
+    const { root, start } = makeFixture();
+    await indexFor(start, 'test:stats-ohne-startseite', root);
+
+    for (const env of [{ statusTypeOf }, { statusTypeOf, startPage: null }]) {
+      const stats = statsFor(root, env);
+      expect(stats.verweise.ohneEingehende).toBe(2);
+      expect(stats.auffaelligkeiten.unverlinkt.map((e) => e.name)).toEqual(['Start', 'Verwaist']);
+    }
+  });
+
+  it('laesst Datei-Anzahl, Byte-Summe und die drei Nachbar-Listen unberuehrt', async () => {
+    const { root, start } = makeFixture();
+    await indexFor(start, 'test:stats-unberuehrt', root);
+
+    const ohne = statsFor(root, { statusTypeOf });
+    const mit = statsFor(root, { statusTypeOf, startPage: path.join(root, 'Start.md') });
+    // Die ausgeschlossene Datei bleibt eine Datei: sie ist nur keine Waise.
+    expect(mit.markdown).toEqual(ohne.markdown);
+    expect(mit.auffaelligkeiten.groesste).toEqual(ohne.auffaelligkeiten.groesste);
+    expect(mit.auffaelligkeiten.juengste).toEqual(ohne.auffaelligkeiten.juengste);
+    expect(mit.auffaelligkeiten.meistverlinkt).toEqual(ohne.auffaelligkeiten.meistverlinkt);
+  });
+
+  it('kuerzt die Liste nicht auf die zehn der Nachbar-Listen (Entscheidung V4)', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', 'Siehe [[Ziel]].\n');
+    write(root, 'Ziel.md', '# Ziel\n');
+    for (let i = 1; i <= 12; i++) write(root, `Waise-${String(i).padStart(2, '0')}.md`, '# frei\n');
+    await indexFor(start, 'test:stats-ungekuerzt', root);
+
+    const { verweise, auffaelligkeiten } = statsFor(root, { statusTypeOf });
+    // 12 angelegte Waisen plus Start.md, auf das niemand verweist.
+    expect(verweise.ohneEingehende).toBe(13);
+    expect(auffaelligkeiten.unverlinkt).toHaveLength(13);
+    expect(auffaelligkeiten.groesste).toHaveLength(10); // die Nachbar-Liste kuerzt weiter
+  });
+});

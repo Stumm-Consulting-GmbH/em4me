@@ -1,6 +1,6 @@
 # Graphenansicht
 
-Die Graphenansicht macht die Link-Beziehungen der Markdown-Dateien sichtbar: Jede Datei ist ein Knoten, jeder Link eine gerichtete Kante. Es gibt zwei Formen mit derselben Bedienung: den **Bereichs-Graph** als eigenen Tab für den gesamten Bereich und den **Datei-Graph** als Sidebar-Panel für das Umfeld der aktiven Datei.
+Die Graphenansicht macht die Link-Beziehungen der Markdown-Dateien sichtbar: Jede Datei ist ein Knoten, jeder Link eine gerichtete Kante. Es gibt zwei Zugänge mit derselben Bedienung: den **Bereichs-Graph** als eigenen Tab für den gesamten Bereich und den **Datei-Graph** als Sidebar-Panel für das Umfeld der aktiven Datei. Der Bereichs-Graph stellt seine Daten wahlweise als **Netz** oder als **Baum** dar.
 
 Beide Formen gehören zur Erweiterung **Graphenansicht** und lassen sich unter Einstellungen → Erweiterungen gemeinsam abschalten.
 
@@ -10,9 +10,22 @@ Der Bereichs-Graph zeigt alle Markdown-Dateien des geöffneten Bereichs samt ihr
 
 Die Steuerleiste am Tab-Kopf bietet:
 
+- **Darstellung** — schaltet zwischen **Netz** und **Baum**. Die Wahl gilt für den geöffneten Tab; beim nächsten Öffnen beginnt er wieder beim Netz. Richtung und „Neu anordnen" gelten allein für das Netz.
 - **Richtung** — „Beide Richtungen" zeigt den vollständigen Graph. „Eingehend" bzw. „Ausgehend" begrenzen die Anzeige auf die Dateien, die von der aktiven Datei aus über Links der gewählten Richtung erreichbar sind (in beliebiger Tiefe). Ist keine Datei aktiv, zeigt der Graph weiterhin alle Kanten und weist darauf hin.
 - **Datei-Zähler** — die Anzahl der aktuell dargestellten Knoten.
 - **Neu anordnen** — berechnet das Layout frisch und verwirft von Hand verschobene Knoten-Positionen.
+
+### Verweis-Baum
+
+Der Baum beantwortet die Frage nach der **Ordnung**, die das Netz offen lässt: Was hängt von einem Einstieg aus in welcher Tiefe darunter. Er zeigt dieselben Daten — dieselben Dateien, dieselben Links, dieselbe Bereichs-Grenze —, nur gerichtet ab einer Wurzel und aufklappbar.
+
+**Die Wurzel** ist zunächst die Start-Seite des Bereichs; ist keine festgelegt, wurzelt der Baum in der Datei, die beim Öffnen der Ansicht aktiv war. Gewechselt wird sie auf zwei Wegen: über die Wurzel-Anzeige in der Steuerleiste, die dieselbe Namens-Auswahl öffnet wie „Datei über Namen öffnen", oder über den Eintrag „Als Wurzel des Verweis-Baums" im Kontextmenü einer Datei im Bereichs-Panel. Die gewählte Wurzel gilt für den geöffneten Tab; die Start-Seite bleibt davon unberührt.
+
+**Jede Datei erscheint genau einmal.** Ist sie über mehrere Wege erreichbar, steht sie an ihrem **kürzesten** Weg zur Wurzel; sind zwei Wege gleich lang, entscheidet der alphabetisch erste Elternteil. Wer eine Datei nicht dort findet, wo er sie vermutet, findet sie also weiter oben. Zyklen führen zu keiner Wiederholung.
+
+**Aufgeklappt wird schrittweise:** Beim Öffnen ist die erste Ebene sichtbar, tiefere Ebenen auf Klick auf das Dreieck; „Alles auf" und „Alles zu" wirken auf den ganzen Baum. Die Zahl hinter einem Namen nennt seine Kinder. Ein Klick auf den Namen öffnet die Datei.
+
+**Die Fußzeile** nennt die Zahl der Dateien, die von dieser Wurzel aus **nicht** erreichbar sind. Das ist kein Fehler, sondern eine Eigenschaft des Bestands: Der Baum zeigt, was unter der Wurzel hängt, und nicht den ganzen Bereich. Gibt es keine solche Datei, bleibt die Zeile weg.
 
 ## Datei-Graph (Panel)
 
@@ -41,5 +54,5 @@ Kanten sind gerichtet: Der Pfeil zeigt vom verlinkenden zum verlinkten Dokument.
 ## Grenzen
 
 - Knoten sind ausschließlich **Markdown-Dateien**; Tags, Anhänge oder einzelne Blöcke erscheinen nicht im Graph.
-- Bei sehr großen Bereichen (mehr als 1500 Dateien) zeigt der Graph die am stärksten vernetzten Knoten und weist auf die ausgeblendeten hin.
+- Bei sehr großen Bereichen (mehr als 1500 Dateien) zeigt **das Netz** die am stärksten vernetzten Knoten und weist auf die ausgeblendeten hin. Der Baum kennt diese Grenze nicht: Er zeichnet nur die aufgeklappten Äste und bleibt deshalb vollständig.
 - Der Bereichs-Graph setzt einen geöffneten Bereich voraus; das Datei-Panel arbeitet auch ohne Bereich, dann mit begrenztem Suchraum.

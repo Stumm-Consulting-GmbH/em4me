@@ -14,6 +14,150 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.130.0.2543] - 2026-09-07 — Bereichs-Navigation und Struktur-Sicht
+
+Zug 3E-000274 mit
+den Epics 3E-000190,
+3E-000174,
+3E-000172 und
+3E-000173, alle vier
+aus dem Arbeitspaket
+2A-000029. Der Block
+wächst mit jedem abgeschlossenen Mitglied; Untertitel und Einordnung der
+Versions-Stelle bestätigt der Sammeltask des Zuges, wenn alle vier vorliegen.
+
+### Neu
+
+- **Bereiche über ein Kürzel verknüpfen** (4T-001450, 4T-001455). Ein Bereich
+  führt benannte Verknüpfungen zu anderen Bereichen; jede nennt den Ablage-Ort
+  des anderen Bereichs und vergibt ein **Kürzel**, unter dem dieser Bereich
+  angesprochen wird. Die Angaben liegen in der Bereichsdatei und wandern mit dem
+  Ordner. Eingerichtet werden sie im neuen Einstellungs-Bereich
+  „Bereichs-Verknüpfungen" der Gruppe „Aktueller Bereich". Die Verknüpfung ist
+  **gerichtet**: Jede Richtung wird einzeln eingerichtet und vergibt ihr eigenes
+  Kürzel; ein gerade nicht erreichbarer Ordner darf eingetragen werden.
+- **Verweise über die Bereichs-Grenze auflösen und öffnen** (4T-001451,
+  4T-001452). Ein Wiki-Link mit vorangestelltem Kürzel — `[[@kuerzel:Datei]]` —
+  zeigt auf eine Datei des verknüpften Bereichs, mit Pfad, Anker und
+  Anzeige-Text wie gewohnt und ebenso als Einbettung. Aufgelöst wird
+  **zweistufig**: erst der Pfad relativ zur Wurzel des verknüpften Bereichs,
+  danach die Suche nach dem Namen in dessen Bestand. Die Bereichs-Grenze bleibt
+  hart und ist allein um diese eine benannte Ausnahme präzisiert: Gelesen wird
+  ausschließlich, was eine eingetragene Verknüpfung deckt.
+- **Verknüpfungen beim Öffnen prüfen** (4T-001453). Beim Öffnen eines Bereichs
+  prüft die Anwendung seine Verknüpfungen und unterscheidet zwei Fälle. Fehlt
+  ein Ordner, während sein übergeordneter Ort erreichbar ist, gilt der Bereich
+  als **verschoben**: Es erscheint eine Warnung mit der Bitte um den neuen Pfad,
+  und bis dahin sind die betroffenen Verweise ungültig. Ist schon der
+  übergeordnete Ort unerreichbar — getrenntes Laufwerk, abgemeldete
+  Netz-Freigabe —, gilt der Bereich als **offline**, und die Verweise bleiben
+  gültig.
+- **Der Editor kennt die Kürzel** (4T-001454). Ein Verweis auf ein unbekanntes
+  oder als verschoben gemeldetes Kürzel wird als ungültig markiert, ein Verweis
+  auf ein fehlendes Ziel wie ein gebrochener Wiki-Link. Ein Verweis in einen
+  offline gemeldeten Bereich bleibt unmarkiert, weil ein abwesendes Laufwerk
+  nichts über die Richtigkeit des Verweises aussagt.
+- **Vorlagen eines verknüpften Bereichs nutzen** (4T-001456). Vorlagen kommen
+  jetzt aus einer **geordneten Kette** von Quellen: der eigene Vorlagen-Ordner
+  immer zuerst, dahinter je Verknüpfung mit gesetztem Häkchen der Vorlagen-Ordner
+  des anderen Bereichs. Die Vorlagen-Liste nennt je Eintrag seine Herkunft, und
+  eine Ordner-Regel darf ihr Ziel mit dem Kürzel schreiben. Ohne gesetztes
+  Häkchen bleibt alles wie zuvor.
+- **Schaltbare Erweiterung „Bereichs-Verknüpfungen"** (4T-001457). Die Funktion
+  ist im Einstellungs-Bereich „Erweiterungen" abschaltbar. Im Aus-Zustand
+  verhalten sich Kürzel-Verweise wie gewöhnlicher Text, die Prüfung beim Öffnen
+  unterbleibt, und die Vorlagen-Kette besteht wieder aus dem eigenen Ordner
+  allein.
+- **Datei über ihren Namen öffnen** (4T-001499, 4T-001500, 4T-001501,
+  4T-001514). „Datei → Datei über Namen öffnen…" (Standard `Strg+T`) öffnet
+  dasselbe Popup wie die Kommando-Palette, nur mit den Dateien statt den
+  Kommandos: Tippen filtert per Teilstring über die Namen, die Pfeiltasten
+  wählen, `Enter` öffnet im aktiven Bereich. Gesucht wird über Datei-Namen
+  **und** Zweitnamen aus dem Frontmatter, nie über den Inhalt. Ohne Eingabe
+  steht die zuletzt bearbeitete Datei oben; sobald etwas getippt ist, führen die
+  Namen, die damit beginnen. Der Suchraum ist der geöffnete Bereich, auch wenn
+  darin noch keine Datei offen ist; ohne Bereich die Nachbarschaft der aktiven
+  Datei — dieselbe Regel, nach der die Vervollständigung interner Verweise
+  arbeitet, und bewusst dieselbe Auswahl-Regel, damit beide Zugänge dieselben
+  Namen gleich ordnen. Tragen zwei Ordner eine Datei gleichen Namens, fragt
+  dieselbe Auswahl nach wie beim Klick auf einen Wiki-Link.
+- **Dateien ohne eingehenden Verweis auflisten** (4T-001516, 4T-001517). Die
+  Bereichs-Statistik nennt die Kennzahl „Dateien ohne eingehenden Verweis"
+  schon länger, sagte aber nicht, welche Dateien das sind. Bei den
+  Auffälligkeiten steht jetzt eine **vierte Liste**, die sie namentlich führt;
+  ein Klick öffnet die Datei wie in den drei Nachbar-Listen. Anders als diese
+  ist sie **vollständig** und nicht auf zehn Einträge gekürzt — auf die Frage,
+  was frei hängt, wäre eine gekürzte Antwort keine. Der Wert der Kennzahl ist
+  anklickbar und springt zur Liste, mit der Maus wie mit der Tastatur.
+  **Die Start-Seite des Bereichs zählt dabei nicht mehr mit:** Sie ist der
+  Einstieg und braucht keinen Verweis, der auf sie zeigt. Die Kennzahl fällt
+  dadurch um eins niedriger aus als bisher — die Korrektur einer Zählung, nicht
+  der Verlust einer Datei. In allen übrigen Zahlen bleibt sie eine Datei wie
+  jede andere, und ein Verweis aus einem verknüpften Bereich zählt weiterhin
+  nicht; die Zählung endet an der Bereichs-Grenze.
+
+- **Verweis-Baum ab einer wählbaren Wurzel** (4T-001536, 4T-001537,
+  4T-001538). Die Graphenansicht des Bereichs stellt ihre Daten jetzt wahlweise
+  als **Netz** oder als **Baum** dar; umgeschaltet wird in der Steuerleiste
+  desselben Reiters. Der Baum zeigt die Verweis-Kaskade ab einem
+  **wählbaren Wurzel-Dokument**: gerichtet, gestuft, aufklappbar. Er beantwortet
+  damit die Frage nach der Ordnung, die das Netz offen lässt — was hängt von
+  einem Einstieg aus in welcher Tiefe darunter.
+  **Jede Datei erscheint genau einmal**, und zwar an ihrem **kürzesten** Weg zur
+  Wurzel; sind zwei Wege gleich lang, entscheidet der alphabetisch erste
+  Elternteil. Zyklen werden nicht wiederholt. Beim Öffnen ist die erste Ebene
+  sichtbar, tiefere Ebenen auf Klick; «Alles auf» und «Alles zu» wirken auf den
+  ganzen Baum, und ein Klick auf einen Namen öffnet die Datei.
+  **Die Wurzel** ist zunächst die Start-Seite des Bereichs, ersatzweise die beim
+  Öffnen aktive Datei. Gewechselt wird sie über die Wurzel-Anzeige der
+  Steuerleiste, die dasselbe Namens-Popup öffnet wie «Datei über Namen öffnen»,
+  oder über den neuen Eintrag «Als Wurzel des Verweis-Baums» im Kontextmenü
+  einer Datei im Bereichs-Panel. Eine Fußzeile nennt die Zahl der Dateien, die
+  von dieser Wurzel aus nicht erreichbar sind. Anders als das Netz kennt der
+  Baum keine Knoten-Obergrenze: Er zeichnet nur die aufgeklappten Äste.
+
+### Dokumentation
+
+- **Handbuch und Funktions-Katalog** (4T-001459). Die Seite „Vernetzung" trägt
+  in allen fünf Sprachfassungen einen Abschnitt zu den Bereichs-Verknüpfungen:
+  Einrichtung, Link-Form, die zweistufige Suche, das Vorlagen-Häkchen, das
+  Prüf-Verhalten mit beiden Fällen und der Aus-Zustand der Erweiterung. Ein
+  eigener Unterabschnitt benennt, was bewusst **nicht** über die Grenze trägt.
+- **Wächter für den Suchraum der Link-Nachführung** (4T-001458). Die Zusicherung,
+  dass die Nachführung beim Umbenennen den eigenen Bereich nicht verlässt, ist
+  jetzt durch Prüffälle gehalten statt nur durch die Bauweise.
+- **Handbuch und Funktions-Katalog des Datei-Öffnens** (4T-001502). Die Seite
+  „Werkzeuge" trägt in allen fünf Sprachfassungen einen Abschnitt zum Öffnen
+  über den Namen, unmittelbar hinter der Kommando-Palette, mit der die Funktion
+  ihr Popup teilt.
+- **Handbuch und Funktions-Katalog der Waisen-Liste** (4T-001518). Der
+  Handbuch-Abschnitt „Bereichs-Statistik" beschreibt in allen fünf
+  Sprachfassungen die neue Liste, den Klick auf einen Eintrag und den Sprung
+  von der Kennzahl; der Ausschluss der Start-Seite ist ausdrücklich benannt,
+  einschließlich seiner Wirkung auf die angezeigte Zahl. Der Funktions-Katalog
+  führt die Bereichs-Statistik weiterhin als **eine** Funktion — die Liste ist
+  eine von vier auf derselben Seite und hat keinen eigenen Zugang — und nennt
+  im bestehenden Eintrag die beiden Eigenschaften, die sie von ihren Nachbarn
+  unterscheiden.
+- **Nutzen-Darstellung um das Dokument-Netz erweitert** (4T-001557). Die
+  Nutzen-Seite beschreibt Arbeits-Formen, nicht Funktionen; zwei Befunde aus
+  den Nutzen-Prüfschritten des Zuges treffen sie. Der Satz zur Ordner-Grenze
+  nennt jetzt die benannte Ausnahme, und ein eigener Punkt erklärt sie. Neu
+  hinzu kommt ein Abschnitt «Ein Netz statt einer Ablage» zwischen den
+  Bereichen und den Büchern: das Netz als Arbeits-Form, beide Lese-Richtungen
+  (Fläche und Ordnung), die Pfad-Regel des Baums und die Gegenprobe der
+  Waisen-Liste. Der Sammelabschnitt «Und der Rest der Sprache» wird dabei
+  entlastet statt doppelt bespielt. In **beiden** Ausspielungen, der
+  Handbuch-Nutzenseite und der Produkt-Webseite, und allen fünf
+  Sprachfassungen.
+- **Handbuch und Funktions-Katalog des Verweis-Baums** (4T-001539). Die
+  Handbuch-Seite „Graphenansicht" trägt in allen fünf Sprachfassungen einen
+  Abschnitt zum Baum, der die Pfad-Regel und die Fußzeile ausdrücklich erklärt.
+  Zwei Stellen der Seite sind dabei richtiggestellt worden: Bereichs-Graph und
+  Datei-Graph heißen jetzt **Zugänge**, weil „Form" nun die Darstellung meint,
+  und die Ober-Grenze von 1500 Knoten ist als Eigenschaft **des Netzes**
+  benannt. Der Funktions-Katalog führt die Graphenansicht weiterhin als zwei
+  Funktionen und nennt die zweite Form im bestehenden Eintrag.
 ## [1.129.1.2478] - 2026-09-06 — Prozess-Qualität
 
 Zug 3E-000273.

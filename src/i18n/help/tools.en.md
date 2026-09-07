@@ -121,6 +121,12 @@ Page size, orientation and margins are set in the "Export" section of the settin
 
 The palette is the fleeting keyboard access to the command registry; for permanent custom access points — status bar buttons, context menu entries and macros — see the [Command placement](command-placement.md) page.
 
+## Open file by name
+
+"File → Open File by Name…" (default `Ctrl+T`) opens the same popup as the command palette, only with files instead of commands. Typing filters the list by substring over the names; the arrow keys move the selection, `Enter` or a click opens the file in the active pane and closes the popup, `Esc` cancels. To the right of each name stands its origin: for a file its folder, for an alias the file it points to.
+
+The search covers file names **and** the aliases from the frontmatter, never the content — that is what the full-text search is for. With no input the most recently edited file is on top; as soon as something is typed, the names beginning with it come first, and the modification time orders the rest. The search space is the same as for internal link completion: the open area, and without an area the neighbourhood of the active file. If two folders hold a file of the same name, a prompt asks which one is meant.
+
 ## Date and time entry
 
 A calendar popup inserts a date and time at the cursor position, including in the note field. Three commands open it: default `Ctrl+Alt+T` for date and time, default `Ctrl+Alt+D` for date only, default `Ctrl+Alt+U` for time only. The inserted formats are `2026-07-10`, `14:30` or combined `2026-07-10 14:30`.

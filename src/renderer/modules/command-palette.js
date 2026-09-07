@@ -80,6 +80,14 @@ const FILE_TAB_COMMANDS = new Set([
 const CONTENT_TAB_COMMANDS = new Set(['file.print', 'file.exportPdf', 'file.exportPortable']);
 // Kommandos, die irgendeinen aktiven Tab brauchen (Menue: hasActiveTab).
 const ANY_TAB_COMMANDS = new Set(['file.bookmarkAdd', 'tab.close', 'view.toggleScrollSync']);
+// 4T-001514 (Epic 3E-000174): Das schnelle Datei-Oeffnen braucht einen
+// Namensraum, und den traegt ENTWEDER die aktive Datei ODER der geoeffnete
+// Bereich — deshalb weder AREA_COMMANDS noch ANY_TAB_COMMANDS, sondern eine
+// eigene Oder-Regel. Die erste Fassung stand in ANY_TAB_COMMANDS und sperrte
+// damit den Fall, fuer den der Zugang gemacht ist: ein frisch geoeffneter
+// Bereich, in dem noch nichts offen ist (Befund des Product Owners aus der
+// Abnahme vom 2026-09-06).
+const AREA_OR_TAB_COMMANDS = new Set(['file.quickOpen']);
 // Ansichtsmodi: auf System-Seiten deaktiviert (Menue: !systemTab).
 const VIEW_MODE_COMMANDS = new Set([
   'view.modeRendered',
@@ -148,6 +156,7 @@ export function isCommandAvailable(cmd, ctx) {
   if (FILE_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab && !ctx.manualTab && !ctx.systemTab;
   if (CONTENT_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab && !ctx.systemTab;
   if (ANY_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab;
+  if (AREA_OR_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab || ctx.hasArea;
   if (VIEW_MODE_COMMANDS.has(cmd.id)) return !ctx.systemTab;
   if (SOURCE_TOGGLE_COMMANDS.has(cmd.id)) return ctx.sourceVisible;
   return true;
@@ -240,14 +249,38 @@ export function executeCommandById(commandId) {
 
 // --- Popup --------------------------------------------------------------------
 
-export function showCommandPalette() {
+// 4T-001500 (Epic 3E-000174): Die Overlay-Schleife traegt seit dem schnellen
+// Datei-Oeffnen ZWEI Modi. Gemeinsam sind Fokus-Fuehrung, Pfeil-Navigation ueber
+// die .active-Klasse, Enter und Klick, die Esc-Kaskade mit stopPropagation in
+// der Capture-Phase und der Aufbau der Liste; verschieden sind Titel,
+// Datenmenge, Filter, Zeilen-Inhalt und Ausfuehrung. Die Unterschiede kommen
+// als Beschreibung herein (Entscheidung E1 des Product Owners vom 2026-09-06:
+// ein Overlay, zwei Modul-Dateien), statt dass eine zweite Kopie dieser
+// Mechanik neben der ersten steht.
+//
+// @param {object} modus
+//   titel         Ueberschrift des Modals.
+//   platzhalter   Platzhalter-Text des Eingabefelds.
+//   eintraege     Die vollstaendige Menge, einmal beim Oeffnen gebaut.
+//   filtere       (eintraege, eingabe) => sichtbare Eintraege.
+//   gruppeVon     (eintrag) => Gruppen-Text; '' unterdrueckt die Zwischenzeile.
+//   baueInhalt    (eintrag, btn) => haengt die Spans der Zeile an.
+//   istVerfuegbar (eintrag) => ausfuehrbar? Nicht Verfuegbares bleibt sichtbar,
+//                 aber gedimmt (Orientierung, Muster der Menue-Dimmung).
+//   leerText      () => Text der leeren Liste. Bewusst eine Funktion und kein
+//                 String: Der Datei-Modus sagt hier je nach Zustand der Quelle
+//                 «nichts gefunden» oder «Index wird noch aufgebaut».
+//   fuehreAus     (eintrag) => Wirkung. Darf asynchron sein; das Overlay
+//                 schliesst vorher, wie beim Klick auf einen Wiki-Link.
+export function zeigeAuswahlOverlay(modus) {
   const modal = $('#command-palette-modal');
   const filterInput = $('#command-palette-filter');
   const list = $('#command-palette-list');
   const btnCancel = $('#btn-command-palette-cancel');
+  const titel = $('#command-palette-title');
   if (!modal || !list || modal.hidden === false) return Promise.resolve(null);
 
-  const allEntries = buildPaletteEntries();
+  const allEntries = modus.eintraege;
 
   return new Promise((resolve) => {
     let activeIdx = 0;
@@ -259,8 +292,8 @@ export function showCommandPalette() {
       filterInput.removeEventListener('input', renderList);
       btnCancel.removeEventListener('click', onCancel);
       backdrop.removeEventListener('click', onCancel);
-      if (entry) executePaletteEntry(entry);
-      resolve(entry ? entry.id : null);
+      if (entry) modus.fuehreAus(entry);
+      resolve(entry || null);
     };
     const onCancel = () => finish(null);
 
@@ -273,39 +306,32 @@ export function showCommandPalette() {
     };
 
     const renderList = () => {
-      visible = filterCommandEntries(allEntries, filterInput.value);
+      visible = modus.filtere(allEntries, filterInput.value);
       list.innerHTML = '';
       let lastGroup = null;
       visible.forEach((entry, idx) => {
-        if (entry.group !== lastGroup && entry.group !== '') {
+        const gruppe = modus.gruppeVon(entry);
+        if (gruppe !== lastGroup && gruppe !== '') {
           const groupLi = document.createElement('li');
           groupLi.className = 'template-picker-group';
-          groupLi.textContent = entry.group;
+          groupLi.textContent = gruppe;
           list.appendChild(groupLi);
         }
-        lastGroup = entry.group;
+        lastGroup = gruppe;
         const li = document.createElement('li');
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'command-palette-item';
-        if (!entry.available) {
+        const verfuegbar = modus.istVerfuegbar(entry);
+        if (!verfuegbar) {
           btn.classList.add('unavailable');
           btn.setAttribute('aria-disabled', 'true');
         }
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'command-palette-name';
-        nameSpan.textContent = entry.label;
-        btn.appendChild(nameSpan);
-        if (entry.shortcut) {
-          const keySpan = document.createElement('span');
-          keySpan.className = 'command-palette-shortcut';
-          keySpan.textContent = entry.shortcut;
-          btn.appendChild(keySpan);
-        }
+        modus.baueInhalt(entry, btn);
         // Gedimmte Eintraege bleiben sichtbar (Orientierung), sind aber
         // nicht ausfuehrbar.
         btn.addEventListener('click', () => {
-          if (entry.available) finish(entry);
+          if (verfuegbar) finish(entry);
         });
         btn.addEventListener('mousemove', () => setActive(idx));
         li.appendChild(btn);
@@ -314,7 +340,7 @@ export function showCommandPalette() {
       if (visible.length === 0) {
         const li = document.createElement('li');
         li.className = 'template-picker-empty';
-        li.textContent = t('commandPalette.noMatch');
+        li.textContent = modus.leerText();
         list.appendChild(li);
       }
       setActive(0);
@@ -335,13 +361,14 @@ export function showCommandPalette() {
         e.preventDefault();
         e.stopPropagation();
         const entry = visible[activeIdx];
-        if (entry && entry.available) finish(entry);
+        if (entry && modus.istVerfuegbar(entry)) finish(entry);
       }
     };
     const backdrop = modal.querySelector('.bookmark-modal-backdrop');
 
     filterInput.value = '';
-    filterInput.placeholder = t('commandPalette.filterPlaceholder');
+    filterInput.placeholder = modus.platzhalter;
+    if (titel) titel.textContent = modus.titel;
     renderList();
     modal.addEventListener('keydown', onKeydown, true);
     filterInput.addEventListener('input', renderList);
@@ -350,4 +377,32 @@ export function showCommandPalette() {
     modal.hidden = false;
     setTimeout(() => filterInput.focus(), 0);
   });
+}
+
+// Der Kommando-Modus: unveraendertes Verhalten, nur als Beschreibung an die
+// gemeinsame Schleife gereicht. Liefert weiterhin die Kommando-ID, nicht den
+// Eintrag, weil die Aufrufer sie so erwarten.
+export function showCommandPalette() {
+  return zeigeAuswahlOverlay({
+    titel: t('commandPalette.title'),
+    platzhalter: t('commandPalette.filterPlaceholder'),
+    eintraege: buildPaletteEntries(),
+    filtere: filterCommandEntries,
+    gruppeVon: (e) => e.group,
+    istVerfuegbar: (e) => e.available,
+    leerText: () => t('commandPalette.noMatch'),
+    fuehreAus: executePaletteEntry,
+    baueInhalt: (entry, btn) => {
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'command-palette-name';
+      nameSpan.textContent = entry.label;
+      btn.appendChild(nameSpan);
+      if (entry.shortcut) {
+        const keySpan = document.createElement('span');
+        keySpan.className = 'command-palette-shortcut';
+        keySpan.textContent = entry.shortcut;
+        btn.appendChild(keySpan);
+      }
+    },
+  }).then((entry) => (entry ? entry.id : null));
 }

@@ -27,6 +27,7 @@ const {
   MD_EXT_RE,
   FENCE_RE,
   createWikiLinkRegex,
+  isAreaLinkTarget,
   createMdLinkRegex,
   mdLinkTargetFromMatch,
   maskInlineCode,
@@ -312,6 +313,12 @@ function parseContent(filePath, content) {
       // laesst das Capture mit '\' enden — abschneiden wie im preload.
       const target = m[1].trim().replace(/\\$/, '');
       if (!target) continue;
+      // 4T-001451 (Epic 3E-000190): Ein Verknuepfungs-Link [[@kuerzel:Ziel]]
+      // zeigt in einen anderen Bereich. Der Index kennt genau eine Wurzel je
+      // Eintrag (resolveRootInfo), und die eingehende Richtung bleibt in Stufe 1
+      // ausdruecklich draussen (E3) — als lokales Ziel gedeutet entstuende hier
+      // ein Verweis auf eine Datei namens @kuerzel:Ziel, die es nie gibt.
+      if (isAreaLinkTarget(target)) continue;
       // Anker im Wiki-Link: [[Foo#anker]] -> ziel=Foo, anker=anker.
       // Auch [[#Anker]] (reiner Anker im selben Doc) wird erkannt, aber
       // als ausgehender Backlink uebersprungen — ein interner Anker ist

@@ -574,8 +574,10 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
 .area-stats-more {
   margin-top: 8px;
 }
-/* Die drei Top-Listen stehen nebeneinander, solange die Spalte breit genug
-   ist, und brechen darunter untereinander um. */
+/* Die vier Top-Listen stehen nebeneinander, solange die Spalte breit genug
+   ist, und brechen darunter untereinander um. Die vierte (Waisen-Liste,
+   4T-001517) brauchte dafuer keine eigene Regel: flex-wrap mit fester
+   Mindestbreite traegt jede Zahl von Listen. */
 .area-stats-tops {
   display: flex;
   flex-wrap: wrap;
@@ -600,5 +602,20 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   text-align: left;
 }
 .area-stats-file:hover {
+  text-decoration: underline;
+}
+/* 4T-001517: Der Kennzahl-Wert, der zu seiner Liste springt. Er behaelt die
+   Ziffern-Ausrichtung seiner Zelle und bekommt allein die Klick-Flaeche; der
+   Fokus-Rahmen kommt vom <button> selbst. */
+.area-stats-jump {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  cursor: pointer;
+}
+.area-stats-jump:hover {
   text-decoration: underline;
 }

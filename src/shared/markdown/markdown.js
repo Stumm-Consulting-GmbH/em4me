@@ -367,10 +367,15 @@ function buildPipelines(enabled) {
   // gehoeren zur Wiki-Link-Erweiterung (sie existieren als Ziel-Anker der
   // `[[Datei#^id]]`-Form); Embeds haengen deklarativ an wiki-links.
   if (enabled('wiki-links')) {
-    md.use(wikiLinksPlugin);
+    // 4T-001457 (Epic 3E-000190): Im Aus-Zustand von 'area-links' wird das
+    // Kuerzel-Praefix nicht abgetrennt — '[[@zt:Datei]]' bleibt ein
+    // gewoehnlicher Wiki-Link auf eine Datei dieses Namens, ohne Marke und
+    // ohne Herkunft. Die Angabe verschwindet nicht, nur ihre Wirkung.
+    md.use(wikiLinksPlugin, { areaLinks: enabled('area-links') });
     md.use(blockAnchorsPlugin);
   }
-  if (enabled('wiki-embeds')) md.use(wikiEmbedsPlugin, { portable: false });
+  if (enabled('wiki-embeds'))
+    md.use(wikiEmbedsPlugin, { portable: false, areaLinks: enabled('area-links') });
   if (enabled('tags')) md.use(tagsPlugin);
   if (enabled('callouts')) md.use(calloutsPlugin, { portable: false });
   // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges; deaktiviert bleibt

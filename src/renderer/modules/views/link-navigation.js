@@ -14,6 +14,9 @@ import {
   toFileBasename,
 } from '../../../shared/subpages.js';
 import { state } from '../app/app-state.js';
+// 4T-001452 (Epic 3E-000190): Kuerzel eines Verknuepfungs-Links abtrennen —
+// dieselbe Regel wie im Render-Pfad und in den drei uebrigen Parse-Stellen.
+import { splitAreaLink } from '../../../shared/area-link-syntax.js';
 // 4T-000365 (Epic 3E-000067): Klick-Pfad des Block-Metadaten-Indikators (oeffnet
 // das Block-Eigenschaften-Panel mit dem Anker als Kontext).
 import { openBlockPropsForAnchor } from '../properties/block-props-panel.js';
@@ -90,6 +93,26 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
   const pane = state.panes[paneIdx];
   if (!pane || pane.activeIndex < 0) return;
   const baseTab = pane.tabs[pane.activeIndex];
+  // 4T-001452 (Epic 3E-000190): Verknuepfungs-Link ueber die Bereichs-Grenze.
+  // Er biegt VOR der dokument-relativen Aufloesung ab, weil deren Basis der
+  // Ordner der aktiven Datei ist — fuer ein Ziel in einem fremden Bereich die
+  // falsche Basis. Danach muendet er in dieselbe Oeffnen-Strecke wie jeder
+  // andere Link, damit Anker-Sprung und Tab-Gruppe sich nicht unterscheiden.
+  const { prefix: areaPrefix, target: areaTarget } = splitAreaLink(pathPart);
+  if (areaPrefix) {
+    const treffer = await api.resolveAreaLink(areaPrefix, areaTarget);
+    // Kein Eintrag, Ziel nicht gefunden oder Ablage-Ort getrennt: Der Link
+    // bleibt unaufgeloest und es passiert nichts. Gekennzeichnet wird er vom
+    // Linter (4T-001454) — zwei Anzeigen fuer denselben Sachverhalt waeren
+    // eine zu viel.
+    if (!treffer || !treffer.ok || !treffer.path) return;
+    const zielPane = await openInPane(paneIdx, [treffer.path], {
+      inheritGroup: true,
+      ausserhalbErlaubt: true,
+    });
+    if (anchorPart) scrollToAnchorAfterOpen(zielPane, anchorPart);
+    return;
+  }
   // 4T-000213: Handbuch-Tabs sind pfadlos — relative Links werden gegen die
   // Seiten-Registry aufgeloest (Ziel-Seite oeffnen bzw. aktivieren,
   // optional zum Anker scrollen), nicht gegen das Dateisystem. Nicht

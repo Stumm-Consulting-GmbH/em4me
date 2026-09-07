@@ -121,6 +121,12 @@ Seitenformat, Ausrichtung und Ränder stellt der Bereich „Export" der Einstell
 
 Die Palette ist der flüchtige Tastatur-Zugriff auf die Kommando-Registry; für dauerhafte eigene Zugänge — Statusbar-Buttons, Kontextmenü-Einträge und Makros — siehe die Seite [Kommando-Platzierung](command-placement.md).
 
+## Datei über Namen öffnen
+
+„Datei → Datei über Namen öffnen…" (Standard `Strg+T`) öffnet dasselbe Popup wie die Kommando-Palette, nur mit den Dateien statt den Kommandos. Tippen filtert die Liste per Teilstring über die Namen; die Pfeiltasten bewegen die Auswahl, `Enter` oder ein Klick öffnet die Datei im aktiven Bereich und schließt das Popup, `Esc` bricht ab. Rechts neben jedem Namen steht seine Herkunft: bei einer Datei ihr Ordner, bei einem Zweitnamen die Datei, auf die er zeigt.
+
+Gesucht wird über die Datei-Namen **und** über die Zweitnamen aus dem Frontmatter, nie über den Inhalt — dafür gibt es die Volltextsuche. Ohne Eingabe steht die zuletzt bearbeitete Datei oben; sobald etwas getippt ist, führen die Namen, die damit beginnen, und die Änderungszeit ordnet die übrigen. Der Suchraum ist derselbe wie bei der Vervollständigung interner Verweise: der geöffnete Bereich, und ohne Bereich die Nachbarschaft der aktiven Datei. Tragen zwei Ordner eine Datei gleichen Namens, fragt eine Auswahl nach, welche gemeint ist.
+
 ## Datums- und Uhrzeit-Eingabe
 
 Ein Kalender-Popup fügt Datum und Uhrzeit an der Cursor-Position ein, auch im Notiz-Feld. Drei Kommandos öffnen es: Standard `Strg+Alt+T` für Datum und Uhrzeit, Standard `Strg+Alt+D` für nur Datum, Standard `Strg+Alt+U` für nur Uhrzeit. Eingefügt werden die Formate `2026-07-10`, `14:30` oder kombiniert `2026-07-10 14:30`.

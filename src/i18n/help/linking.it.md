@@ -76,6 +76,45 @@ Con le ancore di blocco viene incorporato l'intero blocco circostante (voce di e
 **Dove viene cercata la destinazione.** L'applicazione cerca in tre passaggi, allo stesso modo per ogni tipo di file: prima il percorso relativo al proprio file, poi la scrittura delle sottopagine, infine il semplice **nome** nell'intera area. Così `![[immagine.png]]` trova il file anche se si trova in un'altra cartella: non occorre indovinare il percorso. La ricerca termina alla radice dell'area: ciò che sta fuori non viene incorporato. Senza un'area collegata il limite resta la cartella del proprio file.
 
 Se un file Markdown porta lo stesso nome di un allegato, vince il file Markdown; scritto con la sua estensione (`![[immagine.png]]`) il caso è inequivocabile. Le immagini Markdown ordinarie `![](percorso.png)` non sono interessate: la loro scrittura indica un percorso e non un nome.
+## Collegamenti tra aree
+
+Due aree possono essere collegate affinché un riferimento superi il confine dell’area. Si imposta in **Impostazioni → Area corrente → Collegamenti tra aree**: vi si indicano la cartella dell’altra area e un **prefisso** con cui quell’area verrà richiamata.
+
+Il prefisso vale **solo in quest’area e solo in questa direzione**. Il modo in cui l’altra area richiama questa si imposta lì e può essere diverso. Sono ammessi lettere, cifre, trattino e trattino basso; maiuscole e minuscole non contano.
+
+Nel testo il prefisso precede la destinazione:
+
+```markdown
+[[@zt:Nota]]             file «Nota» nell’area collegata «zt»
+[[@zt:Cartella/Nota]]    destinazione tramite il suo percorso
+[[@zt:Nota#Capitolo]]    con ancora, come in ogni collegamento wiki
+[[@zt:Nota|Etichetta]]   con un testo visualizzato diverso
+```
+
+La destinazione viene cercata prima al percorso indicato e, se lì non c’è nulla, per nome in tutta l’area collegata — come un normale collegamento wiki nella propria area. Il clic apre la destinazione nella stessa finestra.
+
+**I modelli dell’area collegata** possono essere proposti accanto ai propri; esiste un interruttore per ciascun collegamento. La scelta dei modelli mostra allora entrambi gli insiemi, e ogni voce esterna indica la sua provenienza. Senza l’interruttore un collegamento non modifica l’insieme dei modelli.
+
+### Quando un’area collegata non si trova
+
+All’apertura un’area verifica i suoi collegamenti, e un esito non impedisce mai l’apertura:
+
+- **La cartella è stata spostata**: la posizione superiore è raggiungibile, la cartella no. Un avviso chiede il nuovo percorso. Finché manca, i riferimenti con quel prefisso valgono come non validi e vengono segnalati nell’editor.
+- **La posizione di archiviazione non è raggiungibile**, ad esempio perché un’unità è scollegata. Allora compare solo un avviso: il collegamento resta e **nulla** viene segnalato come non valido. Un’unità scollegata non distrugge mai un collegamento.
+
+Il nuovo percorso si inserisce nello stesso punto in cui è definito il collegamento.
+
+### Che cosa non supera il confine
+
+Un collegamento tra aree porta **là**, non indietro. Non superano deliberatamente il confine:
+
+- i **collegamenti in entrata**: mostrano solo riferimenti interni alla propria area,
+- l’indicatore **«file senza riferimenti in entrata»** delle statistiche dell’area,
+- la **vista a grafo**,
+- la **ricerca sull’intera area**,
+- e l’**aggiornamento dei collegamenti alla rinomina**: rinominando un file, i riferimenti provenienti da un’area collegata restano invariati. L’editor li segnala poi come non validi — è la rete che li rende visibili.
+
+I collegamenti tra aree sono un’[estensione](extensions.md) e possono essere disattivati. Un riferimento con prefisso resta allora non risolto, la verifica all’apertura non avviene e i collegamenti inseriti rimangono: ciò che si disattiva è l’effetto, non l’indicazione.
 
 ## Tag
 

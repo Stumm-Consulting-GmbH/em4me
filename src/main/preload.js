@@ -529,6 +529,11 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs; null entfernt sie.
   getAreaStartPage: () => ipcRenderer.invoke('area:getStartPage'),
   setAreaStartPage: (filePath) => ipcRenderer.invoke('area:setStartPage', filePath),
+  // 4T-001452: Verknuepfungs-Link ueber die Bereichs-Grenze aufloesen.
+  resolveAreaLink: (prefix, target) => ipcRenderer.invoke('areaLink:resolve', { prefix, target }),
+  beurteileAreaLinks: (a) => ipcRenderer.invoke('areaLink:beurteile', a),
+  getAreaLinkConfig: () => ipcRenderer.invoke('areaLink:getConfig'),
+  setAreaLinkConfig: (l) => ipcRenderer.invoke('areaLink:setConfig', l),
   // 4T-000843 (Epic 3E-000147): Buecher. Eigener Namensraum statt flacher
   // book*-Namen, weil der Block als Ganzes zu einer schaltbaren Erweiterung
   // gehoert und der Renderer ihn an EINER Stelle greift.
@@ -722,7 +727,7 @@ contextBridge.exposeInMainWorld('api', {
   // Vorlagen-Ordners (Bereich vor global) und Vorlagen-Inhalt; die
   // Anwendungs-Kommandos (4T-000426) und Ordner-Regeln (4T-000427) bauen darauf.
   templatesList: () => ipcRenderer.invoke('templates:list'),
-  templatesRead: (relPath) => ipcRenderer.invoke('templates:read', { relPath }),
+  templatesRead: (p, k) => ipcRenderer.invoke('templates:read', { relPath: p, sourceKey: k }),
   // 4T-000426 (Epic 3E-000080): Datei mit gefuelltem Vorlagen-Inhalt anlegen
   // plus Menue-Event 'Datei -> Neue Datei aus Vorlage...'.
   templatesCreateFile: (dirPath, name, content) =>
@@ -882,6 +887,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuOpenAreaStats: (cb) => ipcRenderer.on('menu:openAreaStats', () => cb()),
   // 4T-000480 (Epic 3E-000089): Kommando-Palette ueber Menue-Eintrag Ansicht.
   onMenuOpenCommandPalette: (cb) => ipcRenderer.on('menu:openCommandPalette', () => cb()),
+  // 4T-001501 (Epic 3E-000174): Menue-Weg des schnellen Datei-Oeffnens.
+  onMenuQuickOpen: (cb) => ipcRenderer.on('menu:quickOpen', () => cb()),
   // 4T-000456 (Epic 3E-000084): Datei-Graph-Sidebar-Sektion toggeln.
   onMenuToggleFileGraph: (cb) => ipcRenderer.on('menu:toggleFileGraph', () => cb()),
   // 4T-000568 (Epic 3E-000104): zentraler Toggle-Kanal des Panel-Untermenues

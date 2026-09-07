@@ -1,3 +1,6 @@
+// 4T-001536 (Epic 3E-000173): dazu der Verweis-Baum ab einer Wurzel —
+// Eltern-Wahl nach der Regel V2, Zyklen, nicht erreichbare Knoten.
+//
 // 4T-000453 (Epic 3E-000084): Unit-Tests des Graph-Kerns — Modell-Aufbau
 // (Dedup, Doppel-Pfeil, Kanten-Bereinigung), Tiefen-Expansion (Richtungen,
 // Zyklen, Klemmen), Ober-Grenze und Kraft-Layout (Determinismus,
@@ -9,6 +12,7 @@ import {
   GRAPH_MAX_DEPTH,
   buildGraphModel,
   neighborhood,
+  buildTreeModel,
   limitToMostConnected,
   layoutGraph,
 } from '../../src/shared/graph-core.js';
@@ -248,6 +252,11 @@ describe('layoutGraph — Determinismus und Stabilität', () => {
 // graph-view — beide Kommandos verschwinden aus Dispatcher, Menü und
 // Handbuch-Generatoren (Muster journal-perioden.test.js; die Panel-
 // Ausblendung deckt der isExtensionActive-Guard der Sichtbarkeits-Pfade).
+//
+// 4T-001537 (Epic 3E-000173): Der Baum braucht hier KEINEN eigenen Fall. Er
+// ist eine Darstellungs-Form INNERHALB des Bereichs-Graph-Reiters; faellt
+// graph.openArea weg, ist der Reiter unerreichbar und mit ihm der Baum.
+// Genau das ist die Entscheidung V6 (Kern innerhalb dieser Erweiterung).
 describe('Erweiterung graph-view — Kommando-Filterung im Aus-Zustand', () => {
   it('ist registriert und filtert beide Graph-Kommandos', () => {
     expect(isExtensionId('graph-view')).toBe(true);
@@ -255,5 +264,124 @@ describe('Erweiterung graph-view — Kommando-Filterung im Aus-Zustand', () => {
     expect(disabled.has('graph.openArea')).toBe(true);
     expect(disabled.has('view.toggleGraphPanel')).toBe(true);
     expect(disabledCommandIdSet([]).has('graph.openArea')).toBe(false);
+  });
+});
+
+// 4T-001536 (Epic 3E-000173): Der Baum ab einer Wurzel. Alle Erwartungswerte
+// sind an den kleinen Fixture-Graphen von Hand nachgerechnet.
+describe('buildTreeModel — Verweis-Baum ab einer Wurzel (4T-001536)', () => {
+  // Eltern-Karte als flaches Objekt: leichter zu lesen als eine Knoten-Liste.
+  function eltern(tree) {
+    return Object.fromEntries(tree.nodes.map((n) => [n.id, n.parent]));
+  }
+  function tiefen(tree) {
+    return Object.fromEntries(tree.nodes.map((n) => [n.id, n.depth]));
+  }
+
+  it('haengt jede erreichbare Datei genau einmal mit Elternteil und Tiefe ein', () => {
+    // Kette: wurzel -> a -> b
+    const model = buildGraphModel(nodes('wurzel', 'a', 'b'), [edge('wurzel', 'a'), edge('a', 'b')]);
+    const tree = buildTreeModel(model, 'wurzel');
+    expect(tree.root).toBe('wurzel');
+    expect(tree.nodes).toHaveLength(3);
+    expect(eltern(tree)).toEqual({ wurzel: null, a: 'wurzel', b: 'a' });
+    expect(tiefen(tree)).toEqual({ wurzel: 0, a: 1, b: 2 });
+    expect(tree.unreachable).toBe(0);
+  });
+
+  it('haengt eine mehrfach erreichbare Datei an ihren kuerzesten Pfad', () => {
+    // wurzel -> nah -> ziel und wurzel -> fern1 -> fern2 -> ziel.
+    // Ueber 'nah' ist ziel auf Tiefe 2, ueber fern2 auf Tiefe 3.
+    const model = buildGraphModel(nodes('wurzel', 'nah', 'fern1', 'fern2', 'ziel'), [
+      edge('wurzel', 'nah'),
+      edge('nah', 'ziel'),
+      edge('wurzel', 'fern1'),
+      edge('fern1', 'fern2'),
+      edge('fern2', 'ziel'),
+    ]);
+    const tree = buildTreeModel(model, 'wurzel');
+    expect(eltern(tree).ziel).toBe('nah');
+    expect(tiefen(tree).ziel).toBe(2);
+    expect(tree.nodes.filter((n) => n.id === 'ziel')).toHaveLength(1);
+  });
+
+  it('waehlt bei gleicher Tiefe den alphabetisch ersten Elternteil, unabhaengig von der Eingabe-Reihenfolge', () => {
+    // Raute: wurzel -> alpha und wurzel -> beta, beide -> ziel.
+    const kanten = [
+      edge('wurzel', 'alpha'),
+      edge('wurzel', 'beta'),
+      edge('alpha', 'ziel'),
+      edge('beta', 'ziel'),
+    ];
+    const vorwaerts = buildTreeModel(
+      buildGraphModel(nodes('wurzel', 'alpha', 'beta', 'ziel'), kanten),
+      'wurzel',
+    );
+    const rueckwaerts = buildTreeModel(
+      buildGraphModel(nodes('ziel', 'beta', 'alpha', 'wurzel'), [...kanten].reverse()),
+      'wurzel',
+    );
+    expect(eltern(vorwaerts).ziel).toBe('alpha');
+    expect(eltern(rueckwaerts).ziel).toBe('alpha');
+    expect(vorwaerts.nodes).toEqual(rueckwaerts.nodes);
+  });
+
+  it('wiederholt einen Zyklus nicht und bricht nicht ab', () => {
+    const model = buildGraphModel(nodes('a', 'b', 'c'), [
+      edge('a', 'b'),
+      edge('b', 'c'),
+      edge('c', 'a'),
+    ]);
+    const tree = buildTreeModel(model, 'a');
+    expect(tree.nodes).toHaveLength(3);
+    expect(eltern(tree)).toEqual({ a: null, b: 'a', c: 'b' });
+    expect(tree.unreachable).toBe(0);
+  });
+
+  it('zaehlt die von der Wurzel aus nicht erreichbaren Knoten', () => {
+    // Insel aus zwei Dateien ohne Verbindung zur Wurzel.
+    const model = buildGraphModel(nodes('wurzel', 'a', 'insel1', 'insel2'), [
+      edge('wurzel', 'a'),
+      edge('insel1', 'insel2'),
+    ]);
+    const tree = buildTreeModel(model, 'wurzel');
+    expect(tree.nodes.map((n) => n.id).sort()).toEqual(['a', 'wurzel']);
+    expect(tree.unreachable).toBe(2);
+  });
+
+  it('folgt einer als twoWay verschmolzenen Kante in beide Richtungen', () => {
+    // a <-> b verschmilzt im Modell zu EINER Kante mit twoWay.
+    const model = buildGraphModel(nodes('a', 'b'), [edge('a', 'b'), edge('b', 'a')]);
+    expect(model.edges).toHaveLength(1);
+    expect(model.edges[0].twoWay).toBe(true);
+    expect(eltern(buildTreeModel(model, 'b'))).toEqual({ b: null, a: 'b' });
+  });
+
+  it('sortiert die Kinder nach Namen', () => {
+    const model = buildGraphModel(
+      [
+        { path: 'w.md', name: 'Wurzel' },
+        { path: 'x.md', name: 'Zebra' },
+        { path: 'y.md', name: 'Anton' },
+      ],
+      [edge('w.md', 'x.md'), edge('w.md', 'y.md')],
+    );
+    const tree = buildTreeModel(model, 'w.md');
+    expect(tree.nodes.find((n) => n.id === 'w.md').children).toEqual(['y.md', 'x.md']);
+  });
+
+  it('liefert bei unbekannter Wurzel und leerem Modell ein leeres Ergebnis statt eines Fehlers', () => {
+    const model = buildGraphModel(nodes('a', 'b'), [edge('a', 'b')]);
+    expect(buildTreeModel(model, 'gibt-es-nicht')).toEqual({
+      root: null,
+      nodes: [],
+      unreachable: 2,
+    });
+    expect(buildTreeModel(null, 'a')).toEqual({ root: null, nodes: [], unreachable: 0 });
+    expect(buildTreeModel(buildGraphModel([], []), 'a')).toEqual({
+      root: null,
+      nodes: [],
+      unreachable: 0,
+    });
   });
 });

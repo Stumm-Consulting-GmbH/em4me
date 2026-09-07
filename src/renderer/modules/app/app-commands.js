@@ -74,6 +74,7 @@ import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 import { showCommandPalette } from '../command-palette.js';
+import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import {
   oeffneFeldFormular,
   togglePropertiesPanel,
@@ -157,6 +158,10 @@ export const commandHandlers = {
   // Registry-Kommandos; Ausfuehrung laeuft zurueck ueber diese Map).
   'app.commandPalette': () => {
     void showCommandPalette();
+  },
+  // 4T-001501 (Epic 3E-000174): dasselbe Overlay im Datei-Modus.
+  'file.quickOpen': () => {
+    void zeigeDateiOeffnen();
   },
   // 4T-000624 (Epic 3E-000119): benannte Sidebar-Varianten — speichern per
   // Namens-Dialog, anwenden per Auswahl-Popup.

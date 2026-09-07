@@ -19,7 +19,7 @@ const backlinks = require('../backlinks');
 const mddStore = require('../documents/mdd-store');
 const attachmentPath = require('../documents/attachment-path');
 const selbstSchreib = require('../documents/self-write');
-const { resolveTemplatesConfig } = require('../documents/templates');
+const { resolveTemplatesConfig, normalizeTemplatesConfig } = require('../documents/templates');
 const books = require('../books/books');
 const { createRecentLists } = require('../recent-lists');
 const { createCheckers } = require('../checks/checkers');
@@ -85,6 +85,9 @@ function createMainWiring(deps) {
     mddStore,
     attachmentPath,
     resolveTemplatesConfig,
+    // 4T-001456 (Epic 3E-000190): Normalisierung der Vorlagen-Sektion eines
+    // verknuepften Bereichs beim Bauen der Quellen-Kette.
+    normalizeTemplatesConfig,
   });
   const { readAreaHistoryDefault } = areaConfig;
 
@@ -326,6 +329,9 @@ function createMainWiring(deps) {
     // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs; areaConfig entsteht
     // weiter oben und ist hier bereits gebunden.
     resolveAreaStartPage: (rootPath) => areaConfig.resolveAreaStartPage(rootPath),
+    // 4T-001453 (Epic 3E-000190): Verknuepfungen des Bereichs fuer die Pruefung
+    // beim Oeffnen.
+    readAreaLinks: (rootPath) => areaConfig.readAreaLinks(rootPath),
   });
   const {
     workspacesState,

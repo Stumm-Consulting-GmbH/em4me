@@ -4,8 +4,16 @@
 // GA-02: Richtungs-Filter (Erreichbarkeits-Sicht relativ zur beim Öffnen
 // aktiven Datei) wirkt auf die Knoten-Menge; GA-03: erneutes Öffnen
 // aktiviert den bestehenden Tab statt zu duplizieren; GA-04: ohne Bereich
-// lokalisierter Hinweis statt Seite. describe-Titel tragen die Matrix-ID
-// (test/abdeckungs-matrix.json, S-076).
+// lokalisierter Hinweis statt Seite.
+//
+// 4T-001537 (Epic 3E-000173): GA-08 die zweite Darstellungs-Form — Baum ab
+// der Vorgabe-Wurzel, Aufklappen, Öffnen, Fußzeile und Rückkehr ins Netz;
+// GA-09 die Start-Seite als Vorgabe-Wurzel.
+//
+// 4T-001538 (Epic 3E-000173): GA-10 der Wurzel-Wechsel ueber die
+// Namens-Auswahl, GA-11 der Weg ueber das Kontextmenue des Bereichs-Panels.
+//
+// describe-Titel tragen die Matrix-ID (test/abdeckungs-matrix.json, S-076).
 'use strict';
 
 const path = require('node:path');
@@ -295,6 +303,191 @@ test.describe('GA-05: Kontextmenü des Bereichs-Panels öffnet den Graph (S-076)
       await expect(page.locator(GRAPH_PAGE)).toBeVisible();
       // Leeres Bereichs-Fenster: der Graph ist der erste (einzige) Tab.
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+// 4T-001537 (Epic 3E-000173): Die Baum-Form. Alle Erwartungswerte sind am
+// Fixture von Hand nachgerechnet: Quelle -> Alpha -> Beta, Solo ohne Links.
+// Ab Alpha ist Beta erreichbar; Quelle und Solo sind es nicht (2 Dateien).
+
+// Auf die Baum-Form umschalten und auf die erste gezeichnete Zeile warten.
+async function schalteAufBaum(page) {
+  await page.locator(`${GRAPH_PAGE} .graph-form`).selectOption('baum');
+  await expect
+    .poll(async () => page.locator(`${GRAPH_PAGE} .graph-tree-item`).count(), { timeout: 15000 })
+    .toBeGreaterThan(0);
+}
+
+test.describe('GA-08: Baum als zweite Darstellungs-Form (S-076)', () => {
+  test('wurzelt in der aktiven Datei, klappt auf Klick auf und kehrt ins Netz zurueck', async () => {
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      await openAreaFile(page, 'Alpha.md');
+      await openGraphAndWait(app, page, 4);
+
+      await schalteAufBaum(page);
+
+      // Ohne festgelegte Start-Seite traegt die aktive Datei die Wurzel.
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-root`)).toHaveText('Alpha');
+      // Erste Ebene offen: Wurzel plus ihr eines Kind, mehr nicht.
+      const zeilen = page.locator(`${GRAPH_PAGE} .graph-tree-file`);
+      await expect(zeilen).toHaveCount(2);
+      await expect(zeilen.nth(0)).toHaveText('Alpha');
+      await expect(zeilen.nth(1)).toHaveText('Beta');
+      // Fusszeile nennt Quelle und Solo als nicht erreichbar.
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-footer`)).toContainText('2');
+      // Das Netz ist in dieser Form nicht sichtbar.
+      await expect(page.locator(`${GRAPH_PAGE} .graph-canvas`)).toBeHidden();
+      await expect(page.locator(`${GRAPH_PAGE} .graph-direction`)).toBeHidden();
+
+      // Alles zu laesst allein die Wurzel stehen, Alles auf holt das Kind zurueck.
+      await page.locator(`${GRAPH_PAGE} .graph-tree-collapse-all`).click();
+      await expect(zeilen).toHaveCount(1);
+      await page.locator(`${GRAPH_PAGE} .graph-tree-expand-all`).click();
+      await expect(zeilen).toHaveCount(2);
+
+      // Ein Klick auf einen Eintrag oeffnet die Datei.
+      const tabCount = await page.locator(SEL.tabs0).count();
+      await zeilen.nth(1).click();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(tabCount + 1);
+      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Beta.md');
+
+      // Zurueck ins Netz: die Netz-Steuerung ist wieder da, der Baum weg.
+      await sendMenuChannel(app, 'menu:openAreaGraph');
+      await page.locator(`${GRAPH_PAGE} .graph-form`).selectOption('netz');
+      await expect(page.locator(`${GRAPH_PAGE} .graph-direction`)).toBeVisible();
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-wrap`)).toBeHidden();
+      await expect
+        .poll(async () => page.locator(`${GRAPH_PAGE} .graph-node`).count(), { timeout: 15000 })
+        .toBe(4);
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+test.describe('GA-09: Start-Seite ist die Vorgabe-Wurzel des Baums (S-076)', () => {
+  test('wurzelt in der Start-Seite statt in der aktiven Datei', async () => {
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      await openAreaFile(page, 'Alpha.md');
+      // Start-Seite auf Quelle setzen — eine ANDERE Datei als die aktive,
+      // sonst waere der Fall von GA-05 nicht zu unterscheiden.
+      await expect
+        .poll(async () => {
+          const r = await page.evaluate(
+            (p) => window.api.setAreaStartPage(p),
+            path.join(areaRoot, 'Quelle.md'),
+          );
+          return !!(r && r.ok);
+        })
+        .toBe(true);
+
+      await openGraphAndWait(app, page, 4);
+      await schalteAufBaum(page);
+
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-root`)).toHaveText('Quelle');
+      // Von Quelle aus ist die ganze Kette erreichbar; offen ist die erste Ebene.
+      const zeilen = page.locator(`${GRAPH_PAGE} .graph-tree-file`);
+      await expect(zeilen).toHaveCount(2);
+      await expect(zeilen.nth(1)).toHaveText('Alpha');
+      await page.locator(`${GRAPH_PAGE} .graph-tree-expand-all`).click();
+      await expect(zeilen).toHaveCount(3);
+      await expect(zeilen.nth(2)).toHaveText('Beta');
+      // Nur noch Solo bleibt unerreichbar.
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-footer`)).toContainText('1');
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+// 4T-001538 (Epic 3E-000173): Die zwei Wege zur Wurzel. Beide muessen im
+// Ergebnis dasselbe leisten — deshalb pruefen sie dieselbe Wurzel (Quelle)
+// von zwei Seiten aus.
+
+test.describe('GA-10: Wurzel-Wechsel ueber die Namens-Auswahl (S-076)', () => {
+  test('die Wurzel-Anzeige oeffnet die Auswahl und die gewaehlte Datei wird Wurzel', async () => {
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindArea(page, areaRoot);
+      await openAreaFile(page, 'Alpha.md');
+      await openGraphAndWait(app, page, 4);
+      await schalteAufBaum(page);
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-root`)).toHaveText('Alpha');
+
+      // Die Wurzel-Anzeige ist ein Knopf und mit der Tastatur erreichbar.
+      const wurzelKnopf = page.locator(`${GRAPH_PAGE} .graph-tree-root`);
+      await wurzelKnopf.focus();
+      await expect(wurzelKnopf).toBeFocused();
+      await wurzelKnopf.press('Enter');
+
+      // Dasselbe Overlay wie das Oeffnen ueber den Namen, nur mit eigenem Titel.
+      const overlay = page.locator('#command-palette-modal');
+      await expect(overlay).toBeVisible();
+      await expect(page.locator('#command-palette-title')).toHaveText(
+        'Wurzel des Verweis-Baums wählen',
+      );
+
+      // Namen tippen, Eintrag waehlen — die Datei wird Wurzel, nicht geoeffnet.
+      const tabCount = await page.locator(SEL.tabs0).count();
+      await page.locator('#command-palette-filter').fill('Quelle');
+      await page.keyboard.press('Enter');
+      await expect(overlay).toBeHidden();
+      await expect(wurzelKnopf).toHaveText('Quelle');
+      await expect(page.locator(SEL.tabs0)).toHaveCount(tabCount);
+
+      // Der Baum steht auf der neuen Wurzel und zeigt wieder nur die erste Ebene.
+      const zeilen = page.locator(`${GRAPH_PAGE} .graph-tree-file`);
+      await expect(zeilen).toHaveCount(2);
+      await expect(zeilen.nth(1)).toHaveText('Alpha');
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-footer`)).toContainText('1');
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(areaRoot);
+    }
+  });
+});
+
+test.describe('GA-11: Wurzel ueber das Kontextmenue des Bereichs-Panels (S-076)', () => {
+  test('setzt die Wurzel und zeigt den Baum, ohne dass er vorher offen war', async () => {
+    const areaRoot = makeArea();
+    const { app, page, userData } = await launchApp();
+    void app;
+    try {
+      await bindArea(page, areaRoot);
+      await openAreaFile(page, 'Alpha.md');
+
+      // Der Graph ist NICHT offen — der Eintrag muss ihn selbst oeffnen.
+      await expect(page.locator(GRAPH_PAGE)).toHaveCount(0);
+
+      const zeile = page.locator('.pane-group[data-pane="0"] .area-file-row', {
+        hasText: 'Quelle.md',
+      });
+      await expect(zeile).toBeVisible();
+      await zeile.click({ button: 'right' });
+      const eintrag = page.locator('#context-menu [data-menu-id="area-file-graph-root"]');
+      await expect(eintrag).toBeVisible();
+      await eintrag.click();
+
+      // Reiter offen, Form auf Baum, Wurzel gesetzt.
+      await expect(page.locator(GRAPH_PAGE)).toHaveCount(1);
+      await expect(page.locator(`${GRAPH_PAGE} .graph-form`)).toHaveValue('baum');
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-root`)).toHaveText('Quelle', {
+        timeout: 15000,
+      });
+      await expect(page.locator(`${GRAPH_PAGE} .graph-tree-file`)).toHaveCount(2);
     } finally {
       await closeApp(app, userData);
       cleanupDir(areaRoot);

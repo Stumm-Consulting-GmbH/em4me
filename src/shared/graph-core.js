@@ -143,6 +143,89 @@ function neighborhood(model, startId, options = {}) {
   return { nodes, edges };
 }
 
+// --- Baum ab einer Wurzel (4T-001536, Epic 3E-000173) ------------------------
+
+// Verweis-Baum ab einem Wurzel-Knoten: dieselbe Breitensuche wie
+// neighborhood, aber mit der Eltern-Zuordnung, die neighborhood wegwirft.
+// Ergebnis:
+//   { root, nodes: [{ id, name, parent, depth, children: [id] }], unreachable }
+// wobei nodes die Wurzel einschliesst (parent: null, depth: 0) und
+// unreachable die ANZAHL der Modell-Knoten ist, die von der Wurzel aus nicht
+// erreichbar sind (Entscheidung V5: sie stehen nicht im Baum, ihre Zahl steht
+// in der Fusszeile).
+//
+// Richtung ist fest 'out': Der Baum folgt ausgehenden Verweisen von der
+// Wurzel weg. Eine als twoWay verschmolzene Kante zaehlt dabei in beide
+// Richtungen, wie in adjacency.
+//
+// Die ELTERN-WAHL ist Entscheidung V2 des Product Owners vom 2026-09-06:
+// kuerzester Pfad zur Wurzel; bei gleicher Tiefe der alphabetisch erste
+// Elternteil nach NAME, bei Namensgleichheit die kanonisch kleinere ID.
+// Der Name entscheidet und nicht die ID, weil der Anwender den Namen sieht;
+// die ID ist nur der Stichentscheid, damit das Ergebnis eindeutig bleibt.
+// Determinismus ist Architekturentscheidung 2 des Graph-Epics und gilt hier
+// unveraendert: gleiche Eingabe, gleiches Ergebnis, unabhaengig von der
+// Reihenfolge der Knoten und Kanten.
+//
+// Zyklen brauchen keine Sonderbehandlung: Ein bereits besuchter Knoten wird
+// nicht erneut aufgenommen, und damit ist jede Datei genau einmal im Baum
+// (Abnahmekriterium b des Product Owners).
+function buildTreeModel(model, rootId) {
+  const leer = { root: null, nodes: [], unreachable: 0 };
+  if (!model || !Array.isArray(model.nodes)) return leer;
+  const nameById = new Map(model.nodes.map((n) => [n.id, n.name]));
+  if (!nameById.has(rootId)) return { ...leer, unreachable: model.nodes.length };
+
+  const adj = adjacency(model, 'out');
+  const eintrag = new Map([
+    [rootId, { id: rootId, name: nameById.get(rootId), parent: null, depth: 0, children: [] }],
+  ]);
+  let frontier = [rootId];
+  while (frontier.length > 0) {
+    // Je Ebene erst ALLE Kandidaten sammeln, dann je Kind den Elternteil
+    // nach der Regel waehlen. Sonst entschiede die Reihenfolge der Frontier,
+    // welcher von zwei gleich tiefen Eltern zuerst zugreift.
+    const kandidaten = new Map();
+    for (const id of frontier) {
+      for (const kind of adj.get(id) || []) {
+        if (eintrag.has(kind)) continue;
+        if (!kandidaten.has(kind)) kandidaten.set(kind, []);
+        kandidaten.get(kind).push(id);
+      }
+    }
+    const naechste = [];
+    for (const [kind, eltern] of kandidaten) {
+      const gewaehlt = eltern.sort(
+        (a, b) => nameById.get(a).localeCompare(nameById.get(b)) || (a < b ? -1 : a > b ? 1 : 0),
+      )[0];
+      eintrag.set(kind, {
+        id: kind,
+        name: nameById.get(kind),
+        parent: gewaehlt,
+        depth: eintrag.get(gewaehlt).depth + 1,
+        children: [],
+      });
+      naechste.push(kind);
+    }
+    frontier = naechste;
+  }
+
+  for (const knoten of eintrag.values()) {
+    if (knoten.parent !== null) eintrag.get(knoten.parent).children.push(knoten.id);
+  }
+  for (const knoten of eintrag.values()) {
+    knoten.children.sort(
+      (a, b) => nameById.get(a).localeCompare(nameById.get(b)) || (a < b ? -1 : a > b ? 1 : 0),
+    );
+  }
+
+  return {
+    root: rootId,
+    nodes: [...eintrag.values()],
+    unreachable: model.nodes.length - eintrag.size,
+  };
+}
+
 // --- Ober-Grenze (4T-000454) ------------------------------------------------------
 
 // Reduziert ein Modell auf die maxNodes am stärksten vernetzten Knoten
@@ -375,6 +458,7 @@ module.exports = {
   GRAPH_MAX_DEPTH,
   buildGraphModel,
   neighborhood,
+  buildTreeModel,
   limitToMostConnected,
   layoutGraph,
 };

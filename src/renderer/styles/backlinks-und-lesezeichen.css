@@ -596,6 +596,14 @@
   color: var(--fg-muted);
   padding: 8px 2px 4px;
 }
+/* 4T-001456 (Epic 3E-000190): Herkunft eines Vorlagen-Eintrags aus einem
+   verknuepften Bereich. Gedaempft und nachgestellt, damit der Name des
+   Eintrags fuehrt und die Herkunft ihn nur begleitet. */
+.template-picker-source {
+  margin-left: 8px;
+  font-size: 0.82em;
+  color: var(--fg-muted);
+}
 .template-picker-list button {
   display: block;
   width: 100%;
@@ -647,6 +655,23 @@
   border-radius: 3px;
   padding: 1px 6px;
   background: var(--bg-alt);
+}
+/* 4T-001500 (Epic 3E-000174): Herkunfts-Spalte der Trefferzeile im Datei-Modus
+   (Ordner einer Datei, Ziel-Datei eines Zweitnamens). Kein Kasten wie beim
+   Kuerzel: Das hier ist Text wechselnder Laenge, keine Taste.
+   Bewusst OHNE `direction: rtl`, obwohl das bei Pfaden das informativere Ende
+   zeigen wuerde: Dieselbe Klasse traegt auch den Zweitnamen-Text «Alias →
+   Datei», dessen Pfeil dabei an die falsche Seite rutschte. Eine Spalte, ein
+   Verhalten — die Namens-Spalte behaelt in jedem Fall den Vorrang. */
+.command-palette-detail {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 0.82em;
+  color: var(--fg-muted);
 }
 .command-palette-list button.unavailable {
   opacity: 0.45;

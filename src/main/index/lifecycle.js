@@ -266,7 +266,12 @@ function teardownIndex(rootPath, opts = {}) {
 // Fenster-Schliessen mit ab, Mehrfach-Aufrufe desselben Owners sind durch
 // das Set idempotent (kein Rueckfall in das B-01-Leak).
 function ensureIndexForDemand(filePath, ownerKey, areaRoot) {
-  if (!filePath || !ownerKey) return;
+  // 4T-001514 (Epic 3E-000174): Ein Bedarf ohne offene Datei ist seit dem
+  // schnellen Datei-Oeffnen moeglich; mit geoeffnetem Bereich traegt dieser die
+  // Wurzel. Im Regelfall steht der Bereichs-Index dann ohnehin schon
+  // (ensureAreaIndex beim Oeffnen des Bereichs, 4T-000348) — der Weg hier ist
+  // die zweite Linie, falls nicht.
+  if ((!filePath && !areaRoot) || !ownerKey) return;
   const { root, isArea } = resolveRootInfo(filePath, areaRoot);
   if (!root) return;
   ensureIndex(root, ownerKey, isArea);

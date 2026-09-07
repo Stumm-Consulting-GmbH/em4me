@@ -126,6 +126,23 @@ function resolveRootInfo(filePath, areaRoot) {
   if (areaRoot && filePath && isInsideArea(areaRoot, filePath)) {
     return { root: path.resolve(areaRoot), isArea: true };
   }
+  // 4T-001514 (Epic 3E-000174): Ohne Datei, aber MIT Bereich ist der Bereich
+  // die Wurzel. Der Fall entstand mit dem schnellen Datei-Oeffnen, das genau
+  // dann gebraucht wird, wenn noch nichts offen ist — ein gerade geoeffneter
+  // Bereich ohne Reiter.
+  //
+  // Fuer die uebrigen Sichten aendert das nichts: Sie pruefen samt und sonders
+  // VOR diesem Aufruf auf eine Datei und kehren ohne sie um (backlinksFor,
+  // tagsFor, frontmatterQueryFor, eventsForQuery, eigenschaftsWerteFuerFeld,
+  // die drei Profil-Sichten). Der Zweig war bis hierher unerreichbar; er wird
+  // belebt, nicht umgewidmet.
+  if (areaRoot && !filePath) {
+    try {
+      return { root: path.resolve(areaRoot), isArea: true };
+    } catch {
+      return { root: null, isArea: false };
+    }
+  }
   return { root: rootFor(filePath), isArea: false };
 }
 

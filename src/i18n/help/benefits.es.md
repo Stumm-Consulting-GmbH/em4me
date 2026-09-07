@@ -38,11 +38,23 @@ En detalle: [Aplicaciones, ventanas y áreas](apps-windows.md).
 
 Hay dos formas distintas de orden, y vale la pena conocer la diferencia. Un **área** vincula una aplicación a una carpeta y la convierte en límite: el diálogo de apertura, la lista de recientes, el guardado y la búsqueda se quedan dentro, de manera que un proyecto confidencial nunca se desborda por descuido hacia otro. Un **espacio de trabajo**, en cambio, recuerda un estado: todas las ventanas, pestañas, grupos y borradores bajo un nombre, mantenidos al día sin paso de guardado. Al abrirlo semanas después vuelves exactamente al punto donde lo dejaste. Ambos se pueden combinar.
 
-- **Área** significa límite de carpeta: lo que queda fuera no entra.
+- **Área** significa límite de carpeta: lo que queda fuera no entra — con exactamente una excepción, y la pone usted.
 - **Espacio de trabajo** significa estado de trabajo guardado, con nombre y color.
 - **Ambos juntos** dan un estado de trabajo con nombre y con un límite de carpeta fijo.
+- **Las áreas vinculadas** son esa excepción: un prefijo que usted introduce, un sentido, un enlace que cruza. Una puerta, no un límite abierto.
 
 En detalle: [Aplicaciones, ventanas y áreas](apps-windows.md).
+
+## Una red en lugar de un archivador
+
+El conocimiento rara vez crece en carpetas. Crece en conexiones: una nota remite a una segunda, una tercera recoge ambas, y al cabo de un año su material lleva más relaciones de las que una estructura de carpetas podría representar. Esas relaciones se conservan y pueden leerse desde dos lados: como una superficie que muestra qué se conecta con qué, y como un árbol que muestra qué cuelga de un punto de entrada y a qué profundidad.
+
+- **Enlaces en ambos sentidos**: qué nombra este documento y quién nombra este documento.
+- **La red** muestra el entorno de un documento; **el árbol**, desde una raíz elegida, el orden que cuelga de ella.
+- **Cada archivo exactamente una vez** en el árbol, en su camino más corto hacia la raíz; un clic lo abre.
+- **Lo que nadie enlaza** no queda oculto: las estadísticas del área nombran esos archivos.
+
+En detalle: [Conexión](linking.md) y [Vista de grafo](graph.md).
 
 ## De archivos nace un libro
 
@@ -129,7 +141,7 @@ Más allá de las cuatro construcciones grandes, el lenguaje aporta más de cinc
 
 - **Extensiones de texto** para bloques de aviso, notas al pie, resaltado y abreviaturas.
 - **Presentación** con fórmulas, diagramas y código resaltado; en la exportación portátil un diagrama viaja como imagen terminada y se ve también donde EM4me no está instalado.
-- **Relaciones** mediante enlaces, anclas, inserciones y etiquetas.
+- **Referencias dentro del texto** mediante anclas, inserciones y etiquetas.
 - **Jornada de trabajo** con tareas, recordatorios, citas, plantillas y diarios.
 - **Activables una a una** y abierto a extensiones propias mediante una interfaz documentada.
 

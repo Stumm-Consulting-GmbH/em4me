@@ -121,6 +121,12 @@ Le format de page, l'orientation et les marges se règlent dans la section « Ex
 
 La palette est l'accès clavier éphémère au registre des commandes ; pour des accès personnalisés durables — boutons de barre d'état, entrées de menu contextuel et macros — voir la page [Placement des commandes](command-placement.md).
 
+## Ouvrir un fichier par son nom
+
+« Fichier → Ouvrir un fichier par son nom… » (par défaut `Ctrl+T`) ouvre la même fenêtre que la palette de commandes, avec les fichiers à la place des commandes. La saisie filtre la liste par sous-chaîne sur les noms ; les touches fléchées déplacent la sélection, `Entrée` ou un clic ouvre le fichier dans le volet actif et ferme la fenêtre, `Échap` annule. À droite de chaque nom figure son origine : pour un fichier son dossier, pour un nom secondaire le fichier vers lequel il pointe.
+
+La recherche porte sur les noms de fichiers **et** sur les noms secondaires du frontmatter, jamais sur le contenu — c'est le rôle de la recherche plein texte. Sans saisie, le fichier modifié en dernier figure en tête ; dès que quelque chose est saisi, les noms qui commencent par cette saisie passent devant et la date de modification classe les autres. L'espace de recherche est le même que pour la complétion des liens internes : la zone ouverte, et à défaut le voisinage du fichier actif. Si deux dossiers contiennent un fichier de même nom, une sélection demande lequel est visé.
+
 ## Saisie de date et d'heure
 
 Une fenêtre de calendrier insère une date et une heure à la position du curseur, y compris dans le champ de note. Trois commandes l'ouvrent : défaut `Ctrl+Alt+T` pour la date et l'heure, défaut `Ctrl+Alt+D` pour la date seule, défaut `Ctrl+Alt+U` pour l'heure seule. Les formats insérés sont `2026-07-10`, `14:30` ou combiné `2026-07-10 14:30`.

@@ -44,6 +44,8 @@ import { readProfilesFromConfig } from './settings-profiles.js';
 import { pageState } from './settings-shared.js';
 import { normalizeTimestampDraft, readPdfExportFromStore } from './settings-small-sections.js';
 import { readTemplatesFromConfig } from './settings-templates.js';
+// 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs.
+import { readAreaLinksFromConfig } from './settings-area-links.js';
 
 // 4T-000179/R5-08: Merge fuer den Appearance-Broadcast eines anderen
 // Fensters — der offene Entwurfs-Snapshot zieht mit, sonst revertiert
@@ -184,6 +186,13 @@ function ladeAppearanceInDraft() {
     pageState.draft.templatesSnapshot = values.snapshot;
     // 4T-000555: die Bereichs-Konfiguration lebt in der Sektion templatesArea.
     if (['templates', 'templatesArea'].includes(pageState.activeSectionId)) renderActiveSection();
+  });
+  // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs (Muster Vorlagen).
+  readAreaLinksFromConfig().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.areaLinks = values.draft;
+    pageState.draft.areaLinksSnapshot = values.snapshot;
+    if (pageState.activeSectionId === 'areaLinks') renderActiveSection();
   });
   // 4T-000791 (Epic 3E-000125): Anlagen-Konfiguration (Muster Vorlagen).
   readAttachmentsFromConfig().then((values) => {

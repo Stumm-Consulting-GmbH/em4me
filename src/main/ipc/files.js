@@ -11,6 +11,7 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
+const { darfBereichLesen } = require('../area/area-link-resolve');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-001290 (Epic 3E-000224): Zusammensetzen geteilter Dokumente beim Lesen.
@@ -64,6 +65,9 @@ function registerFilesIpc(handle, deps) {
     recordMddOnSave,
     saveGuard,
     pushRecent,
+    // 4T-001452 (Epic 3E-000190): Verknuepfungen des Bereichs fuer die benannte
+    // Ausnahme der Bereichsgrenze.
+    readAreaLinks,
   } = deps;
 
   handle('file:openDialog', async (event) => {
@@ -116,10 +120,10 @@ function registerFilesIpc(handle, deps) {
       return { ok: false, error: 'mdd-file' };
     }
     // 4T-000323 (Epic 3E-000058): harte Bereichs-Grenze als zweite Linie hinter
-    // den UI-Pfaden — Bereichs-Apps lesen keine Dateien ausserhalb des
-    // Bereichs, egal ueber welchen Weg der Pfad hereinkommt.
+    // den UI-Pfaden. 4T-001452 (Epic 3E-000190): mit der benannten Ausnahme der
+    // verknuepften Bereiche; Begruendung und Fail-closed-Regel stehen im Kern.
     const ownerArea = areaOfWindow(senderWindow(event));
-    if (ownerArea && !isInsideArea(ownerArea.rootPath, filePath)) {
+    if (ownerArea && !(await darfBereichLesen(ownerArea.rootPath, filePath, readAreaLinks))) {
       return { ok: false, error: 'outside-area' };
     }
     try {

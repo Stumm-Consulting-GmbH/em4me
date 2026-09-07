@@ -38,11 +38,23 @@ In detail: [Applications, windows and areas](apps-windows.md).
 
 Two different kinds of order are available, and the difference is worth knowing. An **area** binds an application to a folder and turns it into a boundary: the open dialog, the recent list, saving and searching all stay inside it, so a confidential project never frays into another one by accident. A **workspace**, by contrast, remembers a state: all windows, tabs, groups and drafts under one name, kept current without a save step. Open it weeks later and you are sitting exactly where you left off. The two can be combined.
 
-- **Area** means a folder boundary: what lies outside does not come in.
+- **Area** means a folder boundary: what lies outside does not come in — with exactly one exception, and you set it.
 - **Workspace** means a stored working state, named and marked with a colour.
 - **Both together** give a named working state with a fixed folder boundary.
+- **Linked areas** are that exception: a prefix you enter, one direction, a link that carries across. A door, not an open boundary.
 
 In detail: [Applications, windows and areas](apps-windows.md).
+
+## A network instead of a filing cabinet
+
+Knowledge rarely grows in folders. It grows in connections: one note points to a second, a third picks up both, and after a year your material carries more context than any folder structure could represent. That context is kept and can be read from two sides — as a surface showing what connects to what, and as a tree showing what hangs below an entry point, and at what depth.
+
+- **Links in both directions**: what this document names, and who names this document.
+- **The network** shows the surroundings of a document, **the tree** from a chosen root the order below it.
+- **Every file exactly once** in the tree, on its shortest path to the root; a click opens it.
+- **What nothing links to** does not stay hidden: area statistics name those files.
+
+In detail: [Linking](linking.md) and [Graph view](graph.md).
 
 ## Files become a book
 
@@ -129,7 +141,7 @@ Beyond the four large constructs, the language brings more than fifty extensions
 
 - **Text extensions** for callouts, footnotes, highlighting and abbreviations.
 - **Presentation** with formulas, diagrams and highlighted code; on a portable export a diagram travels along as a finished image and is visible even where EM4me is not installed.
-- **Connections** through links, anchors, embeds and tags.
+- **References within the text** through anchors, embeds and tags.
 - **The working day** with tasks, reminders, events, templates and journals.
 - **Individually switchable** and open to your own extensions through a documented interface.
 

@@ -7,6 +7,9 @@
 'use strict';
 
 import { githubLikeSlug } from '../../../shared/markdown/slug.js';
+// 4T-001451 (Epic 3E-000190): Kuerzel-Syntax der Bereichs-Verknuepfung — dieselbe
+// Quelle wie Render-Pfad, Index und Linter.
+import { splitAreaLink, joinAreaLink } from '../../../shared/area-link-syntax.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
   LIVE_HR_LINE_RE,
@@ -137,9 +140,12 @@ export function runInlinePasses(ctx) {
       // '^id' wird zu '#id' (nur bei gueltiger ID), Heading-Anker zum
       // githubLikeSlug; vorher stand der rohe Text im href und
       // Heading-Sprünge liefen ins Leere.
-      const hashIdx = targetRaw.indexOf('#');
-      const pathPart = hashIdx >= 0 ? targetRaw.slice(0, hashIdx) : targetRaw;
-      const anchorRaw = hashIdx >= 0 ? targetRaw.slice(hashIdx + 1).trim() : '';
+      // 4T-001451 (Epic 3E-000190): Kuerzel abtrennen, bevor Anker, Eltern-Form
+      // und Endungs-Ergaenzung greifen — Paritaet zum Render-Pfad in wiki.js.
+      const { prefix: areaPrefix, target: areaTarget } = splitAreaLink(targetRaw);
+      const hashIdx = areaTarget.indexOf('#');
+      const pathPart = hashIdx >= 0 ? areaTarget.slice(0, hashIdx) : areaTarget;
+      const anchorRaw = hashIdx >= 0 ? areaTarget.slice(hashIdx + 1).trim() : '';
       let anchorPart = '';
       if (anchorRaw) {
         if (anchorRaw.startsWith('^')) {
@@ -163,6 +169,9 @@ export function runInlinePasses(ctx) {
       } else {
         continue;
       }
+      // 4T-001451: Das Kuerzel wandert vor den fertigen href zurueck, wie im
+      // Render-Pfad. Der Klick-Weg loest es in 4T-001452 auf.
+      if (areaPrefix) href = joinAreaLink(areaPrefix, href);
       const fullStart = docPos;
       const fullEnd = docPos + m[0].length;
       const innerStart = docPos + 2; // nach `[[`

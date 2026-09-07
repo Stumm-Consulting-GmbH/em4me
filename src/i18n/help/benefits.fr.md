@@ -38,11 +38,23 @@ En détail : [Applications, fenêtres et zones](apps-windows.md).
 
 Deux formes d'ordre différentes sont disponibles, et la distinction mérite d'être connue. Une **zone** lie une application à un dossier et en fait une limite : boîte d'ouverture, liste des documents récents, enregistrement et recherche y restent, si bien qu'un projet confidentiel ne déborde jamais par inadvertance sur un autre. Un **espace de travail**, en revanche, retient un état : toutes les fenêtres, tous les onglets, groupes et brouillons sous un nom, tenus à jour sans étape d'enregistrement. Ouvert des semaines plus tard, il vous replace exactement là où vous vous étiez arrêté. Les deux se combinent.
 
-- **Zone** signifie limite de dossier : ce qui est en dehors n'entre pas.
+- **Zone** signifie limite de dossier : ce qui est en dehors n'entre pas — à une seule exception près, que vous posez vous-même.
 - **Espace de travail** signifie état de travail enregistré, nommé et repéré par une couleur.
 - **Les deux ensemble** donnent un état de travail nommé avec une limite de dossier fixe.
+- **Les zones liées** sont cette exception : un préfixe que vous saisissez, un sens, un lien qui franchit. Une porte, pas une limite ouverte.
 
 En détail : [Applications, fenêtres et zones](apps-windows.md).
+
+## Un réseau plutôt qu'un classement
+
+Le savoir pousse rarement dans des dossiers. Il pousse dans des liens : une note renvoie à une deuxième, une troisième reprend les deux, et au bout d'un an votre fonds porte plus de rapprochements qu'une arborescence ne pourrait en représenter. Ces rapprochements sont conservés et se lisent de deux façons — comme une surface qui montre ce qui est relié à quoi, et comme un arbre qui montre ce qui pend sous un point d'entrée, et à quelle profondeur.
+
+- **Des liens dans les deux sens** : ce que ce document nomme, et qui nomme ce document.
+- **Le réseau** montre l'entourage d'un document, **l'arbre** depuis une racine choisie l'ordre en dessous.
+- **Chaque fichier exactement une fois** dans l'arbre, sur son chemin le plus court vers la racine ; un clic l'ouvre.
+- **Ce vers quoi rien ne pointe** ne reste pas caché : les statistiques de la zone nomment ces fichiers.
+
+En détail : [Mise en réseau](linking.md) et [Vue graphe](graph.md).
 
 ## Des fichiers deviennent un livre
 
@@ -129,7 +141,7 @@ Au-delà des quatre grandes constructions, le langage apporte plus de cinquante 
 
 - **Extensions de texte** pour encadrés, notes de bas de page, surlignage et abréviations.
 - **Présentation** avec formules, diagrammes et code mis en évidence ; lors d'un export portable, un diagramme voyage sous forme d'image finie et reste visible là où EM4me n'est pas installé.
-- **Rapprochements** par liens, ancres, inclusions et mots-clés.
+- **Renvois à l'intérieur du texte** par ancres, inclusions et mots-clés.
 - **Journée de travail** avec tâches, rappels, rendez-vous, modèles et journaux.
 - **Activables une par une** et ouvert à vos propres extensions via une interface documentée.
 

@@ -653,6 +653,29 @@ describe('backlinks.js — Bereichsweiter Index (4T-000347)', () => {
     const outside = makeRoot();
     const o = write(outside, 'X.md', '# X\n');
     expect(rootForActiveFile(o, root)).toBe(path.dirname(o));
+    // 4T-001514: OHNE aktive Datei, aber MIT Bereich traegt der Bereich die
+    // Wurzel; ohne beides gibt es unveraendert keine. Der erste Fall war bis
+    // zur Abnahme vom 2026-09-06 wurzellos, wodurch das schnelle Datei-Oeffnen
+    // im frisch geoeffneten Bereich ohne Reiter gesperrt war.
+    expect(rootForActiveFile(null, root)).toBe(path.resolve(root));
+    expect(rootForActiveFile(null)).toBe(null);
+  });
+
+  // 4T-001514: Die Wurzel allein genuegt nicht — beide Sichten des Oeffnen-Wegs
+  // muessen ohne aktive Datei antworten, sonst faende er Namen ohne Pfad dazu.
+  it('liefert ohne aktive Datei Namensliste und Namens-Aufloesung aus dem Bereich', async () => {
+    const root = makeRoot();
+    const datei = write(root, 'Notizen/Protokoll.md', '# Protokoll\n');
+    await indexForArea(datei, root);
+    const namen = wikiLinkAutocompleteSuggestions(null, root);
+    expect(namen.status).toBe('ready');
+    expect(namen.suggestions.map((s) => s.name)).toContain('Protokoll');
+    const ziel = resolveWikiTargetInIndex(null, 'Protokoll', root);
+    expect(ziel.status).toBe('ready');
+    expect(ziel.candidates).toEqual([datei]);
+    // Gegenprobe: ohne Datei UND ohne Bereich bleibt es bei «nicht verfuegbar».
+    expect(wikiLinkAutocompleteSuggestions(null, null).status).toBe('unavailable');
+    expect(resolveWikiTargetInIndex(null, 'Protokoll', null).status).toBe('unavailable');
   });
 
   it('erfasst im Bereich Quellen aus hoeher gelegenen Ordnern, bereichslos nicht', async () => {

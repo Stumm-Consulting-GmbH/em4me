@@ -16,7 +16,10 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   appears as you type and only the current line shows its Markdown.
 - **Links that lead somewhere** — wiki links, headline and block anchors,
   embedded documents, tags and backlinks turn your notes into a connected
-  set instead of a folder of loose files.
+  set instead of a folder of loose files. Read that net from two sides: as
+  a graph that shows it as a surface, or as a tree from a document you
+  pick, which lays the same links out in order. A file can also be found by
+  typing its name, and the area statistics list the files nothing points to.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside
@@ -24,12 +27,16 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
 - **Journals from day to year** — daily, weekly, monthly, quarterly and
   yearly entries from your own folder and naming scheme, with built-in
   navigation through the periods.
-- **Areas keep projects apart** — bind a window to a folder and it becomes
-  a closed workspace: file dialogs, recent files and search stay inside it.
-  An area can designate one of its files as a start page, so it opens where
-  you want to begin, and its folder tree creates, renames and deletes files
-  without leaving the application — deletion goes to your system's recycle
-  bin, never straight to nowhere.
+- **Areas keep projects apart, and can still talk** — bind a window to a
+  folder and it becomes a closed workspace: file dialogs, recent files and
+  search stay inside it. An area can designate one of its files as a start
+  page, so it opens where you want to begin, and its folder tree creates,
+  renames and deletes files without leaving the application — deletion goes
+  to your system's recycle bin, never straight to nowhere. Where two areas
+  belong together, you name the link yourself: give the other area a short
+  handle and a link like `[[@handle:File]]` reaches across, templates
+  included. The boundary stays closed otherwise — only what you entered is
+  ever read. A door, not an open border.
 - **No size limit on a document** — a document that grows beyond about a
   megabyte is split across several files when saving and joined back into
   one when opening: one continuous text, one undo history, one search hit.

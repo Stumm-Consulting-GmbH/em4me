@@ -10,6 +10,14 @@
 // src/shared/markdown/slug.js, src/shared/subpages.js).
 'use strict';
 
+// 4T-001451 (Epic 3E-000190): Verknuepfungs-Links `[[@kuerzel:Ziel]]` zeigen aus
+// dem Bereich hinaus. Fuer Index, Backlinks und Nachfuehrung sind sie KEIN
+// lokales Ziel: Die eingehende Richtung bleibt in Stufe 1 ausdruecklich
+// draussen (Entscheidung E3), und die Nachfuehrung traegt ohnehin nicht ueber
+// die Bereichs-Grenze (E5). Die Konsumenten des Wiki-Musters ueberspringen sie
+// deshalb, statt sie als Datei-Namen zu deuten.
+const { isAreaLinkTarget, splitAreaLink } = require('../area-link-syntax.js');
+
 // Markdown-Datei-Endungen (Basename-Suffix, case-insensitiv).
 const MD_EXT_RE = /\.(md|markdown|mdown|mkd)$/i;
 
@@ -100,6 +108,11 @@ function frontmatterBodyStart(lines) {
 
 module.exports = {
   MD_EXT_RE,
+  // 4T-001451 (Epic 3E-000190): weitergereicht aus src/shared/area-link-syntax.js,
+  // damit die Konsumenten des Wiki-Musters die Verknuepfungs-Form an derselben
+  // Stelle bekommen wie das Muster selbst.
+  isAreaLinkTarget,
+  splitAreaLink,
   FENCE_RE,
   FRONTMATTER_END_LINE,
   createWikiLinkRegex,

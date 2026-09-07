@@ -76,6 +76,45 @@ Con anclas de bloque se incrusta el bloque envolvente completo (elemento de list
 **Dónde se busca el destino.** La aplicación busca en tres pasos, igual para cada tipo de archivo: primero la ruta relativa a su propio archivo, después la escritura de las subpáginas y por último el simple **nombre** en toda el área. Así `![[imagen.png]]` encuentra el archivo aunque esté en otra carpeta: no hace falta acertar la ruta. La búsqueda termina en la raíz del área: lo que quede fuera no se incrusta. Sin un área vinculada, el límite sigue siendo la carpeta del propio archivo.
 
 Si un archivo Markdown lleva el mismo nombre que un adjunto, gana el archivo Markdown; escrito con su extensión (`![[imagen.png]]`) el caso es inequívoco. Las imágenes Markdown corrientes `![](ruta.png)` no se ven afectadas: su escritura significa una ruta, no un nombre.
+## Vínculos entre áreas
+
+Dos áreas pueden vincularse para que una referencia cruce el límite del área. Se configura en **Configuración → Área actual → Vínculos entre áreas**: allí se indican la carpeta de la otra área y un **prefijo** con el que se designará esa área.
+
+El prefijo vale **solo en esta área y solo en este sentido**. Cómo se refiere la otra área a esta se define allí y puede ser distinto. Se permiten letras, dígitos, guion y guion bajo; las mayúsculas y minúsculas no importan.
+
+En el texto el prefijo precede al destino:
+
+```markdown
+[[@zt:Nota]]             archivo «Nota» en el área vinculada «zt»
+[[@zt:Carpeta/Nota]]     destino por su ruta en el área vinculada
+[[@zt:Nota#Capítulo]]    con ancla, como en cualquier vínculo wiki
+[[@zt:Nota|Etiqueta]]    con un texto mostrado distinto
+```
+
+El destino se busca primero en la ruta indicada y, si allí no hay nada, por su nombre en toda el área vinculada, igual que un vínculo wiki dentro de la propia área. Al hacer clic, el destino se abre en la misma ventana.
+
+**Las plantillas del área vinculada** pueden ofrecerse junto a las propias; hay un interruptor por vínculo. La selección de plantillas muestra entonces ambos conjuntos, y cada entrada ajena indica su procedencia. Sin ese interruptor, un vínculo no cambia el conjunto de plantillas.
+
+### Cuando un área vinculada no se encuentra
+
+Al abrirse, un área comprueba sus vínculos, y un hallazgo nunca impide la apertura:
+
+- **La carpeta se ha movido**: su ubicación superior es accesible, la carpeta no. Un aviso pide la nueva ruta. Mientras falte, las referencias con ese prefijo se consideran no válidas y se marcan en el editor.
+- **La ubicación de almacenamiento no está disponible**, por ejemplo porque una unidad está desconectada. Entonces solo aparece un aviso: el vínculo se mantiene y **nada** se marca como no válido. Una unidad desconectada nunca destruye un vínculo.
+
+La nueva ruta se introduce en el mismo lugar donde está definido el vínculo.
+
+### Qué no cruza el límite
+
+Un vínculo entre áreas lleva **hacia allá**, no de vuelta. Deliberadamente no cruzan el límite:
+
+- los **retroenlaces**: solo muestran referencias dentro de la propia área,
+- el indicador **«archivos sin referencias entrantes»** de las estadísticas del área,
+- la **vista de grafo**,
+- la **búsqueda en toda el área**,
+- y la **actualización de vínculos al renombrar**: al renombrar un archivo, las referencias desde un área vinculada quedan sin cambios. El editor las marca después como no válidas; esa es la red que las hace visibles.
+
+Los vínculos entre áreas son una [extensión](extensions.md) y pueden desactivarse. Una referencia con prefijo queda entonces sin resolver, la comprobación al abrir no se realiza y los vínculos introducidos se conservan: lo que se desactiva es el efecto, no la entrada.
 
 ## Etiquetas
 

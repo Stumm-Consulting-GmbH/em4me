@@ -391,7 +391,10 @@ function anchorExistsInFile(entry, filePath, anchor) {
 //
 // viaAlias enthaelt den eingegebenen Alias-Text (zur Anzeige im Dialog).
 function resolveWikiTargetByAlias(activeFile, basename, areaRoot) {
-  if (!activeFile || typeof basename !== 'string' || !basename) {
+  // 4T-001514 (Epic 3E-000174): wie beim Namens-Weg oben — ohne diese Lockerung
+  // liesse sich ein Treffer, der ueber seinen Zweitnamen gefunden wurde, ohne
+  // offene Datei nicht oeffnen.
+  if ((!activeFile && !areaRoot) || typeof basename !== 'string' || !basename) {
     return { status: 'unavailable', candidates: [], viaAlias: null };
   }
   const { root } = resolveRootInfo(activeFile, areaRoot);
@@ -416,7 +419,10 @@ function resolveWikiTargetByAlias(activeFile, basename, areaRoot) {
 // kein ensureIndex, gleicher Grundsatz wie existingWikiTargets. Damit ist
 // jeder Treffer, den das Backlinks-Panel meldet, auch klickbar.
 function resolveWikiTargetInIndex(activeFile, basename, areaRoot) {
-  if (!activeFile || typeof basename !== 'string' || !basename) {
+  // 4T-001514 (Epic 3E-000174): Der Bereich genuegt als Bezug, wenn keine Datei
+  // offen ist — sonst faende das schnelle Datei-Oeffnen zwar Namen, koennte
+  // aber keinen davon zu einem Pfad aufloesen.
+  if ((!activeFile && !areaRoot) || typeof basename !== 'string' || !basename) {
     return { status: 'unavailable', candidates: [] };
   }
   const { root } = resolveRootInfo(activeFile, areaRoot);

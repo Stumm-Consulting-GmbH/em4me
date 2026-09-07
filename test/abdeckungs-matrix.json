@@ -10,6 +10,13 @@
       "hinweis": "SM-02 (CLI-Pfad); der native Oeffnen-Dialog selbst ist OS-UI (Gesamtabnahme)."
     },
     {
+      "key": "help.feature.quickOpen",
+      "id": "F-282",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datei-oeffnen.spec.js"],
+      "hinweis": "4T-001502 (Epic 3E-000174): Datei ueber ihren Namen oeffnen. Dieselbe E2E-Suite wie das Kuerzel S-143; die Funktion IST der Zugang, ein zweiter Fall-Satz pruefte dasselbe zweimal. DO-01 Kuerzel-Weg mit eigenem Titel, DO-02 Menue-Kanal, DO-03 Namens-Eingabe filtert und Enter oeffnet die getroffene Datei, DO-04 Eingabe ohne Treffer. Die Auswahl-Regel dahinter (Teilstring, Zweitnamen, Reihenfolge nach Aenderungszeit) hat ihre eigene Unit-Matrix in test/unit/datei-oeffnen-auswahl.test.js."
+    },
+    {
       "key": "help.feature.tabs",
       "id": "F-002",
       "testart": "e2e",
@@ -526,6 +533,19 @@
       "hinweis": "Embed-Platzhalter-Render; Anker-Snippet-Extraktion unit; PDF-/MD-Aufloesung braucht echte Dateien (Gesamtabnahme-Stichprobe)."
     },
     {
+      "key": "help.feature.areaLinks",
+      "id": "F-152",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/bereichs-verknuepfungen.spec.js",
+        "test/unit/area-link-syntax.test.js",
+        "test/unit/area-link-resolve.test.js",
+        "test/unit/area-links.test.js"
+      ],
+      "sichtbarkeit": "Einstellungs-Bereich «Bereichs-Verknüpfungen» in der Gruppe «Aktueller Bereich»; im Dokument die Verweis-Form [[@kuerzel:Ziel]]",
+      "hinweis": "BV-01 bis BV-06 (öffnen, Prüfung beim Öffnen, Linter-Marken, Einstellungs-Oberfläche, Vorlagen-Kette, Aus-Zustand) plus die Unit-Fälle zu Syntax, Modell und Auflösung."
+    },
+    {
       "key": "help.feature.tags",
       "id": "F-043",
       "testart": "e2e",
@@ -923,6 +943,13 @@
       "testart": "manuell",
       "tests": [],
       "begruendung": "Strg+O ist Menue-Accelerator und oeffnet den OS-Datei-Dialog; nicht automatisierbar. Datei-Oeffnen-Funktion via CLI-Pfad (SM-02) abgedeckt."
+    },
+    {
+      "key": "help.shortcut.quickOpen",
+      "id": "S-143",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datei-oeffnen.spec.js"],
+      "hinweis": "4T-001501 (Epic 3E-000174): Strg+T oeffnet das Auswahl-Overlay im Datei-Modus. DO-01 Kuerzel-Weg samt eigenem Titel, DO-02 Menue-Kanal menu:quickOpen, DO-03 Namens-Eingabe filtert und Enter oeffnet die getroffene Datei, DO-04 Eingabe ohne Treffer. Anders als S-001 (Strg+O, OS-Datei-Dialog) ist dieser Weg vollstaendig automatisierbar, weil er in der Anwendung bleibt."
     },
     {
       "key": "help.shortcut.closeTab",
@@ -2213,7 +2240,7 @@
       "id": "S-076",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/graphenansicht.spec.js"],
-      "hinweis": "4T-000455 (Epic 3E-000084): Bereichs-Graph-Tab — GA-01 bis GA-04 (Oeffnen ueber den Menue-Kanal, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Hinweis ohne Bereich)."
+      "hinweis": "4T-000455 (Epic 3E-000084): Bereichs-Graph-Tab — GA-01 bis GA-04 (Oeffnen ueber den Menue-Kanal, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Hinweis ohne Bereich). 4T-001537 (Epic 3E-000173): dazu die zweite Darstellungs-Form — GA-08 schaltet auf den Baum, prueft Vorgabe-Wurzel, erste Ebene, Alles-auf/zu, Oeffnen eines Eintrags, die Fusszeile der nicht erreichbaren Dateien und die Rueckkehr ins Netz; GA-09 belegt die Start-Seite als Vorgabe-Wurzel gegen die aktive Datei. 4T-001538 (Epic 3E-000173): GA-10 wechselt die Wurzel ueber die Namens-Auswahl (Knopf mit der Tastatur ausgeloest, eigener Overlay-Titel, gewaehlte Datei wird Wurzel STATT geoeffnet), GA-11 ueber den Kontextmenue-Eintrag area-file-graph-root, der den Reiter selbst oeffnet und auf die Baum-Form stellt."
     },
     {
       "key": "help.shortcut.commandPalette",
@@ -2258,7 +2285,7 @@
         "test/unit/graph-core.test.js",
         "test/unit/graph-index.test.js"
       ],
-      "hinweis": "4T-000453 bis 4T-000455 (Epic 3E-000084): Bereichs-Graph — GA-01 bis GA-05 (Oeffnen, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Kontextmenue, Hinweis ohne Bereich) plus Unit-Suiten des Graph-Kerns und der Index-Lieferung."
+      "hinweis": "4T-000453 bis 4T-000455 (Epic 3E-000084): Bereichs-Graph — GA-01 bis GA-05 (Oeffnen, Klick-Navigation, Richtungs-Filter, Tab-Wiederverwendung, Kontextmenue, Hinweis ohne Bereich) plus Unit-Suiten des Graph-Kerns und der Index-Lieferung. 4T-001537 (Epic 3E-000173): dazu die zweite Darstellungs-Form — GA-08 schaltet auf den Baum, prueft Vorgabe-Wurzel, erste Ebene, Alles-auf/zu, Oeffnen eines Eintrags, die Fusszeile der nicht erreichbaren Dateien und die Rueckkehr ins Netz; GA-09 belegt die Start-Seite als Vorgabe-Wurzel gegen die aktive Datei. 4T-001538 (Epic 3E-000173): GA-10 wechselt die Wurzel ueber die Namens-Auswahl (Knopf mit der Tastatur ausgeloest, eigener Overlay-Titel, gewaehlte Datei wird Wurzel STATT geoeffnet), GA-11 ueber den Kontextmenue-Eintrag area-file-graph-root, der den Reiter selbst oeffnet und auf die Baum-Form stellt."
     },
     {
       "key": "help.feature.fileGraph",
@@ -2720,7 +2747,7 @@
       "id": "S-118",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bereichs-statistik.spec.js"],
-      "hinweis": "4T-000620 (Epic 3E-000117): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Bereichs-Statistik' (Menue-/Paletten-Weg, belegbar) — BS-01 oeffnet die Seite ueber den Menue-Kanal, BS-02 prueft die Tab-Wiederverwendung, BS-04 den Hinweis ohne Bereich."
+      "hinweis": "4T-000620 (Epic 3E-000117): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Bereichs-Statistik' (Menue-/Paletten-Weg, belegbar) — BS-01 oeffnet die Seite ueber den Menue-Kanal, BS-02 prueft die Tab-Wiederverwendung, BS-04 den Hinweis ohne Bereich. 4T-001517 (Epic 3E-000172): BS-07 deckt die vierte Auffaelligkeits-Liste ab — Namen der Waisen, Deckung mit der Kennzahl, Einspaltigkeit, Sprung ueber den Kennzahl-Knopf mit der Tastatur und das Oeffnen eines Eintrags."
     },
     {
       "key": "help.feature.areaStats",
@@ -2731,7 +2758,7 @@
         "test/unit/area-stats.test.js",
         "test/unit/area-stats-extension.test.js"
       ],
-      "hinweis": "4T-000619/4T-000620 (Epic 3E-000117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet."
+      "hinweis": "4T-000619/4T-000620 (Epic 3E-000117): Kennzahlen-Seite des Bereichs — BS-01 bis BS-06 (sechs Abschnitte mit nachgerechneten Zahlen, Tab-Wiederverwendung, Aktualisieren, Hinweis ohne Bereich, Klick auf eine auffaellige Datei, Kontextmenue im Aus-Zustand); die Erhebung selbst ist am Fixture-Verzeichnis unit-getestet. 4T-001517 (Epic 3E-000172): BS-07 deckt die vierte Auffaelligkeits-Liste ab — Namen der Waisen, Deckung mit der Kennzahl, Einspaltigkeit, Sprung ueber den Kennzahl-Knopf mit der Tastatur und das Oeffnen eines Eintrags."
     },
     {
       "key": "help.shortcut.openBook",

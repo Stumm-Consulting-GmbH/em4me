@@ -19,6 +19,10 @@ const HELP_FEATURE_GROUPS = [
     groupKey: 'help.group.file',
     features: [
       'help.feature.openFiles',
+      // 4T-001502 (Epic 3E-000174): Datei ueber ihren Namen oeffnen — direkt
+      // hinter der Oeffnen-Grundfunktion, weil es derselbe Vorgang auf einem
+      // anderen Weg ist (dort ueber die Ordner-Struktur, hier ueber den Namen).
+      'help.feature.quickOpen',
       'help.feature.newTab',
       // 4T-000342 (Epic 3E-000061): Unterseite anlegen und Datei umbenennen —
       // Datei-Verwaltung direkt hinter dem Anlage-Cluster.
@@ -431,6 +435,9 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000058 (Epic 3E-000011): Wiki-Link-Anker, Wiki-Embeds und Tag-System.
       'help.feature.wikiLinkAnchors',
       'help.feature.wikiEmbeds',
+      // 4T-001457 (Epic 3E-000190): Bereichs-Verknuepfungen direkt hinter den
+      // Wiki-Link-Formen — sie sind eine weitere Form desselben Verweises.
+      'help.feature.areaLinks',
       // 4T-000342 (Epic 3E-000061): Unterseiten direkt im Vernetzungs-Cluster
       // hinter Wiki-Links/Embeds.
       'help.feature.subpages',

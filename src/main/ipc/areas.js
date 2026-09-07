@@ -24,6 +24,12 @@ const {
 // 4T-001293 (Epic 3E-000224): Teil-Dateien bleiben aus der Ordner-Liste heraus.
 const { isPartBasename } = require('../../shared/document-parts');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-001452 (Epic 3E-000190): Aufloesung eines Verknuepfungs-Links ueber die
+// Bereichs-Grenze.
+const {
+  loeseVerknuepfungsLink,
+  beurteileVerknuepfungsLinks,
+} = require('../area/area-link-resolve');
 
 /**
  * Registriert die Bereichs- und Demo-Area-Kanaele.
@@ -71,6 +77,10 @@ function registerAreasIpc(handle, deps) {
     resolveAreaStartPage,
     writeAreaStartPage,
     startPageRelative,
+    // 4T-001452 (Epic 3E-000190): Verknuepfungen des Bereichs lesen und
+    // seit 4T-001455 auch schreiben.
+    readAreaLinks,
+    writeAreaLinks,
   } = deps;
 
   // 4T-000645 (Epic 3E-000127): Die Beispiel-Sammlung bringt ihren Fenster- und
@@ -379,6 +389,89 @@ function registerAreasIpc(handle, deps) {
     }
     try {
       return await writeAreaStartPage(area.rootPath, relative);
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // 4T-001457 (Epic 3E-000190): Alle Verknuepfungs-Kanaele haengen am
+  // Aus-Zustand der Erweiterung. Die AUTORITATIVE Stelle ist hier und nicht im
+  // Anzeige-Prozess: Wer den Kanal fragt, bekommt im Aus-Zustand nichts — und
+  // damit loest kein Klick auf, markiert kein Linter und prueft nichts beim
+  // Oeffnen. Die eingetragenen Verknuepfungen bleiben unberuehrt; abgeschaltet
+  // wird die Wirkung, nicht die Angabe (Entscheidung E7).
+  const verknuepfungenAktiv = () =>
+    isExtensionEnabled('area-links', getStore() ? getStore().get('extensions.disabled') : null);
+
+  // --- 4T-001452 (Epic 3E-000190): Verknuepfungs-Links aufloesen ---------------
+
+  // Kuerzel und Ziel eines Verknuepfungs-Links auf eine Datei im verknuepften
+  // Bereich abbilden. Der Anker ist bereits abgetrennt; der Aufrufer setzt ihn
+  // nach dem Oeffnen selbst.
+  //
+  // Bewusst ein EIGENER Kanal neben file:resolveLink und nicht dessen Umbau:
+  // Jener loest gegen den Ordner der Basis-Datei auf (files.js), was fuer ein
+  // Ziel in einem fremden Bereich die falsche Basis waere.
+  handle('areaLink:resolve', async (event, params) => {
+    if (!verknuepfungenAktiv()) return { ok: false, grund: 'abgeschaltet' };
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, grund: 'kein-bereich' };
+    const prefix = params && params.prefix;
+    const target = params && params.target;
+    if (typeof prefix !== 'string' || typeof target !== 'string') {
+      return { ok: false, grund: 'ungueltiges-ziel' };
+    }
+    try {
+      const links = await readAreaLinks(area.rootPath);
+      return await loeseVerknuepfungsLink({ links, prefix, target });
+    } catch (err) {
+      return { ok: false, grund: 'fehler', error: err && err.message ? err.message : String(err) };
+    }
+  });
+  // 4T-001454 (Epic 3E-000190): Verknuepfungs-Links fuer den Linter beurteilen.
+  // Ein Roundtrip je Lint-Lauf statt einer Anfrage je Link — dasselbe Muster
+  // wie resolveWikiTargets fuer die lokalen Ziele.
+  handle('areaLink:beurteile', async (event, anfragen) => {
+    // Im Aus-Zustand faellt kein Urteil: Der Linter unterdrueckt seine Regel
+    // dann, statt Links zu markieren, die niemand aufloesen soll.
+    if (!verknuepfungenAktiv()) return { status: 'abgeschaltet', urteile: [] };
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { status: 'kein-bereich', urteile: [] };
+    if (!Array.isArray(anfragen) || anfragen.length === 0) {
+      return { status: 'ready', urteile: [] };
+    }
+    try {
+      const links = await readAreaLinks(area.rootPath);
+      return { status: 'ready', urteile: await beurteileVerknuepfungsLinks(links, anfragen) };
+    } catch {
+      // Wie bei resolveWikiTargets: Der Linter unterdrueckt die Regel in
+      // diesem Lauf, statt falsche Marken zu setzen.
+      return { status: 'unavailable', urteile: [] };
+    }
+  });
+  // 4T-001455 (Epic 3E-000190): Verknuepfungs-Stand fuer die Einstellungs-
+  // Oberflaeche. Muster templates:getConfig — hasArea und areaName steuern die
+  // Bereichs-Gruppe der Oberflaeche, die Liste kommt normalisiert.
+  handle('areaLink:getConfig', async (event) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: true, hasArea: false, areaName: null, links: [] };
+    let links;
+    try {
+      links = await readAreaLinks(area.rootPath);
+    } catch {
+      links = []; // defekte Bereichsdatei wirkt wie keine Verknuepfung
+    }
+    return { ok: true, hasArea: true, areaName: area.name, links };
+  });
+
+  // 4T-001455: Verknuepfungen schreiben. Muster templates:setAreaConfig — eine
+  // defekte Bereichsdatei wird nie ueberschrieben, der Fehler kommt als Wert
+  // zurueck und die Oberflaeche meldet ihn sichtbar.
+  handle('areaLink:setConfig', async (event, links) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    try {
+      return await writeAreaLinks(area.rootPath, links);
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }

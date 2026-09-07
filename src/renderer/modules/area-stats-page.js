@@ -38,6 +38,10 @@ export const AREA_STATS_PAGE_ID = 'area-stats';
 // zur eigentlichen Aussage.
 const KURZ_LISTE = 25;
 
+// 4T-001517 (Epic 3E-000172): Kennung des Waisen-Blocks — einmal hier statt
+// zweimal im Code, sonst liefe der Sprung nach einem Tippfehler still ins Leere.
+const WAISEN_BLOCK_ID = 'area-stats-waisen';
+
 // Seiten-Zustand: erhobene Kennzahlen, Lade-Kennzeichen und die reine
 // Anzeige-Ordnung der beiden Häufigkeits-Tabellen (flüchtig, überlebt das
 // Schließen nicht).
@@ -139,19 +143,40 @@ function abschnitt(root, titelKey) {
 
 // Kennzahlen-Tabelle: Paare aus Bezeichnung und Wert. Eine Zeile mit
 // eingerücktem Namen ist ein „davon"-Anteil ihrer Vorgänger-Zeile.
+//
+// 4T-001517 (Epic 3E-000172): Die vierte Tupel-Stelle ist ein Sprung-Ziel
+// { id, titel }. Ist sie gesetzt, wird der Wert zu einem Knopf, der zur
+// zugehörigen Liste rollt. Der Aufrufer setzt sie NUR, wenn die Liste
+// Einträge hat — ein Knopf, der ins Leere springt, ist schlechter als eine
+// Zahl ohne Knopf, weil er eine Wirkung verspricht, die ausbleibt.
 function kennzahlen(section, zeilen) {
   const table = el('table', 'area-stats-figures');
   const tbody = document.createElement('tbody');
-  for (const [bezeichnung, wert, eingerueckt] of zeilen) {
+  for (const [bezeichnung, wert, eingerueckt, sprung] of zeilen) {
     const tr = document.createElement('tr');
     const tdName = el('td', eingerueckt ? 'area-stats-sub' : null, bezeichnung);
-    const tdWert = el('td', 'area-stats-value', wert);
+    const tdWert = el('td', 'area-stats-value', sprung ? '' : wert);
+    if (sprung) tdWert.appendChild(sprungKnopf(wert, sprung));
     tr.appendChild(tdName);
     tr.appendChild(tdWert);
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
   section.appendChild(table);
+}
+
+// 4T-001517: Der Kennzahl-Wert als Knopf zu seiner Liste — ein <button> und
+// kein Anker, weil die Seite ohne Adressleiste lebt und das Element die
+// Tastatur-Erreichbarkeit mitbringt.
+function sprungKnopf(wert, sprung) {
+  const knopf = el('button', 'area-stats-jump', wert);
+  knopf.type = 'button';
+  knopf.title = t(sprung.titel);
+  knopf.addEventListener('click', () => {
+    const ziel = document.getElementById(sprung.id);
+    if (ziel) ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  return knopf;
 }
 
 // Häufigkeits-Tabelle mit sortierbaren Spalten und Kurz-/Vollansicht.
@@ -218,8 +243,14 @@ function haeufigkeit(section, schluessel, liste, nameSpalteKey) {
 
 // Top-Liste der Auffälligkeiten: Dateiname (klickbar, öffnet die Datei wie
 // ein Knoten im Bereichs-Graph) und ein Wert.
-function topListe(spalte, titelKey, wertSpalteKey, eintraege, wertVon) {
+//
+// 4T-001517: wertSpalteKey === null baut die Liste EINSPALTIG. Die Waisen-Liste
+// nutzt das: Ihr Wert wäre in jeder Zeile die Null — eine Spalte, die nichts
+// unterscheidet, kostet Breite und trägt keine Auskunft. id kennzeichnet den
+// Block als Sprung-Ziel der zugehörigen Kennzahl.
+function topListe(spalte, titelKey, wertSpalteKey, eintraege, wertVon, id) {
   const block = el('div', 'area-stats-top');
+  if (id) block.id = id;
   block.appendChild(el('h5', 'area-stats-top-title', t(titelKey)));
   if (!eintraege || eintraege.length === 0) {
     block.appendChild(el('p', 'area-stats-empty', t('stats.empty')));
@@ -230,7 +261,7 @@ function topListe(spalte, titelKey, wertSpalteKey, eintraege, wertVon) {
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
   headRow.appendChild(el('th', null, t('stats.col.name')));
-  headRow.appendChild(el('th', null, t(wertSpalteKey)));
+  if (wertSpalteKey) headRow.appendChild(el('th', null, t(wertSpalteKey)));
   thead.appendChild(headRow);
   table.appendChild(thead);
   const tbody = document.createElement('tbody');
@@ -243,7 +274,7 @@ function topListe(spalte, titelKey, wertSpalteKey, eintraege, wertVon) {
     link.addEventListener('click', () => void openOrJumpToPath(eintrag.pfad));
     tdName.appendChild(link);
     tr.appendChild(tdName);
-    tr.appendChild(el('td', 'area-stats-value', wertVon(eintrag)));
+    if (wertSpalteKey) tr.appendChild(el('td', 'area-stats-value', wertVon(eintrag)));
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
@@ -386,7 +417,14 @@ function zeichneAbschnitte(root, daten) {
     [t('stats.content.wikiLinks'), zahl(daten.inhalte.verweise.wiki)],
     [t('stats.content.mdLinks'), zahl(daten.inhalte.verweise.markdown)],
     [t('stats.content.aliases'), zahl(daten.inhalte.aliase)],
-    [t('stats.content.orphans'), zahl(daten.inhalte.verweise.ohneEingehende)],
+    [
+      t('stats.content.orphans'),
+      zahl(daten.inhalte.verweise.ohneEingehende),
+      false,
+      daten.auffaelligkeiten.unverlinkt.length
+        ? { id: WAISEN_BLOCK_ID, titel: 'stats.content.orphansJump' }
+        : null,
+    ],
   ]);
 
   const auffaellig = abschnitt(root, 'stats.section.highlights');
@@ -411,6 +449,15 @@ function zeichneAbschnitte(root, daten) {
     'stats.col.incoming',
     daten.auffaelligkeiten.meistverlinkt,
     (e) => zahl(e.eingehend),
+  );
+  // 4T-001517: Die vierte Liste, ungekürzt und einspaltig (siehe topListe).
+  topListe(
+    spalten,
+    'stats.highlights.orphans',
+    null,
+    daten.auffaelligkeiten.unverlinkt,
+    null,
+    WAISEN_BLOCK_ID,
   );
   auffaellig.appendChild(spalten);
 }

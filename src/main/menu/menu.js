@@ -276,6 +276,14 @@ function buildMenu(win, state, actions) {
           click: send('menu:openFile'),
         },
         {
+          // 4T-001501: wie "Oeffnen…" auf dem Namens-Weg. 4T-001514: Suchraum
+          // traegt die aktive Datei ODER der Bereich (auch ohne Reiter).
+          label: t('menu.file.quickOpen'),
+          accelerator: acc('file.quickOpen'),
+          enabled: !!(state && (state.hasActiveTab || state.hasArea)),
+          click: send('menu:quickOpen'),
+        },
+        {
           label: t('menu.file.save'),
           accelerator: acc('file.save'),
           // 4T-000213: Handbuch-Tabs sind read-only — Speichern deaktiviert.

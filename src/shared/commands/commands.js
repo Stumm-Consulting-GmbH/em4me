@@ -93,6 +93,18 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
   },
+  {
+    // 4T-001501 (Epic 3E-000174): Datei ueber ihren Namen oeffnen.
+    // CmdOrCtrl+T (PO-Entscheidung 2026-09-06): am Bestand frei, und
+    // 'Ctrl-t' des emacsStyleKeymap greift nur auf macOS (siehe unten).
+    id: 'file.quickOpen',
+    defaultBindings: ['CmdOrCtrl+T'],
+    labelKey: 'menu.file.quickOpen',
+    descKey: 'help.shortcut.quickOpen',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+  },
   // 4T-000338 (Epic 3E-000061): Unterseite zur aktiven Datei anlegen. Ohne
   // Default-Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
   {
@@ -1461,8 +1473,14 @@ const COMMANDS = [
   {
     // 4T-000480 (Epic 3E-000089): Kommando-Palette. CmdOrCtrl+K ist am Bestand
     // konfliktfrei (Registry, FIXED_BINDINGS und CodeMirror-defaultKeymap
-    // auf Windows; CmdOrCtrl+Shift+P gehoert dem PDF-Export, CmdOrCtrl+P
-    // grabbt CodeMirror im Edit-Modus, siehe 4T-000024).
+    // auf Windows; CmdOrCtrl+Shift+P gehoert dem PDF-Export).
+    //
+    // 4T-001501 — RICHTIGSTELLUNG und RESERVIERUNG zu CmdOrCtrl+P: Hier stand
+    // bis 2026-09-06, CodeMirror greife es im Edit-Modus. Das trifft nicht zu
+    // ('Ctrl-p' steht allein im emacsStyleKeymap, das der standardKeymap nur
+    // als mac:-Variante uebernimmt — index.cjs:1741, dasselbe Argument wie bei
+    // K oben; Herleitung in 4T-001498). Frei, aber nicht zu haben: Der Product
+    // Owner hat P am 2026-09-06 dem Drucken vorbehalten (3E-000177).
     id: 'app.commandPalette',
     defaultBindings: ['CmdOrCtrl+K'],
     labelKey: 'menu.view.commandPalette',

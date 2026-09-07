@@ -121,6 +121,12 @@ El tamaño de página, la orientación y los márgenes se configuran en la secci
 
 La paleta es el acceso fugaz por teclado al registro de comandos; para accesos propios permanentes — botones de la barra de estado, entradas de menú contextual y macros — véase la página [Colocación de comandos](command-placement.md).
 
+## Abrir archivo por nombre
+
+«Archivo → Abrir archivo por nombre…» (predeterminado `Ctrl+T`) abre la misma ventana que la paleta de comandos, pero con los archivos en lugar de los comandos. Al escribir se filtra la lista por subcadena sobre los nombres; las teclas de flecha mueven la selección, `Intro` o un clic abre el archivo en el panel activo y cierra la ventana, `Esc` cancela. A la derecha de cada nombre aparece su procedencia: en un archivo su carpeta, en un nombre secundario el archivo al que apunta.
+
+La búsqueda abarca los nombres de archivo **y** los nombres secundarios del frontmatter, nunca el contenido: para eso está la búsqueda de texto completo. Sin entrada aparece arriba el archivo editado más recientemente; en cuanto se escribe algo, encabezan los nombres que empiezan por ello y la fecha de modificación ordena el resto. El espacio de búsqueda es el mismo que el de la compleción de enlaces internos: el área abierta y, si no la hay, la vecindad del archivo activo. Si dos carpetas contienen un archivo con el mismo nombre, una selección pregunta cuál se quiere.
+
 ## Entrada de fecha y hora
 
 Una ventana emergente de calendario inserta una fecha y una hora en la posición del cursor, también en el campo de nota. Tres comandos la abren: predeterminado `Ctrl+Alt+T` para fecha y hora, predeterminado `Ctrl+Alt+D` para solo fecha, predeterminado `Ctrl+Alt+U` para solo hora. Los formatos insertados son `2026-07-10`, `14:30` o combinado `2026-07-10 14:30`.

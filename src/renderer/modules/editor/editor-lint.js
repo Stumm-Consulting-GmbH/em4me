@@ -15,6 +15,8 @@ import { CALLOUT_TYPES } from '../../../shared/callouts.js';
 // der einen Quelle der Unterseiten-Semantik, statt den Schraegstrich hier ein
 // zweites Mal zu deuten.
 import { isRelativeTarget } from '../../../shared/subpages.js';
+// 4T-001451 (Epic 3E-000190): Kuerzel-Syntax der Bereichs-Verknuepfung.
+import { splitAreaLink } from '../../../shared/area-link-syntax.js';
 import { t } from '../../i18n.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { computeCommentRanges, detectFrontmatterLines } from '../live/live-marker-fields.js';
@@ -24,6 +26,7 @@ import { state } from '../app/app-state.js';
 // Linter-Regel outsideAreaLink (der Render-Pane-Marker läuft über die
 // Render-Pipeline in render-mermaid.js).
 import { isOutsideActiveArea, resolveLocalTarget } from '../area.js';
+import { pruefeVerknuepfungsLinks } from './editor-lint-area.js';
 // 4T-001002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
 // Funktionskoerpern gelesen.
 import { paneEditors } from './editor.js';
@@ -105,6 +108,11 @@ export const LINT_RULES = {
   unknownCalloutType: { className: 'cm-linter-mark cm-linter-unknown-callout-type' },
   // 4T-000324 (Epic 3E-000058): Link-Ziel ausserhalb des aktiven Bereichs.
   outsideAreaLink: { className: 'cm-linter-mark cm-linter-outside-area-link' },
+  // 4T-001454 (Epic 3E-000190): Verknuepfungs-Link, dessen Kuerzel nicht
+  // eingetragen ist oder auf einen verschobenen Bereich zeigt. Selbe
+  // Decoration-Klasse wie outsideAreaLink — beide sagen «dieser Verweis fuehrt
+  // nicht zum Ziel» —, eigener Regel-Identifier fuer den Tooltip.
+  invalidAreaLink: { className: 'cm-linter-mark cm-linter-outside-area-link' },
   // 4T-000533 (Epic 3E-000089): unpaariger %%-Kommentar-Marker (wirkt bis
   // Dokument-Ende). Generische Wellenlinie ueber cm-linter-mark; eigener
   // Regel-Identifier fuer den Tooltip.
@@ -275,7 +283,13 @@ export async function runLint(view) {
       // Backslash davor mit ins Target — das wird hier wieder abgeschnitten.
       const target = (m[1] || '').replace(/\\$/, '').trim();
       if (!target) continue;
-      wikiMatches.push({ from, to, target });
+      // 4T-001451 (Epic 3E-000190): Die Verknuepfungs-Form wird hier ERKANNT und
+      // mitgefuehrt, aber nicht beurteilt. Ob ein Kuerzel eingetragen und sein
+      // Ziel auffindbar ist, entscheidet 4T-001454 mit der Regel outsideAreaLink;
+      // dieser Task sorgt allein dafuer, dass die lokalen Regeln nicht auf eine
+      // Form losgehen, die ihnen nicht gehoert.
+      const { prefix: areaPrefix, target: areaTarget } = splitAreaLink(target);
+      wikiMatches.push({ from, to, target: areaTarget, areaPrefix });
     }
   // Regel 7 (4T-000324, Epic 3E-000058): Link-Ziele ausserhalb des Bereichs
   // (nur in Bereichs-Apps). Wiki-Links werden doc-relativ aufgeloest
@@ -285,6 +299,11 @@ export async function runLint(view) {
   const outsideWikiSpans = new Set();
   if (state.areaPath && tab.path) {
     for (const w of wikiMatches) {
+      // 4T-001451: Ein Verknuepfungs-Link verlaesst die Bereichs-Grenze gewollt.
+      // Die Regel gilt fuer Links OHNE Kuerzel; das Urteil ueber Kuerzel-Links
+      // faellt 4T-001454. Ohne diesen Vorbehalt waere jeder gueltige
+      // Verknuepfungs-Link rot — genau das, was E3 verhindern soll.
+      if (w.areaPrefix) continue;
       const filePart = w.target.split('#')[0].trim();
       if (!filePart) continue;
       // 4T-001277 (Befund B3): Die relativen Wiki-Formen sind keine Pfade.
@@ -318,7 +337,12 @@ export async function runLint(view) {
   }
 
   if (wikiMatches.length > 0 && tab.path) {
-    const targets = [...new Set(wikiMatches.map((w) => w.target))];
+    // 4T-001451: Kuerzel-Links gehen nicht in die Existenz-Pruefung: Ihr Ziel
+    // liegt in einem anderen Bereich und damit ausserhalb des Index, der genau
+    // eine Wurzel je Eintrag kennt (E3). Sie waeren sonst samt und sonders
+    // «gebrochen». Die Pruefung ihrer Gueltigkeit gehoert zu 4T-001454.
+    const lokaleMatches = wikiMatches.filter((w) => !w.areaPrefix);
+    const targets = [...new Set(lokaleMatches.map((w) => w.target))];
     try {
       const result = await api.resolveWikiTargets(tab.path, targets);
       if (result && result.status === 'ready') {
@@ -327,7 +351,7 @@ export async function runLint(view) {
         // 4T-000336 (Epic 3E-000061): mehrdeutige Ziele (Ordner-Pfad- und
         // Unterseiten-Form treffen verschiedene Dateien).
         const ambiguousSet = new Set(result.ambiguous || []);
-        for (const w of wikiMatches) {
+        for (const w of lokaleMatches) {
           if (outsideWikiSpans.has(w.from)) continue;
           if (ambiguousSet.has(w.target)) {
             pushRange(w.from, w.to, 'ambiguousWikiTarget');
@@ -348,6 +372,11 @@ export async function runLint(view) {
       // IPC-Fehler ignorieren; Regel 4/5 entfaellt fuer diesen Lauf.
     }
   }
+
+  // 4T-001454 (Epic 3E-000190): Regel 7 kennt die Kuerzel. Bis hierher sind
+  // Verknuepfungs-Links aus den lokalen Regeln herausgehalten (4T-001451);
+  // ihr eigenes Urteil faellt in editor-lint-area.js.
+  await pruefeVerknuepfungsLinks(wikiMatches, pushRange);
 
   // Regel 6 (4T-000061): unbekannter Callout-Typ. Header-Regex matcht den Typ-
   // Slug aus `> [!type]`; wenn der Typ nicht in der Whitelist steht, wird der

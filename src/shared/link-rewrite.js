@@ -34,6 +34,7 @@ const {
   MD_EXT_RE,
   FENCE_RE,
   createWikiLinkRegex,
+  isAreaLinkTarget,
   createMdLinkRegex,
   mdLinkTargetFromMatch,
   normalizeNameKey,
@@ -199,6 +200,12 @@ function collectWikiRewrites(line, masked, ctx) {
   let m;
   while ((m = re.exec(masked)) !== null) {
     const rawTarget = m[1];
+    // 4T-001451 (Epic 3E-000190): Ein Verknuepfungs-Link zeigt in einen anderen
+    // Bereich; die Nachfuehrung traegt dorthin nachweislich nicht (Erhebung 4
+    // der Konzept-Stufe, Suchraum in link-update.js). Ihn hier anzufassen hiesse,
+    // einen fremden Bereich blind umzuschreiben — die Nachfuehrung ueber Grenzen
+    // ist mit E5 ausdruecklich nicht im Umfang, das Netz bleibt der Linter.
+    if (isAreaLinkTarget(rawTarget)) continue;
     // Anker abtrennen (erstes '#' im Ziel-Teil).
     const anchorIdx = rawTarget.indexOf('#');
     const namePortion = anchorIdx >= 0 ? rawTarget.slice(0, anchorIdx) : rawTarget;
