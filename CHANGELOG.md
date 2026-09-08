@@ -14,6 +14,169 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.131.0.2621] - 2026-09-08 — Bereichsweite Bearbeitung und Ausgabe-Feinschliff
+
+Zug 3E-000279.
+Mitglied 1: 3E-000169,
+das Schreib-Gegenstück zur bereichsweiten Suche. Mitglied 2:
+3E-000280,
+zwei Befunde aus der Abnahme des ersten Mitglieds — der Zugang zur
+Bereichs-Suche und die Bedienung ihrer Trefferliste. Mitglied 3:
+3E-000275,
+die Aufgaben-Treffer der Abfrage-Ausgabe im Textfluss. Mitglied 4:
+3E-000276,
+Orientierung und Bedienbarkeit des Journal-Navigations-Blocks. Mitglied 5:
+3E-000175,
+die Umbenennung eines Tags über alle seine Vorkommen.
+
+### Neu
+
+- **Bereichsweites Ersetzen mit Auswahl je Fundstelle und Zwangs-Sicherung**
+  (`4T-001524`, `4T-001525`, `4T-001526`, `4T-001527`). Was sich in einem
+  Bereich finden lässt, lässt sich dort jetzt auch ersetzen — in einem Lauf über
+  alle Dateien, auch über die nie geöffneten. Die bestehende Trefferliste wird
+  dabei zur Vorschau: Sie trägt im Ersetzen-Modus ein Ankreuzfeld je Fundstelle
+  und je Datei, dreiwertig auf Datei-Ebene, mit «alles ausgewählt» als Vorgabe;
+  die Auswahl überlebt das Klappen einer Gruppe und einen erneuten Lauf mit
+  demselben Muster. Der Lauf selbst liegt im Hauptprozess: Er prüft die
+  Bereichs-Grenze je Ziel, liest jede Datei frisch und schreibt nur, wenn ihr
+  Stand noch der ist, auf dem die Fundstellen ermittelt wurden; EOL und BOM
+  bleiben erhalten, ein Fehlschlag je Datei stoppt den Lauf nicht, sondern
+  erscheint im Bericht.
+- **Jede geänderte Datei bekommt ihren Vor-Stand in die Versionshistorie, auch
+  bei abgeschalteter Historisierung** (`4T-001524`). Das ist keine Option neben
+  dem Lauf, sondern Teil des Schreibvorgangs — lässt sich der Vor-Stand nicht
+  sichern, unterbleibt das Schreiben dieser Datei. Damit ist ein bereichsweites
+  Ersetzen über die Historien-Ansicht umkehrbar. Es ist der dritte
+  Zwangs-Sicherungs-Fall neben dem erzwungenen Überschreiben und dem geteilten
+  Dokument.
+- **Offene Reiter behalten ihren ungespeicherten Stand** (`4T-001526`). Eine
+  Datei mit ungespeicherten Änderungen wird auf ihrem Puffer ersetzt, als eine
+  Rückgängig-Einheit, und bleibt ungespeichert; erzwungen wird nichts. Regex-
+  Rückverweise (`$1`, `$2`) wirken wie in der einzelnen Datei, und geteilte
+  Dokumente bleiben ausdrücklich außen vor, statt an einer umgerechneten Stelle
+  ersetzt zu werden.
+- **Ein Tag lässt sich über alle seine Vorkommen umbenennen** (`4T-001530`,
+  `4T-001531`). Der Zugang liegt im Kontextmenü der Tag-Übersicht, dort, wo der
+  Anwender den Tag sieht. Erfasst werden beide Notationen — das `tags:`-Feld
+  und der Fließtext —, alle Schreibweisen, und der Teilbaum wandert mit: Aus
+  `#projekt` wird `#arbeit`, aus `#projekt/alpha` wird `#arbeit/alpha`. Das ist
+  Bedingung und nicht Zugabe, weil die Abfrage-Sprache einen Tag bereits als
+  Vorsilbe seiner Kinder auswertet; ein Tag, der nur mit demselben Wort beginnt,
+  bleibt unberührt. Die Vorschau ist die Trefferliste des bereichsweiten
+  Ersetzens: jede Fundstelle mit ihrer Zeile, die mitwandernden Kinder
+  ausgewiesen, einzelne Stellen abwählbar. Der Lauf geht durch dieselbe
+  Schreib-Strecke wie das freie Ersetzen und erbt damit Bereichs-Grenze,
+  Zwangs-Sicherung des Vor-Stands, Puffer-Behandlung offener Reiter und Bericht;
+  der Frontmatter-Anteil wird über das Feld geschrieben statt über eine Position
+  im Text, damit Notation und Reihenfolge des Blocks erhalten bleiben.
+
+### Geändert
+
+- **Eine Raute innerhalb einer Web-Adresse ist kein Tag mehr** (`4T-001529`).
+  Bisher galt der Fragment-Bezeichner einer Adresse als Schlagwort: Aus
+  `https://beispiel.de/#abschnitt` wurde der Tag `abschnitt`, ebenso in der
+  spitzen Form und im Markdown-Link-Ziel. **Die Wirkung ist sichtbar:** Solche
+  Einträge verschwinden aus der Tag-Übersicht, aus der Vervollständigung, aus
+  den Abfragen und aus der Statistik — wer sie dort kannte, wird sie vermissen.
+  Sie waren nie gemeint, und mit der Umbenennung wären sie gefährlich geworden,
+  weil ein Schreibvorgang die Adresse zerstört hätte. Ein echtes Tag im selben
+  Absatz nach einer Adresse wird unverändert erkannt; ein relatives Link-Ziel
+  ohne Schema bleibt bewusst außen vor.
+- **Ein gebundener Bereich ist Suchraum, auch ohne offene Datei** (`4T-001560`).
+  Bis dahin folgte der Suchraum ausschließlich dem aktiven Reiter: Wer einen
+  Bereich geöffnet und alle Dateien geschlossen hatte, fand nichts und kam auch
+  nicht an das Ersetzen. Die Rangfolge darunter bleibt unangetastet — ein
+  offener Reiter bestimmt den Raum wie bisher, Handbuch und Einstellungen
+  stehen weiter vor dem Bereich. Ohne Reiter ordnet die Trefferliste rein
+  alphabetisch, weil es keine Datei gibt, die sie anführt.
+- **Ein Aufgaben-Treffer der Abfrage steht im Textfluss statt im umbrechenden
+  Kasten** (`4T-001483`). Bisher war jedes Anzeige-Element des Treffers ein
+  eigener, unteilbarer Block der Umbruch-Rechnung: Bei langer Beschreibung
+  stand das Status-Kästchen allein in der ersten Zeile, der Text in der
+  zweiten, die Marker in der dritten — die Liste wurde dreimal so hoch wie
+  nötig, und der Zusammenhang zwischen Aufgabe, Status und Termin war
+  zerrissen. Kurze Treffer zeigten den Effekt nicht, weil dort alles
+  nebeneinander Platz fand; er traf damit ausgerechnet die inhaltsreichen
+  Einträge. Der Treffer läuft jetzt im gewöhnlichen Textfluss mit hängendem
+  Einzug: Die Beschreibung bricht in sich um, ihre Fortsetzung steht eingerückt
+  unter ihrem Beginn, und die Marker stehen hinter dem letzten Wort. Damit
+  zeigt die Abfrage dasselbe Bild wie dieselbe Aufgabe im Dokument — in der
+  gerenderten Ansicht, in der Live-Ansicht und in der PDF-Ausgabe, weil alle
+  drei dieselbe Formatvorlage tragen.
+- **Der Journal-Navigations-Block sagt, wo man zeitlich steht** (`4T-001489`).
+  Die Zeile unter der Perioden-Beschriftung war bisher nur bei der laufenden
+  Periode belegt — also genau dort nicht, wo die Frage «wie weit ist das weg»
+  überhaupt erst entsteht. Sie nennt jetzt in jedem Eintrag die Lage der Periode
+  zur Gegenwart: «Heute» und «Diese Woche» bleiben, wo sie standen, sonst
+  erscheinen «gestern», «vor 3 Wochen», «in 2 Jahren». Gerechnet wird in der
+  **Einheit der Periode** — ein Wochen-Eintrag spricht von Wochen, nicht von
+  sieben Tagen —, und formuliert wird über die Standard-Funktion der
+  Laufzeit-Umgebung, weshalb alle fünf Oberflächen-Sprachen ohne eigene
+  Übersetzungs-Schlüssel sprachrichtig sind.
+- **Die Blätter-Schaltflächen haben eine Fläche und nennen ihr Ziel**
+  (`4T-001490`). Die Pfeile waren reine Textzeichen; getroffen werden musste die
+  Glyphe selbst. Sie sind jetzt umrandete Schaltflächen mit einem Mindestmaß von
+  28 × 28 Bildpunkten, und außen daneben steht der Name der Ziel-Periode, der
+  bisher allein im Kurzhinweis stand. Wird die Zeile schmal, weicht dieser Name
+  und die Schaltfläche bleibt bedienbar; an der Journal-Grenze entfallen beide
+  gemeinsam.
+- **Ein Punkt zeigt, welche Einträge es schon gibt** (`4T-001491`). Der
+  Zeitleisten-Block und der Kalender markieren vorhandene Einträge seit jeher,
+  der Navigations-Block an keiner Stelle — man sah einem Klick nicht an, ob er
+  öffnet oder anlegt. Die Markierung steht jetzt an allen Perioden des Blocks:
+  an den übergeordneten, an der aktuellen und an beiden Nachbarn. Sie ist
+  derselbe Punkt an derselben Stelle wie im Kalender, und sie erscheint im
+  Zweifel lieber gar nicht als falsch: Lässt sich nicht ermitteln, was existiert,
+  bleibt der Block unmarkiert, statt eine Datei zu behaupten, die es nicht gibt.
+
+### Behoben
+
+- **Die Tastatur-Führung der Trefferliste trägt wieder mehr als einen
+  Tastendruck** (`4T-001561`). Die Pfeiltasten bewegten die Auswahl genau
+  einmal: Das Neuzeichnen der Liste verwarf das fokussierte Element, der Fokus
+  fiel aus dem Panel, und der zweite Druck erreichte es nicht mehr — `Enter`
+  fand danach ebenfalls kein Ziel. Die gewählte Zeile behält den Fokus jetzt
+  über das Neuzeichnen hinweg. Der Weg über `F3` aus der Suchleiste bleibt
+  unverändert: Dort steht der Fokus weiterhin im Eingabefeld.
+- **Die Vorschau der Tag-Umbenennung ist zu sehen und nicht nur vorhanden**
+  (`4T-001533`). Wer die Gliederung offen hatte und dann umbenannte, sah den
+  Dialog verschwinden und sonst nichts: Die Fundstellen waren ermittelt und die
+  Liste gefüllt, sie lag aber hinter der Gliederung, mit der sie eine
+  Reiter-Gruppe der linken Sidebar teilt. Ein sichtbares Panel ist eben nicht
+  schon ein sichtbares Panel. Der Reiter wird jetzt immer nach vorn geholt, auch
+  wenn das Panel bereits als sichtbar gilt. Im selben Zug zeichnet der
+  Umbenennungs-Balken nichts mehr, solange keine Umbenennung läuft: Zwei
+  DOM-Schreibvorgänge je Tastendruck, die im Regelfall nichts bewirkten, lagen
+  unmittelbar vor der Fokus-Rückgabe der Trefferlisten-Navigation und
+  verschoben deren Zeitfenster.
+
+### i18n
+
+- Funktions-Katalog und Handbuch um das bereichsweite Ersetzen erweitert
+  (`4T-001527`): drei Katalog-Schlüssel und 22 Beschriftungen des Laufs samt
+  seiner Fehlschlag-Gründe, je in fünf Sprachfassungen; die Handbuch-Seite
+  «Werkzeuge» beschreibt Auswahl, Sicherung und Rücknahme im Abschnitt zur
+  Bereichs-Suche.
+- Funktions-Katalog und Handbuch um die Tag-Umbenennung erweitert (`4T-001531`,
+  `4T-001532`): drei Katalog-Schlüssel und 17 Beschriftungen von Dialog,
+  Vorschau und Bericht, je in fünf Sprachfassungen. Der Handbuch-Abschnitt
+  «Verknüpfen» beschreibt die Umbenennung samt dem Mitwandern der Kinder; die
+  bestehende Beschreibung des Tag-Systems nennt jetzt die geänderte Erkennung,
+  im Katalog wie im Handbuch. Die mitgelieferte Demo-Ablage hat ihr erstes
+  hierarchisches Schlagwort bekommen — ohne eines ließ sich weder die Hierarchie
+  noch ihre Umbenennung vorführen.
+- Handbuch und Funktions-Katalog um den Journal-Navigations-Block erweitert
+  (`4T-001492`): zeitliche Einordnung, Blätter-Ziele und die Markierung
+  vorhandener Einträge, je in fünf Sprachfassungen; die Demo-Ablage zeigt den
+  Block jetzt mit belegten Nachbar-Perioden.
+- Handbuch um den Suchraum ohne offenen Reiter erweitert (`4T-001562`): Die
+  Tabelle «Wo gesucht wird» nennt den gebundenen Bereich als eigene Zeile, in
+  fünf Sprachfassungen.
+- Schreibweise im Handbuch-Abschnitt zum bereichsweiten Ersetzen berichtigt
+  (`4T-001534`): Der neue Absatz trug dreimal eine ASCII-Umschreibung statt des
+  Umlauts und wäre so ausgeliefert worden.
+
 ## [1.130.0.2543] - 2026-09-07 — Bereichs-Navigation und Struktur-Sicht
 
 Zug 3E-000274 mit

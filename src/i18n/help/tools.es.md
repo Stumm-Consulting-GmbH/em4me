@@ -59,7 +59,7 @@ El signo de interrogación de la barra abre una referencia rápida de regex; los
 
 ## Buscar y reemplazar
 
-En modo edición (predeterminado `Ctrl+H`) se añade una fila de reemplazo. Con el conmutador regex activo funcionan las referencias hacia atrás en el texto de reemplazo: `$1`, `$2` para grupos capturados. «Reemplazar todo» es una sola transacción, un único `Ctrl+Z` lo deshace todo junto.
+En modo edición (predeterminado `Ctrl+H`) se añade una fila de reemplazo. Con el conmutador regex activo funcionan las referencias hacia atrás en el texto de reemplazo: `$1`, `$2` para grupos capturados. «Reemplazar todo» es una sola transacción, un único `Ctrl+Z` lo deshace todo junto. En un área abierta la misma fila actúa sobre toda el área y no solo sobre el archivo abierto; véase «Dentro de un área».
 
 ```text
 Buscar:     (\d{2})\.(\d{2})\.(\d{4})
@@ -69,7 +69,7 @@ Efecto:     12.06.2026 → 2026-06-12
 
 ## Dónde busca la búsqueda
 
-El ámbito sigue a la pestaña en la que se abre la búsqueda; los ámbitos se excluyen entre sí:
+El ámbito sigue a la pestaña en la que se abre la búsqueda; los ámbitos se excluyen entre sí. Si no hay ninguna pestaña abierta, decide el área vinculada:
 
 | Pestaña activa | La búsqueda abarca |
 |---|---|
@@ -77,6 +77,7 @@ El ámbito sigue a la pestaña en la que se abre la búsqueda; los ámbitos se e
 | Archivo de un área abierta | **todos** los archivos Markdown del área |
 | Página del manual | **todas** las páginas del manual, también las no abiertas |
 | Ajustes | **todas** las secciones de ajustes, también las nunca visitadas |
+| Ninguna pestaña abierta, área vinculada | en **todos** los archivos Markdown del área |
 
 El ámbito vigente se muestra a la izquierda en la barra de búsqueda.
 
@@ -88,7 +89,13 @@ El **archivo abierto va en primer lugar**, y con su estado sin guardar: lo que e
 
 La búsqueda abarca los archivos Markdown del área. Otros archivos y los archivos de acompañamiento de la aplicación quedan fuera.
 
-**Reemplazar** sigue ligado al archivo suelto: abrir la fila de reemplazo devuelve la búsqueda al documento actual.
+Si **no hay ninguna pestaña abierta**, el área cuenta igualmente: buscar y sustituir alcanzan sus archivos sin que haya que abrir antes un documento. Dos cosas desaparecen entonces, porque sin archivo abierto no existen: la lista se ordena de forma puramente alfabética en lugar de anteponer un archivo, y no hay nada resaltado en ningún texto.
+
+**Aquí reemplazar actúa sobre toda el área.** Al abrir la fila de reemplazo (`Ctrl+H`), la lista de resultados recibe una casilla delante de cada coincidencia y de cada archivo; al principio está todo seleccionado. La lista es así también la vista previa: lo que siga marcado se sustituye. «Reemplazar todo» ejecuta la pasada sobre las posiciones seleccionadas, también en archivos que no están abiertos. Después un informe nombra los archivos modificados, los omitidos con su motivo y los que han cambiado desde la búsqueda.
+
+**Cada archivo modificado deposita su estado anterior en el historial del documento, incluso con el historial desactivado.** No es una opción junto a la pasada, sino parte de la escritura: si el estado anterior no se puede asegurar, el archivo no se escribe. La vuelta atrás pasa por la vista de historial del archivo afectado; allí está la versión anterior a la pasada.
+
+En modo regex las referencias `$1`, `$2` actúan igual que en un archivo suelto. Se escribe exclusivamente dentro del área. Un archivo abierto en una pestaña con cambios sin guardar se sustituye en esa pestaña y sigue sin guardarse: un `Ctrl+Z` deshace allí toda la pasada. Los documentos divididos quedan fuera y aparecen en el informe.
 
 En un área muy grande, la línea de estado del panel avisa de que cada búsqueda vuelve a leer los archivos; la búsqueda responde entonces con más lentitud.
 

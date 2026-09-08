@@ -59,7 +59,7 @@ Le point d'interrogation de la barre de recherche ouvre un aide-mémoire regex ;
 
 ## Rechercher et remplacer
 
-En mode édition (défaut `Ctrl+H`) une ligne de remplacement s'ajoute. Avec la bascule regex active, les références arrière fonctionnent dans le texte de remplacement : `$1`, `$2` pour les groupes capturés. « Tout remplacer » est une transaction unique, un seul `Ctrl+Z` annule tout ensemble.
+En mode édition (défaut `Ctrl+H`) une ligne de remplacement s'ajoute. Avec la bascule regex active, les références arrière fonctionnent dans le texte de remplacement : `$1`, `$2` pour les groupes capturés. « Tout remplacer » est une transaction unique, un seul `Ctrl+Z` annule tout ensemble. Dans une zone ouverte, la même ligne agit sur toute la zone et non sur le seul fichier ouvert ; voir « Dans une zone ».
 
 ```text
 Rechercher : (\d{2})\.(\d{2})\.(\d{4})
@@ -69,7 +69,7 @@ Effet :      12.06.2026 → 2026-06-12
 
 ## Où la recherche porte
 
-La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s’excluent mutuellement :
+La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s’excluent mutuellement. Si aucun onglet n’est ouvert, c’est la zone liée qui décide :
 
 | Onglet actif | La recherche couvre |
 |---|---|
@@ -77,6 +77,7 @@ La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s
 | Fichier d’une zone ouverte | **tous** les fichiers Markdown de la zone |
 | Page du manuel | **toutes** les pages du manuel, même non ouvertes |
 | Paramètres | **toutes** les sections des paramètres, même jamais visitées |
+| Aucun onglet ouvert, zone liée | dans **tous** les fichiers Markdown de la zone |
 
 La portée en vigueur s’affiche à gauche dans la barre de recherche.
 
@@ -88,7 +89,13 @@ Le **fichier ouvert vient en premier**, et avec son état non enregistré : ce q
 
 La recherche porte sur les fichiers Markdown de la zone. Les autres fichiers et les fichiers d’accompagnement de l’application restent à l’écart.
 
-**Le remplacement** reste lié au fichier isolé : ouvrir la ligne de remplacement ramène la recherche au document courant.
+Si **aucun onglet n’est ouvert**, la zone compte tout de même : rechercher et remplacer atteignent ses fichiers sans qu’un document doive être ouvert au préalable. Deux choses disparaissent alors, faute de fichier ouvert — la liste est classée purement par ordre alphabétique au lieu de placer un fichier en tête, et rien n’est mis en évidence dans un texte.
+
+**Le remplacement agit ici sur toute la zone.** Ouvrir la ligne de remplacement (`Ctrl+H`) ajoute dans la liste des résultats une case à cocher devant chaque occurrence et devant chaque fichier ; tout est sélectionné au départ. La liste est donc aussi l’aperçu : ce qui reste coché est remplacé. « Tout remplacer » exécute le passage sur les positions sélectionnées, y compris dans des fichiers qui ne sont pas ouverts. Un rapport indique ensuite les fichiers modifiés, ceux qui ont été écartés avec leur motif et ceux qui ont changé depuis la recherche.
+
+**Chaque fichier modifié voit son état précédent versé dans l’historique du document — même lorsque l’historisation est désactivée.** Ce n’est pas une option à côté du passage, mais une partie de l’écriture : si l’état précédent ne peut pas être mis en sûreté, le fichier n’est pas écrit. Le retour passe par la vue d’historique du fichier concerné ; la version d’avant le passage s’y trouve.
+
+En mode regex, les références `$1`, `$2` agissent comme dans un fichier isolé. L’écriture reste strictement à l’intérieur de la zone. Un fichier ouvert dans un onglet avec des modifications non enregistrées est remplacé dans cet onglet et reste non enregistré — un `Ctrl+Z` y annule tout le passage. Les documents scindés restent à l’écart et apparaissent dans le rapport.
 
 Dans une zone très vaste, la ligne d’état du panneau signale que chaque recherche relit les fichiers ; la recherche répond alors plus lentement.
 

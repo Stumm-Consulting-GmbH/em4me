@@ -59,7 +59,7 @@ Das Fragezeichen in der Suchleiste öffnet eine Regex-Kurzreferenz; die wichtigs
 
 ## Suchen und Ersetzen
 
-Im Edit-Modus (Standard `Strg+H`) kommt eine Ersetzen-Zeile dazu. Mit aktivem Regex-Schalter stehen Backreferences im Ersetzungstext zur Verfügung: `$1`, `$2` für Klammergruppen. „Alle ersetzen" ist eine einzelne Transaktion, ein `Strg+Z` macht alles zusammen rückgängig.
+Im Edit-Modus (Standard `Strg+H`) kommt eine Ersetzen-Zeile dazu. Mit aktivem Regex-Schalter stehen Backreferences im Ersetzungstext zur Verfügung: `$1`, `$2` für Klammergruppen. „Alle ersetzen" ist eine einzelne Transaktion, ein `Strg+Z` macht alles zusammen rückgängig. In einem geöffneten Bereich wirkt dieselbe Zeile über den ganzen Bereich statt nur über die offene Datei; siehe «Im Bereich».
 
 ```text
 Suchen:    (\d{2})\.(\d{2})\.(\d{4})
@@ -69,7 +69,7 @@ Wirkung:   12.06.2026 → 2026-06-12
 
 ## Wo gesucht wird
 
-Der Suchbereich folgt dem Reiter, in dem die Suche geöffnet wird; die Bereiche schließen einander aus:
+Der Suchbereich folgt dem Reiter, in dem die Suche geöffnet wird; die Bereiche schließen einander aus. Ist kein Reiter offen, entscheidet der gebundene Bereich:
 
 | Aktiver Reiter | Gesucht wird |
 |---|---|
@@ -77,6 +77,7 @@ Der Suchbereich folgt dem Reiter, in dem die Suche geöffnet wird; die Bereiche 
 | Datei in einem geöffneten Bereich | in **allen** Markdown-Dateien des Bereichs |
 | Handbuch-Seite | in **allen** Handbuch-Seiten, auch den nicht geöffneten |
 | Einstellungen | in **allen** Einstellungs-Bereichen, auch den nie besuchten |
+| Kein Reiter offen, Bereich gebunden | in **allen** Markdown-Dateien des Bereichs |
 
 Welcher Bereich gilt, steht links in der Suchleiste.
 
@@ -88,7 +89,13 @@ Die **offene Datei steht an erster Stelle** der Liste, und zwar mit ihrem ungesp
 
 Gesucht wird in den Markdown-Dateien des Bereichs. Andere Dateien und die Begleitdateien der Anwendung bleiben außen vor.
 
-**Ersetzen** bleibt an die einzelne Datei gebunden: Wer die Ersetzen-Zeile öffnet, sucht wieder im aktuellen Dokument.
+Ist **kein Reiter offen**, gilt der Bereich trotzdem: Suchen und Ersetzen erreichen seinen Bestand, ohne dass erst eine Datei geöffnet werden müsste. Zwei Dinge entfallen dann, weil es sie ohne offene Datei nicht gibt — die Liste wird rein alphabetisch geordnet, statt eine Datei voranzustellen, und im Text ist nichts markiert.
+
+**Ersetzen wirkt hier über den ganzen Bereich.** Wer die Ersetzen-Zeile öffnet (`Strg+H`), bekommt in der Trefferliste ein Ankreuzfeld vor jeder Fundstelle und vor jeder Datei; zu Beginn ist alles ausgewählt. Die Liste ist damit zugleich die Vorschau: Was angehakt bleibt, wird ersetzt. „Alle ersetzen" führt den Lauf über die ausgewählten Stellen aus, auch in Dateien, die gar nicht geöffnet sind. Danach nennt ein Bericht die geänderten Dateien, die übergangenen mit ihrem Grund und die, die sich seit der Suche geändert haben.
+
+**Jede geänderte Datei bekommt ihren Vor-Stand in die Versionshistorie — auch dann, wenn die Historisierung ausgeschaltet ist.** Das ist keine Option neben dem Lauf, sondern Teil des Schreibvorgangs: Lässt sich der Vor-Stand nicht sichern, wird die Datei nicht geschrieben. Zurück geht es über die Historien-Ansicht der betroffenen Datei, dort steht die Fassung von vor dem Lauf.
+
+Im Regex-Modus wirken die Rückverweise `$1`, `$2` wie in der einzelnen Datei. Geschrieben wird ausschließlich innerhalb des Bereichs. Eine Datei, die mit ungespeicherten Änderungen in einem Reiter offen ist, wird in diesem Reiter ersetzt und bleibt ungespeichert — ein `Strg+Z` nimmt den ganzen Lauf dort wieder zurück. Geteilte Dokumente bleiben außen vor und erscheinen im Bericht.
 
 In einem sehr großen Bereich weist die Statuszeile des Panels darauf hin, dass bei jeder Suche neu gelesen wird; die Suche antwortet dann langsamer.
 

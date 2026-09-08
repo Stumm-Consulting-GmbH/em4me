@@ -59,7 +59,7 @@ Il punto interrogativo nella barra apre un riferimento rapido regex; i pattern p
 
 ## Trova e sostituisci
 
-In modalità modifica (predefinito `Ctrl+H`) si aggiunge una riga di sostituzione. Con l'interruttore regex attivo funzionano i riferimenti a posteriori nel testo di sostituzione: `$1`, `$2` per i gruppi catturati. «Sostituisci tutto» è una singola transazione, un solo `Ctrl+Z` annulla tutto insieme.
+In modalità modifica (predefinito `Ctrl+H`) si aggiunge una riga di sostituzione. Con l'interruttore regex attivo funzionano i riferimenti a posteriori nel testo di sostituzione: `$1`, `$2` per i gruppi catturati. «Sostituisci tutto» è una singola transazione, un solo `Ctrl+Z` annulla tutto insieme. In un'area aperta la stessa riga agisce su tutta l'area e non solo sul file aperto; vedi «In un'area».
 
 ```text
 Trova:       (\d{2})\.(\d{2})\.(\d{4})
@@ -69,7 +69,7 @@ Effetto:     12.06.2026 → 2026-06-12
 
 ## Dove cerca la ricerca
 
-L'ambito segue la scheda in cui la ricerca viene aperta; gli ambiti si escludono a vicenda:
+L'ambito segue la scheda in cui la ricerca viene aperta; gli ambiti si escludono a vicenda. Se non è aperta alcuna scheda, decide l'area collegata:
 
 | Scheda attiva | La ricerca copre |
 |---|---|
@@ -77,6 +77,7 @@ L'ambito segue la scheda in cui la ricerca viene aperta; gli ambiti si escludono
 | File di un'area aperta | **tutti** i file Markdown dell'area |
 | Pagina del manuale | **tutte** le pagine del manuale, anche quelle non aperte |
 | Impostazioni | **tutte** le sezioni delle impostazioni, anche quelle mai visitate |
+| Nessuna scheda aperta, area collegata | in **tutti** i file Markdown dell'area |
 
 L'ambito in vigore è mostrato a sinistra nella barra di ricerca.
 
@@ -88,7 +89,13 @@ Il **file aperto viene per primo**, e con il suo stato non salvato: ciò che si 
 
 La ricerca copre i file Markdown dell'area. Gli altri file e i file di accompagnamento dell'applicazione restano fuori.
 
-**La sostituzione** resta legata al singolo file: aprire la riga di sostituzione riporta la ricerca al documento corrente.
+Se **non è aperta alcuna scheda**, l'area vale comunque: cercare e sostituire raggiungono i suoi file senza che occorra prima aprire un documento. Due cose vengono meno, perché senza file aperto non esistono: l'elenco è ordinato in modo puramente alfabetico invece di anteporre un file, e nel testo non è evidenziato nulla.
+
+**Qui la sostituzione agisce su tutta l'area.** Aprendo la riga di sostituzione (`Ctrl+H`), l'elenco dei risultati riceve una casella davanti a ogni corrispondenza e a ogni file; all'inizio è tutto selezionato. L'elenco è quindi anche l'anteprima: ciò che resta spuntato viene sostituito. «Sostituisci tutto» esegue il passaggio sulle posizioni selezionate, anche in file che non sono affatto aperti. Un rapporto indica poi i file modificati, quelli tralasciati con il loro motivo e quelli che sono cambiati dopo la ricerca.
+
+**Ogni file modificato deposita il proprio stato precedente nella cronologia del documento, anche quando la cronologia è disattivata.** Non è un'opzione accanto al passaggio, ma parte della scrittura: se lo stato precedente non può essere messo al sicuro, il file non viene scritto. Il ritorno passa dalla vista della cronologia del file interessato; lì si trova la versione precedente al passaggio.
+
+In modalità regex i riferimenti `$1`, `$2` agiscono come in un singolo file. Si scrive esclusivamente all'interno dell'area. Un file aperto in una scheda con modifiche non salvate viene sostituito in quella scheda e resta non salvato: un `Ctrl+Z` vi annulla l'intero passaggio. I documenti suddivisi restano fuori e compaiono nel rapporto.
 
 In un'area molto grande la riga di stato del pannello segnala che ogni ricerca rilegge i file; la ricerca risponde allora più lentamente.
 

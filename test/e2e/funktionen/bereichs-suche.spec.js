@@ -105,6 +105,15 @@ test.describe('BS-01: Trefferraum ueber alle Bereichs-Dateien', () => {
       expect(titel.some((t) => t.includes('zweite'))).toBe(true);
       expect(titel.some((t) => t.includes('unter/dritte'))).toBe(true);
       expect(titel.some((t) => t.includes('ohne'))).toBe(false);
+
+      // 4T-001525 (Epic 3E-000169, AK6): Die Auswahl-Ebene des bereichsweiten
+      // Ersetzens erscheint erst mit dem Ersetzen-Modus. Bei der gewoehnlichen
+      // Suche ist die Liste die von 4T-000759 — kein Ankreuzfeld, kein Raster.
+      // Die Zusicherung haengt hier an einem Fall, der den Bereich ohnehin
+      // bindet und sucht; ein eigener Fall kostete einen Programm-Start fuer
+      // zwei Zusicherungen (E2E-Budget der Release-Abnahme).
+      await expect(page.locator(`${PANEL} .search-results-check`)).toHaveCount(0);
+      await expect(page.locator(`${PANEL} .search-results-list`)).not.toHaveClass(/auswahl-modus/);
     } finally {
       await closeApp(app, userData);
       removeDir(dir);
@@ -251,6 +260,58 @@ test.describe('BS-05: Durchlauf ueber die Datei-Grenze', () => {
         gesehen.push((await zaehler.textContent()).trim());
       }
       expect(gesehen).toEqual(['1 / 4', '2 / 4', '3 / 4', '4 / 4']);
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+});
+
+// 4T-001561 (Epic 3E-000280): Die Tastatur-Führung der Trefferliste trug bis
+// dahin genau einen Druck — das Neuzeichnen verwarf den Fokus. Der Fall misst
+// deshalb ZWEI Bewegungen und den Sprung danach; mit einem Druck wäre er auch
+// vor der Behebung grün gewesen.
+test.describe('BS-07: Tastatur-Führung der Trefferliste', () => {
+  test('bewegt sich zweimal und springt dann in die Zieldatei', async () => {
+    test.setTimeout(120000);
+    const dir = makeAreaDir();
+    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    try {
+      await bindArea(page, dir);
+      await sucheOeffnen(page, BEGRIFF);
+      await warteAufTreffer(page, 3);
+
+      // Reihenfolge mit Anker start.md: start(1), unter/dritte(1), zweite(2).
+      const zeilen = page.locator(`${PANEL} .search-results-item`);
+      await zeilen.first().focus();
+      // 4T-001533 (Epic 3E-000175): Zwischen den beiden Drücken wird auf die
+      // Wirkung des ersten gewartet. Gemessen am 2026-09-08 über elf Läufe
+      // zweier Stände fiel der Fall in vier davon, und zwar ausschließlich in
+      // den langsamen (34 s gegen 22 bis 27 s): Der zweite Druck traf ein,
+      // bevor die Fokus-Rückgabe des ersten fertig war, landete damit außerhalb
+      // des Panels und erreichte den Handler nicht.
+      //
+      // **Bewusst kein Wiederhol-Helfer.** `pressUntil` scheidet aus, weil
+      // ArrowDown die Auswahl je Druck weiterrückt; `pressNachfassend` ist an
+      // dieser Stelle gemessen ebenfalls falsch — es fasst nach einer Sekunde
+      // nach, und unter genau der Last, die den Fall überhaupt fallen lässt,
+      // trifft das den bloß langsamen statt den verlorenen Druck: Die Auswahl
+      // springt dann über das Ziel hinaus und die Bedingung wird nie wahr
+      // (belegt am 2026-09-08). Hier ist der Druck nicht verloren, er kommt
+      // nur zu früh — dagegen hilft das Warten und nicht das Nachfassen.
+      //
+      // **Die Zusicherung des Falls bleibt unverändert** (4T-001561): Zwei
+      // Bewegungen kommen an, nicht bloß eine. Gemessen wird jetzt jede
+      // einzeln, statt beide gegen ein Rennen mit dem Neuzeichnen zu setzen.
+      await page.keyboard.press('ArrowDown');
+      await expect(zeilen.nth(1)).toHaveClass(/selected/);
+      await page.keyboard.press('ArrowDown');
+      // Die dritte Zeile ist gewählt — das belegt, dass der zweite Druck
+      // angekommen ist.
+      await expect(zeilen.nth(2)).toHaveClass(/selected/);
+
+      await page.keyboard.press('Enter');
+      await expect.poll(() => page.title()).toContain('zweite');
     } finally {
       await closeApp(app, userData);
       removeDir(dir);

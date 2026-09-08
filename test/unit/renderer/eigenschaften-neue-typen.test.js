@@ -11,6 +11,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import './api-stub.js';
 import de from '../../../src/i18n/de.json';
+import { BESTAND_ZEITLIMIT } from '../../zeitlimits.js';
+
+// 4T-001631: Dieser Wächter liest den Repositoriums-Bestand und trägt deshalb
+// das benannte Bestands-Limit statt der Vitest-Vorgabe von 5000 ms. Ohne es
+// riss er unter Last das Testsuite-Gate der Merge-Queue; der Wert selbst ist
+// unverändert (siehe test/zeitlimits.js).
+vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 
 global.fetch = vi.fn(async () => ({ ok: true, json: async () => de }));
 const i18n = await import('../../../src/renderer/i18n.js');

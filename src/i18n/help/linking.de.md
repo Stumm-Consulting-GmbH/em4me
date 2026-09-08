@@ -118,11 +118,21 @@ Die Bereichs-Verknüpfungen sind eine [Erweiterung](extensions.md) und lassen si
 
 ## Tags
 
-`#tag` im Fließtext und das `tags:`-Feld im [Frontmatter](frontmatter.md) werden als Tags erkannt; Schrägstriche bilden Hierarchien wie `#projekt/markdown`. Tags sind in der Lese-Ansicht und im Live-Modus klickbar und filtern die Tag-Sidebar. Hex-Farbcodes, reine Zahlen und Anker-Links sind von der Erkennung ausgenommen.
+`#tag` im Fließtext und das `tags:`-Feld im [Frontmatter](frontmatter.md) werden als Tags erkannt; Schrägstriche bilden Hierarchien wie `#projekt/markdown`. Tags sind in der Lese-Ansicht und im Live-Modus klickbar und filtern die Tag-Sidebar. Hex-Farbcodes, reine Zahlen, Anker-Links und Rauten innerhalb einer Web-Adresse sind von der Erkennung ausgenommen: In `https://example.org/#kapitel` ist `#kapitel` der Adress-Teil und kein Tag.
 
 ```markdown
 Status: #projekt/markdown #review
 ```
+
+### Ein Tag umbenennen
+
+Ein Rechtsklick auf einen Eintrag der Tag-Sidebar benennt den Tag über alle seine Vorkommen im Bereich um — im Fließtext wie im `tags:`-Feld, in allen Dateien, auch in denen, die gerade nicht geöffnet sind.
+
+**Untergeordnete Tags wandern mit.** Wird `#projekt` zu `#arbeit`, dann wird `#projekt/markdown` zu `#arbeit/markdown`. Das ist Absicht und nicht Nebenwirkung: Abfragen werten einen Tag als Vorsilbe seiner Kinder aus, und eine Umbenennung ohne sie zerlegte genau diese Abfragen. Ein Tag, der nur mit demselben Wort beginnt, bleibt unberührt — `#projektil` ist kein Kind von `#projekt`, dafür fehlt der Schrägstrich.
+
+**Vor dem Schreiben steht die Vorschau.** Sie listet jede Fundstelle mit ihrer Zeile, weist die mitwandernden Kinder aus und lässt einzelne Stellen abwählen. Erst die Zusage im Balken über der Liste schreibt; ein Abbruch lässt den Bestand, wie er war.
+
+Geschrieben wird innerhalb der Bereichs-Grenze, und von jeder geänderten Datei liegt der Stand davor in der [Versionshistorie](history.md) — unabhängig davon, ob die Historisierung eingeschaltet ist. Eine Datei mit ungespeicherten Änderungen bekommt die Umbenennung auf ihren Reiter statt auf die Platte; ein Bericht am Ende nennt jede Datei und, wo etwas nicht ging, den Grund.
 
 ## Autocomplete
 

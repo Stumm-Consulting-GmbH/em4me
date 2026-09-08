@@ -422,7 +422,23 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
       const vortag = await tagDesReiters();
       await expect.poll(tagImBlock).toBe(vortag);
       // Und die Zusatzzeile «Heute» gehoert zum heutigen Eintrag, nicht hierher.
-      await expect(nav.locator('.journal-nav-sub')).toHaveCount(0);
+      //
+      // 4T-001489 (Epic 3E-000276): Die Absicht dieser Zusicherung ist
+      // unveraendert, ihre Form nicht. Bis dahin war die Zeile ausserhalb der
+      // laufenden Periode LEER, und «nicht hierher» hiess «gar keine Zeile».
+      // Seit der zeitlichen Einordnung ist sie immer belegt; geprueft wird
+      // deshalb, dass sie da ist, dass sie NICHT «Heute» sagt und dass sie der
+      // Standard-Formulierung des Vortags folgt. Die Erwartung wird IN DER
+      // SEITE gerechnet, damit der Fall die ICU-Fassung der Anwendung misst
+      // und keine aus der Testumgebung mitbringt.
+      await expect(nav.locator('.journal-nav-sub')).toHaveCount(1);
+      await expect(nav.locator('.journal-nav-sub')).not.toHaveText('Heute');
+      const gestern = await page.evaluate(() =>
+        new Intl.RelativeTimeFormat(document.documentElement.lang || 'de', {
+          numeric: 'auto',
+        }).format(-1, 'day'),
+      );
+      await expect(nav.locator('.journal-nav-sub')).toHaveText(gestern);
 
       // Vorwaerts zurueck: wieder der heutige Eintrag samt Zusatzzeile.
       await nav.locator('.journal-nav-arrow').last().click();

@@ -26,6 +26,26 @@
   display: flex;
   flex-direction: column;
 }
+/* 4T-001525 (Epic 3E-000169): Im Ersetzen-Modus steht vor jeder Zeile ihr
+   Ankreuzfeld. Feld und Zeile sind Geschwister und kein Behaelter-Paar
+   (Begruendung im Kopf von search-panel.js); das Raster stellt sie
+   nebeneinander, ohne die Reihenfolge im Baum anzutasten. Ohne den Modus
+   greift diese Regel nicht, und die Liste bleibt die gewohnte Spalte. */
+.search-results-list.auswahl-modus {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+/* Die Einrueckung der Trefferzeile leistet im Raster die Feld-Spalte; die
+   feste Einrueckung von 22px kaeme sonst ein zweites Mal dazu. */
+.search-results-list.auswahl-modus .search-results-item {
+  padding-left: 4px;
+}
+.search-results-check {
+  margin: 0 0 0 8px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 .search-results-group {
   display: flex;
   align-items: baseline;
@@ -356,4 +376,67 @@
 .book-reassign-actions button {
   flex: 1 1 auto;
   text-align: center;
+}
+
+/* === Tag-Umbenennung (4T-001531, Epic 3E-000175) ============================= */
+/* Der Balken zwischen Status-Zeile und Trefferliste. Er traegt die Zusage des
+   Anwenders und steht deshalb dort, wo er die Vorschau NICHT verdeckt: Ein
+   modaler Dialog laege genau ueber der Liste, die er lesen soll. */
+/* Ohne diese Zeile bliebe der leere Kasten stehen: `display: flex` einer
+   Klassen-Regel schlaegt das `hidden`-Attribut, dessen Browser-Vorgabe nur
+   Element-Spezifitaet hat. Gefunden vom E2E-Fall TU-02 (AK8). */
+.search-results-rename[hidden] {
+  display: none;
+}
+.search-results-rename {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 10px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--hover);
+}
+.search-results-rename-text {
+  font-size: 12px;
+  color: var(--fg);
+}
+.search-results-rename-children {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+.search-results-rename-buttons {
+  display: flex;
+  gap: 6px;
+}
+.search-results-rename-buttons button {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  cursor: pointer;
+}
+.search-results-rename-buttons button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.search-results-rename-buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.search-results-rename-ok {
+  font-weight: 600;
+}
+/* Das Ziel einer Fundstelle in der Trefferzeile. Gedaempft, weil es die
+   Auskunft ist und nicht der Fund selbst. */
+.search-results-rename-target {
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.search-results-rename-target.kind {
+  font-style: italic;
 }

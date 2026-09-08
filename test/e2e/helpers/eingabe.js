@@ -87,4 +87,69 @@ async function pressNachfassend(page, key, bedingung, opts = {}) {
   await expect.poll(async () => bedingung(), { timeout: 5000 }).toBe(true);
 }
 
-module.exports = { pressUntil, pressUntilVisible, pressNachfassend, NACHFASS_FRIST_MS };
+/**
+ * 4T-001555: Bedienen, bis die Wirkung eintritt — für Elemente, die zwar
+ * **aufgelöst**, aber im Moment des Zugriffs noch nicht **bedienbar** sind.
+ *
+ * **Der Unterschied zu Playwrights eingebautem Warten.** `click` und `fill`
+ * warten von sich aus auf Sichtbarkeit, Stabilität und Empfangsbereitschaft;
+ * das ist der Normalfall und braucht nichts dazu. Vier belegte Vorfälle in vier
+ * Wochen zeigen aber eine Lage, in der dieses Warten in sein 30-Sekunden-Limit
+ * lief, obwohl der Locator aufgelöst hatte — Playwright benannte das gefundene
+ * Element ausdrücklich. Isoliert war der Fall danach jedes Mal sofort grün.
+ *
+ * **Deshalb dieselbe Form wie `pressUntil`:** handeln, bis die Wirkung
+ * eintritt, statt einmal zu handeln und danach auf sie zu warten. Ein zweiter
+ * Klick auf einen Navigations-Eintrag oder eine zweite Eingabe in dasselbe Feld
+ * ist folgenlos, wenn der erste angekommen ist — die Bedingung prüft ohnehin
+ * den Ziel-Zustand.
+ *
+ * **Bewusst NICHT flächig eingesetzt** (Entscheidung des Product Owners vom
+ * 2026-09-08, Weg 2). Die Erhebung des Vorgangs zählte 547 von 1284
+ * Element-Zugriffen ohne ausdrückliche Bedienbarkeits-Bedingung in 89 von 123
+ * Prüfdateien — das sind keine anfälligen Stellen, sondern der Normalfall.
+ * Dieser Helfer gehört an die Stellen, an denen das eingebaute Warten
+ * **belegt** gerissen ist, und an keine anderen.
+ *
+ * @param {import('@playwright/test').Locator} ziel Das zu bedienende Element.
+ * @param {() => Promise<boolean>|boolean} bedingung Der erwartete Ziel-Zustand.
+ * @param {object} [opts]
+ * @param {number} [opts.zugriffsFristMs] Zeitgrenze je Zugriff (Vorgabe 5000).
+ * @param {(ziel: import('@playwright/test').Locator) => Promise<void>} [opts.zugriff]
+ *   Die Bedienung; Vorgabe ist ein Klick.
+ */
+async function bedieneBis(ziel, bedingung, opts = {}) {
+  const frist = opts.zugriffsFristMs || 5000;
+  const zugriff = opts.zugriff || ((l) => l.click({ timeout: frist }));
+  await expect
+    .poll(async () => {
+      if (await bedingung()) return true;
+      // Ein gerissener Zugriff ist hier kein Fehlschlag, sondern der Grund für
+      // den nächsten Versuch. Die kurze Frist ersetzt die 30 Sekunden, in denen
+      // der Fall bisher stehenblieb, ohne je einen zweiten Versuch zu wagen.
+      try {
+        await zugriff(ziel);
+      } catch {
+        // nächster Durchgang
+      }
+      return bedingung();
+    })
+    .toBe(true);
+}
+
+/** `bedieneBis` mit einer Eingabe statt eines Klicks. */
+async function fuelleBis(ziel, wert, bedingung, opts = {}) {
+  await bedieneBis(ziel, bedingung, {
+    ...opts,
+    zugriff: (l) => l.fill(wert, { timeout: opts.zugriffsFristMs || 5000 }),
+  });
+}
+
+module.exports = {
+  pressUntil,
+  pressUntilVisible,
+  pressNachfassend,
+  bedieneBis,
+  fuelleBis,
+  NACHFASS_FRIST_MS,
+};

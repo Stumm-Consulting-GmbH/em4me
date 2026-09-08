@@ -78,9 +78,13 @@ export async function sucheImRaum(raum, regex, { behalteIndex = false } = {}) {
   const lieferant = LIEFERANTEN.get(raum);
   const vorherigerIndex = behalteIndex && bestand.raum === raum ? bestand.index : -1;
   const meine = ++generation;
+  // 4T-001525 (Epic 3E-000169): Die Anfrage reist zur Trefferliste mit. Sie
+  // entscheidet dort, ob eine bestehende Auswahl weiterhin gilt — dasselbe
+  // Muster im selben Raum meint dieselben Fundstellen, ein anderes nicht.
+  const anfrage = { muster: regex ? regex.source : '', flags: regex ? regex.flags : '' };
   if (!lieferant) {
     bestand = { treffer: [], gruppen: [], abgeschnitten: false, raum, index: -1 };
-    zeigeTreffer({ treffer: [], gruppen: [], abgeschnitten: false, raum });
+    zeigeTreffer({ treffer: [], gruppen: [], abgeschnitten: false, raum, ...anfrage });
     return true;
   }
 
@@ -118,7 +122,7 @@ export async function sucheImRaum(raum, regex, { behalteIndex = false } = {}) {
     raum,
     index,
   };
-  zeigeTreffer({ ...ergebnis, raum });
+  zeigeTreffer({ ...ergebnis, raum, ...anfrage });
   if (index > 0) setzeAuswahl(index);
   // Ein Treffer, den niemand sieht, ist keiner: Bei Fundstellen öffnet sich
   // das Panel, falls es zu ist.

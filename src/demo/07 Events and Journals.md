@@ -41,7 +41,7 @@ A journal entry usually embeds a navigation block:
 ```perspective-journal-nav
 ```
 
-Outside a journal it shows a short hint (as it does right above); inside one it links to the previous, next and parent periods.
+Outside a journal it shows a short hint (as it does right above); inside one it links to the previous, next and parent periods. There it also states how far the period is from today, names the target period beside each paging button, and marks with a dot every period whose entry already exists.
 
 The second journal block is the timeline: a period overview as a calendar, in four modes (`week`, `month`, `quarter` and `year`).
 

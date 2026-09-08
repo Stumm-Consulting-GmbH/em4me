@@ -118,11 +118,21 @@ Area links are an [extension](extensions.md) and can be switched off. A prefixed
 
 ## Tags
 
-`#tag` in body text and the `tags:` field in the [frontmatter](frontmatter.md) are recognised as tags; slashes build hierarchies like `#project/markdown`. Tags are clickable in Reading view and Live mode and filter the tags sidebar. Hex colour codes, plain numbers and anchor links are excluded from recognition.
+`#tag` in body text and the `tags:` field in the [frontmatter](frontmatter.md) are recognised as tags; slashes build hierarchies like `#project/markdown`. Tags are clickable in Reading view and Live mode and filter the tags sidebar. Hex colour codes, plain numbers, anchor links and hashes inside a web address are excluded from recognition: in `https://example.org/#chapter`, `#chapter` is part of the address, not a tag.
 
 ```markdown
 Status: #project/markdown #review
 ```
+
+### Renaming a tag
+
+Right-clicking an entry in the tags sidebar renames the tag across all its occurrences in the area — in body text as well as in the `tags:` field, in every file, including those that are not open.
+
+**Sub-tags move along.** If `#project` becomes `#work`, then `#project/markdown` becomes `#work/markdown`. That is intentional, not a side effect: queries treat a tag as a prefix of its children, and renaming without them would break exactly those queries. A tag that merely starts with the same word stays untouched — `#projectile` is not a child of `#project`, the slash is missing.
+
+**A preview comes before any writing.** It lists every match with its line, marks the sub-tags that move along, and lets you deselect individual matches. Only confirming in the bar above the list writes anything; cancelling leaves everything as it was.
+
+Writing stays inside the area boundary, and the previous state of every changed file goes into the [version history](history.md) — whether or not history is switched on. A file with unsaved changes receives the rename in its tab rather than on disk; a report at the end names every file and, where something did not work, the reason.
 
 ## Autocomplete
 

@@ -115,9 +115,21 @@ function createMddHistory(deps) {
   // Historie lassen das Speichern selbst nie scheitern; eine defekte .mdd
   // setzt die Protokollierung fuer das Dokument aus statt sie zu
   // ueberschreiben.
+  //
+  // 4T-001524 (Epic 3E-000169): Seit dem bereichsweiten Ersetzen SAGT die
+  // Funktion zusaetzlich, ob sie ihre Arbeit getan hat ({ ok } bzw.
+  // { ok: false, grund }). Der Rueckgabewert aendert fuer die bisherigen
+  // Aufrufer nichts — sie werten ihn nicht aus, und das bleibt richtig: Beim
+  // gewoehnlichen Speichern ist die Datei schon geschrieben, wenn diese Zeile
+  // laeuft. Die Ersetzen-Strecke ruft sie dagegen VOR dem Schreiben und darf
+  // nur schreiben, wenn der Vor-Stand wirklich weggelegt wurde; ohne ein
+  // Ergebnis muesste sie die Zusicherung aus dem Nicht-Wissen behaupten.
   async function recordMddOnSave(owner, absolute, previousText, newText) {
     const key = mddKeyOf(absolute);
-    if (mddSuspendedPaths.has(key)) return;
+    // Ausgesetzt heisst: Es wird nichts protokolliert. Fuer das gewoehnliche
+    // Speichern ist das der gewollte Schutz der defekten .mdd, fuer einen
+    // Aufrufer mit Sicherungs-Pflicht ein Fehlschlag.
+    if (mddSuspendedPaths.has(key)) return { ok: false, grund: 'ausgesetzt' };
     const mddPath = mddPathFor(absolute);
     try {
       let container = mddStore.emptyContainer();
@@ -132,7 +144,7 @@ function createMddHistory(deps) {
         if (!parsed.ok) {
           mddSuspendedPaths.add(key);
           notifyMddDefect(owner, absolute, parsed.error);
-          return;
+          return { ok: false, grund: 'defekt' };
         }
         container = parsed.container;
       }
@@ -154,12 +166,16 @@ function createMddHistory(deps) {
         const serialized = mddStore.serializeContainer(container);
         await ersetzeDateiOderWirf(mddPath, serialized, { markSelfWriting });
       }
+      // Auch ein `changed === false` ist ein Erfolg: Dann steht der Stand
+      // bereits im Container, und genau das ist die Zusicherung.
+      return { ok: true };
     } catch (err) {
       // Unerwarteter Fehler (IO, defekte Delta-Kette): aussetzen statt bei
-      // jedem Speichern erneut fehlzuschlagen. Das Dokument selbst ist zu
-      // diesem Zeitpunkt bereits gespeichert.
+      // jedem Speichern erneut fehlzuschlagen. Beim gewoehnlichen Speichern ist
+      // das Dokument zu diesem Zeitpunkt bereits geschrieben.
       mddSuspendedPaths.add(key);
       notifyMddDefect(owner, absolute, err && err.message ? err.message : String(err));
+      return { ok: false, grund: 'fehler' };
     }
   }
 

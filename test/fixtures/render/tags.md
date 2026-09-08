@@ -12,3 +12,11 @@ Kein Tag im Wiki-Anker: [[#Abschnitt]]
 
 Tag am Zeilenanfang:
 #zeilenstart
+
+Kein Tag in einer nackten Adresse: https://beispiel.de/#abschnitt
+
+Kein Tag in spitzen Klammern: <https://beispiel.de/#kapitel>
+
+Kein Tag im Link-Ziel: [Text](https://beispiel.de/#anker)
+
+Gegenprobe: https://beispiel.de und danach #echtertag im selben Absatz.

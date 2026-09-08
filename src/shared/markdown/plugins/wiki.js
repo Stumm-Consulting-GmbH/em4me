@@ -7,6 +7,9 @@
 const { escapeHtml, githubLikeSlug } = require('../slug.js');
 // 4T-001451 (Epic 3E-000190): Kuerzel-Syntax der Bereichs-Verknuepfung.
 const { splitAreaLink, joinAreaLink } = require('../../area-link-syntax.js');
+// 4T-001529 (Epic 3E-000175): Adress-Schutz der Tag-Erkennung, geteilt mit der
+// Index-Seite — eine Regel, zwei Aufrufer.
+const { istInAdresse } = require('../../tag-erkennung.js');
 
 // 4T-000891 (Epic 3E-000168): Anker-Teil eines Wiki-Ziels als href-Fragment.
 // Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
@@ -365,6 +368,12 @@ function tagsPlugin(mdInstance) {
     if (start >= 2 && state.src.charAt(start - 1) === '(' && state.src.charAt(start - 2) === ']') {
       return false;
     }
+    // 4T-001529 (Epic 3E-000175): Fragment-Bezeichner einer Web-Adresse sind
+    // kein Tag — die nackte URL, die Form in spitzen Klammern und das Link-Ziel
+    // mit vollem Schema. Der Guard darueber deckt allein `](#anker)` ab, weil
+    // er zwei feste Zeichen prueft; steht die Adresse dazwischen, greift er
+    // nicht mehr. Dieselbe Frage stellt die Index-Seite an dieselbe Funktion.
+    if (istInAdresse(state.src, start)) return false;
     // Tag-Zeichen einlesen.
     let pos = start + 1;
     const max = state.posMax;

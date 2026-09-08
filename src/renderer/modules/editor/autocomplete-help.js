@@ -23,6 +23,8 @@ import { toLogicalName } from '../../../shared/subpages.js';
 // 4T-000294 (Epic 3E-000052): Autocomplete ist eine schaltbare Erweiterung; die
 // Trigger prüfen zusätzlich den Zustand von wiki-links bzw. tags.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+// 4T-001531 (Epic 3E-000175): Kontextmenue des Tag-Eintrags in der Uebersicht.
+import { hideContextMenu, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
 import { paneEditors } from './editor.js';
 import { openInPane } from '../tabs/tabs.js';
 // 4T-000507 (Epic 3E-000096): dritte Vervollstaendigungs-Quelle auf Task-Zeilen
@@ -625,6 +627,33 @@ export async function renderTags(paneIdx) {
   }
 }
 
+// 4T-001531 (Epic 3E-000175): Kontextmenü eines Tag-Eintrags. Ein Eintrag, und
+// er hängt am geöffneten Bereich: Ohne ihn gibt es keine Grenze, innerhalb
+// derer umbenannt würde.
+//
+// Der Bedienweg selbst kommt zur LAUFZEIT herein (`import()`). Er lebt in
+// `modules/search/`, weil er Trefferliste und Ersetzen-Strecke bedient; ein
+// statischer Import von hier wäre eine Kopplungs-Kante zwischen zwei
+// Feature-Ordnern, die der Ordner-Import-Wächter zu Recht zählte.
+function zeigeTagKontextmenue(ev, tag) {
+  if (!state.areaPath) return;
+  const menu = document.getElementById('context-menu');
+  if (!menu) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  menu.innerHTML = '';
+  const item = document.createElement('div');
+  item.className = 'context-menu-item';
+  item.dataset.menuId = 'tag-rename';
+  item.textContent = t('tagRename.menu');
+  item.addEventListener('click', () => {
+    hideContextMenu();
+    void import('../search/tag-umbenennen.js').then((modul) => modul.starteTagUmbenennung(tag));
+  });
+  menu.appendChild(item);
+  placeContextMenuAt(menu, ev.clientX, ev.clientY);
+}
+
 export function renderTagsTreeView(paneIdx, els, tags) {
   if (!tags || tags.length === 0) {
     els.tagsStatus.hidden = false;
@@ -658,6 +687,10 @@ export function renderTagsTreeView(paneIdx, els, tags) {
       state.tags.filterByPane[paneIdx] = entry.tag;
       renderTags(paneIdx);
     });
+    // 4T-001531 (Epic 3E-000175): Der Zugang zur Umbenennung liegt dort, wo der
+    // Anwender den Tag sieht, den er umbenennen will. Ein zweiter Zugang wird
+    // nicht gebaut; der Linksklick bleibt der Filter, den er immer war.
+    item.addEventListener('contextmenu', (ev) => zeigeTagKontextmenue(ev, entry.tag));
     els.tagsTree.appendChild(item);
   }
 }

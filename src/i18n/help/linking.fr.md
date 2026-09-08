@@ -118,11 +118,21 @@ Les liens entre zones sont une [extension](extensions.md) et peuvent être désa
 
 ## Tags
 
-`#tag` dans le texte et le champ `tags:` du [frontmatter](frontmatter.md) sont reconnus comme tags ; les barres obliques créent des hiérarchies comme `#projet/markdown`. Les tags sont cliquables en vue Lecture et en mode Direct et filtrent la barre latérale des tags. Les codes couleur hexadécimaux, les nombres purs et les liens d'ancre sont exclus de la reconnaissance.
+`#tag` dans le texte et le champ `tags:` du [frontmatter](frontmatter.md) sont reconnus comme tags ; les barres obliques créent des hiérarchies comme `#projet/markdown`. Les tags sont cliquables en vue Lecture et en mode Direct et filtrent la barre latérale des tags. Les codes couleur hexadécimaux, les nombres purs, les liens d'ancre et les dièses situés dans une adresse web sont exclus de la reconnaissance : dans `https://example.org/#chapitre`, `#chapitre` fait partie de l'adresse et n'est pas un tag.
 
 ```markdown
 Statut : #projet/markdown #review
 ```
+
+### Renommer un tag
+
+Un clic droit sur une entrée de la barre latérale des tags renomme le tag dans toutes ses occurrences de la zone — dans le texte comme dans le champ `tags:`, dans tous les fichiers, y compris ceux qui ne sont pas ouverts.
+
+**Les sous-tags suivent.** Si `#projet` devient `#travail`, alors `#projet/markdown` devient `#travail/markdown`. C'est voulu et non un effet de bord : les requêtes traitent un tag comme le préfixe de ses enfants, et un renommage sans eux briserait précisément ces requêtes. Un tag qui commence seulement par le même mot reste intact — `#projectile` n'est pas un enfant de `#projet`, la barre oblique manque.
+
+**L'aperçu précède toute écriture.** Il liste chaque occurrence avec sa ligne, signale les sous-tags qui suivent et permet d'en désélectionner. Seule la confirmation dans le bandeau au-dessus de la liste écrit quoi que ce soit ; annuler laisse tout en l'état.
+
+L'écriture reste dans les limites de la zone, et l'état précédent de chaque fichier modifié est déposé dans l'[historique de versions](history.md) — que l'historisation soit activée ou non. Un fichier avec des modifications non enregistrées reçoit le renommage dans son onglet plutôt que sur le disque ; un rapport final nomme chaque fichier et, le cas échéant, la raison de l'échec.
 
 ## Autocomplétion
 

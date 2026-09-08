@@ -214,6 +214,13 @@
       "hinweis": "BS-01 bis BS-06 (Trefferraum ueber alle Bereichs-Dateien, offene Datei zuerst mit ihrem Editor-Stand, Markierung im Text ohne Klick, Sprung in eine andere Datei, F3 ueber die Datei-Grenze, keine Bereichs-Suche ohne Bereich)."
     },
     {
+      "key": "help.feature.areaReplace",
+      "id": "F-283",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/bereichs-ersetzen.spec.js"],
+      "hinweis": "BE-01 bis BE-03 (Zugang und Auswahl-Ebene im Bereich, Lauf ueber eine nie geoeffnete Datei samt Bericht und neu gerechneter Trefferliste, Ersetzen nur der ausgewaehlten Fundstellen, kein Bereichs-Ersetzen ohne Bereich)."
+    },
+    {
       "key": "help.feature.menuBar",
       "id": "F-023",
       "testart": "manuell",
@@ -557,6 +564,13 @@
       "hinweis": "MK-03 (Live-Klick), NF-01 (Sidebar ohne Backlinks-Panel), FN-04 (Filter)."
     },
     {
+      "key": "help.feature.tagRename",
+      "id": "F-284",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/tag-umbenennung.spec.js", "test/unit/tag-umbenennung.test.js"],
+      "hinweis": "4T-001531 (Epic 3E-000175): Umbenennung eines Tags ueber alle Vorkommen. TU-01 bis TU-03 decken Zugang und Dialog, Vorschau samt Auszeichnung der mitwandernden Kinder, Abbruch und den Lauf ueber beide Notationen ab; der Schreibweg selbst samt Zwangs-Sicherung und Puffer-Fall liegt im Unit-Test an einem echten Bereichs-Ordner."
+    },
+    {
       "key": "help.feature.callouts",
       "id": "F-044",
       "testart": "snapshot",
@@ -898,8 +912,11 @@
       "key": "help.feature.taskQuery",
       "id": "F-115",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-000509 (Epic 3E-000096): TASKS-Scope mit Feldern, Gruppierung und Live-Aktualisierung — TQ-01 bis TQ-03; Felder/Layout zusaetzlich unit (perspective-query-tasks.test.js)."
+      "tests": [
+        "test/e2e/funktionen/aufgaben-abfrage.spec.js",
+        "test/e2e/funktionen/aufgaben-treffer-fluss.spec.js"
+      ],
+      "hinweis": "4T-000509 (Epic 3E-000096): TASKS-Scope mit Feldern, Gruppierung und Live-Aktualisierung — TQ-01 bis TQ-03; Felder/Layout zusaetzlich unit (perspective-query-tasks.test.js). 4T-001483 (Epic 3E-000275): Darstellung des Treffers im Textfluss — TF-01 bis TF-03."
     },
     {
       "key": "help.feature.taskQueryActions",

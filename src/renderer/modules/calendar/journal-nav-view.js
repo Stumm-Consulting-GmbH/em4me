@@ -29,9 +29,11 @@ import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
 import {
   findPeriodForPath,
   nextPeriod,
+  periodDistance,
   periodOf,
   prevPeriod,
   replaceJournalNavFences,
+  resolveEntryPath,
 } from '../../../shared/journal-core.js';
 
 // --- Perioden-Beschriftung ---------------------------------------------------------
@@ -65,17 +67,53 @@ export function periodLabel(period) {
   }
 }
 
-// Zusatz-Zeile bei aktueller Periode („Heute", „Diese Woche", …); null sonst.
-function currentPeriodLine(period) {
-  if (periodOf(Date.now(), period.granularity).key !== period.key) return null;
-  const keys = {
-    day: 'journalNav.today',
-    week: 'journalNav.thisWeek',
-    month: 'journalNav.thisMonth',
-    quarter: 'journalNav.thisQuarter',
-    year: 'journalNav.thisYear',
-  };
-  return t(keys[period.granularity]);
+// 4T-001489 (Epic 3E-000276): Zusatz-Zeile mit der zeitlichen Einordnung der
+// Periode zur Gegenwart — „Heute", „gestern", „vor 3 Wochen", „in 2 Jahren".
+//
+// Bis dahin war sie ALLEIN bei der laufenden Periode belegt und sonst leer,
+// also genau dort nicht, wo die Frage „wie weit ist das weg" ueberhaupt erst
+// entsteht (Befund des Product Owners vom 2026-09-06).
+//
+// Gerechnet wird in der EINHEIT DER PERIODE und nicht in Tagen (Entscheidung E2
+// des Epics): Ein Wochen-Eintrag sagt „letzte Woche" und nicht „vor sieben
+// Tagen", weil der Block eine Perioden-Navigation ist und eine fremde Einheit
+// zum Umrechnen zwaenge.
+//
+// Formuliert wird ueber die Standard-Funktion der Laufzeit-Umgebung statt ueber
+// eigene Schluessel je Sprache und Abstand (Entscheidung E1). `numeric: 'auto'`
+// liefert dabei die Sonderformen des unmittelbaren Nachbarn — „gestern" statt
+// „vor 1 Tag". Die Granularitaeten des Journal-Kerns heissen bereits wie die
+// Einheiten von `Intl.RelativeTimeFormat`, eine Uebersetzungs-Tabelle entfaellt.
+//
+// **Die Quartals-Einheit ist gemessen, nicht angenommen** (2026-09-07, im
+// Renderer der Anwendung): Electron beherrscht sie in allen fuenf
+// Oberflaechen-Sprachen. Der im Task vorgesehene Rueckfall auf eine eigene
+// Schablone entfaellt damit. Zwei Prueffaelle halten die Zusicherung fest,
+// je einer pro Umgebung: journal-nav-einordnung.test.js fuer den Unit-Lauf und
+// journal-einordnung.spec.js fuer die Laufzeit der Anwendung — nur der zweite
+// wuerde einen ICU-Wegfall bei einem Electron-Sprung sehen.
+//
+// Abstand null behaelt die bestehenden fuenf Schluessel: Sie sind kuerzer und
+// vertrauter als „diese Woche" aus der Standard-Formulierung.
+// Exportiert fuer den Unit-Prueffall (Muster buildQueryTaskListDom).
+export function periodRelationLine(period) {
+  const laufend = periodOf(Date.now(), period.granularity);
+  const abstand = periodDistance(laufend, period);
+  if (abstand === null) return null;
+  if (abstand === 0) {
+    const keys = {
+      day: 'journalNav.today',
+      week: 'journalNav.thisWeek',
+      month: 'journalNav.thisMonth',
+      quarter: 'journalNav.thisQuarter',
+      year: 'journalNav.thisYear',
+    };
+    return t(keys[period.granularity]);
+  }
+  return new Intl.RelativeTimeFormat(getLanguage(), { numeric: 'auto' }).format(
+    abstand,
+    period.granularity,
+  );
 }
 
 // --- Kontext-Ermittlung --------------------------------------------------------------
@@ -154,6 +192,77 @@ function buildLink(label, title, onClick) {
   return btn;
 }
 
+// 4T-001491 (Epic 3E-000276): Markierung vorhandener Einträge.
+//
+// Der Zeitleisten-Block und der Kalender des Seitenbereichs setzen an jede
+// Periode einen Punkt, deren Eintrag es schon gibt; der Navigations-Block tat
+// das an keiner Stelle. Damit sah man einem Klick nicht an, ob er einen
+// vorhandenen Eintrag öffnet oder einen neuen anlegt (Befund des Product Owners
+// vom 2026-09-06).
+//
+// **Ein Aufruf je Block-Aufbau, kein Zwischenspeicher** (Entscheidung, gemessen
+// statt vermutet — siehe Lösungs-Kapitel des Tasks). Der Block zeigt höchstens
+// sechs Perioden: bis zu drei übergeordnete, die aktuelle und zwei Nachbarn.
+// Der Zeitleisten-Block hält seinen Zwischenspeicher, weil er bis zu 366 Tage
+// abfragt; hier wäre er Aufwand ohne Ertrag und müsste zusätzlich nach jeder
+// Eintrags-Anlage verworfen werden, damit der Block nicht veraltet weiterzeigt.
+//
+// Schlüssel ist Journal UND Periode: Zwei Journale desselben Regals können
+// dieselbe Periode führen und dabei auf verschiedene Dateien zeigen.
+const eintragsSchluessel = (journal, period) => `${journal.id}|${period.key}`;
+
+// Welche der übergebenen Ziele bereits eine Datei haben. Ein Fehlschlag der
+// Abfrage liefert die leere Menge: Der Block erscheint dann ohne Markierungen
+// statt mit falschen — ein Punkt, der eine Datei behauptet, die es nicht gibt,
+// wäre schlimmer als gar keiner.
+// Exportiert fuer den Unit-Prueffall: Die Zahl der Aufrufe und das Verhalten
+// im Fehlschlag lassen sich am gebauten Programm nicht messen, weil
+// `window.api` aus der contextBridge eingefroren ist und sich nicht umhuellen
+// laesst (am 2026-09-07 gemessen).
+export async function ladeVorhandene(ziele) {
+  const pfadZuSchluessel = new Map();
+  for (const { journal, period } of ziele) {
+    const aufgeloest = resolveEntryPath(journal, period);
+    if (!aufgeloest.ok) continue;
+    const liste = pfadZuSchluessel.get(aufgeloest.relPath) || [];
+    liste.push(eintragsSchluessel(journal, period));
+    pfadZuSchluessel.set(aufgeloest.relPath, liste);
+  }
+  if (pfadZuSchluessel.size === 0) return new Set();
+  let result;
+  try {
+    result = await api.journalsEntriesExist([...pfadZuSchluessel.keys()]);
+  } catch {
+    result = null;
+  }
+  const vorhanden = new Set();
+  if (result && result.ok && result.exists) {
+    for (const [relPath, schluessel] of pfadZuSchluessel) {
+      if (result.exists[relPath]) for (const s of schluessel) vorhanden.add(s);
+    }
+  }
+  return vorhanden;
+}
+
+// Punkt-Markierung an ein Element hängen. Die Klasse ist dieselbe wie im
+// Kalender und im Zeitleisten-Block (`has-entry`), damit die drei Orte nicht
+// auseinanderlaufen; die Formatvorlage setzt sie je Element-Art um.
+function markiereVorhanden(element, journal, period, vorhanden) {
+  if (vorhanden.has(eintragsSchluessel(journal, period))) element.classList.add('has-entry');
+  return element;
+}
+
+// 4T-001490 (Epic 3E-000276): Beschriftung einer Nachbar-Periode neben ihrer
+// Blaetter-Schaltflaeche. `seite` unterscheidet die beiden nur fuer die
+// Formatvorlage; der Name selbst kommt aus derselben Quelle wie der
+// Kurzhinweis der Schaltflaeche, damit beide nicht auseinanderlaufen koennen.
+function neighborLabel(period, seite) {
+  const span = document.createElement('span');
+  span.className = `journal-nav-neighbor journal-nav-neighbor-${seite}`;
+  span.textContent = periodLabel(period);
+  return span;
+}
+
 async function fillJournalNav(el, basePath) {
   let result;
   try {
@@ -185,15 +294,27 @@ async function fillJournalNav(el, basePath) {
 
   // Übergeordnete Perioden desselben Regals (Lücken ausgelassen).
   const parents = parentTargets(config, journal, period);
+  const prev = prevPeriod(journal, period);
+  const next = nextPeriod(journal, period);
+
+  // 4T-001491: Alle Perioden des Blocks in EINEM Aufruf erfragen. Die
+  // Bestimmung steht vor dem Bauen, damit die Ziele vollständig sind — ein
+  // Aufruf je Element wären bis zu sechs.
+  const vorhanden = await ladeVorhandene([
+    ...parents.map((t) => ({ journal: t.journal, period: t.period })),
+    { journal, period },
+    ...(prev ? [{ journal, period: prev }] : []),
+    ...(next ? [{ journal, period: next }] : []),
+  ]);
+
   if (parents.length > 0) {
     const row = document.createElement('div');
     row.className = 'journal-nav-parents';
     for (const target of parents) {
-      row.appendChild(
-        buildLink(periodLabel(target.period), target.period.key, () =>
-          openTarget(target.journal, target.period),
-        ),
+      const link = buildLink(periodLabel(target.period), target.period.key, () =>
+        openTarget(target.journal, target.period),
       );
+      row.appendChild(markiereVorhanden(link, target.journal, target.period, vorhanden));
     }
     el.appendChild(row);
   }
@@ -201,20 +322,34 @@ async function fillJournalNav(el, basePath) {
   // Aktuelle Periode mit Pfeilen zu voriger/nächster (an Grenzen gekappt).
   const row = document.createElement('div');
   row.className = 'journal-nav-current';
-  const prev = prevPeriod(journal, period);
-  const next = nextPeriod(journal, period);
   if (prev) {
     const btn = buildLink('‹', periodLabel(prev), () => blaettereZu(journal, prev, basePath));
     btn.classList.add('journal-nav-arrow');
+    // 4T-001490 (Epic 3E-000276): Der Name der Ziel-Periode steht AUSSEN neben
+    // seiner Schaltflaeche — links vom Rueckwaerts-Pfeil, rechts vom
+    // Vorwaerts-Pfeil. Das ergibt die Lese-Folge „voriger ‹ aktueller ›
+    // naechster" und haelt die Zeile symmetrisch um die aktuelle Periode.
+    //
+    // Der Name bleibt AUSSERHALB der Schaltflaeche und ist nicht klickbar
+    // (technische Entscheidung im Rahmen des Tasks): Das Bedienelement bleibt
+    // damit genau ein Kasten mit einer Trefferflaeche, statt in Zeichen und
+    // Beschriftung zu zerfallen. Der Kurzhinweis der Schaltflaeche bleibt
+    // erhalten, weil er auch dort noch traegt, wo der Name aus Platzmangel
+    // gekuerzt ist.
+    row.appendChild(markiereVorhanden(neighborLabel(prev, 'prev'), journal, prev, vorhanden));
     row.appendChild(btn);
   }
   const title = document.createElement('div');
   title.className = 'journal-nav-title';
+  // 4T-001491: Die Markierung der aktuellen Periode sitzt am Titel-Container
+  // und nicht an seiner Beschriftung — sonst stuende der Punkt zwischen
+  // Beschriftung und Zusatz-Zeile statt unter dem Element.
+  markiereVorhanden(title, journal, period, vorhanden);
   const label = document.createElement('div');
   label.className = 'journal-nav-label';
   label.textContent = periodLabel(period);
   title.appendChild(label);
-  const subText = currentPeriodLine(period);
+  const subText = periodRelationLine(period);
   if (subText) {
     const sub = document.createElement('div');
     sub.className = 'journal-nav-sub';
@@ -226,6 +361,7 @@ async function fillJournalNav(el, basePath) {
     const btn = buildLink('›', periodLabel(next), () => blaettereZu(journal, next, basePath));
     btn.classList.add('journal-nav-arrow');
     row.appendChild(btn);
+    row.appendChild(markiereVorhanden(neighborLabel(next, 'next'), journal, next, vorhanden));
   }
   el.appendChild(row);
 }

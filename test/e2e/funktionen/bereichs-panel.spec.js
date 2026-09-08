@@ -32,6 +32,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 // 4T-001351: Editor- und Reiter-Selektoren für den geänderten Reiter in BP-08.
 const { SEL } = require('../helpers/selectors');
+const { fuelleBis } = require('../helpers/eingabe');
 
 function makeAreaTree() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-bp-'));
@@ -200,7 +201,16 @@ test.describe('BP-05: Anlegen über das Kontextmenü (4T-001349)', () => {
       await page.locator('#context-menu [data-menu-id="area-dir-new-file"]').click();
       const dateiEingabe = section.locator('.area-new-file-input');
       await expect(dateiEingabe).toBeVisible();
-      await dateiEingabe.fill('Zeta');
+      // 4T-001555: Die belegte Stelle. Am 2026-09-06 lief `fill` hier in sein
+      // 30-Sekunden-Limit, obwohl der Locator aufgelöst hatte — Playwright
+      // benannte das Feld samt Platzhalter «Dateiname…»; es nahm die Eingabe
+      // nur nicht an. Isoliert war die ganze Prüfdatei danach 8 von 8 grün.
+      // Eingegeben wird deshalb, bis der Wert steht.
+      await fuelleBis(
+        dateiEingabe,
+        'Zeta',
+        async () => (await dateiEingabe.inputValue()) === 'Zeta',
+      );
       await dateiEingabe.press('Enter');
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab .tab-title')).toHaveText(
         /Zeta/,

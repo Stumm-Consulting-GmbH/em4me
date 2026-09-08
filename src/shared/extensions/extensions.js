@@ -319,11 +319,19 @@ const INTERNAL_EXTENSIONS = [
     dependencies: ['wiki-links'],
     settingsSections: ['areaLinks'],
   },
+  // 4T-001532 (Epic 3E-000175): Die Tag-Umbenennung ist keine eigene
+  // Erweiterung, sondern die Pflege-Seite dieser einen — Ergebnis des
+  // Erweiterungs-Pruefschritts. Ihr Zugang liegt im Kontextmenue der
+  // Tag-Uebersicht; ist die Erweiterung aus, ist das Panel verborgen (EW-03),
+  // und mit ihm der einzige Zugang. Ein eigener Schalter haette der
+  // Erweiterung eine Funktion genommen, ohne dass sie erreichbar geblieben
+  // waere, oder sie erreichbar gelassen, ohne dass es Tags gaebe.
   {
     id: 'tags',
     category: 'linking',
     nameKey: 'help.featureName.tags',
     descKey: 'help.feature.tags',
+    featureKeys: ['help.feature.tagRename'],
     commands: ['view.toggleTags'],
   },
   {

@@ -6,10 +6,17 @@
 // still ungeschuetzt und faellt erst auf, wenn jemandem Arbeit verloren geht.
 // Dieser Waechter macht das Vergessen sichtbar (Muster des Paritaets-Waechters
 // fuer Sidebar-Panels).
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+
+// 4T-001631: Dieser Wächter liest den Repositoriums-Bestand und trägt deshalb
+// das benannte Bestands-Limit statt der Vitest-Vorgabe von 5000 ms. Ohne es
+// riss er unter Last das Testsuite-Gate der Merge-Queue; der Wert selbst ist
+// unverändert (siehe test/zeitlimits.js).
+vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const RENDERER = path.join(WURZEL, 'src', 'renderer');

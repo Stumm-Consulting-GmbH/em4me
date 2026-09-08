@@ -33,10 +33,12 @@ The link [[04 Links and Structure#^decision-1]] jumps straight to it. The render
 ## Tags
 
 ```markdown
-Filed under #demo and #structure.
+Filed under #demo and #structure, more precisely #structure/links.
 ```
 
-Filed under #demo and #structure — click a tag to filter the Tags sidebar. These same tags feed the live lists on [[08 Queries]].
+Filed under #demo and #structure, more precisely #structure/links — click a tag to filter the Tags sidebar. These same tags feed the live lists on [[08 Queries]].
+
+A slash builds a hierarchy: `#structure/links` sits below `#structure`, and a query for the parent finds the child as well. Right-click a tag in the sidebar to rename it across the whole area; the sub-tags come along, and a preview shows every occurrence before anything is written.
 
 ## Backlinks and outgoing links
 

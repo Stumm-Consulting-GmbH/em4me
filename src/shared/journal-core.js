@@ -131,6 +131,42 @@ function addPeriods(period, n) {
   }
 }
 
+// 4T-001489 (Epic 3E-000276): Abstand zweier Perioden in ganzen Schritten,
+// das Gegenstueck zu addPeriods. Positiv = `nach` liegt spaeter als `von`;
+// null bei fehlender oder ungleicher Granularitaet.
+//
+// Monat, Quartal und Jahr rechnen ueber die KALENDER-FELDER und nicht ueber die
+// Millisekunden-Differenz: Ihre Laenge schwankt (28 bis 31 Tage, 90 bis 92, 365
+// oder 366), eine Division waere dort nur naeherungsweise richtig und laege bei
+// grossen Abstaenden daneben.
+//
+// Tag und Woche haben feste Laenge in Kalendertagen, aber NICHT in
+// Millisekunden: Bei der Zeitumstellung hat ein Tag 23 oder 25 Stunden. Ihre
+// Differenz wird deshalb gerundet statt geteilt — der Fehler von einer Stunde
+// auf 24 kippt das Ergebnis nach dem Runden nicht.
+function periodDistance(von, nach) {
+  if (!von || !nach || von.granularity !== nach.granularity) return null;
+  const a = new Date(von.startMs);
+  const b = new Date(nach.startMs);
+  switch (von.granularity) {
+    case 'day':
+      return Math.round((nach.startMs - von.startMs) / 86400000);
+    case 'week':
+      return Math.round((nach.startMs - von.startMs) / (7 * 86400000));
+    case 'month':
+      return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+    case 'quarter':
+      return (
+        (b.getFullYear() - a.getFullYear()) * 4 +
+        (Math.floor(b.getMonth() / 3) - Math.floor(a.getMonth() / 3))
+      );
+    case 'year':
+      return b.getFullYear() - a.getFullYear();
+    default:
+      return null;
+  }
+}
+
 // Datums-Grenzen eines Journals als ms (null = keine Grenze).
 function journalBoundsMs(journal) {
   return {
@@ -433,6 +469,7 @@ module.exports = {
   msToIsoDate,
   periodOf,
   addPeriods,
+  periodDistance,
   periodAllowed,
   nextPeriod,
   prevPeriod,

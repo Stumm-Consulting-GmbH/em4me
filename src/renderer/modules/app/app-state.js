@@ -741,6 +741,10 @@ function buildPaneEls(paneIdx) {
     searchResultsSection: root.querySelector('.sidebar-searchresults'),
     searchResultsStatus: root.querySelector('.sidebar-searchresults .search-results-status'),
     searchResultsList: root.querySelector('.sidebar-searchresults .search-results-list'),
+    // 4T-001531 (Epic 3E-000175): Der Balken der Tag-Umbenennung. Er steht
+    // zwischen Status und Liste, damit die Vorschau sichtbar bleibt, waehrend
+    // der Anwender entscheidet.
+    searchResultsRename: root.querySelector('.sidebar-searchresults .search-results-rename'),
     // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Sektion des Buches.
     // Leseführungs-Knöpfe im Kopf, Leer-Hinweis, Kapitel-Baum und der
     // Abschnitt „nicht eingehängt".

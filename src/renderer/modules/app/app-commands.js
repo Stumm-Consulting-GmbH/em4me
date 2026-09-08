@@ -479,8 +479,20 @@ export const commandHandlers = {
   'search.openReplace': () => {
     // Ersetzen ist nur im Edit-Modus aktiv (Source ist editierbar); der
     // Tastendruck gilt trotzdem als verarbeitet (bisheriges Verhalten).
+    //
+    // 4T-001526 (Epic 3E-000169): In einem geoeffneten Bereich kommt der
+    // zweite Weg dazu. Dort wirkt das Ersetzen auf die AUSWAHL der
+    // Trefferliste und nicht auf das offene Dokument — den Bearbeiten-Modus
+    // dafuer zu verlangen waere eine Huerde ohne Gegenstand: Wer in einem
+    // Bereich liest und einen Begriff bereichsweit austauschen will, muesste
+    // erst eine Datei zum Bearbeiten oeffnen, die er gar nicht anfassen will.
+    // Ohne Bereich bleibt es beim bisherigen Weg (AK7).
+    // 4T-001560 (Epic 3E-000280): Ohne Reiter zaehlt allein der gebundene
+    // Bereich — dieselbe Regel wie in determineSearchScope.
     const tab = activeTab();
-    if (tab && tab.editMode) openSearchBar({ replaceMode: true });
+    const imBereich =
+      !!state.areaPath && (!tab || (!!tab.path && !tab.systemPage && !tab.manualPage));
+    if ((tab && tab.editMode) || imBereich) openSearchBar({ replaceMode: true });
   },
   'search.next': () => {
     if (!search.visible) return false;

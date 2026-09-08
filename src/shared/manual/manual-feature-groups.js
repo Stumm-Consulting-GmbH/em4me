@@ -150,6 +150,10 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000617 (Epic 3E-000116): bereichsweite Volltext-Suche, unmittelbar
       // hinter dem Suchraum-Eintrag, weil sie dessen dritter Fall ist.
       'help.feature.areaSearch',
+      // 4T-001527 (Epic 3E-000169): das Schreib-Gegenstueck der bereichsweiten
+      // Suche, direkt hinter ihr — wer sie gelesen hat, hat den Trefferraum
+      // vor Augen, auf dem das Ersetzen aufsetzt.
+      'help.feature.areaReplace',
       'help.feature.linter',
       // 4T-000583 (Epic 3E-000107): Rechtschreibpruefung direkt hinter dem
       // Linter, weil beide Maengel im Editor markieren.
@@ -443,6 +447,9 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.subpages',
       'help.feature.subpagesNavigation',
       'help.feature.tags',
+      // 4T-001532 (Epic 3E-000175): Die Umbenennung steht unmittelbar hinter dem
+      // Tag-System — sie ist dessen Pflege-Seite und ohne es sinnlos.
+      'help.feature.tagRename',
       'help.feature.anchorLinks',
       'help.feature.links',
       // 4T-000075/4T-000078/4T-000079 (Epic 3E-000013): Lesezeichen-Sidebar mit

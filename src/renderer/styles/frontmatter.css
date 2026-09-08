@@ -320,24 +320,95 @@
   list-style: none;
   padding-left: 0.2em;
 }
+/* 4T-001483 (Epic 3E-000275): Die Treffer-Zeile laeuft im Textfluss statt im
+   umbrechenden Flex-Kasten.
+
+   Als Flex-Container mit `flex-wrap` war jedes Anzeige-Element ein eigener,
+   unteilbarer Block der Umbruch-Rechnung. Bei langer Beschreibung wanderte
+   deshalb erst der Beschreibungs-Link in die zweite und dann die Plaketten-
+   Gruppe in die dritte Zeile; bei kurzer fiel es nicht auf, weil alles
+   nebeneinander Platz fand. Im Textfluss bricht statt dessen die Beschreibung
+   selbst um, und die Plaketten bleiben hinter ihrem letzten Wort.
+
+   Die Angleichung an das Dokument ist strukturell und nicht nachgestellt: Der
+   Render-Pfad der Aufgaben-Zeile haengt seine Badge-Token in
+   `src/shared/markdown/plugins/tasks.js` ebenso ohne Weissraum hinter den
+   Beschreibungs-Text, und der Abstand kommt dort wie hier aus dem
+   `margin-left` der Plakette selbst.
+
+   **Was der fehlende Weissraum NICHT leistet**, am 2026-09-07 an beiden Orten
+   nachgemessen: Er verhindert den Umbruch zwischen letztem Wort und erster
+   Plakette nicht. Die Plakette ist eine atomare Inline-Box, und der
+   Zeilenumbruch setzt an deren Grenzen eine Gelegenheit, auch ohne
+   Weissraum-Zeichen. Reicht der Platz nicht, wandert die Plakette allein in
+   die naechste Zeile — im Dokument gemessen bei 3 von 12 Zeilen, in der
+   Abfrage bei 6 von 66 Treffern. Beide Orte verhalten sich also gleich, und
+   genau das ist hier das Ziel; wer den Rest-Fall beseitigen will, muss letztes
+   Wort und Plakette an BEIDEN Orten zu einer nicht umbrechenden Einheit
+   zusammenfassen.
+
+   Der haengende Einzug folgt dem im Projekt belegten Paar aus Aussenabstand
+   und negativem Erst-Zeilen-Einzug (`footnotes.css`, `4T-001312`) samt seinem
+   Ruecksetzer auf den Nachkommen: `text-indent` vererbt sich auf jeden
+   Block-Container, und die eingebetteten Kaesten der Zeile — Status-Kaestchen
+   und Plaketten, beide inline-block — ruecken sonst ihren eigenen Inhalt um
+   die volle Einzugs-Breite nach links. Das ist der in `3E-000240` an zwei
+   Befunden vermessene Fehler; der Ruecksetzer trifft deshalb alle Nachkommen
+   und nicht die zwei bekannten Stellen.
+
+   **Der Einzug steht auf dem Innenabstand und nicht auf dem Aussenabstand.**
+   Das ist die umgekehrte Wahl wie in `footnotes.css`, und aus demselben
+   Grund: Genommen wird die Eigenschaft, die am Ziel-Element frei ist. Dort
+   fuehrten einzelne Zeilen-Arten einen eigenen Innenabstand; hier fuehrt
+   `.perspective-query-list li` einen eigenen Aussenabstand (`margin: 0.15em 0`
+   fuer den vertikalen Abstand der Eintraege), und seine hoehere Spezifitaet
+   setzte ein `margin-left` still auf null zurueck — am 2026-09-07 als
+   wirkungsloser erster Versuch gemessen.
+
+   **Die Einzugs-Breite wird gerechnet und nicht abgeschrieben.** Kaestchen-
+   Breite, Kaestchen-Abstand und Einzug muessen denselben Wert treffen, stehen
+   aber in zwei verschiedenen Schriftgroessen: Die beiden ersten rechnen in der
+   Schrift des Kaestchens, der Einzug in der Schrift der Zeile. Deshalb liegen
+   hier die nackten Faktoren, und jeder Ort multipliziert sie mit seinem
+   eigenen `1em` — der Einzug zusaetzlich mit dem Schrift-Faktor. Ein von Hand
+   ausgerechneter Wert lag beim ersten Versuch um 2,8 px daneben, weil er den
+   Abstand in der falschen Schriftgroesse angesetzt und einen Rahmen
+   mitgezaehlt hatte, den es nicht gibt. */
 .markdown-body .perspective-query-task {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.35em;
+  --treffer-kasten-schrift: 0.85;
+  --treffer-kasten-breite: 1.1;
+  --treffer-abstand: 0.35;
+  --treffer-einzug: calc(
+    (var(--treffer-kasten-breite) + var(--treffer-abstand)) * var(--treffer-kasten-schrift) * 1em
+  );
+  padding-left: var(--treffer-einzug);
+  text-indent: calc(-1 * var(--treffer-einzug));
+}
+.markdown-body .perspective-query-task * {
+  text-indent: 0;
 }
 .markdown-body .perspective-query-task-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.1em;
-  height: 1.1em;
+  /* 4T-001483: Groesse und Abstand kommen aus den Faktoren der Treffer-Zeile,
+     damit sie und der haengende Einzug nicht auseinanderlaufen koennen. Sie
+     rechnen hier in der Schrift des Kaestchens, dort in der Schrift der Zeile.
+     `box-sizing` steht ausdruecklich, weil der Einzug die Aussenbreite dieses
+     Kastens trifft: So gilt die Rechnung unabhaengig davon, was die Umgebung
+     vorgibt. */
+  box-sizing: border-box;
+  width: calc(var(--treffer-kasten-breite) * 1em);
+  height: calc(var(--treffer-kasten-breite) * 1em);
+  margin-right: calc(var(--treffer-abstand) * 1em);
   border: 1px solid var(--fg-muted);
   border-radius: 3px;
-  font-size: 0.85em;
+  font-size: calc(var(--treffer-kasten-schrift) * 1em);
   line-height: 1;
-  flex: none;
-  align-self: center;
+  /* Die Flex-Kind-Eigenschaften `flex` und `align-self` sind mit dem
+     Flex-Container entfallen; die Ausrichtung an der Zeile uebernimmt
+     `vertical-align`. */
+  vertical-align: middle;
 }
 .markdown-body .perspective-query-task-done .perspective-query-task-status {
   color: var(--accent);
@@ -353,6 +424,8 @@
 .markdown-body .perspective-query-task-file {
   color: var(--fg-muted);
   font-size: 0.85em;
+  /* 4T-001483: eigener Abstand statt des entfallenen `gap`. */
+  margin-left: 0.35em;
 }
 /* 4T-000503 (Epic 3E-000096): Gruppen-Überschriften (GROUP BY, verschachtelt über
    data-level) und Treffer-Zähler der Task-Ausgabe. */
@@ -388,6 +461,8 @@
   border-color: var(--accent);
 }
 .markdown-body .perspective-query-task-btn {
+  /* 4T-001483: eigener Abstand statt des entfallenen `gap`. */
+  margin-left: 0.35em;
   border: none;
   background: none;
   color: var(--fg-muted);

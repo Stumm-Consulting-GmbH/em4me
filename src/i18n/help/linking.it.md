@@ -118,11 +118,21 @@ I collegamenti tra aree sono un’[estensione](extensions.md) e possono essere d
 
 ## Tag
 
-`#tag` nel testo e il campo `tags:` del [frontmatter](frontmatter.md) vengono riconosciuti come tag; le barre creano gerarchie come `#progetto/markdown`. I tag sono cliccabili nella vista Lettura e nella modalità Live e filtrano la barra laterale dei tag. I codici colore esadecimali, i numeri puri e i collegamenti di àncora sono esclusi dal riconoscimento.
+`#tag` nel testo e il campo `tags:` del [frontmatter](frontmatter.md) vengono riconosciuti come tag; le barre creano gerarchie come `#progetto/markdown`. I tag sono cliccabili nella vista Lettura e nella modalità Live e filtrano la barra laterale dei tag. I codici colore esadecimali, i numeri puri, i collegamenti di àncora e i cancelletti all’interno di un indirizzo web sono esclusi dal riconoscimento: in `https://example.org/#capitolo`, `#capitolo` fa parte dell’indirizzo e non è un tag.
 
 ```markdown
 Stato: #progetto/markdown #review
 ```
+
+### Rinominare un tag
+
+Un clic destro su una voce della barra laterale dei tag rinomina il tag in tutte le sue occorrenze dell’area: sia nel testo sia nel campo `tags:`, in tutti i file, compresi quelli non aperti.
+
+**I sottotag seguono.** Se `#progetto` diventa `#lavoro`, allora `#progetto/markdown` diventa `#lavoro/markdown`. È voluto e non un effetto collaterale: le interrogazioni trattano un tag come prefisso dei suoi figli, e una rinomina senza di essi spezzerebbe proprio quelle interrogazioni. Un tag che comincia soltanto con la stessa parola resta intatto: `#progettile` non è figlio di `#progetto`, manca la barra.
+
+**L’anteprima precede ogni scrittura.** Elenca ogni occorrenza con la sua riga, segnala i sottotag che seguono e consente di deselezionarne alcune. Solo la conferma nella barra sopra l’elenco scrive qualcosa; annullare lascia tutto com’era.
+
+La scrittura resta entro il confine dell’area e lo stato precedente di ogni file modificato finisce nella [cronologia delle versioni](history.md), che la cronologia sia attiva o meno. Un file con modifiche non salvate riceve la rinomina nella sua scheda anziché su disco; un resoconto finale nomina ogni file e, dove qualcosa non è riuscito, il motivo.
 
 ## Completamento automatico
 

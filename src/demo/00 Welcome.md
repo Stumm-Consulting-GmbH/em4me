@@ -36,4 +36,6 @@ The folder is open as an **area**: the file list sits on the left, tabs run acro
 
 Because these pages form an area, the search covers all of them at once: press `Ctrl+F` anywhere and try `callout` or `query`. Results appear grouped by file in the sidebar, the page you are on comes first, and `F3` walks on into the next file.
 
+The same list also replaces: `Ctrl+H` puts a checkbox in front of every match, so you decide what is exchanged before anything is written — and every file that changes keeps its previous version in the document history, so the whole run can be taken back.
+
 Start with [[01 Markdown Basics]] whenever you are ready. :rocket:

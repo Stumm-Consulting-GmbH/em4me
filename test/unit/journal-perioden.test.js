@@ -15,6 +15,7 @@ import {
   nextPeriod,
   parentPeriods,
   periodAllowed,
+  periodDistance,
   periodOf,
   prevPeriod,
   resolveEntryPath,
@@ -132,6 +133,98 @@ describe('addPeriods — Verschiebung über Jahres- und Monatsgrenzen', () => {
   it('Tages-Schritte über den Schaltjahres-Februar', () => {
     expect(addPeriods(periodOf(ms('2024-02-28'), 'day'), 1).key).toBe('2024-02-29');
     expect(addPeriods(periodOf(ms('2024-02-29'), 'day'), 1).key).toBe('2024-03-01');
+  });
+});
+
+// 4T-001489 (Epic 3E-000276): Der Abstand traegt die zeitliche Einordnung des
+// Navigations-Blocks. Geprueft wird je Granularitaet mit Vergangenheit,
+// Gegenwart und Zukunft, dazu die beiden Stellen, an denen eine
+// Millisekunden-Division falsch laege: ungleich lange Monate und die
+// Zeitumstellung.
+describe('periodDistance — Abstand in ganzen Perioden-Schritten (4T-001489)', () => {
+  it('Tag: Vergangenheit negativ, Gegenwart null, Zukunft positiv', () => {
+    const heute = periodOf(ms('2026-09-07'), 'day');
+    expect(periodDistance(heute, periodOf(ms('2026-09-06'), 'day'))).toBe(-1);
+    expect(periodDistance(heute, periodOf(ms('2026-09-07'), 'day'))).toBe(0);
+    expect(periodDistance(heute, periodOf(ms('2026-09-12'), 'day'))).toBe(5);
+  });
+
+  it('Woche, Monat, Quartal und Jahr rechnen in ihrer eigenen Einheit', () => {
+    expect(
+      periodDistance(periodOf(ms('2026-09-07'), 'week'), periodOf(ms('2026-08-24'), 'week')),
+    ).toBe(-2);
+    expect(
+      periodDistance(periodOf(ms('2026-09-07'), 'week'), periodOf(ms('2026-09-14'), 'week')),
+    ).toBe(1);
+    expect(
+      periodDistance(periodOf(ms('2026-09-07'), 'month'), periodOf(ms('2026-07-01'), 'month')),
+    ).toBe(-2);
+    expect(
+      periodDistance(periodOf(ms('2026-09-07'), 'quarter'), periodOf(ms('2027-01-15'), 'quarter')),
+    ).toBe(2);
+    expect(
+      periodDistance(periodOf(ms('2026-09-07'), 'year'), periodOf(ms('2024-03-01'), 'year')),
+    ).toBe(-2);
+  });
+
+  it('zaehlt Monate ueber den Jahreswechsel und trotz ungleicher Laenge', () => {
+    // 36 Monate ueber drei Jahreswechsel. **Der Abstand ist nicht beliebig
+    // gewaehlt:** Der mittlere Monat hat 30,44 Tage, eine Division durch 30
+    // haeuft also je Monat 0,44 Tage Fehler an und kippt nach dem Runden erst
+    // ab 34 Monaten — hier auf 37. Kuerzere Abstaende bleiben gruen, auch wenn
+    // die Rechnung falsch ist; ein Prueffall mit 14 Monaten hat das am
+    // 2026-09-07 in der Mutationsprobe gezeigt und ist deshalb ersetzt worden.
+    expect(
+      periodDistance(periodOf(ms('2024-01-15'), 'month'), periodOf(ms('2027-01-03'), 'month')),
+    ).toBe(36);
+    expect(
+      periodDistance(periodOf(ms('2027-01-03'), 'month'), periodOf(ms('2024-01-15'), 'month')),
+    ).toBe(-36);
+    // Quartal und Jahr tragen denselben Fehler und werden ueber denselben
+    // Abstand gemessen, damit keine der drei Kalender-Einheiten unbemerkt auf
+    // eine Millisekunden-Division zurueckfallen kann.
+    expect(
+      periodDistance(periodOf(ms('2024-01-15'), 'quarter'), periodOf(ms('2027-01-03'), 'quarter')),
+    ).toBe(12);
+    expect(
+      periodDistance(periodOf(ms('2024-01-15'), 'year'), periodOf(ms('2027-01-03'), 'year')),
+    ).toBe(3);
+  });
+
+  it('zaehlt Tage und Wochen ueber die Zeitumstellung', () => {
+    // In Europa faellt die Umstellung Ende Maerz und Ende Oktober; ein Tag hat
+    // dort 23 bzw. 25 Stunden. Ohne Rundung ergaebe die Division 0,96 oder 1,04
+    // Tage und nach dem Abschneiden den falschen Schritt.
+    expect(
+      periodDistance(periodOf(ms('2026-03-28'), 'day'), periodOf(ms('2026-03-30'), 'day')),
+    ).toBe(2);
+    expect(
+      periodDistance(periodOf(ms('2026-10-24'), 'day'), periodOf(ms('2026-10-26'), 'day')),
+    ).toBe(2);
+    expect(
+      periodDistance(periodOf(ms('2026-03-23'), 'week'), periodOf(ms('2026-04-06'), 'week')),
+    ).toBe(2);
+    expect(
+      periodDistance(periodOf(ms('2026-10-19'), 'week'), periodOf(ms('2026-11-02'), 'week')),
+    ).toBe(2);
+  });
+
+  it('liefert null bei fehlender oder ungleicher Granularitaet', () => {
+    const tag = periodOf(ms('2026-09-07'), 'day');
+    expect(periodDistance(tag, periodOf(ms('2026-09-07'), 'week'))).toBe(null);
+    expect(periodDistance(null, tag)).toBe(null);
+    expect(periodDistance(tag, null)).toBe(null);
+  });
+
+  it('ist das Gegenstueck zu addPeriods', () => {
+    // Gegen-Zusicherung: Was addPeriods verschiebt, misst periodDistance
+    // zurueck — ueber alle fuenf Granularitaeten und beide Richtungen.
+    for (const granularitaet of ['day', 'week', 'month', 'quarter', 'year']) {
+      const start = periodOf(ms('2026-09-07'), granularitaet);
+      for (const schritte of [-13, -1, 0, 1, 13]) {
+        expect(periodDistance(start, addPeriods(start, schritte))).toBe(schritte);
+      }
+    }
   });
 });
 

@@ -98,6 +98,74 @@ function baueAusschnitt(zeile, vonInZeile, bisInZeile) {
 // g-Flag herein (buildRegex erzeugt 'gm' bzw. 'gmi'); lastIndex wird hier
 // zurückgesetzt, damit ein wiederverwendeter Ausdruck nicht mitten im Text
 // zu suchen beginnt.
+// Ein einzelner Treffer aus Offset und Länge — die Stelle, an der Suchlauf und
+// Fundstellen-Ermittlung zusammenlaufen.
+//
+// Herausgelöst mit 4T-001531 (Epic 3E-000175), als die Trefferliste einen
+// zweiten Lieferanten bekam: Die Tag-Umbenennung kennt ihre Fundstellen
+// bereits (`shared/tag-erkennung.js`) und braucht keinen Ausdruck mehr, wohl
+// aber dieselbe Zeilen- und Kontext-Rechnung. Sie ein zweites Mal
+// auszuschreiben hieße, zwei Trefferlisten auseinanderlaufen zu lassen, die
+// der Anwender als eine sieht.
+function trefferAnStelle(eintrag, text, anfaenge, offset, laenge) {
+  const zeilenIdx = zeileZuOffset(anfaenge, offset);
+  const zeilenStart = anfaenge[zeilenIdx];
+  const zeilenEnde = zeilenIdx + 1 < anfaenge.length ? anfaenge[zeilenIdx + 1] - 1 : text.length;
+  const zeile = text.slice(zeilenStart, zeilenEnde);
+  const vonInZeile = offset - zeilenStart;
+  // Ein Treffer, der über das Zeilenende hinausreicht (mehrzeiliges
+  // Muster), wird für die Anzeige an der Zeile abgeschnitten. Die
+  // Sprung-Angabe bleibt der echte Beginn des Fundes.
+  const bisInZeile = Math.min(vonInZeile + laenge, zeile.length);
+
+  const kontext = baueAusschnitt(zeile, vonInZeile, bisInZeile);
+  return {
+    gruppe: eintrag.gruppe,
+    gruppeTitel: eintrag.titel || '',
+    quelle: eintrag.quelle || '',
+    sprung: {
+      offset,
+      zeile: zeilenIdx,
+      spalte: vonInZeile,
+      kennung: eintrag.kennung || null,
+    },
+    ausschnitt: kontext.ausschnitt,
+    von: kontext.von,
+    bis: kontext.bis,
+  };
+}
+
+/**
+ * Treffer eines Eintrags an bereits bekannten Stellen (4T-001531).
+ *
+ * @param {object} eintrag { gruppe, titel, text, quelle?, kennung? }
+ * @param {Array<{offset: number, laenge: number}>} stellen Fundstellen im Text.
+ *   Weitere Felder einer Stelle reisen unverändert als `zusatz` am Treffer mit;
+ *   die Trefferliste zeigt sie an, ohne dass dieser Kern sie deuten müsste.
+ * @returns {Array<object>} Treffer in der Reihenfolge der Stellen.
+ */
+function trefferAnStellen(eintrag, stellen) {
+  const text = typeof eintrag.text === 'string' ? eintrag.text : '';
+  if (!text || !Array.isArray(stellen) || stellen.length === 0) return [];
+  const anfaenge = zeilenAnfaenge(text);
+  const treffer = [];
+  for (const stelle of stellen) {
+    if (!stelle || !Number.isInteger(stelle.offset) || stelle.offset < 0) continue;
+    if (stelle.offset >= text.length) continue;
+    const laenge = Number.isInteger(stelle.laenge) && stelle.laenge > 0 ? stelle.laenge : 1;
+    const gebaut = trefferAnStelle(eintrag, text, anfaenge, stelle.offset, laenge);
+    const zusatz = { ...stelle };
+    delete zusatz.offset;
+    delete zusatz.laenge;
+    treffer.push(Object.keys(zusatz).length > 0 ? { ...gebaut, zusatz } : gebaut);
+  }
+  return treffer;
+}
+
+// Treffer eines Eintrags. Der reguläre Ausdruck kommt mit gesetztem
+// g-Flag herein (buildRegex erzeugt 'gm' bzw. 'gmi'); lastIndex wird hier
+// zurückgesetzt, damit ein wiederverwendeter Ausdruck nicht mitten im Text
+// zu suchen beginnt.
 function trefferImText(eintrag, regex, restBudget, grenzeJeGruppe) {
   const text = typeof eintrag.text === 'string' ? eintrag.text : '';
   if (!text) return [];
@@ -114,31 +182,7 @@ function trefferImText(eintrag, regex, restBudget, grenzeJeGruppe) {
       regex.lastIndex += 1;
       continue;
     }
-    const zeilenIdx = zeileZuOffset(anfaenge, m.index);
-    const zeilenStart = anfaenge[zeilenIdx];
-    const zeilenEnde = zeilenIdx + 1 < anfaenge.length ? anfaenge[zeilenIdx + 1] - 1 : text.length;
-    const zeile = text.slice(zeilenStart, zeilenEnde);
-    const vonInZeile = m.index - zeilenStart;
-    // Ein Treffer, der über das Zeilenende hinausreicht (mehrzeiliges
-    // Muster), wird für die Anzeige an der Zeile abgeschnitten. Die
-    // Sprung-Angabe bleibt der echte Beginn des Fundes.
-    const bisInZeile = Math.min(vonInZeile + m[0].length, zeile.length);
-
-    const kontext = baueAusschnitt(zeile, vonInZeile, bisInZeile);
-    treffer.push({
-      gruppe: eintrag.gruppe,
-      gruppeTitel: eintrag.titel || '',
-      quelle: eintrag.quelle || '',
-      sprung: {
-        offset: m.index,
-        zeile: zeilenIdx,
-        spalte: vonInZeile,
-        kennung: eintrag.kennung || null,
-      },
-      ausschnitt: kontext.ausschnitt,
-      von: kontext.von,
-      bis: kontext.bis,
-    });
+    treffer.push(trefferAnStelle(eintrag, text, anfaenge, m.index, m[0].length));
 
     if (treffer.length >= grenzeJeGruppe) break;
     if (treffer.length >= restBudget) break;
@@ -199,4 +243,7 @@ module.exports = {
   MAX_TREFFER_JE_GRUPPE,
   KONTEXT_ZEICHEN,
   sucheInTexten,
+  // 4T-001531 (Epic 3E-000175): der zweite Zugang — Treffer aus bekannten
+  // Fundstellen statt aus einem Ausdruck.
+  trefferAnStellen,
 };

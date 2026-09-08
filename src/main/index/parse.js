@@ -38,6 +38,14 @@ const {
 // Abgleich des Block-Metadaten-Panels, damit Index (`blockIds`) und Panel
 // dieselben Anker als Block-Anker erkennen.
 const { BLOCK_ANCHOR_RE } = require('../../shared/block-anchors.js');
+// 4T-001529 (Epic 3E-000175): Adress-Schutz der Tag-Erkennung, geteilt mit dem
+// Render-Pfad — eine Regel, zwei Aufrufer.
+const {
+  istInAdresse,
+  isValidTag,
+  maskiereFuerTagScan,
+  TAG_RE,
+} = require('../../shared/tag-erkennung.js');
 // 4T-000502 (Epic 3E-000096): Marker-Kern fuer den TASKS-Scope der Abfrage —
 // Task-Zeilen werden beim Indexieren als Roh-Zeilen gesammelt und erst im
 // Query-Zweig zum Modell geparst (Index bleibt schlank, Re-Parse trivial).
@@ -69,26 +77,11 @@ function reduceHeadingText(s) {
 // Optionaler Trailing-Hash (`# Heading #`) wird abgeschnitten.
 const HEADING_RE = /^#{1,6}\s+(.+?)(?:\s+#{1,6})?\s*$/;
 
-// 4T-000056: Inline-Tags `#tag` im Body. Gleiches Pattern wie tagsPlugin in
-// preload.js. Negativer Look-behind verhindert Treffer mitten in Woertern
-// (z.B. 'foo#bar'), nach `##` (Markdown-Heading-Doppelhash) und in
-// Markdown-Link-Zielen `](#anker)` (4T-000060).
-const TAG_RE = /(?<![\p{L}\p{N}_#])(?<!\]\()#([\p{L}\p{N}_/-]+)/gu;
-// 4T-000060: Hex-Farbcodes (3-, 4-, 6- oder 8-stellig, alles Hex) sind kein
-// Tag. Schliesst CSS-Farb-Notationen wie #fff, #ffffff, #c0392b aus.
-const HEX_COLOR_RE = /^[0-9a-f]{3,8}$/i;
-// 4T-000060: Tags muessen mindestens einen Buchstaben enthalten, damit reine
-// Zahlen (Issue-Referenzen, Fussnoten) nicht als Tag indexiert werden.
-const TAG_LETTER_RE = /[\p{L}]/u;
-
-// 4T-000060: Pruefung, ob ein Tag-Kandidat tatsaechlich ein Tag ist.
-function isValidTag(tag) {
-  if (!tag) return false;
-  if (tag.startsWith('/') || tag.endsWith('/')) return false;
-  if (!TAG_LETTER_RE.test(tag)) return false; // reine Zahlen raus
-  if (HEX_COLOR_RE.test(tag)) return false; // Hex-Codes raus
-  return true;
-}
+// 4T-001530 (Epic 3E-000175): TAG_RE, isValidTag und die Zeilen-Maskierung
+// liegen seit diesem Vorgang in src/shared/tag-erkennung.js — dieselbe Quelle,
+// aus der auch der Fundstellen-Ermittler der Tag-Umbenennung liest. Beide
+// Namen werden unten unveraendert weiter exportiert, damit kein Aufrufer sich
+// aendert.
 
 // 4T-000344 (Epic 3E-000062): MD_LINK_RE (relative Markdown-Links) aus der
 // gemeinsamen Quelle; eine Instanz je Modul-Ladung, lastIndex-Reset pro Zeile.
@@ -292,13 +285,21 @@ function parseContent(filePath, content) {
     // 4T-000202: ebenso {...}-Attribut-Bloecke (markdown-it-attrs) — '#id'
     // darin ist eine ID-Angabe, kein Tag (Konsistenz zum
     // insideAttrBlock-Guard im tagsPlugin).
-    const lineForTags = lineForLinks
-      .replace(/\[\[[^\]\n]*\]\]/g, (m) => ' '.repeat(m.length))
-      .replace(/\{[^{}\n]*\}/g, (m) => ' '.repeat(m.length));
+    // 4T-001530: Die Maskierung liegt in der geteilten Quelle; sie schliesst
+    // die Inline-Code-Maskierung mit ein, die `lineForLinks` fuer den
+    // Link-Scan bereits vorgenommen hat (idempotent).
+    const lineForTags = maskiereFuerTagScan(line);
     TAG_RE.lastIndex = 0;
     let tagMatch;
     while ((tagMatch = TAG_RE.exec(lineForTags)) !== null) {
       const tag = tagMatch[1];
+      // 4T-001529 (Epic 3E-000175): Fragment-Bezeichner einer Web-Adresse sind
+      // kein Tag. Die Pruefung steht hier und nicht im Regex, weil sie das
+      // ganze Wort vor der Raute liest — ein Lookbehind fester Laenge sieht
+      // genau so weit zurueck, wie er geschrieben ist, und die Adresse ist
+      // beliebig lang. Genau daran ist der bisherige Schutz `(?<!\]\()`
+      // gescheitert.
+      if (istInAdresse(lineForTags, tagMatch.index)) continue;
       // 4T-000060: Hex-Codes, reine Zahlen und Slash-Randlagen filtern.
       if (isValidTag(tag)) {
         tagsSet.add(tag);

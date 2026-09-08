@@ -499,6 +499,16 @@ contextBridge.exposeInMainWorld('api', {
   // Datei wird dafuer ausgespart.
   searchArea: (params) => ipcRenderer.invoke('areaSearch:run', params),
   releaseAreaSearch: () => ipcRenderer.invoke('areaSearch:release'),
+  // 4T-001524 (Epic 3E-000169): Bereichsweites Ersetzen an den AUSGEWAEHLTEN
+  // Fundstellen; params { muster, flags, ersetzung, regexModus, dateien:
+  // [{pfad, offsets}] }, Antwort { geaendert, fehlgeschlagen, veraendert }.
+  // 4T-001531 (Epic 3E-000175): Eine Tag-Umbenennung ergaenzt params.tag
+  // { alt, neu } und je Datei frontmatter: [Index der YAML-Liste].
+  replaceInArea: (params) => ipcRenderer.invoke('areaReplace:run', params),
+  // 4T-001531 (Epic 3E-000175): Fundstellen einer Tag-Umbenennung ueber den
+  // Fenster-Bereich; params { alt, neu, aktiv }, Antwort in der Form der
+  // Trefferliste ({ treffer, gruppen, abgeschnitten, vorratModus, kinder }).
+  scanTagRename: (params) => ipcRenderer.invoke('tagRename:scan', params),
   // 4T-000057: Autocomplete-Suggestions fuer Wiki-Link- und Tag-Trigger.
   autocompleteWikiTargets: (filePath) =>
     ipcRenderer.invoke('autocomplete:wikiTargets', { filePath }),

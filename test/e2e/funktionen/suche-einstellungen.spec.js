@@ -12,6 +12,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { warteAufTrefferliste } = require('../helpers/suche');
 
 const PANEL = '.pane-group[data-pane="0"] .sidebar-searchresults';
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system';
@@ -85,7 +86,10 @@ test.describe('SE-02: Sprung in den Bereich', () => {
       // Die letzte Gruppe gehört sicher nicht zum Start-Bereich.
       await gruppen.last().click();
       const treffer = panel.locator('.search-results-item');
-      await expect.poll(async () => treffer.count()).toBeGreaterThan(0);
+      // 4T-001496: Nicht auf «ueberhaupt Treffer» warten, sondern auf den
+      // Zustand, den die Status-Zeile meldet. Sonst trifft .last() unter Last
+      // einen anderen Eintrag als gemeint, weil die Liste noch waechst.
+      await warteAufTrefferliste(page);
       await treffer.last().click();
 
       await expect.poll(async () => ueberschrift.innerText()).not.toBe(startBereich);

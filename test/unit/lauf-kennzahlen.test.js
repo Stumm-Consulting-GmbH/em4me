@@ -13,10 +13,17 @@
 // Unit-Test nicht. Die statische Quelltext-Zählung ist dafür der richtige
 // Anker — sie ist die Größenordnung, nicht der Wert, und beide Größen
 // wachsen miteinander.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+
+// 4T-001631: Dieser Wächter liest den Repositoriums-Bestand und trägt deshalb
+// das benannte Bestands-Limit statt der Vitest-Vorgabe von 5000 ms. Ohne es
+// riss er unter Last das Testsuite-Gate der Merge-Queue; der Wert selbst ist
+// unverändert (siehe test/zeitlimits.js).
+vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WURZEL = path.resolve(HERE, '..', '..');

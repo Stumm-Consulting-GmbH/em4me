@@ -459,6 +459,73 @@ async function sucheImBereich(wurzel, optionen = {}) {
   return { ...ergebnis, generation, vorratModus: zustand.modus };
 }
 
+/**
+ * Die Texte des Bereichs, so wie der Suchlauf sie sieht (4T-001531).
+ *
+ * **Warum die Tag-Umbenennung hier andockt und nicht selbst liest:** Ein Offset
+ * gilt nur in dem Text, in dem er ermittelt wurde, und die Schreib-Strecke
+ * misst genau dagegen (`suchStandFuer`). Wer den Bereich ein zweites Mal von
+ * der Platte liest, ermittelt seine Fundstellen auf einem Text, den niemand
+ * sonst kennt — und jede Datei mit einem offenen, ungespeicherten Reiter
+ * bekaeme Offsets, die im Puffer nicht gelten. Deshalb dieselbe Quelle,
+ * dieselbe Rangfolge, derselbe Vorrat.
+ *
+ * Oberhalb des Vorrats-Deckels gibt es nichts zu liefern: Der Direkt-Weg haelt
+ * keinen Text fest, und `suchStandFuer` wiese den Lauf danach ohnehin ab. Der
+ * Modus reist deshalb mit, statt dass eine leere Liste «nichts gefunden»
+ * vortaeuscht.
+ *
+ * @param {string} wurzel Absoluter Pfad der Bereichs-Wurzel.
+ * @param {object} optionen `aktiv` wie beim Suchlauf: Pfad und Editor-Stand
+ *   der offenen Datei.
+ * @returns {Promise<{modus: string, eintraege: Array<{gruppe, titel, text, kennung}>}>}
+ */
+async function bereichsTexte(wurzel, optionen = {}) {
+  if (!wurzel || typeof wurzel !== 'string') return { modus: 'leer', eintraege: [] };
+
+  // Die Generation eines laufenden Suchlaufs bleibt unangetastet: Dieser Weg
+  // entwertet keine Anfrage, er liest nur mit.
+  const generation = generationen.has(wurzel) ? generationen.get(wurzel) : 0;
+  let zustand = vorraete.get(wurzel);
+  if (!zustand) {
+    generationen.set(wurzel, generation);
+    zustand = await baueVorrat(wurzel, generation);
+    if (!zustand) return { modus: 'ueberholt', eintraege: [] };
+    vorraete.set(wurzel, zustand);
+  }
+  if (zustand.modus !== 'vorrat') return { modus: zustand.modus, eintraege: [] };
+
+  const imBereich = (rel) => !!rel && !rel.startsWith('..');
+  const aktiv = optionen.aktiv;
+  const aktivRelRoh =
+    aktiv && typeof aktiv.pfad === 'string' && aktiv.pfad ? relPfad(aktiv.pfad, wurzel) : null;
+  const aktivRel = imBereich(aktivRelRoh) ? aktivRelRoh : null;
+  const aktivText = aktivRel && typeof aktiv.text === 'string' ? aktiv.text : null;
+  const opt = { ankerRel: null, aktivRel, aktivText };
+
+  const grosseTexte = await lieseGrosseDateien(zustand.grosse, {
+    leseBreite: LESE_BREITE,
+    pufferStand: (rel) => geschriebenerStand(wurzel, rel),
+    aktivRel,
+    aktivText,
+  });
+  return { modus: zustand.modus, eintraege: eintraegeAusVorrat(zustand, wurzel, opt, grosseTexte) };
+}
+
+// 4T-001524 (Epic 3E-000169): Der Stand, auf dem ein Treffer gefunden wurde.
+//
+// Ein Offset gilt nur in dem Text, in dem die Suche ihn ermittelt hat; dieser
+// folgt DERSELBEN Rangfolge wie oben (Puffer vor Platten-Stand). null heisst
+// «kein Bezugs-Stand» — dann wird bewusst nicht geschrieben (area-replace.js).
+function suchStandFuer(wurzel, rel) {
+  const zustand = vorraete.get(wurzel);
+  if (!zustand || zustand.modus !== 'vorrat') return null;
+  const puffer = geschriebenerStand(wurzel, rel);
+  if (puffer !== null) return { text: puffer, quelle: 'puffer' };
+  const vorratsEintrag = zustand.texte.get(rel);
+  return vorratsEintrag ? { text: vorratsEintrag.text, quelle: 'vorrat' } : null;
+}
+
 // Gibt den Vorrat frei (Suchleiste geschlossen, Bereich gewechselt, Fenster
 // geschlossen). Der Cache bleibt bestehen, er ist der Zweck des naechsten
 // Starts.
@@ -475,6 +542,9 @@ function gibBereichsVorratFrei(wurzel) {
 module.exports = {
   konfiguriereBereichsSuche,
   sucheImBereich,
+  // 4T-001531 (Epic 3E-000175): dieselben Texte fuer einen zweiten Leser.
+  bereichsTexte,
+  suchStandFuer,
   gibBereichsVorratFrei,
   MAX_VORRAT_BYTES,
   // 4T-001293: Die Cache-Version lebt jetzt in area-search-cache.js und wird

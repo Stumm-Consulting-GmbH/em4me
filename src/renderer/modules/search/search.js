@@ -26,6 +26,10 @@ import {
   sucheImRaum,
   vorherigerRaumTreffer,
 } from './search-run.js';
+// 4T-001525 (Epic 3E-000169): Der Ersetzen-Modus schaltet die Auswahl-Ebene
+// der Trefferliste. Der Import geht nur in diese Richtung — search-panel.js
+// kennt die Suchleiste nicht, sonst entstuende ein Modul-Zyklus.
+import { setzeErsetzenModus } from './search-panel.js';
 
 // === Suche ==================================================================
 // Globale Suchleiste am unteren Fensterrand, gilt fuer den aktiven Pane.
@@ -149,7 +153,11 @@ export function toggleRegexHelp() {
 
 export function determineSearchScope() {
   const tab = activeTab();
-  if (!tab) return 'rendered';
+  // 4T-001560 (Epic 3E-000280): Ohne Reiter zaehlt der gebundene Bereich. Wer
+  // einen Bereich oeffnet und alle Dateien schliesst, will ihn durchsuchen und
+  // nicht ein Dokument, das es nicht gibt. Die Rangfolge darunter bleibt
+  // unberuehrt — sie greift erst, wenn es einen Reiter GIBT.
+  if (!tab) return state.areaPath ? 'area' : 'rendered';
   // 4T-000760 (Epic 3E-000142): Der Suchraum folgt dem aktiven Reiter, und zwar
   // exklusiv (PO-Entscheidung 2026-07-27). Die Einstellungs-Seite hat kein
   // Dokument-Verhalten, deshalb steht sie vor der Modus-Abfrage.
@@ -174,16 +182,18 @@ export function determineSearchScope() {
   // search-area.js: Die Treffer der offenen Datei stehen weiterhin sofort im
   // Text, die Liste kommt hinzu.
   //
-  // ersetzenGebunden ist die eine Ausnahme: Solange die Ersetzen-Zeile offen
-  // ist, bleibt der Raum das Dokument, sonst waere Ersetzen bei geoeffnetem
-  // Bereich dauerhaft gesperrt (updateReplaceUiState verlangt 'source').
-  if (
-    !search.replaceMode &&
-    state.areaPath &&
-    tab.path &&
-    !tab.systemPage &&
-    !isOutsideActiveArea(tab.path)
-  ) {
+  // 4T-001526 (Epic 3E-000169): Bis hierher stand an dieser Stelle die
+  // Bedingung `!search.replaceMode` — solange die Ersetzen-Zeile offen war,
+  // fiel der Raum auf das Dokument zurueck, weil Ersetzen im Bereich sonst
+  // dauerhaft gesperrt gewesen waere (4T-000760). Diese Sperre gibt es nicht
+  // mehr: Der Bereich ersetzt jetzt selbst, ueber die Auswahl der
+  // Trefferliste. Die Bedingung waere damit nicht nur ueberfluessig, sondern
+  // schaedlich — sie liesse im Ersetzen-Modus gar keine Bereichs-Treffer mehr
+  // entstehen, an denen eine Auswahl haengen koennte.
+  //
+  // Was NICHT mitfaellt: Handbuch und Einstellungen bleiben schreibgeschuetzt.
+  // Sie stehen weiter oben und erreichen diese Zeile gar nicht.
+  if (state.areaPath && tab.path && !tab.systemPage && !isOutsideActiveArea(tab.path)) {
     return 'area';
   }
   // Im Split-Modus den Quelltext durchsuchen: dort steht die Markdown-Syntax
@@ -632,6 +642,7 @@ export function openSearchBar(opts = {}) {
   search.visible = true;
   search.replaceMode = !!replaceMode;
   els.bar.classList.toggle('replace-mode', !!replaceMode);
+  setzeErsetzenModus(!!replaceMode);
   els.bar.hidden = false;
   els.input.focus();
   els.input.select();
@@ -651,6 +662,7 @@ export function closeSearchBar() {
   const els = getSearchEls();
   search.visible = false;
   search.replaceMode = false;
+  setzeErsetzenModus(false);
   // R5-04 (4T-000171): laufende Debounce-Timer stoppen, sonst laeuft
   // performSearch nach dem Schliessen weiter (Highlights + Scroll).
   if (search.debounceTimer) {
@@ -738,7 +750,48 @@ export function replaceCurrentMatch() {
 // Alle Treffer in einer einzigen CodeMirror-Transaktion ersetzen (Strg+Z macht
 // die Operation als Ganzes rueckgaengig). Iteriert in Reverse-Order, damit die
 // Indizes konsistent bleiben.
+// 4T-001526 (Epic 3E-000169): Der Lauf im Bereichs-Raum. Er wirkt auf die
+// Auswahl der Trefferliste, nicht auf das offene Dokument, und rechnet die
+// Liste danach neu (Entscheidung E7): Der Such-Vorrat kennt keine
+// Invalidierung bei Datei-Aenderungen und zeigte sonst den Stand von vorher.
+async function ersetzeImBereichsRaum() {
+  let regex;
+  try {
+    regex = buildRegex(search.query, search.useRegex, search.caseSensitive);
+  } catch {
+    return;
+  }
+  // 4T-001526: Der Lauf kommt zur LAUFZEIT herein und nicht als Import am
+  // Kopf. Ein statischer Import zoege search-ersetzen.js in die eingefrorene
+  // Zyklus-Komponente des Renderers hinein (dieses Modul ist Teil von ihr,
+  // und der Waechter scripts/lint-ordner-importe.js laesst sie nicht mehr
+  // wachsen). Sachlich passt es: Der Lauf ist ein Knopfdruck, kein Ladevorgang.
+  const { ersetzeAuswahlImBereich } = await import('./search-ersetzen.js');
+  const ergebnis = await ersetzeAuswahlImBereich({
+    muster: regex.source,
+    flags: regex.flags,
+    ersetzung: search.replacement,
+    regexModus: search.useRegex,
+  });
+  if (!ergebnis) {
+    showStatusbarHint('', { text: t('areaReplace.nothingSelected'), duration: 1500 });
+    return;
+  }
+  performSearch();
+  const stellen = ergebnis.geaendert.reduce((summe, g) => summe + g.anzahl, 0);
+  showStatusbarHint('', {
+    text: t('areaReplace.count')
+      .replace('{n}', String(stellen))
+      .replace('{d}', String(ergebnis.geaendert.length)),
+    duration: 2000,
+  });
+}
+
 export function replaceAllMatches() {
+  if (search.scope === 'area') {
+    void ersetzeImBereichsRaum();
+    return;
+  }
   if (search.scope !== 'source') return;
   const tab = activeTab();
   if (!tab || !tab.editMode) return;
@@ -803,17 +856,33 @@ export function refreshSearchIfVisible(opts = {}) {
 // Einstellungen sind schreibgeschuetzt (Abgrenzung des Epics 3E-000142). Der
 // vorhandene Weg traegt das ohne Erweiterung: Er verlangt bereits den
 // Quellcode-Scope, den kein Raum-Scope erfuellt.
+// 4T-001526 (Epic 3E-000169): Der Bereichs-Raum ersetzt seit diesem Task
+// ebenfalls — aber ueber die AUSWAHL der Trefferliste und nicht ueber den
+// aktiven Treffer. Deshalb sind dort die Ersetzen-Zeile und «Alle ersetzen»
+// frei, der Einzel-Ersatz aber nicht: Er waere ein zweiter Weg fuer dieselbe
+// Sache, und der beschlossene ist die Auswahl je Fundstelle (E2, 4T-001525).
+// Wer genau eine Stelle ersetzen will, laesst genau ihr Haekchen stehen.
 export function updateReplaceUiState() {
   const els = getSearchEls();
   const tab = activeTab();
-  const enabled = search.scope === 'source' && !!(tab && tab.editMode);
-  els.btnReplace.disabled = !enabled;
-  els.btnReplaceAll.disabled = !enabled;
-  els.replaceInput.disabled = !enabled;
-  const hint = enabled ? '' : t('search.replaceDisabledHint');
-  els.btnReplace.title = enabled ? t('search.btnReplaceTitle') : hint;
-  els.btnReplaceAll.title = enabled ? t('search.btnReplaceAllTitle') : hint;
-  els.replaceInput.title = hint;
+  const imDokument = search.scope === 'source' && !!(tab && tab.editMode);
+  const imBereich = search.scope === 'area';
+  const ersetzenMoeglich = imDokument || imBereich;
+  els.btnReplace.disabled = !imDokument;
+  els.btnReplaceAll.disabled = !ersetzenMoeglich;
+  els.replaceInput.disabled = !ersetzenMoeglich;
+  const gesperrt = t('search.replaceDisabledHint');
+  els.btnReplace.title = imDokument
+    ? t('search.btnReplaceTitle')
+    : imBereich
+      ? t('search.replaceSingleAreaHint')
+      : gesperrt;
+  els.btnReplaceAll.title = imBereich
+    ? t('search.btnReplaceAllAreaTitle')
+    : imDokument
+      ? t('search.btnReplaceAllTitle')
+      : gesperrt;
+  els.replaceInput.title = ersetzenMoeglich ? '' : gesperrt;
 }
 
 export function bindSearchUi() {

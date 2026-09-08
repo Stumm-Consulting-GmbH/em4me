@@ -14,6 +14,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { bedieneBis } = require('../helpers/eingabe');
 
 // Profil mit globalem Vorlagen-Ordner, optionalen Ordner-Regeln (4T-000427)
 // und belegten Kürzeln für die beiden Kommandos (electron-store liest
@@ -372,8 +373,16 @@ async function openTemplatesSettings(page) {
       return page.locator(SETTINGS_PAGE).isVisible();
     })
     .toBe(true);
-  await page.locator('.settings-nav-entry[data-section-id="templates"]').click();
-  await expect(page.locator('#settings-templates-global-folder')).toBeVisible();
+  // 4T-001555: Drei Vorfälle an genau diesem Klick (2026-08-28, 2026-09-05,
+  // 2026-09-06). Der Locator hatte jedes Mal aufgelöst — Playwright benannte
+  // den gefundenen Knopf —, und das eingebaute Warten auf die Klick-Bereitschaft
+  // lief trotzdem in sein 30-Sekunden-Limit; isoliert war der Fall danach
+  // jeweils sofort grün. Geklickt wird deshalb, bis die Wirkung eintritt.
+  const ziel = page.locator('#settings-templates-global-folder');
+  await bedieneBis(page.locator('.settings-nav-entry[data-section-id="templates"]'), () =>
+    ziel.isVisible(),
+  );
+  await expect(ziel).toBeVisible();
 }
 
 test.describe('VL-09: Einstellungen — globaler Ordner und Regel wirken sofort (F-101)', () => {
@@ -447,7 +456,10 @@ test.describe('VL-10: Einstellungen — Bereichs-Konfiguration übersteuert glob
           return page.locator(SETTINGS_PAGE).isVisible();
         })
         .toBe(true);
-      await page.locator('.settings-nav-entry[data-section-id="templatesArea"]').click();
+      // 4T-001555: derselbe Navigations-Klick wie oben, dieselbe Lage.
+      await bedieneBis(page.locator('.settings-nav-entry[data-section-id="templatesArea"]'), () =>
+        page.locator('#settings-templates-area-enabled').isVisible(),
+      );
       // Bereichs-Gruppe aktivieren und den Ordner relativ setzen.
       await page.locator('#settings-templates-area-enabled').check();
       await expect(page.locator('#settings-templates-area-folder')).toBeVisible();

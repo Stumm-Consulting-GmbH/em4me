@@ -118,11 +118,21 @@ Los vínculos entre áreas son una [extensión](extensions.md) y pueden desactiv
 
 ## Etiquetas
 
-`#etiqueta` en el texto y el campo `tags:` del [frontmatter](frontmatter.md) se reconocen como etiquetas; las barras crean jerarquías como `#proyecto/markdown`. Las etiquetas son clicables en la vista Lectura y el modo En vivo y filtran la barra lateral de etiquetas. Los códigos de color hexadecimales, los números puros y los enlaces de ancla quedan excluidos del reconocimiento.
+`#etiqueta` en el texto y el campo `tags:` del [frontmatter](frontmatter.md) se reconocen como etiquetas; las barras crean jerarquías como `#proyecto/markdown`. Las etiquetas son clicables en la vista Lectura y el modo En vivo y filtran la barra lateral de etiquetas. Los códigos de color hexadecimales, los números puros, los enlaces de ancla y las almohadillas dentro de una dirección web quedan excluidos del reconocimiento: en `https://example.org/#capitulo`, `#capitulo` forma parte de la dirección y no es una etiqueta.
 
 ```markdown
 Estado: #proyecto/markdown #review
 ```
+
+### Renombrar una etiqueta
+
+Un clic derecho en una entrada de la barra lateral de etiquetas renombra la etiqueta en todas sus apariciones del área: tanto en el texto como en el campo `tags:`, en todos los archivos, incluidos los que no están abiertos.
+
+**Las subetiquetas se mueven con ella.** Si `#proyecto` pasa a ser `#trabajo`, entonces `#proyecto/markdown` pasa a ser `#trabajo/markdown`. Es intencionado y no un efecto secundario: las consultas tratan una etiqueta como prefijo de sus hijas, y renombrarla sin ellas rompería precisamente esas consultas. Una etiqueta que solo empieza por la misma palabra queda intacta: `#proyectil` no es hija de `#proyecto`, le falta la barra.
+
+**La vista previa precede a toda escritura.** Enumera cada coincidencia con su línea, señala las subetiquetas que se mueven con ella y permite descartar coincidencias sueltas. Solo la confirmación en la barra sobre la lista escribe algo; cancelar lo deja todo como estaba.
+
+La escritura se mantiene dentro del límite del área, y el estado anterior de cada archivo modificado queda en el [historial de versiones](history.md), esté o no activado el historial. Un archivo con cambios sin guardar recibe el cambio en su pestaña en lugar de en el disco; un informe final nombra cada archivo y, donde algo no funcionó, el motivo.
 
 ## Autocompletado
 

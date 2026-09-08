@@ -12,6 +12,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { warteAufTrefferliste } = require('../helpers/suche');
 
 const PANEL = '.pane-group[data-pane="0"] .sidebar-searchresults';
 
@@ -117,9 +118,9 @@ test.describe('SH-03: F3 läuft über die Seitengrenze', () => {
 
       const panel = page.locator(PANEL);
       await expect(panel).toBeVisible();
-      await expect
-        .poll(async () => panel.locator('.search-results-item').count())
-        .toBeGreaterThan(0);
+      // 4T-001496: Zustand statt Ereignis — die Status-Zeile meldet die
+      // abgeschlossene Suche, die Liste allein waere nur ihr Vorbote.
+      await warteAufTrefferliste(page);
 
       // Titel des ersten Ziels merken, dann so oft weiterspringen, bis ein
       // anderer Reiter aktiv ist. Die erste Gruppe hat begrenzt viele

@@ -7,7 +7,8 @@
 //
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: backlinks:*,
 // wikiLink:*, tags:request, frontmatterQuery:run, task:applyLineEdit,
-// events:*, graph:edges, areaStats:collect, areaSearch:*, index:overlay,
+// events:*, graph:edges, areaStats:collect, areaSearch:*, areaReplace:run,
+// index:overlay,
 // perspectiveScript:data, autocomplete:*, linter:resolveWikiTargets.
 //
 // Eigener Zustand: keiner; der Index und der Suchraum gehoeren ihren Modulen
@@ -19,6 +20,10 @@ const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
 const { computeLineReplacement } = require('../documents/task-line-edit.js');
+const { createAreaReplace } = require('../area/area-replace.js');
+// 4T-001531 (Epic 3E-000175): Die Fundstellen einer Tag-Umbenennung. Sie
+// braucht jede Datei des Bereichs und laeuft deshalb hier, nicht im Renderer.
+const { ermittleUmbenennung } = require('../area/tag-rename.js');
 const { normalizeProfilesConfig, DEFAULT_ASSIGN_FIELD } = require('../../shared/property-profiles');
 const { EVENT_PROFILE_NAME } = require('../../shared/events/events-core.js');
 const { writeFrontmatter, extractFrontmatter } = require('../../shared/markdown/frontmatter');
@@ -64,6 +69,11 @@ function registerIndexViewsIpc(handle, deps) {
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
+
+  // 4T-001524 (Epic 3E-000169): Die Ersetzen-Strecke braucht die Historie und
+  // steht deshalb hier statt als freie Funktion. Gebaut wird sie einmal bei der
+  // Registrierung, weil ihre Abhaengigkeiten dann bereits feststehen.
+  const { ersetzeImBereich } = createAreaReplace({ resolveHistoryFor, recordMddOnSave });
 
   // 4T-000015: Backlinks-Anfrage einer Pane. Registriert den Owner
   // (webContents + Pane) auf der Wurzel der angefragten Datei und liefert
@@ -344,6 +354,57 @@ function registerIndexViewsIpc(handle, deps) {
     const areaRoot = areaRootForEvent(event);
     gibBereichsVorratFrei(areaRoot || null);
     return true;
+  });
+
+  // 4T-001524 (Epic 3E-000169): Bereichsweites Ersetzen. Der Renderer schickt
+  // dasselbe Muster wie beim Suchlauf, den Ersetzungs-Text und die Offsets der
+  // AUSGEWAEHLTEN Fundstellen; Lesen, Sichern und Schreiben liegen hier.
+  //
+  // Ohne geoeffneten Bereich gibt es keine Grenze, an der sich ein Ziel pruefen
+  // liesse. Der Kanal liefert dann kein leeres Ergebnis wie der Suchlauf,
+  // sondern jede angefragte Datei mit ihrem Grund: Eine stille Null waere von
+  // «nichts zu tun» nicht zu unterscheiden, und der Anwender haette gerade
+  // hunderte Ersetzungen ausgeloest.
+  handle('areaReplace:run', async (event, params) => {
+    const dateien = params && Array.isArray(params.dateien) ? params.dateien : [];
+    const areaRoot = areaRootForEvent(event);
+    if (!areaRoot) {
+      return {
+        geaendert: [],
+        veraendert: [],
+        fehlgeschlagen: dateien
+          .filter((d) => d && typeof d.pfad === 'string' && d.pfad)
+          .map((d) => ({ pfad: d.pfad, grund: 'keinBereich' })),
+      };
+    }
+    return ersetzeImBereich(areaRoot, {
+      muster: params && params.muster,
+      flags: params && params.flags,
+      ersetzung: params && params.ersetzung,
+      regexModus: params && params.regexModus,
+      // 4T-001531 (Epic 3E-000175): Bei einer Tag-Umbenennung reisen die beiden
+      // Namen mit; ohne sie bleibt der Frontmatter-Anteil jedes Ziels leer und
+      // der Kanal verhaelt sich Zeichen fuer Zeichen wie zuvor.
+      tag: params && params.tag,
+      dateien,
+      owner: senderWindow(event),
+    });
+  });
+
+  // 4T-001531 (Epic 3E-000175): Die Fundstellen einer Tag-Umbenennung ueber den
+  // Bereich. Anders als der Suchlauf bekommt dieser Kanal kein Muster, sondern
+  // die beiden Namen: Was ein Tag ist, entscheidet die gemeinsame Erkennung
+  // (`shared/tag-erkennung.js`) und nicht ein Ausdruck, den der Renderer baut.
+  // Ohne geoeffneten Bereich gibt es nichts zu durchsuchen.
+  handle('tagRename:scan', async (event, params) => {
+    const leer = { treffer: [], gruppen: [], abgeschnitten: false, vorratModus: 'leer', kinder: 0 };
+    const areaRoot = areaRootForEvent(event);
+    if (!areaRoot) return leer;
+    return ermittleUmbenennung(areaRoot, {
+      alt: params && params.alt,
+      neu: params && params.neu,
+      aktiv: params && params.aktiv,
+    });
   });
 
   // 4T-000935 (Befund B-08): Puffer-Overlay des Index — ein Kanal fuer Setzen

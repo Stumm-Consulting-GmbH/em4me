@@ -84,6 +84,12 @@ const KERN_ZEILEN = [
   'help.feature.searchReplace',
   'help.feature.searchScopes',
   'help.feature.areaSearch',
+  // 4T-001527 (Epic 3E-000169): Kern und nicht schaltbar — das bereichsweite
+  // Ersetzen ist das Schreib-Gegenstueck der Bereichs-Suche, und die steht zwei
+  // Zeilen darueber ebenfalls im Kern. Eine Erweiterung, die allein das
+  // Ersetzen abschaltet, liesse eine halbe Suche zurueck; die Antwort auf den
+  // Erweiterungs-Pruefschritt des Epics steht im Loesungs-Kapitel von 4T-001527.
+  'help.feature.areaReplace',
   'help.feature.perspectiveTableExtended',
   'help.feature.frontmatter',
   'help.feature.properties',

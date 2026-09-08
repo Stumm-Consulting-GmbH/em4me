@@ -70,14 +70,94 @@
   justify-content: center;
   gap: 14px;
 }
+/* 4T-001490: Die aktuelle Periode behaelt ihr Mass. Ohne diese Zeile stuende
+   sie auf der Vorgabe `flex: 0 1 auto` und schruempfte bei Platzmangel
+   gemeinsam mit den Nachbar-Namen — gewichen ist dann beides statt nur des
+   Namens (AK5). */
+.journal-nav-title {
+  flex: none;
+}
+/* 4T-001490 (Epic 3E-000276): Die Blaetter-Pfeile sind Schaltflaechen mit
+   eigener Flaeche statt blosser Textzeichen.
+
+   Befund des Product Owners vom 2026-09-06: Getroffen werden musste das Zeichen
+   selbst — `.journal-nav-link` setzt `padding: 0` und keinen Rahmen, die
+   Trefferflaeche war also die Glyphe. Innenabstand, Mindestmass und ein
+   dezenter Rahmen machen daraus ein Ziel, das sich auch mit ungenauem Zeiger
+   trifft; die Mindestmasse folgen den Schaltflaechen der Anwendung und nicht
+   der Schriftgroesse, damit sie unabhaengig von ihr tragen. */
 .journal-nav-arrow {
   font-size: 20px;
   line-height: 1;
   color: var(--fg-muted);
+  flex: none;
+  box-sizing: border-box;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 .journal-nav-arrow:hover {
   color: var(--fg);
   text-decoration: none;
+  border-color: var(--fg-muted);
+}
+/* 4T-001490: Name der Ziel-Periode neben seiner Schaltflaeche, kleiner und
+   gedaempfter als die aktuelle Periode.
+
+   **Er weicht bei Platzmangel, die Schaltflaeche nicht** (AK5). Das leistet
+   hier das Flex-Verhalten und keine Breiten-Abfrage: Die Schaltflaechen stehen
+   auf `flex: none`, der Name auf `flex: 0 1 auto` mit `min-width: 0`. Wird die
+   Zeile zu schmal, schrumpft damit ausschliesslich der Name und kuerzt sich mit
+   Auslassungspunkten, waehrend Pfeil und aktuelle Periode ihr Mass behalten.
+   Eine Breiten-Abfrage haette eine Schwelle gebraucht, die je Schrift und
+   Zoomstufe woanders liegt; der Kurzhinweis der Schaltflaeche traegt den vollen
+   Namen ohnehin weiter. */
+.journal-nav-neighbor {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+/* 4T-001491 (Epic 3E-000276): Markierung vorhandener Eintraege — derselbe Punkt
+   wie im Kalender des Seitenbereichs und im Zeitleisten-Block, dieselbe Klasse
+   `has-entry` und dieselbe Bedeutung: „diesen Eintrag gibt es schon".
+
+   **Die Stelle ist unten mittig, wie in der Kalender-Zelle** (Entscheidung des
+   Product Owners vom 2026-09-07, Architekturentscheidung E3 des Epics). Ein
+   Text-Element hat keinen Zellen-Fuss; der Platz dafuer wird deshalb hier
+   geschaffen — ueber `position: relative` und einen unteren Innenabstand.
+
+   **Der Innenabstand steht an ALLEN markierbaren Elementen und nicht nur an den
+   markierten.** Sonst waeren zwei Nachbar-Perioden verschieden hoch, je
+   nachdem, ob es ihren Eintrag schon gibt, und die Zeile spraenge beim
+   Blaettern. Sichtbar ist der Unterschied allein am Punkt.
+
+   Bei der aktuellen Periode traegt der Titel-Container die Klasse und nicht
+   seine Beschriftung: Der Punkt gehoert unter das ganze Element, also unter die
+   Zusatz-Zeile, und nicht zwischen Beschriftung und Zeile. */
+.journal-nav-parents .journal-nav-link,
+.journal-nav-neighbor,
+.journal-nav-title {
+  position: relative;
+  padding-bottom: 7px;
+}
+.journal-nav-parents .journal-nav-link.has-entry::after,
+.journal-nav-neighbor.has-entry::after,
+.journal-nav-title.has-entry::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 .journal-nav-label {
   font-size: 20px;

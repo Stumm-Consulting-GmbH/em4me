@@ -59,7 +59,7 @@ The question mark in the search bar opens a regex quick reference; the most impo
 
 ## Search and replace
 
-In edit mode (default `Ctrl+H`) a replace row appears. With the regex toggle active, backreferences work in the replacement text: `$1`, `$2` for capture groups. "Replace All" is a single transaction, one `Ctrl+Z` undoes everything together.
+In edit mode (default `Ctrl+H`) a replace row appears. With the regex toggle active, backreferences work in the replacement text: `$1`, `$2` for capture groups. "Replace All" is a single transaction, one `Ctrl+Z` undoes everything together. In an open area the same row works across the whole area instead of just the open file; see “Inside an area”.
 
 ```text
 Search:   (\d{2})\.(\d{2})\.(\d{4})
@@ -69,7 +69,7 @@ Effect:   12.06.2026 → 2026-06-12
 
 ## Where the search looks
 
-The search scope follows the tab the search is opened in; the scopes exclude one another:
+The search scope follows the tab the search is opened in; the scopes exclude one another. With no tab open, the bound area decides:
 
 | Active tab | The search covers |
 |---|---|
@@ -77,6 +77,7 @@ The search scope follows the tab the search is opened in; the scopes exclude one
 | File in an open area | **every** Markdown file of the area |
 | Manual page | **all** manual pages, including those not open |
 | Settings | **all** settings sections, including those never visited |
+| No tab open, area bound | **every** Markdown file of the area |
 
 The scope in effect is shown at the left of the search bar.
 
@@ -88,7 +89,13 @@ The **open file comes first** in the list, and with its unsaved state: whatever 
 
 The search covers the Markdown files of the area. Other files and the application's companion files stay out.
 
-**Replacing** stays bound to the single file: opening the replace row returns the search to the current document.
+With **no tab open** the area still counts: search and replace reach its files without a document having to be opened first. Two things fall away because they do not exist without an open file — the list is ordered purely alphabetically instead of putting one file first, and nothing is highlighted in any text.
+
+**Replacing works across the whole area here.** Opening the replace row (`Ctrl+H`) adds a checkbox in the results list before every match and before every file; everything is selected to begin with. The list is therefore also the preview: whatever stays ticked gets replaced. “Replace all” runs over the selected positions, including in files that are not open at all. A report afterwards names the changed files, the skipped ones with their reason, and those that have changed since the search.
+
+**Every changed file gets its previous version into the document history — even when history is switched off.** This is not an option beside the run but part of writing: if the previous version cannot be secured, the file is not written. The way back is the history view of the file in question; the version from before the run is there.
+
+In regex mode the backreferences `$1`, `$2` work as they do in a single file. Writing happens exclusively inside the area. A file that is open in a tab with unsaved changes is replaced in that tab and stays unsaved — a `Ctrl+Z` takes the whole run back there. Split documents are left out and appear in the report.
 
 In a very large area the panel's status line notes that every search re-reads the files; the search then responds more slowly.
 

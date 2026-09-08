@@ -329,6 +329,65 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     **Merkregel:** Warte auf das, was die Aktion bewirken soll, nicht
     auf das erste Zeichen, dass sie begonnen hat.
 
+    **Ein Poll ist keine Zustands-Bedingung, nur weil er keine Pause ist**
+    (4T-001496, Register-Klasse L10 in ihrer Ausprägung U4). Der Vorfall vom
+    2026-09-06 hat diese Regel **dem Buchstaben nach befolgt** — kein Timeout,
+    kein Zeitlimit, sondern ein Poll — und ist trotzdem gerissen: Die Bedingung
+    brach ab, sobald die Vorschlagsliste **überhaupt** etwas zeigte, und prüfte
+    den Inhalt erst danach. Der geschriebene Stand erreicht den Hauptprozess
+    verzögert; unter Last lag der erste Treffer noch davor, und der Fall maß den
+    Stand von vorher. Er war dreimal isoliert grün und fiel im
+    Epic-Abschluss-Lauf neben fünf weiteren Specs durch. **Unzulässig ist
+    deshalb nicht nur die Zeit, sondern auch das Ereignis:** Gewartet wird auf
+    den erwarteten Zustand, nie auf dessen Vorboten. «Die Liste zeigt etwas» ist
+    ein Vorbote, «die Liste zeigt das Erwartete» ist der Zustand.
+
+    **Und der Zustand ist die Bedienbarkeit, nicht das Vorhandensein**
+    (4T-001555, gemeinsam mit dem Fall oben geschärft; Register-Klasse `L11`).
+    Beide Vorgänge zeigen auf dieselbe unscharfe Kante dieser Regel: Dort war
+    das Ereignis der Vorbote des Zustands, hier ist es das Aufgelöst-Sein eines
+    Elements. Vier Vorfälle in vier Wochen (`VL-09` dreimal, `BP-05` einmal)
+    liefen in ihr 30-Sekunden-Limit, **obwohl der Locator aufgelöst hatte** —
+    Playwright benannte das gefundene Element ausdrücklich und wartete danach
+    vergeblich auf die Klick- beziehungsweise Eingabe-Bereitschaft. Keine
+    inhaltliche Erwartung war verletzt; die Fälle scheiterten vor ihrer
+    eigentlichen Prüfung, und isoliert waren sie jedes Mal sofort grün.
+
+    **Was daraus folgt, ist eng und nicht flächig.** Playwright wartet bei
+    `click` und `fill` von sich aus auf Bedienbarkeit; eine fehlende
+    ausdrückliche Bedingung ist der **Normalfall** und kein Mangel. Gemessen am
+    2026-09-08: 547 von 1284 Element-Zugriffen der Suite haben keine, verteilt
+    auf 89 von 123 Prüfdateien. Wer daraus eine flächige Maßnahme ableitet,
+    ändert drei Viertel der Suite, um vier belegte Stellen zu treffen.
+    Entschieden ist deshalb (Product Owner, 2026-09-08) der enge Weg: An den
+    Stellen, an denen das eingebaute Warten **belegt** gerissen ist, wird
+    bedient, bis die Wirkung eintritt — `bedieneBis` und `fuelleBis` in
+    [e2e/helpers/eingabe.js](e2e/helpers/eingabe.js), dieselbe Form wie
+    `pressUntil` in Regel 13. An allen anderen Stellen nicht.
+
+    **Die Wiedervorlage ist benannt:** Tritt dieselbe Klasse ein drittes Mal an
+    einer **neuen** Stelle auf, ist das der Anlass, am Gegenstand zu suchen —
+    also in der Anwendung zu prüfen, ob ein Oberflächen-Teil seine
+    Bedienbarkeit zu spät meldet. Das wäre die einzige Richtung, die auch dem
+    Anwender nützt.
+
+    **Wo der Zustand mehr als eine Größe hat, werden alle geprüft.** Der Helfer
+    `test/e2e/helpers/suche.js` wartet auf die Trefferliste der Suche und liest
+    dafür zwei Seiten: die Status-Zeile, die die abgeschlossene Suche meldet, und
+    die Zähler der aufgeklappten Gruppen, die sagen, wie viele Einträge sichtbar
+    sein müssen. Die Status-Zahl allein genügt **nicht** — eine eingeklappte
+    Gruppe zeigt ihre Treffer nicht, und der Vergleich lief prompt ins Zeitlimit,
+    während die Suche längst fertig war (gemessen am 2026-09-07).
+
+    **Kein Wächter, und das ist gemessen begründet.** Zwei Erhebungen über den
+    E2E-Bestand am 2026-09-07: 493 Poll-Bedingungen, davon 56 auf Nicht-Leere und
+    26 mit nachfolgender Inhaltsprüfung — von Hand beurteilt blieben **zwei**
+    echte Fundstellen. Die übrigen sind Tasten-Retries («drücke Strg+, bis die
+    Seite offen ist»), bei denen die Nicht-Leere der Zustand **ist**. Ein
+    Wächter mit dieser Trefferquote würde umgangen statt beachtet (die Erfahrung
+    aus 4T-001084); beide Fundstellen sind auf den gemeinsamen Helfer
+    umgestellt.
+
     **Eine feste Pause ist nie die Bedingung, auf die man wartet**
     (4T-001086). Das gilt auch für Zwischenschritte, die nur aufräumen
     sollen: `keyboard.press('Escape')` gefolgt von
@@ -352,6 +411,28 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     grün und im Voll-Lauf rot ist, muss kein Flake sein — «isoliert»
     heißt oft nur «diese Spec allein», nicht «ohne Fremdlast». Wer die
     Last nachstellt, unterscheidet beides.
+
+    **Ein Lastversuch setzt eine ruhige Maschine voraus** (4T-001476). Er
+    stellt die gesuchte Nebenläufigkeit **zusätzlich** her; liegt schon
+    Fremdlast an, misst er beides zugleich und trennt nichts mehr. Die
+    Folge für die Aussagekraft ist beidseitig und wiegt schwerer als die
+    Laufzeit: Ein **roter** Lauf belegt dann nichts Bestimmtes — er kann
+    den gesuchten Flake zeigen, die Zeitgrenze der überlasteten Maschine
+    oder beides —, und ein **grüner** belegt wenig, weil niemand weiß,
+    wieviel Last überhaupt anlag. Beide Fälle sehen aus wie eine
+    gelungene Messung; das ist der eigentliche Schaden.
+
+    Belegt am 2026-09-05 (`4T-001410`): drei Lastversuche in Folge neben
+    zwei arbeitenden Nachbar-Sitzungen desselben Rechners — 2,2 Minuten
+    grün, 5,2 Minuten dreifach rot, 3,3 Minuten zweifach rot. Rot wurden
+    Fälle **ohne** Bezug zum untersuchten Fehlerbild, und der untersuchte
+    Fall selbst scheiterte an einem Test-Timeout statt an seiner
+    Zusicherung. Auf der freien Maschine war er seriell 18 von 18 grün.
+
+    **Der Handgriff davor:** Der Gate-Weg (`node scripts/gate-lauf.js …`)
+    meldet vor dem ersten Gate, wenn fremde Electron-Instanzen laufen.
+    Die Meldung ist eine Warnung und keine Sperre — wer die Fremdlast
+    absichtlich herstellt, tut genau das, wozu diese Regel auffordert.
 13. **Ein Tastendruck wird wiederholt, bis seine Wirkung eintritt.** Ein
     einzelner `keyboard.press` kann ins Leere gehen, weil das Fenster
     den Fokus noch nicht hat oder der Renderer seinen Listener erst
@@ -598,6 +679,58 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Gate-Weg bleibt er still, weil dessen `pre`-Kette unmittelbar davor gebaut
     hat — eine Sonderbehandlung für ihn gibt es nicht.
 
+25. **Eine Messung, deren Fehlschlag wie ihr Ergebnis aussieht, braucht eine
+    Gegenprobe** (4T-001495, Register-Klasse L10 in ihrer ersten Ausprägung
+    U1 «Annahme über Messort und Messgerät»). Sechs der sechzehn Vorfälle der
+    Klasse liegen nicht am Gegenstand, sondern am **Prüfmittel**: Es maß im
+    falschen Fenster, nahm einen Wert mit Platzhaltern wörtlich, zählte fremde
+    Schreibvorgänge als eigene oder traf mit seinem Zeitfenster neben die
+    Anzeigedauer. Drei Gegenproben haben diese Fälle gefangen; sie standen
+    bisher je im Text ihres Vorgangs und in keiner Regel:
+
+    - **Gleiche Messwerte an verschiedenen Gegenständen sind ein Messfehler,
+      kein Fund.** Belegt an drei Dateien mit identischer Zeichenzahl
+      (4T-001228) und sechs Journalen mit identisch null Einträgen
+      (4T-001266).
+    - **Vor jeder Ursachen-Hypothese zu einem einmaligen Fehlschlag steht seine
+      Wiederholung.** Vier Läufe gingen in falsche Richtungen, bevor jemand
+      fragte, ob der Fehler reproduzierbar ist — er war es nicht (4T-001267).
+    - **Eine Messung trennt Abwesenheit von Leere.** Ein Ausdruck, dessen
+      negatives Ergebnis zwei Ursachen haben kann (Gegenstand fehlt, oder
+      Gegenstand ist leer), unterscheidet nicht, sondern behauptet (4T-001267).
+
+    Dazu gilt die **Positiv-Kontrolle** aus Regel 23 hier genauso: Aus dem
+    Schweigen eines Prüfmittels wird nichts gefolgert, bevor es einmal
+    nachweislich gefeuert hat. **Der jüngste Beleg stammt aus der Messung zu
+    4T-001497:** Dort trat dieselbe Falle in **sechs** Gestalten auf — ein
+    Hüllen-Objekt statt der gelesenen Karte, nicht startende Prozesse, ein von
+    der Projekt-Konfiguration überstimmter Reporter, ein Text-Scan, der die
+    `exclude`-Liste als Treffer las, ein stiller `catch` und die fehlende
+    Zugangs-Marke. Alle sechs sagen «nichts gefunden», und **keines ist vom
+    echten Negativ-Ergebnis zu unterscheiden**. Belastbar wurde die Messung
+    erst durch zwei Kontrollfälle mit von Hand vorbestimmtem Ergebnis.
+
+26. **Eine neue Lesart eines bekannten Wertes braucht die Fall-Liste des
+    Wertes, nicht eine neue** (4T-001495, Register-Klasse L10 in ihrer
+    Ausprägung U5). Wer eine zweite Stelle baut, die denselben Wert auswertet,
+    erbt dessen Formen-Vielfalt — beim Ziel-Teil eines Wiki-Links etwa Anker,
+    Alias, Unterseiten-Form und Endung — und prüft doch nur die Formen, die ihm
+    gerade einfallen. Belegt am 2026-09-06: Der Klick-Weg trennt den Anker ab,
+    bevor er auflöst; eine neu gebaute Beurteilung des Linters tat es nicht und
+    suchte eine Datei namens `Zielnotiz#Kapitel Zwei`. Ergebnis war eine Marke
+    an einem Verweis, den derselbe Klick öffnet. Gefunden hat das kein Lauf,
+    sondern ein Handgriff an der gebauten Programmdatei: Weder die sieben
+    Unit-Fälle der neuen Funktion noch ihre beiden E2E-Fälle führten je einen
+    Anker — geprüft war er anderswo sehr wohl, im Render-Pfad, in der
+    Auflösung, im Klick-Weg, nur nicht dort, wo die zweite Lesart entstand.
+
+    **Abgrenzung zu Regel 23:** Dort teilen Prüfstand und Werkzeug eine falsche
+    Vorstellung vom Bestand, und der Bestandsfall fängt es. Hier laufen zwei
+    Lesarten desselben Wertes im Code auseinander, und ein Bestandsfall der
+    neuen Stelle meldete nichts, solange die seltene Form im Bestand nicht
+    vorkommt. Die Fall-Liste gehört deshalb an den **Wert**, nicht an die
+    Stelle.
+
     **Gemessen statt angenommen: Änderungszeiten tragen, ein Inhalts-Hash wäre
     hier der falsche Weg.** Ein Inhalts-Vergleich bräuchte einen Stempel der
     Bau-Eingänge, also eine Schreib-Wirkung, die der Wächter nicht haben darf.
@@ -610,6 +743,33 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     kostet einen überflüssigen Bau von Sekunden. Der Irrtum geht damit immer auf
     den Fehlalarm und nie auf den stillen Durchlass — dieselbe Richtung wie beim
     Produkt-Code-Wächter und beim Pflicht-Zugang.
+
+27. **Vor dem Weiten einer Toleranz wird der Normalwert gemessen** (4T-001554,
+    Entscheidung des Product Owners vom 2026-09-08). Ein Prüffall, der absolute
+    Bildschirm-Positionen vergleicht, misst die Schrift-Umgebung mit; reißt er,
+    ist die naheliegende Erklärung eine zu enge Toleranz. Sie ist nur dann
+    richtig, wenn der Fall **nahe** an seiner Grenze arbeitet — und das ist eine
+    Messung, keine Vermutung.
+
+    **Der Prüfsatz lautet: Wie weit liegt der Normalwert unter der Grenze, und
+    um welchen Faktor lag der Fehlschlag darüber?** Ein Fehlschlag im Bereich
+    der Grenze ist Umgebungs-Streuung, und eine abgeleitete Toleranz hilft. Ein
+    Fehlschlag um eine **Größenordnung** darüber ist kein Toleranz-Problem,
+    sondern ein anderer Zustand; eine geweitete Toleranz verdeckt ihn dann nur.
+
+    Belegt am 2026-09-08 an `ZU-01` («die Schreibmarke folgt dem Klick auch in
+    der eingerückten Fortsetzung»): Toleranz 8 px, gemessener Normalwert
+    **1,59 px**, die beiden Vorfälle vom 2026-09-01 bei **16,98 px** (Windows)
+    und **18,44 px** (Linux) — also beim Zehnfachen des Normalwerts und rund
+    zwei Zeichenbreiten daneben. Der Fall arbeitet nicht an seiner Grenze; die
+    Toleranz war nie das Problem, und sie bleibt deshalb unverändert. Zwei
+    Vorfälle auf zwei Plattformen mit demselben Fingerabdruck sagen etwas über
+    den **Zustand** im Moment des Klicks, nicht über die Schrift-Umgebung.
+
+    **Die Zahl kostet einen Lauf.** Der Messwert entsteht, indem der Fall
+    einzeln mit ausgegebener Größe statt bloßer Zusicherung gefahren wird —
+    Sekunden, gegen die Alternative, eine Toleranz auf Verdacht zu weiten und
+    damit die Aussagekraft des Falls dauerhaft zu senken.
 
 ## E2E-Praxis
 
@@ -898,6 +1058,33 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Entwicklungsrichtlinien,
   Abschnitt „Arbeits-Umgebung: bekannte Fallen".
 
+## Mutationsprobe: trägt der Prüffall, was er behauptet?
+
+Ein grüner Prüffall beweist nicht, dass er seinen Gegenstand misst — er kann
+auch an ihm vorbeigehen. Die **Mutationsprobe** beantwortet das: Der geprüfte
+Code wird gezielt verschlechtert, und der Fall muss fallen. Bleibt er grün,
+prüft er etwas anderes als angenommen.
+
+Sie ist im Projekt gelebte Praxis (`journal-perioden.test.js`,
+`journal-nav-einordnung.test.js`, `versions-texte-umlaute.test.js`) und lohnt
+überall dort, wo ein Fall eine **Regel** absichert statt eines Ergebnisses. Zwei
+belegte Funde: Ein Prüffall über 14 Monate blieb grün, als die Kalender-Rechnung
+durch eine Division ersetzt wurde (der Fehler häuft sich an und kippt erst ab 34
+Monaten, `4T-001489`); und ein Adress-Schutz ließ sich zu weit fassen, ohne dass
+ein Fall es merkte, bis die Gegenprobe dazukam (`4T-001529`).
+
+**Wo die Probe eine Falle hat:** Sie verändert eine Quelldatei auf Zeit. Bricht
+das Werkzeug dazwischen ab, bleibt die Mutation stehen — und ein zweiter Lauf
+liest sie als Original ein. Am 2026-09-07 hat das in `4T-001530` die Erweiterung
+eines Moduls gekostet, weil der Rückweg dann über `git checkout --` führte und
+der auf den **Commit-Stand** zurücksetzt, nicht auf den Stand vor der Mutation.
+Daraus zwei Regeln:
+
+- **Die Wiederherstellung gehört in ein `finally`,** nicht ans Ende des Laufs.
+- **Vor der Probe committen** oder den Stand ausserhalb des Repositoriums
+  sichern. `git checkout --` ist kein Rückweg für uncommittete Arbeit, sondern
+  ein Werkzeug, das sie verwirft.
+
 ## Setup-/Teardown-Vorlage für Temp-Verzeichnis-Tests
 
 Windows-robust: Datei-Handles können kurz nach dem Schließen noch
@@ -1013,7 +1200,8 @@ Task laufen, bestimmt ebenfalls die Änderungsklasse, im Release-Sammeltask
 die Voll-Suite.
 
 **Größenordnung der Stufen** (gemessen am 2026-07-25 auf dem
-Arbeitsplatz-Rechner, 32 logische Kerne, unter leichter Fremdlast; die
+Arbeitsplatz-Rechner, 32 logische Kerne, unter leichter Fremdlast und
+**seriell**, also ohne einen zweiten Suite-Lauf daneben; die
 Streuung liegt lastbedingt bei rund 15 Prozent): pre-commit-Hook rund
 15 s, davon rund 14,6 s auf Format und Lint und 0,6 s auf den PM-Linter;
 Queue-Gates rund 87 s, davon rund 73 s Testsuite; Renderer-Bau rund 3 s;
@@ -1025,6 +1213,48 @@ vollständig bauen; der gesamte Anwendungs-Code samt Render-Snapshots
 kostet zusammen weniger als drei Sekunden. Eine Abstufung zahlt sich in
 der Unit-Suite deshalb genau dann aus, wenn die Klasse diese vier
 Werkzeug-Wächter auslässt.
+
+**Diese Werte gelten für Windows** (4T-001540). Sie sind auf der Haupt-Plattform
+gemessen und nicht auf die zweite übertragbar. Gemessen am 2026-09-08 an zwei
+Voll-Läufen desselben Standes — je 331 Prüfdateien und 6063 Fälle, Windows gegen
+Linux-Container:
+
+- **In der Summe ist der Unterschied klein:** 210 s gegen 260 s über alle Fälle,
+  Faktor **1,24**. Der Anwendungs-Code läuft auf beiden Plattformen gleich
+  schnell.
+- **Je Fall ist er dramatisch, aber nur für eine Gruppe:** Die Prüffälle, die den
+  **Bestand als Ganzes lesen**, liegen im Container beim **20- bis 35-Fachen**
+  ihres Windows-Wertes — `anforderungen` 35,7×, `ordner-import-zyklen` 33,1×,
+  `konflikt-marker-bestand` 26,5×, `doku-landkarte` 26,3×, `pm-dokumente` 24,6×.
+  Die Ursache liegt an der Brücke zum Windows-Laufwerk: Ein Datei-Zugriff kostet
+  dort ein Vielfaches, unabhängig von der gelesenen Menge.
+- **Die Zeitgrenzen halten dabei komfortabel.** Der höchste gemessene
+  Auslastungsgrad ist **22 Prozent** (`pm-dokumente`, 19,8 s gegen 90 s); alle
+  übrigen liegen darunter. Kein Fall **ohne** eigene Zeitgrenzen-Konstante kommt
+  im Container über 2,5 s und damit in die Nähe der Voreinstellung von 5 s.
+
+**Wer eine Zahl dieser Tabelle für den Container braucht, rechnet nicht mit dem
+Summen-Faktor.** Er gilt für die Suite als Ganzes; für einen einzelnen
+bestandslesenden Fall ist er um mehr als eine Größenordnung zu klein.
+
+**Die Zeitgrenzen bleiben plattform-einheitlich — mit einer benannten Schwelle**
+(Entscheidung des Product Owners vom 2026-09-08 zu `4T-001540`). Drei Wege
+standen zur Wahl: Grenzen je Plattform, eine Grenze am teuersten Prüfstand, oder
+die Kosten senken, indem das Unit-Gate wie das E2E-Gate aus einer Kopie im
+Container-Dateisystem liefe. Entschieden ist **keiner davon**, sondern das
+Beobachten: Die Erhebung hat die vermutete Lücke widerlegt, und eine
+Regel-Änderung ohne belegten Anlass wäre selbst ein Fehler.
+
+**Die Wiedervorlage ist eine Zahl und kein Gefühl:** Überschreitet ein Prüffall
+im Container **50 Prozent** seiner Zeitgrenze, ist das der Anlass, die Kosten
+anzugehen — also das Unit-Gate aus der Kopie zu fahren, statt die Grenze erneut
+zu heben. Gemessen wird bei der nächsten Plattform-Erhebung; heute liegt der
+höchste Wert bei 22 Prozent.
+
+**Warum die Kosten und nicht die Grenze:** Eine erneute Anhebung verlöre weiter
+an Schärfe auf der Haupt-Plattform. `pm-dokumente` dürfte auf Windows heute
+schon das Hundertfache seiner 0,8 s brauchen, bevor etwas auffällt — dieser
+Preis ist mit der Anhebung vom 2026-08-31 bezahlt und soll nicht wachsen.
 
 ### Änderungsklassen und Prüf-Ausschnitt
 
@@ -1153,7 +1383,8 @@ also allein der Prüf-Prozess) und hält sie gegen die Karte: In jeder
 Klasse, deren Muster ein gelesener Pfad trifft, muss die Prüfdatei im
 Ausschnitt stehen — oder die Klasse deckt sie anders (Voll-Suite, feste
 Wächter-Gruppe, Selbst-Klasse, Modul-Graph über die statische
-Import-Kette). Alles andere ist ein **Befund**: eine Zuordnung, die enger
+Import-Kette — seit dem 2026-09-07 dieselbe Kette, die auch die Gate-Auswahl
+benutzt, siehe unten). Alles andere ist ein **Befund**: eine Zuordnung, die enger
 ist als die Messung, die Bauform der fünf Fälle. Die Gegenrichtung, ein
 Ausschnitts-Eintrag ohne gemessene Eingabe der Klasse, ist ein **Hinweis**,
 weil sie Prüfzeit kostet und keine Deckung. Drei Zuschnitts-Entscheidungen:
@@ -1293,6 +1524,30 @@ dabei innerhalb einer Klasse weiter ein und ist nie alleinige Grundlage.
 Das Protokoll nennt den **tatsächlich ausgeführten** Umfang, damit ein
 grüner Teil-Lauf nicht als grüner Voll-Lauf gelesen werden kann.
 
+**Seit dem 2026-09-07 kommt bei diesen Klassen die statische Import-Kette
+hinzu** (`scripts/import-kette.js`): Der Ausschnitt nimmt zusätzlich die
+Prüfdateien auf, die eine geänderte Datei über ihre Import-Kette erreichen.
+Anlass ist eine gemessene Lücke: `vitest related` folgt **keiner
+`require`-Kante**, und da `scripts/` CommonJS ist, ist das dort der
+Normalfall. Am 2026-09-07 galten dadurch **78 der 321 Prüfdateien** — 24 %
+des Bestands, 1031 Paare aus Prüfdatei und Quellpfad — über die Kette als
+gedeckt, ohne bei einer Änderung ihres Gegenstands je zu laufen; die
+Zuordnungs-Prüfung sagte «gedeckt», wo der Lauf nichts fand. Die Ursache ist
+**nicht** auf `createRequire` beschränkt, wie zunächst vermutet: Nur 11 der
+78 benutzen es überhaupt, und es genügt eine `require`-Kante irgendwo in der
+Kette.
+
+Der Product Owner hat am 2026-09-07 entschieden, den **Lauf an die Erkennung**
+anzugleichen statt umgekehrt: Die Gegenrichtung hätte nur die Buchführung
+berichtigt — die 78 Prüfdateien liefen weiterhin nicht. Preis, ebenfalls
+gemessen: je geändertem Quellpfad zusätzlich im Median 4, im Mittel 7,7 und
+höchstens 25 Prüfdateien, dazu rund eine Sekunde für die Ketten-Bildung je
+Auswahl. Der `vitest related`-Lauf bleibt **daneben** bestehen und wird nicht
+ersetzt: Er findet, was Vite auflöst und eine Textanalyse nicht sieht. Beide
+Richtungen derselben Kante — die Zuordnungs-Prüfung fragt vorwärts, die
+Gate-Auswahl rückwärts — liegen seither in **einem** Modul, weil ihr
+Auseinanderlaufen der Befund war.
+
 Entschieden wurde die Scharfschaltung auf einer Auswertung aller 439
 Integrations-Vorgänge seit Beginn des Schattenbetriebs: kein einziger
 unbekannter Pfad, und die erkannten Klassen entsprachen dem realen
@@ -1347,11 +1602,39 @@ Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/
 
 ### Gemessene Größenordnungen (2026-08-28, SC-027 Slot B)
 
+**Alle Werte dieses Abschnitts stammen aus seriell gefahrenen Läufen** — einer
+nach dem anderen, ohne dass eine zweite Suite gleichzeitig lief. Wer daraus ein
+Budget für einen **parallel** gefahrenen Lauf bildet, rechnet zu knapp; die
+Einzelheiten stehen im Absatz «Parallel gefahrene Plattform-Läufe» unten
+(`4T-001519`).
+
 | Lauf | Windows | Linux im Container | Verhältnis |
 |---|---|---|---|
 | Unit-Suite | rund 73 s | rund 4 min | rund 3× |
 | E2E-Voll-Suite | 27,5 min | 38,6 min | 1,4× |
 | Ein Bestands-Wächter über 1348 Objekte | 4,4 s | über 30 s | rund 7× |
+
+**Parallel gefahrene Plattform-Läufe kosten mehr, als die Werte oben erwarten
+lassen** (`4T-001519`, eine Beobachtung vom 2026-09-06, **keine Messreihe**).
+Die Entwicklungsrichtlinien empfehlen, die beiden Plattform-Läufe eines Zuges
+gleichzeitig zu fahren. In der Release-Strecke zu `1.129.0` hat das Zeit
+gekostet statt sie zu sparen: 70 Minuten Wanduhr gegen rund 52 Minuten, die
+dieselben vier Läufe seriell gebraucht hätten. Die E2E-Suite unter Windows lief
+mit 60,9 statt 27,5 Minuten, also mit Faktor 2,2.
+
+**Der Mechanismus ist von der Messgenauigkeit unabhängig:** Eine E2E-Suite
+startet je Prüffall eine vollständige Anwendung; zwei davon auf derselben
+Maschine konkurrieren um Kerne und Plattenzugriff, und der Linux-Lauf zahlt
+zusätzlich über die Container-Brücke. Der Engpass ist nach diesem Abschnitt
+ohnehin das Dateisystem — also genau die Größe, die sich schlecht teilen lässt.
+Im selben Lauf trat zudem der bekannte Wackler `BS-06` zum vierten Mal auf, und
+alle vier Beobachtungen liegen in Läufen mit belegter oder plausibler Fremdlast.
+
+**Was noch offen ist:** Ob die Empfehlung zum Parallel-Fahren bleibt, geändert
+oder gestrichen wird, entscheidet der Product Owner nach einer Messreihe über
+mindestens zwei Release-Strecken; bis dahin gilt sie unverändert. Festgehalten
+ist hier allein die **Betriebsart der Werte** — und die ist unabhängig vom
+Ausgang jener Entscheidung.
 
 **Der Engpass ist das Dateisystem, nicht die Rechenleistung.** Der Container arbeitet über die Brücke zum Windows-Laufwerk; was viele Dateien liest, zahlt dort ein Vielfaches, während reine Rechenarbeit kaum teurer wird. Wer unter Linux eine Zeitgrenze reißen sieht, prüft deshalb zuerst, ob der Fall den Bestand liest — und hebt dann das **benannte** Limit aus `test/zeitlimits.js`, statt eine Zahl an den Fall zu schreiben.
 

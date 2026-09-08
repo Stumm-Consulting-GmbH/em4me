@@ -813,6 +813,10 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert tags.md stabil 1`] = 
 <p data-source-line="11">Kein Tag im Wiki-Anker: <a href="#abschnitt" class="wikilink">#Abschnitt</a></p>
 <p data-source-line="13">Tag am Zeilenanfang:
 <a href="#tag:zeilenstart" class="tag-link">#zeilenstart</a></p>
+<p data-source-line="16">Kein Tag in einer nackten Adresse: <a href="https://beispiel.de/#abschnitt">https://beispiel.de/#abschnitt</a></p>
+<p data-source-line="18">Kein Tag in spitzen Klammern: <a href="https://beispiel.de/#kapitel">https://beispiel.de/#kapitel</a></p>
+<p data-source-line="20">Kein Tag im Link-Ziel: <a href="https://beispiel.de/#anker">Text</a></p>
+<p data-source-line="22">Gegenprobe: <a href="https://beispiel.de">https://beispiel.de</a> und danach <a href="#tag:echtertag" class="tag-link">#echtertag</a> im selben Absatz.</p>
 "
 `;
 
