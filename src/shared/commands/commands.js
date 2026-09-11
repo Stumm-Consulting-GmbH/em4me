@@ -58,6 +58,14 @@ const COMMAND_CATEGORIES = [
 //   menu            true = hat einen Menue-Eintrag (Accelerator-Anzeige).
 //   editorScoped    true = wirkt als CodeMirror-Keymap im Editor (Fold-
 //                   Kommandos), nicht ueber den globalen Dispatcher.
+//   availability    PFLICHTFELD (4T-001635, Epic 3E-000295): Name einer
+//                   Bedingung aus dem Katalog in command-availability.js,
+//                   'immer' wenn keine gilt. Menue und Palette leiten daraus
+//                   ihre Freigabe ab, statt sie je eigen zu entscheiden.
+//                   'immer' steht ausdruecklich da: Ein neues Kommando ohne
+//                   Bedingung ist kein unauffaelliges «immer verfuegbar»
+//                   mehr, sondern ein roter Lauf am Waechter
+//                   (test/unit/command-availability.test.js).
 //
 // Die Array-Reihenfolge bestimmt die Zeilen-Reihenfolge der generierten
 // Hilfe-Tabelle (Eintraege mit gleichem descKey buendeln in eine Zeile)
@@ -71,6 +79,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000319 (Epic 3E-000057): neue logische Applikation. Bewusst ohne
   // Default-Binding — der Menue-Weg genuegt, ein Kuerzel ist ueber die
@@ -83,6 +92,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'file.open',
@@ -92,6 +102,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     // 4T-001501 (Epic 3E-000174): Datei ueber ihren Namen oeffnen.
@@ -104,6 +115,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'areaOrTab',
   },
   // 4T-000338 (Epic 3E-000061): Unterseite zur aktiven Datei anlegen. Ohne
   // Default-Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
@@ -115,6 +127,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   // 4T-000426 (Epic 3E-000080): neue Datei aus Vorlage (Auswahl-Popup, Platz-
   // halter-Dialoge). Ohne Default-Binding (Menue-Weg; Kuerzel belegbar).
@@ -126,6 +139,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000426 (Epic 3E-000080): Vorlage an der Cursor-Position einfuegen. Kein
   // Menueleisten-Eintrag (Zugang: Editor-Kontextmenue, Kuerzel belegbar);
@@ -138,6 +152,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'editor',
   },
   // 4T-000512 (Epic 3E-000092): leeren Ereignis-Block an der Cursor-Position
   // einfuegen. Kein Menueleisten-Eintrag (Zugang: Kommando-Palette, Kuerzel
@@ -156,6 +171,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'editorUndKalender',
   },
   {
     id: 'edit.insertEvents',
@@ -165,6 +181,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-001176 (Epic 3E-000220, E7): Abfrage zu einem Profil einfuegen. Ohne
   // Default-Binding und ohne Menue-Eintrag (Weg ist die Palette;
@@ -178,6 +195,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000433 (Epic 3E-000081): heutigen Journal-Eintrag oeffnen bzw. anlegen
   // (bei mehreren Tages-Journalen Auswahl-Popup). Ohne Default-Binding
@@ -190,6 +208,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'area',
   },
   // 4T-000433 (Epic 3E-000081): Journal-Eintrag fuer ein gewaehltes Datum
   // (Datums-Dialog, dann Journal-Auswahl).
@@ -201,6 +220,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'area',
   },
   // 4T-001407 (Epic 3E-000244): Eigenschaften eines ganzen Journals nachtragen.
   // menu: false, weil die Menue-Einordnung im Struktur-Pruefschritt (4T-001408)
@@ -213,6 +233,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: false,
     editorScoped: false,
+    availability: 'area',
   },
   // 4T-000322 (Epic 3E-000058): Bereich oeffnen/schliessen. Ohne Default-
   // Bindings (Menue-Weg; Kuerzel per Einstellungen belegbar).
@@ -224,6 +245,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'area.close',
@@ -233,6 +255,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'areaOhneBuchUndRegal',
   },
   // 4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area in einen leeren Ordner
   // kopieren und als Bereich oeffnen. Ohne Default-Binding (Menue-Weg;
@@ -245,6 +268,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000843 (Epic 3E-000147): Buch oeffnen, neu anlegen und schliessen. Der
   // Menue-Klick fuehrt im Main aus (Ordner-Dialog, Anlage, aktives Buch der
@@ -260,6 +284,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'book.create',
@@ -269,6 +294,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'book.close',
@@ -278,6 +304,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'buch',
   },
   // 4T-000867 (Epic 3E-000162): Buecherregal oeffnen, neu anlegen und schliessen —
   // dieselbe Aufteilung wie die Buch-Kommandos (Main fuehrt aus, keine
@@ -290,6 +317,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'shelf.create',
@@ -299,6 +327,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'shelf.close',
@@ -308,6 +337,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'regal',
   },
   // 4T-000847 (Story 4S-000756): Kapitel-Datei physisch innerhalb des Buch-Ordners
   // verschieben (Ordner-Wahl im Main, Ziel muss im Buch-Ordner liegen). Ohne
@@ -323,6 +353,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'buch',
   },
   // 4T-000846 (Story 4S-000755): Leseführung über Kapitel-Grenzen. Beide
   // Kommandos folgen der Lese-Ordnung des aktiven Buches (ein Kapitel vor
@@ -342,6 +373,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'book.previousChapter',
@@ -351,6 +383,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Lebenszyklus. Alle vier ohne
   // Default-Bindings (Menue-Weg; Kuerzel per Einstellungen belegbar);
@@ -364,6 +397,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'workspaceOhne',
   },
   {
     id: 'workspace.create',
@@ -373,6 +407,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'workspace.close',
@@ -382,6 +417,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'workspaceMit',
   },
   {
     id: 'workspace.manage',
@@ -391,6 +427,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'tab.close',
@@ -400,6 +437,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'anyTab',
   },
   {
     id: 'file.save',
@@ -409,6 +447,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   {
     id: 'file.saveAs',
@@ -418,6 +457,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   // 4T-000339 (Epic 3E-000061): aktive Datei umbenennen (inkl. Unterseiten-
   // Kaskade aus 4T-000340). Ohne Default-Binding (Menue-/Kontextmenue-Weg).
@@ -429,6 +469,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   // 4T-000774 (Epic 3E-000128): Unterseite von der uebergeordneten Seite loesen.
   // Technisch die Umbenennung auf das eigene letzte Segment, deshalb ohne
@@ -441,6 +482,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   // 4T-001293 (Epic 3E-000224): geteiltes Dokument wieder zu einer Datei machen.
   // Ohne Default-Binding: selten, loescht Dateien, ausdruecklicher Weg (O9).
@@ -452,6 +494,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog. Strg+P ist der
   // etablierte Standard und hier frei — der PDF-Export war 2026 auf
@@ -467,6 +510,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'contentTab',
   },
   // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts. Umschalt-
   // Modifier, weil Strg+P im Edit-Modus von CodeMirror gegrabbt wird
@@ -479,6 +523,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'contentTab',
   },
   // 4T-000890 (Epic 3E-000168, Befund L-05): portabler Markdown-Export als
   // regulaeres Registry-Kommando. Der Menue-Eintrag war bis dahin hart auf
@@ -494,6 +539,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'contentTab',
   },
   {
     id: 'app.openSettings',
@@ -503,6 +549,7 @@ const COMMANDS = [
     categoryKey: 'help.group.general',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     // 4T-000333 (Epic 3E-000060): Historien-Ansicht des aktiven Dokuments als
@@ -514,6 +561,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   {
     // 4T-000455 (Epic 3E-000084): Bereichs-Graph als read-only System-Seite;
@@ -526,6 +574,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'area',
   },
   {
     // 4T-000620 (Epic 3E-000117): Bereichs-Statistik als read-only System-Seite;
@@ -538,6 +587,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'area',
   },
   {
     id: 'view.toggleEdit',
@@ -547,6 +597,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: true,
     editorScoped: false,
+    availability: 'fileTab',
   },
   // Neues Kommando (Epic 3E-000015): Lokalzeit-Timestamp an der Cursor-
   // Position. Kein Menue-Eintrag (die App hat kein Bearbeiten-Menue).
@@ -558,6 +609,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'editor',
   },
   // 4T-000486 (Epic 3E-000091): Datums-/Uhrzeit-Picker in drei Varianten
   // (Schalter-Vorbelegung: beide / nur Datum / nur Uhrzeit). Strg+Alt+T/D/U
@@ -573,6 +625,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'edit.insertDate',
@@ -582,6 +635,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'edit.insertTime',
@@ -591,6 +645,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000506 (Epic 3E-000096): Task-Bearbeitungs-Dialog — auf einer Task-Zeile
   // bearbeitend, auf einer leeren Zeile anlegend. Kuerzel Strg+Alt+A
@@ -605,6 +660,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000528 (Epic 3E-000095): Erinnerung setzen — Picker (Datum plus Uhrzeit)
   // auf der Checkbox-Zeile, setzt oder aktualisiert den ⏰-Marker. Kuerzel
@@ -618,6 +674,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.modeRendered',
@@ -627,6 +684,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'viewMode',
   },
   {
     id: 'view.modeSplit',
@@ -636,6 +694,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'viewMode',
   },
   {
     id: 'view.modeSource',
@@ -645,6 +704,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'viewMode',
   },
   {
     id: 'view.modeLive',
@@ -654,6 +714,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'viewMode',
   },
   {
     // 4T-001047 (Epic 3E-000151): Fuenfter Ansichts-Modus. Setzt die
@@ -666,6 +727,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'viewMode',
   },
   {
     id: 'zoom.in',
@@ -675,6 +737,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'zoom.out',
@@ -684,6 +747,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'zoom.reset',
@@ -693,6 +757,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleFocusMode',
@@ -702,6 +767,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleOutline',
@@ -711,6 +777,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleOutgoingLinks',
@@ -720,6 +787,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleBacklinks',
@@ -729,6 +797,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000341 (Epic 3E-000061): Unterseiten-Sektion toggeln. Ohne Default-
   // Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
@@ -740,6 +809,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000456 (Epic 3E-000084): Datei-Graph-Sektion toggeln. Ohne Default-
   // Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
@@ -751,6 +821,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000527 (Epic 3E-000095): Erinnerungs-Sektion toggeln. Ohne Default-
   // Binding (Menue-/Statusbar-Weg; Kuerzel ueber die Einstellungen belegbar).
@@ -762,6 +833,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000567 (Epic 3E-000104): Bereichs- und Kalender-Panel toggeln — Zugangs-
   // Symmetrie aller Sidebar-Panels (Panel-Untermenue, Palette, belegbares
@@ -774,6 +846,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches toggeln (Muster
   // view.toggleAreaPanel, ohne Default-Binding). Die ID folgt dem
@@ -788,6 +861,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleCalendarPanel',
@@ -797,6 +871,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000372 (Epic 3E-000069): Uhr-Panel toggeln. Ohne Default-Binding
   // (Menue-/Statusbar-Weg; Kuerzel ueber die Einstellungen belegbar) —
@@ -809,6 +884,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000697 (Epic 3E-000141): linke bzw. rechte Sidebar-Spalte der aktiven
   // Editor-Spalte als Ganzes ein-/ausklappen. Ohne Default-Binding (Menü-
@@ -823,6 +899,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleSidebarRight',
@@ -832,6 +909,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'file.bookmarkAdd',
@@ -841,6 +919,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'anyTab',
   },
   {
     id: 'view.toggleBookmarks',
@@ -850,6 +929,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // Kategorie editing analog zum Feature-Eintrag help.feature.properties
   // (Frontmatter-Pflege ist Bearbeitungs-Funktionalitaet).
@@ -861,6 +941,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-001174 (Epic 3E-000220, E5): Feld-Formular des Dokuments. Ohne
   // Default-Binding (Wege sind Palette und Reiter-Kontextmenue), ohne
@@ -874,6 +955,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000359 (Epic 3E-000066): Notizen-Sidebar-Sektion toggeln. Ohne Default-
   // Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar, wie Unterseiten).
@@ -885,6 +967,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel toggeln. Ohne Default-Binding
   // (Menue-Weg; Kuerzel ueber die Einstellungen belegbar, Muster Notizen).
@@ -896,6 +979,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000364 (Epic 3E-000067): Block-Eigenschaften-Sidebar-Sektion toggeln. Ohne
   // Default-Binding (Menue-Weg; Kuerzel ueber die Einstellungen belegbar).
@@ -907,6 +991,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleTags',
@@ -916,6 +1001,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // 4T-000624 (Epic 3E-000119): benannte Sidebar-Varianten. Speichern friert
   // Anordnung und Panel-Sichtbarkeit ein, Anwenden waehlt ueber ein
@@ -928,6 +1014,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'sidebar.applyVariant',
@@ -937,6 +1024,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'editor.fold',
@@ -946,6 +1034,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'editor.unfold',
@@ -955,6 +1044,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'editor.foldAll',
@@ -964,6 +1054,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'editor.unfoldAll',
@@ -973,6 +1064,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   // 4T-000378 (Epic 3E-000071): Zeichen-Format- und Link-Kommandos. editorScoped
   // (wirken als CodeMirror-Keymap im Editor), ohne Menüleisten-Eintrag —
@@ -987,6 +1079,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.italic',
@@ -996,6 +1089,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.strikethrough',
@@ -1005,6 +1099,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.highlight',
@@ -1014,6 +1109,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.code',
@@ -1023,6 +1119,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.math',
@@ -1032,6 +1129,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.comment',
@@ -1041,6 +1139,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'format.clear',
@@ -1050,6 +1149,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'link.insertWiki',
@@ -1059,6 +1159,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'link.insertExternal',
@@ -1068,6 +1169,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   // 4T-000379 (Epic 3E-000071): Absatz- und Einfüge-Kommandos. editorScoped, ohne
   // Menüleisten-Eintrag und ohne Default-Binding (über die Einstellungen
@@ -1080,6 +1182,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.orderedList',
@@ -1089,6 +1192,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.taskList',
@@ -1098,6 +1202,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   // 4T-000599 (Epic 3E-000112): Listenpunkt samt Unterpunkten verschieben.
   // Alt+Pfeil ist gegen Registry und FIXED_BINDINGS als frei verifiziert.
@@ -1114,6 +1219,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'list.moveDown',
@@ -1123,6 +1229,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   // 4T-000600 (Epic 3E-000112): Listenpunkt samt Unterpunkten auswaehlen.
   // Bewusst ohne Default-Kuerzel (Kommando-Palette; Kuerzel belegbar).
@@ -1134,6 +1241,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.heading1',
@@ -1143,6 +1251,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.heading2',
@@ -1152,6 +1261,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.heading3',
@@ -1161,6 +1271,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.heading4',
@@ -1170,6 +1281,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.heading5',
@@ -1179,6 +1291,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.heading6',
@@ -1188,6 +1301,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.noHeading',
@@ -1197,6 +1311,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'paragraph.quote',
@@ -1206,6 +1321,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'insert.footnote',
@@ -1215,6 +1331,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'insert.table',
@@ -1224,6 +1341,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   // 4T-001309 (Epic 3E-000235): Einfuege-Geruest der Perspective-Tabelle. Haengt an
   // der Erweiterung perspective-table und verschwindet mit ihr aus Leiste,
@@ -1236,6 +1354,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'insert.callout',
@@ -1245,6 +1364,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'insert.horizontalRule',
@@ -1254,6 +1374,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   {
     id: 'insert.codeBlock',
@@ -1263,6 +1384,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
   },
   // 4T-000590 (Epic 3E-000109): Tabellen-Operationen des Kontextmenü-Untermenüs
   // „Tabelle" (Erweiterung table-tools). Ein Kommando-Satz für beide
@@ -1277,6 +1399,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.alignCenter',
@@ -1286,6 +1409,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.alignRight',
@@ -1295,6 +1419,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.rowUp',
@@ -1304,6 +1429,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.rowDown',
@@ -1313,6 +1439,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.rowInsert',
@@ -1322,6 +1449,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.rowDelete',
@@ -1331,6 +1459,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.colLeft',
@@ -1340,6 +1469,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.colRight',
@@ -1349,6 +1479,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.colInsert',
@@ -1358,6 +1489,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.colDelete',
@@ -1367,6 +1499,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'table.transpose',
@@ -1376,6 +1509,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'tabelle',
   },
   {
     id: 'tab.next',
@@ -1385,6 +1519,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'tab.prev',
@@ -1394,6 +1529,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'tab.moveRight',
@@ -1403,6 +1539,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'tab.moveLeft',
@@ -1412,6 +1549,7 @@ const COMMANDS = [
     categoryKey: 'help.group.navigation',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'search.open',
@@ -1421,6 +1559,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'search.openReplace',
@@ -1430,6 +1569,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'search.next',
@@ -1439,6 +1579,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'search.prev',
@@ -1448,6 +1589,7 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'help.open',
@@ -1457,6 +1599,7 @@ const COMMANDS = [
     categoryKey: 'help.group.general',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     // 4T-000644 (Epic 3E-000127): geführte Produkt-Tour. Bewusst ohne
@@ -1469,6 +1612,7 @@ const COMMANDS = [
     categoryKey: 'help.group.general',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     // 4T-000480 (Epic 3E-000089): Kommando-Palette. CmdOrCtrl+K ist am Bestand
@@ -1488,6 +1632,7 @@ const COMMANDS = [
     categoryKey: 'help.group.general',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   // Menue-Kommandos ohne Default-Binding (Entscheidungspunkt 4 aus
   // 4T-000207): in der Settings-UI bindbar. 4T-000890 (Epic 3E-000168, Befund
@@ -1503,6 +1648,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'app.toggleRestoreSession',
@@ -1512,6 +1658,7 @@ const COMMANDS = [
     categoryKey: 'help.group.file',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleScrollSync',
@@ -1521,6 +1668,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'anyTab',
   },
   {
     id: 'view.toggleFoldGutter',
@@ -1530,6 +1678,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'sourceToggle',
   },
   {
     id: 'view.toggleLineNumbers',
@@ -1539,6 +1688,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'sourceToggle',
   },
   {
     id: 'view.toggleWordWrap',
@@ -1548,6 +1698,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'sourceToggle',
   },
   {
     id: 'view.toggleTypewriterScroll',
@@ -1557,6 +1708,7 @@ const COMMANDS = [
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,
+    availability: 'immer',
   },
 ];
 
@@ -1591,6 +1743,14 @@ function registerDynamicCommand(def) {
     categoryKey: 'help.group.general',
     menu: false,
     editorScoped: false,
+    // 4T-001635: Auch ein zur Laufzeit registriertes Kommando traegt das
+    // Pflichtfeld. 'immer' ist hier nicht Verlegenheit, sondern der heutige
+    // Stand: Ein dynamisches Kommando steht in keiner Kontext-Menge der
+    // Palette und ist damit schon jetzt unbedingt verfuegbar; seinen Kontext
+    // kennt allein sein Handler. Der Waechter misst den deklarativen Bestand
+    // und sieht diese Eintraege nicht — sie entstehen erst im laufenden
+    // Programm.
+    availability: 'immer',
     dynamic: true,
   });
   return true;
@@ -1619,6 +1779,17 @@ function mergeBindings(overrides) {
     }
   }
   return result;
+}
+
+// 4T-001637 (Epic 3E-000295): Der Bedingungs-Name eines Kommandos, ueber die
+// live mutierte COMMANDS-Liste und damit auch fuer dynamisch registrierte
+// Kommandos. Eine unbekannte Kennung liefert null; die Auswertung in
+// command-availability.js behandelt das wie einen unbekannten Namen (Ergebnis
+// verfuegbar, Begruendung dort bei isAvailable). Die Menue-Factory braucht
+// diesen Zugriff, weil ihre Eintraege nur die Kommando-Kennung kennen.
+function commandAvailability(commandId) {
+  const cmd = COMMANDS.find((c) => c.id === commandId);
+  return cmd ? cmd.availability : null;
 }
 
 // Fuer die Menue-Factory: { [commandId]: acceleratorString } fuer alle
@@ -1693,6 +1864,7 @@ module.exports = {
   registerDynamicCommand,
   unregisterDynamicCommand,
   mergeBindings,
+  commandAvailability,
   effectiveMenuAccelerators,
   findBindingConflict,
   findDuplicateBindings,

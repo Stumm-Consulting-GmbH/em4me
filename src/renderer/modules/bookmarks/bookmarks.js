@@ -235,6 +235,9 @@ registerSidebarPanel({
     // applyBookmarksVisibility).
     return !!state.bookmarks.visibleByPane[paneIdx] && (!isAllEmpty() || hasAnyBookmarks());
   },
+  // 4T-001641: der reine Schalter fuer oeffnePanel — ohne die Empty-State-
+  // und Erweiterungs-Rueckfaelle von getVisible.
+  getPreference: (paneIdx) => !!state.bookmarks.visibleByPane[paneIdx],
   applyVisibility: applyBookmarksVisibility,
   toggle: toggleBookmarksPanel,
 });

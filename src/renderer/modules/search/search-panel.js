@@ -26,7 +26,7 @@ import { getPaneEls, state } from '../app/app-state.js';
 import { applySidebarVisibility } from '../panels/panels.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { persistSetting } from '../views/views.js';
-import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
+import { ensurePanelTabActive, oeffnePanel, registerSidebarPanel } from '../sidebar-layout.js';
 import { api } from '../app/api.js';
 // 4T-001525 (Epic 3E-000169): Die Auswahl je Fundstelle liegt in einem
 // eigenen Modul; hier bleibt das Anzeigen und Anwaehlen.
@@ -594,13 +594,12 @@ export async function toggleSearchResultsPanel(paneIdx) {
 // und dann schaltet dieselbe Funktion es ein und aktiviert den Reiter dabei.
 // Wer die Gliederung offen hat und dann umbenennt, sah den Dialog verschwinden
 // und sonst nichts.
+//
+// 4T-001641 (Epic 3E-000297): Die Fallunterscheidung steht seither in
+// `oeffnePanel` — dieselbe Regel, an einer Stelle, fuer alle Oeffner.
 export async function zeigeSuchPanel(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
-  if (state.searchResults.visibleByPane[paneIdx]) {
-    await ensurePanelTabActive('searchresults', paneIdx);
-    return;
-  }
-  await toggleSearchResultsPanel(paneIdx);
+  await oeffnePanel('searchresults', paneIdx);
 }
 
 export async function persistSearchResultsSettings() {
@@ -625,6 +624,10 @@ registerSidebarPanel({
   buttonId: 'btn-search-results',
   sectionClass: 'sidebar-searchresults',
   getVisible: (paneIdx) => !!(state.searchResults && state.searchResults.visibleByPane[paneIdx]),
+  // 4T-001641: der reine Schalter fuer oeffnePanel. Hier deckungsgleich mit
+  // getVisible; das Feld steht trotzdem eigens da, weil die Deckung eine
+  // Eigenschaft dieses Panels ist und keine des Modells.
+  getPreference: (paneIdx) => !!(state.searchResults && state.searchResults.visibleByPane[paneIdx]),
   applyVisibility: applySearchResultsVisibility,
   toggle: toggleSearchResultsPanel,
 });

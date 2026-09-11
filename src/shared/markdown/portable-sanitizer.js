@@ -54,7 +54,24 @@ const PORTABLE_HTML_ALLOWED_ATTRS = new Set([
   'title',
   'src',
   'alt',
+  // 4T-001556 (Epic 3E-000298): Die Kopfzellen des Exports tragen `scope` —
+  // die Angabe, ob eine Kopfzelle fuer ihre Spalte oder ihre Zeile gilt.
+  // Ohne sie muss ein Vorleseprogramm raten. Das Attribut ist rein
+  // beschreibend, traegt keine Adresse und keinen ausfuehrbaren Inhalt; es
+  // traegt trotzdem eine eigene Schranke unten, weil die Positivliste eine
+  // Sicherheits-Grenze ist und so wenig durchlaesst wie noetig.
+  'scope',
 ]);
+
+// 4T-001556 (Epic 3E-000298): Schranke fuer `scope`. Erlaubt sind genau die
+// vier Werte des HTML-Standards; jeder andere Wert laesst das Attribut
+// entfallen, waehrend das Element bleibt. Bauform wie die `src`-Schranke
+// darunter — dieselbe Stelle, derselbe Stil.
+const PORTABLE_SCOPE_WERTE = new Set(['col', 'row', 'colgroup', 'rowgroup']);
+
+function erlaubterScopeWert(wert) {
+  return PORTABLE_SCOPE_WERTE.has(String(wert).trim().toLowerCase());
+}
 
 // 4T-001471 (Epic 3E-000178): Schranke fuer `src`. Erlaubt ist ausschliesslich
 // eine eingebettete Bild-Adresse. Eine freie Adresse waere ein Rueckkanal:
@@ -89,6 +106,8 @@ function sanitizePortableHtmlBlock(rawHtml) {
         el.removeAttribute(attr.name);
       } else if (name === 'src' && !erlaubteBildAdresse(attr.value)) {
         el.removeAttribute(attr.name);
+      } else if (name === 'scope' && !erlaubterScopeWert(attr.value)) {
+        el.removeAttribute(attr.name);
       }
     }
   }
@@ -120,6 +139,7 @@ function sanitizePortableHtmlInline(src) {
     const bare = /^["']/.test(value) ? value.slice(1, -1) : value;
     if (name === 'href' && /^\s*(javascript|data|vbscript):/i.test(bare)) continue;
     if (name === 'src' && !erlaubteBildAdresse(bare)) continue;
+    if (name === 'scope' && !erlaubterScopeWert(bare)) continue;
     attrs.push(`${name}="${escapeHtml(bare)}"`);
   }
   return `<${tag}${attrs.length ? ' ' + attrs.join(' ') : ''}${m[4] ? ' /' : ''}>`;

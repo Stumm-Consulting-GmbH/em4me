@@ -7,10 +7,18 @@
 // eine Ausnahme (ipc/manuell) mit Begruendung — ein neuer Hilfe-Dialog-
 // Eintrag ohne Matrix-Pflege laesst `npm test` fehlschlagen. Damit ist
 // die Test-Pflege-Konvention aus 3E-000041 technisch durchgesetzt.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+
+// 4T-001632: Diese Pruefung liest einen Baum des Repositoriums im Rumpf
+// ihrer Prueffaelle und faellt damit unter testTimeout. Gemessen am
+// 2026-09-09 vom Lese-Ort-Waechter (scripts/lese-ort-regel.js); die Regel
+// steht in test/README.md, Abschnitt "Bestands-Lesungen gehoeren in den
+// Modulkopf".
+vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');

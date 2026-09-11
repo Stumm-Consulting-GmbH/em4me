@@ -25,7 +25,7 @@ import { getPaneEls, state } from '../app/app-state.js';
 import { applySidebarVisibility } from '../panels/panels.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
-import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
+import { ensurePanelTabActive, oeffnePanel, registerSidebarPanel } from '../sidebar-layout.js';
 import {
   // 4T-000491 (Epic 3E-000093): profil-gruppierte Menü-Struktur.
   profileSuggestGroups,
@@ -363,21 +363,15 @@ export async function toggleBlockPropsPanel(paneIdx) {
 // (falls geschlossen) und macht den gegebenen Anker aktiv. jumpToAnchor setzt im
 // editierbaren Modus den Cursor (Cursor-Folge zieht nach), in Lese-Ansichten den
 // aktiven Anker direkt.
+// 4T-001641 (Epic 3E-000297): Der Eigen-Nachbau des Toggle-Rumpfs im ersten
+// Zweig ist entfallen; `oeffnePanel` macht sichtbar, falls noetig, und holt den
+// Reiter in jedem Fall nach vorn. Das abschliessende applyBlockPropsVisibility
+// bleibt, weil der neue Anker auch bei bereits offenem Panel anzuzeigen ist.
 export async function openBlockPropsForAnchor(paneIdx, anchorId) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return;
   state.blockProps.activeAnchorByPane[paneIdx] = anchorId;
-  if (!state.blockProps.visibleByPane[paneIdx]) {
-    state.blockProps.visibleByPane[paneIdx] = true;
-    await ensurePanelTabActive('blockprops', paneIdx);
-    applyBlockPropsVisibility(paneIdx);
-    await persistBlockPropsSettings();
-    if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
-      reportMenuStateNow();
-    }
-  } else {
-    await ensurePanelTabActive('blockprops', paneIdx);
-    applyBlockPropsVisibility(paneIdx);
-  }
+  await oeffnePanel('blockprops', paneIdx);
+  applyBlockPropsVisibility(paneIdx);
   jumpToAnchor(paneIdx, anchorId);
 }
 
@@ -444,6 +438,8 @@ registerSidebarPanel({
   sectionClass: 'sidebar-blockprops',
   getVisible: (paneIdx) =>
     !isAllEmpty() && !!(state.blockProps && state.blockProps.visibleByPane[paneIdx]),
+  // 4T-001641: der reine Schalter fuer oeffnePanel (Begruendung dort).
+  getPreference: (paneIdx) => !!(state.blockProps && state.blockProps.visibleByPane[paneIdx]),
   applyVisibility: applyBlockPropsVisibility,
   toggle: toggleBlockPropsPanel,
 });

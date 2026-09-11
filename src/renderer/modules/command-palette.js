@@ -12,15 +12,22 @@
 // EditorView (derselbe Funktions-Satz wie die CodeMirror-Keymap).
 //
 // Verfuegbarkeit: im aktuellen Kontext nicht ausfuehrbare Kommandos
-// erscheinen gedimmt (.unavailable) und sind nicht ausfuehrbar. Die Regeln
-// spiegeln die enabled-Ausdruecke des Anwendungs-Menues (src/main/menu/menu.js)
-// auf Basis derselben Renderer-Flags, die reportMenuStateNow (tabs.js) an
-// den Main-Prozess meldet; Handler-Guards bleiben als zweite Sicherung.
+// erscheinen gedimmt (.unavailable) und sind nicht ausfuehrbar. Seit 4T-001636
+// (Epic 3E-000295) SPIEGELT die Palette die Menue-Regeln nicht mehr, sondern
+// liest dieselbe Quelle: das Verfuegbarkeits-Feld der Registry, ausgewertet
+// ueber den Katalog in shared/commands/command-availability.js. Der
+// Unterschied ist nicht kosmetisch — eine Spiegelung laeuft auseinander,
+// sobald eine Seite gepflegt wird und die andere nicht, und genau das war an
+// sechs Kommandos passiert. Handler-Guards bleiben als zweite Sicherung.
 'use strict';
 
 import { COMMANDS, COMMAND_CATEGORIES, mergeBindings } from '../../shared/commands/commands.js';
 // 4T-000993: Anzeige-String eines Bindings aus der Binding-Schicht.
 import { bindingToDisplayString } from '../../shared/commands/command-bindings.js';
+// 4T-001636 (Epic 3E-000295): Verfuegbarkeits-Modell — der Katalog der
+// benannten Bedingungen und der Kontext-Vertrag, den beide Prozess-Seiten
+// befuellen. Die Palette entscheidet seither nicht mehr selbst.
+import { availabilityContext, isAvailable } from '../../shared/commands/command-availability.js';
 import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
 import { filterCommandEntries } from '../../shared/commands/command-palette-filter.js';
 import { t } from '../i18n.js';
@@ -48,118 +55,59 @@ export function initCommandPalette({ executeCommand }) {
   runGlobalCommand = typeof executeCommand === 'function' ? executeCommand : null;
 }
 
-// --- Verfuegbarkeits-Regeln --------------------------------------------------
+// --- Verfuegbarkeit --------------------------------------------------------
+//
+// 4T-001636 (Epic 3E-000295): Die Regeln liegen nicht mehr hier. Bis zu diesem
+// Vorgang fuehrte die Palette acht eigene Kontext-Mengen plus drei eigens
+// behandelte Kennungen und endete auf `return true` — eine zweite Meinung
+// neben den enabled-Ausdruecken des Menues, die an sechs Kommandos von ihr
+// abwich (Erhebung 4T-000918). Jetzt traegt jedes Kommando seine Bedingung in
+// der Registry, und hier steht nur noch der Kontext-Bau und der Abruf.
+//
+// Der Endpunkt `return true` ist damit weg: Was frueher stillschweigend
+// durchfiel, ist heute die ausgewertete Bedingung `immer` — 61 Kommandos, an
+// denen jemand sie hingeschrieben hat.
 
-// Kommandos, die einen geoeffneten Bereich brauchen (Menue: state.hasArea).
-const AREA_COMMANDS = new Set([
-  'journal.openToday',
-  'journal.openForDate',
-  'journal.nachtragen',
-  'area.close',
-  'graph.openArea',
-  // 4T-000620 (Epic 3E-000117): Bereichs-Statistik braucht den abgegrenzten
-  // Datei-Raum eines Bereichs.
-  'stats.openArea',
-]);
-// Kommandos auf einer echten Datei (Menue: hasActiveTab && !manualTab &&
-// !systemTab).
-const FILE_TAB_COMMANDS = new Set([
-  'file.newSubpage',
-  'file.save',
-  'file.saveAs',
-  'file.rename',
-  'file.detachSubpage',
-  'history.open',
-  'view.toggleEdit',
-]);
-// Kommandos auf einem Inhalts-Tab (Menue: hasActiveTab && !systemTab).
-// 4T-000890 (Befund L-05): der portable Export teilt die enabled-Regel des
-// Export-Untermenues mit dem PDF-Export und wird deshalb hier gespiegelt.
-// 4T-001479 (Epic 3E-000177): Drucken teilt die enabled-Regel beider
-// Export-Wege — jeder Inhalts-Tab, nur die Einstellungs-Seite nicht.
-const CONTENT_TAB_COMMANDS = new Set(['file.print', 'file.exportPdf', 'file.exportPortable']);
-// Kommandos, die irgendeinen aktiven Tab brauchen (Menue: hasActiveTab).
-const ANY_TAB_COMMANDS = new Set(['file.bookmarkAdd', 'tab.close', 'view.toggleScrollSync']);
-// 4T-001514 (Epic 3E-000174): Das schnelle Datei-Oeffnen braucht einen
-// Namensraum, und den traegt ENTWEDER die aktive Datei ODER der geoeffnete
-// Bereich — deshalb weder AREA_COMMANDS noch ANY_TAB_COMMANDS, sondern eine
-// eigene Oder-Regel. Die erste Fassung stand in ANY_TAB_COMMANDS und sperrte
-// damit den Fall, fuer den der Zugang gemacht ist: ein frisch geoeffneter
-// Bereich, in dem noch nichts offen ist (Befund des Product Owners aus der
-// Abnahme vom 2026-09-06).
-const AREA_OR_TAB_COMMANDS = new Set(['file.quickOpen']);
-// Ansichtsmodi: auf System-Seiten deaktiviert (Menue: !systemTab).
-const VIEW_MODE_COMMANDS = new Set([
-  'view.modeRendered',
-  'view.modeSplit',
-  'view.modeSource',
-  'view.modeLive',
-]);
-// Editor-Darstellungs-Toggles (Menue: togglesEnabled = Quelltext sichtbar).
-const SOURCE_TOGGLE_COMMANDS = new Set([
-  'view.toggleFoldGutter',
-  'view.toggleLineNumbers',
-  'view.toggleWordWrap',
-]);
-// Einfuege-Kommandos mit eigenem Editor-Guard im Handler (app-init.js).
-const EDITOR_CONTEXT_COMMANDS = new Set(['edit.insertTimestamp', 'edit.insertTemplate']);
-
+// Baut den Kontext-Vertrag aus command-availability.js an genau EINER Stelle.
+// Die renderer-eigenen Felder inTable und hasCalendarConfig kommen hier dazu;
+// sie tragen die drei Bedingungen ohne Menue-Eintrag.
+//
+// 4T-001636: hasBook und hasShelf sind neu im Palette-Kontext. Der Renderer
+// besass beide Zustaende laengst (state.bookName, state.shelfName, gesetzt bei
+// jeder Fenster-Meldung in app-broadcasts.js) — es fehlte kein Kanal, nur die
+// Verwendung. Ohne sie KONNTEN book.close und shelf.close hier gar nicht
+// richtig entschieden werden, und area.close ebenso wenig, dessen Regel den
+// Bereich gegen Buch und Regal abgrenzt.
+//
+// sourceVisible ist als eigenes Feld entfallen: Die Bedingung sourceToggle
+// leitet es aus viewMode ab, und zwar mit demselben Ausdruck, der hier stand.
 function currentPaletteContext() {
   const tab = activeTab();
-  const manualTab = !!(tab && tab.manualPage);
-  const systemTab = !!(tab && tab.systemPage);
-  const viewMode = tab ? tab.viewMode : null;
-  return {
+  return availabilityContext({
     hasTab: !!tab,
-    manualTab,
-    systemTab,
+    manualTab: !!(tab && tab.manualPage),
+    systemTab: !!(tab && tab.systemPage),
+    viewMode: tab ? tab.viewMode : null,
     editMode: tab ? !!tab.editMode : false,
-    viewMode,
     hasArea: !!state.areaPath,
+    // 4T-000871 / 4T-000873 (Buch und Regal als Bereich).
+    hasBook: !!state.bookName,
+    hasShelf: !!state.shelfName,
     // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Zuordnung der eigenen App.
     hasWorkspace: !!state.workspaceName,
-    sourceVisible: viewMode === 'source' || viewMode === 'split' || viewMode === 'live',
     // 4T-000590 (Epic 3E-000109): steht der Cursor des aktiven Editors in einer
     // Tabelle? (Dimmung der table.*-Kommandos ausserhalb von Tabellen.)
     inTable: hasTableContext(paneEditors[state.activePaneIndex]),
-  };
-}
-
-// Editor-Kontext: bearbeitbarer Datei-Tab mit sichtbarem Editor (Guard-
-// Muster von edit.insertTimestamp in app-init.js).
-function editorContextAvailable(ctx) {
-  return (
-    ctx.hasTab && !ctx.manualTab && !ctx.systemTab && ctx.editMode && ctx.viewMode !== 'rendered'
-  );
+    // 4T-000546 (Epic 3E-000097): Bereich mit mindestens einem definierten
+    // Kalender. Frueher erst im Sonderfall des einen Kommandos abgefragt, jetzt
+    // ein Feld des Vertrags; der Aufruf ist eine Pruefung ueber die geladene
+    // Bereichs-Konfiguration und damit billig genug fuer jeden Kontext-Bau.
+    hasCalendarConfig: hasCalendarConfig(),
+  });
 }
 
 export function isCommandAvailable(cmd, ctx) {
-  // 4T-000590 (Epic 3E-000109): Tabellen-Operationen nur mit Cursor in einer
-  // Tabelle (sichtbar, aber gedimmt ausserhalb — wie die Menue-Dimmung).
-  if (cmd.id.startsWith('table.')) {
-    return editorContextAvailable(ctx) && !!ctx.inTable;
-  }
-  if (cmd.editorScoped || EDITOR_CONTEXT_COMMANDS.has(cmd.id)) {
-    return editorContextAvailable(ctx);
-  }
-  // 4T-000546 (Epic 3E-000097): Kalender-Wert einfuegen — Editor-Kontext plus
-  // Bereich mit mindestens einem definierten Kalender.
-  if (cmd.id === 'calendar.insertValue') {
-    return editorContextAvailable(ctx) && ctx.hasArea && hasCalendarConfig();
-  }
-  if (AREA_COMMANDS.has(cmd.id)) return ctx.hasArea;
-  // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Kommandos — "speichern als"
-  // nur ohne bestehende Zuordnung, "schliessen" nur im Arbeitsbereichs-
-  // Fenster (spiegelt die enabled-Regeln des Datei-Menues).
-  if (cmd.id === 'workspace.saveAs') return !ctx.hasWorkspace;
-  if (cmd.id === 'workspace.close') return ctx.hasWorkspace;
-  if (FILE_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab && !ctx.manualTab && !ctx.systemTab;
-  if (CONTENT_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab && !ctx.systemTab;
-  if (ANY_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab;
-  if (AREA_OR_TAB_COMMANDS.has(cmd.id)) return ctx.hasTab || ctx.hasArea;
-  if (VIEW_MODE_COMMANDS.has(cmd.id)) return !ctx.systemTab;
-  if (SOURCE_TOGGLE_COMMANDS.has(cmd.id)) return ctx.sourceVisible;
-  return true;
+  return isAvailable(cmd.availability, ctx);
 }
 
 // --- Eintrags-Aufbau ----------------------------------------------------------

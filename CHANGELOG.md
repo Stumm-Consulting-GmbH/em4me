@@ -14,6 +14,166 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.131.1.2702] - 2026-09-11 — Verfügbarkeit, Index-Frische und Zugänge
+
+Zug 3E-000294.
+Mitglied 1: 3E-000295,
+Menü und Kommando-Palette entscheiden nach **einem** Modell, ob ein Kommando im
+aktuellen Zusammenhang anwendbar ist. Mitglied 2:
+3E-000296,
+eine von außen geänderte Datei erreicht wieder alle Anzeige-Stellen und nicht
+nur das geöffnete Dokument, in dem sie steht. Mitglied 3:
+3E-000297,
+ein eingeblendetes Panel holt seinen Reiter auf jedem Weg nach vorn. Mitglied 4:
+3E-000298,
+eine Tabelle behält im portablen Export ihre Kopfzeilen-Zuordnung für
+Vorleseprogramme.
+
+### Geändert
+
+- **Sechs Kommandos der Kommando-Palette sind an ihren Zusammenhang gebunden**
+  (`4T-001636`). «Bereich schließen», «Buch schließen», «Bücherregal
+  schließen», «Kapitel-Datei verschieben», «Teile wieder vereinen» und die
+  Mindmap-Ansicht ließen sich über die Palette bisher in jeder Lage auslösen
+  und taten dann nichts. Sie erscheinen jetzt gedimmt, wenn ihr Zusammenhang
+  fehlt: die drei Schließen-Kommandos ohne gebundenen Bereich, ohne aktives
+  Buch beziehungsweise ohne aktives Bücherregal — «Bereich schließen»
+  zusätzlich in einem Buch- oder Regal-Fenster, in dem intern zwar ein Bereich
+  gebunden ist, aber nicht der gemeinte —, «Kapitel-Datei verschieben» ohne
+  aktives Buch, «Teile wieder vereinen» ohne offene eigene Datei und die
+  Mindmap-Ansicht auf einer Programm-Seite. Die Regel ist dieselbe, mit der
+  das Menü diese Einträge längst ausgraut; verschwunden ist keines, und an der
+  Verfügbarkeit aller übrigen Kommandos ändert sich nichts.
+
+### Behoben
+
+- **Eine Änderung von außen erreicht wieder alle Stellen, die den Inhalt
+  anzeigen** (`4T-001633`). Wurde eine geöffnete, gerade nicht aktive Datei von
+  außen geändert, zeigten Abfrage-Trefferlisten, Einbettungen, Verweis-Sichten
+  und Graph weiter den alten Stand — obwohl das Dokument selbst still
+  nachgeladen hatte. Ursache war der Puffer-Overlay, mit dem der Index eine
+  geöffnete Datei überlagert: Speichern, Schließen und Ersetzen nahmen ihn
+  längst zurück, das Neuladen nicht. Jetzt nimmt auch der Neulade-Weg ihn
+  zurück; das aktive Dokument bleibt unverändert und trägt weiterhin seinen
+  Puffer-Stand. Die Reichweite ist gemessen und nicht geschätzt: Der Fehler
+  traf **jede** Änderung von außen — ein fremdes Programm, ein zweiter Clone,
+  ein Synchronisations-Dienst — und nicht nur den eigenen Rückschreib-Weg aus
+  der Abfrage-Ansicht, an dem er aufgefallen war. Für den Anwender heißt das:
+  Der Haken, den er in einer Abfrage setzt, erscheint jetzt sofort in der
+  Trefferliste, und ein zweiter Klick schreibt nichts mehr zurück. Drei
+  Regressionsfälle `RB-04` bis `RB-06` halten den Zustand, zwei davon vor der
+  Behebung nachweislich rot.
+- **Ein Panel, das ein Bedienweg einblendet, kommt jetzt auch nach vorn**
+  (`4T-001641`). Drei Wege, die ein Panel **öffnen** statt es zu **schalten**,
+  holten den Reiter seiner Gruppe nicht nach vorn: Der Inline-Edit eines neuen
+  Lesezeichens setzte den Tastatur-Fokus in ein verdecktes Eingabefeld — was
+  danach getippt wurde, ging in ein Feld, das niemand sah —, der Klick auf
+  einen Tag-Link setzte einen Filter, den ebenfalls niemand sah, und das erste
+  Lesezeichen eines Abschnitts blendete eine Sektion ein, die hinter ihrem
+  Nachbar-Reiter blieb. Behoben ist das nicht an drei Stellen einzeln, sondern
+  durch eine gemeinsame Öffner-Funktion, auf die **alle** Öffner-Wege
+  umgestellt sind; die Erhebung über den ganzen Renderer-Baum fand davon
+  sieben und nicht die fünf, die die Analyse genannt hatte. Die Schalt-Wege
+  und das Laden des gespeicherten Stands beim Start bleiben unberührt — sie
+  hielten die Zusage vollständig. Ein Wächter über den Bestand verhindert,
+  dass ein neuer Öffner den gemeinsamen Weg umgeht, und drei Regressionsfälle
+  `PZ-07` bis `PZ-09` halten die drei Bedienwege fest, alle drei vor der
+  Behebung nachweislich rot.
+- **Eine Tabelle im portablen Export behält ihre Kopfzeilen-Zuordnung**
+  (`4T-001556`). Der portable Export schrieb an jede Kopfzelle das Attribut
+  `scope`, und die Positivliste des Sanitizers entfernte es beim Anzeigen
+  wieder; ein Vorleseprogramm verlor damit die Verbindung von Zelle und
+  Spaltenkopf, während für den sehenden Leser nichts davon zu bemerken war.
+  `scope` ist jetzt zugelassen, und zwar mit einer Wert-Schranke auf die vier
+  gültigen Werte `col`, `row`, `colgroup` und `rowgroup` — die Positivliste ist
+  eine Sicherheits-Grenze und lässt so wenig durch wie nötig; Vorbild der
+  Schranke ist die bestehende für `src`. Ein fremder Wert lässt das Attribut
+  entfallen, die Zelle mit ihrem Text bleibt. Geprüft ist die Wirkung am
+  **Lese-Ende** und nicht am geschriebenen Text: Prüffälle über die drei
+  Erzeuger einer Tabelle im Export — Perspective-Tabelle, Datatable und
+  Ereignis-Tabelle — messen die Anzeige nach dem Sanitizer, dazu die
+  Export-Probe im E2E-Fall `ME-05`, die das erzeugte Dokument erneut öffnet und
+  die Kopfzellen in der **Anzeige** zählt. Die Rot-Probe ist erbracht: ohne die
+  Aufnahme fallen genau diese Fälle und kein anderer.
+
+### i18n
+
+- Funktions-Katalog um die Reichweite des automatischen Neuladens erweitert
+  (`4T-001633`, `4T-001663`): Der Satz zum Neuladen beschrieb allein das
+  Dokument selbst; jetzt nennt er auch die Stellen, die mitziehen — Abfragen,
+  Embeds, Backlinks und die Graphenansicht —, in fünf Sprachfassungen.
+
+### Intern
+
+- **Ein gemeinsames Verfügbarkeits-Modell statt zweier getrennter Regelwerke**
+  (`4T-001635`, `4T-001637`). Ein Katalog aus 16 benannten Bedingungen in der
+  neuen Datei `command-availability.js` ist die eine Quelle; das Pflichtfeld
+  `availability` steht an allen 144 Kommandos der Registry, `immer`
+  ausdrücklich. Die Auswertung liegt bewusst in einer **Nachbardatei** der
+  Registry und nicht in ihr — die Registry beschreibt Kommandos, ihre
+  Auswertung ist eine zweite Sache. Menü und Palette sind seither Verbraucher:
+  Der Palette sind ihre acht Kontext-Mengen und der stille Endpunkt
+  `return true` abhandengekommen, den 55 Menü-Einträgen mit Kommando ihre
+  selbst formulierten `enabled`-Ausdrücke. Ein Durchlauf-Wächter mit vier
+  Prüfpunkten hält den Zustand: Vollständigkeit, Katalog-Treue, kein Nebenweg
+  im Menü, kein Nebenweg in der Palette; die Untermenü-Vererbung misst er über
+  alle 6144 Belegungen des Kontext-Vertrags, statt sie zu behaupten.
+- **Der Meldungs-Vertrag zwischen Anzeige- und Hauptprozess ist um ein Feld
+  kürzer** (`4T-001637`). `togglesEnabled` war eine im Anzeige-Prozess
+  vorberechnete Ableitung aus dem Ansichts-Modus, der ohnehin gemeldet wird;
+  die Bedingung `sourceToggle` bildet den Wert jetzt mit demselben Ausdruck.
+  Ein doppelt gebauter Zustand kann nicht auseinanderlaufen, wenn es ihn nur
+  noch einmal gibt.
+- **Der Wächter ist nachweislich rot gewesen, und zwar für jeden der sechs
+  Fälle einzeln** (`4T-001638`). Sechs Rückdreh-Proben setzen je eine Kopie der
+  Registry auf den Wert vor dem Umbau zurück und verlangen **genau einen**
+  Befund, der die Kennung sowie den gefundenen und den erwarteten Wert benennt;
+  zwei Klammer-Sätze sichern die Probe gegen sich selbst. Dazu kommt der
+  E2E-Fall `BU-11`: Menü und Palette teilen die Regel, nicht die Quelle des
+  Zustands — dass beide Seiten in derselben Lage dasselbe zeigen, misst er an
+  der laufenden Anwendung, in einem Fenster über den Zustandswechsel hinweg.
+- **Zwei Rückschreib-Stellen melden ihren eigenen Schreibvorgang weiterhin
+  bewusst nicht beim Datei-Beobachter** (`4T-001504`). Der Verdacht auf eine
+  vergessene Registrierung ist geprüft und als Absicht bestätigt: Alle drei
+  denkbaren Konstellationen — Zieldatei in keinem Fenster offen, im aufrufenden
+  Fenster offen, in einem anderen Fenster offen — sind gegenständlich gemessen,
+  und der zugesagte Weg trägt in jeder von ihnen. Ein fall-abhängiger Nachzug
+  ist zudem gar nicht möglich, weil die Unterdrückung pro Dateipfad und nicht
+  pro Fenster sitzt; ein Eintrag nähme die Meldung allen Besitzern weg. Der
+  Quelltext-Vermerk beider Stellen nennt jetzt die geprüften Konstellationen,
+  damit die Frage nicht ein drittes Mal gestellt wird, und drei E2E-Fälle
+  `RB-01` bis `RB-03` samt einem Unit-Wächter mit Negativ-Probe halten die
+  Absicht fest. Am Verhalten ändert sich nichts; berührt sind ausschließlich
+  Kommentarzeilen.
+- **Maßgeblich für «schon eingeschaltet» ist der Schalter der Registry, nicht
+  die effektive Sichtbarkeit** (`4T-001641`). Die Panel-Registry führte bisher
+  nur `getVisible`, und dieser Wert trägt die Empty-State- und
+  Erweiterungs-Rückfälle mit: Ein Öffner, der einen Toggle darauf gestützt
+  hätte, hätte einen eingeschalteten, bloß gerade unterdrückten Schalter
+  **ausgeschaltet** — das Gegenteil von Öffnen. Die Registry bekommt deshalb
+  das optionale Feld `getPreference`, den reinen Schalter, und die fünf
+  Panels, die heute geöffnet werden, führen es; fehlt es, schaltet
+  `oeffnePanel` nicht, sondern aktiviert nur den Reiter und meldet es. Drei
+  Rückdreh-Proben halten den Wächter ehrlich: Jede setzt eine Kopie einer der
+  drei Stellen auf den Stand vor dem Umbau zurück und verlangt **genau einen**
+  Befund mit Datei, Zeile und Funktion; die Gegenprobe «ohne Rückdrehung
+  schweigt sie» sichert sie gegen sich selbst.
+- **Die erzeugten Attribute des portablen Exports stehen jetzt unter einem
+  Wächter** (`4T-001556`). Die Gegenfrage zum Befund — ob neben `scope` weitere
+  Attribute still entfallen — ist gegenständlich am erzeugten Dokument erhoben
+  und nicht aus den Schreibstellen gelesen: Zehn Attribute erreichen den Export,
+  acht standen auf der Positivliste, `scope` ist hinzugekommen, und `id` an
+  einer Überschrift in einer Zelle entfällt folgenlos. Aus der Erhebung ist ein
+  dauerhafter Wächter-Satz geworden statt eines einmal geführten Protokolls: Er
+  hält die Attribut-Menge des erzeugten Exports gegen die Positivliste und prüft
+  in der Gegenrichtung, dass die bewusst nicht geführten Namen draußen bleiben —
+  ein Erzeuger, der künftig ein neues Attribut schreibt, fällt damit hier auf
+  und nicht erst beim Empfänger. Mitgemessen ist die zweite Hälfte der Antwort:
+  Die Portable-Erzeuger sind eigene, schlanke Funktionen und verwenden die
+  Viewer-Funktionen nicht wieder, weshalb die Attribute der interaktiven Sichten
+  den Export gar nicht erst erreichen; dass sie nicht auf der Positivliste
+  stehen, ist Absicht und kein Befund.
+
 ## [1.131.0.2621] - 2026-09-08 — Bereichsweite Bearbeitung und Ausgabe-Feinschliff
 
 Zug 3E-000279.

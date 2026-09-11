@@ -151,6 +151,11 @@ export const SIDEBAR_DEFAULT_WIDTH = 260;
 //   applyVisibility (paneIdx) Sichtbarkeit anwenden (bestehende
 //                applyXxxVisibility-Funktion des Panel-Moduls).
 //   toggle       (paneIdx) Sichtbarkeit umschalten (bestehender Toggle).
+//   getPreference (paneIdx) -> der SCHALTER des Panels in der Pane, also der
+//                persistierte Wunsch des Nutzers ohne die Empty-State- und
+//                Erweiterungs-Rueckfaelle von getVisible. Optional; noetig
+//                genau fuer die Panels, die ueber oeffnePanel geoeffnet
+//                werden (4T-001641, Begruendung dort).
 const panelRegistry = new Map();
 
 export function registerSidebarPanel(def) {
@@ -618,6 +623,50 @@ export async function setActivePanelForColumn(panelId, paneIdx, { persist = true
 export async function ensurePanelTabActive(panelId, paneIdx) {
   const idx = Number.isInteger(paneIdx) ? paneIdx : activePaneIndexFn();
   return setActivePanelForColumn(panelId, idx);
+}
+
+// 4T-001641 (Epic 3E-000297): Ein Panel OEFFNEN — der eine Weg dorthin.
+//
+// «Oeffnen» ist nicht «Schalten». Wer schaltet, will den Zustand kippen; wer
+// oeffnet, will das Panel SEHEN, gleich in welcher Verfassung es gerade ist.
+// Daraus folgen zwei Schritte, und genau ihre Trennung war der Befund: die
+// Sektion sichtbar machen, falls ihr Schalter aus ist, und den Reiter IN
+// JEDEM FALL nach vorn holen — auch bei bereits sichtbarem Panel. 15 der 16
+// Panels sitzen in einer Reiter-Gruppe und koennen von einem Geschwister
+// verdeckt sein; ein «sichtbares» Panel ist deshalb noch kein gesehenes.
+//
+// Vor dem Zusammenfuehren stand diese Regel sechsmal einzeln im Bestand und
+// wurde dreimal vergessen: der Inline-Edit eines neuen Lesezeichens setzte
+// den Tastatur-Fokus in ein verdecktes Eingabefeld, der Klick auf einen
+// Tag-Link setzte einen Filter, den niemand sah, und das erste Lesezeichen
+// eines Abschnitts blendete eine Sektion ein, die hinter ihrem Nachbarn
+// liegen blieb (Messung in 4T-001629).
+//
+// Massgeblich fuer «schon sichtbar» ist der SCHALTER des Panels
+// (getPreference) und nicht seine effektive Sichtbarkeit (getVisible):
+// Letztere traegt die Empty-State- und Erweiterungs-Rueckfaelle, und ein
+// Toggle auf ihrer Grundlage schaltete einen eingeschalteten, bloss gerade
+// unterdrueckten Schalter AUS — das Gegenteil von Oeffnen.
+//
+// Fehlt einem Panel getPreference, wird NICHT geschaltet, sondern nur der
+// Reiter aktiviert. Ein blindes Toggle koennte ein offenes Panel schliessen;
+// so bleibt es im schlechtesten Fall unveraendert statt falsch geschaltet.
+// Dass ein Oeffner-Ziel das Feld traegt, prueft der Waechter
+// test/unit/panel-oeffnen.test.js gegenstaendlich.
+//
+// Rueckgabe: true, wenn das Panel bekannt ist (und der Weg gegangen wurde).
+export async function oeffnePanel(panelId, paneIdx) {
+  const def = panelRegistry.get(panelId);
+  if (!def) return false;
+  const idx = Number.isInteger(paneIdx) ? paneIdx : activePaneIndexFn();
+  const eingeschaltet = typeof def.getPreference === 'function' ? !!def.getPreference(idx) : null;
+  if (eingeschaltet === null) {
+    console.warn('oeffnePanel: Panel ohne getPreference, nur Reiter aktiviert:', panelId);
+  } else if (!eingeschaltet && typeof def.toggle === 'function') {
+    await def.toggle(idx);
+  }
+  await ensurePanelTabActive(panelId, idx);
+  return true;
 }
 
 // 4T-000639 (Epic 3E-000069): Panel-Überschriften als Icon statt Text. Der

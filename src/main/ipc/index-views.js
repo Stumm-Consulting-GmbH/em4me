@@ -164,6 +164,26 @@ function registerIndexViewsIpc(handle, deps) {
   // definierten file:changed-Weg gehen (nicht-dirty -> stiller Reload,
   // dirty -> Konflikt-Dialog). Konflikt auf Zeilen-Ebene (Zeile veraendert
   // oder verschwunden) meldet { ok:false, reason } statt blind zu schreiben.
+  //
+  // 4T-001504 (Epic 3E-000296): Der Vermerk oben ist fuer den Fall «anderes
+  // Fenster» geschrieben. Am 2026-09-08 sind alle drei Konstellationen
+  // geprueft worden, und er traegt in jeder:
+  //   - Zieldokument in KEINEM Fenster geoeffnet: entsteht gar nicht, weil
+  //     die Beobachtung ausschliesslich ueber den Lese-Kanal file:read
+  //     angelegt wird und mit ihrem letzten Besitzer endet.
+  //   - Im AUFRUFENDEN Fenster: erreichbar nur als inaktiver, sauberer Reiter
+  //     — stiller Reload, kein Konflikt-Dialog, weil der Dialog an tab.dirty
+  //     haengt und ein dirty Reiter den Schreibweg nach der Weg-Regel der
+  //     Aufrufer gar nicht erreicht.
+  //   - In einem ANDEREN Fenster: stiller Reload, wenn der Reiter sauber ist,
+  //     Konflikt-Dialog, wenn er geaendert ist.
+  // Ein fall-abhaengiges markSelfWriting gibt es hier nicht: Die
+  // Unterdrueckung sitzt pro DATEIPFAD und nicht pro Fenster
+  // (documents/self-write.js gegen documents/file-watching.js); ein Eintrag
+  // an dieser Stelle naehme die Meldung ALLEN Besitzern weg, auch den anderen
+  // Fenstern. Bewacht von RB-01 bis RB-03 in
+  // test/e2e/funktionen/rueckschreib-beobachtung.spec.js und von
+  // test/unit/beobachtungs-anlage.test.js (Anlage-Stelle samt Negativ-Probe).
   handle('task:applyLineEdit', async (event, params) => {
     // BOM-Strip wie file:read (Escape-Form, kein unsichtbares Literal, M-04).
     const BOM_RE = new RegExp('^\\uFEFF');
@@ -222,6 +242,16 @@ function registerIndexViewsIpc(handle, deps) {
   // writeFrontmatter, Historie wie beim regulaeren Speichern, BEWUSST ohne
   // markSelfWriting (offene Tabs anderer Fenster gehen den file:changed-
   // Weg).
+  //
+  // 4T-001504 (Epic 3E-000296): Die drei am 2026-09-08 geprueften
+  // Konstellationen und der Grund, warum die Unterdrueckung nicht
+  // fall-abhaengig zu setzen waere, stehen vollstaendig bei
+  // task:applyLineEdit — der Weg dieser Stelle ist derselbe, und eine zweite
+  // Fassung derselben Begruendung waere der Doppel-Mechanismus, den der
+  // Vermerk zu 4T-001261 unten schon einmal benennt. Bewacht von denselben
+  // Faellen: RB-01 bis RB-03 in
+  // test/e2e/funktionen/rueckschreib-beobachtung.spec.js und
+  // test/unit/beobachtungs-anlage.test.js.
   //
   // 4T-001261 (Epic 3E-000272): Die Konflikt-Erkennung vergleicht den INHALT
   // statt des Zeitstempels — die gelesenen Frontmatter-Werte, nicht die ganze

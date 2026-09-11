@@ -14,7 +14,12 @@ import {
   state,
   withDialog,
 } from '../app/app-state.js';
-import { paneEditors, syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
+import {
+  clearIndexOverlayFor,
+  paneEditors,
+  syncEditorForPane,
+  updateWindowTitle,
+} from '../editor/editor.js';
 import { applyRenderPipeline } from '../render-mermaid.js';
 // 4T-000277 (Epic 3E-000049): System-Seiten (Einstellungen) montieren ihr DOM
 // statt Editor/Render-Pane; Zyklus laufzeit-unkritisch (Muster manual.js).
@@ -250,6 +255,20 @@ export async function reloadFile(filePath, opts = {}) {
       // Zutun wieder schreibfaehig, ein neu verschwundener sperrt ihn.
       tab.readOnly = !!data.nurLesen;
       tab.fehlendeTeile = data.fehlend || null;
+      // 4T-001633 (Epic 3E-000296): Mit dem geladenen Stand ist der
+      // Puffer-Overlay des Index gegenstandslos — der Reiter traegt jetzt den
+      // Platten-Stand, den der Index ohnehin kennt. Ohne die Ruecknahme bliebe
+      // er auf dem Stand von VOR der externen Aenderung stehen, und jeder
+      // Index-Verbraucher zeigte weiter ihn: Beim INAKTIVEN Reiter erneuert
+      // den Overlay sonst niemand, weil dort kein Editor gemountet ist, dessen
+      // Doc-Wechsel scheduleIndexOverlay ausloesen wuerde. Derselbe Weg wie
+      // beim Speichern, Schliessen und Ersetzen (4T-000935).
+      //
+      // Die Ruecknahme steht VOR dem Render, und das ist keine Kosmetik: Sie
+      // raeumt einen laufenden Melde-Plan dieser Datei SYNCHRON ab. Nach dem
+      // Render stehend, naehme sie dem aktiven Reiter genau den Plan, den sein
+      // Doc-Wechsel eben gefasst hat, und sein Overlay bliebe leer.
+      void clearIndexOverlayFor(filePath);
       // R4-12 (4T-000180): externer Datei-Wechsel — Render-Skip-Caches
       // verwerfen (auch andere Panes koennten die Datei einbetten).
       invalidatePaneRenderCache();

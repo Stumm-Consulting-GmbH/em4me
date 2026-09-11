@@ -10,7 +10,14 @@ const { Menu } = require('electron');
 // (effektive Map wird von main.js aus Registry plus Store gemerged und in
 // state.hotkeys uebergeben); der Fallback deckt defensive Aufrufe ohne
 // Map ab und entspricht den Registry-Defaults.
-const { effectiveMenuAccelerators } = require('../../shared/commands/commands');
+const {
+  commandAvailability,
+  effectiveMenuAccelerators,
+} = require('../../shared/commands/commands');
+// 4T-001637 (Epic 3E-000295): Verfuegbarkeits-Modell — das Menue entscheidet
+// die Freigabe seiner Eintraege nicht mehr selbst, sondern wertet dieselbe
+// Bedingung aus, die auch die Kommando-Palette liest.
+const { availabilityContext, isAvailable } = require('../../shared/commands/command-availability');
 // 4T-000538 (Epic 3E-000098): Farbpunkt-Icons des Arbeitsbereichs-Untermenues.
 // 4T-000887: seither in menu-icons.js, weil Bitmap-Zeichnung eine eigene
 // Fachlichkeit neben dem Menue-Baum ist.
@@ -80,7 +87,6 @@ function tForLocale(locale, key) {
 //   viewMode: 'source'|'split'|'rendered'|null,
 //   lineNumbers: boolean,
 //   wordWrap: boolean,
-//   togglesEnabled: boolean,   // true wenn aktiver Tab eine sichtbare Quellcode-Pane hat
 //   restoreSession: boolean,
 // }
 function buildMenu(win, state, actions) {
@@ -95,7 +101,6 @@ function buildMenu(win, state, actions) {
     };
 
   const viewMode = state && state.viewMode ? state.viewMode : 'rendered';
-  const togglesEnabled = !!(state && state.togglesEnabled);
   const recentFiles = Array.isArray(state && state.recentFiles) ? state.recentFiles : [];
   // 4T-000325 (Epic 3E-000058): zuletzt geoeffnete Bereiche.
   const recentAreas = Array.isArray(state && state.recentAreas) ? state.recentAreas : [];
@@ -112,6 +117,37 @@ function buildMenu(win, state, actions) {
   // (Electron erwartet dann undefined).
   const hotkeys = (state && state.hotkeys) || effectiveMenuAccelerators(null);
   const acc = (commandId) => hotkeys[commandId] || undefined;
+
+  // 4T-001637 (Epic 3E-000295): Der Kontext-Vertrag des Verfuegbarkeits-Modells,
+  // an GENAU EINER Stelle aus dem gemeldeten Menue-Zustand gebaut — das
+  // Gegenstueck zu currentPaletteContext im Renderer.
+  //
+  // Woher die Felder kommen, ist die benannte Grenze des Modells (Zuschnitt
+  // 4T-000918): hasArea, hasBook, hasShelf und hasWorkspace sind main-seitige
+  // Wahrheit aus der App-Registry (menu-apply.js), hasTab, manualTab und
+  // systemTab meldet der Renderer. Geteilt wird die REGEL, nicht die Quelle des
+  // Zustands; dass beide Seiten auch denselben Wert sehen, deckt 4T-001638 mit
+  // zwei E2E-Faellen ab.
+  //
+  // Die beiden renderer-eigenen Felder inTable und hasCalendarConfig bleiben
+  // leer: Sie tragen die drei Bedingungen ohne Menue-Eintrag (editor, tabelle,
+  // editorUndKalender), und kein Menue-Eintrag nennt eine davon — der
+  // Durchlauf-Waechter haelt das fest.
+  const availCtx = availabilityContext({
+    hasTab: !!(state && state.hasActiveTab),
+    manualTab: !!(state && state.manualTab),
+    systemTab,
+    viewMode,
+    editMode: false,
+    hasArea: !!(state && state.hasArea),
+    hasBook: !!(state && state.hasBook),
+    hasShelf: !!(state && state.hasShelf),
+    hasWorkspace: !!(state && state.hasWorkspace),
+  });
+  // Freigabe eines Menue-Eintrags. Das Argument ist immer die Kommando-Kennung
+  // desselben Eintrags; der Waechter prueft, dass sie mit der in acc() gleich
+  // ist (ein vertauschtes Paar waere sonst unsichtbar).
+  const avail = (commandId) => isAvailable(commandAvailability(commandId), availCtx);
 
   // 4T-000294 (Epic 3E-000052): Eintraege deaktivierter Erweiterungen
   // verschwinden aus dem Menue (kein toter Menuepunkt). unless liefert
@@ -146,6 +182,15 @@ function buildMenu(win, state, actions) {
         type: 'checkbox',
         checked: !!p.visible,
         accelerator: acc(meta.commandId),
+        // 4T-001637: Die sechzehn Panel-Umschalter sind der einzige
+        // Menue-Zweig, der seine Eintraege aus einem Modell baut statt sie
+        // hinzuschreiben. Sie tragen deshalb kein literales acc('<id>') und
+        // sind der Erhebung vom 2026-09-08 entgangen — sie hat 55 Eintraege
+        // gemessen, das Menue hat 71. Ihre Bedingung ist 'immer', wie ihr
+        // heutiger Zustand ohne enabled-Zeile; der Aufruf steht hier, damit
+        // AUSNAHMSLOS jeder Menue-Eintrag eines Kommandos die Freigabe aus
+        // derselben Quelle bezieht.
+        enabled: avail(meta.commandId),
         click: send('menu:togglePanel', p.id),
       });
     })
@@ -193,6 +238,7 @@ function buildMenu(win, state, actions) {
   variantsSubmenu.push({
     label: t('menu.view.sidebarLayoutSave'),
     accelerator: acc('sidebar.saveVariant'),
+    enabled: avail('sidebar.saveVariant'),
     click: send('menu:saveSidebarVariant'),
   });
 
@@ -205,11 +251,11 @@ function buildMenu(win, state, actions) {
   // 4T-000538 (Epic 3E-000098): Untermenue "Arbeitsbereiche" — Liste aller
   // Arbeitsbereiche (Farbpunkt-Icon traegt die Offen-Markierung; Klick
   // oeffnet bzw. fokussiert ueber die Main-Action), darunter die vier
-  // Lebenszyklus-Aktionen. hasWorkspace dimmt "Als Arbeitsbereich
-  // speichern" (App ist schon benannt) bzw. aktiviert "Arbeitsbereich
-  // schliessen".
+  // Lebenszyklus-Aktionen. 4T-001637: Die Dimmung von "Als Arbeitsbereich
+  // speichern" und die Freigabe von "Arbeitsbereich schliessen" haengen
+  // seither an den Bedingungen workspaceOhne und workspaceMit des Modells;
+  // die lokale Kopie des Zustands ist damit entfallen (er steht im Kontext).
   const workspaces = Array.isArray(state && state.workspaces) ? state.workspaces : [];
-  const hasWorkspace = !!(state && state.hasWorkspace);
   const buildWorkspacesSubmenu = () => {
     const items = [];
     if (workspaces.length === 0) {
@@ -230,23 +276,25 @@ function buildMenu(win, state, actions) {
     items.push({
       label: t('menu.file.workspaceSaveAs'),
       accelerator: acc('workspace.saveAs'),
-      enabled: !hasWorkspace,
+      enabled: avail('workspace.saveAs'),
       click: send('menu:workspaceSaveAs'),
     });
     items.push({
       label: t('menu.file.workspaceCreate'),
       accelerator: acc('workspace.create'),
+      enabled: avail('workspace.create'),
       click: send('menu:workspaceCreate'),
     });
     items.push({
       label: t('menu.file.workspaceClose'),
       accelerator: acc('workspace.close'),
-      enabled: hasWorkspace,
+      enabled: avail('workspace.close'),
       click: send('menu:workspaceClose'),
     });
     items.push({
       label: t('menu.file.workspaceManage'),
       accelerator: acc('workspace.manage'),
+      enabled: avail('workspace.manage'),
       click: send('menu:workspaceManage'),
     });
     return items;
@@ -266,6 +314,7 @@ function buildMenu(win, state, actions) {
         {
           label: t('menu.file.new'),
           accelerator: acc('file.newTab'),
+          enabled: avail('file.newTab'),
           click: () => {
             if (actions && actions.newTab) actions.newTab();
           },
@@ -273,6 +322,7 @@ function buildMenu(win, state, actions) {
         {
           label: t('menu.file.open'),
           accelerator: acc('file.open'),
+          enabled: avail('file.open'),
           click: send('menu:openFile'),
         },
         {
@@ -280,14 +330,14 @@ function buildMenu(win, state, actions) {
           // traegt die aktive Datei ODER der Bereich (auch ohne Reiter).
           label: t('menu.file.quickOpen'),
           accelerator: acc('file.quickOpen'),
-          enabled: !!(state && (state.hasActiveTab || state.hasArea)),
+          enabled: avail('file.quickOpen'),
           click: send('menu:quickOpen'),
         },
         {
           label: t('menu.file.save'),
           accelerator: acc('file.save'),
           // 4T-000213: Handbuch-Tabs sind read-only — Speichern deaktiviert.
-          enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+          enabled: avail('file.save'),
           click: () => {
             if (actions && actions.save) actions.save();
           },
@@ -295,7 +345,7 @@ function buildMenu(win, state, actions) {
         {
           label: t('menu.file.saveAs'),
           accelerator: acc('file.saveAs'),
-          enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+          enabled: avail('file.saveAs'),
           click: () => {
             if (actions && actions.saveAs) actions.saveAs();
           },
@@ -307,7 +357,7 @@ function buildMenu(win, state, actions) {
             // (U+2215-Namens-Konvention; Dialog fragt das Segment ab).
             label: t('menu.file.newSubpage'),
             accelerator: acc('file.newSubpage'),
-            enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+            enabled: avail('file.newSubpage'),
             click: send('menu:newSubpage'),
           },
           unless('file.newFromTemplate', {
@@ -317,6 +367,7 @@ function buildMenu(win, state, actions) {
             // Renderer einen lokalisierten Hinweis.
             label: t('menu.file.newFromTemplate'),
             accelerator: acc('file.newFromTemplate'),
+            enabled: avail('file.newFromTemplate'),
             click: send('menu:newFromTemplate'),
           }),
           unless('journal.openToday', {
@@ -327,7 +378,7 @@ function buildMenu(win, state, actions) {
             // Journale meldet der Renderer den lokalisierten Hinweis.
             label: t('menu.file.journalToday'),
             accelerator: acc('journal.openToday'),
-            enabled: !!(state && state.hasArea),
+            enabled: avail('journal.openToday'),
             click: send('menu:journalToday'),
           }),
           unless('journal.openForDate', {
@@ -335,7 +386,7 @@ function buildMenu(win, state, actions) {
             // (Bereichs-Bindung wie beim Heute-Eintrag).
             label: t('menu.file.journalForDate'),
             accelerator: acc('journal.openForDate'),
-            enabled: !!(state && state.hasArea),
+            enabled: avail('journal.openForDate'),
             click: send('menu:journalForDate'),
           }),
           { type: 'separator' },
@@ -353,7 +404,7 @@ function buildMenu(win, state, actions) {
             // Sektion liegt im Ansichts-Menue (Lesezeichen-Panel).
             label: t('menu.file.bookmarks.add'),
             accelerator: acc('file.bookmarkAdd'),
-            enabled: !!(state && state.hasActiveTab),
+            enabled: avail('file.bookmarkAdd'),
             click: send('menu:bookmarkAdd'),
           }),
           { type: 'separator' },
@@ -365,6 +416,7 @@ function buildMenu(win, state, actions) {
             type: 'checkbox',
             checked: !!(state && state.autoSave),
             accelerator: acc('file.toggleAutoSave'),
+            enabled: avail('file.toggleAutoSave'),
             click: () => {
               if (actions && actions.toggleAutoSave) actions.toggleAutoSave();
             },
@@ -374,7 +426,7 @@ function buildMenu(win, state, actions) {
             // Renderer; Unterseiten-Baeume kaskadieren, 4T-000340).
             label: t('menu.file.rename'),
             accelerator: acc('file.rename'),
-            enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+            enabled: avail('file.rename'),
             click: send('menu:renameFile'),
           },
           {
@@ -384,7 +436,7 @@ function buildMenu(win, state, actions) {
             // der Eintrag nicht ohne erkennbaren Grund verschwindet.
             label: t('menu.file.detachSubpage'),
             accelerator: acc('file.detachSubpage'),
-            enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+            enabled: avail('file.detachSubpage'),
             click: send('menu:detachSubpage'),
           },
           {
@@ -392,7 +444,7 @@ function buildMenu(win, state, actions) {
             // machen; ob es geteilt ist, prueft der Renderer wie beim Loesen.
             label: t('menu.file.rejoinParts'),
             accelerator: acc('file.rejoinParts'),
-            enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+            enabled: avail('file.rejoinParts'),
             click: send('menu:rejoinParts'),
           },
           { type: 'separator' },
@@ -403,7 +455,7 @@ function buildMenu(win, state, actions) {
             // Einstellungs-Tab (systemTab) ist ausgenommen.
             label: t('menu.file.print'),
             accelerator: acc('file.print'),
-            enabled: !!(state && state.hasActiveTab) && !systemTab,
+            enabled: avail('file.print'),
             click: send('menu:print'),
           },
           {
@@ -412,7 +464,7 @@ function buildMenu(win, state, actions) {
             // nur der Einstellungs-Tab (systemTab) ist ausgenommen.
             label: t('menu.file.exportPdf'),
             accelerator: acc('file.exportPdf'),
-            enabled: !!(state && state.hasActiveTab) && !systemTab,
+            enabled: avail('file.exportPdf'),
             click: send('menu:exportPdf'),
           },
           {
@@ -429,6 +481,7 @@ function buildMenu(win, state, actions) {
                 // laeuft unveraendert ueber den Menue-Kanal.
                 label: t('menu.file.exportPortable'),
                 accelerator: acc('file.exportPortable'),
+                enabled: avail('file.exportPortable'),
                 click: send('menu:exportPortable'),
               },
             ],
@@ -444,6 +497,7 @@ function buildMenu(win, state, actions) {
             // Applikation oeffnen.
             label: t('menu.file.openArea'),
             accelerator: acc('area.open'),
+            enabled: avail('area.open'),
             click: send('menu:openArea'),
           },
           {
@@ -454,7 +508,7 @@ function buildMenu(win, state, actions) {
             // "Buch schliessen" bzw. "Buecherregal schliessen".
             label: t('menu.file.closeArea'),
             accelerator: acc('area.close'),
-            enabled: !!(state && state.hasArea && !state.hasBook && !state.hasShelf),
+            enabled: avail('area.close'),
             click: send('menu:closeArea'),
           },
           { type: 'separator' },
@@ -475,6 +529,7 @@ function buildMenu(win, state, actions) {
             // demo-area; im Aus-Zustand entfaellt der Eintrag).
             label: t('menu.file.createDemoArea'),
             accelerator: acc('area.createDemo'),
+            enabled: avail('area.createDemo'),
             click: send('menu:createDemoArea'),
           }),
         ]),
@@ -487,6 +542,7 @@ function buildMenu(win, state, actions) {
           unless('book.open', {
             label: t('menu.file.openBook'),
             accelerator: acc('book.open'),
+            enabled: avail('book.open'),
             click: () => {
               if (actions && actions.openBook) actions.openBook();
             },
@@ -494,6 +550,7 @@ function buildMenu(win, state, actions) {
           unless('book.create', {
             label: t('menu.file.newBook'),
             accelerator: acc('book.create'),
+            enabled: avail('book.create'),
             click: () => {
               if (actions && actions.createBook) actions.createBook();
             },
@@ -502,7 +559,7 @@ function buildMenu(win, state, actions) {
             // Nur bei aktivem Buch aktiv (Muster "Bereich schliessen").
             label: t('menu.file.closeBook'),
             accelerator: acc('book.close'),
-            enabled: !!(state && state.hasBook),
+            enabled: avail('book.close'),
             click: () => {
               if (actions && actions.closeBook) actions.closeBook();
             },
@@ -517,7 +574,7 @@ function buildMenu(win, state, actions) {
             // Aktiv nur bei aktivem Buch (Muster "Buch schliessen").
             label: t('bookPanel.moveFile'),
             accelerator: acc('book.moveChapterFile'),
-            enabled: !!(state && state.hasBook),
+            enabled: avail('book.moveChapterFile'),
             click: send('menu:moveChapterFile'),
           }),
           // 4T-000888 (Epic 3E-000168): schneller Wiedereinstieg in Buecher, exakt
@@ -540,6 +597,7 @@ function buildMenu(win, state, actions) {
           unless('shelf.open', {
             label: t('menu.file.openShelf'),
             accelerator: acc('shelf.open'),
+            enabled: avail('shelf.open'),
             click: () => {
               if (actions && actions.openShelf) actions.openShelf();
             },
@@ -547,6 +605,7 @@ function buildMenu(win, state, actions) {
           unless('shelf.create', {
             label: t('menu.file.newShelf'),
             accelerator: acc('shelf.create'),
+            enabled: avail('shelf.create'),
             click: () => {
               if (actions && actions.createShelf) actions.createShelf();
             },
@@ -555,7 +614,7 @@ function buildMenu(win, state, actions) {
             // Nur bei aktivem Regal aktiv (Muster "Buch schliessen").
             label: t('menu.file.closeShelf'),
             accelerator: acc('shelf.close'),
-            enabled: !!(state && state.hasShelf),
+            enabled: avail('shelf.close'),
             click: () => {
               if (actions && actions.closeShelf) actions.closeShelf();
             },
@@ -583,12 +642,14 @@ function buildMenu(win, state, actions) {
           // EXE-Zweitstart ohne Datei-Argument).
           label: t('menu.file.newApp'),
           accelerator: acc('app.newApplication'),
+          enabled: avail('app.newApplication'),
           click: send('menu:newApplication'),
         },
         {
           // 4T-000018: Settings-Dialog (Schriftart, -groesse). Renderer-Hook.
           label: t('menu.file.settings'),
           accelerator: acc('app.openSettings'),
+          enabled: avail('app.openSettings'),
           click: send('menu:openSettings'),
         },
         { type: 'separator' },
@@ -605,7 +666,7 @@ function buildMenu(win, state, actions) {
           label: t('menu.view.rendered'),
           type: 'radio',
           checked: viewMode === 'rendered',
-          enabled: !systemTab,
+          enabled: avail('view.modeRendered'),
           accelerator: acc('view.modeRendered'),
           click: send('menu:viewChange', 'rendered'),
         },
@@ -613,7 +674,7 @@ function buildMenu(win, state, actions) {
           label: t('menu.view.split'),
           type: 'radio',
           checked: viewMode === 'split',
-          enabled: !systemTab,
+          enabled: avail('view.modeSplit'),
           accelerator: acc('view.modeSplit'),
           click: send('menu:viewChange', 'split'),
         },
@@ -621,7 +682,7 @@ function buildMenu(win, state, actions) {
           label: t('menu.view.source'),
           type: 'radio',
           checked: viewMode === 'source',
-          enabled: !systemTab,
+          enabled: avail('view.modeSource'),
           accelerator: acc('view.modeSource'),
           click: send('menu:viewChange', 'source'),
         },
@@ -632,7 +693,7 @@ function buildMenu(win, state, actions) {
           label: t('menu.view.live'),
           type: 'radio',
           checked: viewMode === 'live',
-          enabled: !systemTab,
+          enabled: avail('view.modeLive'),
           accelerator: acc('view.modeLive'),
           click: send('menu:viewChange', 'live'),
         },
@@ -644,7 +705,7 @@ function buildMenu(win, state, actions) {
           label: t('menu.view.mindmap'),
           type: 'radio',
           checked: viewMode === 'mindmap',
-          enabled: !systemTab,
+          enabled: avail('view.modeMindmap'),
           accelerator: acc('view.modeMindmap'),
           click: send('menu:viewChange', 'mindmap'),
         }),
@@ -657,7 +718,7 @@ function buildMenu(win, state, actions) {
           // 4T-000213: Handbuch-Tabs sind read-only — Bearbeiten deaktiviert
           // (sonst toggelt die native Checkbox sichtbar, obwohl der
           // Renderer-Guard den Modus-Wechsel verwirft).
-          enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+          enabled: avail('view.toggleEdit'),
           accelerator: acc('view.toggleEdit'),
           click: send('menu:toggleEdit'),
         },
@@ -674,7 +735,7 @@ function buildMenu(win, state, actions) {
             label: t('menu.view.foldGutter'),
             type: 'checkbox',
             checked: !!(state && state.foldGutter),
-            enabled: togglesEnabled,
+            enabled: avail('view.toggleFoldGutter'),
             accelerator: acc('view.toggleFoldGutter'),
             click: send('menu:toggleFoldGutter'),
           },
@@ -682,7 +743,7 @@ function buildMenu(win, state, actions) {
             label: t('menu.view.lineNumbers'),
             type: 'checkbox',
             checked: !!(state && state.lineNumbers),
-            enabled: togglesEnabled,
+            enabled: avail('view.toggleLineNumbers'),
             accelerator: acc('view.toggleLineNumbers'),
             click: send('menu:toggleLineNumbers'),
           },
@@ -690,7 +751,7 @@ function buildMenu(win, state, actions) {
             label: t('menu.view.wordWrap'),
             type: 'checkbox',
             checked: !!(state && state.wordWrap),
-            enabled: togglesEnabled,
+            enabled: avail('view.toggleWordWrap'),
             accelerator: acc('view.toggleWordWrap'),
             click: send('menu:toggleWordWrap'),
           },
@@ -701,7 +762,7 @@ function buildMenu(win, state, actions) {
             label: t('menu.view.scrollSync'),
             type: 'checkbox',
             checked: !!(state && state.scrollSyncEnabled),
-            enabled: !!(state && state.hasActiveTab),
+            enabled: avail('view.toggleScrollSync'),
             accelerator: acc('view.toggleScrollSync'),
             click: send('menu:toggleScrollSync'),
           },
@@ -712,6 +773,7 @@ function buildMenu(win, state, actions) {
             type: 'checkbox',
             checked: !!(state && state.typewriterScroll),
             accelerator: acc('view.toggleTypewriterScroll'),
+            enabled: avail('view.toggleTypewriterScroll'),
             click: send('menu:toggleTypewriterScroll'),
           }),
         ]),
@@ -741,6 +803,7 @@ function buildMenu(win, state, actions) {
             type: 'checkbox',
             checked: !!(state && state.sidebarCollapsedLeft),
             accelerator: acc('view.toggleSidebarLeft'),
+            enabled: avail('view.toggleSidebarLeft'),
             click: send('menu:toggleSidebarLeft'),
           }),
           unless('view.toggleSidebarRight', {
@@ -748,6 +811,7 @@ function buildMenu(win, state, actions) {
             type: 'checkbox',
             checked: !!(state && state.sidebarCollapsedRight),
             accelerator: acc('view.toggleSidebarRight'),
+            enabled: avail('view.toggleSidebarRight'),
             click: send('menu:toggleSidebarRight'),
           }),
         ]),
@@ -760,6 +824,7 @@ function buildMenu(win, state, actions) {
             type: 'checkbox',
             checked: !!(state && state.focusMode),
             accelerator: acc('view.toggleFocusMode'),
+            enabled: avail('view.toggleFocusMode'),
             click: send('menu:toggleFocusMode'),
           }),
           { type: 'separator' },
@@ -793,7 +858,7 @@ function buildMenu(win, state, actions) {
           // (Revisionsliste, Vergleich, Wiederherstellen) als System-Seite.
           label: t('menu.view.history'),
           accelerator: acc('history.open'),
-          enabled: !!(state && state.hasActiveTab) && !(state && state.manualTab) && !systemTab,
+          enabled: avail('history.open'),
           click: send('menu:openHistory'),
         },
         unless('graph.openArea', {
@@ -801,7 +866,7 @@ function buildMenu(win, state, actions) {
           // bei aktivem Bereich aktiv (Muster journal.openToday).
           label: t('menu.view.areaGraph'),
           accelerator: acc('graph.openArea'),
-          enabled: !!(state && state.hasArea),
+          enabled: avail('graph.openArea'),
           click: send('menu:openAreaGraph'),
         }),
         unless('stats.openArea', {
@@ -810,7 +875,7 @@ function buildMenu(win, state, actions) {
           // Auswertungen); nur bei aktivem Bereich aktiv.
           label: t('menu.view.areaStats'),
           accelerator: acc('stats.openArea'),
-          enabled: !!(state && state.hasArea),
+          enabled: avail('stats.openArea'),
           click: send('menu:openAreaStats'),
         }),
         { type: 'separator' },
@@ -819,6 +884,7 @@ function buildMenu(win, state, actions) {
           // aller Registry-Kommandos; immer verfuegbar (Kern-Bedienung).
           label: t('menu.view.commandPalette'),
           accelerator: acc('app.commandPalette'),
+          enabled: avail('app.commandPalette'),
           click: send('menu:openCommandPalette'),
         },
         // 4T-000927 (Epic 3E-000016): Der Eintrag «Entwickler-Tools» samt Trenner
@@ -839,6 +905,7 @@ function buildMenu(win, state, actions) {
         {
           label: t('menu.help.help'),
           accelerator: acc('help.open'),
+          enabled: avail('help.open'),
           click: send('menu:openHelp'),
         },
         {
@@ -848,6 +915,7 @@ function buildMenu(win, state, actions) {
           // Einstellungen belegtes Kürzel nach.
           label: t('menu.help.tour'),
           accelerator: acc('help.tour'),
+          enabled: avail('help.tour'),
           click: send('menu:startTour'),
         },
         {
@@ -862,6 +930,7 @@ function buildMenu(win, state, actions) {
           type: 'checkbox',
           checked: !!(state && state.restoreSession),
           accelerator: acc('app.toggleRestoreSession'),
+          enabled: avail('app.toggleRestoreSession'),
           click: send('menu:toggleRestoreSession'),
         },
       ],

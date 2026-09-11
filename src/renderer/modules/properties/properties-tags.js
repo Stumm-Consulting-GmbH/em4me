@@ -17,7 +17,7 @@ import { isAllEmpty, persistSetting } from '../views/views.js';
 import { renderTags } from '../editor/autocomplete-help.js';
 // 4T-000287/4T-000288 (Epic 3E-000051): Panel-Registry — Properties und Tags
 // registrieren sich am Modul-Ende; Einblenden aktiviert den Gruppen-Reiter.
-import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
+import { ensurePanelTabActive, oeffnePanel, registerSidebarPanel } from '../sidebar-layout.js';
 import { renderProperties } from './properties-fields.js';
 
 // --- Properties-Sidebar (4T-000051) -------------------------------------------
@@ -77,22 +77,22 @@ export async function togglePropertiesPanel(paneIdx) {
 // kein eigenes Fenster: die Sektion sichtbar machen, falls sie verborgen ist,
 // den Bereich aufklappen und ihn in den sichtbaren Ausschnitt rücken.
 //
-// Sichtbar machen läuft über `togglePropertiesPanel` und nicht über eine
-// eigene Zuweisung an `state`: Dort hängen der Gruppen-Reiter, die Persistenz
-// und die Menü-Meldung mit dran, und ein zweiter Weg würde sie beim Öffnen
-// über dieses Kommando still übergehen. Ist die Sektion schon sichtbar, wird
-// nichts umgeschaltet — nur der Gruppen-Reiter aktiviert, damit der Bereich in
-// einer Reiter-Anordnung auch wirklich vorne liegt.
+// Sichtbar machen läuft über `oeffnePanel` und nicht über eine eigene
+// Zuweisung an `state`: Dort hängen der Gruppen-Reiter, die Persistenz und die
+// Menü-Meldung mit dran, und ein zweiter Weg würde sie beim Öffnen über dieses
+// Kommando still übergehen. Ist die Sektion schon sichtbar, wird nichts
+// umgeschaltet — nur der Gruppen-Reiter aktiviert, damit der Bereich in einer
+// Reiter-Anordnung auch wirklich vorne liegt.
+//
+// 4T-001641 (Epic 3E-000297): Die beiden Zweige, die diese Regel hier von Hand
+// hielten, sind in `oeffnePanel` gewandert. Sie stand im Bestand sechsfach und
+// wurde dreifach vergessen; seither hat sie eine Heimat.
 //
 // AK4: Ohne aktives Dokument gibt es keinen Bereich; die Funktion endet dann
 // still, statt einen leeren aufzuklappen.
 export async function oeffneFeldFormular(paneIdx) {
   if (paneIdx < 0 || paneIdx >= state.panes.length) return null;
-  if (state.properties.visibleByPane[paneIdx]) {
-    await ensurePanelTabActive('properties', paneIdx);
-  } else {
-    await togglePropertiesPanel(paneIdx);
-  }
+  await oeffnePanel('properties', paneIdx);
   // 4T-001173: Erst den Merker setzen, dann das Element aufklappen. Ein
   // spaeteres Neu-Rendern (etwa durch die nachziehende Aufloesung) baut den
   // Bereich neu und liest ihn von dort; ohne den Merker klappte er dabei
@@ -184,6 +184,8 @@ registerSidebarPanel({
   sectionClass: 'sidebar-properties',
   getVisible: (paneIdx) =>
     !isAllEmpty() && !!(state.properties && state.properties.visibleByPane[paneIdx]),
+  // 4T-001641: der reine Schalter fuer oeffnePanel (Begruendung dort).
+  getPreference: (paneIdx) => !!(state.properties && state.properties.visibleByPane[paneIdx]),
   applyVisibility: applyPropertiesVisibility,
   toggle: togglePropertiesPanel,
 });
@@ -197,6 +199,8 @@ registerSidebarPanel({
     !isAllEmpty() &&
     isExtensionActive('tags') &&
     !!(state.tags && state.tags.visibleByPane[paneIdx]),
+  // 4T-001641: der reine Schalter fuer oeffnePanel (Begruendung dort).
+  getPreference: (paneIdx) => !!(state.tags && state.tags.visibleByPane[paneIdx]),
   applyVisibility: applyTagsVisibility,
   toggle: toggleTagsPanel,
 });

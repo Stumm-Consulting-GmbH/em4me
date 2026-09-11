@@ -33,15 +33,29 @@ describe('Druck-Menuepunkt: Ort und Verdrahtung (E5)', () => {
     expect(dazwischen.match(/label: t\(/g) || []).toHaveLength(1);
   });
 
-  it('teilt die enabled-Regel des PDF-Exports', () => {
+  it('teilt die Verfügbarkeits-Regel des PDF-Exports', () => {
     // Handbuch-Reiter sind druckbar, nur die Einstellungs-Seite nicht.
+    //
+    // 4T-001637 (Epic 3E-000295): Diese Regel steht seither nicht mehr als
+    // Ausdruck im Menü-Eintrag, sondern als benannte Bedingung am Kommando;
+    // der Eintrag ruft nur noch die Auswertung auf. Der Wächter prüft deshalb
+    // BEIDES — dass der Eintrag delegiert und dass die Bedingung dahinter die
+    // gemeinte ist. Nur das erste zu prüfen hieße, die Aussage «teilt die Regel
+    // des PDF-Exports» aufzugeben, um die es diesem Fall geht.
     const abschnitt = menuQuelle.slice(
       menuQuelle.indexOf("label: t('menu.file.print')"),
       menuQuelle.indexOf("label: t('menu.file.exportPdf')"),
     );
     expect(abschnitt).toContain("click: send('menu:print')");
     expect(abschnitt).toContain("accelerator: acc('file.print')");
-    expect(abschnitt).toContain('!!(state && state.hasActiveTab) && !systemTab');
+    expect(abschnitt).toContain("enabled: avail('file.print')");
+
+    const druck = COMMANDS.find((c) => c.id === 'file.print');
+    const pdf = COMMANDS.find((c) => c.id === 'file.exportPdf');
+    expect(druck.availability).toBe('contentTab');
+    expect(druck.availability, 'Drucken und PDF-Export müssen dieselbe Bedingung tragen').toBe(
+      pdf.availability,
+    );
   });
 
   it('das Kommando steht mit Strg+P in der Registry', () => {

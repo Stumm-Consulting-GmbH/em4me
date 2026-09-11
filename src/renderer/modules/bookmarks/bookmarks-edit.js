@@ -10,7 +10,8 @@ import { t } from '../../i18n.js';
 
 import { state } from '../app/app-state.js';
 import { hideContextMenu, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
-import { reportMenuStateNow } from '../tabs/tabs.js';
+// 4T-001641 (Epic 3E-000297): der eine Weg ins Panel.
+import { oeffnePanel } from '../sidebar-layout.js';
 
 import {
   convertBookmarkToArea,
@@ -28,15 +29,10 @@ import {
   insertAtEndOfGroup,
   newBookmarkId,
   persistAreaBookmarksTree,
-  persistBookmarksSettings,
   persistBookmarksTree,
   removeNodeById,
 } from './bookmarks-tree.js';
-import {
-  applyBookmarksVisibility,
-  loadAreaBookmarks,
-  updateBookmarksToggleButton,
-} from './bookmarks.js';
+import { loadAreaBookmarks, updateBookmarksToggleButton } from './bookmarks.js';
 
 // 4T-000078: Inline-Edit-Input fuer Bookmark-/Folder-Namen. Enter committet,
 // Esc bricht ab, Blur committet ebenfalls (uebliches UI-Verhalten in
@@ -193,16 +189,17 @@ export async function createNewFolderUI(parentFolderId, paneIdx, section) {
   } else {
     await persistBookmarksTree();
   }
-  // Sicherstellen, dass die Sektion sichtbar ist (sonst sieht der Nutzer
+  // Sicherstellen, dass die Sektion zu SEHEN ist (sonst sieht der Nutzer
   // nichts vom neuen Inline-Edit).
-  if (!state.bookmarks.visibleByPane[state.activePaneIndex]) {
-    state.bookmarks.visibleByPane[state.activePaneIndex] = true;
-    await persistBookmarksSettings();
-    applyBookmarksVisibility(state.activePaneIndex);
-    if (typeof reportMenuStateNow === 'function') reportMenuStateNow();
-  } else {
-    for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-  }
+  //
+  // 4T-001641 (Epic 3E-000297): Sichtbar machen genuegte nicht. Der frueher
+  // hier stehende Zweig setzte die Sichtbarkeit selbst und liess den Reiter,
+  // wo er stand; lag die Sektion in ihrer Gruppe hinter Bereich oder Buch,
+  // ging der Tastatur-Fokus danach in ein Eingabefeld, das niemand sah — und
+  // mit ihm die naechste Eingabe des Nutzers. `oeffnePanel` holt den Reiter in
+  // jedem Fall nach vorn, auch bei bereits eingeschalteter Sektion.
+  await oeffnePanel('bookmarks', state.activePaneIndex);
+  for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   focusInlineEditInput(paneIdx);
 }
 

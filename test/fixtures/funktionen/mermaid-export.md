@@ -27,4 +27,16 @@ Ein fremder Code-Block, der unberuehrt bleibt:
 const a = 1;
 ```
 
+Eine Tabelle mit Spalten- und Zeilenkoepfen:
+
+```perspective-table
+{|
+! Monat
+! Umsatz
+|-
+! Januar
+| 100
+|}
+```
+
 Schluss.

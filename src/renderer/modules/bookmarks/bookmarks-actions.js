@@ -13,7 +13,8 @@ import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { activeTab, state } from '../app/app-state.js';
 import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
-import { reportMenuStateNow } from '../tabs/tabs.js';
+// 4T-001641 (Epic 3E-000297): der eine Weg ins Panel.
+import { oeffnePanel } from '../sidebar-layout.js';
 import { showStatusbarHint, updateEmptyState } from '../views/views.js';
 import { mapBookmarkFilePaths, toAbsolute, toRootRelative } from '../../../shared/bookmark-tree.js';
 
@@ -31,17 +32,11 @@ import {
   insertAtEndOfGroup,
   newBookmarkId,
   persistAreaBookmarksTree,
-  persistBookmarksSettings,
   persistBookmarksTree,
   removeNodeById,
   resolveBookmarkPath,
 } from './bookmarks-tree.js';
-import {
-  applyBookmarksVisibility,
-  loadAreaBookmarks,
-  openOrJumpToPath,
-  updateBookmarksToggleButton,
-} from './bookmarks.js';
+import { loadAreaBookmarks, openOrJumpToPath, updateBookmarksToggleButton } from './bookmarks.js';
 
 // === 4T-000612 (Epic 3E-000115): Anlage-Fluss mit Ziel-Wahl =====================
 
@@ -173,19 +168,15 @@ async function addBookmarkToSection(section, absPath) {
   }
 
   // 4T-000075/4T-000612: Beim ersten Lesezeichen eines Abschnitts die Sektion
-  // automatisch sichtbar machen, wenn sie noch nicht sichtbar ist.
-  if (wasEmpty && !state.bookmarks.visibleByPane[state.activePaneIndex]) {
-    state.bookmarks.visibleByPane[state.activePaneIndex] = true;
-    await persistBookmarksSettings();
-    applyBookmarksVisibility(state.activePaneIndex);
-    // R3-11 (4T-000187): auch die andere Pane rendern.
-    for (let i = 0; i < state.panes.length; i++) {
-      if (i !== state.activePaneIndex) renderBookmarks(i);
-    }
-    if (typeof reportMenuStateNow === 'function') reportMenuStateNow();
-  } else {
-    for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
-  }
+  // automatisch zeigen.
+  //
+  // 4T-001641 (Epic 3E-000297): «Zeigen» heisst seither auch, den Reiter nach
+  // vorn zu holen. Der frueher hier stehende Zweig blendete die Sektion ein
+  // und liess sie hinter ihrem Nachbarn liegen — eingeblendet und ungesehen.
+  // Die Bedingung ist jetzt allein `wasEmpty`: Ob geschaltet werden muss,
+  // entscheidet `oeffnePanel` am Schalter des Panels.
+  if (wasEmpty) await oeffnePanel('bookmarks', state.activePaneIndex);
+  for (let i = 0; i < state.panes.length; i++) renderBookmarks(i);
   updateBookmarksToggleButton();
   // 4T-000078: Toast nennt die Ablage-Stelle, sofern in einem Ordner.
   const toastKey = parentFolderName ? 'bookmarks.add.toast.inFolder' : 'bookmarks.add.toast';
@@ -291,11 +282,15 @@ export async function removeBookmark(id, section) {
 // eingeschaltetem Schalter (kein Override mehr) — der Auto-Set ist damit in
 // der Regel ein No-op und bleibt als Absicherung erhalten, dass eine aktiv
 // genutzte Sektion nach dem Oeffnen einer Datei sichtbar bleibt.
+//
+// 4T-001641 (Epic 3E-000297): Der frueher hier stehende Eigen-Weg ist durch
+// `oeffnePanel` ersetzt. Die Vorab-Pruefung bleibt bewusst stehen und ist keine
+// Doppelung des Modells: Sie haelt den haeufigen Fall — die Sektion ist
+// eingeschaltet, der Nutzer klickt in ihr — beim bisherigen No-op, statt in der
+// aktiven Spalte einen Reiter zu bewegen, den niemand angefasst hat.
 export async function ensureBookmarksSectionPersistedVisible() {
   if (state.bookmarks.visibleByPane[state.activePaneIndex]) return;
-  state.bookmarks.visibleByPane[state.activePaneIndex] = true;
-  await persistBookmarksSettings();
-  if (typeof reportMenuStateNow === 'function') reportMenuStateNow();
+  await oeffnePanel('bookmarks', state.activePaneIndex);
 }
 
 export async function toggleBookmarkFolder(id, section) {

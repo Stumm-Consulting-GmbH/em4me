@@ -19,10 +19,18 @@
 // Muster: save-guard-aufrufer.test.js, einschließlich der Argument-Zerlegung
 // über einen Klammer-Zähler statt über einen regulären Ausdruck — ein Aufruf
 // enthält selbst Klammern und Objekt-Literale.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+
+// 4T-001632: Diese Pruefung liest einen Baum des Repositoriums im Rumpf
+// ihrer Prueffaelle und faellt damit unter testTimeout. Gemessen am
+// 2026-09-09 vom Lese-Ort-Waechter (scripts/lese-ort-regel.js); die Regel
+// steht in test/README.md, Abschnitt "Bestands-Lesungen gehoeren in den
+// Modulkopf".
+vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MAIN = path.join(WURZEL, 'src', 'main');

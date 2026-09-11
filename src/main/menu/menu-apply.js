@@ -8,10 +8,14 @@
 //
 // Eigentuemer-Zustand dieses Moduls:
 //   menuStates : Map<ownerId, { locale, viewMode, lineNumbers, wordWrap,
-//                togglesEnabled, ... }> — der Renderer meldet den menue-
-//                relevanten Stand, das Menue dieses Fensters wird daraus pro
-//                Aenderung neu gebaut und gesetzt, damit Haekchen synchron
-//                bleiben.
+//                ... }> — der Renderer meldet den menue-relevanten Stand, das
+//                Menue dieses Fensters wird daraus pro Aenderung neu gebaut und
+//                gesetzt, damit Haekchen synchron bleiben.
+//                4T-001637 (Epic 3E-000295): togglesEnabled ist aus dem
+//                Vertrag entfallen. Es war eine im Renderer vorberechnete
+//                Ableitung aus viewMode, das ohnehin gemeldet wird; die
+//                Bedingung sourceToggle des Verfuegbarkeits-Modells bildet sie
+//                jetzt aus dem gemeldeten viewMode.
 'use strict';
 
 const path = require('node:path');

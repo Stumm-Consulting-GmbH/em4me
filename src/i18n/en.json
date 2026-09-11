@@ -189,7 +189,7 @@
   "help.feature.backlinks": "Backlinks sidebar per column: shows incoming wiki and Markdown links to the active file from its folder and up to two sub-folder levels, with live updates on save.",
   "help.feature.anchorLinks": "In-document anchor links like [Text](#section) work in the render pane.",
   "help.feature.search": "Full-text search with live matches, regular expressions (.* toggle) and case sensitivity (Aa). The question mark in the search bar shows a regex quick reference.",
-  "help.feature.autoReload": "Changed files are reloaded automatically; deleted files are marked with a strikethrough in the tab.",
+  "help.feature.autoReload": "Changed files are reloaded automatically; deleted files are marked with a strikethrough in the tab; on reload, queries, embeds, backlinks and the graph view are updated as well.",
   "help.feature.restoreSession": "Session (tabs, columns, views) is saved on exit and restored on next launch (can be turned off).",
   "help.feature.unsavedDrafts": "New documents that were never saved survive quitting: their content is stored and reopened as untitled tabs on the next start, independently of session restore (can be turned off).",
   "help.feature.links": "Markdown links to other .md files open them in a new tab; http(s) and mailto links open in the system default; wiki-style links like [[Target]] are supported. Filenames with spaces go in angle brackets in the Markdown target (`[Text](<My Note.md>)`) or are encoded as `%20`, whereas wiki links carry the space directly.",

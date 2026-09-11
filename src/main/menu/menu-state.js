@@ -44,7 +44,6 @@ function normalizeMenuState(base, stored) {
     viewMode: b.viewMode || 'rendered',
     lineNumbers: b.lineNumbers !== undefined ? b.lineNumbers : true,
     wordWrap: !!b.wordWrap,
-    togglesEnabled: !!b.togglesEnabled,
     hasActiveTab: !!b.hasActiveTab,
     // 4T-000213/4T-000277: Read-only-Kennungen des aktiven Tabs — Handbuch-
     // Seiten deaktivieren Speichern/Bearbeiten, System-Seiten

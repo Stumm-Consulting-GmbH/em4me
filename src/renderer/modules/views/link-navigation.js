@@ -27,12 +27,13 @@ import { performStatusToggle, isBasicTaskChar } from '../task-states.js';
 // 4T-000504 (Epic 3E-000096): Rueckschreib-Aktionen der Task-Abfrage-Treffer
 // (Status-Toggle, Verschieben, Bearbeiten) — zentraler Klick-Dispatch.
 import { handleTaskQueryAction } from '../task-query-actions.js';
-import { activatePane, openInPane, reportMenuStateNow } from '../tabs/tabs.js';
+import { activatePane, openInPane } from '../tabs/tabs.js';
 // 4T-000213 (Epic 3E-000042): Handbuch-Link-Resolver — Links in Handbuch-Tabs
 // loesen gegen die Seiten-Registry auf statt gegen das Dateisystem.
 import { findManualTabAcrossPanes, openManualPage, resolveManualHref } from '../manual.js';
 import { showAliasDialog } from '../dialogs/dialogs.js';
-import { applyTagsVisibility, persistTagsSettings } from '../properties/properties-tags.js';
+// 4T-001641 (Epic 3E-000297): der eine Weg ins Panel.
+import { oeffnePanel } from '../sidebar-layout.js';
 import { renderTags } from '../editor/autocomplete-help.js';
 
 import {
@@ -59,17 +60,15 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
     return;
   }
   // 4T-000056: Klick auf einen Tag-Link (#tag:<name>) aktiviert den Tag in
-  // der Tag-Sidebar (Sektion einblenden falls noetig, Filter setzen).
+  // der Tag-Sidebar (Sektion zeigen, Filter setzen).
+  //
+  // 4T-001641 (Epic 3E-000297): «Zeigen» ueber `oeffnePanel`. Der frueher hier
+  // stehende Zweig sprang nur an, wenn die Sektion ausgeschaltet war — lag sie
+  // eingeschaltet hinter Eigenschaften oder Block-Eigenschaften derselben
+  // Gruppe, war der Filter gesetzt und der Klick fuer den Anwender wirkungslos.
   if (href.startsWith('#tag:')) {
     const tagName = decodeURIComponent(href.slice(5));
-    if (!state.tags.visibleByPane[paneIdx]) {
-      state.tags.visibleByPane[paneIdx] = true;
-      applyTagsVisibility(paneIdx);
-      persistTagsSettings();
-      if (paneIdx === state.activePaneIndex && typeof reportMenuStateNow === 'function') {
-        reportMenuStateNow();
-      }
-    }
+    await oeffnePanel('tags', paneIdx);
     state.tags.filterByPane[paneIdx] = tagName;
     renderTags(paneIdx);
     return;

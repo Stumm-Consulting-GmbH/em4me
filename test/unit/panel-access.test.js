@@ -8,7 +8,7 @@
 // Erweiterungs-Gates mit den commands-Listen in extensions.js. Fehlt einem
 // künftigen Panel einer der Zugänge, schlägt npm test fehl (Muster der
 // bestehenden Vollständigkeits-Wächter, z. B. demo-area.test.js).
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +21,14 @@ import {
 } from '../../src/shared/panel-access.js';
 import { COMMANDS } from '../../src/shared/commands/commands.js';
 import { extensionById } from '../../src/shared/extensions/extensions.js';
+import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+
+// 4T-001632: Diese Pruefung liest einen Baum des Repositoriums im Rumpf
+// ihrer Prueffaelle und faellt damit unter testTimeout. Gemessen am
+// 2026-09-09 vom Lese-Ort-Waechter (scripts/lese-ort-regel.js); die Regel
+// steht in test/README.md, Abschnitt "Bestands-Lesungen gehoeren in den
+// Modulkopf".
+vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 
 const { DEFAULT_PANEL_ORDER } = await import('../../src/renderer/modules/sidebar-layout.js');
 

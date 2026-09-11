@@ -10,10 +10,13 @@
 // ist leer, die App setzt Fenster-Menüs über win.setMenu).
 'use strict';
 
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { pressUntilVisible } = require('../helpers/eingabe');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'erweiterungen.md');
@@ -401,6 +404,160 @@ test.describe('PZ-06: jedes Panel koppelt sein Menü-Häkchen an den Toggle', ()
           .poll(async () => checkedOf((await capturedPanelMenu(app)).submenu, id))
           .toBe(vorher);
       }
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// --- 4T-001641 (Epic 3E-000297): der eine Weg ins Panel ----------------------
+//
+// Die Fälle PZ-07 bis PZ-09 prüfen die drei Wege, die ein Panel für einen Zweck
+// **öffnen**, statt es zu **schalten**. Sie teilen eine Konstellation, und die
+// ist der ganze Punkt: Das Panel sitzt in einer Reiter-Gruppe, und ein
+// Geschwister-Reiter steht vorn. Vor dem Umbau setzten die drei Stellen die
+// Sichtbarkeit selbst und ließen den Reiter, wo er war — das Panel galt als
+// «sichtbar» und war für den Anwender trotzdem nicht zu sehen.
+//
+// **Die Ausgangslage wird über ein vorbefülltes Profil hergestellt und nicht
+// erklickt** (Muster sidebar-layout.spec.js). Das ist hier keine Bequemlichkeit,
+// sondern die Regel aus test/README.md, Abschnitt «Der Aufbau eines Prüffalls
+// ist nicht sein Gegenstand»: Wer die Gruppe über denselben Toggle-Weg
+// herstellte, den der Fall prüft, prüfte die Funktion gegen sich selbst.
+
+// Profil-Verzeichnis mit vorbefüllter electron-store-config.json (Punkt-Keys
+// liegen im Store verschachtelt).
+function seedProfile(settings) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-pz-'));
+  fs.writeFileSync(path.join(dir, 'config.json'), JSON.stringify(settings), 'utf8');
+  return dir;
+}
+
+const PANE = '.pane-group[data-pane="0"]';
+
+test.describe('PZ-07: Lesezeichen-Inline-Edit holt seinen Reiter nach vorn', () => {
+  // Der schwerste der drei Befunde: Der Kommentar an der Stelle begründet das
+  // Sichtbarmachen ausdrücklich damit, dass der Nutzer sonst nichts vom neuen
+  // Inline-Edit sieht — und setzte den Fokus danach in ein Feld, das ein
+  // Geschwister-Reiter verdeckte. Die nächste Tastatureingabe ginge dorthin.
+  //
+  // Das Kontextmenü überlebt das Einschalten der Gliederung: Es schließt nur
+  // bei einem Klick außerhalb oder auf Escape (app-input-bindings.js). Genau
+  // deshalb ist die Lage im Einspalten-Betrieb erreichbar.
+  test('das Eingabefeld ist sichtbar und fokussiert, obwohl die Gliederung vorn steht', async () => {
+    const userData = seedProfile({
+      sidebar: {
+        layout: {
+          left: [{ panels: ['bookmarks', 'outline'], active: 'bookmarks' }],
+          right: [],
+        },
+      },
+      bookmarks: { visibleColumn0: true },
+    });
+    const { app, page } = await launchApp({ args: [FIXTURE], userData });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      const panel = page.locator(`${PANE} .sidebar-bookmarks`);
+      await expect(panel).toBeVisible();
+
+      // Kontextmenü der leeren Lesezeichen-Gruppe: genau ein Eintrag, «Neuer
+      // Ordner» (bookmarks-render.js bindet ihn an die Gruppe).
+      await page.locator(`${PANE} .bookmarks-group-general`).click({ button: 'right' });
+      const eintrag = page.locator('#context-menu .context-menu-item').first();
+      await expect(eintrag).toBeVisible();
+
+      // Die Konstellation: Die Gliederung kommt über den Toggle-Weg hinzu und
+      // zieht den Reiter zu sich. Die Lesezeichen sind ab jetzt sichtbar UND
+      // verdeckt.
+      await app.evaluate(({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        if (win) win.webContents.send('menu:togglePanel', 'outline');
+      });
+      await expect(panel).toHaveClass(/tab-hidden/);
+      await expect(eintrag).toBeVisible();
+
+      await eintrag.click();
+
+      // Der Reiter ist vorn, und der Fokus liegt in einem SICHTBAREN Feld.
+      await expect(panel).not.toHaveClass(/tab-hidden/);
+      const input = page.locator(`${PANE} .bookmark-inline-edit-input`);
+      await expect(input).toBeVisible();
+      await expect(input).toBeFocused();
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+test.describe('PZ-08: Klick auf einen Tag-Link holt das Tag-Panel nach vorn', () => {
+  // Wortgleich die Wirkung des Anlassfalls 4T-001533: Der Filter wurde gesetzt,
+  // und für den Anwender geschah nichts, weil die Eigenschaften-Sektion
+  // derselben Gruppe vorn stand.
+  //
+  // **Geprüft wird der Zugang, nicht die Trefferliste.** Die gefilterte
+  // Datei-Liste hängt am Tag-Index eines gebundenen Bereichs; ohne ihn meldet
+  // das Panel «nicht verfügbar». Der Befund lag ohnehin nicht am Filter — der
+  // wurde gesetzt —, sondern daran, dass das Panel dahinter verborgen blieb.
+  // Der Fall misst deshalb genau das: Nach dem Klick liegt das Tag-Panel vorn
+  // und ist zu sehen.
+  test('das Tag-Panel liegt vorn, obwohl die Eigenschaften vorn standen', async () => {
+    const userData = seedProfile({
+      sidebar: {
+        layout: {
+          left: [],
+          right: [{ panels: ['properties', 'tags'], active: 'properties' }],
+        },
+      },
+      properties: { visibleColumn0: true },
+      tags: { visibleColumn0: true },
+    });
+    const { app, page } = await launchApp({ args: [FIXTURE], userData });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+
+      const tags = page.locator(`${PANE} .sidebar-tags`);
+      await expect(tags).toHaveClass(/tab-hidden/);
+      await expect(page.locator(`${PANE} .sidebar-properties`)).toBeVisible();
+
+      // Der Tag-Link der Fixture (#probe) in der Lese-Ansicht.
+      const link = page.locator(`${PANE} .pane-rendered a.tag-link[href="#tag:probe"]`);
+      await expect(link).toBeVisible();
+      await link.click();
+
+      await expect(tags).not.toHaveClass(/tab-hidden/);
+      await expect(tags).toBeVisible();
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+test.describe('PZ-09: das erste Lesezeichen eines Abschnitts zeigt seine Sektion', () => {
+  // Die Sektion wird eingeblendet, weil der Anwender sie sehen soll. Stand ein
+  // Geschwister-Reiter vorn, blieb sie hinter ihm liegen — eingeblendet und
+  // ungesehen.
+  test('Strg+D blendet die Sektion ein und holt zugleich ihren Reiter nach vorn', async () => {
+    const userData = seedProfile({
+      sidebar: {
+        layout: {
+          left: [{ panels: ['bookmarks', 'outline'], active: 'outline' }],
+          right: [],
+        },
+      },
+      outline: { visibleColumn0: true },
+    });
+    const { app, page } = await launchApp({ args: [FIXTURE], userData });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await expect(page.locator(`${PANE} .sidebar-outline`)).toBeVisible();
+      await expect(page.locator(`${PANE} .sidebar-bookmarks`)).toBeHidden();
+
+      await pressUntilVisible(page, 'Control+d', page.locator('#btn-bookmarks.is-marked'));
+
+      const panel = page.locator(`${PANE} .sidebar-bookmarks`);
+      await expect(panel).not.toHaveClass(/tab-hidden/);
+      await expect(panel).toBeVisible();
+      await expect(page.locator(`${PANE} .bookmarks-group-general .bookmark-node`)).toHaveCount(1);
     } finally {
       await closeApp(app, userData, { force: true });
     }

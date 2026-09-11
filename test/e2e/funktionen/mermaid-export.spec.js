@@ -174,6 +174,12 @@ test.describe('ME-05: Die exportierte Datei zeigt ihre Diagramme', () => {
   // Datei-Inhalt, sondern was ein Betrachter davon SIEHT: Die Datei traegt den
   // Portable-Marker, der den Whitelist-Sanitizer scharf schaltet — inline SVG
   // verschwand dort spurlos, und der Datei-Inhalt sah trotzdem richtig aus.
+  //
+  // 4T-001556 (Epic 3E-000298): Derselbe Fall traegt jetzt die Tabellen-Probe
+  // mit. Das `scope`-Attribut der Kopfzellen hatte dieselbe Bauart — erzeugt,
+  // geschrieben, geprueft und beim Lesen entfernt —, und es ist an genau
+  // diesem Lese-Ende zu pruefen, nicht am Datei-Inhalt. Die Fixture traegt
+  // dafuer eine perspective-table mit Spalten- und Zeilenkoepfen.
   test('beim erneuten Oeffnen erscheinen die Bilder in der Anzeige (AK1)', async () => {
     const ziel = path.join(makeWorkDir(), 'export.md');
 
@@ -181,6 +187,10 @@ test.describe('ME-05: Die exportierte Datei zeigt ihre Diagramme', () => {
     try {
       const inhalt = await exportiere(ersteSitzung.app, ersteSitzung.page, ziel);
       expect(inhalt).toContain(BILD_KOPF);
+      // 4T-001556: das Erzeugungs-Ende der Tabellen-Probe — die Anzeige-Seite
+      // steht unten, und genau zwischen beiden lag der Befund.
+      expect(inhalt).toContain('scope="col"');
+      expect(inhalt).toContain('scope="row"');
     } finally {
       await closeApp(ersteSitzung.app, ersteSitzung.userData, { force: true });
     }
@@ -203,6 +213,11 @@ test.describe('ME-05: Die exportierte Datei zeigt ihre Diagramme', () => {
           })
           .toBe(true);
       }
+      // 4T-001556: Die Kopfzellen der exportierten Tabelle behalten ihre
+      // Zuordnung bis in die Anzeige. Ohne `scope` liest ein Vorlese-Programm
+      // die Tabelle als Zahlenfolge, und zu sehen ist der Verlust nicht.
+      await expect(page.locator(SEL.markdownBody0 + ' th[scope="col"]')).toHaveCount(2);
+      await expect(page.locator(SEL.markdownBody0 + ' th[scope="row"]')).toHaveCount(1);
     } finally {
       await closeApp(zweiteSitzung.app, zweiteSitzung.userData, { force: true });
     }

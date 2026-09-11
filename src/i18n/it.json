@@ -189,7 +189,7 @@
   "help.feature.backlinks": "Barra laterale dei backlink per colonna: mostra i collegamenti wiki e Markdown in entrata verso il file attivo dalla sua cartella e fino a due livelli di sottocartelle, con aggiornamento in tempo reale al salvataggio.",
   "help.feature.anchorLinks": "I collegamenti di àncora interni al documento come [Testo](#sezione) funzionano nel pannello di rendering.",
   "help.feature.search": "Ricerca testuale con risultati in tempo reale, espressioni regolari (interruttore .*) e distinzione maiuscole/minuscole (Aa). Il punto interrogativo nella barra mostra un riferimento rapido per regex.",
-  "help.feature.autoReload": "I file modificati vengono ricaricati automaticamente; i file eliminati sono barrati nella scheda.",
+  "help.feature.autoReload": "I file modificati vengono ricaricati automaticamente; i file eliminati sono barrati nella scheda; al ricaricamento si aggiornano anche le query, gli incorporamenti, i backlink e la vista grafo.",
   "help.feature.restoreSession": "Sessione (schede, colonne, viste) salvata alla chiusura e ripristinata al successivo avvio (disattivabile).",
   "help.feature.unsavedDrafts": "I nuovi documenti mai salvati sopravvivono alla chiusura: il loro contenuto viene conservato e riaperto come schede senza titolo al successivo avvio, indipendentemente dal ripristino della sessione (disattivabile).",
   "help.feature.links": "I link Markdown ad altri file .md li aprono in una nuova scheda; i link http(s) e mailto aprono l'applicazione predefinita; i link wiki [[Destinazione]] sono supportati. I nomi di file con spazi vanno tra parentesi angolari nella destinazione Markdown (`[Testo](<La mia nota.md>)`) oppure codificati come `%20`, mentre i link wiki portano lo spazio direttamente.",

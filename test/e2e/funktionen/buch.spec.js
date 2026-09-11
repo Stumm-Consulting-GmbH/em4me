@@ -26,6 +26,11 @@
 //        Applikation mit eigenem Fenster, jedes Fenster zeigt sein Buch,
 //        erneutes Öffnen fokussiert, „Buch schließen" schließt die
 //        Applikation, der Fenstertitel trägt den Buchnamen.
+// BU-11 (4T-001638): Menü und Kommando-Palette zeigen dieselbe Freigabe —
+//        «Buch schließen» ohne gebundenes Buch in beiden gesperrt, mit Buch in
+//        beiden frei. Der Fall misst die ÜBEREINSTIMMUNG beider Seiten, nicht
+//        die Regel: Die ist seit Epic 3E-000295 gemeinsam, die Quelle des
+//        Zustands aber nicht (Broadcast-Lücke, Vorfall 4T-000881).
 //
 // Seit 4T-000871 gilt das Applikations-Modell (Buch = Bereich): «Buch öffnen»
 // bindet eine freie Applikation oder öffnet eine neue; die Fälle BU-01 bis
@@ -43,6 +48,8 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { warteAufJson, warteAufText } = require('../helpers/dateien');
 const { SEL } = require('../helpers/selectors');
+// 4T-001638 (Epic 3E-000295): Menü-Zustand eines Fensters für BU-11.
+const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 const {
   makeTempDir,
   removeDir,
@@ -219,6 +226,44 @@ async function openExternally(app, page, filePath) {
       return page.locator(`${SEL.tabs0} .tab-title`).allTextContents();
     })
     .toContain(name);
+}
+
+// --- Ablese-Helfer beider Seiten (4T-001638) ----------------------------------
+//
+// Der Fall BU-11 vergleicht, was Menü und Palette in derselben Lage über
+// DASSELBE Kommando sagen. Beide Ablesungen brauchen ihren eigenen Weg, weil
+// die eine im Hauptprozess und die andere im Fenster stattfindet.
+
+// Menü-Seite: Der Zustand kommt über den setMenu-Abfang des gemeinsamen
+// Helfers (test/e2e/helpers/menu-zustand.js, angelegt mit 4T-000881 — also aus
+// genau dem Vorfall, den dieser Fall künftig verhindern soll). Der
+// Titel-Ausschnitt ist bewusst der Programmname: Er steht in jedem Titel und
+// bleibt damit über den Buch-Wechsel hinweg derselbe Schlüssel. Der Abfang
+// bindet den Schlüssel beim ersten Aufruf ein; ein zweiter Ausschnitt
+// desselben Fensters liefe ins Leere.
+async function buchSchliessenImMenue(app) {
+  const zustand = await menuZustand(app, 'EM4me');
+  return menuEintrag(zustand, 'Buch schließen')?.enabled ?? null;
+}
+
+// Palette-Seite: Der Eintrag trägt die Klasse `unavailable`, wenn das Kommando
+// im aktuellen Zusammenhang gesperrt ist (Muster KP-05). Die Palette wird nach
+// dem Ablesen wieder geschlossen, damit der Fall in einer definierten Lage
+// weiterläuft.
+async function buchSchliessenInPalette(page) {
+  await expect
+    .poll(async () => {
+      if (await page.locator(PALETTE).isVisible()) return true;
+      await page.keyboard.press('Control+k');
+      return page.locator(PALETTE).isVisible();
+    })
+    .toBe(true);
+  await page.locator(PALETTE_FILTER).fill('Buch schließen');
+  await expect(page.locator(PALETTE_ITEM)).toHaveCount(1);
+  const klassen = (await page.locator(PALETTE_ITEM).first().getAttribute('class')) || '';
+  await page.keyboard.press('Escape');
+  await expect(page.locator(PALETTE)).toBeHidden();
+  return !klassen.split(/\s+/).includes('unavailable');
 }
 
 // --- BU-01 --------------------------------------------------------------------
@@ -725,6 +770,50 @@ test.describe('BU-10: Buch als Bereich — eigene Applikation je Buch (4T-000871
         void window.api.books.close();
       });
       await expect.poll(() => app.windows().length).toBe(fensterVorher);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(parent);
+    }
+  });
+});
+
+// --- BU-11 --------------------------------------------------------------------
+
+test.describe('BU-11: Menü und Palette zeigen dieselbe Freigabe (4T-001638)', () => {
+  test('«Buch schließen» ist ohne Buch in beiden gesperrt und mit Buch in beiden frei', async () => {
+    // Die im Zuschnitt (4T-000918) benannte Grenze des Verfügbarkeits-Modells:
+    // Beide Seiten teilen seit Epic 3E-000295 die REGEL, nicht die QUELLE des
+    // Zustands. `hasBook` ist main-seitige Wahrheit aus der App-Registry; der
+    // Renderer hält davon nur eine per Broadcast nachgezogene Kopie. Ein
+    // Unit-Wächter kann deshalb prüfen, dass beide dieselbe Regel auf dieselben
+    // Feldnamen anwenden — nicht, dass beide denselben WERT sehen.
+    //
+    // Genau diese Lücke hat im Bestand schon zugeschlagen: `hasShelf` wurde
+    // nach seiner Einführung nicht durchgereicht, «Bücherregal schließen» blieb
+    // dauerhaft deaktiviert, bis 4T-000881 es fand. Dagegen hilft nur eine
+    // Messung am laufenden Programm, und die steht hier.
+    //
+    // Zwei Konstellationen in EINEM Fenster statt in zweien: Das Öffnen des
+    // Buches bindet die freie Start-Applikation (BU-10), der Zustandswechsel
+    // läuft also durch denselben Broadcast, den der Fall absichern soll. Zwei
+    // getrennte Fenster hätten den Übergang nicht geprüft und einen zweiten
+    // Programmstart gekostet (E2E-Budget, Konzept Test-Strategie Kapitel 2).
+    const { app, page, userData } = await launchApp();
+    const parent = makeTempDir();
+    const bookDir = makeBook(parent, 'Reise');
+    try {
+      // --- ohne Buch: beide Seiten gesperrt ---------------------------------
+      await expect.poll(() => buchSchliessenImMenue(app)).toBe(false);
+      expect(await buchSchliessenInPalette(page)).toBe(false);
+
+      // --- Buch öffnen: es bindet die freie Start-Applikation ---------------
+      await openBook(page, bookDir);
+      await waitForTab(page);
+      await expect.poll(() => page.title()).toContain('(Buch Reise)');
+
+      // --- mit Buch: beide Seiten frei --------------------------------------
+      await expect.poll(() => buchSchliessenImMenue(app)).toBe(true);
+      expect(await buchSchliessenInPalette(page)).toBe(true);
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(parent);

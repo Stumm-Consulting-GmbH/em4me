@@ -1085,6 +1085,53 @@ Daraus zwei Regeln:
   sichern. `git checkout --` ist kein Rückweg für uncommittete Arbeit, sondern
   ein Werkzeug, das sie verwirft.
 
+## Der Aufbau eines Prüffalls ist nicht sein Gegenstand
+
+Die Mutationsprobe oben fragt, ob ein Fall seinen Gegenstand misst. Dieser
+Abschnitt fragt das Gegenstück: ob er ihn im richtigen **Ausgangs-Zustand**
+misst. Die Regel dazu lautet:
+
+> **Der Aufbau eines Prüffalls darf nicht den Weg nehmen, den der Fall prüft.**
+
+**Ein Zustand, den der Prüffall in seinem Aufbau herstellt, ist damit nicht
+geprüft, sondern vorausgesetzt.** Solange der Aufbau einen anderen Weg nimmt als
+die geprüfte Funktion, ist das unschädlich. Nimmt er denselben, prüft der Fall
+die Funktion gegen sich selbst — und ist grün, gerade weil sie falsch ist.
+
+**Der belegte Fall** (`4T-001533`, Abnahme von `3E-000175`): Die Vorschau der
+Tag-Umbenennung blieb unsichtbar, sobald ein anderer Reiter der Sidebar-Gruppe
+vorn stand. Sechs Prüffälle deckten den Bedienweg ab, vier E2E und zwei Unit,
+und **keiner** fand es: Alle sechs starteten mit geschlossenem Panel und
+schalteten es über dieselbe Funktion ein, die den Reiter dabei aktiviert. Sie
+stellten den Zustand her, in dem der Fehler nicht auftritt. Gefunden hat ihn der
+Product Owner am gebauten Programm.
+
+**Der Nachbarfall aus derselben Woche** (`4T-001534`) zeigt die andere Hälfte:
+Der Regressionstest, der den Fehler künftig bewachen sollte, stellte seine
+Ausgangslage mit einem Klick auf den Statusbar-Schalter her — aber ein Schalter
+schaltet, er öffnet nicht, und so schloss der Klick das Panel. Der Fall
+scheiterte an seiner eigenen Ausgangslage, ohne die Zusicherung je zu erreichen.
+Das ist der gutartige Ausgang: Er war rot und fiel am Gate auf. Der erste Fall
+war grün.
+
+Drei Handgriffe, die das abdecken:
+
+- **Den Ausgangs-Zustand als Bedingung schreiben, nicht als Nebenwirkung.** Wer
+  ihn herstellt, prüft danach, dass er hergestellt ist — Zusicherung im Aufbau,
+  nicht Vertrauen in die Handlung. Der Helfer `bedieneBis` (`4T-001555`) ist
+  dafür gemacht: bedienen, bis die Wirkung eintritt, statt einmal zu klicken und
+  auf sie zu warten.
+- **Den Aufbau über einen anderen Weg führen als die Prüfung.** Wo das nicht
+  geht, gehört der abweichende Ausgangs-Zustand in einen **eigenen** Fall.
+- **Wo ein Bedienweg an einem Bestands-Zustand hängt, reicht der Erst-Start
+  nicht.** «Frisch gestartet» ist der Zustand des ersten Tages; der Alltag jedes
+  Anwenders sieht anders aus.
+
+Eingeordnet im Fehlerklassen-Register als eigener Untertyp von `L10` (Der
+Prüffall stellt den Zustand her, den er prüfen will), getrennt vom benachbarten
+Untertyp der erfundenen Gegenstands-Form, dessen Gegenmittel ein anderes ist:
+gegen den realen Bestand prüfen statt gegen eine Miniatur.
+
 ## Setup-/Teardown-Vorlage für Temp-Verzeichnis-Tests
 
 Windows-robust: Datei-Handles können kurz nach dem Schließen noch
@@ -1242,8 +1289,15 @@ bestandslesenden Fall ist er um mehr als eine Größenordnung zu klein.
 standen zur Wahl: Grenzen je Plattform, eine Grenze am teuersten Prüfstand, oder
 die Kosten senken, indem das Unit-Gate wie das E2E-Gate aus einer Kopie im
 Container-Dateisystem liefe. Entschieden ist **keiner davon**, sondern das
-Beobachten: Die Erhebung hat die vermutete Lücke widerlegt, und eine
-Regel-Änderung ohne belegten Anlass wäre selbst ein Fehler.
+Beobachten: Eine Regel-Änderung ohne belegten Anlass wäre selbst ein Fehler.
+
+**Berichtigung vom 2026-09-09 (`4T-001632`):** Der Satz «die Erhebung hat die
+vermutete Lücke widerlegt» stand hier bis dahin ohne Einschränkung und trug
+weiter, als die Messung reicht. Jene Erhebung misst je Prüffall den Abstand zu
+**der Grenze, die er trägt**, und sieht damit ausschließlich Fälle **mit**
+benannter Grenze. Die drei Fälle, die am 2026-09-08 das Integrationstor
+schlossen, trugen keine und kamen in ihr nicht vor. Der Widerlegungs-Satz gilt
+für die gemessene Menge und nicht darüber hinaus.
 
 **Die Wiedervorlage ist eine Zahl und kein Gefühl:** Überschreitet ein Prüffall
 im Container **50 Prozent** seiner Zeitgrenze, ist das der Anlass, die Kosten
@@ -1255,6 +1309,55 @@ höchste Wert bei 22 Prozent.
 an Schärfe auf der Haupt-Plattform. `pm-dokumente` dürfte auf Windows heute
 schon das Hundertfache seiner 0,8 s brauchen, bevor etwas auffällt — dieser
 Preis ist mit der Anhebung vom 2026-08-31 bezahlt und soll nicht wachsen.
+
+**Die Schwelle gilt für Fälle mit benannter Grenze, und für die anderen gilt
+nicht etwa eine zweite** (`4T-001632`, Reichweite geklärt am 2026-09-09). Für
+einen Fall ohne benannte Grenze ließe sich zwar gegen die Vitest-Voreinstellung
+von 5000 ms rechnen — das Ergebnis wäre aber für jeden Fall, der im Modulkopf
+liest, bedeutungslos: Sein Prüffall ist schnell, die Marke bliebe bei null
+Prozent, und die Lesung, um die es geht, käme in der Rechnung nicht vor. Diese
+Fälle deckt deshalb die Lese-Ort-Regel unten, nicht eine zweite Schwelle mit
+anderer Bezugsgröße. **Eine Schwelle, ein Bezug.**
+
+### Bestands-Lesungen gehören in den Modulkopf
+
+**Die Regel** (Entscheidung des Product Owners vom 2026-09-09 zu `4T-001632`,
+Wege A' und D): Wer in einer Prüfdatei einen Baum des Repositoriums liest —
+`src/`, `test/`, `Projektmanagement/`, `web/`, `scripts/`, `docs/` —, tut das im
+**Modulkopf**. Wer ihn stattdessen im Rumpf eines Prüffalls liest, gibt der
+Datei ein benanntes Zeitlimit aus [`zeitlimits.js`](zeitlimits.js), in aller
+Regel `BESTAND_ZEITLIMIT`, datei-weit über `vi.setConfig`.
+
+**Warum der Ort und nicht die Menge.** `testTimeout` bemisst den **Rumpf eines
+Prüffalls**, sonst nichts. Die Erhebung vom 2026-09-09 hat alle 343
+Unit-Prüfdateien vermessen und den Unterschied an zwei Fällen sichtbar gemacht,
+die weiter nicht auseinanderliegen könnten:
+
+| Prüfdatei | Bestandslesungen | davon im Prüffall | teuerster Fall |
+|---|---|---|---|
+| `roadmap-zuordnung` | 1831 | **0** (Modulkopf) | 3 ms |
+| `save-guard-aufrufer` | 231 | **231** (verzögert im ersten Fall) | riss die 5000 ms |
+
+Die Datei mit der **achtfachen** Lesemenge ist die ungefährliche. Wer nach
+Lesemenge sortiert, ordnet die Gefahr falsch — und wer allen bestandslesenden
+Dateien pauschal ein Limit gäbe, erzeugte Vertrauen ohne Deckung, weil es dort,
+wo im Modulkopf gelesen wird, nichts bemisst.
+
+**Der Wächter** ist `scripts/lese-ort-regel.js`, gefahren von
+`scripts/zuordnung-pruefen.js` auf derselben Messung, die die Zuordnung prüft,
+und damit im pre-commit-Hook für jede gestagte Prüfdatei. Er meldet eine Datei,
+die **im Prüffall** mindestens 100 Bestands-Pfade liest und kein benanntes
+Zeitlimit trägt. Die Marke setzt [`phase-marke.js`](phase-marke.js) zur
+Laufzeit; gemessen statt am Quelltext geprüft, weil `save-guard-aufrufer` seinen
+Baum hinter einer Hilfsfunktion liest und eine Quelltext-Regel ausgerechnet
+diesen Anlassfall nicht fände.
+
+**Die Schwelle 100 ist abgelesen, nicht gesetzt.** In der Verteilung der 343
+Prüfdateien liegt zwischen 50 und 99 Bestandslesungen **keine einzige** Datei:
+240 lesen gar nichts, 51 lesen ein bis neun Pfade, 13 lesen zehn bis 49 — und
+dann kommt eine Lücke, hinter der die 39 Dateien stehen, die über einen Baum
+laufen. Verschiebt eine spätere Erhebung diese Lücke, wandert die Zahl mit; sie
+steht deshalb an einer Stelle in `scripts/lese-ort-regel.js` und hier.
 
 ### Änderungsklassen und Prüf-Ausschnitt
 

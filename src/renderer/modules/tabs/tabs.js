@@ -428,7 +428,6 @@ export function reportMenuStateNow() {
     wordWrap: tab ? !!tab.wrapLines : viewDefaults.wrapLines,
     // 4T-000013: Haekchen-Stand fuer das Gliederungs-Toggle im Ansicht-Menue.
     foldGutter: tab ? !!tab.showFoldGutter : viewDefaults.showFoldGutter,
-    togglesEnabled: viewMode === 'source' || viewMode === 'split' || viewMode === 'live',
     hasActiveTab: !!tab,
     // 4T-000213: Handbuch-Tabs — Menue deaktiviert Bearbeiten/Speichern.
     manualTab: !!(tab && tab.manualPage),
