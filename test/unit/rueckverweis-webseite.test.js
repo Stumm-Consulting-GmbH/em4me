@@ -10,11 +10,13 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const HELP_DIR = path.join(ROOT, 'src', 'i18n', 'help');
-const LANGS = ['de', 'en', 'fr', 'es', 'it'];
+const LANGS = LOCALE_CODES;
 
 // Sprach-Ziele: Englisch liegt unter der Wurzel, die übrigen als Unterordner mit
 // abschließendem Schrägstrich. Muss mit about.websiteUrl und den Handbuch-Links

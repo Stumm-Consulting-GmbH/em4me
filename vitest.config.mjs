@@ -53,7 +53,13 @@ export default defineConfig({
     // Ein Aufruf mit Datei- oder Muster-Argument gilt als freie
     // Entwicklungs-Iteration und laeuft unveraendert durch; Begruendung und
     // Abgrenzung stehen in scripts/gate-zugang.js.
-    globalSetup: ['./scripts/gate-zugang.js'],
+    // 4T-001606 (Epic 3E-000278): Die fuenf Sprachdateien src/i18n/<code>.json
+    // sind seit dem Fragment-Schnitt ein Erzeugnis aus src/i18n/fragments/ und
+    // nicht mehr versioniert. Unit-Faelle lesen sie (Katalog-Lader des
+    // Hauptprozesses, Preload-Leser, Woerterbuch-Bereitschaft); ohne Vorlauf
+    // liefen sie in einem frischen Clone gegen keine Datei und sonst gegen
+    // einen alten Stand. Reihenfolge: erst die Zugangs-Pruefung, dann der Bau.
+    globalSetup: ['./scripts/gate-zugang.js', './scripts/build-i18n.js'],
     // 4T-000782 (Epic 3E-000156): Zusaetzlich zum Konsolen-Bericht ein
     // Maschinen-Bericht, aus dem scripts/test-kennzahlen.js die Zahl der
     // tatsaechlich ausgefuehrten Faelle liest. Die statische Quelltext-

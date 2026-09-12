@@ -14,6 +14,178 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.133.0.2827] - 2026-09-12 — Eigene Einrichtung, eigene Sprache, eigener Überblick
+
+Zug 3E-000281 mit
+den Epics 3E-000160,
+3E-000129,
+3E-000278 und
+3E-000191. Alle vier
+Mitglieder sind abgenommen; der Zug bringt die eigene Einrichtung als Datei zum
+Mitnehmen, die selbst übersetzte Oberflächen-Sprache und den Überblick über alle
+eigenen Gefäße an einem Ort, dazu einen internen Umbau der Sprachdateien ohne
+Wirkung auf den Anwender. Die Abschluss-Anteile der Mitglieder liegen in
+4T-001570,
+4T-001571,
+4T-001616
+und 4T-001572.
+
+### Neu
+
+- **Die eigene Einrichtung in eine Datei schreiben und wieder einlesen**
+  (4T-001586, 4T-001587, 4T-001588). Verhalten und Darstellung, Farbschemas,
+  Tastenkürzel, Format-Toolbar, eigene Statusleisten-Schaltflächen samt Makros,
+  Anordnung der Sidebar, Vorlagen-Ordner und -Regeln, Lesezeichen und der
+  Schalt-Zustand der Erweiterungen lassen sich über **Datei → Einstellungen →
+  Exportieren…** in eine Datei schreiben und über **Importieren…** anderswo
+  wieder einlesen. Vor dem Export wird gewählt, welche Datenarten mitgehen; die
+  Auswahl-Liste nennt je Datenart die Zahl ihrer Einträge. Die Datei ist eine
+  gewöhnliche **Markdown-Datei**: Kopfdaten mit Format-Fassung, Zeitpunkt und
+  Herkunft, darunter je Datenart ein benannter Abschnitt — lesbar, vergleichbar
+  und versionierbar. Die Funktion ist als Erweiterung „Export und Import der
+  eigenen Einstellungen" abschaltbar.
+- **Vorschau vor der Übernahme, und eine Regel für alle Datenarten**
+  (4T-001588). Ein Einlesen schreibt nichts, bevor der Anwender bestätigt hat:
+  Eine Vorschau nennt je Datenart, was ergänzt, ersetzt, umbenannt oder
+  übersprungen wird, und eine Schaltfläche sichert den bisherigen Stand vorher
+  in eine eigene Datei. Es gilt **eine** Zusammenführungs-Regel: Ergänzt wird,
+  was der Anwender als benannten Gegenstand angelegt hat, ersetzt wird, was
+  Einstellung oder Anordnung ist. Bei gleichem Namen bleibt der vorhandene
+  Eintrag unverändert, und der eingelesene kommt mit einem unterscheidenden
+  Zusatz daneben; Verweise auf umbenannte Einträge ziehen mit. Eine Datei aus
+  einer älteren Programm-Fassung bleibt lesbar, eine aus einer neueren wird mit
+  Hinweis übernommen — was diese Fassung nicht kennt, wird übersprungen und
+  benannt. Ein stiller Teil-Import ist ausgeschlossen.
+- **Ein einzelnes Kalender-System von Bereich zu Bereich weitergeben**
+  (4T-001590). Kalender-Systeme gehören dem Bereich und wandern sonst nur mit
+  seinem Ordner. In der Auswahl der Ausgabe steht deshalb unter der Datenart je
+  Zeitrechnungs-Block eine eigene Zeile: So lässt sich ein einzelnes
+  Kalender-System ausgeben und in einem anderen Bereich einlesen, statt es dort
+  nachzubauen. Der vorhandene Kalender-Bestand des Ziel-Bereichs bleibt dabei
+  unangetastet; ein Block mit unvollständiger Definition wird abgewiesen und
+  namentlich genannt, statt einen halben Eintrag anzulegen.
+- **Eine eigene Oberflächen-Sprache** (4T-000391, 4T-001592, 4T-001593,
+  4T-001594). Wer eine sechste Sprache braucht, übersetzt sie selbst. **Datei →
+  Eigene Sprache → Vorlage herunterladen…** schreibt den englischen
+  Text-Bestand in eine JSON-Datei, die im eigenen Editor übersetzt wird;
+  benannt wird die Sprache **in der Datei** über `@@locale` und `@@name`, der
+  Datei-Name ist ohne Bedeutung. **Einspielen…** prüft vor der Übernahme
+  Aufbau, Werte, Platzhalter, Auszeichnung im Umfang des Originals und
+  Link-Ziele: Eine Abweisung nennt den betroffenen Eintrag, ein stiller
+  Teil-Import ist ausgeschlossen, und ein Ersetzen wird vorher erfragt.
+  Abgelegt wird die Sprache im Benutzerprofil, gewählt in der Gruppe „Eigene
+  Sprachen" der Sprach-Auswahl in der Statusleiste. Sie wirkt in Fenster,
+  Menüs und den Dialogen des Betriebssystems, bleibt nach einem Neustart
+  bestehen und lässt sich über **Entfernen…** wieder abräumen. Die Sprachliste
+  der Anwendung ist dafür an einer Stelle zusammengeführt worden (4T-000391).
+  Die Bedien-Wege sind als Erweiterung „Eigene Oberflächen-Sprache"
+  abschaltbar; eine eingespielte Sprache bleibt im Aus-Zustand geladen.
+- **Unvollständig ist erlaubt: Rückfall auf Englisch je Eintrag und Hinweis auf
+  die Alterung** (4T-001595, 4T-001596). Eine Übersetzung muss nicht fertig
+  sein, um zu wirken: Was in der eigenen Sprachdatei fehlt, erscheint auf
+  **Englisch** statt als roher Schlüssel — Eintrag für Eintrag, in Oberfläche,
+  Menüs und Betriebssystem-Dialogen. Bringt eine neue Programmfassung Texte
+  hinzu, nennt ein Hinweis in der Statusleiste einmal je Stand die Zahl der
+  fehlenden Einträge. **Aktualisieren…** im selben Untermenü speichert die
+  eigene Sprachdatei auf dem Stand der laufenden Fassung: Benennung und eigene
+  Übersetzungen bleiben, die fehlenden Einträge stehen an ihrer Stelle auf
+  Englisch. Sind mehrere eigene Sprachen eingespielt, wird die gewünschte in
+  einem Dialog gewählt.
+- **Alle eigenen Gefäße auf einer Seite: My Extended Memory** (4T-001598,
+  4T-001599, 4T-001602, 4T-001603). **Ansicht → My Extended Memory** öffnet
+  eine eigene Seite, die Arbeitsbereiche, Bereiche, Bücher und Bücherregale
+  nebeneinander zeigt. Die Liste entsteht **von Hand**: Ein aufklappbarer
+  Vorschlag nennt die zuletzt geöffneten Gefäße und die vorhandenen
+  Arbeitsbereiche, ein Ordner-Dialog nimmt jedes weitere auf, und welche Art
+  von Gefäß ein Ordner ist, erkennt die Anwendung selbst. **Automatisch erfasst
+  wird nichts, und kein Laufwerk wird durchsucht** — die Seite zeigt genau den
+  eingetragenen Bestand. Wer einen Eintrag entfernt, entfernt allein den
+  Eintrag; das Gefäß bleibt unberührt. Jede Zeile öffnet ihr Gefäß, und die
+  Seite trägt zusätzlich den Zugang zum Ausgeben und Einlesen der eigenen
+  Einrichtung. Die Funktion ist als Erweiterung „My Extended Memory"
+  abschaltbar.
+- **Kennzahlen je Gefäß, und dazu der Zeitpunkt ihrer Erhebung** (4T-001600,
+  4T-001601). Je Eintrag stehen Zahlen zum Inhalt — Markdown-Dateien, andere
+  Dateien, Ordner, belegter Speicher, beim Buch die Kapitel, beim Bücherregal
+  die Bücher —, und daneben steht, **wann** sie erhoben wurden. Erhoben wird
+  beim Eintragen und danach nur auf ausdrückliche Anforderung je Zeile; im
+  Hintergrund läuft nichts. Ein Gefäß, das gerade nicht erreichbar ist — ein
+  abgezogener Datenträger, ein getrenntes Netzlaufwerk —, bleibt mit seinen
+  zuletzt bekannten Zahlen sichtbar, statt aus der Liste zu verschwinden. Ein
+  Bereich, der gerade nicht geöffnet ist, trägt Teil-Zahlen: Tags, Aufgaben
+  und Dateien ohne eingehenden Verweis stehen als „nicht verfügbar" statt als Null,
+  weil die Erhebung dafür keinen Index aufbaut. Eine Detail-Sicht je Zeile
+  fächert die Zahlen auf und führt beim Bereich weiter in die ausführliche
+  Bereichs-Statistik.
+
+### Sicherheit
+
+- **Zugangs-Geheimnisse verlassen den Rechner nicht** (4T-001589). Der
+  Ablage-Raum, in dem eine externe Erweiterung ihre eigenen Daten hält, ist als
+  Ganzes von der Ausgabe ausgenommen — nicht über eine Liste bekannter
+  Schlüssel-Namen, sondern über den Namensraum, weil gerade der Bestand riskant
+  ist, den die Anwendung nicht kennt. Ausgegeben wird ausschließlich, was als
+  Datenart eingetragen ist. Der Schalt-Zustand der Erweiterungen geht weiterhin
+  mit; ausgeschlossen sind allein ihre Daten. Ebenfalls nie mitgenommen werden
+  der Sitzungs-Stand mit seinen absoluten Pfaden, maschinengebundene Angaben
+  und die Vertrauens-Entscheidung über eine externe Erweiterung.
+- **Eine eingespielte Sprachdatei ist fremde Eingabe** (4T-001593). Sie wird
+  vor der Übernahme **und bei jedem Laden** erneut geprüft, denn ihr Ablage-Ort
+  ist mit einem Editor erreichbar. Ein übersetzter Text darf genau die Arten
+  von Auszeichnung führen, die das Original an demselben Eintrag führt, und ein
+  Link zeigt allein auf `http`, `https`, `mailto` oder ein Ziel innerhalb des
+  Handbuchs. Die Prüfung liegt electron-frei in einem eigenen Modul — Text
+  hinein, Urteil heraus — und ist mit Rot-Proben belegt, die je eine tragende
+  Regel einzeln aushebeln.
+
+### Dokumentation
+
+- **Neue Handbuch-Seite „Einstellungen exportieren und importieren"**
+  (4T-001591), in allen fünf Sprachfassungen: Auswahl der Datenarten samt
+  einzelner Kalender-Blöcke, Aufbau der Austausch-Datei, Vorschau vor der
+  Übernahme, die Zusammenführungs-Regel, Fassungs-Verträglichkeit und die
+  Zusicherung darüber, was nie mitgeht. Der Funktions-Katalog führt die
+  Funktion mit beiden Richtungen.
+- **Neue Handbuch-Seite „Eigene Oberflächen-Sprache"** (4T-001597), in allen
+  fünf Sprachfassungen: der Weg von der Vorlage über das Übersetzen bis zum
+  Einspielen, die Benennung der Sprache in der Datei, Platzhalter und
+  Auszeichnung, der Rückfall auf Englisch, das Aktualisieren nach einer neuen
+  Programmfassung, Auswahl, Entfernen, Ablage-Ort im Benutzerprofil und die
+  Grenzen der Funktion. Der Funktions-Katalog-Eintrag nennt zusätzlich Rückfall
+  und Aktualisieren.
+- **Neue Handbuch-Seite „My Extended Memory"** (4T-001604), in allen fünf
+  Sprachfassungen: wozu die Seite da ist und was sie ausdrücklich nicht tut,
+  das Eintragen über Vorschlag und Ordner-Dialog, das Entfernen, die
+  Kennzahlen mit ihrem Stand, die beiden Sonderlagen — ein nicht erreichbares
+  Gefäß und ein nicht geöffneter Bereich —, die Detail-Sicht samt dem Weg in
+  die ausführliche Bereichs-Statistik, der Zugang zum Ausgeben und Einlesen
+  der eigenen Einrichtung und das Abschalten. Die Seite steht im Handbuch
+  neben „Applikationen, Fenster und Bereiche", auf die sie verweist und die
+  auf sie zurückverweist; der Funktions-Katalog nennt die Funktion mit ihren
+  Grenzen.
+- **Die Nutzen-Seite des Handbuchs führt eine neue Arbeitsform** (4T-001573), in
+  allen fünf Sprachfassungen: „Die Anwendung passt sich an — und kommt mit"
+  fasst die eigene Einrichtung als mitnehmbare Datei, die selbst übersetzte
+  Oberfläche und den Überblick über alle eigenen Gefäße zu **einem** Abschnitt
+  zusammen und steht als letzter Abschnitt der Arbeitsform-Hälfte, vor dem
+  Markdown-Umfang; er verweist auf die drei Seiten darüber. Die Nutzen-Seite der
+  Produkt-Webseite trägt denselben Abschnitt, ebenfalls in fünf Sprachen.
+
+### Intern
+
+- **Die fünf Sprachdateien werden als Fragmente je fachlichem Bereich gepflegt**
+  (4T-001605, 4T-001606, 4T-001607, 4T-001608). Versioniert sind 39 Fragmente
+  je Sprache unter `src/i18n/fragments/<code>/` und eine Zuordnungs-Tafel; die
+  Datei je Sprache, die das Programm liest, entsteht beim Bau und ist nicht
+  mehr versioniert. Ein Schlüssel in zwei Fragmenten oder mit unbekanntem
+  Namensraum bricht den Bau ab und nennt die Stellen; der Frische-Wächter der
+  Ablauf-Läufe prüft auch die Sprach-Erzeugnisse; die Wächter des
+  Schlüssel-Bestands, die Katalog-Kopplung des Anforderungs-Linters und der
+  Webseiten-Bau lesen die Fragmente. Für den Anwender ändert sich nichts: Der
+  Text-Bestand ist vor und nach der Umstellung identisch, belegt gegen 1.131.0
+  durch einen Nachweis in der Prüf-Suite. Zweck ist, dass parallel laufende
+  Vorhaben nicht mehr an dieselbe Datei schreiben.
+
 ## [1.132.0.2741] - 2026-09-11 — Canvas: die räumliche Arbeitsfläche in Markdown
 
 Zug 3E-000293,

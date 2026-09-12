@@ -15,6 +15,8 @@ import { MANUAL_PAGES } from '../../src/shared/manual/manual-pages.js';
 import { TAB_GROUP_COLOR_KEYS } from '../../src/shared/tab-group-colors.js';
 import { CLOCK_MODES } from '../../src/shared/clock/clock-options.js';
 import { COMMAND_ICONS } from '../../src/shared/commands/command-icons.js';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const lies = (p) => fs.readFileSync(path.join(WURZEL, p), 'utf8');
@@ -28,7 +30,7 @@ const lies = (p) => fs.readFileSync(path.join(WURZEL, p), 'utf8');
 // Der Handbuch-Pruefschritt verlangt den Eintrag in allen fuenf Fassungen; bis
 // hierher hing die Regel am Gedaechtnis.
 // ---------------------------------------------------------------------------
-const SPRACHEN = ['de', 'en', 'fr', 'es', 'it'];
+const SPRACHEN = LOCALE_CODES;
 const handbuchSeiten = MANUAL_PAGES.map((p) => p.id).filter((id) => id !== 'overview');
 
 describe('Paar 9: Handbuch-Überblick verweist auf jede Seite (4T-000900)', () => {

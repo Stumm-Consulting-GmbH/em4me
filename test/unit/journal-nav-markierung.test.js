@@ -14,7 +14,12 @@ const aufrufe = [];
 let antwort = null;
 let wirft = false;
 
-vi.mock('../../src/renderer/i18n.js', () => ({ getLanguage: () => 'de', t: (k) => k }));
+vi.mock('../../src/renderer/i18n.js', () => ({
+  getLanguage: () => 'de',
+  // 4T-001594: die BCP-47-Form für Intl; im Mock dieselbe wie die Kennung.
+  intlLocale: () => 'de',
+  t: (k) => k,
+}));
 vi.mock('../../src/renderer/modules/calendar/journal-pfad-pruefung.js', () => ({
   pruefeBlockPfad: () => null,
   zeigeBlockFehler: () => {},

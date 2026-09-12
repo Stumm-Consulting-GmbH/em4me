@@ -47,7 +47,7 @@
 
 import { api } from '../app/api.js';
 import {
-  getLanguage,
+  intlLocale,
   registerExtensionTranslations,
   unregisterExtensionTranslations,
   tExtension,
@@ -65,6 +65,10 @@ import {
   EXTERNAL_ENABLED_KEY,
   EXTERNAL_TRUSTED_KEY,
   EXTERNAL_ERRORS_KEY,
+  // 4T-001589 (Epic 3E-000160): Der Namensraum steht seit dem
+  // Geheimnis-Ausschluss im geteilten Modul, weil ihn auch die Ausgabe kennen
+  // muss; zweimal geschrieben liefe er auseinander.
+  extensionDataKey,
   normalizeEnabledIds,
   normalizeTrustedMap,
   normalizeErrorMap,
@@ -487,7 +491,7 @@ function registerRenderCallback(cb, tracker) {
 function buildContext(entry, tracker) {
   const m = entry.manifest;
   const id = m.id;
-  const storageKey = `extensionData.${id}`;
+  const storageKey = extensionDataKey(id);
   return Object.freeze({
     apiVersion: EXTENSION_API_VERSION,
     manifest: Object.freeze({
@@ -511,7 +515,11 @@ function buildContext(entry, tracker) {
       });
     },
     t: (key) => tExtension(id, key),
-    getLanguage: () => getLanguage(),
+    // 4T-001594: Die Erweiterungs-API liefert die BCP-47-Form, nicht die
+    // Kennung. Sie hat einen gueltigen Sprach-Code zugesagt, und Erweiterungen
+    // reichen ihn an Intl weiter; `custom:<code>` loeste dort einen RangeError
+    // in fremdem Code aus, den die Anwendung nicht abfangen kann.
+    getLanguage: () => intlLocale(),
     getTheme: () => document.documentElement.getAttribute('data-theme') || 'light',
     getThemeVariable: (name) =>
       getComputedStyle(document.documentElement)

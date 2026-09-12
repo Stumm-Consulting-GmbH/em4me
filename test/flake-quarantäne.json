@@ -473,6 +473,16 @@
       "vermutung": "Keine Vermutung mehr nötig: Die Kette ist am Beleg abgelesen. Kein Bezug zum Änderungs-Umfang des Zuges — die Prüfdatei ist gegenüber origin/main unverändert, und der Zug fasst die Einstellungs-Seite nicht an. Die Last löst den Fall aus, sie verursacht ihn aber nicht; die Ursache ist die Poll-Bedingung, und sie ist unabhängig von der Last zu beheben.",
       "status": "befoerdert",
       "vorgang": "4T-001699"
+    },
+    {
+      "spec": "test/e2e/funktionen/erweiterungen-extern.spec.js",
+      "fall": "EX-04: Verwaltungs-Bereich listet und deaktiviert sofort — Diagnose-Zugang oeffnet die Werkzeuge; das Ansichtsmenue fuehrt sie nicht mehr",
+      "datum": "2026-09-12",
+      "fehlerbild": "VIERTE Beobachtung von EX-04 und DRITTE dieses Falls. Aufgetreten im Linux-E2E-Abnahme-Lauf der Release-Strecke des Zuges 3E-000281 (814 von 815 gruen, 35,1 min), beide Plattform-Laeufe gleichzeitig. Fingerabdruck identisch mit dem 2026-09-11 erhobenen Bild: locator.click lief 30000 ms ins Leere in openExternalSection (erweiterungen-extern.spec.js:200), der Navigations-Eintrag «Erweiterungen (extern)» ist im DOM aufgeloest und durchgehend «not visible»; der Fall brauchte 31,6 s. Beleg: test-berichte/rot/2026-09-12T10-03-46Z-zug-3E-000281-Eigene-Einrichtung-e2e.log samt Trace und Bildschirmfoto. Isoliert unmittelbar danach gruen: sieben Faelle der Datei in 17,0 s, der betroffene in 3,1 s.",
+      "vermutung": "Keine Vermutung noetig, die Ursache ist seit dem 2026-09-11 am Beleg abgelesen und in 4T-001699 beschrieben: Der Helfer openExternalSection pollt auf das VORHANDENSEIN der Einstellungs-Seite und drueckt dabei je Durchgang erneut Strg+Komma; ein Druck, der in die Luecke einer verzoegerten Reaktion faellt, holt das Dokument wieder nach vorn, und gebraucht wird SICHTBARKEIT. Kein Bezug zum Aenderungs-Umfang des Zuges: Die Pruefdatei ist gegenueber origin/main unveraendert, und keines der vier Mitglieder fasst die Erweiterungs-Verwaltung oder die Einstellungs-Navigation an. Diese Beobachtung fuegt dem Bild nichts hinzu ausser einer weiteren Bestaetigung der Last-Kopplung; sie loest deshalb keinen neuen Vorgang aus, sondern tritt dem bestehenden bei.",
+      "status": "befoerdert",
+      "vorgang": "4T-001699",
+      "vermerk": "Verortete, offene Massnahme: 4T-001699 (Pflege-Gefaess 3E-000156, Status Offen, fremder Arbeitsbereich). Nach der Sichtungs-Regel der Release-Strecke ist ein verorteter offener Fall eine Arbeitsliste und kein Signal; er blockiert die Abnahme nicht. Die Release-Strecke des Zuges 3E-000281 ist mit der gruenen Isolation fortgesetzt worden."
     }
   ]
 }

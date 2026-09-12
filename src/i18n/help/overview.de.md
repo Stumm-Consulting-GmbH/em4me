@@ -54,6 +54,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Journale](journals.md) — periodische Dokumente je Bereich: Regale und Granularitäten, Ordner- und Namens-Schemata, Kalender-Panel, Navigations-Block, automatische Datums-Eigenschaften.
 - [Bücher](books.md) — mehrere Dateien als Buch mit erklärter Lese-Ordnung: Buch-Ordner mit Begleitdatei, Inhaltsverzeichnis mit Struktur-Pflege, Leseführung über Kapitel-Grenzen, Verschieben mit Nachführung, Reparatur fehlender Kapitel.
 - [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
+- [My Extended Memory](my-extended-memory.md) — eine gemeinsame Sicht auf die selbst eingetragenen Arbeitsbereiche, Bereiche, Bücher und Bücherregale: Eintragen aus Vorschlag oder Ordner-Dialog, Kennzahlen mit ihrem Stand, Detail-Sicht je Gefäß-Art, Zugang zum Ausgeben und Einlesen der eigenen Einrichtung.
 - [Dokument-Historie](history.md) — Änderungen protokollieren: Markdown-Data-Begleitdatei, Schalter auf drei Ebenen, Revisionen vergleichen und wiederherstellen.
 - [Dokument-Notizen](notes.md) — eine Notiz je Dokument: Sidebar-Panel mit umschaltbarer Vorschau, automatisches Speichern in der Begleitdatei, Abgrenzung zur Historie.
 
@@ -67,6 +68,8 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Werkzeuge](tools.md) — Markdown-Linter, Suche mit Regex, Suchen und Ersetzen, Tabellen-Editor.
 - [Kommando-Platzierung](command-placement.md) — Kommandos als dauerhafte eigene Zugänge: Statusbar-Buttons, Ausblende-Liste, Kontextmenü-Einträge, Makros.
 - [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Abhängigkeiten, Wirkung des Aus-Zustands.
+- [Einstellungen exportieren und importieren](setup-exchange.md) — die eigene Einrichtung mitnehmen: Auswahl der Datenarten samt einzelner Kalender-Blöcke, Aufbau der Austausch-Datei, Vorschau vor der Übernahme, Zusammenführung mit vorhandenen Werten, Fassungs-Verträglichkeit.
+- [Eigene Oberflächen-Sprache](custom-locale.md) — die Oberfläche selbst übersetzen: Vorlage herunterladen, im eigenen Editor übersetzen, einspielen und prüfen, auswählen, Rückfall auf Englisch, Aktualisieren und Entfernen, Ablage im Benutzerprofil.
 - [Erweiterungen erstellen](extensions-dev.md) — eigene externe Erweiterungen entwickeln: Manifest, Erweiterungs-API, Referenz-Beispiel, Sicherheits-Hinweise.
 
 ## Tipps zur Nutzung

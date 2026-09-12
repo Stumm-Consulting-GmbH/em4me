@@ -13,6 +13,8 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 // 4T-000360 (Epic 3E-000066): Seiten-Registry als Quelle der Pruefliste (siehe BUNDLED_PAGES).
 const { MANUAL_PAGES } = require('../../../src/shared/manual/manual-pages');
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+const { LOCALE_CODES } = require('../../../src/shared/locales.js');
 
 async function openManualPage(page, pageId) {
   await page.evaluate((id) => {
@@ -224,7 +226,7 @@ test.describe('HB-07: Generierte Funktions-Seite', () => {
 // automatisch nach (schliesst die zuvor unvollstaendige Liste, z.B. history,
 // sidebar, subpages, context-menu, notes).
 const BUNDLED_PAGES = MANUAL_PAGES.filter((p) => p.source === 'bundled').map((p) => p.id);
-const ALL_LANGS = ['de', 'en', 'fr', 'es', 'it'];
+const ALL_LANGS = LOCALE_CODES;
 
 test.describe('HB-09: Themen-Seiten laden linter-sauber (fünf Sprachen)', () => {
   test('alle gebündelten Seiten in jeder Sprache: Inhalt da, keine Linter-Marker', async () => {

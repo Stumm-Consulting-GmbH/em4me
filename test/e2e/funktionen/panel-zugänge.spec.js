@@ -18,13 +18,15 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { pressUntilVisible } = require('../helpers/eingabe');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+const { LOCALE_CODES } = require('../../../src/shared/locales.js');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'erweiterungen.md');
 
 // Sprachunabhängige Label-Auflösung: Panel-Titel und Untermenü-Label aller
 // fünf Sprachen (die App startet je nach Profil-Sprache; die Zuordnung
 // Label -> Panel-ID ist über alle Sprachen eindeutig).
-const LOCALES = ['de', 'en', 'fr', 'es', 'it'];
+const LOCALES = LOCALE_CODES;
 const DICTS = LOCALES.map((loc) => require(`../../../src/i18n/${loc}.json`));
 const PANELS_MENU_LABELS = DICTS.map((d) => d['menu.view.panels']);
 const LABEL_TO_ID = new Map();

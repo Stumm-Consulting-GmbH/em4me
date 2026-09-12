@@ -3,8 +3,6 @@
 // (Sprache, View-Modus, Toggles, Sitzungs-Setting).
 'use strict';
 
-const path = require('node:path');
-const fs = require('node:fs');
 const { Menu } = require('electron');
 // 4T-000207 (Epic 3E-000015): Accelerators kommen aus der Kommando-Registry
 // (effektive Map wird von main.js aus Registry plus Store gemerged und in
@@ -30,28 +28,12 @@ const { createRecentListBuilder } = require('./menu-recent');
 // (Accelerator) und Fallback-Reihenfolge des Panel-Untermenues.
 const { PANEL_ACCESS, panelAccessById } = require('../../shared/panel-access');
 
-const SUPPORTED_LOCALES = ['de', 'en', 'fr', 'es', 'it'];
-const FALLBACK_LOCALE = 'en';
-
-const dictCache = new Map();
-
-function loadDict(locale) {
-  const target = SUPPORTED_LOCALES.includes(locale) ? locale : FALLBACK_LOCALE;
-  if (dictCache.has(target)) return dictCache.get(target);
-  try {
-    const file = path.join(__dirname, '..', '..', 'i18n', `${target}.json`);
-    const dict = JSON.parse(fs.readFileSync(file, 'utf8'));
-    dictCache.set(target, dict);
-    return dict;
-  } catch {
-    if (target !== FALLBACK_LOCALE) return loadDict(FALLBACK_LOCALE);
-    return {};
-  }
-}
-
-// M-18 (4T-000183): clearDictCache entfernt — exportiert, aber von keiner
-// Stelle aufgerufen (der Cache bleibt ueber die App-Laufzeit warm; das
-// Menue wird bei Sprachwechsel ueber buildMenu mit frischem Dict gebaut).
+// 4T-000391 (Epic 3E-000129): Rueckfall-Sprache aus der einen Quelle.
+const { FALLBACK_LOCALE } = require('../../shared/locales');
+// 4T-001594 (Epic 3E-000129): Der Katalog-Lader des Hauptprozesses wohnt seit
+// dem Auszug in menu-dict.js; die Menue-Fabrik ruft ihn nur noch auf und reicht
+// ihn ueber ihre Exporte weiter.
+const { loadDict, tForLocale, clearDictCache } = require('./menu-dict');
 
 // --- Untermenue-Saeuberung (4T-000887, Epic 3E-000168) ---------------------------
 // Die Menue-Baeume sind seit der Neuordnung mehrstufig; jede Ebene kann durch
@@ -74,14 +56,6 @@ function compactSubmenu(items) {
   return out;
 }
 
-// Liefert einen lokalisierten String aus dem Dictionary einer Sprache. Wird
-// von main.js fuer Dialog-Texte (Recent-Liste loeschen, Datei nicht gefunden)
-// genutzt, die unabhaengig vom Fenster-Menue gerendert werden.
-function tForLocale(locale, key) {
-  const dict = loadDict(locale);
-  return dict[key] != null ? dict[key] : key;
-}
-
 // state: {
 //   locale: 'de'|'en'|'fr'|'es'|'it',
 //   viewMode: 'source'|'split'|'rendered'|null,
@@ -91,8 +65,14 @@ function tForLocale(locale, key) {
 // }
 function buildMenu(win, state, actions) {
   const locale = state && state.locale ? state.locale : FALLBACK_LOCALE;
-  const dict = loadDict(locale);
-  const t = (k) => (dict[k] != null ? dict[k] : k);
+  // 4T-001595 (Nachtrag): Der Menü-Aufbau löst über tForLocale auf, damit die
+  // Rückfall-Kette je Schlüssel (eingestellte Sprache → Englisch → Name) auch
+  // hier gilt. Ein eigener Nachschlag mit Rückfall auf den Schlüssel zeigte
+  // dem Product Owner den rohen Schlüssel eines Menü-Eintrags, den seine
+  // Sprachdatei noch nicht kannte — der vierte Auflösungs-Ort des
+  // Hauptprozesses, den die Konzept-Stufe nicht gezählt hatte. Der Wächter
+  // in test/unit/i18n.test.js hält den Hauptprozess seither bei einer Stelle.
+  const t = (k) => tForLocale(locale, k);
 
   const send =
     (channel, ...args) =>
@@ -661,6 +641,87 @@ function buildMenu(win, state, actions) {
           enabled: avail('app.openSettings'),
           click: send('menu:openSettings'),
         },
+        // 4T-001587 (Epic 3E-000160): Export und Import der eigenen Einstellungen,
+        // unmittelbar hinter dem Einstellungs-Dialog — dort entsteht, was hier
+        // exportiert wird. Eigenes Untermenue, weil der Import (4T-001588)
+        // daneben tritt. Beide Beschriftungen sind Ansage des Product Owners aus
+        // der Test-Iteration vom 2026-09-08: Das Untermenue traegt dasselbe Wort
+        // wie der Dialog darueber, damit die Anwendung EINEN Begriff fuer die
+        // Sache fuehrt. Der Struktur-Pruefschritt des Epics legt die Einordnung
+        // dem Product Owner vor (4T-001591); dort ist auch zu beurteilen, ob die
+        // Nachbarschaft zweier gleich benannter Eintraege bleiben soll.
+        submenuOrNull('menu.file.setupSubmenu', [
+          unless('file.exportSetup', {
+            label: t('menu.file.exportSetup'),
+            accelerator: acc('file.exportSetup'),
+            enabled: avail('file.exportSetup'),
+            click: send('menu:exportSetup'),
+          }),
+          // 4T-001588: Die Gegenrichtung steht direkt darunter; beide
+          // gehoeren zur selben Erweiterung und verschwinden gemeinsam.
+          unless('file.importSetup', {
+            label: t('menu.file.importSetup'),
+            accelerator: acc('file.importSetup'),
+            enabled: avail('file.importSetup'),
+            click: send('menu:importSetup'),
+          }),
+        ]),
+        // 4T-001592 und 4T-001593 (Epic 3E-000129): Die eigene Oberflaechen-
+        // Sprache, unmittelbar hinter dem Einrichtungs-Untermenue. Hierher und
+        // NICHT neben die Sprach-Auswahl der Statusleiste, wie der Task es
+        // zunaechst vorschlug: Die Auswahl ist ein Dauer-Schalter fuer eine
+        // haeufige Handlung, die beiden Wege hier fallen einmal je
+        // Uebersetzungs-Vorhaben an.
+        //
+        // **Eigenes Untermenue nach dem Muster des Nachbarn** (Befund des
+        // Product Owners vom 2026-09-09): Die erste Fassung haengte beide
+        // Eintraege FLACH ins Datei-Menue, direkt neben ein Untermenue, das
+        // dieselbe Bauform traegt — einen Oberbegriff mit zwei Richtungen.
+        // Zwei Formen fuer dieselbe Sache sind fuer den Anwender ein Bruch,
+        // und im Bild wirkte die flache Fassung wie ein Fremdkoerper. Der
+        // Oberbegriff steht deshalb im Titel und die Eintraege tragen kurze
+        // Verben, genau wie «Einstellungen > Exportieren…/Importieren…».
+        // Bleibt nach unless() nichts uebrig, entfaellt das Untermenue ganz.
+        submenuOrNull('menu.file.localeSubmenu', [
+          unless('file.exportLocaleTemplate', {
+            label: t('menu.file.exportLocaleTemplate'),
+            accelerator: acc('file.exportLocaleTemplate'),
+            enabled: avail('file.exportLocaleTemplate'),
+            click: send('menu:exportLocaleTemplate'),
+          }),
+          unless('file.importLocale', {
+            label: t('menu.file.importLocale'),
+            accelerator: acc('file.importLocale'),
+            enabled: avail('file.importLocale'),
+            click: send('menu:importLocale'),
+          }),
+          // 4T-001594 (Epic 3E-000129): Der dritte Weg — eine eingespielte
+          // Sprache wieder entfernen. Er steht hier und nicht neben der
+          // Sprach-Auswahl der Statusleiste, weil er zum selben Oberbegriff
+          // gehört wie die beiden darüber und wie sie einmal je
+          // Übersetzungs-Vorhaben anfällt (Entscheidung des Product Owners
+          // vom 2026-09-10, Frage 4 des Management-Summarys). Das Vorbild
+          // «Einstellungen» kennt kein Entfernen — eine eingespielte Sprache
+          // dagegen ist Bestand im Benutzerprofil, und was sich anlegen lässt,
+          // muss sich auch löschen lassen.
+          unless('file.removeLocale', {
+            label: t('menu.file.removeLocale'),
+            accelerator: acc('file.removeLocale'),
+            enabled: avail('file.removeLocale'),
+            click: send('menu:removeLocale'),
+          }),
+          // 4T-001596 (Epic 3E-000129): Der vierte Weg — die eigene Sprachdatei
+          // auf den Stand der laufenden Programmfassung bringen. Er steht hier,
+          // weil er derselben Arbeit dient wie seine drei Nachbarn und wie sie
+          // beim Uebersetzen anfaellt: Die ausgegebene Datei ist die Vorlage
+          // fuer den naechsten Durchgang.
+          unless('file.updateLocale', {
+            label: t('menu.file.updateLocale'),
+            accelerator: acc('file.updateLocale'),
+            enabled: avail('file.updateLocale'),
+            click: send('menu:updateLocale'),
+          }),
+        ]),
         { type: 'separator' },
         {
           label: t('menu.file.quit'),
@@ -915,6 +976,16 @@ function buildMenu(win, state, actions) {
           enabled: avail('stats.openArea'),
           click: send('menu:openAreaStats'),
         }),
+        unless('memory.openPage', {
+          // 4T-001599 (Epic 3E-000191): My Extended Memory als vierter Eintrag
+          // im Block der Folge-Ansichten. Immer aktiv — die Seite zeigt die
+          // eingetragene Gefaess-Liste der Anwendung und haengt an keinem
+          // geoeffneten Bereich.
+          label: t('menu.view.myExtendedMemory'),
+          accelerator: acc('memory.openPage'),
+          enabled: avail('memory.openPage'),
+          click: send('menu:openMemoryPage'),
+        }),
         { type: 'separator' },
         {
           // 4T-000480 (Epic 3E-000089): Kommando-Palette — filterbares Popup
@@ -983,4 +1054,13 @@ function buildMenu(win, state, actions) {
   return Menu.buildFromTemplate(template);
 }
 
-module.exports = { buildMenu, tForLocale };
+// 4T-001592 (Epic 3E-000129): `loadDict` ist seit der Sprach-Vorlage auch
+// ausserhalb des Menues gefragt — die Vorlage entsteht aus derselben Quelle,
+// aus der die Anwendung ihre englische Fassung laedt, statt aus einem zweiten
+// Lese-Weg, der auseinanderlaufen koennte. `clearDictCache` kam mit 4T-001594
+// hinzu, weil eine eigene Sprache zur Laufzeit eingespielt, ersetzt und
+// entfernt wird.
+// 4T-001594: Der Katalog selbst wohnt seither in menu-dict.js; die drei
+// Funktionen bleiben hier im Export, damit die bestehenden Importeure
+// (app/startup.js, ipc/locales.js, menu/menu-apply.js) unveraendert bleiben.
+module.exports = { buildMenu, tForLocale, loadDict, clearDictCache };

@@ -54,6 +54,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Journals](journals.md) — periodic documents per area: shelves and granularities, folder and name patterns, calendar panel, navigation block, automatic date properties.
 - [Books](books.md) — several files as a book with a declared reading order: book folder with companion file, table of contents with structure maintenance, reading across chapter boundaries, moving with follow-up, repairing missing chapters.
 - [Applications, windows and areas](apps-windows.md) — multiple starts, window management and the title system.
+- [My Extended Memory](my-extended-memory.md) — one shared view of the workspaces, areas, books and bookshelves you added yourself: adding from a suggestion or a folder dialog, key figures with their timestamp, a detail view per container kind, access to exporting and importing your own setup.
 - [Document history](history.md) — recording changes: Markdown data companion file, switches on three levels, comparing and restoring revisions.
 - [Document notes](notes.md) — one note per document: sidebar panel with toggleable preview, automatic saving in the companion file, distinction from the history.
 
@@ -67,6 +68,8 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Tools](tools.md) — Markdown linter, search with regex, search and replace, table editor.
 - [Command placement](command-placement.md) — commands as permanent custom access points: status bar buttons, hide list, context menu entries, macros.
 - [Extensions](extensions.md) — enable or disable features individually: categories, dependencies, effect of the disabled state.
+- [Exporting and importing settings](setup-exchange.md) — take your own setup with you: choice of data kinds down to individual calendar blocks, structure of the exchange file, preview before applying, merging with existing values, version compatibility.
+- [Your own interface language](custom-locale.md) — translate the interface yourself: download the template, translate it in your own editor, load and check it, select it, fallback to English, updating and removing, storage in your user profile.
 - [Creating extensions](extensions-dev.md) — develop your own external extensions: manifest, extension API, reference example, security notes.
 
 ## Usage tips

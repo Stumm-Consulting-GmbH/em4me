@@ -13,7 +13,7 @@
 // Modul-Zyklen zu tabs/views sind Laufzeit-Zugriffe (Muster 4T-000179).
 'use strict';
 
-import { t } from '../../i18n.js';
+import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { diffLines, buildDiffRows } from '../../../shared/line-diff.js';
@@ -91,7 +91,8 @@ async function loadAndRender() {
 // Reihenfolge und Trennzeichen weiterhin gemaess UI-Sprache.
 function localTimestamp(iso) {
   try {
-    return new Date(iso).toLocaleString(state.language || undefined, {
+    // 4T-001594: BCP-47-Form statt Kennung — `custom:<code>` wirft hier.
+    return new Date(iso).toLocaleString(intlLocale() || undefined, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

@@ -126,6 +126,8 @@ La liste « Sans lien entrant » est la contre-épreuve de l’indicateur du mê
 
 Les chiffres portent en haut un horodatage et sont calculés **à la demande**, non en continu : le bouton « Actualiser » les recalcule, tout comme un nouvel appel de l'entrée de menu. Ils indiquent l'état **enregistré** : ce qui est écrit dans un document ouvert sans avoir été enregistré n'entre pas dans les chiffres. La page le précise au-dessus d'eux et indique combien de documents ouverts comportent actuellement des modifications non enregistrées. Sans zone ouverte, il n'y a pas d'ensemble de fichiers délimité ; l'entrée est alors grisée. La fonction peut être désactivée en tant qu'extension « Statistiques de la zone ».
 
+Cette page concerne toujours **une** zone, celle qui est ouverte. Une vue succincte des chiffres clés portant sur **plusieurs** conteneurs côte à côte — y compris des zones, des livres et des bibliothèques qui ne sont pas ouverts à l'instant — se trouve sur la page [My Extended Memory](my-extended-memory.md) ; de là, un chemin ramène à ces statistiques détaillées.
+
 ### Zones récentes
 
 « Fichier → Zone → Zones récentes » liste les zones récemment ouvertes par leur nom de dossier. Un clic ouvre la zone selon les règles habituelles. Les zones sont restaurées avec la session ; si un dossier de zone manque au démarrage, l'application correspondante n'est pas restaurée et un avis s'affiche.

@@ -2791,6 +2791,13 @@
       "hinweis": "4T-000620 (Epic 3E-000117): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Bereichs-Statistik' (Menue-/Paletten-Weg, belegbar) — BS-01 oeffnet die Seite ueber den Menue-Kanal, BS-02 prueft die Tab-Wiederverwendung, BS-04 den Hinweis ohne Bereich. 4T-001517 (Epic 3E-000172): BS-07 deckt die vierte Auffaelligkeits-Liste ab — Namen der Waisen, Deckung mit der Kennzahl, Einspaltigkeit, Sprung ueber den Kennzahl-Knopf mit der Tastatur und das Oeffnen eines Eintrags."
     },
     {
+      "key": "help.shortcut.myExtendedMemory",
+      "id": "S-150",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/my-extended-memory.spec.js"],
+      "hinweis": "4T-001599 (Epic 3E-000191): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Ansicht -> My Extended Memory (Menue- und Paletten-Weg, Kuerzel belegbar). MEM-01 oeffnet die Seite ueber den Menue-Kanal und prueft Hinweis und Leer-Zustand, MEM-02 Eintragen und Entfernen von der Seite aus, MEM-03 die Reiter-Wiederverwendung beim zweiten Aufruf, MEM-04 den Paletten-Weg samt der Zusage, dass das Kommando ohne geoeffneten Bereich verfuegbar ist. 4T-001602: MEM-05 deckt den Zugang zum Ex- und Import auf der Seite ab (beide Knoepfe samt erklaerendem Satz, der Ausgabe-Knopf oeffnet die Auswahl aus 3E-000160, Abbruch laesst die Seite stehen). 4T-001600: MEM-07 misst die Neu-Erhebung von der Seite aus. 4T-001603: MEM-06 misst den Aus-Zustand der Erweiterung an beiden Zugaengen. 4T-001601: MEM-08 misst die Detail-Sicht eines Bereichs — Aufklappen, die sieben Kennzahlen, die ohne Index nicht erhebbare als «nicht verfuegbar» statt als Null, den Sprung auf die vorhandene Bereichs-Statistik und das Zuklappen."
+    },
+    {
       "key": "help.feature.areaStats",
       "id": "F-245",
       "testart": "e2e",
@@ -2975,6 +2982,109 @@
         "test/unit/tour-stationen.test.js"
       ],
       "hinweis": "4T-000644 (Epic 3E-000127): geführte Produkt-Tour, Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Hilfe → Produkt-Tour». PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch samt Neustart, Start von Hand über den Menü-Kanal, die Stellung im Hilfe-Menü und den Durchlauf bis «Fertig» ab; die Merker-Mechanik dahinter ist am Modul unit-getestet, die Kopplung der Stations-Anker an index.html und an alle fünf Sprachfassungen hält ein eigener Wächter."
+    },
+    {
+      "key": "help.shortcut.exportSetup",
+      "id": "S-144",
+      "testart": "unit",
+      "tests": [
+        "test/unit/exchange-export.test.js",
+        "test/unit/exchange-kalender-weitergabe.test.js"
+      ],
+      "hinweis": "4T-001587 (Epic 3E-000160): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Datei -> Einstellungen -> Exportieren. Sammeln, Auswahl-Umfang und Fail-closed-Zusicherung sind unit-geprueft; der Bedien-Weg vom Menue bis zur Auswahl ist der Ablauf-Fall, der Speichern-Dialog des Betriebssystems bleibt als manuelle Pruefung im Task. 4T-001590 traegt die Auswahl auf EINTRAGS-Ebene bei: ein einzelner Zeitrechnungs-Block statt der ganzen Datenart, gemessen an der Datei, die dabei entsteht; EX-05 misst dazu die zweistufige Liste an der laufenden Anwendung mit gebundenem Bereich (Zahl je Block, Summe in der Datenart-Zeile, unbestimmter Zustand und gemeinsames Schalten beider Stufen) — der einzige Weg, diese Zeilen ueberhaupt zu sehen, weil die bereichsgebundene Datenart ohne Bereich gar nicht erscheint.",
+      "sichtbarkeit": ["test/e2e/funktionen/einrichtungs-ausgabe.spec.js"]
+    },
+    {
+      "key": "help.shortcut.importSetup",
+      "id": "S-145",
+      "testart": "unit",
+      "tests": [
+        "test/unit/exchange-import.test.js",
+        "test/unit/exchange-kalender-weitergabe.test.js"
+      ],
+      "hinweis": "4T-001588 (Epic 3E-000160): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Datei -> Einstellungen -> Importieren. Die Zusammenfuehrung ist unit-geprueft (Ergaenzen und Ersetzen je Datenart, Namens-Kollision, aeltere und neuere Fassung, kein zweiter Schreibweg); der Bedien-Weg von der Vorschau ueber die Bestaetigung bis zum Bericht ist der Ablauf-Fall. Der Oeffnen-Dialog des Betriebssystems ist darin gestubbt, weil er per Playwright nicht bedienbar ist; die Wahl einer echten Datei bleibt manuelle Pruefung.",
+      "sichtbarkeit": ["test/e2e/funktionen/einrichtungs-einlesen.spec.js"]
+    },
+    {
+      "key": "help.shortcut.exportLocaleTemplate",
+      "id": "S-146",
+      "testart": "unit",
+      "tests": ["test/unit/locale-template.test.js"],
+      "hinweis": "4T-001592 (Epic 3E-000129): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Datei -> Sprach-Vorlage herunterladen. Unit-geprueft ist der Inhalt der erzeugten Datei gegen die englische Fassung (Schluessel-Bestand, flacher Aufbau, Platzhalter, Reihenfolge, Rueckfall-Sprache); der Bedien-Weg vom Menue bis zur geschriebenen Datei ist der Ablauf-Fall SV-01, der den Speichern-Dialog stellt statt ihn zu bedienen. SV-02 misst den Abbruch, SV-03 das Erweiterungs-Gate am wirklichen Menue-Baum.",
+      "sichtbarkeit": ["test/e2e/funktionen/sprach-vorlage.spec.js"]
+    },
+    {
+      "key": "help.shortcut.importLocale",
+      "id": "S-147",
+      "testart": "unit",
+      "tests": ["test/unit/locale-file.test.js"],
+      "hinweis": "4T-001593 (Epic 3E-000129): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Datei -> Eigene Sprache einspielen. Die Pruefung der fremden Eingabe ist unit-geprueft mit einem Fall je Verstoss-Art (Aufbau, Wert-Typ, Platzhalter, Auszeichnung, Link-Ziel, Groesse, unbekannte und fehlende Schluessel) und der Gegenrichtung, dass eine gueltige Uebersetzung angenommen wird; vier Rot-Proben belegen, dass jede sicherheitstragende Pruefung wirklich misst. Der Weg am laufenden Programm ist SE-01 bis SE-04.",
+      "sichtbarkeit": ["test/e2e/funktionen/sprach-einspielen.spec.js"]
+    },
+    {
+      "key": "help.shortcut.removeLocale",
+      "id": "S-148",
+      "testart": "unit",
+      "tests": ["test/unit/custom-locales.test.js"],
+      "hinweis": "4T-001594 (Epic 3E-000129): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Datei -> Eigene Sprache -> Entfernen. Unit-geprueft ist der Weg, den der Dialog anschliessend geht: die Liste, aus der die Schaltflaechen entstehen (Kennung, Code, Anzeige-Name aus den Metadaten, unbrauchbare Dateien uebergangen), und der Pfad-Guard, der jeden Datei-Pfad auf die Wurzel im Benutzerprofil beschraenkt. Die Auswahl selbst ist ein Dialog des Betriebssystems und damit Gegenstand der manuellen Abnahme.",
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenue, der einen Dialog des Betriebssystems oeffnet — kein dauerhaft sichtbares Bedienelement der Oberflaeche"
+    },
+    {
+      "key": "help.shortcut.updateLocale",
+      "id": "S-149",
+      "testart": "unit",
+      "tests": [
+        "test/unit/custom-locales.test.js",
+        "test/unit/renderer/i18n-eigene-sprache.test.js"
+      ],
+      "hinweis": "4T-001596 (Epic 3E-000129): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag Datei -> Eigene Sprache -> Aktualisieren. Unit-geprueft ist der Weg bis zum Datei-Inhalt: die Erhebung der Luecke gegen die englische Fassung im Anzeige-Prozess (vollstaendige Datei, Datei mit Luecken, mitgelieferte Fassung) sowie im Hauptprozess der Mengen-Vergleich und die aktualisierte Fassung, die Metadaten und Reihenfolge der Bezugs-Fassung haelt, eigene Werte erhaelt und Luecken englisch fuellt. Auswahl- und Speichern-Dialog sind Dialoge des Betriebssystems; den ganzen Weg bis zur geschriebenen Datei misst SE-11 mit beiden gestellt.",
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenue, der einen Dialog des Betriebssystems oeffnet — kein dauerhaft sichtbares Bedienelement der Oberflaeche"
+    },
+    {
+      "key": "help.feature.setupExchange",
+      "id": "F-288",
+      "testart": "unit",
+      "tests": [
+        "test/unit/exchange-export.test.js",
+        "test/unit/exchange-file.test.js",
+        "test/unit/exchange-import.test.js",
+        "test/unit/exchange-geheimnisse.test.js",
+        "test/unit/exchange-kalender-weitergabe.test.js"
+      ],
+      "hinweis": "4T-001586/4T-001587/4T-001588 (Epic 3E-000160): Austausch-Format, Ausgabe und Einlesen der eigenen Einstellungen. Format-Rundlauf, Kopfdaten, unbekannte Abschnitte und die benannten Fehler sind unit-geprueft; auf der Ausgabe-Seite Umfang der Auswahl, die gemeldeten Zahlen, die Unversehrtheit der Quellen und die Fail-closed-Zusicherung; auf der Einlese-Seite die Zusammenfuehrung je Datenart, die Namens-Kollision ueber mehrere Datenarten hinweg, die Fassungs-Vertraeglichkeit und die Zusicherung, dass kein zweiter Schreibweg entsteht. 4T-001589 traegt den Geheimnis-Ausschluss als eigenen Waechter: der Ablage-Raum extensionData.<id> wird an der fertigen Datei per Text-Suche gemessen, gegen eine Registry, die ihn ausdruecklich zu exportieren versucht. 4T-001590 misst die Weitergabe eines einzelnen Kalender-Systems ueber den ganzen Weg: Auswahl auf Eintrags-Ebene, Datei, Einlesen in einen zweiten Bereich, Namens-Kollision und die Abweisung einer unvollstaendigen Definition.",
+      "sichtbarkeit": [
+        "test/e2e/funktionen/einrichtungs-ausgabe.spec.js",
+        "test/e2e/funktionen/einrichtungs-einlesen.spec.js"
+      ]
+    },
+    {
+      "key": "help.feature.customLocale",
+      "id": "F-286",
+      "testart": "unit",
+      "tests": [
+        "test/unit/locale-template.test.js",
+        "test/unit/locale-file.test.js",
+        "test/unit/custom-locales.test.js",
+        "test/unit/locales.test.js"
+      ],
+      "hinweis": "4T-001592 (Epic 3E-000129): Ausgabe der Sprach-Vorlage. Gemessen wird die erzeugte Datei gegen die englische Fassung — vollstaendiger Schluessel-Bestand, flacher Aufbau, Zeichenketten als Werte, unveraenderte Platzhalter, stabile Reihenfolge und der abschliessende Zeilenumbruch; dazu die Gegenprobe, dass die Vorlage die englische und nicht die eingestellte Sprache traegt, und dass sie die Texte des eigenen Bedien-Weges selbst mitfuehrt. Der Einspiel-Weg (4T-001593) traegt seine Faelle in locale-file.test.js. 4T-001594 kommt mit den Lade-Wegen hinzu: custom-locales.test.js misst das Lesen einer eingespielten Sprache am echten Dateisystem (unbekannte Kennung, fehlende Datei, nachtraeglich unbrauchbar gemachte Datei, Pfad-Guard gegen eine Kennung mit Pfad-Anteil, Werte ohne die Metadaten-Felder, Liste), locales.test.js die drei Kennungs-Helfer der zentralen Sprachliste.",
+      "sichtbarkeit": [
+        "test/e2e/funktionen/sprach-vorlage.spec.js",
+        "test/e2e/funktionen/sprach-einspielen.spec.js"
+      ]
+    },
+    {
+      "key": "help.feature.myExtendedMemory",
+      "id": "F-287",
+      "testart": "unit",
+      "tests": [
+        "test/unit/memory-entries.test.js",
+        "test/unit/memory-detect.test.js",
+        "test/unit/renderer/memory-page.test.js",
+        "test/unit/my-extended-memory-extension.test.js"
+      ],
+      "hinweis": "4T-001598/4T-001599/4T-001603 (Epic 3E-000191): My Extended Memory als zentrale Seite ueber die eingetragenen Gefaesse. memory-entries.test.js misst die reine Listen-Logik des Hauptprozesses (Normalisieren, Eintragen mit Dedup ueber den Schluessel, Entfernen, Bauen des Vorschlags aus den zuletzt geoeffneten Gefaessen und den Arbeitsbereichen), memory-detect.test.js die Erkennung der Gefaess-Art eines Ordners in der Reihenfolge Regal, Buch, Bereich. renderer/memory-page.test.js misst die Seite: Leer-Zustand, Abschnitte je Art, Zeilen mit Pfad, Stand und Kennzeichen der Nicht-Erreichbarkeit, Vorschlags-Block und die Aktionen. my-extended-memory-extension.test.js traegt den Schalter: Registrierung als Werkzeug-Erweiterung mit den Katalog-Keys, Filterung des Kommandos memory.openPage im Aus-Zustand samt Gegenprobe, und dass das Schalten keine Kaskade ausloest und die eingetragene Gefaess-Liste nicht anruehrt. 4T-001601: renderer/memory-page.test.js traegt zusaetzlich die Detail-Sicht je Gefaess-Art (Zusammenstellung der Kennzahlen je Art, nicht verfuegbare Kennzahl gegen gezaehlte Null, Gleichheit mit den gelieferten Werten, Weg zur ausfuehrlichen Bereichs-Statistik).",
+      "sichtbarkeit": ["test/e2e/funktionen/my-extended-memory.spec.js"]
     }
   ]
 }

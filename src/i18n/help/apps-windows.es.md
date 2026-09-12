@@ -126,6 +126,8 @@ La lista «Sin enlaces entrantes» es la contraprueba del indicador del mismo no
 
 Las cifras llevan arriba una marca de tiempo y se calculan **a petición**, no de forma continua: el botón «Actualizar» las vuelve a calcular, igual que una nueva llamada de la entrada de menú. Muestran el estado **guardado**: lo que se ha escrito en un documento abierto pero aún no se ha guardado no entra en las cifras. La página lo indica encima de ellas y señala cuántos documentos abiertos tienen cambios sin guardar en ese momento. Sin un área abierta no hay un conjunto de archivos delimitado; la entrada aparece entonces atenuada. La función se puede desactivar como extensión «Estadísticas del área».
 
+Esta página se refiere siempre a **un** área, la abierta. Una vista escueta de cifras clave sobre **varios** contenedores uno junto a otro — también sobre áreas, libros y estanterías que en ese momento no están abiertos — está en la página [My Extended Memory](my-extended-memory.md); desde allí un camino lleva de vuelta a estas estadísticas detalladas.
+
 ### Áreas recientes
 
 «Archivo → Área → Áreas recientes» lista las áreas abiertas recientemente por su nombre de carpeta. Un clic abre el área con las reglas habituales. Las áreas se restauran con la sesión; si falta una carpeta de área al iniciar, la aplicación correspondiente no se restaura y se muestra un aviso.

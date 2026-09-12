@@ -13,6 +13,10 @@ import {
   PERSPECTIVE_PORTABLE_MARKER,
 } from '../../src/shared/markdown/markdown.js';
 import { extractFrontmatter } from '../../src/shared/markdown/frontmatter.js';
+// 4T-001595: Erwartete Beschriftungen kommen aus den Sprachdateien, nicht aus
+// der Tastatur — der Wortlaut darf sich ändern, die Aussage nicht.
+import EN from '../../src/i18n/en.json';
+import DE from '../../src/i18n/de.json';
 
 const PERSPECTIVE_BLOCK = [
   '```perspective-table',
@@ -127,5 +131,92 @@ describe('Portable-Export: Inline-Berechnungen (4T-000596)', () => {
     const out = convertMarkdownPortable('A {= 2+3 =} B\n', true);
     expect(out).toContain('{= 2+3 =}');
     expect(out).not.toContain('inline-calc');
+  });
+});
+
+// 4T-001594 (Epic 3E-000129): Beschriftungen des Ereignis-Exports — der dritte
+// Lade-Weg des Katalogs (Preload- und Node-Kontext).
+//
+// Zwei Änderungen, beide vom Product Owner am 2026-09-10 entschieden: Der
+// Rückfall bei unbekannter Sprache geht auf Englisch statt auf Deutsch (AK5),
+// und eine eingespielte eigene Sprache versorgt den Weg über einen
+// mitgegebenen Katalog, weil `src/shared` kein Benutzerprofil kennt.
+describe('Portable-Export: Beschriftungen der Ereignis-Tabelle (4T-001594)', () => {
+  const EREIGNIS_BLOCK = [
+    '```perspective-events',
+    '| 2020-01-01 | 2020-06-30 | Projektstart | projekt | Notiz | | | | |',
+    '```',
+  ].join('\n');
+
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  it('eine unbekannte Sprache fällt auf Englisch zurück, nicht mehr auf Deutsch', () => {
+    const out = convertMarkdownPortable(`${EREIGNIS_BLOCK}\n`, true, 'zz');
+    expect(out).toContain('Date');
+    expect(out).toContain('Event');
+    // Die Gegenprobe trägt den Fall: Vor 4T-001594 stand hier Deutsch.
+    expect(out).not.toContain('Zeitpunkt');
+    expect(out).not.toContain('Ereignis');
+  });
+
+  it('eine mitgelieferte Sprache bleibt unverändert bei ihren eigenen Texten', () => {
+    const out = convertMarkdownPortable(`${EREIGNIS_BLOCK}\n`, true, 'de');
+    expect(out).toContain('Zeitpunkt');
+    expect(out).toContain('Ereignis');
+  });
+
+  it('ein mitgegebener Katalog versorgt eine eingespielte eigene Sprache', () => {
+    const out = convertMarkdownPortable(`${EREIGNIS_BLOCK}\n`, true, 'custom:nds', {
+      'events.column.date': 'Tiedpunkt',
+      'events.column.text': 'Begeevnis',
+    });
+    expect(out).toContain('Tiedpunkt');
+    expect(out).toContain('Begeevnis');
+    expect(out).not.toContain('Date');
+    // 4T-001595: Was der Katalog nicht kennt, kommt aus der englischen Fassung
+    // statt als roher Schlüssel-Name. Der erwartete Text stammt aus der
+    // Sprachdatei, nicht aus der Tastatur — der Wortlaut darf sich ändern, die
+    // Aussage nicht.
+    expect(out).toContain(EN['events.span.label']);
+    expect(out).not.toContain('events.span.label');
+  });
+});
+
+// 4T-001595 (Epic 3E-000129): Rückfall je Schlüssel auf Englisch im dritten
+// Leser. Der Fall ist die eingespielte eigene Sprache, deren Katalog
+// unvollständig ist — bei den fünf mitgelieferten, schlüsselgleichen Fassungen
+// ist die Kette wirkungslos, und genau das ist die Zusicherung (AK6).
+describe('Portable-Export: Rückfall je Beschriftung auf Englisch (4T-001595)', () => {
+  const EREIGNIS_BLOCK = [
+    '```perspective-events',
+    '| 2020-01-01 | 2020-06-30 | Projektstart | projekt | Notiz | | | | |',
+    '```',
+  ].join('\n');
+
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  it('füllt eine fehlende Beschriftung englisch auf und lässt die übrigen eigen', () => {
+    // Der Katalog kennt die Zeitpunkt-Spalte, nicht aber die Dauer-Angabe.
+    const out = convertMarkdownPortable(`${EREIGNIS_BLOCK}\n`, true, 'custom:nds', {
+      'events.column.date': 'Tiedpunkt',
+    });
+    expect(out).toContain('Tiedpunkt');
+    expect(out).toContain(EN['events.span.label']);
+    // AK2: Ein roher Schlüssel-Name erscheint nicht mehr.
+    expect(out).not.toContain('events.span.label');
+    expect(out).not.toContain('events.column.date');
+  });
+
+  it('lässt eine mitgelieferte Fassung unverändert bei ihren eigenen Texten (AK6)', () => {
+    const out = convertMarkdownPortable(`${EREIGNIS_BLOCK}\n`, true, 'de');
+    expect(out).toContain(DE['events.column.date']);
+    expect(out).toContain(DE['events.span.label']);
+    // Kein englischer Einschlag: Der Rückfall greift bei schlüsselgleichen
+    // Katalogen an keiner Stelle.
+    expect(out).not.toContain(EN['events.span.label']);
   });
 });

@@ -8,7 +8,7 @@
 // arbeitet ueber viewStateFor darauf.
 'use strict';
 
-import { t, applyTranslations, getLanguage } from '../../i18n.js';
+import { t, applyTranslations, intlLocale } from '../../i18n.js';
 import { getDocText } from '../app/api.js';
 import { showStatusbarHint } from '../views/views.js';
 import { parseIsoDate, addDaysIso, addMonthsClamped } from '../../../shared/events/events-core.js';
@@ -302,7 +302,7 @@ function renderClientView(ctx, display, model, visibleSet, effective, st) {
     if (!visibleSet || visibleSet.has(i)) indices.push(i);
   });
   const todayIso = ctx.container.dataset.evToday || localTodayIso();
-  const opts = { todayIso, L: t, lang: getLanguage() };
+  const opts = { todayIso, L: t, lang: intlLocale() };
   let html;
   if (effective === 'dashboard') {
     html = buildEventsDashboardHtml(model, indices, opts);

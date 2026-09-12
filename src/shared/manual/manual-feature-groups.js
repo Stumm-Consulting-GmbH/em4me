@@ -113,6 +113,19 @@ const HELP_FEATURE_GROUPS = [
       // Automatik wirkt beim Speichern, deshalb im Datei-Cluster hinter den
       // Sitzungs- und Fenster-Funktionen.
       'help.feature.frontmatterTimestamps',
+      // 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung als
+      // Abschluss des Datei-Clusters — der Vorgang schreibt und liest eine
+      // Datei des Anwenders, und er steht im Datei-Menue. Der Zuschnitt des
+      // Katalog-Eintrags wird im Hilfe- und Handbuch-Task 4T-001591 mit dem
+      // Einlese-Weg noch einmal beurteilt.
+      'help.feature.setupExchange',
+      // 4T-001592 (Epic 3E-000129): Eigene Oberflaechen-Sprache, unmittelbar
+      // hinter dem Ex- und Import. Beide folgen derselben Bewegung — etwas
+      // verlaesst die Anwendung als Datei, der Anwender bearbeitet sie
+      // ausserhalb und bringt sie zurueck —, und beide stehen im Datei-Menue.
+      // Der endgueltige Zuschnitt des Katalog-Eintrags faellt im Hilfe- und
+      // Handbuch-Task 4T-001597, wenn Einspiel-Weg und Rueckfall stehen.
+      'help.feature.customLocale',
     ],
   },
   {
@@ -431,6 +444,11 @@ const HELP_FEATURE_GROUPS = [
       // bereichsgebundenen Eintraege ab — sie wertet genau den Datei-Raum
       // aus, den die Eintraege davor eroeffnen und anzeigen.
       'help.feature.areaStats',
+      // 4T-001603 (Epic 3E-000191): My Extended Memory unmittelbar hinter der
+      // Bereichs-Statistik — dieselbe Art von Sicht, eine Stufe weiter: jene
+      // wertet den geoeffneten Bereich aus, diese haelt den eingetragenen
+      // Bestand ueber alle Arbeitsbereiche, Bereiche, Buecher und Regale.
+      'help.feature.myExtendedMemory',
       'help.feature.outline',
       'help.feature.backlinks',
       // 4T-000073 (Epic 3E-000013): Outgoing-Links-Sidebar.

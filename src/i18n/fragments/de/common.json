@@ -1,0 +1,19 @@
+{
+  "toolbar.open": "Öffnen",
+  "view.source": "Quellcode",
+  "view.split": "Geteilt",
+  "view.rendered": "Gerendert",
+  "view.live": "Live",
+  "app.claim": "extended memory for me",
+  "empty.title": "EM4me",
+  "empty.hint": "Datei öffnen oder per Drag & Drop hier ablegen.",
+  "drop.hint": "Markdown-Datei hier ablegen",
+  "drop.hintAttachment": "Als Anlage ablegen",
+  "dialog.filterMarkdown": "Markdown",
+  "dialog.filterAll": "Alle Dateien",
+  "dialog.filterJson": "JSON-Dateien",
+  "dialog.filterPdf": "PDF",
+  "dialog.ok": "OK",
+  "dialog.cancel": "Abbrechen",
+  "dialog.close": "Schließen"
+}

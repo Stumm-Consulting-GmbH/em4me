@@ -5,7 +5,7 @@
 
 import { refreshSearchIfVisible } from './search/search.js';
 
-import { applyTranslations, t } from '../i18n.js';
+import { applyTranslations, intlLocale, t } from '../i18n.js';
 
 import { enqueueMermaidRun } from './live/live-mermaid-widget.js';
 import { api } from './app/api.js';
@@ -282,7 +282,9 @@ export function computeWordCountStats(text) {
 }
 
 export function formatWordCountNumber(n) {
-  const lang = state && state.language ? state.language : 'de';
+  // 4T-001594: BCP-47-Form statt Kennung — `custom:<code>` wirft in
+  // Intl.NumberFormat und liesse die Zahl unformatiert im catch stehen.
+  const lang = intlLocale() || 'de';
   try {
     return new Intl.NumberFormat(lang).format(n);
   } catch (_) {

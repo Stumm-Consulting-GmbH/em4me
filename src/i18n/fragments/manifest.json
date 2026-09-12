@@ -1,0 +1,152 @@
+{
+  "hinweis": "Zuordnungs-Tafel der Sprachdatei-Fragmente (Epic 3E-000278). Jeder Schlüssel gehört zu genau einem Fragment; entscheidend ist das längste passende Präfix an einer Punkt-Grenze. Die Reihenfolge der Fragmente ist die Reihenfolge im zusammengesetzten Erzeugnis src/i18n/<code>.json, das beim Bau entsteht und nicht versioniert ist. Ein neuer oberster Namensraum wird hier eingetragen, sonst bricht der Bau ab.",
+  "fragmente": [
+    { "name": "common", "praefixe": ["dialog", "app", "empty", "toolbar", "drop", "view"] },
+    { "name": "menu", "praefixe": ["menu"] },
+    {
+      "name": "commands",
+      "praefixe": [
+        "command",
+        "commandPalette",
+        "commandPlacement",
+        "quickOpen",
+        "settings.commandPlacement",
+        "settings.hotkeys"
+      ]
+    },
+    { "name": "settings", "praefixe": ["settings"] },
+    {
+      "name": "editor",
+      "praefixe": [
+        "editor",
+        "source",
+        "autocomplete",
+        "formatToolbar",
+        "settings.formatToolbar",
+        "tableTools",
+        "tableEdit",
+        "codeBlock",
+        "inlineCalc",
+        "live",
+        "callout",
+        "mermaid",
+        "script",
+        "linter",
+        "settings.spellcheck",
+        "settings.headingNumbering",
+        "settings.tabIndents",
+        "settings.pasteUrlAsLink",
+        "settings.runScriptBlocks"
+      ]
+    },
+    {
+      "name": "document",
+      "praefixe": [
+        "save",
+        "open",
+        "recent",
+        "titleLine",
+        "session",
+        "pdf",
+        "print",
+        "export",
+        "settings.export"
+      ]
+    },
+    { "name": "window-and-tabs", "praefixe": ["window", "tab", "tabGroup", "split", "rejoin"] },
+    { "name": "statusbar", "praefixe": ["statusbar"] },
+    {
+      "name": "sidebar-and-panels",
+      "praefixe": [
+        "sidebar",
+        "sidebarVariants",
+        "settings.sidebar",
+        "settings.sidebarVariants",
+        "settings.panelOrder",
+        "notes",
+        "outline"
+      ]
+    },
+    {
+      "name": "area",
+      "praefixe": ["area", "areaPanel", "demoArea", "workspace", "settings.areaLinks"]
+    },
+    { "name": "books-and-shelves", "praefixe": ["book", "bookPanel", "shelf", "shelfView"] },
+    { "name": "bookmarks", "praefixe": ["bookmarks", "settings.bookmarksAreaFirst"] },
+    {
+      "name": "links",
+      "praefixe": [
+        "backlinks",
+        "outgoing",
+        "linkUpdate",
+        "rename",
+        "alias",
+        "embed",
+        "subpage",
+        "subpages",
+        "detach",
+        "settings.renameLinks"
+      ]
+    },
+    { "name": "tags", "praefixe": ["tags", "tagRename"] },
+    { "name": "search", "praefixe": ["search", "searchResults", "areaReplace"] },
+    { "name": "query", "praefixe": ["query"] },
+    { "name": "datatable", "praefixe": ["datatable"] },
+    {
+      "name": "properties",
+      "praefixe": [
+        "properties",
+        "profileQuery",
+        "blockProps",
+        "frontmatter",
+        "settings.profiles",
+        "settings.frontmatterTimestamps"
+      ]
+    },
+    {
+      "name": "tasks",
+      "praefixe": [
+        "taskMarker",
+        "taskQuery",
+        "taskState",
+        "taskDialog",
+        "settings.tasks",
+        "settings.taskStates"
+      ]
+    },
+    { "name": "reminders", "praefixe": ["reminders", "settings.reminders"] },
+    {
+      "name": "journal",
+      "praefixe": ["journal", "journalNav", "journalTimeline", "settings.journals"]
+    },
+    {
+      "name": "calendar",
+      "praefixe": ["calendar", "calendarPicker", "datePicker", "settings.calendar"]
+    },
+    { "name": "clock", "praefixe": ["clock", "settings.clock"] },
+    { "name": "events", "praefixe": ["events"] },
+    { "name": "templates", "praefixe": ["templates", "settings.templates"] },
+    { "name": "history", "praefixe": ["history", "settings.history"] },
+    { "name": "attachments", "praefixe": ["attachments", "settings.attachments"] },
+    { "name": "graph", "praefixe": ["graph", "mindmap", "settings.mindmap"] },
+    { "name": "canvas", "praefixe": ["canvas"] },
+    { "name": "stats", "praefixe": ["stats", "wordCount"] },
+    { "name": "memory", "praefixe": ["memory"] },
+    { "name": "color-schemes", "praefixe": ["colorScheme", "settings.colorSchemes"] },
+    {
+      "name": "extensions",
+      "praefixe": ["extension", "extensions", "settings.extensions", "settings.extensionsExternal"]
+    },
+    { "name": "exchange", "praefixe": ["exchange"] },
+    { "name": "locales", "praefixe": ["locales"] },
+    { "name": "about-and-tour", "praefixe": ["about", "tour"] },
+    { "name": "manual", "praefixe": ["manual"] },
+    { "name": "help-feature", "praefixe": ["help.feature"] },
+    { "name": "help-feature-name", "praefixe": ["help.featureName"] },
+    { "name": "help-feature-access", "praefixe": ["help.featureAccess"] },
+    {
+      "name": "help-shortcut",
+      "praefixe": ["help.shortcut", "help.key", "help.group", "help.shortcutsConfigurableNote"]
+    }
+  ]
+}

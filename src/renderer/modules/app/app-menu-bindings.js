@@ -35,6 +35,17 @@ import {
   saveCurrentTab,
   saveCurrentTabAs,
 } from '../views/save-export.js';
+// 4T-001587 (Epic 3E-000160): Ausgabe der eigenen Einrichtung.
+import { exportSetup } from '../views/setup-export.js';
+// 4T-001592 (Epic 3E-000129): Ausgabe der Sprach-Vorlage.
+import {
+  exportLocaleTemplate,
+  importLocale,
+  removeLocale,
+  updateLocale,
+} from '../views/locale-template.js';
+// 4T-001588 (Epic 3E-000160): Einlesen der eigenen Einstellungen.
+import { importSetup } from '../views/setup-import.js';
 import { newUntitledTab } from '../views/untitled-tabs.js';
 import {
   setViewMode,
@@ -56,6 +67,7 @@ import { openJournalEntryForDate, openTodayJournalEntry } from '../calendar/jour
 import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
+import { openMemoryPage } from '../memory-page.js';
 import { showCommandPalette } from '../command-palette.js';
 import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
@@ -146,6 +158,30 @@ export function bindMenuEvents() {
   if (typeof api.onMenuExportPortable === 'function') {
     api.onMenuExportPortable(() => exportCurrentTabAsPortable());
   }
+  // 4T-001587 (Epic 3E-000160): 'Datei -> Einstellungen -> Exportieren...'.
+  if (typeof api.onMenuExportSetup === 'function') {
+    api.onMenuExportSetup(() => exportSetup());
+  }
+  // 4T-001588 (Epic 3E-000160): 'Datei -> Einstellungen -> Importieren...'.
+  if (typeof api.onMenuImportSetup === 'function') {
+    api.onMenuImportSetup(() => importSetup());
+  }
+  // 4T-001592 (Epic 3E-000129): 'Datei -> Sprach-Vorlage...'.
+  if (typeof api.onMenuExportLocaleTemplate === 'function') {
+    api.onMenuExportLocaleTemplate(() => exportLocaleTemplate());
+  }
+  // 4T-001593 (Epic 3E-000129): 'Datei -> Eigene Sprache einspielen...'.
+  if (typeof api.onMenuImportLocale === 'function') {
+    api.onMenuImportLocale(() => importLocale());
+  }
+  // 4T-001594 (Epic 3E-000129): 'Datei -> Eigene Sprache -> Entfernen...'.
+  if (typeof api.onMenuRemoveLocale === 'function') {
+    api.onMenuRemoveLocale(() => removeLocale());
+  }
+  // 4T-001596 (Epic 3E-000129): 'Datei -> Eigene Sprache -> Aktualisieren...'.
+  if (typeof api.onMenuUpdateLocale === 'function') {
+    api.onMenuUpdateLocale(() => updateLocale());
+  }
   // 4T-000303 (Epic 3E-000054): Export 'Als PDF exportieren...'.
   if (typeof api.onMenuExportPdf === 'function') {
     api.onMenuExportPdf(() => exportActiveTabAsPdf());
@@ -177,6 +213,11 @@ export function bindMenuEvents() {
   // Kennzahlen-Seite (und erhebt bei bereits offener Seite neu).
   if (typeof api.onMenuOpenAreaStats === 'function') {
     api.onMenuOpenAreaStats(() => openAreaStatsPage());
+  }
+  // 4T-001599 (Epic 3E-000191): Ansicht -> My Extended Memory oeffnet die Seite
+  // der eingetragenen Gefaesse (bei offener Seite aktiviert sie den Reiter).
+  if (typeof api.onMenuOpenMemoryPage === 'function') {
+    api.onMenuOpenMemoryPage(() => openMemoryPage());
   }
   // 4T-000455 (Epic 3E-000084): Ansicht -> Bereichs-Graph oeffnet den Graph-Tab.
   if (typeof api.onMenuOpenAreaGraph === 'function') {

@@ -16,9 +16,8 @@
 // shelves:stateChanged lädt nach, solange die Seite offen ist.
 'use strict';
 
-import { t } from '../../i18n.js';
+import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
-import { state } from '../app/app-state.js';
 import {
   registerSystemPage,
   openSystemPage,
@@ -198,7 +197,9 @@ function zeile(entry, { aufnehmen = false } = {}) {
         'shelf-view-row-meta',
         t('shelfView.chapters').replace(
           '{count}',
-          Number(entry.chapters || 0).toLocaleString(state.language || undefined),
+          // 4T-001594: BCP-47-Form statt Kennung — `custom:<code>` wirft hier,
+          // und diese Stelle hat kein try/catch ueber sich.
+          Number(entry.chapters || 0).toLocaleString(intlLocale() || undefined),
         ),
       ),
     );

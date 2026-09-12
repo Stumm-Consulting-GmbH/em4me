@@ -1909,13 +1909,11 @@
           title=""
           aria-label="Theme"
         ></button>
-        <select id="lang-select" data-i18n-title="settings.language" title="">
-          <option value="de">Deutsch</option>
-          <option value="en">English</option>
-          <option value="fr">Français</option>
-          <option value="es">Español</option>
-          <option value="it">Italiano</option>
-        </select>
+        <!-- 4T-000391 (Epic 3E-000129): Die Optionen entstehen beim Start aus
+             LOCALES (src/shared/locales.js), damit die Sprachliste eine
+             einzige Quelle hat; fuenf feste Eintraege waren die fuenfte
+             Kopie. Befuellung: fuelleSprachAuswahl in app-init.js. -->
+        <select id="lang-select" data-i18n-title="settings.language" title=""></select>
       </div>
     </footer>
 
@@ -2683,6 +2681,50 @@
         <div id="link-report-body" class="link-update-list"></div>
         <div class="bookmark-modal-buttons">
           <button id="btn-link-report-ok" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-001587 (Epic 3E-000160): Auswahl der Datenarten vor der Ausgabe der
+         eigenen Einrichtung. Die Zeilen entstehen zur Laufzeit aus der Liste,
+         die der Hauptprozess liefert. -->
+    <div id="setup-export-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content link-update-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="setup-export-title"
+      >
+        <h2 id="setup-export-title"></h2>
+        <p id="setup-export-intro"></p>
+        <div id="setup-export-list" class="link-update-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-setup-export-cancel" class="btn"></button>
+          <button id="btn-setup-export-confirm" class="btn btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4T-001588 (Epic 3E-000160): Vorschau und Bericht des Einlesens. Ein
+         Rahmen fuer beide Phasen, weil sie dieselbe Liste zeigen — einmal als
+         Absicht, einmal als Ergebnis. -->
+    <div id="setup-import-modal" class="bookmark-modal" hidden>
+      <div class="bookmark-modal-backdrop"></div>
+      <div
+        class="bookmark-modal-content link-update-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="setup-import-title"
+      >
+        <h2 id="setup-import-title"></h2>
+        <p id="setup-import-intro"></p>
+        <p id="setup-import-warning" class="setup-import-warning" hidden></p>
+        <div id="setup-import-list" class="link-update-list"></div>
+        <div class="bookmark-modal-buttons">
+          <button id="btn-setup-import-backup" class="btn"></button>
+          <button id="btn-setup-import-cancel" class="btn"></button>
+          <button id="btn-setup-import-confirm" class="btn btn-primary"></button>
         </div>
       </div>
     </div>

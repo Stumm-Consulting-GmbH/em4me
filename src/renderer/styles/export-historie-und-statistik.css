@@ -470,6 +470,246 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
   flex-shrink: 0;
 }
 
+/* 4T-001599 (Epic 3E-000191): My Extended Memory — Liste der eingetragenen
+   Gefaesse. Ruhige Zeilen-Optik wie die Zeilen-Darstellung der Regal-Ansicht;
+   Variablen und Abstaende von den Nachbar-Seiten dieser Datei. */
+.memory-page {
+  padding: 16px 20px;
+  max-width: 1080px;
+  font-size: 13px;
+}
+.memory-page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.memory-page-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.memory-page-note {
+  color: var(--fg-muted);
+  margin: 8px 0 12px;
+  max-width: 68ch;
+}
+.memory-page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* 4T-001602: Zugang zum Ex- und Import am rechten Rand der Werkzeugleiste.
+   Die Knoepfe stehen in einer Zeile, der erklaerende Satz darunter; er ist
+   rechtsbuendig, weil der Block selbst am rechten Rand sitzt. */
+.memory-page-exchange {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.memory-page-exchange-actions {
+  display: flex;
+  gap: 6px;
+}
+.memory-page-exchange-note {
+  margin: 0;
+  max-width: 46ch;
+  text-align: right;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.memory-action {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.memory-action:hover:not(:disabled) {
+  background: var(--hover);
+}
+.memory-action:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+/* Vorschlags-Block: erscheint nur aufgeklappt, deshalb abgesetzt statt
+   dauerhaft im Seitenfluss. */
+.memory-suggest {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+}
+.memory-suggest-title {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.memory-suggest-title:first-child {
+  margin-top: 0;
+}
+.memory-suggest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.memory-suggest-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.memory-suggest-text {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.memory-suggest-name {
+  font-weight: 600;
+}
+.memory-suggest-path {
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+.memory-suggest-empty {
+  color: var(--fg-muted);
+  margin: 0 0 8px;
+}
+.memory-suggest-folder {
+  margin-top: 10px;
+}
+.memory-page-placeholder {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--fg-muted);
+  max-width: 68ch;
+}
+.memory-section {
+  margin: 22px 0 0;
+}
+.memory-section-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.memory-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--bg-alt);
+  margin-bottom: 8px;
+}
+.memory-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.memory-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.memory-row-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.memory-row-stand {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.memory-row-unreachable {
+  color: #c0392b;
+  font-style: italic;
+}
+[data-theme='dark'] .memory-row-unreachable {
+  color: #ff7b72;
+}
+.memory-row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  color: var(--fg-muted);
+}
+.memory-row-path,
+.memory-row-part {
+  overflow-wrap: anywhere;
+}
+/* 4T-001600: Kurz-Kennzahlen der Zeile. Sie stehen in einer Reihe unter dem
+   Pfad und brechen um; das Kennzeichen des unvollstaendigen Bereichs steht
+   als letztes Glied derselben Reihe. */
+.memory-row-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--fg-muted);
+}
+.memory-row-stat {
+  font-variant-numeric: tabular-nums;
+}
+.memory-row-partial {
+  font-style: italic;
+}
+.memory-row-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+}
+/* 4T-001601: Andockpunkt der Detail-Sicht. Zugeklappt ist er leer und belegt
+   ueber :empty keine Hoehe; die volle Breite unter der Zeile bleibt ihm sicher. */
+.memory-row-detail {
+  flex-basis: 100%;
+}
+.memory-row-detail:empty {
+  display: none;
+}
+/* 4T-001601: Die aufgeklappte Detail-Sicht. Kennzahlen-Tabelle nach dem
+   Vorbild .area-stats-figures, abgesetzt durch eine Linie statt durch einen
+   Rahmen — sie gehoert zur Zeile und ist kein zweiter Kasten. */
+.memory-detail {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.memory-detail-figures {
+  border-collapse: collapse;
+}
+.memory-detail-name {
+  padding: 1px 18px 1px 0;
+  color: var(--fg-muted);
+  vertical-align: top;
+}
+.memory-detail-value {
+  padding: 1px 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.memory-detail-actions {
+  margin-top: 8px;
+}
+
 .area-stats-page {
   padding: 16px 20px;
   max-width: 920px;

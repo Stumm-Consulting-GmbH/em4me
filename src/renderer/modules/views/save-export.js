@@ -6,7 +6,10 @@
 
 // 4T-000604 (Epic 3E-000113): History-Isolation fuer den Zeitstempel-Dispatch.
 import { isolateHistory } from '@codemirror/commands';
-import { getLanguage, t } from '../../i18n.js';
+// 4T-001594 (Epic 3E-000129): currentDictionary reicht den Katalog einer
+// eigenen Sprache an den dritten Leser weiter (siehe unten am Aufruf).
+import { currentDictionary, getLanguage, t } from '../../i18n.js';
+import { isCustomLocale } from '../../../shared/locales.js';
 
 import { api, getDocText } from '../app/api.js';
 // 4T-000435 (Epic 3E-000081): Export-Ersetzung des Journal-Navigations-Blocks.
@@ -410,7 +413,17 @@ export async function exportCurrentTabAsPortable() {
   try {
     // 4T-000512 (Epic 3E-000092): aktive UI-Sprache fuer die statische
     // Ereignis-Tabelle im Export.
-    let portableText = api.convertMarkdownPortable(tab.content, getLanguage());
+    // 4T-001594 (Epic 3E-000129): Bei einer eingespielten eigenen Sprache kommt
+    // der Katalog mit. Der dritte Leser sitzt in src/shared und kennt das
+    // Benutzerprofil nicht — er kann eine Datei ausserhalb des Buendels nicht
+    // selbst lesen und bekommt die Beschriftungen deshalb vom Aufrufer.
+    // Fehlt die Datei, steht getLanguage() bereits auf der Rueckfall-Sprache,
+    // und der mitgelieferte Weg greift ohne Sonderfall.
+    let portableText = api.convertMarkdownPortable(
+      tab.content,
+      getLanguage(),
+      isCustomLocale(getLanguage()) ? currentDictionary() : undefined,
+    );
     // 4T-000435 (Epic 3E-000081): journal-nav-Fences werden im Export durch die
     // statische Perioden-Beschriftung ersetzt (ohne Anlage-Links); außerhalb
     // eines Journal-Eintrags bleibt der Fence unverändert.

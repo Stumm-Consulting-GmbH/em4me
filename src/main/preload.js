@@ -170,6 +170,53 @@ contextBridge.exposeInMainWorld('api', {
   saveFileAs: (suggested, content) => ipcRenderer.invoke('file:saveAs', suggested, content),
   pushRecent: (p) => ipcRenderer.invoke('recent:push', p),
 
+  // 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung. Die
+  // Liste traegt nur Kennung, Beschriftungs-Schluessel und Anzahl; die Werte
+  // bleiben im Hauptprozess, bis die Datei fertig ist.
+  exchangeList: () => ipcRenderer.invoke('exchange:list'),
+  exchangeBuild: (auswahl) => ipcRenderer.invoke('exchange:build', auswahl),
+  // 4T-001588: Einlesen in drei Schritten — Datei waehlen, Plan holen,
+  // Uebernahme ausloesen. Der Plan traegt Wirkungen und Zahlen, nie Werte.
+  exchangeOpenDialog: () => ipcRenderer.invoke('exchange:openDialog'),
+  exchangePlan: (dateiPfad) => ipcRenderer.invoke('exchange:plan', dateiPfad),
+  exchangeApply: () => ipcRenderer.invoke('exchange:apply'),
+  // 4T-001592 (Epic 3E-000129): Sprach-Vorlage ausgeben. Ohne Argument — der
+  // Anzeige-Prozess waehlt weder Sprache noch Ziel; die Vorlage kommt immer aus
+  // der englischen Fassung, und den Ort erfragt der Hauptprozess im Dialog.
+  localesSaveTemplate: () => ipcRenderer.invoke('locales:saveTemplate'),
+  // 4T-001593 (Epic 3E-000129): Einspielen in zwei Schritten — Datei waehlen,
+  // dann pruefen und ablegen. Der Anzeige-Prozess reicht nur Pfad und Kennung
+  // herein; Pruefung und Ablage liegen im Hauptprozess.
+  localesOpenDialog: () => ipcRenderer.invoke('locales:openDialog'),
+  localesImport: (dateiPfad, opts) => ipcRenderer.invoke('locales:import', dateiPfad, opts),
+  localesConfirmReplace: (stamm) => ipcRenderer.invoke('locales:confirmReplace', stamm),
+  localesList: () => ipcRenderer.invoke('locales:list'),
+  localesRemove: (stamm) => ipcRenderer.invoke('locales:remove', stamm),
+  // 4T-001594 (Epic 3E-000129): Der Katalog einer eingespielten Sprache kommt
+  // über IPC statt über fetch — die Datei liegt im Benutzerprofil und damit
+  // außerhalb des Bündels, das der fetch-Weg der mitgelieferten Fassungen
+  // erreicht. Hinein geht allein die Kennung `custom:<code>`, heraus
+  // {ok, id, code, name, werte} oder {ok:false, error}.
+  localesRead: (id) => ipcRenderer.invoke('locales:read', id),
+  // Bedien-Weg zum Entfernen: Der Hauptprozess stellt die eingespielten
+  // Sprachen im System-Dialog zur Auswahl und entfernt die gewählte.
+  localesRemoveDialog: () => ipcRenderer.invoke('locales:removeDialog'),
+  // 4T-001596 (Epic 3E-000129): Alterungs-Hinweis. Der Anzeige-Prozess erhebt
+  // die Luecke (dort stehen beide Kataloge nebeneinander) und fragt hier, ob
+  // dieser Stand schon gemeldet wurde; die Programm-Version steuert der
+  // Hauptprozess bei. Heraus kommt {ok, faellig}.
+  localesGapNotice: (kennung, anzahl) => ipcRenderer.invoke('locales:gapNotice', kennung, anzahl),
+  // Die eigene Sprachdatei auf dem Stand der laufenden Programmfassung: Der
+  // Hauptprozess stellt die eingespielten Sprachen im System-Dialog zur Auswahl
+  // und schreibt die gewaehlte vollstaendig neu — eigene Uebersetzungen
+  // erhalten, Neues auf Englisch. Kein Argument: Die Wahl trifft der Anwender
+  // im Dialog, nicht die eingestellte Sprache.
+  localesUpdateDialog: () => ipcRenderer.invoke('locales:updateDialog'),
+  // Einspielen, Ersetzen und Entfernen erreichen ALLE Fenster, den Auslöser
+  // eingeschlossen: Die Sprach-Auswahl und ein eingestellter eigener Katalog
+  // ziehen ohne Neustart nach (Muster onTaskStatesChanged).
+  onLocalesChanged: (cb) => ipcRenderer.on('locales:changed', (_e, nutzlast) => cb(nutzlast)),
+
   // 4T-000303 (Epic 3E-000054): PDF-Export. Zielpfad-Dialog und Druck sind
   // getrennte Endpunkte, damit der Renderer den Print-Zustand erst nach
   // dem Dialog aufbaut (Begruendung am Handler in main.js).
@@ -415,7 +462,12 @@ contextBridge.exposeInMainWorld('api', {
   // konvertierten Markdown-Text fuer den Export 'Portables Markdown'.
   // 4T-000512 (Epic 3E-000092): lang fuer die lokalisierten Texte der
   // statischen Ereignis-Tabelle im Export (Default 'de').
-  convertMarkdownPortable: (text, lang) => convertMarkdownPortable(text, true, lang),
+  // 4T-001594 (Epic 3E-000129): labelCatalog für eine eingespielte eigene
+  // Sprache. Dieses Modul kennt kein Benutzerprofil und kann ihren Katalog
+  // nicht selbst von Platte holen; der Aufrufer gibt ihn mit, sonst bleibt es
+  // beim bisherigen Weg über die Sprachdatei des Bündels.
+  convertMarkdownPortable: (text, lang, labelCatalog) =>
+    convertMarkdownPortable(text, true, lang, labelCatalog),
 
   // 4T-000213 (Epic 3E-000042): gebuendelte Handbuch-Seite aus dem Main holen
   // (Markdown-Quelltext; pageId wird im Main gegen die Registry geprueft).
@@ -627,6 +679,22 @@ contextBridge.exposeInMainWorld('api', {
     createAt: (parentDir, name) => ipcRenderer.invoke('shelves:createAt', { parentDir, name }),
     assignBook: (dirName) => ipcRenderer.invoke('shelves:assignBook', dirName),
     unassignBook: (dirName) => ipcRenderer.invoke('shelves:unassignBook', dirName),
+  },
+  // 4T-001598 (Epic 3E-000191): My Extended Memory — die von Hand gepflegte
+  // Gefaess-Liste. getViewData liefert je Eintrag Art, Pfad, Name, Stand,
+  // Erreichbarkeit und (ab 4T-001600) die Kennzahlen; addPath ist der
+  // dialog-freie Einstieg neben addFromDialog (Muster shelves.openPath).
+  // onChanged meldet jede Aenderung der Liste an alle Fenster.
+  memory: {
+    getViewData: () => ipcRenderer.invoke('memory:getViewData'),
+    addFromDialog: () => ipcRenderer.invoke('memory:addFromDialog'),
+    addPath: (dirPath) => ipcRenderer.invoke('memory:addPath', dirPath),
+    addWorkspace: (id) => ipcRenderer.invoke('memory:addWorkspace', id),
+    remove: (key) => ipcRenderer.invoke('memory:remove', key),
+    // 4T-001600: Neu-Erhebung der Kennzahlen eines eingetragenen Gefaesses.
+    refresh: (key) => ipcRenderer.invoke('memory:refresh', key),
+    suggestions: () => ipcRenderer.invoke('memory:suggestions'),
+    onChanged: (cb) => ipcRenderer.on('memory:changed', () => cb()),
   },
   // 4T-000327 (Epic 3E-000059): Verzeichnis-Listing fuer das Bereichs-Panel.
   areaListDir: (dirPath) => ipcRenderer.invoke('area:listDir', dirPath),
@@ -853,6 +921,18 @@ contextBridge.exposeInMainWorld('api', {
   onMenuExportPortable: (cb) => ipcRenderer.on('menu:exportPortable', () => cb()),
   // 4T-000303 (Epic 3E-000054): Menu-Event 'Datei -> Als PDF exportieren...'
   onMenuExportPdf: (cb) => ipcRenderer.on('menu:exportPdf', () => cb()),
+  // 4T-001587 (Epic 3E-000160): Menu-Event 'Datei -> Einstellungen -> Exportieren...'
+  onMenuExportSetup: (cb) => ipcRenderer.on('menu:exportSetup', () => cb()),
+  // 4T-001588 (Epic 3E-000160): Menu-Event 'Datei -> Einstellungen -> Importieren...'
+  onMenuImportSetup: (cb) => ipcRenderer.on('menu:importSetup', () => cb()),
+  // 4T-001592 (Epic 3E-000129): Menu-Event 'Datei -> Sprach-Vorlage...'
+  onMenuExportLocaleTemplate: (cb) => ipcRenderer.on('menu:exportLocaleTemplate', () => cb()),
+  // 4T-001593 (Epic 3E-000129): Menu-Event 'Datei -> Eigene Sprache einspielen...'
+  onMenuImportLocale: (cb) => ipcRenderer.on('menu:importLocale', () => cb()),
+  // 4T-001594 (Epic 3E-000129): Menu-Event 'Datei -> Eigene Sprache -> Entfernen...'
+  onMenuRemoveLocale: (cb) => ipcRenderer.on('menu:removeLocale', () => cb()),
+  // 4T-001596 (Epic 3E-000129): Menu-Event 'Datei -> Eigene Sprache -> Aktualisieren...'
+  onMenuUpdateLocale: (cb) => ipcRenderer.on('menu:updateLocale', () => cb()),
   // 4T-001479 (Epic 3E-000177): Menu-Event 'Datei -> Drucken...'
   onMenuPrint: (cb) => ipcRenderer.on('menu:print', () => cb()),
   onMenuToggleAutoSave: (cb) => ipcRenderer.on('menu:toggleAutoSave', () => cb()),
@@ -897,6 +977,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuOpenAreaGraph: (cb) => ipcRenderer.on('menu:openAreaGraph', () => cb()),
   // 4T-000620 (Epic 3E-000117): Bereichs-Statistik als read-only Tab.
   onMenuOpenAreaStats: (cb) => ipcRenderer.on('menu:openAreaStats', () => cb()),
+  // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite.
+  onMenuOpenMemoryPage: (cb) => ipcRenderer.on('menu:openMemoryPage', () => cb()),
   // 4T-000480 (Epic 3E-000089): Kommando-Palette ueber Menue-Eintrag Ansicht.
   onMenuOpenCommandPalette: (cb) => ipcRenderer.on('menu:openCommandPalette', () => cb()),
   // 4T-001501 (Epic 3E-000174): Menue-Weg des schnellen Datei-Oeffnens.

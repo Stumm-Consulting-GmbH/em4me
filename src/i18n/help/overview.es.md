@@ -54,6 +54,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Diarios](journals.md) — documentos periódicos por área: estanterías y granularidades, esquemas de carpeta y nombre, panel de calendario, bloque de navegación, propiedades de fecha automáticas.
 - [Libros](books.md) — varios archivos como un libro con orden de lectura declarado: carpeta del libro con archivo complementario, índice con mantenimiento de la estructura, lectura más allá de los límites de capítulo, mover con actualización, reparar capítulos faltantes.
 - [Aplicaciones, ventanas y áreas](apps-windows.md) — inicio múltiple, gestión de ventanas y sistemática de títulos.
+- [My Extended Memory](my-extended-memory.md) — una vista común de los espacios de trabajo, áreas, libros y estanterías añadidos por usted: añadir desde una propuesta o un diálogo de carpeta, cifras clave con su estado, vista de detalle por tipo de contenedor, acceso a exportar e importar la configuración propia.
 - [Historial del documento](history.md) — registrar cambios: archivo acompañante Markdown-Data, interruptores en tres niveles, comparar y restaurar revisiones.
 - [Notas del documento](notes.md) — una nota por documento: panel de barra lateral con vista previa conmutable, guardado automático en el archivo acompañante, distinción del historial.
 
@@ -67,6 +68,8 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Herramientas](tools.md) — linter Markdown, búsqueda con regex, buscar y reemplazar, editor de tablas.
 - [Colocación de comandos](command-placement.md) — comandos como accesos propios permanentes: botones de la barra de estado, lista de ocultación, entradas de menú contextual, macros.
 - [Extensiones](extensions.md) — activar o desactivar funciones individualmente: categorías, dependencias, efecto del estado desactivado.
+- [Exportar e importar la configuración](setup-exchange.md) — llevarse la instalación propia: elección de los tipos de datos hasta bloques de calendario individuales, estructura del archivo de intercambio, vista previa antes de aplicar, fusión con los valores existentes, compatibilidad de versiones.
+- [Idioma de interfaz propio](custom-locale.md) — traducir uno mismo la interfaz: descargar la plantilla, traducirla en el propio editor, cargarla y comprobarla, elegirla, recurso al inglés, actualización y eliminación, depósito en el perfil del usuario.
 - [Crear extensiones](extensions-dev.md) — desarrollar extensiones externas propias: manifiesto, API de extensiones, ejemplo de referencia, avisos de seguridad.
 
 ## Consejos de uso

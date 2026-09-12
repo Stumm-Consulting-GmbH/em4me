@@ -47,7 +47,10 @@ import { refreshSettingsPageForAreaChange } from '../settings/settings-page.js';
 import { syncExternalExtensionsFromBroadcast } from '../extensions/extension-host.js';
 import { applyExtensionsState } from '../extensions/extension-lifecycle.js';
 import { rebuildHotkeyDispatchMap } from './app-commands.js';
-import { applyLanguageChange } from './app-language.js';
+// 4T-001594 (Epic 3E-000129): Bestands-Aenderungen der eingespielten Sprachen
+// bauen die Auswahl neu auf und ziehen den Katalog nach.
+import { applyLanguageChange, aktualisiereSprachAuswahl } from './app-language.js';
+import { FALLBACK_LOCALE } from '../../../shared/locales.js';
 import { applyExtensionButtonVisibility, applyPanelButtonOrder } from './app-extension-runtime.js';
 
 // 4T-001001: Flag und Warteschlangen gehoeren app-init.js; eine Zuweisung an ein
@@ -106,6 +109,31 @@ async function refreshCalendarSystems() {
   renderAllPanes();
   for (const view of paneEditors) {
     if (view) view.dispatch({ effects: liveRebuildEffect.of(null) });
+  }
+}
+
+// 4T-001594 (Epic 3E-000129): Nachzug nach einer Aenderung am Bestand der
+// eingespielten Sprachen.
+//
+// Die Auswahl wird immer neu aufgebaut — auch in Fenstern, deren eingestellte
+// Sprache gar nicht betroffen ist: Sie zeigt den Bestand, und der hat sich
+// geaendert. Der Katalog zieht nur nach, wenn die betroffene Sprache die
+// eingestellte ist.
+//
+// @param {{grund: 'import'|'remove', id: string, sprachen: object[]}} nutzlast
+async function behandleSprachBestand(nutzlast) {
+  await aktualisiereSprachAuswahl();
+  const kennung = nutzlast && nutzlast.id;
+  if (!kennung || kennung !== state.language) return;
+  if (nutzlast.grund === 'import') {
+    // Ersetzt oder erstmals eingespielt: Der Katalog wird neu gelesen, die
+    // Einstellung steht schon auf dieser Sprache und bleibt unberuehrt.
+    await applyLanguageChange(state.language, { persist: false });
+  } else if (nutzlast.grund === 'remove') {
+    // Das Entfernen ist eine bewusste Handlung des Anwenders; anders als beim
+    // Rueckfall wegen einer fehlenden Datei wird die Einstellung deshalb
+    // ueberschrieben — die Sprache soll nach dem Neustart nicht wiederkehren.
+    await applyLanguageChange(FALLBACK_LOCALE, { persist: true });
   }
 }
 
@@ -299,8 +327,25 @@ export function registerAppBroadcasts(deps) {
       return;
     }
     if (newLang === state.language) return;
+    // 4T-001594: Der Empfang kommt mit einer eigenen Kennung `custom:<code>`
+    // unveraendert zurecht — der Wert wird durchgereicht, nicht normalisiert,
+    // und applyLanguageChange kennt beide Formen.
     applyLanguageChange(newLang, { persist: false });
   });
+
+  // 4T-001594 (Epic 3E-000129): Der Bestand der eingespielten Sprachen hat sich
+  // geaendert — eine wurde eingespielt, ersetzt oder entfernt. Die Meldung geht
+  // an ALLE Fenster einschliesslich des ausloesenden, weil auch dort die
+  // Auswahl und gegebenenfalls der Katalog nachziehen muessen.
+  if (typeof api.onLocalesChanged === 'function') {
+    api.onLocalesChanged((nutzlast) => {
+      // Vor dem Ende von init() ist nichts zu tun: init() holt die Liste und
+      // die eingestellte Sprache ohnehin frisch, und ein Sprachwechsel mitten
+      // im Startlauf liefe gegen dessen eigene Reihenfolge.
+      if (!initDone()) return;
+      void behandleSprachBestand(nutzlast);
+    });
+  }
 
   // 4T-000292: extensions-Broadcast (auch das ausloesende Fenster empfaengt
   // ihn — persist:false, und ein unveraenderter Zustand ist dort ein No-op).

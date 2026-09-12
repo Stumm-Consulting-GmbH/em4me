@@ -26,6 +26,14 @@ buildKatexAssets();
 const { buildTourAssets } = require('./build-tour-assets.js');
 buildTourAssets();
 
+// 4T-001606 (Epic 3E-000278): die fuenf Sprachdateien src/i18n/<code>.json aus
+// den Fragmenten unter src/i18n/fragments/ zusammensetzen. Sie sind seither
+// erzeugt statt versioniert, und dieser Aufruf ist ueber package.json jedem Weg
+// vorgeschaltet (start, dev, build, build:installer, build:portable,
+// build:pruefstand, pretest:e2e).
+const { buildI18n } = require('./build-i18n.js');
+buildI18n();
+
 // 4T-000021: separater Mermaid-Bundle, der vom Renderer lazy geladen wird.
 // Wird hier synchron gebaut, damit das Ergebnis bereits liegt, bevor das
 // Haupt-Renderer-Bundle gebaut wird.

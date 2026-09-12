@@ -612,3 +612,81 @@ body.focus-mode .title-line {
 .settings-input-size {
   flex: 0 0 90px;
 }
+
+/* 4T-001587 (Epic 3E-000160): Auswahl-Liste der Datenarten vor der Ausgabe der
+   eigenen Einrichtung. Eine Zeile je Datenart: Schalter und Name links, die
+   Zahl der Einträge rechts — dieselbe Aufteilung wie die Zeilen der
+   Link-Update-Vorschau, damit beide Dialoge gleich gelesen werden. */
+.setup-export-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.setup-export-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  font-size: 0.9em;
+}
+.setup-export-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fg);
+  cursor: pointer;
+}
+.setup-export-count {
+  color: var(--fg-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* 4T-001590 (Epic 3E-000160): Unter-Zeile eines einzeln waehlbaren Eintrags
+   innerhalb einer Datenart — heute ein Zeitrechnungs-Block der
+   Kalender-Systeme. Eingerueckt und eine Spur kleiner, damit die Zugehoerigkeit
+   ohne eine zweite Liste sichtbar wird. */
+.setup-export-rows li.setup-export-entry {
+  padding-left: 22px;
+  font-size: 0.85em;
+}
+
+/* 4T-001588 (Epic 3E-000160): Vorschau und Bericht des Einlesens. Dieselbe
+   Zeilen-Form wie die Ausgabe daneben; der Zusatz je Zeile traegt die Wirkung
+   (ergaenzt, ersetzt, uebersprungen) und darunter, was dabei umbenannt wurde. */
+.setup-import-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.setup-import-rows li {
+  padding: 4px 0;
+  font-size: 0.9em;
+}
+.setup-import-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.setup-import-name {
+  color: var(--fg);
+}
+.setup-import-action {
+  color: var(--fg-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.setup-import-skipped .setup-import-name,
+.setup-import-skipped .setup-import-action {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.setup-import-detail {
+  color: var(--fg-muted);
+  font-size: 0.92em;
+  margin: 2px 0 0 12px;
+}
+.setup-import-warning {
+  color: var(--linter-warn, var(--fg));
+}

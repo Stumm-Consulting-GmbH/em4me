@@ -72,8 +72,18 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
 - **Only the features you want** — extra functions are extensions with a
   switch of their own; what you turn off disappears from menus, commands
   and rendering.
-- **Five languages** — English, German, French, Spanish and Italian, for
-  the interface and the built-in manual alike.
+- **Your setup travels with you** — colours, shortcuts, buttons, templates,
+  bookmarks and the extension switches can be written into a readable Markdown
+  file and read back in on another machine, in full or in part, with a preview
+  that says beforehand what will be added, replaced, renamed or skipped. A
+  page of its own lists every workspace, area, book and bookshelf you entered
+  there, with figures on what each holds and the moment those figures were
+  taken; nothing is gathered behind your back, and no drive is scanned.
+- **Five languages, and a sixth if you need one** — English, German, French,
+  Spanish and Italian, for the interface and the built-in manual alike. Beyond
+  those, a template of the English text can be translated in your own editor
+  and loaded back in; whatever is still missing falls back to English entry by
+  entry, so an unfinished translation is already usable.
 
 Markdown rendering follows CommonMark plus a set of extensions, with math
 (KaTeX), diagrams (Mermaid) and syntax highlighting (highlight.js).

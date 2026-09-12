@@ -74,6 +74,12 @@ const { registerAreaFeaturesIpc } = require('./ipc/area-features');
 const { registerProfilesIpc } = require('./ipc/profiles');
 const { registerExtensionsIpc } = require('./ipc/extensions');
 const { registerHelpIpc } = require('./ipc/help');
+// 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung.
+const { registerExchangeIpc } = require('./ipc/exchange');
+// 4T-001592 (Epic 3E-000129): Eigene Oberflaechen-Sprachen.
+const { registerLocalesIpc } = require('./ipc/locales');
+// 4T-001598 (Epic 3E-000191): My Extended Memory — die eingetragene Gefaess-Liste.
+const { registerMemoryIpc } = require('./ipc/memory');
 
 // 4T-000375: volle Version aus package.json-Version und Build-Info; fehlende
 // oder defekte Build-Info fällt auf die dreiteilige Version zurück.
@@ -294,6 +300,9 @@ function registerIpc() {
   registerProfilesIpc(registriere, ipcDeps);
   registerExtensionsIpc(registriere, ipcDeps);
   registerHelpIpc(registriere, ipcDeps);
+  registerExchangeIpc(registriere, ipcDeps);
+  registerLocalesIpc(registriere, ipcDeps);
+  registerMemoryIpc(registriere, ipcDeps);
 }
 
 // --- App-Lifecycle -----------------------------------------------------------

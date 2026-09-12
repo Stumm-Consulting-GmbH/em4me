@@ -434,6 +434,10 @@ module.exports = {
   bookDirContaining,
   buildShelfState,
   buildShelfViewData,
+  // 4T-001598 (Epic 3E-000191): Der Titel-Auszug ist ab hier der Titel-Weg auch
+  // fuer die Gefaess-Liste. Exportiert statt nachgebaut, damit ein Buch dort
+  // denselben Titel traegt wie in der Regal-Ansicht.
+  readFrontmatterExcerpt,
   shelfFileExists,
   createShelf,
   writeShelfSettings,

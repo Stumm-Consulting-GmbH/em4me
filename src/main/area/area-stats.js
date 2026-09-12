@@ -80,12 +80,23 @@ function zaehle(ziel, bytes) {
   ziel.bytes += bytes;
 }
 
-// Rekursiver Scan der Bereichs-Wurzel. Liefert ausschliesslich die
-// Index-fremden Zahlen; Markdown-Dateien werden uebersprungen, weil der
+// Rekursiver Scan der Bereichs-Wurzel. Liefert in der Vorgabe ausschliesslich
+// die Index-fremden Zahlen; Markdown-Dateien werden uebersprungen, weil der
 // Index sie vollstaendig kennt.
-async function scanArea(root) {
+//
+// 4T-001600 (Epic 3E-000191): Mit `mitMarkdown: true` zaehlt derselbe Scan die
+// Markdown-Dateien und ihre Bytes mit. Die Option existiert fuer den
+// Kennzahlen-Beschleuniger der Gefaess-Liste, der die Zahlen auch fuer ein
+// Gefaess ohne Index braucht — und fuer Buecher und Regale, die gar keinen
+// haben. Ein zweiter Scan-Code waere eine zweite Zaehl-Grundlage; die Vorgabe
+// ist deshalb genau das heutige Verhalten, und collectAreaStats ruft
+// unveraendert.
+async function scanArea(root, { mitMarkdown = false } = {}) {
   const ergebnis = {
     ordner: 0,
+    // Nur bei mitMarkdown gefuellt; in der Vorgabe bleibt der Zaehler auf
+    // null stehen, weil der Index-Anteil die Markdown-Zahlen traegt.
+    markdown: leererZaehler(),
     bilder: leererZaehler(),
     pdf: leererZaehler(),
     sonstige: leererZaehler(),
@@ -117,7 +128,8 @@ async function scanArea(root) {
         continue;
       }
       if (!entry.isFile()) continue;
-      if (MD_EXT_RE.test(entry.name)) continue;
+      const istMarkdown = MD_EXT_RE.test(entry.name);
+      if (istMarkdown && !mitMarkdown) continue;
       let bytes = 0;
       try {
         bytes = (await fs.promises.stat(full)).size;
@@ -125,7 +137,9 @@ async function scanArea(root) {
         /* nicht lesbare Datei zaehlt mit Groesse 0 statt den Scan abzubrechen */
       }
       const ext = path.extname(entry.name).toLowerCase();
-      if (ext === MDD_EXT) {
+      if (istMarkdown) {
+        zaehle(ergebnis.markdown, bytes);
+      } else if (ext === MDD_EXT) {
         zaehle(ergebnis.mdd, bytes);
         ergebnis.mddPfade.add(full.toLowerCase());
       } else if (ext === MDDA_EXT) {
@@ -234,4 +248,8 @@ async function collectAreaStats(areaRoot, env, deps = {}) {
   };
 }
 
-module.exports = { collectAreaStats };
+// 4T-001600: scanArea ist ab hier der eine Ordner-Scan des Hauptprozesses —
+// exportiert statt nachgebaut, damit der Kennzahlen-Beschleuniger der
+// Gefaess-Liste dieselben Regeln fuer uebersprungene Ordner, Datei-Gruppen und
+// Begleitdateien nutzt und keine zweite Zaehl-Grundlage entsteht.
+module.exports = { collectAreaStats, scanArea };

@@ -6,6 +6,8 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 import {
   COMMANDS,
   COMMAND_CATEGORIES,
@@ -29,7 +31,7 @@ import {
 } from '../../src/shared/commands/command-bindings.js';
 
 const I18N_DIR = path.resolve(__dirname, '..', '..', 'src', 'i18n');
-const LANGS = ['de', 'en', 'fr', 'es', 'it'];
+const LANGS = LOCALE_CODES;
 
 describe('Registry-Invarianten', () => {
   it('Kommando-IDs sind eindeutig und folgen dem Namespace-Muster', () => {

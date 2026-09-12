@@ -19,6 +19,8 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 import {
   erstelleSchliessRueckfall,
   erstelleErzwungenenSchluss,
@@ -416,7 +418,7 @@ describe('Verdrahtung an den drei Nähten', () => {
       'window.unresponsiveClose',
       'window.unresponsiveWait',
     ];
-    for (const sprache of ['de', 'en', 'fr', 'es', 'it']) {
+    for (const sprache of LOCALE_CODES) {
       const daten = JSON.parse(lies('i18n', `${sprache}.json`));
       for (const key of keys) {
         expect(daten[key], `${key} fehlt in ${sprache}`).toBeTruthy();

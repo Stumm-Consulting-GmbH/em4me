@@ -20,7 +20,7 @@
 // history-page.js und graph-tab.js).
 'use strict';
 
-import { t } from '../i18n.js';
+import { intlLocale, t } from '../i18n.js';
 import { api } from './app/api.js';
 import { state } from './app/app-state.js';
 import { openOrJumpToPath } from './bookmarks/bookmarks.js';
@@ -103,15 +103,18 @@ function el(tag, className, text) {
   return node;
 }
 
+// 4T-001594: Die drei Formatierer nehmen die BCP-47-Form statt `state.language`
+// — die Kennung einer eigenen Sprache (`custom:<code>`) wirft in `toLocaleString`
+// einen RangeError.
 function zahl(wert) {
-  return Number(wert || 0).toLocaleString(state.language || undefined);
+  return Number(wert || 0).toLocaleString(intlLocale() || undefined);
 }
 
 // Byte-Stufen bis Megabyte; darüber hinaus bleibt MB stehen, weil ein
 // Bereich mit Gigabyte-Umfang in dieser Anzeige ohnehin ein Sonderfall ist.
 function bytes(wert) {
   const n = Number(wert || 0);
-  const lang = state.language || undefined;
+  const lang = intlLocale() || undefined;
   if (n < 1024) return `${n.toLocaleString(lang)} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toLocaleString(lang, { maximumFractionDigits: 1 })} KB`;
   return `${(n / (1024 * 1024)).toLocaleString(lang, { maximumFractionDigits: 1 })} MB`;
@@ -121,7 +124,7 @@ function bytes(wert) {
 // Reihenfolge und Trennzeichen folgen der Oberflächen-Sprache.
 function zeitpunkt(wert) {
   try {
-    return new Date(wert).toLocaleString(state.language || undefined, {
+    return new Date(wert).toLocaleString(intlLocale() || undefined, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

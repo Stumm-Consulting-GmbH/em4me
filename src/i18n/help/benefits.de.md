@@ -90,6 +90,17 @@ Ein Dokument wächst manchmal über das hinaus, was sich flüssig bearbeiten lä
 
 Ausführlich: [Teilung großer Dokumente](document-parts.md).
 
+## Die Anwendung passt sich an — und kommt mit
+
+Wer lange mit einem Programm arbeitet, formt es: Farben, Tastenkürzel, Schaltflächen, Vorlagen und Lesezeichen wachsen mit der eigenen Arbeitsweise, und irgendwann gehört auch die Sprache dazu, in der die Oberfläche spricht. Diese Arbeit war bisher an einen Rechner gebunden und an die mitgelieferten Sprachen. Beides ist offen: Die eigene Einrichtung lässt sich in eine lesbare Datei schreiben und anderswo wieder einlesen, und wer eine sechste Sprache braucht, übersetzt die Oberfläche selbst. Dazu kommt der Blick auf das Ganze — eine Seite, die alle eigenen Arbeitsbereiche, Bereiche, Bücher und Bücherregale nebeneinander zeigt, auch die, die gerade nicht angeschlossen sind.
+
+- **Die Einrichtung als Datei**: ausgeben, mitnehmen, anderswo einlesen — vollständig oder in Teilen, mit einer Vorschau, die vorher sagt, was geschieht.
+- **Eine sechste Sprache: Ihre eigene.** Eine Vorlage übersetzen, einspielen, in der Statusleiste wählen; was darin fehlt, erscheint auf Englisch statt als roher Schlüssel.
+- **Alle Gefäße an einem Ort**: eingetragen statt automatisch erfasst, mit Kennzahlen und dem Zeitpunkt, zu dem sie erhoben wurden.
+- **Nichts geschieht ungefragt**: Kein Laufwerk wird durchsucht, und kein Einlesen schreibt, bevor Sie bestätigt haben.
+
+Ausführlich: [Einstellungen exportieren und importieren](setup-exchange.md), [Eigene Oberflächen-Sprache](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+
 ## Tabellen, die mehr tragen als eine Zeile
 
 Damit endet die Frage nach den Arbeitsformen und beginnt die Frage, was sich in der Datei ausdrücken lässt. Der Markdown-Standard braucht hier keine Erklärung; interessant ist, was darüber hinausgeht, und das beginnt bei der Tabelle. Eine Standard-Tabelle ist zeilenbasiert und nimmt deshalb nur kurzen Text auf. Die Perspective Table nimmt ganze Blöcke in eine Zelle: geschachtelte Listen, mehrere Absätze, Code-Blöcke, Bilder, sogar eine Tabelle in der Tabelle. Aus der Tabelle wird damit ein Gliederungs-Werkzeug für echte Inhalte statt einer Sammlung von Stichworten.

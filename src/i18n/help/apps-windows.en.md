@@ -126,6 +126,8 @@ The list **"Without incoming links"** is the counter-check to the figure of the 
 
 The figures carry a timestamp at the top and are collected **on request**, not continuously: the "Refresh" button collects them again, as does invoking the menu entry once more. They show the **saved** state: anything written in an open document but not yet saved is not part of the figures. The page says so above them and names how many open documents currently carry unsaved changes. Without an open area there is no bounded set of files, so the entry is greyed out. The feature can be switched off as the "Area statistics" extension.
 
+This page always applies to **one** area, the open one. A brief view of key figures across **several** containers side by side — including areas, books and bookshelves that are not open right now — is on the page [My Extended Memory](my-extended-memory.md); from there a way leads back into these full statistics.
+
 ### Recent areas
 
 "File → Area → Recent Areas" lists the recently opened areas by their folder name. A click opens the area with the usual rules. Areas are restored with the session; if an area folder is missing at startup, the corresponding application is not restored and a notice is shown.

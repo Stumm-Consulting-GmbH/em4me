@@ -1982,8 +1982,10 @@ und als Vitest-Snapshots eingefroren
 ## Abdeckungs-Matrix
 
 `test/abdeckungs-matrix.json` ordnet jedem Eintrag des Funktions-Katalogs
-(`help.feature.*` und `help.shortcut.*` aus `src/i18n/de.json` — seit
-0.29.0 die Quelle der generierten Handbuch-Funktions-Seite) eine Testart
+(`help.feature.*` und `help.shortcut.*` aus der deutschen Sprachfassung — seit
+0.29.0 die Quelle der generierten Handbuch-Funktions-Seite; seit `3E-000278`
+liegen sie in den Fragmenten `src/i18n/fragments/de/help-feature.json` und
+`help-shortcut.json`, das Erzeugnis `src/i18n/de.json` entsteht beim Bau) eine Testart
 und Testdateien zu. Der Meta-Test
 `test/unit/abdeckungs-matrix.test.js` erzwingt das in `npm test` (und
 damit im Testsuite-Gate): ein neuer Katalog-Eintrag ohne Matrix-Pflege

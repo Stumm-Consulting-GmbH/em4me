@@ -18,7 +18,7 @@
 // src/shared/clock/clock-options.js (unit-testbar ohne DOM).
 'use strict';
 
-import { getLanguage, t } from '../../i18n.js';
+import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { applySidebarVisibility } from '../panels/panels.js';
@@ -255,7 +255,7 @@ function buildClock(paneIdx) {
   if (mode === 'alarm') {
     // 4T-000637: Wecker-Liste samt Anlege-Knopf; die Faelligkeits-Pruefung
     // laeuft unabhaengig davon im Main weiter.
-    buildAlarmsView(body, getLanguage());
+    buildAlarmsView(body, intlLocale());
     rendered[paneIdx] = refs;
     return refs;
   }
@@ -599,7 +599,7 @@ function paintClock(paneIdx, now) {
       pm: t('clock.meridiem.pm'),
     });
   }
-  if (refs.date) refs.date.textContent = formatClockDate(now, options, getLanguage());
+  if (refs.date) refs.date.textContent = formatClockDate(now, options, intlLocale());
   if (refs.week) {
     refs.week.textContent = t('clock.week').replace('{week}', String(isoWeekNumber(now)));
   }
@@ -782,7 +782,9 @@ export function initClockPanel() {
   // Options-Zugriff fuer die Schlummer-Dauer anhaengen und die Wecker-
   // Zustellung verdrahten.
   attachClockOptions(getClockOptions);
-  initClockAlarms(getLanguage);
+  // 4T-001594: Der Wecker-Teil formatiert die Wochentags-Kuerzel ueber Intl —
+  // uebergeben wird deshalb die BCP-47-Form, nicht die Kennung.
+  initClockAlarms(intlLocale);
   // Fenster-Broadcast der Optionen (Muster Format-Toolbar).
   if (typeof api.onClockOptionsChanged === 'function') {
     api.onClockOptionsChanged((value) => {

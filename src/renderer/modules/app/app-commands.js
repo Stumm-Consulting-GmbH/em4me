@@ -49,6 +49,17 @@ import {
   saveCurrentTab,
   saveCurrentTabAs,
 } from '../views/save-export.js';
+// 4T-001587 (Epic 3E-000160): Ausgabe der eigenen Einrichtung.
+import { exportSetup } from '../views/setup-export.js';
+// 4T-001592 (Epic 3E-000129): Ausgabe der Sprach-Vorlage.
+import {
+  exportLocaleTemplate,
+  importLocale,
+  removeLocale,
+  updateLocale,
+} from '../views/locale-template.js';
+// 4T-001588 (Epic 3E-000160): Einlesen der eigenen Einstellungen.
+import { importSetup } from '../views/setup-import.js';
 import { toggleScrollSyncForActiveTab } from '../views/scroll-sync.js';
 import { newUntitledTab } from '../views/untitled-tabs.js';
 import {
@@ -75,6 +86,8 @@ import * as journale from '../calendar/journals.js';
 import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
+// 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite.
+import { openMemoryPage } from '../memory-page.js';
 import { showCommandPalette } from '../command-palette.js';
 import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import {
@@ -327,6 +340,36 @@ export const commandHandlers = {
   'file.exportPortable': () => {
     exportCurrentTabAsPortable();
   },
+  // 4T-001587 (Epic 3E-000160): Ausgabe der eigenen Einrichtung. Anders als
+  // die beiden Export-Wege darueber NICHT dokument-gebunden — die Funktion
+  // haengt an der Einrichtung der Anwendung, nicht am aktiven Reiter.
+  'file.exportSetup': () => {
+    exportSetup();
+  },
+  // 4T-001592 (Epic 3E-000129): Sprach-Vorlage herunterladen. Ebenfalls
+  // nicht dokument-gebunden — der Vorgang betrifft die Oberflaeche.
+  'file.exportLocaleTemplate': () => {
+    exportLocaleTemplate();
+  },
+  // 4T-001593: die Gegenrichtung, ebenfalls nicht dokument-gebunden.
+  'file.importLocale': () => {
+    importLocale();
+  },
+  // 4T-001594: eine eingespielte Sprache wieder entfernen. Der Auswahl-Dialog
+  // laeuft im Hauptprozess; hier steht nur der Anstoss.
+  'file.removeLocale': () => {
+    removeLocale();
+  },
+  // 4T-001596: die eigene Sprachdatei auf den Stand der laufenden
+  // Programmfassung bringen. Auswahl- und Speichern-Dialog laufen im
+  // Hauptprozess; hier steht nur der Anstoss.
+  'file.updateLocale': () => {
+    updateLocale();
+  },
+  // 4T-001588: die Gegenrichtung, ebenfalls nicht dokument-gebunden.
+  'file.importSetup': () => {
+    importSetup();
+  },
   // 4T-000075: legt die aktive Datei als Bookmark im Root ab.
   'file.bookmarkAdd': () => {
     addBookmarkForActiveFile();
@@ -576,6 +619,12 @@ export const commandHandlers = {
   // Statusbar-Platzierung; der Menue-Weg laeuft ueber seinen eigenen Kanal.
   'stats.openArea': () => {
     openAreaStatsPage();
+  },
+  // 4T-001599 (Epic 3E-000191): My Extended Memory. Ausfuehrungs-Pfad fuer
+  // Kommando-Palette, belegtes Kuerzel und Statusbar-Platzierung; der
+  // Menue-Weg laeuft ueber seinen eigenen Kanal.
+  'memory.openPage': () => {
+    openMemoryPage();
   },
   // 4T-000781 (Epic 3E-000161): drei Kommandos hatten bis hierher nur ihren
   // Menue- bzw. Statusbar-Weg und fielen aus Palette und Kuerzel-Dispatch

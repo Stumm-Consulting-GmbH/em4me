@@ -12,6 +12,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MANUAL_PAGES } from '../../src/shared/manual/manual-pages.js';
 import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 
 // 4T-001632: Diese Pruefung liest einen Baum des Repositoriums im Rumpf
 // ihrer Prueffaelle und faellt damit unter testTimeout. Gemessen am
@@ -23,7 +25,7 @@ vi.setConfig({ testTimeout: BESTAND_ZEITLIMIT });
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const HELP_DIR = path.join(ROOT, 'src', 'i18n', 'help');
-const LANGS = ['de', 'en', 'fr', 'es', 'it'];
+const LANGS = LOCALE_CODES;
 
 const dicts = Object.fromEntries(
   LANGS.map((lang) => [

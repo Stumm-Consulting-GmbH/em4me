@@ -90,6 +90,17 @@ A document sometimes grows beyond what can be edited smoothly. Instead of imposi
 
 In detail: [Splitting large documents](document-parts.md).
 
+## The application adapts — and comes along
+
+Anyone who works with a program for long enough shapes it: colours, keyboard shortcuts, buttons, templates and bookmarks grow with the way you work, and at some point the language the interface speaks belongs to that too. Until now that work was tied to one computer and to the languages that ship with the application. Both are open: your setup can be written into a readable file and read back in elsewhere, and anyone who needs a sixth language translates the interface themselves. On top of that comes the view of the whole — one page that shows all your workspaces, areas, books and bookshelves side by side, including the ones that are not attached right now.
+
+- **Your setup as a file**: export it, take it along, read it back in elsewhere — in full or in part, with a preview that says beforehand what will happen.
+- **A sixth language: your own.** Translate a template, load it in, pick it in the status bar; whatever is missing from it appears in English instead of as a raw key.
+- **Every container in one place**: entered by hand rather than collected automatically, with figures and the moment those figures were taken.
+- **Nothing happens behind your back**: no drive is scanned, and no import writes anything before you have confirmed.
+
+In detail: [Exporting and importing settings](setup-exchange.md), [Your own interface language](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+
 ## Tables that hold more than a line
 
 This is where the question of ways of working ends and the question of what a file can express begins. The Markdown standard needs no explanation here; what matters is what goes beyond it, and that starts with the table. A standard table is line-based and therefore only takes short text. A Perspective Table takes whole blocks into a cell: nested lists, several paragraphs, code blocks, images, even a table inside the table. The table becomes a structuring tool for real content instead of a collection of keywords.

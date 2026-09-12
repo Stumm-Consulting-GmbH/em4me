@@ -24,12 +24,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TOUR_STATIONEN } from '../../src/renderer/modules/tour/tour-stationen.js';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const INDEX_HTML = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'index.html'), 'utf8');
 const I18N_DIR = path.join(ROOT, 'src', 'i18n');
-const LANGS = ['de', 'en', 'fr', 'es', 'it'];
+const LANGS = LOCALE_CODES;
 const DICTS = Object.fromEntries(
   LANGS.map((lang) => [
     lang,

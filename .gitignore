@@ -8,6 +8,10 @@ src/renderer/hljs-themes.css
 src/renderer/katex/
 src/renderer/mermaid.bundle.js
 
+# Generated language catalogues (assembled from src/i18n/fragments/ by
+# scripts/build-i18n.js before every start, test and build)
+src/i18n/*.json
+
 # Build output
 dist/
 out/

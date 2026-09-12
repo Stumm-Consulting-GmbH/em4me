@@ -22,7 +22,7 @@
 // durch die statische Perioden-Beschriftung ohne Anlage-Links.
 'use strict';
 
-import { getLanguage, t } from '../../i18n.js';
+import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 // 4T-001326 (Epic 3E-000236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
 import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
@@ -41,7 +41,7 @@ import {
 // Anzeige-Label einer Periode, lokalisiert: Tag und Monat über Intl in der
 // App-Sprache, Woche/Quartal über i18n-Schablonen, Jahr als Zahl.
 export function periodLabel(period) {
-  const lang = getLanguage();
+  const lang = intlLocale();
   const d = new Date(period.startMs);
   switch (period.granularity) {
     case 'day':
@@ -110,7 +110,7 @@ export function periodRelationLine(period) {
     };
     return t(keys[period.granularity]);
   }
-  return new Intl.RelativeTimeFormat(getLanguage(), { numeric: 'auto' }).format(
+  return new Intl.RelativeTimeFormat(intlLocale(), { numeric: 'auto' }).format(
     abstand,
     period.granularity,
   );

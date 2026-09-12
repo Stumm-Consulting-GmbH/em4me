@@ -13,6 +13,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import './api-stub.js';
 import de from '../../../src/i18n/de.json';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../../src/shared/locales.js';
 
 global.fetch = vi.fn(async () => ({ ok: true, json: async () => de }));
 const i18n = await import('../../../src/renderer/i18n.js');
@@ -132,7 +134,7 @@ describe('AK1/AK3: Anzeige eines abgeleiteten Wertes', () => {
       'derivedCycle',
       'derivedUnavailable',
     ];
-    const sprachen = ['de', 'en', 'fr', 'es', 'it'];
+    const sprachen = LOCALE_CODES;
     for (const sprache of sprachen) {
       const datei = await import(`../../../src/i18n/${sprache}.json`);
       for (const code of codes) {

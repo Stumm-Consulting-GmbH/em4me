@@ -15,10 +15,9 @@ const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
 // 4T-001407 (Epic 3E-000244): die Journal-Kanaele liegen seit dem Schnitt hier.
 const { registerJournalIpc } = require('./area-journals');
-const {
-  normalizeCalendarConfig,
-  configForPersist,
-} = require('../../shared/calendar/calendar-config');
+// 4T-001588: `configForPersist` ist mit dem Schreiber nach area-config.js
+// gewandert; hier bleibt allein die Normalisierung fuer den Lese-Kanal.
+const { normalizeCalendarConfig } = require('../../shared/calendar/calendar-config');
 const { normalizeSidebarVariantList } = require('../../shared/sidebar-variants');
 const { normalizeBookmarksTree, collectBookmarkFilePaths } = require('../../shared/bookmark-tree');
 const selbstSchreib = require('../documents/self-write');
@@ -39,6 +38,7 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {object} deps.mddStore Container-Kern der Begleitdateien.
  * @param {Function} deps.readAreaJournalsConfig Journal-Sektion der Bereichsdatei lesen.
  * @param {Function} deps.readAreaCalendarConfig Kalender-Sektion der Bereichsdatei lesen.
+ * @param {Function} deps.writeAreaCalendarConfig Kalender-Sektion der Bereichsdatei schreiben.
  * @param {Function} deps.readAreaSidebarVariantsConfig Varianten-Sektion der Bereichsdatei lesen.
  * @param {Function} deps.readAreaBookmarksConfig Lesezeichen-Sektion der Bereichsdatei lesen.
  */
@@ -50,6 +50,7 @@ function registerAreaFeaturesIpc(handle, deps) {
     mddStore,
     readAreaJournalsConfig,
     readAreaCalendarConfig,
+    writeAreaCalendarConfig,
     readAreaSidebarVariantsConfig,
     readAreaBookmarksConfig,
   } = deps;
@@ -91,37 +92,12 @@ function registerAreaFeaturesIpc(handle, deps) {
   handle('calendar:setAreaConfig', async (event, config) => {
     const area = areaOfWindow(senderWindow(event));
     if (!area) return { ok: false, error: 'no area' };
-    const mddaPath = path.join(area.rootPath, mddStore.MDDA_FILENAME);
-    try {
-      let container = mddStore.emptySettingsContainer();
-      let raw = null;
-      try {
-        raw = await fs.readFile(mddaPath, 'utf8');
-      } catch (err) {
-        if (err && err.code !== 'ENOENT') throw err;
-      }
-      if (raw !== null) {
-        const parsed = mddStore.parseSettingsContainer(raw);
-        if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
-        container = parsed.container;
-      }
-      const normalized = normalizeCalendarConfig(config);
-      // 4T-000747: Abgeleitete Zeitrechnungen bleiben in ihrer kurzen Form
-      // erhalten; die aufgeloeste Abschrift wuerde die Verbindung zum Bezug
-      // kappen. Eigenstaendige Kalender werden weiter normalisiert abgelegt.
-      const persistable = configForPersist(config, normalized);
-      if (persistable) container.settings.calendarSystems = persistable;
-      else delete container.settings.calendarSystems;
-      if (raw === null && !normalized) {
-        return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen
-      }
-      const serialized = mddStore.serializeContainer(container);
-      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
-      broadcast('calendar:changed', { rootPath: area.rootPath });
-      return { ok: true, config: normalized };
-    } catch (err) {
-      return { ok: false, error: err && err.message ? err.message : String(err) };
-    }
+    // 4T-001588 (Epic 3E-000160): Der Rumpf liegt seit dem Einlese-Weg in
+    // area-config.js — unveraendert, aber mit zwei Aufrufern. Die Meldung an
+    // die Fenster bleibt hier: Der Schreiber kennt keine Fenster.
+    const ergebnis = await writeAreaCalendarConfig(area.rootPath, config);
+    if (ergebnis.ok) broadcast('calendar:changed', { rootPath: area.rootPath });
+    return ergebnis;
   });
 
   // --- 4T-000625 (Epic 3E-000119): Bereichs-Varianten (sidebarLayouts-Sektion) ---

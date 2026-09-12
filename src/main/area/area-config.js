@@ -1,6 +1,7 @@
 // Konfigurations-Sektionen der Bereichsdatei (Area_Settings.mdda): die acht
 // strukturgleichen Leser samt der beiden Aufloeser fuer Anlagen und Vorlagen,
-// dazu die Schreib-Wege der Start-Seite und der Bereichs-Verknuepfungen.
+// dazu die Schreib-Wege der Start-Seite, der Bereichs-Verknuepfungen und
+// (seit 4T-001588) der Kalender-Systeme.
 //
 // Auszug aus main.js, 4T-000998 (Epic 3E-000196). Alle Leser teilen denselben
 // Migrations-Lese-Pfad (readAreaSettingsRaw zieht eine vorhandene Alt-Datei
@@ -25,6 +26,13 @@ const { isInsideArea } = require('./area-path');
 // 4T-001450 (Epic 3E-000190): Verknuepfungs-Modell der Bereiche. area-links.js
 // ist wie area-path.js ein Blatt ohne Rueckimport — kein Ordner-Zyklus.
 const { normalizeAreaLinks } = require('./area-links');
+// 4T-001588 (Epic 3E-000160): Normalisierung und Persistenz-Form der
+// Kalender-Sektion fuer den hierher gezogenen Schreiber. shared/ importiert
+// nicht aus area/ — kein Ordner-Zyklus.
+const {
+  normalizeCalendarConfig,
+  configForPersist,
+} = require('../../shared/calendar/calendar-config');
 // 4T-001457 (Epic 3E-000190): Aus-Zustand der Erweiterung area-links.
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 
@@ -193,6 +201,54 @@ function createAreaConfig(deps) {
     const parsed = mddStore.parseSettingsContainer(raw);
     if (!parsed.ok) return undefined;
     return parsed.container.settings.calendarSystems;
+  }
+
+  // 4T-001588 (Epic 3E-000160): calendarSystems-Sektion SCHREIBEN. Der Rumpf
+  // ist unveraendert aus dem Handler calendar:setAreaConfig hierher gewandert
+  // (src/main/ipc/area-features.js:85-121) und hat seither zwei Aufrufer: jenen
+  // Handler und das Einlesen einer Austausch-Datei, das im Hauptprozess
+  // schreibt. Ein zweiter Schreibweg fuer dieselbe Sektion waere ein
+  // Doppel-Mechanismus ohne gemeinsame Heimat; die Zusicherung des Tasks lautet
+  // ausdruecklich "kein zweiter Schreibweg".
+  //
+  // Muster der Schwester-Schreiber eine Ebene tiefer (writeAreaStartPage,
+  // writeAreaLinks): Die Bereichsdatei entsteht erst beim ersten tatsaechlichen
+  // Setzen, eine defekte Bereichsdatei wird nie ueberschrieben, und unbekannte
+  // Sektionen ueberleben, weil der ganze Container gelesen und
+  // zurueckgeschrieben wird. Die Meldung an die Fenster bleibt beim Aufrufer:
+  // Der Handler kennt seinen Bereich, dieses Modul kennt keine Fenster.
+  //
+  // 4T-000747: Abgeleitete Zeitrechnungen bleiben in ihrer kurzen Form
+  // erhalten; die aufgeloeste Abschrift wuerde die Verbindung zum Bezug kappen.
+  // Eigenstaendige Kalender werden weiter normalisiert abgelegt.
+  async function writeAreaCalendarConfig(rootPath, config) {
+    const mddaPath = path.join(rootPath, mddStore.MDDA_FILENAME);
+    try {
+      let container = mddStore.emptySettingsContainer();
+      let raw = null;
+      try {
+        raw = await fs.readFile(mddaPath, 'utf8');
+      } catch (err) {
+        if (err && err.code !== 'ENOENT') throw err;
+      }
+      if (raw !== null) {
+        const parsed = mddStore.parseSettingsContainer(raw);
+        if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
+        container = parsed.container;
+      }
+      const normalized = normalizeCalendarConfig(config);
+      const persistable = configForPersist(config, normalized);
+      if (persistable) container.settings.calendarSystems = persistable;
+      else delete container.settings.calendarSystems;
+      if (raw === null && !normalized) {
+        return { ok: true, config: null }; // nichts gesetzt und keine Datei: nichts anzulegen
+      }
+      const serialized = mddStore.serializeContainer(container);
+      await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
+      return { ok: true, config: normalized };
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
   }
 
   // 4T-000625 (Epic 3E-000119): sidebarLayouts-Sektion der Bereichsdatei lesen
@@ -456,6 +512,7 @@ function createAreaConfig(deps) {
     readAreaJournalsConfig,
     readAreaProfilesConfig,
     readAreaCalendarConfig,
+    writeAreaCalendarConfig,
     readAreaSidebarVariantsConfig,
     readAreaBookmarksConfig,
     readAreaStartPage,

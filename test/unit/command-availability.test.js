@@ -340,6 +340,15 @@ const MENUE_BASISLINIE = new Map([
   ['file.quickOpen', 'areaOrTab'],
   ['file.newSubpage', 'fileTab'],
   ['file.newFromTemplate', 'immer'],
+  // Zug 3E-000281 (Rebase auf 1.131.1 am 2026-09-11): die sechs Datei-Menue-Eintraege
+  // des Ex- und Imports der Einrichtung (3E-000160) und der eigenen Sprache
+  // (3E-000129), im Zug ohne Bedingung angelegt und damit 'immer'.
+  ['file.exportSetup', 'immer'],
+  ['file.importSetup', 'immer'],
+  ['file.exportLocaleTemplate', 'immer'],
+  ['file.importLocale', 'immer'],
+  ['file.removeLocale', 'immer'],
+  ['file.updateLocale', 'immer'],
   ['journal.openToday', 'area'],
   ['journal.openForDate', 'area'],
   ['area.open', 'immer'],
@@ -368,6 +377,8 @@ const MENUE_BASISLINIE = new Map([
   ['history.open', 'fileTab'],
   ['graph.openArea', 'area'],
   ['stats.openArea', 'area'],
+  // 4T-001599 (Epic 3E-000191): My Extended Memory ist an keinen Bereich gebunden.
+  ['memory.openPage', 'immer'],
   ['view.toggleEdit', 'fileTab'],
   ['view.modeRendered', 'viewMode'],
   ['view.modeSplit', 'viewMode'],

@@ -14,7 +14,7 @@
 // Kontext neu befüllen kann.
 
 import { api } from '../app/api.js';
-import { t, getLanguage } from '../../i18n.js';
+import { t, intlLocale } from '../../i18n.js';
 // 4T-000502 (Epic 3E-000096): Task-Treffer des TASKS-Scopes — die View parst die
 // Roh-Zeile des Payloads mit dem Marker-Kern und baut die Task-Optik aus der
 // gemeinsamen Badge-Spec (Paritaet zu Render-Pane/Live-Modus). Bewusst nur
@@ -584,7 +584,9 @@ function fillOneQueryContainer(el, basePath, showLoading) {
   api
     // 4T-001072 (Epic 3E-000211): eingestellte Programmsprache mitgeben — die
     // Formatierer der Abfrage folgen ihr statt der Betriebssystem-Sprache.
-    .runFrontmatterQuery(basePath, query, getLanguage())
+    // 4T-001594: als BCP-47-Form, weil der Wert im Hauptprozess als ctx.locale
+    // in Intl.DateTimeFormat und Intl.NumberFormat landet (query-format.js).
+    .runFrontmatterQuery(basePath, query, intlLocale())
     .then((payload) => {
       if (fillTokens.get(el) === token) renderPayload(el, payload || { status: 'error' });
     })

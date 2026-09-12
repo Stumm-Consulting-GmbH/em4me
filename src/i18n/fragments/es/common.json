@@ -1,0 +1,19 @@
+{
+  "toolbar.open": "Abrir",
+  "view.source": "Codigo fuente",
+  "view.split": "Dividido",
+  "view.rendered": "Renderizado",
+  "view.live": "En vivo",
+  "app.claim": "extended memory for me",
+  "empty.title": "EM4me",
+  "empty.hint": "Abra un archivo o arrastrelo aqui.",
+  "drop.hint": "Suelte el archivo Markdown aqui",
+  "drop.hintAttachment": "Guardar como adjunto",
+  "dialog.filterMarkdown": "Markdown",
+  "dialog.filterAll": "Todos los archivos",
+  "dialog.filterJson": "Archivos JSON",
+  "dialog.filterPdf": "PDF",
+  "dialog.ok": "Aceptar",
+  "dialog.cancel": "Cancelar",
+  "dialog.close": "Cerrar"
+}

@@ -69,6 +69,47 @@ const EXTERNAL_ENABLED_KEY = 'extensionsExternal.enabled';
 const EXTERNAL_TRUSTED_KEY = 'extensionsExternal.trusted';
 const EXTERNAL_ERRORS_KEY = 'extensionsExternal.lastError';
 
+// 4T-001589 (Epic 3E-000160): Der Persistenz-Namensraum je Erweiterung —
+// `extensionData.<id>` hält ein Objekt pro Erweiterung, gefüllt über
+// `ctx.storage` (src/renderer/modules/extensions/extension-host.js).
+//
+// **Er steht hier und nicht am Erzeuger**, weil er zwei Leser hat: den Host,
+// der ihn schreibt, und den Ausschluss-Filter der Ausgabe, der ihn erkennen
+// muss. Zweimal geschrieben liefe er auseinander (Fehlerklasse L5) — und zwar
+// an einer Stelle, an der das Auseinanderlaufen eine Sicherheits-Zusicherung
+// bräche, ohne von außen sichtbar zu sein.
+//
+// **Die Zusicherung selbst:** Dieser Namensraum verlässt den Rechner nie. Was
+// eine fremde Erweiterung dort ablegt, kennt die Anwendung nicht; es kann ein
+// Zugangs-Schlüssel sein, und eine Liste bekannter Geheimnis-Namen schützte
+// gerade den Bestand nicht, um den es geht (Befund B5 der Konzept-Stufe).
+const EXTENSION_DATA_PREFIX = 'extensionData';
+
+/**
+ * Store-Schlüssel des Ablage-Raums einer Erweiterung.
+ *
+ * @param {string} id Kennung der Erweiterung.
+ * @returns {string}
+ */
+function extensionDataKey(id) {
+  return `${EXTENSION_DATA_PREFIX}.${id}`;
+}
+
+/**
+ * Liegt ein Speicher-Pfad im Ablage-Raum der Erweiterungen?
+ *
+ * Erfasst den Namensraum selbst und alles darunter, unabhängig von der
+ * Erweiterungs-Kennung: Die Regel greift über den Raum als Ganzes und nicht
+ * über Namen.
+ *
+ * @param {string} pfad Punkt-Pfad des globalen Speichers.
+ * @returns {boolean}
+ */
+function isExtensionDataPath(pfad) {
+  if (typeof pfad !== 'string') return false;
+  return pfad === EXTENSION_DATA_PREFIX || pfad.startsWith(`${EXTENSION_DATA_PREFIX}.`);
+}
+
 const ID_RE = /^[a-z][a-z0-9-]*$/;
 // Einstiegs-Dateien: schlichter Dateiname mit .js-Endung, keine
 // Pfad-Trenner, kein Aufstieg — der Main baut daraus Pfade.
@@ -192,6 +233,9 @@ module.exports = {
   EXTERNAL_ENABLED_KEY,
   EXTERNAL_TRUSTED_KEY,
   EXTERNAL_ERRORS_KEY,
+  EXTENSION_DATA_PREFIX,
+  extensionDataKey,
+  isExtensionDataPath,
   parseVersion,
   isApiVersionCompatible,
   validateExternalManifest,

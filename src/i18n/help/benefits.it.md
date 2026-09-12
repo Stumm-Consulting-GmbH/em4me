@@ -90,6 +90,17 @@ A volte un documento cresce oltre ciò che si riesce a modificare con scorrevole
 
 In dettaglio: [Divisione di documenti grandi](document-parts.md).
 
+## L’applicazione si adatta — e ti segue
+
+Chi lavora a lungo con un programma finisce per plasmarlo: colori, scorciatoie da tastiera, pulsanti, modelli e segnalibri crescono con il tuo modo di lavorare, e a un certo punto ne fa parte anche la lingua in cui parla l’interfaccia. Finora questo lavoro era legato a un solo computer e alle lingue fornite con l’applicazione. Entrambe le cose sono aperte: la tua configurazione può essere scritta in un file leggibile e riletta altrove, e chi ha bisogno di una sesta lingua traduce da sé l’interfaccia. A questo si aggiunge lo sguardo d’insieme: una pagina che mostra affiancati tutti i tuoi spazi di lavoro, aree, libri e librerie, comprese quelle che al momento non sono collegate.
+
+- **La configurazione come file**: esportarla, portarla con sé, rileggerla altrove — per intero o in parte, con un’anteprima che dice in anticipo che cosa accadrà.
+- **Una sesta lingua: la tua.** Tradurre un modello, installarlo, sceglierlo nella barra di stato; ciò che vi manca compare in inglese e non come chiave grezza.
+- **Tutti i contenitori in un solo luogo**: inseriti a mano invece che raccolti automaticamente, con cifre e il momento in cui sono state rilevate.
+- **Nulla accade alle tue spalle**: nessun disco viene percorso, e nessuna lettura scrive alcunché prima della tua conferma.
+
+In dettaglio: [Esportare e importare le impostazioni](setup-exchange.md), [Lingua dell’interfaccia propria](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+
 ## Tabelle che reggono più di una riga
 
 Qui finisce la domanda sui modi di lavorare e comincia quella su ciò che il file può esprimere. Lo standard Markdown non ha bisogno di spiegazioni; conta ciò che va oltre, e comincia dalla tabella. Una tabella standard è basata sulla riga e accoglie perciò solo testo breve. La Perspective Table accoglie interi blocchi in una cella: elenchi annidati, più paragrafi, blocchi di codice, immagini e perfino una tabella dentro la tabella. La tabella diventa così uno strumento di struttura per contenuti veri invece di una raccolta di parole chiave.

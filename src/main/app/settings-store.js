@@ -129,6 +129,11 @@ async function loadStore(dirs) {
       // dedupliziert, gekappt auf zehn).
       recentBooks: [],
       recentShelves: [],
+      // 4T-001598 (Epic 3E-000191): von Hand gepflegte Liste der eingetragenen
+      // Gefaesse (My Extended Memory). Bewusst NEBEN den vier recent-Listen und
+      // nicht aus ihnen abgeleitet: jene sind gekappte Verlaeufe, diese ist der
+      // Bestand, den der Anwender selbst bestimmt.
+      memoryEntries: [],
       // 4T-000751 (Epic 3E-000146): Englisch ist der Auslieferungszustand.
       // conf materialisiert die Defaults schon bei der Store-Konstruktion,
       // deshalb wirkt dieser Wert ausschliesslich fuer frische Staende;

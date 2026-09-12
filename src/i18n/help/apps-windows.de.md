@@ -126,6 +126,8 @@ Die Liste **„Ohne eingehenden Verweis"** ist die Gegenprobe zur gleichnamigen 
 
 Die Zahlen tragen oben einen Stand-Zeitstempel und werden **auf Anforderung** erhoben, nicht laufend: Der Knopf „Aktualisieren" erhebt neu, ebenso der erneute Aufruf des Menü-Eintrags. Sie zeigen den **gespeicherten** Stand: Was in einem offenen Dokument geschrieben, aber noch nicht gespeichert ist, steckt nicht in den Zahlen. Die Seite sagt das über den Zahlen und nennt dabei, wie viele offene Dokumente gerade ungespeicherte Änderungen tragen. Ohne geöffneten Bereich gibt es keinen abgegrenzten Datei-Raum; der Eintrag ist dann ausgegraut. Die Funktion ist als Erweiterung „Bereichs-Statistik" abschaltbar.
 
+Diese Seite gilt immer **einem** Bereich, dem geöffneten. Eine knappe Kennzahlen-Sicht über **mehrere** Gefäße nebeneinander — auch über Bereiche, Bücher und Bücherregale, die gerade nicht geöffnet sind — steht auf der Seite [My Extended Memory](my-extended-memory.md); von dort führt ein Weg zurück in diese ausführliche Statistik.
+
 ### Zuletzt geöffnete Bereiche
 
 „Datei → Bereich → Zuletzt geöffnete Bereiche" listet die zuletzt geöffneten Bereiche mit ihrem Ordnernamen. Ein Klick öffnet den Bereich nach den üblichen Regeln. Bereiche werden mit der Sitzung wiederhergestellt; fehlt ein Bereichs-Ordner beim Start, wird die zugehörige Applikation nicht wiederhergestellt und ein Hinweis gezeigt.

@@ -12,6 +12,8 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+const { LOCALE_CODES } = require('../../../src/shared/locales.js');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const LEFT = '.pane-group[data-pane="0"] .pane-sidebar-left';
@@ -388,7 +390,7 @@ test.describe('SV-04: Bereichs-Varianten in der Bereichsdatei', () => {
 // armPanelMenuCapture in panel-zugänge.spec.js; getApplicationMenu() ist
 // leer, die App setzt Fenster-Menüs per win.setMenu).
 const I18N_DIR = path.resolve(__dirname, '..', '..', '..', 'src', 'i18n');
-const LOCALE_DICTS = ['de', 'en', 'fr', 'es', 'it'].map((l) =>
+const LOCALE_DICTS = LOCALE_CODES.map((l) =>
   JSON.parse(fs.readFileSync(path.join(I18N_DIR, `${l}.json`), 'utf8')),
 );
 const LAYOUTS_LABELS = LOCALE_DICTS.map((d) => d['menu.view.sidebarLayouts']);

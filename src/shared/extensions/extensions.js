@@ -431,6 +431,66 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.areaStats',
     commands: ['stats.openArea'],
   },
+  // 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung als
+  // schaltbares Werkzeug (Erweiterungs-Pruefschritt des Epics, Entscheidung des
+  // Product Owners vom 2026-09-08, Zug-Entscheidung Z8). Der Aus-Zustand ist
+  // gefahrlos: Die Erweiterung haelt keine Daten und tut nichts im Hintergrund;
+  // wer sie abschaltet, verliert keinen Zugang zu seinen Daten, sondern einen
+  // Weg, sie zu buendeln. Seit 4T-001588 traegt die Liste beide Richtungen.
+  {
+    id: 'setup-exchange',
+    category: 'tools',
+    nameKey: 'help.featureName.setupExchange',
+    descKey: 'help.feature.setupExchange',
+    commands: ['file.exportSetup', 'file.importSetup'],
+  },
+  // 4T-001603 (Epic 3E-000191): My Extended Memory als schaltbare Zusatz-Sicht
+  // (Erweiterungs-Pruefschritt des Epics, Zug-Entscheidung Z8). Direkt hinter
+  // dem Ex- und Import, weil die Seite dessen zweiten Zugang traegt. Ein
+  // Katalog-Eintrag steht der Funktion gegenueber, deshalb die help.*-Keys
+  // statt eigener extension.*-Keys (Muster area-stats, setup-exchange).
+  //
+  // Der Aus-Zustand nimmt allein die Zugaenge: Kommando, Ansichtsmenue-Eintrag
+  // und Kommando-Palette entfallen ueber die bestehenden Filter. Er ruehrt
+  // weder die eingetragene Gefaess-Liste noch den Kennzahlen-Beschleuniger an —
+  // an der Erweiterung haengt kein Laufzeit-Hook und kein Aufraeum-Schritt,
+  // wer wieder einschaltet, findet seinen Bestand vor.
+  {
+    id: 'my-extended-memory',
+    category: 'tools',
+    nameKey: 'help.featureName.myExtendedMemory',
+    descKey: 'help.feature.myExtendedMemory',
+    commands: ['memory.openPage'],
+  },
+  // 4T-001592 (Epic 3E-000129): Eigene Oberflaechen-Sprache als schaltbares
+  // Werkzeug — aber nur zur Haelfte, und die Grenze ist der Kern der
+  // Entscheidung (Erweiterungs-Pruefschritt des Epics, Product Owner am
+  // 2026-09-08, Zug-Entscheidung Z8). Schaltbar ist, was der Anwender
+  // AUSLOEST: die Vorlage herunterladen und spaeter eine Datei einspielen
+  // (4T-001593). NICHT schaltbar ist, was seine bereits eingespielte Sprache
+  // am Laufen haelt — Laden und Rueckfall je Schluessel bleiben Kern, sonst
+  // stuende die Oberflaeche ohne Texte da, wenn jemand die Erweiterung
+  // abschaltet, waehrend seine eigene Sprache aktiv ist.
+  //
+  // Der Aus-Zustand ist damit gefahrlos: Er nimmt einen Weg, nie eine Sprache.
+  {
+    id: 'custom-locale',
+    category: 'tools',
+    nameKey: 'help.featureName.customLocale',
+    descKey: 'help.feature.customLocale',
+    // 4T-001594: Das Entfernen tritt hinzu — auch es löst der Anwender aus
+    // und fällt damit unter Z8; das Laden und der Rückfall bleiben Kern.
+    // 4T-001596: ebenso das Aktualisieren der eigenen Sprachdatei. Der
+    // Alterungs-HINWEIS selbst bleibt Kern: Er hängt am Laden und sagt dem
+    // Anwender, dass seine Datei altert — auch dann, wenn er den Bedien-Weg
+    // abgeschaltet hat.
+    commands: [
+      'file.exportLocaleTemplate',
+      'file.importLocale',
+      'file.removeLocale',
+      'file.updateLocale',
+    ],
+  },
   {
     id: 'bookmarks',
     category: 'tools',

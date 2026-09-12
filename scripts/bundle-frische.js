@@ -58,13 +58,46 @@
 // an. Er kostet einen überflüssigen Bau von wenigen Sekunden — ein Fehlalarm,
 // nie ein stiller Durchlass. Die Richtung des Irrtums ist damit dieselbe, in die
 // der Produkt-Code-Wächter und der Pflicht-Zugang irren: fail closed.
+//
+// ---------------------------------------------------------------------------
+//
+// 4T-001606 (Epic 3E-000278): **Eine zweite Zuständigkeit, kein zweiter
+// Wächter.** Seit diesem Vorgang sind auch die fünf Sprachdateien
+// `src/i18n/<code>.json` erzeugt — aus den Fragmenten unter
+// `src/i18n/fragments/`, durch `scripts/build-i18n.js`, angestoßen vom selben
+// `npm run build:renderer`. Damit gilt für sie Wort für Wort dieselbe Gefahr wie
+// oben für das Bündel: ein Lauf gegen einen alten Stand, grün oder rot aus
+// Gründen, die mit der eigenen Änderung nichts zu tun haben. Die zwei belegten
+// Vorfälle des Bündels (`4T-001478`, `4T-001410`) sind der Beleg, dass diese
+// Gefahr sich nicht von selbst meldet.
+//
+// **Warum hier und nicht als eigenes Modul.** Beide Prüfungen beantworten
+// dieselbe Frage an denselben Zeitpunkten mit demselben Mittel — ist das
+// Erzeugnis jünger als seine Eingänge, gemessen an Änderungszeiten —, und beide
+// hängen an demselben Bau-Kommando, das die Abhilfe nennt. Ein zweites Modul
+// hieße: zwei Einhäng-Stellen, die einzeln vergessen werden können, zwei
+// Meldungs-Formen, die auseinanderlaufen, und zwei Antworten auf die Frage «ist
+// mein Arbeitsbaum gebaut». Der Aufrufer will genau eine Antwort. Die
+// Begründungen oben — Änderungszeiten statt Inhalts-Hash, Gleichstand gilt als
+// frisch, fail closed, der Wächter schreibt nichts — gelten unverändert mit.
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 
+// 4T-000391: Sprachliste aus der einen Quelle, nicht als weitere Kopie hier.
+const { LOCALE_CODES } = require('../src/shared/locales.js');
+
 // Der Gegenstand der Prüfung, relativ zur Projekt-Wurzel.
 const BUENDEL = ['src', 'renderer', 'renderer.bundle.js'];
+
+// 4T-001606: Gegenstand und Eingänge der zweiten Zuständigkeit. Die
+// Zuordnungs-Tafel zählt für JEDE Sprache mit — sie bestimmt, welche Fragmente
+// es gibt und in welcher Reihenfolge sie zusammenkommen, und eine Änderung an
+// ihr allein verändert jedes der fünf Erzeugnisse.
+const I18N_ORDNER = ['src', 'i18n'];
+const FRAGMENTE_ORDNER = ['src', 'i18n', 'fragments'];
+const FRAGMENTE_MANIFEST = ['src', 'i18n', 'fragments', 'manifest.json'];
 
 // Die Ordner, aus denen das Bündel entsteht. `src/shared/` gehört dazu, weil die
 // Renderer-Module daraus importieren (nachgesehen an `src/renderer/modules/**`,
@@ -204,6 +237,102 @@ function pruefeBundleFrische(wurzel) {
   return { grund: 'veraltet', quelle, meldung: meldung('veraltet', quelle, buendelZeit) };
 }
 
+// --- 4T-001606: zweite Zuständigkeit, die erzeugten Sprachdateien -----------
+
+/**
+ * Jüngster Eingang einer Sprache: ihre Fragmente plus die Zuordnungs-Tafel.
+ *
+ * Der Durchlauf ist derselbe wie beim Bündel (`sammle`), weil die Frage
+ * dieselbe ist. Die Ausnahme-Listen greifen hier nicht — sie führen
+ * ausschließlich Pfade unter `src/renderer/` und `src/shared/` —, und unter
+ * `src/i18n/fragments/` steht ohnehin nichts Erzeugtes.
+ *
+ * @param {string} wurzel Projekt-Wurzel.
+ * @param {string} code Sprach-Code.
+ * @returns {{pfad: string, zeit: number}|null}
+ */
+function juengsterSprachEingang(wurzel, code) {
+  const treffer = { pfad: null, zeit: 0 };
+  sammle(wurzel, path.join(wurzel, ...FRAGMENTE_ORDNER, code), treffer);
+  try {
+    const zeit = fs.statSync(path.join(wurzel, ...FRAGMENTE_MANIFEST)).mtimeMs;
+    if (zeit > treffer.zeit) {
+      treffer.zeit = zeit;
+      treffer.pfad = FRAGMENTE_MANIFEST.join('/');
+    }
+  } catch {
+    // Fehlende Tafel ist kein Befund dieses Wächters: Der Bau scheiterte dann
+    // ohnehin lauter, als eine Frische-Meldung es könnte (Muster von `sammle`).
+  }
+  return treffer.pfad ? treffer : null;
+}
+
+function sprachMeldung(grund, code, quelle, erzeugnisZeit) {
+  const zeilen = [
+    grund === 'fehlt'
+      ? `Sprachdatei src/i18n/${code}.json fehlt — Lauf abgebrochen.`
+      : `Sprachdatei src/i18n/${code}.json veraltet — Lauf abgebrochen.`,
+    'Die fünf Sprachdateien sind seit 4T-001606 erzeugt: scripts/build-i18n.js setzt sie',
+    'aus den Fragmenten unter src/i18n/fragments/ zusammen. Anwendung und Prüffälle lesen',
+    'das Erzeugnis, nicht die Fragmente — ein Lauf gegen einen alten Stand misst einen',
+    'Bestand, den niemand mehr pflegt.',
+  ];
+  if (grund === 'veraltet' && quelle) {
+    zeilen.push('');
+    zeilen.push(`    jüngster Eingang:  ${quelle.pfad}  (${alsZeit(quelle.zeit)})`);
+    zeilen.push(`    Erzeugnis:         src/i18n/${code}.json  (${alsZeit(erzeugnisZeit)})`);
+  }
+  zeilen.push('');
+  zeilen.push('Frisch bauen, dann erneut laufen lassen:');
+  zeilen.push('    npm run build:renderer            (baut die Sprachdateien mit)');
+  zeilen.push('    node scripts/build-i18n.js        (nur die Sprachdateien)');
+  zeilen.push('');
+  zeilen.push('Hintergrund: Epic 3E-000278, Vorgang 4T-001606.');
+  return zeilen.join('\n');
+}
+
+/**
+ * Die reine Entscheidung für die Sprachdateien: Ist jedes der fünf Erzeugnisse
+ * jünger als die Fragmente seiner Sprache und als die Zuordnungs-Tafel?
+ *
+ * Gemeldet wird der ERSTE Befund in der Reihenfolge der Sprachliste. Fünf
+ * Befunde auf einmal helfen nicht: Die Abhilfe ist für alle dieselbe, und sie
+ * behebt sie alle in einem Lauf.
+ *
+ * @param {string} wurzel Projekt-Wurzel (im Prüffall ein gestelltes Verzeichnis).
+ * @returns {{grund: 'fehlt'|'veraltet', code: string, quelle: object|null,
+ *           meldung: string}|null} null heißt frisch.
+ */
+function pruefeSprachFrische(wurzel) {
+  for (const code of LOCALE_CODES) {
+    const erzeugnis = path.join(wurzel, ...I18N_ORDNER, `${code}.json`);
+    let erzeugnisZeit;
+    try {
+      erzeugnisZeit = fs.statSync(erzeugnis).mtimeMs;
+    } catch {
+      erzeugnisZeit = null;
+    }
+    if (erzeugnisZeit === null) {
+      return {
+        grund: 'fehlt',
+        code,
+        quelle: null,
+        meldung: sprachMeldung('fehlt', code, null, null),
+      };
+    }
+    const quelle = juengsterSprachEingang(wurzel, code);
+    // Gleichstand gilt als frisch, aus demselben Grund wie beim Bündel.
+    if (!quelle || quelle.zeit <= erzeugnisZeit) continue;
+    return {
+      grund: 'veraltet',
+      code,
+      quelle,
+      meldung: sprachMeldung('veraltet', code, quelle, erzeugnisZeit),
+    };
+  }
+  return null;
+}
+
 /**
  * Die Durchsetzung am Tor: Abbruch statt Warnung.
  *
@@ -212,28 +341,46 @@ function pruefeBundleFrische(wurzel) {
  * geht zusätzlich auf stderr, damit sie nicht zwischen Stapel-Zeilen steht
  * (Muster aus `scripts/gate-zugang.js`).
  *
+ * 4T-001606: Geprüft werden BEIDE Erzeugnisse mit derselben Deutlichkeit. Ein
+ * frisches Bündel neben einer veralteten Sprachdatei ist kein halber Erfolg,
+ * sondern derselbe Irrtum an einer anderen Stelle.
+ *
  * @param {string} wurzel Projekt-Wurzel.
  */
 function fordereFrischesBuendel(wurzel) {
   const befund = pruefeBundleFrische(wurzel);
-  if (!befund) return null;
-  process.stderr.write(`\n${befund.meldung}\n\n`);
+  if (befund) {
+    process.stderr.write(`\n${befund.meldung}\n\n`);
+    throw new Error(
+      befund.grund === 'fehlt'
+        ? 'Renderer-Bündel fehlt (4T-001481)'
+        : 'Renderer-Bündel veraltet (4T-001481)',
+    );
+  }
+  const sprachBefund = pruefeSprachFrische(wurzel);
+  if (!sprachBefund) return null;
+  process.stderr.write(`\n${sprachBefund.meldung}\n\n`);
   throw new Error(
-    befund.grund === 'fehlt'
-      ? 'Renderer-Bündel fehlt (4T-001481)'
-      : 'Renderer-Bündel veraltet (4T-001481)',
+    sprachBefund.grund === 'fehlt'
+      ? `Sprachdatei ${sprachBefund.code}.json fehlt (4T-001606)`
+      : `Sprachdatei ${sprachBefund.code}.json veraltet (4T-001606)`,
   );
 }
 
 module.exports = {
   pruefeBundleFrische,
+  pruefeSprachFrische,
   fordereFrischesBuendel,
   juengsteQuelle,
+  juengsterSprachEingang,
   BUENDEL,
   QUELL_ORDNER,
   ERZEUGT_DATEIEN,
   ERZEUGT_ORDNER,
   NICHT_IM_BUENDEL,
+  I18N_ORDNER,
+  FRAGMENTE_ORDNER,
+  FRAGMENTE_MANIFEST,
 };
 
 // Auskunft von Hand: `node scripts/bundle-frische.js` meldet den Stand und
@@ -241,11 +388,15 @@ module.exports = {
 // zur Release-Isolation und wird außerhalb einer Release-Strecke nicht angefasst.
 if (require.main === module) {
   const wurzel = path.join(__dirname, '..');
-  const befund = pruefeBundleFrische(wurzel);
-  if (!befund) {
-    process.stdout.write('Renderer-Bündel ist frisch.\n');
+  // 4T-001606: beide Zuständigkeiten, beide melden einzeln. Ein Befund reicht
+  // für den Rückgabewert 1; gezeigt werden trotzdem beide, weil ein Bau ohnehin
+  // beide zugleich behebt und die zweite Meldung sonst erst im nächsten Lauf
+  // sichtbar würde.
+  const befunde = [pruefeBundleFrische(wurzel), pruefeSprachFrische(wurzel)].filter(Boolean);
+  if (befunde.length === 0) {
+    process.stdout.write('Renderer-Bündel und Sprachdateien sind frisch.\n');
   } else {
-    process.stderr.write(`\n${befund.meldung}\n\n`);
+    for (const befund of befunde) process.stderr.write(`\n${befund.meldung}\n\n`);
     process.exitCode = 1;
   }
 }

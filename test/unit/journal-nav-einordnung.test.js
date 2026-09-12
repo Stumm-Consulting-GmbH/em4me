@@ -18,6 +18,8 @@
 // die Zeile der Standard-Formulierung folgt, nicht wie diese lautet. Den realen
 // Wortlaut in der Laufzeit der Anwendung haelt der Ablauf-Prueffall fest.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+import { LOCALE_CODES } from '../../src/shared/locales.js';
 
 let sprache = 'de';
 const UEBERSETZT = {
@@ -30,6 +32,8 @@ const UEBERSETZT = {
 
 vi.mock('../../src/renderer/i18n.js', () => ({
   getLanguage: () => sprache,
+  // 4T-001594: die BCP-47-Form für Intl; im Mock dieselbe wie die Kennung.
+  intlLocale: () => sprache,
   t: (key) => UEBERSETZT[key] || key,
 }));
 vi.mock('../../src/renderer/modules/app/api.js', () => ({ api: {} }));
@@ -122,7 +126,7 @@ describe('periodRelationLine — die Zeile ist in jeder Periode belegt (4T-00148
     // AK5: Der im Task vorgesehene Rueckfall auf eine eigene Schablone haengt
     // an dieser Zusicherung. Faellt sie, muss sie auffallen — hier fuer die
     // Umgebung des Unit-Laufs, im Ablauf-Prueffall fuer die der Anwendung.
-    for (const s of ['de', 'en', 'fr', 'es', 'it']) {
+    for (const s of LOCALE_CODES) {
       sprache = s;
       const zeile = periodRelationLine(addPeriods(periodOf(Date.now(), 'quarter'), -1));
       expect(zeile, s).toBeTruthy();

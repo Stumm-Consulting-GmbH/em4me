@@ -23,6 +23,7 @@ const { normalizeSavedApps, sitzungHatPanes } = require('./session-schema');
 const { assignDraftsToApps } = require('../documents/draft-store');
 const { isSamePath, areaFromRootPath } = require('../area/area-path');
 const { konfiguriereBereichsSuche } = require('../area/area-search');
+const { konfiguriereMemoryStats } = require('../memory/memory-stats');
 const netzPfade = require('../documents/network-paths');
 const books = require('../books/books');
 const shelves = require('../books/shelves');
@@ -232,6 +233,13 @@ function createStartup(deps) {
     konfiguriereBereichsSuche({
       cacheVerzeichnis: path.join(app.getPath('userData'), 'bereichs-suche'),
     });
+
+    // 4T-001600 (Epic 3E-000191): Ablage-Ort des Kennzahlen-Beschleunigers der
+    // Gefaess-Liste. Eine eigene Datei neben config.json, aus demselben Grund
+    // wie der Suchraum-Cache zentral statt im Gefaess: Die Seite zeigt auch
+    // Gefaesse, die gerade nicht erreichbar sind, und dort laege nichts zu
+    // lesen.
+    konfiguriereMemoryStats({ userDataDir: app.getPath('userData') });
 
     // 4T-000525 (Epic 3E-000095): Erinnerungs-Takt starten (Gates pro Lauf:
     // Erweiterungs-Zustand, Index-Bereitschaft; zusaetzlicher Anstoss ueber

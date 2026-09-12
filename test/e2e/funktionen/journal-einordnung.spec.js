@@ -22,6 +22,8 @@
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+const { LOCALE_CODES } = require('../../../src/shared/locales.js');
 
 test.describe('JR-16: Relative Zeitangaben in der Laufzeit der Anwendung (4T-001489)', () => {
   test('Intl beherrscht alle fuenf Perioden-Einheiten in allen fuenf Sprachen', async () => {
@@ -30,8 +32,11 @@ test.describe('JR-16: Relative Zeitangaben in der Laufzeit der Anwendung (4T-001
       // Ohne Datei-Argument gibt es keinen Reiter; gewartet wird auf die
       // Statusleiste, die zur leeren Anwendung gehoert.
       await expect(page.locator(SEL.statusbar)).toBeVisible();
-      const befund = await page.evaluate(() => {
-        const sprachen = ['de', 'en', 'fr', 'es', 'it'];
+      // 4T-000391 (Nachtrag): Die Liste kommt als Argument in den Anzeige-
+      // Prozess. Eine Node-Konstante ist in page.evaluate nicht sichtbar; die
+      // erste Fassung nannte sie dort direkt, und der Fall fiel erst im
+      // Epic-Abschluss-Test mit einer ReferenceError auf.
+      const befund = await page.evaluate((sprachen) => {
         const einheiten = ['day', 'week', 'month', 'quarter', 'year'];
         const luecken = [];
         for (const sprache of sprachen) {
@@ -50,7 +55,7 @@ test.describe('JR-16: Relative Zeitangaben in der Laufzeit der Anwendung (4T-001
           }
         }
         return luecken;
-      });
+      }, LOCALE_CODES);
       expect(befund).toEqual([]);
     } finally {
       await closeApp(app, userData, { force: true });

@@ -19,7 +19,7 @@
 // im Journal-Eintrag das Perioden-Datum, nicht den Anwendungs-Zeitpunkt.
 'use strict';
 
-import { t, getLanguage } from '../../i18n.js';
+import { t, intlLocale } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { state } from '../app/app-state.js';
 import { openInPane } from '../tabs/tabs.js';
@@ -125,7 +125,7 @@ async function buildEntryContent(journal, period, relPath) {
       nowMs: period.startMs,
       // 4T-001057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache;
       // der Datums-Kontext bleibt der Perioden-Start des Eintrags.
-      locale: getLanguage(),
+      locale: intlLocale(),
       clipboard: typeof api.clipboardReadText === 'function' ? api.clipboardReadText() : '',
       answers,
     });

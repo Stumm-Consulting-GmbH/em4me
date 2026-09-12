@@ -541,6 +541,85 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'contentTab',
   },
+  // 4T-001587 (Epic 3E-000160): Ausgabe der eigenen Einrichtung. Wie der
+  // portable Export ohne Default-Kuerzel — der Menue-Weg genuegt, ein Kuerzel
+  // ist ueber die Einstellungen belegbar. Anders als jener ist der Weg NICHT
+  // dokument-gebunden: Er gibt die Einrichtung der Anwendung aus, nicht den
+  // Inhalt eines Reiters.
+  {
+    id: 'file.exportSetup',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportSetup',
+    descKey: 'help.shortcut.exportSetup',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  // 4T-001592 (Epic 3E-000129): Sprach-Vorlage herunterladen. Wie die beiden
+  // Setup-Wege ohne Vorgabe-Kuerzel und nicht dokument-gebunden: Der Vorgang
+  // betrifft die Oberflaeche der Anwendung, nicht den Inhalt eines Reiters,
+  // und er faellt einmal je Uebersetzungs-Vorhaben an — dafuer genuegt der
+  // Menue-Weg, ein Kuerzel bleibt ueber die Einstellungen belegbar.
+  {
+    id: 'file.importLocale',
+    defaultBindings: [],
+    labelKey: 'menu.file.importLocale',
+    descKey: 'help.shortcut.importLocale',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  // 4T-001594 (Epic 3E-000129): Die eingespielte Sprache wieder entfernen —
+  // der dritte Weg desselben Untermenüs, ebenfalls ohne Vorgabe-Kürzel und
+  // nicht dokument-gebunden. Was sich einspielen lässt, muss sich auch
+  // entfernen lassen; sonst wäre eine eigene Sprache eine Falle.
+  {
+    id: 'file.removeLocale',
+    defaultBindings: [],
+    labelKey: 'menu.file.removeLocale',
+    descKey: 'help.shortcut.removeLocale',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  // 4T-001596 (Epic 3E-000129): Die eigene Sprachdatei auf den Stand der
+  // laufenden Programmfassung bringen — der vierte Weg desselben Untermenues,
+  // ebenfalls ohne Vorgabe-Kuerzel und nicht dokument-gebunden.
+  {
+    id: 'file.updateLocale',
+    defaultBindings: [],
+    labelKey: 'menu.file.updateLocale',
+    descKey: 'help.shortcut.updateLocale',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  {
+    id: 'file.exportLocaleTemplate',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportLocaleTemplate',
+    descKey: 'help.shortcut.exportLocaleTemplate',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  // 4T-001588 (Epic 3E-000160): Die Gegenrichtung. Ebenfalls ohne
+  // Vorgabe-Kuerzel und nicht dokument-gebunden.
+  {
+    id: 'file.importSetup',
+    defaultBindings: [],
+    labelKey: 'menu.file.importSetup',
+    descKey: 'help.shortcut.importSetup',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
   {
     id: 'app.openSettings',
     defaultBindings: ['CmdOrCtrl+,'],
@@ -588,6 +667,21 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
     availability: 'area',
+  },
+  {
+    // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite; ohne
+    // Default-Binding (Menue-Weg, Kuerzel belegbar). Anders als die beiden
+    // Nachbarn braucht die Seite KEINEN geoeffneten Bereich — sie zeigt die
+    // eingetragene Gefaess-Liste der Anwendung und ist deshalb immer
+    // verfuegbar (weder Menue-Guard noch Eintrag in AREA_COMMANDS).
+    id: 'memory.openPage',
+    defaultBindings: [],
+    labelKey: 'menu.view.myExtendedMemory',
+    descKey: 'help.shortcut.myExtendedMemory',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
   },
   {
     id: 'view.toggleEdit',

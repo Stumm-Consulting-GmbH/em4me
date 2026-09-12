@@ -27,6 +27,8 @@ const markdownItFootnote = require('markdown-it-footnote');
 const { escapeHtml, githubLikeSlug } = require('./slug.js');
 const { extractFrontmatter } = require('./frontmatter.js');
 const { effectiveDisabledSet } = require('../extensions/extensions-core.js');
+// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
+const { isLocale, FALLBACK_LOCALE } = require('../locales.js');
 const {
   sourceLineMapperPlugin,
   headingNumbersPlugin,
@@ -878,7 +880,10 @@ function renderMarkdown(text, lang, opts) {
     // 4T-000546 (Epic 3E-000097): Kalender-Konfiguration fuer die Wert-Badges.
     calendarSystems: activeCalendarConfig,
     // 4T-000748: Einheiten-Namen der Zeitspannen-Badges.
-    calendarLabels: portableLabels(lang || 'de'),
+    // 4T-001594: Bei einer eingespielten eigenen Sprache reicht der Aufrufer
+    // ihren Katalog als opts.labelCatalog durch; ohne ihn bleibt es beim
+    // Sprach-Code und damit beim bisherigen Weg.
+    calendarLabels: portableLabels(lang, opts && opts.labelCatalog),
   });
   const showBlock =
     frontmatterDisplayEnabled && fm.raw != null && !(opts && opts.frontmatterBlock === false);
@@ -890,19 +895,81 @@ function renderMarkdown(text, lang, opts) {
 // Bundle) — die Sprachdatei wird deshalb lazy von Platte gelesen (asar-
 // transparent); jeder Fehlschlag faellt weich auf die Key-Namen zurueck.
 const portableLabelCache = new Map();
-function portableLabels(lang) {
-  const lc = ['de', 'en', 'fr', 'es', 'it'].includes(lang) ? lang : 'de';
-  if (portableLabelCache.has(lc)) return portableLabelCache.get(lc);
+// 4T-001595 (Epic 3E-000129): Die gelesenen Kataloge selbst, getrennt von den
+// daraus gewonnenen Beschriftungen — der englische wird jetzt als Rückfall je
+// Schlüssel gebraucht, also auch dann, wenn die Beschriftungen einer anderen
+// Sprache gefragt sind.
+const portableDictCache = new Map();
+
+/** Katalog einer mitgelieferten Sprache von Platte, gemerkt. */
+function mitgelieferterKatalog(code) {
+  if (portableDictCache.has(code)) return portableDictCache.get(code);
   let dict = {};
   try {
     const fs = require('node:fs');
     const path = require('node:path');
     dict = JSON.parse(
-      fs.readFileSync(path.join(__dirname, '..', '..', 'i18n', `${lc}.json`), 'utf8'),
+      fs.readFileSync(path.join(__dirname, '..', '..', 'i18n', `${code}.json`), 'utf8'),
     );
   } catch {
     // Key-Fallback (Labels bleiben die Key-Namen) — Export funktioniert.
   }
+  portableDictCache.set(code, dict);
+  return dict;
+}
+
+/**
+ * Beschriftungen des Ereignis-Portable-Pfads.
+ *
+ * 4T-001594 (Epic 3E-000129), zwei Änderungen, beide vom Product Owner am
+ * 2026-09-10 entschieden:
+ *
+ * **Der Rückfall geht auf `FALLBACK_LOCALE` statt auf `'de'`** (Frage 3, AK5).
+ * Bis dahin fiel dieser dritte Leser als einziger auf Deutsch zurück, während
+ * Anzeige- und Hauptprozess auf Englisch fallen; 4T-000391 hatte die
+ * Abweichung bewusst stehen lassen, um mit der Zusammenführung der Liste kein
+ * Verhalten zu ändern. Verbreitete Katalog-Bibliotheken (gettext, ICU,
+ * i18next) kennen genau EINE konfigurierte Rückfall-Sprache, und die steht in
+ * `locales.js`. Betroffen sind allein die Beschriftungen des Ereignis-Exports
+ * bei einer Sprache, die kein Leser kennt.
+ *
+ * **`labelCatalog` versorgt eine eingespielte eigene Sprache.** Dieses Modul
+ * liegt in `src/shared` und kennt kein Benutzerprofil; es kann den Katalog
+ * einer eigenen Sprache nicht selbst von Platte holen. Der Aufrufer gibt ihn
+ * mit, und die beiden Beschriftungs-Gruppen werden daraus aufgelöst — ohne
+ * Zwischenspeicher, weil der Katalog zur Laufzeit wechselt und nicht an einem
+ * Sprach-Code hängt, der ihn eindeutig benennen würde.
+ *
+ * 4T-001595 (Epic 3E-000129): **Ein fehlender Schlüssel fällt auf die englische
+ * Fassung zurück**, nicht mehr auf den Schlüssel-Namen — dieselbe Kette wie im
+ * Anzeige- und im Hauptprozess (eingestellte Sprache → Englisch →
+ * Schlüssel-Name), damit die Anwendung nicht je Prozess anders antwortet. Der
+ * Zweig der mitgelieferten Fassungen geht sie mit: Dort ist sie bei schlüssel-
+ * gleichen Katalogen wirkungslos, und genau das ist die Zusicherung.
+ *
+ * @param {string} lang Sprach-Code einer mitgelieferten Fassung.
+ * @param {Record<string, string>} [labelCatalog] Katalog einer eigenen Sprache.
+ * @returns {Record<string, string>} Beschriftungen, nach Schlüssel.
+ */
+function portableLabels(lang, labelCatalog) {
+  const englisch = mitgelieferterKatalog(FALLBACK_LOCALE);
+  if (labelCatalog && typeof labelCatalog === 'object') return labelsAus(labelCatalog, englisch);
+  // 4T-000391: Liste aus der einen Quelle.
+  const lc = isLocale(lang) ? lang : FALLBACK_LOCALE;
+  if (portableLabelCache.has(lc)) return portableLabelCache.get(lc);
+  const labels = labelsAus(mitgelieferterKatalog(lc), englisch);
+  portableLabelCache.set(lc, labels);
+  return labels;
+}
+
+/**
+ * Die drei Beschriftungs-Gruppen aus einem Katalog herauslösen.
+ *
+ * 4T-001595: `rueckfall` füllt je Schlüssel auf, was der Katalog nicht kennt.
+ * Kennt ihn auch der Rückfall nicht, bleibt die Beschriftung wie bisher aus —
+ * der Aufrufer zeigt dann den Schlüssel-Namen.
+ */
+function labelsAus(dict, rueckfall) {
   const labels = {};
   for (const key of [
     ...PORTABLE_EVENT_LABEL_KEYS,
@@ -910,12 +977,12 @@ function portableLabels(lang) {
     ...CANVAS_BLOCK_LABEL_KEYS,
   ]) {
     if (typeof dict[key] === 'string') labels[key] = dict[key];
+    else if (rueckfall && typeof rueckfall[key] === 'string') labels[key] = rueckfall[key];
   }
-  portableLabelCache.set(lc, labels);
   return labels;
 }
 
-function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
+function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', labelCatalog) {
   const fenceRegex = /^( {0,3}`{3,})perspective-table[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
   // 4T-000418 (Epic 3E-000079): perspective-datatable wird beim Export zur
   // statischen HTML-Tabelle (alle Zeilen, mit Aggregat-Zeile); bei
@@ -1003,7 +1070,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de') {
     if (eventsEnabled) {
       converted = converted.replace(eventsFenceRegex, (match, fence, content) => {
         const html = convertPerspectiveEventsBlockToHtml(content, {
-          labels: portableLabels(lang),
+          labels: portableLabels(lang, labelCatalog),
         });
         if (html === null) return match;
         eventsConverted = true;

@@ -90,6 +90,17 @@ Un document dépasse parfois ce qui se laisse modifier avec fluidité. Plutôt q
 
 En détail : [Division des grands documents](document-parts.md).
 
+## L'application s'adapte — et vous suit
+
+Qui travaille longtemps avec un programme finit par le façonner : couleurs, raccourcis clavier, boutons, modèles et favoris grandissent avec votre manière de travailler, et un jour la langue dans laquelle l'interface s'exprime en fait partie elle aussi. Ce travail était jusqu'ici lié à un seul ordinateur et aux langues livrées avec l'application. Les deux sont ouverts : votre configuration peut être écrite dans un fichier lisible et relue ailleurs, et qui a besoin d'une sixième langue traduit lui-même l'interface. S'y ajoute la vue d'ensemble — une page qui montre côte à côte tous vos espaces de travail, zones, livres et bibliothèques, y compris ceux qui ne sont pas raccordés en ce moment.
+
+- **La configuration comme fichier** : l'exporter, l'emporter, la relire ailleurs — en totalité ou en partie, avec un aperçu qui indique au préalable ce qui va se passer.
+- **Une sixième langue : la vôtre.** Traduire un modèle, l'installer, la choisir dans la barre d'état ; ce qui y manque apparaît en anglais et non sous forme de clé brute.
+- **Tous les contenants en un seul endroit** : saisis à la main plutôt que collectés automatiquement, avec des chiffres et le moment où ils ont été relevés.
+- **Rien ne se fait à votre insu** : aucun disque n'est parcouru, et aucune relecture n'écrit quoi que ce soit avant votre confirmation.
+
+En détail : [Exporter et importer les paramètres](setup-exchange.md), [Votre propre langue d'interface](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+
 ## Des tableaux qui portent plus qu'une ligne
 
 Ici s'achève la question des façons de travailler et commence celle de ce que le fichier peut exprimer. Le standard Markdown n'a pas besoin d'explication ; ce qui compte, c'est ce qui va au-delà, et cela commence par le tableau. Un tableau standard est fondé sur la ligne et n'accueille donc qu'un texte court. La Perspective Table accueille des blocs entiers dans une cellule : listes imbriquées, plusieurs paragraphes, blocs de code, images, et même un tableau dans le tableau. Le tableau devient ainsi un outil de structuration pour de vrais contenus au lieu d'une collection de mots-clés.

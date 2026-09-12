@@ -114,6 +114,15 @@ const MANUAL_PAGES = [
   // 4T-000321 (Epic 3E-000057): Applikationen und Fenster (Mehrfachstart,
   // Titel-Systematik); die Bereichs-Abschnitte ergaenzt 3E-000058.
   { id: 'apps-windows', titleKey: 'manual.page.appsWindows.title', source: 'bundled' },
+  // 4T-001604 (Epic 3E-000191): My Extended Memory — die von Hand gepflegte
+  // Uebersicht ueber eingetragene Arbeitsbereiche, Bereiche, Buecher und
+  // Buecherregale (Eintragen aus Vorschlag oder Ordner-Dialog, Entfernen nur
+  // des Eintrags, Kennzahlen mit Stand und „Neu erheben", Teil-Zahlen ohne
+  // Index, Detail-Sicht je Art, Zugang zum Ex- und Import, Abschaltbarkeit).
+  // Steht hinter „Applikationen, Fenster und Bereiche": Dort stehen die
+  // Gefaesse einzeln, hier stehen sie nebeneinander; die Seite verweist fuer
+  // die ausfuehrliche Bereichs-Statistik dorthin zurueck.
+  { id: 'my-extended-memory', titleKey: 'manual.page.myExtendedMemory.title', source: 'bundled' },
   // 4T-000850 (Epic 3E-000147): Bücher (Buch-Ordner mit Buch-Datei und
   // Begleitdatei, Inhaltsverzeichnis, Struktur-Pflege, Leseführung,
   // Verschieben mit Nachführung, Reparatur). Direkt hinter „Applikationen,
@@ -137,6 +146,21 @@ const MANUAL_PAGES = [
   // 4T-000296 (Epic 3E-000052): Erweiterungs-System (Schalten, Abhaengigkeiten,
   // Wirkung des Aus-Zustands, erweiterungs-eigene Einstellungs-Bereiche).
   { id: 'extensions', titleKey: 'manual.page.extensions.title', source: 'bundled' },
+  // 4T-001591 (Epic 3E-000160): Export und Import der eigenen Einstellungen
+  // (Auswahl der Datenarten samt einzelner Kalender-Bloecke, Aufbau der
+  // Austausch-Datei, Vorschau vor der Uebernahme, Zusammenfuehrungs-Regel,
+  // Fassungs-Vertraeglichkeit, die Zusicherung ueber Zugangs-Geheimnisse).
+  // Steht hinter „Erweiterungen": Sie ist die Klammer ueber die
+  // Einstellungs-Seiten dieses Blocks — was sie ausgibt, entsteht dort.
+  { id: 'setup-exchange', titleKey: 'manual.page.setupExchange.title', source: 'bundled' },
+  // 4T-001597 (Epic 3E-000129): Eigene Oberflaechen-Sprache (Vorlage
+  // herunterladen, im eigenen Editor uebersetzen, einspielen und pruefen,
+  // auswaehlen, Rueckfall je Eintrag auf Englisch, Aktualisieren nach einer
+  // neuen Programmfassung, Entfernen, Ablage im Benutzerprofil, Grenzen).
+  // Steht hinter „Einstellungen exportieren und importieren": dieselbe
+  // Bewegung — eine Datei verlaesst die Anwendung, wird ausserhalb bearbeitet
+  // und kommt zurueck.
+  { id: 'custom-locale', titleKey: 'manual.page.customLocale.title', source: 'bundled' },
   // 4T-000301 (Epic 3E-000053): Entwickler-Seite — eigene externe
   // Erweiterungen erstellen (Manifest-Referenz, Erweiterungs-API v1,
   // Referenz-Beispiel, Sicherheits-Hinweis).

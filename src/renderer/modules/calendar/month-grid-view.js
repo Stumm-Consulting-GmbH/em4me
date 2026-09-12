@@ -21,13 +21,13 @@
 // darauf zurueckgefuehrt und behaelt Signatur und erzeugtes DOM.
 'use strict';
 
-import { getLanguage } from '../../i18n.js';
+import { intlLocale } from '../../i18n.js';
 import { monthGrid } from '../../../shared/journal-core.js';
 
 // Wochentags-Kopf lokalisiert ueber Intl in der App-Sprache; als Referenz
 // dient eine bekannte Montag-Woche (der 2024-01-01 war ein Montag).
 export function weekdayLabels() {
-  const format = new Intl.DateTimeFormat(getLanguage(), { weekday: 'short' });
+  const format = new Intl.DateTimeFormat(intlLocale(), { weekday: 'short' });
   const labels = [];
   for (let i = 0; i < 7; i++) {
     labels.push(format.format(new Date(2024, 0, 1 + i)));
@@ -38,7 +38,7 @@ export function weekdayLabels() {
 // Monats-Bezeichnung ("Juli 2026") in der App-Sprache. Die Uhrzeit 12 haelt
 // die Formatierung von Zeitzonen-Verschiebungen um Mitternacht frei.
 export function monthLabel(year, monthIndex) {
-  return new Intl.DateTimeFormat(getLanguage(), { month: 'long', year: 'numeric' }).format(
+  return new Intl.DateTimeFormat(intlLocale(), { month: 'long', year: 'numeric' }).format(
     new Date(year, monthIndex, 1, 12),
   );
 }

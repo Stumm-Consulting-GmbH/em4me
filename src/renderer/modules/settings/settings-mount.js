@@ -9,7 +9,7 @@
 'use strict';
 
 import { internalExtensions } from '../../../shared/extensions/extensions.js';
-import { getLanguage, t } from '../../i18n.js';
+import { intlLocale, t } from '../../i18n.js';
 import { state } from '../app/app-state.js';
 import {
   allSettingsSections,
@@ -142,7 +142,7 @@ export function buildSettingsNavEntries(nav) {
     ...trailing,
   ]);
 
-  const sprache = getLanguage();
+  const sprache = intlLocale();
   byGroup
     .get('extensionsInternal')
     .sort((a, b) => t(a.titleKey).localeCompare(t(b.titleKey), sprache));

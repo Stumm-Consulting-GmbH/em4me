@@ -35,7 +35,7 @@
 // Datums-Grenzen).
 'use strict';
 
-import { getLanguage, t } from '../../i18n.js';
+import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import {
   monthGrid,
@@ -72,7 +72,7 @@ function levelLabel(period) {
     case 'week':
       return t('journalNav.weekLabel').replace('{week}', String(Number(period.key.split('-W')[1])));
     case 'month':
-      return new Intl.DateTimeFormat(getLanguage(), { month: 'long', year: 'numeric' }).format(
+      return new Intl.DateTimeFormat(intlLocale(), { month: 'long', year: 'numeric' }).format(
         new Date(period.startMs),
       );
     case 'quarter': {
@@ -134,7 +134,7 @@ function buildMonthBlock(year, monthIndex, { todayIso, withTitle, dots }) {
     const title = document.createElement('button');
     title.type = 'button';
     title.className = 'timeline-monat-titel';
-    title.textContent = new Intl.DateTimeFormat(getLanguage(), { month: 'long' }).format(
+    title.textContent = new Intl.DateTimeFormat(intlLocale(), { month: 'long' }).format(
       new Date(year, monthIndex, 1, 12),
     );
     title.dataset.jtLevel = 'month';
@@ -427,7 +427,7 @@ function timelineToMarkdown(mode, anchorMs, todayIso, dots) {
 
   const monatsTabelle = (monthIndex) => {
     teile.push(
-      `*${new Intl.DateTimeFormat(getLanguage(), { month: 'long' }).format(
+      `*${new Intl.DateTimeFormat(intlLocale(), { month: 'long' }).format(
         new Date(year, monthIndex, 1, 12),
       )}*`,
     );

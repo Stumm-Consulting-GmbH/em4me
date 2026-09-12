@@ -90,6 +90,17 @@ A veces un documento crece más allá de lo que se puede editar con fluidez. En 
 
 En detalle: [División de documentos grandes](document-parts.md).
 
+## La aplicación se adapta — y te acompaña
+
+Quien trabaja mucho tiempo con un programa acaba moldeándolo: colores, atajos de teclado, botones, plantillas y favoritos crecen con tu manera de trabajar, y en algún momento también el idioma en el que habla la interfaz forma parte de ello. Hasta ahora ese trabajo estaba ligado a un solo ordenador y a los idiomas que vienen con la aplicación. Ambas cosas están abiertas: tu configuración puede escribirse en un archivo legible y volver a leerse en otro sitio, y quien necesita un sexto idioma traduce la interfaz por su cuenta. A ello se suma la vista del conjunto: una página que muestra uno junto a otro todos tus espacios de trabajo, áreas, libros y estanterías, incluidos los que ahora mismo no están conectados.
+
+- **La configuración como archivo**: exportarla, llevártela, volver a leerla en otro sitio, por completo o en parte, con una vista previa que dice de antemano qué va a ocurrir.
+- **Un sexto idioma: el tuyo.** Traducir una plantilla, instalarla, elegirla en la barra de estado; lo que falte en ella aparece en inglés y no como una clave en bruto.
+- **Todos los contenedores en un solo lugar**: añadidos a mano en vez de recogidos automáticamente, con cifras y el momento en que se tomaron.
+- **Nada ocurre a tus espaldas**: no se recorre ningún disco, y ninguna lectura escribe nada antes de que lo confirmes.
+
+En detalle: [Exportar e importar la configuración](setup-exchange.md), [Idioma de interfaz propio](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+
 ## Tablas que sostienen más de una línea
 
 Aquí termina la pregunta por las formas de trabajar y empieza la pregunta por lo que el archivo puede expresar. El estándar Markdown no necesita explicación; lo interesante es lo que va más allá, y eso empieza por la tabla. Una tabla estándar se basa en líneas y por eso solo admite texto breve. La Perspective Table admite bloques enteros en una celda: listas anidadas, varios párrafos, bloques de código, imágenes e incluso una tabla dentro de la tabla. Así la tabla se convierte en una herramienta de estructuración para contenidos reales en lugar de una colección de palabras sueltas.

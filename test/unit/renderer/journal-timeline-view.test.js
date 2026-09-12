@@ -23,6 +23,8 @@ const onAreaChanged = vi.fn();
 vi.mock('../../../src/renderer/i18n.js', () => ({
   t: (key) => key,
   getLanguage: () => 'de',
+  // 4T-001594: Der Block formatiert über Intl und nimmt dafür die BCP-47-Form.
+  intlLocale: () => 'de',
 }));
 vi.mock('../../../src/renderer/modules/app/api.js', () => ({
   api: {

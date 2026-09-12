@@ -126,6 +126,8 @@ La lista «Senza collegamenti in entrata» è la controprova dell’indicatore o
 
 I numeri portano in alto un riferimento temporale e vengono calcolati **su richiesta**, non di continuo: il pulsante «Aggiorna» li ricalcola, così come una nuova chiamata della voce di menu. Mostrano lo stato **salvato**: ciò che è stato scritto in un documento aperto ma non ancora salvato non rientra nei numeri. La pagina lo dichiara sopra di essi e indica quanti documenti aperti hanno in quel momento modifiche non salvate. Senza un'area aperta non esiste un insieme di file delimitato; la voce è allora disattivata. La funzione si può disattivare come estensione «Statistiche dell'area».
 
+Questa pagina riguarda sempre **un'**area, quella aperta. Una vista sintetica dei dati chiave su **più** contenitori affiancati — anche su aree, libri e librerie che al momento non sono aperti — sta nella pagina [My Extended Memory](my-extended-memory.md); da lì una via riporta a queste statistiche complete.
+
 ### Aree recenti
 
 «File → Area → Aree recenti» elenca le aree aperte di recente con il nome della cartella. Un clic apre l'area con le consuete regole. Le aree vengono ripristinate con la sessione; se all'avvio manca una cartella di area, l'applicazione corrispondente non viene ripristinata e viene mostrato un avviso.

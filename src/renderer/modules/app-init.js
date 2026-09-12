@@ -9,6 +9,9 @@
 'use strict';
 
 import { loadTranslations, applyTranslations, t, normalizeLocale } from '../i18n.js';
+// 4T-001594 (Epic 3E-000129): Rueckfall-Sprache aus der einen Quelle — sie ist
+// das, was die Auswahl zeigt, wenn die eingestellte eigene Sprache fehlt.
+import { FALLBACK_LOCALE } from '../../shared/locales.js';
 import { liveRebuildEffect } from './live/live-shared.js';
 import { api } from './app/api.js';
 import { rerenderAllMermaidBlocks, resetMermaidConfiguredTheme } from './render-mermaid.js';
@@ -136,6 +139,9 @@ import { initAreaStatsPage } from './area-stats-page.js';
 // 4T-000868 (Epic 3E-000162): Regal-Ansicht als System-Seite, Registrierung
 // explizit ueber initShelfViewPage (Muster area-stats-page.js).
 import { initShelfViewPage } from './books/shelf-view.js';
+// 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite,
+// Registrierung explizit ueber initMemoryPage (Muster shelf-view.js).
+import { initMemoryPage } from './memory-page.js';
 // 4T-000480 (Epic 3E-000089): Kommando-Palette; initCommandPalette injiziert den
 // Ausfuehrungs-Pfad ueber die commandHandlers-Map (Zyklus-Vermeidung).
 import { initCommandPalette } from './command-palette.js';
@@ -210,7 +216,16 @@ import { maybeStartTourOnFirstRun } from './tour/tour.js';
 import { registerAppBroadcasts } from './app/app-broadcasts.js';
 import { registerSettingsBroadcasts } from './app/app-settings-broadcasts.js';
 import { commandHandlers, rebuildHotkeyDispatchMap } from './app/app-commands.js';
-import { applyLanguageChange } from './app/app-language.js';
+// 4T-001594 (Epic 3E-000129): dazu die Liste der eingespielten eigenen
+// Sprachen und der sichtbare Rueckfall, wenn ihre Datei fehlt.
+// 4T-001596: dazu der Alterungs-Hinweis, wenn ihr Eintraege fehlen.
+import {
+  applyLanguageChange,
+  fuelleSprachAuswahl,
+  holeEigeneSprachen,
+  zeigeSprachRueckfall,
+  pruefeSprachLuecken,
+} from './app/app-language.js';
 import {
   applyExtensionButtonVisibility,
   applyPanelButtonOrder,
@@ -341,13 +356,28 @@ async function init() {
   // Sprache
   let lang = await api.getSetting('language');
   if (!lang) {
+    // normalizeLocale greift NUR ohne gespeicherte Einstellung: Es fuehrt jede
+    // unbekannte Angabe auf die Rueckfall-Sprache zurueck und wuerde eine
+    // gespeicherte eigene Kennung `custom:<code>` auf 'en' biegen (4T-001594).
     const locale = await api.getLocale();
     lang = normalizeLocale(locale);
   }
   state.language = lang;
-  await loadTranslations(lang);
+  const sprachErgebnis = await loadTranslations(lang);
   applyTranslations(document);
-  langSelect.value = lang;
+  // 4T-001594: Die eingespielten Sprachen stehen als eigene Gruppe unter den
+  // mitgelieferten. Der Aufruf steht NACH dem Laden des Katalogs, weil die
+  // Gruppen-Beschriftung eine Uebersetzung ist.
+  fuelleSprachAuswahl(await holeEigeneSprachen());
+  // Fehlt die Datei der eingestellten eigenen Sprache, steht die Oberflaeche
+  // auf der Rueckfall-Sprache; das Auswahl-Element zeigt sie, die Einstellung
+  // bleibt unangetastet.
+  langSelect.value = sprachErgebnis && sprachErgebnis.fallback ? FALLBACK_LOCALE : lang;
+  if (sprachErgebnis && sprachErgebnis.fallback) zeigeSprachRueckfall(sprachErgebnis.id);
+  // 4T-001596: Der Alterungs-Hinweis steht NACH fuelleSprachAuswahl, weil er
+  // den Anzeige-Namen aus der Liste nimmt, und schliesst den Rueckfall aus:
+  // Nach einem Rueckfall steht eine mitgelieferte Fassung.
+  await pruefeSprachLuecken();
   // 4T-000330 (Epic 3E-000057): Titel neu setzen, sobald das Woerterbuch da ist.
   // Der erste DisplayInfo-Push kann VOR dem Laden der Uebersetzungen
   // eintreffen (im gepackten Build laedt fetch die Sprachdateien langsamer);
@@ -723,6 +753,8 @@ async function init() {
   initAreaStatsPage();
   // 4T-000868 (Epic 3E-000162): Regal-Ansichts-Seite registrieren.
   initShelfViewPage();
+  // 4T-001599 (Epic 3E-000191): My-Extended-Memory-Seite registrieren.
+  initMemoryPage();
   // 4T-000480 (Epic 3E-000089): Kommando-Palette — Ausfuehrungs-Pfad injizieren
   // (global dispatchte Kommandos laufen ueber die commandHandlers-Map).
   initCommandPalette({
