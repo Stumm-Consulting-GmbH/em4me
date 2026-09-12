@@ -807,6 +807,53 @@ function buildMenu(win, state, actions) {
           accelerator: acc('canvas.addCard'),
           click: send('menu:canvasAddCard'),
         }),
+        // 4T-001701 (Epic 3E-000288): Form anlegen, mit derselben Bedingung
+        // und aus demselben Grund wie die Karte darueber.
+        unless('canvas.addShape', {
+          label: t('command.canvas.addShape'),
+          enabled: avail('canvas.addShape'),
+          accelerator: acc('canvas.addShape'),
+          click: send('menu:canvasAddShape'),
+        }),
+        // 4T-001702 (Epic 3E-000288): Gruppe anlegen, mit derselben Bedingung
+        // und aus demselben Grund wie Karte und Form darueber.
+        unless('canvas.addGroup', {
+          label: t('command.canvas.addGroup'),
+          enabled: avail('canvas.addGroup'),
+          accelerator: acc('canvas.addGroup'),
+          click: send('menu:canvasAddGroup'),
+        }),
+        // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
+        // Elements, gebuendelt in einem Untermenue. Einzeln haetten sie das
+        // Ansichtsmenue um vier kurze Zeilen verlaengert, die nur auf der
+        // Flaeche etwas bedeuten; als Gruppe sind sie eine Zeile mit einem
+        // Namen, der die Gruppe erklaert.
+        submenuOrNull('menu.view.canvasStack', [
+          unless('canvas.stackFront', {
+            label: t('command.canvas.stackFront'),
+            enabled: avail('canvas.stackFront'),
+            accelerator: acc('canvas.stackFront'),
+            click: send('menu:canvasStack', 'ganzNachVorn'),
+          }),
+          unless('canvas.stackForward', {
+            label: t('command.canvas.stackForward'),
+            enabled: avail('canvas.stackForward'),
+            accelerator: acc('canvas.stackForward'),
+            click: send('menu:canvasStack', 'eineStufeVor'),
+          }),
+          unless('canvas.stackBackward', {
+            label: t('command.canvas.stackBackward'),
+            enabled: avail('canvas.stackBackward'),
+            accelerator: acc('canvas.stackBackward'),
+            click: send('menu:canvasStack', 'eineStufeZurueck'),
+          }),
+          unless('canvas.stackBack', {
+            label: t('command.canvas.stackBack'),
+            enabled: avail('canvas.stackBack'),
+            accelerator: acc('canvas.stackBack'),
+            click: send('menu:canvasStack', 'ganzNachHinten'),
+          }),
+        ]),
         {
           // 4T-000019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist
           // der Toolbar-Button rechts unten ausgeblendet). Pro aktivem Tab.

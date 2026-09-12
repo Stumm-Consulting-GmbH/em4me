@@ -35,6 +35,20 @@
 'use strict';
 
 import { serializeCanvasFence } from '../../../shared/canvas/canvas-core.js';
+// 4T-001701: Anlegen, Entfernen und Umordnen liegen seit 4T-001700
+// prozessneutral im Kern-Nachbarn — wo ein Element in der Liste steht, ist
+// eine Aussage des Speicherformats (G3) und nicht der Anzeige. Die
+// Karten-Fassungen `freieKartenKennung`, `erzeugeKarte` und `entferneKarte`
+// dieses Moduls sind darin aufgegangen, wie es die Übergabe von 4T-001700
+// vorsah; der Alias hält den Namen des Griffes unten von der Funktion des
+// Kerns getrennt.
+import {
+  entferneElement,
+  erzeugeKarte,
+  freieKennung,
+  fuegeElementEin,
+  verschiebeImStapel as verschiebeElementImStapel,
+} from '../../../shared/canvas/canvas-elemente.js';
 import { MIN_BREITE, MIN_HOEHE, kartenRechteck } from '../../../shared/canvas/canvas-geometrie.js';
 // 4T-001655: Was als Hintergrund der Fläche gilt, entscheidet **eine** Regel
 // für alle drei Fragesteller (Flächen-Ziehen, Auswahl-Aufhebung, Doppelklick).
@@ -51,57 +65,6 @@ export const KARTE_HOEHE = 120;
 // Wert und Begründung von graph-view.js übernommen: Ohne Schwelle würde jedes
 // Zittern der Hand beim Auswählen eine Schreib-Transaktion auslösen.
 const KLICK_SCHWELLE = 3;
-
-/**
- * Erste freie Kennung im Muster `k1`, `k2`, … für eine neue Karte.
- *
- * Geprüft wird gegen **alle** Kennungen der Fläche und nicht nur gegen die der
- * Karten: Eine Verbindung darf `k2` heißen, und eine doppelte Kennung wäre ein
- * Befund des Kerns (`doppelteKennung`).
- *
- * @param {object} model Modell einer Fläche (`parseCanvasFence`).
- * @returns {string}
- */
-export function freieKartenKennung(model) {
-  const belegt = new Set();
-  const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
-  for (const el of elemente) {
-    if (el && el.id) belegt.add(String(el.id));
-  }
-  for (let i = 1; ; i++) {
-    const kennung = `k${i}`;
-    if (!belegt.has(kennung)) return kennung;
-  }
-}
-
-/**
- * Neues Karten-Element in genau der Form, die `parseCanvasFence` liefert.
- *
- * Bewusst hier und nicht im Kern: Der Kern ist der Leser und Schreiber der
- * Fence, und ein zusätzlicher Export dort hätte die geteilten Kern-Module
- * angefasst, ohne dem Format etwas hinzuzufügen. `geaendert` steht von Anfang
- * an auf `true`, weil ein neues Element keinen Rohtext hat, den der
- * Serialisierer wörtlich übernehmen könnte.
- *
- * @param {{id: string, x: number, y: number, b: number, h: number}} felder
- * @returns {object} Element im Modell-Format des Kerns.
- */
-export function erzeugeKarte({ id, x, y, b, h }) {
-  return {
-    art: 'karte',
-    id,
-    attrs: {},
-    attrFolge: [],
-    inhalt: '',
-    roh: { marker: '', inhalt: [] },
-    geaendert: true,
-    zeile: 0,
-    x: Math.round(x),
-    y: Math.round(y),
-    b: Math.max(MIN_BREITE, Math.round(b)),
-    h: Math.max(MIN_HOEHE, Math.round(h)),
-  };
-}
 
 /**
  * Setzt die Lage einer Karte auf ganze Zahlen.
@@ -147,29 +110,6 @@ export function setzeElementInhalt(el, text) {
   if (!el || el.inhalt === neu) return false;
   el.inhalt = neu;
   el.geaendert = true;
-  return true;
-}
-
-/**
- * Entfernt eine Karte samt aller Verbindungen, die auf sie zeigen (AK5).
- *
- * Eine Verbindung ohne ihre Karte wäre nach dem Löschen ein Befund des Kerns
- * (`unbekanntesEnde`) und stünde als Rest in der Datei; sie geht deshalb in
- * derselben Übernahme mit — und kommt mit demselben Rückgängig zurück.
- *
- * @returns {boolean} `true`, wenn etwas entfernt wurde.
- */
-export function entferneKarte(model, id) {
-  const elemente = model && Array.isArray(model.elemente) ? model.elemente : null;
-  if (!elemente || !id) return false;
-  const uebrig = elemente.filter(
-    (el) =>
-      !(el.art === 'karte' && el.id === id) &&
-      !(el.art === 'linie' && (el.von === id || el.nach === id)),
-  );
-  if (uebrig.length === elemente.length) return false;
-  // An Ort und Stelle ersetzen: Die Ansicht hält dieselbe Liste in der Hand.
-  elemente.splice(0, elemente.length, ...uebrig);
   return true;
 }
 
@@ -338,7 +278,7 @@ export function createKartenBedienung(ctx) {
     const p =
       punkt && Number.isFinite(punkt.x) && Number.isFinite(punkt.y) ? punkt : mitteDesAusschnitts();
     const el = erzeugeKarte({
-      id: freieKartenKennung(m),
+      id: freieKennung(m, 'karte'),
       // Die Karte liegt mittig unter dem Klick-Punkt, nicht mit ihrer Ecke
       // darauf: Angeklickt wird die Stelle, an der sie stehen soll.
       x: p.x - KARTE_BREITE / 2,
@@ -346,9 +286,10 @@ export function createKartenBedienung(ctx) {
       b: KARTE_BREITE,
       h: KARTE_HOEHE,
     });
-    // Ans Ende der Element-Liste: Die Reihenfolge in der Fence ist die
-    // Stapel-Reihenfolge (G3), und das Neue liegt oben.
-    m.elemente.push(el);
+    // Ganz nach vorn: Die Reihenfolge in der Fence ist die Stapel-Reihenfolge
+    // (G3), und das Neue liegt oben. Wo genau, entscheidet der Kern — er kennt
+    // den Platz jeder Element-Art (Story 4S-000932).
+    fuegeElementEin(m, el);
     gewaehlteKarte = el.id;
     oeffneNachRender = el.id;
     return schreibe();
@@ -358,7 +299,9 @@ export function createKartenBedienung(ctx) {
 
   function loesche(id) {
     const m = modell();
-    if (!aenderbar() || !entferneKarte(m, id)) return false;
+    // Die Lösch-Regel samt der Verbindungen an dieser Karte steht im Kern
+    // (`entferneElement`); sie gilt für jede Element-Art dieselbe.
+    if (!aenderbar() || !elementZu(id) || !entferneElement(m, id)) return false;
     gewaehlteKarte = null;
     return schreibe();
   }
@@ -696,6 +639,33 @@ export function createKartenBedienung(ctx) {
     /** Punkt eines Maus-Ereignisses in Koordinaten der Fläche. */
     flaechenPunktAus(ev) {
       return flaechenPunkt(buehnenPunkt(ev));
+    },
+    // --- Griffe für die Bedienung der Formen (4T-001701) -----------------------
+    // Dieselbe Begründung wie beim Kontextmenü: Die Formen-Bedienung rechnet
+    // gegen **dieselbe** gemeinsame Verschiebung und legt an **derselben**
+    // Stelle an; eine zweite Umrechnung daneben liefe bei der nächsten
+    // Änderung an Zoom oder Ausschnitt auseinander.
+    /** Mitte des sichtbaren Ausschnitts in Koordinaten der Fläche. */
+    mitteDesAusschnitts,
+    /** Vergrößerung der Fläche — Bildschirm-Pixel je Flächen-Einheit. */
+    flaechenMassstab() {
+      return lage().scale;
+    },
+    /**
+     * Verschiebt ein Element im Stapel (Story 4S-000932).
+     *
+     * Der Griff steht hier und nicht bei den Formen, weil er für **jede**
+     * Element-Art derselbe ist — Karte, Form und ab 4T-001702 Gruppe — und
+     * weil der Schreibweg hier liegt. Die Regel selbst steht im Kern; dieses
+     * Modul setzt sie nur in eine Transaktion um.
+     *
+     * @param {string} id Kennung des Elements.
+     * @param {string} befehl einer aus `STAPEL_BEFEHLE`.
+     * @returns {boolean} `true`, wenn geschrieben wurde.
+     */
+    verschiebeImStapel(id, befehl) {
+      if (!aenderbar() || !verschiebeElementImStapel(modell(), id, befehl)) return false;
+      return schreibe();
     },
     /**
      * Schreibt das Modell in das Dokument und zeichnet neu (4T-001655).

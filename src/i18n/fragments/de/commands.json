@@ -130,5 +130,11 @@
   "command.view.openFieldForm": "Feld-Formular des Dokuments öffnen",
   "command.edit.insertProfileQuery": "Profil-Abfrage einfügen",
   "command.canvas.addCard": "Karte auf der Fläche anlegen",
-  "command.insert.canvas": "Canvas-Fläche"
+  "command.insert.canvas": "Canvas-Fläche",
+  "command.canvas.addShape": "Form auf der Fläche anlegen",
+  "command.canvas.stackFront": "Ganz nach vorn",
+  "command.canvas.stackForward": "Eine Stufe vor",
+  "command.canvas.stackBackward": "Eine Stufe zurück",
+  "command.canvas.stackBack": "Ganz nach hinten",
+  "command.canvas.addGroup": "Gruppe auf der Fläche anlegen"
 }

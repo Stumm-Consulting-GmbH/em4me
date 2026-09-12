@@ -1,10 +1,10 @@
 # Superficie Canvas
 
-Una **tela** è una superficie di lavoro spaziale dentro un normale documento Markdown: **schede** con testo proprio vi sono disposte liberamente e **collegamenti** tracciano le relazioni fra loro. Quando si affiancano alternative, si abbozza un flusso o si mettono prima in ordine dei pensieri, qui l'ordine nasce dalla posizione e non dalla sequenza.
+Una **tela** è una superficie di lavoro spaziale dentro un normale documento Markdown: **schede** con testo proprio vi sono disposte liberamente, **collegamenti** tracciano le relazioni fra loro, **forme** pongono segni accanto a esse e **gruppi** raccolgono ciò che sta insieme. Quando si affiancano alternative, si abbozza un flusso o si mettono prima in ordine dei pensieri, qui l'ordine nasce dalla posizione e non dalla sequenza.
 
 La superficie è sostenuta da un blocco di codice con il tag di linguaggio `perspective-canvas`. Un documento può contenerne quanti se ne vuole, e tutto il resto al suo interno resta normale Markdown.
 
-La funzione appartiene alle [estensioni interne](extensions.md) («Vista tela»). Disattivata, il blocco resta un normale blocco di codice, la modalità di vista scompare e i comandi per superficie e scheda spariscono. Il documento resta leggibile senza modifiche; non si perde nulla.
+La funzione appartiene alle [estensioni interne](extensions.md) («Vista tela»). Disattivata, il blocco resta un normale blocco di codice, la modalità di vista scompare e i comandi per superficie, scheda, forma, gruppo e ordine di sovrapposizione spariscono. Il documento resta leggibile senza modifiche; non si perde nulla.
 
 ## Differenza rispetto alla vista grafo
 
@@ -54,7 +54,7 @@ L'etichetta viene ricavata e non dichiarata: la prima riga utile della prima sch
 
 ### Selezionare, spostare, ridimensionare
 
-- Un **clic** seleziona una scheda, un clic sullo sfondo annulla la selezione. È selezionato al più un elemento: una scheda o un collegamento.
+- Un **clic** seleziona una scheda, un clic sullo sfondo annulla la selezione. È selezionato al più un elemento: una scheda, un collegamento, una forma o un gruppo.
 - **Trascinare** sposta la scheda; i suoi collegamenti la seguono già durante il trascinamento. Non c'è griglia.
 - La **maniglia nell'angolo in basso a destra** cambia la dimensione. Questa è indipendente dal contenuto: se il testo non entra, la scheda scorre — non cresce mai da sola.
 
@@ -92,6 +92,90 @@ Un collegamento selezionato porta una piccola **barra degli strumenti** al centr
 
 Le stesse azioni si trovano nel **menu contestuale** del collegamento (clic destro). `Canc` elimina il collegamento selezionato.
 
+## Forme
+
+Oltre alle schede, la superficie ospita **forme geometriche**. Non portano contenuto, ma strutturano: mettono in risalto una zona, segnano un passo di un flusso oppure pongono un segno accanto a una scheda.
+
+### Creare
+
+- Un **clic destro** sullo sfondo libero → «Inserisci forma» apre un sottomenu con i sei tipi e posa quello scelto nel punto del clic.
+- Il comando **«Aggiungi forma alla tela»** (palette dei comandi, menu Visualizza, scorciatoia assegnabile) posa un rettangolo al centro della porzione visibile.
+
+I tipi a disposizione sono sei: **rettangolo**, **rettangolo arrotondato**, **ellisse**, **triangolo**, **rombo** e **stella**. Non esiste uno strumento per tratti a mano libera.
+
+### Selezionare, spostare, ridimensionare
+
+Come per una scheda: un clic seleziona la forma, il trascinamento la sposta, la maniglia nell'angolo in basso a destra ne cambia la dimensione. Il contorno riempie il suo rettangolo e non ne conserva le proporzioni: un'ellisse tirata in larghezza resta larga.
+
+Ciò che si afferra è la **figura disegnata** e non il rettangolo attorno a essa: un clic nell'angolo vuoto accanto a un triangolo raggiunge ciò che sta dietro.
+
+### Tipo, colori ed etichetta
+
+Una forma selezionata porta una **barra degli strumenti**:
+
+- **Tipo della forma**: passa fra i sei tipi; posizione e dimensione restano.
+- **Colore del bordo**: otto colori dello schema di colori. Senza scelta vale il colore predefinito.
+- **Colore di riempimento**: gli stessi otto colori, disegnati come tinta, più «Nessun riempimento».
+- **Modifica etichetta**: apre la stessa immissione di un doppio clic sulla forma.
+
+L'**etichetta** è **testo semplice**, centrato nella forma. A differenza di una scheda, in essa non viene reso alcun Markdown e non si scorre: la forma struttura, la scheda porta il contenuto. `Ctrl+Invio` e un clic accanto confermano, `Esc` annulla; un testo svuotato toglie di nuovo l'etichetta.
+
+Le stesse azioni si trovano nel **menu contestuale** della forma.
+
+### Eliminare
+
+`Canc` elimina la forma selezionata, così come «Elimina forma» nel suo menu contestuale. Un collegamento non si aggancia a una forma; i collegamenti corrono soltanto fra schede.
+
+## Gruppi
+
+Un **gruppo** è un rettangolo che raccoglie una parte della superficie e le dà un nome: «Analisi», «scartato», «prima stesura». Il suo interno resta utilizzabile: le schede e le forme che vi si trovano si possono ancora afferrare, e un doppio clic in mezzo a un gruppo crea una scheda come ovunque altrove.
+
+### Creare
+
+- Un **clic destro** sullo sfondo libero → «Inserisci gruppo» lo posa nel punto del clic.
+- Il comando **«Aggiungi gruppo alla tela»** lo posa al centro della porzione visibile.
+
+Un nuovo gruppo nasce **in fondo del tutto** e quindi non copre nulla.
+
+### Etichetta e colore
+
+Un gruppo selezionato porta una barra degli strumenti con il **colore del gruppo** — otto colori dello schema di colori, più «Colore predefinito», che toglie di nuovo l'indicazione — e con **Modifica etichetta**. L'etichetta sta in alto a sinistra sulla cornice ed è testo semplice, come per la forma. Le stesse azioni si trovano nel **menu contestuale** del gruppo.
+
+### Membri
+
+**È membro ciò che si trova per intero dentro il gruppo.** Non è scritto da nessuna parte: il rettangolo stesso è l'affermazione, e non esiste un secondo elenco che potrebbe discostarsene. I bordi contano come interno; ciò che sporge oltre uno spigolo non è membro. Un gruppo dentro un gruppo è membro e si sposta con esso.
+
+Da ciò discendono le tre azioni:
+
+| Azione | Effetto sui membri |
+| ------ | ------------------ |
+| Spostare il gruppo | i membri lo seguono, la loro disposizione reciproca resta invariata |
+| Ridimensionare | nulla viene spostato; chi è membro si ricalcola dopo |
+| Eliminare il gruppo | i membri restano al loro posto |
+
+Chi segue il movimento è fissato all'**inizio del trascinamento**: ciò che si trovava nel gruppo al momento della presa viene con esso, anche se lungo il percorso il gruppo va ben oltre il proprio posto. L'intero trascinamento è **un** passo di annullamento.
+
+Un collegamento non è mai membro; segue comunque le sue schede.
+
+## Ordine di sovrapposizione sulla superficie
+
+Schede, forme e gruppi stanno in **un ordine comune**. Quando due elementi si sovrappongono, è esso a decidere quale sta sopra; nessun tipo sta stabilmente sopra un altro.
+
+Per l'elemento selezionato ci sono quattro comandi:
+
+| Comando | Effetto |
+| ------- | ------- |
+| Porta in primo piano | sopra tutti gli altri elementi |
+| Porta avanti | davanti all'elemento successivo che gli sta davanti |
+| Porta indietro | dietro all'elemento successivo che gli sta dietro |
+| Porta in fondo | sotto tutti gli altri elementi |
+
+Due vie ci portano: il **menu contestuale** dell'elemento e **Visualizza → Ordine di sovrapposizione della tela**. Gli stessi comandi si trovano nella palette dei comandi (`Ctrl+K` come predefinito); nessuna scorciatoia è preassegnata, e si possono assegnare nelle impostazioni.
+
+**I nuovi elementi hanno il loro posto:** un nuovo gruppo nasce in fondo del tutto, una nuova forma e una nuova scheda in primo piano.
+
+**I collegamenti non ne sono toccati.** Vengono disegnati in un livello proprio sotto tutti gli elementi e non si possono spostare nell'ordine.
+
 ## Annullare
 
 `Ctrl+Z` ritira l'ultima azione sulla superficie, `Ctrl+Y` e `Ctrl+Maiusc+Z` la ripristinano. Ogni azione è esattamente un passo: una scheda spostata, una dimensione cambiata, un collegamento creato, un testo modificato. Finché è aperta l'immissione di testo di una scheda o di un collegamento, `Ctrl+Z` vale per il testo digitato lì.
@@ -104,7 +188,7 @@ Le stesse azioni si trovano nel **menu contestuale** del collegamento (clic dest
 
 ## Solo guardare
 
-La superficie segue la modificabilità del suo documento. Finché il documento è in semplice visualizzazione, senza modalità di modifica attiva, la superficie è **solo consultabile**: niente maniglie, niente trascinamento, niente creazione, niente immissione di testo, niente barra degli strumenti, e il menu contestuale resta senza voci. Spostare la porzione, ingrandire e selezionare un elemento con un clic restano permessi, perché non toccano il documento.
+La superficie segue la modificabilità del suo documento. Finché il documento è in semplice visualizzazione, senza modalità di modifica attiva, la superficie è **solo consultabile**: niente maniglie, niente trascinamento, niente creazione, niente immissione di testo, niente barra degli strumenti, nessun riordino, e il menu contestuale resta senza voci. Vale per ogni tipo: scheda, collegamento, forma e gruppo. Nemmeno la via della palette dei comandi e del menu lo aggira; il mancato effetto viene detto nella barra di stato e non taciuto. Spostare la porzione, ingrandire e selezionare un elemento con un clic restano permessi, perché non toccano il documento.
 
 La modalità di modifica libera l'uso — matita nella barra di stato, `Ctrl+E` predefinito; i dettagli sono nella pagina [Viste e presentazione](views-display.md).
 
@@ -116,7 +200,7 @@ Poiché la superficie si trova in un normale documento Markdown, la si incontra 
 | ----- | --------------- |
 | Sorgente | il blocco in chiaro — questa vista **è** la sorgente |
 | Divisa | il testo in chiaro a sinistra, il blocco di sintesi a destra |
-| Renderizzata | **il blocco di sintesi**: tipo, ampiezza in schede e collegamenti, un'anteprima dei testi delle schede e il pulsante «Apri la vista Canvas» |
+| Renderizzata | **il blocco di sintesi**: tipo, ampiezza in schede, collegamenti, forme e gruppi, un'anteprima dei testi delle schede e il pulsante «Apri la vista Canvas» |
 | Live | lo stesso blocco; quando il punto di inserimento tocca il blocco, questo si apre in testo grezzo ed è lì modificabile |
 | Mappa mentale | una breve nota con tipo e ampiezza al posto del testo grezzo |
 | Tela | la superficie stessa |
@@ -162,7 +246,27 @@ Le due estremità sono identificatori di schede, e la **freccia fra loro porta l
 
 `von=` indica il lato di collegamento alla prima estremità, `nach=` quello della seconda; sono ammessi `links` (sinistra), `rechts` (destra), `oben` (alto), `unten` (basso) e `auto`. `farbe=` colora la linea; sono ammessi `blau`, `rot`, `grün`, `gelb`, `lila`, `orange`, `türkis` e `pink` — blu, rosso, verde, giallo, viola, arancione, turchese e rosa. Senza questo attributo la linea è disegnata nel colore predefinito dello schema di colori. Le righe sotto il marcatore sono l'**etichetta**.
 
-L'**ordine dentro il blocco è anche l'ordine di sovrapposizione**: ciò che sta più in basso si trova più avanti.
+### Forme
+
+```text
+!form <identificatore> x=<numero> y=<numero> b=<numero> h=<numero> art=<nome> rand=<colore> füllung=<colore>
+```
+
+Posizione e dimensione contano come per una scheda. `art=` è uno di sei nomi: `rechteck` (rettangolo), `abgerundet` (arrotondato), `oval` (ellisse), `dreieck` (triangolo), `raute` (rombo) e `stern` (stella). `rand=` e `füllung=` prendono gli stessi otto nomi di colore del collegamento, e `füllung=keine` lascia la forma senza riempimento. Senza `art` vale il rettangolo, senza `rand` il colore predefinito e senza `füllung` la forma resta senza riempimento: un valore predefinito non viene scritto, perché la sua assenza lo dice già. Le righe sotto il marcatore sono l'**etichetta**.
+
+Un nome sconosciuto in `art` o in uno dei due colori è un **rilievo**: la forma viene conservata, disegnata come rettangolo oppure nel colore predefinito, e il suo testo resta invariato nel file.
+
+### Gruppi
+
+```text
+!gruppe <identificatore> x=<numero> y=<numero> b=<numero> h=<numero> farbe=<nome>
+```
+
+Posizione e dimensione descrivono il rettangolo, `farbe=` prende uno degli otto nomi di colore; senza tale indicazione vale il colore predefinito. Le righe sotto il marcatore sono l'**etichetta**. **Nel file non c'è alcun elenco di membri**: chi si trova nel gruppo discende dai rettangoli e da nient'altro.
+
+### L'ordine dentro il blocco
+
+L'**ordine dentro il blocco è anche l'ordine di sovrapposizione** su schede, forme e gruppi: ciò che sta più in basso si trova più avanti. I collegamenti stanno nella stessa sequenza, ma non ne sono toccati; vengono disegnati in un livello proprio sotto tutti gli elementi.
 
 ### Due regole che proteggono il file
 
@@ -173,6 +277,9 @@ L'**ordine dentro il blocco è anche l'ordine di sovrapposizione**: ciò che sta
 
 ````markdown
 ```perspective-canvas
+!gruppe g1 x=-360 y=-200 b=740 h=220 farbe=blau
+Analisi
+
 !karte k1 x=-320 y=-140 b=260 h=120
 ## Punto di partenza
 
@@ -187,6 +294,9 @@ Più fonti, una fusione.
 ## Domanda aperta
 
 Come si risolvono i conflitti?
+
+!form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
+Messaggio chiave
 
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 produce
@@ -202,6 +312,9 @@ si condizionano
 Nel rendering appare qui il blocco di sintesi, e il pulsante al suo interno porta sulla superficie:
 
 ```perspective-canvas
+!gruppe g1 x=-360 y=-200 b=740 h=220 farbe=blau
+Analisi
+
 !karte k1 x=-320 y=-140 b=260 h=120
 ## Punto di partenza
 
@@ -217,6 +330,9 @@ Più fonti, una fusione.
 
 Come si risolvono i conflitti?
 
+!form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
+Messaggio chiave
+
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 produce
 
@@ -229,7 +345,9 @@ si condizionano
 
 ## Limiti
 
-- Una scheda porta **testo proprio**; altri tipi di scheda non esistono. Le forme geometriche e le cornici di gruppo non fanno parte della superficie.
+- Una scheda porta **testo proprio**; altri tipi di scheda non esistono. Forme e gruppi fanno parte della superficie, ma non portano contenuto reso, bensì al più un'etichetta di testo semplice.
+- **Il disegno libero non esiste.** La superficie conosce i sei tipi di forma e nessun'altra geometria; tratti a mano libera, frecce tracciate da sé e immissione con la penna non ne fanno parte.
+- Un **collegamento** corre soltanto fra schede; non si aggancia né a una forma né a un gruppo.
 - Un collegamento nel testo di una scheda **non** compare nel grafo dei collegamenti né nei collegamenti in entrata: l'indice dell'area salta il contenuto dei blocchi di codice.
 - La superficie si usa con il mouse; la tastiera porta l'annullamento, l'eliminazione e le immissioni di testo.
 - Una superficie appartiene al suo documento. Le schede non si possono trascinare da una superficie a un'altra.

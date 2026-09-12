@@ -1,10 +1,10 @@
 # Surface Canvas
 
-Un **canevas** est une surface de travail spatiale au sein d'un document Markdown ordinaire : des **cartes** portant leur propre texte y sont disposées librement, et des **connexions** tracent les relations entre elles. Lorsque des variantes sont posées côte à côte, qu'un déroulement est esquissé ou que des idées sont d'abord triées, l'ordre vient ici de la position et non de la séquence.
+Un **canevas** est une surface de travail spatiale au sein d'un document Markdown ordinaire : des **cartes** portant leur propre texte y sont disposées librement, des **connexions** tracent les relations entre elles, des **formes** posent des repères à côté d'elles et des **groupes** rassemblent ce qui va ensemble. Lorsque des variantes sont posées côte à côte, qu'un déroulement est esquissé ou que des idées sont d'abord triées, l'ordre vient ici de la position et non de la séquence.
 
 La surface est portée par un bloc de code avec la balise de langage `perspective-canvas`. Un document peut en contenir autant que voulu, et tout le reste y demeure du Markdown ordinaire.
 
-La fonction fait partie des [extensions internes](extensions.md) (« Vue canevas »). Désactivée, le bloc reste un bloc de code ordinaire, le mode d'affichage disparaît et les commandes pour la surface et la carte s'en vont. Le document reste parfaitement lisible ; rien n'est perdu.
+La fonction fait partie des [extensions internes](extensions.md) (« Vue canevas »). Désactivée, le bloc reste un bloc de code ordinaire, le mode d'affichage disparaît et les commandes pour la surface, la carte, la forme, le groupe et l'ordre de superposition s'en vont. Le document reste parfaitement lisible ; rien n'est perdu.
 
 ## Distinction avec la vue graphe
 
@@ -54,7 +54,7 @@ L'intitulé est dérivé et non déclaré : la première ligne utile de la premi
 
 ### Sélectionner, déplacer, redimensionner
 
-- Un **clic** sélectionne une carte, un clic sur le fond annule la sélection. Un seul élément au plus est sélectionné — une carte ou une connexion.
+- Un **clic** sélectionne une carte, un clic sur le fond annule la sélection. Un seul élément au plus est sélectionné — une carte, une connexion, une forme ou un groupe.
 - **Faire glisser** déplace la carte ; ses connexions suivent pendant le déplacement. Il n'y a pas de grille.
 - La **poignée du coin inférieur droit** modifie la taille. Celle-ci est indépendante du contenu : si le texte ne tient pas, la carte défile — elle ne grandit jamais d'elle-même.
 
@@ -92,6 +92,90 @@ Une connexion sélectionnée porte une petite **barre d'outils** au milieu de so
 
 Les mêmes actions figurent dans le **menu contextuel** de la connexion (clic droit). `Suppr` supprime la connexion sélectionnée.
 
+## Formes
+
+Outre les cartes, la surface porte des **formes géométriques**. Elles ne portent pas de contenu, elles structurent : elles mettent une zone en évidence, marquent une étape d'un déroulement ou posent un repère à côté d'une carte.
+
+### Créer
+
+- Un **clic droit** sur le fond libre → « Insérer une forme » ouvre un sous-menu avec les six sortes et pose la sorte choisie à l'endroit du clic.
+- La commande **« Ajouter une forme au canevas »** (palette de commandes, menu Affichage, raccourci attribuable) pose un rectangle au milieu de la portion visible.
+
+Six sortes sont proposées : **rectangle**, **rectangle arrondi**, **ellipse**, **triangle**, **losange** et **étoile**. Il n'existe pas d'outil pour les traits à main levée.
+
+### Sélectionner, déplacer, redimensionner
+
+Comme pour une carte : un clic sélectionne la forme, faire glisser la déplace, la poignée du coin inférieur droit modifie la taille. Le contour remplit son rectangle et ne conserve pas ses proportions — une ellipse étirée en largeur reste large.
+
+Ce que l'on saisit, c'est la **figure dessinée** et non le rectangle autour d'elle : un clic dans le coin vide à côté d'un triangle atteint ce qui se trouve derrière.
+
+### Sorte, couleurs et étiquette
+
+Une forme sélectionnée porte une **barre d'outils** :
+
+- **Sorte de la forme** — bascule entre les six sortes ; position et taille restent en place.
+- **Couleur du contour** — huit couleurs du jeu de couleurs. Sans choix, la couleur par défaut s'applique.
+- **Couleur de remplissage** — les mêmes huit couleurs, dessinées en teinte, ainsi que « Sans remplissage ».
+- **Modifier l'étiquette** — ouvre la même saisie qu'un double-clic sur la forme.
+
+L'**étiquette** est un **texte simple**, centré dans la forme. Contrairement à une carte, aucun Markdown n'y est rendu et elle ne défile pas : la forme structure, la carte porte le contenu. `Ctrl+Entrée` et un clic à côté valident, `Échap` annule ; un texte vidé retire de nouveau l'étiquette.
+
+Les mêmes actions figurent dans le **menu contextuel** de la forme.
+
+### Supprimer
+
+`Suppr` supprime la forme sélectionnée, tout comme « Supprimer la forme » dans son menu contextuel. Une connexion ne se raccorde pas à une forme ; les connexions relient uniquement des cartes.
+
+## Groupes
+
+Un **groupe** est un rectangle qui rassemble une partie de la surface et la nomme — « Analyse », « écarté », « première version ». Son intérieur reste manipulable : les cartes et les formes qui s'y trouvent restent saisissables, et un double-clic au milieu d'un groupe crée une carte comme partout ailleurs.
+
+### Créer
+
+- Un **clic droit** sur le fond libre → « Insérer un groupe » le pose à l'endroit du clic.
+- La commande **« Ajouter un groupe au canevas »** le pose au milieu de la portion visible.
+
+Un nouveau groupe naît **tout au fond** et ne masque donc rien.
+
+### Étiquette et couleur
+
+Un groupe sélectionné porte une barre d'outils avec la **couleur du groupe** — huit couleurs du jeu de couleurs, ainsi que « Couleur par défaut », qui retire de nouveau l'attribut — et avec **Modifier l'étiquette**. L'étiquette se place en haut à gauche du cadre et est un texte simple, comme pour la forme. Les mêmes actions figurent dans le **menu contextuel** du groupe.
+
+### Membres
+
+**Est membre ce qui se trouve entièrement dans le groupe.** Cela n'est écrit nulle part — le rectangle lui-même est l'affirmation, et il n'existe pas de seconde liste qui pourrait s'en écarter. Les bords comptent comme intérieurs ; ce qui dépasse une arête n'est pas membre. Un groupe dans un groupe est membre et se déplace avec lui.
+
+Les trois actions en découlent :
+
+| Action | Effet sur les membres |
+| ------ | --------------------- |
+| Déplacer le groupe | les membres suivent, leur disposition les uns par rapport aux autres reste inchangée |
+| Redimensionner | rien n'est déplacé ; qui est membre se recalcule ensuite |
+| Supprimer le groupe | les membres restent en place |
+
+Qui suit le mouvement est fixé au **début du déplacement** : ce qui se trouvait dans le groupe au moment de la saisie vient avec lui — même si le groupe va bien au-delà de son propre emplacement en chemin. Tout le déplacement est **une** étape d'annulation.
+
+Une connexion n'est jamais membre ; elle suit de toute façon ses cartes.
+
+## Ordre de superposition sur la surface
+
+Les cartes, les formes et les groupes se trouvent dans **un ordre commun**. Lorsque deux éléments se chevauchent, c'est lui qui décide lequel est au-dessus ; aucune sorte ne passe durablement devant une autre.
+
+Pour l'élément sélectionné, il existe quatre commandes :
+
+| Commande | Effet |
+| -------- | ----- |
+| Mettre au premier plan | au-dessus de tous les autres éléments |
+| Avancer d'un niveau | devant l'élément suivant situé devant lui |
+| Reculer d'un niveau | derrière l'élément suivant situé derrière lui |
+| Mettre à l'arrière-plan | en dessous de tous les autres éléments |
+
+Deux chemins y mènent : le **menu contextuel** de l'élément et **Affichage → Ordre de superposition du canevas**. Les mêmes commandes figurent dans la palette de commandes (`Ctrl+K` par défaut) ; aucun raccourci n'est préaffecté, et ils peuvent être attribués dans les réglages.
+
+**Les nouveaux éléments ont leur place :** un nouveau groupe naît tout au fond, une nouvelle forme et une nouvelle carte tout devant.
+
+**Les connexions n'en sont pas touchées.** Elles sont dessinées dans une couche propre, sous tous les éléments, et ne peuvent pas être déplacées dans l'ordre.
+
 ## Annuler
 
 `Ctrl+Z` reprend la dernière action sur la surface, `Ctrl+Y` et `Ctrl+Maj+Z` la rétablissent. Chaque action est exactement une étape : une carte déplacée, une taille modifiée, une connexion créée, un texte changé. Tant que la saisie de texte d'une carte ou d'une connexion est ouverte, `Ctrl+Z` s'applique au texte frappé là.
@@ -104,7 +188,7 @@ Les mêmes actions figurent dans le **menu contextuel** de la connexion (clic dr
 
 ## Consulter seulement
 
-La surface suit la modifiabilité de son document. Tant que le document est en simple affichage, sans mode édition, la surface est **consultable seulement** : pas de poignées, pas de glissement, pas de création, pas de saisie, pas de barre d'outils, et le menu contextuel reste sans entrées. Déplacer la portion, zoomer et sélectionner un élément d'un clic restent permis, car cela ne touche pas au document.
+La surface suit la modifiabilité de son document. Tant que le document est en simple affichage, sans mode édition, la surface est **consultable seulement** : pas de poignées, pas de glissement, pas de création, pas de saisie, pas de barre d'outils, pas de réordonnancement, et le menu contextuel reste sans entrées. Cela vaut pour chaque sorte — carte, connexion, forme et groupe. Le chemin par la palette de commandes et le menu n'y change rien non plus ; l'échec est dit dans la barre d'état et non passé sous silence. Déplacer la portion, zoomer et sélectionner un élément d'un clic restent permis, car cela ne touche pas au document.
 
 Le mode édition libère la manipulation — crayon dans la barre d'état, `Ctrl+E` par défaut ; les détails figurent sur la page [Vues et affichage](views-display.md).
 
@@ -116,7 +200,7 @@ Comme la surface se trouve dans un document Markdown ordinaire, elle se rencontr
 | --- | --------------- |
 | Source | le bloc en clair — cette vue **est** la source |
 | Scindée | le texte en clair à gauche, le bloc de synthèse à droite |
-| Rendu | **le bloc de synthèse** : nature, volume en cartes et connexions, un aperçu des textes de cartes et le bouton « Ouvrir la vue Canvas » |
+| Rendu | **le bloc de synthèse** : nature, volume en cartes, connexions, formes et groupes, un aperçu des textes de cartes et le bouton « Ouvrir la vue Canvas » |
 | Live | le même bloc ; lorsque le point d'insertion touche le bloc, celui-ci se déplie en texte brut et devient modifiable |
 | Carte mentale | une courte note avec nature et volume au lieu du texte brut |
 | Canevas | la surface elle-même |
@@ -162,7 +246,27 @@ Les deux extrémités sont des identifiants de cartes, et la **flèche entre ell
 
 `von=` nomme le côté de raccordement à la première extrémité, `nach=` celui de la seconde ; sont admis `links` (gauche), `rechts` (droite), `oben` (haut), `unten` (bas) et `auto`. `farbe=` colore la ligne ; sont admis `blau`, `rot`, `grün`, `gelb`, `lila`, `orange`, `türkis` et `pink` — bleu, rouge, vert, jaune, violet, orange, turquoise et rose. Sans cet attribut, la ligne est tracée dans la couleur par défaut du jeu de couleurs. Les lignes sous le marqueur sont l'**étiquette**.
 
-L'**ordre dans le bloc est aussi l'ordre d'empilement** : ce qui figure plus bas se trouve plus en avant.
+### Formes
+
+```text
+!form <identifiant> x=<nombre> y=<nombre> b=<nombre> h=<nombre> art=<nom> rand=<couleur> füllung=<couleur>
+```
+
+La position et la taille comptent comme pour une carte. `art=` est l'un des six noms : `rechteck` (rectangle), `abgerundet` (arrondi), `oval` (ellipse), `dreieck` (triangle), `raute` (losange) et `stern` (étoile). `rand=` et `füllung=` prennent les mêmes huit noms de couleur que la connexion, et `füllung=keine` laisse la forme sans remplissage. Sans `art`, le rectangle s'applique ; sans `rand`, la couleur par défaut ; sans `füllung`, la forme reste sans remplissage — une valeur par défaut n'est pas écrite, car son absence le dit déjà. Les lignes sous le marqueur sont l'**étiquette**.
+
+Un nom inconnu dans `art` ou dans l'une des deux couleurs est un **constat** : la forme est conservée, dessinée en rectangle ou dans la couleur par défaut, et son texte figure inchangé dans le fichier.
+
+### Groupes
+
+```text
+!gruppe <identifiant> x=<nombre> y=<nombre> b=<nombre> h=<nombre> farbe=<nom>
+```
+
+La position et la taille décrivent le rectangle, `farbe=` prend l'un des huit noms de couleur ; sans cet attribut, la couleur par défaut s'applique. Les lignes sous le marqueur sont l'**étiquette**. **Aucune liste de membres ne figure dans le fichier** — qui se trouve dans le groupe découle des rectangles et de rien d'autre.
+
+### L'ordre dans le bloc
+
+L'**ordre dans le bloc est aussi l'ordre d'empilement** sur les cartes, les formes et les groupes : ce qui figure plus bas se trouve plus en avant. Les connexions figurent dans la même suite, mais n'en sont pas touchées ; elles sont dessinées dans une couche propre, sous tous les éléments.
 
 ### Deux règles qui protègent le fichier
 
@@ -173,6 +277,9 @@ L'**ordre dans le bloc est aussi l'ordre d'empilement** : ce qui figure plus bas
 
 ````markdown
 ```perspective-canvas
+!gruppe g1 x=-360 y=-200 b=740 h=220 farbe=blau
+Analyse
+
 !karte k1 x=-320 y=-140 b=260 h=120
 ## Point de départ
 
@@ -187,6 +294,9 @@ Plusieurs sources, une fusion.
 ## Question ouverte
 
 Comment les conflits sont-ils tranchés ?
+
+!form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
+Message clé
 
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 donne
@@ -202,6 +312,9 @@ se conditionnent
 Au rendu, le bloc de synthèse apparaît ici, et le bouton qu'il contient mène à la surface :
 
 ```perspective-canvas
+!gruppe g1 x=-360 y=-200 b=740 h=220 farbe=blau
+Analyse
+
 !karte k1 x=-320 y=-140 b=260 h=120
 ## Point de départ
 
@@ -217,6 +330,9 @@ Plusieurs sources, une fusion.
 
 Comment les conflits sont-ils tranchés ?
 
+!form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
+Message clé
+
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 donne
 
@@ -229,7 +345,9 @@ se conditionnent
 
 ## Limites
 
-- Une carte porte **son propre texte** ; il n'existe pas d'autre type de carte. Les formes géométriques et les cadres de groupe ne font pas partie de la surface.
+- Une carte porte **son propre texte** ; il n'existe pas d'autre type de carte. Les formes et les groupes font partie de la surface, mais ne portent aucun contenu rendu — tout au plus une étiquette en texte simple.
+- **Le dessin libre n'existe pas.** La surface connaît les six sortes de formes et aucune autre géométrie ; les traits à main levée, les flèches tracées soi-même et la saisie au stylet n'en font pas partie.
+- Une **connexion** relie uniquement des cartes ; elle ne se raccorde ni à une forme ni à un groupe.
 - Un lien dans le texte d'une carte n'apparaît **pas** dans le graphe des liens ni dans les rétroliens : l'index de l'espace ignore le contenu des blocs de code.
 - La surface se manipule à la souris ; le clavier porte l'annulation, la suppression et les saisies de texte.
 - Une surface appartient à son document. Les cartes ne peuvent pas être glissées d'une surface à une autre.

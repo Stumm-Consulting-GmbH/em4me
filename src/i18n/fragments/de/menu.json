@@ -111,5 +111,6 @@
   "menu.file.importLocale": "Einspielen…",
   "menu.file.removeLocale": "Entfernen…",
   "menu.file.updateLocale": "Aktualisieren…",
-  "menu.view.canvas": "Canvas"
+  "menu.view.canvas": "Canvas",
+  "menu.view.canvasStack": "Reihenfolge auf der Fläche"
 }

@@ -859,6 +859,94 @@ const COMMANDS = [
     availability: 'canvasKarte',
   },
   {
+    // 4T-001701 (Epic 3E-000288): Geometrische Form auf der Flaeche anlegen.
+    // Muster canvas.addCard, bis hin zum fehlenden Vorgabe-Kuerzel: Eine
+    // raeumliche Handlung braucht den Ort, an dem sie stattfinden soll. Das
+    // Kommando legt ein Rechteck in der Mitte des sichtbaren Ausschnitts an;
+    // die sechs Arten an der Klick-Stelle bietet das Kontextmenue.
+    id: 'canvas.addShape',
+    defaultBindings: [],
+    labelKey: 'command.canvas.addShape',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  {
+    // 4T-001702 (Epic 3E-000288): Gruppe auf der Flaeche anlegen. Muster
+    // canvas.addShape samt fehlendem Vorgabe-Kuerzel. Die Gruppe entsteht in
+    // der Mitte des sichtbaren Ausschnitts und ganz hinten im Stapel, damit
+    // sie nichts verdeckt; an der Klick-Stelle bietet sie das Kontextmenue.
+    id: 'canvas.addGroup',
+    defaultBindings: [],
+    labelKey: 'command.canvas.addGroup',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  // 4T-001701 (Epic 3E-000288, Story 4S-000932): die vier Stapel-Befehle des
+  // gewaehlten Elements — Karte, Form und ab 4T-001702 Gruppe. Sie stehen in
+  // der Reihenfolge, in der Praesentations- und Diagramm-Werkzeuge sie
+  // anbieten, und ohne Vorgabe-Kuerzel: Die Flaeche belegt Entf, Escape und
+  // Strg+Z bereits selbst, und vier weitere Kuerzel waeren vier Kollisionen
+  // mehr, die niemand angefordert hat.
+  //
+  // **Zur Verfuegbarkeit.** Sie traegt dieselbe Bedingung wie canvas.addCard
+  // (offene Flaeche in der Canvas-Ansicht). Ob ein Element GEWAEHLT und das
+  // Dokument AENDERBAR ist, steht bewusst nicht im Bedingungs-Katalog: Beides
+  // sind Zustaende der Ansicht, die der Kontext des Modells nicht kennt, und
+  // ein elftes gemeinsames Feld muesste bei jedem Klick auf der Flaeche ueber
+  // die Prozess-Bruecke gemeldet werden. Beide Faelle faengt stattdessen der
+  // Guard der Einbettung mit einem gesagten Fehlschlag ab — dasselbe Muster,
+  // mit dem canvas.addCard den Anzeige-Modus behandelt.
+  //
+  // Ausgeschrieben statt erzeugt: Die Registry ist eine Liste, die von Hand
+  // gelesen und von Waechtern am Quelltext gemessen wird; eine Schleife haette
+  // vier Zeilen gespart und die Auffindbarkeit gekostet.
+  {
+    id: 'canvas.stackFront',
+    defaultBindings: [],
+    labelKey: 'command.canvas.stackFront',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  {
+    id: 'canvas.stackForward',
+    defaultBindings: [],
+    labelKey: 'command.canvas.stackForward',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  {
+    id: 'canvas.stackBackward',
+    defaultBindings: [],
+    labelKey: 'command.canvas.stackBackward',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  {
+    id: 'canvas.stackBack',
+    defaultBindings: [],
+    labelKey: 'command.canvas.stackBack',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  {
     id: 'zoom.in',
     defaultBindings: ['CmdOrCtrl+Plus'],
     labelKey: 'command.zoom.in',

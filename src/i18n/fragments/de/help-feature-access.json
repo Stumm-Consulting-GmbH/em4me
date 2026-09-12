@@ -207,5 +207,8 @@
   "help.featureAccess.setupExchange": "Datei → Einstellungen → Exportieren… / Importieren…; Seite My Extended Memory",
   "help.featureAccess.customLocale": "Datei → Eigene Sprache → Vorlage herunterladen… / Einspielen… / Entfernen… / Aktualisieren…; Sprach-Auswahl in der Statusleiste",
   "help.featureAccess.myExtendedMemory": "Ansicht → My Extended Memory; Kommando-Palette",
-  "help.featureAccess.canvas": "Ansicht → Canvas (Standard Strg+6); Code-Block `perspective-canvas`; Kommando-Palette → 'Canvas-Fläche' und 'Karte auf der Fläche anlegen'"
+  "help.featureAccess.canvas": "Ansicht → Canvas (Standard Strg+6); Code-Block `perspective-canvas`; Kommando-Palette → 'Canvas-Fläche' und 'Karte auf der Fläche anlegen'",
+  "help.featureAccess.canvasShapes": "Ansicht → Form auf der Fläche anlegen; Kontextmenü der Fläche → Form einfügen; Kommando-Palette → 'Form auf der Fläche anlegen'",
+  "help.featureAccess.canvasGroups": "Ansicht → Gruppe auf der Fläche anlegen; Kontextmenü der Fläche → Gruppe einfügen; Kommando-Palette → 'Gruppe auf der Fläche anlegen'",
+  "help.featureAccess.canvasStacking": "Ansicht → Reihenfolge auf der Fläche; Kontextmenü des gewählten Elements; Kommando-Palette → 'Ganz nach vorn', 'Eine Stufe vor', 'Eine Stufe zurück' und 'Ganz nach hinten'"
 }

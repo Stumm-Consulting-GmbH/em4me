@@ -168,6 +168,167 @@ function rund(wert) {
   return Math.round(wert * 10) / 10;
 }
 
+// 4T-001701 (Epic 3E-000288): Strichstärke der Formen-Umrisse, in
+// Flächen-Einheiten. Sie steht hier und nicht allein im Stilblatt, weil die
+// Geometrie den Umriss um die halbe Stärke einrückt — sonst schnitte die Hülle
+// die äußere Hälfte des Striches ab.
+const FORM_STRICH = 2;
+
+// Zacken des Sterns und das Verhältnis von innerem zu äußerem Radius. Fünf
+// Zacken sind der Stern, den jeder meint; 0,42 ist der Wert, bei dem die
+// Zacken schlank bleiben, ohne zu Nadeln zu werden.
+const STERN_ZACKEN = 5;
+const STERN_INNEN = 0.42;
+
+// Eckpunkte eines Vielecks als `points`-Wert eines SVG-Polygons.
+function punkteAls(punkte) {
+  return punkte.map(([x, y]) => `${rund(x)},${rund(y)}`).join(' ');
+}
+
+function sternPunkte(cx, cy, rx, ry) {
+  const punkte = [];
+  for (let i = 0; i < STERN_ZACKEN * 2; i++) {
+    // Bei -90 Grad beginnen: Die erste Zacke zeigt nach oben, wie gezeichnet.
+    const winkel = -Math.PI / 2 + (i * Math.PI) / STERN_ZACKEN;
+    const anteil = i % 2 === 0 ? 1 : STERN_INNEN;
+    punkte.push([cx + Math.cos(winkel) * rx * anteil, cy + Math.sin(winkel) * ry * anteil]);
+  }
+  return punkte;
+}
+
+/**
+ * Umriss einer geometrischen Form (Festlegung G5) als SVG-Grundfigur.
+ *
+ * **Prozessneutral und damit ohne DOM prüfbar**, wie die übrige Geometrie: Das
+ * Ergebnis beschreibt die Figur, gebaut wird sie in der Zeichen-Schicht
+ * (`canvas-formen.js`). Dieselbe Trennung wie beim Verbindungs-Pfad, und aus
+ * demselben Grund.
+ *
+ * Der Umriss füllt die Hülle vollständig aus und ist um die halbe
+ * Strichstärke eingerückt; die Figur wird damit **nicht** proportional
+ * skaliert, sondern folgt Breite und Höhe der Form — genau das erwartet, wer
+ * ein Oval in die Breite zieht.
+ *
+ * Eine **unbekannte Art** ergibt das Rechteck. Der Kern setzt sie bereits auf
+ * die Vorgabe zurück (`formArt` neben `artUnbekannt`); der Rückfall hier ist
+ * die zweite Hälfte derselben Zusage und kostet eine Zeile.
+ *
+ * @param {string} art eine der sechs Arten aus `FORM_ARTEN`.
+ * @param {number} breite Breite der Form in Flächen-Einheiten.
+ * @param {number} hoehe Höhe der Form.
+ * @returns {{tag: string, attrs: object}} SVG-Knoten-Name und seine Attribute.
+ */
+function formGeometrie(art, breite, hoehe) {
+  const einzug = FORM_STRICH / 2;
+  const b = Math.max(FORM_STRICH, Number.isFinite(breite) ? breite : 0) - FORM_STRICH;
+  const h = Math.max(FORM_STRICH, Number.isFinite(hoehe) ? hoehe : 0) - FORM_STRICH;
+  const cx = einzug + b / 2;
+  const cy = einzug + h / 2;
+  switch (art) {
+    case 'abgerundet':
+      return {
+        tag: 'rect',
+        attrs: {
+          x: einzug,
+          y: einzug,
+          width: rund(b),
+          height: rund(h),
+          // Der Radius wächst mit der Form, bleibt aber gedeckelt: Ohne Deckel
+          // wäre eine große Form ein Stadion, ohne Mitwachsen eine kleine
+          // Form ein Rechteck mit angedeuteter Ecke.
+          rx: rund(Math.min(14, b / 4, h / 4)),
+        },
+      };
+    case 'oval':
+      return {
+        tag: 'ellipse',
+        attrs: { cx: rund(cx), cy: rund(cy), rx: rund(b / 2), ry: rund(h / 2) },
+      };
+    case 'dreieck':
+      return {
+        tag: 'polygon',
+        attrs: {
+          points: punkteAls([
+            [cx, einzug],
+            [einzug + b, einzug + h],
+            [einzug, einzug + h],
+          ]),
+        },
+      };
+    case 'raute':
+      return {
+        tag: 'polygon',
+        attrs: {
+          points: punkteAls([
+            [cx, einzug],
+            [einzug + b, cy],
+            [cx, einzug + h],
+            [einzug, cy],
+          ]),
+        },
+      };
+    case 'stern':
+      return { tag: 'polygon', attrs: { points: punkteAls(sternPunkte(cx, cy, b / 2, h / 2)) } };
+    default:
+      return { tag: 'rect', attrs: { x: einzug, y: einzug, width: rund(b), height: rund(h) } };
+  }
+}
+
+/**
+ * Liegt ein Rechteck **vollständig** in einem anderen?
+ *
+ * 4T-001702 (Festlegung G6): die Rechnung, auf der die Mitgliedschaft in einer
+ * Gruppe beruht. Sie steht hier und nicht in der Bedienung, weil sie reine
+ * Geometrie ist und ohne Browser prüfbar bleiben soll — dieselbe Trennung wie
+ * beim Verbindungs-Pfad und beim Umriss der Form.
+ *
+ * **Die Ränder zählen dazu:** Ein Element, dessen Kante genau auf der Kante der
+ * Gruppe liegt, ist drinnen. Die Gegenentscheidung wäre für den Anwender nicht
+ * nachvollziehbar — er sieht ein Element im Rechteck und nicht eine Kante, die
+ * es um null Einheiten verfehlt.
+ *
+ * @param {object} innen Element mit Lage und Größe.
+ * @param {object} aussen Element mit Lage und Größe.
+ * @returns {boolean}
+ */
+function liegtVollstaendigIn(innen, aussen) {
+  const i = kartenRechteck(innen);
+  const a = kartenRechteck(aussen);
+  return i.x >= a.x && i.y >= a.y && i.x + i.b <= a.x + a.b && i.y + i.h <= a.y + a.h;
+}
+
+/**
+ * Mitglieder einer Gruppe (Festlegung G6, Story 4S-000931).
+ *
+ * **Es gibt keine Mitglieder-Liste im Modell** — das Rechteck ist die Aussage,
+ * und eine zweite Quelle derselben Aussage könnte auseinanderlaufen. Mitglied
+ * ist deshalb, was **jetzt** vollständig in der Gruppe liegt; die Antwort wird
+ * bei jedem Zug-Beginn neu gestellt und nirgends gespeichert.
+ *
+ * **Zwei Arten kommen nicht in Frage.** Die Gruppe selbst nicht (sie läge immer
+ * in sich), und eine Verbindung nicht: Sie hat kein eigenes Rechteck, sondern
+ * folgt ihren beiden Karten — wandern die mit, wandert sie von selbst mit. Eine
+ * Gruppe **in** einer Gruppe ist dagegen Mitglied und wandert mit; die
+ * Mitglieder der inneren Gruppe liegen dann ebenfalls in der äußeren und
+ * wandern genau einmal, weil die Liste flach ist.
+ *
+ * @param {object} gruppe Gruppen-Element.
+ * @param {Array<object>} elemente Element-Liste des Modells.
+ * @returns {Array<object>} die Mitglieder in der Reihenfolge der Liste.
+ */
+function gruppenMitglieder(gruppe, elemente) {
+  if (!gruppe) return [];
+  const liste = Array.isArray(elemente) ? elemente : [];
+  return liste.filter(
+    (el) =>
+      el &&
+      el !== gruppe &&
+      el.art !== 'linie' &&
+      !(gruppe.id && el.id === gruppe.id) &&
+      liegtVollstaendigIn(el, gruppe),
+  );
+}
+
 /**
  * Pfad einer Verbindung als kubische Bézier-Kurve, die an beiden Enden
  * senkrecht aus ihrer Seite herausläuft.
@@ -332,7 +493,11 @@ module.exports = {
   ZOOM_MAX,
   SEITEN,
   ZONEN_TIEFE,
+  FORM_STRICH,
+  formGeometrie,
   kartenRechteck,
+  liegtVollstaendigIn,
+  gruppenMitglieder,
   zielSeiteIm,
   seitenPunkt,
   seitenNormale,

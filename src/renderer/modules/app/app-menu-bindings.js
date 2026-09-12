@@ -9,7 +9,12 @@ import { state, toggleFocusMode, toggleTypewriterScroll } from './app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import { scheduleLint } from '../editor/editor-lint.js';
 // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen.
-import { legeCanvasKarteAn } from '../canvas/canvas-pane.js';
+import {
+  legeCanvasFormAn,
+  legeCanvasGruppeAn,
+  legeCanvasKarteAn,
+  verschiebeCanvasElement,
+} from '../canvas/canvas-pane.js';
 import { toggleOutlinePanel } from '../panels/panel-outline.js';
 import { toggleOutgoingPanel } from '../panels/panel-outgoing.js';
 import { activateBacklinksFor, toggleBacklinksPanel } from '../panels/panel-backlinks.js';
@@ -146,6 +151,18 @@ export function bindMenuEvents() {
   // 4T-001654 (Epic 3E-000287): 'Ansicht -> Karte auf der Flaeche anlegen'.
   if (typeof api.onMenuCanvasAddCard === 'function') {
     api.onMenuCanvasAddCard(() => legeCanvasKarteAn(state.activePaneIndex));
+  }
+  // 4T-001701 (Epic 3E-000288): 'Form auf der Flaeche anlegen' und die vier
+  // Stapel-Befehle des gewaehlten Elements.
+  if (typeof api.onMenuCanvasAddShape === 'function') {
+    api.onMenuCanvasAddShape(() => legeCanvasFormAn(state.activePaneIndex));
+  }
+  // 4T-001702 (Epic 3E-000288): 'Gruppe auf der Flaeche anlegen'.
+  if (typeof api.onMenuCanvasAddGroup === 'function') {
+    api.onMenuCanvasAddGroup(() => legeCanvasGruppeAn(state.activePaneIndex));
+  }
+  if (typeof api.onMenuCanvasStack === 'function') {
+    api.onMenuCanvasStack((befehl) => verschiebeCanvasElement(state.activePaneIndex, befehl));
   }
   api.onMenuToggleLineNumbers(() => toggleShowLineNumbers());
   api.onMenuToggleWordWrap(() => toggleWrapLines());

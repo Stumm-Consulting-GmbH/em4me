@@ -111,5 +111,6 @@
   "menu.file.importLocale": "Cargar…",
   "menu.file.removeLocale": "Eliminar…",
   "menu.file.updateLocale": "Actualizar…",
-  "menu.view.canvas": "Lienzo"
+  "menu.view.canvas": "Lienzo",
+  "menu.view.canvasStack": "Orden de apilamiento del lienzo"
 }

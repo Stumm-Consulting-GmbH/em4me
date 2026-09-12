@@ -79,7 +79,12 @@ import {
 } from './workspaces.js';
 import { insertEventsBlock } from '../events/events-editor.js';
 // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen.
-import { legeCanvasKarteAn } from '../canvas/canvas-pane.js';
+import {
+  legeCanvasFormAn,
+  legeCanvasGruppeAn,
+  legeCanvasKarteAn,
+  verschiebeCanvasElement,
+} from '../canvas/canvas-pane.js';
 import { openDatePickerAtSelection } from '../calendar/date-picker.js';
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
 import * as journale from '../calendar/journals.js';
@@ -410,6 +415,33 @@ export const commandHandlers = {
   // (Guard-Muster edit.insertEvents).
   'canvas.addCard': () => {
     return legeCanvasKarteAn(state.activePaneIndex);
+  },
+  // 4T-001701 (Epic 3E-000288): Form in der Mitte des sichtbaren Ausschnitts
+  // anlegen, Art Rechteck. Die sechs Arten an der Klick-Stelle bietet das
+  // Kontextmenue der Flaeche.
+  'canvas.addShape': () => {
+    return legeCanvasFormAn(state.activePaneIndex);
+  },
+  // 4T-001702 (Epic 3E-000288): Gruppe in der Mitte des sichtbaren
+  // Ausschnitts anlegen; an der Klick-Stelle bietet sie das Kontextmenue.
+  'canvas.addGroup': () => {
+    return legeCanvasGruppeAn(state.activePaneIndex);
+  },
+  // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
+  // Elements. Sie rufen dieselbe Einbettung wie der Menue-Weg; der Name des
+  // Befehls ist der des Kerns, damit die Kette keinen Uebersetzungs-Schritt
+  // traegt, an dem sie reissen koennte.
+  'canvas.stackFront': () => {
+    return verschiebeCanvasElement(state.activePaneIndex, 'ganzNachVorn');
+  },
+  'canvas.stackForward': () => {
+    return verschiebeCanvasElement(state.activePaneIndex, 'eineStufeVor');
+  },
+  'canvas.stackBackward': () => {
+    return verschiebeCanvasElement(state.activePaneIndex, 'eineStufeZurueck');
+  },
+  'canvas.stackBack': () => {
+    return verschiebeCanvasElement(state.activePaneIndex, 'ganzNachHinten');
   },
   'view.toggleEdit': () => {
     toggleEditMode();

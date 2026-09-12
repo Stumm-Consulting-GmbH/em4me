@@ -100,10 +100,17 @@
   pointer-events: none;
 }
 
-/* Obere Ebene: die Karten. Sie ist selbst ohne Ausdehnung; die Karten stehen
-   absolut darin und ragen in alle Richtungen heraus. Der Ursprung liegt oben
-   links, damit die CSS-Transformation dieselbe Rechnung ausführt wie die des
-   SVG-Viewports. */
+/* Obere Ebene: die Elemente. Sie ist selbst ohne Ausdehnung; Karten und Formen
+   stehen absolut darin und ragen in alle Richtungen heraus. Der Ursprung liegt
+   oben links, damit die CSS-Transformation dieselbe Rechnung ausführt wie die
+   des SVG-Viewports.
+
+   4T-001701 (Epic 3E-000288): Seit der gemeinsamen Element-Ebene (E4 in der
+   Fassung vom 2026-09-12) trägt sie Karten **und** Formen in der Reihenfolge
+   der Fence. Der Klassen-Name trägt seine Herkunft weiter; eine Umbenennung
+   hätte nichts hinzugefügt. Bemerkenswert ist, was hier NICHT steht: ein
+   `z-index`. Die Stapel-Reihenfolge ist die Reihenfolge im Baum (G3), und ein
+   zweiter Ordnungs-Träger daneben könnte auseinanderlaufen. */
 .canvas-karten {
   position: absolute;
   left: 0;
@@ -428,6 +435,353 @@
   font-family: var(--editor-font-family, monospace);
   font-size: 12px;
   line-height: 1.4;
+}
+
+/* === Geometrische Formen (4T-001701, Epic 3E-000288) ========================
+   Eine Form ist ein SVG in einer positionierten Hülle — der Preis dafür, dass
+   Karten und Formen in EINER geordneten Ebene liegen (E4 in der Fassung vom
+   2026-09-12). Farben kommen ausschließlich aus Theme-Variablen; die Zeichnung
+   setzt `--tab-group-<schluessel>` unmittelbar am Umriss, ohne Angabe gilt die
+   Regel hier. */
+
+/* Die Hülle ist für den Zeiger DURCHLÄSSIG, ihr Umriss nicht. Ohne das wählte
+   ein Klick in die leere Ecke eines Dreiecks die Form aus, und eine Karte
+   hinter dieser Ecke wäre unerreichbar. */
+.canvas-form {
+  position: absolute;
+  pointer-events: none;
+}
+.canvas-form-svg {
+  display: block;
+  overflow: visible;
+}
+.canvas-form-flaeche {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  /* `all` und nicht `visiblePainted`: Eine ungefüllte Form soll auch in ihrer
+     Mitte anfassbar sein — sonst träfe man nur den Strich. */
+  pointer-events: all;
+  cursor: move;
+}
+/* Die Füllung ist eine TÖNUNG derselben Farbe, keine Deckfläche: Sie hebt den
+   Bereich hervor, ohne zu verdecken, was unter ihr liegt. Die Deckkraft sitzt
+   an der Fläche und nicht am Element, damit der Rand deckend bleibt — dasselbe
+   Mittel wie bei den Ziel-Zonen darüber, nur an der SVG-Eigenschaft. */
+.canvas-form-gefuellt {
+  fill-opacity: 0.22;
+}
+.canvas-nur-ansicht .canvas-form-flaeche {
+  cursor: default;
+}
+
+/* Die gewählte Form trägt einen dickeren Strich in der Akzentfarbe — dieselbe
+   Aussage wie der Ring der gewählten Karte, an der Gestalt der Form. */
+.canvas-form-gewaehlt .canvas-form-flaeche {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+/* Beschriftung: einfacher Text, mittig in der Form (Entscheidung F3). Kein
+   Markdown und keine Scroll-Fläche — das bleibt der Unterschied zur Karte. */
+.canvas-form-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+
+/* Griff für die Größen-Änderung, unten rechts. Er schaltet die
+   Zeigerereignisse wieder ein, die die Hülle abgeschaltet hat, und wird wie
+   bei der Karte erst bei Auswahl sichtbar. */
+.canvas-form-griff {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: all;
+  cursor: nwse-resize;
+}
+.canvas-form-gewaehlt .canvas-form-griff {
+  opacity: 0.8;
+}
+
+/* Leiste der gewählten Form, über ihrer Oberkante. Aussehen und Maße wie die
+   Leiste der Verbindung — es ist dieselbe Art von Werkzeug, und zwei
+   Erscheinungsbilder dafür wären zwei Sprachen auf einer Fläche. */
+.canvas-form-leiste {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  transform: translate(-50%, -100%);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-alt);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  white-space: nowrap;
+  pointer-events: all;
+}
+.canvas-form-knopf {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.canvas-form-knopf:hover {
+  background: var(--hover);
+}
+.canvas-form-art {
+  height: 20px;
+  max-width: 130px;
+  padding: 0 2px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+/* Zwei Farb-Reihen nebeneinander: Rand und Füllung. Der senkrechte Strich
+   zwischen ihnen trennt sie sichtbar — ohne ihn wären es siebzehn Punkte in
+   einer Kette, und niemand wüsste, wo die eine Angabe endet. */
+.canvas-form-farben {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+  padding-left: 5px;
+  border-left: 1px solid var(--border);
+}
+.canvas-form-farbe {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+/* Die gesetzte Farbe trägt einen Ring: An einer Leiste mit zwei Reihen ist
+   sonst nicht ablesbar, was die Form gerade hat. */
+.canvas-form-farbe-aktiv {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+/* «Keine Füllung» zeigt die Flächenfarbe, nicht ein leeres Feld: Der Punkt
+   sagt, was die Form danach trägt. */
+.canvas-form-farbe-keine {
+  background: var(--bg);
+}
+
+/* Eingabe der Beschriftung, genau über der Form und in der Editor-Schrift —
+   geschrieben wird hier der Rohtext der Form. */
+.canvas-form-eingabe {
+  position: absolute;
+  box-sizing: border-box;
+  resize: none;
+  padding: 4px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  outline: none;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-family: var(--editor-font-family, monospace);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: all;
+}
+
+/* === Gruppen (4T-001702, Epic 3E-000288) ====================================
+   Eine Gruppe ist ein beschrifteter Rahmen um fremde Elemente. Sie liegt in
+   derselben Ebene wie Karten und Formen und wird wie sie über die Reihenfolge
+   in der Fence gestapelt (G3); ein `z-index` steht auch hier nirgends. Farben
+   kommen ausschließlich aus Theme-Variablen. */
+
+/* Die Hülle ist für den Zeiger durchlässig, und die Fläche des Rahmens ist es
+   ebenfalls: Der Innenraum einer Gruppe gehört dem, was darin liegt. Angefasst
+   wird sie über ihren Rand (Treffer-Rechteck), ihre Beschriftung und ihren
+   Griff. Ohne diese Regel wäre eine nach vorn geholte Gruppe ein Deckel über
+   ihrem eigenen Inhalt. */
+.canvas-gruppe {
+  position: absolute;
+  pointer-events: none;
+}
+.canvas-gruppe-svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Der breite, unsichtbare Treffer-Rahmen. Er fängt den Klick auf dem Rand ein,
+   ohne das Bild zu verändern — dasselbe Mittel wie beim Treffer-Pfad der
+   Verbindungen und aus demselben Grund: Ein zwei Einheiten breiter Strich ist
+   mit der Maus nicht zu treffen. */
+.canvas-gruppe-treffer {
+  fill: none;
+  stroke: transparent;
+  pointer-events: stroke;
+  cursor: move;
+}
+
+/* Rand deckend, Fläche getönt (Entscheidung F5): Die Tönung hebt den Bereich
+   hervor, ohne zu verdecken, was in ihm liegt. Die Deckkraft sitzt an der
+   Fläche und nicht am Element, damit der Rand deckend bleibt. Ohne Angabe
+   gilt die Standardfarbe von hier. Bemerkenswert ist `pointer-events: none`:
+   Die getönte Fläche darf keinen Klick fangen, sonst wäre der Innenraum doch
+   wieder zu. */
+.canvas-gruppe-rahmen {
+  fill: var(--border-strong);
+  fill-opacity: 0.12;
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  pointer-events: none;
+}
+.canvas-nur-ansicht .canvas-gruppe-treffer {
+  cursor: default;
+}
+
+/* Die gewählte Gruppe trägt einen dickeren Strich in der Akzentfarbe — dieselbe
+   Aussage wie der Ring der gewählten Karte. */
+.canvas-gruppe-gewaehlt .canvas-gruppe-rahmen {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+/* Beschriftung oben links im Rahmen (Story 4S-000931): einfacher Text, kein
+   Markdown. Sie ist der zweite Griff der Gruppe — bei einer großen Gruppe
+   liegt der Rand weit draußen — und fängt den Zeiger deshalb wieder ein. */
+.canvas-gruppe-text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: 100%;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  pointer-events: all;
+  cursor: move;
+}
+
+/* Griff für die Größen-Änderung, unten rechts. Er schaltet die
+   Zeigerereignisse wieder ein, die die Hülle abgeschaltet hat, und wird wie
+   bei Karte und Form erst bei Auswahl sichtbar. */
+.canvas-gruppe-griff {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: all;
+  cursor: nwse-resize;
+}
+.canvas-gruppe-gewaehlt .canvas-gruppe-griff {
+  opacity: 0.8;
+}
+
+/* Leiste der gewählten Gruppe, über ihrer Oberkante. Aussehen und Maße wie die
+   Leisten von Verbindung und Form — es ist dieselbe Art von Werkzeug. */
+.canvas-gruppe-leiste {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  transform: translate(-50%, -100%);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-alt);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  white-space: nowrap;
+  pointer-events: all;
+}
+.canvas-gruppe-knopf {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.canvas-gruppe-knopf:hover {
+  background: var(--hover);
+}
+.canvas-gruppe-farben {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+  padding-left: 5px;
+  border-left: 1px solid var(--border);
+}
+.canvas-gruppe-farbe {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.canvas-gruppe-farbe-aktiv {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+/* «Standardfarbe» zeigt die Flächenfarbe, nicht ein leeres Feld: Der Punkt
+   sagt, was die Gruppe danach trägt. */
+.canvas-gruppe-farbe-keine {
+  background: var(--bg);
+}
+
+/* Eingabe der Beschriftung, oben in der Gruppe und in der Editor-Schrift —
+   geschrieben wird hier der Rohtext der Gruppe. Links ausgerichtet, weil dort
+   auch die Beschriftung steht. */
+.canvas-gruppe-eingabe {
+  position: absolute;
+  box-sizing: border-box;
+  resize: none;
+  padding: 4px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  outline: none;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-family: var(--editor-font-family, monospace);
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: all;
 }
 
 /* Hinweis-Zeile unten links, im Muster der Mindmap-Ansicht. */

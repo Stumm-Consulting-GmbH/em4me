@@ -913,6 +913,14 @@ contextBridge.exposeInMainWorld('api', {
   onMenuViewChange: (cb) => ipcRenderer.on('menu:viewChange', (_e, mode) => cb(mode)),
   // 4T-001654 (Epic 3E-000287): 'Ansicht -> Karte auf der Flaeche anlegen'.
   onMenuCanvasAddCard: (cb) => ipcRenderer.on('menu:canvasAddCard', () => cb()),
+  // 4T-001701 (Epic 3E-000288): 'Ansicht -> Form auf der Flaeche anlegen'.
+  onMenuCanvasAddShape: (cb) => ipcRenderer.on('menu:canvasAddShape', () => cb()),
+  // 4T-001702 (Epic 3E-000288): 'Ansicht -> Gruppe auf der Flaeche anlegen'.
+  onMenuCanvasAddGroup: (cb) => ipcRenderer.on('menu:canvasAddGroup', () => cb()),
+  // 4T-001701: die vier Stapel-Befehle ueber EINEN Kanal mit dem Befehl als
+  // Nutzlast (Muster menu:viewChange). Vier Kanaele fuer vier Namen derselben
+  // Handlung waeren vier Stellen, an denen dieselbe Kette reisst.
+  onMenuCanvasStack: (cb) => ipcRenderer.on('menu:canvasStack', (_e, befehl) => cb(befehl)),
   onMenuToggleLineNumbers: (cb) => ipcRenderer.on('menu:toggleLineNumbers', () => cb()),
   onMenuToggleWordWrap: (cb) => ipcRenderer.on('menu:toggleWordWrap', () => cb()),
   onMenuSave: (cb) => ipcRenderer.on('menu:save', () => cb()),

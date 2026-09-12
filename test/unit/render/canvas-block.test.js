@@ -48,6 +48,38 @@ describe('Canvas-Block: Art, Umfang und Zugang (AK1)', () => {
     expect(renderMarkdown(FENCE(KARTEN(1)), 'de')).toContain('>1 Karte, 0 Verbindungen<');
   });
 
+  // 4T-001700 (Epic 3E-000288): Die Umfang-Zeile nennt seit der Stufe 2 auch
+  // Formen und Gruppen (AK8, Entscheidung E8 fortgeschrieben am 2026-09-12).
+  it('die Kopfzeile nennt Formen und Gruppen, sobald welche da sind', () => {
+    const rumpf = [
+      KARTEN(1),
+      '!form s1 x=0 y=0 b=90 h=90 art=stern',
+      '!form s2 x=9 y=0 b=90 h=90',
+      '!gruppe g1 x=0 y=0 b=300 h=300 farbe=blau',
+    ].join('\n');
+    expect(renderMarkdown(FENCE(rumpf), 'de')).toContain(
+      '>1 Karte, 0 Verbindungen, 2 Formen, 1 Gruppe<',
+    );
+  });
+
+  it('ohne Formen und Gruppen bleibt die Zeile so knapp wie zuvor', () => {
+    // Die Gegenprobe: Ein dauerhaftes «0 Formen» wäre Rauschen in einer
+    // Kopfzeile, die knapp bleiben soll — dieselbe Regel wie beim Befund.
+    const html = renderMarkdown(FENCE(`${KARTEN(2)}\n!linie e1 k1 -> k2`), 'de');
+    expect(html).toContain('>2 Karten, 1 Verbindung<');
+    expect(html).not.toContain('Formen');
+    expect(html).not.toContain('Gruppen');
+  });
+
+  it('eine einzelne Form und eine einzelne Gruppe stehen in der Einzahl', () => {
+    const rumpf = [KARTEN(1), '!form s1 x=0 y=0 b=90 h=90', '!gruppe g1 x=0 y=0 b=9 h=9'].join(
+      '\n',
+    );
+    expect(renderMarkdown(FENCE(rumpf), 'de')).toContain(
+      '>1 Karte, 0 Verbindungen, 1 Form, 1 Gruppe<',
+    );
+  });
+
   it('der Zugang ist ein Knopf und trägt die Stelle der Fence', () => {
     const doc = `# Titel\n\n${FENCE(KARTEN(1))}\n`;
     const html = renderMarkdown(doc, 'de');
@@ -197,6 +229,25 @@ describe('Canvas-Block: Lokalisierung', () => {
     const fr = renderMarkdown(FENCE(KARTEN(1)), 'fr');
     expect(fr).toContain('>Surface Canvas<');
     expect(fr).toContain('>1 carte, 0 connexions<');
+  });
+
+  // 4T-001700: Die fünf Sprachfassungen der neuen Zahlwörter, am gerenderten
+  // Block statt an der Sprachdatei — der Wächter check-i18n prüft die
+  // Schlüssel, hier steht die Wirkung.
+  it('Formen und Gruppen erscheinen in allen fünf Sprachfassungen', () => {
+    const rumpf = [KARTEN(1), '!form s1 x=0 y=0 b=90 h=90', '!gruppe g1 x=0 y=0 b=9 h=9'].join(
+      '\n',
+    );
+    const erwartet = {
+      de: '>1 Karte, 0 Verbindungen, 1 Form, 1 Gruppe<',
+      en: '>1 card, 0 connections, 1 shape, 1 group<',
+      fr: '>1 carte, 0 connexions, 1 forme, 1 groupe<',
+      es: '>1 tarjeta, 0 conexiones, 1 forma, 1 grupo<',
+      it: '>1 scheda, 0 collegamenti, 1 forma, 1 gruppo<',
+    };
+    for (const [sprache, text] of Object.entries(erwartet)) {
+      expect(renderMarkdown(FENCE(rumpf), sprache)).toContain(text);
+    }
   });
 
   it('die beiden Klapp-Beschriftungen reisen als Attribute mit', () => {

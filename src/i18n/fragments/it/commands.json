@@ -130,5 +130,11 @@
   "command.view.openFieldForm": "Aprire il modulo dei campi del documento",
   "command.edit.insertProfileQuery": "Inserisci query di profilo",
   "command.canvas.addCard": "Aggiungi scheda alla tela",
-  "command.insert.canvas": "Tela"
+  "command.insert.canvas": "Tela",
+  "command.canvas.addShape": "Aggiungi forma alla tela",
+  "command.canvas.stackFront": "Porta in primo piano",
+  "command.canvas.stackForward": "Porta avanti",
+  "command.canvas.stackBackward": "Porta indietro",
+  "command.canvas.stackBack": "Porta in fondo",
+  "command.canvas.addGroup": "Aggiungi gruppo alla tela"
 }

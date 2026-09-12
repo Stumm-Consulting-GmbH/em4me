@@ -130,5 +130,11 @@
   "command.view.openFieldForm": "Abrir el formulario de campos del documento",
   "command.edit.insertProfileQuery": "Insertar consulta de perfil",
   "command.canvas.addCard": "Añadir tarjeta al lienzo",
-  "command.insert.canvas": "Lienzo"
+  "command.insert.canvas": "Lienzo",
+  "command.canvas.addShape": "Añadir forma al lienzo",
+  "command.canvas.stackFront": "Traer al frente",
+  "command.canvas.stackForward": "Traer adelante",
+  "command.canvas.stackBackward": "Enviar atrás",
+  "command.canvas.stackBack": "Enviar al fondo",
+  "command.canvas.addGroup": "Añadir grupo al lienzo"
 }

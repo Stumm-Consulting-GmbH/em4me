@@ -127,7 +127,21 @@ const SECHS_FAELLE = [
 // sieben zu heben: Sie machte aus der Zusage von 4T-001636 (genau diese sechs
 // und sonst nichts) eine mitwachsende Liste, die bei jedem neuen Kommando
 // erneut anzupassen waere — und damit aus einem Nachweis eine Buchfuehrung.
-const NACH_DER_MESSUNG = new Set(['view.modeCanvas', 'canvas.addCard', 'insert.canvas']);
+//
+// 4T-001701 (Epic 3E-000288): Die fuenf Kommandos der Formen und der
+// Stapel-Reihenfolge kommen aus demselben Grund hinzu — sie sind juenger als
+// der Massstab, und die eingefrorene Kopie kennt sie nicht.
+const NACH_DER_MESSUNG = new Set([
+  'view.modeCanvas',
+  'canvas.addCard',
+  'canvas.addShape',
+  'canvas.addGroup',
+  'canvas.stackFront',
+  'canvas.stackForward',
+  'canvas.stackBackward',
+  'canvas.stackBack',
+  'insert.canvas',
+]);
 
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
 const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas'];

@@ -207,5 +207,8 @@
   "help.featureName.setupExchange": "Export und Import der eigenen Einstellungen",
   "help.featureName.customLocale": "Eigene Oberflächen-Sprache",
   "help.featureName.myExtendedMemory": "My Extended Memory",
-  "help.featureName.canvas": "Canvas-Ansicht"
+  "help.featureName.canvas": "Canvas-Ansicht",
+  "help.featureName.canvasShapes": "Formen auf der Canvas",
+  "help.featureName.canvasGroups": "Gruppen auf der Canvas",
+  "help.featureName.canvasStacking": "Reihenfolge auf der Canvas"
 }

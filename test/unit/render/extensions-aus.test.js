@@ -490,18 +490,38 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
     expect(disabledFeatureKeySet(['canvas']).has('help.feature.canvas')).toBe(true);
   });
 
-  it('führt genau die drei Canvas-Kommandos, und alle drei sind registriert', () => {
+  it('fuehrt genau die Canvas-Kommandos, und alle sind registriert', () => {
     const manifest = extensionById('canvas');
-    expect(manifest.commands).toEqual(['view.modeCanvas', 'canvas.addCard', 'insert.canvas']);
+    expect(manifest.commands).toEqual([
+      'view.modeCanvas',
+      'canvas.addCard',
+      'canvas.addShape',
+      'canvas.addGroup',
+      'canvas.stackFront',
+      'canvas.stackForward',
+      'canvas.stackBackward',
+      'canvas.stackBack',
+      'insert.canvas',
+    ]);
     const registrierte = new Set(COMMANDS.map((c) => c.id));
     for (const id of manifest.commands) {
       expect(registrierte.has(id), `${id} fehlt in der Kommando-Registry`).toBe(true);
     }
   });
 
-  it('AK5: der Aus-Zustand filtert genau diese drei, der An-Zustand keines', () => {
+  it('AK5: der Aus-Zustand filtert genau diese, der An-Zustand keines', () => {
     const aus = disabledCommandIdSet(['canvas']);
-    for (const id of ['view.modeCanvas', 'canvas.addCard', 'insert.canvas']) {
+    for (const id of [
+      'view.modeCanvas',
+      'canvas.addCard',
+      'canvas.addShape',
+      'canvas.addGroup',
+      'canvas.stackFront',
+      'canvas.stackForward',
+      'canvas.stackBackward',
+      'canvas.stackBack',
+      'insert.canvas',
+    ]) {
       expect(aus.has(id), `${id} muss im Aus-Zustand gefiltert sein`).toBe(true);
     }
     // Die Nachbarn in denselben Menüs bleiben unberührt: die übrigen fünf
@@ -518,7 +538,17 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       expect(aus.has(id), `${id} darf nicht mitgefiltert werden`).toBe(false);
     }
     const an = disabledCommandIdSet([]);
-    for (const id of ['view.modeCanvas', 'canvas.addCard', 'insert.canvas']) {
+    for (const id of [
+      'view.modeCanvas',
+      'canvas.addCard',
+      'canvas.addShape',
+      'canvas.addGroup',
+      'canvas.stackFront',
+      'canvas.stackForward',
+      'canvas.stackBackward',
+      'canvas.stackBack',
+      'insert.canvas',
+    ]) {
       expect(an.has(id)).toBe(false);
     }
   });

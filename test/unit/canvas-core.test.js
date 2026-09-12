@@ -16,9 +16,27 @@ import {
   istCanvasDokument,
   canvasFenceBlock,
   canvasFlaechenTitel,
+  canvasUmfang,
+  FORM_ARTEN,
   LINIEN_FARBEN,
   LINIEN_FARB_NAMEN,
 } from '../../src/shared/canvas/canvas-core.js';
+// 4T-001700: Die Gegenrichtung — Anlegen, Ändern, Löschen und Umordnen der
+// Elemente im Modell. Sie steht eine Datei weiter und wird hier mitgeprüft,
+// weil sie dieselbe Fachlichkeit trägt: die Reihenfolge in der Fence.
+import {
+  STAPEL_BEFEHLE,
+  freieKennung,
+  erzeugeForm,
+  erzeugeGruppe,
+  fuegeElementEin,
+  entferneElement,
+  verschiebeImStapel,
+  setzeFormArt,
+  setzeFormRand,
+  setzeFormFuellung,
+  setzeGruppenFarbe,
+} from '../../src/shared/canvas/canvas-elemente.js';
 // 4T-001655: Die acht Farben der Verbindungen sind genau die acht der
 // Reiter-Gruppen; der Vergleich hält die beiden Sätze zusammen.
 import { TAB_GROUP_COLOR_KEYS } from '../../src/shared/tab-group-colors.js';
@@ -187,11 +205,14 @@ describe('canvas-core — Rundlauf ist byte-gleich (AK3)', () => {
 
 describe('canvas-core — Vorwärts-Verträglichkeit (AK4, G1)', () => {
   it('führt unbekannte Marker späterer Stufen mit und schreibt sie zurück', () => {
+    // 4T-001700: Bis zur Stufe 2 standen hier `!form` und `!gruppe`. Sie sind
+    // seither bekannt, also prüft der Fall jetzt mit Markern, die es in keiner
+    // Stufe gibt — die Zusage gilt jedem künftigen Marker, nicht zweien.
     const roh = [
       '!karte k1 x=0 y=0 b=10 h=10',
       'A',
-      '!form s1 x=380 y=120 art=stern rand=#c0392b',
-      '!gruppe g1 x=-360 y=-180 b=720 h=200',
+      '!wolke w1 x=380 y=120 dichte=hoch',
+      '!spur p1 von=k1',
       'Analyse',
     ].join('\n');
     const model = parseCanvasFence(roh);
@@ -263,6 +284,14 @@ describe('canvas-core — defekte Eingaben sind Befunde, kein Absturz (AK5)', ()
       'ungueltigeFarbe',
     ],
     ['Inhalt vor dem ersten Marker', 'lose Zeile\n!karte k1 x=0 y=0 b=1 h=1', 'inhaltVorMarker'],
+    // 4T-001700: dieselbe Semantik für die beiden Marker der Stufe 2 — ein
+    // Befund verwirft nie ein Element, und der Rundlauf bleibt byte-gleich.
+    ['unbekannte Art der Form', '!form s1 x=0 y=0 b=1 h=1 art=wolke', 'ungueltigeArt'],
+    ['unbekannter Rand der Form', '!form s1 x=0 y=0 b=1 h=1 rand=neongrün', 'ungueltigeFarbe'],
+    ['unbekannte Füllung der Form', '!form s1 x=0 y=0 b=1 h=1 füllung=beige', 'ungueltigeFarbe'],
+    ['fehlende Größe der Form', '!form s1 x=0 y=0', 'ungueltigeZahl'],
+    ['unbekannte Farbe der Gruppe', '!gruppe g1 x=0 y=0 b=1 h=1 farbe=ocker', 'ungueltigeFarbe'],
+    ['fehlende Kennung der Gruppe', '!gruppe x=0 y=0 b=1 h=1', 'fehlendeKennung'],
   ];
 
   for (const [name, rumpf, code] of faelle) {
@@ -384,5 +413,433 @@ describe('Titel einer Fläche: abgeleitet statt angegeben (4T-001677)', () => {
     expect(titelVon('!linie e1 a -> b')).toBe('');
     expect(canvasFlaechenTitel(null)).toBe('');
     expect(canvasFlaechenTitel({})).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4T-001700 (Epic 3E-000288): Formen und Gruppen — Grammatik G5 und G6, die
+// gemeinsame Stapel-Reihenfolge über alle Element-Arten (G3 nach der
+// Entscheidung «Weg 2» des Product Owners vom 2026-09-12) und die Funktionen,
+// mit denen Zeichnung und Bedienung die Liste ändern.
+// ---------------------------------------------------------------------------
+
+describe('canvas-core — Grammatik der Form (G5, AK2)', () => {
+  const VOLL = '!form s1 x=380 y=120 b=90 h=90 art=stern rand=rot füllung=gelb';
+
+  it('liest Kennung, Lage, Größe, Art, Rand und Füllung samt Beschriftung', () => {
+    const model = parseCanvasFence(VOLL + '\nKernsatz\nzweite Zeile');
+    expect(model.errors).toEqual([]);
+    expect(model.elemente[0]).toMatchObject({
+      art: 'form',
+      id: 's1',
+      x: 380,
+      y: 120,
+      b: 90,
+      h: 90,
+      formArt: 'stern',
+      artUnbekannt: false,
+      rand: 'rot',
+      fuellung: 'gelb',
+    });
+    expect(model.elemente[0].inhalt).toBe('Kernsatz\nzweite Zeile');
+  });
+
+  it('kennt genau die sechs Arten der Entscheidung F2', () => {
+    expect(FORM_ARTEN).toEqual(['rechteck', 'abgerundet', 'oval', 'dreieck', 'raute', 'stern']);
+    for (const art of FORM_ARTEN) {
+      const model = parseCanvasFence(`!form s1 x=0 y=0 b=1 h=1 art=${art}`);
+      expect(model.errors).toEqual([]);
+      expect(model.elemente[0].formArt).toBe(art);
+    }
+  });
+
+  it('setzt ohne Angabe die Vorgaben: Rechteck, Standardfarbe, ungefüllt', () => {
+    const el = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1').elemente[0];
+    expect(el.formArt).toBe('rechteck');
+    // Die Abwesenheit wird **nicht** zu einem erfundenen Wert: Welche Farbe die
+    // Standardfarbe ist, weiß das Farbschema und nicht der Kern.
+    expect(el.rand).toBeUndefined();
+    expect(el.fuellung).toBeUndefined();
+    expect(el.attrs.rand).toBeUndefined();
+  });
+
+  it('liest eine ausdrücklich leere Füllung als ungefüllt und behält den Wortlaut', () => {
+    const roh = '!form s1 x=0 y=0 b=1 h=1 füllung=keine';
+    const model = parseCanvasFence(roh);
+    expect(model.errors).toEqual([]);
+    expect(model.elemente[0].fuellung).toBeUndefined();
+    expect(rundlauf(roh)).toBe(roh);
+  });
+
+  it('meldet eine unbekannte Art, führt sie als Rechteck und behält den Rohtext', () => {
+    // Die Rückfall-Regel aus 6.3: gezeichnet wird ein Rechteck, geschrieben
+    // wird weiterhin die unbekannte Angabe — auch wenn die Form bewegt wird.
+    const model = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1 art=wolke glanz=matt');
+    const el = model.elemente[0];
+    expect(model.errors).toEqual([{ code: 'ungueltigeArt', zeile: 1, detail: 'wolke' }]);
+    expect(el.formArt).toBe('rechteck');
+    expect(el.artUnbekannt).toBe(true);
+    el.x = 42;
+    el.geaendert = true;
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=42 y=0 b=1 h=1 art=wolke glanz=matt');
+  });
+
+  it('meldet einen unbekannten Farbnamen und zeichnet in der Standardfarbe', () => {
+    const model = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1 rand=neongrün füllung=ocker');
+    expect(model.errors.map((f) => f.detail)).toEqual(['neongrün', 'ocker']);
+    expect(model.elemente[0].rand).toBeUndefined();
+    expect(model.elemente[0].fuellung).toBeUndefined();
+    expect(model.elemente[0].attrs.rand).toBe('neongrün');
+  });
+
+  it('nimmt die Farbnamen aus demselben Satz wie die Verbindungen', () => {
+    for (const name of LINIEN_FARB_NAMEN) {
+      const model = parseCanvasFence(`!form s1 x=0 y=0 b=1 h=1 rand=${name} füllung=${name}`);
+      expect(model.errors).toEqual([]);
+      expect(model.elemente[0]).toMatchObject({ rand: name, fuellung: name });
+    }
+  });
+});
+
+describe('canvas-core — Grammatik der Gruppe (G6, AK2)', () => {
+  it('liest Kennung, Lage, Größe und Farbe samt Beschriftung', () => {
+    const model = parseCanvasFence('!gruppe g1 x=-360 y=-180 b=720 h=200 farbe=blau\nAnalyse');
+    expect(model.errors).toEqual([]);
+    expect(model.elemente[0]).toMatchObject({
+      art: 'gruppe',
+      id: 'g1',
+      x: -360,
+      y: -180,
+      b: 720,
+      h: 200,
+      farbe: 'blau',
+    });
+    expect(model.elemente[0].inhalt).toBe('Analyse');
+  });
+
+  it('führt keine Mitglieder-Liste — das Rechteck ist die Aussage', () => {
+    // Eine zweite Quelle derselben Aussage könnte auseinanderlaufen; Mitglied
+    // ist, was geometrisch darin liegt, und das rechnet die Zeichnung.
+    const el = parseCanvasFence('!gruppe g1 x=0 y=0 b=10 h=10').elemente[0];
+    expect(Object.keys(el)).not.toContain('mitglieder');
+    expect(el.farbe).toBeUndefined();
+  });
+
+  it('erlaubt eine mehrzeilige Beschriftung samt Notausgang', () => {
+    const roh = ['!gruppe g1 x=0 y=0 b=10 h=10', 'Analyse', '\\!karte ist hier Text'].join('\n');
+    const model = parseCanvasFence(roh);
+    expect(model.elemente[0].inhalt).toBe('Analyse\n!karte ist hier Text');
+    expect(serializeCanvasFence(model)).toBe(roh);
+  });
+});
+
+describe('canvas-core — Rundlauf über Formen und Gruppen (AK3)', () => {
+  it('erhält eine Schreibweise, die eine Normalform zerstören würde', () => {
+    // Bewusst normalform-fern: andere Reihenfolge der Angaben, doppelte
+    // Abstände, ein quotierter Wert ohne Not, unbekannte Angaben, defekte Art.
+    const roh = [
+      '!form  s1   art="stern" h=90 b=90 y=120 x=380 glanz=matt',
+      'Beschriftung mit Sonderzeichen: «&» und —',
+      '!gruppe g1 farbe=blau x=-360 y=-180 b=720 h=200 rand=doppelt',
+      'Analyse',
+      '!form s2 x=0 y=0 b=1 h=1 art=wolke rand=neongrün',
+    ].join('\n');
+    expect(rundlauf(roh)).toBe(roh);
+  });
+
+  it('erhält CRLF über einer Fläche mit Formen und Gruppen', () => {
+    const roh = [
+      '!gruppe g1 x=0 y=0 b=10 h=10',
+      'Analyse',
+      '!form s1 x=0 y=0 b=1 h=1 art=raute',
+      '!karte k1 x=0 y=0 b=10 h=10',
+    ].join('\r\n');
+    expect(rundlauf(roh)).toBe(roh);
+  });
+
+  it('schreibt eine geänderte Form und eine geänderte Gruppe kanonisch', () => {
+    const model = parseCanvasFence('!form  s1 x=0 y=0 b=1 h=1\n!gruppe  g1 x=0 y=0 b=1 h=1');
+    for (const el of model.elemente) el.geaendert = true;
+    expect(serializeCanvasFence(model)).toBe(
+      '!form s1 x=0 y=0 b=1 h=1\n!gruppe g1 x=0 y=0 b=1 h=1',
+    );
+  });
+
+  it('lässt eine Fläche der Stufe 1 unverändert', () => {
+    // Die Gegenprobe zur Erweiterung: Was gestern richtig geschrieben wurde,
+    // wird heute zeichengleich geschrieben.
+    expect(rundlauf(RUMPF)).toBe(RUMPF);
+  });
+});
+
+describe('canvas-core — ein Leser der Stufe 1 verliert nichts (AK6, G1)', () => {
+  // Der Leser der Stufe 1 ist **dieser** Code mit dem Marker-Satz von damals;
+  // ohne diesen Zugang ließe sich die Zusage nur behaupten statt prüfen.
+  const STUFE_1 = { bekannteMarker: new Set(['karte', 'linie']) };
+  const FLAECHE = [
+    '!karte k1 x=-320 y=-140 b=260 h=120',
+    '## Ausgangslage',
+    '',
+    '!gruppe g1 x=-360 y=-180 b=720 h=200 farbe=blau',
+    'Analyse',
+    '!form s1 x=380 y=120 b=90 h=90 art=stern rand=rot füllung=gelb',
+    'Ziel',
+    '!linie e1 k1 -> k1 farbe=türkis',
+  ].join('\n');
+
+  it('führt Formen und Gruppen als unbekannte Elemente mit', () => {
+    const model = parseCanvasFence(FLAECHE, STUFE_1);
+    expect(model.elemente.map((e) => e.art)).toEqual(['karte', 'unbekannt', 'unbekannt', 'linie']);
+    expect(model.errors.map((f) => f.code)).toEqual(['unbekannterMarker', 'unbekannterMarker']);
+  });
+
+  it('schreibt sie byte-gleich zurück, statt sie still zu löschen', () => {
+    expect(serializeCanvasFence(parseCanvasFence(FLAECHE, STUFE_1))).toBe(FLAECHE);
+  });
+
+  it('behält sie auch dann, wenn er eine Karte derselben Fläche verschiebt', () => {
+    // Der eigentliche Schadensfall: zwei Programmfassungen an einer Datei. Die
+    // ältere bewegt eine Karte und speichert — die Formen müssen stehen bleiben.
+    const model = parseCanvasFence(FLAECHE, STUFE_1);
+    const karte = model.elemente[0];
+    karte.x = 0;
+    karte.geaendert = true;
+    const neu = serializeCanvasFence(model);
+    expect(neu).toContain('!gruppe g1 x=-360 y=-180 b=720 h=200 farbe=blau');
+    expect(neu).toContain('!form s1 x=380 y=120 b=90 h=90 art=stern rand=rot füllung=gelb');
+    expect(neu.replace('x=0 y=-140', 'x=-320 y=-140')).toBe(FLAECHE);
+  });
+});
+
+describe('canvas-core — eine Liste über alle Element-Arten (G3, AK10)', () => {
+  const GEMISCHT = [
+    '!gruppe g1 x=0 y=0 b=10 h=10',
+    '!karte k1 x=0 y=0 b=10 h=10',
+    '!form s1 x=0 y=0 b=1 h=1',
+    '!linie e1 k1 -> k1',
+    '!karte k2 x=0 y=0 b=10 h=10',
+  ].join('\n');
+
+  it('hält die Abfolge über Karten, Formen, Gruppen und Verbindungen', () => {
+    const model = parseCanvasFence(GEMISCHT);
+    expect(model.elemente.map((e) => `${e.art}:${e.id}`)).toEqual([
+      'gruppe:g1',
+      'karte:k1',
+      'form:s1',
+      'linie:e1',
+      'karte:k2',
+    ]);
+    expect(serializeCanvasFence(model)).toBe(GEMISCHT);
+  });
+
+  it('führt kein eigenes Ordnungs-Attribut', () => {
+    for (const el of parseCanvasFence(GEMISCHT).elemente) {
+      expect(Object.keys(el)).not.toContain('z');
+    }
+  });
+
+  it('zählt Karten, Verbindungen, Formen und Gruppen für die Umfang-Zeile (AK8)', () => {
+    expect(canvasUmfang(parseCanvasFence(GEMISCHT))).toEqual({
+      karten: 2,
+      linien: 1,
+      formen: 1,
+      gruppen: 1,
+      befunde: 0,
+    });
+  });
+});
+
+describe('canvas-elemente — Anlegen und Löschen (AK11)', () => {
+  // Eine frisch eingefügte, leere Fläche: kein Element und keine Präambel.
+  const leer = () => ({ elemente: [], errors: [], praeambel: [], zeilenende: '\n' });
+
+  it('legt eine Form mit Art und Rand an und schreibt sie kanonisch', () => {
+    const model = leer();
+    fuegeElementEin(
+      model,
+      erzeugeForm({ id: 's1', x: 10, y: 20, b: 90, h: 90, formArt: 'oval', rand: 'rot' }),
+    );
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=10 y=20 b=90 h=90 art=oval rand=rot');
+    // Die Gegenprobe am Leser: Was der Schreiber baut, liest der Leser zurück.
+    expect(parseCanvasFence(serializeCanvasFence(model)).elemente[0]).toMatchObject({
+      formArt: 'oval',
+      rand: 'rot',
+      fuellung: undefined,
+    });
+  });
+
+  it('schreibt die Vorgaben nicht aus, weil die Abwesenheit sie bereits sagt', () => {
+    const model = leer();
+    fuegeElementEin(model, erzeugeForm({ id: 's1', x: 0, y: 0, b: 60, h: 60 }));
+    fuegeElementEin(model, erzeugeGruppe({ id: 'g1', x: 0, y: 0, b: 200, h: 200 }));
+    expect(serializeCanvasFence(model)).toBe(
+      '!gruppe g1 x=0 y=0 b=200 h=200\n!form s1 x=0 y=0 b=60 h=60',
+    );
+  });
+
+  it('setzt eine neue Gruppe ganz hinten, Form und Karte ganz vorn', () => {
+    const model = parseCanvasFence('!karte k1 x=0 y=0 b=10 h=10');
+    fuegeElementEin(model, erzeugeForm({ id: 's1', x: 0, y: 0, b: 60, h: 60 }));
+    fuegeElementEin(model, erzeugeGruppe({ id: 'g1', x: 0, y: 0, b: 200, h: 200 }));
+    fuegeElementEin(model, { art: 'karte', id: 'k2', attrs: {}, attrFolge: [], inhalt: '' });
+    expect(model.elemente.map((e) => e.id)).toEqual(['g1', 'k1', 's1', 'k2']);
+  });
+
+  it('vergibt die erste freie Kennung je Art und weicht Belegtem aus', () => {
+    const model = parseCanvasFence('!karte s1 x=0 y=0 b=1 h=1\n!linie g1 s1 -> s1');
+    expect(freieKennung(model, 'form')).toBe('s2');
+    expect(freieKennung(model, 'gruppe')).toBe('g2');
+    expect(freieKennung(model, 'karte')).toBe('k1');
+  });
+
+  it('löscht ein Element und nimmt die Verbindungen einer Karte mit', () => {
+    const model = parseCanvasFence(
+      ['!karte k1 x=0 y=0 b=1 h=1', '!form s1 x=0 y=0 b=1 h=1', '!linie e1 k1 -> k1'].join('\n'),
+    );
+    expect(entferneElement(model, 's1')).toBe(true);
+    expect(model.elemente.map((e) => e.id)).toEqual(['k1', 'e1']);
+    expect(entferneElement(model, 'k1')).toBe(true);
+    expect(model.elemente).toEqual([]);
+    expect(entferneElement(model, 'k1')).toBe(false);
+  });
+});
+
+describe('canvas-elemente — die vier Stapel-Befehle (Story 4S-000932)', () => {
+  const bau = () =>
+    parseCanvasFence(
+      [
+        '!karte k1 x=0 y=0 b=1 h=1',
+        '!linie e1 k1 -> k1',
+        '!form s1 x=0 y=0 b=1 h=1',
+        '!gruppe g1 x=0 y=0 b=1 h=1',
+      ].join('\n'),
+    );
+  const folge = (model) => model.elemente.map((e) => e.id).join(',');
+
+  it('kennt genau die vier Befehle in der Reihenfolge der Entscheidung', () => {
+    expect(STAPEL_BEFEHLE).toEqual([
+      'ganzNachVorn',
+      'eineStufeVor',
+      'eineStufeZurueck',
+      'ganzNachHinten',
+    ]);
+  });
+
+  it('holt eine Form über eine Karte und stellt sie wieder darunter', () => {
+    const model = bau();
+    expect(verschiebeImStapel(model, 'k1', 'eineStufeVor')).toBe(true);
+    expect(folge(model)).toBe('s1,e1,k1,g1');
+    expect(verschiebeImStapel(model, 'k1', 'eineStufeZurueck')).toBe(true);
+    expect(folge(model)).toBe('k1,e1,s1,g1');
+  });
+
+  it('bringt ein Element ganz nach vorn und ganz nach hinten', () => {
+    const model = bau();
+    expect(verschiebeImStapel(model, 'k1', 'ganzNachVorn')).toBe(true);
+    expect(folge(model)).toBe('e1,s1,g1,k1');
+    // Zurück an die hinterste **Stapel**-Stelle: Die Verbindung behält ihren
+    // Platz in der Datei, weil sie im Stapel keinen hat.
+    expect(verschiebeImStapel(model, 'k1', 'ganzNachHinten')).toBe(true);
+    expect(folge(model)).toBe('e1,k1,s1,g1');
+  });
+
+  it('lässt Verbindungen unberührt und bewegt sie selbst nicht', () => {
+    const model = bau();
+    verschiebeImStapel(model, 'g1', 'ganzNachHinten');
+    expect(folge(model)).toBe('g1,k1,e1,s1');
+    // Die Verbindung liegt in einer eigenen Ebene; sie kennt keinen Platz im
+    // Stapel und nimmt auch keinen ein.
+    expect(verschiebeImStapel(model, 'e1', 'eineStufeVor')).toBe(false);
+    expect(folge(model)).toBe('g1,k1,e1,s1');
+  });
+
+  it('meldet die Grenze des Stapels, statt still nichts zu tun', () => {
+    const model = bau();
+    // k1 liegt schon ganz hinten, g1 schon ganz vorn.
+    expect(verschiebeImStapel(model, 'k1', 'eineStufeZurueck')).toBe(false);
+    expect(verschiebeImStapel(model, 'k1', 'ganzNachHinten')).toBe(false);
+    expect(verschiebeImStapel(model, 'g1', 'eineStufeVor')).toBe(false);
+    expect(verschiebeImStapel(model, 'g1', 'ganzNachVorn')).toBe(false);
+    expect(verschiebeImStapel(model, 'weg', 'ganzNachVorn')).toBe(false);
+    expect(verschiebeImStapel(model, 'k1', 'seitwärts')).toBe(false);
+  });
+
+  it('schreibt die neue Reihenfolge, ohne den Rohtext anzufassen (G2)', () => {
+    // Eine Umordnung ändert die Stelle und nicht den Text: Ein Element mit
+    // normalform-ferner Schreibweise kommt zeichengleich zurück.
+    const roh = ['!karte  k1   y=0 x=0 h=1 b=1', '!form  s1 x=0 y=0 b=1 h=1 art="oval"'].join('\n');
+    const model = parseCanvasFence(roh);
+    expect(verschiebeImStapel(model, 's1', 'ganzNachHinten')).toBe(true);
+    expect(model.elemente.every((el) => el.geaendert === false)).toBe(true);
+    expect(serializeCanvasFence(model)).toBe(roh.split('\n').reverse().join('\n'));
+  });
+});
+
+describe('canvas-elemente — Ändern von Art und Farben', () => {
+  const form = () => parseCanvasFence('!form s1 x=0 y=0 b=1 h=1').elemente[0];
+
+  it('setzt die Art und schreibt sie in die Marker-Zeile', () => {
+    const model = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1');
+    expect(setzeFormArt(model.elemente[0], 'raute')).toBe(true);
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=0 y=0 b=1 h=1 art=raute');
+    expect(setzeFormArt(model.elemente[0], 'raute')).toBe(false);
+  });
+
+  it('weist eine unbekannte Art zurück, statt sie zu schreiben', () => {
+    const el = form();
+    expect(setzeFormArt(el, 'wolke')).toBe(false);
+    expect(el.formArt).toBe('rechteck');
+    expect(el.geaendert).toBe(false);
+  });
+
+  it('schreibt die Vorgabe aus, sobald sie eine Wahl war', () => {
+    // Wer eine unbekannte Art auf das Rechteck zurücksetzt, soll das in der
+    // Datei sehen — sonst bliebe die alte Angabe stehen und widerspräche dem Bild.
+    const model = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1 art=wolke');
+    expect(setzeFormArt(model.elemente[0], 'rechteck')).toBe(true);
+    expect(model.elemente[0].artUnbekannt).toBe(false);
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=0 y=0 b=1 h=1 art=rechteck');
+  });
+
+  it('setzt Rand und Füllung und streicht beide wieder', () => {
+    const model = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1');
+    const el = model.elemente[0];
+    expect(setzeFormRand(el, 'rot')).toBe(true);
+    expect(setzeFormFuellung(el, 'gelb')).toBe(true);
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=0 y=0 b=1 h=1 rand=rot füllung=gelb');
+    expect(setzeFormFuellung(el, null)).toBe(true);
+    expect(setzeFormRand(el, null)).toBe(true);
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=0 y=0 b=1 h=1');
+  });
+
+  it('behandelt eine ausdrücklich leere Füllung wie eine fehlende', () => {
+    const model = parseCanvasFence('!form s1 x=0 y=0 b=1 h=1 füllung=gelb');
+    expect(setzeFormFuellung(model.elemente[0], 'keine')).toBe(true);
+    expect(model.elemente[0].fuellung).toBeUndefined();
+    expect(serializeCanvasFence(model)).toBe('!form s1 x=0 y=0 b=1 h=1');
+  });
+
+  it('weist einen Farbnamen außerhalb des Satzes zurück', () => {
+    const el = form();
+    expect(setzeFormRand(el, 'neongrün')).toBe(false);
+    expect(el.geaendert).toBe(false);
+  });
+
+  it('setzt die Farbe einer Gruppe', () => {
+    const model = parseCanvasFence('!gruppe g1 x=0 y=0 b=1 h=1');
+    expect(setzeGruppenFarbe(model.elemente[0], 'türkis')).toBe(true);
+    expect(serializeCanvasFence(model)).toBe('!gruppe g1 x=0 y=0 b=1 h=1 farbe=türkis');
+    expect(setzeGruppenFarbe(model.elemente[0], 'ocker')).toBe(false);
+  });
+});
+
+describe('canvas-elemente — Prozess-Neutralität (AK7)', () => {
+  it('lädt nur die beiden geteilten Nachbar-Module', () => {
+    const quelle = readFileSync(
+      new URL('../../src/shared/canvas/canvas-elemente.js', import.meta.url),
+      'utf8',
+    );
+    const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
+    expect(importe).toEqual(['./canvas-core.js', './canvas-geometrie.js']);
   });
 });

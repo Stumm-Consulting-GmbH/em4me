@@ -15,6 +15,22 @@
 //     einmal als SVG-Transform und einmal als CSS-Transform mit
 //     `transform-origin: 0 0`.
 //
+// **4T-001701 (Epic 3E-000288): aus der Karten-Ebene wird die Element-Ebene**
+// (E4 in der Fassung vom 2026-09-12, Entscheidung des Product Owners «Weg 2
+// ist freigegeben, umsetzen»). Karten, Formen und ab 4T-001702 Gruppen liegen
+// in **einer** geordneten Ebene, und ihre Reihenfolge im Baum ist die
+// Reihenfolge in der Fence (G3) — damit kann eine Form über **oder** unter
+// einer Karte liegen. Die Karte bleibt HTML, die Form ist ein SVG in einer
+// positionierten Hülle (`canvas-formen.js`). Die Verbindungen bleiben die
+// eigene SVG-Ebene darunter und sind von der Reihenfolge nicht berührt.
+//
+// **Der Umbau ist der kleinstmögliche:** Die beiden Ebenen, ihre gemeinsame
+// Verschiebung und die CSS-Klasse `canvas-karten` bleiben, wie sie waren; es
+// ändert sich allein, **was** in die obere Ebene gezeichnet wird und in
+// welcher Reihenfolge. Der Name der Klasse trägt seine Herkunft weiter — eine
+// Umbenennung hätte Stilblatt und Prüffälle angefasst, ohne der Zeichnung
+// etwas hinzuzufügen (dieselbe Abwägung wie bei `LINIEN_FARBEN` in 4T-001700).
+//
 // Bewusst abhängigkeitsfrei von api/i18n/app-state: Der Aufrufer injiziert `t`
 // und `renderMarkdown` (Muster createMindmapView, createGraphView) — die
 // Komponente bleibt zyklenfrei und in jsdom ohne window.api-Stub prüfbar.
@@ -25,6 +41,7 @@
 // hier bleibt, was DOM, Ereignisse oder Übersetzungen braucht.
 'use strict';
 
+import { STAPEL_ARTEN } from '../../../shared/canvas/canvas-core.js';
 import {
   ZOOM_MIN,
   ZOOM_MAX,
@@ -44,6 +61,16 @@ import { createCanvasKontextmenue } from './canvas-kontextmenue.js';
 // Leiste an der gewählten Linie.
 import { istHintergrund, zeichneLinienEbene } from './canvas-linien.js';
 import { createVerbindungsBedienung } from './canvas-verbindungen.js';
+// 4T-001701: Zeichnung und Bedienung der Formen. Die Zeichnung baut die Hülle
+// samt Umriss, die Bedienung trägt Anlegen, Auswahl, Zug, Beschriftung und die
+// Leiste an der gewählten Form.
+import { zeichneForm } from './canvas-formen.js';
+import { createFormenBedienung } from './canvas-formen-bedienung.js';
+// 4T-001702: Zeichnung und Bedienung der Gruppen. Die Zeichnung baut Rahmen,
+// Tönung und Beschriftung, die Bedienung trägt Anlegen, Auswahl, den Zug samt
+// Mitgliedern, Farbe, Beschriftung und Löschen.
+import { zeichneGruppe } from './canvas-gruppen.js';
+import { createGruppenBedienung } from './canvas-gruppen-bedienung.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -123,6 +150,8 @@ export function createCanvasView(container, options = {}) {
   let bedienung = null;
   let kontextmenue = null;
   let verbindungen = null;
+  let formen = null;
+  let gruppen = null;
 
   // --- DOM-Grundgerüst -------------------------------------------------------
 
@@ -179,6 +208,15 @@ export function createCanvasView(container, options = {}) {
   function linien() {
     if (!model || !Array.isArray(model.elemente)) return [];
     return model.elemente.filter((el) => el.art === 'linie');
+  }
+
+  // 4T-001701: Die Elemente der gemeinsamen Ebene, in der Reihenfolge der
+  // Fence. Welche Arten dazugehören, sagt der Kern (`STAPEL_ARTEN`) und nicht
+  // eine Aufzählung hier — sonst zöge die Gruppe aus 4T-001702 an dieser
+  // Stelle eine zweite Pflege nach sich.
+  function stapelElemente() {
+    if (!model || !Array.isArray(model.elemente)) return [];
+    return model.elemente.filter((el) => STAPEL_ARTEN.has(el.art));
   }
 
   function anwendenTransform() {
@@ -317,6 +355,8 @@ export function createCanvasView(container, options = {}) {
     // es sie im besten Fall unter derselben Kennung als anderes Element.
     if (bedienung) bedienung.zuruecksetzen();
     if (verbindungen) verbindungen.zuruecksetzen();
+    if (formen) formen.zuruecksetzen();
+    if (gruppen) gruppen.zuruecksetzen();
     // Jede Fläche hat ihr eigenes Koordinatensystem; der Ausschnitt der
     // vorigen wäre auf der neuen bedeutungslos. Deshalb wird beim Wechsel
     // eingepasst statt Zoom und Verschiebung mitzunehmen.
@@ -353,11 +393,22 @@ export function createCanvasView(container, options = {}) {
 
     // Die Reihenfolge in der Fence **ist** die Stapel-Reihenfolge (G3): Das
     // zuletzt genannte Element liegt oben, weil es zuletzt angehängt wird.
-    // Verbindungen liegen als eigene Ebene unter allen Karten — sie sind
+    // Verbindungen liegen als eigene Ebene unter allen Elementen — sie sind
     // Beziehung und nicht Inhalt.
     zeichneLinien();
-    for (const el of karten()) {
-      kartenEbene.appendChild(zeichneKarte(el));
+    // 4T-001701: **Eine** Schleife über die Element-Liste statt einer je Art.
+    // Genau das bindet die Reihenfolge im Baum an die Reihenfolge im Modell —
+    // und zwar bei jedem Neuzeichnen, ohne zweiten Ordnungs-Träger. Ein
+    // `z-index` käme hier nicht in Frage: Er wäre die zweite Quelle derselben
+    // Aussage, die G3 gerade vermeidet.
+    const aend = aenderbar();
+    for (const el of stapelElemente()) {
+      if (el.art === 'karte') kartenEbene.appendChild(zeichneKarte(el));
+      else if (el.art === 'form') kartenEbene.appendChild(zeichneForm(el, aend));
+      // 4T-001702: Die Gruppe ist die dritte Art derselben Ebene. Dass sie im
+      // Regelfall ganz hinten liegt, ist keine Aussage dieser Schleife,
+      // sondern der Stelle, an die der Kern sie beim Anlegen setzt.
+      else if (el.art === 'gruppe') kartenEbene.appendChild(zeichneGruppe(el, aend));
     }
 
     zeigeHinweis();
@@ -368,6 +419,10 @@ export function createCanvasView(container, options = {}) {
     // 4T-001655: Danach die Verbindungen — Auswahl, Leiste und die
     // Anschluss-Griffe an der gewählten Karte.
     if (verbindungen) verbindungen.nachRender();
+    // 4T-001701: Zuletzt die Formen — Auswahl und Leiste.
+    if (formen) formen.nachRender();
+    // 4T-001702: und die Gruppen, aus demselben Grund.
+    if (gruppen) gruppen.nachRender();
   }
 
   // --- Navigation ------------------------------------------------------------
@@ -462,17 +517,42 @@ export function createCanvasView(container, options = {}) {
     // 4T-001655: Die drei Berührungspunkte zur Bedienung der Verbindungen.
     beiKartenWahl: (id) => {
       if (verbindungen) verbindungen.beiKartenWahl(id);
+      // 4T-001701: Genau ein Element ist gewählt (V3), jetzt über drei Arten.
+      // Gemeldet wird jeder Wechsel, gehandelt nur bei einer **neuen** Wahl:
+      // Ein `null` kommt auch von der Formen-Bedienung selbst, und sie hübe
+      // sich sonst die eigene Auswahl gleich wieder auf.
+      if (formen && id) formen.beiFremdWahl();
+      // 4T-001702: die Gruppe als vierte Art derselben Regel.
+      if (gruppen && id) gruppen.beiFremdWahl();
     },
     beiZugLage: (id, rechteck) => {
       if (verbindungen) verbindungen.beiZugLage(id, rechteck);
     },
     beiTasteOhneKarte: (ev) => {
       if (verbindungen) verbindungen.beiTaste(ev);
+      if (gruppen) gruppen.beiTaste(ev);
+      // 4T-001701: `Entf` und `Escape` richten sich nach dem gewählten
+      // Element; genau eines der drei Module hat eine Auswahl, also greift
+      // auch nur eines. Der Weg führt weiterhin über den einen `keydown` der
+      // Fläche — ein zweiter Listener hätte eine Reihenfolge, die niemand mehr
+      // überblickt.
+      if (formen) formen.beiTaste(ev);
     },
     beiHintergrund: () => {
-      if (!verbindungen) return;
-      verbindungen.beendeBearbeitung();
-      verbindungen.waehleLinie(null);
+      if (verbindungen) {
+        verbindungen.beendeBearbeitung();
+        verbindungen.waehleLinie(null);
+      }
+      // 4T-001701: Der Klick daneben hebt **jede** Auswahl auf, sonst bliebe
+      // eine gewählte Form samt ihrer Leiste stehen.
+      if (formen) {
+        formen.beendeBearbeitung();
+        formen.waehleForm(null);
+      }
+      if (gruppen) {
+        gruppen.beendeBearbeitung();
+        gruppen.waehleGruppe(null);
+      }
     },
   });
 
@@ -486,9 +566,49 @@ export function createCanvasView(container, options = {}) {
     zeichneLinien,
     aenderbar,
     beiFreigabe: freigabeMelden,
+    // 4T-001701: Eine gewählte Verbindung hebt die Wahl einer Form auf — die
+    // dritte Kante des Auswahl-Dreiecks (V3). Sie läuft über einen Rückruf und
+    // nicht über einen Import, damit die Verbindungs-Bedienung die Formen
+    // weiterhin nicht kennen muss.
+    beiLinienWahl: () => {
+      if (formen) formen.beiFremdWahl();
+      if (gruppen) gruppen.beiFremdWahl();
+    },
   });
 
-  // Eine zurückgestellte Neu-Übergabe kommt erst, wenn **keine** der beiden
+  // --- Bedienung der Formen (4T-001701) ----------------------------------------
+  formen = createFormenBedienung({
+    kartenEbene,
+    t,
+    modell: () => model,
+    bedienung,
+    aenderbar,
+    beiFreigabe: freigabeMelden,
+    waehleLinie: (id) => {
+      if (verbindungen) verbindungen.waehleLinie(id);
+    },
+    waehleGruppe: () => {
+      if (gruppen) gruppen.beiFremdWahl();
+    },
+  });
+
+  // --- Bedienung der Gruppen (4T-001702) ---------------------------------------
+  gruppen = createGruppenBedienung({
+    kartenEbene,
+    t,
+    modell: () => model,
+    bedienung,
+    aenderbar,
+    beiFreigabe: freigabeMelden,
+    waehleLinie: (id) => {
+      if (verbindungen) verbindungen.waehleLinie(id);
+    },
+    waehleForm: () => {
+      if (formen) formen.beiFremdWahl();
+    },
+  });
+
+  // Eine zurückgestellte Neu-Übergabe kommt erst, wenn **keine** der drei
   // Bedienungen mehr etwas offen hat: Die eine weiß nichts vom Zug der anderen,
   // und ein Neuzeichnen mitten in einer Handlung zerstörte sie.
   function freigabeMelden() {
@@ -499,7 +619,43 @@ export function createCanvasView(container, options = {}) {
   }
 
   function blockiert() {
-    return (!!bedienung && bedienung.blockiert()) || (!!verbindungen && verbindungen.blockiert());
+    return (
+      (!!bedienung && bedienung.blockiert()) ||
+      (!!verbindungen && verbindungen.blockiert()) ||
+      (!!formen && formen.blockiert()) ||
+      (!!gruppen && gruppen.blockiert())
+    );
+  }
+
+  /**
+   * Verschiebt das gewählte Element im Stapel (Story 4S-000932).
+   *
+   * **Die Ansicht ist der einzige Ort, der alle Auswahlen kennt** — jede
+   * Bedienung führt ihre eigene, und genau eine davon ist gesetzt (V3). Sie
+   * löst deshalb die Kennung auf und reicht sie an den einen Schreibweg
+   * weiter; die Regel selbst steht im Kern, die Transaktion in der
+   * Karten-Bedienung.
+   *
+   * Verbindungen kommen bewusst nicht vor: Sie liegen in einer eigenen Ebene
+   * und sind von der Reihenfolge nicht berührt (E4).
+   *
+   * @param {string} befehl einer aus `STAPEL_BEFEHLE`.
+   * @returns {boolean} `true`, wenn geschrieben wurde.
+   */
+  function verschiebeGewaehltesImStapel(befehl) {
+    const id = gewaehltesElement();
+    return !!id && bedienung.verschiebeImStapel(id, befehl);
+  }
+
+  /** Kennung des gewählten Elements der Stapel-Ebene, oder `null`. */
+  function gewaehltesElement() {
+    const karte = bedienung ? bedienung.gewaehlteKennung() : null;
+    if (karte) return karte;
+    const form = formen ? formen.gewaehlteKennung() : null;
+    if (form) return form;
+    // 4T-001702: Auch eine gewählte Gruppe bewegt sich im Stapel wie jedes
+    // andere Element (AK15 der Story 4S-000931).
+    return gruppen ? gruppen.gewaehlteKennung() : null;
   }
 
   // --- Kontextmenü der Fläche (4T-001683) --------------------------------------
@@ -509,6 +665,9 @@ export function createCanvasView(container, options = {}) {
     t,
     bedienung,
     verbindungen,
+    formen,
+    gruppen,
+    verschiebeImStapel: (id, befehl) => bedienung.verschiebeImStapel(id, befehl),
     zeigeMenue: typeof options.zeigeKontextmenue === 'function' ? options.zeigeKontextmenue : null,
     schliesseMenue:
       typeof options.schliesseKontextmenue === 'function' ? options.schliesseKontextmenue : null,
@@ -517,7 +676,10 @@ export function createCanvasView(container, options = {}) {
 
   /** Passt die Fläche in das Sichtfenster ein. */
   function fit() {
-    const rahmen = huelle(karten());
+    // 4T-001701: über **alle** Elemente der Stapel-Ebene. Eine Fläche, deren
+    // Formen außerhalb des eingepassten Ausschnitts lägen, hätte das Einpassen
+    // nur halb getan.
+    const rahmen = huelle(stapelElemente());
     if (!rahmen) return;
     const { breite, hoehe } = sichtMasse();
     const lage = einpassung(rahmen, breite, hoehe);
@@ -549,7 +711,7 @@ export function createCanvasView(container, options = {}) {
     // Einpassen erst, wenn es etwas einzupassen gibt — und nur beim ersten
     // Mal, damit eine Live-Aktualisierung Zoom und Ausschnitt nicht
     // zurücksetzt.
-    if (!eingepasst && karten().length > 0) fit();
+    if (!eingepasst && stapelElemente().length > 0) fit();
   }
 
   return {
@@ -578,6 +740,33 @@ export function createCanvasView(container, options = {}) {
     karteAnlegen(opts) {
       return bedienung ? bedienung.karteAnlegen(opts) : false;
     },
+    /**
+     * Legt eine Form an; ohne Punkt in der Mitte des sichtbaren Ausschnitts,
+     * ohne Art als Rechteck (4T-001701). Der Weg des Kommandos aus Menü und
+     * Palette; das Kontextmenü ruft dieselbe Handlung mit Klick-Stelle und Art.
+     */
+    formAnlegen(opts) {
+      return formen ? formen.formAnlegen(opts) : false;
+    },
+    /**
+     * Legt eine Gruppe an; ohne Punkt in der Mitte des sichtbaren Ausschnitts
+     * (4T-001702). Der Weg des Kommandos aus Menü und Palette; das Kontextmenü
+     * ruft dieselbe Handlung mit der Klick-Stelle.
+     */
+    gruppeAnlegen(opts) {
+      return gruppen ? gruppen.gruppeAnlegen(opts) : false;
+    },
+    /** Verschiebt das gewählte Element im Stapel (Story 4S-000932). */
+    verschiebeImStapel: verschiebeGewaehltesImStapel,
+    /**
+     * Kennung des gewählten Elements der Stapel-Ebene, oder `null`.
+     *
+     * Die Einbettung fragt sie, **bevor** sie verschiebt: Ein `false` des
+     * Verschiebens allein sagte nicht, ob nichts gewählt war oder ob das
+     * Element bereits ganz vorn lag — und der Hinweis an den Anwender muss
+     * zwischen beidem unterscheiden.
+     */
+    gewaehltesElement,
     /** Wechselt die gezeigte Fläche; von außen für Prüfung und Bedienung. */
     waehleFlaeche,
     /**
@@ -605,12 +794,23 @@ export function createCanvasView(container, options = {}) {
         reiterSichtbar: !reiterleiste.hidden,
         karten: karten().length,
         linien: linien().length,
+        // 4T-001701: Die Zahl der Formen und die Abfolge der Element-Ebene.
+        // Letztere ist die eine Aussage, an der sich die Stapel-Reihenfolge
+        // ohne DOM-Umweg ablesen lässt.
+        formen: stapelElemente().filter((el) => el.art === 'form').length,
+        // 4T-001702: die Zahl der Gruppen, in derselben Lesart.
+        gruppen: stapelElemente().filter((el) => el.art === 'gruppe').length,
+        stapel: stapelElemente().map((el) => el.id),
         befunde: model && Array.isArray(model.errors) ? model.errors.length : 0,
         // 4T-001654: Kennung der gewählten Karte, `null` ohne Auswahl.
         gewaehlteKarte: bedienung ? bedienung.gewaehlteKennung() : null,
         // 4T-001655: Kennung der gewählten Verbindung. Genau eines von beiden
         // ist je gesetzt — auf der Fläche ist ein Element gewählt, nicht zwei.
         gewaehlteLinie: verbindungen ? verbindungen.gewaehlteKennung() : null,
+        // 4T-001701: die dritte Auswahl. Genau eine der drei ist je gesetzt.
+        gewaehlteForm: formen ? formen.gewaehlteKennung() : null,
+        // 4T-001702: die vierte Auswahl. Genau eine der vier ist je gesetzt.
+        gewaehlteGruppe: gruppen ? gruppen.gewaehlteKennung() : null,
         // Befund 1 vom 2026-09-10: Ohne diesen Wert ließe sich der
         // Anzeige-Modus nur an seinen Folgen ablesen.
         aenderbar: aenderbar(),
@@ -624,6 +824,8 @@ export function createCanvasView(container, options = {}) {
       window.removeEventListener('mouseup', beiLoslassen);
       buehne.removeEventListener('wheel', beiRad);
       if (kontextmenue) kontextmenue.destroy();
+      if (gruppen) gruppen.destroy();
+      if (formen) formen.destroy();
       if (verbindungen) verbindungen.destroy();
       if (bedienung) bedienung.destroy();
       wurzelEl.remove();

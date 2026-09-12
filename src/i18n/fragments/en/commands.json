@@ -130,5 +130,11 @@
   "command.view.openFieldForm": "Open the document field form",
   "command.edit.insertProfileQuery": "Insert profile query",
   "command.canvas.addCard": "Add card to canvas",
-  "command.insert.canvas": "Canvas"
+  "command.insert.canvas": "Canvas",
+  "command.canvas.addShape": "Add shape to canvas",
+  "command.canvas.stackFront": "Bring to front",
+  "command.canvas.stackForward": "Bring forward",
+  "command.canvas.stackBackward": "Send backward",
+  "command.canvas.stackBack": "Send to back",
+  "command.canvas.addGroup": "Add group to canvas"
 }

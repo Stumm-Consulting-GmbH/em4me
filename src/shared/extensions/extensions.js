@@ -392,7 +392,31 @@ const INTERNAL_EXTENSIONS = [
     category: 'render',
     nameKey: 'help.featureName.canvas',
     descKey: 'help.feature.canvas',
-    commands: ['view.modeCanvas', 'canvas.addCard', 'insert.canvas'],
+    // 4T-001703 (Epic 3E-000288): die drei weiteren Katalog-Zeilen der Flaeche.
+    // Sie leben und sterben mit dem Schalter wie die Grundzeile — ohne die
+    // Ansicht gibt es weder Form noch Gruppe noch eine Reihenfolge unter
+    // ihnen —, und ohne diese Liste blieben sie im Aus-Zustand ungekennzeichnet
+    // stehen (der Befund, den 4T-001180 an den Profil-Zeilen gemacht hat).
+    featureKeys: [
+      'help.feature.canvasShapes',
+      'help.feature.canvasGroups',
+      'help.feature.canvasStacking',
+    ],
+    // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle
+    // gehoeren derselben Erweiterung — sie wirken ausschliesslich auf der
+    // Flaeche, und im Aus-Zustand gibt es die Ansicht gar nicht. 4T-001702
+    // stellt die Gruppen-Anlage aus demselben Grund daneben.
+    commands: [
+      'view.modeCanvas',
+      'canvas.addCard',
+      'canvas.addShape',
+      'canvas.addGroup',
+      'canvas.stackFront',
+      'canvas.stackForward',
+      'canvas.stackBackward',
+      'canvas.stackBack',
+      'insert.canvas',
+    ],
   },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).

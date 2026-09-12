@@ -207,5 +207,8 @@
   "help.featureName.setupExchange": "Esportazione e importazione delle impostazioni",
   "help.featureName.customLocale": "Lingua dell’interfaccia propria",
   "help.featureName.myExtendedMemory": "My Extended Memory",
-  "help.featureName.canvas": "Vista tela"
+  "help.featureName.canvas": "Vista tela",
+  "help.featureName.canvasShapes": "Forme della tela",
+  "help.featureName.canvasGroups": "Gruppi della tela",
+  "help.featureName.canvasStacking": "Ordine di sovrapposizione della tela"
 }

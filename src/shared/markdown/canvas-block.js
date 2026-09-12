@@ -55,6 +55,11 @@ const CANVAS_BLOCK_LABEL_KEYS = [
   'canvas.block.karten',
   'canvas.block.linie',
   'canvas.block.linien',
+  'canvas.block.form',
+  'canvas.block.formen',
+  'canvas.block.gruppe',
+  'canvas.block.gruppen',
+  'canvas.block.umfangTrenner',
   'canvas.block.befund',
   'canvas.block.befunde',
   'canvas.block.weitere',
@@ -92,13 +97,26 @@ function renderCanvasBlock(rumpf, opts = {}) {
   const labels = opts.labels || {};
   const L = (key) => (typeof labels[key] === 'string' ? labels[key] : key);
   const model = parseCanvasFence(String(rumpf == null ? '' : rumpf));
-  const { karten, linien, befunde } = canvasUmfang(model);
+  const { karten, linien, formen, gruppen, befunde } = canvasUmfang(model);
   const lineStart = Number.isFinite(opts.lineStart) ? opts.lineStart : 0;
   const lineEnd = Number.isFinite(opts.lineEnd) ? opts.lineEnd : 0;
 
-  const umfang = L('canvas.block.umfang')
-    .replace('{karten}', zahlwort(L, karten, 'canvas.block.karte', 'canvas.block.karten'))
-    .replace('{linien}', zahlwort(L, linien, 'canvas.block.linie', 'canvas.block.linien'));
+  // 4T-001700: Formen und Gruppen erscheinen **nur, wenn es welche gibt** —
+  // dieselbe Regel wie beim Befund-Hinweis darunter und aus demselben Grund:
+  // Ein dauerhaftes «0 Formen» wäre Rauschen in einer Kopfzeile, die knapp
+  // bleiben soll, und die allermeisten Flächen tragen keine. Karten und
+  // Verbindungen bleiben die beiden festen Zahlen; sie beschreiben die Fläche
+  // auch dann, wenn sie null sind.
+  const teile = [
+    L('canvas.block.umfang')
+      .replace('{karten}', zahlwort(L, karten, 'canvas.block.karte', 'canvas.block.karten'))
+      .replace('{linien}', zahlwort(L, linien, 'canvas.block.linie', 'canvas.block.linien')),
+  ];
+  if (formen > 0) teile.push(zahlwort(L, formen, 'canvas.block.form', 'canvas.block.formen'));
+  if (gruppen > 0) {
+    teile.push(zahlwort(L, gruppen, 'canvas.block.gruppe', 'canvas.block.gruppen'));
+  }
+  const umfang = teile.join(L('canvas.block.umfangTrenner'));
 
   const kopf = [
     '<div class="canvas-block-kopf">',

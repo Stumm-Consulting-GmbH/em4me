@@ -14,6 +14,87 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.134.0.2845] - 2026-09-12 — Canvas Stufe 2: Formen, Gruppen und Reihenfolge
+
+Zug 3E-000299,
+Stufe 2 des Canvas-Vorhabens. Mitglied 1 und einziges:
+3E-000288,
+die zweite Ausbaustufe der Fläche — geometrische Formen, Gruppen-Rechtecke mit
+ihren Mitgliedern und eine Stapel-Reihenfolge über alle Elemente, dazu
+Funktions-Katalog, Handbuch und Demo-Beispiel. Der Abschluss-Anteil des Epics
+liegt in
+4T-001704.
+
+### Neu
+
+- **Geometrische Formen auf der Fläche, in sechs Arten** (`4T-001700`,
+  `4T-001701`). Neben den Karten stehen jetzt Rechteck, abgerundetes Rechteck,
+  Oval, Dreieck, Raute und Stern. Angelegt werden sie über das Untermenü «Form
+  einfügen» des Kontextmenüs oder über den Eintrag im Ansichtsmenü; die
+  gewählte Form zeigt eine kleine Leiste, die ihre Art wechselt, Rand- und
+  Füllfarbe aus denselben acht Farben setzt, die auch Verbindungen und
+  Reiter-Gruppen tragen, und eine Beschriftung aufnimmt. Die Füllung darf
+  fehlen, dann bleibt die Form durchsichtig. Die Beschriftung ist einfacher,
+  zentrierter Text und ausdrücklich kein Markdown — das bleibt der Unterschied
+  zur Karte. Angefasst wird immer die **gezeichnete Figur** und nicht das
+  Rechteck um sie herum: Ein Klick in die leere Ecke neben einem Dreieck trifft,
+  was dahinter liegt. Und der Umriss hält die Seitenverhältnisse nicht — wer ein
+  Oval in die Breite zieht, bekommt ein breites Oval und keinen Kreis mit Rand.
+- **Gruppen-Rechtecke, deren Mitglieder beim Verschieben mitwandern**
+  (`4T-001702`). Eine Gruppe ist ein beschriftetes, getöntes Rechteck um
+  fremde Elemente; sie entsteht ganz hinten im Stapel, damit sie nichts
+  verdeckt, und ihr Innenraum bleibt durchlässig, sodass ein Doppelklick mitten
+  in die Gruppe weiterhin eine Karte anlegt. Mitglied ist, was **vollständig**
+  in ihrem Rechteck liegt, die Ränder zählen dazu; eine Verbindung ist nie
+  Mitglied, eine Gruppe in einer Gruppe wandert mit. Verschieben nimmt die
+  Mitglieder mit, Größe-Ändern verschiebt nichts, Löschen lässt die Mitglieder
+  stehen. Die Mitglieder stehen zum Beginn des Zuges fest, und der ganze Zug ist
+  genau ein Schritt für das Rückgängig-Machen. Die Leiste der Gruppe trägt die
+  acht Farben, einen Weg zurück zur Standardfarbe und die Beschriftung.
+- **Eine Reihenfolge über alle Elemente der Fläche** (`4T-001701`). Karten,
+  Formen und Gruppen liegen in **einer** Ebene, und ihre Reihenfolge im
+  Dokument ist ihre Reihenfolge im Bild; eine Karte liegt also nicht mehr
+  grundsätzlich über einer Form. Vier Befehle ordnen sie — ganz nach vorn, eine
+  Stufe vor, eine Stufe zurück, ganz nach hinten —, erreichbar am gewählten
+  Element über das Kontextmenü, über das Untermenü «Reihenfolge auf der Fläche»
+  im Ansichtsmenü und über die Befehls-Palette. Eine neue Karte und eine neue
+  Form entstehen vorn, eine neue Gruppe hinten. Verbindungslinien bleiben in
+  ihrer eigenen Ebene und sind von der Reihenfolge nicht berührt.
+- **Funktions-Katalog, Handbuch-Seite und Demo-Beispiel** (`4T-001703`). Der
+  Funktions-Katalog führt Formen, Gruppen und die Reihenfolge als eigene
+  Einträge, statt sie in den Absatz über die Fläche zu schieben. Die
+  Handbuch-Seite «Canvas-Fläche» hat in allen fünf Sprachen drei neue Kapitel
+  bekommen — Formen, Gruppen samt Mitgliedschaft und die Reihenfolge auf der
+  Fläche — und beschreibt im Speicherformat-Kapitel die beiden neuen Marker
+  samt ihren Werten, ihren Vorgaben und dem Verhalten bei einer unbekannten
+  Angabe; ihr eigenes Beispiel trägt jetzt selbst eine Gruppe und eine Form. Die
+  mitgelieferte Demo-Station «12 Canvas» zeigt eine Gruppe mit zwei Karten
+  darin und zwei Formen, eine mit Füllung und Beschriftung, eine ohne beides.
+
+### Geändert
+
+- **Die Grenzen der Fläche sind im Handbuch neu benannt** (`4T-001703`). Das
+  Kapitel «Grenzen» der Seite «Canvas-Fläche» sagte bis hierher, geometrische
+  Formen und Gruppen-Rahmen gehörten nicht zum Umfang der Fläche; das stimmt
+  nicht mehr. An seiner Stelle stehen die drei Grenzen, die jetzt gelten: Formen
+  und Gruppen gehören dazu, tragen aber keinen gerenderten Inhalt; freies
+  Zeichnen gibt es nicht, also weder weitere Geometrie noch Freihand-Striche
+  noch Stift-Eingabe; und eine Verbindung verläuft weiterhin ausschließlich
+  zwischen Karten. Im selben Zug nennt die Seite vier wählbare Element-Arten
+  statt zwei, und das Kapitel «Nur ansehen» sagt ausdrücklich, dass im
+  Anzeige-Modus auch die Umordnung fehlt und weder Menü noch Palette daran
+  vorbeiführen.
+
+### i18n
+
+- Alle neuen Texte der zweiten Stufe liegen in **allen fünf Sprachfassungen**
+  vor (`4T-001700`, `4T-001701`, `4T-001702`, `4T-001703`): die Beschriftungen
+  der beiden neuen Leisten, die Einträge des Kontextmenüs und des
+  Ansichtsmenüs samt dem Untermenü der Reihenfolge, die Namen der sechs
+  Formen-Arten, die Rückmeldungen der Statusleiste, die Umfang-Zeile des
+  Blocks außerhalb der Canvas-Ansicht, die drei neuen Einträge des
+  Funktions-Katalogs und die neuen Kapitel der Handbuch-Seite.
+
 ## [1.133.0.2827] - 2026-09-12 — Eigene Einrichtung, eigene Sprache, eigener Überblick
 
 Zug 3E-000281 mit

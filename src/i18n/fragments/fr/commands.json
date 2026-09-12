@@ -130,5 +130,11 @@
   "command.view.openFieldForm": "Ouvrir le formulaire des champs du document",
   "command.edit.insertProfileQuery": "Insérer une requête de profil",
   "command.canvas.addCard": "Ajouter une carte au canevas",
-  "command.insert.canvas": "Canevas"
+  "command.insert.canvas": "Canevas",
+  "command.canvas.addShape": "Ajouter une forme au canevas",
+  "command.canvas.stackFront": "Mettre au premier plan",
+  "command.canvas.stackForward": "Avancer d’un niveau",
+  "command.canvas.stackBackward": "Reculer d’un niveau",
+  "command.canvas.stackBack": "Mettre à l’arrière-plan",
+  "command.canvas.addGroup": "Ajouter un groupe au canevas"
 }

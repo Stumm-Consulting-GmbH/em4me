@@ -34,6 +34,24 @@
 //      dazwischen (`k1 -> k2` gerichtet, `k1 <-> k2` in beide Richtungen,
 //      `k1 -- k2` ungerichtet); die Anschluss-Seiten bleiben Attribute.
 //
+// **Zwei Festlegungen der Stufe 2** (G5 und G6, Entscheidungen F1 bis F5 des
+// Product Owners vom 2026-09-12), umgesetzt in 4T-001700:
+//
+//   G5 **Form:** `!form <id> x= y= b= h= art=<name> rand=<farbname>
+//      füllung=<farbname|keine>`; die Inhalts-Zeilen sind die optionale
+//      Beschriftung. Ohne `art` gilt `rechteck`, ohne `rand` die Standardfarbe,
+//      ohne `füllung` bleibt die Form ungefüllt.
+//   G6 **Gruppe:** `!gruppe <id> x= y= b= h= farbe=<farbname>`; die
+//      Inhalts-Zeilen sind die Beschriftung. **Keine Mitglieder-Liste** —
+//      das Rechteck ist die Aussage, und Mitglied ist, was darin liegt.
+//
+// **G3 gilt seit der Entscheidung vom 2026-09-12 («Weg 2 ist freigegeben,
+// umsetzen») über alle Element-Arten gemeinsam:** Karten, Formen und Gruppen
+// stehen in **einer** Liste `model.elemente`, und ihre Abfolge darin ist die
+// Stapel-Reihenfolge. Verbindungen sind eine eigene Ebene und von ihr nicht
+// berührt. Anlegen, Ändern, Löschen und Umordnen der Elemente liegen in
+// `canvas-elemente.js` — dieselbe Fachlichkeit, eine Datei weiter.
+//
 // **Fehler-Semantik** wie bei den Ereignissen (`events-fence.js`): Ein Befund
 // landet in `model.errors` und wird nie geworfen; das betroffene Element
 // bleibt erhalten. Ein defektes Element darf die Anzeige stören, aber niemals
@@ -47,18 +65,47 @@
 // könnten auseinanderlaufen; hier gibt es nur eine.
 const CANVAS_EXTENSION_ID = 'canvas';
 
-// Marker der Stufe 1. Die Stufen 2 und 3 ergänzen `gruppe`, `form` und die
-// Verweis- und Bild-Angaben der Karte; bis dahin fängt G1 sie auf.
-const MARKER_ARTEN = new Set(['karte', 'linie']);
+// Marker der Stufen 1 und 2. Die Stufe 3 ergänzt die Verweis- und Bild-Angaben
+// der Karte; bis dahin fängt G1 sie auf.
+const MARKER_ARTEN = new Set(['karte', 'linie', 'form', 'gruppe']);
+
+// Die Element-Arten, die eine Lage auf der Fläche haben und damit im Stapel
+// liegen. Verbindungen fehlen mit Absicht: Sie hängen an ihren Enden statt an
+// eigenen Koordinaten und bleiben nach der Entscheidung vom 2026-09-12 eine
+// eigene Ebene unter den Elementen.
+const STAPEL_ARTEN = new Set(['karte', 'form', 'gruppe']);
+
+// 4T-001700 (Entscheidung F2 des Product Owners vom 2026-09-12): genau sechs
+// Arten. Weitere bleiben später ohne Grammatik-Änderung möglich, weil G1 einen
+// unbekannten Wert auffängt und die Rückfall-Regel ihn als Rechteck zeichnet.
+//
+// Die Werte sind deutsche Einzelwörter wie die Farbnamen und die
+// Anschluss-Seiten — sie stehen im Dokument und werden dort gelesen und
+// getippt. `abgerundet` benennt dabei genau das, was die Art vom `rechteck`
+// unterscheidet; ein zusammengesetzter Wert («abgerundetes rechteck») bräuchte
+// Anführungszeichen und wäre in der Marker-Zeile die Ausnahme statt der Regel.
+const FORM_ARTEN = ['rechteck', 'abgerundet', 'oval', 'dreieck', 'raute', 'stern'];
+
+// Die Vorgabe ohne Angabe **und** die Rückfall-Art einer unbekannten Angabe.
+// Beides ist derselbe Wert und steht deshalb an einer Stelle.
+const FORM_ART_VORGABE = 'rechteck';
+
+// Der eine Wert von `füllung=`, der keine Farbe ist. Er sagt dasselbe wie eine
+// fehlende Angabe und steht in der Grammatik, weil eine ausdrücklich
+// ungefüllte Form sich lesen soll wie eine Entscheidung und nicht wie ein
+// Versehen.
+const FUELLUNG_KEINE = 'keine';
 
 // Kennungen sind bewusst schmal gehalten: Sie stehen unquotiert auf der
 // Marker-Zeile und dürfen deshalb kein Leerzeichen und kein Sonderzeichen der
 // Attribut-Grammatik tragen.
 const ID_RE = /^[A-Za-z0-9_-]+$/;
 
-// Lage und Größe einer Karte in geräteunabhängigen Einheiten (CSS-Pixel bei
+// Lage und Größe eines Elements in geräteunabhängigen Einheiten (CSS-Pixel bei
 // Zoom 1), Ursprung in der Mitte der Fläche. Ganze Zahlen, Lage auch negativ.
-const KARTEN_ZAHLEN = ['x', 'y', 'b', 'h'];
+// Seit 4T-001700 für Karte, Form und Gruppe gleichermaßen — ein zweiter Satz
+// derselben vier Namen liefe bei der nächsten Ergänzung auseinander.
+const LAGE_ZAHLEN = ['x', 'y', 'b', 'h'];
 
 // Anschluss-Seiten einer Verbindung; `auto` überlässt die Wahl der Zeichnung.
 const SEITEN = new Set(['links', 'rechts', 'oben', 'unten', 'auto']);
@@ -76,6 +123,12 @@ const SEITEN = new Set(['links', 'rechts', 'oben', 'unten', 'auto']);
 // getippt werden — wie die Anschluss-Seiten darüber. Die Abbildung auf den
 // Theme-Schlüssel gehört hierher und nicht in die Zeichnung, damit Ansicht und
 // Bedienung denselben Satz lesen statt ihn zu verdoppeln.
+//
+// 4T-001700: Seit der Entscheidung F1 vom 2026-09-12 lesen auch `rand` und
+// `füllung` einer Form sowie `farbe` einer Gruppe aus **diesem** Satz. Der Name
+// der Konstanten bleibt, weil er ihre Herkunft trägt und an ihm die
+// Zeichnung, die Leiste und ein Wächter hängen; ein zweiter Farb-Satz wäre der
+// Fehler, den G3 bei der Stapel-Reihenfolge aus demselben Grund vermeidet.
 const LINIEN_FARBEN = {
   blau: 'blue',
   rot: 'red',
@@ -238,8 +291,10 @@ function lesMarkerAngaben(el, rest, zeilenNr, errors) {
   return operanden;
 }
 
-function lesKarte(el, zeilenNr, errors) {
-  for (const name of KARTEN_ZAHLEN) {
+// Lage und Größe eines Elements auf der Fläche — für Karte, Form und Gruppe
+// dieselbe Rechnung und dieselben Befunde.
+function lesLage(el, zeilenNr, errors) {
+  for (const name of LAGE_ZAHLEN) {
     const wert = alsGanzzahl(el.attrs[name] == null ? '' : el.attrs[name]);
     if (wert === null) {
       errors.push({ code: 'ungueltigeZahl', zeile: zeilenNr, detail: name });
@@ -248,6 +303,57 @@ function lesKarte(el, zeilenNr, errors) {
     }
     el[name] = wert;
   }
+}
+
+/**
+ * Farb-Angabe eines Elements: gültiger Name oder Befund.
+ *
+ * Ein Name außerhalb des Satzes ist **kein** Grund zum Verwerfen (6.3): Das
+ * Element bleibt stehen, wird in der Standardfarbe gezeichnet, und sein Rohtext
+ * kommt beim nächsten Speichern zeichengenau zurück (G1/G2). Nur eine gültige
+ * Angabe wird durchgereicht — die Zeichnung soll nicht ein zweites Mal prüfen
+ * müssen, was hier schon geprüft ist.
+ *
+ * @returns {string|undefined} der Name, wenn er im Satz steht, sonst nichts.
+ */
+function lesFarbAngabe(el, name, zeilenNr, errors) {
+  const wert = el.attrs[name];
+  if (wert == null) return undefined;
+  if (Object.prototype.hasOwnProperty.call(LINIEN_FARBEN, wert)) return wert;
+  errors.push({ code: 'ungueltigeFarbe', zeile: zeilenNr, detail: wert });
+  return undefined;
+}
+
+// G5: Art, Randfarbe und Füllfarbe der Form. Die Beschriftung sind die
+// Inhalts-Zeilen und braucht hier nichts.
+function lesForm(el, zeilenNr, errors) {
+  lesLage(el, zeilenNr, errors);
+  const art = el.attrs.art;
+  // **Warum `formArt` und nicht `art`:** `el.art` trägt bereits die
+  // Element-Art ('form'). Und warum das Merkmal `artUnbekannt` daneben steht:
+  // Der Rohtext der Angabe bleibt in `attrs.art` erhalten und wird auch bei
+  // einer Änderung des Elements unverändert zurückgeschrieben (G1); die
+  // Zeichnung braucht daneben eine Art, die sie kennt.
+  el.artUnbekannt = art != null && !FORM_ARTEN.includes(art);
+  if (el.artUnbekannt) {
+    errors.push({ code: 'ungueltigeArt', zeile: zeilenNr, detail: art });
+  }
+  el.formArt = el.artUnbekannt || art == null ? FORM_ART_VORGABE : art;
+  el.rand = lesFarbAngabe(el, 'rand', zeilenNr, errors);
+  // `füllung=keine` und eine fehlende Angabe sind dieselbe Aussage und werden
+  // deshalb auf dieselbe Abwesenheit abgebildet; erfunden wird kein Wert.
+  el.fuellung =
+    el.attrs['füllung'] === FUELLUNG_KEINE
+      ? undefined
+      : lesFarbAngabe(el, 'füllung', zeilenNr, errors);
+}
+
+// G6: Die Gruppe ist ein beschriftetes Rechteck mit optionaler Farbe. Eine
+// Mitglieder-Liste gibt es bewusst nicht — Mitglied ist, was geometrisch darin
+// liegt; eine zweite Quelle derselben Aussage könnte auseinanderlaufen.
+function lesGruppe(el, zeilenNr, errors) {
+  lesLage(el, zeilenNr, errors);
+  el.farbe = lesFarbAngabe(el, 'farbe', zeilenNr, errors);
 }
 
 /**
@@ -289,23 +395,29 @@ function lesLinie(el, operanden, zeilenNr, errors) {
       errors.push({ code: 'ungueltigeSeite', zeile: zeilenNr, detail: wert });
     }
   }
-  // 4T-001655: Die Farbe ist eine bekannte Angabe der Verbindung. Ein Name
-  // außerhalb des Satzes ist ein Befund und **kein** Grund zum Verwerfen: Die
-  // Linie bleibt stehen, wird in der gewohnten Farbe gezeichnet, und ihr
-  // Rohtext kommt beim nächsten Speichern zeichengenau zurück (G1/G2). Nur
-  // eine gültige Angabe wird als `farbe` durchgereicht — die Zeichnung soll
-  // nicht ein zweites Mal prüfen müssen, was hier schon geprüft ist.
-  const farbe = el.attrs.farbe;
-  if (farbe != null && !Object.prototype.hasOwnProperty.call(LINIEN_FARBEN, farbe)) {
-    errors.push({ code: 'ungueltigeFarbe', zeile: zeilenNr, detail: farbe });
-    el.farbe = undefined;
-    return;
-  }
-  el.farbe = farbe == null ? undefined : farbe;
+  // 4T-001655: Die Farbe ist eine bekannte Angabe der Verbindung; die Prüfung
+  // teilt sie sich seit 4T-001700 mit Form und Gruppe (siehe `lesFarbAngabe`).
+  el.farbe = lesFarbAngabe(el, 'farbe', zeilenNr, errors);
 }
 
-// Liest den Rumpf einer Fence in ein Modell. Wirft nie.
-function parseCanvasFence(inhalt) {
+/**
+ * Liest den Rumpf einer Fence in ein Modell. Wirft nie.
+ *
+ * @param {string} inhalt Rumpf der Fence ohne die Zaun-Zeilen.
+ * @param {object} [optionen]
+ * @param {Set<string>} [optionen.bekannteMarker] Die Marker, die dieser Leser
+ *   kennt; alles andere fällt unter G1. Der Vorgabewert ist der volle Satz.
+ *
+ *   **Warum das überhaupt wählbar ist** (4T-001700): G1 ist eine Zusage über
+ *   **ältere** Programmfassungen — sie sollen Formen und Gruppen mitführen,
+ *   statt sie beim Speichern zu verlieren. Ohne einen Weg, einen solchen Leser
+ *   herzustellen, ließe sich die Zusage nur behaupten und nie prüfen. Der
+ *   Prüffall setzt hier den Satz der Stufe 1 ein und bekommt damit **denselben
+ *   Code** mit dem Wissensstand von damals.
+ * @returns {object} Modell mit `elemente`, `errors`, `praeambel`, `zeilenende`.
+ */
+function parseCanvasFence(inhalt, optionen = {}) {
+  const bekannte = optionen.bekannteMarker instanceof Set ? optionen.bekannteMarker : MARKER_ARTEN;
   const zeilen = trenneZeilen(inhalt);
   const model = {
     elemente: [],
@@ -331,7 +443,7 @@ function parseCanvasFence(inhalt) {
     }
 
     const treffer = MARKER_ZEILE_RE.exec(text);
-    const art = treffer && MARKER_ARTEN.has(treffer[1]) ? treffer[1] : 'unbekannt';
+    const art = treffer && bekannte.has(treffer[1]) ? treffer[1] : 'unbekannt';
     aktuell = neuesElement(art, zeilenNr);
     aktuell.roh.marker = roh;
     model.elemente.push(aktuell);
@@ -347,7 +459,9 @@ function parseCanvasFence(inhalt) {
     }
 
     const operanden = lesMarkerAngaben(aktuell, treffer[2], zeilenNr, model.errors);
-    if (art === 'karte') lesKarte(aktuell, zeilenNr, model.errors);
+    if (art === 'karte') lesLage(aktuell, zeilenNr, model.errors);
+    else if (art === 'form') lesForm(aktuell, zeilenNr, model.errors);
+    else if (art === 'gruppe') lesGruppe(aktuell, zeilenNr, model.errors);
     else lesLinie(aktuell, operanden, zeilenNr, model.errors);
   }
 
@@ -390,10 +504,14 @@ function baueMarkerZeile(el) {
   if (el.art === 'linie') {
     teile.push(el.von || '', RICHTUNG_ZU_PFEIL[linienRichtung(el)], el.nach || '');
   }
+  // Lage und Größe kommen aus dem Element und nicht aus `attrs`, weil eine
+  // Bedien-Handlung sie dort ändert; alles Übrige — auch jede unbekannte
+  // Angabe — steht in `attrs` und behält seine Reihenfolge (G1).
+  const mitLage = STAPEL_ARTEN.has(el.art);
   const genannt = new Set(el.attrFolge);
-  const namen = el.art === 'karte' ? KARTEN_ZAHLEN.filter((n) => !genannt.has(n)) : [];
+  const namen = mitLage ? LAGE_ZAHLEN.filter((n) => !genannt.has(n)) : [];
   for (const name of [...el.attrFolge, ...namen]) {
-    const wert = el.art === 'karte' && KARTEN_ZAHLEN.includes(name) ? el[name] : el.attrs[name];
+    const wert = mitLage && LAGE_ZAHLEN.includes(name) ? el[name] : el.attrs[name];
     if (wert == null) continue;
     teile.push(name + '=' + packeWert(wert));
   }
@@ -556,13 +674,19 @@ function canvasKartenVorschau(el) {
 }
 
 // 4T-001668: Umfang einer Fläche in Karten, Verbindungen und Befunden — die
-// drei Zahlen der Kopfzeile des Blocks. Sie stehen hier, damit weder die
-// Pipeline noch die Mindmap die Element-Arten selbst abzählt.
+// Zahlen der Kopfzeile des Blocks. Sie stehen hier, damit weder die Pipeline
+// noch die Mindmap die Element-Arten selbst abzählt.
+//
+// 4T-001700: Formen und Gruppen kommen hinzu (Entscheidung E8, fortgeschrieben
+// am 2026-09-12). Wer sie anzeigt, entscheidet die Anzeige — der Kern zählt.
 function canvasUmfang(model) {
   const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
+  const zaehle = (art) => elemente.filter((el) => el.art === art).length;
   return {
-    karten: elemente.filter((el) => el.art === 'karte').length,
-    linien: elemente.filter((el) => el.art === 'linie').length,
+    karten: zaehle('karte'),
+    linien: zaehle('linie'),
+    formen: zaehle('form'),
+    gruppen: zaehle('gruppe'),
     befunde: model && Array.isArray(model.errors) ? model.errors.length : 0,
   };
 }
@@ -582,7 +706,11 @@ function canvasFenceBlock(rumpf) {
 module.exports = {
   CANVAS_EXTENSION_ID,
   MARKER_ARTEN,
-  KARTEN_ZAHLEN,
+  STAPEL_ARTEN,
+  LAGE_ZAHLEN,
+  FORM_ARTEN,
+  FORM_ART_VORGABE,
+  FUELLUNG_KEINE,
   SEITEN,
   LINIEN_FARBEN,
   LINIEN_FARB_NAMEN,

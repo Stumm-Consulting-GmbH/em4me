@@ -180,6 +180,83 @@ export function legeCanvasKarteAn(paneIdx) {
   return ansicht.karteAnlegen() !== false;
 }
 
+/**
+ * Gemeinsamer Eintritt der Flächen-Kommandos (4T-001701).
+ *
+ * Die drei Bedingungen sind für jedes von ihnen dieselben — Canvas-Ansicht
+ * offen, Fläche vorhanden, Dokument änderbar —, und jede wird **gesagt** statt
+ * still verworfen (Guard-Muster `insertEventsBlock`): Ein stiller Fehlschlag
+ * wäre für den Nutzer nicht von einem Fehler zu unterscheiden.
+ *
+ * Hier liegt zugleich die Stelle, an der das Verfügbarkeits-Modell aufhört:
+ * Es kennt die offene Fläche, nicht aber den Anzeige-Modus und nicht die
+ * Auswahl auf der Fläche. Beides fängt dieser Guard ab.
+ *
+ * @param {number} paneIdx
+ * @param {Function} handlung (ansicht) => boolean
+ * @returns {boolean}
+ */
+function anDerFlaeche(paneIdx, handlung) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  const ansicht = ansichten[paneIdx];
+  if (!tab || tab.viewMode !== 'canvas' || !ansicht) {
+    zeigeHinweis('canvas.nurInAnsicht');
+    return false;
+  }
+  if (!istAenderbar(paneIdx)) {
+    zeigeHinweis('canvas.nurLesbar');
+    return false;
+  }
+  return handlung(ansicht) !== false;
+}
+
+/**
+ * Legt eine Form in der Mitte des sichtbaren Ausschnitts der aktiven Fläche
+ * an — der Weg des Kommandos aus Menü und Kommando-Palette (4T-001701).
+ *
+ * @param {number} paneIdx
+ * @returns {boolean}
+ */
+export function legeCanvasFormAn(paneIdx) {
+  return anDerFlaeche(paneIdx, (ansicht) => ansicht.formAnlegen());
+}
+
+/**
+ * Legt eine Gruppe in der Mitte des sichtbaren Ausschnitts der aktiven Fläche
+ * an — der Weg des Kommandos aus Menü und Kommando-Palette (4T-001702).
+ *
+ * @param {number} paneIdx
+ * @returns {boolean}
+ */
+export function legeCanvasGruppeAn(paneIdx) {
+  return anDerFlaeche(paneIdx, (ansicht) => ansicht.gruppeAnlegen());
+}
+
+/**
+ * Verschiebt das gewählte Element der aktiven Fläche im Stapel (Story
+ * 4S-000932).
+ *
+ * Ist nichts gewählt, sagt die Fläche es. Das ist der zweite Fall, den das
+ * Verfügbarkeits-Modell nicht trägt: Die Auswahl lebt in der Ansicht, und ein
+ * gemeldetes Feld dafür ginge bei jedem Klick über die Prozess-Brücke.
+ *
+ * @param {number} paneIdx
+ * @param {string} befehl einer aus `STAPEL_BEFEHLE`.
+ * @returns {boolean}
+ */
+export function verschiebeCanvasElement(paneIdx, befehl) {
+  return anDerFlaeche(paneIdx, (ansicht) => {
+    if (!ansicht.gewaehltesElement()) {
+      zeigeHinweis('canvas.keineAuswahl');
+      return false;
+    }
+    // Ein `false` von hier heißt «lag schon ganz vorn» und ist kein Fehler:
+    // Der Anwender sieht die unveränderte Fläche, und ein Hinweis darauf wäre
+    // Lärm statt Auskunft.
+    return ansicht.verschiebeImStapel(befehl);
+  });
+}
+
 // Baut die Ansicht einer Spalte auf, falls noch nicht vorhanden.
 function ansichtFuer(paneIdx) {
   if (ansichten[paneIdx]) return ansichten[paneIdx];

@@ -393,6 +393,18 @@ const MENUE_BASISLINIE = new Map([
   // bleibt damit dieselbe: unveraendertes Menue-Verhalten.
   ['view.modeCanvas', 'canvasAnsicht'],
   ['canvas.addCard', 'canvasKarte'],
+  // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle.
+  // Dieselbe Begruendung wie eine Zeile darueber — sie entstehen auf dem
+  // Zug-Zweig der Canvas, und ihre Basislinie ist die Bedingung, mit der sie
+  // in das Menue eingehaengt werden: offene Flaeche in der Canvas-Ansicht.
+  ['canvas.addShape', 'canvasKarte'],
+  // 4T-001702 (Epic 3E-000288): die Gruppen-Anlage, aus demselben Grund und
+  // mit derselben Bedingung.
+  ['canvas.addGroup', 'canvasKarte'],
+  ['canvas.stackFront', 'canvasKarte'],
+  ['canvas.stackForward', 'canvasKarte'],
+  ['canvas.stackBackward', 'canvasKarte'],
+  ['canvas.stackBack', 'canvasKarte'],
   ['view.toggleFocusMode', 'immer'],
   ['view.toggleSidebarLeft', 'immer'],
   ['view.toggleSidebarRight', 'immer'],

@@ -216,6 +216,9 @@ export function entferneLinie(model, id) {
  *   Leiste, und keine Handlung schreibt. Fehlt der Rückruf, gilt änderbar.
  * @param {Function} [ctx.t] Übersetzungs-Funktion (injiziert).
  * @param {Function} [ctx.beiFreigabe] () => void, sobald keine Handlung läuft.
+ * @param {Function} [ctx.beiLinienWahl] (id) => void (4T-001701), sobald eine
+ *   Verbindung gewählt wird. Die Formen-Bedienung hebt daran ihre eigene Wahl
+ *   auf (V3); ohne den Rückruf bleibt es beim Paar Karte/Verbindung.
  * @returns {object} Steuerung für die Ansicht.
  */
 export function createVerbindungsBedienung(ctx) {
@@ -272,7 +275,12 @@ export function createVerbindungsBedienung(ctx) {
     gewaehlteLinie = id && elementZu(id) ? id : null;
     // Genau ein Element ist gewählt (V3): Die Karte gibt ab, wenn die Linie
     // übernimmt. Umgekehrt meldet die Karten-Bedienung über `beiKartenWahl`.
-    if (gewaehlteLinie) bedienung.waehleKarte(null);
+    // 4T-001701: Seit den Formen sind es drei Arten; die dritte erfährt den
+    // Wechsel über `beiLinienWahl`, damit dieses Modul sie nicht kennen muss.
+    if (gewaehlteLinie) {
+      bedienung.waehleKarte(null);
+      if (typeof ctx.beiLinienWahl === 'function') ctx.beiLinienWahl(gewaehlteLinie);
+    }
     markiere();
     if (gewaehlteLinie) bedienung.fokussiere();
   }

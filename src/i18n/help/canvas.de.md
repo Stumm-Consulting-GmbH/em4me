@@ -1,10 +1,10 @@
 # Canvas-Fläche
 
-Eine **Canvas** ist eine räumliche Arbeitsfläche in einem gewöhnlichen Markdown-Dokument: **Karten** mit eigenem Text liegen frei angeordnet darauf, **Verbindungen** ziehen Beziehungen zwischen ihnen. Wer Alternativen nebeneinanderlegt, einen Ablauf skizziert oder Gedanken erst einmal sortiert, ordnet hier nach Lage statt nach Reihenfolge.
+Eine **Canvas** ist eine räumliche Arbeitsfläche in einem gewöhnlichen Markdown-Dokument: **Karten** mit eigenem Text liegen frei angeordnet darauf, **Verbindungen** ziehen Beziehungen zwischen ihnen, **Formen** setzen Zeichen daneben und **Gruppen** fassen zusammen, was zusammengehört. Wer Alternativen nebeneinanderlegt, einen Ablauf skizziert oder Gedanken erst einmal sortiert, ordnet hier nach Lage statt nach Reihenfolge.
 
 Getragen wird die Fläche von einem Code-Block mit dem Sprach-Tag `perspective-canvas`. Ein Dokument darf beliebig viele davon enthalten, und alles Übrige darin bleibt gewöhnliches Markdown.
 
-Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Canvas-Ansicht"). Ist sie abgeschaltet, bleibt der Block ein regulärer Code-Block, der Ansichts-Modus entfällt, und die Kommandos für Fläche und Karte verschwinden. Das Dokument bleibt dabei unverändert lesbar; es geht nichts verloren.
+Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Canvas-Ansicht"). Ist sie abgeschaltet, bleibt der Block ein regulärer Code-Block, der Ansichts-Modus entfällt, und die Kommandos für Fläche, Karte, Form, Gruppe und Reihenfolge verschwinden. Das Dokument bleibt dabei unverändert lesbar; es geht nichts verloren.
 
 ## Abgrenzung zur Graphenansicht
 
@@ -54,7 +54,7 @@ Die Beschriftung wird abgeleitet und nicht angegeben: die erste sinnvolle Zeile 
 
 ### Auswählen, verschieben, Größe ändern
 
-- Ein **Klick** wählt eine Karte, ein Klick auf den Hintergrund hebt die Auswahl auf. Gewählt ist immer höchstens ein Element — eine Karte oder eine Verbindung.
+- Ein **Klick** wählt eine Karte, ein Klick auf den Hintergrund hebt die Auswahl auf. Gewählt ist immer höchstens ein Element — eine Karte, eine Verbindung, eine Form oder eine Gruppe.
 - **Ziehen** verschiebt die Karte; ihre Verbindungen folgen schon während des Zuges. Ein Raster gibt es nicht.
 - Der **Griff an der unteren rechten Ecke** ändert die Größe. Sie ist unabhängig vom Inhalt: Passt der Text nicht, wird in der Karte gescrollt — sie wächst nie von selbst.
 
@@ -92,6 +92,90 @@ Eine gewählte Verbindung trägt in der Mitte ihres Verlaufs eine kleine **Leist
 
 Dieselben Handlungen liegen im **Kontextmenü** der Verbindung (Rechtsklick). `Entf` löscht die gewählte Verbindung.
 
+## Formen
+
+Neben Karten trägt die Fläche **geometrische Formen**. Sie tragen keinen Inhalt, sondern gliedern: Sie heben einen Bereich hervor, markieren einen Schritt in einem Ablauf oder setzen ein Zeichen neben eine Karte.
+
+### Anlegen
+
+- **Rechtsklick** auf den freien Hintergrund → „Form einfügen" öffnet ein Untermenü mit den sechs Arten und setzt die gewählte an der Klick-Stelle ab.
+- Das Kommando **„Form auf der Fläche anlegen"** (Kommando-Palette, Ansicht-Menü, belegbares Kürzel) legt ein Rechteck in der Mitte des sichtbaren Ausschnitts an.
+
+Zur Wahl stehen sechs Arten: **Rechteck**, **abgerundetes Rechteck**, **Oval**, **Dreieck**, **Raute** und **Stern**. Ein Werkzeug für freie Striche gibt es nicht.
+
+### Auswählen, verschieben, Größe ändern
+
+Wie bei einer Karte: Ein Klick wählt die Form, Ziehen verschiebt sie, der Griff an der unteren rechten Ecke ändert die Größe. Der Umriss füllt dabei sein Rechteck aus und behält die Seitenverhältnisse nicht — ein in die Breite gezogenes Oval bleibt breit.
+
+Angefasst wird die **gezeichnete Figur** und nicht das Rechteck um sie herum: Ein Klick in die leere Ecke neben einem Dreieck trifft, was dahinter liegt.
+
+### Art, Farben und Beschriftung
+
+Eine gewählte Form trägt eine **Leiste**:
+
+- **Art der Form** — wechselt zwischen den sechs Arten; Lage und Größe bleiben stehen.
+- **Randfarbe** — acht Farben des Farbschemas. Ohne Wahl gilt die Standardfarbe.
+- **Füllfarbe** — dieselben acht Farben, getönt gezeichnet, dazu „Keine Füllung".
+- **Beschriftung bearbeiten** — öffnet dieselbe Eingabe wie ein Doppelklick auf die Form.
+
+Die **Beschriftung** ist **einfacher Text**, mittig in der Form. Anders als in einer Karte wird darin kein Markdown gerendert und nicht gescrollt: Die Form gliedert, die Karte trägt Inhalt. `Strg+Enter` und ein Klick daneben übernehmen, `Escape` verwirft; ein geleerter Text nimmt die Beschriftung wieder weg.
+
+Dieselben Handlungen liegen im **Kontextmenü** der Form.
+
+### Löschen
+
+`Entf` löscht die gewählte Form, ebenso „Form löschen" in ihrem Kontextmenü. Eine Verbindung lässt sich an einer Form nicht anschließen; Verbindungen verlaufen ausschließlich zwischen Karten.
+
+## Gruppen
+
+Eine **Gruppe** ist ein Rechteck, das einen Teil der Fläche zusammenfasst und benennt — „Analyse", „verworfen", „erste Fassung". Ihr Inneres bleibt dabei bedienbar: Karten und Formen darin lassen sich weiterhin anfassen, und ein Doppelklick mitten in die Gruppe legt wie überall sonst eine Karte an.
+
+### Anlegen
+
+- **Rechtsklick** auf den freien Hintergrund → „Gruppe einfügen" setzt sie an der Klick-Stelle ab.
+- Das Kommando **„Gruppe auf der Fläche anlegen"** legt sie in der Mitte des sichtbaren Ausschnitts an.
+
+Eine neue Gruppe entsteht **ganz hinten** und verdeckt damit nichts.
+
+### Beschriftung und Farbe
+
+Eine gewählte Gruppe trägt eine Leiste mit der **Farbe der Gruppe** — acht Farben des Farbschemas, dazu „Standardfarbe", die die Angabe wieder entfernt — und mit **Beschriftung bearbeiten**. Die Beschriftung steht oben links am Rahmen und ist wie bei der Form einfacher Text. Dieselben Handlungen liegen im **Kontextmenü** der Gruppe.
+
+### Mitglieder
+
+**Mitglied ist, was vollständig in der Gruppe liegt.** Es steht nirgends geschrieben — das Rechteck selbst ist die Aussage, und es gibt keine zweite Liste, die davon abweichen könnte. Die Ränder zählen dazu; was über die Kante hinausragt, ist nicht Mitglied. Eine Gruppe in einer Gruppe ist Mitglied und wandert mit.
+
+Daraus folgen die drei Handlungen:
+
+| Handlung | Wirkung auf die Mitglieder |
+| -------- | -------------------------- |
+| Gruppe verschieben | die Mitglieder wandern mit, ihre Anordnung zueinander bleibt unverändert |
+| Größe ändern | nichts wird verschoben; wer Mitglied ist, richtet sich danach neu |
+| Gruppe löschen | die Mitglieder bleiben stehen |
+
+Wer mitwandert, steht zum **Beginn des Zuges** fest: Was beim Anfassen in der Gruppe lag, kommt mit — auch wenn die Gruppe unterwegs weit über ihre eigene Stelle hinausfährt. Der ganze Zug ist **ein** Rückgängig-Schritt.
+
+Eine Verbindung ist nie Mitglied; sie folgt ohnehin ihren Karten.
+
+## Reihenfolge auf der Fläche
+
+Karten, Formen und Gruppen liegen in **einer gemeinsamen Reihenfolge**. Überlagern sich zwei Elemente, entscheidet sie, welches oben liegt; keine Art liegt dauerhaft über einer anderen.
+
+Für das gewählte Element gibt es vier Befehle:
+
+| Befehl | Wirkung |
+| ------ | ------- |
+| Ganz nach vorn | über alle übrigen Elemente |
+| Eine Stufe vor | vor das nächste Element davor |
+| Eine Stufe zurück | hinter das nächste Element dahinter |
+| Ganz nach hinten | unter alle übrigen Elemente |
+
+Zwei Wege führen hin: das **Kontextmenü** des Elements und **Ansicht → Reihenfolge auf der Fläche**. Dieselben Befehle stehen in der Kommando-Palette (Standard `Strg+K`); Kürzel sind nicht vorbelegt und lassen sich in den Einstellungen vergeben.
+
+**Neue Elemente haben ihren Platz:** Eine neue Gruppe entsteht ganz hinten, eine neue Form und eine neue Karte ganz vorn.
+
+**Verbindungen sind davon nicht berührt.** Sie werden in einer eigenen Ebene unter allen Elementen gezeichnet und lassen sich nicht in der Reihenfolge bewegen.
+
 ## Rückgängig
 
 `Strg+Z` nimmt die letzte Handlung auf der Fläche zurück, `Strg+Y` und `Strg+Umschalt+Z` stellen sie wieder her. Jede Handlung ist genau ein Schritt: eine verschobene Karte, eine geänderte Größe, eine angelegte Verbindung, ein geänderter Text. Steht die Text-Eingabe einer Karte oder einer Verbindung offen, gilt `Strg+Z` dort dem getippten Text.
@@ -104,7 +188,7 @@ Dieselben Handlungen liegen im **Kontextmenü** der Verbindung (Rechtsklick). `E
 
 ## Nur ansehen
 
-Die Fläche folgt der Änderbarkeit ihres Dokuments. Steht das Dokument in der reinen Anzeige, ohne eingeschalteten Bearbeiten-Modus, ist die Fläche **nur ansehbar**: keine Griffe, kein Ziehen, kein Anlegen, keine Text-Eingabe, keine Leiste, und das Kontextmenü bleibt ohne Einträge. Ausschnitt verschieben, zoomen und ein Element per Klick auswählen bleiben erlaubt, weil sie das Dokument nicht anfassen.
+Die Fläche folgt der Änderbarkeit ihres Dokuments. Steht das Dokument in der reinen Anzeige, ohne eingeschalteten Bearbeiten-Modus, ist die Fläche **nur ansehbar**: keine Griffe, kein Ziehen, kein Anlegen, keine Text-Eingabe, keine Leiste, keine Umordnung, und das Kontextmenü bleibt ohne Einträge. Das gilt für jede Art — Karte, Verbindung, Form und Gruppe. Auch der Weg über Kommando-Palette und Menü führt dann nicht daran vorbei; der Fehlschlag wird in der Statusleiste gesagt und nicht verschwiegen. Ausschnitt verschieben, zoomen und ein Element per Klick auswählen bleiben erlaubt, weil sie das Dokument nicht anfassen.
 
 Der Bearbeiten-Modus gibt die Bedienung frei — Stift in der Statusleiste, Standard `Strg+E`; die Einzelheiten beschreibt die Seite [Ansichten und Darstellung](views-display.md).
 
@@ -116,7 +200,7 @@ Weil die Fläche in einem gewöhnlichen Markdown-Dokument liegt, begegnet sie in
 | ------- | ------------- |
 | Quellcode | der Block im Klartext — diese Ansicht **ist** die Quelle |
 | Geteilt | links der Klartext, rechts der Übersichts-Block |
-| Gerendert | **der Übersichts-Block**: Art, Umfang in Karten und Verbindungen, eine Vorschau der Karten-Texte und der Knopf „Canvas-Ansicht öffnen" |
+| Gerendert | **der Übersichts-Block**: Art, Umfang in Karten, Verbindungen, Formen und Gruppen, eine Vorschau der Karten-Texte und der Knopf „Canvas-Ansicht öffnen" |
 | Live | derselbe Block; berührt die Schreibmarke den Block, klappt er zum Klartext auf und ist dort änderbar |
 | Mindmap | eine kurze Notiz mit Art und Umfang statt des Rohtexts |
 | Canvas | die Fläche selbst |
@@ -162,7 +246,27 @@ Die beiden Enden sind Karten-Kennungen, und der **Pfeil zwischen ihnen trägt di
 
 `von=` nennt die Anschluss-Seite am ersten Ende, `nach=` die am zweiten; zulässig sind `links`, `rechts`, `oben`, `unten` und `auto`. `farbe=` färbt die Linie; zulässig sind `blau`, `rot`, `grün`, `gelb`, `lila`, `orange`, `türkis` und `pink`. Ohne diese Angabe wird die Linie in der Standardfarbe des Farbschemas gezeichnet. Die Zeilen unter dem Marker sind die **Beschriftung**.
 
-Die **Reihenfolge im Block ist zugleich die Stapel-Reihenfolge**: Was weiter unten steht, liegt weiter vorn.
+### Formen
+
+```text
+!form <kennung> x=<zahl> y=<zahl> b=<zahl> h=<zahl> art=<name> rand=<farbe> füllung=<farbe>
+```
+
+Lage und Größe zählen wie bei der Karte. `art=` ist einer von sechs Namen: `rechteck`, `abgerundet`, `oval`, `dreieck`, `raute` und `stern`. `rand=` und `füllung=` nehmen dieselben acht Farbnamen wie die Verbindung, `füllung=keine` lässt die Form ungefüllt. Ohne `art` gilt `rechteck`, ohne `rand` die Standardfarbe, ohne `füllung` bleibt die Form ungefüllt — eine Vorgabe wird nicht ausgeschrieben, weil ihre Abwesenheit sie bereits sagt. Die Zeilen unter dem Marker sind die **Beschriftung**.
+
+Ein unbekannter Name bei `art` oder bei einer der beiden Farben ist ein **Befund**: Die Form bleibt erhalten, wird als Rechteck beziehungsweise in der Standardfarbe gezeichnet, und ihr Text steht unverändert in der Datei.
+
+### Gruppen
+
+```text
+!gruppe <kennung> x=<zahl> y=<zahl> b=<zahl> h=<zahl> farbe=<name>
+```
+
+Lage und Größe beschreiben das Rechteck, `farbe=` nimmt einen der acht Farbnamen; ohne Angabe gilt die Standardfarbe. Die Zeilen unter dem Marker sind die **Beschriftung**. **Eine Mitglieder-Liste steht nicht in der Datei** — wer in der Gruppe liegt, ergibt sich aus den Rechtecken und sonst nichts.
+
+### Die Reihenfolge im Block
+
+Die **Reihenfolge im Block ist zugleich die Stapel-Reihenfolge** über Karten, Formen und Gruppen: Was weiter unten steht, liegt weiter vorn. Verbindungen stehen zwar in derselben Folge, sind davon aber nicht berührt; sie werden in einer eigenen Ebene unter allen Elementen gezeichnet.
 
 ### Zwei Regeln, die die Datei schützen
 
@@ -173,6 +277,9 @@ Die **Reihenfolge im Block ist zugleich die Stapel-Reihenfolge**: Was weiter unt
 
 ````markdown
 ```perspective-canvas
+!gruppe g1 x=-360 y=-200 b=740 h=220 farbe=blau
+Analyse
+
 !karte k1 x=-320 y=-140 b=260 h=120
 ## Ausgangslage
 
@@ -187,6 +294,9 @@ Mehrere Quellen, eine Zusammenführung.
 ## Offene Frage
 
 Wie werden Konflikte aufgelöst?
+
+!form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
+Kernaussage
 
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 ergibt
@@ -202,6 +312,9 @@ bedingen einander
 Gerendert erscheint an dieser Stelle der Übersichts-Block, und der Knopf darin führt auf die Fläche:
 
 ```perspective-canvas
+!gruppe g1 x=-360 y=-200 b=740 h=220 farbe=blau
+Analyse
+
 !karte k1 x=-320 y=-140 b=260 h=120
 ## Ausgangslage
 
@@ -217,6 +330,9 @@ Mehrere Quellen, eine Zusammenführung.
 
 Wie werden Konflikte aufgelöst?
 
+!form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
+Kernaussage
+
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 ergibt
 
@@ -229,7 +345,9 @@ bedingen einander
 
 ## Grenzen
 
-- Eine Karte trägt **eigenen Text**; andere Karten-Arten gibt es nicht. Geometrische Formen und Gruppen-Rahmen gehören nicht zum Umfang der Fläche.
+- Eine Karte trägt **eigenen Text**; andere Karten-Arten gibt es nicht. Formen und Gruppen gehören zur Fläche, tragen aber keinen gerenderten Inhalt, sondern höchstens eine Beschriftung aus einfachem Text.
+- **Freies Zeichnen gibt es nicht.** Die Fläche kennt die sechs Formen-Arten und sonst keine Geometrie; Freihand-Striche, selbst gezogene Pfeile und Stift-Eingabe gehören nicht zum Umfang.
+- Eine **Verbindung** verläuft ausschließlich zwischen Karten; an einer Form oder einer Gruppe lässt sie sich nicht anschließen.
 - Ein Verweis im Text einer Karte erscheint **nicht** im Verweis-Graph und nicht in den Rückverweisen: Der Bereichs-Index überspringt den Inhalt von Code-Blöcken.
 - Die Fläche wird mit der Maus bedient; über die Tastatur laufen Rückgängig, Löschen und die Text-Eingaben.
 - Eine Fläche gehört zu ihrem Dokument. Karten lassen sich nicht von einer Fläche auf eine andere ziehen.

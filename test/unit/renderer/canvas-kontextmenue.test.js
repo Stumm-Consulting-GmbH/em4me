@@ -94,7 +94,9 @@ function rechtsklick(ziel, x = 0, y = 0) {
 }
 
 const loese = (menue, kennung) => menue.eintraege.find((e) => e.dataId === kennung).action();
-const kennungen = (menue) => menue.eintraege.map((e) => e.dataId);
+// 4T-001701: Trenner tragen keine Kennung; sie stehen in einer eigenen
+// Erwartung, damit die Liste der Handlungen lesbar bleibt.
+const kennungen = (menue) => menue.eintraege.filter((e) => !e.separator).map((e) => e.dataId);
 
 const letzterRumpf = (geschrieben) => geschrieben[geschrieben.length - 1].rumpf;
 const kartenIds = (geschrieben) =>
@@ -103,11 +105,15 @@ const kartenIds = (geschrieben) =>
     .map((el) => el.id);
 
 describe('Canvas-Kontextmenü: Rechtsklick auf den Hintergrund (4T-001683)', () => {
-  it('zeigt genau einen Eintrag, an der Stelle des Zeigers', () => {
+  it('zeigt die drei Anlege-Wege, an der Stelle des Zeigers', () => {
+    // 4T-001701: Neben der Karte steht das Untermenü der sechs Formen-Arten.
+    // 4T-001702: dahinter die Gruppe, als ein Eintrag — es gibt nur eine Art
+    // von Gruppe, und ein Untermenü über einem einzigen Eintrag wäre ein Klick
+    // ohne Wahl.
     const { buehne, menue } = baueAnsicht();
     rechtsklick(buehne, 120, 60);
     expect(menue.offen).toBe(true);
-    expect(kennungen(menue)).toEqual(['canvas-add-card']);
+    expect(kennungen(menue)).toEqual(['canvas-add-card', 'canvas-add-shape', 'canvas-add-group']);
     expect(menue).toMatchObject({ x: 120, y: 60 });
   });
 
@@ -141,19 +147,34 @@ describe('Canvas-Kontextmenü: Rechtsklick auf den Hintergrund (4T-001683)', () 
 });
 
 describe('Canvas-Kontextmenü: Rechtsklick auf eine Karte (4T-001683)', () => {
-  it('wählt die Karte und zeigt ihre beiden Einträge', () => {
+  it('wählt die Karte und zeigt ihre Einträge samt Stapel-Block', () => {
+    // 4T-001701: Hinter den beiden Karten-Einträgen stehen, durch einen
+    // Trenner abgesetzt, die vier Stapel-Befehle — sie gelten für jedes
+    // Element der Ebene und nicht nur für Formen (Story 4S-000932, AK5).
     const { container, view, menue } = baueAnsicht();
     rechtsklick(karteMit(container, 'k2'), 50, 50);
     expect(view.getStats().gewaehlteKarte).toBe('k2');
-    expect(kennungen(menue)).toEqual(['canvas-card-edit', 'canvas-card-delete']);
+    expect(kennungen(menue)).toEqual([
+      'canvas-card-edit',
+      'canvas-card-delete',
+      'canvas-stack-ganzNachVorn',
+      'canvas-stack-eineStufeVor',
+      'canvas-stack-eineStufeZurueck',
+      'canvas-stack-ganzNachHinten',
+    ]);
+    expect(menue.eintraege.filter((e) => e.separator)).toHaveLength(1);
   });
 
   it('die Beschriftungen stehen im Katalog', () => {
     const { container, menue } = baueAnsicht();
     rechtsklick(karteMit(container, 'k1'), 0, 0);
-    expect(menue.eintraege.map((e) => e.label)).toEqual([
+    expect(menue.eintraege.filter((e) => !e.separator).map((e) => e.label)).toEqual([
       de['canvas.karteBearbeiten'],
       de['canvas.karteLoeschen'],
+      de['command.canvas.stackFront'],
+      de['command.canvas.stackForward'],
+      de['command.canvas.stackBackward'],
+      de['command.canvas.stackBack'],
     ]);
   });
 
@@ -248,9 +269,19 @@ describe('Canvas-Kontextmenü: Bauweise und Bedienort (4T-001683)', () => {
     // app-state, und ausdrücklich nicht die Menü-Helfer des Fensters — ein
     // Import von dort zöge den Canvas-Ordner in den grossen Datei-Zyklus des
     // Renderers, den der Ordner-Import-Wächter als Ratsche eingefroren hat.
+    //
+    // 4T-001701: Seit den Formen und den Stapel-Befehlen hat das Modul
+    // Bezüge — aber nur auf den prozessneutralen Kern und auf Nachbarn im
+    // eigenen Ordner. Die Zusage bleibt damit dieselbe und wird nur genauer
+    // gemessen: kein Bezug nach draußen, statt gar kein Bezug.
     const quelle = lies('src/renderer/modules/canvas/canvas-kontextmenue.js');
     const bezuege = [...quelle.matchAll(/from '([^']+)'/g)].map((m) => m[1]);
-    expect(bezuege).toEqual([]);
+    expect(bezuege.length).toBeGreaterThan(0);
+    for (const bezug of bezuege) {
+      expect(bezug, `unerlaubter Import ${bezug}`).toMatch(
+        /^(?:\.\.\/\.\.\/\.\.\/shared\/canvas\/|\.\/canvas-)/,
+      );
+    }
     expect(quelle).not.toMatch(/context-menu-utils/);
   });
 

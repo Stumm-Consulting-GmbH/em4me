@@ -45,8 +45,23 @@ const GRUND_POLSTER = 5;
 // Die Regel steht einmal hier, weil sie an drei Stellen dieselbe sein muss:
 // beim Ziehen der Fläche, beim Aufheben der Karten-Auswahl und beim
 // Doppelklick, der sonst eine Karte anlegte (4T-001655).
+//
+// 4T-001701: Die Formen kommen als vierte Art hinzu. Die Aufzählung wächst
+// damit weiter an **einer** Stelle; eine zweite Kopie in der Formen-Bedienung
+// liefe unweigerlich auseinander. Bemerkenswert ist, was hier **nicht** steht:
+// die Hülle `.canvas-form` fängt keinen Zeiger (sie ist für ihn durchlässig),
+// gemeint ist allein ihr Umriss — wer neben das Dreieck klickt, meint die
+// Fläche und nicht die Form.
+// 4T-001702: Die Gruppen kommen als fünfte Art hinzu, und dieselbe Bemerkung
+// gilt doppelt: Von der Gruppe steht hier allein, was den Zeiger **fängt** —
+// Treffer-Rahmen, Beschriftung, Griff, Leiste und Eingabe. Ihr Innenraum ist
+// ausdrücklich Hintergrund: Wer mitten in eine Gruppe klickt, meint die Fläche
+// oder das Element darin, und ein Doppelklick dort legt eine Karte an.
 const VORDERGRUND_WAHL =
-  '.canvas-karte, .canvas-linie, .canvas-linie-leiste, .canvas-linie-eingabe';
+  '.canvas-karte, .canvas-linie, .canvas-linie-leiste, .canvas-linie-eingabe, ' +
+  '.canvas-form-flaeche, .canvas-form-griff, .canvas-form-leiste, .canvas-form-eingabe, ' +
+  '.canvas-gruppe-treffer, .canvas-gruppe-text, .canvas-gruppe-griff, ' +
+  '.canvas-gruppe-leiste, .canvas-gruppe-eingabe';
 
 /** Gilt ein Ereignis-Ziel als Hintergrund der Fläche? */
 export function istHintergrund(ziel) {
@@ -71,10 +86,17 @@ function svgKnoten(art, klasse) {
   return el;
 }
 
-// Inhalts-Zeilen der Verbindung als Beschriftung. Leere Zeilen am Ende fallen
-// weg: Der Parser hängt dem Inhalt eines Elements die Trennzeile zum nächsten
-// an, und eine leere Zeile im Bild wäre nur ein Loch.
-function beschriftungsZeilen(el) {
+/**
+ * Inhalts-Zeilen eines Elements als Beschriftung. Leere Zeilen am Ende fallen
+ * weg: Der Parser hängt dem Inhalt eines Elements die Trennzeile zum nächsten
+ * an, und eine leere Zeile im Bild wäre nur ein Loch.
+ *
+ * 4T-001701: Bewusst über die Art hinweg und deshalb exportiert. Die
+ * Beschriftung einer Form ist derselbe Rohtext wie die einer Verbindung, und
+ * eine zweite Funktion mit demselben Rumpf wäre ein zweiter Ort für dieselbe
+ * Regel — dasselbe Muster wie `setzeElementInhalt` in der Karten-Bedienung.
+ */
+export function beschriftungsZeilen(el) {
   const zeilen = String(el.inhalt || '').split('\n');
   while (zeilen.length > 0 && zeilen[zeilen.length - 1].trim() === '') zeilen.pop();
   return zeilen;

@@ -7,13 +7,17 @@
 // macht, prüft renderer/canvas-view.test.js.
 import { describe, it, expect } from 'vitest';
 import {
+  FORM_STRICH,
   MIN_BREITE,
   MIN_HOEHE,
   ZOOM_MAX,
   ZOOM_MIN,
   einpassung,
+  formGeometrie,
+  gruppenMitglieder,
   huelle,
   kartenRechteck,
+  liegtVollstaendigIn,
   pfeilSpitzePfad,
   seitenNormale,
   seitenPunkt,
@@ -292,5 +296,148 @@ describe('Canvas-Geometrie: Zoom um einen Punkt (4T-001653)', () => {
     expect(zoomUmPunkt(start, 0, 0, 0)).toEqual(start);
     expect(zoomUmPunkt(start, 0, 0, NaN)).toEqual(start);
     expect(zoomUmPunkt(null, 0, 0, 2).scale).toBe(2);
+  });
+});
+
+describe('Canvas-Geometrie: Umriss der Formen (4T-001701, Epic 3E-000288)', () => {
+  // Die sechs Arten der Entscheidung F2. Geprüft wird die **Figur**, nicht ihr
+  // Bild: Welchen SVG-Knoten sie ergibt, mit welchen Attributen — das Bauen
+  // liegt in canvas-formen.js und wird dort gemessen.
+  it('gibt je Art die erwartete Grundfigur', () => {
+    const arten = {
+      rechteck: 'rect',
+      abgerundet: 'rect',
+      oval: 'ellipse',
+      dreieck: 'polygon',
+      raute: 'polygon',
+      stern: 'polygon',
+    };
+    for (const [art, tag] of Object.entries(arten)) {
+      expect(formGeometrie(art, 200, 100).tag, `Art ${art}`).toBe(tag);
+    }
+  });
+
+  it('rückt den Umriss um die halbe Strichstärke ein', () => {
+    // Ohne den Einzug schnitte die Hülle die äußere Hälfte des Striches ab —
+    // sichtbar als halb so dicker Rand an allen vier Kanten.
+    const { attrs } = formGeometrie('rechteck', 200, 100);
+    expect(attrs).toEqual({
+      x: FORM_STRICH / 2,
+      y: FORM_STRICH / 2,
+      width: 200 - FORM_STRICH,
+      height: 100 - FORM_STRICH,
+    });
+  });
+
+  it('das Oval füllt die Hülle und wird nicht proportional skaliert', () => {
+    // Wer ein Oval in die Breite zieht, erwartet ein breites Oval und keinen
+    // Kreis mit Rand.
+    expect(formGeometrie('oval', 200, 100).attrs).toEqual({
+      cx: 100,
+      cy: 50,
+      rx: 99,
+      ry: 49,
+    });
+  });
+
+  it('das abgerundete Rechteck deckelt seinen Radius', () => {
+    // Ohne Deckel wäre eine grosse Form ein Stadion; ohne Mitwachsen hätte
+    // eine kleine Form nur eine angedeutete Ecke.
+    expect(formGeometrie('abgerundet', 800, 600).attrs.rx).toBe(14);
+    expect(formGeometrie('abgerundet', 40, 24).attrs.rx).toBe(5.5);
+  });
+
+  it('Dreieck und Raute stehen auf den Kanten der Hülle', () => {
+    const dreieck = formGeometrie('dreieck', 200, 100).attrs.points.split(' ');
+    expect(dreieck).toEqual(['100,1', '199,99', '1,99']);
+    const raute = formGeometrie('raute', 200, 100).attrs.points.split(' ');
+    expect(raute).toEqual(['100,1', '199,50', '100,99', '1,50']);
+  });
+
+  it('der Stern hat zehn Punkte und beginnt mit einer Zacke nach oben', () => {
+    const punkte = formGeometrie('stern', 200, 200).attrs.points.split(' ');
+    expect(punkte).toHaveLength(10);
+    // Erste Zacke senkrecht über der Mitte, auf dem äußeren Radius.
+    expect(punkte[0]).toBe('100,1');
+    // Jede zweite Ecke liegt innen und damit näher an der Mitte.
+    const abstand = (p) => {
+      const [x, y] = p.split(',').map(Number);
+      return Math.hypot(x - 100, y - 100);
+    };
+    expect(abstand(punkte[1])).toBeLessThan(abstand(punkte[0]));
+    // Auf eine Nachkommastelle gerundet wie jeder Pfad dieses Moduls; darunter
+    // misst man die letzten Bits und nicht mehr die Figur.
+    expect(abstand(punkte[2])).toBeCloseTo(abstand(punkte[0]), 1);
+  });
+
+  it('eine unbekannte Art ergibt das Rechteck', () => {
+    // Der Kern setzt sie schon auf die Vorgabe zurück; das hier ist die zweite
+    // Hälfte derselben Zusage und kostet eine Zeile.
+    expect(formGeometrie('wolke', 200, 100)).toEqual(formGeometrie('rechteck', 200, 100));
+  });
+
+  it('verträgt entartete Masse, ohne negative Figuren zu liefern', () => {
+    const winzig = formGeometrie('rechteck', 1, 0);
+    expect(winzig.attrs.width).toBe(0);
+    expect(winzig.attrs.height).toBe(0);
+    expect(formGeometrie('oval', NaN, NaN).attrs.rx).toBe(0);
+  });
+});
+
+describe('Canvas-Geometrie: Mitgliedschaft in einer Gruppe (4T-001702, G6)', () => {
+  // Die Gruppe liegt auf 0..400 waagerecht und 0..300 senkrecht.
+  const gruppe = { art: 'gruppe', id: 'g1', x: 0, y: 0, b: 400, h: 300 };
+  const el = (art, id, x, y, b = 100, h = 60) => ({ art, id, x, y, b, h });
+
+  it('ein vollständig innen liegendes Rechteck ist drin, ein herausragendes nicht', () => {
+    expect(liegtVollstaendigIn(el('karte', 'k1', 20, 20), gruppe)).toBe(true);
+    // Ragt rechts heraus: 350 + 100 = 450 > 400.
+    expect(liegtVollstaendigIn(el('karte', 'k2', 350, 20), gruppe)).toBe(false);
+    // Liegt ganz ausserhalb.
+    expect(liegtVollstaendigIn(el('karte', 'k3', 600, 600), gruppe)).toBe(false);
+  });
+
+  it('die Ränder zählen dazu', () => {
+    // Kante auf Kante: Der Anwender sieht das Element im Rechteck und nicht
+    // eine Kante, die es um null Einheiten verfehlt.
+    expect(liegtVollstaendigIn(el('karte', 'k1', 0, 0), gruppe)).toBe(true);
+    expect(liegtVollstaendigIn(el('karte', 'k1', 300, 240), gruppe)).toBe(true);
+    // Eine Einheit weiter und es ragt heraus — die Gegenprobe zur Zeile davor.
+    expect(liegtVollstaendigIn(el('karte', 'k1', 301, 240), gruppe)).toBe(false);
+  });
+
+  it('sammelt Karten und Formen, aber nicht die Gruppe selbst', () => {
+    const elemente = [
+      gruppe,
+      el('karte', 'k1', 20, 20),
+      el('form', 's1', 150, 100),
+      el('karte', 'k2', 380, 20),
+    ];
+    expect(gruppenMitglieder(gruppe, elemente).map((e) => e.id)).toEqual(['k1', 's1']);
+  });
+
+  it('eine Verbindung ist nie Mitglied', () => {
+    // Sie hat kein eigenes Rechteck, sondern folgt ihren beiden Karten; ohne
+    // die Ausnahme läse `kartenRechteck` ihre fehlende Lage als 0/0 und legte
+    // sie damit zufällig in jede Gruppe am Ursprung.
+    const linie = { art: 'linie', id: 'e1', von: 'k1', nach: 'k2' };
+    expect(gruppenMitglieder(gruppe, [gruppe, linie])).toEqual([]);
+  });
+
+  it('eine Gruppe in einer Gruppe ist Mitglied und wandert mit', () => {
+    const innen = el('gruppe', 'g2', 50, 50, 200, 150);
+    const karte = el('karte', 'k1', 60, 60);
+    const mitglieder = gruppenMitglieder(gruppe, [gruppe, innen, karte]);
+    expect(mitglieder.map((e) => e.id)).toEqual(['g2', 'k1']);
+    // Die Karte steht **einmal** in der Liste, obwohl sie auch in g2 liegt:
+    // Die Liste ist flach, und deshalb wandert sie beim Zug genau einmal.
+    expect(mitglieder.filter((e) => e.id === 'k1')).toHaveLength(1);
+    // Und aus Sicht der inneren Gruppe gehört sie zu ihr.
+    expect(gruppenMitglieder(innen, [gruppe, innen, karte]).map((e) => e.id)).toEqual(['k1']);
+  });
+
+  it('verträgt fehlende Eingaben', () => {
+    expect(gruppenMitglieder(null, [gruppe])).toEqual([]);
+    expect(gruppenMitglieder(gruppe, null)).toEqual([]);
   });
 });

@@ -330,6 +330,13 @@ const HELP_FEATURE_GROUPS = [
       // ihrer Reihe: Jene zeigen dasselbe Dokument in wachsender Abstraktion,
       // die Canvas ist eine eigene Arbeitsflaeche.
       'help.feature.canvas',
+      // 4T-001703 (Epic 3E-000288): die drei Zeilen der zweiten Canvas-Stufe
+      // unmittelbar hinter der Grundzeile, in der Reihenfolge, in der der
+      // Anwender ihnen begegnet — erst die beiden Element-Arten, dann die
+      // Ordnung, die ueber allen Arten gemeinsam gilt.
+      'help.feature.canvasShapes',
+      'help.feature.canvasGroups',
+      'help.feature.canvasStacking',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

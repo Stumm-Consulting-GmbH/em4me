@@ -111,5 +111,6 @@
   "menu.file.importLocale": "Caricare…",
   "menu.file.removeLocale": "Rimuovere…",
   "menu.file.updateLocale": "Aggiornare…",
-  "menu.view.canvas": "Tela"
+  "menu.view.canvas": "Tela",
+  "menu.view.canvasStack": "Ordine di sovrapposizione della tela"
 }

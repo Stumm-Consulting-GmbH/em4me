@@ -24,6 +24,24 @@
 // Deshalb der eigene Escape-Griff in der Capture-Phase, vor der Bedienung.
 'use strict';
 
+import {
+  FORM_ARTEN,
+  LINIEN_FARBEN,
+  LINIEN_FARB_NAMEN,
+} from '../../../shared/canvas/canvas-core.js';
+import { STAPEL_BEFEHLE } from '../../../shared/canvas/canvas-elemente.js';
+import { ART_SCHLUESSEL } from './canvas-formen-leiste.js';
+
+// 4T-001701: Beschriftungs-Schlüssel der vier Stapel-Befehle. Sie sind
+// dieselben wie in Menü und Kommando-Palette — es ist dieselbe Handlung, und
+// zwei Namen dafür wären zwei Funktionen im Kopf des Anwenders.
+const STAPEL_SCHLUESSEL = {
+  ganzNachVorn: 'command.canvas.stackFront',
+  eineStufeVor: 'command.canvas.stackForward',
+  eineStufeZurueck: 'command.canvas.stackBackward',
+  ganzNachHinten: 'command.canvas.stackBack',
+};
+
 /**
  * Verdrahtet das Kontextmenü mit einer gezeichneten Fläche.
  *
@@ -34,6 +52,12 @@
  * @param {object} ctx.bedienung Steuerung der Karten-Bedienung.
  * @param {object} [ctx.verbindungen] Steuerung der Verbindungs-Bedienung
  *   (4T-001655). Fehlt sie, kennt das Menü nur Hintergrund und Karte.
+ * @param {object} [ctx.formen] Steuerung der Formen-Bedienung (4T-001701).
+ *   Fehlt sie, entfallen das Untermenü «Form einfügen» und die Formen-Einträge.
+ * @param {object} [ctx.gruppen] Steuerung der Gruppen-Bedienung (4T-001702).
+ *   Fehlt sie, entfallen «Gruppe einfügen» und die Gruppen-Einträge.
+ * @param {Function} [ctx.verschiebeImStapel] (id, befehl) => boolean
+ *   (4T-001701). Fehlt der Rückruf, entfallen die vier Stapel-Einträge.
  * @param {Function} [ctx.zeigeMenue] ({x, y, eintraege}) => void (injiziert).
  *   Fehlt der Rückruf, gibt es kein Kontextmenü — der Stand der reinen
  *   Zeichnungs-Prüffälle.
@@ -42,7 +66,7 @@
  * @returns {object} Steuerung mit `destroy`.
  */
 export function createCanvasKontextmenue(ctx) {
-  const { wurzelEl, buehne, bedienung, verbindungen } = ctx;
+  const { wurzelEl, buehne, bedienung, verbindungen, formen, gruppen } = ctx;
   const t = typeof ctx.t === 'function' ? ctx.t : (key) => key;
 
   function zeigeMenue(daten) {
@@ -67,7 +91,7 @@ export function createCanvasKontextmenue(ctx) {
     // Die Klick-Stelle wird jetzt gemerkt und nicht erst beim Auslösen
     // gelesen: Das Menü steht dann längst woanders, und der Zeiger ebenso.
     const punkt = bedienung.flaechenPunktAus(ev);
-    return [
+    const eintraege = [
       {
         // Dieselbe Beschriftung wie in Menü und Palette: Es ist dieselbe
         // Handlung, und zwei Namen dafür wären zwei Funktionen im Kopf des
@@ -76,6 +100,47 @@ export function createCanvasKontextmenue(ctx) {
         dataId: 'canvas-add-card',
         action: () => bedienung.karteAnlegen(punkt),
       },
+    ];
+    // 4T-001701: Die sechs Arten einzeln statt eines Eintrags mit
+    // anschließender Wahl (Story 4S-000930, AK3). Wer die Form hier absetzt,
+    // weiß schon, welche er meint; ein zweiter Schritt wäre ein Klick zu viel.
+    if (formen) {
+      eintraege.push({
+        label: t('canvas.formEinfuegen'),
+        dataId: 'canvas-add-shape',
+        submenu: FORM_ARTEN.map((art) => ({
+          label: t(ART_SCHLUESSEL[art]),
+          dataId: `canvas-add-shape-${art}`,
+          action: () => formen.formAnlegen({ punkt, formArt: art }),
+        })),
+      });
+    }
+    // 4T-001702: Die Gruppe kommt als ein Eintrag und nicht als Untermenü —
+    // es gibt nur eine Art von Gruppe, und ein Untermenü über einem einzigen
+    // Eintrag wäre ein Klick ohne Wahl.
+    if (gruppen) {
+      eintraege.push({
+        label: t('canvas.gruppeEinfuegen'),
+        dataId: 'canvas-add-group',
+        action: () => gruppen.gruppeAnlegen({ punkt }),
+      });
+    }
+    return eintraege;
+  }
+
+  // 4T-001701: Die vier Stapel-Befehle für **jedes** Element der Ebene — Karte,
+  // Form und ab 4T-001702 Gruppe. Sie hängen als Block hinter den Einträgen
+  // der jeweiligen Art; ein eigenes Untermenü hätte vier kurze Namen hinter
+  // einen fünften gestellt, ohne etwas zu gewinnen.
+  function stapelEintraege(id) {
+    if (typeof ctx.verschiebeImStapel !== 'function') return [];
+    return [
+      { separator: true },
+      ...STAPEL_BEFEHLE.map((befehl) => ({
+        label: t(STAPEL_SCHLUESSEL[befehl]),
+        dataId: `canvas-stack-${befehl}`,
+        action: () => ctx.verschiebeImStapel(id, befehl),
+      })),
     ];
   }
 
@@ -91,6 +156,97 @@ export function createCanvasKontextmenue(ctx) {
         dataId: 'canvas-card-delete',
         action: () => bedienung.loescheKarte(id),
       },
+      ...stapelEintraege(id),
+    ];
+  }
+
+  // 4T-001701: Die vierte Ziel-Art. Die Einträge rufen dieselben Griffe wie
+  // Leiste, Doppelklick und `Entf` — ein zweiter Weg in dieselbe Wirkung wäre
+  // ein zweiter Ort, an dem sie auseinanderlaufen kann.
+  function farbUntermenue(id, angabe, mitKeiner) {
+    const eintraege = LINIEN_FARB_NAMEN.map((name) => ({
+      label: t(`tabGroup.color.${LINIEN_FARBEN[name]}`),
+      dataId: `canvas-shape-${angabe}-${name}`,
+      action: () =>
+        angabe === 'rand' ? formen.setzeRand(id, name) : formen.setzeFuellung(id, name),
+    }));
+    if (mitKeiner) {
+      eintraege.push({
+        label: t('canvas.formKeineFuellung'),
+        dataId: 'canvas-shape-fuellung-keine',
+        action: () => formen.setzeFuellung(id, null),
+      });
+    }
+    return eintraege;
+  }
+
+  function formEintraege(id) {
+    return [
+      {
+        label: t('canvas.formArt'),
+        dataId: 'canvas-shape-kind',
+        submenu: FORM_ARTEN.map((art) => ({
+          label: t(ART_SCHLUESSEL[art]),
+          dataId: `canvas-shape-kind-${art}`,
+          action: () => formen.setzeArt(id, art),
+        })),
+      },
+      {
+        label: t('canvas.formRand'),
+        dataId: 'canvas-shape-stroke',
+        submenu: farbUntermenue(id, 'rand', false),
+      },
+      {
+        label: t('canvas.formFuellung'),
+        dataId: 'canvas-shape-fill',
+        submenu: farbUntermenue(id, 'fuellung', true),
+      },
+      {
+        label: t('canvas.formBeschriftung'),
+        dataId: 'canvas-shape-label',
+        action: () => formen.beschrifteForm(id),
+      },
+      {
+        label: t('canvas.formLoeschen'),
+        dataId: 'canvas-shape-delete',
+        action: () => formen.loescheForm(id),
+      },
+      ...stapelEintraege(id),
+    ];
+  }
+
+  // 4T-001702: Die fünfte Ziel-Art. Farbe, Beschriftung und Löschen rufen
+  // dieselben Griffe wie Leiste, Doppelklick und `Entf`; die Farb-Reihe trägt
+  // den neunten Eintrag «Standardfarbe», weil es sonst keinen Weg zurück gäbe.
+  function gruppenEintraege(id) {
+    return [
+      {
+        label: t('canvas.gruppeFarbe'),
+        dataId: 'canvas-group-color',
+        submenu: [
+          ...LINIEN_FARB_NAMEN.map((name) => ({
+            label: t(`tabGroup.color.${LINIEN_FARBEN[name]}`),
+            dataId: `canvas-group-color-${name}`,
+            action: () => gruppen.setzeFarbe(id, name),
+          })),
+          {
+            label: t('canvas.gruppeStandardfarbe'),
+            dataId: 'canvas-group-color-standard',
+            action: () => gruppen.setzeFarbe(id, null),
+          },
+        ],
+      },
+      {
+        label: t('canvas.gruppeBeschriftung'),
+        dataId: 'canvas-group-label',
+        action: () => gruppen.beschrifteGruppe(id),
+      },
+      {
+        label: t('canvas.gruppeLoeschen'),
+        dataId: 'canvas-group-delete',
+        action: () => gruppen.loescheGruppe(id),
+      },
+      ...stapelEintraege(id),
     ];
   }
 
@@ -124,7 +280,7 @@ export function createCanvasKontextmenue(ctx) {
 
   function eintraegeFuer(ev) {
     // Befund 1 des Product Owners vom 2026-09-10: Im nicht änderbaren Dokument
-    // gibt es keinen Eintrag — jeder der fünf schreibt. Ein Menü mit einem
+    // gibt es keinen Eintrag — jeder von ihnen schreibt. Ein Menü mit einem
     // Hinweis «nichts möglich» wäre ein zweiter Weg, dasselbe zu sagen, das
     // die fehlenden Griffe schon sagen; deshalb erscheint es gar nicht.
     if (!bedienung.istAenderbar()) return [];
@@ -134,6 +290,23 @@ export function createCanvasKontextmenue(ctx) {
       // dasselbe Ziel meinen.
       verbindungen.waehleLinie(linie);
       return linienEintraege(linie);
+    }
+    // 4T-001701: Die Form vor der Karte, weil beide in derselben Ebene liegen
+    // und ein Treffer eindeutig zu einer von beiden gehört; die Reihenfolge
+    // hier entscheidet nichts über den Stapel, sie ist die Auswertungs-Folge.
+    const form = formen ? formen.kennungAn(ev.target) : null;
+    if (form) {
+      formen.waehleForm(form);
+      return formEintraege(form);
+    }
+    // 4T-001702: Die Gruppe wird über ihren Rand und ihre Beschriftung
+    // getroffen; ihr Innenraum gehört dem, was darin liegt. Ein Rechtsklick
+    // mitten in eine Gruppe meint deshalb die Karte darin oder — wenn dort
+    // nichts liegt — den Hintergrund.
+    const gruppe = gruppen ? gruppen.kennungAn(ev.target) : null;
+    if (gruppe) {
+      gruppen.waehleGruppe(gruppe);
+      return gruppenEintraege(gruppe);
     }
     const id = bedienung.kennungAn(ev.target);
     if (!id) return hintergrundEintraege(ev);
@@ -152,12 +325,20 @@ export function createCanvasKontextmenue(ctx) {
     // Dort erwartet der Anwender Ausschneiden, Kopieren und Einfügen, und ein
     // eigenes Menü nähme sie ihm. Seit 4T-001655 gilt das ebenso für die
     // Beschriftungs-Eingabe der Verbindung.
-    if (ziel.closest('.canvas-karte-eingabe, .canvas-linie-eingabe')) return;
+    if (
+      ziel.closest(
+        '.canvas-karte-eingabe, .canvas-linie-eingabe, .canvas-form-eingabe, .canvas-gruppe-eingabe',
+      )
+    ) {
+      return;
+    }
     ev.preventDefault();
     // Eine offene Eingabe wird übernommen, wie beim Klick auf den Hintergrund:
     // Der Rechtsklick ist der Beginn einer anderen Handlung.
     bedienung.beendeBearbeitung();
     if (verbindungen) verbindungen.beendeBearbeitung();
+    if (formen) formen.beendeBearbeitung();
+    if (gruppen) gruppen.beendeBearbeitung();
     const eintraege = eintraegeFuer(ev);
     // Ein leeres Menü wird nicht gezeigt (Befund 1): Ein Rahmen ohne Inhalt
     // sähe nach einem Fehler aus, nicht nach einer Aussage.

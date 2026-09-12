@@ -21,10 +21,9 @@ import {
   serializeCanvasFence,
 } from '../../../src/shared/canvas/canvas-core.js';
 import { createCanvasView } from '../../../src/renderer/modules/canvas/canvas-view.js';
-import {
-  freieKartenKennung,
-  entferneKarte,
-} from '../../../src/renderer/modules/canvas/canvas-bedienung.js';
+// 4T-001701: Die Modell-Werkzeuge liegen seit 4T-001700 prozessneutral im
+// Kern-Nachbarn; die Bedienung ruft sie, statt eigene zu führen.
+import { entferneElement, freieKennung } from '../../../src/shared/canvas/canvas-elemente.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const wurzel = path.join(dir, '../../..');
@@ -586,17 +585,34 @@ describe('Canvas-Bedienung: Byte-Gleichheit und Rundlauf (4T-001654, AK6)', () =
 });
 
 describe('Canvas-Bedienung: Modell-Werkzeuge ohne DOM (4T-001654)', () => {
+  // 4T-001701: Die drei Karten-Fassungen `freieKartenKennung`, `erzeugeKarte`
+  // und `entferneKarte` sind in die Kern-Funktionen aufgegangen, wie es die
+  // Übergabe von 4T-001700 vorsah. Geprüft wird hier weiter, dass die
+  // Bedienung **diese** aufruft — die Regeln selbst deckt canvas-core.test.js.
   it('die freie Kennung weicht allen belegten aus, nicht nur denen der Karten', () => {
     // Eine Verbindung darf k2 heißen; eine doppelte Kennung wäre ein Befund.
     const model = parseCanvasFence('!karte k1 x=0 y=0 b=1 h=1\nA\n\n!linie k2 k1 -> k1');
-    expect(freieKartenKennung(model)).toBe('k3');
-    expect(freieKartenKennung(parseCanvasFence(''))).toBe('k1');
+    expect(freieKennung(model, 'karte')).toBe('k3');
+    expect(freieKennung(parseCanvasFence(''), 'karte')).toBe('k1');
   });
 
   it('das Entfernen meldet, wenn es nichts zu entfernen gab', () => {
     const model = parseCanvasFence('!karte k1 x=0 y=0 b=1 h=1\nA');
-    expect(entferneKarte(model, 'k9')).toBe(false);
-    expect(entferneKarte(model, 'k1')).toBe(true);
+    expect(entferneElement(model, 'k9')).toBe(false);
+    expect(entferneElement(model, 'k1')).toBe(true);
     expect(model.elemente).toEqual([]);
+  });
+
+  it('die Bedienung baut ihre Karte über den Kern, nicht über eine eigene Fabrik', () => {
+    // Die Zusage der Übergabe aus 4T-001700, am Quelltext gemessen: Zwei
+    // Fabriken für dasselbe Element liefen bei der nächsten Format-Änderung
+    // auseinander, und die Reihenfolge im Stapel ist eine Aussage des Formats.
+    const quelle = readFileSync(
+      path.join(wurzel, 'src/renderer/modules/canvas/canvas-bedienung.js'),
+      'utf8',
+    );
+    expect(quelle).toContain("from '../../../shared/canvas/canvas-elemente.js'");
+    expect(quelle).toContain('fuegeElementEin(m, el)');
+    expect(quelle).not.toMatch(/export function (erzeugeKarte|freieKartenKennung|entferneKarte)/);
   });
 });

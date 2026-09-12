@@ -207,5 +207,8 @@
   "help.featureName.setupExchange": "Export et import des paramètres",
   "help.featureName.customLocale": "Votre propre langue d’interface",
   "help.featureName.myExtendedMemory": "My Extended Memory",
-  "help.featureName.canvas": "Vue canevas"
+  "help.featureName.canvas": "Vue canevas",
+  "help.featureName.canvasShapes": "Formes du canevas",
+  "help.featureName.canvasGroups": "Groupes du canevas",
+  "help.featureName.canvasStacking": "Ordre de superposition du canevas"
 }

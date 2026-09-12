@@ -207,5 +207,8 @@
   "help.featureAccess.setupExchange": "Fichier → Paramètres → Exporter… / Importer… ; page My Extended Memory",
   "help.featureAccess.customLocale": "Fichier → Votre propre langue → Télécharger le modèle… / Charger… / Supprimer… / Mettre à jour… ; sélection de la langue dans la barre d’état",
   "help.featureAccess.myExtendedMemory": "Affichage → My Extended Memory ; palette de commandes",
-  "help.featureAccess.canvas": "Affichage → Canevas (Ctrl+6 par défaut) ; bloc de code `perspective-canvas` ; palette de commandes → «Canevas» et «Ajouter une carte au canevas»"
+  "help.featureAccess.canvas": "Affichage → Canevas (Ctrl+6 par défaut) ; bloc de code `perspective-canvas` ; palette de commandes → «Canevas» et «Ajouter une carte au canevas»",
+  "help.featureAccess.canvasShapes": "Affichage → Ajouter une forme au canevas ; menu contextuel de la surface → Insérer une forme ; palette de commandes → «Ajouter une forme au canevas»",
+  "help.featureAccess.canvasGroups": "Affichage → Ajouter un groupe au canevas ; menu contextuel de la surface → Insérer un groupe ; palette de commandes → «Ajouter un groupe au canevas»",
+  "help.featureAccess.canvasStacking": "Affichage → Ordre de superposition du canevas ; menu contextuel de l’élément sélectionné ; palette de commandes → «Mettre au premier plan», «Avancer d’un niveau», «Reculer d’un niveau» et «Mettre à l’arrière-plan»"
 }

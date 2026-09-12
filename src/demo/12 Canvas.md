@@ -7,7 +7,7 @@ topic: visual
 
 # Canvas
 
-A `perspective-canvas` block turns a piece of a document into a **spatial working surface**: cards carry their own Markdown, lines carry the relations between them. Nothing leaves the file — the whole surface is plain text in this very page. Back to [[00 Welcome]].
+A `perspective-canvas` block turns a piece of a document into a **spatial working surface**: cards carry their own Markdown, lines carry the relations between them, groups tie together what belongs together, and shapes set marks beside them. Nothing leaves the file — the whole surface is plain text in this very page. Back to [[00 Welcome]].
 
 ## The surface below
 
@@ -15,6 +15,9 @@ This is what it looks like in the source:
 
 ````markdown
 ```perspective-canvas
+!gruppe g1 x=-380 y=-210 b=760 h=230 farbe=blau
+Before writing
+
 !karte k1 x=-340 y=-170 b=260 h=130
 ## Collect
 
@@ -24,12 +27,18 @@ Everything that turns up goes here first, unsorted.
 ## Sort
 
 Group by topic, throw away duplicates.
+
+!form f1 x=400 y=60 b=130 h=130 art=stern rand=gelb füllung=gelb
+Do this first
 ```
 ````
 
-Rendered, the block below shows what the surface holds and offers a way into it. Switch to the canvas view with `Ctrl+6` — or use the button in the block — and then drag a card, pull a line from one of its handles, or double-click the empty background to add a card of your own.
+Rendered, the block below shows what the surface holds and offers a way into it. Switch to the canvas view with `Ctrl+6` — or use the button in the block — and then drag a card, pull a line from one of its handles, or double-click the empty background to add a card of your own. Drag the blue group and watch the two cards inside it come along.
 
 ```perspective-canvas
+!gruppe g1 x=-380 y=-210 b=760 h=230 farbe=blau
+Before writing
+
 !karte k1 x=-340 y=-170 b=260 h=130
 ## Collect
 
@@ -50,6 +59,11 @@ One page per topic, in the order that reads best.
 
 Read it again after a night. Cut what repeats.
 
+!form f1 x=400 y=60 b=130 h=130 art=stern rand=gelb füllung=gelb
+Do this first
+
+!form f2 x=400 y=-170 b=180 h=130 art=abgerundet rand=türkis
+
 !linie e1 k1 -> k2 von=rechts nach=links farbe=blau
 first pass
 
@@ -68,7 +82,11 @@ Every element starts with a marker in column 0; the lines below it are its conte
 | `<->` instead of `->` | an arrow head at both ends; `--` draws no arrow head at all |
 | `von=` / `nach=` | which side of each card the line attaches to: `links`, `rechts`, `oben`, `unten` or `auto` |
 | `farbe=blau` | one of eight named colours from the colour scheme |
-| the lines under a marker | the card text, or the label of a line |
+| `!form f1 … art=stern` | a shape, one of `rechteck`, `abgerundet`, `oval`, `dreieck`, `raute` and `stern` |
+| `rand=` / `füllung=` | outline and fill of a shape, from the same eight names; `füllung=keine` leaves it unfilled |
+| `!gruppe g1 x=… y=… b=… h=…` | a group rectangle; whatever lies completely inside it travels along when the group is moved |
+| the order of the markers | the stacking order across cards, shapes and groups: further down means further to the front |
+| the lines under a marker | the card text, or the label of a line, a shape or a group |
 
 Insert an empty surface of your own with **Insert → Canvas** from the editor context menu, then fill it. The canvas view is switchable under **Settings → Extensions**; turned off, the block above is an ordinary code block and nothing is lost.
 

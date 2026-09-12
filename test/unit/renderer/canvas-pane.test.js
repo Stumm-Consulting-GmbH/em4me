@@ -44,8 +44,18 @@ vi.mock('../../../src/renderer/modules/extensions/extension-lifecycle.js', () =>
   isExtensionActive: (id) => istAktiv(id),
 }));
 
-const { canvasZustandAus, destroyCanvas, initCanvasPane, legeCanvasKarteAn, renderCanvas } =
-  await import('../../../src/renderer/modules/canvas/canvas-pane.js');
+const {
+  canvasZustandAus,
+  destroyCanvas,
+  initCanvasPane,
+  // 4T-001701 (Epic 3E-000288): die beiden neuen Eintritte der Flächen-Kommandos.
+  legeCanvasFormAn,
+  // 4T-001702 (Epic 3E-000288): der Eintritt des Gruppen-Kommandos.
+  legeCanvasGruppeAn,
+  legeCanvasKarteAn,
+  renderCanvas,
+  verschiebeCanvasElement,
+} = await import('../../../src/renderer/modules/canvas/canvas-pane.js');
 const {
   CANVAS_EXTENSION_ID,
   hatCanvasFlaeche,
@@ -670,5 +680,243 @@ describe('Canvas-Erweiterung: Aus-Zustand im Renderer (4T-001656)', () => {
     const quelle = lies('src/renderer/modules/app/app-extension-runtime.js');
     expect(quelle).toContain('attachExtensionRuntime(CANVAS_EXTENSION_ID, {');
     expect(quelle).toMatch(/if \(tab\.viewMode === 'canvas'\) tab\.viewMode = 'rendered';/);
+  });
+});
+
+describe('Canvas: Form-Anlage und Stapel-Befehle über alle Zugänge (4T-001701)', () => {
+  // Dieselbe Sorgfalt wie beim Kommando «Karte anlegen» (4T-001654): Ein
+  // Kommando, das in Registry, Menü, Brücke und Dispatcher nicht durchgängig
+  // verdrahtet ist, fällt sonst erst im Struktur-Prüfschritt auf.
+  const NEUE = [
+    'canvas.addShape',
+    'canvas.stackFront',
+    'canvas.stackForward',
+    'canvas.stackBackward',
+    'canvas.stackBack',
+  ];
+
+  it('die fünf Kommandos stehen in der Registry, ohne Vorgabe-Kürzel', () => {
+    const registry = new Map(COMMANDS.map((c) => [c.id, c]));
+    for (const id of NEUE) {
+      const cmd = registry.get(id);
+      expect(cmd, `Kommando ${id} fehlt`).toBeTruthy();
+      expect(cmd.defaultBindings, id).toEqual([]);
+      expect(cmd.menu, id).toBe(true);
+      expect(cmd.labelKey, id).toBe(`command.${id}`);
+      expect(cmd.descKey, id).toBe('help.feature.canvas');
+    }
+  });
+
+  it('jedes trägt seine benannte Bedingung und entscheidet sie nicht selbst', () => {
+    // Dieselbe Bedingung wie die Karten-Anlage: offene Fläche in der
+    // Canvas-Ansicht. Anzeige-Modus und Auswahl auf der Fläche stehen
+    // bewusst NICHT im Katalog — beides kennt der gemeldete Kontext nicht,
+    // und beides fängt der Guard der Einbettung mit einem gesagten
+    // Fehlschlag ab.
+    const menu = lies('src/main/menu/menu.js');
+    for (const id of NEUE) {
+      pruefeBedingung(id, 'canvasKarte', [
+        [{ canvasTab: true, viewMode: 'canvas' }, true],
+        [{ canvasTab: true, viewMode: 'rendered' }, false],
+        [{ canvasTab: false, viewMode: 'canvas' }, false],
+        [{ canvasTab: true, viewMode: 'canvas', systemTab: true }, false],
+      ]);
+      expect(menu, id).toContain(`enabled: avail('${id}')`);
+      expect(menu, id).toContain(`acc('${id}')`);
+    }
+  });
+
+  it('die Kette Menü → Brücke → Bindung → Einbettung ist geschlossen', () => {
+    const menu = lies('src/main/menu/menu.js');
+    expect(menu).toContain("send('menu:canvasAddShape')");
+    // Die vier Stapel-Befehle laufen über EINEN Kanal mit dem Befehl als
+    // Nutzlast (Muster menu:viewChange); vier Kanäle wären vier Stellen, an
+    // denen dieselbe Kette reissen kann.
+    for (const befehl of ['ganzNachVorn', 'eineStufeVor', 'eineStufeZurueck', 'ganzNachHinten']) {
+      expect(menu, befehl).toContain(`send('menu:canvasStack', '${befehl}')`);
+    }
+    expect(menu).toContain("submenuOrNull('menu.view.canvasStack'");
+    const preload = lies('src/main/preload.js');
+    expect(preload).toContain("ipcRenderer.on('menu:canvasAddShape'");
+    expect(preload).toContain("ipcRenderer.on('menu:canvasStack'");
+    const bindings = lies('src/renderer/modules/app/app-menu-bindings.js');
+    expect(bindings).toContain('api.onMenuCanvasAddShape(');
+    expect(bindings).toContain('api.onMenuCanvasStack(');
+    const dispatcher = lies('src/renderer/modules/app/app-commands.js');
+    expect(dispatcher).toContain('legeCanvasFormAn(state.activePaneIndex)');
+    for (const befehl of ['ganzNachVorn', 'eineStufeVor', 'eineStufeZurueck', 'ganzNachHinten']) {
+      expect(dispatcher, befehl).toContain(
+        `verschiebeCanvasElement(state.activePaneIndex, '${befehl}')`,
+      );
+    }
+  });
+
+  it('die Texte der Kommandos stehen im Katalog', () => {
+    const de = JSON.parse(lies('src/i18n/de.json'));
+    for (const id of [...NEUE, 'menu.view.canvasStack']) {
+      const key = id.startsWith('menu.') ? id : `command.${id}`;
+      expect(de[key], `Schlüssel ${key} fehlt`).toBeTruthy();
+    }
+    for (const key of ['canvas.nurInAnsicht', 'canvas.nurLesbar', 'canvas.keineAuswahl']) {
+      expect(de[key], `Schlüssel ${key} fehlt`).toBeTruthy();
+    }
+  });
+});
+
+describe('Canvas-Einbettung: die Guards der Flächen-Kommandos (4T-001701)', () => {
+  // Der Hinweis kommt über einen Laufzeit-Import und damit erst im nächsten
+  // Zyklus (Muster der Prüffälle zu 4T-001654).
+  const hinweisAbwarten = () => new Promise((fertig) => setTimeout(fertig, 0));
+  const EINE_FLAECHE = '!karte k1 x=0 y=0 b=200 h=100\nText';
+  const TEXT = ['# Titel', '```perspective-canvas', EINE_FLAECHE, '```'].join('\n');
+
+  function baueSpalte(paneIdx, tab, extra = {}) {
+    hinweise.length = 0;
+    const canvasEl = document.createElement('div');
+    document.body.appendChild(canvasEl);
+    const geschrieben = [];
+    initCanvasPane({
+      getPaneEls: () => ({ canvasEl }),
+      aktivesDokument: () => tab,
+      schreibeDokument: (idx, daten) => {
+        geschrieben.push({ idx, ...daten });
+        return true;
+      },
+      ...extra,
+    });
+    renderCanvas(paneIdx);
+    return { canvasEl, geschrieben };
+  }
+
+  it('die Form-Anlage schreibt in die Zeilen der gefundenen Fence', () => {
+    const tab = { viewMode: 'canvas', content: TEXT, path: 'F.md' };
+    const { geschrieben } = baueSpalte(10, tab);
+    expect(legeCanvasFormAn(10)).toBe(true);
+    expect(geschrieben).toHaveLength(1);
+    expect(geschrieben[0]).toMatchObject({ idx: 10, vonZeile: 3, bisZeile: 4 });
+    expect(geschrieben[0].text).toContain('!form s1 ');
+    destroyCanvas(10);
+  });
+
+  it('ausserhalb der Canvas-Ansicht bleiben beide wirkungslos und sagen es', async () => {
+    const tab = { viewMode: 'canvas', content: TEXT, path: 'F.md' };
+    const { geschrieben } = baueSpalte(11, tab);
+    tab.viewMode = 'source';
+    expect(legeCanvasFormAn(11)).toBe(false);
+    expect(verschiebeCanvasElement(11, 'ganzNachVorn')).toBe(false);
+    expect(geschrieben).toHaveLength(0);
+    await hinweisAbwarten();
+    expect(hinweise).toContain('canvas.nurInAnsicht');
+    destroyCanvas(11);
+  });
+
+  it('im Anzeige-Modus geschieht nichts, und es wird gesagt', async () => {
+    const tab = { viewMode: 'canvas', content: TEXT, path: 'F.md' };
+    const { geschrieben } = baueSpalte(12, tab, { istAenderbar: () => false });
+    expect(legeCanvasFormAn(12)).toBe(false);
+    expect(geschrieben).toHaveLength(0);
+    await hinweisAbwarten();
+    expect(hinweise).toContain('canvas.nurLesbar');
+    destroyCanvas(12);
+  });
+
+  it('ohne gewähltes Element sagt der Stapel-Befehl, dass nichts gewählt ist', async () => {
+    // Der Fall, den das Verfügbarkeits-Modell nicht trägt: Die Auswahl lebt in
+    // der Ansicht, und ein gemeldetes Feld dafür ginge bei jedem Klick auf der
+    // Fläche über die Prozess-Brücke.
+    const tab = { viewMode: 'canvas', content: TEXT, path: 'F.md' };
+    const { geschrieben } = baueSpalte(13, tab);
+    expect(verschiebeCanvasElement(13, 'ganzNachVorn')).toBe(false);
+    expect(geschrieben).toHaveLength(0);
+    await hinweisAbwarten();
+    expect(hinweise).toContain('canvas.keineAuswahl');
+    destroyCanvas(13);
+  });
+});
+
+describe('Canvas: Gruppen-Anlage über alle Zugänge (4T-001702)', () => {
+  // Dieselbe Sorgfalt wie bei Karte und Form: Ein Kommando, das in Registry,
+  // Menü, Brücke und Dispatcher nicht durchgängig verdrahtet ist, fällt sonst
+  // erst im Struktur-Prüfschritt auf.
+  it('steht in der Registry, ohne Vorgabe-Kürzel', () => {
+    const cmd = COMMANDS.find((c) => c.id === 'canvas.addGroup');
+    expect(cmd, 'Kommando canvas.addGroup fehlt').toBeTruthy();
+    expect(cmd.defaultBindings).toEqual([]);
+    expect(cmd.menu).toBe(true);
+    expect(cmd.labelKey).toBe('command.canvas.addGroup');
+    expect(cmd.descKey).toBe('help.feature.canvas');
+  });
+
+  it('trägt seine benannte Bedingung und entscheidet sie nicht selbst', () => {
+    const menu = lies('src/main/menu/menu.js');
+    pruefeBedingung('canvas.addGroup', 'canvasKarte', [
+      [{ canvasTab: true, viewMode: 'canvas' }, true],
+      [{ canvasTab: true, viewMode: 'rendered' }, false],
+      [{ canvasTab: false, viewMode: 'canvas' }, false],
+      [{ canvasTab: true, viewMode: 'canvas', systemTab: true }, false],
+    ]);
+    expect(menu).toContain("enabled: avail('canvas.addGroup')");
+    expect(menu).toContain("acc('canvas.addGroup')");
+  });
+
+  it('die Kette Menü → Brücke → Bindung → Einbettung ist geschlossen', () => {
+    expect(lies('src/main/menu/menu.js')).toContain("send('menu:canvasAddGroup')");
+    expect(lies('src/main/preload.js')).toContain("ipcRenderer.on('menu:canvasAddGroup'");
+    expect(lies('src/renderer/modules/app/app-menu-bindings.js')).toContain(
+      'api.onMenuCanvasAddGroup(',
+    );
+    expect(lies('src/renderer/modules/app/app-commands.js')).toContain(
+      'legeCanvasGruppeAn(state.activePaneIndex)',
+    );
+  });
+
+  it('es gehört der Erweiterung der Fläche', () => {
+    // Ohne die Canvas-Ansicht gibt es keine Gruppe; im Aus-Zustand darf das
+    // Kommando deshalb nicht in Menü und Palette stehen bleiben.
+    const quelle = lies('src/shared/extensions/extensions.js');
+    expect(quelle).toContain("'canvas.addGroup',");
+  });
+
+  it('die Gruppen-Anlage schreibt in die Zeilen der gefundenen Fence', () => {
+    const TEXT = [
+      '# Titel',
+      '```perspective-canvas',
+      '!karte k1 x=0 y=0 b=200 h=100',
+      'Text',
+      '```',
+    ].join('\n');
+    const tab = { viewMode: 'canvas', content: TEXT, path: 'F.md' };
+    hinweise.length = 0;
+    const canvasEl = document.createElement('div');
+    document.body.appendChild(canvasEl);
+    const geschrieben = [];
+    initCanvasPane({
+      getPaneEls: () => ({ canvasEl }),
+      aktivesDokument: () => tab,
+      schreibeDokument: (idx, daten) => {
+        geschrieben.push({ idx, ...daten });
+        return true;
+      },
+    });
+    renderCanvas(20);
+    expect(legeCanvasGruppeAn(20)).toBe(true);
+    expect(geschrieben).toHaveLength(1);
+    expect(geschrieben[0]).toMatchObject({ idx: 20, vonZeile: 3, bisZeile: 4 });
+    // Ganz hinten: Die Gruppe steht vor der Karte in der Fence und verdeckt
+    // damit nichts (Story 4S-000931, AK15).
+    expect(geschrieben[0].text).toMatch(/^!gruppe g1 /);
+    destroyCanvas(20);
+  });
+
+  it('ausserhalb der Canvas-Ansicht bleibt sie wirkungslos und sagt es', async () => {
+    const tab = { viewMode: 'source', content: '# Ohne Fläche', path: 'F.md' };
+    hinweise.length = 0;
+    const canvasEl = document.createElement('div');
+    document.body.appendChild(canvasEl);
+    initCanvasPane({ getPaneEls: () => ({ canvasEl }), aktivesDokument: () => tab });
+    expect(legeCanvasGruppeAn(21)).toBe(false);
+    await new Promise((fertig) => setTimeout(fertig, 0));
+    expect(hinweise).toContain('canvas.nurInAnsicht');
+    destroyCanvas(21);
   });
 });
