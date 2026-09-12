@@ -26,6 +26,10 @@ import { applyFormatToolbarUi } from '../editor/format-toolbar.js';
 import { applyTagsVisibility } from '../properties/properties-tags.js';
 import { applyBookPanelVisibility } from '../books/book-panel.js';
 import { attachExtensionRuntime, isExtensionActive } from '../extensions/extension-lifecycle.js';
+// 4T-001656 (Epic 3E-000287): Kennung der Canvas-Erweiterung aus dem
+// prozessneutralen Kern — dieselbe Quelle, aus der Registry, Render-Weiche und
+// Rueckfall sie holen.
+import { CANVAS_EXTENSION_ID } from '../../../shared/canvas/canvas-core.js';
 
 // 4T-000294: Statusbar-Buttons erweiterungs-gebundener Panels folgen dem
 // Schalt-Zustand (keine toten UI-Elemente). Die Wort-Statistik verwaltet
@@ -189,5 +193,29 @@ export function registerExtensionRuntimeHooks() {
   attachExtensionRuntime('spellcheck', {
     deactivate: refreshSpellcheckInEditors,
     activate: refreshSpellcheckInEditors,
+  });
+  // 4T-001656 (Epic 3E-000287): Aus-Zustand der Canvas-Flaeche. Der Rueckfall
+  // in canvas-modus.js greift beim OEFFNEN eines Dokuments; wird die
+  // Erweiterung abgeschaltet, waehrend eine Flaeche offen ist, bliebe das
+  // geoeffnete Dokument ohne diesen Hook in einer Ansicht stehen, die es nicht
+  // mehr gibt — mit ausgeblendetem Schalter und ohne Menue-Eintrag also
+  // unverlassbar. Alle offenen Dokumente im Canvas-Modus fallen deshalb auf die
+  // Lese-Ansicht, in der die Fence als gewoehnlicher Code-Block erscheint
+  // (Entscheidung E6). Geschrieben wird dabei nichts: Der Modus ist eine
+  // Eigenschaft des geoeffneten Dokuments, nicht der Datei.
+  //
+  // Kein activate-Gegenstueck: Beim Wiedereinschalten den vorherigen Modus
+  // zurueckzuholen hiesse, ihn ueber den Aus-Zustand hinweg zu merken; der
+  // Anwender waehlt die Ansicht mit einem Klick wieder, und die Flaeche selbst
+  // ist unveraendert da (AK6). Das Neuzeichnen und die Menue-Meldung uebernimmt
+  // der scg:extensions-changed-Handler, der nach den Hooks laeuft.
+  attachExtensionRuntime(CANVAS_EXTENSION_ID, {
+    deactivate: () => {
+      for (const pane of state.panes) {
+        for (const tab of pane.tabs || []) {
+          if (tab.viewMode === 'canvas') tab.viewMode = 'rendered';
+        }
+      }
+    },
   });
 }

@@ -438,6 +438,41 @@
       "status": "befoerdert",
       "vorgang": "4T-001690",
       "vermerk": "Befoerdert am 2026-09-11 bei der Sichtung als Schritt 6 der Release-Strecke des Zuges 3E-000294, gemeinsam mit BP-05. Vierte Beobachtung dieses Falls und die erste nach der Behebung; der Voll-Lauf, der sie bestätigen sollte, ist genau dieser. Der Vorgang 4T-001690 trägt die Messung; dieser Eintrag bleibt als Spur stehen."
+    },
+    {
+      "spec": "test/unit/mandat-fruehwarnung.test.js",
+      "fall": "MF-AK3: erlaubt Schreiben im Bereich und außerhalb des Repositoriums (AK3)",
+      "datum": "2026-09-11",
+      "fehlerbild": "ZWEITE Beobachtung dieses Falls nach dem 2026-09-04. Einzel-Fehlschlag im Unit-Teil des ERSTEN Queue-Laufs der Release-Integration des Zuges 3E-000294 (merge-queue.js <zug> --release mit vollen Gates, weil es der turnusmäßig erste Integrationslauf des Tages war). Wieder ohne verletzte inhaltliche Erwartung: \"Test timed out in 5000ms\". Beleg: test-berichte/rot/2026-09-11T14-07-39Z-zug-3E-000294-Verfuegbarkeit-und-Zugaenge-test.log samt -test.json. Isoliert unmittelbar danach grün (npx vitest run test/unit/mandat-fruehwarnung.test.js): 55 Fälle in 596 ms, der Fall selbst im Bereich von 78 ms. Der zweite Queue-Lauf war grün, und der Release-Commit ist unverändert integriert worden; ein Fix-Commit ist bewusst unterblieben, damit Commit-Basis und Build-Nummer 1.131.1.2702 des getesteten Baus stehen blieben.",
+      "vermutung": "Rechnerlast, wie beim Erst-Eintrag vom 2026-09-04, diesmal im Queue-Lauf des Release-Commits unter voller Suite: Der Fall braucht isoliert 78 ms und riss ein Limit, das seiner eigenen Laufzeit um mehr als das Sechzigfache voraus ist; ein zu knappes Limit scheidet damit erneut als Erklärung aus. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: Der Zug 3E-000294 berührt weder die Mandats-Frühwarnung noch ihre Prüfdatei. Die Umgebung des Stamm-Rechners trug zum Zeitpunkt des Laufs zusätzlich die Last der Release-Strecke selbst (Bau beider Plattformen, parallel laufende Prüfumgebung im Container).",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/unit/mandat-fruehwarnung.test.js",
+      "fall": "MF-AK3: erlaubt Schreiben im Bereich und außerhalb des Repositoriums (AK3)",
+      "datum": "2026-09-11",
+      "fehlerbild": "DRITTE und VIERTE Beobachtung desselben Falls, beide am selben Tag wie die zweite und beide in der Release-Strecke des Zuges 3E-000293 (Arbeitsbereich SC-026/A). Zwei aufeinanderfolgende Voll-Läufe des Gates «alle» nach dem Rebase auf 1.131.1 sind allein an diesem Fall gescheitert, wieder ohne verletzte inhaltliche Erwartung: «Test timed out in 5000ms». Belege: test-berichte/rot/2026-09-11T17-18-04Z-zug-3E-000293-Stufe-1-Canvas-test.log und …T17-25-34Z-…-test.log. Der unmittelbar davor gefahrene Lauf um 16:51 UTC war an diesem Fall grün (er trug neun andere Fehlschläge), der dritte Voll-Lauf um 17:29 UTC war vollständig grün. Isoliert dazwischen grün: 55 Fälle in 503 ms, die Prüfdatei insgesamt unter einer Sekunde. Beobachtet, nicht behoben. Die Wiederholung ist jetzt viermal belegt und damit ein Signal; sie ist als eigener Vorgang im Pflege-Gefäß der Test-Infrastruktur verortet (siehe Sichtungs-Schritt der Release-Strecke zum Zug 3E-000293). Ein Fix in der laufenden Release-Strecke ist bewusst unterblieben: Die Datei ist gegenüber origin/main unverändert, der Befund stammt damit nicht aus dem Zug, und die naheliegende Behandlung — ein benanntes Zeitlimit aus test/zeitlimits.js — ist eine Entscheidung über den Prüfstand und kein Nebenher der Auslieferung.",
+      "vermutung": "Wie bei den ersten beiden Beobachtungen Rechnerlast, und damit erstmals ZWEIMAL IN FOLGE statt vereinzelt. Der Fall ruft eine reine Funktion (entscheide) ohne Prozess-Start und ohne Datei-Zugriff; isoliert liegt er unter einer Millisekunde. Ein 5000-ms-Zeitlimit auf einem solchen Fall misst deshalb nicht ihn, sondern ob sein Worker in fünf Sekunden überhaupt Rechenzeit bekommt. Er ist der ERSTE Fall seines describe-Blocks, also die Stelle, an der eine Anlauf-Verzögerung des Workers als Fall-Laufzeit erscheint.",
+      "status": "befoerdert",
+      "vorgang": "4T-001698"
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-panel.spec.js",
+      "fall": "BP-05: Anlegen über das Kontextmenü — Unterordner und Datei im angeklickten Ordner, Abbruch und Kollision",
+      "datum": "2026-09-11",
+      "fehlerbild": "WEITERE Beobachtung am selben Tag, im Windows-E2E-Abnahme-Lauf der Release-Strecke des Zuges 3E-000293 (783 von 784 grün, 53,1 min gegen 27,5 min Referenz; beide Plattform-Läufe fuhren gleichzeitig). Beleg samt Artefakten: test-berichte/rot/2026-09-11T18-30-41Z-zug-3E-000293-Stufe-1-Canvas-e2e.log. Fehlerbild diesmal AUSGEWERTET statt nur benannt: Der Fall stirbt in der Retry-Klammer bedieneBis (test/e2e/helfer/tastendruck.js, Zeile 137) mit «Timeout 10000ms exceeded while waiting on the predicate» — also nicht an einem einzelnen gerissenen Zugriff, den die Klammer seit 4T-001555 abfängt, sondern daran, dass die Bedingung binnen 10 s über mehrere Versuche hinweg nicht wahr wurde. Das Bildschirmfoto zeigt den Bereichs-Baum mit dem offenen Anlege-Eingabefeld unter «Unterordner»; der Eingabe-Zustand war also erreicht, sein Abschluss nicht. Isoliert unmittelbar danach grün: 1 Fall in 4,3 s.",
+      "vermutung": "Kein Bezug zum Änderungs-Umfang des Zuges: Die Prüfdatei und das Bereichs-Panel sind gegenüber origin/main unverändert, und die Canvas berührt weder das eine noch das andere. Die Retry-Klammer aus 4T-001555 hat den Fall robuster gemacht, aber nicht gegen eine Last, unter der die ganze Zustands-Kette länger als 10 s braucht; die 53 statt 27 Minuten Laufzeit sind der belegte Parallel-Aufschlag aus 4T-001519.",
+      "status": "befoerdert",
+      "vorgang": "4T-001690"
+    },
+    {
+      "spec": "test/e2e/funktionen/erweiterungen-extern.spec.js",
+      "fall": "EX-04: Verwaltungs-Bereich listet und deaktiviert sofort — Diagnose-Zugang oeffnet die Werkzeuge; das Ansichtsmenue fuehrt sie nicht mehr",
+      "datum": "2026-09-11",
+      "fehlerbild": "DRITTE Beobachtung von EX-04 und ZWEITE dieses Falls (erste am 2026-09-08, davor EX-04 allgemein am 2026-08-14). Aufgetreten im Linux-E2E-Abnahme-Lauf der Release-Strecke des Zuges 3E-000293 (783 von 784 grün, 31,4 min), beide Plattform-Läufe gleichzeitig. Beleg: test-berichte/rot/2026-09-11T18-12-38Z-zug-3E-000293-Stufe-1-Canvas-e2e.log samt Artefakten. DER EINTRAG VOM 2026-09-08 HAT VERLANGT, BEIM ZWEITEN MAL ZUERST DEN BELEG AUSZUWERTEN; das ist geschehen, und das Fehlerbild ist damit erhoben statt vermutet: Das Bildschirmfoto des Fehlschlags zeigt ZWEI Reiter, «Einstellungen» und das Markdown-Dokument, und im VORDERGRUND steht das Dokument. Der Navigations-Eintrag «Erweiterungen (extern)» ist damit im DOM vorhanden — Playwright meldet ihn ausdrücklich als aufgelöst — und gleichzeitig unsichtbar, weshalb der Klick 30 s lang «element is not visible» meldet. Der Mechanismus steht im Helfer openExternalSection (erweiterungen-extern.spec.js, Zeilen 191 bis 202): Er pollt auf die ANZAHL der Einstellungs-Seiten im DOM und drückt dafür in jedem Durchgang erneut Strg+, . Reagiert die Anwendung unter Last einen Takt zu spät, fällt ein zweiter Druck in die Lücke, und der bringt das Dokument wieder nach vorn. Gepollt wird auf Vorhandensein, gebraucht wird Sichtbarkeit. Isoliert unmittelbar danach grün: sieben Fälle der Datei in 11,9 s, der betroffene in 2,2 s.",
+      "vermutung": "Keine Vermutung mehr nötig: Die Kette ist am Beleg abgelesen. Kein Bezug zum Änderungs-Umfang des Zuges — die Prüfdatei ist gegenüber origin/main unverändert, und der Zug fasst die Einstellungs-Seite nicht an. Die Last löst den Fall aus, sie verursacht ihn aber nicht; die Ursache ist die Poll-Bedingung, und sie ist unabhängig von der Last zu beheben.",
+      "status": "befoerdert",
+      "vorgang": "4T-001699"
     }
   ]
 }

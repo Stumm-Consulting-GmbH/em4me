@@ -14,6 +14,138 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.132.0.2741] - 2026-09-11 — Canvas: die räumliche Arbeitsfläche in Markdown
+
+Zug 3E-000293,
+Stufe 1 des Canvas-Vorhabens. Mitglied 1 und einziges:
+3E-000287,
+die erste benutzbare Fassung der Fläche — Karten mit eigenem Text, Verbindungen
+zwischen ihnen, Navigation, der Erweiterungs-Schalter sowie Handbuch und
+Demo-Beispiel. Der Abschluss-Anteil des Epics liegt in
+4T-001658.
+
+### Neu
+
+- **Eine Markdown-Datei kann jetzt eine Canvas-Fläche tragen** (`4T-001652`).
+  Bisher war alles, was EM4me zeigt, von oben nach unten geordnet: Ein Dokument
+  wird gelesen, und die Struktur entsteht über Überschriften, Listen und
+  Tabellen. Für manche Denkarbeit ist das die falsche Form — wer Alternativen
+  nebeneinanderlegt oder einen Ablauf skizziert, braucht Fläche statt
+  Reihenfolge. Die Fläche steht dafür in einem gewöhnlichen Code-Block der
+  Markdown-Datei, mit dem Namen `perspective-canvas`. Sie braucht also keine
+  neue Datei-Art und kein neues Format: Die Datei bleibt eine Markdown-Datei,
+  wird von der Volltext-Suche gefunden, kommt in die Sitzungs-Wiederherstellung
+  und lässt sich in jedem anderen Text-Programm öffnen — dort steht dann die
+  Fläche als lesbarer Klartext, Karte für Karte. Was die Anwendung beim
+  Speichern nicht kennt, bleibt unangetastet stehen, und eine unveränderte
+  Fläche wird zeichengenau so zurückgeschrieben, wie sie war.
+- **Die Canvas-Ansicht als sechste Ansicht eines Dokuments** (`4T-001653`).
+  Neben Lese-Ansicht, Quelltext, geteilter Ansicht, Live-Modus und Mindmap steht
+  jetzt die Canvas; ein Tastendruck (`Strg+6`), ein Menü-Eintrag oder die
+  Schaltfläche in der Statusleiste führt hinein, und der Wechsel verändert die
+  Datei nicht. Die Ansicht lässt sich verschieben, zoomen und auf ihren Inhalt
+  einpassen. **Sie steht nur bei einem Dokument zur Wahl, das auch eine Fläche
+  enthält** — sonst bleiben Schaltfläche und Menü-Eintrag sichtbar, aber
+  gedämpft, und ihr Titel sagt den Grund; ein Zugang, der zuverlässig ins Leere
+  führt, ist keiner.
+- **Karten mit eigenem Text, frei anzuordnen** (`4T-001654`). Ein Doppelklick
+  auf die freie Fläche legt eine Karte an, ein Doppelklick in die Karte öffnet
+  ihren Text, ein Klick daneben übernimmt ihn und `Escape` verwirft ihn. Karten
+  lassen sich ziehen, in der Größe ändern und mit `Entf` löschen. Der Karten-Text
+  ist gewöhnliches Markdown und wird auch so dargestellt — mit Überschriften,
+  Listen, Hervorhebungen und allem Übrigen; passt er nicht in die Karte, wird
+  darin gescrollt, statt dass die Karte von selbst wächst. Jede Handlung auf der
+  Fläche ist genau ein Schritt für das Rückgängig-Machen.
+- **Eine leere Fläche einfügen** (`4T-001682`). Der Befehl «Canvas-Fläche» steht
+  im Einfügen-Untermenü des Editor-Kontextmenüs und in der Befehls-Palette, dort,
+  wo auch Tabelle, Fußnote und Code-Block stehen. Er setzt die leere Fläche an
+  die Schreibmarke; danach ist die Canvas-Ansicht für dieses Dokument
+  verfügbar.
+- **Jede Handlung auch über die rechte Maustaste** (`4T-001683`). Auf dem
+  Hintergrund bietet das Kontextmenü das Anlegen einer Karte an der Klick-Stelle
+  an, auf einer Karte das Bearbeiten und Löschen. Damit gibt es für jede
+  Handlung drei Wege: Maus, Tastatur und Befehls-Palette.
+- **Verbindungen zwischen Karten, mit Richtung, Farbe und Beschriftung**
+  (`4T-001655`). Eine ausgewählte Karte zeigt an ihren vier Seiten
+  Anschluss-Griffe; ein Zug von einem Griff auf eine andere Karte legt die
+  Verbindung an. An der ausgewählten Linie erscheint eine kleine Leiste: Sie
+  schaltet die Richtung um (Pfeil an einem Ende, an beiden Enden oder gar
+  keiner), dreht die Linie um, färbt sie in einer von acht Farben — denselben,
+  die auch die Reiter-Gruppen tragen —, lässt sie beschriften und wieder
+  löschen. Start- und Ziel-Seite sind wählbar: beim Ziehen über Zonen an den
+  Rändern der Ziel-Karte, danach über zwei Auswahlfelder an der Linie. Die Linien
+  folgen ihren Karten schon während des Ziehens, und das Löschen einer Karte
+  nimmt ihre Linien mit.
+- **Mehrere Flächen in einem Dokument, erreichbar über Reiter** (`4T-001677`).
+  Enthält ein Dokument mehr als eine Fläche, erscheint über der Fläche eine
+  schmale Leiste, die alle nennt; ein Klick wechselt. Die Beschriftung wird aus
+  der ersten Karte abgeleitet, sodass dafür nichts in die Datei geschrieben
+  werden muss. Beim Weiterschreiben bleibt die gewählte Fläche gewählt.
+- **Außerhalb der Canvas-Ansicht erscheint die Fläche als kompakter Block**
+  (`4T-001668`). Ohne diese Behandlung stünden in der Lese-Ansicht hunderte
+  Zeilen Koordinaten mitten im Text. Stattdessen steht dort ein Block, der Art
+  und Umfang nennt («8 Karten, 5 Verbindungen»), die ersten Karten-Texte
+  vorzeigt und mit einem Knopf in die Canvas-Ansicht führt — und zwar in genau
+  diese Fläche. Der Block lässt sich zuklappen; im Live-Modus klappt er zum
+  Klartext auf, sobald die Schreibmarke ihn berührt, sodass ein Karten-Text auch
+  ohne Wechsel in die Canvas-Ansicht zu ändern ist. Im Druck und im PDF steht
+  derselbe Block, in der Mindmap eine kurze Notiz mit Art und Umfang.
+- **Die Canvas ist abschaltbar** (`4T-001656`). Der Schalter «Canvas-Ansicht»
+  steht in den Einstellungen bei den Erweiterungen unter «Darstellung». Ist er
+  aus, verschwinden Ansicht, Schaltfläche, Menü-Einträge und Befehle, und die
+  Fläche erscheint als gewöhnlicher Code-Block: Das Dokument bleibt lesbar, die
+  Karten-Texte bleiben sichtbar, es geht nichts verloren. Wird abgeschaltet,
+  während eine Fläche offen ist, wechselt das Dokument in die Lese-Ansicht,
+  statt in einer Ansicht ohne Ausgang stehenzubleiben.
+- **Handbuch-Seite und Demo-Beispiel** (`4T-001657`). Die neue Seite
+  «Canvas-Fläche» beschreibt Bedienung, Speicherformat und Grenzen in allen fünf
+  Sprachen und trägt selbst eine echte Fläche zum Ausprobieren; sie grenzt die
+  Canvas ausdrücklich gegen die Graphenansicht ab, weil beide Kästchen und
+  Linien zeigen und Verschiedenes meinen — die eine wertet den vorhandenen
+  Bestand aus, die andere lässt anordnen. Die mitgelieferte Demo-Ablage hat mit
+  «12 Canvas» eine neue Station der geführten Tour.
+
+### Geändert
+
+- **Die Fläche ist im Anzeige-Modus nur ansehbar** (`4T-001654`). Solange ein
+  Dokument nicht zum Bearbeiten geöffnet ist, bietet die Fläche keine Griffe,
+  kein Ziehen, kein Anlegen und keine Eingabe an; Ansehen, Verschieben, Zoomen
+  und das Auswählen eines Elements bleiben unverändert möglich. Zuvor ließ sich
+  eine Linie ziehen, die beim Loslassen wieder verschwand.
+- **Die Canvas-Befehle entscheiden ihre Verfügbarkeit nach demselben Modell
+  wie alle übrigen** (`4T-001697`). Für den Anwender ändert sich dadurch
+  nichts: Ohne Fläche im Dokument bleibt der Ansichts-Schalter sichtbar
+  gedämpft, die Karten-Anlage ist nur in der offenen Fläche verfügbar und das
+  Einfügen nur in einem änderbaren Dokument. Die drei Bedingungen standen
+  bisher als eigene Ausdrücke am Menü-Eintrag; sie liegen jetzt als benannte
+  Bedingungen im gemeinsamen Katalog, den Menü und Befehls-Palette zusammen
+  lesen. Der Schritt war fällig, weil dieses Modell mit `1.131.1` zum
+  Pflichtbestandteil jedes Befehls geworden ist und die Canvas älter ist als
+  es; drei Wächter des Zuges messen ihre Zusage seither am Ergebnis statt an
+  einem Muster im Quelltext.
+- **Das Handbuch spricht von sechs Ansichten statt von fünf** (`4T-001657`).
+  Die Seite «Ansichten und Darstellung» führt die Canvas mit auf, samt
+  Tastenkürzel und dem Hinweis auf die gedämpfte Schaltfläche bei einem
+  Dokument ohne Fläche.
+
+### Behoben
+
+- **Ein deaktivierter Ansichts-Schalter sieht jetzt auch deaktiviert aus**
+  (`4T-001653`). Die Schaltflächen der Ansichts-Umschaltung in der Statusleiste
+  wurden bereits abgeschaltet, wenn sie nicht anwendbar waren — etwa auf den
+  Programm-Seiten wie den Einstellungen —, sahen dabei aber unverändert aus.
+  Der Unterschied ist jetzt sichtbar, in hellem wie in dunklem Erscheinungsbild.
+
+### i18n
+
+- Alle neuen Texte der Canvas liegen in **allen fünf Sprachfassungen** vor
+  (`4T-001652`, `4T-001653`, `4T-001654`, `4T-001655`, `4T-001656`,
+  `4T-001657`, `4T-001668`, `4T-001677`, `4T-001682`, `4T-001683`): die
+  Beschriftungen der Ansicht, der Linien-Leiste und des Kontextmenüs, die Texte
+  des Blocks außerhalb der Canvas-Ansicht, die Statusleisten-Hinweise, der
+  Eintrag im Funktions-Katalog und der Titel der neuen Handbuch-Seite. Ein nicht
+  mehr genutzter Hinweis-Text zu mehreren Flächen ist im selben Zug entfallen.
+
 ## [1.131.1.2702] - 2026-09-11 — Verfügbarkeit, Index-Frische und Zugänge
 
 Zug 3E-000294.
@@ -173,6 +305,7 @@ Vorleseprogramme.
   Viewer-Funktionen nicht wieder, weshalb die Attribute der interaktiven Sichten
   den Export gar nicht erst erreichen; dass sie nicht auf der Positivliste
   stehen, ist Absicht und kein Befund.
+
 
 ## [1.131.0.2621] - 2026-09-08 — Bereichsweite Bearbeitung und Ausgabe-Feinschliff
 

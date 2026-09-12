@@ -116,6 +116,10 @@ const KERN_ZEILEN = [
   'help.feature.viewModes',
   'help.feature.livePreview',
   'help.feature.mindmapDisplay',
+  // 4T-001656 (Epic 3E-000287): 'help.feature.canvas' stand hier vorlaeufig aus
+  // 4T-001653 und ist mit diesem Vorgang in die Registry umgezogen (Erweiterung
+  // 'canvas'). Der Waechter meldet die zwei Antworten, wenn beide Orte die Zeile
+  // fuehren — deshalb steht sie hier nicht mehr.
   'help.feature.sourceToggles',
   'help.feature.sidebarLayout',
   'help.feature.sidebarIconHeadings',

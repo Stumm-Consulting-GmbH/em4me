@@ -112,8 +112,25 @@ const SECHS_FAELLE = [
   { id: 'view.modeMindmap', soll: 'viewMode' },
 ];
 
+// 4T-001697 (Epic 3E-000287): Kommandos, die es zur Messung von 4T-000918 noch
+// nicht gab, und die deshalb NICHT in den Vollbestands-Vergleich unten gehoeren.
+//
+// Der Vergleich haelt die neue Entscheidungs-Logik gegen eine eingefrorene
+// Kopie der alten und verlangt genau die sechs Abweichungen der Erhebung. Die
+// eingefrorene Kopie kennt ein spaeter entstandenes Kommando nicht und faellt
+// bei ihm auf ihren Endpunkt (return true) zurueck; ihre Antwort ist dort also
+// die ABWESENHEIT einer Regel und kein gemessenes Soll. Eine Abweichung gegen
+// diese Abwesenheit ist deshalb kein Befund, sondern die zwangslaeufige Folge
+// davon, dass das Kommando juenger ist als der Massstab.
+//
+// Verworfen ist die naheliegende Alternative, die Erwartung von sechs auf
+// sieben zu heben: Sie machte aus der Zusage von 4T-001636 (genau diese sechs
+// und sonst nichts) eine mitwachsende Liste, die bei jedem neuen Kommando
+// erneut anzupassen waere — und damit aus einem Nachweis eine Buchfuehrung.
+const NACH_DER_MESSUNG = new Set(['view.modeCanvas', 'canvas.addCard', 'insert.canvas']);
+
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
-const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap'];
+const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas'];
 
 function alleKontexte() {
   const out = [];
@@ -252,14 +269,15 @@ describe('Die sechs gemessenen Abweichungen (4T-000918, geschlossen mit 4T-00163
 
 describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
   // Die Gegenprobe zu AK4: Was heute in der Palette zu Recht verfügbar ist,
-  // bleibt es. Gemessen ueber alle 144 Kommandos und alle 6144 Belegungen des
-  // Kontext-Vertrags — nicht an einer Stichprobe, die die interessante Lage
-  // gerade auslassen koennte.
+  // bleibt es. Gemessen ueber alle Kommandos der Erhebungs-Zeit und alle
+  // Belegungen des Kontext-Vertrags — nicht an einer Stichprobe, die die
+  // interessante Lage gerade auslassen koennte.
   const kontexte = alleKontexte();
+  const gemessenerBestand = COMMANDS.filter((c) => !NACH_DER_MESSUNG.has(c.id));
 
   it('genau die sechs gemessenen Kommandos entscheiden anders als vorher', () => {
     const abweichend = new Set();
-    for (const cmd of COMMANDS) {
+    for (const cmd of gemessenerBestand) {
       for (const ctx of kontexte) {
         if (isCommandAvailable(cmd, ctx) !== altIsCommandAvailable(cmd, ctx)) {
           abweichend.add(cmd.id);

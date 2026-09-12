@@ -166,3 +166,10 @@
   white-space: pre-wrap;
   color: var(--fg-muted);
 }
+/* 4T-001668 (Epic 3E-000287): Die Canvas-Fence erscheint als kurze Notiz mit
+   Art und Umfang (E8) — bewusst keine Schreibmaschinen-Schrift wie bei Code
+   und Tabelle: Sie ist ein Satz und kein Auszug aus dem Quelltext. */
+.mindmap-notiz-canvas {
+  color: var(--fg-muted);
+  font-style: italic;
+}

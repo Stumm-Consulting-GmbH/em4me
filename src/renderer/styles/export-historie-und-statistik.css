@@ -97,6 +97,10 @@ body.printing .markdown-body img {
 /* Bildschirm-Interaktion hat im PDF nichts verloren. */
 body.printing .code-copy-button,
 body.printing .perspective-sort-icon,
+/* 4T-001668 (Epic 3E-000287): Zugang und Klapp-Griff des Canvas-Blocks. Der
+   Block selbst erscheint im Druck (AK10, E8: Druck und PDF folgen der
+   Lese-Ansicht) — nur seine beiden Knoepfe haben dort nichts verloren. */
+body.printing .canvas-block-aktionen,
 body.printing .block-meta-indicator {
   display: none !important;
 }
@@ -113,6 +117,7 @@ body.printing .markdown-body .callout,
 body.printing .markdown-body .custom-container,
 body.printing .markdown-body .wiki-embed,
 body.printing .markdown-body .frontmatter-block,
+body.printing .markdown-body .canvas-block,
 body.printing .markdown-body blockquote,
 body.printing .markdown-body img {
   page-break-inside: avoid;

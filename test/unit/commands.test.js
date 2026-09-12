@@ -92,6 +92,9 @@ describe('Registry-Invarianten', () => {
   // (wirken als CodeMirror-Keymap im Editor). 4T-000590 (Epic 3E-000109):
   // plus die zwölf Tabellen-Operationen des Kontextmenü-Untermenüs.
   // 4T-000599 (Epic 3E-000112): plus die beiden Listen-Verschiebe-Kommandos.
+  // 4T-001682 (Epic 3E-000287): plus insert.canvas, die leere Canvas-Fläche —
+  // ein Einfüge-Kommando wie seine Nachbarn und deshalb ebenfalls an die
+  // CodeMirror-View gebunden.
   it('editorScoped-Kommandos sind Fold, Format/Link, Absatz, Einfügen, Tabelle und Liste', () => {
     const scoped = COMMANDS.filter((c) => c.editorScoped)
       .map((c) => c.id)
@@ -110,6 +113,7 @@ describe('Registry-Invarianten', () => {
       'format.math',
       'format.strikethrough',
       'insert.callout',
+      'insert.canvas',
       'insert.codeBlock',
       'insert.footnote',
       'insert.horizontalRule',

@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="styles/ereignis-ansichten.css" />
     <link rel="stylesheet" href="styles/uhr-panel.css" />
     <link rel="stylesheet" href="styles/mindmap.css" />
+    <link rel="stylesheet" href="styles/canvas.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
     <!-- 4T-000644 (Epic 3E-000127): Overlay- und Popover-Stilblatt von driver.js
          für die geführte Produkt-Tour. Kopiert von scripts/build-tour-assets.js
@@ -562,6 +563,10 @@
                Sichtbar nur bei .content.view-mindmap; die Komponente
                montiert mindmap-pane.js zur Laufzeit. -->
           <section class="pane pane-mindmap"></section>
+          <!-- 4T-001653 (Epic 3E-000287): Container der Canvas-Ansicht.
+               Sichtbar nur bei .content.view-canvas; die Komponente
+               montiert canvas-pane.js zur Laufzeit. -->
+          <section class="pane pane-canvas"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1074,6 +1079,10 @@
                Sichtbar nur bei .content.view-mindmap; die Komponente
                montiert mindmap-pane.js zur Laufzeit. -->
           <section class="pane pane-mindmap"></section>
+          <!-- 4T-001653 (Epic 3E-000287): Container der Canvas-Ansicht.
+               Sichtbar nur bei .content.view-canvas; die Komponente
+               montiert canvas-pane.js zur Laufzeit. -->
+          <section class="pane pane-canvas"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1769,6 +1778,37 @@
               <circle cx="19" cy="18" r="2.5" />
               <path d="M7.5 12h3a2 2 0 0 0 2-2V8.5a2 2 0 0 1 2-2h2" />
               <path d="M7.5 12h3a2 2 0 0 1 2 2v1.5a2 2 0 0 0 2 2h2" />
+            </svg>
+          </button>
+          <!-- 4T-001653 (Epic 3E-000287): Canvas-Modus als sechste
+               Schaltflaeche, hinter der Mindmap. Sie setzt das Render-Spektrum
+               der Gruppe nicht fort, sondern steht daneben: Die vorigen fuenf
+               zeigen dasselbe Dokument in wachsender Abstraktion, die Canvas
+               ist eine eigene Arbeitsflaeche. Deshalb am Ende und nicht
+               zwischen den abgeleiteten Sichten. Das Symbol zeigt zwei
+               verbundene Karten. -->
+          <button
+            data-view="canvas"
+            class="view-btn btn-icon"
+            data-i18n-title="menu.view.canvas"
+            data-i18n-aria-label="menu.view.canvas"
+            title=""
+            aria-label="Canvas"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2.5" y="3.5" width="8" height="6" rx="1.5" />
+              <rect x="13.5" y="14.5" width="8" height="6" rx="1.5" />
+              <path d="M10.5 6.5h4a2 2 0 0 1 2 2v6" />
             </svg>
           </button>
         </div>

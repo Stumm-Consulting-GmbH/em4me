@@ -27,6 +27,7 @@ Read in order, or jump straight to what you need:
 9. [[09 Diagrams and Formulas]] — Mermaid diagrams and KaTeX formulas
 10. [[10 Attachments]] — embedded images and PDFs
 11. [[11 Templates]] — reusable building blocks with placeholders
+12. [[12 Canvas]] — cards and connections on a spatial working surface
 
 Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two books — among them the `Demo Book`, a handful of chapters tied into one declared reading path. Open the shelf with **File → Open Bookshelf…** (or a single book with **File → Open Book…**); [[Bookshelf]] and [[Demo Book]] explain what to try. :books:
 

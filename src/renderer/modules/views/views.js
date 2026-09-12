@@ -52,6 +52,10 @@ import {
   setzeCursorAufZeile,
 } from '../mindmap/mindmap-pane.js';
 import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
+// 4T-001653 (Epic 3E-000287): Zeichnen und Einpassen der Canvas kommen wie bei
+// der Mindmap aus der Pane-Ebene.
+import { fitCanvas, fokussiereCanvas, renderCanvas } from '../canvas/canvas-pane.js';
+import { istCanvasModusVerfuegbar } from '../canvas/canvas-modus.js';
 import { renderPaneContent } from './pane-render.js';
 import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
@@ -78,6 +82,16 @@ export function setViewMode(mode) {
   // 4T-000277: System-Seiten (Einstellungen) kennen keine View-Modi — das
   // Seiten-DOM ersetzt Editor und Render-Pane vollstaendig.
   if (tab.systemPage) return;
+  // 4T-001653 (Epic 3E-000287): Der Canvas-Modus ist dokument-abhaengig
+  // (Anordnung des Product Owners vom 2026-09-09). Schaltflaeche und
+  // Menue-Eintrag sind ohne Flaeche bereits deaktiviert; dies ist die
+  // Reissleine fuer den Weg ueber Tastenkuerzel und Kommando-Palette.
+  // 4T-001656: Dieselbe Reissleine deckt den Aus-Zustand der Erweiterung mit,
+  // weil istCanvasModusVerfuegbar seither beide Bedingungen prueft.
+  // Stiller Verzicht statt Rueckfall auf einen anderen Modus: Der Nutzer hat
+  // eine Ansicht gewaehlt, die es hier nicht gibt — ihn dafuer aus seiner
+  // aktuellen zu werfen, waere die schlechtere Antwort.
+  if (mode === 'canvas' && !istCanvasModusVerfuegbar(tab)) return;
   tab.viewMode = mode;
   // Edit-Modus ist nur in Source/Split/Live sinnvoll. Beim Wechsel auf
   // "Gerendert" wird der Edit-Modus automatisch ausgeschaltet, damit der
@@ -109,6 +123,19 @@ export function setViewMode(mode) {
     // einpassen, damit der Nutzer die ganze Karte sieht.
     renderMindmap(state.activePaneIndex);
     fitMindmap(state.activePaneIndex);
+  } else if (mode === 'canvas') {
+    // 4T-001653: Wie die Mindmap baut die Fläche auf tab.content auf und nicht
+    // auf dem Editor; ein Editor-Abgleich wäre hier ohne Wirkung. Das
+    // Einpassen nach dem Zeichnen holt die Fläche ins Bild — sie liegt um den
+    // Ursprung herum und wäre bei Zoom 1 ohne Verschiebung nur zur Hälfte
+    // sichtbar.
+    renderCanvas(state.activePaneIndex);
+    fitCanvas(state.activePaneIndex);
+    // 4T-001654: Der Editor ist in dieser Ansicht per CSS versteckt und gibt
+    // den Fokus an den Dokument-Rumpf ab. Ohne einen Träger erreichte kein
+    // Tastendruck die Fläche — weder `Entf` noch `Strg+Z` (Befund des
+    // Product Owners vom 2026-09-10).
+    fokussiereCanvas(state.activePaneIndex);
   } else {
     syncEditorForPane(state.activePaneIndex);
   }
@@ -374,9 +401,22 @@ export function toggleEditMode() {
   syncToolbarToActiveTab();
   persistState();
   refreshSearchIfVisible();
+  // 4T-001654 (Befund 1 des Product Owners vom 2026-09-10): Die Canvas zeichnet
+  // ihre Griffe nur im aenderbaren Dokument. Der Moduswechsel aendert den
+  // Dokument-Text nicht, also kommt kein scheduleCanvasRender aus dem
+  // Editor-Beobachter (er haengt an `docChanged`) — die Flaeche bliebe auf dem
+  // Stand von vorher stehen. Nach syncEditorForPane, weil dieses erst dort das
+  // readOnly-Compartment setzt, das die Flaeche mit abfragt.
+  if (tab.viewMode === 'canvas') renderCanvas(state.activePaneIndex);
   if (tab.editMode) {
-    const view = paneEditors[state.activePaneIndex];
-    if (view) view.focus();
+    // In der Canvas-Ansicht ist der Editor per CSS versteckt; ein `focus()`
+    // auf ihn naehme der Flaeche den Tastatur-Fokus, ohne ihn selbst zu
+    // bekommen — `Entf` und `Strg+Z` gingen danach ins Leere.
+    if (tab.viewMode === 'canvas') fokussiereCanvas(state.activePaneIndex);
+    else {
+      const view = paneEditors[state.activePaneIndex];
+      if (view) view.focus();
+    }
   }
 }
 

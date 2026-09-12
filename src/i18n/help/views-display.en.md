@@ -2,9 +2,9 @@
 
 How a document appears is decided on two levels. The **view** belongs to the individual tab: it determines whether the document is shown rendered, as source text, split or live. The **appearance** applies to the whole application: theme, zoom, content width and fonts. This page brings both levels together and names the place of every setting.
 
-## The five views
+## The six views
 
-Every tab is in exactly one of five views. The chosen mode applies per tab, not globally: one document may be open rendered while a second one is edited as source text next to it.
+Every tab is in exactly one of six views. The chosen mode applies per tab, not globally: one document may be open rendered while a second one is edited as source text next to it.
 
 | View       | What it shows                                     | Default shortcut |
 | ---------- | ------------------------------------------------- | ---------------- |
@@ -13,8 +13,9 @@ Every tab is in exactly one of five views. The chosen mode applies per tab, not 
 | **Source**   | only the Markdown source text                   | `Ctrl+3`         |
 | **Live**     | the source text, formatted right where you edit | `Ctrl+4`         |
 | **Mind map** | the structure of the document as a map instead of text | `Ctrl+5`  |
+| **Canvas**   | a surface with cards and connections from the document | `Ctrl+6`  |
 
-Switching happens via the buttons in the status bar or via the top of the View menu; the mind map lives in the menu and on its shortcut, not in the status bar. Which view a newly opened tab receives is set in the “Behaviour” section of the settings.
+Switching happens via the buttons in the status bar or via the top of the View menu; the mind map lives in the menu and on its shortcut, not in the status bar, and the canvas button stays dimmed as long as the document holds no canvas surface. Which view a newly opened tab receives is set in the “Behaviour” section of the settings.
 
 ### Live mode
 
@@ -25,6 +26,10 @@ Live mode renders the Markdown directly in the editor: bold and italic, links, t
 ### Mind map
 
 The mind map shows the headings and lists of the document as a tree and the body text as a note on the node. It belongs to the extension of the same name and goes with it; structure, handling, the five root positions and the default per document are described on the page [Mind map view](mindmap.md).
+
+### Canvas
+
+The canvas shows a surface with cards and connections that lives inside the document itself. It belongs to the extension of the same name and goes with it; it is also the only one of the six views that depends on the document and can be chosen only when the document holds a canvas surface. Structure, handling, several surfaces and the storage format are described on the page [Canvas surface](canvas.md).
 
 ### Editing
 

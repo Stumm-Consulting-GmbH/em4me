@@ -1,0 +1,560 @@
+/* 4T-001653 (Epic 3E-000287): Canvas-Ansicht — Farben ausschließlich über
+   Theme-Variablen (hell/dunkel). Die Komponente canvas-view.js setzt keine
+   Farbwerte; sie vergibt nur Klassen, und die Zuordnung steht hier, damit die
+   Farbschemas sie tragen können. */
+
+/* Der Canvas-Modus ersetzt Editor und Render-Pane vollständig, genau wie die
+   Mindmap und die System-Pane. Sichtbar wird der Container erst über die
+   Modus-Klasse am .content-Element. */
+.pane-canvas {
+  display: none;
+}
+.content.view-canvas .pane-source,
+.content.view-canvas .pane-rendered,
+.content.view-canvas .inner-splitter {
+  display: none;
+}
+.content.view-canvas .pane-canvas {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.canvas-view {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 4T-001677 (Epic 3E-000287): Reiterleiste der Flächen eines Dokuments
+   (Anordnung des Product Owners vom 2026-09-09). Sie sitzt innerhalb des
+   Canvas-Containers und damit unterhalb der Reiterleiste der Dokumente und
+   nur über der Breite des Dokument-Bereichs — die Seitenleisten sind
+   Geschwister von .pane-canvas und bleiben unberührt.
+
+   Maße und Farben folgen der Dokument-Reiterleiste (.tabbar/.tab in
+   reiter-und-panes.css), eine Spur flacher: Sie ist die zweite Ebene und
+   soll der ersten nicht den Rang ablaufen. */
+.canvas-reiterleiste {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+  min-height: 26px;
+}
+.canvas-reiter {
+  padding: 4px 12px;
+  background: var(--tab-bg);
+  color: var(--fg);
+  border: none;
+  border-right: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.canvas-reiter:hover {
+  background: var(--hover);
+}
+.canvas-reiter-aktiv {
+  background: var(--tab-active-bg);
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px;
+}
+
+/* Die Bühne trägt beide Ebenen und klemmt sie ab. Sie ist der Bezugsrahmen
+   der gemeinsamen Verschiebung: Was hier geclippt wird, liegt außerhalb des
+   Sichtfensters. */
+.canvas-buehne {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+  cursor: grab;
+}
+.canvas-view.canvas-ziehend .canvas-buehne {
+  cursor: grabbing;
+}
+
+/* Untere Ebene: die Verbindungen. Die Fläche selbst bleibt ohne
+   Zeigerereignisse, damit ein Klick daneben immer die Bühne trifft; anfassbar
+   sind seit 4T-001655 allein die Treffer-Pfade der Linien, die sie eigens
+   wieder einschalten. */
+.canvas-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Obere Ebene: die Karten. Sie ist selbst ohne Ausdehnung; die Karten stehen
+   absolut darin und ragen in alle Richtungen heraus. Der Ursprung liegt oben
+   links, damit die CSS-Transformation dieselbe Rechnung ausführt wie die des
+   SVG-Viewports. */
+.canvas-karten {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+.canvas-karte {
+  position: absolute;
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 18%);
+  /* 4T-001654: Die Karte ist anfassbar — der Zeiger sagt es an. */
+  cursor: move;
+}
+
+/* Befund 1 des Product Owners vom 2026-09-10: Im nicht änderbaren Dokument ist
+   die Fläche nur ansehbar. Die Karte lässt sich noch wählen — das schreibt
+   nichts —, aber der Zeiger verspricht kein Verschieben mehr. Griffe, Leiste
+   und Ziel-Zonen entstehen in diesem Zustand gar nicht erst; die Regel hier
+   ist die sichtbare Hälfte, nicht die tragende. */
+.canvas-nur-ansicht .canvas-karte {
+  cursor: default;
+}
+
+/* Die Größe der Karte ist unabhängig von der Länge ihres Inhalts (Leitplanke
+   3): Passt er nicht, wird hier gescrollt, und die Karte wächst nie. */
+.canvas-karte-inhalt {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+/* Der erste und der letzte Block sitzen bündig am Rand der Karte; die
+   Abstände der Lese-Ansicht wirken auf der kleinen Fläche sonst als Loch. */
+.canvas-karte-inhalt > :first-child {
+  margin-top: 0;
+}
+.canvas-karte-inhalt > :last-child {
+  margin-bottom: 0;
+}
+
+/* 4T-001654 (Epic 3E-000287): Bedienung der Karten. Die Karte ist ab hier
+   anfassbar — sie lässt sich wählen, ziehen, in der Größe ändern und
+   beschreiben. Farben weiterhin ausschließlich aus Theme-Variablen. */
+
+/* Die gewählte Karte trägt einen Ring in der Akzentfarbe statt einer eigenen
+   Füllung: Die Auswahl soll den Karten-Text nicht schlechter lesbar machen. */
+.canvas-karte-gewaehlt {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Griff für die Größen-Änderung, unten rechts in der Karte. Er liegt absolut
+   und nicht im Fluss, damit er dem Inhalt keine Breite nimmt (Leitplanke 3).
+   Sichtbar wird er erst bei Auswahl oder unter dem Zeiger — ein dauerhaft
+   sichtbarer Griff je Karte machte die Fläche unruhig. */
+.canvas-karte-griff {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 0 0 5px 0;
+  background: var(--accent);
+  opacity: 0;
+  cursor: nwse-resize;
+}
+.canvas-karte:hover .canvas-karte-griff,
+.canvas-karte-gewaehlt .canvas-karte-griff {
+  opacity: 0.8;
+}
+
+/* Rohtext-Eingabe der Karte. Sie füllt die Karte vollständig aus, damit die
+   Größe beim Umschalten zwischen Lesen und Schreiben gleich bleibt, und zeigt
+   den Text in der Editor-Schrift — geschrieben wird hier Markdown. */
+.canvas-karte-eingabe {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: 8px 10px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-family: var(--editor-font-family, monospace);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.canvas-karte-bearbeitet {
+  cursor: text;
+}
+
+.canvas-linie-pfad {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+}
+.canvas-linie-spitze {
+  fill: var(--border-strong);
+  stroke: none;
+}
+
+/* 4T-001655 (Epic 3E-000287): Bedienung der Verbindungen. Eine benannte Farbe
+   setzt die Zeichnung als Theme-Variable --tab-group-<schluessel> unmittelbar
+   am Element; ohne Angabe gilt die Regel darüber. Farbwerte stehen auch hier
+   nirgends. */
+
+/* Der breite, unsichtbare Treffer-Pfad. Er schaltet die Zeigerereignisse
+   wieder ein, die die SVG-Ebene abgeschaltet hat, und zwar nur auf seinem
+   Strich — die Fläche zwischen zwei Linien bleibt Hintergrund. */
+.canvas-linie-treffer {
+  fill: none;
+  stroke: transparent;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+/* Die gewählte Verbindung trägt einen breiteren Strich in der Akzentfarbe —
+   dieselbe Aussage wie der Ring der gewählten Karte, im Mittel der Linie. */
+.canvas-linie-gewaehlt .canvas-linie-pfad {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+.canvas-linie-gewaehlt .canvas-linie-spitze {
+  fill: var(--accent);
+}
+
+/* Beschriftung: Klartext auf einem Grund in der Flächen-Farbe, damit sie an
+   einer Kreuzung zweier Linien lesbar bleibt. */
+.canvas-linie-grund {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.canvas-linie-text {
+  fill: var(--fg);
+  font-family: inherit;
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* Vorschau beim Anlegen: gestrichelt, damit sie sich von einer bestehenden
+   Verbindung unterscheidet, und ohne Zeigerereignisse — sie hängt am Zeiger. */
+.canvas-linie-vorschau {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+/* Anschluss-Griffe der gewählten Karte, je einer an ihren vier Seiten. Sie
+   liegen innerhalb der Karte, weil diese ihren Inhalt beschneidet; ein Griff
+   auf der Kante wäre zur Hälfte abgeschnitten. */
+.canvas-anschluss {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.85;
+  cursor: crosshair;
+}
+.canvas-anschluss-links {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.canvas-anschluss-rechts {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.canvas-anschluss-oben {
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+.canvas-anschluss-unten {
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+/* Ziel-Zonen an den vier Seiten der Karte unter dem Zeiger (Befund 3 des
+   Product Owners vom 2026-09-10). Sie erscheinen nur während eines Zuges vom
+   Anschluss-Griff und sind für den Zeiger durchlässig: Getroffen wird
+   gerechnet, nicht am DOM abgefragt — sonst verdeckte die Zone die Karte, auf
+   der sie liegt. Erscheinungsbild wie die Anschluss-Griffe, damit der Anwender
+   die Verwandtschaft sieht: dieselbe Akzentfarbe, nur als Band statt als
+   Punkt. */
+.canvas-zielzone {
+  position: absolute;
+  background: var(--accent);
+  opacity: 0.18;
+  pointer-events: none;
+}
+.canvas-zielzone-aktiv {
+  opacity: 0.55;
+}
+.canvas-zielzone-links,
+.canvas-zielzone-rechts {
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  max-width: 33%;
+}
+.canvas-zielzone-links {
+  left: 0;
+}
+.canvas-zielzone-rechts {
+  right: 0;
+}
+.canvas-zielzone-oben,
+.canvas-zielzone-unten {
+  left: 0;
+  right: 0;
+  height: 24px;
+  max-height: 33%;
+}
+.canvas-zielzone-oben {
+  top: 0;
+}
+.canvas-zielzone-unten {
+  bottom: 0;
+}
+
+/* Leiste der gewählten Verbindung, am Mittelpunkt ihres Pfades. Sie liegt in
+   der Karten-Ebene und trägt damit dieselbe Verschiebung und Vergrößerung wie
+   die Karten — sie soll an ihrer Linie bleiben, auch beim Zoomen. */
+.canvas-linie-leiste {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-alt);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  white-space: nowrap;
+}
+.canvas-linie-knopf {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.canvas-linie-knopf:hover {
+  background: var(--hover);
+}
+/* Auswahlfelder für Start- und Ziel-Seite (Befund 3). Sie sind bewusst schmal:
+   Die Leiste sitzt mitten auf der Fläche, und die Werte sind kurze Wörter. */
+.canvas-linie-seite {
+  height: 20px;
+  max-width: 92px;
+  padding: 0 2px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.canvas-linie-farben {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+}
+.canvas-linie-farbe {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+/* «Keine Farbe» zeigt die gewohnte Linienfarbe, nicht ein leeres Feld: Der
+   Punkt sagt, was die Linie danach trägt. */
+.canvas-linie-farbe-keine {
+  background: var(--border-strong);
+}
+
+/* Eingabe der Beschriftung, am selben Ort wie die Leiste und in der
+   Editor-Schrift — geschrieben wird hier der Rohtext der Verbindung. */
+.canvas-linie-eingabe {
+  position: absolute;
+  width: 180px;
+  height: 54px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  resize: none;
+  padding: 4px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  outline: none;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-family: var(--editor-font-family, monospace);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Hinweis-Zeile unten links, im Muster der Mindmap-Ansicht. */
+.canvas-hinweis {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* === Canvas-Block außerhalb der Canvas-Ansicht (4T-001668, E8) ==============
+   Die Fence erscheint in Lese-Ansicht, geteilter Ansicht, Live-Modus und Druck
+   als kompakter Block statt als hunderte Zeilen Koordinaten. Farben
+   ausschließlich über Theme-Variablen, wie im übrigen Stilblatt. */
+.canvas-block {
+  margin: 0.8em 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+  overflow: hidden;
+}
+
+.canvas-block-kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-toolbar);
+  font-size: 12px;
+}
+
+.canvas-block-art {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.canvas-block-umfang {
+  color: var(--fg-muted);
+}
+
+.canvas-block-befunde {
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--hover);
+  color: var(--fg-muted);
+}
+
+/* Die Aktionen rücken nach rechts; der Zugang steht vor dem Klapp-Griff, weil
+   er die häufigere Handlung ist. */
+.canvas-block-aktionen {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.canvas-block-knopf {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.canvas-block-knopf:hover {
+  background: var(--hover);
+  border-color: var(--accent);
+}
+
+/* In einer Markdown-Einbettung bleibt der Block eine Auskunft ohne Bedienung:
+   Seine Stelle bezieht sich auf die eingebettete Datei, nicht auf das
+   geoeffnete Dokument (4T-001668). */
+.canvas-block-passiv .canvas-block-aktionen {
+  display: none;
+}
+
+.canvas-block-klappen {
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Zugeklappt bleibt die Kopfzeile stehen (AK7); nur der Rumpf verschwindet. */
+.canvas-block.canvas-block-ist-zu .canvas-block-kopf {
+  border-bottom: none;
+}
+
+.canvas-block.canvas-block-ist-zu .canvas-block-rumpf {
+  display: none;
+}
+
+.canvas-block-rumpf {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+}
+
+.canvas-block-karte {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border-left: 2px solid var(--border-strong, var(--border));
+  background: var(--bg);
+  font-size: 12px;
+}
+
+.canvas-block-karte-titel {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.canvas-block-karte-zeile {
+  color: var(--fg-muted);
+}
+
+.canvas-block-weitere {
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-style: italic;
+}

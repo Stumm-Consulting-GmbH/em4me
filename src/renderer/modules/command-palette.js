@@ -41,6 +41,11 @@ import { EDITOR_COMMAND_FUNCTIONS } from './editor/editor-keymaps.js';
 // 4T-000590 (Epic 3E-000109): Verfuegbarkeits-Regel der table.*-Kommandos —
 // zusaetzlich zum Editor-Kontext muss der Cursor in einer Tabelle stehen.
 import { hasTableContext } from './editor/editor-table-tools.js';
+// 4T-001697 (Epic 3E-000287): Verfuegbarkeits-Regel der drei Canvas-Kommandos.
+// Dieselbe Funktion, aus der auch der gemeldete Menue-Zustand sein canvasTab
+// baut (tabs.js) — eine Quelle fuer beide Prozess-Seiten, wie es die benannte
+// Grenze des Modells verlangt.
+import { istCanvasModusVerfuegbar } from './canvas/canvas-modus.js';
 
 function $(sel) {
   return document.querySelector(sel);
@@ -103,6 +108,11 @@ function currentPaletteContext() {
     // ein Feld des Vertrags; der Aufruf ist eine Pruefung ueber die geladene
     // Bereichs-Konfiguration und damit billig genug fuer jeden Kontext-Bau.
     hasCalendarConfig: hasCalendarConfig(),
+    // 4T-001697 (Epic 3E-000287): Traegt das aktive Dokument eine Flaeche?
+    // Zehntes Feld des gemeinsamen Vertrags; im Aus-Zustand der Erweiterung
+    // liefert die Funktion ohnehin false, und die Kommando-Filterung des
+    // Schalters nimmt die Eintraege dann ganz heraus.
+    canvasTab: istCanvasModusVerfuegbar(tab),
   });
 }
 

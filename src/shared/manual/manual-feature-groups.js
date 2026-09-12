@@ -312,6 +312,11 @@ const HELP_FEATURE_GROUPS = [
       // Darstellungs-Optionen, direkt hinter dem Live-Modus (gleiche Familie).
       'help.feature.mindmap',
       'help.feature.mindmapDisplay',
+      // 4T-001653 (Epic 3E-000287): Canvas als sechster Ansichts-Modus, hinter
+      // der Mindmap. Sie steht neben den abgeleiteten Sichten und nicht in
+      // ihrer Reihe: Jene zeigen dasselbe Dokument in wachsender Abstraktion,
+      // die Canvas ist eine eigene Arbeitsflaeche.
+      'help.feature.canvas',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

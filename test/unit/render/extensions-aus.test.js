@@ -463,6 +463,101 @@ describe('Erweiterung mindmap: Registry und Aus-Zustand (4T-001047)', () => {
     }
   });
 });
+
+// 4T-001656 (Epic 3E-000287): Aus-Zustand der Canvas-Fläche (Story 4S-000919,
+// Entscheidung E6). Sie bringt beides mit — ein Render-Konstrukt (die Fence)
+// und einen Ansichts-Modus mit drei Kommandos —, deshalb stehen hier beide
+// Seiten: der Render-Rückfall und die deklarative Seite. Der Rückfall des
+// gespeicherten Ansichts-Modus und die Verfügbarkeit des Modus liegen im
+// Renderer und werden in renderer/canvas-pane.test.js geprüft.
+describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
+  const FLAECHE = '```perspective-canvas\n!karte k1 x=0 y=0 b=200 h=100\n## Titel\n```';
+
+  it('AK1: ist als Render-Erweiterung mit den Katalog-Keys registriert', () => {
+    const manifest = extensionById('canvas');
+    expect(manifest).not.toBeNull();
+    expect(manifest.category).toBe('render');
+    // Die bestehenden Katalog-Schlüssel, keine duplizierten Übersetzungen.
+    expect(manifest.nameKey).toBe('help.featureName.canvas');
+    expect(manifest.descKey).toBe('help.feature.canvas');
+    expect(manifest.dependencies).toBeUndefined();
+    // Ab Werk eingeschaltet: der Default der Disabled-Liste ist leer.
+    expect(isExtensionEnabled('canvas', [])).toBe(true);
+    expect(internalExtensions().some((m) => m.id === 'canvas')).toBe(true);
+    // Der descKey IST die Katalog-Zeile; im Aus-Zustand wird genau sie
+    // gekennzeichnet (und sie steht seit diesem Vorgang nicht mehr in der
+    // Kern-Liste von funktions-seite-kern.js).
+    expect(disabledFeatureKeySet(['canvas']).has('help.feature.canvas')).toBe(true);
+  });
+
+  it('führt genau die drei Canvas-Kommandos, und alle drei sind registriert', () => {
+    const manifest = extensionById('canvas');
+    expect(manifest.commands).toEqual(['view.modeCanvas', 'canvas.addCard', 'insert.canvas']);
+    const registrierte = new Set(COMMANDS.map((c) => c.id));
+    for (const id of manifest.commands) {
+      expect(registrierte.has(id), `${id} fehlt in der Kommando-Registry`).toBe(true);
+    }
+  });
+
+  it('AK5: der Aus-Zustand filtert genau diese drei, der An-Zustand keines', () => {
+    const aus = disabledCommandIdSet(['canvas']);
+    for (const id of ['view.modeCanvas', 'canvas.addCard', 'insert.canvas']) {
+      expect(aus.has(id), `${id} muss im Aus-Zustand gefiltert sein`).toBe(true);
+    }
+    // Die Nachbarn in denselben Menüs bleiben unberührt: die übrigen fünf
+    // Ansichts-Modi (der Mindmap-Modus hat seinen eigenen Schalter) und die
+    // Einfüge-Kommandos des Kerns.
+    for (const id of [
+      'view.modeRendered',
+      'view.modeSplit',
+      'view.modeSource',
+      'view.modeLive',
+      'insert.table',
+      'insert.codeBlock',
+    ]) {
+      expect(aus.has(id), `${id} darf nicht mitgefiltert werden`).toBe(false);
+    }
+    const an = disabledCommandIdSet([]);
+    for (const id of ['view.modeCanvas', 'canvas.addCard', 'insert.canvas']) {
+      expect(an.has(id)).toBe(false);
+    }
+  });
+
+  it('AK3: die Fence erscheint abgeschaltet als gewöhnlicher Code-Block', () => {
+    // Nicht-Vakuitäts-Probe zuerst: eingeschaltet ist es der Block aus E8.
+    expect(renderMarkdown(FLAECHE, 'de')).toContain('canvas-block');
+    const off = renderOff('canvas', FLAECHE);
+    expect(off).not.toContain('canvas-block');
+    expect(off).toContain('language-perspective-canvas');
+    // Der Inhalt bleibt lesbar — abgeschaltet wird die Darstellung, nicht die
+    // Angabe.
+    expect(off).toContain('!karte k1 x=0 y=0 b=200 h=100');
+  });
+
+  it('AK6: das Wiedereinschalten stellt den Block zeichengleich wieder her', () => {
+    const vorher = renderMarkdown(FLAECHE, 'de');
+    renderOff('canvas', FLAECHE);
+    configureExtensions([]);
+    expect(renderMarkdown(FLAECHE, 'de')).toBe(vorher);
+  });
+
+  it('auch der portable Export fällt auf den Code-Block zurück', () => {
+    // Derselbe Weg, dieselbe Weiche: Der portable Konverter nutzt die zweite
+    // Instanz derselben Pipeline.
+    configureExtensions(['canvas']);
+    const portabel = convertMarkdownPortable(FLAECHE);
+    expect(portabel).not.toContain('canvas-block');
+  });
+
+  it('zieht keine andere Erweiterung mit und wird von keiner gezogen', () => {
+    // Story 4S-000919, Abgrenzung: Die Fläche steht für sich, keine andere
+    // Funktion setzt sie voraus.
+    expect([...effectiveDisabledSet(['canvas'])]).toEqual(['canvas']);
+    for (const m of internalExtensions()) {
+      expect((m.dependencies || []).includes('canvas'), `${m.id} hängt an canvas`).toBe(false);
+    }
+  });
+});
 describe('area-links: Aus-Zustand der Bereichs-Verknuepfungen (4T-001457)', () => {
   it('an: der Kuerzel-Link traegt Marke und Herkunft', () => {
     // Nicht-Vakuitaets-Probe: ohne sie belegt der Aus-Fall nichts.

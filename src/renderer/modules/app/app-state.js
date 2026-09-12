@@ -35,6 +35,10 @@ import { DEFAULT_EDIT_VIEW_MODE as EDIT_VIEW_VOREINSTELLUNG } from '../views/vie
 // mindmap-modus.js). Der Zugriff selbst erfolgt erst zur Laufzeit beim
 // Erzeugen eines Tabs.
 import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
+// 4T-001653 (Epic 3E-000287): Der Canvas-Modus ist dokument-abhaengig und
+// braucht denselben Rueckfall. Ebenfalls aus dem winzigen Modus-Modul und
+// nicht aus canvas-pane.js, aus dem Grund im Kopf jenes Moduls.
+import { resolveCanvasViewMode } from '../canvas/canvas-modus.js';
 import { editorCompartments, paneEditors, typewriterScrollExtension } from '../editor/editor.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 // 3E-000105: Frontmatter-Parser fuer die dokument-gebundenen Editor-Ansicht-
@@ -473,8 +477,16 @@ export function createTab(path, content, settings = {}) {
     // zurueck, wenn seine Erweiterung aus ist. Ohne den Rueckfall traege ein
     // wiederhergestellter Reiter einen Modus, den es nicht mehr gibt, und
     // seine Pane bliebe leer (Story 4S-000804, AK7).
-    viewMode: resolveViewModeForTab(
-      settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE,
+    // 4T-001653: Und der Canvas-Modus auf die Lese-Ansicht, wenn das Dokument
+    // keine Flaeche (mehr) traegt — etwa weil die Fence ausserhalb der
+    // Anwendung entfernt wurde, nachdem der Reiter in der Canvas-Ansicht
+    // gespeichert worden war.
+    // 4T-001656: Ebenso, wenn die Erweiterung `canvas` abgeschaltet ist. Ohne
+    // den Rueckfall oeffnete das Dokument in einer Ansicht, die es nicht gibt
+    // (Story 4S-000919, AK2).
+    viewMode: resolveCanvasViewMode(
+      resolveViewModeForTab(settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE),
+      content,
     ),
     wrapLines: view.wrapLines,
     showLineNumbers: view.showLineNumbers,
@@ -621,6 +633,9 @@ function buildPaneEls(paneIdx) {
     // 4T-001047 (Epic 3E-000151): Container der Mindmap-Ansicht, sichtbar nur
     // bei .content.view-mindmap (Muster der System-Pane).
     mindmapEl: root.querySelector('.pane-mindmap'),
+    // 4T-001653 (Epic 3E-000287): Container der Canvas-Ansicht, sichtbar nur
+    // bei .content.view-canvas (dasselbe Muster).
+    canvasEl: root.querySelector('.pane-canvas'),
     innerSplitter: root.querySelector('.splitter.inner-splitter'),
     // 4T-000288 (Epic 3E-000051): je Pane ein linker und ein rechter Sidebar-
     // Container mit eigenem Splitter. Die Sektions-Referenzen darunter sind

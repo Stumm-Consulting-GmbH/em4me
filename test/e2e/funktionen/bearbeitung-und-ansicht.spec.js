@@ -399,6 +399,12 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
 // Mindmap-Modus seine Schaltflaeche bekommen hat; die Zahl steht deshalb nicht
 // mehr im Titel. Die Liste bleibt vollstaendig geprueft, damit eine kuenftige
 // Aenderung hier auffaellt und nicht erst am Abnahme-Gate.
+//
+// 4T-001653 (Epic 3E-000287): Neun, weil die Canvas-Ansicht dazugekommen ist.
+// Genau dafuer ist die Liste da: Sie hat die Aenderung gemeldet, statt sie
+// durchzulassen. Zugleich ist dieser Fall der Sichtbarkeits-Nachweis der
+// Canvas-Schaltflaeche in der Abdeckungs-Matrix — er misst das gerenderte
+// Layout an der gebauten Programmdatei und nicht den Quelltext.
 test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
   test('die Schalter stehen als Gruppe in der Fenster-Mitte', async () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
@@ -438,6 +444,7 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
         'split',
         'rendered',
         'mindmap',
+        'canvas',
       ]);
       // Fenster-Mitte, nicht Rest-Platz-Mitte (Toleranz für Rundung).
       expect(geo.offset).toBeLessThanOrEqual(1);

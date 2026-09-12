@@ -9,6 +9,14 @@
 // dispatcht das Ergebnis.
 'use strict';
 
+// 4T-001682 (Epic 3E-000287): Die Schablone der Canvas-Fläche kommt aus dem
+// Canvas-Kern statt aus einer Zeichenkette hier. Grund ist die Zaun-Länge:
+// Der Karten-Inhalt einer Fläche ist beliebiges Markdown und darf selbst
+// Code-Blöcke tragen, deshalb bestimmt der Kern die Zahl der Rückstriche
+// (AK3). Der Bezug bleibt prozessneutral — canvas-core.js ist wie diese
+// Datei reines CJS ohne DOM und ohne Electron.
+const { canvasFenceBlock } = require('./canvas/canvas-core.js');
+
 // Die sieben Zeichen-Formate mit ihren Markern. open/close getrennt wegen des
 // asymmetrischen Critic-Kommentars ({>>…<<}). `avoid` markiert 1-Zeichen-
 // Marker, die nicht anschlagen dürfen, wenn direkt ein gleiches Zeichen
@@ -467,6 +475,22 @@ function insertCodeBlock(text, pos) {
   return insertBlock(text, pos, '```\n\n```', 3);
 }
 
+// 4T-001682 (Epic 3E-000287): leere Canvas-Fläche an der Schreibmarke.
+//
+// Leer heißt wörtlich leer: eine Fence ohne ein einziges Element. Der Kern
+// liest sie als Fläche mit null Karten und null Befunden, und genau das ist
+// die Fläche, auf der der Anwender anfängt (Story 4S-000926, Abgrenzung
+// «keine Vorlage mit vorbelegten Karten»).
+//
+// Die Schreibmarke landet auf der leeren Zeile INNERHALB der Fence, nicht
+// dahinter: Wer eine Fläche einfügt, arbeitet als Nächstes in ihr. Die
+// Stelle wird aus dem Block gerechnet statt gezählt, damit sie einer
+// Änderung der Zaun-Länge im Kern folgt (Muster insertPerspectiveTable).
+function insertCanvas(text, pos) {
+  const block = canvasFenceBlock('');
+  return insertBlock(text, pos, block, block.indexOf('\n') + 1);
+}
+
 module.exports = {
   INLINE_FORMATS,
   wordRangeAt,
@@ -492,4 +516,5 @@ module.exports = {
   insertCallout,
   insertHorizontalRule,
   insertCodeBlock,
+  insertCanvas,
 };

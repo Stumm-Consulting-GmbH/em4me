@@ -67,6 +67,11 @@ const {
   convertPerspectiveEventsBlockToHtml,
   PORTABLE_EVENT_LABEL_KEYS,
 } = require('./perspective-events.js');
+// 4T-001668 (Epic 3E-000287): Canvas-Fence — der Block, mit dem die Fläche
+// außerhalb der Canvas-Ansicht erscheint (Entscheidung E8). Das Markup baut
+// das Nachbar-Modul; hier bleibt allein die Weiche.
+const { CANVAS_EXTENSION_ID } = require('../canvas/canvas-core.js');
+const { CANVAS_BLOCK_LABEL_KEYS, renderCanvasBlock } = require('./canvas-block.js');
 
 // 4T-000023: highlight.js als Core-Bundle plus kuratierte Sprachliste. Damit
 // landet nur das benoetigte Set im Bundle, nicht das gesamte Default-Bundle
@@ -626,6 +631,25 @@ function buildPipelines(enabled) {
         const body = String(token.content || '');
         return `<div class="perspective-journal-timeline" data-jt-source="${escapeHtml(body)}"></div>\n`;
       }
+      // 4T-001668 (Epic 3E-000287): perspective-canvas rendert als Block mit
+      // Art, Umfang, Zugang zur Canvas-Ansicht und gedeckelter Karten-Vorschau
+      // (Entscheidung E8). Die Weiche liegt hier, damit Lese-Ansicht, geteilte
+      // Ansicht, Live-Widget und Druck denselben Block über **einen** Weg
+      // bekommen. Der Zeilen-Bereich reist wie bei Datatable und Ereignissen
+      // mit (map + sourceLineOffset); über die Start-Zeile findet der Zugang
+      // die Fläche wieder. An die Erweiterung `canvas` gebunden: deaktiviert
+      // fällt der Block auf den Default-Code-Block zurück, wie E6 es verlangt.
+      // Seit 4T-001656 steht die Kennung in der Registry; das Tor trägt damit
+      // den echten Schalter-Stand statt der Kern-Antwort für unbekannte
+      // Kennungen.
+      if (lang === 'perspective-canvas' && enabled(CANVAS_EXTENSION_ID)) {
+        const offset = (env && env.sourceLineOffset) || 0;
+        return renderCanvasBlock(String(token.content || ''), {
+          lineStart: token.map ? token.map[0] + 1 + offset : 0,
+          lineEnd: token.map ? token.map[1] + offset : 0,
+          labels: portableLabels((env && env.lang) || 'de'),
+        });
+      }
       if (lang === 'perspective-table' && enabled('perspective-table')) {
         const html = renderPerspectiveTable(token.content);
         if (html) return html;
@@ -880,7 +904,11 @@ function portableLabels(lang) {
     // Key-Fallback (Labels bleiben die Key-Namen) — Export funktioniert.
   }
   const labels = {};
-  for (const key of [...PORTABLE_EVENT_LABEL_KEYS, ...CALENDAR_SPAN_LABEL_KEYS]) {
+  for (const key of [
+    ...PORTABLE_EVENT_LABEL_KEYS,
+    ...CALENDAR_SPAN_LABEL_KEYS,
+    ...CANVAS_BLOCK_LABEL_KEYS,
+  ]) {
     if (typeof dict[key] === 'string') labels[key] = dict[key];
   }
   portableLabelCache.set(lc, labels);

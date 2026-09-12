@@ -1,17 +1,18 @@
 # Nutzen und Arbeitsweise
 
-Diese Seite beantwortet nicht, **wie** etwas geht, sondern **wozu** es gut ist. Sie hat zwei Hälften: Die ersten fünf Abschnitte zeigen, welche **Arbeitsformen** die Anwendung eröffnet, vom einzelnen Dokument bis zum benannten Arbeitsraum. Die zweite Hälfte zeigt, was sich in einer Markdown-Datei **ausdrücken** lässt, das über den Markdown-Standard hinausgeht. Wo es konkret wird, führt am Ende jedes Abschnitts ein Verweis auf die Seite, die den Gegenstand ausführlich behandelt.
+Diese Seite beantwortet nicht, **wie** etwas geht, sondern **wozu** es gut ist. Sie hat zwei Hälften: Die erste Hälfte zeigt, welche **Arbeitsformen** die Anwendung eröffnet, vom einzelnen Dokument bis zum benannten Arbeitsraum. Die zweite Hälfte zeigt, was sich in einer Markdown-Datei **ausdrücken** lässt, das über den Markdown-Standard hinausgeht. Wo es konkret wird, führt am Ende jedes Abschnitts ein Verweis auf die Seite, die den Gegenstand ausführlich behandelt.
 
 ## Ein Dokument, so wie Sie es gerade brauchen
 
-Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen verschiedene Darstellungen desselben Textes. Statt einen Kompromiss zu erzwingen, hält die Anwendung fünf Ansichten bereit, zwischen denen ein Tastendruck wechselt: die fertige Seite zum Lesen, den Quelltext zum genauen Arbeiten, beides nebeneinander zum Vergleichen, den Live-Modus zum flüssigen Schreiben und die Mindmap für den Blick auf die Gliederung. Der Wechsel kostet nichts und verändert die Datei nicht.
+Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen verschiedene Darstellungen desselben Textes. Statt einen Kompromiss zu erzwingen, hält die Anwendung sechs Ansichten bereit, zwischen denen ein Tastendruck wechselt: die fertige Seite zum Lesen, den Quelltext zum genauen Arbeiten, beides nebeneinander zum Vergleichen, den Live-Modus zum flüssigen Schreiben, die Mindmap für den Blick auf die Gliederung und die Canvas für Karten auf einer Fläche. Der Wechsel kostet nichts und verändert die Datei nicht.
 
 - **Gerendert** zum Lesen, **Quellcode** für die genaue Arbeit an der Syntax.
 - **Geteilt** zeigt Quelltext und Ergebnis nebeneinander, für Konstrukte mit Tücken.
 - **Live** formatiert beim Tippen und zeigt die Markdown-Zeichen nur in der aktuellen Zeile.
 - **Mindmap** macht aus der Überschriften-Gliederung eine Baumkarte.
+- **Canvas** zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbst liegt.
 
-Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md).
+Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md), [Canvas-Fläche](canvas.md).
 
 ## Viele Dokumente nebeneinander
 
@@ -55,6 +56,17 @@ Wissen wächst selten in Ordnern. Es wächst in Verbindungen: Eine Notiz verweis
 - **Was niemand verweist**, bleibt nicht verborgen: Die Bereichs-Statistik nennt diese Dateien beim Namen.
 
 Ausführlich: [Vernetzung](linking.md) und [Graphenansicht](graph.md).
+
+## Wenn die Reihenfolge nicht mehr ausreicht
+
+Manche Gedanken haben keine Reihenfolge. Wer Alternativen nebeneinanderlegt, einen Ablauf skizziert oder Zusammenhänge sortiert, braucht Fläche statt Zeilen — und muss selbst bestimmen, was wo liegt. Eine Canvas ist genau das: eine Fläche in einer gewöhnlichen Markdown-Datei, auf der Sie Karten mit eigenem Text frei anordnen und mit beschrifteten, farbigen Linien verbinden. Anders als die Graphenansicht rechnet sie nichts aus, sondern hält fest, was Sie gelegt haben — und weil sie im Dokument steht, bleiben die Karten-Texte auch in jedem anderen Text-Programm lesbar.
+
+- **Karten mit eigenem Text**, frei platziert und in der Größe wählbar; ihr Inhalt ist gewöhnliches Markdown.
+- **Verbindungen mit Richtung, Farbe und Beschriftung** — auch mit Pfeil an beiden Enden, mit wählbarer Anschluss-Seite.
+- **Ihre Anordnung bleibt Ihre**: Die Fläche rechnet keine Positionen aus, sie merkt sich, was Sie gelegt haben.
+- **Klartext im Dokument**: Die Fläche liegt in einem Code-Block der Markdown-Datei und ist auch ohne EM4me lesbar.
+
+Ausführlich: [Canvas-Fläche](canvas.md).
 
 ## Aus Dateien wird ein Buch
 

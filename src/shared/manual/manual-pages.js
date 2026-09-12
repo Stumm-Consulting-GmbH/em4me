@@ -96,6 +96,13 @@ const MANUAL_PAGES = [
   // Ansichts-Modi ist und jene Seite auf diese verweist (Struktur-Pruefschritt
   // 4T-001050, Entscheidung des Product Owners vom 2026-08-16).
   { id: 'mindmap', titleKey: 'manual.page.mindmap.title', source: 'bundled' },
+  // 4T-001657 (Epic 3E-000287): Canvas-Flaeche (sechster Ansichts-Modus, Anlegen
+  // der Flaeche, Karten und Verbindungen, Reiter mehrerer Flaechen, Block
+  // ausserhalb der Canvas-Ansicht, Speicherformat). Direkt hinter der Mindmap,
+  // weil beide Ansichts-Modi desselben Dokuments sind und die Seite die
+  // Abgrenzung gegen Mindmap und Graphenansicht ausdruecklich fuehrt
+  // (Struktur-Pruefschritt 4T-001657).
+  { id: 'canvas', titleKey: 'manual.page.canvas.title', source: 'bundled' },
   // 4T-000290 (Epic 3E-000051): Sidebar-Seite (Panels, Anordnung, Reiter-Gruppen).
   { id: 'sidebar', titleKey: 'manual.page.sidebar.title', source: 'bundled' },
   // 4T-000613 (Epic 3E-000115): Lesezeichen (allgemeine und bereichsgebundene mit

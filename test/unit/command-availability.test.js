@@ -47,10 +47,10 @@ const PALETTE_QUELLE = fs.readFileSync(
 );
 
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
-// Die fuenf realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
-// 4T-001047 dabei; sourceToggle laesst ihn bewusst draussen, weil dort kein
-// Quelltext sichtbar ist.
-const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap'];
+// Die sechs realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
+// 4T-001047 dabei, 'canvas' seit 4T-001697 (Modus aus 4T-001653); sourceToggle
+// laesst beide bewusst draussen, weil dort kein Quelltext sichtbar ist.
+const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas'];
 
 // Alle Kontexte ueber den Vertrag: 2^10 boolsche Belegungen mal sechs
 // Ansichts-Modi. Das ist die Grundgesamtheit der Feld-Pruefung unten — sie
@@ -76,7 +76,7 @@ function kontext(teil) {
 }
 
 describe('Kontext-Vertrag (4T-001635)', () => {
-  it('nennt die neun gemeinsamen und die zwei renderer-eigenen Felder', () => {
+  it('nennt die zehn gemeinsamen und die zwei renderer-eigenen Felder', () => {
     expect(SHARED_CONTEXT_FIELDS).toEqual([
       'hasTab',
       'manualTab',
@@ -87,10 +87,13 @@ describe('Kontext-Vertrag (4T-001635)', () => {
       'hasBook',
       'hasShelf',
       'hasWorkspace',
+      // 4T-001697 (Epic 3E-000287): das zehnte Feld, und das einzige, das eine
+      // Eigenschaft des INHALTS meldet statt eine des Zustands.
+      'canvasTab',
     ]);
     expect(RENDERER_CONTEXT_FIELDS).toEqual(['inTable', 'hasCalendarConfig']);
-    expect(AVAILABILITY_CONTEXT_FIELDS).toHaveLength(11);
-    expect(new Set(AVAILABILITY_CONTEXT_FIELDS).size).toBe(11);
+    expect(AVAILABILITY_CONTEXT_FIELDS).toHaveLength(12);
+    expect(new Set(AVAILABILITY_CONTEXT_FIELDS).size).toBe(12);
   });
 
   it('availabilityContext normalisiert defensiv auf den Vertrag', () => {
@@ -114,7 +117,7 @@ describe('Kontext-Vertrag (4T-001635)', () => {
 });
 
 describe('Bedingungs-Katalog (4T-001635)', () => {
-  it('traegt die sechzehn benannten Bedingungen des freigegebenen Zuschnitts', () => {
+  it('traegt die achtzehn benannten Bedingungen des Katalogs', () => {
     expect(AVAILABILITY_NAMES).toEqual([
       'immer',
       'anyTab',
@@ -129,6 +132,12 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       'regal',
       'workspaceMit',
       'workspaceOhne',
+      // 4T-001697 (Epic 3E-000287): die beiden Canvas-Bedingungen, nach dem
+      // freigegebenen Zuschnitt von 4T-001635 hinzugekommen. Ihre Ausdruecke
+      // stammen woertlich aus den enabled-Zeilen, die menu.js bis dahin selbst
+      // trug; der Katalog ist damit gewachsen, seine Regeln sind es nicht.
+      'canvasAnsicht',
+      'canvasKarte',
       'editor',
       'tabelle',
       'editorUndKalender',
@@ -365,6 +374,14 @@ const MENUE_BASISLINIE = new Map([
   ['view.modeSource', 'viewMode'],
   ['view.modeLive', 'viewMode'],
   ['view.modeMindmap', 'viewMode'],
+  // 4T-001697 (Epic 3E-000287): Die beiden Canvas-Eintraege. Sie standen am
+  // 2026-09-09 nicht im gemessenen Menue, weil sie auf dem Zug-Zweig der
+  // Canvas entstanden; ihre Basislinie ist deshalb der enabled-Ausdruck, den
+  // sie DORT vor der Umstellung trugen — '!systemTab && canvasTab' und
+  // derselbe Ausdruck plus offener Canvas-Ansicht. Die Aussage der Basislinie
+  // bleibt damit dieselbe: unveraendertes Menue-Verhalten.
+  ['view.modeCanvas', 'canvasAnsicht'],
+  ['canvas.addCard', 'canvasKarte'],
   ['view.toggleFocusMode', 'immer'],
   ['view.toggleSidebarLeft', 'immer'],
   ['view.toggleSidebarRight', 'immer'],

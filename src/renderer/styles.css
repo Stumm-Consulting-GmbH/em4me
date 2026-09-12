@@ -233,12 +233,26 @@ body {
 .view-btn:has(+ .view-btn[hidden]) {
   border-right: none;
 }
-.view-btn:hover {
+.view-btn:hover:not(:disabled) {
   background: var(--hover);
 }
 .view-btn.active {
   background: var(--accent);
   color: var(--accent-fg);
+}
+/* 4T-001653 (Epic 3E-000287): sichtbar deaktivierter Zustand, Werte wie bei
+   .btn:disabled und .btn-toggle:disabled.
+
+   **Ein Bestands-Mangel, den die Canvas nur ans Licht gebracht hat.** Die
+   Ansichts-Schalter werden seit 4T-000277 auch auf System-Seiten deaktiviert
+   (tabs.js: b.disabled = systemTab) — nur sah man das nie, weil diese Regel
+   fehlte. Ein Schalter, der sich nicht drücken lässt und dabei aussieht wie
+   ein drückbarer, ist schlimmer als ein fehlender: Der Nutzer klickt und
+   haelt die Anwendung fuer kaputt. Der Befund kam vom Product Owner in der
+   Abnahme des Canvas-Modus am 2026-09-09. */
+.view-btn:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 
 .source-toggles {

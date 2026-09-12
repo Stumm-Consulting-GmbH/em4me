@@ -530,3 +530,80 @@ describe('Mindmap-Kern: Token-Eingang (4T-001045)', () => {
     expect(root.kinder[0].titelHtml).toBeNull();
   });
 });
+
+// 4T-001668 (Epic 3E-000287): AK9 der Story 4S-000923 — die Canvas-Fence wird
+// zur kurzen Notiz mit Art und Umfang statt zum Rohtext (Entscheidung E8).
+//
+// Der Kern kennt keine Sprache; die aufgelösten Texte reicht der Aufrufer als
+// Label-Karte herein (Muster der Ereignis-Fence). Ohne Karte bleibt der
+// Schlüssel stehen — geprüft, weil genau das die Zusicherung ist, mit der der
+// Kern prozessneutral bleibt.
+describe('Mindmap-Kern: Canvas-Fence als Notiz (4T-001668)', () => {
+  const FLAECHE = [
+    '```perspective-canvas',
+    '!karte k1 x=-320 y=-140 b=260 h=120',
+    '## Ausgangslage',
+    '',
+    'Der Import liest heute nur eine Quelle.',
+    '!karte k2 x=40 y=-140 b=260 h=120',
+    'Zweite Karte',
+    '!linie e1 k1 -> k2',
+    '```',
+  ].join('\n');
+  const LABELS = { 'mindmap.canvasNotiz': 'Canvas-Fläche: {karten} Karten, {linien} Verbindungen' };
+
+  it('AK9: an die Stelle des Rohtexts tritt eine Zeile mit Art und Umfang', () => {
+    const { root } = baum(`# Titel\n\n${FLAECHE}\n`, { labels: LABELS });
+    expect(root.notizen).toHaveLength(1);
+    expect(root.notizen[0].art).toBe('canvas');
+    expect(root.notizen[0].text).toBe('Canvas-Fläche: 2 Karten, 1 Verbindungen');
+  });
+
+  it('AK9: die Koordinaten der Fence erscheinen nirgends im Baum', () => {
+    const { root } = baum(`# Titel\n\n${FLAECHE}\n`, { labels: LABELS });
+    const alles = JSON.stringify(root);
+    expect(alles).not.toContain('x=-320');
+    expect(alles).not.toContain('!karte');
+  });
+
+  it('eine leere Fläche wird zur Notiz über null Karten', () => {
+    const { root } = baum('# Titel\n\n```perspective-canvas\n```\n', { labels: LABELS });
+    expect(root.notizen[0].text).toBe('Canvas-Fläche: 0 Karten, 0 Verbindungen');
+  });
+
+  it('ohne Label-Karte bleibt der Schlüssel stehen; der Kern bricht nicht', () => {
+    const { root } = baum(`# Titel\n\n${FLAECHE}\n`);
+    expect(root.notizen[0].art).toBe('canvas');
+    expect(root.notizen[0].text).toBe('mindmap.canvasNotiz');
+  });
+
+  it('jede andere Fence bleibt Code-Notiz mit ihrem Rohtext', () => {
+    const { root } = baum('# Titel\n\n```js\nconst a = 1;\n```\n', { labels: LABELS });
+    expect(root.notizen[0].art).toBe('code');
+    expect(root.notizen[0].text).toContain('const a = 1;');
+  });
+
+  // 4T-001656 (Epic 3E-000287): Ist die Erweiterung `canvas` abgeschaltet, ist
+  // die Fence keine Fläche mehr — in der Mindmap ebenso wenig wie in der
+  // Lese-Ansicht (Entscheidung E6). Der Kern kann den Schalt-Zustand nicht
+  // selbst erfragen; er kommt als Option herein, wie die Label-Karte.
+  it('AK3: abgeschaltet wird die Fence zur gewöhnlichen Code-Notiz', () => {
+    const { root } = baum(`# Titel\n\n${FLAECHE}\n`, {
+      labels: LABELS,
+      canvasNotiz: false,
+    });
+    expect(root.notizen).toHaveLength(1);
+    expect(root.notizen[0].art).toBe('code');
+    // Der Inhalt bleibt lesbar: abgeschaltet wird die Darstellung, nicht die
+    // Angabe.
+    expect(root.notizen[0].text).toContain('!karte k1 x=-320 y=-140 b=260 h=120');
+    expect(root.notizen[0].text).toContain('## Ausgangslage');
+  });
+
+  it('ohne Angabe bleibt es bei der Notiz — der Default ist «eingeschaltet»', () => {
+    // Ein Aufrufer ohne Erweiterungs-Wissen sieht das bisherige Verhalten.
+    for (const opts of [{ labels: LABELS }, { labels: LABELS, canvasNotiz: true }]) {
+      expect(baum(`# Titel\n\n${FLAECHE}\n`, opts).root.notizen[0].art).toBe('canvas');
+    }
+  });
+});

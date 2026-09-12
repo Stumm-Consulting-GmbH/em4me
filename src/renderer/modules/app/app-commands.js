@@ -67,6 +67,8 @@ import {
   showWorkspaceManager,
 } from './workspaces.js';
 import { insertEventsBlock } from '../events/events-editor.js';
+// 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen.
+import { legeCanvasKarteAn } from '../canvas/canvas-pane.js';
 import { openDatePickerAtSelection } from '../calendar/date-picker.js';
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
 import * as journale from '../calendar/journals.js';
@@ -355,6 +357,16 @@ export const commandHandlers = {
   // Dispatcher das Kommando bereits heraus; setViewMode faengt den Rest ab.
   'view.modeMindmap': () => {
     setViewMode('mindmap');
+  },
+  // 4T-001653 (Epic 3E-000287): Sechster Ansichts-Modus.
+  'view.modeCanvas': () => {
+    setViewMode('canvas');
+  },
+  // 4T-001654 (Epic 3E-000287): Karte in der Mitte des sichtbaren Ausschnitts
+  // der aktiven Flaeche anlegen; ausserhalb der Canvas-Ansicht ein Hinweis
+  // (Guard-Muster edit.insertEvents).
+  'canvas.addCard': () => {
+    return legeCanvasKarteAn(state.activePaneIndex);
   },
   'view.toggleEdit': () => {
     toggleEditMode();

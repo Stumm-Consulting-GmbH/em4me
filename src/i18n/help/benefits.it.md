@@ -1,17 +1,18 @@
 # Utilità e modi di lavorare
 
-Questa pagina non risponde a **come** si fa qualcosa, ma a **a che cosa serve**. Ha due metà: le prime cinque sezioni mostrano quali **modi di lavorare** apre l'applicazione, dal singolo documento allo spazio di lavoro con un nome. La seconda metà mostra che cosa un file Markdown può **esprimere** oltre lo standard Markdown. Dove il discorso si fa concreto, un collegamento alla fine di ogni sezione porta alla pagina che tratta l'argomento in dettaglio.
+Questa pagina non risponde a **come** si fa qualcosa, ma a **a che cosa serve**. Ha due metà: la prima metà mostra quali **modi di lavorare** apre l'applicazione, dal singolo documento allo spazio di lavoro con un nome. La seconda metà mostra che cosa un file Markdown può **esprimere** oltre lo standard Markdown. Dove il discorso si fa concreto, un collegamento alla fine di ogni sezione porta alla pagina che tratta l'argomento in dettaglio.
 
 ## Un documento, come serve in questo momento
 
-Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni diverse dello stesso testo. Invece di imporre un compromesso, l'applicazione tiene pronte cinque viste, e basta un tasto per passare dall'una all'altra: la pagina finita per leggere, il testo sorgente per il lavoro preciso, entrambi affiancati per confrontare, la modalità dal vivo per scrivere in scioltezza e la mappa mentale per vedere la struttura. Il passaggio non costa nulla e non modifica mai il file.
+Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni diverse dello stesso testo. Invece di imporre un compromesso, l'applicazione tiene pronte sei viste, e basta un tasto per passare dall'una all'altra: la pagina finita per leggere, il testo sorgente per il lavoro preciso, entrambi affiancati per confrontare, la modalità dal vivo per scrivere in scioltezza, la mappa mentale per vedere la struttura e la tela per schede su una superficie. Il passaggio non costa nulla e non modifica mai il file.
 
 - **Renderizzata** per leggere, **codice sorgente** per il lavoro preciso sulla sintassi.
 - **Divisa** mostra sorgente e risultato affiancati, per i costrutti insidiosi.
 - **Dal vivo** formatta mentre si digita e mostra i caratteri Markdown solo nella riga corrente.
 - **Mappa mentale** trasforma la struttura dei titoli in un albero.
+- **Tela** mostra una superficie con schede e collegamenti che si trova nel documento stesso.
 
-In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md).
+In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md), [Superficie Canvas](canvas.md).
 
 ## Molti documenti affiancati
 
@@ -55,6 +56,17 @@ La conoscenza cresce di rado nelle cartelle. Cresce nei collegamenti: una nota r
 - **Ciò che nessuno collega** non resta nascosto: le statistiche dell’area nominano questi file.
 
 In dettaglio: [Collegamenti](linking.md) e [Vista grafo](graph.md).
+
+## Quando l'ordine non basta più
+
+Certi pensieri non hanno un ordine. Affiancare alternative, abbozzare un flusso o mettere in ordine dei nessi chiede superficie invece che righe — e chiede di stabilire da sé che cosa va dove. Una tela è esattamente questo: una superficie dentro un normale file Markdown, sulla quale lei dispone liberamente schede con testo proprio e le unisce con linee colorate ed etichettate. A differenza della vista grafo non calcola nulla, ma conserva ciò che lei ha disposto — e poiché si trova nel documento, i testi delle schede restano leggibili anche in qualunque altro programma di testo.
+
+- **Schede con testo proprio**, disposte liberamente e di dimensione regolabile; il loro contenuto è normale Markdown.
+- **Collegamenti con senso, colore ed etichetta** — anche con la freccia a entrambe le estremità e con il lato di attacco a scelta.
+- **La sua disposizione resta la sua**: la superficie non calcola posizioni, ricorda ciò che lei ha disposto.
+- **Testo in chiaro nel documento**: la superficie sta in un blocco di codice del file Markdown ed è leggibile anche senza EM4me.
+
+In dettaglio: [Superficie Canvas](canvas.md).
 
 ## Dai file nasce un libro
 

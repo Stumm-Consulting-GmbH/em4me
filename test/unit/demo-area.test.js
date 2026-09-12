@@ -41,6 +41,12 @@ const EXPECTED_FILES = [
   '09 Diagrams and Formulas.md',
   '10 Attachments.md',
   '11 Templates.md',
+  // 4T-001657 (Epic 3E-000287): die Canvas-Seite der Fuehrung — eine Flaeche mit
+  // vier Karten und zwei Verbindungen (eine farbig und beschriftet, eine
+  // beidseitig gerichtet). Sie traegt wie die uebrigen Fuehrungs-Seiten das
+  // Schlagwort #demo und erscheint damit in der ersten Abfrage von
+  // „08 Queries.md"; deren Zeilen-Erwartung in der E2E-Spec ist mitgewachsen.
+  '12 Canvas.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit

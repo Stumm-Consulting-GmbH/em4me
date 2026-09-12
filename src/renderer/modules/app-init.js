@@ -15,13 +15,31 @@ import { rerenderAllMermaidBlocks, resetMermaidConfiguredTheme } from './render-
 import {
   MAX_PANES,
   applyThemePrefToButton,
+  contextMenu,
   createEmptyPane,
   createTab,
+  getPaneEls,
   langSelect,
   normalizeSidebarCollapsed,
   setEditorViewDefaults,
   state,
 } from './app/app-state.js';
+// 4T-001653 (Epic 3E-000287): Die Canvas-Einbettung bekommt ihren Zugang zum
+// Fenster-Zustand hereingereicht statt ihn zu importieren; ein Import von
+// app-state.js dort zoege den Canvas-Ordner in den grossen Datei-Zyklus des
+// Renderers (Muster initMacros, Begruendung im Kopf von canvas-pane.js).
+import { initCanvasPane, waehleCanvasFlaecheAbZeile } from './canvas/canvas-pane.js';
+// 4T-001668 (Epic 3E-000287): Bedienung des Canvas-Blocks außerhalb der
+// Canvas-Ansicht (Entscheidung E8).
+import { initCanvasBlock } from './canvas/canvas-block-zustand.js';
+// 4T-001654 (Epic 3E-000287): Rückgängig und Wiederholen auf der Historie der
+// Spalte, unabhängig vom Fokus — der Weg, den das Tastenkürzel-Verzeichnis
+// des Editors in der Canvas-Ansicht nicht anbietet.
+import { rueckgaengigInSpalte, wiederholenInSpalte } from './editor/editor-historie.js';
+// 4T-001683 (Epic 3E-000287): Das Kontextmenü der Fläche nutzt das gemeinsame
+// Menü des Fensters. Die Canvas-Seite liefert die Einträge, gebaut wird es
+// hier — der Canvas-Ordner darf die Menü-Helfer nicht importieren.
+import { hideContextMenu, showContextMenuItems } from './dialogs/context-menu-utils.js';
 // 4T-001341 (Epic 3E-000238): Die Modus-Liste kommt aus der einen Quelle.
 import { EDIT_VIEW_MODES } from './views/view-modes.js';
 import { paneEditors, updateWindowTitle } from './editor/editor.js';
@@ -90,7 +108,12 @@ import { initTimersFromStore } from './clock/clock-timers-panel.js';
 import './settings/clock-settings.js';
 import { loadAreaBookmarks } from './bookmarks/bookmarks.js';
 import { loadBookmarksSettings, loadBookmarksTree } from './bookmarks/bookmarks-tree.js';
-import { handleAppendTabFromOtherWindow, openInPane } from './tabs/tabs.js';
+import {
+  handleAppendTabFromOtherWindow,
+  openInPane,
+  reportMenuStateNow,
+  syncToolbarToActiveTab,
+} from './tabs/tabs.js';
 import { applyAllLayouts, markFileMissing, reloadFile } from './views/pane-render.js';
 import { openDraftsAsUntitled } from './views/untitled-tabs.js';
 import { persistSetting, showStatusbarHint } from './views/views.js';
@@ -558,6 +581,101 @@ async function init() {
   // 4T-000522 (Epic 3E-000094): Makro-Kommandos registrieren, BEVOR das
   // Segment rendert (Statusbar-Buttons auf macro.-Kommandos filtern
   // gegen die Registry).
+  // 4T-001653 (Epic 3E-000287): Zugang der Canvas-Einbettung zum Fenster-
+  // Zustand. Vor dem ersten Zeichnen, weil renderCanvas ohne ihn nichts tut.
+  initCanvasPane({
+    getPaneEls,
+    aktivesDokument: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      return pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    },
+    // 4T-001653: Traegt das Dokument ploetzlich eine Flaeche oder keine mehr,
+    // muessen Schaltflaeche und Menue-Eintrag nachziehen. Der Rueckruf haengt
+    // am 200-ms-Takt der Canvas und feuert nur beim echten Wechsel, damit der
+    // Menue-Report nicht bei jedem Tastendruck ueber die Bruecke geht.
+    beiVerfuegbarkeitsWechsel: () => {
+      syncToolbarToActiveTab();
+      reportMenuStateNow();
+    },
+    // 4T-001654 (Befund 1 des Product Owners vom 2026-09-10): Darf die Flaeche
+    // der Spalte gerade geschrieben werden? Beides muss stimmen — der Reiter
+    // im Aenderungs-Modus UND die EditorView nicht schreibgeschuetzt; genau
+    // diese beiden Bedingungen fragt auch `schreibeDokument` darunter ab,
+    // bevor es dispatcht. Ohne die Antwort bot die Flaeche im Anzeige-Modus
+    // Griffe an, deren Ergebnis beim Loslassen verworfen wurde.
+    istAenderbar: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+      const view = paneEditors[paneIdx];
+      return !!tab && !!tab.editMode && !!view && !view.state.readOnly;
+    },
+    // 4T-001654 (Epic 3E-000287): Schreibweg der Canvas-Bedienung. Die
+    // Einbettung darf `editor.js` nicht importieren (Zyklus editor ->
+    // canvas-pane -> editor), deshalb kommt der Zugriff auf die EditorView von
+    // hier. Eine Bedien-Handlung = eine Transaktion = ein Rueckgaengig-Schritt;
+    // die `userEvent`-Anmerkung haelt sie in der Historie getrennt (Muster
+    // writeBody in perspective-datatable-editor.js). Gemessen am 2026-09-10:
+    // Der Weg traegt auch bei dem per CSS versteckten Editor der Canvas-Ansicht.
+    schreibeDokument: (paneIdx, { vonZeile, bisZeile, text }) => {
+      const view = paneEditors[paneIdx];
+      if (!view || view.state.readOnly) return false;
+      const doc = view.state.doc;
+      const von = Math.max(1, Math.min(Number(vonZeile) || 1, doc.lines + 1));
+      const bis = Number(bisZeile) || 0;
+      let changes;
+      if (bis < von) {
+        // Kein Bereich zu ersetzen: Die Fence hat noch keine Rumpf-Zeile, der
+        // Text wird als neue Zeile eingefuegt.
+        if (von > doc.lines) changes = { from: doc.length, to: doc.length, insert: `\n${text}` };
+        else {
+          const stelle = doc.line(von).from;
+          changes = { from: stelle, to: stelle, insert: `${text}\n` };
+        }
+      } else {
+        changes = {
+          from: doc.line(von).from,
+          to: doc.line(Math.min(bis, doc.lines)).to,
+          insert: text,
+        };
+      }
+      view.dispatch({ changes, userEvent: 'input' });
+      return true;
+    },
+    // 4T-001654: Rückgängig und Wiederholen der Canvas-Ansicht. Sie laufen
+    // über DIESELBE Historie wie im Editor — die Bedien-Handlungen der Fläche
+    // schreiben als gewöhnliche Transaktionen hinein. Der Weg über das
+    // Tastenkürzel-Verzeichnis des Editors trägt hier nicht, weil dieser in
+    // der Canvas-Ansicht versteckt und nicht fokussiert ist.
+    rueckgaengig: (paneIdx) => rueckgaengigInSpalte(paneEditors[paneIdx]),
+    wiederholen: (paneIdx) => wiederholenInSpalte(paneEditors[paneIdx]),
+    // 4T-001683: Das Kontextmenü der Fläche im gemeinsamen Menü des Fensters.
+    // Damit gelten die Schließ-Wege des Bestands (Klick außerhalb,
+    // Escape-Kaskade in app-input-bindings.js) ohne eigenes Zutun.
+    zeigeKontextmenue: (paneIdx, { x, y, eintraege }) => showContextMenuItems(eintraege, x, y),
+    schliesseKontextmenue: () => hideContextMenu(),
+    kontextmenueOffen: () => !contextMenu.hidden,
+  });
+  // 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks
+  // außerhalb der Canvas-Ansicht (Entscheidung E8). Denselben Grund wie oben
+  // für die Injektion: Der Canvas-Ordner darf weder den Fenster-Zustand noch
+  // die Kommando-Palette importieren.
+  initCanvasBlock({
+    aktivesDokument: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      return pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    },
+    // Der Modus-Wechsel läuft über den Kommando-Handler und nicht an ihm
+    // vorbei: `commandHandlers` IST der Dispatcher, den auch Menü, Palette und
+    // Tastenkürzel bedienen (executeCommandById reicht genau hierher durch).
+    // Damit gilt für den Knopf im Block dieselbe eine Regel wie für die drei
+    // übrigen Zugänge zum Modus.
+    oeffneFlaeche: (paneIdx, startZeile) => {
+      if (paneIdx >= 0) state.activePaneIndex = paneIdx;
+      const handler = commandHandlers['view.modeCanvas'];
+      if (typeof handler === 'function') handler();
+      waehleCanvasFlaecheAbZeile(state.activePaneIndex, startZeile);
+    },
+  });
   initMacros({
     registerHandler: (commandId, fn) => {
       commandHandlers[commandId] = fn;

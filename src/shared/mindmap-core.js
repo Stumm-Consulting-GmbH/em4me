@@ -28,6 +28,10 @@ const { extractFrontmatter } = require('./markdown/frontmatter.js');
 // Die Anordnung liegt seit 4T-001049 in einer eigenen Datei. Sie wird hier
 // durchgereicht, damit Aufrufer weiterhin **einen** Einstieg haben.
 const { layoutMindmap, teileWurzelKinder, LAYOUT_VORGABEN } = require('./mindmap-anordnung.js');
+// 4T-001668 (Epic 3E-000287): Die Canvas-Fence wird zur kurzen Notiz statt zum
+// Rohtext (Entscheidung E8). Der Kern ist prozessneutral und ohne jede
+// Abhängigkeit, ändert an der Ladbarkeit dieses Moduls also nichts.
+const { canvasUmfang, parseCanvasFence } = require('./canvas/canvas-core.js');
 
 // Obergrenze der Knoten-Zahl. Oberhalb liefert der Kern einen gekappten Baum
 // mit gesetztem `gekappt`-Vermerk, damit die Ansicht einen Hinweis zeigen
@@ -72,6 +76,28 @@ function notizArt(typ) {
   return 'absatz';
 }
 
+// 4T-001668 (Epic 3E-000287): Sprach-Schlüssel der Mindmap-Notiz einer
+// Canvas-Fence. Der Kern kennt keine Sprache; der Aufrufer reicht die
+// aufgelösten Texte als `opts.labels` herein (Muster der Label-Karte des
+// Ereignis-Fence), und ohne Auflösung bleibt der Schlüssel stehen.
+const MINDMAP_LABEL_KEYS = ['mindmap.canvasNotiz'];
+
+// Notiz einer Canvas-Fence: Art und Umfang statt hunderter Koordinaten-Zeilen
+// (Entscheidung E8). Der Rohtext verschwindet damit aus der Mindmap — er ist
+// dort weder lesbar noch nützlich, und die Fläche selbst zeigt die
+// Canvas-Ansicht.
+function canvasNotiz(inhalt, L, zeile) {
+  const { karten, linien } = canvasUmfang(parseCanvasFence(String(inhalt || '')));
+  return {
+    art: 'canvas',
+    text: L('mindmap.canvasNotiz')
+      .replace('{karten}', String(karten))
+      .replace('{linien}', String(linien)),
+    html: null,
+    zeile,
+  };
+}
+
 // Erste Zeile eines Tokens (markdown-it liefert map als [von, bis)).
 function zeileVon(token, versatz) {
   if (!token || !Array.isArray(token.map) || token.map.length === 0) return null;
@@ -87,12 +113,28 @@ function zeileVon(token, versatz) {
  *   genau eine Überschrift erster Ebene trägt (üblich: der Dateiname).
  * @param {object} [opts.md] markdown-it-Instanz für die Inline-Darstellung.
  * @param {number} [opts.zeilenVersatz] Zeilen des übersprungenen Kopfbereichs.
+ * @param {boolean} [opts.canvasNotiz=true] Canvas-Fence als kurze Notiz statt
+ *   als gewöhnliche Code-Notiz (4T-001656: der Aufrufer reicht hier den
+ *   Schalt-Zustand der Erweiterung `canvas` herein).
  * @returns {{root: object, knotenZahl: number, gekappt: boolean}}
  */
 function buildMindmapTree(tokens, opts = {}) {
   const md = opts.md || null;
   const versatz = opts.zeilenVersatz || 0;
   const liste = Array.isArray(tokens) ? tokens : [];
+  // 4T-001668: Aufgelöste Texte des Aufrufers; ohne sie bleibt der Schlüssel
+  // stehen, der Baum entsteht also auch ohne Sprachdatei vollständig.
+  const labels = opts.labels || {};
+  const L = (key) => (typeof labels[key] === 'string' ? labels[key] : key);
+  // 4T-001656 (Epic 3E-000287): Ist die Erweiterung `canvas` abgeschaltet, ist
+  // die Fence keine Fläche mehr, sondern ein Code-Block wie jeder andere — in
+  // der Lese-Ansicht wie in der Mindmap (Entscheidung E6). Der Kern kann den
+  // Schalt-Zustand nicht selbst erfragen: Er ist prozessneutral und kennt
+  // weder den Renderer-Lebenszyklus noch die Preload-Pipeline. Er kommt
+  // deshalb als Option herein, wie die Label-Karte darüber. Default `true`,
+  // damit ein Aufrufer ohne Erweiterungs-Wissen (Tests, künftige Wege) das
+  // bisherige Verhalten sieht.
+  const canvasAlsNotiz = opts.canvasNotiz !== false;
 
   // Überschriften erster Ebene zählen: Genau eine wird selbst zur Wurzel,
   // sonst trägt der Dateiname die Wurzel und alle H1 werden ihre Kinder
@@ -223,6 +265,18 @@ function buildMindmapTree(tokens, opts = {}) {
       case 'fence':
       case 'code_block':
       case 'html_block': {
+        // 4T-001668: Die Canvas-Fence tritt als kurze Notiz auf (E8) — solange
+        // die Erweiterung eingeschaltet ist (4T-001656); sonst fällt sie in die
+        // Code-Notiz darunter, wie jede andere Fence.
+        if (
+          canvasAlsNotiz &&
+          String(token.info || '')
+            .trim()
+            .split(/\s+/)[0] === 'perspective-canvas'
+        ) {
+          aktuellerKnoten().notizen.push(canvasNotiz(token.content, L, zeileVon(token, versatz)));
+          break;
+        }
         aktuellerKnoten().notizen.push({
           art: notizArt(token.type),
           text: String(token.content || ''),
@@ -296,6 +350,7 @@ function mindmapAusDokument(text, md, opts = {}) {
 }
 
 module.exports = {
+  MINDMAP_LABEL_KEYS,
   buildMindmapTree,
   layoutMindmap,
   teileWurzelKinder,

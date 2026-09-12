@@ -372,6 +372,28 @@ const INTERNAL_EXTENSIONS = [
     commands: ['view.modeMindmap'],
     settingsSections: ['mindmap'],
   },
+  // 4T-001656 (Epic 3E-000287): Canvas-Flaeche als sechster Ansichts-Modus.
+  // Erweiterungs-Pruefschritt des Epics, entschieden als Entscheidung E6 des
+  // Konzepts "Canvas als raeumliche Arbeitsflaeche": schaltbar, weil die
+  // Flaeche eine abgrenzbare Dokument-Art ist, von der kein Kern-Teil abhaengt
+  // — wer mit Flaechen nichts anfangen kann, soll nicht mit Modus und
+  // Menue-Eintraegen belastet werden. Direkt hinter der Mindmap, weil beide
+  // Ansichts-Modi derselben Familie sind.
+  //
+  // Im Aus-Zustand entfaellt der Ansichts-Modus (Statusleisten-Schalter,
+  // Menue-Eintrag, Umschaltung), die drei Kommandos verschwinden aus Menue,
+  // Palette, Dispatcher und Kontextmenue, ein im Canvas-Modus gespeicherter
+  // Reiter oeffnet in der Lese-Ansicht, und die Fence faellt in der
+  // Render-Pipeline auf den Standard-Code-Block zurueck. Geschrieben wird im
+  // Aus-Zustand nie: Das Abschalten ist verlustfrei, die Flaeche steht
+  // unveraendert im Dokument. Kategorie 'render', wie die Mindmap.
+  {
+    id: 'canvas',
+    category: 'render',
+    nameKey: 'help.featureName.canvas',
+    descKey: 'help.feature.canvas',
+    commands: ['view.modeCanvas', 'canvas.addCard', 'insert.canvas'],
+  },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).
   {

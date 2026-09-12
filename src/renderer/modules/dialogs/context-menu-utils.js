@@ -184,6 +184,20 @@ export function placeSubmenu(wrapper, sub) {
   }
 }
 
+// 4T-001683 (Epic 3E-000287): Ein ganzes Kontextmenü aus einer Eintrags-Liste
+// bauen und an die Zeiger-Position setzen. Der Rumpf ist der von
+// renderEditorContextMenu, ohne dessen Fach-Bezug; er steht hier, weil ein
+// Bereich, der die Helfer nicht selbst importieren darf (Canvas), sonst
+// entweder das gemeinsame Menü-Element durchgereicht bekommen oder ein
+// eigenes Menü bauen müsste — beides wäre ein zweiter Mechanismus.
+export function showContextMenuItems(items, clientX, clientY) {
+  contextMenu.innerHTML = '';
+  for (const item of Array.isArray(items) ? items : []) {
+    appendContextMenuItem(contextMenu, item);
+  }
+  placeContextMenuAt(contextMenu, clientX, clientY);
+}
+
 export function hideContextMenu() {
   contextMenu.hidden = true;
   contextMenu.innerHTML = '';

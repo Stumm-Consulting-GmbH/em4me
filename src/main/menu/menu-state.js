@@ -50,6 +50,13 @@ function normalizeMenuState(base, stored) {
     // (Einstellungen) zusätzlich View-Modi und Export.
     manualTab: !!b.manualTab,
     systemTab: !!b.systemTab,
+    // 4T-001653 (Epic 3E-000287): Traegt das aktive Dokument eine
+    // Canvas-Flaeche? Nur dann ist der Canvas-Ansichts-Modus auswaehlbar
+    // (Anordnung des Product Owners vom 2026-09-09). Vor dem ersten Report
+    // eines frischen Fensters ist der Wert false — der sichere Fall, weil ein
+    // deaktivierter Eintrag beim naechsten Report aufgeht, ein aktivierter
+    // aber ins Leere fuehrte.
+    canvasTab: !!b.canvasTab,
     restoreSession: !!s.restoreSession,
     autoSave: !!s.autoSave,
     // 4T-000322 (Epic 3E-000058): Bereichs-Bindung der App dieses Fensters

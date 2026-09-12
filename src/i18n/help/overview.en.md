@@ -61,6 +61,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 
 - [Views and display](views-display.md) — views per tab and the appearance of the app: the five modes including live mode, editor display, theme and focus mode, zoom, content width and fonts, settings, language and menu bar.
 - [Mind map view](mindmap.md) — headings and lists of a document as a map: root position in five directions, collapsing, zoom, notes on the node, jump to the source, default per document.
+- [Canvas surface](canvas.md) — cards and connections placed freely on a surface inside the document: creating a surface, the canvas view, tabs for several surfaces, handling cards and connections, the block outside the view, the storage format.
 - [Sidebar](sidebar.md) — arranging panels: side, order, tab groups, widths.
 - [Color schemes](color-schemes.md) — colors via named slots: mode assignment, own schemes as copies, live preview, limits.
 - [Tools](tools.md) — Markdown linter, search with regex, search and replace, table editor.

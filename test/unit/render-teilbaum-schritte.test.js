@@ -47,6 +47,14 @@ const TEILBAUM = [
   'modules/render-mermaid.js',
   'modules/query/perspective-script-view.js',
   'modules/panels/notes-panel.js',
+  // 4T-001653 (Epic 3E-000287): Der Karten-Inhalt der Canvas — gerendertes
+  // Markdown, per innerHTML in ein bestehendes Dokument gesetzt. Vierte
+  // Fundstelle der Klasse, und die erste, die dieser Wächter **vor** der
+  // Auslieferung gefunden hat statt danach. Den Schritt-Satz bekommt die
+  // Einbettung hereingereicht (Muster registriereTeilbaumSchritte), weil ein
+  // Import von render-mermaid.js den Canvas-Ordner in den eingefrorenen
+  // Datei-Zyklus des Renderers zöge.
+  'modules/canvas/canvas-pane.js',
 ];
 
 // Klasse 3: Widget-Extraktion im Editor. Rendert ein EINZELNES Konstrukt in

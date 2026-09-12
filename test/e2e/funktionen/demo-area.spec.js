@@ -7,7 +7,7 @@
 // DA-01: Erstellen kopiert den mitgelieferten Bestand und bindet das Fenster.
 // DA-02: nicht-leeres Ziel wird abgelehnt, der Ordner bleibt unverändert.
 // DA-03: jede Demo-Markdown-Seite des Bestands öffnet linter-sauber.
-// DA-04: die erste Abfrage (TABLE über #demo) liefert zwölf Treffer-Zeilen.
+// DA-04: die erste Abfrage (TABLE über #demo) liefert dreizehn Treffer-Zeilen.
 // DA-05: Erweiterung aus entfernt das Kommando aus der Kommando-Palette.
 // describe-Titel tragen die Matrix-IDs F-132 (Funktion) und S-091 (Kommando).
 'use strict';
@@ -184,7 +184,7 @@ test.describe('DA-03: Demo-Seiten sind linter-sauber (F-132)', () => {
 });
 
 test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => {
-  test('die erste TABLE-Abfrage über #demo rendert zwölf Treffer-Zeilen ohne Fehler', async () => {
+  test('die erste TABLE-Abfrage über #demo rendert dreizehn Treffer-Zeilen ohne Fehler', async () => {
     test.setTimeout(90000);
     const { app, page, userData } = await launchApp();
     const target = mkTempDir();
@@ -206,7 +206,7 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
       // Bereichs-Index steht, rendert die Tabelle eine Zeile je Demo-Seite.
       const table = page.locator(`${SEL.markdownBody0} table.perspective-query-table`).first();
       await expect(table).toBeVisible({ timeout: 30000 });
-      await expect.poll(() => table.locator('tbody tr').count(), { timeout: 30000 }).toBe(12);
+      await expect.poll(() => table.locator('tbody tr').count(), { timeout: 30000 }).toBe(13);
 
       // Kein Abfrage-Syntaxfehler in der gesamten Seite (pinnt die Query-Syntax
       // aller sieben Demo-Abfragen; 4T-001075 ergaenzte die Selbstbezugs-Quelle

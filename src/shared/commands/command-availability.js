@@ -57,12 +57,19 @@ const SHARED_CONTEXT_FIELDS = [
   'hasBook',
   'hasShelf',
   'hasWorkspace',
+  // 4T-001697 (Epic 3E-000287): Traegt das aktive Dokument eine
+  // Canvas-Flaeche? Das zehnte gemeinsame Feld und das einzige, das eine
+  // Eigenschaft des INHALTS meldet statt eine des Zustands; beide Seiten
+  // ermitteln es aus derselben Quelle (istCanvasModusVerfuegbar in tabs.js),
+  // der Main ueber den normalisierten Menue-Zustand, der Renderer direkt.
+  'canvasTab',
 ];
 const RENDERER_CONTEXT_FIELDS = ['inTable', 'hasCalendarConfig'];
 const AVAILABILITY_CONTEXT_FIELDS = [...SHARED_CONTEXT_FIELDS, ...RENDERER_CONTEXT_FIELDS];
 
 // viewMode ist das einzige nicht-boolsche Feld: 'source' | 'split' | 'live' |
-// 'rendered' | 'mindmap' | null. Alles Uebrige ist boolsch.
+// 'rendered' | 'mindmap' | 'canvas' | null. Alles Uebrige ist boolsch.
+// ('canvas' seit 4T-001653, im Katalog gebraucht von 4T-001697.)
 const VIEW_MODE_FIELD = 'viewMode';
 
 // Defensive Normalisierung nach dem Muster normalizeCommandPlacement: ein
@@ -152,6 +159,23 @@ const AVAILABILITY_CATALOG = [
   { name: 'regal', felder: ['hasShelf'], pruefe: (c) => !!c.hasShelf },
   { name: 'workspaceMit', felder: ['hasWorkspace'], pruefe: (c) => !!c.hasWorkspace },
   { name: 'workspaceOhne', felder: ['hasWorkspace'], pruefe: (c) => !c.hasWorkspace },
+  // 4T-001697 (Epic 3E-000287): Die beiden Canvas-Bedingungen. Ihre Ausdruecke
+  // stammen WOERTLICH aus den enabled-Zeilen von menu.js und sind hier nicht
+  // neu erfunden; der Vorgang verschiebt den Ort der Regel und aendert ihr
+  // Ergebnis nicht. Der Ansichts-Modus ist der einzige dokument-abhaengige der
+  // sechs (Anordnung des Product Owners nach der Abnahme, AK9/AK10 der Story
+  // 4S-000916), und die Karten-Anlage wirkt zusaetzlich nur in der offenen
+  // Flaeche.
+  {
+    name: 'canvasAnsicht',
+    felder: ['systemTab', 'canvasTab'],
+    pruefe: (c) => !c.systemTab && !!c.canvasTab,
+  },
+  {
+    name: 'canvasKarte',
+    felder: ['systemTab', 'canvasTab', 'viewMode'],
+    pruefe: (c) => !c.systemTab && !!c.canvasTab && c.viewMode === 'canvas',
+  },
   {
     name: 'editor',
     felder: ['hasTab', 'manualTab', 'systemTab', 'editMode', 'viewMode'],

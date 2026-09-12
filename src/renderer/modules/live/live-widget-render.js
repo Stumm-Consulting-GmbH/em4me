@@ -42,6 +42,10 @@ import {
 // (Laufzeit-Aufruf in _enhance, zyklenfest — importiert nur den geteilten
 // Tabellen-Kern und die View-Aufloesung).
 import { bindLiveTableCellClicks } from './live-table-klick.js';
+// 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks im
+// Live-Widget (Entscheidung E8). Das Modul importiert selbst kein
+// Renderer-Modul und bildet deshalb keinen Ordner-Zyklus.
+import { applyCanvasBlocks } from '../canvas/canvas-block-zustand.js';
 import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 import { bindFrontmatterQueryClicks } from './live-interaction.js';
 
@@ -308,9 +312,13 @@ export class MarkdownBlockWidget extends WidgetType {
       // ohne den Wrapper verlöre das Live-Widget data-ev-Attribute
       // (Fence-Zuordnung, Stichtag), Formularzeile und Differenz-Spalte
       // (PO-Befund C1 vom 2026-07-15).
+      // 4T-001668 (Epic 3E-000287): .perspective-canvas ebenso VOR table und
+      // pre — der Block trägt seine Stellen-Attribute am Wrapper, und ohne ihn
+      // verlöre das Live-Widget Kopfzeile, Zugang und Klapp-Griff.
       const child =
         tmp.querySelector(
-          '.perspective-events, .perspective-datatable, table, pre, .katex-display, .katex',
+          '.perspective-events, .perspective-datatable, .perspective-canvas, table, pre, ' +
+            '.katex-display, .katex',
         ) || tmp.firstElementChild;
       if (child) {
         liveBlockCacheSet(this.cacheKey, child);
@@ -368,6 +376,12 @@ export class MarkdownBlockWidget extends WidgetType {
       bindPerspectiveEventsEditor(container);
       // 4T-000513: Ansichts-Zustand nach jedem Widget-Mount wiederanwenden.
       applyPerspectiveEventsViewStates(container);
+      // 4T-001668 (Epic 3E-000287): Zugang zur Canvas-Ansicht und Klapp-Zustand
+      // des Canvas-Blocks. Der Zugang bindet seinen eigenen Klick-Pfad, weil
+      // ignoreEvent() dieses Widgets die zentralen CM-Handler fernhält — und
+      // er hält den Schreibpunkt fest, damit der Block beim Klick nicht zum
+      // Klartext aufklappt (AK5).
+      applyCanvasBlocks(container);
     } catch (err) {
       console.warn('MarkdownBlockWidget Nachverarbeitung fehlgeschlagen:', err);
     }

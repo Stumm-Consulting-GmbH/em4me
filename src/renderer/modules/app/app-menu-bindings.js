@@ -8,6 +8,8 @@ import { api } from './api.js';
 import { state, toggleFocusMode, toggleTypewriterScroll } from './app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import { scheduleLint } from '../editor/editor-lint.js';
+// 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen.
+import { legeCanvasKarteAn } from '../canvas/canvas-pane.js';
 import { toggleOutlinePanel } from '../panels/panel-outline.js';
 import { toggleOutgoingPanel } from '../panels/panel-outgoing.js';
 import { activateBacklinksFor, toggleBacklinksPanel } from '../panels/panel-backlinks.js';
@@ -129,6 +131,10 @@ export function bindMenuEvents() {
     if (payload) handleLinkUpdateApplied(payload);
   });
   api.onMenuViewChange((mode) => setViewMode(mode));
+  // 4T-001654 (Epic 3E-000287): 'Ansicht -> Karte auf der Flaeche anlegen'.
+  if (typeof api.onMenuCanvasAddCard === 'function') {
+    api.onMenuCanvasAddCard(() => legeCanvasKarteAn(state.activePaneIndex));
+  }
   api.onMenuToggleLineNumbers(() => toggleShowLineNumbers());
   api.onMenuToggleWordWrap(() => toggleWrapLines());
   if (typeof api.onMenuToggleFoldGutter === 'function') {

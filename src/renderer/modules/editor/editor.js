@@ -103,6 +103,7 @@ import {
 } from '../panels/panel-outline.js';
 import { scheduleSubpagesRender } from '../panels/panel-subpages.js';
 import { scheduleMindmapRender } from '../mindmap/mindmap-pane.js';
+import { scheduleCanvasRender } from '../canvas/canvas-pane.js';
 // 4T-000341 (Epic 3E-000061): Breadcrumb folgt Tab-/Modus-Wechseln (Laufzeit-
 // Zyklus editor <-> views, Muster wie panels.js).
 import { updateSubpageBreadcrumb } from '../views/subpage-breadcrumb.js';
@@ -528,6 +529,8 @@ export function createEditorState(opts = {}) {
           if (state.outline.visibleByPane[pIdx]) scheduleOutlineRender(pIdx);
           // 4T-001047: Mindmap folgt mit demselben Debounce (zeichnet nur im Modus).
           scheduleMindmapRender(pIdx);
+          // 4T-001653: Die Canvas folgt ebenso (zeichnet nur in ihrem Modus).
+          scheduleCanvasRender(pIdx);
           // 4T-000072: Word Count neu berechnen (150 ms Debounce).
           if (pIdx === state.activePaneIndex) scheduleWordCountUpdate();
           // 4T-000073: Outgoing-Links neu berechnen (150 ms Debounce).

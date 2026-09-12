@@ -20,6 +20,11 @@ import { extractFrontmatter } from '../../../shared/markdown/frontmatter.js';
 import { resolveMindmapOptionen } from '../../../shared/mindmap-optionen.js';
 import { getMindmapVoreinstellung } from './mindmap-einstellungen.js';
 import { createMindmapView } from './mindmap-view.js';
+// 4T-001656 (Epic 3E-000287): Schalt-Zustand der Canvas-Erweiterung. Aus
+// canvas-modus.js, weil die Kennung dort an genau einer Stelle steht; das
+// Modul importiert nur den prozessneutralen Kern und den Lebenszyklus und
+// zieht damit nichts aus der Canvas-Ansicht herein.
+import { istCanvasErweiterungAn } from '../canvas/canvas-modus.js';
 
 // Verzögerung der Live-Aktualisierung. Gleicher Wert wie die Gliederung:
 // Er ist am Tippen erprobt und hält die Karte gefühlt sofort aktuell.
@@ -96,7 +101,19 @@ export function renderMindmap(paneIdx) {
     // Der Anzeigename trägt die Wurzel, wenn das Dokument nicht genau eine
     // Überschrift erster Ebene hat; er deckt Pfad-, Handbuch- und
     // Unbenannt-Reiter bereits lokalisiert ab.
-    ergebnis = api.buildMindmap(inhalt, { wurzelTitel: tabDisplayName(tab) });
+    // 4T-001668 (Epic 3E-000287): Die Canvas-Fence wird zur kurzen Notiz mit
+    // Art und Umfang (E8). Der Kern kennt keine Sprache; die aufgelösten Texte
+    // reisen als Label-Karte mit, damit die Übersetzung dort bleibt, wo sie
+    // hingehört — im Renderer.
+    // 4T-001656: Ist die Canvas-Erweiterung abgeschaltet, gibt es keine Fläche
+    // und damit auch keine Notiz über sie — die Fence erscheint dann als
+    // gewöhnliche Code-Notiz (Entscheidung E6). Der Schalt-Zustand wird hier
+    // gelesen und nicht im Kern: Dieser ist prozessneutral.
+    ergebnis = api.buildMindmap(inhalt, {
+      wurzelTitel: tabDisplayName(tab),
+      labels: { 'mindmap.canvasNotiz': t('mindmap.canvasNotiz') },
+      canvasNotiz: istCanvasErweiterungAn(),
+    });
   } catch {
     ergebnis = null;
   }

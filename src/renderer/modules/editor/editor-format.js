@@ -26,6 +26,7 @@ import {
   insertCallout,
   insertHorizontalRule,
   insertCodeBlock,
+  insertCanvas,
 } from '../../../shared/markdown-format.js';
 
 // Wendet ein reines Transformations-Ergebnis (Zeichen-Format oder Link) auf die
@@ -103,6 +104,37 @@ function dispatchInsert(view, compute) {
   return true;
 }
 
+// 4T-001682 (Epic 3E-000287): Der Statusleisten-Hinweis kommt über einen
+// Laufzeit-Import (Muster canvas-pane.js und live-table-zelle.js). Ein
+// statischer Bezug auf `views.js` zöge diese Datei in die große
+// Import-Zyklen-Komponente des Renderers — views.js führt über editor.js und
+// editor-keymaps.js hierher zurück —, und der Ordner-Import-Wächter ist eine
+// Ratsche. Ein Fehlschlag bleibt folgenlos: Der Hinweis ist Beiwerk, das
+// Unterlassen der Einfügung ist die eigentliche Wirkung und schon geschehen.
+function zeigeHinweis(schluessel) {
+  import('../views/views.js')
+    .then((modul) => modul.showStatusbarHint(schluessel, { error: true, duration: 3000 }))
+    .catch(() => {});
+}
+
+// 4T-001682: Einfüge-Kommando der Canvas-Fläche.
+//
+// Derselbe Dispatch-Pfad wie die übrigen Einfüge-Schablonen (eine
+// Transaktion, `userEvent: 'input'`, Undo nimmt die Fläche in einem Schritt
+// zurück — AK5). Der eine Unterschied zum Nachbarn ist der **gesagte**
+// Fehlschlag: Ohne Editor oder in einem nicht änderbaren Dokument bleibt das
+// Kommando wirkungslos und sagt es (AK4, Guard-Muster `insertEventsBlock`).
+// Ein stiller Fehlschlag wäre für den Anwender nicht von einem Fehler zu
+// unterscheiden, und anders als bei Fußnote oder Tabelle ist die Canvas das
+// Konstrukt, mit dem er zum ersten Mal überhaupt zu einer Fläche kommt.
+function insertCanvasCommand(view) {
+  if (!view || view.state.readOnly) {
+    zeigeHinweis('canvas.keinEditor');
+    return false;
+  }
+  return dispatchInsert(view, insertCanvas);
+}
+
 // 4T-000379: Absatz-Zustand der Cursor-Zeile für die Häkchen im Absatz-Submenü.
 export function getParagraphState(view) {
   const line = view.state.doc.lineAt(view.state.selection.main.head);
@@ -155,4 +187,6 @@ export const FORMAT_COMMANDS = {
   'insert.callout': (view) => dispatchInsert(view, insertCallout),
   'insert.horizontalRule': (view) => dispatchInsert(view, insertHorizontalRule),
   'insert.codeBlock': (view) => dispatchInsert(view, insertCodeBlock),
+  // 4T-001682 (Epic 3E-000287): leere Canvas-Fläche an der Schreibmarke.
+  'insert.canvas': insertCanvasCommand,
 };

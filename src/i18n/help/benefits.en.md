@@ -1,17 +1,18 @@
 # Benefits and ways of working
 
-This page does not answer **how** something works, but **what it is good for**. It has two halves: the first five sections show which **ways of working** the app opens up, from a single document to a named working space. The second half shows what a Markdown file can **express** beyond the Markdown standard. Wherever things get concrete, a link at the end of each section leads to the page that covers the subject in detail.
+This page does not answer **how** something works, but **what it is good for**. It has two halves: the first half shows which **ways of working** the app opens up, from a single document to a named working space. The second half shows what a Markdown file can **express** beyond the Markdown standard. Wherever things get concrete, a link at the end of each section leads to the page that covers the subject in detail.
 
 ## One document, the way you need it right now
 
-Reading, writing and checking are different activities, and they need different presentations of the same text. Instead of forcing a compromise, the app keeps five views ready, and one keystroke switches between them: the finished page for reading, the source text for precise work, both side by side for comparing, live mode for fluent writing, and the mind map for a look at the outline. Switching costs nothing and never changes the file.
+Reading, writing and checking are different activities, and they need different presentations of the same text. Instead of forcing a compromise, the app keeps six views ready, and one keystroke switches between them: the finished page for reading, the source text for precise work, both side by side for comparing, live mode for fluent writing, the mind map for a look at the outline, and the canvas for cards on a surface. Switching costs nothing and never changes the file.
 
 - **Rendered** for reading, **source** for precise work on the syntax.
 - **Split** shows source and result side by side, for constructs with pitfalls.
 - **Live** formats as you type and shows the Markdown characters only in the current line.
 - **Mind map** turns the heading outline into a tree.
+- **Canvas** shows a surface with cards and connections that lives inside the document itself.
 
-In detail: [Views and display](views-display.md), [Mind map view](mindmap.md).
+In detail: [Views and display](views-display.md), [Mind map view](mindmap.md), [Canvas surface](canvas.md).
 
 ## Many documents side by side
 
@@ -55,6 +56,17 @@ Knowledge rarely grows in folders. It grows in connections: one note points to a
 - **What nothing links to** does not stay hidden: area statistics name those files.
 
 In detail: [Linking](linking.md) and [Graph view](graph.md).
+
+## When sequence is no longer enough
+
+Some thoughts have no sequence. Laying alternatives side by side, sketching a workflow or sorting out how things relate needs surface instead of lines — and it needs you to decide what goes where. A canvas is exactly that: a surface inside an ordinary Markdown file on which you arrange cards carrying their own text freely and join them with labelled, coloured lines. Unlike the graph view it works nothing out, it holds on to what you have laid down — and because it sits inside the document, the card texts stay readable in any other text program as well.
+
+- **Cards with their own text**, freely placed and adjustable in size; their content is ordinary Markdown.
+- **Connections with direction, colour and label** — an arrow at both ends included, with a selectable side to attach to.
+- **Your arrangement stays yours**: the surface works out no positions, it remembers what you laid down.
+- **Plain text inside the document**: the surface sits in a code block of the Markdown file and is readable without EM4me too.
+
+In detail: [Canvas surface](canvas.md).
 
 ## Files become a book
 

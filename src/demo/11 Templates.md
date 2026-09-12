@@ -35,4 +35,4 @@ Priority: {{select:Priority:High,Medium,Low}}
 - `{{clipboard}}` — the current clipboard text
 - `{{cursor}}` — where the cursor lands after applying
 
-That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
+One stop left, and it is a spatial one: [[12 Canvas]].

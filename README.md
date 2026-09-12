@@ -21,6 +21,12 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   pick, which lays the same links out in order. A file can also be found by
   typing its name, and the area statistics list the files nothing points to.
   A tag can be renamed everywhere it occurs at once, its hierarchy included.
+- **A surface for when order is not enough** — some thoughts have no
+  sequence. A canvas is a surface inside an ordinary Markdown file: cards with
+  their own text, placed where you put them and joined by labelled, coloured
+  lines. Unlike the graph it computes nothing, it keeps what you laid out, and
+  because it lives as plain text inside the document, the cards stay readable
+  anywhere.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside

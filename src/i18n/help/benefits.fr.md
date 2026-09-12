@@ -1,17 +1,18 @@
 # Utilité et façons de travailler
 
-Cette page ne répond pas à la question **comment** faire, mais à la question **à quoi cela sert**. Elle a deux moitiés : les cinq premières sections montrent quelles **façons de travailler** l'application ouvre, du document isolé à l'espace de travail nommé. La seconde moitié montre ce qu'un fichier Markdown peut **exprimer** au-delà du standard Markdown. Là où les choses deviennent concrètes, un lien à la fin de chaque section mène à la page qui traite le sujet en détail.
+Cette page ne répond pas à la question **comment** faire, mais à la question **à quoi cela sert**. Elle a deux moitiés : la première moitié montre quelles **façons de travailler** l'application ouvre, du document isolé à l'espace de travail nommé. La seconde moitié montre ce qu'un fichier Markdown peut **exprimer** au-delà du standard Markdown. Là où les choses deviennent concrètes, un lien à la fin de chaque section mène à la page qui traite le sujet en détail.
 
 ## Un document, tel que vous en avez besoin
 
-Lire, écrire et vérifier sont des activités différentes, et elles demandent des présentations différentes du même texte. Plutôt que d'imposer un compromis, l'application tient cinq vues à disposition, entre lesquelles une touche suffit à basculer : la page finie pour la lecture, le texte source pour le travail précis, les deux côte à côte pour la comparaison, le mode direct pour écrire sans rupture et la carte mentale pour voir la structure. Le changement ne coûte rien et ne modifie jamais le fichier.
+Lire, écrire et vérifier sont des activités différentes, et elles demandent des présentations différentes du même texte. Plutôt que d'imposer un compromis, l'application tient six vues à disposition, entre lesquelles une touche suffit à basculer : la page finie pour la lecture, le texte source pour le travail précis, les deux côte à côte pour la comparaison, le mode direct pour écrire sans rupture, la carte mentale pour voir la structure et le canevas pour des cartes sur une surface. Le changement ne coûte rien et ne modifie jamais le fichier.
 
 - **Rendu** pour lire, **code source** pour le travail précis sur la syntaxe.
 - **Partagée** montre source et résultat côte à côte, pour les constructions délicates.
 - **Direct** met en forme pendant la frappe et n'affiche les caractères Markdown que dans la ligne courante.
 - **Carte mentale** transforme la structure des titres en arborescence.
+- **Canevas** montre une surface avec des cartes et des connexions qui se trouve dans le document lui-même.
 
-En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md).
+En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md), [Surface Canvas](canvas.md).
 
 ## Plusieurs documents côte à côte
 
@@ -55,6 +56,17 @@ Le savoir pousse rarement dans des dossiers. Il pousse dans des liens : une note
 - **Ce vers quoi rien ne pointe** ne reste pas caché : les statistiques de la zone nomment ces fichiers.
 
 En détail : [Mise en réseau](linking.md) et [Vue graphe](graph.md).
+
+## Quand l'ordre ne suffit plus
+
+Certaines idées n'ont pas d'ordre. Poser des variantes côte à côte, esquisser un déroulement ou trier des rapprochements demande une surface plutôt que des lignes — et demande de décider soi-même ce qui va où. Un canevas est exactement cela : une surface dans un fichier Markdown ordinaire, sur laquelle vous disposez librement des cartes portant leur propre texte et les reliez par des traits colorés et légendés. Contrairement à la vue graphe, il ne calcule rien, il retient ce que vous avez posé — et comme il se trouve dans le document, les textes des cartes restent lisibles dans n'importe quel autre programme de texte.
+
+- **Des cartes portant leur propre texte**, placées librement et de taille réglable ; leur contenu est du Markdown ordinaire.
+- **Des connexions avec sens, couleur et légende** — y compris avec une flèche aux deux bouts, et un côté d'accroche au choix.
+- **Votre disposition reste la vôtre** : la surface ne calcule aucune position, elle retient ce que vous avez posé.
+- **Du texte clair dans le document** : la surface se trouve dans un bloc de code du fichier Markdown et se lit aussi sans EM4me.
+
+En détail : [Surface Canvas](canvas.md).
 
 ## Des fichiers deviennent un livre
 

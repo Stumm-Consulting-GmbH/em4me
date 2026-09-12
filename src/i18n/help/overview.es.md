@@ -61,6 +61,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 
 - [Vistas y presentación](views-display.md) — vistas por pestaña y apariencia de la aplicación: los cinco modos incluido el modo en vivo, presentación del editor, tema y modo concentración, zoom, ancho del contenido y fuentes, configuración, idioma y barra de menús.
 - [Vista de mapa mental](mindmap.md) — los títulos y las listas de un documento como mapa: posición de la raíz en cinco direcciones, plegado, zoom, notas en el nodo, salto al origen, valor por documento.
+- [Superficie Canvas](canvas.md) — tarjetas y conexiones colocadas libremente en una superficie dentro del documento: crear una superficie, la vista de lienzo, las pestañas de varias superficies, manejar tarjetas y conexiones, el bloque fuera de la vista, el formato de almacenamiento.
 - [Barra lateral](sidebar.md) — organizar paneles: lado, orden, grupos de pestañas, anchuras.
 - [Esquemas de color](color-schemes.md) — colores mediante ranuras con nombre: asignación por modo, esquemas propios como copia, vista previa en vivo, límites.
 - [Herramientas](tools.md) — linter Markdown, búsqueda con regex, buscar y reemplazar, editor de tablas.

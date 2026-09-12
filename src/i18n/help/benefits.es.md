@@ -1,17 +1,18 @@
 # Utilidad y formas de trabajar
 
-Esta página no responde **cómo** se hace algo, sino **para qué sirve**. Tiene dos mitades: las primeras cinco secciones muestran qué **formas de trabajar** abre la aplicación, desde el documento suelto hasta un espacio de trabajo con nombre. La segunda mitad muestra qué puede **expresar** un archivo Markdown más allá del estándar Markdown. Donde la cosa se vuelve concreta, un enlace al final de cada sección lleva a la página que trata el asunto en detalle.
+Esta página no responde **cómo** se hace algo, sino **para qué sirve**. Tiene dos mitades: la primera mitad muestra qué **formas de trabajar** abre la aplicación, desde el documento suelto hasta un espacio de trabajo con nombre. La segunda mitad muestra qué puede **expresar** un archivo Markdown más allá del estándar Markdown. Donde la cosa se vuelve concreta, un enlace al final de cada sección lleva a la página que trata el asunto en detalle.
 
 ## Un documento, tal como lo necesitas ahora
 
-Leer, escribir y revisar son actividades distintas y requieren presentaciones distintas del mismo texto. En lugar de imponer un compromiso, la aplicación mantiene cinco vistas listas y una tecla basta para cambiar entre ellas: la página terminada para leer, el código fuente para el trabajo preciso, ambos en paralelo para comparar, el modo en vivo para escribir con fluidez y el mapa mental para ver la estructura. El cambio no cuesta nada y nunca modifica el archivo.
+Leer, escribir y revisar son actividades distintas y requieren presentaciones distintas del mismo texto. En lugar de imponer un compromiso, la aplicación mantiene seis vistas listas y una tecla basta para cambiar entre ellas: la página terminada para leer, el código fuente para el trabajo preciso, ambos en paralelo para comparar, el modo en vivo para escribir con fluidez, el mapa mental para ver la estructura y el lienzo para tarjetas sobre una superficie. El cambio no cuesta nada y nunca modifica el archivo.
 
 - **Renderizada** para leer, **código fuente** para el trabajo preciso con la sintaxis.
 - **Dividida** muestra fuente y resultado uno junto al otro, para construcciones delicadas.
 - **En vivo** da formato mientras escribes y muestra los caracteres Markdown solo en la línea actual.
 - **Mapa mental** convierte la estructura de títulos en un árbol.
+- **Lienzo** muestra una superficie con tarjetas y conexiones que se encuentra en el propio documento.
 
-En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md).
+En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md), [Superficie Canvas](canvas.md).
 
 ## Muchos documentos uno junto a otro
 
@@ -55,6 +56,17 @@ El conocimiento rara vez crece en carpetas. Crece en conexiones: una nota remite
 - **Lo que nadie enlaza** no queda oculto: las estadísticas del área nombran esos archivos.
 
 En detalle: [Conexión](linking.md) y [Vista de grafo](graph.md).
+
+## Cuando el orden ya no basta
+
+Algunas ideas no tienen orden. Colocar alternativas una junto a otra, esbozar un flujo u ordenar relaciones pide superficie en lugar de líneas, y pide decidir uno mismo qué va dónde. Un lienzo es justo eso: una superficie dentro de un archivo Markdown corriente en la que usted dispone libremente tarjetas con texto propio y las une con líneas de color y con rótulo. A diferencia de la vista de grafo no calcula nada, sino que conserva lo que usted ha colocado; y como está dentro del documento, los textos de las tarjetas siguen siendo legibles en cualquier otro programa de texto.
+
+- **Tarjetas con texto propio**, colocadas libremente y de tamaño ajustable; su contenido es Markdown corriente.
+- **Conexiones con sentido, color y rótulo**, también con flecha en ambos extremos y con el lado de enganche a elegir.
+- **Su disposición sigue siendo suya**: la superficie no calcula posiciones, recuerda lo que usted ha colocado.
+- **Texto claro en el documento**: la superficie está en un bloque de código del archivo Markdown y se lee también sin EM4me.
+
+En detalle: [Superficie Canvas](canvas.md).
 
 ## De archivos nace un libro
 

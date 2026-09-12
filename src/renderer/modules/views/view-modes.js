@@ -14,7 +14,7 @@
 'use strict';
 
 /** Alle Ansichts-Modi eines Reiters, in der Reihenfolge ihrer Tastenkürzel. */
-export const VIEW_MODES = ['source', 'split', 'rendered', 'live', 'mindmap'];
+export const VIEW_MODES = ['source', 'split', 'rendered', 'live', 'mindmap', 'canvas'];
 
 /** Klasse der System-Seiten. Kein Modus, aber von denselben Stellen gesetzt. */
 export const SYSTEM_VIEW_CLASS = 'view-system';
@@ -32,8 +32,9 @@ export function isViewMode(wert) {
  * die wählbaren Ziele des Wechsels in den Bearbeiten-Modus.
  *
  * Die Lese-Ansicht fehlt, weil sie der Ausgangspunkt des Wechsels ist und kein
- * Ziel; die Mindmap fehlt, weil sie kein Editor-Modus ist. Die Liste steht hier
- * und nicht im Zustand, weil dieses Modul die eine Quelle der Modus-Listen ist.
+ * Ziel; Mindmap und Canvas fehlen, weil sie keine Editor-Modi sind. Die Liste
+ * steht hier und nicht im Zustand, weil dieses Modul die eine Quelle der
+ * Modus-Listen ist.
  */
 export const EDIT_VIEW_MODES = ['split', 'source', 'live'];
 

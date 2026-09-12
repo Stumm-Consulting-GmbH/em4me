@@ -35,6 +35,13 @@ import {
   registriereTeilbaumSchritte,
 } from './query/perspective-script-view.js';
 // 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator als Render-Nachverarbeitung.
+// 4T-001653 (Epic 3E-000287): Der Karten-Inhalt der Canvas ist ebenfalls ein
+// erzeugter Teilbaum und bekommt denselben Schritt-Satz hereingereicht.
+import { registriereCanvasTeilbaumSchritte } from './canvas/canvas-pane.js';
+// 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks
+// (Entscheidung E8). Das Modul importiert selbst kein Renderer-Modul und
+// bildet deshalb keinen Ordner-Zyklus.
+import { applyCanvasBlocks } from './canvas/canvas-block-zustand.js';
 import { applyBlockMetaIndicators } from './block-meta-indicator.js';
 // 4T-000418 (Epic 3E-000079): Lokalisierung der Perspective-Datatable-Texte
 // mit Platzhaltern (Struktur-Fehler, Zeilen-Limit).
@@ -1208,6 +1215,11 @@ function wendeSchritteAn(container, basePath, lage) {
     bindPerspectiveEventsEditor(container);
     applyPerspectiveEventsViewStates(container);
   }
+  // 4T-001668: Zugang zur Canvas-Ansicht und Klapp-Zustand des Canvas-Blocks.
+  // Er steht **außerhalb** der Bearbeitbarkeits-Klammer, weil beides reine
+  // Ansicht ist: Der Zugang wechselt den Modus, der Klapp-Griff blendet die
+  // Vorschau aus; keiner von beiden schreibt in das Dokument.
+  applyCanvasBlocks(container);
   // Einbettungen bleiben beim Aufrufer, wo er den Tiefenzaehler fuehrt: Der
   // Teilbaum einer Einbettung zaehlt eine Ebene hoeher (Grenze aus AK6 der
   // Story 4S-000207).
@@ -1254,3 +1266,7 @@ export function applyRenderPipeline(container, basePath) {
 // Registrierung laeuft deshalb in dieser Richtung. Sie steht am Modul-Ende,
 // damit die Funktion beim Aufruf fertig definiert ist.
 registriereTeilbaumSchritte(applyTeilbaumSchritte);
+// 4T-001653: Dieselbe Richtung fuer die Canvas, und aus einem verwandten
+// Grund: Ein Import dieses Moduls dort zoege den Canvas-Ordner in den grossen
+// Datei-Zyklus des Renderers, den der Ordner-Import-Waechter eingefroren hat.
+registriereCanvasTeilbaumSchritte(applyTeilbaumSchritte);

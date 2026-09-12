@@ -111,6 +111,12 @@ function buildMenu(win, state, actions) {
   // Bearbeiten/Speichern und keinen Export — betroffene Eintraege sind
   // deaktiviert (Muster manualTab der Handbuch-Tabs).
   const systemTab = !!(state && state.systemTab);
+  // 4T-001653 (Epic 3E-000287): Der Canvas-Modus ist dokument-abhaengig
+  // (Anordnung des Product Owners vom 2026-09-09) — der Eintrag bleibt
+  // sichtbar und wird deaktiviert, wie die uebrigen Modi auf einer
+  // System-Seite. Das Verschwinden ist seit 4T-001656 dem Erweiterungs-
+  // Schalter vorbehalten und laeuft ueber unless('view.modeCanvas', …).
+  const canvasTab = !!(state && state.canvasTab);
 
   // 4T-000207: effektive Accelerators pro Kommando-ID. Leerer String =
   // Kommando bewusst ohne Binding -> Menue-Eintrag ohne Accelerator
@@ -143,6 +149,9 @@ function buildMenu(win, state, actions) {
     hasBook: !!(state && state.hasBook),
     hasShelf: !!(state && state.hasShelf),
     hasWorkspace: !!(state && state.hasWorkspace),
+    // 4T-001697 (Epic 3E-000287): das zehnte Feld, aus demselben gemeldeten
+    // Zustand wie die uebrigen; es traegt die beiden Canvas-Bedingungen.
+    canvasTab,
   });
   // Freigabe eines Menue-Eintrags. Das Argument ist immer die Kommando-Kennung
   // desselben Eintrags; der Waechter prueft, dass sie mit der in acc() gleich
@@ -708,6 +717,34 @@ function buildMenu(win, state, actions) {
           enabled: avail('view.modeMindmap'),
           accelerator: acc('view.modeMindmap'),
           click: send('menu:viewChange', 'mindmap'),
+        }),
+        // 4T-001653 (Epic 3E-000287): Sechster Modus, die raeumliche
+        // Arbeitsflaeche.
+        // 4T-001656: Bei ausgeschalteter Erweiterung faellt der Eintrag ueber
+        // unless() weg (Muster Mindmap) — es gibt die Ansicht dann nicht.
+        // Ohne Flaeche im Dokument bleibt er dagegen sichtbar und ist
+        // deaktiviert: Die Funktion gibt es, dieses Dokument traegt sie nur
+        // nicht.
+        unless('view.modeCanvas', {
+          label: t('menu.view.canvas'),
+          type: 'radio',
+          checked: viewMode === 'canvas',
+          enabled: avail('view.modeCanvas'),
+          accelerator: acc('view.modeCanvas'),
+          click: send('menu:viewChange', 'canvas'),
+        }),
+        // 4T-001654 (Epic 3E-000287): Karte auf der Flaeche anlegen. Steht
+        // beim Modus, weil sie nur dort wirkt: aktiviert allein, wenn das
+        // aktive Dokument eine Flaeche traegt UND die Canvas-Ansicht offen
+        // ist. Ein Eintrag, der in jeder anderen Ansicht ins Leere fuehrte,
+        // waere kein Zugang (dieselbe Begruendung wie beim Modus selbst).
+        // 4T-001656: Mit ausgeschalteter Erweiterung verschwindet er wie der
+        // Modus-Eintrag darueber.
+        unless('canvas.addCard', {
+          label: t('command.canvas.addCard'),
+          enabled: avail('canvas.addCard'),
+          accelerator: acc('canvas.addCard'),
+          click: send('menu:canvasAddCard'),
         }),
         {
           // 4T-000019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist

@@ -205,6 +205,12 @@ function buildInsertItems(view) {
     ins('horizontalRule', 'insert-hr'),
     ins('codeBlock', 'insert-codeblock'),
   ];
+  // 4T-001682/4T-001656 (Epic 3E-000287): die leere Canvas-Flaeche. Wie das
+  // Geruest der Perspective-Tabelle darunter erweiterungs-gebunden: Ist
+  // `canvas` abgeschaltet, gibt es nichts einzufuegen, und der Eintrag
+  // verschwindet aus dem Kontextmenue — genauso wie aus Palette, Menue und
+  // Tastenkuerzel-Seite.
+  if (!aus.has('insert.canvas')) submenu.push(ins('canvas', 'insert-canvas'));
   // 4T-001309 (Epic 3E-000235): Das Geruest der Perspective-Tabelle steht neben der
   // einfachen Tabelle, erscheint aber nur bei aktiver Erweiterung — deshalb
   // nicht in der festen Liste oben, sondern wie die uebrigen gegateten

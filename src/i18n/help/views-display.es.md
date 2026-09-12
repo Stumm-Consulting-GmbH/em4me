@@ -2,9 +2,9 @@
 
 El aspecto de un documento se decide en dos niveles. La **vista** pertenece a la pestaña: determina si el documento se muestra renderizado, como código fuente, dividido o en vivo. La **apariencia** vale para toda la aplicación: tema, zoom, ancho del contenido y fuentes. Esta página reúne ambos niveles y nombra el lugar de cada ajuste.
 
-## Las cinco vistas
+## Las seis vistas
 
-Cada pestaña está exactamente en una de las cinco vistas. El modo elegido vale por pestaña y no globalmente: un documento puede estar abierto renderizado mientras al lado se edita un segundo como código fuente.
+Cada pestaña está exactamente en una de las seis vistas. El modo elegido vale por pestaña y no globalmente: un documento puede estar abierto renderizado mientras al lado se edita un segundo como código fuente.
 
 | Vista            | Qué muestra                                        | Atajo predeterminado |
 | ---------------- | -------------------------------------------------- | -------------------- |
@@ -13,8 +13,9 @@ Cada pestaña está exactamente en una de las cinco vistas. El modo elegido vale
 | **Código fuente** | solo el código Markdown                           | `Ctrl+3`             |
 | **En vivo**      | el código, con formato allí donde se escribe       | `Ctrl+4`             |
 | **Mapa mental**  | la estructura del documento como mapa en vez de texto | `Ctrl+5`          |
+| **Lienzo**       | una superficie con tarjetas y conexiones del documento | `Ctrl+6`             |
 
-El cambio se hace con los botones de la barra de estado o por la parte superior del menú Ver; el mapa mental está en el menú y en su atajo, no en la barra de estado. Qué vista recibe una pestaña recién abierta se ajusta en la sección «Comportamiento» de la configuración.
+El cambio se hace con los botones de la barra de estado o por la parte superior del menú Ver; el mapa mental está en el menú y en su atajo, no en la barra de estado, y el botón del lienzo permanece atenuado mientras el documento no contenga una superficie Canvas. Qué vista recibe una pestaña recién abierta se ajusta en la sección «Comportamiento» de la configuración.
 
 ### Modo en vivo
 
@@ -25,6 +26,10 @@ El modo en vivo renderiza el Markdown directamente en el editor: negrita y cursi
 ### Mapa mental
 
 El mapa mental muestra los títulos y las listas del documento como un árbol, y el texto corrido como nota en el nodo. Pertenece a la extensión del mismo nombre y desaparece con ella; estructura, manejo, las cinco posiciones de la raíz y el valor por documento se describen en la página [Vista de mapa mental](mindmap.md).
+
+### Lienzo
+
+El lienzo muestra una superficie con tarjetas y conexiones que se encuentra en el propio documento. Pertenece a la extensión del mismo nombre y desaparece con ella; además es la única de las seis vistas que depende del documento y solo puede elegirse si este contiene una superficie Canvas. Estructura, manejo, varias superficies y el formato de almacenamiento se describen en la página [Superficie Canvas](canvas.md).
 
 ### Editar
 

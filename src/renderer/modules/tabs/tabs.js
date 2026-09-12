@@ -12,6 +12,9 @@ import { updateWordCountStatusbar } from '../render-mermaid.js';
 // mindmap-pane.js: Jenes zoege ueber die Einstellungs-Kette Module in die
 // Ladereihenfolge, die hier nichts zu suchen haben (Vorfall aus 4T-001048).
 import { isMindmapModeAvailable } from '../mindmap/mindmap-modus.js';
+// 4T-001653 (Epic 3E-000287): Verfuegbarkeit des Canvas-Modus fuer Schaltflaeche
+// und Menue-Meldung. Aus demselben winzigen Modul und aus demselben Grund.
+import { istCanvasErweiterungAn, istCanvasModusVerfuegbar } from '../canvas/canvas-modus.js';
 import {
   DEFAULT_VIEW_MODE,
   DEFAULT_ZOOM,
@@ -307,10 +310,30 @@ export function syncToolbarToActiveTab() {
   // und der Handler von 'scg:extensions-changed' ihn ueber renderAllPanes
   // ebenfalls ausloest.
   const mindmapVerfuegbar = isMindmapModeAvailable();
+  // 4T-001653 (Epic 3E-000287): Die Canvas-Schaltflaeche folgt dem Dokument
+  // (Anordnung des Product Owners vom 2026-09-09) — sie wird **deaktiviert**
+  // und nicht ausgeblendet. Zwei Gruende: Die Schalter-Gruppe steht mittig in
+  // der Statusleiste und wechselte sonst bei jedem Reiter-Wechsel ihre
+  // Breite; und der deaktivierte Schalter sagt dem Nutzer, dass es die
+  // Ansicht gibt, dieses Dokument sie aber nicht traegt. Der Grund steht im
+  // Titel. Ausblenden ist seit 4T-001656 dem Erweiterungs-Schalter vorbehalten
+  // (Muster Mindmap): Dort gibt es die Funktion tatsaechlich nicht.
+  //
+  // 4T-001656: Beide Antworten kommen aus derselben Quelle, aber getrennt —
+  // `istCanvasErweiterungAn` entscheidet ueber `hidden`, `canvasVerfuegbar`
+  // ueber `disabled`. Getrennt, weil der Schalter im Aus-Zustand ganz weg
+  // ist und ein `disabled` an einem unsichtbaren Element nichts sagte;
+  // istCanvasModusVerfuegbar liefert im Aus-Zustand ohnehin false.
+  const canvasErweiterungAn = istCanvasErweiterungAn();
+  const canvasVerfuegbar = istCanvasModusVerfuegbar(tab);
   document.querySelectorAll('.view-btn').forEach((b) => {
     if (b.dataset.view === 'mindmap') b.hidden = !mindmapVerfuegbar;
+    if (b.dataset.view === 'canvas') b.hidden = !canvasErweiterungAn;
     b.classList.toggle('active', !systemTab && b.dataset.view === viewMode);
-    b.disabled = systemTab;
+    b.disabled = systemTab || (b.dataset.view === 'canvas' && !canvasVerfuegbar);
+    if (b.dataset.view === 'canvas') {
+      b.title = canvasVerfuegbar ? t('menu.view.canvas') : t('canvas.keineFence');
+    }
   });
 
   const sourceVisible =
@@ -434,6 +457,10 @@ export function reportMenuStateNow() {
     // 4T-000277: System-Seiten (Einstellungen) — Menue deaktiviert zusaetzlich
     // View-Modi und Export.
     systemTab: !!(tab && tab.systemPage),
+    // 4T-001653 (Epic 3E-000287): Traegt das aktive Dokument eine
+    // Canvas-Flaeche? Der Menue-Eintrag der Canvas-Ansicht haengt daran
+    // (Anordnung des Product Owners vom 2026-09-09).
+    canvasTab: istCanvasModusVerfuegbar(tab),
     // 4T-000568 (Epic 3E-000104): geordnete Panel-Liste fuer das Panel-
     // Untermenue (ersetzt die frueheren elf xxxVisible-Einzel-Flags; damit
     // fuehren erstmals auch Notizen/Block-Eigenschaften/Datei-Graph/

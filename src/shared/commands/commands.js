@@ -730,6 +730,41 @@ const COMMANDS = [
     availability: 'viewMode',
   },
   {
+    // 4T-001653 (Epic 3E-000287): Sechster Ansichts-Modus, die räumliche
+    // Arbeitsfläche. Setzt die Folge mit CmdOrCtrl+6 fort; der
+    // Erweiterungs-Schalter, der ihn im Aus-Zustand aus Menü, Palette und
+    // Dispatcher nimmt, folgt in 4T-001656.
+    id: 'view.modeCanvas',
+    defaultBindings: ['CmdOrCtrl+6'],
+    labelKey: 'menu.view.canvas',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // 4T-001697: dokument-abhaengig statt nur !systemTab wie die uebrigen
+    // fuenf Modi — ohne Flaeche im Dokument gibt es nichts zu zeigen.
+    availability: 'canvasAnsicht',
+  },
+  {
+    // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen. Der
+    // gewoehnliche Weg ist der Doppelklick auf die leere Flaeche; das Kommando
+    // macht die Funktion auffindbar (Menue, Palette) und belegbar. Ohne
+    // Default-Kuerzel nach der Entscheidung des Product Owners vom 2026-09-10 —
+    // eine raeumliche Handlung braucht den Ort, an dem sie stattfinden soll,
+    // und den liefert nur der Zeiger. Beschreibung wie beim Ansichts-Modus aus
+    // dem Katalog-Eintrag der Canvas: eine zweite Katalog-Zeile fuer dieselbe
+    // Funktion waere doppelt gepflegter Text.
+    id: 'canvas.addCard',
+    defaultBindings: [],
+    labelKey: 'command.canvas.addCard',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // 4T-001697: wie der Modus, zusaetzlich nur in der offenen Flaeche.
+    availability: 'canvasKarte',
+  },
+  {
     id: 'zoom.in',
     defaultBindings: ['CmdOrCtrl+Plus'],
     labelKey: 'command.zoom.in',
@@ -1384,6 +1419,26 @@ const COMMANDS = [
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,
+    availability: 'editor',
+  },
+  // 4T-001682 (Epic 3E-000287): leere Canvas-Flaeche an der Schreibmarke. Der
+  // Weg zur ERSTEN Flaeche eines Dokuments; ohne ihn muesste der Anwender den
+  // Quelltext der Fence abtippen. Ohne Vorgabe-Kuerzel und ohne Menue-Eintrag
+  // wie alle uebrigen Einfuege-Kommandos des Bestands (Wege sind Palette und
+  // Kontextmenue); ob ein Menue-Zugang hinzukommt, beantwortet der
+  // Struktur-Pruefschritt des Epics. Beschreibung aus dem Katalog-Eintrag der
+  // Canvas, Muster canvas.addCard: eine zweite Katalog-Zeile fuer dieselbe
+  // Funktion waere doppelt gepflegter Text. Die Bindung an das Gate der
+  // Erweiterung `canvas` folgt in 4T-001656.
+  {
+    id: 'insert.canvas',
+    defaultBindings: [],
+    labelKey: 'command.insert.canvas',
+    descKey: 'help.feature.canvas',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    // 4T-001697: wie jedes editorScoped-Kommando die Editor-Bedingung.
     availability: 'editor',
   },
   // 4T-000590 (Epic 3E-000109): Tabellen-Operationen des Kontextmenü-Untermenüs

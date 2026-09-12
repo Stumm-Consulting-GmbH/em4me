@@ -843,6 +843,8 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000341 (Epic 3E-000061): 'Ansicht -> Unterseiten'.
   onMenuToggleSubpages: (cb) => ipcRenderer.on('menu:toggleSubpages', () => cb()),
   onMenuViewChange: (cb) => ipcRenderer.on('menu:viewChange', (_e, mode) => cb(mode)),
+  // 4T-001654 (Epic 3E-000287): 'Ansicht -> Karte auf der Flaeche anlegen'.
+  onMenuCanvasAddCard: (cb) => ipcRenderer.on('menu:canvasAddCard', () => cb()),
   onMenuToggleLineNumbers: (cb) => ipcRenderer.on('menu:toggleLineNumbers', () => cb()),
   onMenuToggleWordWrap: (cb) => ipcRenderer.on('menu:toggleWordWrap', () => cb()),
   onMenuSave: (cb) => ipcRenderer.on('menu:save', () => cb()),
