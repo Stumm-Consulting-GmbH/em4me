@@ -13,6 +13,8 @@ import {
   legeCanvasFormAn,
   legeCanvasGruppeAn,
   legeCanvasKarteAn,
+  legeCanvasVerweisKarteAn,
+  legeCanvasBildKarteAn,
   verschiebeCanvasElement,
 } from '../canvas/canvas-pane.js';
 import { toggleOutlinePanel } from '../panels/panel-outline.js';
@@ -160,6 +162,14 @@ export function bindMenuEvents() {
   // 4T-001702 (Epic 3E-000288): 'Gruppe auf der Flaeche anlegen'.
   if (typeof api.onMenuCanvasAddGroup === 'function') {
     api.onMenuCanvasAddGroup(() => legeCanvasGruppeAn(state.activePaneIndex));
+  }
+  // 4T-001747 (Epic 3E-000289): 'Verweis-Karte auf der Flaeche anlegen'.
+  if (typeof api.onMenuCanvasAddLinkCard === 'function') {
+    api.onMenuCanvasAddLinkCard(() => legeCanvasVerweisKarteAn(state.activePaneIndex));
+  }
+  // 4T-001748 (Epic 3E-000289): 'Bild-Karte auf der Flaeche anlegen'.
+  if (typeof api.onMenuCanvasAddImageCard === 'function') {
+    api.onMenuCanvasAddImageCard(() => legeCanvasBildKarteAn(state.activePaneIndex));
   }
   if (typeof api.onMenuCanvasStack === 'function') {
     api.onMenuCanvasStack((befehl) => verschiebeCanvasElement(state.activePaneIndex, befehl));

@@ -9,11 +9,12 @@
 import { api } from './app/api.js';
 import { t } from '../i18n.js';
 import { showStatusbarHint } from './views/views.js';
-
-// Endungen, die im Markdown als Bild-Verweis erscheinen. Bewusst dieselbe
-// Menge wie die Bild-Erkennung des Wiki-Embed-Plugins, damit ein eingefuegtes
-// Bild in beiden Schreibweisen gleich behandelt wird.
-const BILD_ENDUNGEN = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico']);
+// 4T-001746 (Epic 3E-000289): Endungen, die im Markdown als Bild-Verweis
+// erscheinen. Bewusst dieselbe Menge wie die Bild-Erkennung des
+// Wiki-Embed-Plugins, damit ein eingefuegtes Bild in beiden Schreibweisen
+// gleich behandelt wird — seither nicht mehr als zugesagte Gleichheit zweier
+// Kopien, sondern als eine geteilte Quelle, aus der beide lesen.
+import { BILD_ENDUNGEN } from '../../shared/bild-endungen.js';
 
 // Sammelt die Anlagen eines DataTransfer ein. Liefert je Eintrag das File-
 // Objekt und, sofern ermittelbar, den Quell-Pfad.

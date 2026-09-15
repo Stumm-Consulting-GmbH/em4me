@@ -23,6 +23,12 @@ import {
   createWikiLinkRegex,
   maskInlineCode,
   FENCE_RE,
+  // 4T-001750 (Epic 3E-000289): dieselbe Erkennung, aus der auch der
+  // Bereichs-Index seine Karten-Verweise liest. Ein zweiter Leser hier
+  // wuerde beim ersten Auseinanderlaufen einen gruenen Test bei rotem
+  // Produkt liefern — dieselbe Begruendung wie beim Wiki-Link darueber.
+  istCanvasFenceInfo,
+  scanneKartenVerweise,
 } from '../../src/shared/markdown/link-scan.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -114,6 +120,70 @@ describe('Verweis-Ziele der Beispiel-Sammlung', () => {
         }
       }
     }
+    expect(tot).toEqual([]);
+  });
+
+  // 4T-001750 (Epic 3E-000289): Seit der Canvas-Stufe 3 trägt die Sammlung eine
+  // Verweis-Karte und eine Bild-Karte. Deren Ziele stehen in einer Fence und
+  // entgehen damit dem Wiki-Scan darüber; ein totes Ziel fiele sonst erst dem
+  // Anwender auf — und zwar in dem Bestand, der ihm die Anwendung erklärt.
+  //
+  // Die Fence-Verfolgung ist bewusst so einfach wie die des Bereichs-Index
+  // (src/main/index/parse.js): Sie kennt keine Verschachtelung. Der
+  // Syntax-Auszug der Canvas-Seite steht deshalb in einer Fence, die bereits
+  // als geschlossen gilt, und wird nicht geprüft — genau richtig, denn er ist
+  // ein Beispiel und kein Verweis.
+  it('löst jeden Karten-Verweis der Canvas-Flächen innerhalb der Sammlung auf', () => {
+    const tot = [];
+    let gefunden = 0;
+    for (const datei of DATEIEN) {
+      const text = fs.readFileSync(datei.voll, 'utf8');
+      let imCodeblock = false;
+      let imCanvas = false;
+      for (const roh of text.split('\n')) {
+        const zaun = roh.match(FENCE_RE);
+        if (zaun) {
+          if (!imCodeblock) {
+            imCodeblock = true;
+            imCanvas = istCanvasFenceInfo(roh.slice(zaun[0].length));
+          } else {
+            imCodeblock = false;
+            imCanvas = false;
+          }
+          continue;
+        }
+        if (!imCodeblock || !imCanvas) continue;
+        for (const treffer of scanneKartenVerweise(roh)) {
+          gefunden += 1;
+          // Anker abschneiden wie beim Wiki-Link: Er ist ein Sprungziel in der
+          // Datei, nicht die Datei.
+          const ziel = treffer.wert.split('#')[0].trim();
+          if (treffer.name === 'bild') {
+            if (!ANLAGEN.get(path.basename(ziel))) {
+              tot.push(`${datei.basename}: Bild "${ziel}" existiert nicht`);
+            }
+            continue;
+          }
+          // Die Markdown-Endung faellt weg, wie bei der Aufloesung eines
+          // Wiki-Ziels im Bestand (resolveWikiLinkDetailed): Der Suchraum oben
+          // fuehrt die Basenamen ohne Endung.
+          const basename = zielBasename(
+            ziel.replace(/\.(md|markdown|mdown|mkd)$/i, ''),
+            datei.basename,
+          );
+          if (!basename) {
+            tot.push(`${datei.basename}: unaufloesbares Karten-Ziel "${ziel}"`);
+            continue;
+          }
+          if (!VORHANDEN.has(basename)) {
+            tot.push(`${datei.basename}: Karten-Ziel "${ziel}" -> "${basename}" existiert nicht`);
+          }
+        }
+      }
+    }
+    // Gegenprobe gegen einen Scan, der nichts findet und deshalb grün ist: Die
+    // Sammlung führt seit der Canvas-Stufe 3 beide Karten-Arten vor.
+    expect(gefunden).toBeGreaterThanOrEqual(2);
     expect(tot).toEqual([]);
   });
 

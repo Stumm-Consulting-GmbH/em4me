@@ -210,5 +210,7 @@
   "help.featureName.canvas": "Canvas view",
   "help.featureName.canvasShapes": "Canvas shapes",
   "help.featureName.canvasGroups": "Canvas groups",
-  "help.featureName.canvasStacking": "Canvas stacking order"
+  "help.featureName.canvasStacking": "Canvas stacking order",
+  "help.featureName.canvasLinkCards": "Link cards on the canvas",
+  "help.featureName.canvasImageCards": "Image cards on the canvas"
 }

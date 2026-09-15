@@ -27,6 +27,7 @@ import {
   resolveWikiTargetInIndex,
   rootForActiveFile,
   wikiLinkAutocompleteSuggestions,
+  bildAutocompleteSuggestions,
   anchorAutocompleteSuggestions,
 } from '../../src/main/backlinks.js';
 import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
@@ -796,5 +797,73 @@ describe('backlinks.js — Frontmatter-Abfrage (4T-000354)', () => {
     const p = write(root, 'Ohne.md', '# ohne Index\n');
     // Kein indexFor -> kein Eintrag in der Index-Map.
     expect(frontmatterQueryFor(p, 'a = "1"').status).toBe('unavailable');
+  });
+});
+
+// 4T-001748 (Epic 3E-000289): Vorschlaege fuer das Bild-Feld der Canvas-Karte.
+//
+// Die Sicht liest die Namens-Zuordnung der Nicht-Markdown-Dateien und gibt
+// daraus heraus, was eine Bild-Endung traegt. Geprueft werden die drei
+// Zusagen, die sie von der Wiki-Sicht daneben unterscheiden: nur Bilder, Name
+// MIT Endung in der geschriebenen Schreibweise, und dieselbe Bereichs-Grenze.
+describe('backlinks.js — Bild-Vorschlaege der Canvas-Karte (4T-001748)', () => {
+  async function indexForArea(activeFile, areaRoot) {
+    let result = backlinksFor(activeFile, undefined, areaRoot);
+    openRoots.add(rootForActiveFile(activeFile, areaRoot));
+    for (let i = 0; i < 500 && result.status === 'indexing'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      result = backlinksFor(activeFile, undefined, areaRoot);
+    }
+    return result;
+  }
+
+  it('liefert die Bild-Dateien mit Endung und Ordner, jede genau einmal', async () => {
+    const root = makeRoot();
+    const quelle = write(root, 'Flaeche.md', '# Flaeche\n');
+    write(root, 'Anlagen/Skizze.PNG', 'x');
+    write(root, 'Foto.jpeg', 'x');
+    await indexForArea(quelle, root);
+    const res = bildAutocompleteSuggestions(quelle, root);
+    expect(res.status).toBe('ready');
+    const namen = res.suggestions.map((s) => s.name).sort();
+    // Die Zuordnung fuehrt je Datei ZWEI Schluessel (mit und ohne Endung); der
+    // Vorschlag darf trotzdem nur einmal erscheinen, und in der geschriebenen
+    // Schreibweise statt in der normalisierten des Schluessels.
+    expect(namen).toEqual(['Foto.jpeg', 'Skizze.PNG']);
+    const skizze = res.suggestions.find((s) => s.name === 'Skizze.PNG');
+    expect(skizze.kind).toBe('image');
+    expect(skizze.detail).toBe(path.join(root, 'Anlagen'));
+  });
+
+  it('nimmt weder Markdown noch andere Anlagen auf', async () => {
+    const root = makeRoot();
+    const quelle = write(root, 'Flaeche.md', '# Flaeche\n');
+    write(root, 'Bild.png', 'x');
+    write(root, 'Bericht.pdf', 'x');
+    write(root, 'Tabelle.csv', 'x');
+    write(root, 'Notiz.md', '# Notiz\n');
+    await indexForArea(quelle, root);
+    const namen = bildAutocompleteSuggestions(quelle, root).suggestions.map((s) => s.name);
+    expect(namen).toEqual(['Bild.png']);
+    // Gegenprobe an der Nachbar-Sicht: Dort steht die Markdown-Datei, und das
+    // Bild steht dort nicht — genau deshalb gibt es diesen zweiten Kanal.
+    const wiki = wikiLinkAutocompleteSuggestions(quelle, root).suggestions.map((s) => s.name);
+    expect(wiki).toContain('Notiz');
+    expect(wiki).not.toContain('Bild.png');
+  });
+
+  it('haelt die Bereichs-Grenze ein und meldet ohne Suchraum nichts', async () => {
+    const root = makeRoot();
+    const draussen = makeRoot();
+    const quelle = write(root, 'Flaeche.md', '# Flaeche\n');
+    write(root, 'Drinnen.png', 'x');
+    write(draussen, 'Draussen.png', 'x');
+    await indexForArea(quelle, root);
+    const namen = bildAutocompleteSuggestions(quelle, root).suggestions.map((s) => s.name);
+    expect(namen).toContain('Drinnen.png');
+    expect(namen).not.toContain('Draussen.png');
+    // Ohne Datei UND ohne Bereich gibt es keinen Suchraum — dieselbe Antwort
+    // wie bei der Wiki-Sicht.
+    expect(bildAutocompleteSuggestions(null, null).status).toBe('unavailable');
   });
 });

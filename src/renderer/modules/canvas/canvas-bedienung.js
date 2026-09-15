@@ -143,6 +143,11 @@ export function setzeElementInhalt(el, text) {
  *   der Karte folgen, bevor geschrieben wird (AK4).
  * @param {Function} [ctx.beiHintergrund] () => void (4T-001655), bei jedem
  *   Klick auf den Hintergrund der Fläche — er hebt jede Auswahl auf.
+ * @param {Function} [ctx.beiVerweisKoerper] (id) => void (4T-001747, seit
+ *   4T-001748 auch für die Bild-Karte), beim Doppelklick auf den Körper einer
+ *   Karte, die auf etwas zeigt. Er öffnet das Ziel statt die Rohtext-Eingabe;
+ *   fehlt der Rückruf, bleibt der Doppelklick dort ohne Wirkung — die Eingabe
+ *   wird in keinem Fall geöffnet.
  * @param {Function} [ctx.beiTasteOhneKarte] (ev) => void (4T-001655), für
  *   `Entf` und `Escape`, wenn keine Karte, aber vielleicht eine Verbindung
  *   gewählt ist.
@@ -591,6 +596,18 @@ export function createKartenBedienung(ctx) {
     const el = elementZu(karte.dataset.canvasId);
     if (!el) return;
     waehle(el.id);
+    // 4T-001747 (Entscheidung F3 des Product Owners vom 2026-09-12): Auf dem
+    // Körper einer Verweis-Karte öffnet der Doppelklick das Ziel. Der Körper
+    // zeigt fremden Inhalt und ist nicht änderbar — die Rohtext-Eingabe hätte
+    // dort keinen Gegenstand. Auf der Kopfzeile bleibt es beim Bearbeiten der
+    // Beschriftung, und die Prüfung steht **vor** der Änderbarkeit: Öffnen
+    // fasst das Dokument nicht an und bleibt im Anzeige-Modus erlaubt.
+    // 4T-001748: Für die Bild-Karte gilt dasselbe — der Körper zeigt dort ein
+    // Bild, und der Doppelklick öffnet die Anlage.
+    if ((el.doc || el.bild) && ziel.closest('.canvas-karte-koerper')) {
+      if (typeof ctx.beiVerweisKoerper === 'function') ctx.beiVerweisKoerper(el.id);
+      return;
+    }
     oeffneBearbeitung(karte, el);
   }
 

@@ -71,6 +71,12 @@ import { createFormenBedienung } from './canvas-formen-bedienung.js';
 // Mitgliedern, Farbe, Beschriftung und Löschen.
 import { zeichneGruppe } from './canvas-gruppen.js';
 import { createGruppenBedienung } from './canvas-gruppen-bedienung.js';
+// 4T-001747 (Epic 3E-000289): Anzeige und Bedienung der Verweis-Karten. Der
+// Körper einer Karte — eigener Text oder angezeigtes fremdes Dokument — liegt
+// im Anzeige-Modul daneben, weil die Verzweigung zwischen beiden Formen dessen
+// Aussage ist und hier allein die Ebene, Lage und Größe gehören.
+import { baueKartenInneres } from './canvas-verweis-anzeige.js';
+import { createVerweisKartenBedienung } from './canvas-verweis-karten.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -100,6 +106,14 @@ const ZOOM_EMPFINDLICHKEIT = 0.0015;
  *   Rückruf, gilt änderbar — die Einbettung, die den Anzeige-Modus nicht kennt,
  *   verhält sich wie vor diesem Befund, und der Schreibweg bleibt über
  *   `beiAenderung` eigens gesichert.
+ * @param {Function} [options.neuUebergeben] () => void (injiziert, 4T-001747).
+ *   Fordert von der Einbettung den **aktuellen** Flächen-Stand des Dokuments
+ *   an. Gerufen, sobald eine während einer Bedien-Handlung zurückgestellte
+ *   Neu-Übergabe nachgeholt wird; den zurückgestellten Schnappschuss dann noch
+ *   anzuwenden setzte die Fläche auf den Stand vor der Handlung zurück
+ *   (Abnahme-Befund vom 2026-09-14). Fehlt der Rückruf, bleibt es beim
+ *   Schnappschuss — der Stand der jsdom-Prüffälle, die `setFlaechen` selbst
+ *   rufen.
  * @param {Function} [options.rueckgaengig] () => boolean (injiziert,
  *   4T-001654). Ein Schritt zurück in der Historie des Dokuments; die Fläche
  *   kennt sie nicht und reicht die Taste nur weiter.
@@ -109,6 +123,25 @@ const ZOOM_EMPFINDLICHKEIT = 0.0015;
  *   Fehlt der Rückruf, hat die Fläche keinen Rechtsklick-Bedienort.
  * @param {Function} [options.schliesseKontextmenue] () => void (injiziert).
  * @param {Function} [options.kontextmenueOffen] () => boolean (injiziert).
+ * @param {Function} [options.leseEinbettung] (basisPfad, ziel, anker) =>
+ *   Promise<{ok, path, displayPath, content}> (injiziert, 4T-001747). Der
+ *   Einbettungs-Abruf des Bestands; er füllt den Körper einer Verweis-Karte.
+ *   Fehlt der Rückruf, zeigt die Verweis-Karte ihren Befund — der Stand der
+ *   reinen Zeichnungs-Prüffälle.
+ * @param {Function} [options.leseBild] (basisPfad, bild) => Promise<{ok, path,
+ *   dataUrl}> (injiziert, 4T-001748). Der Bild-Einbettungs-Abruf des Bestands;
+ *   er füllt den Körper einer Bild-Karte. Fehlt der Rückruf, zeigt die
+ *   Bild-Karte ihren Befund.
+ * @param {Function} [options.oeffneZiel] (doc) => Promise<boolean> (injiziert,
+ *   4T-001747). Öffnet das verwiesene Dokument an der verwiesenen Stelle.
+ * @param {Function} [options.oeffneBild] (bild) => Promise<boolean> (injiziert,
+ *   4T-001748). Öffnet die Bild-Datei über den Anlagen-Weg der Anwendung.
+ * @param {Function} [options.zielVorschlaege] () => Promise<Array<string>>
+ *   (injiziert, 4T-001747). Die Namen des Bereichs-Index für die
+ *   Vorschlags-Liste des Ziel-Feldes.
+ * @param {Function} [options.bildVorschlaege] () => Promise<Array<string>>
+ *   (injiziert, 4T-001748). Die Bild-Dateien des Bereichs für die
+ *   Vorschlags-Liste des Bild-Feldes.
  * @returns {object} Controller mit setModel, fit, getStats und destroy.
  */
 export function createCanvasView(container, options = {}) {
@@ -152,6 +185,7 @@ export function createCanvasView(container, options = {}) {
   let verbindungen = null;
   let formen = null;
   let gruppen = null;
+  let verweisKarten = null;
 
   // --- DOM-Grundgerüst -------------------------------------------------------
 
@@ -247,26 +281,18 @@ export function createCanvasView(container, options = {}) {
     karte.style.width = `${r.b}px`;
     karte.style.height = `${r.h}px`;
 
-    const inhalt = document.createElement('div');
-    // `markdown-body` bringt die Typografie der Lese-Ansicht mit; ohne sie
-    // sähe derselbe Text in der Karte anders aus als im Dokument.
-    inhalt.className = 'canvas-karte-inhalt markdown-body';
-    if (renderMarkdown) {
-      try {
-        inhalt.innerHTML = renderMarkdown(el.inhalt || '', pfad);
-        // Der Karten-Inhalt ist ein erzeugter Teilbaum: Ohne den Schritt-Satz
-        // bliebe alles inert, was die Render-Pipeline erst befüllt oder
-        // bedienbar macht (Wächter 4T-001130).
-        if (nachRender) nachRender(inhalt, pfad);
-      } catch {
-        // Ein Render-Fehler darf die ganze Fläche nicht leeren; die Karte
-        // zeigt dann ihren Klartext.
-        inhalt.textContent = el.inhalt || '';
-      }
-    } else {
-      inhalt.textContent = el.inhalt || '';
-    }
-    karte.appendChild(inhalt);
+    // 4T-001747: Welchen Körper die Karte bekommt — ihren eigenen Text oder den
+    // Inhalt des verwiesenen Dokuments samt Kopfzeile —, entscheidet das
+    // Anzeige-Modul. Der Abruf des Ziels läuft asynchron; die Karte steht
+    // sofort und füllt sich nach, ohne dass die Fläche neu gezeichnet wird.
+    baueKartenInneres(karte, el, {
+      t,
+      pfad,
+      renderMarkdown,
+      nachRender,
+      leseEinbettung: options.leseEinbettung,
+      leseBild: options.leseBild,
+    });
     // 4T-001654: Griff für die Größen-Änderung, unten rechts (Muster
     // buildPanelResizer). Er steht im Baum und wird erst sichtbar, wenn die
     // Karte gewählt ist oder der Zeiger über ihr steht — ein dauerhaft
@@ -357,6 +383,7 @@ export function createCanvasView(container, options = {}) {
     if (verbindungen) verbindungen.zuruecksetzen();
     if (formen) formen.zuruecksetzen();
     if (gruppen) gruppen.zuruecksetzen();
+    if (verweisKarten) verweisKarten.zuruecksetzen();
     // Jede Fläche hat ihr eigenes Koordinatensystem; der Ausschnitt der
     // vorigen wäre auf der neuen bedeutungslos. Deshalb wird beim Wechsel
     // eingepasst statt Zoom und Verschiebung mitzunehmen.
@@ -423,6 +450,9 @@ export function createCanvasView(container, options = {}) {
     if (formen) formen.nachRender();
     // 4T-001702: und die Gruppen, aus demselben Grund.
     if (gruppen) gruppen.nachRender();
+    // 4T-001747: zuletzt die Leiste an der gewählten Karte — sie hängt an der
+    // Auswahl, die `bedienung.nachRender()` gerade wieder angelegt hat.
+    if (verweisKarten) verweisKarten.nachRender();
   }
 
   // --- Navigation ------------------------------------------------------------
@@ -524,6 +554,15 @@ export function createCanvasView(container, options = {}) {
       if (formen && id) formen.beiFremdWahl();
       // 4T-001702: die Gruppe als vierte Art derselben Regel.
       if (gruppen && id) gruppen.beiFremdWahl();
+      // 4T-001747: Die Leiste der Karte hängt an **dieser** Auswahl; sie
+      // erscheint und verschwindet mit ihr.
+      if (verweisKarten) verweisKarten.beiKartenWahl(id);
+    },
+    // 4T-001747 (F3): Der Doppelklick auf den Körper einer Verweis-Karte öffnet
+    // das Ziel, statt die Rohtext-Eingabe zu öffnen — der Körper ist nicht
+    // änderbar, und die Eingabe hätte dort keinen Gegenstand.
+    beiVerweisKoerper: (id) => {
+      if (verweisKarten) void verweisKarten.oeffneZielVon(id);
     },
     beiZugLage: (id, rechteck) => {
       if (verbindungen) verbindungen.beiZugLage(id, rechteck);
@@ -608,14 +647,45 @@ export function createCanvasView(container, options = {}) {
     },
   });
 
+  // --- Bedienung der Verweis-Karten (4T-001747) ---------------------------------
+  verweisKarten = createVerweisKartenBedienung({
+    kartenEbene,
+    t,
+    modell: () => model,
+    bedienung,
+    aenderbar,
+    beiFreigabe: freigabeMelden,
+    oeffneZiel: typeof options.oeffneZiel === 'function' ? options.oeffneZiel : null,
+    oeffneBild: typeof options.oeffneBild === 'function' ? options.oeffneBild : null,
+    zielVorschlaege: typeof options.zielVorschlaege === 'function' ? options.zielVorschlaege : null,
+    bildVorschlaege: typeof options.bildVorschlaege === 'function' ? options.bildVorschlaege : null,
+  });
+
   // Eine zurückgestellte Neu-Übergabe kommt erst, wenn **keine** der drei
   // Bedienungen mehr etwas offen hat: Die eine weiß nichts vom Zug der anderen,
   // und ein Neuzeichnen mitten in einer Handlung zerstörte sie.
+  //
+  // **Übernommen wird der Stand von JETZT, nicht der zurückgestellte Schnappschuss**
+  // (4T-001747, Abnahme-Befund des Product Owners vom 2026-09-14 «Verschieben
+  // auf dem Canvas geht nicht»). Der zurückgestellte Schnappschuss beschreibt
+  // das Dokument, wie es **vor** der Handlung aussah; die Handlung selbst hat
+  // es inzwischen geändert. Ihn nachträglich anzuwenden setzt die Fläche auf
+  // den Stand vor der Handlung zurück — beim Ziehen sprang die Karte im Moment
+  // des Loslassens an ihren alten Platz und erst mit dem nächsten Takt der
+  // Live-Aktualisierung wieder an den neuen. Schlimmer als das Springen ist,
+  // dass mit ihm auch der veraltete `rumpf` der Fläche zurückkehrt: Die
+  // **nächste** Handlung misst dann gegen ihn und wird verworfen.
+  //
+  // Gefragt wird deshalb die Einbettung, die den Dokument-Stand hält; der
+  // zurückgestellte Schnappschuss bleibt allein der Rückfall für einen
+  // Aufrufer ohne diesen Weg (der jsdom-Prüffall, der `setFlaechen` selbst
+  // ruft).
   function freigabeMelden() {
     if (!ausstehend || blockiert()) return;
     const wartend = ausstehend;
     ausstehend = null;
-    uebernimmFlaechen(wartend.neueFlaechen, wartend.opts);
+    if (typeof options.neuUebergeben === 'function') options.neuUebergeben();
+    else uebernimmFlaechen(wartend.neueFlaechen, wartend.opts);
   }
 
   function blockiert() {
@@ -623,7 +693,8 @@ export function createCanvasView(container, options = {}) {
       (!!bedienung && bedienung.blockiert()) ||
       (!!verbindungen && verbindungen.blockiert()) ||
       (!!formen && formen.blockiert()) ||
-      (!!gruppen && gruppen.blockiert())
+      (!!gruppen && gruppen.blockiert()) ||
+      (!!verweisKarten && verweisKarten.blockiert())
     );
   }
 
@@ -667,6 +738,7 @@ export function createCanvasView(container, options = {}) {
     verbindungen,
     formen,
     gruppen,
+    verweisKarten,
     verschiebeImStapel: (id, befehl) => bedienung.verschiebeImStapel(id, befehl),
     zeigeMenue: typeof options.zeigeKontextmenue === 'function' ? options.zeigeKontextmenue : null,
     schliesseMenue:
@@ -756,6 +828,18 @@ export function createCanvasView(container, options = {}) {
     gruppeAnlegen(opts) {
       return gruppen ? gruppen.gruppeAnlegen(opts) : false;
     },
+    /**
+     * Fragt das Ziel ab und legt danach eine Verweis-Karte an (4T-001747).
+     * Der Weg des Kommandos aus Menü und Palette; das Kontextmenü ruft dieselbe
+     * Handlung mit der Klick-Stelle.
+     */
+    verweisKarteAnlegen(opts) {
+      return verweisKarten ? verweisKarten.verweisKarteAnlegen(opts) : false;
+    },
+    /** Fragt das Bild ab und legt danach eine Bild-Karte an (4T-001748). */
+    bildKarteAnlegen(opts) {
+      return verweisKarten ? verweisKarten.bildKarteAnlegen(opts) : false;
+    },
     /** Verschiebt das gewählte Element im Stapel (Story 4S-000932). */
     verschiebeImStapel: verschiebeGewaehltesImStapel,
     /**
@@ -824,6 +908,7 @@ export function createCanvasView(container, options = {}) {
       window.removeEventListener('mouseup', beiLoslassen);
       buehne.removeEventListener('wheel', beiRad);
       if (kontextmenue) kontextmenue.destroy();
+      if (verweisKarten) verweisKarten.destroy();
       if (gruppen) gruppen.destroy();
       if (formen) formen.destroy();
       if (verbindungen) verbindungen.destroy();

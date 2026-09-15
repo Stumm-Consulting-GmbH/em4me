@@ -210,5 +210,7 @@
   "help.featureName.canvas": "Vista de lienzo",
   "help.featureName.canvasShapes": "Formas del lienzo",
   "help.featureName.canvasGroups": "Grupos del lienzo",
-  "help.featureName.canvasStacking": "Orden de apilamiento del lienzo"
+  "help.featureName.canvasStacking": "Orden de apilamiento del lienzo",
+  "help.featureName.canvasLinkCards": "Tarjetas de enlace en el lienzo",
+  "help.featureName.canvasImageCards": "Tarjetas de imagen en el lienzo"
 }

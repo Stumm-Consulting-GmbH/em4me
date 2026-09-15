@@ -469,6 +469,16 @@ function registerIndexViewsIpc(handle, deps) {
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     return backlinks.wikiLinkAutocompleteSuggestions(filePath, areaRoot);
   });
+  // 4T-001748 (Epic 3E-000289): Bild-Ziele fuer das Bild-Feld der Canvas-Karte.
+  // Eigener Kanal neben dem Wiki-Kanal, weil er eine andere Quelle liest
+  // (assetNameMap statt files/aliasMap) und eine andere Frage beantwortet;
+  // Aufbau-bei-Bedarf, Bereichs-Grenze und Antwort-Form sind die des Nachbarn.
+  handle('autocomplete:imageTargets', (event, params) => {
+    const filePath = params && params.filePath;
+    const areaRoot = areaRootForEvent(event);
+    backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
+    return backlinks.bildAutocompleteSuggestions(filePath, areaRoot);
+  });
   handle('autocomplete:anchors', (event, params) => {
     const filePath = params && params.filePath;
     const areaRoot = areaRootForEvent(event);

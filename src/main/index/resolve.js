@@ -9,7 +9,15 @@
 const path = require('node:path');
 const { githubLikeSlug } = require('../../shared/markdown/slug.js');
 const { SUBPAGE_SEP, expandRelativeTarget, isRelativeTarget } = require('../../shared/subpages.js');
-const { MD_EXT_RE, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
+// 4T-001749 (Epic 3E-000289): NAMENS_LINK_TYPEN nennt die Treffer-Arten, deren
+// Ziel ueber einen NAMEN aufgeloest wird. Der Verweis einer Canvas-Karte gehoert
+// dazu; er traegt seinen eigenen Typ, damit die Herkunft bis in die Anzeige
+// sichtbar bleibt, und wird im Uebrigen behandelt wie ein Wiki-Ziel.
+const {
+  MD_EXT_RE,
+  NAMENS_LINK_TYPEN,
+  normalizeNameKey,
+} = require('../../shared/markdown/link-scan.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 const { ensureIndex } = require('./lifecycle.js');
 // 4T-000952 (Epic 3E-000198, Befund E-04): Puffer-Overlay der Rueckverweise.
@@ -157,7 +165,11 @@ function collectBacklinksFor(activeFile, entry, sicht = entry) {
     for (const h of hits) {
       let isMatch = false;
       let viaAlias = null;
-      if (h.linkTyp === 'wiki') {
+      // 4T-001749 (Epic 3E-000289): Der Verweis einer Canvas-Karte laeuft durch
+      // denselben Zweig wie ein Wiki-Link — er nennt sein Ziel mit demselben
+      // Namen und soll dieselbe Datei treffen. Sein eigener Typ reist bis ins
+      // Panel mit, das die Herkunft «auf einer Flaeche» ausweist.
+      if (NAMENS_LINK_TYPEN.has(h.linkTyp)) {
         // Direkter Datei-Treffer (Basename-Match).
         const candidates = resolveWikiLink(entry, h.zielBasename);
         if (candidates.includes(activeAbs)) {

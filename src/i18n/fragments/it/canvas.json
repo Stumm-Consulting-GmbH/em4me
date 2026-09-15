@@ -61,5 +61,18 @@
   "canvas.block.formen": "{n} forme",
   "canvas.block.gruppe": "{n} gruppo",
   "canvas.block.gruppen": "{n} gruppi",
-  "canvas.block.umfangTrenner": ", "
+  "canvas.block.umfangTrenner": ", ",
+  "canvas.verweisZiel": "Destinazione del collegamento",
+  "canvas.verweisSetzen": "Imposta collegamento…",
+  "canvas.verweisOeffnen": "Apri destinazione",
+  "canvas.verweisEntfernen": "Rimuovi collegamento",
+  "canvas.verweisNichtGefunden": "Destinazione non trovata: {ziel}",
+  "canvas.verweisZielFehlt": "Impossibile aprire la destinazione del collegamento",
+  "canvas.bild": "Immagine",
+  "canvas.bildSetzen": "Imposta immagine…",
+  "canvas.bildEntfernen": "Rimuovi immagine",
+  "canvas.bildNichtGefunden": "Immagine non trovata: {ziel}",
+  "canvas.bildZuGross": "Immagine troppo grande: {ziel}",
+  "canvas.bildKeineBildDatei": "Non è un file immagine: {ziel}",
+  "canvas.bildZielFehlt": "Impossibile aprire l’immagine"
 }

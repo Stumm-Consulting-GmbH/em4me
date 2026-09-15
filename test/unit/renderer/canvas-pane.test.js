@@ -53,6 +53,8 @@ const {
   // 4T-001702 (Epic 3E-000288): der Eintritt des Gruppen-Kommandos.
   legeCanvasGruppeAn,
   legeCanvasKarteAn,
+  // 4T-001747 (Epic 3E-000289): der Eintritt des Verweis-Karten-Kommandos.
+  legeCanvasVerweisKarteAn,
   renderCanvas,
   verschiebeCanvasElement,
 } = await import('../../../src/renderer/modules/canvas/canvas-pane.js');
@@ -918,5 +920,140 @@ describe('Canvas: Gruppen-Anlage über alle Zugänge (4T-001702)', () => {
     await new Promise((fertig) => setTimeout(fertig, 0));
     expect(hinweise).toContain('canvas.nurInAnsicht');
     destroyCanvas(21);
+  });
+});
+
+describe('Canvas: Verweis-Karten-Anlage über alle Zugänge (4T-001747)', () => {
+  // Dieselbe Sorgfalt wie bei Karte, Form und Gruppe: Ein Kommando, das in
+  // Registry, Menü, Brücke und Dispatcher nicht durchgängig verdrahtet ist,
+  // fällt sonst erst im Struktur-Prüfschritt auf.
+  it('steht in der Registry, ohne Vorgabe-Kürzel und mit eigener Katalog-Zeile', () => {
+    const cmd = COMMANDS.find((c) => c.id === 'canvas.addLinkCard');
+    expect(cmd, 'Kommando canvas.addLinkCard fehlt').toBeTruthy();
+    expect(cmd.defaultBindings).toEqual([]);
+    expect(cmd.menu).toBe(true);
+    expect(cmd.labelKey).toBe('command.canvas.addLinkCard');
+    // Anders als die Kommandos der Stufe 2 zeigt dieses auf die eigene
+    // Katalog-Zeile der Verweis-Karten: Sie sind eine eigene Arbeits-Form.
+    expect(cmd.descKey).toBe('help.feature.canvasLinkCards');
+  });
+
+  it('trägt seine benannte Bedingung und entscheidet sie nicht selbst', () => {
+    const menu = lies('src/main/menu/menu.js');
+    pruefeBedingung('canvas.addLinkCard', 'canvasKarte', [
+      [{ canvasTab: true, viewMode: 'canvas' }, true],
+      [{ canvasTab: true, viewMode: 'rendered' }, false],
+      [{ canvasTab: false, viewMode: 'canvas' }, false],
+      [{ canvasTab: true, viewMode: 'canvas', systemTab: true }, false],
+    ]);
+    expect(menu).toContain("enabled: avail('canvas.addLinkCard')");
+    expect(menu).toContain("acc('canvas.addLinkCard')");
+  });
+
+  it('die Kette Menü → Brücke → Bindung → Einbettung ist geschlossen', () => {
+    expect(lies('src/main/menu/menu.js')).toContain("send('menu:canvasAddLinkCard')");
+    expect(lies('src/main/preload.js')).toContain("ipcRenderer.on('menu:canvasAddLinkCard'");
+    expect(lies('src/renderer/modules/app/app-menu-bindings.js')).toContain(
+      'api.onMenuCanvasAddLinkCard(',
+    );
+    expect(lies('src/renderer/modules/app/app-commands.js')).toContain(
+      'legeCanvasVerweisKarteAn(state.activePaneIndex)',
+    );
+  });
+
+  it('es gehört der Erweiterung der Fläche, samt seiner Katalog-Zeile', () => {
+    const quelle = lies('src/shared/extensions/extensions.js');
+    expect(quelle).toContain("'canvas.addLinkCard',");
+    expect(quelle).toContain("'help.feature.canvasLinkCards',");
+  });
+
+  it('die Texte stehen in allen fünf Sprachfassungen', () => {
+    for (const sprache of ['de', 'en', 'fr', 'es', 'it']) {
+      const katalog = JSON.parse(lies(`src/i18n/${sprache}.json`));
+      for (const key of [
+        'command.canvas.addLinkCard',
+        'canvas.verweisZiel',
+        'canvas.verweisSetzen',
+        'canvas.verweisOeffnen',
+        'canvas.verweisEntfernen',
+        'canvas.verweisNichtGefunden',
+        'canvas.verweisZielFehlt',
+        'help.feature.canvasLinkCards',
+        'help.featureName.canvasLinkCards',
+        'help.featureAccess.canvasLinkCards',
+      ]) {
+        expect(katalog[key], `Schlüssel ${key} fehlt in ${sprache}.json`).toBeTruthy();
+      }
+    }
+  });
+
+  it('ausserhalb der Canvas-Ansicht bleibt sie wirkungslos und sagt es', async () => {
+    const tab = { viewMode: 'source', content: '# Ohne Fläche', path: 'F.md' };
+    hinweise.length = 0;
+    const canvasEl = document.createElement('div');
+    document.body.appendChild(canvasEl);
+    initCanvasPane({ getPaneEls: () => ({ canvasEl }), aktivesDokument: () => tab });
+    expect(legeCanvasVerweisKarteAn(22)).toBe(false);
+    await new Promise((fertig) => setTimeout(fertig, 0));
+    expect(hinweise).toContain('canvas.nurInAnsicht');
+    destroyCanvas(22);
+  });
+
+  it('im nicht änderbaren Dokument bleibt sie wirkungslos und sagt es', async () => {
+    const TEXT = ['```perspective-canvas', '!karte k1 x=0 y=0 b=200 h=100', 'Text', '```'].join(
+      '\n',
+    );
+    const tab = { viewMode: 'canvas', content: TEXT, path: 'F.md' };
+    hinweise.length = 0;
+    const canvasEl = document.createElement('div');
+    document.body.appendChild(canvasEl);
+    initCanvasPane({
+      getPaneEls: () => ({ canvasEl }),
+      aktivesDokument: () => tab,
+      istAenderbar: () => false,
+    });
+    renderCanvas(23);
+    expect(legeCanvasVerweisKarteAn(23)).toBe(false);
+    await new Promise((fertig) => setTimeout(fertig, 0));
+    expect(hinweise).toContain('canvas.nurLesbar');
+    destroyCanvas(23);
+  });
+
+  it('das Öffnen des Ziels und die Vorschläge laufen über die Bestands-Wege', () => {
+    // Derselbe Auflöser wie die Anzeige (`readEmbedFile`) und dieselbe
+    // Index-Abfrage wie die Wikilink-Vervollständigung des Editors
+    // (`autocompleteWikiTargets`); ein zweiter Weg entschiede an zwei Stellen
+    // verschieden. Öffnen und Anker-Sprung kommen über Laufzeit-Importe, damit
+    // der Canvas-Ordner nicht in den grossen Datei-Zyklus gerät.
+    const quelle = lies('src/renderer/modules/canvas/canvas-pane.js');
+    expect(quelle).toContain('api.readEmbedFile(');
+    expect(quelle).toContain('api.autocompleteWikiTargets(');
+    expect(quelle).toContain("import('../tabs/tabs.js')");
+    expect(quelle).toContain("import('../views/anchor-navigation.js')");
+    expect(quelle).not.toMatch(/^import .*from '\.\.\/tabs\/tabs\.js'/m);
+  });
+
+  // 4T-001747 (Abnahme-Befund des Product Owners vom 2026-09-14): Das Öffnen
+  // zerlegt das Ziel über DIESELBE Funktion wie die Anzeige — samt ihrer
+  // Abruf-Fassung, die einem Ziel ohne Endung `.md` anhängt. Die eigene
+  // Zerlegung, die hier stand, reichte den geschriebenen Text ungeändert
+  // weiter, und `embed:read` wies ihn mit `extension not allowed` ab: Die
+  // Anzeige blieb leer, und «Ziel öffnen» fand nichts. Zwei Fassungen derselben
+  // Zerlegung waren zugleich zwei Orte, an denen genau das unbemerkt
+  // auseinanderlaufen konnte.
+  it('das Öffnen des Ziels zerlegt über dieselbe Funktion wie die Anzeige', () => {
+    const quelle = lies('src/renderer/modules/canvas/canvas-pane.js');
+    expect(quelle).toContain("import { zerlegeZiel } from './canvas-verweis-anzeige.js'");
+    expect(quelle).toContain('zerlegeZiel(doc)');
+    expect(quelle).not.toContain("text.indexOf('#')");
+  });
+
+  // 4T-001747: Eine während einer Bedien-Handlung zurückgestellte Neu-Übergabe
+  // wird aus dem AKTUELLEN Dokument nachgeholt und nicht aus ihrem
+  // Schnappschuss; jener beschreibt den Stand vor der Handlung und machte sie
+  // beim Nachholen rückgängig (Befund «Verschieben geht nicht»).
+  it('die Einbettung reicht den Weg für die nachgeholte Neu-Übergabe herein', () => {
+    const quelle = lies('src/renderer/modules/canvas/canvas-pane.js');
+    expect(quelle).toContain('neuUebergeben: () => renderCanvas(paneIdx)');
   });
 });

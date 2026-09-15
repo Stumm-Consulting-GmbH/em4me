@@ -887,6 +887,45 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'canvasKarte',
   },
+  {
+    // 4T-001747 (Epic 3E-000289): Verweis-Karte auf der Flaeche anlegen. Muster
+    // canvas.addGroup samt fehlendem Vorgabe-Kuerzel. Das Kommando fragt zuerst
+    // das Ziel ab und legt die Karte danach in einem Zug mit ihrem Verweis an;
+    // ohne Ziel entsteht keine Karte, denn die gewoehnliche Karte hat ihr
+    // eigenes Kommando.
+    //
+    // **Der eigene Katalog-Schluessel.** Anders als die Kommandos der Stufe 2
+    // zeigt dieses nicht auf help.feature.canvas, sondern auf die eigene Zeile
+    // der Verweis-Karten: Sie ist eine eigene Arbeits-Form und nicht eine
+    // Verfeinerung der Flaeche. Handbuch und Demo-Area holt 4T-001750 nach.
+    id: 'canvas.addLinkCard',
+    defaultBindings: [],
+    labelKey: 'command.canvas.addLinkCard',
+    descKey: 'help.feature.canvasLinkCards',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
+  {
+    // 4T-001748 (Epic 3E-000289): Bild-Karte auf der Flaeche anlegen, unmittelbar
+    // hinter der Verweis-Karte und nach demselben Muster. Es fragt zuerst nach
+    // dem Bild und legt die Karte danach in einem Zug mit ihrer Bild-Angabe an;
+    // ohne Bild entsteht keine Karte.
+    //
+    // **Der eigene Katalog-Schluessel** aus demselben Grund wie nebenan: Die
+    // Bild-Karte ist eine eigene Arbeits-Form der Flaeche und keine
+    // Verfeinerung der Verweis-Karte. Handbuch und Demo-Area holt 4T-001750
+    // nach.
+    id: 'canvas.addImageCard',
+    defaultBindings: [],
+    labelKey: 'command.canvas.addImageCard',
+    descKey: 'help.feature.canvasImageCards',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
   // 4T-001701 (Epic 3E-000288, Story 4S-000932): die vier Stapel-Befehle des
   // gewaehlten Elements — Karte, Form und ab 4T-001702 Gruppe. Sie stehen in
   // der Reihenfolge, in der Praesentations- und Diagramm-Werkzeuge sie

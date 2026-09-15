@@ -46,6 +46,13 @@ const EXPECTED_FILES = [
   // beidseitig gerichtet). Sie traegt wie die uebrigen Fuehrungs-Seiten das
   // Schlagwort #demo und erscheint damit in der ersten Abfrage von
   // „08 Queries.md"; deren Zeilen-Erwartung in der E2E-Spec ist mitgewachsen.
+  // 4T-001703 (Epic 3E-000288): dazu eine Gruppe und zwei Formen.
+  // 4T-001750 (Epic 3E-000289): dazu eine Verweis-Karte auf einen Abschnitt von
+  // „04 Links and Structure.md" und eine Bild-Karte auf die vorhandene Anlage
+  // „attachments/demo-image.png". Beide Ziele liegen INNERHALB der Sammlung —
+  // die Demo-Area muss ohne den Bereich des Anwenders funktionieren —, und dass
+  // sie dort auch bleiben, haelt der Verweis-Waechter demo-links.test.js fest.
+  // Die Datei-Liste waechst dabei nicht: Das Bild ist das der Anlagen-Seite.
   '12 Canvas.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei

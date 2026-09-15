@@ -823,6 +823,22 @@ function buildMenu(win, state, actions) {
           accelerator: acc('canvas.addGroup'),
           click: send('menu:canvasAddGroup'),
         }),
+        // 4T-001747 (Epic 3E-000289): Verweis-Karte anlegen, hinter der Gruppe
+        // und mit derselben Bedingung wie Karte, Form und Gruppe darueber.
+        unless('canvas.addLinkCard', {
+          label: t('command.canvas.addLinkCard'),
+          enabled: avail('canvas.addLinkCard'),
+          accelerator: acc('canvas.addLinkCard'),
+          click: send('menu:canvasAddLinkCard'),
+        }),
+        // 4T-001748 (Epic 3E-000289): Bild-Karte anlegen, unmittelbar hinter der
+        // Verweis-Karte und mit derselben Bedingung.
+        unless('canvas.addImageCard', {
+          label: t('command.canvas.addImageCard'),
+          enabled: avail('canvas.addImageCard'),
+          accelerator: acc('canvas.addImageCard'),
+          click: send('menu:canvasAddImageCard'),
+        }),
         // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
         // Elements, gebuendelt in einem Untermenue. Einzeln haetten sie das
         // Ansichtsmenue um vier kurze Zeilen verlaengert, die nur auf der

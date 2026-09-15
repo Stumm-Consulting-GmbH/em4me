@@ -42,6 +42,10 @@ import { registriereCanvasTeilbaumSchritte } from './canvas/canvas-pane.js';
 // (Entscheidung E8). Das Modul importiert selbst kein Renderer-Modul und
 // bildet deshalb keinen Ordner-Zyklus.
 import { applyCanvasBlocks } from './canvas/canvas-block-zustand.js';
+// 4T-001747 (Epic 3E-000289): Auffrischung der Verweis-Karten einer Flaeche.
+// Dieselbe Richtung wie die beiden Importe darueber (modules -> modules/canvas);
+// der Canvas-Ordner importiert nichts zurueck.
+import { frischeVerweisKarten } from './canvas/canvas-verweis-anzeige.js';
 import { applyBlockMetaIndicators } from './block-meta-indicator.js';
 // 4T-000418 (Epic 3E-000079): Lokalisierung der Perspective-Datatable-Texte
 // mit Platzhaltern (Struktur-Fehler, Zeilen-Limit).
@@ -731,7 +735,15 @@ export async function refreshEmbedsOfTarget(wurzel, zielPfad, dokumentPfad) {
       eltern.length,
     );
   }
-  return treffer.length;
+  // 4T-001747 (Epic 3E-000289): Die Verweis-Karten der Canvas-Flaeche gehoeren
+  // dazu. Gemessen am Bestand: Die Schleife darueber sucht ueber jedem
+  // Embed-Koerper die Huelle '.wiki-embed' und findet an einer Karte keine —
+  // die Karte IST die Huelle. Die Karte bekommt deshalb ihren eigenen
+  // Auffrisch-Weg im Canvas-Ordner, wo auch ihr Abruf-Rueckruf liegt; hier
+  // steht nur der Anstoss. Die Zaehlung nimmt beide Arten zusammen, weil der
+  // Aufrufer wissen will, wie viele Einbettungen der Datei aufgefrischt wurden.
+  const karten = await frischeVerweisKarten(wurzel, zielPfad);
+  return treffer.length + karten;
 }
 
 // R2-07 (4T-000174): file:///-URL aus einem Windows-Pfad bauen. '#', '?', '%'

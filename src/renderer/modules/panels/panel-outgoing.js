@@ -4,6 +4,11 @@
 // Extrahiert Wiki-Links, Wiki-Embeds und interne Markdown-Links der aktiven
 // Datei. Pro Re-Render Token-Walk ueber den Text — kein globaler Index. Die
 // Reihenfolge im Panel folgt der Dokument-Reihenfolge.
+//
+// 4T-001749 (Epic 3E-000289): dazu der Verweis einer Canvas-Karte
+// (`doc="…"` an einer `!karte`-Zeile innerhalb einer Fence
+// `perspective-canvas`). Ohne ihn waere die Auskunft in der einen Richtung
+// vorhanden und in der anderen nicht, obwohl beide dasselbe behaupten.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -28,6 +33,15 @@ import {
   isRelativeTarget,
   toFileBasename,
 } from '../../../shared/subpages.js';
+// 4T-001749 (Epic 3E-000289): Verweis-Karten einer Canvas-Flaeche erscheinen in
+// den ausgehenden Verweisen. Die Erkennung der Angabe kommt aus derselben
+// geteilten Quelle, aus der auch der Bereichs-Index und der Umbenennungs-Nachzug
+// lesen — dreimal dieselbe Regel an drei Orten liefe unweigerlich auseinander.
+import {
+  istCanvasFenceInfo,
+  kartenBeschriftung,
+  scanneKartenVerweise,
+} from '../../../shared/markdown/link-scan.js';
 
 import { applySidebarVisibility } from './panels.js';
 
@@ -42,6 +56,13 @@ import { applySidebarVisibility } from './panels.js';
 // Code-Beispiel keinen Eintrag erzeugt. Markdown-Image-Syntax (`![alt](...)`)
 // wird ausgenommen, weil sie Asset-Einbettung ist und nicht in den Vernetzungs-
 // Blick gehoert; Wiki-Bild-Embeds werden hingegen mitgelistet.
+// 4T-001749 (Epic 3E-000289): Die Arten, deren Ziel ueber einen NAMEN steht und
+// nicht als expliziter Pfad — der Klick-Pfad ergaenzt fuer sie die
+// `.md`-Endung, expandiert relative Unterseiten-Ziele und faellt auf Index und
+// Alias zurueck. Der Verweis einer Karte nennt sein Ziel wie eine Einbettung und
+// gehoert deshalb hierher; ein Markdown-Link traegt seinen Pfad selbst.
+const NAMENS_ARTEN = new Set(['wikiLink', 'embed', 'canvasCard']);
+
 export function extractOutgoingLinks(text) {
   const links = [];
   if (!text) return links;
@@ -52,6 +73,8 @@ export function extractOutgoingLinks(text) {
   // ~~~-Fences den Block faelschlich beendete.
   let inFence = false;
   let fenceChar = '';
+  // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
+  let inCanvasFence = false;
   for (let i = 0; i < lines.length; i++) {
     const original = lines[i];
     // Fenced-Code-Wechsel erkennen (am Anfang der Zeile, optional eingerueckt).
@@ -61,13 +84,49 @@ export function extractOutgoingLinks(text) {
       if (!inFence) {
         inFence = true;
         fenceChar = marker;
+        // 4T-001749: Die Info-Zeichenfolge sagt, was die Fence ist; sie wurde
+        // hier bisher nicht gelesen.
+        inCanvasFence = istCanvasFenceInfo(original.slice(fenceMatch[0].length));
       } else if (marker === fenceChar) {
         inFence = false;
         fenceChar = '';
+        inCanvasFence = false;
       }
       continue;
     }
-    if (inFence) continue;
+    if (inFence) {
+      // 4T-001749 (Epic 3E-000289): Die Marker-Zeile einer Karte mit `doc="…"`
+      // traegt einen Verweis auf ein Dokument und erscheint als eigener Eintrag.
+      // Alles Uebrige der Fence bleibt uebersprungen — ein Wiki-Link im eigenen
+      // Text einer Karte zaehlt weiterhin nicht, wie in jeder anderen Fence.
+      //
+      // **`bild=` bleibt draussen**, aus demselben Grund, aus dem die
+      // Markdown-Bild-Syntax hier nicht gelistet wird: Das ist Asset-Einbettung
+      // und gehoert nicht in den Vernetzungs-Blick (Entscheidung F4).
+      //
+      // Wirksam ist das LETZTE Vorkommen je Name, wie im Canvas-Kern.
+      if (inCanvasFence) {
+        const angabe = scanneKartenVerweise(original)
+          .filter((a) => a.name === 'doc')
+          .pop();
+        if (angabe) {
+          const roh = angabe.wert.trim();
+          const hashIdx = roh.indexOf('#');
+          const target = (hashIdx >= 0 ? roh.slice(0, hashIdx) : roh).trim();
+          const anchor = hashIdx >= 0 ? roh.slice(hashIdx + 1).trim() : '';
+          if (target) {
+            links.push({
+              type: 'canvasCard',
+              target,
+              anchor,
+              line: i + 1,
+              snippet: snippetAroundIndex(kartenBeschriftung(lines, i) || original, 0),
+            });
+          }
+        }
+      }
+      continue;
+    }
     // Inline-Code pro Zeile maskieren, damit `[[foo]]` in `...` nicht matcht.
     const line = original.replace(/`[^`\n]*`/g, (m) => ' '.repeat(m.length));
 
@@ -179,13 +238,25 @@ export function renderOutgoingLinks(paneIdx) {
 
     const typeBadge = document.createElement('span');
     typeBadge.className = 'outgoing-type-badge outgoing-type-' + link.type;
+    // 4T-001749 (Epic 3E-000289): vierte Art, der Verweis einer Canvas-Karte.
+    // Das Kuerzel 'C' steht fuer die Canvas und traegt in allen fuenf
+    // Sprachfassungen, weil der Name des Konstrukts dort ueberall derselbe ist.
     const typeKey =
       link.type === 'embed'
         ? 'outgoing.type.embed'
         : link.type === 'markdownLink'
           ? 'outgoing.type.markdownLink'
-          : 'outgoing.type.wikiLink';
-    const typeShort = link.type === 'embed' ? 'E' : link.type === 'markdownLink' ? 'M' : 'W';
+          : link.type === 'canvasCard'
+            ? 'outgoing.type.canvasCard'
+            : 'outgoing.type.wikiLink';
+    const typeShort =
+      link.type === 'embed'
+        ? 'E'
+        : link.type === 'markdownLink'
+          ? 'M'
+          : link.type === 'canvasCard'
+            ? 'C'
+            : 'W';
     typeBadge.textContent = typeShort;
     typeBadge.title = t(typeKey);
     entry.appendChild(typeBadge);
@@ -219,7 +290,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
     // anwenden, sonst zeigt resolveLink auf `<dir>/ziel` und fileExists
     // schlaegt fehl. Markdown-Links tragen die Extension bereits im Quelltext.
     let resolveTarget = link.target;
-    if (link.type === 'wikiLink' || link.type === 'embed') {
+    if (NAMENS_ARTEN.has(link.type)) {
       // 4T-000337 (Epic 3E-000061): relative Unterseiten-Ziele ('/Name', '..')
       // gegen die Quell-Datei expandieren (U+2215-Form).
       if (isRelativeTarget(resolveTarget)) {
@@ -240,7 +311,7 @@ export async function openOutgoingTarget(paneIdx, link, sourcePath) {
     if (!exists) {
       // Alias-Fallback nur fuer Wiki-Links und Embeds (Markdown-Links sind
       // explizite Pfade, dort gibt es keine Aliases).
-      if (link.type === 'wikiLink' || link.type === 'embed') {
+      if (NAMENS_ARTEN.has(link.type)) {
         // 4T-000337: deterministischer Same-Dir-Versuch ('/' -> U+2215) vor
         // dem Index-Fallback, wie im Wiki-Link-Klick-Pfad.
         if (/[/\\]/.test(resolveTarget)) {

@@ -105,7 +105,7 @@ const kartenIds = (geschrieben) =>
     .map((el) => el.id);
 
 describe('Canvas-Kontextmenü: Rechtsklick auf den Hintergrund (4T-001683)', () => {
-  it('zeigt die drei Anlege-Wege, an der Stelle des Zeigers', () => {
+  it('zeigt die fuenf Anlege-Wege, an der Stelle des Zeigers', () => {
     // 4T-001701: Neben der Karte steht das Untermenü der sechs Formen-Arten.
     // 4T-001702: dahinter die Gruppe, als ein Eintrag — es gibt nur eine Art
     // von Gruppe, und ein Untermenü über einem einzigen Eintrag wäre ein Klick
@@ -113,7 +113,15 @@ describe('Canvas-Kontextmenü: Rechtsklick auf den Hintergrund (4T-001683)', () 
     const { buehne, menue } = baueAnsicht();
     rechtsklick(buehne, 120, 60);
     expect(menue.offen).toBe(true);
-    expect(kennungen(menue)).toEqual(['canvas-add-card', 'canvas-add-shape', 'canvas-add-group']);
+    // 4T-001747: dahinter die Verweis-Karte, die zuerst nach ihrem Ziel fragt.
+    // 4T-001748: und dahinter die Bild-Karte, die zuerst nach ihrem Bild fragt.
+    expect(kennungen(menue)).toEqual([
+      'canvas-add-card',
+      'canvas-add-shape',
+      'canvas-add-group',
+      'canvas-add-link-card',
+      'canvas-add-image-card',
+    ]);
     expect(menue).toMatchObject({ x: 120, y: 60 });
   });
 
@@ -154,15 +162,22 @@ describe('Canvas-Kontextmenü: Rechtsklick auf eine Karte (4T-001683)', () => {
     const { container, view, menue } = baueAnsicht();
     rechtsklick(karteMit(container, 'k2'), 50, 50);
     expect(view.getStats().gewaehlteKarte).toBe('k2');
+    // 4T-001747: Zwischen beiden Bloecken steht der Verweis-Block. An einer
+    // Karte ohne Ziel traegt er allein die beiden Setzen-Eintraege; Oeffnen und
+    // Entfernen haetten dort keinen Gegenstand.
+    // 4T-001748: «Bild setzen…» steht neben «Verweis setzen…» — ueber beide
+    // wird aus einer Text-Karte eine Verweis- oder eine Bild-Karte.
     expect(kennungen(menue)).toEqual([
       'canvas-card-edit',
       'canvas-card-delete',
+      'canvas-card-link-set',
+      'canvas-card-image-set',
       'canvas-stack-ganzNachVorn',
       'canvas-stack-eineStufeVor',
       'canvas-stack-eineStufeZurueck',
       'canvas-stack-ganzNachHinten',
     ]);
-    expect(menue.eintraege.filter((e) => e.separator)).toHaveLength(1);
+    expect(menue.eintraege.filter((e) => e.separator)).toHaveLength(2);
   });
 
   it('die Beschriftungen stehen im Katalog', () => {
@@ -171,6 +186,8 @@ describe('Canvas-Kontextmenü: Rechtsklick auf eine Karte (4T-001683)', () => {
     expect(menue.eintraege.filter((e) => !e.separator).map((e) => e.label)).toEqual([
       de['canvas.karteBearbeiten'],
       de['canvas.karteLoeschen'],
+      de['canvas.verweisSetzen'],
+      de['canvas.bildSetzen'],
       de['command.canvas.stackFront'],
       de['command.canvas.stackForward'],
       de['command.canvas.stackBackward'],

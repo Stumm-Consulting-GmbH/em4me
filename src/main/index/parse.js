@@ -4,6 +4,12 @@
 // Task-Zeilen. Alle Funktionen sind zustandsfrei gegenüber dem Index (reine
 // Eingabe → Ergebnis); die Eintrags-Pflege übernimmt build.js, die Leser der
 // blockData-Sektion der .mdd-Begleitdatei liegen in block-data.js.
+//
+// 4T-001749 (Epic 3E-000289): Seither trägt der Treffer-Satz eine dritte
+// Herkunft, den Verweis einer Canvas-Karte (`linkTyp: 'canvas'`). Die
+// Fence-Schleife liest dafür die Info-Zeichenfolge; alles Übrige einer Fence
+// bleibt übersprungen. Die Rückgabe-Form ist unverändert — die Treffer gehen in
+// `hits` wie jeder andere Verweis.
 
 'use strict';
 
@@ -32,6 +38,12 @@ const {
   mdLinkTargetFromMatch,
   maskInlineCode,
   frontmatterBodyStart,
+  // 4T-001749 (Epic 3E-000289): Die Verweis-Angaben einer Canvas-Karte werden
+  // an derselben Stelle erkannt wie Wiki- und Markdown-Links — eine Quelle fuer
+  // Index, ausgehende Verweise und Umbenennungs-Nachzug.
+  istCanvasFenceInfo,
+  scanneKartenVerweise,
+  kartenBeschriftung,
 } = require('../../shared/markdown/link-scan.js');
 // 4T-000363 (Epic 3E-000067): Block-Anker-Regex aus der gemeinsamen, prozess-
 // neutralen Quelle (Single Source). Dieselbe Definition nutzt der Renderer-
@@ -86,6 +98,45 @@ const HEADING_RE = /^#{1,6}\s+(.+?)(?:\s+#{1,6})?\s*$/;
 // 4T-000344 (Epic 3E-000062): MD_LINK_RE (relative Markdown-Links) aus der
 // gemeinsamen Quelle; eine Instanz je Modul-Ladung, lastIndex-Reset pro Zeile.
 const MD_LINK_RE = createMdLinkRegex();
+
+// 4T-001749 (Epic 3E-000289): Ziel und Anker einer Verweis-Karte, nach
+// **denselben Regeln wie der Wiki-Link-Scan** weiter unten. Die Gleichheit ist
+// kein Zufall, sondern die Zusage: Ein Karten-Verweis soll dasselbe Ziel
+// treffen wie derselbe Text in einem Wiki-Link oder einer Einbettung.
+//
+//   - Der Anker wird am ersten '#' abgetrennt; ein fuehrendes '^' bleibt im
+//     Anker-String stehen (Block-Anker).
+//   - Ein reiner Anker ohne Ziel ist kein Verweis auf eine andere Datei.
+//   - Relative Unterseiten-Ziele ('/Name', '..') werden gegen den eigenen
+//     Basename expandiert, damit der Index die aufgeloeste U+2215-Form traegt.
+//   - Ein Verknuepfungs-Ziel ('@kuerzel:Ziel') zeigt aus dem Bereich hinaus und
+//     bleibt wie dort ausdruecklich draussen.
+//
+// Ein Ziel mit '/'-Pfad wird **nicht** gesondert behandelt, sondern wie im
+// Wiki-Scan unveraendert als `zielBasename` gefuehrt: Die Aufloesung in
+// resolve.js kennt Namens-, Pfad- und Unterseiten-Form und entscheidet dort mit
+// derselben Regel fuer beide Herkuenfte. Eine Markdown-Endung am Ziel stoert
+// dabei nicht, weil die Aufloesung sie abschneidet.
+function kartenZiel(filePath, wert) {
+  const target = String(wert || '').trim();
+  if (!target) return null;
+  if (isAreaLinkTarget(target)) return null;
+  let anker = null;
+  let ziel = target;
+  const hashIdx = target.indexOf('#');
+  if (hashIdx >= 0) {
+    anker = target.slice(hashIdx + 1).trim() || null;
+    ziel = target.slice(0, hashIdx).trim();
+  }
+  if (!ziel) return null;
+  if (isRelativeTarget(ziel)) {
+    const ownBase = path.basename(filePath).replace(MD_EXT_RE, '');
+    const expanded = expandRelativeTarget(ownBase, ziel);
+    if (!expanded) return null;
+    ziel = expanded;
+  }
+  return { ziel, anker };
+}
 
 // Parst eine Datei und extrahiert alle Link-Treffer. Zielpfad wird beim
 // Markdown-Link gegen das Datei-Verzeichnis aufgeloest und absolut gemacht.
@@ -211,6 +262,10 @@ function parseContent(filePath, content) {
   let currentHeading = null;
   let inFence = false;
   let fenceChar = null;
+  // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
+  // Der Uebersprung bleibt, aber die Verweis-Angaben ihrer Karten werden
+  // gelesen — siehe die Begruendung an der Schleife.
+  let inCanvasFence = false;
 
   // B-10 (4T-000175): Slug-Deduplizierung wie markdown-it-anchor (x, x-1,
   // x-2 …), damit Linter und Autocomplete dieselben Anker sehen wie der
@@ -238,13 +293,58 @@ function parseContent(filePath, content) {
       if (!inFence) {
         inFence = true;
         fenceChar = ch;
+        // 4T-001749 (Epic 3E-000289): Die Info-Zeichenfolge wurde hier bisher
+        // nirgends gelesen. Sie ist die einzige Stelle, an der eine Fence sagt,
+        // was sie ist — und damit die Voraussetzung dafuer, die Canvas-Fence
+        // von jeder anderen zu unterscheiden. Vorbild: src/shared/mindmap-core.js
+        // und src/shared/document-split.js lesen sie fuer dieselbe Fence.
+        inCanvasFence = istCanvasFenceInfo(line.slice(fenceMatch[0].length));
       } else if (ch === fenceChar) {
         inFence = false;
         fenceChar = null;
+        inCanvasFence = false;
       }
       continue;
     }
-    if (inFence) continue;
+    if (inFence) {
+      // 4T-001749 (Epic 3E-000289): Innerhalb einer Fence `perspective-canvas`
+      // traegt die Marker-Zeile einer Karte mit `doc="…"` einen Verweis auf ein
+      // Dokument. Er wird gelesen wie ein Wiki-Link und geht als gewoehnlicher
+      // Treffer nach `hits`; Kanten-Bau, Rueckverweise und Graph tragen ihn
+      // damit ohne Aenderung an ihrer Form.
+      //
+      // **Alles Uebrige der Fence bleibt uebersprungen. Das ist eine benannte
+      // Grenze:** Ein Wiki-Link im eigenen Text einer Karte erzeugt weiterhin
+      // keine Kante — wie bisher und wie in jeder anderen Fence.
+      //
+      // **`bild=` erzeugt keinen Treffer** (Entscheidung F4 des Product Owners
+      // vom 2026-09-12): Bilder haben im Verweis-Graph keinen Knoten, und
+      // `![](…)` im Fliesstext hat ebenfalls keine Kante.
+      //
+      // **Keine Kopplung an den Schalter der Erweiterung.** Der Index ist
+      // zustandsfrei und gilt fuer alle Fenster einer Wurzel; was in der Datei
+      // steht, steht darin, unabhaengig davon, ob eine Sitzung die Canvas
+      // gerade anzeigt. Der Schalter regelt die Anzeige, nicht den Inhalt.
+      if (inCanvasFence) {
+        // Wirksam ist das LETZTE Vorkommen je Name — so entscheidet der
+        // Canvas-Kern, dessen `attrs` beim zweiten Vorkommen ueberschreibt.
+        const angabe = scanneKartenVerweise(line)
+          .filter((a) => a.name === 'doc')
+          .pop();
+        const ziel = angabe ? kartenZiel(filePath, angabe.wert) : null;
+        if (ziel) {
+          out.push({
+            zeile: lineNum,
+            linkTyp: 'canvas',
+            zielBasename: ziel.ziel,
+            zielAbsolut: null,
+            anker: ziel.anker,
+            snippet: shortSnippet(kartenBeschriftung(lines, i) || line),
+          });
+        }
+      }
+      continue;
+    }
 
     // 4T-000054: Heading-Erkennung (ATX).
     const headingMatch = line.match(HEADING_RE);

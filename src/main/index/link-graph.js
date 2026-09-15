@@ -9,7 +9,11 @@
 
 const path = require('node:path');
 const { toLogicalName } = require('../../shared/subpages.js');
-const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
+// 4T-001749 (Epic 3E-000289): NAMENS_LINK_TYPEN traegt neben dem Wiki-Link den
+// Verweis einer Canvas-Karte; beide nennen ihr Ziel mit einem Namen und werden
+// gleich aufgeloest. Die Menge steht in der geteilten Erkennungs-Quelle, damit
+// Kanten-Bau und Rueckverweise sie nicht getrennt fuehren.
+const { MD_EXT_RE, NAMENS_LINK_TYPEN } = require('../../shared/markdown/link-scan.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
 // 4T-000952 (Epic 3E-000198): Puffer-Overlays fuer den ueberlagerten Graphen
 // der Graphenansicht.
@@ -46,7 +50,10 @@ function buildLinkGraph(entry, sicht = entry) {
     const targets = new Map(); // lowercase -> Original-Pfad
     for (const h of hits) {
       let resolved = [];
-      if (h.linkTyp === 'wiki' && h.zielBasename) {
+      // 4T-001749 (Epic 3E-000289): Eine Karten-Kante ist eine gewoehnliche
+      // Kante zwischen zwei Dokumenten; der Graph selbst braucht dafuer keine
+      // Aenderung. `bild=` erzeugt hier bewusst nichts (F4).
+      if (NAMENS_LINK_TYPEN.has(h.linkTyp) && h.zielBasename) {
         resolved = resolveWikiLink(entry, h.zielBasename);
         if (resolved.length === 0) resolved = filesByAlias(entry, h.zielBasename);
       } else if (h.linkTyp === 'md' && h.zielAbsolut && sicht.files.has(h.zielAbsolut)) {

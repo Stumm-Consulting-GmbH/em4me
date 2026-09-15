@@ -61,5 +61,18 @@
   "canvas.block.formen": "{n} formas",
   "canvas.block.gruppe": "{n} grupo",
   "canvas.block.gruppen": "{n} grupos",
-  "canvas.block.umfangTrenner": ", "
+  "canvas.block.umfangTrenner": ", ",
+  "canvas.verweisZiel": "Destino del enlace",
+  "canvas.verweisSetzen": "Definir enlace…",
+  "canvas.verweisOeffnen": "Abrir destino",
+  "canvas.verweisEntfernen": "Quitar enlace",
+  "canvas.verweisNichtGefunden": "Destino no encontrado: {ziel}",
+  "canvas.verweisZielFehlt": "No se pudo abrir el destino del enlace",
+  "canvas.bild": "Imagen",
+  "canvas.bildSetzen": "Definir imagen…",
+  "canvas.bildEntfernen": "Quitar imagen",
+  "canvas.bildNichtGefunden": "Imagen no encontrada: {ziel}",
+  "canvas.bildZuGross": "Imagen demasiado grande: {ziel}",
+  "canvas.bildKeineBildDatei": "No es un archivo de imagen: {ziel}",
+  "canvas.bildZielFehlt": "No se pudo abrir la imagen"
 }

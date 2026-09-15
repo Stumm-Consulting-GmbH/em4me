@@ -497,6 +497,10 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'canvas.addCard',
       'canvas.addShape',
       'canvas.addGroup',
+      // 4T-001747 (Epic 3E-000289): die Verweis-Karte der Stufe 3.
+      'canvas.addLinkCard',
+      // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
+      'canvas.addImageCard',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',
@@ -516,6 +520,10 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'canvas.addCard',
       'canvas.addShape',
       'canvas.addGroup',
+      // 4T-001747 (Epic 3E-000289): die Verweis-Karte der Stufe 3.
+      'canvas.addLinkCard',
+      // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
+      'canvas.addImageCard',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',
@@ -543,6 +551,10 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'canvas.addCard',
       'canvas.addShape',
       'canvas.addGroup',
+      // 4T-001747 (Epic 3E-000289): die Verweis-Karte der Stufe 3.
+      'canvas.addLinkCard',
+      // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
+      'canvas.addImageCard',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',

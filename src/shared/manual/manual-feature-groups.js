@@ -337,6 +337,14 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.canvasShapes',
       'help.feature.canvasGroups',
       'help.feature.canvasStacking',
+      // 4T-001747 (Epic 3E-000289): die Verweis-Karten der dritten Canvas-Stufe,
+      // hinter der Ordnung der Stufe 2. Sie sind eine eigene Arbeits-Form der
+      // Flaeche und keine Verfeinerung einer der drei Zeilen darueber.
+      'help.feature.canvasLinkCards',
+      // 4T-001748 (Epic 3E-000289): die Bild-Karten derselben Stufe,
+      // unmittelbar hinter den Verweis-Karten — beide sind Arbeits-Formen
+      // derselben Karte und gehoeren nebeneinander.
+      'help.feature.canvasImageCards',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

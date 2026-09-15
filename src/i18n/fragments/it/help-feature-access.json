@@ -210,5 +210,7 @@
   "help.featureAccess.canvas": "Visualizza → Tela (Ctrl+6 come predefinito); blocco di codice `perspective-canvas`; palette dei comandi → 'Tela' e 'Aggiungi scheda alla tela'",
   "help.featureAccess.canvasShapes": "Visualizza → Aggiungi forma alla tela; menu contestuale della tela → Inserisci forma; palette dei comandi → 'Aggiungi forma alla tela'",
   "help.featureAccess.canvasGroups": "Visualizza → Aggiungi gruppo alla tela; menu contestuale della tela → Inserisci gruppo; palette dei comandi → 'Aggiungi gruppo alla tela'",
-  "help.featureAccess.canvasStacking": "Visualizza → Ordine di sovrapposizione della tela; menu contestuale dell’elemento selezionato; palette dei comandi → 'Porta in primo piano', 'Porta avanti', 'Porta indietro' e 'Porta in fondo'"
+  "help.featureAccess.canvasStacking": "Visualizza → Ordine di sovrapposizione della tela; menu contestuale dell’elemento selezionato; palette dei comandi → 'Porta in primo piano', 'Porta avanti', 'Porta indietro' e 'Porta in fondo'",
+  "help.featureAccess.canvasLinkCards": "Vista → Aggiungi scheda di collegamento alla tela; menu contestuale della tela → Aggiungi scheda di collegamento alla tela; menu contestuale della scheda → Imposta collegamento…, Apri destinazione, Rimuovi collegamento; barra della scheda selezionata; tavolozza dei comandi → «Aggiungi scheda di collegamento alla tela»",
+  "help.featureAccess.canvasImageCards": "Vista → Aggiungi scheda immagine alla tela; menu contestuale della tela → Aggiungi scheda immagine alla tela; menu contestuale della scheda → Imposta immagine…, Apri destinazione, Rimuovi immagine; barra della scheda selezionata; tavolozza dei comandi → «Aggiungi scheda immagine alla tela»"
 }

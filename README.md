@@ -26,9 +26,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   their own text, placed where you put them and joined by labelled, coloured
   lines. Shapes in six types and labelled group rectangles that take their
   members along when moved sit on the same surface, and one stacking order
-  decides what lies on top. Unlike the graph it computes nothing, it keeps
-  what you laid out, and because it lives as plain text inside the document,
-  the cards stay readable anywhere.
+  decides what lies on top. A card can also show another document — the whole
+  file or just one heading or block — or an image from your area, and such a
+  reference counts in your network of links like any other. Unlike the graph
+  it computes nothing, it keeps what you laid out, and because it lives as
+  plain text inside the document, the cards stay readable anywhere.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside

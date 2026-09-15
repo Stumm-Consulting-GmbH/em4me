@@ -912,3 +912,158 @@
   font-size: 11px;
   font-style: italic;
 }
+
+/* 4T-001747 (Epic 3E-000289): Verweis-Karten. Die Karte trägt dann zwei Teile
+   untereinander — die Kopfzeile mit Beschriftung oder Ziel und darunter den
+   angezeigten Inhalt des verwiesenen Dokuments. Ohne die Richtung stünden beide
+   nebeneinander, denn .canvas-karte ist eine Flex-Zeile. Farben weiterhin
+   ausschließlich aus Theme-Variablen. */
+.canvas-karte-verweis {
+  flex-direction: column;
+}
+
+/* Die Kopfzeile wächst nicht mit: Sie behält ihre Höhe, und der Körper darunter
+   bekommt den Rest — sonst schöbe eine lange Beschriftung den Inhalt aus der
+   Karte (Leitplanke 3). */
+.canvas-karte-kopf {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.canvas-karte-kopf-text {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* Der Anker steht neben dem Dokument-Namen und in der Akzentfarbe: Er ist der
+   Teil des Ziels, der die Stelle benennt. */
+.canvas-karte-kopf-anker {
+  color: var(--accent);
+}
+
+/* Befund «Ziel nicht gefunden»: Die Karte bleibt stehen und nennt ihr Ziel.
+   Der Rohtext ist davon unberührt — hier wird nichts geschrieben. */
+.canvas-karte-verweis-fehlt {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+
+/* Leiste der gewählten Karte, über ihrer Oberkante. Aussehen und Maße wie die
+   Leiste der Form — es ist dieselbe Art von Werkzeug, und zwei
+   Erscheinungsbilder dafür wären zwei Sprachen auf einer Fläche. */
+.canvas-karte-leiste {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  transform: translate(-50%, -100%);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-alt);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  white-space: nowrap;
+  pointer-events: all;
+}
+
+/* Freistehende Ziel-Abfrage des Anlege-Kommandos. Sie sitzt mittig auf der
+   Stelle, an der die Karte entstehen soll; eine Karte gibt es noch nicht. */
+.canvas-karte-ziel-eingabe {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 3px 5px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: var(--bg-alt);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  white-space: nowrap;
+  pointer-events: all;
+}
+
+.canvas-karte-feld {
+  display: inline-flex;
+}
+
+/* 4T-001748: Das Bild-Feld teilt Maße und Aussehen — es ist dasselbe
+   Bedienteil an derselben Leiste; allein seine Breite steht weiter unten. */
+.canvas-karte-verweis-feld,
+.canvas-karte-bild-feld {
+  width: 220px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.canvas-karte-knopf {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.canvas-karte-knopf:hover {
+  background: var(--hover);
+}
+
+/* 4T-001748 (Epic 3E-000289): Bild-Karten. Wie die Verweis-Karte trägt die
+   Karte zwei Teile untereinander — Kopfzeile und darunter das Bild. Eine eigene
+   Regel statt eines zweiten Namens an der Regel darüber: Die beiden Formen
+   heißen verschieden, weil sie verschiedenes zeigen. Farben weiterhin
+   ausschließlich aus Theme-Variablen. */
+.canvas-karte-bild-karte {
+  flex-direction: column;
+}
+
+/* Der Körper einer Bild-Karte wird NICHT gescrollt (Story 4S-000943, AK3): Ein
+   Bild hat keine Lese-Richtung, ein halb abgeschnittenes wäre nutzlos. Es wird
+   stattdessen eingepasst und mittig gesetzt; `min-height: 0` gibt dem
+   Flex-Kind erst seine wirkliche Höhe, ohne die `max-height` am Bild nichts
+   begrenzte. */
+.canvas-karte-bild-koerper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 4px;
+  overflow: hidden;
+}
+
+/* Beibehaltung der Proportion: Das Bild füllt den Körper so weit aus, wie es
+   ohne Verzerrung geht, und folgt jeder Größen-Änderung der Karte. */
+.canvas-karte-bild {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Das Bild-Feld der Leiste bleibt schmaler als das Ziel-Feld daneben: Ein
+   Dateiname ist kürzer als ein Pfad mit Anker, und zwei gleich breite Felder
+   machten die Leiste breiter als manche Karte. Alles Übrige teilt es mit dem
+   Ziel-Feld (Regel oben) — es ist dasselbe Bedienteil. */
+.canvas-karte-bild-feld {
+  width: 150px;
+}

@@ -292,6 +292,19 @@ describe('canvas-core — defekte Eingaben sind Befunde, kein Absturz (AK5)', ()
     ['fehlende Größe der Form', '!form s1 x=0 y=0', 'ungueltigeZahl'],
     ['unbekannte Farbe der Gruppe', '!gruppe g1 x=0 y=0 b=1 h=1 farbe=ocker', 'ungueltigeFarbe'],
     ['fehlende Kennung der Gruppe', '!gruppe x=0 y=0 b=1 h=1', 'fehlendeKennung'],
+    // 4T-001746: dieselbe Semantik für die drei Befunde der Stufe 3 (G7, G8).
+    ['leeren Dokument-Verweis', '!karte k1 x=0 y=0 b=1 h=1 doc=""', 'leererVerweis'],
+    ['leeren Bild-Verweis', '!karte k1 x=0 y=0 b=1 h=1 bild="   "', 'leererVerweis'],
+    [
+      'beide Verweise an derselben Karte',
+      '!karte k1 x=0 y=0 b=1 h=1 doc="Ziel.md" bild="Skizze.png"',
+      'doppelterVerweis',
+    ],
+    [
+      'unzulässige Bild-Endung',
+      '!karte k1 x=0 y=0 b=1 h=1 bild="Anlagen/Bericht.pdf"',
+      'ungueltigeBildEndung',
+    ],
   ];
 
   for (const [name, rumpf, code] of faelle) {
@@ -366,12 +379,16 @@ describe('canvas-core — Prozess-Neutralität (AK6)', () => {
   });
 
   it('lädt weder Electron noch ein DOM-Modul und greift nicht auf Dateien zu', () => {
+    // 4T-001746: Der Kern lädt seither **genau ein** Modul — den geteilten Satz
+    // der Bild-Endungen für G8. Er ist reine Daten und damit prozess-neutral
+    // wie der Kern selbst; die Zusage der Prüfung ist unverändert, dass hier
+    // kein Renderer-Modul, kein Electron und kein Datei-Zugriff hereinkommt.
     const quelle = readFileSync(
       new URL('../../src/shared/canvas/canvas-core.js', import.meta.url),
       'utf8',
     );
     const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
-    expect(importe).toEqual([]);
+    expect(importe).toEqual(['../bild-endungen.js']);
   });
 });
 
@@ -834,12 +851,14 @@ describe('canvas-elemente — Ändern von Art und Farben', () => {
 });
 
 describe('canvas-elemente — Prozess-Neutralität (AK7)', () => {
-  it('lädt nur die beiden geteilten Nachbar-Module', () => {
+  it('lädt nur geteilte Module ohne Prozess-Bindung', () => {
     const quelle = readFileSync(
       new URL('../../src/shared/canvas/canvas-elemente.js', import.meta.url),
       'utf8',
     );
     const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
-    expect(importe).toEqual(['./canvas-core.js', './canvas-geometrie.js']);
+    // 4T-001746: dazu der geteilte Satz der Bild-Endungen, an dem die Prüfung
+    // einer gesetzten Bild-Angabe hängt (G8).
+    expect(importe).toEqual(['./canvas-core.js', '../bild-endungen.js', './canvas-geometrie.js']);
   });
 });

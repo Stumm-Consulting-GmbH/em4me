@@ -30,6 +30,10 @@ const {
   LINIEN_FARBEN,
   STAPEL_ARTEN,
 } = require('./canvas-core.js');
+// 4T-001746 (Epic 3E-000289): Die zulässigen Bild-Endungen der Anlagen-Mechanik
+// (G8). Sie stehen als geteilte Konstante bereit, damit Kern und Bedienung
+// denselben Satz lesen, statt ihn zu verdoppeln.
+const { istBildDatei } = require('../bild-endungen.js');
 const { MIN_BREITE, MIN_HOEHE } = require('./canvas-geometrie.js');
 
 // Die vier Befehle des gewählten Elements (Story 4S-000932, Entscheidung
@@ -107,7 +111,7 @@ function setzeAngabe(el, name, wert) {
 }
 
 /**
- * Neue Karte. Sie trägt keine eigenen Angaben außer Lage und Größe; ihr Text
+ * Neue Karte. Außer Lage und Größe trägt sie höchstens einen Verweis; ihr Text
  * sind die Inhalts-Zeilen.
  *
  * 4T-001701: Hierher gezogen aus `canvas-bedienung.js`, wie es die Übergabe
@@ -115,11 +119,21 @@ function setzeAngabe(el, name, wert) {
  * Element in die Liste kommt, ist eine Aussage des Speicherformats (G3), und
  * eine zweite Fabrik in der Oberfläche wäre ein zweiter Ort für dieselbe Regel.
  *
- * @param {{id: string, x: number, y: number, b: number, h: number}} felder
+ * 4T-001746: `doc` und `bild` kommen als **optionale** Felder hinzu, damit die
+ * Kommandos «Verweis-Karte anlegen» und «Bild-Karte anlegen» (4T-001747,
+ * 4T-001748) eine Karte in einem Zug erzeugen, statt sie anzulegen und
+ * anschließend zu ändern. Eine Karte ohne beide Felder bleibt genau die Karte,
+ * die sie vorher war.
+ *
+ * @param {{id: string, x: number, y: number, b: number, h: number,
+ *   doc?: string, bild?: string}} felder
  * @returns {object} Element im Modell-Format des Kerns.
  */
-function erzeugeKarte({ id, x, y, b, h }) {
-  return geruest('karte', id, { x, y, b, h });
+function erzeugeKarte({ id, x, y, b, h, doc, bild }) {
+  const el = geruest('karte', id, { x, y, b, h });
+  if (doc != null) setzeKartenVerweis(el, doc);
+  else if (bild != null) setzeKartenBild(el, bild);
+  return el;
 }
 
 /**
@@ -300,6 +314,66 @@ function setzeGruppenFarbe(el, name) {
   return setzeFarbAngabe(el, 'farbe', 'farbe', name);
 }
 
+/**
+ * Gemeinsamer Rumpf der beiden Verweis-Setzer (4T-001746, G7 und G8).
+ *
+ * **Die beiden Angaben schließen einander aus**, und zwar hier und nicht erst
+ * im Dokument: Der Kern liest `doc=` und `bild=` an derselben Karte als Befund
+ * (`doppelterVerweis`), und eine Bedien-Handlung darf keinen Befund erzeugen.
+ * Wer einer Bild-Karte ein Dokument gibt, hat die Karte umgewidmet; die alte
+ * Angabe bleibt sonst als stiller Rest in der Datei stehen, den niemand mehr
+ * sieht, weil `doc=` ohnehin gewinnt.
+ *
+ * Ein leerer Wert **entfernt** den Verweis, statt einen leeren zu schreiben:
+ * Ein leerer Wert ist nach 6.3 ein Befund, und die Bedienung soll ihn nicht
+ * herstellen können. Die Karte wird damit wieder zur Text-Karte, und ihre
+ * Beschriftung bleibt unangetastet — sie ist ihr eigener Inhalt und hing nie
+ * am Verweis.
+ *
+ * @returns {boolean} `true`, wenn sich etwas geändert hat.
+ */
+function setzeKartenAngabe(el, angabe, wert) {
+  if (!el || el.art !== 'karte') return false;
+  const neu = wert == null || String(wert).trim() === '' ? undefined : String(wert);
+  const andere = angabe === 'doc' ? 'bild' : 'doc';
+  const anderesWeg = neu !== undefined && el[andere] !== undefined;
+  if (el[angabe] === neu && !anderesWeg && (neu !== undefined || el.attrs[angabe] == null)) {
+    return false;
+  }
+  if (anderesWeg) {
+    setzeAngabe(el, andere, null);
+    el[andere] = undefined;
+  }
+  setzeAngabe(el, angabe, neu === undefined ? null : neu);
+  el[angabe] = neu;
+  el.geaendert = true;
+  return true;
+}
+
+/**
+ * Dokument-Verweis einer Karte (G7); `null` oder ein leerer Wert entfernt ihn.
+ *
+ * Geprüft wird die **Form** und nicht die Existenz: Ob das Ziel auflösbar ist,
+ * weiß allein der Einbettungs-Auflöser, und ein Ziel, das gerade fehlt, soll
+ * sich trotzdem eintragen lassen — sonst wäre der Verweis auf ein Dokument,
+ * das noch entsteht, nicht setzbar.
+ */
+function setzeKartenVerweis(el, ziel) {
+  return setzeKartenAngabe(el, 'doc', ziel);
+}
+
+/**
+ * Bild-Verweis einer Karte (G8); `null` oder ein leerer Wert entfernt ihn.
+ *
+ * Eine unzulässige Endung wird **gar nicht erst gesetzt** — dieselbe Haltung
+ * wie bei einem Farbnamen außerhalb des Satzes: Die Bedienung bietet nur
+ * Bilder an, und etwas anderes käme aus einem Irrtum.
+ */
+function setzeKartenBild(el, ziel) {
+  if (ziel != null && String(ziel).trim() !== '' && !istBildDatei(ziel)) return false;
+  return setzeKartenAngabe(el, 'bild', ziel);
+}
+
 module.exports = {
   STAPEL_BEFEHLE,
   KENNUNGS_PRAEFIXE,
@@ -314,4 +388,6 @@ module.exports = {
   setzeFormRand,
   setzeFormFuellung,
   setzeGruppenFarbe,
+  setzeKartenVerweis,
+  setzeKartenBild,
 };

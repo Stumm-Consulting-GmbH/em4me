@@ -1,10 +1,10 @@
 # Superficie Canvas
 
-Un **lienzo** es una superficie de trabajo espacial dentro de un documento Markdown corriente: **tarjetas** con texto propio se colocan libremente sobre ella, **conexiones** trazan las relaciones entre ellas, **formas** ponen señales a su lado y **grupos** reúnen lo que va junto. Cuando se colocan alternativas una junto a otra, se esboza un flujo o se ordenan primero las ideas, aquí el orden proviene de la posición y no de la secuencia.
+Un **lienzo** es una superficie de trabajo espacial dentro de un documento Markdown corriente: **tarjetas** con texto propio se colocan libremente sobre ella, **conexiones** trazan las relaciones entre ellas, **formas** ponen señales a su lado y **grupos** reúnen lo que va junto. Una tarjeta lleva o bien texto propio, o bien muestra el contenido de otro documento o una imagen del área. Cuando se colocan alternativas una junto a otra, se esboza un flujo o se ordenan primero las ideas, aquí el orden proviene de la posición y no de la secuencia.
 
 La superficie la sostiene un bloque de código con la etiqueta de lenguaje `perspective-canvas`. Un documento puede contener tantos como se quiera, y todo lo demás en él sigue siendo Markdown corriente.
 
-La función pertenece a las [extensiones internas](extensions.md) («Vista de lienzo»). Desactivada, el bloque sigue siendo un bloque de código corriente, el modo de vista desaparece y los comandos de superficie, tarjeta, forma, grupo y orden de apilamiento se van. El documento permanece legible sin cambios; no se pierde nada.
+La función pertenece a las [extensiones internas](extensions.md) («Vista de lienzo»). Desactivada, el bloque sigue siendo un bloque de código corriente, el modo de vista desaparece y los comandos de superficie, tarjeta, tarjeta de enlace, tarjeta de imagen, forma, grupo y orden de apilamiento se van. El documento permanece legible sin cambios; no se pierde nada.
 
 ## Diferencia con la vista de grafo
 
@@ -69,6 +69,25 @@ Un **doble clic dentro de una tarjeta** la conmuta a su texto en bruto. Allí ha
 | `Esc` | descarta |
 
 Un texto sin cambios no escribe nada en el documento.
+
+### Tarjetas de enlace
+
+En lugar de llevar texto propio, una tarjeta muestra a elección el contenido de **otro documento**: entero, o desde un título o desde un bloque. El contenido permanece donde está: la tarjeta no guarda ninguna copia y no se modifica en este lugar. Si no cabe en la tarjeta, esta se desplaza.
+
+- **Crear** — el comando **«Añadir tarjeta de enlace al lienzo»** (paleta de comandos, menú Ver) la coloca en el centro de la parte visible; el clic derecho sobre el fondo libre, en el punto del clic. Ambos preguntan primero por el destino: `Intro` crea la tarjeta, `Esc` cancela. Sin destino no se crea ninguna tarjeta.
+- **Definir, cambiar y quitar el destino** — una tarjeta seleccionada lleva una **barra** con el campo «Destino del enlace»; al escribir ofrece los documentos del área. Así una tarjeta de texto se convierte en tarjeta de enlace, y «Quitar enlace» la devuelve a tarjeta de texto: su texto propio se queda. Las mismas acciones están en el **menú contextual** de la tarjeta.
+- **Abrir el destino** — un **doble clic sobre el contenido mostrado** abre el documento enlazado en el lugar enlazado, igual que «Abrir destino» en la barra y en el menú contextual. Esto sigue permitido en la vista pura, porque abrir no cambia nada.
+- **Línea de encabezado** — indica la **etiqueta** de la tarjeta, es decir, su texto propio, y si no, el destino con su ancla. Un doble clic sobre la línea de encabezado edita la etiqueta como el texto de cualquier otra tarjeta.
+
+Si el destino no se encuentra, la tarjeta se queda e indica, en lugar del contenido, qué ha buscado; en el archivo no cambia nada. Si el destino se edita en otro documento abierto, la tarjeta lo sigue de inmediato; un cambio en un archivo que no está abierto en ninguna parte aparece la próxima vez que se dibuja la superficie.
+
+### Tarjetas de imagen
+
+Igualmente, una tarjeta muestra a elección una **imagen** del área. Tampoco aquí guarda copia alguna: la imagen sigue siendo un archivo y la tarjeta apunta a ella, mediante una ruta relativa al documento o mediante el mero nombre de archivo. Se **ajusta** a la tarjeta conservando sus proporciones; en una tarjeta de imagen no se desplaza nada.
+
+Se maneja como la tarjeta de enlace: el comando **«Añadir tarjeta de imagen al lienzo»** y la misma entrada en el menú contextual de la superficie, en la barra de la tarjeta seleccionada el campo «Imagen» —con los archivos de imagen del área como propuestas— así como «Quitar imagen» y «Abrir destino». Un doble clic sobre la imagen abre el archivo tal como la aplicación abre cualquier [adjunto](attachments.md). La línea de encabezado indica la etiqueta y, si no, el nombre del archivo de imagen.
+
+Si la imagen no se encuentra, es demasiado grande o no lleva extensión de imagen, la tarjeta lo dice en lugar de la imagen. **Una tarjeta muestra o bien un documento o bien una imagen;** si ambos atributos están uno junto a otro, vale el documento.
 
 ### Eliminar
 
@@ -207,6 +226,22 @@ Como la superficie se encuentra en un documento Markdown corriente, aparece en t
 
 La vista previa muestra como máximo seis tarjetas; debajo consta cuántas más hay. El bloque se puede **plegar**, quedándose su línea de encabezado; ese estado vale para la sesión en curso y no se escribe en el documento. La impresión y la exportación a PDF siguen la vista renderizada, sin imprimir los dos botones del bloque.
 
+## Los enlaces en la red del área
+
+Una tarjeta de enlace es un **enlace como uno del texto corrido**, solo que sobre una superficie. Por eso aparece en todos los lugares donde la aplicación muestra enlaces:
+
+| Lugar | Qué aparece |
+| ----- | ----------- |
+| retroenlaces del destino | la superficie como origen, marcada con «en un lienzo»; el extracto es la etiqueta de la tarjeta |
+| enlaces salientes del documento | una entrada del tipo «Tarjeta de enlace en un lienzo», marcada con `C` |
+| [Vista de grafo](graph.md) | una arista como cualquier otro enlace |
+
+Los retroenlaces y los enlaces salientes se describen en conjunto en la página [Enlaces](linking.md).
+
+Si el destino se **renombra o se mueve**, el atributo de la tarjeta lo sigue, como un enlace del texto corrido; lo mismo vale para la imagen de una tarjeta de imagen.
+
+Dos cosas no cuentan: una **imagen** no obtiene ningún nodo en el grafo de enlaces, igual que tampoco lo obtiene una imagen del texto corrido. Y un enlace en el **texto propio** de una tarjeta queda fuera: solo cuenta el destino de la tarjeta.
+
 ## El formato de almacenamiento
 
 La superficie está en texto claro dentro del documento. Por eso puede interpretarse sin esta aplicación, y lo que hay en las tarjetas es legible en cualquier herramienta de texto.
@@ -229,6 +264,19 @@ Un atributo tiene la forma `nombre=valor`. Un valor es o bien una palabra sin es
 | `b`, `h` | anchura y altura |
 
 Los cuatro son **números enteros** contados en píxeles con zoom 1. El **origen está en el centro de la superficie**: los valores negativos quedan a su izquierda o por encima. Las líneas bajo el marcador son el texto de la tarjeta.
+
+Otros dos atributos hacen de la tarjeta una **tarjeta de enlace** o una **tarjeta de imagen**:
+
+```text
+!karte <identificador> x=<número> y=<número> b=<número> h=<número> doc="<destino>"
+!karte <identificador> x=<número> y=<número> b=<número> h=<número> bild="<imagen>"
+```
+
+`doc=` muestra el contenido de un documento. El destino admite las mismas formas que el destino de una incrustación: el nombre del documento o una ruta relativa al propio documento, seguida a elección de `#Título` o de `#^block-id`.
+
+`bild=` muestra una imagen. El valor es una ruta relativa al documento o el mero nombre de un archivo de imagen del área; las extensiones admitidas son `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` e `ico`.
+
+Si ambos atributos están en la misma tarjeta, vale `doc=`. Un valor vacío y una extensión fuera de la lista son un **hallazgo**; aun así el atributo permanece sin cambios en el archivo. Las líneas bajo el marcador son también aquí el texto propio de la tarjeta; en una tarjeta de enlace y en una de imagen, su **etiqueta**.
 
 ### Conexiones
 
@@ -295,6 +343,12 @@ Varias fuentes, una fusión.
 
 ¿Cómo se resuelven los conflictos?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Conceptos/Import.md#Objetivo"
+El objetivo en el concepto
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="adjuntos/boceto.png"
+Boceto de la interfaz
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Idea central
 
@@ -330,6 +384,12 @@ Varias fuentes, una fusión.
 
 ¿Cómo se resuelven los conflictos?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Conceptos/Import.md#Objetivo"
+El objetivo en el concepto
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="adjuntos/boceto.png"
+Boceto de la interfaz
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Idea central
 
@@ -345,9 +405,11 @@ se condicionan
 
 ## Límites
 
-- Una tarjeta lleva **texto propio**; no hay otros tipos de tarjeta. Las formas y los grupos forman parte de la superficie, pero no llevan contenido renderizado, sino como mucho una etiqueta de texto sencillo.
+- El **contenido mostrado** de una tarjeta de enlace no se modifica en la tarjeta; se modifica en el documento al que apunta. Las formas y los grupos no llevan contenido renderizado alguno, sino como mucho una etiqueta de texto sencillo.
+- **Las incrustaciones dentro del contenido mostrado no se resuelven.** Si una tarjeta de enlace muestra un documento que a su vez incrusta algo, ese lugar queda vacío en la tarjeta; todo lo demás aparece sin cambios.
+- Un cambio en el destino aparece **de inmediato** mientras este se edite en otro documento abierto; si se cambia un archivo que no está abierto en ninguna parte, eso aparece la próxima vez que se dibuja la superficie.
 - **No hay dibujo libre.** La superficie conoce las seis clases de forma y ninguna otra geometría; los trazos a mano alzada, las flechas dibujadas por uno mismo y la entrada con lápiz no forman parte de ella.
 - Una **conexión** va únicamente entre tarjetas; no se conecta ni a una forma ni a un grupo.
-- Un enlace en el texto de una tarjeta **no** aparece en el grafo de enlaces ni en los retroenlaces: el índice del área omite el contenido de los bloques de código.
+- Un enlace en el **texto propio** de una tarjeta no aparece en el grafo de enlaces ni en los retroenlaces; solo cuenta el destino de una tarjeta de enlace. Una imagen no obtiene ningún nodo en el grafo de enlaces.
 - La superficie se maneja con el ratón; el teclado lleva deshacer, eliminar y las entradas de texto.
 - Una superficie pertenece a su documento. Las tarjetas no pueden arrastrarse de una superficie a otra.

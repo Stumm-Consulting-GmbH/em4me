@@ -109,6 +109,66 @@ describe('Outgoing-Links und Snippets (panels/panel-outgoing.js)', () => {
     expect(links.map((l) => l.target)).toEqual(['doch']);
   });
 
+  // 4T-001749 (Epic 3E-000289): Verweis-Karten einer Canvas-Fläche. Das Panel
+  // scannt den Text selbst und liest nicht den Index — dieselben Fälle wie am
+  // Parser, weil beide dasselbe behaupten.
+  describe('Verweis-Karten einer Fläche (4T-001749)', () => {
+    const flaeche = (...zeilen) =>
+      ['# Titel', '', '```perspective-canvas', ...zeilen, '```', ''].join('\n');
+
+    it('AK6: ein Karten-Verweis erscheint mit Ziel, Anker und Beschriftung', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        flaeche('!karte k1 x=0 y=0 b=260 h=120 doc="Import#Zielbild"', 'Mein Überblick'),
+      );
+      expect(links).toHaveLength(1);
+      expect(links[0]).toMatchObject({
+        type: 'canvasCard',
+        target: 'Import',
+        anchor: 'Zielbild',
+        line: 4,
+        snippet: 'Mein Überblick',
+      });
+    });
+
+    it('AK6: ohne eigenen Text tritt die Marker-Zeile an die Stelle der Beschriftung', () => {
+      const links = panelOutgoing.extractOutgoingLinks(flaeche('!karte k1 doc="Import"'));
+      expect(links[0].snippet).toBe('!karte k1 doc="Import"');
+    });
+
+    it('AK3 (Rot-Probe): der eigene Text einer Karte zaehlt weiterhin nicht', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        flaeche('!karte k1 doc="Import"', 'Siehe [[NichtGezaehlt]] dazu'),
+      );
+      expect(links.map((l) => l.target)).toEqual(['Import']);
+    });
+
+    it('AK7 (Rot-Probe): bild= und eine Fence anderer Art bleiben draussen', () => {
+      expect(panelOutgoing.extractOutgoingLinks(flaeche('!karte k1 bild="Skizze.png"'))).toEqual(
+        [],
+      );
+      const fremd = ['```js', '!karte k1 doc="Fremd"', '```', ''].join('\n');
+      expect(panelOutgoing.extractOutgoingLinks(fremd)).toEqual([]);
+    });
+
+    it('nimmt mehrere Karten und laesst den Text ausserhalb der Flaeche unberuehrt', () => {
+      const text = [
+        '```perspective-canvas',
+        '!karte k1 doc="Eins"',
+        '!karte k2 doc="Zwei"',
+        '```',
+        '',
+        '[[Draussen]]',
+        '',
+      ].join('\n');
+      const links = panelOutgoing.extractOutgoingLinks(text);
+      expect(links.map((l) => [l.type, l.target])).toEqual([
+        ['canvasCard', 'Eins'],
+        ['canvasCard', 'Zwei'],
+        ['wikiLink', 'Draussen'],
+      ]);
+    });
+  });
+
   // R3-12 (4T-000183): Fenster um den Treffer-Index.
   it('snippetAroundIndex zentriert lange Zeilen um den Treffer (R3-12)', () => {
     const prefix = 'x'.repeat(150);

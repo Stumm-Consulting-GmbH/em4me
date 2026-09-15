@@ -62,6 +62,10 @@
 .outgoing-entry .outgoing-type-markdownLink {
   background: var(--syntax-string);
 }
+/* 4T-001749 (Epic 3E-000289): vierte Art, der Verweis einer Canvas-Karte. */
+.outgoing-entry .outgoing-type-canvasCard {
+  background: var(--syntax-keyword);
+}
 .outgoing-entry .outgoing-target {
   color: var(--fg);
   font-weight: 500;

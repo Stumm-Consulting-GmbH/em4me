@@ -14,6 +14,95 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.135.0.2871] - 2026-09-14 — Canvas Stufe 3: Verweis- und Bild-Karten
+
+Zug 3E-000310,
+Stufe 3 des Canvas-Vorhabens. Mitglied 1 und einziges:
+3E-000289,
+die dritte Ausbaustufe der Fläche — Karten, die den Inhalt eines Dokuments oder
+ein Bild aus dem Bereich zeigen, statt eigenen Text zu tragen, und die Teilnahme
+dieser Verweise am Netz des Bereichs, dazu Funktions-Katalog, Handbuch und
+Demo-Beispiel. Der Abschluss-Anteil des Epics liegt in
+4T-001751.
+
+### Neu
+
+- **Verweis-Karten: eine Karte zeigt, was in einem anderen Dokument steht**
+  (`4T-001746`, `4T-001747`). Eine Karte trägt wahlweise ein Ziel statt eigenen
+  Textes und zeigt dessen Inhalt auf der Fläche an — das ganze Dokument oder,
+  mit einem Anker, genau den Abschnitt oder Block. Der Inhalt ist dort **nicht
+  änderbar** und wird nicht kopiert; passt er nicht in die Karte, wird in ihr
+  gescrollt. Die Kopfzeile trägt die Beschriftung der Karte und sonst das Ziel
+  samt Anker. Angelegt wird eine Verweis-Karte über das Ansichtsmenü, die
+  Befehls-Palette oder das Kontextmenü der Fläche; das Ziel wird dabei in einem
+  Eingabe-Feld abgefragt, das **Vorschläge aus dem Bestand des Bereichs** macht.
+  Am gewählten Element steht dieselbe Angabe in einer kleinen Karten-Leiste:
+  Ziel setzen, wechseln und wieder entfernen — eine Text-Karte wird so zur
+  Verweis-Karte und zurück, und ihr Text bleibt dabei stehen. Ein Doppelklick
+  auf den Körper öffnet das verwiesene Dokument an der verwiesenen Stelle, die
+  Kopfzeile bleibt für die Beschriftung zuständig; «Ziel öffnen» steht
+  zusätzlich in Leiste und Kontextmenü. Ändert sich das Ziel in einem anderen
+  geöffneten Dokument, frischt die Karte sich auf.
+- **Bild-Karten: ein Bild aus dem Bereich auf der Fläche** (`4T-001746`,
+  `4T-001748`). Dieselbe Karte nimmt statt eines Dokuments ein Bild auf. Es wird
+  mit seinem Seitenverhältnis in die Karte eingepasst — nicht verzerrt, nicht
+  beschnitten — und folgt ihr beim Ändern der Größe; gescrollt wird in einer
+  Bild-Karte nicht. Das Bild wird über denselben Weg geholt wie ein Bild im
+  Fließtext, und das Eingabe-Feld schlägt die **Bild-Namen des Bereichs** vor.
+  Ein Doppelklick öffnet die Datei über den gewohnten Anlagen-Weg. Fehlt das
+  Bild, ist es zu groß für die Anzeige oder benennt die Endung kein Bild, sagt
+  die Karte es in einem eigenen Hinweis, statt leer zu bleiben.
+- **Karten-Verweise zählen im Netz des Bereichs mit** (`4T-001749`). Ein Ziel
+  auf einer Fläche ist von nun an ein Verweis wie jeder andere: Das verwiesene
+  Dokument nennt die Fläche in seinen **Rückverweisen** — mit Zeile, Anker und
+  einem kurzen Auszug, gekennzeichnet als «auf einer Fläche» —, das Dokument mit
+  der Fläche nennt das Ziel in seinen **ausgehenden Verweisen** als
+  «Verweis-Karte auf einer Fläche», und im **Verweis-Graph** entsteht die
+  zugehörige Kante. Wird das Ziel umbenannt oder in einen anderen Ordner
+  verschoben, ziehen die Karten nach wie Verweise im Fließtext; der Rest der
+  Fläche bleibt dabei Zeichen für Zeichen erhalten. Ein Bild erzeugt weiterhin
+  keine Kante und keinen Rückverweis, und ein Verweis im **eigenen Text** einer
+  Karte bleibt wie bisher außen vor.
+- **Das Speicherformat der Fläche nimmt zwei Angaben auf** (`4T-001746`). Eine
+  Karte trägt `doc="…"` für das Dokument-Ziel und `bild="…"` für das Bild; beide
+  stehen auf der Marker-Zeile der Karte, und ein neuer Baustein entsteht nicht —
+  eine Verweis-Karte **ist** eine Karte. Das Ziel wird so geschrieben, wie es
+  auch eine Einbettung schreibt, wahlweise mit `#Überschrift` oder `#^block-id`.
+  Eine ältere Programmfassung, die beide Angaben nicht kennt, führt sie
+  unverändert mit und löscht sie beim Speichern nicht.
+- **Funktions-Katalog, Handbuch-Seite und Demo-Beispiel** (`4T-001750`). Der
+  Funktions-Katalog führt Verweis-Karten und Bild-Karten als zwei eigene
+  Einträge. Die Handbuch-Seite «Canvas-Fläche» hat in allen fünf Sprachen drei
+  neue Kapitel bekommen — Verweis-Karten, Bild-Karten und die Verweise im Netz
+  des Bereichs — und beschreibt im Speicherformat-Kapitel die beiden neuen
+  Angaben samt dem Verhalten bei einem leeren, doppelten oder unzulässigen Wert.
+  Die mitgelieferte Demo-Station «12 Canvas» zeigt eine Verweis-Karte auf eine
+  Seite der Sammlung und eine Bild-Karte auf eine mitgelieferte Anlage.
+
+### Geändert
+
+- **Die Grenzen der Fläche sind im Handbuch neu gefasst** (`4T-001750`). Das
+  Kapitel «Grenzen» der Seite «Canvas-Fläche» sagte bis hierher, eine Karte
+  trage ihren eigenen Text und andere Karten-Arten gebe es nicht; das stimmt
+  nicht mehr. An seiner Stelle stehen die Grenzen, die jetzt gelten: Der
+  angezeigte Inhalt einer Verweis-Karte ist dort nicht änderbar, Einbettungen
+  **innerhalb** des angezeigten Textes werden nicht weiter aufgelöst, eine
+  Änderung an einer nirgends geöffneten Ziel-Datei erscheint erst beim nächsten
+  Zeichnen der Fläche, und eine Verbindung verläuft weiterhin ausschließlich
+  zwischen Karten.
+
+### i18n
+
+- Alle neuen Texte der dritten Stufe liegen in **allen fünf Sprachfassungen**
+  vor (`4T-001746`, `4T-001747`, `4T-001748`, `4T-001749`, `4T-001750`): 23
+  neue Schlüssel je Sprache — die Beschriftungen der Karten-Leiste mit
+  Ziel- und Bild-Feld, die Einträge des Kontextmenüs und des Ansichtsmenüs für
+  beide neuen Anlage-Wege, die sieben Hinweise der Karte (Ziel nicht gefunden,
+  Bild nicht gefunden, Bild zu groß, keine Bild-Datei und die fehlenden
+  Angaben), die Kennzeichnung in Rückverweisen und ausgehenden Verweisen sowie
+  die beiden neuen Einträge des Funktions-Katalogs mit Name, Beschreibung und
+  Zugang.
+
 ## [1.134.0.2845] - 2026-09-12 — Canvas Stufe 2: Formen, Gruppen und Reihenfolge
 
 Zug 3E-000299,

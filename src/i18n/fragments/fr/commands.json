@@ -136,5 +136,7 @@
   "command.canvas.stackForward": "Avancer d’un niveau",
   "command.canvas.stackBackward": "Reculer d’un niveau",
   "command.canvas.stackBack": "Mettre à l’arrière-plan",
-  "command.canvas.addGroup": "Ajouter un groupe au canevas"
+  "command.canvas.addGroup": "Ajouter un groupe au canevas",
+  "command.canvas.addLinkCard": "Ajouter une carte de lien au canevas",
+  "command.canvas.addImageCard": "Ajouter une carte d’image au canevas"
 }

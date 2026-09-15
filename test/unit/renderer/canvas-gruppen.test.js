@@ -413,7 +413,15 @@ describe('Canvas-Gruppen: Anlegen ganz hinten über beide Wege (AK2/AK3/AK15)', 
   it('das Kontextmenü der Fläche legt sie an der Klick-Stelle an', () => {
     const { buehne, menue, geschrieben } = baueAnsicht();
     buehne.dispatchEvent(maus('contextmenu', { button: 2, clientX: 120, clientY: 60 }));
-    expect(kennungen(menue)).toEqual(['canvas-add-card', 'canvas-add-shape', 'canvas-add-group']);
+    // 4T-001747: Hinter der Gruppe steht die Verweis-Karte der Stufe 3.
+    // 4T-001748: und dahinter die Bild-Karte derselben Stufe.
+    expect(kennungen(menue)).toEqual([
+      'canvas-add-card',
+      'canvas-add-shape',
+      'canvas-add-group',
+      'canvas-add-link-card',
+      'canvas-add-image-card',
+    ]);
     loese(menue, 'canvas-add-group');
     const neu = elementAus(geschrieben, 'g2');
     expect(neu.x).toBe(120 - neu.b / 2);

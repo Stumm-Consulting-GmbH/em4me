@@ -10,6 +10,11 @@ const { splitAreaLink, joinAreaLink } = require('../../area-link-syntax.js');
 // 4T-001529 (Epic 3E-000175): Adress-Schutz der Tag-Erkennung, geteilt mit der
 // Index-Seite — eine Regel, zwei Aufrufer.
 const { istInAdresse } = require('../../tag-erkennung.js');
+// 4T-001746 (Epic 3E-000289): Der Satz der Bild-Endungen stand hier als
+// Feld-Literal und im Renderer noch einmal als Konstante; seither liest jede
+// Stelle aus einer Quelle — eine Endung mehr ist damit eine Aenderung an
+// einer Stelle statt an dreien.
+const { BILD_ENDUNGEN } = require('../../bild-endungen.js');
 
 // 4T-000891 (Epic 3E-000168): Anker-Teil eines Wiki-Ziels als href-Fragment.
 // Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
@@ -230,7 +235,7 @@ function wikiEmbedsPlugin(mdInstance, options) {
     const ext = extMatch ? extMatch[1].toLowerCase() : '';
     let kind;
     let finalPath = pathPart;
-    if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(ext)) {
+    if (BILD_ENDUNGEN.has(ext)) {
       kind = 'image';
     } else if (ext === 'pdf') {
       kind = 'pdf';

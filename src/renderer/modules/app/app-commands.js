@@ -83,6 +83,8 @@ import {
   legeCanvasFormAn,
   legeCanvasGruppeAn,
   legeCanvasKarteAn,
+  legeCanvasVerweisKarteAn,
+  legeCanvasBildKarteAn,
   verschiebeCanvasElement,
 } from '../canvas/canvas-pane.js';
 import { openDatePickerAtSelection } from '../calendar/date-picker.js';
@@ -426,6 +428,18 @@ export const commandHandlers = {
   // Ausschnitts anlegen; an der Klick-Stelle bietet sie das Kontextmenue.
   'canvas.addGroup': () => {
     return legeCanvasGruppeAn(state.activePaneIndex);
+  },
+  // 4T-001747 (Epic 3E-000289): Verweis-Karte anlegen. Das Kommando fragt
+  // zuerst das Ziel ab; die Karte entsteht danach in einem Zug mit ihrem
+  // Verweis. An der Klick-Stelle bietet sie das Kontextmenue der Flaeche.
+  'canvas.addLinkCard': () => {
+    return legeCanvasVerweisKarteAn(state.activePaneIndex);
+  },
+  // 4T-001748 (Epic 3E-000289): Bild-Karte anlegen, nach demselben Muster. Das
+  // Kommando fragt zuerst das Bild ab; die Karte entsteht danach in einem Zug
+  // mit ihrer Bild-Angabe.
+  'canvas.addImageCard': () => {
+    return legeCanvasBildKarteAn(state.activePaneIndex);
   },
   // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
   // Elements. Sie rufen dieselbe Einbettung wie der Menue-Weg; der Name des

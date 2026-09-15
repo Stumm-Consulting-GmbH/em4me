@@ -136,5 +136,7 @@
   "command.canvas.stackForward": "Eine Stufe vor",
   "command.canvas.stackBackward": "Eine Stufe zurück",
   "command.canvas.stackBack": "Ganz nach hinten",
-  "command.canvas.addGroup": "Gruppe auf der Fläche anlegen"
+  "command.canvas.addGroup": "Gruppe auf der Fläche anlegen",
+  "command.canvas.addLinkCard": "Verweis-Karte auf der Fläche anlegen",
+  "command.canvas.addImageCard": "Bild-Karte auf der Fläche anlegen"
 }

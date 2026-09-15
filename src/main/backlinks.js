@@ -94,6 +94,9 @@ module.exports = {
   extractBlockEntries: blockData.extractBlockEntries,
   // 4T-000057: Autocomplete-Suggestions.
   wikiLinkAutocompleteSuggestions: views.wikiLinkAutocompleteSuggestions,
+  // 4T-001748 (Epic 3E-000289): Bild-Namen des Suchraums fuer das Bild-Feld der
+  // Canvas-Karte.
+  bildAutocompleteSuggestions: views.bildAutocompleteSuggestions,
   anchorAutocompleteSuggestions: views.anchorAutocompleteSuggestions,
   tagAutocompleteSuggestions: views.tagAutocompleteSuggestions,
   // 4T-001156 (Epic 3E-000219): Ziel-Liste eines Verweis-Feldes der

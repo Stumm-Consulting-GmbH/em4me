@@ -1,10 +1,10 @@
 # Canvas-Fläche
 
-Eine **Canvas** ist eine räumliche Arbeitsfläche in einem gewöhnlichen Markdown-Dokument: **Karten** mit eigenem Text liegen frei angeordnet darauf, **Verbindungen** ziehen Beziehungen zwischen ihnen, **Formen** setzen Zeichen daneben und **Gruppen** fassen zusammen, was zusammengehört. Wer Alternativen nebeneinanderlegt, einen Ablauf skizziert oder Gedanken erst einmal sortiert, ordnet hier nach Lage statt nach Reihenfolge.
+Eine **Canvas** ist eine räumliche Arbeitsfläche in einem gewöhnlichen Markdown-Dokument: **Karten** mit eigenem Text liegen frei angeordnet darauf, **Verbindungen** ziehen Beziehungen zwischen ihnen, **Formen** setzen Zeichen daneben und **Gruppen** fassen zusammen, was zusammengehört. Eine Karte trägt dabei entweder eigenen Text, oder sie zeigt den Inhalt eines anderen Dokuments oder ein Bild aus dem Bereich an. Wer Alternativen nebeneinanderlegt, einen Ablauf skizziert oder Gedanken erst einmal sortiert, ordnet hier nach Lage statt nach Reihenfolge.
 
 Getragen wird die Fläche von einem Code-Block mit dem Sprach-Tag `perspective-canvas`. Ein Dokument darf beliebig viele davon enthalten, und alles Übrige darin bleibt gewöhnliches Markdown.
 
-Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Canvas-Ansicht"). Ist sie abgeschaltet, bleibt der Block ein regulärer Code-Block, der Ansichts-Modus entfällt, und die Kommandos für Fläche, Karte, Form, Gruppe und Reihenfolge verschwinden. Das Dokument bleibt dabei unverändert lesbar; es geht nichts verloren.
+Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Canvas-Ansicht"). Ist sie abgeschaltet, bleibt der Block ein regulärer Code-Block, der Ansichts-Modus entfällt, und die Kommandos für Fläche, Karte, Verweis-Karte, Bild-Karte, Form, Gruppe und Reihenfolge verschwinden. Das Dokument bleibt dabei unverändert lesbar; es geht nichts verloren.
 
 ## Abgrenzung zur Graphenansicht
 
@@ -69,6 +69,25 @@ Die Beschriftung wird abgeleitet und nicht angegeben: die erste sinnvolle Zeile 
 | `Escape` | verwirft |
 
 Ein unveränderter Text schreibt nichts in das Dokument.
+
+### Verweis-Karten
+
+Statt eigenen Text zu tragen, zeigt eine Karte wahlweise den Inhalt eines **anderen Dokuments** an — ganz, ab einer Überschrift oder ab einem Block. Der Inhalt bleibt dabei, wo er steht: Die Karte hält keine Kopie und lässt sich an dieser Stelle nicht ändern. Passt er nicht in die Karte, wird in ihr gescrollt.
+
+- **Anlegen** — das Kommando **„Verweis-Karte auf der Fläche anlegen"** (Kommando-Palette, Ansicht-Menü) legt sie in der Mitte des sichtbaren Ausschnitts an, der Rechtsklick auf den freien Hintergrund an der Klick-Stelle. Beide fragen zuerst nach dem Ziel: `Enter` legt die Karte an, `Escape` bricht ab. Ohne Ziel entsteht keine Karte.
+- **Ziel setzen, wechseln, entfernen** — eine gewählte Karte trägt eine **Leiste** mit dem Feld „Verweis-Ziel"; beim Tippen bietet es die Dokumente des Bereichs an. So wird eine Text-Karte zur Verweis-Karte und über „Verweis entfernen" wieder zur Text-Karte — ihr eigener Text bleibt dabei stehen. Dieselben Handlungen liegen im **Kontextmenü** der Karte.
+- **Ziel öffnen** — ein **Doppelklick auf den angezeigten Inhalt** öffnet das verwiesene Dokument an der verwiesenen Stelle, ebenso „Ziel öffnen" in Leiste und Kontextmenü. Das bleibt auch in der reinen Anzeige erlaubt, weil Öffnen nichts ändert.
+- **Kopfzeile** — sie nennt die **Beschriftung** der Karte, also ihren eigenen Text, und sonst das Ziel samt Anker. Ein Doppelklick auf die Kopfzeile bearbeitet die Beschriftung wie den Text jeder anderen Karte.
+
+Lässt sich das Ziel nicht finden, bleibt die Karte stehen und nennt an der Stelle des Inhalts, wonach sie gesucht hat; in der Datei ändert sich dabei nichts. Wird das Ziel in einem anderen geöffneten Dokument bearbeitet, zieht die Karte sofort nach; eine Änderung an einer nirgends geöffneten Datei erscheint, sobald die Fläche das nächste Mal gezeichnet wird.
+
+### Bild-Karten
+
+Ebenso zeigt eine Karte wahlweise ein **Bild** aus dem Bereich. Auch hier hält sie keine Kopie: Das Bild bleibt eine Datei, die Karte verweist darauf — über einen Pfad relativ zum Dokument oder über den bloßen Dateinamen. Es wird in die Karte **eingepasst** und behält dabei seine Proportionen; gescrollt wird in einer Bild-Karte nicht.
+
+Bedient wird sie wie die Verweis-Karte: das Kommando **„Bild-Karte auf der Fläche anlegen"** und derselbe Eintrag im Kontextmenü der Fläche, in der Leiste der gewählten Karte das Feld „Bild" — mit den Bild-Dateien des Bereichs als Vorschlägen — sowie „Bild entfernen" und „Ziel öffnen". Ein Doppelklick auf das Bild öffnet die Datei so, wie die Anwendung jede [Anlage](attachments.md) öffnet. Die Kopfzeile nennt die Beschriftung und sonst den Namen der Bild-Datei.
+
+Findet sich das Bild nicht, ist es zu groß oder trägt es keine Bild-Endung, sagt die Karte das an der Stelle des Bildes. **Eine Karte zeigt entweder ein Dokument oder ein Bild;** stehen beide Angaben nebeneinander, gilt das Dokument.
 
 ### Löschen
 
@@ -207,6 +226,22 @@ Weil die Fläche in einem gewöhnlichen Markdown-Dokument liegt, begegnet sie in
 
 Die Vorschau zeigt höchstens sechs Karten; darunter steht, wie viele weitere es gibt. Der Block lässt sich **zuklappen**, seine Kopfzeile bleibt dabei stehen; dieser Zustand gilt für die laufende Sitzung und wird nicht in das Dokument geschrieben. Drucken und PDF-Export folgen der gerenderten Ansicht, ohne die beiden Knöpfe des Blocks mitzudrucken.
 
+## Verweise im Netz des Bereichs
+
+Eine Verweis-Karte ist ein **Verweis wie einer im Fließtext** — nur eben auf einer Fläche. Sie erscheint deshalb überall dort, wo die Anwendung Verweise zeigt:
+
+| Ort | Was erscheint |
+| --- | ------------- |
+| Rückverweise des Ziels | die Fläche als Quelle, gekennzeichnet mit „auf einer Fläche"; als Ausschnitt steht die Beschriftung der Karte |
+| ausgehende Verweise des Dokuments | ein Eintrag der Art „Verweis-Karte auf einer Fläche", mit `C` gekennzeichnet |
+| [Graphenansicht](graph.md) | eine Kante wie jeder andere Verweis |
+
+Rückverweise und ausgehende Verweise beschreibt die Seite [Vernetzung](linking.md) im Zusammenhang.
+
+Wird das Ziel **umbenannt oder verschoben**, zieht die Angabe in der Karte nach, wie ein Verweis im Fließtext; dasselbe gilt für das Bild einer Bild-Karte.
+
+Zwei Dinge zählen nicht mit: Ein **Bild** bekommt keinen Knoten im Verweis-Graph, so wenig wie ein Bild im Fließtext. Und ein Verweis im **eigenen Text** einer Karte bleibt außen vor — gewertet wird allein das Ziel der Karte.
+
 ## Das Speicherformat
 
 Die Fläche liegt im Klartext im Dokument. Sie ist damit auch ohne diese Anwendung deutbar — und was in den Karten steht, ist in jedem Text-Werkzeug lesbar.
@@ -229,6 +264,19 @@ Eine Angabe hat die Form `name=wert`. Ein Wert ist entweder ein Wort ohne Leerze
 | `b`, `h` | Breite und Höhe |
 
 Alle vier sind **ganze Zahlen** und zählen in Bildpunkten bei Zoom 1. Der **Ursprung liegt in der Mitte der Fläche**: Negative Werte liegen links davon beziehungsweise darüber. Die Zeilen unter dem Marker sind der Karten-Text.
+
+Zwei weitere Angaben machen aus der Karte eine **Verweis-** oder eine **Bild-Karte**:
+
+```text
+!karte <kennung> x=<zahl> y=<zahl> b=<zahl> h=<zahl> doc="<ziel>"
+!karte <kennung> x=<zahl> y=<zahl> b=<zahl> h=<zahl> bild="<bild>"
+```
+
+`doc=` zeigt den Inhalt eines Dokuments an. Das Ziel nimmt dieselben Formen wie das Ziel einer Einbettung: den Dokumentnamen oder einen Pfad relativ zum eigenen Dokument, wahlweise gefolgt von `#Überschrift` oder `#^block-id`.
+
+`bild=` zeigt ein Bild an. Der Wert ist ein Pfad relativ zum Dokument oder der bloße Dateiname einer Bild-Datei des Bereichs; zulässig sind die Endungen `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` und `ico`.
+
+Stehen beide Angaben an derselben Karte, gilt `doc=`. Ein leerer Wert und eine Endung außerhalb der Liste sind ein **Befund**; die Angabe bleibt trotzdem unverändert in der Datei stehen. Die Zeilen unter dem Marker sind auch hier der eigene Text der Karte — bei einer Verweis- und einer Bild-Karte ihre **Beschriftung**.
 
 ### Verbindungen
 
@@ -295,6 +343,12 @@ Mehrere Quellen, eine Zusammenführung.
 
 Wie werden Konflikte aufgelöst?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Konzepte/Import.md#Zielbild"
+Zielbild im Konzept
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="Anlagen/Skizze.png"
+Skizze der Oberfläche
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Kernaussage
 
@@ -330,6 +384,12 @@ Mehrere Quellen, eine Zusammenführung.
 
 Wie werden Konflikte aufgelöst?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Konzepte/Import.md#Zielbild"
+Zielbild im Konzept
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="Anlagen/Skizze.png"
+Skizze der Oberfläche
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Kernaussage
 
@@ -345,9 +405,11 @@ bedingen einander
 
 ## Grenzen
 
-- Eine Karte trägt **eigenen Text**; andere Karten-Arten gibt es nicht. Formen und Gruppen gehören zur Fläche, tragen aber keinen gerenderten Inhalt, sondern höchstens eine Beschriftung aus einfachem Text.
+- Der **angezeigte Inhalt** einer Verweis-Karte lässt sich in der Karte nicht ändern; geändert wird er in dem Dokument, auf das sie zeigt. Formen und Gruppen tragen gar keinen gerenderten Inhalt, sondern höchstens eine Beschriftung aus einfachem Text.
+- **Einbettungen im angezeigten Inhalt werden nicht aufgelöst.** Zeigt eine Verweis-Karte ein Dokument, das seinerseits etwas einbettet, bleibt diese Stelle in der Karte leer; alles Übrige erscheint unverändert.
+- Eine Änderung am Ziel erscheint **sofort**, solange das Ziel in einem anderen geöffneten Dokument bearbeitet wird; wird eine nirgends geöffnete Datei geändert, erscheint das, sobald die Fläche das nächste Mal gezeichnet wird.
 - **Freies Zeichnen gibt es nicht.** Die Fläche kennt die sechs Formen-Arten und sonst keine Geometrie; Freihand-Striche, selbst gezogene Pfeile und Stift-Eingabe gehören nicht zum Umfang.
 - Eine **Verbindung** verläuft ausschließlich zwischen Karten; an einer Form oder einer Gruppe lässt sie sich nicht anschließen.
-- Ein Verweis im Text einer Karte erscheint **nicht** im Verweis-Graph und nicht in den Rückverweisen: Der Bereichs-Index überspringt den Inhalt von Code-Blöcken.
+- Ein Verweis im **eigenen Text** einer Karte erscheint nicht im Verweis-Graph und nicht in den Rückverweisen; gewertet wird allein das Ziel einer Verweis-Karte. Ein Bild bekommt im Verweis-Graph keinen Knoten.
 - Die Fläche wird mit der Maus bedient; über die Tastatur laufen Rückgängig, Löschen und die Text-Eingaben.
 - Eine Fläche gehört zu ihrem Dokument. Karten lassen sich nicht von einer Fläche auf eine andere ziehen.

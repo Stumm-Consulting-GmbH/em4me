@@ -40,6 +40,12 @@ const {
   normalizeNameKey,
   maskInlineCode,
   frontmatterBodyStart,
+  // 4T-001749 (Epic 3E-000289): die geteilte Erkennung der Verweis-Angaben
+  // einer Canvas-Karte — dieselbe Quelle, aus der auch der Bereichs-Index und
+  // die ausgehenden Verweise lesen.
+  istCanvasFenceInfo,
+  scanneKartenVerweise,
+  packeKartenVerweisWert,
 } = require('./markdown/link-scan.js');
 
 // --- Pfad-Helfer (reine '/'-String-Operationen, kein node:path) -------------
@@ -357,6 +363,125 @@ function collectMdRewrites(line, masked, ctx) {
   return out;
 }
 
+// --- Verweis-Karten der Canvas (4T-001749, Epic 3E-000289) ------------------
+//
+// **Warum der Nachzug bis in die Fence reicht.** Das Modul ueberspringt Fences
+// ausdruecklich, und dabei bleibt es — mit genau einer Ausnahme: Die Angaben
+// `doc=` und `bild=` einer Karte in einer Fence `perspective-canvas` sind
+// Verweise wie jeder andere. Ohne diesen Teil braeche jede Verweis-Karte beim
+// Umbenennen still, waehrend jeder Wiki-Link im Fliesstext nachzieht — eine
+// Ungleichbehandlung, die kein Anwender versteht (Entscheidung F5 des Product
+// Owners vom 2026-09-12).
+//
+// **Angefasst wird genau die eine Angabe.** Ersetzt wird die Spanne des Wertes,
+// nicht die Zeile und erst recht nicht die Flaeche; die uebrige Fence bleibt
+// Byte fuer Byte stehen. Und die Schreibform bleibt erhalten: Ein Wert in
+// Anfuehrungszeichen wird wieder in Anfuehrungszeichen geschrieben, ein
+// unquotierter bleibt unquotiert, solange er das darf. Der Nachzug ist eine
+// Berichtigung und kein Umbau — die kanonische Form gehoert dem Canvas-Kern,
+// der sie beim Schreiben geaenderter Elemente setzt (G2).
+//
+// **Beide Angaben ziehen nach, unabhaengig davon, welche gewinnt.** Stehen
+// `doc=` und `bild=` an derselben Karte, ist das im Kern ein Befund und `doc=`
+// gewinnt; fuer den Nachzug spielt das keine Rolle: Er richtet Pfade, er
+// entscheidet keine Bedeutung, und ein stehengelassener falscher Pfad waere
+// genau das Problem, das er beseitigen soll.
+
+// Neuer Wert eines Ziels, das als PFAD dasteht: dokument-relativ aufgeloest und
+// gegen die absoluten Pfade der Umbenennungen gehalten — dieselbe Regel, nach
+// der ein relativer Markdown-Link nachzieht. Der Pfad-Weg setzt eine Endung
+// voraus; ohne sie ist der Wert ein Name und gehoert in den Namens-Weg.
+function neuerPfadWert(kern, ctx) {
+  if (!/\.[A-Za-z0-9]{1,8}$/.test(kern)) return null;
+  let abs;
+  try {
+    abs = posixResolve(ctx.contextDir, safeDecode(kern));
+  } catch {
+    return null;
+  }
+  const r = ctx.renameByOldAbs.get(normalizeNameKey(abs));
+  if (!r) return null;
+  // Wechselt die Ziel-Datei das Verzeichnis, genuegt das Ersetzen des
+  // Basenames nicht — der Verzeichnis-Anteil zeigte danach ins Leere (dieselbe
+  // Ueberlegung wie bei den Markdown-Links, 4T-000847). Ein wurzel-verankertes
+  // Ziel bleibt ausgenommen: aus einer absoluten Form eine relative zu machen
+  // waere eine Umdeutung statt einer Nachfuehrung.
+  if (!kern.startsWith('/') && movedToOtherDir(r)) {
+    const bewegt = posixRelative(ctx.contextDir, r.newAbs);
+    if (bewegt !== null) return bewegt;
+  }
+  const lastSlash = kern.lastIndexOf('/');
+  return (lastSlash >= 0 ? kern.slice(0, lastSlash + 1) : '') + posixBasename(r.newAbs);
+}
+
+// Neuer Wert der Angabe `doc=`. Zuerst der Pfad-Weg (ein Wert mit Endung, der
+// dokument-relativ auf eine umbenannte Datei zeigt), danach der Namens-Weg wie
+// bei einem Wiki-Ziel — Name, Unterseiten-Schreibweise und relative
+// Unterseiten-Form eingeschlossen. Eine Markdown-Endung wird fuer die Suche
+// abgeschnitten und danach wieder angehaengt, weil die Umbenennungen ihre
+// Basenames ohne Endung fuehren.
+function neuerDocWert(wert, ctx) {
+  const roh = String(wert);
+  const hash = roh.indexOf('#');
+  const kern = hash >= 0 ? roh.slice(0, hash) : roh;
+  const anker = hash >= 0 ? roh.slice(hash) : '';
+  if (!kern || isAreaLinkTarget(kern)) return null;
+  const ueberPfad = neuerPfadWert(kern, ctx);
+  if (ueberPfad !== null) return ueberPfad + anker;
+  const endung = (kern.match(MD_EXT_RE) || [''])[0];
+  const ohneEndung = endung ? kern.slice(0, kern.length - endung.length) : kern;
+  if (!ohneEndung) return null;
+  const neu = resolveWikiNewName(ohneEndung, ctx);
+  if (neu === null) return null;
+  return neu + endung + anker;
+}
+
+// Neuer Wert der Angabe `bild=`. Zuerst derselbe Pfad-Weg; danach der
+// Namens-Weg ueber den vollen Dateinamen MIT Endung, weil eine Bild-Angabe auch
+// als blosser Name aus dem Bereich stehen darf (Namens-Suche wie bei
+// `![[bild.png]]`).
+//
+// **Stand des Bestands, nachgesehen am 2026-09-12:** Fuer Bilder gibt es heute
+// ueberhaupt keinen Nachzug-Weg — die Ziel-Regex der Markdown-Links trifft nur
+// Markdown-Endungen, ein `![](bild.png)` zieht also nirgends nach, und der
+// Umbenennen-Dialog arbeitet auf Markdown-Dokumenten. Die Regel hier haengt
+// deshalb nicht an einem bestehenden Weg, sondern am Rename-Kern selbst: Sie
+// greift in dem Augenblick, in dem er ein Bild als Ziel bekommt.
+function neuerBildWert(wert, ctx) {
+  const kern = String(wert);
+  if (!kern) return null;
+  const ueberPfad = neuerPfadWert(kern, ctx);
+  if (ueberPfad !== null) return ueberPfad;
+  const name = normalizeNameKey(posixBasename(kern));
+  for (const r of ctx.renamesAlle) {
+    if (normalizeNameKey(posixBasename(r.oldAbs)) !== name) continue;
+    const lastSlash = kern.lastIndexOf('/');
+    return (lastSlash >= 0 ? kern.slice(0, lastSlash + 1) : '') + posixBasename(r.newAbs);
+  }
+  return null;
+}
+
+// Sammelt die Ersetzungen einer Karten-Marker-Zeile. Anders als bei Wiki- und
+// Markdown-Links wird hier NICHT auf der maskierten Zeile gearbeitet: Der
+// Inhalt einer Fence ist woertlich, ein Backtick darin ist kein Inline-Code.
+function collectKartenRewrites(line, ctx) {
+  const out = [];
+  for (const angabe of scanneKartenVerweise(line)) {
+    const neu =
+      angabe.name === 'doc' ? neuerDocWert(angabe.wert, ctx) : neuerBildWert(angabe.wert, ctx);
+    if (neu === null || neu === angabe.wert) continue;
+    out.push({
+      spanStart: angabe.rohStart,
+      spanLen: angabe.rohLen,
+      replacement: packeKartenVerweisWert(neu, { quotiert: angabe.quotiert }),
+      typ: angabe.name === 'doc' ? 'canvas-doc' : 'canvas-bild',
+      fullText: line.slice(angabe.nameStart, angabe.rohStart + angabe.rohLen),
+      fullStart: angabe.nameStart,
+    });
+  }
+  return out;
+}
+
 // --- Oeffentliche API -------------------------------------------------------
 
 // computeLinkRewrites(content, { renames, contextPath })
@@ -396,6 +521,10 @@ function computeLinkRewrites(content, options) {
     oldContextBase: ctxRename ? ctxRename.oldBase : newContextBase,
     newContextBase,
     contextDir: posixDirname(contextPath),
+    // 4T-001749 (Epic 3E-000289): Der Namens-Weg der Bild-Angabe vergleicht
+    // ueber den vollen Dateinamen MIT Endung; dafuer braucht er die
+    // Umbenennungen selbst und nicht nur die beiden Abbildungen darueber.
+    renamesAlle: renames,
   };
   for (const r of renames) {
     ctx.renameByOldBase.set(normalizeNameKey(r.oldBase), r);
@@ -409,9 +538,12 @@ function computeLinkRewrites(content, options) {
 
   let inFence = false;
   let fenceChar = null;
+  // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
+  let inCanvasFence = false;
   for (let i = 0; i < lines.length; i++) {
     if (i < fmStart) continue; // Frontmatter ausklammern
     const { text: line, start: lineStart } = lines[i];
+    const lineNum = i + 1;
 
     // Fenced-Code-Tracking (gleiche Maschine wie der Backlinks-Parser).
     const fenceMatch = line.match(FENCE_RE);
@@ -420,19 +552,28 @@ function computeLinkRewrites(content, options) {
       if (!inFence) {
         inFence = true;
         fenceChar = ch;
+        // 4T-001749: Die Info-Zeichenfolge entscheidet, ob die Fence eine
+        // Flaeche ist; gelesen wird sie mit derselben Regel wie im Index.
+        inCanvasFence = istCanvasFenceInfo(line.slice(fenceMatch[0].length));
       } else if (ch === fenceChar) {
         inFence = false;
         fenceChar = null;
+        inCanvasFence = false;
       }
       continue;
     }
-    if (inFence) continue;
 
-    const masked = maskInlineCode(line);
-    const lineNum = i + 1;
-    const found = collectWikiRewrites(line, masked, ctx).concat(
-      collectMdRewrites(line, masked, ctx),
-    );
+    let found;
+    if (inFence) {
+      // 4T-001749: Die einzige Stelle, an der die Nachfuehrung in eine Fence
+      // hineingreift — und sie fasst dort genau die Verweis-Angaben einer
+      // Karten-Marker-Zeile an. Alles Uebrige der Fence bleibt unberuehrt.
+      if (!inCanvasFence) continue;
+      found = collectKartenRewrites(line, ctx);
+    } else {
+      const masked = maskInlineCode(line);
+      found = collectWikiRewrites(line, masked, ctx).concat(collectMdRewrites(line, masked, ctx));
+    }
     for (const f of found) {
       reps.push({
         start: lineStart + f.spanStart,

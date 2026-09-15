@@ -1,10 +1,10 @@
 # Superficie Canvas
 
-Una **tela** è una superficie di lavoro spaziale dentro un normale documento Markdown: **schede** con testo proprio vi sono disposte liberamente, **collegamenti** tracciano le relazioni fra loro, **forme** pongono segni accanto a esse e **gruppi** raccolgono ciò che sta insieme. Quando si affiancano alternative, si abbozza un flusso o si mettono prima in ordine dei pensieri, qui l'ordine nasce dalla posizione e non dalla sequenza.
+Una **tela** è una superficie di lavoro spaziale dentro un normale documento Markdown: **schede** con testo proprio vi sono disposte liberamente, **collegamenti** tracciano le relazioni fra loro, **forme** pongono segni accanto a esse e **gruppi** raccolgono ciò che sta insieme. Una scheda porta o il proprio testo, oppure mostra il contenuto di un altro documento o un'immagine dell'area. Quando si affiancano alternative, si abbozza un flusso o si mettono prima in ordine dei pensieri, qui l'ordine nasce dalla posizione e non dalla sequenza.
 
 La superficie è sostenuta da un blocco di codice con il tag di linguaggio `perspective-canvas`. Un documento può contenerne quanti se ne vuole, e tutto il resto al suo interno resta normale Markdown.
 
-La funzione appartiene alle [estensioni interne](extensions.md) («Vista tela»). Disattivata, il blocco resta un normale blocco di codice, la modalità di vista scompare e i comandi per superficie, scheda, forma, gruppo e ordine di sovrapposizione spariscono. Il documento resta leggibile senza modifiche; non si perde nulla.
+La funzione appartiene alle [estensioni interne](extensions.md) («Vista tela»). Disattivata, il blocco resta un normale blocco di codice, la modalità di vista scompare e i comandi per superficie, scheda, scheda di collegamento, scheda immagine, forma, gruppo e ordine di sovrapposizione spariscono. Il documento resta leggibile senza modifiche; non si perde nulla.
 
 ## Differenza rispetto alla vista grafo
 
@@ -69,6 +69,25 @@ Un **doppio clic dentro una scheda** la porta sul suo testo grezzo. Lì c'è nor
 | `Esc` | annulla |
 
 Un testo immutato non scrive nulla nel documento.
+
+### Schede di collegamento
+
+Invece di portare testo proprio, una scheda mostra a scelta il contenuto di un **altro documento**: per intero, oppure a partire da un titolo o da un blocco. Il contenuto resta dov'è: la scheda non ne tiene alcuna copia e non si modifica in questo punto. Se non entra nella scheda, nella scheda si scorre.
+
+- **Creare** — il comando **«Aggiungi scheda di collegamento alla tela»** (tavolozza dei comandi, menu Vista) la colloca al centro della porzione visibile, il clic destro sullo sfondo libero nel punto del clic. Entrambi chiedono prima la destinazione: `Invio` crea la scheda, `Esc` annulla. Senza destinazione non nasce alcuna scheda.
+- **Impostare, cambiare, rimuovere la destinazione** — una scheda selezionata porta una **barra** con il campo «Destinazione del collegamento»; durante la digitazione propone i documenti dell'area. Così una scheda di testo diventa una scheda di collegamento, e «Rimuovi collegamento» la riporta a scheda di testo: il suo testo proprio resta. Le stesse azioni stanno nel **menu contestuale** della scheda.
+- **Aprire la destinazione** — un **doppio clic sul contenuto mostrato** apre il documento collegato nel punto collegato, così come «Apri destinazione» nella barra e nel menu contestuale. Questo resta consentito anche nella pura vista, perché aprire non modifica nulla.
+- **Riga di intestazione** — riporta l'**etichetta** della scheda, cioè il suo testo proprio, e altrimenti la destinazione con la sua ancora. Un doppio clic sulla riga di intestazione modifica l'etichetta come il testo di ogni altra scheda.
+
+Se la destinazione non si trova, la scheda resta e indica, al posto del contenuto, che cosa ha cercato; nel file non cambia nulla. Se la destinazione viene modificata in un altro documento aperto, la scheda segue subito; una modifica a un file aperto da nessuna parte compare al successivo disegno della superficie.
+
+### Schede immagine
+
+Allo stesso modo una scheda mostra a scelta un'**immagine** dell'area. Anche qui non ne tiene copia: l'immagine resta un file e la scheda vi rimanda, tramite un percorso relativo al documento oppure tramite il solo nome del file. Viene **adattata** alla scheda mantenendo le proporzioni; in una scheda immagine non si scorre.
+
+Si usa come la scheda di collegamento: il comando **«Aggiungi scheda immagine alla tela»** e la stessa voce nel menu contestuale della superficie, nella barra della scheda selezionata il campo «Immagine» — con i file immagine dell'area come proposte — nonché «Rimuovi immagine» e «Apri destinazione». Un doppio clic sull'immagine apre il file come l'applicazione apre ogni [allegato](attachments.md). La riga di intestazione riporta l'etichetta e altrimenti il nome del file immagine.
+
+Se l'immagine non si trova, è troppo grande o non porta un'estensione di immagine, la scheda lo dice al posto dell'immagine. **Una scheda mostra o un documento o un'immagine;** se entrambi gli attributi stanno uno accanto all'altro, vale il documento.
 
 ### Eliminare
 
@@ -207,6 +226,22 @@ Poiché la superficie si trova in un normale documento Markdown, la si incontra 
 
 L'anteprima mostra al massimo sei schede; sotto è indicato quante altre ce ne sono. Il blocco si può **richiudere**, restando la sua riga di intestazione; questo stato vale per la sessione in corso e non viene scritto nel documento. Stampa ed esportazione PDF seguono la vista renderizzata, senza stampare i due pulsanti del blocco.
 
+## I collegamenti nella rete dell'area
+
+Una scheda di collegamento è un **collegamento come uno nel testo corrente**, soltanto posato su una superficie. Compare perciò ovunque l'applicazione mostri collegamenti:
+
+| Luogo | Che cosa compare |
+| ----- | ---------------- |
+| collegamenti in entrata della destinazione | la superficie come origine, contrassegnata con «su una tela»; l'estratto è l'etichetta della scheda |
+| collegamenti in uscita del documento | una voce del tipo «Scheda di collegamento su una tela», contrassegnata con `C` |
+| [Vista grafo](graph.md) | un arco come ogni altro collegamento |
+
+I collegamenti in entrata e in uscita sono descritti nel loro insieme nella pagina [Collegamenti](linking.md).
+
+Se la destinazione viene **rinominata o spostata**, l'attributo della scheda segue, come un collegamento nel testo corrente; lo stesso vale per l'immagine di una scheda immagine.
+
+Due cose non contano: un'**immagine** non riceve alcun nodo nel grafo dei collegamenti, non più di quanto lo riceva un'immagine nel testo corrente. E un collegamento nel **testo proprio** di una scheda resta fuori: conta soltanto la destinazione della scheda.
+
 ## Il formato di memorizzazione
 
 La superficie si trova in chiaro nel documento. È perciò interpretabile senza questa applicazione, e ciò che sta nelle schede è leggibile in qualsiasi strumento di testo.
@@ -229,6 +264,19 @@ Un attributo ha la forma `nome=valore`. Un valore è o una parola senza spazi o 
 | `b`, `h` | larghezza e altezza |
 
 Tutti e quattro sono **numeri interi** contati in pixel con zoom 1. L'**origine si trova al centro della superficie**: i valori negativi stanno alla sua sinistra o sopra di essa. Le righe sotto il marcatore sono il testo della scheda.
+
+Altri due attributi fanno della scheda una **scheda di collegamento** o una **scheda immagine**:
+
+```text
+!karte <identificatore> x=<numero> y=<numero> b=<numero> h=<numero> doc="<destinazione>"
+!karte <identificatore> x=<numero> y=<numero> b=<numero> h=<numero> bild="<immagine>"
+```
+
+`doc=` mostra il contenuto di un documento. La destinazione assume le stesse forme della destinazione di un'inclusione: il nome del documento oppure un percorso relativo al documento stesso, seguito a scelta da `#Titolo` o da `#^block-id`.
+
+`bild=` mostra un'immagine. Il valore è un percorso relativo al documento oppure il solo nome di un file immagine dell'area; le estensioni ammesse sono `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` e `ico`.
+
+Se entrambi gli attributi stanno sulla stessa scheda, vale `doc=`. Un valore vuoto e un'estensione fuori dall'elenco sono un **rilievo**; l'attributo resta comunque invariato nel file. Le righe sotto il marcatore sono anche qui il testo proprio della scheda: in una scheda di collegamento e in una scheda immagine, la sua **etichetta**.
 
 ### Collegamenti
 
@@ -295,6 +343,12 @@ Più fonti, una fusione.
 
 Come si risolvono i conflitti?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Concetti/Import.md#Obiettivo"
+L'obiettivo nel concetto
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="allegati/schizzo.png"
+Schizzo dell'interfaccia
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Messaggio chiave
 
@@ -330,6 +384,12 @@ Più fonti, una fusione.
 
 Come si risolvono i conflitti?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Concetti/Import.md#Obiettivo"
+L'obiettivo nel concetto
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="allegati/schizzo.png"
+Schizzo dell'interfaccia
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Messaggio chiave
 
@@ -345,9 +405,11 @@ si condizionano
 
 ## Limiti
 
-- Una scheda porta **testo proprio**; altri tipi di scheda non esistono. Forme e gruppi fanno parte della superficie, ma non portano contenuto reso, bensì al più un'etichetta di testo semplice.
+- Il **contenuto mostrato** di una scheda di collegamento non si modifica nella scheda; si modifica nel documento su cui essa punta. Forme e gruppi non portano alcun contenuto reso, bensì al più un'etichetta di testo semplice.
+- **Le inclusioni dentro il contenuto mostrato non vengono risolte.** Se una scheda di collegamento mostra un documento che a sua volta include qualcosa, quel punto resta vuoto nella scheda; tutto il resto compare invariato.
+- Una modifica alla destinazione compare **subito** finché questa viene modificata in un altro documento aperto; se viene modificato un file aperto da nessuna parte, ciò compare al successivo disegno della superficie.
 - **Il disegno libero non esiste.** La superficie conosce i sei tipi di forma e nessun'altra geometria; tratti a mano libera, frecce tracciate da sé e immissione con la penna non ne fanno parte.
 - Un **collegamento** corre soltanto fra schede; non si aggancia né a una forma né a un gruppo.
-- Un collegamento nel testo di una scheda **non** compare nel grafo dei collegamenti né nei collegamenti in entrata: l'indice dell'area salta il contenuto dei blocchi di codice.
+- Un collegamento nel **testo proprio** di una scheda non compare nel grafo dei collegamenti né nei collegamenti in entrata; conta soltanto la destinazione di una scheda di collegamento. Un'immagine non riceve alcun nodo nel grafo dei collegamenti.
 - La superficie si usa con il mouse; la tastiera porta l'annullamento, l'eliminazione e le immissioni di testo.
 - Una superficie appartiene al suo documento. Le schede non si possono trascinare da una superficie a un'altra.

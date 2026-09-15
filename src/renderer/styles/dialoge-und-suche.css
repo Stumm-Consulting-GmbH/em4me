@@ -302,8 +302,12 @@
 }
 
 /* 4T-000050: 'via Alias'-Hinweis-Tag in der Backlinks-Sidebar. Klein, dezent,
-   theme-konform; klärt, dass der Backlink über einen Alias zustandekommt. */
-.backlink-via-alias {
+   theme-konform; klärt, dass der Backlink über einen Alias zustandekommt.
+   4T-001749 (Epic 3E-000289): derselbe Zusatz weist die Herkunft aus einer
+   Canvas-Fläche aus; beide beantworten dieselbe Frage und sehen deshalb
+   gleich aus. */
+.backlink-via-alias,
+.backlink-via-canvas {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 6px;
@@ -314,7 +318,8 @@
   font-style: italic;
   white-space: nowrap;
 }
-[data-theme='dark'] .backlink-via-alias {
+[data-theme='dark'] .backlink-via-alias,
+[data-theme='dark'] .backlink-via-canvas {
   background: rgba(100, 181, 246, 0.18);
 }
 

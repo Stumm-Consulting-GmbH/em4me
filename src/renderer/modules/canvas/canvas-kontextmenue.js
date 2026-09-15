@@ -56,6 +56,11 @@ const STAPEL_SCHLUESSEL = {
  *   Fehlt sie, entfallen das Untermenü «Form einfügen» und die Formen-Einträge.
  * @param {object} [ctx.gruppen] Steuerung der Gruppen-Bedienung (4T-001702).
  *   Fehlt sie, entfallen «Gruppe einfügen» und die Gruppen-Einträge.
+ * @param {object} [ctx.verweisKarten] Steuerung der Verweis-Karten-Bedienung
+ *   (4T-001747, seit 4T-001748 auch der Bild-Karten). Fehlt sie, entfallen
+ *   «Verweis setzen…», «Bild setzen…», «Ziel öffnen» und die beiden
+ *   Entfernen-Einträge an der Karte sowie «Verweis-Karte anlegen» und
+ *   «Bild-Karte anlegen» am Hintergrund.
  * @param {Function} [ctx.verschiebeImStapel] (id, befehl) => boolean
  *   (4T-001701). Fehlt der Rückruf, entfallen die vier Stapel-Einträge.
  * @param {Function} [ctx.zeigeMenue] ({x, y, eintraege}) => void (injiziert).
@@ -66,7 +71,7 @@ const STAPEL_SCHLUESSEL = {
  * @returns {object} Steuerung mit `destroy`.
  */
 export function createCanvasKontextmenue(ctx) {
-  const { wurzelEl, buehne, bedienung, verbindungen, formen, gruppen } = ctx;
+  const { wurzelEl, buehne, bedienung, verbindungen, formen, gruppen, verweisKarten } = ctx;
   const t = typeof ctx.t === 'function' ? ctx.t : (key) => key;
 
   function zeigeMenue(daten) {
@@ -125,6 +130,24 @@ export function createCanvasKontextmenue(ctx) {
         action: () => gruppen.gruppeAnlegen({ punkt }),
       });
     }
+    // 4T-001747: Die Verweis-Karte an der Klick-Stelle. Sie steht hinter der
+    // Gruppe wie im Ansichtsmenü; das Ziel wird über dasselbe Eingabe-Feld
+    // abgefragt wie in der Leiste, und ohne Ziel entsteht keine Karte.
+    if (verweisKarten) {
+      eintraege.push({
+        label: t('command.canvas.addLinkCard'),
+        dataId: 'canvas-add-link-card',
+        action: () => verweisKarten.verweisKarteAnlegen({ punkt }),
+      });
+      // 4T-001748: die Bild-Karte unmittelbar dahinter, in derselben Reihenfolge
+      // wie im Ansichtsmenü. Sie fragt zuerst nach dem Bild; ohne Bild entsteht
+      // keine Karte.
+      eintraege.push({
+        label: t('command.canvas.addImageCard'),
+        dataId: 'canvas-add-image-card',
+        action: () => verweisKarten.bildKarteAnlegen({ punkt }),
+      });
+    }
     return eintraege;
   }
 
@@ -144,6 +167,60 @@ export function createCanvasKontextmenue(ctx) {
     ];
   }
 
+  // 4T-001747 (Epic 3E-000289): Der Verweis-Block der Karte, hinter einem
+  // Trenner. Er steht **hinter** den bestehenden Karten-Einträgen und vor dem
+  // Stapel-Block: Text bearbeiten und Karte löschen gelten jeder Karte, der
+  // Verweis ist die Eigenschaft, die nur manche tragen.
+  //
+  // «Ziel öffnen» und die beiden Entfernen-Einträge erscheinen nur an einer
+  // Karte, die auf etwas zeigt — ein Eintrag ohne Gegenstand wäre kein Zugang.
+  // Alle rufen dieselben Griffe wie Leiste und Doppelklick (B6).
+  //
+  // 4T-001748: «Bild setzen…» steht neben «Verweis setzen…», weil über beide
+  // aus einer Text-Karte eine Verweis- oder Bild-Karte wird; «Ziel öffnen»
+  // erscheint **einmal** für beide Angaben, denn sie schließen einander aus
+  // (G8) und der Eintrag heißt an beiden gleich.
+  function verweisEintraege(id) {
+    if (!verweisKarten) return [];
+    const eintraege = [
+      { separator: true },
+      {
+        label: t('canvas.verweisSetzen'),
+        dataId: 'canvas-card-link-set',
+        action: () => verweisKarten.setzeVerweisAbfragen(id),
+      },
+      {
+        label: t('canvas.bildSetzen'),
+        dataId: 'canvas-card-image-set',
+        action: () => verweisKarten.setzeBildAbfragen(id),
+      },
+    ];
+    const hatVerweis = !!verweisKarten.verweisVon(id);
+    const hatBild = !!verweisKarten.bildVon(id);
+    if (hatVerweis || hatBild) {
+      eintraege.push({
+        label: t('canvas.verweisOeffnen'),
+        dataId: 'canvas-card-link-open',
+        action: () => verweisKarten.oeffneZielVon(id),
+      });
+    }
+    if (hatVerweis) {
+      eintraege.push({
+        label: t('canvas.verweisEntfernen'),
+        dataId: 'canvas-card-link-remove',
+        action: () => verweisKarten.entferneVerweis(id),
+      });
+    }
+    if (hatBild) {
+      eintraege.push({
+        label: t('canvas.bildEntfernen'),
+        dataId: 'canvas-card-image-remove',
+        action: () => verweisKarten.entferneBild(id),
+      });
+    }
+    return eintraege;
+  }
+
   function kartenEintraege(id) {
     return [
       {
@@ -156,6 +233,7 @@ export function createCanvasKontextmenue(ctx) {
         dataId: 'canvas-card-delete',
         action: () => bedienung.loescheKarte(id),
       },
+      ...verweisEintraege(id),
       ...stapelEintraege(id),
     ];
   }
@@ -327,7 +405,12 @@ export function createCanvasKontextmenue(ctx) {
     // Beschriftungs-Eingabe der Verbindung.
     if (
       ziel.closest(
-        '.canvas-karte-eingabe, .canvas-linie-eingabe, .canvas-form-eingabe, .canvas-gruppe-eingabe',
+        '.canvas-karte-eingabe, .canvas-linie-eingabe, .canvas-form-eingabe, ' +
+          // 4T-001747: Dasselbe gilt für das Ziel-Feld der Karten-Leiste und
+          // die freistehende Ziel-Abfrage — auch dort erwartet der Anwender
+          // Ausschneiden, Kopieren und Einfügen. 4T-001748: und für das
+          // Bild-Feld daneben, aus demselben Grund.
+          '.canvas-gruppe-eingabe, .canvas-karte-verweis-feld, .canvas-karte-bild-feld',
       )
     ) {
       return;

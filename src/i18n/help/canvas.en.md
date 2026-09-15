@@ -1,10 +1,10 @@
 # Canvas surface
 
-A **canvas** is a spatial working surface inside an ordinary Markdown document: **cards** carrying their own text are placed freely on it, **connections** draw the relations between them, **shapes** set marks beside them, and **groups** tie together what belongs together. Whenever alternatives are laid side by side, a workflow is sketched or thoughts are sorted out first, the order here comes from position rather than from sequence.
+A **canvas** is a spatial working surface inside an ordinary Markdown document: **cards** carrying their own text are placed freely on it, **connections** draw the relations between them, **shapes** set marks beside them, and **groups** tie together what belongs together. A card either carries its own text or shows the content of another document or an image from the area. Whenever alternatives are laid side by side, a workflow is sketched or thoughts are sorted out first, the order here comes from position rather than from sequence.
 
 The surface is carried by a code block with the language tag `perspective-canvas`. A document may contain any number of them, and everything else in it remains ordinary Markdown.
 
-The function belongs to the [internal extensions](extensions.md) (“Canvas view”). Switched off, the block stays an ordinary code block, the view mode disappears, and the commands for surface, card, shape, group and stacking order are gone. The document remains fully readable; nothing is lost.
+The function belongs to the [internal extensions](extensions.md) (“Canvas view”). Switched off, the block stays an ordinary code block, the view mode disappears, and the commands for surface, card, link card, image card, shape, group and stacking order are gone. The document remains fully readable; nothing is lost.
 
 ## How this differs from the graph view
 
@@ -69,6 +69,25 @@ A **double-click inside a card** switches it to its raw text. That text is ordin
 | `Escape` | discards |
 
 Text that has not changed writes nothing to the document.
+
+### Link cards
+
+Instead of carrying its own text, a card can show the content of **another document** — the whole of it, or from a heading or a block onwards. The content stays where it is: the card holds no copy and cannot be changed in this place. If it does not fit into the card, the card scrolls.
+
+- **Creating** — the command **“Add link card to canvas”** (command palette, View menu) places it in the middle of the visible section, a right-click on the empty background at the click position. Both ask for the target first: `Enter` creates the card, `Escape` cancels. Without a target no card is created.
+- **Setting, changing, removing the target** — a selected card carries a **toolbar** with the field “Link target”; while typing it offers the documents of the area. That turns a text card into a link card, and “Remove link” turns it back into a text card — its own text stays in place. The same actions are in the **context menu** of the card.
+- **Opening the target** — a **double-click on the shown content** opens the linked document at the linked place, and so does “Open target” in toolbar and context menu. That stays allowed in the pure display as well, because opening changes nothing.
+- **Header line** — it names the **label** of the card, that is its own text, and otherwise the target including the anchor. A double-click on the header line edits the label like the text of any other card.
+
+If the target cannot be found, the card stays and names, in place of the content, what it looked for; nothing changes in the file. If the target is edited in another open document, the card follows right away; a change to a file that is open nowhere appears the next time the surface is drawn.
+
+### Image cards
+
+A card can just as well show an **image** from the area. Here, too, it holds no copy: the image stays a file and the card points to it — through a path relative to the document or through the bare file name. It is **fitted** into the card and keeps its proportions; an image card does not scroll.
+
+It is operated like the link card: the command **“Add image card to canvas”** and the same entry in the context menu of the surface, in the toolbar of the selected card the field “Image” — with the image files of the area as suggestions — as well as “Remove image” and “Open target”. A double-click on the image opens the file the way the application opens any [attachment](attachments.md). The header line names the label and otherwise the name of the image file.
+
+If the image cannot be found, is too large or carries no image extension, the card says so in place of the image. **A card shows either a document or an image;** if both attributes stand side by side, the document applies.
 
 ### Deleting
 
@@ -207,6 +226,22 @@ Because the surface lies in an ordinary Markdown document, it turns up in every 
 
 The preview shows at most six cards; below it stands how many more there are. The block can be **collapsed**, its header line staying in place; that state applies to the running session and is not written into the document. Printing and PDF export follow the rendered view, without printing the two buttons of the block.
 
+## Links in the network of the area
+
+A link card is a **link like one in running text** — only on a surface. It therefore appears everywhere the application shows links:
+
+| Place | What appears |
+| ----- | ------------ |
+| backlinks of the target | the surface as the source, marked with “on a canvas”; the excerpt is the label of the card |
+| outgoing links of the document | an entry of the kind “Link card on a canvas”, marked with `C` |
+| [Graph view](graph.md) | an edge like any other link |
+
+Backlinks and outgoing links are described in context on the page [Linking](linking.md).
+
+If the target is **renamed or moved**, the attribute in the card follows, like a link in running text; the same holds for the image of an image card.
+
+Two things do not count: an **image** gets no node in the link graph, no more than an image in running text does. And a link in the **own text** of a card stays outside — only the target of the card counts.
+
 ## The storage format
 
 The surface lies in the document as plain text. It can therefore be understood without this application — and what stands in the cards is readable in any text tool.
@@ -229,6 +264,19 @@ An attribute has the form `name=value`. A value is either a word without spaces 
 | `b`, `h` | width and height |
 
 All four are **whole numbers** counted in pixels at zoom 1. The **origin lies at the centre of the surface**: negative values are to the left of it or above it. The lines below the marker are the card text.
+
+Two further attributes turn the card into a **link card** or an **image card**:
+
+```text
+!karte <id> x=<number> y=<number> b=<number> h=<number> doc="<target>"
+!karte <id> x=<number> y=<number> b=<number> h=<number> bild="<image>"
+```
+
+`doc=` shows the content of a document. The target takes the same forms as the target of an embed: the document name or a path relative to the own document, optionally followed by `#Heading` or `#^block-id`.
+
+`bild=` shows an image. The value is a path relative to the document or the bare file name of an image file of the area; the permitted extensions are `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` and `ico`.
+
+If both attributes stand on the same card, `doc=` applies. An empty value and an extension outside the list are a **finding**; the attribute nevertheless stays unchanged in the file. The lines below the marker are the own text of the card here as well — with a link card and an image card, its **label**.
 
 ### Connections
 
@@ -295,6 +343,12 @@ Several sources, one merge.
 
 How are conflicts resolved?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Concepts/Import.md#Target picture"
+Target picture in the concept
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="attachments/sketch.png"
+Sketch of the interface
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Key point
 
@@ -330,6 +384,12 @@ Several sources, one merge.
 
 How are conflicts resolved?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Concepts/Import.md#Target picture"
+Target picture in the concept
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="attachments/sketch.png"
+Sketch of the interface
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Key point
 
@@ -345,9 +405,11 @@ depend on each other
 
 ## Limits
 
-- A card carries **its own text**; there are no other kinds of card. Shapes and groups are part of the surface, but they carry no rendered content — at most a label of plain text.
+- The **shown content** of a link card cannot be changed inside the card; it is changed in the document the card points to. Shapes and groups carry no rendered content at all — at most a label of plain text.
+- **Embeds inside the shown content are not resolved.** If a link card shows a document that embeds something itself, that place stays empty in the card; everything else appears unchanged.
+- A change to the target appears **right away** as long as the target is being edited in another open document; if a file that is open nowhere is changed, that appears the next time the surface is drawn.
 - **There is no free drawing.** The surface knows the six shape kinds and no other geometry; freehand strokes, hand-drawn arrows and pen input are not part of it.
 - A **connection** runs between cards only; it cannot be attached to a shape or a group.
-- A link in the text of a card does **not** appear in the link graph or in the backlinks: the area index skips the content of code blocks.
+- A link in the **own text** of a card does not appear in the link graph or in the backlinks; only the target of a link card counts. An image gets no node in the link graph.
 - The surface is operated with the mouse; the keyboard carries undo, delete and the text entries.
 - A surface belongs to its document. Cards cannot be dragged from one surface to another.

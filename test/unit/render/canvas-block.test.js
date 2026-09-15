@@ -71,6 +71,34 @@ describe('Canvas-Block: Art, Umfang und Zugang (AK1)', () => {
     expect(html).not.toContain('Gruppen');
   });
 
+  // 4T-001746 (Epic 3E-000289): Die Gegenprobe der Stufe 3 — sie bringt
+  // **keine** neue Zahl. Eine Verweis-Karte und eine Bild-Karte sind Karten,
+  // und der Verweis ist eine Eigenschaft der Karte und keine Art neben ihr.
+  it('zählt Verweis- und Bild-Karten in derselben Karten-Zahl', () => {
+    const rumpf = [
+      KARTEN(1),
+      '!karte k2 x=0 y=0 b=200 h=100 doc="Konzepte/Import.md#Zielbild"',
+      '!karte k3 x=0 y=0 b=200 h=100 bild="Anlagen/Skizze.png"',
+    ].join('\n');
+    const html = renderMarkdown(FENCE(rumpf), 'de');
+    expect(html).toContain('>3 Karten, 0 Verbindungen<');
+    // Keine zusätzliche Zahl in der Kopfzeile — weder für Verweise noch für
+    // Bilder; die Umfang-Zeile sieht aus wie vor der Stufe 3.
+    expect(html).not.toContain('Verweis');
+    expect(html).not.toContain('Bild-');
+  });
+
+  it('zeigt eine Verweis-Karte ohne Beschriftung mit ihrem Ziel', () => {
+    // Ohne diesen Rückfall stünde die Karte als leere Zeile in der Vorschau.
+    const rumpf = [
+      '!karte k1 x=0 y=0 b=200 h=100 doc="Konzepte/Import.md#Zielbild"',
+      '!karte k2 x=0 y=0 b=200 h=100 bild="Anlagen/Skizze.png"',
+    ].join('\n');
+    const html = renderMarkdown(FENCE(rumpf), 'de');
+    expect(html).toContain('Konzepte/Import.md#Zielbild');
+    expect(html).toContain('Skizze.png');
+  });
+
   it('eine einzelne Form und eine einzelne Gruppe stehen in der Einzahl', () => {
     const rumpf = [KARTEN(1), '!form s1 x=0 y=0 b=90 h=90', '!gruppe g1 x=0 y=0 b=9 h=9'].join(
       '\n',

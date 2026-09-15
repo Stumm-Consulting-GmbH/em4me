@@ -33,6 +33,10 @@ import {
 } from '../../../shared/canvas/canvas-core.js';
 import { istCanvasModusVerfuegbar } from './canvas-modus.js';
 import { createCanvasView } from './canvas-view.js';
+// 4T-001747 (Epic 3E-000289): Die Zerlegung einer Verweis-Angabe in Ziel, Anker
+// und Abruf-Pfad steht an **einer** Stelle — dieselbe, aus der die Anzeige
+// liest (Abnahme-Befund vom 2026-09-14).
+import { zerlegeZiel } from './canvas-verweis-anzeige.js';
 
 // Verzögerung der Live-Aktualisierung. Gleicher Wert wie Gliederung und
 // Mindmap: am Tippen erprobt, hält die Fläche gefühlt sofort aktuell.
@@ -233,6 +237,164 @@ export function legeCanvasGruppeAn(paneIdx) {
 }
 
 /**
+ * Fragt das Ziel ab und legt danach eine Verweis-Karte in der aktiven Fläche
+ * an — der Weg des Kommandos aus Menü und Kommando-Palette (4T-001747).
+ *
+ * @param {number} paneIdx
+ * @returns {boolean}
+ */
+export function legeCanvasVerweisKarteAn(paneIdx) {
+  return anDerFlaeche(paneIdx, (ansicht) => ansicht.verweisKarteAnlegen());
+}
+
+/**
+ * Fragt das Bild ab und legt danach eine Bild-Karte in der aktiven Fläche an —
+ * der Weg des Kommandos aus Menü und Kommando-Palette (4T-001748).
+ *
+ * @param {number} paneIdx
+ * @returns {boolean}
+ */
+export function legeCanvasBildKarteAn(paneIdx) {
+  return anDerFlaeche(paneIdx, (ansicht) => ansicht.bildKarteAnlegen());
+}
+
+/**
+ * Löst das Bild einer Karte auf und öffnet es über den Anlagen-Weg der
+ * Anwendung (4T-001748, Entscheidung F3).
+ *
+ * **Hier ausdrücklich NICHT derselbe Aufruf wie die Anzeige** — anders als beim
+ * Dokument-Verweis (4T-001747, Entscheidung 11), und mit Absicht: Die Anzeige
+ * ruft `readEmbedImage`, und genau dieser Aufruf schlägt bei einem Bild über
+ * der Größen-Grenze fehl. Das Öffnen muss aber gerade dort tragen, weil der
+ * Anwender das zu große Bild ansehen will. Gerufen wird deshalb
+ * `resolveEmbedTarget` — **dieselben drei Auflösungs-Stufen und dieselbe
+ * Bereichs-Grenze**, nur ohne das Lesen der Datei. Die Art `other` steht dabei
+ * bewusst: Ihre Endungs-Regel ist die leere, und die Endung hat der Kern schon
+ * geprüft (`BILD_ENDUNGEN`, G8); die Art `image` des Auflösers führt kein
+ * `ico` und verweigerte damit ein Bild, das die Grammatik erlaubt.
+ */
+async function oeffneBildZiel(paneIdx, bild) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  let ergebnis;
+  try {
+    ergebnis = await api.resolveEmbedTarget(
+      tab && tab.path ? tab.path : '',
+      String(bild == null ? '' : bild),
+      'other',
+    );
+  } catch {
+    ergebnis = null;
+  }
+  if (!ergebnis || !ergebnis.ok || !ergebnis.path) {
+    zeigeHinweis('canvas.bildZielFehlt');
+    return false;
+  }
+  // Laufzeit-Import aus demselben Grund wie beim Öffnen eines Dokuments: Ein
+  // statischer Bezug auf `views/` zöge den Canvas-Ordner in den großen
+  // Datei-Zyklus des Renderers. Die Anlagen-Strecke bringt ihre beiden Grenzen
+  // (Wurzel, Rückfrage bei ausführbaren Endungen) und ihre Meldungen mit.
+  const navigation = await import('../views/link-navigation.js');
+  return navigation.oeffneAnlage(paneIdx, ergebnis.path);
+}
+
+/**
+ * Löst das Ziel eines Karten-Verweises auf und öffnet es als geöffnetes
+ * Dokument an der verwiesenen Stelle (4T-001747, Entscheidung F3).
+ *
+ * **Derselbe Auflöser wie die Anzeige.** Gerufen wird `readEmbedFile` und nicht
+ * ein zweiter Weg: Die drei Stufen samt Bereichs-Grenze entscheiden sonst an
+ * zwei Stellen verschieden, und ein Ziel, das die Karte anzeigt, ließe sich
+ * womöglich nicht öffnen.
+ *
+ * **Öffnen und Anker-Sprung kommen über Laufzeit-Importe**, wie der
+ * Statusleisten-Hinweis darüber und aus demselben Grund: Ein statischer Bezug
+ * auf `tabs.js` oder `views/` zöge den Canvas-Ordner in den großen Datei-Zyklus
+ * des Renderers, den der Ordner-Import-Wächter als Ratsche eingefroren hat.
+ */
+async function oeffneVerweisZiel(paneIdx, doc) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  // 4T-001747 (Abnahme-Befund vom 2026-09-14): Zerlegt wird über **dieselbe**
+  // Funktion wie in der Anzeige, samt ihrer Abruf-Fassung des Ziels. Die eigene
+  // Zerlegung, die vorher hier stand, reichte den geschriebenen Text ungeändert
+  // weiter — und ein Ziel ohne Endung weist `embed:read` mit
+  // `extension not allowed` ab. Zwei Fassungen derselben Zerlegung waren
+  // zugleich zwei Orte, an denen genau das unbemerkt auseinanderlaufen konnte.
+  const { anker, pfad } = zerlegeZiel(doc);
+  let ergebnis;
+  try {
+    ergebnis = await api.readEmbedFile(tab && tab.path ? tab.path : '', pfad, null);
+  } catch {
+    ergebnis = null;
+  }
+  if (!ergebnis || !ergebnis.path) {
+    zeigeHinweis('canvas.verweisZielFehlt');
+    return false;
+  }
+  const [tabs, anchor] = await Promise.all([
+    import('../tabs/tabs.js'),
+    import('../views/anchor-navigation.js'),
+  ]);
+  // Gruppe erben wie beim Öffnen-Link einer Einbettung: Die Karte liegt im
+  // Dokument-Inhalt, und das Ziel gehört in dieselbe Reiter-Gruppe.
+  const zielPane = await tabs.openInPane(paneIdx, [ergebnis.path], { inheritGroup: true });
+  if (anker) {
+    anchor.scrollToAnchorAfterOpen(typeof zielPane === 'number' ? zielPane : paneIdx, anker);
+  }
+  return true;
+}
+
+/**
+ * Die Namen des Bereichs-Index als Vorschläge für das Ziel-Feld (4T-001747).
+ *
+ * **Wiederverwendet wird die Index-Abfrage, nicht die Vervollständigung des
+ * Editors.** Geprüft und entschieden in diesem Vorgang: `wikiLinkCompletionSource`
+ * ist eine CodeMirror-Quelle — sie bekommt einen `CompletionContext` mit
+ * Dokument, Schreibmarke und EditorView, liest ihren Präfix aus der Zeile und
+ * gibt CodeMirror-Optionen zurück. Nichts davon gibt es an einem Eingabe-Feld
+ * der Fläche. Wiederverwendbar ist die Stufe darunter, und genau die wird
+ * gerufen: `api.autocompleteWikiTargets`, derselbe Endpunkt, aus dem jene
+ * Quelle ihre Namen bezieht. Die Anzeige übernimmt die `datalist` des Browsers.
+ */
+function verweisVorschlaege(paneIdx) {
+  return namenAus(() => api.autocompleteWikiTargets(dokumentPfad(paneIdx)));
+}
+
+/**
+ * Die Bild-Dateien des Bereichs als Vorschläge für das Bild-Feld (4T-001748).
+ *
+ * **Eine eigene Sicht des Bereichs-Index, kein Filter über der Wiki-Sicht.**
+ * Nachgesehen: Jene baut ihre Liste aus den Markdown-Dateien und den
+ * Zweitnamen des Index; Bilder stehen dort gar nicht, und ein Filter über einer
+ * Liste ohne Bilder bliebe für immer leer. Der Kanal
+ * `autocomplete:imageTargets` liest die Namens-Zuordnung der
+ * Nicht-Markdown-Dateien und gibt daraus heraus, was eine Bild-Endung trägt —
+ * dieselbe Bereichs-Grenze, dieselbe Antwort-Form, derselbe Aufbau-bei-Bedarf
+ * wie beim Nachbarn.
+ */
+function bildVorschlaege(paneIdx) {
+  return namenAus(() => api.autocompleteImageTargets(dokumentPfad(paneIdx)));
+}
+
+function dokumentPfad(paneIdx) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  return tab && tab.path ? tab.path : null;
+}
+
+// Die Namen einer Vorschlags-Antwort. Beide Sichten antworten in derselben Form
+// (`{status, suggestions}`), und beide dürfen scheitern, ohne dass ein Feld
+// dadurch ausfällt: Ein Feld ohne Vorschläge ist immer noch ein Feld.
+async function namenAus(abfrage) {
+  let antwort;
+  try {
+    antwort = await abfrage();
+  } catch {
+    antwort = null;
+  }
+  if (!antwort || antwort.status !== 'ready' || !Array.isArray(antwort.suggestions)) return [];
+  return antwort.suggestions.map((s) => (s && s.name ? String(s.name) : '')).filter(Boolean);
+}
+
+/**
  * Verschiebt das gewählte Element der aktiven Fläche im Stapel (Story
  * 4S-000932).
  *
@@ -266,12 +428,29 @@ function ansichtFuer(paneIdx) {
   els.canvasEl.innerHTML = '';
   ansichten[paneIdx] = createCanvasView(els.canvasEl, {
     t,
-    renderMarkdown: (text, pfad) => api.renderMarkdown(text, pfad),
+    // 4T-001747: Die Optionen reisen mit — der Körper einer Verweis-Karte wird
+    // mit unterdrückter Frontmatter-Zeile gerendert, wie jede Einbettung.
+    renderMarkdown: (text, pfad, optionen) => api.renderMarkdown(text, pfad, optionen),
     nachRender: (container, pfad) => {
       if (teilbaumSchritte) teilbaumSchritte(container, pfad);
     },
+    // 4T-001747: Der Einbettungs-Weg des Bestands, hereingereicht statt in der
+    // Ansicht importiert (Injektions-Bauweise E4).
+    leseEinbettung: (basisPfad, ziel, anker) => api.readEmbedFile(basisPfad, ziel, anker),
+    // 4T-001748: Der Bild-Einbettungs-Weg des Bestands — Daten-Adresse,
+    // Größen-Grenze und Bereichs-Grenze kommen von dort und nicht von hier.
+    leseBild: (basisPfad, bild) => api.readEmbedImage(basisPfad, bild),
+    oeffneZiel: (doc) => oeffneVerweisZiel(paneIdx, doc),
+    oeffneBild: (bild) => oeffneBildZiel(paneIdx, bild),
+    zielVorschlaege: () => verweisVorschlaege(paneIdx),
+    bildVorschlaege: () => bildVorschlaege(paneIdx),
     // 4T-001654: Der Rückweg aus der Ansicht in das Dokument.
     beiAenderung: (daten) => schreibeFlaeche(paneIdx, daten),
+    // 4T-001747 (Abnahme-Befund vom 2026-09-14): Eine während einer
+    // Bedien-Handlung zurückgestellte Neu-Übergabe wird aus dem **aktuellen**
+    // Dokument nachgeholt und nicht aus ihrem Schnappschuss — der beschreibt
+    // den Stand vor der Handlung und machte sie beim Nachholen rückgängig.
+    neuUebergeben: () => renderCanvas(paneIdx),
     // Befund 1 vom 2026-09-10: Im Anzeige-Modus ist die Fläche nur ansehbar.
     istAenderbar: () => istAenderbar(paneIdx),
     // 4T-001654: Rückgängig und Wiederholen auf der Historie dieser Spalte.

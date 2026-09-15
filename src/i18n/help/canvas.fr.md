@@ -1,10 +1,10 @@
 # Surface Canvas
 
-Un **canevas** est une surface de travail spatiale au sein d'un document Markdown ordinaire : des **cartes** portant leur propre texte y sont disposées librement, des **connexions** tracent les relations entre elles, des **formes** posent des repères à côté d'elles et des **groupes** rassemblent ce qui va ensemble. Lorsque des variantes sont posées côte à côte, qu'un déroulement est esquissé ou que des idées sont d'abord triées, l'ordre vient ici de la position et non de la séquence.
+Un **canevas** est une surface de travail spatiale au sein d'un document Markdown ordinaire : des **cartes** portant leur propre texte y sont disposées librement, des **connexions** tracent les relations entre elles, des **formes** posent des repères à côté d'elles et des **groupes** rassemblent ce qui va ensemble. Une carte porte soit son propre texte, soit elle montre le contenu d'un autre document ou une image de l'espace. Lorsque des variantes sont posées côte à côte, qu'un déroulement est esquissé ou que des idées sont d'abord triées, l'ordre vient ici de la position et non de la séquence.
 
 La surface est portée par un bloc de code avec la balise de langage `perspective-canvas`. Un document peut en contenir autant que voulu, et tout le reste y demeure du Markdown ordinaire.
 
-La fonction fait partie des [extensions internes](extensions.md) (« Vue canevas »). Désactivée, le bloc reste un bloc de code ordinaire, le mode d'affichage disparaît et les commandes pour la surface, la carte, la forme, le groupe et l'ordre de superposition s'en vont. Le document reste parfaitement lisible ; rien n'est perdu.
+La fonction fait partie des [extensions internes](extensions.md) (« Vue canevas »). Désactivée, le bloc reste un bloc de code ordinaire, le mode d'affichage disparaît et les commandes pour la surface, la carte, la carte de lien, la carte d'image, la forme, le groupe et l'ordre de superposition s'en vont. Le document reste parfaitement lisible ; rien n'est perdu.
 
 ## Distinction avec la vue graphe
 
@@ -69,6 +69,25 @@ Un **double-clic dans une carte** la bascule sur son texte brut. Il s'agit de Ma
 | `Échap` | abandonne |
 
 Un texte inchangé n'écrit rien dans le document.
+
+### Cartes de lien
+
+Au lieu de porter son propre texte, une carte montre au choix le contenu d'un **autre document** — en entier, ou à partir d'un titre ou d'un bloc. Le contenu reste là où il se trouve : la carte n'en garde aucune copie et ne se modifie pas à cet endroit. S'il ne tient pas dans la carte, celle-ci défile.
+
+- **Créer** — la commande **« Ajouter une carte de lien au canevas »** (palette de commandes, menu Affichage) la place au centre de la portion visible, le clic droit sur le fond libre à l'endroit du clic. Les deux demandent d'abord la cible : `Entrée` crée la carte, `Échap` abandonne. Sans cible, aucune carte n'est créée.
+- **Définir, changer, supprimer la cible** — une carte sélectionnée porte une **barre** avec le champ « Cible du lien » ; à la saisie, il propose les documents de l'espace. Une carte de texte devient ainsi une carte de lien, et « Supprimer le lien » la ramène à une carte de texte — son propre texte reste en place. Les mêmes actions figurent dans le **menu contextuel** de la carte.
+- **Ouvrir la cible** — un **double-clic sur le contenu affiché** ouvre le document lié à l'endroit lié, tout comme « Ouvrir la cible » dans la barre et le menu contextuel. Cela reste permis en affichage pur, car ouvrir ne modifie rien.
+- **Ligne d'en-tête** — elle porte l'**étiquette** de la carte, c'est-à-dire son propre texte, et sinon la cible avec son ancre. Un double-clic sur la ligne d'en-tête modifie l'étiquette comme le texte de toute autre carte.
+
+Si la cible est introuvable, la carte reste en place et indique, là où serait le contenu, ce qu'elle a cherché ; rien ne change dans le fichier. Si la cible est modifiée dans un autre document ouvert, la carte suit aussitôt ; une modification dans un fichier ouvert nulle part apparaît au prochain tracé de la surface.
+
+### Cartes d'image
+
+Une carte montre tout aussi bien une **image** de l'espace. Là non plus elle n'en garde aucune copie : l'image reste un fichier et la carte y renvoie — par un chemin relatif au document ou par le seul nom de fichier. Elle est **ajustée** à la carte en conservant ses proportions ; une carte d'image ne défile pas.
+
+Elle se manipule comme la carte de lien : la commande **« Ajouter une carte d'image au canevas »** et la même entrée dans le menu contextuel de la surface, dans la barre de la carte sélectionnée le champ « Image » — avec les fichiers image de l'espace en propositions — ainsi que « Supprimer l'image » et « Ouvrir la cible ». Un double-clic sur l'image ouvre le fichier comme l'application ouvre toute [pièce jointe](attachments.md). La ligne d'en-tête porte l'étiquette et sinon le nom du fichier image.
+
+Si l'image est introuvable, trop volumineuse ou sans extension d'image, la carte le dit à la place de l'image. **Une carte montre soit un document, soit une image ;** si les deux attributs figurent côte à côte, c'est le document qui vaut.
 
 ### Supprimer
 
@@ -207,6 +226,22 @@ Comme la surface se trouve dans un document Markdown ordinaire, elle se rencontr
 
 L'aperçu montre six cartes au plus ; en dessous figure le nombre de cartes restantes. Le bloc se **replie**, sa ligne d'en-tête restant en place ; cet état vaut pour la session en cours et n'est pas écrit dans le document. L'impression et l'export PDF suivent la vue rendue, sans imprimer les deux boutons du bloc.
 
+## Les liens dans le réseau de l'espace
+
+Une carte de lien est un **lien comme un lien dans le texte courant** — simplement posé sur une surface. Elle apparaît donc partout où l'application montre des liens :
+
+| Endroit | Ce qui apparaît |
+| ------- | --------------- |
+| rétroliens de la cible | la surface comme source, marquée « sur un canevas » ; l'extrait est l'étiquette de la carte |
+| liens sortants du document | une entrée du type « Carte de lien sur un canevas », marquée d'un `C` |
+| [Vue graphe](graph.md) | une arête comme tout autre lien |
+
+Les rétroliens et les liens sortants sont décrits dans leur ensemble sur la page [Liens](linking.md).
+
+Si la cible est **renommée ou déplacée**, l'attribut de la carte suit, comme un lien dans le texte courant ; il en va de même pour l'image d'une carte d'image.
+
+Deux choses ne comptent pas : une **image** n'obtient pas de nœud dans le graphe des liens, pas plus qu'une image dans le texte courant. Et un lien dans le **propre texte** d'une carte reste en dehors — seule la cible de la carte compte.
+
 ## Le format de stockage
 
 La surface se trouve en clair dans le document. Elle est donc interprétable sans cette application — et ce qui figure dans les cartes est lisible dans n'importe quel outil de texte.
@@ -229,6 +264,19 @@ Un attribut a la forme `nom=valeur`. Une valeur est soit un mot sans espace, soi
 | `b`, `h` | largeur et hauteur |
 
 Les quatre sont des **nombres entiers** comptés en pixels au zoom 1. L'**origine se trouve au centre de la surface** : les valeurs négatives sont à sa gauche ou au-dessus. Les lignes sous le marqueur sont le texte de la carte.
+
+Deux attributs supplémentaires font de la carte une **carte de lien** ou une **carte d'image** :
+
+```text
+!karte <identifiant> x=<nombre> y=<nombre> b=<nombre> h=<nombre> doc="<cible>"
+!karte <identifiant> x=<nombre> y=<nombre> b=<nombre> h=<nombre> bild="<image>"
+```
+
+`doc=` montre le contenu d'un document. La cible prend les mêmes formes que la cible d'une inclusion : le nom du document ou un chemin relatif au document lui-même, suivi au choix de `#Titre` ou de `#^block-id`.
+
+`bild=` montre une image. La valeur est un chemin relatif au document ou le seul nom d'un fichier image de l'espace ; les extensions admises sont `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` et `ico`.
+
+Si les deux attributs figurent sur la même carte, c'est `doc=` qui vaut. Une valeur vide et une extension hors de la liste sont un **constat** ; l'attribut reste malgré tout inchangé dans le fichier. Les lignes sous le marqueur sont ici aussi le propre texte de la carte — pour une carte de lien et une carte d'image, son **étiquette**.
 
 ### Connexions
 
@@ -295,6 +343,12 @@ Plusieurs sources, une fusion.
 
 Comment les conflits sont-ils tranchés ?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Concepts/Import.md#Cible"
+La cible dans le concept
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="pieces-jointes/croquis.png"
+Croquis de l'interface
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Message clé
 
@@ -330,6 +384,12 @@ Plusieurs sources, une fusion.
 
 Comment les conflits sont-ils tranchés ?
 
+!karte k4 x=420 y=-200 b=240 h=160 doc="Concepts/Import.md#Cible"
+La cible dans le concept
+
+!karte k5 x=420 y=-20 b=240 h=140 bild="pieces-jointes/croquis.png"
+Croquis de l'interface
+
 !form f1 x=260 y=140 b=120 h=120 art=stern rand=rot füllung=gelb
 Message clé
 
@@ -345,9 +405,11 @@ se conditionnent
 
 ## Limites
 
-- Une carte porte **son propre texte** ; il n'existe pas d'autre type de carte. Les formes et les groupes font partie de la surface, mais ne portent aucun contenu rendu — tout au plus une étiquette en texte simple.
+- Le **contenu affiché** d'une carte de lien ne se modifie pas dans la carte ; il se modifie dans le document sur lequel elle pointe. Les formes et les groupes ne portent aucun contenu rendu — tout au plus une étiquette en texte simple.
+- **Les inclusions dans le contenu affiché ne sont pas résolues.** Si une carte de lien montre un document qui inclut lui-même quelque chose, cet endroit reste vide dans la carte ; tout le reste apparaît inchangé.
+- Une modification de la cible apparaît **aussitôt** tant que celle-ci est modifiée dans un autre document ouvert ; si un fichier ouvert nulle part est modifié, cela apparaît au prochain tracé de la surface.
 - **Le dessin libre n'existe pas.** La surface connaît les six sortes de formes et aucune autre géométrie ; les traits à main levée, les flèches tracées soi-même et la saisie au stylet n'en font pas partie.
 - Une **connexion** relie uniquement des cartes ; elle ne se raccorde ni à une forme ni à un groupe.
-- Un lien dans le texte d'une carte n'apparaît **pas** dans le graphe des liens ni dans les rétroliens : l'index de l'espace ignore le contenu des blocs de code.
+- Un lien dans le **propre texte** d'une carte n'apparaît ni dans le graphe des liens ni dans les rétroliens ; seule la cible d'une carte de lien compte. Une image n'obtient pas de nœud dans le graphe des liens.
 - La surface se manipule à la souris ; le clavier porte l'annulation, la suppression et les saisies de texte.
 - Une surface appartient à son document. Les cartes ne peuvent pas être glissées d'une surface à une autre.

@@ -45,6 +45,27 @@
 //      Inhalts-Zeilen sind die Beschriftung. **Keine Mitglieder-Liste** —
 //      das Rechteck ist die Aussage, und Mitglied ist, was darin liegt.
 //
+// **Zwei Festlegungen der Stufe 3** (G7 und G8, Entscheidungen F1 bis F5 des
+// Product Owners vom 2026-09-12), umgesetzt in 4T-001746 (Epic 3E-000289):
+//
+//   G7 **Verweis-Angabe der Karte:** `!karte <id> x= y= b= h= doc="<Ziel>"`.
+//      Das Ziel nimmt dieselben Formen wie das Ziel einer Einbettung `![[…]]`
+//      — Dokumentname oder Pfad relativ zum eigenen Dokument, wahlweise mit
+//      `#Überschrift` oder `#^block-id`.
+//   G8 **Bild-Angabe der Karte:** `!karte <id> x= y= b= h= bild="<Bild>"`.
+//      Zulässig sind die Bild-Endungen der Anlagen-Mechanik.
+//
+// **Kein neuer Marker und keine neue Element-Art** (Präzisierung des Product
+// Owners vom 2026-09-09): Text und Verweis sind zwei Eigenschaften **derselben**
+// Karte. Eine Verweis-Karte ist eine Karte, die Inhalts-Zeilen bleiben ihr
+// eigener Text (Beschriftung), und `canvasUmfang` bekommt keine neue Zahl.
+//
+// **Was der Kern hier prüft und was nicht:** allein die **Form** — ein leerer
+// Wert, beide Angaben an derselben Karte (`doc=` gewinnt) und eine unzulässige
+// Bild-Endung sind Befunde nach 6.3. Ob ein Ziel **existiert**, prüft er nicht:
+// Er ist prozessneutral und kennt keine Dateien; das nicht auflösbare Ziel ist
+// ein Befund des Renderer-Pfads (4T-001747, 4T-001748).
+//
 // **G3 gilt seit der Entscheidung vom 2026-09-12 («Weg 2 ist freigegeben,
 // umsetzen») über alle Element-Arten gemeinsam:** Karten, Formen und Gruppen
 // stehen in **einer** Liste `model.elemente`, und ihre Abfolge darin ist die
@@ -58,6 +79,12 @@
 // beim nächsten Speichern verschwinden.
 'use strict';
 
+// 4T-001746: Die einzige Abhängigkeit des Kerns — der geteilte Satz der
+// Bild-Endungen für G8. Er ist reine Daten und damit prozess-neutral wie der
+// Kern selbst; ein Renderer-Modul lädt er ausdrücklich nicht, und eine vierte
+// Kopie des Satzes hätte er sonst selbst eröffnet.
+const { istBildDatei } = require('../bild-endungen.js');
+
 // Kennung der Erweiterung. Sie steht hier und nicht im Renderer, weil sie seit
 // 4T-001668 auf **beiden** Prozess-Seiten gebraucht wird: `canvas-modus.js`
 // fragt sie für die Verfügbarkeit des Ansichts-Modus, die Markdown-Pipeline im
@@ -65,8 +92,9 @@
 // könnten auseinanderlaufen; hier gibt es nur eine.
 const CANVAS_EXTENSION_ID = 'canvas';
 
-// Marker der Stufen 1 und 2. Die Stufe 3 ergänzt die Verweis- und Bild-Angaben
-// der Karte; bis dahin fängt G1 sie auf.
+// Marker der Stufen 1 bis 3. Die Stufe 3 hat **keinen** Marker hinzugefügt: Ihre
+// beiden Neuerungen sind Angaben an der Karte (G7, G8). Was später hinzukommt,
+// fängt bis dahin G1 auf.
 const MARKER_ARTEN = new Set(['karte', 'linie', 'form', 'gruppe']);
 
 // Die Element-Arten, die eine Lage auf der Fläche haben und damit im Stapel
@@ -106,6 +134,17 @@ const ID_RE = /^[A-Za-z0-9_-]+$/;
 // Seit 4T-001700 für Karte, Form und Gruppe gleichermaßen — ein zweiter Satz
 // derselben vier Namen liefe bei der nächsten Ergänzung auseinander.
 const LAGE_ZAHLEN = ['x', 'y', 'b', 'h'];
+
+// 4T-001746: Die beiden Verweis-Angaben der Karte (G7 und G8), in der
+// Reihenfolge ihrer Zählung. Sie werden wie Lage und Größe in **benannte
+// Felder** gelesen (`el.doc`, `el.bild`) und beim kanonischen Schreiben aus
+// diesen Feldern geholt, damit die Bedienung sie setzen, ändern und entfernen
+// kann; Angaben-Name und Feld-Name sind dabei mit Absicht dasselbe Wort.
+//
+// **Warum sie hinter der Lage stehen:** Die Marker-Zeile liest sich damit immer
+// gleich — erst wo das Element liegt, dann worauf es zeigt —, und das Beispiel
+// des Konzept-Dokuments zeigt sie seit dem 2026-09-09 genau so.
+const KARTEN_VERWEISE = ['doc', 'bild'];
 
 // Anschluss-Seiten einer Verbindung; `auto` überlässt die Wahl der Zeichnung.
 const SEITEN = new Set(['links', 'rechts', 'oben', 'unten', 'auto']);
@@ -244,9 +283,16 @@ function entpackeWert(roh) {
   return roh;
 }
 
-function packeWert(wert) {
+// 4T-001746: `immerQuoten` erzwingt die Anführungszeichen auch dort, wo der
+// Wert sie technisch nicht bräuchte. Die beiden Verweis-Angaben der Karte (G7,
+// G8) stehen **immer** in doppelten Anführungszeichen — so schreibt sie das
+// Konzept-Dokument, so liest sich ein Ziel als Ziel und nicht als Wort, und ein
+// Ziel mit Leerzeichen sieht in der Datei nicht anders aus als eines ohne.
+// Gelesen wird beides unverändert; die Zusage berührt allein die kanonische
+// Form und damit nur geänderte und neue Elemente (G2).
+function packeWert(wert, { immerQuoten = false } = {}) {
   const text = String(wert == null ? '' : wert);
-  if (text !== '' && !/[\s"\\=]/.test(text)) return text;
+  if (!immerQuoten && text !== '' && !/[\s"\\=]/.test(text)) return text;
   return '"' + text.replace(/([\\"])/g, '\\$1') + '"';
 }
 
@@ -322,6 +368,57 @@ function lesFarbAngabe(el, name, zeilenNr, errors) {
   if (Object.prototype.hasOwnProperty.call(LINIEN_FARBEN, wert)) return wert;
   errors.push({ code: 'ungueltigeFarbe', zeile: zeilenNr, detail: wert });
   return undefined;
+}
+
+/**
+ * Verweis-Angabe einer Karte: nicht-leerer Wert oder Befund (4T-001746).
+ *
+ * Ein **leerer** Wert (`doc=""`, `bild=""` oder nur Leerraum) ist ein Befund
+ * nach 6.3 und **kein** Grund zum Verwerfen: Die Karte bleibt stehen und
+ * verhält sich wie eine Karte ohne diese Angabe — sie zeigt ihren eigenen Text.
+ * Ihr Rohtext kommt beim nächsten Speichern zeichengenau zurück (G1/G2).
+ *
+ * Getrimmt wird nur für die **Prüfung**, nie für den Wert: Ob ein Ziel mit
+ * Leerraum am Rand auflösbar ist, entscheidet der Auflöser und nicht der Kern,
+ * und ein stillschweigend geänderter Wert wäre eine Änderung am Dokument.
+ *
+ * @returns {string|undefined} der Wert, wenn einer dasteht, sonst nichts.
+ */
+function lesVerweisAngabe(el, name, zeilenNr, errors) {
+  const wert = el.attrs[name];
+  if (wert == null) return undefined;
+  if (String(wert).trim() === '') {
+    errors.push({ code: 'leererVerweis', zeile: zeilenNr, detail: name });
+    return undefined;
+  }
+  return wert;
+}
+
+/**
+ * G7 und G8: Lage, Größe und die beiden Verweis-Angaben der Karte.
+ *
+ * **Die Existenz eines Ziels prüft der Kern nicht.** Er ist prozessneutral und
+ * kennt keine Dateien; ein nicht auflösbares Ziel ist ein Befund des
+ * Renderer-Pfads (4T-001747, 4T-001748). Hier fällt allein die Form auf.
+ *
+ * **Genau ein Befund je Karte, und in dieser Reihenfolge.** Stehen beide
+ * Angaben da, gewinnt `doc=`, und das Bild ist damit vollständig unbeachtet —
+ * seine Endung ist dann keine Frage mehr, die noch jemanden beträfe. Die
+ * Angaben selbst bleiben in `attrs` und in der Datei stehen (G1/G2).
+ */
+function lesKarte(el, zeilenNr, errors) {
+  lesLage(el, zeilenNr, errors);
+  const doc = lesVerweisAngabe(el, 'doc', zeilenNr, errors);
+  let bild = lesVerweisAngabe(el, 'bild', zeilenNr, errors);
+  if (doc !== undefined && bild !== undefined) {
+    errors.push({ code: 'doppelterVerweis', zeile: zeilenNr, detail: 'bild' });
+    bild = undefined;
+  } else if (bild !== undefined && !istBildDatei(bild)) {
+    errors.push({ code: 'ungueltigeBildEndung', zeile: zeilenNr, detail: bild });
+    bild = undefined;
+  }
+  el.doc = doc;
+  el.bild = bild;
 }
 
 // G5: Art, Randfarbe und Füllfarbe der Form. Die Beschriftung sind die
@@ -459,7 +556,7 @@ function parseCanvasFence(inhalt, optionen = {}) {
     }
 
     const operanden = lesMarkerAngaben(aktuell, treffer[2], zeilenNr, model.errors);
-    if (art === 'karte') lesLage(aktuell, zeilenNr, model.errors);
+    if (art === 'karte') lesKarte(aktuell, zeilenNr, model.errors);
     else if (art === 'form') lesForm(aktuell, zeilenNr, model.errors);
     else if (art === 'gruppe') lesGruppe(aktuell, zeilenNr, model.errors);
     else lesLinie(aktuell, operanden, zeilenNr, model.errors);
@@ -504,16 +601,34 @@ function baueMarkerZeile(el) {
   if (el.art === 'linie') {
     teile.push(el.von || '', RICHTUNG_ZU_PFEIL[linienRichtung(el)], el.nach || '');
   }
-  // Lage und Größe kommen aus dem Element und nicht aus `attrs`, weil eine
-  // Bedien-Handlung sie dort ändert; alles Übrige — auch jede unbekannte
-  // Angabe — steht in `attrs` und behält seine Reihenfolge (G1).
+  // Lage, Größe und — seit 4T-001746 — die beiden Verweis-Angaben der Karte
+  // kommen aus dem Element und nicht aus `attrs`, weil eine Bedien-Handlung sie
+  // dort ändert; alles Übrige — auch jede unbekannte Angabe — steht in `attrs`
+  // und behält seine Reihenfolge (G1).
+  //
+  // Eine Angabe, die das Element **nicht** trägt, fällt über `wert == null`
+  // heraus: So verschwindet ein entfernter Verweis aus der geschriebenen Zeile,
+  // ohne dass der Schreiber eine zweite Regel dafür bräuchte.
   const mitLage = STAPEL_ARTEN.has(el.art);
+  const gefuehrt = mitLage
+    ? el.art === 'karte'
+      ? [...LAGE_ZAHLEN, ...KARTEN_VERWEISE]
+      : LAGE_ZAHLEN
+    : [];
   const genannt = new Set(el.attrFolge);
-  const namen = mitLage ? LAGE_ZAHLEN.filter((n) => !genannt.has(n)) : [];
+  const namen = gefuehrt.filter((n) => !genannt.has(n));
   for (const name of [...el.attrFolge, ...namen]) {
-    const wert = mitLage && LAGE_ZAHLEN.includes(name) ? el[name] : el.attrs[name];
+    const ausElement = gefuehrt.includes(name);
+    // Der geführte Wert gewinnt; fehlt er, steht der **Rohtext** der Angabe
+    // weiterhin in `attrs` und geht unverändert hinaus. Das ist derselbe Weg,
+    // auf dem eine unbekannte Form-Art und ein unbekannter Farbname das
+    // kanonische Schreiben überleben: Ein defekter Wert — `doc=""`, eine
+    // unzulässige Bild-Endung — darf nicht dadurch verschwinden, dass jemand
+    // die Karte verschiebt.
+    const wert = ausElement && el[name] !== undefined ? el[name] : el.attrs[name];
     if (wert == null) continue;
-    teile.push(name + '=' + packeWert(wert));
+    const quoten = ausElement && KARTEN_VERWEISE.includes(name);
+    teile.push(name + '=' + packeWert(wert, { immerQuoten: quoten }));
   }
   return teile.filter((t) => t !== '').join(' ');
 }
@@ -614,6 +729,32 @@ function canvasFlaechenTitel(model) {
     const text = bereinigeZeile(zeile);
     if (text !== '') return text;
   }
+  // 4T-001746: Eine Verweis- oder Bild-Karte ohne Beschriftung hat trotzdem
+  // etwas zu sagen — ihr Ziel. Der Rückfall bleibt darunter leer, weil eine
+  // erfundene Bezeichnung nichts benennt.
+  return kartenVerweisText(erste);
+}
+
+/**
+ * Der Text, mit dem eine Karte ohne eigene Beschriftung benennbar bleibt
+ * (4T-001746): bei einer Verweis-Karte ihr Ziel, bei einer Bild-Karte der Name
+ * des Bildes.
+ *
+ * **Warum das Ziel ganz und das Bild nur mit seinem Namen erscheint:** Beim
+ * Dokument-Ziel trägt der Anker die Aussage — «Import.md#Zielbild» sagt etwas
+ * anderes als «Import.md» —, und der Pfad unterscheidet gleichnamige
+ * Dokumente. Ein Bild wird dagegen im Bereich über seinen **Namen** gefunden
+ * (Namens-Suche wie bei `![[bild.png]]`); sein Ordner ist Ablage und keine
+ * Aussage. Was eine Anzeige daraus macht, bleibt ihre Sache — gekürzt wird
+ * hier nichts.
+ *
+ * @param {object} el Element der Art `karte`.
+ * @returns {string} leer, wenn die Karte auf nichts zeigt.
+ */
+function kartenVerweisText(el) {
+  if (!el) return '';
+  if (el.doc) return String(el.doc);
+  if (el.bild) return String(el.bild).split(/[/\\]/).pop();
   return '';
 }
 
@@ -670,6 +811,11 @@ function canvasKartenVorschau(el) {
     zeile = text;
     break;
   }
+  // 4T-001746: Eine Verweis- oder Bild-Karte ohne Beschriftung fiele sonst als
+  // leere Zeile in die Vorschau. Ihr Ziel tritt an die Stelle des Titels — und
+  // nur dorthin: Wo eine Beschriftung dasteht, ist sie der Titel, weil der
+  // Anwender sie genau dafür geschrieben hat.
+  if (titel === '') titel = kartenVerweisText(el);
   return { titel, zeile };
 }
 
@@ -679,6 +825,12 @@ function canvasKartenVorschau(el) {
 //
 // 4T-001700: Formen und Gruppen kommen hinzu (Entscheidung E8, fortgeschrieben
 // am 2026-09-12). Wer sie anzeigt, entscheidet die Anzeige — der Kern zählt.
+//
+// 4T-001746: Die Stufe 3 bringt **keine** neue Zahl. Eine Verweis-Karte und
+// eine Bild-Karte sind Karten und gehen in dieselbe Karten-Zahl ein; der
+// Verweis ist eine Eigenschaft der Karte und keine Art neben ihr. Der Ausbau
+// nach dem Muster von Formen und Gruppen wäre hier der Fehler, weil er eine
+// Unterscheidung behauptete, die es im Modell nicht gibt.
 function canvasUmfang(model) {
   const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
   const zaehle = (art) => elemente.filter((el) => el.art === art).length;
@@ -708,6 +860,7 @@ module.exports = {
   MARKER_ARTEN,
   STAPEL_ARTEN,
   LAGE_ZAHLEN,
+  KARTEN_VERWEISE,
   FORM_ARTEN,
   FORM_ART_VORGABE,
   FUELLUNG_KEINE,
@@ -723,5 +876,6 @@ module.exports = {
   canvasFenceBlock,
   canvasFlaechenTitel,
   canvasKartenVorschau,
+  kartenVerweisText,
   canvasUmfang,
 };

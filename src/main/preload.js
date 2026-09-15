@@ -564,6 +564,10 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000057: Autocomplete-Suggestions fuer Wiki-Link- und Tag-Trigger.
   autocompleteWikiTargets: (filePath) =>
     ipcRenderer.invoke('autocomplete:wikiTargets', { filePath }),
+  // 4T-001748 (Epic 3E-000289): Bild-Namen des Suchraums fuer das Bild-Feld der
+  // Canvas-Karte; Antwort in der Form der Wiki-Vorschlaege darueber.
+  autocompleteImageTargets: (filePath) =>
+    ipcRenderer.invoke('autocomplete:imageTargets', { filePath }),
   autocompleteAnchors: (filePath, basename, anchorType) =>
     ipcRenderer.invoke('autocomplete:anchors', { filePath, basename, anchorType }),
   autocompleteTags: (filePath) => ipcRenderer.invoke('autocomplete:tags', { filePath }),
@@ -917,6 +921,10 @@ contextBridge.exposeInMainWorld('api', {
   onMenuCanvasAddShape: (cb) => ipcRenderer.on('menu:canvasAddShape', () => cb()),
   // 4T-001702 (Epic 3E-000288): 'Ansicht -> Gruppe auf der Flaeche anlegen'.
   onMenuCanvasAddGroup: (cb) => ipcRenderer.on('menu:canvasAddGroup', () => cb()),
+  // 4T-001747 (Epic 3E-000289): 'Ansicht -> Verweis-Karte auf der Flaeche anlegen'.
+  onMenuCanvasAddLinkCard: (cb) => ipcRenderer.on('menu:canvasAddLinkCard', () => cb()),
+  // 4T-001748 (Epic 3E-000289): 'Ansicht -> Bild-Karte auf der Flaeche anlegen'.
+  onMenuCanvasAddImageCard: (cb) => ipcRenderer.on('menu:canvasAddImageCard', () => cb()),
   // 4T-001701: die vier Stapel-Befehle ueber EINEN Kanal mit dem Befehl als
   // Nutzlast (Muster menu:viewChange). Vier Kanaele fuer vier Namen derselben
   // Handlung waeren vier Stellen, an denen dieselbe Kette reisst.

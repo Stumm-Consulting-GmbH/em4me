@@ -106,6 +106,188 @@ function frontmatterBodyStart(lines) {
   return 0;
 }
 
+// --- Verweis-Angaben der Canvas-Karten (4T-001749, Epic 3E-000289) ------------
+//
+// Drei Stellen müssen dieselbe Angabe erkennen: der Verweis-Parser des
+// Bereichs-Index (src/main/index/parse.js), die ausgehenden Verweise der
+// offenen Datei (src/renderer/modules/panels/panel-outgoing.js) und der
+// Umbenennungs-Nachzug (src/shared/link-rewrite.js). Dreimal dieselbe Regel an
+// drei Orten laufen unweigerlich auseinander — genau der Grund, aus dem dieses
+// Modul überhaupt entstanden ist.
+//
+// **Warum der Canvas-Kern hier nicht geladen wird** (Entscheidung 4T-001749).
+// `src/shared/canvas/canvas-core.js` liest dieselbe Attribut-Grammatik, und
+// naheliegend wäre, ihn einfach zu benutzen. Dagegen sprechen drei Gründe:
+// Der Kern bringt das ganze Element-Modell, die Befund-Semantik und den
+// Serialisierer mit, während hier **eine** Angabe einer Marker-Zeile gebraucht
+// wird — und der Bereichs-Index läuft über jede Datei jedes Bereichs. Dieses
+// Modul ist bewusst abhängigkeits-arm (eine einzige Abhängigkeit, die
+// Verknüpfungs-Syntax), und es ist die Erkennungs-Schicht **unter** den
+// Fachlichkeiten; hinge sie am Canvas-Kern, wäre der Canvas-Kern eine
+// Abhängigkeit des Backlinks-Index und des Rewrite-Kerns. Und es gälte in
+// beide Richtungen, denn der Kern lädt seinerseits den Endungs-Satz.
+//
+// **Was die Zusage «dieselbe Grammatik» trägt, ist kein Versprechen, sondern
+// ein Wächter:** `tokenisiereMitOffsets` ist die Zerlegung aus dem Kern
+// (`tokenisiere`) um die Zeichen-Position je Token erweitert,
+// `kartenVerweisWert` sein `entpackeWert`, und ein Prüffall hält beide Leser
+// über einer Tabelle von Marker-Zeilen gegeneinander.
+
+// Info-Zeichenfolge der Fläche. Sie steht hier, weil drei Scanner dieselbe
+// Fence erkennen müssen; der Kern führt sie für seinen eigenen Gebrauch.
+const CANVAS_FENCE_INFO = 'perspective-canvas';
+
+// Trägt die Info-Zeichenfolge einer Fence die Canvas-Marke? Gelesen wird das
+// erste Wort, wie es der Mindmap-Kern für dieselbe Fence tut; der Aufrufer
+// schneidet den Fence-Marker selbst ab (er kennt seine eigene Fence-Regex).
+function istCanvasFenceInfo(info) {
+  return (
+    String(info || '')
+      .trim()
+      .split(/\s+/)[0] === CANVAS_FENCE_INFO
+  );
+}
+
+// Marker-Zeile einer Karte: `!karte` in Spalte 0, gefolgt von Leerraum oder
+// Zeilen-Ende. Die Grammatik des Kerns verlangt die Spalte 0 ausdrücklich, und
+// eine Inhalts-Zeile, die selbst so beginnen soll, trägt einen Rückstrich.
+const KARTEN_MARKER_RE = /^!karte(?=[ \t]|$)/;
+
+// Die beiden Verweis-Angaben der Karte (G7, G8 der Canvas-Grammatik).
+const KARTEN_VERWEIS_NAMEN = ['doc', 'bild'];
+
+// Zeilen-Inhalt ohne das CRLF-Artefakt, für alles Prüfende.
+function ohneCr(zeile) {
+  const text = String(zeile == null ? '' : zeile);
+  return text.endsWith('\r') ? text.slice(0, -1) : text;
+}
+
+// Zerlegung der Marker-Zeile in Tokens, wörtlich nach `tokenisiere` des
+// Canvas-Kerns: Ein Wert ist entweder ein Wort ohne Leerraum oder eine
+// Zeichenkette in doppelten Anführungszeichen mit `\"` und `\\` als Escapes.
+// Zusätzlich wird die Anfangs-Position jedes Tokens mitgeführt — der
+// Umbenennungs-Nachzug ersetzt eine Spanne und darf die übrige Zeile nicht
+// anfassen.
+function tokenisiereMitOffsets(text) {
+  const tokens = [];
+  let i = 0;
+  while (i < text.length) {
+    while (i < text.length && /\s/.test(text[i])) i++;
+    if (i >= text.length) break;
+    const start = i;
+    let tok = '';
+    let inQuote = false;
+    while (i < text.length) {
+      const ch = text[i];
+      if (inQuote) {
+        if (ch === '\\' && i + 1 < text.length) {
+          tok += ch + text[i + 1];
+          i += 2;
+          continue;
+        }
+        if (ch === '"') inQuote = false;
+        tok += ch;
+        i++;
+        continue;
+      }
+      if (/\s/.test(ch)) break;
+      if (ch === '"') inQuote = true;
+      tok += ch;
+      i++;
+    }
+    tokens.push({ text: tok, start });
+  }
+  return tokens;
+}
+
+// Wert einer Angabe auspacken, wörtlich nach `entpackeWert` des Canvas-Kerns.
+function kartenVerweisWert(roh) {
+  const text = String(roh == null ? '' : roh);
+  if (text.length >= 2 && text.startsWith('"') && text.endsWith('"')) {
+    return text.slice(1, -1).replace(/\\(["\\])/g, '$1');
+  }
+  return text;
+}
+
+// Wert einer Angabe einpacken. `quotiert` erhält die Schreibform des Bestands:
+// Der Nachzug ist eine Berichtigung und kein Umbau — er fasst genau die eine
+// Angabe an und schreibt sie in der Form zurück, in der sie dastand, solange
+// die neue Zeichenkette ohne Anführungszeichen gültig bleibt.
+function packeKartenVerweisWert(wert, { quotiert = true } = {}) {
+  const text = String(wert == null ? '' : wert);
+  if (!quotiert && text !== '' && !/[\s"\\=]/.test(text)) return text;
+  return '"' + text.replace(/([\\"])/g, '\\$1') + '"';
+}
+
+/**
+ * Verweis-Angaben einer Karten-Marker-Zeile (4T-001749).
+ *
+ * Der Aufrufer stellt sicher, dass die Zeile in einer Fence `perspective-canvas`
+ * steht; hier fällt allein die Form auf. Geliefert werden **alle** Vorkommen in
+ * Dokument-Reihenfolge. Wer nur den wirksamen Wert braucht, nimmt das **letzte**
+ * Vorkommen je Name — so entscheidet der Kern, dessen `attrs` beim zweiten
+ * Vorkommen überschreibt.
+ *
+ * @param {string} zeile Die zu prüfende Zeile.
+ * @returns {Array<object>} je Angabe `{ name, wert, rohWert, nameStart, rohStart, rohLen, quotiert }`.
+ */
+function scanneKartenVerweise(zeile) {
+  const text = ohneCr(zeile);
+  const marker = text.match(KARTEN_MARKER_RE);
+  if (!marker) return [];
+  const treffer = [];
+  const versatz = marker[0].length;
+  for (const tok of tokenisiereMitOffsets(text.slice(versatz))) {
+    const gleich = tok.text.indexOf('=');
+    // Dieselbe Bedingung wie im Kern: ein '=' an Position 0 ist kein Name, und
+    // ein Anführungszeichen im Namens-Teil ist keine Angabe, sondern ein Operand.
+    if (gleich <= 0 || tok.text.slice(0, gleich).includes('"')) continue;
+    const name = tok.text.slice(0, gleich);
+    if (!KARTEN_VERWEIS_NAMEN.includes(name)) continue;
+    const rohWert = tok.text.slice(gleich + 1);
+    const wert = kartenVerweisWert(rohWert);
+    // Ein leerer Wert ist im Kern ein Befund und trägt keinen Verweis; hier ist
+    // er schlicht kein Treffer.
+    if (wert.trim() === '') continue;
+    treffer.push({
+      name,
+      wert,
+      rohWert,
+      nameStart: versatz + tok.start,
+      rohStart: versatz + tok.start + gleich + 1,
+      rohLen: rohWert.length,
+      quotiert: rohWert.length >= 2 && rohWert.startsWith('"') && rohWert.endsWith('"'),
+    });
+  }
+  return treffer;
+}
+
+/**
+ * Beschriftung der Karte, deren Marker in `zeilen[markerIndex]` steht.
+ *
+ * Die Inhalts-Zeilen unter dem Marker sind der eigene Text der Karte (G7/G8);
+ * als Ausschnitt eines Treffers genügt ihre erste nicht-leere Zeile. Der
+ * Rückstrich-Schutz einer Inhalts-Zeile, die selbst mit `!` beginnt, wird dabei
+ * aufgelöst wie im Kern.
+ *
+ * @param {Array<string>} zeilen Alle Zeilen des Dokuments.
+ * @param {number} markerIndex 0-basierter Index der Marker-Zeile.
+ * @returns {string} die Beschriftung oder eine leere Zeichenkette.
+ */
+function kartenBeschriftung(zeilen, markerIndex) {
+  if (!Array.isArray(zeilen)) return '';
+  for (let i = markerIndex + 1; i < zeilen.length; i++) {
+    const zeile = ohneCr(zeilen[i]);
+    // Die Fence endet, oder das nächste Element beginnt: Die Karte hat keine
+    // weiteren Inhalts-Zeilen.
+    if (FENCE_RE.test(zeile)) return '';
+    if (/^![A-Za-z]/.test(zeile)) return '';
+    if (zeile.trim() === '') continue;
+    return /^\\+!/.test(zeile) ? zeile.slice(1) : zeile;
+  }
+  return '';
+}
+
 module.exports = {
   MD_EXT_RE,
   // 4T-001451 (Epic 3E-000190): weitergereicht aus src/shared/area-link-syntax.js,
@@ -121,4 +303,22 @@ module.exports = {
   normalizeNameKey,
   maskInlineCode,
   frontmatterBodyStart,
+  // 4T-001749 (Epic 3E-000289): die geteilte Erkennung der Verweis-Angaben
+  // einer Canvas-Karte. Index, ausgehende Verweise und Umbenennungs-Nachzug
+  // lesen ausschliesslich hieraus.
+  CANVAS_FENCE_INFO,
+  istCanvasFenceInfo,
+  KARTEN_MARKER_RE,
+  KARTEN_VERWEIS_NAMEN,
+  scanneKartenVerweise,
+  kartenVerweisWert,
+  packeKartenVerweisWert,
+  kartenBeschriftung,
+  // 4T-001749: Die Typen, deren Ziel ueber einen NAMEN aufgeloest wird
+  // (Namens-, Pfad- und Unterseiten-Form des Index) statt ueber einen
+  // absoluten Pfad. Der Karten-Verweis traegt seinen eigenen Typ, damit die
+  // Herkunft «aus einer Flaeche» bis in die Anzeige sichtbar bleibt; aufgeloest
+  // wird er wie ein Wiki-Ziel. Die Menge steht hier, weil Kanten-Bau und
+  // Rueckverweise sie unabhaengig voneinander lesen.
+  NAMENS_LINK_TYPEN: new Set(['wiki', 'canvas']),
 };

@@ -397,10 +397,17 @@ const INTERNAL_EXTENSIONS = [
     // Ansicht gibt es weder Form noch Gruppe noch eine Reihenfolge unter
     // ihnen —, und ohne diese Liste blieben sie im Aus-Zustand ungekennzeichnet
     // stehen (der Befund, den 4T-001180 an den Profil-Zeilen gemacht hat).
+    // 4T-001747 (Epic 3E-000289): die Zeile der Verweis-Karten kommt hinzu, aus
+    // demselben Grund — ohne die Flaeche gibt es keine Karte, die auf ein
+    // Dokument zeigt.
     featureKeys: [
       'help.feature.canvasShapes',
       'help.feature.canvasGroups',
       'help.feature.canvasStacking',
+      'help.feature.canvasLinkCards',
+      // 4T-001748 (Epic 3E-000289): die Zeile der Bild-Karten, aus demselben
+      // Grund — ohne die Flaeche gibt es keine Karte, die ein Bild zeigt.
+      'help.feature.canvasImageCards',
     ],
     // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle
     // gehoeren derselben Erweiterung — sie wirken ausschliesslich auf der
@@ -411,6 +418,10 @@ const INTERNAL_EXTENSIONS = [
       'canvas.addCard',
       'canvas.addShape',
       'canvas.addGroup',
+      // 4T-001747 (Epic 3E-000289): die Verweis-Karte der Stufe 3.
+      'canvas.addLinkCard',
+      // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
+      'canvas.addImageCard',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',

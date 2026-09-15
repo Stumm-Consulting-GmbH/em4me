@@ -191,6 +191,21 @@ export function renderBacklinks(paneIdx) {
         aliasTag.textContent = t('backlinks.viaAlias').replace('{alias}', hit.viaAlias);
         hitEl.appendChild(aliasTag);
       }
+      // 4T-001749 (Epic 3E-000289): Kommt der Rueckverweis von einer
+      // Verweis-Karte, wird die Herkunft ausgewiesen — nach dem Muster des
+      // Alias-Zusatzes darueber.
+      //
+      // **Warum ueberhaupt ein Zusatz.** Ohne ihn stuende hier eine Zeile, die
+      // der Anwender in der Quelldatei nicht wiederfindet: Der Ausschnitt ist
+      // die Beschriftung der Karte, die Zeilennummer zeigt in eine Fence, und
+      // einen Wiki-Link gibt es dort nicht. Der Zusatz beantwortet genau die
+      // Frage, die sonst offen bliebe — warum dieses Dokument hier steht.
+      if (hit.linkTyp === 'canvas') {
+        const canvasTag = document.createElement('span');
+        canvasTag.className = 'backlink-via-canvas';
+        canvasTag.textContent = t('backlinks.viaCanvas');
+        hitEl.appendChild(canvasTag);
+      }
       hitEl.title = hit.snippet || '';
       hitEl.addEventListener('click', () => {
         openOrJumpToPath(group.quelldatei, hit.zeile);

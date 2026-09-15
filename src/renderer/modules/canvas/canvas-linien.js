@@ -57,11 +57,17 @@ const GRUND_POLSTER = 5;
 // Treffer-Rahmen, Beschriftung, Griff, Leiste und Eingabe. Ihr Innenraum ist
 // ausdrücklich Hintergrund: Wer mitten in eine Gruppe klickt, meint die Fläche
 // oder das Element darin, und ein Doppelklick dort legt eine Karte an.
+// 4T-001747: Die Leiste der gewählten Karte und die freistehende Ziel-Abfrage
+// des Anlege-Kommandos kommen als sechste Art hinzu. Beide liegen über der
+// Fläche und fangen den Zeiger; ohne sie hier begänne unter der Leiste das
+// Ziehen der Fläche, und ein Doppelklick auf das Eingabe-Feld legte eine Karte
+// an.
 const VORDERGRUND_WAHL =
   '.canvas-karte, .canvas-linie, .canvas-linie-leiste, .canvas-linie-eingabe, ' +
   '.canvas-form-flaeche, .canvas-form-griff, .canvas-form-leiste, .canvas-form-eingabe, ' +
   '.canvas-gruppe-treffer, .canvas-gruppe-text, .canvas-gruppe-griff, ' +
-  '.canvas-gruppe-leiste, .canvas-gruppe-eingabe';
+  '.canvas-gruppe-leiste, .canvas-gruppe-eingabe, ' +
+  '.canvas-karte-leiste, .canvas-karte-ziel-eingabe';
 
 /** Gilt ein Ereignis-Ziel als Hintergrund der Fläche? */
 export function istHintergrund(ziel) {

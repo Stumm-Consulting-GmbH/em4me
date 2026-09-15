@@ -15,6 +15,10 @@ const {
   isRelativeTarget,
 } = require('../../shared/subpages.js');
 const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
+// 4T-001748 (Epic 3E-000289): Der geteilte Satz der Bild-Endungen — dieselbe
+// Quelle, aus der die Anlagen-Mechanik, die Einbettung und der Canvas-Kern
+// lesen. Eine eigene Liste hier waere die fuenfte Kopie desselben Satzes.
+const { istBildDatei } = require('../../shared/bild-endungen.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
@@ -151,6 +155,59 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
       detail,
       mtimeMs: firstFile ? mtimeVon(firstFile) : 0,
     });
+  }
+  return { status: 'ready', suggestions };
+}
+
+// 4T-001748 (Epic 3E-000289): Vorschlaege fuer das Bild-Feld der Canvas-Karte —
+// die Namen der BILD-Dateien im aktiven Suchraum.
+//
+// **Warum eine eigene Sicht neben wikiLinkAutocompleteSuggestions.** Jene baut
+// ihre Liste aus entry.files (Markdown) und entry.aliasMap (Zweitnamen); Bilder
+// stehen in keinem von beiden. Sie liegen in entry.assetNameMap, der schlanken
+// Namens-Zuordnung der Nicht-Markdown-Dateien (4T-001494) — und genau die wird
+// hier gelesen. Eine Erweiterung der Wiki-Sicht kam nicht in Frage: Sie speist
+// die Vervollstaendigung nach '[[', und dort waere ein Bild-Name ein Vorschlag
+// auf ein Ziel, das die Wiki-Aufloesung bewusst erst an zweiter Stelle kennt.
+//
+// **Gelesen werden die PFADE, nicht die Schluessel.** Die Schluessel der
+// Zuordnung sind normalisiert und kleingeschrieben, und je Datei stehen zwei
+// davon darin (mit und ohne Endung). Der Vorschlag soll aber der Dateiname sein,
+// wie er geschrieben ist und wie die Bild-Angabe ihn braucht — mit Endung, in
+// seiner eigenen Schreibweise.
+//
+// **Ohne serverseitigen Praefix-Filter und ohne Aenderungszeit**, beides wie
+// nebenan begruendet: Die Anzeige filtert selbst (bei der Canvas-Leiste die
+// datalist des Browsers), und entry.fileStats fuehrt allein Markdown-Dateien —
+// ein Feld mtimeMs waere hier fuer jeden Vorschlag 0 und damit eine Angabe, die
+// nichts sagt.
+//
+// Status-Semantik, Suchraum und Bereichs-Grenze sind woertlich die der
+// Wiki-Sicht; ein zweites Regelwerk dafuer waere ein zweiter Ort, an dem sie
+// auseinanderlaufen.
+function bildAutocompleteSuggestions(activeFile, areaRoot) {
+  if (!activeFile && !areaRoot) return { status: 'unavailable', suggestions: [] };
+  const { root } = resolveRootInfo(activeFile, areaRoot);
+  if (!root) return { status: 'unavailable', suggestions: [] };
+  const entry = indexes.get(root);
+  if (!entry) return { status: 'unavailable', suggestions: [] };
+  if (entry.status === 'oversized') return { status: 'unavailable', suggestions: [] };
+  if (entry.status === 'indexing') return { status: 'indexing', suggestions: [] };
+  if (entry.status === 'error') return { status: 'unavailable', suggestions: [] };
+
+  const suggestions = [];
+  const gesehen = new Set();
+  for (const set of entry.assetNameMap ? entry.assetNameMap.values() : []) {
+    for (const f of set) {
+      if (gesehen.has(f)) continue;
+      gesehen.add(f);
+      const name = path.basename(f);
+      // Die Endungs-Regel ist die der Anlagen-Mechanik (BILD_ENDUNGEN); die
+      // Zuordnung selbst fuehrt JEDE Nicht-Markdown-Datei, auch PDF und
+      // Tabellen, und die gehoeren nicht in ein Bild-Feld.
+      if (!istBildDatei(name)) continue;
+      suggestions.push({ name, kind: 'image', detail: path.dirname(f) });
+    }
   }
   return { status: 'ready', suggestions };
 }
@@ -362,6 +419,7 @@ function areaTaskLines(rootPath) {
 
 module.exports = {
   wikiLinkAutocompleteSuggestions,
+  bildAutocompleteSuggestions,
   anchorAutocompleteSuggestions,
   tagAutocompleteSuggestions,
   tagsFor,

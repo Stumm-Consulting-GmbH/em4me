@@ -401,6 +401,11 @@ const MENUE_BASISLINIE = new Map([
   // 4T-001702 (Epic 3E-000288): die Gruppen-Anlage, aus demselben Grund und
   // mit derselben Bedingung.
   ['canvas.addGroup', 'canvasKarte'],
+  // 4T-001747 (Epic 3E-000289): die Verweis-Karte der Stufe 3, aus demselben
+  // Grund und mit derselben Bedingung.
+  ['canvas.addLinkCard', 'canvasKarte'],
+  // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
+  ['canvas.addImageCard', 'canvasKarte'],
   ['canvas.stackFront', 'canvasKarte'],
   ['canvas.stackForward', 'canvasKarte'],
   ['canvas.stackBackward', 'canvasKarte'],
