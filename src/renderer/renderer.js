@@ -29,6 +29,10 @@ import './modules/panels/panel-outline.js';
 import './modules/panels/panel-outgoing.js';
 import './modules/panels/panel-subpages.js';
 import './modules/panels/panel-backlinks.js';
+// 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche. Ihre
+// Panel-Registrierung und die Anmeldung beim Flächen-Stand hängen am
+// Modul-Rumpf; ohne diesen Import gäbe es das Panel in der Registry nicht.
+import './modules/panels/panel-canvas-liste.js';
 // 4T-000991 (Epic 3E-000196): bookmarks.js ist in den Feature-Ordner
 // modules/bookmarks/ geteilt. Der Kern steht an der Stelle des Vorgängers und
 // zieht die übrigen Module des Ordners über seinen Import-Graphen nach; die

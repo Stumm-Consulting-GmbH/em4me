@@ -14,6 +14,108 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.136.0.2891] - 2026-09-17 — Canvas Stufe 4: Karten-Liste und Bedienung ohne Maus
+
+Zug 3E-000312,
+Stufe 4 des Canvas-Vorhabens. Mitglied 1 und einziges:
+3E-000290,
+die vierte Ausbaustufe der Fläche — eine Liste neben der Fläche, über die sie
+sich vollständig mit der Tastatur bedienen lässt, und die erste Möglichkeit,
+innerhalb einer Fläche zu suchen, dazu Funktions-Katalog, Handbuch und
+Demo-Beispiel. Das Speicherformat ist **nicht** berührt. Der Abschluss-Anteil
+des Epics liegt in
+4T-001773.
+
+### Neu
+
+- **Die Karten-Liste: eine Liste neben der Fläche** (`4T-001769`). Ein neues
+  Panel der Seitenleiste führt alle Elemente der gerade gezeigten Fläche auf —
+  Karten, Formen und Gruppen in der Reihenfolge, in der sie übereinanderliegen,
+  und unter jeder Karte die Verbindungen an ihr mit Richtung und Gegenstelle,
+  aufklappbar je Karte. Erreichbar ist sie auf den **drei gewohnten Wegen**:
+  Knopf in der Statusleiste, Ansicht → Sidebar → Panels und Kommando-Palette;
+  ihr Ein- und Aus-Zustand bleibt je Spalte über Dokument-Wechsel und Neustart
+  erhalten. **Liste und Fläche zeigen dieselbe Auswahl**, in beide Richtungen:
+  Was auf der Fläche angeklickt wird, ist in der Liste hervorgehoben, und wer in
+  der Liste wandert, sieht die Fläche mitwandern — das gewählte Element rückt
+  zentriert in den Ausschnitt, und die Vergrößerung bleibt, wie sie ist. Trägt
+  das Dokument keine Fläche oder ist die Fläche leer, steht dort ein Hinweis
+  statt einer leeren Liste. Bei mehreren Flächen zeigt die Liste die gerade
+  angezeigte und wechselt mit ihr; in einem nicht änderbaren Dokument zeigt und
+  wählt sie, ohne eine Handlung anzubieten.
+- **Die Fläche lässt sich ohne Maus bedienen** (`4T-001770`). Aus der Liste
+  heraus wandern Pfeil auf und ab durch die Elemente, Pos1 und Ende springen an
+  Anfang und Ende, die **Eingabetaste** bearbeitet den Text einer Karte
+  beziehungsweise die Beschriftung von Form, Gruppe und Verbindung, **Entf**
+  löscht, und **Escape** hebt die Auswahl auf. Die **Kontextmenü-Taste** und
+  Umschalt+F10 öffnen für das gewählte Element dasselbe Menü, das die rechte
+  Maustaste auf der Fläche öffnet — damit ist jede Handlung der Fläche auch ohne
+  Maus erreichbar, vom Umordnen bis zum Anlegen. Eine neue Karte erscheint dabei
+  in der Mitte des sichtbaren Ausschnitts. Jede Änderung aus der Liste
+  kennzeichnet das Dokument als geändert und lässt sich rückgängig machen wie
+  jede andere; im nicht änderbaren Dokument entsteht keine der Handlungen. Die
+  Liste ist für Hilfsmittel als Liste lesbar und nennt je Eintrag Art und
+  Beschriftung.
+- **Eine Verbindung ohne Maus anlegen** (`4T-001770`). «Verbindung auf der
+  Fläche anlegen…» im Kontextmenü einer Karte startet eine **Ziel-Wahl in der
+  Liste**: Die Pfeiltasten wandern nur noch über die übrigen Karten, die
+  Eingabetaste bestätigt und legt die Verbindung an, Escape bricht ab und stellt
+  den Stand davor wieder her. Der laufende Vorgang ist sichtbar gekennzeichnet,
+  und die Anschluss-Seiten ergeben sich aus der Lage der beiden Karten.
+- **Suchen innerhalb einer Fläche** (`4T-001771`). Über der Liste steht ein
+  Filter-Feld. Wer darin tippt, sieht nur noch die Elemente, deren Karten-Text,
+  Verweis-Ziel, Bild-Name oder Beschriftung von Form, Gruppe und Verbindung die
+  Eingabe enthält; die Fundstelle ist im Eintrag hervorgehoben, und eine Zeile
+  über der Liste zählt die Treffer. Die Eingabetaste springt zum Treffer auf der
+  Fläche, von dort wandern die Pfeiltasten durch die übrigen. Karten mit einem
+  Treffer in einer Verbindung bleiben stehen, damit der Treffer seinen Träger
+  behält, und ein laufender Filter klappt die Karten auf, damit er nicht
+  verborgen bleibt. Ohne Treffer erscheint ein eigener Hinweis statt einer
+  leeren Liste.
+- **Funktions-Katalog, Handbuch-Seite und Demo-Beispiel** (`4T-001772`). Der
+  Funktions-Katalog führt die Karten-Liste als eigenen Eintrag. Die
+  Handbuch-Seite «Canvas-Fläche» hat in allen fünf Sprachen ein neues Kapitel
+  «Karten-Liste und Bedienung ohne Maus» bekommen, mit Tabellen der Tasten, der
+  zweischrittigen Ziel-Wahl und der Suche in der Fläche. Die mitgelieferte
+  Demo-Station «12 Canvas» führt die Liste an ihrer Beispiel-Fläche vor, samt
+  zwei Filter-Beispielen, die dort wirklich treffen.
+
+### Geändert
+
+- **Strg+F führt in der Canvas-Ansicht in das Filter-Feld der Karten-Liste**
+  (`4T-001771`). Bis hierher öffnete das Kürzel auch dort die gewohnte
+  Suchleiste — nur konnte sie in dieser Ansicht nichts finden, weil der
+  Quelltext dort ausgeblendet ist und die Suche ins Leere lief. Seit dieser
+  Version öffnet Strg+F in der Canvas-Ansicht die Karten-Liste, blendet sie bei
+  Bedarf ein und setzt die Schreibmarke in ihr Filter-Feld. **In jeder anderen
+  Ansicht bleibt Strg+F unverändert**, und die Suchleiste selbst ist nicht
+  angefasst. Ist die Canvas-Funktion abgeschaltet, gilt überall das Gewohnte.
+- **Die Grenzen der Fläche sind im Handbuch neu gefasst** (`4T-001772`). Der
+  Punkt «Die Fläche wird mit der Maus bedient» der Seite «Canvas-Fläche» stimmt
+  nicht mehr. An seiner Stelle stehen die Grenzen, die jetzt gelten: Für freies
+  Ziehen und Zoomen gibt es keine Tastatur-Griffe — die Lage ändert die Tastatur
+  allein über die vier Befehle der Reihenfolge —, die Liste macht die Fläche
+  bedienbar und nicht anschaulich, und die Bereichs-Suche findet ein Dokument
+  mit Fläche weiterhin über seinen Text, ohne dass einzelne Karten eigene
+  Treffer würden.
+- **Die Nutzen-Darstellung nennt die Bedienung ohne Maus** (`4T-001773`), in
+  allen fünf Sprachfassungen und in beiden Ausspielungen. Der Abschnitt «Wenn
+  die Reihenfolge nicht mehr ausreicht» der Nutzen-Seite des Handbuchs und der
+  gleichlautende Block der Nutzen-Seite der Produkt-Webseite führen einen
+  fünften Stichpunkt: Eine Liste neben der Fläche führt alle Elemente auf und
+  lässt sie mit der Tastatur anlegen, beschriften, verbinden, löschen und
+  durchsuchen. Der Stichpunkt ist eng gefasst — freies Ziehen und Zoomen
+  verspricht er nicht —, und die übrigen vier Stichpunkte bleiben unverändert.
+
+### i18n
+
+- Alle neuen Texte der vierten Stufe liegen in **allen fünf Sprachfassungen**
+  vor (`4T-001769`, `4T-001770`, `4T-001771`, `4T-001772`): 27 neue Schlüssel je
+  Sprache — die Beschriftungen und Hinweis-Zustände der Karten-Liste samt
+  Filter-Feld, Treffer-Zählung und Ziel-Wahl (23), der Kontextmenü- und
+  Menü-Eintrag «Verbindung auf der Fläche anlegen…» und der neue Eintrag des
+  Funktions-Katalogs mit Name, Beschreibung und Zugang.
+
 ## [1.135.0.2871] - 2026-09-14 — Canvas Stufe 3: Verweis- und Bild-Karten
 
 Zug 3E-000310,

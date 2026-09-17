@@ -65,6 +65,7 @@ Certaines idées n'ont pas d'ordre. Poser des variantes côte à côte, esquisse
 - **Des connexions avec sens, couleur et légende** — y compris avec une flèche aux deux bouts, et un côté d'accroche au choix.
 - **Votre disposition reste la vôtre** : la surface ne calcule aucune position, elle retient ce que vous avez posé.
 - **Du texte clair dans le document** : la surface se trouve dans un bloc de code du fichier Markdown et se lit aussi sans EM4me.
+- **Sans souris également** : une liste à côté de la surface énumère tous les éléments et permet de les créer, de les légender, de les relier et de les supprimer au clavier — et de les chercher.
 
 En détail : [Surface Canvas](canvas.md).
 

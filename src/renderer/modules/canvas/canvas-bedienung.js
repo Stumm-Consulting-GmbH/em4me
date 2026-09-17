@@ -49,7 +49,12 @@ import {
   fuegeElementEin,
   verschiebeImStapel as verschiebeElementImStapel,
 } from '../../../shared/canvas/canvas-elemente.js';
-import { MIN_BREITE, MIN_HOEHE, kartenRechteck } from '../../../shared/canvas/canvas-geometrie.js';
+import {
+  MIN_BREITE,
+  MIN_HOEHE,
+  huelle,
+  kartenRechteck,
+} from '../../../shared/canvas/canvas-geometrie.js';
 // 4T-001655: Was als Hintergrund der Fläche gilt, entscheidet **eine** Regel
 // für alle drei Fragesteller (Flächen-Ziehen, Auswahl-Aufhebung, Doppelklick).
 // Seit die Verbindungen anfassbar sind, gehört zu ihr mehr als die Karte, und
@@ -151,6 +156,14 @@ export function setzeElementInhalt(el, text) {
  * @param {Function} [ctx.beiTasteOhneKarte] (ev) => void (4T-001655), für
  *   `Entf` und `Escape`, wenn keine Karte, aber vielleicht eine Verbindung
  *   gewählt ist.
+ * @param {Function} [ctx.verschiebeAusschnitt] (tx, ty) => void (4T-001769).
+ *   Setzt die Verschiebung der gemeinsamen Ebene, ohne die Vergrößerung
+ *   anzufassen. Fehlt der Rückruf, wählt `zeigeElement` nur aus und lässt den
+ *   Ausschnitt stehen — der Stand der reinen Bedien-Prüffälle.
+ * @param {Function} [ctx.waehleFremdesElement] (art, id) => void (4T-001769).
+ *   Wählt ein Element, das nicht diesem Modul gehört (Form, Gruppe,
+ *   Verbindung). Die Ansicht kennt alle vier Bedienungen und löst den Ruf auf;
+ *   dieses Modul muss die drei anderen dafür nicht kennen.
  * @returns {object} Steuerung für die Ansicht.
  */
 export function createKartenBedienung(ctx) {
@@ -159,6 +172,9 @@ export function createKartenBedienung(ctx) {
   let gewaehlteKarte = null;
   let zug = null;
   let bearbeitung = null;
+  // 4T-001770: Die Griffe der übrigen Element-Arten, angemeldet vom
+  // Kontextmenü. Siehe `fuehreHandlung` und `uebernimmElementGriffe`.
+  let elementGriffe = null;
   // Kennung, deren Rohtext-Bearbeitung nach der nächsten Zeichnung geöffnet
   // wird. Eine neu angelegte Karte gibt es im DOM erst nach dem Neuzeichnen.
   let oeffneNachRender = null;
@@ -273,6 +289,99 @@ export function createKartenBedienung(ctx) {
     // oder eine Verbindung. Die Bedienung der Verbindungen erfährt den Wechsel
     // hier, statt ihn an einem eigenen Klick-Weg noch einmal zu erraten.
     if (typeof ctx.beiKartenWahl === 'function') ctx.beiKartenWahl(gewaehlteKarte);
+  }
+
+  // --- Ein Element zeigen (4T-001769) -------------------------------------------
+
+  /**
+   * Rückt ein Element zentriert in den Ausschnitt; die Vergrößerung bleibt.
+   *
+   * **Zentriert und nicht eingepasst:** Ein Einpassen änderte den Zoom, und die
+   * Wanderung durch eine Liste würde dann bei jedem Schritt die Fläche neu
+   * skalieren — der Anwender verlöre den Maßstab, an dem er sich orientiert
+   * (Story 4S-000948, AK9).
+   *
+   * Eine **Verbindung** hat keine eigene Lage (E4); gezeigt wird deshalb die
+   * Hülle ihrer beiden Karten, also die Strecke, auf der sie verläuft.
+   */
+  function zentriereAuf(el, m) {
+    if (typeof ctx.verschiebeAusschnitt !== 'function') return;
+    const enden = (k) => k.art === 'karte' && (k.id === el.von || k.id === el.nach);
+    const rahmen = huelle(el.art === 'linie' ? m.elemente.filter(enden) : [el]);
+    if (!rahmen) return;
+    const rect = buehne.getBoundingClientRect ? buehne.getBoundingClientRect() : null;
+    const l = lage();
+    ctx.verschiebeAusschnitt(
+      (rect && rect.width ? rect.width : 0) / 2 - ((rahmen.links + rahmen.rechts) / 2) * l.scale,
+      (rect && rect.height ? rect.height : 0) / 2 - ((rahmen.oben + rahmen.unten) / 2) * l.scale,
+    );
+  }
+
+  /**
+   * Wählt ein Element der Fläche und zeigt es — der Weg der Karten-Liste
+   * zurück auf die Fläche (4T-001769).
+   *
+   * Der Griff steht hier und nicht bei einer der art-eigenen Bedienungen, weil
+   * er für **jede** Element-Art derselbe ist — dieselbe Begründung wie bei
+   * `verschiebeImStapel`. Die Auswahl selbst bleibt die eine Auswahl der Fläche
+   * (V3): Das Panel führt keinen zweiten Zustand daneben.
+   *
+   * **Seit 4T-001770 ist dieser Griff der eine Eintritt der Liste** und trägt
+   * deshalb zwei Erweiterungen: `null` als Kennung hebt jede Auswahl der Fläche
+   * auf (Escape in der Liste), und `handlung` sagt, was an dem Element geschehen
+   * soll, nachdem es gewählt und gezeigt ist. Ein zweiter Eintritt daneben wäre
+   * ein zweiter Ort, an dem Auswahl und Handlung auseinanderlaufen können.
+   *
+   * @param {string|null} id Kennung des Elements; `null` hebt die Auswahl auf.
+   * @param {object} [handlung] `{art: 'bearbeiten'|'loeschen'|'verbinden'}`
+   *   oder `{art: 'menue', x, y}`; bei `'verbinden'` zusätzlich `nach` als
+   *   Kennung der Gegenstelle. Ohne `handlung` bleibt es beim Wählen und Zeigen.
+   * @returns {boolean} `false`, wenn die Fläche kein solches Element trägt oder
+   *   die Handlung nicht stattgefunden hat.
+   */
+  function zeigeElement(id, handlung) {
+    if (!id) {
+      // Ohne Element gilt die Handlung der Fläche selbst (das Kontextmenü ohne
+      // Element); ohne Handlung ist die Aussage «nichts ist gewählt», und die
+      // läuft über denselben Weg wie der Klick auf den Hintergrund — sonst
+      // bliebe eine Auswahl einer anderen Art stehen.
+      if (handlung) return fuehreHandlung(null, handlung);
+      waehle(null);
+      if (typeof ctx.beiHintergrund === 'function') ctx.beiHintergrund();
+      return true;
+    }
+    const m = modell();
+    const el = m && Array.isArray(m.elemente) ? m.elemente.find((e) => e.id === id) : null;
+    if (!el) return false;
+    if (el.art === 'karte') waehle(id);
+    else if (typeof ctx.waehleFremdesElement === 'function') ctx.waehleFremdesElement(el.art, id);
+    zentriereAuf(el, m);
+    return handlung ? fuehreHandlung(el, handlung) : true;
+  }
+
+  /**
+   * Führt die benannte Handlung an einem Element aus (4T-001770).
+   *
+   * **Die Zuordnung Art → Griff steht nicht hier**, sondern im Kontextmenü: Es
+   * führt sie für alle fünf Arten ohnehin, und eine zweite Zuordnung daneben
+   * liefe bei der nächsten neuen Handlung auseinander (Entscheidung B6). Dieses
+   * Modul kennt Form, Gruppe und Verbindung nicht und bekommt die Griffe
+   * deshalb angemeldet (`uebernimmElementGriffe`).
+   */
+  function fuehreHandlung(el, handlung) {
+    if (!elementGriffe) return false;
+    const id = el ? el.id : null;
+    if (handlung.art === 'menue') {
+      return elementGriffe.oeffneMenue(id, el ? el.art : null, handlung.x, handlung.y) !== false;
+    }
+    // Befund 1 vom 2026-09-10: Im nicht änderbaren Dokument entsteht keine
+    // schreibende Handlung. Das Menü steht davor, weil es selbst nichts
+    // schreibt und seine leere Antwort dieselbe Aussage trägt.
+    if (!el || !aenderbar()) return false;
+    if (handlung.art === 'bearbeiten') return elementGriffe.bearbeite(id, el.art) !== false;
+    if (handlung.art === 'loeschen') return elementGriffe.loesche(id, el.art) !== false;
+    if (handlung.art === 'verbinden') return elementGriffe.verbinde(id, handlung.nach) !== false;
+    return false;
   }
 
   // --- Anlegen ----------------------------------------------------------------
@@ -640,6 +749,21 @@ export function createKartenBedienung(ctx) {
     istAenderbar: aenderbar,
     /** Legt eine Karte an; ohne Punkt in der Mitte des sichtbaren Ausschnitts. */
     karteAnlegen,
+    /** Wählt ein Element und rückt es zentriert in den Ausschnitt (4T-001769). */
+    zeigeElement,
+    /**
+     * Nimmt die Griffe der übrigen Element-Arten entgegen (4T-001770).
+     *
+     * Angemeldet vom Kontextmenü, weil dort die Zuordnung Art → Griff ohnehin
+     * steht; dieses Modul ist der eine Eintritt der Karten-Liste und reicht sie
+     * nur weiter. Fehlt die Anmeldung, bleibt es beim Wählen und Zeigen — der
+     * Stand der reinen Zeichnungs-Prüffälle.
+     *
+     * @param {object|null} griffe `{bearbeite, loesche, verbinde, oeffneMenue}`.
+     */
+    uebernimmElementGriffe(griffe) {
+      elementGriffe = griffe && typeof griffe === 'object' ? griffe : null;
+    },
     /** Holt den Tastatur-Fokus auf die Fläche (Eintritt in die Ansicht). */
     fokussiere,
     // --- Griffe für einen zweiten Bedienort (4T-001683) ------------------------

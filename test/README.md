@@ -250,12 +250,25 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
    - **Neue bereichsgebundene Sektion** (`group: 'area'`, siehe
      Oberflächen-Leitlinien der Entwicklungsrichtlinien): ES-13 zählt
      die Sektionen der Navigations-Gruppe „Aktueller Bereich".
-   - **Neues Sidebar-Panel:** SL-01
+   - **Neues Sidebar-Panel:** vier E2E-Fälle, zusätzlich zum
+     Paritäts-Wächter `test/unit/panel-access.test.js`. SL-01
      (`test/e2e/funktionen/sidebar-layout.spec.js`, Default-Reihenfolge;
      neue Panels landen als eigener Slot am Ende) und ES-10 (Anzahl der
-     Panel-Zeilen im Einstellungs-Bereich Sidebar), zusätzlich zum
-     Paritäts-Wächter `test/unit/panel-access.test.js`. Zwei
-     Anlage-Fallen dazu: Die Section-Klasse des Panels muss exakt
+     Panel-Zeilen im Einstellungs-Bereich Sidebar), dazu SV-03
+     (`test/e2e/funktionen/sidebar-varianten.spec.js`, Panel-Gesamtzahl
+     nach dem Normalisieren einer alten Variante, in `count` und
+     `unique`) und FA-06
+     (`test/e2e/funktionen/bearbeitung-und-ansicht.spec.js`,
+     Breiten-Grenze der zentrierten Schaltergruppe). Die Rechnung hinter
+     FA-06 in einem Satz: Ein zusätzlicher Statusleisten-Knopf
+     verbreitert die linke Zone um 32 Pixel (28 Pixel Knopf plus 4 Pixel
+     Abstand), und weil die Seitenspalten des Statusleisten-Rasters nie
+     unter ihren Inhalt schrumpfen, steigt die Fensterbreite, ab der die
+     Gruppe mittig steht, um das Doppelte, also um 64 Pixel je Knopf;
+     das Prüf-Fenster des Falls muss deshalb mitwachsen. SV-03 und FA-06
+     sind am 2026-09-17 ergänzt (4T-001774), nachdem beide in einer
+     Release-Abnahme rot wurden und von dieser Liste bis dahin nicht
+     erfasst waren. Zwei Anlage-Fallen dazu: Die Section-Klasse des Panels muss exakt
      `sidebar-<Panel-ID>` heißen, weil SL-01 die Panel-ID aus ihr
      ableitet; und ein Panel ohne Dokument-Bezug darf nicht an
      `isAllEmpty()` hängen, sonst ist es im Empty-State nicht

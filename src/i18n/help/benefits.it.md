@@ -65,6 +65,7 @@ Certi pensieri non hanno un ordine. Affiancare alternative, abbozzare un flusso 
 - **Collegamenti con senso, colore ed etichetta** — anche con la freccia a entrambe le estremità e con il lato di attacco a scelta.
 - **La sua disposizione resta la sua**: la superficie non calcola posizioni, ricorda ciò che lei ha disposto.
 - **Testo in chiaro nel documento**: la superficie sta in un blocco di codice del file Markdown ed è leggibile anche senza EM4me.
+- **Anche senza mouse**: un elenco accanto alla superficie enumera tutti gli elementi e permette di crearli, etichettarli, collegarli ed eliminarli da tastiera — e di cercarli.
 
 In dettaglio: [Superficie Canvas](canvas.md).
 

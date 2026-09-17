@@ -410,9 +410,21 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     try {
       await waitForTab(page);
+      // 4T-001774 (Epic 3E-000290): 1400 -> 1600 Pixel. Mit dem siebzehnten Knopf
+      // der Panel-Toggle-Leiste (Karten-Liste der Canvas) ist die linke Zone um
+      // 32 Pixel gewachsen (ein 28-Pixel-Knopf plus 4 Pixel Abstand). Die
+      // Statusleiste ist ein Drei-Spalten-Raster, dessen Seitenspalten nie unter
+      // ihren Inhalt schrumpfen (styles.css, Kommentar an .statusbar): Braucht die
+      // linke Zone mehr als ihren Anteil, weicht die Mitte aus der Fenster-Mitte
+      // aus — so entworfen und nicht ein Fehler. Bei 1400 Pixeln misst der
+      // Abnahme-Lauf vom 2026-09-17 deshalb 30,6 Pixel Versatz; da jeder weitere
+      // Pixel Fensterbreite zur Haelfte auf die linke Spalte entfaellt, liegt die
+      // Zentrier-Grenze jetzt bei rund 1460 Pixeln. Der Product Owner hat am
+      // 2026-09-17 entschieden, die verschobene Grenze hinzunehmen und den
+      // Prueffall zu verbreitern statt das Layout zu aendern.
       await app.evaluate(({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
-        if (win) win.setSize(1400, 800);
+        if (win) win.setSize(1600, 800);
       });
       const readGeometry = () =>
         page.evaluate(() => {

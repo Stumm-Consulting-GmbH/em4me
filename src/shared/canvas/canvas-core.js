@@ -725,14 +725,32 @@ function canvasFlaechenTitel(model) {
   const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
   const erste = elemente.find((el) => el.art === 'karte');
   if (!erste) return '';
-  for (const zeile of String(erste.inhalt || '').split('\n')) {
-    const text = bereinigeZeile(zeile);
-    if (text !== '') return text;
-  }
+  const zeile = ersteInhaltsZeile(erste);
+  if (zeile !== '') return zeile;
   // 4T-001746: Eine Verweis- oder Bild-Karte ohne Beschriftung hat trotzdem
   // etwas zu sagen — ihr Ziel. Der Rückfall bleibt darunter leer, weil eine
   // erfundene Bezeichnung nichts benennt.
   return kartenVerweisText(erste);
+}
+
+/**
+ * Die erste sinnvolle Zeile der Inhalts-Zeilen eines Elements (4T-001769).
+ *
+ * Eigene Funktion, seit die Karten-Liste dieselbe Frage für **jede**
+ * Element-Art stellt: Beim Karten-Text ist es die Beschriftung, bei Form und
+ * Gruppe die Beschriftung nach G5 und G6, bei der Verbindung ihre Beschriftung.
+ * Die Flächen-Beschriftung stellte sie zuvor als eigene Schleife; eine zweite
+ * Kopie derselben Regel liefe bei der nächsten Ergänzung auseinander.
+ *
+ * @param {object} el beliebiges Element des Modells.
+ * @returns {string} leer, wenn das Element keine sinnvolle Zeile trägt.
+ */
+function ersteInhaltsZeile(el) {
+  for (const zeile of String((el && el.inhalt) || '').split('\n')) {
+    const text = bereinigeZeile(zeile);
+    if (text !== '') return text;
+  }
+  return '';
 }
 
 /**
@@ -843,6 +861,82 @@ function canvasUmfang(model) {
   };
 }
 
+/**
+ * Die Verbindungen an einer Karte, mit Gegenstelle und Richtung (4T-001769).
+ *
+ * **Ein Filter über die Element-Liste und keine Abfrage des Modells:** Eine
+ * Zuordnung «Verbindungen dieser Karte» gibt es im Kern nicht, und sie soll es
+ * auch nicht geben — sie wäre eine zweite Quelle derselben Aussage, die bei
+ * jedem Anlegen und Löschen nachgeführt werden müsste (dieselbe Begründung, mit
+ * der G6 der Gruppe ihre Mitglieder-Liste verweigert).
+ *
+ * Eine Verbindung auf sich selbst erscheint **einmal** und gilt als ausgehend;
+ * zwei Zeilen für dieselbe Linie wären in der Liste eine Dublette.
+ *
+ * @param {object} karte Element der Art `karte`.
+ * @param {Array<object>} linien die Linien-Elemente der Fläche.
+ * @returns {Array<object>} je Verbindung `{id, richtung, ausgehend, gegenstelle, text}`.
+ */
+function verbindungenAn(karte, linien) {
+  const treffer = [];
+  for (const linie of linien) {
+    const ausgehend = !!karte.id && linie.von === karte.id;
+    const eingehend = !!karte.id && linie.nach === karte.id;
+    if (!ausgehend && !eingehend) continue;
+    treffer.push({
+      id: linie.id || '',
+      richtung: linienRichtung(linie),
+      ausgehend,
+      gegenstelle: (ausgehend ? linie.nach : linie.von) || '',
+      text: ersteInhaltsZeile(linie),
+    });
+  }
+  return treffer;
+}
+
+/**
+ * Die Fläche als Liste — die zweite Ansicht desselben Modells (4T-001769).
+ *
+ * Geliefert werden **alle** Elemente der Stapel-Ebene in der Reihenfolge der
+ * Fence (Entscheidung F2 des Product Owners vom 2026-09-15): Karten, Formen und
+ * Gruppen. Diese Reihenfolge **ist** die Stapel-Reihenfolge (G3) — wer die
+ * Liste liest, sieht damit zugleich, was vorn und was hinten liegt; eine zweite
+ * Anzeige der Reihenfolge braucht es nicht.
+ *
+ * **Verbindungen stehen nicht in der Liste, sondern an ihren Karten.** Sie sind
+ * eine eigene Ebene ohne eigene Lage (E4) und hätten in einer Stapel-Liste
+ * keinen Platz; unter der Karte dagegen beantworten sie genau die Frage, die
+ * der Anwender an ihr stellt.
+ *
+ * Prozessneutral wie der übrige Kern: kein DOM, keine Datei, keine Sprache. Was
+ * eine Anzeige aus den Feldern macht — Symbol der Art, Kürzung eines langen
+ * Textes, Übersetzung eines Richtungs-Namens —, bleibt ihre Sache.
+ *
+ * @param {object} model Modell einer Fläche aus `parseCanvasFence`.
+ * @returns {Array<object>} je Element `{art, id, text, ziel, formArt, verbindungen}`.
+ */
+function canvasListe(model) {
+  const elemente = model && Array.isArray(model.elemente) ? model.elemente : [];
+  const linien = elemente.filter((el) => el.art === 'linie');
+  return elemente
+    .filter((el) => STAPEL_ARTEN.has(el.art))
+    .map((el) => ({
+      art: el.art,
+      id: el.id || '',
+      // Die Karte hat ihre eigene Titel-Regel (Überschrift vor Fließzeile), und
+      // sie steht bereits in der Vorschau des Blocks; Form und Gruppe tragen
+      // ihre Beschriftung als Inhalts-Zeilen.
+      text: el.art === 'karte' ? canvasKartenVorschau(el).titel : ersteInhaltsZeile(el),
+      // 4T-001746: Worauf eine Karte zeigt, gehört in ihre Zeile — auch dann,
+      // wenn sie zusätzlich eine eigene Beschriftung trägt.
+      ziel: el.art === 'karte' ? kartenVerweisText(el) : '',
+      // Eine Form ohne Beschriftung ist sonst eine leere Zeile; ihre Art ist
+      // das, was sie benennbar macht.
+      formArt: el.art === 'form' ? el.formArt || FORM_ART_VORGABE : '',
+      verbindungen: el.art === 'karte' ? verbindungenAn(el, linien) : [],
+    }));
+}
+
 // Die Zaun-Länge bestimmt der Schreibweg, weil der Karten-Inhalt beliebiges
 // Markdown ist und selbst Code-Blöcke tragen darf. Drei Rückstriche genügen
 // nur, solange der Rumpf keine längere Folge enthält.
@@ -878,4 +972,5 @@ module.exports = {
   canvasKartenVorschau,
   kartenVerweisText,
   canvasUmfang,
+  canvasListe,
 };

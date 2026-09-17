@@ -138,5 +138,6 @@
   "command.canvas.stackBack": "Enviar al fondo",
   "command.canvas.addGroup": "Añadir grupo al lienzo",
   "command.canvas.addLinkCard": "Añadir tarjeta de enlace al lienzo",
-  "command.canvas.addImageCard": "Añadir tarjeta de imagen al lienzo"
+  "command.canvas.addImageCard": "Añadir tarjeta de imagen al lienzo",
+  "command.canvas.addConnection": "Añadir conexión al lienzo…"
 }

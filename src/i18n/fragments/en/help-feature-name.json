@@ -212,5 +212,6 @@
   "help.featureName.canvasGroups": "Canvas groups",
   "help.featureName.canvasStacking": "Canvas stacking order",
   "help.featureName.canvasLinkCards": "Link cards on the canvas",
-  "help.featureName.canvasImageCards": "Image cards on the canvas"
+  "help.featureName.canvasImageCards": "Image cards on the canvas",
+  "help.featureName.canvasList": "Canvas list"
 }

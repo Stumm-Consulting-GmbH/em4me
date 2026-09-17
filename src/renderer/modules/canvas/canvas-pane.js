@@ -28,6 +28,7 @@ import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import {
   canvasFlaechenTitel,
+  canvasListe,
   findCanvasFences,
   parseCanvasFence,
 } from '../../../shared/canvas/canvas-core.js';
@@ -457,6 +458,9 @@ function ansichtFuer(paneIdx) {
     // Sie gehören dem Editor; die Fläche reicht nur die Taste weiter.
     rueckgaengig: () => rufeZugang('rueckgaengig', paneIdx),
     wiederholen: () => rufeZugang('wiederholen', paneIdx),
+    // 4T-001769: Die Meldung an die Karten-Liste, sobald sich der Stand der
+    // Fläche ändert — Auswahl, gezeigte Fläche oder Inhalt.
+    beiStandWechsel: () => meldeStand(paneIdx),
     // 4T-001683: Zugang zum gemeinsamen Kontextmenü des Fensters.
     zeigeKontextmenue: (daten) => rufeZugang('zeigeKontextmenue', paneIdx, daten),
     schliesseKontextmenue: () => rufeZugang('schliesseKontextmenue'),
@@ -541,6 +545,128 @@ export function canvasZustandAus(inhalt) {
   return { flaechen, hinweis, hinweisWerte };
 }
 
+// --- Auskunft für die Karten-Liste (4T-001769) ---------------------------------
+//
+// Die Karten-Liste ist ein Sidebar-Panel und damit außerhalb dieses Ordners
+// (Entscheidung F1 des Product Owners vom 2026-09-15). Sie liest den Stand der
+// Fläche über diese beiden Griffe und schreibt nie selbst — der eine Schreibweg
+// bleibt der eine Schreibweg (E11).
+//
+// **Gemeldet statt importiert:** Das Panel trägt sich hier ein, dieses Modul
+// kennt es nicht. Ein Import in die Gegenrichtung zöge den Canvas-Ordner in den
+// großen Datei-Zyklus des Renderers, den der Ordner-Import-Wächter als Ratsche
+// eingefroren hat — dieselbe Begründung wie beim injizierten Fenster-Zustand im
+// Modul-Kopf.
+const beobachter = new Set();
+
+/**
+ * Meldet einen Beobachter an, der bei jeder Änderung des Flächen-Stands
+ * gerufen wird (Auswahl, gezeigte Fläche, Inhalt, Ansichts-Modus).
+ *
+ * @param {Function} fn (paneIdx) => void
+ */
+export function beobachteCanvasStand(fn) {
+  if (typeof fn === 'function') beobachter.add(fn);
+}
+
+function meldeStand(paneIdx) {
+  for (const fn of beobachter) {
+    try {
+      fn(paneIdx);
+    } catch (err) {
+      // Ein Beobachter darf die Fläche nicht mitreißen: Sie zeichnet gerade,
+      // und ein Fehler in einer Anzeige daneben ist kein Grund, das Zeichnen
+      // abzubrechen.
+      console.warn('Canvas-Beobachter fehlgeschlagen:', err);
+    }
+  }
+}
+
+/**
+ * Der Stand der Fläche einer Spalte, wie ihn die Karten-Liste braucht.
+ *
+ * **Die Liste kommt aus dem Dokument-Text und nicht aus der Ansicht**, denn sie
+ * soll auch dann etwas zeigen, wenn das Dokument gerade nicht in der
+ * Canvas-Ansicht steht (AK8: das Bestätigen führt dann erst dorthin). Welche
+ * Fläche gezeigt wird und was gewählt ist, weiß dagegen nur die Ansicht — und
+ * auch nur dann, wenn sie offen ist.
+ *
+ * @param {number} paneIdx
+ * @returns {{hatDokument: boolean, inAnsicht: boolean, aenderbar: boolean,
+ *   verfuegbar: boolean, flaechen: number, liste: Array<object>,
+ *   gewaehlt: string|null}}
+ */
+export function canvasListenStand(paneIdx) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  const inAnsicht = !!(tab && tab.viewMode === 'canvas' && ansichten[paneIdx]);
+  const stand = {
+    hatDokument: !!tab,
+    inAnsicht,
+    aenderbar: istAenderbar(paneIdx),
+    // E9: Ohne Fläche im Dokument gibt es die Canvas-Ansicht nicht; das Panel
+    // sagt dann, warum das Bestätigen eines Eintrags nichts bewirkt.
+    verfuegbar: istCanvasModusVerfuegbar(tab),
+    flaechen: 0,
+    liste: [],
+    gewaehlt: null,
+  };
+  if (!tab || typeof tab.content !== 'string') return stand;
+  const flaechen = canvasZustandAus(tab.content).flaechen;
+  stand.flaechen = flaechen.length;
+  if (flaechen.length === 0) return stand;
+  const zeiger = inAnsicht ? ansichten[paneIdx].getStats() : null;
+  const gezeigt = flaechen[zeiger ? zeiger.gewaehlt : 0] || flaechen[0];
+  stand.liste = canvasListe(gezeigt.model);
+  stand.gewaehlt = zeiger
+    ? zeiger.gewaehlteKarte ||
+      zeiger.gewaehlteForm ||
+      zeiger.gewaehlteGruppe ||
+      zeiger.gewaehlteLinie ||
+      null
+    : null;
+  return stand;
+}
+
+/**
+ * Wählt ein Element der gezeigten Fläche und rückt es zentriert in den
+ * Ausschnitt (4T-001769). Ohne offene Canvas-Ansicht gibt es nichts zu zeigen.
+ *
+ * **`null` als Kennung hebt die Auswahl auf** (4T-001770): Escape in der
+ * Karten-Liste wählt ab, wie es der Klick auf den Hintergrund der Fläche tut.
+ * Ohne Hinweis und ohne Änderbarkeits-Prüfung — Auswählen und Abwählen fassen
+ * das Dokument nicht an (Fortschreibung von E3 vom 2026-09-10).
+ *
+ * @param {number} paneIdx
+ * @param {string|null} id Kennung des Elements.
+ * @returns {boolean}
+ */
+export function zeigeCanvasElement(paneIdx, id) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  const ansicht = ansichten[paneIdx];
+  if (!tab || tab.viewMode !== 'canvas' || !ansicht) return false;
+  return ansicht.zeigeElement(id) === true;
+}
+
+/**
+ * Führt eine Handlung der Karten-Liste an einem Element der Fläche aus
+ * (4T-001770): die Rohtext-Eingabe, das Löschen, das Kontextmenü an der Stelle
+ * eines Listen-Eintrags oder die neue Verbindung zu einer Gegenstelle.
+ *
+ * Läuft über den **gemeinsamen Eintritt der Flächen-Kommandos** und damit über
+ * dessen drei Bedingungen: Canvas-Ansicht offen, Fläche vorhanden, Dokument
+ * änderbar. Jede von ihnen wird gesagt statt still verworfen — auch beim
+ * Kontextmenü, denn ein Menü, das auf eine Taste hin gar nicht erscheint, wäre
+ * für den Anwender von einem Fehler nicht zu unterscheiden.
+ *
+ * @param {number} paneIdx
+ * @param {string|null} id Kennung des Elements; `null` meint die Fläche selbst.
+ * @param {object} handlung Siehe `zeigeElement` der Karten-Bedienung.
+ * @returns {boolean}
+ */
+export function handleCanvasElement(paneIdx, id, handlung) {
+  return anDerFlaeche(paneIdx, (ansicht) => ansicht.zeigeElement(id, handlung));
+}
+
 /**
  * Zeichnet die Canvas der Spalte neu. Der Aufruf ist synchron und damit so
  * billig wie das Rendern der Lese-Ansicht.
@@ -582,6 +708,10 @@ export function scheduleCanvasRender(paneIdx) {
     timer[paneIdx] = null;
     pruefeVerfuegbarkeit(paneIdx);
     renderCanvas(paneIdx);
+    // 4T-001769: Die Karten-Liste zeigt die Fläche auch dann, wenn das Dokument
+    // gerade nicht in der Canvas-Ansicht steht — dort kommt keine Meldung aus
+    // dem Zeichnen, weil `renderCanvas` vorher aussteigt.
+    meldeStand(paneIdx);
   }, CANVAS_RENDER_DEBOUNCE_MS);
 }
 

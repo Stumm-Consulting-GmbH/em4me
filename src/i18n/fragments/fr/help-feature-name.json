@@ -212,5 +212,6 @@
   "help.featureName.canvasGroups": "Groupes du canevas",
   "help.featureName.canvasStacking": "Ordre de superposition du canevas",
   "help.featureName.canvasLinkCards": "Cartes de lien sur le canevas",
-  "help.featureName.canvasImageCards": "Cartes d’image sur le canevas"
+  "help.featureName.canvasImageCards": "Cartes d’image sur le canevas",
+  "help.featureName.canvasList": "Liste du canevas"
 }

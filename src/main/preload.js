@@ -925,6 +925,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuCanvasAddLinkCard: (cb) => ipcRenderer.on('menu:canvasAddLinkCard', () => cb()),
   // 4T-001748 (Epic 3E-000289): 'Ansicht -> Bild-Karte auf der Flaeche anlegen'.
   onMenuCanvasAddImageCard: (cb) => ipcRenderer.on('menu:canvasAddImageCard', () => cb()),
+  // 4T-001770 (Epic 3E-000290): 'Ansicht -> Verbindung auf der Flaeche anlegen'.
+  onMenuCanvasAddConnection: (cb) => ipcRenderer.on('menu:canvasAddConnection', () => cb()),
   // 4T-001701: die vier Stapel-Befehle ueber EINEN Kanal mit dem Befehl als
   // Nutzlast (Muster menu:viewChange). Vier Kanaele fuer vier Namen derselben
   // Handlung waeren vier Stellen, an denen dieselbe Kette reisst.

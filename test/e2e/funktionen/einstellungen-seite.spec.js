@@ -334,9 +334,11 @@ test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
       // 4T-000759 (Epic 3E-000142): links kommt das Suchergebnis-Panel hinzu (9).
       // 4T-000844 (Epic 3E-000147): links kommt das Inhaltsverzeichnis des Buches
       // hinzu (10), als dritter Reiter der Ort-Gruppe.
+      // 4T-001774 (Epic 3E-000290): links kommt die Karten-Liste der Canvas
+      // hinzu (11), als fünfter Reiter der Finde-Gruppe.
       const leftList = section.locator('.sidebar-settings-list[data-side="left"]');
       const rightList = section.locator('.sidebar-settings-list[data-side="right"]');
-      await expect(leftList.locator('.sidebar-settings-row')).toHaveCount(10);
+      await expect(leftList.locator('.sidebar-settings-row')).toHaveCount(11);
       await expect(rightList.locator('.sidebar-settings-row')).toHaveCount(6);
       await expect(rightList.locator('.sidebar-settings-empty')).toHaveCount(0);
 

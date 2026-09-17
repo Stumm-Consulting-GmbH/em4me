@@ -138,5 +138,6 @@
   "command.canvas.stackBack": "Send to back",
   "command.canvas.addGroup": "Add group to canvas",
   "command.canvas.addLinkCard": "Add link card to canvas",
-  "command.canvas.addImageCard": "Add image card to canvas"
+  "command.canvas.addImageCard": "Add image card to canvas",
+  "command.canvas.addConnection": "Add connection to canvas…"
 }

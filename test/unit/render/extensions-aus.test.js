@@ -501,11 +501,16 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'canvas.addLinkCard',
       // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
       'canvas.addImageCard',
+      // 4T-001770 (Epic 3E-000290): die Verbindung ohne Maus, mit Ziel-Wahl in
+      // der Karten-Liste.
+      'canvas.addConnection',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',
       'canvas.stackBack',
       'insert.canvas',
+      // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste.
+      'view.toggleCanvasList',
     ]);
     const registrierte = new Set(COMMANDS.map((c) => c.id));
     for (const id of manifest.commands) {
@@ -524,11 +529,16 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'canvas.addLinkCard',
       // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
       'canvas.addImageCard',
+      // 4T-001770 (Epic 3E-000290): die Verbindung ohne Maus, mit Ziel-Wahl in
+      // der Karten-Liste.
+      'canvas.addConnection',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',
       'canvas.stackBack',
       'insert.canvas',
+      // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste.
+      'view.toggleCanvasList',
     ]) {
       expect(aus.has(id), `${id} muss im Aus-Zustand gefiltert sein`).toBe(true);
     }
@@ -555,14 +565,36 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'canvas.addLinkCard',
       // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
       'canvas.addImageCard',
+      // 4T-001770 (Epic 3E-000290): die Verbindung ohne Maus, mit Ziel-Wahl in
+      // der Karten-Liste.
+      'canvas.addConnection',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',
       'canvas.stackBack',
       'insert.canvas',
+      // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste.
+      'view.toggleCanvasList',
     ]) {
       expect(an.has(id)).toBe(false);
     }
+  });
+
+  // 4T-001769 (Epic 3E-000290), AK10 der Story 4S-000948: Ist die Erweiterung
+  // abgeschaltet, gibt es weder Knopf noch Menü-Eintrag noch Palette-Eintrag der
+  // Karten-Liste. Alle drei hängen an derselben Kopplung — der Panel-Zugang
+  // nennt seine Erweiterung, und sein Toggle-Kommando steht in deren
+  // commands-Liste (Muster des Inhaltsverzeichnisses aus 4T-000849).
+  it('AK10: der Panel-Zugang der Karten-Liste hängt an der Erweiterung', () => {
+    const panel = panelAccessById('canvaslist');
+    expect(panel).not.toBeNull();
+    expect(panel.extensionId).toBe('canvas');
+    expect(panel.commandId).toBe('view.toggleCanvasList');
+    expect(extensionById('canvas').commands).toContain(panel.commandId);
+    // Der Statusbar-Knopf verschwindet über dasselbe Gate: Der Renderer leitet
+    // seine Liste aus genau diesen Zeilen ab (EXTENSION_STATUSBAR_BUTTONS).
+    expect(disabledCommandIdSet(['canvas']).has(panel.commandId)).toBe(true);
+    expect(disabledCommandIdSet([]).has(panel.commandId)).toBe(false);
   });
 
   it('AK3: die Fence erscheint abgeschaltet als gewöhnlicher Code-Block', () => {

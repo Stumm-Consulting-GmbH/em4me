@@ -73,7 +73,12 @@ describe('Default-Layout (4T-000287, 4T-000563)', () => {
         { panels: ['bookmarks', 'area', 'book'], active: 'bookmarks' },
         // 4T-000759 (Epic 3E-000142): das Suchergebnis-Panel schliesst die
         // Finde-Gruppe ab.
-        { panels: ['outline', 'subpages', 'filegraph', 'searchresults'], active: 'outline' },
+        // 4T-001769 (Epic 3E-000290): und seit der Karten-Liste steht diese
+        // dahinter — sie zählt auf, was auf der gezeigten Fläche liegt.
+        {
+          panels: ['outline', 'subpages', 'filegraph', 'searchresults', 'canvaslist'],
+          active: 'outline',
+        },
         // 4T-000372 (Epic 3E-000069): die Uhr schliesst die Zeit-Gruppe ab.
         { panels: ['calendar', 'reminders', 'clock'], active: 'calendar' },
       ],

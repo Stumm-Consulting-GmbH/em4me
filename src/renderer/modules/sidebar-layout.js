@@ -88,6 +88,10 @@ export const DEFAULT_PANEL_ORDER = [
   // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel, thematisch bei den
   // Finde- und Navigations-Panels.
   'searchresults',
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche. Sie zählt auf,
+  // was auf der gezeigten Fläche liegt, und gehört damit zur selben Gruppe wie
+  // Gliederung, Unterseiten und Suchergebnisse.
+  'canvaslist',
   // 4T-000327 (Epic 3E-000059): Bereichs-Panel (Ordnerbaum plus Dateiliste).
   'area',
   // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis des Buches — Kapitel-Baum,
@@ -121,7 +125,10 @@ const DEFAULT_SIDEBAR_STRUCTURE = {
     // 4T-000759 (Epic 3E-000142): Die Suchergebnisse schliessen die Finde-Gruppe
     // ab. Als vierter Reiter derselben Gruppe kosten sie keinen zusaetzlichen
     // vertikalen Platz (Muster der Uhr in der Zeit-Gruppe).
-    ['outline', 'subpages', 'filegraph', 'searchresults'],
+    // 4T-001769 (Epic 3E-000290): Die Karten-Liste schliesst die Finde-Gruppe
+    // ab. Als fuenfter Reiter derselben Gruppe kostet sie keinen zusaetzlichen
+    // vertikalen Platz (Muster der Suchergebnisse davor).
+    ['outline', 'subpages', 'filegraph', 'searchresults', 'canvaslist'],
     // 4T-000372 (Epic 3E-000069): die Uhr schliesst die Zeit-Gruppe ab. Als
     // dritter Reiter derselben Gruppe kostet sie keinen zusaetzlichen
     // vertikalen Platz in der Sidebar.

@@ -18,6 +18,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { canvasFlaechenTitel, parseCanvasFence } from '../../../src/shared/canvas/canvas-core.js';
 import { createCanvasView } from '../../../src/renderer/modules/canvas/canvas-view.js';
+// 4T-001770: die Anmeldung der Karten-Liste fuer «Verbindung anlegen…».
+import { registriereVerbindungsWahl } from '../../../src/renderer/modules/canvas/canvas-kontextmenue.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const wurzel = path.join(dir, '../../..');
@@ -359,5 +361,82 @@ describe('Canvas-Kontextmenü: ohne Injektion (4T-001683)', () => {
       ),
     ).not.toThrow();
     view.destroy();
+  });
+});
+
+describe('Canvas-Kontextmenü: der Zugang ohne Zeiger (4T-001770)', () => {
+  // Der Weg der Karten-Liste: Sie kennt die Art des Elements schon und reicht
+  // sie über den einen Eintritt der Bedienung herein. Geprüft wird hier der
+  // Vertrag des Moduls; das Zusammenspiel mit dem Panel steht in
+  // canvas-liste-tasten.test.js.
+  it('öffnet für eine bekannte Art dieselben Einträge, an der gegebenen Stelle', () => {
+    const { view, menue } = baueAnsicht();
+    expect(view.zeigeElement('k1', { art: 'menue', x: 40, y: 80 })).toBe(true);
+    expect(menue.offen).toBe(true);
+    expect([menue.x, menue.y]).toEqual([40, 80]);
+    expect(kennungen(menue)).toEqual([
+      'canvas-card-edit',
+      'canvas-card-delete',
+      'canvas-card-link-set',
+      'canvas-card-image-set',
+      'canvas-stack-ganzNachVorn',
+      'canvas-stack-eineStufeVor',
+      'canvas-stack-eineStufeZurueck',
+      'canvas-stack-ganzNachHinten',
+    ]);
+    // Und die Verbindung bekommt ihre eigenen vier.
+    view.zeigeElement('e1', { art: 'menue', x: 0, y: 0 });
+    expect(kennungen(menue)).toEqual([
+      'canvas-line-direction',
+      'canvas-line-reverse',
+      'canvas-line-label',
+      'canvas-line-delete',
+    ]);
+  });
+
+  it('ohne Element gilt das Menü der Fläche; es legt in der Mitte des Ausschnitts an', () => {
+    const { view, menue, geschrieben } = baueAnsicht();
+    expect(view.zeigeElement(null, { art: 'menue', x: 5, y: 5 })).toBe(true);
+    expect(kennungen(menue)).toEqual([
+      'canvas-add-card',
+      'canvas-add-shape',
+      'canvas-add-group',
+      'canvas-add-link-card',
+      'canvas-add-image-card',
+    ]);
+    loese(menue, 'canvas-add-card');
+    // Die bestehende Lage-Regel ohne Zeiger: mittig auf die Mitte des
+    // sichtbaren Ausschnitts (800 × 400 in diesem Prüffall, ohne Einpassung).
+    expect(letzterRumpf(geschrieben)).toContain('x=280 y=140 b=240 h=120');
+  });
+
+  it('bearbeiten und löschen rufen die Griffe der jeweiligen Art', () => {
+    const { container, view, geschrieben } = baueAnsicht();
+    expect(view.zeigeElement('e1', { art: 'bearbeiten' })).toBe(true);
+    expect(container.querySelector('.canvas-linie-eingabe').value).toBe('');
+    expect(view.zeigeElement('k2', { art: 'loeschen' })).toBe(true);
+    expect(kartenIds(geschrieben)).toEqual(['k1']);
+  });
+
+  it('«Verbindung anlegen…» erscheint erst mit angemeldeter Karten-Liste', () => {
+    const { view, menue, geschrieben } = baueAnsicht();
+    view.zeigeElement('k1', { art: 'menue', x: 0, y: 0 });
+    expect(kennungen(menue)).not.toContain('canvas-card-connect');
+    const gestartet = [];
+    registriereVerbindungsWahl((id, wurzelEl) => gestartet.push([id, wurzelEl.className]));
+    try {
+      view.zeigeElement('k1', { art: 'menue', x: 0, y: 0 });
+      expect(kennungen(menue)).toContain('canvas-card-connect');
+      loese(menue, 'canvas-card-connect');
+      // Der Rückruf bekommt die Wurzel der Ansicht mit; das Panel löst daran
+      // die Spalte auf.
+      expect(gestartet).toEqual([['k1', 'canvas-view']]);
+      // Angelegt wird erst mit der Gegenstelle, über denselben Griff wie der
+      // Zug am Anschluss-Punkt: beide Seiten auf `auto`, Richtung `vor`.
+      expect(view.zeigeElement('k1', { art: 'verbinden', nach: 'k2' })).toBe(true);
+      expect(letzterRumpf(geschrieben)).toContain('!linie e2 k1 -> k2 von=auto nach=auto');
+    } finally {
+      registriereVerbindungsWahl(null);
+    }
   });
 });

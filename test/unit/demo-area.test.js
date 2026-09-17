@@ -53,6 +53,11 @@ const EXPECTED_FILES = [
   // die Demo-Area muss ohne den Bereich des Anwenders funktionieren —, und dass
   // sie dort auch bleiben, haelt der Verweis-Waechter demo-links.test.js fest.
   // Die Datei-Liste waechst dabei nicht: Das Bild ist das der Anlagen-Seite.
+  // 4T-001772 (Epic 3E-000290): dazu ein Abschnitt, der zur Karten-Liste fuehrt
+  // und ihre Tasten nennt (Zugang, Wanderung, Bearbeiten, Loeschen,
+  // Kontextmenue-Taste, Ziel-Wahl der Verbindung und das Filter-Feld samt
+  // Strg+F). Er kommt ohne den Bereich des Anwenders aus und ohne neue Datei —
+  // die Soll-Liste bleibt unveraendert, und die E2E-Zaehlungen ebenso.
   '12 Canvas.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei

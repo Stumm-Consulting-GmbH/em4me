@@ -65,6 +65,7 @@ Some thoughts have no sequence. Laying alternatives side by side, sketching a wo
 - **Connections with direction, colour and label** — an arrow at both ends included, with a selectable side to attach to.
 - **Your arrangement stays yours**: the surface works out no positions, it remembers what you laid down.
 - **Plain text inside the document**: the surface sits in a code block of the Markdown file and is readable without EM4me too.
+- **Without a mouse as well**: a list beside the surface names every element and lets you create, label, connect and delete them from the keyboard — and search them.
 
 In detail: [Canvas surface](canvas.md).
 

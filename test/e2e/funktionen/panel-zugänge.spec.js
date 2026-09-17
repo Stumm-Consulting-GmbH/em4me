@@ -565,3 +565,57 @@ test.describe('PZ-09: das erste Lesezeichen eines Abschnitts zeigt seine Sektion
     }
   });
 });
+
+// --- 4T-001769 (Abnahme-Befund vom 2026-09-16): der Knopf, der nichts tat ----
+//
+// Der Product Owner meldete an der gebauten Programmdatei: «Die Karten-Liste
+// kann ich über das Menü ein- und ausblenden, aber über die Statusleiste geht
+// dies nicht. Die Schaltfläche ist da, reagiert aber nicht.» Der Knopf stand in
+// der Leiste, trug sein Symbol und war im Zugangs-Modell geführt — es fehlte
+// allein der Klick-Zuhörer in `app-bindings.js`.
+//
+// **Warum der Fall generisch ist.** Der Fehler gehört nicht der Karten-Liste,
+// sondern der Bauweise: Die Verdrahtung wohnt in einer zentralen Datei
+// ausserhalb des Panel-Moduls, und PZ-01 bis PZ-06 messen die EXISTENZ beider
+// Zugänge und den Menü-Kanal — den Weg über den Knopf misst keiner von ihnen.
+// Jedes künftige Panel könnte den Fehler wiederholen. Gemessen wird deshalb
+// jeder Eintrag von PANEL_ACCESS am Weg des Anwenders: hinklicken und sehen,
+// ob etwas passiert.
+//
+// **Warum `aria-pressed` der Messwert ist.** Alle siebzehn Panels pflegen es in
+// ihrer `update…ToggleButton`-Funktion aus dem Schalt-Zustand ihrer Spalte
+// (nachgesehen, nicht angenommen); es ist damit der eine Zustand, den jedes
+// Panel führt — anders als die Panel-Sektion, deren CSS-Klasse je Panel eine
+// andere ist, und anders als das Menü-Häkchen, das über den Knopf-Weg nicht
+// jedes Panel neu meldet.
+test.describe('PZ-10: jeder Statusleisten-Knopf schaltet sein Panel', () => {
+  test('ein Klick schaltet ein, der zweite wieder aus — für jeden Eintrag des Modells', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+
+      for (const p of PANEL_ACCESS) {
+        const knopf = page.locator(`#${p.buttonId}`);
+        // Erweiterungs-Gate: Ein Panel ohne Knopf hat hier nichts zu messen —
+        // dass er dann fehlt, ist der Gegenstand von PZ-04. Mit der
+        // Vorgabe-Belegung ist keine Erweiterung abgeschaltet; die Abfrage ist
+        // die Sicherung für den Fall, dass sich das ändert.
+        if (!(await knopf.isVisible())) continue;
+
+        const vorher = (await knopf.getAttribute('aria-pressed')) === 'true';
+        await knopf.click();
+        await expect(knopf, `Panel ${p.id}: der Knopf schaltet nicht um`).toHaveAttribute(
+          'aria-pressed',
+          String(!vorher),
+        );
+        await knopf.click();
+        await expect(knopf, `Panel ${p.id}: der Knopf schaltet nicht zurück`).toHaveAttribute(
+          'aria-pressed',
+          String(vorher),
+        );
+      }
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

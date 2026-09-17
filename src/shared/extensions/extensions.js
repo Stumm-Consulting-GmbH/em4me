@@ -408,6 +408,9 @@ const INTERNAL_EXTENSIONS = [
       // 4T-001748 (Epic 3E-000289): die Zeile der Bild-Karten, aus demselben
       // Grund — ohne die Flaeche gibt es keine Karte, die ein Bild zeigt.
       'help.feature.canvasImageCards',
+      // 4T-001772 (Epic 3E-000290): die Zeile der Karten-Liste, aus demselben
+      // Grund — ohne die Flaeche gibt es nichts aufzuzaehlen.
+      'help.feature.canvasList',
     ],
     // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle
     // gehoeren derselben Erweiterung — sie wirken ausschliesslich auf der
@@ -422,11 +425,18 @@ const INTERNAL_EXTENSIONS = [
       'canvas.addLinkCard',
       // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
       'canvas.addImageCard',
+      // 4T-001770 (Epic 3E-000290): die Verbindung ohne Maus, mit der Ziel-Wahl
+      // in der Karten-Liste. Ohne die Flaeche gibt es nichts zu verbinden.
+      'canvas.addConnection',
       'canvas.stackFront',
       'canvas.stackForward',
       'canvas.stackBackward',
       'canvas.stackBack',
       'insert.canvas',
+      // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste. Ohne die
+      // Flaeche gibt es nichts aufzuzaehlen; im Aus-Zustand entfallen deshalb
+      // Statusleisten-Knopf, Untermenue-Eintrag und Palette-Eintrag gemeinsam.
+      'view.toggleCanvasList',
     ],
   },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus

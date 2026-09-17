@@ -205,6 +205,62 @@ Dos caminos llevan allí: el **menú contextual** del elemento y **Ver → Orden
 - **Zoom** — rueda del ratón sobre la superficie, centrada en el puntero.
 - **Ajustar** — al entrar en la vista y al cambiar de superficie, la porción se ajusta sola al contenido.
 
+## Lista del lienzo y manejo sin ratón
+
+Junto a la superficie puede mostrarse una **lista del lienzo**. Enumera lo que hay en la superficie mostrada en ese momento y hace así que la superficie sea **enumerable**: un elemento situado fuera de la porción visible se encuentra por la lista sin recorrer la superficie, y una conexión que pasa por debajo de una tarjeta se acierta allí con seguridad.
+
+Tres caminos muestran y ocultan la lista, como en cualquier otro panel de la [barra lateral](sidebar.md): el **botón** de la barra de estado, **Ver → Barra lateral → Paneles → Lista del lienzo** y la paleta de comandos (`Ctrl+K` predeterminado). No hay atajo preasignado; se puede asignar uno en los ajustes. El estado rige por columna y sobrevive al cambio de documento y a un reinicio. Si la vista de lienzo está desactivada como [extensión interna](extensions.md), la lista no existe: ni el botón, ni la entrada de menú, ni la entrada en la paleta de comandos.
+
+### Lo que la lista muestra
+
+- **Todas las clases de elemento**: tarjetas, formas y grupos, cada fila reconocible por su clase.
+- **Bajo cada tarjeta sus conexiones**, cada una con su sentido y su contraparte. Un tirador de plegado en la tarjeta las muestra y las oculta.
+- **El orden de la lista es el orden de superposición:** lo que está más abajo en la lista está más adelante en la superficie. Así no hace falta una segunda presentación del orden.
+- Si el documento lleva **varias superficies**, la lista pertenece a la que se muestra; un cambio por la barra de pestañas cambia la lista con él.
+- Una fila sobre la lista indica el **número de elementos** — o dice en su lugar que no hay documento abierto, que el documento no lleva ninguna superficie o que la superficie aún está vacía.
+
+**La selección y la lista muestran lo mismo, en ambos sentidos.** Lo seleccionado en la superficie está resaltado en la lista; lo seleccionado en la lista está resaltado en la superficie y se sitúa **en el centro de la porción**; la ampliación queda como está. Si el documento no está en la vista de lienzo, seleccionar una entrada lleva primero allí; si el documento no lleva ninguna superficie, la barra de estado dice que esa vista no existe para él.
+
+### Las teclas en la lista
+
+| Tecla | Efecto |
+| ----- | ------ |
+| `Flecha arriba`, `Flecha abajo` | a la fila anterior o siguiente; la superficie selecciona con ella y sitúa el elemento en el centro |
+| `Inicio`, `Fin` | a la primera o a la última fila |
+| `Intro` | edita el elemento seleccionado: el texto de una tarjeta, el rótulo de una forma, de un grupo o de una conexión |
+| `Supr` | elimina el elemento seleccionado |
+| tecla de menú contextual, `Mayús+F10` | abre el menú contextual del elemento; sin elemento seleccionado, el menú de la superficie con sus vías de creación |
+| `Escape` | levanta la selección |
+
+Editar y eliminar exigen un documento modificable y una vista de lienzo abierta. Si falta una de las dos condiciones, la barra de estado lo dice en vez de no hacer nada en silencio; en un documento no modificable la lista sigue mostrando y seleccionando.
+
+### Añadir una conexión sin ratón
+
+La entrada **«Añadir conexión al lienzo…»** del menú contextual de una tarjeta inicia la **elección del destino en la lista**. Transcurre en dos pasos, porque una conexión tiene dos extremos y, sin puntero, no hay lugar donde nombrar la contraparte de pasada:
+
+1. La tarjeta de partida es la tarjeta seleccionada.
+2. La lista recorre después solo las **demás tarjetas**, y la fila sobre ella dice que hay que elegir un destino. `Intro` confirma, un clic sobre una fila de tarjeta también, `Escape` cancela y restablece el estado anterior.
+
+Los lados de conexión los determina la aplicación a partir de la posición de las dos tarjetas; después se cambian en la barra de la conexión seleccionada. Si no hay una segunda tarjeta, la barra de estado lo dice.
+
+### Buscar dentro de la superficie
+
+En la cabecera de la lista hay un **campo de filtro**. Reduce la lista a los elementos que contienen el texto escrito. Se recorren
+
+- el **texto** de una tarjeta, así como el rótulo de una forma y de un grupo,
+- el **destino de enlace** de una tarjeta de enlace y el **nombre de imagen** de una tarjeta de imagen,
+- el **rótulo** de una conexión.
+
+Se busca como una secuencia de caracteres seguida, sin atender a mayúsculas y minúsculas — la misma regla que en la paleta de comandos; no hay patrones ni coincidencias aproximadas. Las coincidencias se resaltan en la fila, la fila sobre la lista las cuenta y, si no queda nada, lo dice en vez de vaciar la lista sin una palabra. Una tarjeta permanece cuando coincide una de sus conexiones; cuando coincide la tarjeta misma, todas sus conexiones permanecen con ella. Mientras un filtro está activo, las tarjetas están desplegadas: una coincidencia bajo una tarjeta plegada no lo sería.
+
+| Entrada | Efecto |
+| ------- | ------ |
+| `Intro` | salta a la coincidencia: seleccionada, centrada, foco en la lista. Se toma la fila seleccionada si está entre las coincidencias, y si no, la primera |
+| `Flecha abajo` | lo mismo; desde allí las flechas recorren las demás coincidencias |
+| `Escape` | vacía el campo sin tocar la selección. Con el campo vacío no surte efecto |
+
+**`Ctrl+F` lleva a este campo en la vista de lienzo** y no a la barra de búsqueda. La razón: quien busca en esta vista busca en la superficie que tiene delante; la barra de búsqueda, en cambio, recorre el texto del documento y muestra sus coincidencias donde en esta vista no hay nada que ver. En cualquier otra vista `Ctrl+F` abre la barra de búsqueda sin cambios, y si la extensión de lienzo está desactivada, esa vista no existe y tampoco este desvío.
+
 ## Solo mirar
 
 La superficie sigue la editabilidad de su documento. Mientras el documento esté en simple visualización, sin el modo de edición activado, la superficie es **solo de consulta**: sin tiradores, sin arrastre, sin creación, sin entrada de texto, sin barra de herramientas, sin reordenación, y el menú contextual queda sin entradas. Esto rige para cada clase: tarjeta, conexión, forma y grupo. El camino por la paleta de comandos y el menú tampoco lo evita; el fallo se dice en la barra de estado y no se calla. Desplazar la porción, ampliar y seleccionar un elemento con un clic siguen permitidos, porque no tocan el documento.
@@ -411,5 +467,7 @@ se condicionan
 - **No hay dibujo libre.** La superficie conoce las seis clases de forma y ninguna otra geometría; los trazos a mano alzada, las flechas dibujadas por uno mismo y la entrada con lápiz no forman parte de ella.
 - Una **conexión** va únicamente entre tarjetas; no se conecta ni a una forma ni a un grupo.
 - Un enlace en el **texto propio** de una tarjeta no aparece en el grafo de enlaces ni en los retroenlaces; solo cuenta el destino de una tarjeta de enlace. Una imagen no obtiene ningún nodo en el grafo de enlaces.
-- La superficie se maneja con el ratón; el teclado lleva deshacer, eliminar y las entradas de texto.
+- **El arrastre libre y el zoom no existen por teclado.** La lista del lienzo selecciona, edita, elimina y crea; la posición de un elemento solo se cambia por teclado con los cuatro comandos del orden. Mover, cambiar el tamaño y desplazar la porción quedan reservados al ratón.
+- **La lista hace manejable la superficie, no gráfica.** Enumera lo que allí hay y no sustituye lo que muestra la disposición espacial.
+- **La búsqueda en el área sigue encontrando un documento con superficie por su texto**, porque la superficie está en él en texto plano; una fuente propia de coincidencias no lo es. Las tarjetas, formas y grupos por separado no aparecen, pues, como coincidencias propias: las encuentra el campo de filtro de la lista del lienzo.
 - Una superficie pertenece a su documento. Las tarjetas no pueden arrastrarse de una superficie a otra.

@@ -1,0 +1,227 @@
+/* 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche (Story 4S-000948).
+ *
+ * Eigene Scheibe und kein Anbau an canvas.css: Jene beschreibt die Fläche
+ * selbst und steht auf ihrem Datei-Budget; diese beschreibt ein Sidebar-Panel
+ * und gehört damit ohnehin zu einer anderen Fachlichkeit. Farben kommen
+ * ausschließlich aus den Theme-Variablen — die Liste soll in beiden
+ * Erscheinungsbildern lesbar sein, ohne dass jemand zwei Werte pflegt.
+ *
+ * Aufbau nach dem Suchergebnis-Panel (suche-und-buch.css): Status-Zeile,
+ * darunter eine Folge von Zeilen-Knöpfen, die gewählte Zeile auf der
+ * Akzent-Fläche. */
+
+.sidebar-canvaslist .sidebar-section-body {
+  padding: 4px 0;
+}
+
+.canvas-liste-status {
+  padding: 2px 10px 6px;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.canvas-liste-status.empty {
+  font-style: italic;
+}
+
+.canvas-liste-eintrag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 2px 10px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.canvas-liste-eintrag:hover {
+  background: var(--hover);
+}
+
+.canvas-liste-eintrag.selected {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* Die Art trägt eine farbige Marke am linken Rand: Wer die Liste überfliegt,
+   soll Karte, Form und Gruppe unterscheiden, ohne ein Wort zu lesen. Sie ist
+   3 Pixel breit und damit schmaler als ein Symbol, das die knappe Breite der
+   Seitenleiste kosten würde. */
+.canvas-liste-eintrag {
+  border-left: 3px solid transparent;
+}
+
+.canvas-liste-karte {
+  border-left-color: var(--accent);
+}
+
+.canvas-liste-form {
+  border-left-color: var(--fg-muted);
+}
+
+.canvas-liste-gruppe {
+  border-left-color: var(--border);
+}
+
+.canvas-liste-klapp {
+  flex: none;
+  width: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+
+.canvas-liste-eintrag.selected .canvas-liste-klapp {
+  color: inherit;
+}
+
+.canvas-liste-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Das Ziel einer Verweis- oder Bild-Karte steht gedämpft hinter ihrem Text und
+   weicht als Erstes, wenn der Platz knapp wird. */
+.canvas-liste-ziel {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.canvas-liste-eintrag.selected .canvas-liste-ziel {
+  color: inherit;
+}
+
+/* Die Verbindungen hängen unter ihrer Karte und sind eingerückt: Die Einrückung
+   ist die Aussage «gehört zu der Zeile darüber». */
+.canvas-liste-verbindung {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 1px 10px 1px 28px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  color: var(--fg-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.canvas-liste-verbindung:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+.canvas-liste-pfeil {
+  flex: none;
+}
+
+.canvas-liste-gegenstelle {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 4T-001770 (Epic 3E-000290): Die gewählte Verbindung, jetzt auch in der Liste.
+   Sie ist ein Element der einen Auswahl wie Karte, Form und Gruppe; gedämpfter
+   als deren Zeile, weil sie eine Zeile zweiter Ordnung bleibt. */
+.canvas-liste-verbindung.selected {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* Der Tastatur-Fokus muss sichtbar sein: Die Pfeiltasten wandern von Zeile zu
+   Zeile, und wer nicht sieht, wo er steht, bedient blind. Der Rahmen steht
+   innen (`outline-offset` negativ), damit er die Zeilen nicht auseinander
+   schiebt. */
+.canvas-liste-eintrag:focus-visible,
+.canvas-liste-verbindung:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Die laufende Ziel-Wahl einer neuen Verbindung (AK7). Sie ist ein Zustand der
+   ganzen Liste und wird deshalb an ihr gezeigt: Der Status-Text sagt, was zu
+   tun ist, der Streifen daneben, dass die Liste gerade etwas anderes tut als
+   sonst. */
+.sidebar-canvaslist.ziel-wahl .canvas-liste-status {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sidebar-canvaslist.ziel-wahl .canvas-liste {
+  border-left: 2px solid var(--accent);
+}
+
+/* Während der Ziel-Wahl kommen nur Karten in Frage; die übrigen Zeilen treten
+   zurück, statt eine Wahl anzubieten, die es nicht gibt. */
+.sidebar-canvaslist.ziel-wahl .canvas-liste-form,
+.sidebar-canvaslist.ziel-wahl .canvas-liste-gruppe,
+.sidebar-canvaslist.ziel-wahl .canvas-liste-verbindung {
+  opacity: 0.5;
+}
+
+/* 4T-001771 (Epic 3E-000290): Das Filter-Feld über der Liste (Entscheidung F4
+   des Product Owners vom 2026-09-15) und die Hervorhebung seiner Fundstellen.
+
+   Das Feld folgt dem Tag-Filter (`eigenschaften-und-notizen.css`) — dasselbe
+   Muster für dieselbe Sache, ein Filter-Feld im Kopf eines Sidebar-Panels. */
+.canvas-liste-filter {
+  width: calc(100% - 20px);
+  margin: 6px 10px 4px;
+  padding: 3px 6px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.canvas-liste-filter:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* Die Fundstelle im Zeilen-Text — dieselbe gelbe Marke wie im
+   Suchergebnis-Panel (suche-und-buch.css, .search-results-match). Ein
+   zweiter Farbton für dieselbe Aussage wäre ohne Grund verschieden; in der
+   dunklen Erscheinung tritt sie zurück, in der gewählten Zeile hervor, weil sie
+   dort gegen die Akzent-Fläche steht. */
+.canvas-liste-treffer {
+  background: rgba(255, 235, 59, 0.55);
+  color: inherit;
+  border-radius: 2px;
+}
+
+[data-theme='dark'] .canvas-liste-treffer {
+  background: rgba(255, 235, 59, 0.3);
+}
+
+.canvas-liste-eintrag.selected .canvas-liste-treffer,
+.canvas-liste-verbindung.selected .canvas-liste-treffer {
+  background: rgba(255, 235, 59, 0.85);
+  color: #222;
+}

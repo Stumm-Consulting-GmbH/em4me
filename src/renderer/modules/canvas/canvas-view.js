@@ -47,7 +47,6 @@ import {
   ZOOM_MAX,
   einpassung,
   huelle,
-  kartenRechteck,
   zoomUmPunkt,
 } from '../../../shared/canvas/canvas-geometrie.js';
 // 4T-001654: Die Bedien-Logik der Karten liegt daneben — sie trägt den Zustand
@@ -75,8 +74,11 @@ import { createGruppenBedienung } from './canvas-gruppen-bedienung.js';
 // Körper einer Karte — eigener Text oder angezeigtes fremdes Dokument — liegt
 // im Anzeige-Modul daneben, weil die Verzweigung zwischen beiden Formen dessen
 // Aussage ist und hier allein die Ebene, Lage und Größe gehören.
-import { baueKartenInneres } from './canvas-verweis-anzeige.js';
 import { createVerweisKartenBedienung } from './canvas-verweis-karten.js';
+// 4T-001769 (Epic 3E-000290): Die Zeichnung der Karte liegt seither neben der
+// von Form und Gruppe in einem eigenen Modul; hier bleibt die Ebene, in die
+// alle drei kommen.
+import { zeichneKarte } from './canvas-karten.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -154,6 +156,12 @@ export function createCanvasView(container, options = {}) {
   // Dokument änderbar ist. Zeichnung und beide Bedienungen lesen sie.
   const aenderbar = () =>
     typeof options.istAenderbar !== 'function' || options.istAenderbar() !== false;
+  // 4T-001769 (Epic 3E-000290): Meldung an die Karten-Liste, sobald sich der
+  // Stand der Fläche ändert — Auswahl, gezeigte Fläche oder Inhalt. Die Auswahl
+  // ist dabei der Fall, der nicht über eine Neu-Zeichnung liefe: Ein Klick auf
+  // ein anderes Element ändert das Modell nicht, und ohne Meldung bliebe die
+  // Hervorhebung im Panel auf dem vorigen Element stehen.
+  const melde = typeof options.beiStandWechsel === 'function' ? options.beiStandWechsel : null;
 
   // Sitzungs-Zustand der Ansicht.
   //
@@ -268,46 +276,19 @@ export function createCanvasView(container, options = {}) {
 
   // --- Zeichnen --------------------------------------------------------------
 
-  function zeichneKarte(el) {
-    const r = kartenRechteck(el);
-    const karte = document.createElement('article');
-    karte.className = 'canvas-karte';
-    karte.dataset.canvasId = el.id || '';
-    // 4T-001654: Die Auswahl ist eine Aussage über das Element und gehört
-    // deshalb an das Element, nicht allein in eine CSS-Klasse.
-    karte.setAttribute('aria-selected', 'false');
-    karte.style.left = `${r.x}px`;
-    karte.style.top = `${r.y}px`;
-    karte.style.width = `${r.b}px`;
-    karte.style.height = `${r.h}px`;
-
-    // 4T-001747: Welchen Körper die Karte bekommt — ihren eigenen Text oder den
-    // Inhalt des verwiesenen Dokuments samt Kopfzeile —, entscheidet das
-    // Anzeige-Modul. Der Abruf des Ziels läuft asynchron; die Karte steht
-    // sofort und füllt sich nach, ohne dass die Fläche neu gezeichnet wird.
-    baueKartenInneres(karte, el, {
+  // 4T-001769: Die injizierte Umgebung der Karten-Zeichnung. Der Pfad wechselt
+  // mit jeder Übergabe und die Änderbarkeit mit dem Anzeige-Modus, also wird
+  // sie je Zeichnung gebaut statt einmal festgehalten.
+  function kartenAnzeige(aend) {
+    return {
       t,
       pfad,
       renderMarkdown,
       nachRender,
       leseEinbettung: options.leseEinbettung,
       leseBild: options.leseBild,
-    });
-    // 4T-001654: Griff für die Größen-Änderung, unten rechts (Muster
-    // buildPanelResizer). Er steht im Baum und wird erst sichtbar, wenn die
-    // Karte gewählt ist oder der Zeiger über ihr steht — ein dauerhaft
-    // sichtbarer Griff je Karte machte die Fläche unruhig.
-    //
-    // Befund 1 vom 2026-09-10: Im nicht änderbaren Dokument entsteht er gar
-    // nicht. Ihn nur unsichtbar zu schalten reichte nicht — er bliebe
-    // anfassbar, und genau das war der gemeldete Fehler.
-    if (aenderbar()) {
-      const griff = document.createElement('div');
-      griff.className = 'canvas-karte-griff';
-      griff.setAttribute('aria-hidden', 'true');
-      karte.appendChild(griff);
-    }
-    return karte;
+      aenderbar: aend,
+    };
   }
 
   /**
@@ -429,8 +410,9 @@ export function createCanvasView(container, options = {}) {
     // `z-index` käme hier nicht in Frage: Er wäre die zweite Quelle derselben
     // Aussage, die G3 gerade vermeidet.
     const aend = aenderbar();
+    const anzeige = kartenAnzeige(aend);
     for (const el of stapelElemente()) {
-      if (el.art === 'karte') kartenEbene.appendChild(zeichneKarte(el));
+      if (el.art === 'karte') kartenEbene.appendChild(zeichneKarte(el, anzeige));
       else if (el.art === 'form') kartenEbene.appendChild(zeichneForm(el, aend));
       // 4T-001702: Die Gruppe ist die dritte Art derselben Ebene. Dass sie im
       // Regelfall ganz hinten liegt, ist keine Aussage dieser Schleife,
@@ -453,6 +435,10 @@ export function createCanvasView(container, options = {}) {
     // 4T-001747: zuletzt die Leiste an der gewählten Karte — sie hängt an der
     // Auswahl, die `bedienung.nachRender()` gerade wieder angelegt hat.
     if (verweisKarten) verweisKarten.nachRender();
+    // 4T-001769: Die Karten-Liste zeigt dieselbe Fläche und muss deshalb
+    // mitziehen — auch beim Wechsel der gezeigten Fläche über die Reiterleiste,
+    // der das Dokument nicht anfasst und damit keine Neu-Übergabe auslöst.
+    if (melde) melde();
   }
 
   // --- Navigation ------------------------------------------------------------
@@ -557,6 +543,10 @@ export function createCanvasView(container, options = {}) {
       // 4T-001747: Die Leiste der Karte hängt an **dieser** Auswahl; sie
       // erscheint und verschwindet mit ihr.
       if (verweisKarten) verweisKarten.beiKartenWahl(id);
+      // 4T-001769: Jede fremde Wahl räumt zuerst die Karten-Wahl ab (V3), und
+      // zwar über genau diesen Weg — eine Meldung hier erreicht deshalb auch
+      // die Wahl einer Form, einer Gruppe und einer Verbindung.
+      if (melde) melde();
     },
     // 4T-001747 (F3): Der Doppelklick auf den Körper einer Verweis-Karte öffnet
     // das Ziel, statt die Rohtext-Eingabe zu öffnen — der Körper ist nicht
@@ -592,6 +582,23 @@ export function createCanvasView(container, options = {}) {
         gruppen.beendeBearbeitung();
         gruppen.waehleGruppe(null);
       }
+      // 4T-001769: Der Klick daneben hebt jede Auswahl auf — auch die, die
+      // nicht über die Karten-Wahl lief.
+      if (melde) melde();
+    },
+    // 4T-001769: Die beiden Griffe, mit denen die Karten-Liste ein Element
+    // zeigt. Sie liegen bei der Bedienung und nicht hier, weil dort bereits
+    // der Ausschnitt gerechnet wird (`mitteDesAusschnitts`) und weil der
+    // Schreibweg und die übrigen art-übergreifenden Griffe dort wohnen.
+    verschiebeAusschnitt: (neuX, neuY) => {
+      tx = neuX;
+      ty = neuY;
+      anwendenTransform();
+    },
+    waehleFremdesElement: (art, id) => {
+      if (art === 'form' && formen) formen.waehleForm(id);
+      else if (art === 'gruppe' && gruppen) gruppen.waehleGruppe(id);
+      else if (art === 'linie' && verbindungen) verbindungen.waehleLinie(id);
     },
   });
 
@@ -842,6 +849,13 @@ export function createCanvasView(container, options = {}) {
     },
     /** Verschiebt das gewählte Element im Stapel (Story 4S-000932). */
     verschiebeImStapel: verschiebeGewaehltesImStapel,
+    /**
+     * Wählt ein Element der Fläche und rückt es zentriert in den Ausschnitt
+     * (4T-001769). Der **eine** Weg der Karten-Liste zurück auf die Fläche:
+     * `null` hebt die Auswahl auf, und `handlung` führt seit 4T-001770 die
+     * benannte Handlung daran aus (Vertrag bei `zeigeElement` der Bedienung).
+     */
+    zeigeElement: (id, handlung) => bedienung.zeigeElement(id, handlung),
     /**
      * Kennung des gewählten Elements der Stapel-Ebene, oder `null`.
      *

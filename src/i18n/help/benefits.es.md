@@ -65,6 +65,7 @@ Algunas ideas no tienen orden. Colocar alternativas una junto a otra, esbozar un
 - **Conexiones con sentido, color y rótulo**, también con flecha en ambos extremos y con el lado de enganche a elegir.
 - **Su disposición sigue siendo suya**: la superficie no calcula posiciones, recuerda lo que usted ha colocado.
 - **Texto claro en el documento**: la superficie está en un bloque de código del archivo Markdown y se lee también sin EM4me.
+- **También sin ratón**: una lista junto a la superficie enumera todos los elementos y permite crearlos, rotularlos, conectarlos y borrarlos con el teclado, y también buscarlos.
 
 En detalle: [Superficie Canvas](canvas.md).
 

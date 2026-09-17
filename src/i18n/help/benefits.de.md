@@ -65,6 +65,7 @@ Manche Gedanken haben keine Reihenfolge. Wer Alternativen nebeneinanderlegt, ein
 - **Verbindungen mit Richtung, Farbe und Beschriftung** — auch mit Pfeil an beiden Enden, mit wählbarer Anschluss-Seite.
 - **Ihre Anordnung bleibt Ihre**: Die Fläche rechnet keine Positionen aus, sie merkt sich, was Sie gelegt haben.
 - **Klartext im Dokument**: Die Fläche liegt in einem Code-Block der Markdown-Datei und ist auch ohne EM4me lesbar.
+- **Auch ohne Maus**: Eine Liste neben der Fläche führt alle Elemente auf, lässt sie mit der Tastatur anlegen, beschriften, verbinden und löschen — und durchsuchen.
 
 Ausführlich: [Canvas-Fläche](canvas.md).
 

@@ -205,6 +205,62 @@ Zwei Wege führen hin: das **Kontextmenü** des Elements und **Ansicht → Reihe
 - **Zoom** — Mausrad über der Fläche, zentriert um den Zeiger.
 - **Einpassen** — beim Wechsel in die Ansicht und beim Wechsel der Fläche passt sich der Ausschnitt selbst ein.
 
+## Karten-Liste und Bedienung ohne Maus
+
+Neben der Fläche lässt sich eine **Karten-Liste** einblenden. Sie führt auf, was auf der gerade gezeigten Fläche liegt, und macht die Fläche damit **aufzählbar**: Ein Element außerhalb des Ausschnitts ist über die Liste zu finden, ohne die Fläche abzusuchen, und eine Verbindung, die unter einer Karte verläuft, ist dort sicher zu treffen.
+
+Drei Wege blenden die Liste ein und aus, wie bei jedem anderen Panel der [Sidebar](sidebar.md): die **Schaltfläche** in der Statusleiste, **Ansicht → Sidebar → Panels → Karten-Liste** und die Kommando-Palette (Standard `Strg+K`). Ein Tastenkürzel ist nicht vorbelegt und lässt sich in den Einstellungen vergeben. Der Zustand gilt je Spalte und bleibt über den Wechsel des Dokuments und über einen Neustart erhalten. Ist die Canvas-Ansicht als [interne Erweiterung](extensions.md) abgeschaltet, gibt es die Liste nicht — weder die Schaltfläche noch den Menü-Eintrag noch den Eintrag in der Kommando-Palette.
+
+### Was die Liste zeigt
+
+- **Alle Element-Arten** — Karten, Formen und Gruppen, jede Zeile an ihrer Art erkennbar.
+- **Unter jeder Karte ihre Verbindungen**, je mit Richtung und Gegenstelle. Ein Klapp-Griff an der Karte blendet sie ein und aus.
+- **Die Reihenfolge der Liste ist die Stapel-Reihenfolge:** Was weiter unten in der Liste steht, liegt auf der Fläche weiter vorn. Eine zweite Anzeige der Reihenfolge braucht es damit nicht.
+- Trägt das Dokument **mehrere Flächen**, gehört die Liste zu der, die gerade angezeigt wird; ein Wechsel über die Reiterleiste wechselt die Liste mit.
+- Eine Zeile über der Liste nennt die **Zahl der Elemente** — oder sagt an ihrer Stelle, dass kein Dokument offen ist, dass das Dokument keine Fläche trägt oder dass die Fläche noch leer ist.
+
+**Auswahl und Liste zeigen dasselbe, in beide Richtungen.** Was auf der Fläche gewählt ist, ist in der Liste hervorgehoben; was in der Liste gewählt wird, ist auf der Fläche hervorgehoben und rückt **zentriert in den Ausschnitt** — die Vergrößerung bleibt dabei, wie sie ist. Steht das Dokument nicht in der Canvas-Ansicht, führt das Wählen eines Eintrags zuerst dorthin; trägt das Dokument gar keine Fläche, sagt die Statusleiste, dass es die Ansicht dafür nicht gibt.
+
+### Die Tasten in der Liste
+
+| Taste | Wirkung |
+| ----- | ------- |
+| `Pfeil auf`, `Pfeil ab` | zur vorigen oder nächsten Zeile; die Fläche wählt mit und rückt das Element in die Mitte |
+| `Pos1`, `Ende` | zur ersten oder letzten Zeile |
+| `Eingabe` | bearbeitet das gewählte Element — den Text einer Karte, die Beschriftung von Form, Gruppe oder Verbindung |
+| `Entf` | löscht das gewählte Element |
+| Kontextmenü-Taste, `Umschalt+F10` | öffnet das Kontextmenü des Elements; ohne gewähltes Element das Menü der Fläche mit den Anlege-Wegen |
+| `Escape` | hebt die Auswahl auf |
+
+Bearbeiten und Löschen setzen ein änderbares Dokument und eine offene Canvas-Ansicht voraus. Fehlt eine der beiden Bedingungen, sagt die Statusleiste das, statt still nichts zu tun; im nicht änderbaren Dokument zeigt und wählt die Liste weiterhin.
+
+### Eine Verbindung ohne Maus anlegen
+
+Der Eintrag **„Verbindung auf der Fläche anlegen…"** im Kontextmenü einer Karte startet die **Ziel-Wahl in der Liste**. Sie läuft in zwei Schritten, weil eine Verbindung zwei Enden hat und es ohne Zeiger keine Stelle gibt, an der sich die Gegenstelle nebenbei benennen ließe:
+
+1. Ausgangs-Karte ist die gewählte Karte.
+2. Die Liste wandert danach nur noch über die **übrigen Karten**, und die Zeile über ihr sagt, dass ein Ziel zu wählen ist. `Eingabe` bestätigt, ein Klick auf eine Karten-Zeile ebenso, `Escape` bricht ab und stellt den Stand davor wieder her.
+
+Die Anschluss-Seiten bestimmt die Anwendung dabei aus der Lage der beiden Karten; ändern lassen sie sich danach an der Leiste der gewählten Verbindung. Gibt es keine zweite Karte, sagt die Statusleiste das.
+
+### Suchen in der Fläche
+
+Im Kopf der Liste steht ein **Filter-Feld**. Es engt die Liste auf die Elemente ein, die den eingegebenen Text enthalten. Durchsucht werden
+
+- der **Text** einer Karte sowie die Beschriftung von Form und Gruppe,
+- das **Verweis-Ziel** einer Verweis-Karte und der **Bild-Name** einer Bild-Karte,
+- die **Beschriftung** einer Verbindung.
+
+Gesucht wird als eine zusammenhängende Zeichenfolge, ohne Rücksicht auf Groß- und Kleinschreibung — dieselbe Regel wie in der Kommando-Palette; Muster und unscharfe Treffer gibt es nicht. Die Fundstellen sind in der Zeile hervorgehoben, die Zeile über der Liste zählt die Treffer, und bleibt nichts übrig, sagt sie das, statt die Liste wortlos zu leeren. Eine Karte bleibt stehen, wenn eine ihrer Verbindungen trifft; trifft die Karte selbst, bleiben alle ihre Verbindungen bei ihr. Solange ein Filter läuft, sind die Karten aufgeklappt — ein Treffer unter einer zugeklappten Karte wäre keiner.
+
+| Eingabe | Wirkung |
+| ------- | ------- |
+| `Eingabe` | springt zum Treffer: gewählt, zentriert, Fokus in der Liste. Genommen wird die gewählte Zeile, wenn sie unter den Treffern steht, sonst die erste |
+| `Pfeil ab` | dasselbe; von dort wandern die Pfeiltasten durch die übrigen Treffer |
+| `Escape` | leert das Feld, ohne die Auswahl anzufassen. Bei leerem Feld greift es nicht |
+
+**`Strg+F` führt in der Canvas-Ansicht in dieses Feld** und nicht in die Suchleiste. Der Grund: Wer in dieser Ansicht sucht, sucht auf der Fläche vor sich; die Suchleiste dagegen durchsucht den Dokument-Text und zeigt ihre Treffer dort, wo in dieser Ansicht nichts zu sehen ist. In jeder anderen Ansicht öffnet `Strg+F` unverändert die Suchleiste, und ist die Canvas-Erweiterung abgeschaltet, gibt es die Ansicht nicht und damit auch diese Weiche nicht.
+
 ## Nur ansehen
 
 Die Fläche folgt der Änderbarkeit ihres Dokuments. Steht das Dokument in der reinen Anzeige, ohne eingeschalteten Bearbeiten-Modus, ist die Fläche **nur ansehbar**: keine Griffe, kein Ziehen, kein Anlegen, keine Text-Eingabe, keine Leiste, keine Umordnung, und das Kontextmenü bleibt ohne Einträge. Das gilt für jede Art — Karte, Verbindung, Form und Gruppe. Auch der Weg über Kommando-Palette und Menü führt dann nicht daran vorbei; der Fehlschlag wird in der Statusleiste gesagt und nicht verschwiegen. Ausschnitt verschieben, zoomen und ein Element per Klick auswählen bleiben erlaubt, weil sie das Dokument nicht anfassen.
@@ -411,5 +467,7 @@ bedingen einander
 - **Freies Zeichnen gibt es nicht.** Die Fläche kennt die sechs Formen-Arten und sonst keine Geometrie; Freihand-Striche, selbst gezogene Pfeile und Stift-Eingabe gehören nicht zum Umfang.
 - Eine **Verbindung** verläuft ausschließlich zwischen Karten; an einer Form oder einer Gruppe lässt sie sich nicht anschließen.
 - Ein Verweis im **eigenen Text** einer Karte erscheint nicht im Verweis-Graph und nicht in den Rückverweisen; gewertet wird allein das Ziel einer Verweis-Karte. Ein Bild bekommt im Verweis-Graph keinen Knoten.
-- Die Fläche wird mit der Maus bedient; über die Tastatur laufen Rückgängig, Löschen und die Text-Eingaben.
+- **Freies Ziehen und Zoomen gibt es über die Tastatur nicht.** Die Karten-Liste wählt aus, bearbeitet, löscht und legt an; die Lage eines Elements ändert die Tastatur allein über die vier Befehle der Reihenfolge. Verschieben, Größe ändern und den Ausschnitt bewegen bleiben der Maus vorbehalten.
+- **Die Liste macht die Fläche bedienbar, nicht anschaulich.** Sie zählt auf, was daliegt, und ersetzt dabei nicht, was die räumliche Anordnung zeigt.
+- **Die Suche im Bereich findet ein Dokument mit Fläche weiterhin über seinen Text**, weil die Fläche im Klartext darin steht; ein eigener Treffer-Lieferant ist sie nicht. Einzelne Karten, Formen und Gruppen erscheinen deshalb nicht als eigene Treffer — sie findet das Filter-Feld der Karten-Liste.
 - Eine Fläche gehört zu ihrem Dokument. Karten lassen sich nicht von einer Fläche auf eine andere ziehen.

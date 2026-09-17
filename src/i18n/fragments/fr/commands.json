@@ -138,5 +138,6 @@
   "command.canvas.stackBack": "Mettre à l’arrière-plan",
   "command.canvas.addGroup": "Ajouter un groupe au canevas",
   "command.canvas.addLinkCard": "Ajouter une carte de lien au canevas",
-  "command.canvas.addImageCard": "Ajouter une carte d’image au canevas"
+  "command.canvas.addImageCard": "Ajouter une carte d’image au canevas",
+  "command.canvas.addConnection": "Ajouter une connexion au canevas…"
 }

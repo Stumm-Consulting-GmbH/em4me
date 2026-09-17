@@ -66,6 +66,7 @@ import {
   toggleSearchResultsPanel,
 } from '../search/search-panel.js';
 import { initBookPanel, toggleBookPanel } from '../books/book-panel.js';
+import { toggleCanvasListPanel } from '../panels/panel-canvas-liste.js';
 import { markiereOffeneRaumSeite, springeZuTreffer } from '../search/search-jump.js';
 import { setzeRaumIndex } from '../search/search-run.js';
 import { initBlockPropsPanel, toggleBlockPropsPanel } from '../properties/block-props-panel.js';
@@ -251,6 +252,15 @@ export function bindAppUi() {
     );
   }
   initSearchResultsPanel();
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche — Statusbar-
+  // Toggle. Nachgetragen am 2026-09-16 nach dem Abnahme-Befund des Product
+  // Owners am Bau T-1.135.0-202609151323: Der Knopf stand in der Leiste und
+  // blieb wirkungslos, weil allein diese Zeile fehlte. Der Menü-Weg läuft über
+  // den generischen Panel-Trigger (onMenuTogglePanel) und war deshalb heil.
+  const btnCanvasList = $('#btn-canvas-list');
+  if (btnCanvasList) {
+    btnCanvasList.addEventListener('click', () => toggleCanvasListPanel(state.activePaneIndex));
+  }
   // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Panel des Buches —
   // Statusbar-Toggle, Leseführungs-Knöpfe beider Spalten und das Abholen des
   // ersten Buch-Zustands. Der Menü-Weg läuft über den generischen

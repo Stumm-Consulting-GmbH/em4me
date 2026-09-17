@@ -645,6 +645,25 @@ export function createVerbindungsBedienung(ctx) {
     waehleLinie: waehle,
     /** Öffnet die Beschriftungs-Eingabe, wie es der Doppelklick tut. */
     beschrifteLinie: oeffneBeschriftung,
+    /**
+     * Legt eine Verbindung zwischen zwei Karten an — der Weg der Karten-Liste
+     * ohne Maus (4T-001770).
+     *
+     * **Beide Anschluss-Seiten bleiben `auto`**: Ohne Zeiger gibt es keine
+     * Seite, an der gezogen wurde, und `auto` ist genau die Angabe, welche die
+     * Seite aus der Lage der beiden Karten bestimmt (V2). Angelegt wird über
+     * denselben Griff wie beim Zug am Anschluss-Punkt; ein zweiter Weg in
+     * dieselbe Wirkung wäre ein zweiter Ort, an dem sie auseinanderlaufen kann.
+     *
+     * @returns {boolean} `true`, wenn geschrieben wurde.
+     */
+    verbindeKarten(vonId, nachId) {
+      // Eine Verbindung braucht zwei verschiedene Enden, und beide müssen
+      // Karten sein: Nur sie tragen die Anschluss-Punkte (E4).
+      if (!vonId || !nachId || vonId === nachId) return false;
+      if (!karteZu(vonId) || !karteZu(nachId)) return false;
+      return legeAn(vonId, nachId, 'auto', 'auto');
+    },
     /** Löscht eine Verbindung, wie es `Entf` tut. */
     loescheLinie: loesche,
     /** Schaltet die Richtung einen Schritt weiter; eine Handlung, ein Schritt. */

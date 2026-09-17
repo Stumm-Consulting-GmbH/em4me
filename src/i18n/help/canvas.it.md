@@ -205,6 +205,62 @@ Due vie ci portano: il **menu contestuale** dell'elemento e **Visualizza → Ord
 - **Zoom** — rotellina sopra la superficie, centrata sul puntatore.
 - **Adattare** — all'ingresso nella vista e al cambio di superficie, la porzione si adatta da sé al contenuto.
 
+## Elenco della tela e uso senza mouse
+
+Accanto alla superficie si può mostrare un **elenco della tela**. Riporta ciò che si trova sulla superficie visualizzata in quel momento e rende così la superficie **enumerabile**: un elemento fuori dalla porzione visibile si ritrova attraverso l'elenco senza percorrere la superficie, e un collegamento che passa sotto una scheda vi si coglie con sicurezza.
+
+Tre vie mostrano e nascondono l'elenco, come per ogni altro pannello della [barra laterale](sidebar.md): il **pulsante** nella barra di stato, **Visualizza → Barra laterale → Pannelli → Elenco della tela** e la palette dei comandi (`Ctrl+K` predefinito). Nessuna scorciatoia è preassegnata; se ne assegna una nelle impostazioni. Lo stato vale per colonna e sopravvive al cambio di documento e a un riavvio. Se la vista tela è disattivata come [estensione interna](extensions.md), l'elenco non esiste: né il pulsante, né la voce di menu, né la voce nella palette dei comandi.
+
+### Che cosa mostra l'elenco
+
+- **Tutti i tipi di elemento**: schede, forme e gruppi, ogni riga riconoscibile dal suo tipo.
+- **Sotto ogni scheda i suoi collegamenti**, ciascuno con direzione e controparte. Una maniglia di ripiegamento sulla scheda li mostra e li nasconde.
+- **L'ordine dell'elenco è l'ordine di sovrapposizione:** ciò che sta più in basso nell'elenco sta più avanti sulla superficie. Una seconda indicazione dell'ordine è quindi superflua.
+- Se il documento porta **più superfici**, l'elenco appartiene a quella visualizzata; un cambio dalla barra delle schede fa cambiare anche l'elenco.
+- Una riga sopra l'elenco indica il **numero di elementi** — oppure dice, al suo posto, che nessun documento è aperto, che il documento non porta alcuna superficie o che la superficie è ancora vuota.
+
+**Selezione ed elenco mostrano la stessa cosa, in entrambe le direzioni.** Ciò che è selezionato sulla superficie è evidenziato nell'elenco; ciò che è selezionato nell'elenco è evidenziato sulla superficie e si porta **al centro della porzione**, mentre l'ingrandimento resta invariato. Se il documento non è nella vista tela, selezionare una voce vi conduce prima; se il documento non porta alcuna superficie, la barra di stato dice che quella vista per esso non c'è.
+
+### I tasti nell'elenco
+
+| Tasto | Effetto |
+| ----- | ------- |
+| `Freccia su`, `Freccia giù` | alla riga precedente o successiva; la superficie seleziona con essa e porta l'elemento al centro |
+| `Home`, `Fine` | alla prima o all'ultima riga |
+| `Invio` | modifica l'elemento selezionato: il testo di una scheda, la didascalia di una forma, di un gruppo o di un collegamento |
+| `Canc` | elimina l'elemento selezionato |
+| tasto menu contestuale, `Maiusc+F10` | apre il menu contestuale dell'elemento; senza elemento selezionato, il menu della superficie con le sue vie di creazione |
+| `Esc` | toglie la selezione |
+
+Modificare ed eliminare presuppongono un documento modificabile e una vista tela aperta. Se manca una delle due condizioni, la barra di stato lo dice invece di non fare nulla in silenzio; in un documento non modificabile l'elenco continua a mostrare e a selezionare.
+
+### Aggiungere un collegamento senza mouse
+
+La voce **«Aggiungi collegamento alla tela…»** nel menu contestuale di una scheda avvia la **scelta della destinazione nell'elenco**. Si svolge in due passaggi, perché un collegamento ha due estremità e senza puntatore non esiste un punto in cui nominare di sfuggita la controparte:
+
+1. La scheda di partenza è la scheda selezionata.
+2. L'elenco percorre poi soltanto le **altre schede**, e la riga sopra di esso dice che va scelta una destinazione. `Invio` conferma, un clic su una riga di scheda pure, `Esc` annulla e ripristina lo stato precedente.
+
+I lati di aggancio li determina l'applicazione dalla posizione delle due schede; si cambiano poi nella barra del collegamento selezionato. Se non c'è una seconda scheda, la barra di stato lo dice.
+
+### Cercare dentro la superficie
+
+In testa all'elenco sta un **campo di filtro**. Restringe l'elenco agli elementi che contengono il testo digitato. Vengono percorsi
+
+- il **testo** di una scheda nonché la didascalia di una forma e di un gruppo,
+- la **destinazione di rimando** di una scheda di collegamento e il **nome dell'immagine** di una scheda immagine,
+- la **didascalia** di un collegamento.
+
+Si cerca come una sequenza di caratteri unica, senza riguardo a maiuscole e minuscole — la stessa regola della palette dei comandi; non esistono modelli né corrispondenze approssimate. Le occorrenze sono evidenziate nella riga, la riga sopra l'elenco le conta e, se non resta nulla, lo dice invece di svuotare l'elenco senza una parola. Una scheda resta quando corrisponde uno dei suoi collegamenti; quando corrisponde la scheda stessa, tutti i suoi collegamenti restano con essa. Finché un filtro è attivo, le schede sono aperte: un'occorrenza sotto una scheda ripiegata non sarebbe tale.
+
+| Immissione | Effetto |
+| ---------- | ------- |
+| `Invio` | salta all'occorrenza: selezionata, centrata, fuoco nell'elenco. Viene presa la riga selezionata se è fra le occorrenze, altrimenti la prima |
+| `Freccia giù` | lo stesso; da lì le frecce percorrono le restanti occorrenze |
+| `Esc` | svuota il campo senza toccare la selezione. Con il campo vuoto non ha effetto |
+
+**`Ctrl+F` conduce in questo campo nella vista tela** e non nella barra di ricerca. Il motivo: chi cerca in questa vista cerca sulla superficie che ha davanti; la barra di ricerca, invece, percorre il testo del documento e mostra le sue occorrenze là dove in questa vista non c'è nulla da vedere. In ogni altra vista `Ctrl+F` apre la barra di ricerca come prima, e se l'estensione tela è disattivata, quella vista non c'è e neppure questo scambio.
+
 ## Solo guardare
 
 La superficie segue la modificabilità del suo documento. Finché il documento è in semplice visualizzazione, senza modalità di modifica attiva, la superficie è **solo consultabile**: niente maniglie, niente trascinamento, niente creazione, niente immissione di testo, niente barra degli strumenti, nessun riordino, e il menu contestuale resta senza voci. Vale per ogni tipo: scheda, collegamento, forma e gruppo. Nemmeno la via della palette dei comandi e del menu lo aggira; il mancato effetto viene detto nella barra di stato e non taciuto. Spostare la porzione, ingrandire e selezionare un elemento con un clic restano permessi, perché non toccano il documento.
@@ -411,5 +467,7 @@ si condizionano
 - **Il disegno libero non esiste.** La superficie conosce i sei tipi di forma e nessun'altra geometria; tratti a mano libera, frecce tracciate da sé e immissione con la penna non ne fanno parte.
 - Un **collegamento** corre soltanto fra schede; non si aggancia né a una forma né a un gruppo.
 - Un collegamento nel **testo proprio** di una scheda non compare nel grafo dei collegamenti né nei collegamenti in entrata; conta soltanto la destinazione di una scheda di collegamento. Un'immagine non riceve alcun nodo nel grafo dei collegamenti.
-- La superficie si usa con il mouse; la tastiera porta l'annullamento, l'eliminazione e le immissioni di testo.
+- **Il trascinamento libero e lo zoom non esistono da tastiera.** L'elenco della tela seleziona, modifica, elimina e crea; la posizione di un elemento si cambia da tastiera soltanto con i quattro comandi dell'ordine. Spostare, ridimensionare e muovere la porzione restano riservati al mouse.
+- **L'elenco rende la superficie utilizzabile, non evidente.** Enumera ciò che vi si trova e non sostituisce quel che mostra la disposizione spaziale.
+- **La ricerca nell'area continua a trovare un documento con superficie attraverso il suo testo**, perché la superficie vi sta in chiaro; una fonte propria di occorrenze non lo è. Schede, forme e gruppi presi singolarmente non compaiono quindi come occorrenze proprie: li trova il campo di filtro dell'elenco della tela.
 - Una superficie appartiene al suo documento. Le schede non si possono trascinare da una superficie a un'altra.

@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="styles/uhr-panel.css" />
     <link rel="stylesheet" href="styles/mindmap.css" />
     <link rel="stylesheet" href="styles/canvas.css" />
+    <link rel="stylesheet" href="styles/canvas-liste.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
     <!-- 4T-000644 (Epic 3E-000127): Overlay- und Popover-Stilblatt von driver.js
          für die geführte Produkt-Tour. Kopiert von scripts/build-tour-assets.js
@@ -447,6 +448,28 @@
                 <div class="search-results-status"></div>
                 <div class="search-results-rename" hidden></div>
                 <div class="search-results-list"></div>
+              </div>
+            </section>
+            <!-- 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche.
+                 Alle Elemente der gezeigten Fläche in Fence-Reihenfolge, unter
+                 jeder Karte ihre Verbindungen. -->
+            <section class="sidebar-section sidebar-canvaslist" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="canvas.liste.titel">Karten-Liste</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <!-- 4T-001771 (Epic 3E-000290): Filter-Feld der Fläche (Entscheidung F4).
+                     Es steht über der Liste und engt sie ein; Strg+F führt in der
+                     Canvas-Ansicht hierher statt in die Suchleiste. -->
+                <input
+                  type="search"
+                  class="canvas-liste-filter"
+                  data-i18n-placeholder="canvas.liste.filterPlatzhalter"
+                  data-i18n-title="canvas.liste.filterTitel"
+                  placeholder="In dieser Fläche suchen…"
+                />
+                <div class="canvas-liste-status"></div>
+                <div class="canvas-liste"></div>
               </div>
             </section>
             <section class="sidebar-section sidebar-filegraph" hidden>
@@ -970,6 +993,28 @@
                 <div class="search-results-list"></div>
               </div>
             </section>
+            <!-- 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche.
+                 Alle Elemente der gezeigten Fläche in Fence-Reihenfolge, unter
+                 jeder Karte ihre Verbindungen. -->
+            <section class="sidebar-section sidebar-canvaslist" hidden>
+              <header class="sidebar-section-header">
+                <h2 class="sidebar-section-title" data-i18n="canvas.liste.titel">Karten-Liste</h2>
+              </header>
+              <div class="sidebar-section-body">
+                <!-- 4T-001771 (Epic 3E-000290): Filter-Feld der Fläche (Entscheidung F4).
+                     Es steht über der Liste und engt sie ein; Strg+F führt in der
+                     Canvas-Ansicht hierher statt in die Suchleiste. -->
+                <input
+                  type="search"
+                  class="canvas-liste-filter"
+                  data-i18n-placeholder="canvas.liste.filterPlatzhalter"
+                  data-i18n-title="canvas.liste.filterTitel"
+                  placeholder="In dieser Fläche suchen…"
+                />
+                <div class="canvas-liste-status"></div>
+                <div class="canvas-liste"></div>
+              </div>
+            </section>
             <section class="sidebar-section sidebar-filegraph" hidden>
               <header class="sidebar-section-header">
                 <h2 class="sidebar-section-title" data-i18n="graph.panelTitle">Datei-Graph</h2>
@@ -1263,6 +1308,35 @@
               <path d="M3 15h5" />
               <circle cx="16.5" cy="15.5" r="4" />
               <path d="m22 21-2.6-2.6" />
+            </svg>
+          </button>
+          <!-- 4T-001769 (Epic 3E-000290): Toggle der Karten-Liste. Lucide-Icon
+               'list-tree' (eingerückte Listenzeilen: Elemente mit ihren
+               Verbindungen darunter). -->
+          <button
+            id="btn-canvas-list"
+            class="btn-toggle btn-icon"
+            data-i18n-title="canvas.liste.toggleTitle"
+            data-i18n-aria-label="canvas.liste.toggle"
+            title=""
+            aria-label="Canvas list"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12h-8" />
+              <path d="M21 6H8" />
+              <path d="M21 18h-8" />
+              <path d="M3 6v4c0 1.1.9 2 2 2h3" />
+              <path d="M3 10v6c0 1.1.9 2 2 2h3" />
             </svg>
           </button>
           <!-- 4T-000051: Properties-Sidebar-Toggle. Lucide-Icon 'tags'. -->

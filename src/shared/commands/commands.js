@@ -926,6 +926,34 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'canvasKarte',
   },
+  {
+    // 4T-001770 (Epic 3E-000290): Verbindung von der gewaehlten Karte aus
+    // anlegen. Muster canvas.addImageCard samt fehlendem Vorgabe-Kuerzel; der
+    // gewoehnliche Weg bleibt der Zug am Anschluss-Punkt, das Kommando macht die
+    // Funktion ohne Maus erreichbar. Es startet die Ziel-Wahl in der
+    // Karten-Liste: Die Gegenstelle ist die zweite Haelfte der Handlung, und
+    // ohne Zeiger gibt es keinen Ort, an dem man sie sonst benennen koennte.
+    //
+    // **Verfuegbarkeit wie die uebrigen Flaechen-Kommandos.** Dass eine KARTE
+    // gewaehlt sein muss, steht bewusst nicht im Bedingungs-Katalog: Die Auswahl
+    // ist ein Zustand der Ansicht, den der Kontext des Modells nicht kennt
+    // (dieselbe Begruendung wie bei den vier Stapel-Befehlen). Den Fall faengt
+    // der Guard der Karten-Liste mit einem gesagten Fehlschlag ab.
+    //
+    // 4T-001772: Der descKey ist die Katalog-Zeile der Karten-Liste und nicht
+    // die Grundzeile der Flaeche. Was dieses Kommando tut, steht ausschliesslich
+    // dort: Es startet die zweischrittige Ziel-Wahl in der Liste, und ohne die
+    // Liste gibt es es nicht. Die Grundzeile beschreibt die Verbindung, die am
+    // Anschluss-Griff gezogen wird — das ist ein anderer Weg.
+    id: 'canvas.addConnection',
+    defaultBindings: [],
+    labelKey: 'command.canvas.addConnection',
+    descKey: 'help.feature.canvasList',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasKarte',
+  },
   // 4T-001701 (Epic 3E-000288, Story 4S-000932): die vier Stapel-Befehle des
   // gewaehlten Elements — Karte, Form und ab 4T-001702 Gruppe. Sie stehen in
   // der Reihenfolge, in der Praesentations- und Diagramm-Werkzeuge sie
@@ -1232,6 +1260,31 @@ const COMMANDS = [
     defaultBindings: [],
     labelKey: 'menu.view.searchResults',
     descKey: 'help.shortcut.toggleSearchResults',
+    categoryKey: 'help.group.navigation',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Flaeche toggeln. Ohne
+  // Default-Kuerzel wie jeder andere Panel-Toggle des Bestands (nachgesehen am
+  // 2026-09-15: kein einziger traegt eines) — der Weg fuehrt ueber Knopf, Menue
+  // und Palette, belegbar bleibt er ueber die Einstellungen.
+  //
+  // **Verfuegbarkeit 'immer'**, wie bei allen Panel-Toggles: Das Panel muss sich
+  // auch dann oeffnen lassen, wenn das Dokument keine Flaeche traegt — es zeigt
+  // dann seinen Hinweis (AK7). Die Bindung an die Flaeche traegt allein das
+  // Erweiterungs-Gate der Zeile in panel-access.js.
+  //
+  // **Der Beschriftungs-Schluessel ist der Panel-Titel** (Muster
+  // view.toggleBookPanel): Eine zweite Uebersetzung desselben Wortes waere
+  // doppelt gepflegter Text. Der descKey zeigte zunaechst auf die Katalog-Zeile
+  // der Canvas; seit 4T-001772 traegt die Liste ihre eigene Zeile
+  // help.feature.canvasList samt Matrix-Eintrag, und der Schluessel folgt ihr.
+  {
+    id: 'view.toggleCanvasList',
+    defaultBindings: [],
+    labelKey: 'canvas.liste.titel',
+    descKey: 'help.feature.canvasList',
     categoryKey: 'help.group.navigation',
     menu: true,
     editorScoped: false,

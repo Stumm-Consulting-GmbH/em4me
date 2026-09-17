@@ -205,6 +205,62 @@ Deux chemins y mènent : le **menu contextuel** de l'élément et **Affichage �
 - **Zoom** — molette au-dessus de la surface, centrée sur le pointeur.
 - **Ajuster** — à l'entrée dans la vue et au changement de surface, la portion s'ajuste d'elle-même au contenu.
 
+## Liste du canevas et manipulation sans souris
+
+À côté de la surface, une **liste du canevas** peut être affichée. Elle énumère ce qui se trouve sur la surface actuellement affichée et rend ainsi la surface **dénombrable** : un élément situé hors de la portion visible se retrouve par la liste sans devoir parcourir la surface, et une connexion qui passe sous une carte s'y atteint à coup sûr.
+
+Trois chemins affichent et masquent la liste, comme pour tout autre panneau de la [barre latérale](sidebar.md) : le **bouton** dans la barre d'état, **Affichage → Barre latérale → Panneaux → Liste du canevas** et la palette de commandes (`Ctrl+K` par défaut). Aucun raccourci n'est préattribué ; il s'en attribue un dans les réglages. L'état vaut par colonne et survit au changement de document comme à un redémarrage. Si la vue canevas est désactivée en tant qu'[extension interne](extensions.md), la liste n'existe pas — ni le bouton, ni l'entrée de menu, ni l'entrée dans la palette de commandes.
+
+### Ce que la liste montre
+
+- **Toutes les sortes d'éléments** — cartes, formes et groupes, chaque ligne reconnaissable à sa sorte.
+- **Sous chaque carte ses connexions**, chacune avec son sens et son vis-à-vis. Une poignée de repli sur la carte les affiche et les masque.
+- **L'ordre de la liste est l'ordre de superposition :** ce qui figure plus bas dans la liste se trouve plus en avant sur la surface. Un second affichage de l'ordre est donc inutile.
+- Si le document porte **plusieurs surfaces**, la liste appartient à celle qui est affichée ; un changement par la barre d'onglets fait changer la liste avec.
+- Une ligne au-dessus de la liste indique le **nombre d'éléments** — ou dit à sa place qu'aucun document n'est ouvert, que le document ne porte aucune surface ou que la surface est encore vide.
+
+**La sélection et la liste montrent la même chose, dans les deux sens.** Ce qui est sélectionné sur la surface est mis en évidence dans la liste ; ce qui est sélectionné dans la liste est mis en évidence sur la surface et vient **au centre de la portion** — l'agrandissement reste tel quel. Si le document n'est pas dans la vue canevas, sélectionner une entrée y conduit d'abord ; si le document ne porte aucune surface, la barre d'état dit que cette vue n'existe pas pour lui.
+
+### Les touches dans la liste
+
+| Touche | Effet |
+| ------ | ----- |
+| `Flèche haut`, `Flèche bas` | à la ligne précédente ou suivante ; la surface sélectionne avec et amène l'élément au centre |
+| `Origine`, `Fin` | à la première ou à la dernière ligne |
+| `Entrée` | modifie l'élément sélectionné — le texte d'une carte, l'intitulé d'une forme, d'un groupe ou d'une connexion |
+| `Suppr` | supprime l'élément sélectionné |
+| touche de menu contextuel, `Maj+F10` | ouvre le menu contextuel de l'élément ; sans élément sélectionné, le menu de la surface avec ses voies de création |
+| `Échap` | lève la sélection |
+
+Modifier et supprimer supposent un document modifiable et une vue canevas ouverte. Si l'une des deux conditions manque, la barre d'état le dit au lieu de ne rien faire en silence ; dans un document non modifiable, la liste continue d'afficher et de sélectionner.
+
+### Ajouter une connexion sans souris
+
+L'entrée **« Ajouter une connexion au canevas… »** du menu contextuel d'une carte lance le **choix de la cible dans la liste**. Il se déroule en deux étapes, car une connexion a deux extrémités et, sans pointeur, il n'existe aucun endroit où nommer le vis-à-vis en passant :
+
+1. La carte de départ est la carte sélectionnée.
+2. La liste ne parcourt ensuite que les **autres cartes**, et la ligne au-dessus d'elle dit qu'une cible est à choisir. `Entrée` valide, un clic sur une ligne de carte également, `Échap` annule et rétablit l'état antérieur.
+
+Les côtés de raccordement sont déterminés par l'application d'après la position des deux cartes ; ils se modifient ensuite dans la barre de la connexion sélectionnée. S'il n'y a pas de seconde carte, la barre d'état le dit.
+
+### Rechercher dans la surface
+
+En tête de liste se trouve un **champ de filtre**. Il restreint la liste aux éléments qui contiennent le texte saisi. Sont parcourus
+
+- le **texte** d'une carte ainsi que l'intitulé d'une forme et d'un groupe,
+- la **cible de renvoi** d'une carte de lien et le **nom d'image** d'une carte d'image,
+- l'**intitulé** d'une connexion.
+
+La recherche porte sur une suite de caractères d'un seul tenant, sans égard à la casse — la même règle que dans la palette de commandes ; ni motifs ni correspondances approchées. Les occurrences sont mises en évidence dans la ligne, la ligne au-dessus de la liste les dénombre, et s'il ne reste rien, elle le dit au lieu de vider la liste sans un mot. Une carte demeure lorsqu'une de ses connexions correspond ; lorsque la carte elle-même correspond, toutes ses connexions demeurent avec elle. Tant qu'un filtre est actif, les cartes sont dépliées — une occurrence sous une carte repliée n'en serait pas une.
+
+| Saisie | Effet |
+| ------ | ----- |
+| `Entrée` | saute à l'occurrence : sélectionnée, centrée, focus dans la liste. Est prise la ligne sélectionnée si elle figure parmi les occurrences, sinon la première |
+| `Flèche bas` | de même ; de là, les flèches parcourent les autres occurrences |
+| `Échap` | vide le champ sans toucher à la sélection. Avec un champ vide, il reste sans effet |
+
+**`Ctrl+F` conduit dans ce champ dans la vue canevas** et non dans la barre de recherche. La raison : qui cherche dans cette vue cherche sur la surface devant lui ; la barre de recherche, elle, parcourt le texte du document et montre ses occurrences là où, dans cette vue, il n'y a rien à voir. Dans toute autre vue, `Ctrl+F` ouvre la barre de recherche comme auparavant, et si l'extension canevas est désactivée, cette vue n'existe pas, et cet aiguillage non plus.
+
 ## Consulter seulement
 
 La surface suit la modifiabilité de son document. Tant que le document est en simple affichage, sans mode édition, la surface est **consultable seulement** : pas de poignées, pas de glissement, pas de création, pas de saisie, pas de barre d'outils, pas de réordonnancement, et le menu contextuel reste sans entrées. Cela vaut pour chaque sorte — carte, connexion, forme et groupe. Le chemin par la palette de commandes et le menu n'y change rien non plus ; l'échec est dit dans la barre d'état et non passé sous silence. Déplacer la portion, zoomer et sélectionner un élément d'un clic restent permis, car cela ne touche pas au document.
@@ -411,5 +467,7 @@ se conditionnent
 - **Le dessin libre n'existe pas.** La surface connaît les six sortes de formes et aucune autre géométrie ; les traits à main levée, les flèches tracées soi-même et la saisie au stylet n'en font pas partie.
 - Une **connexion** relie uniquement des cartes ; elle ne se raccorde ni à une forme ni à un groupe.
 - Un lien dans le **propre texte** d'une carte n'apparaît ni dans le graphe des liens ni dans les rétroliens ; seule la cible d'une carte de lien compte. Une image n'obtient pas de nœud dans le graphe des liens.
-- La surface se manipule à la souris ; le clavier porte l'annulation, la suppression et les saisies de texte.
+- **Le glissement libre et le zoom n'existent pas au clavier.** La liste du canevas sélectionne, modifie, supprime et crée ; la position d'un élément ne se change au clavier que par les quatre commandes de l'ordre. Déplacer, redimensionner et bouger la portion restent réservés à la souris.
+- **La liste rend la surface manipulable, non parlante.** Elle énumère ce qui s'y trouve et ne remplace pas ce que montre l'agencement spatial.
+- **La recherche dans l'espace trouve toujours un document porteur d'une surface par son texte**, car la surface y figure en clair ; elle n'est pas pour autant une source d'occurrences à part. Les cartes, formes et groupes pris isolément n'apparaissent donc pas comme occurrences propres — c'est le champ de filtre de la liste du canevas qui les trouve.
 - Une surface appartient à son document. Les cartes ne peuvent pas être glissées d'une surface à une autre.

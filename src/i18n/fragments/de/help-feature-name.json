@@ -212,5 +212,6 @@
   "help.featureName.canvasGroups": "Gruppen auf der Canvas",
   "help.featureName.canvasStacking": "Reihenfolge auf der Canvas",
   "help.featureName.canvasLinkCards": "Verweis-Karten auf der Canvas",
-  "help.featureName.canvasImageCards": "Bild-Karten auf der Canvas"
+  "help.featureName.canvasImageCards": "Bild-Karten auf der Canvas",
+  "help.featureName.canvasList": "Karten-Liste der Canvas"
 }

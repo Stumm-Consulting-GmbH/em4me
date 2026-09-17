@@ -238,7 +238,8 @@ test.describe('SV-03: Normalisierung und Neustart', () => {
         // aus Release 0.95.0.
         // 4T-000844 (Epic 3E-000147): 15 -> 16 durch das Inhaltsverzeichnis des
         // Buches.
-        .toEqual({ count: 16, unique: 16, ghost: false });
+        // 4T-001774 (Epic 3E-000290): 16 -> 17 durch die Karten-Liste der Canvas.
+        .toEqual({ count: 17, unique: 17, ghost: false });
     } finally {
       // Profil behalten (kein userData-Cleanup) für den Neustart.
       await closeApp(first.app, null);

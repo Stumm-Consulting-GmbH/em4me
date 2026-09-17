@@ -345,6 +345,12 @@ const HELP_FEATURE_GROUPS = [
       // unmittelbar hinter den Verweis-Karten — beide sind Arbeits-Formen
       // derselben Karte und gehoeren nebeneinander.
       'help.feature.canvasImageCards',
+      // 4T-001772 (Epic 3E-000290): die Karten-Liste der vierten Canvas-Stufe,
+      // hinter den Bild-Karten. Liste, Bedienung ohne Maus und Suche in der
+      // Flaeche sind EIN Arbeits-Weg und stehen deshalb in EINER Zeile; die
+      // Reihenfolge folgt wie bei den Zeilen darueber den Stufen und nicht
+      // dem Alphabet.
+      'help.feature.canvasList',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

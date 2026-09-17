@@ -839,6 +839,14 @@ function buildMenu(win, state, actions) {
           accelerator: acc('canvas.addImageCard'),
           click: send('menu:canvasAddImageCard'),
         }),
+        // 4T-001770 (Epic 3E-000290): Verbindung von der gewaehlten Karte aus
+        // anlegen, hinter den fuenf Anlege-Wegen und mit derselben Bedingung.
+        unless('canvas.addConnection', {
+          label: t('command.canvas.addConnection'),
+          enabled: avail('canvas.addConnection'),
+          accelerator: acc('canvas.addConnection'),
+          click: send('menu:canvasAddConnection'),
+        }),
         // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
         // Elements, gebuendelt in einem Untermenue. Einzeln haetten sie das
         // Ansichtsmenue um vier kurze Zeilen verlaengert, die nur auf der

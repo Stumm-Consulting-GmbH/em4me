@@ -71,6 +71,8 @@ const TOGGLE_WEGE = new Map([
   ['toggleSubpagesPanel', 'subpages'],
   ['toggleFileGraphPanel', 'filegraph'],
   ['toggleSearchResultsPanel', 'searchresults'],
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche.
+  ['toggleCanvasListPanel', 'canvaslist'],
   ['toggleCalendarPanel', 'calendar'],
   ['toggleRemindersPanel', 'reminders'],
   ['toggleClockPanel', 'clock'],
@@ -95,6 +97,8 @@ const LADE_FUNKTIONEN = new Map([
   ['loadSubpagesSettings', 'subpages'],
   ['loadFileGraphSettings', 'filegraph'],
   ['loadSearchResultsSettings', 'searchresults'],
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche.
+  ['loadCanvasListSettings', 'canvaslist'],
   ['loadCalendarSettings', 'calendar'],
   ['loadRemindersSettings', 'reminders'],
   ['loadClockSettings', 'clock'],
@@ -160,10 +164,11 @@ describe('Ein Weg ins Panel (4T-001641)', () => {
   });
 
   // Die Menge vor dem Muster: Eine Erlaubnis-Liste, die niemand gegen den
-  // Bestand hält, ist eine Hintertür. Beide Gruppen decken genau die 16
+  // Bestand hält, ist eine Hintertür. Beide Gruppen decken genau die 17
   // registrierten Panels ab — je Panel ein Toggle-Weg und eine Lade-Funktion.
-  it('beide Gruppen decken genau die 16 registrierten Panels ab', () => {
-    expect(DEFAULT_PANEL_ORDER).toHaveLength(16);
+  // 4T-001769 (Epic 3E-000290): 16 -> 17 durch die Karten-Liste der Fläche.
+  it('beide Gruppen decken genau die 17 registrierten Panels ab', () => {
+    expect(DEFAULT_PANEL_ORDER).toHaveLength(17);
     expect([...TOGGLE_WEGE.values()].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
     expect([...LADE_FUNKTIONEN.values()].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
   });

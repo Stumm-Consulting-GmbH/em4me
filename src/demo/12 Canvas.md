@@ -83,6 +83,23 @@ first pass
 back and forth
 ```
 
+## The list beside the surface
+
+A surface grows, and what lies outside the visible section is hard to find by eye. The **canvas list** puts everything on the displayed surface into one list — cards, shapes and groups in stacking order, and under each card the connections attached to it. Open it with the list button in the status bar or through **View → Sidebar → Panels → Canvas list**.
+
+Click a row and the element is selected on the surface and moved into the centre; select something on the surface and its row lights up. From the list the surface can be worked without a mouse:
+
+| Key | What it does |
+| --- | ------------ |
+| `Arrow up` / `Arrow down` | walk through the rows; the surface follows |
+| `Home` / `End` | jump to the first or the last row |
+| `Enter` | edit the selected element |
+| `Del` | delete it |
+| context-menu key or `Shift+F10` | open its context menu — try “Add connection to canvas…” and pick the target with the arrow keys |
+| `Escape` | drop the selection |
+
+Type into the filter field at the head of the list to narrow it down: `sort` finds one card above, `backlinks` finds the link card by its target. In the canvas view `Ctrl+F` goes straight into that field instead of opening the search bar.
+
 ## How to read the block
 
 Every element starts with a marker in column 0; the lines below it are its content.

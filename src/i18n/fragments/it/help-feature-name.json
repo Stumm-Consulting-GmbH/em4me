@@ -212,5 +212,6 @@
   "help.featureName.canvasGroups": "Gruppi della tela",
   "help.featureName.canvasStacking": "Ordine di sovrapposizione della tela",
   "help.featureName.canvasLinkCards": "Schede di collegamento sulla tela",
-  "help.featureName.canvasImageCards": "Schede immagine sulla tela"
+  "help.featureName.canvasImageCards": "Schede immagine sulla tela",
+  "help.featureName.canvasList": "Elenco della tela"
 }

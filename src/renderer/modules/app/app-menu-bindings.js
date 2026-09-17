@@ -17,6 +17,7 @@ import {
   legeCanvasBildKarteAn,
   verschiebeCanvasElement,
 } from '../canvas/canvas-pane.js';
+import { starteCanvasVerbindung } from '../panels/panel-canvas-liste.js';
 import { toggleOutlinePanel } from '../panels/panel-outline.js';
 import { toggleOutgoingPanel } from '../panels/panel-outgoing.js';
 import { activateBacklinksFor, toggleBacklinksPanel } from '../panels/panel-backlinks.js';
@@ -170,6 +171,11 @@ export function bindMenuEvents() {
   // 4T-001748 (Epic 3E-000289): 'Bild-Karte auf der Flaeche anlegen'.
   if (typeof api.onMenuCanvasAddImageCard === 'function') {
     api.onMenuCanvasAddImageCard(() => legeCanvasBildKarteAn(state.activePaneIndex));
+  }
+  // 4T-001770 (Epic 3E-000290): 'Verbindung auf der Flaeche anlegen' — das
+  // Kommando startet die Ziel-Wahl in der Karten-Liste.
+  if (typeof api.onMenuCanvasAddConnection === 'function') {
+    api.onMenuCanvasAddConnection(() => starteCanvasVerbindung(state.activePaneIndex));
   }
   if (typeof api.onMenuCanvasStack === 'function') {
     api.onMenuCanvasStack((befehl) => verschiebeCanvasElement(state.activePaneIndex, befehl));

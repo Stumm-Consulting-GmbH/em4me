@@ -92,6 +92,18 @@ const PANEL_ACCESS = [
     commandId: 'view.toggleSearchResults',
     extensionId: null,
   },
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Flaeche, Abschluss der
+  // Finde-Gruppe der linken Seite. Erweiterungs-Gate auf 'canvas' (Entscheidung
+  // F1 des Product Owners vom 2026-09-15): Im Aus-Zustand gibt es die Flaeche
+  // nicht und damit auch nichts aufzuzaehlen; das commandId steht dafuer in der
+  // commands-Liste der Erweiterung, und der Paritaets-Waechter erzwingt das.
+  {
+    id: 'canvaslist',
+    titleKey: 'canvas.liste.titel',
+    buttonId: 'btn-canvas-list',
+    commandId: 'view.toggleCanvasList',
+    extensionId: 'canvas',
+  },
   {
     id: 'calendar',
     titleKey: 'calendar.title',

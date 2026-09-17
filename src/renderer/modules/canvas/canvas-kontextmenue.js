@@ -16,6 +16,12 @@
 // Menü-Helfer wäre der kürzere Weg und zöge den Canvas-Ordner in den grossen
 // Datei-Zyklus des Renderers, den der Ordner-Import-Wächter eingefroren hat.
 //
+// **4T-001770 (Epic 3E-000290): der Zugang ohne Zeiger.** Seit der Karten-Liste
+// übersetzt dieses Modul nicht mehr nur eine Zeiger-Stelle, sondern ebenso eine
+// bekannte Element-Art in dieselbe Liste von Handlungen — und gibt sie der
+// Karten-Bedienung als benannte Griffe weiter. Der Grund ist derselbe wie beim
+// Menü selbst: Die Zuordnung Art → Griff steht an genau einer Stelle.
+//
 // **Was das Menü NICHT tut**: schließen. Es liegt im gemeinsamen Menü-Element
 // des Fensters, und dessen Schließ-Wege gelten damit von selbst — Klick
 // außerhalb und die Escape-Kaskade in app-input-bindings.js. Die eine
@@ -41,6 +47,27 @@ const STAPEL_SCHLUESSEL = {
   eineStufeZurueck: 'command.canvas.stackBackward',
   ganzNachHinten: 'command.canvas.stackBack',
 };
+
+// 4T-001770 (Epic 3E-000290): Rückruf der Karten-Liste für «Verbindung
+// anlegen…». Er wird hier angemeldet und nicht importiert: Das Panel liegt
+// außerhalb dieses Ordners, und ein Import in seine Richtung zöge den
+// Canvas-Ordner in den großen Datei-Zyklus des Renderers, den der
+// Ordner-Import-Wächter als Ratsche eingefroren hat (Muster
+// `beobachteCanvasStand` in canvas-pane.js: gemeldet statt importiert).
+let verbindungsWahl = null;
+
+/**
+ * Meldet den Rückruf an, der die Ziel-Wahl einer neuen Verbindung startet.
+ *
+ * Ohne Anmeldung gibt es den Eintrag «Verbindung anlegen…» nicht — genau der
+ * Stand der reinen Zeichnungs-Prüffälle und jeder Einbettung ohne Panel.
+ *
+ * @param {Function|null} fn (kennung, wurzelEl) => void. `wurzelEl` ist die
+ *   Wurzel der Ansicht; das Panel löst daran die Spalte auf.
+ */
+export function registriereVerbindungsWahl(fn) {
+  verbindungsWahl = typeof fn === 'function' ? fn : null;
+}
 
 /**
  * Verdrahtet das Kontextmenü mit einer gezeichneten Fläche.
@@ -92,10 +119,12 @@ export function createCanvasKontextmenue(ctx) {
   // Liste, und `eintraegeFuer` wählt sie aus. 4T-001655 hängt die Verbindungen
   // als dritte Art daneben, ohne den Ereignis-Weg darunter anzufassen.
 
-  function hintergrundEintraege(ev) {
-    // Die Klick-Stelle wird jetzt gemerkt und nicht erst beim Auslösen
-    // gelesen: Das Menü steht dann längst woanders, und der Zeiger ebenso.
-    const punkt = bedienung.flaechenPunktAus(ev);
+  // 4T-001770: Der Punkt kommt vom Aufrufer statt aus dem Ereignis. Beim
+  // Rechtsklick ist es die Klick-Stelle, aus der Karten-Liste die Mitte des
+  // sichtbaren Ausschnitts — die bestehende Lage-Regel ohne Zeiger. Gemerkt
+  // wird er weiterhin vorab und nicht erst beim Auslösen gelesen: Das Menü
+  // steht dann längst woanders, und der Zeiger ebenso.
+  function hintergrundEintraege(punkt) {
     const eintraege = [
       {
         // Dieselbe Beschriftung wie in Menü und Palette: Es ist dieselbe
@@ -221,6 +250,25 @@ export function createCanvasKontextmenue(ctx) {
     return eintraege;
   }
 
+  // 4T-001770 (Epic 3E-000290): Die neue Verbindung ohne Maus. Der Eintrag
+  // startet die Ziel-Wahl in der Karten-Liste; angelegt wird danach über
+  // denselben Griff wie beim Zug am Anschluss-Punkt. Er erscheint nur, wenn
+  // beides da ist — die Liste, die die Gegenstelle wählen lässt, und die
+  // Bedienung der Verbindungen, die sie anlegt.
+  function verbindungsEintraege(id) {
+    if (!verbindungsWahl || !verbindungen) return [];
+    return [
+      {
+        // Dieselbe Beschriftung wie in Menü und Palette: Es ist dieselbe
+        // Handlung, und zwei Namen dafür wären zwei Funktionen im Kopf des
+        // Anwenders.
+        label: t('command.canvas.addConnection'),
+        dataId: 'canvas-card-connect',
+        action: () => verbindungsWahl(id, wurzelEl),
+      },
+    ];
+  }
+
   function kartenEintraege(id) {
     return [
       {
@@ -233,6 +281,7 @@ export function createCanvasKontextmenue(ctx) {
         dataId: 'canvas-card-delete',
         action: () => bedienung.loescheKarte(id),
       },
+      ...verbindungsEintraege(id),
       ...verweisEintraege(id),
       ...stapelEintraege(id),
     ];
@@ -356,42 +405,109 @@ export function createCanvasKontextmenue(ctx) {
     ];
   }
 
-  function eintraegeFuer(ev) {
+  /**
+   * Die Einträge zu einer bekannten Element-Art (4T-001770).
+   *
+   * Die Stelle, an der Art und Handlungs-Liste zusammenkommen. Sie steht
+   * eigens, weil sie zwei Fragesteller hat: den Rechtsklick, der die Art aus
+   * der Zeiger-Stelle bestimmt, und die Karten-Liste, die sie schon kennt.
+   *
+   * Gewählt wird dabei jedes Mal: Das Menü handelt von dem Element, und ohne
+   * sichtbare Auswahl bliebe offen, welches gemeint ist.
+   */
+  function eintraegeFuerArt(id, art) {
     // Befund 1 des Product Owners vom 2026-09-10: Im nicht änderbaren Dokument
     // gibt es keinen Eintrag — jeder von ihnen schreibt. Ein Menü mit einem
     // Hinweis «nichts möglich» wäre ein zweiter Weg, dasselbe zu sagen, das
     // die fehlenden Griffe schon sagen; deshalb erscheint es gar nicht.
     if (!bedienung.istAenderbar()) return [];
-    const linie = verbindungen ? verbindungen.kennungAn(ev.target) : null;
-    if (linie) {
-      // Wie bei der Karte: Der Rechtsklick wählt, damit Menü und Auswahl
-      // dasselbe Ziel meinen.
-      verbindungen.waehleLinie(linie);
-      return linienEintraege(linie);
+    if (art === 'linie' && verbindungen) {
+      verbindungen.waehleLinie(id);
+      return linienEintraege(id);
     }
+    if (art === 'form' && formen) {
+      formen.waehleForm(id);
+      return formEintraege(id);
+    }
+    if (art === 'gruppe' && gruppen) {
+      gruppen.waehleGruppe(id);
+      return gruppenEintraege(id);
+    }
+    if (art === 'karte') {
+      bedienung.waehleKarte(id);
+      return kartenEintraege(id);
+    }
+    // Ohne Element gilt das Menü der Fläche. Ohne Zeiger ist seine Stelle die
+    // Mitte des sichtbaren Ausschnitts — die bestehende Lage-Regel ohne
+    // Zeiger, und keine zweite daneben.
+    return hintergrundEintraege(bedienung.mitteDesAusschnitts());
+  }
+
+  function eintraegeFuer(ev) {
+    if (!bedienung.istAenderbar()) return [];
+    // Die Linie vor der Karte, weil eine Linie über einer Karte liegen kann
+    // und der Treffer dann ihr gilt (4T-001655).
+    const linie = verbindungen ? verbindungen.kennungAn(ev.target) : null;
+    if (linie) return eintraegeFuerArt(linie, 'linie');
     // 4T-001701: Die Form vor der Karte, weil beide in derselben Ebene liegen
     // und ein Treffer eindeutig zu einer von beiden gehört; die Reihenfolge
     // hier entscheidet nichts über den Stapel, sie ist die Auswertungs-Folge.
     const form = formen ? formen.kennungAn(ev.target) : null;
-    if (form) {
-      formen.waehleForm(form);
-      return formEintraege(form);
-    }
+    if (form) return eintraegeFuerArt(form, 'form');
     // 4T-001702: Die Gruppe wird über ihren Rand und ihre Beschriftung
     // getroffen; ihr Innenraum gehört dem, was darin liegt. Ein Rechtsklick
     // mitten in eine Gruppe meint deshalb die Karte darin oder — wenn dort
     // nichts liegt — den Hintergrund.
     const gruppe = gruppen ? gruppen.kennungAn(ev.target) : null;
-    if (gruppe) {
-      gruppen.waehleGruppe(gruppe);
-      return gruppenEintraege(gruppe);
-    }
+    if (gruppe) return eintraegeFuerArt(gruppe, 'gruppe');
     const id = bedienung.kennungAn(ev.target);
-    if (!id) return hintergrundEintraege(ev);
-    // Rechtsklick wählt die Karte: Das Menü handelt von ihr, und ohne
-    // sichtbare Auswahl bliebe offen, welche gemeint ist.
-    bedienung.waehleKarte(id);
-    return kartenEintraege(id);
+    if (!id) return hintergrundEintraege(bedienung.flaechenPunktAus(ev));
+    return eintraegeFuerArt(id, 'karte');
+  }
+
+  // --- Zugang ohne Zeiger (4T-001770) -------------------------------------------
+  //
+  // Die Karten-Liste bedient die Fläche ohne Maus und braucht dafür genau das,
+  // was dieses Modul ohnehin führt: die Zuordnung Element-Art → Griff. Sie geht
+  // deshalb von hier an die Karten-Bedienung, die der eine Eintritt der Liste
+  // ist (`zeigeElement`). Eine zweite Zuordnung im Panel wäre eine zweite
+  // Pflege-Stelle, die bei der nächsten neuen Handlung auseinanderliefe —
+  // dieselbe Begründung, mit der B6 das Kontextmenü zur vollständigen
+  // Handlungs-Liste macht.
+  const elementGriffe = {
+    /** Öffnet die Rohtext-Eingabe des Elements, wie es der Doppelklick tut. */
+    bearbeite(id, art) {
+      if (art === 'karte') return bedienung.bearbeiteKarte(id);
+      if (art === 'form' && formen) return formen.beschrifteForm(id);
+      if (art === 'gruppe' && gruppen) return gruppen.beschrifteGruppe(id);
+      if (art === 'linie' && verbindungen) return verbindungen.beschrifteLinie(id);
+      return false;
+    },
+    /** Löscht das Element, wie es `Entf` auf der Fläche tut. */
+    loesche(id, art) {
+      if (art === 'karte') return bedienung.loescheKarte(id);
+      if (art === 'form' && formen) return formen.loescheForm(id);
+      if (art === 'gruppe' && gruppen) return gruppen.loescheGruppe(id);
+      if (art === 'linie' && verbindungen) return verbindungen.loescheLinie(id);
+      return false;
+    },
+    /** Legt eine Verbindung zwischen zwei Karten an (Ziel-Wahl der Liste). */
+    verbinde(vonId, nachId) {
+      return !!verbindungen && verbindungen.verbindeKarten(vonId, nachId);
+    },
+    /** Öffnet das Menü an einer Stelle des Fensters, ohne Zeiger-Ereignis. */
+    oeffneMenue(id, art, x, y) {
+      const eintraege = eintraegeFuerArt(id, art);
+      // Ein leeres Menü wird nicht gezeigt (Befund 1), wie beim Rechtsklick:
+      // Ein Rahmen ohne Inhalt sähe nach einem Fehler aus, nicht nach einer
+      // Aussage.
+      if (eintraege.length === 0) return false;
+      zeigeMenue({ x, y, eintraege });
+      return true;
+    },
+  };
+  if (typeof bedienung.uebernimmElementGriffe === 'function') {
+    bedienung.uebernimmElementGriffe(elementGriffe);
   }
 
   // --- Ereignisse ---------------------------------------------------------------
@@ -445,6 +561,12 @@ export function createCanvasKontextmenue(ctx) {
     destroy() {
       buehne.removeEventListener('contextmenu', beiKontextmenue);
       wurzelEl.removeEventListener('keydown', beiTaste, true);
+      // 4T-001770: Die angemeldeten Griffe zeigen auf diese Instanz; sie gehen
+      // mit ihr. Die Bedienung überlebt zwar nicht lange, aber ein Zeiger auf
+      // eine gelöste Ansicht ist nie der Stand, in dem man sie zurücklässt.
+      if (typeof bedienung.uebernimmElementGriffe === 'function') {
+        bedienung.uebernimmElementGriffe(null);
+      }
     },
   };
 }

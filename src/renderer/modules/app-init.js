@@ -164,6 +164,9 @@ import { loadNotesSettings } from './panels/notes-panel.js';
 // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel (Init-Wiring, Toggle, Settings).
 // Der Import registriert zugleich das Panel in der Sidebar-Registry.
 import { loadSearchResultsSettings } from './search/search-panel.js';
+// 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Fläche (Settings). Der
+// Import registriert zugleich das Panel in der Sidebar-Registry.
+import { loadCanvasListSettings } from './panels/panel-canvas-liste.js';
 // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Panel des Buches (Init-Wiring,
 // Toggle, Settings). Der Import registriert zugleich das Panel in der
 // Sidebar-Registry. 4T-000846/4T-000847: dazu die Leseführung über
@@ -551,6 +554,8 @@ async function init() {
   await loadNotesSettings();
   // 4T-000759 (Epic 3E-000142): Suchergebnis-Panel-Sichtbarkeit pro Spalte laden.
   await loadSearchResultsSettings();
+  // 4T-001769 (Epic 3E-000290): Karten-Listen-Panel-Sichtbarkeit pro Spalte laden.
+  await loadCanvasListSettings();
   // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Panel-Sichtbarkeit pro Spalte laden.
   await loadBookPanelSettings();
   // 4T-000434 (Epic 3E-000081): Kalender-Panel-Sichtbarkeit pro Spalte laden.

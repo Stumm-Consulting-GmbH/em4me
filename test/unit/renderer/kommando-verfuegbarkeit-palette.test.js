@@ -131,7 +131,8 @@ const SECHS_FAELLE = [
 // 4T-001701 (Epic 3E-000288): Die fuenf Kommandos der Formen und der
 // Stapel-Reihenfolge kommen aus demselben Grund hinzu — sie sind juenger als
 // der Massstab, und die eingefrorene Kopie kennt sie nicht. 4T-001747 (Epic
-// 3E-000289): die Kommandos der Verweis- und der Bild-Karten ebenso.
+// 3E-000289): die Kommandos der Verweis- und der Bild-Karten ebenso. 4T-001770
+// (Epic 3E-000290): das Kommando der Verbindung ohne Maus, aus demselben Grund.
 const NACH_DER_MESSUNG = new Set([
   'view.modeCanvas',
   'canvas.addCard',
@@ -139,6 +140,7 @@ const NACH_DER_MESSUNG = new Set([
   'canvas.addGroup',
   'canvas.addLinkCard',
   'canvas.addImageCard',
+  'canvas.addConnection',
   'canvas.stackFront',
   'canvas.stackForward',
   'canvas.stackBackward',

@@ -406,6 +406,10 @@ const MENUE_BASISLINIE = new Map([
   ['canvas.addLinkCard', 'canvasKarte'],
   // 4T-001748 (Epic 3E-000289): die Bild-Karte derselben Stufe.
   ['canvas.addImageCard', 'canvasKarte'],
+  // 4T-001770 (Epic 3E-000290): die Verbindung ohne Maus, aus demselben Grund
+  // und mit derselben Bedingung; dass eine Karte GEWAEHLT sein muss, faengt der
+  // Guard der Karten-Liste und nicht der Bedingungs-Katalog.
+  ['canvas.addConnection', 'canvasKarte'],
   ['canvas.stackFront', 'canvasKarte'],
   ['canvas.stackForward', 'canvasKarte'],
   ['canvas.stackBackward', 'canvasKarte'],

@@ -205,6 +205,62 @@ Two ways lead there: the **context menu** of the element and **View → Canvas s
 - **Zoom** — mouse wheel over the surface, centred on the pointer.
 - **Fit** — on entering the view and on switching the surface, the section fits itself to the content.
 
+## Card list and operation without a mouse
+
+Beside the surface a **canvas list** can be shown. It lists what lies on the surface currently displayed and thereby makes the surface **enumerable**: an element outside the visible section can be found through the list without searching the surface, and a connection that runs underneath a card can be hit there reliably.
+
+Three ways show and hide the list, as with every other panel of the [sidebar](sidebar.md): the **button** in the status bar, **View → Sidebar → Panels → Canvas list** and the command palette (default `Ctrl+K`). No shortcut is preassigned; one can be given in the settings. The state holds per column and survives a change of document as well as a restart. With the canvas view switched off as an [internal extension](extensions.md) the list is gone — neither the button nor the menu entry nor the entry in the command palette remains.
+
+### What the list shows
+
+- **Every kind of element** — cards, shapes and groups, each row recognisable by its kind.
+- **Below each card its connections**, each with direction and counterpart. A fold handle on the card shows and hides them.
+- **The order of the list is the stacking order:** what stands further down in the list lies further to the front on the surface. A second display of the order is therefore not needed.
+- If the document carries **several surfaces**, the list belongs to the one currently displayed; switching through the tab strip switches the list along.
+- A row above the list names the **number of elements** — or says in its place that no document is open, that the document carries no surface, or that the surface is still empty.
+
+**Selection and list show the same thing, in both directions.** What is selected on the surface is highlighted in the list; what is selected in the list is highlighted on the surface and moves **into the centre of the section** — the zoom level stays as it is. If the document is not in the canvas view, selecting an entry leads there first; if the document carries no surface at all, the status bar says that there is no such view for it.
+
+### The keys in the list
+
+| Key | Effect |
+| --- | ------ |
+| `Arrow up`, `Arrow down` | to the previous or next row; the surface selects along and moves the element into the centre |
+| `Home`, `End` | to the first or last row |
+| `Enter` | edits the selected element — the text of a card, the label of a shape, a group or a connection |
+| `Del` | deletes the selected element |
+| context-menu key, `Shift+F10` | opens the context menu of the element; without a selected element the menu of the surface with its ways of creating |
+| `Escape` | drops the selection |
+
+Editing and deleting require an editable document and an open canvas view. If one of the two is missing, the status bar says so rather than quietly doing nothing; in a document that cannot be changed the list still shows and selects.
+
+### Adding a connection without a mouse
+
+The entry **“Add connection to canvas…”** in the context menu of a card starts the **target selection in the list**. It runs in two steps, because a connection has two ends and without a pointer there is no place where the counterpart could be named in passing:
+
+1. The starting card is the selected card.
+2. The list then walks over the **remaining cards** only, and the row above it says that a target is to be chosen. `Enter` confirms, a click on a card row does the same, `Escape` cancels and restores the state from before.
+
+The attachment sides are determined by the application from the position of the two cards; they can be changed afterwards on the toolbar of the selected connection. If there is no second card, the status bar says so.
+
+### Searching within the surface
+
+At the head of the list stands a **filter field**. It narrows the list to the elements that contain the text entered. Searched are
+
+- the **text** of a card as well as the label of a shape and of a group,
+- the **link target** of a link card and the **image name** of an image card,
+- the **label** of a connection.
+
+The search runs as one contiguous string, without regard to upper and lower case — the same rule as in the command palette; patterns and fuzzy matches do not exist. The matches are highlighted in the row, the row above the list counts them, and if nothing remains it says so rather than emptying the list without a word. A card stays when one of its connections matches; when the card itself matches, all its connections stay with it. While a filter is running the cards are unfolded — a match under a folded card would be none.
+
+| Input | Effect |
+| ----- | ------ |
+| `Enter` | jumps to the match: selected, centred, focus in the list. Taken is the selected row if it is among the matches, otherwise the first one |
+| `Arrow down` | the same; from there the arrow keys walk through the remaining matches |
+| `Escape` | clears the field without touching the selection. With an empty field it does not take effect |
+
+**`Ctrl+F` leads into this field in the canvas view** and not into the search bar. The reason: whoever searches in this view searches on the surface in front of them; the search bar, by contrast, searches the document text and shows its matches where nothing is to be seen in this view. In every other view `Ctrl+F` opens the search bar unchanged, and with the canvas extension switched off there is no such view and therefore no such switch either.
+
 ## Viewing only
 
 The surface follows the editability of its document. While the document is in plain display, with the edit mode switched off, the surface is **view-only**: no handles, no dragging, no creating, no text entry, no toolbar, no reordering, and the context menu stays empty. That holds for every kind — card, connection, shape and group. The way through command palette and menu does not get past it either; the failure is said in the status bar rather than kept quiet. Panning, zooming and selecting an element by click remain allowed, because they do not touch the document.
@@ -411,5 +467,7 @@ depend on each other
 - **There is no free drawing.** The surface knows the six shape kinds and no other geometry; freehand strokes, hand-drawn arrows and pen input are not part of it.
 - A **connection** runs between cards only; it cannot be attached to a shape or a group.
 - A link in the **own text** of a card does not appear in the link graph or in the backlinks; only the target of a link card counts. An image gets no node in the link graph.
-- The surface is operated with the mouse; the keyboard carries undo, delete and the text entries.
+- **Free dragging and zooming do not exist through the keyboard.** The canvas list selects, edits, deletes and creates; the position of an element is changed by the keyboard only through the four commands of the order. Moving, resizing and panning the section stay reserved for the mouse.
+- **The list makes the surface operable, not vivid.** It enumerates what lies there and does not replace what the spatial arrangement shows.
+- **The search in the area still finds a document with a surface through its text**, because the surface stands in plain text inside it; a source of matches of its own it is not. Single cards, shapes and groups therefore do not appear as matches of their own — those are found by the filter field of the canvas list.
 - A surface belongs to its document. Cards cannot be dragged from one surface to another.

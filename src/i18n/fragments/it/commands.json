@@ -138,5 +138,6 @@
   "command.canvas.stackBack": "Porta in fondo",
   "command.canvas.addGroup": "Aggiungi gruppo alla tela",
   "command.canvas.addLinkCard": "Aggiungi scheda di collegamento alla tela",
-  "command.canvas.addImageCard": "Aggiungi scheda immagine alla tela"
+  "command.canvas.addImageCard": "Aggiungi scheda immagine alla tela",
+  "command.canvas.addConnection": "Aggiungi collegamento alla tela…"
 }

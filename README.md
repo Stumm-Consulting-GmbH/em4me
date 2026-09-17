@@ -28,9 +28,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   members along when moved sit on the same surface, and one stacking order
   decides what lies on top. A card can also show another document — the whole
   file or just one heading or block — or an image from your area, and such a
-  reference counts in your network of links like any other. Unlike the graph
-  it computes nothing, it keeps what you laid out, and because it lives as
-  plain text inside the document, the cards stay readable anywhere.
+  reference counts in your network of links like any other. A list beside the
+  surface names everything on it, so the surface can be worked entirely from
+  the keyboard — create, label, connect, delete — and searched within. Unlike
+  the graph it computes nothing, it keeps what you laid out, and because it
+  lives as plain text inside the document, the cards stay readable anywhere.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside

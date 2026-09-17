@@ -562,6 +562,26 @@
       "status": "befoerdert",
       "vorgang": "4T-001756",
       "vermerk": "Befoerdert am 2026-09-14 bei der Sichtung als Schritt 6 der Release-Strecke des Zuges 3E-000310, gemeinsam mit BIC-01. Zweite Beobachtung; der neue Vorgang 4T-001756 traegt die Einordnung am gesicherten Beleg, dieser Eintrag bleibt als Spur stehen."
+    },
+    {
+      "spec": "test/e2e/funktionen/erweiterungen-extern.spec.js",
+      "fall": "EX-04: Verwaltungs-Bereich listet und deaktiviert sofort — Diagnose-Zugang oeffnet die Werkzeuge; das Ansichtsmenue fuehrt sie nicht mehr",
+      "datum": "2026-09-17",
+      "fehlerbild": "SIEBTE Beobachtung dieses Falls. Aufgetreten im LINUX-E2E-Voll-Lauf aus der Kopie im Container, Release-Strecke des Zuges 3E-000312 «Stufe 4 der Canvas» im Stamm-Clone SC-026/A, Schritt 6: 817 von 822 grün, 5 rot in 33,8 min, Lauf von 06:28 bis 07:02 UTC. Vier der fünf roten Fälle sind Folge des Zuges (veraltete zählende Prüffälle, behoben in 4T-001774); dieser Fall ist der fünfte und hat mit dem Zug nichts zu tun. Fingerabdruck unverändert gegenüber den sechs Vorgängern: TimeoutError, locator.click lief 30000 ms ins Leere in openExternalSection (erweiterungen-extern.spec.js:237, Helfer-Aufruf in Zeile 200, Fall-Einstieg Zeile 252), wartend auf den Navigations-Eintrag des Bereichs extensionsExternal; Beginn 06:39:30Z, Fall-Laufzeit 31,7 s. Beleg: test-berichte/rot/2026-09-17T07-02-06Z-zug-3E-000312-Stufe-4-Canvas-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Keine Vermutung nötig, die Ursache ist seit dem 2026-09-11 am Beleg abgelesen und in 4T-001699 beschrieben: Der Helfer openExternalSection pollt auf das VORHANDENSEIN der Einstellungs-Seite und drückt dabei je Durchgang erneut Strg+Komma, während der nächste Schritt SICHTBARKEIT braucht. Diese Beobachtung fügt dem Bild nichts hinzu. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: git diff --name-only v1.135.0..3460f71f0 -- src test/e2e nennt weder diese Prüfdatei noch ein Modul der Erweiterungs-Verwaltung; der Zug fasst die Canvas-Module, das Karten-Listen-Panel und das Zugangs-Modell der Panels an. Die eine Berührung in src/shared/extensions/extensions.js betrifft die INTERNE Erweiterung «canvas» (Funktions-Schlüssel und Kommando-Liste), während dieser Fall den Verwaltungs-Bereich EXTERNER Erweiterungen prüft.",
+      "status": "befoerdert",
+      "vorgang": "4T-001699",
+      "vermerk": "Siebte Beobachtung, die dem bestehenden Vorgang 4T-001699 beitritt (Pflege-Gefäß 3E-000156, Status Offen); kein neuer Vorgang. Nach der Sichtungs-Regel der Release-Strecke ist ein verorteter offener Fall eine Arbeitsliste und kein Signal; er blockiert die Abnahme nicht."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06",
+      "datum": "2026-09-17",
+      "fehlerbild": "NEUNTE BEOBACHTUNG; die achte steht unter dem 2026-09-14. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000312 «Stufe 4 der Canvas» im Stamm-Clone SC-026/A, Schritt 6: 817 von 822 grün, 5 rot in 64,7 min, Lauf von 06:25 bis 07:30 UTC. Vier der fünf roten Fälle sind Folge des Zuges (veraltete zählende Prüffälle, behoben in 4T-001774); dieser Fall ist der fünfte und hat mit dem Zug nichts zu tun. Abbruch-Stelle dieselbe wie bei allen Vorgängern, «Timeout 10000ms exceeded while waiting on the predicate», Fall «das Bereichs-Panel zeigt beide Einträge, im Aus-Zustand nur den Graph» (bereichs-statistik.spec.js:208, Zusicherung in Zeile 249); Beginn 06:33:10Z, Fall-Laufzeit 14,2 s. Isolierte Nachprüfung durch die Release-Sitzung am 2026-09-17 ohne parallele Last: grün in 3,0 s. Beleg: test-berichte/rot/2026-09-17T07-30-31Z-zug-3E-000312-Stufe-4-Canvas-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Unverändert lastbedingt und an derselben Stelle wie die acht Beobachtungen davor; die Beobachtung fügt dem Bild nichts hinzu außer einer weiteren Bestätigung. Die Last ist belegt und nicht bloß vermutet: Der Linux-E2E-Voll-Lauf derselben Strecke fuhr von 06:28 bis 07:02 UTC parallel über die Container-Brücke, und der Windows-Lauf lag mit 64,7 min beim rund 2,4-fachen der seriellen Referenz von 27,5 min. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: git diff --name-only v1.135.0..3460f71f0 -- src test/e2e nennt weder diese Prüfdatei noch ein Modul der Bereichs-Statistik oder des Bereichs-Panels.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Neunte Beobachtung, die dem bestehenden Vorgang 4T-001100 beitritt (Pflege-Gefäß 3E-000156, Status Zurückgestellt); kein neuer Vorgang. Die Bedingung für Weiteres liegt im Vorgang, nämlich seine Wiederaufnahme-Bedingung eines roten Laufs mit gesichertem Trace im bearbeitenden Arbeitsbereich."
     }
   ]
 }

@@ -385,6 +385,13 @@ export const state = {
   searchResults: {
     visibleByPane: [false, false],
   },
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Flaeche. Wie beim
+  // Suchergebnis-Panel liegt hier nur die Sichtbarkeit je Spalte; die Liste
+  // selbst wird bei jedem Zeichnen aus dem Dokument-Text abgeleitet und ist
+  // damit nie ein zweiter Zustand neben der Flaeche.
+  canvasList: {
+    visibleByPane: [false, false],
+  },
   // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Panel des Buches. Nur die
   // Sichtbarkeit je Spalte liegt hier; der Buch-Zustand selbst (Kapitel-Baum,
   // Lese-Ordnung, nicht eingehaengte und fehlende Kapitel) gehoert dem
@@ -760,6 +767,14 @@ function buildPaneEls(paneIdx) {
     // zwischen Status und Liste, damit die Vorschau sichtbar bleibt, waehrend
     // der Anwender entscheidet.
     searchResultsRename: root.querySelector('.sidebar-searchresults .search-results-rename'),
+    // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Flaeche. Status-Zeile
+    // (Umfang, Leerzustaende) plus die Liste der Elemente mit ihren
+    // Verbindungen.
+    canvasListSection: root.querySelector('.sidebar-canvaslist'),
+    canvasListStatus: root.querySelector('.sidebar-canvaslist .canvas-liste-status'),
+    canvasListList: root.querySelector('.sidebar-canvaslist .canvas-liste'),
+    // 4T-001771: Das Filter-Feld ueber der Liste (Entscheidung F4).
+    canvasListFilter: root.querySelector('.sidebar-canvaslist .canvas-liste-filter'),
     // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Sektion des Buches.
     // Leseführungs-Knöpfe im Kopf, Leer-Hinweis, Kapitel-Baum und der
     // Abschnitt „nicht eingehängt".

@@ -16,6 +16,7 @@ import {
   istCanvasDokument,
   canvasFenceBlock,
   canvasFlaechenTitel,
+  canvasListe,
   canvasUmfang,
   FORM_ARTEN,
   LINIEN_FARBEN,
@@ -663,6 +664,99 @@ describe('canvas-core — eine Liste über alle Element-Arten (G3, AK10)', () =>
       gruppen: 1,
       befunde: 0,
     });
+  });
+});
+
+// 4T-001769 (Epic 3E-000290): Die Fläche als Liste — die zweite Ansicht
+// desselben Modells (Story 4S-000948, AK1).
+describe('canvasListe — die Fläche als Liste (4T-001769)', () => {
+  const FLAECHE = [
+    '!karte k1 x=0 y=0 b=200 h=100',
+    'Fließtext davor',
+    '## Erste Karte',
+    '!form f1 x=300 y=0 b=80 h=80 art=oval',
+    'Ein Oval',
+    '!gruppe g1 x=-20 y=-20 b=600 h=600',
+    'Alles zusammen',
+    '!karte k2 x=0 y=300 b=200 h=100',
+    '!linie l1 k1 -> k2',
+    'hängt zusammen',
+    '!linie l2 k2 <-> k1',
+  ].join('\n');
+
+  const liste = () => canvasListe(parseCanvasFence(FLAECHE));
+
+  it('liefert die Elemente der Stapel-Ebene in Fence-Reihenfolge, mit ihrer Art', () => {
+    // Die Reihenfolge in der Fence IST die Stapel-Reihenfolge (G3); die
+    // Verbindungen fehlen mit Absicht — sie sind eine eigene Ebene und stehen
+    // unter ihren Karten.
+    expect(liste().map((e) => `${e.art}:${e.id}`)).toEqual([
+      'karte:k1',
+      'form:f1',
+      'gruppe:g1',
+      'karte:k2',
+    ]);
+  });
+
+  it('nennt je Element seinen Anzeige-Text', () => {
+    const [karte, form, gruppe, ohneText] = liste();
+    // Die Karte folgt der Titel-Regel der Vorschau: Eine Überschrift hat
+    // Vorrang vor der ersten Zeile.
+    expect(karte.text).toBe('Erste Karte');
+    // Form und Gruppe tragen ihre Beschriftung als Inhalts-Zeilen (G5, G6).
+    expect(form.text).toBe('Ein Oval');
+    expect(gruppe.text).toBe('Alles zusammen');
+    // Ohne Beschriftung wird nichts erfunden; die Anzeige entscheidet, was sie
+    // an diese Stelle setzt.
+    expect(ohneText.text).toBe('');
+  });
+
+  it('gibt je Karte ihre Verbindungen mit Gegenstelle und Richtung', () => {
+    const [k1, , , k2] = liste();
+    expect(k1.verbindungen).toEqual([
+      { id: 'l1', richtung: 'vor', ausgehend: true, gegenstelle: 'k2', text: 'hängt zusammen' },
+      { id: 'l2', richtung: 'beide', ausgehend: false, gegenstelle: 'k2', text: '' },
+    ]);
+    expect(k2.verbindungen.map((v) => `${v.id}:${v.ausgehend}`)).toEqual(['l1:false', 'l2:true']);
+    // Form und Gruppe haben keine Verbindungen: Sie hängen an keiner Linie.
+    expect(liste()[1].verbindungen).toEqual([]);
+  });
+
+  it('nennt das Ziel einer Verweis-Karte und die Art einer Form', () => {
+    const [karte, form] = canvasListe(
+      parseCanvasFence(
+        [
+          '!karte k1 x=0 y=0 b=10 h=10 doc="Import.md#Ziel"',
+          '# Mit Verweis',
+          '!form f1 x=0 y=0 b=10 h=10 art=stern',
+        ].join('\n'),
+      ),
+    );
+    expect(karte.ziel).toBe('Import.md#Ziel');
+    expect(form.formArt).toBe('stern');
+    // Ohne Angabe gilt die Vorgabe-Art; erfunden wird auch hier nichts.
+    expect(canvasListe(parseCanvasFence('!form f2 x=0 y=0 b=1 h=1'))[0].formArt).toBe('rechteck');
+  });
+
+  it('eine Verbindung auf sich selbst erscheint genau einmal', () => {
+    // Zwei Zeilen für dieselbe Linie wären in der Liste eine Dublette.
+    const eigen = canvasListe(parseCanvasFence('!karte k1 x=0 y=0 b=10 h=10\n!linie l1 k1 -> k1'));
+    expect(eigen[0].verbindungen).toHaveLength(1);
+    expect(eigen[0].verbindungen[0]).toMatchObject({ ausgehend: true, gegenstelle: 'k1' });
+  });
+
+  it('eine leere Fläche und ein fehlendes Modell liefern eine leere Liste', () => {
+    expect(canvasListe(parseCanvasFence(''))).toEqual([]);
+    expect(canvasListe(null)).toEqual([]);
+    expect(canvasListe({})).toEqual([]);
+  });
+
+  it('ein defektes Element bleibt in der Liste stehen (Fehler-Semantik 6.3)', () => {
+    // Eine Karte ohne gültige Größe ist ein Befund und kein Grund zu
+    // verschwinden — sonst wäre die Liste unvollständig, gerade wo sie hilft.
+    const model = parseCanvasFence('!karte k1 x=0 y=0 b=nichts h=10\n# Trotzdem da');
+    expect(model.errors.length).toBeGreaterThan(0);
+    expect(canvasListe(model).map((e) => e.id)).toEqual(['k1']);
   });
 });
 

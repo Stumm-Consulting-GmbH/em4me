@@ -106,6 +106,11 @@ import {
 import { fuegeProfilAbfrageEin } from '../properties/properties-profil-abfrage.js';
 import { activeNotesEditorView, toggleNotesPanel } from '../panels/notes-panel.js';
 import { toggleSearchResultsPanel } from '../search/search-panel.js';
+import {
+  oeffneCanvasSuche,
+  starteCanvasVerbindung,
+  toggleCanvasListPanel,
+} from '../panels/panel-canvas-liste.js';
 import { stepReading, toggleBookPanel } from '../books/book-panel.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
 import { toggleBlockPropsPanel } from '../properties/block-props-panel.js';
@@ -441,6 +446,13 @@ export const commandHandlers = {
   'canvas.addImageCard': () => {
     return legeCanvasBildKarteAn(state.activePaneIndex);
   },
+  // 4T-001770 (Epic 3E-000290): Verbindung von der gewaehlten Karte aus
+  // anlegen. Das Kommando startet die Ziel-Wahl in der Karten-Liste; die
+  // Gegenstelle ist die zweite Haelfte der Handlung und ohne Zeiger nur dort
+  // zu benennen.
+  'canvas.addConnection': () => {
+    return starteCanvasVerbindung(state.activePaneIndex);
+  },
   // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
   // Elements. Sie rufen dieselbe Einbettung wie der Menue-Weg; der Name des
   // Befehls ist der des Kerns, damit die Kette keinen Uebersetzungs-Schritt
@@ -491,6 +503,10 @@ export const commandHandlers = {
   // 4T-000759 (Epic 3E-000142): Suchergebnis-Sektion toggeln.
   'view.toggleSearchResults': () => {
     toggleSearchResultsPanel(state.activePaneIndex);
+  },
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Flaeche toggeln.
+  'view.toggleCanvasList': () => {
+    toggleCanvasListPanel(state.activePaneIndex);
   },
   // 4T-000844 (Epic 3E-000147): Inhaltsverzeichnis-Sektion des Buches toggeln.
   'view.toggleBookPanel': () => {
@@ -575,7 +591,14 @@ export const commandHandlers = {
     moveActiveTabBetweenPanes('left');
   },
   'search.open': () => {
-    openSearchBar();
+    // 4T-001771 (Epic 3E-000290): In der Canvas-Ansicht fuehrt Strg+F in das
+    // Filter-Feld der Karten-Liste statt in die Suchleiste (Entscheidung F4 des
+    // Product Owners vom 2026-09-15). Grund: Der Editor ist dort per CSS
+    // versteckt, determineSearchScope() faellt auf 'rendered' zurueck, und die
+    // Leiste sucht verlaesslich ins Leere. Die Weiche steht hier und nicht in
+    // der Suche: Die Leiste selbst bleibt unveraendert, und in jeder anderen
+    // Ansicht laeuft dieselbe Zeile wie zuvor.
+    if (!oeffneCanvasSuche(state.activePaneIndex)) openSearchBar();
   },
   'search.openReplace': () => {
     // Ersetzen ist nur im Edit-Modus aktiv (Source ist editierbar); der

@@ -390,6 +390,8 @@ const PANEL_RAW_VISIBLE = {
   // dieser Tabelle seit ihrer Einfuehrung; unbekannte IDs liefern false, das
   // Menue-Haekchen der Suchergebnisse blieb dadurch dauerhaft leer.
   searchresults: (paneIdx) => !!(state.searchResults && state.searchResults.visibleByPane[paneIdx]),
+  // 4T-001769 (Epic 3E-000290): Karten-Liste der Canvas-Flaeche.
+  canvaslist: (paneIdx) => !!(state.canvasList && state.canvasList.visibleByPane[paneIdx]),
   calendar: (paneIdx) => !!(state.calendar && state.calendar.visibleByPane[paneIdx]),
   reminders: (paneIdx) => !!(state.reminders && state.reminders.visibleByPane[paneIdx]),
   clock: (paneIdx) => !!(state.clock && state.clock.visibleByPane[paneIdx]),

@@ -41,13 +41,33 @@ const DE_JSON = JSON.parse(
   fs.readFileSync(path.resolve(HERE, '..', '..', 'src', 'i18n', 'de.json'), 'utf8'),
 );
 
+// 4T-001769 (Abnahme-Befund vom 2026-09-16): der Renderer-Bestand als Text,
+// gelesen im Modulkopf (Regel «Bestands-Lesungen gehören in den Modulkopf»,
+// test/README.md). Grundlage des Verdrahtungs-Wächters weiter unten.
+const RENDERER_MODULE_DIR = path.resolve(HERE, '..', '..', 'src', 'renderer', 'modules');
+
+function sammleJsDateien(dir, out = []) {
+  for (const eintrag of fs.readdirSync(dir, { withFileTypes: true })) {
+    const abs = path.join(dir, eintrag.name);
+    if (eintrag.isDirectory()) sammleJsDateien(abs, out);
+    else if (eintrag.name.endsWith('.js')) out.push(abs);
+  }
+  return out;
+}
+
+const RENDERER_QUELLEN = sammleJsDateien(RENDERER_MODULE_DIR).map((abs) => ({
+  rel: `src/renderer/modules/${path.relative(RENDERER_MODULE_DIR, abs).split(path.sep).join('/')}`,
+  text: fs.readFileSync(abs, 'utf8'),
+}));
+
 describe('Paritäts-Wächter Panel-Zugänge (4T-000567)', () => {
   // 4T-000372 (Epic 3E-000069): 13 -> 14 durch das Uhr-Panel.
   // 4T-000759 (Epic 3E-000142): 14 -> 15 durch das Suchergebnis-Panel.
   // 4T-000844 (Epic 3E-000147): 15 -> 16 durch das Inhaltsverzeichnis des Buches.
-  it('Modell und Renderer-Registry führen dieselbe 16er-ID-Menge', () => {
+  // 4T-001769 (Epic 3E-000290): 16 -> 17 durch die Karten-Liste der Canvas-Fläche.
+  it('Modell und Renderer-Registry führen dieselbe 17er-ID-Menge', () => {
     const modelIds = PANEL_ACCESS.map((p) => p.id);
-    expect(modelIds.length).toBe(16);
+    expect(modelIds.length).toBe(17);
     expect(new Set(modelIds).size).toBe(modelIds.length);
     expect([...modelIds].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
   });
@@ -107,6 +127,34 @@ describe('Paritäts-Wächter Panel-Zugänge (4T-000567)', () => {
       expect(
         src.includes(`buttonId: '${p.buttonId}'`),
         `keine registerSidebarPanel-Definition nennt buttonId '${p.buttonId}' (${p.id})`,
+      ).toBe(true);
+    }
+  });
+
+  // 4T-001769 (Abnahme-Befund des Product Owners vom 2026-09-16): Der
+  // Statusleisten-Knopf der Karten-Liste stand in der Leiste, trug sein Symbol,
+  // war im Modell geführt — und tat nichts, weil ihm der Klick-Zuhörer fehlte.
+  // Die Prüffälle darüber messen die EXISTENZ beider Zugänge; die Wirkung des
+  // einen lag zwischen ihnen und der Bedienung und blieb ungeprüft. Dieser Fall
+  // schließt die Lücke gegenständlich: Zu jedem `buttonId` des Modells muss
+  // irgendwo im Renderer-Bestand ein Klick-Zuhörer an genau diesem Element
+  // hängen. Gemessen wird der Quelltext und nicht die laufende App, weil die
+  // Verdrahtung in einer zentralen Datei ausserhalb des Panel-Moduls wohnt
+  // (app-bindings.js; die Ausnahme area-panel.js bindet beim Modul-Laden) und
+  // ein Bestands-Scan genau diese Streuung erträgt. Den Weg des Anwenders misst
+  // zusätzlich PZ-10 in test/e2e/funktionen/panel-zugänge.spec.js.
+  it('jeder Panel-Button trägt einen Klick-Zuhörer im Renderer-Bestand', () => {
+    for (const p of PANEL_ACCESS) {
+      // Das Element wird in eine Variable geholt und der Zuhörer an DIESE
+      // Variable gehängt (Muster aller 17 Bindungs-Stellen); die Rückbindung
+      // über \1 verhindert, dass ein beliebiger Zuhörer in der Nachbarschaft
+      // als Verdrahtung durchgeht.
+      const muster = new RegExp(
+        `(?:const|let|var)\\s+([A-Za-z0-9_$]+)\\s*=\\s*(?:document\\.getElementById|\\$)\\(\\s*['"]#?${p.buttonId}['"]\\s*\\)[\\s\\S]{0,300}?\\b\\1\\.addEventListener\\(\\s*['"]click['"]`,
+      );
+      expect(
+        RENDERER_QUELLEN.some((datei) => muster.test(datei.text)),
+        `Statusleisten-Knopf ${p.buttonId} (${p.id}) hat keinen Klick-Zuhörer im Renderer-Bestand — der Knopf wäre sichtbar und wirkungslos`,
       ).toBe(true);
     }
   });
